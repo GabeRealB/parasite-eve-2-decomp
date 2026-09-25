@@ -1,11 +1,1 @@
 // Overlay-local symbols for actor_260400.
-ActorsShared80131f9cSub0 = 0x80149FE0; // shared body's overlay-local callee, see src/lib/
-ActorsShared80131f9cSub1 = 0x8014A5AC; // shared body's overlay-local callee, see src/lib/
-ActorsShared80131f9cWork = 0x80154C70; // shared body data, see src/lib/
-ActorsShared80131f9c = 0x8014A550; // shared body, see src/lib/
-ActorsShared80132378 = 0x8014A66C; // shared body, see src/lib/
-ActorsShared80132538 = 0x8014A7F8; // shared body, see src/lib/
-ActorsShared80132840 = 0x8014A7AC; // shared body, see src/lib/
-func_actor_260400_8014A7AC = 0x8014A7AC; // type:func absolute:True
-ActorsShared80132a98 = 0x8014AA28; // shared body, see src/lib/
-func_actor_260400_8014AA28 = 0x8014AA28; // type:func absolute:True

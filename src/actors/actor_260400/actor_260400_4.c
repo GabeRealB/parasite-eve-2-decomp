@@ -15,14 +15,14 @@ INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400_4", func_actor_260400
 s32 func_actor_260400_8014A908(Task* task, s32 arg1, Actor260400AnimPreset* preset)
 {
     if (preset->field_4 < 0x10) {
-        ActorsShared80131f9cWork->field_4B8 = preset->field_4;
+        D_actor_260400_80154C70->field_4B8 = preset->field_4;
         if (preset->field_8 != 0) {
-            ActorsShared80131f9cWork->field_4B4 = 1;
-            D_actor_260400_80154BE4             = preset->field_C;
+            D_actor_260400_80154C70->field_4B4 = 1;
+            D_actor_260400_80154BE4            = preset->field_C;
         } else {
-            ActorsShared80131f9cWork->field_4B4 = 2;
+            D_actor_260400_80154C70->field_4B4 = 2;
         }
-        ActorsShared80131f9cWork->field_4BA = 0;
+        D_actor_260400_80154C70->field_4BA = 0;
         func_actor_260400_8014A200(D_actor_260400_80154C74);
         return 0;
     }
@@ -39,7 +39,7 @@ s32 func_actor_260400_8014A998(Task* task, s32 arg1, s32 arg2)
     TmdObject* helperObj;
 
     obj       = (TmdObject*)D_actor_260400_80154C74->extra;
-    helperObj = (TmdObject*)ActorsShared80131f9cWork->field_4F0->extra;
+    helperObj = (TmdObject*)D_actor_260400_80154C70->field_4F0->extra;
 
     if (arg2 & 1) {
         obj->flags       = 0;
@@ -52,7 +52,7 @@ s32 func_actor_260400_8014A998(Task* task, s32 arg1, s32 arg2)
         obj->flags       |= 4;
         helperObj->flags |= 4;
     }
-    if ((u8)ActorsShared80131f9cWork->field_4F4 == 0) {
+    if ((u8)D_actor_260400_80154C70->field_4F4 == 0) {
         helperObj->flags = 0x84;
     }
     return 0;

@@ -6,30 +6,30 @@
 #include "gameplay/1BC.h"
 #include "main/task.h"
 
-/// Work block this overlay hangs off the task's `Task::work` slot (0x1C),
-/// which is not a `TaskIdMap` here. The overlay's state-0 handler
-/// (`ActorsShared80131f9cSub0`, here at 0x80149FE0) allocates it
-/// with `memCalloc(0x4F8, 0)` and stores it straight into that field, so the
-/// size below is the allocation and not a guess. Reach it with
-/// `(Actor260400Work*)task->work`.
+/// Work block this overlay hangs off the task's `Task::work` slot. The
+/// actor's spawn routine, `func_actor_260400_80149FE0`, allocates it with
+/// `memCalloc(0x4F8, 0)` and stores it both there and in
+/// `D_actor_260400_80154C70`, so the size below is the allocation.
 ///
 /// It opens with the light and colour matrices the actor's model is drawn
 /// under, then the animation context with twenty slots and one 0x10-byte pose
-/// record per slot, the layout `Actor202900Work` also has.
+/// record per slot.
 ///
-/// The task at +0x4F0 is the helper task this actor spawns; the exit callback
-/// `func_actor_260400_8014A630` kills it on teardown.
+/// The task at `field_4F0` is the helper task the spawn routine starts; the
+/// exit callback `func_actor_260400_8014A630` kills it on teardown.
 typedef struct Actor260400Work {
     /* 0x000 */ MATRIX     light;
     /* 0x020 */ MATRIX     color;
     /* 0x040 */ GpAnimCtx  anim;
     /* 0x054 */ GpAnimSlot slots[0x14];
     /* 0x374 */ byte       poses[0x14][0x10];
-    /* 0x4B4 */ s16        field_4B4; // animation reset mode `func_actor_260400_8014A908` latches; `func_actor_260400_8014A200` dispatches on it (1 reseeds via `func_actor_260400_8014A888`, 2 via `ActorsShared80132538`)
-    /* 0x4B6 */ byte       pad_4B6[0x2];
+    /* 0x4B4 */ s16        field_4B4; // animation reset mode `func_actor_260400_8014A908` latches; `func_actor_260400_8014A200` dispatches on it (1 reseeds via `func_actor_260400_8014A888`, 2 via `func_actor_260400_8014A7F8`)
+    /* 0x4B6 */ s16        field_4B6; // copy of `field_4B8` the reseeds record as the animation now playing
     /* 0x4B8 */ s16        field_4B8; // animation id the reset is seeded with, latched from the preset's `field_4`
     /* 0x4BA */ s16        field_4BA; // cleared before the reset is handed to `func_actor_260400_8014A200`
-    /* 0x4BC */ byte       pad_4BC[0x2E];
+    /* 0x4BC */ byte       pad_4BC[0x2A];
+    /* 0x4E6 */ u16        yaw;       // last yaw the placement handler `func_actor_260400_8014AA28` handed to `Gfx_RotMatrixY`
+    /* 0x4E8 */ byte       pad_4E8[0x2];
     /* 0x4EA */ s16        field_4EA; // Role unproven: the state-0 handler clears it
     /* 0x4EC */ s16        field_4EC; // animation reset argument, latched to 0x14 by the case-0 branch of `func_actor_260400_8014AAA4`
     /* 0x4EE */ byte       pad_4EE[0x2];
@@ -62,11 +62,10 @@ typedef struct Actor260400AnimPreset {
 } Actor260400AnimPreset;
 STATIC_ASSERT_SIZEOF(Actor260400AnimPreset, 0x10);
 
-/// The block above, published by `ActorsShared80131f9c` from the task's
-/// `Task::work`. Declared here with the type the overlay reads it through,
-/// the same way `include/actors/actor_143900.h` does; the shared header
-/// publishes the bare `void*`.
-extern Actor260400Work* ActorsShared80131f9cWork;
+/// The block above, published by the spawn routine and by the dispatcher
+/// `func_actor_260400_8014A550` on every frame, so the message handlers and the
+/// animation loops reach it without the task.
+extern Actor260400Work* D_actor_260400_80154C70;
 
 /// Reset argument the reseed forwards, read back signed by
 /// `func_actor_260400_8014A888`: the play-animation handler latches the
@@ -79,11 +78,15 @@ extern s16 D_actor_260400_80154BE4;
 /// steps it and `func_actor_260400_8014A908` hands it the reseed.
 extern Task* D_actor_260400_80154C74;
 
-/// Exit callback the state-0 handler installs.
-void func_actor_260400_8014A630(Task* task);
+void func_actor_260400_80149FE0(GpEnemy* enemy, Task* task);
 void func_actor_260400_8014A200(Task* task);
-
-s32 func_actor_260400_8014A908(Task* task, s32 arg1, Actor260400AnimPreset* preset);
-s32 func_actor_260400_8014AAA4(Task* task, s32 arg1, Actor260400Msg* msg);
+void func_actor_260400_8014A550(Task* task);
+void func_actor_260400_8014A5AC(GpEnemy* enemy, Task* task);
+void func_actor_260400_8014A630(Task* task);
+void func_actor_260400_8014A66C(Task* task);
+void func_actor_260400_8014A7AC(void);
+void func_actor_260400_8014A7F8(void);
+s32  func_actor_260400_8014A908(Task* task, s32 arg1, Actor260400AnimPreset* preset);
+s32  func_actor_260400_8014AAA4(Task* task, s32 arg1, Actor260400Msg* msg);
 
 #endif

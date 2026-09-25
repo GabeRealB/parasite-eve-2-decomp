@@ -14,22 +14,22 @@ s32 func_actor_260400_8014AAA4(Task* task, s32 arg1, Actor260400Msg* msg)
     TmdObject* obj;
     s32        mode;
 
-    obj  = (TmdObject*)ActorsShared80131f9cWork->field_4F0->extra;
+    obj  = (TmdObject*)D_actor_260400_80154C70->field_4F0->extra;
     mode = msg->field_2;
 
     switch (mode) {
         case 0:
-            ActorsShared80131f9cWork->field_4EC = 0x14;
+            D_actor_260400_80154C70->field_4EC = 0x14;
             break;
         case 1:
             if (func_800B7420(0x88) == 0) {
-                ActorsShared80131f9cWork->field_4F4 = mode;
-                obj->flags                          = 0;
+                D_actor_260400_80154C70->field_4F4 = mode;
+                obj->flags                         = 0;
             }
             break;
         case 2:
-            ActorsShared80131f9cWork->field_4F4 = 0;
-            obj->flags                          = 0x84;
+            D_actor_260400_80154C70->field_4F4 = 0;
+            obj->flags                         = 0x84;
             break;
     }
     return 0;

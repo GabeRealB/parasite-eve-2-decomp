@@ -6,9 +6,10 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-void ActorsShared80132378(Task* task);
-
-void ActorsShared80131f9cSub1(GpEnemy* enemy, Task* task)
+/// Per-frame state (state 1 of `func_actor_260400_8014A550`): refreshes the
+/// model root's world matrix, relights the model from a point 0x320 above its
+/// translation, then runs the update and draws the ground shadow.
+void func_actor_260400_8014A5AC(GpEnemy* enemy, Task* task)
 {
     TmdObject*     obj;
     GsCOORDINATE2* coord;
@@ -22,7 +23,7 @@ void ActorsShared80131f9cSub1(GpEnemy* enemy, Task* task)
     pos.vz = coord->workm.t[2];
     func_800D7A9C(obj, &pos, 0, 3);
     func_actor_260400_8014A200(task);
-    ActorsShared80132378(task);
+    func_actor_260400_8014A66C(task);
 }
 
 void func_actor_260400_8014A630(Task* task)

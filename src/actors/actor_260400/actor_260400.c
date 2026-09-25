@@ -77,11 +77,15 @@ void func_actor_260400_80149FA4(void)
     }
 }
 
-/// Step 0 of the `ActorsShared80131f9c` dispatcher: allocate and publish the
-/// work block, seed the model's matrices and animation context, then start the
-/// helper task and texture its model from the placement the actor was spawned
-/// from before running the first step body.
-void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
+/// Spawn routine (state 0 of `func_actor_260400_8014A550`): allocates the work
+/// block and publishes it in `D_actor_260400_80154C70` and the task's `work`
+/// slot, binds the model to the view and hands it the block's light and colour
+/// matrices, publishes the task in `D_actor_260400_80154C74`, relights the
+/// model from a point 0x320 above its translation and binds the animation
+/// stream. It then starts the helper task and textures the helper's model from
+/// the area placement record the spawning enemy names, before running the
+/// first update with the reset mode 2 / id 1 it seeds.
+void func_actor_260400_80149FE0(GpEnemy* enemy, Task* task)
 {
     VECTOR         vec;
     GpAreaKey      key;
@@ -96,11 +100,11 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     GpAreaKey*     keyPtr;
     void*          work;
 
-    obj                      = task->extra;
-    coord                    = obj->coords;
-    work                     = memCalloc(0x4F8, 0);
-    ActorsShared80131f9cWork = work;
-    task->work               = work;
+    obj                     = task->extra;
+    coord                   = obj->coords;
+    work                    = memCalloc(0x4F8, 0);
+    D_actor_260400_80154C70 = work;
+    task->work              = work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
@@ -113,27 +117,27 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     enemy->node.flags       = 1;
     obj->otOffset           = 1;
     obj->flags              = 0;
-    obj->lightMtx           = &ActorsShared80131f9cWork->light;
-    obj->colorMtx           = &ActorsShared80131f9cWork->color;
+    obj->lightMtx           = &D_actor_260400_80154C70->light;
+    obj->colorMtx           = &D_actor_260400_80154C70->color;
     vec.vx                  = coord->workm.t[0];
     vec.vy                  = coord->workm.t[1] - 0x320;
     D_actor_260400_80154C74 = task;
     vec.vz                  = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&ActorsShared80131f9cWork->anim, D_actor_260400_80154C30, obj,
-                  ActorsShared80131f9cWork->poses, ActorsShared80131f9cWork->slots);
-    ActorsShared80131f9cWork->field_4B8 = 1;
-    ActorsShared80131f9cWork->field_4B4 = 2;
-    spawned                             = Task_SpawnFromTable(D_actor_260400_80154C18, 1, 8, 0);
+    func_800B3F84(&D_actor_260400_80154C70->anim, D_actor_260400_80154C30, obj,
+                  D_actor_260400_80154C70->poses, D_actor_260400_80154C70->slots);
+    D_actor_260400_80154C70->field_4B8 = 1;
+    D_actor_260400_80154C70->field_4B4 = 2;
+    spawned                            = Task_SpawnFromTable(D_actor_260400_80154C18, 1, 8, 0);
     if (spawned != NULL) {
-        ActorsShared80131f9cWork->field_4F0 = spawned;
-        sessionKey                          = (GpAreaKey*)&gGameSession->at4.loc;
-        model                               = spawned->extra;
-        raw                                 = ((GpEnemy*)task->spawnArg2)->placeKey;
-        key.stage                           = sessionKey->stage;
-        key.area                            = sessionKey->area;
-        key.room                            = sessionKey->room;
-        keyPtr                              = &key;
+        D_actor_260400_80154C70->field_4F0 = spawned;
+        sessionKey                         = (GpAreaKey*)&gGameSession->at4.loc;
+        model                              = spawned->extra;
+        raw                                = ((GpEnemy*)task->spawnArg2)->placeKey;
+        key.stage                          = sessionKey->stage;
+        key.area                           = sessionKey->area;
+        key.room                           = sessionKey->room;
+        keyPtr                             = &key;
         TOUCH_REG(keyPtr);
         key.view = sessionKey->view;
         idx      = raw >> 12;
@@ -146,10 +150,10 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
             tmdProcessStream(model);
         }
     }
-    ActorsShared80131f9cWork->field_4EA = 0;
-    ActorsShared80131f9cWork->field_4EC = 0;
-    ActorsShared80131f9cWork->field_4F4 = 0;
-    task->msgTable                      = D_actor_260400_80154BE8;
+    D_actor_260400_80154C70->field_4EA = 0;
+    D_actor_260400_80154C70->field_4EC = 0;
+    D_actor_260400_80154C70->field_4F4 = 0;
+    task->msgTable                     = D_actor_260400_80154BE8;
     func_actor_260400_8014A200(task);
     task->state++;
 }
