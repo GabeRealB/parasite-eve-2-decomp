@@ -817,16 +817,16 @@ void func_dryfield_night_main_street_8017F128(SVECTOR* arg0, s32 arg1, s32 arg2)
         setRGB0(prim, blend, blend, blend);
         ((RoomDraw13Scratch*)tmp)->radius =
             (t - sarg) / ((RoomDraw13Scratch*)(head - 0x10))->otz;
-        xy       = *(u16*)&((RoomDraw13Scratch*)tmp)->sx - (u16)((RoomDraw13Scratch*)tmp)->radius;
+        xy       = ((RoomDraw13Scratch*)tmp)->sx - (u16)((RoomDraw13Scratch*)tmp)->radius;
         prim->x2 = xy;
         prim->x0 = xy;
-        xy       = *(u16*)&((RoomDraw13Scratch*)tmp)->sx + (u16)((RoomDraw13Scratch*)tmp)->radius;
+        xy       = ((RoomDraw13Scratch*)tmp)->sx + (u16)((RoomDraw13Scratch*)tmp)->radius;
         prim->x3 = xy;
         prim->x1 = xy;
-        xy       = *(u16*)&((RoomDraw13Scratch*)tmp)->sy - (u16)((RoomDraw13Scratch*)tmp)->radius;
+        xy       = ((RoomDraw13Scratch*)tmp)->sy - (u16)((RoomDraw13Scratch*)tmp)->radius;
         prim->y1 = xy;
         prim->y0 = xy;
-        xy       = *(u16*)&((RoomDraw13Scratch*)tmp)->sy + (u16)((RoomDraw13Scratch*)tmp)->radius;
+        xy       = ((RoomDraw13Scratch*)tmp)->sy + (u16)((RoomDraw13Scratch*)tmp)->radius;
         prim->y3 = xy;
         prim->y2 = xy;
         addPrim((u_long*)(((((u32)((RoomDraw13Scratch*)(head - 0x10))->otz << ds->otDepthShift) >> 2) & 0xFFC) +
@@ -961,19 +961,19 @@ void func_dryfield_night_main_street_8017F608(GpCoord* arg0, s32 arg1, s32 arg2,
                 ((span / ((GpEffFlareScratch*)(head - 0x1C))->otz) * sine) >> 12;
             block->dy =
                 ((span / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(ang)) >> 12;
-            prim->x0 = *(u16*)&block->sx + (u16)block->dx;
-            prim->x3 = *(u16*)&block->sx - (u16)block->dx;
-            prim->y0 = *(u16*)&block->sy - (u16)block->dy;
-            prim->y3 = *(u16*)&block->sy + (u16)block->dy;
+            prim->x0 = block->sx + (u16)block->dx;
+            prim->x3 = block->sx - (u16)block->dx;
+            prim->y0 = block->sy - (u16)block->dy;
+            prim->y3 = block->sy + (u16)block->dy;
             ang2     = ang + 0x400;
             block->dx =
                 ((span / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rsin(ang2)) >> 12;
             block->dy =
                 ((span / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(ang2)) >> 12;
-            prim->x1 = *(u16*)&block->sx + (u16)block->dx;
-            prim->x2 = *(u16*)&block->sx - (u16)block->dx;
-            prim->y1 = *(u16*)&block->sy - (u16)block->dy;
-            prim->y2 = *(u16*)&block->sy + (u16)block->dy;
+            prim->x1 = block->sx + (u16)block->dx;
+            prim->x2 = block->sx - (u16)block->dx;
+            prim->y1 = block->sy - (u16)block->dy;
+            prim->y2 = block->sy + (u16)block->dy;
             addPrim((u_long*)(((((u32)((GpEffFlareScratch*)(head - 0x1C))->otz
                                  << gDisplayState.otDepthShift) >>
                                 2) &
@@ -1129,16 +1129,16 @@ void func_dryfield_night_main_street_8017FD34(GpCoord* arg0, u16 arg1, u16 arg2,
         u1 = u0 + 0x17;
         setUV4(prim, u0, 0, u1, 0, u0, 0x17, u1, 0x17);
         block->step = arg2 * 23 / block->otz;
-        xy          = *(u16*)&block->sx - (u16)block->step;
+        xy          = (u16)block->sx - (u16)block->step;
         prim->x2    = xy;
         prim->x0    = xy;
-        xy          = *(u16*)&block->sx + (u16)block->step;
+        xy          = (u16)block->sx + (u16)block->step;
         prim->x3    = xy;
         prim->x1    = xy;
-        xy          = *(u16*)&block->sy - (u16)block->step;
+        xy          = (u16)block->sy - (u16)block->step;
         prim->y1    = xy;
         prim->y0    = xy;
-        xy          = *(u16*)&block->sy + (u16)block->step;
+        xy          = (u16)block->sy + (u16)block->step;
         prim->y3    = xy;
         prim->y2    = xy;
         ds          = &gDisplayState;
@@ -1219,15 +1219,15 @@ void func_dryfield_night_main_street_8017FFF8(GpCoord* arg0, s32 arg1, s32 arg2,
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, color[0], color[1], color[2]);
             setRGB3(prim, color[0], color[1], color[2]);
-            prim->x0 = *(u16*)&block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            prim->y0 = *(u16*)&block->sy + ((block->rOuter * rcos(ang)) >> 12);
+            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
+            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
             t        = ang + 0x100;
-            prim->x1 = *(u16*)&block->sx + ((block->rOuter * rsin(t)) >> 12);
-            prim->y1 = *(u16*)&block->sy + ((block->rOuter * rcos(t)) >> 12);
-            prim->x2 = *(u16*)&block->sx + ((block->rInner * rsin(ang)) >> 12);
-            prim->y2 = *(u16*)&block->sy + ((block->rInner * rcos(ang)) >> 12);
-            prim->x3 = *(u16*)&block->sx + ((block->rInner * rsin(t)) >> 12);
-            prim->y3 = *(u16*)&block->sy + ((block->rInner * rcos(t)) >> 12);
+            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 12);
+            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 12);
+            prim->x2 = block->sx + ((block->rInner * rsin(ang)) >> 12);
+            prim->y2 = block->sy + ((block->rInner * rcos(ang)) >> 12);
+            prim->x3 = block->sx + ((block->rInner * rsin(t)) >> 12);
+            prim->y3 = block->sy + ((block->rInner * rcos(t)) >> 12);
             ang      = t;
             maskLo   = 0xFFFFFF;
             maskHi   = 0xFF000000;
@@ -1298,16 +1298,16 @@ void func_dryfield_night_main_street_8018041C(GpCoord* arg0, s32 arg1, u8* rgb)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, rgb[0], rgb[1], rgb[2]);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = *(u16*)&block->sx + ((block->radius * rsin(ang)) >> 12);
+            prim->x0 = block->sx + ((block->radius * rsin(ang)) >> 12);
             t        = ang + 0x100;
-            prim->y0 = *(u16*)&block->sy + ((block->radius * rcos(ang)) >> 12);
-            prim->x1 = *(u16*)&block->sx + ((block->radius * rsin(t)) >> 12);
-            prim->y1 = *(u16*)&block->sy + ((block->radius * rcos(t)) >> 12);
+            prim->y0 = block->sy + ((block->radius * rcos(ang)) >> 12);
+            prim->x1 = block->sx + ((block->radius * rsin(t)) >> 12);
+            prim->y1 = block->sy + ((block->radius * rcos(t)) >> 12);
             t2       = ang + 0x200;
-            prim->x2 = *(u16*)&block->sx;
-            prim->y2 = *(u16*)&block->sy;
-            prim->x3 = *(u16*)&block->sx + ((block->radius * rsin(t2)) >> 12);
-            prim->y3 = *(u16*)&block->sy + ((block->radius * rcos(t2)) >> 12);
+            prim->x2 = block->sx;
+            prim->y2 = block->sy;
+            prim->x3 = block->sx + ((block->radius * rsin(t2)) >> 12);
+            prim->y3 = block->sy + ((block->radius * rcos(t2)) >> 12);
             ang      = t2;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
@@ -1631,11 +1631,11 @@ void func_dryfield_night_main_street_80181220(GpCoord* arg0, s32 arg1)
         gte_ldv0(v);
         gte_rtv0();
         gte_stsv(v);
-        *(u16*)&v->vx = *(u16*)&v->vx + (u16)arg0->workm.t[0];
+        (u16) v->vx = (u16)v->vx + (u16)arg0->workm.t[0];
         tbl++;
-        *(u16*)&v->vy = *(u16*)&v->vy + (u16)arg0->workm.t[1];
+        (u16) v->vy = (u16)v->vy + (u16)arg0->workm.t[1];
         i++;
-        *(u16*)&v->vz = *(u16*)&v->vz + (u16)arg0->workm.t[2];
+        (u16) v->vz = (u16)v->vz + (u16)arg0->workm.t[2];
         v++;
     } while (i < 4);
 
@@ -1668,14 +1668,14 @@ void func_dryfield_night_main_street_80181220(GpCoord* arg0, s32 arg1)
         u           = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
         prim->v3    = 0x57;
         prim->u3    = u;
-        prim->x0    = *(u16*)&block->sxy0.vx;
-        prim->y0    = *(u16*)&block->sxy0.vy;
-        prim->x1    = *(u16*)&block->sxy1.vx;
-        prim->y1    = *(u16*)&block->sxy1.vy;
-        prim->x2    = *(u16*)&block->sxy2.vx;
-        prim->y2    = *(u16*)&block->sxy2.vy;
-        prim->x3    = *(u16*)&block->sxy3.vx;
-        prim->y3    = *(u16*)&block->sxy3.vy;
+        prim->x0    = (u16)block->sxy0.vx;
+        prim->y0    = (u16)block->sxy0.vy;
+        prim->x1    = (u16)block->sxy1.vx;
+        prim->y1    = (u16)block->sxy1.vy;
+        prim->x2    = (u16)block->sxy2.vx;
+        prim->y2    = (u16)block->sxy2.vy;
+        prim->x3    = (u16)block->sxy3.vx;
+        prim->y3    = (u16)block->sxy3.vy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -1738,16 +1738,16 @@ void func_dryfield_night_main_street_80181598(GpCoord* arg0, s16 arg1, u8* arg2)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, arg2[0] >> 1, arg2[1] >> 1, arg2[2] >> 1);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = *(u16*)&block->sx + ((block->rOuter * rsin(ang)) >> 12);
+            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
             t        = ang + 0x100;
-            prim->y0 = *(u16*)&block->sy + ((block->rOuter * rcos(ang)) >> 12);
-            prim->x1 = *(u16*)&block->sx + ((block->rOuter * rsin(t)) >> 12);
-            prim->y1 = *(u16*)&block->sy + ((block->rOuter * rcos(t)) >> 12);
+            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
+            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 12);
+            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 12);
             t2       = ang + 0x200;
-            prim->x2 = *(u16*)&block->sx;
-            prim->y2 = *(u16*)&block->sy;
-            prim->x3 = *(u16*)&block->sx + ((block->rOuter * rsin(t2)) >> 12);
-            prim->y3 = *(u16*)&block->sy + ((block->rOuter * rcos(t2)) >> 12);
+            prim->x2 = block->sx;
+            prim->y2 = block->sy;
+            prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 12);
+            prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 12);
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
@@ -1759,14 +1759,14 @@ void func_dryfield_night_main_street_80181598(GpCoord* arg0, s16 arg1, u8* arg2)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, arg2[0], arg2[1], arg2[2]);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = *(u16*)&block->sx + ((block->rOuter * rsin(ang)) >> 13);
-            prim->y0 = *(u16*)&block->sy + ((block->rOuter * rcos(ang)) >> 13);
-            prim->x1 = *(u16*)&block->sx + ((block->rOuter * rsin(t)) >> 13);
-            prim->y1 = *(u16*)&block->sy + ((block->rOuter * rcos(t)) >> 13);
-            prim->x2 = *(u16*)&block->sx;
-            prim->y2 = *(u16*)&block->sy;
-            prim->x3 = *(u16*)&block->sx + ((block->rOuter * rsin(t2)) >> 13);
-            prim->y3 = *(u16*)&block->sy + ((block->rOuter * rcos(t2)) >> 13);
+            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 13);
+            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 13);
+            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 13);
+            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 13);
+            prim->x2 = block->sx;
+            prim->y2 = block->sy;
+            prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 13);
+            prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 13);
             ang      = t2;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
@@ -1783,15 +1783,15 @@ void func_dryfield_night_main_street_80181598(GpCoord* arg0, s16 arg1, u8* arg2)
             setRGB2(prim, arg2[0] >> 1, arg2[1] >> 1, arg2[2] >> 1);
             setRGB3(prim, 0, 0, 0);
             u        = ang - 0x400;
-            prim->x0 = *(u16*)&block->sx + ((block->rInner * rsin(u)) >> 13);
-            prim->y0 = *(u16*)&block->sy + ((block->rInner * rcos(u)) >> 13);
-            prim->x1 = *(u16*)&block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            prim->y1 = *(u16*)&block->sy + ((block->rOuter * rcos(ang)) >> 12);
+            prim->x0 = block->sx + ((block->rInner * rsin(u)) >> 13);
+            prim->y0 = block->sy + ((block->rInner * rcos(u)) >> 13);
+            prim->x1 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
+            prim->y1 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
             u        = ang + 0x400;
-            prim->x2 = *(u16*)&block->sx;
-            prim->y2 = *(u16*)&block->sy;
-            prim->x3 = *(u16*)&block->sx + ((block->rInner * rsin(u)) >> 13);
-            prim->y3 = *(u16*)&block->sy + ((block->rInner * rcos(u)) >> 13);
+            prim->x2 = block->sx;
+            prim->y2 = block->sy;
+            prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 13);
+            prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 13);
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
@@ -1803,15 +1803,15 @@ void func_dryfield_night_main_street_80181598(GpCoord* arg0, s16 arg1, u8* arg2)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, arg2[0] >> 1, arg2[1] >> 1, arg2[2] >> 1);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = *(u16*)&block->sx + ((block->rInner * rsin(ang)) >> 12);
-            prim->y0 = *(u16*)&block->sy + ((block->rInner * rcos(ang)) >> 12);
-            prim->x1 = *(u16*)&block->sx + ((block->rOuter * rsin(u)) >> 11);
-            prim->y1 = *(u16*)&block->sy + ((block->rOuter * rcos(u)) >> 11);
+            prim->x0 = block->sx + ((block->rInner * rsin(ang)) >> 12);
+            prim->y0 = block->sy + ((block->rInner * rcos(ang)) >> 12);
+            prim->x1 = block->sx + ((block->rOuter * rsin(u)) >> 11);
+            prim->y1 = block->sy + ((block->rOuter * rcos(u)) >> 11);
             u        = ang + 0x800;
-            prim->x2 = *(u16*)&block->sx;
-            prim->y2 = *(u16*)&block->sy;
-            prim->x3 = *(u16*)&block->sx + ((block->rInner * rsin(u)) >> 12);
-            prim->y3 = *(u16*)&block->sy + ((block->rInner * rcos(u)) >> 12);
+            prim->x2 = block->sx;
+            prim->y2 = block->sy;
+            prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 12);
+            prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 12);
             ang      = u;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);

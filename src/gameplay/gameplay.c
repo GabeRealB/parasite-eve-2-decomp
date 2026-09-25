@@ -7512,7 +7512,7 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
                 }
                 t = vec->vy;
                 if (t >= -arg2 && t < 0x65) {
-                    tmp    = *(u16*)&vec->vx;
+                    tmp    = (u16)vec->vx;
                     packed = tmp << 16;
                     USE_REG(tmp);
                     t = packed >> 16;
@@ -7524,11 +7524,11 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
                             asm volatile("" ::"r"(packed), "r"(scaled) : "memory");
                             x       = vec->vx;
                             x2      = x * x;
-                            t       = *(u16*)&vec->vz;
+                            t       = (u16)vec->vz;
                             t     <<= 16;
                             t     >>= 20;
                             z2      = t * t;
-                            vec->vy = (*(u16*)&vec->vy << 16) >> 20;
+                            vec->vy = ((u16)vec->vy << 16) >> 20;
                             COMPILER_BARRIER();
                             y       = vec->vy;
                             y2      = y * y;

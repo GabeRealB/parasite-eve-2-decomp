@@ -610,11 +610,11 @@ void func_shelter_b6_training_room_8017F540(GpCoord* arg0, s32 arg1)
         gte_ldv0(v);
         gte_rtv0();
         gte_stsv(v);
-        *(u16*)&v->vx = *(u16*)&v->vx + (u16)arg0->workm.t[0];
+        (u16) v->vx = (u16)v->vx + (u16)arg0->workm.t[0];
         tbl++;
-        *(u16*)&v->vy = *(u16*)&v->vy + (u16)arg0->workm.t[1];
+        (u16) v->vy = (u16)v->vy + (u16)arg0->workm.t[1];
         i++;
-        *(u16*)&v->vz = *(u16*)&v->vz + (u16)arg0->workm.t[2];
+        (u16) v->vz = (u16)v->vz + (u16)arg0->workm.t[2];
         v++;
     } while (i < 4);
 
@@ -647,14 +647,14 @@ void func_shelter_b6_training_room_8017F540(GpCoord* arg0, s32 arg1)
         u           = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
         prim->v3    = 0x57;
         prim->u3    = u;
-        prim->x0    = *(u16*)&block->sxy0.vx;
-        prim->y0    = *(u16*)&block->sxy0.vy;
-        prim->x1    = *(u16*)&block->sxy1.vx;
-        prim->y1    = *(u16*)&block->sxy1.vy;
-        prim->x2    = *(u16*)&block->sxy2.vx;
-        prim->y2    = *(u16*)&block->sxy2.vy;
-        prim->x3    = *(u16*)&block->sxy3.vx;
-        prim->y3    = *(u16*)&block->sxy3.vy;
+        prim->x0    = (u16)block->sxy0.vx;
+        prim->y0    = (u16)block->sxy0.vy;
+        prim->x1    = (u16)block->sxy1.vx;
+        prim->y1    = (u16)block->sxy1.vy;
+        prim->x2    = (u16)block->sxy2.vx;
+        prim->y2    = (u16)block->sxy2.vy;
+        prim->x3    = (u16)block->sxy3.vx;
+        prim->y3    = (u16)block->sxy3.vy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -1200,9 +1200,9 @@ void func_shelter_b6_training_room_80181368(GpEffWork* mem, GpCoord* coord, s32 
         gte_ldv0(&block->top[i]);
         gte_rtv0();
         gte_stsv(&block->top[i]);
-        block->top[i].vx  = *(u16*)&block->top[i].vx + (u16)coord->workm.t[0];
-        block->top[i].vy  = *(u16*)&block->top[i].vy + (u16)coord->workm.t[1];
-        block->top[i].vz  = *(u16*)&block->top[i].vz + (u16)coord->workm.t[2];
+        block->top[i].vx  = (u16)block->top[i].vx + (u16)coord->workm.t[0];
+        block->top[i].vy  = (u16)block->top[i].vy + (u16)coord->workm.t[1];
+        block->top[i].vz  = (u16)block->top[i].vz + (u16)coord->workm.t[2];
         block->base[i].vx = (rsin(ang) * rBase) >> 12;
         bp                = &block->top[i] + 6;
         bp->vy            = 0;
@@ -1211,9 +1211,9 @@ void func_shelter_b6_training_room_80181368(GpEffWork* mem, GpCoord* coord, s32 
         gte_ldv0(&block->base[i]);
         gte_rtv0();
         gte_stsv(&block->base[i]);
-        block->base[i].vx = *(u16*)&block->base[i].vx + (u16)coord->workm.t[0];
-        bp->vy            = *(u16*)&bp->vy + (u16)coord->workm.t[1];
-        bp->vz            = *(u16*)&bp->vz + (u16)coord->workm.t[2];
+        block->base[i].vx = (u16)block->base[i].vx + (u16)coord->workm.t[0];
+        bp->vy            = (u16)bp->vy + (u16)coord->workm.t[1];
+        bp->vz            = (u16)bp->vz + (u16)coord->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 6; i++) {
@@ -1368,16 +1368,16 @@ void func_shelter_b6_training_room_80181BAC(GpCoord* coord, s16 arg1, s16 arg2, 
         prim->u3    = u * 40 + 0x27;
         block->dx   = (((arg2 * 39) / block->otz) * rsin(arg3)) >> 12;
         block->dy   = (((arg2 * 39) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0    = *(u16*)&block->sx + (u16)block->dx;
-        prim->x3    = *(u16*)&block->sx - (u16)block->dx;
-        prim->y0    = *(u16*)&block->sy - (u16)block->dy;
-        prim->y3    = *(u16*)&block->sy + (u16)block->dy;
+        prim->x0    = block->sx + (u16)block->dx;
+        prim->x3    = block->sx - (u16)block->dx;
+        prim->y0    = block->sy - (u16)block->dy;
+        prim->y3    = block->sy + (u16)block->dy;
         block->dx   = (((arg2 * 39) / block->otz) * rsin(arg3 + 0x400)) >> 12;
         block->dy   = (((arg2 * 39) / block->otz) * rcos(arg3 + 0x400)) >> 12;
-        prim->x1    = *(u16*)&block->sx + (u16)block->dx;
-        prim->x2    = *(u16*)&block->sx - (u16)block->dx;
-        prim->y1    = *(u16*)&block->sy - (u16)block->dy;
-        prim->y2    = *(u16*)&block->sy + (u16)block->dy;
+        prim->x1    = block->sx + (u16)block->dx;
+        prim->x2    = block->sx - (u16)block->dx;
+        prim->y1    = block->sy - (u16)block->dy;
+        prim->y2    = block->sy + (u16)block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
@@ -1442,16 +1442,16 @@ void func_shelter_b6_training_room_80181FDC(GpCoord* arg0, GpCoord* arg1, s32 ar
             ang         = ratan2(block->sxy1.vy - block->sxy0.vy, block->sxy1.vx - block->sxy0.vx);
             block->dx   = (((arg3 * 23) / block->otz) * rsin(ang)) >> 12;
             block->dy   = (((arg3 * 23) / block->otz) * rcos(ang)) >> 12;
-            prim->x0    = *(u16*)&block->sxy0.vx + (u16)block->dx;
-            prim->x3    = *(u16*)&block->sxy1.vx - (u16)block->dx;
-            prim->y0    = *(u16*)&block->sxy0.vy - (u16)block->dy;
-            prim->y3    = *(u16*)&block->sxy1.vy + (u16)block->dy;
+            prim->x0    = (u16)block->sxy0.vx + (u16)block->dx;
+            prim->x3    = (u16)block->sxy1.vx - (u16)block->dx;
+            prim->y0    = (u16)block->sxy0.vy - (u16)block->dy;
+            prim->y3    = (u16)block->sxy1.vy + (u16)block->dy;
             block->dx   = (((arg3 * 23) / block->otz) * rsin(ang + 0x400)) >> 12;
             block->dy   = (((arg3 * 23) / block->otz) * rcos(ang + 0x400)) >> 12;
-            prim->x1    = *(u16*)&block->sxy1.vx + (u16)block->dx;
-            prim->x2    = *(u16*)&block->sxy0.vx - (u16)block->dx;
-            prim->y1    = *(u16*)&block->sxy1.vy - (u16)block->dy;
-            prim->y2    = *(u16*)&block->sxy0.vy + (u16)block->dy;
+            prim->x1    = (u16)block->sxy1.vx + (u16)block->dx;
+            prim->x2    = (u16)block->sxy0.vx - (u16)block->dx;
+            prim->y1    = (u16)block->sxy1.vy - (u16)block->dy;
+            prim->y2    = (u16)block->sxy0.vy + (u16)block->dy;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }

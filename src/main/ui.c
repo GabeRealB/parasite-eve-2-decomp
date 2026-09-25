@@ -1077,7 +1077,7 @@ void Ui_LayoutListPanel(UiList* arg0_, UiPanel* arg1_)
         f1a             = arg1->field_1A;
         f5              = f5 - (f1a - f18);
         arg1->field_C.h = arg1->field_C.h + f5;
-        xv              = *(u16*)&arg1->field_C.x;
+        xv              = (u16)arg1->field_C.x;
         if (temp_a2 < 0) {
             arg1->field_C.x = xv + temp_a2;
         }

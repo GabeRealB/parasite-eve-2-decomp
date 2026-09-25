@@ -1081,11 +1081,11 @@ void CdStream_Start(CdStreamParams* arg0)
             t0->pitch     = pitch;
         } else {
             u16 pitch_u;
-            pitch_u        = *(u16*)&arg0->pitch;
+            pitch_u        = (u16)arg0->pitch;
             t0->pitchAlt   = 0;
             t0[1].pitch    = 0;
             t0->pitch      = pitch_u;
-            t0[1].pitchAlt = *(u16*)&arg0->pitch;
+            t0[1].pitchAlt = (u16)arg0->pitch;
         }
     }
 

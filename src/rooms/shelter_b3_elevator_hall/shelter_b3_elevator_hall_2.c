@@ -267,16 +267,16 @@ void func_shelter_b3_elevator_hall_80181594(GpCoord* arg0, s32 arg1, s32 arg2, s
         prim->v0    = 0;
         prim->v1    = 0;
         block->step = (t - sarg) / block->otz;
-        xy          = *(u16*)&block->sx - (u16)block->step;
+        xy          = (u16)block->sx - (u16)block->step;
         prim->x2    = xy;
         prim->x0    = xy;
-        xy          = *(u16*)&block->sx + (u16)block->step;
+        xy          = (u16)block->sx + (u16)block->step;
         prim->x3    = xy;
         prim->x1    = xy;
-        xy          = *(u16*)&block->sy - (u16)block->step;
+        xy          = (u16)block->sy - (u16)block->step;
         prim->y1    = xy;
         prim->y0    = xy;
-        xy          = *(u16*)&block->sy + (u16)block->step;
+        xy          = (u16)block->sy + (u16)block->step;
         prim->y3    = xy;
         prim->y2    = xy;
         ds          = &gDisplayState;
@@ -357,15 +357,15 @@ void func_shelter_b3_elevator_hall_80181818(GpCoord* arg0, s32 arg1, s32 arg2, u
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, color[0], color[1], color[2]);
             setRGB3(prim, color[0], color[1], color[2]);
-            prim->x0 = *(u16*)&block->sx + ((block->inner * rsin(ang)) >> 12);
-            prim->y0 = *(u16*)&block->sy + ((block->inner * rcos(ang)) >> 12);
+            prim->x0 = block->sx + ((block->inner * rsin(ang)) >> 12);
+            prim->y0 = block->sy + ((block->inner * rcos(ang)) >> 12);
             t        = ang + 0x100;
-            prim->x1 = *(u16*)&block->sx + ((block->inner * rsin(t)) >> 12);
-            prim->y1 = *(u16*)&block->sy + ((block->inner * rcos(t)) >> 12);
-            prim->x2 = *(u16*)&block->sx + ((block->outer * rsin(ang)) >> 12);
-            prim->y2 = *(u16*)&block->sy + ((block->outer * rcos(ang)) >> 12);
-            prim->x3 = *(u16*)&block->sx + ((block->outer * rsin(t)) >> 12);
-            prim->y3 = *(u16*)&block->sy + ((block->outer * rcos(t)) >> 12);
+            prim->x1 = block->sx + ((block->inner * rsin(t)) >> 12);
+            prim->y1 = block->sy + ((block->inner * rcos(t)) >> 12);
+            prim->x2 = block->sx + ((block->outer * rsin(ang)) >> 12);
+            prim->y2 = block->sy + ((block->outer * rcos(ang)) >> 12);
+            prim->x3 = block->sx + ((block->outer * rsin(t)) >> 12);
+            prim->y3 = block->sy + ((block->outer * rcos(t)) >> 12);
             ang      = t;
             maskLo   = 0xFFFFFF;
             maskHi   = 0xFF000000;
@@ -429,16 +429,16 @@ void func_shelter_b3_elevator_hall_80181C3C(GpCoord* arg0, s32 arg1, u8* rgb)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, rgb[0], rgb[1], rgb[2]);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = *(u16*)&block->sx + ((block->step * rsin(ang)) >> 12);
-            prim->y0 = *(u16*)&block->sy + ((block->step * rcos(ang)) >> 12);
+            prim->x0 = (u16)block->sx + ((block->step * rsin(ang)) >> 12);
+            prim->y0 = (u16)block->sy + ((block->step * rcos(ang)) >> 12);
             ang2     = ang + 0x100;
-            prim->x1 = *(u16*)&block->sx + ((block->step * rsin(ang2)) >> 12);
-            prim->y1 = *(u16*)&block->sy + ((block->step * rcos(ang2)) >> 12);
-            prim->x2 = *(u16*)&block->sx;
-            prim->y2 = *(u16*)&block->sy;
+            prim->x1 = (u16)block->sx + ((block->step * rsin(ang2)) >> 12);
+            prim->y1 = (u16)block->sy + ((block->step * rcos(ang2)) >> 12);
+            prim->x2 = (u16)block->sx;
+            prim->y2 = (u16)block->sy;
             ang2     = ang + 0x200;
-            prim->x3 = *(u16*)&block->sx + ((block->step * rsin(ang2)) >> 12);
-            prim->y3 = *(u16*)&block->sy + ((block->step * rcos(ang2)) >> 12);
+            prim->x3 = (u16)block->sx + ((block->step * rsin(ang2)) >> 12);
+            prim->y3 = (u16)block->sy + ((block->step * rcos(ang2)) >> 12);
             ang      = ang2;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
@@ -670,11 +670,11 @@ void func_shelter_b3_elevator_hall_801826A8(GpCoord* arg0, s32 arg1)
         gte_ldv0(v);
         gte_rtv0();
         gte_stsv(v);
-        *(u16*)&v->vx = *(u16*)&v->vx + (u16)arg0->workm.t[0];
+        (u16) v->vx = (u16)v->vx + (u16)arg0->workm.t[0];
         tbl++;
-        *(u16*)&v->vy = *(u16*)&v->vy + (u16)arg0->workm.t[1];
+        (u16) v->vy = (u16)v->vy + (u16)arg0->workm.t[1];
         i++;
-        *(u16*)&v->vz = *(u16*)&v->vz + (u16)arg0->workm.t[2];
+        (u16) v->vz = (u16)v->vz + (u16)arg0->workm.t[2];
         v++;
     } while (i < 4);
 
@@ -707,14 +707,14 @@ void func_shelter_b3_elevator_hall_801826A8(GpCoord* arg0, s32 arg1)
         u           = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
         prim->v3    = 0x57;
         prim->u3    = u;
-        prim->x0    = *(u16*)&block->sxy0.vx;
-        prim->y0    = *(u16*)&block->sxy0.vy;
-        prim->x1    = *(u16*)&block->sxy1.vx;
-        prim->y1    = *(u16*)&block->sxy1.vy;
-        prim->x2    = *(u16*)&block->sxy2.vx;
-        prim->y2    = *(u16*)&block->sxy2.vy;
-        prim->x3    = *(u16*)&block->sxy3.vx;
-        prim->y3    = *(u16*)&block->sxy3.vy;
+        prim->x0    = (u16)block->sxy0.vx;
+        prim->y0    = (u16)block->sxy0.vy;
+        prim->x1    = (u16)block->sxy1.vx;
+        prim->y1    = (u16)block->sxy1.vy;
+        prim->x2    = (u16)block->sxy2.vx;
+        prim->y2    = (u16)block->sxy2.vy;
+        prim->x3    = (u16)block->sxy3.vx;
+        prim->y3    = (u16)block->sxy3.vy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);

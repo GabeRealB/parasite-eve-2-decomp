@@ -2677,23 +2677,23 @@ void Gp_DrawTargetCursor(void)
                 D_8010F9EC = block->sx << 8;
                 D_8010F9F0 = block->sy << 8;
             }
-            ds                = &gDisplayState;
-            *(u16*)&block->sy = *(u16*)&block->sy - (s8) * (u8*)&ds->vramYOffset;
-            n                 = ds->animFrame;
-            n                 = (u32)n % 24U;
-            frame             = (u32)n / 3U;
-            prim              = (POLY_FT4*)gGpuPrimCursor;
-            gGpuPrimCursor    = prim + 1;
+            ds              = &gDisplayState;
+            (u16) block->sy = (u16)block->sy - (s8) * (u8*)&ds->vramYOffset;
+            n               = ds->animFrame;
+            n               = (u32)n % 24U;
+            frame           = (u32)n / 3U;
+            prim            = (POLY_FT4*)gGpuPrimCursor;
+            gGpuPrimCursor  = prim + 1;
             if (small == 1) {
-                prim->x0 = prim->x2 = *(u16*)&block->sx - 8;
-                prim->x1 = prim->x3 = *(u16*)&block->sx + 8;
-                prim->y0 = prim->y1 = *(u16*)&block->sy - 8;
-                prim->y2 = prim->y3 = *(u16*)&block->sy + 8;
+                prim->x0 = prim->x2 = (u16)block->sx - 8;
+                prim->x1 = prim->x3 = (u16)block->sx + 8;
+                prim->y0 = prim->y1 = (u16)block->sy - 8;
+                prim->y2 = prim->y3 = (u16)block->sy + 8;
             } else {
-                prim->x0 = prim->x2 = *(u16*)&block->sx - 0x10;
-                prim->x1 = prim->x3 = *(u16*)&block->sx + 0x10;
-                prim->y0 = prim->y1 = *(u16*)&block->sy - 0x10;
-                prim->y2 = prim->y3 = *(u16*)&block->sy + 0x10;
+                prim->x0 = prim->x2 = (u16)block->sx - 0x10;
+                prim->x1 = prim->x3 = (u16)block->sx + 0x10;
+                prim->y0 = prim->y1 = (u16)block->sy - 0x10;
+                prim->y2 = prim->y3 = (u16)block->sy + 0x10;
             }
             mask = 0xFFFFFF;
             tu   = (frame & 3) << 5;
@@ -2782,9 +2782,9 @@ void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
     gte_ldv0(srcp);
     gte_rtv0();
     gte_stsv(&block->self);
-    *(u16*)&block->self.vx = *(u16*)&block->self.vx + (u16)gGfxViewCoord.workm.t[0];
-    *(u16*)&block->self.vy = *(u16*)&block->self.vy + (u16)gGfxViewCoord.workm.t[1];
-    *(u16*)&block->self.vz = *(u16*)&block->self.vz + (u16)gGfxViewCoord.workm.t[2];
+    (u16) block->self.vx = (u16)block->self.vx + (u16)gGfxViewCoord.workm.t[0];
+    (u16) block->self.vy = (u16)block->self.vy + (u16)gGfxViewCoord.workm.t[1];
+    (u16) block->self.vz = (u16)block->self.vz + (u16)gGfxViewCoord.workm.t[2];
 
     if (actor->field_90C != NULL && flag != 0) {
         node      = actor->field_90C;
@@ -5167,10 +5167,10 @@ void func_800DEF80(GpObj* arg0, GpObj4C* arg1)
     return;
 
 case4_far:
-    block->local.vx = *(u16*)&other->field_C.vx;
+    block->local.vx = (u16)other->field_C.vx;
     block->local.vy =
         (u16)(node->coord)->coord.t[1] + (u16)node->pos.vy;
-    block->local.vz = *(u16*)&other->field_C.vz;
+    block->local.vz = (u16)other->field_C.vz;
     gte_SetRotMatrix(&other->field_8->workm);
     gte_ldv0((SVECTOR*)(head - 8));
     gte_rtv0();

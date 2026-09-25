@@ -459,11 +459,11 @@ void func_actor_105100_80132414(GpCoord* arg0, s32 arg1)
         gte_ldv0(v);
         gte_rtv0();
         gte_stsv(v);
-        *(u16*)&v->vx = *(u16*)&v->vx + (u16)arg0->workm.t[0];
+        (u16) v->vx = (u16)v->vx + (u16)arg0->workm.t[0];
         tbl++;
-        *(u16*)&v->vy = *(u16*)&v->vy + (u16)arg0->workm.t[1];
+        (u16) v->vy = (u16)v->vy + (u16)arg0->workm.t[1];
         i++;
-        *(u16*)&v->vz = *(u16*)&v->vz + (u16)arg0->workm.t[2];
+        (u16) v->vz = (u16)v->vz + (u16)arg0->workm.t[2];
         v++;
     } while (i < 4);
 
@@ -503,14 +503,14 @@ void func_actor_105100_80132414(GpCoord* arg0, s32 arg1)
             u        = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
             prim->v3 = 0x57;
             prim->u3 = u;
-            prim->x0 = *(u16*)&sc->sxy0.vx;
-            prim->y0 = *(u16*)&sc->sxy0.vy;
-            prim->x1 = *(u16*)&sc->sxy1.vx;
-            prim->y1 = *(u16*)&sc->sxy1.vy;
-            prim->x2 = *(u16*)&sc->sxy2.vx;
-            prim->y2 = *(u16*)&sc->sxy2.vy;
-            prim->x3 = *(u16*)&sc->sxy3.vx;
-            prim->y3 = *(u16*)&sc->sxy3.vy;
+            prim->x0 = (u16)sc->sxy0.vx;
+            prim->y0 = (u16)sc->sxy0.vy;
+            prim->x1 = (u16)sc->sxy1.vx;
+            prim->y1 = (u16)sc->sxy1.vy;
+            prim->x2 = (u16)sc->sxy2.vx;
+            prim->y2 = (u16)sc->sxy2.vy;
+            prim->x3 = (u16)sc->sxy3.vx;
+            prim->y3 = (u16)sc->sxy3.vy;
             addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
                     prim);

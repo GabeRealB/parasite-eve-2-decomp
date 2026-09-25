@@ -209,16 +209,16 @@ void Gp_EffSprTask55(Task* arg0)
             prim->u3    = (quot << 5) + 0x1F;
             block->dx   = (((mem->scale * 0x1F) / block->otz) * rsin(mem->angle)) >> 12;
             block->dy   = (((mem->scale * 0x1F) / block->otz) * rcos(mem->angle)) >> 12;
-            prim->x0    = *(u16*)&block->sx + (u16)block->dx;
-            prim->x3    = *(u16*)&block->sx - (u16)block->dx;
-            prim->y0    = *(u16*)&block->sy - (u16)block->dy;
-            prim->y3    = *(u16*)&block->sy + (u16)block->dy;
+            prim->x0    = block->sx + (u16)block->dx;
+            prim->x3    = block->sx - (u16)block->dx;
+            prim->y0    = block->sy - (u16)block->dy;
+            prim->y3    = block->sy + (u16)block->dy;
             block->dx   = (((mem->scale * 0x1F) / block->otz) * rsin(mem->angle + 0x400)) >> 12;
             block->dy   = (((mem->scale * 0x1F) / block->otz) * rcos(mem->angle + 0x400)) >> 12;
-            prim->x1    = *(u16*)&block->sx + (u16)block->dx;
-            prim->x2    = *(u16*)&block->sx - (u16)block->dx;
-            prim->y1    = *(u16*)&block->sy - (u16)block->dy;
-            prim->y2    = *(u16*)&block->sy + (u16)block->dy;
+            prim->x1    = block->sx + (u16)block->dx;
+            prim->x2    = block->sx - (u16)block->dx;
+            prim->y1    = block->sy - (u16)block->dy;
+            prim->y2    = block->sy + (u16)block->dy;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
@@ -357,16 +357,16 @@ void Gp_EffSprTask42(Task* arg0)
             prim->v3  = 0xC7;
             block->dx = (((mem->scale * 15) / block->otz) * rsin(mem->angle)) >> 12;
             block->dy = (((mem->scale * 15) / block->otz) * rcos(mem->angle)) >> 12;
-            prim->x0  = *(u16*)&block->sx + (u16)block->dx;
-            prim->x3  = *(u16*)&block->sx - (u16)block->dx;
-            prim->y0  = *(u16*)&block->sy - (u16)block->dy;
-            prim->y3  = *(u16*)&block->sy + (u16)block->dy;
+            prim->x0  = block->sx + (u16)block->dx;
+            prim->x3  = block->sx - (u16)block->dx;
+            prim->y0  = block->sy - (u16)block->dy;
+            prim->y3  = block->sy + (u16)block->dy;
             block->dx = (((mem->scale * 15) / block->otz) * rsin(mem->angle + 0x400)) >> 12;
             block->dy = (((mem->scale * 15) / block->otz) * rcos(mem->angle + 0x400)) >> 12;
-            prim->x1  = *(u16*)&block->sx + (u16)block->dx;
-            prim->x2  = *(u16*)&block->sx - (u16)block->dx;
-            prim->y1  = *(u16*)&block->sy - (u16)block->dy;
-            prim->y2  = *(u16*)&block->sy + (u16)block->dy;
+            prim->x1  = block->sx + (u16)block->dx;
+            prim->x2  = block->sx - (u16)block->dx;
+            prim->y1  = block->sy - (u16)block->dy;
+            prim->y2  = block->sy + (u16)block->dy;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
@@ -812,17 +812,17 @@ void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2)
         setUV4(prim, uv, 0xB8, uv2, 0xB8, uv, 0xCF, uv2, 0xCF);
         block->dx = ((((s16)size * 23) / block->otz) * rsin((s16)angle)) >> 12;
         block->dy = ((((s16)size * 23) / block->otz) * rcos((s16)angle)) >> 12;
-        prim->x0  = *(u16*)&block->sx + (u16)block->dx;
-        prim->x3  = *(u16*)&block->sx - (u16)block->dx;
-        prim->y0  = *(u16*)&block->sy - (u16)block->dy;
-        prim->y3  = *(u16*)&block->sy + (u16)block->dy;
+        prim->x0  = block->sx + (u16)block->dx;
+        prim->x3  = block->sx - (u16)block->dx;
+        prim->y0  = block->sy - (u16)block->dy;
+        prim->y3  = block->sy + (u16)block->dy;
         ang       = (s16)angle + 0x400;
         block->dx = ((((s16)size * 23) / block->otz) * rsin(ang)) >> 12;
         block->dy = ((((s16)size * 23) / block->otz) * rcos(ang)) >> 12;
-        prim->x1  = *(u16*)&block->sx + (u16)block->dx;
-        prim->x2  = *(u16*)&block->sx - (u16)block->dx;
-        prim->y1  = *(u16*)&block->sy - (u16)block->dy;
-        prim->y2  = *(u16*)&block->sy + (u16)block->dy;
+        prim->x1  = block->sx + (u16)block->dx;
+        prim->x2  = block->sx - (u16)block->dx;
+        prim->y1  = block->sy - (u16)block->dy;
+        prim->y2  = block->sy + (u16)block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
@@ -863,11 +863,11 @@ void Gp_DrawEffQuadT29(GpCoord* arg0, s32 arg1, u16 arg2, u16 arg3)
         gte_ldv0(v);
         gte_rtv0();
         gte_stsv(v);
-        *(u16*)&v->vx = *(u16*)&v->vx + (u16)coord->workm.t[0];
+        (u16) v->vx = (u16)v->vx + (u16)coord->workm.t[0];
         tbl++;
-        *(u16*)&v->vy = *(u16*)&v->vy + (u16)coord->workm.t[1];
+        (u16) v->vy = (u16)v->vy + (u16)coord->workm.t[1];
         i++;
-        *(u16*)&v->vz = *(u16*)&v->vz + (u16)coord->workm.t[2];
+        (u16) v->vz = (u16)v->vz + (u16)coord->workm.t[2];
         v++;
     } while (i < 4);
 
@@ -1453,12 +1453,12 @@ void Gp_DrawEffTri(GpCoord* arg0, s32 arg1, s32 arg2, u8* arg3)
             setRGB2(prim, 0, 0, 0);
             block->step = (scale * 128) / block->otz;
             ang         = (s16)(i + (s32)((u32)lcg >> 16) % step);
-            prim->x0    = *(u16*)&block->sx;
-            prim->y0    = *(u16*)&block->sy;
-            prim->x1    = *(u16*)&block->sx + ((block->step * rsin(ang - 0x28)) >> 12);
-            prim->y1    = *(u16*)&block->sy + ((block->step * rcos(ang - 0x28)) >> 12);
-            prim->x2    = *(u16*)&block->sx + ((block->step * rsin(ang + 0x28)) >> 12);
-            prim->y2    = *(u16*)&block->sy + ((block->step * rcos(ang + 0x28)) >> 12);
+            prim->x0    = (u16)block->sx;
+            prim->y0    = (u16)block->sy;
+            prim->x1    = (u16)block->sx + ((block->step * rsin(ang - 0x28)) >> 12);
+            prim->y1    = (u16)block->sy + ((block->step * rcos(ang - 0x28)) >> 12);
+            prim->x2    = (u16)block->sx + ((block->step * rsin(ang + 0x28)) >> 12);
+            prim->y2    = (u16)block->sy + ((block->step * rcos(ang + 0x28)) >> 12);
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
@@ -1918,11 +1918,11 @@ void func_800FCD00(Task* arg0)
         gte_ldv0(&block->vec[i]);
         gte_rtv0();
         gte_stsv(&block->vec[i]);
-        *(u16*)&block->vec[i].vx = *(u16*)&block->vec[i].vx + (u16)coord->workm.t[0];
-        a                       += 0x155;
-        *(u16*)&block->vec[i].vy = *(u16*)&block->vec[i].vy + (u16)coord->workm.t[1];
-        *(u16*)&block->vec[i].vz = *(u16*)&block->vec[i].vz + (u16)coord->workm.t[2];
-        c                        = rcos(a);
+        (u16) block->vec[i].vx = (u16)block->vec[i].vx + (u16)coord->workm.t[0];
+        a                     += 0x155;
+        (u16) block->vec[i].vy = (u16)block->vec[i].vy + (u16)coord->workm.t[1];
+        (u16) block->vec[i].vz = (u16)block->vec[i].vz + (u16)coord->workm.t[2];
+        c                      = rcos(a);
         i++;
         block->vec[i].vy = y;
         block->vec[i].vx = (c * inner) >> 12;
@@ -1931,9 +1931,9 @@ void func_800FCD00(Task* arg0)
         gte_ldv0(&block->vec[i]);
         gte_rtv0();
         gte_stsv(&block->vec[i]);
-        *(u16*)&block->vec[i].vx = *(u16*)&block->vec[i].vx + (u16)coord->workm.t[0];
-        *(u16*)&block->vec[i].vy = *(u16*)&block->vec[i].vy + (u16)coord->workm.t[1];
-        *(u16*)&block->vec[i].vz = *(u16*)&block->vec[i].vz + (u16)coord->workm.t[2];
+        (u16) block->vec[i].vx = (u16)block->vec[i].vx + (u16)coord->workm.t[0];
+        (u16) block->vec[i].vy = (u16)block->vec[i].vy + (u16)coord->workm.t[1];
+        (u16) block->vec[i].vz = (u16)block->vec[i].vz + (u16)coord->workm.t[2];
         i++;
     } while (i < 0xC);
 
@@ -1956,16 +1956,16 @@ void func_800FCD00(Task* arg0)
             prim->r0 = r;
             prim->g0 = g;
             prim->b0 = b;
-            prim->x0 = *(u16*)&block->sx0;
+            prim->x0 = (u16)block->sx0;
             c        = block->sy0;
             prim->y0 = c;
-            prim->x1 = *(u16*)&block->sx1;
+            prim->x1 = (u16)block->sx1;
             c        = block->sy1;
             prim->y1 = c;
-            prim->x2 = *(u16*)&block->sx2;
+            prim->x2 = (u16)block->sx2;
             c        = block->sy2;
             prim->y2 = c;
-            prim->x3 = *(u16*)&block->sx3;
+            prim->x3 = (u16)block->sx3;
             c        = block->sy3;
             prim->y3 = c;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
@@ -1993,16 +1993,16 @@ void func_800FCD00(Task* arg0)
             prim->r0 = r;
             prim->g0 = g;
             prim->b0 = b;
-            prim->x0 = *(u16*)&block->sx0;
+            prim->x0 = (u16)block->sx0;
             c        = block->sy0;
             prim->y0 = c;
-            prim->x1 = *(u16*)&block->sx1;
+            prim->x1 = (u16)block->sx1;
             c        = block->sy1;
             prim->y1 = c;
-            prim->x2 = *(u16*)&block->sx2;
+            prim->x2 = (u16)block->sx2;
             c        = block->sy2;
             prim->y2 = c;
-            prim->x3 = *(u16*)&block->sx3;
+            prim->x3 = (u16)block->sx3;
             c        = block->sy3;
             prim->y3 = c;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
@@ -2111,18 +2111,18 @@ void Gp_EffSprTaskA7(Task* arg0)
             USE_REG(prod); /* keep prod live so the shift lands in $v0 */
         }
         block->dy = (((mem->angle * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(mem->scale)) >> 12;
-        prim->x0  = *(u16*)&block->sx + (u16)block->dx;
-        prim->x3  = *(u16*)&block->sx - (u16)block->dx;
-        prim->y0  = *(u16*)&block->sy - (u16)block->dy;
-        prim->y3  = *(u16*)&block->sy + (u16)block->dy;
+        prim->x0  = block->sx + (u16)block->dx;
+        prim->x3  = block->sx - (u16)block->dx;
+        prim->y0  = block->sy - (u16)block->dy;
+        prim->y3  = block->sy + (u16)block->dy;
         prod      = ((mem->angle * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rsin(mem->scale + 0x400);
         block->dx = prod >> 12;
         USE_REG(prod);
         block->dy = (((mem->angle * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(mem->scale + 0x400)) >> 12;
-        prim->x1  = *(u16*)&block->sx + (u16)block->dx;
-        prim->x2  = *(u16*)&block->sx - (u16)block->dx;
-        prim->y1  = *(u16*)&block->sy - (u16)block->dy;
-        prim->y2  = *(u16*)&block->sy + (u16)block->dy;
+        prim->x1  = block->sx + (u16)block->dx;
+        prim->x2  = block->sx - (u16)block->dx;
+        prim->y1  = block->sy - (u16)block->dy;
+        prim->y2  = block->sy + (u16)block->dy;
         addPrim((u_long*)(((((u32)((GpEffFlareScratch*)(head - 0x1C))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -2485,16 +2485,16 @@ void Gp_EffSprTask80(Task* arg0)
             prim->v3    = 0xB7;
             prim->u3    = ((s16)((s16)uv % 6) * 0x20) + 0x1F;
             block->step = (mem->period * 0x1F) / block->otz;
-            x           = *(u16*)&block->sx - (u16)block->step;
+            x           = (u16)block->sx - (u16)block->step;
             prim->x2    = x;
             prim->x0    = x;
-            x           = *(u16*)&block->sx + (u16)block->step;
+            x           = (u16)block->sx + (u16)block->step;
             prim->x3    = x;
             prim->x1    = x;
-            y           = *(u16*)&block->sy - (u16)block->step;
+            y           = (u16)block->sy - (u16)block->step;
             prim->y1    = y;
             prim->y0    = y;
-            y           = *(u16*)&block->sy + (u16)block->step;
+            y           = (u16)block->sy + (u16)block->step;
             prim->y3    = y;
             prim->y2    = y;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
@@ -2603,16 +2603,16 @@ void Gp_EffSprTask8D(Task* arg0)
             prim->v3    = 0xB7;
             prim->u3    = ((uv & 7) * 0x18) + 0x17;
             block->step = (mem->period * 0x17) / block->otz;
-            x           = *(u16*)&block->sx - (u16)block->step;
+            x           = (u16)block->sx - (u16)block->step;
             prim->x2    = x;
             prim->x0    = x;
-            x           = *(u16*)&block->sx + (u16)block->step;
+            x           = (u16)block->sx + (u16)block->step;
             prim->x3    = x;
             prim->x1    = x;
-            y           = *(u16*)&block->sy - (u16)block->step;
+            y           = (u16)block->sy - (u16)block->step;
             prim->y1    = y;
             prim->y0    = y;
-            y           = *(u16*)&block->sy + (u16)block->step;
+            y           = (u16)block->sy + (u16)block->step;
             prim->y3    = y;
             prim->y2    = y;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
@@ -2717,16 +2717,16 @@ void Gp_EffSprTask3F(Task* arg0)
                    ((mem->age / mem->period) << 5) + 0x1F, 0x37);
             block->dx = (((mem->scale * 0x1F) / block->otz) * rsin(mem->angle)) >> 12;
             block->dy = (((mem->scale * 0x1F) / block->otz) * rcos(mem->angle)) >> 12;
-            prim->x0  = *(u16*)&block->sx + (u16)block->dx;
-            prim->x3  = *(u16*)&block->sx - (u16)block->dx;
-            prim->y0  = *(u16*)&block->sy - (u16)block->dy;
-            prim->y3  = *(u16*)&block->sy + (u16)block->dy;
+            prim->x0  = block->sx + (u16)block->dx;
+            prim->x3  = block->sx - (u16)block->dx;
+            prim->y0  = block->sy - (u16)block->dy;
+            prim->y3  = block->sy + (u16)block->dy;
             block->dx = (((mem->scale * 0x1F) / block->otz) * rsin(mem->angle + 0x400)) >> 12;
             block->dy = (((mem->scale * 0x1F) / block->otz) * rcos(mem->angle + 0x400)) >> 12;
-            prim->x1  = *(u16*)&block->sx + (u16)block->dx;
-            prim->x2  = *(u16*)&block->sx - (u16)block->dx;
-            prim->y1  = *(u16*)&block->sy - (u16)block->dy;
-            prim->y2  = *(u16*)&block->sy + (u16)block->dy;
+            prim->x1  = block->sx + (u16)block->dx;
+            prim->x2  = block->sx - (u16)block->dx;
+            prim->y1  = block->sy - (u16)block->dy;
+            prim->y2  = block->sy + (u16)block->dy;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
@@ -2918,16 +2918,16 @@ void Gp_EffSprTaskE0(Task* arg0)
             prim->u3    = uv * 0x28 + 0x27;
             block->dx   = (((mem->scale * 0x27) / block->otz) * rsin(mem->angle)) >> 12;
             block->dy   = (((mem->scale * 0x27) / block->otz) * rcos(mem->angle)) >> 12;
-            prim->x0    = *(u16*)&block->sx + (u16)block->dx;
-            prim->x3    = *(u16*)&block->sx - (u16)block->dx;
-            prim->y0    = *(u16*)&block->sy - (u16)block->dy;
-            prim->y3    = *(u16*)&block->sy + (u16)block->dy;
+            prim->x0    = block->sx + (u16)block->dx;
+            prim->x3    = block->sx - (u16)block->dx;
+            prim->y0    = block->sy - (u16)block->dy;
+            prim->y3    = block->sy + (u16)block->dy;
             block->dx   = (((mem->scale * 0x27) / block->otz) * rsin(mem->angle + 0x400)) >> 12;
             block->dy   = (((mem->scale * 0x27) / block->otz) * rcos(mem->angle + 0x400)) >> 12;
-            prim->x1    = *(u16*)&block->sx + (u16)block->dx;
-            prim->x2    = *(u16*)&block->sx - (u16)block->dx;
-            prim->y1    = *(u16*)&block->sy - (u16)block->dy;
-            prim->y2    = *(u16*)&block->sy + (u16)block->dy;
+            prim->x1    = block->sx + (u16)block->dx;
+            prim->x2    = block->sx - (u16)block->dx;
+            prim->y1    = block->sy - (u16)block->dy;
+            prim->y2    = block->sy + (u16)block->dy;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
@@ -3021,16 +3021,16 @@ void Gp_EffSprTaskE1(Task* arg0)
             prim->u3    = uv * 0x18 + 0x17;
             block->dx   = (((mem->scale * 23) / block->otz) * rsin(mem->angle)) >> 12;
             block->dy   = (((mem->scale * 23) / block->otz) * rcos(mem->angle)) >> 12;
-            prim->x0    = *(u16*)&block->sx + (u16)block->dx;
-            prim->x3    = *(u16*)&block->sx - (u16)block->dx;
-            prim->y0    = *(u16*)&block->sy - (u16)block->dy;
-            prim->y3    = *(u16*)&block->sy + (u16)block->dy;
+            prim->x0    = block->sx + (u16)block->dx;
+            prim->x3    = block->sx - (u16)block->dx;
+            prim->y0    = block->sy - (u16)block->dy;
+            prim->y3    = block->sy + (u16)block->dy;
             block->dx   = (((mem->scale * 23) / block->otz) * rsin(mem->angle + 0x400)) >> 12;
             block->dy   = (((mem->scale * 23) / block->otz) * rcos(mem->angle + 0x400)) >> 12;
-            prim->x1    = *(u16*)&block->sx + (u16)block->dx;
-            prim->x2    = *(u16*)&block->sx - (u16)block->dx;
-            prim->y1    = *(u16*)&block->sy - (u16)block->dy;
-            prim->y2    = *(u16*)&block->sy + (u16)block->dy;
+            prim->x1    = block->sx + (u16)block->dx;
+            prim->x2    = block->sx - (u16)block->dx;
+            prim->y1    = block->sy - (u16)block->dy;
+            prim->y2    = block->sy + (u16)block->dy;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
@@ -3144,17 +3144,17 @@ void Gp_DrawEffSpriteE2(GpCoord* arg0, u16 arg1, u32 arg2, s16 arg3)
                arg1 * 0x28 + 0x27, 0x5F);
         block->dx = (((arg2 * 39) / block->otz) * rsin(arg3)) >> 12;
         block->dy = (((arg2 * 39) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0  = *(u16*)&block->sx + (u16)block->dx;
-        prim->x3  = *(u16*)&block->sx - (u16)block->dx;
-        prim->y0  = *(u16*)&block->sy - (u16)block->dy;
-        prim->y3  = *(u16*)&block->sy + (u16)block->dy;
+        prim->x0  = block->sx + (u16)block->dx;
+        prim->x3  = block->sx - (u16)block->dx;
+        prim->y0  = block->sy - (u16)block->dy;
+        prim->y3  = block->sy + (u16)block->dy;
         ang       = arg3 + 0x400;
         block->dx = (((arg2 * 39) / block->otz) * rsin(ang)) >> 12;
         block->dy = (((arg2 * 39) / block->otz) * rcos(ang)) >> 12;
-        prim->x1  = *(u16*)&block->sx + (u16)block->dx;
-        prim->x2  = *(u16*)&block->sx - (u16)block->dx;
-        prim->y1  = *(u16*)&block->sy - (u16)block->dy;
-        prim->y2  = *(u16*)&block->sy + (u16)block->dy;
+        prim->x1  = block->sx + (u16)block->dx;
+        prim->x2  = block->sx - (u16)block->dx;
+        prim->y1  = block->sy - (u16)block->dy;
+        prim->y2  = block->sy + (u16)block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
@@ -4045,7 +4045,7 @@ void Gp_AimYawToLock(Task* arg0, s32 arg1)
         if (cmp) {
             block->angle = ratan2(block->delta.vx, block->delta.vz);
             val          = (u16)block->angle;
-            cmp          = *(u16*)&actor->field_52;
+            cmp          = (u16)actor->field_52;
             asm("lui %0, 0x1F80" : "=r"(whead) : "r"(val), "r"(cmp));
             whead = *(u8**)(whead + 0x3FC);
             val   = (s16)val - (s16)cmp;

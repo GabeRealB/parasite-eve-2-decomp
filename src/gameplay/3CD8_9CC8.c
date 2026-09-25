@@ -469,15 +469,15 @@ void Gp_DrawArc(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, rgb[0], rgb[1], rgb[2]);
             setRGB3(prim, rgb[0], rgb[1], rgb[2]);
-            prim->x0 = *(u16*)&block->sx + ((block->inner * rsin(ang)) >> 12);
+            prim->x0 = block->sx + ((block->inner * rsin(ang)) >> 12);
             ang2     = ang + 0x100;
-            prim->y0 = *(u16*)&block->sy + ((block->inner * rcos(ang)) >> 12);
-            prim->x1 = *(u16*)&block->sx + ((block->inner * rsin(ang2)) >> 12);
-            prim->y1 = *(u16*)&block->sy + ((block->inner * rcos(ang2)) >> 12);
-            prim->x2 = *(u16*)&block->sx + ((block->outer * rsin(ang)) >> 12);
-            prim->y2 = *(u16*)&block->sy + ((block->outer * rcos(ang)) >> 12);
-            prim->x3 = *(u16*)&block->sx + ((block->outer * rsin(ang2)) >> 12);
-            prim->y3 = *(u16*)&block->sy + ((block->outer * rcos(ang2)) >> 12);
+            prim->y0 = block->sy + ((block->inner * rcos(ang)) >> 12);
+            prim->x1 = block->sx + ((block->inner * rsin(ang2)) >> 12);
+            prim->y1 = block->sy + ((block->inner * rcos(ang2)) >> 12);
+            prim->x2 = block->sx + ((block->outer * rsin(ang)) >> 12);
+            prim->y2 = block->sy + ((block->outer * rcos(ang)) >> 12);
+            prim->x3 = block->sx + ((block->outer * rsin(ang2)) >> 12);
+            prim->y3 = block->sy + ((block->outer * rcos(ang2)) >> 12);
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
                     prim);
@@ -542,16 +542,16 @@ void Gp_DrawRing(GpCoord* arg0, s32 arg1, u8* rgb)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, rgb[0], rgb[1], rgb[2]);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = *(u16*)&block->sx + ((block->step * rsin(ang)) >> 12);
-            prim->y0 = *(u16*)&block->sy + ((block->step * rcos(ang)) >> 12);
+            prim->x0 = (u16)block->sx + ((block->step * rsin(ang)) >> 12);
+            prim->y0 = (u16)block->sy + ((block->step * rcos(ang)) >> 12);
             ang2     = ang + 0x100;
-            prim->x1 = *(u16*)&block->sx + ((block->step * rsin(ang2)) >> 12);
-            prim->y1 = *(u16*)&block->sy + ((block->step * rcos(ang2)) >> 12);
-            prim->x2 = *(u16*)&block->sx;
-            prim->y2 = *(u16*)&block->sy;
+            prim->x1 = (u16)block->sx + ((block->step * rsin(ang2)) >> 12);
+            prim->y1 = (u16)block->sy + ((block->step * rcos(ang2)) >> 12);
+            prim->x2 = (u16)block->sx;
+            prim->y2 = (u16)block->sy;
             ang2     = ang + 0x200;
-            prim->x3 = *(u16*)&block->sx + ((block->step * rsin(ang2)) >> 12);
-            prim->y3 = *(u16*)&block->sy + ((block->step * rcos(ang2)) >> 12);
+            prim->x3 = (u16)block->sx + ((block->step * rsin(ang2)) >> 12);
+            prim->y3 = (u16)block->sy + ((block->step * rcos(ang2)) >> 12);
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
                     prim);
@@ -613,17 +613,17 @@ void Gp_DrawFxQuad(GpCoord* arg0, u16 arg1, s16 arg2, u16 arg3)
         setUV4(prim, u0, 0x18, u1, 0x18, u0, 0x37, u1, 0x37);
         block->dx = (((arg2 * 31) / block->otz) * rsin(arg3)) >> 12;
         block->dy = (((arg2 * 31) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0  = *(u16*)&block->sx + (u16)block->dx;
-        prim->x3  = *(u16*)&block->sx - (u16)block->dx;
-        prim->y0  = *(u16*)&block->sy - (u16)block->dy;
-        prim->y3  = *(u16*)&block->sy + (u16)block->dy;
+        prim->x0  = block->sx + (u16)block->dx;
+        prim->x3  = block->sx - (u16)block->dx;
+        prim->y0  = block->sy - (u16)block->dy;
+        prim->y3  = block->sy + (u16)block->dy;
         ang2      = arg3 + 0x400;
         block->dx = (((arg2 * 31) / block->otz) * rsin(ang2)) >> 12;
         block->dy = (((arg2 * 31) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = *(u16*)&block->sx + (u16)block->dx;
-        prim->x2  = *(u16*)&block->sx - (u16)block->dx;
-        prim->y1  = *(u16*)&block->sy - (u16)block->dy;
-        prim->y2  = *(u16*)&block->sy + (u16)block->dy;
+        prim->x1  = block->sx + (u16)block->dx;
+        prim->x2  = block->sx - (u16)block->dx;
+        prim->y1  = block->sy - (u16)block->dy;
+        prim->y2  = block->sy + (u16)block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -677,10 +677,10 @@ void func_800EB6E8(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
         u1 = u0 + 0x17;
         setUV4(prim, u0, 0, u1, 0, u0, 0x17, u1, 0x17);
         block->step = (arg2 * 23) / block->otz;
-        prim->x0 = prim->x2 = *(u16*)&block->sx - (u16)block->step;
-        prim->x1 = prim->x3 = *(u16*)&block->sx + (u16)block->step;
-        prim->y0 = prim->y1 = *(u16*)&block->sy - (u16)block->step;
-        prim->y2 = prim->y3 = *(u16*)&block->sy + (u16)block->step;
+        prim->x0 = prim->x2 = (u16)block->sx - (u16)block->step;
+        prim->x1 = prim->x3 = (u16)block->sx + (u16)block->step;
+        prim->y0 = prim->y1 = (u16)block->sy - (u16)block->step;
+        prim->y2 = prim->y3 = (u16)block->sy + (u16)block->step;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -717,9 +717,9 @@ void Gp_DrawBand(GpCoord* arg0, s16 arg1, u8* rgb)
         gte_ldv0(&block->inner[i]);
         gte_rtv0();
         gte_stsv(&block->inner[i]);
-        block->inner[i].vx = *(u16*)&block->inner[i].vx + (u16)arg0->workm.t[0];
-        block->inner[i].vy = *(u16*)&block->inner[i].vy + (u16)arg0->workm.t[1];
-        block->inner[i].vz = *(u16*)&block->inner[i].vz + (u16)arg0->workm.t[2];
+        block->inner[i].vx = (u16)block->inner[i].vx + (u16)arg0->workm.t[0];
+        block->inner[i].vy = (u16)block->inner[i].vy + (u16)arg0->workm.t[1];
+        block->inner[i].vz = (u16)block->inner[i].vz + (u16)arg0->workm.t[2];
         block->outer[i].vx = (rsin(ang) * r1) >> 12;
         op                 = &block->inner[i] + 16;
         op->vy             = (rcos(ang) * r1) >> 12;
@@ -728,9 +728,9 @@ void Gp_DrawBand(GpCoord* arg0, s16 arg1, u8* rgb)
         gte_ldv0(&block->outer[i]);
         gte_rtv0();
         gte_stsv(&block->outer[i]);
-        block->outer[i].vx = *(u16*)&block->outer[i].vx + (u16)arg0->workm.t[0];
-        op->vy             = *(u16*)&op->vy + (u16)arg0->workm.t[1];
-        op->vz             = *(u16*)&op->vz + (u16)arg0->workm.t[2];
+        block->outer[i].vx = (u16)block->outer[i].vx + (u16)arg0->workm.t[0];
+        op->vy             = (u16)op->vy + (u16)arg0->workm.t[1];
+        op->vz             = (u16)op->vz + (u16)arg0->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 16; i++) {
@@ -752,14 +752,14 @@ void Gp_DrawBand(GpCoord* arg0, s16 arg1, u8* rgb)
             setRGB1(prim, rgb[0], rgb[1], rgb[2]);
             setRGB2(prim, 0, 0, 0);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = *(u16*)&block->sxy0.vx;
-            prim->y0 = *(u16*)&block->sxy0.vy;
-            prim->x1 = *(u16*)&block->sxy1.vx;
-            prim->y1 = *(u16*)&block->sxy1.vy;
-            prim->x2 = *(u16*)&block->sxy2.vx;
-            prim->y2 = *(u16*)&block->sxy2.vy;
-            prim->x3 = *(u16*)&block->sxy3.vx;
-            prim->y3 = *(u16*)&block->sxy3.vy;
+            prim->x0 = (u16)block->sxy0.vx;
+            prim->y0 = (u16)block->sxy0.vy;
+            prim->x1 = (u16)block->sxy1.vx;
+            prim->y1 = (u16)block->sxy1.vy;
+            prim->x2 = (u16)block->sxy2.vx;
+            prim->y2 = (u16)block->sxy2.vy;
+            prim->x3 = (u16)block->sxy3.vx;
+            prim->y3 = (u16)block->sxy3.vy;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
                     prim);
@@ -805,9 +805,9 @@ void Gp_DrawBandEx(GpCoord* arg0, s16 arg1, s32 arg2, u8* rgb)
         gte_ldv0(&block->inner[i]);
         gte_rtv0();
         gte_stsv(&block->inner[i]);
-        block->inner[i].vx = *(u16*)&block->inner[i].vx + (u16)arg0->workm.t[0];
-        block->inner[i].vy = *(u16*)&block->inner[i].vy + (u16)arg0->workm.t[1];
-        block->inner[i].vz = *(u16*)&block->inner[i].vz + (u16)arg0->workm.t[2];
+        block->inner[i].vx = (u16)block->inner[i].vx + (u16)arg0->workm.t[0];
+        block->inner[i].vy = (u16)block->inner[i].vy + (u16)arg0->workm.t[1];
+        block->inner[i].vz = (u16)block->inner[i].vz + (u16)arg0->workm.t[2];
         block->outer[i].vx = (rsin(ang) * r1) >> 12;
         op                 = &block->inner[i] + 16;
         op->vy             = 0;
@@ -816,9 +816,9 @@ void Gp_DrawBandEx(GpCoord* arg0, s16 arg1, s32 arg2, u8* rgb)
         gte_ldv0(&block->outer[i]);
         gte_rtv0();
         gte_stsv(&block->outer[i]);
-        block->outer[i].vx = *(u16*)&block->outer[i].vx + (u16)arg0->workm.t[0];
-        op->vy             = *(u16*)&op->vy + (u16)arg0->workm.t[1];
-        op->vz             = *(u16*)&op->vz + (u16)arg0->workm.t[2];
+        block->outer[i].vx = (u16)block->outer[i].vx + (u16)arg0->workm.t[0];
+        op->vy             = (u16)op->vy + (u16)arg0->workm.t[1];
+        op->vz             = (u16)op->vz + (u16)arg0->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 16; i++) {
@@ -840,14 +840,14 @@ void Gp_DrawBandEx(GpCoord* arg0, s16 arg1, s32 arg2, u8* rgb)
             setRGB1(prim, rgb[0], rgb[1], rgb[2]);
             setRGB2(prim, 0, 0, 0);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = *(u16*)&block->sxy0.vx;
-            prim->y0 = *(u16*)&block->sxy0.vy;
-            prim->x1 = *(u16*)&block->sxy1.vx;
-            prim->y1 = *(u16*)&block->sxy1.vy;
-            prim->x2 = *(u16*)&block->sxy2.vx;
-            prim->y2 = *(u16*)&block->sxy2.vy;
-            prim->x3 = *(u16*)&block->sxy3.vx;
-            prim->y3 = *(u16*)&block->sxy3.vy;
+            prim->x0 = (u16)block->sxy0.vx;
+            prim->y0 = (u16)block->sxy0.vy;
+            prim->x1 = (u16)block->sxy1.vx;
+            prim->y1 = (u16)block->sxy1.vy;
+            prim->x2 = (u16)block->sxy2.vx;
+            prim->y2 = (u16)block->sxy2.vy;
+            prim->x3 = (u16)block->sxy3.vx;
+            prim->y3 = (u16)block->sxy3.vy;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
                     prim);

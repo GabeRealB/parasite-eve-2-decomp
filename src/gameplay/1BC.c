@@ -2841,14 +2841,14 @@ void Gp_DrawFloorQuad(GpCoord* arg0, u32 arg1, SVECTOR* arg2)
         block->vec[0].vy                                = 0;
         block->vec[0].vz                                = -(arg1 >> 1);
     } else {
-        ((GpFloorQuadScratch*)(head - 0x40))->vec[0].vx = *(u16*)&arg2->vx - (arg1 >> 1);
-        block->vec[0].vy                                = *(u16*)&arg2->vy;
-        block->vec[0].vz                                = *(u16*)&arg2->vz - (arg1 >> 1);
+        ((GpFloorQuadScratch*)(head - 0x40))->vec[0].vx = (u16)arg2->vx - (arg1 >> 1);
+        block->vec[0].vy                                = (u16)arg2->vy;
+        block->vec[0].vz                                = (u16)arg2->vz - (arg1 >> 1);
     }
-    block->vec[3].vy = block->vec[2].vy = block->vec[1].vy = *(u16*)&block->vec[0].vy;
-    block->vec[1].vx = block->vec[3].vx = *(u16*)&block->vec[0].vx + arg1;
+    block->vec[3].vy = block->vec[2].vy = block->vec[1].vy = (u16)block->vec[0].vy;
+    block->vec[1].vx = block->vec[3].vx = (u16)block->vec[0].vx + arg1;
     block->vec[2].vx                    = block->vec[0].vx;
-    block->vec[2].vz = block->vec[3].vz = *(u16*)&block->vec[0].vz + arg1;
+    block->vec[2].vz = block->vec[3].vz = (u16)block->vec[0].vz + arg1;
     block->vec[1].vz                    = block->vec[0].vz;
     Gp_UpdateCoord(arg0);
     gte_SetRotMatrix(&arg0->workm);
