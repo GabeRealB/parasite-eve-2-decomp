@@ -140730,3 +140730,19 @@ match, because the extra loop level is what weights `REG_N_REFS` (see the
 loop-depth entries). Those wrappers are the bodies of real `do { } while (0)`
 macros, one per repeated operation (count, find, set preview slot), and
 written that way nothing else is needed.
+## A scratch field bumped before two divides is `block->otz++`, not an `otz` local (func_dryfield_night_main_street_8017FFF8, 2026-09-26)
+
+The room ring drawer divides two sizes by the projected OTZ plus one and keeps
+that sum in the scratch block: target `lw v0,8(s2); addiu v0,1; div a0,v0;
+... sw v0,8(s2); div v1,v0`, the store sitting between the two divides. With
+`otz = block->otz + 1; block->otz = otz;` and the radii divided by the local,
+the store lands before or after both divides depending on statement order, and
+the seed held it with an empty asm barrier. Writing the field update in place,
+`block->otz++;` and dividing by `block->otz` in each radius, matches with no
+barrier: CSE keeps the incremented value in the register for both divisors and
+the store falls between them. The same function's `move s2,v0` block copy with
+the head store after the field writes is the compound push
+`SCRATCH_PUSH(T); block = SCRATCH_HEAD(T);` (see the scratch-push entries
+above). Its copies in other rooms (`dryfield_motel_balcony`, `mine_cavern`,
+`mine_secret_passage`, `neo_ark_north_promenade`, `dryfield_toilet`) carry the
+same pins.
