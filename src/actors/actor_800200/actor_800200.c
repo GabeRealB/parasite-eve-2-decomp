@@ -114,13 +114,13 @@ void func_actor_800200_80162088(Task* arg0)
     void*           head;
     s32             packed;
 
-    actor               = arg0->work;
-    head                = *(void**)0x1F8003FC;
-    *(void**)0x1F8003FC = head - 8;
-    scratch             = (SVECTOR3*)(head - 8);
-    extra               = arg0->extra;
-    addr                = &extra->coords;
-    coord               = *addr;
+    actor              = arg0->work;
+    head               = SCRATCH_HEAD(void);
+    SCRATCH_HEAD(void) = head - 8;
+    scratch            = (SVECTOR3*)(head - 8);
+    extra              = arg0->extra;
+    addr               = &extra->coords;
+    coord              = *addr;
     arg0->state++;
     arg0->msgTable     = &D_actor_800200_80169EF0;
     arg0->exitCallback = &func_actor_800200_801626A0;
@@ -181,7 +181,7 @@ void func_actor_800200_80162088(Task* arg0)
     scratch->vy                 = -0x100;
     scratch->vz                 = 0x200;
     Gp_BindActorD4(arg0, scratch, 0x600);
-    *(u32*)0x1F8003FC += 8;
+    SCRATCH_POP_BYTES(8);
 }
 
 void func_actor_800200_801622B0(Task* arg0)
@@ -273,7 +273,7 @@ void func_actor_800200_801622B0(Task* arg0)
     if (!(extra->flags & 0x80)) {
         Gp_DrawEffGroundQuad((VECTOR3*)coord->workm.t, 0x200, Gp_State1C->groundShade);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 void func_actor_800200_80162694(Task* arg0)
@@ -340,9 +340,9 @@ void func_actor_800200_80162750(Task* arg0)
 
     coord             = ((TmdObject*)arg0->extra)->coords;
     target            = (GsCOORDINATE2*)((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
-    head              = *(u8**)0x1F8003FC;
+    head              = SCRATCH_HEAD(u8);
     vec               = (VECTOR3*)(head - 0x10);
-    *(u8**)0x1F8003FC = head - 0x10;
+    SCRATCH_HEAD(u8)  = head - 0x10;
     actor             = arg0->work;
     actor->field_93E += 1;
     d4                = actor->field_910;
@@ -392,7 +392,7 @@ void func_actor_800200_80162750(Task* arg0)
             }
         }
     }
-    *(u8**)0x1F8003FC += 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 void func_actor_800200_80162990(Task* arg0)
@@ -1207,14 +1207,14 @@ void func_actor_800200_80164180(Task* arg0)
     s32            anim;
     u16            flag;
 
-    actor             = arg0->work;
-    d4                = actor->field_910;
-    target            = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
-    head              = *(u8**)0x1F8003FC;
-    tmp               = head - 0x10;
-    *(u8**)0x1F8003FC = tmp;
-    vec               = (VECTOR3*)tmp;
-    node              = actor->field_90C;
+    actor            = arg0->work;
+    d4               = actor->field_910;
+    target           = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
+    head             = SCRATCH_HEAD(u8);
+    tmp              = head - 0x10;
+    SCRATCH_HEAD(u8) = tmp;
+    vec              = (VECTOR3*)tmp;
+    node             = actor->field_90C;
     if (node != NULL) {
         if (!(node->state.b.flags & 1)) {
             Gp_GetLockPos(node, vec);
@@ -1265,7 +1265,7 @@ void func_actor_800200_80164180(Task* arg0)
             break;
     }
     func_8010BE5C(arg0, (VECTOR3*)&target->coord.t[0]);
-    *(u32*)0x1F8003FC += 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 void func_actor_800200_8016436C(Task* arg0)
@@ -1286,14 +1286,14 @@ void func_actor_800200_8016436C(Task* arg0)
     s32            next = 1;
     GameActor*     actor2;
 
-    actor             = arg0->work;
-    d4                = actor->field_910;
-    target            = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
-    head              = *(u8**)0x1F8003FC;
-    tmp               = head - 0x10;
-    *(u8**)0x1F8003FC = tmp;
-    vec               = (VECTOR3*)tmp;
-    coord             = ((TmdObject*)arg0->extra)->coords;
+    actor            = arg0->work;
+    d4               = actor->field_910;
+    target           = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
+    head             = SCRATCH_HEAD(u8);
+    tmp              = head - 0x10;
+    SCRATCH_HEAD(u8) = tmp;
+    vec              = (VECTOR3*)tmp;
+    coord            = ((TmdObject*)arg0->extra)->coords;
     if (actor->field_90C != NULL) {
         node             = Gp_FindLockNode(arg0);
         actor->field_90C = node;
@@ -1310,7 +1310,7 @@ void func_actor_800200_8016436C(Task* arg0)
     state = actor->field_95E;
     if (state != 0) {
         if (state != 1) {
-            scratch = (s32*)0x1F8003FC;
+            scratch = (s32*)G_SCRATCH_HEAD;
         } else {
             goto tick;
         }
@@ -1342,9 +1342,9 @@ void func_actor_800200_8016436C(Task* arg0)
                 }
             }
         }
-        scratch = (s32*)0x1F8003FC;
+        scratch = (s32*)G_SCRATCH_HEAD;
     }
-    *scratch += 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
 void func_actor_800200_80164598(Task* arg0)
@@ -1416,7 +1416,7 @@ void func_actor_800200_80164598(Task* arg0)
         default:
             break;
     }
-    *(u32*)G_SCRATCH_HEAD += 0x14;
+    SCRATCH_POP_BYTES(0x14);
 }
 
 void func_actor_800200_801647A8(Task* arg0)
@@ -1437,14 +1437,14 @@ void func_actor_800200_801647A8(Task* arg0)
     s32            next;
     s32            initialState;
 
-    target            = ((TmdObject*)((Task*)gameGetPtrSlot(3))->extra)->coords;
-    head              = *(u8**)0x1F8003FC;
-    tmp               = head - 0x10;
-    *(u8**)0x1F8003FC = tmp;
-    vec               = (VECTOR3*)tmp;
-    actor             = arg0->work;
-    coord             = ((TmdObject*)arg0->extra)->coords;
-    state             = actor->field_95E;
+    target           = ((TmdObject*)((Task*)gameGetPtrSlot(3))->extra)->coords;
+    head             = SCRATCH_HEAD(u8);
+    tmp              = head - 0x10;
+    SCRATCH_HEAD(u8) = tmp;
+    vec              = (VECTOR3*)tmp;
+    actor            = arg0->work;
+    coord            = ((TmdObject*)arg0->extra)->coords;
+    state            = actor->field_95E;
     switch (state) {
         case 0:
             initialState     = 1;
@@ -1500,7 +1500,7 @@ void func_actor_800200_801647A8(Task* arg0)
             break;
     }
     func_8010BE5C(arg0, (VECTOR3*)&target->coord.t[0]);
-    *(u32*)0x1F8003FC += 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 void func_actor_800200_801649D8(Task* arg0)
@@ -1694,7 +1694,7 @@ void func_actor_800200_80164C54(Task* arg0)
             break;
     }
     Gp_AnimTickChildSlots(arg0);
-    *(u32*)G_SCRATCH_HEAD += 0x14;
+    SCRATCH_POP_BYTES(0x14);
 }
 
 void func_actor_800200_80164EBC(Task* arg0)
@@ -1786,7 +1786,7 @@ void func_actor_800200_80164EBC(Task* arg0)
             break;
     }
     Gp_AnimTickChildSlots(arg0);
-    *(u32*)G_SCRATCH_HEAD += 0x14;
+    SCRATCH_POP_BYTES(0x14);
 }
 
 /// Handlers `func_actor_800200_80165B84` runs, indexed by `field_956`.

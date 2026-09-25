@@ -1882,12 +1882,12 @@ void func_actor_400500_80134D6C(s32 otz)
     s32                val;
     s32                z;
 
-    extra                   = Gp_GetViewSprtExtra();
-    head                    = *(u8**)G_SCRATCH_HEAD;
-    area                    = (DR_AREA*)gGpuPrimCursor;
-    allocated               = head - 0x14;
-    *(void**)G_SCRATCH_HEAD = allocated;
-    gGpuPrimCursor          = (DR_TPAGE*)(area + 1);
+    extra              = Gp_GetViewSprtExtra();
+    head               = SCRATCH_HEAD(u8);
+    area               = (DR_AREA*)gGpuPrimCursor;
+    allocated          = head - 0x14;
+    SCRATCH_HEAD(void) = allocated;
+    gGpuPrimCursor     = (DR_TPAGE*)(area + 1);
     USE_REG(allocated);
     scratch      = (ActorsDrawScratch*)allocated;
     scratch->otz = otz;
@@ -1993,7 +1993,7 @@ void func_actor_400500_80134D6C(s32 otz)
     SetDrawArea(area, clip);
     addPrim(&gGpuCurrentOt[scratch->otz], area);
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
 }
 
 void func_actor_400500_80135414(Task* arg0)
@@ -2164,26 +2164,26 @@ static __inline__ s32 lookup_zone(Task* task)
 
 static __inline__ VECTOR* push_color(GsCOORDINATE2* coord)
 {
-    VECTOR* block = (VECTOR*)(*(u8**)G_SCRATCH_HEAD - 0x10);
+    VECTOR* block = (VECTOR*)(SCRATCH_HEAD(u8) - 0x10);
 
-    ((VECTOR*)(*(u8**)G_SCRATCH_HEAD - 0x10))->vx = coord->workm.t[0];
-    block->vy                                     = coord->workm.t[1];
-    block->vz                                     = coord->workm.t[2];
-    *(VECTOR**)G_SCRATCH_HEAD                     = block;
+    ((VECTOR*)(SCRATCH_HEAD(u8) - 0x10))->vx = coord->workm.t[0];
+    block->vy                                = coord->workm.t[1];
+    block->vz                                = coord->workm.t[2];
+    SCRATCH_HEAD(VECTOR)                     = block;
     return block;
 }
 
 static __inline__ void pop_scratch(s32 n)
 {
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + n;
+    SCRATCH_POP_BYTES(n);
 }
 
 static __inline__ u8* push_proj(void)
 {
-    u8*                  head  = *(u8**)G_SCRATCH_HEAD;
+    u8*                  head  = SCRATCH_HEAD(u8);
     ActorProjectScratch* block = (ActorProjectScratch*)(head - 0x18);
 
-    *(ActorProjectScratch**)G_SCRATCH_HEAD        = block;
+    SCRATCH_HEAD(ActorProjectScratch)             = block;
     ((ActorProjectScratch*)(head - 0x18))->vec.vx = 0;
     block->vec.vy                                 = 0;
     block->vec.vz                                 = 0;
@@ -3557,7 +3557,7 @@ void func_actor_400500_8013771C(Task* arg0)
     parentp                          = &parent;
     heading                          = work->field_9BC;
     part                             = ((TmdObject*)arg0->extra)->coords + 6;
-    scratch                          = (*(MATRIX**)G_SCRATCH_HEAD);
+    scratch                          = (SCRATCH_HEAD(MATRIX));
     walker                           = part->sub;
     scratchBase                      = (u8*)PSX_SCRATCH;
     *(MATRIX**)(scratchBase + 0x3FC) = scratch - 1;
@@ -3620,7 +3620,7 @@ void func_actor_400500_8013771C(Task* arg0)
     __builtin_memcpy(&part->coord, mtx, 18);
     part->flg = 0;
     Gp_UpdateCoord(part);
-    scratch3                         = (*(MATRIX**)G_SCRATCH_HEAD);
+    scratch3                         = (SCRATCH_HEAD(MATRIX));
     scratchBase                      = (u8*)PSX_SCRATCH;
     *(MATRIX**)(scratchBase + 0x3FC) = scratch3 + 1;
     if (((u32)(work->field_A04 - 7) < 4U) && (work->field_A18 == 1)) {
@@ -3749,7 +3749,7 @@ void func_actor_400500_80138088(Task* arg0)
     coord                             = &coords[6];
     current                           = coord->sub;
     angle                             = addend;
-    *(void**)G_SCRATCH_HEAD           = matrix;
+    SCRATCH_HEAD(void)                = matrix;
     *(MATRIX*)(head - sizeof(MATRIX)) = coords[6].coord;
     __asm__("" : "+r"(current), "=r"(head), "=r"(addend));
     while (1) {
@@ -3815,10 +3815,10 @@ void func_actor_400500_80138088(Task* arg0)
     dest->flg = 0;
     Gp_UpdateCoord(dest);
 
-    hit                     = (Actor400500HitView*)arg0->work;
-    head3                   = (u8*)PSX_SCRATCH;
-    head3                   = *(u8**)(head3 + 0x3FC);
-    *(void**)G_SCRATCH_HEAD = head3 + sizeof(MATRIX);
+    hit                = (Actor400500HitView*)arg0->work;
+    head3              = (u8*)PSX_SCRATCH;
+    head3              = *(u8**)(head3 + 0x3FC);
+    SCRATCH_HEAD(void) = head3 + sizeof(MATRIX);
     if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
         cond = 1;
     } else {
@@ -5099,13 +5099,13 @@ void func_actor_400500_8013A700(Task* arg0)
             SOFT_USE_REG(extra2);
             coord = extra2->coords;
             __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
-            head                      = *(u8**)(head + 0x3FC);
-            coord                     = coord + 1;
-            ((VECTOR*)head)[-1].vx    = coord->workm.t[0];
-            block                     = (VECTOR*)(head - 0x10);
-            block->vy                 = coord->workm.t[1];
-            block->vz                 = coord->workm.t[2];
-            *(VECTOR**)G_SCRATCH_HEAD = block;
+            head                   = *(u8**)(head + 0x3FC);
+            coord                  = coord + 1;
+            ((VECTOR*)head)[-1].vx = coord->workm.t[0];
+            block                  = (VECTOR*)(head - 0x10);
+            block->vy              = coord->workm.t[1];
+            block->vz              = coord->workm.t[2];
+            SCRATCH_HEAD(VECTOR)   = block;
             Gp_UpdateActorColor(arg0->spawnArg2, block, 0, 0);
             extraCopy = extra2;
             session   = gGameSession->at4.loc.room;
@@ -5119,11 +5119,11 @@ void func_actor_400500_8013A700(Task* arg0)
             }
             SOFT_USE_REG(extraCopy);
             __asm__ volatile("lui %0, 0x1F80" : "=r"(head2) : "r"(work));
-            head2                 = *(u8**)(head2 + 0x3FC);
-            a28                   = work->field_A28;
-            head2                += 0x10;
-            flags                 = (u32)a28 << 0x10;
-            *(u8**)G_SCRATCH_HEAD = head2;
+            head2            = *(u8**)(head2 + 0x3FC);
+            a28              = work->field_A28;
+            head2           += 0x10;
+            flags            = (u32)a28 << 0x10;
+            SCRATCH_HEAD(u8) = head2;
             if (flags != 0) {
                 shifted = flags >> 0x12;
                 SOFT_TOUCH_REG(shifted);

@@ -15,7 +15,6 @@
 #include "main/wipsys.h"
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-#define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 /// The actor's animation work area. `field_352` is the pose the actor asks
 /// for, `field_354` the pose its slots were last re-queued for and
@@ -303,13 +302,13 @@ void Actor01500_Fn004EC(Task* actor)
     u32              hitId;
     u32              damage;
 
-    push                           = 0;
-    lastId                         = 0;
-    work                           = actor->work;
-    *(ActorPushFrame**)0x1F8003FC -= 1;
-    frame                          = *(ActorPushFrame**)0x1F8003FC;
-    coord                          = ((TmdObject*)actor->extra)->coords;
-    result                         = func_800E0C10(work->field_264, &frame->delta, 5, NULL);
+    push   = 0;
+    lastId = 0;
+    work   = actor->work;
+    SCRATCH_PUSH(ActorPushFrame);
+    frame  = SCRATCH_HEAD(ActorPushFrame);
+    coord  = ((TmdObject*)actor->extra)->coords;
+    result = func_800E0C10(work->field_264, &frame->delta, 5, NULL);
     if (result != 0) {
         if (work->field_370 == 0 && work->field_35A == 3 && frame->delta.vy.w == 0) {
             work->field_35A        = 6;
@@ -446,7 +445,7 @@ void Actor01500_Fn004EC(Task* actor)
         Gp_ClearRec18Occupied(effectRec);
         work->field_36A = 1;
     }
-    *(ActorPushFrame**)0x1F8003FC += 1;
+    SCRATCH_POP(ActorPushFrame);
 }
 
 void Actor01500_Fn00AFC(Task* actor, s32 damage)
@@ -513,11 +512,11 @@ void Actor01500_Fn00CA4(Task* actor)
     s16              pose2;
     s16              val;
 
-    *(VECTOR**)0x1F8003FC -= 1;
-    frame                  = *(VECTOR**)0x1F8003FC;
-    work                   = actor->work;
-    coord                  = ((TmdObject*)actor->extra)->coords;
-    flag                   = 0;
+    SCRATCH_PUSH(VECTOR);
+    frame = SCRATCH_HEAD(VECTOR);
+    work  = actor->work;
+    coord = ((TmdObject*)actor->extra)->coords;
+    flag  = 0;
     if (work->field_37A != 0) {
         work->field_35A = 2;
         work->field_352 = 7;
@@ -586,7 +585,7 @@ void Actor01500_Fn00CA4(Task* actor)
             Gp_ArmStateF0(1);
         }
     }
-    *(VECTOR**)0x1F8003FC += 1;
+    SCRATCH_POP(VECTOR);
 }
 
 /// Once the pose has run 30 frames, re-aims `field_374` along the coordinate's
@@ -660,11 +659,11 @@ void Actor01500_Fn011B0(Task* actor)
     s32              diff2;
     s32              dist2;
 
-    head              = *(u8**)0x1F8003FC;
-    *(u8**)0x1F8003FC = head - 0x10;
-    vec               = (VECTOR3*)(head - 0x10);
-    work              = actor->work;
-    coord             = ((TmdObject*)actor->extra)->coords;
+    head             = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(u8) = head - 0x10;
+    vec              = (VECTOR3*)(head - 0x10);
+    work             = actor->work;
+    coord            = ((TmdObject*)actor->extra)->coords;
     switch (work->field_35C) {
         case 0:
             off  = work->field_364 + 0x708;
@@ -751,7 +750,7 @@ void Actor01500_Fn011B0(Task* actor)
             }
             break;
     }
-    *(u8**)0x1F8003FC += 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 /// Faces the actor toward the player on the XZ plane and raises `field_378`
@@ -764,26 +763,26 @@ void Actor01500_Fn015DC(Task* actor)
     VECTOR*          head;
     VECTOR*          blk;
 
-    work                      = actor->work;
-    coord                     = ((TmdObject*)actor->extra)->coords;
-    work->field_352           = 0xE;
-    work->field_360           = 5;
-    work->field_376           = 5;
-    work->field_34C           = 0;
-    work->field_366           = 0x80;
-    head                      = *(VECTOR**)G_SCRATCH_HEAD;
-    blk                       = head - 1;
-    head[-1].vx               = coord->coord.t[0] - Player_Status.coordMtx->t[0];
-    blk->vy                   = 0;
-    blk->vz                   = coord->coord.t[2] - Player_Status.coordMtx->t[2];
-    *(VECTOR**)G_SCRATCH_HEAD = blk;
-    work->field_372           = ratan2((s16)head[-1].vx, (s16)blk->vz) & 0xFFF;
+    work                 = actor->work;
+    coord                = ((TmdObject*)actor->extra)->coords;
+    work->field_352      = 0xE;
+    work->field_360      = 5;
+    work->field_376      = 5;
+    work->field_34C      = 0;
+    work->field_366      = 0x80;
+    head                 = SCRATCH_HEAD(VECTOR);
+    blk                  = head - 1;
+    head[-1].vx          = coord->coord.t[0] - Player_Status.coordMtx->t[0];
+    blk->vy              = 0;
+    blk->vz              = coord->coord.t[2] - Player_Status.coordMtx->t[2];
+    SCRATCH_HEAD(VECTOR) = blk;
+    work->field_372      = ratan2((s16)head[-1].vx, (s16)blk->vz) & 0xFFF;
     if (coord->coord.t[1] > Player_Status.coordMtx->t[1] + 500 ||
         coord->coord.t[1] < Player_Status.coordMtx->t[1] - 1800 ||
         ++work->field_362 > 1800) {
         work->field_378 = 1;
     }
-    *(VECTOR**)G_SCRATCH_HEAD += 1;
+    SCRATCH_POP(VECTOR);
 }
 
 /// Leaves the idle poses once `field_356` frames have run: state 0 switches to
@@ -852,7 +851,7 @@ void Actor01500_Fn01838(Task* arg0)
     s32               next;
     s32               wrapStep;
 
-    sc    = (ActorFaceScratch*)(SCRATCH_SP -= 0x18);
+    sc    = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
     coord = ((TmdObject*)arg0->extra)->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
@@ -904,7 +903,7 @@ done:
     sc->rot.vy = work->field_374;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    SCRATCH_SP += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 void Actor01500_Fn01988(Task* arg0)
@@ -1167,12 +1166,12 @@ void Actor01500_Fn020D8(Task* arg0)
     s32              off;
     s32              delay;
 
-    head              = *(u8**)0x1F8003FC;
-    stk               = (VECTOR3*)(head - 0x10);
-    *(u8**)0x1F8003FC = (u8*)stk;
-    vec               = stk;
-    work              = arg0->work;
-    coord             = ((TmdObject*)arg0->extra)->coords;
+    head             = SCRATCH_HEAD(u8);
+    stk              = (VECTOR3*)(head - 0x10);
+    SCRATCH_HEAD(u8) = (u8*)stk;
+    vec              = stk;
+    work             = arg0->work;
+    coord            = ((TmdObject*)arg0->extra)->coords;
     switch (work->field_35C) {
         case 0:
             off = work->field_364 + 800;
@@ -1235,7 +1234,7 @@ void Actor01500_Fn020D8(Task* arg0)
         work->field_364 = ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x1FF;
         Gp_ArmStateF0(1);
     }
-    *(u8**)0x1F8003FC += 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 /// Runs the task's current state handler from `Actor01500_D00004`, copying
@@ -1554,11 +1553,11 @@ void Actor01500_Fn02B70(Task* arg0)
     void*            head;
     s16              hit;
 
-    head                = *(void**)0x1F8003FC;
-    work                = arg0->work;
-    coord               = ((TmdObject*)arg0->extra)->coords;
-    *(void**)0x1F8003FC = (u8*)head - 0x10;
-    vec                 = (VECTOR3*)((u8*)head - 0x10);
+    head               = SCRATCH_HEAD(void);
+    work               = arg0->work;
+    coord              = ((TmdObject*)arg0->extra)->coords;
+    SCRATCH_HEAD(void) = (u8*)head - 0x10;
+    vec                = (VECTOR3*)((u8*)head - 0x10);
     if (work->field_35A != 5) {
         hit = func_800EA1A8((VECTOR3*)coord->workm.t, vec);
         if (hit != 0) {
@@ -1570,7 +1569,7 @@ void Actor01500_Fn02B70(Task* arg0)
         vec->vz = coord->workm.t[2];
         Gp_DrawEffGroundQuad(vec, 0x200, 0x80);
     }
-    *(void**)0x1F8003FC += 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 /// Death shrink: restores the root coordinate from the matrix `field_32C`
@@ -1586,11 +1585,11 @@ void Actor01500_Fn02C34(Task* arg0)
     ActorScaleScratch* scratch;
     Actor101500Work*   work;
 
-    head                    = *(MATRIX**)G_SCRATCH_HEAD;
-    work                    = arg0->work;
-    scratch                 = (ActorScaleScratch*)((u8*)head - 0x30);
-    *(void**)G_SCRATCH_HEAD = scratch;
-    coord                   = ((TmdObject*)arg0->extra)->coords;
+    head               = SCRATCH_HEAD(MATRIX);
+    work               = arg0->work;
+    scratch            = (ActorScaleScratch*)((u8*)head - 0x30);
+    SCRATCH_HEAD(void) = scratch;
+    coord              = ((TmdObject*)arg0->extra)->coords;
     if (work->field_368 >= 0x201) {
         work->field_368 = (u16)work->field_368 - 0x50;
     }
@@ -1605,6 +1604,6 @@ void Actor01500_Fn02C34(Task* arg0)
     scratch->mat.ident.m22     = 0x1000;
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
-    coord->flg             = 0;
-    *(u8**)G_SCRATCH_HEAD += 0x30;
+    coord->flg = 0;
+    SCRATCH_POP_BYTES(0x30);
 }

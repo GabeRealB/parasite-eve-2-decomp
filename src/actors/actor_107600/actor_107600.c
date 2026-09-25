@@ -255,7 +255,7 @@ void func_actor_107600_80131F10(Task* arg0)
         if ((arg0->spawnArg1 & 0xF000) != 0x2000) {
             ((MistShootingGalleryWork*)arg0->parent->work)->field_0E--;
         }
-        *(u8**)G_SCRATCH_HEAD += 0x10;
+        SCRATCH_POP_BYTES(0x10);
         Gp_DestroyEnemy(enemy, arg0);
         return;
     }
@@ -289,7 +289,7 @@ void func_actor_107600_80131F10(Task* arg0)
     Gp_UpdateCoord(coord);
     func_actor_107600_80132DF0(enemy, arg0->spawnArg1 & 0xF,
                                work->field_144 | (((u32)arg0->spawnArg1 >> 16) & 0x2000));
-    *scratch = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
 /// Path-following phase: grows the
@@ -627,7 +627,7 @@ void func_actor_107600_80132B0C(Task* arg0)
     block->vz = coord->workm.t[2];
     *scratch  = block;
     Gp_UpdateActorColor(obj, block, 0, 0);
-    *scratch = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
 /// Rebuilds the model root's rotation from the work block's three angles: wrap
@@ -640,21 +640,21 @@ void func_actor_107600_80132B7C(Task* arg0)
     GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->coords;
     MATRIX*          m;
 
-    work->pitch              &= 0xFFF;
-    work->yaw                &= 0xFFF;
-    work->roll               &= 0xFFF;
-    m                         = (MATRIX*)(*(u8**)G_SCRATCH_HEAD - 0x20);
-    *(s32*)&m->m[0][0]        = 0x1000;
-    *(s32*)&m->m[0][2]        = 0;
-    *(s32*)&m->m[1][1]        = 0x1000;
-    *(s32*)&m->m[2][0]        = 0;
-    m->m[2][2]                = 0x1000;
-    *(MATRIX**)G_SCRATCH_HEAD = m;
+    work->pitch         &= 0xFFF;
+    work->yaw           &= 0xFFF;
+    work->roll          &= 0xFFF;
+    m                    = (MATRIX*)(SCRATCH_HEAD(u8) - 0x20);
+    *(s32*)&m->m[0][0]   = 0x1000;
+    *(s32*)&m->m[0][2]   = 0;
+    *(s32*)&m->m[1][1]   = 0x1000;
+    *(s32*)&m->m[2][0]   = 0;
+    m->m[2][2]           = 0x1000;
+    SCRATCH_HEAD(MATRIX) = m;
     RotMatrixZ((s16)work->roll, m);
     RotMatrixX((s16)work->pitch, m);
     func_8004BFF8((s16)work->yaw, m);
     func_actor_107600_80132C4C(m, &coord->coord);
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x20;
+    SCRATCH_POP_BYTES(0x20);
 }
 
 /// Copies the 3x3 rotation of the scratch matrix `func_actor_107600_80132B7C`
@@ -823,14 +823,14 @@ void func_actor_107600_80133024(Task* arg0)
     SVECTOR*         v;
     s32              i;
 
-    enemy                  = arg0->spawnArg2;
-    ext                    = arg0->extra;
-    work                   = (Actor107600Work*)arg0->work;
-    coord                  = ext->coords;
-    obj                    = ext;
-    sp                     = D_actor_107600_80131E84;
-    *(s32*)G_SCRATCH_HEAD -= 8;
-    v                      = *(SVECTOR**)G_SCRATCH_HEAD;
+    enemy = arg0->spawnArg2;
+    ext   = arg0->extra;
+    work  = (Actor107600Work*)arg0->work;
+    coord = ext->coords;
+    obj   = ext;
+    sp    = D_actor_107600_80131E84;
+    SCRATCH_PUSH_BYTES(8);
+    v = SCRATCH_HEAD(SVECTOR);
     switch (Gp_StateF0.field_4) {
         case 0:
             sp.funcs[work->field_158](arg0);
@@ -872,7 +872,7 @@ void func_actor_107600_80133024(Task* arg0)
             func_actor_107600_80134248(coord, v);
         }
     }
-    *(s32*)G_SCRATCH_HEAD += 8;
+    SCRATCH_POP_BYTES(8);
 }
 
 /// Sub-state machine in `field_15A`: once `Task::spawnArg1` bit 0x10 is set,
@@ -1225,10 +1225,10 @@ void func_actor_107600_80133DC4(Task* arg0)
     s16              damage;
     s32              pan;
 
-    work                   = (Actor107600Work*)arg0->work;
-    enemy                  = arg0->spawnArg2;
-    *(s32*)G_SCRATCH_HEAD -= 8;
-    work->field_156        = 0;
+    work  = (Actor107600Work*)arg0->work;
+    enemy = arg0->spawnArg2;
+    SCRATCH_PUSH_BYTES(8);
+    work->field_156 = 0;
     if (Gp_FindRec18(work->obj.ctx.recs, 0) != 0) {
         for (i = 0; i < 8; i++) {
             if ((work->rec18[i].key & 0xFFFF0000) == 0x20000) {
@@ -1264,7 +1264,7 @@ void func_actor_107600_80133DC4(Task* arg0)
         }
     }
     Gp_ClearRec18Occupied(work->rec18);
-    *(s32*)G_SCRATCH_HEAD += 8;
+    SCRATCH_POP_BYTES(8);
 }
 
 /// Corner offsets of the quad `func_actor_107600_80133FA8` draws.
@@ -1283,8 +1283,8 @@ void func_actor_107600_80133FA8(GsCOORDINATE2* coord, SVECTOR* pos)
     POLY_FT4*               p;
     s32                     i;
 
-    *(s32*)G_SCRATCH_HEAD -= sizeof(Actor107600QuadScratch);
-    s                      = *(Actor107600QuadScratch**)G_SCRATCH_HEAD;
+    SCRATCH_PUSH_BYTES(sizeof(Actor107600QuadScratch));
+    s = SCRATCH_HEAD(Actor107600QuadScratch);
     for (i = 0; i < 4; i++) {
         s->v[i].vx = pos->vx + (D_actor_107600_80131ED8[i].vx + coord->coord.t[0]);
         s->v[i].vy = pos->vy + (D_actor_107600_80131ED8[i].vy + coord->coord.t[1]);
@@ -1308,7 +1308,7 @@ void func_actor_107600_80133FA8(GsCOORDINATE2* coord, SVECTOR* pos)
     gte_stszotz(&s->otz);
     s->otz -= 0xA0;
     if (s->otz < 0x40) {
-        *(s32*)G_SCRATCH_HEAD += sizeof(Actor107600QuadScratch);
+        SCRATCH_POP_BYTES(sizeof(Actor107600QuadScratch));
         return;
     }
     p->x0 = s->sxy[0];
@@ -1320,7 +1320,7 @@ void func_actor_107600_80133FA8(GsCOORDINATE2* coord, SVECTOR* pos)
     p->x3 = s->sxy[3];
     p->y3 = s->sxy[3] >> 16;
     addPrim(&gGpuCurrentOt[s->otz >> 4], p);
-    *(s32*)G_SCRATCH_HEAD += sizeof(Actor107600QuadScratch);
+    SCRATCH_POP_BYTES(sizeof(Actor107600QuadScratch));
 }
 
 /// Corner offsets of the quad `func_actor_107600_80134248` draws; the
@@ -1342,8 +1342,8 @@ void func_actor_107600_80134248(GsCOORDINATE2* coord, SVECTOR* pos)
     POLY_FT4*               p;
     s32                     i;
 
-    *(s32*)G_SCRATCH_HEAD -= sizeof(Actor107600QuadScratch);
-    s                      = *(Actor107600QuadScratch**)G_SCRATCH_HEAD;
+    SCRATCH_PUSH_BYTES(sizeof(Actor107600QuadScratch));
+    s = SCRATCH_HEAD(Actor107600QuadScratch);
     for (i = 0; i < 4; i++) {
         s->v[i].vx = pos->vx + (D_actor_107600_80131EE8[i].vx + coord->coord.t[0]);
         s->v[i].vy = pos->vy + (D_actor_107600_80131EE8[i].vy + coord->coord.t[1]);
@@ -1367,7 +1367,7 @@ void func_actor_107600_80134248(GsCOORDINATE2* coord, SVECTOR* pos)
     gte_stszotz(&s->otz);
     s->otz -= 0x40;
     if (s->otz < 0x40) {
-        *(s32*)G_SCRATCH_HEAD += sizeof(Actor107600QuadScratch);
+        SCRATCH_POP_BYTES(sizeof(Actor107600QuadScratch));
         return;
     }
     p->x0 = s->sxy[0];
@@ -1379,7 +1379,7 @@ void func_actor_107600_80134248(GsCOORDINATE2* coord, SVECTOR* pos)
     p->x3 = s->sxy[3];
     p->y3 = s->sxy[3] >> 16;
     addPrim(&gGpuCurrentOt[s->otz >> 4], p);
-    *(s32*)G_SCRATCH_HEAD += sizeof(Actor107600QuadScratch);
+    SCRATCH_POP_BYTES(sizeof(Actor107600QuadScratch));
 }
 
 /// Mode 1 collapses each column of `m` to one weighted value plus a
@@ -1498,7 +1498,7 @@ void func_actor_107600_80134608(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
                 arg0->colorBlend--;
             }
         }
-        *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x30;
+        SCRATCH_HEAD(u8) = (u8*)SCRATCH_HEAD(void) + 0x30;
     }
 }
 
@@ -1566,7 +1566,7 @@ void func_actor_107600_801349E0(Task* arg0)
     block->vz = coord->workm.t[2];
     *scratch  = block;
     func_actor_107600_80134608(obj, block, 0, 0);
-    *scratch = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
 /// Builds a second rotation from the work block's angle trio at +0x50: wrap
@@ -1580,21 +1580,21 @@ void func_actor_107600_80134A50(Task* arg0)
     GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->coords;
     MATRIX*          m;
 
-    work->field_50           &= 0xFFF;
-    work->field_52           &= 0xFFF;
-    work->field_54           &= 0xFFF;
-    m                         = (MATRIX*)(*(u8**)G_SCRATCH_HEAD - 0x20);
-    *(s32*)&m->m[0][0]        = 0x1000;
-    *(s32*)&m->m[0][2]        = 0;
-    *(s32*)&m->m[1][1]        = 0x1000;
-    *(s32*)&m->m[2][0]        = 0;
-    m->m[2][2]                = 0x1000;
-    *(MATRIX**)G_SCRATCH_HEAD = m;
+    work->field_50      &= 0xFFF;
+    work->field_52      &= 0xFFF;
+    work->field_54      &= 0xFFF;
+    m                    = (MATRIX*)(SCRATCH_HEAD(u8) - 0x20);
+    *(s32*)&m->m[0][0]   = 0x1000;
+    *(s32*)&m->m[0][2]   = 0;
+    *(s32*)&m->m[1][1]   = 0x1000;
+    *(s32*)&m->m[2][0]   = 0;
+    m->m[2][2]           = 0x1000;
+    SCRATCH_HEAD(MATRIX) = m;
     Gfx_RotMatrixZ(m, (s16)work->field_54, 0);
     Gfx_RotMatrixX(m, (s16)work->field_50, 0);
     Gfx_RotMatrixY(m, (s16)work->field_52, 0);
     func_actor_107600_80134B2C(m, &coord->coord);
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x20;
+    SCRATCH_POP_BYTES(0x20);
 }
 
 /// Copies the 3x3 rotation of `src` into `dst`, leaving `dst`'s translation row
@@ -1754,12 +1754,12 @@ void func_actor_107600_80134D9C(Task* arg0)
         *scratch = head;
         return;
     }
-    target          = ((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
-    block->vx       = target->coord.t[0] - self->coord.t[0];
-    block->vy       = target->coord.t[1] - self->coord.t[1];
-    block->vz       = target->coord.t[2] - self->coord.t[2];
-    dist            = func_80103D8C(block->vx, block->vz);
-    *scratch        = (u8*)*scratch + 0x10;
+    target    = ((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
+    block->vx = target->coord.t[0] - self->coord.t[0];
+    block->vy = target->coord.t[1] - self->coord.t[1];
+    block->vz = target->coord.t[2] - self->coord.t[2];
+    dist      = func_80103D8C(block->vx, block->vz);
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
     work->field_14C = dist;
 }
 
@@ -1785,7 +1785,7 @@ void func_actor_107600_80134E5C(GsCOORDINATE2* arg0)
     ApplyMatrixLV(&arg0->coord, block, block);
     arg0->coord.t[0] = block->vx;
     arg0->coord.t[1] = block->vy;
-    *scratch         = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
     arg0->coord.t[2] = block->vz;
 }
 

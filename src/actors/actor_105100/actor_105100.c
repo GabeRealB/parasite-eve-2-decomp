@@ -413,8 +413,8 @@ void func_actor_105100_80131EBC(GsCOORDINATE2* coord, s16 size)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD =
-        (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpRingScratch);
+    SCRATCH_HEAD(void) =
+        (u8*)SCRATCH_HEAD(void) + sizeof(GpRingScratch);
 }
 
 /// Draws a flat textured quad on the ground under the actor: the corners of
@@ -515,7 +515,7 @@ void func_actor_105100_80132414(GsCOORDINATE2* arg0, s32 arg1)
                     prim);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(OverlayGroundScratch);
+    SCRATCH_POP_BYTES(sizeof(OverlayGroundScratch));
 }
 
 /// Spawn/setup handler. It allocates the 0x5C4-byte work block and hangs it off
@@ -723,9 +723,9 @@ void func_actor_105100_80132C2C(Task* arg0)
     s32                    key;
     s32                    wait;
 
-    flag                                      = 0;
-    *(Actor105100HitScratch**)G_SCRATCH_HEAD -= 1;
-    sc                                        = *(Actor105100HitScratch**)G_SCRATCH_HEAD;
+    flag = 0;
+    SCRATCH_PUSH(Actor105100HitScratch);
+    sc = SCRATCH_HEAD(Actor105100HitScratch);
     SOFT_TOUCH_REG(sc);
     lastId = 0;
     coord  = ((TmdObject*)arg0->extra)->coords;
@@ -863,7 +863,7 @@ void func_actor_105100_80132C2C(Task* arg0)
         }
         Gp_ClearRec18Occupied(work->field_53C);
     }
-    *(Actor105100HitScratch**)G_SCRATCH_HEAD += 1;
+    SCRATCH_POP(Actor105100HitScratch);
 }
 
 /// The enemy's step dispatcher, run every frame out of the `field_596` schedule
@@ -1355,13 +1355,13 @@ void func_actor_105100_80133CE4(Task* arg0)
     s32                 sound;
     s32                 count;
 
-    work                    = arg0->work;
-    player                  = gameGetPtrSlot(3);
-    head                    = *(void**)G_SCRATCH_HEAD;
-    *(void**)G_SCRATCH_HEAD = (u8*)head - sizeof(ActorAttackScratch);
-    scratch                 = *(ActorAttackScratch**)G_SCRATCH_HEAD;
-    coord                   = ((TmdObject*)arg0->extra)->coords;
-    target                  = ((TmdObject*)player->extra)->coords;
+    work               = arg0->work;
+    player             = gameGetPtrSlot(3);
+    head               = SCRATCH_HEAD(void);
+    SCRATCH_HEAD(void) = (u8*)head - sizeof(ActorAttackScratch);
+    scratch            = SCRATCH_HEAD(ActorAttackScratch);
+    coord              = ((TmdObject*)arg0->extra)->coords;
+    target             = ((TmdObject*)player->extra)->coords;
 
     switch (work->field_5A4) {
         case 0:
@@ -1434,7 +1434,7 @@ void func_actor_105100_80133CE4(Task* arg0)
             }
             break;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(ActorAttackScratch);
+    SCRATCH_POP_BYTES(sizeof(ActorAttackScratch));
 }
 
 void func_actor_105100_80134130(Task* arg0)
@@ -1790,8 +1790,8 @@ void func_actor_105100_80134B00(GpEnemy* arg0, Task* arg1)
         return;
     }
 body:
-    *(Actor105100ProjScratch**)G_SCRATCH_HEAD -= 1;
-    scratch                                    = *(Actor105100ProjScratch**)G_SCRATCH_HEAD;
+    SCRATCH_PUSH(Actor105100ProjScratch);
+    scratch = SCRATCH_HEAD(Actor105100ProjScratch);
     switch (work->field_7A) {
         case 0:
             rng         = Gp_LcgState * 5 + 0x71357911;
@@ -1935,7 +1935,7 @@ body:
             }
             break;
     }
-    *(Actor105100ProjScratch**)G_SCRATCH_HEAD += 1;
+    SCRATCH_POP(Actor105100ProjScratch);
 }
 
 void func_actor_105100_80135278(GpEnemy* arg0, Task* arg1)
@@ -2085,13 +2085,13 @@ void func_actor_105100_80135674(Task* arg0)
     s32              speed;
     s16              timer;
 
-    head                  = *(VECTOR**)0x1F8003FC;
-    vec                   = head - 1;
-    *(VECTOR**)0x1F8003FC = vec;
-    work                  = arg0->work;
-    rec                   = (Actor105100Rec*)work;
-    state                 = rec->field_46;
-    coord                 = ((TmdObject*)arg0->extra)->coords;
+    head                 = SCRATCH_HEAD(VECTOR);
+    vec                  = head - 1;
+    SCRATCH_HEAD(VECTOR) = vec;
+    work                 = arg0->work;
+    rec                  = (Actor105100Rec*)work;
+    state                = rec->field_46;
+    coord                = ((TmdObject*)arg0->extra)->coords;
     switch (state) {
         case 0:
             vec->vx = D_actor_105100_80141418[rec->field_44].vx - coord->coord.t[0];
@@ -2131,7 +2131,7 @@ void func_actor_105100_80135674(Task* arg0)
             coord->coord.t[2] += (((SVECTOR*)&work->obj38)->vz * work->obj38.pos.vz) >> 12;
             break;
     }
-    *(VECTOR**)0x1F8003FC += 1;
+    SCRATCH_POP(VECTOR);
 }
 
 /// Reaction 1's handler (`field_40 == 1`), which walks the model towards the
@@ -2152,13 +2152,13 @@ void func_actor_105100_801359B4(Task* arg0)
     s32              dz;
     s32              speed;
 
-    head                  = *(VECTOR**)0x1F8003FC;
-    vec                   = head - 1;
-    *(VECTOR**)0x1F8003FC = vec;
-    work                  = arg0->work;
-    rec                   = (Actor105100Rec*)work;
-    state                 = rec->field_46;
-    coord                 = ((TmdObject*)arg0->extra)->coords;
+    head                 = SCRATCH_HEAD(VECTOR);
+    vec                  = head - 1;
+    SCRATCH_HEAD(VECTOR) = vec;
+    work                 = arg0->work;
+    rec                  = (Actor105100Rec*)work;
+    state                = rec->field_46;
+    coord                = ((TmdObject*)arg0->extra)->coords;
     switch (state) {
         case 0:
             vec->vx = D_actor_105100_80141418[rec->field_44].vx - coord->coord.t[0];
@@ -2176,7 +2176,7 @@ void func_actor_105100_801359B4(Task* arg0)
             coord->coord.t[2] += (((SVECTOR*)&work->obj38)->vz * work->obj38.pos.vz) >> 12;
             break;
     }
-    *(VECTOR**)0x1F8003FC += 1;
+    SCRATCH_POP(VECTOR);
 }
 
 void func_actor_105100_80135B40(Task* arg0)
@@ -2192,7 +2192,7 @@ void func_actor_105100_80135B40(Task* arg0)
     s32               next;
     s32               step;
 
-    sc           = (ActorFaceScratch*)(*(u32*)0x1F8003FC -= 0x18);
+    sc           = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
     coord        = ((TmdObject*)arg0->extra)->coords;
     sc->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
     sc->delta.vy = 0;
@@ -2243,7 +2243,7 @@ done:
     RotMatrix(&sc->rot, &coord->coord);
     coord->coord.t[0] += (coord->coord.m[0][2] * 0xF) >> 0xA;
     coord->coord.t[2] += (coord->coord.m[2][2] * 0xF) >> 0xA;
-    *(u32*)0x1F8003FC += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Unless the player is in an event, draws from the gameplay LCG and on one
@@ -2630,10 +2630,10 @@ void func_actor_105100_80136574(Task* arg0, MATRIX* arg1, s16 arg2, s32 arg3)
     ActorScaleScratch* blk;
     GsCOORDINATE2*     coord;
 
-    head                    = *(void**)G_SCRATCH_HEAD;
-    *(void**)G_SCRATCH_HEAD = (u8*)head - 0x30;
-    blk                     = (ActorScaleScratch*)((u8*)head - 0x30);
-    coord                   = ((TmdObject*)arg0->extra)->coords;
+    head               = SCRATCH_HEAD(void);
+    SCRATCH_HEAD(void) = (u8*)head - 0x30;
+    blk                = (ActorScaleScratch*)((u8*)head - 0x30);
+    coord              = ((TmdObject*)arg0->extra)->coords;
 
     if (arg3 == 0) {
         blk->scale.vx = 0x1000;
@@ -2655,8 +2655,8 @@ void func_actor_105100_80136574(Task* arg0, MATRIX* arg1, s16 arg2, s32 arg3)
 
     ScaleMatrix(&blk->mat.mat, &blk->scale);
     MulMatrix(&coord->coord, &blk->mat.mat);
-    coord->flg              = 0;
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x30;
+    coord->flg = 0;
+    SCRATCH_POP_BYTES(0x30);
 }
 
 void func_actor_105100_8013667C(Task* arg0)

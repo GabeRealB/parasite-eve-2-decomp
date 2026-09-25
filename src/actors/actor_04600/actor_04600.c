@@ -124,7 +124,6 @@ typedef struct Actor104600Enemy2Work {
 STATIC_ASSERT_SIZEOF(Actor104600Enemy2Work, 0x2B0);
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-#define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 #define ACTOR_COPY_MATRIX_COLUMN_TO_SV(r0, r1, o0, o1, o2) \
     __asm__ volatile(                                      \
@@ -464,9 +463,9 @@ void Actor04600_Fn005B0(Task* arg0)
     s32              soundId;
     u32              rng;
 
-    coord              = ((TmdObject*)arg0->extra)->coords;
-    work               = (Actor104600Work*)arg0->work;
-    *(u32*)0x1F8003FC -= 8;
+    coord = ((TmdObject*)arg0->extra)->coords;
+    work  = (Actor104600Work*)arg0->work;
+    SCRATCH_PUSH_BYTES(8);
     if (Gp_CountRec18Hi(&work->rec11C, 0x10000) != 0) {
         work->field_2D8 = 1;
     }
@@ -505,7 +504,7 @@ void Actor04600_Fn005B0(Task* arg0)
         }
         Actor04600_Fn0272C(arg0);
     }
-    *(u32*)0x1F8003FC += 8;
+    SCRATCH_POP_BYTES(8);
 }
 
 /// Live handler of the first enemy, dispatched on its stage `field_2C8`.
@@ -610,7 +609,7 @@ void Actor04600_Fn00978(Task* arg0)
     Actor104600Work*   contact;
 
     work        = (Actor104600Work*)arg0->work;
-    scratchHead = (void*)(*(u32*)0x1F8003FC -= 0x4C);
+    scratchHead = (void*)SCRATCH_PUSH_BYTES(0x4C);
     enemy       = arg0->spawnArg2;
     object      = arg0->extra;
     SOFT_TOUCH_REG_USE(object, scratchHead);
@@ -755,7 +754,7 @@ contact_loop:
         work->obj1B4.flags = (u16)((u16)work->obj1B4.flags & 0x7FFF);
         Gp_ClearRec18Occupied(effectRec);
     }
-    *(u32*)0x1F8003FC += 0x4C;
+    SCRATCH_POP_BYTES(0x4C);
 }
 
 /// Damage reaction of the first enemy: `arg1` comes off its HP and goes
@@ -819,7 +818,7 @@ void Actor04600_Fn00FD8(Task* arg0)
 
     coord        = ((TmdObject*)arg0->extra)->coords;
     work         = (Actor104600Work*)arg0->work;
-    sc           = (ActorFaceScratch*)(*(u32*)0x1F8003FC -= 0x18);
+    sc           = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
     sc->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
     sc->delta.vy = 0;
     sc->delta.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
@@ -850,7 +849,7 @@ void Actor04600_Fn00FD8(Task* arg0)
     sc->rot.vy = work->field_2B0;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    *(u32*)0x1F8003FC += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Death-state handler of the first enemy, under the `Gp_StateF0.field_4` mode byte:
@@ -1188,7 +1187,7 @@ void Actor04600_Fn01E0C(Task* arg0)
     s32                movement;
 
     work     = (Actor104600Work*)arg0->work;
-    scratch  = (ActorDeltaFrame48*)(SCRATCH_SP -= 0x48);
+    scratch  = (ActorDeltaFrame48*)SCRATCH_PUSH_BYTES(0x48);
     coord    = ((TmdObject*)arg0->extra)->coords;
     movement = func_800E0C10(&work->rec154[0], &scratch->delta, 4, NULL);
     switch (movement) {
@@ -1211,7 +1210,7 @@ void Actor04600_Fn01E0C(Task* arg0)
             break;
     }
     Gp_ClearRec18Occupied(&work->rec154[0]);
-    SCRATCH_SP += 0x48;
+    SCRATCH_POP_BYTES(0x48);
 }
 
 /// Message handler of the first enemy. While the task is in state 1, modes 4
@@ -1511,7 +1510,7 @@ void Actor04600_Fn02870(GpEnemy* arg0, Task* task)
     block->vz = coord->workm.t[2];
     *scratch  = block;
     Gp_UpdateActorColor(arg0, block, 0, 0);
-    *scratch = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
 /// Draws the first enemy's ground shadow under the model root, at the world
@@ -1522,12 +1521,12 @@ void Actor04600_Fn028E0(Task* task)
     VECTOR3*       vec;
 
     coord   = ((TmdObject*)task->extra)->coords;
-    vec     = (VECTOR3*)(SCRATCH_SP -= 0x18);
+    vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
     vec->vx = coord->workm.t[0];
     vec->vy = coord->workm.t[1];
     vec->vz = coord->workm.t[2];
     Gp_DrawEffGroundQuad(vec, 0x1C0, 0);
-    SCRATCH_SP += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Scales the rotation of `arg1`'s matrix by the first enemy's scale factor
@@ -1590,11 +1589,11 @@ void Actor04600_Fn02B14(Task* arg0)
     ActorScaleScratch* scratch;
     Actor104600Work*   work;
 
-    head                = *(MATRIX**)0x1F8003FC;
-    work                = arg0->work;
-    scratch             = (ActorScaleScratch*)((u8*)head - 0x30);
-    *(void**)0x1F8003FC = scratch;
-    coord               = (*(TmdObject**)&arg0->extra)->coords;
+    head               = SCRATCH_HEAD(MATRIX);
+    work               = arg0->work;
+    scratch            = (ActorScaleScratch*)((u8*)head - 0x30);
+    SCRATCH_HEAD(void) = scratch;
+    coord              = (*(TmdObject**)&arg0->extra)->coords;
     if (work->field_2CA >= 0x201) {
         work->field_2CA = (u16)work->field_2CA - 0x50;
     }
@@ -1609,8 +1608,8 @@ void Actor04600_Fn02B14(Task* arg0)
     scratch->mat.ident.m22     = 0x1000;
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
-    coord->flg         = 0;
-    *(u8**)0x1F8003FC += 0x30;
+    coord->flg = 0;
+    SCRATCH_POP_BYTES(0x30);
 }
 
 /// Exit callback of the first enemy: detaches the enemy's contact records,
@@ -1796,9 +1795,9 @@ void Actor04600_Fn030A8(Task* arg0)
     s32                    id;
     GpEnemy*               ctx;
 
-    work                   = (Actor104600Enemy2Work*)arg0->work;
-    *(u8**)G_SCRATCH_HEAD -= 8;
-    obj                    = ((TmdObject*)arg0->extra)->coords;
+    work = (Actor104600Enemy2Work*)arg0->work;
+    SCRATCH_PUSH_BYTES(8);
+    obj = ((TmdObject*)arg0->extra)->coords;
     if (Gp_CountRec18Hi(work->field_16C, 0x10000) != 0 || Gp_CountRec18Hi(work->field_134, 0x10000) != 0) {
         Gp_StateF0.field_3 = 1;
         work->field_2AA    = 1;
@@ -1883,7 +1882,7 @@ void Actor04600_Fn030A8(Task* arg0)
             work->field_290 = 0;
         }
     }
-    *(u8**)G_SCRATCH_HEAD += 8;
+    SCRATCH_POP_BYTES(8);
 }
 
 /// Per-frame hit handler. Applies the `func_800E0C10` push-back from the four
@@ -1906,13 +1905,13 @@ void Actor04600_Fn0346C(Task* arg0)
     u32                    damage;
     s32                    snd;
 
-    work                                 = (Actor104600Enemy2Work*)arg0->work;
-    head                                 = *(ActorDeltaFrame38**)G_SCRATCH_HEAD;
-    *(ActorDeltaFrame38**)G_SCRATCH_HEAD = head - 1;
-    sc                                   = head - 1;
-    obj                                  = arg0->extra;
-    coord                                = obj->coords;
-    enemy                                = arg0->spawnArg2;
+    work                            = (Actor104600Enemy2Work*)arg0->work;
+    head                            = SCRATCH_HEAD(ActorDeltaFrame38);
+    SCRATCH_HEAD(ActorDeltaFrame38) = head - 1;
+    sc                              = head - 1;
+    obj                             = arg0->extra;
+    coord                           = obj->coords;
+    enemy                           = arg0->spawnArg2;
 
     switch (func_800E0C10(work->field_1A4, &head[-1].delta, 4, NULL)) {
         case 0:
@@ -2001,7 +2000,7 @@ void Actor04600_Fn0346C(Task* arg0)
         i++;
     } while (i < 4);
     Gp_ClearRec18Occupied(work->field_1A4);
-    *(ActorDeltaFrame38**)G_SCRATCH_HEAD = *(ActorDeltaFrame38**)G_SCRATCH_HEAD + 1;
+    SCRATCH_HEAD(ActorDeltaFrame38) = SCRATCH_HEAD(ActorDeltaFrame38) + 1;
 }
 
 /// Dying-state tick of the second enemy, under the `Gp_StateF0.field_4` mode byte: 1
@@ -2247,7 +2246,7 @@ void Actor04600_Fn03EC0(GpEnemy* arg0, Task* task)
     block->vz = coord->workm.t[2];
     *scratch  = block;
     Gp_UpdateActorColor(arg0, block, 0, 0);
-    *scratch = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
 /// Ramps the second enemy's light blend `field_2A4` up or down as `field_2A6`
@@ -2306,11 +2305,11 @@ void Actor04600_Fn0400C(Task* arg0)
     ActorScaleScratch*     scratch;
     Actor104600Enemy2Work* work;
 
-    head                = *(MATRIX**)0x1F8003FC;
-    work                = arg0->work;
-    scratch             = (ActorScaleScratch*)((u8*)head - 0x30);
-    *(void**)0x1F8003FC = scratch;
-    coord               = (*(TmdObject**)&arg0->extra)->coords;
+    head               = SCRATCH_HEAD(MATRIX);
+    work               = arg0->work;
+    scratch            = (ActorScaleScratch*)((u8*)head - 0x30);
+    SCRATCH_HEAD(void) = scratch;
+    coord              = (*(TmdObject**)&arg0->extra)->coords;
     if (work->field_2A0 >= 0x201) {
         work->field_2A0 = (u16)work->field_2A0 - 0x50;
     }
@@ -2325,8 +2324,8 @@ void Actor04600_Fn0400C(Task* arg0)
     scratch->mat.ident.m22     = 0x1000;
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
-    coord->flg         = 0;
-    *(u8**)0x1F8003FC += 0x30;
+    coord->flg = 0;
+    SCRATCH_POP_BYTES(0x30);
 }
 
 /// Exit callback of the second enemy: detaches the enemy's contact records,

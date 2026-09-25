@@ -24,7 +24,6 @@
 #include "main/tmd.h"
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
-#define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 /// The actor's per-instance work block, reached through `Task::work`. `field_0`
 /// is the display mode the tick dispatches on, `field_2` the mode dispatched
@@ -119,15 +118,15 @@ void func_actor_123200_80131E50(GsCOORDINATE2* coord, s16 yaw)
     MATRIX*        rotation;
     GsCOORDINATE2* out;
 
-    *(MATRIX**)G_SCRATCH_HEAD -= 1;
-    rotation                   = *(MATRIX**)G_SCRATCH_HEAD;
+    SCRATCH_PUSH(MATRIX);
+    rotation = SCRATCH_HEAD(MATRIX);
     actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
     func_8004BFF8(yaw, rotation);
     out = actorLocalizeRotation(coord, rotation);
     __builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->flg = 0;
     Gp_UpdateCoord(out);
-    *(MATRIX**)G_SCRATCH_HEAD += 1;
+    SCRATCH_POP(MATRIX);
 }
 
 /// Walks the first `count` records of `recs`, up to an empty key, and for
@@ -146,11 +145,11 @@ s32 func_actor_123200_8013215C(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
     if (Mc_SaveData.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
-    coord->flg                           = 0;
-    head                                 = *(ActorRepelScratch**)G_SCRATCH_HEAD;
-    blk                                  = head - 1;
-    *(ActorRepelScratch**)G_SCRATCH_HEAD = blk;
-    s                                    = blk;
+    coord->flg                      = 0;
+    head                            = SCRATCH_HEAD(ActorRepelScratch);
+    blk                             = head - 1;
+    SCRATCH_HEAD(ActorRepelScratch) = blk;
+    s                               = blk;
     Gp_UpdateCoord(coord);
     s->pos.vx  = coord->workm.t[0];
     s->pos.vy  = coord->workm.t[1];
@@ -182,8 +181,8 @@ s32 func_actor_123200_8013215C(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
         gte_gpf12();
         gte_stsv(offset);
     }
-    coord->flg                            = 0;
-    *(ActorRepelScratch**)G_SCRATCH_HEAD += 1;
+    coord->flg = 0;
+    SCRATCH_POP(ActorRepelScratch);
     return s->hit;
 }
 
@@ -204,13 +203,13 @@ s32 func_actor_123200_801324A4(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
         return 0;
     }
 
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - sizeof(OverlayAvoidScratch);
-    s                     = (OverlayAvoidScratch*)*(u8**)G_SCRATCH_HEAD;
-    s->blocked            = 0;
-    pos->vz               = 0;
-    pos->vy               = 0;
-    pos->vx               = 0;
+    head             = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(u8) = head - sizeof(OverlayAvoidScratch);
+    s                = (OverlayAvoidScratch*)SCRATCH_HEAD(u8);
+    s->blocked       = 0;
+    pos->vz          = 0;
+    pos->vy          = 0;
+    pos->vx          = 0;
 
     Gfx_MatrixCol1(&coord->workm, (SVECTOR*)(head - 0x34));
     VectorNormalSS((SVECTOR*)(head - 0x34), (SVECTOR*)(head - 0x34));
@@ -298,7 +297,7 @@ s32 func_actor_123200_801324A4(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
         }
     }
 
-    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(OverlayAvoidScratch);
+    SCRATCH_POP_BYTES(sizeof(OverlayAvoidScratch));
     return s->blocked != 0;
 }
 
@@ -351,7 +350,7 @@ s32 func_actor_123200_801329F0(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
     return s->moved;
 }
 
@@ -499,9 +498,9 @@ s32 func_actor_123200_80132B94(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s
         }
     }
 
-    tail  = (void**)G_SCRATCH_HEAD;
-    hit   = st->hit;
-    *tail = (u8*)*tail + sizeof(OverlayBisectorScratch);
+    tail = (void**)G_SCRATCH_HEAD;
+    hit  = st->hit;
+    SCRATCH_POP_BYTES_AT(tail, sizeof(OverlayBisectorScratch));
     return hit;
 }
 
@@ -714,9 +713,9 @@ static __inline__ void Actor123200_StepForward(GsCOORDINATE2* coord)
     u8*      head;
     SVECTOR* dir;
 
-    head       = (u8*)SCRATCH_SP;
-    dir        = (SVECTOR*)(head - sizeof(SVECTOR));
-    SCRATCH_SP = (u32)dir;
+    head               = SCRATCH_HEAD(u8);
+    dir                = (SVECTOR*)(head - sizeof(SVECTOR));
+    SCRATCH_HEAD(void) = dir;
 
     Gfx_MatrixCol2(&coord->coord, dir);
     VectorNormalSS(dir, dir);
@@ -730,7 +729,7 @@ static __inline__ void Actor123200_StepForward(GsCOORDINATE2* coord)
     coord->coord.t[2] += dir->vz;
     coord->flg         = 0;
 
-    SCRATCH_SP = (u32)((u8*)SCRATCH_SP + sizeof(SVECTOR));
+    SCRATCH_POP_BYTES(sizeof(SVECTOR));
 }
 
 /// Display mode 1 handler (entry 1 of `D_actor_123200_80131E24`). On the frame
@@ -765,13 +764,13 @@ void func_actor_123200_80133820(GpEnemy* enemy, Task* task)
         return;
     }
     work->field_6++;
-    SCRATCH_SP -= 0xC;
-    coord       = ((TmdObject*)task->extra)->coords;
+    SCRATCH_PUSH_BYTES(0xC);
+    coord = ((TmdObject*)task->extra)->coords;
     if (Mc_SaveData.field_5C1 != 1) {
         Actor123200_StepForward(coord);
     }
     func_actor_123200_801332E0(task);
-    SCRATCH_SP                            += 0xC;
+    SCRATCH_POP_BYTES(0xC);
     ((TmdObject*)task->extra)->coords->flg = 0;
 }
 
@@ -784,9 +783,9 @@ static __inline__ void Actor123200_MoveForward(GsCOORDINATE2* coord)
     SVECTOR* vec;
 
     if (Mc_SaveData.field_5C1 != 1) {
-        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
-        vec                        = head - 1;
-        *(SVECTOR**)G_SCRATCH_HEAD = vec;
+        head                  = SCRATCH_HEAD(SVECTOR);
+        vec                   = head - 1;
+        SCRATCH_HEAD(SVECTOR) = vec;
         SOFT_TOUCH_REG(vec);
         Gfx_MatrixCol2(&coord->coord, vec);
         VectorNormalSS(vec, vec);
@@ -794,11 +793,11 @@ static __inline__ void Actor123200_MoveForward(GsCOORDINATE2* coord)
         gte_ldsv(vec);
         gte_gpf12();
         gte_stsv(vec);
-        coord->coord.t[0]          += head[-1].vx;
-        coord->coord.t[1]          += vec->vy;
-        coord->coord.t[2]          += vec->vz;
-        coord->flg                  = 0;
-        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+        coord->coord.t[0] += head[-1].vx;
+        coord->coord.t[1] += vec->vy;
+        coord->coord.t[2] += vec->vz;
+        coord->flg         = 0;
+        SCRATCH_POP(SVECTOR);
     }
 }
 
@@ -1048,7 +1047,7 @@ void func_actor_123200_80134060(GsCOORDINATE2* coord, s16 scale)
     coord->coord.m[2][0] = *(u16*)&blk->m.m[2][0];
     coord->coord.m[2][1] = *(u16*)&blk->m.m[2][1];
     m22                  = *(u16*)&blk->m.m[2][2];
-    *scratch             = (u8*)*scratch + 0x34;
+    SCRATCH_POP_BYTES_AT(scratch, 0x34);
     coord->flg           = 0;
     coord->coord.m[2][2] = m22;
 }
