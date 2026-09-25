@@ -1,10 +1,9 @@
 #include "common.h"
 
 extern s32 D_800820E0;
-extern s16 D_800820E4;
-extern s16 D_800820E6;
 
 #include "main/fs.h"
+#include "main/unknown_syms.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/sound.h"

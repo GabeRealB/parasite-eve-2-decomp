@@ -93,6 +93,7 @@ extern u8           D_80068A54[];
 extern s32          D_80068A78;
 extern s32          D_800820E0;
 extern s16          D_800820E4;
+extern s16          D_800820E6;
 extern u8           D_800820E8;
 extern s8           D_800820E9;
 extern volatile u8  D_80082121;
