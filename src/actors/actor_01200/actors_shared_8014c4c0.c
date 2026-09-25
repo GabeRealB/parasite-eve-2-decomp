@@ -12,7 +12,7 @@ extern u32 Gp_LcgState;
 /// Shared: the three actor slots (`actor_101200` / `201200` / `301200`) carry
 /// the same body, so one object serves every overlay that lists this unit in
 /// `configs/USA/overlays.toml`.
-void ActorsShared8014c4c0(Actor201200* arg0, s16 arg1, u32 arg2)
+void Actor01200_Fn026A0(Actor201200* arg0, s16 arg1, u32 arg2)
 {
     SVECTOR*         sc;
     Actor201200Work* work;

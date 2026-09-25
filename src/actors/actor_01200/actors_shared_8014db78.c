@@ -11,7 +11,7 @@
 /// Shared: the three actor slots (`actor_101200` / `201200` / `301200`) carry
 /// the same body byte for byte, so one object serves every overlay that lists
 /// this unit in `configs/USA/overlays.toml`.
-void ActorsShared8014db78(Actor101200Ctx* arg0, Actor101200* arg1)
+void Actor01200_Fn03D58(Actor101200Ctx* arg0, Actor101200* arg1)
 {
     Actor101200Work*  work;
     Actor101200Obj2C* obj;

@@ -2,7 +2,7 @@
 
 #include "actors/actors_shared_8014a7b0.h"
 
-s32 ActorsShared8014a7b0(ActorsShared8014a7b0Work* arg0)
+s32 Actor01200_Fn00990(ActorsShared8014a7b0Work* arg0)
 {
     u16 id;
     s32 v;

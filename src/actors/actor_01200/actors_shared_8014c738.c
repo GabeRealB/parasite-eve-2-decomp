@@ -5,7 +5,7 @@
 
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-void ActorsShared8014c4c0(Actor201200* arg0, s16 arg1, u32 arg2);
+void Actor01200_Fn026A0(Actor201200* arg0, s16 arg1, u32 arg2);
 
 static __inline__ s16 Actor201200_WrapAngle(s16 angle)
 {
@@ -32,7 +32,7 @@ static __inline__ s16 Actor201200_WrapAngle(s16 angle)
 /// Shared: the three actor slots (`actor_101200` / `201200` / `301200`) carry
 /// the same body, so one object serves every overlay that lists this unit in
 /// `configs/USA/overlays.toml`.
-void ActorsShared8014c738(Actor201200Ctx* arg0, Actor201200* arg1)
+void Actor01200_Fn02918(Actor201200Ctx* arg0, Actor201200* arg1)
 {
     Actor201200HitScratch* sc;
     Actor201200Work*       work;
@@ -85,7 +85,7 @@ found:
                 ratan2(-arg1->field_2C->coords->workm.m[2][0], arg1->field_2C->coords->workm.m[2][2]);
         sc->angle = angle;
         sc->angle = Actor201200_WrapAngle(angle);
-        ActorsShared8014c4c0(arg1, sc->angle, sc->id);
+        Actor01200_Fn026A0(arg1, sc->angle, sc->id);
         func_800DA6E8(&arg0->node, sc->dmg, 0);
         arg0->field_40 -= sc->dmg;
         if (arg0->field_40 <= 0) {

@@ -18,8 +18,9 @@ s16  Actor01200_Fn00130(GsCOORDINATE2* coord, GpRec18* rec, s32 n, SVECTOR* d);
 s32  Actor01200_Fn0067C(GsCOORDINATE2* coord, GpRec18* rec, s32 n);
 void Actor01200_Fn00820(Actor201200* arg0);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
-void ActorsShared8014c738(Actor201200Ctx* arg0, Actor201200* arg1);
-void ActorsShared8014db78(Actor201200Ctx* arg0, Actor201200* arg1);
+void Actor01200_Fn02918(Actor201200Ctx* arg0, Actor201200* arg1);
+void Actor01200_Fn03D58(Actor201200Ctx* arg0, Actor201200* arg1);
+s32  Actor01200_Fn00990(ActorsShared8014a7b0Work* arg0);
 void Actor01200_Fn03DC0(Actor201200Ctx* arg0, Actor201200* arg1);
 void Actor01200_Fn01040(Actor201200Ctx* arg0, Actor201200* arg1);
 void Actor01200_Fn03E78(Actor201200Ctx* arg0, Actor201200* arg1);
@@ -181,7 +182,7 @@ void Actor01200_Fn03294(Actor201200Ctx* arg0, Actor201200* arg1)
 
 const Actor201200StateTable Actor01200_D000E4 = {
     {
-        ActorsShared8014db78,
+        Actor01200_Fn03D58,
         Actor01200_Fn03DC0,
         Actor01200_Fn01040,
         Actor01200_Fn03E78,
@@ -244,7 +245,7 @@ void Actor01200_Fn036B0(Actor201200Ctx* arg0, Actor201200* arg1)
     work->field_2 = work->field_0;
     table.fn[work->field_0](arg0, arg1);
     if (arg0->field_40 > 0) {
-        ActorsShared8014c738(arg0, arg1);
+        Actor01200_Fn02918(arg0, arg1);
         if (arg0->field_40 <= 0) {
             work->field_0 = 6;
         }
@@ -252,7 +253,7 @@ void Actor01200_Fn036B0(Actor201200Ctx* arg0, Actor201200* arg1)
     Gp_ClearRec18Occupied(&work->rec1B8);
     Gp_ClearRec18Occupied(&work->rec250);
     Gp_ClearRec18Occupied(&work->rec2E8);
-    id = ActorsShared8014a7b0((ActorsShared8014a7b0Work*)work);
+    id = Actor01200_Fn00990((ActorsShared8014a7b0Work*)work);
     if (id != 0) {
         snd = id | ((arg0->field_8 >> 12) << 8);
         pan = (s8)Gp_GetObjPan(arg1->field_2C->coords);
@@ -266,4 +267,4 @@ void Actor01200_Fn036B0(Actor201200Ctx* arg0, Actor201200* arg1)
     }
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_01200/actor_201200_3", ActorsShared80135df4Table);
+INCLUDE_RODATA("actors/nonmatchings/actor_01200/actor_201200_3", Actor01200_D0010C);

@@ -4,7 +4,7 @@
 
 #include "main/tmd.h"
 
-s32 ActorsShared8014d820(Task* task, s32 arg1, s32 arg2)
+s32 Actor01200_Fn03A00(Task* task, s32 arg1, s32 arg2)
 {
     TmdObject*                obj;
     ActorsShared8014d820Work* work;
