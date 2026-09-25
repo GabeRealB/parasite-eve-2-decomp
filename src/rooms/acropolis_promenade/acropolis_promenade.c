@@ -129,7 +129,7 @@ void func_acropolis_promenade_8017D5E4(Task* task)
 /// not yet at 4; the first pass at 4 advances it to 5 instead of refusing.
 /// Message 0xC, while nibble 2 is still 0, refuses with code 3, latches the
 /// answered record into `D_acropolis_promenade_801862D0` for the room's own
-/// script to pick up, and arms `D_8007272D` with 4. Message 0xE spawns the
+/// script to pick up, and arms `Mc_SaveData.sceneEvent` with 4. Message 0xE spawns the
 /// capsule sequence the first time (nibble 2 still 0) and afterwards reports
 /// through `field_3` whether nibble 2 has reached 3.
 ///

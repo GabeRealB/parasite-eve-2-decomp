@@ -179,7 +179,7 @@ void func_dryfield_motel_balcony_8017D74C(Task* task)
 /// from game flags for messages 0x1C, 0xF and 0x1F, then routes messages 0x1C,
 /// 0x1F and 0x1E through the event gate with each one's request; when the
 /// gate fires, it updates the collected and seen item bits (and, for 0x1E, a
-/// flag nibble and `D_8007272D`). Any other message answers 1; a gate result
+/// flag nibble and `Mc_SaveData.sceneEvent`). Any other message answers 1; a gate result
 /// of 0 is reported as 2.
 s32 func_dryfield_motel_balcony_8017D8BC(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* out)
 {

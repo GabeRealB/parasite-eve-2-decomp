@@ -313,7 +313,6 @@ u16* func_dryfield_night_trailer_coach_8017D81C(s32 mode)
     return D_dryfield_night_trailer_coach_80184578;
 }
 
-extern McItemScan    D_80072724;
 extern RoomShopStock D_8010E138[];
 extern UiObjectDesc  D_8010EFA0;
 extern char          Gp_StrEmpty[];
@@ -351,9 +350,9 @@ void func_dryfield_night_trailer_coach_8017DE8C(DialogPrompt* prompt, UiObject* 
     shop    = (RoomShopList*)obj->owner->work;
     blocked = 0;
     itemId  = shop->items[prompt->field_8];
-    /* &D_80072724 hoisted into a saved register here, as the original does,
+    /* &Mc_SaveData.carriedItems hoisted into a saved register here, as the original does,
        instead of being rematerialised at the Gp_SumScanQty call. */
-    scan = &D_80072724;
+    scan = &Mc_SaveData.carriedItems;
     if (prompt->field_C == 1) {
         D_dryfield_night_trailer_coach_80184490 = itemId;
     }
@@ -944,7 +943,7 @@ void func_dryfield_night_trailer_coach_8017F02C(DialogPrompt* prompt, UiObject* 
     if (mode == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         cfg   = &Player_Status;
         price = Gp_ItemDescs[itemId].price;
-        scan  = &D_80072724;
+        scan  = &Mc_SaveData.carriedItems;
         SndEvt_EnqueueType6(0x16, 0, 0);
         if (cfg->bp >= price) {
             if (Gp_CanAddItem(scan, itemId) == 0) {
@@ -1128,6 +1127,7 @@ void func_dryfield_night_trailer_coach_8017F688(Task* task)
     s32         i;
     s32         n;
     McItemRec*  rec;
+    McItemScan* scan;
 
     item         = D_dryfield_night_trailer_coach_80184490;
     obj          = task->spawnArg2;
@@ -1151,10 +1151,11 @@ void func_dryfield_night_trailer_coach_8017F688(Task* task)
         count = 0;
         guard = 0;
         if ((u32)(item - 0xA0) < 0x20U) {
-            count = Gp_ScanStackQty(&D_80072724, item);
+            count = Gp_ScanStackQty(&Mc_SaveData.carriedItems, item);
         } else {
-            rec = Gp_GetItemTable(&D_80072724) + D_80072724.firstRow;
-            n   = D_80072724.rowCount;
+            scan = &Mc_SaveData.carriedItems;
+            rec  = Gp_GetItemTable(scan) + scan->firstRow;
+            n    = scan->rowCount;
             SOFT_USE_REG2(guard, guard);
             for (i = 0; i < n; i++) {
                 if (rec[i].itemId == item) {
@@ -1212,7 +1213,7 @@ void func_dryfield_night_trailer_coach_8017F85C(Task* task)
            `addu` is index-first, matching the original. */
         scaled = itemId * 4;
         if (D_8010E138[itemId].perBuy != 0) {
-            held    = Gp_ScanStackQty(&D_80072724, itemId);
+            held    = Gp_ScanStackQty(&Mc_SaveData.carriedItems, itemId);
             maxHeld = D_8010E138[itemId].maxHeld;
             maxQty  = maxHeld - held;
             if (maxQty <= 0) {
@@ -1223,7 +1224,7 @@ void func_dryfield_night_trailer_coach_8017F85C(Task* task)
             }
         }
     } else {
-        maxQty = D_80072724.rowCount - Gp_CountScanItems(&D_80072724);
+        maxQty = Mc_SaveData.carriedItems.rowCount - Gp_CountScanItems(&Mc_SaveData.carriedItems);
     }
 
     afford = Player_Status.bp / price;
@@ -1274,7 +1275,7 @@ void func_dryfield_night_trailer_coach_8017F85C(Task* task)
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             Player_Status.bp -= price * task->extraState;
             for (i = 0; i < task->extraState; i++) {
-                Gp_GiveItem(&D_80072724, itemId, -1);
+                Gp_GiveItem(&Mc_SaveData.carriedItems, itemId, -1);
             }
             SndEvt_EnqueueType6(0x16, 0, 0);
             parentObj->field_2E = 6;
@@ -2601,8 +2602,6 @@ void func_dryfield_night_trailer_coach_80181DB0(Task* task)
 extern void           func_800E8614(s32 arg0, s32 arg1);
 extern void           func_800E8634(s32 arg0, s32 arg1, s32 arg2);
 extern s32            func_800E3FCC(s32 arg0);
-extern s8             D_80071090;
-extern s8             D_8007272D;
 extern s32            D_dryfield_night_trailer_coach_8018794C;
 extern s32            D_dryfield_night_trailer_coach_801879B8;
 extern s32            D_dryfield_night_trailer_coach_80187CEC;
@@ -2653,7 +2652,7 @@ void func_dryfield_night_trailer_coach_8018231C(Task* task)
     if (func_800E3FCC(0xA2) == 0x25) {
         func_800E3FAC(0xA2, 0x26);
     }
-    D_80071090 = 3;
+    gDisplayState.otDepthShift = 3;
     /* Through a pointer rather than as `task->state`: a member access is
        struct memory, which the scheduler lets pass the store above it, and the
        original keeps the two in source order. */
@@ -2703,7 +2702,7 @@ void func_dryfield_night_trailer_coach_8018243C(Task* task)
                     func_800E8634((s32)&D_dryfield_night_trailer_coach_801889A8, 1,
                                   (s32)&D_dryfield_night_trailer_coach_80188F00);
                     func_800E3FAC(0xA2, 0x13);
-                    D_8007272D = 2;
+                    Mc_SaveData.sceneEvent = 2;
                 } else {
                     cap = (s32)&D_dryfield_night_trailer_coach_80188858;
                 a1_1:
@@ -2833,9 +2832,9 @@ void func_dryfield_night_trailer_coach_80182898(Task* task)
     char pad[0x10];
 
     if (Mc_SaveData.at4.loc.view == 5) {
-        D_80071090 = 0;
+        gDisplayState.otDepthShift = 0;
     } else {
-        D_80071090 = 3;
+        gDisplayState.otDepthShift = 3;
     }
 }
 

@@ -1529,7 +1529,7 @@ s32 func_acropolis_fire_escape_8017FE48(Task* task, s32 msgId, s32 arg2, s32 arg
 }
 
 /// First state of the room's message task: installs the message table, takes
-/// pointer slot 7, spawns the ambient-sound task and, when `D_8007272D` is 5,
+/// pointer slot 7, spawns the ambient-sound task and, when `Mc_SaveData.sceneEvent` is 5,
 /// sets the session's flow flags to 8.
 void func_acropolis_fire_escape_8017FE50(Task* task)
 {

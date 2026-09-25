@@ -375,7 +375,7 @@ void func_shelter_b1_pod_access_tunnel_8017DEE8(Task* task)
 /// Two-state task: state 0, unless blocked by `D_80114C12` or `gDisplayState.pendingMode`,
 /// sends the slot-3 task a `GpAnimArg` built from `Player_Status.weapon` (msg 0x3E8) and runs
 /// `D_shelter_b1_pod_access_tunnel_80181120` through `func_800E8614`; state 1
-/// sets `D_8007272D` to 0x1D and kills this task once the session is idle.
+/// sets `Mc_SaveData.sceneEvent` to 0x1D and kills this task once the session is idle.
 void func_shelter_b1_pod_access_tunnel_8017DF40(Task* task)
 {
     GpAnimArg rec;

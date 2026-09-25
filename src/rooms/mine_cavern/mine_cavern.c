@@ -276,7 +276,7 @@ void func_mine_cavern_8017E0F4(s32 arg0)
     gGameSession->flowFlags |= 8;
 }
 
-/// Room script callback: stores its argument into `D_8007272D`.
+/// Room script callback: stores its argument into `Mc_SaveData.sceneEvent`.
 void func_mine_cavern_8017E150(s8 arg0)
 {
     Mc_SaveData.sceneEvent = arg0;

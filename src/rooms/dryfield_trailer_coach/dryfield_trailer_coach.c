@@ -320,7 +320,6 @@ u16* func_dryfield_trailer_coach_8017D7F4(s32 mode)
     return D_dryfield_trailer_coach_80183E2C;
 }
 
-extern McItemScan    D_80072724;
 extern RoomShopStock D_8010E138[];
 extern UiObjectDesc  D_8010EFA0;
 extern char          Gp_StrEmpty[];
@@ -358,9 +357,9 @@ void func_dryfield_trailer_coach_8017DE64(DialogPrompt* prompt, UiObject* obj)
     shop    = (RoomShopList*)obj->owner->work;
     blocked = 0;
     itemId  = shop->items[prompt->field_8];
-    /* &D_80072724 hoisted into a saved register here, as the original does,
+    /* &Mc_SaveData.carriedItems hoisted into a saved register here, as the original does,
        instead of being rematerialised at the Gp_SumScanQty call. */
-    scan = &D_80072724;
+    scan = &Mc_SaveData.carriedItems;
     if (prompt->field_C == 1) {
         D_dryfield_trailer_coach_80183D44 = itemId;
     }
@@ -951,7 +950,7 @@ void func_dryfield_trailer_coach_8017F004(DialogPrompt* prompt, UiObject* obj)
     if (mode == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         cfg   = &Player_Status;
         price = Gp_ItemDescs[itemId].price;
-        scan  = &D_80072724;
+        scan  = &Mc_SaveData.carriedItems;
         SndEvt_EnqueueType6(0x16, 0, 0);
         if (cfg->bp >= price) {
             if (Gp_CanAddItem(scan, itemId) == 0) {
@@ -1135,6 +1134,7 @@ void func_dryfield_trailer_coach_8017F660(Task* task)
     s32         i;
     s32         n;
     McItemRec*  rec;
+    McItemScan* scan;
 
     item         = D_dryfield_trailer_coach_80183D44;
     obj          = task->spawnArg2;
@@ -1158,10 +1158,11 @@ void func_dryfield_trailer_coach_8017F660(Task* task)
         count = 0;
         guard = 0;
         if ((u32)(item - 0xA0) < 0x20U) {
-            count = Gp_ScanStackQty(&D_80072724, item);
+            count = Gp_ScanStackQty(&Mc_SaveData.carriedItems, item);
         } else {
-            rec = Gp_GetItemTable(&D_80072724) + D_80072724.firstRow;
-            n   = D_80072724.rowCount;
+            scan = &Mc_SaveData.carriedItems;
+            rec  = Gp_GetItemTable(scan) + scan->firstRow;
+            n    = scan->rowCount;
             SOFT_USE_REG2(guard, guard);
             for (i = 0; i < n; i++) {
                 if (rec[i].itemId == item) {
@@ -1219,7 +1220,7 @@ void func_dryfield_trailer_coach_8017F834(Task* task)
            `addu` is index-first, matching the original. */
         scaled = itemId * 4;
         if (D_8010E138[itemId].perBuy != 0) {
-            held    = Gp_ScanStackQty(&D_80072724, itemId);
+            held    = Gp_ScanStackQty(&Mc_SaveData.carriedItems, itemId);
             maxHeld = D_8010E138[itemId].maxHeld;
             maxQty  = maxHeld - held;
             if (maxQty <= 0) {
@@ -1230,7 +1231,7 @@ void func_dryfield_trailer_coach_8017F834(Task* task)
             }
         }
     } else {
-        maxQty = D_80072724.rowCount - Gp_CountScanItems(&D_80072724);
+        maxQty = Mc_SaveData.carriedItems.rowCount - Gp_CountScanItems(&Mc_SaveData.carriedItems);
     }
 
     afford = Player_Status.bp / price;
@@ -1281,7 +1282,7 @@ void func_dryfield_trailer_coach_8017F834(Task* task)
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             Player_Status.bp -= price * task->extraState;
             for (i = 0; i < task->extraState; i++) {
-                Gp_GiveItem(&D_80072724, itemId, -1);
+                Gp_GiveItem(&Mc_SaveData.carriedItems, itemId, -1);
             }
             SndEvt_EnqueueType6(0x16, 0, 0);
             parentObj->field_2E = 6;
@@ -2606,7 +2607,6 @@ void func_dryfield_trailer_coach_80181D88(Task* task)
 }
 
 /// Byte at 0x8007272D, written when the trailer-coach scene ends.
-extern s8 D_8007272D;
 
 extern s32            D_dryfield_trailer_coach_80185AFC;
 extern s32            D_dryfield_trailer_coach_80185C4C;
@@ -2645,7 +2645,7 @@ void func_dryfield_trailer_coach_801822F4(Task* task)
                 GameFlag_SetNibble(0x3A, 1);
                 GameFlag_SetNibble(0x4B, 1);
                 func_800E3FAC(0xA2, 0xF);
-                D_8007272D = 6;
+                Mc_SaveData.sceneEvent = 6;
                 SOFT_BARRIER();
                 Gp_ApplyAreaRecs(&D_dryfield_trailer_coach_80189C50);
                 task->state++;
@@ -2827,7 +2827,6 @@ void func_dryfield_trailer_coach_801827D0(Task* arg0)
     Stage_SetEndingFlag();
 }
 
-extern s8         D_80071090;
 extern GpMsgEntry D_dryfield_trailer_coach_80184FA0[];
 extern s32        D_dryfield_trailer_coach_801853F4;
 extern s32        D_dryfield_trailer_coach_80185964;
@@ -2897,9 +2896,9 @@ void func_dryfield_trailer_coach_8018291C(Task* task)
     char pad[0x10];
 
     if (Mc_SaveData.at4.loc.view == 8) {
-        D_80071090 = 0;
+        gDisplayState.otDepthShift = 0;
     } else {
-        D_80071090 = 3;
+        gDisplayState.otDepthShift = 3;
     }
 }
 

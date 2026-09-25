@@ -34,8 +34,6 @@ s32         func_800D4D2C(s32 arg0);
 
 extern char          Gp_StrEmpty[];
 extern UiObject*     D_80067634;
-extern s8            D_8007272D;
-extern McItemScan    D_80072724;
 extern RoomShopStock D_8010E138[];
 extern UiObjectDesc  D_8010D80C;
 extern UiObjectDesc  D_8010EFA0;
@@ -410,9 +408,9 @@ void func_dryfield_night_garage_8017DDC4(DialogPrompt* prompt, UiObject* obj)
     shop    = (RoomShopList*)obj->owner->work;
     blocked = 0;
     itemId  = shop->items[prompt->field_8];
-    /* &D_80072724 hoisted into a saved register here, as the original does,
+    /* &Mc_SaveData.carriedItems hoisted into a saved register here, as the original does,
        instead of being rematerialised at the Gp_SumScanQty call. */
-    scan = &D_80072724;
+    scan = &Mc_SaveData.carriedItems;
     if (prompt->field_C == 1) {
         D_dryfield_night_garage_801819EC = itemId;
     }
@@ -969,7 +967,7 @@ void func_dryfield_night_garage_8017EF64(DialogPrompt* prompt, UiObject* obj)
     if (mode == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         cfg   = &Player_Status;
         price = Gp_ItemDescs[itemId].price;
-        scan  = &D_80072724;
+        scan  = &Mc_SaveData.carriedItems;
         SndEvt_EnqueueType6(0x16, 0, 0);
         if (cfg->bp >= price) {
             if (Gp_CanAddItem(scan, itemId) == 0) {
@@ -1153,6 +1151,7 @@ void func_dryfield_night_garage_8017F5C0(Task* task)
     s32         i;
     s32         n;
     McItemRec*  rec;
+    McItemScan* scan;
 
     item         = D_dryfield_night_garage_801819EC;
     obj          = task->spawnArg2;
@@ -1176,10 +1175,11 @@ void func_dryfield_night_garage_8017F5C0(Task* task)
         count = 0;
         guard = 0;
         if ((u32)(item - 0xA0) < 0x20U) {
-            count = Gp_ScanStackQty(&D_80072724, item);
+            count = Gp_ScanStackQty(&Mc_SaveData.carriedItems, item);
         } else {
-            rec = Gp_GetItemTable(&D_80072724) + D_80072724.firstRow;
-            n   = D_80072724.rowCount;
+            scan = &Mc_SaveData.carriedItems;
+            rec  = Gp_GetItemTable(scan) + scan->firstRow;
+            n    = scan->rowCount;
             SOFT_USE_REG2(guard, guard);
             for (i = 0; i < n; i++) {
                 if (rec[i].itemId == item) {
@@ -1237,7 +1237,7 @@ void func_dryfield_night_garage_8017F794(Task* task)
            `addu` is index-first, matching the original. */
         scaled = itemId * 4;
         if (D_8010E138[itemId].perBuy != 0) {
-            held    = Gp_ScanStackQty(&D_80072724, itemId);
+            held    = Gp_ScanStackQty(&Mc_SaveData.carriedItems, itemId);
             maxHeld = D_8010E138[itemId].maxHeld;
             maxQty  = maxHeld - held;
             if (maxQty <= 0) {
@@ -1248,7 +1248,7 @@ void func_dryfield_night_garage_8017F794(Task* task)
             }
         }
     } else {
-        maxQty = D_80072724.rowCount - Gp_CountScanItems(&D_80072724);
+        maxQty = Mc_SaveData.carriedItems.rowCount - Gp_CountScanItems(&Mc_SaveData.carriedItems);
     }
 
     afford = Player_Status.bp / price;
@@ -1299,7 +1299,7 @@ void func_dryfield_night_garage_8017F794(Task* task)
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             Player_Status.bp -= price * task->extraState;
             for (i = 0; i < task->extraState; i++) {
-                Gp_GiveItem(&D_80072724, itemId, -1);
+                Gp_GiveItem(&Mc_SaveData.carriedItems, itemId, -1);
             }
             SndEvt_EnqueueType6(0x16, 0, 0);
             parentObj->field_2E = 6;
@@ -1482,7 +1482,7 @@ s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, GpMsg13EF* msg, s
                     GameFlag_SetNibble(0x6C, 1);
                     func_800E3FAC(0xA2, 0x17);
                     Gp_ClearCollectedBit(0x118);
-                    D_8007272D = 5;
+                    Mc_SaveData.sceneEvent = 5;
                 }
             } else {
                 Gp_MsgPlayerWeapon(0);

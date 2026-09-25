@@ -144,7 +144,7 @@ extern Task* D_actor_444000_80161878;
 extern GpAreaApplyRec D_8018FB6C[];
 
 /// Main-executable globals with no module header yet: `gDisplayState.pendingMode` gates the
-/// event on the "everything is dead" state, and `D_8007272D` is the ending
+/// event on the "everything is dead" state, and `Mc_SaveData.sceneEvent` is the ending
 /// selector the death sequence latches.
 
 /// Gameplay-resident globals the state-3 hand-off touches: `D_80187150` is the

@@ -44,7 +44,6 @@ extern void func_80179B14(RoomEventMsg* src, RoomEventMsg* dst);
 
 extern char          Gp_StrEmpty[];
 extern UiObject*     D_80067634;
-extern McItemScan    D_80072724;
 extern UiObjectDesc  D_8010D80C;
 extern RoomShopStock D_8010E138[];
 extern UiObjectDesc  D_8010EFA0;
@@ -417,9 +416,9 @@ void func_shelter_1f_heliport_8017DDA0(DialogPrompt* prompt, UiObject* obj)
     shop    = (RoomShopList*)obj->owner->work;
     blocked = 0;
     itemId  = shop->items[prompt->field_8];
-    /* &D_80072724 hoisted into a saved register here, as the original does,
+    /* &Mc_SaveData.carriedItems hoisted into a saved register here, as the original does,
        instead of being rematerialised at the Gp_SumScanQty call. */
-    scan = &D_80072724;
+    scan = &Mc_SaveData.carriedItems;
     if (prompt->field_C == 1) {
         D_shelter_1f_heliport_80180F48 = itemId;
     }
@@ -975,7 +974,7 @@ void func_shelter_1f_heliport_8017EF40(DialogPrompt* prompt, UiObject* obj)
     if (mode == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         cfg   = &Player_Status;
         price = Gp_ItemDescs[itemId].price;
-        scan  = &D_80072724;
+        scan  = &Mc_SaveData.carriedItems;
         SndEvt_EnqueueType6(0x16, 0, 0);
         if (cfg->bp >= price) {
             if (Gp_CanAddItem(scan, itemId) == 0) {
@@ -1159,6 +1158,7 @@ void func_shelter_1f_heliport_8017F59C(Task* task)
     s32         i;
     s32         n;
     McItemRec*  rec;
+    McItemScan* scan;
 
     item         = D_shelter_1f_heliport_80180F48;
     obj          = task->spawnArg2;
@@ -1182,10 +1182,11 @@ void func_shelter_1f_heliport_8017F59C(Task* task)
         count = 0;
         guard = 0;
         if ((u32)(item - 0xA0) < 0x20U) {
-            count = Gp_ScanStackQty(&D_80072724, item);
+            count = Gp_ScanStackQty(&Mc_SaveData.carriedItems, item);
         } else {
-            rec = Gp_GetItemTable(&D_80072724) + D_80072724.firstRow;
-            n   = D_80072724.rowCount;
+            scan = &Mc_SaveData.carriedItems;
+            rec  = Gp_GetItemTable(scan) + scan->firstRow;
+            n    = scan->rowCount;
             SOFT_USE_REG2(guard, guard);
             for (i = 0; i < n; i++) {
                 if (rec[i].itemId == item) {
@@ -1243,7 +1244,7 @@ void func_shelter_1f_heliport_8017F770(Task* task)
            `addu` is index-first, matching the original. */
         scaled = itemId * 4;
         if (D_8010E138[itemId].perBuy != 0) {
-            held    = Gp_ScanStackQty(&D_80072724, itemId);
+            held    = Gp_ScanStackQty(&Mc_SaveData.carriedItems, itemId);
             maxHeld = D_8010E138[itemId].maxHeld;
             maxQty  = maxHeld - held;
             if (maxQty <= 0) {
@@ -1254,7 +1255,7 @@ void func_shelter_1f_heliport_8017F770(Task* task)
             }
         }
     } else {
-        maxQty = D_80072724.rowCount - Gp_CountScanItems(&D_80072724);
+        maxQty = Mc_SaveData.carriedItems.rowCount - Gp_CountScanItems(&Mc_SaveData.carriedItems);
     }
 
     afford = Player_Status.bp / price;
@@ -1305,7 +1306,7 @@ void func_shelter_1f_heliport_8017F770(Task* task)
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             Player_Status.bp -= price * task->extraState;
             for (i = 0; i < task->extraState; i++) {
-                Gp_GiveItem(&D_80072724, itemId, -1);
+                Gp_GiveItem(&Mc_SaveData.carriedItems, itemId, -1);
             }
             SndEvt_EnqueueType6(0x16, 0, 0);
             parentObj->field_2E = 6;

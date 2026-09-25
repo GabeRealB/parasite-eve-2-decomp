@@ -28,7 +28,7 @@ void func_actor_143400_80131E6C(void)
     Gp_ApplyAreaRecs(&D_8018A638);
 }
 
-/// Stores `arg0` in the gameplay byte `D_8007272D`. Reached only through the
+/// Stores `arg0` in the gameplay byte `Mc_SaveData.sceneEvent`. Reached only through the
 /// function pointers in the actor's data.
 void func_actor_143400_80131E90(s8 arg0)
 {

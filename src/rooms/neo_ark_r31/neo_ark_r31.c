@@ -9,7 +9,6 @@
 #include "main/task.h"
 
 extern s32 D_neo_ark_r31_8017DC54;
-extern u8  D_80071071[];
 
 /// Room message handler table installed into `Task::msgTable`.
 extern GpMsgEntry D_neo_ark_r31_8017D9F4[];
@@ -48,7 +47,7 @@ void func_neo_ark_r31_8017D5D0(Task* task)
             gGpuPrimCursor += sizeof(POLY_FT4);
             poly->tpage     = getTPage(2, 0, x & ~0x3F, buf << 8);
             poly->y0 = poly->y1 = sy;
-            poly->v0 = poly->v1 = D_80071071[0] + (y + (buf << 4));
+            poly->v0 = poly->v1 = (y + (buf << 4)) + gDisplayState.vramYOffset;
             if (poly->v0 < 0x10) {
                 poly->y2 = poly->y3 = y + 0x78;
                 poly->v2 = poly->v3 = poly->v0 + 0xF0;
