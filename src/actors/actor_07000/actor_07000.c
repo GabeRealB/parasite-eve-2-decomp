@@ -1730,12 +1730,12 @@ void Actor07000_Fn02984(Task* task)
 /// factor on the GTE and written back.
 void Actor07000_Fn029F0(Task* arg0, GsCOORDINATE2* arg1)
 {
-    ActorScaleScratchHead* scratch;
-    SVECTOR*               vec;
-    MATRIX*                matrix;
-    Actor107000Work*       work;
+    ActorScratchStack* scratch;
+    SVECTOR*           vec;
+    MATRIX*            matrix;
+    Actor107000Work*   work;
 
-    scratch = (ActorScaleScratchHead*)G_SCRATCH_HEAD;
+    scratch = (ActorScratchStack*)G_SCRATCH_HEAD;
     vec     = scratch->head;
     work    = arg0->work;
     vec--;

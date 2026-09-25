@@ -822,15 +822,15 @@ void func_actor_521100_80133104(Task* arg0)
     u32              rng;
     Actor521100Work* work;
 
-    head                                     = (SVECTOR*)((ActorScratchStack*)G_SCRATCH_HEAD)->sp;
-    vec                                      = head - 1;
-    ((ActorScratchStack*)G_SCRATCH_HEAD)->sp = (u32)vec;
-    work                                     = arg0->work;
-    frame                                    = (s16)work->field_68A;
-    clipPtr                                  = &D_actor_521100_8015F894[work->field_686];
-    clip                                     = *clipPtr;
-    clipId                                   = (u16)*clipPtr;
-    coord                                    = ((TmdObject*)arg0->extra)->coords;
+    head                                       = ((ActorScratchStack*)G_SCRATCH_HEAD)->head;
+    vec                                        = head - 1;
+    ((ActorScratchStack*)G_SCRATCH_HEAD)->head = vec;
+    work                                       = arg0->work;
+    frame                                      = (s16)work->field_68A;
+    clipPtr                                    = &D_actor_521100_8015F894[work->field_686];
+    clip                                       = *clipPtr;
+    clipId                                     = (u16)*clipPtr;
+    coord                                      = ((TmdObject*)arg0->extra)->coords;
     if (frame == (clip + 0x1A)) {
         effect      = 0x60188;
         kind        = 0xC;
@@ -881,7 +881,7 @@ void func_actor_521100_80133104(Task* arg0)
         work->field_6AE = 0;
         work->field_68E = part;
     }
-    ((ActorScratchStack*)G_SCRATCH_HEAD)->sp += 8;
+    ((ActorScratchStack*)G_SCRATCH_HEAD)->head = (SVECTOR*)((ActorScratchStack*)G_SCRATCH_HEAD)->head + 1;
 }
 
 /// Runs one frame of the burn-out sequence timed off the clip the slots are
@@ -1792,11 +1792,11 @@ void func_actor_521100_80135024(Task* arg0)
     s32              nextY;
     s32              active;
 
-    matrix                               = (MATRIX*)(((ActorScratchStack*)0x1F8003FC)->sp - 0x20);
-    ((ActorScratchStack*)0x1F8003FC)->sp = (u32)matrix;
-    active                               = 0;
-    work                                 = arg0->work;
-    coord                                = ((TmdObject*)arg0->extra)->coords;
+    matrix                                 = (MATRIX*)((ActorScratchStack*)0x1F8003FC)->head - 1;
+    ((ActorScratchStack*)0x1F8003FC)->head = matrix;
+    active                                 = 0;
+    work                                   = arg0->work;
+    coord                                  = ((TmdObject*)arg0->extra)->coords;
     RotMatrix(&work->field_678, matrix);
     USE_REG(matrix);
     gte_SetRotMatrix(&coord[3].coord);

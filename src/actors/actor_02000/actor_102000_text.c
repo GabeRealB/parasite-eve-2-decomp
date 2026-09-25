@@ -824,11 +824,11 @@ void Actor02000_Fn01698(Task* arg0)
     s32              nextY;
     s32              active;
 
-    matrix                               = (MATRIX*)(((ActorScratchStack*)0x1F8003FC)->sp - 0x20);
-    ((ActorScratchStack*)0x1F8003FC)->sp = (u32)matrix;
-    active                               = 0;
-    work                                 = arg0->work;
-    coord                                = ((TmdObject*)arg0->extra)->coords;
+    matrix                                 = (MATRIX*)((ActorScratchStack*)0x1F8003FC)->head - 1;
+    ((ActorScratchStack*)0x1F8003FC)->head = matrix;
+    active                                 = 0;
+    work                                   = arg0->work;
+    coord                                  = ((TmdObject*)arg0->extra)->coords;
     RotMatrix(&work->field_688, matrix);
     USE_REG(matrix);
     gte_SetRotMatrix(&coord[3].coord);

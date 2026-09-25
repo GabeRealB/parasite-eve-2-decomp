@@ -100,8 +100,9 @@ STATIC_ASSERT_SIZEOF(ActorBeamScratch, 0x8C);
 /// access as a structure access, which lets the scheduler order it against
 /// the stores around it the way the original code was ordered.
 typedef struct ActorScratchStack {
-    u32 sp;
+    void* head;
 } ActorScratchStack;
+STATIC_ASSERT_SIZEOF(ActorScratchStack, 0x4);
 
 /// Scaling a coordinate's rotation: an identity matrix scaled by `scale`,
 /// then multiplied into the coordinate.
