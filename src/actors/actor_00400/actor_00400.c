@@ -13,6 +13,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 
+#include "actors/actor.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/gameplay.h"
@@ -55,29 +56,6 @@ typedef struct Actor100400TextQuadScratch {
     /* 0x18 */ s32 depth;
 } Actor100400TextQuadScratch;
 STATIC_ASSERT_SIZEOF(Actor100400TextQuadScratch, 0x1C);
-
-/// 0x8C-byte scratch `Actor00400_Fn00E3C` carves off `G_SCRATCH_HEAD` for one
-/// beam segment: the two parts' `workm` taken into view space, the segment's
-/// ends, the four corners of the quad widened around it, and the
-/// `RotTransPers4` outputs for those corners.
-typedef struct Actor100400BeamScratch {
-    /* 0x00 */ MATRIX  firstMatrix;
-    /* 0x20 */ MATRIX  secondMatrix;
-    /* 0x40 */ SVECTOR first;
-    /* 0x48 */ SVECTOR second;
-    /* 0x50 */ SVECTOR corner0;
-    /* 0x58 */ SVECTOR corner1;
-    /* 0x60 */ SVECTOR corner2;
-    /* 0x68 */ SVECTOR corner3;
-    /* 0x70 */ s32     screen0;
-    /* 0x74 */ s32     screen1;
-    /* 0x78 */ s32     screen2;
-    /* 0x7C */ s32     screen3;
-    /* 0x80 */ s32     perspective;
-    /* 0x84 */ s32     flags;
-    /* 0x88 */ s32     depth;
-} Actor100400BeamScratch;
-STATIC_ASSERT_SIZEOF(Actor100400BeamScratch, 0x8C);
 
 /// 0x1C-byte scratch `Actor00400_Fn005DC` carves off `G_SCRATCH_HEAD` for the
 /// impact-spark billboard. `vec` is the coordinate's `workm.t[]` truncated to
@@ -824,25 +802,25 @@ void Actor00400_Fn00C84(Task* arg0)
 /// `shade` and skipped when the projection clips it. Equal parts draw nothing.
 void Actor00400_Fn00E3C(Task* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade)
 {
-    Actor100400BeamScratch* s;
-    s16                     angle;
-    GsCOORDINATE2*          secondCoord;
-    GsCOORDINATE2*          firstCoord;
-    s32                     offset0;
-    s32                     offset1;
-    s32                     offset2;
-    s32                     offset3;
-    s32                     halfX;
-    s32                     halfZ;
-    GsCOORDINATE2*          coords;
-    GsCOORDINATE2*          view;
-    POLY_FT4*               poly;
+    ActorBeamScratch* s;
+    s16               angle;
+    GsCOORDINATE2*    secondCoord;
+    GsCOORDINATE2*    firstCoord;
+    s32               offset0;
+    s32               offset1;
+    s32               offset2;
+    s32               offset3;
+    s32               halfX;
+    s32               halfZ;
+    GsCOORDINATE2*    coords;
+    GsCOORDINATE2*    view;
+    POLY_FT4*         poly;
 
     coords      = ((TmdObject*)actor->extra)->coords;
     firstCoord  = coords + firstJoint;
     secondCoord = coords + secondJoint;
     if (firstJoint != secondJoint) {
-        s = (Actor100400BeamScratch*)(*(u8**)G_SCRATCH_HEAD -= sizeof(Actor100400BeamScratch));
+        s = (ActorBeamScratch*)(*(u8**)G_SCRATCH_HEAD -= sizeof(ActorBeamScratch));
         Gp_UpdateCoord(firstCoord);
         Gp_UpdateCoord(secondCoord);
         Gp_WorldToLocal(&Gfx_ViewWorldMtx, &firstCoord->workm, &s->firstMatrix);
@@ -894,7 +872,7 @@ void Actor00400_Fn00E3C(Task* actor, s16 firstJoint, s16 secondJoint, s16 width,
             setRGB0(poly, shade, shade, shade);
             addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), poly);
         }
-        *(u8**)G_SCRATCH_HEAD += sizeof(Actor100400BeamScratch);
+        *(u8**)G_SCRATCH_HEAD += sizeof(ActorBeamScratch);
     }
 }
 

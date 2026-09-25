@@ -4,6 +4,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "actors/actor_400100_motion.h"
 #include "actors/actors_shared_80164954.h"
 #include "gameplay/1BC.h"
@@ -373,15 +374,6 @@ typedef struct Actor403000DropScratch {
 } Actor403000DropScratch;
 STATIC_ASSERT_SIZEOF(Actor403000DropScratch, 0x28);
 
-/// 0x14-byte `G_SCRATCH_HEAD` block `func_actor_403000_80132348` hands
-/// `func_800E0C10`: the `GpDeltaScratch` it fills plus the returned flag, set
-/// when the X or Z delta is nonzero.
-typedef struct Actor403000DeltaFlag {
-    /* 0x00 */ GpDeltaScratch delta;
-    /* 0x10 */ s32            field_10;
-} Actor403000DeltaFlag;
-STATIC_ASSERT_SIZEOF(Actor403000DeltaFlag, 0x14);
-
 /// Squared horizontal components and radius used by `Actor403000_Outside`.
 typedef struct Actor403000RadiusScratch {
     /* 0x00 */ s32 x;
@@ -707,25 +699,25 @@ void func_actor_403000_8013203C(GsCOORDINATE2* coord, s16 yaw)
 /// latched step one unit further away from zero.
 s32 func_actor_403000_80132348(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
 {
-    void**                scratch;
-    u8*                   head;
-    Actor403000DeltaFlag* s;
-    register void*        p asm("v1");
-    s32                   val;
+    void**          scratch;
+    u8*             head;
+    ActorDeltaFlag* s;
+    register void*  p asm("v1");
+    s32             val;
 
-    scratch     = (void**)G_SCRATCH_HEAD;
-    head        = *scratch;
-    p           = head - 0x14;
-    s           = p;
-    *scratch    = p;
-    s->field_10 = 0;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    p        = head - 0x14;
+    s        = p;
+    *scratch = p;
+    s->moved = 0;
     if (func_800E0C10(recs, &s->delta, (s32)count, NULL) != 0) {
-        coord->coord.t[0]          = coord->coord.t[0] + ((Actor403000DeltaFlag*)(head - 0x14))->delta.vx.h.hi;
+        coord->coord.t[0]          = coord->coord.t[0] + ((ActorDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
         coord->coord.t[2]          = coord->coord.t[2] + s->delta.vz.h.hi;
-        D_actor_403000_80158D84.vx = ((Actor403000DeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
+        D_actor_403000_80158D84.vx = ((ActorDeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
         D_actor_403000_80158D84.vy = s->delta.vy.w >> 16;
         D_actor_403000_80158D84.vz = s->delta.vz.w >> 16;
-        val                        = ((Actor403000DeltaFlag*)(head - 0x14))->delta.vx.w;
+        val                        = ((ActorDeltaFlag*)(head - 0x14))->delta.vx.w;
         if ((val & 0xFFFF) != 0) {
             if (val > 0) {
                 coord->coord.t[0]++;
@@ -747,10 +739,10 @@ s32 func_actor_403000_80132348(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
         }
     }
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
-        s->field_10 = 1;
+        s->moved = 1;
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
-    return s->field_10;
+    return s->moved;
 }
 
 s32 func_actor_403000_801324EC(Task* arg0, s32 arg1, Actor403000Event* arg2)

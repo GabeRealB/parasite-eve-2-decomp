@@ -20,6 +20,7 @@
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 
+#include "actors/actor.h"
 #include "actors/actors_shared_8013a0b0.h"
 #include "actors/actors_shared_8016a538.h"
 #include "actors/actors_shared_801692e8.h"
@@ -199,29 +200,6 @@ typedef struct Actor400600QuadScratch {
     /* 0x38 */ s32     depth;
 } Actor400600QuadScratch;
 STATIC_ASSERT_SIZEOF(Actor400600QuadScratch, 0x3C);
-
-/// 0x8C-byte scratchpad frame `func_actor_400600_80132294` carves off
-/// `G_SCRATCH_HEAD` to draw a textured quad between two model parts. Same
-/// layout as `ActorsShared80163354Scratch` without the trailing half offsets,
-/// which this variant keeps in registers.
-typedef struct Actor400600BeamScratch {
-    /* 0x00 */ MATRIX  firstMatrix;  // first part's `workm` in view space
-    /* 0x20 */ MATRIX  secondMatrix; // second part's `workm` in view space
-    /* 0x40 */ SVECTOR first;
-    /* 0x48 */ SVECTOR second;
-    /* 0x50 */ SVECTOR corner0;
-    /* 0x58 */ SVECTOR corner1;
-    /* 0x60 */ SVECTOR corner2;
-    /* 0x68 */ SVECTOR corner3;
-    /* 0x70 */ s32     screen0;
-    /* 0x74 */ s32     screen1;
-    /* 0x78 */ s32     screen2;
-    /* 0x7C */ s32     screen3;
-    /* 0x80 */ s32     perspective;
-    /* 0x84 */ s32     flags;
-    /* 0x88 */ s32     depth;
-} Actor400600BeamScratch;
-STATIC_ASSERT_SIZEOF(Actor400600BeamScratch, 0x8C);
 
 /// One entry of `D_actor_400600_80151B40`, a world-space XZ rectangle table
 /// ended by an entry whose `id` is -1. `func_actor_400600_8013886C` returns the
@@ -602,24 +580,24 @@ void func_actor_400600_8013203C(Task* arg0)
 
 void func_actor_400600_80132294(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade)
 {
-    Actor400600BeamScratch* s;
-    s16                     angle;
-    GsCOORDINATE2*          secondCoord;
-    GsCOORDINATE2*          firstCoord;
-    s32                     offset0;
-    s32                     offset1;
-    s32                     offset2;
-    s32                     offset3;
-    s32                     halfX;
-    s32                     halfY;
-    GsCOORDINATE2*          coords;
-    POLY_FT4*               poly;
+    ActorBeamScratch* s;
+    s16               angle;
+    GsCOORDINATE2*    secondCoord;
+    GsCOORDINATE2*    firstCoord;
+    s32               offset0;
+    s32               offset1;
+    s32               offset2;
+    s32               offset3;
+    s32               halfX;
+    s32               halfY;
+    GsCOORDINATE2*    coords;
+    POLY_FT4*         poly;
 
     coords      = ((TmdObject*)task->extra)->coords;
     firstCoord  = coords + firstJoint;
     secondCoord = coords + secondJoint;
     if (firstJoint != secondJoint) {
-        s = (Actor400600BeamScratch*)(*(u8**)G_SCRATCH_HEAD -= sizeof(Actor400600BeamScratch));
+        s = (ActorBeamScratch*)(*(u8**)G_SCRATCH_HEAD -= sizeof(ActorBeamScratch));
         Gp_UpdateCoord(firstCoord);
         Gp_UpdateCoord(secondCoord);
         Gp_WorldToLocal(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
@@ -670,7 +648,7 @@ void func_actor_400600_80132294(Task* task, s16 firstJoint, s16 secondJoint, s16
             setRGB0(poly, shade, shade, shade);
             addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), poly);
         }
-        *(u8**)G_SCRATCH_HEAD += sizeof(Actor400600BeamScratch);
+        *(u8**)G_SCRATCH_HEAD += sizeof(ActorBeamScratch);
     }
 }
 

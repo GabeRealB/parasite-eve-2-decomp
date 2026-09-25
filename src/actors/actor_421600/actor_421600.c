@@ -5,6 +5,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "actors/actors_shared_80164954.h"
 #include "actors/actors_shared_80164af0.h"
 #include "gameplay/1A8.h"
@@ -326,66 +327,6 @@ typedef struct Actor421600AvoidScratch {
     /* 0x57 */ u8       blocked;
 } Actor421600AvoidScratch;
 STATIC_ASSERT_SIZEOF(Actor421600AvoidScratch, 0x58);
-
-/// Scratchpad block of the obstacle push `func_actor_421600_80132310`: the
-/// same walk as `Actor421600AvoidScratch` without the per-record flag word,
-/// since every kind-0x10000 record blocks there.
-typedef struct Actor421600AvoidAllScratch {
-    /* 0x00 */ MATRIX   m;
-    /* 0x20 */ SVECTOR  dir;
-    /* 0x28 */ SVECTOR3 eye;
-    /* 0x2E */ byte     pad_2E[0x2];
-    /* 0x30 */ s32      kind;
-    /* 0x34 */ s16      angle[8];
-    /* 0x44 */ s8       ok[8];
-    /* 0x4C */ s16      face;
-    /* 0x4E */ s16      diff;
-    /* 0x50 */ u8       i;
-    /* 0x51 */ u8       j;
-    /* 0x52 */ u8       count;
-    /* 0x53 */ u8       blocked;
-} Actor421600AvoidAllScratch;
-STATIC_ASSERT_SIZEOF(Actor421600AvoidAllScratch, 0x54);
-
-/// Scratchpad block of the movement step `func_actor_421600_8013285C`: the
-/// delta `func_800E0C10` resolves from the movement records, plus the "moved"
-/// flag the function returns.
-typedef struct Actor421600DeltaFlag {
-    /* 0x00 */ GpDeltaScratch delta;
-    /* 0x10 */ s32            field_10;
-} Actor421600DeltaFlag;
-STATIC_ASSERT_SIZEOF(Actor421600DeltaFlag, 0x14);
-
-/// Scratchpad block of the beam draw `func_actor_421600_80132EC0`: both model
-/// parts' matrices in view space, the two beam ends taken from them, the four
-/// corners of the quad widened around them, and what `RotTransPers4` returns
-/// for those corners.
-typedef struct Actor421600BeamScratch {
-    /* 0x00 */ MATRIX  firstMatrix;
-    /* 0x20 */ MATRIX  secondMatrix;
-    /* 0x40 */ SVECTOR first;
-    /* 0x48 */ SVECTOR second;
-    /* 0x50 */ SVECTOR corner0;
-    /* 0x58 */ SVECTOR corner1;
-    /* 0x60 */ SVECTOR corner2;
-    /* 0x68 */ SVECTOR corner3;
-    /* 0x70 */ s32     screen0;
-    /* 0x74 */ s32     screen1;
-    /* 0x78 */ s32     screen2;
-    /* 0x7C */ s32     screen3;
-    /* 0x80 */ s32     perspective;
-    /* 0x84 */ s32     flags;
-    /* 0x88 */ s32     depth;
-} Actor421600BeamScratch;
-STATIC_ASSERT_SIZEOF(Actor421600BeamScratch, 0x8C);
-
-typedef struct Actor421600AvoidDelta {
-    /* 0x0 */ s32  vx;
-    /* 0x4 */ s32  vy;
-    /* 0x8 */ s32  vz;
-    /* 0xC */ byte pad_C[0x4];
-} Actor421600AvoidDelta;
-STATIC_ASSERT_SIZEOF(Actor421600AvoidDelta, 0x10);
 
 /// Facing tick workspace: player displacement, squared distance and contact reply.
 typedef struct Actor421600FacingScratch {
@@ -762,11 +703,11 @@ void func_actor_421600_80132004(GsCOORDINATE2* coord, s16 yaw)
 
 static __inline__ s16 Actor421600_BearingXZ(SVECTOR3* p, SVECTOR3* eye)
 {
-    u8*                    head;
-    Actor421600AvoidDelta* d;
+    u8*              head;
+    ActorAvoidDelta* d;
 
     head                  = *(u8**)G_SCRATCH_HEAD;
-    d                     = (Actor421600AvoidDelta*)(head - 0x10);
+    d                     = (ActorAvoidDelta*)(head - 0x10);
     d->vx                 = p->vx - eye->vx;
     *(u8**)G_SCRATCH_HEAD = (u8*)d;
     d->vy                 = p->vy - eye->vy;
@@ -777,11 +718,11 @@ static __inline__ s16 Actor421600_BearingXZ(SVECTOR3* p, SVECTOR3* eye)
 
 static __inline__ s16 Actor421600_BearingXY(SVECTOR3* p, SVECTOR3* eye)
 {
-    u8*                    head;
-    Actor421600AvoidDelta* d;
+    u8*              head;
+    ActorAvoidDelta* d;
 
     head                  = *(u8**)G_SCRATCH_HEAD;
-    d                     = (Actor421600AvoidDelta*)(head - 0x10);
+    d                     = (ActorAvoidDelta*)(head - 0x10);
     d->vx                 = p->vx - eye->vx;
     *(u8**)G_SCRATCH_HEAD = (u8*)d;
     d->vy                 = p->vy - eye->vy;
@@ -799,19 +740,19 @@ static __inline__ s16 Actor421600_BearingXY(SVECTOR3* p, SVECTOR3* eye)
 /// nothing, returning 0, while `gGameSession->viewReady` or `D_80072729` is 1.
 s32 func_actor_421600_80132310(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
-    u8*                         head;
-    Actor421600AvoidAllScratch* s;
-    s16                         diff;
-    s16                         t;
-    s32                         mag;
+    u8*                head;
+    ActorAvoidScratch* s;
+    s16                diff;
+    s16                t;
+    s32                mag;
 
     if (gGameSession->viewReady == 1 || D_80072729 == 1) {
         return 0;
     }
 
     head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - sizeof(Actor421600AvoidAllScratch);
-    s                     = (Actor421600AvoidAllScratch*)*(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - sizeof(ActorAvoidScratch);
+    s                     = (ActorAvoidScratch*)*(u8**)G_SCRATCH_HEAD;
     s->blocked            = 0;
     pos->vz               = 0;
     pos->vy               = 0;
@@ -903,7 +844,7 @@ s32 func_actor_421600_80132310(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
         }
     }
 
-    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(Actor421600AvoidAllScratch);
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(ActorAvoidScratch);
     return s->blocked != 0;
 }
 
@@ -913,25 +854,25 @@ s32 func_actor_421600_80132310(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
 /// one unit further from zero. Returns 1 when the X or Z delta is nonzero.
 s32 func_actor_421600_8013285C(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2)
 {
-    void**                scratch;
-    u8*                   head;
-    Actor421600DeltaFlag* s;
-    register void*        p asm("v1");
-    s32                   val;
+    void**          scratch;
+    u8*             head;
+    ActorDeltaFlag* s;
+    register void*  p asm("v1");
+    s32             val;
 
-    scratch     = (void**)G_SCRATCH_HEAD;
-    head        = *scratch;
-    p           = head - 0x14;
-    s           = p;
-    *scratch    = p;
-    s->field_10 = 0;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    p        = head - 0x14;
+    s        = p;
+    *scratch = p;
+    s->moved = 0;
     if (func_800E0C10(movement, &s->delta, (s32)arg2, NULL) != 0) {
-        coord->coord.t[0]          = coord->coord.t[0] + ((Actor421600DeltaFlag*)(head - 0x14))->delta.vx.h.hi;
+        coord->coord.t[0]          = coord->coord.t[0] + ((ActorDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
         coord->coord.t[2]          = coord->coord.t[2] + s->delta.vz.h.hi;
-        D_actor_421600_80151260.vx = ((Actor421600DeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
+        D_actor_421600_80151260.vx = ((ActorDeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
         D_actor_421600_80151260.vy = s->delta.vy.w >> 16;
         D_actor_421600_80151260.vz = s->delta.vz.w >> 16;
-        val                        = ((Actor421600DeltaFlag*)(head - 0x14))->delta.vx.w;
+        val                        = ((ActorDeltaFlag*)(head - 0x14))->delta.vx.w;
         if ((val & 0xFFFF) != 0) {
             if (val > 0) {
                 coord->coord.t[0]++;
@@ -953,10 +894,10 @@ s32 func_actor_421600_8013285C(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2
         }
     }
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
-        s->field_10 = 1;
+        s->moved = 1;
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
-    return s->field_10;
+    return s->moved;
 }
 
 /// Message handler. Message 0x109 nudges the state machine by its sub-command
@@ -1123,25 +1064,25 @@ s32 func_actor_421600_80132A00(Task* arg0, s32 arg1, Actor421600Msg* arg2)
 /// the two parts are the same.
 void func_actor_421600_80132EC0(Task* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade)
 {
-    Actor421600BeamScratch* s;
-    s16                     angle;
-    GsCOORDINATE2*          secondCoord;
-    GsCOORDINATE2*          firstCoord;
-    s32                     offset0;
-    s32                     offset1;
-    s32                     offset2;
-    s32                     offset3;
-    s32                     halfX;
-    s32                     halfZ;
-    GsCOORDINATE2*          coords;
-    GsCOORDINATE2*          view;
-    POLY_FT4*               poly;
+    ActorBeamScratch* s;
+    s16               angle;
+    GsCOORDINATE2*    secondCoord;
+    GsCOORDINATE2*    firstCoord;
+    s32               offset0;
+    s32               offset1;
+    s32               offset2;
+    s32               offset3;
+    s32               halfX;
+    s32               halfZ;
+    GsCOORDINATE2*    coords;
+    GsCOORDINATE2*    view;
+    POLY_FT4*         poly;
 
     coords      = ((TmdObject*)actor->extra)->coords;
     firstCoord  = coords + firstJoint;
     secondCoord = coords + secondJoint;
     if (firstJoint != secondJoint) {
-        s = (Actor421600BeamScratch*)(*(u8**)G_SCRATCH_HEAD -= sizeof(Actor421600BeamScratch));
+        s = (ActorBeamScratch*)(*(u8**)G_SCRATCH_HEAD -= sizeof(ActorBeamScratch));
         Gp_UpdateCoord(firstCoord);
         Gp_UpdateCoord(secondCoord);
         Gp_WorldToLocal(&Gfx_ViewWorldMtx, &firstCoord->workm, &s->firstMatrix);
@@ -1193,7 +1134,7 @@ void func_actor_421600_80132EC0(Task* actor, s16 firstJoint, s16 secondJoint, s1
             setRGB0(poly, shade, shade, shade);
             addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), poly);
         }
-        *(u8**)G_SCRATCH_HEAD += sizeof(Actor421600BeamScratch);
+        *(u8**)G_SCRATCH_HEAD += sizeof(ActorBeamScratch);
     }
 }
 

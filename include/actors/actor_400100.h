@@ -5,6 +5,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
+#include "actors/actor.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3FB8.h"
 #include "main/tmd.h"
@@ -191,47 +192,6 @@ typedef struct Actor00100ProjectScratch {
 } Actor00100ProjectScratch;
 STATIC_ASSERT_SIZEOF(Actor00100ProjectScratch, 0x24);
 
-/// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `Actor00100_Fn00A54`:
-/// the `GpDeltaScratch` filled by `func_800E0C10` plus the returned flag,
-/// set when the X or Z delta is nonzero.
-typedef struct Actor00100DeltaFlag {
-    /* 0x00 */ GpDeltaScratch delta;
-    /* 0x10 */ s32            field_10;
-} Actor00100DeltaFlag;
-STATIC_ASSERT_SIZEOF(Actor00100DeltaFlag, 0x14);
-
-/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `Actor00100_Fn00BF8`: `local`
-/// takes each actor's root translation raised by 1000, rotated into `out` (the
-/// slot-3 player) and `from` (the actor), and `hit` is `func_800E0308`'s result.
-typedef struct Actor00100SightScratch {
-    /* 0x00 */ SVECTOR out;
-    /* 0x08 */ SVECTOR from;
-    /* 0x10 */ SVECTOR local;
-    /* 0x18 */ s32     hit;
-} Actor00100SightScratch;
-STATIC_ASSERT_SIZEOF(Actor00100SightScratch, 0x1C);
-
-/// 0x54-byte scratch from `G_SCRATCH_HEAD` used by `Actor00100_Fn00508` to push
-/// a coordinate away from the obstacles in a `GpRec18` table. `angle`/`ok` hold
-/// up to eight bearings collected from the records, `i`/`j` are the loop
-/// cursors, and `blocked` is set when any record's kind is 0x10000.
-typedef struct Actor00100AvoidScratch {
-    /* 0x00 */ MATRIX   m;
-    /* 0x20 */ SVECTOR  dir;
-    /* 0x28 */ SVECTOR3 eye;
-    /* 0x2E */ byte     pad_2E[0x2];
-    /* 0x30 */ s32      kind;
-    /* 0x34 */ s16      angle[8];
-    /* 0x44 */ s8       ok[8];
-    /* 0x4C */ s16      face;
-    /* 0x4E */ s16      diff;
-    /* 0x50 */ u8       i;
-    /* 0x51 */ u8       j;
-    /* 0x52 */ u8       count;
-    /* 0x53 */ u8       blocked;
-} Actor00100AvoidScratch;
-STATIC_ASSERT_SIZEOF(Actor00100AvoidScratch, 0x54);
-
 /// 0x70-byte scratch from `G_SCRATCH_HEAD` used by `Actor00100_Fn01388`, the
 /// 16-slot variant of the `Actor00100_Fn00508` walk. `flags` keeps the current
 /// record's `field_4` bit 0x80, which gates `blocked` for kind 0x10000.
@@ -252,39 +212,6 @@ typedef struct Actor00100AvoidScratch16 {
     /* 0x6F */ u8       blocked;
 } Actor00100AvoidScratch16;
 STATIC_ASSERT_SIZEOF(Actor00100AvoidScratch16, 0x70);
-
-/// 0x10-byte scratch the bearing helpers of `Actor00100_Fn00508` nest inside
-/// `Actor00100AvoidScratch`: an obstacle's offset, widened to words.
-typedef struct Actor00100AvoidDelta {
-    /* 0x0 */ s32  vx;
-    /* 0x4 */ s32  vy;
-    /* 0x8 */ s32  vz;
-    /* 0xC */ byte pad_C[0x4];
-} Actor00100AvoidDelta;
-STATIC_ASSERT_SIZEOF(Actor00100AvoidDelta, 0x10);
-
-/// 0x8C-byte scratch from `G_SCRATCH_HEAD` for `Actor00100_Fn01900`, the beam
-/// drawn between two of the actor's coordinate parts. `first`/`second` are the
-/// two ends in view space, `corner0`..`corner3` the widened quad around them,
-/// and `screen0`..`screen3` the projected corners that become a `POLY_FT4`.
-typedef struct Actor00100BeamScratch {
-    /* 0x00 */ MATRIX  firstMatrix;  // first part's `workm` in view space
-    /* 0x20 */ MATRIX  secondMatrix; // second part's `workm` in view space
-    /* 0x40 */ SVECTOR first;
-    /* 0x48 */ SVECTOR second;
-    /* 0x50 */ SVECTOR corner0;
-    /* 0x58 */ SVECTOR corner1;
-    /* 0x60 */ SVECTOR corner2;
-    /* 0x68 */ SVECTOR corner3;
-    /* 0x70 */ s32     screen0;
-    /* 0x74 */ s32     screen1;
-    /* 0x78 */ s32     screen2;
-    /* 0x7C */ s32     screen3;
-    /* 0x80 */ s32     perspective;
-    /* 0x84 */ s32     flags;
-    /* 0x88 */ s32     depth;
-} Actor00100BeamScratch;
-STATIC_ASSERT_SIZEOF(Actor00100BeamScratch, 0x8C);
 
 /// One halfword of an `Actor00100Msg`, which the message system also hands to
 /// handlers as a raw byte triple.

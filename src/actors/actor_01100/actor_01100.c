@@ -6,6 +6,7 @@
 #include <psyq/abs.h>
 #include <psyq/rand.h>
 
+#include "actors/actor.h"
 #include "actors/actors_shared_80137fb8.h"
 #include "actors/actors_shared_801384ac.h"
 #include "actors/actors_shared_801385e0.h"
@@ -231,25 +232,6 @@ const Actor101100StateFuncTable3 Actor01100_D00004 = { {
 /// placement `entryId` is 0x31: 0x1400 on each axis.
 const ActorsShared801385e0Scale Actor01100_D00010 = { 0x1400, 0x1400, 0x1400, 0 };
 
-/// 0x88-byte block taken from the scratchpad head by `Actor01100_Fn000E8`.
-/// `pos` is the coordinate's world translation, `offset` the latest push-out
-/// (scaled down to length 0x100 at the end), `last` its XZ copy, `i` the record
-/// cursor and `hit` the return value; `dist` takes 0x7FFE at the record that
-/// ends the table.
-typedef struct Actor01100RepelScratch {
-    /* 0x00 */ byte    pad_0[0x20];
-    /* 0x20 */ SVECTOR offset;
-    /* 0x28 */ SVECTOR last;
-    /* 0x30 */ SVECTOR pos;
-    /* 0x38 */ s32     kind;
-    /* 0x3C */ u32     len;
-    /* 0x40 */ s16     dist[32];
-    /* 0x80 */ s16     i;
-    /* 0x82 */ byte    pad_82[4];
-    /* 0x86 */ s16     hit;
-} Actor01100RepelScratch;
-STATIC_ASSERT_SIZEOF(Actor01100RepelScratch, 0x88);
-
 /// XZ push-out of `pos` from one obstacle record: the record's radius minus
 /// the horizontal distance to its point, floored at zero, applied along the
 /// direction from the point to `pos` taken into grid space.
@@ -289,19 +271,19 @@ static __inline__ void Actor01100_CalcPush(SVECTOR* pos, GpRec18* rec, SVECTOR* 
 /// `D_80072729` or the session's `viewReady` is 1.
 s32 Actor01100_Fn000E8(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
 {
-    Actor01100RepelScratch* head;
-    Actor01100RepelScratch* s;
-    Actor01100RepelScratch* blk;
-    SVECTOR*                offset;
+    ActorRepelScratch* head;
+    ActorRepelScratch* s;
+    ActorRepelScratch* blk;
+    SVECTOR*           offset;
 
     if (D_80072729 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
-    coord->flg                                = 0;
-    head                                      = *(Actor01100RepelScratch**)G_SCRATCH_HEAD;
-    blk                                       = head - 1;
-    *(Actor01100RepelScratch**)G_SCRATCH_HEAD = blk;
-    s                                         = blk;
+    coord->flg                           = 0;
+    head                                 = *(ActorRepelScratch**)G_SCRATCH_HEAD;
+    blk                                  = head - 1;
+    *(ActorRepelScratch**)G_SCRATCH_HEAD = blk;
+    s                                    = blk;
     Gp_UpdateCoord(coord);
     s->pos.vx  = coord->workm.t[0];
     s->pos.vy  = coord->workm.t[1];
@@ -333,51 +315,19 @@ s32 Actor01100_Fn000E8(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
         gte_gpf12();
         gte_stsv(offset);
     }
-    coord->flg                                 = 0;
-    *(Actor01100RepelScratch**)G_SCRATCH_HEAD += 1;
+    coord->flg                            = 0;
+    *(ActorRepelScratch**)G_SCRATCH_HEAD += 1;
     return s->hit;
 }
-
-/// 0x54-byte block taken from the scratchpad head by `Actor01100_Fn00430`.
-/// `angle` / `ok` hold up to eight bearings collected from the records, `i` /
-/// `j` are the loop cursors, and `blocked` is set when a record's kind is
-/// 0x10000.
-typedef struct Actor01100AvoidScratch {
-    /* 0x00 */ MATRIX   m;
-    /* 0x20 */ SVECTOR  dir;
-    /* 0x28 */ SVECTOR3 eye;
-    /* 0x2E */ byte     pad_2E[0x2];
-    /* 0x30 */ s32      kind;
-    /* 0x34 */ s16      angle[8];
-    /* 0x44 */ s8       ok[8];
-    /* 0x4C */ s16      face;
-    /* 0x4E */ s16      diff;
-    /* 0x50 */ u8       i;
-    /* 0x51 */ u8       j;
-    /* 0x52 */ u8       count;
-    /* 0x53 */ u8       blocked;
-} Actor01100AvoidScratch;
-STATIC_ASSERT_SIZEOF(Actor01100AvoidScratch, 0x54);
-
-/// 0x10-byte block the bearing helpers take from the scratchpad head, below
-/// `Actor01100AvoidScratch`: an obstacle's offset from the eye, widened to
-/// words.
-typedef struct Actor01100AvoidDelta {
-    /* 0x0 */ s32  vx;
-    /* 0x4 */ s32  vy;
-    /* 0x8 */ s32  vz;
-    /* 0xC */ byte pad_C[0x4];
-} Actor01100AvoidDelta;
-STATIC_ASSERT_SIZEOF(Actor01100AvoidDelta, 0x10);
 
 /// Bearing of `p` from `eye` in the XZ plane.
 static __inline__ s16 Actor01100_BearingXZ(SVECTOR3* p, SVECTOR3* eye)
 {
-    u8*                   head;
-    Actor01100AvoidDelta* d;
+    u8*              head;
+    ActorAvoidDelta* d;
 
     head                  = *(u8**)G_SCRATCH_HEAD;
-    d                     = (Actor01100AvoidDelta*)(head - 0x10);
+    d                     = (ActorAvoidDelta*)(head - 0x10);
     d->vx                 = p->vx - eye->vx;
     *(u8**)G_SCRATCH_HEAD = (u8*)d;
     d->vy                 = p->vy - eye->vy;
@@ -389,11 +339,11 @@ static __inline__ s16 Actor01100_BearingXZ(SVECTOR3* p, SVECTOR3* eye)
 /// Bearing of `p` from `eye` in the XY plane.
 static __inline__ s16 Actor01100_BearingXY(SVECTOR3* p, SVECTOR3* eye)
 {
-    u8*                   head;
-    Actor01100AvoidDelta* d;
+    u8*              head;
+    ActorAvoidDelta* d;
 
     head                  = *(u8**)G_SCRATCH_HEAD;
-    d                     = (Actor01100AvoidDelta*)(head - 0x10);
+    d                     = (ActorAvoidDelta*)(head - 0x10);
     d->vx                 = p->vx - eye->vx;
     *(u8**)G_SCRATCH_HEAD = (u8*)d;
     d->vy                 = p->vy - eye->vy;
@@ -411,19 +361,19 @@ static __inline__ s16 Actor01100_BearingXY(SVECTOR3* p, SVECTOR3* eye)
 /// nothing, returning 0, while the session's `viewReady` or `D_80072729` is 1.
 s32 Actor01100_Fn00430(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
-    u8*                     head;
-    Actor01100AvoidScratch* s;
-    s16                     diff;
-    s16                     t;
-    s32                     mag;
+    u8*                head;
+    ActorAvoidScratch* s;
+    s16                diff;
+    s16                t;
+    s32                mag;
 
     if (gGameSession->viewReady == 1 || D_80072729 == 1) {
         return 0;
     }
 
     head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - sizeof(Actor01100AvoidScratch);
-    s                     = (Actor01100AvoidScratch*)*(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - sizeof(ActorAvoidScratch);
+    s                     = (ActorAvoidScratch*)*(u8**)G_SCRATCH_HEAD;
     s->blocked            = 0;
     pos->vz               = 0;
     pos->vy               = 0;
@@ -515,7 +465,7 @@ s32 Actor01100_Fn00430(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
         }
     }
 
-    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(Actor01100AvoidScratch);
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(ActorAvoidScratch);
     return s->blocked != 0;
 }
 

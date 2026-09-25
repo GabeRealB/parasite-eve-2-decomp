@@ -277,11 +277,11 @@ void Actor00100_Fn001FC(GsCOORDINATE2* coord, s16 yaw)
 /// own that is released before `ratan2` runs.
 static __inline__ s16 Actor00100_BearingXZ(SVECTOR3* p, SVECTOR3* eye)
 {
-    u8*                   head;
-    Actor00100AvoidDelta* d;
+    u8*              head;
+    ActorAvoidDelta* d;
 
     head                  = *(u8**)G_SCRATCH_HEAD;
-    d                     = (Actor00100AvoidDelta*)(head - 0x10);
+    d                     = (ActorAvoidDelta*)(head - 0x10);
     d->vx                 = p->vx - eye->vx;
     *(u8**)G_SCRATCH_HEAD = (u8*)d;
     d->vy                 = p->vy - eye->vy;
@@ -294,11 +294,11 @@ static __inline__ s16 Actor00100_BearingXZ(SVECTOR3* p, SVECTOR3* eye)
 /// close to vertical.
 static __inline__ s16 Actor00100_BearingXY(SVECTOR3* p, SVECTOR3* eye)
 {
-    u8*                   head;
-    Actor00100AvoidDelta* d;
+    u8*              head;
+    ActorAvoidDelta* d;
 
     head                  = *(u8**)G_SCRATCH_HEAD;
-    d                     = (Actor00100AvoidDelta*)(head - 0x10);
+    d                     = (ActorAvoidDelta*)(head - 0x10);
     d->vx                 = p->vx - eye->vx;
     *(u8**)G_SCRATCH_HEAD = (u8*)d;
     d->vy                 = p->vy - eye->vy;
@@ -316,19 +316,19 @@ static __inline__ s16 Actor00100_BearingXY(SVECTOR3* p, SVECTOR3* eye)
 /// while the session's `viewReady` or `D_80072729` is 1.
 s32 Actor00100_Fn00508(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
-    u8*                     head;
-    Actor00100AvoidScratch* s;
-    s16                     diff;
-    s16                     t;
-    s32                     mag;
+    u8*                head;
+    ActorAvoidScratch* s;
+    s16                diff;
+    s16                t;
+    s32                mag;
 
     if (gGameSession->viewReady == 1 || D_80072729 == 1) {
         return 0;
     }
 
     head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - sizeof(Actor00100AvoidScratch);
-    s                     = (Actor00100AvoidScratch*)*(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - sizeof(ActorAvoidScratch);
+    s                     = (ActorAvoidScratch*)*(u8**)G_SCRATCH_HEAD;
     s->blocked            = 0;
     pos->vz               = 0;
     pos->vy               = 0;
@@ -420,7 +420,7 @@ s32 Actor00100_Fn00508(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
         }
     }
 
-    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(Actor00100AvoidScratch);
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(ActorAvoidScratch);
     return s->blocked != 0;
 }
 
@@ -431,25 +431,25 @@ s32 Actor00100_Fn00508(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
 /// and the latched step are nudged one unit further away from zero.
 s32 Actor00100_Fn00A54(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2)
 {
-    void**               scratch;
-    u8*                  head;
-    Actor00100DeltaFlag* s;
-    register void*       p asm("v1");
-    s32                  val;
+    void**          scratch;
+    u8*             head;
+    ActorDeltaFlag* s;
+    register void*  p asm("v1");
+    s32             val;
 
-    scratch     = (void**)G_SCRATCH_HEAD;
-    head        = *scratch;
-    p           = head - 0x14;
-    s           = p;
-    *scratch    = p;
-    s->field_10 = 0;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    p        = head - 0x14;
+    s        = p;
+    *scratch = p;
+    s->moved = 0;
     if (func_800E0C10(movement, &s->delta, (s32)arg2, NULL) != 0) {
-        coord->coord.t[0]    = coord->coord.t[0] + ((Actor00100DeltaFlag*)(head - 0x14))->delta.vx.h.hi;
+        coord->coord.t[0]    = coord->coord.t[0] + ((ActorDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
         coord->coord.t[2]    = coord->coord.t[2] + s->delta.vz.h.hi;
-        Actor00100_D1BA90.vx = ((Actor00100DeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
+        Actor00100_D1BA90.vx = ((ActorDeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
         Actor00100_D1BA90.vy = s->delta.vy.w >> 16;
         Actor00100_D1BA90.vz = s->delta.vz.w >> 16;
-        val                  = ((Actor00100DeltaFlag*)(head - 0x14))->delta.vx.w;
+        val                  = ((ActorDeltaFlag*)(head - 0x14))->delta.vx.w;
         if ((val & 0xFFFF) != 0) {
             if (val > 0) {
                 coord->coord.t[0]++;
@@ -471,27 +471,27 @@ s32 Actor00100_Fn00A54(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2)
         }
     }
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
-        s->field_10 = 1;
+        s->moved = 1;
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
-    return s->field_10;
+    return s->moved;
 }
 
 /// Rotates the slot-3 player's and this actor's raised root positions into
 /// world space and returns `func_800E0308` on the pair.
 s32 Actor00100_Fn00BF8(Task* arg0)
 {
-    Task*                   player;
-    u8*                     head;
-    Actor00100SightScratch* s;
-    SVECTOR*                local;
-    SVECTOR*                v;
-    SVECTOR*                out;
+    Task*              player;
+    u8*                head;
+    ActorSightScratch* s;
+    SVECTOR*           local;
+    SVECTOR*           v;
+    SVECTOR*           out;
 
     player                = gameGetPtrSlot(3);
     head                  = *(u8**)G_SCRATCH_HEAD;
     local                 = (SVECTOR*)(head - 0xC);
-    s                     = (Actor00100SightScratch*)(head - 0x1C);
+    s                     = (ActorSightScratch*)(head - 0x1C);
     s->local.vx           = ((TmdObject*)player->extra)->coords->coord.t[0];
     s->local.vy           = ((TmdObject*)player->extra)->coords->coord.t[1] - 1000;
     *(u8**)G_SCRATCH_HEAD = (u8*)s;
@@ -809,25 +809,25 @@ s32 Actor00100_Fn01388(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
 /// quad, and emit it as a `POLY_FT4` tinted `shade` at height `height`.
 void Actor00100_Fn01900(Task* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade)
 {
-    Actor00100BeamScratch* s;
-    s16                    angle;
-    GsCOORDINATE2*         secondCoord;
-    GsCOORDINATE2*         firstCoord;
-    s32                    offset0;
-    s32                    offset1;
-    s32                    offset2;
-    s32                    offset3;
-    s32                    halfX;
-    s32                    halfZ;
-    GsCOORDINATE2*         coords;
-    GsCOORDINATE2*         view;
-    POLY_FT4*              poly;
+    ActorBeamScratch* s;
+    s16               angle;
+    GsCOORDINATE2*    secondCoord;
+    GsCOORDINATE2*    firstCoord;
+    s32               offset0;
+    s32               offset1;
+    s32               offset2;
+    s32               offset3;
+    s32               halfX;
+    s32               halfZ;
+    GsCOORDINATE2*    coords;
+    GsCOORDINATE2*    view;
+    POLY_FT4*         poly;
 
     coords      = ((TmdObject*)actor->extra)->coords;
     firstCoord  = coords + firstJoint;
     secondCoord = coords + secondJoint;
     if (firstJoint != secondJoint) {
-        s = (Actor00100BeamScratch*)(*(u8**)G_SCRATCH_HEAD -= sizeof(Actor00100BeamScratch));
+        s = (ActorBeamScratch*)(*(u8**)G_SCRATCH_HEAD -= sizeof(ActorBeamScratch));
         Gp_UpdateCoord(firstCoord);
         Gp_UpdateCoord(secondCoord);
         Gp_WorldToLocal(&Gfx_ViewWorldMtx, &firstCoord->workm, &s->firstMatrix);
@@ -879,7 +879,7 @@ void Actor00100_Fn01900(Task* actor, s16 firstJoint, s16 secondJoint, s16 width,
             setRGB0(poly, shade, shade, shade);
             addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), poly);
         }
-        *(u8**)G_SCRATCH_HEAD += sizeof(Actor00100BeamScratch);
+        *(u8**)G_SCRATCH_HEAD += sizeof(ActorBeamScratch);
     }
 }
 

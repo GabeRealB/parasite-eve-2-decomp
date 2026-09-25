@@ -9044,7 +9044,7 @@ local header spellings. Ported verbatim it scored 100.000% on the second build.
 
 Two things to check before trusting the result, because equal instructions do
 not mean equal declarations: the sibling's scratch struct must have the same
-field offsets (here `Actor01900RepelScratch` was already `0x88` with `offset` /
+field offsets (here `ActorRepelScratch` was already `0x88` with `offset` /
 `last` / `pos` / `kind` / `len` / `dist` / `i` / `hit` in the same places), and
 any inlined helper the sibling calls must be reproduced rather than called —
 the twin inlined `Actor01900_CalcPush`, so a local `Actor401800_CalcPush` had to
@@ -112449,7 +112449,7 @@ compiler SHA256
 ## A scratch reserve written as `*(T**)G_SCRATCH_HEAD -= 1` is what produces the `addiu`/`move` temp-and-copy pair (func_actor_356100_8016804C, 2026-09-16)
 
 **Problem.** This tick takes a 0xC-byte turn block and, inside it, a 0x14-byte
-`Actor356100DeltaFlag`. The turn block matched immediately; the delta block was
+`ActorDeltaFlag`. The turn block matched immediately; the delta block was
 off by exactly one instruction, an `addiu` into a temporary followed by a copy:
 
 ```
@@ -112464,7 +112464,7 @@ gives one instruction fewer, because `cse` folds the temp away:
 
 ```
 /* 99.599% — no pair */
-s = (Actor356100DeltaFlag*)(head - 0x14);
+s = (ActorDeltaFlag*)(head - 0x14);
 *scratch = s;
 
 /* v0/s1 shape, but the copies run the wrong way: move a1,v0 / move s1,a1 /
@@ -112477,8 +112477,8 @@ s = p;
 /* 100.000% — the reserve as the overlay writes it everywhere else */
 scratch = (void**)G_SCRATCH_HEAD;
 head    = *scratch;
-*(Actor356100DeltaFlag**)G_SCRATCH_HEAD -= 1;
-s       = *(Actor356100DeltaFlag**)G_SCRATCH_HEAD;
+*(ActorDeltaFlag**)G_SCRATCH_HEAD -= 1;
+s       = *(ActorDeltaFlag**)G_SCRATCH_HEAD;
 ```
 
 **Mechanism.** The compound assignment leaves the decremented pointer in a

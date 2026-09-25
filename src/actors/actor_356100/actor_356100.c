@@ -5,6 +5,7 @@
 #include "gte.h"
 #include <psyq/abs.h>
 
+#include "actors/actor.h"
 #include "actors/actors_shared_80169f74.h"
 #include "gameplay/1A8.h"
 #include "gameplay/1BC.h"
@@ -380,16 +381,6 @@ typedef struct Actor356100RotScratch {
 } Actor356100RotScratch;
 STATIC_ASSERT_SIZEOF(Actor356100RotScratch, 0x34);
 
-/// 0x14-byte `G_SCRATCH_HEAD` block `func_actor_356100_801668FC` gives
-/// `func_800E0C10`: the `GpDeltaScratch` it fills plus the returned flag, set
-/// when the X or Z delta is nonzero. Same shape as `Actor01900DeltaFlag` /
-/// `Actor00100DeltaFlag`.
-typedef struct Actor356100DeltaFlag {
-    /* 0x00 */ GpDeltaScratch delta;
-    /* 0x10 */ s32            field_10;
-} Actor356100DeltaFlag;
-STATIC_ASSERT_SIZEOF(Actor356100DeltaFlag, 0x14);
-
 /// 0x68-byte `G_SCRATCH_HEAD` block `func_actor_356100_80169854` takes while it
 /// builds the ground coordinate it draws an effect quad on: the coordinate the
 /// function fills (`coord.sub` parented to `gGfxViewCoord`) plus the world
@@ -400,58 +391,6 @@ typedef struct Actor356100GroundCoord {
     /* 0x60 */ SVECTOR       v;
 } Actor356100GroundCoord;
 STATIC_ASSERT_SIZEOF(Actor356100GroundCoord, 0x68);
-
-/// 0x88-byte `G_SCRATCH_HEAD` block `func_actor_356100_80162258` takes while it
-/// works out the push that moves a coordinate out of the contact records:
-/// `pos` is the coordinate's world translation, `offset` the latest push
-/// (scaled down to length 0x100 when longer), `last` its XZ copy, `i` the
-/// record cursor and `hit` the result. `dist` gets 0x7FFE at the terminating
-/// record.
-typedef struct Actor356100RepelScratch {
-    /* 0x00 */ byte    pad_0[0x20];
-    /* 0x20 */ SVECTOR offset;
-    /* 0x28 */ SVECTOR last;
-    /* 0x30 */ SVECTOR pos;
-    /* 0x38 */ s32     kind;
-    /* 0x3C */ u32     len;
-    /* 0x40 */ s16     dist[32];
-    /* 0x80 */ s16     i;
-    /* 0x82 */ byte    pad_82[4];
-    /* 0x86 */ s16     hit;
-} Actor356100RepelScratch;
-STATIC_ASSERT_SIZEOF(Actor356100RepelScratch, 0x88);
-
-/// 0x54-byte `G_SCRATCH_HEAD` block `func_actor_356100_801625A0` takes while it
-/// steers a coordinate away from the contact records: `angle` / `ok` hold up
-/// to eight obstacle bearings and whether each still counts, `dir` the facing
-/// column and later each step, `eye` the coordinate's world position, `face`
-/// its heading, `i` / `j` the loop cursors and `blocked` the result.
-typedef struct Actor356100AvoidScratch {
-    /* 0x00 */ MATRIX   m;
-    /* 0x20 */ SVECTOR  dir;
-    /* 0x28 */ SVECTOR3 eye;
-    /* 0x2E */ byte     pad_2E[0x2];
-    /* 0x30 */ s32      kind;
-    /* 0x34 */ s16      angle[8];
-    /* 0x44 */ s8       ok[8];
-    /* 0x4C */ s16      face;
-    /* 0x4E */ s16      diff;
-    /* 0x50 */ u8       i;
-    /* 0x51 */ u8       j;
-    /* 0x52 */ u8       count;
-    /* 0x53 */ u8       blocked;
-} Actor356100AvoidScratch;
-STATIC_ASSERT_SIZEOF(Actor356100AvoidScratch, 0x54);
-
-/// 0x10-byte block the bearing helpers of `func_actor_356100_801625A0` carve
-/// below the scratch head: an obstacle's offset from the eye, widened to words.
-typedef struct Actor356100AvoidDelta {
-    /* 0x0 */ s32  vx;
-    /* 0x4 */ s32  vy;
-    /* 0x8 */ s32  vz;
-    /* 0xC */ byte pad_C[0x4];
-} Actor356100AvoidDelta;
-STATIC_ASSERT_SIZEOF(Actor356100AvoidDelta, 0x10);
 
 /// Walks `p` up its parent chain to `gGfxViewCoord`, transforming `out` by each
 /// coordinate; `out` is left unchanged if the chain ends before the view.
@@ -972,19 +911,19 @@ static __inline__ void Actor356100_CalcPush(SVECTOR* pos, GpRec18* rec, SVECTOR*
 /// 0 at once when `gGameSession->viewReady` or `D_80072729` is 1.
 s32 func_actor_356100_80162258(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
 {
-    Actor356100RepelScratch* head;
-    Actor356100RepelScratch* s;
-    Actor356100RepelScratch* blk;
-    SVECTOR*                 offset;
+    ActorRepelScratch* head;
+    ActorRepelScratch* s;
+    ActorRepelScratch* blk;
+    SVECTOR*           offset;
 
     if (D_80072729 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
-    coord->flg                                 = 0;
-    head                                       = *(Actor356100RepelScratch**)G_SCRATCH_HEAD;
-    blk                                        = head - 1;
-    *(Actor356100RepelScratch**)G_SCRATCH_HEAD = blk;
-    s                                          = blk;
+    coord->flg                           = 0;
+    head                                 = *(ActorRepelScratch**)G_SCRATCH_HEAD;
+    blk                                  = head - 1;
+    *(ActorRepelScratch**)G_SCRATCH_HEAD = blk;
+    s                                    = blk;
     Gp_UpdateCoord(coord);
     s->pos.vx  = coord->workm.t[0];
     s->pos.vy  = coord->workm.t[1];
@@ -1016,8 +955,8 @@ s32 func_actor_356100_80162258(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
         gte_gpf12();
         gte_stsv(offset);
     }
-    coord->flg                                  = 0;
-    *(Actor356100RepelScratch**)G_SCRATCH_HEAD += 1;
+    coord->flg                            = 0;
+    *(ActorRepelScratch**)G_SCRATCH_HEAD += 1;
     return s->hit;
 }
 
@@ -1025,11 +964,11 @@ s32 func_actor_356100_80162258(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
 /// own that is released before `ratan2` runs.
 static __inline__ s16 Actor356100_BearingXZ(SVECTOR3* p, SVECTOR3* eye)
 {
-    u8*                    head;
-    Actor356100AvoidDelta* d;
+    u8*              head;
+    ActorAvoidDelta* d;
 
     head                  = *(u8**)G_SCRATCH_HEAD;
-    d                     = (Actor356100AvoidDelta*)(head - 0x10);
+    d                     = (ActorAvoidDelta*)(head - 0x10);
     d->vx                 = p->vx - eye->vx;
     *(u8**)G_SCRATCH_HEAD = (u8*)d;
     d->vy                 = p->vy - eye->vy;
@@ -1042,11 +981,11 @@ static __inline__ s16 Actor356100_BearingXZ(SVECTOR3* p, SVECTOR3* eye)
 /// close to vertical.
 static __inline__ s16 Actor356100_BearingXY(SVECTOR3* p, SVECTOR3* eye)
 {
-    u8*                    head;
-    Actor356100AvoidDelta* d;
+    u8*              head;
+    ActorAvoidDelta* d;
 
     head                  = *(u8**)G_SCRATCH_HEAD;
-    d                     = (Actor356100AvoidDelta*)(head - 0x10);
+    d                     = (ActorAvoidDelta*)(head - 0x10);
     d->vx                 = p->vx - eye->vx;
     *(u8**)G_SCRATCH_HEAD = (u8*)d;
     d->vy                 = p->vy - eye->vy;
@@ -1065,19 +1004,19 @@ static __inline__ s16 Actor356100_BearingXY(SVECTOR3* p, SVECTOR3* eye)
 /// is 1.
 s32 func_actor_356100_801625A0(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
-    u8*                      head;
-    Actor356100AvoidScratch* s;
-    s16                      diff;
-    s16                      t;
-    s32                      mag;
+    u8*                head;
+    ActorAvoidScratch* s;
+    s16                diff;
+    s16                t;
+    s32                mag;
 
     if (gGameSession->viewReady == 1 || D_80072729 == 1) {
         return 0;
     }
 
     head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - sizeof(Actor356100AvoidScratch);
-    s                     = (Actor356100AvoidScratch*)*(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - sizeof(ActorAvoidScratch);
+    s                     = (ActorAvoidScratch*)*(u8**)G_SCRATCH_HEAD;
     s->blocked            = 0;
     pos->vz               = 0;
     pos->vy               = 0;
@@ -1169,7 +1108,7 @@ s32 func_actor_356100_801625A0(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
         }
     }
 
-    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(Actor356100AvoidScratch);
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(ActorAvoidScratch);
     return s->blocked != 0;
 }
 
@@ -1180,25 +1119,25 @@ s32 func_actor_356100_801625A0(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
 /// unit further from zero.
 s32 func_actor_356100_80162AEC(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2)
 {
-    void**                scratch;
-    u8*                   head;
-    Actor356100DeltaFlag* s;
-    register void*        p asm("v1");
-    s32                   val;
+    void**          scratch;
+    u8*             head;
+    ActorDeltaFlag* s;
+    register void*  p asm("v1");
+    s32             val;
 
-    scratch     = (void**)G_SCRATCH_HEAD;
-    head        = *scratch;
-    p           = head - 0x14;
-    s           = p;
-    *scratch    = p;
-    s->field_10 = 0;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    p        = head - 0x14;
+    s        = p;
+    *scratch = p;
+    s->moved = 0;
     if (func_800E0C10(movement, &s->delta, (s32)arg2, NULL) != 0) {
-        coord->coord.t[0]          = coord->coord.t[0] + ((Actor356100DeltaFlag*)(head - 0x14))->delta.vx.h.hi;
+        coord->coord.t[0]          = coord->coord.t[0] + ((ActorDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
         coord->coord.t[2]          = coord->coord.t[2] + s->delta.vz.h.hi;
-        D_actor_356100_801732A0.vx = ((Actor356100DeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
+        D_actor_356100_801732A0.vx = ((ActorDeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
         D_actor_356100_801732A0.vy = s->delta.vy.w >> 16;
         D_actor_356100_801732A0.vz = s->delta.vz.w >> 16;
-        val                        = ((Actor356100DeltaFlag*)(head - 0x14))->delta.vx.w;
+        val                        = ((ActorDeltaFlag*)(head - 0x14))->delta.vx.w;
         if ((val & 0xFFFF) != 0) {
             if (val > 0) {
                 coord->coord.t[0]++;
@@ -1220,10 +1159,10 @@ s32 func_actor_356100_80162AEC(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2
         }
     }
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
-        s->field_10 = 1;
+        s->moved = 1;
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
-    return s->field_10;
+    return s->moved;
 }
 
 /// Carries `v` from the local frame `coord` up the `GsCOORDINATE2::sub` parent
@@ -1820,29 +1759,29 @@ static __inline__ void Actor356100_StepForward(GsCOORDINATE2* coord, s16 amount)
 
 /// Pushes `coord` out of the `GpRec18` records `rec` by `func_800E0C10`'s
 /// averaged 16.16 delta, then lifts it by `height`. `head` is read before the
-/// 0x14-byte `Actor356100DeltaFlag` block is reserved off `G_SCRATCH_HEAD`, so
+/// 0x14-byte `ActorDeltaFlag` block is reserved off `G_SCRATCH_HEAD`, so
 /// the two spellings of the block in the body reach it the same way the
 /// original does — the negative offsets off `head` for the X component and the
 /// flag, `s` for the rest. Same body as `Actor01900_Fn00E00`'s push without
 /// its mask argument.
 static __inline__ void Actor356100_PushRecords(GsCOORDINATE2* coord, GpRec18* rec, s32 count, s16 height)
 {
-    void**                scratch;
-    u8*                   head;
-    Actor356100DeltaFlag* s;
-    s32                   val;
+    void**          scratch;
+    u8*             head;
+    ActorDeltaFlag* s;
+    s32             val;
 
     if (D_80072729 != 1) {
-        scratch                                  = (void**)G_SCRATCH_HEAD;
-        head                                     = *scratch;
-        *(Actor356100DeltaFlag**)G_SCRATCH_HEAD -= 1;
-        s                                        = *(Actor356100DeltaFlag**)G_SCRATCH_HEAD;
-        s->field_10                              = 0;
+        scratch                            = (void**)G_SCRATCH_HEAD;
+        head                               = *scratch;
+        *(ActorDeltaFlag**)G_SCRATCH_HEAD -= 1;
+        s                                  = *(ActorDeltaFlag**)G_SCRATCH_HEAD;
+        s->moved                           = 0;
         if (func_800E0C10(rec, &s->delta, count, NULL) != 0) {
-            coord->coord.t[0] += ((Actor356100DeltaFlag*)(head - 0x14))->delta.vx.h.hi;
+            coord->coord.t[0] += ((ActorDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
             coord->coord.t[1] += s->delta.vy.h.hi;
             coord->coord.t[2] += s->delta.vz.h.hi;
-            val                = ((Actor356100DeltaFlag*)(head - 0x14))->delta.vx.w;
+            val                = ((ActorDeltaFlag*)(head - 0x14))->delta.vx.w;
             if ((val & 0xFFFF) != 0) {
                 if (val > 0) {
                     coord->coord.t[0]++;
@@ -1861,9 +1800,9 @@ static __inline__ void Actor356100_PushRecords(GsCOORDINATE2* coord, GpRec18* re
         }
         coord->coord.t[1] += height;
         if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
-            s->field_10 = 1;
+            s->moved = 1;
         }
-        *(Actor356100DeltaFlag**)G_SCRATCH_HEAD += 1;
+        *(ActorDeltaFlag**)G_SCRATCH_HEAD += 1;
     }
 }
 
@@ -1872,21 +1811,21 @@ static __inline__ void Actor356100_PushRecords(GsCOORDINATE2* coord, GpRec18* re
 /// compare interleaves with the coordinate load.
 static __inline__ s32 Actor356100_PushRecordsAlways(GsCOORDINATE2* coord, GpRec18* rec, s32 count, s16 height)
 {
-    void**                scratch;
-    u8*                   head;
-    Actor356100DeltaFlag* s;
-    s32                   val;
+    void**          scratch;
+    u8*             head;
+    ActorDeltaFlag* s;
+    s32             val;
 
-    scratch                                  = (void**)G_SCRATCH_HEAD;
-    head                                     = *scratch;
-    *(Actor356100DeltaFlag**)G_SCRATCH_HEAD -= 1;
-    s                                        = *(Actor356100DeltaFlag**)G_SCRATCH_HEAD;
-    s->field_10                              = 0;
+    scratch                            = (void**)G_SCRATCH_HEAD;
+    head                               = *scratch;
+    *(ActorDeltaFlag**)G_SCRATCH_HEAD -= 1;
+    s                                  = *(ActorDeltaFlag**)G_SCRATCH_HEAD;
+    s->moved                           = 0;
     if (func_800E0C10(rec, &s->delta, count, NULL) != 0) {
-        coord->coord.t[0] += ((Actor356100DeltaFlag*)(head - 0x14))->delta.vx.h.hi;
+        coord->coord.t[0] += ((ActorDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
         coord->coord.t[1] += s->delta.vy.h.hi;
         coord->coord.t[2] += s->delta.vz.h.hi;
-        val                = ((Actor356100DeltaFlag*)(head - 0x14))->delta.vx.w;
+        val                = ((ActorDeltaFlag*)(head - 0x14))->delta.vx.w;
         if ((val & 0xFFFF) != 0) {
             if (val > 0) {
                 coord->coord.t[0]++;
@@ -1905,10 +1844,10 @@ static __inline__ s32 Actor356100_PushRecordsAlways(GsCOORDINATE2* coord, GpRec1
     }
     coord->coord.t[1] += height;
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
-        s->field_10 = 1;
+        s->moved = 1;
     }
-    *(Actor356100DeltaFlag**)G_SCRATCH_HEAD += 1;
-    return s->field_10;
+    *(ActorDeltaFlag**)G_SCRATCH_HEAD += 1;
+    return s->moved;
 }
 
 /// Steps `coord` `amount` units along its own root colour-matrix column unless
@@ -2491,23 +2430,23 @@ void func_actor_356100_801666B4(Task* arg0)
 
 void func_actor_356100_801668FC(Task* arg0)
 {
-    Actor356100Work*      work;
-    GpEnemy*              enemy;
-    PlayerStatus*         cfg;
-    McSaveData*           save;
-    GsCOORDINATE2*        coord;
-    GsCOORDINATE2*        root;
-    u8*                   base;
-    u8*                   base2;
-    u8*                   slot;
-    u8*                   slot2;
-    SVECTOR*              v;
-    SVECTOR*              next;
-    Actor356100DeltaFlag* next2;
-    Actor356100DeltaFlag* blk;
-    Actor356100DeltaFlag* s;
-    s32                   val;
-    s32                   mode;
+    Actor356100Work* work;
+    GpEnemy*         enemy;
+    PlayerStatus*    cfg;
+    McSaveData*      save;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   root;
+    u8*              base;
+    u8*              base2;
+    u8*              slot;
+    u8*              slot2;
+    SVECTOR*         v;
+    SVECTOR*         next;
+    ActorDeltaFlag*  next2;
+    ActorDeltaFlag*  blk;
+    ActorDeltaFlag*  s;
+    s32              val;
+    s32              mode;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2;
@@ -2557,20 +2496,20 @@ void func_actor_356100_801668FC(Task* arg0)
         }
         root = ((TmdObject*)arg0->extra)->coords;
         if ((u8)save->unknown_5C0[1] != 1) {
-            base2                                    = PSX_SCRATCH;
-            slot2                                    = *(u8**)(base2 + 0x3FC);
-            base2                                    = slot2;
-            blk                                      = (Actor356100DeltaFlag*)(slot2 - 0x14);
-            base2                                    = PSX_SCRATCH;
-            *(Actor356100DeltaFlag**)(base2 + 0x3FC) = blk;
-            base2                                    = slot2;
-            s                                        = blk;
-            blk->field_10                            = 0;
+            base2                              = PSX_SCRATCH;
+            slot2                              = *(u8**)(base2 + 0x3FC);
+            base2                              = slot2;
+            blk                                = (ActorDeltaFlag*)(slot2 - 0x14);
+            base2                              = PSX_SCRATCH;
+            *(ActorDeltaFlag**)(base2 + 0x3FC) = blk;
+            base2                              = slot2;
+            s                                  = blk;
+            blk->moved                         = 0;
             if (func_800E0C10(&work->field_A58, &blk->delta, 3, NULL) != 0) {
-                root->coord.t[0] += ((Actor356100DeltaFlag*)(slot2 - 0x14))->delta.vx.h.hi;
+                root->coord.t[0] += ((ActorDeltaFlag*)(slot2 - 0x14))->delta.vx.h.hi;
                 root->coord.t[1] += blk->delta.vy.h.hi;
                 root->coord.t[2] += blk->delta.vz.h.hi;
-                val               = ((Actor356100DeltaFlag*)(slot2 - 0x14))->delta.vx.w;
+                val               = ((ActorDeltaFlag*)(slot2 - 0x14))->delta.vx.w;
                 if ((val & 0xFFFF) != 0) {
                     if (val > 0) {
                         root->coord.t[0]++;
@@ -2589,14 +2528,14 @@ void func_actor_356100_801668FC(Task* arg0)
             }
             root->coord.t[1] += 0x10;
             if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
-                s->field_10 = 1;
+                s->moved = 1;
             }
-            base2                                    = PSX_SCRATCH;
-            next2                                    = (Actor356100DeltaFlag*)(*(Actor356100DeltaFlag**)(base2 + 0x3FC) + 1);
-            base2                                    = slot2;
-            base2                                    = PSX_SCRATCH;
-            *(Actor356100DeltaFlag**)(base2 + 0x3FC) = next2;
-            base2                                    = slot2;
+            base2                              = PSX_SCRATCH;
+            next2                              = (ActorDeltaFlag*)(*(ActorDeltaFlag**)(base2 + 0x3FC) + 1);
+            base2                              = slot2;
+            base2                              = PSX_SCRATCH;
+            *(ActorDeltaFlag**)(base2 + 0x3FC) = next2;
+            base2                              = slot2;
         }
         ((TmdObject*)arg0->extra)->coords->flg = 0;
     }
@@ -3065,20 +3004,20 @@ static __inline__ void Actor356100_StepForwardSave(McSaveData* save, GsCOORDINAT
 /// register across the release.
 static __inline__ void Actor356100_PushRecordsSave(McSaveData* save, GsCOORDINATE2* coord, GpRec18* rec, s32 count, s16 height)
 {
-    u8*                   head;
-    Actor356100DeltaFlag* s;
-    s32                   val;
+    u8*             head;
+    ActorDeltaFlag* s;
+    s32             val;
 
     if ((u8)save->unknown_5C0[1] != 1) {
-        head                                     = *(u8**)G_SCRATCH_HEAD;
-        *(Actor356100DeltaFlag**)G_SCRATCH_HEAD -= 1;
-        s                                        = *(Actor356100DeltaFlag**)G_SCRATCH_HEAD;
-        s->field_10                              = 0;
+        head                               = *(u8**)G_SCRATCH_HEAD;
+        *(ActorDeltaFlag**)G_SCRATCH_HEAD -= 1;
+        s                                  = *(ActorDeltaFlag**)G_SCRATCH_HEAD;
+        s->moved                           = 0;
         if (func_800E0C10(rec, &s->delta, count, NULL) != 0) {
-            coord->coord.t[0] += ((Actor356100DeltaFlag*)(head - 0x14))->delta.vx.h.hi;
+            coord->coord.t[0] += ((ActorDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
             coord->coord.t[1] += s->delta.vy.h.hi;
             coord->coord.t[2] += s->delta.vz.h.hi;
-            val                = ((Actor356100DeltaFlag*)(head - 0x14))->delta.vx.w;
+            val                = ((ActorDeltaFlag*)(head - 0x14))->delta.vx.w;
             if ((val & 0xFFFF) != 0) {
                 if (val > 0) {
                     coord->coord.t[0]++;
@@ -3097,7 +3036,7 @@ static __inline__ void Actor356100_PushRecordsSave(McSaveData* save, GsCOORDINAT
         }
         coord->coord.t[1] += height;
         if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
-            s->field_10 = 1;
+            s->moved = 1;
         }
         *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x14;
     }

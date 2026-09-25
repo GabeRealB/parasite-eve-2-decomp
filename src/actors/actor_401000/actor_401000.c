@@ -4,6 +4,7 @@
 #include "gte.h"
 #include <psyq/abs.h>
 
+#include "actors/actor.h"
 #include "actors/actors_shared_80169f74.h"
 #include "gameplay/1A8.h"
 #include "gameplay/1BC.h"
@@ -328,27 +329,6 @@ typedef struct Actor401000Delta {
     /* 0x1C */ s32            moved;
 } Actor401000Delta;
 STATIC_ASSERT_SIZEOF(Actor401000Delta, 0x20);
-
-/// Scratch block `func_actor_401000_801323EC` takes from `G_SCRATCH_HEAD`: the
-/// `GpDeltaScratch` filled by `func_800E0C10`, and `moved`, the value it
-/// returns.
-typedef struct Actor401000DeltaFlag {
-    /* 0x00 */ GpDeltaScratch delta;
-    /* 0x10 */ s32            moved;
-} Actor401000DeltaFlag;
-STATIC_ASSERT_SIZEOF(Actor401000DeltaFlag, 0x14);
-
-/// Scratch block `func_actor_401000_80132824` takes from `G_SCRATCH_HEAD`:
-/// `local` holds a root translation raised by 1000, which is rotated into `out`
-/// for the player and into `from` for this actor; `hit` is the result of
-/// `func_800E0308` on the two.
-typedef struct Actor401000SightScratch {
-    /* 0x00 */ SVECTOR out;
-    /* 0x08 */ SVECTOR from;
-    /* 0x10 */ SVECTOR local;
-    /* 0x18 */ s32     hit;
-} Actor401000SightScratch;
-STATIC_ASSERT_SIZEOF(Actor401000SightScratch, 0x1C);
 
 typedef struct Actor401000PushScratch {
     /* 0x00 */ SVECTOR offset;
@@ -695,11 +675,11 @@ static __inline__ void Actor401000_MoveForwardNonzero(GsCOORDINATE2* coord, s16 
 /// X or Z delta is nonzero.
 s32 func_actor_401000_801323EC(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
 {
-    void**                scratch;
-    u8*                   head;
-    Actor401000DeltaFlag* s;
-    register void*        p asm("v1");
-    s32                   val;
+    void**          scratch;
+    u8*             head;
+    ActorDeltaFlag* s;
+    register void*  p asm("v1");
+    s32             val;
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
@@ -708,12 +688,12 @@ s32 func_actor_401000_801323EC(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
     *scratch = p;
     s->moved = 0;
     if (func_800E0C10(recs, &s->delta, (s32)count, NULL) != 0) {
-        coord->coord.t[0]          = coord->coord.t[0] + ((Actor401000DeltaFlag*)(head - 0x14))->delta.vx.h.hi;
+        coord->coord.t[0]          = coord->coord.t[0] + ((ActorDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
         coord->coord.t[2]          = coord->coord.t[2] + s->delta.vz.h.hi;
-        D_actor_401000_80155010.vx = ((Actor401000DeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
+        D_actor_401000_80155010.vx = ((ActorDeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
         D_actor_401000_80155010.vy = s->delta.vy.w >> 16;
         D_actor_401000_80155010.vz = s->delta.vz.w >> 16;
-        val                        = ((Actor401000DeltaFlag*)(head - 0x14))->delta.vx.w;
+        val                        = ((ActorDeltaFlag*)(head - 0x14))->delta.vx.w;
         if ((val & 0xFFFF) != 0) {
             if (val > 0) {
                 coord->coord.t[0]++;
@@ -805,17 +785,17 @@ s32 func_actor_401000_80132590(GsCOORDINATE2* coord, s16 range, s16 step)
 /// into world space and returns `func_800E0308` on the pair.
 s32 func_actor_401000_80132824(Task* arg0)
 {
-    Task*                    player;
-    u8*                      head;
-    Actor401000SightScratch* s;
-    SVECTOR*                 local;
-    SVECTOR*                 v;
-    SVECTOR*                 out;
+    Task*              player;
+    u8*                head;
+    ActorSightScratch* s;
+    SVECTOR*           local;
+    SVECTOR*           v;
+    SVECTOR*           out;
 
     player                = gameGetPtrSlot(3);
     head                  = *(u8**)G_SCRATCH_HEAD;
     local                 = (SVECTOR*)(head - 0xC);
-    s                     = (Actor401000SightScratch*)(head - 0x1C);
+    s                     = (ActorSightScratch*)(head - 0x1C);
     s->local.vx           = ((TmdObject*)player->extra)->coords->coord.t[0];
     s->local.vy           = ((TmdObject*)player->extra)->coords->coord.t[1] - 1000;
     *(u8**)G_SCRATCH_HEAD = (u8*)s;

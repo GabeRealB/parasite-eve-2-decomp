@@ -5,6 +5,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "actors/actors_shared_80135990.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -163,45 +164,6 @@ typedef struct Actor01200TurnScratch {
 } Actor01200TurnScratch;
 STATIC_ASSERT_SIZEOF(Actor01200TurnScratch, 0xC);
 
-/// 0x14-byte scratch from `G_SCRATCH_HEAD` for the movement step: the
-/// 16.16 delta `func_800E0C10` resolves from the contact records, and the
-/// "moved" flag the step returns.
-typedef struct Actor01200DeltaFlag {
-    /* 0x00 */ GpDeltaScratch delta;
-    /* 0x10 */ s32            moved;
-} Actor01200DeltaFlag;
-STATIC_ASSERT_SIZEOF(Actor01200DeltaFlag, 0x14);
-
-/// 0x54-byte scratch from `G_SCRATCH_HEAD` for the obstacle push: `angle` / `ok`
-/// hold up to eight bearings collected from the contact records, `i` / `j` are
-/// the loop cursors, and `blocked` is set when any record's kind is 0x10000.
-typedef struct Actor01200AvoidScratch {
-    /* 0x00 */ MATRIX   m;
-    /* 0x20 */ SVECTOR  dir;
-    /* 0x28 */ SVECTOR3 eye;
-    /* 0x2E */ byte     pad_2E[0x2];
-    /* 0x30 */ s32      kind;
-    /* 0x34 */ s16      angle[8];
-    /* 0x44 */ s8       ok[8];
-    /* 0x4C */ s16      face;
-    /* 0x4E */ s16      diff;
-    /* 0x50 */ u8       i;
-    /* 0x51 */ u8       j;
-    /* 0x52 */ u8       count;
-    /* 0x53 */ u8       blocked;
-} Actor01200AvoidScratch;
-STATIC_ASSERT_SIZEOF(Actor01200AvoidScratch, 0x54);
-
-/// 0x10-byte scratch the bearing helpers of the obstacle push nest inside
-/// `Actor01200AvoidScratch`: an obstacle's offset, widened to words.
-typedef struct Actor01200AvoidDelta {
-    /* 0x0 */ s32  vx;
-    /* 0x4 */ s32  vy;
-    /* 0x8 */ s32  vz;
-    /* 0xC */ byte pad_C[0x4];
-} Actor01200AvoidDelta;
-STATIC_ASSERT_SIZEOF(Actor01200AvoidDelta, 0x10);
-
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 extern MATRIX* D_80073B8C;
@@ -272,11 +234,11 @@ static __inline__ void Actor01200_StepForward(GsCOORDINATE2* coord, s16 amount)
 /// own that is released before `ratan2` runs.
 static __inline__ s16 Actor01200_BearingXZ(SVECTOR3* p, SVECTOR3* eye)
 {
-    u8*                   head;
-    Actor01200AvoidDelta* d;
+    u8*              head;
+    ActorAvoidDelta* d;
 
     head                  = *(u8**)G_SCRATCH_HEAD;
-    d                     = (Actor01200AvoidDelta*)(head - 0x10);
+    d                     = (ActorAvoidDelta*)(head - 0x10);
     d->vx                 = p->vx - eye->vx;
     *(u8**)G_SCRATCH_HEAD = (u8*)d;
     d->vy                 = p->vy - eye->vy;
@@ -289,11 +251,11 @@ static __inline__ s16 Actor01200_BearingXZ(SVECTOR3* p, SVECTOR3* eye)
 /// close to vertical.
 static __inline__ s16 Actor01200_BearingXY(SVECTOR3* p, SVECTOR3* eye)
 {
-    u8*                   head;
-    Actor01200AvoidDelta* d;
+    u8*              head;
+    ActorAvoidDelta* d;
 
     head                  = *(u8**)G_SCRATCH_HEAD;
-    d                     = (Actor01200AvoidDelta*)(head - 0x10);
+    d                     = (ActorAvoidDelta*)(head - 0x10);
     d->vx                 = p->vx - eye->vx;
     *(u8**)G_SCRATCH_HEAD = (u8*)d;
     d->vy                 = p->vy - eye->vy;
@@ -308,19 +270,19 @@ static __inline__ s16 Actor01200_BearingXY(SVECTOR3* p, SVECTOR3* eye)
 /// Each survivor becomes a 10-unit step added to `push` and to the translation.
 s16 Actor01200_Fn00130(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* push)
 {
-    u8*                     head;
-    Actor01200AvoidScratch* s;
-    s16                     diff;
-    s16                     t;
-    s32                     mag;
+    u8*                head;
+    ActorAvoidScratch* s;
+    s16                diff;
+    s16                t;
+    s32                mag;
 
     if (gGameSession->viewReady == 1 || D_80072729 == 1) {
         return 0;
     }
 
     head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - sizeof(Actor01200AvoidScratch);
-    s                     = (Actor01200AvoidScratch*)*(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - sizeof(ActorAvoidScratch);
+    s                     = (ActorAvoidScratch*)*(u8**)G_SCRATCH_HEAD;
     s->blocked            = 0;
     push->vz              = 0;
     push->vy              = 0;
@@ -412,7 +374,7 @@ s16 Actor01200_Fn00130(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
         }
     }
 
-    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(Actor01200AvoidScratch);
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(ActorAvoidScratch);
     return s->blocked != 0;
 }
 
@@ -423,11 +385,11 @@ s16 Actor01200_Fn00130(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
 /// nonzero when the X or Z push is nonzero.
 s32 Actor01200_Fn0067C(GsCOORDINATE2* coord, GpRec18* movement, s16 count)
 {
-    void**               scratch;
-    u8*                  head;
-    Actor01200DeltaFlag* s;
-    register void*       p asm("v1");
-    s32                  val;
+    void**          scratch;
+    u8*             head;
+    ActorDeltaFlag* s;
+    register void*  p asm("v1");
+    s32             val;
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
@@ -436,12 +398,12 @@ s32 Actor01200_Fn0067C(GsCOORDINATE2* coord, GpRec18* movement, s16 count)
     *scratch = p;
     s->moved = 0;
     if (func_800E0C10(movement, &s->delta, (s32)count, NULL) != 0) {
-        coord->coord.t[0]    = coord->coord.t[0] + ((Actor01200DeltaFlag*)(head - 0x14))->delta.vx.h.hi;
+        coord->coord.t[0]    = coord->coord.t[0] + ((ActorDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
         coord->coord.t[2]    = coord->coord.t[2] + s->delta.vz.h.hi;
-        Actor01200_D07084.vx = ((Actor01200DeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
+        Actor01200_D07084.vx = ((ActorDeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
         Actor01200_D07084.vy = s->delta.vy.w >> 16;
         Actor01200_D07084.vz = s->delta.vz.w >> 16;
-        val                  = ((Actor01200DeltaFlag*)(head - 0x14))->delta.vx.w;
+        val                  = ((ActorDeltaFlag*)(head - 0x14))->delta.vx.w;
         if ((val & 0xFFFF) != 0) {
             if (val > 0) {
                 coord->coord.t[0]++;
