@@ -10,6 +10,7 @@ This linter detects patterns like:
 These should be replaced with proper struct field access.
 """
 
+import re
 import sys
 import os
 import argparse
@@ -37,6 +38,9 @@ class PointerArithmeticDetector(c_ast.NodeVisitor):
                     # This is a violation: (Type*)expr + offset
                     self.violations.append(
                         {
+                            # The node's own file: a header's inline body is
+                            # reported under the header, not every includer.
+                            "file": os.path.normpath(node.coord.file),
                             "line": node.coord.line,
                             "column": node.coord.column,
                             "type": self._get_cast_type(node.left),
@@ -119,6 +123,34 @@ class PointerArithmeticDetector(c_ast.NodeVisitor):
         return False
 
 
+ASM_START = re.compile(r"\b(?:__asm__|asm)\b\s*(?:(?:volatile|__volatile__)\s*)?\(")
+
+
+def strip_asm(text):
+    """Remove every GNU asm construct, parentheses balanced."""
+    out, i = [], 0
+    while True:
+        m = ASM_START.search(text, i)
+        if not m:
+            out.append(text[i:])
+            return "".join(out)
+        out.append(text[i:m.start()])
+        depth, j = 1, m.end()
+        while depth and j < len(text):
+            if text[j] == '"':
+                j += 1
+                while j < len(text) and text[j] != '"':
+                    j += 2 if text[j] == "\\" else 1
+            elif text[j] == "(":
+                depth += 1
+            elif text[j] == ")":
+                depth -= 1
+            j += 1
+        # Keep the removed span's newlines so reported line numbers stay right.
+        out.append("\n" * text.count("\n", m.start(), j))
+        i = j
+
+
 def preprocess_file(filename, cpp_path="gcc", cpp_args=""):
     """
     Preprocess a C file for parsing.
@@ -146,7 +178,7 @@ def preprocess_file(filename, cpp_path="gcc", cpp_args=""):
         # pycparser compatibility macros
         "-D__attribute__(x)=",
         "-D__extension__=",
-        "-D__asm__(x)=",
+        "-D__inline__=",
         "-D__restrict=",
         "-D__volatile__=volatile",
         "-D__inline=",
@@ -158,14 +190,41 @@ def preprocess_file(filename, cpp_path="gcc", cpp_args=""):
         if os.path.exists(path):
             cpp_args_list.append(f"-I{path}")
 
-    # pycparser expects cpp_args as a list when passed to parse_file
+    # pycparser does not know GNU asm: statements with operand lists,
+    # `asm volatile`, and `asm("name")` labels on declarations. The
+    # preprocessor cannot remove `__asm__ volatile (...)` (a function-like
+    # macro needs its `(` next), so strip them from the preprocessed text.
     try:
-        return parse_file(
-            filename, use_cpp=True, cpp_path=cpp_path, cpp_args=cpp_args_list
-        )
+        text = subprocess.run(
+            [cpp_path, *cpp_args_list, filename], capture_output=True, text=True, check=True
+        ).stdout
+        return c_parser.CParser().parse(strip_asm(text), filename)
+    except subprocess.CalledProcessError as e:
+        print(f"Warning: Could not preprocess {filename}: {e.stderr.strip()[:200]}", file=sys.stderr)
+        return None
     except ParseError as e:
         print(f"Warning: Could not parse {filename}: {e}", file=sys.stderr)
         return None
+
+
+# Macros whose expansion is pointer arithmetic by design: the scratch-pad
+# stack (main/scratch.h) and the link-node-to-enemy step (gameplay/1BC.h).
+# The check sees preprocessed code, so it tests the source line instead.
+SANCTIONED = re.compile(r"\b(?:SCRATCH_[A-Z_]+|GP_NODE_ENEMY)\s*\(")
+_LINES: dict = {}
+
+
+def sanctioned(violation):
+    path = violation["file"]
+    if path not in _LINES:
+        try:
+            with open(path, encoding="utf-8", errors="replace") as f:
+                _LINES[path] = f.read().split("\n")
+        except OSError:
+            _LINES[path] = []
+    lines = _LINES[path]
+    n = violation["line"]
+    return 0 < n <= len(lines) and bool(SANCTIONED.search(lines[n - 1]))
 
 
 def check_file(filename, verbose=False):
@@ -181,7 +240,7 @@ def check_file(filename, verbose=False):
         detector = PointerArithmeticDetector(filename)
         detector.visit(ast)
 
-        return detector.violations
+        return [v for v in detector.violations if not sanctioned(v)]
 
     except Exception as e:
         if verbose:
@@ -194,51 +253,58 @@ def check_directory(directory, exclude_dirs=None, verbose=False):
     if exclude_dirs is None:
         exclude_dirs = {"build", "tools", "lib", "expected", ".git"}
 
-    all_violations = {}
-
+    paths = []
     for root, dirs, files in os.walk(directory):
         # Remove excluded directories from traversal
         dirs[:] = [d for d in dirs if d not in exclude_dirs]
+        paths += [os.path.join(root, f) for f in files if f.endswith(".c")]
 
-        for filename in files:
-            if filename.endswith(".c"):
-                filepath = os.path.join(root, filename)
-                violations = check_file(filepath, verbose=verbose)
+    # pycparser is pure Python, about a second per file, and files are
+    # independent: parse them across every core.
+    from concurrent.futures import ProcessPoolExecutor
 
-                if violations:
-                    all_violations[filepath] = violations
+    with ProcessPoolExecutor() as pool:
+        results = pool.map(check_file, sorted(paths), [verbose] * len(paths), chunksize=4)
+    grouped: dict = {}
+    seen = set()
+    for vs in results:
+        for v in vs or []:
+            key = (v["file"], v["line"], v["column"])
+            if key not in seen:
+                seen.add(key)
+                grouped.setdefault(v["file"], []).append(v)
+    return grouped
 
-    return all_violations
+
+_BLAME: dict = {}
 
 
 def get_git_blame_timestamp(filename, line_number):
-    """Get the timestamp when a specific line was introduced using git blame."""
-    try:
-        result = subprocess.run(
-            [
-                "git",
-                "blame",
-                "-L",
-                f"{line_number},{line_number}",
-                "--porcelain",
-                filename,
-            ],
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
-        if result.returncode != 0:
-            return None
+    """Get the timestamp when a specific line was introduced using git blame.
 
-        # Parse porcelain output to get author-time
-        for line in result.stdout.split("\n"):
-            if line.startswith("author-time "):
-                timestamp = int(line.split(" ")[1])
-                return datetime.fromtimestamp(timestamp)
-        return None
-    except (subprocess.TimeoutExpired, subprocess.SubprocessError, ValueError):
-        return None
-
+    Each file is blamed once, for every line, and cached: one `git blame`
+    per violation made a full-tree run take minutes.
+    """
+    if filename not in _BLAME:
+        times = {}
+        try:
+            out = subprocess.run(
+                ["git", "blame", "--line-porcelain", filename],
+                capture_output=True, text=True, timeout=60,
+            ).stdout
+            line, stamp = 0, None
+            for row in out.split("\n"):
+                parts = row.split(" ")
+                if len(parts) >= 3 and len(parts[0]) == 40 and parts[1].isdigit():
+                    line = int(parts[2])
+                elif row.startswith("author-time "):
+                    stamp = int(parts[1])
+                elif row.startswith("\t") and line:
+                    times[line] = datetime.fromtimestamp(stamp) if stamp else None
+        except (subprocess.TimeoutExpired, subprocess.SubprocessError, ValueError):
+            pass
+        _BLAME[filename] = times
+    return _BLAME[filename].get(line_number)
 
 def format_violation(filename, violation):
     """Format a violation for display."""
