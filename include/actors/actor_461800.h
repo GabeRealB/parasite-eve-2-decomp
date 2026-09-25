@@ -16,11 +16,11 @@
 /// allocation and not a guess. Every other function in the overlay reaches the
 /// block through the global.
 ///
-/// The prefix is the layout `ActorsShared801324c8` reseeds: `anim` is the
-/// animation context `func_800B4114` walks, `field_4B8` the animation id the
-/// slots are seeded with, `field_4B6` the copy of it kept for change detection
-/// and `field_4EC` the reset argument handed to `func_800B4114`. The tail
-/// holds the two helper tasks `ActorsShared80132ecc` kills on teardown.
+/// `anim` is the animation context `func_800B4114` walks, `field_4B8` the
+/// animation id the slots are seeded with, `field_4B6` the copy of it kept for
+/// change detection and `field_4EC` the reset argument handed to
+/// `func_800B4114`. The tail holds the two helper tasks the exit callback
+/// `func_actor_461800_80132A90` kills on teardown.
 typedef struct Actor461800Work {
     /* 0x000 */ MATRIX     light; // model light matrix (`TmdObject::lightMtx`)
     /* 0x020 */ MATRIX     color; // model colour matrix (`TmdObject::colorMtx`)
@@ -75,13 +75,17 @@ typedef struct Actor461800Work2 {
     /* 0x4B2 */ s16        field_4B2;
     /* 0x4B4 */ s16        field_4B4; // reset argument the message handler writes
     /* 0x4B6 */ byte       pad_4B6[0x2];
-    /* 0x4B8 */ s32        field_4B8; // only ever cleared, before the seeding loop
+    /* 0x4B8 */ GpAnimRec* field_4B8; // last `Gp_AnimGetRec` record the footstep check saw
     /* 0x4BC */ u8         field_4BC;
     /* 0x4BD */ byte       pad_4BD[0x3];
 } Actor461800Work2;
 STATIC_ASSERT_SIZEOF(Actor461800Work2, 0x4C0);
 
 extern Actor461800Work2* D_actor_461800_801438A0;
+
+/// The second variant's task, published by its spawn routine
+/// `func_actor_461800_8013307C` so the handlers can reach its model.
+extern Task* D_actor_461800_801438A4;
 
 /// Message payload the state handlers take as `Gp_DispatchMsg`'s `arg2`.
 typedef struct Actor461800Msg {
@@ -115,6 +119,10 @@ void func_actor_461800_801331E4(Task* task);
 void func_actor_461800_80133724(void);
 void func_actor_461800_80133770(void);
 void func_actor_461800_8013380C(void);
+void func_actor_461800_80132A90(Task* task);
+void func_actor_461800_80133634(Task* task);
+void func_actor_461800_8013365C(Task* task);
+s32  func_actor_461800_80133928(Task* task, s32 arg1, s32 arg2);
 
 s32 func_actor_461800_80133970(Task* task, s32 arg1, ActorShared8013411cPlacement* placement);
 s32 func_actor_461800_80132EA4(Task* task, s32 arg1, ActorShared8013411cPlacement* placement);

@@ -1,7 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_461800.h"
-#include "actors/actors_shared_801326b4.h"
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
@@ -70,7 +69,7 @@ s32 func_actor_461800_80133898(Task* task, s32 arg1, Actor461800AnimPreset* pres
             D_actor_461800_801438A0->field_47C = 2;
         }
         D_actor_461800_801438A0->field_482 = 0;
-        func_actor_461800_801331E4(ActorsShared801326b4Task);
+        func_actor_461800_801331E4(D_actor_461800_801438A4);
         return 0;
     }
     return -1;

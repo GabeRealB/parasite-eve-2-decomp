@@ -2,7 +2,6 @@
 
 #include "actors/actor_461800.h"
 #include "actors/actor_461800_move.h"
-#include "actors/actors_shared_80132ecc.h"
 #include "gameplay/1BC.h"
 #include "gameplay/268.h"
 #include "gameplay/D4.h"
@@ -226,7 +225,7 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback      = ActorsShared80132ecc;
+    task->exitCallback      = func_actor_461800_80132A90;
     coord->sub              = &gGfxViewCoord;
     enemy->field_4          = &coord->coord;
     enemy->field_48         = 0;

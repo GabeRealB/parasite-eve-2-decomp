@@ -4,10 +4,7 @@
 
 #include "actors/actor_461800.h"
 #include "actors/actor_461800_move.h"
-#include "actors/actors_shared_801324fc.h"
-#include "actors/actors_shared_801326b4.h"
 #include "actors/actors_shared_8013411c.h"
-#include "actors/actors_shared_801366fc.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "main/gfx.h"
@@ -228,19 +225,19 @@ void func_actor_461800_8013307C(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback       = ActorsShared801366fc;
-    coord->sub               = &gGfxViewCoord;
-    enemy->field_4           = &coord->coord;
-    enemy->field_48          = 0;
-    enemy->node.targeted     = 0;
-    enemy->node.flags        = 1;
-    obj->otOffset            = 1;
-    obj->lightMtx            = &D_actor_461800_801438A0->light;
-    obj->colorMtx            = &D_actor_461800_801438A0->color;
-    vec.vx                   = coord->workm.t[0];
-    vec.vy                   = coord->workm.t[1] - 0x320;
-    ActorsShared801326b4Task = task;
-    vec.vz                   = coord->workm.t[2];
+    task->exitCallback      = func_actor_461800_80133634;
+    coord->sub              = &gGfxViewCoord;
+    enemy->field_4          = &coord->coord;
+    enemy->field_48         = 0;
+    enemy->node.targeted    = 0;
+    enemy->node.flags       = 1;
+    obj->otOffset           = 1;
+    obj->lightMtx           = &D_actor_461800_801438A0->light;
+    obj->colorMtx           = &D_actor_461800_801438A0->color;
+    vec.vx                  = coord->workm.t[0];
+    vec.vy                  = coord->workm.t[1] - 0x320;
+    D_actor_461800_801438A4 = task;
+    vec.vz                  = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
     func_800B3F84(&D_actor_461800_801438A0->anim, D_actor_461800_801437F8, obj,
                   &D_actor_461800_801438A0->slots[0x13], D_actor_461800_801438A0->slots);
@@ -302,7 +299,7 @@ void func_actor_461800_801331E4(Task* task)
         }
         func_actor_461800_80133724();
         if (work->field_4BC != 0) {
-            ActorsShared801324fc(task);
+            func_actor_461800_8013365C(task);
         }
     }
 }
