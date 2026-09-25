@@ -1020,22 +1020,22 @@ void Gp_UpdateCoordEx(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1)
     }
 }
 
-void* Gp_AttachTmd(Task* task, TmdSource* src)
+TmdObject* Gp_AttachTmd(Task* task, TmdSource* src)
 {
-    TmdListHead* node;
+    TmdObject*   node;
     TmdListHead* last;
     TmdListHead* list;
 
-    node = (TmdListHead*)Tmd_Create(src, 0);
+    node = Tmd_Create(src, 0);
     if (node != NULL) {
-        list             = &gTmdList;
-        last             = list->prev;
-        node->next       = last->next;
-        last->next       = node;
-        node->prev       = last;
-        list->prev       = node;
-        task->extra.node = node;
-        task->spawnType  = 1;
+        list            = &gTmdList;
+        last            = list->prev;
+        node->next      = last->next;
+        last->next      = (TmdListHead*)node;
+        node->prev      = last;
+        list->prev      = (TmdListHead*)node;
+        task->extra.tmd = node;
+        task->spawnType = 1;
     }
     return node;
 }
@@ -1083,22 +1083,22 @@ GpDisp2d* gpAttachDisp2d(Task* task)
     return node;
 }
 
-void* Gp_AttachTmdFlags(Task* task, TmdSource* src, s32 flags)
+TmdObject* Gp_AttachTmdFlags(Task* task, TmdSource* src, s32 flags)
 {
-    TmdListHead* node;
+    TmdObject*   node;
     TmdListHead* last;
     TmdListHead* list;
 
-    node = (TmdListHead*)Tmd_Create(src, flags);
+    node = Tmd_Create(src, flags);
     if (node != NULL) {
-        list             = &gTmdList;
-        last             = list->prev;
-        node->next       = last->next;
-        last->next       = node;
-        node->prev       = last;
-        list->prev       = node;
-        task->extra.node = node;
-        task->spawnType  = 1;
+        list            = &gTmdList;
+        last            = list->prev;
+        node->next      = last->next;
+        last->next      = (TmdListHead*)node;
+        node->prev      = last;
+        list->prev      = (TmdListHead*)node;
+        task->extra.tmd = node;
+        task->spawnType = 1;
     }
     return node;
 }

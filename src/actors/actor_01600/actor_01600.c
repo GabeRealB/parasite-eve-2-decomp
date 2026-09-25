@@ -266,11 +266,11 @@ extern s32 Actor01600_D12874;
 extern s32 Actor01600_D127DC;
 extern s32 Actor01600_D12870;
 
-extern TaskDesc D_800626EC[];
-extern u8       Actor01600_D0973C[];
-extern u8       Actor01600_D09CFC[];
-extern u8       Actor01600_D09EE0[];
-extern SVECTOR  Actor01600_D12868;
+/// Models effect 0x80005 spawns, set in `D_800626EC[5].arg.model`.
+extern TmdSource Actor01600_D0973C;
+extern TmdSource Actor01600_D09CFC;
+extern TmdSource Actor01600_D09EE0;
+extern SVECTOR   Actor01600_D12868;
 
 void Actor01600_Fn070AC(Task* arg0, Task* arg1);
 

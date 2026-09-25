@@ -359,9 +359,9 @@ extern GpPadReplay* Gp_ReplayCursor;
 /// sequence it left.
 extern u32 Gp_LcgState;
 
-void  Gp_UpdateCoord(GsCOORDINATE2* arg0);
-void  Gp_UpdateCoordEx(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
-void* Gp_AttachTmd(Task* task, TmdSource* src);
+void       Gp_UpdateCoord(GsCOORDINATE2* arg0);
+void       Gp_UpdateCoordEx(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
+TmdObject* Gp_AttachTmd(Task* task, TmdSource* src);
 /// Gives a task a 2D-display body and returns it, or `NULL` when there is no
 /// memory for one, in which case the task is left without a body.
 ///
@@ -371,8 +371,8 @@ void* Gp_AttachTmd(Task* task, TmdSource* src);
 /// `gTmdDisp2dList`, where the frame's draw passes compose it. Recording it as
 /// the task's body (`spawnType` 2) is what later releases it; `Gp_AttachTmd` is
 /// the model-side counterpart.
-GpDisp2d* gpAttachDisp2d(Task* task);
-void*     Gp_AttachTmdFlags(Task* task, TmdSource* src, s32 flags);
+GpDisp2d*  gpAttachDisp2d(Task* task);
+TmdObject* Gp_AttachTmdFlags(Task* task, TmdSource* src, s32 flags);
 /// Unlinks a model body from the model list (`gTmdList`).
 ///
 /// The body is not released here: every caller pairs this with `gpFreeTmd`,

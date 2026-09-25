@@ -33,9 +33,9 @@ STATIC_ASSERT_SIZEOF(Actor403200ViewPoints, 0x20);
 
 /// One of the nine models and spawn arguments used by the formation spawner.
 typedef struct Actor403200SpawnRec {
-    /* 0x0 */ void* model;
-    /* 0x4 */ s16   spawnArg;
-    /* 0x6 */ s16   field_6;
+    /* 0x0 */ TmdSource* model;
+    /* 0x4 */ s16        spawnArg;
+    /* 0x6 */ s16        field_6;
 } Actor403200SpawnRec;
 STATIC_ASSERT_SIZEOF(Actor403200SpawnRec, 0x8);
 

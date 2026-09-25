@@ -9,7 +9,7 @@ Task* Task_SpawnFromDesc(TaskDesc* desc, s32 arg1, s32 arg2, TaskNode* list)
     Task*          task;
     s32            type;
     s32            flags_a2;
-    void*          extra;
+    TaskBody       extra;
     u16            flags;
     s32            temp;
     u8             flags_lo;
@@ -27,7 +27,7 @@ Task* Task_SpawnFromDesc(TaskDesc* desc, s32 arg1, s32 arg2, TaskNode* list)
     if (type == 1) {
         goto case1;
     }
-    extra = NULL;
+    extra.node = NULL;
     if (type < 2) {
         goto merge;
     }
@@ -42,20 +42,20 @@ case1:
     if (D_8005ED8C != 0) {
         flags_a2 |= 2;
     }
-    extra = Gp_AttachTmdFlags(task, desc->arg.model, flags_a2);
+    extra.tmd = Gp_AttachTmdFlags(task, desc->arg.model, flags_a2);
     goto merge;
 
 case2:
-    extra = gpAttachDisp2d(task);
+    extra.disp2d = gpAttachDisp2d(task);
 
 merge:
-    if (((u8)desc->flags == 0) || (extra != NULL)) {
+    if (((u8)desc->flags == 0) || (extra.node != NULL)) {
         task->callback     = desc->callback;
         priority           = *(u8*)&desc->priority;
         task->exitCallback = taskKill;
         task->priority     = priority;
         flags_lo           = (u8)desc->flags;
-        task->extra.node   = extra;
+        task->extra        = extra;
         task->spawnArg1    = arg1;
         task->spawnArg2    = (void*)arg2;
         task->parent       = NULL;

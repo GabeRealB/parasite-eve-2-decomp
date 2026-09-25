@@ -306,13 +306,11 @@ extern GpU16Pair Actor07000_D08078;
 /// Enemy record of the second form; its `hpMax` seeds the enemy's HP.
 extern GpPairSrcE Actor07000_D08080;
 
-/// Effect-setup records the spawned task picks up through `D_80062730`, one per
-/// random variant the roll selects - the same role `D_actor_207200_801517F8`
-/// plays for actor_207200. Only the address reaches the spawn, so the contents
-/// stay opaque here.
-extern u8 Actor07000_D0AB40[];
-extern u8 Actor07000_D0B194[];
-extern u8 Actor07000_D0B730[];
+/// Models effect 0x80005 spawns, set in `D_800626EC[5].arg.model`, one per
+/// random variant the roll selects.
+extern TmdSource Actor07000_D0AB40;
+extern TmdSource Actor07000_D0B194;
+extern TmdSource Actor07000_D0B730;
 
 /// The animation data `func_800B3F84` seeds the second form's slots from.
 extern u8 Actor07000_D0D77C[];
@@ -327,11 +325,6 @@ extern SVECTOR Actor07000_D0D7B8;
 extern u8 Actor07000_D0D7C0[];
 
 extern TaskDesc Actor07000_D0D7D0;
-
-/// Setup-argument slot in the main executable; a task spawned through
-/// `Gp_SpawnEff` reads it as its own setup argument (`D_800626EC[5].arg.model`,
-/// see include/actors/actor_207200.h).
-extern s32 D_80062730;
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
@@ -2747,22 +2740,22 @@ void Actor07000_Fn049C0(Task* arg0)
     switch (r) {
         case 0:
         case 1:
-            D_80062730 = (s32)&Actor07000_D0B730;
-            effect     = Gp_SpawnEff(0x80005, (*&arg0->extra.tmd)->coords + 1, 0, NULL);
+            D_800626EC[5].arg.model = &Actor07000_D0B730;
+            effect                  = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 1, 0, NULL);
             if (effect != NULL) {
                 Actor07000_Fn066FC(effect->task, arg0);
             }
             break;
         case 2:
-            D_80062730 = (s32)&Actor07000_D0B194;
-            effect     = Gp_SpawnEff(0x80005, (*&arg0->extra.tmd)->coords + 5, 0, NULL);
+            D_800626EC[5].arg.model = &Actor07000_D0B194;
+            effect                  = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 5, 0, NULL);
             if (effect != NULL) {
                 Actor07000_Fn066FC(effect->task, arg0);
             }
             break;
         case 3:
-            D_80062730 = (s32)&Actor07000_D0AB40;
-            effect     = Gp_SpawnEff(0x80005, (*&arg0->extra.tmd)->coords + 4, 0, NULL);
+            D_800626EC[5].arg.model = &Actor07000_D0AB40;
+            effect                  = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 4, 0, NULL);
             if (effect != NULL) {
                 Actor07000_Fn066FC(effect->task, arg0);
             }

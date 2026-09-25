@@ -111,13 +111,11 @@ typedef struct Actor207200HitView {
 STATIC_ASSERT_SIZEOF(Actor207200HitView, 0x374);
 
 /// The records closing three of the overlay's model streams, handed to the
-/// spawned effect as its setup argument through `D_80062730`.
+/// spawned effect as its model through `D_800626EC[5].arg.model`.
 extern TmdSource D_actor_207200_80150BCC;
 extern TmdSource D_actor_207200_80151074;
 extern TmdSource D_actor_207200_801517F8;
 extern SVECTOR   D_actor_207200_80153F18;
-/// Spawned task's setup argument (`D_800626EC[5].arg.model`).
-extern s32 D_80062730;
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
@@ -1013,8 +1011,8 @@ void func_actor_207200_8014CFEC(Task* arg0)
 
     Gp_SpawnEff(0x6009C, arg0->extra.tmd->coords, 0, NULL);
     func_800DA6E8(&ctx->node, ctx->hp - 1, 0);
-    D_80062730 = (s32)&D_actor_207200_801517F8;
-    effect     = Gp_SpawnEff(0x80005, (*&arg0->extra.tmd)->coords + 3, 0, NULL);
+    D_800626EC[5].arg.model = &D_actor_207200_801517F8;
+    effect                  = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 3, 0, NULL);
     if (effect != NULL) {
         func_actor_207200_8014DAF8(effect->task, arg0);
     }
@@ -1041,22 +1039,22 @@ void func_actor_207200_8014D128(Task* arg0)
     switch (r) {
         case 0:
         case 1:
-            D_80062730 = (s32)&D_actor_207200_801517F8;
-            effect     = Gp_SpawnEff(0x80005, (*&arg0->extra.tmd)->coords + 3, 0, NULL);
+            D_800626EC[5].arg.model = &D_actor_207200_801517F8;
+            effect                  = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 3, 0, NULL);
             if (effect != NULL) {
                 func_actor_207200_8014DAF8(effect->task, arg0);
             }
             break;
         case 2:
-            D_80062730 = (s32)&D_actor_207200_80151074;
-            effect     = Gp_SpawnEff(0x80005, (*&arg0->extra.tmd)->coords + 5, 0, NULL);
+            D_800626EC[5].arg.model = &D_actor_207200_80151074;
+            effect                  = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 5, 0, NULL);
             if (effect != NULL) {
                 func_actor_207200_8014DAF8(effect->task, arg0);
             }
             break;
         case 3:
-            D_80062730 = (s32)&D_actor_207200_80150BCC;
-            effect     = Gp_SpawnEff(0x80005, (*&arg0->extra.tmd)->coords + 2, 0, NULL);
+            D_800626EC[5].arg.model = &D_actor_207200_80150BCC;
+            effect                  = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 2, 0, NULL);
             if (effect != NULL) {
                 func_actor_207200_8014DAF8(effect->task, arg0);
             }

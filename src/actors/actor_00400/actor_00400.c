@@ -362,9 +362,6 @@ extern struct GpU16Pair      Actor00400_D0FDC0;
 extern TaskDesc              Actor00400_D16028;
 extern Actor100400AreaConfig Actor00400_D15F20[];
 extern u32                   Actor00400_D16010;
-/* The byte at 0x80062735 sits inside a larger block (`D_80062730`), and the
-   entry state's flag read only keeps its `lh` when the write ahead of it is a
-   member reference the scheduler cannot look past. */
 
 extern u16   Actor00400_D1609C[8];
 extern byte  Actor00400_D1604C[];

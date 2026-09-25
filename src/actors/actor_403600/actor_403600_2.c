@@ -242,15 +242,15 @@ void func_actor_403600_80141F58(GsCOORDINATE2* arg0, s32 arg1);
 #define actor_403600_coord_advance(head, work) \
     __asm__ volatile("sw $zero, 1208(%1); addiu %0, %0, 32" : "+r"(head) : "r"(work))
 
-extern TaskDesc D_800626EC[];
 extern s32      D_80070F70;
 extern s8       D_80073BAD;
 extern TaskDesc D_80162E98;
-extern u8       D_80187B10;
-extern u8       D_80187E14;
-extern u8       D_80188264;
-extern u8       D_8018864C;
-extern Task*    D_actor_403600_801606B4;
+/// Models effect 0x80005 spawns, set in `D_800626EC[5].arg.model`.
+extern TmdSource D_80187B10;
+extern TmdSource D_80187E14;
+extern TmdSource D_80188264;
+extern TmdSource D_8018864C;
+extern Task*     D_actor_403600_801606B4;
 
 extern u8                   D_80071075;
 extern TaskDesc             D_8016E468;
