@@ -140506,3 +140506,22 @@ inlining a function substitutes a stack matrix's frame address into some
 stores but not others, reproducing a split addressing no macro gives. If
 statements that belong together look scheduled apart, try the helper the
 original probably called before reordering statements by hand.
+
+## A hand-written GTE routine read as C needs pins, `and_mask` and TOUCH_REGs (coordinate refresh, 2026-09-25)
+
+The coordinate refresh's high-precision translation (split each 32-bit
+component into 10-bit slices, run `rtv0tr`/`rtv1`/`rtv2`, recombine with
+`>>2` and `<<8`) was decompiled as C and only matched with register pins on
+`$t4`-`$t7` and `$s0`, an `and_mask` asm with reversed operands, and raw
+`mfc2` statements. The tell that the original was hand-written assembly:
+fixed registers regardless of where the input arrived (including a callee-saved
+one), operand orders the compiler never emits (`and $t4, $s0, $t4`), and an
+explicit `nop` after every `mfc2`. Modelled as one asm macro taking the two
+pointers (`gte_RotTransLV`), the surrounding C matched with the compiler's own
+register choices. When a GTE-heavy sequence needs pins on fixed registers,
+suspect a hand-written routine the original pasted or macro-expanded.
+
+The same function was also an inline helper shared three times: each draw
+pass's per-coordinate block was `_gpUpdateCoordTree`'s body inlined with
+`root = NULL`, and the helper's parameter copies were what the pins had been
+imitating (the block-scoped macro form scored 90-93%).
