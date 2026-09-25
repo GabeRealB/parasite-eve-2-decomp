@@ -506,16 +506,40 @@ TmdObject* Tmd_Create(TmdSource* src, s32 flags)
     return obj;
 }
 
+/// Writes the transpose of `src`'s rotation into `dst`, a column at a time
+/// through `$12`-`$14` in the manner of the libgte inline macros.
+static inline void _tmdTransposeRot(MATRIX* src, MATRIX* dst)
+{
+    __asm__ volatile(
+        "lhu $12,0(%0);"
+        "lhu $13,6(%0);"
+        "lhu $14,12(%0);"
+        "sh $12,0(%1);"
+        "sh $13,2(%1);"
+        "sh $14,4(%1);"
+        "lhu $12,2(%0);"
+        "lhu $13,8(%0);"
+        "lhu $14,14(%0);"
+        "sh $12,6(%1);"
+        "sh $13,8(%1);"
+        "sh $14,10(%1);"
+        "lhu $12,4(%0);"
+        "lhu $13,10(%0);"
+        "lhu $14,16(%0);"
+        "sh $12,12(%1);"
+        "sh $13,14(%1);"
+        "sh $14,16(%1);"
+        :
+        : "r"(src), "r"(dst)
+        : "$12", "$13", "$14", "memory");
+}
+
 void Tmd_SetupDraw(TmdObject* obj)
 {
     u8                   buf[0x1000];
     TmdScratchDrawBlock* tmp;
     TmdScratchDrawBlock* ws;
     void*                stream;
-    register MATRIX*     colorMtx asm("t2");
-    register short       t4 asm("t4");
-    register short       t5 asm("t5");
-    register short       t6 asm("t6");
     u32                  flags;
     void*                bufptr;
     s32                  disp;
@@ -556,70 +580,22 @@ void Tmd_SetupDraw(TmdObject* obj)
     ws->field_10      = b;
     ws->field_14      = ot + e;
 
-    colorMtx = (MATRIX*)obj->colorMtx;
-    gte_SetColorMatrix(colorMtx);
-    {
-        register MATRIX* m asm("v0");
-        register s32     r asm("t3");
-        register s32     g asm("t7");
-        register s32     b asm("t2");
-        m = colorMtx;
-        r = m->t[0];
-        g = m->t[1];
-        b = m->t[2];
-        gte_ldbkdir(r, g, b);
-    }
+    gte_SetColorMatrix(obj->colorMtx);
+    gte_ldbkdir(obj->colorMtx->t[0], obj->colorMtx->t[1], obj->colorMtx->t[2]);
 
-    {
-        MATRIX*          m;
-        register MATRIX* src asm("t3");
-        register MATRIX* light asm("t7");
+    flags = obj->flags;
+    _tmdTransposeRot(&gGfxViewCoord.workm, &ws->mat);
 
-        m = &ws->mat;
-        TOUCH_REG(m);
-        src = &gGfxViewCoord.workm;
-        TOUCH_REG(src);
-        flags = obj->flags;
-        TOUCH_REG(flags);
-
-        t4         = src->m[0][0];
-        t5         = src->m[1][0];
-        t6         = src->m[2][0];
-        m->m[0][0] = t4;
-        m->m[0][1] = t5;
-        m->m[0][2] = t6;
-
-        t4         = src->m[0][1];
-        t5         = src->m[1][1];
-        t6         = src->m[2][1];
-        m->m[1][0] = t4;
-        m->m[1][1] = t5;
-        m->m[1][2] = t6;
-
-        t4         = src->m[0][2];
-        t5         = src->m[1][2];
-        t6         = src->m[2][2];
-        m->m[2][0] = t4;
-        m->m[2][1] = t5;
-        m->m[2][2] = t6;
-
-        light = (MATRIX*)obj->lightMtx;
-        gte_SetRotMatrix(light);
-
-        gte_ldclmv(m);
-        gte_rtir();
-        gte_stclmv(m);
-
-        m = (MATRIX*)&ws->mat.m[0][1];
-        gte_ldclmv(m);
-        gte_rtir();
-        gte_stclmv(m);
-
-        m = (MATRIX*)&ws->mat.m[0][2];
-        gte_ldclmv(m);
-        gte_rtir();
-        gte_stclmv(m);
-    }
+    gte_SetRotMatrix(obj->lightMtx);
+    gte_ldclmv(&ws->mat.m[0][0]);
+    gte_rtir();
+    gte_stclmv(&ws->mat.m[0][0]);
+    gte_ldclmv(&ws->mat.m[0][1]);
+    gte_rtir();
+    gte_stclmv(&ws->mat.m[0][1]);
+    gte_ldclmv(&ws->mat.m[0][2]);
+    gte_rtir();
+    gte_stclmv(&ws->mat.m[0][2]);
 
     Tmd_SetupGteMatrices(ws, flags, stream, obj);
 

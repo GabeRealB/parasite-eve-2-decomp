@@ -140783,3 +140783,16 @@ whose slots are reused by several helpers (here 0x40 held a handler table, a
 each block was a `static inline`; block-scoped locals never share. The union
 of all the layouts plus `la` asm that the seed used is what those helpers
 compile to.
+
+## A `move` right after a GTE asm whose operand was reloaded is a re-read of the same field (Tmd_SetupDraw)
+
+Target: `lw t2,0x20(a3)`, `gte_SetColorMatrix` through `t2`, then `move v0,t2`
+and the three `gte_ldbkdir` operands loaded through `v0` into `t3/t7/t2`. A
+`colorMtx` local gives `lw v0,0x20(a3)` and loads straight off `v0`; pinning
+`t2`/`v0`/`t3`/`t7` was the old reproduction. The mechanism is reload, not
+allocation: the asm needs three GR registers, reload spills `t2/t3/t7`, and
+the pointer operand gets a spill register. Writing `obj->colorMtx` afresh in
+both macros (`gte_SetColorMatrix(obj->colorMtx); gte_ldbkdir(obj->colorMtx->t[0],
+...)`) makes the second read its own load, which post-reload CSE turns into a
+copy of the value already in `t2`. When the `.greg` dump says `Spilling reg`
+for an asm insn, look for a repeated field read before pinning anything.
