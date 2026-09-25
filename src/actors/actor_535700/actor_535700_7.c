@@ -1,6 +1,6 @@
 #include "common.h"
 
-#include "actors/actors_shared_801330ac.h"
+#include "actors/actor_535700.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/gameplay.h"
@@ -9,10 +9,10 @@
 
 void func_actor_535700_80133020(Task* task);
 
-/// The actor's draw body: refreshes the model root's coordinate, lights the
-/// model at its world translation raised by 800 on y, then runs the shared
-/// step body and this overlay's own follow-up.
-void ActorsShared80131e24Sub1(GpEnemy* enemy, Task* task)
+/// State 1 of the second enemy's task: refreshes the model root's coordinate,
+/// hands `func_800D7A9C` the point 0x320 above it, then runs the state machine
+/// and draws the ground shadow.
+void func_actor_535700_80132F74(GpEnemy* enemy, Task* task)
 {
     TmdObject*     obj;
     GsCOORDINATE2* coord;
@@ -25,7 +25,7 @@ void ActorsShared80131e24Sub1(GpEnemy* enemy, Task* task)
     pos.vy = coord->workm.t[1] - 0x320;
     pos.vz = coord->workm.t[2];
     func_800D7A9C(obj, &pos, 0, 3);
-    ActorsShared801330ac(task);
+    func_actor_535700_80132D68(task);
     func_actor_535700_80133020(task);
 }
 

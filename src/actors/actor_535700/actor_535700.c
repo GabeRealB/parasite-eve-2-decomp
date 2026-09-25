@@ -2,8 +2,6 @@
 
 #include "actors/actor_461800_move.h"
 #include "actors/actor_535700.h"
-#include "actors/actors_shared_801324fc.h"
-#include "actors/actors_shared_801326b4.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/D4.h"
@@ -54,76 +52,75 @@ void func_actor_535700_80131F2C(void)
     }
 }
 
-/// State 0 of the `ActorsShared80131f9c` dispatcher: allocate the work block,
-/// publish it in `ActorsShared80131f9cWork` and on the task's work slot, point
-/// the model's light and color matrices and its animation context at it, then
-/// run the overlay's runner once and advance the task to state 1.
+/// State 0 of the first enemy's task: allocates the work block, publishes it
+/// in `D_actor_535700_80146844` and on the task's work slot, points the
+/// model's light and colour matrices and its animation context at it,
+/// publishes the task in `D_actor_535700_80146848`, then runs the runner once
+/// and advances the task to state 1.
 ///
-/// Every access to the block after the null check goes through
-/// `ActorsShared80131f9cWork` rather than the `memCalloc` result, which is why
-/// the pointer is reloaded at each use.
-void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
+/// Every access to the block after the null check goes through the global
+/// rather than the `memCalloc` result, which is why the pointer is reloaded at
+/// each use.
+void func_actor_535700_80131FA0(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor535700Work* work;
     TmdObject*       obj;
     GsCOORDINATE2*   coord;
 
-    obj                      = task->extra;
-    coord                    = obj->coords;
-    work                     = memCalloc(0x4C0, 0);
-    ActorsShared80131f9cWork = work;
-    task->work               = work;
+    obj                     = task->extra;
+    coord                   = obj->coords;
+    work                    = memCalloc(0x4C0, 0);
+    D_actor_535700_80146844 = work;
+    task->work              = work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback       = func_actor_535700_80132558;
-    coord->sub               = &gGfxViewCoord;
-    enemy->field_4           = &coord->coord;
-    enemy->field_48          = 0;
-    enemy->node.targeted     = 0;
-    enemy->node.flags        = 1;
-    obj->otOffset            = 1;
-    obj->lightMtx            = &ActorsShared80131f9cWork->light;
-    obj->colorMtx            = &ActorsShared80131f9cWork->color;
-    vec.vx                   = coord->workm.t[0];
-    vec.vy                   = coord->workm.t[1] - 0x320;
-    ActorsShared801326b4Task = task;
-    vec.vz                   = coord->workm.t[2];
+    task->exitCallback      = func_actor_535700_80132558;
+    coord->sub              = &gGfxViewCoord;
+    enemy->field_4          = &coord->coord;
+    enemy->field_48         = 0;
+    enemy->node.targeted    = 0;
+    enemy->node.flags       = 1;
+    obj->otOffset           = 1;
+    obj->lightMtx           = &D_actor_535700_80146844->light;
+    obj->colorMtx           = &D_actor_535700_80146844->color;
+    vec.vx                  = coord->workm.t[0];
+    vec.vy                  = coord->workm.t[1] - 0x320;
+    D_actor_535700_80146848 = task;
+    vec.vz                  = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&ActorsShared80131f9cWork->anim, D_actor_535700_8013DAE8, obj,
-                  &ActorsShared80131f9cWork->field_34C, ActorsShared80131f9cWork->slots);
-    ActorsShared80131f9cWork->animId    = 1;
-    ActorsShared80131f9cWork->state     = 2;
-    ActorsShared80131f9cWork->field_4B2 = 0;
-    ActorsShared80131f9cWork->field_4B4 = 0;
-    ActorsShared80131f9cWork->field_4B8 = 0;
-    ActorsShared80131f9cWork->field_4BC = 0;
-    task->msgTable                      = D_actor_535700_8013DAAC;
+    func_800B3F84(&D_actor_535700_80146844->anim, D_actor_535700_8013DAE8, obj,
+                  &D_actor_535700_80146844->field_34C, D_actor_535700_80146844->slots);
+    D_actor_535700_80146844->animId    = 1;
+    D_actor_535700_80146844->state     = 2;
+    D_actor_535700_80146844->field_4B2 = 0;
+    D_actor_535700_80146844->field_4B4 = 0;
+    D_actor_535700_80146844->field_4B8 = 0;
+    D_actor_535700_80146844->field_4BC = 0;
+    task->msgTable                     = D_actor_535700_8013DAAC;
     func_actor_535700_80132108(task);
     task->state += 1;
 }
 
-void ActorsShared80132610(void);
-
 /// Per-frame update: states 1 and 2 run their one-shot animation reseed and
 /// leave the work block in state 3; state 3 walks the model while `field_4B2`
 /// counts down (distance picked by `D_actor_535700_8014684C`), turns it while
-/// `field_4B4` counts down in animation 3, then ticks the animation. Same body
-/// as `func_actor_461800_801331E4`.
+/// `field_4B4` counts down in animation 3, then ticks the animation and, once
+/// `field_4BC` is set, plays the footsteps.
 void func_actor_535700_80132108(Task* task)
 {
     GsCOORDINATE2*   coord = ((TmdObject*)task->extra)->coords;
     Actor535700Work* work  = (Actor535700Work*)task->work;
 
-    if (ActorsShared80131f9cWork->state == 1) {
+    if (D_actor_535700_80146844->state == 1) {
         func_actor_535700_80132730();
-        ActorsShared80131f9cWork->state = 3;
-    } else if (ActorsShared80131f9cWork->state == 2) {
-        ActorsShared80132610();
-        ActorsShared80131f9cWork->state = 3;
-    } else if (ActorsShared80131f9cWork->state == 3) {
+        D_actor_535700_80146844->state = 3;
+    } else if (D_actor_535700_80146844->state == 2) {
+        func_actor_535700_80132694();
+        D_actor_535700_80146844->state = 3;
+    } else if (D_actor_535700_80146844->state == 3) {
         if (work->animId == 0xE || work->animId == 2 || work->animId == 0xF) {
             if (work->field_4B2 != 0) {
                 switch (D_actor_535700_8014684C) {
@@ -152,7 +149,7 @@ void func_actor_535700_80132108(Task* task)
         }
         func_actor_535700_80132648();
         if (work->field_4BC != 0) {
-            ActorsShared801324fc(task);
+            func_actor_535700_80132580(task);
         }
     }
 }

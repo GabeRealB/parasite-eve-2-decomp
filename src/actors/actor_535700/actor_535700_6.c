@@ -12,7 +12,6 @@
 #include "gameplay/D4.h"
 
 #include "actors/actor_535700.h"
-#include "actors/actors_shared_801330ac.h"
 
 extern GpMsgEntry D_actor_535700_801467E0[];
 extern TaskDesc   D_actor_535700_80146810[];
@@ -22,12 +21,12 @@ INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700_6", func_actor_535700
 
 INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700_6", func_actor_535700_80132ABC);
 
-/// Spawn handler of the enemy this overlay carries, the twin of
-/// `func_actor_450800_80132E9C`. Allocates the enemy's `Actor535700SpawnWork`,
-/// spawns its model task from `D_actor_535700_80146810`, takes the model's
-/// texture page and CLUT from the placement record the enemy's `placeKey`
-/// selects, lights it at its world position, starts the animation and hands
-/// the state machine to `ActorsShared801330ac`.
+/// State 0 of the second enemy's task. Allocates its `Actor535700SpawnWork`,
+/// spawns its sub-model task from `D_actor_535700_80146810`, takes the
+/// sub-model's texture page and CLUT from the placement record the enemy's
+/// `placeKey` selects, makes the sub-model a child of this task, lights the
+/// model at its world position, starts the animation and runs the state
+/// machine `func_actor_535700_80132D68` once.
 ///
 /// Two codegen pins, both load-bearing. Left alone, CSE merges the two
 /// call-site copies of `&key` into one pseudo live across the first call,
@@ -35,7 +34,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700_6", func_actor_535700
 /// materialization next to its own call and `TOUCH_REG` makes the second a
 /// fresh one. The `mem` / `work` pair reproduces the ROM's short-lived copy of
 /// the `memCalloc` result beside the long-lived one.
-void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
+void func_actor_535700_80132B58(GpEnemy* enemy, Task* task)
 {
     VECTOR                vec;
     GpAreaKey             key;
@@ -105,6 +104,6 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     work->animId   = 1;
     work->state    = 2;
     task->msgTable = D_actor_535700_801467E0;
-    ActorsShared801330ac(task);
+    func_actor_535700_80132D68(task);
     task->state++;
 }

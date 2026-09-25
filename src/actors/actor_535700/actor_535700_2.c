@@ -6,10 +6,10 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Per-frame update of the enemy's model: refreshes the root coordinate, hands
-/// `func_800D7A9C` the point 0x320 above it, then runs the overlay's runner and
-/// draws the ground quad.
-void ActorsShared80131f9cSub1(GpEnemy* enemy, Task* task)
+/// State 1 of the first enemy's task: refreshes the model root's coordinate,
+/// hands `func_800D7A9C` the point 0x320 above it, then runs the runner and
+/// draws the ground shadow.
+void func_actor_535700_801324D4(GpEnemy* enemy, Task* task)
 {
     TmdObject*     obj;
     GsCOORDINATE2* coord;
