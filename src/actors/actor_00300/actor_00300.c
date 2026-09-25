@@ -5,6 +5,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "actors/actor_100300.h"
 #include "actors/actors_shared_80132074.h"
 #include "actors/actors_shared_80135b58.h"
@@ -24,10 +25,6 @@
 typedef struct Actor00300ByteView {
     s8 value;
 } Actor00300ByteView;
-
-typedef struct Actor100300ScratchStack {
-    u32 sp;
-} Actor100300ScratchStack;
 
 typedef struct Actor00300InitScratch {
     /* 0x00 */ SVECTOR offset;
@@ -87,12 +84,6 @@ typedef struct Actor00300AreaConfig {
     /* 0x6 */ u16 value;
 } Actor00300AreaConfig;
 STATIC_ASSERT_SIZEOF(Actor00300AreaConfig, 8);
-
-typedef struct Actor100300RotScratch {
-    /* 0x00 */ VECTOR  vec;
-    /* 0x10 */ SVECTOR rot;
-} Actor100300RotScratch;
-STATIC_ASSERT_SIZEOF(Actor100300RotScratch, 0x18);
 
 typedef struct Actor100300Work {
     /* 0x000 */ GpObj             obj0;
@@ -377,24 +368,24 @@ void Actor00300_Fn00078(GsCOORDINATE2* coord, s16 size)
 /// coordinate's world position, with the texture alternating each frame.
 void Actor00300_Fn005D0(GsCOORDINATE2* arg0, s32 arg1)
 {
-    void**                   scratch;
-    u8*                      head;
-    Actor00300GroundScratch* sc;
-    POLY_FT4*                prim;
-    GpQuadCorner*            tbl;
-    SVECTOR*                 v;
-    s32                      i;
-    s32                      otz;
-    s32                      flag;
-    s32                      u;
-    s32                      prod;
+    void**              scratch;
+    u8*                 head;
+    ActorGroundScratch* sc;
+    POLY_FT4*           prim;
+    GpQuadCorner*       tbl;
+    SVECTOR*            v;
+    s32                 i;
+    s32                 otz;
+    s32                 flag;
+    s32                 u;
+    s32                 prod;
 
     scratch = (void**)G_SCRATCH_HEAD;
-    head    = (u8*)*scratch - sizeof(Actor00300GroundScratch);
+    head    = (u8*)*scratch - sizeof(ActorGroundScratch);
 
     SOFT_TOUCH_REG(head);
     *scratch = head;
-    sc       = (Actor00300GroundScratch*)head;
+    sc       = (ActorGroundScratch*)head;
     gte_SetTransMatrix(&GsWSMATRIX);
     i   = 0;
     v   = sc->vec;
@@ -467,7 +458,7 @@ void Actor00300_Fn005D0(GsCOORDINATE2* arg0, s32 arg1)
                     prim);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(Actor00300GroundScratch);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(ActorGroundScratch);
 }
 
 void Actor00300_Fn00970(GpEnemy* enemy, Task* task)
@@ -1090,12 +1081,12 @@ void Actor00300_Fn019C0(Task* arg0)
 
 void Actor00300_Fn01D60(Task* arg0)
 {
-    Actor100300Work*       work;
-    GsCOORDINATE2*         coord;
-    Actor100300RotScratch* sc;
-    s32                    random;
+    Actor100300Work*  work;
+    GsCOORDINATE2*    coord;
+    ActorFaceScratch* sc;
+    s32               random;
 
-    sc    = (Actor100300RotScratch*)(*(u32*)0x1F8003FC -= 0x18);
+    sc    = (ActorFaceScratch*)(*(u32*)0x1F8003FC -= 0x18);
     work  = arg0->work;
     coord = ((TmdObject*)arg0->extra)->coords;
     if (((GpEnemy*)arg0->spawnArg2)->hp * 100 / (s32)Actor00300_D15FEC < 50 &&
@@ -1117,10 +1108,10 @@ void Actor00300_Fn01D60(Task* arg0)
             work->field_688 = ((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 31) + 60;
         }
     } else {
-        sc->vec.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-        sc->vec.vy = 0;
-        sc->vec.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-        if (SquareRoot0(sc->vec.vx * sc->vec.vx + sc->vec.vz * sc->vec.vz) < 3000) {
+        sc->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+        sc->delta.vy = 0;
+        sc->delta.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+        if (SquareRoot0(sc->delta.vx * sc->delta.vx + sc->delta.vz * sc->delta.vz) < 3000) {
             work->field_684 = 3;
             work->field_686 = 0;
             random          = Gp_LcgState * 5 + 0x71357911;
@@ -1136,38 +1127,38 @@ void Actor00300_Fn01D60(Task* arg0)
 
 void Actor00300_Fn01F9C(Task* arg0)
 {
-    SVECTOR                sp10;
-    SVECTOR                sp18;
-    Actor100300Work*       work;
-    GpEffWork*             effect;
-    GsCOORDINATE2*         coord;
-    s16                    turnTimer;
-    s16                    effectTimer2;
-    s16                    effectTimer1;
-    s16                    state;
-    s16                    delta;
-    s32                    magnitude;
-    s16                    angle;
-    s16                    delay;
-    s32                    random2;
-    s32                    effectAngle2;
-    s32                    random1;
-    s32                    effectAngle1;
-    s32                    sound;
-    s32                    delayRandom0;
-    s32                    delayRandom3;
-    s32                    pan2;
-    s32                    pan1;
-    s32                    effectPan;
-    u16                    yaw;
-    u32                    effectRandom2;
-    u32                    effectRandom1;
-    Actor100300RotScratch* scratchEnd;
-    Actor100300RotScratch* scratch;
+    SVECTOR           sp10;
+    SVECTOR           sp18;
+    Actor100300Work*  work;
+    GpEffWork*        effect;
+    GsCOORDINATE2*    coord;
+    s16               turnTimer;
+    s16               effectTimer2;
+    s16               effectTimer1;
+    s16               state;
+    s16               delta;
+    s32               magnitude;
+    s16               angle;
+    s16               delay;
+    s32               random2;
+    s32               effectAngle2;
+    s32               random1;
+    s32               effectAngle1;
+    s32               sound;
+    s32               delayRandom0;
+    s32               delayRandom3;
+    s32               pan2;
+    s32               pan1;
+    s32               effectPan;
+    u16               yaw;
+    u32               effectRandom2;
+    u32               effectRandom1;
+    ActorFaceScratch* scratchEnd;
+    ActorFaceScratch* scratch;
 
-    scratchEnd = *(Actor100300RotScratch**)0x1F8003FC;
+    scratchEnd = *(ActorFaceScratch**)0x1F8003FC;
     scratch =
-        (Actor100300RotScratch*)(*(u32*)0x1F8003FC = (u32)scratchEnd - 0x18);
+        (ActorFaceScratch*)(*(u32*)0x1F8003FC = (u32)scratchEnd - 0x18);
     work  = arg0->work;
     state = work->field_686;
     coord = ((TmdObject*)arg0->extra)->coords;
@@ -1176,11 +1167,11 @@ void Actor00300_Fn01F9C(Task* arg0)
             work->field_67C = 0x3C;
             work->field_67A = 0;
             work->field_66E = 3;
-            scratchEnd[-1].vec.vx =
+            scratchEnd[-1].delta.vx =
                 (s32)(Player_Status.coordMtx->t[0] - coord->coord.t[0]);
-            scratch->vec.vy = 0;
-            scratch->vec.vz = (s32)(Player_Status.coordMtx->t[2] - coord->coord.t[2]);
-            yaw             = ratan2((s32)(s16)scratchEnd[-1].vec.vx, (s32)(s16)scratch->vec.vz) &
+            scratch->delta.vy = 0;
+            scratch->delta.vz = (s32)(Player_Status.coordMtx->t[2] - coord->coord.t[2]);
+            yaw               = ratan2((s32)(s16)scratchEnd[-1].delta.vx, (s32)(s16)scratch->delta.vz) &
                   0xFFF;
             work->field_680 = yaw;
             delta           = yaw - (u16)work->field_67E;
@@ -1207,12 +1198,12 @@ void Actor00300_Fn01F9C(Task* arg0)
         case 1:
             ((Actor00300ByteView*)&D_80115418)->value = 0;
             work->field_67C                           = 0xF;
-            scratchEnd[-1].vec.vx =
+            scratchEnd[-1].delta.vx =
                 (s32)(Player_Status.coordMtx->t[0] - coord->coord.t[0]);
-            scratch->vec.vy = 0;
-            scratch->vec.vz = (s32)(Player_Status.coordMtx->t[2] - coord->coord.t[2]);
+            scratch->delta.vy = 0;
+            scratch->delta.vz = (s32)(Player_Status.coordMtx->t[2] - coord->coord.t[2]);
             work->field_680 =
-                ratan2((s32)(s16)scratchEnd[-1].vec.vx, (s32)(s16)scratch->vec.vz) &
+                ratan2((s32)(s16)scratchEnd[-1].delta.vx, (s32)(s16)scratch->delta.vz) &
                 0xFFF;
             if (Gp_State1C->eventState == 0) {
                 effectRandom1 = (Gp_LcgState * 5) + 0x71357911;
@@ -1717,19 +1708,19 @@ void Actor00300_Fn030B8(Task* arg0)
 
 void Actor00300_Fn032BC(Task* arg0)
 {
-    Actor100300Work*       work;
-    GsCOORDINATE2*         coord;
-    Actor100300RotScratch* sc;
-    s32                    ang;
-    u16                    want;
-    s16                    diff;
-    s32                    adiff;
-    s32                    step;
-    s32                    cur;
-    s32                    next;
-    s32                    wrapStep;
+    Actor100300Work*  work;
+    GsCOORDINATE2*    coord;
+    ActorFaceScratch* sc;
+    s32               ang;
+    u16               want;
+    s16               diff;
+    s32               adiff;
+    s32               step;
+    s32               cur;
+    s32               next;
+    s32               wrapStep;
 
-    sc    = (Actor100300RotScratch*)((*(u32*)0x1F8003FC) -= 0x18);
+    sc    = (ActorFaceScratch*)((*(u32*)0x1F8003FC) -= 0x18);
     coord = ((TmdObject*)arg0->extra)->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
@@ -1797,11 +1788,11 @@ void Actor00300_Fn0340C(Task* arg0)
     s32              nextY;
     s32              active;
 
-    matrix                                     = (MATRIX*)(((Actor100300ScratchStack*)0x1F8003FC)->sp - 0x20);
-    ((Actor100300ScratchStack*)0x1F8003FC)->sp = (u32)matrix;
-    active                                     = 0;
-    work                                       = arg0->work;
-    coord                                      = ((TmdObject*)arg0->extra)->coords;
+    matrix                               = (MATRIX*)(((ActorScratchStack*)0x1F8003FC)->sp - 0x20);
+    ((ActorScratchStack*)0x1F8003FC)->sp = (u32)matrix;
+    active                               = 0;
+    work                                 = arg0->work;
+    coord                                = ((TmdObject*)arg0->extra)->coords;
     RotMatrix(&work->field_65C, matrix);
     USE_REG(matrix);
     gte_SetRotMatrix(&coord[3].coord);
@@ -2310,28 +2301,28 @@ void Actor00300_Fn04370(GpEnemy* arg0, Task* arg1)
 
 void Actor00300_Fn04528(Task* arg0)
 {
-    s32                    want;
-    GsCOORDINATE2*         coord;
-    Actor100300RotScratch* sc;
-    s16                    cur;
-    s32                    ang;
-    s32                    current;
-    s16                    diff;
-    s32                    adiff;
-    s16                    turn;
-    s16                    wrap;
+    s32               want;
+    GsCOORDINATE2*    coord;
+    ActorFaceScratch* sc;
+    s16               cur;
+    s32               ang;
+    s32               current;
+    s16               diff;
+    s32               adiff;
+    s16               turn;
+    s16               wrap;
 
-    coord      = ((TmdObject*)arg0->extra)->coords;
-    sc         = (Actor100300RotScratch*)(*(u32*)0x1F8003FC -= 0x18);
-    sc->vec.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-    sc->vec.vy = 0;
-    sc->vec.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-    want       = ratan2((s16)sc->vec.vx, (s16)sc->vec.vz) & 0xFFF;
-    ang        = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
-    cur        = ang;
-    diff       = want - ang;
-    adiff      = diff >= 0 ? diff : -diff;
-    turn       = diff;
+    coord        = ((TmdObject*)arg0->extra)->coords;
+    sc           = (ActorFaceScratch*)(*(u32*)0x1F8003FC -= 0x18);
+    sc->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    sc->delta.vy = 0;
+    sc->delta.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    want         = ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF;
+    ang          = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
+    cur          = ang;
+    diff         = want - ang;
+    adiff        = diff >= 0 ? diff : -diff;
+    turn         = diff;
     if (adiff < 0xD) {
         cur = want;
     } else {

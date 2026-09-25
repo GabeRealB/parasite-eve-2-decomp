@@ -6,6 +6,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "actors/actors_shared_80133cd0.h"
 #include "actors/actors_shared_80134810.h"
 #include "actors/actors_shared_80135b58.h"
@@ -38,18 +39,6 @@
 /// the note in `include/gameplay/1BC.h`. It precedes the animation helpers
 /// below, which call it.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-
-/// The 0x18 bytes `Actor07000_Fn0107C` carves off the per-object
-/// scratch stack (`0x1F8003FC`, one `addiu` of `-0x18`): `vec` is the
-/// translation from the model's coordinate to the player, `rot` is the Euler
-/// angle triple rebuilt from the heading the same call just steered. The same
-/// block as `Actor100300RotScratch`, which the sibling body `Actor00300_Fn04528`
-/// carves the same way.
-typedef struct Actor107000RotScratch {
-    /* 0x00 */ VECTOR  vec;
-    /* 0x10 */ SVECTOR rot;
-} Actor107000RotScratch;
-STATIC_ASSERT_SIZEOF(Actor107000RotScratch, 0x18);
 
 /// Animation work reached through `Task::work`. `field_2B8`/`field_2BA`/
 /// `field_2BC` are the same (id, id the three helper slots last saw, frames
@@ -1030,28 +1019,28 @@ void Actor07000_Fn00F6C(Task* arg0, s32 arg1)
 /// stack.
 void Actor07000_Fn0107C(Task* arg0)
 {
-    Actor107000Work*       work;
-    GsCOORDINATE2*         coord;
-    Actor107000RotScratch* sc;
-    s16                    cur;
-    s32                    want;
-    s16                    diff;
-    s32                    adiff;
-    s16                    turn;
-    s16                    wrap;
-    s32                    current;
+    Actor107000Work*  work;
+    GsCOORDINATE2*    coord;
+    ActorFaceScratch* sc;
+    s16               cur;
+    s32               want;
+    s16               diff;
+    s32               adiff;
+    s16               turn;
+    s16               wrap;
+    s32               current;
 
-    coord      = ((TmdObject*)arg0->extra)->coords;
-    work       = (Actor107000Work*)arg0->work;
-    sc         = (Actor107000RotScratch*)(*(u32*)0x1F8003FC -= 0x18);
-    sc->vec.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-    sc->vec.vy = 0;
-    sc->vec.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-    want       = ratan2((s16)sc->vec.vx, (s16)sc->vec.vz) & 0xFFF;
-    cur        = work->field_2B0 & 0xFFF;
-    diff       = want - cur;
-    adiff      = diff >= 0 ? diff : -diff;
-    turn       = diff;
+    coord        = ((TmdObject*)arg0->extra)->coords;
+    work         = (Actor107000Work*)arg0->work;
+    sc           = (ActorFaceScratch*)(*(u32*)0x1F8003FC -= 0x18);
+    sc->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    sc->delta.vy = 0;
+    sc->delta.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    want         = ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF;
+    cur          = work->field_2B0 & 0xFFF;
+    diff         = want - cur;
+    adiff        = diff >= 0 ? diff : -diff;
+    turn         = diff;
     if (adiff < 0x21) {
         work->field_2B0 = want;
     } else {

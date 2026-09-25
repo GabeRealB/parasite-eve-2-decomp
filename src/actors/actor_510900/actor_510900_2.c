@@ -5,6 +5,7 @@
 #include "psyq/inline_c.h"
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -22,14 +23,6 @@
 #include "gameplay/gameplay.h"
 #include "actors/actor_510900.h"
 #include "actors/actors_shared_80132074.h"
-
-/// `G_SCRATCH_HEAD` seen as a struct field rather than a bare pointer. The
-/// struct store carries `MEM_IN_STRUCT_P`, which is what keeps GCC 2.8.1's
-/// first scheduling pass from hoisting a later struct load above the push in
-/// `func_actor_510900_80138D38`.
-typedef struct Actor510900ScratchStack {
-    u32 sp;
-} Actor510900ScratchStack;
 
 /// 0x40-byte scratch `func_actor_510900_80138BF0` takes from `G_SCRATCH_HEAD`
 /// to aim the head coordinate at the player. `view` is the head coordinate in
@@ -1944,7 +1937,7 @@ void func_actor_510900_80138BF0(Task* arg0)
 /// zero on each axis, snapping to zero inside the last step. `field_584` is
 /// cleared on the frame both axes have come to rest.
 ///
-/// The scratch head is taken through `Actor510900ScratchStack` rather than as a
+/// The scratch head is taken through `ActorScratchStack` rather than as a
 /// bare pointer: the struct store keeps the `arg0->work` load below it.
 void func_actor_510900_80138D38(Task* arg0)
 {
@@ -1959,11 +1952,11 @@ void func_actor_510900_80138D38(Task* arg0)
     s32              nextY;
     s32              active;
 
-    matrix                                         = (MATRIX*)(((Actor510900ScratchStack*)G_SCRATCH_HEAD)->sp - 0x20);
-    ((Actor510900ScratchStack*)G_SCRATCH_HEAD)->sp = (u32)matrix;
-    active                                         = 0;
-    work                                           = arg0->work;
-    coord                                          = ((TmdObject*)arg0->extra)->coords;
+    matrix                                   = (MATRIX*)(((ActorScratchStack*)G_SCRATCH_HEAD)->sp - 0x20);
+    ((ActorScratchStack*)G_SCRATCH_HEAD)->sp = (u32)matrix;
+    active                                   = 0;
+    work                                     = arg0->work;
+    coord                                    = ((TmdObject*)arg0->extra)->coords;
     RotMatrix(&work->field_570, matrix);
     USE_REG(matrix);
     gte_SetRotMatrix(&coord[3].coord);

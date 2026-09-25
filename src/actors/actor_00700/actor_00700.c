@@ -6,6 +6,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "actors/actors_shared_80135b58.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
@@ -105,23 +106,6 @@ typedef struct Actor00700Work {
     /* 0x396 */ s16                      field_396;
     /* 0x398 */ s16                      field_398;
 } Actor00700Work;
-
-/// 0x18-byte frame this overlay allocates on the scratchpad stack; only the
-/// `SVECTOR` at +0x10 is used by `Actor00700_Fn012E4`; the vector holds
-/// the player displacement in `Actor00700_Fn02820`.
-typedef struct Actor00700RotScratch {
-    /* 0x00 */ VECTOR  vec;
-    /* 0x10 */ SVECTOR rot;
-} Actor00700RotScratch;
-STATIC_ASSERT_SIZEOF(Actor00700RotScratch, 0x18);
-
-/// Four rotated corners and the projected center/depth on the scratchpad.
-typedef struct Actor00700QuadScratch {
-    /* 0x00 */ SVECTOR v[4];
-    /* 0x20 */ s32     sxy;
-    /* 0x24 */ s32     otz;
-} Actor00700QuadScratch;
-STATIC_ASSERT_SIZEOF(Actor00700QuadScratch, 0x28);
 
 typedef struct Actor00700TexEntry {
     /* 0x0 */ u8 u;
@@ -970,19 +954,19 @@ void Actor00700_Fn01148(Task* arg0)
 
 void Actor00700_Fn012E4(Task* arg0)
 {
-    Actor00700Work*       work;
-    GsCOORDINATE2*        coord;
-    Actor00700RotScratch* sc;
-    s32                   ang;
-    u16                   want;
-    s16                   diff;
-    s32                   adiff;
-    s32                   step;
-    s32                   cur;
-    s32                   next;
-    s32                   wrapStep;
+    Actor00700Work*   work;
+    GsCOORDINATE2*    coord;
+    ActorFaceScratch* sc;
+    s32               ang;
+    u16               want;
+    s16               diff;
+    s32               adiff;
+    s32               step;
+    s32               cur;
+    s32               next;
+    s32               wrapStep;
 
-    sc    = (Actor00700RotScratch*)(SCRATCH_SP -= 0x18);
+    sc    = (ActorFaceScratch*)(SCRATCH_SP -= 0x18);
     coord = ((TmdObject*)arg0->extra)->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
@@ -1744,23 +1728,23 @@ void Actor00700_Fn0268C(Task* arg0)
 
 void Actor00700_Fn02820(Task* arg0)
 {
-    Actor00700Work*       work;
-    GsCOORDINATE2*        coord;
-    Actor00700RotScratch* sc;
-    s32                   random;
-    s32                   amount;
-    s32                   cur;
-    s32                   cur2;
-    s32                   cur3;
-    s32                   random2;
-    s32                   amount2;
-    u16                   want;
-    s16                   diff;
-    s32                   adiff;
-    s16                   turn;
-    s16                   wrap;
+    Actor00700Work*   work;
+    GsCOORDINATE2*    coord;
+    ActorFaceScratch* sc;
+    s32               random;
+    s32               amount;
+    s32               cur;
+    s32               cur2;
+    s32               cur3;
+    s32               random2;
+    s32               amount2;
+    u16               want;
+    s16               diff;
+    s32               adiff;
+    s16               turn;
+    s16               wrap;
 
-    sc    = (Actor00700RotScratch*)(SCRATCH_SP -= 0x18);
+    sc    = (ActorFaceScratch*)(SCRATCH_SP -= 0x18);
     work  = arg0->work;
     coord = ((TmdObject*)arg0->extra)->coords;
     switch (work->field_2E6) {
@@ -1772,13 +1756,13 @@ void Actor00700_Fn02820(Task* arg0)
             work->field_2DC = !(random & 0x20) ? cur - amount : cur + amount;
             break;
         case 1:
-            sc->vec.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-            sc->vec.vy = 0;
-            sc->vec.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-            want       = ratan2((s16)sc->vec.vx, (s16)sc->vec.vz) & 0xFFF;
-            diff       = want - (work->field_2DC & 0xFFF);
-            adiff      = diff >= 0 ? diff : -diff;
-            turn       = diff;
+            sc->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+            sc->delta.vy = 0;
+            sc->delta.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            want         = ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF;
+            diff         = want - (work->field_2DC & 0xFFF);
+            adiff        = diff >= 0 ? diff : -diff;
+            turn         = diff;
             if (adiff < 0x11) {
                 work->field_2DC = want;
             } else {
@@ -1985,17 +1969,17 @@ void Actor00700_Fn02D28(GpEnemy* arg0, Task* arg1)
 
 void Actor00700_Fn0305C(Task* arg0)
 {
-    Actor00700QuadScratch* sc;
-    Actor00700Work*        work;
-    TmdObject*             obj;
-    GsCOORDINATE2*         coord;
-    s32                    size, x, y;
-    s16                    i;
-    SVECTOR*               v;
-    POLY_FT4*              prim;
-    Actor00700TexEntry*    uv;
+    ActorQuadScratch*   sc;
+    Actor00700Work*     work;
+    TmdObject*          obj;
+    GsCOORDINATE2*      coord;
+    s32                 size, x, y;
+    s16                 i;
+    SVECTOR*            v;
+    POLY_FT4*           prim;
+    Actor00700TexEntry* uv;
     obj         = arg0->extra;
-    sc          = (Actor00700QuadScratch*)(SCRATCH_SP -= 0x28);
+    sc          = (ActorQuadScratch*)(SCRATCH_SP -= 0x28);
     coord       = obj->coords;
     work        = arg0->work;
     sc->v[0].vx = coord->workm.t[0];

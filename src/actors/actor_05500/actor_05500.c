@@ -5,6 +5,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "actors/actors_shared_80135b58.h"
 #include "actors/actors_shared_80135c4c.h"
 
@@ -84,12 +85,6 @@ typedef struct Actor105500Work {
 } Actor105500Work;
 STATIC_ASSERT_SIZEOF(Actor105500Work, 0x3D4);
 
-typedef struct Actor105500RotScratch {
-    /* 0x00 */ VECTOR  vec;
-    /* 0x10 */ SVECTOR rot;
-} Actor105500RotScratch;
-STATIC_ASSERT_SIZEOF(Actor105500RotScratch, 0x18);
-
 typedef struct Actor105500LineScratch {
     s32     unused[4];
     SVECTOR position;
@@ -117,13 +112,6 @@ typedef struct Actor105500Anim {
     /* 0x014 */ GpAnimSlot slots[8];
 } Actor105500Anim;
 STATIC_ASSERT_SIZEOF(Actor105500Anim, 0x154);
-
-typedef struct Actor105500QuadScratch {
-    SVECTOR p[4];
-    s32     screen;
-    s32     depth;
-} Actor105500QuadScratch;
-STATIC_ASSERT_SIZEOF(Actor105500QuadScratch, 0x28);
 
 typedef struct Actor105500Uv {
     u8 u;
@@ -686,27 +674,27 @@ void Actor05500_Fn00A94(Task* arg0)
 
 void Actor05500_Fn00FA0(Task* arg0)
 {
-    Actor105500Work*       work;
-    GsCOORDINATE2*         coord;
-    s32                    state;
-    s16                    timer;
-    s16                    timer2;
-    s32                    distance;
-    s32                    sound;
-    s32                    dx;
-    s32                    dz;
-    s32                    pan;
-    u32                    random;
-    u32                    random2;
-    Actor105500RotScratch* delta;
-    Actor105500RotScratch* scratchEnd;
+    Actor105500Work*  work;
+    GsCOORDINATE2*    coord;
+    s32               state;
+    s16               timer;
+    s16               timer2;
+    s32               distance;
+    s32               sound;
+    s32               dx;
+    s32               dz;
+    s32               pan;
+    u32               random;
+    u32               random2;
+    ActorFaceScratch* delta;
+    ActorFaceScratch* scratchEnd;
 
-    scratchEnd                                        = *(Actor105500RotScratch**)PSX_SCRATCH_ADDR(0x3FC);
-    delta                                             = scratchEnd - 1;
-    *(Actor105500RotScratch**)PSX_SCRATCH_ADDR(0x3FC) = delta;
-    work                                              = arg0->work;
-    state                                             = work->field_39C;
-    coord                                             = ((TmdObject*)arg0->extra)->coords;
+    scratchEnd                                   = *(ActorFaceScratch**)PSX_SCRATCH_ADDR(0x3FC);
+    delta                                        = scratchEnd - 1;
+    *(ActorFaceScratch**)PSX_SCRATCH_ADDR(0x3FC) = delta;
+    work                                         = arg0->work;
+    state                                        = work->field_39C;
+    coord                                        = ((TmdObject*)arg0->extra)->coords;
     switch (state) {
         case 0:
             work->field_3C8 = 0;
@@ -724,11 +712,11 @@ void Actor05500_Fn00FA0(Task* arg0)
             }
             return;
         case 1:
-            scratchEnd[-1].vec.vx = (s32)(Player_Status.coordMtx->t[0] - coord->coord.t[0]);
-            delta->vec.vy         = 0;
-            delta->vec.vz         = (s32)(Player_Status.coordMtx->t[2] - coord->coord.t[2]);
-            work->field_3A4       = ratan2((s32)(s16)scratchEnd[-1].vec.vx, (s32)(s16)delta->vec.vz) & 0xFFF;
-            work->field_3A6       = 0x12;
+            scratchEnd[-1].delta.vx = (s32)(Player_Status.coordMtx->t[0] - coord->coord.t[0]);
+            delta->delta.vy         = 0;
+            delta->delta.vz         = (s32)(Player_Status.coordMtx->t[2] - coord->coord.t[2]);
+            work->field_3A4         = ratan2((s32)(s16)scratchEnd[-1].delta.vx, (s32)(s16)delta->delta.vz) & 0xFFF;
+            work->field_3A6         = 0x12;
             if ((s16)work->field_396 >= 0xB) {
                 work->field_398 = 0x17;
             }
@@ -751,12 +739,12 @@ void Actor05500_Fn00FA0(Task* arg0)
                 work->field_396 = 0xB;
             }
             if (work->field_3A4 == work->field_3A2) {
-                scratchEnd[-1].vec.vx = (s32)(Player_Status.coordMtx->t[0] - coord->coord.t[0]);
-                delta->vec.vy         = 0;
-                dz                    = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-                delta->vec.vz         = dz;
-                dx                    = scratchEnd[-1].vec.vx;
-                distance              = SquareRoot0((dx * dx) + (dz * dz));
+                scratchEnd[-1].delta.vx = (s32)(Player_Status.coordMtx->t[0] - coord->coord.t[0]);
+                delta->delta.vy         = 0;
+                dz                      = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+                delta->delta.vz         = dz;
+                dx                      = scratchEnd[-1].delta.vx;
+                distance                = SquareRoot0((dx * dx) + (dz * dz));
                 if ((work->field_3C0 == 0) && (distance < 0x578) && (work->field_3B0 == 0) && !(Player_Status.peStateFlags & 1)) {
                     work->field_39A = 4;
                     work->field_39C = 0;
@@ -1175,19 +1163,19 @@ void Actor05500_Fn020D4(Task* arg0)
 /// rebuilds its coordinate rotation from the result in a scratchpad block.
 void Actor05500_Fn02214(Task* arg0)
 {
-    Actor105500Work*       work;
-    GsCOORDINATE2*         coord;
-    Actor105500RotScratch* sc;
-    s32                    ang;
-    u16                    want;
-    s16                    diff;
-    s32                    adiff;
-    s32                    step;
-    s32                    cur;
-    s32                    next;
-    s32                    wrapStep;
+    Actor105500Work*  work;
+    GsCOORDINATE2*    coord;
+    ActorFaceScratch* sc;
+    s32               ang;
+    u16               want;
+    s16               diff;
+    s32               adiff;
+    s32               step;
+    s32               cur;
+    s32               next;
+    s32               wrapStep;
 
-    sc    = (Actor105500RotScratch*)(SCRATCH_SP -= 0x18);
+    sc    = (ActorFaceScratch*)(SCRATCH_SP -= 0x18);
     coord = ((TmdObject*)arg0->extra)->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
@@ -1456,45 +1444,45 @@ void Actor05500_Fn02780(GpEnemy* arg0, Task* arg1)
 
 void Actor05500_Fn02954(Task* actor, s32 frame)
 {
-    POLY_FT4*               poly;
-    GsCOORDINATE2*          coord;
-    s32                     depth;
-    s32                     screen;
-    s32                     y;
-    s32                     radius;
-    s32                     x;
-    s32                     bottom;
-    s32                     top;
-    s32                     left;
-    s32                     right;
-    Actor105500QuadScratch* scratchEnd;
-    Actor105500QuadScratch* s;
-    TmdObject*              texture;
-    Actor105500Uv*          uv;
-    SVECTOR*                projection;
+    POLY_FT4*         poly;
+    GsCOORDINATE2*    coord;
+    s32               depth;
+    s32               screen;
+    s32               y;
+    s32               radius;
+    s32               x;
+    s32               bottom;
+    s32               top;
+    s32               left;
+    s32               right;
+    ActorQuadScratch* scratchEnd;
+    ActorQuadScratch* s;
+    TmdObject*        texture;
+    Actor105500Uv*    uv;
+    SVECTOR*          projection;
 
-    scratchEnd                     = (Actor105500QuadScratch*)*(u8**)PSX_SCRATCH_ADDR(0x3FC);
+    scratchEnd                     = (ActorQuadScratch*)*(u8**)PSX_SCRATCH_ADDR(0x3FC);
     coord                          = ((TmdObject*)actor->extra)->coords;
     actor                          = actor->parent;
     texture                        = actor->extra;
-    scratchEnd[-1].p[0].vx         = (u16)coord->workm.t[0];
+    scratchEnd[-1].v[0].vx         = (u16)coord->workm.t[0];
     s                              = scratchEnd - 1;
-    s->p[0].vy                     = (u16)coord->workm.t[1];
+    s->v[0].vy                     = (u16)coord->workm.t[1];
     *(u8**)PSX_SCRATCH_ADDR(0x3FC) = (u8*)s;
-    s->p[0].vz                     = (u16)coord->workm.t[2];
-    projection                     = &s->p[0];
+    s->v[0].vz                     = (u16)coord->workm.t[2];
+    projection                     = &s->v[0];
     SOFT_TOUCH_REG(projection);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_ldv0(projection);
     gte_rtps();
-    gte_stsxy(&scratchEnd[-1].screen);
-    gte_stszotz(&scratchEnd[-1].depth);
-    depth = s->depth;
+    gte_stsxy(&scratchEnd[-1].sxy);
+    gte_stszotz(&scratchEnd[-1].otz);
+    depth = s->otz;
     if (depth >= 0x14) {
         radius                 = (s32)(Actor05500_D08AA0[frame] * 0x300) / depth;
         poly                   = gGpuPrimCursor;
-        screen                 = s->screen;
+        screen                 = s->sxy;
         gGpuPrimCursor         = (u8*)poly + 0x28;
         x                      = screen & 0xFFFF;
         y                      = screen >> 0x10;
@@ -1502,18 +1490,18 @@ void Actor05500_Fn02954(Task* actor, s32 frame)
         top                    = y - radius;
         right                  = x + radius;
         bottom                 = y + radius;
-        scratchEnd[-1].p[0].vx = left;
-        s->p[0].vy             = top;
-        s->p[0].vz             = 0;
-        s->p[1].vx             = right;
-        s->p[1].vy             = top;
-        s->p[1].vz             = 0;
-        s->p[2].vx             = left;
-        s->p[2].vy             = bottom;
-        s->p[2].vz             = 0;
-        s->p[3].vx             = right;
-        s->p[3].vy             = bottom;
-        s->p[3].vz             = 0;
+        scratchEnd[-1].v[0].vx = left;
+        s->v[0].vy             = top;
+        s->v[0].vz             = 0;
+        s->v[1].vx             = right;
+        s->v[1].vy             = top;
+        s->v[1].vz             = 0;
+        s->v[2].vx             = left;
+        s->v[2].vy             = bottom;
+        s->v[2].vz             = 0;
+        s->v[3].vx             = right;
+        s->v[3].vy             = bottom;
+        s->v[3].vz             = 0;
         setPolyFT4(poly);
         setSemiTrans(poly, 1);
         setRGB0(poly, 0x80, 0x80, 0x80);
@@ -1529,15 +1517,15 @@ void Actor05500_Fn02954(Task* actor, s32 frame)
         poly->v2    = (s8)(uv->v + 0x1F);
         poly->u3    = (s8)(uv->u + 0x1F);
         poly->v3    = (s8)(uv->v + 0x1F);
-        poly->x0    = (u16)scratchEnd[-1].p[0].vx;
-        poly->y0    = (u16)s->p[0].vy;
-        poly->x1    = (u16)s->p[1].vx;
-        poly->y1    = (u16)s->p[1].vy;
-        poly->x2    = (u16)s->p[2].vx;
-        poly->y2    = (u16)s->p[2].vy;
-        poly->x3    = (u16)s->p[3].vx;
-        poly->y3    = (u16)s->p[3].vy;
-        addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), poly);
+        poly->x0    = (u16)scratchEnd[-1].v[0].vx;
+        poly->y0    = (u16)s->v[0].vy;
+        poly->x1    = (u16)s->v[1].vx;
+        poly->y1    = (u16)s->v[1].vy;
+        poly->x2    = (u16)s->v[2].vx;
+        poly->y2    = (u16)s->v[2].vy;
+        poly->x3    = (u16)s->v[3].vx;
+        poly->y3    = (u16)s->v[3].vy;
+        addPrim((u32*)((((u32)(s->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), poly);
     }
     *(u8**)PSX_SCRATCH_ADDR(0x3FC) += 0x28;
 }

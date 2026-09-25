@@ -6,6 +6,7 @@
 #include "psyq/inline_c.h"
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -65,16 +66,6 @@ typedef struct Actor400500Msg3FF {
     /* 0x10 */ s32   field_10;
 } Actor400500Msg3FF;
 STATIC_ASSERT_SIZEOF(Actor400500Msg3FF, 0x14);
-
-/// Scratchpad projection of the origin of model part 2, used for draw depth.
-typedef struct Actor400500ProjScratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s32     sxy;
-    /* 0x0C */ s32     dp;
-    /* 0x10 */ s32     flag;
-    /* 0x14 */ s32     otz;
-} Actor400500ProjScratch;
-STATIC_ASSERT_SIZEOF(Actor400500ProjScratch, 0x18);
 
 /// View-space sample written by `func_actor_400500_8013DBCC`: the X and Z of
 /// the translation `Gp_WorldToLocal` produces for one of the actor's
@@ -2222,13 +2213,13 @@ static __inline__ void pop_scratch(s32 n)
 
 static __inline__ u8* push_proj(void)
 {
-    u8*                     head  = *(u8**)G_SCRATCH_HEAD;
-    Actor400500ProjScratch* block = (Actor400500ProjScratch*)(head - 0x18);
+    u8*                  head  = *(u8**)G_SCRATCH_HEAD;
+    ActorProjectScratch* block = (ActorProjectScratch*)(head - 0x18);
 
-    *(Actor400500ProjScratch**)G_SCRATCH_HEAD        = block;
-    ((Actor400500ProjScratch*)(head - 0x18))->vec.vx = 0;
-    block->vec.vy                                    = 0;
-    block->vec.vz                                    = 0;
+    *(ActorProjectScratch**)G_SCRATCH_HEAD        = block;
+    ((ActorProjectScratch*)(head - 0x18))->vec.vx = 0;
+    block->vec.vy                                 = 0;
+    block->vec.vz                                 = 0;
     return head;
 }
 
@@ -2280,7 +2271,7 @@ void func_actor_400500_80135770(Task* arg0)
     u8                         mode;
     s16                        trans;
     s16                        trans_y;
-    Actor400500ProjScratch*    proj;
+    ActorProjectScratch*       proj;
     SVECTOR*                   vecp;
     MATRIX*                    workm;
 
@@ -2403,7 +2394,7 @@ void func_actor_400500_80135770(Task* arg0)
             func_actor_400500_80132AB0(arg0, -0xFA0, ((u16)work->field_A28 >> 2) & 0xFF);
             func_actor_400500_80132AB0(arg0, -0x3E8, (u8)work->field_A28);
             head = push_proj();
-            proj = (Actor400500ProjScratch*)(head - 0x18);
+            proj = (ActorProjectScratch*)(head - 0x18);
             Gp_UpdateCoord(part2);
             vecp  = &proj->vec;
             workm = &part2->workm;
@@ -2411,10 +2402,10 @@ void func_actor_400500_80135770(Task* arg0)
             gte_SetTransMatrix(workm);
             gte_ldv0(vecp);
             gte_rtps();
-            gte_stsxy(&((Actor400500ProjScratch*)(head - 0x18))->sxy);
-            gte_stdp(&((Actor400500ProjScratch*)(head - 0x18))->dp);
-            gte_stflg(&((Actor400500ProjScratch*)(head - 0x18))->flag);
-            gte_stszotz(&((Actor400500ProjScratch*)(head - 0x18))->otz);
+            gte_stsxy(&((ActorProjectScratch*)(head - 0x18))->sxy);
+            gte_stdp(&((ActorProjectScratch*)(head - 0x18))->dp);
+            gte_stflg(&((ActorProjectScratch*)(head - 0x18))->flag);
+            gte_stszotz(&((ActorProjectScratch*)(head - 0x18))->otz);
             if (proj->flag < 0) {
                 proj->otz = 0;
             }

@@ -113,15 +113,6 @@ typedef struct Actor104000Work {
 } Actor104000Work;
 STATIC_ASSERT_SIZEOF(Actor104000Work, 0x498);
 
-/// 0xC-byte scratch taken from `0x1F8003FC` for the player-in-radius test:
-/// the X/Z offset to the camera target and the radius, squared in place.
-typedef struct Actor104000RangeScratch {
-    /* 0x0 */ s32 dx;
-    /* 0x4 */ s32 dz;
-    /* 0x8 */ s32 r;
-} Actor104000RangeScratch;
-STATIC_ASSERT_SIZEOF(Actor104000RangeScratch, 0xC);
-
 /// 0x18-byte scratch taken from `0x1F8003FC` while applying a hit: the first
 /// type-2 record's position, its offset from the model origin, the attack id,
 /// the computed damage and the hit's yaw relative to the model's facing.
@@ -806,21 +797,21 @@ void Actor04000_Fn010B8(GpEnemy* arg0, Task* arg1)
 /// Nonzero when the XZ offset `d` lies outside radius `r`; squares in a scratch block.
 static __inline__ s32 Actor204000_OutOfRange(SVECTOR* d, s16 r)
 {
-    u8*                      head;
-    Actor104000RangeScratch* blk;
-    s32                      ret;
+    u8*                head;
+    ActorRangeScratch* blk;
+    s32                ret;
 
-    head                                          = *(u8**)0x1F8003FC;
-    ((Actor104000RangeScratch*)(head - 0xC))->dx  = d->vx;
-    blk                                           = (Actor104000RangeScratch*)(head - 0xC);
-    blk->dz                                       = d->vz;
-    blk->r                                        = r;
-    ((Actor104000RangeScratch*)(head - 0xC))->dx *= ((Actor104000RangeScratch*)(head - 0xC))->dx;
-    *(Actor104000RangeScratch**)0x1F8003FC        = blk;
-    blk->dz                                      *= blk->dz;
-    blk->r                                       *= blk->r;
-    *(u8**)0x1F8003FC                             = head;
-    ret                                           = ((Actor104000RangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
+    head                                    = *(u8**)0x1F8003FC;
+    ((ActorRangeScratch*)(head - 0xC))->dx  = d->vx;
+    blk                                     = (ActorRangeScratch*)(head - 0xC);
+    blk->dz                                 = d->vz;
+    blk->r                                  = r;
+    ((ActorRangeScratch*)(head - 0xC))->dx *= ((ActorRangeScratch*)(head - 0xC))->dx;
+    *(ActorRangeScratch**)0x1F8003FC        = blk;
+    blk->dz                                *= blk->dz;
+    blk->r                                 *= blk->r;
+    *(u8**)0x1F8003FC                       = head;
+    ret                                     = ((ActorRangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
     return ret;
 }
 

@@ -6,6 +6,7 @@
 #include "gte.h"
 #include <psyq/abs.h>
 
+#include "actors/actor.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -22,12 +23,6 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/wipsys.h"
-
-typedef struct Actor105100TurnScratch {
-    /* 0x00 */ VECTOR  vec;
-    /* 0x10 */ SVECTOR rot;
-} Actor105100TurnScratch;
-STATIC_ASSERT_SIZEOF(Actor105100TurnScratch, 0x18);
 
 /// 0x44 bytes `func_actor_105100_80133CE4` carves from `G_SCRATCH_HEAD`: the
 /// 0x3F4 animation argument, the 0x3E9 position/rotation pair, and the
@@ -208,17 +203,6 @@ typedef struct Actor105100Gate {
     /* 0x5A8 */ s32  field_5A8;
 } Actor105100Gate;
 STATIC_ASSERT_SIZEOF(Actor105100Gate, 0x5AC);
-
-/// Scratchpad block the ground quad is built in: the four corners in world
-/// space, then their projected screen positions.
-typedef struct Actor105100GroundScratch {
-    SVECTOR vec[4];
-    DVECTOR sxy0;
-    DVECTOR sxy1;
-    DVECTOR sxy2;
-    DVECTOR sxy3;
-} Actor105100GroundScratch;
-STATIC_ASSERT_SIZEOF(Actor105100GroundScratch, 0x30);
 
 void func_actor_105100_80132414(GsCOORDINATE2* arg0, s32 arg1);
 void func_actor_105100_801327B4(GpEnemy* arg0, Task* arg1);
@@ -467,24 +451,24 @@ void func_actor_105100_80131EBC(GsCOORDINATE2* coord, s16 size)
 /// display's animation frame.
 void func_actor_105100_80132414(GsCOORDINATE2* arg0, s32 arg1)
 {
-    void**                    scratch;
-    u8*                       head;
-    Actor105100GroundScratch* sc;
-    POLY_FT4*                 prim;
-    GpQuadCorner*             tbl;
-    SVECTOR*                  v;
-    s32                       i;
-    s32                       otz;
-    s32                       flag;
-    s32                       u;
-    s32                       prod;
+    void**              scratch;
+    u8*                 head;
+    ActorGroundScratch* sc;
+    POLY_FT4*           prim;
+    GpQuadCorner*       tbl;
+    SVECTOR*            v;
+    s32                 i;
+    s32                 otz;
+    s32                 flag;
+    s32                 u;
+    s32                 prod;
 
     scratch = (void**)G_SCRATCH_HEAD;
-    head    = (u8*)*scratch - sizeof(Actor105100GroundScratch);
+    head    = (u8*)*scratch - sizeof(ActorGroundScratch);
 
     SOFT_TOUCH_REG(head);
     *scratch = head;
-    sc       = (Actor105100GroundScratch*)head;
+    sc       = (ActorGroundScratch*)head;
     gte_SetTransMatrix(&GsWSMATRIX);
     i   = 0;
     v   = sc->vec;
@@ -557,7 +541,7 @@ void func_actor_105100_80132414(GsCOORDINATE2* arg0, s32 arg1)
                     prim);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(Actor105100GroundScratch);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(ActorGroundScratch);
 }
 
 /// Spawn/setup handler. It allocates the 0x5C4-byte work block and hangs it off
@@ -2223,28 +2207,28 @@ void func_actor_105100_801359B4(Task* arg0)
 
 void func_actor_105100_80135B40(Task* arg0)
 {
-    Actor105100TurnScratch* sc;
-    GsCOORDINATE2*          coord;
-    s32                     ang;
-    s32                     cur;
-    s16                     target;
-    s16                     diff;
-    s32                     adiff;
-    s16                     snap;
-    s32                     next;
-    s32                     step;
+    ActorFaceScratch* sc;
+    GsCOORDINATE2*    coord;
+    s32               ang;
+    s32               cur;
+    s16               target;
+    s16               diff;
+    s32               adiff;
+    s16               snap;
+    s32               next;
+    s32               step;
 
-    sc         = (Actor105100TurnScratch*)(*(u32*)0x1F8003FC -= 0x18);
-    coord      = ((TmdObject*)arg0->extra)->coords;
-    sc->vec.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-    sc->vec.vy = 0;
-    sc->vec.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-    ang        = ratan2((s32)(s16)sc->vec.vx, (s32)(s16)sc->vec.vz) & 0xFFF;
-    snap       = ang;
-    cur        = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
-    target     = cur;
-    diff       = ang - cur;
-    adiff      = diff >= 0 ? diff : -diff;
+    sc           = (ActorFaceScratch*)(*(u32*)0x1F8003FC -= 0x18);
+    coord        = ((TmdObject*)arg0->extra)->coords;
+    sc->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    sc->delta.vy = 0;
+    sc->delta.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    ang          = ratan2((s32)(s16)sc->delta.vx, (s32)(s16)sc->delta.vz) & 0xFFF;
+    snap         = ang;
+    cur          = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
+    target       = cur;
+    diff         = ang - cur;
+    adiff        = diff >= 0 ? diff : -diff;
     if (adiff < 0x800) {
         target = ang;
         if (adiff >= 0x51) {

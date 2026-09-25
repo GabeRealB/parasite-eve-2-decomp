@@ -6,6 +6,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
@@ -77,15 +78,6 @@ typedef struct Actor104600Work {
     /* 0x2E2 */ s16        field_2E2; // non-zero: the drop has been armed
 } Actor104600Work;
 STATIC_ASSERT_SIZEOF(Actor104600Work, 0x2E4);
-
-/// The 0x18 bytes `Actor04600_Fn00FD8` takes off the scratch stack: `vec` is
-/// the offset from the model's coordinate to the player and `rot` the rotation
-/// rebuilt from the new heading.
-typedef struct Actor104600RotScratch {
-    /* 0x00 */ VECTOR  vec;
-    /* 0x10 */ SVECTOR rot;
-} Actor104600RotScratch;
-STATIC_ASSERT_SIZEOF(Actor104600RotScratch, 0x18);
 
 /// The 0x4C bytes `Actor04600_Fn00978` takes off the scratch stack: `delta`
 /// receives the `func_800E0C10` push-back and is then reused for offsets,
@@ -861,28 +853,28 @@ void Actor04600_Fn00EC8(Task* arg0, s32 arg1)
 /// scratch stack.
 void Actor04600_Fn00FD8(Task* arg0)
 {
-    Actor104600Work*       work;
-    GsCOORDINATE2*         coord;
-    Actor104600RotScratch* sc;
-    s16                    cur;
-    s32                    want;
-    s16                    diff;
-    s32                    adiff;
-    s16                    turn;
-    s16                    wrap;
-    s32                    current;
+    Actor104600Work*  work;
+    GsCOORDINATE2*    coord;
+    ActorFaceScratch* sc;
+    s16               cur;
+    s32               want;
+    s16               diff;
+    s32               adiff;
+    s16               turn;
+    s16               wrap;
+    s32               current;
 
-    coord      = ((TmdObject*)arg0->extra)->coords;
-    work       = (Actor104600Work*)arg0->work;
-    sc         = (Actor104600RotScratch*)(*(u32*)0x1F8003FC -= 0x18);
-    sc->vec.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-    sc->vec.vy = 0;
-    sc->vec.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-    want       = ratan2((s16)sc->vec.vx, (s16)sc->vec.vz) & 0xFFF;
-    cur        = work->field_2B0 & 0xFFF;
-    diff       = want - cur;
-    adiff      = diff >= 0 ? diff : -diff;
-    turn       = diff;
+    coord        = ((TmdObject*)arg0->extra)->coords;
+    work         = (Actor104600Work*)arg0->work;
+    sc           = (ActorFaceScratch*)(*(u32*)0x1F8003FC -= 0x18);
+    sc->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    sc->delta.vy = 0;
+    sc->delta.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    want         = ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF;
+    cur          = work->field_2B0 & 0xFFF;
+    diff         = want - cur;
+    adiff        = diff >= 0 ? diff : -diff;
+    turn         = diff;
     if (adiff < 0x21) {
         work->field_2B0 = want;
     } else {

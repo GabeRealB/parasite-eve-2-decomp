@@ -1049,15 +1049,15 @@ s32 func_actor_341700_8016CF48(Task* task, s32 arg1, ActorShared80135990Placemen
 /// block borrowed from the scratchpad. Marks the coordinate dirty.
 void func_actor_341700_8016D018(GsCOORDINATE2* coord, s16 scale)
 {
-    void**                      scratch;
-    void*                       head;
-    ActorShared80135a60Scratch* blk;
-    s16                         ang;
-    u16                         m22;
+    void**                scratch;
+    void*                 head;
+    ActorScaleRotScratch* blk;
+    s16                   ang;
+    u16                   m22;
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
-    blk      = (ActorShared80135a60Scratch*)((u8*)head - 0x34);
+    blk      = (ActorScaleRotScratch*)((u8*)head - 0x34);
     *scratch = blk;
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
@@ -1068,7 +1068,7 @@ void func_actor_341700_8016D018(GsCOORDINATE2* coord, s16 scale)
     blk->scale.vx = scale;
     ScaleMatrix(&blk->m, &blk->scale);
 
-    coord->coord.m[0][0] = *(u16*)&((ActorShared80135a60Scratch*)((u8*)head - 0x34))->m.m[0][0];
+    coord->coord.m[0][0] = *(u16*)&((ActorScaleRotScratch*)((u8*)head - 0x34))->m.m[0][0];
     coord->coord.m[0][1] = *(u16*)&blk->m.m[0][1];
     coord->coord.m[0][2] = *(u16*)&blk->m.m[0][2];
     coord->coord.m[1][0] = *(u16*)&blk->m.m[1][0];

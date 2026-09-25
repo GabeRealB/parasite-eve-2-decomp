@@ -6,6 +6,7 @@
 #include "psyq/inline_c.h"
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflow.h"
@@ -92,17 +93,6 @@ typedef union Actor403600ViewFrame {
 } Actor403600ViewFrame;
 STATIC_ASSERT_SIZEOF(Actor403600ViewFrame, 0x50);
 
-/// 0x18-byte block temporarily taken from `G_SCRATCH_HEAD` while projecting
-/// an actor's origin and calculating its ordering-table depth.
-typedef struct Actor403600ProjectScratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s32     sxy;
-    /* 0x0C */ s32     dp;
-    /* 0x10 */ s32     flag;
-    /* 0x14 */ s32     otz;
-} Actor403600ProjectScratch;
-STATIC_ASSERT_SIZEOF(Actor403600ProjectScratch, 0x18);
-
 /// 0x24-byte scratch block used to hold seven planar distances while selecting
 /// the nearest point from D_actor_403600_801605F4.
 typedef struct Actor403600DistanceScratch {
@@ -111,12 +101,6 @@ typedef struct Actor403600DistanceScratch {
     /* 0x08 */ s32 distances[7];
 } Actor403600DistanceScratch;
 STATIC_ASSERT_SIZEOF(Actor403600DistanceScratch, 0x24);
-
-typedef struct Actor403600FacingScratch {
-    /* 0x00 */ VECTOR  delta;
-    /* 0x10 */ SVECTOR rot;
-} Actor403600FacingScratch;
-STATIC_ASSERT_SIZEOF(Actor403600FacingScratch, 0x18);
 
 typedef struct Actor403600TurnMatrix {
     /* 0x00 */ s32 field_0;
@@ -438,18 +422,18 @@ loop:
 
 u8* func_actor_403600_80138DCC(Task* arg0)
 {
-    u8*                        head;
-    u8*                        restore;
-    Actor403600ProjectScratch* block;
-    TmdObject*                 object;
-    GsCOORDINATE2*             coord;
-    SVECTOR*                   vec;
+    u8*                  head;
+    u8*                  restore;
+    ActorProjectScratch* block;
+    TmdObject*           object;
+    GsCOORDINATE2*       coord;
+    SVECTOR*             vec;
 
     object = arg0->extra;
     actor_403600_load_scratch_head(head);
     coord = object->coords;
     SOFT_BARRIER();
-    block = (Actor403600ProjectScratch*)(head - sizeof(Actor403600ProjectScratch));
+    block = (ActorProjectScratch*)(head - sizeof(ActorProjectScratch));
     actor_403600_store_scratch_head(block);
     block->vec.vx = 0;
     block->vec.vy = 0;
@@ -3269,20 +3253,20 @@ void func_actor_403600_8013DC7C(Task* arg0)
 
 s32 func_actor_403600_8013DDF4(Task* arg0, s16 arg1)
 {
-    Actor403600Work*          work;
-    Actor403600FacingScratch* scratch;
-    Actor403600FacingScratch* oldHead;
-    s16                       step;
-    s32                       distance;
-    u16                       angle;
-    s32                       rawDiff;
-    s32                       adiff;
-    s32                       turnDiff;
-    s32                       next;
+    Actor403600Work*  work;
+    ActorFaceScratch* scratch;
+    ActorFaceScratch* oldHead;
+    s16               step;
+    s32               distance;
+    u16               angle;
+    s32               rawDiff;
+    s32               adiff;
+    s32               turnDiff;
+    s32               next;
 
     step    = arg1;
-    oldHead = *(Actor403600FacingScratch**)0x1F8003FC;
-    scratch = (*(Actor403600FacingScratch**)0x1F8003FC =
+    oldHead = *(ActorFaceScratch**)0x1F8003FC;
+    scratch = (*(ActorFaceScratch**)0x1F8003FC =
                    oldHead - 1);
     work    = arg0->work;
     if ((arg1 << 0x10) == 0) {
@@ -3332,7 +3316,7 @@ s32 func_actor_403600_8013DDF4(Task* arg0, s16 arg1)
     scratch->rot.vy = work->field_748;
     scratch->rot.vz = 0;
     RotMatrix(&scratch->rot, &work->field_4B8.coord);
-    *(Actor403600FacingScratch**)0x1F8003FC += 1;
+    *(ActorFaceScratch**)0x1F8003FC += 1;
     return distance;
 }
 

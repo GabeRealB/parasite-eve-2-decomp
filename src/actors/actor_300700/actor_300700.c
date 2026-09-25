@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "actors/actor.h"
 #include "actors/actor_300700.h"
 #include "actors/actor_300700_spawn2.h"
 #include "actors/actors_shared_80135b58.h"
@@ -48,14 +49,6 @@ typedef struct Actor300700SpawnWork {
     /* 0x2DE */ byte    pad_2DE[0x16];
 } Actor300700SpawnWork;
 STATIC_ASSERT_SIZEOF(Actor300700SpawnWork, 0x2F4);
-
-/// Four rotated corners and the projected center/depth on the scratchpad.
-typedef struct Actor300700QuadScratch {
-    /* 0x00 */ SVECTOR v[4];
-    /* 0x20 */ s32     sxy;
-    /* 0x24 */ s32     otz;
-} Actor300700QuadScratch;
-STATIC_ASSERT_SIZEOF(Actor300700QuadScratch, 0x28);
 
 typedef struct Actor300700TexEntry {
     /* 0x0 */ u8 u;
@@ -399,23 +392,23 @@ void func_actor_300700_8016252C(Task* arg0)
 
 void func_actor_300700_801626C0(Task* arg0)
 {
-    Actor300700Work*       work;
-    GsCOORDINATE2*         coord;
-    Actor300700RotScratch* sc;
-    s32                    random;
-    s32                    amount;
-    s32                    cur;
-    s32                    cur2;
-    s32                    cur3;
-    s32                    random2;
-    s32                    amount2;
-    u16                    want;
-    s16                    diff;
-    s32                    adiff;
-    s16                    turn;
-    s16                    wrap;
+    Actor300700Work*  work;
+    GsCOORDINATE2*    coord;
+    ActorFaceScratch* sc;
+    s32               random;
+    s32               amount;
+    s32               cur;
+    s32               cur2;
+    s32               cur3;
+    s32               random2;
+    s32               amount2;
+    u16               want;
+    s16               diff;
+    s32               adiff;
+    s16               turn;
+    s16               wrap;
 
-    sc    = (Actor300700RotScratch*)(SCRATCH_SP -= 0x18);
+    sc    = (ActorFaceScratch*)(SCRATCH_SP -= 0x18);
     work  = arg0->work;
     coord = ((TmdObject*)arg0->extra)->coords;
     switch (work->field_2E6) {
@@ -427,13 +420,13 @@ void func_actor_300700_801626C0(Task* arg0)
             work->field_2DC = !(random & 0x20) ? cur - amount : cur + amount;
             break;
         case 1:
-            sc->vec.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-            sc->vec.vy = 0;
-            sc->vec.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-            want       = ratan2((s16)sc->vec.vx, (s16)sc->vec.vz) & 0xFFF;
-            diff       = want - (work->field_2DC & 0xFFF);
-            adiff      = diff >= 0 ? diff : -diff;
-            turn       = diff;
+            sc->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+            sc->delta.vy = 0;
+            sc->delta.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            want         = ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF;
+            diff         = want - (work->field_2DC & 0xFFF);
+            adiff        = diff >= 0 ? diff : -diff;
+            turn         = diff;
             if (adiff < 0x11) {
                 work->field_2DC = want;
             } else {
@@ -640,17 +633,17 @@ void func_actor_300700_80162BC8(GpEnemy* arg0, Task* arg1)
 
 void func_actor_300700_80162EFC(Task* arg0)
 {
-    Actor300700QuadScratch* sc;
-    Actor300700Work*        work;
-    TmdObject*              obj;
-    GsCOORDINATE2*          coord;
-    s32                     size, x, y;
-    s16                     i;
-    SVECTOR*                v;
-    POLY_FT4*               prim;
-    Actor300700TexEntry*    uv;
+    ActorQuadScratch*    sc;
+    Actor300700Work*     work;
+    TmdObject*           obj;
+    GsCOORDINATE2*       coord;
+    s32                  size, x, y;
+    s16                  i;
+    SVECTOR*             v;
+    POLY_FT4*            prim;
+    Actor300700TexEntry* uv;
     obj         = arg0->extra;
-    sc          = (Actor300700QuadScratch*)(SCRATCH_SP -= 0x28);
+    sc          = (ActorQuadScratch*)(SCRATCH_SP -= 0x28);
     coord       = obj->coords;
     work        = arg0->work;
     sc->v[0].vx = coord->workm.t[0];

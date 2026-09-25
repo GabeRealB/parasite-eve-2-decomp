@@ -2,6 +2,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
+#include "actors/actor.h"
 #include "actors/actors_shared_80135b58.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
@@ -92,14 +93,6 @@ typedef struct Actor02500MoveScratch {
     /* 0x20 */ VECTOR         dir;
 } Actor02500MoveScratch;
 STATIC_ASSERT_SIZEOF(Actor02500MoveScratch, 0x30);
-
-/// 0x18-byte frame this overlay allocates on the scratchpad stack; only the
-/// `SVECTOR` at +0x10 is used by `Actor02500_Fn016FC`.
-typedef struct Actor02500RotScratch {
-    /* 0x00 */ VECTOR  delta;
-    /* 0x10 */ SVECTOR rot;
-} Actor02500RotScratch;
-STATIC_ASSERT_SIZEOF(Actor02500RotScratch, 0x18);
 
 typedef struct Actor02500OffsetPair {
     s16 x;
@@ -763,10 +756,10 @@ void Actor02500_Fn012F0(Task* actor)
     s32                   i;
     s32                   pan;
     u32                   random;
-    Actor02500RotScratch* scratch;
+    ActorFaceScratch*     scratch;
     Actor02500OffsetPair* pair;
 
-    scratch   = (Actor02500RotScratch*)(*(u32*)0x1F8003FC -= 0x18);
+    scratch   = (ActorFaceScratch*)(*(u32*)0x1F8003FC -= 0x18);
     loadedObj = actor->extra;
     __asm__("" : "+r"(loadedObj) : : "v0");
     work = actor->work;
@@ -863,19 +856,19 @@ void Actor02500_Fn012F0(Task* actor)
 
 void Actor02500_Fn016FC(Task* arg0)
 {
-    Actor02500Work*       work;
-    GsCOORDINATE2*        coord;
-    Actor02500RotScratch* sc;
-    s32                   ang;
-    u16                   want;
-    s16                   diff;
-    s32                   adiff;
-    s32                   step;
-    s32                   cur;
-    s32                   next;
-    s32                   wrapStep;
+    Actor02500Work*   work;
+    GsCOORDINATE2*    coord;
+    ActorFaceScratch* sc;
+    s32               ang;
+    u16               want;
+    s16               diff;
+    s32               adiff;
+    s32               step;
+    s32               cur;
+    s32               next;
+    s32               wrapStep;
 
-    sc    = (Actor02500RotScratch*)(SCRATCH_SP -= 0x18);
+    sc    = (ActorFaceScratch*)(SCRATCH_SP -= 0x18);
     coord = ((TmdObject*)arg0->extra)->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;

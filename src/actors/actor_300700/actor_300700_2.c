@@ -676,19 +676,19 @@ void func_actor_300700_801645F8(Task* arg0)
 
 void func_actor_300700_80164794(Task* arg0)
 {
-    Actor300700Work*       work;
-    GsCOORDINATE2*         coord;
-    Actor300700RotScratch* sc;
-    s32                    ang;
-    u16                    want;
-    s16                    diff;
-    s32                    adiff;
-    s32                    step;
-    s32                    cur;
-    s32                    next;
-    s32                    wrapStep;
+    Actor300700Work*  work;
+    GsCOORDINATE2*    coord;
+    ActorFaceScratch* sc;
+    s32               ang;
+    u16               want;
+    s16               diff;
+    s32               adiff;
+    s32               step;
+    s32               cur;
+    s32               next;
+    s32               wrapStep;
 
-    sc    = (Actor300700RotScratch*)(SCRATCH_SP -= 0x18);
+    sc    = (ActorFaceScratch*)(SCRATCH_SP -= 0x18);
     coord = ((TmdObject*)arg0->extra)->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;

@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "actors/actor.h"
 #include "actors/actors_shared_80135b58.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -94,14 +95,6 @@ extern u16 Actor01500_D09FC8[];
 /// Sixteen distances `field_35E` is reloaded from when the actor starts to
 /// advance, picked by a `Gp_LcgState` draw.
 extern u16 Actor01500_D09FE8[];
-
-/// 0x18-byte frame allocated on the scratchpad stack; only the `SVECTOR` at
-/// +0x10 is used, as the rotation `Actor01500_Fn01838` hands `RotMatrix`.
-typedef struct Actor101500RotScratch {
-    /* 0x00 */ VECTOR  vec;
-    /* 0x10 */ SVECTOR rot;
-} Actor101500RotScratch;
-STATIC_ASSERT_SIZEOF(Actor101500RotScratch, 0x18);
 
 extern u8      D_801153F2[2];
 extern MATRIX* D_80073B8C;
@@ -865,19 +858,19 @@ void Actor01500_Fn01708(Task* actor)
 /// the short way round the 0x1000 circle, then rebuilds its rotation matrix.
 void Actor01500_Fn01838(Task* arg0)
 {
-    Actor101500Work*       work;
-    GsCOORDINATE2*         coord;
-    Actor101500RotScratch* sc;
-    s32                    ang;
-    u16                    want;
-    s16                    diff;
-    s32                    adiff;
-    s32                    step;
-    s32                    cur;
-    s32                    next;
-    s32                    wrapStep;
+    Actor101500Work*  work;
+    GsCOORDINATE2*    coord;
+    ActorFaceScratch* sc;
+    s32               ang;
+    u16               want;
+    s16               diff;
+    s32               adiff;
+    s32               step;
+    s32               cur;
+    s32               next;
+    s32               wrapStep;
 
-    sc    = (Actor101500RotScratch*)(SCRATCH_SP -= 0x18);
+    sc    = (ActorFaceScratch*)(SCRATCH_SP -= 0x18);
     coord = ((TmdObject*)arg0->extra)->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;

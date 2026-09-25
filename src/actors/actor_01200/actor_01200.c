@@ -126,32 +126,24 @@ typedef union Actor01200Msg {
     } words;
 } Actor01200Msg;
 
-/// 0xC-byte scratch taken from `0x1F8003FC` for the player-in-radius test:
-/// the X/Z offset to the camera target and the radius, squared in place.
-typedef struct Actor01200RangeScratch {
-    /* 0x0 */ s32 dx;
-    /* 0x4 */ s32 dz;
-    /* 0x8 */ s32 r;
-} Actor01200RangeScratch;
-
 /// Nonzero when the XZ offset `d` lies outside radius `r`; squares in a scratch block.
 static __inline__ s32 Actor01200_OutOfRange(SVECTOR* d, s16 r)
 {
-    u8*                     head;
-    Actor01200RangeScratch* blk;
-    s32                     ret;
+    u8*                head;
+    ActorRangeScratch* blk;
+    s32                ret;
 
-    head                                         = *(u8**)0x1F8003FC;
-    ((Actor01200RangeScratch*)(head - 0xC))->dx  = d->vx;
-    blk                                          = (Actor01200RangeScratch*)(head - 0xC);
-    blk->dz                                      = d->vz;
-    blk->r                                       = r;
-    ((Actor01200RangeScratch*)(head - 0xC))->dx *= ((Actor01200RangeScratch*)(head - 0xC))->dx;
-    *(Actor01200RangeScratch**)0x1F8003FC        = blk;
-    blk->dz                                     *= blk->dz;
-    blk->r                                      *= blk->r;
-    *(u8**)0x1F8003FC                            = head;
-    ret                                          = ((Actor01200RangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
+    head                                    = *(u8**)0x1F8003FC;
+    ((ActorRangeScratch*)(head - 0xC))->dx  = d->vx;
+    blk                                     = (ActorRangeScratch*)(head - 0xC);
+    blk->dz                                 = d->vz;
+    blk->r                                  = r;
+    ((ActorRangeScratch*)(head - 0xC))->dx *= ((ActorRangeScratch*)(head - 0xC))->dx;
+    *(ActorRangeScratch**)0x1F8003FC        = blk;
+    blk->dz                                *= blk->dz;
+    blk->r                                 *= blk->r;
+    *(u8**)0x1F8003FC                       = head;
+    ret                                     = ((ActorRangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
     return ret;
 }
 

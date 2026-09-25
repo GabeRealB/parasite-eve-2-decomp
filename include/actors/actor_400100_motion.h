@@ -1,6 +1,7 @@
 #ifndef ACTOR_400100_MOTION_H
 #define ACTOR_400100_MOTION_H
 
+#include "actors/actor.h"
 #include "actors/actor_400100.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -114,13 +115,6 @@ static __inline__ s16 Actor00100_HasRecord10(Task* actor)
 
 extern MATRIX* D_80073B8C;
 
-typedef struct Actor00100RadiusScratch {
-    /* 0x0 */ s32 x;
-    /* 0x4 */ s32 z;
-    /* 0x8 */ s32 radius;
-} Actor00100RadiusScratch;
-STATIC_ASSERT_SIZEOF(Actor00100RadiusScratch, 0xC);
-
 static __inline__ void Actor00100_PositionDelta(GsCOORDINATE2* coord, SVECTOR* pos)
 {
     pos->vx = D_80073B8C->t[0] - coord->coord.t[0];
@@ -130,19 +124,19 @@ static __inline__ void Actor00100_PositionDelta(GsCOORDINATE2* coord, SVECTOR* p
 
 static __inline__ s32 Actor00100_OutsideRadius(SVECTOR* pos, s32 radius)
 {
-    Actor00100RadiusScratch* head;
-    Actor00100RadiusScratch* scratch;
-    head                                        = *(Actor00100RadiusScratch**)G_SCRATCH_HEAD;
-    scratch                                     = head - 1;
-    *(Actor00100RadiusScratch**)G_SCRATCH_HEAD  = scratch;
-    scratch->x                                  = pos->vx;
-    scratch->z                                  = pos->vz;
-    scratch->radius                             = radius;
-    scratch->x                                 *= scratch->x;
-    scratch->z                                 *= scratch->z;
-    scratch->radius                            *= scratch->radius;
-    *(Actor00100RadiusScratch**)G_SCRATCH_HEAD += 1;
-    return scratch->x + scratch->z >= scratch->radius;
+    ActorRangeScratch* head;
+    ActorRangeScratch* scratch;
+    head                                  = *(ActorRangeScratch**)G_SCRATCH_HEAD;
+    scratch                               = head - 1;
+    *(ActorRangeScratch**)G_SCRATCH_HEAD  = scratch;
+    scratch->dx                           = pos->vx;
+    scratch->dz                           = pos->vz;
+    scratch->r                            = radius;
+    scratch->dx                          *= scratch->dx;
+    scratch->dz                          *= scratch->dz;
+    scratch->r                           *= scratch->r;
+    *(ActorRangeScratch**)G_SCRATCH_HEAD += 1;
+    return scratch->dx + scratch->dz >= scratch->r;
 }
 
 #endif

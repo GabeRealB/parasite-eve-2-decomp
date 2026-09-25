@@ -6,6 +6,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gfx.h"
@@ -346,22 +347,6 @@ typedef struct Actor402200Work {
     /* 0x71A */ s16 field_71A;
 } Actor402200Work;
 STATIC_ASSERT_SIZEOF(Actor402200Work, 0x71C);
-
-/// 0x18-byte block `func_actor_402200_80138208` takes from `G_SCRATCH_HEAD`
-/// while projecting the actor's origin through its attach coordinate and
-/// working out the ordering-table depth. `vec` is the zeroed origin the GTE
-/// reads; the rest are the projection's results, and their order is the one
-/// `rtps` writes them in: screen xy, depth cue, `FLAG`, and the average
-/// screen z `otz`. Same block the other actor overlays spell
-/// `<overlay>ProjectScratch`.
-typedef struct Actor402200ProjectScratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s32     sxy;
-    /* 0x0C */ s32     dp;
-    /* 0x10 */ s32     flag;
-    /* 0x14 */ s32     otz;
-} Actor402200ProjectScratch;
-STATIC_ASSERT_SIZEOF(Actor402200ProjectScratch, 0x18);
 
 /// 0x18-byte block `func_actor_402200_80132E34` takes from `G_SCRATCH_HEAD`
 /// to place the actor relative to the player: `in` is the offset rotated
@@ -3401,16 +3386,16 @@ s32 func_actor_402200_801381E0(Task* task)
 /// (at depth `arg1` when the projection fails).
 void func_actor_402200_80138208(GsCOORDINATE2* arg0, s32 arg1)
 {
-    u8*                        head;
-    Actor402200ProjectScratch* block;
-    SVECTOR*                   vec;
+    u8*                  head;
+    ActorProjectScratch* block;
+    SVECTOR*             vec;
 
-    head                                         = *(u8**)G_SCRATCH_HEAD;
-    block                                        = (Actor402200ProjectScratch*)(head - sizeof(Actor402200ProjectScratch));
-    *(Actor402200ProjectScratch**)G_SCRATCH_HEAD = block;
-    block->vec.vx                                = 0;
-    block->vec.vy                                = 0;
-    block->vec.vz                                = 0;
+    head                                   = *(u8**)G_SCRATCH_HEAD;
+    block                                  = (ActorProjectScratch*)(head - sizeof(ActorProjectScratch));
+    *(ActorProjectScratch**)G_SCRATCH_HEAD = block;
+    block->vec.vx                          = 0;
+    block->vec.vy                          = 0;
+    block->vec.vz                          = 0;
     Gp_UpdateCoord(arg0);
     vec = &block->vec;
     SOFT_TOUCH_REG(vec);

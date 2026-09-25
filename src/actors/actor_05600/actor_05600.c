@@ -6,6 +6,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -208,13 +209,6 @@ typedef struct Actor105600HitScratch {
     /* 0x38 */ SVECTOR        target;
 } Actor105600HitScratch;
 STATIC_ASSERT_SIZEOF(Actor105600HitScratch, 0x40);
-
-/// `G_SCRATCH_HEAD` viewed as a struct. The member access, not a plain `u32`
-/// dereference, is what `Actor05600_Fn016C4` needs to schedule its
-/// argument setup around `RotMatrix`.
-typedef struct Actor105600ScratchStack {
-    u32 sp;
-} Actor105600ScratchStack;
 
 /// 0x40-byte scratch carved off `G_SCRATCH_HEAD` by `Actor05600_Fn02548`:
 /// the converted matrix, the `gte_rtv0` output and the two vectors fed through
@@ -1080,11 +1074,11 @@ void Actor05600_Fn016C4(Task* arg0)
     s32              nextY;
     s32              active;
 
-    matrix                                         = (MATRIX*)(((Actor105600ScratchStack*)G_SCRATCH_HEAD)->sp - 0x20);
-    ((Actor105600ScratchStack*)G_SCRATCH_HEAD)->sp = (u32)matrix;
-    active                                         = 0;
-    work                                           = (Actor105600Work*)arg0->work;
-    coord                                          = ((TmdObject*)arg0->extra)->coords;
+    matrix                                   = (MATRIX*)(((ActorScratchStack*)G_SCRATCH_HEAD)->sp - 0x20);
+    ((ActorScratchStack*)G_SCRATCH_HEAD)->sp = (u32)matrix;
+    active                                   = 0;
+    work                                     = (Actor105600Work*)arg0->work;
+    coord                                    = ((TmdObject*)arg0->extra)->coords;
     RotMatrix(&work->field_688, matrix);
     USE_REG(matrix);
     gte_SetRotMatrix(&coord[3].coord);

@@ -5,6 +5,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "actors/actor_100300.h"
 #include "actors/actors_shared_80135b58.h"
 #include "gameplay/1BC.h"
@@ -103,17 +104,6 @@ typedef struct Actor02400ChildScratch {
 } Actor02400ChildScratch;
 STATIC_ASSERT_SIZEOF(Actor02400ChildScratch, 0x18);
 
-/// Scratchpad block the ground quad is built in: the four corners in world
-/// space, then their projected screen positions.
-typedef struct Actor02400GroundScratch {
-    SVECTOR vec[4];
-    DVECTOR sxy0;
-    DVECTOR sxy1;
-    DVECTOR sxy2;
-    DVECTOR sxy3;
-} Actor02400GroundScratch;
-STATIC_ASSERT_SIZEOF(Actor02400GroundScratch, 0x30);
-
 /// Scratchpad block the model's scale is applied through: an identity `mat`
 /// scaled per axis by `scale`, and the coordinate's translation `t`, restored
 /// after the multiply.
@@ -131,14 +121,6 @@ typedef struct Actor02400SquashScratch {
     /* 0x20 */ VECTOR                 scale;
 } Actor02400SquashScratch;
 STATIC_ASSERT_SIZEOF(Actor02400SquashScratch, 0x30);
-
-/// Scratchpad block for turning: `delta` is the planar offset to the player
-/// handed to `ratan2`, `rot` the angles a matrix is built from.
-typedef struct Actor02400FacingScratch {
-    /* 0x00 */ VECTOR  delta;
-    /* 0x10 */ SVECTOR rot;
-} Actor02400FacingScratch;
-STATIC_ASSERT_SIZEOF(Actor02400FacingScratch, 0x18);
 
 /// Scratchpad block the hit handling works in: `delta` receives the
 /// `func_800E0C10` push-back and is then reused for each record's offset,
@@ -334,24 +316,24 @@ void Actor02400_Fn00064(GsCOORDINATE2* coord, s16 size)
 /// animation frame.
 void Actor02400_Fn005BC(GsCOORDINATE2* arg0, s32 arg1)
 {
-    void**                   scratch;
-    u8*                      head;
-    Actor02400GroundScratch* sc;
-    POLY_FT4*                prim;
-    GpQuadCorner*            tbl;
-    SVECTOR*                 v;
-    s32                      i;
-    s32                      otz;
-    s32                      flag;
-    s32                      u;
-    s32                      prod;
+    void**              scratch;
+    u8*                 head;
+    ActorGroundScratch* sc;
+    POLY_FT4*           prim;
+    GpQuadCorner*       tbl;
+    SVECTOR*            v;
+    s32                 i;
+    s32                 otz;
+    s32                 flag;
+    s32                 u;
+    s32                 prod;
 
     scratch = (void**)G_SCRATCH_HEAD;
-    head    = (u8*)*scratch - sizeof(Actor02400GroundScratch);
+    head    = (u8*)*scratch - sizeof(ActorGroundScratch);
 
     SOFT_TOUCH_REG(head);
     *scratch = head;
-    sc       = (Actor02400GroundScratch*)head;
+    sc       = (ActorGroundScratch*)head;
     gte_SetTransMatrix(&GsWSMATRIX);
     i   = 0;
     v   = sc->vec;
@@ -424,7 +406,7 @@ void Actor02400_Fn005BC(GsCOORDINATE2* arg0, s32 arg1)
                     prim);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(Actor02400GroundScratch);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(ActorGroundScratch);
 }
 
 /// The main body's state handlers, run by `Actor02400_Fn02DB0` for the task's
@@ -789,23 +771,23 @@ void Actor02400_Fn01420(Task* task)
 /// takes hold of the `D_80115734` effect it spawns.
 void Actor02400_Fn01590(Task* task)
 {
-    Actor02400Work*          work;
-    GsCOORDINATE2*           coord;
-    s16                      limit;
-    s32                      diff;
-    s32                      step;
-    s32                      sound;
-    s32                      pan;
-    Task**                   eff;
-    Actor02400FacingScratch* scratch;
-    Actor02400FacingScratch* scratchEnd;
+    Actor02400Work*   work;
+    GsCOORDINATE2*    coord;
+    s16               limit;
+    s32               diff;
+    s32               step;
+    s32               sound;
+    s32               pan;
+    Task**            eff;
+    ActorFaceScratch* scratch;
+    ActorFaceScratch* scratchEnd;
 
-    scratchEnd                                          = *(Actor02400FacingScratch**)PSX_SCRATCH_ADDR(0x3FC);
-    *(Actor02400FacingScratch**)PSX_SCRATCH_ADDR(0x3FC) = scratchEnd - 1;
-    scratch                                             = scratchEnd - 1;
-    work                                                = task->work;
-    coord                                               = ((TmdObject*)task->extra)->coords;
-    limit                                               = 0x1000;
+    scratchEnd                                   = *(ActorFaceScratch**)PSX_SCRATCH_ADDR(0x3FC);
+    *(ActorFaceScratch**)PSX_SCRATCH_ADDR(0x3FC) = scratchEnd - 1;
+    scratch                                      = scratchEnd - 1;
+    work                                         = task->work;
+    coord                                        = ((TmdObject*)task->extra)->coords;
+    limit                                        = 0x1000;
     switch (work->field_13E) {
         case 0:
             scratchEnd[-1].delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
@@ -909,7 +891,7 @@ void Actor02400_Fn01590(Task* task)
             Task_Reparent(task, *eff);
         }
     }
-    *(Actor02400FacingScratch**)PSX_SCRATCH_ADDR(0x3FC) += 1;
+    *(ActorFaceScratch**)PSX_SCRATCH_ADDR(0x3FC) += 1;
 }
 
 /// Mode 2, recoiling: phase 0 raises `field_134` for up to 7 frames (cut short
@@ -1162,19 +1144,19 @@ void Actor02400_Fn0208C(Task* task)
 /// snaps to the target instead.
 void Actor02400_Fn02264(Task* task)
 {
-    Actor02400Work*          work;
-    GsCOORDINATE2*           coord;
-    Actor02400FacingScratch* sc;
-    s32                      ang;
-    u16                      want;
-    s16                      diff;
-    s32                      adiff;
-    s32                      step;
-    s32                      cur;
-    s32                      next;
-    s32                      wrapStep;
+    Actor02400Work*   work;
+    GsCOORDINATE2*    coord;
+    ActorFaceScratch* sc;
+    s32               ang;
+    u16               want;
+    s16               diff;
+    s32               adiff;
+    s32               step;
+    s32               cur;
+    s32               next;
+    s32               wrapStep;
 
-    sc    = (Actor02400FacingScratch*)(*(u32*)0x1F8003FC -= 0x18);
+    sc    = (ActorFaceScratch*)(*(u32*)0x1F8003FC -= 0x18);
     coord = ((TmdObject*)task->extra)->coords;
     work  = task->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;

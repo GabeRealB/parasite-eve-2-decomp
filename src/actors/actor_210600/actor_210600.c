@@ -97,17 +97,6 @@ typedef struct Actor210600Placement {
     /* 0x10 */ SVECTOR rot;
 } Actor210600Placement;
 
-/// 0x34-byte block borrowed from `G_SCRATCH_HEAD` while the model root's
-/// rotation is rebuilt: the rotation matrix, the uniform scale handed to
-/// `ScaleMatrix`, and the yaw it was rebuilt from.
-typedef struct Actor210600Scratch {
-    /* 0x00 */ MATRIX m;
-    /* 0x20 */ VECTOR scale;
-    /* 0x30 */ s16    angle;
-    /* 0x32 */ s16    pad_32;
-} Actor210600Scratch;
-STATIC_ASSERT_SIZEOF(Actor210600Scratch, 0x34);
-
 /// 0x20-byte block the world-space walk takes from `G_SCRATCH_HEAD`: `coord`
 /// is the frame the walk currently stands on (it climbs the
 /// `GsCOORDINATE2::sub` chain until NULL), `vec` the vector being carried up,
@@ -849,16 +838,16 @@ void func_actor_210600_8014B2C0(Task* task)
 /// expanded in place where the update body calls it.
 static __inline__ void Actor210600_ScaleRotation(Task* task, s16 scale)
 {
-    Actor210600Scratch* blk;
-    GsCOORDINATE2*      coord;
-    u8*                 head;
-    s16                 ang;
-    u16                 m22;
+    ActorScaleRotScratch* blk;
+    GsCOORDINATE2*        coord;
+    u8*                   head;
+    s16                   ang;
+    u16                   m22;
 
-    head                                  = *(u8**)G_SCRATCH_HEAD;
-    coord                                 = ((TmdObject*)task->extra)->coords;
-    blk                                   = (Actor210600Scratch*)(head - 0x34);
-    *(Actor210600Scratch**)G_SCRATCH_HEAD = blk;
+    head                                    = *(u8**)G_SCRATCH_HEAD;
+    coord                                   = ((TmdObject*)task->extra)->coords;
+    blk                                     = (ActorScaleRotScratch*)(head - 0x34);
+    *(ActorScaleRotScratch**)G_SCRATCH_HEAD = blk;
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle = ang;
@@ -868,7 +857,7 @@ static __inline__ void Actor210600_ScaleRotation(Task* task, s16 scale)
     blk->scale.vx = scale;
     ScaleMatrix(&blk->m, &blk->scale);
 
-    coord->coord.m[0][0]  = *(u16*)&((Actor210600Scratch*)(head - 0x34))->m.m[0][0];
+    coord->coord.m[0][0]  = *(u16*)&((ActorScaleRotScratch*)(head - 0x34))->m.m[0][0];
     coord->coord.m[0][1]  = *(u16*)&blk->m.m[0][1];
     coord->coord.m[0][2]  = *(u16*)&blk->m.m[0][2];
     coord->coord.m[1][0]  = *(u16*)&blk->m.m[1][0];
@@ -993,15 +982,15 @@ s32 func_actor_210600_8014B770(Task* task, s32 msgId, Actor210600Msg* msg)
 /// overlay calls it: the update body carries the same code inline.
 void func_actor_210600_8014B7B0(GsCOORDINATE2* coord, s16 scale)
 {
-    void**              scratch;
-    void*               head;
-    Actor210600Scratch* blk;
-    s16                 ang;
-    u16                 m22;
+    void**                scratch;
+    void*                 head;
+    ActorScaleRotScratch* blk;
+    s16                   ang;
+    u16                   m22;
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
-    blk      = (Actor210600Scratch*)((u8*)head - 0x34);
+    blk      = (ActorScaleRotScratch*)((u8*)head - 0x34);
     *scratch = blk;
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
@@ -1012,7 +1001,7 @@ void func_actor_210600_8014B7B0(GsCOORDINATE2* coord, s16 scale)
     blk->scale.vx = scale;
     ScaleMatrix(&blk->m, &blk->scale);
 
-    coord->coord.m[0][0] = *(u16*)&((Actor210600Scratch*)((u8*)head - 0x34))->m.m[0][0];
+    coord->coord.m[0][0] = *(u16*)&((ActorScaleRotScratch*)((u8*)head - 0x34))->m.m[0][0];
     coord->coord.m[0][1] = *(u16*)&blk->m.m[0][1];
     coord->coord.m[0][2] = *(u16*)&blk->m.m[0][2];
     coord->coord.m[1][0] = *(u16*)&blk->m.m[1][0];

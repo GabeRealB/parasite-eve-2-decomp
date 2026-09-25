@@ -5,6 +5,7 @@
 #include "gte.h"
 #include <psyq/abs.h>
 
+#include "actors/actor.h"
 #include "actors/actor_521100.h"
 #include "actors/actors_shared_80132074.h"
 #include "gameplay/1BC.h"
@@ -23,18 +24,6 @@
 
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by the yaw-facing body
-/// `func_actor_521100_80134C38`: only the `SVECTOR` at +0x10 is written, and it
-/// is the pure-yaw rotation `RotMatrix` builds into the attach coordinate. The
-/// rotation the function aims is the coordinate's own Z axis read back through
-/// `ratan2`, and the scratch below it goes unused. Same shape as
-/// `Actor02500RotScratch` / `Actor300700RotScratch`.
-typedef struct Actor521100RotScratch {
-    /* 0x00 */ VECTOR  vec;
-    /* 0x10 */ SVECTOR rot;
-} Actor521100RotScratch;
-STATIC_ASSERT_SIZEOF(Actor521100RotScratch, 0x18);
-
 /// 0x40-byte scratch from `G_SCRATCH_HEAD` used by the aim body
 /// `func_actor_521100_80134EDC`: `view` is the player-relative position
 /// `Gp_WorldToLocal` produces for the head coordinate's `workm`, `delta` the
@@ -47,19 +36,6 @@ typedef struct Actor521100AimScratch {
     /* 0x30 */ VECTOR local;
 } Actor521100AimScratch;
 STATIC_ASSERT_SIZEOF(Actor521100AimScratch, 0x40);
-
-/// The scratch-pad stack head at 0x1F8003FC, named rather than written as a
-/// plain `u32` dereference because the untwist body
-/// `func_actor_521100_80135024` reads it through a member: a component access
-/// is an in-struct memory reference (`MEM_IN_STRUCT_P`), which keeps the
-/// scheduler from treating that load and store as aliases of every other
-/// memory operation in the block. Written as a scalar, the block gains false
-/// dependences, the `work` / `coord` chains lose a priority step and the
-/// prologue is scheduled in the wrong order. Same shape as
-/// `Actor02000ScratchStack` / `Actor510900ScratchStack`.
-typedef struct {
-    u32 sp;
-} Actor521100ScratchStack;
 
 typedef struct Actor521100HitScratch {
     /* 0x00 */ byte           pad_0[0x20];
@@ -892,15 +868,15 @@ void func_actor_521100_80133104(Task* arg0)
     u32              rng;
     Actor521100Work* work;
 
-    head                                           = (SVECTOR*)((Actor521100ScratchStack*)G_SCRATCH_HEAD)->sp;
-    vec                                            = head - 1;
-    ((Actor521100ScratchStack*)G_SCRATCH_HEAD)->sp = (u32)vec;
-    work                                           = arg0->work;
-    frame                                          = (s16)work->field_68A;
-    clipPtr                                        = &D_actor_521100_8015F894[work->field_686];
-    clip                                           = *clipPtr;
-    clipId                                         = (u16)*clipPtr;
-    coord                                          = ((TmdObject*)arg0->extra)->coords;
+    head                                     = (SVECTOR*)((ActorScratchStack*)G_SCRATCH_HEAD)->sp;
+    vec                                      = head - 1;
+    ((ActorScratchStack*)G_SCRATCH_HEAD)->sp = (u32)vec;
+    work                                     = arg0->work;
+    frame                                    = (s16)work->field_68A;
+    clipPtr                                  = &D_actor_521100_8015F894[work->field_686];
+    clip                                     = *clipPtr;
+    clipId                                   = (u16)*clipPtr;
+    coord                                    = ((TmdObject*)arg0->extra)->coords;
     if (frame == (clip + 0x1A)) {
         effect      = 0x60188;
         kind        = 0xC;
@@ -951,7 +927,7 @@ void func_actor_521100_80133104(Task* arg0)
         work->field_6AE = 0;
         work->field_68E = part;
     }
-    ((Actor521100ScratchStack*)G_SCRATCH_HEAD)->sp += 8;
+    ((ActorScratchStack*)G_SCRATCH_HEAD)->sp += 8;
 }
 
 /// Runs one frame of the burn-out sequence timed off the clip the slots are
@@ -1560,16 +1536,16 @@ void func_actor_521100_80134658(Task* arg0)
 /// `DECOMPILATION_LEARNINGS.md`, "loop_depth as an allocation weight".
 void func_actor_521100_80134774(Task* arg0)
 {
-    Actor521100Work*       work;
-    GsCOORDINATE2*         coord;
-    Actor521100RotScratch* sc;
-    Actor521100RotScratch* sc2;
-    u8*                    head;
-    s16                    state;
+    Actor521100Work*  work;
+    GsCOORDINATE2*    coord;
+    ActorFaceScratch* sc;
+    ActorFaceScratch* sc2;
+    u8*               head;
+    s16               state;
 
     head                  = *(u8**)G_SCRATCH_HEAD;
-    sc                    = (Actor521100RotScratch*)(head - 0x18);
-    sc2                   = (Actor521100RotScratch*)sc;
+    sc                    = (ActorFaceScratch*)(head - 0x18);
+    sc2                   = (ActorFaceScratch*)sc;
     *(u8**)G_SCRATCH_HEAD = (u8*)sc;
     work                  = arg0->work;
     coord                 = ((TmdObject*)arg0->extra)->coords;
@@ -1579,21 +1555,21 @@ void func_actor_521100_80134774(Task* arg0)
             work->field_686 = 0x12;
             work->field_69A = 0x14;
             work->field_69C = 0x78;
-            sc->vec.vx      = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-            sc->vec.vy      = 0;
-            sc->vec.vz      = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-            if ((SquareRoot0((sc->vec.vx * sc->vec.vx) + (sc->vec.vz * sc->vec.vz)) < 0x7D0) && (Player_Status.coordMtx->t[2] < -0x5DC)) {
-                work->field_698 = (u16)(ratan2((s16)sc->vec.vx, (s16)sc->vec.vz) & 0xFFF);
+            sc->delta.vx    = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+            sc->delta.vy    = 0;
+            sc->delta.vz    = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            if ((SquareRoot0((sc->delta.vx * sc->delta.vx) + (sc->delta.vz * sc->delta.vz)) < 0x7D0) && (Player_Status.coordMtx->t[2] < -0x5DC)) {
+                work->field_698 = (u16)(ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF);
                 work->field_69A = 0;
                 work->field_69C = 0x78;
                 work->field_69E = 1;
                 work->field_6A0 = 0;
             } else {
-                sc2->vec.vx     = D_actor_521100_8015F654[0].vx - coord->coord.t[0];
-                sc2->vec.vy     = 0;
-                sc2->vec.vz     = D_actor_521100_8015F654[0].vz - coord->coord.t[2];
-                work->field_698 = (u16)(ratan2((s16)sc2->vec.vx, (s16)sc2->vec.vz) & 0xFFF);
-                if (SquareRoot0((sc2->vec.vx * sc2->vec.vx) + (sc2->vec.vz * sc2->vec.vz)) < 0x3C) {
+                sc2->delta.vx   = D_actor_521100_8015F654[0].vx - coord->coord.t[0];
+                sc2->delta.vy   = 0;
+                sc2->delta.vz   = D_actor_521100_8015F654[0].vz - coord->coord.t[2];
+                work->field_698 = (u16)(ratan2((s16)sc2->delta.vx, (s16)sc2->delta.vz) & 0xFFF);
+                if (SquareRoot0((sc2->delta.vx * sc2->delta.vx) + (sc2->delta.vz * sc2->delta.vz)) < 0x3C) {
                     work->field_6A0 = 1;
                 } else {
                     if (gGameSession->at4.loc.view != 2) {
@@ -1611,24 +1587,24 @@ void func_actor_521100_80134774(Task* arg0)
             work->field_686 = 0x12;
             work->field_69A = 0x14;
             work->field_69C = 0x78;
-            sc->vec.vx      = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-            sc->vec.vy      = 0;
-            sc->vec.vz      = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-            if (SquareRoot0((sc->vec.vx * sc->vec.vx) + (sc->vec.vz * sc->vec.vz)) >= 0x7D0) {
-                sc->vec.vx = D_actor_521100_8015F654[1].vx - coord->coord.t[0];
-                sc->vec.vy = 0;
-                sc->vec.vz = D_actor_521100_8015F654[1].vz - coord->coord.t[2];
+            sc->delta.vx    = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+            sc->delta.vy    = 0;
+            sc->delta.vz    = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            if (SquareRoot0((sc->delta.vx * sc->delta.vx) + (sc->delta.vz * sc->delta.vz)) >= 0x7D0) {
+                sc->delta.vx = D_actor_521100_8015F654[1].vx - coord->coord.t[0];
+                sc->delta.vy = 0;
+                sc->delta.vz = D_actor_521100_8015F654[1].vz - coord->coord.t[2];
                 do {
-                    work->field_698 = (u16)(ratan2((s16)sc->vec.vx, (s16)sc->vec.vz) & 0xFFF);
-                    if (SquareRoot0((sc->vec.vx * sc->vec.vx) + (sc->vec.vz * sc->vec.vz)) >= 0x3C) {
+                    work->field_698 = (u16)(ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF);
+                    if (SquareRoot0((sc->delta.vx * sc->delta.vx) + (sc->delta.vz * sc->delta.vz)) >= 0x3C) {
                         goto game;
                     }
                 } while (0);
-                sc->vec.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-                sc->vec.vy = 0;
-                sc->vec.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+                sc->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+                sc->delta.vy = 0;
+                sc->delta.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
             }
-            work->field_698 = (u16)(ratan2((s16)sc->vec.vx, (s16)sc->vec.vz) & 0xFFF);
+            work->field_698 = (u16)(ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF);
             work->field_69A = 0;
             work->field_69C = 0x78;
             work->field_69E = 1;
@@ -1648,12 +1624,12 @@ void func_actor_521100_80134774(Task* arg0)
             work->field_686 = 0x12;
             work->field_69A = 0x14;
             work->field_69C = 0x78;
-            sc->vec.vx      = D_actor_521100_8015F654[2].vx - coord->coord.t[0];
-            sc->vec.vy      = 0;
-            sc->vec.vz      = D_actor_521100_8015F654[2].vz - coord->coord.t[2];
-            work->field_698 = (u16)(ratan2((s16)sc->vec.vx, (s16)sc->vec.vz) & 0xFFF);
+            sc->delta.vx    = D_actor_521100_8015F654[2].vx - coord->coord.t[0];
+            sc->delta.vy    = 0;
+            sc->delta.vz    = D_actor_521100_8015F654[2].vz - coord->coord.t[2];
+            work->field_698 = (u16)(ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF);
             if (coord->coord.t[0] < -0xFA0) {
-                if (SquareRoot0((sc->vec.vx * sc->vec.vx) + (sc->vec.vz * sc->vec.vz)) < 0x3C) {
+                if (SquareRoot0((sc->delta.vx * sc->delta.vx) + (sc->delta.vz * sc->delta.vz)) < 0x3C) {
                     work->field_69E = 0;
                     work->field_6A0 = 0;
                 } else if (gGameSession->at4.loc.view == state) {
@@ -1685,19 +1661,19 @@ void func_actor_521100_80134774(Task* arg0)
 /// one `Actor02500_Fn016FC` and `func_actor_300700_80164794` carry.
 void func_actor_521100_80134C38(Task* arg0)
 {
-    Actor521100Work*       work;
-    GsCOORDINATE2*         coord;
-    Actor521100RotScratch* sc;
-    s32                    ang;
-    u16                    want;
-    s16                    diff;
-    s32                    adiff;
-    s32                    step;
-    s32                    cur;
-    s32                    next;
-    s32                    wrapStep;
+    Actor521100Work*  work;
+    GsCOORDINATE2*    coord;
+    ActorFaceScratch* sc;
+    s32               ang;
+    u16               want;
+    s16               diff;
+    s32               adiff;
+    s32               step;
+    s32               cur;
+    s32               next;
+    s32               wrapStep;
 
-    sc    = (Actor521100RotScratch*)(SCRATCH_SP -= 0x18);
+    sc    = (ActorFaceScratch*)(SCRATCH_SP -= 0x18);
     coord = ((TmdObject*)arg0->extra)->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
@@ -1845,7 +1821,7 @@ void func_actor_521100_80134EDC(Task* arg0)
 /// body armed, survives while either is still moving and is cleared on the
 /// frame both arrive, which is what the update body tests before calling this.
 ///
-/// The scratch stack head is read through `Actor521100ScratchStack` rather than
+/// The scratch stack head is read through `ActorScratchStack` rather than
 /// as a `u32` - see that type for why the shape matters.
 ///
 /// Same body as `Actor02000_Fn01698` and `func_actor_510900_80138D38`.
@@ -1862,11 +1838,11 @@ void func_actor_521100_80135024(Task* arg0)
     s32              nextY;
     s32              active;
 
-    matrix                                     = (MATRIX*)(((Actor521100ScratchStack*)0x1F8003FC)->sp - 0x20);
-    ((Actor521100ScratchStack*)0x1F8003FC)->sp = (u32)matrix;
-    active                                     = 0;
-    work                                       = arg0->work;
-    coord                                      = ((TmdObject*)arg0->extra)->coords;
+    matrix                               = (MATRIX*)(((ActorScratchStack*)0x1F8003FC)->sp - 0x20);
+    ((ActorScratchStack*)0x1F8003FC)->sp = (u32)matrix;
+    active                               = 0;
+    work                                 = arg0->work;
+    coord                                = ((TmdObject*)arg0->extra)->coords;
     RotMatrix(&work->field_678, matrix);
     USE_REG(matrix);
     gte_SetRotMatrix(&coord[3].coord);

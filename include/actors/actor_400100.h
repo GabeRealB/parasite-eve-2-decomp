@@ -143,16 +143,6 @@ typedef struct Actor00100RecordWork {
     /* 0xB0C */ Actor00100Record records[5];
 } Actor00100RecordWork;
 
-/// 0x34-byte block taken from `G_SCRATCH_HEAD`: a `MATRIX` plus the `VECTOR`
-/// handed to `ScaleMatrix` and the yaw stored before `Gfx_RotMatrixY`.
-typedef struct Actor00100MtxScratch {
-    /* 0x00 */ MATRIX m;
-    /* 0x20 */ VECTOR scale;
-    /* 0x30 */ s16    angle;
-    /* 0x32 */ s16    pad_32;
-} Actor00100MtxScratch;
-STATIC_ASSERT_SIZEOF(Actor00100MtxScratch, 0x34);
-
 typedef struct Actor00100AngleScratch {
     /* 0x00 */ s16 x;
     /* 0x02 */ s16 y;

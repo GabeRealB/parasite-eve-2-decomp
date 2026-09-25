@@ -2,6 +2,7 @@
 
 #include "psyq/inline_c.h"
 #include "gte.h"
+#include "actors/actor.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3E9C.h"
@@ -19,10 +20,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-
-typedef struct {
-    u32 sp;
-} Actor02000ScratchStack;
 
 /// 0x6E4-byte work block `Actor02000_Fn0251C` allocates and hangs off
 /// `Task::work`. It opens with the animation context and its
@@ -909,11 +906,11 @@ void Actor02000_Fn01698(Task* arg0)
     s32             nextY;
     s32             active;
 
-    matrix                                    = (MATRIX*)(((Actor02000ScratchStack*)0x1F8003FC)->sp - 0x20);
-    ((Actor02000ScratchStack*)0x1F8003FC)->sp = (u32)matrix;
-    active                                    = 0;
-    work                                      = arg0->work;
-    coord                                     = ((TmdObject*)arg0->extra)->coords;
+    matrix                               = (MATRIX*)(((ActorScratchStack*)0x1F8003FC)->sp - 0x20);
+    ((ActorScratchStack*)0x1F8003FC)->sp = (u32)matrix;
+    active                               = 0;
+    work                                 = arg0->work;
+    coord                                = ((TmdObject*)arg0->extra)->coords;
     RotMatrix(&work->field_688, matrix);
     USE_REG(matrix);
     gte_SetRotMatrix(&coord[3].coord);

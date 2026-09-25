@@ -2,6 +2,7 @@
 #define ACTOR_300700_H
 
 #include "common.h"
+#include "actors/actor.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/1BC.h"
@@ -92,14 +93,6 @@ typedef struct Actor300700Work {
     /* 0x396 */ s16                       field_396;
     /* 0x398 */ s16                       field_398;
 } Actor300700Work;
-
-/// Yaw scratch on the scratchpad: the `SVECTOR` handed to `RotMatrix` next to
-/// the `VECTOR` slot keeping the block at the size both allocations expect.
-typedef struct Actor300700RotScratch {
-    /* 0x00 */ VECTOR  vec;
-    /* 0x10 */ SVECTOR rot;
-} Actor300700RotScratch;
-STATIC_ASSERT_SIZEOF(Actor300700RotScratch, 0x18);
 
 void func_actor_300700_80164D3C(GpEnemy* arg0, Task* arg1);
 

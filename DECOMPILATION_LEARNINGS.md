@@ -873,7 +873,7 @@ same thing, but only the second compiles to the target's tail in
 `func_actor_401800_8013BF48`. Inlining the *scaled* body nine times gave
 98.166% (`regs=56 reorder=10 delete=8`); the unit-scale body gave 100.000%.
 
-Both bodies push `0x34` bytes of `Actor401800RotScratch`, rebuild the yaw with
+Both bodies push `0x34` bytes of `ActorScaleRotScratch`, rebuild the yaw with
 `Gfx_RotMatrixY` / `ScaleMatrix`, copy nine halfwords back over `coord->coord.m`
 and pop. They differ in how the pop is spelled:
 
@@ -881,7 +881,7 @@ and pop. They differ in how the pop is spelled:
 /* RescaleYaw(coord, scale) -- scaled form, and the one to avoid here */
 scratch  = (void**)G_SCRATCH_HEAD;
 head     = *scratch;                        /* head stays live to the pop */
-blk      = (Actor401800RotScratch*)((u8*)head - 0x34);
+blk      = (ActorScaleRotScratch*)((u8*)head - 0x34);
 *scratch = blk;
 ...
 m22                  = *(u16*)&blk->m.m[2][2];
@@ -891,7 +891,7 @@ coord->coord.m[2][2] = m22;
 
 /* ResetYaw(coord) -- unit-scale form, the target's */
 head                    = *(void**)G_SCRATCH_HEAD;
-blk                     = (Actor401800RotScratch*)((u8*)head - 0x34);
+blk                     = (ActorScaleRotScratch*)((u8*)head - 0x34);
 *(void**)G_SCRATCH_HEAD = blk;
 ...
 coord->flg              = 0;
@@ -17469,13 +17469,13 @@ the target's `addiu $s4, $s5, -0x18` cannot come out. Reuse the source overlay's
 block struct instead of a bare `VECTOR*`:
 
 ```c
-typedef struct Actor105500RotScratch {
+typedef struct ActorFaceScratch {
     /* 0x00 */ VECTOR  vec;
     /* 0x10 */ SVECTOR rot;
-} Actor105500RotScratch;
-STATIC_ASSERT_SIZEOF(Actor105500RotScratch, 0x18);
+} ActorFaceScratch;
+STATIC_ASSERT_SIZEOF(ActorFaceScratch, 0x18);
 
-scratchEnd = *(Actor105500RotScratch**)PSX_SCRATCH_ADDR(0x3FC);
+scratchEnd = *(ActorFaceScratch**)PSX_SCRATCH_ADDR(0x3FC);
 delta      = scratchEnd - 1;                  /* -0x18 */
 delta->vec.vz = ...;                          /* +0x08 */
 ```
@@ -41989,9 +41989,9 @@ shifted pointer once and stores at offset 0. Declare the frame and reach through
 it:
 
 ```c
-typedef struct { byte pad_0[0x10]; SVECTOR rot; } Actor02500RotScratch; /* 0x18 */
+typedef struct { byte pad_0[0x10]; SVECTOR rot; } ActorFaceScratch; /* 0x18 */
 
-sc = (Actor02500RotScratch*)(SCRATCH_SP -= 0x18);
+sc = (ActorFaceScratch*)(SCRATCH_SP -= 0x18);
 sc->rot.vx = 0;
 RotMatrix(&sc->rot, &coord->coord);
 ```
@@ -87108,7 +87108,7 @@ still slides it (and the dependent stores) down next to the pop:
 
 ```c
 blk->dx *= blk->dx;
-*(Actor01900RangeScratch**)G_SCRATCH_HEAD = blk;
+*(ActorRangeScratch**)G_SCRATCH_HEAD = blk;
 blk->dz *= blk->dz;
 blk->r  *= blk->r;
 *(u8**)G_SCRATCH_HEAD = head;
@@ -95253,12 +95253,12 @@ and insn 20's dependence list holds no link to the load at all:
 Giving the scratch head a one-field struct view marks the store `mem/s` too,
 the dependence appears, and the block schedules in source order — 100.00%:
 
-    typedef struct Actor510900ScratchStack { u32 sp; } Actor510900ScratchStack;
+    typedef struct ActorScratchStack { u32 sp; } ActorScratchStack;
 
-    matrix = (MATRIX*)(((Actor510900ScratchStack*)G_SCRATCH_HEAD)->sp - 0x20);
-    ((Actor510900ScratchStack*)G_SCRATCH_HEAD)->sp = (u32)matrix;
+    matrix = (MATRIX*)(((ActorScratchStack*)G_SCRATCH_HEAD)->sp - 0x20);
+    ((ActorScratchStack*)G_SCRATCH_HEAD)->sp = (u32)matrix;
 
-`Actor100300ScratchStack` in `include/actors/actor_100300.h` is the same trick,
+`ActorScratchStack` in `include/actors/actor_100300.h` is the same trick,
 and `Actor00300ByteView` beside it is the reverse case. So when a store and a
 nearby load disagree about `mem/s` and the scheduler swaps them, the fix is to
 make the *access form* agree, not to reorder the statements: statement order
@@ -96824,8 +96824,8 @@ static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale)
 {
     head  = *(u8**)G_SCRATCH_HEAD;
     coord = ((TmdObject*)task->extra)->coords;
-    blk   = (ActorShared80135a60Scratch*)(head - 0x34);
-    *(ActorShared80135a60Scratch**)G_SCRATCH_HEAD = blk;
+    blk   = (ActorScaleRotScratch*)(head - 0x34);
+    *(ActorScaleRotScratch**)G_SCRATCH_HEAD = blk;
     ... ratan2 / Gfx_RotMatrixY / ScaleMatrix / nine matrix shorts ...
     m22 = *(u16*)&blk->m.m[2][2];
     coord->flg = 0;
@@ -106711,7 +106711,7 @@ through `arg0` are **varying struct** ones. 2.8.1's
 to alias, so the scratch store at insn 20 is not a dependence of the later
 struct loads at all: insn 26 keeps only its address producer as a predecessor
 (`priority 1`, `insn_list 4`). Reading it as a component of a struct instead -
-`((Actor521100ScratchStack*)0x1F8003FC)->sp` - sets `MEM_IN_STRUCT_P`
+`((ActorScratchStack*)0x1F8003FC)->sp` - sets `MEM_IN_STRUCT_P`
 (`expr.c`'s COMPONENT_REF path), the exemption no longer applies, the store
 becomes a predecessor, and 26 lands at priority 2:
 
@@ -106724,13 +106724,13 @@ Both spellings assemble to the same `lui`/`ori`/`lw`/`sw`; nothing in the object
 dump distinguishes them. Only the schedule does.
 
 **Fix.** Name the head as the overlay's own one-word struct, as the sibling
-overlays already do (`Actor02000ScratchStack`, `Actor510900ScratchStack`):
+overlays already do (`ActorScratchStack`, `ActorScratchStack`):
 
 ```c
-typedef struct { u32 sp; } Actor521100ScratchStack;
+typedef struct { u32 sp; } ActorScratchStack;
 
-matrix                                    = (MATRIX*)(((Actor521100ScratchStack*)0x1F8003FC)->sp - 0x20);
-((Actor521100ScratchStack*)0x1F8003FC)->sp = (u32)matrix;
+matrix                                    = (MATRIX*)(((ActorScratchStack*)0x1F8003FC)->sp - 0x20);
+((ActorScratchStack*)0x1F8003FC)->sp = (u32)matrix;
 ```
 
 100.000% on the next build, `reorder=0 regs=0`. The **pop** at the end of the
@@ -107551,7 +107551,7 @@ re-materialise the two expressions feeding them.
 
 With the triplet duplicated the score was 99.779%: two instructions left, both
 the same store. The TU's `Actor401800_OutOfRange` helper writes
-`*(Actor401800RangeScratch**)G_SCRATCH_HEAD = blk;` after `blk->dz` / `blk->r`
+`*(ActorRangeScratch**)G_SCRATCH_HEAD = blk;` after `blk->dz` / `blk->r`
 and after `dx *= dx`; the target has it immediately after the `dx` store, before
 `dz` and `r`.
 
@@ -108241,9 +108241,9 @@ Two smaller tells that the helper boundary was the thing being missed:
   per use (`lui $v0 / lw $v0,0x3FC($v0)`). That extra live-across-call value is
   the same allocno-inflation symptom.
 * `AimScratch`/`RotScratch` are per-overlay types (this one needed
-  `Actor401000AimScratch` 0x10 and `Actor401000RotScratch` 0x34 in
+  `ActorAimScratch` 0x10 and `ActorScaleRotScratch` 0x34 in
   `include/actors/actor_401000.h`); they are structural twins of
-  `Actor01900AimScratch` / `Actor401300RotScratch`, so the tx/Rx siblings'
+  `ActorAimScratch` / `ActorScaleRotScratch`, so the tx/Rx siblings'
   headers give both the layout and the doc-comment wording.
 
 Inputs: `base_4.i` SHA256
@@ -108685,8 +108685,8 @@ Three things made it one-shot:
 1. **Port the twin's whole declaration block, including the locals that look
    redundant.** The target's allocation is: `work` in `$s3`, `arg0` in `$s4`,
    the scratch chase block in `$s2`, and separate `$s0`/`$s1` for the two
-   temporaries each turn/aim block reuses. Declaring `Actor401000AimScratch* head;`
-   *and* `Actor401000AimScratch* s;` (the same value, `head - 1`) rather than one
+   temporaries each turn/aim block reuses. Declaring `ActorAimScratch* head;`
+   *and* `ActorAimScratch* s;` (the same value, `head - 1`) rather than one
    pointer is what produced the target's `lw v0,0(a0); addiu v0,v0,-0x10; sw v0,0(a0)`
    followed by `addu s2,v0,$zero` in the `jal` delay slot. As the entry on
    `func_actor_401000_80138D08` says from the other direction: the twin's object
@@ -108725,12 +108725,12 @@ instruction, and the shorter spelling is the wrong one:
 
 ```c
 /* emits addiu $s4,$a1,-0xC — one insn, misses the move */
-turn = (Actor401000TurnScratch*)((u8*)*(void**)G_SCRATCH_HEAD - 0xC);
+turn = (ActorTurnScratch*)((u8*)*(void**)G_SCRATCH_HEAD - 0xC);
 turn->delta.vx = ...;
 
 /* emits addiu $v0,$a1,-0xC ; move $s4,$v0 — the target's pair */
-*(Actor401000TurnScratch**)G_SCRATCH_HEAD -= 1;
-turn = *(Actor401000TurnScratch**)G_SCRATCH_HEAD;
+*(ActorTurnScratch**)G_SCRATCH_HEAD -= 1;
+turn = *(ActorTurnScratch**)G_SCRATCH_HEAD;
 turn->delta.vx = ...;
 ```
 
@@ -112533,7 +112533,7 @@ Reserving a scratch block off `G_SCRATCH_HEAD` by naming the old head first
 
 ```c
 head = *(u8**)G_SCRATCH_HEAD;
-turn = (Actor356100TurnScratch*)(head - 0xC);
+turn = (ActorTurnScratch*)(head - 0xC);
 ```
 
 compiles to a single `addiu s1,a1,-0xC`: the address temp and the long-lived
@@ -112551,7 +112551,7 @@ global allocno (live across the calls that follow) and the temp it is copied
 from is not, so `combine_regs` leaves the copy for global-alloc:
 
 ```c
-turn = (Actor356100TurnScratch*)(*(u32*)G_SCRATCH_HEAD -= 0xC);
+turn = (ActorTurnScratch*)(*(u32*)G_SCRATCH_HEAD -= 0xC);
 ```
 
 The store the expression performs *is* the reservation, so no separate
@@ -126531,7 +126531,7 @@ is the same guard one actor over (`field_5A` / `field_8B4`, `field_8 + 5` =
 typed transcription rather than a search: m2c's `void*` locals scaled the
 scratch pointer by `sizeof(MATRIX)` (`addiu s0,s2,-0x680`) and burned an extra
 `$s` on the unused first argument, which the two-parameter signature
-(`void* spawnArg2, Task* task`) and `ActorShared80135a60Scratch` remove --
+(`void* spawnArg2, Task* task`) and `ActorScaleRotScratch` remove --
 82.652% to 100.000% with every penalty zero on the first typed build.
 
 Inputs: `base_1.c` source `e46795b5…`, preprocessed `dd76ada1…`, target
@@ -134549,7 +134549,7 @@ coordinate sites. Splitting only the tail would leave the delta pointer sharing
 the call-crossing turn range.
 
 The push also needed an intermediate value: `block = head - 0x10; *scratch =
-block; s = (Actor401800ChaseScratch*)block;`. Base_5 `.cse` retains the temporary,
+block; s = (ActorChaseScratch*)block;`. Base_5 `.cse` retains the temporary,
 its store, then the copy into the long-lived `s`. The temporary gets v0 and `s`
 gets s2, supplying the target's copy and allowing removal of the seed's redundant
 saved actor alias. This resolved every remaining register site, distance 300→240.
@@ -135006,7 +135006,7 @@ Gp_SpawnEff(effect, &effectCoord[8], kind, offset);
 
 The controlled base_4 prediction required both earlier copy placement and unchanged argument homes/delay-slot fill. `.greg` shows copy UID403 before touch UID71 and null UID74; `.sched2` preserves that order and grouped asm UID76 before addiu UID83; `.dbr` puts UID83 in call UID89's delay slot. All penalties became zero. This is a dependency and reload-placement experiment, not evidence that the original source used empty asm. Output coalescing must be checked for each call; no physical register is pinned here.
 
-The port reuses `Actor521100ScratchStack.sp`. Its fixed member access also matters: base_1's scalar scratch store was absent from the work load's scheduler dependencies; base_2's member store UID21 became a dependency of work-load UID24 and restored the prologue. This confirms the existing MEM_IN_STRUCT rule, without changing it.
+The port reuses `ActorScratchStack.sp`. Its fixed member access also matters: base_1's scalar scratch store was absent from the work load's scheduler dependencies; base_2's member store UID21 became a dependency of work-load UID24 and restored the prologue. This confirms the existing MEM_IN_STRUCT rule, without changing it.
 
 Evidence: `tools/permuter_findings/func_actor_521100_80133104/` retains session sources and compressed inputs; selected dumps are under `PERMUTER_EVIDENCE/4e43c88700eb4b09/analysis/manual/`. The router missed; these gains are manual experiments. Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`; base_3 input `d1a901aab076a90787ad2591cbcb3be5f88c62177db371c99ce14d4fb76731b5`; controlled base_4 input `cbc7dc155ee9d2865608905f5f88a033a26bae75b8ccbcf8b8920c4ab42aee9f`. The readable base_5 port remained exact and passed the full unscoped build.
 

@@ -8,6 +8,7 @@
 #include <psyq/abs.h>
 #include <psyq/rand.h>
 
+#include "actors/actor.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
@@ -170,30 +171,10 @@ STATIC_ASSERT_SIZEOF(Actor206100Slot, 0x8);
 /// `func_actor_206100_8014C274`.
 extern Actor206100Slot D_actor_206100_80158CBC[2];
 
-/// Scratch the impact-spark billboard `func_actor_206100_8014AB3C` takes off
-/// `G_SCRATCH_HEAD`: `vec` is the coordinate's world translation truncated to
-/// 16 bits, and `flag`, `otz` and `sx` / `sy` are what its single `RTPS`
-/// stores.  `dx` / `dy` hold the current corner half-extents, of which only the
-/// low halves are read back.
-typedef struct Actor206100SparkScratch {
-    s32     otz;
-    s32     dx;
-    s32     dy;
-    s32     flag;
-    SVECTOR vec;
-    s16     sx;
-    s16     sy;
-} Actor206100SparkScratch;
-STATIC_ASSERT_SIZEOF(Actor206100SparkScratch, 0x1C);
-
 /// 0xC-byte scratch `func_actor_206100_8014ED3C` takes off `G_SCRATCH_HEAD` to
 /// hold the actor's position mirrored through the origin and its distance from
 /// it: `delta` is the negated root coordinate (`vy` is left unwritten, the walk
 /// is planar) and `dist` the `SquareRoot0` of the two written squares.
-///
-/// The same `SVECTOR` + length shape `Actor00100RadiusScratch` and
-/// `Actor01900RangeScratch` have, and the same walk `Actor00100_OutsideRadius`
-/// makes.
 typedef struct Actor206100DistScratch {
     /* 0x0 */ SVECTOR delta;
     /* 0x8 */ s32     dist;
@@ -1004,18 +985,18 @@ void func_actor_206100_8014A70C(GsCOORDINATE2* coord, u16 arg1, u16 arg2, u32 ar
 /// `arg3 + 0x400`, so the spark shrinks with depth.
 void func_actor_206100_8014AB3C(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, s32 arg3)
 {
-    void**                   scratch;
-    u8*                      head;
-    Actor206100SparkScratch* blk;
-    Actor206100SparkScratch* copy;
-    POLY_FT4*                prim;
-    s32                      ang;
-    u16                      frame;
-    s32                      u;
+    void**             scratch;
+    u8*                head;
+    ActorSparkScratch* blk;
+    ActorSparkScratch* copy;
+    POLY_FT4*          prim;
+    s32                ang;
+    u16                frame;
+    s32                u;
 
     scratch     = (void**)G_SCRATCH_HEAD;
     head        = *scratch;
-    blk         = (Actor206100SparkScratch*)(head - sizeof(Actor206100SparkScratch));
+    blk         = (ActorSparkScratch*)(head - sizeof(ActorSparkScratch));
     copy        = blk;
     blk->vec.vx = *(u16*)&arg0->workm.t[0];
     blk->vec.vy = *(u16*)&arg0->workm.t[1];
@@ -1023,13 +1004,13 @@ void func_actor_206100_8014AB3C(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, s32 arg
     *scratch    = blk;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((Actor206100SparkScratch*)(head - sizeof(Actor206100SparkScratch)))->vec);
+    gte_ldv0(&((ActorSparkScratch*)(head - sizeof(ActorSparkScratch)))->vec);
     gte_rtps();
-    gte_stsxy(&((Actor206100SparkScratch*)(head - sizeof(Actor206100SparkScratch)))->sx);
-    gte_stflg(&((Actor206100SparkScratch*)(head - sizeof(Actor206100SparkScratch)))->flag);
+    gte_stsxy(&((ActorSparkScratch*)(head - sizeof(ActorSparkScratch)))->sx);
+    gte_stflg(&((ActorSparkScratch*)(head - sizeof(ActorSparkScratch)))->flag);
     if (blk->flag >= 0) {
         gte_stszotz(copy);
-        ((Actor206100SparkScratch*)(head - sizeof(Actor206100SparkScratch)))->otz++;
+        ((ActorSparkScratch*)(head - sizeof(ActorSparkScratch)))->otz++;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -1040,24 +1021,24 @@ void func_actor_206100_8014AB3C(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, s32 arg
         u           = frame * 0x28;
         setUV4(prim, u, 0x38, u + 0x27, 0x38, u, 0x5F, u + 0x27, 0x5F);
         ang      = (s16)arg3;
-        blk->dx  = (((arg2 * 0x27) / ((Actor206100SparkScratch*)(head - sizeof(Actor206100SparkScratch)))->otz) * rsin(ang)) >> 12;
-        blk->dy  = (((arg2 * 0x27) / ((Actor206100SparkScratch*)(head - sizeof(Actor206100SparkScratch)))->otz) * rcos(ang)) >> 12;
+        blk->dx  = (((arg2 * 0x27) / ((ActorSparkScratch*)(head - sizeof(ActorSparkScratch)))->otz) * rsin(ang)) >> 12;
+        blk->dy  = (((arg2 * 0x27) / ((ActorSparkScratch*)(head - sizeof(ActorSparkScratch)))->otz) * rcos(ang)) >> 12;
         prim->x0 = *(u16*)&blk->sx + *(u16*)&blk->dx;
         prim->x3 = *(u16*)&blk->sx - *(u16*)&blk->dx;
         prim->y0 = *(u16*)&blk->sy - *(u16*)&blk->dy;
         prim->y3 = *(u16*)&blk->sy + *(u16*)&blk->dy;
         ang      = ang + 0x400;
-        blk->dx  = (((arg2 * 0x27) / ((Actor206100SparkScratch*)(head - sizeof(Actor206100SparkScratch)))->otz) * rsin(ang)) >> 12;
-        blk->dy  = (((arg2 * 0x27) / ((Actor206100SparkScratch*)(head - sizeof(Actor206100SparkScratch)))->otz) * rcos(ang)) >> 12;
+        blk->dx  = (((arg2 * 0x27) / ((ActorSparkScratch*)(head - sizeof(ActorSparkScratch)))->otz) * rsin(ang)) >> 12;
+        blk->dy  = (((arg2 * 0x27) / ((ActorSparkScratch*)(head - sizeof(ActorSparkScratch)))->otz) * rcos(ang)) >> 12;
         prim->x1 = *(u16*)&blk->sx + *(u16*)&blk->dx;
         prim->x2 = *(u16*)&blk->sx - *(u16*)&blk->dx;
         prim->y1 = *(u16*)&blk->sy - *(u16*)&blk->dy;
         prim->y2 = *(u16*)&blk->sy + *(u16*)&blk->dy;
-        addPrim((u_long*)(((((u32)((Actor206100SparkScratch*)(head - sizeof(Actor206100SparkScratch)))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+        addPrim((u_long*)(((((u32)((ActorSparkScratch*)(head - sizeof(ActorSparkScratch)))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + sizeof(Actor206100SparkScratch);
+    *scratch = (u8*)*scratch + sizeof(ActorSparkScratch);
 }
 
 void func_actor_206100_8014AF74(Task* task)

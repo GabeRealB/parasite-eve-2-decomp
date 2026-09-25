@@ -9,6 +9,7 @@
 
 #include "decomp/common.h"
 
+#include "actors/actor.h"
 #include "main/fs.h"
 #include "main/mem.h"
 #include "main/session.h"
@@ -213,12 +214,6 @@ void Actor02300_Fn03C04(GpEnemy* arg0, Task* task);
 void Actor02300_Fn03C50(GpEnemy* arg0, Task* task);
 void Actor02300_Fn03D44(GpEnemy* arg0, Task* task);
 void Actor02300_Fn03D88(GpEnemy* arg0, Task* arg1);
-
-/// `G_SCRATCH_HEAD` viewed as a struct; the hit-tilt tick claims its matrix
-/// through this view rather than a plain pointer dereference.
-typedef struct Actor102300ScratchStack {
-    u32 sp;
-} Actor102300ScratchStack;
 
 /// Dust puff of the per-frame state: every third call spawns a spark effect at
 /// part 3 with a random upward offset, out of an 8-byte `G_SCRATCH_HEAD` block.
@@ -1056,11 +1051,11 @@ void Actor02300_Fn01698(Task* arg0)
     s32              nextY;
     s32              active;
 
-    matrix                                         = (MATRIX*)(((Actor102300ScratchStack*)G_SCRATCH_HEAD)->sp - 0x20);
-    ((Actor102300ScratchStack*)G_SCRATCH_HEAD)->sp = (u32)matrix;
-    active                                         = 0;
-    work                                           = arg0->work;
-    coord                                          = ((TmdObject*)arg0->extra)->coords;
+    matrix                                   = (MATRIX*)(((ActorScratchStack*)G_SCRATCH_HEAD)->sp - 0x20);
+    ((ActorScratchStack*)G_SCRATCH_HEAD)->sp = (u32)matrix;
+    active                                   = 0;
+    work                                     = arg0->work;
+    coord                                    = ((TmdObject*)arg0->extra)->coords;
     RotMatrix(&work->field_688, matrix);
     USE_REG(matrix);
     gte_SetRotMatrix(&coord[3].coord);

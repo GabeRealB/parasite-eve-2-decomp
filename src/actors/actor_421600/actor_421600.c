@@ -286,19 +286,6 @@ typedef struct Actor421600AnimWork {
 } Actor421600AnimWork;
 STATIC_ASSERT_SIZEOF(Actor421600AnimWork, 0x890);
 
-/// 0x34-byte block taken from the scratchpad head by the shrink tick
-/// `func_actor_421600_801366F4`: a `MATRIX`, the per-axis scale `VECTOR`
-/// `ScaleMatrix` folds into it (1.0 / the shrinking factor / 1.0), and the yaw
-/// stored just before `Gfx_RotMatrixY` rebuilds the rotation. Same shape as
-/// `ActorShared80135a60Scratch`, whose body is the uniform-scale twin.
-typedef struct Actor421600ShrinkScratch {
-    /* 0x00 */ MATRIX m;
-    /* 0x20 */ VECTOR scale;
-    /* 0x30 */ s16    angle;
-    /* 0x32 */ s16    pad_32;
-} Actor421600ShrinkScratch;
-STATIC_ASSERT_SIZEOF(Actor421600ShrinkScratch, 0x34);
-
 /// 0xC-byte block taken from the scratchpad head by the zone-aim tick
 /// `func_actor_421600_8013B4C4`: the XZ direction it measures the actor's
 /// facing against, plus the wrapped heading it derives from that direction and
@@ -378,18 +365,6 @@ typedef struct {
 } Actor421600ArenaScratch;
 STATIC_ASSERT_SIZEOF(Actor421600ArenaScratch, 0xC);
 
-/// Movement vectors, rotation matrix, and steering angles for the waypoint tick.
-typedef struct Actor421600MoveScratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ SVECTOR target;
-    /* 0x10 */ MATRIX  matrix;
-    /* 0x30 */ s16     delta;
-    /* 0x32 */ s16     original;
-    /* 0x34 */ s16     yaw;
-    /* 0x36 */ s16     playerYaw;
-} Actor421600MoveScratch;
-STATIC_ASSERT_SIZEOF(Actor421600MoveScratch, 0x38);
-
 /// Waypoint steering scratch with a zone-table index at the tail.
 typedef struct Actor421600RouteScratch {
     /* 0x00 */ SVECTOR vec;
@@ -403,13 +378,6 @@ typedef struct Actor421600RouteScratch {
     /* 0x3A */ s16     pad;
 } Actor421600RouteScratch;
 STATIC_ASSERT_SIZEOF(Actor421600RouteScratch, 0x3C);
-
-typedef struct Actor421600RadiusScratch {
-    /* 0x0 */ s32 x;
-    /* 0x4 */ s32 z;
-    /* 0x8 */ s32 radius;
-} Actor421600RadiusScratch;
-STATIC_ASSERT_SIZEOF(Actor421600RadiusScratch, 0xC);
 
 typedef struct Actor421600ParamRow {
     /* 0x0 */ u16 field_0;
@@ -2754,13 +2722,13 @@ void func_actor_421600_80136138(Task* arg0)
 /// a 0x34-byte block borrowed from the scratchpad. Marks the coordinate dirty.
 static __inline__ void Actor421600_ShrinkCoord(GsCOORDINATE2* coord, s16 y)
 {
-    void*                     head;
-    Actor421600ShrinkScratch* blk;
-    s16                       ang;
-    u16                       m22;
+    void*                 head;
+    ActorScaleRotScratch* blk;
+    s16                   ang;
+    u16                   m22;
 
     head                    = *(void**)G_SCRATCH_HEAD;
-    blk                     = (Actor421600ShrinkScratch*)((u8*)head - 0x34);
+    blk                     = (ActorScaleRotScratch*)((u8*)head - 0x34);
     *(void**)G_SCRATCH_HEAD = blk;
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
@@ -2772,7 +2740,7 @@ static __inline__ void Actor421600_ShrinkCoord(GsCOORDINATE2* coord, s16 y)
     ScaleMatrix(&blk->m, &blk->scale);
 
     coord->coord.m[0][0] =
-        *(u16*)&((Actor421600ShrinkScratch*)((u8*)head - 0x34))->m.m[0][0];
+        *(u16*)&((ActorScaleRotScratch*)((u8*)head - 0x34))->m.m[0][0];
     coord->coord.m[0][1]    = *(u16*)&blk->m.m[0][1];
     coord->coord.m[0][2]    = *(u16*)&blk->m.m[0][2];
     coord->coord.m[1][0]    = *(u16*)&blk->m.m[1][0];
@@ -2971,19 +2939,19 @@ static __inline__ s16 Actor421600_NormalizeYaw(s16 input)
 
 static __inline__ s32 Actor421600_OutsideRadius(SVECTOR* pos, s16 radius)
 {
-    Actor421600RadiusScratch* head;
-    Actor421600RadiusScratch* scratch;
-    head                                         = *(Actor421600RadiusScratch**)G_SCRATCH_HEAD;
-    scratch                                      = head - 1;
-    *(Actor421600RadiusScratch**)G_SCRATCH_HEAD  = scratch;
-    scratch->x                                   = pos->vx;
-    scratch->z                                   = pos->vz;
-    scratch->radius                              = radius;
-    scratch->x                                  *= scratch->x;
-    scratch->z                                  *= scratch->z;
-    scratch->radius                             *= scratch->radius;
-    *(Actor421600RadiusScratch**)G_SCRATCH_HEAD += 1;
-    return scratch->x + scratch->z >= scratch->radius;
+    ActorRangeScratch* head;
+    ActorRangeScratch* scratch;
+    head                                  = *(ActorRangeScratch**)G_SCRATCH_HEAD;
+    scratch                               = head - 1;
+    *(ActorRangeScratch**)G_SCRATCH_HEAD  = scratch;
+    scratch->dx                           = pos->vx;
+    scratch->dz                           = pos->vz;
+    scratch->r                            = radius;
+    scratch->dx                          *= scratch->dx;
+    scratch->dz                          *= scratch->dz;
+    scratch->r                           *= scratch->r;
+    *(ActorRangeScratch**)G_SCRATCH_HEAD += 1;
+    return scratch->dx + scratch->dz >= scratch->r;
 }
 
 void func_actor_421600_80136C88(Task* arg0)
@@ -3992,62 +3960,62 @@ void func_actor_421600_8013947C(Task* arg0)
 
 void func_actor_421600_80139718(Task* arg0)
 {
-    s32                     radius = 0x5DC;
-    Actor421600Work*        work;
-    GpRec18*                record;
-    GsCOORDINATE2*          coord;
-    GsCOORDINATE2*          coord2;
-    GsCOORDINATE2*          coord3;
-    GsCOORDINATE2*          facing3;
-    GsCOORDINATE2*          facing4;
-    GsCOORDINATE2*          facing5;
-    GsCOORDINATE2*          facing;
-    GsCOORDINATE2*          facing2;
-    GsCOORDINATE2*          turnCoord;
-    MATRIX*                 matrix;
-    Actor421600MoveScratch* scratch;
-    SVECTOR*                target;
-    SVECTOR*                target2;
-    Actor421600MoveScratch* head;
-    SVECTOR*                direction;
-    Actor421600MoveScratch* head2;
-    TmdObject*              obj;
-    s16                     targetDelta;
-    s16                     delta;
-    s16                     yaw;
-    s16                     delta3;
-    s16                     delta4;
-    s16                     delta5;
-    s32                     playerX;
-    s16                     delta1;
-    s16                     delta2;
-    s16                     targetYaw;
-    s16                     z;
-    s32                     magnitude;
-    s32                     targetMagnitude;
-    s16                     adjustedDelta;
-    s32                     originalMagnitude;
-    s16                     wrapped;
-    s16                     wrapped2;
-    s16                     wrapped3;
-    s16                     wrapped4;
-    s16                     wrapped5;
-    s16                     wrappedYaw;
-    s32                     angle3;
-    s32                     angle4;
-    s32                     angle5;
-    s32                     angle;
-    s32                     angle2;
-    s32                     finalYaw;
-    s32                     turnDelta;
-    s32                     finalDelta;
-    s32                     yawDifference;
-    u16                     unsignedDelta;
+    s32               radius = 0x5DC;
+    Actor421600Work*  work;
+    GpRec18*          record;
+    GsCOORDINATE2*    coord;
+    GsCOORDINATE2*    coord2;
+    GsCOORDINATE2*    coord3;
+    GsCOORDINATE2*    facing3;
+    GsCOORDINATE2*    facing4;
+    GsCOORDINATE2*    facing5;
+    GsCOORDINATE2*    facing;
+    GsCOORDINATE2*    facing2;
+    GsCOORDINATE2*    turnCoord;
+    MATRIX*           matrix;
+    ActorMoveScratch* scratch;
+    SVECTOR*          target;
+    SVECTOR*          target2;
+    ActorMoveScratch* head;
+    SVECTOR*          direction;
+    ActorMoveScratch* head2;
+    TmdObject*        obj;
+    s16               targetDelta;
+    s16               delta;
+    s16               yaw;
+    s16               delta3;
+    s16               delta4;
+    s16               delta5;
+    s32               playerX;
+    s16               delta1;
+    s16               delta2;
+    s16               targetYaw;
+    s16               z;
+    s32               magnitude;
+    s32               targetMagnitude;
+    s16               adjustedDelta;
+    s32               originalMagnitude;
+    s16               wrapped;
+    s16               wrapped2;
+    s16               wrapped3;
+    s16               wrapped4;
+    s16               wrapped5;
+    s16               wrappedYaw;
+    s32               angle3;
+    s32               angle4;
+    s32               angle5;
+    s32               angle;
+    s32               angle2;
+    s32               finalYaw;
+    s32               turnDelta;
+    s32               finalDelta;
+    s32               yawDifference;
+    u16               unsignedDelta;
     work = arg0->work;
     if (work->field_4 != 0) {
-        head                                    = *(Actor421600MoveScratch**)G_SCRATCH_HEAD;
+        head                                    = *(ActorMoveScratch**)G_SCRATCH_HEAD;
         obj                                     = arg0->extra;
-        scratch                                 = (*(Actor421600MoveScratch**)G_SCRATCH_HEAD = head - 1);
+        scratch                                 = (*(ActorMoveScratch**)G_SCRATCH_HEAD = head - 1);
         ((GpEnemy*)arg0->spawnArg2)->node.flags = 0;
         obj->flags                              = 0;
         Tmd_AllocBuffers(obj);
@@ -4093,16 +4061,16 @@ void func_actor_421600_80139718(Task* arg0)
         gte_ldsv(&scratch->vec);
         gte_gpf12();
         gte_stsv(&scratch->vec);
-        work->field_14                             = 0;
-        work->field_C[0].x                         = (s16)((u16)scratch->vec.vx + ((TmdObject*)arg0->extra)->coords->coord.t[0]);
-        *(Actor421600MoveScratch**)G_SCRATCH_HEAD += 1;
-        work->field_C[0].z                         = (s16)((u16)scratch->vec.vz + ((TmdObject*)arg0->extra)->coords->coord.t[2]);
-        work->field_CCC.end1.vz                    = 0x26C;
+        work->field_14                       = 0;
+        work->field_C[0].x                   = (s16)((u16)scratch->vec.vx + ((TmdObject*)arg0->extra)->coords->coord.t[0]);
+        *(ActorMoveScratch**)G_SCRATCH_HEAD += 1;
+        work->field_C[0].z                   = (s16)((u16)scratch->vec.vz + ((TmdObject*)arg0->extra)->coords->coord.t[2]);
+        work->field_CCC.end1.vz              = 0x26C;
         return;
     }
     work->field_8      += 1;
-    head2               = *(Actor421600MoveScratch**)G_SCRATCH_HEAD;
-    scratch             = (*(Actor421600MoveScratch**)G_SCRATCH_HEAD = head2 - 1);
+    head2               = *(ActorMoveScratch**)G_SCRATCH_HEAD;
+    scratch             = (*(ActorMoveScratch**)G_SCRATCH_HEAD = head2 - 1);
     head2[-1].vec.vx    = (s16)(work->field_C[work->field_14].x - ((TmdObject*)arg0->extra)->coords->coord.t[0]);
     scratch->vec.vy     = 0;
     scratch->vec.vz     = work->field_C[work->field_14].z - ((TmdObject*)arg0->extra)->coords->coord.t[2];
@@ -4298,8 +4266,8 @@ void func_actor_421600_80139718(Task* arg0)
         }
     }
     func_actor_421600_80133334(((TmdObject*)arg0->extra)->coords);
-    *(Actor421600MoveScratch**)G_SCRATCH_HEAD += 1;
-    ((TmdObject*)arg0->extra)->coords->flg     = 0;
+    *(ActorMoveScratch**)G_SCRATCH_HEAD   += 1;
+    ((TmdObject*)arg0->extra)->coords->flg = 0;
 }
 
 void func_actor_421600_8013A404(Task* arg0)
