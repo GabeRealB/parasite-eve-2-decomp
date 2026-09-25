@@ -141,33 +141,6 @@ typedef struct Actor01900AnimWork {
     /* 0x8B4 */ s32        field_8B4;
 } Actor01900AnimWork;
 
-/// Per-room clamp applied to the accumulated height offset of the actor's
-/// motion scratch. `field_0` / `field_2` are matched against
-/// `GameSession.at4.loc.stage` / `at4.loc.area`, and when a row matches the offset is
-/// clamped to [`lo`, `hi`]. `Actor01900_D172CC` holds two live rows plus a
-/// zero terminator row that the two-iteration scan never reaches.
-typedef struct Actor01900HeightClamp {
-    /* 0x0 */ s16  field_0;
-    /* 0x2 */ s16  field_2;
-    /* 0x4 */ s16  lo;
-    /* 0x6 */ s16  hi;
-    /* 0x8 */ byte pad_8[8];
-} Actor01900HeightClamp;
-STATIC_ASSERT_SIZEOF(Actor01900HeightClamp, 0x10);
-
-/// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `Actor01900_Fn03C98`.
-/// The first 0x10 bytes are the `GpDeltaScratch` filled by `func_800E0C10`;
-/// `step` is the integer part of those deltas (scaled down to length 0xC0
-/// when longer), `len` its XZ length, and `moved` the return value: set when
-/// the X or Z delta is nonzero.
-typedef struct Actor01900Delta {
-    /* 0x00 */ GpDeltaScratch delta;
-    /* 0x10 */ SVECTOR        step;
-    /* 0x18 */ s32            len;
-    /* 0x1C */ s32            moved;
-} Actor01900Delta;
-STATIC_ASSERT_SIZEOF(Actor01900Delta, 0x20);
-
 /// Payload of the `0x7D3` message the overlay's `Actor01900_D1728C` handler
 /// table dispatches to `Actor01900_Fn0A31C`. Senders build the record in their
 /// own data (`D_actor_146300_80137AAC` and friends); `field_4` selects which
@@ -196,14 +169,14 @@ typedef struct Actor01900TintRow {
 } Actor01900TintRow;
 STATIC_ASSERT_SIZEOF(Actor01900TintRow, 0xC);
 
-extern GpPairSrcE            Actor01900_D0AC54;
-extern Actor01900TintRow     Actor01900_D0AC64[];
-extern u8                    Actor01900_D17174[];
-extern void*                 Actor01900_D1728C;
-extern char                  Actor01900_D16960;
-extern void*                 Actor01900_D171B4;
-extern MATRIX*               D_80073B8C;
-extern Actor01900HeightClamp Actor01900_D172CC[];
+extern GpPairSrcE        Actor01900_D0AC54;
+extern Actor01900TintRow Actor01900_D0AC64[];
+extern u8                Actor01900_D17174[];
+extern void*             Actor01900_D1728C;
+extern char              Actor01900_D16960;
+extern void*             Actor01900_D171B4;
+extern MATRIX*           D_80073B8C;
+extern ActorHeightClamp  Actor01900_D172CC[];
 /// Twelve preset hit-reaction directions `Actor01900_Fn02664` copies from;
 /// `pad` carries the index of the coordinate the effect is attached to.
 extern SVECTOR Actor01900_D1722C[];
@@ -1773,10 +1746,10 @@ void Actor01900_Fn03854(Task* arg0)
 
 void Actor01900_Fn03C04(GpAreaKey* session, GsCOORDINATE2* coord)
 {
-    Actor01900HeightClamp* row;
-    s32                    offset;
-    s32                    lo;
-    s16                    i;
+    ActorHeightClamp* row;
+    s32               offset;
+    s32               lo;
+    s16               i;
 
     for (i = 0; i < 2; i++) {
         row = &Actor01900_D172CC[i];
@@ -1797,8 +1770,8 @@ void Actor01900_Fn03C04(GpAreaKey* session, GsCOORDINATE2* coord)
 /// current room has an `Actor01900_D172CC` row.
 static __inline__ s32 Actor01900_HasHeightClamp(GpAreaKey* session)
 {
-    Actor01900HeightClamp* row;
-    s16                    i;
+    ActorHeightClamp* row;
+    s16               i;
 
     for (i = 0; i < 2; i++) {
         row = &Actor01900_D172CC[i];
@@ -1811,20 +1784,20 @@ static __inline__ s32 Actor01900_HasHeightClamp(GpAreaKey* session)
 
 s32 Actor01900_Fn03C98(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2, s16 arg3)
 {
-    Actor01900Delta* head;
-    Actor01900Delta* s;
-    Actor01900Delta* blk;
-    s16              vy;
-    SVECTOR*         step;
+    ActorStepDelta* head;
+    ActorStepDelta* s;
+    ActorStepDelta* blk;
+    s16             vy;
+    SVECTOR*        step;
 
     if (D_80072729 == 1) {
         return 0;
     }
-    head                               = *(Actor01900Delta**)G_SCRATCH_HEAD;
-    blk                                = head - 1;
-    *(Actor01900Delta**)G_SCRATCH_HEAD = blk;
-    s                                  = blk;
-    s->moved                           = 0;
+    head                              = *(ActorStepDelta**)G_SCRATCH_HEAD;
+    blk                               = head - 1;
+    *(ActorStepDelta**)G_SCRATCH_HEAD = blk;
+    s                                 = blk;
+    s->moved                          = 0;
     if (func_800E0C10(rec, &s->delta, arg2, NULL) != 0) {
         s->step.vx = head[-1].delta.vx.w >> 16;
         s->step.vy = s->delta.vy.w >> 16;
@@ -1874,7 +1847,7 @@ s32 Actor01900_Fn03C98(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2, s16 arg3)
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    *(Actor01900Delta**)G_SCRATCH_HEAD += 1;
+    *(ActorStepDelta**)G_SCRATCH_HEAD += 1;
     return s->moved;
 }
 

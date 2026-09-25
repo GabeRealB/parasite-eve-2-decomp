@@ -274,34 +274,6 @@ typedef struct Actor401000Msg {
     /* 0x4 */ s32 field_4;
 } Actor401000Msg;
 
-/// Height-clamp row `func_actor_401000_801352DC` scans: `field_0` / `field_2`
-/// are matched against `GpAreaKey::stage` / `area`, and when a row
-/// matches the coordinate's Y is clamped to [`lo`, `hi`] and its `flg` is
-/// cleared so the local matrix is rebuilt. Two rows
-/// (`(1, 3, -0x12C, 0)`, `(5, 0x1D, 0, 0x12C)`). Same shape as
-/// `Actor401300HeightClamp` / `Actor01900HeightClamp`.
-typedef struct Actor401000HeightClamp {
-    /* 0x0 */ s16  field_0;
-    /* 0x2 */ s16  field_2;
-    /* 0x4 */ s16  lo;
-    /* 0x6 */ s16  hi;
-    /* 0x8 */ byte pad_8[8];
-} Actor401000HeightClamp;
-STATIC_ASSERT_SIZEOF(Actor401000HeightClamp, 0x10);
-
-/// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `func_actor_401000_80135374`.
-/// Same shape as `Actor401300Delta` / `Actor01900Delta`: the `GpDeltaScratch`
-/// filled by `func_800E0C10`, its integer `step` (Y clamped to ±0x12C while a
-/// height-clamp row matches, XZ normalised through the GTE past 0x96), the XZ
-/// length `len`, and `moved`, the return value.
-typedef struct Actor401000Delta {
-    /* 0x00 */ GpDeltaScratch delta;
-    /* 0x10 */ SVECTOR        step;
-    /* 0x18 */ s32            len;
-    /* 0x1C */ s32            moved;
-} Actor401000Delta;
-STATIC_ASSERT_SIZEOF(Actor401000Delta, 0x20);
-
 /// 0x10-byte `G_SCRATCH_HEAD` block `func_actor_401000_80136E20` carves off
 /// for the offset from the actor to `Player_Status.coordMtx`, the wrapped turn
 /// toward it and the facing yaw.
@@ -368,9 +340,9 @@ extern u16 D_actor_401000_80155000;
 /// `Actor00100_D1B9F4` one `Actor00100_Fn03340` reads.
 extern SVECTOR D_actor_401000_80154F30[12];
 
-/// The two `Actor401000HeightClamp` rows `func_actor_401000_801352DC` and
+/// The two `ActorHeightClamp` rows `func_actor_401000_801352DC` and
 /// `func_actor_401000_80135374` walk.
-extern Actor401000HeightClamp D_actor_401000_80154FD0[];
+extern ActorHeightClamp D_actor_401000_80154FD0[];
 
 /// Message 0x3E9 payload of `func_actor_401000_801380B8`: the player task's
 /// world position, then the yaw from the actor to it, handed straight to the
@@ -1736,10 +1708,10 @@ void func_actor_401000_80134F98(Task* arg0)
 
 void func_actor_401000_801352DC(GpAreaKey* session, GsCOORDINATE2* coord)
 {
-    Actor401000HeightClamp* row;
-    s32                     offset;
-    s32                     lo;
-    s16                     i;
+    ActorHeightClamp* row;
+    s32               offset;
+    s32               lo;
+    s16               i;
 
     for (i = 0; i < 2; i++) {
         row = &D_actor_401000_80154FD0[i];
@@ -1764,8 +1736,8 @@ void func_actor_401000_801352DC(GpAreaKey* session, GsCOORDINATE2* coord)
 /// same rows to clamp the root Y. Same helper as `Actor401300_HasHeightClamp`.
 static __inline__ s32 Actor401000_HasHeightClamp(GpAreaKey* session)
 {
-    Actor401000HeightClamp* row;
-    s16                     i;
+    ActorHeightClamp* row;
+    s16               i;
 
     for (i = 0; i < 2; i++) {
         row = &D_actor_401000_80154FD0[i];
@@ -1777,7 +1749,7 @@ static __inline__ s32 Actor401000_HasHeightClamp(GpAreaKey* session)
 }
 
 /// Root-coordinate step, the 401000 twin of `func_actor_401300_80132C78`:
-/// carve the 0x20-byte `Actor401000Delta` off `G_SCRATCH_HEAD`, fill its delta
+/// carve the 0x20-byte `ActorStepDelta` off `G_SCRATCH_HEAD`, fill its delta
 /// from the `rec` obstacle record, clamp the Y step to ±0x12C while a
 /// height-clamp row matches, hand the XZ step to the GTE normalisation once it
 /// passes 0x96, and step the root coordinate by each component. Reports
@@ -1791,19 +1763,19 @@ static __inline__ s32 Actor401000_HasHeightClamp(GpAreaKey* session)
 /// block pointer out of the RTL, which is what tips that fight the other way.
 s32 func_actor_401000_80135374(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2, s16 arg3)
 {
-    Actor401000Delta* head;
-    Actor401000Delta* s;
-    s16               vy;
-    s16               clamped;
-    SVECTOR*          step;
+    ActorStepDelta* head;
+    ActorStepDelta* s;
+    s16             vy;
+    s16             clamped;
+    SVECTOR*        step;
 
     if (D_80072729 == 1) {
         return 0;
     }
-    head                                = *(Actor401000Delta**)G_SCRATCH_HEAD;
-    *(Actor401000Delta**)G_SCRATCH_HEAD = head - 1;
-    s                                   = head - 1;
-    s->moved                            = 0;
+    head                              = *(ActorStepDelta**)G_SCRATCH_HEAD;
+    *(ActorStepDelta**)G_SCRATCH_HEAD = head - 1;
+    s                                 = head - 1;
+    s->moved                          = 0;
     if (func_800E0C10(rec, &s->delta, arg2, NULL) != 0) {
         s->step.vx = head[-1].delta.vx.w >> 16;
         s->step.vy = s->delta.vy.w >> 16;
@@ -1861,7 +1833,7 @@ s32 func_actor_401000_80135374(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2, s16
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    *(Actor401000Delta**)G_SCRATCH_HEAD += 1;
+    *(ActorStepDelta**)G_SCRATCH_HEAD += 1;
     return s->moved;
 }
 

@@ -107890,7 +107890,7 @@ loop-with-`goto` shape scored 47.1% with `insert=10 delete=9`.
 
 The neighbouring unmatched `func_actor_401000_80135374` reads the same
 `D_actor_401000_80154FD0` table and is the twins' `HasHeightClamp` helper.
-`Actor401000HeightClamp` (2 x 0x10 rows, `(1, 3, -0x12C, 0)` and
+`ActorHeightClamp` (2 x 0x10 rows, `(1, 3, -0x12C, 0)` and
 `(5, 0x1D, 0, 0x12C)`) now lives in `include/actors/actor_401000.h`.
 
 Inputs: `base_1.i` SHA256

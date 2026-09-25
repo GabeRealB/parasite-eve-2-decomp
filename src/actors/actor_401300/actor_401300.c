@@ -213,32 +213,7 @@ typedef union Actor401300Event {
     u16 w[2];
 } Actor401300Event;
 
-/// Height-clamp row `func_actor_401300_80132BE4` scans: `field_0` / `field_2`
-/// are matched against `GpAreaKey::stage` / `area`, and when a row
-/// matches the coordinate's Y is clamped to [`lo`, `hi`]. Same shape as
-/// `Actor01900HeightClamp`.
-typedef struct Actor401300HeightClamp {
-    /* 0x0 */ s16  field_0;
-    /* 0x2 */ s16  field_2;
-    /* 0x4 */ s16  lo;
-    /* 0x6 */ s16  hi;
-    /* 0x8 */ byte pad_8[8];
-} Actor401300HeightClamp;
-STATIC_ASSERT_SIZEOF(Actor401300HeightClamp, 0x10);
-
-extern Actor401300HeightClamp D_actor_401300_801589C8[];
-
-/// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `func_actor_401300_80132C78`.
-/// Same shape as `Actor01900Delta`: the `GpDeltaScratch` filled by
-/// `func_800E0C10`, its integer `step` (scaled to length 0xAF when longer),
-/// the XZ length `len`, and `moved`, the return value.
-typedef struct Actor401300Delta {
-    /* 0x00 */ GpDeltaScratch delta;
-    /* 0x10 */ SVECTOR        step;
-    /* 0x18 */ s32            len;
-    /* 0x1C */ s32            moved;
-} Actor401300Delta;
-STATIC_ASSERT_SIZEOF(Actor401300Delta, 0x20);
+extern ActorHeightClamp D_actor_401300_801589C8[];
 
 /// Halfword table in the overlay's data; element 0 is the value the 0xB05/0xC
 /// event writes into `GpEnemy::hp`. Declared as an array: a scalar lets
@@ -579,10 +554,10 @@ s32 func_actor_401300_80132910(Task* arg0, GpRec18* recs, s16 count)
 
 void func_actor_401300_80132BE4(GpAreaKey* session, GsCOORDINATE2* coord)
 {
-    Actor401300HeightClamp* row;
-    s32                     offset;
-    s32                     lo;
-    s16                     i;
+    ActorHeightClamp* row;
+    s32               offset;
+    s32               lo;
+    s16               i;
 
     for (i = 0; i < 2; i++) {
         row = &D_actor_401300_801589C8[i];
@@ -601,8 +576,8 @@ void func_actor_401300_80132BE4(GpAreaKey* session, GsCOORDINATE2* coord)
 
 static __inline__ s32 Actor401300_HasHeightClamp(GpAreaKey* session)
 {
-    Actor401300HeightClamp* row;
-    s16                     i;
+    ActorHeightClamp* row;
+    s16               i;
 
     for (i = 0; i < 2; i++) {
         row = &D_actor_401300_801589C8[i];
@@ -615,20 +590,20 @@ static __inline__ s32 Actor401300_HasHeightClamp(GpAreaKey* session)
 
 s32 func_actor_401300_80132C78(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2, s16 arg3)
 {
-    Actor401300Delta* head;
-    Actor401300Delta* s;
-    Actor401300Delta* blk;
-    s16               vy;
-    SVECTOR*          step;
+    ActorStepDelta* head;
+    ActorStepDelta* s;
+    ActorStepDelta* blk;
+    s16             vy;
+    SVECTOR*        step;
 
     if (D_80072729 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
-    head                                = *(Actor401300Delta**)G_SCRATCH_HEAD;
-    blk                                 = head - 1;
-    *(Actor401300Delta**)G_SCRATCH_HEAD = blk;
-    s                                   = blk;
-    s->moved                            = 0;
+    head                              = *(ActorStepDelta**)G_SCRATCH_HEAD;
+    blk                               = head - 1;
+    *(ActorStepDelta**)G_SCRATCH_HEAD = blk;
+    s                                 = blk;
+    s->moved                          = 0;
     if (func_800E0C10(rec, &s->delta, arg2, NULL) != 0) {
         s->step.vx = head[-1].delta.vx.w >> 16;
         s->step.vy = s->delta.vy.w >> 16;
@@ -678,7 +653,7 @@ s32 func_actor_401300_80132C78(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2, s16
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    *(Actor401300Delta**)G_SCRATCH_HEAD += 1;
+    *(ActorStepDelta**)G_SCRATCH_HEAD += 1;
     return s->moved;
 }
 

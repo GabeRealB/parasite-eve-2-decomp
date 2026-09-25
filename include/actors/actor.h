@@ -112,6 +112,17 @@ typedef struct ActorDeltaFlag {
 } ActorDeltaFlag;
 STATIC_ASSERT_SIZEOF(ActorDeltaFlag, 0x14);
 
+/// A step resolved against the contact records: the 16.16 deltas
+/// `func_800E0C10` resolves, their integer part (its XZ part capped in
+/// length), that part's XZ length, and whether the X or Z delta was nonzero.
+typedef struct ActorStepDelta {
+    GpDeltaScratch delta;
+    SVECTOR        step;
+    s32            len;
+    s32            moved;
+} ActorStepDelta;
+STATIC_ASSERT_SIZEOF(ActorStepDelta, 0x20);
+
 /// Line-of-sight test between the player and an actor: each one's root
 /// translation, raised to eye height, is put through the view rotation into
 /// `out` and `from`, and `hit` is the collision query's answer.
@@ -334,6 +345,19 @@ typedef struct ActorMoveScratch {
     s16     playerYaw;
 } ActorMoveScratch;
 STATIC_ASSERT_SIZEOF(ActorMoveScratch, 0x38);
+
+/* Tables. */
+
+/// One row of a per-room height clamp: when `field_0` / `field_2` match the
+/// session's stage and area, the actor's height is clamped to [`lo`, `hi`].
+typedef struct ActorHeightClamp {
+    s16  field_0;
+    s16  field_2;
+    s16  lo;
+    s16  hi;
+    byte pad_8[8];
+} ActorHeightClamp;
+STATIC_ASSERT_SIZEOF(ActorHeightClamp, 0x10);
 
 /* Work blocks of actors that carry the same code. */
 
