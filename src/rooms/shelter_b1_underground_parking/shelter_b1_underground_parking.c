@@ -2013,7 +2013,7 @@ void func_shelter_b1_underground_parking_8018101C(DialogPrompt* prompt, UiObject
                     Ui_SpawnFromDesc(&D_shelter_b1_underground_parking_80187164, 1, 1, 1, obj);
                 }
                 obj->status = 0;
-            } else if (((RoomShopTask*)obj->owner->parent)->mode == mode) {
+            } else if ((obj->owner->parent->spawnArg1 >> 16) == mode) {
                 child = Ui_SpawnFromDesc(&D_shelter_b1_underground_parking_801871D4, itemId, 1, 1, obj);
                 if (child != NULL) {
                     Ui_ClampDialogRect((UiPanel*)child, (UiPanel*)prompt, (UiPanel*)obj);

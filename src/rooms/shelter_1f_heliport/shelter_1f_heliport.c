@@ -988,7 +988,7 @@ void func_shelter_1f_heliport_8017EF40(DialogPrompt* prompt, UiObject* obj)
                     Ui_SpawnFromDesc(&D_shelter_1f_heliport_801810FC, 1, 1, 1, obj);
                 }
                 obj->status = 0;
-            } else if (((RoomShopTask*)obj->owner->parent)->mode == mode) {
+            } else if ((obj->owner->parent->spawnArg1 >> 16) == mode) {
                 child = Ui_SpawnFromDesc(&D_shelter_1f_heliport_8018116C, itemId, 1, 1, obj);
                 if (child != NULL) {
                     Ui_ClampDialogRect((UiPanel*)child, (UiPanel*)prompt, (UiPanel*)obj);

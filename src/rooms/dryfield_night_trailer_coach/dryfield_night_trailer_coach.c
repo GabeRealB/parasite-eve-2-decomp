@@ -956,7 +956,7 @@ void func_dryfield_night_trailer_coach_8017F02C(DialogPrompt* prompt, UiObject* 
                     Ui_SpawnFromDesc(&D_dryfield_night_trailer_coach_80184644, 1, 1, 1, obj);
                 }
                 obj->status = 0;
-            } else if (((RoomShopTask*)obj->owner->parent)->mode == mode) {
+            } else if ((obj->owner->parent->spawnArg1 >> 16) == mode) {
                 child = Ui_SpawnFromDesc(&D_dryfield_night_trailer_coach_801846B4, itemId, 1, 1, obj);
                 if (child != NULL) {
                     Ui_ClampDialogRect((UiPanel*)child, (UiPanel*)prompt, (UiPanel*)obj);

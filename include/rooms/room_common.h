@@ -104,16 +104,6 @@ typedef struct RoomShopStock {
 } RoomShopStock;
 STATIC_ASSERT_SIZEOF(RoomShopStock, 0x4);
 
-/// View of the task that owns a shop / vending-machine panel, used by the row
-/// handlers in the parking and shelter rooms. `Task` declares offset 0x34 as a
-/// single `s32 spawnArg1`, but the shop tasks keep a mode in its upper halfword
-/// and read that halfword on its own, so the handlers reach the mode through
-/// this view of the same task rather than through `Task`.
-typedef struct RoomShopTask {
-    /* 0x00 */ byte pad_0[0x36];
-    /* 0x36 */ s16  mode;
-} RoomShopTask;
-
 /// 0xA4 work block a shop / vending-machine panel task allocates and parks in
 /// `Task::work`: the `UiList` the panel is drawn from, followed by the ids of
 /// the items the room currently offers. The overlay's list builder fills

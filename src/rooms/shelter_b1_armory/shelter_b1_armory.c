@@ -966,7 +966,7 @@ void func_shelter_b1_armory_8017EF78(DialogPrompt* prompt, UiObject* obj)
                     Ui_SpawnFromDesc(&D_shelter_b1_armory_80182444, 1, 1, 1, obj);
                 }
                 obj->status = 0;
-            } else if (((RoomShopTask*)obj->owner->parent)->mode == mode) {
+            } else if ((obj->owner->parent->spawnArg1 >> 16) == mode) {
                 child = Ui_SpawnFromDesc(&D_shelter_b1_armory_801824B4, itemId, 1, 1, obj);
                 if (child != NULL) {
                     Ui_ClampDialogRect((UiPanel*)child, (UiPanel*)prompt, (UiPanel*)obj);

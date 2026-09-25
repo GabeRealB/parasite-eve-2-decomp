@@ -2153,7 +2153,7 @@ void func_acropolis_security_room_80180E34(Task* arg0)
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyFT4(prim);
-    mem->scale  = *(u16*)&arg0->spawnArg1 & 3;
+    mem->scale  = arg0->spawnArg1 & 3;
     prim->tpage = 0xAB;
     prim->code |= 3;
     prim->clut  = D_acropolis_security_room_80183970[mem->scale].clut << 6;

@@ -922,7 +922,7 @@ void func_mist_parking_8017F108(DialogPrompt* prompt, UiObject* obj)
                     Ui_SpawnFromDesc(&D_mist_parking_80186600, 1, 1, 1, obj);
                 }
                 obj->status = 0;
-            } else if (((RoomShopTask*)obj->owner->parent)->mode == mode) {
+            } else if ((obj->owner->parent->spawnArg1 >> 16) == mode) {
                 child = Ui_SpawnFromDesc(&D_mist_parking_80186670, itemId, 1, 1, obj);
                 if (child != NULL) {
                     Ui_ClampDialogRect((UiPanel*)child, (UiPanel*)prompt, (UiPanel*)obj);

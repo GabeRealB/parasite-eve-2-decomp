@@ -286,7 +286,7 @@ void func_shelter_b6_growth_room_8017E564(Task* task)
 
     work->age++;
     if (task->state == 0) {
-        work->scale = (*(u16*)&task->spawnArg1) & 0xFFF;
+        work->scale = task->spawnArg1 & 0xFFF;
 
         if (task->spawnArg1 & 0xF000) {
             work->period = (task->spawnArg1 >> 12) & 0x7;
@@ -422,7 +422,7 @@ void func_shelter_b6_growth_room_8017EAC8(Task* task)
 
     work->age++;
     if (task->state == 0) {
-        work->scale = (*(u16*)&task->spawnArg1) & 0xFFF;
+        work->scale = task->spawnArg1 & 0xFFF;
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         work->angle = (Gp_LcgState >> 16) & 0xFFF;
 

@@ -341,7 +341,7 @@ void func_actor_107600_80132160(Task* arg0)
             }
             if (wp->step == 0) {
                 work->field_140.step = 4;
-                work->field_13A      = (((u8*)&arg0->spawnArg1)[3] & 0xF) * 30;
+                work->field_13A      = (((u32)arg0->spawnArg1 >> 24) & 0xF) * 30;
                 return;
             }
             work->field_140.step++;
@@ -449,7 +449,7 @@ void func_actor_107600_80132514(Task* arg0)
             }
             if (wp->step == 0) {
                 work->field_140.step = 4;
-                work->field_13A      = (((u8*)&arg0->spawnArg1)[3] & 0xF) * 30;
+                work->field_13A      = (((u32)arg0->spawnArg1 >> 24) & 0xF) * 30;
                 return;
             }
             work->field_140.step++;
@@ -773,7 +773,7 @@ void func_actor_107600_80132ED0(Task* arg0)
     u32              variant;
 
     obj     = arg0->extra;
-    variant = *(u8*)&arg0->spawnArg1;
+    variant = (u8)arg0->spawnArg1;
     enemy   = arg0->spawnArg2;
     coord   = obj->coords;
     if (variant == 0xFF || (work = (Actor107600Work*)memCalloc(0x16C, false), arg0->work = (TaskIdMap*)work, work == NULL)) {

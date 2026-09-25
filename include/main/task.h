@@ -118,6 +118,8 @@ STATIC_ASSERT_SIZEOF(TaskIdMap, 0x8);
 /// children form a ring (`firstChild` / `nextSibling`). The spawn helpers build
 /// one from a `TaskDesc`, which supplies its `callback` and `priority`;
 /// `spawnArg1`, `spawnArg2` and `extra` carry whatever the spawned type needs.
+/// The task system treats `spawnArg1` as one word; a type that packs several
+/// values into it takes them apart with shifts and masks of that word.
 ///
 /// Several further slots are the task's own storage that the task system borrows
 /// to run its protocol, so they hold whatever the spawned type puts there between

@@ -307,7 +307,7 @@ void Gp_CommitSpawnLoc(Task* task)
 {
     u8 val;
 
-    val                        = *(u8*)&task->spawnArg1;
+    val                        = (u8)task->spawnArg1;
     Mc_SaveData.at4.loc.view   = val;
     gGameSession->at4.loc.view = val;
     taskKill(task);

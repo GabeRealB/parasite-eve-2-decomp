@@ -1559,7 +1559,7 @@ void func_shelter_b4_reservoir_801813F0(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            work->scale = (*(u16*)&task->spawnArg1) & 0xFFF;
+            work->scale = task->spawnArg1 & 0xFFF;
 
             if (task->spawnArg1 & 0xF000) {
                 work->period = (task->spawnArg1 >> 12) & 0x7;
