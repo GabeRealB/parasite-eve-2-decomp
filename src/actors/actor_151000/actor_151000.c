@@ -1,8 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_151000.h"
-#include "actors/actors_shared_801326b4.h"
-#include "actors/actors_shared_801366fc.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/D4.h"
@@ -41,66 +39,64 @@ void func_actor_151000_80131E24(Task* task)
     }
 }
 
-void func_actor_151000_80131EE0(s32 arg0)
+/// Starts a fade to black lasting `frames` frames: seeds the countdown and,
+/// unless it is zero, spawns the fade task.
+void func_actor_151000_80131EE0(s32 frames)
 {
-    D_actor_151000_8013D378 = arg0;
-    if (arg0 != 0) {
+    D_actor_151000_8013D378 = frames;
+    if (frames != 0) {
         Task_SpawnFromTable(&D_actor_151000_80133360, 0, 0, 0);
     }
 }
 
-/// State 0 of the `ActorsShared80131f9c` dispatcher: allocate the work block,
-/// publish it in `ActorsShared80131f9cWork` and on the task's work slot, point
-/// the model's light and color matrices and its animation context at it.
+/// State 0 of the enemy's task: allocates the work block, publishes it in
+/// `D_actor_151000_8013D37C` and on the task's work slot, points the model's
+/// light and colour matrices and its animation context at it, publishes the
+/// task in `D_actor_151000_8013D380`, then runs the runner once and advances
+/// the task to state 1.
 ///
-/// Every access to the block goes through `ActorsShared80131f9cWork` rather
-/// than the `memCalloc` result, which is why the pointer is reloaded at each
-/// use instead of staying in a callee-saved register; the same two loads
-/// publish the block's matrices. `task->msgTable` takes
-/// `D_actor_151000_8013D2B0`.
-///
-/// The position it forwards to `func_800D7A9C` is the model root's translation
-/// with its Y dropped by 0x320 — the standing height the light solve is cast
-/// from, the ground offset every carrier of this body applies.
-void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
+/// Every access to the block after the null check goes through the global
+/// rather than the `memCalloc` result, which is why the pointer is reloaded at
+/// each use.
+void func_actor_151000_80131F1C(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor151000Work* work;
     TmdObject*       obj;
     GsCOORDINATE2*   coord;
 
-    obj                      = task->extra;
-    coord                    = obj->coords;
-    work                     = memCalloc(0x4C0, 0);
-    ActorsShared80131f9cWork = work;
-    task->work               = work;
+    obj                     = task->extra;
+    coord                   = obj->coords;
+    work                    = memCalloc(0x4C0, 0);
+    D_actor_151000_8013D37C = work;
+    task->work              = work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback       = ActorsShared801366fc;
-    coord->sub               = &gGfxViewCoord;
-    enemy->field_4           = &coord->coord;
-    enemy->field_48          = 0;
-    enemy->node.targeted     = 0;
-    enemy->node.flags        = 1;
-    obj->otOffset            = 1;
-    obj->lightMtx            = &ActorsShared80131f9cWork->light;
-    obj->colorMtx            = &ActorsShared80131f9cWork->color;
-    vec.vx                   = coord->workm.t[0];
-    vec.vy                   = coord->workm.t[1] - 0x320;
-    ActorsShared801326b4Task = task;
-    vec.vz                   = coord->workm.t[2];
+    task->exitCallback      = func_actor_151000_801324D4;
+    coord->sub              = &gGfxViewCoord;
+    enemy->field_4          = &coord->coord;
+    enemy->field_48         = 0;
+    enemy->node.targeted    = 0;
+    enemy->node.flags       = 1;
+    obj->otOffset           = 1;
+    obj->lightMtx           = &D_actor_151000_8013D37C->light;
+    obj->colorMtx           = &D_actor_151000_8013D37C->color;
+    vec.vx                  = coord->workm.t[0];
+    vec.vy                  = coord->workm.t[1] - 0x320;
+    D_actor_151000_8013D380 = task;
+    vec.vz                  = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&ActorsShared80131f9cWork->anim, D_actor_151000_8013D2EC, obj,
-                  &ActorsShared80131f9cWork->field_34C, ActorsShared80131f9cWork->slots);
-    ActorsShared80131f9cWork->field_480  = 1;
-    ActorsShared80131f9cWork->field_47C  = 2;
-    ActorsShared80131f9cWork->field_4B2  = 0;
-    ActorsShared80131f9cWork->field_4B4  = 0;
-    ActorsShared80131f9cWork->field_4B8  = 0;
-    ActorsShared80131f9cWork->pad_4BC[0] = 0;
-    task->msgTable                       = D_actor_151000_8013D2B0;
+    func_800B3F84(&D_actor_151000_8013D37C->anim, D_actor_151000_8013D2EC, obj,
+                  &D_actor_151000_8013D37C->field_34C, D_actor_151000_8013D37C->slots);
+    D_actor_151000_8013D37C->field_480 = 1;
+    D_actor_151000_8013D37C->field_47C = 2;
+    D_actor_151000_8013D37C->field_4B2 = 0;
+    D_actor_151000_8013D37C->field_4B4 = 0;
+    D_actor_151000_8013D37C->field_4B8 = 0;
+    D_actor_151000_8013D37C->field_4BC = 0;
+    task->msgTable                     = D_actor_151000_8013D2B0;
     func_actor_151000_80132084(task);
     task->state += 1;
 }

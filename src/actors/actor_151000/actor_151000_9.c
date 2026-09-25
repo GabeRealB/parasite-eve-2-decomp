@@ -1,23 +1,26 @@
 #include "common.h"
 
-#include "actors/actors_shared_801324fc.h"
+#include "actors/actor_151000.h"
+#include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
 #include "main/sound.h"
+#include "main/task.h"
 #include "main/tmd.h"
 
 /// Plays a step sound whenever animation slot 1 rolls onto a new record whose
 /// flags nibble is 0x10 or 0x20 - the two feet - panned and attenuated from
 /// the second coordinate of the task's model. The record is latched in
 /// `field_4B8` so each one fires once.
-void ActorsShared801324fc(Task* task)
+void func_actor_151000_801324FC(Task* task)
 {
-    ActorsShared801324fcWork* work;
-    GsCOORDINATE2*            obj;
-    GpAnimRec*                rec;
-    s32                       kind;
-    s32                       id;
-    s32                       pan;
+    Actor151000Work* work;
+    GsCOORDINATE2*   obj;
+    GpAnimRec*       rec;
+    s32              kind;
+    s32              id;
+    s32              pan;
 
-    work = (ActorsShared801324fcWork*)task->work;
+    work = (Actor151000Work*)task->work;
     obj  = ((TmdObject*)task->extra)->coords + 1;
     rec  = Gp_AnimGetRec(&work->anim, &work->slots[1]);
     if (rec == NULL || rec == work->field_4B8) {

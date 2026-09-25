@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "actors/actor_151000.h"
 #include "gameplay/3CD8.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -9,13 +10,11 @@
 
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
-/// Draws the actor's ground shadow quad under the model root, skipping actors
-/// that are pending a deferred kill (`field_C & 0x80`) or that have no aux
-/// buffer yet. The world position is the translation of the root part's
-/// `workm`, staged in a scratchpad VECTOR3 rather than on the stack. Unlike
-/// `ActorsShared80132378`, which draws at a fixed brightness, the quad here
-/// follows the room's current `Gp_State1C` level.
-void ActorsShared8013242c(Task* task)
+/// Draws the enemy's ground shadow quad under the model root, unless the model
+/// is hidden (`flags & 0x80`) or has no buffer yet. The root part's `workm`
+/// translation is staged in a scratchpad VECTOR3 rather than on the stack, and
+/// the quad takes the room's current ground shade.
+void func_actor_151000_80132A38(Task* task)
 {
     TmdObject*     obj;
     GsCOORDINATE2* coord;
