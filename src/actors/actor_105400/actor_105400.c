@@ -20,112 +20,6 @@
 #include "main/task.h"
 #include "main/wipsys.h"
 
-/// Work block of the task this enemy hangs off -- the part spawn reaches it as
-/// `task->parent->work`, and the part teardown reads the sound id `field_31C`
-/// from it. `field_334` is the enemy's sub-state index: it selects the spawn
-/// position in `D_actor_105400_80133A20` and also which of the two per-enemy
-/// death flags the part spawn raises. This actor's own spawn always sets it
-/// to 1.
-///
-/// The pose half is what the per-frame handlers drive: `field_32C` is the
-/// animation sub-state `func_actor_105400_8013222C` dispatches on, `field_328`
-/// the row of the clip table that state walks, `field_32A` the countdown the
-/// LCG reseeds and `field_320` / `field_324` the pose the pose tick
-/// `func_actor_105400_80133610` queues and the frames it has counted for it.
-/// `field_2FC` is the local coordinate matrix that handler copies into the
-/// model's own coordinate each frame. `field_320` / `field_324` are unsigned
-/// here: every signed read of them casts at the use.
-typedef struct Actor05400Work {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[10];
-    /* 0x1A4 */ GpAnimPose poses[10];
-    /* 0x244 */ MATRIX     field_244;
-    /* 0x264 */ MATRIX     field_264;
-    /* 0x284 */ GpObj      node0;
-    /* 0x2A4 */ GpObj      node1;
-    /* 0x2C4 */ GpRec18    rec18[2];
-    /* 0x2F4 */ GpEffArg   field_2F4;
-    /* 0x2FC */ MATRIX     field_2FC;
-    /* 0x31C */ s32        field_31C;
-    /* 0x320 */ u16        field_320;
-    /* 0x322 */ s16        field_322;
-    /* 0x324 */ u16        field_324;
-    /* 0x326 */ u16        field_326;
-    /* 0x328 */ u16        field_328;
-    /* 0x32A */ u16        field_32A;
-    /* 0x32C */ u16        field_32C;
-    /* 0x32E */ u16        field_32E;
-    /* 0x330 */ u16        field_330;
-    /* 0x332 */ s16        field_332;
-    /* 0x334 */ s16        field_334;
-    /* 0x336 */ s16        field_336;
-    /* 0x338 */ s16        field_338;
-    /* 0x33A */ s16        field_33A;
-    /* 0x33C */ s16        field_33C;
-    /* 0x33E */ s16        field_33E;
-} Actor05400Work;
-STATIC_ASSERT_SIZEOF(Actor05400Work, 0x340);
-
-/// 0x48-byte part object the spawn allocates with `memCalloc` and parks in
-/// `Task::work`. It leads with the `GpObj` list node linked into
-/// `Gp_ObjLists[2]` -- and the one the part teardown hands back to
-/// `Gp_UnlinkObj` -- so `obj.ctx.recs` is the single-entry `GpRec18` collision
-/// table at 0x20. `field_38` holds the same coordinate `obj.coord` points at,
-/// and `field_46` is the sub-state the teardown reads back to pick its death
-/// flag.
-typedef struct Actor05400Part {
-    /* 0x00 */ GpObj    obj;
-    /* 0x20 */ GpRec18  rec18[1];
-    /* 0x38 */ GpEffArg field_38; // record this part's death effect is spawned with
-    /* 0x40 */ s16      field_40;
-    /* 0x42 */ u16      field_42;
-    /* 0x44 */ s16      field_44;
-    /* 0x46 */ s16      field_46;
-} Actor05400Part;
-STATIC_ASSERT_SIZEOF(Actor05400Part, 0x48);
-
-/// The 0x18-byte block the hit handler pushes on the scratchpad stack at
-/// `0x1F8003FC`: the player-to-enemy delta and the effect offset it hands
-/// `Gp_SpawnEff` / `func_800FDB18`.
-typedef struct Actor05400Scratch {
-    /* 0x00 */ VECTOR  delta;
-    /* 0x10 */ SVECTOR ofs;
-} Actor05400Scratch;
-STATIC_ASSERT_SIZEOF(Actor05400Scratch, 0x18);
-
-/// Spawn position copied into a coordinate's translation, one entry per
-/// `Actor05400Work::field_334` sub-state.
-typedef struct Actor05400SpawnPos {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 y;
-    /* 0x4 */ s16 z;
-} Actor05400SpawnPos;
-STATIC_ASSERT_SIZEOF(Actor05400SpawnPos, 0x6);
-
-/// One row of the two clip/scale tables (`D_actor_105400_8013CE84` for sub-
-/// state 0, `D_actor_105400_8013CE90` for 1) the animation schedule walks by
-/// `Actor05400Work::field_328`. A zero `field_0` advances the row; a non-zero
-/// one ends the clip and reseeds the countdown, so each table's last row is
-/// its terminator. `field_2` is the scale that row hands
-/// `func_actor_105400_801336D4`.
-typedef struct Actor05400Clip {
-    /* 0x0 */ s16 field_0;
-    /* 0x2 */ u16 field_2;
-} Actor05400Clip;
-STATIC_ASSERT_SIZEOF(Actor05400Clip, 0x4);
-
-/// One row of the per-view sound table `D_actor_105400_8013CE64`, indexed by
-/// `GameSession::at4.loc.view`. `field_0` and `field_2` are the two s8
-/// parameters handed with the work block's sound id: to `SndEvt_EnqueueType6`
-/// when the spawn starts the sound, to `SndEvt_EnqueueTypeA` each frame after.
-typedef struct Actor05400SndRow {
-    /* 0x0 */ s8 field_0;
-    /* 0x1 */ s8 pad_1;
-    /* 0x2 */ s8 field_2;
-    /* 0x3 */ s8 pad_3;
-} Actor05400SndRow;
-STATIC_ASSERT_SIZEOF(Actor05400SndRow, 0x4);
-
 /// Spawn offsets at `D_actor_105400_80133A30`: the spawn reads only the second
 /// vector, `field_8`, into the enemy's body position and the second list
 /// node's position.
@@ -136,9 +30,9 @@ typedef struct Actor05400Pose {
 STATIC_ASSERT_SIZEOF(Actor05400Pose, 0x10);
 
 extern GpPairSrcE         D_actor_105400_8013CE40;
-extern Actor05400SpawnPos D_actor_105400_80133A20[2];
-extern Actor05400Clip     D_actor_105400_8013CE84[];
-extern Actor05400SndRow   D_actor_105400_8013CE64[];
+extern Actor05300SpawnPos D_actor_105400_80133A20[2];
+extern Actor05300Clip     D_actor_105400_8013CE84[];
+extern Actor05300SndRow   D_actor_105400_8013CE64[];
 extern u32                D_actor_105400_8013CE5C;
 extern s32                D_actor_105400_8013CE50[];
 extern SVECTOR            D_actor_105400_80133A40[];
@@ -156,12 +50,12 @@ void func_8017FD88(s32 arg0);
 
 extern s8 D_80115416;
 
-void func_800B4114(Actor05400Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
+void func_800B4114(Actor05300Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-extern Actor05400Clip D_actor_105400_8013CE90[];
+extern Actor05300Clip D_actor_105400_8013CE90[];
 extern s16            D_actor_105400_80133A18[];
 extern s16            D_actor_105400_80133A2C[];
 
@@ -183,8 +77,8 @@ void func_actor_105400_80133838(GpEnemy* arg0, Task* arg1);
 /// and plays the hit sound.
 void func_actor_105400_80131E3C(Task* arg0)
 {
-    Actor05400Scratch* scr;
-    Actor05400Work*    work;
+    Actor05300Scratch* scr;
+    Actor05300Work*    work;
     GpEnemy*           enemy;
     GsCOORDINATE2*     coord;
     s32                damage;
@@ -193,7 +87,7 @@ void func_actor_105400_80131E3C(Task* arg0)
     s32                snd;
     s32                i;
 
-    scr    = --*(Actor05400Scratch**)0x1F8003FC;
+    scr    = --*(Actor05300Scratch**)0x1F8003FC;
     coord  = ((TmdObject*)arg0->extra)->coords;
     work   = arg0->work;
     enemy  = arg0->spawnArg2;
@@ -263,7 +157,7 @@ void func_actor_105400_80131E3C(Task* arg0)
     }
 end:
     Gp_ClearRec18Occupied(work->rec18);
-    *(Actor05400Scratch**)0x1F8003FC += 1;
+    *(Actor05300Scratch**)0x1F8003FC += 1;
 }
 
 /// Idle schedule of the enemy, one of the steps the tick handler
@@ -282,7 +176,7 @@ end:
 /// with the work block's sound id.
 void func_actor_105400_8013222C(Task* arg0)
 {
-    Actor05400Work* work;
+    Actor05300Work* work;
     GsCOORDINATE2*  coord;
     u16             scale;
     s32             pan;
@@ -353,11 +247,11 @@ void func_actor_105400_8013246C(GpEnemy* arg0, Task* arg1)
     SVECTOR         ofs;
     VECTOR          pos;
     TmdObject*      obj;
-    Actor05400Work* work;
-    Actor05400Work* anim;
+    Actor05300Work* work;
+    Actor05300Work* anim;
     GsCOORDINATE2*  coord;
     GsCOORDINATE2*  tmp;
-    Actor05400Clip* clip;
+    Actor05300Clip* clip;
     u16             scale;
     s32             r;
     s8              flag;
@@ -569,8 +463,8 @@ void func_actor_105400_8013246C(GpEnemy* arg0, Task* arg1)
 void func_actor_105400_80132BAC(GpEnemy* arg0, Task* arg1)
 {
     TmdObject*      obj;
-    Actor05400Work* work;
-    Actor05400Part* part;
+    Actor05300Work* work;
+    Actor05300Part* part;
     GsCOORDINATE2*  coord;
     GpRec18*        rec18;
     s32             flag;
@@ -578,8 +472,8 @@ void func_actor_105400_80132BAC(GpEnemy* arg0, Task* arg1)
 
     obj   = arg1->extra;
     coord = obj->coords;
-    work  = (Actor05400Work*)arg1->parent->work;
-    part  = memCalloc(sizeof(Actor05400Part), 0);
+    work  = (Actor05300Work*)arg1->parent->work;
+    part  = memCalloc(sizeof(Actor05300Part), 0);
     if (part == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;
@@ -609,7 +503,7 @@ void func_actor_105400_80132BAC(GpEnemy* arg0, Task* arg1)
     part->obj.pos.vx          = 0;
     part->obj.pos.vy          = 0;
     part->obj.pos.vz          = 0;
-    part->obj.key             = ((Actor05400Work*)arg1->parent->work)->node0.key;
+    part->obj.key             = ((Actor05300Work*)arg1->parent->work)->node0.key;
     part->obj.radius          = 0xC8;
     part->obj.flags           = 1;
     Gp_LinkObj(2, &part->obj);
@@ -640,14 +534,14 @@ void func_actor_105400_80132BAC(GpEnemy* arg0, Task* arg1)
 void func_actor_105400_80132DAC(GpEnemy* arg0, Task* arg1)
 {
     VECTOR*         vec;
-    Actor05400Part* part;
+    Actor05300Part* part;
     GsCOORDINATE2*  coord;
     s32             damage;
     s32             snd;
     s32             hitTime;
 
     coord = ((TmdObject*)arg1->extra)->coords;
-    part  = (Actor05400Part*)arg1->work;
+    part  = (Actor05300Part*)arg1->work;
     switch (Gp_StateF0.field_4) {
         case 1:
             return;
@@ -685,7 +579,7 @@ void func_actor_105400_80132DAC(GpEnemy* arg0, Task* arg1)
             if (arg0->hp <= 0) {
                 arg1->state                                      = 2;
                 part->field_42                                   = 0;
-                ((Actor05400Work*)arg1->parent->work)->field_336 = 1;
+                ((Actor05300Work*)arg1->parent->work)->field_336 = 1;
                 Gp_SpawnEff(0x6005C, coord, 0x10002400, NULL);
                 Gp_SpawnEff(0x60070, coord, 0x32FF1400, NULL);
                 snd  = D_actor_105400_8013CE54;
@@ -733,7 +627,7 @@ void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1)
     TmdObject*      obj;
     TmdObject*      model;
     GsCOORDINATE2*  coord;
-    Actor05400Work* work;
+    Actor05300Work* work;
     GpAreaKey       key;
     GpAreaRec*      rec;
     GpAreaPlace*    place;
@@ -746,7 +640,7 @@ void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1)
 
     obj   = arg1->extra;
     coord = obj->coords;
-    work  = memCalloc(sizeof(Actor05400Work), 0);
+    work  = memCalloc(sizeof(Actor05300Work), 0);
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;
@@ -887,7 +781,7 @@ default_body:
 /// through the lock-on node as a damage of -1.
 void func_actor_105400_80133530(Task* arg0)
 {
-    Actor05400Work* work;
+    Actor05300Work* work;
     GpEnemy*        enemy;
     s16             timer;
 
@@ -925,7 +819,7 @@ void func_actor_105400_801335B8(Task* arg0)
 /// by one.
 void func_actor_105400_80133610(Task* arg0)
 {
-    Actor05400Work* work;
+    Actor05300Work* work;
     s32             i;
     s32             value;
 
@@ -1024,12 +918,12 @@ void func_actor_105400_801337DC(Task* arg0)
 /// to 0. The enemy is destroyed once the counter `field_42` reaches 0x3D.
 void func_actor_105400_80133838(GpEnemy* arg0, Task* arg1)
 {
-    Actor05400Part* part;
-    Actor05400Work* parentWork;
+    Actor05300Part* part;
+    Actor05300Work* parentWork;
     u16             timer;
 
-    part       = (Actor05400Part*)arg1->work;
-    parentWork = (Actor05400Work*)arg1->parent->work;
+    part       = (Actor05300Part*)arg1->work;
+    parentWork = (Actor05300Work*)arg1->parent->work;
     if (Gp_StateF0.field_4 == 0) {
         timer          = part->field_42 + 1;
         part->field_42 = timer;
@@ -1058,9 +952,9 @@ void func_actor_105400_80133838(GpEnemy* arg0, Task* arg1)
 /// bit 2 lets it run its `Gp_ReleaseStateF0Add` call.
 s32 func_actor_105400_8013391C(Task* task, s32 msgId, ActorsShared8013391cMsg* msg)
 {
-    Actor05400Work* work;
+    Actor05300Work* work;
 
-    work = (Actor05400Work*)task->work;
+    work = (Actor05300Work*)task->work;
     switch (msg->field_2) {
         case 0:
             break;
@@ -1081,7 +975,7 @@ s32 func_actor_105400_8013391C(Task* task, s32 msgId, ActorsShared8013391cMsg* m
 /// handler clears when the enemy is killed.
 s16 Actor05400_Fn01B70(Task* arg0)
 {
-    return ((Actor05400Work*)arg0->work)->field_338;
+    return ((Actor05300Work*)arg0->work)->field_338;
 }
 
 /// State handlers of the main task, indexed by `Task::state`: spawn, per-frame
