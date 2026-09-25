@@ -64,6 +64,8 @@ STATIC_ASSERT_SIZEOF(Actor135400Work, 0x498);
 /// set -- and `field_475` / `field_476` are the two bytes it latches out of the
 /// animation request: `field_476` indexes `D_actor_135400_8013A4A8` for the
 /// load and `field_475` is passed on as the slot functions' third argument.
+/// `lightMtx` / `colorMtx` are the model's own light and colour matrices,
+/// which `func_actor_135400_80132634` points the `TmdObject` at.
 ///
 /// `field_4B8` / `field_4BC` are the two part tasks the same spawn creates
 /// through `Task_SpawnFromTable` (part 1 and part 2), each of which reparents
@@ -79,7 +81,9 @@ typedef struct Actor135400MainWork {
     /* 0x474 */ s8         field_474;
     /* 0x475 */ s8         field_475;
     /* 0x476 */ s8         field_476;
-    /* 0x477 */ byte       pad_477[0x41];
+    /* 0x477 */ byte       pad_477[0x1];
+    /* 0x478 */ MATRIX     lightMtx; // the model's `TmdObject::lightMtx`
+    /* 0x498 */ MATRIX     colorMtx; // the model's `TmdObject::colorMtx`
     /* 0x4B8 */ Task*      field_4B8;
     /* 0x4BC */ Task*      field_4BC;
     /* 0x4C0 */ s32        headAim;
@@ -153,6 +157,10 @@ s32 func_actor_135400_801327E8(Task* task, s32 msgId, s32 mode, s32 arg3);
 
 /// The main task's exit callback; runs the actor's teardown.
 void func_actor_135400_80132614(Task* task);
+
+/// Points the main task's model at the work block's own light and colour
+/// matrices; built by `actor_135400_3`.
+void func_actor_135400_80132634(Task* task);
 
 /// Main-executable helper the spawn runs on the flag-clear path, once the
 /// actor is placed. Unmatched, so declared here as the sibling packages do.

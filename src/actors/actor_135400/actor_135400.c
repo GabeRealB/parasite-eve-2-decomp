@@ -1,7 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_135400.h"
-#include "actors/actors_shared_80132f24.h"
 #include "actors/actors_shared_8016a538.h"
 
 #include "main/gameflag.h"
@@ -144,7 +143,7 @@ void func_actor_135400_80132064(Task* arg0)
     if (spawned != NULL) {
         work->field_4BC = spawned;
     }
-    ActorsShared80132f24(arg0);
+    func_actor_135400_80132634(arg0);
     arg0->msgTable = &D_actor_135400_8013A4D0;
     func_actor_135400_801327E8(arg0, 0x7D5, 1, 0);
     if (GameFlag_GetNibble(0x6C) <= 0) {
