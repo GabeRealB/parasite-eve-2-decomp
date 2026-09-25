@@ -122,7 +122,7 @@ void func_actor_113100_80131E58(Task* task)
         }
     }
 
-    ActorsShared80132f24(task);
+    func_actor_113100_80132F24(task);
 
     obj           = &work->obj;
     obj->coord    = &((TmdObject*)task->extra)->coords[1];

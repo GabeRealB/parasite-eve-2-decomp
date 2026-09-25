@@ -41,11 +41,15 @@ typedef struct Actor113100Work {
     /// Cleared to -1 by the setup handler, next to `field_476` and `field_53D`;
     /// `field_477` is the animation id that body puts in the preset it sends,
     /// so the three sentinels are the same "no id yet" default.
-    /* 0x475 */ s8    field_475;
-    /* 0x476 */ s8    field_476;
-    /* 0x477 */ s8    field_477;
-    /* 0x478 */ byte  pad_478[0x40];
-    /* 0x4B8 */ GpObj obj;
+    /* 0x475 */ s8 field_475;
+    /* 0x476 */ s8 field_476;
+    /* 0x477 */ s8 field_477;
+    /// The light and colour matrices `func_actor_113100_80132F24` points the
+    /// model's `TmdObject::lightMtx` / `colorMtx` at, so the actor draws under
+    /// its own lighting rather than the defaults.
+    /* 0x478 */ MATRIX light;
+    /* 0x498 */ MATRIX color;
+    /* 0x4B8 */ GpObj  obj;
     /// The `GpRec18` table `GpObj.ctx.recs` points at (`Gp_InitRec18Table` is
     /// called on it right after `Gp_LinkObj`).
     /* 0x4D8 */ GpRec18 field_4D8;
@@ -174,7 +178,7 @@ extern TaskFuncTable4 D_actor_113100_80131E48;
 extern TaskDesc D_actor_113100_80144308;
 
 /// The actor's message table, stored in `Task::msgTable`: 0x7D3
-/// (`func_actor_113100_801331E8`), 0x7D4 (`ActorsShared8013231c`), 0x7D5
+/// (`func_actor_113100_801331E8`), 0x7D4 (`func_actor_113100_8013333C`), 0x7D5
 /// (`func_actor_113100_80132790`), 0x7DD (`func_actor_113100_801328EC`) and
 /// 0x7DB (`func_actor_113100_801333B8`), terminated by 0x7FFFFFFF.
 extern GpMsgEntry D_actor_113100_80144338[];
@@ -211,6 +215,10 @@ void func_actor_113100_80132EF0(Task* task);
 /// return 0; anything else returns 1. Its body documents what each mode does to
 /// `TmdObject::flags`, the display node and `field_53D`.
 s32 func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3);
+
+/// Points the model's light and colour matrices at the work block's own
+/// `light` / `color` pair; the setup handler calls it once.
+void func_actor_113100_80132F24(Task* task);
 
 /// Gameplay import (`actors.imports.txt`), called with 1 by the setup handler
 /// and with 0 by `func_actor_113100_80132F40`.
