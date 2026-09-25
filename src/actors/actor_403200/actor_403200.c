@@ -40,7 +40,7 @@ typedef struct Actor403200SpawnRec {
 STATIC_ASSERT_SIZEOF(Actor403200SpawnRec, 0x8);
 
 /// 0x20-byte scratchpad frame the state-selecting tick
-/// `func_actor_403200_8013EB64` carves off `SCRATCH_SP`. `delta` is the
+/// `func_actor_403200_8013EB64` carves off the scratch-pad stack. `delta` is the
 /// player-relative offset whose length is `dist`, the range the three
 /// `field_F08` sub-states door the enemy through;
 /// `view` is the camera-relative offset the yaw written to `field_7C4` is
@@ -55,7 +55,7 @@ typedef struct Actor403200ApproachScratch {
 STATIC_ASSERT_SIZEOF(Actor403200ApproachScratch, 0x20);
 
 /// 0xC-byte scratchpad frame the launch state's reset half
-/// `func_actor_403200_8013B3C8` carves off `SCRATCH_SP` for the one yaw it
+/// `func_actor_403200_8013B3C8` carves off the scratch-pad stack for the one yaw it
 /// takes this tick. `dir` is the player-relative offset of the host model's
 /// root part, the pair `ratan2` turns into the yaw written to `field_7C4`; the
 /// trailing word is not read back, and is only here because the frame the code
@@ -66,7 +66,7 @@ typedef struct Actor403200TurnScratch {
 } Actor403200TurnScratch;
 STATIC_ASSERT_SIZEOF(Actor403200TurnScratch, 0xC);
 
-/// 0x54-byte scratchpad frame the launch tick carves off `SCRATCH_SP`. `dir`
+/// 0x54-byte scratchpad frame the launch tick carves off the scratch-pad stack. `dir`
 /// starts as the player-relative offset in the arena plane, is renormalised
 /// and then scaled by the per-frame pull the animation frame selects; `pos` is
 /// the host's fifth part in view space, which the yaw `angle` and the message
@@ -380,7 +380,7 @@ typedef s32 (*Actor403200ViewFn)(Task* task, s16 arg);
 
 extern Actor403200ViewFn D_actor_403200_8015E6E8[];
 
-/// Scratchpad frame the per-frame tick carves off `SCRATCH_SP`. Only `view`
+/// Scratchpad frame the per-frame tick carves off the scratch-pad stack. Only `view`
 /// is written: the selector result compared with `Gp_GetViewIndex`.
 typedef struct Actor403200TickScratch {
     byte pad_0[0x18];
@@ -6134,7 +6134,7 @@ void func_actor_403200_8013EB64(Task* arg0)
 
 /// Escort-spawn tick of the arena fight. While `D_actor_403200_80141C50` is 1
 /// the whole body is skipped; otherwise it carves an
-/// `Actor403200SpawnScratch` off `SCRATCH_SP`.
+/// `Actor403200SpawnScratch` off the scratch-pad stack.
 ///
 /// On the dispatcher's re-arm tick it tops the two `field_EE8` slots back up
 /// to two live escorts (`field_F1C` < 2 and `field_F1B` < 8), dresses each

@@ -367,17 +367,17 @@ static __inline__ void update_actor_color(GpEnemy* ctx, GsCOORDINATE2* attach)
     u8*     head;
     VECTOR* block;
 
-    head  = *(u8**)G_SCRATCH_HEAD;
+    head  = SCRATCH_HEAD(u8);
     block = (VECTOR*)(head - 0x10);
 
-    *(VECTOR**)G_SCRATCH_HEAD = block;
+    SCRATCH_HEAD(VECTOR) = block;
 
     block->vx = attach->workm.t[0];
     block->vy = attach->workm.t[1];
     block->vz = attach->workm.t[2];
     Gp_UpdateActorColor(ctx, block, 0, 0);
 
-    *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_HEAD(u8) = (u8*)SCRATCH_HEAD(void) + 0x10;
 }
 
 const GpEnemyTaskFuncTable3 Actor01600_D00004 = {
@@ -695,8 +695,8 @@ void Actor01600_Fn00BAC(Task* actor)
     s32                   mode;
     VECTOR *              v1, *v2;
     work    = actor->work;
-    old     = *(void**)0x1F8003FC;
-    scratch = (*(void**)0x1F8003FC = old - 0x4C);
+    old     = SCRATCH_HEAD(void);
+    scratch = (SCRATCH_HEAD(void) = old - 0x4C);
     ctx     = actor->spawnArg2;
     coord   = ((TmdObject*)actor->extra)->coords;
     mode    = func_800E0C10((GpRec18*)&work->collision.field_2EC[0x20], old - 0x2C, 8, old - 4);
@@ -896,7 +896,7 @@ next_record: {
         }
     }
 release:
-    *(void**)0x1F8003FC += 0x4C;
+    SCRATCH_POP_BYTES(0x4C);
     return;
 }
 
@@ -1091,13 +1091,13 @@ void Actor01600_Fn017BC(Task* actor)
     u16             flags;
     u16             attackFrame;
 
-    work                = actor->work;
-    old                 = *(void**)0x1F8003FC;
-    rec                 = &work->field_2D4;
-    *(void**)0x1F8003FC = old - 8;
-    model               = actor->extra;
-    coord               = model->coords;
-    ctx                 = actor->spawnArg2;
+    work               = actor->work;
+    old                = SCRATCH_HEAD(void);
+    rec                = &work->field_2D4;
+    SCRATCH_HEAD(void) = old - 8;
+    model              = actor->extra;
+    coord              = model->coords;
+    ctx                = actor->spawnArg2;
     if (Gp_CountRec18Hi(rec, 0x10000) != 0) {
         work->field_51A = 1;
     }
@@ -1380,7 +1380,7 @@ void Actor01600_Fn017BC(Task* actor)
         default:
             break;
     }
-    *(void**)0x1F8003FC += 8;
+    SCRATCH_POP_BYTES(8);
 }
 
 void Actor01600_Fn020F8(Task* actor)
@@ -2223,16 +2223,16 @@ void Actor01600_Fn03A60(Task* arg0)
     Actor01600RotScratch* allocated;
     Actor01600RotScratch* scratch;
 
-    work                                = arg0->work;
-    coord                               = ((TmdObject*)arg0->extra)->coords;
-    slots                               = Gp_ActorSlots;
-    slot                                = &slots[Actor01600_Fn052C4(arg0) & 0xFF];
-    allocated                           = *(Actor01600RotScratch**)0x1F8003FC;
-    allocated                          -= 1;
-    *(Actor01600RotScratch**)0x1F8003FC = allocated;
-    mode                                = work->field_510;
-    playerCoord                         = ((TmdObject*)(*slot)->extra)->coords;
-    scratch                             = allocated;
+    work                               = arg0->work;
+    coord                              = ((TmdObject*)arg0->extra)->coords;
+    slots                              = Gp_ActorSlots;
+    slot                               = &slots[Actor01600_Fn052C4(arg0) & 0xFF];
+    allocated                          = SCRATCH_HEAD(Actor01600RotScratch);
+    allocated                         -= 1;
+    SCRATCH_HEAD(Actor01600RotScratch) = allocated;
+    mode                               = work->field_510;
+    playerCoord                        = ((TmdObject*)(*slot)->extra)->coords;
+    scratch                            = allocated;
     switch (mode) {
         case 0:
             scratch->position.vx = (s32)(playerCoord->coord.t[0] - coord->coord.t[0]);
@@ -2320,7 +2320,7 @@ void Actor01600_Fn03A60(Task* arg0)
     scratch->rotation.vy = (u16)work->field_4FC;
     scratch->rotation.vz = 0;
     RotMatrix(&scratch->rotation, &coord->coord);
-    *(Actor01600RotScratch**)0x1F8003FC += 1;
+    SCRATCH_POP(Actor01600RotScratch);
 }
 
 void Actor01600_Fn03D48(Task* arg0)
@@ -2377,10 +2377,10 @@ void Actor01600_Fn03EEC(Task* arg0)
     work  = arg0->work;
     coord = ((TmdObject*)arg0->extra)->coords;
     if (work->field_526 == 0) {
-        head                                   = *(Actor01600GroundScratch**)0x1F8003FC;
-        allocated                              = head - 1;
-        *(Actor01600GroundScratch**)0x1F8003FC = allocated;
-        mode                                   = *(s16*)((u8*)work + OFFSET_OF(Actor01600Work, field_528));
+        head                                  = SCRATCH_HEAD(Actor01600GroundScratch);
+        allocated                             = head - 1;
+        SCRATCH_HEAD(Actor01600GroundScratch) = allocated;
+        mode                                  = *(s16*)((u8*)work + OFFSET_OF(Actor01600Work, field_528));
         do {
             scratch = allocated;
             if (mode != 0) {
@@ -2406,7 +2406,7 @@ void Actor01600_Fn03EEC(Task* arg0)
             scratch->pos.vz = worldZ;
         } while (0);
         Gp_DrawEffGroundQuad(&scratch->pos, 0x1C0, 0);
-        *(Actor01600GroundScratch**)0x1F8003FC += 1;
+        SCRATCH_POP(Actor01600GroundScratch);
         return;
     }
     if (func_800EA1A8((VECTOR3*)coord[1].workm.t, &pos) != 0) {
@@ -2606,11 +2606,11 @@ s32 Actor01600_Fn045A8(Task* arg0, s32* distance)
 
     slots                     = Gp_ActorSlots;
     slot                      = &slots[Actor01600_Fn052C4(arg0) & 0xFF];
-    head                      = *(void**)0x1F8003FC;
+    head                      = SCRATCH_HEAD(void);
     coord                     = ((TmdObject*)arg0->extra)->coords;
     other                     = ((TmdObject*)(*slot)->extra)->coords;
     dx                        = *(u16*)&other->workm.t[0] - *(u16*)&coord->workm.t[0];
-    allocated                 = (*(void**)0x1F8003FC = head - 0x7C);
+    allocated                 = (SCRATCH_HEAD(void) = head - 0x7C);
     *(s16*)((s8*)head - 0x40) = (s16)dx;
     vec                       = head - 0x40;
     *(s16*)((s8*)vec + 2)     = (s16)(*(u16*)&other->workm.t[1] - *(u16*)&coord->workm.t[1]);
@@ -2631,11 +2631,11 @@ s32 Actor01600_Fn045A8(Task* arg0, s32* distance)
     }
     x = other->coord.t[0] - coord->coord.t[0];
     __asm__("sw\t%1, %0" : "=m"(scratch->delta.vx) : "r"(x), "r"(scratch));
-    scratch->delta.vy   = other->coord.t[1] - coord->coord.t[1];
-    z                   = other->coord.t[2] - coord->coord.t[2];
-    scratch->delta.vz   = z;
-    *distance           = SquareRoot0((x * x) + (z * z));
-    *(void**)0x1F8003FC = *(void**)0x1F8003FC + 0x7C;
+    scratch->delta.vy = other->coord.t[1] - coord->coord.t[1];
+    z                 = other->coord.t[2] - coord->coord.t[2];
+    scratch->delta.vz = z;
+    *distance         = SquareRoot0((x * x) + (z * z));
+    SCRATCH_POP_BYTES(0x7C);
     return angle;
 }
 
@@ -2840,14 +2840,14 @@ s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle)
     s32                   temp_a0;
     s32                   var_s4;
 
-    var_s4                              = 0;
-    allocated                           = *(Actor01600YawScratch**)0x1F8003FC - 1;
-    work                                = arg0->work;
-    *(Actor01600YawScratch**)0x1F8003FC = allocated;
-    scratch                             = allocated;
-    scratch->vec.vx                     = 0;
-    scratch->vec.vy                     = 0;
-    scratch->vec.vz                     = (s16)distance;
+    var_s4                             = 0;
+    allocated                          = SCRATCH_HEAD(Actor01600YawScratch) - 1;
+    work                               = arg0->work;
+    SCRATCH_HEAD(Actor01600YawScratch) = allocated;
+    scratch                            = allocated;
+    scratch->vec.vx                    = 0;
+    scratch->vec.vy                    = 0;
+    scratch->vec.vz                    = (s16)distance;
     if (angle == 0) {
         temp_v1_2       = (u16)work->field_4EE + 0xA;
         scaled          = temp_v1_2 << 0x10;
@@ -2914,7 +2914,7 @@ s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle)
         }
     }
     CLEAR_REC18_OCCUPIED(&work->field_444);
-    *(Actor01600YawScratch**)0x1F8003FC += 1;
+    SCRATCH_POP(Actor01600YawScratch);
     return var_s4;
 }
 
@@ -3742,7 +3742,7 @@ void Actor01600_Fn06810(GpEnemy* arg0, Task* arg1)
     block->vz = coord->workm.t[2];
     *scratch  = block;
     Gp_UpdateActorColor(arg0, block, 0, 0);
-    *scratch = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
 /// Squashes the actor's attachment coordinate: the work block's `field_49C`
@@ -3757,11 +3757,11 @@ void Actor01600_Fn06880(Task* arg0)
     ActorScaleScratch* scratch;
     Actor01600Work*    work;
 
-    head                = *(u8**)0x1F8003FC;
-    work                = arg0->work;
-    scratch             = (ActorScaleScratch*)(head - 0x30);
-    *(void**)0x1F8003FC = scratch;
-    coord               = ((TmdObject*)arg0->extra)->coords;
+    head               = SCRATCH_HEAD(u8);
+    work               = arg0->work;
+    scratch            = (ActorScaleScratch*)(head - 0x30);
+    SCRATCH_HEAD(void) = scratch;
+    coord              = ((TmdObject*)arg0->extra)->coords;
     if (work->field_518 >= 0x201) {
         work->field_518 = (u16)work->field_518 - 0x50;
     }
@@ -3776,8 +3776,8 @@ void Actor01600_Fn06880(Task* arg0)
     scratch->mat.ident.m22     = 0x1000;
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
-    coord->flg         = 0;
-    *(u8**)0x1F8003FC += 0x30;
+    coord->flg = 0;
+    SCRATCH_POP_BYTES(0x30);
 }
 
 /// Steps the attachment coordinate `distance` units along the model's facing:
@@ -3814,7 +3814,7 @@ void Actor01600_Fn06974(Task* actor, s32 distance)
     coord->coord.t[0] += work->move.vx;
     coord->coord.t[1] += work->move.vy;
     coord->coord.t[2] += work->move.vz;
-    *scratch           = (u8*)*scratch + 0x3C;
+    SCRATCH_POP_BYTES_AT(scratch, 0x3C);
 }
 
 void Actor01600_Fn06A84(Task* arg0)
@@ -3825,11 +3825,11 @@ void Actor01600_Fn06A84(Task* arg0)
     u8*             head;
     s16             value;
 
-    head                      = *(u8**)G_SCRATCH_HEAD;
-    *(MATRIX**)G_SCRATCH_HEAD = (MATRIX*)(head - 0x20);
-    scratch                   = (MATRIX*)(head - 0x20);
-    work                      = arg0->work;
-    coord                     = ((TmdObject*)arg0->extra)->coords;
+    head                 = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(MATRIX) = (MATRIX*)(head - 0x20);
+    scratch              = (MATRIX*)(head - 0x20);
+    work                 = arg0->work;
+    coord                = ((TmdObject*)arg0->extra)->coords;
     RotMatrix((SVECTOR*)&work->field_4CC, scratch);
     gte_SetRotMatrix(&coord[1].coord);
     gte_ldclmv(scratch);
@@ -3850,7 +3850,7 @@ void Actor01600_Fn06A84(Task* arg0)
             work->field_4CC = (u16)work->field_4CC - 0x20;
         }
     }
-    *(MATRIX**)G_SCRATCH_HEAD = (MATRIX*)((u8*)*(MATRIX**)G_SCRATCH_HEAD + 0x20);
+    SCRATCH_POP_BYTES(0x20);
 }
 
 s32 Actor01600_Fn06C1C(Task* arg0)

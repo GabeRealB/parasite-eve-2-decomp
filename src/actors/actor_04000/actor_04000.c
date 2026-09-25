@@ -147,13 +147,13 @@ s32 Actor04000_Fn0024C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
         return 0;
     }
 
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - sizeof(OverlayAvoidScratch);
-    s                     = (OverlayAvoidScratch*)*(u8**)G_SCRATCH_HEAD;
-    s->blocked            = 0;
-    push->vz              = 0;
-    push->vy              = 0;
-    push->vx              = 0;
+    head             = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(u8) = head - sizeof(OverlayAvoidScratch);
+    s                = (OverlayAvoidScratch*)SCRATCH_HEAD(u8);
+    s->blocked       = 0;
+    push->vz         = 0;
+    push->vy         = 0;
+    push->vx         = 0;
 
     Gfx_MatrixCol1(&coord->workm, (SVECTOR*)(head - 0x34));
     VectorNormalSS((SVECTOR*)(head - 0x34), (SVECTOR*)(head - 0x34));
@@ -241,7 +241,7 @@ s32 Actor04000_Fn0024C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
         }
     }
 
-    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(OverlayAvoidScratch);
+    SCRATCH_POP_BYTES(sizeof(OverlayAvoidScratch));
     return s->blocked != 0;
 }
 
@@ -297,7 +297,7 @@ s32 Actor04000_Fn00798(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2)
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
     return s->moved;
 }
 
@@ -696,8 +696,6 @@ void Actor04000_Fn010B8(GpEnemy* arg0, Task* arg1)
     arg1->state++;
 }
 
-#define SCRATCH_SP (*(u32*)0x1F8003FC)
-
 extern GpAnimArg Actor04000_D0C530;
 extern s32       Actor04000_D07094;
 extern s32       Actor04000_D070A0;
@@ -750,8 +748,8 @@ void Actor04000_Fn0168C(GpEnemy* arg0, Task* arg1)
         actorStepForward(((TmdObject*)arg1->extra)->coords, 0x32);
     }
     work->field_0 = 0xC;
-    head          = (Actor104000AimScratch*)SCRATCH_SP;
-    sc            = (Actor104000AimScratch*)(SCRATCH_SP -= sizeof(Actor104000AimScratch));
+    head          = SCRATCH_HEAD(Actor104000AimScratch);
+    sc            = (Actor104000AimScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor104000AimScratch));
     pos           = ((TmdObject*)arg1->extra)->coords;
     head[-1].d.vx = Player_Status.coordMtx->t[0] - pos->coord.t[0];
     sc->d.vy      = Player_Status.coordMtx->t[1] - pos->coord.t[1];
@@ -812,7 +810,7 @@ void Actor04000_Fn0168C(GpEnemy* arg0, Task* arg1)
             }
         }
     }
-    SCRATCH_SP += sizeof(Actor104000AimScratch);
+    SCRATCH_POP_BYTES(sizeof(Actor104000AimScratch));
 }
 
 /// Turns `coord` to face along its own Z axis in the XZ plane and scales the
@@ -822,24 +820,24 @@ static __inline__ void Actor204000_FaceScale(GsCOORDINATE2* coord, s16 s)
     ActorScaleRotScratch* head;
     ActorScaleRotScratch* sc;
 
-    head                                    = *(ActorScaleRotScratch**)G_SCRATCH_HEAD;
-    sc                                      = head - 1;
-    *(ActorScaleRotScratch**)G_SCRATCH_HEAD = sc;
-    sc->angle                               = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    head                               = SCRATCH_HEAD(ActorScaleRotScratch);
+    sc                                 = head - 1;
+    SCRATCH_HEAD(ActorScaleRotScratch) = sc;
+    sc->angle                          = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     Gfx_RotMatrixY(&sc->m, sc->angle, 1);
     sc->scale.vx = sc->scale.vy = sc->scale.vz = s;
     ScaleMatrix(&sc->m, &head[-1].scale);
-    coord->coord.m[0][0]                     = head[-1].m.m[0][0];
-    coord->coord.m[0][1]                     = sc->m.m[0][1];
-    coord->coord.m[0][2]                     = sc->m.m[0][2];
-    coord->coord.m[1][0]                     = sc->m.m[1][0];
-    coord->coord.m[1][1]                     = sc->m.m[1][1];
-    coord->coord.m[1][2]                     = sc->m.m[1][2];
-    coord->coord.m[2][0]                     = sc->m.m[2][0];
-    coord->coord.m[2][1]                     = sc->m.m[2][1];
-    coord->coord.m[2][2]                     = sc->m.m[2][2];
-    coord->flg                               = 0;
-    *(ActorScaleRotScratch**)G_SCRATCH_HEAD += 1;
+    coord->coord.m[0][0] = head[-1].m.m[0][0];
+    coord->coord.m[0][1] = sc->m.m[0][1];
+    coord->coord.m[0][2] = sc->m.m[0][2];
+    coord->coord.m[1][0] = sc->m.m[1][0];
+    coord->coord.m[1][1] = sc->m.m[1][1];
+    coord->coord.m[1][2] = sc->m.m[1][2];
+    coord->coord.m[2][0] = sc->m.m[2][0];
+    coord->coord.m[2][1] = sc->m.m[2][1];
+    coord->coord.m[2][2] = sc->m.m[2][2];
+    coord->flg           = 0;
+    SCRATCH_POP(ActorScaleRotScratch);
 }
 
 /// Frames 0x5B onward of the collapse: drifts the model along its facing for the
@@ -1054,8 +1052,8 @@ void Actor04000_Fn028F0(GpEnemy* arg0, Task* arg1)
         work->field_494 = 0;
         return;
     }
-    head = (ActorTurnScratch*)SCRATCH_SP;
-    sc   = (ActorTurnScratch*)(SCRATCH_SP -= sizeof(ActorTurnScratch));
+    head = SCRATCH_HEAD(ActorTurnScratch);
+    sc   = (ActorTurnScratch*)SCRATCH_PUSH_BYTES(sizeof(ActorTurnScratch));
     Actor04000_Fn00E6C(arg1);
     pos               = ((TmdObject*)arg1->extra)->coords;
     head[-1].delta.vx = Player_Status.coordMtx->t[0] - pos->coord.t[0];
@@ -1101,7 +1099,7 @@ void Actor04000_Fn028F0(GpEnemy* arg0, Task* arg1)
             work->field_0 = 0xA;
         }
     }
-    SCRATCH_SP += sizeof(ActorTurnScratch);
+    SCRATCH_POP_BYTES(sizeof(ActorTurnScratch));
 }
 
 /// Frames 0x28 onward of the collapse: steps the effects keyed on `field_6`,
@@ -1349,7 +1347,7 @@ void Actor04000_Fn03D30(Task* arg0, s16 arg1, u32 arg2)
     s32              mag;
     GsCOORDINATE2*   coord;
 
-    sc   = (SVECTOR*)(SCRATCH_SP -= sizeof(SVECTOR));
+    sc   = (SVECTOR*)SCRATCH_PUSH_BYTES(sizeof(SVECTOR));
     mag  = (arg1 >= 0) ? arg1 : -arg1;
     work = arg0->work;
     if (mag < 0x200) {
@@ -1411,7 +1409,7 @@ void Actor04000_Fn03D30(Task* arg0, s16 arg1, u32 arg2)
     work->eff.spawnArgHi = 1;
     work->eff.coord      = coord;
     func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &((TmdObject*)arg0->extra)->coords[sc->pad], &work->effOfs, &work->eff);
-    SCRATCH_SP += sizeof(SVECTOR);
+    SCRATCH_POP_BYTES(sizeof(SVECTOR));
 }
 
 /// Applies the first type-2 hit in `work->hits`: computes its damage, turns the
@@ -1432,7 +1430,7 @@ void Actor04000_Fn03FB4(GpEnemy* arg0, Task* arg1)
     s16                   i;
 
     work = arg1->work;
-    sc   = (ActorHitTakenScratch*)(SCRATCH_SP -= sizeof(ActorHitTakenScratch));
+    sc   = (ActorHitTakenScratch*)SCRATCH_PUSH_BYTES(sizeof(ActorHitTakenScratch));
     pos  = &sc->pos;
     recs = work->hits;
     i    = 0;
@@ -1489,7 +1487,7 @@ found:
             work->field_496 = 0;
         }
     }
-    SCRATCH_SP += sizeof(ActorHitTakenScratch);
+    SCRATCH_POP_BYTES(sizeof(ActorHitTakenScratch));
 }
 
 /// Patrol state: restarts the actor when `field_4` is set; otherwise turns the
@@ -1525,8 +1523,8 @@ void Actor04000_Fn0432C(GpEnemy* arg0, Task* arg1)
         work->field_6 = 0;
         return;
     }
-    head              = (ActorTurnScratch*)SCRATCH_SP;
-    sc                = (ActorTurnScratch*)(SCRATCH_SP -= sizeof(ActorTurnScratch));
+    head              = SCRATCH_HEAD(ActorTurnScratch);
+    sc                = (ActorTurnScratch*)SCRATCH_PUSH_BYTES(sizeof(ActorTurnScratch));
     head[-1].delta.vx = work->patrol[work->patrolIdx].vx - ((TmdObject*)arg1->extra)->coords->coord.t[0];
     sc->delta.vy      = 0;
     sc->delta.vz      = work->patrol[work->patrolIdx].vz - ((TmdObject*)arg1->extra)->coords->coord.t[2];
@@ -1573,7 +1571,7 @@ void Actor04000_Fn0432C(GpEnemy* arg0, Task* arg1)
             work->field_0 = 1;
         }
     }
-    SCRATCH_SP += sizeof(ActorTurnScratch);
+    SCRATCH_POP_BYTES(sizeof(ActorTurnScratch));
 }
 
 /// Walking state: restarts the actor when `field_4` is set; otherwise turns the
@@ -1607,8 +1605,8 @@ void Actor04000_Fn049C0(GpEnemy* arg0, Task* arg1)
         work->field_494 = 0;
         return;
     }
-    head = (ActorTurnScratch*)SCRATCH_SP;
-    sc   = (ActorTurnScratch*)(SCRATCH_SP -= sizeof(ActorTurnScratch));
+    head = SCRATCH_HEAD(ActorTurnScratch);
+    sc   = (ActorTurnScratch*)SCRATCH_PUSH_BYTES(sizeof(ActorTurnScratch));
     Actor04000_Fn00E6C(arg1);
     ((TmdObject*)arg1->extra)->coords->flg = 0;
     head[-1].delta.vx                      = work->origin.vx - ((TmdObject*)arg1->extra)->coords->coord.t[0];
@@ -1642,7 +1640,7 @@ void Actor04000_Fn049C0(GpEnemy* arg0, Task* arg1)
             work->field_0 = 4;
         }
     }
-    SCRATCH_SP += sizeof(ActorTurnScratch);
+    SCRATCH_POP_BYTES(sizeof(ActorTurnScratch));
 }
 
 /// Restarts the actor when `field_4` is set; otherwise waits 50 frames, then
@@ -2237,7 +2235,7 @@ void Actor04000_Fn06760(GsCOORDINATE2* coord, s16 scale)
     coord->coord.m[2][0] = *(u16*)&blk->m.m[2][0];
     coord->coord.m[2][1] = *(u16*)&blk->m.m[2][1];
     m22                  = *(u16*)&blk->m.m[2][2];
-    *scratch             = (u8*)*scratch + sizeof(ActorScaleRotScratch);
+    SCRATCH_POP_BYTES_AT(scratch, sizeof(ActorScaleRotScratch));
     coord->flg           = 0;
     coord->coord.m[2][2] = m22;
 }

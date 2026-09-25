@@ -268,12 +268,12 @@ void func_actor_403600_801320F8(s32 otz)
     s32                val;
     s32                z;
 
-    extra                   = Gp_GetViewSprtExtra();
-    head                    = *(u8**)G_SCRATCH_HEAD;
-    area                    = (DR_AREA*)gGpuPrimCursor;
-    allocated               = head - 0x14;
-    *(void**)G_SCRATCH_HEAD = allocated;
-    gGpuPrimCursor          = (DR_TPAGE*)(area + 1);
+    extra              = Gp_GetViewSprtExtra();
+    head               = SCRATCH_HEAD(u8);
+    area               = (DR_AREA*)gGpuPrimCursor;
+    allocated          = head - 0x14;
+    SCRATCH_HEAD(void) = allocated;
+    gGpuPrimCursor     = (DR_TPAGE*)(area + 1);
     USE_REG(allocated);
     scratch      = (ActorsDrawScratch*)allocated;
     scratch->otz = otz;
@@ -379,7 +379,7 @@ void func_actor_403600_801320F8(s32 otz)
     SetDrawArea(area, clip);
     addPrim(&gGpuCurrentOt[scratch->otz], area);
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
 }
 
 void func_actor_403600_801327A0(POLY_FT4* arg0)
@@ -541,9 +541,9 @@ void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, TaskIdMap* ar
     s32*                      ot;
     u32                       high, low, high2, low2;
 
-    head                = *(void**)0x1F8003FC - 0x1C;
-    *(void**)0x1F8003FC = head;
-    scratch             = (Actor403600ScreenScratch*)head;
+    head               = SCRATCH_HEAD(void) - 0x1C;
+    SCRATCH_HEAD(void) = head;
+    scratch            = (Actor403600ScreenScratch*)head;
     if (Gp_StateF0.field_4 == 0) {
         seed                    = rand();
         D_actor_403600_80160698 = seed;
@@ -667,7 +667,7 @@ void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, TaskIdMap* ar
         ((POLY_FT4*)mode_ot)->tag             = (((POLY_FT4*)mode_ot)->tag & mask_hi) | ((u32)draw_mode & mask);
     }
     func_actor_403600_801320F8(0);
-    *(s32*)0x1F8003FC = *(s32*)0x1F8003FC + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Work* arg2)
@@ -734,8 +734,8 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Wo
     coords = (u8*)((TmdObject*)actor->extra)->coords;
     center = coords + 0x280;
     if (Gp_StateF0.field_4 == 0) {
-        head    = *(u8**)0x1F8003FC;
-        scratch = (*(u8**)0x1F8003FC = head - 0x88);
+        head    = SCRATCH_HEAD(u8);
+        scratch = (SCRATCH_HEAD(u8) = head - 0x88);
         Gp_UpdateCoord((GsCOORDINATE2*)((u8*)((TmdObject*)actor->extra)->coords + 0x370));
         if (*(s32*)((u8*)arg2 + 0x118) == 0) {
             viewWorld0 = (u8*)&Gfx_ViewWorldMtx;
@@ -1091,7 +1091,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Wo
                 i++;
             } while (i < 2);
         }
-        *(u8**)0x1F8003FC += 0x88;
+        SCRATCH_POP_BYTES(0x88);
     }
 }
 
@@ -1230,15 +1230,15 @@ void func_actor_403600_80134398(Task* arg0)
         Task_CallExit(arg0);
         return;
     }
-    temp_v0             = *(void**)0x1F8003FC;
-    temp_v0            -= 0x54;
-    *(void**)0x1F8003FC = temp_v0;
-    temp_v0_2           = temp_v0;
+    temp_v0            = SCRATCH_HEAD(void);
+    temp_v0           -= 0x54;
+    SCRATCH_HEAD(void) = temp_v0;
+    temp_v0_2          = temp_v0;
     if (ACTOR_FIELD(arg0, s32*, 0x30) == 0) {
         temp_v0_3 = memCalloc(0x15C, 0);
         if (temp_v0_3 == NULL) {
             Task_CallExit(arg0);
-            *(void**)0x1F8003FC += 0x54;
+            SCRATCH_POP_BYTES(0x54);
             return;
         }
         ACTOR_FIELD(arg0, s32*, 0x1C)    = temp_v0_3;
@@ -1677,7 +1677,7 @@ block_22:
             } while (var_s4 < 0x20);
         }
     }
-    *(void**)0x1F8003FC = *(void**)0x1F8003FC + 0x54;
+    SCRATCH_POP_BYTES(0x54);
 }
 
 void func_actor_403600_801353D0(ActorEffectState* arg0, GsCOORDINATE2* arg1)
@@ -1722,10 +1722,10 @@ void func_actor_403600_801353D0(ActorEffectState* arg0, GsCOORDINATE2* arg1)
     SVECTOR*                  vec;
     Actor403600EffectScratch* scratch;
 
-    head                = *(u8**)0x1F8003FC;
-    newHead             = head - 0x78;
-    *(void**)0x1F8003FC = newHead;
-    scratch             = (Actor403600EffectScratch*)newHead;
+    head               = SCRATCH_HEAD(u8);
+    newHead            = head - 0x78;
+    SCRATCH_HEAD(void) = newHead;
+    scratch            = (Actor403600EffectScratch*)newHead;
     Gp_UpdateCoord(arg1);
     gte_SetRotMatrix(&arg1->workm);
     gte_SetTransMatrix(&arg1->workm);
@@ -1915,7 +1915,7 @@ void func_actor_403600_801353D0(ActorEffectState* arg0, GsCOORDINATE2* arg1)
         j++;
     } while (j < 12);
     func_actor_403600_801320F8(scratch->maxOtz + 1);
-    *(u8**)0x1F8003FC = *(u8**)0x1F8003FC + 0x78;
+    SCRATCH_POP_BYTES(0x78);
 }
 
 const SVECTOR D_actor_403600_80131E2C = { 0, 0x578, 0, 0 };
@@ -3029,8 +3029,8 @@ u32* func_actor_403600_801379B4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     if (D_actor_403600_801606A0 != NULL) {
         poly    = (POLY_GT3*)arg0->primWrite;
         color   = D_actor_403600_80131E34;
-        head    = *(u8**)0x1F8003FC;
-        scratch = (*(u8**)0x1F8003FC = head - 0x7C);
+        head    = SCRATCH_HEAD(u8);
+        scratch = (SCRATCH_HEAD(u8) = head - 0x7C);
         gte_sttr(scratch);
         saved = (MATRIX*)(head - 0x40);
         gte_ReadRotMatrix(saved);
@@ -3143,7 +3143,7 @@ u32* func_actor_403600_801379B4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         arg0->primWrite = (u8*)poly;
         gte_SetTransVector(scratch);
         gte_SetRotMatrix(scratch + 0x3C);
-        *(u8**)0x1F8003FC = *(u8**)0x1F8003FC + 0x7C;
+        SCRATCH_POP_BYTES(0x7C);
         return stream;
     }
     return tmdDrawStreamGt3(arg0, arg1, stream);
@@ -3181,8 +3181,8 @@ u32* func_actor_403600_80138004(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     if (D_actor_403600_801606A0 != NULL) {
         poly    = (POLY_GT4*)arg0->primWrite;
         color   = D_actor_403600_80131E34;
-        head    = *(u8**)0x1F8003FC;
-        scratch = (*(u8**)0x1F8003FC = head - 0x88);
+        head    = SCRATCH_HEAD(u8);
+        scratch = (SCRATCH_HEAD(u8) = head - 0x88);
         gte_sttr(scratch);
         saved = (MATRIX*)(head - 0x40);
         gte_ReadRotMatrix(saved);
@@ -3314,7 +3314,7 @@ u32* func_actor_403600_80138004(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         arg0->primWrite = (u8*)poly;
         gte_SetTransVector(scratch);
         gte_SetRotMatrix(scratch + 0x48);
-        *(u8**)0x1F8003FC = *(u8**)0x1F8003FC + 0x88;
+        SCRATCH_POP_BYTES(0x88);
         return stream;
     }
     return tmdDrawStreamGt4(arg0, arg1, stream);
@@ -3345,8 +3345,8 @@ u32* func_actor_403600_801386EC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             return (u32*)stream;
         }
 
-        head    = *(u8**)0x1F8003FC;
-        scratch = (*(u8**)0x1F8003FC = head - 0x7C);
+        head    = SCRATCH_HEAD(u8);
+        scratch = (SCRATCH_HEAD(u8) = head - 0x7C);
         gte_sttr(scratch);
         saved = (MATRIX*)(head - 0x40);
         TOUCH_REG(saved);
@@ -3431,7 +3431,7 @@ u32* func_actor_403600_801386EC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 
         gte_SetTransVector(scratch);
         gte_SetRotMatrix(scratch + 0x3C);
-        *(u8**)0x1F8003FC = *(u8**)0x1F8003FC + 0x7C;
+        SCRATCH_POP_BYTES(0x7C);
         return (u32*)stream;
     }
     return tmdXformStreamVerts(arg0, arg1, (u32*)stream);

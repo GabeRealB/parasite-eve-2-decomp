@@ -637,7 +637,7 @@ void func_actor_521100_80132958(Task* arg0)
 /// and the player's own `GameActor::field_954` is not its mode 2. On acceptance
 /// the body rearms the motion state (2 into `field_69E`, 0xA frames of blend
 /// into `field_686`, the 0xA/0xFF/0x80 pad lerp) and returns 1; the 0x3F8
-/// query buffer is the 0x18 bytes `SCRATCH_SP` is pushed by.
+/// query buffer is the 0x18 bytes pushed on the scratch-pad stack.
 s32 func_actor_521100_80132C70(Task* arg0)
 {
     Actor521100Work* work;

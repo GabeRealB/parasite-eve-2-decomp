@@ -2513,11 +2513,11 @@ void func_actor_403600_8013C864(Task* arg0)
         temp_s3->field_6F0.vz = temp_early_z;
         return;
     }
-    temp_s4 = *(Actor403600TargetScratch**)0x1F8003FC;
+    temp_s4 = SCRATCH_HEAD(Actor403600TargetScratch);
     SOFT_USE_REG(temp_s4);
-    temp_s6                                 = (temp_s4 - 1);
-    *(Actor403600TargetScratch**)0x1F8003FC = temp_s6;
-    temp_s5                                 = temp_s6;
+    temp_s6                                = (temp_s4 - 1);
+    SCRATCH_HEAD(Actor403600TargetScratch) = temp_s6;
+    temp_s5                                = temp_s6;
     if (!((u16)temp_s3->field_734 & 1)) {
         (temp_s4 - 1)->vector.vx = (s16)(Player_Status.coordMtx->t[0] - (u16)D_actor_403600_801605D4.vx);
         temp_a1                  = Player_Status.coordMtx->t[2] - (u16)D_actor_403600_801605D4.vz;
@@ -2642,7 +2642,7 @@ void func_actor_403600_8013C864(Task* arg0)
         temp_s3->field_734            = (s16)((u16)temp_s3->field_734 + 1);
         temp_s3->field_4B8.coord.t[2] = temp_z0 + temp_z1;
     }
-    *(void**)0x1F8003FC = (u8*)*(void**)0x1F8003FC + 0x2C;
+    SCRATCH_POP_BYTES(0x2C);
 }
 
 void func_actor_403600_8013CCEC(Task* arg0, s32 arg1)
@@ -2677,11 +2677,11 @@ void func_actor_403600_8013CCEC(Task* arg0, s32 arg1)
     Actor403600Point*           temp_v0_11;
     Actor403600Point*           temp_v1_10;
 
-    temp_s2             = *(void**)0x1F8003FC;
-    temp_s3             = (Actor403600DistanceScratch*)((u8*)temp_s2 - 0x24);
-    *(void**)0x1F8003FC = temp_s3;
-    temp_s4             = arg0->work;
-    temp_s5             = temp_s3;
+    temp_s2            = SCRATCH_HEAD(void);
+    temp_s3            = (Actor403600DistanceScratch*)((u8*)temp_s2 - 0x24);
+    SCRATCH_HEAD(void) = temp_s3;
+    temp_s4            = arg0->work;
+    temp_s5            = temp_s3;
     if (arg1 == 0) {
         temp_s3->x            = Player_Status.coordMtx->t[0] - D_actor_403600_801605F4[0].x;
         temp_v1               = Player_Status.coordMtx->t[2] - D_actor_403600_801605F4[0].z;
@@ -2756,7 +2756,7 @@ void func_actor_403600_8013CCEC(Task* arg0, s32 arg1)
         temp_s4->field_6F0.vx = temp_v1_10->x;
     } while (0);
     temp_s4->field_6F0.vy = Player_Status.coordMtx->t[1] - 0x258;
-    *(void**)0x1F8003FC   = (u8*)*(void**)0x1F8003FC + 0x24;
+    SCRATCH_POP_BYTES(0x24);
     temp_s4->field_6F0.vz = temp_v1_10->z;
 }
 
@@ -2803,14 +2803,14 @@ void func_actor_403600_8013D15C(Task* arg0)
 
     temp_s0 = arg0->work;
     records = temp_s0->field_528;
-    temp_v0 = (s32) * (u8**)0x1F8003FC;
+    temp_v0 = (s32)SCRATCH_HEAD(u8);
     SOFT_TOUCH_REG_USE(temp_v0, records);
-    delta_scratch       = (GpDeltaScratch*)(temp_v0 - 0x28);
-    temp_v0            -= 0x48;
-    *(void**)0x1F8003FC = (void*)temp_v0;
-    temp_v1_2           = (Actor403600DamageScratch*)temp_v0;
-    temp_s4             = arg0->spawnArg2;
-    temp_v0             = func_800E0C10(records, delta_scratch, 4, 0);
+    delta_scratch      = (GpDeltaScratch*)(temp_v0 - 0x28);
+    temp_v0           -= 0x48;
+    SCRATCH_HEAD(void) = (void*)temp_v0;
+    temp_v1_2          = (Actor403600DamageScratch*)temp_v0;
+    temp_s4            = arg0->spawnArg2;
+    temp_v0            = func_800E0C10(records, delta_scratch, 4, 0);
     if (temp_v0 == 1) {
         goto block_collision;
     }
@@ -3047,7 +3047,7 @@ block_83:
             Gp_ClearRec18Occupied(temp_s1);
             temp_s0->field_588.flags &= 0x7FFF;
         }
-        *(void**)0x1F8003FC = (u8*)*(void**)0x1F8003FC + 0x48;
+        SCRATCH_POP_BYTES(0x48);
         return;
     }
     goto loop_14;
@@ -3227,8 +3227,8 @@ s32 func_actor_403600_8013DDF4(Task* arg0, s16 arg1)
     s32               next;
 
     step    = arg1;
-    oldHead = *(ActorFaceScratch**)0x1F8003FC;
-    scratch = (*(ActorFaceScratch**)0x1F8003FC =
+    oldHead = SCRATCH_HEAD(ActorFaceScratch);
+    scratch = (SCRATCH_HEAD(ActorFaceScratch) =
                    oldHead - 1);
     work    = arg0->work;
     if ((arg1 << 0x10) == 0) {
@@ -3278,7 +3278,7 @@ s32 func_actor_403600_8013DDF4(Task* arg0, s16 arg1)
     scratch->rot.vy = work->field_748;
     scratch->rot.vz = 0;
     RotMatrix(&scratch->rot, &work->field_4B8.coord);
-    *(ActorFaceScratch**)0x1F8003FC += 1;
+    SCRATCH_POP(ActorFaceScratch);
     return distance;
 }
 
@@ -3325,12 +3325,12 @@ s32 func_actor_403600_8013DFE0(Task* arg0)
     Actor403600TurnScratch* temp_v1;
     Actor403600TurnScratch* temp_v1_2;
 
-    temp_v1             = *(Actor403600TurnScratch**)0x1F8003FC;
-    temp_v1             = (Actor403600TurnScratch*)((u8*)temp_v1 - 0x30);
-    *(void**)0x1F8003FC = temp_v1;
-    temp_v1_2           = temp_v1;
-    temp_s4             = arg0->work;
-    temp_v1_3           = temp_s4->field_746;
+    temp_v1            = SCRATCH_HEAD(Actor403600TurnScratch);
+    temp_v1            = (Actor403600TurnScratch*)((u8*)temp_v1 - 0x30);
+    SCRATCH_HEAD(void) = temp_v1;
+    temp_v1_2          = temp_v1;
+    temp_s4            = arg0->work;
+    temp_v1_3          = temp_s4->field_746;
     switch (temp_v1_3) {
         case 0:
             temp_v1_2->vector[0] =
@@ -3485,8 +3485,8 @@ s32 func_actor_403600_8013DFE0(Task* arg0)
         temp_s4->field_748 = (u16)temp_v1_2->vector[1];
         Gfx_MatrixCol2(temp_s0_4, (SVECTOR*)temp_v1_2);
     }
-    temp_s4->field_748  = ratan2((s16)temp_v1_2->angles[0], (s16)temp_v1_2->angles[2]);
-    *(void**)0x1F8003FC = (void*)((u8*)*(void**)0x1F8003FC + 0x30);
+    temp_s4->field_748 = ratan2((s16)temp_v1_2->angles[0], (s16)temp_v1_2->angles[2]);
+    SCRATCH_POP_BYTES(0x30);
     return temp_s5;
 }
 
@@ -3502,12 +3502,12 @@ void func_actor_403600_8013E470(GsCOORDINATE2* arg0, s32* arg1, s32* arg2)
     void*          matrix;
     void*          scratch;
 
-    head                      = *(void**)0x1F8003FC;
+    head                      = SCRATCH_HEAD(void);
     coord                     = ((TmdObject*)(*Gp_ActorSlots)->extra)->coords;
     *(s16*)((s8*)head - 0x40) = (s16)(coord->workm.t[0] - arg0->workm.t[0]);
     vec                       = head - 0x40;
     *(s16*)((s8*)vec + 2)     = (s16)(coord->workm.t[1] - arg0->workm.t[1]);
-    scratch                   = (*(void**)0x1F8003FC = head - 0x7C);
+    scratch                   = (SCRATCH_HEAD(void) = head - 0x7C);
     *(s16*)((s8*)vec + 4)     = (s16)(coord->workm.t[2] - arg0->workm.t[2]);
     matrix                    = head - 0x20;
     TransposeMatrix(&arg0->workm, matrix);
@@ -3529,7 +3529,7 @@ void func_actor_403600_8013E470(GsCOORDINATE2* arg0, s32* arg1, s32* arg2)
     z                            = Player_Status.coordMtx->t[2] - arg0->coord.t[2];
     *(s32*)((s8*)scratch + 0x28) = z;
     *arg1                        = SquareRoot0((x * x) + (z * z));
-    *(void**)0x1F8003FC          = *(void**)0x1F8003FC + 0x7C;
+    SCRATCH_POP_BYTES(0x7C);
 }
 
 s16 func_actor_403600_8013E66C(GsCOORDINATE2* arg0)
@@ -3541,9 +3541,9 @@ s16 func_actor_403600_8013E66C(GsCOORDINATE2* arg0)
     void*          vec;
     void*          head;
 
-    head                      = *(void**)0x1F8003FC;
+    head                      = SCRATCH_HEAD(void);
     coord                     = ((TmdObject*)(*Gp_ActorSlots)->extra)->coords;
-    *(void**)0x1F8003FC       = head - 0x7C;
+    SCRATCH_HEAD(void)        = head - 0x7C;
     *(s16*)((s8*)head - 0x40) = (s16)(arg0->workm.t[0] - coord->workm.t[0]);
     vec                       = head - 0x40;
     *(s16*)((s8*)vec + 2)     = (s16)(arg0->workm.t[1] - coord->workm.t[1]);
@@ -3561,7 +3561,7 @@ s16 func_actor_403600_8013E66C(GsCOORDINATE2* arg0)
     } else if (angle < -0x800) {
         result = angle + 0x1000;
     }
-    *(void**)0x1F8003FC = *(void**)0x1F8003FC + 0x7C;
+    SCRATCH_POP_BYTES(0x7C);
     return result;
 }
 
@@ -5197,15 +5197,15 @@ void func_actor_403600_801412D0(GpEnemy* arg0, Task* arg1)
     VECTOR*          head;
     VECTOR*          block;
 
-    work                      = arg1->work;
-    head                      = *(VECTOR**)G_SCRATCH_HEAD;
-    head[-1].vx               = work->field_4B8.workm.t[0];
-    block                     = (VECTOR*)((u8*)head - 0x10);
-    block->vy                 = work->field_4B8.workm.t[1];
-    *(VECTOR**)G_SCRATCH_HEAD = block;
-    block->vz                 = work->field_4B8.workm.t[2];
+    work                 = arg1->work;
+    head                 = SCRATCH_HEAD(VECTOR);
+    head[-1].vx          = work->field_4B8.workm.t[0];
+    block                = (VECTOR*)((u8*)head - 0x10);
+    block->vy            = work->field_4B8.workm.t[1];
+    SCRATCH_HEAD(VECTOR) = block;
+    block->vz            = work->field_4B8.workm.t[2];
     Gp_UpdateActorColor(arg0, block, 0, 0);
-    *(VECTOR**)G_SCRATCH_HEAD = (VECTOR*)((u8*)*(VECTOR**)G_SCRATCH_HEAD + 0x10);
+    SCRATCH_POP_BYTES(0x10);
 }
 
 void func_actor_403600_80141338(Task* arg0)
@@ -5220,12 +5220,12 @@ void func_actor_403600_80141338(Task* arg0)
     register Task*   actor asm("v1");
     register MATRIX* matrixArg asm("a1");
 
-    head = *(MATRIX**)G_SCRATCH_HEAD;
+    head = SCRATCH_HEAD(MATRIX);
     SOFT_BARRIER();
-    block                     = (MATRIX*)((u8*)head - 0x20);
-    *(MATRIX**)G_SCRATCH_HEAD = block;
-    matrixArg                 = block;
-    actor                     = arg0;
+    block                = (MATRIX*)((u8*)head - 0x20);
+    SCRATCH_HEAD(MATRIX) = block;
+    matrixArg            = block;
+    actor                = arg0;
     SOFT_USE_REG2(block, block);
     work  = actor->work;
     coord = ((TmdObject*)actor->extra)->coords;
@@ -5262,7 +5262,7 @@ void func_actor_403600_80141338(Task* arg0)
         }
     }
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x20;
+    SCRATCH_POP_BYTES(0x20);
 }
 
 void func_actor_403600_801414FC(Task* arg0)
