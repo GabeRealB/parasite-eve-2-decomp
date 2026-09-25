@@ -123,6 +123,7 @@ void func_actor_451100_80131F84(Task* task);
 /// run through `func_actor_451100_80131F84`.
 s32 func_actor_451100_80132538(Task* task, s32 arg1, Actor451100AnimArgs* args);
 
+void func_actor_451100_8013280C(Task* task);
 void func_actor_451100_801328A8(GpEnemy* enemy, Task* task);
 void func_actor_451100_80132A1C(Task* task);
 void func_actor_451100_80132C28(GpEnemy* enemy, Task* task);
