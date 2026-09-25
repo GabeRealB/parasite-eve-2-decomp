@@ -33,7 +33,6 @@ void             Actor02000_Fn02294(Task* actor);
 void Actor02000_Fn00CD0(Task* arg0);
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-#define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 extern s32 D_8011572C;
 extern s16 Actor02000_D03784[];
@@ -74,16 +73,16 @@ void Actor02000_Fn00078(Task* arg0)
     s32                    byte1;
     s32                    max;
 
-    result                                    = 0;
-    maxPush                                   = 0;
-    hit                                       = 0;
-    lastId                                    = 0;
-    work                                      = arg0->work;
-    head                                      = *(GpDeltaScratch**)G_SCRATCH_HEAD;
-    self                                      = ((TmdObject*)arg0->extra)->coords;
-    *(Actor105600HitScratch**)G_SCRATCH_HEAD -= 1;
-    scratch                                   = *(Actor105600HitScratch**)G_SCRATCH_HEAD;
-    enemy                                     = arg0->spawnArg2;
+    result  = 0;
+    maxPush = 0;
+    hit     = 0;
+    lastId  = 0;
+    work    = arg0->work;
+    head    = SCRATCH_HEAD(GpDeltaScratch);
+    self    = ((TmdObject*)arg0->extra)->coords;
+    SCRATCH_PUSH(Actor105600HitScratch);
+    scratch = SCRATCH_HEAD(Actor105600HitScratch);
+    enemy   = arg0->spawnArg2;
 
     switch (func_800E0C10(work->field_584, head - 4, 4, NULL)) {
         case 0:
@@ -349,7 +348,7 @@ void Actor02000_Fn00078(Task* arg0)
         }
     }
     Gp_ClearRec18Occupied(work->field_4B4);
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x40;
+    SCRATCH_POP_BYTES(0x40);
 }
 
 /// Per-frame tick for the actor's approach cycle, sharing the `field_6A8`
@@ -376,8 +375,8 @@ void Actor02000_Fn00AEC(Task* arg0)
     s32              ang;
     s32              param;
 
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - 0x10;
+    head             = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(u8) = head - 0x10;
 
     self  = ((TmdObject*)arg0->extra)->coords;
     work  = arg0->work;
@@ -437,7 +436,7 @@ void Actor02000_Fn00AEC(Task* arg0)
         Gp_ArmStateF0(1);
     }
 
-    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 void Actor02000_Fn00CD0(Task* arg0)
@@ -451,18 +450,18 @@ void Actor02000_Fn00CD0(Task* arg0)
     VECTOR*          head;
     VECTOR*          delta;
 
-    self                      = ((TmdObject*)arg0->extra)->coords;
-    work                      = arg0->work;
-    head                      = *(VECTOR**)G_SCRATCH_HEAD;
-    delta                     = head - 1;
-    head[-1].vx               = (s32)(Player_Status.coordMtx->t[0] - self->coord.t[0]);
-    delta->vy                 = 0;
-    dz                        = Player_Status.coordMtx->t[2] - self->coord.t[2];
-    delta->vz                 = dz;
-    dx                        = head[-1].vx;
-    trigger                   = 0;
-    *(VECTOR**)G_SCRATCH_HEAD = delta;
-    distance                  = SquareRoot0((dx * dx) + (dz * dz));
+    self                 = ((TmdObject*)arg0->extra)->coords;
+    work                 = arg0->work;
+    head                 = SCRATCH_HEAD(VECTOR);
+    delta                = head - 1;
+    head[-1].vx          = (s32)(Player_Status.coordMtx->t[0] - self->coord.t[0]);
+    delta->vy            = 0;
+    dz                   = Player_Status.coordMtx->t[2] - self->coord.t[2];
+    delta->vz            = dz;
+    dx                   = head[-1].vx;
+    trigger              = 0;
+    SCRATCH_HEAD(VECTOR) = delta;
+    distance             = SquareRoot0((dx * dx) + (dz * dz));
     if (distance < 0x5DC) {
         if (Gp_StateF0.field_2 & 0x17) {
             work->field_6B2 = 1;
@@ -482,7 +481,7 @@ void Actor02000_Fn00CD0(Task* arg0)
             work->field_6A8 = 1;
         }
     }
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 void Actor02000_Fn00E0C(Task* arg0)
@@ -747,7 +746,7 @@ void Actor02000_Fn0150C(Task* arg0)
     s32              next;
     s32              wrapStep;
 
-    rot   = (SVECTOR*)(SCRATCH_SP -= 8);
+    rot   = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
     coord = ((TmdObject*)arg0->extra)->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
@@ -808,9 +807,11 @@ done:
     rot->vy = work->field_6A2;
     rot->vz = 0;
     RotMatrix(rot, &coord->coord);
-    SCRATCH_SP += 8;
+    SCRATCH_POP_BYTES(8);
 }
 
+/// The scratch head is taken through `ActorScratchStack` rather than as
+/// `SCRATCH_HEAD`, which does not compile the same.
 void Actor02000_Fn01698(Task* arg0)
 {
     Actor105600Work* work;
@@ -824,11 +825,11 @@ void Actor02000_Fn01698(Task* arg0)
     s32              nextY;
     s32              active;
 
-    matrix                                 = (MATRIX*)((ActorScratchStack*)0x1F8003FC)->head - 1;
-    ((ActorScratchStack*)0x1F8003FC)->head = matrix;
-    active                                 = 0;
-    work                                   = arg0->work;
-    coord                                  = ((TmdObject*)arg0->extra)->coords;
+    matrix                                     = (MATRIX*)((ActorScratchStack*)G_SCRATCH_HEAD)->head - 1;
+    ((ActorScratchStack*)G_SCRATCH_HEAD)->head = matrix;
+    active                                     = 0;
+    work                                       = arg0->work;
+    coord                                      = ((TmdObject*)arg0->extra)->coords;
     RotMatrix(&work->field_688, matrix);
     USE_REG(matrix);
     gte_SetRotMatrix(&coord[3].coord);
@@ -872,7 +873,7 @@ void Actor02000_Fn01698(Task* arg0)
     if (active == 0) {
         work->field_6B4 = 0;
     }
-    SCRATCH_SP += 0x20;
+    SCRATCH_POP_BYTES(0x20);
 }
 
 void Actor02000_Fn018A4(Task* arg0)
@@ -926,10 +927,10 @@ void Actor02000_Fn01A20(GpEnemy* ctx, Task* actor)
     Actor105600Work* work;
     Actor105600Work* animWork;
 
-    *(u32*)0x1F8003FC -= 8;
-    scratch            = (SVECTOR*)*(u32*)0x1F8003FC;
-    work               = actor->work;
-    coord              = ((void*)((TmdObject*)((volatile Task*)actor)->extra)->coords);
+    SCRATCH_PUSH_BYTES(8);
+    scratch = SCRATCH_HEAD(SVECTOR);
+    work    = actor->work;
+    coord   = ((void*)((TmdObject*)((volatile Task*)actor)->extra)->coords);
     switch (Gp_StateF0.field_4) {
         case 0:
             ((TmdObject*)actor->extra)->flags = 0;
@@ -1023,7 +1024,7 @@ void Actor02000_Fn01A20(GpEnemy* ctx, Task* actor)
     pos.vy = rootB->workm.t[1];
     pos.vz = partA->workm.t[2];
     Gp_DrawEffGroundQuad(&pos, 0x300, 0x80);
-    *(u32*)0x1F8003FC += 8;
+    SCRATCH_POP_BYTES(8);
     return;
 }
 
@@ -1049,12 +1050,12 @@ void Actor02000_Fn01DF0(Task* arg0)
     GsCOORDINATE2*   self;
     VECTOR*          delta;
 
-    head                = *(void**)0x1F8003FC;
-    *(void**)0x1F8003FC = head - 0x10;
-    delta               = (VECTOR*)(head - 0x10);
-    work                = arg0->work;
-    state               = work->field_6A8;
-    self                = ((TmdObject*)arg0->extra)->coords;
+    head               = SCRATCH_HEAD(void);
+    SCRATCH_HEAD(void) = head - 0x10;
+    delta              = (VECTOR*)(head - 0x10);
+    work               = arg0->work;
+    state              = work->field_6A8;
+    self               = ((TmdObject*)arg0->extra)->coords;
     switch (state) {
         case 0:
             if ((work->field_698 >= 0x47) && (work->field_6CE = (s16)(work->field_6D0 > 0), ((VECTOR*)(head - 0x10))->vx = (s32)(Player_Status.coordMtx->t[0] - self->coord.t[0]), dz0 = Player_Status.coordMtx->t[2] - self->coord.t[2], delta->vz = dz0, dx0 = ((VECTOR*)(head - 0x10))->vx, ((SquareRoot0((dx0 * dx0) + (dz0 * dz0)) < 0x3E8) == 0))) {
@@ -1167,8 +1168,8 @@ void Actor02000_Fn01DF0(Task* arg0)
             }
             break;
     }
-    scratch   = (s32*)0x1F8003FC;
-    *scratch += 0x10;
+    scratch = (s32*)G_SCRATCH_HEAD;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
 void Actor02000_Fn02294(Task* arg0)
@@ -1186,12 +1187,12 @@ void Actor02000_Fn02294(Task* arg0)
     GsCOORDINATE2*   self;
     VECTOR*          delta;
 
-    head                = *(void**)0x1F8003FC;
-    *(void**)0x1F8003FC = head - 0x10;
-    delta               = (VECTOR*)(head - 0x10);
-    work                = arg0->work;
-    state               = work->field_6A8;
-    self                = ((TmdObject*)arg0->extra)->coords;
+    head               = SCRATCH_HEAD(void);
+    SCRATCH_HEAD(void) = head - 0x10;
+    delta              = (VECTOR*)(head - 0x10);
+    work               = arg0->work;
+    state              = work->field_6A8;
+    self               = ((TmdObject*)arg0->extra)->coords;
     switch (state) {
         case 0:
             ((VECTOR*)(head - 0x10))->vx = (s32)(Player_Status.coordMtx->t[0] - self->coord.t[0]);
@@ -1231,8 +1232,8 @@ void Actor02000_Fn02294(Task* arg0)
             }
             break;
     }
-    scratch   = (s32*)0x1F8003FC;
-    *scratch += 0x10;
+    scratch = (s32*)G_SCRATCH_HEAD;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
 extern void       Actor02000_D15FE8;
@@ -1582,12 +1583,12 @@ void Actor02000_Fn02D5C(Task* arg0)
     Actor105600Work* work;
     GsCOORDINATE2*   coord;
 
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    delta                 = (VECTOR*)(head - 0x10);
-    *(u8**)G_SCRATCH_HEAD = (u8*)delta;
-    work                  = arg0->work;
-    state                 = work->field_6A8;
-    coord                 = ((TmdObject*)arg0->extra)->coords;
+    head             = SCRATCH_HEAD(u8);
+    delta            = (VECTOR*)(head - 0x10);
+    SCRATCH_HEAD(u8) = (u8*)delta;
+    work             = arg0->work;
+    state            = work->field_6A8;
+    coord            = ((TmdObject*)arg0->extra)->coords;
     switch (state) {
         case 0:
             speed = 0;
@@ -1697,7 +1698,7 @@ void Actor02000_Fn02D5C(Task* arg0)
             }
             break;
     }
-    *(s32*)G_SCRATCH_HEAD += 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 s32 Actor02000_Fn0315C(SVECTOR* arg0, SVECTOR* arg1)
@@ -1728,7 +1729,7 @@ s32 Actor02000_Fn0315C(SVECTOR* arg0, SVECTOR* arg1)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
     return ret;
 }
 

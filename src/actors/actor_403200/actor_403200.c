@@ -94,7 +94,6 @@ STATIC_ASSERT_SIZEOF(Actor403200DragScratch, 0x54);
 void func_actor_403200_80141018(Task* arg0);
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
-#define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 /// Player HP the per-frame tick reads before it latches the death cinematic.
 extern s16 D_80073BA0;
@@ -240,9 +239,9 @@ static __inline__ void Actor403200_StepForward(GsCOORDINATE2* coord)
     u8*      head;
     SVECTOR* dir;
 
-    head       = (u8*)SCRATCH_SP;
-    dir        = (SVECTOR*)(head - sizeof(SVECTOR));
-    SCRATCH_SP = (u32)dir;
+    head               = SCRATCH_HEAD(u8);
+    dir                = (SVECTOR*)(head - sizeof(SVECTOR));
+    SCRATCH_HEAD(void) = dir;
 
     Gfx_MatrixCol2(&coord->coord, dir);
     VectorNormalSS(dir, dir);
@@ -256,7 +255,7 @@ static __inline__ void Actor403200_StepForward(GsCOORDINATE2* coord)
     coord->coord.t[2] += dir->vz;
     coord->flg         = 0;
 
-    SCRATCH_SP = (u32)((u8*)SCRATCH_SP + sizeof(SVECTOR));
+    SCRATCH_POP_BYTES(sizeof(SVECTOR));
 }
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
@@ -280,8 +279,8 @@ static __inline__ void Actor403200_ScaleRotation(GsCOORDINATE2* coord, s16 xz, s
     ActorScaleRotScratch* sc;
     s16                   ang;
 
-    sc                                      = (ActorScaleRotScratch*)(*(u8**)G_SCRATCH_HEAD - sizeof(ActorScaleRotScratch));
-    *(ActorScaleRotScratch**)G_SCRATCH_HEAD = sc;
+    sc                                 = (ActorScaleRotScratch*)(SCRATCH_HEAD(u8) - sizeof(ActorScaleRotScratch));
+    SCRATCH_HEAD(ActorScaleRotScratch) = sc;
 
     ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle = ang;
@@ -302,7 +301,7 @@ static __inline__ void Actor403200_ScaleRotation(GsCOORDINATE2* coord, s16 xz, s
     coord->coord.m[2][2] = sc->m.m[2][2];
     coord->flg           = 0;
 
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(ActorScaleRotScratch);
+    SCRATCH_POP_BYTES(sizeof(ActorScaleRotScratch));
 }
 
 /// The same rebuild at a uniform half scale.
@@ -311,8 +310,8 @@ static __inline__ void Actor403200_ShrinkRotation(GsCOORDINATE2* coord)
     ActorScaleRotScratch* sc;
     s16                   ang;
 
-    sc                                      = (ActorScaleRotScratch*)(*(u8**)G_SCRATCH_HEAD - sizeof(ActorScaleRotScratch));
-    *(ActorScaleRotScratch**)G_SCRATCH_HEAD = sc;
+    sc                                 = (ActorScaleRotScratch*)(SCRATCH_HEAD(u8) - sizeof(ActorScaleRotScratch));
+    SCRATCH_HEAD(ActorScaleRotScratch) = sc;
 
     ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle = ang;
@@ -333,7 +332,7 @@ static __inline__ void Actor403200_ShrinkRotation(GsCOORDINATE2* coord)
     coord->coord.m[2][2] = sc->m.m[2][2];
     coord->flg           = 0;
 
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(ActorScaleRotScratch);
+    SCRATCH_POP_BYTES(sizeof(ActorScaleRotScratch));
 }
 
 /// Gap from `coord` to the player's coordinate matrix `Player_Status.coordMtx`, into `out`.
@@ -352,8 +351,8 @@ static __inline__ void Actor403200_SeedRootCoord(Task* task, Actor403200Work* wo
     ActorScaleRotScratch* sc;
     s16                   ang;
 
-    sc                                      = (ActorScaleRotScratch*)(*(u8**)G_SCRATCH_HEAD - sizeof(ActorScaleRotScratch));
-    *(ActorScaleRotScratch**)G_SCRATCH_HEAD = sc;
+    sc                                 = (ActorScaleRotScratch*)(SCRATCH_HEAD(u8) - sizeof(ActorScaleRotScratch));
+    SCRATCH_HEAD(ActorScaleRotScratch) = sc;
 
     ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle = ang;
@@ -374,7 +373,7 @@ static __inline__ void Actor403200_SeedRootCoord(Task* task, Actor403200Work* wo
 
     work->field_0                    = 0;
     ((TmdObject*)task->extra)->flags = 0;
-    *(u8**)G_SCRATCH_HEAD            = *(u8**)G_SCRATCH_HEAD + sizeof(ActorScaleRotScratch);
+    SCRATCH_POP_BYTES(sizeof(ActorScaleRotScratch));
 }
 
 typedef s32 (*Actor403200ViewFn)(Task* task, s16 arg);
@@ -420,15 +419,15 @@ void func_actor_403200_801321C4(GsCOORDINATE2* coord, s16 yaw)
     MATRIX*        rotation;
     GsCOORDINATE2* out;
 
-    *(MATRIX**)G_SCRATCH_HEAD -= 1;
-    rotation                   = *(MATRIX**)G_SCRATCH_HEAD;
+    SCRATCH_PUSH(MATRIX);
+    rotation = SCRATCH_HEAD(MATRIX);
     actorAccumulateToView(coord, rotation);
     func_8004BFF8(yaw, rotation);
     out = actorLocalizeRotation(coord, rotation);
     __builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->flg = 0;
     Gp_UpdateCoord(out);
-    *(MATRIX**)G_SCRATCH_HEAD += 1;
+    SCRATCH_POP(MATRIX);
 }
 
 /// Step `coord` by the movement the first `arg2` records of `rec` resolve to,
@@ -480,7 +479,7 @@ s32 func_actor_403200_801324D0(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2)
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
     return s->moved;
 }
 
@@ -1076,7 +1075,7 @@ void func_actor_403200_80133DD8(Task* arg0)
 /// scratchpad stack for the duration of the call.
 void func_actor_403200_80134044(GsCOORDINATE2* coord, s32 id)
 {
-    Actor403200EffScratch* sc = (Actor403200EffScratch*)(SCRATCH_SP -= sizeof(Actor403200EffScratch));
+    Actor403200EffScratch* sc = (Actor403200EffScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200EffScratch));
     sc->eff.spawnArgLo        = 0x500;
     sc->eff.coord             = coord;
     sc->eff.spawnArgHi        = 3;
@@ -1122,7 +1121,7 @@ void func_actor_403200_80134044(GsCOORDINATE2* coord, s32 id)
             break;
     }
 
-    SCRATCH_SP += sizeof(Actor403200EffScratch);
+    SCRATCH_POP_BYTES(sizeof(Actor403200EffScratch));
 }
 
 s32 func_actor_403200_801341E8(Task* arg0, s16 arg1)
@@ -1696,7 +1695,7 @@ void func_actor_403200_80134D40(Task* arg0)
         work->field_E96 = 0xE74;
     }
 
-    SCRATCH_SP -= 0xC;
+    SCRATCH_PUSH_BYTES(0xC);
     func_actor_403200_80133DD8(arg0);
 
     frame = work->slots0[2].curRec & 0x3FF;
@@ -1752,7 +1751,7 @@ void func_actor_403200_80134D40(Task* arg0)
         work->field_F06 = 8;
     }
 
-    SCRATCH_SP += 0xC;
+    SCRATCH_POP_BYTES(0xC);
 }
 
 /// Spawn state of the enemy dispatched through `D_actor_403200_80131E90`:
@@ -1857,10 +1856,10 @@ void func_actor_403200_801354A4(GpEnemy* enemy, Task* task)
         return;
     }
 
-    head                       = *(u8**)G_SCRATCH_HEAD;
-    dir                        = (SVECTOR*)(head - sizeof(SVECTOR));
-    *(SVECTOR**)G_SCRATCH_HEAD = dir;
-    gteDir                     = dir;
+    head                  = SCRATCH_HEAD(u8);
+    dir                   = (SVECTOR*)(head - sizeof(SVECTOR));
+    SCRATCH_HEAD(SVECTOR) = dir;
+    gteDir                = dir;
 
     if (work->field_1A8 != 0) {
         work->field_1AC   = 0;
@@ -1923,7 +1922,7 @@ void func_actor_403200_801354A4(GpEnemy* enemy, Task* task)
         }
     }
 
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(SVECTOR);
+    SCRATCH_POP_BYTES(sizeof(SVECTOR));
 }
 
 /// State handlers of the enemy stood up on the host's first escort: spawn,
@@ -3658,7 +3657,7 @@ void func_actor_403200_80139A60(Task* arg0)
     cfg   = &Player_Status;
     enemy = (GpEnemy*)arg0->spawnArg2;
     work  = (Actor403200Work*)arg0->work;
-    sc    = (Actor403200HitScratch*)(SCRATCH_SP -= sizeof(Actor403200HitScratch));
+    sc    = (Actor403200HitScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200HitScratch));
     pos   = &sc->pos;
     recs  = work->hits[0].recs;
     i     = 0;
@@ -3760,7 +3759,7 @@ found:
         }
     }
 
-    SCRATCH_SP += sizeof(Actor403200HitScratch);
+    SCRATCH_POP_BYTES(sizeof(Actor403200HitScratch));
 }
 
 /// The hit handler for collision groups 1 and 2 -- the same scan
@@ -3826,7 +3825,7 @@ void func_actor_403200_80139E94(Task* arg0)
     cfg  = &Player_Status;
     host = (GpEnemy*)arg0->spawnArg2;
     work = (Actor403200Work*)arg0->work;
-    sc   = (Actor403200HitScratch*)(SCRATCH_SP -= sizeof(Actor403200HitScratch));
+    sc   = (Actor403200HitScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200HitScratch));
     pos  = &sc->pos;
     recs = work->hits[1].recs;
     for (i = 0; i < 5; i++) {
@@ -3976,7 +3975,7 @@ hit:
         work->field_7C4 = 0;
     }
 out:
-    SCRATCH_SP += sizeof(Actor403200HitScratch);
+    SCRATCH_POP_BYTES(sizeof(Actor403200HitScratch));
 }
 
 /// The hit handler for collision groups 3, 4 and 5 -- `func_actor_403200_80139E94`
@@ -4033,7 +4032,7 @@ void func_actor_403200_8013A4A0(Task* arg0)
     cfg  = &Player_Status;
     host = (GpEnemy*)arg0->spawnArg2;
     work = (Actor403200Work*)arg0->work;
-    sc   = (Actor403200HitScratch*)(SCRATCH_SP -= sizeof(Actor403200HitScratch));
+    sc   = (Actor403200HitScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200HitScratch));
     pos  = &sc->pos;
     recs = work->hits[3].recs;
     for (i = 0; i < 5; i++) {
@@ -4197,7 +4196,7 @@ stored:
     work->field_7C8 = 0;
     work->field_7C4 = 0;
 out:
-    SCRATCH_SP += sizeof(Actor403200HitScratch);
+    SCRATCH_POP_BYTES(sizeof(Actor403200HitScratch));
 }
 
 /// The hit handler for collision groups 6, 7 and 8 -- the same three-scan shape
@@ -4253,7 +4252,7 @@ void func_actor_403200_8013AB70(Task* arg0)
     cfg  = &Player_Status;
     host = (GpEnemy*)arg0->spawnArg2;
     work = (Actor403200Work*)arg0->work;
-    sc   = (Actor403200HitScratch*)(SCRATCH_SP -= sizeof(Actor403200HitScratch));
+    sc   = (Actor403200HitScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200HitScratch));
     pos  = &sc->pos;
     recs = work->hits[6].recs;
     for (i = 0; i < 5; i++) {
@@ -4417,7 +4416,7 @@ stored:
     work->field_7C8 = 0;
     work->field_7C4 = 0;
 out:
-    SCRATCH_SP += sizeof(Actor403200HitScratch);
+    SCRATCH_POP_BYTES(sizeof(Actor403200HitScratch));
 }
 
 /// Reset handler: pushes the host model's `field_C` onto each of the seven
@@ -4508,7 +4507,7 @@ void func_actor_403200_8013B3C8(Task* arg0)
     s16                     state;
     s16                     ang;
 
-    sc   = (Actor403200TurnScratch*)(SCRATCH_SP -= sizeof(Actor403200TurnScratch));
+    sc   = (Actor403200TurnScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200TurnScratch));
     work = (Actor403200Work*)arg0->work;
     if (work->field_4 != 0) {
         work->field_F1D                  = 2;
@@ -4588,7 +4587,7 @@ void func_actor_403200_8013B3C8(Task* arg0)
         }
     }
     work->field_7C4 = ang;
-    SCRATCH_SP     += sizeof(Actor403200TurnScratch);
+    SCRATCH_POP_BYTES(sizeof(Actor403200TurnScratch));
 }
 
 /// Spawns up to nine enemies in a randomly selected formation, stopping when
@@ -4663,7 +4662,7 @@ void func_actor_403200_8013B8C4(Task* arg0)
     enemy = (GpEnemy*)arg0->spawnArg2;
     task  = gameGetPtrSlot(3);
     cfg   = &Player_Status;
-    sc    = (Actor403200DragScratch*)(SCRATCH_SP -= sizeof(Actor403200DragScratch));
+    sc    = (Actor403200DragScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200DragScratch));
 
     if (work->field_4 != 0) {
         work->field_F1D                  = 3;
@@ -4993,7 +4992,7 @@ void func_actor_403200_8013B8C4(Task* arg0)
         work->field_F06 = 2;
     }
 
-    SCRATCH_SP += sizeof(Actor403200DragScratch);
+    SCRATCH_POP_BYTES(sizeof(Actor403200DragScratch));
 }
 
 /// State-change reset for the enemy's launch state, and the tick that walks it
@@ -5121,7 +5120,7 @@ void func_actor_403200_8013C84C(Task* arg0)
         return;
     }
 
-    SCRATCH_SP -= 0x3C;
+    SCRATCH_PUSH_BYTES(0x3C);
     func_actor_403200_80133DD8(arg0);
     if ((work->slots0[1].flags & 1) && (work->field_7B3 == 0xF)) {
         work->field_7B0 = 2;
@@ -5187,7 +5186,7 @@ void func_actor_403200_8013C84C(Task* arg0)
         Gp_DispatchMsg(task, 0x3FF, (s32)&work->anim, 0);
         work->field_7CA = 0;
     }
-    SCRATCH_SP += 0x3C;
+    SCRATCH_POP_BYTES(0x3C);
 }
 
 /// State-change reset for the enemy's stand-up, plus the swipe tick that runs
@@ -5250,10 +5249,10 @@ void func_actor_403200_8013D028(Task* arg0)
     s32              cueId;
     s32              cuePan;
 
-    work        = (Actor403200Work*)arg0->work;
-    enemy       = arg0->spawnArg2;
-    task        = gameGetPtrSlot(3);
-    SCRATCH_SP -= 0x30;
+    work  = (Actor403200Work*)arg0->work;
+    enemy = arg0->spawnArg2;
+    task  = gameGetPtrSlot(3);
+    SCRATCH_PUSH_BYTES(0x30);
 
     if (work->field_4 != 0) {
         work->field_F1D                  = 0xB;
@@ -5424,7 +5423,7 @@ scanned:
         work->field_F06 = 4;
     }
 
-    SCRATCH_SP += 0x30;
+    SCRATCH_POP_BYTES(0x30);
 }
 
 /// State-change reset for the enemy's stand-up, and the height servo that runs
@@ -5964,7 +5963,7 @@ void func_actor_403200_8013E9C0(Task* arg0)
         SndEvt_EnqueueType7((((u16)obj->placeKey >> 12) << 8) | 0x40200009, 1);
         return;
     }
-    SCRATCH_SP -= 0xC;
+    SCRATCH_PUSH_BYTES(0xC);
     func_actor_403200_80133DD8(arg0);
     if (D_actor_403200_80141C58 >= 0x191) {
         D_actor_403200_80141C58 = (u16)D_actor_403200_80141C58 - 0xC8;
@@ -5976,7 +5975,7 @@ void func_actor_403200_8013E9C0(Task* arg0)
     if (work->field_6 >= 0x15) {
         work->field_F06 = 0;
     }
-    SCRATCH_SP += 0xC;
+    SCRATCH_POP_BYTES(0xC);
 }
 
 /// State-selecting tick of the enemy's approach: on the tick the dispatcher has
@@ -6035,7 +6034,7 @@ void func_actor_403200_8013EB64(Task* arg0)
         D_actor_403200_80141C58 = (u16)D_actor_403200_80141C58 - 0xC8;
         work->field_7A4         = 0;
     }
-    sc = (Actor403200ApproachScratch*)(SCRATCH_SP -= sizeof(Actor403200ApproachScratch));
+    sc = (Actor403200ApproachScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200ApproachScratch));
     func_actor_403200_80133DD8(arg0);
 
     coord    = ((TmdObject*)arg0->extra)->coords;
@@ -6130,7 +6129,7 @@ void func_actor_403200_8013EB64(Task* arg0)
             work->field_0 = 0xF;
         }
     }
-    SCRATCH_SP += sizeof(Actor403200ApproachScratch);
+    SCRATCH_POP_BYTES(sizeof(Actor403200ApproachScratch));
 }
 
 /// Escort-spawn tick of the arena fight. While `D_actor_403200_80141C50` is 1
@@ -6170,7 +6169,7 @@ void func_actor_403200_8013EF6C(Task* arg0)
     work = (Actor403200Work*)arg0->work;
     host = arg0->spawnArg2;
     if (D_actor_403200_80141C50 != 1) {
-        sc = (Actor403200SpawnScratch*)(SCRATCH_SP -= sizeof(Actor403200SpawnScratch));
+        sc = (Actor403200SpawnScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200SpawnScratch));
         if (work->field_4 != 0) {
             state           = work->field_7B3;
             work->field_EF4 = 0;
@@ -6334,7 +6333,7 @@ void func_actor_403200_8013EF6C(Task* arg0)
             }
         }
     out:
-        SCRATCH_SP += sizeof(Actor403200SpawnScratch);
+        SCRATCH_POP_BYTES(sizeof(Actor403200SpawnScratch));
     }
 }
 
@@ -6644,7 +6643,7 @@ clear_and_return:
     return;
 after_mode:
 
-    scratch = (Actor403200TickScratch*)(SCRATCH_SP -= sizeof(Actor403200TickScratch));
+    scratch = (Actor403200TickScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200TickScratch));
 
     if (arg0->hp > 0) {
         if (work->field_EC8 != 1 && work->field_0 != 0xD) {
@@ -6928,7 +6927,7 @@ after_mode:
         }
     }
 
-    SCRATCH_SP += sizeof(Actor403200TickScratch);
+    SCRATCH_POP_BYTES(sizeof(Actor403200TickScratch));
 }
 
 void func_actor_403200_801408D8(Task* task, s16 scale, s16 drop, s16 index)

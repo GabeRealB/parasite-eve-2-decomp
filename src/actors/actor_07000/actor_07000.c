@@ -190,7 +190,6 @@ static __inline__ void Actor107000_TickAnim(Task* task)
 }
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-#define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 #define ACTOR_COPY_MATRIX_COLUMN_TO_SV(r0, r1, o0, o1, o2) \
     __asm__ volatile(                                      \
@@ -633,9 +632,9 @@ void Actor07000_Fn00654(Task* arg0)
     s32              soundId;
     u32              rng;
 
-    coord              = ((TmdObject*)arg0->extra)->coords;
-    work               = (Actor107000Work*)arg0->work;
-    *(u32*)0x1F8003FC -= 8;
+    coord = ((TmdObject*)arg0->extra)->coords;
+    work  = (Actor107000Work*)arg0->work;
+    SCRATCH_PUSH_BYTES(8);
     if (Gp_CountRec18Hi(&work->field_11C, 0x10000) != 0) {
         work->field_2D8 = 1;
     }
@@ -674,7 +673,7 @@ void Actor07000_Fn00654(Task* arg0)
         }
         Actor07000_Fn027D0(arg0);
     }
-    *(u32*)0x1F8003FC += 8;
+    SCRATCH_POP_BYTES(8);
 }
 
 /// Per-frame handler of the caged specimen, dispatched on the reaction stage in
@@ -781,7 +780,7 @@ void Actor07000_Fn00A1C(Task* arg0)
     Actor107000Work*   contact;
 
     work        = (Actor107000Work*)arg0->work;
-    scratchHead = (void*)(*(u32*)0x1F8003FC -= 0x4C);
+    scratchHead = (void*)SCRATCH_PUSH_BYTES(0x4C);
     enemy       = arg0->spawnArg2;
     object      = arg0->extra;
     SOFT_TOUCH_REG_USE(object, scratchHead);
@@ -926,7 +925,7 @@ contact_loop:
         work->field_1D2 = (u16)((u16)work->field_1D2 & 0x7FFF);
         Gp_ClearRec18Occupied(effectRec);
     }
-    *(u32*)0x1F8003FC += 0x4C;
+    SCRATCH_POP_BYTES(0x4C);
 }
 
 /// Damage reaction of the caged specimen. `arg1` is taken off the context's
@@ -999,7 +998,7 @@ void Actor07000_Fn0107C(Task* arg0)
 
     coord        = ((TmdObject*)arg0->extra)->coords;
     work         = (Actor107000Work*)arg0->work;
-    sc           = (ActorFaceScratch*)(*(u32*)0x1F8003FC -= 0x18);
+    sc           = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
     sc->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
     sc->delta.vy = 0;
     sc->delta.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
@@ -1030,7 +1029,7 @@ void Actor07000_Fn0107C(Task* arg0)
     sc->rot.vy = work->field_2B0;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    *(u32*)0x1F8003FC += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Teardown handler of the caged specimen, run once the task has moved to its
@@ -1388,7 +1387,7 @@ void Actor07000_Fn01EB0(Task* arg0)
     s32                movement;
 
     work     = (Actor107000Work*)arg0->work;
-    scratch  = (ActorDeltaFrame48*)(SCRATCH_SP -= 0x48);
+    scratch  = (ActorDeltaFrame48*)SCRATCH_PUSH_BYTES(0x48);
     coord    = ((TmdObject*)arg0->extra)->coords;
     movement = func_800E0C10(&work->field_154[0], &scratch->delta, 4, NULL);
     switch (movement) {
@@ -1411,7 +1410,7 @@ void Actor07000_Fn01EB0(Task* arg0)
             break;
     }
     Gp_ClearRec18Occupied(&work->field_154[0]);
-    SCRATCH_SP += 0x48;
+    SCRATCH_POP_BYTES(0x48);
 }
 
 s32 Actor07000_Fn01FF8(Task* arg0, s32 arg1, GpCmdArg* arg2)
@@ -1704,7 +1703,7 @@ void Actor07000_Fn02914(GpEnemy* arg0, Task* task)
     block->vz = coord->workm.t[2];
     *scratch  = block;
     Gp_UpdateActorColor(arg0, block, 0, 0);
-    *scratch = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
 /// Draws the specimen's ground shadow under the model root, at the world
@@ -1716,12 +1715,12 @@ void Actor07000_Fn02984(Task* task)
     VECTOR3*       vec;
 
     coord   = ((TmdObject*)task->extra)->coords;
-    vec     = (VECTOR3*)(SCRATCH_SP -= 0x18);
+    vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
     vec->vx = coord->workm.t[0];
     vec->vy = coord->workm.t[1];
     vec->vz = coord->workm.t[2];
     Gp_DrawEffGroundQuad(vec, 0x1C0, 0);
-    SCRATCH_SP += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Scales the rotation of `arg1`'s matrix by the specimen's scale factor
@@ -1784,11 +1783,11 @@ void Actor07000_Fn02BB8(Task* arg0)
     ActorScaleScratch* scratch;
     Actor107000Work*   work;
 
-    head                = *(MATRIX**)0x1F8003FC;
-    work                = arg0->work;
-    scratch             = (ActorScaleScratch*)((u8*)head - 0x30);
-    *(void**)0x1F8003FC = scratch;
-    coord               = (*(TmdObject**)&arg0->extra)->coords;
+    head               = SCRATCH_HEAD(MATRIX);
+    work               = arg0->work;
+    scratch            = (ActorScaleScratch*)((u8*)head - 0x30);
+    SCRATCH_HEAD(void) = scratch;
+    coord              = (*(TmdObject**)&arg0->extra)->coords;
     if (work->field_2CA >= 0x201) {
         work->field_2CA = (u16)work->field_2CA - 0x50;
     }
@@ -1803,8 +1802,8 @@ void Actor07000_Fn02BB8(Task* arg0)
     scratch->mat.ident.m22     = 0x1000;
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
-    coord->flg         = 0;
-    *(u8**)0x1F8003FC += 0x30;
+    coord->flg = 0;
+    SCRATCH_POP_BYTES(0x30);
 }
 
 /// Exit callback of the caged specimen: takes the enemy's node and the four
@@ -2335,7 +2334,7 @@ void Actor07000_Fn03E08(Task* arg0)
     ActorDeltaFrame38*     scratch;
 
     work     = arg0->work;
-    head     = (void*)(*(u32*)0x1F8003FC -= 0x38);
+    head     = (void*)SCRATCH_PUSH_BYTES(0x38);
     coord    = ((TmdObject*)arg0->extra)->coords;
     enemy    = arg0->spawnArg2;
     scratch  = head;
@@ -2439,7 +2438,7 @@ void Actor07000_Fn03E08(Task* arg0)
     }
     Gp_ClearRec18Occupied(work->field_24C);
     Gp_ClearRec18Occupied(work->field_2CC);
-    *(u32*)0x1F8003FC += 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 /// Hit reaction of the specimen. `arg1` comes off the context's HP countdown
@@ -2698,12 +2697,12 @@ s32 Actor07000_Fn047F4(GsCOORDINATE2* arg0, u32* arg1)
     void*          matrix;
 
     coord = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
-    head  = *(void**)0x1F8003FC;
+    head  = SCRATCH_HEAD(void);
     base  = head - 0x40;
     __asm__("move %0,%1" : "=r"(vec) : "r"(base));
     *(s16*)((s8*)base + 0) = (s16)(coord->workm.t[0] - arg0->workm.t[0]);
     *(s16*)((s8*)vec + 2)  = (s16)(coord->workm.t[1] - arg0->workm.t[1]);
-    *(void**)0x1F8003FC    = vec;
+    SCRATCH_HEAD(void)     = vec;
     *(s16*)((s8*)vec + 4)  = (s16)(coord->workm.t[2] - arg0->workm.t[2]);
     matrix                 = head - 0x20;
     TransposeMatrix(&arg0->workm, matrix);
@@ -2724,7 +2723,7 @@ s32 Actor07000_Fn047F4(GsCOORDINATE2* arg0, u32* arg1)
     z                     = coord->coord.t[2] - arg0->coord.t[2];
     *(s16*)((s8*)vec + 4) = z;
     *arg1                 = SquareRoot0((x * x) + (z * z));
-    *(void**)0x1F8003FC  += 0x40;
+    SCRATCH_POP_BYTES(0x40);
     return angle;
 }
 
@@ -2800,13 +2799,13 @@ void Actor07000_Fn04B18(Task* arg0)
         Task_CallExit(arg0);
         return;
     }
-    head                       = *(SVECTOR**)G_SCRATCH_HEAD;
-    vec                        = head - 1;
-    *(SVECTOR**)G_SCRATCH_HEAD = vec;
-    obj                        = &work->obj;
-    arg0->work                 = work;
-    eff                        = Gp_SpawnEff(0x60081, coord, 0, NULL);
-    arg0->spawnArg2            = eff->task;
+    head                  = SCRATCH_HEAD(SVECTOR);
+    vec                   = head - 1;
+    SCRATCH_HEAD(SVECTOR) = vec;
+    obj                   = &work->obj;
+    arg0->work            = work;
+    eff                   = Gp_SpawnEff(0x60081, coord, 0, NULL);
+    arg0->spawnArg2       = eff->task;
     Task_Reparent(arg0, eff->task);
     angle       = arg0->spawnArg1;
     vec->vy     = -rcos(angle);
@@ -2857,10 +2856,10 @@ void Actor07000_Fn04B18(Task* arg0)
     rec->end1Radius    = 0x96;
     Gp_InitRec18Table(&work->rec2, 1, 0);
     Gp_LinkObj(3, obj);
-    obj->flags                 |= 0xC000;
-    arg0->exitCallback          = Actor07000_Fn068F0;
-    *(SVECTOR**)G_SCRATCH_HEAD += 1;
-    arg0->state                += 1;
+    obj->flags        |= 0xC000;
+    arg0->exitCallback = Actor07000_Fn068F0;
+    SCRATCH_POP(SVECTOR);
+    arg0->state += 1;
     __asm__("" : "=r"(rec), "+r"(coord));
     pan = (s8)Gp_GetObjPan(coord);
     SndEvt_EnqueueType6(0x40460002, pan, (s8)gpGetObjDepth(coord));
@@ -3087,13 +3086,13 @@ void Actor07000_Fn05068(GpEnemy* arg0, Task* arg1)
 static __inline__ void update_color(GpEnemy* enemy, GsCOORDINATE2* coord)
 {
     VECTOR* block;
-    block                 = (VECTOR*)((u8*)*(void**)0x1F8003FC - 0x10);
-    *(VECTOR**)0x1F8003FC = block;
-    block->vx             = coord->workm.t[0];
-    block->vy             = coord->workm.t[1];
-    block->vz             = coord->workm.t[2];
+    block                = (VECTOR*)((u8*)SCRATCH_HEAD(void) - 0x10);
+    SCRATCH_HEAD(VECTOR) = block;
+    block->vx            = coord->workm.t[0];
+    block->vy            = coord->workm.t[1];
+    block->vz            = coord->workm.t[2];
     Gp_UpdateActorColor(enemy, block, 0, 0);
-    *(u8**)0x1F8003FC += 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 static __inline__ void update_animation(Task* task)
 {
@@ -3119,11 +3118,11 @@ static __inline__ void rotate_parts(Task* arg0)
     u8*                    head;
     s16                    value;
 
-    work                  = (Actor107000Spawn2Work*)arg0->work;
-    head                  = *(u8**)0x1F8003FC;
-    *(MATRIX**)0x1F8003FC = (MATRIX*)(head - 0x20);
-    scratch               = (MATRIX*)(head - 0x20);
-    coord                 = ((TmdObject*)arg0->extra)->coords;
+    work                 = (Actor107000Spawn2Work*)arg0->work;
+    head                 = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(MATRIX) = (MATRIX*)(head - 0x20);
+    scratch              = (MATRIX*)(head - 0x20);
+    coord                = ((TmdObject*)arg0->extra)->coords;
     RotMatrix(&work->rotation, scratch);
     gte_SetRotMatrix(&coord[3].coord);
     gte_ldclmv(scratch);
@@ -3156,7 +3155,7 @@ static __inline__ void rotate_parts(Task* arg0)
         }
     }
     ((TmdObject*)arg0->extra)->coords->flg = 0;
-    *(MATRIX**)0x1F8003FC                  = (MATRIX*)((u8*)*(MATRIX**)0x1F8003FC + 0x20);
+    SCRATCH_POP_BYTES(0x20);
 }
 
 /// Per-frame handler of the specimen's second form while it drops into place,
@@ -3235,7 +3234,7 @@ void Actor07000_Fn0595C(Task* arg0)
     s32                       movement;
 
     work     = (ActorsShared8013777cWork*)arg0->work;
-    scratch  = (ActorDeltaFrame38*)(SCRATCH_SP -= 0x38);
+    scratch  = (ActorDeltaFrame38*)SCRATCH_PUSH_BYTES(0x38);
     coord    = ((TmdObject*)arg0->extra)->coords;
     movement = func_800E0C10(&work->field_24C[0], &scratch->delta, 4, NULL);
     switch (movement) {
@@ -3261,7 +3260,7 @@ void Actor07000_Fn0595C(Task* arg0)
     }
     Gp_ClearRec18Occupied(&work->field_24C[0]);
     Gp_ClearRec18Occupied(&work->field_2CC);
-    SCRATCH_SP += 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 /// Message 0x7DB handler of the second form's table (`Actor07000_D0D7C0`,
@@ -3427,7 +3426,7 @@ void Actor07000_Fn05F84(Task* task)
     block->vz = coord->workm.t[2];
     *scratch  = block;
     Gp_UpdateActorColor(obj, block, 0, 0);
-    *scratch = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
 /// Splices the work's own coordinate between the model's root and its second
@@ -3568,11 +3567,11 @@ void Actor07000_Fn06390(Task* arg0)
     u8*                    head;
     s16                    value;
 
-    work                  = (Actor107000Spawn2Work*)arg0->work;
-    head                  = *(u8**)0x1F8003FC;
-    *(MATRIX**)0x1F8003FC = (MATRIX*)(head - 0x20);
-    scratch               = (MATRIX*)(head - 0x20);
-    coord                 = ((TmdObject*)arg0->extra)->coords;
+    work                 = (Actor107000Spawn2Work*)arg0->work;
+    head                 = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(MATRIX) = (MATRIX*)(head - 0x20);
+    scratch              = (MATRIX*)(head - 0x20);
+    coord                = ((TmdObject*)arg0->extra)->coords;
     RotMatrix(&work->rotation, scratch);
     gte_SetRotMatrix(&coord[3].coord);
     gte_ldclmv(scratch);
@@ -3604,7 +3603,7 @@ void Actor07000_Fn06390(Task* arg0)
             work->rotation.vx = (u16)work->rotation.vx - 0x20;
         }
     }
-    *(MATRIX**)0x1F8003FC = (MATRIX*)((u8*)*(MATRIX**)0x1F8003FC + 0x20);
+    SCRATCH_POP_BYTES(0x20);
 }
 
 /// Per-frame reaction handler: folds the generic hit flags into the enemy's

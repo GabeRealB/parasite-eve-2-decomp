@@ -15,7 +15,6 @@
 #include "main/wipsys.h"
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-#define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 /// Per-actor work block, reached as `(Actor103700Work*)task->work`; this actor
 /// keeps its own state in the `Task::work` slot rather than a `TaskIdMap`.
@@ -352,7 +351,7 @@ void Actor03700_Fn0042C(Task* task, TmdObject* arg1, s32 arg2)
     push    = 0;
     broke   = 0;
     work    = (Actor103700Work*)task->work;
-    scratch = (ActorPushFrame*)(*(u8**)G_SCRATCH_HEAD -= 0x58);
+    scratch = (ActorPushFrame*)SCRATCH_PUSH_BYTES(0x58);
     coord   = ((TmdObject*)task->extra)->coords;
     res     = func_800E0C10(work->records, &scratch->delta, 4, NULL);
     if (res == 1)
@@ -448,7 +447,7 @@ move_done:
         coord->coord.t[2] += (push * scratch->dir.vz) >> 12;
     }
     Gp_ClearRec18Occupied(work->records);
-    *(u8**)G_SCRATCH_HEAD += 0x58;
+    SCRATCH_POP_BYTES(0x58);
 }
 
 /// The tick's mode dispatcher: runs the handler for the work block's mode
@@ -657,11 +656,11 @@ void Actor03700_Fn00ABC(Task* task)
     s16              angle;
     s32              dist;
 
-    head                    = *(void**)G_SCRATCH_HEAD;
-    vec                     = (SVECTOR*)((u8*)head - sizeof(SVECTOR));
-    *(void**)G_SCRATCH_HEAD = vec;
-    work                    = (Actor103700Work*)task->work;
-    coord                   = ((TmdObject*)task->extra)->coords;
+    head               = SCRATCH_HEAD(void);
+    vec                = (SVECTOR*)((u8*)head - sizeof(SVECTOR));
+    SCRATCH_HEAD(void) = vec;
+    work               = (Actor103700Work*)task->work;
+    coord              = ((TmdObject*)task->extra)->coords;
 
     switch (work->field_250) {
         case 0:
@@ -697,7 +696,7 @@ void Actor03700_Fn00ABC(Task* task)
         work->field_250      = 0;
         Gp_StateF0.field_19 |= 1;
     }
-    *(u32*)G_SCRATCH_HEAD += sizeof(SVECTOR);
+    SCRATCH_POP_BYTES(sizeof(SVECTOR));
 }
 
 void Actor03700_Fn00D5C(Task* task)
@@ -802,11 +801,11 @@ void Actor03700_Fn011B4(Task* task)
     s32              sound;
     s8               slot;
 
-    coord                   = ((TmdObject*)task->extra)->coords;
-    head                    = *(void**)G_SCRATCH_HEAD;
-    *(void**)G_SCRATCH_HEAD = (u8*)head - sizeof(SVECTOR);
-    work                    = (Actor103700Work*)task->work;
-    vec                     = *(void**)G_SCRATCH_HEAD;
+    coord              = ((TmdObject*)task->extra)->coords;
+    head               = SCRATCH_HEAD(void);
+    SCRATCH_HEAD(void) = (u8*)head - sizeof(SVECTOR);
+    work               = (Actor103700Work*)task->work;
+    vec                = SCRATCH_HEAD(void);
 
     switch (work->field_250) {
         case 0:
@@ -863,7 +862,7 @@ void Actor03700_Fn011B4(Task* task)
             break;
     }
     Actor03700_Fn032BC(task, 0, 14);
-    *(u32*)G_SCRATCH_HEAD += sizeof(SVECTOR);
+    SCRATCH_POP_BYTES(sizeof(SVECTOR));
 }
 
 void Actor03700_Fn01550(Task* task)
@@ -875,12 +874,12 @@ void Actor03700_Fn01550(Task* task)
     GpAnimArg*       arg;
     s32              sound;
 
-    work                    = (Actor103700Work*)task->work;
-    obj                     = ((TmdObject*)task->extra)->coords;
-    player                  = gameGetPtrSlot(3);
-    head                    = *(void**)G_SCRATCH_HEAD;
-    *(void**)G_SCRATCH_HEAD = (u8*)head - 0x1C;
-    arg                     = (GpAnimArg*)*(void**)G_SCRATCH_HEAD;
+    work               = (Actor103700Work*)task->work;
+    obj                = ((TmdObject*)task->extra)->coords;
+    player             = gameGetPtrSlot(3);
+    head               = SCRATCH_HEAD(void);
+    SCRATCH_HEAD(void) = (u8*)head - 0x1C;
+    arg                = (GpAnimArg*)SCRATCH_HEAD(void);
 
     switch (work->field_250) {
         case 0:
@@ -937,7 +936,7 @@ void Actor03700_Fn01550(Task* task)
             break;
     }
     Actor03700_Fn032BC(task, 1, 14);
-    *(u32*)G_SCRATCH_HEAD += 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void Actor03700_Fn018C8(Task* task)
@@ -1032,12 +1031,12 @@ void Actor03700_Fn01C94(Task* task)
     s32              sound;
     s32              pan;
 
-    work                    = (Actor103700Work*)task->work;
-    obj                     = ((TmdObject*)task->extra)->coords;
-    player                  = gameGetPtrSlot(3);
-    head                    = *(void**)G_SCRATCH_HEAD;
-    *(void**)G_SCRATCH_HEAD = (u8*)head - sizeof(GpAnimArg);
-    arg                     = (GpAnimArg*)*(void**)G_SCRATCH_HEAD;
+    work               = (Actor103700Work*)task->work;
+    obj                = ((TmdObject*)task->extra)->coords;
+    player             = gameGetPtrSlot(3);
+    head               = SCRATCH_HEAD(void);
+    SCRATCH_HEAD(void) = (u8*)head - sizeof(GpAnimArg);
+    arg                = (GpAnimArg*)SCRATCH_HEAD(void);
 
     switch (work->field_250) {
         case 0:
@@ -1061,7 +1060,7 @@ void Actor03700_Fn01C94(Task* task)
             }
             break;
     }
-    *(u32*)G_SCRATCH_HEAD += sizeof(GpAnimArg);
+    SCRATCH_POP_BYTES(sizeof(GpAnimArg));
 }
 
 /// Tests whether the actor has noticed the player: true when the player is
@@ -1101,7 +1100,7 @@ s32 Actor03700_Fn01DFC(Task* task)
         pan       = (s8)Gp_GetObjPan(coord);
         SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(coord));
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+    SCRATCH_POP_BYTES(8);
     return ret;
 }
 
@@ -1125,7 +1124,7 @@ void Actor03700_Fn01F48(Task* task)
 
     coord           = ((TmdObject*)task->extra)->coords;
     work            = (Actor103700Work*)task->work;
-    rot             = (SVECTOR*)(SCRATCH_SP -= 8);
+    rot             = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
     rot->vx         = work->field_23C.vx - coord->coord.t[0];
     rot->vy         = 0;
     rot->vz         = work->field_23C.vz - coord->coord.t[2];
@@ -1182,7 +1181,7 @@ done:
     rot->vy = work->field_246;
     rot->vz = 0;
     RotMatrix(rot, &coord->coord);
-    SCRATCH_SP += 8;
+    SCRATCH_POP_BYTES(8);
 }
 
 /// Death handler. Mode 1 of `Gp_StateF0.field_4` only refreshes the actor colour and
@@ -1408,7 +1407,7 @@ void Actor03700_Fn027DC(Task* task)
     GsCOORDINATE2*           coord;
     s32                      d;
 
-    s     = (Actor103700SteerScratch*)(SCRATCH_SP -= sizeof(Actor103700SteerScratch));
+    s     = (Actor103700SteerScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor103700SteerScratch));
     work  = (Actor103700Work*)task->work;
     coord = ((TmdObject*)task->extra)->coords;
     switch (work->field_250) {
@@ -1440,7 +1439,7 @@ void Actor03700_Fn027DC(Task* task)
             }
             break;
     }
-    SCRATCH_SP += sizeof(Actor103700SteerScratch);
+    SCRATCH_POP_BYTES(sizeof(Actor103700SteerScratch));
 }
 
 void Actor03700_Fn029C0(Task* task)
@@ -1452,13 +1451,13 @@ void Actor03700_Fn029C0(Task* task)
     s32                      mode;
     GpEnemy*                 ctx;
 
-    scratch                                    = *(Actor103700SteerScratch**)G_SCRATCH_HEAD - 1;
-    *(Actor103700SteerScratch**)G_SCRATCH_HEAD = scratch;
-    obj                                        = (TmdObject*)task->extra;
-    coord                                      = obj->coords;
-    work                                       = (Actor103700Work*)task->work;
-    mode                                       = work->field_250;
-    ctx                                        = (GpEnemy*)task->spawnArg2;
+    scratch                               = SCRATCH_HEAD(Actor103700SteerScratch) - 1;
+    SCRATCH_HEAD(Actor103700SteerScratch) = scratch;
+    obj                                   = (TmdObject*)task->extra;
+    coord                                 = obj->coords;
+    work                                  = (Actor103700Work*)task->work;
+    mode                                  = work->field_250;
+    ctx                                   = (GpEnemy*)task->spawnArg2;
 
     switch (mode) {
         case 0:
@@ -1611,11 +1610,11 @@ s32 Actor03700_Fn03130(Task* task)
     Actor103700HoldScratch* scratch;
     s32                     ret;
 
-    work                    = (Actor103700Work*)task->work;
-    player                  = gameGetPtrSlot(3);
-    head                    = *(void**)G_SCRATCH_HEAD;
-    *(void**)G_SCRATCH_HEAD = (u8*)head - sizeof(Actor103700HoldScratch);
-    scratch                 = (Actor103700HoldScratch*)*(void**)G_SCRATCH_HEAD;
+    work               = (Actor103700Work*)task->work;
+    player             = gameGetPtrSlot(3);
+    head               = SCRATCH_HEAD(void);
+    SCRATCH_HEAD(void) = (u8*)head - sizeof(Actor103700HoldScratch);
+    scratch            = (Actor103700HoldScratch*)SCRATCH_HEAD(void);
 
     ret = 0;
     if (((GameActor*)player->work)->field_954 != 2) {
@@ -1631,7 +1630,7 @@ s32 Actor03700_Fn03130(Task* task)
             ret             = 1;
         }
     }
-    *(u32*)G_SCRATCH_HEAD += sizeof(Actor103700HoldScratch);
+    SCRATCH_POP_BYTES(sizeof(Actor103700HoldScratch));
     return ret;
 }
 

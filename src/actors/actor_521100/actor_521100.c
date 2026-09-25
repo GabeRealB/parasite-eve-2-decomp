@@ -22,8 +22,6 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
-#define SCRATCH_SP (*(u32*)0x1F8003FC)
-
 typedef struct Actor521100FireRow {
     /* 0x0 */ s16 field_0;
     /* 0x2 */ u16 field_2;
@@ -358,7 +356,7 @@ void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
 
     lastId  = 0;
     work    = arg0->work;
-    scratch = (ActorDeltaFrame48*)(SCRATCH_SP -= 0x48);
+    scratch = (ActorDeltaFrame48*)SCRATCH_PUSH_BYTES(0x48);
     coord   = ((TmdObject*)arg0->extra)->coords;
     enemy   = arg0->spawnArg2;
     result  = func_800E0C10(work->rec49C, &scratch->delta, 5, NULL);
@@ -523,7 +521,7 @@ void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
             enemy->hp = 1;
         }
     }
-    SCRATCH_SP += 0x48;
+    SCRATCH_POP_BYTES(0x48);
 }
 
 void func_actor_521100_80132958(Task* arg0)
@@ -545,17 +543,17 @@ void func_actor_521100_80132958(Task* arg0)
     s16              wrapped;
     s32              magnitude;
 
-    coord                     = ((TmdObject*)arg0->extra)->coords;
-    work                      = arg0->work;
-    scratchEnd                = *(VECTOR**)G_SCRATCH_HEAD;
-    vec                       = scratchEnd - 1;
-    *(VECTOR**)G_SCRATCH_HEAD = vec;
-    scratchEnd[-1].vx         = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-    vec->vy                   = 0;
-    vec->vz                   = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-    work->field_6AA           = SquareRoot0(scratchEnd[-1].vx * scratchEnd[-1].vx + vec->vz * vec->vz);
-    angle                     = ratan2((s16)scratchEnd[-1].vx, (s16)vec->vz) & 0xFFF;
-    work->field_698           = angle;
+    coord                = ((TmdObject*)arg0->extra)->coords;
+    work                 = arg0->work;
+    scratchEnd           = SCRATCH_HEAD(VECTOR);
+    vec                  = scratchEnd - 1;
+    SCRATCH_HEAD(VECTOR) = vec;
+    scratchEnd[-1].vx    = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    vec->vy              = 0;
+    vec->vz              = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    work->field_6AA      = SquareRoot0(scratchEnd[-1].vx * scratchEnd[-1].vx + vec->vz * vec->vz);
+    angle                = ratan2((s16)scratchEnd[-1].vx, (s16)vec->vz) & 0xFFF;
+    work->field_698      = angle;
     if (gGameSession->at4.loc.view == 2) {
         work->field_69E = 6;
         work->field_6A0 = 0;
@@ -625,8 +623,8 @@ void func_actor_521100_80132958(Task* arg0)
                 break;
         }
     }
-    work->field_6AE         = 0;
-    *(void**)G_SCRATCH_HEAD = (void*)(*(void**)G_SCRATCH_HEAD + 0x10);
+    work->field_6AE = 0;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 /// Asks the player for the hold (message 0x3F8, range 0x19) once the actor has
@@ -652,7 +650,7 @@ s32 func_actor_521100_80132C70(Task* arg0)
 
     work   = arg0->work;
     player = gameGetPtrSlot(3);
-    msg    = (GpDelayArg*)(SCRATCH_SP -= 0x18);
+    msg    = (GpDelayArg*)SCRATCH_PUSH_BYTES(0x18);
 
     diff  = work->field_698 - work->field_696;
     adiff = diff >= 0 ? diff : -diff;
@@ -678,7 +676,7 @@ s32 func_actor_521100_80132C70(Task* arg0)
             Gp_SpawnPadLerp(0xA, 0xFF, 0x80);
         }
     }
-    SCRATCH_SP += 0x18;
+    SCRATCH_POP_BYTES(0x18);
     return ret;
 }
 void func_actor_521100_80132DE8(Task* arg0)
@@ -701,13 +699,13 @@ void func_actor_521100_80132DE8(Task* arg0)
 
     coord = ((TmdObject*)arg0->extra)->coords;
     work  = arg0->work;
-    head  = *(VECTOR**)G_SCRATCH_HEAD;
+    head  = SCRATCH_HEAD(VECTOR);
     vec   = head - 1;
 
-    *(VECTOR**)G_SCRATCH_HEAD = vec;
-    head[-1].vx               = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-    vec->vy                   = 0;
-    vec->vz                   = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    SCRATCH_HEAD(VECTOR) = vec;
+    head[-1].vx          = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    vec->vy              = 0;
+    vec->vz              = Player_Status.coordMtx->t[2] - coord->coord.t[2];
 
     work->field_6AA = SquareRoot0(head[-1].vx * head[-1].vx + vec->vz * vec->vz);
     work->field_698 = ratan2((s16)head[-1].vx, (s16)vec->vz) & 0xFFF;
@@ -783,9 +781,11 @@ void func_actor_521100_80132DE8(Task* arg0)
             func_actor_521100_801335B4(arg0);
             break;
     }
-    SCRATCH_SP += 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
+/// The scratch head is taken through `ActorScratchStack` rather than as
+/// `SCRATCH_HEAD`, which does not compile the same.
 void func_actor_521100_80133104(Task* arg0)
 {
     GsCOORDINATE2*   coord;
@@ -913,13 +913,13 @@ void func_actor_521100_8013334C(Task* arg0)
     s32              snd;
     s32              pan;
 
-    work                       = arg0->work;
-    head                       = *(SVECTOR**)G_SCRATCH_HEAD;
-    vec                        = head - 1;
-    *(SVECTOR**)G_SCRATCH_HEAD = vec;
-    clip                       = D_actor_521100_8015F894[work->field_686];
-    clipId                     = D_actor_521100_8015F894[work->field_686];
-    coord                      = ((TmdObject*)arg0->extra)->coords;
+    work                  = arg0->work;
+    head                  = SCRATCH_HEAD(SVECTOR);
+    vec                   = head - 1;
+    SCRATCH_HEAD(SVECTOR) = vec;
+    clip                  = D_actor_521100_8015F894[work->field_686];
+    clipId                = D_actor_521100_8015F894[work->field_686];
+    coord                 = ((TmdObject*)arg0->extra)->coords;
 
     turn = 0;
     if ((s16)work->field_68A < clip + 0x28) {
@@ -973,7 +973,7 @@ void func_actor_521100_8013334C(Task* arg0)
         work->field_68E = tbl[(rng >> 16) & 0xF];
         work->field_6AE = 0;
     }
-    *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    SCRATCH_POP(SVECTOR);
 }
 /// Step-0 body of the burn-out sequence: the transition into it and the two
 /// respawn draws. `field_6A2` is a four-phase latch. Phase 0 waits out the clip
@@ -1004,9 +1004,9 @@ void func_actor_521100_801335B4(Task* arg0)
     s32              snd;
     s32              pair;
 
-    SCRATCH_SP -= 0x18;
-    work        = arg0->work;
-    coord       = ((TmdObject*)arg0->extra)->coords;
+    SCRATCH_PUSH_BYTES(0x18);
+    work  = arg0->work;
+    coord = ((TmdObject*)arg0->extra)->coords;
 
     switch (work->field_6A2) {
         case 0:
@@ -1096,7 +1096,7 @@ void func_actor_521100_801335B4(Task* arg0)
             work->field_6AE = 0;
             break;
     }
-    SCRATCH_SP += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 void func_actor_521100_801339B0(Task* arg0)
@@ -1117,11 +1117,11 @@ void func_actor_521100_801339B0(Task* arg0)
     u32                     rng;
     u16*                    tbl;
 
-    work        = arg0->work;
-    coord       = ((TmdObject*)arg0->extra)->coords;
-    player      = gameGetPtrSlot(3);
-    SCRATCH_SP -= 0x54;
-    sc          = (Actor521100FireScratch*)SCRATCH_SP;
+    work   = arg0->work;
+    coord  = ((TmdObject*)arg0->extra)->coords;
+    player = gameGetPtrSlot(3);
+    SCRATCH_PUSH_BYTES(0x54);
+    sc = SCRATCH_HEAD(Actor521100FireScratch);
 
     switch (work->field_6A0) {
         case 0:
@@ -1394,7 +1394,7 @@ void func_actor_521100_801339B0(Task* arg0)
             }
             break;
     }
-    SCRATCH_SP += 0x54;
+    SCRATCH_POP_BYTES(0x54);
 }
 
 /// Step-4 body of the burn-out sequence, the fourth of the ones the dispatcher
@@ -1484,13 +1484,13 @@ void func_actor_521100_80134774(Task* arg0)
     u8*               head;
     s16               state;
 
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    sc                    = (ActorFaceScratch*)(head - 0x18);
-    sc2                   = (ActorFaceScratch*)sc;
-    *(u8**)G_SCRATCH_HEAD = (u8*)sc;
-    work                  = arg0->work;
-    coord                 = ((TmdObject*)arg0->extra)->coords;
-    state                 = work->field_6A0;
+    head             = SCRATCH_HEAD(u8);
+    sc               = (ActorFaceScratch*)(head - 0x18);
+    sc2              = (ActorFaceScratch*)sc;
+    SCRATCH_HEAD(u8) = (u8*)sc;
+    work             = arg0->work;
+    coord            = ((TmdObject*)arg0->extra)->coords;
+    state            = work->field_6A0;
     switch (state) {
         case 0:
             work->field_686 = 0x12;
@@ -1586,7 +1586,7 @@ void func_actor_521100_80134774(Task* arg0)
             work->field_6BC = 0;
             break;
     }
-    *(u32*)G_SCRATCH_HEAD += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 /// Steers the actor's heading towards the work block's `field_698` at up to
 /// `field_69C` of turn per frame, then builds the result into the attach
@@ -1614,7 +1614,7 @@ void func_actor_521100_80134C38(Task* arg0)
     s32               next;
     s32               wrapStep;
 
-    sc    = (ActorFaceScratch*)(SCRATCH_SP -= 0x18);
+    sc    = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
     coord = ((TmdObject*)arg0->extra)->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
@@ -1666,7 +1666,7 @@ done:
     sc->rot.vy = work->field_696;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    SCRATCH_SP += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 /// Plays the actor's footstep cues: while the animation record the cue body
 /// reads carries `flags` bit 0x20 (or 0x10), a sound is queued on the frame
@@ -1723,10 +1723,10 @@ void func_actor_521100_80134EDC(Task* arg0)
     GsCOORDINATE2*   head;
     s32              offsetY;
 
-    coord                   = ((TmdObject*)arg0->extra)->coords;
-    head                    = &coord[4];
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(ActorAimScratch);
-    scratch                 = (ActorAimScratch*)*(void**)G_SCRATCH_HEAD;
+    coord = ((TmdObject*)arg0->extra)->coords;
+    head  = &coord[4];
+    SCRATCH_PUSH_BYTES(sizeof(ActorAimScratch));
+    scratch = (ActorAimScratch*)SCRATCH_HEAD(void);
 
     Gp_WorldToLocal(&Gfx_ViewWorldMtx, &head->workm, &scratch->view);
     scratch->delta.vx = Player_Status.coordMtx->t[0] - scratch->view.t[0];
@@ -1749,7 +1749,7 @@ void func_actor_521100_80134EDC(Task* arg0)
         scratch->local.vz = 0x200;
     }
     Gp_OrientAlong(&scratch->local, &head->coord, 0);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(ActorAimScratch);
+    SCRATCH_POP_BYTES(sizeof(ActorAimScratch));
 }
 /// Untwists the coordinate at `field_8[3]`, which `func_actor_521100_801322F8`
 /// left rotated by the random residual in `Actor521100Work::field_678` on the
@@ -1763,7 +1763,7 @@ void func_actor_521100_80134EDC(Task* arg0)
 /// frame both arrive, which is what the update body tests before calling this.
 ///
 /// The scratch stack head is read through `ActorScratchStack` rather than
-/// as a `u32` - see that type for why the shape matters.
+/// as `SCRATCH_HEAD`, which does not compile the same.
 ///
 /// Same body as `Actor02000_Fn01698` and `func_actor_510900_80138D38`.
 void func_actor_521100_80135024(Task* arg0)
@@ -1779,11 +1779,11 @@ void func_actor_521100_80135024(Task* arg0)
     s32              nextY;
     s32              active;
 
-    matrix                                 = (MATRIX*)((ActorScratchStack*)0x1F8003FC)->head - 1;
-    ((ActorScratchStack*)0x1F8003FC)->head = matrix;
-    active                                 = 0;
-    work                                   = arg0->work;
-    coord                                  = ((TmdObject*)arg0->extra)->coords;
+    matrix                                     = (MATRIX*)((ActorScratchStack*)G_SCRATCH_HEAD)->head - 1;
+    ((ActorScratchStack*)G_SCRATCH_HEAD)->head = matrix;
+    active                                     = 0;
+    work                                       = arg0->work;
+    coord                                      = ((TmdObject*)arg0->extra)->coords;
     RotMatrix(&work->field_678, matrix);
     USE_REG(matrix);
     gte_SetRotMatrix(&coord[3].coord);
@@ -1827,7 +1827,7 @@ void func_actor_521100_80135024(Task* arg0)
     if (active == 0) {
         work->field_680 = 0;
     }
-    SCRATCH_SP += 0x20;
+    SCRATCH_POP_BYTES(0x20);
 }
 /// The burn-out tick `func_actor_521100_80135414` runs while the sequence state
 /// `field_68C` is non-zero. `field_68E` counts the frames since the last effect
