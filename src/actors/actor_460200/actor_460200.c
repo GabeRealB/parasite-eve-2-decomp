@@ -1,7 +1,5 @@
 #include "common.h"
 
-INCLUDE_RODATA("actors/nonmatchings/actor_460200/actor_460200", D_actor_460200_80131E24);
-
 #include "actors/actor_460200.h"
 #include "actors/actors_shared_80132514.h"
 #include "actors/actors_shared_8014c874.h"
@@ -18,6 +16,7 @@ INCLUDE_RODATA("actors/nonmatchings/actor_460200/actor_460200", D_actor_460200_8
 #include "psyq/rand.h"
 
 extern s8 D_8007272D;
+extern u8 D_801156F9;
 
 extern s32 D_actor_460200_8013FC50;
 extern s32 D_actor_460200_8013FC8C;
@@ -41,15 +40,14 @@ extern s32 D_actor_460200_80138070;
 extern RECT D_actor_460200_80135E0C;
 extern RECT D_actor_460200_80135E14;
 
-void func_actor_460200_80131E2C(Task* task)
+void func_actor_460200_80131E24(Task* task)
 {
     Actor460200CaptureArgs* args;
-    s32                     hoisted; /* $v0: a byte load GCC hoisted above the prologue */
     s32                     i;
     u32*                    strip;
 
     args = task->spawnArg2;
-    if (hoisted == 0) {
+    if (D_801156F9 == 0) {
         switch (task->state) {
             case 0:
                 args->done          = 0;
