@@ -27,5 +27,6 @@ typedef struct {
 void func_actor_800300_80162064(GpActorWork* arg0);
 void func_actor_800300_801623F8(GpActorWork* arg0);
 void func_actor_800300_80162C2C(GpActorWork* arg0);
+void func_actor_800300_801625A8(Task* task);
 
 #endif

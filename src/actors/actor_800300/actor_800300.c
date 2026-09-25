@@ -1,7 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_800300.h"
-#include "actors/actors_shared_801625a8.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
@@ -42,7 +41,7 @@ void func_actor_800300_80161E80(GpActorWork* arg0)
     coord = *addr;
     arg0->state++;
     arg0->field_24   = &D_actor_800300_80168880;
-    arg0->field_18   = &ActorsShared801625a8;
+    arg0->field_18   = &func_actor_800300_801625A8;
     actor->field_938 = 0x13;
     D_80115764       = arg0;
     coord->sub       = &gGfxViewCoord;
