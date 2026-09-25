@@ -63,46 +63,46 @@ static inline void _neoArkBridgeRotTrans(MATRIX* m, SVECTOR* v)
 /// way the retail code needs.
 void func_neo_ark_bridge_8017D638(Task* task)
 {
-    s32                buf;
-    s32                sinArg;
-    s32                cosArg;
-    s32                kind;
-    s32                scale;
-    s32                zoff;
-    s32                split;
-    s32                splitX;
-    s32                otzOff;
-    s32                xLeft0;
-    s32                xRight0;
-    s32                xLeftS;
-    s32                start;
-    s32                end;
-    s32                area;
-    POLY_FT4*          prim;
-    RoomRippleScratch* scratch;
-    s32                y;
-    s32                y0;
-    s32                xl;
-    s32                xr;
-    s32                passes;
-    s32                pass;
-    s32                wave;
-    s32                sinv;
-    s32                cosv;
-    s32                w;
-    s32                d;
-    s32                z;
-    s32                otz;
-    s32                v;
-    s32                dy;
-    s32                xv;
-    s32                x;
-    s32                xe;
-    s32                xMin;
-    s32                xMax;
-    s32                fadeLen;
-    s32                one;
-    DisplayState*      disp;
+    s32                   buf;
+    s32                   sinArg;
+    s32                   cosArg;
+    s32                   kind;
+    s32                   scale;
+    s32                   zoff;
+    s32                   split;
+    s32                   splitX;
+    s32                   otzOff;
+    s32                   xLeft0;
+    s32                   xRight0;
+    s32                   xLeftS;
+    s32                   start;
+    s32                   end;
+    s32                   area;
+    POLY_FT4*             prim;
+    OverlayRippleScratch* scratch;
+    s32                   y;
+    s32                   y0;
+    s32                   xl;
+    s32                   xr;
+    s32                   passes;
+    s32                   pass;
+    s32                   wave;
+    s32                   sinv;
+    s32                   cosv;
+    s32                   w;
+    s32                   d;
+    s32                   z;
+    s32                   otz;
+    s32                   v;
+    s32                   dy;
+    s32                   xv;
+    s32                   x;
+    s32                   xe;
+    s32                   xMin;
+    s32                   xMax;
+    s32                   fadeLen;
+    s32                   one;
+    DisplayState*         disp;
 
     kind    = 0;
     scale   = 0x1000;
@@ -304,10 +304,10 @@ void func_neo_ark_bridge_8017D638(Task* task)
     if (Gp_StateF0.field_4 == 0) {
         task->killCountdown += 0x20;
     }
-    sinArg                               = task->killCountdown * 2;
-    cosArg                               = task->killCountdown;
-    *(RoomRippleScratch**)G_SCRATCH_HEAD = *(RoomRippleScratch**)G_SCRATCH_HEAD - 1;
-    scratch                              = *(RoomRippleScratch**)G_SCRATCH_HEAD;
+    sinArg                                  = task->killCountdown * 2;
+    cosArg                                  = task->killCountdown;
+    *(OverlayRippleScratch**)G_SCRATCH_HEAD = *(OverlayRippleScratch**)G_SCRATCH_HEAD - 1;
+    scratch                                 = *(OverlayRippleScratch**)G_SCRATCH_HEAD;
     TransposeMatrix(&gGfxViewCoord.workm, &scratch->mtx);
     scratch->origin.vx = gGfxViewCoord.workm.t[0];
     scratch->origin.vy = gGfxViewCoord.workm.t[1];
@@ -539,7 +539,7 @@ void func_neo_ark_bridge_8017D638(Task* task)
             cosArg += 0xC5;
         }
     }
-    *(RoomRippleScratch**)G_SCRATCH_HEAD += 1;
+    *(OverlayRippleScratch**)G_SCRATCH_HEAD += 1;
 }
 
 /// Draws a wavy screen-distortion band for some views of areas 12 and 30 and

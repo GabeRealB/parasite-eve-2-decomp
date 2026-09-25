@@ -286,4 +286,21 @@ typedef struct OverlayEncounterPairWork {
 } OverlayEncounterPairWork;
 STATIC_ASSERT_SIZEOF(OverlayEncounterPairWork, 0xC);
 
+/// The scratch-pad block a screen-ripple drawer takes for one call. `mtx` is
+/// the transposed view rotation, loaded as the GTE rotation for every
+/// projection the drawer makes; each screen row's vector `row` is rotated
+/// through it into `rowView`, and `origin` is the view translation brought
+/// into the same frame. `depth` is divided by each row's height to find its
+/// ordering-table depth. Nothing reads the tail; the block's size is
+/// how far the drawer moves the scratch head.
+typedef struct OverlayRippleScratch {
+    MATRIX  mtx;
+    SVECTOR row;
+    SVECTOR rowView;
+    SVECTOR origin;
+    s32     depth;
+    byte    pad_3C[0x10];
+} OverlayRippleScratch;
+STATIC_ASSERT_SIZEOF(OverlayRippleScratch, 0x4C);
+
 #endif /* OVERLAY_H */

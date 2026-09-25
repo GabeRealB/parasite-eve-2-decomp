@@ -71,22 +71,6 @@ typedef struct RoomDeparture {
 } RoomDeparture;
 STATIC_ASSERT_SIZEOF(RoomDeparture, 0xC);
 
-/// The scratchpad block a room's screen-ripple drawer takes from
-/// `G_SCRATCH_HEAD` for one call. The drawer rotates each screen row's vector
-/// `row` through the transposed view rotation `mtx` into `rowView`, and divides
-/// `depth` by its height to find the row's ordering-table depth; `origin` is
-/// the view translation brought into the same frame. Nothing reads the tail;
-/// the block's size is how far the drawer moves the scratch head.
-typedef struct RoomRippleScratch {
-    MATRIX  mtx;
-    SVECTOR row;
-    SVECTOR rowView;
-    SVECTOR origin;
-    s32     depth;
-    u8      _pad[0x10];
-} RoomRippleScratch;
-STATIC_ASSERT_SIZEOF(RoomRippleScratch, 0x4C);
-
 /// The scratchpad block a mirror task takes while it rebuilds the reflected
 /// coordinate frame in its `RoomMirrorWork`. A floor mirror only needs
 /// `viewRow`, the view matrix's second row, which it negates through the GTE.

@@ -99,26 +99,6 @@ typedef struct Actor361100EffectState {
 } Actor361100EffectState;
 STATIC_ASSERT_SIZEOF(Actor361100EffectState, 0xE8);
 
-/// Scratch record `func_actor_361100_80161FF8` carves off `G_SCRATCH_HEAD` for
-/// the duration of one call and hands back before returning. `mtx` is the
-/// transpose of the view's world matrix, loaded as the GTE rotation for every
-/// projection the body makes. `trans` receives the view translation rotated by
-/// `mtx`; its `vy` plus 0x712, scaled by the display's screen distance, is kept
-/// in `depth` as the dividend of each scanline's depth. `in` is the per-scanline
-/// point handed to the GTE and `out` the rotated result read back from it.
-///
-/// Nothing in the body touches the last 0x10 bytes; the size is the amount the
-/// scratch head moves, which is the one thing that fixes it.
-typedef struct Actor361100RippleScratch {
-    MATRIX  mtx;
-    SVECTOR in;
-    SVECTOR out;
-    SVECTOR trans;
-    s32     depth;
-    u8      pad[0x10];
-} Actor361100RippleScratch;
-STATIC_ASSERT_SIZEOF(Actor361100RippleScratch, 0x4C);
-
 extern u8  D_801156F9;
 extern s32 D_8007107C;
 extern s32 D_8016069C;
@@ -280,49 +260,49 @@ static inline void _actor361100RotTrans(MATRIX* m, SVECTOR* v)
 /// for `$t3`, as retail does.
 void func_actor_361100_80161FF8(Task* arg0)
 {
-    DisplayState*              disp;
-    Actor361100RippleScratch*  block;
-    Actor361100RippleScratch** slot;
-    POLY_FT4*                  prim;
-    s32                        left;
-    s32                        adj;
-    s32                        ptr;
-    s32                        otBuf;
-    s32                        mode;
-    s32                        shift;
-    s32                        ang2;
-    s32                        ang;
-    s32                        y;
-    s32                        yTop;
-    s32                        x0;
-    s32                        x1;
-    s32                        nprims;
-    s32                        clip;
-    s32                        otOff;
-    s32                        fade;
-    s32                        scale;
-    s32                        xNeg;
-    s32                        wave;
-    s32                        wave1;
-    s32                        baseY;
-    s32                        one;
-    s32                        dist;
-    s32                        z;
-    s32                        otz;
-    s32                        i;
-    s32                        yOff;
-    s32                        fadeLen;
-    s32                        xMin;
-    s32                        xMax;
-    s32                        xLeft;
-    s32                        xRight;
-    s32                        xL;
-    s32                        xR;
-    s32                        v;
-    s32                        edge;
-    s32                        sine;
-    s32                        cosine;
-    u16                        spare;
+    DisplayState*          disp;
+    OverlayRippleScratch*  block;
+    OverlayRippleScratch** slot;
+    POLY_FT4*              prim;
+    s32                    left;
+    s32                    adj;
+    s32                    ptr;
+    s32                    otBuf;
+    s32                    mode;
+    s32                    shift;
+    s32                    ang2;
+    s32                    ang;
+    s32                    y;
+    s32                    yTop;
+    s32                    x0;
+    s32                    x1;
+    s32                    nprims;
+    s32                    clip;
+    s32                    otOff;
+    s32                    fade;
+    s32                    scale;
+    s32                    xNeg;
+    s32                    wave;
+    s32                    wave1;
+    s32                    baseY;
+    s32                    one;
+    s32                    dist;
+    s32                    z;
+    s32                    otz;
+    s32                    i;
+    s32                    yOff;
+    s32                    fadeLen;
+    s32                    xMin;
+    s32                    xMax;
+    s32                    xLeft;
+    s32                    xRight;
+    s32                    xL;
+    s32                    xR;
+    s32                    v;
+    s32                    edge;
+    s32                    sine;
+    s32                    cosine;
+    u16                    spare;
 
     left    = 0x18000 - D_8006D868;
     left   &= -8;
@@ -354,24 +334,24 @@ void func_actor_361100_80161FF8(Task* arg0)
         }
         ang2  = arg0->killCountdown * 2;
         ang   = arg0->killCountdown;
-        slot  = (Actor361100RippleScratch**)G_SCRATCH_HEAD;
+        slot  = (OverlayRippleScratch**)G_SCRATCH_HEAD;
         *slot = *slot - 1;
         block = *slot;
         TransposeMatrix(&gGfxViewCoord.workm, &block->mtx);
-        block->trans.vx = gGfxViewCoord.workm.t[0];
-        block->trans.vy = gGfxViewCoord.workm.t[1];
-        block->trans.vz = gGfxViewCoord.workm.t[2];
-        _actor361100RotTrans(&block->mtx, &block->trans);
-        block->depth  = block->trans.vy + 0x712;
+        block->origin.vx = gGfxViewCoord.workm.t[0];
+        block->origin.vy = gGfxViewCoord.workm.t[1];
+        block->origin.vz = gGfxViewCoord.workm.t[2];
+        _actor361100RotTrans(&block->mtx, &block->origin);
+        block->depth  = block->origin.vy + 0x712;
         block->depth *= disp->screenDistance;
-        block->in.vx  = 0;
-        block->in.vz  = disp->screenDistance;
+        block->row.vx = 0;
+        block->row.vz = disp->screenDistance;
         gte_SetRotMatrix(&block->mtx);
         y = 0x50;
         do {
-            yTop         = y - 0x78;
-            block->in.vy = yTop;
-            gte_ldv0(&block->in);
+            yTop          = y - 0x78;
+            block->row.vy = yTop;
+            gte_ldv0(&block->row);
             gte_rtv0();
             x0     = xMin;
             x1     = xMax;
@@ -422,9 +402,9 @@ void func_actor_361100_80161FF8(Task* arg0)
                     wave1 += one;
                 }
             }
-            gte_stsv(&block->out);
-            if (block->out.vy > 0) {
-                otz   = block->depth / block->out.vy;
+            gte_stsv(&block->rowView);
+            if (block->rowView.vy > 0) {
+                otz   = block->depth / block->rowView.vy;
                 otz >>= 2;
             } else {
                 otz = 0x3FFF;
@@ -585,7 +565,7 @@ void func_actor_361100_80161FF8(Task* arg0)
             }
             y += 1;
         } while (y < 0xF0);
-        *(u8**)G_SCRATCH_HEAD += sizeof(Actor361100RippleScratch);
+        *(u8**)G_SCRATCH_HEAD += sizeof(OverlayRippleScratch);
     }
 }
 

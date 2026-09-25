@@ -66,48 +66,48 @@ static inline void _shelterR48RotTrans(MATRIX* m, SVECTOR* v)
 
 void func_shelter_r48_8017D660(Task* arg0)
 {
-    DisplayState*       disp;
-    TmdObject*          tmd;
-    RoomRippleScratch*  block;
-    RoomRippleScratch** slot;
-    POLY_FT4*           prim;
-    u8*                 ptr;
-    s32                 otBuf;
-    s32                 view;
-    s32                 mode;
-    s32                 shift;
-    s32                 ang2;
-    s32                 ang;
-    s32                 y;
-    s32                 yTop;
-    s32                 x0;
-    s32                 x1;
-    s32                 nprims;
-    s32                 clip;
-    s32                 otOff;
-    s32                 fade;
-    s32                 scale;
-    s32                 xNeg;
-    s32                 wave;
-    s32                 wave1;
-    s32                 start;
-    s32                 end;
-    s32                 dist;
-    s32                 z;
-    s32                 otz;
-    s32                 i;
-    s32                 yOff;
-    s32                 fadeLen;
-    s32                 xMin;
-    s32                 xMax;
-    s32                 xLeft;
-    s32                 xRight;
-    s32                 xL;
-    s32                 xR;
-    s32                 v;
-    s32                 edge;
-    s32                 sine;
-    s32                 cosine;
+    DisplayState*          disp;
+    TmdObject*             tmd;
+    OverlayRippleScratch*  block;
+    OverlayRippleScratch** slot;
+    POLY_FT4*              prim;
+    u8*                    ptr;
+    s32                    otBuf;
+    s32                    view;
+    s32                    mode;
+    s32                    shift;
+    s32                    ang2;
+    s32                    ang;
+    s32                    y;
+    s32                    yTop;
+    s32                    x0;
+    s32                    x1;
+    s32                    nprims;
+    s32                    clip;
+    s32                    otOff;
+    s32                    fade;
+    s32                    scale;
+    s32                    xNeg;
+    s32                    wave;
+    s32                    wave1;
+    s32                    start;
+    s32                    end;
+    s32                    dist;
+    s32                    z;
+    s32                    otz;
+    s32                    i;
+    s32                    yOff;
+    s32                    fadeLen;
+    s32                    xMin;
+    s32                    xMax;
+    s32                    xLeft;
+    s32                    xRight;
+    s32                    xL;
+    s32                    xR;
+    s32                    v;
+    s32                    edge;
+    s32                    sine;
+    s32                    cosine;
 
     tmd   = (TmdObject*)arg0->extra;
     otBuf = D_8007107C;
@@ -182,7 +182,7 @@ void func_shelter_r48_8017D660(Task* arg0)
     }
     ang2  = arg0->killCountdown * 2;
     ang   = arg0->killCountdown;
-    slot  = (RoomRippleScratch**)G_SCRATCH_HEAD;
+    slot  = (OverlayRippleScratch**)G_SCRATCH_HEAD;
     *slot = *slot - 1;
     block = *slot;
     TransposeMatrix(&gGfxViewCoord.workm, &block->mtx);
@@ -412,7 +412,7 @@ void func_shelter_r48_8017D660(Task* arg0)
             ang += 0xC5;
         }
     }
-    *(u8**)G_SCRATCH_HEAD += sizeof(RoomRippleScratch);
+    *(u8**)G_SCRATCH_HEAD += sizeof(OverlayRippleScratch);
 }
 
 s32 func_shelter_r48_8017DF50(s32 arg0, s32 arg1, s32 arg2)
