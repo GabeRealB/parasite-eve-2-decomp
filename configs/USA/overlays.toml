@@ -4266,14 +4266,14 @@ id = 245
 objects = [
   { kind = "packageId" },
   { unit = "actor_342000/actor_342000", rodata = "0x4", text = "0x84" },
-  { lib = true, unit = "actors_shared_80163148", text = "0x208C" },
+  { unit = "actor_342000/actor_342000_4", text = "0x208C" },
   { unit = "actor_342000/actor_342000_2", text = "0x2168" },
-  { lib = true, unit = "actors_shared_80163224", text = "0x2198" },
-  { lib = true, unit = "actors_shared_8013411c", text = "0x2214" },
+  { unit = "actor_342000/actor_342000_5", text = "0x2198" },
+  { unit = "actor_342000/actor_342000_6", text = "0x2214" },
   { unit = "actor_342000/actor_342000_3", text = "0x22A0" },
-  { lib = true, unit = "actors_shared_8016447c", text = "0x265C" },
-  { lib = true, unit = "actors_shared_8016449c", text = "0x267C" },
-  { lib = true, unit = "actors_shared_801343a4", text = "0x269C" },
+  { unit = "actor_342000/actor_342000_7", text = "0x265C" },
+  { unit = "actor_342000/actor_342000_8", text = "0x267C" },
+  { unit = "actor_342000/actor_342000_9", text = "0x269C" },
   { kind = "data", at = "0x26C4" },
 ]
 
