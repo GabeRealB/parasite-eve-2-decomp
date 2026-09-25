@@ -39,12 +39,7 @@ extern SVECTOR D_actor_141000_801348A8[];
 /// three words at 0x4A0..0x4A8 are cleared. `target` is the world position the
 /// actor turns to face, written by the state handler at 0x801336DC.
 typedef struct Actor141000Work {
-    /* 0x000 */ byte       pad_0[0x8];
-    /* 0x008 */ byte       pad_8[0x2];
-    /* 0x00A */ u16        field_A;      // Z scale the state-0 ramp at 0x80132E24 climbs by 0x100 a frame and clamps at 0x1000
-    /* 0x00C */ u16        field_C;      // state index; `func_actor_141000_80132D3C` dispatches through it as `(s16)`
-    /* 0x00E */ u16        field_E;      // per-state frame counter
-    /* 0x010 */ byte       pad_10[0x4];
+    /* 0x000 */ GpAnimCtx  anim;         // animation context the slot helpers are handed
     /* 0x014 */ GpAnimSlot slots[0x13];  // the slot array `func_800B3F84` is handed
     /* 0x30C */ byte       poses[0x130]; // pose buffer `func_800B3F84` is handed
     /* 0x43C */ s8         field_43C;    // non-zero while the animation slots tick
@@ -98,11 +93,6 @@ extern VECTOR D_actor_141000_80131E68;
 /// Z scale the state at 0x80132E24 ramps by 0x100 a frame up to 0x1000, `state`
 /// is the index `func_actor_141000_80132D3C` dispatches through, and `ticks` is
 /// the per-state frame counter the state at 0x80132EB0 holds for 0x1F frames.
-///
-/// That head is the same `scale` / `state` / `ticks` halfword triple
-/// `Actor141000Work` declares at 0xA/0xC/0xE: the two states that touch only
-/// those three fields -- `func_actor_141000_80132E24` and
-/// `func_actor_141000_80132EB0` -- reach this block as `(Actor141000Work*)`.
 typedef struct Actor141000CtrlWork {
     /* 0x0 */ s32  field_0; // armed at 0xFFF by the spawn state
     /* 0x4 */ byte pad_4[0x4];
@@ -198,5 +188,6 @@ void func_actor_141000_80133260(Actor141000* arg0);
 void func_actor_141000_80132E04(Task* task);
 void func_actor_141000_801339BC(Task* arg0);
 void func_actor_141000_80133A68(Task* task);
+s32  func_actor_141000_80133CD8(Task* task, s32 arg1, Actor141000AnimPreset* msg, s32 arg3);
 
 #endif

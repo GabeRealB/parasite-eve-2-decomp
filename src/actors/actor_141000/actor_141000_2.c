@@ -28,43 +28,54 @@ extern TaskDesc D_actor_141000_801348D8[];
 /// `func_actor_141000_8013392C`; terminator id 0x7FFFFFFF.
 extern GpMsgEntry D_actor_141000_8013D788[];
 
+void func_actor_141000_8013392C(Task* arg0);
+void func_actor_141000_801332A0(Task* task);
+
+/// The model actor's three states - spawn, per-frame tick and exit -
+/// dispatched through by `func_actor_141000_801338C0`.
+const TaskFuncTable3 D_actor_141000_80131E4C = { {
+    func_actor_141000_8013392C,
+    func_actor_141000_801332A0,
+    func_actor_141000_801339BC,
+} };
+
 /// State 0 of the handler table at 0x80131E3C: ramps the actor's Z scale by
 /// 1/16 a frame and, on reaching 1.0, clamps it there and advances the state
-/// index `field_C` the dispatcher at 0x80132D3C walks.
+/// index `state` the dispatcher at 0x80132D3C walks.
 void func_actor_141000_80132E24(Task* arg0)
 {
-    Actor141000Work* work;
-    u16              scale;
+    Actor141000CtrlWork* work;
+    u16                  scale;
 
-    work          = (Actor141000Work*)arg0->work;
-    scale         = work->field_A + 0x100;
-    work->field_A = scale;
+    work        = (Actor141000CtrlWork*)arg0->work;
+    scale       = work->scale + 0x100;
+    work->scale = scale;
     if ((s16)scale >= 0x1000) {
-        work->field_A = 0x1000;
-        work->field_C = work->field_C + 1;
+        work->scale = 0x1000;
+        work->state = work->state + 1;
     }
     func_actor_141000_80132FD0(((TmdObject*)arg0->extra)->coords, 0);
-    func_actor_141000_8013308C(((TmdObject*)arg0->extra)->coords, (s16)work->field_A);
+    func_actor_141000_8013308C(((TmdObject*)arg0->extra)->coords, (s16)work->scale);
 }
 
 /// State 1 of the handler table at 0x80131E3C: holds for 0x1F frames, then
-/// advances the state index `field_C` the dispatcher at 0x80132D3C walks.
+/// advances the state index `state` the dispatcher at 0x80132D3C walks.
 void func_actor_141000_80132EB0(Task* arg0)
 {
-    Actor141000Work* work;
-    u16              ticks;
+    Actor141000CtrlWork* work;
+    u16                  ticks;
 
-    work          = (Actor141000Work*)arg0->work;
-    ticks         = work->field_E + 1;
-    work->field_E = ticks;
+    work        = (Actor141000CtrlWork*)arg0->work;
+    ticks       = work->ticks + 1;
+    work->ticks = ticks;
     if ((s16)ticks >= 0x1F) {
-        work->field_C = work->field_C + 1;
+        work->state = work->state + 1;
     }
 }
 
 /// State 2 of the handler table at 0x80131E3C: drives the model's rotation
 /// through `func_actor_141000_80132FD0` and, on the frame that runs the ramp's
-/// 0x5A entries out, advances the state index `field_C` the dispatcher at
+/// 0x5A entries out, advances the state index `state` the dispatcher at
 /// 0x80132D3C walks. Every eighth frame it spawns another actor from index 2
 /// of `D_actor_141000_801348D8` and copies this actor's world position onto
 /// the new one.
@@ -109,7 +120,7 @@ void func_actor_141000_80132FC8(void)
 /// once `arg1` runs past the table's 0x5A entries -- copy that entry's
 /// position into the root's translation, drop X by 40 and clear `flg`.
 /// Returns non-zero on the frame that ran past the table, which is what the
-/// state-2 handler at 0x80132EF4 advances `field_C` on.
+/// state-2 handler at 0x80132EF4 advances `state` on.
 s32 func_actor_141000_80132FD0(GsCOORDINATE2* arg0, s32 arg1)
 {
     Actor141000MatWords* words;
@@ -254,7 +265,7 @@ void func_actor_141000_801332A0(Task* task)
     work->field_4A8    = (u16)work->field_4A8;
     if (work->field_43C != 0) {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            Gp_AnimTickIndex(&work->anim, i);
         }
     }
     if (!(ext->flags & 0x80)) {
@@ -274,7 +285,50 @@ void func_actor_141000_801332A0(Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000_2", func_actor_141000_80133490);
+/// State 2 of the main-body table `D_actor_141000_80131E58`: the approach
+/// test. Once the X/Z distance from the root coordinate to `target` stops
+/// shrinking below `limit`, plays anim 0x7D3 with a preset carrying the
+/// `field_43F` byte, clears `step` and advances the state; otherwise records
+/// the distance as the new `limit`.
+void func_actor_141000_80133490(Task* arg0)
+{
+    Actor141000Work*      work;
+    GsCOORDINATE2*        coord;
+    SVECTOR               d;
+    s32                   dx;
+    s32                   dz;
+    Actor141000AnimPreset preset;
+
+    work  = (Actor141000Work*)arg0->work;
+    coord = ((TmdObject*)arg0->extra)->coords;
+    if (work->target.vx - coord->coord.t[0] >= 0) {
+        dx = (u16)work->target.vx - (u16)coord->coord.t[0];
+    } else {
+        dx = (u16)coord->coord.t[0] - (u16)work->target.vx;
+    }
+    d.vx = dx;
+    if (work->target.vz - coord->coord.t[2] >= 0) {
+        dz = (u16)work->target.vz - (u16)coord->coord.t[2];
+    } else {
+        dz = (u16)coord->coord.t[2] - (u16)work->target.vz;
+    }
+    d.vz = dz;
+    if (d.vx >= work->limit.vx && d.vz >= work->limit.vz) {
+        preset.field_0  = 0;
+        preset.field_4  = work->field_43F;
+        preset.field_8  = 1;
+        preset.field_C  = 5;
+        preset.field_10 = 0;
+        func_actor_141000_80133CD8(arg0, 0x7D3, &preset, 0);
+        work->step.vx = 0;
+        work->step.vy = 0;
+        work->step.vz = 0;
+        work->field_4C2++;
+        return;
+    }
+    work->limit.vx = d.vx < 0 ? -d.vx : d.vx;
+    work->limit.vz = d.vz < 0 ? -d.vz : d.vz;
+}
 
 /// The three texture uploads `func_actor_141000_801335D4` walks: one per value
 /// of `Actor141000Work::field_4CA`, each a `GpImgRec` whose own `rect` carries
@@ -379,29 +433,40 @@ s32 func_actor_141000_801336DC(Task* task, s32 arg1, Actor141000Placement* place
     if (msg->field_0 != work->field_43E) {
         work->field_43E = msg->field_0;
         work->field_43D = -1;
-        func_800B3F84((GpAnimCtx*)work, D_actor_141000_8013D778[work->field_43E], ext, work->poses,
+        func_800B3F84(&work->anim, D_actor_141000_8013D778[work->field_43E], ext, work->poses,
                       work->slots);
     }
     if (msg->field_4 != work->field_43D) {
         work->field_43D = msg->field_4;
         if (msg->field_8 != 0 && work->field_43C != 0) {
             for (i = 1; i < 0x13; i++) {
-                func_800B4114((GpAnimCtx*)work, i, work->field_43D, 0, msg->field_C);
+                func_800B4114(&work->anim, i, work->field_43D, 0, msg->field_C);
             }
         } else {
             for (i = 1; i < 0x13; i++) {
-                Gp_AnimResetSlot((GpAnimCtx*)work, i, work->field_43D);
+                Gp_AnimResetSlot(&work->anim, i, work->field_43D);
             }
         }
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            Gp_AnimTickIndex(&work->anim, i);
         }
         work->field_43C = 1;
     }
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_141000/actor_141000_2", func_actor_141000_801338C0);
+/// Per-frame dispatcher of the model actor: runs its spawn, tick or exit
+/// state from `D_actor_141000_80131E4C`, skipping the frame while the global
+/// freeze byte is set.
+void func_actor_141000_801338C0(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_141000_80131E4C;
+    if (D_801153F4 == 0) {
+        sp.funcs[task->state](task);
+    }
+}
 
 /// Spawn state of the enemy actor: allocates the 0x4CC-byte work block that
 /// every later handler reads through `Task::work`, seeds the three -1 bytes
