@@ -1155,7 +1155,7 @@ s32 func_shelter_b3_garbage_incinerator_8017FC5C(GpCapFile* file)
         ptrs  = (GpCapPtrTable*)file->field_10;
         i     = 0;
         count = ptrs->count;
-        ptr   = (s32*)(ptrs + 1);
+        ptr   = ptrs->entries;
         if (count > 0) {
             do {
                 if (*ptr != 0) {
@@ -1168,7 +1168,7 @@ s32 func_shelter_b3_garbage_incinerator_8017FC5C(GpCapFile* file)
     }
 
     D_shelter_b3_garbage_incinerator_8018FC44 = (GlyphUvwh*)file->field_8;
-    D_shelter_b3_garbage_incinerator_8018FC40 = (GpEvt12**)((GpCapPtrTable*)file->field_10 + 1);
+    D_shelter_b3_garbage_incinerator_8018FC40 = (GpEvt12**)((GpCapPtrTable*)file->field_10)->entries;
     return 1;
 }
 

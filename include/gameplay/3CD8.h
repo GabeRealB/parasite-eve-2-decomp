@@ -44,10 +44,12 @@ typedef struct _GpCapEvtTable {
 } GpCapEvtTable;
 STATIC_ASSERT_SIZEOF(GpCapEvtTable, 0x10);
 
-/// Count word in front of the relocated pointer table at `GpCapFile::field_10`.
-/// `Gp_RelocCapFile` publishes `hdr + 1` as `Gp_CapCmds` (`GpCapCmd**`).
+/// The CAP file's command pointer table: a count, then that many entries. Each
+/// entry is a file-relative offset until relocation adds the file base, making
+/// it the address of a command record; a zero entry is left as no record.
 typedef struct _GpCapPtrTable {
     /* 0x0 */ s32 count;
+    /* 0x4 */ s32 entries[0];
 } GpCapPtrTable;
 STATIC_ASSERT_SIZEOF(GpCapPtrTable, 4);
 

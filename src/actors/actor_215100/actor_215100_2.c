@@ -620,7 +620,7 @@ s32 func_actor_215100_8014B1B0(GpCapFile* file)
         ptrs  = (GpCapPtrTable*)file->field_10;
         i     = 0;
         count = ptrs->count;
-        ptr   = (s32*)(ptrs + 1);
+        ptr   = ptrs->entries;
         if (count > 0) {
             do {
                 if (*ptr != 0) {
@@ -633,7 +633,7 @@ s32 func_actor_215100_8014B1B0(GpCapFile* file)
     }
 
     D_actor_215100_8015E654 = (GlyphUvwh*)file->field_8;
-    D_actor_215100_8015E650 = (GpEvt12**)((GpCapPtrTable*)file->field_10 + 1);
+    D_actor_215100_8015E650 = (GpEvt12**)((GpCapPtrTable*)file->field_10)->entries;
     return 1;
 }
 

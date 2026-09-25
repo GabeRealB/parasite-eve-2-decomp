@@ -335,7 +335,7 @@ s32 Gp_RelocCapFile(GpCapFile* file)
         ptrs  = (GpCapPtrTable*)file->field_10;
         i     = 0;
         count = ptrs->count;
-        ptr   = (s32*)(ptrs + 1);
+        ptr   = ptrs->entries;
         if (count > 0) {
             do {
                 if (*ptr != 0) {
@@ -348,7 +348,7 @@ s32 Gp_RelocCapFile(GpCapFile* file)
     }
 
     Gp_CapGlyphs = (GlyphUvwh*)file->field_8;
-    Gp_CapCmds   = (s32*)((GpCapPtrTable*)file->field_10 + 1);
+    Gp_CapCmds   = ((GpCapPtrTable*)file->field_10)->entries;
     return 1;
 }
 
