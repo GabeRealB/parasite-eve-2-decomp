@@ -1,6 +1,9 @@
 #include "common.h"
 
-#include "actors/actor_311900.h"
+#include <psyq/libgte.h>
+#include <psyq/inline_c.h>
+#include "gte.h"
+
 #include "gameplay/1BC.h"
 #include "gameplay/D4.h"
 #include "main/gameflag.h"
@@ -9,21 +12,92 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// The animation data `func_800B3F84` builds the work block's clip context
-/// from; the spawn hands it over whole, so it is only ever a byte address here.
+/// A `MATRIX` plus the word-wise view `func_actor_311900_8016278C` and
+/// `func_actor_311900_8016281C` seed the light / colour pair's identity
+/// through: five aligned stores rather than nine halfword ones.
+typedef union Actor311900MatWords {
+    MATRIX mat;
+    struct {
+        /* 0x00 */ s32 m00_m01;
+        /* 0x04 */ s32 m02_m10;
+        /* 0x08 */ s32 m11_m12;
+        /* 0x0C */ s32 m20_m21;
+        /* 0x10 */ s16 m22;
+    } ident;
+} Actor311900MatWords;
+STATIC_ASSERT_SIZEOF(Actor311900MatWords, 0x20);
+
+/// Animation view of the work block's 0x474-byte prefix. The spawn handler
+/// hands the block itself to `func_800B3F84` as a `GpAnimCtx`, the
+/// `GpAnimSlot` array at 0x14 as its fourth argument and the packed-pose run
+/// at 0x334 as its third -- `func_800B3448` reaches that run as `GpPackedSvec`
+/// at a 0x10 stride, one group per slot. Both counts are what fills the gap:
+/// the 20 slots of 0x28 reach 0x334 and the 20 pose groups reach 0x474.
+typedef struct Actor311900Anim {
+    /* 0x000 */ GpAnimCtx  context;
+    /* 0x014 */ GpAnimSlot slots[0x14];
+    /* 0x334 */ byte       poses[0x140];
+} Actor311900Anim;
+STATIC_ASSERT_SIZEOF(Actor311900Anim, 0x474);
+
+/// Work block allocated by the spawn state `func_actor_311900_8016228C`
+/// (`memCalloc(0x4CC)`) and parked in that task's `Task::work` slot -- that
+/// slot is not a `TaskIdMap` here. `func_actor_311900_8016278C` republishes the
+/// two matrices onto `TmdObject::lightMtx` / `field_20`, the light / colour pair
+/// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`.
+///
+/// The size is the allocation, and the fields below are the ones the spawn
+/// state seeds: 2 into the halfword at 0x474, 1 into the one at 0x478, and
+/// zero into 0x4C4 / 0x4C6. `func_actor_311900_80162100` turns that pair into
+/// the animation request `field_474` and the two ids beside it: `field_478` is
+/// the id the slots are seeded with, `field_476` latches it as the one now
+/// playing once the slots have been seeded, `field_47C` is the rate byte every
+/// seeding writes into `GpAnimSlot.rate`, and `field_47A` counts frames
+/// while `field_474` is 3 -- the running step, which is where both seeding
+/// steps leave it.
+typedef struct Actor311900Work {
+    /* 0x000 */ Actor311900Anim anim;
+    /* 0x474 */ s16             field_474;
+    /* 0x476 */ s16             field_476;
+    /* 0x478 */ u16             field_478;
+    /* 0x47A */ u16             field_47A;
+    /* 0x47C */ u8              field_47C;
+    /* 0x47D */ byte            pad_47D[0x7];
+    /* 0x484 */ MATRIX          light;
+    /* 0x4A4 */ MATRIX          color;
+    /* 0x4C4 */ u16             field_4C4;
+    /* 0x4C6 */ u16             field_4C6;
+    /* 0x4C8 */ u8              field_4C8; ///< CLUT grey-fade step, func_actor_311900_80161E3C
+    /* 0x4C9 */ byte            pad_4C9[0x3];
+} Actor311900Work;
+STATIC_ASSERT_SIZEOF(Actor311900Work, 0x4CC);
+
+/// The animation data `func_800B3F84` builds the first setup path's clip
+/// context from; the spawn hands it over whole, so it is only ever a byte
+/// address here.
 extern u8 D_actor_311900_8016EBE8[];
 
-void func_actor_311900_8016228C(GpEnemy* enemy, Task* task);
-void func_actor_311900_801623B0(GpEnemy* enemy, Task* task);
+/// The animation data the second setup path builds its clip context from.
+extern u8 D_actor_311900_8016EBF4[];
 
-void func_actor_311900_80161E3C(Task* task, s32 arg1, s16 arg2);
-void func_actor_311900_80162100(Task* task);
+/// The palette rows `func_actor_311900_80161E3C` reads back, greys and uploads.
+extern u16 D_actor_311900_8016EC18[][0x100];
+
+/// Non-zero while the game is paused, which freezes the per-frame step of
+/// `func_actor_311900_80162658`.
+extern u8 D_80072729;
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-extern u16 D_actor_311900_8016EC18[][0x100];
+void func_actor_311900_8016228C(GpEnemy* enemy, Task* task);
+void func_actor_311900_801623B0(GpEnemy* enemy, Task* task);
+void func_actor_311900_801624F8(GpEnemy* enemy, Task* task);
+void func_actor_311900_801625F0(GpEnemy* enemy, Task* task);
+s32  func_actor_311900_80162658(GsCOORDINATE2* arg0, s16 arg1);
+void func_actor_311900_8016278C(Task* task);
+void func_actor_311900_8016281C(Task* task);
 
 /// Fades the two 256-entry CLUT rows `arg2` / `arg2 + 1` of the palette table
 /// to grey, one step per call in the work block's `field_4C8`: step 0 reads the
@@ -163,13 +237,22 @@ void func_actor_311900_80162100(Task* task)
         }
     }
 }
-/// The actor's three state handlers - spawn, per-frame tick and teardown -
-/// dispatched through by state. splat migrates the table into the `.s` of the
-/// function that reads it, so it is written out here to keep the block in the
-/// unit's `.rodata` now that `func_actor_311900_8016222C` is decompiled.
+
+/// The actor's first state table - `func_actor_311900_8016228C`'s setup,
+/// `func_actor_311900_801623B0`'s tick and teardown - dispatched through by
+/// `func_actor_311900_8016222C`.
 const GpEnemyTaskFuncTable3 D_actor_311900_80161E24 = {
     func_actor_311900_8016228C,
     func_actor_311900_801623B0,
+    Gp_DestroyEnemy,
+};
+
+/// The actor's second state table - `func_actor_311900_801624F8`'s setup,
+/// `func_actor_311900_801625F0`'s tick and teardown - dispatched through by
+/// `func_actor_311900_8016249C`.
+const GpEnemyTaskFuncTable3 D_actor_311900_80161E30 = {
+    func_actor_311900_801624F8,
+    func_actor_311900_801625F0,
     Gp_DestroyEnemy,
 };
 
@@ -186,8 +269,6 @@ void func_actor_311900_8016222C(Task* task)
     sp    = D_actor_311900_80161E24;
     sp.funcs[task->state](enemy, task);
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_311900/actor_311900", D_actor_311900_80161E30);
 
 /// The actor's first setup path, reached through `D_actor_311900_80161E24`. It
 /// tears the enemy down instead while game flag 0xA's nibble 2 -- the bit
@@ -266,4 +347,222 @@ void func_actor_311900_801623B0(GpEnemy* enemy, Task* task)
         GameFlag_SetNibble(0x102, 1);
         task->state++;
     }
+}
+
+/// Runs the actor's second state table - `func_actor_311900_801624F8`'s setup,
+/// `func_actor_311900_801625F0`'s tick and `Gp_DestroyEnemy` - at the handler
+/// `Task::state` selects. The table is copied onto the stack before the call,
+/// the same shape as `func_actor_311900_8016222C` for the first table.
+void func_actor_311900_8016249C(Task* task)
+{
+    GpEnemyTaskFuncTable3 sp;
+
+    sp = D_actor_311900_80161E30;
+    sp.funcs[task->state](task->spawnArg2, task);
+}
+
+/// The `D_actor_311900_80161E30` spawn handler -- the actor's second setup
+/// path, reached through the three-entry table whose tick is
+/// `func_actor_311900_801625F0`. It is the same setup `func_actor_311900_8016228C`
+/// performs for the first table, under different conditions: the enemy is torn
+/// down instead while game flag 1 has already reached nibble 3, and the work
+/// block gets the light / colour pair `func_actor_311900_8016281C` splats
+/// (rather than `func_actor_311900_8016278C`'s) from a different animation run
+/// (`D_actor_311900_8016EBF4`, not `D_actor_311900_8016EBE8`).
+///
+/// The 0x4CC-byte block goes into `Task::work` -- that slot is not a
+/// `TaskIdMap` here. `GpEnemy::field_4` takes the model's root coordinate's
+/// matrix, the root's `sub` is re-parented to `gGfxViewCoord`, the animation
+/// context is built over the block's slot array and packed-pose run, and the
+/// two work halfwords 0x474 / 0x478 seed the tick's state. Note this handler,
+/// unlike `func_actor_311900_8016228C`, does not touch `field_4C4` / `field_4C6`
+/// or the model's `field_C`.
+void func_actor_311900_801624F8(GpEnemy* enemy, Task* task)
+{
+    Actor311900Work* work;
+    GsCOORDINATE2*   coord;
+    TmdObject*       obj;
+
+    obj   = (TmdObject*)task->extra;
+    coord = obj->coords;
+    if (GameFlag_GetNibble(1) >= 3 ||
+        (work = memCalloc(0x4CC, 0), task->work = (TaskIdMap*)work, work == NULL)) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+    func_actor_311900_8016281C(task);
+    enemy->field_4  = &coord->coord;
+    enemy->field_48 = 0;
+    obj->flags      = 0;
+    func_800B3F84((GpAnimCtx*)work, D_actor_311900_8016EBF4, obj, work->anim.poses,
+                  work->anim.slots);
+    coord->sub      = &gGfxViewCoord;
+    work->field_474 = 2;
+    work->field_478 = 1;
+    func_actor_311900_80162100(task);
+    task->state += 1;
+}
+
+void func_actor_311900_801625F0(GpEnemy* enemy, Task* task)
+{
+    TmdObject* obj;
+
+    obj = (TmdObject*)task->extra;
+    func_actor_311900_80161E3C(task, 4, 2);
+    if ((Gp_GetViewIndex() & 0xFF) == 0xB) {
+        obj->flags = 0;
+    } else {
+        obj->flags = 0x80;
+    }
+    func_actor_311900_80162100(task);
+}
+
+/// Takes `arg1` as a signed 16-bit step, builds a direction vector from
+/// `arg0->coord`'s rotation with `Gfx_MatrixCol2`, normalizes it with
+/// `VectorNormalSS`, scales it by the step on the GTE, adds it to
+/// `arg0->coord.t` and clears `arg0->flg`. Returns the step, or 0 having
+/// touched nothing while the game is paused (`D_80072729 == 1`) or when the
+/// step is zero. `arg0` is the per-part `GsCOORDINATE2` the caller takes from
+/// `TmdObject::coords`.
+///
+/// The scratch-pad vector is carved out under two names: `vec`, which the
+/// frame update stores and the calls normalize, and `gte`, which the GTE round
+/// trip reads and writes back. The object keeps them apart, and that is what
+/// the copy ahead of the `if` is.
+s32 func_actor_311900_80162658(GsCOORDINATE2* arg0, s16 arg1)
+{
+    SVECTOR* head;
+    SVECTOR* vec;
+    SVECTOR* gte;
+
+    if (D_80072729 == 1) {
+        return 0;
+    }
+    head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+    vec                        = head - 1;
+    gte                        = head - 1;
+    *(SVECTOR**)G_SCRATCH_HEAD = vec;
+    if (arg1 != 0) {
+        SOFT_TOUCH_REG(vec);
+        Gfx_MatrixCol2(&arg0->coord, vec);
+        VectorNormalSS(vec, vec);
+        gte_lddp(arg1);
+        gte_ldsv(gte);
+        gte_gpf12();
+        gte_stsv(gte);
+        arg0->coord.t[0] += head[-1].vx;
+        arg0->coord.t[1] += vec->vy;
+        arg0->coord.t[2] += vec->vz;
+        arg0->flg         = 0;
+    }
+    *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    return arg1;
+}
+
+/// Splats an identity light / colour matrix pair into the work block the spawn
+/// state carved out of `Task::work`, republishes both onto the
+/// `TmdObject::lightMtx` / `field_20` slots that the renderer otherwise reads
+/// from `Gp_DefaultMtx` / `Gp_DefaultMtx2`, and then overwrites each 3x3 with
+/// the values the actor lights its model with -- the light matrix flat except
+/// for `m[1][0]` and `m[2][2]`, the colour matrix fully pass-through.
+void func_actor_311900_8016278C(Task* task)
+{
+    Actor311900MatWords* color;
+    Actor311900MatWords* light;
+    TmdObject*           ext;
+    Actor311900Work*     work;
+
+    work  = (Actor311900Work*)task->work;
+    ext   = task->extra;
+    light = (Actor311900MatWords*)&work->light;
+    color = (Actor311900MatWords*)&work->color;
+
+    light->ident.m00_m01 = 0x1000;
+    light->ident.m02_m10 = 0;
+    light->ident.m11_m12 = 0x1000;
+    light->ident.m20_m21 = 0;
+    light->ident.m22     = 0x1000;
+
+    color->ident.m00_m01 = 0x1000;
+    color->ident.m02_m10 = 0;
+    color->ident.m11_m12 = 0x1000;
+    color->ident.m20_m21 = 0;
+    color->ident.m22     = 0x1000;
+
+    ext->lightMtx = &work->light;
+
+    work->color.m[0][0] = 0x1000;
+    work->color.m[0][1] = 0x1000;
+    work->color.m[0][2] = 0x1000;
+    work->color.m[1][0] = 0x1000;
+    work->color.m[1][1] = 0x1000;
+    work->color.m[1][2] = 0x1000;
+    work->color.m[2][0] = 0x1000;
+    work->color.m[2][1] = 0x1000;
+    work->color.m[2][2] = 0x1000;
+
+    work->light.m[0][0] = 0x1000;
+    work->light.m[0][1] = 0x1000;
+    work->light.m[0][2] = 0x1000;
+    work->light.m[1][0] = 0;
+    work->light.m[1][1] = 0x1000;
+    work->light.m[1][2] = 0x1000;
+    work->light.m[2][0] = 0x1000;
+    work->light.m[2][1] = 0x1000;
+    work->light.m[2][2] = 0;
+
+    ext->colorMtx = &work->color;
+}
+
+/// Same splat as `func_actor_311900_8016278C`, republishing the light / colour
+/// pair onto `TmdObject::lightMtx` / `field_20` between the identity seed and
+/// the per-actor values: the colour matrix goes fully pass-through, the light
+/// matrix flat except for a negated `m[0][0]`.
+void func_actor_311900_8016281C(Task* task)
+{
+    Actor311900MatWords* color;
+    Actor311900MatWords* light;
+    TmdObject*           ext;
+    Actor311900Work*     work;
+
+    work  = (Actor311900Work*)task->work;
+    ext   = task->extra;
+    light = (Actor311900MatWords*)&work->light;
+    color = (Actor311900MatWords*)&work->color;
+
+    light->ident.m00_m01 = 0x1000;
+    light->ident.m02_m10 = 0;
+    light->ident.m11_m12 = 0x1000;
+    light->ident.m20_m21 = 0;
+    light->ident.m22     = 0x1000;
+
+    color->ident.m00_m01 = 0x1000;
+    color->ident.m02_m10 = 0;
+    color->ident.m11_m12 = 0x1000;
+    color->ident.m20_m21 = 0;
+    color->ident.m22     = 0x1000;
+
+    ext->lightMtx = &work->light;
+
+    work->color.m[0][0] = 0x1000;
+    work->color.m[0][1] = 0x1000;
+    work->color.m[0][2] = 0x1000;
+    work->color.m[1][0] = 0x1000;
+    work->color.m[1][1] = 0x1000;
+    work->color.m[1][2] = 0x1000;
+    work->color.m[2][0] = 0x1000;
+    work->color.m[2][1] = 0x1000;
+    work->color.m[2][2] = 0x1000;
+
+    work->light.m[0][0] = -0x1000;
+    work->light.m[0][1] = 0x1000;
+    work->light.m[0][2] = 0x1000;
+    work->light.m[1][0] = 0x1000;
+    work->light.m[1][1] = 0x1000;
+    work->light.m[1][2] = 0x1000;
+    work->light.m[2][0] = 0x1000;
+    work->light.m[2][1] = 0x1000;
+    work->light.m[2][2] = 0x1000;
+
+    ext->colorMtx = &work->color;
 }
