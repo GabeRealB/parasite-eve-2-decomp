@@ -141019,3 +141019,27 @@ fails for a second reason: sched.c gives top priority only to insns whose
 destination is set once, so reassigned locals lose it and the argument moves
 reorder around the call. A two-draw LCG through one `_rand()`-style helper
 still emits a single state store - the first is dead and deleted.
+
+## `addiu idx16,4; addu base; lhu 0` is a column subscript that reached the access as an inline parameter (Gp_CheckAttachThreshold, 2026-09-26)
+
+Reading `Gp_IdParamHi[row].field[2]` (16-byte rows) with a literal `2` folds the
+column into the load, `sll 4; addu base; lhu 4(v0)`. The target instead adds the
+column to the scaled row before the base - `sll 4; addiu 4; addu base; lhu 0(v0)` -
+which the tree had rebuilt by hand as `off = row * 16; TOUCH_REG(off); off += 4;
+off += (s32)recs`. It is an inline helper taking the column as a parameter: the
+subscript is expanded as `(mult field 2)` and only becomes `4` when integration
+substitutes the constant, too late to join the displacement.
+
+```c
+static __inline__ u16 _gpAttachParam(s32 idx, s32 lvl, s32 field)
+{
+    return Gp_IdParamHi[idx * 3 + lvl].field[field];
+}
+```
+
+The row has to be computed inside the helper too (`idx * 3 + lvl`, not a `row`
+argument): with the row as the argument it is evaluated at the call, before the
+helper's `lui/addiu` of the table, and the base load schedules after the index
+instead of before it. The register pins in the same function were `result` set
+at twelve sites; one `result = 1` per branch under a combined `||` condition
+lowered its priority below the other pseudos and matched the target's allocation.
