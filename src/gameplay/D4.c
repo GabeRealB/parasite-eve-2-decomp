@@ -728,15 +728,15 @@ s32 func_800AA120(void)
 
 void func_800AA548(s32 arg0)
 {
-    GpWarpRec        rec;
-    GpActorFlags     flags;
-    TmdObject*       model;
-    GpAreaKey*       sess;
-    GameSession*     session;
-    GpSavedActorPos* pos;
-    s32              stage;
-    s32              warp;
-    u32              playerId;
+    GpWarpRec    rec;
+    GpActorFlags flags;
+    TmdObject*   model;
+    GpAreaKey*   sess;
+    GameSession* session;
+    PlayerPos*   pos;
+    s32          stage;
+    s32          warp;
+    u32          playerId;
 
     session                    = gGameSession;
     session->deathVariant      = 0;
@@ -773,11 +773,11 @@ void func_800AA548(s32 arg0)
     Gp_ActorSlots[0] = NULL;
     Gp_ActorSlots[1] = NULL;
     if (gDisplayState.at100.flags.pendingPlayerPos == 1) {
-        pos                = &D_80073B18[Mc_SaveData.characterId];
-        D_80114CB0.field_0 = (s32)pos->field_6;
-        D_80114CB0.field_4 = (s32)pos->field_0;
-        D_80114CB0.field_8 = (s32)pos->field_2;
-        D_80114CB0.field_C = (s32)pos->field_4;
+        pos                = &D_80073B08[Mc_SaveData.characterId].pos;
+        D_80114CB0.field_0 = (s32)pos->yaw;
+        D_80114CB0.field_4 = (s32)pos->x;
+        D_80114CB0.field_8 = (s32)pos->y;
+        D_80114CB0.field_C = (s32)pos->z;
         flags.field_0      = 0x23;
         flags.field_2      = 0;
         Gp_SpawnPlayer((GpActorArg*)&D_80114CB0, Mc_SaveData.characterId & 0xFFFF, 0, &flags);

@@ -5,7 +5,7 @@
 // Names follow the overlay that defines each symbol, so a call reads the
 // same here as it does in main/ or gameplay/.
 
-// --- from main (181 symbols)
+// --- from main (182 symbols)
 Mem_ConfigureAuxHeap = 0x800144F8; // absolute:True
 CdFlush = 0x80015AF4; // absolute:True
 SetDispMask = 0x80017C00; // absolute:True
@@ -186,6 +186,7 @@ GsWSMATRIX = 0x80071138; // absolute:True
 gGpuPrimCursor = 0x80071190; // absolute:True
 Pad_States = 0x80071620; // absolute:True
 Mc_SaveData = 0x80072168; // absolute:True
+D_80073B08 = 0x80073B08; // absolute:True
 Player_Status = 0x80073B88; // absolute:True
 
 // --- from gameplay (196 symbols)
@@ -386,7 +387,7 @@ Gp_State1C = 0x80115740; // absolute:True
 Gp_ActorSlots = 0x80115760; // absolute:True
 D_80115768 = 0x80115768; // absolute:True
 
-// --- still unnamed in their own overlay (237)
+// --- still unnamed in their own overlay (236)
 func_8004BFF8 = 0x8004BFF8; // absolute:True
 D_8005C36C = 0x8005C36C; // absolute:True
 D_8005C370 = 0x8005C370; // absolute:True
@@ -434,7 +435,6 @@ D_80072A92 = 0x80072A92; // absolute:True
 D_80072A93 = 0x80072A93; // absolute:True
 D_80072A94 = 0x80072A94; // absolute:True
 D_80072A98 = 0x80072A98; // absolute:True
-D_80073B08 = 0x80073B08; // absolute:True
 D_80073B8C = 0x80073B8C; // absolute:True
 D_80073BA0 = 0x80073BA0; // absolute:True
 D_80073BA9 = 0x80073BA9; // absolute:True

@@ -177,17 +177,6 @@ STATIC_ASSERT_SIZEOF(GpWarpRec, 0x38);
 /// `GameSession.at4.loc.area` / `GpAreaKey.area`.
 extern GpWarpRec** Gp_WarpTables[];
 
-/// Sparse position view with the 0x80-byte stride used by func_800AA548.
-/// Index 1 is Player_Status.pos (X/Y/Z and yaw).
-typedef struct _GpSavedActorPos {
-    /* 0x00 */ s16  field_0;
-    /* 0x02 */ s16  field_2;
-    /* 0x04 */ s16  field_4;
-    /* 0x06 */ s16  field_6;
-    /* 0x08 */ byte pad_8[0x78];
-} GpSavedActorPos;
-STATIC_ASSERT_SIZEOF(GpSavedActorPos, 0x80);
-
 /// Spawn transform with a full-word yaw followed by X/Y/Z. Passed to
 /// Gp_SpawnPlayer as GpActorArg, whose yaw reader uses the low halfword.
 typedef struct _GpSpawnTransform {
@@ -198,7 +187,6 @@ typedef struct _GpSpawnTransform {
 } GpSpawnTransform;
 STATIC_ASSERT_SIZEOF(GpSpawnTransform, 0x10);
 
-extern GpSavedActorPos  D_80073B18[];
 extern GpSpawnTransform D_80114CB0;
 
 /// 0x1C-byte primitive slot in the `Gp_SprtLists` lists. `Gp_LinkSprtCmd`

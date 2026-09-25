@@ -411,7 +411,6 @@ void func_actor_110600_801387F4(Task* task);
 
 /// Table of 0x80-byte actor config blocks the walker's `field_6E` byte indexes
 /// for the position state 1 steers towards.
-extern PlayerStatus D_80073B08[];
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 

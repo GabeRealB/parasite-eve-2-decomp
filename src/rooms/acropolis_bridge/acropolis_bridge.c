@@ -32,10 +32,9 @@
 #include "rooms/room_common.h"
 
 /// Table of 0x80-byte actor config blocks; `Player_Status` is entry 1.
-extern PlayerStatus D_80073B08[];
-extern s16          D_80114D08;
-extern s32          D_80115738;
-extern s32          D_8011574C;
+extern s16 D_80114D08;
+extern s32 D_80115738;
+extern s32 D_8011574C;
 
 extern GpMsgEntry D_acropolis_bridge_80188E4C[];
 extern TaskDesc   D_acropolis_bridge_80188E7C[];

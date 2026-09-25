@@ -2825,6 +2825,7 @@ Stage_Ctx                   = 0x80062698;
 Snd_BankInitTable           = 0x80068A60; // type:SndBankInitEntry
 CdAudio_TblEntries          = 0x80082794;
 Pad_RemapState              = 0x800626A8;
+D_80073B08                  = 0x80073B08; // type:PlayerStatus size:0x80
 Player_Status               = 0x80073B88; // type:PlayerStatus size:0x80
 Wip_UiHolder                = 0x80067694;
 

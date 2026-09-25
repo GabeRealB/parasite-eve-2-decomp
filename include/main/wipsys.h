@@ -65,7 +65,12 @@ STATIC_ASSERT_SIZEOF(PlayerStatus, 0x80);
 // Globals
 // =============================================================================
 
-extern WipSysFlags  Wip_SysFlags;
+extern WipSysFlags Wip_SysFlags;
+/// A status record laid out like `Player_Status`, directly before it. Code
+/// indexes from it by actor slot and by character id, so index 1 reaches
+/// `Player_Status`; a saved game spawns its character from
+/// `D_80073B08[characterId].pos`. What index 0 holds is unproven.
+extern PlayerStatus D_80073B08[1];
 extern PlayerStatus Player_Status;
 
 // --- APIs ---
