@@ -5041,8 +5041,8 @@ s16 func_80103E7C(s16 arg0, s16 arg1)
     } else {
         ret = block->field_8;
     }
-    tmp          = (s32)G_SCRATCH_HEAD;
-    *(void**)tmp = (u8*)*(void**)tmp + 0xC;
+    tmp = (s32)G_SCRATCH_HEAD;
+    SCRATCH_POP_BYTES_AT(tmp, 0xC);
     return ret;
 }
 
