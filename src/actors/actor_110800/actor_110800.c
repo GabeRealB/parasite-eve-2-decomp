@@ -27,8 +27,9 @@ typedef struct Actor110800Work {
     /* 0x478 */ u16        animId;      // animation id the slots are seeded with
     /* 0x47A */ u16        field_47A;   // incremented by the step-0 handler, cleared by the animation-start handler
     /* 0x47C */ s16        field_47C;   // frame slot 19 or 16 `func_actor_110800_80131F9C` last cued a sound for, kept for change detection
+    /* 0x47E */ byte       pad_47E[0xDE];
 } Actor110800Work;
-STATIC_ASSERT_SIZEOF(Actor110800Work, 0x480);
+STATIC_ASSERT_SIZEOF(Actor110800Work, 0x55C);
 
 /// Argument block of the 0x7D3 message: the animation to start, after a
 /// 4-byte field the handler does not read.
@@ -88,7 +89,7 @@ void func_actor_110800_80131E24(GpEnemy* enemy, Task* task)
 
     obj                     = task->extra;
     coord                   = obj->coords;
-    work                    = memCalloc(0x55C, 0);
+    work                    = memCalloc(sizeof(Actor110800Work), 0);
     D_actor_110800_80139F10 = work;
     task->work              = work;
     if (work == NULL) {
