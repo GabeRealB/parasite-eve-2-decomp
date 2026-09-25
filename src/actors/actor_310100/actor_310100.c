@@ -48,14 +48,6 @@ STATIC_ASSERT_SIZEOF(Actor310100Work, 0x50C);
 /// `field_50A` indexes the first three.
 extern s32 D_actor_310100_801798A8[];
 
-/// Scratch the message-0x6C state handler stages its vectors in. The state is
-/// dispatched through by value, so the spawn tick's `vec` and the steady tick's
-/// `rot` never overlap and the two share one stack slot.
-typedef union Actor310100Vec {
-    /* 0x0 */ VECTOR  vec; // model part-1 translation, handed to func_800D7A9C
-    /* 0x0 */ SVECTOR rot; // floor-quad yaw, handed to Gp_DrawFloorQuad
-} Actor310100Vec;
-
 /// Model frame handler: queues the step sound for the animation record slot 1
 /// has just entered — from `D_actor_310100_801798A8` while the model is on the
 /// 0x6C display id, from the fixed 0x51050006 / 0x51050007 pair otherwise — then
@@ -839,7 +831,7 @@ void func_actor_310100_8016309C(Task* task)
 void func_actor_310100_801631B0(Task* task)
 {
     Actor310100Work* work;
-    Actor310100Vec   pos;
+    OverlayVecSlot   pos;
     TmdObject*       extra;
 
     work = (Actor310100Work*)task->work;
@@ -872,7 +864,7 @@ void func_actor_310100_801631B0(Task* task)
 void func_actor_310100_801632B0(Task* task)
 {
     Actor310100Work* work;
-    Actor310100Vec   pos;
+    OverlayVecSlot   pos;
     TmdObject*       extra;
 
     work = (Actor310100Work*)task->work;

@@ -56,15 +56,6 @@ typedef struct DwtwWork {
 } DwtwWork;
 STATIC_ASSERT_SIZEOF(DwtwWork, 0x18);
 
-/// Scratch the raise-prop body `func_dryfield_water_tower_8017E1DC` stages its
-/// two vectors in. The spawn tick's `vec` -- the model translation it hands to
-/// `func_800D7A9C` -- is overwritten before the cap is drawn, so it and the
-/// `rot` the floor quad takes never overlap and the two share one frame slot.
-typedef union DwtwVec {
-    /* 0x0 */ VECTOR  vec; // cap translation, handed to func_800D7A9C
-    /* 0x0 */ SVECTOR rot; // floor-quad offset, handed to Gp_DrawFloorQuad
-} DwtwVec;
-
 /// One step of the room's rotation schedule, the table
 /// `func_dryfield_water_tower_8017FB4C` walks: `field_0` is the step's
 /// threshold and `field_2` its duration. Four of them sit at 0x8018767C --
@@ -576,7 +567,7 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
     TmdObject*               obj;
     TmdObject*               model;
     GsCOORDINATE2*           coord;
-    DwtwVec                  pos;
+    OverlayVecSlot           pos;
     MATRIX*                  mem;
 
     obj   = (TmdObject*)arg0->extra;

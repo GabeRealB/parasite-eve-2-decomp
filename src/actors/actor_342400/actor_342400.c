@@ -6,7 +6,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
-#include "actors/actor_342400.h"
+#include "actors/actor.h"
 
 /// 4-byte record in the table at `D_actor_342400_8016C010`, indexed (1..16)
 /// by `gGameSession->enemyCullZone`. `func_actor_342400_801626CC` compares

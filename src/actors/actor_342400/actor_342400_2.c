@@ -21,7 +21,6 @@
 #include "gameplay/gameplay.h"
 
 #include "actors/actor.h"
-#include "actors/actor_342400.h"
 #include "actors/actors_shared_80163354.h"
 #include "actors/actors_shared_801673f8.h"
 

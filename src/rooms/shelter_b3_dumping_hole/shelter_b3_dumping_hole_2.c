@@ -282,9 +282,6 @@ typedef struct {
     /* 0x03 */ u8 field_3;
 } GlyphEntry;
 
-/// Enemy table the pair slots spawn from; it lies outside the room's image.
-extern TaskDesc D_80151E60;
-
 /// The encounter's enemy slots, in the order the controller starts them.
 extern OverlayEncounterSlot D_shelter_b3_dumping_hole_8018B7BC[];
 

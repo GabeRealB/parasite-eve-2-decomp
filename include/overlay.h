@@ -274,6 +274,11 @@ typedef struct OverlayEncounterPairWork {
 } OverlayEncounterPairWork;
 STATIC_ASSERT_SIZEOF(OverlayEncounterPairWork, 0xC);
 
+/// The enemy table the pair slots of a scripted encounter spawn their two
+/// enemies from. It lies at a fixed address outside the images of the
+/// overlays that reach it.
+extern TaskDesc D_80151E60;
+
 /// The scratch-pad block a screen-ripple drawer takes for one call. `mtx` is
 /// the transposed view rotation, loaded as the GTE rotation for every
 /// projection the drawer makes; each screen row's vector `row` is rotated
@@ -373,6 +378,15 @@ typedef struct OverlayPointPairScratch {
     u16 sy1;
 } OverlayPointPairScratch;
 STATIC_ASSERT_SIZEOF(OverlayPointPairScratch, 0x1C);
+
+/// One stack slot a body uses twice in a frame: first as the `VECTOR` position
+/// `func_800D7A9C` lights a model at, then as the `SVECTOR` offset
+/// `Gp_DrawFloorQuad` draws the floor quad with. The two uses never overlap.
+typedef union OverlayVecSlot {
+    VECTOR  vec;
+    SVECTOR rot;
+} OverlayVecSlot;
+STATIC_ASSERT_SIZEOF(OverlayVecSlot, 0x10);
 
 /// The offset from one position to another, widened to words and staged on
 /// the scratch pad just long enough to take its bearing with `ratan2`.
