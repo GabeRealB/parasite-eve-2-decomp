@@ -15,11 +15,11 @@ extern u8       D_actor_202900_80156E0C[];
 extern TaskDesc D_actor_202900_80156E24[];
 extern u8       D_actor_202900_80156E3C[];
 
-/// Step 0 of the `ActorsShared80131f9c` dispatcher: allocate and publish the
+/// Step 0 of the `func_actor_202900_8014A02C` dispatcher: allocate and publish the
 /// work block, start the second task and texture its model from the area record
 /// the actor was placed from, then seed the animation context and run the
 /// first step body.
-void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
+void func_actor_202900_80149E24(GpEnemy* enemy, Task* task)
 {
     VECTOR         vec;
     GpAreaKey      key;
@@ -37,8 +37,8 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
 
     obj        = task->extra;
     coord      = obj->coords;
-    task->work = (TaskIdMap*)(ActorsShared80131f9cWork = memCalloc(0x564, false));
-    if (ActorsShared80131f9cWork == NULL) {
+    task->work = (TaskIdMap*)(D_actor_202900_80156E54 = memCalloc(0x564, false));
+    if (D_actor_202900_80156E54 == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }
@@ -74,18 +74,18 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
         tmdProcessStream(model);
         tmdProcessStream(model);
     }
-    obj->lightMtx = &ActorsShared80131f9cWork->light;
-    obj->colorMtx = &ActorsShared80131f9cWork->color;
+    obj->lightMtx = &D_actor_202900_80156E54->light;
+    obj->colorMtx = &D_actor_202900_80156E54->color;
     vec.vx        = coord->workm.t[0];
     vec.vy        = coord->workm.t[1] - 0x320;
     vec.vz        = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    Gp_AnimInitCtx(&ActorsShared80131f9cWork->anim, D_actor_202900_80156E3C, obj,
-                   ActorsShared80131f9cWork->poses);
-    ActorsShared80131f9cWork->animId    = 4;
-    ActorsShared80131f9cWork->field_47C = 2;
-    ActorsShared80131f9cWork->field_484 = 0;
-    task->msgTable                      = D_actor_202900_80156E0C;
+    Gp_AnimInitCtx(&D_actor_202900_80156E54->anim, D_actor_202900_80156E3C, obj,
+                   D_actor_202900_80156E54->poses);
+    D_actor_202900_80156E54->animId    = 4;
+    D_actor_202900_80156E54->field_47C = 2;
+    D_actor_202900_80156E54->field_484 = 0;
+    task->msgTable                     = D_actor_202900_80156E0C;
     func_actor_202900_8014A194((GpActorWork*)task);
     task->state++;
 }

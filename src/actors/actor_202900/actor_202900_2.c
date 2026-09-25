@@ -17,7 +17,7 @@ void func_actor_202900_8014A088(GpActorWork* arg0)
     coord->sub   = parent + 4;
 }
 
-void ActorsShared80131f9cSub1(GpEnemy* enemy, Task* task)
+void func_actor_202900_8014A0B4(GpEnemy* enemy, Task* task)
 {
     TmdObject*     obj;
     GsCOORDINATE2* coord;
@@ -30,7 +30,7 @@ void ActorsShared80131f9cSub1(GpEnemy* enemy, Task* task)
     pos.vz = coord->workm.t[2];
     func_800D7A9C(obj, &pos, 0, 3);
     func_actor_202900_8014A194((GpActorWork*)task);
-    if ((s16)ActorsShared80131f9cWork->animId == 1 && (func_actor_202900_8014A394() & 0xFF)) {
+    if ((s16)D_actor_202900_80156E54->animId == 1 && (func_actor_202900_8014A394() & 0xFF)) {
         SndEvt_EnqueueType6(0x5104000D, 0, 0);
     }
 }
@@ -47,17 +47,17 @@ void func_actor_202900_8014A158(Task* arg0)
 /// second survives.
 void func_actor_202900_8014A194(GpActorWork* arg0)
 {
-    if (ActorsShared80131f9cWork->field_47C == 1) {
+    if (D_actor_202900_80156E54->field_47C == 1) {
         func_actor_202900_8014A304();
-        ActorsShared80131f9cWork->field_47C = 3;
+        D_actor_202900_80156E54->field_47C = 3;
         return;
     }
-    if (ActorsShared80131f9cWork->field_47C == 2) {
+    if (D_actor_202900_80156E54->field_47C == 2) {
         func_actor_202900_8014A260();
-        ActorsShared80131f9cWork->field_47C = 3;
+        D_actor_202900_80156E54->field_47C = 3;
         return;
     }
-    if (ActorsShared80131f9cWork->field_47C == 3) {
+    if (D_actor_202900_80156E54->field_47C == 3) {
         func_actor_202900_8014A208();
     }
 }
@@ -69,7 +69,7 @@ void func_actor_202900_8014A208(void)
 
     i = 1;
     do {
-        Gp_AnimTickSlot(&ActorsShared80131f9cWork->anim, &ActorsShared80131f9cWork->slots[i]);
+        Gp_AnimTickSlot(&D_actor_202900_80156E54->anim, &D_actor_202900_80156E54->slots[i]);
         i++;
     } while (i < 0x13);
 }
@@ -87,12 +87,12 @@ void func_actor_202900_8014A260(void)
 
     i = 1;
     do {
-        ActorsShared80131f9cWork->slots[i].rate = 1;
-        Gp_AnimInitSlot(&ActorsShared80131f9cWork->anim, &ActorsShared80131f9cWork->slots[i], i,
-                        (s16)ActorsShared80131f9cWork->animId);
+        D_actor_202900_80156E54->slots[i].rate = 1;
+        Gp_AnimInitSlot(&D_actor_202900_80156E54->anim, &D_actor_202900_80156E54->slots[i], i,
+                        (s16)D_actor_202900_80156E54->animId);
         i++;
     } while (i < 0x13);
-    ActorsShared80131f9cWork->field_47E = ActorsShared80131f9cWork->animId;
+    D_actor_202900_80156E54->field_47E = D_actor_202900_80156E54->animId;
 }
 
 /// Reseeds animation slots 1..0x12 from `animId` and latches that id into
@@ -108,11 +108,11 @@ void func_actor_202900_8014A304(void)
 
     i = 1;
     do {
-        func_800B3AA4(&ActorsShared80131f9cWork->anim, &ActorsShared80131f9cWork->slots[i], i,
-                      (s16)ActorsShared80131f9cWork->animId, 0, 8);
+        func_800B3AA4(&D_actor_202900_80156E54->anim, &D_actor_202900_80156E54->slots[i], i,
+                      (s16)D_actor_202900_80156E54->animId, 0, 8);
         i++;
     } while (i < 0x13);
-    ActorsShared80131f9cWork->field_47E = ActorsShared80131f9cWork->animId;
+    D_actor_202900_80156E54->field_47E = D_actor_202900_80156E54->animId;
 }
 
 /// Watches the second animation slot for the frame the overlay reacts to:
@@ -127,13 +127,13 @@ s32 func_actor_202900_8014A394(void)
 {
     u16 frame;
 
-    frame = ActorsShared80131f9cWork->slots[1].curRec;
+    frame = D_actor_202900_80156E54->slots[1].curRec;
     if ((frame & 0x3FF) == 0x15) {
-        if (ActorsShared80131f9cWork->field_484 != (frame & 0x3FF)) {
-            ActorsShared80131f9cWork->field_484 = frame & 0x3FF;
+        if (D_actor_202900_80156E54->field_484 != (frame & 0x3FF)) {
+            D_actor_202900_80156E54->field_484 = frame & 0x3FF;
             return 1;
         }
-        ActorsShared80131f9cWork->field_484 = frame & 0x3FF;
+        D_actor_202900_80156E54->field_484 = frame & 0x3FF;
     }
     return 0;
 }
@@ -151,10 +151,10 @@ s32 func_actor_202900_8014A3E0(Task* task, s32 arg1, Actor202900AnimArgs* args)
     GpActorWork* actor;
 
     if (args->animId < 5) {
-        ActorsShared80131f9cWork->animId    = args->animId;
-        actor                               = D_actor_202900_80156E58;
-        ActorsShared80131f9cWork->field_47C = 2;
-        ActorsShared80131f9cWork->field_482 = 0;
+        D_actor_202900_80156E54->animId    = args->animId;
+        actor                              = D_actor_202900_80156E58;
+        D_actor_202900_80156E54->field_47C = 2;
+        D_actor_202900_80156E54->field_482 = 0;
         func_actor_202900_8014A194(actor);
         return 0;
     }

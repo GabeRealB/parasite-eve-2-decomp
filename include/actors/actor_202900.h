@@ -6,7 +6,8 @@
 #include "gameplay/3FB8.h"
 
 /// Per-actor work block for the `actor_202900` overlay, reached through the
-/// global `ActorsShared80131f9c` publishes.
+/// global `D_actor_202900_80156E54`, which the actor's update
+/// `func_actor_202900_8014A02C` refreshes from the task every frame.
 ///
 /// The spawn handler allocates it at 0x564 bytes. It opens with the light and
 /// colour matrices the actor's model is drawn under, then the animation context
@@ -27,7 +28,9 @@ typedef struct Actor202900Work {
     /* 0x484 */ s16        field_484; // frame the second slot last held when it was 0x15, kept for change detection
 } Actor202900Work;
 
-extern Actor202900Work* ActorsShared80131f9cWork;
+/// The actor's work block, published so the overlay's functions can reach it
+/// without the task in hand.
+extern Actor202900Work* D_actor_202900_80156E54;
 
 /// The actor's task, published by the spawn handler so the overlay's other
 /// functions can reach the actor's model without the task in hand.
@@ -47,6 +50,8 @@ typedef struct Actor202900AnimArgs {
     /* 0x4 */ s32  animId;
 } Actor202900AnimArgs;
 
+void func_actor_202900_80149E24(GpEnemy* enemy, Task* task);
+void func_actor_202900_8014A0B4(GpEnemy* enemy, Task* task);
 /// Exit callback: kills the second task and destroys the enemy.
 void func_actor_202900_8014A158(Task* arg0);
 /// Runs the body the actor's step selects and then leaves it in step 3, the

@@ -3077,7 +3077,7 @@ id = 150
 objects = [
   { kind = "packageId" },
   { unit = "actor_202900/actor_202900", rodata = "0x4", text = "0x4" },
-  { lib = true, unit = "actors_shared_80131f9c", text = "0x20C" },
+  { unit = "actor_202900/actor_202900_3", text = "0x20C" },
   { unit = "actor_202900/actor_202900_2", text = "0x268" },
   { kind = "data", at = "0x68C" },
   { kind = "model", at = "0x60C0" },
