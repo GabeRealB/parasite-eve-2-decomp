@@ -187,7 +187,7 @@ Pad_States = 0x80071620; // absolute:True
 Mc_SaveData = 0x80072168; // absolute:True
 Player_Status = 0x80073B88; // absolute:True
 
-// --- from gameplay (194 symbols)
+// --- from gameplay (196 symbols)
 Gp_UpdateCoord = 0x80098F58; // absolute:True
 Gp_AttachTmd = 0x8009902C; // absolute:True
 Gp_IsDebugAttachRoom = 0x800A74C4; // absolute:True
@@ -379,11 +379,13 @@ Gp_GridParams = 0x80115448; // absolute:True
 Gp_PendingObj4C = 0x8011556C; // absolute:True
 Gp_CapFile = 0x8011568C; // absolute:True
 Gp_CapCmds = 0x801156A0; // absolute:True
+D_801156F9 = 0x801156F9; // absolute:True
 Gp_MenuLockDelay = 0x80115716; // absolute:True
 Gp_State1C = 0x80115740; // absolute:True
 Gp_ActorSlots = 0x80115760; // absolute:True
+D_80115768 = 0x80115768; // absolute:True
 
-// --- still unnamed in their own overlay (239)
+// --- still unnamed in their own overlay (237)
 func_8004BFF8 = 0x8004BFF8; // absolute:True
 D_8005C36C = 0x8005C36C; // absolute:True
 D_8005C370 = 0x8005C370; // absolute:True
@@ -472,7 +474,6 @@ D_80115690 = 0x80115690; // absolute:True
 D_80115694 = 0x80115694; // absolute:True
 D_801156A4 = 0x801156A4; // absolute:True
 D_801156A8 = 0x801156A8; // absolute:True
-D_801156F9 = 0x801156F9; // absolute:True
 D_80115720 = 0x80115720; // absolute:True
 D_80115728 = 0x80115728; // absolute:True
 D_8011572C = 0x8011572C; // absolute:True
@@ -485,7 +486,6 @@ D_8011574C = 0x8011574C; // absolute:True
 D_80115750 = 0x80115750; // absolute:True
 D_80115754 = 0x80115754; // absolute:True
 D_80115758 = 0x80115758; // absolute:True
-D_80115768 = 0x80115768; // absolute:True
 func_80131E24 = 0x80131E24; // absolute:True
 func_80131E2C = 0x80131E2C; // absolute:True
 func_80131E38 = 0x80131E38; // absolute:True
