@@ -22,6 +22,7 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 #include "rooms/mine_cavern.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "rooms/rooms_shared_8017ff88.h"
@@ -139,13 +140,6 @@ extern u16 D_mine_cavern_8018EB5C;
 /// Damage the cavern enemy takes from a contact, indexed by the low seven bits
 /// of the contact's key.
 extern u8 D_mine_cavern_8018EAF4[];
-
-/// Scratch block the radius test squares its operands in.
-typedef struct _MineCavernRangeScratch {
-    s32 dx;
-    s32 dz;
-    s32 r;
-} _MineCavernRangeScratch;
 
 /// Scratch block the enemy's hit check works in: the model's world position
 /// (then the offset to the player's model), the offset to the player or to a
@@ -1457,21 +1451,21 @@ void func_mine_cavern_80181730(Task* arg0)
 /// scratch block.
 static __inline__ s32 _mineCavernOutOfRange(SVECTOR* d, s16 r)
 {
-    u8*                      head;
-    _MineCavernRangeScratch* blk;
-    s32                      ret;
+    u8*               head;
+    RoomRangeScratch* blk;
+    s32               ret;
 
-    head                                          = *(u8**)G_SCRATCH_HEAD;
-    ((_MineCavernRangeScratch*)(head - 0xC))->dx  = d->vx;
-    blk                                           = (_MineCavernRangeScratch*)(head - 0xC);
-    blk->dz                                       = d->vz;
-    blk->r                                        = r;
-    ((_MineCavernRangeScratch*)(head - 0xC))->dx *= ((_MineCavernRangeScratch*)(head - 0xC))->dx;
-    *(_MineCavernRangeScratch**)G_SCRATCH_HEAD    = blk;
-    blk->dz                                      *= blk->dz;
-    blk->r                                       *= blk->r;
-    *(u8**)G_SCRATCH_HEAD                         = head;
-    ret                                           = ((_MineCavernRangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
+    head                                   = *(u8**)G_SCRATCH_HEAD;
+    ((RoomRangeScratch*)(head - 0xC))->dx  = d->vx;
+    blk                                    = (RoomRangeScratch*)(head - 0xC);
+    blk->dz                                = d->vz;
+    blk->r                                 = r;
+    ((RoomRangeScratch*)(head - 0xC))->dx *= ((RoomRangeScratch*)(head - 0xC))->dx;
+    *(RoomRangeScratch**)G_SCRATCH_HEAD    = blk;
+    blk->dz                               *= blk->dz;
+    blk->r                                *= blk->r;
+    *(u8**)G_SCRATCH_HEAD                  = head;
+    ret                                    = ((RoomRangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
     return ret;
 }
 

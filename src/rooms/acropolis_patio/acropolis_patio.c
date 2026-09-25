@@ -598,19 +598,19 @@ void func_acropolis_patio_8017E324(Task* task)
 /// so the mist shimmers; the tile is dropped entirely inside `otz` 0x11.
 void func_acropolis_patio_8017E730(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    ApMistScratch* sc;
-    SVECTOR*       dir;
-    SVECTOR*       anchors;
-    TILE_1*        prim;
-    u32            level;
+    GpEffWork*       work;
+    GsCOORDINATE2*   coord;
+    RoomMoteScratch* sc;
+    SVECTOR*         dir;
+    SVECTOR*         anchors;
+    TILE_1*          prim;
+    u32              level;
 
     work  = task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
     if (Gp_State1C->eventState < 4 &&
         ((D_acropolis_patio_80182E4C[task->spawnArg1] >> ((u8)gGameSession->at4.loc.view - 1)) & 1)) {
-        sc = (ApMistScratch*)(SCRATCH_SP -= 0xC);
+        sc = (RoomMoteScratch*)(SCRATCH_SP -= 0xC);
         Gp_UpdateCoord(coord);
         if (task->state == 0) {
             Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
@@ -664,12 +664,12 @@ void func_acropolis_patio_8017E730(Task* task)
         coord->coord.t[1] += work->move.vy;
         coord->coord.t[2] += work->move.vz;
         coord->flg         = 0;
-        sc->pos.vx         = *(u16*)&coord->workm.t[0];
-        sc->pos.vy         = *(u16*)&coord->workm.t[1];
-        sc->pos.vz         = *(u16*)&coord->workm.t[2];
+        sc->vec.vx         = *(u16*)&coord->workm.t[0];
+        sc->vec.vy         = *(u16*)&coord->workm.t[1];
+        sc->vec.vz         = *(u16*)&coord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&sc->pos);
+        gte_ldv0(&sc->vec);
         gte_rtps();
         prim           = (TILE_1*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;

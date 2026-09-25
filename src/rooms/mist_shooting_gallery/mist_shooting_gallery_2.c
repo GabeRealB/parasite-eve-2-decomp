@@ -23,6 +23,7 @@
 #include "main/wipsys.h"
 
 #include "rooms/mist_shooting_gallery.h"
+#include "rooms/room.h"
 
 /// The five round scripts of the gallery mini-game, indexed by
 /// `MistShootingGalleryWork::difficulty`. `func_mist_shooting_gallery_80184A14`
@@ -72,25 +73,6 @@ typedef struct _MistShootingGalleryBeamScratch {
     /* 0x1C */ DVECTOR sxy1;
 } MistShootingGalleryBeamScratch;
 STATIC_ASSERT_SIZEOF(MistShootingGalleryBeamScratch, 0x20);
-
-/// 0x1C-byte scratch block `func_mist_shooting_gallery_80182294` takes from
-/// `G_SCRATCH_HEAD` to draw the gallery's muzzle flash.
-///
-/// It is the beam scratch above with the second projected point dropped: the
-/// flash has a single world position, so `vec` is the effect coordinate's
-/// `workm.t` truncated to s16, one `RTPS` fills `sxy` / `flag` / `otz`, and
-/// `dx` / `dy` are the sprite's half-size `(arg2 * 39 / otz) * rsin|rcos(angle)
-/// >> 12`, taken once at the flash's spin angle and once at 90 degrees to it so
-/// the four `POLY_FT4` corners orbit the same point.
-typedef struct _MistShootingGalleryFlashScratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ s32     flag;
-    /* 0x10 */ s32     dx;
-    /* 0x14 */ s32     dy;
-    /* 0x18 */ DVECTOR sxy;
-} MistShootingGalleryFlashScratch;
-STATIC_ASSERT_SIZEOF(MistShootingGalleryFlashScratch, 0x1C);
 
 extern TaskDesc D_mist_shooting_gallery_801856B8;
 extern TaskDesc D_mist_shooting_gallery_801856D0;
@@ -244,31 +226,31 @@ void func_mist_shooting_gallery_80182064(Task* task)
 /// same OT slot. Nothing is drawn if the centre projects off-screen.
 void func_mist_shooting_gallery_80182294(GsCOORDINATE2* coord, s16 arg1, s16 arg2, s16 arg3)
 {
-    void**                           scratch;
-    u8*                              head;
-    MistShootingGalleryFlashScratch* block;
-    MistShootingGalleryFlashScratch* vecp;
-    POLY_FT4*                        prim;
-    s16                              u;
-    u16                              vz;
+    void**            scratch;
+    u8*               head;
+    RoomFlashScratch* block;
+    RoomFlashScratch* vecp;
+    POLY_FT4*         prim;
+    s16               u;
+    u16               vz;
 
-    scratch                                                   = (void**)G_SCRATCH_HEAD;
-    head                                                      = *scratch;
-    ((MistShootingGalleryFlashScratch*)(head - 0x1C))->vec.vx = *(u16*)&coord->workm.t[0];
-    block                                                     = (MistShootingGalleryFlashScratch*)(head - 0x1C);
-    block->vec.vy                                             = *(u16*)&coord->workm.t[1];
-    vz                                                        = *(u16*)&coord->workm.t[2];
-    *scratch                                                  = block;
-    block->vec.vz                                             = vz;
-    vecp                                                      = block;
+    scratch                                    = (void**)G_SCRATCH_HEAD;
+    head                                       = *scratch;
+    ((RoomFlashScratch*)(head - 0x1C))->vec.vx = *(u16*)&coord->workm.t[0];
+    block                                      = (RoomFlashScratch*)(head - 0x1C);
+    block->vec.vy                              = *(u16*)&coord->workm.t[1];
+    vz                                         = *(u16*)&coord->workm.t[2];
+    *scratch                                   = block;
+    block->vec.vz                              = vz;
+    vecp                                       = block;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&vecp->vec);
     gte_rtps();
-    gte_stsxy(&((MistShootingGalleryFlashScratch*)(head - 0x1C))->sxy);
-    gte_stflg(&((MistShootingGalleryFlashScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((RoomFlashScratch*)(head - 0x1C))->sxy);
+    gte_stflg(&((RoomFlashScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((MistShootingGalleryFlashScratch*)(head - 0x1C))->otz);
+        gte_stszotz(&((RoomFlashScratch*)(head - 0x1C))->otz);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);

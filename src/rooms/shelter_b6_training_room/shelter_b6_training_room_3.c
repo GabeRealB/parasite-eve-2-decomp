@@ -16,24 +16,8 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
-
-/// Scratchpad block `func_shelter_b6_training_room_80180530` takes from
-/// `G_SCRATCH_HEAD`: the two ground points, their projected depths, screen
-/// positions and GTE flags, and the perspective-scaled cap radius at each end.
-typedef struct {
-    SVECTOR base;
-    SVECTOR tip;
-    s32     otz0;
-    s32     otz1;
-    s32     flag;
-    s32     r0;
-    s32     r1;
-    u16     sx0;
-    u16     sy0;
-    u16     sx1;
-    u16     sy1;
-} _ShelterB6TrainingRoomBeamScratch;
 
 /// Scratchpad block `func_shelter_b6_training_room_80181FDC` takes from
 /// `G_SCRATCH_HEAD`: the two world points the textured strip joins, the first
@@ -50,19 +34,6 @@ typedef struct {
     DVECTOR sxy0;
     DVECTOR sxy1;
 } _ShelterB6TrainingRoomRibbonScratch;
-
-/// Scratchpad block `func_shelter_b6_training_room_80181BAC` takes from
-/// `G_SCRATCH_HEAD`: the world point the sprite is centred on, its projected
-/// depth and GTE flag, the sprite's perspective-scaled half-size rotated into
-/// screen space, and the point's screen position.
-typedef struct {
-    SVECTOR vec;
-    s32     otz;
-    s32     flag;
-    s32     dx;
-    s32     dy;
-    DVECTOR sxy;
-} _ShelterB6TrainingRoomFlashScratch;
 
 /// Scratchpad block `func_shelter_b6_training_room_80181368` takes from
 /// `G_SCRATCH_HEAD`: the six world-space points of the band's raised rim and of
@@ -788,30 +759,30 @@ void func_shelter_b6_training_room_8017F8B8(Task* task)
 /// brightened on alternate fields; the outer vertices are black.
 void func_shelter_b6_training_room_8017FC40(GsCOORDINATE2* coord, s16 size, u16 color)
 {
-    void**                             scratch;
-    u8*                                head;
-    _ShelterB6TrainingRoomBeamScratch* block;
-    POLY_G4*                           prim;
-    s32                                pass;
-    u8                                 r;
-    u8                                 g;
-    u8                                 b;
-    s32                                blend;
-    s32                                scaled;
-    s32                                limit;
-    s32                                angStart;
-    s32                                ang;
-    s32                                next;
-    s32                                mid;
-    s32                                tr;
-    s32                                tg;
+    void**           scratch;
+    u8*              head;
+    RoomBeamScratch* block;
+    POLY_G4*         prim;
+    s32              pass;
+    u8               r;
+    u8               g;
+    u8               b;
+    s32              blend;
+    s32              scaled;
+    s32              limit;
+    s32              angStart;
+    s32              ang;
+    s32              next;
+    s32              mid;
+    s32              tr;
+    s32              tg;
 
     if (D_shelter_b6_training_room_80185C90 == NULL) {
         return;
     }
     scratch        = (void**)G_SCRATCH_HEAD;
     head           = *scratch;
-    block          = (_ShelterB6TrainingRoomBeamScratch*)(*scratch = head - 0x2C);
+    block          = (RoomBeamScratch*)(*scratch = head - 0x2C);
     block->base.vx = D_shelter_b6_training_room_80185C90->workm.t[0];
     block->base.vy = D_shelter_b6_training_room_80185C90->workm.t[1];
     block->base.vz = D_shelter_b6_training_room_80185C90->workm.t[2];
@@ -925,30 +896,30 @@ void func_shelter_b6_training_room_8017FC40(GsCOORDINATE2* coord, s16 size, u16 
 /// alternate fields; the outer vertices are black, so the glow fades outward.
 void func_shelter_b6_training_room_80180530(GsCOORDINATE2* from, GsCOORDINATE2* to, s16 size, u16 color)
 {
-    GsCOORDINATE2                      c0;
-    GsCOORDINATE2                      c1;
-    void**                             scratch;
-    u8*                                head;
-    _ShelterB6TrainingRoomBeamScratch* block;
-    POLY_G4*                           prim;
-    u8                                 r;
-    u8                                 g;
-    u8                                 b;
-    s32                                blend;
-    s32                                scaled;
-    s32                                limit;
-    s32                                angStart;
-    s32                                ang;
-    s32                                next;
-    s32                                mid;
-    DisplayState*                      ds;
+    GsCOORDINATE2    c0;
+    GsCOORDINATE2    c1;
+    void**           scratch;
+    u8*              head;
+    RoomBeamScratch* block;
+    POLY_G4*         prim;
+    u8               r;
+    u8               g;
+    u8               b;
+    s32              blend;
+    s32              scaled;
+    s32              limit;
+    s32              angStart;
+    s32              ang;
+    s32              next;
+    s32              mid;
+    DisplayState*    ds;
 
     if (Gp_TraceGroundCoord(from, &c0) != 1 || Gp_TraceGroundCoord(to, &c1) != 1) {
         return;
     }
     scratch        = (void**)G_SCRATCH_HEAD;
     head           = *scratch;
-    block          = (_ShelterB6TrainingRoomBeamScratch*)(*scratch = head - 0x2C);
+    block          = (RoomBeamScratch*)(*scratch = head - 0x2C);
     block->base.vx = c0.workm.t[0];
     block->base.vy = c0.workm.t[1];
     block->base.vz = c0.workm.t[2];
@@ -1365,31 +1336,31 @@ void func_shelter_b6_training_room_80181A3C(Task* task)
 /// from the texture page. Nothing is drawn if the point fails the GTE flag test.
 void func_shelter_b6_training_room_80181BAC(GsCOORDINATE2* coord, s16 arg1, s16 arg2, s16 arg3)
 {
-    void**                              scratch;
-    u8*                                 head;
-    _ShelterB6TrainingRoomFlashScratch* block;
-    _ShelterB6TrainingRoomFlashScratch* vecp;
-    POLY_FT4*                           prim;
-    s16                                 u;
-    u16                                 vz;
+    void**            scratch;
+    u8*               head;
+    RoomFlashScratch* block;
+    RoomFlashScratch* vecp;
+    POLY_FT4*         prim;
+    s16               u;
+    u16               vz;
 
-    scratch                                                      = (void**)G_SCRATCH_HEAD;
-    head                                                         = *scratch;
-    ((_ShelterB6TrainingRoomFlashScratch*)(head - 0x1C))->vec.vx = *(u16*)&coord->workm.t[0];
-    block                                                        = (_ShelterB6TrainingRoomFlashScratch*)(head - 0x1C);
-    block->vec.vy                                                = *(u16*)&coord->workm.t[1];
-    vz                                                           = *(u16*)&coord->workm.t[2];
-    *scratch                                                     = block;
-    block->vec.vz                                                = vz;
-    vecp                                                         = block;
+    scratch                                    = (void**)G_SCRATCH_HEAD;
+    head                                       = *scratch;
+    ((RoomFlashScratch*)(head - 0x1C))->vec.vx = *(u16*)&coord->workm.t[0];
+    block                                      = (RoomFlashScratch*)(head - 0x1C);
+    block->vec.vy                              = *(u16*)&coord->workm.t[1];
+    vz                                         = *(u16*)&coord->workm.t[2];
+    *scratch                                   = block;
+    block->vec.vz                              = vz;
+    vecp                                       = block;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&vecp->vec);
     gte_rtps();
-    gte_stsxy(&((_ShelterB6TrainingRoomFlashScratch*)(head - 0x1C))->sxy);
-    gte_stflg(&((_ShelterB6TrainingRoomFlashScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((RoomFlashScratch*)(head - 0x1C))->sxy);
+    gte_stflg(&((RoomFlashScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((_ShelterB6TrainingRoomFlashScratch*)(head - 0x1C))->otz);
+        gte_stszotz(&((RoomFlashScratch*)(head - 0x1C))->otz);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);

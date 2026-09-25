@@ -15,19 +15,8 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
-
-/// 0x14-byte block `func_dryfield_r08_8017EB68` takes from `G_SCRATCH_HEAD`:
-/// the projected point's depth, the two on-screen radii derived from it, the
-/// GTE flag word and the projected screen position.
-typedef struct {
-    s32 otz;
-    s32 rOuter;
-    s32 rInner;
-    s32 flag;
-    u16 sx;
-    u16 sy;
-} _DryfieldR08DiscScratch;
 
 extern SVECTOR D_dryfield_r08_8017F464[];
 extern SVECTOR D_dryfield_r08_8017F4C4[];
@@ -519,22 +508,22 @@ void func_dryfield_r08_8017E7C8(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// the inner cross half of it.
 void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
-    _DryfieldR08DiscScratch* block;
-    POLY_G4*                 prim;
-    s32                      ang;
-    s32                      t;
-    s32                      t2;
-    s32                      ua;
-    s32                      ub;
-    s32                      uc;
-    s32                      frame;
-    s32                      packed;
-    s32                      blend;
-    s32                      r;
-    s32                      g;
-    s32                      b;
-    s32                      outer;
-    s32                      inner;
+    RoomDiscScratch* block;
+    POLY_G4*         prim;
+    s32              ang;
+    s32              t;
+    s32              t2;
+    s32              ua;
+    s32              ub;
+    s32              uc;
+    s32              frame;
+    s32              packed;
+    s32              blend;
+    s32              r;
+    s32              g;
+    s32              b;
+    s32              outer;
+    s32              inner;
 
     {
         void** scratch;
@@ -542,7 +531,7 @@ void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2)
 
         scratch = (void**)G_SCRATCH_HEAD;
         tmp     = (*scratch = (u8*)*scratch - 0x14);
-        block   = (_DryfieldR08DiscScratch*)tmp;
+        block   = (RoomDiscScratch*)tmp;
     }
 
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);

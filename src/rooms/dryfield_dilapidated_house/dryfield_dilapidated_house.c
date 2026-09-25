@@ -24,6 +24,7 @@
 #include "main/stage.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// Work block of the task family whose state-0 init is
@@ -107,18 +108,6 @@ typedef struct DdhEffWork {
     /* 0x28 */ s16  field_28;
 } DdhEffWork;
 STATIC_ASSERT_SIZEOF(DdhEffWork, 0x2A);
-
-/// 0x28-byte scratch `func_dryfield_dilapidated_house_801823B8` carves off
-/// `G_SCRATCH_HEAD` for one beam segment. `v` is the quad's four corners, taken
-/// from `workm.t` of two adjacent slots on each trail. `otz` is `gte_stszotz`
-/// of that projection: closer than 0x11 drops the quad, otherwise it picks the
-/// OT bucket the `POLY_G4` is linked into.
-typedef struct DdhBeamScratch {
-    /* 0x00 */ s32     otz;
-    /* 0x04 */ s32     unused;
-    /* 0x08 */ SVECTOR v[4];
-} DdhBeamScratch;
-STATIC_ASSERT_SIZEOF(DdhBeamScratch, 0x28);
 
 /// Argument block `func_dryfield_dilapidated_house_8017E9A4` hands its task as
 /// `Task::spawnArg2`: the address of `D_dryfield_dilapidated_house_80189B80`,
@@ -2243,20 +2232,20 @@ void func_dryfield_dilapidated_house_80181F08(Task* task)
 /// bits 8, 4 and 0 that each multiply the 0x40-9i fade.
 void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
 {
-    DdhBeamScratch* blk;
-    GsCOORDINATE2*  a;
-    GsCOORDINATE2*  b;
-    POLY_G4*        prim;
-    s32             i;
-    s32             j;
-    s32             i0;
-    s32             i1;
-    s32             hi;
-    s32             lo;
-    s32             fade;
+    RoomFlaggedQuadScratch* blk;
+    GsCOORDINATE2*          a;
+    GsCOORDINATE2*          b;
+    POLY_G4*                prim;
+    s32                     i;
+    s32                     j;
+    s32                     i0;
+    s32                     i1;
+    s32                     hi;
+    s32                     lo;
+    s32                     fade;
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(DdhBeamScratch);
-    blk                     = (DdhBeamScratch*)*(void**)G_SCRATCH_HEAD;
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomFlaggedQuadScratch);
+    blk                     = (RoomFlaggedQuadScratch*)*(void**)G_SCRATCH_HEAD;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 7; i++) {
@@ -2303,7 +2292,7 @@ void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
             Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(DdhBeamScratch);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomFlaggedQuadScratch);
 }
 
 /// Per-frame state machine of the ``DdhEffWork`` effect family's fade-in

@@ -790,26 +790,26 @@ void func_acropolis_promenade_8017ED44(Task* task)
 /// each spawn draws a single frame.
 void func_acropolis_promenade_8017F0BC(Task* task)
 {
-    GsCOORDINATE2*              coord;
-    RoomEffWork*                work;
-    void**                      scratch;
-    u8*                         head;
-    RoomsShared80181d28Scratch* blk;
+    GsCOORDINATE2*         coord;
+    RoomEffWork*           work;
+    void**                 scratch;
+    u8*                    head;
+    RoomGlowSpriteScratch* blk;
     // The `gte_stszotz` operand is a second register holding the same pointer;
     // reload only emits that copy for a hard-register local (see
     // DECOMPILATION_LEARNINGS.md, "A `move` between two registers holding the
     // same pointer is a pin").
-    register RoomsShared80181d28Scratch* p asm("a0");
-    POLY_FT4*                            prim;
-    s32                                  grey;
-    s32                                  clut;
+    register RoomGlowSpriteScratch* p asm("a0");
+    POLY_FT4*                       prim;
+    s32                             grey;
+    s32                             clut;
 
     coord = ((TmdObject*)task->extra)->coords;
     work  = task->spawnArg2;
     Gp_UpdateCoord(coord);
     scratch     = (void**)G_SCRATCH_HEAD;
     head        = *scratch;
-    blk         = (RoomsShared80181d28Scratch*)(head - 0x14);
+    blk         = (RoomGlowSpriteScratch*)(head - 0x14);
     blk->pos.vx = coord->workm.t[0];
     blk->pos.vy = coord->workm.t[1];
     *scratch    = blk;

@@ -14,20 +14,8 @@
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
-
-/// Scratch block `func_neo_ark_submarine_gallery_80180E80` takes from
-/// `G_SCRATCH_HEAD` for one quad of a prism. `v` holds the four corners after
-/// rotation by the model's `workm` and translation by its offset; `sxy` is
-/// their screen projection, copied onto the `POLY_G4` once one is allocated.
-/// `flag` is `gte_stflg` of that projection (negative rejects the quad) and
-/// `otz` is `gte_stszotz`, which picks the OT bucket.
-typedef struct {
-    SVECTOR v[4];
-    s32     otz;
-    s32     flag;
-    DVECTOR sxy[4];
-} _NeoArkSubmarineGalleryPrismScratch;
 
 extern SVECTOR D_neo_ark_submarine_gallery_801818C8[];
 extern SVECTOR D_neo_ark_submarine_gallery_801818D8[];
@@ -777,16 +765,16 @@ void func_neo_ark_submarine_gallery_80180AC8(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// around 0x18 with `gDisplayState.animFrame`.
 void func_neo_ark_submarine_gallery_80180E80(GsCOORDINATE2* coord, s16 arg1)
 {
-    _NeoArkSubmarineGalleryPrismScratch* blk;
-    POLY_G4*                             prim;
-    s32                                  i;
-    s32                                  next;
-    s32                                  far;
-    s32                                  farNext;
-    u8                                   shade;
+    RoomQuadProjScratch* blk;
+    POLY_G4*             prim;
+    s32                  i;
+    s32                  next;
+    s32                  far;
+    s32                  farNext;
+    u8                   shade;
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(_NeoArkSubmarineGalleryPrismScratch);
-    blk                     = (_NeoArkSubmarineGalleryPrismScratch*)*(void**)G_SCRATCH_HEAD;
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomQuadProjScratch);
+    blk                     = (RoomQuadProjScratch*)*(void**)G_SCRATCH_HEAD;
     gte_SetTransMatrix(&GsWSMATRIX);
     shade = (rsin(gDisplayState.animFrame << 10) >> 11) + 0x18;
     for (i = 0; i < 4; i++) {
@@ -907,5 +895,5 @@ void func_neo_ark_submarine_gallery_80180E80(GsCOORDINATE2* coord, s16 arg1)
         addPrim((u_long*)((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(_NeoArkSubmarineGalleryPrismScratch);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomQuadProjScratch);
 }

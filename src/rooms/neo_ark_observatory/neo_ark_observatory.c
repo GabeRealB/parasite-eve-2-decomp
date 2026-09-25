@@ -71,15 +71,6 @@ typedef union _NeoArkObservatorySaveLoc {
     s32       head;
 } _NeoArkObservatorySaveLoc;
 
-/// Scratch block one band segment is projected in: the four corners in world
-/// space, the GTE depth and flag, and the projected corners.
-typedef struct _NeoArkObservatoryBandScratch {
-    SVECTOR v[4];
-    s32     otz;
-    s32     flag;
-    DVECTOR sxy[4];
-} _NeoArkObservatoryBandScratch;
-
 /// Twelve opaque bytes the mesh copy carries across unchanged.
 typedef struct _NeoArkObservatoryBlk12 {
     u8 data[12];
@@ -1427,16 +1418,16 @@ void func_neo_ark_observatory_80180124(Task* task)
 /// is negative.
 void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3)
 {
-    _NeoArkObservatoryBandScratch* blk;
-    POLY_G4*                       prim;
-    SVECTOR*                       outer;
-    DisplayState*                  ds;
-    s16                            start;
-    s16                            step;
-    s32                            angle;
-    s32                            next;
-    s16                            innerRadius;
-    s16                            level;
+    RoomQuadProjScratch* blk;
+    POLY_G4*             prim;
+    SVECTOR*             outer;
+    DisplayState*        ds;
+    s16                  start;
+    s16                  step;
+    s32                  angle;
+    s32                  next;
+    s16                  innerRadius;
+    s16                  level;
 
     step        = 0x1000 / arg3;
     outer       = v + 1;
@@ -1444,8 +1435,8 @@ void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3)
     start       = gDisplayState.animFrame & 0xFFF;
     level       = arg2 + (rsin(gDisplayState.animFrame << 10) >> 10);
     if (level >= 0) {
-        *(u8**)G_SCRATCH_HEAD -= sizeof(_NeoArkObservatoryBandScratch);
-        blk                    = *(_NeoArkObservatoryBandScratch**)G_SCRATCH_HEAD;
+        *(u8**)G_SCRATCH_HEAD -= sizeof(RoomQuadProjScratch);
+        blk                    = *(RoomQuadProjScratch**)G_SCRATCH_HEAD;
         gte_SetTransMatrix(&Gfx_ViewWorldMtx);
         for (angle = start; angle < start + step * arg3; angle = next) {
             blk->v[0].vx = v->vx + ((rsin(angle) * innerRadius) >> 12);
@@ -1494,7 +1485,7 @@ void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3)
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
             }
         }
-        *(u8**)G_SCRATCH_HEAD += sizeof(_NeoArkObservatoryBandScratch);
+        *(u8**)G_SCRATCH_HEAD += sizeof(RoomQuadProjScratch);
     }
 }
 

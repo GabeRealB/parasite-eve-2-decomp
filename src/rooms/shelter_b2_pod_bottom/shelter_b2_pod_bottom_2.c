@@ -14,25 +14,8 @@
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
-
-/// 0x2C-byte scratch block `func_shelter_b2_pod_bottom_8018101C` takes from
-/// `G_SCRATCH_HEAD`: the coordinate's world position, the tip point offset from
-/// it, and both points' projections. `otz0`/`sx0`/`sy0` belong to `base`,
-/// `otz1`/`sx1`/`sy1` to `tip`; `r0`/`r1` are the wedge radii at each end.
-typedef struct {
-    SVECTOR base;
-    SVECTOR tip;
-    s32     otz0;
-    s32     otz1;
-    s32     flag;
-    s32     r0;
-    s32     r1;
-    u16     sx0;
-    u16     sy0;
-    u16     sx1;
-    u16     sy1;
-} _ShelterB2PodBottomBeamScratch;
 
 /// 0x120-byte scratch block `func_shelter_b2_pod_bottom_80180A4C` takes from
 /// `G_SCRATCH_HEAD`: the 32 rotated ring points and the disc centre, the
@@ -1190,25 +1173,25 @@ void func_shelter_b2_pod_bottom_80180F10(Task* arg0)
 /// `gDisplayState.animFrame & 1` adding a 16-unit flicker to every channel.
 void func_shelter_b2_pod_bottom_8018101C(GsCOORDINATE2* coord, s16 size, u16 color, u16 scale)
 {
-    void**                          scratch;
-    u8*                             head;
-    _ShelterB2PodBottomBeamScratch* block;
-    POLY_G4*                        prim;
-    s32                             pass;
-    u8                              r;
-    u8                              g;
-    u8                              b;
-    s32                             limit;
-    s32                             angStart;
-    s32                             scaled;
-    s32                             ang;
-    s32                             next;
-    s32                             mid;
-    s32                             blend;
+    void**           scratch;
+    u8*              head;
+    RoomBeamScratch* block;
+    POLY_G4*         prim;
+    s32              pass;
+    u8               r;
+    u8               g;
+    u8               b;
+    s32              limit;
+    s32              angStart;
+    s32              scaled;
+    s32              ang;
+    s32              next;
+    s32              mid;
+    s32              blend;
 
     scratch       = (void**)G_SCRATCH_HEAD;
     head          = *scratch;
-    block         = (_ShelterB2PodBottomBeamScratch*)(*scratch = head - 0x2C);
+    block         = (RoomBeamScratch*)(*scratch = head - 0x2C);
     block->tip.vy = -(size << 4);
     block->tip.vx = 0;
     block->tip.vz = 0;

@@ -9,21 +9,6 @@
 #include "main/ui.h"
 #include "rooms/room.h"
 
-/// 0x14-byte scratch block `func_shelter_b1_sterilization_room_80183B8C` takes
-/// from `G_SCRATCH_HEAD`. `otz`, `flag` and `sx`/`sy` receive the projection of
-/// the glow's centre; `rOuter` and `rInner` are its two on-screen radii,
-/// derived from that `otz`.
-typedef struct {
-    s32 otz;
-    s32 rOuter;
-    s32 rInner;
-    s32 flag;
-    u16 sx;
-    u16 sy;
-} ShelterB1SterilizationRoomGlowScratch;
-
-STATIC_ASSERT_SIZEOF(ShelterB1SterilizationRoomGlowScratch, 0x14);
-
 /// Panel titles drawn by the room's menu tasks.
 extern const char D_shelter_b1_sterilization_room_8017D610[];
 extern const char D_shelter_b1_sterilization_room_8017D624[];

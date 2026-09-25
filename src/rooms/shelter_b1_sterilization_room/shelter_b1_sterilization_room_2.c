@@ -18,6 +18,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/shelter_b1_sterilization_room.h"
 
@@ -904,17 +905,17 @@ void func_shelter_b1_sterilization_room_80183718(SVECTOR* arg0, s32 arg1, s32 ar
 /// `rsin(animFrame * (s16)arg1) / 34 + 0x78` so the glow pulses.
 void func_shelter_b1_sterilization_room_80183B8C(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
-    u8*                                    head;
-    ShelterB1SterilizationRoomGlowScratch* block;
-    POLY_G4*                               prim;
-    s32                                    pulse;
-    s32                                    color;
-    s32                                    half;
-    s32                                    size;
-    s32                                    ang;
-    s32                                    t;
-    s32                                    t2;
-    s32                                    u;
+    u8*              head;
+    RoomDiscScratch* block;
+    POLY_G4*         prim;
+    s32              pulse;
+    s32              color;
+    s32              half;
+    s32              size;
+    s32              ang;
+    s32              t;
+    s32              t2;
+    s32              u;
 
     {
         void** scratch;
@@ -924,23 +925,23 @@ void func_shelter_b1_sterilization_room_80183B8C(SVECTOR* arg0, s32 arg1, s32 ar
         head    = *scratch;
         tmp     = (*scratch = head - 0x14);
         SOFT_TOUCH_REG(tmp);
-        block = (ShelterB1SterilizationRoomGlowScratch*)tmp;
+        block = (RoomDiscScratch*)tmp;
     }
 
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
     gte_rtps();
-    gte_stsxy(&((ShelterB1SterilizationRoomGlowScratch*)(head - 0x14))->sx);
-    gte_stflg(&((ShelterB1SterilizationRoomGlowScratch*)(head - 0x14))->flag);
+    gte_stsxy(&((RoomDiscScratch*)(head - 0x14))->sx);
+    gte_stflg(&((RoomDiscScratch*)(head - 0x14))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
         pulse         = rsin(gDisplayState.animFrame * (s16)arg1);
         ang           = 0;
         size          = (s16)arg2;
-        block->rOuter = (size * 64) / ((ShelterB1SterilizationRoomGlowScratch*)(head - 0x14))->otz;
+        block->rOuter = (size * 64) / ((RoomDiscScratch*)(head - 0x14))->otz;
         color         = pulse / 34 + 0x78;
-        block->rInner = (size * 8) / ((ShelterB1SterilizationRoomGlowScratch*)(head - 0x14))->otz;
+        block->rInner = (size * 8) / ((RoomDiscScratch*)(head - 0x14))->otz;
         do {
             prim           = (POLY_G4*)gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;

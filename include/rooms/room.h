@@ -228,4 +228,117 @@ typedef struct RoomSpriteScratch {
 } RoomSpriteScratch;
 STATIC_ASSERT_SIZEOF(RoomSpriteScratch, 0x18);
 
+/// The scratch block a room's mote or mist-puff drawer takes from
+/// `G_SCRATCH_HEAD` for one projection: `vec` is the point's world position,
+/// projected with a single `RTPS` through `GsWSMATRIX`, and `otz` the depth
+/// the resulting tile is linked into the ordering table at; a depth below
+/// 0x11 drops it.
+typedef struct RoomMoteScratch {
+    s32     otz;
+    SVECTOR vec;
+} RoomMoteScratch;
+STATIC_ASSERT_SIZEOF(RoomMoteScratch, 0xC);
+
+/// The scratch block a room's beam drawer takes from `G_SCRATCH_HEAD`: the
+/// beam's base in world space and the tip offset from it, and both points'
+/// projections - `otz0`, `sx0` and `sy0` for `base`, `otz1`, `sx1` and `sy1`
+/// for `tip`. `r0` and `r1` are the wedge radii at each end.
+typedef struct RoomBeamScratch {
+    SVECTOR base;
+    SVECTOR tip;
+    s32     otz0;
+    s32     otz1;
+    s32     flag;
+    s32     r0;
+    s32     r1;
+    u16     sx0;
+    u16     sy0;
+    u16     sx1;
+    u16     sy1;
+} RoomBeamScratch;
+STATIC_ASSERT_SIZEOF(RoomBeamScratch, 0x2C);
+
+/// The scratch block a room's muzzle-flash or spark drawer takes from
+/// `G_SCRATCH_HEAD`: `vec` is the flash's world position, one `RTPS` fills
+/// `sxy`, `flag` and `otz`, and `dx`, `dy` are the rotated half size the four
+/// corners are offset by around `sxy`.
+typedef struct RoomFlashScratch {
+    SVECTOR vec;
+    s32     otz;
+    s32     flag;
+    s32     dx;
+    s32     dy;
+    DVECTOR sxy;
+} RoomFlashScratch;
+STATIC_ASSERT_SIZEOF(RoomFlashScratch, 0x1C);
+
+/// The scratch block a room's glow-sprite drawer takes from `G_SCRATCH_HEAD`:
+/// `pos` is the task coordinate's translation, projected through `GsWSMATRIX`
+/// into `sxy`; `otz` is the resulting depth and `half` the half extent the
+/// camera-facing quad is drawn at, divided by `otz` so the sprite shrinks with
+/// distance.
+typedef struct RoomGlowSpriteScratch {
+    s32     otz;
+    s32     half;
+    SVECTOR pos;
+    DVECTOR sxy;
+} RoomGlowSpriteScratch;
+STATIC_ASSERT_SIZEOF(RoomGlowSpriteScratch, 0x14);
+
+/// The scratch block a room's disc drawer takes from `G_SCRATCH_HEAD`: the
+/// depth of the projected centre, the two on-screen radii derived from it, the
+/// GTE flag word and the projected centre.
+typedef struct RoomDiscScratch {
+    s32 otz;
+    s32 rOuter;
+    s32 rInner;
+    s32 flag;
+    u16 sx;
+    u16 sy;
+} RoomDiscScratch;
+STATIC_ASSERT_SIZEOF(RoomDiscScratch, 0x14);
+
+/// The scratch block a room's quad drawer takes from `G_SCRATCH_HEAD` when it
+/// keeps the GTE flag word as well: `RoomQuadScratch` with `flag` between the
+/// depth and the four corners.
+typedef struct RoomFlaggedQuadScratch {
+    s32     otz;
+    s32     flag;
+    SVECTOR v[4];
+} RoomFlaggedQuadScratch;
+STATIC_ASSERT_SIZEOF(RoomFlaggedQuadScratch, 0x28);
+
+/// The scratch block a room's quad drawer projects one quad in when it keeps
+/// the screen corners: the four corners in world space, the GTE depth and
+/// flag of their projection (a negative flag rejects the quad), and the
+/// projected corners, copied onto the primitive once one is allocated.
+typedef struct RoomQuadProjScratch {
+    SVECTOR v[4];
+    s32     otz;
+    s32     flag;
+    DVECTOR sxy[4];
+} RoomQuadProjScratch;
+STATIC_ASSERT_SIZEOF(RoomQuadProjScratch, 0x38);
+
+/// The scratch block a room's light-shaft drawer takes from `G_SCRATCH_HEAD`
+/// for one shaft: the depth of its projection and its four corners in world
+/// space - the two roots, then the tip reached from each.
+typedef struct RoomLightShaftScratch {
+    s32     otz;
+    SVECTOR rootA;
+    SVECTOR rootB;
+    SVECTOR tipA;
+    SVECTOR tipB;
+} RoomLightShaftScratch;
+STATIC_ASSERT_SIZEOF(RoomLightShaftScratch, 0x24);
+
+/// The scratch block a room's radius test squares its operands in: the X and Z
+/// distances and the radius.
+typedef struct RoomRangeScratch {
+    s32 dx;
+    s32 dz;
+    s32 r;
+} RoomRangeScratch;
+STATIC_ASSERT_SIZEOF(RoomRangeScratch, 0xC);
+
 #endif /* ROOMS_ROOM_H */

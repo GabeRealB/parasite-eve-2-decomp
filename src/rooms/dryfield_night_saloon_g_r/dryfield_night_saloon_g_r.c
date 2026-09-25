@@ -31,17 +31,6 @@
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8018055c.h"
 
-/// Scratch block `func_dryfield_night_saloon_g_r_8017EB38` takes from
-/// `G_SCRATCH_HEAD` for one light shaft. The four vectors are the shaft's
-/// corners in world space: the two roots, then the tip reached from each.
-typedef struct {
-    s32     otz;
-    SVECTOR rootA;
-    SVECTOR rootB;
-    SVECTOR tipA;
-    SVECTOR tipB;
-} _DryfieldNightSaloonGRShaftScratch;
-
 extern void func_8002E53C(TextDrawReq* req, u8* text);
 extern void func_800E8614(s32 arg0, s32 arg1);
 
@@ -806,14 +795,14 @@ void func_dryfield_night_saloon_g_r_8017E8B0(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// is below 0x11.
 void func_dryfield_night_saloon_g_r_8017EB38(GsCOORDINATE2* coord)
 {
-    u8*                                 head;
-    _DryfieldNightSaloonGRShaftScratch* block;
-    POLY_G4*                            prim;
-    SVECTOR*                            dirA;
-    SVECTOR*                            dirB;
-    s32                                 i;
-    s32                                 j;
-    s32                                 rgb;
+    u8*                    head;
+    RoomLightShaftScratch* block;
+    POLY_G4*               prim;
+    SVECTOR*               dirA;
+    SVECTOR*               dirB;
+    s32                    i;
+    s32                    j;
+    s32                    rgb;
 
     {
         void** scratch;
@@ -823,14 +812,14 @@ void func_dryfield_night_saloon_g_r_8017EB38(GsCOORDINATE2* coord)
         head     = *scratch;
         tmp      = head - 0x24;
         *scratch = tmp;
-        block    = (_DryfieldNightSaloonGRShaftScratch*)tmp;
+        block    = (RoomLightShaftScratch*)tmp;
     }
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(&D_dryfield_night_saloon_g_r_801850E4);
     gte_rtv0();
-    gte_stsv(&((_DryfieldNightSaloonGRShaftScratch*)(head - 0x24))->rootA);
+    gte_stsv(&((RoomLightShaftScratch*)(head - 0x24))->rootA);
     *(u16*)&block->rootA.vx = *(u16*)&block->rootA.vx + *(u16*)&coord->workm.t[0];
     *(u16*)&block->rootA.vy = *(u16*)&block->rootA.vy + *(u16*)&coord->workm.t[1];
     *(u16*)&block->rootA.vz = *(u16*)&block->rootA.vz + *(u16*)&coord->workm.t[2];
@@ -838,7 +827,7 @@ void func_dryfield_night_saloon_g_r_8017EB38(GsCOORDINATE2* coord)
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(&D_dryfield_night_saloon_g_r_801850FC);
     gte_rtv0();
-    gte_stsv(&((_DryfieldNightSaloonGRShaftScratch*)(head - 0x24))->rootB);
+    gte_stsv(&((RoomLightShaftScratch*)(head - 0x24))->rootB);
     *(u16*)&block->rootB.vx = *(u16*)&block->rootB.vx + *(u16*)&coord->workm.t[0];
     *(u16*)&block->rootB.vy = *(u16*)&block->rootB.vy + *(u16*)&coord->workm.t[1];
     *(u16*)&block->rootB.vz = *(u16*)&block->rootB.vz + *(u16*)&coord->workm.t[2];
@@ -853,9 +842,9 @@ void func_dryfield_night_saloon_g_r_8017EB38(GsCOORDINATE2* coord)
         *(u16*)&block->tipA.vz = *(u16*)&D_dryfield_night_saloon_g_r_80185074[14].vz +
                                  (*(u16*)&dirA->vz - *(u16*)&D_dryfield_night_saloon_g_r_80185074[14].vz) * 4;
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&((_DryfieldNightSaloonGRShaftScratch*)(head - 0x24))->tipA);
+        gte_ldv0(&((RoomLightShaftScratch*)(head - 0x24))->tipA);
         gte_rtv0();
-        gte_stsv(&((_DryfieldNightSaloonGRShaftScratch*)(head - 0x24))->tipA);
+        gte_stsv(&((RoomLightShaftScratch*)(head - 0x24))->tipA);
         *(u16*)&block->tipA.vx = *(u16*)&block->tipA.vx + *(u16*)&coord->workm.t[0];
         *(u16*)&block->tipA.vy = *(u16*)&block->tipA.vy + *(u16*)&coord->workm.t[1];
         *(u16*)&block->tipA.vz = *(u16*)&block->tipA.vz + *(u16*)&coord->workm.t[2];
@@ -869,9 +858,9 @@ void func_dryfield_night_saloon_g_r_8017EB38(GsCOORDINATE2* coord)
         *(u16*)&block->tipB.vz = *(u16*)&D_dryfield_night_saloon_g_r_80185074[17].vz +
                                  (*(u16*)&dirB->vz - *(u16*)&D_dryfield_night_saloon_g_r_80185074[17].vz) * 4;
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&((_DryfieldNightSaloonGRShaftScratch*)(head - 0x24))->tipB);
+        gte_ldv0(&((RoomLightShaftScratch*)(head - 0x24))->tipB);
         gte_rtv0();
-        gte_stsv(&((_DryfieldNightSaloonGRShaftScratch*)(head - 0x24))->tipB);
+        gte_stsv(&((RoomLightShaftScratch*)(head - 0x24))->tipB);
         *(u16*)&block->tipB.vx = *(u16*)&block->tipB.vx + *(u16*)&coord->workm.t[0];
         *(u16*)&block->tipB.vy = *(u16*)&block->tipB.vy + *(u16*)&coord->workm.t[1];
         *(u16*)&block->tipB.vz = *(u16*)&block->tipB.vz + *(u16*)&coord->workm.t[2];
@@ -883,8 +872,8 @@ void func_dryfield_night_saloon_g_r_8017EB38(GsCOORDINATE2* coord)
         gGpuPrimCursor = prim + 1;
         setPolyG4(prim);
         gte_stsxy(&prim->x0);
-        gte_ldv3(&block->rootB, &((_DryfieldNightSaloonGRShaftScratch*)(head - 0x24))->tipA,
-                 &((_DryfieldNightSaloonGRShaftScratch*)(head - 0x24))->tipB);
+        gte_ldv3(&block->rootB, &((RoomLightShaftScratch*)(head - 0x24))->tipA,
+                 &((RoomLightShaftScratch*)(head - 0x24))->tipB);
         gte_rtpt();
         gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
         gte_stszotz(&block->otz);

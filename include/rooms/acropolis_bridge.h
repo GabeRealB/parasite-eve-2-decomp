@@ -8,7 +8,6 @@
 #include <psyq/libgs.h>
 
 #include "main/task.h"
-#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// Work block this room's script tasks keep at `Task::work`
@@ -65,32 +64,6 @@ typedef struct AcropolisBridgeQuadScratch {
 } AcropolisBridgeQuadScratch;
 STATIC_ASSERT_SIZEOF(AcropolisBridgeQuadScratch, 0x2C);
 
-/// 0x28-byte scratch block `func_acropolis_bridge_801827EC` takes from
-/// `G_SCRATCH_HEAD`. `v` holds the four corners of the unit quad `D_80111E38`,
-/// scaled to the caller's half-size, rotated by the task's own `GsCOORDINATE2`
-/// (`workm`) and then projected through `GsWSMATRIX` - the first corner with
-/// `rtps` and the other three with `rtpt`. `flag` is the `gte_stflg` result the
-/// draw is gated on and `otz` the `gte_stszotz` depth the `POLY_FT4` is linked
-/// into the OT at, biased by 1.
-typedef struct AcropolisBridgeRotQuadScratch {
-    /* 0x00 */ s32     otz;
-    /* 0x04 */ s32     flag;
-    /* 0x08 */ SVECTOR v[4];
-} AcropolisBridgeRotQuadScratch;
-STATIC_ASSERT_SIZEOF(AcropolisBridgeRotQuadScratch, 0x28);
-
-/// 0xC-byte scratch block the bridge's falling-mote task takes from
-/// `G_SCRATCH_HEAD`. `vec` is the mote's world position copied out of the
-/// task's `GsCOORDINATE2` (`workm.t`) and projected with a single `RTPS`
-/// through `GsWSMATRIX`; `otz` is the `gte_stszotz` depth the resulting
-/// `TILE_1` is linked into the OT at. Depths below 0x11 are dropped rather
-/// than drawn, so a mote in front of the near plane costs nothing.
-typedef struct AcropolisBridgeMoteScratch {
-    /* 0x00 */ s32     otz;
-    /* 0x04 */ SVECTOR vec;
-} AcropolisBridgeMoteScratch;
-STATIC_ASSERT_SIZEOF(AcropolisBridgeMoteScratch, 0xC);
-
 /// 0x1C-byte scratch block the bridge's debris billboard
 /// (`func_acropolis_bridge_80182F8C`) takes from `G_SCRATCH_HEAD`. `vec` is the
 /// piece's world position copied out of its `GsCOORDINATE2` (`workm.t`) and
@@ -136,18 +109,5 @@ typedef struct AcropolisBridgeTurnScratch {
     /* 0x1A */ byte pad_1A[0x2];
 } AcropolisBridgeTurnScratch;
 STATIC_ASSERT_SIZEOF(AcropolisBridgeTurnScratch, 0x1C);
-
-/// 0x14-byte scratch block the room's glow-sprite task
-/// (`func_acropolis_bridge_80181D28`) takes from `G_SCRATCH_HEAD`. `pos` is the
-/// task coordinate's translation, projected through `GsWSMATRIX` into `sxy`;
-/// `otz` is the resulting depth and `half` the half-extent (`0x6180 / otz`)
-/// the camera-facing quad is drawn at.
-typedef struct AcropolisBridgeGlowScratch {
-    /* 0x00 */ s32     otz;
-    /* 0x04 */ s32     half;
-    /* 0x08 */ SVECTOR pos;
-    /* 0x10 */ DVECTOR sxy;
-} AcropolisBridgeGlowScratch;
-STATIC_ASSERT_SIZEOF(AcropolisBridgeGlowScratch, 0x14);
 
 #endif

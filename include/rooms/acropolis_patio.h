@@ -23,20 +23,6 @@ typedef struct ApLookAtWork {
 } ApLookAtWork;
 STATIC_ASSERT_SIZEOF(ApLookAtWork, 0x78);
 
-/// 0xC-byte `G_SCRATCH_HEAD` frame the fountain's mist puff
-/// (`func_acropolis_patio_8017E730`) opens for one frame's projection.
-///
-/// `pos` is the puff's world position copied out of the effect coordinate's
-/// `workm.t[]` as three halfwords, and `otz` is where `gte_stszotz` lands the
-/// depth the tile is sorted and colour-shifted by. The `SVECTOR`'s padding
-/// halfword is never written - `gte_ldv0` reads the whole 8 bytes, exactly as
-/// the Psy-Q sprite paths do.
-typedef struct ApMistScratch {
-    /* 0x0 */ s32     otz;
-    /* 0x4 */ SVECTOR pos;
-} ApMistScratch;
-STATIC_ASSERT_SIZEOF(ApMistScratch, 0xC);
-
 /// The three grey levels a flickering sprite
 /// (`func_acropolis_patio_8017E324`) picks its colour from, one per animation
 /// column. The task copies the whole set onto its stack before indexing it.

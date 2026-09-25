@@ -47,18 +47,6 @@
                      : "r"(src), "r"(dst) \
                      : "$12", "$13", "$14", "memory")
 
-/// 0xC-byte scratch block the hall's dust-mote task takes from
-/// `G_SCRATCH_HEAD`. `vec` is the mote's world position copied out of the
-/// task's `GsCOORDINATE2` (`workm.t`) and projected with a single `RTPS`
-/// through `GsWSMATRIX`; `otz` is the `gte_stszotz` depth the resulting `TILE_1`
-/// is linked into the OT at. Depths below 0x11 are dropped rather than drawn,
-/// so a mote that ends up in front of the near plane costs nothing.
-typedef struct _AeehMoteScratch {
-    /* 0x00 */ s32     otz;
-    /* 0x04 */ SVECTOR vec;
-} AeehMoteScratch;
-STATIC_ASSERT_SIZEOF(AeehMoteScratch, 0xC);
-
 /// The save's location key read as one word, so its view and area bytes are
 /// tested together.
 extern s32 D_8007216C;
@@ -992,7 +980,7 @@ void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0)
 {
     void**                    scratch;
     u8*                       head;
-    register AeehMoteScratch* block asm("v1");
+    register RoomMoteScratch* block asm("v1");
     TILE_1*                   prim;
     GsCOORDINATE2*            coord;
     void*                     mem;
@@ -1003,7 +991,7 @@ void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0)
     mem     = arg0->spawnArg2;
     Gp_UpdateCoord(coord);
     head          = *scratch;
-    block         = (AeehMoteScratch*)(head - 0xC);
+    block         = (RoomMoteScratch*)(head - 0xC);
     block->vec.vx = *(u16*)&coord->workm.t[0];
     block->vec.vy = *(u16*)&coord->workm.t[1];
     vz            = *(u16*)&coord->workm.t[2];
@@ -1012,18 +1000,18 @@ void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0)
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((AeehMoteScratch*)(head - 0xC))->vec);
+    gte_ldv0(&((RoomMoteScratch*)(head - 0xC))->vec);
     gte_rtps();
     prim           = (TILE_1*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setTile1(prim);
     gte_stsxy(&prim->x0);
     gte_stszotz(&block->otz);
-    if (((AeehMoteScratch*)(head - 0xC))->otz >= 0x11) {
+    if (((RoomMoteScratch*)(head - 0xC))->otz >= 0x11) {
         setRGB0(prim, 0x80, 0x80, 0x80);
-        addPrim((u_long*)(((((u32)((AeehMoteScratch*)(head - 0xC))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+        addPrim((u_long*)(((((u32)((RoomMoteScratch*)(head - 0xC))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
-        Gp_AddTpageShift((P_TAG*)prim, 1, ((AeehMoteScratch*)(head - 0xC))->otz);
+        Gp_AddTpageShift((P_TAG*)prim, 1, ((RoomMoteScratch*)(head - 0xC))->otz);
     }
     *scratch = (u8*)*scratch + 0xC;
     Gp_ReleaseState1CMem(mem, arg0);
