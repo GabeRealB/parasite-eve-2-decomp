@@ -193,6 +193,9 @@ s32  func_actor_403600_801406A4(Task* arg0, s32 arg1, GpCmdArg* arg2);
 void func_actor_403600_80140B4C(struct GpEnemy* arg0, Task* arg1);
 void func_actor_403600_80141F58(GsCOORDINATE2* arg0, s32 arg1);
 
+/* `Gp_LcgState`, read through a register holding only the upper half of its
+ * address, which the damage handler keeps live across its blocks; naming the
+ * global rebuilds the address at every use instead. */
 #define ACTOR403600_RNG_VALUE(base) (*(u32*)((u8*)(base) + 0xF60))
 
 #define ACTOR_COPY_MATRIX_COLUMN_TO_SV(r0, r1, o0, o1, o2) \
@@ -2681,7 +2684,7 @@ void func_actor_403600_8013CCEC(Task* arg0, s32 arg1)
     Actor403600Point*           temp_v1_10;
 
     temp_s2            = SCRATCH_HEAD(void);
-    temp_s3            = (Actor403600DistanceScratch*)((u8*)temp_s2 - 0x24);
+    temp_s3            = temp_s2 - 1;
     SCRATCH_HEAD(void) = temp_s3;
     temp_s4            = arg0->work;
     temp_s5            = temp_s3;
@@ -2852,6 +2855,10 @@ block_after_collision:
     rng           = (u32*)0x80070000;
     SOFT_USE_REG(rng);
     SOFT_USE_REG(rng);
+    /* A byte cursor steps through the four `field_528` contact records from
+     * the start of the work block, reaching each at the table's offset and
+     * stopping at the table's size; indexing the table instead rebuilds the
+     * whole loop. */
     var_s2 = (u8*)temp_s0;
 loop_14:
     temp_v1_3 = *(u16*)(var_s2 + 0x52E);
@@ -3329,7 +3336,7 @@ s32 func_actor_403600_8013DFE0(Task* arg0)
     Actor403600TurnScratch* temp_v1_2;
 
     temp_v1            = SCRATCH_HEAD(Actor403600TurnScratch);
-    temp_v1            = (Actor403600TurnScratch*)((u8*)temp_v1 - 0x30);
+    temp_v1            = temp_v1 - 1;
     SCRATCH_HEAD(void) = temp_v1;
     temp_v1_2          = temp_v1;
     temp_s4            = arg0->work;
@@ -4315,13 +4322,13 @@ void func_actor_403600_8013FC2C(GpEnemy* arg0, Task* arg1)
     register TmdObject*       coord_object asm("v0");
     VECTOR*                   temp_a1_7;
     register GsCOORDINATE2*   temp_s0 asm("s0");
-    u8*                       temp_s0_2;
+    s16*                      temp_s0_2;
     Actor403600Work*          temp_s1;
     Actor403600Work*          temp_s3;
     Actor403600Work*          temp_s4;
     TmdObject*                temp_s7;
-    u8*                       temp_v0;
-    u8*                       temp_v0_2;
+    s16*                      temp_v0;
+    s16*                      temp_v0_2;
     u8*                       restore1;
     u8*                       restore2;
     u8*                       var_s2;
@@ -4353,7 +4360,7 @@ case1:
     actor_403600_load_scratch_head(temp_a1_2);
     temp_a1_2[-1].vx = temp_s4->field_4B8.workm.t[0];
     color_zero1      = 0;
-    temp_a1_2        = (VECTOR*)((u8*)temp_a1_2 - 0x10);
+    temp_a1_2        = temp_a1_2 - 1;
     temp_a1_2->vy    = temp_s4->field_4B8.workm.t[1];
     actor_403600_color_tail(color_z1, color_arg3_1, temp_a1_2, temp_s4, color_zero1);
     temp_a1_2->vz = color_z1;
@@ -4406,19 +4413,19 @@ default_body:
     actor_403600_store_scratch_head(matrix_arg);
     gte_block = matrix_arg;
     RotMatrix(rot_arg, matrix_arg);
-    temp_v0 = (u8*)temp_s0 + 0xA4;
+    temp_v0 = &temp_s0[2].coord.m[0][0];
     gte_SetRotMatrix(temp_v0);
     gte_ldclmv(gte_block);
     gte_rtir();
     gte_stclmv(temp_v0);
-    gte_ldclmv((u8*)matrix_head - 0x1E);
+    gte_ldclmv(&matrix_head[-1].m[0][1]);
     gte_rtir();
-    temp_v0_2 = (u8*)temp_s0 + 0xA6;
+    temp_v0_2 = &temp_s0[2].coord.m[0][1];
     gte_stclmv(temp_v0_2);
-    matrix_head = (MATRIX*)((u8*)matrix_head - 0x1C);
+    matrix_head = (MATRIX*)&matrix_head[-1].m[0][2];
     gte_ldclmv(matrix_head);
     gte_rtir();
-    temp_s0_2 = (u8*)temp_s0 + 0xA8;
+    temp_s0_2 = &temp_s0[2].coord.m[0][2];
     gte_stclmv(temp_s0_2);
     temp_v0_3 = temp_s3->field_700;
     if (temp_v0_3 != 0) {
@@ -4450,7 +4457,7 @@ default_body:
         actor_403600_load_scratch_head(temp_a1_7);
         temp_a1_7[-1].vx = color_work2->field_4B8.workm.t[0];
         color_zero2      = 0;
-        temp_a1_7        = (VECTOR*)((u8*)temp_a1_7 - 0x10);
+        temp_a1_7        = temp_a1_7 - 1;
         temp_a1_7->vy    = color_work2->field_4B8.workm.t[1];
         actor_403600_color_tail_in_place(color_work2, color_arg3_2, temp_a1_7, color_zero2);
         temp_a1_7->vz = (s32)color_work2;
@@ -5218,7 +5225,7 @@ void func_actor_403600_801412D0(GpEnemy* arg0, Task* arg1)
     work                 = arg1->work;
     head                 = SCRATCH_HEAD(VECTOR);
     head[-1].vx          = work->field_4B8.workm.t[0];
-    block                = (VECTOR*)((u8*)head - 0x10);
+    block                = head - 1;
     block->vy            = work->field_4B8.workm.t[1];
     SCRATCH_HEAD(VECTOR) = block;
     block->vz            = work->field_4B8.workm.t[2];
@@ -5240,7 +5247,7 @@ void func_actor_403600_80141338(Task* arg0)
 
     head = SCRATCH_HEAD(MATRIX);
     SOFT_BARRIER();
-    block                = (MATRIX*)((u8*)head - 0x20);
+    block                = head - 1;
     SCRATCH_HEAD(MATRIX) = block;
     matrixArg            = block;
     actor                = arg0;
@@ -5249,18 +5256,18 @@ void func_actor_403600_80141338(Task* arg0)
     coord = ((TmdObject*)actor->extra)->coords;
     RotMatrix((SVECTOR*)&work->field_700, matrixArg);
 
-    gte_SetRotMatrix((u8*)coord + 0xA4);
+    gte_SetRotMatrix(&coord[2].coord.m[0][0]);
     gte_ldclmv(block);
     gte_rtir();
-    gte_stclmv((u8*)coord + 0xA4);
+    gte_stclmv(&coord[2].coord.m[0][0]);
 
-    gte_ldclmv((u8*)block + 2);
+    gte_ldclmv(&block->m[0][1]);
     gte_rtir();
-    gte_stclmv((u8*)coord + 0xA6);
+    gte_stclmv(&coord[2].coord.m[0][1]);
 
-    gte_ldclmv((u8*)block + 4);
+    gte_ldclmv(&block->m[0][2]);
     gte_rtir();
-    gte_stclmv((u8*)coord + 0xA8);
+    gte_stclmv(&coord[2].coord.m[0][2]);
 
     value = work->field_700;
     if (value != 0) {
@@ -5419,6 +5426,7 @@ s32 func_actor_403600_80141840(Task* arg0)
     register s32     right asm("v1");
     s16              amount;
     Actor403600Work* work;
+    s16*             rise;
 
     count = 0;
     left  = 1;
@@ -5451,7 +5459,10 @@ s32 func_actor_403600_80141840(Task* arg0)
         count                     += 1;
         work->field_4B8.coord.t[1] = work->field_6B0.vy;
     } else if (targetY < currentY) {
-        *(s16*)((u8*)work + 0x74A)  = -0x12C;
+        /* Stored through a plain halfword pointer: as a structure store it
+         * lets the compiler read `D_80070F70` ahead of it. */
+        rise                        = &work->field_74A;
+        *rise                       = -0x12C;
         work->field_4B8.coord.t[1] += rsin(D_80070F70 << 8) >> 6;
     } else {
         work->field_74A = amount;
@@ -5722,13 +5733,13 @@ void func_actor_403600_80141F28(Task* arg0)
 void func_actor_403600_80141F58(GsCOORDINATE2* arg0, s32 arg1)
 {
     void**   scratch;
-    void*    head;
+    SVECTOR* head;
     SVECTOR* vec;
     MATRIX*  matrix;
 
     scratch                        = SCRATCH_HEAD_ADDR;
     head                           = SCRATCH_HEAD_AT(scratch, void);
-    vec                            = (SVECTOR*)((u8*)head - 8);
+    vec                            = head - 1;
     SCRATCH_HEAD_AT(scratch, void) = vec;
     matrix                         = &arg0->coord;
 
@@ -5755,5 +5766,5 @@ void func_actor_403600_80141F58(GsCOORDINATE2* arg0, s32 arg1)
 
     head                           = SCRATCH_HEAD_AT(scratch, void);
     arg0->flg                      = 0;
-    SCRATCH_HEAD_AT(scratch, void) = (u8*)head + 8;
+    SCRATCH_HEAD_AT(scratch, void) = head + 1;
 }
