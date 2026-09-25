@@ -2641,7 +2641,6 @@ s32 Actor01600_Fn045A8(Task* arg0, s32* distance)
     scratch->delta.vz = z;
     *distance         = SquareRoot0((x * x) + (z * z));
     SCRATCH_POP(Actor01600AimScratch);
-
     return angle;
 }
 

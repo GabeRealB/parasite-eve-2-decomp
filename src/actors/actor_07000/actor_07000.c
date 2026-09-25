@@ -2728,7 +2728,6 @@ s32 Actor07000_Fn047F4(GsCOORDINATE2* arg0, u32* arg1)
     vec->delta.vz = z;
     *arg1         = SquareRoot0((x * x) + (z * z));
     SCRATCH_POP(ActorBearingScratch);
-
     return angle;
 }
 
