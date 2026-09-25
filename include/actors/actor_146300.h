@@ -83,6 +83,7 @@ void func_actor_146300_801327A4(Task* task);
 void func_actor_146300_801327CC(Task* task);
 void func_actor_146300_80132840(void);
 void func_actor_146300_8013288C(void);
+void func_actor_146300_8013291C(void);
 
 s32 func_actor_146300_8013299C(Task* task, s32 arg1, Actor146300AnimPreset* preset);
 
