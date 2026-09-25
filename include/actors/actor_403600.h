@@ -112,6 +112,19 @@ typedef struct Actor403600Work {
 } Actor403600Work;
 STATIC_ASSERT_SIZEOF(Actor403600Work, 0x7B8);
 
+/// Work block of the task `func_actor_403600_80134288` runs under the actor:
+/// the seed its screen distortion grid is drawn from, and the joints of the
+/// two chains `func_actor_403600_80132E40` hangs the actor's model parts on.
+typedef struct Actor403600FxWork {
+    byte    pad_0[4];
+    s32     gridSeed;    // random state the grid's jitter starts from, kept so a paused frame redraws the same grid
+    SVECTOR chain[4];    // joints of the three-segment chain hanging from the actor's body, world-oriented and relative to the view
+    byte    pad_28[0xE0];
+    SVECTOR limbTips[2]; // free ends of the two single segments hanging from the actor's limbs, in the same frame
+    s32     chainsSet;   // zero until the first frame has laid the chains out
+} Actor403600FxWork;
+STATIC_ASSERT_SIZEOF(Actor403600FxWork, 0x11C);
+
 /// Work block of the projectile task `func_actor_403600_80134398` runs. The
 /// projectile leaves from one of its owner's model parts and is drawn as a
 /// trail of glowing quads, one per remembered position.

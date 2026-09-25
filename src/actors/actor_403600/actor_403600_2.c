@@ -261,7 +261,7 @@ extern s32                  D_actor_403600_801606BC;
 void func_actor_403600_80141598(Task* arg0);
 void func_actor_403600_8014174C(Task* arg0);
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Work* arg2);
+void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600FxWork* arg2);
 void func_80181940(Task* arg0);
 void func_actor_403600_8013A444(Task* arg0);
 void func_actor_403600_801419E8(Task* arg0);
@@ -304,7 +304,7 @@ void func_actor_403600_80138C34(Task* arg0)
     Task* parent;
 
     parent = arg0->parent;
-    func_actor_403600_80132E40(parent, (Actor403600Work*)parent->parent->work, (Actor403600Work*)parent->work);
+    func_actor_403600_80132E40(parent, parent->parent->work, parent->work);
 }
 
 void func_actor_403600_80138C68(Task* arg0)
