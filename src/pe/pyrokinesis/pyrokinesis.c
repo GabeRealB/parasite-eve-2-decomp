@@ -534,7 +534,7 @@ void func_pyrokinesis_8012FC34(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x118;
+    SCRATCH_POP_BYTES(0x118);
 }
 
 /// Draws the flame ring: `arg0`'s origin is projected once through
@@ -609,7 +609,7 @@ void func_pyrokinesis_80130130(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
             ang = ang2;
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Draws the scorch mark the cone leaves on the floor: the unit quad
@@ -697,7 +697,7 @@ void func_pyrokinesis_801304C4(GsCOORDINATE2* arg0, s32 arg1)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 /// Draws one billboard flame quad: `arg0`'s origin is projected once through
@@ -769,7 +769,7 @@ void func_pyrokinesis_80130848(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x1C;
+    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
 void func_pyrokinesis_80130C54(Task* arg0)
@@ -881,7 +881,7 @@ void func_pyrokinesis_80130DC0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x1C;
+    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
 void func_pyrokinesis_801311B8(Task* arg0)
@@ -1007,7 +1007,7 @@ void func_pyrokinesis_801312B4(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, s16 arg3
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x118;
+    SCRATCH_POP_BYTES(0x118);
 }
 
 /// Draws the pyrokinesis flame tube: two 16-vertex rings in `arg0`'s local XY
@@ -1113,7 +1113,7 @@ void func_pyrokinesis_80131784(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, s32 arg3
                     prim);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x118;
+    SCRATCH_POP_BYTES(0x118);
 }
 
 void func_pyrokinesis_80131CE4(Task* arg0)

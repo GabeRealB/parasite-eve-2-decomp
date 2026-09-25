@@ -155,7 +155,7 @@ void func_pepper_spray_8012F21C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x1C;
+    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
 /* Every scratch vector address is computed off `head`, not off `blk`, so the
@@ -261,5 +261,5 @@ void func_pepper_spray_8012F634(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     }
     /* Restore through the symbol so `lui 0x1F80` can fill the `bltz` delay
        slots. A live `scratch` pointer would keep the address in `$fp`. */
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(OverlayFlaggedQuadScratch);
+    SCRATCH_POP_BYTES(sizeof(OverlayFlaggedQuadScratch));
 }

@@ -582,7 +582,7 @@ void func_lifedrain_801301AC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
 /// Draws one wedge of the drain funnel as a Gouraud triangle. `arg0`'s origin
@@ -640,7 +640,7 @@ void func_lifedrain_801305C0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 void func_lifedrain_801308C0(Task* arg0)
