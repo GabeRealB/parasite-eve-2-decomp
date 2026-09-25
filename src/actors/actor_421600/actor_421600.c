@@ -270,17 +270,6 @@ typedef struct Actor421600AnimWork {
 } Actor421600AnimWork;
 STATIC_ASSERT_SIZEOF(Actor421600AnimWork, 0x890);
 
-/// 0xC-byte block taken from the scratchpad head by the zone-aim tick
-/// `func_actor_421600_8013B4C4`: the XZ direction it measures the actor's
-/// facing against, plus the wrapped heading it derives from that direction and
-/// re-reads after clamping `field_83E` to +/-0x80, before `Gfx_RotMatrixY`.
-typedef struct Actor421600SeekScratch {
-    /* 0x0 */ SVECTOR vec;
-    /* 0x8 */ s16     angle;
-    /* 0xA */ s16     pad_A;
-} Actor421600SeekScratch;
-STATIC_ASSERT_SIZEOF(Actor421600SeekScratch, 0xC);
-
 typedef struct Actor421600AvoidScratch {
     /* 0x00 */ MATRIX   m;
     /* 0x20 */ SVECTOR  dir;
@@ -299,18 +288,6 @@ typedef struct Actor421600AvoidScratch {
 } Actor421600AvoidScratch;
 STATIC_ASSERT_SIZEOF(Actor421600AvoidScratch, 0x58);
 
-/// Facing tick workspace: player displacement, squared distance and contact reply.
-typedef struct Actor421600FacingScratch {
-    /* 0x00 */ s16 vx, vy, vz, pad;
-    /* 0x08 */ u32 distanceSquared;
-    /* 0x0C */ s16 playerYaw;
-    /* 0x0E */ u16 contactYaw;
-    /* 0x10 */ s16 turnYaw, targetYaw;
-    /* 0x14 */ s16 messageResult;
-    /* 0x16 */ s16 pad16;
-} Actor421600FacingScratch;
-STATIC_ASSERT_SIZEOF(Actor421600FacingScratch, 0x18);
-
 extern SVECTOR D_actor_421600_80151260;
 
 /// The attack tick takes 0x14 bytes from G_SCRATCH_HEAD for its direction,
@@ -325,15 +302,6 @@ typedef struct Actor421600AttackScratch {
     /* 0x12 */ s16     reply;
 } Actor421600AttackScratch;
 STATIC_ASSERT_SIZEOF(Actor421600AttackScratch, 0x14);
-
-typedef struct Actor421600TurnScratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s16     delta;
-    /* 0x0A */ s16     yaw;
-    /* 0x0C */ s16     steps;
-    /* 0x0E */ s16     pad;
-} Actor421600TurnScratch;
-STATIC_ASSERT_SIZEOF(Actor421600TurnScratch, 0x10);
 
 /// Waypoint steering scratch with a zone-table index at the tail.
 typedef struct Actor421600RouteScratch {
@@ -441,23 +409,16 @@ typedef struct Actor421600AnimCommand {
     /* 0x14 */ s32 field_14;
 } Actor421600AnimCommand;
 
-typedef struct Actor421600PlayerAnim {
-    /* 0x00 */ byte pad_0[0x1C];
-    /* 0x1C */ s32  field_1C;
-    /* 0x20 */ byte pad_20[4];
-    /* 0x24 */ s32  field_24;
-} Actor421600PlayerAnim;
-
 typedef struct Actor421600AnimWord {
     s32 value;
 } Actor421600AnimWord;
 
-extern Actor421600PlayerAnim* Gp_PlayerAnimBlkTbl[];
-extern u16                    Gp_WeaponIdBase[];
-extern s8                     D_8007218A;
-extern u8                     D_80073BA9;
-extern u16                    D_801876A8, D_801876AA;
-extern Actor421600AnimWord    D_actor_421600_801510A0;
+extern GpAnimBlk*          Gp_PlayerAnimBlkTbl[];
+extern u16                 Gp_WeaponIdBase[];
+extern s8                  D_8007218A;
+extern u8                  D_80073BA9;
+extern u16                 D_801876A8, D_801876AA;
+extern Actor421600AnimWord D_actor_421600_801510A0;
 
 /// The fallback command's +0x14 endpoint overlaps the next table's first word.
 /// Keep a separate C view of the endpoint so its address is materialized at
@@ -2348,16 +2309,16 @@ static __inline__ s16 Actor421600_Zone(GsCOORDINATE2* coord)
 
 void func_actor_421600_80136138(Task* arg0)
 {
-    Actor421600Work*        work;
-    Actor421600SeekScratch *head, *blk;
-    GpEnemy*                ctx;
-    TmdObject*              obj;
-    GsCOORDINATE2 *         coord2, *coord3, *coord4;
-    s16                     playerZone, zone;
-    s16                     nextZone;
-    s16                     angle;
-    s32                     wrapped;
-    s32                     state;
+    Actor421600Work*  work;
+    ActorTurnScratch *head, *blk;
+    GpEnemy*          ctx;
+    TmdObject*        obj;
+    GsCOORDINATE2 *   coord2, *coord3, *coord4;
+    s16               playerZone, zone;
+    s16               nextZone;
+    s16               angle;
+    s32               wrapped;
+    s32               state;
 
     work = arg0->work;
     ctx  = arg0->spawnArg2;
@@ -2446,21 +2407,21 @@ void func_actor_421600_80136138(Task* arg0)
         return;
     }
     func_actor_421600_80134604(arg0);
-    head                                       = *(Actor421600SeekScratch**)G_SCRATCH_HEAD;
-    *(Actor421600SeekScratch**)G_SCRATCH_HEAD -= 1;
-    blk                                        = head - 1;
+    head                                 = *(ActorTurnScratch**)G_SCRATCH_HEAD;
+    *(ActorTurnScratch**)G_SCRATCH_HEAD -= 1;
+    blk                                  = head - 1;
     if (zone > playerZone)
         nextZone = zone - 1;
     else
         nextZone = zone + 1;
-    head[-1].vec.vx = D_actor_421600_80151158[nextZone].vx;
-    blk->vec.vy     = D_actor_421600_80151158[nextZone].vy;
-    blk->vec.vz     = D_actor_421600_80151158[nextZone].vz;
-    blk->vec.vx     = blk->vec.vx - (u16)((TmdObject*)arg0->extra)->coords->coord.t[0];
-    blk->vec.vy     = 0;
-    blk->vec.vz     = blk->vec.vz - (u16)((TmdObject*)arg0->extra)->coords->coord.t[2];
-    coord2          = ((TmdObject*)arg0->extra)->coords;
-    angle           = ratan2(blk->vec.vx, blk->vec.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
+    head[-1].delta.vx = D_actor_421600_80151158[nextZone].vx;
+    blk->delta.vy     = D_actor_421600_80151158[nextZone].vy;
+    blk->delta.vz     = D_actor_421600_80151158[nextZone].vz;
+    blk->delta.vx     = blk->delta.vx - (u16)((TmdObject*)arg0->extra)->coords->coord.t[0];
+    blk->delta.vy     = 0;
+    blk->delta.vz     = blk->delta.vz - (u16)((TmdObject*)arg0->extra)->coords->coord.t[2];
+    coord2            = ((TmdObject*)arg0->extra)->coords;
+    angle             = ratan2(blk->delta.vx, blk->delta.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
     if (angle < 0) {
     loop_neg:
         if (angle < -0x800) {
@@ -2489,10 +2450,10 @@ void func_actor_421600_80136138(Task* arg0)
         coord4 = ((TmdObject*)arg0->extra)->coords;
         actorMoveForward(coord4, 0x14);
     }
-    func_actor_421600_80132310(((TmdObject*)arg0->extra)->coords, &work->field_90C, 0xC, &blk->vec);
+    func_actor_421600_80132310(((TmdObject*)arg0->extra)->coords, &work->field_90C, 0xC, &blk->delta);
     func_actor_421600_80133334(((TmdObject*)arg0->extra)->coords);
-    *(Actor421600SeekScratch**)G_SCRATCH_HEAD += 1;
-    ((TmdObject*)arg0->extra)->coords->flg     = 0;
+    *(ActorTurnScratch**)G_SCRATCH_HEAD   += 1;
+    ((TmdObject*)arg0->extra)->coords->flg = 0;
 }
 
 /// Rebuild `coord`'s Y rotation from its current yaw (`ratan2` of
@@ -2698,21 +2659,21 @@ static __inline__ s16 Actor421600_HasRecord10(Task* arg0)
 
 void func_actor_421600_80136C88(Task* arg0)
 {
-    Actor421600Work*        work;
-    GpEnemy*                ctx;
-    Actor421600Work*        move;
-    Actor421600SeekScratch* head;
-    Actor421600SeekScratch* scratch;
-    TmdObject*              obj;
-    GsCOORDINATE2*          coord;
-    GsCOORDINATE2*          playerCoord;
-    GsCOORDINATE2*          turnCoord;
-    GpRec18*                records;
-    u16                     angle;
-    s16                     delta;
-    s32                     value;
-    s32                     magnitude;
-    s16                     yaw;
+    Actor421600Work*  work;
+    GpEnemy*          ctx;
+    Actor421600Work*  move;
+    ActorTurnScratch* head;
+    ActorTurnScratch* scratch;
+    TmdObject*        obj;
+    GsCOORDINATE2*    coord;
+    GsCOORDINATE2*    playerCoord;
+    GsCOORDINATE2*    turnCoord;
+    GpRec18*          records;
+    u16               angle;
+    s16               delta;
+    s32               value;
+    s32               magnitude;
+    s16               yaw;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -2734,13 +2695,13 @@ void func_actor_421600_80136C88(Task* arg0)
         work->field_CCC.end1.vz = 0x26C;
         return;
     }
-    head            = *(Actor421600SeekScratch**)G_SCRATCH_HEAD;
-    scratch         = (*(Actor421600SeekScratch**)G_SCRATCH_HEAD = head - 1);
-    move            = (Actor421600Work*)work;
-    head[-1].vec.vx = move->field_C[move->field_14].x - ((TmdObject*)arg0->extra)->coords->coord.t[0];
-    scratch->vec.vy = 0;
-    scratch->vec.vz = move->field_C[move->field_14].z - ((TmdObject*)arg0->extra)->coords->coord.t[2];
-    if (!actorOutsideRadius(&scratch->vec, 0xA0) || (s16)work->field_6 >= 0x15) {
+    head              = *(ActorTurnScratch**)G_SCRATCH_HEAD;
+    scratch           = (*(ActorTurnScratch**)G_SCRATCH_HEAD = head - 1);
+    move              = (Actor421600Work*)work;
+    head[-1].delta.vx = move->field_C[move->field_14].x - ((TmdObject*)arg0->extra)->coords->coord.t[0];
+    scratch->delta.vy = 0;
+    scratch->delta.vz = move->field_C[move->field_14].z - ((TmdObject*)arg0->extra)->coords->coord.t[2];
+    if (!actorOutsideRadius(&scratch->delta, 0xA0) || (s16)work->field_6 >= 0x15) {
         if (move->field_14 == 0)
             move->field_14 = 1;
         else
@@ -2749,7 +2710,7 @@ void func_actor_421600_80136C88(Task* arg0)
     }
     func_actor_421600_80134604(arg0);
     coord           = ((TmdObject*)arg0->extra)->coords;
-    angle           = ratan2(scratch->vec.vx, scratch->vec.vz);
+    angle           = ratan2(scratch->delta.vx, scratch->delta.vz);
     delta           = angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     value           = actorNormalizeYaw(delta);
     scratch->angle  = value;
@@ -2772,7 +2733,7 @@ void func_actor_421600_80136C88(Task* arg0)
         }
         records = &work->field_90C;
     }
-    func_actor_421600_80132310(((TmdObject*)arg0->extra)->coords, records, 0xC, &scratch->vec);
+    func_actor_421600_80132310(((TmdObject*)arg0->extra)->coords, records, 0xC, &scratch->delta);
     if (func_actor_421600_8013285C(((TmdObject*)arg0->extra)->coords, &work->field_B8C, 0xC) == 1) {
         magnitude = abs((s16)work->field_840);
         if (magnitude < 0x80)
@@ -2780,14 +2741,14 @@ void func_actor_421600_80136C88(Task* arg0)
     }
     ((TmdObject*)arg0->extra)->coords->flg = 0;
     playerCoord                            = ((TmdObject*)arg0->extra)->coords;
-    scratch->vec.vx                        = Player_Status.coordMtx->t[0] - playerCoord->coord.t[0];
-    scratch->vec.vy                        = Player_Status.coordMtx->t[1] - playerCoord->coord.t[1];
-    scratch->vec.vz                        = Player_Status.coordMtx->t[2] - playerCoord->coord.t[2];
-    if (!actorOutsideRadius(&scratch->vec, 2000)) {
+    scratch->delta.vx                      = Player_Status.coordMtx->t[0] - playerCoord->coord.t[0];
+    scratch->delta.vy                      = Player_Status.coordMtx->t[1] - playerCoord->coord.t[1];
+    scratch->delta.vz                      = Player_Status.coordMtx->t[2] - playerCoord->coord.t[2];
+    if (!actorOutsideRadius(&scratch->delta, 2000)) {
         work->field_0 = 0x1C;
-    } else if (!actorOutsideRadius(&scratch->vec, 4000)) {
+    } else if (!actorOutsideRadius(&scratch->delta, 4000)) {
         coord          = ((TmdObject*)arg0->extra)->coords;
-        angle          = ratan2(scratch->vec.vx, scratch->vec.vz);
+        angle          = ratan2(scratch->delta.vx, scratch->delta.vz);
         delta          = angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
         value          = actorNormalizeYaw(delta);
         scratch->angle = value;
@@ -2796,7 +2757,7 @@ void func_actor_421600_80136C88(Task* arg0)
             work->field_0 = 0x1C;
         }
     }
-    *(Actor421600SeekScratch**)G_SCRATCH_HEAD += 1;
+    *(ActorTurnScratch**)G_SCRATCH_HEAD += 1;
 }
 
 void func_actor_421600_801373D4(Task* arg0)
@@ -2804,72 +2765,72 @@ void func_actor_421600_801373D4(Task* arg0)
     PlayerStatus* config = &Player_Status;
     SVECTOR       initialDelta;
 
-    SVECTOR                   effect;
-    s16                       temp_a1_3;
-    s16                       temp_a1_4;
-    s16                       temp_a1_5;
-    s16                       temp_s0_12;
-    s16                       temp_s0_15;
-    s16                       temp_s0_18;
-    s16                       temp_s0_21;
-    s16                       temp_s0_6;
-    s16                       temp_s0_9;
-    s16                       temp_v0_4;
-    s32                       temp_v1_2;
-    s32                       var_v0_15;
-    s32                       var_v0_17;
-    s16                       var_v0_24;
-    s32                       var_v0_25;
-    s32                       var_v0_26;
-    s16                       var_v1_2;
-    s16                       var_v1_4;
-    s16                       var_v1_5;
-    s16                       var_v1_6;
-    s16                       var_v1_7;
-    s16                       var_v1_8;
-    GsCOORDINATE2*            temp_a1_2;
-    GsCOORDINATE2*            temp_a2_2;
-    GsCOORDINATE2*            temp_a2_3;
-    GsCOORDINATE2*            temp_s0_13;
-    GsCOORDINATE2*            temp_s0_16;
-    GsCOORDINATE2*            temp_s0_19;
-    GsCOORDINATE2*            temp_s0_4;
-    GsCOORDINATE2*            temp_s0_7;
-    GsCOORDINATE2*            temp_v0_5;
-    GsCOORDINATE2*            temp_v0_7;
-    s32*                      scratchHead;
-    s32                       temp_v0;
-    s32                       spawnEffect;
-    s32                       var_a1_4;
-    s32                       effectFlags;
-    s32                       effectJoint;
-    s32                       var_v0_13;
-    s32                       var_v0_14;
-    s32                       var_v0_21;
-    s32                       var_v0_22;
-    s32                       var_v0_5;
-    s32                       var_v0_6;
-    s32                       var_v0_8;
-    s32                       var_v0_9;
-    s32                       pan;
-    s32                       temp_s0_11;
-    s32                       temp_s0_14;
-    s32                       temp_s0_17;
-    s32                       temp_s0_20;
-    s32                       temp_s0_5;
-    s32                       temp_s0_8;
-    u16                       temp_v0_6;
-    u16                       temp_v1;
-    u16                       var_a0;
-    u16                       var_v1_3;
-    u32                       temp_lo;
-    GsCOORDINATE2*            temp_s0_10;
-    Task*                     player;
-    TmdObject*                obj;
-    GpEnemy*                  ctx;
-    Actor421600Work*          work;
-    GameActor*                playerWork;
-    Actor421600FacingScratch* scratch;
+    SVECTOR             effect;
+    s16                 temp_a1_3;
+    s16                 temp_a1_4;
+    s16                 temp_a1_5;
+    s16                 temp_s0_12;
+    s16                 temp_s0_15;
+    s16                 temp_s0_18;
+    s16                 temp_s0_21;
+    s16                 temp_s0_6;
+    s16                 temp_s0_9;
+    s16                 temp_v0_4;
+    s32                 temp_v1_2;
+    s32                 var_v0_15;
+    s32                 var_v0_17;
+    s16                 var_v0_24;
+    s32                 var_v0_25;
+    s32                 var_v0_26;
+    s16                 var_v1_2;
+    s16                 var_v1_4;
+    s16                 var_v1_5;
+    s16                 var_v1_6;
+    s16                 var_v1_7;
+    s16                 var_v1_8;
+    GsCOORDINATE2*      temp_a1_2;
+    GsCOORDINATE2*      temp_a2_2;
+    GsCOORDINATE2*      temp_a2_3;
+    GsCOORDINATE2*      temp_s0_13;
+    GsCOORDINATE2*      temp_s0_16;
+    GsCOORDINATE2*      temp_s0_19;
+    GsCOORDINATE2*      temp_s0_4;
+    GsCOORDINATE2*      temp_s0_7;
+    GsCOORDINATE2*      temp_v0_5;
+    GsCOORDINATE2*      temp_v0_7;
+    s32*                scratchHead;
+    s32                 temp_v0;
+    s32                 spawnEffect;
+    s32                 var_a1_4;
+    s32                 effectFlags;
+    s32                 effectJoint;
+    s32                 var_v0_13;
+    s32                 var_v0_14;
+    s32                 var_v0_21;
+    s32                 var_v0_22;
+    s32                 var_v0_5;
+    s32                 var_v0_6;
+    s32                 var_v0_8;
+    s32                 var_v0_9;
+    s32                 pan;
+    s32                 temp_s0_11;
+    s32                 temp_s0_14;
+    s32                 temp_s0_17;
+    s32                 temp_s0_20;
+    s32                 temp_s0_5;
+    s32                 temp_s0_8;
+    u16                 temp_v0_6;
+    u16                 temp_v1;
+    u16                 var_a0;
+    u16                 var_v1_3;
+    u32                 temp_lo;
+    GsCOORDINATE2*      temp_s0_10;
+    Task*               player;
+    TmdObject*          obj;
+    GpEnemy*            ctx;
+    Actor421600Work*    work;
+    GameActor*          playerWork;
+    ActorFacingScratch* scratch;
 
     work       = arg0->work;
     player     = gameGetPtrSlot(3);
@@ -2906,7 +2867,7 @@ void func_actor_421600_801373D4(Task* arg0)
         Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, &work->field_8E8, 0x7DB);
         return;
     }
-    scratch = (*(Actor421600FacingScratch**)G_SCRATCH_HEAD -= 1);
+    scratch = (*(ActorFacingScratch**)G_SCRATCH_HEAD -= 1);
     if (work->field_82E == 3) {
         work->field_6 = (u16)(work->field_6 + 1);
     }
@@ -4287,28 +4248,28 @@ void func_actor_421600_8013A554(Task* arg0)
 
 void func_actor_421600_8013B00C(Task* arg0)
 {
-    Actor421600Work*        work;
-    Actor421600SeekScratch* head;
-    Actor421600SeekScratch* blk;
-    GpEnemy*                ctx;
-    TmdObject*              obj;
-    GsCOORDINATE2*          coord;
-    GsCOORDINATE2*          coord2;
-    GsCOORDINATE2*          coord3;
-    GsCOORDINATE2*          coord4;
-    s32                     zone;
-    s32                     x_entry;
-    s32                     z_entry;
-    s32                     var_a0_entry;
-    s32                     var_v1_entry;
-    Task*                   task;
-    GsCOORDINATE2*          playerCoord;
-    s32                     x;
-    s32                     z;
-    s16                     angle;
-    s32                     wrapped;
-    s32                     var_a0;
-    s32                     var_v1;
+    Actor421600Work*  work;
+    ActorTurnScratch* head;
+    ActorTurnScratch* blk;
+    GpEnemy*          ctx;
+    TmdObject*        obj;
+    GsCOORDINATE2*    coord;
+    GsCOORDINATE2*    coord2;
+    GsCOORDINATE2*    coord3;
+    GsCOORDINATE2*    coord4;
+    s32               zone;
+    s32               x_entry;
+    s32               z_entry;
+    s32               var_a0_entry;
+    s32               var_v1_entry;
+    Task*             task;
+    GsCOORDINATE2*    playerCoord;
+    s32               x;
+    s32               z;
+    s16               angle;
+    s32               wrapped;
+    s32               var_a0;
+    s32               var_v1;
 
     work = arg0->work;
     task = gameGetPtrSlot(3);
@@ -4375,24 +4336,24 @@ void func_actor_421600_8013B00C(Task* arg0)
         work->field_0 = 0;
         return;
     }
-    head                                       = *(Actor421600SeekScratch**)G_SCRATCH_HEAD;
-    *(Actor421600SeekScratch**)G_SCRATCH_HEAD -= 1;
-    blk                                        = head - 1;
+    head                                 = *(ActorTurnScratch**)G_SCRATCH_HEAD;
+    *(ActorTurnScratch**)G_SCRATCH_HEAD -= 1;
+    blk                                  = head - 1;
     if ((s16)zone > work->field_E78) {
-        head[-1].vec.vx = D_actor_421600_80151158[zone - 1].vx;
-        blk->vec.vy     = D_actor_421600_80151158[zone - 1].vy;
-        blk->vec.vz     = D_actor_421600_80151158[zone - 1].vz;
+        head[-1].delta.vx = D_actor_421600_80151158[zone - 1].vx;
+        blk->delta.vy     = D_actor_421600_80151158[zone - 1].vy;
+        blk->delta.vz     = D_actor_421600_80151158[zone - 1].vz;
     } else {
-        head[-1].vec.vx = D_actor_421600_80151158[zone + 1].vx;
-        blk->vec.vy     = D_actor_421600_80151158[zone + 1].vy;
-        blk->vec.vz     = D_actor_421600_80151158[zone + 1].vz;
+        head[-1].delta.vx = D_actor_421600_80151158[zone + 1].vx;
+        blk->delta.vy     = D_actor_421600_80151158[zone + 1].vy;
+        blk->delta.vz     = D_actor_421600_80151158[zone + 1].vz;
     }
-    blk->vec.vx = blk->vec.vx - (u16)((TmdObject*)arg0->extra)->coords->coord.t[0];
-    blk->vec.vy = 0;
-    blk->vec.vz = blk->vec.vz - (u16)((TmdObject*)arg0->extra)->coords->coord.t[2];
+    blk->delta.vx = blk->delta.vx - (u16)((TmdObject*)arg0->extra)->coords->coord.t[0];
+    blk->delta.vy = 0;
+    blk->delta.vz = blk->delta.vz - (u16)((TmdObject*)arg0->extra)->coords->coord.t[2];
     func_actor_421600_80134604(arg0);
     coord2 = ((TmdObject*)arg0->extra)->coords;
-    angle  = ratan2(blk->vec.vx, blk->vec.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
+    angle  = ratan2(blk->delta.vx, blk->delta.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
     if (angle < 0) {
     loop_neg:
         if (angle < -0x800) {
@@ -4423,9 +4384,9 @@ void func_actor_421600_8013B00C(Task* arg0)
         coord4 = ((TmdObject*)arg0->extra)->coords;
         actorMoveForward(coord4, 0xC8);
     }
-    func_actor_421600_80132310(((TmdObject*)arg0->extra)->coords, &work->field_90C, 0xC, &blk->vec);
-    *(Actor421600SeekScratch**)G_SCRATCH_HEAD += 1;
-    ((TmdObject*)arg0->extra)->coords->flg     = 0;
+    func_actor_421600_80132310(((TmdObject*)arg0->extra)->coords, &work->field_90C, 0xC, &blk->delta);
+    *(ActorTurnScratch**)G_SCRATCH_HEAD   += 1;
+    ((TmdObject*)arg0->extra)->coords->flg = 0;
 }
 
 /// Zone-aim tick: the live-actor edge re-arms the model the way
@@ -4449,24 +4410,24 @@ void func_actor_421600_8013B00C(Task* arg0)
 /// leave open.
 void func_actor_421600_8013B4C4(Task* arg0)
 {
-    Actor421600Work*        work;
-    Actor421600SeekScratch* head;
-    Actor421600SeekScratch* blk;
-    GpEnemy*                ctx;
-    TmdObject*              obj;
-    GsCOORDINATE2*          coord;
-    GsCOORDINATE2*          coord2;
-    GsCOORDINATE2*          coord3;
-    GsCOORDINATE2*          coord4;
-    s32                     zone;
-    s8                      mode = 5;
-    s32                     v;
-    s32                     x;
-    s32                     z;
-    s16                     angle;
-    s32                     wrapped;
-    s32                     var_a0;
-    s32                     var_v1;
+    Actor421600Work*  work;
+    ActorTurnScratch* head;
+    ActorTurnScratch* blk;
+    GpEnemy*          ctx;
+    TmdObject*        obj;
+    GsCOORDINATE2*    coord;
+    GsCOORDINATE2*    coord2;
+    GsCOORDINATE2*    coord3;
+    GsCOORDINATE2*    coord4;
+    s32               zone;
+    s8                mode = 5;
+    s32               v;
+    s32               x;
+    s32               z;
+    s16               angle;
+    s32               wrapped;
+    s32               var_a0;
+    s32               var_v1;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -4507,24 +4468,24 @@ void func_actor_421600_8013B4C4(Task* arg0)
         work->field_0 = 7;
         return;
     }
-    head                                       = *(Actor421600SeekScratch**)G_SCRATCH_HEAD;
-    *(Actor421600SeekScratch**)G_SCRATCH_HEAD -= 1;
-    blk                                        = head - 1;
+    head                                 = *(ActorTurnScratch**)G_SCRATCH_HEAD;
+    *(ActorTurnScratch**)G_SCRATCH_HEAD -= 1;
+    blk                                  = head - 1;
     if ((s8)zone > mode) {
-        head[-1].vec.vx = D_actor_421600_80151158[zone - 1].vx;
-        blk->vec.vy     = D_actor_421600_80151158[zone - 1].vy;
-        blk->vec.vz     = D_actor_421600_80151158[zone - 1].vz;
+        head[-1].delta.vx = D_actor_421600_80151158[zone - 1].vx;
+        blk->delta.vy     = D_actor_421600_80151158[zone - 1].vy;
+        blk->delta.vz     = D_actor_421600_80151158[zone - 1].vz;
     } else {
-        head[-1].vec.vx = D_actor_421600_80151158[zone + 1].vx;
-        blk->vec.vy     = D_actor_421600_80151158[zone + 1].vy;
-        blk->vec.vz     = D_actor_421600_80151158[zone + 1].vz;
+        head[-1].delta.vx = D_actor_421600_80151158[zone + 1].vx;
+        blk->delta.vy     = D_actor_421600_80151158[zone + 1].vy;
+        blk->delta.vz     = D_actor_421600_80151158[zone + 1].vz;
     }
-    blk->vec.vx = blk->vec.vx - (u16)((TmdObject*)arg0->extra)->coords->coord.t[0];
-    blk->vec.vy = 0;
-    blk->vec.vz = blk->vec.vz - (u16)((TmdObject*)arg0->extra)->coords->coord.t[2];
+    blk->delta.vx = blk->delta.vx - (u16)((TmdObject*)arg0->extra)->coords->coord.t[0];
+    blk->delta.vy = 0;
+    blk->delta.vz = blk->delta.vz - (u16)((TmdObject*)arg0->extra)->coords->coord.t[2];
     func_actor_421600_80134604(arg0);
     coord2 = ((TmdObject*)arg0->extra)->coords;
-    angle  = ratan2(blk->vec.vx, blk->vec.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
+    angle  = ratan2(blk->delta.vx, blk->delta.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
     if (angle < 0) {
     loop_neg:
         if (angle < -0x800) {
@@ -4555,9 +4516,9 @@ void func_actor_421600_8013B4C4(Task* arg0)
         coord4 = ((TmdObject*)arg0->extra)->coords;
         actorMoveForward(coord4, 0xC8);
     }
-    func_actor_421600_80132310(((TmdObject*)arg0->extra)->coords, &work->field_90C, 0xC, &blk->vec);
-    *(Actor421600SeekScratch**)G_SCRATCH_HEAD += 1;
-    ((TmdObject*)arg0->extra)->coords->flg     = 0;
+    func_actor_421600_80132310(((TmdObject*)arg0->extra)->coords, &work->field_90C, 0xC, &blk->delta);
+    *(ActorTurnScratch**)G_SCRATCH_HEAD   += 1;
+    ((TmdObject*)arg0->extra)->coords->flg = 0;
 }
 
 void func_actor_421600_8013B8E0(Task* arg0)
@@ -5137,26 +5098,26 @@ void func_actor_421600_8013C8E0(Task* arg0)
 
 void func_actor_421600_8013CD3C(Task* arg0)
 {
-    TmdObject*              obj;
-    GpEnemy*                ctx;
-    Actor421600Work*        work;
-    GsCOORDINATE2*          coord;
-    GsCOORDINATE2*          coord2;
-    GsCOORDINATE2*          targetCoord;
-    GsCOORDINATE2*          facing;
-    GsCOORDINATE2*          facing2;
-    Actor421600TurnScratch* head;
-    Actor421600TurnScratch* scratch;
-    s16                     yaw;
-    s16                     delta;
-    s16                     z;
-    s16                     steps;
-    s16                     wrapped;
-    s32                     angle;
-    s32                     firstDelta;
+    TmdObject*            obj;
+    GpEnemy*              ctx;
+    Actor421600Work*      work;
+    GsCOORDINATE2*        coord;
+    GsCOORDINATE2*        coord2;
+    GsCOORDINATE2*        targetCoord;
+    GsCOORDINATE2*        facing;
+    GsCOORDINATE2*        facing2;
+    ActorTurnStepScratch* head;
+    ActorTurnStepScratch* scratch;
+    s16                   yaw;
+    s16                   delta;
+    s16                   z;
+    s16                   steps;
+    s16                   wrapped;
+    s32                   angle;
+    s32                   firstDelta;
 
-    head    = *(Actor421600TurnScratch**)G_SCRATCH_HEAD;
-    scratch = (*(Actor421600TurnScratch**)G_SCRATCH_HEAD = head - 1);
+    head    = *(ActorTurnStepScratch**)G_SCRATCH_HEAD;
+    scratch = (*(ActorTurnStepScratch**)G_SCRATCH_HEAD = head - 1);
     work    = arg0->work;
     ctx     = arg0->spawnArg2;
     if (work->field_4 != 0) {
@@ -5234,31 +5195,31 @@ void func_actor_421600_8013CD3C(Task* arg0)
     if (work->field_68 & 0x100) {
         work->field_0 = 0x1C;
     }
-    *(Actor421600TurnScratch**)G_SCRATCH_HEAD += 1;
+    *(ActorTurnStepScratch**)G_SCRATCH_HEAD += 1;
 }
 
 void func_actor_421600_8013D1DC(Task* arg0)
 {
-    TmdObject*              obj;
-    GpEnemy*                ctx;
-    Actor421600Work*        work;
-    GsCOORDINATE2*          coord;
-    GsCOORDINATE2*          coord2;
-    GsCOORDINATE2*          targetCoord;
-    GsCOORDINATE2*          facing;
-    GsCOORDINATE2*          facing2;
-    Actor421600TurnScratch* head;
-    Actor421600TurnScratch* scratch;
-    s16                     yaw;
-    s16                     delta;
-    s16                     z;
-    s16                     steps;
-    s16                     wrapped;
-    s32                     angle;
-    s32                     firstDelta;
+    TmdObject*            obj;
+    GpEnemy*              ctx;
+    Actor421600Work*      work;
+    GsCOORDINATE2*        coord;
+    GsCOORDINATE2*        coord2;
+    GsCOORDINATE2*        targetCoord;
+    GsCOORDINATE2*        facing;
+    GsCOORDINATE2*        facing2;
+    ActorTurnStepScratch* head;
+    ActorTurnStepScratch* scratch;
+    s16                   yaw;
+    s16                   delta;
+    s16                   z;
+    s16                   steps;
+    s16                   wrapped;
+    s32                   angle;
+    s32                   firstDelta;
 
-    head    = *(Actor421600TurnScratch**)G_SCRATCH_HEAD;
-    scratch = (*(Actor421600TurnScratch**)G_SCRATCH_HEAD = head - 1);
+    head    = *(ActorTurnStepScratch**)G_SCRATCH_HEAD;
+    scratch = (*(ActorTurnStepScratch**)G_SCRATCH_HEAD = head - 1);
     work    = arg0->work;
     ctx     = arg0->spawnArg2;
     if (work->field_4 != 0) {
@@ -5333,7 +5294,7 @@ void func_actor_421600_8013D1DC(Task* arg0)
     if (work->field_68 & 0x100) {
         work->field_0 = 0x1C;
     }
-    *(Actor421600TurnScratch**)G_SCRATCH_HEAD += 1;
+    *(ActorTurnStepScratch**)G_SCRATCH_HEAD += 1;
 }
 
 const Actor421600StateTable D_actor_421600_80131EFC = { { func_actor_421600_8013E858,

@@ -264,18 +264,6 @@ typedef struct Actor401000StateTable {
 } Actor401000StateTable;
 STATIC_ASSERT_SIZEOF(Actor401000StateTable, 0x88);
 
-/// 0x10-byte `G_SCRATCH_HEAD` block `func_actor_401000_80136E20` carves off
-/// for the offset from the actor to `Player_Status.coordMtx`, the wrapped turn
-/// toward it and the facing yaw.
-typedef struct Actor401000ChaseScratch {
-    /* 0x0 */ SVECTOR delta;
-    /* 0x8 */ s16     pad_8;
-    /* 0xA */ s16     pad_A;
-    /* 0xC */ s16     turn;
-    /* 0xE */ s16     angle;
-} Actor401000ChaseScratch;
-STATIC_ASSERT_SIZEOF(Actor401000ChaseScratch, 0x10);
-
 /// Animation bank `func_actor_401000_80133274` hands to both `func_800B3F84`
 /// calls; the same `s32` the 401300 sibling keeps in `D_actor_401300_80158838`.
 extern s32 D_actor_401000_80154E48;
@@ -1632,10 +1620,10 @@ void func_actor_401000_80134DB4(Task* arg0)
 /// its message-id gate, which the 401000 sibling keeps in `field_C10`.
 void func_actor_401000_80134F98(Task* arg0)
 {
-    Actor401000Work* work;
-    ActorAimScratch* aim;
-    TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    Actor401000Work*   work;
+    ActorChaseScratch* aim;
+    TmdObject*         obj;
+    GsCOORDINATE2*     coord;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -1654,26 +1642,26 @@ void func_actor_401000_80134F98(Task* arg0)
         Gp_ArmStateF0(1);
         return;
     }
-    *(ActorAimScratch**)G_SCRATCH_HEAD    -= 1;
-    aim                                    = *(ActorAimScratch**)G_SCRATCH_HEAD;
+    *(ActorChaseScratch**)G_SCRATCH_HEAD  -= 1;
+    aim                                    = *(ActorChaseScratch**)G_SCRATCH_HEAD;
     ((TmdObject*)arg0->extra)->coords->flg = 0;
     if (work->flags_68.half & 1) {
         work->field_0 = 7;
     }
-    aim->angle      = actorPositionYaw(arg0, &aim->delta, &Player_Status);
-    work->field_8AE = aim->angle;
-    if (aim->angle > 0x10) {
-        aim->angle = 0x10;
+    aim->turn       = actorPositionYaw(arg0, &aim->delta, &Player_Status);
+    work->field_8AE = aim->turn;
+    if (aim->turn > 0x10) {
+        aim->turn = 0x10;
     }
-    if (aim->angle < -0x10) {
-        aim->angle = -0x10;
+    if (aim->turn < -0x10) {
+        aim->turn = -0x10;
     }
-    coord       = ((TmdObject*)arg0->extra)->coords;
-    aim->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    Gfx_RotMatrixY(&((TmdObject*)arg0->extra)->coords->coord, aim->angle, 1);
+    coord      = ((TmdObject*)arg0->extra)->coords;
+    aim->turn += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    Gfx_RotMatrixY(&((TmdObject*)arg0->extra)->coords->coord, aim->turn, 1);
     actorRescaleYaw(((TmdObject*)arg0->extra)->coords, 0x1194);
     func_actor_401000_80132EF0(arg0);
-    *(ActorAimScratch**)G_SCRATCH_HEAD += 1;
+    *(ActorChaseScratch**)G_SCRATCH_HEAD += 1;
 }
 
 void func_actor_401000_801352DC(GpAreaKey* session, GsCOORDINATE2* coord)
@@ -1859,15 +1847,15 @@ s32 func_actor_401000_80135704(Task* arg0, GpRec18* recs, s16 count)
 
 void func_actor_401000_80135AA4(Task* arg0)
 {
-    Actor401000ChaseScratch* head;
-    Actor401000ChaseScratch* chase;
-    Actor401000Work*         work;
-    TmdObject*               obj;
-    GsCOORDINATE2*           coord;
-    s32                      angle;
-    s32                      diff;
-    s32                      kind;
-    u16                      speed;
+    ActorChaseScratch* head;
+    ActorChaseScratch* chase;
+    Actor401000Work*   work;
+    TmdObject*         obj;
+    GsCOORDINATE2*     coord;
+    s32                angle;
+    s32                diff;
+    s32                kind;
+    u16                speed;
 
     kind = (arg0->spawnArg1 >> 16);
     work = arg0->work;
@@ -1898,20 +1886,20 @@ void func_actor_401000_80135AA4(Task* arg0)
     }
     work->field_6 = (u16)work->field_6 + 1;
     work->field_8 = (u16)work->field_8 + 1;
-    head          = *(Actor401000ChaseScratch**)G_SCRATCH_HEAD;
-    chase         = (*(Actor401000ChaseScratch**)G_SCRATCH_HEAD = head - 1);
+    head          = *(ActorChaseScratch**)G_SCRATCH_HEAD;
+    chase         = (*(ActorChaseScratch**)G_SCRATCH_HEAD = head - 1);
     actorConfigPositionDelta(&Player_Status, ((TmdObject*)arg0->extra)->coords, &head[-1].delta);
     ((TmdObject*)arg0->extra)->coords->flg = 0;
     func_actor_401000_80132EF0(arg0);
-    chase->pad_8 = ratan2(-((TmdObject*)gameGetPtrSlot(3)->extra)->coords->coord.m[2][0],
-                          ((TmdObject*)gameGetPtrSlot(3)->extra)->coords->coord.m[2][2]);
+    chase->playerYaw = ratan2(-((TmdObject*)gameGetPtrSlot(3)->extra)->coords->coord.m[2][0],
+                              ((TmdObject*)gameGetPtrSlot(3)->extra)->coords->coord.m[2][2]);
     actorConfigPositionDelta(&Player_Status, ((TmdObject*)arg0->extra)->coords, &chase->delta);
-    chase->pad_A    = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
-    chase->pad_A    = actorNormalizeYaw(chase->pad_A);
+    chase->yaw      = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
+    chase->yaw      = actorNormalizeYaw(chase->yaw);
     coord           = ((TmdObject*)arg0->extra)->coords;
     chase->turn     = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
     work->field_8AE = chase->turn;
-    diff            = chase->pad_A - chase->pad_8;
+    diff            = chase->yaw - chase->playerYaw;
     if (ABS(diff) < 0x44) {
         if (work->field_C14 + work->field_C26 / 2 < work->field_6) {
             angle = chase->turn;
@@ -1986,15 +1974,15 @@ void func_actor_401000_80135AA4(Task* arg0)
     if (work->field_8 >= 0x4C) {
         work->field_0 = 6;
     }
-    *(Actor401000ChaseScratch**)G_SCRATCH_HEAD += 1;
+    *(ActorChaseScratch**)G_SCRATCH_HEAD += 1;
 }
 
 /// Turn-aim state body, the 401000 twin of `Actor01900_Fn04D14`: take a 0x10
 /// chase scratch off `G_SCRATCH_HEAD` and, on the live-actor flag, key the
 /// two animation nodes, the frame counter and the `field_C06` clip phase.
 /// Once `field_8` has counted 7 frames the arm aims at the player - the yaw
-/// toward `gameGetPtrSlot(3)` goes in `pad_8`, the wrapped yaw toward
-/// `Player_Status.coordMtx` in `pad_A` - and the root is turned by the facing
+/// toward `gameGetPtrSlot(3)` goes in `playerYaw`, the wrapped yaw toward
+/// `Player_Status.coordMtx` in `yaw` - and the root is turned by the facing
 /// yaw plus a +-0x60 clamp of the turn's 1000 bias. The forward draw
 /// `field_C04` is the doubled frame parameter (halved while `field_89A` is
 /// up, forced to 2 while the frame counter runs), and the actor slides along
@@ -2004,16 +1992,16 @@ void func_actor_401000_80135AA4(Task* arg0)
 /// actor faces away from the player, else state 0x1A.
 void func_actor_401000_801365C8(Task* arg0)
 {
-    Actor401000ChaseScratch* chase;
-    Actor401000ChaseScratch* head;
-    Actor401000Work*         work;
-    TmdObject*               obj;
-    GsCOORDINATE2*           coord;
-    GsCOORDINATE2*           facing;
-    s32                      turn;
-    s32                      diffPos;
-    s32                      diffNeg;
-    s32                      yaw;
+    ActorChaseScratch* chase;
+    ActorChaseScratch* head;
+    Actor401000Work*   work;
+    TmdObject*         obj;
+    GsCOORDINATE2*     coord;
+    GsCOORDINATE2*     facing;
+    s32                turn;
+    s32                diffPos;
+    s32                diffNeg;
+    s32                yaw;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -2035,10 +2023,10 @@ void func_actor_401000_801365C8(Task* arg0)
         work->field_C24++;
         return;
     }
-    head                                       = *(Actor401000ChaseScratch**)G_SCRATCH_HEAD;
-    *(Actor401000ChaseScratch**)G_SCRATCH_HEAD = head - 1;
-    chase                                      = head - 1;
-    ((TmdObject*)arg0->extra)->coords->flg     = 0;
+    head                                   = *(ActorChaseScratch**)G_SCRATCH_HEAD;
+    *(ActorChaseScratch**)G_SCRATCH_HEAD   = head - 1;
+    chase                                  = head - 1;
+    ((TmdObject*)arg0->extra)->coords->flg = 0;
     func_actor_401000_80132EF0(arg0);
     if (func_actor_401000_801323EC(((TmdObject*)arg0->extra)->coords, work->field_A30, 0xC) == 1) {
         work->field_8++;
@@ -2047,11 +2035,11 @@ void func_actor_401000_801365C8(Task* arg0)
     }
     actorConfigPositionDelta(&Player_Status, ((TmdObject*)arg0->extra)->coords, &chase->delta);
     if (work->field_8 >= 7) {
-        chase->pad_8  = ratan2(-((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][0],
-                               ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][2]);
-        chase->pad_A  = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
-        chase->pad_A  = actorNormalizeYaw(chase->pad_A);
-        work->field_0 = 0x1A;
+        chase->playerYaw = ratan2(-((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][0],
+                                  ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][2]);
+        chase->yaw       = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
+        chase->yaw       = actorNormalizeYaw(chase->yaw);
+        work->field_0    = 0x1A;
     }
     coord       = ((TmdObject*)arg0->extra)->coords;
     chase->turn = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
@@ -2102,12 +2090,12 @@ void func_actor_401000_801365C8(Task* arg0)
     }
     if (work->field_C06 == 0) {
         if (++work->field_6 == 5) {
-            chase->pad_8 = ratan2(-((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][0],
-                                  ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][2]);
+            chase->playerYaw = ratan2(-((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][0],
+                                      ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][2]);
             actorConfigPositionDelta(&Player_Status, ((TmdObject*)arg0->extra)->coords, &chase->delta);
-            chase->pad_A = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
-            chase->pad_A = actorNormalizeYaw(chase->pad_A);
-            yaw          = chase->pad_A - chase->pad_8;
+            chase->yaw = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
+            chase->yaw = actorNormalizeYaw(chase->yaw);
+            yaw        = chase->yaw - chase->playerYaw;
             if (yaw < 0) {
                 yaw = -yaw;
             }
@@ -2123,7 +2111,7 @@ void func_actor_401000_801365C8(Task* arg0)
     if (work->field_C1B != 0) {
         work->field_C1B--;
     }
-    *(Actor401000ChaseScratch**)G_SCRATCH_HEAD += 1;
+    *(ActorChaseScratch**)G_SCRATCH_HEAD += 1;
 }
 
 /// Turn-entry body, the 401000 twin of `func_actor_401300_801376E4`: carve the
@@ -2139,18 +2127,18 @@ void func_actor_401000_801365C8(Task* arg0)
 /// its obstacle table. `field_C1B` counts down once per entry.
 void func_actor_401000_80136E20(Task* arg0)
 {
-    Actor401000Work*         work;
-    Actor401000ChaseScratch* aim;
-    Actor401000ChaseScratch* head;
-    TmdObject*               obj;
-    GsCOORDINATE2*           coord;
-    GsCOORDINATE2*           facing;
+    Actor401000Work*   work;
+    ActorChaseScratch* aim;
+    ActorChaseScratch* head;
+    TmdObject*         obj;
+    GsCOORDINATE2*     coord;
+    GsCOORDINATE2*     facing;
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        head                                            = *(Actor401000ChaseScratch**)G_SCRATCH_HEAD;
+        head                                            = *(ActorChaseScratch**)G_SCRATCH_HEAD;
         obj                                             = arg0->extra;
-        *(Actor401000ChaseScratch**)G_SCRATCH_HEAD      = head - 1;
+        *(ActorChaseScratch**)G_SCRATCH_HEAD            = head - 1;
         aim                                             = head - 1;
         ((GpEnemy*)arg0->spawnArg2)->node.state.b.flags = 0;
         obj->flags                                      = 0;
@@ -2165,18 +2153,18 @@ void func_actor_401000_80136E20(Task* arg0)
         work->field_A10.flags |= 0x4000;
         func_actor_401000_80132EF0(arg0);
         actorConfigPositionDelta(&Player_Status, ((TmdObject*)arg0->extra)->coords, &aim->delta);
-        coord                                       = ((TmdObject*)arg0->extra)->coords;
-        aim->turn                                   = actorNormalizeYaw(ratan2(head[-1].delta.vx, aim->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-        facing                                      = ((TmdObject*)arg0->extra)->coords;
-        aim->angle                                  = ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-        work->field_C00                             = aim->angle;
-        work->field_C02                             = aim->angle + (u16)aim->turn * 2;
-        *(Actor401000ChaseScratch**)G_SCRATCH_HEAD += 1;
+        coord                                 = ((TmdObject*)arg0->extra)->coords;
+        aim->turn                             = actorNormalizeYaw(ratan2(head[-1].delta.vx, aim->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        facing                                = ((TmdObject*)arg0->extra)->coords;
+        aim->angle                            = ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+        work->field_C00                       = aim->angle;
+        work->field_C02                       = aim->angle + (u16)aim->turn * 2;
+        *(ActorChaseScratch**)G_SCRATCH_HEAD += 1;
         return;
     }
-    head                                       = *(Actor401000ChaseScratch**)G_SCRATCH_HEAD;
-    *(Actor401000ChaseScratch**)G_SCRATCH_HEAD = head - 1;
-    aim                                        = head - 1;
+    head                                 = *(ActorChaseScratch**)G_SCRATCH_HEAD;
+    *(ActorChaseScratch**)G_SCRATCH_HEAD = head - 1;
+    aim                                  = head - 1;
     func_actor_401000_80132EF0(arg0);
     actorConfigPositionDelta(&Player_Status, ((TmdObject*)arg0->extra)->coords, &aim->delta);
     if (work->field_C00 == work->field_C02) {
@@ -2216,7 +2204,7 @@ void func_actor_401000_80136E20(Task* arg0)
     if (work->field_C1B != 0) {
         work->field_C1B--;
     }
-    *(Actor401000ChaseScratch**)G_SCRATCH_HEAD += 1;
+    *(ActorChaseScratch**)G_SCRATCH_HEAD += 1;
 }
 
 /// Turn-entry body, the 401000 twin of `func_actor_401300_80137D78`: carve the
@@ -2231,15 +2219,15 @@ void func_actor_401000_80136E20(Task* arg0)
 /// and keys state 7 once 0x1E of them have run.
 void func_actor_401000_801374D4(Task* arg0)
 {
-    Actor401000Work* work;
-    ActorAimScratch* aim;
-    ActorAimScratch* head;
-    TmdObject*       obj;
-    GsCOORDINATE2*   coord;
-    SVECTOR*         dir;
-    MATRIX           mat;
-    u16              angle;
-    s32              kind;
+    Actor401000Work*   work;
+    ActorChaseScratch* aim;
+    ActorChaseScratch* head;
+    TmdObject*         obj;
+    GsCOORDINATE2*     coord;
+    SVECTOR*           dir;
+    MATRIX             mat;
+    u16                angle;
+    s32                kind;
 
     kind = (arg0->spawnArg1 >> 16);
     work = arg0->work;
@@ -2247,9 +2235,9 @@ void func_actor_401000_801374D4(Task* arg0)
         work->field_0 = 0x1E;
         return;
     }
-    head                               = *(ActorAimScratch**)G_SCRATCH_HEAD;
-    *(ActorAimScratch**)G_SCRATCH_HEAD = head - 1;
-    aim                                = head - 1;
+    head                                 = *(ActorChaseScratch**)G_SCRATCH_HEAD;
+    *(ActorChaseScratch**)G_SCRATCH_HEAD = head - 1;
+    aim                                  = head - 1;
     if (work->field_4 != 0) {
         obj                                             = arg0->extra;
         ((GpEnemy*)arg0->spawnArg2)->node.state.b.flags = 0;
@@ -2260,7 +2248,7 @@ void func_actor_401000_801374D4(Task* arg0)
         work->field_B50.flags &= 0x7FFF;
         work->field_A10.flags |= 0x4000;
         actorConfigPositionDelta(&Player_Status, ((TmdObject*)arg0->extra)->coords, &aim->delta);
-        aim->angle = ratan2(head[-1].delta.vx, aim->delta.vz);
+        aim->turn = ratan2(head[-1].delta.vx, aim->delta.vz);
         if (work->field_C08 == 0) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             if ((Gp_LcgState >> 16) & 1) {
@@ -2272,19 +2260,19 @@ void func_actor_401000_801374D4(Task* arg0)
         if (work->field_C08 == 1) {
             work->field_89E = 0x15;
             if (work->field_C26 == 0) {
-                angle      = aim->angle + 0x171;
-                aim->angle = work->field_C12 + angle;
+                angle     = aim->turn + 0x171;
+                aim->turn = work->field_C12 + angle;
             } else {
-                aim->angle += work->field_C12;
+                aim->turn += work->field_C12;
             }
             work->field_C08 = -1;
         } else {
             work->field_89E = 0x14;
             if (work->field_C26 == 0) {
-                angle      = aim->angle - 0x171;
-                aim->angle = angle - work->field_C12;
+                angle     = aim->turn - 0x171;
+                aim->turn = angle - work->field_C12;
             } else {
-                aim->angle -= work->field_C12;
+                aim->turn -= work->field_C12;
             }
             work->field_C08 = 1;
         }
@@ -2292,7 +2280,7 @@ void func_actor_401000_801374D4(Task* arg0)
         work->field_8A2 = 0xC;
         work->field_89A = 0;
         func_actor_401000_80132EF0(arg0);
-        Gfx_RotMatrixY(&mat, aim->angle, 1);
+        Gfx_RotMatrixY(&mat, aim->turn, 1);
         dir = &work->field_BF0;
         Gfx_MatrixCol2(&mat, dir);
         VectorNormalSS(dir, dir);
@@ -2325,7 +2313,7 @@ void func_actor_401000_801374D4(Task* arg0)
     if (++work->field_6 >= 0x1E) {
         work->field_0 = 7;
     }
-    *(ActorAimScratch**)G_SCRATCH_HEAD += 1;
+    *(ActorChaseScratch**)G_SCRATCH_HEAD += 1;
 }
 
 void func_actor_401000_801378DC(Task* arg0)
@@ -3086,9 +3074,9 @@ void func_actor_401000_80139D10(Task* arg0)
 /// reads the sign of `field_8AE` with the `0x4B0` arm first.
 void func_actor_401000_8013A0C8(Task* arg0)
 {
-    Actor401000Work* work;
-    ActorAimScratch* aim;
-    TmdObject*       obj;
+    Actor401000Work*   work;
+    ActorChaseScratch* aim;
+    TmdObject*         obj;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -3107,27 +3095,27 @@ void func_actor_401000_8013A0C8(Task* arg0)
         return;
     }
     func_actor_401000_80132EF0(arg0);
-    *(ActorAimScratch**)G_SCRATCH_HEAD -= 1;
-    aim                                 = *(ActorAimScratch**)G_SCRATCH_HEAD;
-    aim->angle                          = actorPositionYaw(arg0, &aim->delta, &Player_Status);
-    work->field_8AE                     = aim->angle;
-    if (ABS(aim->angle) < 0x81 && work->field_89E == 2) {
+    *(ActorChaseScratch**)G_SCRATCH_HEAD -= 1;
+    aim                                   = *(ActorChaseScratch**)G_SCRATCH_HEAD;
+    aim->turn                             = actorPositionYaw(arg0, &aim->delta, &Player_Status);
+    work->field_8AE                       = aim->turn;
+    if (ABS(aim->turn) < 0x81 && work->field_89E == 2) {
         work->field_8A2 = 0x16;
         work->field_89E = 0x11;
         work->field_898 = 1;
         work->field_6   = 0;
         func_actor_401000_80132EF0(arg0);
     }
-    if (aim->angle >= 0x81) {
-        aim->angle = 0x80;
+    if (aim->turn >= 0x81) {
+        aim->turn = 0x80;
     }
-    if (aim->angle < -0x80) {
-        aim->angle = -0x80;
+    if (aim->turn < -0x80) {
+        aim->turn = -0x80;
     } else {
-        aim->angle = aim->angle >> 1;
+        aim->turn = aim->turn >> 1;
     }
-    aim->angle += ratan2(-((TmdObject*)arg0->extra)->coords->coord.m[2][0], ((TmdObject*)arg0->extra)->coords->coord.m[2][2]);
-    Gfx_RotMatrixY(&((TmdObject*)arg0->extra)->coords->coord, aim->angle, 1);
+    aim->turn += ratan2(-((TmdObject*)arg0->extra)->coords->coord.m[2][0], ((TmdObject*)arg0->extra)->coords->coord.m[2][2]);
+    Gfx_RotMatrixY(&((TmdObject*)arg0->extra)->coords->coord, aim->turn, 1);
     actorRescaleYaw(((TmdObject*)arg0->extra)->coords, 0x1194);
     ((TmdObject*)arg0->extra)->coords->flg = 0;
     if (work->field_89E == 0x11) {
@@ -3148,7 +3136,7 @@ void func_actor_401000_8013A0C8(Task* arg0)
             work->field_0 = 7;
         }
     }
-    *(ActorAimScratch**)G_SCRATCH_HEAD += 1;
+    *(ActorChaseScratch**)G_SCRATCH_HEAD += 1;
 }
 
 /// Aim step toward the player: the same body as `func_actor_401000_80134F98`
@@ -3159,10 +3147,10 @@ void func_actor_401000_8013A0C8(Task* arg0)
 /// out instead of arming state F0.
 void func_actor_401000_8013A5F0(Task* arg0)
 {
-    Actor401000Work* work;
-    ActorAimScratch* aim;
-    TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    Actor401000Work*   work;
+    ActorChaseScratch* aim;
+    TmdObject*         obj;
+    GsCOORDINATE2*     coord;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -3182,26 +3170,26 @@ void func_actor_401000_8013A5F0(Task* arg0)
         return;
     }
     work->field_6                         += 1;
-    *(ActorAimScratch**)G_SCRATCH_HEAD    -= 1;
-    aim                                    = *(ActorAimScratch**)G_SCRATCH_HEAD;
+    *(ActorChaseScratch**)G_SCRATCH_HEAD  -= 1;
+    aim                                    = *(ActorChaseScratch**)G_SCRATCH_HEAD;
     ((TmdObject*)arg0->extra)->coords->flg = 0;
     if (work->flags_68.half & 1) {
         work->field_0 = 7;
     }
-    aim->angle      = actorPositionYaw(arg0, &aim->delta, &Player_Status);
-    work->field_8AE = aim->angle;
-    if (aim->angle > 0) {
-        aim->angle = 0;
+    aim->turn       = actorPositionYaw(arg0, &aim->delta, &Player_Status);
+    work->field_8AE = aim->turn;
+    if (aim->turn > 0) {
+        aim->turn = 0;
     }
-    if (aim->angle < 0) {
-        aim->angle = 0;
+    if (aim->turn < 0) {
+        aim->turn = 0;
     }
-    coord       = ((TmdObject*)arg0->extra)->coords;
-    aim->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    Gfx_RotMatrixY(&((TmdObject*)arg0->extra)->coords->coord, aim->angle, 1);
+    coord      = ((TmdObject*)arg0->extra)->coords;
+    aim->turn += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    Gfx_RotMatrixY(&((TmdObject*)arg0->extra)->coords->coord, aim->turn, 1);
     actorRescaleYaw(((TmdObject*)arg0->extra)->coords, 0x1194);
     func_actor_401000_80132EF0(arg0);
-    *(ActorAimScratch**)G_SCRATCH_HEAD += 1;
+    *(ActorChaseScratch**)G_SCRATCH_HEAD += 1;
 }
 
 /// Turn the actor toward the player in two stages: while the `field_6`
@@ -3216,10 +3204,10 @@ void func_actor_401000_8013A5F0(Task* arg0)
 /// `&= 0xBFFF`.
 void func_actor_401000_8013A930(Task* arg0)
 {
-    Actor401000Work* work;
-    ActorAimScratch* aim;
-    TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    Actor401000Work*   work;
+    ActorChaseScratch* aim;
+    TmdObject*         obj;
+    GsCOORDINATE2*     coord;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -3241,23 +3229,23 @@ void func_actor_401000_8013A930(Task* arg0)
         return;
     }
     work->field_6++;
-    *(ActorAimScratch**)G_SCRATCH_HEAD -= 1;
-    aim                                 = *(ActorAimScratch**)G_SCRATCH_HEAD;
-    aim->angle                          = actorPositionYaw(arg0, &aim->delta, &Player_Status);
-    if (work->field_8AE < aim->angle) {
-        if (aim->angle - work->field_8AE > 0x28) {
+    *(ActorChaseScratch**)G_SCRATCH_HEAD -= 1;
+    aim                                   = *(ActorChaseScratch**)G_SCRATCH_HEAD;
+    aim->turn                             = actorPositionYaw(arg0, &aim->delta, &Player_Status);
+    if (work->field_8AE < aim->turn) {
+        if (aim->turn - work->field_8AE > 0x28) {
             work->field_8AE += 0x28;
         } else {
-            work->field_8AE = aim->angle;
+            work->field_8AE = aim->turn;
         }
-    } else if (work->field_8AE - aim->angle > 0x28) {
+    } else if (work->field_8AE - aim->turn > 0x28) {
         work->field_8AE -= 0x28;
     } else {
-        work->field_8AE = aim->angle;
+        work->field_8AE = aim->turn;
     }
-    coord      = ((TmdObject*)arg0->extra)->coords;
-    aim->angle = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    Gfx_RotMatrixY(&((TmdObject*)arg0->extra)->coords->coord, aim->angle, 1);
+    coord     = ((TmdObject*)arg0->extra)->coords;
+    aim->turn = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    Gfx_RotMatrixY(&((TmdObject*)arg0->extra)->coords->coord, aim->turn, 1);
     actorRescaleYaw(((TmdObject*)arg0->extra)->coords, 0x1194);
     func_actor_401000_80132EF0(arg0);
     if (work->field_6 < 0x32) {
@@ -3292,22 +3280,22 @@ void func_actor_401000_8013A930(Task* arg0)
         Gfx_RotMatrixX(&((TmdObject*)arg0->extra)->coords[5].coord, 0x100 >> ((work->field_6 - 0x31) / 4), 0);
         ((TmdObject*)arg0->extra)->coords[4].flg = 0;
         Gp_UpdateCoord(&((TmdObject*)arg0->extra)->coords[4]);
-        aim->angle = actorPositionYaw(arg0, &aim->delta, &Player_Status);
-        if (aim->angle > 0x24) {
-            aim->angle = 0x24;
-        } else if (aim->angle < -0x24) {
-            aim->angle = -0x24;
+        aim->turn = actorPositionYaw(arg0, &aim->delta, &Player_Status);
+        if (aim->turn > 0x24) {
+            aim->turn = 0x24;
+        } else if (aim->turn < -0x24) {
+            aim->turn = -0x24;
         }
-        if (ABS(aim->angle) < 0x24 || work->field_6 >= 0x4F) {
+        if (ABS(aim->turn) < 0x24 || work->field_6 >= 0x4F) {
             work->field_0 = 7;
         }
-        coord       = ((TmdObject*)arg0->extra)->coords;
-        aim->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-        Gfx_RotMatrixY(&((TmdObject*)arg0->extra)->coords->coord, aim->angle, 1);
+        coord      = ((TmdObject*)arg0->extra)->coords;
+        aim->turn += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+        Gfx_RotMatrixY(&((TmdObject*)arg0->extra)->coords->coord, aim->turn, 1);
         actorRescaleYaw(((TmdObject*)arg0->extra)->coords, 0x1194);
         ((TmdObject*)arg0->extra)->coords->flg = 0;
     }
-    *(ActorAimScratch**)G_SCRATCH_HEAD += 1;
+    *(ActorChaseScratch**)G_SCRATCH_HEAD += 1;
 }
 
 /// Tint a freshly spawned effect model from the enemy's area record: read the
@@ -3568,13 +3556,13 @@ void func_actor_401000_8013B61C(Task* arg0)
 /// down once per entry.
 void func_actor_401000_8013C46C(Task* arg0)
 {
-    Actor401000Work* work;
-    TmdObject*       obj;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   facing;
-    ActorAimScratch* head;
-    ActorAimScratch* s;
-    s16              yaw;
+    Actor401000Work*   work;
+    TmdObject*         obj;
+    GsCOORDINATE2*     coord;
+    GsCOORDINATE2*     facing;
+    ActorChaseScratch* head;
+    ActorChaseScratch* s;
+    s16                yaw;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -3599,9 +3587,9 @@ void func_actor_401000_8013C46C(Task* arg0)
     }
     work->field_6++;
     work->field_8++;
-    head                               = *(ActorAimScratch**)G_SCRATCH_HEAD;
-    *(ActorAimScratch**)G_SCRATCH_HEAD = head - 1;
-    s                                  = head - 1;
+    head                                 = *(ActorChaseScratch**)G_SCRATCH_HEAD;
+    *(ActorChaseScratch**)G_SCRATCH_HEAD = head - 1;
+    s                                    = head - 1;
     if (func_actor_401000_801323EC(((TmdObject*)arg0->extra)->coords, work->field_A30, 0xC) != 1) {
         if (func_actor_401000_801323EC(((TmdObject*)arg0->extra)->coords, work->field_8F0, 0xC) != 1) {
             func_actor_401000_80135704(arg0, work->field_8F0, 0xC);
@@ -3610,21 +3598,21 @@ void func_actor_401000_8013C46C(Task* arg0)
     actorConfigPositionDelta(&Player_Status, ((TmdObject*)arg0->extra)->coords, &s->delta);
     ((TmdObject*)arg0->extra)->coords->flg = 0;
     func_actor_401000_80132EF0(arg0);
-    s->pad_8 = ratan2(-((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][0],
-                      ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][2]);
+    s->playerYaw = ratan2(-((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][0],
+                          ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords->coord.m[2][2]);
     actorConfigPositionDelta(&Player_Status, ((TmdObject*)arg0->extra)->coords, &s->delta);
     yaw             = ratan2(s->delta.vx, s->delta.vz) + 0x800;
-    s->pad_A        = yaw;
-    s->pad_A        = actorNormalizeYaw(yaw);
+    s->yaw          = yaw;
+    s->yaw          = actorNormalizeYaw(yaw);
     coord           = ((TmdObject*)arg0->extra)->coords;
-    s->angle        = actorNormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-    work->field_8AE = s->angle;
+    s->turn         = actorNormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    work->field_8AE = s->turn;
     if (func_actor_401000_80132824(arg0) != 1) {
         work->field_6   = 0;
         coord           = ((TmdObject*)arg0->extra)->coords;
-        s->angle        = actorNormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-        work->field_8AE = s->angle;
-        if (s->angle < 0x200) {
+        s->turn         = actorNormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        work->field_8AE = s->turn;
+        if (s->turn < 0x200) {
             if (!overlayOutOfRange(&s->delta, 0x44C) && work->field_C1B == 0) {
                 work->field_0 = 0xB;
             }
@@ -3635,8 +3623,8 @@ void func_actor_401000_8013C46C(Task* arg0)
     } else {
         work->field_8   = 0;
         coord           = ((TmdObject*)arg0->extra)->coords;
-        s->angle        = actorNormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-        work->field_8AE = s->angle;
+        s->turn         = actorNormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        work->field_8AE = s->turn;
         if (work->field_C08 == 0) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             if ((Gp_LcgState >> 16) & 1) {
@@ -3646,24 +3634,24 @@ void func_actor_401000_8013C46C(Task* arg0)
             }
         }
         if (work->field_C08 == 1) {
-            s->angle += 0x300;
+            s->turn += 0x300;
         } else {
-            s->angle -= 0x300;
+            s->turn -= 0x300;
         }
         if (work->field_6 >= 0xF1) {
             work->field_6   = 0;
             work->field_C08 = -work->field_C08;
         }
     }
-    if (s->angle > 0x20) {
-        s->angle = 0x20;
+    if (s->turn > 0x20) {
+        s->turn = 0x20;
     }
-    if (s->angle < -0x20) {
-        s->angle = -0x20;
+    if (s->turn < -0x20) {
+        s->turn = -0x20;
     }
-    facing    = ((TmdObject*)arg0->extra)->coords;
-    s->angle += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    Gfx_RotMatrixY(&((TmdObject*)arg0->extra)->coords->coord, s->angle, 1);
+    facing   = ((TmdObject*)arg0->extra)->coords;
+    s->turn += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    Gfx_RotMatrixY(&((TmdObject*)arg0->extra)->coords->coord, s->turn, 1);
     actorRescaleYaw(((TmdObject*)arg0->extra)->coords, 0x1194);
     ((TmdObject*)arg0->extra)->coords->flg = 0;
     if (work->field_89E == 2) {
@@ -3683,7 +3671,7 @@ void func_actor_401000_8013C46C(Task* arg0)
     if (work->field_C1B != 0) {
         work->field_C1B--;
     }
-    *(ActorAimScratch**)G_SCRATCH_HEAD += 1;
+    *(ActorChaseScratch**)G_SCRATCH_HEAD += 1;
 }
 
 /// State 9 clip-0xB body, the 401000 twin of `func_actor_401000_80138BB4` and

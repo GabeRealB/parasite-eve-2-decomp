@@ -611,7 +611,9 @@ STATIC_ASSERT_SIZEOF(GpCountArg, 8);
 typedef struct _GpAnimBlk {
     /* 0x00 */ byte pad_0[0x1C];
     /* 0x1C */ s32  field_1C; // copied out by func_actor_503500_80143AC0 before message 0x3FF
-    /* 0x20 */ byte pad_20[0x9C];
+    /* 0x20 */ byte pad_20[0x4];
+    /* 0x24 */ s32  field_24;
+    /* 0x28 */ byte pad_28[0x94];
     /* 0xBC */ s32  field_BC[0x20];
 } GpAnimBlk;
 

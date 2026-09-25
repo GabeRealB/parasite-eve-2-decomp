@@ -10,16 +10,6 @@ s32                          Actor00100_Fn01388(GsCOORDINATE2*, GpRec18*, s16, S
 extern Actor00100AnimCommand Actor00100_D1B9AC;
 extern SVECTOR               Actor00100_D1BA90;
 
-typedef struct {
-    s16 vx, vy, vz, pad;
-    u32 distanceSquared;
-    s16 playerYaw;
-    u16 contactYaw;
-    s16 turnYaw, targetYaw;
-    s16 messageResult;
-    s16 pad16;
-} Actor00100FacingScratch;
-
 static __inline__ s16 Actor00100_FacingAway(GsCOORDINATE2* p)
 {
     s16 angle = ratan2(-p->coord.m[2][0], p->coord.m[2][2]);
@@ -52,7 +42,6 @@ typedef struct {
     s16 field_C1E;
 } Actor00100FacingWork;
 
-STATIC_ASSERT_SIZEOF(Actor00100FacingScratch, 0x18);
 STATIC_ASSERT_SIZEOF(Actor00100FacingWork, 0xC20);
 
 #endif

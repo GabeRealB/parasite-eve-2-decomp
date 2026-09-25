@@ -110,15 +110,6 @@ typedef struct Actor01200StateTable {
     /* 0x00 */ GpEnemyTaskFunc fn[10];
 } Actor01200StateTable;
 
-/// 0xC-byte scratch taken from `0x1F8003FC` by the return-to-spawn walk: the
-/// offset to the spawn point and the clamped new yaw.
-typedef struct Actor01200TurnScratch {
-    /* 0x0 */ SVECTOR d;
-    /* 0x8 */ s16     angle;
-    /* 0xA */ s16     pad;
-} Actor01200TurnScratch;
-STATIC_ASSERT_SIZEOF(Actor01200TurnScratch, 0xC);
-
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 extern GpPairSrcE Actor01200_D04034;
@@ -608,13 +599,13 @@ void Actor01200_Fn01040(GpEnemy* arg0, Task* arg1)
 
 void Actor01200_Fn01234(GpEnemy* arg0, Task* arg1)
 {
-    Actor01200Work*        work;
-    GsCOORDINATE2*         coord;
-    GsCOORDINATE2*         facing;
-    GsCOORDINATE2*         part;
-    TmdObject*             obj;
-    Actor01200TurnScratch* head;
-    Actor01200TurnScratch* s;
+    Actor01200Work*   work;
+    GsCOORDINATE2*    coord;
+    GsCOORDINATE2*    facing;
+    GsCOORDINATE2*    part;
+    TmdObject*        obj;
+    ActorTurnScratch* head;
+    ActorTurnScratch* s;
 
     work = arg1->work;
     if (work->field_4 != 0) {
@@ -633,16 +624,16 @@ void Actor01200_Fn01234(GpEnemy* arg0, Task* arg1)
         Gp_ArmStateF0(1);
         return;
     }
-    head                                     = *(Actor01200TurnScratch**)G_SCRATCH_HEAD;
-    *(Actor01200TurnScratch**)G_SCRATCH_HEAD = head - 1;
-    s                                        = head - 1;
+    head                                = *(ActorTurnScratch**)G_SCRATCH_HEAD;
+    *(ActorTurnScratch**)G_SCRATCH_HEAD = head - 1;
+    s                                   = head - 1;
     Actor01200_Fn00820(arg1);
-    coord         = ((TmdObject*)arg1->extra)->coords;
-    head[-1].d.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-    s->d.vy       = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-    s->d.vz       = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-    facing        = ((TmdObject*)arg1->extra)->coords;
-    s->angle      = actorNormalizeYaw(ratan2(head[-1].d.vx, s->d.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]));
+    coord             = ((TmdObject*)arg1->extra)->coords;
+    head[-1].delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    s->delta.vy       = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+    s->delta.vz       = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    facing            = ((TmdObject*)arg1->extra)->coords;
+    s->angle          = actorNormalizeYaw(ratan2(head[-1].delta.vx, s->delta.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]));
     if (s->angle > 0x10) {
         s->angle = 0x10;
     }
@@ -654,12 +645,12 @@ void Actor01200_Fn01234(GpEnemy* arg0, Task* arg1)
     Gfx_RotMatrixY(&((TmdObject*)arg1->extra)->coords->coord, s->angle, 1);
     actorStepForward(((TmdObject*)arg1->extra)->coords, 0x14);
     Actor01200_Fn0067C(((TmdObject*)arg1->extra)->coords, &work->rec1B8, 5);
-    if (overlayOutOfRange(&s->d, 1000)) {
+    if (overlayOutOfRange(&s->delta, 1000)) {
         work->field_3DC++;
     } else {
         work->field_3DC = 0;
     }
-    if (!overlayOutOfRange(&s->d, 1000)) {
+    if (!overlayOutOfRange(&s->delta, 1000)) {
         work->field_8++;
     } else {
         work->field_8 = 0;
@@ -667,18 +658,18 @@ void Actor01200_Fn01234(GpEnemy* arg0, Task* arg1)
     if (work->field_8 >= 0x15) {
         work->field_0 = 5;
     }
-    if (Actor01200_Fn00130(((TmdObject*)arg1->extra)->coords, &work->rec250, 5, &s->d) == 1) {
+    if (Actor01200_Fn00130(((TmdObject*)arg1->extra)->coords, &work->rec250, 5, &s->delta) == 1) {
         work->field_0 = 6;
     }
     ((TmdObject*)arg1->extra)->coords->flg = 0;
-    s->d.vx                                = work->origin.vx - ((TmdObject*)arg1->extra)->coords->coord.t[0];
-    s->d.vy                                = 0;
-    s->d.vz                                = work->origin.vz - ((TmdObject*)arg1->extra)->coords->coord.t[2];
-    overlayOutOfRange(&s->d, 3000);
+    s->delta.vx                            = work->origin.vx - ((TmdObject*)arg1->extra)->coords->coord.t[0];
+    s->delta.vy                            = 0;
+    s->delta.vz                            = work->origin.vz - ((TmdObject*)arg1->extra)->coords->coord.t[2];
+    overlayOutOfRange(&s->delta, 3000);
     if (work->field_3DC >= 0xF1) {
         work->field_0 = 8;
     }
-    *(Actor01200TurnScratch**)G_SCRATCH_HEAD += 1;
+    *(ActorTurnScratch**)G_SCRATCH_HEAD += 1;
 }
 
 static __inline__ void Actor01200_FaceScale(GsCOORDINATE2* coord, s16 s)
@@ -1106,13 +1097,13 @@ found:
 /// player is within 2000 units and inside a quarter turn or 1000 units.
 void Actor01200_Fn02BE8(GpEnemy* arg0, Task* arg1)
 {
-    Actor01200Work*        work;
-    Actor01200TurnScratch* head;
-    Actor01200TurnScratch* sc;
-    GsCOORDINATE2*         coord;
-    GsCOORDINATE2*         target;
-    TmdObject*             obj;
-    s16                    angle;
+    Actor01200Work*   work;
+    ActorTurnScratch* head;
+    ActorTurnScratch* sc;
+    GsCOORDINATE2*    coord;
+    GsCOORDINATE2*    target;
+    TmdObject*        obj;
+    s16               angle;
 
     work = arg1->work;
     if (work->field_4 != 0) {
@@ -1131,15 +1122,15 @@ void Actor01200_Fn02BE8(GpEnemy* arg0, Task* arg1)
         work->field_6 = 0;
         return;
     }
-    head                                     = *(Actor01200TurnScratch**)G_SCRATCH_HEAD;
-    *(Actor01200TurnScratch**)G_SCRATCH_HEAD = head - 1;
-    sc                                       = head - 1;
-    head[-1].d.vx                            = work->patrol[work->patrolIdx].vx - ((TmdObject*)arg1->extra)->coords->coord.t[0];
-    sc->d.vy                                 = 0;
-    sc->d.vz                                 = work->patrol[work->patrolIdx].vz - ((TmdObject*)arg1->extra)->coords->coord.t[2];
-    coord                                    = ((TmdObject*)arg1->extra)->coords;
-    angle                                    = ratan2(head[-1].d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    sc->angle                                = actorNormalizeYaw(angle);
+    head                                = *(ActorTurnScratch**)G_SCRATCH_HEAD;
+    *(ActorTurnScratch**)G_SCRATCH_HEAD = head - 1;
+    sc                                  = head - 1;
+    head[-1].delta.vx                   = work->patrol[work->patrolIdx].vx - ((TmdObject*)arg1->extra)->coords->coord.t[0];
+    sc->delta.vy                        = 0;
+    sc->delta.vz                        = work->patrol[work->patrolIdx].vz - ((TmdObject*)arg1->extra)->coords->coord.t[2];
+    coord                               = ((TmdObject*)arg1->extra)->coords;
+    angle                               = ratan2(head[-1].delta.vx, sc->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    sc->angle                           = actorNormalizeYaw(angle);
     if (sc->angle > 0x20) {
         sc->angle = 0x20;
     }
@@ -1152,7 +1143,7 @@ void Actor01200_Fn02BE8(GpEnemy* arg0, Task* arg1)
     if (Actor01200_Fn0067C(((TmdObject*)arg1->extra)->coords, &work->rec1B8, 5)) {
         work->field_6++;
     }
-    if (!overlayOutOfRange(&sc->d, 400) || work->field_6 > 0x60) {
+    if (!overlayOutOfRange(&sc->delta, 400) || work->field_6 > 0x60) {
         if (work->patrolIdx == 0) {
             work->patrolIdx = 1;
         } else {
@@ -1160,17 +1151,17 @@ void Actor01200_Fn02BE8(GpEnemy* arg0, Task* arg1)
         }
         work->field_6 = 0;
     }
-    if (Actor01200_Fn00130(((TmdObject*)arg1->extra)->coords, &work->rec250, 5, &sc->d) == 1) {
+    if (Actor01200_Fn00130(((TmdObject*)arg1->extra)->coords, &work->rec250, 5, &sc->delta) == 1) {
         work->field_0 = 6;
     }
-    target   = ((TmdObject*)arg1->extra)->coords;
-    sc->d.vx = Player_Status.coordMtx->t[0] - target->coord.t[0];
-    sc->d.vy = Player_Status.coordMtx->t[1] - target->coord.t[1];
-    sc->d.vz = Player_Status.coordMtx->t[2] - target->coord.t[2];
-    if (!overlayOutOfRange(&sc->d, 2000)) {
+    target       = ((TmdObject*)arg1->extra)->coords;
+    sc->delta.vx = Player_Status.coordMtx->t[0] - target->coord.t[0];
+    sc->delta.vy = Player_Status.coordMtx->t[1] - target->coord.t[1];
+    sc->delta.vz = Player_Status.coordMtx->t[2] - target->coord.t[2];
+    if (!overlayOutOfRange(&sc->delta, 2000)) {
         coord = ((TmdObject*)arg1->extra)->coords;
-        angle = ratan2(sc->d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-        if (actorNormalizeYaw(angle) < 0x400 || !overlayOutOfRange(&sc->d, 1000)) {
+        angle = ratan2(sc->delta.vx, sc->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+        if (actorNormalizeYaw(angle) < 0x400 || !overlayOutOfRange(&sc->delta, 1000)) {
             work->field_0 = 4;
         }
     }
@@ -1182,7 +1173,7 @@ void Actor01200_Fn02BE8(GpEnemy* arg0, Task* arg1)
             work->field_0 = 1;
         }
     }
-    *(Actor01200TurnScratch**)G_SCRATCH_HEAD += 1;
+    *(ActorTurnScratch**)G_SCRATCH_HEAD += 1;
 }
 
 /// Walk back toward the spawn point: turn at most 0x10 toward it, step 8 units,
@@ -1190,12 +1181,12 @@ void Actor01200_Fn02BE8(GpEnemy* arg0, Task* arg1)
 /// `Actor01200_Fn00130` reports 1).
 void Actor01200_Fn03294(GpEnemy* arg0, Task* arg1)
 {
-    Actor01200Work*        work;
-    GsCOORDINATE2*         coord;
-    GsCOORDINATE2*         facing;
-    TmdObject*             obj;
-    Actor01200TurnScratch* head;
-    Actor01200TurnScratch* s;
+    Actor01200Work*   work;
+    GsCOORDINATE2*    coord;
+    GsCOORDINATE2*    facing;
+    TmdObject*        obj;
+    ActorTurnScratch* head;
+    ActorTurnScratch* s;
 
     work = arg1->work;
     if (work->field_4 != 0) {
@@ -1214,16 +1205,16 @@ void Actor01200_Fn03294(GpEnemy* arg0, Task* arg1)
         work->field_6   = 0;
         return;
     }
-    head                                     = *(Actor01200TurnScratch**)G_SCRATCH_HEAD;
-    *(Actor01200TurnScratch**)G_SCRATCH_HEAD = head - 1;
-    s                                        = head - 1;
+    head                                = *(ActorTurnScratch**)G_SCRATCH_HEAD;
+    *(ActorTurnScratch**)G_SCRATCH_HEAD = head - 1;
+    s                                   = head - 1;
     Actor01200_Fn00820(arg1);
     ((TmdObject*)arg1->extra)->coords->flg = 0;
-    head[-1].d.vx                          = work->origin.vx - ((TmdObject*)arg1->extra)->coords->coord.t[0];
-    s->d.vy                                = 0;
-    s->d.vz                                = work->origin.vz - ((TmdObject*)arg1->extra)->coords->coord.t[2];
+    head[-1].delta.vx                      = work->origin.vx - ((TmdObject*)arg1->extra)->coords->coord.t[0];
+    s->delta.vy                            = 0;
+    s->delta.vz                            = work->origin.vz - ((TmdObject*)arg1->extra)->coords->coord.t[2];
     coord                                  = ((TmdObject*)arg1->extra)->coords;
-    s->angle                               = actorNormalizeYaw(ratan2(head[-1].d.vx, s->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    s->angle                               = actorNormalizeYaw(ratan2(head[-1].delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
     if (s->angle > 0x10) {
         s->angle = 0x10;
     }
@@ -1236,13 +1227,13 @@ void Actor01200_Fn03294(GpEnemy* arg0, Task* arg1)
     actorStepForward(((TmdObject*)arg1->extra)->coords, 8);
     Actor01200_Fn0067C(((TmdObject*)arg1->extra)->coords, &work->rec1B8, 5);
     work->field_6++;
-    if (!overlayOutOfRange(&s->d, 0x50) || work->field_6 >= 0xDD) {
+    if (!overlayOutOfRange(&s->delta, 0x50) || work->field_6 >= 0xDD) {
         work->field_0 = 7;
     }
-    if (Actor01200_Fn00130(((TmdObject*)arg1->extra)->coords, &work->rec250, 5, &s->d) == 1) {
+    if (Actor01200_Fn00130(((TmdObject*)arg1->extra)->coords, &work->rec250, 5, &s->delta) == 1) {
         work->field_0 = 6;
     }
-    *(Actor01200TurnScratch**)G_SCRATCH_HEAD += 1;
+    *(ActorTurnScratch**)G_SCRATCH_HEAD += 1;
 }
 
 const Actor01200StateTable Actor01200_D000E4 = {

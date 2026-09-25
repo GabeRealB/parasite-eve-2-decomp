@@ -7,14 +7,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-/// Overlay-local view of the player animation entries, including word 0x24.
-typedef struct Actor00100PlayerAnim {
-    /* 0x00 */ byte pad_0[0x1C];
-    /* 0x1C */ s32  field_1C;
-    /* 0x20 */ byte pad_20[4];
-    /* 0x24 */ s32  field_24;
-} Actor00100PlayerAnim;
-
 typedef struct Actor00100StateTable {
     TaskFunc fn[39];
 } Actor00100StateTable;
@@ -25,7 +17,7 @@ typedef struct Actor00100AnimWord {
 } Actor00100AnimWord;
 
 extern Actor00100AnimCommand Actor00100_D1B9D0;
-extern Actor00100PlayerAnim* Gp_PlayerAnimBlkTbl[];
+extern GpAnimBlk*            Gp_PlayerAnimBlkTbl[];
 extern u16                   Gp_WeaponIdBase[];
 extern Actor00100AnimWord    Actor00100_D1B9BC, Actor00100_D1B9C0;
 extern s8                    D_8007218A;

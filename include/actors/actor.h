@@ -139,6 +139,34 @@ typedef struct ActorScaleRotScratch {
 } ActorScaleRotScratch;
 STATIC_ASSERT_SIZEOF(ActorScaleRotScratch, 0x34);
 
+/// The scratch-pad block of a facing check against the player: the offset to
+/// the player, its squared length, the player's yaw and the bearing of the
+/// contact, the turn and the yaw it aims for, and the reply the player's
+/// contact message came back with.
+typedef struct ActorFacingScratch {
+    s16 vx, vy, vz, pad;
+    u32 distanceSquared;
+    s16 playerYaw;
+    u16 contactYaw;
+    s16 turnYaw, targetYaw;
+    s16 messageResult;
+    s16 pad16;
+} ActorFacingScratch;
+STATIC_ASSERT_SIZEOF(ActorFacingScratch, 0x18);
+
+/// The scratch-pad block of a turn spread over several steps: `vec` is the
+/// offset to the player and then the facing it leaves, `delta` the whole turn
+/// to make, `steps` the steps it is spread over and `yaw` the heading after
+/// this step.
+typedef struct ActorTurnStepScratch {
+    SVECTOR vec;
+    s16     delta;
+    s16     yaw;
+    s16     steps;
+    s16     pad;
+} ActorTurnStepScratch;
+STATIC_ASSERT_SIZEOF(ActorTurnStepScratch, 0x10);
+
 /// A turn toward the player: the offset to the player, then the clamped turn
 /// applied to the actor's root coordinate.
 typedef struct ActorTurnScratch {
@@ -148,20 +176,10 @@ typedef struct ActorTurnScratch {
 } ActorTurnScratch;
 STATIC_ASSERT_SIZEOF(ActorTurnScratch, 0xC);
 
-/// The same turn as `ActorTurnScratch`, with room the aiming step leaves
-/// unused between the offset and the turn.
-typedef struct ActorAimScratch {
-    SVECTOR delta;
-    s16     pad_8;
-    s16     pad_A;
-    s16     angle;
-    s16     pad_E;
-} ActorAimScratch;
-STATIC_ASSERT_SIZEOF(ActorAimScratch, 0x10);
-
-/// A turn toward the player that also weighs where the player is facing: the
-/// offset to the player, the player's yaw, the yaw from the player back to
-/// the actor, the wrapped turn toward the player and the clamped turn applied.
+/// The scratch-pad block of a turn toward the player that also weighs where
+/// the player is facing: the offset to the player, the player's yaw, the yaw
+/// from the player back to the actor, the wrapped turn toward the player and
+/// the clamped turn applied. Aiming steps that only turn use `turn` alone.
 typedef struct ActorChaseScratch {
     SVECTOR delta;
     s16     playerYaw;
