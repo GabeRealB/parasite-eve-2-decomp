@@ -144,21 +144,6 @@ typedef struct _GpCircleScratch {
 } GpCircleScratch;
 STATIC_ASSERT_SIZEOF(GpCircleScratch, 0x60);
 
-/// Overlay of a `Gp_LinkList` `GpLinkNode` and the fields that follow it,
-/// used by `Gp_UpdateLinkXforms`. `field_4` is the whole word that the node's
-/// `flags` byte heads, which is how the walk reads it. `coord` is
-/// `GpEnemy.coord`. `src` / `dst` overlay `GpEnemy.bodyPos` /
-/// `playerRelPos`: local XYZ in, player-relative XYZ out.
-typedef struct _GpLinkXform {
-    /* 0x00 */ struct _GpLinkXform* next;
-    /* 0x04 */ s32                  field_4;
-    /* 0x08 */ GsCOORDINATE2*       coord;
-    /* 0x0C */ VECTOR3              src;
-    /* 0x18 */ byte                 pad_18[4];
-    /* 0x1C */ VECTOR3              dst;
-} GpLinkXform;
-STATIC_ASSERT_SIZEOF(GpLinkXform, 0x28);
-
 /// Global at `Gp_StateC08`. `field_0` is a u16 loaded by many helpers.
 /// `field_2` is a signed byte (`lb` as splat `D_80114C0A`); `Gp_SetAttachState`
 /// writes the low byte of `Gp_GetAttachParam(3)`, replacing it with 1 when

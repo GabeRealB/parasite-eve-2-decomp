@@ -386,7 +386,7 @@ void func_actor_105400_8013246C(GpEnemy* arg0, Task* arg1)
         case 2:
             break;
         case 3:
-            arg0->node.flags = 1;
+            arg0->node.state.b.flags = 1;
             work->field_328++;
             if (!(work->field_328 & 3)) {
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -544,10 +544,10 @@ void func_actor_105400_80132DAC(GpEnemy* arg0, Task* arg1)
         case 1:
             return;
         case 0:
-            arg0->node.flags = 8;
+            arg0->node.state.b.flags = 8;
             break;
         case 2:
-            arg0->node.flags = 1;
+            arg0->node.state.b.flags = 1;
             return;
     }
     vec = --*(VECTOR**)0x1F8003FC;
@@ -753,15 +753,15 @@ ge2:
     }
     goto default_body;
 case0:
-    temp_a1->flags   = 0;
-    arg0->node.flags = 8;
+    temp_a1->flags           = 0;
+    arg0->node.state.b.flags = 8;
     goto default_body;
 case1:
     func_actor_105400_801335B8(arg1);
     return;
 case2:
-    temp_a1->flags   = 0x80;
-    arg0->node.flags = one;
+    temp_a1->flags           = 0x80;
+    arg0->node.state.b.flags = one;
     return;
 default_body:
     func_actor_105400_80131E3C(arg1);

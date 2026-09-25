@@ -1160,7 +1160,7 @@ void Actor01100_Fn01B90(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     }
 
     lockNode                            = &enemy->node;
-    enemy->node.flags                   = 0;
+    enemy->node.state.b.flags           = 0;
     GP_NODE_ENEMY(lockNode)->coord      = &((TmdObject*)task->extra)->coords[3];
     GP_NODE_ENEMY(lockNode)->bodyPos.vx = 0;
     GP_NODE_ENEMY(lockNode)->bodyPos.vy = -0xC8;
@@ -1520,7 +1520,7 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
                 GsCOORDINATE2* c;
                 GpLinkNode*    lockNode;
 
-                enemy->node.flags                   = 0;
+                enemy->node.state.b.flags           = 0;
                 c                                   = ((TmdObject*)task->extra)->coords;
                 lockNode                            = &enemy->node;
                 GP_NODE_ENEMY(lockNode)->bodyPos.vy = -0xC8;
@@ -3031,9 +3031,9 @@ void Actor01100_Fn05678(
         if (enemy->spawnState == 0) {
             enemy->spawnState = work->field_BAE + 1;
         }
-        work->field_BA6   = 3;
-        work->field_BAB   = 0x20;
-        enemy->node.flags = 1;
+        work->field_BA6           = 3;
+        work->field_BAB           = 0x20;
+        enemy->node.state.b.flags = 1;
         if (enemy->spawnState == 3) {
             tmdA           = &Actor01100_D0D8F4;
             D_80067330.tmd = tmdA;
@@ -3586,18 +3586,18 @@ s32 Actor01100_Fn0670C(Task* task, s32 arg1, s32 flags)
     if (work->field_BA0 != mode) {
         work->field_BA0 = mode;
         if ((mode << 0x18) == 0) {
-            model->flags      = (u16)(model->flags & 0xFF7F);
-            enemy->node.flags = work->field_BA1;
-            obj               = &work->field_9A8[0];
-            obj->flags        = (u16)(obj->flags | 0xC000);
-            obj               = &work->field_9A8[3];
-            obj->flags        = (u16)(obj->flags | 0xC000);
+            model->flags              = (u16)(model->flags & 0xFF7F);
+            enemy->node.state.b.flags = work->field_BA1;
+            obj                       = &work->field_9A8[0];
+            obj->flags                = (u16)(obj->flags | 0xC000);
+            obj                       = &work->field_9A8[3];
+            obj->flags                = (u16)(obj->flags | 0xC000);
         } else {
             register s32 value asm("v0");
 
-            model->flags      = (u16)(model->flags | 0x80);
-            work->field_BA1   = enemy->node.flags;
-            enemy->node.flags = 1;
+            model->flags              = (u16)(model->flags | 0x80);
+            work->field_BA1           = enemy->node.state.b.flags;
+            enemy->node.state.b.flags = 1;
             for (i = 0; i < 4; i++) {
                 obj        = (GpObj*)((u8*)work + (OFFSET_OF(ActorShared8013852cWork, field_9A8) + i * 0x20));
                 value      = obj->flags;
@@ -3775,7 +3775,7 @@ void Actor01100_Fn06C0C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     u8          trigger;
 
     lockNode                            = &enemy->node;
-    enemy->node.flags                   = 0;
+    enemy->node.state.b.flags           = 0;
     GP_NODE_ENEMY(lockNode)->coord      = &((TmdObject*)task->extra)->coords[3];
     GP_NODE_ENEMY(lockNode)->bodyPos.vx = 0;
     GP_NODE_ENEMY(lockNode)->bodyPos.vy = -0xC8;
@@ -4088,11 +4088,11 @@ void Actor01100_Fn072B8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     }
     arg->field_64 = 3;
     if (work->field_BA9 != 0) {
-        enemy->node.flags = 0;
-        work->field_BA6   = 1;
-        work->field_BAB   = 0;
-        work->state       = 0xF;
-        work->field_BA8   = 0;
+        enemy->node.state.b.flags = 0;
+        work->field_BA6           = 1;
+        work->field_BAB           = 0;
+        work->state               = 0xF;
+        work->field_BA8           = 0;
     }
 }
 

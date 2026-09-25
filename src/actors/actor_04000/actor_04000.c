@@ -347,7 +347,7 @@ s32 Actor04000_Fn0093C(Task* arg0, s32 arg1, Actor104000Event* event)
     if (event->words[0] == 0x1003 && event->words[1] == 1) {
         work->field_0                          = 0xE;
         Actor04000_D0C718[ctx->placeKey >> 12] = arg0;
-        ctx->node.flags                        = 1;
+        ctx->node.state.b.flags                = 1;
         switch (ctx->placeKey >> 12) {
             case 0:
                 ((TmdObject*)arg0->extra)->coords->coord.t[0] = 0x116;
@@ -666,8 +666,8 @@ void Actor04000_Fn010B8(GpEnemy* arg0, Task* arg1)
     arg0->bodyPos.vz = 0;
     arg0->coord      = ((TmdObject*)arg1->extra)->coords + 2;
     Gp_LinkNode(&arg0->node);
-    arg0->node.flags    = 1;
-    arg0->reactionFlags = 0;
+    arg0->node.state.b.flags = 1;
+    arg0->reactionFlags      = 0;
     arg0->hp = arg0->hpMax = Actor04000_D07084.hpMax;
     arg0->param            = &Actor04000_D07084;
     arg0->recs             = hits;
@@ -757,8 +757,8 @@ void Actor04000_Fn0168C(GpEnemy* arg0, Task* arg1)
     player = gameGetPtrSlot(3);
     actor  = player->work;
     if (work->field_4 != 0) {
-        obj                                     = arg1->extra;
-        ((GpEnemy*)arg1->spawnArg2)->node.flags = 0;
+        obj                                             = arg1->extra;
+        ((GpEnemy*)arg1->spawnArg2)->node.state.b.flags = 0;
         Gp_ArmStateF0(1);
         obj->flags          = 0;
         work->field_170     = 1;
@@ -892,19 +892,19 @@ void Actor04000_Fn01E1C(GpEnemy* arg0, Task* arg1)
     work = arg1->work;
     obj  = arg1->extra;
     if (work->field_4 != 0) {
-        arg0->node.flags    = 1;
-        obj->flags          = 0;
-        work->obj350.flags &= 0x7FFF;
-        work->obj388.flags &= 0x7FFF;
-        work->obj3C0.flags &= 0x7FFF;
-        work->obj388.key    = Gp_PackObjPair(arg0, 1);
-        work->obj3C0.key    = 0x22222;
-        work->field_6       = 0;
-        work->obj270.flags |= 0x4000;
-        work->savedColorMtx = work->colorMtx;
-        work->field_174     = 0xE;
-        work->field_170     = 1;
-        work->field_178     = 0;
+        arg0->node.state.b.flags = 1;
+        obj->flags               = 0;
+        work->obj350.flags      &= 0x7FFF;
+        work->obj388.flags      &= 0x7FFF;
+        work->obj3C0.flags      &= 0x7FFF;
+        work->obj388.key         = Gp_PackObjPair(arg0, 1);
+        work->obj3C0.key         = 0x22222;
+        work->field_6            = 0;
+        work->obj270.flags      |= 0x4000;
+        work->savedColorMtx      = work->colorMtx;
+        work->field_174          = 0xE;
+        work->field_170          = 1;
+        work->field_178          = 0;
         Actor04000_Fn00E6C(arg1);
         work->obj3C0.pos.vx       = ((TmdObject*)arg1->extra)->coords->coord.t[0];
         work->obj3C0.pos.vy       = ((TmdObject*)arg1->extra)->coords->coord.t[1] - 0x1F4;
@@ -1023,16 +1023,16 @@ void Actor04000_Fn026FC(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                 = arg1->extra;
-        arg0->node.flags    = 0;
-        obj->flags          = 0;
-        work->field_174     = 5;
-        work->field_170     = 1;
-        work->field_178     = 0;
-        work->obj350.flags |= 0x8000;
-        work->obj388.flags &= 0x7FFF;
-        work->obj3C0.flags &= 0x7FFF;
-        work->obj270.flags |= 0x4000;
+        obj                      = arg1->extra;
+        arg0->node.state.b.flags = 0;
+        obj->flags               = 0;
+        work->field_174          = 5;
+        work->field_170          = 1;
+        work->field_178          = 0;
+        work->obj350.flags      |= 0x8000;
+        work->obj388.flags      &= 0x7FFF;
+        work->obj3C0.flags      &= 0x7FFF;
+        work->obj270.flags      |= 0x4000;
         Actor04000_Fn00E6C(arg1);
         return;
     }
@@ -1072,16 +1072,16 @@ void Actor04000_Fn028F0(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                 = arg1->extra;
-        arg0->node.flags    = 0;
-        obj->flags          = 0;
-        work->field_174     = 3;
-        work->field_170     = 1;
-        work->field_178     = 0x10;
-        work->obj350.flags |= 0x8000;
-        work->obj388.flags &= 0x7FFF;
-        work->obj3C0.flags &= 0x7FFF;
-        work->obj270.flags |= 0x4000;
+        obj                      = arg1->extra;
+        arg0->node.state.b.flags = 0;
+        obj->flags               = 0;
+        work->field_174          = 3;
+        work->field_170          = 1;
+        work->field_178          = 0x10;
+        work->obj350.flags      |= 0x8000;
+        work->obj388.flags      &= 0x7FFF;
+        work->obj3C0.flags      &= 0x7FFF;
+        work->obj270.flags      |= 0x4000;
         Gp_ArmStateF0(1);
         Actor04000_Fn00E6C(arg1);
         work->field_494 = 0;
@@ -1151,17 +1151,17 @@ void Actor04000_Fn02F48(GpEnemy* arg0, Task* arg1)
     work = arg1->work;
     obj  = arg1->extra;
     if (work->field_4 != 0) {
-        arg0->node.flags    = 1;
-        obj->flags          = 0;
-        work->obj350.flags |= 0x8000;
-        work->obj388.flags &= 0x7FFF;
-        work->obj3C0.flags &= 0x7FFF;
-        work->obj388.key    = Gp_PackObjPair(arg0, 1);
-        work->obj3C0.key    = 0x22222;
-        work->field_6       = 0;
-        work->obj270.flags |= 0x4000;
-        work->savedColorMtx = work->colorMtx;
-        work->field_178     = 0;
+        arg0->node.state.b.flags = 1;
+        obj->flags               = 0;
+        work->obj350.flags      |= 0x8000;
+        work->obj388.flags      &= 0x7FFF;
+        work->obj3C0.flags      &= 0x7FFF;
+        work->obj388.key         = Gp_PackObjPair(arg0, 1);
+        work->obj3C0.key         = 0x22222;
+        work->field_6            = 0;
+        work->obj270.flags      |= 0x4000;
+        work->savedColorMtx      = work->colorMtx;
+        work->field_178          = 0;
         Actor04000_Fn00E6C(arg1);
         work->obj3C0.pos.vx = ((TmdObject*)arg1->extra)->coords->coord.t[0];
         work->obj3C0.pos.vy = ((TmdObject*)arg1->extra)->coords->coord.t[1] - 0x1F4;
@@ -1279,20 +1279,20 @@ void Actor04000_Fn03798(GpEnemy* arg0, Task* arg1)
     work = arg1->work;
     obj  = arg1->extra;
     if (work->field_4 != 0) {
-        arg0->node.flags    = 1;
-        obj->flags          = 0;
-        work->obj350.flags &= 0x7FFF;
-        work->obj388.flags &= 0x7FFF;
-        work->obj3C0.flags &= 0x7FFF;
-        work->obj388.key    = Gp_PackObjPair(arg0, 1);
-        work->obj3C0.key    = 0x22222;
-        work->field_6       = 0;
-        work->obj270.flags &= 0xBFFF;
-        work->savedColorMtx = work->colorMtx;
-        work->field_174     = 0xA;
-        work->field_170     = 1;
-        work->field_178     = 0;
-        work->field_176     = 0x2C;
+        arg0->node.state.b.flags = 1;
+        obj->flags               = 0;
+        work->obj350.flags      &= 0x7FFF;
+        work->obj388.flags      &= 0x7FFF;
+        work->obj3C0.flags      &= 0x7FFF;
+        work->obj388.key         = Gp_PackObjPair(arg0, 1);
+        work->obj3C0.key         = 0x22222;
+        work->field_6            = 0;
+        work->obj270.flags      &= 0xBFFF;
+        work->savedColorMtx      = work->colorMtx;
+        work->field_174          = 0xA;
+        work->field_170          = 1;
+        work->field_178          = 0;
+        work->field_176          = 0x2C;
         Actor04000_Fn00E6C(arg1);
         work->obj3C0.pos.vx = ((TmdObject*)arg1->extra)->coords->coord.t[0];
         work->obj3C0.pos.vy = ((TmdObject*)arg1->extra)->coords->coord.t[1] - 0x1F4;
@@ -1543,17 +1543,17 @@ void Actor04000_Fn0432C(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                 = arg1->extra;
-        arg0->node.flags    = 0;
-        obj->flags          = 0;
-        work->field_174     = 2;
-        work->field_170     = 1;
-        work->field_178     = 0;
-        work->patrolIdx     = 0;
-        work->obj350.flags |= 0x8000;
-        work->obj388.flags &= 0x7FFF;
-        work->obj3C0.flags &= 0x7FFF;
-        work->obj270.flags |= 0x4000;
+        obj                      = arg1->extra;
+        arg0->node.state.b.flags = 0;
+        obj->flags               = 0;
+        work->field_174          = 2;
+        work->field_170          = 1;
+        work->field_178          = 0;
+        work->patrolIdx          = 0;
+        work->obj350.flags      |= 0x8000;
+        work->obj388.flags      &= 0x7FFF;
+        work->obj3C0.flags      &= 0x7FFF;
+        work->obj270.flags      |= 0x4000;
         Actor04000_Fn00E6C(arg1);
         work->field_6 = 0;
         return;
@@ -1626,16 +1626,16 @@ void Actor04000_Fn049C0(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                 = arg1->extra;
-        arg0->node.flags    = 0;
-        obj->flags          = 0;
-        work->field_174     = 2;
-        work->field_170     = 1;
-        work->field_178     = 0;
-        work->obj350.flags |= 0x8000;
-        work->obj388.flags &= 0x7FFF;
-        work->obj3C0.flags &= 0x7FFF;
-        work->obj270.flags |= 0x4000;
+        obj                      = arg1->extra;
+        arg0->node.state.b.flags = 0;
+        obj->flags               = 0;
+        work->field_174          = 2;
+        work->field_170          = 1;
+        work->field_178          = 0;
+        work->obj350.flags      |= 0x8000;
+        work->obj388.flags      &= 0x7FFF;
+        work->obj3C0.flags      &= 0x7FFF;
+        work->obj270.flags      |= 0x4000;
         Actor04000_Fn00E6C(arg1);
         work->field_494 = 0;
         return;
@@ -1762,7 +1762,7 @@ void Actor04000_Fn0522C(GpEnemy* arg0, Task* arg1)
         work->obj388.flags              &= 0x7FFF;
         work->obj3C0.flags              &= 0x7FFF;
         work->obj270.flags              |= 0x4000;
-        arg0->node.flags                 = 0;
+        arg0->node.state.b.flags         = 0;
         work->field_174                  = 3;
         work->field_170                  = 2;
         work->field_178                  = 0;
@@ -1809,11 +1809,11 @@ void Actor04000_Fn0522C(GpEnemy* arg0, Task* arg1)
     ((TmdObject*)arg1->extra)->coords->flg = 0;
     Actor04000_Fn00E6C(arg1);
     if ((u8)Gp_GetViewIndex() == 5) {
-        arg0->node.flags = 1;
+        arg0->node.state.b.flags = 1;
         Gp_ClearNodeSlots(&((GpEnemy*)arg0)->node);
         return;
     }
-    arg0->node.flags = 0;
+    arg0->node.state.b.flags = 0;
 }
 
 /// Restarts the actor when `field_4` is set; otherwise runs state 0xC (drop the
@@ -1835,7 +1835,7 @@ void Actor04000_Fn055C8(GpEnemy* arg0, Task* arg1)
         work->obj388.flags              &= 0x7FFF;
         work->obj3C0.flags              &= 0x7FFF;
         work->obj270.flags              &= 0xBFFF;
-        arg0->node.flags                 = 0;
+        arg0->node.state.b.flags         = 0;
         work->field_174                  = 0xC;
         work->field_170                  = 2;
         work->field_178                  = 0;
@@ -1942,7 +1942,7 @@ void Actor04000_Fn05AE8(GpEnemy* arg0, Task* arg1)
         work->obj388.flags              &= 0x7FFF;
         work->obj3C0.flags              &= 0x7FFF;
         work->obj270.flags              &= 0xBFFF;
-        arg0->node.flags                 = 0;
+        arg0->node.state.b.flags         = 0;
         work->field_174                  = 0xB;
         work->field_170                  = 2;
         work->field_178                  = 0;
@@ -2282,12 +2282,12 @@ void Actor04000_Fn06878(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                = arg1->extra;
-        arg0->node.flags   = 0;
-        obj->flags         = 0;
-        work->field_176    = 0x10;
-        work->field_178    = 0;
-        work->obj270.flags = (u16)(work->obj270.flags | 0x4000);
+        obj                      = arg1->extra;
+        arg0->node.state.b.flags = 0;
+        obj->flags               = 0;
+        work->field_176          = 0x10;
+        work->field_178          = 0;
+        work->obj270.flags       = (u16)(work->obj270.flags | 0x4000);
         Actor04000_Fn00E6C(arg1);
         work->field_6 = 0;
         return;
@@ -2315,14 +2315,14 @@ void Actor04000_Fn06994(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                                     = arg1->extra;
-        ((GpEnemy*)arg1->spawnArg2)->node.flags = 0;
-        obj->flags                              = 0;
-        work->field_170                         = 2;
-        work->field_176                         = 0x10;
-        work->field_178                         = 0;
-        work->field_174                         = 0xF;
-        work->obj270.flags                      = (u16)(work->obj270.flags | 0x4000);
+        obj                                             = arg1->extra;
+        ((GpEnemy*)arg1->spawnArg2)->node.state.b.flags = 0;
+        obj->flags                                      = 0;
+        work->field_170                                 = 2;
+        work->field_176                                 = 0x10;
+        work->field_178                                 = 0;
+        work->field_174                                 = 0xF;
+        work->obj270.flags                              = (u16)(work->obj270.flags | 0x4000);
         Actor04000_Fn00E6C(arg1);
         work->field_6   = 0;
         work->field_47A = (u8)(work->field_47A + 1);
@@ -2347,13 +2347,13 @@ void Actor04000_Fn06A5C(GpEnemy* enemy, Task* task)
 
     work = (Actor104000Work*)task->work;
     if (work->field_4 != 0) {
-        obj                = task->extra;
-        enemy->node.flags  = 1;
-        obj->flags         = (u16)(obj->flags | 0x80);
-        work->obj350.flags = (u16)(work->obj350.flags & 0x7FFF);
-        work->obj388.flags = (u16)(work->obj388.flags & 0x7FFF);
-        work->obj3C0.flags = (u16)(work->obj3C0.flags & 0x7FFF);
-        work->obj270.flags = (u16)(work->obj270.flags & 0xBFFF);
+        obj                       = task->extra;
+        enemy->node.state.b.flags = 1;
+        obj->flags                = (u16)(obj->flags | 0x80);
+        work->obj350.flags        = (u16)(work->obj350.flags & 0x7FFF);
+        work->obj388.flags        = (u16)(work->obj388.flags & 0x7FFF);
+        work->obj3C0.flags        = (u16)(work->obj3C0.flags & 0x7FFF);
+        work->obj270.flags        = (u16)(work->obj270.flags & 0xBFFF);
     }
 }
 
@@ -2365,29 +2365,29 @@ void Actor04000_Fn06AC4(GpEnemy* arg0, Task* arg1)
     work = arg1->work;
     obj  = arg1->extra;
     if (work->field_4 != 0) {
-        arg0->node.flags    = 1;
-        obj->flags          = 0x80;
-        work->field_174     = 1;
-        work->field_170     = 2;
-        work->obj350.flags &= 0x7FFF;
-        work->obj388.flags &= 0x7FFF;
-        work->obj3C0.flags &= 0x7FFF;
-        work->obj270.flags &= 0xBFFF;
+        arg0->node.state.b.flags = 1;
+        obj->flags               = 0x80;
+        work->field_174          = 1;
+        work->field_170          = 2;
+        work->obj350.flags      &= 0x7FFF;
+        work->obj388.flags      &= 0x7FFF;
+        work->obj3C0.flags      &= 0x7FFF;
+        work->obj270.flags      &= 0xBFFF;
         return;
     }
     Actor04000_Fn00E6C(arg1);
     switch (arg0->placeKey >> 12) {
         case 6:
         case 7:
-            arg0->node.flags = 0;
-            obj->flags       = 0;
+            arg0->node.state.b.flags = 0;
+            obj->flags               = 0;
             break;
         case 3:
         case 4:
         case 5:
         default:
-            arg0->node.flags = 1;
-            obj->flags       = 0x80;
+            arg0->node.state.b.flags = 1;
+            obj->flags               = 0x80;
             break;
     }
     if (Gp_StateF0.field_0 == 1) {
@@ -2402,16 +2402,16 @@ void Actor04000_Fn06BC8(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                 = arg1->extra;
-        arg0->node.flags    = 0;
-        obj->flags          = 0;
-        work->field_174     = 4;
-        work->field_170     = 1;
-        work->field_178     = 0;
-        work->obj350.flags |= 0x8000;
-        work->obj388.flags &= 0x7FFF;
-        work->obj3C0.flags &= 0x7FFF;
-        work->obj270.flags |= 0x4000;
+        obj                      = arg1->extra;
+        arg0->node.state.b.flags = 0;
+        obj->flags               = 0;
+        work->field_174          = 4;
+        work->field_170          = 1;
+        work->field_178          = 0;
+        work->obj350.flags      |= 0x8000;
+        work->obj388.flags      &= 0x7FFF;
+        work->obj3C0.flags      &= 0x7FFF;
+        work->obj270.flags      |= 0x4000;
         Actor04000_Fn00E6C(arg1);
         return;
     }
@@ -2428,16 +2428,16 @@ void Actor04000_Fn06C80(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                 = arg1->extra;
-        arg0->node.flags    = 0;
-        obj->flags          = 0;
-        work->field_174     = 6;
-        work->field_170     = 1;
-        work->field_178     = 0;
-        work->obj350.flags |= 0x8000;
-        work->obj388.flags &= 0x7FFF;
-        work->obj3C0.flags &= 0x7FFF;
-        work->obj270.flags |= 0x4000;
+        obj                      = arg1->extra;
+        arg0->node.state.b.flags = 0;
+        obj->flags               = 0;
+        work->field_174          = 6;
+        work->field_170          = 1;
+        work->field_178          = 0;
+        work->obj350.flags      |= 0x8000;
+        work->obj388.flags      &= 0x7FFF;
+        work->obj3C0.flags      &= 0x7FFF;
+        work->obj270.flags      |= 0x4000;
         Actor04000_Fn00E6C(arg1);
         return;
     }
@@ -2455,7 +2455,7 @@ void Actor04000_Fn06D38(GpEnemy* arg0, Task* arg1)
     work = arg1->work;
     if (work->field_4 != 0) {
         ((TmdObject*)arg1->extra)->flags = 0;
-        arg0->node.flags                 = 5;
+        arg0->node.state.b.flags         = 5;
         work->field_174                  = 1;
         work->field_170                  = 2;
         work->field_178                  = 0;
@@ -2518,7 +2518,7 @@ void Actor04000_Fn06F54(Task* arg0)
     if (Gp_StateF0.field_0 == 1) {
         for (i = 0; i < 6; i++) {
             if (Actor04000_D0C718[i] != NULL) {
-                ((GpEnemy*)Actor04000_D0C718[i]->spawnArg2)->node.flags = 0;
+                ((GpEnemy*)Actor04000_D0C718[i]->spawnArg2)->node.state.b.flags = 0;
             }
         }
         arg0->state++;

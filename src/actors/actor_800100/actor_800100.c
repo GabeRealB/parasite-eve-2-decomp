@@ -1354,7 +1354,7 @@ void func_actor_800100_801643F4(Task* arg0)
     node     = actor->field_90C;
     src      = extra->coords;
     if (node != NULL) {
-        if (!(node->flags & 1)) {
+        if (!(node->state.b.flags & 1)) {
             Gp_GetLockPos(node, pos);
         } else {
             actor->field_95E = 2;
@@ -1422,7 +1422,7 @@ void func_actor_800100_80164580(Task* arg0)
     switch (actor->field_95E) {
         case 0:
             if (actor->field_90C != NULL) {
-                if (actor->field_90C->flags & 1) {
+                if (actor->field_90C->state.b.flags & 1) {
                     actor->field_90C = Gp_FindLockNodePad(arg0);
                 }
                 Gp_GetLockPos(actor->field_90C, pos);
@@ -1511,7 +1511,7 @@ void func_actor_800100_80164710(Task* arg0)
             if (dist < 0x181) {
                 actor->field_95E += 1;
             block_10:
-                if (((s8)d4->repeatCount <= 0) || (node = actor->field_90C, node == NULL) || (node->flags & 1)) {
+                if (((s8)d4->repeatCount <= 0) || (node = actor->field_90C, node == NULL) || (node->state.b.flags & 1)) {
                     // Stored through a plain pointer: the member-access spelling schedules differently.
                     *(GpLinkNode**)&actor->field_90C = NULL;
                     actor->field_97E                 = 1;
@@ -1706,7 +1706,7 @@ void func_actor_800100_80164B9C(Task* arg0)
     block    = (Actor800100LockScratch*)(head - 0x20);
     node     = actor->field_90C;
     if (node != NULL) {
-        if ((node->flags & 1) == 0) {
+        if ((node->state.b.flags & 1) == 0) {
             Gp_GetLockPos(node, &block->lock);
         } else {
             actor->field_95E = 2;

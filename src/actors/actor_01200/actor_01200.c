@@ -503,7 +503,7 @@ void Actor01200_Fn00A6C(GpEnemy* arg0, Task* arg1)
     arg0->bodyPos.vz = 0;
     arg0->coord      = ((TmdObject*)arg1->extra)->coords + 2;
     Gp_LinkNode(&arg0->node);
-    arg0->node.flags = 1;
+    arg0->node.state.b.flags = 1;
     arg0->hp = arg0->hpMax = 1;
     arg0->reactionFlags    = 0;
     arg0->hp = arg0->hpMax = Actor01200_D04034.hpMax;
@@ -578,16 +578,16 @@ void Actor01200_Fn01040(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                 = arg1->extra;
-        arg0->node.flags    = 0;
-        obj->flags          = 0;
-        work->field_174     = 5;
-        work->field_170     = 1;
-        work->field_178     = 0;
-        work->obj2C8.flags |= 0x8000;
-        work->obj300.flags &= 0x7FFF;
-        work->obj338.flags &= 0x7FFF;
-        work->obj230.flags |= 0x4000;
+        obj                      = arg1->extra;
+        arg0->node.state.b.flags = 0;
+        obj->flags               = 0;
+        work->field_174          = 5;
+        work->field_170          = 1;
+        work->field_178          = 0;
+        work->obj2C8.flags      |= 0x8000;
+        work->obj300.flags      &= 0x7FFF;
+        work->obj338.flags      &= 0x7FFF;
+        work->obj230.flags      |= 0x4000;
         Actor01200_Fn00820(arg1);
         return;
     }
@@ -621,16 +621,16 @@ void Actor01200_Fn01234(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                 = arg1->extra;
-        arg0->node.flags    = 0;
-        obj->flags          = 0;
-        work->field_174     = 3;
-        work->field_170     = 1;
-        work->field_178     = 0x10;
-        work->obj2C8.flags |= 0x8000;
-        work->obj300.flags &= 0x7FFF;
-        work->obj338.flags &= 0x7FFF;
-        work->obj230.flags |= 0x4000;
+        obj                      = arg1->extra;
+        arg0->node.state.b.flags = 0;
+        obj->flags               = 0;
+        work->field_174          = 3;
+        work->field_170          = 1;
+        work->field_178          = 0x10;
+        work->obj2C8.flags      |= 0x8000;
+        work->obj300.flags      &= 0x7FFF;
+        work->obj338.flags      &= 0x7FFF;
+        work->obj230.flags      |= 0x4000;
         Actor01200_Fn00820(arg1);
         work->field_3DC = 0;
         Gp_ArmStateF0(1);
@@ -723,19 +723,19 @@ void Actor01200_Fn017DC(GpEnemy* arg0, Task* arg1)
     obj  = arg1->extra;
     memset(&ofs, 0, 8);
     if (work->field_4 != 0) {
-        arg0->node.flags    = 1;
-        obj->flags          = 0;
-        work->obj2C8.flags &= 0x7FFF;
-        work->obj300.flags &= 0x7FFF;
-        work->obj338.flags &= 0x7FFF;
-        work->obj300.key    = Gp_PackObjPair(arg0, 0);
-        work->obj338.key    = 0x22121;
-        work->field_6       = 0;
-        work->obj230.flags |= 0x4000;
-        work->savedColorMtx = work->colorMtx;
-        work->field_174     = 0xA;
-        work->field_170     = 1;
-        work->field_178     = 8;
+        arg0->node.state.b.flags = 1;
+        obj->flags               = 0;
+        work->obj2C8.flags      &= 0x7FFF;
+        work->obj300.flags      &= 0x7FFF;
+        work->obj338.flags      &= 0x7FFF;
+        work->obj300.key         = Gp_PackObjPair(arg0, 0);
+        work->obj338.key         = 0x22121;
+        work->field_6            = 0;
+        work->obj230.flags      |= 0x4000;
+        work->savedColorMtx      = work->colorMtx;
+        work->field_174          = 0xA;
+        work->field_170          = 1;
+        work->field_178          = 8;
         Actor01200_Fn00820(arg1);
         work->obj338.pos.vx = ((TmdObject*)arg1->extra)->coords->coord.t[0];
         work->obj338.pos.vy = ((TmdObject*)arg1->extra)->coords->coord.t[1] - 0x190;
@@ -853,20 +853,20 @@ void Actor01200_Fn01FDC(GpEnemy* arg0, Task* arg1)
     work = arg1->work;
     obj  = arg1->extra;
     if (work->field_4 != 0) {
-        arg0->node.flags    = 1;
-        obj->flags          = 0;
-        work->obj2C8.flags &= 0x7FFF;
-        work->obj300.flags &= 0x7FFF;
-        work->obj338.flags &= 0x7FFF;
-        work->obj300.key    = Gp_PackObjPair(arg0, 0);
-        work->obj338.key    = 0x22121;
-        work->field_6       = 0;
-        work->obj230.flags &= 0xBFFF;
-        work->savedColorMtx = work->colorMtx;
-        work->field_174     = 0xA;
-        work->field_170     = 1;
-        work->field_178     = 0;
-        work->field_176     = 0x2C;
+        arg0->node.state.b.flags = 1;
+        obj->flags               = 0;
+        work->obj2C8.flags      &= 0x7FFF;
+        work->obj300.flags      &= 0x7FFF;
+        work->obj338.flags      &= 0x7FFF;
+        work->obj300.key         = Gp_PackObjPair(arg0, 0);
+        work->obj338.key         = 0x22121;
+        work->field_6            = 0;
+        work->obj230.flags      &= 0xBFFF;
+        work->savedColorMtx      = work->colorMtx;
+        work->field_174          = 0xA;
+        work->field_170          = 1;
+        work->field_178          = 0;
+        work->field_176          = 0x2C;
         Actor01200_Fn00820(arg1);
         work->obj338.pos.vx = ((TmdObject*)arg1->extra)->coords->coord.t[0];
         work->obj338.pos.vy = ((TmdObject*)arg1->extra)->coords->coord.t[1] - 0x190;
@@ -1119,17 +1119,17 @@ void Actor01200_Fn02BE8(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                 = arg1->extra;
-        arg0->node.flags    = 0;
-        obj->flags          = 0;
-        work->field_174     = 2;
-        work->field_170     = 1;
-        work->field_178     = 0;
-        work->patrolIdx     = 0;
-        work->obj2C8.flags |= 0x8000;
-        work->obj300.flags &= 0x7FFF;
-        work->obj338.flags &= 0x7FFF;
-        work->obj230.flags |= 0x4000;
+        obj                      = arg1->extra;
+        arg0->node.state.b.flags = 0;
+        obj->flags               = 0;
+        work->field_174          = 2;
+        work->field_170          = 1;
+        work->field_178          = 0;
+        work->patrolIdx          = 0;
+        work->obj2C8.flags      |= 0x8000;
+        work->obj300.flags      &= 0x7FFF;
+        work->obj338.flags      &= 0x7FFF;
+        work->obj230.flags      |= 0x4000;
         Actor01200_Fn00820(arg1);
         work->field_6 = 0;
         return;
@@ -1202,16 +1202,16 @@ void Actor01200_Fn03294(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                 = arg1->extra;
-        arg0->node.flags    = 0;
-        obj->flags          = 0;
-        work->field_174     = 2;
-        work->field_170     = 1;
-        work->field_178     = 0;
-        work->obj2C8.flags |= 0x8000;
-        work->obj300.flags &= 0x7FFF;
-        work->obj338.flags &= 0x7FFF;
-        work->obj230.flags |= 0x4000;
+        obj                      = arg1->extra;
+        arg0->node.state.b.flags = 0;
+        obj->flags               = 0;
+        work->field_174          = 2;
+        work->field_170          = 1;
+        work->field_178          = 0;
+        work->obj2C8.flags      |= 0x8000;
+        work->obj300.flags      &= 0x7FFF;
+        work->obj338.flags      &= 0x7FFF;
+        work->obj230.flags      |= 0x4000;
         Actor01200_Fn00820(arg1);
         work->field_3DC = 0;
         work->field_6   = 0;
@@ -1477,13 +1477,13 @@ void Actor01200_Fn03D58(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                = arg1->extra;
-        arg0->node.flags   = 1;
-        obj->flags         = (u16)(obj->flags | 0x80);
-        work->obj2C8.flags = (u16)(work->obj2C8.flags & 0x7FFF);
-        work->obj300.flags = (u16)(work->obj300.flags & 0x7FFF);
-        work->obj338.flags = (u16)(work->obj338.flags & 0x7FFF);
-        work->obj230.flags = (u16)(work->obj230.flags & 0xBFFF);
+        obj                      = arg1->extra;
+        arg0->node.state.b.flags = 1;
+        obj->flags               = (u16)(obj->flags | 0x80);
+        work->obj2C8.flags       = (u16)(work->obj2C8.flags & 0x7FFF);
+        work->obj300.flags       = (u16)(work->obj300.flags & 0x7FFF);
+        work->obj338.flags       = (u16)(work->obj338.flags & 0x7FFF);
+        work->obj230.flags       = (u16)(work->obj230.flags & 0xBFFF);
     }
 }
 
@@ -1498,16 +1498,16 @@ void Actor01200_Fn03DC0(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                 = arg1->extra;
-        arg0->node.flags    = 0;
-        obj->flags          = 0;
-        work->field_174     = 4;
-        work->field_170     = 1;
-        work->field_178     = 0;
-        work->obj2C8.flags |= 0x8000;
-        work->obj300.flags &= 0x7FFF;
-        work->obj338.flags &= 0x7FFF;
-        work->obj230.flags |= 0x4000;
+        obj                      = arg1->extra;
+        arg0->node.state.b.flags = 0;
+        obj->flags               = 0;
+        work->field_174          = 4;
+        work->field_170          = 1;
+        work->field_178          = 0;
+        work->obj2C8.flags      |= 0x8000;
+        work->obj300.flags      &= 0x7FFF;
+        work->obj338.flags      &= 0x7FFF;
+        work->obj230.flags      |= 0x4000;
         Actor01200_Fn00820(arg1);
         return;
     }
@@ -1528,16 +1528,16 @@ void Actor01200_Fn03E78(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                 = arg1->extra;
-        arg0->node.flags    = 0;
-        obj->flags          = 0;
-        work->field_174     = 6;
-        work->field_170     = 1;
-        work->field_178     = 0;
-        work->obj2C8.flags |= 0x8000;
-        work->obj300.flags &= 0x7FFF;
-        work->obj338.flags &= 0x7FFF;
-        work->obj230.flags |= 0x4000;
+        obj                      = arg1->extra;
+        arg0->node.state.b.flags = 0;
+        obj->flags               = 0;
+        work->field_174          = 6;
+        work->field_170          = 1;
+        work->field_178          = 0;
+        work->obj2C8.flags      |= 0x8000;
+        work->obj300.flags      &= 0x7FFF;
+        work->obj338.flags      &= 0x7FFF;
+        work->obj230.flags      |= 0x4000;
         Actor01200_Fn00820(arg1);
         return;
     }
@@ -1557,16 +1557,16 @@ void Actor01200_Fn03F30(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                 = arg1->extra;
-        arg0->node.flags    = 0;
-        obj->flags          = 0;
-        work->field_174     = 2;
-        work->field_170     = 1;
-        work->field_178     = 0;
-        work->obj2C8.flags |= 0x8000;
-        work->obj300.flags &= 0x7FFF;
-        work->obj338.flags &= 0x7FFF;
-        work->obj230.flags |= 0x4000;
+        obj                      = arg1->extra;
+        arg0->node.state.b.flags = 0;
+        obj->flags               = 0;
+        work->field_174          = 2;
+        work->field_170          = 1;
+        work->field_178          = 0;
+        work->obj2C8.flags      |= 0x8000;
+        work->obj300.flags      &= 0x7FFF;
+        work->obj338.flags      &= 0x7FFF;
+        work->obj230.flags      |= 0x4000;
     }
     Actor01200_Fn00820(arg1);
     ((TmdObject*)arg1->extra)->coords->flg = 0;

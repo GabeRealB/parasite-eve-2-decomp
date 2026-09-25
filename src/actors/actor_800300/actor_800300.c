@@ -524,7 +524,7 @@ void func_actor_800300_80162A98(Task* arg0)
     node              = actor->field_90C;
     src               = extra->coords;
     if (node != NULL) {
-        if (!(node->flags & 1)) {
+        if (!(node->state.b.flags & 1)) {
             Gp_GetLockPos(node, vec);
         } else {
             actor->field_95E = 2;
@@ -622,7 +622,7 @@ void func_actor_800300_80162D74(Task* arg0)
     actor             = arg0->work;
     lock              = actor->field_90C;
     if (lock != NULL) {
-        if (!(lock->flags & 1)) {
+        if (!(lock->state.b.flags & 1)) {
             Gp_GetLockPos(lock, vec);
         } else {
             actor->field_95E = 2;

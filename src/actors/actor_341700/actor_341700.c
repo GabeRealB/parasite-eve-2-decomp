@@ -516,14 +516,14 @@ void func_actor_341700_80162974(Task* task)
     w->field_7A = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
     enemy       = task->spawnArg2;
     Gp_LinkNode(&enemy->node);
-    enemy->field_4    = &((TmdObject*)task->extra)->coords->coord;
-    enemy->field_48   = 0;
-    enemy->bodyPos.vx = 0;
-    enemy->bodyPos.vy = 0;
-    enemy->bodyPos.vz = 0;
-    enemy->coord      = &((TmdObject*)task->extra)->coords[1];
-    enemy->node.flags = 4;
-    one               = 1;
+    enemy->field_4            = &((TmdObject*)task->extra)->coords->coord;
+    enemy->field_48           = 0;
+    enemy->bodyPos.vx         = 0;
+    enemy->bodyPos.vy         = 0;
+    enemy->bodyPos.vz         = 0;
+    enemy->coord              = &((TmdObject*)task->extra)->coords[1];
+    enemy->node.state.b.flags = 4;
+    one                       = 1;
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
     if ((task->spawnArg1 & 0xF) == one) {
         w3            = (Actor341700Work*)task->work;
@@ -613,24 +613,24 @@ void func_actor_341700_80162B8C(Task* task)
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
     e2 = task->spawnArg2;
     Gp_LinkNode(&e2->node);
-    e2->field_4          = &((TmdObject*)task->extra)->coords->coord;
-    e2->field_48         = 0;
-    e2->bodyPos.vx       = 0;
-    e2->bodyPos.vy       = 0;
-    e2->bodyPos.vz       = 0;
-    e2->coord            = &((TmdObject*)task->extra)->coords[1];
-    e2->node.flags       = 1;
-    work->field_80       = root->coord.t[0];
-    root->coord.t[1]    -= 0x3C;
-    work->field_82       = root->coord.t[1];
-    work->field_84       = root->coord.t[2];
-    work->field_451      = 1;
-    work->obj_2AC.flags &= 0x7FFF;
-    work->obj_2CC.flags &= 0xBFFF;
-    w3                   = (Actor341700Work*)task->work;
-    task->state          = 6;
-    w3->field_420        = 0;
-    w3->field_422        = 0;
+    e2->field_4            = &((TmdObject*)task->extra)->coords->coord;
+    e2->field_48           = 0;
+    e2->bodyPos.vx         = 0;
+    e2->bodyPos.vy         = 0;
+    e2->bodyPos.vz         = 0;
+    e2->coord              = &((TmdObject*)task->extra)->coords[1];
+    e2->node.state.b.flags = 1;
+    work->field_80         = root->coord.t[0];
+    root->coord.t[1]      -= 0x3C;
+    work->field_82         = root->coord.t[1];
+    work->field_84         = root->coord.t[2];
+    work->field_451        = 1;
+    work->obj_2AC.flags   &= 0x7FFF;
+    work->obj_2CC.flags   &= 0xBFFF;
+    w3                     = (Actor341700Work*)task->work;
+    task->state            = 6;
+    w3->field_420          = 0;
+    w3->field_422          = 0;
 }
 
 /// Moves the task to `state` with a fresh state machine.
@@ -2104,8 +2104,8 @@ void func_actor_341700_80166114(Task* arg0)
             Tmd_AllocBuffers(obj);
             obj->flags &= 0xFFFB;
         }
-        enemy->node.flags = 0;
-        map               = *(u32*)&gGameSession->at4.loc & 0xFFFF0000;
+        enemy->node.state.b.flags = 0;
+        map                       = *(u32*)&gGameSession->at4.loc & 0xFFFF0000;
         if (map == 0x4270000) {
             // The 7C store follows 7A here; written first, it schedules
             // ahead of the heading load.

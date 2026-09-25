@@ -825,9 +825,9 @@ void func_actor_400500_80132E94(Task* arg0)
                     work->field_A24 = (u16)work->field_A24 + ((s16) - (u16)work->field_A24 >> 2);
                     work->field_A28 = (u16)work->field_A28 + (-work->field_A28 >> 2);
                     if (work->field_A24 == 0) {
-                        enemy->node.flags = 1;
+                        enemy->node.state.b.flags = 1;
                         if ((u8)work->field_A4C == 0) {
-                            enemy->node.flags = 5;
+                            enemy->node.state.b.flags = 5;
                         }
                         work->field_A28 = 0;
                         work->field_A46 = 0;
@@ -839,9 +839,9 @@ void func_actor_400500_80132E94(Task* arg0)
         } else {
             switch (work->field_A47) {
                 case 0:
-                    enemy->node.flags = 0;
+                    enemy->node.state.b.flags = 0;
                     if ((u8)work->field_A4C == 0) {
-                        enemy->node.flags = 4;
+                        enemy->node.state.b.flags = 4;
                     }
                     extra->flags   &= ~0x80;
                     work->field_A24 = (u16)work->field_A24 + ((s16)(0x1000 - (u16)work->field_A24) >> 2);
@@ -2046,9 +2046,9 @@ void func_actor_400500_80135414(Task* arg0)
     enemy->bodyPos.vz = 0;
     enemy->coord      = &((TmdObject*)arg0->extra)->coords[3];
     Gp_LinkNode(&enemy->node);
-    enemy->node.flags = 1;
-    enemy->recs       = (s32)work->rec0;
-    enemy->param      = &D_actor_400500_80153C90;
+    enemy->node.state.b.flags = 1;
+    enemy->recs               = (s32)work->rec0;
+    enemy->param              = &D_actor_400500_80153C90;
     enemy->hp = enemy->hpMax = D_actor_400500_80153C90.hpMax;
     func_800B3F84(&work->anim, D_actor_400500_80153CC0, extra, work->pad_2E4,
                   work->slots);

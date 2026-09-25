@@ -794,13 +794,13 @@ void func_actor_107600_80132ED0(Task* arg0)
     enemy->hp             = hp;
     func_actor_107600_80134958(arg0);
     Gp_LinkNode(&enemy->node);
-    enemy->field_4    = &coord->workm;
-    enemy->bodyPos.vy = -0x244;
-    enemy->field_48   = 0;
-    enemy->bodyPos.vx = 0;
-    enemy->bodyPos.vz = 0;
-    enemy->coord      = coord;
-    enemy->node.flags = 1;
+    enemy->field_4            = &coord->workm;
+    enemy->bodyPos.vy         = -0x244;
+    enemy->field_48           = 0;
+    enemy->bodyPos.vx         = 0;
+    enemy->bodyPos.vz         = 0;
+    enemy->coord              = coord;
+    enemy->node.state.b.flags = 1;
     func_actor_107600_80134E5C(coord);
     coord->flg = 0;
     Gp_UpdateCoord(coord);
@@ -939,8 +939,8 @@ void func_actor_107600_801332D4(Task* arg0)
                     work->field_15A++;
                     arg0->spawnArg1 |= 0x20;
                     Gp_SetLightMode(enemy, 0);
-                    enemy->node.flags = 4;
-                    work->obj.flags  |= 0x8000;
+                    enemy->node.state.b.flags = 4;
+                    work->obj.flags          |= 0x8000;
                 }
             }
         case 5:

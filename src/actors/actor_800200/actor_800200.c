@@ -1216,7 +1216,7 @@ void func_actor_800200_80164180(Task* arg0)
     vec               = (VECTOR3*)tmp;
     node              = actor->field_90C;
     if (node != NULL) {
-        if (!(node->flags & 1)) {
+        if (!(node->state.b.flags & 1)) {
             Gp_GetLockPos(node, vec);
         } else {
             actor->field_95E = 2;
@@ -1297,7 +1297,7 @@ void func_actor_800200_8016436C(Task* arg0)
     if (actor->field_90C != NULL) {
         node             = Gp_FindLockNode(arg0);
         actor->field_90C = node;
-        if ((node != NULL) && !(node->flags & 1)) {
+        if ((node != NULL) && !(node->state.b.flags & 1)) {
             Gp_GetLockPos(node, vec);
         } else {
             d4->repeatCount = 1;
@@ -1452,7 +1452,7 @@ void func_actor_800200_801647A8(Task* arg0)
             if (Gp_StateF0.field_0 == 1) {
                 node             = Gp_FindLockNode(arg0);
                 actor->field_90C = node;
-                if ((node != NULL) && !(node->flags & 1)) {
+                if ((node != NULL) && !(node->state.b.flags & 1)) {
                     Gp_GetLockPos(node, vec);
                     dist = func_80103DD4((VECTOR3*)coord->coord.t, vec);
                     dist = dist / 640;

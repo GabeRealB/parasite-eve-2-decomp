@@ -1343,9 +1343,9 @@ void func_actor_510900_801355B4(GpEnemy* arg0, Task* arg1)
     s32              pan2;
     s32              i;
 
-    work             = arg1->work;
-    coord            = ((TmdObject*)arg1->extra)->coords;
-    arg0->node.flags = 1;
+    work                     = arg1->work;
+    coord                    = ((TmdObject*)arg1->extra)->coords;
+    arg0->node.state.b.flags = 1;
     if (work->field_586 == 0x20 && work->field_58A == 0xD2) {
         work->field_594 = 1;
         work->field_598 = 0xFF;

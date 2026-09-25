@@ -7271,14 +7271,14 @@ add_hp:
 
 void func_800A4904(s32 arg0)
 {
-    GpLinkXform* node;
-    GpEnemy*     enemy;
-    GpEnemy*     claim;
-    u16          val;
-    s32          idx;
+    GpLinkNode* node;
+    GpEnemy*    enemy;
+    GpEnemy*    claim;
+    u16         val;
+    s32         idx;
 
-    for (node = (GpLinkXform*)Gp_LinkList; node != NULL; node = node->next) {
-        if ((node->field_4 & 5) != 1) {
+    for (node = Gp_LinkList; node != NULL; node = node->next) {
+        if ((node->state.word & 5) != 1) {
             enemy = GP_NODE_ENEMY(node);
             claim = enemy;
             if (arg0 == 0) {
@@ -7465,27 +7465,27 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 
 void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    SVECTOR*     vec;
-    GpLinkXform* node;
-    GpEnemy*     enemy;
-    GpEnemy*     claim;
-    s32          rx2;
-    s32          ry2;
-    s32          temp_y;
-    s32          temp_x;
-    s32          idx;
-    u16          val;
-    s32          packed;
-    s32          tmp;
-    s32          t;
-    s32          x;
-    s32          y;
-    s32          x2;
-    s32          y2;
-    s32          z2;
-    s32          scaled;
-    void**       scratch;
-    u8*          head;
+    SVECTOR*    vec;
+    GpLinkNode* node;
+    GpEnemy*    enemy;
+    GpEnemy*    claim;
+    s32         rx2;
+    s32         ry2;
+    s32         temp_y;
+    s32         temp_x;
+    s32         idx;
+    u16         val;
+    s32         packed;
+    s32         tmp;
+    s32         t;
+    s32         x;
+    s32         y;
+    s32         x2;
+    s32         y2;
+    s32         z2;
+    s32         scaled;
+    void**      scratch;
+    u8*         head;
 
     if (arg0 == 0) {
         if (arg3 == 0) {
@@ -7502,7 +7502,7 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
-    node     = (GpLinkXform*)Gp_LinkList;
+    node     = Gp_LinkList;
     head    -= 8;
     *scratch = head;
     vec      = (SVECTOR*)head;
@@ -7511,10 +7511,10 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 
     if (node != NULL) {
         do {
-            if ((node->field_4 & 5) != 1) {
-                vec->vx = *(u16*)&node->dst.vx;
-                vec->vy = *(u16*)&node->dst.vy;
-                vec->vz = *(u16*)&node->dst.vz;
+            if ((node->state.word & 5) != 1) {
+                vec->vx = *(u16*)&GP_NODE_ENEMY(node)->playerRelPos.vx;
+                vec->vy = *(u16*)&GP_NODE_ENEMY(node)->playerRelPos.vy;
+                vec->vz = *(u16*)&GP_NODE_ENEMY(node)->playerRelPos.vz;
                 if (arg3 != 0) {
                     vec->vz -= arg1;
                 }
@@ -7572,15 +7572,15 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 
 void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    SVECTOR*     vec;
-    GpLinkXform* node;
-    GpEnemy*     enemy;
-    GpEnemy*     claim;
-    u16          val;
-    s32          idx;
-    s32          t;
-    void*        work;
-    u8*          head;
+    SVECTOR*    vec;
+    GpLinkNode* node;
+    GpEnemy*    enemy;
+    GpEnemy*    claim;
+    u16         val;
+    s32         idx;
+    s32         t;
+    void*       work;
+    u8*         head;
 
     if (arg0 == 0) {
         if (arg3 == 0) {
@@ -7594,17 +7594,17 @@ void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     arg2         += 0x64;
     work          = G_SCRATCH_HEAD;
     head          = *(void**)work;
-    node          = (GpLinkXform*)Gp_LinkList;
+    node          = Gp_LinkList;
     head         -= 8;
     *(void**)work = head;
     vec           = (SVECTOR*)head;
 
     if (node != NULL) {
         do {
-            if ((node->field_4 & 5) != 1) {
-                vec->vx = *(u16*)&node->dst.vx;
-                vec->vy = *(u16*)&node->dst.vy;
-                vec->vz = *(u16*)&node->dst.vz;
+            if ((node->state.word & 5) != 1) {
+                vec->vx = *(u16*)&GP_NODE_ENEMY(node)->playerRelPos.vx;
+                vec->vy = *(u16*)&GP_NODE_ENEMY(node)->playerRelPos.vy;
+                vec->vz = *(u16*)&GP_NODE_ENEMY(node)->playerRelPos.vz;
                 if (arg3 != 0) {
                     vec->vz -= arg1;
                 }
@@ -8056,7 +8056,7 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
     u8*             head;
     GpXformScratch* block;
     SVECTOR*        vec;
-    GpLinkXform*    node;
+    GpLinkNode*     node;
     s32             mode;
     s32             x;
     s32             cx;
@@ -8080,7 +8080,7 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
     func_800A63B4(cx, cy, 0);
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
-    node     = (GpLinkXform*)Gp_LinkList;
+    node     = Gp_LinkList;
     newhead  = head - 0x48;
     block    = (GpXformScratch*)newhead;
     *scratch = newhead;
@@ -8088,9 +8088,9 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
     if (node != NULL) {
         vec = (SVECTOR*)(head - 8);
         do {
-            if ((node->field_4 & 5) != 1) {
-                block->vec.vx = *(u16*)&node->dst.vx;
-                block->vec.vz = *(u16*)&node->dst.vz;
+            if ((node->state.word & 5) != 1) {
+                block->vec.vx = *(u16*)&GP_NODE_ENEMY(node)->playerRelPos.vx;
+                block->vec.vz = *(u16*)&GP_NODE_ENEMY(node)->playerRelPos.vz;
                 block->vec.vy = 0;
                 if (mode == 0) {
                     gte_lddp(0x1555);
@@ -8103,7 +8103,7 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
                     gte_gpf12();
                     gte_stsv(vec);
                 }
-                if (((GpLinkNode*)node)->flags & 1) {
+                if (node->state.b.flags & 1) {
                     goto next;
                 }
                 vx = block->vec.vx;
@@ -8123,7 +8123,7 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
                 block->vec.vx = (s16)(vx + 0x80) >> 8;
                 vz            = (s16)(block->vec.vz + 0x80) >> 8;
                 block->vec.vz = vz;
-                if (((GpLinkNode*)node)->targeted != 0) {
+                if (node->state.b.targeted != 0) {
                     func_800A63B4(cx + block->vec.vx, cy - vz, 2);
                 } else {
                     func_800A63B4(cx + block->vec.vx, cy - vz, 1);
@@ -8428,7 +8428,7 @@ void Gp_HudTrackEnemy(GpEnemy* arg0, GpHudTrack* arg1)
     }
     if (arg0->param != NULL) {
         val = arg0->param->hpMax;
-        if (arg0->node.flags & 8) {
+        if (arg0->node.state.b.flags & 8) {
             val = -1;
         }
         Gp_DrawHudNumbers(block->field_14 - 8, block->field_16, arg0->hp, val, 1);
@@ -8444,12 +8444,12 @@ void Gp_UpdateLinkXforms(void)
     u8*             head;
     GpXformScratch* block;
     SVECTOR         tmp;
-    GpLinkXform*    node;
+    GpLinkNode*     node;
     GsCOORDINATE2*  coord;
     void**          p;
     u8*             h;
 
-    node = (GpLinkXform*)Gp_LinkList;
+    node = Gp_LinkList;
     {
         Task*               slot;
         register TmdObject* extra asm("v1");
@@ -8476,19 +8476,19 @@ void Gp_UpdateLinkXforms(void)
         out  = (SVECTOR*)(head - 8);
         tmpp = &tmp;
         do {
-            if ((node->field_4 & 5) != 1) {
-                block->vec.vx = *(u16*)&node->src.vx;
-                block->vec.vy = *(u16*)&node->src.vy;
-                block->vec.vz = *(u16*)&node->src.vz;
-                coord         = node->coord;
+            if ((node->state.word & 5) != 1) {
+                block->vec.vx = *(u16*)&GP_NODE_ENEMY(node)->bodyPos.vx;
+                block->vec.vy = *(u16*)&GP_NODE_ENEMY(node)->bodyPos.vy;
+                block->vec.vz = *(u16*)&GP_NODE_ENEMY(node)->bodyPos.vz;
+                coord         = GP_NODE_ENEMY(node)->coord;
                 tmp           = block->vec;
                 gte_SetRotMatrix(&coord->workm);
                 gte_ldv0(tmpp);
                 gte_rtv0();
                 gte_stsv(out);
-                block->vec.vx += *(u16*)&node->coord->workm.t[0];
-                block->vec.vy += *(u16*)&node->coord->workm.t[1];
-                block->vec.vz += *(u16*)&node->coord->workm.t[2];
+                block->vec.vx += *(u16*)&GP_NODE_ENEMY(node)->coord->workm.t[0];
+                block->vec.vy += *(u16*)&GP_NODE_ENEMY(node)->coord->workm.t[1];
+                block->vec.vz += *(u16*)&GP_NODE_ENEMY(node)->coord->workm.t[2];
                 block->vec.vx -= *(u16*)&player->workm.t[0];
                 block->vec.vy -= *(u16*)&player->workm.t[1];
                 block->vec.vz -= *(u16*)&player->workm.t[2];
@@ -8497,9 +8497,9 @@ void Gp_UpdateLinkXforms(void)
                 gte_ldv0(tmpp);
                 gte_rtv0();
                 gte_stsv(out);
-                node->dst.vx = block->vec.vx;
-                node->dst.vy = block->vec.vy;
-                node->dst.vz = block->vec.vz;
+                GP_NODE_ENEMY(node)->playerRelPos.vx = block->vec.vx;
+                GP_NODE_ENEMY(node)->playerRelPos.vy = block->vec.vy;
+                GP_NODE_ENEMY(node)->playerRelPos.vz = block->vec.vz;
             }
             node = node->next;
         } while (node != NULL);
@@ -8723,7 +8723,7 @@ void Gp_HudTrackSlot0(GpHudTrack* arg0)
         if (node != NULL) {
             do {
                 if (node == target) {
-                    if (!(node->flags & 1)) {
+                    if (!(node->state.b.flags & 1)) {
                         Gp_HudTrackEnemy(GP_NODE_ENEMY(node), arg0);
                         return;
                     }

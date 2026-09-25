@@ -800,10 +800,10 @@ ge2:
     }
     goto default_body;
 case0:
-    arg0->node.flags = 8;
+    arg0->node.state.b.flags = 8;
     goto default_body;
 case2:
-    arg0->node.flags = one;
+    arg0->node.state.b.flags = one;
     return;
 default_body:
     func_actor_205200_8014B048(arg1, one);

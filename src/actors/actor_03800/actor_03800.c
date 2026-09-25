@@ -191,7 +191,7 @@ void Actor03800_Fn000B8(GpEnemy* arg0, Task* arg1)
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
     arg0->coord                = &((TmdObject*)arg1->extra)->coords[3];
-    arg0->node.flags           = 0;
+    arg0->node.state.b.flags   = 0;
     arg0->bodyPos.vx           = 0;
     arg0->recs                 = work->field_1C4;
     arg0->bodyPos.vy           = 0;
@@ -1812,11 +1812,11 @@ ge2:
     goto default_body;
 case0:
     ((TmdObject*)arg1->extra)->flags = 0;
-    arg0->node.flags                 = 0;
+    arg0->node.state.b.flags         = 0;
     goto default_body;
 case2:
     ((TmdObject*)arg1->extra)->flags = 0x80;
-    arg0->node.flags                 = one;
+    arg0->node.state.b.flags         = one;
     return;
 default_body:
     if (arg0->reactionFlags != 0) {
@@ -1936,8 +1936,8 @@ void Actor03800_Fn034B0(Task* arg0)
     ctx  = arg0->spawnArg2;
     switch (Gp_StateF0.field_20) {
         case 0:
-            obj->flags      = 0x84;
-            ctx->node.flags = 1;
+            obj->flags              = 0x84;
+            ctx->node.state.b.flags = 1;
             return;
         case 1:
             obj->flags       = 0;

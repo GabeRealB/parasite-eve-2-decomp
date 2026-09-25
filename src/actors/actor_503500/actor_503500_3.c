@@ -329,18 +329,18 @@ void func_actor_503500_80132F64(Task* arg0)
     tmd->otOffset      = 0x14;
     coord->flg         = 0;
 
-    enemy->field_4     = &coord->coord;
-    part               = &coord[3];
-    enemy->field_48    = 0;
-    enemy->coord       = part;
-    enemy->node.flags |= 9;
-    enemy->bodyPos.vx  = D_actor_503500_8016EC50.vx;
-    enemy->bodyPos.vy  = D_actor_503500_8016EC50.vy;
-    enemy->bodyPos.vz  = D_actor_503500_8016EC50.vz;
-    recs               = work->rec5F4;
-    enemy->param       = &D_actor_503500_8016E7EC[arg0->spawnArg1];
-    enemy->recs        = recs;
-    enemy->hp          = enemy->param->hpMax;
+    enemy->field_4             = &coord->coord;
+    part                       = &coord[3];
+    enemy->field_48            = 0;
+    enemy->coord               = part;
+    enemy->node.state.b.flags |= 9;
+    enemy->bodyPos.vx          = D_actor_503500_8016EC50.vx;
+    enemy->bodyPos.vy          = D_actor_503500_8016EC50.vy;
+    enemy->bodyPos.vz          = D_actor_503500_8016EC50.vz;
+    recs                       = work->rec5F4;
+    enemy->param               = &D_actor_503500_8016E7EC[arg0->spawnArg1];
+    enemy->recs                = recs;
+    enemy->hp                  = enemy->param->hpMax;
 
     work->field_5D4.coord    = part;
     work->field_5D4.ctx.recs = recs;
@@ -1530,7 +1530,7 @@ void func_actor_503500_801353F0(Task* arg0)
     coord->flg        = 0;
 }
 
-/// Clears each slot enemy's `node.flags` bit 1 only when its
+/// Clears each slot enemy's `node.state.b.flags` bit 1 only when its
 /// `D_actor_503500_8016E910` entry covers both the camera's yaw sector
 /// (relative to `field_7B6`) and its height band and `gGameSession->eventState`
 /// is 0; otherwise sets it. Bit 4 is set on a height-only miss and cleared on
@@ -1578,13 +1578,13 @@ void func_actor_503500_80135644(Task* arg0)
         if (enemy != NULL) {
             bits = D_actor_503500_8016E910[i];
             if ((bits & dirMask) != dirMask || gGameSession->eventState != 0) {
-                enemy->node.flags            |= 1;
-                work->enemies[i]->node.flags &= ~4;
+                enemy->node.state.b.flags            |= 1;
+                work->enemies[i]->node.state.b.flags &= ~4;
             } else if ((bits & heightMask) != heightMask) {
-                enemy->node.flags            |= 1;
-                work->enemies[i]->node.flags |= 4;
+                enemy->node.state.b.flags            |= 1;
+                work->enemies[i]->node.state.b.flags |= 4;
             } else {
-                enemy->node.flags &= ~1;
+                enemy->node.state.b.flags &= ~1;
             }
         }
     }
@@ -2647,15 +2647,15 @@ void func_actor_503500_801372C8(Task* arg0)
     enemy->field_4                    = &coord->coord;
     enemy->field_48                   = 0;
     Gp_LinkNode(&enemy->node);
-    enemy->coord      = coord;
-    enemy->node.flags = (enemy->node.flags | 8) & 0xFE;
-    enemy->bodyPos.vx = D_actor_503500_8016F068.vx;
-    enemy->bodyPos.vy = D_actor_503500_8016F068.vy;
-    enemy->bodyPos.vz = D_actor_503500_8016F068.vz;
-    rec               = D_actor_503500_80176D88.rec60;
-    enemy->param      = &D_actor_503500_8016E7EC[arg0->spawnArg1];
-    enemy->recs       = rec;
-    enemy->hp         = enemy->param->hpMax;
+    enemy->coord              = coord;
+    enemy->node.state.b.flags = (enemy->node.state.b.flags | 8) & 0xFE;
+    enemy->bodyPos.vx         = D_actor_503500_8016F068.vx;
+    enemy->bodyPos.vy         = D_actor_503500_8016F068.vy;
+    enemy->bodyPos.vz         = D_actor_503500_8016F068.vz;
+    rec                       = D_actor_503500_80176D88.rec60;
+    enemy->param              = &D_actor_503500_8016E7EC[arg0->spawnArg1];
+    enemy->recs               = rec;
+    enemy->hp                 = enemy->param->hpMax;
 
     D_actor_503500_80176D88.slot40.obj.coord    = coord;
     D_actor_503500_80176D88.slot40.obj.ctx.recs = rec;
@@ -3017,8 +3017,8 @@ void func_actor_503500_8013815C(Task* arg0)
             }
             break;
         case 2:
-            tmd->flags        |= 0x80;
-            enemy->node.flags |= 1;
+            tmd->flags                |= 0x80;
+            enemy->node.state.b.flags |= 1;
             break;
         default:
             if (enemy->reactionFlags != 0) {
@@ -3204,15 +3204,15 @@ void func_actor_503500_8013852C(Task* arg0)
     enemy->field_4  = &coord->coord;
     enemy->field_48 = 0;
     Gp_LinkNode(&enemy->node);
-    enemy->coord      = part;
-    enemy->node.flags = (enemy->node.flags | 8) & 0xFE;
-    enemy->bodyPos.vx = D_actor_503500_8016F0B0.vx;
-    enemy->bodyPos.vy = D_actor_503500_8016F0B0.vy;
-    enemy->bodyPos.vz = D_actor_503500_8016F0B0.vz;
-    rec               = work->rec;
-    enemy->param      = &D_actor_503500_8016E7EC[arg0->spawnArg1];
-    enemy->recs       = rec;
-    enemy->hp         = enemy->param->hpMax;
+    enemy->coord              = part;
+    enemy->node.state.b.flags = (enemy->node.state.b.flags | 8) & 0xFE;
+    enemy->bodyPos.vx         = D_actor_503500_8016F0B0.vx;
+    enemy->bodyPos.vy         = D_actor_503500_8016F0B0.vy;
+    enemy->bodyPos.vz         = D_actor_503500_8016F0B0.vz;
+    rec                       = work->rec;
+    enemy->param              = &D_actor_503500_8016E7EC[arg0->spawnArg1];
+    enemy->recs               = rec;
+    enemy->hp                 = enemy->param->hpMax;
 
     work->obj.coord    = part;
     work->obj.ctx.recs = rec;
@@ -3282,8 +3282,8 @@ void func_actor_503500_80138898(Task* arg0)
             }
             break;
         case 2:
-            tmd->flags        |= 0x80;
-            enemy->node.flags |= 1;
+            tmd->flags                |= 0x80;
+            enemy->node.state.b.flags |= 1;
             break;
         default:
             if (enemy->reactionFlags != 0) {

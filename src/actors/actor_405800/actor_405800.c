@@ -172,7 +172,7 @@ typedef struct Actor405800Work {
     /* 0x894 */ byte                pad_894;
     /* 0x895 */ u8                  field_895;
     /* 0x896 */ u8                  field_896;
-    /* 0x897 */ u8                  field_897; // 0: node.flags uses 4/5 instead of 0/1
+    /* 0x897 */ u8                  field_897; // 0: node.state.b.flags uses 4/5 instead of 0/1
     /* 0x898 */ u8                  field_898;
     /* 0x899 */ byte                pad_899[0x3];
 } Actor405800Work;
@@ -779,9 +779,9 @@ void func_actor_405800_8013315C(Task* arg0)
                     work->field_834 = (u16)work->field_834 + ((s16)(-(u16)work->field_834) >> 2);
                     work->field_866 = (u16)work->field_866 + (-work->field_866 >> 2);
                     if (work->field_834 == 0) {
-                        enemy->node.flags = 1;
+                        enemy->node.state.b.flags = 1;
                         if (work->field_897 == 0) {
-                            enemy->node.flags = 5;
+                            enemy->node.state.b.flags = 5;
                         }
                         work->field_866 = 0;
                         work->field_895 = 0;
@@ -791,9 +791,9 @@ void func_actor_405800_8013315C(Task* arg0)
         } else {
             switch ((s8)work->field_896) {
                 case 0:
-                    enemy->node.flags = 0;
+                    enemy->node.state.b.flags = 0;
                     if (work->field_897 == 0) {
-                        enemy->node.flags = 4;
+                        enemy->node.state.b.flags = 4;
                     }
                     work->field_834 = (u16)work->field_834 + ((s16)(0x1000 - (u16)work->field_834) >> 2);
                     work->field_866 = (u16)work->field_866 + ((0xFF - work->field_866) >> 2);
@@ -908,12 +908,12 @@ void func_actor_405800_801334B8(Task* arg0)
     enemy->bodyPos.vz = 0;
     enemy->coord      = &((TmdObject*)arg0->extra)->coords[3];
     Gp_LinkNode(&enemy->node);
-    enemy->node.flags        = 5;
-    enemy->param             = &D_actor_405800_801418FC;
-    enemy->recs              = work->rec_4D4;
-    work->eff_81C.coord      = &((TmdObject*)arg0->extra)->coords[3];
-    work->eff_81C.spawnArgLo = 0x100;
-    work->eff_81C.spawnArgHi = 2;
+    enemy->node.state.b.flags = 5;
+    enemy->param              = &D_actor_405800_801418FC;
+    enemy->recs               = work->rec_4D4;
+    work->eff_81C.coord       = &((TmdObject*)arg0->extra)->coords[3];
+    work->eff_81C.spawnArgLo  = 0x100;
+    work->eff_81C.spawnArgHi  = 2;
     enemy->hp = enemy->hpMax = D_actor_405800_801418FC.hpMax;
     func_800B3F84(&work->anim, D_actor_405800_80151410, model, work->pad_394, work->slots);
 

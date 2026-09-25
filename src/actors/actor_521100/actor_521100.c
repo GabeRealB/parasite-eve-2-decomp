@@ -1933,8 +1933,8 @@ void func_actor_521100_80135414(GpEnemy* arg0, Task* arg1)
 {
     Actor521100Work* temp_s0;
 
-    temp_s0          = arg1->work;
-    arg0->node.flags = 1;
+    temp_s0                  = arg1->work;
+    arg0->node.state.b.flags = 1;
     func_actor_521100_80135964(arg1);
     func_actor_521100_80135A34(arg1);
     func_actor_521100_80135A90(arg1);
@@ -1974,16 +1974,16 @@ ge2:
 case0:
     temp_a1->flags                                 = 0;
     ((TmdObject*)temp_s1->field_654->extra)->flags = 0;
-    arg0->node.flags                               = 8;
+    arg0->node.state.b.flags                       = 8;
     goto default_body;
 case2:
     temp_a1->flags                                 = 0x80;
     ((TmdObject*)temp_s1->field_654->extra)->flags = 0x80;
-    arg0->node.flags                               = one;
+    arg0->node.state.b.flags                       = one;
     return;
 default_body:
     if (temp_s1->field_6B0 == 0) {
-        arg0->node.flags = 1;
+        arg0->node.state.b.flags = 1;
         return;
     }
     func_actor_521100_801322F8(arg1, temp_a1, one);

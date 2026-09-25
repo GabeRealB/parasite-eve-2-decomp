@@ -135,19 +135,19 @@ void func_actor_451100_80131E24(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback      = func_actor_451100_801323B4;
-    coord->sub              = &gGfxViewCoord;
-    enemy->field_4          = &coord->coord;
-    enemy->field_48         = 0;
-    enemy->node.targeted    = 0;
-    enemy->node.flags       = 1;
-    obj->otOffset           = 1;
-    obj->lightMtx           = &D_actor_451100_8014E744->light;
-    obj->colorMtx           = &D_actor_451100_8014E744->color;
-    vec.vx                  = coord->workm.t[0];
-    vec.vy                  = coord->workm.t[1] - 0x320;
-    D_actor_451100_8014E748 = task;
-    vec.vz                  = coord->workm.t[2];
+    task->exitCallback           = func_actor_451100_801323B4;
+    coord->sub                   = &gGfxViewCoord;
+    enemy->field_4               = &coord->coord;
+    enemy->field_48              = 0;
+    enemy->node.state.b.targeted = 0;
+    enemy->node.state.b.flags    = 1;
+    obj->otOffset                = 1;
+    obj->lightMtx                = &D_actor_451100_8014E744->light;
+    obj->colorMtx                = &D_actor_451100_8014E744->color;
+    vec.vx                       = coord->workm.t[0];
+    vec.vy                       = coord->workm.t[1] - 0x320;
+    D_actor_451100_8014E748      = task;
+    vec.vz                       = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
     func_800B3F84(&D_actor_451100_8014E744->anim, D_actor_451100_8013F740, obj,
                   &D_actor_451100_8014E744->slots[0x13], D_actor_451100_8014E744->slots);
@@ -472,15 +472,15 @@ void func_actor_451100_801328A8(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback   = func_actor_451100_80132CAC;
-    coord->sub           = &gGfxViewCoord;
-    enemy->field_4       = &coord->coord;
-    enemy->field_48      = 0;
-    enemy->node.targeted = 0;
-    enemy->node.flags    = 1;
-    obj->otOffset        = 1;
-    work->enemy          = enemy;
-    spawned              = Gp_SpawnEnemyFromTable(D_actor_451100_8014E6E4, 1, 0, enemy);
+    task->exitCallback           = func_actor_451100_80132CAC;
+    coord->sub                   = &gGfxViewCoord;
+    enemy->field_4               = &coord->coord;
+    enemy->field_48              = 0;
+    enemy->node.state.b.targeted = 0;
+    enemy->node.state.b.flags    = 1;
+    obj->otOffset                = 1;
+    work->enemy                  = enemy;
+    spawned                      = Gp_SpawnEnemyFromTable(D_actor_451100_8014E6E4, 1, 0, enemy);
     Task_Reparent(task, spawned->task);
     work->pairTask = spawned->task;
     obj->lightMtx  = &work->light;

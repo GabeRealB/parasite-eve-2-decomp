@@ -669,8 +669,8 @@ ge2:
     }
     goto default_body;
 case0:
-    obj->flags       = 0;
-    arg0->node.flags = 8;
+    obj->flags               = 0;
+    arg0->node.state.b.flags = 8;
     if (work->field_5BC != 0) {
         SndEvt_EnqueueType9(0x40000000);
         work->field_5BC = 0;
@@ -681,8 +681,8 @@ case1:
     func_actor_105100_80136524(arg1);
     goto join_12;
 case2:
-    obj->flags       = 0x80;
-    arg0->node.flags = one;
+    obj->flags               = 0x80;
+    arg0->node.state.b.flags = one;
 join_12:
     SOFT_USE_REG(work);
     if (work->field_5BC == 0) {

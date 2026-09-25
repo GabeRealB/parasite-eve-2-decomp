@@ -302,14 +302,14 @@ void Actor04600_Fn00048(GpEnemy* arg0, Task* arg1)
     arg0->field_4  = &coord[1].coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->coord      = part;
-    arg0->node.flags = 0;
-    arg0->bodyPos.vx = 0;
-    arg0->bodyPos.vy = 0;
-    arg0->bodyPos.vz = 0;
-    arg0->param      = &Actor04600_D04160;
-    arg0->recs       = &work->rec154[0];
-    arg0->hp         = Actor04600_D04160.hpMax;
+    arg0->coord              = part;
+    arg0->node.state.b.flags = 0;
+    arg0->bodyPos.vx         = 0;
+    arg0->bodyPos.vy         = 0;
+    arg0->bodyPos.vz         = 0;
+    arg0->param              = &Actor04600_D04160;
+    arg0->recs               = &work->rec154[0];
+    arg0->hp                 = Actor04600_D04160.hpMax;
     func_800B3F84((GpAnimCtx*)work, Actor04600_D05890, obj, work->field_8C, (GpAnimSlot*)work->slots);
     i = 1;
     do {
@@ -902,8 +902,8 @@ void Actor04600_Fn01110(GpEnemy* enemy, Task* task)
         case 1:
             break;
         case 2:
-            model->flags     |= 0x80;
-            enemy->node.flags = 1;
+            model->flags             |= 0x80;
+            enemy->node.state.b.flags = 1;
             break;
         case 0:
         default:
@@ -1061,14 +1061,14 @@ void Actor04600_Fn017CC(GpEnemy* arg0, Task* arg1)
     arg0->field_4   = &coord[1].coord;
     arg0->field_48  = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->coord      = part;
-    arg0->node.flags = one;
-    arg0->bodyPos.vx = 0;
-    arg0->bodyPos.vy = 0;
-    arg0->bodyPos.vz = 0;
-    arg0->param      = &Actor04600_D04160;
-    arg0->recs       = &work->rec154[0];
-    arg0->hp         = Actor04600_D04160.hpMax;
+    arg0->coord              = part;
+    arg0->node.state.b.flags = one;
+    arg0->bodyPos.vx         = 0;
+    arg0->bodyPos.vy         = 0;
+    arg0->bodyPos.vz         = 0;
+    arg0->param              = &Actor04600_D04160;
+    arg0->recs               = &work->rec154[0];
+    arg0->hp                 = Actor04600_D04160.hpMax;
     func_800B3F84((GpAnimCtx*)work, Actor04600_D05890, obj, work->field_8C, (GpAnimSlot*)work->slots);
     i = 1;
     do {
@@ -1159,7 +1159,7 @@ void Actor04600_Fn01AFC(GpEnemy* arg0, Task* arg1)
             break;
         case 2:
             ((TmdObject*)arg1->extra)->flags = 0x80;
-            arg0->node.flags                 = 1;
+            arg0->node.state.b.flags         = 1;
             break;
         case 0:
         default:
@@ -1320,7 +1320,7 @@ s32 Actor04600_Fn01F54(Task* arg0, s32 arg1, GpCmdArg* arg2)
             Tmd_AllocBuffers((TmdObject*)arg0->extra);
             ((TmdObject*)arg0->extra)->flags &= 0xFF7F;
             ((TmdObject*)arg0->extra)->flags &= 0xFFFB;
-            enemy->node.flags                 = 0;
+            enemy->node.state.b.flags         = 0;
             work->objFC.flags                |= 0x8000;
             work->obj134.flags               |= 0xC200;
             RotMatrix(&rot, &coord->coord);
@@ -1338,7 +1338,7 @@ s32 Actor04600_Fn01F54(Task* arg0, s32 arg1, GpCmdArg* arg2)
     if ((word & 0xFF) == 3) {
         ((TmdObject*)arg0->extra)->flags |= 0x80;
         ((TmdObject*)arg0->extra)->flags |= 4;
-        enemy->node.flags                 = 1;
+        enemy->node.state.b.flags         = 1;
         work->objFC.flags                &= 0x7FFF;
         work->obj134.flags               &= 0x3DFF;
         rot.vz                            = 0;
@@ -1401,11 +1401,11 @@ ge2:
     goto default_body;
 case0:
     ((TmdObject*)arg1->extra)->flags = 0;
-    arg0->node.flags                 = 0;
+    arg0->node.state.b.flags         = 0;
     goto default_body;
 case2:
     ((TmdObject*)arg1->extra)->flags = 0x80;
-    arg0->node.flags                 = one;
+    arg0->node.state.b.flags         = one;
     return;
 default_body:
     Actor04600_Fn003D4(arg1);
@@ -1722,14 +1722,14 @@ void Actor04600_Fn02D68(GpEnemy* arg0, Task* arg1)
     arg0->field_4  = &coord[1].coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->coord      = part;
-    arg0->node.flags = 0;
-    arg0->bodyPos.vx = 0;
-    arg0->bodyPos.vy = 0;
-    arg0->bodyPos.vz = 0;
-    arg0->param      = &Actor04600_D058B4;
-    arg0->recs       = work->field_1A4;
-    arg0->hp         = Actor04600_D058B4.hpMax;
+    arg0->coord              = part;
+    arg0->node.state.b.flags = 0;
+    arg0->bodyPos.vx         = 0;
+    arg0->bodyPos.vy         = 0;
+    arg0->bodyPos.vz         = 0;
+    arg0->param              = &Actor04600_D058B4;
+    arg0->recs               = work->field_1A4;
+    arg0->hp                 = Actor04600_D058B4.hpMax;
     func_800B3F84(&work->context, Actor04600_D064A8, obj, work->field_8C, work->slots);
     i = 1;
     do {
@@ -1737,15 +1737,15 @@ void Actor04600_Fn02D68(GpEnemy* arg0, Task* arg1)
         i += 1;
     } while (i < 3);
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
-    work->field_28C  = 1;
-    work->field_28E  = 1;
-    work->field_2A6  = 1;
-    work->field_2A4  = 0x12;
-    arg0->node.flags = 1;
-    obj->flags       = 0x80;
-    seed             = Gp_LcgState * 5 + 0x71357911;
-    work->field_2A8  = ((seed >> 16) & 0x3F) + 0x64;
-    Gp_LcgState      = seed;
+    work->field_28C          = 1;
+    work->field_28E          = 1;
+    work->field_2A6          = 1;
+    work->field_2A4          = 0x12;
+    arg0->node.state.b.flags = 1;
+    obj->flags               = 0x80;
+    seed                     = Gp_LcgState * 5 + 0x71357911;
+    work->field_2A8          = ((seed >> 16) & 0x3F) + 0x64;
+    Gp_LcgState              = seed;
     Gp_SetLightMode(arg1->spawnArg2, 2);
     work->field_11C.end0.vz    = 0x1388;
     work->field_11C.end0Radius = 0xFA0;
@@ -2051,8 +2051,8 @@ void Actor04600_Fn03958(GpEnemy* arg0, Task* arg1)
         case 1:
             return;
         case 2:
-            obj->flags      |= 0x80;
-            arg0->node.flags = 1;
+            obj->flags              |= 0x80;
+            arg0->node.state.b.flags = 1;
             return;
     }
     if (work->field_288 != 0) {
@@ -2143,11 +2143,11 @@ ge2:
     }
     goto default_body;
 case0:
-    arg0->node.flags = 0;
+    arg0->node.state.b.flags = 0;
     goto default_body;
 case2:
     ((TmdObject*)arg1->extra)->flags = 0x80;
-    arg0->node.flags                 = one;
+    arg0->node.state.b.flags         = one;
     return;
 default_body:
     ((TmdObject*)arg1->extra)->coords[0].coord.t[1] += 0x80;
@@ -2296,16 +2296,16 @@ void Actor04600_Fn03F30(Task* task)
         } else {
             work->field_2A4++;
             if (work->field_2A4 >= 0x12) {
-                work->field_2A4   = 0x12;
-                enemy->node.flags = 1;
-                obj->flags        = 0x80;
+                work->field_2A4           = 0x12;
+                enemy->node.state.b.flags = 1;
+                obj->flags                = 0x80;
             }
         }
     } else {
         if (work->field_2A4 == 0x12) {
             work->field_2A4--;
-            enemy->node.flags = 0;
-            obj->flags        = 2;
+            enemy->node.state.b.flags = 0;
+            obj->flags                = 2;
             Gp_SetLightMode(task->spawnArg2, 0);
         } else {
             work->field_2A4--;

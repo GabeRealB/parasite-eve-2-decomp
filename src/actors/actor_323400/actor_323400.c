@@ -990,11 +990,11 @@ void func_actor_323400_80163FC8(GpEnemy* enemy, Task* task)
     enemy->bodyPos.vz  = 0;
     enemy->coord       = &((TmdObject*)task->extra)->coords[2];
     Gp_LinkNode(&enemy->node);
-    enemy->node.flags    = 1;
-    enemy->param         = &D_actor_323400_80164D5C;
-    enemy->reactionFlags = 0;
-    enemy->hp            = 0;
-    enemy->recs          = 0;
+    enemy->node.state.b.flags = 1;
+    enemy->param              = &D_actor_323400_80164D5C;
+    enemy->reactionFlags      = 0;
+    enemy->hp                 = 0;
+    enemy->recs               = 0;
     func_800B3F84(&work->anim, D_actor_323400_80171080, obj, work->poses, work->slots);
     func_800B3F84(&work->blendAnim, D_actor_323400_80171080, obj, work->blendPoses, work->blendSlots);
     work->field_828 = 2;
@@ -1039,9 +1039,9 @@ void func_actor_323400_801641C4(GpEnemy* enemy, Task* task)
 
     work = (Actor323000Work*)task->work;
     if (work->field_4 != 0) {
-        obj               = (TmdObject*)task->extra;
-        enemy->node.flags = 1;
-        obj->flags        = 0;
+        obj                       = (TmdObject*)task->extra;
+        enemy->node.state.b.flags = 1;
+        obj->flags                = 0;
         Tmd_AllocBuffers(obj);
         work->field_832 = 0x10;
         work->field_82E = 0xD;
@@ -1392,9 +1392,9 @@ void func_actor_323400_80164B98(GpEnemy* arg0, Task* arg1)
 
     work = (Actor323000Work*)arg1->work;
     if (work->field_4 != 0) {
-        obj              = (TmdObject*)arg1->extra;
-        arg0->node.flags = 1;
-        obj->flags      |= 0x80;
+        obj                      = (TmdObject*)arg1->extra;
+        arg0->node.state.b.flags = 1;
+        obj->flags              |= 0x80;
     }
 }
 
@@ -1409,9 +1409,9 @@ void func_actor_323400_80164BD0(GpEnemy* enemy, Task* task)
 
     work = (Actor323000Work*)task->work;
     if (work->field_4 != 0) {
-        obj               = (TmdObject*)task->extra;
-        enemy->node.flags = 0;
-        obj->flags        = 0;
+        obj                       = (TmdObject*)task->extra;
+        enemy->node.state.b.flags = 0;
+        obj->flags                = 0;
         Tmd_AllocBuffers(obj);
         work->field_832 = 0x10;
         work->field_828 = 2;
@@ -1435,9 +1435,9 @@ void func_actor_323400_80164C4C(GpEnemy* enemy, Task* task)
 
     work = (Actor323000Work*)task->work;
     if (work->field_4 != 0) {
-        obj               = (TmdObject*)task->extra;
-        enemy->node.flags = 1;
-        obj->flags        = 0;
+        obj                       = (TmdObject*)task->extra;
+        enemy->node.state.b.flags = 1;
+        obj->flags                = 0;
         Tmd_AllocBuffers(obj);
         work->field_832 = 0x10;
         work->field_82E = 2;

@@ -444,14 +444,14 @@ void Actor07000_Fn000EC(GpEnemy* arg0, Task* arg1)
     arg0->field_4  = &coord[1].coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->coord      = part;
-    arg0->node.flags = 0;
-    arg0->bodyPos.vx = 0;
-    arg0->bodyPos.vy = 0;
-    arg0->bodyPos.vz = 0;
-    arg0->param      = &Actor07000_D06928;
-    arg0->recs       = &work->rec154[0];
-    arg0->hp         = Actor07000_D06928.hpMax;
+    arg0->coord              = part;
+    arg0->node.state.b.flags = 0;
+    arg0->bodyPos.vx         = 0;
+    arg0->bodyPos.vy         = 0;
+    arg0->bodyPos.vz         = 0;
+    arg0->param              = &Actor07000_D06928;
+    arg0->recs               = &work->rec154[0];
+    arg0->hp                 = Actor07000_D06928.hpMax;
     func_800B3F84((GpAnimCtx*)work, Actor07000_D08058, obj, work->field_8C,
                   (GpAnimSlot*)work->slots);
     i = 1;
@@ -1071,8 +1071,8 @@ void Actor07000_Fn011B4(GpEnemy* enemy, Task* task)
         case 1:
             break;
         case 2:
-            model->flags     |= 0x80;
-            enemy->node.flags = 1;
+            model->flags             |= 0x80;
+            enemy->node.state.b.flags = 1;
             break;
         case 0:
         default:
@@ -1232,14 +1232,14 @@ void Actor07000_Fn01870(GpEnemy* arg0, Task* arg1)
     arg0->field_4   = &coord[1].coord;
     arg0->field_48  = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->coord      = part;
-    arg0->node.flags = one;
-    arg0->bodyPos.vx = 0;
-    arg0->bodyPos.vy = 0;
-    arg0->bodyPos.vz = 0;
-    arg0->param      = &Actor07000_D06928;
-    arg0->recs       = &work->rec154[0];
-    arg0->hp         = Actor07000_D06928.hpMax;
+    arg0->coord              = part;
+    arg0->node.state.b.flags = one;
+    arg0->bodyPos.vx         = 0;
+    arg0->bodyPos.vy         = 0;
+    arg0->bodyPos.vz         = 0;
+    arg0->param              = &Actor07000_D06928;
+    arg0->recs               = &work->rec154[0];
+    arg0->hp                 = Actor07000_D06928.hpMax;
     func_800B3F84((GpAnimCtx*)work, Actor07000_D08058, obj, work->field_8C,
                   (GpAnimSlot*)work->slots);
     i = 1;
@@ -1346,7 +1346,7 @@ void Actor07000_Fn01BA0(GpEnemy* arg0, Task* arg1)
             break;
         case 2:
             ((TmdObject*)arg1->extra)->flags = 0x80;
-            arg0->node.flags                 = 1;
+            arg0->node.state.b.flags         = 1;
             break;
         case 0:
         default:
@@ -1499,7 +1499,7 @@ s32 Actor07000_Fn01FF8(Task* arg0, s32 arg1, GpCmdArg* arg2)
             Tmd_AllocBuffers(arg0->extra);
             ((TmdObject*)arg0->extra)->flags &= 0xFF7F;
             ((TmdObject*)arg0->extra)->flags &= 0xFFFB;
-            enemy->node.flags                 = 0;
+            enemy->node.state.b.flags         = 0;
             work->field_11A                  |= 0x8000;
             work->field_152                  |= 0xC200;
             RotMatrix(&rot, &coord->coord);
@@ -1517,7 +1517,7 @@ s32 Actor07000_Fn01FF8(Task* arg0, s32 arg1, GpCmdArg* arg2)
     if ((word & 0xFF) == 3) {
         ((TmdObject*)arg0->extra)->flags |= 0x80;
         ((TmdObject*)arg0->extra)->flags |= 4;
-        enemy->node.flags                 = 1;
+        enemy->node.state.b.flags         = 1;
         work->field_11A                  &= 0x7FFF;
         work->field_152                  &= 0x3DFF;
         rot.vz                            = 0;
@@ -1579,11 +1579,11 @@ ge2:
     goto default_body;
 case0:
     ((TmdObject*)arg1->extra)->flags = 0;
-    arg0->node.flags                 = 0;
+    arg0->node.state.b.flags         = 0;
     goto default_body;
 case2:
     ((TmdObject*)arg1->extra)->flags = 0x80;
-    arg0->node.flags                 = one;
+    arg0->node.state.b.flags         = one;
     return;
 default_body:
     Actor07000_Fn00478(arg1);
@@ -1898,17 +1898,17 @@ void Actor07000_Fn02E0C(GpEnemy* arg0, Task* arg1)
     arg0->field_4  = &coord->coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->bodyPos.vy = -0x64;
-    arg0->coord      = coord;
-    arg0->node.flags = 0;
-    arg0->bodyPos.vx = 0;
-    arg0->bodyPos.vz = 0;
-    arg0->param      = &Actor07000_D08080;
-    arg0->hp         = Actor07000_D08080.hpMax;
-    arg0->recs       = work->field_24C;
-    work->field_35C  = &((TmdObject*)arg1->extra)->coords[1];
-    work->field_360  = 0x280;
-    work->field_362  = 2;
+    arg0->bodyPos.vy         = -0x64;
+    arg0->coord              = coord;
+    arg0->node.state.b.flags = 0;
+    arg0->bodyPos.vx         = 0;
+    arg0->bodyPos.vz         = 0;
+    arg0->param              = &Actor07000_D08080;
+    arg0->hp                 = Actor07000_D08080.hpMax;
+    arg0->recs               = work->field_24C;
+    work->field_35C          = &((TmdObject*)arg1->extra)->coords[1];
+    work->field_360          = 0x280;
+    work->field_362          = 2;
     func_800B3F84((GpAnimCtx*)work, Actor07000_D0D77C, obj,
                   work->field_12C, work->slots);
     for (i = 1; i < 7; i++) {
@@ -2013,12 +2013,12 @@ ge2:
     }
     goto default_body;
 case0:
-    obj->flags       = 0;
-    arg0->node.flags = 0;
+    obj->flags               = 0;
+    arg0->node.state.b.flags = 0;
     goto default_body;
 case2:
-    obj->flags       = 0x80;
-    arg0->node.flags = one;
+    obj->flags               = 0x80;
+    arg0->node.state.b.flags = one;
     return;
 default_body:
     switch (work->field_36A) {
@@ -2572,8 +2572,8 @@ ge2:
     }
     goto default_body;
 case2:
-    obj->flags       = obj->flags | 0x80;
-    arg0->node.flags = one;
+    obj->flags               = obj->flags | 0x80;
+    arg0->node.state.b.flags = one;
     return;
 default_body:
     switch (work->field_36C) {
@@ -3022,17 +3022,17 @@ void Actor07000_Fn05068(GpEnemy* arg0, Task* arg1)
     arg0->field_4   = &coord->coord;
     arg0->field_48  = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->coord      = coord;
-    arg0->node.flags = one;
-    arg0->bodyPos.vx = 0;
-    arg0->bodyPos.vy = 0;
-    arg0->bodyPos.vz = 0;
-    arg0->param      = &Actor07000_D08080;
-    arg0->hp         = Actor07000_D08080.hpMax;
-    arg0->recs       = &work->field_24C[0];
-    work->field_35C  = &((TmdObject*)arg1->extra)->coords[1];
-    work->field_360  = 0x100;
-    work->field_362  = one;
+    arg0->coord              = coord;
+    arg0->node.state.b.flags = one;
+    arg0->bodyPos.vx         = 0;
+    arg0->bodyPos.vy         = 0;
+    arg0->bodyPos.vz         = 0;
+    arg0->param              = &Actor07000_D08080;
+    arg0->hp                 = Actor07000_D08080.hpMax;
+    arg0->recs               = &work->field_24C[0];
+    work->field_35C          = &((TmdObject*)arg1->extra)->coords[1];
+    work->field_360          = 0x100;
+    work->field_362          = one;
     func_800B3F84((GpAnimCtx*)work, Actor07000_D0D77C, obj, work->field_12C,
                   (GpAnimSlot*)&work->slots[0]);
     i = 1;
@@ -3194,7 +3194,7 @@ void Actor07000_Fn05400(GpEnemy* arg0, Task* arg1)
             return;
         case 2:
             ((TmdObject*)arg1->extra)->flags = 0x80;
-            arg0->node.flags                 = 1;
+            arg0->node.state.b.flags         = 1;
             return;
         case 0:
         default:
@@ -3288,7 +3288,7 @@ void Actor07000_Fn0595C(Task* arg0)
 /// current map's table - `D_8018B74C` on map 0x27, where the appearance sound
 /// is cued through `SndEvt_EnqueueType6` as well, `D_801874C4` on 0x28 - the
 /// buffers are re-armed, the 0x80 and 4 bits are cleared from the model's flag
-/// word, the enemy's `node.flags` is zeroed, both render nodes are revealed, and
+/// word, the enemy's `node.state.b.flags` is zeroed, both render nodes are revealed, and
 /// the model is turned to the spawn point's heading. Low byte 3 is the hide:
 /// the two bits and the pose flag go the other way, both nodes are hidden, the
 /// model's translation and rotation are zeroed, and the task moves to state 4.
@@ -3346,7 +3346,7 @@ s32 Actor07000_Fn05AB8(Task* arg0, s32 arg1, GpCmdArg* arg2)
             Tmd_AllocBuffers(arg0->extra);
             ((TmdObject*)arg0->extra)->flags &= 0xFF7F;
             ((TmdObject*)arg0->extra)->flags &= 0xFFFB;
-            enemy->node.flags                 = 0;
+            enemy->node.state.b.flags         = 0;
             work->obj1.flags                 |= 0x8000;
             work->obj2.flags                 |= 0xC200;
             RotMatrix(&rot, &coord->coord);
@@ -3362,7 +3362,7 @@ s32 Actor07000_Fn05AB8(Task* arg0, s32 arg1, GpCmdArg* arg2)
     if ((word & 0xFF) == 3) {
         ((TmdObject*)arg0->extra)->flags |= 0x80;
         ((TmdObject*)arg0->extra)->flags |= 4;
-        enemy->node.flags                 = 1;
+        enemy->node.state.b.flags         = 1;
         work->obj1.flags                 &= 0x7FFF;
         work->obj2.flags                 &= 0x3DFF;
         rot.vz                            = 0;
@@ -3682,8 +3682,8 @@ void Actor07000_Fn06750(Task* task)
     enemy = task->spawnArg2;
     work  = (ActorShared80138570Work*)task->work;
 
-    enemy->node.flags = 1;
-    enemy->recs       = 0;
+    enemy->node.state.b.flags = 1;
+    enemy->recs               = 0;
     Gp_UnlinkNode(&enemy->node);
     Gp_UnlinkObj(&work->field_1DC);
     Gp_UnlinkObj(&work->field_22C);

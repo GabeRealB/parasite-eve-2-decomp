@@ -431,14 +431,14 @@ void Actor02400_Fn0095C(GpEnemy* enemy, Task* task)
     enemy->field_4  = &coord->coord;
     enemy->field_48 = 0;
     Gp_LinkNode(&enemy->node);
-    enemy->bodyPos.vy = -0x96;
-    enemy->coord      = coord;
-    enemy->node.flags = 0;
-    enemy->bodyPos.vx = 0;
-    enemy->bodyPos.vz = 0;
-    enemy->recs       = work->rec60;
-    enemy->param      = work->variant == 0 ? &Actor02400_Params0 : &Actor02400_Params1;
-    enemy->hp         = enemy->param->hpMax;
+    enemy->bodyPos.vy         = -0x96;
+    enemy->coord              = coord;
+    enemy->node.state.b.flags = 0;
+    enemy->bodyPos.vx         = 0;
+    enemy->bodyPos.vz         = 0;
+    enemy->recs               = work->rec60;
+    enemy->param              = work->variant == 0 ? &Actor02400_Params0 : &Actor02400_Params1;
+    enemy->hp                 = enemy->param->hpMax;
     SCHED_BARRIER();
     work->effArg.coord      = &((TmdObject*)task->extra)->coords[1];
     work->effArg.spawnArgLo = 0x200;
@@ -1512,12 +1512,12 @@ void Actor02400_Fn02E0C(GpEnemy* enemy, Task* task)
         case 1:
             goto case1;
         case 0:
-            obj->flags        = 0;
-            enemy->node.flags = 0;
+            obj->flags                = 0;
+            enemy->node.state.b.flags = 0;
             break;
         case 2:
-            obj->flags        = 0x80;
-            enemy->node.flags = 1;
+            obj->flags                = 0x80;
+            enemy->node.state.b.flags = 1;
             return;
     }
     Actor02400_Fn00C08(task);

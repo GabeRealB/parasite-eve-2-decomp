@@ -178,15 +178,15 @@ void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1)
     arg0->field_4  = &coord->coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->coord      = coord;
-    arg0->node.flags = 0;
-    arg0->bodyPos.vx = 0;
-    arg0->bodyPos.vy = 0;
-    arg0->bodyPos.vz = 0;
-    arg0->param      = &D_actor_207200_8014E7D4;
-    arg0->recs       = work->rec3;
-    arg0->hp         = (u16)D_actor_207200_8014E7D4.hpMax;
-    work->field_44E  = ((GpCoordExt*)coord)->param.rot.vy;
+    arg0->coord              = coord;
+    arg0->node.state.b.flags = 0;
+    arg0->bodyPos.vx         = 0;
+    arg0->bodyPos.vy         = 0;
+    arg0->bodyPos.vz         = 0;
+    arg0->param              = &D_actor_207200_8014E7D4;
+    arg0->recs               = work->rec3;
+    arg0->hp                 = (u16)D_actor_207200_8014E7D4.hpMax;
+    work->field_44E          = ((GpCoordExt*)coord)->param.rot.vy;
     func_800B3F84((GpAnimCtx*)work, &D_actor_207200_80153ED4, obj,
                   work->field_12C, (GpAnimSlot*)work->field_14);
     for (i = 1; i < 7; i++) {
@@ -881,8 +881,8 @@ void func_actor_207200_8014CA84(GpEnemy* arg0, Task* arg1)
         case 1:
             break;
         case 2:
-            obj->flags      |= 0x80;
-            arg0->node.flags = 1;
+            obj->flags              |= 0x80;
+            arg0->node.state.b.flags = 1;
             break;
         case 0:
         default:
@@ -1107,11 +1107,11 @@ ge2:
     goto default_body;
 case0:
     ((TmdObject*)arg1->extra)->flags = 0;
-    arg0->node.flags                 = 0;
+    arg0->node.state.b.flags         = 0;
     goto default_body;
 case2:
     ((TmdObject*)arg1->extra)->flags = 0x80;
-    arg0->node.flags                 = one;
+    arg0->node.state.b.flags         = one;
     return;
 default_body:
     func_actor_207200_8014D41C(arg1);

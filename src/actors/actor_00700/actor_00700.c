@@ -287,17 +287,17 @@ void Actor00700_Fn00060(GpEnemy* ctx, Task* actor)
     ctx->field_4  = (void*)(&coord->coord);
     ctx->field_48 = 0;
     Gp_LinkNode(&ctx->node);
-    ctx->coord      = &((TmdObject*)actor->extra)->coords[4];
-    ctx->node.flags = 0;
-    ctx->bodyPos.vx = 0;
-    ctx->bodyPos.vy = 0;
-    ctx->bodyPos.vz = 0;
-    ctx->param      = &Actor00700_D06DE0;
-    ctx->recs       = &work->rec2;
-    ctx->hp         = (u16)Actor00700_D06DE0.hpMax;
-    work->field_338 = 0x100;
-    work->field_33A = 1;
-    work->field_334 = coord;
+    ctx->coord              = &((TmdObject*)actor->extra)->coords[4];
+    ctx->node.state.b.flags = 0;
+    ctx->bodyPos.vx         = 0;
+    ctx->bodyPos.vy         = 0;
+    ctx->bodyPos.vz         = 0;
+    ctx->param              = &Actor00700_D06DE0;
+    ctx->recs               = &work->rec2;
+    ctx->hp                 = (u16)Actor00700_D06DE0.hpMax;
+    work->field_338         = 0x100;
+    work->field_33A         = 1;
+    work->field_334         = coord;
     func_800B3F84(work, &Actor00700_D06E6C, obj, &work->field_12C, &work->field_14);
     for (i = 1; i < 7; i++) {
         Gp_AnimResetSlot(work, i, 1);
@@ -1195,12 +1195,12 @@ ge2:
     }
     goto default_body;
 case0:
-    obj->flags       = 0;
-    arg0->node.flags = 0;
+    obj->flags               = 0;
+    arg0->node.state.b.flags = 0;
     goto default_body;
 case2:
-    obj->flags       = 0x80;
-    arg0->node.flags = one;
+    obj->flags               = 0x80;
+    arg0->node.state.b.flags = one;
     return;
 default_body:
     if (arg0->reactionFlags != 0) {
@@ -1484,17 +1484,17 @@ void Actor00700_Fn01FE0(GpEnemy* ctx, Task* actor)
     ctx->field_4  = (void*)(&coord->coord);
     ctx->field_48 = 0;
     Gp_LinkNode(&ctx->node);
-    ctx->coord      = coord;
-    ctx->node.flags = 0;
-    ctx->bodyPos.vx = 0;
-    ctx->bodyPos.vy = 0;
-    ctx->bodyPos.vz = 0;
-    ctx->param      = &Actor00700_D07588;
-    ctx->recs       = &work->field_154;
-    ctx->hp         = (u16)Actor00700_D07588.hpMax;
-    work->field_228 = 0x100;
-    work->field_22A = 1;
-    work->field_224 = coord;
+    ctx->coord              = coord;
+    ctx->node.state.b.flags = 0;
+    ctx->bodyPos.vx         = 0;
+    ctx->bodyPos.vy         = 0;
+    ctx->bodyPos.vz         = 0;
+    ctx->param              = &Actor00700_D07588;
+    ctx->recs               = &work->field_154;
+    ctx->hp                 = (u16)Actor00700_D07588.hpMax;
+    work->field_228         = 0x100;
+    work->field_22A         = 1;
+    work->field_224         = coord;
     func_800B3F84(work, &Actor00700_D075B4, obj, &work->field_B4, &work->field_14);
     for (i = 1; i < 4; i++) {
         Gp_AnimResetSlot(work, i, 1);
@@ -1573,15 +1573,15 @@ ge2:
     }
     goto default_body;
 case0:
-    obj->flags       = 0;
-    arg0->node.flags = 0;
+    obj->flags               = 0;
+    arg0->node.state.b.flags = 0;
     goto default_body;
 case1:
     Actor00700_Fn03518(arg1);
     return;
 case2:
-    obj->flags       = 0x80;
-    arg0->node.flags = one;
+    obj->flags               = 0x80;
+    arg0->node.state.b.flags = one;
     return;
 default_body:
     Actor00700_Fn02414(arg1);

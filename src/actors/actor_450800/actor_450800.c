@@ -348,12 +348,12 @@ void func_actor_450800_80132160(GpEnemy* enemyArg, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback   = func_actor_450800_80132868;
-    coord->sub           = &gGfxViewCoord;
-    enemy->field_4       = &coord->coord;
-    enemy->field_48      = 0;
-    enemy->node.targeted = 0;
-    enemy->node.flags    = 1;
+    task->exitCallback           = func_actor_450800_80132868;
+    coord->sub                   = &gGfxViewCoord;
+    enemy->field_4               = &coord->coord;
+    enemy->field_48              = 0;
+    enemy->node.state.b.targeted = 0;
+    enemy->node.state.b.flags    = 1;
     if ((s16)(task->spawnArg1 >> 16) == 1) {
         obj->flags = 0;
     }
@@ -847,23 +847,23 @@ void func_actor_450800_80132E9C(GpEnemy* enemyArg, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback   = func_actor_450800_8013333C;
-    coord->sub           = &gGfxViewCoord;
-    enemy->field_4       = &coord->coord;
-    enemy->field_48      = 0;
-    enemy->node.targeted = 0;
-    enemy->node.flags    = 1;
-    obj->otOffset        = 1;
-    mem->field_4BC       = enemy;
-    spawned              = Gp_SpawnEnemyFromTable(D_actor_450800_801539DC, 1, 0, enemy);
-    model                = (TmdObject*)spawned->task->extra;
-    raw                  = enemy->placeKey;
-    sessionKey           = (GpAreaKey*)&gGameSession->at4.loc;
-    key.stage            = sessionKey->stage;
-    key.area             = sessionKey->area;
-    key.room             = sessionKey->room;
-    idx                  = raw >> 12;
-    areaByte0            = sessionKey->view;
+    task->exitCallback           = func_actor_450800_8013333C;
+    coord->sub                   = &gGfxViewCoord;
+    enemy->field_4               = &coord->coord;
+    enemy->field_48              = 0;
+    enemy->node.state.b.targeted = 0;
+    enemy->node.state.b.flags    = 1;
+    obj->otOffset                = 1;
+    mem->field_4BC               = enemy;
+    spawned                      = Gp_SpawnEnemyFromTable(D_actor_450800_801539DC, 1, 0, enemy);
+    model                        = (TmdObject*)spawned->task->extra;
+    raw                          = enemy->placeKey;
+    sessionKey                   = (GpAreaKey*)&gGameSession->at4.loc;
+    key.stage                    = sessionKey->stage;
+    key.area                     = sessionKey->area;
+    key.room                     = sessionKey->room;
+    idx                          = raw >> 12;
+    areaByte0                    = sessionKey->view;
     SOFT_BARRIER();
     keyPtr = &key;
     TOUCH_REG(keyPtr);

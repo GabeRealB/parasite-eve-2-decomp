@@ -142,14 +142,21 @@ STATIC_ASSERT(OFFSET_OF(GameSession, ptrSlots) == 0xC, GameSession_ptrSlots);
 ///
 /// Two walks run over the list each frame: the transform pass reprojects every
 /// tracked actor's position, and the lock-on scan picks which of them an actor
-/// slot aims at. `flags` is the node's own state, written by whoever owns the
-/// object; `targeted` and `onList` are the positions the tracking helpers
-/// maintain, and what the reticle and the on-screen markers read.
+/// slot aims at. `state.b.flags` is the node's own state, written by whoever
+/// owns the object; `targeted` and `onList` are the positions the tracking
+/// helpers maintain, and what the reticle and the on-screen markers read. The
+/// list walkers read the three bytes as one word, `state.word`, and test the
+/// flags through it.
 typedef struct GpLinkNode {
-    struct GpLinkNode* next;     // Next node in the list; NULL at the tail
-    u8                 flags;    // Object state: 0x01 not lockable, 0x04 reproject while not lockable, 0x08 no HP readout
-    u8                 targeted; // Non-zero while an actor slot is locked onto this node
-    u8                 onList;   // Non-zero while the node hangs on the list
+    struct GpLinkNode* next; // Next node in the list; NULL at the tail
+    union {
+        struct {
+            u8 flags;    // Object state: 0x01 not lockable, 0x04 reproject while not lockable, 0x08 no HP readout
+            u8 targeted; // Non-zero while an actor slot is locked onto this node
+            u8 onList;   // Non-zero while the node hangs on the list
+        } b;
+        u32 word;
+    } state;
 } GpLinkNode;
 STATIC_ASSERT_SIZEOF(GpLinkNode, 0x8);
 

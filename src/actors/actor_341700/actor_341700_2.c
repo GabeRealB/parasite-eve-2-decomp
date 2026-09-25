@@ -872,7 +872,7 @@ void func_actor_341700_8016D130(GpEnemy* arg0, Task* arg1)
     arg0->bodyPos.vy                              = 0;
     arg0->bodyPos.vz                              = 0;
     arg0->coord                                   = &((TmdObject*)arg1->extra)->coords[2];
-    arg0->node.flags                              = 1;
+    arg0->node.state.b.flags                      = 1;
     arg0->reactionFlags                           = 0;
     arg0->hpMax                                   = 0;
     arg0->hp                                      = 0;
@@ -894,9 +894,9 @@ void func_actor_341700_8016D2B8(GpEnemy* arg0, Task* arg1)
     TmdObject* model;
 
     if (((Actor341700SubWork*)arg1->work)->field_4 != 0) {
-        model            = (TmdObject*)arg1->extra;
-        arg0->node.flags = 1;
-        model->flags     = 0x84;
+        model                    = (TmdObject*)arg1->extra;
+        arg0->node.state.b.flags = 1;
+        model->flags             = 0x84;
     }
 }
 
@@ -905,9 +905,9 @@ void func_actor_341700_8016D2E8(GpEnemy* arg0, Task* arg1)
     TmdObject* model;
 
     if (((Actor341700SubWork*)arg1->work)->field_4 != 0) {
-        model            = (TmdObject*)arg1->extra;
-        arg0->node.flags = 1;
-        model->flags     = 0;
+        model                    = (TmdObject*)arg1->extra;
+        arg0->node.state.b.flags = 1;
+        model->flags             = 0;
         Tmd_AllocBuffers(model);
     }
 }

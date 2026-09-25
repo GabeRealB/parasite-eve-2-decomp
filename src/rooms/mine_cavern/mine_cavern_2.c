@@ -2099,7 +2099,7 @@ void func_mine_cavern_80182E34(GpEnemy* arg0, Task* arg1)
     arg0->bodyPos.vz = 0;
     arg0->coord      = ((TmdObject*)arg1->extra)->coords;
     Gp_LinkNode(&arg0->node);
-    arg0->node.flags = 1;
+    arg0->node.state.b.flags = 1;
     arg1->state++;
 }
 
@@ -2152,9 +2152,9 @@ void func_mine_cavern_801830F0(GpEnemy* arg0, Task* arg1)
 
     if (overlayOutOfRange(d, 0x1770) || Gp_StateF0.field_0 != 1 ||
         (gGameSession->at4.loc.place != Gp_StateF0.field_0 && gGameSession->at4.loc.place != 4)) {
-        arg0->node.flags = 1;
+        arg0->node.state.b.flags = 1;
     } else {
-        arg0->node.flags = 0;
+        arg0->node.state.b.flags = 0;
     }
 
     ((TmdObject*)arg1->extra)->coords->flg = 0;
@@ -2288,9 +2288,9 @@ void func_mine_cavern_80183890(GpEnemy* enemy, Task* task)
 {
     MineCavernWork* work;
 
-    work               = (MineCavernWork*)task->work;
-    work->obj40.flags &= 0x7FFF;
-    enemy->node.flags  = 1;
+    work                      = (MineCavernWork*)task->work;
+    work->obj40.flags        &= 0x7FFF;
+    enemy->node.state.b.flags = 1;
     Gp_UnlinkObj(&work->obj40);
     work->field_148 = 0;
     task->state++;

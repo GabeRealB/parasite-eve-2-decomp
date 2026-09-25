@@ -135,17 +135,17 @@ void func_actor_300700_80161E80(GpEnemy* arg0, Task* arg1)
     arg0->field_4  = &coord->coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->coord      = coord;
-    arg0->node.flags = 0;
-    arg0->bodyPos.vx = 0;
-    arg0->bodyPos.vy = 0;
-    arg0->bodyPos.vz = 0;
-    arg0->param      = &D_actor_300700_80165B68;
-    arg0->recs       = &work->rec154;
-    arg0->hp         = (u16)D_actor_300700_80165B68.hpMax;
-    work->field_228  = 0x100;
-    work->field_22A  = 1;
-    work->field_224  = coord;
+    arg0->coord              = coord;
+    arg0->node.state.b.flags = 0;
+    arg0->bodyPos.vx         = 0;
+    arg0->bodyPos.vy         = 0;
+    arg0->bodyPos.vz         = 0;
+    arg0->param              = &D_actor_300700_80165B68;
+    arg0->recs               = &work->rec154;
+    arg0->hp                 = (u16)D_actor_300700_80165B68.hpMax;
+    work->field_228          = 0x100;
+    work->field_22A          = 1;
+    work->field_224          = coord;
     func_800B3F84((GpAnimCtx*)work, &D_actor_300700_80165B94, obj,
                   work->field_B4, (GpAnimSlot*)work->field_14);
     for (i = 1; i < 4; i++) {
@@ -222,15 +222,15 @@ ge2:
     }
     goto default_body;
 case0:
-    obj->flags       = 0;
-    arg0->node.flags = 0;
+    obj->flags               = 0;
+    arg0->node.state.b.flags = 0;
     goto default_body;
 case1:
     func_actor_300700_801633B8(arg1);
     return;
 case2:
-    obj->flags       = 0x80;
-    arg0->node.flags = one;
+    obj->flags               = 0x80;
+    arg0->node.state.b.flags = one;
     return;
 default_body:
     func_actor_300700_801622B4(arg1);
@@ -803,17 +803,17 @@ void func_actor_300700_80163510(GpEnemy* arg0, Task* arg1)
     arg0->field_4  = &coord->coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->coord      = &((TmdObject*)arg1->extra)->coords[4];
-    arg0->node.flags = 0;
-    arg0->bodyPos.vx = 0;
-    arg0->bodyPos.vy = 0;
-    arg0->bodyPos.vz = 0;
-    arg0->param      = &D_actor_300700_8016932C;
-    arg0->recs       = work->rec2;
-    arg0->hp         = (u16)D_actor_300700_8016932C.hpMax;
-    work->field_338  = 0x100;
-    work->field_33A  = 1;
-    work->field_334  = coord;
+    arg0->coord              = &((TmdObject*)arg1->extra)->coords[4];
+    arg0->node.state.b.flags = 0;
+    arg0->bodyPos.vx         = 0;
+    arg0->bodyPos.vy         = 0;
+    arg0->bodyPos.vz         = 0;
+    arg0->param              = &D_actor_300700_8016932C;
+    arg0->recs               = work->rec2;
+    arg0->hp                 = (u16)D_actor_300700_8016932C.hpMax;
+    work->field_338          = 0x100;
+    work->field_33A          = 1;
+    work->field_334          = coord;
     func_800B3F84((GpAnimCtx*)work, &D_actor_300700_801693B8, obj,
                   work->field_12C, (GpAnimSlot*)work->field_14);
     for (i = 1; i < 7; i++) {

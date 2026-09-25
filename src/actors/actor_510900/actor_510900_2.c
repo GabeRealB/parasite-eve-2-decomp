@@ -647,7 +647,7 @@ void func_actor_510900_80136184(Task* arg0)
                         work->field_590 = 1;
                         work->field_586 = 2;
                         work->field_59C = 0;
-                    } else if (((GpEnemy*)arg0->spawnArg2)->node.targeted == 1 && (u32)(D_80073BAA - 0xA) < 3U) {
+                    } else if (((GpEnemy*)arg0->spawnArg2)->node.state.b.targeted == 1 && (u32)(D_80073BAA - 0xA) < 3U) {
                         work->field_590 = 5;
                         work->field_586 = 0x15;
                         snd             = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x40780003;
@@ -703,7 +703,7 @@ void func_actor_510900_80136184(Task* arg0)
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
                                     (s8)gpGetObjDepth(coord));
             }
-            if (((GpEnemy*)arg0->spawnArg2)->node.targeted == 1 && (u32)(D_80073BAA - 0xA) < 3U) {
+            if (((GpEnemy*)arg0->spawnArg2)->node.state.b.targeted == 1 && (u32)(D_80073BAA - 0xA) < 3U) {
                 work->field_590 = 6;
                 work->field_586 = 0x15;
                 snd             = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x40780003;
@@ -1676,7 +1676,7 @@ void func_actor_510900_801384C4(Task* arg0)
         SndEvt_EnqueueType7(work->field_580, 0);
         work->field_580 = 0;
     }
-    ((GpEnemy*)arg0->spawnArg2)->node.flags = 1;
+    ((GpEnemy*)arg0->spawnArg2)->node.state.b.flags = 1;
     if (work->field_58A == 0x70) {
         snd = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x40780007;
         pan = (s8)Gp_GetObjPan(coord);
@@ -2107,7 +2107,7 @@ s32 func_actor_510900_801391B8(Task* arg0, s32 arg1, s32 arg2)
             work->field_5A2                             = 0;
             work->field_58A                             = 0;
             work->obj47C.flags                         |= 0x8000;
-            enemy->node.flags                           = 8;
+            enemy->node.state.b.flags                   = 8;
             vec->vx                                     = 0;
             vec->vy                                     = work->field_5A0;
             vec->vz                                     = 0;
@@ -2142,11 +2142,11 @@ s32 func_actor_510900_801391B8(Task* arg0, s32 arg1, s32 arg2)
             if (work->field_564 != NULL) {
                 work->field_564[0xD] = 4;
             }
-            work->field_564     = NULL;
-            work->obj47C.flags &= 0x7FFF;
-            work->obj4E4.flags &= 0x7FFF;
-            work->obj504.flags &= 0x7FFF;
-            enemy->node.flags   = 1;
+            work->field_564           = NULL;
+            work->obj47C.flags       &= 0x7FFF;
+            work->obj4E4.flags       &= 0x7FFF;
+            work->obj504.flags       &= 0x7FFF;
+            enemy->node.state.b.flags = 1;
 
             normals = Gp_GridParams->field_4;
             verts   = Gp_GridParams->field_8;
@@ -2677,7 +2677,7 @@ void func_actor_510900_8013A5B8(GpEnemy* enemy, Task* task)
     *(void**)0x1F8003FC = head - 8;
     enemy->field_48     = 0;
     Gp_LinkNode(&enemy->node);
-    enemy->node.flags          = 1;
+    enemy->node.state.b.flags  = 1;
     enemy->coord               = coord;
     enemy->bodyPos.vx          = -0xC8;
     enemy->bodyPos.vy          = 0;
@@ -2773,11 +2773,11 @@ case0:
         return;
     }
     ((TmdObject*)arg1->extra)->flags = 0;
-    arg0->node.flags                 = one;
+    arg0->node.state.b.flags         = one;
     goto body;
 case2:
-    obj->flags       = 0x80;
-    arg0->node.flags = one;
+    obj->flags               = 0x80;
+    arg0->node.state.b.flags = one;
     return;
 body:
     func_actor_510900_8013A9BC(arg1);
@@ -2856,10 +2856,10 @@ case0:
         work->field_330 = 2;
         goto end;
     }
-    ctx->node.flags     = Gp_StateF0.field_0 != 1;
-    dmg                 = work->rec2DC.key;
-    work->obj2BC.flags |= 0x8000;
-    if ((dmg & 0xFFFF8000) == 0x20000 && ctx->node.targeted == one &&
+    ctx->node.state.b.flags = Gp_StateF0.field_0 != 1;
+    dmg                     = work->rec2DC.key;
+    work->obj2BC.flags     |= 0x8000;
+    if ((dmg & 0xFFFF8000) == 0x20000 && ctx->node.state.b.targeted == one &&
         Gp_ComputeDamage(dmg, 0x3E8, 0, 0) != 0) {
         grabbed = 1;
     }
@@ -2974,19 +2974,19 @@ void func_actor_510900_8013AD90(GpEnemy* enemy, Task* task)
     enemy->field_4    = &coord->coord;
     enemy->field_48   = 0;
     Gp_LinkNode(&enemy->node);
-    enemy->coord        = coord;
-    enemy->node.flags   = 1;
-    enemy->bodyPos.vx   = 0;
-    enemy->bodyPos.vy   = 0;
-    enemy->bodyPos.vz   = 0;
-    work->obj0.coord    = coord;
-    work->obj0.pos.vx   = 0;
-    work->obj0.pos.vy   = 0;
-    work->obj0.pos.vz   = 0;
-    work->obj0.ctx.recs = &work->rec20;
-    work->obj0.key      = 0;
-    work->obj0.radius   = 0x12C;
-    work->obj0.flags    = 1;
+    enemy->coord              = coord;
+    enemy->node.state.b.flags = 1;
+    enemy->bodyPos.vx         = 0;
+    enemy->bodyPos.vy         = 0;
+    enemy->bodyPos.vz         = 0;
+    work->obj0.coord          = coord;
+    work->obj0.pos.vx         = 0;
+    work->obj0.pos.vy         = 0;
+    work->obj0.pos.vz         = 0;
+    work->obj0.ctx.recs       = &work->rec20;
+    work->obj0.key            = 0;
+    work->obj0.radius         = 0x12C;
+    work->obj0.flags          = 1;
     Gp_LinkObj(2, &work->obj0);
     Gp_InitRec18Table(&work->rec20, 1, 0);
     work->obj38.pos.vy   = -0x200;
@@ -3043,9 +3043,9 @@ ge2:
     goto body;
 case0:
     if ((Gp_GetViewIndex() & 0xFF) != D_actor_510900_80167CE4) {
-        arg0->node.flags   = one;
-        work->obj0.flags  &= 0x7FFF;
-        work->obj38.flags &= 0x7FFF;
+        arg0->node.state.b.flags = one;
+        work->obj0.flags        &= 0x7FFF;
+        work->obj38.flags       &= 0x7FFF;
         if (work->field_76 != 0) {
             work->field_76--;
         }
@@ -3056,10 +3056,10 @@ case0:
         }
         return;
     }
-    arg0->node.flags = one;
+    arg0->node.state.b.flags = one;
     goto body;
 case2:
-    arg0->node.flags = one;
+    arg0->node.state.b.flags = one;
     return;
 body:
     func_actor_510900_8013B0D8(arg1);
@@ -3115,11 +3115,11 @@ void func_actor_510900_8013B0D8(Task* arg0)
             }
             break;
         case 1:
-            ctx->node.flags   = Gp_StateF0.field_0 != 1;
-            hit               = work->rec20.key;
-            work->obj0.flags |= 0x8000;
+            ctx->node.state.b.flags = Gp_StateF0.field_0 != 1;
+            hit                     = work->rec20.key;
+            work->obj0.flags       |= 0x8000;
             if ((hit & ~0x7FFF) == 0x20000) {
-                tag = ctx->node.targeted;
+                tag = ctx->node.state.b.targeted;
                 if (tag == 1 && Gp_ComputeDamage(hit, 0x3E8, 0, 0) != 0) {
                     work->field_74 = 2;
                     work->field_76 = 0x3C;
@@ -3304,16 +3304,16 @@ void func_actor_510900_8013B6A0(GpEnemy* arg0, Task* arg1)
         }
         goto default_body;
     case0:
-        temp_a1->flags   = 0;
-        arg0->node.flags = 8;
+        temp_a1->flags           = 0;
+        arg0->node.state.b.flags = 8;
         goto default_body;
     case1:
         func_actor_510900_8013BBE4(arg1);
         func_actor_510900_8013BC38(arg1, temp_s1);
         return;
     case2:
-        temp_a1->flags   = 0x80;
-        arg0->node.flags = one;
+        temp_a1->flags           = 0x80;
+        arg0->node.state.b.flags = one;
         return;
     default_body:
         if (arg0->reactionFlags != 0) {
@@ -3760,10 +3760,10 @@ s32 func_actor_510900_8013C240(Task* task)
         return 1;
     }
 
-    obj->flags          = 0x80;
-    work->obj2BC.flags &= 0x7FFF;
-    work->obj2F4.flags &= 0x7FFF;
-    ctx->node.flags     = 1;
+    obj->flags              = 0x80;
+    work->obj2BC.flags     &= 0x7FFF;
+    work->obj2F4.flags     &= 0x7FFF;
+    ctx->node.state.b.flags = 1;
     if (work->field_32C != NULL) {
         work->field_32C->state = 2;
         work->field_32C        = NULL;

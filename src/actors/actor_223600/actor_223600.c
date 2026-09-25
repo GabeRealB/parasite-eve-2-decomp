@@ -723,15 +723,15 @@ void func_actor_223600_8014B540(GpEnemy* enemy, Task* task)
     enemy->bodyPos.vz = 0;
     enemy->coord      = &((TmdObject*)task->extra)->coords[2];
     Gp_LinkNode(&enemy->node);
-    enemy->node.flags    = 1;
-    enemy->hpMax         = 1;
-    enemy->hp            = 1;
-    enemy->reactionFlags = 0;
-    hp                   = D_actor_223600_8014CFCC.hpMax;
-    enemy->param         = &D_actor_223600_8014CFCC;
-    enemy->recs          = 0;
-    enemy->hpMax         = hp;
-    enemy->hp            = hp;
+    enemy->node.state.b.flags = 1;
+    enemy->hpMax              = 1;
+    enemy->hp                 = 1;
+    enemy->reactionFlags      = 0;
+    hp                        = D_actor_223600_8014CFCC.hpMax;
+    enemy->param              = &D_actor_223600_8014CFCC;
+    enemy->recs               = 0;
+    enemy->hpMax              = hp;
+    enemy->hp                 = hp;
 
     work->field_170 = 2;
     work->field_174 = 1;
@@ -794,9 +794,9 @@ void func_actor_223600_8014B840(GpEnemy* enemy, Task* task)
 
     work = (Actor223600Work*)task->work;
     if (work->field_4 != 0) {
-        obj               = (TmdObject*)task->extra;
-        enemy->node.flags = 1;
-        obj->flags        = 0;
+        obj                       = (TmdObject*)task->extra;
+        enemy->node.state.b.flags = 1;
+        obj->flags                = 0;
         Tmd_AllocBuffers(obj);
         work->field_19C = 0x115D;
         work->field_19E = 1;
@@ -881,9 +881,9 @@ void func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task)
 
     work = (Actor223600Work*)task->work;
     if (work->field_4 != 0) {
-        obj               = (TmdObject*)task->extra;
-        enemy->node.flags = 1;
-        obj->flags        = 0;
+        obj                       = (TmdObject*)task->extra;
+        enemy->node.state.b.flags = 1;
+        obj->flags                = 0;
         Tmd_AllocBuffers(obj);
         mode = enemy->placeKey >> 12;
         switch (mode) {
@@ -1305,9 +1305,9 @@ void func_actor_223600_8014CF3C(GpEnemy* arg0, Task* arg1)
     TmdObject* model;
 
     if (((Actor223600Work*)arg1->work)->field_4 != 0) {
-        model            = (TmdObject*)arg1->extra;
-        arg0->node.flags = 1;
-        model->flags     = 0x80;
+        model                    = (TmdObject*)arg1->extra;
+        arg0->node.state.b.flags = 1;
+        model->flags             = 0x80;
     }
 }
 

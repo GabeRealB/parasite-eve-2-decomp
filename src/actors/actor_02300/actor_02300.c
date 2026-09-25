@@ -1024,7 +1024,7 @@ void Actor02300_Fn01A20(GpEnemy* arg0, Task* arg1)
     switch (Gp_StateF0.field_4) {
         case 0:
             ((TmdObject*)arg1->extra)->flags = 0;
-            arg0->node.flags                 = 0;
+            arg0->node.state.b.flags         = 0;
             break;
         case 1:
             coord->flg                               = 0;
@@ -1044,7 +1044,7 @@ void Actor02300_Fn01A20(GpEnemy* arg0, Task* arg1)
             return;
         case 2:
             ((TmdObject*)arg1->extra)->flags = 0x80;
-            arg0->node.flags                 = 1;
+            arg0->node.state.b.flags         = 1;
             return;
     }
     switch (work->field_6A8) {
@@ -1710,14 +1710,14 @@ void Actor02300_Fn02EA0(GpEnemy* ctx, Task* actor)
     coord = model->coords;
     switch (Gp_StateF0.field_4) {
         case 0:
-            model->flags    = 0;
-            ctx->node.flags = 0;
+            model->flags            = 0;
+            ctx->node.state.b.flags = 0;
             break;
         case 1:
             goto draw;
         case 2:
-            model->flags    = 0x80;
-            ctx->node.flags = 1;
+            model->flags            = 0x80;
+            ctx->node.state.b.flags = 1;
             return;
     }
 

@@ -1712,15 +1712,15 @@ ge2:
     }
     goto body;
 case0:
-    obj->flags       = 0;
-    arg0->node.flags = 8;
+    obj->flags               = 0;
+    arg0->node.state.b.flags = 8;
     goto body;
 case1:
     Actor02100_Fn03488(arg1);
     return;
 case2:
-    obj->flags       = 0x80;
-    arg0->node.flags = one;
+    obj->flags               = 0x80;
+    arg0->node.state.b.flags = one;
     return;
 body:
     Actor02100_Fn004C4(arg1);

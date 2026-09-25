@@ -918,12 +918,12 @@ ge2:
     }
     goto default_body;
 case0:
-    obj->flags       = 0;
-    arg0->node.flags = 0;
+    obj->flags               = 0;
+    arg0->node.state.b.flags = 0;
     goto default_body;
 case2:
-    obj->flags       = 0x80;
-    arg0->node.flags = one;
+    obj->flags               = 0x80;
+    arg0->node.state.b.flags = one;
     return;
 default_body:
     if (arg0->reactionFlags != 0) {

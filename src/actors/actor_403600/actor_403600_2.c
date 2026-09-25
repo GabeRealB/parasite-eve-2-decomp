@@ -501,7 +501,7 @@ void func_actor_403600_80138EF8(GpEnemy* enemy, Task* task)
     enemy->field_4                     = (MATRIX*)(temp_s0 + 0x54);
     enemy->field_48                    = 0;
     Gp_LinkNode(&enemy->node);
-    enemy->node.flags                 = 1;
+    enemy->node.state.b.flags         = 1;
     enemy->bodyPos.vy                 = -0x1F4;
     gpSess                            = gGameSession;
     enemy->coord                      = (GsCOORDINATE2*)temp_s5;
@@ -637,7 +637,7 @@ case1:
     return;
 case2:
     ((TmdObject*)arg1->extra)->flags = 0x80;
-    arg0->node.flags                 = 9;
+    arg0->node.state.b.flags         = 9;
     return;
 default_body:
     if (((D_80071075 & 0xF0) == 0x40) && (work->field_7AC == 0)) {
@@ -2051,8 +2051,8 @@ void func_actor_403600_8013A444(Task* arg0)
                             Gp_SpawnEff(0x601B9, &((TmdObject*)arg0->extra)->coords[19], 0x800, NULL);
                         }
                     }
-                    temp_s7->node.flags = 8;
-                    temp_s3->field_736  = 0x12U;
+                    temp_s7->node.state.b.flags = 8;
+                    temp_s3->field_736          = 0x12U;
                     func_actor_403600_801417A8(arg0, 0xA);
                     temp_s0_20 = &temp_s3->field_4B8;
                     func_actor_403600_8013E470(temp_s0_20, &sp10, &sp14);
@@ -2121,7 +2121,7 @@ void func_actor_403600_8013A444(Task* arg0)
                         temp_s3->field_776       = 0;
                         temp_s3->field_5C0.flags = (u16)(temp_s3->field_5C0.flags & 0xBFFF);
                         __asm__("addiu %0,$zero,1" : "=r"(node_flag) : "r"(temp_s1_2));
-                        temp_s7->node.flags = node_flag;
+                        temp_s7->node.state.b.flags = node_flag;
                         Gp_ClearNodeSlots(&temp_s7->node);
                         temp_s3->field_73A = 0;
                         temp_s3->field_732 = 5;
@@ -4191,14 +4191,14 @@ void func_actor_403600_8013F7B8(GpEnemy* enemy, Task* task)
     enemy->field_4  = &modelCoord[1].coord;
     enemy->field_48 = 0;
     Gp_LinkNode(&enemy->node);
-    enemy->node.flags = 8;
-    enemy->coord      = bodyCoord;
-    enemy->bodyPos.vx = 0;
-    enemy->bodyPos.vy = 0;
-    enemy->bodyPos.vz = 0;
-    enemy->param      = &D_actor_403600_80150ED8;
-    enemy->recs       = (s32)work->field_528;
-    enemy->hp         = (s16)D_actor_403600_80150ED8.hpMax;
+    enemy->node.state.b.flags = 8;
+    enemy->coord              = bodyCoord;
+    enemy->bodyPos.vx         = 0;
+    enemy->bodyPos.vy         = 0;
+    enemy->bodyPos.vz         = 0;
+    enemy->param              = &D_actor_403600_80150ED8;
+    enemy->recs               = (s32)work->field_528;
+    enemy->hp                 = (s16)D_actor_403600_80150ED8.hpMax;
     func_800B3F84((GpAnimCtx*)work, D_actor_403600_8016057C, model,
                   (u8*)work + 0x334, (GpAnimSlot*)((u8*)work + 0x14));
     i = 1;
@@ -4364,8 +4364,8 @@ case1:
     goto end;
 
 case2:
-    temp_s7->flags   = 0x80;
-    arg0->node.flags = 9;
+    temp_s7->flags           = 0x80;
+    arg0->node.state.b.flags = 9;
     goto end;
 
 default_body:
@@ -4465,10 +4465,10 @@ default_body:
         }
     }
     if (((s16)temp_s4->field_74E >= temp_s4->field_754) || (temp_s4->field_742 != 0)) {
-        arg0->node.flags    = 1;
-        temp_s7->lightLevel = 0x12C;
-        arg1->killCountdown = 0x3C;
-        arg1->state         = (s32)(arg1->state + 1);
+        arg0->node.state.b.flags = 1;
+        temp_s7->lightLevel      = 0x12C;
+        arg1->killCountdown      = 0x3C;
+        arg1->state              = (s32)(arg1->state + 1);
     }
 
 end:
@@ -4662,8 +4662,8 @@ case1:
     }
     goto default_body;
 case2:
-    object->flags   |= 0x80;
-    arg0->node.flags = 1;
+    object->flags           |= 0x80;
+    arg0->node.state.b.flags = 1;
     return;
 default_body:
     if (initialWork->field_732 == 0) {
@@ -4753,25 +4753,25 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, GpCmdArg* arg2)
     enemy   = arg0->spawnArg2;
     switch (message) {
         case 1:
-            initialWork            = arg0->work;
-            initialWork->field_756 = 8;
-            initialWork->field_778 = 0x10;
-            initialWork->field_742 = 0;
-            initialWork->field_746 = 0;
-            initialWork->field_774 = 0;
-            initialWork->field_77A = 0;
-            initialWork->field_784 = 0;
-            initialWork->field_73C = 0;
-            initialWork->field_73E = 0;
-            initialWork->field_74A = 0;
-            initialWork->field_73A = 0;
-            initialWork->field_776 = 0xA;
-            initialWork->field_76E = 0x40;
-            initialWork->field_75E = 0;
-            initialWork->field_7A4 = 0;
-            initialWork->field_7A6 = 0;
-            initialWork->field_7AC = 0;
-            enemy->node.flags      = 1;
+            initialWork               = arg0->work;
+            initialWork->field_756    = 8;
+            initialWork->field_778    = 0x10;
+            initialWork->field_742    = 0;
+            initialWork->field_746    = 0;
+            initialWork->field_774    = 0;
+            initialWork->field_77A    = 0;
+            initialWork->field_784    = 0;
+            initialWork->field_73C    = 0;
+            initialWork->field_73E    = 0;
+            initialWork->field_74A    = 0;
+            initialWork->field_73A    = 0;
+            initialWork->field_776    = 0xA;
+            initialWork->field_76E    = 0x40;
+            initialWork->field_75E    = 0;
+            initialWork->field_7A4    = 0;
+            initialWork->field_7A6    = 0;
+            initialWork->field_7AC    = 0;
+            enemy->node.state.b.flags = 1;
             Gp_ClearNodeSlots(&enemy->node);
             work->field_736            = 1;
             work->field_4B8.coord.t[0] = 0x1D7A;
@@ -4876,7 +4876,7 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, GpCmdArg* arg2)
             resetWork->field_7AC       = 0;
             work->field_730            = 1;
             work->field_732            = 0;
-            enemy->node.flags          = nodeFlags;
+            enemy->node.state.b.flags  = nodeFlags;
             work->field_736            = 1;
             work->field_4B8.coord.t[0] = 0x196E;
             work->field_4B8.coord.t[1] = -0x1B62;
@@ -4893,12 +4893,12 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, GpCmdArg* arg2)
             restartedObject->flags = (u16)(restartedObject->flags & 0xFF7F);
             break;
         case 8:
-            work->field_730       = 0;
-            stoppedObject         = arg0->extra;
-            stoppedObject->flags  = (u16)(stoppedObject->flags | 0x80);
-            stoppedBuffers        = arg0->extra;
-            stoppedBuffers->flags = (u16)(stoppedBuffers->flags | 4);
-            enemy->node.flags     = 1;
+            work->field_730           = 0;
+            stoppedObject             = arg0->extra;
+            stoppedObject->flags      = (u16)(stoppedObject->flags | 0x80);
+            stoppedBuffers            = arg0->extra;
+            stoppedBuffers->flags     = (u16)(stoppedBuffers->flags | 4);
+            enemy->node.state.b.flags = 1;
             break;
         case 9:
             Gp_ReleaseStateF0Add(arg0, 0x24);

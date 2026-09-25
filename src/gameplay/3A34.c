@@ -2607,7 +2607,7 @@ void Gp_BindDefaultMtx(Task* arg0)
 
 void Gp_DrawTargetCursor(void)
 {
-    GpLinkXform*   node;
+    GpLinkNode*    node;
     GameSession*   sess;
     u8             stateA;
     void**         scratch;
@@ -2625,7 +2625,7 @@ void Gp_DrawTargetCursor(void)
     s32            val;
     s32            n;
 
-    node = (GpLinkXform*)Gp_LinkList;
+    node = Gp_LinkList;
     if (Pad_RemapState->field_A != 0) {
         return;
     }
@@ -2650,26 +2650,26 @@ void Gp_DrawTargetCursor(void)
     if (node != NULL) {
         scratch = (void**)G_SCRATCH_HEAD;
         do {
-            if (((GpLinkNode*)node)->targeted == 0) {
+            if (node->state.b.targeted == 0) {
                 goto next;
             }
-            if (((GpLinkNode*)node)->flags & 1) {
+            if (node->state.b.flags & 1) {
                 goto next;
             }
             head                                    = *scratch;
-            ((_GpPanScratch*)(head - 0x18))->vec.vx = *(u16*)&node->src.vx;
+            ((_GpPanScratch*)(head - 0x18))->vec.vx = *(u16*)&GP_NODE_ENEMY(node)->bodyPos.vx;
             {
                 register u8* tmp asm("v0");
                 tmp   = head - 0x18;
                 block = (_GpPanScratch*)tmp;
             }
-            block->vec.vy = *(u16*)&node->src.vy;
-            block->vec.vz = *(u16*)&node->src.vz;
+            block->vec.vy = *(u16*)&GP_NODE_ENEMY(node)->bodyPos.vy;
+            block->vec.vz = *(u16*)&GP_NODE_ENEMY(node)->bodyPos.vz;
             *scratch      = block;
-            Gp_UpdateCoord(node->coord);
+            Gp_UpdateCoord(GP_NODE_ENEMY(node)->coord);
             small = 0;
-            gte_SetRotMatrix(&node->coord->workm);
-            gte_SetTransMatrix(&node->coord->workm);
+            gte_SetRotMatrix(&GP_NODE_ENEMY(node)->coord->workm);
+            gte_SetTransMatrix(&GP_NODE_ENEMY(node)->coord->workm);
             gte_ldv0(&block->vec);
             gte_rtps();
             gte_stsxy(&((_GpPanScratch*)(head - 0x18))->sx);
@@ -2782,8 +2782,8 @@ void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
     GameActor*         actor;
     GsCOORDINATE2*     coord;
     GsCOORDINATE2*     nodeCoord;
-    GpLinkXform*       node;
-    GpLinkXform*       best;
+    GpLinkNode*        node;
+    GpLinkNode*        best;
     s32                bestAngle;
     u32                bestDist;
     s32                baseAngle;
@@ -2818,21 +2818,21 @@ void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
     *(u16*)&block->self.vz = *(u16*)&block->self.vz + *(u16*)&gGfxViewCoord.workm.t[2];
 
     if (actor->field_90C != NULL && flag != 0) {
-        node      = (GpLinkXform*)actor->field_90C;
-        baseAngle = ratan2(node->dst.vx, node->dst.vz);
+        node      = actor->field_90C;
+        baseAngle = ratan2(GP_NODE_ENEMY(node)->playerRelPos.vx, GP_NODE_ENEMY(node)->playerRelPos.vz);
     } else {
         baseAngle = 0;
     }
     bestAngle = 0x3000;
     bestDist  = 0x7FFFFFFF;
     dist      = 0;
-    for (node = (GpLinkXform*)Gp_LinkList; node != NULL; node = node->next) {
-        if (((GpLinkNode*)node)->flags & 1) {
+    for (node = Gp_LinkList; node != NULL; node = node->next) {
+        if (node->state.b.flags & 1) {
             continue;
         }
-        angle = ratan2(node->dst.vx, node->dst.vz);
+        angle = ratan2(GP_NODE_ENEMY(node)->playerRelPos.vx, GP_NODE_ENEMY(node)->playerRelPos.vz);
         if (flag == 0) {
-            dist = node->dst.vz * node->dst.vz + node->dst.vx * node->dst.vx + node->dst.vy * node->dst.vy;
+            dist = GP_NODE_ENEMY(node)->playerRelPos.vz * GP_NODE_ENEMY(node)->playerRelPos.vz + GP_NODE_ENEMY(node)->playerRelPos.vx * GP_NODE_ENEMY(node)->playerRelPos.vx + GP_NODE_ENEMY(node)->playerRelPos.vy * GP_NODE_ENEMY(node)->playerRelPos.vy;
             if (angle < 0) {
                 angle = -angle;
             }
@@ -2847,7 +2847,7 @@ void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
                 dist += sub / 3;
             }
             angle >>= 10;
-            if ((GpLinkNode*)node == actor->field_90C) {
+            if (node == actor->field_90C) {
                 angle += 0x1000;
             }
             if (angle == bestAngle && dist > bestDist) {
@@ -2864,26 +2864,26 @@ void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
             if (flag == 1) {
                 angle = -angle;
             }
-            if ((GpLinkNode*)node == actor->field_90C) {
+            if (node == actor->field_90C) {
                 angle += 0x1000;
             }
         }
         if (angle > bestAngle) {
             continue;
         }
-        Gp_UpdateCoord(node->coord);
-        block->node.vx = *(u16*)&node->src.vx;
-        block->node.vy = *(u16*)&node->src.vy;
-        block->node.vz = *(u16*)&node->src.vz;
-        nodeCoord      = node->coord;
+        Gp_UpdateCoord(GP_NODE_ENEMY(node)->coord);
+        block->node.vx = *(u16*)&GP_NODE_ENEMY(node)->bodyPos.vx;
+        block->node.vy = *(u16*)&GP_NODE_ENEMY(node)->bodyPos.vy;
+        block->node.vz = *(u16*)&GP_NODE_ENEMY(node)->bodyPos.vz;
+        nodeCoord      = GP_NODE_ENEMY(node)->coord;
         tmp            = block->node;
         gte_SetRotMatrix(&nodeCoord->workm);
         gte_ldv0(&tmp);
         gte_rtv0();
         gte_stsv(&block->node);
-        block->node.vx += *(u16*)&node->coord->workm.t[0];
-        block->node.vy += *(u16*)&node->coord->workm.t[1];
-        block->node.vz += *(u16*)&node->coord->workm.t[2];
+        block->node.vx += *(u16*)&GP_NODE_ENEMY(node)->coord->workm.t[0];
+        block->node.vy += *(u16*)&GP_NODE_ENEMY(node)->coord->workm.t[1];
+        block->node.vz += *(u16*)&GP_NODE_ENEMY(node)->coord->workm.t[2];
         if (func_800E0308(&block->node, &block->self) != 1) {
             bestAngle = angle;
             best      = node;
@@ -2891,7 +2891,7 @@ void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
         }
     }
     if (best != NULL) {
-        Gp_GetLockPos((GpLinkNode*)best, out);
+        Gp_GetLockPos(best, out);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
     return best;
@@ -3134,7 +3134,7 @@ void Gp_UnlinkNode(GpLinkNode* node)
         p++;
     } while (i < 2);
 
-    if (node->onList == 1) {
+    if (node->state.b.onList == 1) {
         list = &Gp_LinkList;
         if (Gp_LinkList != node) {
             do {
@@ -3148,8 +3148,8 @@ void Gp_UnlinkNode(GpLinkNode* node)
             *list = node->next;
         }
     done:
-        node->onList   = 0;
-        node->targeted = 0;
+        node->state.b.onList   = 0;
+        node->state.b.targeted = 0;
     }
 }
 
@@ -3158,22 +3158,22 @@ void Gp_LinkNode(GpLinkNode* node)
     GpLinkNode** p;
     register s32 val asm("v0");
 
-    if (node->onList == 0) {
+    if (node->state.b.onList == 0) {
         p = &Gp_LinkList;
         if (Gp_LinkList != NULL) {
             do {
                 p = &(*p)->next;
             } while (*p != NULL);
         }
-        *p             = node;
-        val            = node->flags;
-        node->next     = NULL;
-        node->targeted = 0;
-        node->onList   = 1;
+        *p                     = node;
+        val                    = node->state.b.flags;
+        node->next             = NULL;
+        node->state.b.targeted = 0;
+        node->state.b.onList   = 1;
     } else {
-        val = node->flags;
+        val = node->state.b.flags;
     }
-    node->flags = val & 0xFE;
+    node->state.b.flags = val & 0xFE;
 }
 
 s32 Gp_NodeSlotMask(GpLinkNode* node)
@@ -3213,13 +3213,13 @@ void Gp_AssignNodeSlot0(GpLinkNode* node)
         actor    = work->work;
         previous = actor->field_90C;
         if (previous != NULL) {
-            previous->targeted = 0;
+            previous->state.b.targeted = 0;
         }
         actor->field_90C = node;
     }
-    val            = node->flags;
-    node->targeted = 1;
-    node->flags    = val & 0xFE;
+    val                    = node->state.b.flags;
+    node->state.b.targeted = 1;
+    node->state.b.flags    = val & 0xFE;
 }
 
 void Gp_ClearNodeSlots(GpLinkNode* node)
@@ -3243,9 +3243,9 @@ void Gp_ClearNodeSlots(GpLinkNode* node)
         i++;
         p++;
     } while (i < 2);
-    val            = node->flags;
-    node->targeted = 0;
-    node->flags    = val | 1;
+    val                    = node->state.b.flags;
+    node->state.b.targeted = 0;
+    node->state.b.flags    = val | 1;
 }
 
 void* Gp_FindLockNode(Task* arg0)
@@ -3431,7 +3431,7 @@ void Gp_ClearSlotNodeFlags(void)
         if (work != NULL) {
             node = ((GameActor*)work->work)->field_90C;
             if (node != NULL) {
-                node->targeted = 0;
+                node->state.b.targeted = 0;
             }
         }
         i++;

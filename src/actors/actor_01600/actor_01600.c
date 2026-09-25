@@ -436,17 +436,17 @@ void Actor01600_Fn001F4(GpEnemy* ctx, Task* actor)
     ctx->field_4                          = &coord->coord;
     ctx->field_48                         = 0;
     Gp_LinkNode(&ctx->node);
-    ctx->bodyPos.vy = -0x190;
-    ctx->node.flags = 0;
-    ctx->coord      = coord;
-    ctx->bodyPos.vx = 0;
-    ctx->bodyPos.vz = 0;
-    ctx->param      = &Actor01600_D09F0C;
-    ctx->recs       = (GpRec18*)&work->collision.named.pad_30C;
-    ctx->hp         = (u16)Actor01600_D09F0C.hpMax;
-    work->field_408 = 0x280;
-    work->field_40A = 2;
-    work->field_404 = next_coord;
+    ctx->bodyPos.vy         = -0x190;
+    ctx->node.state.b.flags = 0;
+    ctx->coord              = coord;
+    ctx->bodyPos.vx         = 0;
+    ctx->bodyPos.vz         = 0;
+    ctx->param              = &Actor01600_D09F0C;
+    ctx->recs               = (GpRec18*)&work->collision.named.pad_30C;
+    ctx->hp                 = (u16)Actor01600_D09F0C.hpMax;
+    work->field_408         = 0x280;
+    work->field_40A         = 2;
+    work->field_404         = next_coord;
     func_800B3F84(&work->anim, Actor01600_D127EC, obj, work->pad_17C, work->slots);
     for (i = 1; i < 9; i++) {
         Gp_AnimResetSlot(&work->anim, i, 1);
@@ -571,15 +571,15 @@ void Actor01600_Fn00674(GpEnemy* arg0, Task* arg1)
         switch (Gp_StateF0.field_4) {
             case 0:
                 ((TmdObject*)arg1->extra)->flags = 0;
-                arg0->node.flags                 = 0;
+                arg0->node.state.b.flags         = 0;
                 break;
             case 1:
                 Actor01600_Fn06810(arg0, arg1);
                 goto update;
             case 2:
-                obj              = arg1->extra;
-                obj->flags      |= 0x80;
-                arg0->node.flags = 1;
+                obj                      = arg1->extra;
+                obj->flags              |= 0x80;
+                arg0->node.state.b.flags = 1;
                 return;
             default:
                 break;
@@ -2457,8 +2457,8 @@ void Actor01600_Fn04054(GpEnemy* arg0, Task* arg1)
     }
     if (mode > 1) {
         if (mode == 2) {
-            obj->flags      |= 0x80;
-            arg0->node.flags = 1;
+            obj->flags              |= 0x80;
+            arg0->node.state.b.flags = 1;
             return;
         }
     }
@@ -2481,8 +2481,8 @@ void Actor01600_Fn04054(GpEnemy* arg0, Task* arg1)
                 work->field_49C = coords[0].coord;
                 Gp_SetLightMode(arg0, 1);
             }
-            arg0->node.flags = 1;
-            arg0->recs       = 0;
+            arg0->node.state.b.flags = 1;
+            arg0->recs               = 0;
             Gp_UnlinkNode(&arg0->node);
             Gp_UnlinkObj((GpObj*)work->field_40C);
             Gp_UnlinkObj((GpObj*)work->field_29C);
@@ -3130,29 +3130,29 @@ void Actor01600_Fn05400(Task* arg0)
             work->field_52E = 1;
             return;
         case 3:
-            work->field_53C    = 1;
-            ctx->node.flags    = 1;
-            work->field_52E    = 0;
-            work->field_530    = 1;
-            work->field_4D8    = 0;
-            work->field_4DA    = (u16)ctx->place->yaw;
-            work->field_4DC    = 0;
-            Actor01600_D12874 += 1;
+            work->field_53C         = 1;
+            ctx->node.state.b.flags = 1;
+            work->field_52E         = 0;
+            work->field_530         = 1;
+            work->field_4D8         = 0;
+            work->field_4DA         = (u16)ctx->place->yaw;
+            work->field_4DC         = 0;
+            Actor01600_D12874      += 1;
             return;
         case 1:
             work->field_536 = kind;
 
         default:
-            obj3               = arg0->extra;
-            obj3->flags       |= 0x80;
-            obj4               = arg0->extra;
-            obj4->flags       |= 4;
-            work->field_53C    = 1;
-            ctx->node.flags    = 1;
-            work->field_532    = 1;
-            work->field_52E    = 0;
-            work->field_530    = 1;
-            Actor01600_D12874 += 1;
+            obj3                    = arg0->extra;
+            obj3->flags            |= 0x80;
+            obj4                    = arg0->extra;
+            obj4->flags            |= 4;
+            work->field_53C         = 1;
+            ctx->node.state.b.flags = 1;
+            work->field_532         = 1;
+            work->field_52E         = 0;
+            work->field_530         = 1;
+            Actor01600_D12874      += 1;
             return;
     }
 }
@@ -3246,8 +3246,8 @@ s32 Actor01600_Fn05558(Task* arg0)
                 }
                 Gp_ArmStateF0(1);
             }
-            ctx->node.flags = 0;
-            work->field_52E = 1;
+            ctx->node.state.b.flags = 0;
+            work->field_52E         = 1;
             Actor01600_Fn00480(arg0);
             if (Gp_StateF0.field_1C == 1) {
                 work->collision.named.field_30A &= 0xBFFF;
@@ -3273,7 +3273,7 @@ s32 Actor01600_Fn05558(Task* arg0)
                 countdown2      = (u16)work->field_536 - 1;
                 work->field_536 = countdown2;
                 if ((countdown2 << 0x10) == 0) {
-                    ctx->node.flags = 0;
+                    ctx->node.state.b.flags = 0;
                     Actor01600_Fn00480(arg0);
                     work->field_516 = 6;
                     work->field_52E = 1;
@@ -3307,8 +3307,8 @@ s32 Actor01600_Fn05558(Task* arg0)
             if ((countdown3 << 0x10) != 0) {
                 goto running;
             }
-            ctx->node.flags = 0;
-            work->field_52E = 1;
+            ctx->node.state.b.flags = 0;
+            work->field_52E         = 1;
             Actor01600_Fn00480(arg0);
             Tmd_AllocBuffers(arg0->extra);
             obj3            = arg0->extra;
@@ -3979,8 +3979,8 @@ void Actor01600_Fn06EA4(Task* arg0)
     ctx  = arg0->spawnArg2;
     work = arg0->work;
 
-    ctx->node.flags = 1;
-    ctx->recs       = 0;
+    ctx->node.state.b.flags = 1;
+    ctx->recs               = 0;
     Gp_UnlinkNode(&ctx->node);
     Gp_UnlinkObj((GpObj*)work->field_40C);
     Gp_UnlinkObj((GpObj*)work->field_29C);

@@ -7032,28 +7032,28 @@ after_mode:
     states.fn[work->field_0](arg1);
 
     if ((u16)work->field_0 < 2 || work->field_0 == 5 || work->field_0 == 0xC) {
-        nodeFlags                      = 1;
-        arg0->node.flags               = 1;
-        work->field_ECC[3]->node.flags = 1;
-        work->field_ECC[0]->node.flags = nodeFlags;
-        work->field_ECC[1]->node.flags = nodeFlags;
+        nodeFlags                              = 1;
+        arg0->node.state.b.flags               = 1;
+        work->field_ECC[3]->node.state.b.flags = 1;
+        work->field_ECC[0]->node.state.b.flags = nodeFlags;
+        work->field_ECC[1]->node.state.b.flags = nodeFlags;
     } else if (work->field_EFA != 0) {
         if (Gp_NodeSlotMask(&work->field_ECC[3]->node) != 0) {
             Gp_AssignNodeSlot0(&arg0->node);
         }
-        arg0->node.flags               = 8;
-        work->field_ECC[3]->node.flags = 5;
-        work->field_ECC[0]->node.flags = 5;
-        work->field_ECC[1]->node.flags = 5;
+        arg0->node.state.b.flags               = 8;
+        work->field_ECC[3]->node.state.b.flags = 5;
+        work->field_ECC[0]->node.state.b.flags = 5;
+        work->field_ECC[1]->node.state.b.flags = 5;
     } else {
         if (Gp_NodeSlotMask(&arg0->node) != 0) {
             Gp_AssignNodeSlot0(&work->field_ECC[3]->node);
         }
-        arg0->node.flags               = 1;
-        nodeFlags                      = 8;
-        work->field_ECC[3]->node.flags = 8;
-        work->field_ECC[0]->node.flags = nodeFlags;
-        work->field_ECC[1]->node.flags = nodeFlags;
+        arg0->node.state.b.flags               = 1;
+        nodeFlags                              = 8;
+        work->field_ECC[3]->node.state.b.flags = 8;
+        work->field_ECC[0]->node.state.b.flags = nodeFlags;
+        work->field_ECC[1]->node.state.b.flags = nodeFlags;
     }
 
     if (work->field_0 != 0 && work->field_EFA == 1) {

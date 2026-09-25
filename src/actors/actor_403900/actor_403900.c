@@ -2685,15 +2685,15 @@ case0:
     if (temp_s1->field_6DA != 0) {
         temp_a1->flags = 0;
     }
-    arg0->node.flags = (temp_s1->field_49A >> 0xF) ^ 1;
+    arg0->node.state.b.flags = (temp_s1->field_49A >> 0xF) ^ 1;
     goto default_body;
 case1:
     func_actor_403900_80137FB4(arg1);
     func_actor_403900_80138070(arg1);
     return;
 case2:
-    temp_a1->flags   = 0x80;
-    arg0->node.flags = one;
+    temp_a1->flags           = 0x80;
+    arg0->node.state.b.flags = one;
     return;
 default_body:
     if (temp_s1->field_6B4 != 0) {

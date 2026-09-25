@@ -674,12 +674,12 @@ void func_actor_123200_8013352C(GpEnemy* enemy, Task* task)
     enemy->bodyPos.vz = 0;
     enemy->coord      = &((TmdObject*)task->extra)->coords[2];
     Gp_LinkNode(&enemy->node);
-    enemy->node.flags    = 1;
-    enemy->param         = &D_actor_123200_80134208;
-    enemy->reactionFlags = 0;
-    enemy->hpMax         = 0;
-    enemy->hp            = 0;
-    enemy->recs          = 0;
+    enemy->node.state.b.flags = 1;
+    enemy->param              = &D_actor_123200_80134208;
+    enemy->reactionFlags      = 0;
+    enemy->hpMax              = 0;
+    enemy->hp                 = 0;
+    enemy->recs               = 0;
 
     work->field_174 = 1;
     work->field_170 = 2;
@@ -767,9 +767,9 @@ void func_actor_123200_80133820(GpEnemy* enemy, Task* task)
 
     work = (Actor123200Work*)task->work;
     if (work->field_4 != 0) {
-        obj               = (TmdObject*)task->extra;
-        enemy->node.flags = 1;
-        obj->flags        = 0;
+        obj                       = (TmdObject*)task->extra;
+        enemy->node.state.b.flags = 1;
+        obj->flags                = 0;
         Tmd_AllocBuffers(obj);
         work->field_1B0 = 0x115D;
         work->field_1B2 = 1;
@@ -831,9 +831,9 @@ void func_actor_123200_801339F0(GpEnemy* enemy, Task* task)
 
     work = (Actor123200Work*)task->work;
     if (work->field_4 != 0) {
-        obj               = (TmdObject*)task->extra;
-        enemy->node.flags = 1;
-        obj->flags        = 0;
+        obj                       = (TmdObject*)task->extra;
+        enemy->node.state.b.flags = 1;
+        obj->flags                = 0;
         Tmd_AllocBuffers(obj);
         work->field_1B0 = 0x115D;
         work->field_1B2 = 1;
@@ -1078,9 +1078,9 @@ void func_actor_123200_80134178(GpEnemy* arg0, Task* arg1)
     TmdObject* model;
 
     if (((Actor123200Work*)arg1->work)->field_4 != 0) {
-        model            = (TmdObject*)arg1->extra;
-        arg0->node.flags = 1;
-        model->flags     = 0x80;
+        model                    = (TmdObject*)arg1->extra;
+        arg0->node.state.b.flags = 1;
+        model->flags             = 0x80;
     }
 }
 

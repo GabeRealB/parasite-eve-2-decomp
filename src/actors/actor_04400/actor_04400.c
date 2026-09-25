@@ -838,14 +838,14 @@ void Actor04400_Fn00B24(Task* arg0)
     w->field_7A = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
     enemy       = arg0->spawnArg2;
     Gp_LinkNode(&enemy->node);
-    enemy->field_4    = &((TmdObject*)arg0->extra)->coords->coord;
-    enemy->field_48   = 0;
-    enemy->bodyPos.vx = 0;
-    enemy->bodyPos.vy = 0;
-    enemy->bodyPos.vz = 0;
-    enemy->coord      = &((TmdObject*)arg0->extra)->coords[1];
-    enemy->node.flags = 4;
-    one               = 1;
+    enemy->field_4            = &((TmdObject*)arg0->extra)->coords->coord;
+    enemy->field_48           = 0;
+    enemy->bodyPos.vx         = 0;
+    enemy->bodyPos.vy         = 0;
+    enemy->bodyPos.vz         = 0;
+    enemy->coord              = &((TmdObject*)arg0->extra)->coords[1];
+    enemy->node.state.b.flags = 4;
+    one                       = 1;
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
     if ((arg0->spawnArg1 & 0xF) == one) {
         w3            = (Actor104400Work*)arg0->work;
@@ -934,24 +934,24 @@ void Actor04400_Fn00D3C(Task* arg0)
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
     e2 = arg0->spawnArg2;
     Gp_LinkNode(&e2->node);
-    e2->field_4          = &((TmdObject*)arg0->extra)->coords->coord;
-    e2->field_48         = 0;
-    e2->bodyPos.vx       = 0;
-    e2->bodyPos.vy       = 0;
-    e2->bodyPos.vz       = 0;
-    e2->coord            = &((TmdObject*)arg0->extra)->coords[1];
-    e2->node.flags       = 1;
-    work->field_80       = root->coord.t[0];
-    root->coord.t[1]    -= 0x3C;
-    work->field_82       = root->coord.t[1];
-    work->field_84       = root->coord.t[2];
-    work->field_451      = 1;
-    work->obj_2AC.flags &= 0x7FFF;
-    work->obj_2CC.flags &= 0xBFFF;
-    w3                   = (Actor104400Work*)arg0->work;
-    arg0->state          = 6;
-    w3->field_420        = 0;
-    w3->field_422        = 0;
+    e2->field_4            = &((TmdObject*)arg0->extra)->coords->coord;
+    e2->field_48           = 0;
+    e2->bodyPos.vx         = 0;
+    e2->bodyPos.vy         = 0;
+    e2->bodyPos.vz         = 0;
+    e2->coord              = &((TmdObject*)arg0->extra)->coords[1];
+    e2->node.state.b.flags = 1;
+    work->field_80         = root->coord.t[0];
+    root->coord.t[1]      -= 0x3C;
+    work->field_82         = root->coord.t[1];
+    work->field_84         = root->coord.t[2];
+    work->field_451        = 1;
+    work->obj_2AC.flags   &= 0x7FFF;
+    work->obj_2CC.flags   &= 0xBFFF;
+    w3                     = (Actor104400Work*)arg0->work;
+    arg0->state            = 6;
+    w3->field_420          = 0;
+    w3->field_422          = 0;
 }
 
 /// Per-frame callback for the main enemy. In mode 0 it aims at the nearest actor (`Actor04400_Fn031B8`), lets
@@ -2224,8 +2224,8 @@ void Actor04400_Fn042C4(Task* arg0)
             Tmd_AllocBuffers(obj);
             obj->flags &= 0xFFFB;
         }
-        enemy->node.flags = 0;
-        map               = *(u32*)&gGameSession->at4.loc & 0xFFFF0000;
+        enemy->node.state.b.flags = 0;
+        map                       = *(u32*)&gGameSession->at4.loc & 0xFFFF0000;
         if (map == 0x4270000) {
             work->field_78    = 0;
             work->field_7A    = (D_8018B74C[(work->field_44C >> 8) & 0xF].heading + 0x800) & 0xFFF;

@@ -125,7 +125,7 @@ void func_actor_205200_8014BAE8(GpEnemy* enemy, Task* task)
     enemy->field_48 = 0;
     Gp_LinkNode(&enemy->node);
     enemy->coord               = &((TmdObject*)task->extra)->coords[3];
-    enemy->node.flags          = 5;
+    enemy->node.state.b.flags  = 5;
     enemy->bodyPos.vx          = 0;
     enemy->bodyPos.vy          = 0;
     enemy->bodyPos.vz          = 0;

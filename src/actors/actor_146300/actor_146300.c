@@ -297,24 +297,24 @@ void func_actor_146300_801324AC(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback      = func_actor_146300_801327A4;
-    coord->sub              = &gGfxViewCoord;
-    enemy->field_4          = &coord->coord;
-    enemy->field_48         = 0;
-    enemy->node.targeted    = 0;
-    enemy->node.flags       = 1;
-    obj->otOffset           = 1;
-    obj->flags              = 0;
-    D_actor_146300_8014282C = task;
-    helper                  = Task_SpawnFromTable(D_actor_146300_801427C8, 1, 0, 0);
-    sessionKey              = (GpAreaKey*)&gGameSession->at4.loc;
-    idx                     = enemy->placeKey >> 0xC;
-    model                   = helper->extra;
-    D_actor_146300_80142830 = helper;
-    key.stage               = sessionKey->stage;
-    key.area                = sessionKey->area;
-    key.room                = sessionKey->room;
-    areaByte0               = sessionKey->view;
+    task->exitCallback           = func_actor_146300_801327A4;
+    coord->sub                   = &gGfxViewCoord;
+    enemy->field_4               = &coord->coord;
+    enemy->field_48              = 0;
+    enemy->node.state.b.targeted = 0;
+    enemy->node.state.b.flags    = 1;
+    obj->otOffset                = 1;
+    obj->flags                   = 0;
+    D_actor_146300_8014282C      = task;
+    helper                       = Task_SpawnFromTable(D_actor_146300_801427C8, 1, 0, 0);
+    sessionKey                   = (GpAreaKey*)&gGameSession->at4.loc;
+    idx                          = enemy->placeKey >> 0xC;
+    model                        = helper->extra;
+    D_actor_146300_80142830      = helper;
+    key.stage                    = sessionKey->stage;
+    key.area                     = sessionKey->area;
+    key.room                     = sessionKey->room;
+    areaByte0                    = sessionKey->view;
     /* Both calls take `&key`. Left alone, GCC 2.8.1 CSEs that address into one
        pseudo that is live across the first call, costing a callee-saved
        register; the ROM rematerializes `addiu a0, sp, key` for each call. The

@@ -887,10 +887,10 @@ void Actor02600_Fn01B30(Task* arg0)
     one        = 1;
     switch (state) {
         case 0:
-            work->field_294.flags &= 0x7FFF;
-            work->field_214.flags &= 0xBFFF;
-            obj->flags             = (u16)obj->flags | 0x84;
-            ctx->node.flags        = one;
+            work->field_294.flags  &= 0x7FFF;
+            work->field_214.flags  &= 0xBFFF;
+            obj->flags              = (u16)obj->flags | 0x84;
+            ctx->node.state.b.flags = one;
             if (Gp_StateF0.field_1E == one) {
                 if (work->field_3C2 == 0) {
                     work->field_39E = Actor02600_D089A8[work->field_3C4];
@@ -1753,12 +1753,12 @@ ge2:
     }
     goto default_body;
 case0:
-    obj->flags       = 0;
-    arg0->node.flags = 0;
+    obj->flags               = 0;
+    arg0->node.state.b.flags = 0;
     goto default_body;
 case2:
-    obj->flags       = 0x80;
-    arg0->node.flags = 1;
+    obj->flags               = 0x80;
+    arg0->node.state.b.flags = 1;
     return;
 default_body:
     if (arg0->reactionFlags != 0) {

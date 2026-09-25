@@ -259,7 +259,7 @@ void Actor03700_Fn000A4(GpEnemy* arg0, Task* task)
     Gp_LinkNode(&arg0->node);
     arg0->param                = &Actor03700_D07F0C;
     arg0->coord                = coord;
-    arg0->node.flags           = 0;
+    arg0->node.state.b.flags   = 0;
     arg0->bodyPos.vx           = 0;
     arg0->bodyPos.vy           = 0;
     arg0->bodyPos.vz           = 0;
@@ -1361,14 +1361,14 @@ void Actor03700_Fn025C8(Task* task)
     GsCOORDINATE2*   coord;
     s32              diff;
 
-    ext               = (TmdObject*)task->extra;
-    work              = (Actor103700Work*)task->work;
-    coord             = ext->coords;
-    spawn             = (GpEnemy*)task->spawnArg2;
-    obj               = ext;
-    work->obj.flags  &= 0x3FFF;
-    obj->flags       |= 0x84;
-    spawn->node.flags = 1;
+    ext                       = (TmdObject*)task->extra;
+    work                      = (Actor103700Work*)task->work;
+    coord                     = ext->coords;
+    spawn                     = (GpEnemy*)task->spawnArg2;
+    obj                       = ext;
+    work->obj.flags          &= 0x3FFF;
+    obj->flags               |= 0x84;
+    spawn->node.state.b.flags = 1;
 
     switch (work->field_250) {
         case 0:
@@ -1474,9 +1474,9 @@ void Actor03700_Fn029C0(Task* task)
 
     switch (mode) {
         case 0:
-            work->obj.flags &= 0x3FFF;
-            obj->flags      |= 0x84;
-            ctx->node.flags  = 1;
+            work->obj.flags        &= 0x3FFF;
+            obj->flags             |= 0x84;
+            ctx->node.state.b.flags = 1;
             if (Gp_StateF0.field_1A == 0) {
                 work->field_250    = 1;
                 work->obj.flags   |= 0xC000;
@@ -1580,12 +1580,12 @@ ge2:
     }
     goto default_body;
 case0:
-    obj->flags        = 0;
-    enemy->node.flags = 0;
+    obj->flags                = 0;
+    enemy->node.state.b.flags = 0;
     goto default_body;
 case2:
-    obj->flags       |= 0x80;
-    enemy->node.flags = one;
+    obj->flags               |= 0x80;
+    enemy->node.state.b.flags = one;
     return;
 default_body:
     if (work->field_24E < 7) {

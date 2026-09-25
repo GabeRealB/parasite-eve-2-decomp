@@ -2372,7 +2372,7 @@ void Actor00300_Fn047CC(GpEnemy* arg0, Task* arg1)
         case 0:
             ((TmdObject*)arg1->extra)->flags            = 0;
             ((TmdObject*)work->field_43C->extra)->flags = 0;
-            arg0->node.flags                            = work->field_698 != 0;
+            arg0->node.state.b.flags                    = work->field_698 != 0;
             break;
         case 1:
             Actor00300_Fn04FB0(arg1);
@@ -2381,7 +2381,7 @@ void Actor00300_Fn047CC(GpEnemy* arg0, Task* arg1)
         case 2:
             ((TmdObject*)arg1->extra)->flags            = 0x80;
             ((TmdObject*)work->field_43C->extra)->flags = 0x80;
-            arg0->node.flags                            = 1;
+            arg0->node.state.b.flags                    = 1;
             return;
     }
     if (gGameSession->eventState != 0) {

@@ -1033,12 +1033,12 @@ void func_actor_400600_80133434(Task* arg0)
     enemy->bodyPos.vz = 0;
     enemy->coord      = &((TmdObject*)arg0->extra)->coords[3];
     Gp_LinkNode(&enemy->node);
-    enemy->node.flags        = 5;
-    enemy->param             = &D_actor_400600_80144EB0;
-    enemy->recs              = work->rec_4D4;
-    work->eff_6FC.coord      = &((TmdObject*)arg0->extra)->coords[3];
-    work->eff_6FC.spawnArgLo = 0x300;
-    work->eff_6FC.spawnArgHi = 2;
+    enemy->node.state.b.flags = 5;
+    enemy->param              = &D_actor_400600_80144EB0;
+    enemy->recs               = work->rec_4D4;
+    work->eff_6FC.coord       = &((TmdObject*)arg0->extra)->coords[3];
+    work->eff_6FC.spawnArgLo  = 0x300;
+    work->eff_6FC.spawnArgHi  = 2;
     enemy->hp = enemy->hpMax = D_actor_400600_80144EB0.hpMax;
     func_800B3F84(&work->anim, D_actor_400600_80151A54, model, work->pad_394, work->slots);
 
@@ -2187,9 +2187,9 @@ void func_actor_400600_80136558(Task* arg0)
         work->field_740 = count;
         if (count >= 0x12) {
             if (work->field_75A != 0) {
-                enemy->node.flags = 4;
+                enemy->node.state.b.flags = 4;
             } else {
-                enemy->node.flags = 5;
+                enemy->node.state.b.flags = 5;
             }
             model->flags |= 0x80;
             func_actor_400600_801387DC(arg0, -1);
@@ -3030,7 +3030,7 @@ s32 func_actor_400600_80137AF0(Task* arg0)
         work->field_740             = 0;
         model2->flags               = (model2->flags | 2) & 0xFF7F;
         Gp_SetLightMode(arg0->spawnArg2, 0);
-        enemy->node.flags = 4;
+        enemy->node.state.b.flags = 4;
         func_actor_400600_801387DC(arg0, 0);
     }
     return 0;
@@ -3331,8 +3331,8 @@ void func_actor_400600_80138A24(Task* arg0, s16 arg1)
     model = (TmdObject*)arg0->extra;
     enemy = (GpEnemy*)arg0->spawnArg2;
     if (arg1 != 0) {
-        enemy->node.flags = 5;
-        model->flags     |= 0x80;
+        enemy->node.state.b.flags = 5;
+        model->flags             |= 0x80;
         Gp_SetLightMode(arg0->spawnArg2, 2);
         func_actor_400600_801387DC(arg0, 2);
         work->field_75C.b.field_75E = 1;
@@ -3396,7 +3396,7 @@ void func_actor_400600_80138B5C(Task* arg0, s32 arg1)
             work->field_740             = 0;
             model->flags                = (model->flags | 2) & 0xFF7F;
             Gp_SetLightMode(arg0->spawnArg2, 0);
-            enemy->node.flags = 4;
+            enemy->node.state.b.flags = 4;
             func_actor_400600_801387DC(arg0, 0);
         }
     } else if (work->field_75C.b.field_75E != 1) {

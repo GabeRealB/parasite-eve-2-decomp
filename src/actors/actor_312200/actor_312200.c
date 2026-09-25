@@ -608,10 +608,10 @@ void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
     enemy->bodyPos.vz = 0;
     enemy->coord      = &((TmdObject*)task->extra)->coords[2];
     Gp_LinkNode(&enemy->node);
-    enemy->node.flags    = 1;
-    enemy->field_4D      = 0;
-    enemy->reactionFlags = 0;
-    enemy->field_4D      = 0;
+    enemy->node.state.b.flags = 1;
+    enemy->field_4D           = 0;
+    enemy->reactionFlags      = 0;
+    enemy->field_4D           = 0;
     func_800B3F84(&work->anim, D_actor_312200_80169F44, obj, work->poses, work->slots);
     work->field_88C      = 2;
     work->field_892      = 1;
@@ -822,12 +822,12 @@ void func_actor_312200_80163778(Task* task)
 
     work = (Actor312200Work*)task->work;
     if (work->field_4 != 0) {
-        obj                    = (TmdObject*)task->extra;
-        enemy                  = (GpEnemy*)task->spawnArg2;
-        enemy->node.flags      = 1;
-        obj->flags            |= 0x80;
-        enemy->field_4D        = 0;
-        work->field_8BC.flags &= 0x7FFF;
+        obj                       = (TmdObject*)task->extra;
+        enemy                     = (GpEnemy*)task->spawnArg2;
+        enemy->node.state.b.flags = 1;
+        obj->flags               |= 0x80;
+        enemy->field_4D           = 0;
+        work->field_8BC.flags    &= 0x7FFF;
     }
 }
 

@@ -4906,8 +4906,8 @@ void Gp_DetachLinkNode(Task* arg0)
     inner = arg0->work;
     node  = inner->field_90C;
     if (node != NULL) {
-        node->targeted   = 0;
-        inner->field_90C = NULL;
+        node->state.b.targeted = 0;
+        inner->field_90C       = NULL;
     }
     inner->field_97E = 1;
 }
@@ -5059,10 +5059,10 @@ void Gp_TrackLockTarget(Task* arg0)
         actor->field_97E = 1;
         return;
     }
-    if (node->flags & 1) {
-        node->targeted   = 0;
-        actor->field_90C = NULL;
-        actor->field_97E = 1;
+    if (node->state.b.flags & 1) {
+        node->state.b.targeted = 0;
+        actor->field_90C       = NULL;
+        actor->field_97E       = 1;
         return;
     }
     if ((s8)actor->field_97E == 2) {
@@ -7954,11 +7954,11 @@ void func_80108E0C(Task* arg0, GpLinkNode* arg1)
     node  = inner->field_90C;
     if (node != arg1) {
         if (node != NULL) {
-            node->targeted = 0;
+            node->state.b.targeted = 0;
         }
         inner->field_90C = arg1;
     }
-    arg1->targeted = 1;
+    arg1->state.b.targeted = 1;
 }
 
 #if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
@@ -8244,11 +8244,11 @@ install: {
     flag  = 1;
     if (node != arg1) {
         if (node != NULL) {
-            node->targeted = 0;
+            node->state.b.targeted = 0;
         }
         actor->field_90C = arg1;
     }
-    arg1->targeted = flag;
+    arg1->state.b.targeted = flag;
 }
 }
 
@@ -9880,7 +9880,7 @@ void Gp_TrackAllyLockTarget(Task* arg0, s32 arg1)
 
     actor = arg0->work;
     node  = actor->field_90C;
-    if (node == NULL || (node->flags & 1)) {
+    if (node == NULL || (node->state.b.flags & 1)) {
         actor->field_90C = NULL;
         actor->field_97E = 1;
     } else if ((s8)actor->field_97E == 2) {

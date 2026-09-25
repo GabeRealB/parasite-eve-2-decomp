@@ -992,11 +992,11 @@ void func_actor_401000_80133274(GpEnemy* enemy, Task* actor)
     enemy->bodyPos.vz = 0;
     enemy->coord      = &((TmdObject*)actor->extra)->coords[2];
     Gp_LinkNode(&enemy->node);
-    enemy->node.flags    = 1;
-    enemy->reactionFlags = 0;
-    enemy->hp            = (s16)D_actor_401000_8013E09C.hpMax;
-    enemy->param         = &D_actor_401000_8013E09C;
-    enemy->recs          = work->field_8F0;
+    enemy->node.state.b.flags = 1;
+    enemy->reactionFlags      = 0;
+    enemy->hp                 = (s16)D_actor_401000_8013E09C.hpMax;
+    enemy->param              = &D_actor_401000_8013E09C;
+    enemy->recs               = work->field_8F0;
     func_800B3F84(&((Actor401000AnimWork*)work)->anim, &D_actor_401000_80154E48, obj,
                   ((Actor401000AnimWork*)work)->pad_328, ((Actor401000AnimWork*)work)->slots);
     func_800B3F84(&((Actor401000AnimWork*)work)->blendAnim, &D_actor_401000_80154E48,
@@ -1587,9 +1587,9 @@ void func_actor_401000_80134DB4(Task* arg0)
     work  = arg0->work;
     enemy = arg0->spawnArg2;
     if (work->field_4 != 0) {
-        tmd               = arg0->extra;
-        enemy->node.flags = 0;
-        tmd->flags        = 0;
+        tmd                       = arg0->extra;
+        enemy->node.state.b.flags = 0;
+        tmd->flags                = 0;
         Tmd_AllocBuffers(tmd);
         work->field_898        = 2;
         work->field_8A2        = 0x10;
@@ -1645,9 +1645,9 @@ void func_actor_401000_80134F98(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        obj                                     = arg0->extra;
-        ((GpEnemy*)arg0->spawnArg2)->node.flags = 0;
-        obj->flags                              = 0;
+        obj                                             = arg0->extra;
+        ((GpEnemy*)arg0->spawnArg2)->node.state.b.flags = 0;
+        obj->flags                                      = 0;
         Tmd_AllocBuffers(obj);
         work->field_898        = 1;
         work->field_8A2        = 0x10;
@@ -1882,9 +1882,9 @@ void func_actor_401000_80135AA4(Task* arg0)
         return;
     }
     if (work->field_4 != 0) {
-        obj                                     = arg0->extra;
-        ((GpEnemy*)arg0->spawnArg2)->node.flags = 0;
-        obj->flags                              = 0;
+        obj                                             = arg0->extra;
+        ((GpEnemy*)arg0->spawnArg2)->node.state.b.flags = 0;
+        obj->flags                                      = 0;
         Tmd_AllocBuffers(obj);
         work->field_8D0.radius = 0x1AE;
         work->field_898        = 1;
@@ -2023,9 +2023,9 @@ void func_actor_401000_801365C8(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        obj                                     = arg0->extra;
-        ((GpEnemy*)arg0->spawnArg2)->node.flags = 0;
-        obj->flags                              = 0;
+        obj                                             = arg0->extra;
+        ((GpEnemy*)arg0->spawnArg2)->node.state.b.flags = 0;
+        obj->flags                                      = 0;
         Tmd_AllocBuffers(obj);
         work->field_8D0.radius = 0xD7;
         work->field_898        = 1;
@@ -2154,12 +2154,12 @@ void func_actor_401000_80136E20(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        head                                       = *(Actor401000ChaseScratch**)G_SCRATCH_HEAD;
-        obj                                        = arg0->extra;
-        *(Actor401000ChaseScratch**)G_SCRATCH_HEAD = head - 1;
-        aim                                        = head - 1;
-        ((GpEnemy*)arg0->spawnArg2)->node.flags    = 0;
-        obj->flags                                 = 0;
+        head                                            = *(Actor401000ChaseScratch**)G_SCRATCH_HEAD;
+        obj                                             = arg0->extra;
+        *(Actor401000ChaseScratch**)G_SCRATCH_HEAD      = head - 1;
+        aim                                             = head - 1;
+        ((GpEnemy*)arg0->spawnArg2)->node.state.b.flags = 0;
+        obj->flags                                      = 0;
         Tmd_AllocBuffers(obj);
         work->field_8D0.radius = 0x1AE;
         work->field_898        = 1;
@@ -2257,9 +2257,9 @@ void func_actor_401000_801374D4(Task* arg0)
     *(ActorAimScratch**)G_SCRATCH_HEAD = head - 1;
     aim                                = head - 1;
     if (work->field_4 != 0) {
-        obj                                     = arg0->extra;
-        ((GpEnemy*)arg0->spawnArg2)->node.flags = 0;
-        obj->flags                              = 0;
+        obj                                             = arg0->extra;
+        ((GpEnemy*)arg0->spawnArg2)->node.state.b.flags = 0;
+        obj->flags                                      = 0;
         Tmd_AllocBuffers(obj);
         work->field_8D0.radius = 0xD7;
         work->field_6          = 0;
@@ -2350,12 +2350,12 @@ void func_actor_401000_801378DC(Task* arg0)
     player = (GameActor*)gameGetPtrSlot(3)->work;
     config = &Player_Status;
     if (work->field_4 != 0) {
-        work->field_B50.flags &= 0x7FFF;
-        work->field_A10.flags |= 0x4000;
-        enemy->node.flags      = 0;
-        work->field_898        = 1;
-        work->field_8A2        = 0x10;
-        work->field_89E        = 4;
+        work->field_B50.flags    &= 0x7FFF;
+        work->field_A10.flags    |= 0x4000;
+        enemy->node.state.b.flags = 0;
+        work->field_898           = 1;
+        work->field_8A2           = 0x10;
+        work->field_89E           = 4;
         func_actor_401000_80132EF0(arg0);
         work->field_8AE                        = 0;
         work->field_8B0                        = 0;
@@ -2447,7 +2447,7 @@ void func_actor_401000_801380B8(Task* arg0)
         work->field_8D0.radius                   = 0x1AE;
         work->field_B50.flags                   &= 0x7FFF;
         work->field_A10.flags                   |= 0x4000;
-        enemy->node.flags                        = 0;
+        enemy->node.state.b.flags                = 0;
         work->field_898                          = 1;
         work->field_8A2                          = 0x10;
         work->field_89E                          = 5;
@@ -2569,7 +2569,7 @@ void func_actor_401000_801385B0(Task* arg0)
     }
     func_actor_401000_80132EF0(arg0);
     if (work->flags_68.half & 1) {
-        kind = enemy->node.targeted;
+        kind = enemy->node.state.b.targeted;
         if (kind == 1) {
             if (func_actor_401000_80132824(arg0) == kind) {
                 work->field_0 = 6;
@@ -2604,7 +2604,7 @@ void func_actor_401000_801388F4(Task* arg0)
         work->field_8D0.radius           = 0x1AE;
         work->field_B50.flags           &= 0x7FFF;
         work->field_A10.flags           |= 0x4000;
-        enemy->node.flags                = 0;
+        enemy->node.state.b.flags        = 0;
         work->field_898                  = 1;
         work->field_89E                  = 0xA;
         work->field_89A                  = 0;
@@ -2662,7 +2662,7 @@ void func_actor_401000_80138BB4(Task* arg0)
         work->field_8D0.radius           = 0x1AE;
         work->field_B50.flags           &= 0x7FFF;
         work->field_A10.flags           |= 0x4000;
-        enemy->node.flags                = 0;
+        enemy->node.state.b.flags        = 0;
         work->field_898                  = 1;
         work->field_89E                  = 0xC;
         work->field_8A2                  = 0x10;
@@ -2720,11 +2720,11 @@ void func_actor_401000_80138D08(Task* arg0)
     obj   = arg0->extra;
     enemy = arg0->spawnArg2;
     if (work->field_4 != 0) {
-        obj->flags            = 0;
-        work->field_B50.flags = (u16)(work->field_B50.flags & 0x7FFF);
-        work->field_A10.flags = (u16)(work->field_A10.flags | 0x4000);
-        enemy->node.flags     = 1;
-        work->field_6         = 0;
+        obj->flags                = 0;
+        work->field_B50.flags     = (u16)(work->field_B50.flags & 0x7FFF);
+        work->field_A10.flags     = (u16)(work->field_A10.flags | 0x4000);
+        enemy->node.state.b.flags = 1;
+        work->field_6             = 0;
     }
     temp_v1      = (u16)work->field_6;
     scratch_base = PSX_SCRATCH;
@@ -2811,15 +2811,15 @@ void func_actor_401000_80138F50(Task* arg0)
         obj        = arg0->extra;
         obj->flags = 0;
         Tmd_AllocBuffers(obj);
-        work->field_8D0.radius = 0x1AE;
-        work->field_B50.flags &= 0x7FFF;
-        work->field_A10.flags |= 0x4000;
-        enemy->node.flags      = 0;
-        work->field_6          = 0;
-        work->field_BC8        = work->field_BA8;
-        work->field_89E        = 0xE;
-        work->field_898        = 1;
-        work->field_8A2        = work->field_8A4;
+        work->field_8D0.radius    = 0x1AE;
+        work->field_B50.flags    &= 0x7FFF;
+        work->field_A10.flags    |= 0x4000;
+        enemy->node.state.b.flags = 0;
+        work->field_6             = 0;
+        work->field_BC8           = work->field_BA8;
+        work->field_89E           = 0xE;
+        work->field_898           = 1;
+        work->field_8A2           = work->field_8A4;
     }
     if (work->field_6 > 0x960) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -2877,14 +2877,14 @@ void func_actor_401000_8013922C(Task* arg0)
         work->field_898         = 2;
         obj->flags              = 0;
         Tmd_AllocBuffers(obj);
-        work->field_8D0.radius = 0x1AE;
-        work->field_B50.flags &= 0x7FFF;
-        work->field_A10.flags |= 0x4000;
-        enemy->node.flags      = 0;
-        work->field_8B0        = 0;
-        work->field_8A2        = 0x10;
-        work->field_8AE        = 0;
-        work->field_6          = 0;
+        work->field_8D0.radius    = 0x1AE;
+        work->field_B50.flags    &= 0x7FFF;
+        work->field_A10.flags    |= 0x4000;
+        enemy->node.state.b.flags = 0;
+        work->field_8B0           = 0;
+        work->field_8A2           = 0x10;
+        work->field_8AE           = 0;
+        work->field_6             = 0;
     } else if (work->field_6 == 0) {
         sound = ((enemy->placeKey >> 0xC) << 8) | 0x51030008;
         pan   = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
@@ -2936,9 +2936,9 @@ void func_actor_401000_801394EC(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        obj                                     = arg0->extra;
-        ((GpEnemy*)arg0->spawnArg2)->node.flags = 0;
-        obj->flags                              = 0;
+        obj                                             = arg0->extra;
+        ((GpEnemy*)arg0->spawnArg2)->node.state.b.flags = 0;
+        obj->flags                                      = 0;
         Tmd_AllocBuffers(obj);
         work->field_8D0.radius = 0x1AE;
         work->field_898        = 1;
@@ -3045,12 +3045,12 @@ void func_actor_401000_80139D10(Task* arg0)
         work->field_898 = 1;
         obj->flags      = 0;
         Tmd_AllocBuffers(obj);
-        work->field_8D0.radius = 0x1AE;
-        work->field_B50.flags &= 0x7FFF;
-        work->field_A10.flags |= 0x4000;
-        enemy->node.flags      = 0;
-        work->field_8B0        = 0;
-        work->field_8A2        = 0x1E;
+        work->field_8D0.radius    = 0x1AE;
+        work->field_B50.flags    &= 0x7FFF;
+        work->field_A10.flags    |= 0x4000;
+        enemy->node.state.b.flags = 0;
+        work->field_8B0           = 0;
+        work->field_8A2           = 0x1E;
     }
     *(ActorTurnScratch**)G_SCRATCH_HEAD -= 1;
     turn                                 = *(ActorTurnScratch**)G_SCRATCH_HEAD;
@@ -3098,9 +3098,9 @@ void func_actor_401000_8013A0C8(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        obj                                     = arg0->extra;
-        ((GpEnemy*)arg0->spawnArg2)->node.flags = 0;
-        obj->flags                              = 0;
+        obj                                             = arg0->extra;
+        ((GpEnemy*)arg0->spawnArg2)->node.state.b.flags = 0;
+        obj->flags                                      = 0;
         Tmd_AllocBuffers(obj);
         work->field_8D0.radius = 0x1AE;
         work->field_898        = 1;
@@ -3172,9 +3172,9 @@ void func_actor_401000_8013A5F0(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        obj                                     = arg0->extra;
-        ((GpEnemy*)arg0->spawnArg2)->node.flags = 0;
-        obj->flags                              = 0;
+        obj                                             = arg0->extra;
+        ((GpEnemy*)arg0->spawnArg2)->node.state.b.flags = 0;
+        obj->flags                                      = 0;
         Tmd_AllocBuffers(obj);
         work->field_8D0.radius = 0x1AE;
         work->field_898        = 1;
@@ -3229,9 +3229,9 @@ void func_actor_401000_8013A930(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        obj                                     = arg0->extra;
-        ((GpEnemy*)arg0->spawnArg2)->node.flags = 0;
-        obj->flags                              = 0;
+        obj                                             = arg0->extra;
+        ((GpEnemy*)arg0->spawnArg2)->node.state.b.flags = 0;
+        obj->flags                                      = 0;
         Tmd_AllocBuffers(obj);
         work->field_8D0.radius = 0x1AE;
         work->field_898        = 2;
@@ -3380,7 +3380,7 @@ void func_actor_401000_8013B1E4(Task* arg0)
         ((TmdObject*)arg0->extra)->flags = 0x80;
         work->field_8D0.radius           = 0x1AE;
         work->field_A10.flags           |= 0x4000;
-        enemy->node.flags                = 1;
+        enemy->node.state.b.flags        = 1;
         work->field_8AE                  = 0;
         work->field_6                    = 0;
         work->field_8C0.vx               = 0x64;
@@ -3448,17 +3448,17 @@ void func_actor_401000_8013B61C(Task* arg0)
     enemy        = arg0->spawnArg2;
     scratch_base = PSX_SCRATCH;
     if (work->field_4 != 0) {
-        work->field_8D0.radius = 0x1AE;
-        work->field_A10.flags |= 0x4000;
-        enemy->node.flags      = 1;
-        work->field_8C0.vx     = 0x64;
-        work->field_89E        = 2;
-        work->field_898        = 1;
-        work->field_8AE        = 0;
-        work->field_6          = 0;
-        work->field_8C0.vz     = 0;
-        work->field_8C0.vy     = 0;
-        work->field_8A2        = 0x10;
+        work->field_8D0.radius    = 0x1AE;
+        work->field_A10.flags    |= 0x4000;
+        enemy->node.state.b.flags = 1;
+        work->field_8C0.vx        = 0x64;
+        work->field_89E           = 2;
+        work->field_898           = 1;
+        work->field_8AE           = 0;
+        work->field_6             = 0;
+        work->field_8C0.vz        = 0;
+        work->field_8C0.vy        = 0;
+        work->field_8A2           = 0x10;
         Gp_SpawnEff(0x60030, ((TmdObject*)arg0->extra)->coords + 1, 0x10300, &work->field_8C0);
         work->field_6 = 0;
     }
@@ -3584,9 +3584,9 @@ void func_actor_401000_8013C46C(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        obj                                     = arg0->extra;
-        ((GpEnemy*)arg0->spawnArg2)->node.flags = 0;
-        obj->flags                              = 0;
+        obj                                             = arg0->extra;
+        ((GpEnemy*)arg0->spawnArg2)->node.state.b.flags = 0;
+        obj->flags                                      = 0;
         Tmd_AllocBuffers(obj);
         work->field_8D0.radius = 0x1AE;
         work->field_898        = 1;
@@ -3710,7 +3710,7 @@ void func_actor_401000_8013CD9C(Task* arg0)
         work->field_8D0.radius           = 0x1AE;
         work->field_B50.flags           &= 0x7FFF;
         work->field_A10.flags           |= 0x4000;
-        enemy->node.flags                = 0;
+        enemy->node.state.b.flags        = 0;
         work->field_898                  = 2;
         work->field_89E                  = 0xB;
         work->field_8A2                  = 0x10;
@@ -3755,7 +3755,7 @@ void func_actor_401000_8013CEF0(Task* arg0)
         work->field_8D0.radius           = 0x1AE;
         work->field_B50.flags           &= 0x7FFF;
         work->field_A10.flags           |= 0x4000;
-        enemy->node.flags                = 0;
+        enemy->node.state.b.flags        = 0;
         work->field_898                  = 2;
         work->field_89E                  = 0x19;
         work->field_8A2                  = 0x10;
@@ -4171,11 +4171,11 @@ void func_actor_401000_8013DB10(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        obj                                     = arg0->extra;
-        ((GpEnemy*)arg0->spawnArg2)->node.flags = 1;
-        obj->flags                              = (u16)(obj->flags | 0x80);
-        work->field_B50.flags                   = (u16)(work->field_B50.flags & 0x7FFF);
-        work->field_A10.flags                   = (u16)(work->field_A10.flags | 0x4000);
+        obj                                             = arg0->extra;
+        ((GpEnemy*)arg0->spawnArg2)->node.state.b.flags = 1;
+        obj->flags                                      = (u16)(obj->flags | 0x80);
+        work->field_B50.flags                           = (u16)(work->field_B50.flags & 0x7FFF);
+        work->field_A10.flags                           = (u16)(work->field_A10.flags | 0x4000);
     }
 }
 
@@ -4186,9 +4186,9 @@ void func_actor_401000_8013DB6C(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        obj                                     = arg0->extra;
-        ((GpEnemy*)arg0->spawnArg2)->node.flags = 0;
-        obj->flags                              = 0;
+        obj                                             = arg0->extra;
+        ((GpEnemy*)arg0->spawnArg2)->node.state.b.flags = 0;
+        obj->flags                                      = 0;
         Tmd_AllocBuffers(obj);
         work->field_898       = 2;
         work->field_8A2       = 0x10;
@@ -4210,9 +4210,9 @@ void func_actor_401000_8013DC14(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        obj                                     = arg0->extra;
-        ((GpEnemy*)arg0->spawnArg2)->node.flags = 0;
-        obj->flags                              = 0;
+        obj                                             = arg0->extra;
+        ((GpEnemy*)arg0->spawnArg2)->node.state.b.flags = 0;
+        obj->flags                                      = 0;
         Tmd_AllocBuffers(obj);
         work->field_898       = 2;
         work->field_8A2       = 0x10;
@@ -4234,9 +4234,9 @@ void func_actor_401000_8013DCC0(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        obj                                     = arg0->extra;
-        ((GpEnemy*)arg0->spawnArg2)->node.flags = 0;
-        obj->flags                              = 0;
+        obj                                             = arg0->extra;
+        ((GpEnemy*)arg0->spawnArg2)->node.state.b.flags = 0;
+        obj->flags                                      = 0;
         Tmd_AllocBuffers(obj);
         work->field_898       = 2;
         work->field_8A2       = 0x10;
@@ -4258,9 +4258,9 @@ void func_actor_401000_8013DD6C(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        obj                                     = arg0->extra;
-        ((GpEnemy*)arg0->spawnArg2)->node.flags = 0;
-        obj->flags                              = 0;
+        obj                                             = arg0->extra;
+        ((GpEnemy*)arg0->spawnArg2)->node.state.b.flags = 0;
+        obj->flags                                      = 0;
         Tmd_AllocBuffers(obj);
         work->field_898       = 2;
         work->field_8A2       = 0x12;
@@ -4288,7 +4288,7 @@ void func_actor_401000_8013DE24(Task* arg0)
         work->field_8D0.radius           = 0x1AE;
         work->field_B50.flags           &= 0x7FFF;
         work->field_A10.flags           |= 0x4000;
-        enemy->node.flags                = 0;
+        enemy->node.state.b.flags        = 0;
         work->field_898                  = 2;
         work->field_89E                  = 8;
         work->field_8B0                  = 0;
@@ -4313,7 +4313,7 @@ void func_actor_401000_8013DEC8(Task* arg0)
         work->field_8D0.radius           = 0x1AE;
         work->field_B50.flags           &= 0x7FFF;
         work->field_A10.flags           |= 0x4000;
-        enemy->node.flags                = 0;
+        enemy->node.state.b.flags        = 0;
         work->field_898                  = 2;
         work->field_89E                  = 0x16;
         work->field_8B0                  = 0;
