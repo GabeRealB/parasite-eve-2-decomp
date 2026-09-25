@@ -10,7 +10,7 @@
 /// Plays a step sound whenever animation slot 1 rolls onto a new record whose
 /// flags nibble is 0x10 or 0x20 - the two feet - panned and attenuated from
 /// the second coordinate of the task's model. The record is latched in
-/// `field_4B8` so each one fires once.
+/// `stepRec` so each one fires once.
 void func_actor_151000_801324FC(Task* task)
 {
     Actor151000Work* work;
@@ -23,11 +23,11 @@ void func_actor_151000_801324FC(Task* task)
     work = (Actor151000Work*)task->work;
     obj  = ((TmdObject*)task->extra)->coords + 1;
     rec  = Gp_AnimGetRec(&work->anim, &work->slots[1]);
-    if (rec == NULL || rec == work->field_4B8) {
+    if (rec == NULL || rec == work->stepRec) {
         return;
     }
-    work->field_4B8 = rec;
-    kind            = rec->flags & 0x30;
+    work->stepRec = rec;
+    kind          = rec->flags & 0x30;
     if (kind != 0x10 && kind != 0x20) {
         return;
     }

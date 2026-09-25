@@ -1,8 +1,15 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
+#include "gte.h"
+
 #include "actors/actor_151000.h"
 
 #include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
 #include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/gfx.h"
@@ -14,6 +21,35 @@ extern TaskDesc   D_actor_151000_80133360;
 extern s32        D_actor_151000_8013D378;
 extern u8         D_actor_151000_8013D2EC[];
 extern GpMsgEntry D_actor_151000_8013D2B0[];
+extern u8         D_80072729;
+
+/// Steps the task's model `amount` units along its facing (the coordinate
+/// matrix's z column, normalised and scaled on the GTE), using a scratch-pad
+/// vector; skipped while `D_80072729` is 1.
+static __inline__ void Actor151000_MoveForward(Task* task, s16 amount)
+{
+    GsCOORDINATE2* coord;
+    SVECTOR*       head;
+    SVECTOR*       vec;
+
+    coord = ((TmdObject*)task->extra)->coords;
+    if (D_80072729 != 1) {
+        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+        vec                        = head - 1;
+        *(SVECTOR**)G_SCRATCH_HEAD = vec;
+        Gfx_MatrixCol2(&coord->coord, vec);
+        VectorNormalSS(vec, vec);
+        gte_lddp(amount);
+        gte_ldsv(vec);
+        gte_gpf12();
+        gte_stsv(vec);
+        coord->coord.t[0]          += head[-1].vx;
+        coord->coord.t[1]          += vec->vy;
+        coord->coord.t[2]          += vec->vz;
+        coord->flg                  = 0;
+        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    }
+}
 
 /// The fade task: while the countdown `D_actor_151000_8013D378` is non-zero,
 /// draws a full-screen black `TILE` into ordering table slot 0xA; once it is
@@ -90,15 +126,64 @@ void func_actor_151000_80131F1C(GpEnemy* enemy, Task* task)
     func_800D7A9C(obj, &vec, 0, 3);
     func_800B3F84(&D_actor_151000_8013D37C->anim, D_actor_151000_8013D2EC, obj,
                   &D_actor_151000_8013D37C->field_34C, D_actor_151000_8013D37C->slots);
-    D_actor_151000_8013D37C->field_480 = 1;
-    D_actor_151000_8013D37C->field_47C = 2;
-    D_actor_151000_8013D37C->field_4B2 = 0;
-    D_actor_151000_8013D37C->field_4B4 = 0;
-    D_actor_151000_8013D37C->field_4B8 = 0;
-    D_actor_151000_8013D37C->field_4BC = 0;
-    task->msgTable                     = D_actor_151000_8013D2B0;
+    D_actor_151000_8013D37C->animId     = 1;
+    D_actor_151000_8013D37C->state      = 2;
+    D_actor_151000_8013D37C->travel     = 0;
+    D_actor_151000_8013D37C->turnFrames = 0;
+    D_actor_151000_8013D37C->stepRec    = 0;
+    D_actor_151000_8013D37C->footsteps  = 0;
+    task->msgTable                      = D_actor_151000_8013D2B0;
     func_actor_151000_80132084(task);
     task->state += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_151000/actor_151000", func_actor_151000_80132084);
+/// Per-frame update: states 1 and 2 run their one-shot animation restart and
+/// leave the work block in state 3; state 3 walks the model while `travel`
+/// counts down (distance picked by `D_actor_151000_8013D384`) and, when the
+/// walk ends, queues clip 0xD through state 1; it turns the model while
+/// `turnFrames` counts down in clip 3, then ticks the animation and, once
+/// `footsteps` is set, plays the footsteps.
+void func_actor_151000_80132084(Task* task)
+{
+    GsCOORDINATE2*   coord = ((TmdObject*)task->extra)->coords;
+    Actor151000Work* work  = (Actor151000Work*)task->work;
+
+    if (D_actor_151000_8013D37C->state == 1) {
+        func_actor_151000_801326AC();
+        D_actor_151000_8013D37C->state = 3;
+    } else if (D_actor_151000_8013D37C->state == 2) {
+        func_actor_151000_80132610();
+        D_actor_151000_8013D37C->state = 3;
+    } else if (D_actor_151000_8013D37C->state == 3) {
+        if (work->animId == 0xE || work->animId == 2 || work->animId == 0xF) {
+            if (work->travel != 0) {
+                switch (D_actor_151000_8013D384) {
+                    case 0:
+                        Actor151000_MoveForward(task, 0x3C);
+                        break;
+                    case 1:
+                        Actor151000_MoveForward(task, -0xF);
+                        break;
+                    case 2:
+                        Actor151000_MoveForward(task, 0x19);
+                        break;
+                }
+                if (--work->travel == 0) {
+                    work->state             = 1;
+                    D_actor_151000_8013D2AC = 10;
+                    work->animId            = 0xD;
+                }
+            }
+        }
+        if (work->animId == 3 && work->turnFrames != 0) {
+            work->yaw += 0x33;
+            Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
+            coord->flg = 0;
+            work->turnFrames--;
+        }
+        func_actor_151000_801325C4();
+        if (work->footsteps != 0) {
+            func_actor_151000_801324FC(task);
+        }
+    }
+}
