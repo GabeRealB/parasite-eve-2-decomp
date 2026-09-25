@@ -2770,17 +2770,17 @@ void func_actor_402200_80137B74(Task* arg0)
 void func_actor_402200_80137CA4(Task* arg0)
 {
     void**           scratch;
-    void*            head;
+    OverlayMat*      head;
     OverlayMat*      m;
     GsCOORDINATE2*   coord;
     Actor402200Work* work;
 
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    m                              = (OverlayMat*)((u8*)head - 0x20);
-    SCRATCH_HEAD_AT(scratch, void) = m;
-    coord                          = &((TmdObject*)arg0->extra)->coords[0];
-    work                           = arg0->work;
+    scratch                              = SCRATCH_HEAD_ADDR;
+    head                                 = SCRATCH_HEAD_AT(scratch, OverlayMat);
+    m                                    = head - 1;
+    SCRATCH_HEAD_AT(scratch, OverlayMat) = m;
+    coord                                = &((TmdObject*)arg0->extra)->coords[0];
+    work                                 = arg0->work;
 
     coord->coord     = work->field_674;
     m->ident.m00_m01 = 0x1000;
@@ -2790,7 +2790,7 @@ void func_actor_402200_80137CA4(Task* arg0)
     m->ident.m22     = 0x1000;
     ScaleMatrix(&m->mat, &work->scale);
     MulMatrix(&coord->coord, &m->mat);
-    SCRATCH_POP_BYTES_AT(scratch, 0x20);
+    SCRATCH_POP_AT(scratch, OverlayMat);
 }
 
 /// Sequence 0xA, the entrance: state 0 picks animation 0xE (and state 1) when
