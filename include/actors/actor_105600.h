@@ -65,18 +65,6 @@ typedef struct Actor105600PlaceScratch {
 } Actor105600PlaceScratch;
 STATIC_ASSERT_SIZEOF(Actor105600PlaceScratch, 0x38);
 
-/// Spawn/context block behind `Task::spawnArg2`; `field_8` is the halfword the
-/// sound id takes its room/channel bits from.
-typedef struct Actor105600Ctx {
-    /* 0x00 */ byte pad_0[8];
-    /* 0x08 */ u16  field_8;
-    /* 0x0A */ byte pad_A[0x42];
-    /// Request bits the per-frame handler acts on: bit 1 asks the approach
-    /// cycle to switch to its handover animation and is cleared once taken.
-    /* 0x4C */ u8   field_4C;
-    /* 0x4D */ byte pad_4D[3];
-} Actor105600Ctx;
-
 /// 0x6E4-byte animation/state work block hung off the approach-cycle task's
 /// `Task::work`. It opens with the animation context and its nineteen
 /// 0x28-byte slots, exactly like the `Actor105700Work` block of `actor_105700`
@@ -106,30 +94,41 @@ typedef struct Actor105600Work {
     /* 0x63C */ GpActorD4Rec field_63C;
     /* 0x654 */ GpRec18      field_654[1];
     /// The spawn table the companion enemy comes from.
-    /* 0x66C */ TaskDesc*      field_66C;
-    /* 0x670 */ GsCOORDINATE2* field_670;
-    /* 0x674 */ s16            field_674;
-    /* 0x676 */ s16            field_676;
+    /* 0x66C */ TaskDesc* field_66C;
+    /// Record the hit effects are spawned with, placed under model part 3.
+    /* 0x670 */ GpEffArg field_670;
     /// World position of the root coordinate as of the previous frame, saved
     /// before the per-frame drift below is applied.
     /* 0x678 */ s32  field_678;
     /* 0x67C */ s32  field_67C;
     /* 0x680 */ s32  field_680;
-    /* 0x684 */ byte pad_684[0x10];
+    /* 0x684 */ byte pad_684[4];
+    /// Tilt angles a landed hit sets and `Actor05600_Fn016C4` decays toward
+    /// zero while `field_6B4` is raised.
+    /* 0x688 */ SVECTOR field_688;
+    /// Effect whose task a landed hit sends to state 3 before dropping the
+    /// pointer; nothing in this actor sets it.
+    /* 0x690 */ struct GpEffWork* field_690;
     /// Animation index selected by the state machine.
     /* 0x694 */ s16 field_694;
     /// Animation the playing clip was started from; when it differs from
     /// `field_694` the frame counter is reset and the slots reseeded.
-    /* 0x696 */ s16  field_696;
-    /* 0x698 */ s16  field_698; ///< current frame of the playing clip
-    /* 0x69A */ byte pad_69A[2];
-    /* 0x69C */ s16  field_69C; ///< forward speed, applied along the root Z axis
-    /* 0x69E */ s16  field_69E; ///< non-zero runs the turn helper
-    /* 0x6A0 */ byte pad_6A0[2];
-    /* 0x6A2 */ s16  field_6A2; ///< yaw the root coordinate currently faces
-    /* 0x6A4 */ s16  field_6A4; ///< yaw the actor wants to face
-    /* 0x6A6 */ s16  field_6A6; ///< state-machine step, indexes the handler table
-    /* 0x6A8 */ s16  field_6A8;
+    /* 0x696 */ s16 field_696;
+    /// Current frame of the playing clip.
+    /* 0x698 */ s16 field_698;
+    /// Frames before another weapon hit is taken, loaded from the hit's
+    /// parameters and counted down every frame.
+    /* 0x69A */ s16 field_69A;
+    /* 0x69C */ s16 field_69C; ///< forward speed, applied along the root Z axis
+                               /// Non-zero runs the turn helper, which turns by this much per frame.
+    /* 0x69E */ s16 field_69E;
+    /// Bits 4 and 5 of the animation record's flags as of the last frame;
+    /// `Actor05600_Fn018D0` plays a cue when either drops.
+    /* 0x6A0 */ u16 field_6A0;
+    /* 0x6A2 */ s16 field_6A2; ///< yaw the root coordinate currently faces
+    /* 0x6A4 */ s16 field_6A4; ///< yaw the actor wants to face
+    /* 0x6A6 */ s16 field_6A6; ///< state-machine step, indexes the handler table
+    /* 0x6A8 */ s16 field_6A8;
     /// Picks the clip `Actor05600_Fn0485C` plays: 1 starts animation
     /// 0x12, anything else 0x13.
     /* 0x6AA */ s16 field_6AA;
@@ -145,12 +144,19 @@ typedef struct Actor105600Work {
     /* 0x6BA */ s16  field_6BA;
     /* 0x6BC */ s16  field_6BC;
     /* 0x6BE */ s16  field_6BE;
-    /* 0x6C0 */ byte pad_6C0[0xA];
+    /* 0x6C0 */ byte pad_6C0[2];
+    /* 0x6C2 */ s16  field_6C2;
+    /// Non-zero quarters the damage of a hit with key bit 0x8000.
+    /* 0x6C4 */ s16  field_6C4;
+    /* 0x6C6 */ byte pad_6C6[4];
     /* 0x6CA */ s16  field_6CA;
     /* 0x6CC */ s16  field_6CC;
     /* 0x6CE */ s16  field_6CE;
     /* 0x6D0 */ s16  field_6D0;
-    /* 0x6D2 */ byte pad_6D2[4];
+    /* 0x6D2 */ s16  field_6D2;
+    /// Raised while the pose-change handlers play; while it is set a hit in
+    /// the second pose does not switch to handler 0xC or 0xE.
+    /* 0x6D4 */ s16 field_6D4;
     /// Streaming cue id for this room, looked up in `Actor05600_D16478`.
     /* 0x6D6 */ s16  field_6D6;
     /* 0x6D8 */ byte pad_6D8[2];
