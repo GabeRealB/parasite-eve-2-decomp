@@ -4,8 +4,6 @@
 
 #include "actors/actor_450800.h"
 #include "actors/actor_461800_move.h"
-#include "actors/actors_shared_80132404.h"
-#include "actors/actors_shared_80132514.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
@@ -16,8 +14,7 @@
 #include "main/gfx.h"
 
 /// Message table `func_actor_450800_80132160` hangs off `Task::msgTable`, and
-/// the `TaskDesc` table its three helper tasks come from - the same two roles
-/// `D_actor_461800_80139F5C` / `D_actor_461800_80139F8C` play for that overlay.
+/// the `TaskDesc` table its three helper tasks come from.
 extern GpMsgEntry D_actor_450800_8014AC58[];
 extern TaskDesc   D_actor_450800_8014AC88[];
 

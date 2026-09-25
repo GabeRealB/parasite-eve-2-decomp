@@ -14,8 +14,6 @@
 #include "gameplay/D4.h"
 
 #include "actors/actor_450800.h"
-#include "actors/actors_shared_801330ac.h"
-#include "actors/actors_shared_801366fc.h"
 
 extern GpMsgEntry D_actor_450800_801539AC[];
 extern TaskDesc   D_actor_450800_801539DC[];
@@ -57,9 +55,7 @@ s32 func_actor_450800_80132CE0(Task* task, s32 arg1, Actor450800Msg* msg, s32 ar
 /// words being the target position: turns the actor's model to face it -- away
 /// from it in mode 1 -- and latches the per-step distance over the step count
 /// the mode selects, 60 in mode 0, 15 in mode 1 and 25 otherwise. The mode and
-/// both results are kept on the work block, which is the one difference from
-/// this handler's twin `func_actor_461800_80132F44`: there the mode lives in a
-/// module global, since that overlay keeps a single instance of the actor.
+/// both results are kept on the work block.
 ///
 /// The mode store sits after the two differences on purpose. Its place in the
 /// source sets its RTL uid, and the uid is what the scheduler's ready-list
@@ -82,11 +78,11 @@ s32 func_actor_450800_80132D74(Task* task, s32 arg1, VECTOR* target, s32 mode)
     dz              = target->vz - coord->coord.t[2];
     work->field_4FE = mode;
     angle           = ratan2(dx, dz);
-    work->field_4E6 = angle;
+    work->yaw       = angle;
     if (work->field_4FE == 1) {
-        work->field_4E6 = angle + 0x800;
+        work->yaw = angle + 0x800;
     }
-    Gfx_RotMatrixY(&coord->coord, work->field_4E6, 1);
+    Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
     dist  = SquareRoot0(dx * dx + dz * dz);
     steps = 0x19;
     switch (work->field_4FE) {
@@ -104,12 +100,10 @@ s32 func_actor_450800_80132D74(Task* task, s32 arg1, VECTOR* target, s32 mode)
 }
 
 /// Spawn handler of the enemy this actor's model task carries: state 0 of
-/// `func_actor_450800_80133264`'s `fns` table, and the twin of
-/// `ActorsShared80131e24Sub0` - the same body, minus that variant's
-/// `obj->field_C` store. Builds the enemy's `Actor450800SpawnWork` block,
+/// `func_actor_450800_80133264`'s `fns` table. Builds the enemy's `Actor450800SpawnWork` block,
 /// spawns its own model task out of the same `D_actor_450800_801539DC` table,
 /// faces it at the placed spawn point, starts the animation and hands the state
-/// machine to `ActorsShared801330ac`.
+/// machine to `func_actor_450800_801330AC`.
 ///
 /// Two codegen pins, both load-bearing. `key` lands at `vfp+0x28`, and left
 /// alone CSE merges the two call-site copies of `&key` into one pseudo live
@@ -147,7 +141,7 @@ void func_actor_450800_80132E9C(void* enemyArg, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback   = ActorsShared801366fc;
+    task->exitCallback   = func_actor_450800_8013333C;
     coord->sub           = &gGfxViewCoord;
     enemy->field_4       = &coord->coord;
     enemy->field_48      = 0;
@@ -190,6 +184,6 @@ void func_actor_450800_80132E9C(void* enemyArg, Task* task)
     work->animId   = 1;
     work->state    = 2;
     task->msgTable = D_actor_450800_801539AC;
-    ActorsShared801330ac(task);
+    func_actor_450800_801330AC(task);
     task->state++;
 }

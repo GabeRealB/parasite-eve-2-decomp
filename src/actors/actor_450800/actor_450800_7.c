@@ -4,8 +4,6 @@
 
 #include "actors/actor_450800.h"
 #include "actors/actor_461800_move.h"
-#include "actors/actors_shared_80132404.h"
-#include "actors/actors_shared_80132514.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
@@ -16,8 +14,7 @@
 #include "main/gfx.h"
 
 /// Message table `func_actor_450800_80132160` hangs off `Task::msgTable`, and
-/// the `TaskDesc` table its three helper tasks come from - the same two roles
-/// `D_actor_461800_80139F5C` / `D_actor_461800_80139F8C` play for that overlay.
+/// the `TaskDesc` table its three helper tasks come from.
 extern GpMsgEntry D_actor_450800_8014AC58[];
 extern TaskDesc   D_actor_450800_8014AC88[];
 
@@ -259,7 +256,7 @@ void func_actor_450800_80132448(Task* task)
         func_actor_450800_80132AE0(task);
         work->state = 3;
     } else if (work->state == 2) {
-        ActorsShared80132514(task);
+        func_actor_450800_80132A68(task);
         work->state = 3;
     } else if (work->state == 3) {
         if (work->field_4B8 == 0xE || work->field_4B8 == 2 || work->field_4B8 == 0xF) {
@@ -283,12 +280,12 @@ void func_actor_450800_80132448(Task* task)
             }
         }
         if (work->field_4B8 == 3 && work->field_4EC != 0) {
-            work->field_4E6 += 0x33;
-            Gfx_RotMatrixY(&coord->coord, work->field_4E6, 1);
+            work->yaw += 0x33;
+            Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
             coord->flg = 0;
             work->field_4EC--;
         }
-        ActorsShared80132404(task);
+        func_actor_450800_80132A1C(task);
     }
 }
 
@@ -318,14 +315,12 @@ INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800_7", func_actor_450800
 /// State handler of one of the actor's model tasks: the spawn tick hangs this
 /// task's own coordinate frame off part `spawnArg1` of the actor's model and
 /// every later tick hands that part's world translation, dropped by 0x320 in y,
-/// to `func_800D7A9C` for the part colour matrix -- the same handler as
-/// `func_actor_461800_80132B74`, which reaches the parts through the global
-/// task `D_actor_461800_80143898`. Here they come from `task->parent`, the
-/// actor task that spawned this one and reparented it
+/// to `func_800D7A9C` for the part colour matrix. The parts come from
+/// `task->parent`, the actor task that spawned this one
 /// (`func_actor_450800_80132160`, which also tests the same halfword on itself).
 ///
 /// The model flags are cleared only for spawn variant 1: the high half of the
-/// parent's `spawnArg1`, the halfword `actor_107600` reads the same way.
+/// parent's `spawnArg1`.
 void func_actor_450800_80132958(Task* task)
 {
     TmdObject*     extra = task->extra;

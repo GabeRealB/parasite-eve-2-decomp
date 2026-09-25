@@ -29,38 +29,36 @@ extern SVECTOR D_actor_450800_80131E24;
 /// go to the model's `TmdObject::lightMtx` / `field_20`, and `func_800B3F84`
 /// gets `&anim`, `slots` and `pad_374` as poses.
 ///
-/// `yaw` and `travel` are the cache the "walk to" placement opcode writes:
-/// the heading it applied to the root coordinate and the distance left to
-/// cover, in twelfths. That opcode is the shared body `ActorsShared80133678`,
-/// which reaches the same two fields through `ActorsShared80133678Work`.
+/// `yaw` is the heading last applied to the model's root coordinate: the
+/// placement opcode `func_actor_450800_80132C68` caches the placed yaw there,
+/// the "face target" handler `func_actor_450800_80132D74` the computed one, and
+/// the step state turns it further while clip 3 plays.
 ///
-/// `field_4EA` / `field_4EC` are the pair `Actor461800Work` keeps at the
-/// same offsets; the spawn handler zeroes both.
+/// `field_4EA` is the step count the "face target" handler leaves for the walk
+/// and `field_4EC` the turn count clip 3 consumes; the spawn handler zeroes
+/// both.
 ///
 /// `anim` is the animation context `func_800B4114` walks. `field_4B8` is the
 /// current animation id; `func_actor_450800_80132AE0` starts slots 1..0x13 of
-/// `anim` from it, forwarding `field_4FC` as the reset argument, and latches the
-/// id into `field_4B6` as the copy kept for change detection.
+/// `anim` from it, forwarding `field_4FC` as the reset argument, and
+/// `func_actor_450800_80132A68` resets them to it; both latch the id into
+/// `field_4B6` as the applied copy.
 ///
 /// `state` drives `func_actor_450800_80132448`, which dispatches on it: 1 starts
-/// the animation through `func_actor_450800_80132AE0` and 2 reseeds the slots
-/// through `ActorsShared80132514`, the same pair `func_actor_460200_80132B2C`
-/// selects between.
+/// the animation through `func_actor_450800_80132AE0` and 2 resets the slots
+/// through `func_actor_450800_80132A68`, both then advancing it to 3.
 typedef struct Actor450800Work {
     /* 0x000 */ MATRIX     light; // model light matrix (`TmdObject::lightMtx`)
     /* 0x020 */ MATRIX     color; // model colour matrix (`TmdObject::colorMtx`)
     /* 0x040 */ GpAnimCtx  anim;
     /* 0x054 */ GpAnimSlot slots[0x14];
-    /* 0x374 */ byte       pad_374[0x13A];
-    /* 0x4AE */ u16        yaw;
-    /* 0x4B0 */ byte       pad_4B0[0x2];
-    /* 0x4B2 */ s16        travel;
+    /* 0x374 */ byte       pad_374[0x140];
     /* 0x4B4 */ s16        state;
     /* 0x4B6 */ s16        field_4B6;
     /* 0x4B8 */ s16        field_4B8;
     /* 0x4BA */ s16        field_4BA;
     /* 0x4BC */ byte       pad_4BC[0x2A];
-    /* 0x4E6 */ s16        field_4E6; // yaw seeding the root coordinate
+    /* 0x4E6 */ s16        yaw;
     /* 0x4E8 */ byte       pad_4E8[0x2];
     /* 0x4EA */ s16        field_4EA; // distance to the target over the step count
     /* 0x4EC */ s16        field_4EC;
@@ -78,28 +76,32 @@ STATIC_ASSERT_SIZEOF(Actor450800Work, 0x504);
 /// The overlay's *second* work block, hung off the `Task::work` slot exactly
 /// as `Actor450800Work` is but never on the same task: this one is the enemy's,
 /// allocated by the spawn handler `func_actor_450800_80132E9C` with
-/// `memCalloc(0x4C0, 0)` and driven by the state `ActorsShared801330ac`
+/// `memCalloc(0x4C0, 0)` and driven by the state `func_actor_450800_801330AC`
 /// reads at 0x47C, while `Actor450800Work` (0x504) belongs to the actor's own
 /// handler `func_actor_450800_80132160`. The overlay's two `fns` dispatchers
 /// (`func_actor_450800_80133264` and `func_actor_450800_80132790`) are what keep
 /// them apart, and both sizes are the allocations, not a guess.
 ///
-/// `state` drives `ActorsShared801330ac` the way `field_4B4` drives
-/// `func_actor_450800_80132448` for the actor: 1 starts the animation through
-/// `ActorsShared80132640` and 2 reseeds the slots through `ActorsShared801325c8`,
-/// both then advancing it to 3. `animId` is the clip now playing - the spawn
-/// handler sets it to 1 and the state machine tests it against 4. `anim` /
-/// `slots` are what `func_800B3F84` fills in.
+/// `state` drives `func_actor_450800_801330AC` the way `Actor450800Work::state`
+/// drives `func_actor_450800_80132448` for the actor: 1 starts the animation
+/// through `func_actor_450800_801334C4` and 2 resets the slots through
+/// `func_actor_450800_8013344C`, both then advancing it to 3. `animId` is the
+/// clip now playing - the spawn handler sets it to 1 and the state machine
+/// tests it against 4 - and both start paths latch it into `appliedAnimId`.
+/// `anim` / `slots` are what `func_800B3F84` fills in.
 ///
-/// `travel` and `animArg` are the pair `Actor450800Work` keeps at 0x4EA / 0x4EC
-/// and that `ActorsShared8014c874Work` keeps at the same offsets: state 3 counts
-/// `travel` down a step per frame while the walk clip plays and stores 0xA in
-/// `animArg` alongside the clip reset to 1 when it reaches zero.
+/// `yaw` is the heading last applied to the model's root coordinate, cached by
+/// the placement opcode `func_actor_450800_801335F8` and the "walk to" opcode
+/// `func_actor_450800_80133678`; the latter also leaves in `travel` the
+/// distance to cover, in twelfths. State 3 counts `travel` down a step per
+/// frame while the walk clip plays and, when it reaches zero, drops back to
+/// clip 1 with 0xA in `animArg`, the reset argument the start path forwards.
 ///
 /// The leading matrices are the ones the enemy renders through - the spawn
-/// handler hands `&light` and `&color` to the object's `field_1C` / `field_20` -
-/// and `field_4B8` / `field_4BC` are the task and the `GpEnemy` of the model
-/// that handler spawns, the same two roles `Actor150400Work` gives them.
+/// handler hands `&light` and `&color` to the object's `TmdObject::lightMtx` /
+/// `colorMtx`, and the sub-model task `func_actor_450800_80133740` lights its
+/// own model with the same pair. `field_4B8` is that sub-model's task and
+/// `field_4BC` the `GpEnemy` the spawn handler was given.
 typedef struct Actor450800SpawnWork {
     /* 0x000 */ MATRIX     light;
     /* 0x020 */ MATRIX     color;
@@ -108,10 +110,12 @@ typedef struct Actor450800SpawnWork {
     /* 0x34C */ byte       field_34C;
     /* 0x34D */ byte       pad_34D[0x12F];
     /* 0x47C */ s16        state;
-    /* 0x47E */ byte       pad_47E[0x2];
+    /* 0x47E */ u16        appliedAnimId;
     /* 0x480 */ u16        animId;
     /* 0x482 */ s16        field_482;
-    /* 0x484 */ byte       pad_484[0x2E];
+    /* 0x484 */ byte       pad_484[0x2A];
+    /* 0x4AE */ u16        yaw;
+    /* 0x4B0 */ byte       pad_4B0[0x2];
     /* 0x4B2 */ s16        travel;
     /* 0x4B4 */ s16        animArg;
     /* 0x4B6 */ byte       pad_4B6[0x2];
@@ -121,22 +125,44 @@ typedef struct Actor450800SpawnWork {
 STATIC_ASSERT_SIZEOF(Actor450800SpawnWork, 0x4C0);
 
 /// Message payload the overlay's message handlers take as `Gp_DispatchMsg`'s
-/// `arg2`, the shape `Actor461800Msg` and `Actor560800Msg` share: only the
-/// halfword at 0x2 is read.
+/// `arg2`: only the halfword at 0x2 is read.
 typedef struct Actor450800Msg {
     /* 0x0 */ byte pad_0[2];
     /* 0x2 */ u16  field_2;
 } Actor450800Msg;
 
-/// Script args the "start animation" opcode `func_actor_450800_80132B44`
-/// receives: the clip id, a flag choosing the start path, and the reset
-/// argument only that path carries. Same shape as the `Actor150400AnimArgs` and
-/// `Actor460200AnimArgs` that opcode's twins take.
+/// Script args the "start animation" opcodes receive - the actor's
+/// `func_actor_450800_80132B44` and the enemy's `func_actor_450800_80133528`:
+/// the clip id, a flag choosing the start path, and the reset argument only
+/// that path carries.
 typedef struct Actor450800AnimArgs {
     /* 0x0 */ byte pad_0[4];
     /* 0x4 */ s32  animId;
     /* 0x8 */ s32  withArg;
     /* 0xC */ u16  animArg;
 } Actor450800AnimArgs;
+
+/// Payload of the placement opcode (message 0x7D4) both of the overlay's
+/// message tables carry: the position the model's root coordinate is moved to,
+/// and the rotation whose `vy` becomes its yaw.
+typedef struct Actor450800Placement {
+    /* 0x00 */ VECTOR  pos;
+    /* 0x10 */ SVECTOR rot;
+} Actor450800Placement;
+
+void func_actor_450800_80131F28(s32 arg0);
+void func_actor_450800_80132A1C(Task* task);
+void func_actor_450800_80132A68(Task* task);
+s32  func_actor_450800_80132C68(Task* task, s32 arg1, Actor450800Placement* placement);
+void func_actor_450800_801330AC(Task* task);
+void func_actor_450800_8013333C(Task* task);
+void func_actor_450800_80133400(Task* task);
+void func_actor_450800_8013344C(Task* task);
+void func_actor_450800_801334C4(Task* task);
+s32  func_actor_450800_80133528(Task* task, s32 arg1, Actor450800AnimArgs* args);
+s32  func_actor_450800_80133594(Task* task, s32 arg1, s32 flags);
+s32  func_actor_450800_801335F8(Task* task, s32 arg1, Actor450800Placement* placement);
+s32  func_actor_450800_80133678(Task* task, s32 arg1, VECTOR* target);
+void func_actor_450800_80133740(Task* task);
 
 #endif
