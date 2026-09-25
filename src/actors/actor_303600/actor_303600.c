@@ -2,22 +2,143 @@
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
-#include "actors/actor_303600.h"
+#include "gameplay/1BC.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
-#include "gameplay/3CD8.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
+#include "main/fs.h"
 #include "main/gameflow.h"
+#include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
-extern Task*    D_actor_303600_8016E4C0;
-extern Task*    D_actor_303600_8016E4C4;
-extern TaskDesc D_actor_303600_80162E98;
+/// Work block for the `actor_303600` overlay's cutscene controller.
+///
+/// `func_actor_303600_8016216C` allocates it with `Mem_Malloc(0x10, 0)`, zeroes
+/// it with `Mem_Set` and parks the pointer in the task's `Task::work` slot
+/// (0x1C) -- that slot is not a `TaskIdMap` here, so reach the block with
+/// `(Actor303600Work*)task->work`.  The same function publishes the task
+/// itself in `D_actor_303600_8016E4C0` and stores the `gameGetPtrSlot(3)` task
+/// in `field_0`.
+///
+/// `command` is the request the overlay's state machine dispatches on:
+/// `func_actor_303600_80161F40` switches on it through
+/// `jtbl_actor_303600_80161E24` (values 0..8) and clears it again on the way
+/// out.  `field_C` records the message the dispatcher last sent and `field_E`
+/// is the "a message is outstanding" flag that
+/// `func_actor_303600_801624B0` / `func_actor_303600_8016253C` test before
+/// sending another.
+typedef struct Actor303600Work {
+    /* 0x0 */ Task* field_0; // gameGetPtrSlot(3) task
+    /* 0x4 */ u16   command; // state-machine request, see jtbl_actor_303600_80161E24
+    /* 0x6 */ s16   field_6; // cleared alongside command
+    /* 0x8 */ byte  pad_8[0x4];
+    /* 0xC */ s16   field_C; // message id last dispatched
+    /* 0xE */ u16   field_E; // set to 1 while a dispatched message is outstanding
+} Actor303600Work;
+STATIC_ASSERT_SIZEOF(Actor303600Work, 0x10);
+
+/// Fade block `func_actor_303600_801623CC` allocates with `Mem_Malloc(8, 0)` and
+/// parks in its own task's `Task::work` slot (0x1C, again not a `TaskIdMap`),
+/// so reach it with `(Actor303600FadeWork*)task->work`.  The allocation size is
+/// the struct size, and not a guess.  The three halfwords are the RGB channels
+/// `Fade_DrawOverlay` draws: the task steps them by `Task::spawnArg1` -- the
+/// fade rate, not a colour -- and hands `r` and `g` to that call, so only the
+/// green channel reads as a colour and the blue one is stepped without ever
+/// being shown.  The leading halfword is part of the allocation and is never
+/// touched.  `func_actor_303600_801622E8` walks this same block the other way,
+/// subtracting where this one adds.
+typedef struct Actor303600FadeWork {
+    /* 0x0 */ byte pad_0[0x2];
+    /* 0x2 */ u16  r;
+    /* 0x4 */ u16  g;
+    /* 0x6 */ u16  b;
+} Actor303600FadeWork;
+STATIC_ASSERT_SIZEOF(Actor303600FadeWork, 0x8);
+
+/// Payload `func_actor_303600_801624B0` passes as `Gp_DispatchMsg`'s `arg2`
+/// for message 0x7DA, which the slot-4 task forwards to the 0x7DB handlers:
+/// the session's two id bytes followed by the halfword the receiver switches on,
+/// here the selector 9 that the sender latches into `Actor303600Work::field_C`.
+/// `Gp_SendMsgType9` forwards that same payload under id 0x7DB to the slot-4
+/// task's type-9 children, which is where `func_actor_303600_80162870` reads it.
+/// This overlay sends selectors 1-5 from `func_actor_303600_80161F40` and 9 from
+/// the announcement functions; nothing in it sends selector 0.
+typedef struct Actor303600Msg7DA {
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ u16 field_2;
+} Actor303600Msg7DA;
+STATIC_ASSERT_SIZEOF(Actor303600Msg7DA, 0x4);
+
+/// Light / colour matrix pair the overlay's actor hands to its model: the pair
+/// `func_actor_303600_80162950` allocates with `memCalloc(0x44, 0)` and parks
+/// in its own task's `Task::work` slot (0x1C, again not a `TaskIdMap`), so
+/// reach it with `(Actor303600LightMats*)task->work`.  The four bytes after
+/// the two matrices are part of the allocation and are never read here.
+typedef struct Actor303600LightMats {
+    /* 0x00 */ MATRIX lightMtx;
+    /* 0x20 */ MATRIX colorMtx;
+    /* 0x40 */ byte   pad_40[0x4];
+} Actor303600LightMats;
+STATIC_ASSERT_SIZEOF(Actor303600LightMats, 0x44);
+
+/// The rig's 16.16 angle accumulator, `Actor303600RigWork::field_18`: the rig
+/// code ramps it and folds the whole word back into +/-4000, while the
+/// coordinate's Y takes its integer half.
+typedef union Actor303600RigAngle {
+    /* 0x0 */ s32 w;
+    struct {
+        /* 0x0 */ u16 lo;
+        /* 0x2 */ s16 hi;
+    } half;
+} Actor303600RigAngle;
+
+/// Work block of the task `func_actor_303600_80162A7C` dispatches through
+/// `D_actor_303600_80161E48`: `func_actor_303600_801626C0` allocates it with
+/// `memCalloc(0x3C, 0)`, parks it in `Task::work` (0x1C, again not a
+/// `TaskIdMap`), fills `children` with the five model tasks it spawns -- one
+/// `Task_SpawnFromTable` of `D_actor_303600_8016E468` entry 1 each, spread
+/// 8000 units apart in y and spliced under this task's own coordinate, so
+/// `children[i]` owns the light matrices -- and installs the 0x7DB handler
+/// table in `Task::msgTable`.  `func_actor_303600_801627B8` then moves the rig
+/// each frame: `field_28` (a 16.16 speed) ramps toward `field_38` at `field_34`
+/// a frame and stops once it passes it, and `field_18` accumulates `field_28`
+/// and is folded back into +/-4000 before its integer half becomes the task
+/// coordinate's `t[1]` (the `lh` from 0x1A).  The words this block does not yet
+/// name are the same shape, so `field_28`/`field_34`/`field_38` are the three
+/// the 0x7DB handler below arms.
+typedef struct Actor303600RigWork {
+    /* 0x00 */ Task*               children[5];
+    /* 0x14 */ s32                 field_14;
+    /* 0x18 */ Actor303600RigAngle field_18;
+    /* 0x1C */ s32                 field_1C;
+    /* 0x20 */ s32                 field_20;
+    /* 0x24 */ s32                 field_24;
+    /* 0x28 */ s32                 field_28;
+    /* 0x2C */ s32                 field_2C;
+    /* 0x30 */ s32                 field_30;
+    /* 0x34 */ s32                 field_34;
+    /* 0x38 */ s32                 field_38;
+} Actor303600RigWork;
+STATIC_ASSERT_SIZEOF(Actor303600RigWork, 0x3C);
+
+extern Task*      D_actor_303600_8016E4C0;
+extern Task*      D_actor_303600_8016E4C4;
+extern TaskDesc   D_actor_303600_80162E98;
+extern TaskDesc   D_actor_303600_8016E468[];
+extern GpMsgEntry D_actor_303600_8016E480[];
+
+/// The overlay's three flat lights, loaded into the model by
+/// `func_actor_303600_80162A0C`; one `GsF_LIGHT` (0x10 bytes) each.
+extern GsF_LIGHT D_actor_303600_8016E490[3];
 
 /// The cutscene's two script blocks, handed to `func_800E8634` together when the
 /// controller below arms the cutscene.
@@ -31,7 +152,14 @@ extern u8  D_80071075;
 extern s16 D_80071076;
 extern s8  D_80114C12;
 
-void func_actor_303600_80161F40(Task* arg0);
+/// Main-executable byte with no module header yet: while it is set, both
+/// state dispatchers below skip the frame.
+extern u8 D_801153F4;
+
+void func_actor_303600_80162850(Task* task);
+void func_actor_303600_80162950(Task* task);
+void func_actor_303600_80162A04(Task* task);
+void func_actor_303600_80162A0C(Task* task);
 
 /// Entry 3 of `D_actor_303600_80162E98`, spawned by the teardown and by
 /// command 8: every frame it covers the screen with an opaque black tile,
@@ -147,8 +275,8 @@ void func_actor_303600_80161F40(Task* arg0)
 /// `D_actor_303600_8016E4C4` cleared, then falls into state 1, which hands the
 /// overlay's two cutscene script blocks to `func_800E8634`. State 2 waits for
 /// the session's `eventState` to clear -- the cutscene having finished -- and then
-/// arms the four `Mc_SaveData` bytes and the `D_80071076` latch the way
-/// `func_actor_150400_80131ECC` does, starts the stage-0 type-0x11 task and
+/// sets the saved location in `Mc_SaveData` to stage 5, area 0x1F, warp 1,
+/// room 1, raises the `D_80071076` latch, starts the stage-0 type-0x11 task and
 /// kills itself; while the cutscene is still up it steps the state machine
 /// instead.
 void func_actor_303600_8016216C(Task* arg0)
@@ -331,4 +459,233 @@ void func_actor_303600_80162620(void)
 {
     Gp_PulseState1C80();
     Gp_StateC08.field_6 |= 1;
+}
+
+/// Opcode-0x0D callback in the actor's cutscene script: queues CD command 0x82
+/// through `CdCmd_EnqueueReplaceOverlay82`.
+void func_actor_303600_80162658(void)
+{
+    CdCmd_EnqueueReplaceOverlay82();
+}
+
+/// Opcode-0x0D callback in the actor's cutscene script: queues CD command 0x81
+/// through `CdCmd_EnqueueOverlay81`.
+void func_actor_303600_80162678(void)
+{
+    CdCmd_EnqueueOverlay81();
+}
+
+/// Opcode-0x0D callback in the actor's cutscene script: restores the stream
+/// random-number state, then drops the pending replacement CD command through
+/// `CdCmd_CancelReplaceAndActivate`.
+void func_actor_303600_80162698(void)
+{
+    Gp_RestoreStreamRng();
+    CdCmd_CancelReplaceAndActivate();
+}
+
+/// Spawn state of the overlay's rig controller: allocates the work block the
+/// later states read through `Task::work` (`memCalloc(0x3C, 0)`, the struct's
+/// own size), clears the task's own root coordinate, then spawns the five child
+/// models -- one `Task_SpawnFromTable` of `D_actor_303600_8016E468` entry 1
+/// each, parked in `children` and spread 8000 apart in Y.  The spread reaches
+/// the coordinate through the strength-reduced `i * 8000 - 16000` loop.c folds
+/// into an accumulator, so its initialiser is scheduled at the loop head beside
+/// the hoisted `%hi` of the spawn table.  A failed spawn stops the loop early, a
+/// failed allocation kills the task instead of leaving a half-built controller,
+/// and the last three statements install the 0x7DB handler table at
+/// `Task::msgTable`, the shared kill callback and the next state.
+void func_actor_303600_801626C0(Task* task)
+{
+    Actor303600RigWork* work;
+    GsCOORDINATE2*      coord;
+    GsCOORDINATE2*      childCoord;
+    Task*               child;
+    s32                 i;
+
+    work = memCalloc(0x3C, 0);
+    if (work == NULL) {
+        taskKill(task);
+        return;
+    }
+    task->work        = (TaskIdMap*)work;
+    coord             = ((TmdObject*)task->extra)->coords;
+    coord->coord.t[0] = 0;
+    coord->coord.t[1] = 0;
+    coord->coord.t[2] = 0;
+    for (i = 0; i < 5; i++) {
+        child = Task_SpawnFromTable(D_actor_303600_8016E468, 1, 0, (s32)task);
+        if (child == NULL) {
+            break;
+        }
+        work->children[i]      = child;
+        childCoord             = ((TmdObject*)child->extra)->coords;
+        childCoord->coord.t[1] = i * 0x1F40 - 0x3E80;
+        childCoord->coord.t[0] = 0;
+        childCoord->coord.t[2] = 0;
+    }
+    task->msgTable     = D_actor_303600_8016E480;
+    task->exitCallback = func_actor_303600_80162850;
+    task->state       += 1;
+}
+
+/// Per-frame rig motion, run on the work block `func_actor_303600_801626C0`
+/// fills in: ramp the 16.16 speed `field_28` toward the limit `field_38` at
+/// `field_34` a frame, drop the ramp once the speed passes the limit in the
+/// ramp's own direction, integrate the speed into the angle accumulator
+/// `field_18`, fold that back into +/-4000, and publish its integer half as the
+/// model coordinate's Y.  The accel is read once for the sum and once for the
+/// limit test -- the second read is the branch's own copy of it in the target.
+void func_actor_303600_801627B8(Task* task)
+{
+    Actor303600RigWork* work  = (Actor303600RigWork*)task->work;
+    GsCOORDINATE2*      coord = ((TmdObject*)task->extra)->coords;
+    s32                 speed;
+    s32                 angle;
+    s32                 var;
+
+    speed          = work->field_28 + work->field_34;
+    work->field_28 = speed;
+    if (work->field_34 > 0) {
+        var = speed > work->field_38;
+    } else {
+        var = speed < work->field_38;
+    }
+    if (var != 0) {
+        work->field_34 = 0;
+    }
+    angle            = work->field_18.w + work->field_28;
+    work->field_18.w = angle;
+    if (angle > 0x0FA00000) {
+        work->field_18.w = angle - 0x1F400000;
+    } else if (angle < -0x0FA00000) {
+        work->field_18.w = angle + 0x1F400000;
+    }
+    coord->coord.t[1] = work->field_18.half.hi;
+    coord->flg        = 0;
+}
+
+/// Exit callback the rig controller installs at `Task::exitCallback`, and the
+/// third entry of its state table: kills the task.
+void func_actor_303600_80162850(Task* task)
+{
+    taskKill(task);
+}
+
+/// Message 0x7DB handler, listed in `D_actor_303600_8016E480` -- the table
+/// `func_actor_303600_801626C0` installs at `Task::msgTable`.  The payload is
+/// the 0x7DA record `Gp_SendMsgType9` forwards back to the slot-4 task's
+/// type-9 children, so the halfword switched on here is the sender's selector:
+/// 0 arms the rig's speed at 384.0 (16.16) with a positive ramp, 1 with a
+/// negative one (-6.0 toward -48.0), and every other selector exits the task
+/// through its own `Task::exitCallback`.  `func_actor_303600_801627B8` is what
+/// consumes the ramped speed.
+s32 func_actor_303600_80162870(Task* task, s32 msgId, Actor303600Msg7DA* msg)
+{
+    Actor303600RigWork* work;
+
+    work = (Actor303600RigWork*)task->work;
+    switch (msg->field_2) {
+        case 0:
+            work->field_28 = 0x01800000;
+            work->field_34 = 0x00080000;
+            work->field_38 = 0x03000000;
+            break;
+        case 1:
+            work->field_34 = 0xFFFA0000;
+            work->field_38 = 0xFD000000;
+            break;
+        default:
+            task->exitCallback(task);
+            break;
+    }
+    return 0;
+}
+
+/// State table of the rig controller: spawn, per-frame motion and the kill
+/// callback. Dispatched by `func_actor_303600_80162A7C`.
+const TaskFuncTable3 D_actor_303600_80161E48 = { {
+    func_actor_303600_801626C0,
+    func_actor_303600_801627B8,
+    func_actor_303600_80162850,
+} };
+
+/// State table of the rig's model tasks: spawn, an empty per-frame tick and
+/// `taskKill`. Dispatched by `func_actor_303600_801628E4`.
+const TaskFuncTable3 D_actor_303600_80161E54 = { {
+    func_actor_303600_80162950,
+    func_actor_303600_80162A04,
+    taskKill,
+} };
+
+/// Per-frame dispatcher of the rig's model tasks: runs their spawn, tick or
+/// exit state from `D_actor_303600_80161E54`, skipping the frame while
+/// `D_801153F4` is set.
+void func_actor_303600_801628E4(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_303600_80161E54;
+    if (D_801153F4 == 0) {
+        sp.funcs[task->state](task);
+    }
+}
+
+/// Builds the actor's light / colour matrix pair, hangs it off the task's
+/// `work` slot, and splices this task's model root under its spawn parent's.
+void func_actor_303600_80162950(Task* task)
+{
+    Task*                 parent      = task->spawnArg2;
+    TmdObject*            obj         = task->extra;
+    GsCOORDINATE2*        coord       = obj->coords;
+    TmdObject*            parentObj   = parent->extra;
+    GsCOORDINATE2*        parentCoord = parentObj->coords;
+    Actor303600LightMats* mats;
+
+    mats = memCalloc(0x44, 0);
+    if (mats == NULL) {
+        taskKill(task);
+        return;
+    }
+
+    task->work = (TaskIdMap*)mats;
+    coord->sub = parentCoord;
+    coord->flg = 0;
+    func_actor_303600_80162A0C(task);
+    Task_Reparent(parent, task);
+    obj->flags  &= 0xFF7F;
+    task->state += 1;
+}
+
+void func_actor_303600_80162A04(Task* task)
+{
+}
+
+/// Points the task's model at the light / colour matrix pair in its own work
+/// block and loads the overlay's three flat lights into them.
+void func_actor_303600_80162A0C(Task* task)
+{
+    Actor303600LightMats* mats = (Actor303600LightMats*)task->work;
+    TmdObject*            obj  = task->extra;
+    GsF_LIGHT*            light;
+    s32                   i;
+
+    obj->lightMtx = &mats->lightMtx;
+    obj->colorMtx = &mats->colorMtx;
+    for (i = 0, light = D_actor_303600_8016E490; i < 3; i++, light++) {
+        Gfx_SetFlatLight(i, light, &mats->lightMtx, &mats->colorMtx);
+    }
+}
+
+/// Per-frame dispatcher of the rig controller: runs its spawn, motion or exit
+/// state from `D_actor_303600_80161E48`, skipping the frame while
+/// `D_801153F4` is set.
+void func_actor_303600_80162A7C(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_303600_80161E48;
+    if (D_801153F4 == 0) {
+        sp.funcs[task->state](task);
+    }
 }
