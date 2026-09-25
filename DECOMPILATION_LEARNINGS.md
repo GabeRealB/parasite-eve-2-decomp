@@ -140569,7 +140569,7 @@ Two smaller points:
 So when a big function needs pins, look for repeated sequences to turn into
 helpers before fighting the allocator.
 
-### Which locals are function-scoped decides global preferences: a pin on a loaded value can be a scope choice
+## Which locals are function-scoped decides global preferences: a pin on a loaded value can be a scope choice
 
 `Actor01100_Fn01D98` runs the same block twice (`if (field) { scale = field + 0x1000; ... }`
 for two fields) and had the loaded `field` pinned to `$v1`. Declared per block,
