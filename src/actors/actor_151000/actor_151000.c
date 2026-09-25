@@ -1,7 +1,5 @@
 #include "common.h"
 
-INCLUDE_RODATA("actors/nonmatchings/actor_151000/actor_151000", D_actor_151000_80131E24);
-
 #include "actors/actor_151000.h"
 #include "actors/actors_shared_801326b4.h"
 #include "actors/actors_shared_801366fc.h"
@@ -19,12 +17,14 @@ extern s32        D_actor_151000_8013D378;
 extern u8         D_actor_151000_8013D2EC[];
 extern GpMsgEntry D_actor_151000_8013D2B0[];
 
-void func_actor_151000_80131E2C(Task* task)
+/// The fade task: while the countdown `D_actor_151000_8013D378` is non-zero,
+/// draws a full-screen black `TILE` into ordering table slot 0xA; once it is
+/// zero the task kills itself.
+void func_actor_151000_80131E24(Task* task)
 {
     TILE* tile;
-    s32   count;
 
-    if (count != 0) {
+    if (D_actor_151000_8013D378 != 0) {
         tile           = (TILE*)gGpuPrimCursor;
         gGpuPrimCursor = tile + 1;
         SetTile(tile);
