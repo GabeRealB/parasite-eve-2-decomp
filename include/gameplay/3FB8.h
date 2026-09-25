@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "gameplay/coord.h"
 #include "gameplay/message.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -100,24 +101,6 @@ typedef struct GpActorD4 {
     /* 0xD1 */ byte          pad_D1[3];
 } GpActorD4;
 STATIC_ASSERT_SIZEOF(GpActorD4, 0xD4);
-
-/// A model node's `GsCOORDINATE2` as the game fills it. libgs leaves the words
-/// after the two matrices to the application, and the game keeps per-node
-/// state there instead of a parameter block. Most nodes hold the Euler angles
-/// their local matrix is rebuilt from. The player's attached weapon models use
-/// the first halfword as a flag instead, which when set makes the node's first
-/// update clear the model's display flags.
-typedef struct GpCoordExt {
-    s32    flg;
-    MATRIX coord;
-    MATRIX workm;
-    union {
-        SVECTOR rot;
-        s16     clearFlags;
-    } param;
-    GsCOORDINATE2* sub;
-} GpCoordExt;
-STATIC_ASSERT_SIZEOF(GpCoordExt, 0x50);
 
 /// Overlay of `GameActor` for the three s16s at 0x418 (`GsCOORDINATE2.param`
 /// as vx/vy/vz). `Gp_AttachActorObj` zeros them after `Gfx_RotMatrixX` of

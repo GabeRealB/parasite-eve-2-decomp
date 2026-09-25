@@ -70,7 +70,7 @@ STATIC_ASSERT_SIZEOF(DdhRoomRec, 0x18);
 /// whose state 0 is `func_dryfield_dilapidated_house_8018118C`: allocated with
 /// `Mem_Malloc(0x24, 0)` and parked in the `Task::work` slot. It holds a
 /// snapshot of the placed model coordinate's matrix (`mtx`, copied from
-/// `RoomCoord::coord`) plus one 0x1000 word.
+/// `GpCoordExt::coord`) plus one 0x1000 word.
 typedef struct DdhModelWork {
     /* 0x00 */ MATRIX mtx;
     /* 0x20 */ s32    field_20;

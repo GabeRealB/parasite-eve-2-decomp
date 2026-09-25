@@ -9,6 +9,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "gameplay/coord.h"
 #include "main/pad.h"
 #include "main/text.h"
 #include "main/tmd.h"
@@ -341,9 +342,9 @@ STATIC_ASSERT_SIZEOF(GpCoordFromT, 0x50);
 typedef struct {
     TmdListHead* next;    // Following node of the list, or NULL past the last
     TmdListHead* prev;    // Preceding node, or the head at the front
-    RoomCoord*   coords;  // The body's coordinate, i.e. `&coord`
+    GpCoordExt*  coords;  // The body's coordinate, i.e. `&coord`
     s32          field_C; // Set to 1 when the body is attached; no reader found, so the role is unproven
-    RoomCoord    coord;   // Coordinate the body occupies: its task places it, the passes compose `workm` from it
+    GpCoordExt   coord;   // Coordinate the body occupies: its task places it, the passes compose `workm` from it
 } GpDisp2d;
 STATIC_ASSERT_SIZEOF(GpDisp2d, 0x60);
 

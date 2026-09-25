@@ -802,18 +802,18 @@ void func_mist_r18_8017EA60(void)
 
 void func_mist_r18_8017EA98(Task* task)
 {
-    RoomCoord* coord;
-    TmdObject* obj;
+    GpCoordExt* coord;
+    TmdObject*  obj;
 
     if (task->state == 0) {
-        coord             = (RoomCoord*)((TmdObject*)task->extra)->coords;
-        coord->coord.t[0] = -0x1496;
-        coord->coord.t[1] = -0x2DA;
-        coord->coord.t[2] = 0xB90;
-        coord->rot.vx     = 0x6AA;
-        coord->rot.vy     = -0xF8E;
-        coord->rot.vz     = -0x333;
-        RotMatrixZYX(&coord->rot, &coord->coord);
+        coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+        coord->coord.t[0]   = -0x1496;
+        coord->coord.t[1]   = -0x2DA;
+        coord->coord.t[2]   = 0xB90;
+        coord->param.rot.vx = 0x6AA;
+        coord->param.rot.vy = -0xF8E;
+        coord->param.rot.vz = -0x333;
+        RotMatrixZYX(&coord->param.rot, &coord->coord);
         coord->flg    = 0;
         obj           = (TmdObject*)task->extra;
         obj->otOffset = -8;

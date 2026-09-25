@@ -5,6 +5,7 @@
 
 #include <psyq/libgte.h>
 
+#include "gameplay/coord.h"
 #include "gameplay/message.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -105,27 +106,6 @@ typedef struct RoomRect {
     /* 0x6 */ u16 h;
 } RoomRect;
 STATIC_ASSERT_SIZEOF(RoomRect, 0x8);
-
-/// A task's coordinate node, as `TmdObject::coords` points at it: an array of
-/// them, one per part, on a model body, and a single one on a 2D-display body.
-///
-/// The leading three fields are libgs `GsCOORDINATE2`, and the coordinate pass
-/// reads a node through them: `flg` stamps the pass that last composed it,
-/// `coord` is its local matrix and `workm` the world matrix composed from that
-/// and the parent's.
-///
-/// The two fields after them are the game's own reading of the same bytes.
-/// libgs keeps a `GsCOORD2PARAM*` and a `super` link there, and nothing here
-/// uses either that way: the game writes the placement's Euler angles instead
-/// and rebuilds `coord` from them with `RotMatrix`. The parent link is `sub`.
-typedef struct {
-    u32            flg;   // Frame stamp: low 31 bits the frame the node was composed in, bit 31 that frame's parity
-    MATRIX         coord; // Local matrix: where the body sits, in the parent's space
-    MATRIX         workm; // World matrix, composed from `coord` and the parent's `workm`
-    SVECTOR        rot;   // Euler angles `coord` is rebuilt from, over libgs's `param` / `super` bytes
-    GsCOORDINATE2* sub;   // Parent coordinate, or NULL at the root
-} RoomCoord;
-STATIC_ASSERT_SIZEOF(RoomCoord, 0x50);
 
 /// 0x20 work block a room's "show a two-line message" task allocates and parks
 /// in `Task::work`: a `TextBlockDesc` handed to `Ui_SpawnTextBlock` followed by

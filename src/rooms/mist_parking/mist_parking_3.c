@@ -224,16 +224,16 @@ void func_mist_parking_80183A28(Task* task)
 /// be recomputed.
 s32 func_mist_parking_80183AC4(Task* task, s32 arg1, GpXformArg* placement, s32 arg3)
 {
-    RoomCoord* coord;
+    GpCoordExt* coord;
 
-    coord             = (RoomCoord*)((TmdObject*)task->extra)->coords;
-    coord->coord.t[0] = placement->pos.vx;
-    coord->coord.t[1] = placement->pos.vy;
-    coord->coord.t[2] = placement->pos.vz;
-    coord->rot.vx     = placement->rot.vx;
-    coord->rot.vy     = placement->rot.vy;
-    coord->rot.vz     = placement->rot.vz;
-    RotMatrixZYX(&coord->rot, &coord->coord);
+    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0]   = placement->pos.vx;
+    coord->coord.t[1]   = placement->pos.vy;
+    coord->coord.t[2]   = placement->pos.vz;
+    coord->param.rot.vx = placement->rot.vx;
+    coord->param.rot.vy = placement->rot.vy;
+    coord->param.rot.vz = placement->rot.vz;
+    RotMatrixZYX(&coord->param.rot, &coord->coord);
     coord->flg = 0;
     return 0;
 }

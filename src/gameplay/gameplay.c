@@ -1042,12 +1042,12 @@ void* Gp_AttachTmd(Task* task, TmdSource* src)
 
 GpDisp2d* gpAttachDisp2d(Task* task)
 {
-    GpDisp2d*           node;
-    TmdListHead*        last;
-    TmdListHead*        list;
-    MATRIX*             m;
-    s32                 one;
-    register RoomCoord* coord asm("v1");
+    GpDisp2d*            node;
+    TmdListHead*         last;
+    TmdListHead*         list;
+    MATRIX*              m;
+    s32                  one;
+    register GpCoordExt* coord asm("v1");
 
     node  = memCalloc(0x60, 0);
     coord = &node->coord;
@@ -1066,9 +1066,9 @@ GpDisp2d* gpAttachDisp2d(Task* task)
         coord->coord.t[2]         = 0;
         coord->coord.t[1]         = 0;
         coord->coord.t[0]         = 0;
-        coord->rot.vz             = 0;
-        coord->rot.vy             = 0;
-        coord->rot.vx             = 0;
+        coord->param.rot.vz       = 0;
+        coord->param.rot.vy       = 0;
+        coord->param.rot.vx       = 0;
         coord->flg                = 0;
         last                      = list->prev;
         node->next                = last->next;

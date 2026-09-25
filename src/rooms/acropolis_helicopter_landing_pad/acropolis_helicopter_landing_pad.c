@@ -95,7 +95,7 @@ void func_acropolis_helicopter_landing_pad_8017D658(Task* task)
 void func_acropolis_helicopter_landing_pad_8017D6E0(Task* task)
 {
     AhlpEnemyWork* work  = (AhlpEnemyWork*)task->work;
-    RoomCoord*     coord = (RoomCoord*)((TmdObject*)task->extra)->coords;
+    GpCoordExt*    coord = (GpCoordExt*)((TmdObject*)task->extra)->coords;
     TmdObject*     obj   = task->extra;
     s16            n;
 
@@ -170,16 +170,16 @@ s32 func_acropolis_helicopter_landing_pad_8017D824(Task* task, s32 msgId, AhlpMs
 /// matrix and marks the coordinate dirty.
 s32 func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, GpXformArg* placement, s32 arg3)
 {
-    RoomCoord* coord;
+    GpCoordExt* coord;
 
-    coord             = (RoomCoord*)((TmdObject*)task->extra)->coords;
-    coord->coord.t[0] = placement->pos.vx;
-    coord->coord.t[1] = placement->pos.vy;
-    coord->coord.t[2] = placement->pos.vz;
-    coord->rot.vx     = placement->rot.vx;
-    coord->rot.vy     = placement->rot.vy;
-    coord->rot.vz     = placement->rot.vz;
-    RotMatrix(&coord->rot, &coord->coord);
+    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0]   = placement->pos.vx;
+    coord->coord.t[1]   = placement->pos.vy;
+    coord->coord.t[2]   = placement->pos.vz;
+    coord->param.rot.vx = placement->rot.vx;
+    coord->param.rot.vy = placement->rot.vy;
+    coord->param.rot.vz = placement->rot.vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg = 0;
     return 0;
 }

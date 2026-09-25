@@ -39,7 +39,7 @@ STATIC_ASSERT_SIZEOF(MistShootingGalleryRounds, 0x14);
 /// `D_mist_shooting_gallery_80186900`) with a 12-byte stride. `idLo` / `idHi`
 /// pack into the `Task_SpawnFromTable` arg2 the enemy is spawned with, and
 /// `x` / `y` / `z` are written to the spawned object's
-/// `GpCoordPose::coord.t[0..2]`.
+/// `GpCoordExt::coord.t[0..2]`.
 typedef struct MistShootingGallerySpawn {
     /* 0x0 */ u16 field_00;
     /* 0x2 */ s16 idLo;
@@ -1423,9 +1423,9 @@ void func_mist_shooting_gallery_801847D4(u8 arg0)
 
 void func_mist_shooting_gallery_801848B4(void)
 {
-    GpEnemy*     enemy;
-    TmdObject*   obj;
-    GpCoordPose* coord;
+    GpEnemy*    enemy;
+    TmdObject*  obj;
+    GpCoordExt* coord;
 
     enemy = Gp_SpawnEnemyFromTable(&D_80134F94, 0, 0x200D, NULL);
     if (enemy != NULL) {
@@ -1434,7 +1434,7 @@ void func_mist_shooting_gallery_801848B4(void)
         obj->clut  = 2;
         tmdProcessStream(obj);
         tmdProcessStream(obj);
-        coord             = (GpCoordPose*)((TmdObject*)enemy->task->extra)->coords;
+        coord             = (GpCoordExt*)((TmdObject*)enemy->task->extra)->coords;
         coord->coord.t[0] = 0x1770;
         coord->coord.t[2] = 0xBB8;
         coord->coord.t[1] = 0;
@@ -1569,7 +1569,7 @@ GpEnemy* func_mist_shooting_gallery_80184CD0(Task* arg0, MistShootingGallerySpaw
     MistShootingGalleryWork* work;
     GpEnemy*                 enemy;
     TmdObject*               obj;
-    GpCoordPose*             coord;
+    GpCoordExt*              coord;
 
     work  = (MistShootingGalleryWork*)arg0->work;
     enemy = Gp_SpawnEnemyFromTable(&D_80134F94, 0, arg1->idLo | (arg1->idHi << 16), NULL);
@@ -1581,7 +1581,7 @@ GpEnemy* func_mist_shooting_gallery_80184CD0(Task* arg0, MistShootingGallerySpaw
         obj->clut  = 2;
         tmdProcessStream(obj);
         tmdProcessStream(obj);
-        coord             = (GpCoordPose*)((TmdObject*)enemy->task->extra)->coords;
+        coord             = (GpCoordExt*)((TmdObject*)enemy->task->extra)->coords;
         coord->coord.t[0] = arg1->x;
         coord->coord.t[1] = arg1->y;
         coord->coord.t[2] = arg1->z;

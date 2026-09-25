@@ -225,7 +225,7 @@ s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, RoomActorMsg* msg)
     GpXformArg            placement;
     GpXformArg*           place;
     GpXformArg*           src;
-    RoomCoord*            coord;
+    GpCoordExt*           coord;
     MineForkedTunnelWork* work;
 
     switch (msg->command) {
@@ -244,15 +244,15 @@ s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, RoomActorMsg* msg)
             placement.rot.vy = D_mine_forked_tunnel_80180AC4[0].vy;
             placement.rot.vz = D_mine_forked_tunnel_80180AC4[0].vz;
 
-            place             = &placement;
-            coord             = (RoomCoord*)((TmdObject*)task->extra)->coords;
-            coord->coord.t[0] = place->pos.vx;
-            coord->coord.t[1] = place->pos.vy;
-            coord->coord.t[2] = place->pos.vz;
-            coord->rot.vx     = place->rot.vx;
-            coord->rot.vy     = place->rot.vy;
-            coord->rot.vz     = place->rot.vz;
-            RotMatrixZYX(&coord->rot, &coord->coord);
+            place               = &placement;
+            coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+            coord->coord.t[0]   = place->pos.vx;
+            coord->coord.t[1]   = place->pos.vy;
+            coord->coord.t[2]   = place->pos.vz;
+            coord->param.rot.vx = place->rot.vx;
+            coord->param.rot.vy = place->rot.vy;
+            coord->param.rot.vz = place->rot.vz;
+            RotMatrixZYX(&coord->param.rot, &coord->coord);
             coord->flg = 0;
             break;
         case 1:
@@ -266,15 +266,15 @@ s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, RoomActorMsg* msg)
             break;
             do {
                 case 3:
-                    src               = &D_mine_forked_tunnel_80181BBC;
-                    coord             = (RoomCoord*)((TmdObject*)task->extra)->coords;
-                    coord->coord.t[0] = src->pos.vx;
-                    coord->coord.t[1] = src->pos.vy;
-                    coord->coord.t[2] = src->pos.vz;
-                    coord->rot.vx     = src->rot.vx;
-                    coord->rot.vy     = src->rot.vy;
-                    coord->rot.vz     = src->rot.vz;
-                    RotMatrixZYX(&coord->rot, &coord->coord);
+                    src                 = &D_mine_forked_tunnel_80181BBC;
+                    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+                    coord->coord.t[0]   = src->pos.vx;
+                    coord->coord.t[1]   = src->pos.vy;
+                    coord->coord.t[2]   = src->pos.vz;
+                    coord->param.rot.vx = src->rot.vx;
+                    coord->param.rot.vy = src->rot.vy;
+                    coord->param.rot.vz = src->rot.vz;
+                    RotMatrixZYX(&coord->param.rot, &coord->coord);
                     coord->flg = 0;
 
                     func_mine_forked_tunnel_8017DF34(GameFlag_GetNibble(0x75));
@@ -289,7 +289,7 @@ void func_mine_forked_tunnel_8017DAB8(Task* arg0)
 {
     GpXformArg  placement;
     GpXformArg* place;
-    RoomCoord*  coord;
+    GpCoordExt* coord;
 
     if (arg0->spawnArg1 == 1 && arg0->killCountdown < 0x36) {
         placement.pos.vx = D_mine_forked_tunnel_80181BA4.pos.vx;
@@ -299,15 +299,15 @@ void func_mine_forked_tunnel_8017DAB8(Task* arg0)
         placement.rot.vy = D_mine_forked_tunnel_801819C4[arg0->killCountdown].vy;
         placement.rot.vz = D_mine_forked_tunnel_801819C4[arg0->killCountdown].vz;
 
-        place             = &placement;
-        coord             = (RoomCoord*)((TmdObject*)arg0->extra)->coords;
-        coord->coord.t[0] = place->pos.vx;
-        coord->coord.t[1] = place->pos.vy;
-        coord->coord.t[2] = place->pos.vz;
-        coord->rot.vx     = place->rot.vx;
-        coord->rot.vy     = place->rot.vy;
-        coord->rot.vz     = place->rot.vz;
-        RotMatrixZYX(&coord->rot, &coord->coord);
+        place               = &placement;
+        coord               = (GpCoordExt*)((TmdObject*)arg0->extra)->coords;
+        coord->coord.t[0]   = place->pos.vx;
+        coord->coord.t[1]   = place->pos.vy;
+        coord->coord.t[2]   = place->pos.vz;
+        coord->param.rot.vx = place->rot.vx;
+        coord->param.rot.vy = place->rot.vy;
+        coord->param.rot.vz = place->rot.vz;
+        RotMatrixZYX(&coord->param.rot, &coord->coord);
         coord->flg = 0;
 
         arg0->killCountdown++;
@@ -349,16 +349,16 @@ void func_mine_forked_tunnel_8017DC70(Task* arg0)
 /// calls it directly with id 0x7D4 in `arg1`, which it does not read.
 s32 func_mine_forked_tunnel_8017DC8C(Task* task, s32 arg1, GpXformArg* placement, s32 arg3)
 {
-    RoomCoord* coord;
+    GpCoordExt* coord;
 
-    coord             = (RoomCoord*)((TmdObject*)task->extra)->coords;
-    coord->coord.t[0] = placement->pos.vx;
-    coord->coord.t[1] = placement->pos.vy;
-    coord->coord.t[2] = placement->pos.vz;
-    coord->rot.vx     = placement->rot.vx;
-    coord->rot.vy     = placement->rot.vy;
-    coord->rot.vz     = placement->rot.vz;
-    RotMatrixZYX(&coord->rot, &coord->coord);
+    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0]   = placement->pos.vx;
+    coord->coord.t[1]   = placement->pos.vy;
+    coord->coord.t[2]   = placement->pos.vz;
+    coord->param.rot.vx = placement->rot.vx;
+    coord->param.rot.vy = placement->rot.vy;
+    coord->param.rot.vz = placement->rot.vz;
+    RotMatrixZYX(&coord->param.rot, &coord->coord);
     coord->flg = 0;
     return 0;
 }
@@ -429,13 +429,13 @@ void func_mine_forked_tunnel_8017DE54(Task* task)
     TmdObject*     ext;
     TmdObject*     parentExt;
     GsCOORDINATE2* parentCoord;
-    RoomCoord*     coord;
-    RoomCoord*     dst;
+    GpCoordExt*    coord;
+    GpCoordExt*    dst;
 
     parent      = task->spawnArg2;
     ext         = task->extra;
     parentExt   = parent->extra;
-    coord       = (RoomCoord*)ext->coords;
+    coord       = (GpCoordExt*)ext->coords;
     parentCoord = parentExt->coords;
 
     coord->flg    = 0;
@@ -446,14 +446,14 @@ void func_mine_forked_tunnel_8017DE54(Task* task)
     Task_Reparent(parent, task);
     ext->flags = ext->flags & 0xFF7F;
 
-    dst             = (RoomCoord*)((TmdObject*)task->extra)->coords;
-    dst->coord.t[0] = D_mine_forked_tunnel_80181BA4.pos.vx;
-    dst->coord.t[1] = D_mine_forked_tunnel_80181BA4.pos.vy;
-    dst->coord.t[2] = D_mine_forked_tunnel_80181BA4.pos.vz;
-    dst->rot.vx     = D_mine_forked_tunnel_80181BA4.rot.vx;
-    dst->rot.vy     = D_mine_forked_tunnel_80181BA4.rot.vy;
-    dst->rot.vz     = D_mine_forked_tunnel_80181BA4.rot.vz;
-    RotMatrixZYX(&dst->rot, &dst->coord);
+    dst               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    dst->coord.t[0]   = D_mine_forked_tunnel_80181BA4.pos.vx;
+    dst->coord.t[1]   = D_mine_forked_tunnel_80181BA4.pos.vy;
+    dst->coord.t[2]   = D_mine_forked_tunnel_80181BA4.pos.vz;
+    dst->param.rot.vx = D_mine_forked_tunnel_80181BA4.rot.vx;
+    dst->param.rot.vy = D_mine_forked_tunnel_80181BA4.rot.vy;
+    dst->param.rot.vz = D_mine_forked_tunnel_80181BA4.rot.vz;
+    RotMatrixZYX(&dst->param.rot, &dst->coord);
     dst->flg    = 0;
     task->state = task->state + 1;
 }

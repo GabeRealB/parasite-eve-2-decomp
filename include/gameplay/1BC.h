@@ -258,9 +258,6 @@ typedef struct _GpAreaObj {
     /* 0x01 */ u8 field_1;
 } GpAreaObj;
 
-/// `GpCoordExt` under the name room code still uses for it.
-typedef GpCoordExt GpCoordPose;
-
 /// 0xC-byte record in the 0xFF-terminated table at nested `GpAreaRec.field_4`
 /// (`Gp_ApplyAreaTmdFlags` / `Gp_SpawnArea`). `field_0` is compared with the byte at
 /// `GpWorkObj.field_3C` / `GpAreaPlace.entryId`. `field_5` is the
