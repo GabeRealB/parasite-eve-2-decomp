@@ -686,71 +686,71 @@ void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, TaskIdMap* ar
 
 void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Work* arg2)
 {
-    SVECTOR      local;
-    SVECTOR*     local4;
-    SVECTOR*     local0;
-    Actor403600* actor;
-    u8*          coords;
-    u8*          center;
-    u8*          head;
-    u8*          scratch;
-    u8*          coord0;
-    u8*          coord3;
-    u8*          coord4;
-    u8*          current0;
-    u8*          current1;
-    u8*          current2;
-    u8*          current4;
-    u8*          saved4;
-    u8*          saved3;
-    u8*          saved2;
-    u8*          column1;
-    u8*          column2;
-    u8*          firstOutput;
-    u8*          stepOutput;
-    u8*          secondOutput;
-    u8*          thirdOutput;
-    u8*          next2;
-    SVECTOR*     output0;
-    MATRIX*      centerBasis3;
-    SVECTOR*     output4;
-    MATRIX*      matrix3;
-    MATRIX*      matrix4;
-    MATRIX*      basis3;
-    MATRIX*      basis4;
-    MATRIX*      basis0;
-    MATRIX*      worldArg0;
-    MATRIX*      worldArg1;
-    MATRIX*      transposed0;
-    MATRIX*      transposed1;
-    u8*          viewWorld0;
-    u8*          viewWorld1;
-    u8*          viewCoord0;
-    u8*          viewCoord4;
-    s32          i;
-    s32          j;
-    s32          offset0;
-    s32          offset1;
-    s32          offset2;
-    s16          value;
-    u16          x4;
-    u16          y4;
-    u16          z4;
-    u16          stepHeight;
-    TmdObject*   node4;
-    u16          neg0;
-    u16          neg1;
-    u16          neg2;
-    u16          old18;
-    u16          oldc;
+    SVECTOR    local;
+    SVECTOR*   local4;
+    SVECTOR*   local0;
+    Task*      actor;
+    u8*        coords;
+    u8*        center;
+    u8*        head;
+    u8*        scratch;
+    u8*        coord0;
+    u8*        coord3;
+    u8*        coord4;
+    u8*        current0;
+    u8*        current1;
+    u8*        current2;
+    u8*        current4;
+    u8*        saved4;
+    u8*        saved3;
+    u8*        saved2;
+    u8*        column1;
+    u8*        column2;
+    u8*        firstOutput;
+    u8*        stepOutput;
+    u8*        secondOutput;
+    u8*        thirdOutput;
+    u8*        next2;
+    SVECTOR*   output0;
+    MATRIX*    centerBasis3;
+    SVECTOR*   output4;
+    MATRIX*    matrix3;
+    MATRIX*    matrix4;
+    MATRIX*    basis3;
+    MATRIX*    basis4;
+    MATRIX*    basis0;
+    MATRIX*    worldArg0;
+    MATRIX*    worldArg1;
+    MATRIX*    transposed0;
+    MATRIX*    transposed1;
+    u8*        viewWorld0;
+    u8*        viewWorld1;
+    u8*        viewCoord0;
+    u8*        viewCoord4;
+    s32        i;
+    s32        j;
+    s32        offset0;
+    s32        offset1;
+    s32        offset2;
+    s16        value;
+    u16        x4;
+    u16        y4;
+    u16        z4;
+    u16        stepHeight;
+    TmdObject* node4;
+    u16        neg0;
+    u16        neg1;
+    u16        neg2;
+    u16        old18;
+    u16        oldc;
 
-    actor  = (Actor403600*)arg0->parent;
-    coords = (u8*)actor->field_2C->coords;
+    actor  = arg0->parent;
+    coords = (u8*)((TmdObject*)actor->extra)->coords;
     center = coords + 0x280;
     if (D_801153F4 == 0) {
         head    = *(u8**)0x1F8003FC;
         scratch = (*(u8**)0x1F8003FC = head - 0x88);
-        Gp_UpdateCoord((GsCOORDINATE2*)((u8*)actor->field_2C->coords + 0x370));
+        Gp_UpdateCoord((GsCOORDINATE2*)((u8*)((TmdObject*)actor->extra)->coords + 0x370));
         if (*(s32*)((u8*)arg2 + 0x118) == 0) {
             viewWorld0 = (u8*)&Gfx_ViewWorldMtx;
             worldArg0  = (MATRIX*)viewWorld0;
@@ -805,7 +805,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Wo
             offset0    = 0x4B0;
             do {
                 current1 = (u8*)arg2 + i * 8;
-                coord0   = (u8*)actor->field_2C->coords + offset0;
+                coord0   = (u8*)((TmdObject*)actor->extra)->coords + offset0;
                 Gp_UpdateCoord((GsCOORDINATE2*)coord0);
                 *(s16*)(scratch + 8)  = *(u16*)(coord0 + 0x38) - *(u16*)(viewCoord0 + 0x38);
                 *(s16*)(scratch + 10) = *(u16*)(coord0 + 0x3C) - *(u16*)(viewCoord0 + 0x3C);
@@ -924,7 +924,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Wo
                 saved3 = (u8*)(i * 8 + (u32)scratch);
                 SOFT_TOUCH_REG_USE(saved3, actor);
                 saved3 += 0x60;
-                coord3  = (u8*)actor->field_2C->coords + offset1;
+                coord3  = (u8*)((TmdObject*)actor->extra)->coords + offset1;
                 gte_SetRotMatrix(&Gfx_ViewWorldMtx);
                 gte_ldv0(saved3);
                 gte_rtv0();
@@ -1002,7 +1002,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Wo
             offset2  = 0x4B0;
             do {
                 SOFT_TOUCH_REG(current4);
-                node4 = actor->field_2C;
+                node4 = actor->extra;
                 SOFT_USE_REG(node4);
                 coord4 = (u8*)node4->coords + offset2;
                 TransposeMatrix(&Gfx_ViewWorldMtx, basis4);
@@ -1978,7 +1978,7 @@ void func_actor_403600_80135C28(Task* arg0)
     s32                     var_v0_6;
     s32                     var_v0_7;
     s32                     var_v1;
-    Actor403600*            temp_a0;
+    Task*                   temp_a0;
     TmdObject*              temp_a0_5;
     TmdObject*              temp_a1;
     Task*                   temp_s2;
@@ -1986,11 +1986,11 @@ void func_actor_403600_80135C28(Task* arg0)
     Actor403600Work*        temp_v1;
 
     temp_a0 = arg0->spawnArg2;
-    temp_v1 = temp_a0->field_1C;
+    temp_v1 = temp_a0->work;
     temp_s4 = ((TmdObject*)arg0->extra)->coords;
     temp_s2 = temp_v1->field_710;
     if (temp_v1->field_742 == 1) {
-        temp_v0                 = temp_a0->field_2C;
+        temp_v0                 = temp_a0->extra;
         D_actor_403600_801606A0 = NULL;
         temp_v0->flags          = (u16)(temp_v0->flags & 0xFF7F);
         Task_CallExit(arg0);
@@ -2131,7 +2131,7 @@ void func_actor_403600_80135C28(Task* arg0)
                 temp_v0_9         = temp_s0->field_E4 - 1;
                 temp_s0->field_E4 = temp_v0_9;
                 if (temp_v0_9 == 0) {
-                    temp_a0_5               = ((Actor403600*)arg0->spawnArg2)->field_2C;
+                    temp_a0_5               = ((Task*)arg0->spawnArg2)->extra;
                     D_actor_403600_801606A0 = NULL;
                     temp_a0_5->flags        = (u16)(temp_a0_5->flags | 0x80);
                     goto block_57;
@@ -2147,7 +2147,7 @@ void func_actor_403600_80135C28(Task* arg0)
                 if (temp_v1_10 != 0) {
                     goto block_52;
                 }
-                temp_a1                 = ((Actor403600*)arg0->spawnArg2)->field_2C;
+                temp_a1                 = ((Task*)arg0->spawnArg2)->extra;
                 temp_a0_6               = (s16*)&temp_s0->field_90;
                 D_actor_403600_801606A0 = temp_a0_6;
                 temp_a1->flags          = (u16)(temp_a1->flags & 0xFF7F);
