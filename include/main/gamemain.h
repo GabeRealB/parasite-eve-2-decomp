@@ -27,7 +27,7 @@ extern const u8 GameMain_PauseText[];
 extern u32          D_8005EC64;
 extern s32          D_8005EC68;
 extern s32          D_8005EC6C;
-extern volatile u32 Display_PendingFlip;
+extern volatile s32 Display_PendingFlip;
 /// Written by Display_VSyncCallback; read by Display_FrameFlipDraw.
 extern volatile s32 D_8005EC74;
 /// Cleared/set by the draw path; read by the VSync callback for lag accounting.

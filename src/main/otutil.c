@@ -7,7 +7,7 @@
 #include "main/gamemain.h"
 #include "main/stage.h"
 
-s32 Display_FrameFlipDraw(s32 arg0, s32 arg1, s32 arg2)
+s32 Display_FrameFlipDraw(GpuOtBuf* otBufs, s32 arg1, s32 arg2)
 {
     DisplayState* temp;
     GsOT*         ot;
@@ -165,17 +165,12 @@ void Display_FlipOt(void)
     DisplayState* temp;
     u_long*       saved;
     s32           buf;
-    u_long*       ot;
 
     temp           = &gDisplayState;
     saved          = gGpuCurrentOt;
     buf            = temp->otBuffer ^ 1;
     temp->otBuffer = buf;
-    gGpuCurrentOt  = Gpu_OtTags + buf * GPU_OT_ENTRIES;
-    ClearOTagR(gGpuCurrentOt, GPU_OT_ENTRIES);
-    ot            = gGpuCurrentOt;
-    *ot           = GPU_OT_END_PRIM;
-    gGpuCurrentOt = ot + 0x20;
+    gpuBeginOt(buf);
     Gp_LinkViewSprts();
     Gp_DrawActorTmdActive(&Gpu_OtBuffers[temp->otBuffer]);
     gGpuCurrentOt              = saved;

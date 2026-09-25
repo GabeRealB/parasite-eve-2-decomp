@@ -851,7 +851,7 @@ s32          AudioTick_Insert(void*, u32, u16, s32*);
 void         SndEvt_Reset(void);
 s32          Midi_InitSystem(u32);
 s32          Midi_Tick(void);
-void         Snd_PollAsync(void);
+void         Snd_PollAsync();
 void         Snd_SetModeFlag(s32 arg0);
 void         Snd_RegisterTickCallbacks(void);
 s32          SndVoice_DriveSlots(void);

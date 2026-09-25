@@ -267,7 +267,7 @@ typedef struct _CdCmdQueue {
     u16          field_21C; // image transfer mode for Display_LoadImageStrips (0 / 1)
     u16          field_21E; // 0x21E — DecDCTvlcBuild done flag
     byte         unknown_220[0x2];
-    s16          field_222;
+    u16          field_222;
     u16          field_224;
     u16          field_226; // sub-state for CdCmd_RecoverDisk disk recovery
     u16          field_228;
@@ -284,7 +284,7 @@ typedef struct _CdCmdQueue {
     s16          field_23E; // MoveImage vs ClearImage path for Mdec_DecodeToVram
     s16          field_240; // non-zero enables CD timing wait (GameMain_Loop)
     s16          field_242;
-    u16          field_244;
+    s16          field_244;
     u16          field_246;
     u16          field_248;
     u16          field_24A;

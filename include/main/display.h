@@ -31,7 +31,7 @@ typedef struct {
     s32     field_10;     // Advanced with `gameTick` but never paused; no reader in this tree, role unproven
     s32     loopCount;    // Main-loop iterations since the last reset, counted even when no frame is rendered
     u16     width;        // Active framebuffer width in pixels
-    u16     height;       // Active framebuffer height in pixels
+    s16     height;       // Active framebuffer height in pixels
     u8      interlace;    // 1 when the display is interlaced
     s8      holdState;    // Negative while a caller holds the display; the low bits are never written in this tree
     s8      displayOwner; // Which path renders the frame (0 the game loop, 1 a stage transition, 2 a task spawned with its own OT)
@@ -45,7 +45,7 @@ typedef struct {
             u8 imageSource;      // What the flip uploads into the current framebuffer (0 nothing, 1/2 image strips, 3 the room's stored image slot)
             u8 pendingPlayerPos; // 1: the next room setup puts the player where the save data says, not at the room's own start
             u8 unknown_102;
-            u8 flipMode;         // What the next vblank flip does (0 upload and draw, 1 draw only, 2 hold the displayed frame, 3 upload the room's image slot; bit 4 suppresses the draw)
+            s8 flipMode;         // What the next vblank flip does (0 upload and draw, 1 draw only, 2 hold the displayed frame, 3 upload the room's image slot; bit 4 suppresses the draw)
         } flags;
     } at100;
     u16         skipDraw;       // Nonzero: flip the frame without drawing the ordering table
@@ -171,8 +171,9 @@ void  Display_InvertFramebufferGray(void);
 void  Display_SetDrawMode(s32 arg0);
 s32   Display_InitModeObj(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3);
 void  Gpu_ResetGraphAndOt(void);
-/// arg2 is unused; GameMain_Loop passes gDisplayState.otBuffer for match.
-s32 Display_FrameFlipDraw(s32 arg0, s32 arg1, s32 arg2);
+/// Renders a frame whose tasks own the display. Only `arg1`, the loop's frame
+/// start, is read; the caller also passes the OT buffers and the current buffer.
+s32 Display_FrameFlipDraw(GpuOtBuf* otBufs, s32 arg1, s32 arg2);
 s32 Display_DispatchModeId(s32 arg0);
 
 /// Put draw/disp env and optionally transfer framebuffer strips (gamemain.c).
@@ -187,5 +188,19 @@ void Display_AcquireRef(void);
 void Display_ReleaseRef(void);
 void Display_TransitionTask(Task* task);
 void Display_TaskLoadStep(Task* task);
+
+/// Makes buffer `buf`'s ordering table the current one: clears it, terminates
+/// it, and leaves the current-table pointer past the entries reserved at its
+/// start.
+static inline void gpuBeginOt(s32 buf)
+{
+    u_long* ot;
+
+    gGpuCurrentOt = Gpu_OtTags + buf * GPU_OT_ENTRIES;
+    ClearOTagR(gGpuCurrentOt, GPU_OT_ENTRIES);
+    ot            = gGpuCurrentOt;
+    *ot           = GPU_OT_END_PRIM;
+    gGpuCurrentOt = ot + 0x20;
+}
 
 #endif // DISPLAY_H

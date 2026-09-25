@@ -28,23 +28,23 @@ STATIC_ASSERT_SIZEOF(PadEvent, 0x4);
 /// Pad_UpdatePort0 when status == 0x73). field_5A / field_5B are cleared
 /// during pad init.
 typedef struct _PadState {
-    /* 0x00 */ s16      status;
-    /* 0x02 */ u8       eventIdx;
-    /* 0x03 */ u8       initialized;
-    /* 0x04 */ u16      buttons;
-    /* 0x06 */ u16      prevButtons;
-    /* 0x08 */ u16      triggered;
-    /* 0x0A */ u8       cooldown;
-    /* 0x0B */ u8       autoRepeat;
-    /* 0x0C */ byte     unknown_C[0x4];
-    /* 0x10 */ PadEvent events[2][8];
-    /* 0x50 */ s16      field_50;
-    /* 0x52 */ s16      field_52;
-    /* 0x54 */ s16      field_54;
-    /* 0x56 */ s16      field_56;
-    /* 0x58 */ byte     unknown_58[0x2];
-    /* 0x5A */ u8       field_5A;
-    /* 0x5B */ u8       field_5B;
+    /* 0x00 */ s16         status;
+    /* 0x02 */ u8          eventIdx;
+    /* 0x03 */ u8          initialized;
+    /* 0x04 */ u16         buttons;
+    /* 0x06 */ u16         prevButtons;
+    /* 0x08 */ u16         triggered;
+    /* 0x0A */ volatile u8 cooldown;
+    /* 0x0B */ u8          autoRepeat;
+    /* 0x0C */ byte        unknown_C[0x4];
+    /* 0x10 */ PadEvent    events[2][8];
+    /* 0x50 */ s16         field_50;
+    /* 0x52 */ s16         field_52;
+    /* 0x54 */ s16         field_54;
+    /* 0x56 */ s16         field_56;
+    /* 0x58 */ byte        unknown_58[0x2];
+    /* 0x5A */ u8          field_5A;
+    /* 0x5B */ u8          field_5B;
 } PadState;
 STATIC_ASSERT_SIZEOF(PadState, 0x5C);
 
@@ -122,10 +122,10 @@ STATIC_ASSERT_SIZEOF(PadRemapState, 0x1C);
 // Globals
 // =============================================================================
 
-extern volatile PadState Pad_States[2];
-extern PadRawPort        Pad_RawPorts[2];
-extern PadRemapState*    Pad_RemapState;
-extern u8                D_8005ED84[];
+extern PadState       Pad_States[2];
+extern PadRawPort     Pad_RawPorts[2];
+extern PadRemapState* Pad_RemapState;
+extern u8             D_8005ED84[];
 
 // Button masks checked with Pad_CheckButtons: confirm (0x40), cancel
 // (0xA0) and menu-open (0x900). Gp_PadSuppressMask masks out 0x900

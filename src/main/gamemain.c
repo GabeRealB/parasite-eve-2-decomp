@@ -94,35 +94,33 @@ void Display_FlipDraw(s32 arg0)
     }
 }
 
+/// Puts buffer `buf`'s draw and display environments, uploads the image the
+/// flip wants in it, and draws that buffer's ordering table unless drawing is
+/// suppressed.
+static inline void _displayPresentFrame(s32 buf)
+{
+    PutDrawEnv(&gDisplayState.drawEnv[buf]);
+    PutDispEnv(&gDisplayState.dispEnv[buf]);
+    if (gDisplayState.at100.flags.imageSource != 0) {
+        Display_LoadImageStrips(buf);
+    }
+    func_80020058();
+    if (gDisplayState.skipDraw == 0) {
+        DrawOTag(Gpu_OtBuffers[buf].lastTag);
+    }
+}
+
 void Display_VSyncCallback(void)
 {
-    s32           temp_s4;
-    s32           temp_s0;
-    s32           stride; // Forces s0*0x14 before (ds+0x20); required for match.
-    DisplayState* ds;
-    DRAWENV*      drawBase;
-    DISPENV*      dispBase;
+    s32 start;
 
-    temp_s4 = VSync(1);
-    if ((s32)Display_PendingFlip >= 0) {
-        if (((temp_s4 & 0xFFFF) + D_8005EC78) > (D_8005EC6C >> 1)) {
-            ds = &gDisplayState;
-            if (ds->vsyncFlag == 0) {
-                temp_s0  = Display_PendingFlip;
-                drawBase = ds->drawEnv;
-                PutDrawEnv(&drawBase[temp_s0]);
-                stride   = temp_s0 * 0x14;
-                dispBase = ds->dispEnv;
-                PutDispEnv(&dispBase[temp_s0]);
-                if (ds->at100.flags.imageSource != 0) {
-                    Display_LoadImageStrips(temp_s0);
-                }
-                func_80020058();
-                if (ds->skipDraw == 0) {
-                    DrawOTag(Gpu_OtBuffers[temp_s0].lastTag);
-                }
+    start = VSync(1);
+    if (Display_PendingFlip >= 0) {
+        if (((start & 0xFFFF) + D_8005EC78) > (D_8005EC6C >> 1)) {
+            if (gDisplayState.vsyncFlag == 0) {
+                _displayPresentFrame(Display_PendingFlip);
                 Display_PendingFlip = -1;
-            } else if (ds->vsyncFlag == 1) {
+            } else if (gDisplayState.vsyncFlag == 1) {
                 Display_FlipDraw(Display_PendingFlip);
                 Display_PendingFlip = -1;
             }
@@ -136,46 +134,48 @@ void Display_VSyncCallback(void)
     CdAudio_Tick();
     Audio_IrqFrameWork();
     func_8002C1D8();
-    D_8005EC74 = VSync(1) - (temp_s4 & 0xFFFF);
+    D_8005EC74 = VSync(1) - (start & 0xFFFF);
 }
 
 // Drawn by GameMain_ShowLoading (must stay in .rodata for this TU).
 const u8 GameMain_PauseText[] = "PAUSE!";
 
+/// Nonzero while the game cannot be halted: a CD command is running without
+/// the halt flag that permits it, the flip is holding the displayed frame, a CD
+/// operation is in progress, or the display is off.
+static inline s32 _gameMainPauseBlocked(void)
+{
+    s32 blocked;
+
+    blocked = 0;
+    if (CdCmd_Queue.field_244 != 0 && !(GameMain_HaltFlags & 8)) {
+        blocked = 1;
+    } else if (gDisplayState.vsyncFlag == 1 && gDisplayState.at100.flags.flipMode == 2) {
+        blocked = 1;
+    } else if (Fs_CdOpStatus != 0xFF) {
+        blocked = 1;
+    } else if (GpuExt_IsDisplayEnabled() == 0) {
+        blocked = 1;
+    }
+    return blocked;
+}
+
 void GameMain_ShowLoading(s32 arg0)
 {
-    TextDrawReq   sp10;
-    s32           skip;
-    s32           one;
-    s32           buf;
-    s32           stride;
-    TILE*         tile;
-    DR_TPAGE*     dr;
-    DisplayState* ds;
-    DRAWENV*      drawBase;
-    DISPENV*      dispBase;
-    s8            yoff;
+    TextDrawReq req;
+    TILE*       tile;
+    DR_TPAGE*   dr;
+    s32         buf;
 
     if (!(GameMain_HaltFlags & ~1)) {
-        skip = 0;
-        if (((s16)CdCmd_Queue.field_244 != 0) && !(GameMain_HaltFlags & 8)) {
-            skip = 1;
-        } else if ((gDisplayState.vsyncFlag == 1) && ((s8)gDisplayState.at100.flags.flipMode == 2)) {
-            skip = 1;
-        } else if (Fs_CdOpStatus != 0xFF) {
-            skip = 1;
-        } else if (GpuExt_IsDisplayEnabled() == 0) {
-            skip = 1;
-        }
-        if (skip == 0) {
+        if (!_gameMainPauseBlocked()) {
             GameMain_HaltFlags |= 1 << arg0;
-            one                 = 1;
             tile                = &D_8006EC18;
             dr                  = &D_8006EC28;
-            if (arg0 == one) {
+            if (arg0 == 1) {
                 SndEvt_EnqueueTypeD();
             }
-            setlen(dr, one);
+            setlen(dr, 1);
             dr->code[0] = 0xE1000600;
             DrawPrim(dr);
 
@@ -184,27 +184,22 @@ void GameMain_ShowLoading(s32 arg0)
             tile->h                  = 0xF0;
             PRIM_COLOR_WORD(tile, 0) = 0;
             setlen(tile, 3);
-            ds = &gDisplayState;
             setcode(tile, 0x62);
-            yoff     = ds->vramYOffset;
-            tile->y0 = -0x78 - yoff;
+            tile->y0 = -0x78 - gDisplayState.vramYOffset;
             DrawPrim(tile);
 
-            sp10.x          = 0;
-            sp10.otIndex    = 4;
-            sp10.field_8    = 0x37A78;
-            sp10.glyphTable = 4;
-            sp10.centerMode = one;
-            sp10.field_E    = 0x10;
-            sp10.y          = 6 - ds->vramYOffset;
-            func_8002E53C(&sp10, GameMain_PauseText);
+            req.x          = 0;
+            req.otIndex    = 4;
+            req.field_8    = 0x37A78;
+            req.glyphTable = 4;
+            req.centerMode = 1;
+            req.field_E    = 0x10;
+            req.y          = 6 - gDisplayState.vramYOffset;
+            func_8002E53C(&req, GameMain_PauseText);
 
-            buf      = ds->drawBuffer ^ 1;
-            drawBase = ds->drawEnv;
-            PutDrawEnv(&drawBase[buf]);
-            stride   = buf * 0x14;
-            dispBase = ds->dispEnv;
-            PutDispEnv(&dispBase[buf]);
+            buf = gDisplayState.drawBuffer ^ 1;
+            PutDrawEnv(&gDisplayState.drawEnv[buf]);
+            PutDispEnv(&gDisplayState.dispEnv[buf]);
 
             EnterCriticalSection();
             Display_PendingFlip = -1;
@@ -213,368 +208,144 @@ void GameMain_ShowLoading(s32 arg0)
     }
 }
 
+/// Holds the frame back until the stream's timing table allows it: while the
+/// table is active, waits until the accumulated time reaches the current entry,
+/// adds this frame's time and advances the cursor (skipping -1 entries, stopping
+/// at 0). Returns the frame's elapsed time, remeasured if it waited.
+static inline s32 _gameMainPaceToStream(s32 start, s32 elapsed)
+{
+    CdCmdQueue* q;
+
+    q = &CdCmd_Queue;
+    if (q->field_240 != 0) {
+        if (elapsed + q->field_1A0 < *q->field_19C) {
+            while (((VSync(1) - start) & 0x7FFF) + q->field_1A0 < *q->field_19C) {
+            }
+            elapsed       = (VSync(1) - start) & 0x7FFF;
+            q->field_1A0 += elapsed;
+        } else {
+            q->field_1A0 += elapsed;
+        }
+        if (*q->field_19C != 0) {
+            q->field_19C++;
+            if (*q->field_19C == -1) {
+                q->field_19C++;
+            }
+        }
+    }
+    return elapsed;
+}
+
 void GameMain_Loop(void)
 {
-    s32                    s3;
-    register DisplayState* ds asm("s2");
-    s32                    s4r;
-    s32                    s5r;
-    s32                    neg1;
-    s32                    ot_hi;
-    GpuOtBuf*              otBase;
-    s32                    skip;
-    s32                    flip;
-    s32                    buf;
-    s32                    vs;
-    s32                    stride;
-    CdCmdQueue*            cq;
-    CdCmdQueue*            q;
-    DRAWENV*               drawBase;
-    DISPENV*               dispBase;
-    PadState*              ps;
-    s32                    t;
-    s32                    wt;
-    u_long*                ot_local;
-    u_long*                p;
-    s32                    a0;
-    s32                    d710;
-    s32                    n;
-    u8                     raw;
-    s32                    _t;
+    CdCmdQueue* cq;
+    s32         start;
+    s32         buf;
+    s32         elapsed;
+    s8          shake;
 
-    s3 = 0;
-    {
-        register DisplayState* t asm("v0");
-        t  = &gDisplayState;
-        ds = &gDisplayState; /* CSE: lui/addiu v0 + move s2; pure C alias */
-        {
-            register s32 t4 asm("v0");
-            /* depend on t so Display load completes in v0 first */
-            __asm__("lui %0, %%hi(GameMain_HaltFlags)" : "=r"(t4) : "r"(t));
-            __asm__("move %0, %1" : "=r"(s4r) : "r"(t4));
-        }
-    }
-    __asm__("lui %0, %%hi(Display_PendingFlip)" : "=r"(s5r));
-    neg1 = -1;
-    __asm__("lui %0, %%hi(Gpu_OtBuffers)" : "=r"(ot_hi));
-    {
-        s32 v;
-        v = *(u8*)&ds->drawBuffer;
-        /* depend on v so addiu cannot hoist above lbu */
-        __asm__ volatile("addiu %0, %1, %%lo(Gpu_OtBuffers)"
-                         : "=r"(otBase)
-                         : "r"(ot_hi), "r"(v));
-        __asm__ volatile("sw $zero, %%lo(GameMain_HaltFlags)(%0)" ::"r"(s4r) : "memory");
-        ds->otBuffer = v;
-    }
-    /* Force s4r/s5r as the only EC80/EC70 bases for the whole function */
+    start                  = 0;
+    GameMain_HaltFlags     = 0;
+    gDisplayState.otBuffer = gDisplayState.drawBuffer;
 
-    {
-        DisplayState* nv = ds;
-        for (;;) {
-            if (nv->gameMode == 1) {
-                goto do_init;
-            }
-            if (nv->gameMode != 0) {
-                goto after_init;
-            }
-            if (nv->cdBusy != 0) {
-                goto after_init;
-            }
-            if (nv->gameRunning == 0) {
-                goto after_init;
-            }
-            if (Pad_CheckSpecialCombo() == 0) {
-                goto after_init;
-            }
-        do_init:
+    for (;;) {
+        if (gDisplayState.gameMode == 1 ||
+            (gDisplayState.gameMode == 0 && gDisplayState.cdBusy == 0 && gDisplayState.gameRunning != 0 &&
+             Pad_CheckSpecialCombo() != 0)) {
             GameMain_Init();
-            __asm__ volatile("sw $zero, %%lo(GameMain_HaltFlags)(%0)" ::"r"(s4r) : "memory");
-        after_init:
-            GameResetScratchHead();
-            Pad_UpdatePort0();
-
-            ps = (PadState*)Pad_States;
-            if (ps->status == 0xFF && ps->cooldown == 0 && nv->gameRunning != 0 &&
-                nv->loadBusy == 0 && nv->gameMode == 0) {
-                GameMain_ShowLoading(1);
-            } else {
-                s32 _e;
-                __asm__ volatile("lw %0, %%lo(GameMain_HaltFlags)(%1)" : "=r"(_e) : "r"(s4r));
-                if (_e & 2) {
-                    SndEvt_EnqueueTypeE();
-                    __asm__ volatile("lw %0, %%lo(GameMain_HaltFlags)(%1)" : "=r"(_e) : "r"(s4r));
-                    {
-                        register s32 m3 asm("v1");
-                        m3  = -3;
-                        _e &= m3;
-                    }
-                    __asm__ volatile("sw %0, %%lo(GameMain_HaltFlags)(%1)" ::"r"(_e), "r"(s4r) : "memory");
-                }
-            }
-
-            ((void (*)(s32))Snd_PollAsync)(0);
-
-            {
-                s32 _e;
-                __asm__ volatile("lw %0, %%lo(GameMain_HaltFlags)(%1)" : "=r"(_e) : "r"(s4r));
-                if (_e != 0) {
-                    skip = 0;
-                    /* && short-circuit: reload EC80 only when field_244 != 0 */
-                    if ((s16)CdCmd_Queue.field_244 != 0 &&
-                        !(({
-                              s32 _e2;
-                              __asm__ volatile("lw %0, %%lo(GameMain_HaltFlags)(%1)"
-                                               : "=r"(_e2)
-                                               : "r"(s4r));
-                              _e2;
-                          }) &
-                          8)) {
-                        skip = 1;
-                    } else if (nv->vsyncFlag == 1 && (s8)nv->at100.flags.flipMode == 2) {
-                        skip = 1;
-                    } else if (Fs_CdOpStatus != 0xFF) {
-                        skip = 1;
-                    } else if (GpuExt_IsDisplayEnabled() == 0) {
-                        skip = 1;
-                    }
-                    if (skip == 0) {
-                        s32 a0;
-                        (void)a0;
-                        VSync(0);
-                        s3 = VSync(1) & 0x7FFF;
-                        Boot_DispatchCdCmd();
-                        continue;
-                    }
-                }
-            }
-
-            nv->loopCount += 1;
-            nv->field_10  += 1;
-            if (nv->displayOwner != 0) {
-                goto do_flip_draw;
-            }
-
-            if (nv->pendingMode != 0) {
-                u8 mode = nv->pendingMode;
-                if ((s32)(mode << 24) < 0) {
-                    goto do_dispatch;
-                }
-                if (nv->holdState >= 0) {
-                do_dispatch:
-                    Display_DispatchModeId(nv->pendingMode);
-                }
-            }
-            if (nv->displayOwner != 0) {
-            do_flip_draw:
-                __asm__ volatile("addiu %0, %1, %%lo(Gpu_OtBuffers)" : "=r"(a0) : "r"(ot_hi));
-                s3 = Display_FrameFlipDraw(a0, s3, nv->otBuffer);
-                continue;
-            }
-
-            flip            = nv->otBuffer ^ 1;
-            nv->pendingMode = 0;
-            cq              = &CdCmd_Queue;
-            nv->otBuffer    = flip;
-            nv->drawBuffer  = (u8)nv->otBuffer;
-            nv->animFrame  += 1;
-            if ((u16)cq->field_222 == 0) {
-                t            = nv->gameTick + 1;
-                nv->gameTick = t + (D_8005EC68 >> 1);
-            }
-
-            ot_local = Gpu_OtTags + (u32)flip * GPU_OT_ENTRIES;
-            n        = GPU_OT_ENTRIES;
-            /* Keep ot/n live so li a1 lands right after ot setup, before EC68 loads */
-            TOUCH_REG2(ot_local, n);
-            {
-                s32 d710r;
-                s32 half;
-                s32 f10;
-                half = D_8005EC68;
-                f10  = nv->field_10;
-                __asm__ volatile("lui %0, %%hi(gGpuCurrentOt)" : "=r"(d710r));
-                __asm__ volatile("sw %0, %%lo(gGpuCurrentOt)(%1)" ::"r"(ot_local), "r"(d710r)
-                                 : "memory");
-                nv->field_10 = f10 + (half >> 1);
-                ClearOTagR(ot_local, n);
-                d710 = d710r;
-            }
-            {
-                s32              endp;
-                register u_long* pr asm("v0");
-                __asm__ volatile("lui %0, 0xff" : "=r"(endp));
-                __asm__ volatile("lw %0, %%lo(gGpuCurrentOt)(%1)" : "=r"(pr) : "r"(d710));
-                __asm__ volatile("ori %0, %0, 0xffff" : "+r"(endp));
-                *pr = (u_long)endp;
-                pr += 0x20;
-                __asm__ volatile("sw %0, %%lo(gGpuCurrentOt)(%1)" ::"r"(pr), "r"(d710)
-                                 : "memory");
-            }
-
-            {
-                s32 idx;
-                idx               = nv->otBuffer;
-                Gpu_SysPrimCursor = Gpu_PrimBufStatic + (u32)idx * 0x3000;
-                gGpuPrimCursor =
-                    (u8*)Gpu_PrimHeapBase + (u32)idx * ((u32)Gpu_PrimHeapSize >> 1);
-                /* Callee reloads gTaskDefaultList itself; keep idx in $a0. */
-                Task_ExecDefaultList((TaskNode*)idx);
-            }
-
-            if (nv->displayOwner != 0) {
-                continue;
-            }
-
-            Boot_DispatchCdCmd();
-
-            {
-                register s32 z asm("a0");
-                z = 0;
-                if ((s16)nv->height == 0x1E0) {
-                    __asm__ volatile("sw %0, %%lo(Display_PendingFlip)(%1)" ::"r"(neg1), "r"(s5r) : "memory");
-                    VSync(z);
-                    ResetGraph(1);
-                    buf      = nv->otBuffer;
-                    drawBase = nv->drawEnv;
-                    PutDrawEnv((DRAWENV*)((s32)(buf * 0x5C) + (s32)drawBase));
-                    stride   = buf * 0x14;
-                    dispBase = nv->dispEnv;
-                    {
-                        register s32 a0 asm("a0");
-                        a0 = (s32)dispBase;
-                        PutDispEnv((DISPENV*)(stride + a0));
-                    }
-                    if (nv->at100.flags.imageSource != 0) {
-                        Display_LoadImageStrips(buf);
-                    }
-                    func_80020058();
-                    if (nv->skipDraw != 0) {
-                        s3 = 0;
-                        continue;
-                    }
-                    DrawOTag(otBase[buf].lastTag);
-                    s3 = 0;
-                    continue;
-                }
-            }
-
-            DrawSync(0);
-            {
-                s32 tmp = VSync(1) - s3;
-                q       = cq;
-                {
-                    s32          a0r;
-                    register u32 acc asm("v1");
-                    u32*         cursor;
-                    a0r = tmp & 0x7FFF;
-                    if (q->field_240 != 0) {
-                        cursor = q->field_19C;
-                        acc    = (u32)a0r + q->field_1A0;
-                        if (acc < *cursor) {
-                            s32 w;
-                            do {
-                                w = VSync(1);
-                                w = (w - s3) & 0x7FFF;
-                            } while ((u32)w + q->field_1A0 < *q->field_19C);
-                            {
-                                s32 new_var = VSync(1);
-                                a0r         = (new_var - s3) & 0x7FFF;
-                            }
-                            acc = q->field_1A0 + (u32)a0r;
-                        }
-                        q->field_1A0 = acc;
-                        {
-                            register u32* c asm("v1");
-                            u32*          r;
-                            c = q->field_19C;
-                            if (*c != 0) {
-                                r            = c + 1;
-                                q->field_19C = r;
-                                if ((s32)c[1] == neg1) {
-                                    r            = c + 2;
-                                    q->field_19C = r;
-                                }
-                            }
-                        }
-                    }
-                    vs = a0r;
-                }
-            }
-
-            {
-                register s32 lim asm("v0");
-                lim = D_8005EC6C;
-                if (vs < lim) {
-                    register s32 vsarg asm("a0");
-                    vsarg         = D_8005EC68;
-                    nv->vsyncFlag = 0;
-                    {
-                        s32 _t = nv->otBuffer;
-                        __asm__ volatile("sw %0, %%lo(Display_PendingFlip)(%1)" ::"r"(_t), "r"(s5r)
-                                         : "memory");
-                    }
-                    VSync(vsarg);
-                    __asm__ volatile("lw %0, %%lo(Display_PendingFlip)(%1)" : "=r"(_t) : "r"(s5r));
-                    if (_t == (u32)neg1) {
-                        D_8005EC78 = D_8005EC74;
-                        s3         = -D_8005EC74;
-                        goto apply_offset;
-                    }
-                    a0 = 1;
-                } else {
-                    register s32 one asm("a0");
-                    s32          m2;
-                    one = 1;
-                    m2  = -2;
-                    TOUCH_REG2(one, m2);
-                    nv->vsyncFlag = 0;
-                    __asm__ volatile("sw %0, %%lo(Display_PendingFlip)(%1)" ::"r"(m2), "r"(s5r) : "memory");
-                    a0 = one;
-                }
-            }
-
-            D_8005EC78 = 0;
-            s3         = VSync(a0) & 0x7FFF;
-            buf        = nv->otBuffer;
-            drawBase   = nv->drawEnv;
-            PutDrawEnv((DRAWENV*)((s32)(buf * 0x5C) + (s32)drawBase));
-            stride   = buf * 0x14;
-            dispBase = nv->dispEnv;
-            {
-                register s32 a0 asm("a0");
-                a0 = (s32)dispBase;
-                PutDispEnv((DISPENV*)(stride + a0));
-            }
-            if (nv->at100.flags.imageSource != 0) {
-                Display_LoadImageStrips(buf);
-            }
-            func_80020058();
-            if (nv->skipDraw == 0) {
-                DrawOTag(otBase[buf].lastTag);
-            }
-            __asm__ volatile("sw %0, %%lo(Display_PendingFlip)(%1)" ::"r"(neg1), "r"(s5r) : "memory");
-
-        apply_offset:
-            raw = *(volatile u8*)&nv->shakeY;
-            {
-                register s32 v1r asm("v1");
-                register s32 a0r asm("a0");
-                v1r                   = raw << 24;
-                a0r                   = v1r >> 24;
-                v1r                   = a0r;
-                a0r                  += 0x78;
-                v1r                  += 0x188;
-                nv->vramYOffset       = raw;
-                nv->drawEnv[0].ofs[1] = a0r;
-                nv->drawEnv[1].ofs[1] = v1r;
-            }
-
-            (void)ot_hi;
-            (void)otBase;
-            (void)s4r;
-            (void)s5r;
+            GameMain_HaltFlags = 0;
         }
+        GameResetScratchHead();
+        Pad_UpdatePort0();
+
+        if (Pad_States[0].status == 0xFF && Pad_States[0].cooldown == 0 && gDisplayState.gameRunning != 0 &&
+            gDisplayState.loadBusy == 0 && gDisplayState.gameMode == 0) {
+            GameMain_ShowLoading(1);
+        } else if (GameMain_HaltFlags & 2) {
+            SndEvt_EnqueueTypeE();
+            GameMain_HaltFlags &= ~2;
+        }
+
+        Snd_PollAsync(0);
+
+        if (GameMain_HaltFlags != 0 && !_gameMainPauseBlocked()) {
+            VSync(0);
+            start = VSync(1) & 0x7FFF;
+            Boot_DispatchCdCmd();
+            continue;
+        }
+
+        gDisplayState.loopCount++;
+        gDisplayState.field_10++;
+        if (gDisplayState.displayOwner == 0 && gDisplayState.pendingMode != 0 &&
+            ((s8)gDisplayState.pendingMode < 0 || gDisplayState.holdState >= 0)) {
+            Display_DispatchModeId(gDisplayState.pendingMode);
+        }
+        if (gDisplayState.displayOwner != 0) {
+            start = Display_FrameFlipDraw(Gpu_OtBuffers, start, gDisplayState.otBuffer);
+            continue;
+        }
+
+        buf                       = gDisplayState.otBuffer ^ 1;
+        gDisplayState.pendingMode = 0;
+        cq                        = &CdCmd_Queue;
+        gDisplayState.otBuffer    = buf;
+        gDisplayState.drawBuffer  = gDisplayState.otBuffer;
+        gDisplayState.animFrame++;
+        if (cq->field_222 == 0) {
+            gDisplayState.gameTick += 1 + (D_8005EC68 >> 1);
+        }
+        gDisplayState.field_10 += D_8005EC68 >> 1;
+        gpuBeginOt(buf);
+
+        Gpu_SysPrimCursor = Gpu_PrimBufStatic + gDisplayState.otBuffer * 0x3000;
+        gGpuPrimCursor    = (u8*)(Gpu_PrimHeapBase + gDisplayState.otBuffer * (Gpu_PrimHeapSize >> 1));
+        Task_ExecDefaultList();
+
+        if (gDisplayState.displayOwner != 0) {
+            continue;
+        }
+
+        Boot_DispatchCdCmd();
+
+        if (gDisplayState.height == 480) {
+            Display_PendingFlip = -1;
+            VSync(0);
+            ResetGraph(1);
+            _displayPresentFrame(gDisplayState.otBuffer);
+            start = 0;
+            continue;
+        }
+
+        DrawSync(0);
+        elapsed = _gameMainPaceToStream(start, (VSync(1) - start) & 0x7FFF);
+
+        if (elapsed < D_8005EC6C) {
+            gDisplayState.vsyncFlag = 0;
+            Display_PendingFlip     = gDisplayState.otBuffer;
+            VSync(D_8005EC68);
+            if (Display_PendingFlip != -1) {
+                D_8005EC78 = 0;
+                start      = VSync(1) & 0x7FFF;
+                _displayPresentFrame(gDisplayState.otBuffer);
+                Display_PendingFlip = -1;
+            } else {
+                D_8005EC78 = D_8005EC74;
+                start      = -D_8005EC74;
+            }
+        } else {
+            gDisplayState.vsyncFlag = 0;
+            Display_PendingFlip     = -2;
+            D_8005EC78              = 0;
+            start                   = VSync(1) & 0x7FFF;
+            _displayPresentFrame(gDisplayState.otBuffer);
+            Display_PendingFlip = -1;
+        }
+
+        shake                           = gDisplayState.shakeY;
+        gDisplayState.vramYOffset       = shake;
+        gDisplayState.drawEnv[0].ofs[1] = shake + 0x78;
+        gDisplayState.drawEnv[1].ofs[1] = shake + 0x188;
     }
 }
 

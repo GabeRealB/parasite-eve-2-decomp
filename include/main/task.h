@@ -213,7 +213,7 @@ void Task_InitList(TaskNode* node);
 void Task_ExecList(TaskNode* node);
 /// Runs the default frame list. The body reloads `gTaskDefaultList` itself, so
 /// the argument is not read.
-void      Task_ExecDefaultList(TaskNode* unused);
+void      Task_ExecDefaultList();
 void      Task_ExecListFiltered(TaskNode* node, s32 filter);
 void      Task_CallExitFiltered(TaskNode* node, s32 filter);
 TaskDesc* Task_GetDesc(u32 bank, u32 type);

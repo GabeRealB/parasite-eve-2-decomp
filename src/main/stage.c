@@ -347,18 +347,13 @@ void Display_FlipOtAndDispatch(s32 arg0)
     DisplayState* temp;
     u_long*       saved;
     s32           buf;
-    u_long*       ot;
     u32           mode;
 
     temp           = &gDisplayState;
     saved          = gGpuCurrentOt;
     buf            = temp->otBuffer ^ 1;
     temp->otBuffer = buf;
-    gGpuCurrentOt  = Gpu_OtTags + buf * GPU_OT_ENTRIES;
-    ClearOTagR(gGpuCurrentOt, GPU_OT_ENTRIES);
-    ot                         = gGpuCurrentOt;
-    *ot                        = GPU_OT_END_PRIM;
-    gGpuCurrentOt              = ot + 0x20;
+    gpuBeginOt(buf);
     temp->at100.flags.flipMode = 0;
     temp->drawBuffer           = (u8)temp->frameBuffer;
     mode                       = Stage_Ctx->field_11;
