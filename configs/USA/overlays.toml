@@ -3546,13 +3546,6 @@ id = 159
 objects = [
   { kind = "packageId" },
   { unit = "actor_210700/actor_210700", rodata = "0x4", text = "0x10" },
-  { unit = "actor_210700/actor_210700_5", text = "0x118" },
-  { unit = "actor_210700/actor_210700_2", text = "0x170" },
-  { unit = "actor_210700/actor_210700_6", text = "0x3C8" },
-  { unit = "actor_210700/actor_210700_3", text = "0x3E8" },
-  { unit = "actor_210700/actor_210700_7", text = "0x404" },
-  { unit = "actor_210700/actor_210700_8", text = "0x524" },
-  { unit = "actor_210700/actor_210700_4", text = "0x5B4" },
   { kind = "data", at = "0x750" },
   { kind = "model", at = "0x6810" },
   { kind = "data", at = "0xC708" },
