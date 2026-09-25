@@ -30,7 +30,6 @@
 extern TaskDesc D_acropolis_helicopter_landing_pad_80184DA0[];
 
 extern s16 D_80071076;
-extern s8  D_801153F1;
 extern s32 D_801156A8;
 
 /// Main-executable byte with no module header yet; `+ 1` seeds the slot-3
@@ -486,7 +485,7 @@ void func_acropolis_helicopter_landing_pad_8017E6C0(s32 arg0)
 void func_acropolis_helicopter_landing_pad_8017E6F0(void)
 {
     Gp_ReleaseStateF0Add((Task*)Gp_LookupSlot4(0), 0x1B);
-    D_801153F1 = 3;
+    Gp_StateF0.field_1 = 3;
 }
 
 /// Pulses the gameplay state with `Gp_PulseState1C` and sets bit 0 of

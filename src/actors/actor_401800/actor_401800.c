@@ -366,7 +366,6 @@ typedef struct Actor401800StateTable {
 STATIC_ASSERT_SIZEOF(Actor401800StateTable, 0x88);
 
 extern const Actor401800StateTable D_actor_401800_80131FDC;
-extern u8                          D_801153F2[2];
 
 /// Payload of the `0x3FF` message `func_actor_401800_80138F5C` sends: the same
 /// 0x14-byte animation record other actors keep as `GpAnimArg` data
@@ -4118,7 +4117,7 @@ void func_actor_401800_8013D64C(GpEnemy* arg0, Task* arg1)
     }
     Gp_ClearRec18Occupied(&work->field_A28);
     Gp_ClearRec18Occupied(&work->field_8E8);
-    if ((D_801153F2[1] == 1) && (work->field_0 == 0x18)) {
+    if ((Gp_StateF0.field_3 == 1) && (work->field_0 == 0x18)) {
         work->field_0 = 6;
     }
 

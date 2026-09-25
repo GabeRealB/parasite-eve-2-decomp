@@ -14,7 +14,6 @@
 #include "main/task.h"
 
 extern s16 D_800691CA;
-extern s8  D_801153F1;
 extern u8  D_801156F9;
 
 extern GpMsgEntry D_shelter_b6_training_room_80182AF4[];
@@ -213,7 +212,7 @@ void func_shelter_b6_training_room_8017DAF8(s32 arg0)
 {
     gGameSession->flowFlags |= 0x80;
     if (arg0 != 0) {
-        D_801153F1 = arg0;
+        Gp_StateF0.field_1 = arg0;
     }
 }
 

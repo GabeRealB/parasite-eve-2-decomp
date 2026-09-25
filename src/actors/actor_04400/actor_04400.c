@@ -267,8 +267,6 @@ s32  Actor04400_Fn08DBC(Task* arg0);
 /// `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-extern s8 D_80115415; // absolute; set once CD command 0x21 is queued
-
 /* `D_800678F0` selects the model stream the next `Gp_SpawnEff` copies into
  * its effect's `TmdObject`. Declared as a one-element array so GCC 2.8.1
  * cannot treat the store as a non-aliasing scalar and sink it past the
@@ -3027,7 +3025,7 @@ void Actor04400_Fn05FC8(Task* arg0)
     }
 }
 
-/// Queues CD command 0x21 once, guarded by `D_80115415`: the first parameter
+/// Queues CD command 0x21 once, guarded by `Gp_StateF0.field_25`: the first parameter
 /// block selects 2 or 3 when session `field_7` is 4, `field_6` is 0x27 or 0x28
 /// and `field_9` is 1 or 2 respectively, and 1 otherwise.
 void Actor04400_Fn061B4(void)
@@ -3035,7 +3033,7 @@ void Actor04400_Fn061B4(void)
     u8 param1[8];
     u8 param2[8];
 
-    if (D_80115415 == 0) {
+    if (Gp_StateF0.field_25 == 0) {
         /* Each branch makes its own call; jump2's cross-jumping merges the
          * identical tails after sched2, which is why the argument setup is
          * duplicated per branch in the target. */
@@ -3067,7 +3065,7 @@ void Actor04400_Fn061B4(void)
             param2[1] = 0;
             CdCmd_Enqueue(0x21, param1, param2);
         }
-        D_80115415 = 1;
+        Gp_StateF0.field_25 = 1;
     }
 }
 

@@ -336,12 +336,6 @@ extern GpXformArg D_actor_401000_80155018;
 /// each spawn in `func_actor_401000_8013B1E4`.
 extern void* D_80114B78[1];
 
-/// Frame state `func_actor_401000_8013D044` switches its whole tail on: 0, 1
-/// and 2 each run their own arm, and the display list is only advanced on the
-/// 0 arm. `D_801153F2[1]` is the same pair's second byte, which forces state 6
-/// on a state-0x18 actor.
-extern u8 D_801153F2[2];
-
 /// Overlay effect model data `func_actor_401000_8013B1E4` points
 /// `D_80114B78` at before spawning, one per animation-latch key frame
 /// (`field_6` 3, 5, 7, 8).
@@ -3922,7 +3916,7 @@ void func_actor_401000_8013D044(GpEnemy* enemy, Task* actor)
     Gp_ClearRec18Occupied(work->field_A30);
     Gp_ClearRec18Occupied(work->field_8F0);
 
-    if ((D_801153F2[1] == 1) && (work->field_0 == 0x18)) {
+    if ((Gp_StateF0.field_3 == 1) && (work->field_0 == 0x18)) {
         work->field_0 = 6;
     }
 

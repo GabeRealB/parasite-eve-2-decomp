@@ -95,7 +95,6 @@ extern u16 Actor01500_D09FC8[];
 /// advance, picked by a `Gp_LcgState` draw.
 extern u16 Actor01500_D09FE8[];
 
-extern u8      D_801153F2[2];
 extern MATRIX* D_80073B8C;
 
 /* `D_80067704` selects the model stream the next `Gp_SpawnEff` builds its
@@ -518,7 +517,7 @@ void Actor01500_Fn00AFC(Task* actor, s32 damage)
 
 /// Idle hover: waits for the player to come within 2500 units (then switches
 /// to pose 3, or 4 when `field_36E` is set) or for a disturbance - a random
-/// timeout, a `D_801153F2` trigger or lost hit points - that sends it into
+/// timeout, a `Gp_StateF0.field_2` trigger or lost hit points - that sends it into
 /// pose 7/8 with a fresh `Actor01500_D09FC8` countdown.
 void Actor01500_Fn00CA4(Task* actor)
 {
@@ -562,7 +561,7 @@ void Actor01500_Fn00CA4(Task* actor)
         work->field_364 = 0;
         Gp_ArmStateF0(1);
     } else {
-        if (D_801153F2[0] & 1) {
+        if (Gp_StateF0.field_2 & 1) {
             if (work->field_362 == 0) {
                 Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
                 work->field_362 = ((Gp_LcgState >> 16) & 0x1F) + 1;
@@ -576,7 +575,7 @@ void Actor01500_Fn00CA4(Task* actor)
         }
         work->field_364--;
         if (work->field_364 == 0) {
-            if (D_801153F2[1] != 0) {
+            if (Gp_StateF0.field_3 != 0) {
                 flag = 1;
             }
             Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;

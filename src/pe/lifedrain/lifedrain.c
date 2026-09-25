@@ -38,11 +38,6 @@ s32 D_lifedrain_80130AD4[] = {
 
 extern s8 D_80114C0B;
 
-/// Health the drain has banked so far, in HP. Every mote that reaches the
-/// collector adds its share here; the cast pays it into `Player_Status.hp`
-/// when it ends.
-extern u16 D_80115404;
-
 /// Scratch for the drain ribbon, plus the task handle it spawns.
 s16          D_lifedrain_80130AEC[16] = { 0 };
 struct Task* D_lifedrain_80130B0C     = NULL;
@@ -50,7 +45,7 @@ struct Task* D_lifedrain_80130B0C     = NULL;
 /// Runs one frame of the life-drain cast: a five-state machine driven by
 /// `Task::state`, published in `D_lifedrain_80130B0C` so every mote can find
 /// it. Cancelling (`D_80114C0B == -2` or `Gp_State1C->fadeState >= 4`) releases
-/// the work block, and states 0 and 1 first cash the banked `D_80115404` into
+/// the work block, and states 0 and 1 first cash the banked `Gp_StateF0.field_14` into
 /// `Player_Status.hp`, clamped to the max in `field_1a`.
 ///
 /// State 0 parents the effect coordinate at the origin with an identity
@@ -79,7 +74,7 @@ void func_lifedrain_8012EF48(Task* arg0)
     coord = ((TmdObject*)arg0->extra)->coords;
     if ((D_80114C0B == -2) || (Gp_State1C->fadeState >= 4)) {
         if ((arg0->state < 2) && (arg0->spawnArg1 != 0)) {
-            Player_Status.hp = (u16)Player_Status.hp + D_80115404;
+            Player_Status.hp = (u16)Player_Status.hp + Gp_StateF0.field_14;
             if (Player_Status.hp > Player_Status.hpMax) {
                 Player_Status.hp = Player_Status.hpMax;
             }
@@ -142,7 +137,7 @@ void func_lifedrain_8012EF48(Task* arg0)
             }
             if (mem->age == 0x1E) {
                 if (arg0->spawnArg1 != 0) {
-                    Player_Status.hp = (u16)Player_Status.hp + D_80115404;
+                    Player_Status.hp = (u16)Player_Status.hp + Gp_StateF0.field_14;
                     if (Player_Status.hp > Player_Status.hpMax) {
                         Player_Status.hp = Player_Status.hpMax;
                     }

@@ -1676,15 +1676,13 @@ void Actor02100_Fn03168(Task* arg0)
 void Actor02100_Fn004C4(Task* arg0);
 void Actor02100_Fn03488(Task* arg0);
 
-extern s8 D_80115416;
-
 /// Per-frame tick, entry 1 of `Actor02100_D00004`. `Gp_StateF0.field_4` is the global
 /// gameplay mode: mode 1 only refreshes the actor colour, mode 2 parks the
 /// actor (`field_C` 0x80, node flag 1) and returns, and mode 0 re-shows it
 /// (`field_C` 0, node flag 8) before falling into the normal body. The body
 /// drains the pending translation delta at `field_118` into the actor's
 /// coordinate, runs the state machine, and switches to state 4 - handing the
-/// task over to `Actor02100_Fn035D4` - once `D_80115416` reports the kill.
+/// task over to `Actor02100_Fn035D4` - once `Gp_StateF0.field_26` reports the kill.
 void Actor02100_Fn031C4(GpEnemy* arg0, Task* arg1)
 {
     TmdObject*      obj;
@@ -1733,7 +1731,7 @@ body:
     Gp_UpdateCoord(coord);
     Actor02100_Fn032E4(arg1);
     Actor02100_Fn03488(arg1);
-    if (D_80115416 == 1) {
+    if (Gp_StateF0.field_26 == 1) {
         work->field_172 = 4;
         work->field_174 = 0;
         arg1->state     = 2;

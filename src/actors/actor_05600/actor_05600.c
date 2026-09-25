@@ -43,14 +43,6 @@ extern void Actor05600_D164C4;
 /// in.
 extern s32 Actor05600_D162F0;
 
-/// Flag byte whose writer lies outside this actor; the proximity check reacts
-/// to three groups of its bits.
-extern u8 D_801153F2;
-
-/// Nonzero sends the idle handlers to handler 2 with animation 2; the
-/// teardown raises it.
-extern s8 D_80115419;
-
 /// Frame counts of the actor's animations, indexed by `Actor105600Work.field_694`.
 extern s16 Actor05600_D04CFC[];
 
@@ -394,7 +386,7 @@ void Actor05600_Fn000A4(Task* arg0)
 /// fresh budget of 1000 per unit of the placement record's `variant`, and
 /// `field_6A2` / `field_6A4` set to the current yaw and its opposite. State 2
 /// turns at 0x3B per frame until frame 0x23, then returns to animation 2 and
-/// state 0. A set `field_6B2` or `D_80115419` overrides everything with
+/// state 0. A set `field_6B2` or `Gp_StateF0.field_29` overrides everything with
 /// animation 2, handler 2 and the shared state-F0 slot.
 void Actor05600_Fn00B18(Task* arg0)
 {
@@ -460,7 +452,7 @@ void Actor05600_Fn00B18(Task* arg0)
             break;
     }
 
-    if ((work->field_6B2 != 0) || (D_80115419 != 0)) {
+    if ((work->field_6B2 != 0) || (Gp_StateF0.field_29 != 0)) {
         work->field_6A6 = 2;
         work->field_6A8 = 0;
         work->field_694 = 2;
@@ -473,7 +465,7 @@ void Actor05600_Fn00B18(Task* arg0)
 
 /// Proximity check: measures the player's horizontal distance from the root
 /// coordinate in a 0x10-byte block carved off the scratch head. Under 0x5DC,
-/// one group of `D_801153F2` bits raises `field_6B2`; past it the other two
+/// one group of `Gp_StateF0.field_2` bits raises `field_6B2`; past it the other two
 /// groups (the second only within 0xBB8) switch to animation 4 and state 1.
 void Actor05600_Fn00CFC(Task* arg0)
 {
@@ -499,14 +491,14 @@ void Actor05600_Fn00CFC(Task* arg0)
     *(VECTOR**)G_SCRATCH_HEAD = delta;
     distance                  = SquareRoot0((dx * dx) + (dz * dz));
     if (distance < 0x5DC) {
-        if (D_801153F2 & 0x17) {
+        if (Gp_StateF0.field_2 & 0x17) {
             work->field_6B2 = 1;
         }
     } else {
-        if (D_801153F2 & 5) {
+        if (Gp_StateF0.field_2 & 5) {
             trigger = 1;
         }
-        if ((D_801153F2 & 0x12) && (distance < 0xBB8)) {
+        if ((Gp_StateF0.field_2 & 0x12) && (distance < 0xBB8)) {
             trigger = 1;
         }
         if (trigger != 0) {
@@ -969,7 +961,7 @@ void Actor05600_Fn018D0(Task* arg0)
 /// refreshes the colour and ground shadow, 2 hides the body. State 0 unlinks
 /// the body objects (the fifth only for the 0x38 / 0x39 variants), hands the
 /// variant to `Gp_ReleaseStateF0Add`, picks the collapse clip for the pose,
-/// saves the enemy pose and raises `D_80115419`; state 1 spawns a ground
+/// saves the enemy pose and raises `Gp_StateF0.field_29`; state 1 spawns a ground
 /// effect every fourth frame. The tail advances the animation slots and
 /// redraws the colour and ground shadow.
 void Actor05600_Fn01A4C(GpEnemy* arg0, Task* arg1)
@@ -1035,7 +1027,7 @@ void Actor05600_Fn01A4C(GpEnemy* arg0, Task* arg1)
             work->field_6A8  = 1;
             arg0->spawnState = (u8)work->field_6B8;
             Gp_SaveEnemyPose(arg0);
-            D_80115419 = 1;
+            Gp_StateF0.field_29 = 1;
             break;
         case 1:
             if (!(work->field_698 & 3)) {
@@ -2247,7 +2239,7 @@ s32 Actor05600_Fn045E4(SVECTOR* arg0, SVECTOR* arg1)
 /// Entry 0 of `Actor05600_D16540`: state 0 counts `field_6AE` up to 0x5B
 /// frames, running the proximity check meanwhile, then switches to animation
 /// 4 and state 1; state 1 waits for frame 0x5E and returns to animation 1 and
-/// state 0. A set `field_6B2` or `D_80115419` overrides everything with
+/// state 0. A set `field_6B2` or `Gp_StateF0.field_29` overrides everything with
 /// animation 2, handler 2 and the shared state-F0 slot.
 void Actor05600_Fn046F0(Task* arg0)
 {
@@ -2274,7 +2266,7 @@ void Actor05600_Fn046F0(Task* arg0)
             break;
     }
 
-    if ((work->field_6B2 != 0) || (D_80115419 != 0)) {
+    if ((work->field_6B2 != 0) || (Gp_StateF0.field_29 != 0)) {
         work->field_6A6 = 2;
         work->field_6A8 = 0;
         work->field_694 = 2;

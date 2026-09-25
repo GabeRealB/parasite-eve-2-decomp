@@ -291,11 +291,6 @@ extern MATRIX* D_80073B8C;
 /// Same slot and role as `actorMoveForwardNonzero`'s guard.
 extern u8 D_80072729;
 
-/// Two-byte mode pair read by the per-frame tick: `[1] == 1` re-maps the
-/// 0x18 state onto 6, and `Gp_StateF0.field_4` below picks the tick's three-arm switch
-/// (0 leaves the model flag alone, 1 and 2 clear it outright).
-extern u8 D_801153F2[2];
-
 /// Player-to-`coord` vector, in the 16-bit `SVECTOR` view of both matrices.
 static __inline__ void Actor356100_PositionDelta(GsCOORDINATE2* coord, SVECTOR* pos)
 {
@@ -2973,7 +2968,7 @@ void func_actor_356100_80169854(GpEnemy* arg0, Task* arg1)
     }
     work->field_2 = work->field_0;
     tbl.f[work->field_0](arg1);
-    if (D_801153F2[1] == 1) {
+    if (Gp_StateF0.field_3 == 1) {
         if (work->field_0 == 0x18) {
             work->field_0 = 6;
         }

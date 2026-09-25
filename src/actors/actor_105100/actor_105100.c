@@ -252,11 +252,6 @@ extern s32 D_80115728;
 extern u8 D_80071075;
 extern s8 D_80114C12;
 
-/// Main-executable global with no module header yet: bit 2 asks the per-frame
-/// handler for the post-hit reaction, which is why `func_actor_105100_80133134`
-/// runs `func_actor_105100_80135FCC` off it on every frame it is set.
-extern u8 D_8011540D;
-
 /// Main-executable global with no module header yet: the remaining-enemy count
 /// `func_actor_105100_80136318` tests to decide whether the fight is over.
 extern s16 D_80073BA0;
@@ -901,7 +896,7 @@ void func_actor_105100_80132C2C(Task* arg0)
 /// Step 7 is terminal -- `func_actor_105100_80136318` retires the enemy and the
 /// task stops being dispatched -- so it falls straight through to the tail, as
 /// does a step outside 0..7. The tail runs the shared post-hit reaction
-/// (`D_8011540D` bit 2) and steps the `field_5AA` timer down while it is
+/// (`Gp_StateF0.field_1D` bit 2) and steps the `field_5AA` timer down while it is
 /// positive. Step 0 also raises bit 1 of `Gp_StateF0.field_1D` once the HP drops
 /// under the cap in `D_actor_105100_8014139C`.
 void func_actor_105100_80133134(Task* arg0)
@@ -949,7 +944,7 @@ void func_actor_105100_80133134(Task* arg0)
         default:
             break;
     }
-    if (D_8011540D & 4) {
+    if (Gp_StateF0.field_1D & 4) {
         func_actor_105100_80135FCC(arg0);
     }
     if (work->field_5AA > 0) {

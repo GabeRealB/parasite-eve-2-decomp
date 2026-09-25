@@ -29,8 +29,6 @@ extern GpAreaApplyRec D_mine_cavern_8018E32C;
 
 extern s8 D_80114C12;
 
-extern s8 D_801153F1;
-
 /// One byte of gameplay state. Read back with `lb` elsewhere, so it is signed.
 extern s8 D_8007272D;
 
@@ -244,7 +242,7 @@ void func_mine_cavern_8017DFAC(s32 arg0)
     if ((GameFlag_GetNibble(0xE6) == 1 && D_mine_cavern_8018EB54 == 0) ||
         (GameFlag_GetNibble(0xE6) == 2 && D_mine_cavern_8018EB54 == 1)) {
         Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0x1E);
-        D_801153F1               = arg0;
+        Gp_StateF0.field_1       = arg0;
         gGameSession->flowFlags |= 0x80;
         D_mine_cavern_8018EB54  += 1;
         return;

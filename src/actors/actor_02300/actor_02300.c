@@ -61,13 +61,6 @@ extern s32 D_80115758;
 /// Handlers of the `Actor105600Work::field_6A6` states, one per entry.
 extern TaskFunc Actor02300_D15D38[];
 
-/// Flag bits the proximity check tests: one group raises contact within
-/// 0x5DC, the other two start the approach.
-extern u8 D_801153F2;
-/// Raised by the teardown state; the approach states drop out of their cycle
-/// while it is set.
-extern s8 D_80115419;
-
 /// Sound id of the part-11 child's cue, ORed with the enemy's id nibble.
 extern s32 Actor02300_D15B08;
 /// Effect id the part-7 child spawns when its countdown runs out.
@@ -425,7 +418,7 @@ void Actor02300_Fn00084(Task* arg0)
 /// placement record's `variant`, and `field_6A2` / `field_6A4` set to the
 /// current yaw and its opposite. State 2 turns at `field_69E` = 0x3B until
 /// `field_698` reaches 0x23, then returns to animation 2 and state 0. A set
-/// `field_6B2` or `D_80115419` overrides everything with animation 2, entry 2
+/// `field_6B2` or `Gp_StateF0.field_29` overrides everything with animation 2, entry 2
 /// and the shared state-F0 slot.
 void Actor02300_Fn00AEC(Task* arg0)
 {
@@ -491,7 +484,7 @@ void Actor02300_Fn00AEC(Task* arg0)
             break;
     }
 
-    if ((work->field_6B2 != 0) || (D_80115419 != 0)) {
+    if ((work->field_6B2 != 0) || (Gp_StateF0.field_29 != 0)) {
         work->field_6A6 = 2;
         work->field_6A8 = 0;
         work->field_694 = 2;
@@ -504,7 +497,7 @@ void Actor02300_Fn00AEC(Task* arg0)
 
 /// Proximity check of the approach states. Measures the player's horizontal
 /// distance from the root coordinate through a 0x10-byte `G_SCRATCH_HEAD`
-/// block: under 0x5DC one of `D_801153F2`'s bit groups raises `field_6B2`;
+/// block: under 0x5DC one of `Gp_StateF0.field_2`'s bit groups raises `field_6B2`;
 /// past it the other two (the second only within 0xBB8) put the enemy into
 /// animation 4 and state 1.
 void Actor02300_Fn00CD0(Task* arg0)
@@ -531,14 +524,14 @@ void Actor02300_Fn00CD0(Task* arg0)
     *(VECTOR**)G_SCRATCH_HEAD = delta;
     distance                  = SquareRoot0((dx * dx) + (dz * dz));
     if (distance < 0x5DC) {
-        if (D_801153F2 & 0x17) {
+        if (Gp_StateF0.field_2 & 0x17) {
             work->field_6B2 = 1;
         }
     } else {
-        if (D_801153F2 & 5) {
+        if (Gp_StateF0.field_2 & 5) {
             trigger = 1;
         }
-        if ((D_801153F2 & 0x12) && (distance < 0xBB8)) {
+        if ((Gp_StateF0.field_2 & 0x12) && (distance < 0xBB8)) {
             trigger = 1;
         }
         if (trigger != 0) {
@@ -1008,7 +1001,7 @@ void Actor02300_Fn018A4(Task* arg0)
 /// node, both returning; 0 shows them and runs the states. State 0 unlinks the enemy's lock-on
 /// node and collision bodies, releases its state-F0 slot, settles on the idle
 /// `field_6B8` selects, files the pose with `Gp_SaveEnemyPose` so the enemy is
-/// restored in that pose, and raises `D_80115419`. State 1 spawns a spark
+/// restored in that pose, and raises `Gp_StateF0.field_29`. State 1 spawns a spark
 /// every fourth frame. Either way the animation slots advance or are reseeded
 /// and the model is drawn with its ground shadow.
 void Actor02300_Fn01A20(GpEnemy* arg0, Task* arg1)
@@ -1074,7 +1067,7 @@ void Actor02300_Fn01A20(GpEnemy* arg0, Task* arg1)
             work->field_6A8  = 1;
             arg0->spawnState = (u8)work->field_6B8;
             Gp_SaveEnemyPose(arg0);
-            D_80115419 = 1;
+            Gp_StateF0.field_29 = 1;
             break;
         case 1:
             if (!(work->field_698 & 3)) {
@@ -2003,7 +1996,7 @@ s32 Actor02300_Fn0371C(SVECTOR* arg0, SVECTOR* arg1)
 /// `field_6AE` up to 0x5B frames and then switches to animation 4 and state 1,
 /// running the proximity check `Actor02300_Fn00CD0` every frame meanwhile;
 /// state 1 waits for `field_698` to reach 0x5E and drops back to state 0 with
-/// animation 1. A set `field_6B2` or `D_80115419` overrides both with
+/// animation 1. A set `field_6B2` or `Gp_StateF0.field_29` overrides both with
 /// animation 2, entry 2 and the shared state-F0 slot.
 void Actor02300_Fn03828(Task* arg0)
 {
@@ -2030,7 +2023,7 @@ void Actor02300_Fn03828(Task* arg0)
             break;
     }
 
-    if ((work->field_6B2 != 0) || (D_80115419 != 0)) {
+    if ((work->field_6B2 != 0) || (Gp_StateF0.field_29 != 0)) {
         work->field_6A6 = 2;
         work->field_6A8 = 0;
         work->field_694 = 2;

@@ -101,7 +101,6 @@ typedef struct Actor02500OffsetPair {
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-extern s8                   D_80115410[];
 extern GpPairSrcE           Actor02500_D05B38;
 extern GpU16Pair            Actor02500_D05B30[];
 extern s16                  Actor02500_D05B48[];
@@ -775,9 +774,9 @@ void Actor02500_Fn012F0(Task* actor)
             dz                                       = Player_Status.coordMtx->t[2] - work->field_318;
             scratch->delta.vz                        = dz;
             if (SquareRoot0((dx * dx) + (dz * dz)) < 0x7D0 || Gp_StateF0.field_21 != 0 || Gp_StateF0.field_8 != 0) {
-                D_80115410[1]   = 1;
-                work->field_324 = 2;
-                work->field_32E = ((u16)((GpEnemy*)actor->spawnArg2)->placeKey >> 0xC) * 0xA;
+                Gp_StateF0.field_21 = 1;
+                work->field_324     = 2;
+                work->field_32E     = ((u16)((GpEnemy*)actor->spawnArg2)->placeKey >> 0xC) * 0xA;
             }
             break;
         case 1:

@@ -14,10 +14,6 @@
 
 extern s16 D_80071076;
 
-/// One byte of gameplay state, written by room script tables and read back with
-/// `lb` by the field text actor (`actor_101600_text`), so it is signed.
-extern s8 D_8011540C;
-
 /// Descriptor of the event task the event gate spawns.
 extern TaskDesc D_dryfield_night_parking_lot_8017EC54;
 
@@ -270,23 +266,23 @@ s32 func_dryfield_night_parking_lot_8017DB34(Task* task, s32 msgId, GpMsg13EF* a
 }
 
 /// Script callback the room's script table names: stores its argument in
-/// `D_8011540C`.
+/// `Gp_StateF0.field_1C`.
 void func_dryfield_night_parking_lot_8017DBA4(s32 arg0)
 {
-    D_8011540C = arg0;
+    Gp_StateF0.field_1C = arg0;
 }
 
 /// Room entry task state 0: parks the room's message table in `Task::msgTable`
 /// and publishes the task in pointer slot 7. On the visit whose `place` is 3,
 /// once nibble 0x79 is set - the nibble the 0x13EF handler
 /// `func_dryfield_night_parking_lot_8017DB34` latches - it also sets
-/// `D_8011540C` to 2. The state then advances.
+/// `Gp_StateF0.field_1C` to 2. The state then advances.
 void func_dryfield_night_parking_lot_8017DBB0(Task* task)
 {
     task->msgTable = D_dryfield_night_parking_lot_8017EC60;
     Game_SetPtrSlot(task, 7);
     if ((gGameSession->at4.loc.place == 3) && (GameFlag_GetNibble(0x79) != 0)) {
-        D_8011540C = 2;
+        Gp_StateF0.field_1C = 2;
     }
     task->state = (s32)(task->state + 1);
 }

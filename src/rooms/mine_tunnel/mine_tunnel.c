@@ -10,9 +10,6 @@
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
-/// One byte of gameplay state this room sets; its role is unproven here.
-extern s8 D_8011540C;
-
 /// Cutscene script blob handed to `func_800E8614`; unnamed in the gameplay
 /// map, which keeps the raw address.
 extern s32 D_mine_tunnel_8017E024;
@@ -58,11 +55,11 @@ s32 func_mine_tunnel_8017D670(s32 arg0, s32 arg1, RoomEventMsg* msg, s32 arg3)
     return 0;
 }
 
-/// Stores its argument in `D_8011540C`; the room's event task calls it with 2
+/// Stores its argument in `Gp_StateF0.field_1C`; the room's event task calls it with 2
 /// on entry to the tunnel once flag 0xA1 is set.
 void func_mine_tunnel_8017D6E0(s32 arg0)
 {
-    D_8011540C = arg0;
+    Gp_StateF0.field_1C = arg0;
 }
 
 /// State 0 of the room's event task: installs the room's message table,

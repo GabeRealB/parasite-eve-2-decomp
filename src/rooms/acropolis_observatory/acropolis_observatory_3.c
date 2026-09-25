@@ -59,11 +59,6 @@ extern u8 D_8007216D;
 extern s8 D_8007218A;
 extern s8 D_80114C12;
 
-/// One byte of gameplay state shared with the field actors, which write it too;
-/// `func_acropolis_observatory_8017D834` sets it, and state 3 of the scene task
-/// below waits for it to reach 2.
-extern s8 D_8011540A;
-
 /// Payloads the observatory scene task sends: `..._8017FE60` is the record
 /// slot-3 msg 0x3F4 takes, and `..._8017FE68` holds one `s16` per `step` -- the
 /// `field_4` the follow-up 0x3F4 record is sent with, or a negative value when
@@ -129,7 +124,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
                 rec.field_10      = 1;
                 Gp_DispatchMsg(work->target, 0x3F4, (s32)&rec, 0);
             }
-            D_8011540A = 0;
+            Gp_StateF0.field_1A = 0;
             /* fallthrough */
         case 1:
         case 2:
@@ -137,7 +132,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
             task->state = task->state + 1;
             break;
         case 3:
-            if (D_8011540A == 2) {
+            if (Gp_StateF0.field_1A == 2) {
                 Gp_ArmStateF0(1);
                 task->state = task->state + 1;
             }

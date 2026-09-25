@@ -23,8 +23,6 @@
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-extern u8 D_801153F2[2];
-
 extern GpU16Pair  D_actor_207200_8014E7CC;
 extern GpPairSrcE D_actor_207200_8014E7D4;
 extern s32        D_actor_207200_80153ED4;
@@ -278,7 +276,7 @@ void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1)
 }
 
 /// Helper-slot state 0 of the enemy: while it is still alive, a hit recorded in
-/// the first render node's table (or the global flag `D_801153F2[1]`) arms the
+/// the first render node's table (or the global flag `Gp_StateF0.field_3`) arms the
 /// death sequence - helper state 1, a random 0..89 delay in `field_4AA` and
 /// `Gp_ArmStateF0(1)`. Then runs the idle cycle in `field_48C`: state 1 waits
 /// 0x5B frames and rolls a 30% chance of moving to 9, which plays the
@@ -299,7 +297,7 @@ void func_actor_207200_8014B628(Task* arg0)
         if (Gp_CountRec18Hi((GpRec18*)work->field_1DC.field_20, 0x10000) != 0) {
             work->field_4A2 = 1;
         }
-        if (work->field_4A2 != 0 || D_801153F2[1] != 0) {
+        if (work->field_4A2 != 0 || Gp_StateF0.field_3 != 0) {
             rnd                        = Gp_LcgState * 5 + 0x71357911;
             hi                         = rnd >> 16;
             work->field_49A            = 0;

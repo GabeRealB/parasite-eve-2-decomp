@@ -16,8 +16,6 @@
 #include "actors/actors_shared_8014df20.h"
 #include "actors/actor_207200.h"
 
-extern u8 D_801153F2[2];
-
 extern GpPairSrcE D_actor_207200_8014DBBC;
 extern u8         D_actor_207200_8014E7B0[];
 extern SVECTOR    D_actor_207200_8014E7BC;
@@ -157,7 +155,7 @@ void func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1)
 }
 
 /// State-0 tick of the small enemy. A 0x10000-class hit on either of its two
-/// single-record tables sets `D_801153F2[1]`, latches `field_2AA` and selects
+/// single-record tables sets `Gp_StateF0.field_3`, latches `field_2AA` and selects
 /// animation 2; if the light blend is fully up, one sound plays, the blend is
 /// turned to fall and a new 0x12..0x31 frame wait is rolled. A latched hit
 /// plays a second sound, clears the 0x8000 bit of both nodes and arms state
@@ -179,9 +177,9 @@ void func_actor_207200_8014A1C4(Task* arg0)
     *(u8**)G_SCRATCH_HEAD -= 8;
     obj                    = ((TmdObject*)arg0->extra)->coords;
     if (Gp_CountRec18Hi(work->field_16C, 0x10000) != 0 || Gp_CountRec18Hi(work->field_134, 0x10000) != 0) {
-        D_801153F2[1]   = 1;
-        work->field_2AA = 1;
-        work->field_28C = 2;
+        Gp_StateF0.field_3 = 1;
+        work->field_2AA    = 1;
+        work->field_28C    = 2;
         if (work->field_2A6 != 0 && work->field_2A4 == 0x12) {
             if (work->field_2AC != 0) {
                 ctx = arg0->spawnArg2;

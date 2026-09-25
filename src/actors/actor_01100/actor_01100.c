@@ -29,10 +29,6 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
-/// Player flag byte read by `Actor01100_Fn01B90`: when it is 1 the handler
-/// takes its `GameActor::field_958` shortcut instead of measuring distance.
-extern u8 D_801153F2;
-
 /// 0xBCC-byte work block `Actor01100_Fn0097C` allocates with
 /// `memCalloc` and parks in `Task::work`. The coordinate at the front is
 /// linked as `coords[1].sub`; the two `GpAnimCtx` runs are what
@@ -1110,7 +1106,7 @@ s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, Actor104900SpawnWork* work, A
 /// cleared. `Task::spawnArg1` then picks the threshold: 0 takes 0x5F5E0F
 /// outright, 0x20000 takes 0x3D08FF, and anything else 0xF423FF while the
 /// player's `GameActor::field_958` reads 3 and 0xF423F otherwise; the 0x20000
-/// case also closes in whenever the player flag at `D_801153F2` reads 1
+/// case also closes in whenever the player flag at `Gp_StateF0.field_2` reads 1
 /// without measuring at all. Either way the link transform is re-armed exactly
 /// as its siblings arm it - model part 3 through `TmdObject::coords[3]`, the
 /// 0xC8-box local offset through `src` - and `Actor01100_Fn00F58` runs last;
@@ -1155,7 +1151,7 @@ void Actor01100_Fn01B90(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 
         if (player != NULL) {
             actor = (GameActor*)player->work;
-            if (((D_801153F2 ^ 1) == 0) || (((u16)actor->field_958 == 3) && dist <= 0x3D08FF)) {
+            if (((Gp_StateF0.field_2 ^ 1) == 0) || (((u16)actor->field_958 == 3) && dist <= 0x3D08FF)) {
                 flag = 1;
             }
         }

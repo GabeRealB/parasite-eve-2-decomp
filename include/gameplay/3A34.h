@@ -393,8 +393,12 @@ STATIC_ASSERT_SIZEOF(GpGridParams, 0x24);
 /// task's enemy `param` into those same words, which is how an enemy's
 /// rewards reach the battle result.
 /// `func_800E2C78` adds a hit's damage, capped at the enemy's remaining `hp`,
-/// into `field_14` when `(arg1 & 0x7F)` is 0x19..0x1B.
-/// `field_18`..`field_2A` are unknown bytes cleared by `Gp_InitStateF0`.
+/// into `field_14` when `(arg1 & 0x7F)` is 0x19..0x1B, and the life-drain
+/// effect pays that total into the player's HP.
+/// The bytes from `field_18` on are flags and modes that the actors and rooms
+/// of a scene raise and test between themselves; `Gp_InitStateF0` clears them.
+/// `field_2B` indexes per-level scale tables: gameplay scales damage by it, and
+/// several actors pick their thresholds with it.
 /// Full object may still be larger than 0x2C (`Gp_PendingObj4CFlag` is a separate
 /// symbol at +0x34).
 typedef struct _GpStateF0 {
@@ -409,24 +413,24 @@ typedef struct _GpStateF0 {
     /* 0x0C */ s32 field_C;
     /* 0x10 */ s32 field_10;
     /* 0x14 */ s32 field_14;
-    /* 0x18 */ u8  field_18;
+    /* 0x18 */ s8  field_18;
     /* 0x19 */ u8  field_19;
-    /* 0x1A */ u8  field_1A;
-    /* 0x1B */ u8  field_1B;
+    /* 0x1A */ s8  field_1A;
+    /* 0x1B */ s8  field_1B;
     /* 0x1C */ s8  field_1C;
     /* 0x1D */ u8  field_1D;
-    /* 0x1E */ u8  field_1E;
+    /* 0x1E */ s8  field_1E;
     /* 0x1F */ u8  field_1F;
-    /* 0x20 */ u8  field_20;
+    /* 0x20 */ s8  field_20;
     /* 0x21 */ s8  field_21;
-    /* 0x22 */ u8  field_22;
+    /* 0x22 */ s8  field_22;
     /* 0x23 */ s8  field_23;
-    /* 0x24 */ u8  field_24;
-    /* 0x25 */ u8  field_25;
-    /* 0x26 */ u8  field_26;
-    /* 0x27 */ u8  field_27;
-    /* 0x28 */ u8  field_28;
-    /* 0x29 */ u8  field_29;
+    /* 0x24 */ s8  field_24;
+    /* 0x25 */ s8  field_25;
+    /* 0x26 */ s8  field_26;
+    /* 0x27 */ s8  field_27;
+    /* 0x28 */ s8  field_28;
+    /* 0x29 */ s8  field_29;
     /* 0x2A */ u8  field_2A;
     /* 0x2B */ u8  field_2B;
 } GpStateF0;

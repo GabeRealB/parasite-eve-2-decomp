@@ -84,7 +84,6 @@ void func_actor_300700_801628C8(Task* arg0);
 void func_actor_300700_801633B8(Task* arg0);
 void func_actor_300700_80162EFC(Task* arg0);
 
-extern s8 D_80115408;
 /// `D_80073B8C` is the camera-target matrix positions are measured from.
 extern MATRIX* D_80073B8C;
 /// Per-variant base speed, indexed by `GpAreaPlace::rowIndex`.
@@ -236,7 +235,7 @@ case2:
 default_body:
     func_actor_300700_801622B4(arg1);
     func_actor_300700_8016252C(arg1);
-    if (work->field_2E6 == 0 && D_80115408 != 0) {
+    if (work->field_2E6 == 0 && Gp_StateF0.field_18 != 0) {
         work->field_2E6 = 1;
         Gp_ArmStateF0(1);
     }
@@ -572,7 +571,7 @@ void func_actor_300700_80162BC8(GpEnemy* arg0, Task* arg1)
             *(SVECTOR**)0x1F8003FC = rot;
             switch (work->field_2DE) {
                 case 0:
-                    D_80115408                       = 1;
+                    Gp_StateF0.field_18              = 1;
                     seed                             = Gp_LcgState * 5 + 0x71357911;
                     rnd                              = seed >> 16;
                     angle                            = rnd & 0xFF;

@@ -174,7 +174,6 @@ extern SVECTOR Actor01900_D1722C[];
 extern char    Actor01900_D10B68;
 extern s16     Actor01900_D172FC;
 extern void*   D_80114B78[1];
-extern u8      D_801153F2[2];
 
 s32  Actor01900_Fn00E00(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2);
 void Actor01900_Fn02A50(Task* arg0);
@@ -3374,7 +3373,7 @@ void Actor01900_Fn09D3C(GpEnemy* enemy, Task* actor)
     Gp_ClearRec18Occupied(&work->field_A28);
     Gp_ClearRec18Occupied(&work->field_8E8);
     Gp_ClearRec18Occupied(&work->field_B68);
-    if ((D_801153F2[1] == 1) && (work->field_0 == 0x18)) {
+    if ((Gp_StateF0.field_3 == 1) && (work->field_0 == 0x18)) {
         work->field_0 = 6;
     }
 

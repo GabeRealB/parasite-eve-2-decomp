@@ -282,7 +282,6 @@ extern void* D_80114B78[1];
 extern char D_actor_401300_80147894;
 extern char D_actor_401300_80148808;
 extern char D_actor_401300_80148A14;
-extern u8   D_801153F2[2];
 
 /// Overlay-data word `func_actor_401300_801397F8` points
 /// `D_actor_401300_80158878` at on entering its state.
@@ -2923,7 +2922,7 @@ void func_actor_401300_80139520(Task* arg0)
     if (!actorOutOfRange(d, 3000)) {
         work->field_0 = 6;
     }
-    if (D_801153F2[0] & 1) {
+    if (Gp_StateF0.field_2 & 1) {
         Gp_ArmStateF0(1);
         work->field_0 = 6;
     }
@@ -2995,7 +2994,7 @@ void func_actor_401300_801397F8(Task* arg0)
         Gp_ArmStateF0(1);
         work->field_0 = 6;
     }
-    if (D_801153F2[0] & 1) {
+    if (Gp_StateF0.field_2 & 1) {
         Gp_ArmStateF0(1);
         work->field_0 = 6;
     }
@@ -4846,7 +4845,7 @@ void func_actor_401300_801405DC(GpEnemy* enemy, Task* actor)
         Gp_ReleaseStateF0Add(actor, 0xD);
         work->field_C8A = 0;
     }
-    if ((D_801153F2[1] == 1) && (work->field_0 == 0x18)) {
+    if ((Gp_StateF0.field_3 == 1) && (work->field_0 == 0x18)) {
         work->field_0 = 6;
     }
 

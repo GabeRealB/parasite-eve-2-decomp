@@ -152,7 +152,6 @@ extern u8  D_80071075;
 extern s16 D_80071076;
 extern s16 D_8007107A;
 extern s8  D_80114C12;
-extern s8  D_801153F1;
 extern u8  D_801156F9;
 
 /// Script pair handed to `Gp_SpawnScript18`. Both live in gameplay's image, so
@@ -587,7 +586,7 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
         case 1:
             if (gGameSession->eventState == 2) {
                 Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0x1B);
-                D_801153F1 = 3;
+                Gp_StateF0.field_1 = 3;
                 goto advance;
             }
             return;

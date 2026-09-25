@@ -120,8 +120,6 @@ extern u8    Actor03800_D047A4[];
 extern u8    Actor03800_D04868[];
 extern u8    Actor03800_D0492C[];
 
-extern s8         D_80115410;
-extern u8         D_801153F2;
 extern s16        Actor03800_D05F90[];
 extern s16        Actor03800_D05FA8[];
 extern u16        Actor03800_D05F40;
@@ -758,7 +756,7 @@ void Actor03800_Fn01150(Task* arg0)
             break;
     }
 
-    if (D_801153F2 & 5) {
+    if (Gp_StateF0.field_2 & 5) {
         work->field_352 = 2;
         work->field_354 = 0;
         if (work->field_36A == 0) {
@@ -839,7 +837,7 @@ void Actor03800_Fn012B4(Task* arg0)
             break;
     }
 
-    if (D_801153F2 & 5) {
+    if (Gp_StateF0.field_2 & 5) {
         work->field_352 = 2;
         work->field_354 = 0;
     }
@@ -1172,7 +1170,7 @@ void Actor03800_Fn01EEC(Task* arg0)
             break;
     }
 
-    if ((D_801153F2 & 5) || work->field_36C != 0) {
+    if ((Gp_StateF0.field_2 & 5) || work->field_36C != 0) {
         Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
         work->field_352 = 0xA;
         work->field_354 = 0;
@@ -1187,7 +1185,7 @@ void Actor03800_Fn01EEC(Task* arg0)
 /// Idle "look around" tick. State 0 counts `field_356` down and, on expiry,
 /// picks a new facing `field_364` within +/-0x3FF of the current one; state 1
 /// waits for the turn to finish and re-arms the countdown. Either way, an
-/// active `D_801153F2` bit (1 or 4) or a non-zero `field_36C` aborts
+/// active `Gp_StateF0.field_2` bit (1 or 4) or a non-zero `field_36C` aborts
 /// back to state 0 with a short delay.
 void Actor03800_Fn02068(Task* arg0)
 {
@@ -1234,7 +1232,7 @@ void Actor03800_Fn02068(Task* arg0)
             break;
     }
 
-    if ((D_801153F2 & 5) || work->field_36C != 0) {
+    if ((Gp_StateF0.field_2 & 5) || work->field_36C != 0) {
         Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
         work->field_352 = 0xA;
         work->field_354 = 0;
@@ -1936,7 +1934,7 @@ void Actor03800_Fn034B0(Task* arg0)
     work = arg0->work;
     obj  = arg0->extra;
     ctx  = arg0->spawnArg2;
-    switch (D_80115410) {
+    switch (Gp_StateF0.field_20) {
         case 0:
             obj->flags      = 0x84;
             ctx->node.flags = 1;

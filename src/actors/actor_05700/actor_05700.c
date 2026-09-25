@@ -19,8 +19,6 @@
 #include "main/wipsys.h"
 #include <psyq/libgs.h>
 
-extern u8 D_801153F2;
-
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
 void Actor05700_Fn00D08(Task* arg0);
@@ -43,10 +41,6 @@ extern s16 Actor05700_D054CC[];
 
 /// The body objects' variant flag comes from `Actor05700_D170F4`.
 extern Actor105600PlaceSrc Actor05700_D170F4;
-
-/// Set while the player is being grabbed; forces this actor's approach cycle
-/// into its handover animation.
-extern s8 D_80115419;
 
 /// Per-weapon-id weak-point flags (`id & 0x7F`) for the two hit families,
 /// picked by the id's 0x8000 bit.
@@ -377,7 +371,7 @@ void Actor05700_Fn000B0(Task* arg0)
 /// budget of 1000 per unit of the placement record's `variant`, and `field_6A2` /
 /// `field_6A4` set to the actor's current yaw and its opposite. State 2 holds
 /// `field_69E` at 0x3B until `field_698` reaches 0x23, then returns to animation
-/// 2 and state 0. A set `field_6B2` or `D_80115419` overrides everything with
+/// 2 and state 0. A set `field_6B2` or `Gp_StateF0.field_29` overrides everything with
 /// animation 2 and the shared state-F0 slot.
 void Actor05700_Fn00B24(Task* arg0)
 {
@@ -443,7 +437,7 @@ void Actor05700_Fn00B24(Task* arg0)
             break;
     }
 
-    if ((work->field_6B2 != 0) || (D_80115419 != 0)) {
+    if ((work->field_6B2 != 0) || (Gp_StateF0.field_29 != 0)) {
         work->field_6A6 = 2;
         work->field_6A8 = 0;
         work->field_694 = 2;
@@ -458,7 +452,7 @@ void Actor05700_Fn00B24(Task* arg0)
 /// (see `overlay_dup_index.py find Actor05700_Fn00D08`). Carves a
 /// 0x10-byte direction vector off the scratch head, aims it from the player
 /// at the actor's root coordinate, and takes its length through
-/// `SquareRoot0`: under 0x5DC one of `D_801153F2`'s bit groups raises
+/// `SquareRoot0`: under 0x5DC one of `Gp_StateF0.field_2`'s bit groups raises
 /// `field_6B2`; past it the other two (the second only within 0xBB8) put the
 /// actor into animation 4 and state 1.
 void Actor05700_Fn00D08(Task* arg0)
@@ -485,14 +479,14 @@ void Actor05700_Fn00D08(Task* arg0)
     *(VECTOR**)G_SCRATCH_HEAD = delta;
     distance                  = SquareRoot0((dx * dx) + (dz * dz));
     if (distance < 0x5DC) {
-        if (D_801153F2 & 0x17) {
+        if (Gp_StateF0.field_2 & 0x17) {
             work->field_6B2 = 1;
         }
     } else {
-        if (D_801153F2 & 5) {
+        if (Gp_StateF0.field_2 & 5) {
             trigger = 1;
         }
-        if ((D_801153F2 & 0x12) && (distance < 0xBB8)) {
+        if ((Gp_StateF0.field_2 & 0x12) && (distance < 0xBB8)) {
             trigger = 1;
         }
         if (trigger != 0) {
@@ -1030,7 +1024,7 @@ void Actor05700_Fn01A58(GpEnemy* arg0, Task* arg1)
             work->field_6A8  = 1;
             arg0->spawnState = (u8)work->field_6B8;
             Gp_SaveEnemyPose(arg0);
-            D_80115419 = 1;
+            Gp_StateF0.field_29 = 1;
             break;
         case 1:
             if (!(work->field_698 & 3)) {
@@ -2419,7 +2413,7 @@ s32 Actor05700_Fn04BB4(SVECTOR* arg0, SVECTOR* arg1)
 /// 1 with animation 4, running `Actor05700_Fn00D08` every frame
 /// meanwhile; state 1 waits for `field_698` to reach 0x5E and drops back to
 /// state 0 with animation 1. Either way, once `field_6B2` or the global
-/// `D_80115419` is set the actor switches to animation 2 and arms the shared
+/// `Gp_StateF0.field_29` is set the actor switches to animation 2 and arms the shared
 /// state-F0 slot.
 void Actor05700_Fn04CC0(Task* arg0)
 {
@@ -2446,7 +2440,7 @@ void Actor05700_Fn04CC0(Task* arg0)
             break;
     }
 
-    if ((work->field_6B2 != 0) || (D_80115419 != 0)) {
+    if ((work->field_6B2 != 0) || (Gp_StateF0.field_29 != 0)) {
         work->field_6A6 = 2;
         work->field_6A8 = 0;
         work->field_694 = 2;

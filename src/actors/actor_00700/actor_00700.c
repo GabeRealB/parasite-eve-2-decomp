@@ -205,7 +205,6 @@ STATIC_ASSERT_SIZEOF(Actor00700InitWork, 0x39C);
 void func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 extern MATRIX* D_80073B8C;
-extern s8      D_80115408;
 
 extern Actor00700TexEntry Actor00700_D075BC[];
 
@@ -1587,7 +1586,7 @@ case2:
 default_body:
     Actor00700_Fn02414(arg1);
     Actor00700_Fn0268C(arg1);
-    if (work->field_2E6 == 0 && D_80115408 != 0) {
+    if (work->field_2E6 == 0 && Gp_StateF0.field_18 != 0) {
         work->field_2E6 = 1;
         Gp_ArmStateF0(1);
     }
@@ -1908,7 +1907,7 @@ void Actor00700_Fn02D28(GpEnemy* arg0, Task* arg1)
             *(SVECTOR**)0x1F8003FC = rot;
             switch (work->field_2DE) {
                 case 0:
-                    D_80115408                       = 1;
+                    Gp_StateF0.field_18              = 1;
                     seed                             = Gp_LcgState * 5 + 0x71357911;
                     rnd                              = seed >> 16;
                     angle                            = rnd & 0xFF;

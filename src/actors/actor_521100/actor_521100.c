@@ -61,7 +61,6 @@ typedef struct Actor521100FireScratch {
 STATIC_ASSERT_SIZEOF(Actor521100FireScratch, 0x54);
 
 extern MATRIX*  D_80073B8C;
-extern u8       D_8011541B;
 extern s16      D_actor_521100_8015F570[];
 extern u16      D_actor_521100_8015F564;
 extern u8       D_actor_521100_8015F7CC[];
@@ -1234,7 +1233,7 @@ void func_actor_521100_801339B0(Task* arg0)
             timer           = work->field_68E - 1;
             work->field_68E = timer;
             if ((s16)timer <= 0) {
-                if (D_80073BA0 <= D_actor_521100_8015F570[D_8011541B]) {
+                if (D_80073BA0 <= D_actor_521100_8015F570[Gp_StateF0.field_2B]) {
                     work->field_686       = 0x14;
                     work->field_6A0       = 5;
                     sc->msg.animBlock.ptr = (void*)&D_actor_521100_8015F7CC;

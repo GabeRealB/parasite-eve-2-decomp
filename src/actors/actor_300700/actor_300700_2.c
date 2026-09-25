@@ -44,7 +44,6 @@ void func_actor_300700_801628C8(Task* arg0);
 void func_actor_300700_801633B8(Task* arg0);
 void func_actor_300700_80162EFC(Task* arg0);
 
-extern s8 D_80115408;
 /// `D_80073B8C` is the camera-target matrix positions are measured from.
 extern MATRIX* D_80073B8C;
 /// Per-variant base speed, indexed by `GpAreaPlace::rowIndex`.

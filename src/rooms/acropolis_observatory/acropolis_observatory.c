@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/3A34.h"
 #include "gameplay/D4.h"
 
 #include "main/fs.h"
@@ -10,11 +11,6 @@
 #include "rooms/room_common.h"
 
 extern s16 D_8007107A;
-
-/// One byte of gameplay state shared with the field actors, latched here when
-/// the observatory task first runs during session phase 2 with nibble 0xCA
-/// still clear. Field-actor code in other overlays writes the same byte.
-extern s8 D_8011540A;
 
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern GpMsgEntry D_acropolis_observatory_8017E7B8[];
@@ -114,7 +110,7 @@ void func_acropolis_observatory_8017D834(Task* task)
     task->msgTable = D_acropolis_observatory_8017E7B8;
     Game_SetPtrSlot(task, 7);
     if ((gGameSession->at4.loc.room == 2) && (GameFlag_GetNibble(0xCA) == 0)) {
-        D_8011540A = 1;
+        Gp_StateF0.field_1A = 1;
     }
     task->state = (s32)(task->state + 1);
 }

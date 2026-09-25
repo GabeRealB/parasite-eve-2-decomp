@@ -32,7 +32,6 @@ extern u8         D_actor_341700_80174CEC[]; // animation bank handed to `func_8
 extern u8         D_actor_341700_80174D40[]; // stored into `Task::msgTable` by func_actor_341700_80162974
 extern u8         D_actor_341700_80174D88[]; // per animation id (1-based): value for `field_44F`
 extern u8         D_actor_341700_80174D9C[]; // per animation id (1-based): the animation to follow it
-extern s8         D_80115415;                // absolute; set once CD command 0x21 is queued
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// `include/gameplay/1BC.h`.
@@ -2862,7 +2861,7 @@ void func_actor_341700_80167E18(Task* arg0)
     }
 }
 
-/// Queues CD command 0x21 once, guarded by `D_80115415`: the first parameter
+/// Queues CD command 0x21 once, guarded by `Gp_StateF0.field_25`: the first parameter
 /// is 2 or 3 in place 1 or 2 of stage 4 areas 0x27/0x28 and 1 everywhere
 /// else.
 void func_actor_341700_80168004(void)
@@ -2870,7 +2869,7 @@ void func_actor_341700_80168004(void)
     u8 param1[8];
     u8 param2[8];
 
-    if (D_80115415 == 0) {
+    if (Gp_StateF0.field_25 == 0) {
         /* Each branch makes its own call; jump2's cross-jumping merges the
          * identical tails after sched2, which is why the argument setup is
          * duplicated per branch in the target. */
@@ -2902,7 +2901,7 @@ void func_actor_341700_80168004(void)
             param2[1] = 0;
             CdCmd_Enqueue(0x21, param1, param2);
         }
-        D_80115415 = 1;
+        Gp_StateF0.field_25 = 1;
     }
 }
 

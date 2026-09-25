@@ -120,7 +120,6 @@ typedef struct Actor00100MoveWork {
 } Actor00100MoveWork;
 
 extern u32 D_80070F70;
-extern u8  D_801153F2;
 
 typedef struct Actor00100PatrolScratch {
     SVECTOR vec;
@@ -2196,7 +2195,7 @@ void Actor00100_Fn04864(Task* arg0)
                 }
             }
         }
-        if (D_801153F2 & 1)
+        if (Gp_StateF0.field_2 & 1)
             work->field_0 = 0x26;
     }
     *(Actor00100PatrolScratch**)G_SCRATCH_HEAD += 1;
@@ -3391,7 +3390,7 @@ void Actor00100_Fn0782C(Task* arg0)
         }
     } else {
     checkFlag:
-        if ((work->field_C26 <= 0) && (D_801153F2 & 2)) {
+        if ((work->field_C26 <= 0) && (Gp_StateF0.field_2 & 2)) {
             work->field_0 = 0x1C;
         }
     }

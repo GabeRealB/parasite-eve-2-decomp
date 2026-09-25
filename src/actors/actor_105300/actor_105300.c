@@ -39,8 +39,6 @@ extern TaskDesc           D_actor_105300_8013D3FC[2];
 void func_8017E524(s32 arg0);
 void func_8017FD88(s32 arg0);
 
-extern s8 D_80115416;
-
 void func_800B4114(Actor05300Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
@@ -298,9 +296,9 @@ void func_actor_105300_8013246C(GpEnemy* arg0, Task* arg1)
                 r               = Gp_LcgState * 5 + 0x71357911;
                 Gp_LcgState     = r;
             }
-            flag            = 1;
-            work->field_32A = (((u32)r >> 16) & 0xF) + 0xA;
-            D_80115416      = flag;
+            flag                = 1;
+            work->field_32A     = (((u32)r >> 16) & 0xF) + 0xA;
+            Gp_StateF0.field_26 = flag;
             break;
         case 1:
             if ((s16)work->field_326 > 0x200) {

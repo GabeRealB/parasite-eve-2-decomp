@@ -36,9 +36,6 @@ typedef struct RgSpriteLevels {
 extern s32          D_80070F70;
 extern GpQuadCorner D_80111E38[];
 
-/// One byte of gameplay state that field actors read back with `lb`.
-extern s8 D_8011540E;
-
 /// Messages the room task answers, terminated by id 0x7FFFFFFF.
 extern GpMsgEntry D_acropolis_roof_garden_80183BDC[];
 extern Task*      D_acropolis_roof_garden_80183C0C;
@@ -296,10 +293,10 @@ void func_acropolis_roof_garden_8017DC74(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Room script callback: sets `D_8011540E` to 1.
+/// Room script callback: sets `Gp_StateF0.field_1E` to 1.
 void func_acropolis_roof_garden_8017DCCC(void)
 {
-    D_8011540E = 1;
+    Gp_StateF0.field_1E = 1;
 }
 
 /// Roof-garden ambient effect task. On its first frame it fires one effect per

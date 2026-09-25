@@ -128,14 +128,6 @@ typedef struct Actor02400PushScratch {
 } Actor02400PushScratch;
 STATIC_ASSERT_SIZEOF(Actor02400PushScratch, 0x58);
 
-/// Global flags; bit 1 of the first byte, polled when the idle countdown runs
-/// out, wakes the body.
-extern u8 D_801153F2[2];
-/// Set once a projectile has been spawned; wakes every other body.
-/// Declared as an array: a scalar extern lets sched1 hoist the `field_130`
-/// load above the store (`fixed_scalar_and_varying_struct_p`).
-extern s8 D_8011540B[1];
-
 extern s32 D_80115728;
 extern s32 D_80115734;
 extern s32 D_80115754;
@@ -728,7 +720,7 @@ void Actor02400_Fn01420(Task* task)
         random          = (Gp_LcgState * 5) + 0x71357911;
         work->field_140 = (random >> 0x10) & 0xF;
         Gp_LcgState     = random;
-        if (D_801153F2[0] & 2) {
+        if (Gp_StateF0.field_2 & 2) {
             flag = 1;
         }
     }
@@ -740,7 +732,7 @@ void Actor02400_Fn01420(Task* task)
     if (SquareRoot0((dx * dx) + (dz * dz)) < 0x5DC) {
         flag = 1;
     }
-    if (D_8011540B[0] != 0) {
+    if (Gp_StateF0.field_1B != 0) {
         flag = 1;
     }
     if (flag != 0) {
@@ -1020,8 +1012,8 @@ void Actor02400_Fn01B90(Task* task)
             break;
         case 2:
             Gp_SpawnEnemyFromTable(Actor02400_D0465C, 1, 0, task->spawnArg2);
-            D_8011540B[0]   = 1;
-            work->field_13E = 3;
+            Gp_StateF0.field_1B = 1;
+            work->field_13E     = 3;
             if (work->field_130 != NULL) {
                 (*work->field_130)->state = 3;
             }

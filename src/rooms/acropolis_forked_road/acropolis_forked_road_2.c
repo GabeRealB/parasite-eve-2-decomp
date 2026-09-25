@@ -51,9 +51,6 @@ extern s32 D_acropolis_forked_road_80185050;
 extern u8 D_8007216C;
 extern s8 D_8007218A;
 
-/// One byte of gameplay state that field actors read back with `lb`.
-extern s8 D_8011540E;
-
 extern s32 D_8011572C;
 extern s32 D_80115750;
 extern s32 D_80115758;
@@ -327,10 +324,10 @@ void func_acropolis_forked_road_8017E220(Task* arg0)
     }
 }
 
-/// Room script callback: sets `D_8011540E` to 1.
+/// Room script callback: sets `Gp_StateF0.field_1E` to 1.
 void func_acropolis_forked_road_8017E288(void)
 {
-    D_8011540E = 1;
+    Gp_StateF0.field_1E = 1;
 }
 
 /// Forked-road ambient effect task. On its first frame it fires one effect per

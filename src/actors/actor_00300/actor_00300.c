@@ -870,8 +870,6 @@ void Actor00300_Fn00E54(Task* arg0)
     *(void**)0x1F8003FC = (GpDeltaScratch*)(*(void**)0x1F8003FC + 0x40);
 }
 
-extern s8 D_80115418;
-
 void Actor00300_Fn01678(Task* arg0)
 {
     Actor100300Work* work;
@@ -950,12 +948,12 @@ void Actor00300_Fn01678(Task* arg0)
             }
             break;
     }
-    if ((work->field_6A0 != 0) || (D_80115418 != 0) || (work->field_690 != 0)) {
+    if ((work->field_6A0 != 0) || (Gp_StateF0.field_28 != 0) || (work->field_690 != 0)) {
         work->field_684 = 1;
         work->field_686 = 0;
         work->field_6A0 = 0x1C2;
         Gp_ArmStateF0(1);
-        D_80115418 = 0;
+        Gp_StateF0.field_28 = 0;
     }
     *(void**)0x1F8003FC = (void*)(*(void**)0x1F8003FC + 0x10);
 }
@@ -1047,11 +1045,11 @@ void Actor00300_Fn019C0(Task* arg0)
             break;
     }
     if (work->field_6A0 == 0) {
-        work->field_684                           = 0;
-        work->field_686                           = 0;
-        work->field_690                           = 0;
-        ((Actor00300ByteView*)&D_80115418)->value = 0;
-        work->field_688                           = 10;
+        work->field_684                                    = 0;
+        work->field_686                                    = 0;
+        work->field_690                                    = 0;
+        ((Actor00300ByteView*)&Gp_StateF0.field_28)->value = 0;
+        work->field_688                                    = 10;
     } else {
         timer           = (u16)work->field_68A - 1;
         work->field_68A = timer;
@@ -1167,9 +1165,9 @@ void Actor00300_Fn01F9C(Task* arg0)
             angle           = magnitude >= 0x800 ? (delta > 0 ? 0x1000 - delta : delta + 0x1000)
                                                  : magnitude;
             if (angle < 0x100) {
-                work->field_686                           = 1;
-                work->field_66E                           = 4;
-                ((Actor00300ByteView*)&D_80115418)->value = 1;
+                work->field_686                                    = 1;
+                work->field_66E                                    = 4;
+                ((Actor00300ByteView*)&Gp_StateF0.field_28)->value = 1;
             } else {
                 turnTimer       = (u16)work->field_688 - 1;
                 work->field_688 = turnTimer;
@@ -1184,8 +1182,8 @@ void Actor00300_Fn01F9C(Task* arg0)
             }
             break;
         case 1:
-            ((Actor00300ByteView*)&D_80115418)->value = 0;
-            work->field_67C                           = 0xF;
+            ((Actor00300ByteView*)&Gp_StateF0.field_28)->value = 0;
+            work->field_67C                                    = 0xF;
             scratchEnd[-1].delta.vx =
                 (s32)(Player_Status.coordMtx->t[0] - coord->coord.t[0]);
             scratch->delta.vy = 0;

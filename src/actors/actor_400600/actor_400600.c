@@ -199,23 +199,21 @@ STATIC_ASSERT_SIZEOF(Actor400600Zone, 0xA);
 extern Actor400600Zone D_actor_400600_80151B40[];
 
 /* `D_800678F0` selects the model stream a following `Gp_SpawnEff` uses as the
- * source for the effect's own `TmdObject`; `D_80115414` and `D_80115417` are
+ * source for the effect's own `TmdObject`; `Gp_StateF0.field_24` and `Gp_StateF0.field_27` are
  * bytes of the run of gameplay flags at 0x80115408..0x8011541B.
  *
  * Storing to a bare `extern` global next to pointer-based struct traffic lets
  * GCC 2.8.1's `fixed_scalar_and_varying_struct_p` conclude the two cannot
  * alias, so the scheduler sinks the store past the `Actor400600Work` loads
  * that follow. Two remedies work and which one is needed was measured, not
- * chosen: the byte store to `D_80115417` matches with `SOFT_BARRIER()` after
+ * chosen: the byte store to `Gp_StateF0.field_27` matches with `SOFT_BARRIER()` after
  * it, so that one is declared as the scalar it is; the pointer store to
  * `D_800678F0` checksums wrong with the barrier and matches only as an
  * aggregate, so its one-element array stays and is doing real work.
- * `D_80115414` is the aggregate case too: one of its stores sits between
+ * `Gp_StateF0.field_24` is the aggregate case too: one of its stores sits between
  * struct stores on both sides, and the barrier trades the sink for a hoist
  * above the preceding flag updates. */
 extern void* D_800678F0[1];
-extern s8    D_80115414[1];
-extern s8    D_80115417;
 
 extern s32 D_80115738;
 extern s32 D_8011574C;
@@ -929,7 +927,7 @@ void func_actor_400600_801332F4(Task* arg0)
         work->field_73A      = 0xFF;
         work->field_80       = 0;
         work->field_84       = 0;
-        D_80115414[0]        = mode;
+        Gp_StateF0.field_24  = mode;
         work2                = (Actor400600Work*)arg0->work;
         arg0->state          = 1;
         work2->field_71C     = 0;
@@ -1179,7 +1177,7 @@ void func_actor_400600_80133B88(Task* arg0)
     u32              rnd;
 
     work = (Actor400600Work*)arg0->work;
-    if (work->field_728 < 0xBB8 || D_80115417 != 0) {
+    if (work->field_728 < 0xBB8 || Gp_StateF0.field_27 != 0) {
         sound = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x40060004;
         pan   = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
         SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
@@ -4275,8 +4273,8 @@ void func_actor_400600_8013AAD8(Task* arg0)
     Task*            child;
     Task*            child2;
 
-    work       = (Actor400600Work*)arg0->work;
-    D_80115417 = 1;
+    work                = (Actor400600Work*)arg0->work;
+    Gp_StateF0.field_27 = 1;
     SOFT_BARRIER();
     child = work->field_704;
     if (child != NULL) {
@@ -4636,7 +4634,7 @@ void func_actor_400600_8013B520(Task* arg0)
         work->obj_4B4.flags |= 0x8000;
         work->obj_594.flags &= 0x7FFF;
         work->obj_5CC.flags &= 0x7FFF;
-        D_80115414[0]        = 1;
+        Gp_StateF0.field_24  = 1;
         work2                = (Actor400600Work*)arg0->work;
         arg0->state          = 1;
         work2->field_71C     = 0;
@@ -4652,7 +4650,7 @@ void func_actor_400600_8013B640(void)
     u8 param1[8];
     u8 param2[8];
 
-    if (D_80115415 == 0) {
+    if (Gp_StateF0.field_25 == 0) {
         /* Same shape as ActorsShared801692e8: each branch makes its own call
          * and jump2's cross-jumping merges the identical tails. */
         if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x3200000 && gGameSession->at4.loc.place == 1) {
@@ -4674,7 +4672,7 @@ void func_actor_400600_8013B640(void)
             param2[1] = 0;
             CdCmd_Enqueue(0x21, param1, param2);
         }
-        D_80115415 = 1;
+        Gp_StateF0.field_25 = 1;
     }
 }
 
@@ -5361,12 +5359,12 @@ void func_actor_400600_8013C940(Task* arg0)
     u32              rnd;
 
     work = (Actor400600Work*)arg0->work;
-    if (D_80115414[0] == 1) {
+    if (Gp_StateF0.field_24 == 1) {
         rnd             = ((u32)Gp_LcgState * 5) + 0x71357911;
         Gp_LcgState     = rnd;
         work->field_718 = ((rnd >> 0x10) & 7) + 0x14;
         work->field_71C = work->field_71C + 1;
-    } else if (D_80115414[0] == 2) {
+    } else if (Gp_StateF0.field_24 == 2) {
         work->obj_4B4.flags |= 0x8000;
         work->obj_594.flags &= 0x7FFF;
         work->obj_5CC.flags &= 0x7FFF;

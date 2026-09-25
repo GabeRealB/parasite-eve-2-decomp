@@ -23,7 +23,7 @@ extern LifeDrainScale D_lifedrain_80130AB4[];
 
 /// `SndEvt` id of the drain's opening cue, indexed by `GpEffWork.index`
 /// when the cast has drained nothing yet and by `field_20 + 3` once there is
-/// health banked in `D_80115404`.
+/// health banked in `Gp_StateF0.field_14`.
 extern s32 D_lifedrain_80130AD4[];
 
 /// One yaw per funnel wedge, `LifeDrainScale.unk0` of them, re-rolled as a

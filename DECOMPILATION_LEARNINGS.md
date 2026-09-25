@@ -40707,13 +40707,13 @@ Moving the coordinates in only one of the two blocks makes it worse, not better
 
 ## Spell out the CFG when GCC if-converts the last term of `a && b && c`
 
-`ok = hit && Gp_ItemGrantCooldown <= 0 && D_801153F1 == 0;` (and the equivalent
+`ok = hit && Gp_ItemGrantCooldown <= 0 && Gp_StateF0.field_1 == 0;` (and the equivalent
 `if/else if/else` chain) compiles the final term with `sltiu v1,v0,1`. The
 target instead branches on it and sets the flag in a delay slot:
 
 ```
     bgtz  v0, L_done      ; delay: move v1, zero
-    lbu   v0, D_801153F1
+    lbu   v0, Gp_StateF0+1
     beqz  v0, L_done      ; delay: li   v1, 1
 L_false:
     move  v1, zero
@@ -40725,7 +40725,7 @@ Write the control flow literally, with a shared fall-through `ok = 0`:
 ```c
     if (hit != 0) {
         if (Gp_ItemGrantCooldown > 0) { ok = 0; goto have; }
-        if (D_801153F1 == 0) { ok = 1; goto have; }
+        if (Gp_StateF0.field_1 == 0) { ok = 1; goto have; }
     }
     ok = 0;
 have:
@@ -40895,7 +40895,7 @@ comparison, leaving the branch with nothing but a jump to the join:
     if (flag != 0) {
         if (Gp_ItemGrantCooldown <= 0) {
             ret = 1;
-            if (D_801153F1 == 0) {
+            if (Gp_StateF0.field_1 == 0) {
                 goto done;
             }
         }
@@ -45310,6 +45310,13 @@ store to `D_800678F0` checksums wrong with the barrier and matches only as an
 aggregate. `SCHED_BARRIER()` behaves like `SOFT_BARRIER()` wherever the barrier
 works at all; `volatile` works for neither and lands two instructions off.
 
+When the global is really one byte of a larger record, write it as that
+record's member: `D_80115417` is `Gp_StateF0.field_27`, and a member of a
+global struct is in-struct as well, so the heuristic does not fire for it
+either. Replacing the gameplay-state byte aliases with `Gp_StateF0` members
+kept every actor matching, including the ones that had declared an alias as a
+one-element array for exactly this reason.
+
 Prefer the barrier where it reproduces the match, because an array bound is a
 claim about the object's shape that nothing supports. Fall back to the
 aggregate where it does not, and record in a comment that it was measured.
@@ -46364,16 +46371,11 @@ with four arguments locally and two in the header). cc1 stops with
 signatures would silently retype the arguments of every already-matched
 function in the unit.
 
-Use the flat extern the unit already uses for its neighbours instead:
-
-```c
-extern u8  D_801153F2;
-extern u8  D_801153F4;
-```
-
-`D_801153F2` is in `configs/USA/sym/actors.imports.txt` as `absolute:True`, so
-`lui %hi(D_801153F2)` / `lbu %lo(D_801153F2)` assembles to the same
-`lui $v0,0x8011` / `lbu $v0,0x53F2($v0)` the target has. Reconciling a shared
+Reach the bytes through the state record instead of a local prototype block:
+`Gp_StateF0.field_2` and `Gp_StateF0.field_4` (`include/gameplay/3A34.h`, with
+`Gp_StateF0` listed in the family's imports file as `absolute:True`) assemble to
+the same `lui $v0,0x8011` / `lbu $v0,0x53F2($v0)` the target has. The flat
+byte aliases this entry once recommended (`D_801153F2`, `D_801153F4`) are gone. Reconciling a shared
 text unit with the gameplay headers is its own naming pass, not part of a
 match.
 

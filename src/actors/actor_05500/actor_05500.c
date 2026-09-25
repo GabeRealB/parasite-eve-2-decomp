@@ -27,9 +27,6 @@
 
 extern void*   D_80067704[1];
 extern MATRIX* D_80073B8C[1];
-extern u8      D_801153F2[2];
-extern s8      D_8011540E;
-extern s8      D_80115412;
 
 extern u8            Actor05500_D05F18[];
 extern GpU16Pair     Actor05500_D08958;
@@ -377,7 +374,7 @@ void Actor05500_Fn00754(Task* arg0)
             dz                = Player_Status.coordMtx->t[2] - coord->coord.t[2];
             delta->vz         = dz;
             dx                = scratchEnd[-1].vx;
-            if ((SquareRoot0((dx * dx) + (dz * dz)) < 0x7D0) || (work->field_3D0 != 0) || (D_801153F2[1] == 2)) {
+            if ((SquareRoot0((dx * dx) + (dz * dz)) < 0x7D0) || (work->field_3D0 != 0) || (Gp_StateF0.field_3 == 2)) {
                 work->field_39C = 1;
                 work->field_392 = 0xD;
                 Gp_ArmStateF0(1);
@@ -487,9 +484,9 @@ void Actor05500_Fn00A94(Task* arg0)
                     value = 1;
                 }
             }
-            if ((value != 0) || ((s8)Gp_StateF0.field_22 != 0) || (Gp_StateF0.field_8 != 0)) {
+            if ((value != 0) || (Gp_StateF0.field_22 != 0) || (Gp_StateF0.field_8 != 0)) {
                 if (work->field_3C6 == 0) {
-                    D_80115412 = 1;
+                    Gp_StateF0.field_22 = 1;
                 }
                 Gp_ArmStateF0(1);
                 work->field_39C        = 1;
@@ -916,7 +913,7 @@ void Actor05500_Fn01B30(Task* arg0)
             work->field_214.flags &= 0xBFFF;
             obj->flags             = (u16)obj->flags | 0x84;
             ctx->node.flags        = one;
-            if (D_8011540E == one) {
+            if (Gp_StateF0.field_1E == one) {
                 if (work->field_3C2 == 0) {
                     work->field_39E = Actor05500_D089B0[work->field_3C4];
                 } else {

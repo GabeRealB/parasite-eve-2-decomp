@@ -243,7 +243,6 @@ extern Task*    D_actor_403600_801606B4;
 
 extern u8                   D_80071075;
 extern s8                   D_8007216C;
-extern s8                   D_801153F1;
 extern TaskDesc             D_8016E468;
 extern MATRIX*              D_80073B8C;
 extern s16                  D_80073BA0;
@@ -4907,7 +4906,7 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, GpCmdArg* arg2)
         case 9:
             Gp_ReleaseStateF0Add(arg0, 0x24);
             gGameSession->flowFlags = (u8)(gGameSession->flowFlags | 0x80);
-            D_801153F1              = 5;
+            Gp_StateF0.field_1      = 5;
             break;
     }
     return 0;

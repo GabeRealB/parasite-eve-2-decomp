@@ -110,9 +110,6 @@ extern s16 D_actor_403900_801540D0[2][4];
 /// count. A grab only starts while it is positive.
 extern s16 D_80073BA0;
 
-/// Difficulty index into `D_actor_403900_80153C10`.
-extern u8 D_8011541B;
-
 /// 1BC.h keeps this out of scope on purpose: callers hand it a sign-extended
 /// animation id, which a `u16` prototype would zero-extend.
 void    func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
@@ -793,7 +790,7 @@ void func_actor_403900_8013314C(Task* arg0)
                 timer           = work->field_6D4 - 1;
                 work->field_6D4 = timer;
                 if (timer <= 0) {
-                    if (Player_Status.hp > D_actor_403900_80153C10[D_8011541B]) {
+                    if (Player_Status.hp > D_actor_403900_80153C10[Gp_StateF0.field_2B]) {
                         if (work->field_6F8 == 0) {
                             work->field_6F8 = 1;
                         } else {

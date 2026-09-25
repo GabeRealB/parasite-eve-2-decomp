@@ -26,7 +26,7 @@ GsWSMATRIX = 0x80071138; // absolute:True
 gGpuPrimCursor = 0x80071190; // absolute:True
 Player_Status = 0x80073B88; // absolute:True
 
-// --- from gameplay (22 symbols)
+// --- from gameplay (23 symbols)
 Gp_UpdateCoord = 0x80098F58; // absolute:True
 gpGetObjDepth = 0x800D9340; // absolute:True
 Gp_GetObjPan = 0x800D937C; // absolute:True
@@ -48,6 +48,7 @@ Gp_ReleaseState1CMem = 0x800EC7E4; // absolute:True
 Gp_AddTpageShift = 0x800EC914; // absolute:True
 Gp_StateC08 = 0x80114C08; // absolute:True
 Gp_RoomCoords = 0x80114F30; // absolute:True
+Gp_StateF0 = 0x801153F0; // absolute:True
 Gp_State1C = 0x80115740; // absolute:True
 
 // --- still unnamed in their own overlay (6)

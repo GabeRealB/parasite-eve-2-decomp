@@ -13,7 +13,6 @@
 #include "rooms/room_common.h"
 
 extern u8 D_8007216D;
-extern s8 D_8011540A;
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -144,14 +143,14 @@ void func_mine_gorge_8017D8BC(u8 arg0)
     D_80115768 = arg0;
 }
 
-/// Script callback: stores its argument in `D_8011540A`.
+/// Script callback: stores its argument in `Gp_StateF0.field_1A`.
 void func_mine_gorge_8017D8C8(s32 arg0)
 {
-    D_8011540A = arg0;
+    Gp_StateF0.field_1A = arg0;
 }
 
 /// Room task setup state: installs the message table and pointer slot 7, sets
-/// `D_8011540A` to `0x15` in place 1 once flag nibble `0xC5` is set, and on the
+/// `Gp_StateF0.field_1A` to `0x15` in place 1 once flag nibble `0xC5` is set, and on the
 /// first pass with flag nibble `0xBE == 2` arms nibble `0x166`, clears nibble
 /// `0xB5` and calls `Gp_SpawnIfCapIdle(8, 0)`. Then raises `D_80062735` and
 /// advances state.
@@ -160,7 +159,7 @@ void func_mine_gorge_8017D8D4(Task* arg0)
     arg0->msgTable = D_mine_gorge_8017E280;
     Game_SetPtrSlot(arg0, 7);
     if ((gGameSession->at4.loc.place == 1) && (GameFlag_GetNibble(0xC5) != 0)) {
-        D_8011540A = 0x15;
+        Gp_StateF0.field_1A = 0x15;
     }
     if ((GameFlag_GetNibble(0xBE) == 2) && (GameFlag_GetNibble(0x166) == 0)) {
         GameFlag_SetNibble(0x166, 1);

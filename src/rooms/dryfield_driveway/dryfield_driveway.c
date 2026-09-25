@@ -21,7 +21,6 @@
 
 extern s16 D_80071076;
 extern u8  D_8007216D;
-extern s8  D_8011540A;
 extern u8  D_80115690;
 
 extern s32 D_dryfield_driveway_8017E384;
@@ -225,10 +224,10 @@ void func_dryfield_driveway_8017DB68(Task* arg0)
     }
 }
 
-/// Script callback: stores its argument in the gameplay byte `D_8011540A`.
+/// Script callback: stores its argument in the gameplay byte `Gp_StateF0.field_1A`.
 void func_dryfield_driveway_8017DC48(s32 arg0)
 {
-    D_8011540A = arg0;
+    Gp_StateF0.field_1A = arg0;
 }
 
 /// Script callback: stores its argument in the session's `viewDirty` flag.

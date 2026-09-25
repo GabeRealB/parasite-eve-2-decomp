@@ -25,7 +25,6 @@
 #include "rooms/room_common.h"
 
 extern s16 D_80071076;
-extern s8  D_8011540A;
 extern u8  D_80115690;
 
 /// Descriptor of the room's event task, which the event gate spawns.
@@ -259,10 +258,10 @@ void func_dryfield_night_driveway_8017DB8C(Task* arg0)
     }
 }
 
-/// Script callback: stores its argument into `D_8011540A`.
+/// Script callback: stores its argument into `Gp_StateF0.field_1A`.
 void func_dryfield_night_driveway_8017DC6C(s32 arg0)
 {
-    D_8011540A = arg0;
+    Gp_StateF0.field_1A = arg0;
 }
 
 /// Script callback: stores its argument into the session's `viewDirty`.

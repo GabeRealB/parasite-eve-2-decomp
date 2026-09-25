@@ -37,7 +37,6 @@ extern GpAreaKey D_8007216C;
 extern s8        D_8007216D;
 extern s16       D_80073BA0;
 extern s8        D_80114C12;
-extern s8        D_801153F1;
 extern u8        D_801156A4;
 
 extern GpMsgEntry     D_acropolis_cafeteria_80182AA8[];
@@ -249,7 +248,7 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
         case 21:
             Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0xA);
             gGameSession->flowFlags       |= 0x80;
-            D_801153F1                     = 3;
+            Gp_StateF0.field_1             = 3;
             D_acropolis_cafeteria_80184164 = 2;
             task->state                   += 1;
             break;

@@ -36,7 +36,6 @@ void Actor02000_Fn00CD0(Task* arg0);
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 extern s32 D_8011572C;
-extern s8  D_80115419;
 extern s16 Actor02000_D03784[];
 extern s16 Actor02000_D15D20[];
 extern s16 Actor02000_D15D7C[];
@@ -364,7 +363,7 @@ void Actor02000_Fn00078(Task* arg0)
 /// byte 1, and `field_6A2` / `field_6A4` set to the actor's current yaw and its
 /// opposite. State 2 holds `field_69E` at 0x3B until `field_698` reaches 0x23,
 /// then returns to animation 2 and state 0. As in `Actor02000_Fn03268`, a set
-/// `field_6B2` or `D_80115419` overrides everything with animation 2 and the
+/// `field_6B2` or `Gp_StateF0.field_29` overrides everything with animation 2 and the
 /// shared state-F0 slot.
 void Actor02000_Fn00AEC(Task* arg0)
 {
@@ -430,7 +429,7 @@ void Actor02000_Fn00AEC(Task* arg0)
             break;
     }
 
-    if ((work->field_6B2 != 0) || (D_80115419 != 0)) {
+    if ((work->field_6B2 != 0) || (Gp_StateF0.field_29 != 0)) {
         work->field_6A6 = 2;
         work->field_6A8 = 0;
         work->field_694 = 2;
@@ -978,7 +977,7 @@ void Actor02000_Fn01A20(GpEnemy* ctx, Task* actor)
             work->field_6A8 = 1;
             ctx->spawnState = (u8)work->field_6B8;
             Gp_SaveEnemyPose(ctx);
-            D_80115419 = 1;
+            Gp_StateF0.field_29 = 1;
             break;
         case 1:
             if (!(work->field_698 & 3)) {
@@ -1737,7 +1736,7 @@ s32 Actor02000_Fn0315C(SVECTOR* arg0, SVECTOR* arg1)
 /// up to 0x5B frames and then hands over to state 1 with animation 4, running
 /// `Actor02000_Fn00CD0` every frame meanwhile; state 1 waits for `field_698`
 /// to reach 0x5E and drops back to state 0 with animation 1. Either way, once
-/// `field_6B2` or the global `D_80115419` is set the actor switches to
+/// `field_6B2` or the global `Gp_StateF0.field_29` is set the actor switches to
 /// animation 2 and arms the shared state-F0 slot.
 void Actor02000_Fn03268(Task* arg0)
 {
@@ -1764,7 +1763,7 @@ void Actor02000_Fn03268(Task* arg0)
             break;
     }
 
-    if ((work->field_6B2 != 0) || (D_80115419 != 0)) {
+    if ((work->field_6B2 != 0) || (Gp_StateF0.field_29 != 0)) {
         work->field_6A6 = 2;
         work->field_6A8 = 0;
         work->field_694 = 2;

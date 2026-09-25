@@ -137,9 +137,6 @@ extern s16 D_actor_402200_80154178[2][4];
 /// count. A grab only starts while it is positive.
 extern s16 D_80073BA0;
 
-/// Difficulty index into `D_actor_402200_80153C0C`.
-extern u8 D_8011541B;
-
 void    func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
@@ -810,7 +807,7 @@ void func_actor_402200_8013314C(Task* arg0)
                 timer           = work->field_6D4 - 1;
                 work->field_6D4 = timer;
                 if (timer <= 0) {
-                    if (Player_Status.hp > D_actor_402200_80153C0C[D_8011541B]) {
+                    if (Player_Status.hp > D_actor_402200_80153C0C[Gp_StateF0.field_2B]) {
                         if (work->field_6F8 == 0) {
                             work->field_6F8 = 1;
                         } else {

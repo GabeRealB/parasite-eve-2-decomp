@@ -51,7 +51,6 @@ void func_neo_ark_shrine_80181474(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
 extern s8  D_8007216C;
 extern u8  D_8007216D;
 extern s16 D_80114D08;
-extern s8  D_80115410;
 extern s32 D_8011572C;
 extern s32 D_80115750;
 extern s32 D_80115758;
@@ -546,7 +545,7 @@ void func_neo_ark_shrine_8017F21C(Task* task)
     timer     = st->timer + 1;
     st->timer = timer;
     if (timer == 0x1E) {
-        D_80115410 = 1;
+        Gp_StateF0.field_20 = 1;
     }
     if (st->timer >= 0x3CU) {
         task->state++;
@@ -555,7 +554,7 @@ void func_neo_ark_shrine_8017F21C(Task* task)
 
 void func_neo_ark_shrine_8017F274(Task* task)
 {
-    D_80115410                  = 2;
+    Gp_StateF0.field_20         = 2;
     Mc_SaveData.at4.loc.room    = 6;
     gGameSession->at4.loc.room  = 6;
     gGameSession->roomObjsDirty = 1;

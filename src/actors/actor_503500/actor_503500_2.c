@@ -50,9 +50,6 @@ extern void func_8017E27C(s32 arg0);
 extern GpXformArg D_actor_503500_8017655C;
 /// Player-facing flag byte in the main executable; no module header owns it yet.
 extern u8 D_80073BA9;
-/// Player-facing mode byte in the main executable, also written by the
-/// acropolis helicopter landing pad room.
-extern s8 D_801153F1;
 
 void func_actor_503500_80132778(Task* task)
 {
@@ -230,7 +227,7 @@ void func_actor_503500_80132CA4(void)
 void func_actor_503500_80132CC4(s8 arg0)
 {
     Gp_ReleaseStateF0Add((Task*)Gp_LookupSlot4(0), 0x23);
-    D_801153F1 = arg0;
+    Gp_StateF0.field_1 = arg0;
 }
 
 /// Record handler (opcode 0x0D) of the actor's script data, taking the

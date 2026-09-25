@@ -145,9 +145,6 @@ STATIC_ASSERT_SIZEOF(Actor103700SteerScratch, 0x18);
  * `TmdObject` from. */
 extern void* D_80067704[1];
 
-extern u8 D_80115408[];
-extern s8 D_8011540A;
-
 /* The two model streams the death effect picks between, in this overlay's data. */
 extern u8 Actor03700_D043FC[];
 extern u8 Actor03700_D04600[];
@@ -870,7 +867,7 @@ void Actor03700_Fn011B4(Task* task)
                 }
                 work->field_250 = 0;
             }
-            if (D_80115408[1] & 2) {
+            if (Gp_StateF0.field_19 & 2) {
                 work->field_24E = 5;
                 work->field_248 = 1;
                 work->field_250 = 0;
@@ -1350,7 +1347,7 @@ void Actor03700_Fn020D4(GpEnemy* enemy, Task* task)
 }
 
 /// Mode 7, the drop-in: keeps the actor hidden, unlockable and out of the
-/// contact passes until `D_8011540A` reaches the placement's `mode - 9`, then
+/// contact passes until `Gp_StateF0.field_1A` reaches the placement's `mode - 9`, then
 /// counts `field_256` down from 5 and picks a target position `field_23C` above
 /// the root coordinate from `Gp_LcgState` - a lower one and mode 8 for
 /// placements below 10, a higher one and mode 9 above - before re-enabling the
@@ -1376,7 +1373,7 @@ void Actor03700_Fn025C8(Task* task)
     switch (work->field_250) {
         case 0:
             diff = spawn->place->mode - 9;
-            if (D_8011540A >= diff) {
+            if (Gp_StateF0.field_1A >= diff) {
                 work->field_250 = 1;
                 work->field_256 = 5;
             }
@@ -1480,7 +1477,7 @@ void Actor03700_Fn029C0(Task* task)
             work->obj.flags &= 0x3FFF;
             obj->flags      |= 0x84;
             ctx->node.flags  = 1;
-            if (D_8011540A == 0) {
+            if (Gp_StateF0.field_1A == 0) {
                 work->field_250    = 1;
                 work->obj.flags   |= 0xC000;
                 Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
@@ -1532,7 +1529,7 @@ void Actor03700_Fn029C0(Task* task)
             Actor03700_SwayInline(task, 80);
 
             if ((s16)work->field_256 == 30) {
-                D_8011540A = 2;
+                Gp_StateF0.field_1A = 2;
             }
             if ((s16)--work->field_256 <= 0) {
                 work->field_24E = mode;
@@ -1786,11 +1783,11 @@ void Actor03700_Fn0355C(Task* task)
     Actor103700Work* work = (Actor103700Work*)task->work;
     s32              state;
 
-    switch (D_8011540A) {
+    switch (Gp_StateF0.field_1A) {
         case 0:
             break;
         case 1:
-            D_8011540A = 2;
+            Gp_StateF0.field_1A = 2;
             return;
         case 2:
             if (Gp_StateF0.field_6 < 0x11) {
