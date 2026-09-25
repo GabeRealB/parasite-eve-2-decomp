@@ -335,6 +335,100 @@ typedef struct ActorMoveScratch {
 } ActorMoveScratch;
 STATIC_ASSERT_SIZEOF(ActorMoveScratch, 0x38);
 
+/* Work blocks of actors that carry the same code. */
+
+/// Status flags of `Actor341700Work`, read through two widths: every guard
+/// tests bit 0 as a halfword and then bits 0x102 as a word.
+typedef union Actor341700Flags {
+    u32 word;
+    u16 half;
+} Actor341700Flags;
+STATIC_ASSERT_SIZEOF(Actor341700Flags, 0x4);
+
+/// Work block of the enemy whose code both actor_341700 and actor_342400
+/// carry. Each allocates it zeroed at its full size and keeps it at
+/// `Task::work`. `field_420` / `field_422` are the state and sub-state indices
+/// the handler tables walk and `field_412` the per-state frame counter;
+/// `field_414` .. `field_41C` are the animation request.
+typedef struct Actor341700Work {
+    MATRIX    savedRootMtx; // root matrix saved at death, rescaled each frame while the model shrinks
+    MATRIX    colorMtx;     // the model's `TmdObject::colorMtx`
+    MATRIX    lightMtx;     // the model's `TmdObject::lightMtx`
+    VECTOR    field_60;     // position the root snaps back to when blocked
+    SVECTOR   field_70;     // origin of slot 4 entry 0's coords[3], carried into view space
+    s16       field_78;     // pitch, fed to RotMatrixX
+    s16       field_7A;     // heading fed to rsin / rcos
+    s16       field_7C;     // roll, fed to RotMatrixZ
+    byte      pad_7E[0x2];
+    u16       field_80;     // spawn position: root coord.t[0]
+    u16       field_82;     // root coord.t[1], after lifting it by 0x3C
+    u16       field_84;     // root coord.t[2]
+    byte      pad_86[0x2];
+    s16       field_88;     // x of the offset to the nearer player actor
+    s16       field_8A;     // y of that offset
+    s16       field_8C;     // z of that offset
+    byte      pad_8E[0x2];
+    u16       field_90;     // root coord.t[0], snapshotted with the view-space origin
+    u16       field_92;     // root coord.t[1]
+    u16       field_94;     // root coord.t[2]
+    byte      pad_96[0x2];
+    SVECTOR   field_98;     // translation of coords[6] relative to the view
+    GpAnimCtx anim;
+    /// First of the nine `GpAnimSlot`s handed to `func_800B3F84`; the second
+    /// overlaps `flags_EC`, so only the first is spelled out.
+    GpAnimSlot       slot_B4;
+    byte             pad_DC[0x10];
+    Actor341700Flags flags_EC;
+    byte             pad_F0[0x12C];
+    byte             field_21C[0x90]; // `func_800B3F84`'s arg3 buffer
+    GpObj            obj_2AC;
+    GpObj            obj_2CC;
+    GpRec18          rec_2EC[8];
+    GpObj            obj_3AC;
+    GpRec18          rec_3CC[2]; // records of `obj_3AC`
+    GpEffArg         eff_3FC;    // `func_800FDB18`'s arg3; field_0 is the model's second coord part
+    byte             pad_404[0x8];
+    s16              field_40C;  // heading the root is moved along
+    s16              field_40E;  // hit cooldown: `Gp_GetIdParam2` of the last hit, counted down each frame
+    s16              field_410;
+    u16              field_412;  // per-state frame counter
+    s16              field_414;  // animation request kind
+    s16              field_416;  // animation id last applied to the slots
+    s16              field_418;  // animation id
+    u16              field_41A;  // frames since the animation was applied
+    s16              field_41C;  // animation speed / step scale
+    s16              field_41E;  // 1 lets `field_448` jump the state machine
+    u16              field_420;  // state index
+    u16              field_422;  // sub-state index
+    s16              field_424;  // yaw added to model parts 3..5, a third each; eased toward zero each frame
+    s16              field_426;
+    s16              field_428;
+    s16              field_42A;
+    s16              field_42C; // frames spent turning toward field_444; 16 enters state 3
+    byte             pad_42E[0x2];
+    u16              field_430; // Y scale while the model shrinks after death
+    s16              field_432; // 1 re-derives the spawn position
+    s16              field_434; // pitch latched when a sway ends, then eased back to zero
+    s16              field_436; // turn step applied to the heading
+    s16              field_438;
+    s16              field_43A; // distance to the nearer player actor
+    byte             pad_43C[0x2];
+    s16              field_43E; // counted down each frame while blocked
+    s16              field_440; // picks animation 5 (zero) or 6 after animation 8
+    s16              field_442; // frame phase driving the pitch sway
+    u16              field_444; // heading to the nearer player actor relative to field_7A, masked to 0xFFF
+    s16              field_446; // randomised hold in frames
+    s16              field_448; // pending state request; 4 moves the task to state 4 once the enemy is dead
+    s16              field_44A;
+    u16              field_44C; // message 0x2C00's halfword, when its low nibble is 1..5
+    u8               field_44E; // set while the enemy carries status flag 4/8
+    u8               field_44F; // 1 runs the post-sub-state step
+    byte             pad_450[0x1];
+    u8               field_451;
+    byte             pad_452[0x2];
+} Actor341700Work;
+STATIC_ASSERT_SIZEOF(Actor341700Work, 0x454);
+
 /* Contexts. */
 
 /// Ramp context of the screen-wave task. Whoever spawns the task seeds the

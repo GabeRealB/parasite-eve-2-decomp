@@ -3723,7 +3723,7 @@ The rule is the same one width down: an `s8` flag tested only with `== 0` is
 still `lb`, and only the declaration makes it `lbu`. `func_actor_341700_80164CDC`
 is a port of the matched `func_actor_342400_80165FC0` and read 98.21%
 (`insert=1 delete=1`) purely because `Actor341700Work::field_451` was declared
-`s8` where the sibling's `Actor342400Work::field_451` is `u8`; widening it was
+`s8` where the sibling's `Actor341700Work::field_451` is `u8`; widening it was
 the whole match (`base_1.c` 98.21%, preprocessed
 `ac559602b6ae5ce0dbc19aec9d51d20815011e6383c6de59df66805dc9db4bea`; `base_2.c`
 100%, preprocessed
@@ -25850,7 +25850,7 @@ while 13 guards in the same overlay read that offset with `lhu`. `0x102` fits a
 says the original read wider. The rename cost then picks the shape — 13 use
 sites is cheap enough for the union, and the same `0x102`-word / bit-0-halfword
 guard already has three union precedents (`Actor341700Flags`,
-`Actor342400Flags`, `Actor400500HitFlags`), where `gGameSession`'s 92 sites were
+`Actor341700Flags`, `Actor400500HitFlags`), where `gGameSession`'s 92 sites were
 not. The scratch build was one `lhu` away from 100% before the union landed.
 
 ```c
