@@ -11,16 +11,14 @@ void CdCmd_EnqueueLoadFile(s32 arg0, s32 arg1, s32 arg2)
 {
     s8             param2[4];
     u8*            param1;
-    void**         scratch;
     void*          head;
     register void* temp asm("v0");
     u8             f74;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    temp     = (u8*)head - 8;
-    param1   = temp;
-    *scratch = temp;
+    head               = SCRATCH_HEAD(void);
+    temp               = (u8*)head - 8;
+    param1             = temp;
+    SCRATCH_HEAD(void) = temp;
 
     param1[2]       = 2;
     param1[3]       = 0;

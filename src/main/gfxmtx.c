@@ -55,7 +55,6 @@ typedef struct {
 
 void Gfx_RotMatrixXYZ(MATRIX* out, SVECTOR* angles, s32 flag)
 {
-    void**                  s;
     u8*                     head;
     register void*          p asm("v0");
     ScratchRotXYZ*          block;
@@ -72,11 +71,10 @@ void Gfx_RotMatrixXYZ(MATRIX* out, SVECTOR* angles, s32 flag)
     void*                   col1;
     void*                   col2;
 
-    s     = (void**)G_SCRATCH_HEAD;
-    head  = (u8*)*s;
-    p     = head - 0x34;
-    block = p;
-    *s    = p;
+    head               = SCRATCH_HEAD(u8);
+    p                  = head - 0x34;
+    block              = p;
+    SCRATCH_HEAD(void) = p;
 
     block->sin_x = rsin(angles->vx);
     block->sin_y = rsin(angles->vy);
@@ -175,7 +173,6 @@ void Gfx_RotMatrixXYZ(MATRIX* out, SVECTOR* angles, s32 flag)
 
 void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag)
 {
-    void**                  s;
     u8*                     head;
     register void*          p asm("v0");
     ScratchRotXYZ*          block;
@@ -190,11 +187,10 @@ void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag)
     void*                   col1;
     void*                   col2;
 
-    s     = (void**)G_SCRATCH_HEAD;
-    head  = (u8*)*s;
-    p     = head - 0x34;
-    block = p;
-    *s    = p;
+    head               = SCRATCH_HEAD(u8);
+    p                  = head - 0x34;
+    block              = p;
+    SCRATCH_HEAD(void) = p;
 
     block->sin_x = rsin(angles->vx);
     block->sin_y = rsin(angles->vy);
@@ -294,7 +290,6 @@ void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag)
 
 void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag)
 {
-    void**                  s;
     u8*                     head;
     register void*          p asm("v0");
     ScratchRotZYX*          block;
@@ -310,11 +305,10 @@ void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag)
     void*                   col1;
     void*                   col2;
 
-    s     = (void**)G_SCRATCH_HEAD;
-    head  = (u8*)*s;
-    p     = head - 0x44;
-    block = p;
-    *s    = p;
+    head               = SCRATCH_HEAD(u8);
+    p                  = head - 0x44;
+    block              = p;
+    SCRATCH_HEAD(void) = p;
 
     block->sin_x = rsin(angles->vx);
     block->sin_y = rsin(angles->vy);
@@ -414,15 +408,13 @@ void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag)
 
 void Gfx_MatrixToEuler(MATRIX* arg0, SVECTOR* arg1)
 {
-    void**      scratch;
     u8*         head;
     ScratchMat* block;
     s16         angle;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = (u8*)*scratch;
-    block    = (ScratchMat*)(head - 0x30); // reserves 0x30 for a 0x24-byte block
-    *scratch = block;
+    head                     = SCRATCH_HEAD(u8);
+    block                    = (ScratchMat*)(head - 0x30); // reserves 0x30 for a 0x24-byte block
+    SCRATCH_HEAD(ScratchMat) = block;
 
     angle          = -ratan2(arg0->m[1][2], arg0->m[2][2]);
     arg1->vx       = angle;
@@ -458,7 +450,7 @@ void Gfx_MatrixToEuler(MATRIX* arg0, SVECTOR* arg1)
     arg1->vy = ratan2(block->mat.m[0][2], block->mat.m[2][2]);
     arg1->vz = ratan2(block->mat.m[1][0], block->mat.m[1][1]);
 
-    SCRATCH_POP_BYTES_AT(scratch, 0x30);
+    SCRATCH_POP_BYTES(0x30);
 }
 
 void Gfx_TransposeRot(MATRIX* arg0, volatile MATRIX* arg1)

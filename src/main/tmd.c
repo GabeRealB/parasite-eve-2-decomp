@@ -283,19 +283,17 @@ void tmdProcessStream(TmdObject* obj)
     s32                    flag;
     void*                  buf;
     u32                    hi;
-    void**                 scratch;
     TmdScratchModelBlock*  head;
     void*                  tmp;
 
-    flag     = 0;
-    scratch  = (void**)G_SCRATCH_HEAD;
-    src      = obj->source;
-    tmp      = *scratch;
-    stream   = src->stream;
-    hi       = *(u32*)&gGameSession->at4.loc;
-    head     = (TmdScratchModelBlock*)((u8*)tmp - 0x88);
-    hi      &= 0xFFFF0000;
-    *scratch = head;
+    flag                               = 0;
+    src                                = obj->source;
+    tmp                                = SCRATCH_HEAD(void);
+    stream                             = src->stream;
+    hi                                 = *(u32*)&gGameSession->at4.loc;
+    head                               = (TmdScratchModelBlock*)((u8*)tmp - 0x88);
+    hi                                &= 0xFFFF0000;
+    SCRATCH_HEAD(TmdScratchModelBlock) = head;
     if ((hi == 0x020F0000) || (hi == 0x02100000)) {
         flag = 1;
     }
@@ -511,7 +509,6 @@ TmdObject* Tmd_Create(TmdSource* src, s32 flags)
 void Tmd_SetupDraw(TmdObject* obj)
 {
     u8                   buf[0x1000];
-    void**               scratch;
     void*                tmp;
     TmdScratchDrawBlock* ws;
     void*                stream;
@@ -528,21 +525,20 @@ void Tmd_SetupDraw(TmdObject* obj)
     void*                b;
     s32                  field18;
 
-    scratch = (void**)G_SCRATCH_HEAD;
     {
         TmdSource* p;
 
         p            = obj->source;
-        tmp          = *scratch;
+        tmp          = SCRATCH_HEAD(void);
         stream       = p->stream;
         disp         = gDisplayState.otDepthShift;
         ws           = (TmdScratchDrawBlock*)((u8*)tmp - 0x98);
         ws->field_80 = obj;
         ws->field_84 = disp;
     }
-    bufptr      = obj->buffer;
-    ws->field_0 = bufptr;
-    *scratch    = ws;
+    bufptr                            = obj->buffer;
+    ws->field_0                       = bufptr;
+    SCRATCH_HEAD(TmdScratchDrawBlock) = ws;
     if (obj->bufferIndex != 0) {
         ws->field_0 = (u8*)bufptr + obj->halfSize;
     }
@@ -628,7 +624,7 @@ void Tmd_SetupDraw(TmdObject* obj)
 
     Tmd_SetupGteMatrices(ws, flags, stream, obj);
 
-    SCRATCH_POP_BYTES_AT(scratch, 0x98);
+    SCRATCH_POP_BYTES(0x98);
 }
 
 void Tmd_FreeBuffers(TmdObject* obj)
