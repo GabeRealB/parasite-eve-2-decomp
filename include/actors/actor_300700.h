@@ -9,15 +9,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
-typedef struct Actor300700Obj2C {
-    /* 0x00 */ byte           pad_0[8];
-    /* 0x08 */ GsCOORDINATE2* field_8;
-    /* 0x0C */ s16            field_C;
-    /* 0x0E */ byte           pad_E[0x16];
-    /* 0x24 */ s8             field_24;
-    /* 0x25 */ s8             field_25;
-} Actor300700Obj2C;
-
 /// The first collision record of the work block, viewed both as a plain
 /// `GpRec18` and as the raw id pair the tick handler reads back out of it.
 typedef union Actor300700HitRecord {
@@ -110,33 +101,7 @@ typedef struct Actor300700RotScratch {
 } Actor300700RotScratch;
 STATIC_ASSERT_SIZEOF(Actor300700RotScratch, 0x18);
 
-/// Damage record the actor pushes hits into. Same object family as
-/// `GpObj5C`: `field_4C` carries the generic hit-flag bits, `field_40` the
-/// remaining hit points and `field_10` the anchor `func_800DA6E8` binds a
-/// damage slot to.
-typedef struct Actor300700Ctx {
-    /* 0x00 */ byte         pad_0[8];
-    /* 0x08 */ u16          field_8;
-    /* 0x0A */ byte         pad_A[6];
-    /* 0x10 */ byte         field_10[4];
-    /* 0x14 */ u8           field_14;
-    /* 0x15 */ byte         pad_15[0x27];
-    /* 0x3C */ GpAreaPlace* field_3C;
-    /* 0x40 */ u16          field_40;
-    /* 0x42 */ byte         pad_42[0xA];
-    /* 0x4C */ u8           field_4C;
-} Actor300700Ctx;
-
-typedef struct Actor300700 {
-    /* 0x00 */ byte              pad_0[0x1C];
-    /* 0x1C */ Actor300700Work*  field_1C;
-    /* 0x20 */ Actor300700Ctx*   field_20;
-    /* 0x24 */ byte              pad_24[8];
-    /* 0x2C */ Actor300700Obj2C* field_2C;
-    /* 0x30 */ s32               field_30;
-} Actor300700;
-
-void func_actor_300700_80164D3C(Actor300700Ctx* arg0, Actor300700* arg1);
+void func_actor_300700_80164D3C(GpEnemy* arg0, Task* arg1);
 
 /// The second variant's state handlers: spawn, per-frame update and the
 /// handler for state 2.
