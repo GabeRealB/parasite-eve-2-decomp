@@ -1409,15 +1409,15 @@ void Actor00700_Fn01E9C(Task* arg0)
 void Actor00700_Fn01EEC(Task* arg0)
 {
     GsCOORDINATE2*     coord;
-    MATRIX*            head;
+    ActorScaleScratch* head;
     ActorScaleScratch* scratch;
     Actor00700Work*    work;
 
-    head               = SCRATCH_HEAD(MATRIX);
-    work               = arg0->work;
-    scratch            = (ActorScaleScratch*)((u8*)head - 0x30);
-    SCRATCH_HEAD(void) = scratch;
-    coord              = ((TmdObject*)arg0->extra)->coords;
+    head                            = SCRATCH_HEAD(ActorScaleScratch);
+    work                            = arg0->work;
+    scratch                         = head - 1;
+    SCRATCH_HEAD(ActorScaleScratch) = scratch;
+    coord                           = ((TmdObject*)arg0->extra)->coords;
     if (work->field_390 >= 0x201) {
         work->field_390 = (u16)work->field_390 - 0x50;
     }
@@ -1433,7 +1433,7 @@ void Actor00700_Fn01EEC(Task* arg0)
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->flg = 0;
-    SCRATCH_POP_BYTES(0x30);
+    SCRATCH_POP(ActorScaleScratch);
 }
 
 /// The state handlers `Actor00700_Fn034BC` dispatches on `Task::state`,
@@ -2063,15 +2063,15 @@ void Actor00700_Fn03518(Task* arg0)
 void Actor00700_Fn03570(Task* arg0)
 {
     GsCOORDINATE2*     coord;
-    MATRIX*            head;
+    ActorScaleScratch* head;
     ActorScaleScratch* scratch;
     Actor00700Work*    work;
 
-    head               = SCRATCH_HEAD(MATRIX);
-    work               = arg0->work;
-    scratch            = (ActorScaleScratch*)((u8*)head - 0x30);
-    SCRATCH_HEAD(void) = scratch;
-    coord              = ((TmdObject*)arg0->extra)->coords;
+    head                            = SCRATCH_HEAD(ActorScaleScratch);
+    work                            = arg0->work;
+    scratch                         = head - 1;
+    SCRATCH_HEAD(ActorScaleScratch) = scratch;
+    coord                           = ((TmdObject*)arg0->extra)->coords;
     if (work->field_2E2 >= 0x201) {
         work->field_2E2 = (u16)work->field_2E2 - 0x50;
     }
@@ -2088,5 +2088,5 @@ void Actor00700_Fn03570(Task* arg0)
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->flg = 0;
     Gp_UpdateCoord(coord);
-    SCRATCH_POP_BYTES(0x30);
+    SCRATCH_POP(ActorScaleScratch);
 }

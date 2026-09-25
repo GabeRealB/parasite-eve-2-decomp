@@ -2039,14 +2039,14 @@ void Actor03800_Fn037E0(Task* arg0)
 {
     Actor103800Work*   work;
     GsCOORDINATE2*     coord;
-    MATRIX*            head;
+    ActorScaleScratch* head;
     ActorScaleScratch* scratch;
 
-    work               = arg0->work;
-    head               = SCRATCH_HEAD(MATRIX);
-    scratch            = (ActorScaleScratch*)((u8*)head - 0x30);
-    SCRATCH_HEAD(void) = scratch;
-    coord              = work->field_344;
+    work                            = arg0->work;
+    head                            = SCRATCH_HEAD(ActorScaleScratch);
+    scratch                         = head - 1;
+    SCRATCH_HEAD(ActorScaleScratch) = scratch;
+    coord                           = work->field_344;
     if (work->field_35A >= 0x201) {
         work->field_35A = (u16)work->field_35A - 0x50;
     }
@@ -2062,5 +2062,5 @@ void Actor03800_Fn037E0(Task* arg0)
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->flg = 0;
-    SCRATCH_POP_BYTES(0x30);
+    SCRATCH_POP(ActorScaleScratch);
 }

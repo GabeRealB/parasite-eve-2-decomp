@@ -1585,15 +1585,15 @@ void Actor04600_Fn0294C(Task* arg0, GsCOORDINATE2* arg1)
 void Actor04600_Fn02B14(Task* arg0)
 {
     GsCOORDINATE2*     coord;
-    MATRIX*            head;
+    ActorScaleScratch* head;
     ActorScaleScratch* scratch;
     Actor104600Work*   work;
 
-    head               = SCRATCH_HEAD(MATRIX);
-    work               = arg0->work;
-    scratch            = (ActorScaleScratch*)((u8*)head - 0x30);
-    SCRATCH_HEAD(void) = scratch;
-    coord              = (*(TmdObject**)&arg0->extra)->coords;
+    head                            = SCRATCH_HEAD(ActorScaleScratch);
+    work                            = arg0->work;
+    scratch                         = head - 1;
+    SCRATCH_HEAD(ActorScaleScratch) = scratch;
+    coord                           = (*(TmdObject**)&arg0->extra)->coords;
     if (work->field_2CA >= 0x201) {
         work->field_2CA = (u16)work->field_2CA - 0x50;
     }
@@ -1609,7 +1609,7 @@ void Actor04600_Fn02B14(Task* arg0)
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->flg = 0;
-    SCRATCH_POP_BYTES(0x30);
+    SCRATCH_POP(ActorScaleScratch);
 }
 
 /// Exit callback of the first enemy: detaches the enemy's contact records,
@@ -2301,15 +2301,15 @@ void Actor04600_Fn03F30(Task* task)
 void Actor04600_Fn0400C(Task* arg0)
 {
     GsCOORDINATE2*         coord;
-    MATRIX*                head;
+    ActorScaleScratch*     head;
     ActorScaleScratch*     scratch;
     Actor104600Enemy2Work* work;
 
-    head               = SCRATCH_HEAD(MATRIX);
-    work               = arg0->work;
-    scratch            = (ActorScaleScratch*)((u8*)head - 0x30);
-    SCRATCH_HEAD(void) = scratch;
-    coord              = (*(TmdObject**)&arg0->extra)->coords;
+    head                            = SCRATCH_HEAD(ActorScaleScratch);
+    work                            = arg0->work;
+    scratch                         = head - 1;
+    SCRATCH_HEAD(ActorScaleScratch) = scratch;
+    coord                           = (*(TmdObject**)&arg0->extra)->coords;
     if (work->field_2A0 >= 0x201) {
         work->field_2A0 = (u16)work->field_2A0 - 0x50;
     }
@@ -2325,7 +2325,7 @@ void Actor04600_Fn0400C(Task* arg0)
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->flg = 0;
-    SCRATCH_POP_BYTES(0x30);
+    SCRATCH_POP(ActorScaleScratch);
 }
 
 /// Exit callback of the second enemy: detaches the enemy's contact records,

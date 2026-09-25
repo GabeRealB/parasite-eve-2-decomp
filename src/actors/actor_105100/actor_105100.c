@@ -2626,14 +2626,14 @@ void func_actor_105100_80136524(Task* arg0)
 /// copy, the delay-slot fill and the frame layout.
 void func_actor_105100_80136574(Task* arg0, MATRIX* arg1, s16 arg2, s32 arg3)
 {
-    void*              head;
+    ActorScaleScratch* head;
     ActorScaleScratch* blk;
     GsCOORDINATE2*     coord;
 
-    head               = SCRATCH_HEAD(void);
-    SCRATCH_HEAD(void) = (u8*)head - 0x30;
-    blk                = (ActorScaleScratch*)((u8*)head - 0x30);
-    coord              = ((TmdObject*)arg0->extra)->coords;
+    head                            = SCRATCH_HEAD(ActorScaleScratch);
+    SCRATCH_HEAD(ActorScaleScratch) = head - 1;
+    blk                             = head - 1;
+    coord                           = ((TmdObject*)arg0->extra)->coords;
 
     if (arg3 == 0) {
         blk->scale.vx = 0x1000;
@@ -2656,7 +2656,7 @@ void func_actor_105100_80136574(Task* arg0, MATRIX* arg1, s16 arg2, s32 arg3)
     ScaleMatrix(&blk->mat.mat, &blk->scale);
     MulMatrix(&coord->coord, &blk->mat.mat);
     coord->flg = 0;
-    SCRATCH_POP_BYTES(0x30);
+    SCRATCH_POP(ActorScaleScratch);
 }
 
 void func_actor_105100_8013667C(Task* arg0)

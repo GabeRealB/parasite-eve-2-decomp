@@ -2109,7 +2109,7 @@ static __inline__ void Actor00300_UpdateTransform(GpEnemy* arg0, Task* arg1)
     s32                disabled;
     s16                flags;
     s16                scale;
-    MATRIX*            head;
+    ActorScaleScratch* head;
     ActorScaleScratch* scratch;
     GsCOORDINATE2*     coord;
 
@@ -2132,24 +2132,24 @@ static __inline__ void Actor00300_UpdateTransform(GpEnemy* arg0, Task* arg1)
             obj->flags = 0x80;
             return;
         }
-        head                       = SCRATCH_HEAD(MATRIX);
-        scratch                    = (ActorScaleScratch*)((u8*)head - 0x30);
-        coord                      = ((TmdObject*)arg1->extra)->coords;
-        SCRATCH_HEAD(void)         = scratch;
-        scratch->scale.vx          = 0x1000;
-        scratch->scale.vy          = scale;
-        scratch->scale.vz          = 0x1000;
-        coord->coord               = work->field_628;
-        scratch->mat.ident.m00_m01 = 0x1000;
-        scratch->mat.ident.m02_m10 = 0;
-        scratch->mat.ident.m11_m12 = 0x1000;
-        scratch->mat.ident.m20_m21 = 0;
-        scratch->mat.ident.m22     = 0x1000;
+        head                            = SCRATCH_HEAD(ActorScaleScratch);
+        scratch                         = head - 1;
+        coord                           = ((TmdObject*)arg1->extra)->coords;
+        SCRATCH_HEAD(ActorScaleScratch) = scratch;
+        scratch->scale.vx               = 0x1000;
+        scratch->scale.vy               = scale;
+        scratch->scale.vz               = 0x1000;
+        coord->coord                    = work->field_628;
+        scratch->mat.ident.m00_m01      = 0x1000;
+        scratch->mat.ident.m02_m10      = 0;
+        scratch->mat.ident.m11_m12      = 0x1000;
+        scratch->mat.ident.m20_m21      = 0;
+        scratch->mat.ident.m22          = 0x1000;
         ScaleMatrix(&scratch->mat.mat, &scratch->scale);
         MulMatrix(&coord->coord, &scratch->mat.mat);
         coord->flg = 0;
         saved->flg = 0;
-        SCRATCH_POP_BYTES(0x30);
+        SCRATCH_POP(ActorScaleScratch);
     }
 }
 
@@ -2687,26 +2687,26 @@ void Actor00300_Fn05008(Task* arg0)
 void Actor00300_Fn0505C(Task* arg0, MATRIX* arg1, s16 arg2)
 {
     GsCOORDINATE2*     coord;
-    MATRIX*            head;
+    ActorScaleScratch* head;
     ActorScaleScratch* scratch;
 
-    head                       = SCRATCH_HEAD(MATRIX);
-    scratch                    = (ActorScaleScratch*)((u8*)head - 0x30);
-    SCRATCH_HEAD(void)         = scratch;
-    coord                      = ((TmdObject*)arg0->extra)->coords;
-    scratch->scale.vx          = 0x1000;
-    scratch->scale.vy          = arg2;
-    scratch->scale.vz          = 0x1000;
-    coord->coord               = *arg1;
-    scratch->mat.ident.m00_m01 = 0x1000;
-    scratch->mat.ident.m02_m10 = 0;
-    scratch->mat.ident.m11_m12 = 0x1000;
-    scratch->mat.ident.m20_m21 = 0;
-    scratch->mat.ident.m22     = 0x1000;
+    head                            = SCRATCH_HEAD(ActorScaleScratch);
+    scratch                         = head - 1;
+    SCRATCH_HEAD(ActorScaleScratch) = scratch;
+    coord                           = ((TmdObject*)arg0->extra)->coords;
+    scratch->scale.vx               = 0x1000;
+    scratch->scale.vy               = arg2;
+    scratch->scale.vz               = 0x1000;
+    coord->coord                    = *arg1;
+    scratch->mat.ident.m00_m01      = 0x1000;
+    scratch->mat.ident.m02_m10      = 0;
+    scratch->mat.ident.m11_m12      = 0x1000;
+    scratch->mat.ident.m20_m21      = 0;
+    scratch->mat.ident.m22          = 0x1000;
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->flg = 0;
-    SCRATCH_POP_BYTES(0x30);
+    SCRATCH_POP(ActorScaleScratch);
 }
 
 void Actor00300_Fn05138(Task* arg0)

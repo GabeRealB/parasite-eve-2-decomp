@@ -1988,15 +1988,15 @@ void Actor02600_Fn03AC0(Task* arg0)
 void Actor02600_Fn03B58(Task* arg0)
 {
     GsCOORDINATE2*     coord;
-    MATRIX*            head;
+    ActorScaleScratch* head;
     ActorScaleScratch* scratch;
     Actor105500Work*   work;
 
-    head               = SCRATCH_HEAD(MATRIX);
-    work               = arg0->work;
-    scratch            = (ActorScaleScratch*)((u8*)head - 0x30);
-    SCRATCH_HEAD(void) = scratch;
-    coord              = ((TmdObject*)arg0->extra)->coords;
+    head                            = SCRATCH_HEAD(ActorScaleScratch);
+    work                            = arg0->work;
+    scratch                         = head - 1;
+    SCRATCH_HEAD(ActorScaleScratch) = scratch;
+    coord                           = ((TmdObject*)arg0->extra)->coords;
     if (work->field_3A0 >= 0x201) {
         work->field_3A0 = (u16)work->field_3A0 - 0x50;
     }
@@ -2012,7 +2012,7 @@ void Actor02600_Fn03B58(Task* arg0)
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->flg = 0;
-    SCRATCH_POP_BYTES(0x30);
+    SCRATCH_POP(ActorScaleScratch);
 }
 
 void Actor02600_Fn03C4C(Task* actor)
@@ -2061,15 +2061,15 @@ void Actor02600_Fn03C4C(Task* actor)
 void Actor02600_Fn03D38(Task* actor)
 {
     void**             scratch;
-    void*              head;
+    ActorScaleScratch* head;
     ActorScaleScratch* blk;
     GsCOORDINATE2*     coord;
 
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    blk                            = (ActorScaleScratch*)((u8*)head - 0x30);
-    SCRATCH_HEAD_AT(scratch, void) = blk;
-    coord                          = ((TmdObject*)actor->extra)->coords;
+    scratch                                     = SCRATCH_HEAD_ADDR;
+    head                                        = SCRATCH_HEAD_AT(scratch, ActorScaleScratch);
+    blk                                         = head - 1;
+    SCRATCH_HEAD_AT(scratch, ActorScaleScratch) = blk;
+    coord                                       = ((TmdObject*)actor->extra)->coords;
 
     blk->scale.vx          = 0x100;
     blk->scale.vy          = 0x100;
@@ -2081,7 +2081,7 @@ void Actor02600_Fn03D38(Task* actor)
     blk->mat.ident.m22     = 0x1000;
     ScaleMatrix(&blk->mat.mat, &blk->scale);
     MulMatrix(&coord[2].coord, &blk->mat.mat);
-    SCRATCH_POP_BYTES_AT(scratch, 0x30);
+    SCRATCH_POP_AT(scratch, ActorScaleScratch);
 }
 
 void Actor02600_Fn03DD0(Task* arg0)

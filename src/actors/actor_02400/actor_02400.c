@@ -1674,17 +1674,17 @@ void Actor02400_Fn03228(Task* task)
 void Actor02400_Fn03278(Task* task)
 {
     void**             scratch;
-    void*              head;
+    ActorScaleScratch* head;
     ActorScaleScratch* blk;
     Actor02400Work*    work;
     GsCOORDINATE2*     coord;
 
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    blk                            = (ActorScaleScratch*)((u8*)head - 0x30);
-    SCRATCH_HEAD_AT(scratch, void) = blk;
-    coord                          = ((TmdObject*)task->extra)->coords;
-    work                           = task->work;
+    scratch                                     = SCRATCH_HEAD_ADDR;
+    head                                        = SCRATCH_HEAD_AT(scratch, ActorScaleScratch);
+    blk                                         = head - 1;
+    SCRATCH_HEAD_AT(scratch, ActorScaleScratch) = blk;
+    coord                                       = ((TmdObject*)task->extra)->coords;
+    work                                        = task->work;
 
     blk->scale.vx          = 0x1000;
     blk->scale.vy          = work->field_12A;
@@ -1698,7 +1698,7 @@ void Actor02400_Fn03278(Task* task)
     ScaleMatrix(&blk->mat.mat, &blk->scale);
     MulMatrix(&coord->coord, &blk->mat.mat);
     coord->flg = 0;
-    SCRATCH_POP_BYTES_AT(scratch, 0x30);
+    SCRATCH_POP_AT(scratch, ActorScaleScratch);
 }
 
 /// Task callback of the projectile: runs the `Actor02400_D0003C` handler for
