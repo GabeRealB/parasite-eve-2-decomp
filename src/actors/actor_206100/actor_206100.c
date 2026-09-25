@@ -101,17 +101,6 @@ extern GpAnimSet* D_actor_206100_80158B24[];
 /// it, so the tail entry is reachable.
 extern GpAreaPlace D_actor_206100_80155134[];
 
-/// 0x28-byte stride overlay of `Actor206100Work` from offset 0.  `anim` is
-/// 0x14 bytes, so `stride[i].field_1D` is `slots[i].field_9` -- the same
-/// overlap `Actor400500AnimStride` describes.  Walked from index 1 by
-/// `func_actor_206100_8014F284`.
-typedef struct Actor206100AnimStride {
-    /* 0x00 */ byte pad[0x1D];
-    /* 0x1D */ u8   field_1D;
-    /* 0x1E */ byte pad_1E[0xA];
-} Actor206100AnimStride;
-STATIC_ASSERT_SIZEOF(Actor206100AnimStride, 0x28);
-
 /// One vertex of the 8-point ring `func_actor_206100_8014FAE4` steps the actor's
 /// root coordinate around: radius 7600 in the XZ plane, one 45-degree step per
 /// entry, at a constant 3000 height.  `field_6` is unread.
@@ -419,7 +408,7 @@ typedef struct Actor206100Work {
     /// so this is a `u8`, not the `s8` the neighbours are.
     /* 0x556 */ u8 field_556;
     /// Animation step the spawn state leaves at 4 (`func_actor_206100_8014F284`
-    /// copies it into every slot's `field_1D`) and `func_actor_206100_8014BAA8`
+    /// copies it into every slot's `rate`) and `func_actor_206100_8014BAA8`
     /// also reads as a part index into the root coordinate array, so the load
     /// there is `lbu` and the field is unsigned.
     /* 0x557 */ u8 field_557;
@@ -3469,18 +3458,15 @@ void func_actor_206100_8014F18C(Task* task)
 
 void func_actor_206100_8014F284(Task* task)
 {
-    Actor206100Work*       work;
-    Actor206100AnimStride* stride;
-    s32                    i;
+    Actor206100Work* work;
+    s32              i;
 
-    work   = (Actor206100Work*)task->work;
-    i      = 1;
-    stride = (Actor206100AnimStride*)work + 1;
+    work = (Actor206100Work*)task->work;
+    i    = 1;
     do {
         Gp_AnimResetSlot(&work->anim, i, work->field_510);
+        work->slots[i].rate = (u8)work->field_51A;
         i++;
-        stride->field_1D = (u8)work->field_51A;
-        stride++;
     } while (i < 0xF);
     work->field_50E = (u16)work->field_510;
 }
@@ -3490,7 +3476,7 @@ void func_actor_206100_8014F284(Task* task)
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 /// Re-arms every animation slot for the pending request: writes the request's
-/// step scale (`field_51A`) into each slot's `field_1D` and re-seeks the slot to
+/// step scale (`field_51A`) into each slot's `rate` and re-seeks the slot to
 /// the requested clip with `func_800B4114`, whose fifth argument is the request's
 /// own value at `field_524`.  When the clip already playing (`field_50E`) is not
 /// the one requested, `field_524` is cleared as well.  `field_50E` latches the
@@ -3506,14 +3492,14 @@ void func_actor_206100_8014F2F0(Task* arg0)
     if (work->field_50E == work->field_510) {
         i = 1;
         do {
-            ((Actor206100AnimStride*)work)[i].field_1D = (u8)work->field_51A;
+            work->slots[i].rate = (u8)work->field_51A;
             func_800B4114(&work->anim, i, work->field_510, 0, work->field_524);
             i++;
         } while (i < 0xF);
     } else {
         i = 1;
         do {
-            ((Actor206100AnimStride*)work)[i].field_1D = (u8)work->field_51A;
+            work->slots[i].rate = (u8)work->field_51A;
             func_800B4114(&work->anim, i, work->field_510, 0, work->field_524);
             i++;
         } while (i < 0xF);

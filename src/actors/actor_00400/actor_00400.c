@@ -111,13 +111,9 @@ typedef union Actor100400Flags {
 } Actor100400Flags;
 
 typedef struct Actor100400Work {
-    /* 0x000 */ byte               pad_0[8];
-    /* 0x008 */ byte               field_8[0xC];
-    /* 0x014 */ byte               field_14[0x14];
-    /* 0x028 */ byte               pad_28[0x24];
-    /* 0x04C */ u16                field_4C;
-    /* 0x04E */ byte               pad_4E[0x21E];
-    /* 0x26C */ byte               field_26C[0xF0];
+    /* 0x000 */ GpAnimCtx          anim;
+    /* 0x014 */ GpAnimSlot         slots[15];
+    /* 0x26C */ byte               poses[0xF0];
     /* 0x35C */ GpObj              obj_35C;
     /* 0x37C */ GpObj              obj_37C;
     /* 0x39C */ GpRec18            field_39C[6];
@@ -199,14 +195,6 @@ typedef struct Actor100400Work {
     /* 0x665 */ s8                 field_665;
     /* 0x666 */ u8                 field_666;
 } Actor100400Work;
-
-/// One 0x28-byte animation slot record, as walked from `Actor100400Work`
-/// by `Actor00400_Fn085B8`; slot 0 overlaps the work header.
-typedef struct Actor100400AnimStride {
-    /* 0x00 */ byte pad[0x1D];
-    /* 0x1D */ u8   field_1D;
-    /* 0x1E */ byte pad_1E[0xA];
-} Actor100400AnimStride;
 
 /// One 0x14-byte row of `Actor00400_D15F20`, the per-room spawn table the entry
 /// state walks until `area` reads 0xFF. A row matches when its `area` / `room`
@@ -695,7 +683,7 @@ void Actor00400_Fn00B48(Task* arg0)
     obj->hpMax              = hp;
     obj->hp                 = hp;
     coord->sub              = &gGfxViewCoord;
-    func_800B3F84((GpAnimCtx*)work, Actor00400_D1604C, ctx, work->field_26C, (GpAnimSlot*)work->field_14);
+    func_800B3F84(&work->anim, Actor00400_D1604C, ctx, work->poses, work->slots);
     Actor00400_Fn019B4(arg0);
     work->field_556 = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
 }
@@ -2308,7 +2296,7 @@ void Actor00400_Fn040DC(Task* arg0)
                 break;
             }
             fns.funcs[work->field_638](arg0);
-            work->flags_62C.half = work->field_4C;
+            work->flags_62C.half = work->slots[1].flags;
             if (work->field_644 != 4) {
                 work->field_660 = 1;
                 Actor00400_Fn02648(arg0, 1);
@@ -2478,7 +2466,7 @@ void Actor00400_Fn04580(Task* arg0)
                 Gp_AnimTickIndex((GpAnimCtx*)w, i);
                 i++;
             } while (i < 0xF);
-            work->flags_62C.half = work->field_4C;
+            work->flags_62C.half = work->slots[1].flags;
             Actor00400_Fn016A4(arg0, (u8)work->field_665);
             w2              = arg0->work;
             coord           = ((TmdObject*)arg0->extra)->coords;
@@ -2623,7 +2611,7 @@ void Actor00400_Fn04B48(Task* arg0)
                 break;
             }
             fns.funcs[work->field_638](arg0);
-            work->flags_62C.half = work->field_4C;
+            work->flags_62C.half = work->slots[1].flags;
             /* fallthrough */
         case 1:
             ctx2  = arg0->extra;
@@ -2758,7 +2746,7 @@ void Actor00400_Fn04E18(Task* arg0)
                 Gp_AnimTickIndex((GpAnimCtx*)w, i);
                 i++;
             } while (i < 0xF);
-            work->flags_62C.half = work->field_4C;
+            work->flags_62C.half = work->slots[1].flags;
             Actor00400_Fn02648(arg0, work->field_660);
             w2              = arg0->work;
             coord           = ((TmdObject*)arg0->extra)->coords;
@@ -3484,7 +3472,7 @@ void Actor00400_Fn06B7C(Task* arg0)
                 Gp_AnimTickIndex((GpAnimCtx*)w, i);
                 i++;
             } while (i < 0xF);
-            work->flags_62C.half = work->field_4C;
+            work->flags_62C.half = work->slots[1].flags;
             w2                   = arg0->work;
             coord                = ((TmdObject*)arg0->extra)->coords;
             ia                   = &m.ident;
@@ -3667,7 +3655,7 @@ void Actor00400_Fn070C0(Task* arg0)
                 Gp_AnimTickIndex((GpAnimCtx*)w, i);
                 i++;
             } while (i < 0xF);
-            work->flags_62C.half = work->field_4C;
+            work->flags_62C.half = work->slots[1].flags;
             w2                   = arg0->work;
             coord                = ((TmdObject*)arg0->extra)->coords;
             ia                   = &m.ident;
@@ -4324,18 +4312,15 @@ void Actor00400_Fn08464(Task* arg0, s16 arg1, s16 arg2, SVECTOR* arg3)
 
 void Actor00400_Fn085B8(Task* arg0)
 {
-    Actor100400Work*       work;
-    Actor100400AnimStride* stride;
-    s32                    i;
+    Actor100400Work* work;
+    s32              i;
 
-    work   = arg0->work;
-    i      = 1;
-    stride = (Actor100400AnimStride*)work + 1;
+    work = arg0->work;
+    i    = 1;
     do {
-        Gp_AnimResetSlot((GpAnimCtx*)work, i, work->field_628);
+        Gp_AnimResetSlot(&work->anim, i, work->field_628);
+        work->slots[i].rate = (u8)work->field_632;
         i++;
-        stride->field_1D = (u8)work->field_632;
-        stride++;
     } while (i < 0xF);
     work->field_626 = (u16)work->field_628;
 }
@@ -4345,23 +4330,21 @@ void Actor00400_Fn085B8(Task* arg0)
 /// when the requested clip `field_628` differs from the current `field_626`.
 void Actor00400_Fn08624(Task* arg0)
 {
-    Actor100400Work*       work;
-    Actor100400AnimStride* slots;
-    s32                    i;
+    Actor100400Work* work;
+    s32              i;
 
-    work  = arg0->work;
-    slots = (Actor100400AnimStride*)work;
+    work = arg0->work;
     if (work->field_626 == work->field_628) {
         i = 1;
         do {
-            slots[i].field_1D = (u8)work->field_632;
+            work->slots[i].rate = (u8)work->field_632;
             func_800B4114(work, i, work->field_628, 0, work->field_63C);
             i++;
         } while (i < 0xF);
     } else {
         i = 1;
         do {
-            slots[i].field_1D = (u8)work->field_632;
+            work->slots[i].rate = (u8)work->field_632;
             func_800B4114(work, i, work->field_628, 0, work->field_63C);
             i++;
         } while (i < 0xF);
@@ -4443,7 +4426,7 @@ void Actor00400_Fn08814(Task* arg0)
     }
     i = 1;
     do {
-        Gp_AnimTickIndex((GpAnimCtx*)work, i);
+        Gp_AnimTickIndex(&work->anim, i);
         i++;
     } while (i < 0xF);
 }
