@@ -1,7 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_323300.h"
-#include "actors/actors_shared_80132808.h"
 
 #include "gameplay/3CD8.h"
 
