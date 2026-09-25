@@ -81846,9 +81846,11 @@ a pseudo plus a constant — `s3+0x2c` for the load, `s0+0xc` for the stores —
 `memrefs_conflict_p` has two different base registers, no constant-address case,
 and returns "may conflict". `true_dependence` then adds a TRUE edge, and the load
 is pinned after the stores. `true_dependence`'s struct-member exemption does not
-apply either: it needs the *store* to be a `MEM_IN_STRUCT_P` reference at a
-**varying** address while the other access is non-varying, and a `lw`/`sw` off a
-register plus a constant is non-varying. So the edge is unconditional. (That
+apply either: it only drops the edge between a struct member at a **varying**
+address and a non-struct access at a **fixed** one (a `SYMBOL_REF` or a `LO_SUM`
+of one). A `lw`/`sw` off a pseudo plus a constant is varying - `rtx_varies_p`
+returns 1 for every register but the frame and arg pointers - so here both
+sides vary and the edge is unconditional. (That
 exemption is stock GCC 2.8.1, not a psx patch: `sched.c` in
 `local/gcc/gcc-2.8.1-psx/` is byte-identical to the pristine tarball here, and no
 patch under `local/gcc/patches/` mentions the scheduler at all — the section
@@ -140448,3 +140450,28 @@ its `param` or `super` pointer, no libgs coordinate function is called, and the
 was an earlier name for it. Entries above that spell `GsCOORDINATE2` or
 `GpCoordExt` describe the same type. A `(T*)((u8*)p - OFFSET_OF(T, m))` reach
 from a matrix back to its node is written `PARENT_OF(p, GpCoord, m)`.
+
+## A plain global store lets struct-member loads jump ahead of it; a load through a pointer does not (Actor00400_Fn03920, 2026-09-25)
+
+`true_dependence` in `sched.c` drops the edge between a store to a plain global
+(non-struct, fixed `%lo` address) and a load that is `MEM_IN_STRUCT_P` at a
+varying address. Every `arg0->field` read is in-struct (`COMPONENT_REF`
+expansion sets the flag, and combine keeps it when it narrows a word to `lh`),
+so after `D_80062735 = 0xB;` the scheduler may emit the `lh` of
+`(arg0->spawnArg1 >> 16) & 1` above the `sb` - it does so to fill the load delay
+before the `andi`. The target kept the store first. Re-declaring the global as
+an array makes the store in-struct and restores the edge, but that gives one
+object two declarations. Reading the field through a plain pointer instead makes
+the *load* non-struct, which also keeps the edge, and CSE folds the pointer back
+into `0x36(s2)`:
+
+```c
+spawnArg   = &arg0->spawnArg1;
+D_80062735 = 0xB;
+...
+if ((*spawnArg >> 16) & 1) {
+```
+
+When a load the target keeps below a global store is hoisted above it, look for
+the read that went through a pointer, not for a different declaration of the
+global.

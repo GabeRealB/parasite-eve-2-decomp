@@ -217,11 +217,6 @@ STATIC_ASSERT_SIZEOF(Actor100400AreaConfig, 0x14);
 void       Actor00400_Fn005DC(GpCoord* arg0, u16 arg1, u16 arg2, s32 arg3);
 extern s32 D_80115738;
 
-/// `D_80062735`, which sits in a block of flag bytes, reached as an element of
-/// that block: a store to an array element keeps its place ahead of the task
-/// loads that follow it, where a store to a lone byte would not.
-extern u8 _D_80062735Bytes[] asm("D_80062735");
-
 /* This overlay calls the gameplay helpers through its own (wider) prototypes:
    the extra trailing arguments are set up at every call site but ignored by
    the definitions in src/gameplay/3A34.c. */
@@ -1982,11 +1977,13 @@ void Actor00400_Fn03920(Task* arg0)
     s32                  nibble;
     s32                  index;
     u16                  y;
+    s32*                 spawnArg;
 
-    _D_80062735Bytes[0] = 0xB;
-    obj                 = arg0->spawnArg2;
-    coord               = arg0->extra.tmd->coords;
-    if ((arg0->spawnArg1 >> 16) & 1) {
+    spawnArg   = &arg0->spawnArg1;
+    D_80062735 = 0xB;
+    obj        = arg0->spawnArg2;
+    coord      = arg0->extra.tmd->coords;
+    if ((*spawnArg >> 16) & 1) {
         Gp_DestroyEnemy(obj, arg0);
         return;
     }
