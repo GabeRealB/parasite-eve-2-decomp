@@ -686,14 +686,13 @@ s32 func_actor_450800_80132B44(Task* task, s32 arg1, Actor450800AnimArgs* args)
     return 0;
 }
 
-/// Message handler 0x7D5 of `D_actor_450800_8014AC58`: sets the visibility
-/// flags on this actor's own model and on the three helper tasks' ones at once.
+/// Message handler 0x7D5 of `D_actor_450800_8014AC58`: sets `TmdObject::flags`
+/// on this actor's own model and on the three helper tasks' ones at once.
 ///
-/// `arg2` bit 0 hides -- `field_C = 0` -- rather than shows (`0x80`), and bit 1
-/// ORs 4 in, so the payload 0 `Gp_MsgSlot4Chain` sends for the first chain entry
-/// shows all four. `Actor450800Work::field_500` overrides the last of them:
-/// while it is 0 the helper at `field_4F8` keeps the 0x84 appearance handler
-/// 0x7DB's mode 2 gave it, instead of the flags just computed.
+/// `arg2` bit 0 selects 0 rather than 0x80, and bit 1 ORs 4 in.
+/// `Actor450800Work::field_500` overrides the last of them: while it is 0 the
+/// helper at `field_4F8` keeps the 0x84 handler 0x7DB's mode 2 gave it,
+/// instead of the flags just computed.
 s32 func_actor_450800_80132BB0(Task* task, s32 arg1, s32 arg2)
 {
     Actor450800Work* work;
@@ -1102,10 +1101,9 @@ s32 func_actor_450800_80133528(Task* task, s32 arg1, Actor450800AnimArgs* args)
     return 0;
 }
 
-/// Message handler 0x7D5 of `D_actor_450800_801539AC`: sets the visibility
-/// flags on the enemy's own model and on the sub-model task in `field_4B8` at
-/// once. `flags` bit 0 hides both (`TmdObject::flags` = 0) and its absence
-/// restores the default 0x80; bit 1 additionally ORs in 0x4.
+/// Message handler 0x7D5 of `D_actor_450800_801539AC`: sets `TmdObject::flags`
+/// on the enemy's own model and on the sub-model task's in `field_4B8` at
+/// once. `flags` bit 0 selects 0 rather than 0x80, and bit 1 ORs 4 in.
 s32 func_actor_450800_80133594(Task* task, s32 arg1, s32 flags)
 {
     TmdObject* self;
