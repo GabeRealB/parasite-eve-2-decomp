@@ -1,16 +1,20 @@
 #include "common.h"
 
-#include "actors/actors_shared_8013d268.h"
-
+#include "actors/actor_312200.h"
 #include "main/tmd.h"
 
-s32 ActorsShared8013d268(Task* task, s32 arg1, s32 arg2)
+/// Id 0x7D5 command handler, listed first in `D_actor_312200_80169F5C`. `arg2`
+/// is the mode: 0 sets the model's `TmdObject::flags` to exactly 0x80, 1 clears
+/// them, 2 raises bit 0x4, and 3 clears them and then raises bit 0x4. Modes 0
+/// and 1 re-run `Tmd_AllocBuffers` on the model, and every mode except 1 resets
+/// the work block's `field_0` state word. `arg1` is unused.
+s32 func_actor_312200_80163510(Task* task, s32 arg1, s32 arg2)
 {
-    TmdObject*                obj;
-    ActorsShared8013d268Work* work;
+    TmdObject*       obj;
+    Actor312200Work* work;
 
     obj  = (TmdObject*)task->extra;
-    work = (ActorsShared8013d268Work*)task->work;
+    work = (Actor312200Work*)task->work;
     switch (arg2) {
         case 0:
             obj->flags = 0x80;

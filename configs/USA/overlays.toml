@@ -3681,11 +3681,11 @@ id = 197
 objects = [
   { kind = "packageId" },
   { unit = "actor_312200/actor_312200", rodata = "0x4", text = "0x8A4" },
-  { lib = true, unit = "actors_shared_fn000e8", text = "0x10" },
-  { lib = true, unit = "actors_shared_fn00430", text = "0x358" },
-  { lib = true, unit = "actors_shared_8013d268", text = "0x16F0" },
+  { unit = "actor_312200/actor_312200_3", text = "0x10" },
+  { unit = "actor_312200/actor_312200_4", text = "0x358" },
+  { unit = "actor_312200/actor_312200_5", text = "0x16F0" },
   { unit = "actor_312200/actor_312200_2", text = "0x17AC" },
-  { lib = true, unit = "actors_shared_80135df4", text = "0x1A34" },
+  { unit = "actor_312200/actor_312200_6", text = "0x1A34" },
   { kind = "model", at = "0x1A90" },
   { kind = "data", at = "0x634C" },
 ]

@@ -20,6 +20,78 @@ extern u8 D_actor_312200_80169F5C[];
 
 INCLUDE_ASM("actors/nonmatchings/actor_312200/actor_312200", func_actor_312200_801626C4);
 
+/// Carries `v` from the local frame `coord` up the `GsCOORDINATE2::sub` parent
+/// chain into world space, using a 0x20 scratch block from `G_SCRATCH_HEAD`.
+static __inline__ void Actor312200_ToWorld(GsCOORDINATE2* coord, SVECTOR* v)
+{
+    RoomsShared80182078Walk* blk;
+
+    {
+        register GsCOORDINATE2* parent asm("v0");
+        parent                                                                                              = coord;
+        ((RoomsShared80182078Walk*)((u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomsShared80182078Walk)))->coord = parent;
+    }
+    {
+        register u8* tmp asm("v0");
+        tmp = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomsShared80182078Walk);
+        blk = (RoomsShared80182078Walk*)tmp;
+    }
+    blk->vec.vx = v->vx;
+    blk->vec.vy = v->vy;
+    blk->vec.vz = v->vz;
+
+    *(void**)G_SCRATCH_HEAD = blk;
+    while (blk->coord != NULL) {
+        gte_SetTransMatrix(&blk->coord->coord);
+        gte_SetRotMatrix(&blk->coord->coord);
+        gte_ldv0(&blk->vec);
+        gte_rtv0tr();
+        gte_stlvnl(blk->out);
+        gte_stflg(&blk->flag);
+        blk->vec.vx = *(u16*)&blk->out[0];
+        blk->vec.vy = *(u16*)&blk->out[1];
+        blk->vec.vz = *(u16*)&blk->out[2];
+        blk->coord  = blk->coord->sub;
+    }
+    v->vx = blk->vec.vx;
+    v->vy = blk->vec.vy;
+    v->vz = blk->vec.vz;
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomsShared80182078Walk);
+}
+
+/// The same walk as `Actor312200_ToWorld`, spelled without its register
+/// bindings; each caller site needs its own form to match.
+static __inline__ void Actor312200_ToWorld2(GsCOORDINATE2* coord, SVECTOR* v)
+{
+    RoomsShared80182078Walk* blk;
+
+    blk         = (RoomsShared80182078Walk*)((u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomsShared80182078Walk));
+    blk->coord  = coord;
+    blk->vec.vx = v->vx;
+    blk->vec.vy = v->vy;
+    blk->vec.vz = v->vz;
+
+    *(void**)G_SCRATCH_HEAD = blk;
+    while (blk->coord != NULL) {
+        gte_SetTransMatrix(&blk->coord->coord);
+        gte_SetRotMatrix(&blk->coord->coord);
+        gte_ldv0(&blk->vec);
+        gte_rtv0tr();
+        gte_stlvnl(blk->out);
+        gte_stflg(&blk->flag);
+        blk->vec.vx = *(u16*)&blk->out[0];
+        blk->vec.vy = *(u16*)&blk->out[1];
+        blk->vec.vz = *(u16*)&blk->out[2];
+        blk->coord  = blk->coord->sub;
+    }
+    v->vx = blk->vec.vx;
+    v->vy = blk->vec.vy;
+    v->vz = blk->vec.vz;
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomsShared80182078Walk);
+}
+
 /// Same body as `RoomsShared80182078` / `Actor01900_Fn00FA4` /
 /// `func_actor_323000_80162BD0` / `func_actor_356100_80162C90`.
 s32 func_actor_312200_80162868(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push)
@@ -51,13 +123,13 @@ s32 func_actor_312200_80162868(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s
     *scratch   = st;
     st->eye.vz = vz;
 
-    RoomsShared80182078ToWorld(coord->sub, &st->eye);
+    Actor312200_ToWorld(coord->sub, &st->eye);
 
     st->aim.vx = 0;
     st->aim.vy = 0;
     st->aim.vz = 0x1000;
 
-    RoomsShared80182078ToWorld2(coord, &st->aim);
+    Actor312200_ToWorld2(coord, &st->aim);
 
     for (st->i = 0; st->i < count; st->i++) {
         if (recs[st->i].key == 0) {
@@ -354,4 +426,4 @@ void func_actor_312200_80163370(GpEnemy* enemy, Task* task)
         vec.vx = 0;
     }
 }
-INCLUDE_RODATA("actors/nonmatchings/actor_312200/actor_312200", ActorsShared80135df4Table);
+INCLUDE_RODATA("actors/nonmatchings/actor_312200/actor_312200", D_actor_312200_80161E24);
