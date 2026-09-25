@@ -3,8 +3,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/abs.h>
 #include <psyq/rand.h>
-#include "actors/actor_136300.h"
-#include "actors/actors_shared_80149ed0.h"
+#include "actors/actor.h"
 #include "gameplay/268.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
@@ -42,16 +41,16 @@ extern s32 D_actor_136300_80132ADC;
 
 /// The ramp context the running wave task was spawned with, parked at spawn
 /// so the tick reads the ramp through it.
-extern ActorWaveCtx* D_actor_136300_8013C888;
+extern OverlayWaveCtx* D_actor_136300_8013C888;
 
 /// Per-column and per-row phase records: each is seeded with a random offset
 /// and speed at spawn and advanced by its speed every frame.
-extern ActorWaveRec6 D_actor_136300_8013C88C[11];
-extern ActorWaveRec6 D_actor_136300_8013C8DC[30];
+extern OverlayWaveRec6 D_actor_136300_8013C88C[11];
+extern OverlayWaveRec6 D_actor_136300_8013C8DC[30];
 
 /// The ramp context the message handler seeds and hands to the screen-wave
 /// task.
-extern ActorWaveCtx D_actor_136300_8013C99C;
+extern OverlayWaveCtx D_actor_136300_8013C99C;
 
 /// Spawn table of the screen-wave task.
 extern TaskDesc D_actor_136300_80132AC4;
@@ -68,15 +67,15 @@ extern TaskDesc D_actor_136300_80132AC4;
 /// behind the `D_800691CA` store, which a member read lets GCC hoist above it.
 void func_actor_136300_80131E40(Task* arg0)
 {
-    ActorWaveCtx* ctx;
-    POLY_FT4*     p;
-    DR_STP*       stp;
-    s32           i, j, k;
-    s32           drawY;
-    s32           tpage0, tpage1;
-    s32           u0, u1, v0, v1;
-    s32           waveX0, waveY0, waveX1, waveY1;
-    s32           waveX2, waveY2, waveX3, waveY3;
+    OverlayWaveCtx* ctx;
+    POLY_FT4*       p;
+    DR_STP*         stp;
+    s32             i, j, k;
+    s32             drawY;
+    s32             tpage0, tpage1;
+    s32             u0, u1, v0, v1;
+    s32             waveX0, waveY0, waveX1, waveY1;
+    s32             waveX2, waveY2, waveX3, waveY3;
 
     D_800691CA = 2;
     switch (*(s32*)((u8*)arg0 + OFFSET_OF(Task, state))) {
@@ -91,26 +90,26 @@ void func_actor_136300_80131E40(Task* arg0)
                 D_actor_136300_8013C8DC[i].offset = (u32)rand() >> 3;
                 D_actor_136300_8013C8DC[i].speed  = (rand() * 100 + 20) >> 15;
             }
-            D_actor_136300_80132ADC          = 0;
-            D_actor_136300_8013C888          = arg0->spawnArg2;
-            D_actor_136300_8013C888->field_6 = 0;
-            D_actor_136300_8013C888->field_4 = 0;
+            D_actor_136300_80132ADC        = 0;
+            D_actor_136300_8013C888        = arg0->spawnArg2;
+            D_actor_136300_8013C888->frame = 0;
+            D_actor_136300_8013C888->state = 0;
             Display_ClampField126(-8);
             arg0->state++;
             break;
         case 1:
             ctx = D_actor_136300_8013C888;
-            switch (ctx->field_4) {
+            switch (ctx->state) {
                 case 0:
-                    if (ctx->field_6 < ctx->field_0) {
-                        ctx->field_6++;
+                    if (ctx->frame < ctx->span) {
+                        ctx->frame++;
                     }
                     break;
                 case 1:
-                    if (ctx->field_6 > 0) {
-                        ctx->field_6--;
+                    if (ctx->frame > 0) {
+                        ctx->frame--;
                     } else {
-                        ctx->field_4 = 2;
+                        ctx->state = 2;
                     }
                     break;
                 case 2:
@@ -118,7 +117,7 @@ void func_actor_136300_80131E40(Task* arg0)
                     Display_ClampField126(0);
                     break;
             }
-            D_actor_136300_80132ADC = D_actor_136300_8013C888->field_6 * D_actor_136300_8013C888->field_2 / D_actor_136300_8013C888->field_0;
+            D_actor_136300_80132ADC = D_actor_136300_8013C888->frame * D_actor_136300_8013C888->scale / D_actor_136300_8013C888->span;
             for (i = 0; i < 11; i++) {
                 D_actor_136300_8013C88C[i].phase += D_actor_136300_8013C88C[i].speed;
             }
@@ -132,13 +131,13 @@ void func_actor_136300_80131E40(Task* arg0)
                     p              = (POLY_FT4*)gGpuPrimCursor;
                     gGpuPrimCursor = (u8*)(p + 1);
                     setPolyFT4(p);
-                    if (D_actor_136300_8013C888->field_8 == 0) {
+                    if (D_actor_136300_8013C888->blend == 0) {
                         setShadeTex(p, 1);
                     } else {
                         setShadeTex(p, 0);
-                        p->r0 = D_actor_136300_8013C888->field_9;
-                        p->g0 = D_actor_136300_8013C888->field_A;
-                        p->b0 = D_actor_136300_8013C888->field_B;
+                        p->r0 = D_actor_136300_8013C888->r;
+                        p->g0 = D_actor_136300_8013C888->g;
+                        p->b0 = D_actor_136300_8013C888->b;
                     }
                     u0 = k * 32;
                     u1 = (k + 1) * 32;
@@ -324,16 +323,16 @@ void func_actor_136300_80132910(s32 arg0)
         queue->field_22A = 2;
         if (arg0 != -2) {
             if (arg0 == 0) {
-                D_actor_136300_8013C99C.field_0 = 0x64;
-                D_actor_136300_8013C99C.field_2 = 0x100;
+                D_actor_136300_8013C99C.span  = 0x64;
+                D_actor_136300_8013C99C.scale = 0x100;
             } else {
-                D_actor_136300_8013C99C.field_0 = 5;
-                D_actor_136300_8013C99C.field_2 = 0x100;
+                D_actor_136300_8013C99C.span  = 5;
+                D_actor_136300_8013C99C.scale = 0x100;
             }
             Task_SpawnFromTable(&D_actor_136300_80132AC4, 0, 0, (s32)&D_actor_136300_8013C99C);
         }
     } else {
-        D_actor_136300_8013C99C.field_4 = arg0;
+        D_actor_136300_8013C99C.state = arg0;
     }
 }
 

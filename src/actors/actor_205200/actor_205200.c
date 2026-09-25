@@ -6,7 +6,7 @@
 #include <psyq/rand.h>
 
 #include "actors/actor_205200.h"
-#include "actors/actors_shared_80149e54.h"
+#include "actors/actor.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -58,26 +58,26 @@ typedef struct Actor205200Part {
 } Actor205200Part;
 STATIC_ASSERT_SIZEOF(Actor205200Part, 0x7C);
 
-extern s16           D_800691CA;
-extern u8            D_80070F87;
-extern u16           D_80071078;
-extern s32           D_actor_205200_8014CA5C;
-extern ActorWaveCtx* D_actor_205200_80156814;
-extern ActorWaveRec  D_actor_205200_80156818[9];
-extern ActorWaveRec  D_actor_205200_80156868[30];
-extern POLY_FT4      D_actor_205200_80156A98[][30][8];
-extern u16           D_actor_205200_8014C9CC[];
-extern s16           D_actor_205200_8014CA1C[];
-extern TaskDesc      D_actor_205200_8014CA60;
-extern u8            D_actor_205200_8014CA78[];
-extern TaskDesc      D_actor_205200_8014CA44;
+extern s16             D_800691CA;
+extern u8              D_80070F87;
+extern u16             D_80071078;
+extern s32             D_actor_205200_8014CA5C;
+extern OverlayWaveCtx* D_actor_205200_80156814;
+extern OverlayWaveRec  D_actor_205200_80156818[9];
+extern OverlayWaveRec  D_actor_205200_80156868[30];
+extern POLY_FT4        D_actor_205200_80156A98[][30][8];
+extern u16             D_actor_205200_8014C9CC[];
+extern s16             D_actor_205200_8014CA1C[];
+extern TaskDesc        D_actor_205200_8014CA60;
+extern u8              D_actor_205200_8014CA78[];
+extern TaskDesc        D_actor_205200_8014CA44;
 /// Context of the screen-wave task: `func_actor_205200_8014AB98` sets its
 /// length and peak and spawns the task with it, and the controller's state
-/// handlers drive its mode (`field_4`) - 2 while idle, 1 to ramp the wave down.
-extern ActorWaveCtx D_actor_205200_8015B458;
-extern GpPairSrcE   D_actor_205200_8014C9BC;
-extern SVECTOR*     D_actor_205200_8014CA24[];
-extern u16*         D_actor_205200_8014CA34[];
+/// handlers drive its ramp `state` - 2 while idle, 1 to ramp the wave down.
+extern OverlayWaveCtx D_actor_205200_8015B458;
+extern GpPairSrcE     D_actor_205200_8014C9BC;
+extern SVECTOR*       D_actor_205200_8014CA24[];
+extern u16*           D_actor_205200_8014CA34[];
 
 void func_8017E090(s32, s32);
 void func_8017EE08(s32, s32);
@@ -98,40 +98,40 @@ void func_actor_205200_8014BA94(Task* arg0);
 /// vertex by the sine of its row and column waves.
 void func_actor_205200_80149E54(Task* arg0)
 {
-    ActorWaveScratch* scratch;
-    ActorWaveScratch* head;
-    ActorWaveCtx*     ctx;
-    ActorWaveRec*     cols;
-    POLY_FT4*         p;
-    DR_STP*           stp;
-    s32               i;
-    s32               j;
-    s32               k;
-    s32               rowIndex;
-    s32               rowBack;
-    s32               u0;
-    s32               u1;
-    s32               v0;
-    s32               v1;
-    s32               waveX0;
-    s32               waveY0;
-    s32               waveX1;
-    s32               waveY1;
-    s32               waveX2;
-    s32               waveY2;
-    s32               waveX3;
-    s32               waveY3;
-    ActorWaveRec*     row;
+    OverlayWaveScratch* scratch;
+    OverlayWaveScratch* head;
+    OverlayWaveCtx*     ctx;
+    OverlayWaveRec*     cols;
+    POLY_FT4*           p;
+    DR_STP*             stp;
+    s32                 i;
+    s32                 j;
+    s32                 k;
+    s32                 rowIndex;
+    s32                 rowBack;
+    s32                 u0;
+    s32                 u1;
+    s32                 v0;
+    s32                 v1;
+    s32                 waveX0;
+    s32                 waveY0;
+    s32                 waveX1;
+    s32                 waveY1;
+    s32                 waveX2;
+    s32                 waveY2;
+    s32                 waveX3;
+    s32                 waveY3;
+    OverlayWaveRec*     row;
     POLY_FT4(*grid)
     [8];
     s32 tpage0;
     s32 tpage1;
 
-    head                                = *(ActorWaveScratch**)G_SCRATCH_HEAD;
-    D_800691CA                          = 2;
-    *(ActorWaveScratch**)G_SCRATCH_HEAD = head - 1;
-    cols                                = head[-1].cols;
-    scratch                             = head - 1;
+    head                                  = *(OverlayWaveScratch**)G_SCRATCH_HEAD;
+    D_800691CA                            = 2;
+    *(OverlayWaveScratch**)G_SCRATCH_HEAD = head - 1;
+    cols                                  = head[-1].cols;
+    scratch                               = head - 1;
     switch (arg0->state) {
         case 0:
             for (i = 0; i < 9; i++) {
@@ -144,10 +144,10 @@ void func_actor_205200_80149E54(Task* arg0)
                 D_actor_205200_80156868[i].offset = (u32)rand() >> 3;
                 D_actor_205200_80156868[i].speed  = ((rand() * 100) >> 15) + 20;
             }
-            D_actor_205200_8014CA5C          = 0;
-            D_actor_205200_80156814          = arg0->spawnArg2;
-            D_actor_205200_80156814->field_6 = 0;
-            D_actor_205200_80156814->field_4 = 0;
+            D_actor_205200_8014CA5C        = 0;
+            D_actor_205200_80156814        = arg0->spawnArg2;
+            D_actor_205200_80156814->frame = 0;
+            D_actor_205200_80156814->state = 0;
             Display_ClampField126(-8);
             for (i = 0; i < 2; i++) {
                 tpage0 = getTPage(2, 0, 0, i << 8);
@@ -157,13 +157,13 @@ void func_actor_205200_80149E54(Task* arg0)
                     p = grid[j];
                     for (k = 0; k < 8; p++, k++) {
                         setPolyFT4(p);
-                        if (D_actor_205200_80156814->field_8 == 0) {
+                        if (D_actor_205200_80156814->blend == 0) {
                             setShadeTex(p, 1);
                         } else {
                             setShadeTex(p, 0);
-                            p->r0 = D_actor_205200_80156814->field_9;
-                            p->g0 = D_actor_205200_80156814->field_A;
-                            p->b0 = D_actor_205200_80156814->field_B;
+                            p->r0 = D_actor_205200_80156814->r;
+                            p->g0 = D_actor_205200_80156814->g;
+                            p->b0 = D_actor_205200_80156814->b;
                         }
                         u0 = k * 40;
                         u1 = (k + 1) * 40;
@@ -201,19 +201,19 @@ void func_actor_205200_80149E54(Task* arg0)
             break;
         case 1:
             ctx = D_actor_205200_80156814;
-            switch (ctx->field_4) {
+            switch (ctx->state) {
                 case 0:
-                    if (ctx->field_6 < ctx->field_0) {
-                        ctx->field_6++;
+                    if (ctx->frame < ctx->span) {
+                        ctx->frame++;
                     }
                     break;
                 case 1:
-                    if (ctx->field_6 > 0) {
+                    if (ctx->frame > 0) {
                         if (Gp_StateF0.field_4 == 0) {
-                            ctx->field_6--;
+                            ctx->frame--;
                         }
                     } else {
-                        ctx->field_4 = 2;
+                        ctx->state = 2;
                     }
                     break;
                 case 2:
@@ -221,7 +221,7 @@ void func_actor_205200_80149E54(Task* arg0)
                     Display_ClampField126(0);
                     break;
             }
-            D_actor_205200_8014CA5C = D_actor_205200_80156814->field_6 * D_actor_205200_80156814->field_2 / D_actor_205200_80156814->field_0;
+            D_actor_205200_8014CA5C = D_actor_205200_80156814->frame * D_actor_205200_80156814->scale / D_actor_205200_80156814->span;
             for (i = 0; i < 9; i++) {
                 if (Gp_StateF0.field_4 == 0) {
                     D_actor_205200_80156818[i].phase += D_actor_205200_80156818[i].speed;
@@ -257,15 +257,15 @@ void func_actor_205200_80149E54(Task* arg0)
                         p->y1 = -112;
                     }
                     {
-                        ActorWaveRec* next = row + 1;
-                        waveX2             = D_actor_205200_8014CA5C * (rsin(((j + 1) << 9) + cols[k].phase + cols[k].offset) << 3);
-                        p->x2              = k * 40 + (s16)((waveX2 >> 20) - 160);
-                        waveY2             = D_actor_205200_8014CA5C * (rsin((k << 10) + row[1].phase + next->offset) << 3);
-                        p->y2              = (j + 1) * 8 + (s16)((ABS(waveY2) >> 20) - 104);
-                        waveX3             = D_actor_205200_8014CA5C * (rsin(((j + 1) << 9) + cols[k + 1].phase + cols[k + 1].offset) << 3);
-                        p->x3              = (k + 1) * 40 + (s16)((waveX3 >> 20) - 160);
-                        waveY3             = D_actor_205200_8014CA5C * (rsin(((k + 1) << 10) + row[1].phase + next->offset) << 3);
-                        p->y3              = (j + 1) * 8 + (s16)((ABS(waveY3) >> 20) - 104);
+                        OverlayWaveRec* next = row + 1;
+                        waveX2               = D_actor_205200_8014CA5C * (rsin(((j + 1) << 9) + cols[k].phase + cols[k].offset) << 3);
+                        p->x2                = k * 40 + (s16)((waveX2 >> 20) - 160);
+                        waveY2               = D_actor_205200_8014CA5C * (rsin((k << 10) + row[1].phase + next->offset) << 3);
+                        p->y2                = (j + 1) * 8 + (s16)((ABS(waveY2) >> 20) - 104);
+                        waveX3               = D_actor_205200_8014CA5C * (rsin(((j + 1) << 9) + cols[k + 1].phase + cols[k + 1].offset) << 3);
+                        p->x3                = (k + 1) * 40 + (s16)((waveX3 >> 20) - 160);
+                        waveY3               = D_actor_205200_8014CA5C * (rsin(((k + 1) << 10) + row[1].phase + next->offset) << 3);
+                        p->y3                = (j + 1) * 8 + (s16)((ABS(waveY3) >> 20) - 104);
                     }
                     addPrim(&gGpuCurrentOt[3], p);
                 }
@@ -281,7 +281,7 @@ void func_actor_205200_80149E54(Task* arg0)
     gGpuPrimCursor = (u8*)(stp + 1);
     SetDrawStp(stp, 0);
     addPrim(&gGpuCurrentOt[0], stp);
-    *(ActorWaveScratch**)G_SCRATCH_HEAD += 1;
+    *(OverlayWaveScratch**)G_SCRATCH_HEAD += 1;
 }
 
 void func_actor_205200_8014A72C(GpEnemy* enemy, Task* task)
@@ -301,9 +301,9 @@ void func_actor_205200_8014A72C(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->work                      = (TaskIdMap*)work;
-    work->field_1E                  = kind;
-    D_actor_205200_8015B458.field_4 = 2;
+    task->work                    = (TaskIdMap*)work;
+    work->field_1E                = kind;
+    D_actor_205200_8015B458.state = 2;
     for (i = 0; i < D_actor_205200_8014CA1C[work->field_1E]; i++) {
         Gp_SpawnEnemyFromTable(&D_actor_205200_8014CA60, 1, 0, enemy);
     }
@@ -348,8 +348,8 @@ void func_actor_205200_8014A958(GpEnemy* enemy, Task* task)
     if (gGameSession->eventState != 0 || work->field_2E != 0) {
         pulse = work->field_28;
         if (pulse == 1) {
-            D_actor_205200_8015B458.field_4 = pulse;
-            work->field_28                  = 0;
+            D_actor_205200_8015B458.state = pulse;
+            work->field_28                = 0;
         }
         if (work->field_2E != 0) {
             work->field_24 = 3;
@@ -391,8 +391,8 @@ void func_actor_205200_8014A958(GpEnemy* enemy, Task* task)
             case 2:
                 pulse = work->field_28;
                 if (pulse == 1) {
-                    D_actor_205200_8015B458.field_4 = pulse;
-                    work->field_28                  = 0;
+                    D_actor_205200_8015B458.state = pulse;
+                    work->field_28                = 0;
                 }
                 SndEvt_EnqueueType7(work->field_14, 1);
                 work->field_24 = 3;
@@ -413,9 +413,9 @@ void func_actor_205200_8014AB98(Task* arg0)
     switch (state) {
         case 0:
             if ((s16)--work->field_22 <= 0) {
-                if (D_actor_205200_8015B458.field_4 == 2) {
-                    D_actor_205200_8015B458.field_0 = 0xF;
-                    D_actor_205200_8015B458.field_2 = 0xA0;
+                if (D_actor_205200_8015B458.state == 2) {
+                    D_actor_205200_8015B458.span  = 0xF;
+                    D_actor_205200_8015B458.scale = 0xA0;
                     Task_SpawnFromTable(&D_actor_205200_8014CA44, 0, 0, (s32)&D_actor_205200_8015B458);
                     Gp_ArmStateF0(1);
                     work->field_28 = 1;
@@ -427,9 +427,9 @@ void func_actor_205200_8014AB98(Task* arg0)
             break;
         case 1:
             if ((s16)--work->field_22 <= 0) {
-                D_actor_205200_8015B458.field_4 = state;
-                work->field_22                  = D_actor_205200_8014C9CC[work->field_20];
-                work->field_26                  = 0;
+                D_actor_205200_8015B458.state = state;
+                work->field_22                = D_actor_205200_8014C9CC[work->field_20];
+                work->field_26                = 0;
                 Gp_SpendMp(1);
                 work->field_28 = 0;
             }

@@ -8,7 +8,6 @@
 #include <psyq/abs.h>
 #include <psyq/rand.h>
 
-#include "actors/actors_shared_80149ed0.h"
 #include "gameplay/1A8.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
@@ -164,11 +163,11 @@ extern s32 D_80114A34;
 extern s32 D_dryfield_dilapidated_house_80183E60;
 
 /// The ramp and tint the wave task was spawned with.
-extern ActorWaveCtx* D_dryfield_dilapidated_house_80189B74;
+extern OverlayWaveCtx* D_dryfield_dilapidated_house_80189B74;
 
 /// Phase records of the wave's 11 column edges and 30 row edges.
-extern ActorWaveRec6 D_dryfield_dilapidated_house_80189B84[11];
-extern ActorWaveRec6 D_dryfield_dilapidated_house_80189BD4[30];
+extern OverlayWaveRec6 D_dryfield_dilapidated_house_80189B84[11];
+extern OverlayWaveRec6 D_dryfield_dilapidated_house_80189BD4[30];
 
 extern RECT D_dryfield_dilapidated_house_80183E7C;
 extern RECT D_dryfield_dilapidated_house_80183E84;
@@ -204,8 +203,8 @@ extern s16 D_dryfield_dilapidated_house_80189B82[1];
 
 /// Shared in source with actor 136300: the ramp context the message handler
 /// seeds and hands to the screen-wave task it starts, and that task's entry.
-extern ActorWaveCtx D_dryfield_dilapidated_house_80189C94;
-extern TaskDesc     D_dryfield_dilapidated_house_80183E48;
+extern OverlayWaveCtx D_dryfield_dilapidated_house_80189C94;
+extern TaskDesc       D_dryfield_dilapidated_house_80183E48;
 
 extern GpMsgEntry D_dryfield_dilapidated_house_80183E8C[];
 extern s32        D_dryfield_dilapidated_house_80186804[16];
@@ -267,15 +266,15 @@ void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags);
 /// load at its offset, which keeps it ordered after the store to `D_800691CA`.
 void func_dryfield_dilapidated_house_8017D64C(Task* arg0)
 {
-    ActorWaveCtx* ctx;
-    POLY_FT4*     p;
-    DR_STP*       stp;
-    s32           i, j, k;
-    s32           drawY;
-    s32           tpage0, tpage1;
-    s32           u0, u1, v0, v1;
-    s32           waveX0, waveY0, waveX1, waveY1;
-    s32           waveX2, waveY2, waveX3, waveY3;
+    OverlayWaveCtx* ctx;
+    POLY_FT4*       p;
+    DR_STP*         stp;
+    s32             i, j, k;
+    s32             drawY;
+    s32             tpage0, tpage1;
+    s32             u0, u1, v0, v1;
+    s32             waveX0, waveY0, waveX1, waveY1;
+    s32             waveX2, waveY2, waveX3, waveY3;
 
     D_800691CA = 2;
     switch (*(s32*)((u8*)arg0 + 0x30)) {
@@ -290,26 +289,26 @@ void func_dryfield_dilapidated_house_8017D64C(Task* arg0)
                 D_dryfield_dilapidated_house_80189BD4[i].offset = (u32)rand() >> 3;
                 D_dryfield_dilapidated_house_80189BD4[i].speed  = (rand() * 100 + 20) >> 15;
             }
-            D_dryfield_dilapidated_house_80183E60          = 0;
-            D_dryfield_dilapidated_house_80189B74          = arg0->spawnArg2;
-            D_dryfield_dilapidated_house_80189B74->field_6 = 0;
-            D_dryfield_dilapidated_house_80189B74->field_4 = 0;
+            D_dryfield_dilapidated_house_80183E60        = 0;
+            D_dryfield_dilapidated_house_80189B74        = arg0->spawnArg2;
+            D_dryfield_dilapidated_house_80189B74->frame = 0;
+            D_dryfield_dilapidated_house_80189B74->state = 0;
             Display_ClampField126(-8);
             arg0->state++;
             break;
         case 1:
             ctx = D_dryfield_dilapidated_house_80189B74;
-            switch (ctx->field_4) {
+            switch (ctx->state) {
                 case 0:
-                    if (ctx->field_6 < ctx->field_0) {
-                        ctx->field_6++;
+                    if (ctx->frame < ctx->span) {
+                        ctx->frame++;
                     }
                     break;
                 case 1:
-                    if (ctx->field_6 > 0) {
-                        ctx->field_6--;
+                    if (ctx->frame > 0) {
+                        ctx->frame--;
                     } else {
-                        ctx->field_4 = 2;
+                        ctx->state = 2;
                     }
                     break;
                 case 2:
@@ -317,7 +316,7 @@ void func_dryfield_dilapidated_house_8017D64C(Task* arg0)
                     Display_ClampField126(0);
                     break;
             }
-            D_dryfield_dilapidated_house_80183E60 = D_dryfield_dilapidated_house_80189B74->field_6 * D_dryfield_dilapidated_house_80189B74->field_2 / D_dryfield_dilapidated_house_80189B74->field_0;
+            D_dryfield_dilapidated_house_80183E60 = D_dryfield_dilapidated_house_80189B74->frame * D_dryfield_dilapidated_house_80189B74->scale / D_dryfield_dilapidated_house_80189B74->span;
             for (i = 0; i < 11; i++) {
                 D_dryfield_dilapidated_house_80189B84[i].phase += D_dryfield_dilapidated_house_80189B84[i].speed;
             }
@@ -331,13 +330,13 @@ void func_dryfield_dilapidated_house_8017D64C(Task* arg0)
                     p              = (POLY_FT4*)gGpuPrimCursor;
                     gGpuPrimCursor = (u8*)(p + 1);
                     setPolyFT4(p);
-                    if (D_dryfield_dilapidated_house_80189B74->field_8 == 0) {
+                    if (D_dryfield_dilapidated_house_80189B74->blend == 0) {
                         setShadeTex(p, 1);
                     } else {
                         setShadeTex(p, 0);
-                        p->r0 = D_dryfield_dilapidated_house_80189B74->field_9;
-                        p->g0 = D_dryfield_dilapidated_house_80189B74->field_A;
-                        p->b0 = D_dryfield_dilapidated_house_80189B74->field_B;
+                        p->r0 = D_dryfield_dilapidated_house_80189B74->r;
+                        p->g0 = D_dryfield_dilapidated_house_80189B74->g;
+                        p->b0 = D_dryfield_dilapidated_house_80189B74->b;
                     }
                     u0 = k * 32;
                     u1 = (k + 1) * 32;
@@ -896,16 +895,16 @@ void func_dryfield_dilapidated_house_8017E8E8(s32 arg0)
         queue->field_22A = 2;
         if (arg0 != -2) {
             if (arg0 == 0) {
-                D_dryfield_dilapidated_house_80189C94.field_0 = 0x64;
-                D_dryfield_dilapidated_house_80189C94.field_2 = 0x100;
+                D_dryfield_dilapidated_house_80189C94.span  = 0x64;
+                D_dryfield_dilapidated_house_80189C94.scale = 0x100;
             } else {
-                D_dryfield_dilapidated_house_80189C94.field_0 = 5;
-                D_dryfield_dilapidated_house_80189C94.field_2 = 0x100;
+                D_dryfield_dilapidated_house_80189C94.span  = 5;
+                D_dryfield_dilapidated_house_80189C94.scale = 0x100;
             }
             Task_SpawnFromTable(&D_dryfield_dilapidated_house_80183E48, 0, 0, (s32)&D_dryfield_dilapidated_house_80189C94);
         }
     } else {
-        D_dryfield_dilapidated_house_80189C94.field_4 = arg0;
+        D_dryfield_dilapidated_house_80189C94.state = arg0;
     }
 }
 
@@ -961,7 +960,7 @@ void func_dryfield_dilapidated_house_8017EAB4(Task* arg0)
         D_dryfield_dilapidated_house_80189B78 =
             Task_SpawnFromTable(D_dryfield_dilapidated_house_80183EB4, 0, 0, 0);
     }
-    D_dryfield_dilapidated_house_80189C94.field_4 = 2;
+    D_dryfield_dilapidated_house_80189C94.state = 2;
     D_dryfield_dilapidated_house_80189B7C =
         Task_SpawnFromTable(D_dryfield_dilapidated_house_80183EB4, 2, 0, 0);
     gGameSession->flowFlags = 0x83;

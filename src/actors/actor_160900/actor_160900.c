@@ -20,7 +20,6 @@
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "actors/actors_shared_8013411c.h"
-#include "actors/actors_shared_80149ed0.h"
 
 /// 0x20-byte block `func_actor_160900_80133F90` allocates with
 /// `memCalloc(0x20, 0)` for each of the two child tasks it spawns from index 7
@@ -60,25 +59,25 @@ STATIC_ASSERT_SIZEOF(Actor160900ChildWork, 0x20);
 /// setting an eight-frame ramp; the `field_4C == 5` request ends the wave.
 /// The block is zeroed at allocation and this overlay never sets the tint.
 typedef struct Actor160900Work {
-    /* 0x00 */ ActorWaveCtx wave;
-    /* 0x0C */ Task*        field_C[10]; // child tasks, killed on death
-    /* 0x34 */ Task*        field_34;    // gameGetPtrSlot(3), Gp_DispatchMsg target
-    /* 0x38 */ Task*        field_38;    // D_actor_160900_8013FB50[3]
-    /* 0x3C */ Task*        field_3C;    // D_actor_160900_8013FB50[5]
-    /* 0x40 */ Task*        field_40;    // D_actor_160900_8013FB50[6]
-    /* 0x44 */ Task*        field_44;    // optional, notified with 0x7D5 alongside 0x3C/0x40
-    /* 0x48 */ byte         pad_48[4];
-    /* 0x4C */ s16          field_4C;
-    /* 0x4E */ s16          field_4E;
-    /* 0x50 */ byte         pad_50[4];
-    /* 0x54 */ s16          field_54;
-    /* 0x56 */ s16          field_56;
-    /* 0x58 */ byte         pad_58[4];
-    /* 0x5C */ s16          field_5C;
-    /* 0x5E */ s16          field_5E;
-    /* 0x60 */ byte         pad_60[4];
-    /* 0x64 */ u16          field_64;
-    /* 0x66 */ u16          field_66;
+    /* 0x00 */ OverlayWaveCtx wave;
+    /* 0x0C */ Task*          field_C[10]; // child tasks, killed on death
+    /* 0x34 */ Task*          field_34;    // gameGetPtrSlot(3), Gp_DispatchMsg target
+    /* 0x38 */ Task*          field_38;    // D_actor_160900_8013FB50[3]
+    /* 0x3C */ Task*          field_3C;    // D_actor_160900_8013FB50[5]
+    /* 0x40 */ Task*          field_40;    // D_actor_160900_8013FB50[6]
+    /* 0x44 */ Task*          field_44;    // optional, notified with 0x7D5 alongside 0x3C/0x40
+    /* 0x48 */ byte           pad_48[4];
+    /* 0x4C */ s16            field_4C;
+    /* 0x4E */ s16            field_4E;
+    /* 0x50 */ byte           pad_50[4];
+    /* 0x54 */ s16            field_54;
+    /* 0x56 */ s16            field_56;
+    /* 0x58 */ byte           pad_58[4];
+    /* 0x5C */ s16            field_5C;
+    /* 0x5E */ s16            field_5E;
+    /* 0x60 */ byte           pad_60[4];
+    /* 0x64 */ u16            field_64;
+    /* 0x66 */ u16            field_66;
 } Actor160900Work;
 STATIC_ASSERT_SIZEOF(Actor160900Work, 0x68);
 
@@ -153,12 +152,12 @@ extern s32 D_actor_160900_8013F194;
 
 /// The context the running wave task was spawned with, parked at spawn so
 /// the tick reads the ramp through it.
-extern ActorWaveCtx* D_actor_160900_8013FBB0;
+extern OverlayWaveCtx* D_actor_160900_8013FBB0;
 
 /// Per-column and per-row phase records: each is seeded with a random offset
 /// and speed at spawn and advanced by its speed every frame.
-extern ActorWaveRec6 D_actor_160900_8013FBB8[11];
-extern ActorWaveRec6 D_actor_160900_8013FC08[30];
+extern OverlayWaveRec6 D_actor_160900_8013FBB8[11];
+extern OverlayWaveRec6 D_actor_160900_8013FC08[30];
 
 /// Screen-wave task spawned from `D_actor_160900_8013F17C` with the overlay's
 /// work block as its argument. State 0 seeds the column and row phases, parks
@@ -172,15 +171,15 @@ extern ActorWaveRec6 D_actor_160900_8013FC08[30];
 /// behind the `D_800691CA` store, which a member read lets GCC hoist above it.
 void func_actor_160900_80131EB0(Task* arg0)
 {
-    ActorWaveCtx* ctx;
-    POLY_FT4*     p;
-    DR_STP*       stp;
-    s32           i, j, k;
-    s32           drawY;
-    s32           tpage0, tpage1;
-    s32           u0, u1, v0, v1;
-    s32           waveX0, waveY0, waveX1, waveY1;
-    s32           waveX2, waveY2, waveX3, waveY3;
+    OverlayWaveCtx* ctx;
+    POLY_FT4*       p;
+    DR_STP*         stp;
+    s32             i, j, k;
+    s32             drawY;
+    s32             tpage0, tpage1;
+    s32             u0, u1, v0, v1;
+    s32             waveX0, waveY0, waveX1, waveY1;
+    s32             waveX2, waveY2, waveX3, waveY3;
 
     D_800691CA = 2;
     switch (*(s32*)((u8*)arg0 + OFFSET_OF(Task, state))) {
@@ -195,26 +194,26 @@ void func_actor_160900_80131EB0(Task* arg0)
                 D_actor_160900_8013FC08[i].offset = (u32)rand() >> 3;
                 D_actor_160900_8013FC08[i].speed  = (rand() * 100 + 20) >> 15;
             }
-            D_actor_160900_8013F194          = 0;
-            D_actor_160900_8013FBB0          = arg0->spawnArg2;
-            D_actor_160900_8013FBB0->field_6 = 0;
-            D_actor_160900_8013FBB0->field_4 = 0;
+            D_actor_160900_8013F194        = 0;
+            D_actor_160900_8013FBB0        = arg0->spawnArg2;
+            D_actor_160900_8013FBB0->frame = 0;
+            D_actor_160900_8013FBB0->state = 0;
             Display_ClampField126(-8);
             arg0->state++;
             break;
         case 1:
             ctx = D_actor_160900_8013FBB0;
-            switch (ctx->field_4) {
+            switch (ctx->state) {
                 case 0:
-                    if (ctx->field_6 < ctx->field_0) {
-                        ctx->field_6++;
+                    if (ctx->frame < ctx->span) {
+                        ctx->frame++;
                     }
                     break;
                 case 1:
-                    if (ctx->field_6 > 0) {
-                        ctx->field_6--;
+                    if (ctx->frame > 0) {
+                        ctx->frame--;
                     } else {
-                        ctx->field_4 = 2;
+                        ctx->state = 2;
                     }
                     break;
                 case 2:
@@ -222,7 +221,7 @@ void func_actor_160900_80131EB0(Task* arg0)
                     Display_ClampField126(0);
                     break;
             }
-            D_actor_160900_8013F194 = D_actor_160900_8013FBB0->field_6 * D_actor_160900_8013FBB0->field_2 / D_actor_160900_8013FBB0->field_0;
+            D_actor_160900_8013F194 = D_actor_160900_8013FBB0->frame * D_actor_160900_8013FBB0->scale / D_actor_160900_8013FBB0->span;
             for (i = 0; i < 11; i++) {
                 D_actor_160900_8013FBB8[i].phase += D_actor_160900_8013FBB8[i].speed;
             }
@@ -236,13 +235,13 @@ void func_actor_160900_80131EB0(Task* arg0)
                     p              = (POLY_FT4*)gGpuPrimCursor;
                     gGpuPrimCursor = (u8*)(p + 1);
                     setPolyFT4(p);
-                    if (D_actor_160900_8013FBB0->field_8 == 0) {
+                    if (D_actor_160900_8013FBB0->blend == 0) {
                         setShadeTex(p, 1);
                     } else {
                         setShadeTex(p, 0);
-                        p->r0 = D_actor_160900_8013FBB0->field_9;
-                        p->g0 = D_actor_160900_8013FBB0->field_A;
-                        p->b0 = D_actor_160900_8013FBB0->field_B;
+                        p->r0 = D_actor_160900_8013FBB0->r;
+                        p->g0 = D_actor_160900_8013FBB0->g;
+                        p->b0 = D_actor_160900_8013FBB0->b;
                     }
                     u0 = k * 32;
                     u1 = (k + 1) * 32;
@@ -817,13 +816,13 @@ void func_actor_160900_80133238(Task* arg0)
             }
             return;
         case 4:
-            work->wave.field_0 = 8;
-            work->wave.field_2 = 0x80;
+            work->wave.span  = 8;
+            work->wave.scale = 0x80;
             Task_SpawnFromTable(&D_actor_160900_8013F17C, 0, 0, (s32)&work->wave);
             work->field_4C = 0;
             return;
         case 5:
-            work->wave.field_4 = 2;
+            work->wave.state = 2;
             break;
         case 6:
             func_actor_160900_SetAnimZ(arg0, 2);

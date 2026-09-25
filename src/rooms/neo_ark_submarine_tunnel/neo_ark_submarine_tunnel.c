@@ -8,7 +8,6 @@
 #include <psyq/abs.h>
 #include <psyq/rand.h>
 
-#include "actors/actors_shared_80149ed0.h"
 #include "gameplay/1A8.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -45,20 +44,20 @@ extern s32 D_80136108;
 /// Spawn table of the screen-wave task, and the context it is spawned with.
 /// The context's mode word is written through its own symbol, which is how the
 /// original reached it.
-extern TaskDesc     D_neo_ark_submarine_tunnel_80181A34;
-extern ActorWaveCtx D_neo_ark_submarine_tunnel_80187A20;
-extern s16          D_neo_ark_submarine_tunnel_80187A24;
+extern TaskDesc       D_neo_ark_submarine_tunnel_80181A34;
+extern OverlayWaveCtx D_neo_ark_submarine_tunnel_80187A20;
+extern s16            D_neo_ark_submarine_tunnel_80187A24;
 
 /// Current displacement of the screen wave, recomputed every frame from the
 /// context's ramp.
 extern s32 D_neo_ark_submarine_tunnel_80181A4C;
 
 /// The ramp and tint the wave task was spawned with.
-extern ActorWaveCtx* D_neo_ark_submarine_tunnel_8018790C;
+extern OverlayWaveCtx* D_neo_ark_submarine_tunnel_8018790C;
 
 /// Phase records of the wave's 11 column edges and 30 row edges.
-extern ActorWaveRec6 D_neo_ark_submarine_tunnel_80187910[11];
-extern ActorWaveRec6 D_neo_ark_submarine_tunnel_80187960[30];
+extern OverlayWaveRec6 D_neo_ark_submarine_tunnel_80187910[11];
+extern OverlayWaveRec6 D_neo_ark_submarine_tunnel_80187960[30];
 
 /// Message handlers this room's task answers, installed into pointer slot 7.
 extern GpMsgEntry D_neo_ark_submarine_tunnel_80181A50[];
@@ -814,15 +813,15 @@ const TaskFuncTable3 D_neo_ark_submarine_tunnel_8017D614 = {
 /// load at its offset, which keeps it ordered after the store to `D_800691CA`.
 void func_neo_ark_submarine_tunnel_8017E828(Task* arg0)
 {
-    ActorWaveCtx* ctx;
-    POLY_FT4*     p;
-    DR_STP*       stp;
-    s32           i, j, k;
-    s32           drawY;
-    s32           tpage0, tpage1;
-    s32           u0, u1, v0, v1;
-    s32           waveX0, waveY0, waveX1, waveY1;
-    s32           waveX2, waveY2, waveX3, waveY3;
+    OverlayWaveCtx* ctx;
+    POLY_FT4*       p;
+    DR_STP*         stp;
+    s32             i, j, k;
+    s32             drawY;
+    s32             tpage0, tpage1;
+    s32             u0, u1, v0, v1;
+    s32             waveX0, waveY0, waveX1, waveY1;
+    s32             waveX2, waveY2, waveX3, waveY3;
 
     D_800691CA = 2;
     switch (*(s32*)((u8*)arg0 + 0x30)) {
@@ -837,26 +836,26 @@ void func_neo_ark_submarine_tunnel_8017E828(Task* arg0)
                 D_neo_ark_submarine_tunnel_80187960[i].offset = (u32)rand() >> 3;
                 D_neo_ark_submarine_tunnel_80187960[i].speed  = (rand() * 100 + 20) >> 15;
             }
-            D_neo_ark_submarine_tunnel_80181A4C          = 0;
-            D_neo_ark_submarine_tunnel_8018790C          = arg0->spawnArg2;
-            D_neo_ark_submarine_tunnel_8018790C->field_6 = 0;
-            D_neo_ark_submarine_tunnel_8018790C->field_4 = 0;
+            D_neo_ark_submarine_tunnel_80181A4C        = 0;
+            D_neo_ark_submarine_tunnel_8018790C        = arg0->spawnArg2;
+            D_neo_ark_submarine_tunnel_8018790C->frame = 0;
+            D_neo_ark_submarine_tunnel_8018790C->state = 0;
             Display_ClampField126(-8);
             arg0->state++;
             break;
         case 1:
             ctx = D_neo_ark_submarine_tunnel_8018790C;
-            switch (ctx->field_4) {
+            switch (ctx->state) {
                 case 0:
-                    if (ctx->field_6 < ctx->field_0) {
-                        ctx->field_6++;
+                    if (ctx->frame < ctx->span) {
+                        ctx->frame++;
                     }
                     break;
                 case 1:
-                    if (ctx->field_6 > 0) {
-                        ctx->field_6--;
+                    if (ctx->frame > 0) {
+                        ctx->frame--;
                     } else {
-                        ctx->field_4 = 2;
+                        ctx->state = 2;
                     }
                     break;
                 case 2:
@@ -864,7 +863,7 @@ void func_neo_ark_submarine_tunnel_8017E828(Task* arg0)
                     Display_ClampField126(0);
                     break;
             }
-            D_neo_ark_submarine_tunnel_80181A4C = D_neo_ark_submarine_tunnel_8018790C->field_6 * D_neo_ark_submarine_tunnel_8018790C->field_2 / D_neo_ark_submarine_tunnel_8018790C->field_0;
+            D_neo_ark_submarine_tunnel_80181A4C = D_neo_ark_submarine_tunnel_8018790C->frame * D_neo_ark_submarine_tunnel_8018790C->scale / D_neo_ark_submarine_tunnel_8018790C->span;
             for (i = 0; i < 11; i++) {
                 D_neo_ark_submarine_tunnel_80187910[i].phase += D_neo_ark_submarine_tunnel_80187910[i].speed;
             }
@@ -878,13 +877,13 @@ void func_neo_ark_submarine_tunnel_8017E828(Task* arg0)
                     p              = (POLY_FT4*)gGpuPrimCursor;
                     gGpuPrimCursor = (u8*)(p + 1);
                     setPolyFT4(p);
-                    if (D_neo_ark_submarine_tunnel_8018790C->field_8 == 0) {
+                    if (D_neo_ark_submarine_tunnel_8018790C->blend == 0) {
                         setShadeTex(p, 1);
                     } else {
                         setShadeTex(p, 0);
-                        p->r0 = D_neo_ark_submarine_tunnel_8018790C->field_9;
-                        p->g0 = D_neo_ark_submarine_tunnel_8018790C->field_A;
-                        p->b0 = D_neo_ark_submarine_tunnel_8018790C->field_B;
+                        p->r0 = D_neo_ark_submarine_tunnel_8018790C->r;
+                        p->g0 = D_neo_ark_submarine_tunnel_8018790C->g;
+                        p->b0 = D_neo_ark_submarine_tunnel_8018790C->b;
                     }
                     u0 = k * 32;
                     u1 = (k + 1) * 32;
@@ -1031,13 +1030,13 @@ void func_neo_ark_submarine_tunnel_8017F318(s32 arg0)
     CdCmdQueue* queue = &CdCmd_Queue;
 
     if (arg0 <= 0) {
-        queue->field_22A                            = 2;
-        D_neo_ark_submarine_tunnel_80187A20.field_0 = 1;
-        D_neo_ark_submarine_tunnel_80187A20.field_2 = 0x60;
-        D_neo_ark_submarine_tunnel_80187A20.field_9 = 0x40;
-        D_neo_ark_submarine_tunnel_80187A20.field_8 = 1;
-        D_neo_ark_submarine_tunnel_80187A20.field_A = 0x80;
-        D_neo_ark_submarine_tunnel_80187A20.field_B = 0x80;
+        queue->field_22A                          = 2;
+        D_neo_ark_submarine_tunnel_80187A20.span  = 1;
+        D_neo_ark_submarine_tunnel_80187A20.scale = 0x60;
+        D_neo_ark_submarine_tunnel_80187A20.r     = 0x40;
+        D_neo_ark_submarine_tunnel_80187A20.blend = 1;
+        D_neo_ark_submarine_tunnel_80187A20.g     = 0x80;
+        D_neo_ark_submarine_tunnel_80187A20.b     = 0x80;
         Task_SpawnFromTable(&D_neo_ark_submarine_tunnel_80181A34, 0, 0, (s32)&D_neo_ark_submarine_tunnel_80187A20);
         return;
     }

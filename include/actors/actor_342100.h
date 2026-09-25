@@ -24,7 +24,7 @@
 /// function forwards as the animation message's second word.
 ///
 /// The 0xC bytes from `field_20` are the ramp of the screen-wave task
-/// `func_actor_342100_80161E70`, which reads them as an `ActorWaveCtx`:
+/// `func_actor_342100_80161E70`, which reads them as an `OverlayWaveCtx`:
 /// `func_actor_342100_80163408` seeds its span (`field_20`) and scale
 /// (`field_22`) with 0x258 and 0x100 and spawns the task on it. The fade task
 /// `func_actor_342100_80162748`, which reaches this block through

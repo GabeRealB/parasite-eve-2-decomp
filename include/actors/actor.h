@@ -1573,26 +1573,6 @@ typedef struct Actor461800Work {
 } Actor461800Work;
 STATIC_ASSERT_SIZEOF(Actor461800Work, 0x4F8);
 
-/* Contexts. */
-
-/// Ramp context of the screen-wave task. Whoever spawns the task seeds the
-/// span and the scale and passes the block as the spawn argument; a later
-/// message writes the ramp state, and the task advances the frame, derives
-/// the wave amplitude as `frame * scale / span` and reads the tint. The field
-/// names are still the generic ones because rooms that carry the same task
-/// reach the block through them.
-typedef struct ActorWaveCtx {
-    s16 field_0; // span: frames the ramp takes to reach full scale
-    s16 field_2; // scale: amplitude at the top of the ramp
-    s16 field_4; // ramp state: 0 up, 1 down, 2 finished
-    s16 field_6; // current ramp frame
-    u8  field_8; // nonzero: tint the mesh with field_9..field_B
-    u8  field_9;
-    u8  field_A;
-    u8  field_B;
-} ActorWaveCtx;
-STATIC_ASSERT_SIZEOF(ActorWaveCtx, 0xC);
-
 /* Helpers.
  *
  * Inline bodies each actor compiled from its own copy of the same source.

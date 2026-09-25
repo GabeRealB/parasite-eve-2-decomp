@@ -6,8 +6,6 @@
 #include <psyq/rand.h>
 
 #include "actors/actor.h"
-#include "actors/actors_shared_80149e54.h"
-#include "actors/actors_shared_80149ed0.h"
 #include "actors/actors_shared_8013411c.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
@@ -47,27 +45,27 @@ extern TaskDesc D_actor_121300_8013D390;
 /// model's light and colour matrices, published through `TmdObject::lightMtx`
 /// / `field_20`.
 typedef struct Actor121300Work {
-    /* 0x000 */ GpAnimCtx    anim;             // `func_800B3F84` arg0
-    /* 0x014 */ GpAnimSlot   slots[0x13];
-    /* 0x30C */ byte         field_30C[0x130]; // pose buffer, `func_800B3F84` arg3
-    /* 0x43C */ MATRIX       field_43C;        // light matrix, into TmdObject::lightMtx
-    /* 0x45C */ MATRIX       field_45C;        // colour matrix, into TmdObject::colorMtx
-    /* 0x47C */ ActorWaveCtx wave;             // ramp of the screen-wave task `func_actor_121300_80131EB0`
-    /* 0x488 */ Task*        field_488;        // gameGetPtrSlot(3) task, the Gp_DispatchMsg target
-    /* 0x48C */ Task*        field_48C;
-    /* 0x490 */ byte         pad_490[0x8];
-    /* 0x498 */ s16          field_498; // set by func_actor_121300_80134250
-    /* 0x49A */ s16          field_49A; // cleared alongside field_498
-    /* 0x49C */ s16          field_49C;
-    /* 0x49E */ s16          field_49E; // waypoint cursor: index into D_actor_121300_8013CC20
-    /* 0x4A0 */ u16          field_4A0; // animation slot count, set by func_actor_121300_80133BFC
-    /* 0x4A2 */ u16          field_4A2; // state of the waypoint walker func_actor_121300_80133730
-    /* 0x4A4 */ u16          field_4A4; // frames spent on the current waypoint
-    /* 0x4A6 */ s16          field_4A6; // waypoint index handed to func_8017F334 / Task_SpawnFromTable
-    /* 0x4A8 */ s16          field_4A8; // effect-count reduction, bumped by func_actor_121300_80133580
-    /* 0x4AA */ s16          field_4AA; // frame counter for field_4A8 (wraps at 20)
-    /* 0x4AC */ s16          field_4AC; // GpAreaPlace::tpage, the TmdObject texture page
-    /* 0x4AE */ byte         pad_4AE[0x2];
+    /* 0x000 */ GpAnimCtx      anim;             // `func_800B3F84` arg0
+    /* 0x014 */ GpAnimSlot     slots[0x13];
+    /* 0x30C */ byte           field_30C[0x130]; // pose buffer, `func_800B3F84` arg3
+    /* 0x43C */ MATRIX         field_43C;        // light matrix, into TmdObject::lightMtx
+    /* 0x45C */ MATRIX         field_45C;        // colour matrix, into TmdObject::colorMtx
+    /* 0x47C */ OverlayWaveCtx wave;             // ramp of the screen-wave task `func_actor_121300_80131EB0`
+    /* 0x488 */ Task*          field_488;        // gameGetPtrSlot(3) task, the Gp_DispatchMsg target
+    /* 0x48C */ Task*          field_48C;
+    /* 0x490 */ byte           pad_490[0x8];
+    /* 0x498 */ s16            field_498; // set by func_actor_121300_80134250
+    /* 0x49A */ s16            field_49A; // cleared alongside field_498
+    /* 0x49C */ s16            field_49C;
+    /* 0x49E */ s16            field_49E; // waypoint cursor: index into D_actor_121300_8013CC20
+    /* 0x4A0 */ u16            field_4A0; // animation slot count, set by func_actor_121300_80133BFC
+    /* 0x4A2 */ u16            field_4A2; // state of the waypoint walker func_actor_121300_80133730
+    /* 0x4A4 */ u16            field_4A4; // frames spent on the current waypoint
+    /* 0x4A6 */ s16            field_4A6; // waypoint index handed to func_8017F334 / Task_SpawnFromTable
+    /* 0x4A8 */ s16            field_4A8; // effect-count reduction, bumped by func_actor_121300_80133580
+    /* 0x4AA */ s16            field_4AA; // frame counter for field_4A8 (wraps at 20)
+    /* 0x4AC */ s16            field_4AC; // GpAreaPlace::tpage, the TmdObject texture page
+    /* 0x4AE */ byte           pad_4AE[0x2];
 } Actor121300Work;
 STATIC_ASSERT_SIZEOF(Actor121300Work, 0x4B0);
 
@@ -169,12 +167,12 @@ extern s32 D_actor_121300_8013BBE4;
 
 /// The ramp the running wave task was spawned with, parked at spawn so the
 /// tick reads it back every frame.
-extern ActorWaveCtx* D_actor_121300_8013D414;
+extern OverlayWaveCtx* D_actor_121300_8013D414;
 
 /// Per-column and per-row phase records: each is seeded with a random offset
 /// and speed at spawn and advanced by its speed every frame.
-extern ActorWaveRec6 D_actor_121300_8013D420[11];
-extern ActorWaveRec6 D_actor_121300_8013D470[30];
+extern OverlayWaveRec6 D_actor_121300_8013D420[11];
+extern OverlayWaveRec6 D_actor_121300_8013D470[30];
 
 extern TaskDesc D_actor_121300_8013BBCC;
 extern u32      D_actor_121300_8013BBE8[];
@@ -204,15 +202,15 @@ extern u16      D_actor_121300_8013D41C;
 /// behind the `D_800691CA` store, which a member read lets GCC hoist above it.
 void func_actor_121300_80131EB0(Task* arg0)
 {
-    ActorWaveCtx* ctx;
-    POLY_FT4*     p;
-    DR_STP*       stp;
-    s32           i, j, k;
-    s32           drawY;
-    s32           tpage0, tpage1;
-    s32           u0, u1, v0, v1;
-    s32           waveX0, waveY0, waveX1, waveY1;
-    s32           waveX2, waveY2, waveX3, waveY3;
+    OverlayWaveCtx* ctx;
+    POLY_FT4*       p;
+    DR_STP*         stp;
+    s32             i, j, k;
+    s32             drawY;
+    s32             tpage0, tpage1;
+    s32             u0, u1, v0, v1;
+    s32             waveX0, waveY0, waveX1, waveY1;
+    s32             waveX2, waveY2, waveX3, waveY3;
 
     D_800691CA = 2;
     switch (*(s32*)((u8*)arg0 + OFFSET_OF(Task, state))) {
@@ -227,26 +225,26 @@ void func_actor_121300_80131EB0(Task* arg0)
                 D_actor_121300_8013D470[i].offset = (u32)rand() >> 3;
                 D_actor_121300_8013D470[i].speed  = (rand() * 100 + 20) >> 15;
             }
-            D_actor_121300_8013BBE4          = 0;
-            D_actor_121300_8013D414          = arg0->spawnArg2;
-            D_actor_121300_8013D414->field_6 = 0;
-            D_actor_121300_8013D414->field_4 = 0;
+            D_actor_121300_8013BBE4        = 0;
+            D_actor_121300_8013D414        = arg0->spawnArg2;
+            D_actor_121300_8013D414->frame = 0;
+            D_actor_121300_8013D414->state = 0;
             Display_ClampField126(-8);
             arg0->state++;
             break;
         case 1:
             ctx = D_actor_121300_8013D414;
-            switch (ctx->field_4) {
+            switch (ctx->state) {
                 case 0:
-                    if (ctx->field_6 < ctx->field_0) {
-                        ctx->field_6++;
+                    if (ctx->frame < ctx->span) {
+                        ctx->frame++;
                     }
                     break;
                 case 1:
-                    if (ctx->field_6 > 0) {
-                        ctx->field_6--;
+                    if (ctx->frame > 0) {
+                        ctx->frame--;
                     } else {
-                        ctx->field_4 = 2;
+                        ctx->state = 2;
                     }
                     break;
                 case 2:
@@ -254,7 +252,7 @@ void func_actor_121300_80131EB0(Task* arg0)
                     Display_ClampField126(0);
                     break;
             }
-            D_actor_121300_8013BBE4 = D_actor_121300_8013D414->field_6 * D_actor_121300_8013D414->field_2 / D_actor_121300_8013D414->field_0;
+            D_actor_121300_8013BBE4 = D_actor_121300_8013D414->frame * D_actor_121300_8013D414->scale / D_actor_121300_8013D414->span;
             for (i = 0; i < 11; i++) {
                 D_actor_121300_8013D420[i].phase += D_actor_121300_8013D420[i].speed;
             }
@@ -268,13 +266,13 @@ void func_actor_121300_80131EB0(Task* arg0)
                     p              = (POLY_FT4*)gGpuPrimCursor;
                     gGpuPrimCursor = (u8*)(p + 1);
                     setPolyFT4(p);
-                    if (D_actor_121300_8013D414->field_8 == 0) {
+                    if (D_actor_121300_8013D414->blend == 0) {
                         setShadeTex(p, 1);
                     } else {
                         setShadeTex(p, 0);
-                        p->r0 = D_actor_121300_8013D414->field_9;
-                        p->g0 = D_actor_121300_8013D414->field_A;
-                        p->b0 = D_actor_121300_8013D414->field_B;
+                        p->r0 = D_actor_121300_8013D414->r;
+                        p->g0 = D_actor_121300_8013D414->g;
+                        p->b0 = D_actor_121300_8013D414->b;
                     }
                     u0 = k * 32;
                     u1 = (k + 1) * 32;
@@ -908,9 +906,9 @@ void func_actor_121300_80133854(Task* arg0)
         case 4:
             if ((u16)work->field_49A == 0) {
                 func_actor_121300_SetCC04(10);
-                work->wave.field_0 = 0x3C;
-                work->wave.field_2 = 0x100;
-                work->field_48C    = Task_SpawnFromTable(&D_actor_121300_8013BBCC, 0, 0, (s32)&work->wave);
+                work->wave.span  = 0x3C;
+                work->wave.scale = 0x100;
+                work->field_48C  = Task_SpawnFromTable(&D_actor_121300_8013BBCC, 0, 0, (s32)&work->wave);
                 work->field_49A++;
             }
         case 3:
@@ -921,7 +919,7 @@ void func_actor_121300_80133854(Task* arg0)
             func_actor_121300_80133730(arg0);
             break;
         case 5:
-            work->wave.field_4      = 2;
+            work->wave.state        = 2;
             queue->field_22A        = 0;
             D_actor_121300_8013D41C = 0;
             work->field_498         = 0;
@@ -959,17 +957,17 @@ void func_actor_121300_80133854(Task* arg0)
         case 10:
             switch ((u16)work->field_49A) {
                 case 0:
-                    work->wave.field_0 = 8;
-                    work->wave.field_2 = 0x100;
-                    work->field_48C    = Task_SpawnFromTable(&D_actor_121300_8013BBCC, 0, 0, (s32)&work->wave);
-                    work->field_49C    = 0;
+                    work->wave.span  = 8;
+                    work->wave.scale = 0x100;
+                    work->field_48C  = Task_SpawnFromTable(&D_actor_121300_8013BBCC, 0, 0, (s32)&work->wave);
+                    work->field_49C  = 0;
                     work->field_49A++;
                     break;
                 case 1:
                     if (++work->field_49C >= 8) {
-                        work->wave.field_4 = 1;
-                        work->wave.field_0 = 8;
-                        work->field_498    = 0;
+                        work->wave.state = 1;
+                        work->wave.span  = 8;
+                        work->field_498  = 0;
                     }
                     break;
             }
@@ -1230,7 +1228,7 @@ void func_actor_121300_8013427C(void)
     Actor121300Work* work = (Actor121300Work*)D_actor_121300_8013D418->work;
 
     D_actor_121300_8013D41C = 0;
-    work->wave.field_4      = 2;
+    work->wave.state        = 2;
     CdCmd_Queue.field_22A   = 0;
     Gp_DispatchMsg(work->field_488, 0x3F3, 1, 0);
     CdCmd_CancelReplaceAndActivate();

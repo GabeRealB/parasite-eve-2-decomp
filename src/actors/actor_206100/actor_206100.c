@@ -23,7 +23,6 @@
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
-#include "actors/actors_shared_80149ed0.h"
 
 /// Shared stack storage for posing the actor, spawning its beam, and walking
 /// the parent coordinates to determine whether the actor can be locked onto.
@@ -454,40 +453,9 @@ typedef struct Actor206100ChildWork {
 } Actor206100ChildWork;
 STATIC_ASSERT_SIZEOF(Actor206100ChildWork, 0x68);
 
-/// Spawn arg `func_actor_206100_8014CB68` hands the child task it starts off
-/// `D_actor_206100_80158AF0` -- written to `Task::spawnArg2` by
-/// `Task_SpawnFromDesc`, and parked by that child in
-/// `D_actor_206100_80158BA8`.
-///
-/// The child draws a textured screen-wave mesh. `state` selects ramp-up (0,
-/// counting `frame` up to `span`) or ramp-down (1, counting down, then moving
-/// to state 2 and retiring). The distortion amplitude is `frame * scale / span`.
-/// `blend` is the texture-shading selector: 0 uses raw texture colour, while
-/// nonzero modulates the texture by `r`, `g` and `b`.
-///
-/// `func_actor_206100_8014CB68` writes the two `1`s with `blend` between `r`
-/// and `g`, which is not the declaration order and is load-bearing: the
-/// constant and the `%hi` of the global's own address tie in `local-alloc`'s
-/// `QTY_CMP_PRI` (`floor_log2 (n_refs) * n_refs * size / span`), and the
-/// address only wins that tie while the constant's live range runs the whole
-/// store run.  Cutting it short is what puts the constant in `$v1` and the
-/// `%hi` in `$t0`; with `blend` written last the two swap and the tail no longer
-/// schedules the same way.
-typedef struct Actor206100FlashArg {
-    /* 0x00 */ s16 span;  // frame count the ramp runs over
-    /* 0x02 */ s16 scale; // distortion amplitude at the top of the ramp
-    /* 0x04 */ s16 state; // ramp state the child walks
-    /* 0x06 */ s16 frame; // ramp position, counted by the child
-    /* 0x08 */ u8  blend; // 0 draws raw texture colour
-    /* 0x09 */ u8  r;
-    /* 0x0A */ u8  g;
-    /* 0x0B */ u8  b;
-} Actor206100FlashArg;
-STATIC_ASSERT_SIZEOF(Actor206100FlashArg, 0xC);
-
 /// The wave `func_actor_206100_8014CB68` arms: pale cyan modulation with a
 /// one-frame ramp.
-extern Actor206100FlashArg D_actor_206100_80158CCC;
+extern OverlayWaveCtx D_actor_206100_80158CCC;
 
 /// Child task `func_actor_206100_8014CB68` starts with the tint above as its
 /// spawn arg.  Its callback is `func_actor_206100_80149ED0`.
@@ -699,12 +667,12 @@ extern s32 D_actor_206100_80158B08;
 
 /// The spawn argument of the running wave task, parked at spawn so the tick
 /// reads the ramp through it.
-extern Actor206100FlashArg* D_actor_206100_80158BA8;
+extern OverlayWaveCtx* D_actor_206100_80158BA8;
 
 /// Per-column and per-row phase records: each is seeded with a random offset
 /// and speed at spawn and advanced by its speed every frame.
-extern ActorWaveRec6 D_actor_206100_80158BAC[11];
-extern ActorWaveRec6 D_actor_206100_80158BFC[30];
+extern OverlayWaveRec6 D_actor_206100_80158BAC[11];
+extern OverlayWaveRec6 D_actor_206100_80158BFC[30];
 
 /// Task table `func_actor_206100_8014FDE8` spawns the shockwave from.
 extern TaskDesc D_801818BC;
@@ -740,15 +708,15 @@ const TaskFuncTable3 D_actor_206100_80149E24 = {
 /// behind the `D_800691CA` store, which a member read lets GCC hoist above it.
 void func_actor_206100_80149ED0(Task* task)
 {
-    Actor206100FlashArg* ctx;
-    POLY_FT4*            p;
-    DR_STP*              stp;
-    s32                  i, j, k;
-    s32                  drawY;
-    s32                  tpage0, tpage1;
-    s32                  u0, u1, v0, v1;
-    s32                  waveX0, waveY0, waveX1, waveY1;
-    s32                  waveX2, waveY2, waveX3, waveY3;
+    OverlayWaveCtx* ctx;
+    POLY_FT4*       p;
+    DR_STP*         stp;
+    s32             i, j, k;
+    s32             drawY;
+    s32             tpage0, tpage1;
+    s32             u0, u1, v0, v1;
+    s32             waveX0, waveY0, waveX1, waveY1;
+    s32             waveX2, waveY2, waveX3, waveY3;
 
     D_800691CA = 2;
     switch (*(s32*)((u8*)task + OFFSET_OF(Task, state))) {
@@ -2078,6 +2046,15 @@ loop:
 /// once it is fully up, hands slot 3 the actor's new position and re-arms the
 /// actor on the far side, spawning the screen tint `D_actor_206100_80158CCC`
 /// describes as it goes.
+///
+/// The tint's `blend` is written between `r` and `g`, not in declaration
+/// order, and that is load-bearing: the constant 1 and the `%hi` of the
+/// global's own address tie in `local-alloc`'s `QTY_CMP_PRI`
+/// (`floor_log2 (n_refs) * n_refs * size / span`), and the address only wins
+/// that tie while the constant's live range runs the whole store run. Cutting
+/// it short is what puts the constant in `$v1` and the `%hi` in `$t0`; with
+/// `blend` written last the two swap and the tail no longer schedules the same
+/// way.
 void func_actor_206100_8014CB68(Task* task)
 {
     Actor206100Work* work;
