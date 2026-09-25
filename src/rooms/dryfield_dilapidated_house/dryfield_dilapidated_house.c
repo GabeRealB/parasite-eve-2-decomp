@@ -432,7 +432,7 @@ void func_dryfield_dilapidated_house_8017D64C(Task* arg0)
 }
 
 /// The room's capture task, the body the actor family also carries as
-/// `func_actor_460200_80131E2C`: the whole image area is written into the
+/// `func_actor_460200_80131E24`: the whole image area is written into the
 /// display buffer strip by strip and then desaturated in place.
 ///
 /// It is spawned from entry 0 of `D_dryfield_dilapidated_house_80183E64` with

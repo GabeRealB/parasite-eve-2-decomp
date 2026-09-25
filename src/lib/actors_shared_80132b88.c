@@ -3,7 +3,6 @@
 #include "actors/actors_shared_80133580.h"
 #include "main/gfx.h"
 #include "main/tmd.h"
-#include "actors/actor_460200.h"
 #include "actors/actors_shared_80132514.h"
 #include "actors/actors_shared_8014c874.h"
 #include "gameplay/1BC.h"
