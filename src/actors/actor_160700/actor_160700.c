@@ -10,8 +10,6 @@
 #include "main/tmd.h"
 
 #include "actors/actor_160700.h"
-#include "actors/actors_shared_801366fc.h"
-#include "actors/actors_shared_8014c874.h"
 
 extern TaskDesc D_actor_160700_801416A8[];
 extern u8       D_actor_160700_801416C0[];
@@ -59,7 +57,12 @@ void func_actor_160700_80131E70(void)
     }
 }
 
-void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
+/// State-0 handler of the actor's dispatcher: allocates the work block, spawns
+/// the sub-model and adopts it as a child, takes the model's texture page and
+/// CLUT from the area placement the enemy's `placeKey` selects, sets up the
+/// animation context on clip 1, installs the message table whose handlers are
+/// the actor's script opcodes, and starts the animation.
+void func_actor_160700_80131F70(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
     GpAreaKey        key;
@@ -86,7 +89,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback   = ActorsShared801366fc;
+    task->exitCallback   = func_actor_160700_80132414;
     coord->sub           = &gGfxViewCoord;
     enemy->field_4       = &coord->coord;
     enemy->field_48      = 0;
@@ -119,7 +122,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     }
     Task_Reparent(task, spawned->task);
     work->field_4F0 = spawned->task;
-    work->field_4B8 = 1;
+    work->animId    = 1;
     obj->lightMtx   = &work->light;
     obj->colorMtx   = &work->color;
     vec.vx          = coord->workm.t[0];
@@ -130,6 +133,6 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
                   &work->slots[0x14], work->slots);
     work->state    = 2;
     task->msgTable = D_actor_160700_80141678;
-    ActorsShared8014c874(task);
+    func_actor_160700_80132184(task);
     task->state += 1;
 }

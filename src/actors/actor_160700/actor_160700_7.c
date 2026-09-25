@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "actors/actor_160700.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -8,11 +9,10 @@
 
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
-/// Draws the actor's ground shadow quad under the model root, skipping actors
-/// that are pending a deferred kill (`field_C & 0x80`) or that have no aux
-/// buffer yet. The world position is the translation of the root part's
-/// `workm`, staged in a scratchpad VECTOR3 rather than on the stack.
-void ActorsShared80132378(Task* task)
+/// Draws the actor's ground shadow under its root part, unless the model's
+/// `flags` bit 0x80 (hidden) is set or it has no buffer. The position is the
+/// root part's world translation, staged on the scratchpad stack.
+void func_actor_160700_8013243C(Task* task)
 {
     TmdObject*     obj;
     GsCOORDINATE2* coord;
