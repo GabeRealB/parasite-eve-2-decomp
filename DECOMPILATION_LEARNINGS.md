@@ -141043,3 +141043,18 @@ helper's `lui/addiu` of the table, and the base load schedules after the index
 instead of before it. The register pins in the same function were `result` set
 at twelve sites; one `result = 1` per branch under a combined `||` condition
 lowered its priority below the other pseudos and matched the target's allocation.
+
+## An ordering-table link is `addPrim`; the byte-offset spelling is a decompilation artefact (2026-09-26)
+
+m2c renders Psy-Q's `addPrim(ot, p)` as two masked stores through a byte-offset
+address - `p->tag = (p->tag & 0xFF000000) | (*(u_long*)((((z << s) >> 2) &
+0xFFC) + (s32)ot) & 0xFFFFFF); *(...) = (*(...) & 0xFF000000) | ((u32)p &
+0xFFFFFF);` - often with the masks in locals, and those locals then pinned.
+Written as `addPrim(&ot[((u32)z << s) >> 4 & 0x3FF], p)` it compiles
+identically: combine folds the element scaling back into `>> 2 & 0xFFC`, and
+the bitfield `P_TAG.addr` store produces the same masks. 33 links converted
+that way and shed their mask locals and pins. A few do not: clippers that link
+two packets into one slot back to back, where the open-coded pair shares mask
+registers set up before the loop, and a handful whose operand order differs
+(`addu` of base and index swapped). Try `addPrim` first; keep the open-coded
+form only where it does not match.
