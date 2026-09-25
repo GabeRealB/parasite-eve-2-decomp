@@ -17,17 +17,20 @@ INCLUDE_ASM("actors/nonmatchings/actor_451100/actor_451100_5", func_actor_451100
 
 INCLUDE_ASM("actors/nonmatchings/actor_451100/actor_451100_5", func_actor_451100_8013280C);
 
-/// State-0 spawn handler: allocates the actor's `Actor451100Work` block, hangs
-/// it off the task, spawns the paired enemy and reparents this task under it,
-/// then seeds the animation.
+/// State 0 of the `func_actor_451100_80132BD4` dispatcher: allocates the
+/// actor's 0x4C0-byte `Actor451100Work` block and hangs it off the task, spawns
+/// entry 1 of `D_actor_451100_8014E6E4` (the sub-model task
+/// `func_actor_451100_801330B0`), hands it to `Task_Reparent` with this task
+/// and keeps it in `pairTask`, then seeds the animation and runs the step
+/// routine once.
 ///
 /// `memCalloc`'s result goes through an untyped `block` that `work` is copied
 /// from: the raw pointer is what the `Task::work` store and the null test read,
 /// so it stays a short-lived `$v0` quantity while the typed copy takes the
 /// callee-saved home it needs across the calls below. Assigning the call result
-/// straight to `work` - the shape the twin in `actor_161500` uses - collapses
-/// the two into one pseudo and puts `$s1` in all three places.
-void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
+/// straight to `work` collapses the two into one pseudo and puts `$s1` in all
+/// three places.
+void func_actor_451100_801328A8(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor451100Work* work;
@@ -67,6 +70,6 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     work->animId   = 1;
     work->state    = 2;
     task->msgTable = D_actor_451100_8014E6B4;
-    ActorsShared80132a1c(task);
+    func_actor_451100_80132A1C(task);
     task->state += 1;
 }

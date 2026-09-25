@@ -3,12 +3,12 @@
 #include "actors/actor_451100.h"
 #include "main/tmd.h"
 
-/// Per-frame handler of one of this actor's sub-model tasks: the same body as
-/// the shared `ActorsShared801328bc`, reached with the sub-model's own
-/// `TmdObject` in `Task::extra` and the actor holding it as `Task::parent`.
-/// This copy aims the part's `sub` at the ninth trailing coordinate of the
-/// parent's model (`field_8[8]`) where the shared body uses the eighth, which
-/// is why the shared body's two other users cannot carry it.
+/// Per-frame handler of the sub-model task, entry 1 of
+/// `D_actor_451100_8014E6E4`, reached with the sub-model's own `TmdObject` in
+/// `Task::extra` and the actor holding it as `Task::parent`. On its first tick
+/// it lights the sub-model with the parent's two leading work matrices and
+/// hangs its root coordinate off coordinate 8 of the parent's model; after that
+/// it only marks the coordinate dirty each frame so it follows that part.
 void func_actor_451100_801330B0(Task* task)
 {
     char           pad[0x10];

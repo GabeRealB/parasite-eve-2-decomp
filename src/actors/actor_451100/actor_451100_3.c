@@ -1,7 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_451100.h"
-#include "actors/actors_shared_801326b4.h"
 #include "gameplay/1BC.h"
 #include "main/task.h"
 
@@ -17,15 +16,16 @@ void func_actor_451100_801324B8(void)
 
     i = 1;
     do {
-        func_800B4114(&ActorsShared80131f9cWork->anim, i, (s16)ActorsShared80131f9cWork->animId, 0,
+        func_800B4114(&D_actor_451100_8014E744->anim, i, (s16)D_actor_451100_8014E744->animId, 0,
                       D_actor_451100_8013F700);
         i++;
     } while (i < 0x13);
-    ActorsShared80131f9cWork->field_47E = ActorsShared80131f9cWork->animId;
+    D_actor_451100_8014E744->field_47E = D_actor_451100_8014E744->animId;
 }
 
 /// Script opcode: start animation `args->animId` on this actor through
-/// `func_actor_451100_80131F84` rather than `ActorsShared80132a1c`.
+/// `func_actor_451100_80131F84`, the step routine of the actor whose block is
+/// published in `D_actor_451100_8014E744`.
 ///
 /// The same argument block and the same two-way `withArg` start as
 /// `func_actor_451100_80132E98`; only the accepted id range (0x25 instead of
@@ -34,15 +34,15 @@ void func_actor_451100_801324B8(void)
 s32 func_actor_451100_80132538(Task* task, s32 arg1, Actor451100AnimArgs* args)
 {
     if (args->animId < 0x25) {
-        ActorsShared80131f9cWork->animId = args->animId;
+        D_actor_451100_8014E744->animId = args->animId;
         if (args->withArg != 0) {
-            ActorsShared80131f9cWork->state = 1;
-            D_actor_451100_8013F700         = args->animArg;
+            D_actor_451100_8014E744->state = 1;
+            D_actor_451100_8013F700        = args->animArg;
         } else {
-            ActorsShared80131f9cWork->state = 2;
+            D_actor_451100_8014E744->state = 2;
         }
-        ActorsShared80131f9cWork->field_482 = 0;
-        func_actor_451100_80131F84(ActorsShared801326b4Task);
+        D_actor_451100_8014E744->field_482 = 0;
+        func_actor_451100_80131F84(D_actor_451100_8014E748);
         return 0;
     }
     return -1;

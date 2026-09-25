@@ -12,7 +12,7 @@ void func_actor_451100_80132CD4(Task* task);
 /// Refreshes the model root's coordinate, feeds its world translation (raised
 /// by 800 on y) to `func_800D7A9C`, then runs the animation starter and
 /// `func_actor_451100_80132CD4`, which draws a ground quad.
-void ActorsShared80131e24Sub1(GpEnemy* enemy, Task* task)
+void func_actor_451100_80132C28(GpEnemy* enemy, Task* task)
 {
     TmdObject*     obj;
     GsCOORDINATE2* coord;
@@ -25,7 +25,7 @@ void ActorsShared80131e24Sub1(GpEnemy* enemy, Task* task)
     pos.vy = coord->workm.t[1] - 800;
     pos.vz = coord->workm.t[2];
     func_800D7A9C(obj, &pos, 0, 3);
-    ActorsShared80132a1c(task);
+    func_actor_451100_80132A1C(task);
     func_actor_451100_80132CD4(task);
 }
 
