@@ -906,7 +906,7 @@ void func_actor_403100_80132C3C(Task* task, s16 firstJoint, s16 secondJoint, s16
         depth = RotTransPers4(&corner0, &corner1, &corner2, &corner3, &screen0, &screen1, &screen2, &screen3, &perspective, &flags);
         if (flags >= 0) {
             poly           = gGpuPrimCursor;
-            gGpuPrimCursor = (u8*)poly + 0x28;
+            gGpuPrimCursor = (u8*)(poly + 1);
             setlen(poly, 9);
             poly->code       = 0x2E;
             *(s32*)&poly->x0 = screen0;
@@ -1535,6 +1535,10 @@ void func_actor_403100_801345E0(Task* arg0, Task* arg1)
         }
     }
 }
+
+/* Past `entry`, each entry's fields are reached through the scalar byte
+   offset `offset` from a fixed base, the form the ROM steps; indexing the
+   entry array instead strength-reduces into a walking pointer. */
 void func_actor_403100_8013480C(Task* arg0, s32 arg1)
 {
     Actor403100Entry* entries;
@@ -1652,8 +1656,8 @@ void func_actor_403100_8013480C(Task* arg0, s32 arg1)
                 walker->flags &= 0x3FFF;
             }
         }
-        walker  = (GpObj*)((u8*)walker + 0xF0);
-        offset += 0xF0;
+        walker  = (GpObj*)((u8*)walker + sizeof(Actor403100Entry));
+        offset += sizeof(Actor403100Entry);
         do {
         } while (0);
     }
@@ -2467,22 +2471,22 @@ void func_actor_403100_80136830(Task* arg0)
     void *        scratcharg0, *scratcharg1, *scratcharg2, *scratcharg3, *scratcharg4, *scratcharg5, *scratcharg6;
     PlayerStatus* config = &Player_Status;
 
-    s32        flashTimer;
-    s16        lightTimer;
-    s16        armTimer;
-    s32        countdown;
-    s32        flash;
-    u8*        head;
-    GpEnemy*   enemy;
-    s32        flags, zero, z;
-    void*      scratchHead;
-    void*      side;
-    void*      position;
-    Task*      player;
-    void*      coordinates;
-    void*      center;
-    TmdObject* obj;
-    void*      playerCoord;
+    s32            flashTimer;
+    s16            lightTimer;
+    s16            armTimer;
+    s32            countdown;
+    s32            flash;
+    u8*            head;
+    GpEnemy*       enemy;
+    s32            flags, zero, z;
+    VECTOR*        scratchHead;
+    GsCOORDINATE2* side;
+    VECTOR*        position;
+    Task*          player;
+    GsCOORDINATE2* coordinates;
+    GsCOORDINATE2* center;
+    TmdObject*     obj;
+    GsCOORDINATE2* playerCoord;
 
     obj           = arg0->extra;
     player        = *Gp_ActorSlots;
@@ -2515,7 +2519,7 @@ void func_actor_403100_80136830(Task* arg0)
                 }
             }
             playerCoord                        = ((TmdObject*)player->extra)->coords;
-            D_actor_403100_80155808->field_628 = func_actor_403100_8013D9C4(*(s16*)((u8*)playerCoord + 24), *(s16*)((u8*)playerCoord + 32), D_actor_403100_80155638);
+            D_actor_403100_80155808->field_628 = func_actor_403100_8013D9C4((s16)playerCoord->coord.t[0], (s16)playerCoord->coord.t[2], D_actor_403100_80155638);
             {
                 scratch.handlers = D_actor_403100_80131E24;
                 scratch.handlers.funcs[D_actor_403100_80155808->field_5F2]();
@@ -2698,30 +2702,30 @@ void func_actor_403100_80136830(Task* arg0)
                 }
             }
             func_actor_403100_8013480C(arg0, 0x96);
-            coordinates                     = ((TmdObject*)arg0->extra)->coords;
-            *(s32*)((u8*)coordinates + 640) = 0;
-            *(s32*)((u8*)coordinates + 560) = 0;
-            *(s32*)((u8*)coordinates + 480) = 0;
-            *(s32*)((u8*)coordinates + 400) = 0;
-            *(s32*)((u8*)coordinates + 320) = 0;
-            *(s32*)((u8*)coordinates + 240) = 0;
-            *(s32*)((u8*)coordinates + 160) = 0;
-            *(s32*)((u8*)coordinates + 80)  = 0;
-            *(s32*)((u8*)coordinates + 0)   = 0;
-            side                            = coordinates + 0x140;
-            center                          = coordinates + 0xF0;
-            Gp_UpdateCoord(coordinates + 0x280);
+            coordinates        = ((TmdObject*)arg0->extra)->coords;
+            coordinates[8].flg = 0;
+            coordinates[7].flg = 0;
+            coordinates[6].flg = 0;
+            coordinates[5].flg = 0;
+            coordinates[4].flg = 0;
+            coordinates[3].flg = 0;
+            coordinates[2].flg = 0;
+            coordinates[1].flg = 0;
+            coordinates[0].flg = 0;
+            side               = coordinates + 4;
+            center             = coordinates + 3;
+            Gp_UpdateCoord(coordinates + 8);
             USE_REG(center);
             Gp_UpdateCoord(side);
             __asm__ volatile("lui %0, 0x1F80" : "=r"(scratchHead));
-            scratchHead                     = *(void**)((u8*)scratchHead + 0x3FC);
-            *(s32*)((u8*)scratchHead + -16) = (s32) * (s32*)((u8*)center + 56);
-            position                        = scratchHead - 0x10;
-            *(s32*)((u8*)position + 4)      = (s32) * (s32*)((u8*)center + 60);
-            z                               = *(s32*)((u8*)center + 64);
+            scratchHead        = *(VECTOR**)((u8*)scratchHead + 0x3FC);
+            scratchHead[-1].vx = center->workm.t[0];
+            position           = scratchHead - 1;
+            position->vy       = center->workm.t[1];
+            z                  = center->workm.t[2];
             __asm__("addu %0,$zero,$zero" : "=r"(zero) : "r"(z));
-            *(s32*)((u8*)position + 8) = z;
-            enemy                      = arg0->spawnArg2;
+            position->vz = z;
+            enemy        = arg0->spawnArg2;
             __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(position), "r"(enemy), "r"(zero) : "memory");
             Gp_UpdateActorColor(enemy, position, zero, zero);
             __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
@@ -2768,6 +2772,9 @@ void func_actor_403100_8013712C(Task* arg0)
             entries[i].active = 0;
             Gp_UnlinkObj(obj);
         }
+        /* The display node walks as its own pointer, one entry at a time:
+           spelled `&entries[i].obj` it folds into the walk of `entries[i]`,
+           and the ROM keeps the two apart. */
         obj = (GpObj*)((u8*)obj + sizeof(Actor403100Entry));
     }
     SndEvt_EnqueueType7(0x401F0004, 1);
@@ -4437,38 +4444,46 @@ void func_actor_403100_8013B3C4(Task* arg0)
     }
 }
 
+/// The scratch-pad block of turning model part 3 toward a point: the matrices
+/// the turn is built in, and the pitch and yaw toward the point.
+typedef struct Actor403100AimScratch {
+    MATRIX  mats[4];
+    SVECTOR angles;
+} Actor403100AimScratch;
+STATIC_ASSERT_SIZEOF(Actor403100AimScratch, 0x88);
+
 void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
 {
-    SVECTOR        headRotation, middleRotation, lowerRotation;
-    MATRIX         worldMatrix;
-    VECTOR         delta, local;
-    MATRIX*        allocated;
-    MATRIX*        matrices;
-    SVECTOR*       angles;
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* head;
-    GsCOORDINATE2* middle;
-    GsCOORDINATE2* lower;
-    GsCOORDINATE2* root;
-    MATRIX*        transpose;
-    MATRIX*        transpose2;
-    MATRIX*        dest;
-    s32            sum;
-    s32            offsetY;
-    s32            mode3;
-    u16            copyValue;
+    SVECTOR                headRotation, middleRotation, lowerRotation;
+    MATRIX                 worldMatrix;
+    VECTOR                 delta, local;
+    Actor403100AimScratch* allocated;
+    MATRIX*                matrices;
+    SVECTOR*               angles;
+    GsCOORDINATE2*         coords;
+    GsCOORDINATE2*         head;
+    GsCOORDINATE2*         middle;
+    GsCOORDINATE2*         lower;
+    GsCOORDINATE2*         root;
+    MATRIX*                transpose;
+    MATRIX*                transpose2;
+    MATRIX*                dest;
+    s32                    sum;
+    s32                    offsetY;
+    s32                    mode3;
+    u16                    copyValue;
 
     coords    = ((TmdObject*)arg0->extra)->coords;
-    allocated = (MATRIX*)(SCRATCH_HEAD(u8) - 0x88);
+    allocated = SCRATCH_HEAD(Actor403100AimScratch) - 1;
     __asm__("move %0,%1" : "=r"(matrices) : "r"(allocated));
-    angles                     = (SVECTOR*)((u8*)allocated + 0x80);
-    *(s32*)&allocated->m[0][0] = 0x1000;
-    *(s32*)&matrices->m[0][2]  = 0;
-    *(s32*)&matrices->m[1][1]  = 0x1000;
-    *(s32*)&matrices->m[2][0]  = 0;
-    matrices->m[2][2]          = 0x1000;
-    root                       = ((TmdObject*)arg0->extra)->coords;
-    SCRATCH_HEAD(MATRIX)       = matrices;
+    angles                             = &allocated->angles;
+    *(s32*)&allocated->mats[0].m[0][0] = 0x1000;
+    *(s32*)&matrices->m[0][2]          = 0;
+    *(s32*)&matrices->m[1][1]          = 0x1000;
+    *(s32*)&matrices->m[2][0]          = 0;
+    matrices->m[2][2]                  = 0x1000;
+    root                               = ((TmdObject*)arg0->extra)->coords;
+    SCRATCH_HEAD(MATRIX)               = matrices;
     Gp_WorldToLocal(&Gfx_ViewWorldMtx, &root[3].workm, &worldMatrix);
     delta.vx = D_actor_403100_80155808->field_98 - worldMatrix.t[0];
     offsetY  = worldMatrix.t[1] + 0x600;
@@ -4543,7 +4558,7 @@ void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
     dest->m[2][0] = (u16)transpose->m[2][0];
     dest->m[2][1] = (u16)transpose->m[2][1];
     dest->m[2][2] = (u16)transpose->m[2][2];
-    SCRATCH_POP_BYTES(0x88);
+    SCRATCH_POP(Actor403100AimScratch);
     lower->flg  = 0;
     middle->flg = 0;
     head->flg   = 0;
