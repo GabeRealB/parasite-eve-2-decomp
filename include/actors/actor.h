@@ -319,6 +319,26 @@ typedef struct ActorPushFrame {
 } ActorPushFrame;
 STATIC_ASSERT_SIZEOF(ActorPushFrame, 0x58);
 
+/// The scratch-pad block of an attack that pulls the player in: the
+/// animation argument sent with message 0x3F4, the placement sent with
+/// message 0x3E9, and the offset to the player with its normalised direction.
+typedef struct ActorAttackScratch {
+    GpAnimArg  anim;
+    GpXformArg place;
+    VECTOR     delta;
+    SVECTOR    dir;
+} ActorAttackScratch;
+STATIC_ASSERT_SIZEOF(ActorAttackScratch, 0x44);
+
+/// The scratch-pad block of a point placed relative to a coordinate: `offset`
+/// in the coordinate's frame, and `result` the world position it is rotated
+/// and moved to.
+typedef struct ActorOffsetScratch {
+    SVECTOR offset;
+    VECTOR  result;
+} ActorOffsetScratch;
+STATIC_ASSERT_SIZEOF(ActorOffsetScratch, 0x18);
+
 /* Tables. */
 
 /// One row of a per-room height clamp: when `field_0` / `field_2` match the

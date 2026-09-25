@@ -97,14 +97,6 @@ typedef struct Actor02400ChildWork {
 } Actor02400ChildWork;
 STATIC_ASSERT_SIZEOF(Actor02400ChildWork, 0xB4);
 
-/// Scratchpad block the projectile's spawn point is computed in: `offset` is
-/// rotated by the parent's coordinate into `result`.
-typedef struct Actor02400ChildScratch {
-    /* 0x00 */ SVECTOR offset;
-    /* 0x08 */ VECTOR  result;
-} Actor02400ChildScratch;
-STATIC_ASSERT_SIZEOF(Actor02400ChildScratch, 0x18);
-
 /// Scratchpad block the model's scale is applied through: an identity `mat`
 /// scaled per axis by `scale`, and the coordinate's translation `t`, restored
 /// after the multiply.
@@ -1305,20 +1297,20 @@ void Actor02400_Fn024F8(GpEnemy* arg0, Task* arg1)
 /// the parent and moves the task to state 1.
 void Actor02400_Fn02790(GpEnemy* arg0, Task* arg1)
 {
-    Actor02400Work*         parentWork;
-    Task*                   parent;
-    Actor02400ChildWork*    work;
-    Actor02400ChildScratch* scratch;
-    void*                   head;
-    GsCOORDINATE2*          objCoord;
-    GsCOORDINATE2*          objCoord2;
-    GsCOORDINATE2*          objCoord3;
-    SVECTOR*                offset;
-    GsCOORDINATE2*          coord;
-    GsCOORDINATE2*          parentCoord;
+    Actor02400Work*      parentWork;
+    Task*                parent;
+    Actor02400ChildWork* work;
+    ActorOffsetScratch*  scratch;
+    void*                head;
+    GsCOORDINATE2*       objCoord;
+    GsCOORDINATE2*       objCoord2;
+    GsCOORDINATE2*       objCoord3;
+    SVECTOR*             offset;
+    GsCOORDINATE2*       coord;
+    GsCOORDINATE2*       parentCoord;
 
     head                = *(void**)0x1F8003FC;
-    scratch             = (Actor02400ChildScratch*)((u8*)head - 0x18);
+    scratch             = (ActorOffsetScratch*)((u8*)head - 0x18);
     *(void**)0x1F8003FC = scratch;
     offset              = &scratch->offset;
     parent              = arg1->parent;

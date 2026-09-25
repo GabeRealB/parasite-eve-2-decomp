@@ -25,18 +25,6 @@
 /// Main-executable counter whose lowest bit the flicker alternates on.
 extern s32 D_80070F70;
 
-/// 0x44 bytes `func_actor_105100_80133CE4` carves from `G_SCRATCH_HEAD`: the
-/// 0x3F4 animation argument, the 0x3E9 position/rotation pair, and the
-/// player delta with its normalised direction.
-typedef struct Actor105100AttackScratch {
-    /* 0x00 */ GpAnimArg anim;
-    /* 0x14 */ VECTOR    pos;
-    /* 0x24 */ SVECTOR   rot;
-    /* 0x2C */ VECTOR    delta;
-    /* 0x3C */ SVECTOR   dir;
-} Actor105100AttackScratch;
-STATIC_ASSERT_SIZEOF(Actor105100AttackScratch, 0x44);
-
 /// 0x30-byte scratch `func_actor_105100_80132C2C` takes from `G_SCRATCH_HEAD`:
 /// `delta` is the player offset whose length feeds `Gp_ComputeDamage`, and
 /// `ofs` is the spark offset handed to `Gp_SpawnEff`.
@@ -1361,27 +1349,27 @@ void func_actor_105100_80133A14(Task* arg0, GpEnemy* arg1)
 }
 
 /// The attack body, run while `field_5A2` is set. It carves an
-/// `Actor105100AttackScratch` from `G_SCRATCH_HEAD` and steps `field_5A4`:
+/// `ActorAttackScratch` from `G_SCRATCH_HEAD` and steps `field_5A4`:
 /// state 0 records which side of the player it is on (`field_5A0`), plays its
 /// grab animation and spawns the effect; state 1 drags the player towards the
 /// actor for 0x10 frames and hands over after 0x1E/0x20; state 2 waits for the
 /// animation to finish and clears `field_5A2`.
 void func_actor_105100_80133CE4(Task* arg0)
 {
-    Actor105100Work*          work;
-    GsCOORDINATE2*            coord;
-    Task*                     player;
-    GsCOORDINATE2*            target;
-    Actor105100AttackScratch* scratch;
-    void*                     head;
-    s32                       sound;
-    s32                       count;
+    Actor105100Work*    work;
+    GsCOORDINATE2*      coord;
+    Task*               player;
+    GsCOORDINATE2*      target;
+    ActorAttackScratch* scratch;
+    void*               head;
+    s32                 sound;
+    s32                 count;
 
     work                    = arg0->work;
     player                  = gameGetPtrSlot(3);
     head                    = *(void**)G_SCRATCH_HEAD;
-    *(void**)G_SCRATCH_HEAD = (u8*)head - sizeof(Actor105100AttackScratch);
-    scratch                 = *(Actor105100AttackScratch**)G_SCRATCH_HEAD;
+    *(void**)G_SCRATCH_HEAD = (u8*)head - sizeof(ActorAttackScratch);
+    scratch                 = *(ActorAttackScratch**)G_SCRATCH_HEAD;
     coord                   = ((TmdObject*)arg0->extra)->coords;
     target                  = ((TmdObject*)player->extra)->coords;
 
@@ -1417,17 +1405,17 @@ void func_actor_105100_80133CE4(Task* arg0)
                 scratch->delta.vy = target->coord.t[1] - coord->coord.t[1];
                 scratch->delta.vz = target->coord.t[2] - coord->coord.t[2];
                 VectorNormalS(&scratch->delta, &scratch->dir);
-                scratch->pos.vx = target->coord.t[0] + ((scratch->dir.vx * 25) >> 10);
-                scratch->pos.vy = 0;
-                scratch->pos.vz = target->coord.t[2] + ((scratch->dir.vz * 25) >> 10);
-                scratch->rot.vx = 0;
+                scratch->place.pos.vx = target->coord.t[0] + ((scratch->dir.vx * 25) >> 10);
+                scratch->place.pos.vy = 0;
+                scratch->place.pos.vz = target->coord.t[2] + ((scratch->dir.vz * 25) >> 10);
+                scratch->place.rot.vx = 0;
                 if (work->field_5A0 == 0) {
-                    scratch->rot.vy = (ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) + 0x800) & 0xFFF;
+                    scratch->place.rot.vy = (ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) + 0x800) & 0xFFF;
                 } else {
-                    scratch->rot.vy = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & 0xFFF;
+                    scratch->place.rot.vy = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & 0xFFF;
                 }
-                scratch->rot.vz = 0;
-                Gp_DispatchMsg(player, 0x3E9, (s32)&scratch->pos, 0);
+                scratch->place.rot.vz = 0;
+                Gp_DispatchMsg(player, 0x3E9, (s32)&scratch->place, 0);
             }
             if ((s16)work->field_5A6 == 0x10) {
                 sound = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8) | 0x55190003;
@@ -1456,7 +1444,7 @@ void func_actor_105100_80133CE4(Task* arg0)
             }
             break;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(Actor105100AttackScratch);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(ActorAttackScratch);
 }
 
 void func_actor_105100_80134130(Task* arg0)

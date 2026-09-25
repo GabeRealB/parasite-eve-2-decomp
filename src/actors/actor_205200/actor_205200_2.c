@@ -3,6 +3,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "actors/actor.h"
 #include "actors/actor_205200.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -51,18 +52,6 @@ typedef struct Actor205200Work {
     /* 0x596 */ s16        field_596; // placement mode; selects the tick `func_actor_205200_8014C67C` runs: zero goes to `func_8017EBA4`, non-zero to `func_80181930`
 } Actor205200Work;
 STATIC_ASSERT_SIZEOF(Actor205200Work, 0x598);
-
-/// 0x44 bytes `func_actor_205200_8014C0C0` carves from `G_SCRATCH_HEAD`: the
-/// 0x3F4 animation argument, the 0x3E9 position/rotation pair, and the
-/// player delta with its normalised direction.
-typedef struct Actor205200AttackScratch {
-    /* 0x00 */ GpAnimArg anim;
-    /* 0x14 */ VECTOR    pos;
-    /* 0x24 */ SVECTOR   rot;
-    /* 0x2C */ VECTOR    delta;
-    /* 0x3C */ SVECTOR   dir;
-} Actor205200AttackScratch;
-STATIC_ASSERT_SIZEOF(Actor205200AttackScratch, 0x44);
 
 /// Animation block the attack body hands the player with message 0x3F4.
 extern void*   D_actor_205200_80156800;
@@ -283,7 +272,7 @@ void func_actor_205200_8014BF28(Task* arg0)
 }
 
 /// The attack body, run while `field_588` is set. It carves an
-/// `Actor205200AttackScratch` from `G_SCRATCH_HEAD` and steps `field_58A`:
+/// `ActorAttackScratch` from `G_SCRATCH_HEAD` and steps `field_58A`:
 /// state 0 records which side of the player it is on (`field_58E`), plays its grab
 /// animation and spawns the effect; state 1 drags the player towards the actor
 /// for 0x10 frames and hands over after 0x1E/0x20; state 2 waits for the
@@ -292,20 +281,20 @@ void func_actor_205200_8014BF28(Task* arg0)
 /// cross-jumping merges them, where a variable or ternary is hoisted instead.
 void func_actor_205200_8014C0C0(Task* arg0)
 {
-    Actor205200Work*          work;
-    GsCOORDINATE2*            coord;
-    Task*                     player;
-    GsCOORDINATE2*            target;
-    Actor205200AttackScratch* scratch;
-    void*                     head;
-    s32                       sound;
-    s32                       count;
+    Actor205200Work*    work;
+    GsCOORDINATE2*      coord;
+    Task*               player;
+    GsCOORDINATE2*      target;
+    ActorAttackScratch* scratch;
+    void*               head;
+    s32                 sound;
+    s32                 count;
 
     work                    = arg0->work;
     player                  = gameGetPtrSlot(3);
     head                    = *(void**)G_SCRATCH_HEAD;
-    *(void**)G_SCRATCH_HEAD = (u8*)head - sizeof(Actor205200AttackScratch);
-    scratch                 = *(Actor205200AttackScratch**)G_SCRATCH_HEAD;
+    *(void**)G_SCRATCH_HEAD = (u8*)head - sizeof(ActorAttackScratch);
+    scratch                 = *(ActorAttackScratch**)G_SCRATCH_HEAD;
     coord                   = ((TmdObject*)arg0->extra)->coords;
     target                  = ((TmdObject*)player->extra)->coords;
 
@@ -345,17 +334,17 @@ void func_actor_205200_8014C0C0(Task* arg0)
                 scratch->delta.vy = target->coord.t[1] - coord->coord.t[1];
                 scratch->delta.vz = target->coord.t[2] - coord->coord.t[2];
                 VectorNormalS(&scratch->delta, &scratch->dir);
-                scratch->pos.vx = target->coord.t[0] + ((scratch->dir.vx * 25) >> 10);
-                scratch->pos.vy = 0;
-                scratch->pos.vz = target->coord.t[2] + ((scratch->dir.vz * 25) >> 10);
-                scratch->rot.vx = 0;
+                scratch->place.pos.vx = target->coord.t[0] + ((scratch->dir.vx * 25) >> 10);
+                scratch->place.pos.vy = 0;
+                scratch->place.pos.vz = target->coord.t[2] + ((scratch->dir.vz * 25) >> 10);
+                scratch->place.rot.vx = 0;
                 if (work->field_58E == 0) {
-                    scratch->rot.vy = (ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) + 0x800) & 0xFFF;
+                    scratch->place.rot.vy = (ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) + 0x800) & 0xFFF;
                 } else {
-                    scratch->rot.vy = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & 0xFFF;
+                    scratch->place.rot.vy = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & 0xFFF;
                 }
-                scratch->rot.vz = 0;
-                Gp_DispatchMsg(player, 0x3E9, (s32)&scratch->pos, 0);
+                scratch->place.rot.vz = 0;
+                Gp_DispatchMsg(player, 0x3E9, (s32)&scratch->place, 0);
             }
             if ((s16)work->field_58C == 0x10) {
                 if (work->field_596 == 0) {
@@ -389,7 +378,7 @@ void func_actor_205200_8014C0C0(Task* arg0)
             }
             break;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(Actor205200AttackScratch);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(ActorAttackScratch);
 }
 
 /// Update of the actor's own task: runs the handler of

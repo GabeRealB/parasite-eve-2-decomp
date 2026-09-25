@@ -27,12 +27,6 @@ typedef struct Actor00300ByteView {
     s8 value;
 } Actor00300ByteView;
 
-typedef struct Actor00300InitScratch {
-    /* 0x00 */ SVECTOR offset;
-    /* 0x08 */ VECTOR  result;
-} Actor00300InitScratch;
-STATIC_ASSERT_SIZEOF(Actor00300InitScratch, 0x18);
-
 typedef struct Actor00300InitWork {
     /* 0x00 */ GpObj        obj0;
     /* 0x20 */ GpRec18      rec20;
@@ -2166,19 +2160,19 @@ void Actor00300_Fn03F40(GpEnemy* arg0, Task* arg1)
 
 void Actor00300_Fn040A4(GpEnemy* arg0, Task* arg1)
 {
-    Actor100300Work*       parentWork;
-    Task*                  parent;
-    Actor00300InitWork*    work;
-    Actor00300InitScratch* scratch;
-    void*                  head;
-    SVECTOR*               offset;
-    GsCOORDINATE2*         coord;
-    GsCOORDINATE2*         parentCoord;
-    GsCOORDINATE2*         objCoord;
-    GsCOORDINATE2*         objCoord2;
+    Actor100300Work*    parentWork;
+    Task*               parent;
+    Actor00300InitWork* work;
+    ActorOffsetScratch* scratch;
+    void*               head;
+    SVECTOR*            offset;
+    GsCOORDINATE2*      coord;
+    GsCOORDINATE2*      parentCoord;
+    GsCOORDINATE2*      objCoord;
+    GsCOORDINATE2*      objCoord2;
 
     head                = *(void**)0x1F8003FC;
-    scratch             = (Actor00300InitScratch*)((u8*)head - 0x18);
+    scratch             = (ActorOffsetScratch*)((u8*)head - 0x18);
     *(void**)0x1F8003FC = scratch;
     offset              = &scratch->offset;
     parent              = arg1->parent;
