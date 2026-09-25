@@ -43,33 +43,6 @@ typedef struct DwtWork {
 } DwtWork;
 STATIC_ASSERT_SIZEOF(DwtWork, 0x10);
 
-/// One of the per-view objects the room's record points at. The record's tail
-/// is a run of pointers to these; this room's pair sits at 0x1C / 0x58 and both
-/// objects carry a byte at 0x1C with the skip-OT-link byte beside it at 0xC
-/// (the same two roles the water tower's `DwtwSprtViewState` splits between its
-/// `field_C` and `field_14`). `field_C` non-zero leaves the view's sprites out
-/// of the ordering table, zero draws them.
-typedef struct _DwtSprtView {
-    /* 0x00 */ byte pad_0[0xC];
-    /* 0x0C */ u8   field_C; // skip-OT-link; 0 draws the view's sprites
-    /* 0x0D */ byte pad_D[0xF];
-    /* 0x1C */ u8   field_1C;
-} DwtSprtView;
-STATIC_ASSERT_SIZEOF(DwtSprtView, 0x1D);
-
-/// The record `Gp_SprtTables[stage - 1]->field_0[room - 1]` really points at: a
-/// room-sized block, far larger than the 0xC-byte `GpSprtRec` the table's
-/// element type declares, so the room reaches its tail through a cast (as the
-/// water tower's `DwtwSprtRec` and the mine's `MineForkedTunnelSprtRec` do).
-/// The tail is a run of per-view pointers; this room's pair sits at 0x1C / 0x58.
-typedef struct _DwtSprtRec {
-    /* 0x00 */ byte         pad_0[0x1C];
-    /* 0x1C */ DwtSprtView* field_1C;
-    /* 0x20 */ byte         pad_20[0x38];
-    /* 0x58 */ DwtSprtView* field_58;
-} DwtSprtRec;
-STATIC_ASSERT_SIZEOF(DwtSprtRec, 0x5C);
-
 /// Main-executable globals with no module header yet: the cutscene task
 /// refuses to start while `D_80114C12` is 1 or `D_80071075` is non-zero.
 /// `D_80073BA9` is the equipped-weapon index the slot-3 msg 0x3E8 animation
@@ -581,30 +554,31 @@ void func_dryfield_water_tank_8017EDF4(Task* arg0)
     coord->flg = 0;
 }
 
-/// Toggle the room's cutscene-“watched” state over the view's two per-view
-/// objects. Every use goes through one pointer variable: the compiler keeps it
+/// Toggle the room's cutscene-“watched” state over two of the area's sprite
+/// commands, hiding one and showing the other through their
+/// `GpSprtCmd::field_4`. Every use goes through one pointer variable: the compiler keeps it
 /// in a global allocno, which is what pushes the two literals' constant into
 /// `$v0` (see DECOMPILATION_LEARNINGS.md, "A one-constant toggle…").
 void func_dryfield_water_tank_8017EFF4(s32 arg0)
 {
-    GpAreaKey*   sess;
-    DwtSprtRec*  rec;
-    DwtSprtView* view;
+    GpAreaKey* sess;
+    GpSprtRec* rec;
+    GpSprtCmd* view;
 
     sess = &gGameSession->at4.loc;
     if (sess->stage == 2) {
-        rec = (DwtSprtRec*)Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
+        rec = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
         if (!(arg0 & 0xFF)) {
-            view           = rec->field_1C;
-            view->field_1C = 0;
-            view           = rec->field_58;
-            view->field_C  = 1;
+            view            = rec[2].field_4;
+            view[3].field_4 = 0;
+            view            = rec[7].field_4;
+            view[1].field_4 = 1;
             return;
         }
-        view           = rec->field_1C;
-        view->field_1C = 1;
-        view           = rec->field_58;
-        view->field_C  = 0;
+        view            = rec[2].field_4;
+        view[3].field_4 = 1;
+        view            = rec[7].field_4;
+        view[1].field_4 = 0;
     }
 }
 

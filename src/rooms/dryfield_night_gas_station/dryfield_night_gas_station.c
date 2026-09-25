@@ -1896,52 +1896,51 @@ void func_dryfield_night_gas_station_80180C20(void)
     D_dryfield_night_gas_station_801907AC = 0;
 }
 
-/// Gates the room's flag views on its own argument: the flags at 0x34 / 0x3C
-/// of the five views the current room's sprite record points at are cleared for
-/// a 0 argument and set to the argument for a 1, and any other argument changes
-/// nothing. Each view takes only the flag it carries -- the first at 0x34
-/// alone, the last two at 0x3C alone -- and
-/// `func_dryfield_night_gas_station_80180DC8` drives the 0x44 / 0x4C / 0x54
-/// flags of the 0xA0 / 0xAC / 0xC4 three instead.
+/// Hides or shows sprite commands 6 and 7 of five of the area's views on its
+/// own argument, through their `GpSprtCmd::field_4`: cleared for a 0 argument,
+/// set for a 1, and any other argument changes nothing. The first view takes
+/// only command 6 and the last two only command 7;
+/// `func_dryfield_night_gas_station_80180DC8` drives commands 8 to 10 of the
+/// last three views instead.
 void func_dryfield_night_gas_station_80180C3C(s32 arg0)
 {
-    GpAreaKey*                       sess;
-    DryfieldNightGasStationSprtRec*  rec;
-    DryfieldNightGasStationSprtView* view;
-    s32                              flag;
+    GpAreaKey* sess;
+    GpSprtRec* rec;
+    GpSprtCmd* view;
+    s32        flag;
 
     sess = &gGameSession->at4.loc;
-    rec  = (DryfieldNightGasStationSprtRec*)Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
+    rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
     flag = arg0 & 0xFF;
 
     switch (flag) {
         case 0:
-            view           = rec->field_34;
-            view->field_34 = 0;
-            view           = rec->field_94;
-            view->field_34 = 0;
-            view->field_3C = 0;
-            view           = rec->field_A0;
-            view->field_34 = 0;
-            view->field_3C = 0;
-            view           = rec->field_AC;
-            view->field_3C = 0;
-            view           = rec->field_C4;
-            view->field_3C = 0;
+            view            = rec[4].field_4;
+            view[6].field_4 = 0;
+            view            = rec[12].field_4;
+            view[6].field_4 = 0;
+            view[7].field_4 = 0;
+            view            = rec[13].field_4;
+            view[6].field_4 = 0;
+            view[7].field_4 = 0;
+            view            = rec[14].field_4;
+            view[7].field_4 = 0;
+            view            = rec[16].field_4;
+            view[7].field_4 = 0;
             break;
         case 1:
-            view           = rec->field_34;
-            view->field_34 = flag;
-            view           = rec->field_94;
-            view->field_34 = flag;
-            view->field_3C = flag;
-            view           = rec->field_A0;
-            view->field_34 = flag;
-            view->field_3C = flag;
-            view           = rec->field_AC;
-            view->field_3C = flag;
-            view           = rec->field_C4;
-            view->field_3C = flag;
+            view            = rec[4].field_4;
+            view[6].field_4 = flag;
+            view            = rec[12].field_4;
+            view[6].field_4 = flag;
+            view[7].field_4 = flag;
+            view            = rec[13].field_4;
+            view[6].field_4 = flag;
+            view[7].field_4 = flag;
+            view            = rec[14].field_4;
+            view[7].field_4 = flag;
+            view            = rec[16].field_4;
+            view[7].field_4 = flag;
             break;
     }
 }
@@ -1975,38 +1974,38 @@ void func_dryfield_night_gas_station_80180D1C(void)
 /// blinking-light table, whose own exit passes 0.
 void func_dryfield_night_gas_station_80180DC8(s16 arg0)
 {
-    GpAreaKey*                      sess = &gGameSession->at4.loc;
-    DryfieldNightGasStationSprtRec* rec  = (DryfieldNightGasStationSprtRec*)
-                                              Gp_SprtTables[sess->stage - 1][0]
-                                                  .field_0[sess->area - 1];
-    DryfieldNightGasStationSprtView* view;
+    GpAreaKey* sess = &gGameSession->at4.loc;
+    GpSprtRec* rec =
+        Gp_SprtTables[sess->stage - 1][0]
+            .field_0[sess->area - 1];
+    GpSprtCmd* view;
 
     switch (arg0) {
         case 0:
-            view           = rec->field_A0;
-            view->field_44 = 1;
-            view->field_4C = 1;
-            view           = rec->field_AC;
-            view->field_44 = 1;
-            view->field_4C = 1;
-            view->field_54 = 1;
-            view           = rec->field_C4;
-            view->field_44 = 1;
-            view->field_4C = 1;
-            view->field_54 = 1;
+            view             = rec[13].field_4;
+            view[8].field_4  = 1;
+            view[9].field_4  = 1;
+            view             = rec[14].field_4;
+            view[8].field_4  = 1;
+            view[9].field_4  = 1;
+            view[10].field_4 = 1;
+            view             = rec[16].field_4;
+            view[8].field_4  = 1;
+            view[9].field_4  = 1;
+            view[10].field_4 = 1;
             break;
         case 1:
-            view           = rec->field_A0;
-            view->field_44 = 0;
-            view->field_4C = 0;
-            view           = rec->field_AC;
-            view->field_44 = 0;
-            view->field_4C = 0;
-            view->field_54 = 0;
-            view           = rec->field_C4;
-            view->field_44 = 0;
-            view->field_4C = 0;
-            view->field_54 = 0;
+            view             = rec[13].field_4;
+            view[8].field_4  = 0;
+            view[9].field_4  = 0;
+            view             = rec[14].field_4;
+            view[8].field_4  = 0;
+            view[9].field_4  = 0;
+            view[10].field_4 = 0;
+            view             = rec[16].field_4;
+            view[8].field_4  = 0;
+            view[9].field_4  = 0;
+            view[10].field_4 = 0;
             break;
     }
 }

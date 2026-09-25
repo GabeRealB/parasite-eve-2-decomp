@@ -184,28 +184,28 @@ void func_mine_cavern_8017E394(void)
 
 void func_mine_cavern_8017E3A0(s32 arg0)
 {
-    GpAreaKey*         sess;
-    MineCavernSprtRec* rec;
-    s32                v;
+    GpAreaKey* sess;
+    GpSprtRec* rec;
+    s32        v;
 
     sess = &gGameSession->at4.loc;
-    rec  = (MineCavernSprtRec*)Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
+    rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
     v    = arg0 & 0xFF;
 
     if (v == 1) {
-        rec->field_28->field_2C  = v;
-        rec->field_34->field_34  = v;
-        rec->field_100->field_2C = v;
-        rec->field_10C->field_1C = v;
-        rec->field_118->field_24 = v;
+        rec[3].field_4[5].field_4  = v;
+        rec[4].field_4[6].field_4  = v;
+        rec[21].field_4[5].field_4 = v;
+        rec[22].field_4[3].field_4 = v;
+        rec[23].field_4[4].field_4 = v;
         return;
     }
     if (v == 0) {
-        rec->field_28->field_2C  = 0;
-        rec->field_34->field_34  = 0;
-        rec->field_100->field_2C = 0;
-        rec->field_10C->field_1C = 0;
-        rec->field_118->field_24 = 0;
+        rec[3].field_4[5].field_4  = 0;
+        rec[4].field_4[6].field_4  = 0;
+        rec[21].field_4[5].field_4 = 0;
+        rec[22].field_4[3].field_4 = 0;
+        rec[23].field_4[4].field_4 = 0;
     }
 }
 

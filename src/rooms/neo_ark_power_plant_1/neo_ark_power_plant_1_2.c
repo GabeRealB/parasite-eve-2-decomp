@@ -240,32 +240,31 @@ void func_neo_ark_power_plant_1_8017E184(SVECTOR* arg0, s32 arg1, s32 arg2)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
 }
 
-/// Sprite-suppression switch for the room's two per-view objects: 0 draws the
-/// sprites of both views (both skip-OT-link bytes cleared), 1 leaves both out
-/// of the ordering table, and any other value is ignored. The two views hang
-/// off the room's sprite-table record at 0x40 and 0x4C.
+/// Sprite-suppression switch for two of the area's views: 0 shows command 1
+/// of views 5 and 6 and 1 hides it, through `GpSprtCmd::field_4`; any other
+/// value is ignored.
 void func_neo_ark_power_plant_1_8017E524(s32 arg0)
 {
-    GpAreaKey*                 sess;
-    NeoArkPowerPlant1SprtRec*  rec;
-    NeoArkPowerPlant1SprtView* view;
-    s32                        v;
+    GpAreaKey* sess;
+    GpSprtRec* rec;
+    GpSprtCmd* view;
+    s32        v;
 
     sess = &gGameSession->at4.loc;
-    rec  = (NeoArkPowerPlant1SprtRec*)Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
+    rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
     v    = arg0 & 0xFF;
 
     if (v == 0) {
-        view          = rec->field_40;
-        view->field_C = 0;
-        view          = rec->field_4C;
-        view->field_C = 0;
+        view            = rec[5].field_4;
+        view[1].field_4 = 0;
+        view            = rec[6].field_4;
+        view[1].field_4 = 0;
         return;
     }
     if (v == 1) {
-        view          = rec->field_40;
-        view->field_C = v;
-        view          = rec->field_4C;
-        view->field_C = v;
+        view            = rec[5].field_4;
+        view[1].field_4 = v;
+        view            = rec[6].field_4;
+        view[1].field_4 = v;
     }
 }

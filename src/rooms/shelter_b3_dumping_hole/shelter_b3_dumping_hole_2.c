@@ -321,18 +321,6 @@ typedef struct {
     /* 0x03 */ u8 field_3;
 } GlyphEntry;
 
-typedef struct {
-    u8 _pad0[0xC];
-    u8 field_C;
-    u8 _pad2[0x7];
-    u8 field_14;
-} SprtViewState;
-
-typedef struct {
-    u8             _pad0[0xA0];
-    SprtViewState* field_A0;
-} SprtBigRec;
-
 /// One of the 16 enemy slots the room's encounter controller works through in
 /// order. `kind` selects the task that holds the slot's enemies (0 and 1 one
 /// enemy each, from two different tables; 2 a pair), and `command` is what
@@ -3039,19 +3027,20 @@ void func_shelter_b3_dumping_hole_80183198(s16 arg0, s16 arg1, s16 arg2)
     }
 }
 
+/// Hides or shows sprite commands 1 and 2 of the area's view 13 through their
+/// `GpSprtCmd::field_4`: 0 hides both, 1 shows command 2 and 2 shows command 1.
 void func_shelter_b3_dumping_hole_80183218(u8 arg0)
 {
-    GpAreaKey*     g4 = &gGameSession->at4.loc;
-    SprtViewState* vs =
-        ((SprtBigRec*)Gp_SprtTables[g4->stage - 1]->field_0[g4->area - 1])->field_A0;
+    GpAreaKey* g4 = &gGameSession->at4.loc;
+    GpSprtCmd* vs = Gp_SprtTables[g4->stage - 1]->field_0[g4->area - 1][13].field_4;
 
     if (arg0 == 0) {
-        vs->field_C  = 1;
-        vs->field_14 = 1;
+        vs[1].field_4 = 1;
+        vs[2].field_4 = 1;
     } else if (arg0 == 1) {
-        vs->field_14 = 0;
+        vs[2].field_4 = 0;
     } else if (arg0 == 2) {
-        vs->field_C = 0;
+        vs[1].field_4 = 0;
     }
 }
 

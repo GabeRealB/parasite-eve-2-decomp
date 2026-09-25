@@ -65,32 +65,6 @@ typedef union DwtwVec {
     /* 0x0 */ SVECTOR rot; // floor-quad offset, handed to Gp_DrawFloorQuad
 } DwtwVec;
 
-/// One of the per-view objects the room's sprite-table record points at.
-/// `field_C` is the skip-OT-link byte: non-zero leaves the view's sprites out
-/// of the ordering table, zero draws them. `func_dryfield_water_tower_801802D8`
-/// is this room's writer, driven from the `GameFlag_GetNibble(0x55)` band by
-/// `func_dryfield_water_tower_8017DCB4`; the byte at 0x14 sits next to it and
-/// is written by the other rooms carrying the same object (the dryfield night
-/// motel balcony's `func_dryfield_night_motel_balcony_8017E4B8` writes both).
-typedef struct DwtwSprtViewState {
-    /* 0x0 */ byte pad_0[0xC];
-    /* 0xC */ u8   field_C; // skip-OT-link; 0 draws the view's sprites
-} DwtwSprtViewState;
-STATIC_ASSERT_SIZEOF(DwtwSprtViewState, 0xD);
-
-/// The record `Gp_SprtTables[stage - 1]->field_0[room - 1]` really points at:
-/// a room-sized block, far larger than the 0xC-byte `GpSprtRec` the table's
-/// element type declares, so the room reaches its tail through a cast. The tail
-/// is a run of pointers to `DwtwSprtViewState`; the sibling overlays carrying
-/// the same record keep them at 0xC4 / 0xD0 / 0xDC / 0x100
-/// (`shelter_b3_dumping_hole_6.c` models the shape privately as `SprtBigRec`,
-/// with its own pointer at 0xA0).
-typedef struct DwtwSprtRec {
-    /* 0x000 */ byte               pad_0[0xDC];
-    /* 0x0DC */ DwtwSprtViewState* field_DC;
-} DwtwSprtRec;
-STATIC_ASSERT_SIZEOF(DwtwSprtRec, 0xE0);
-
 /// One step of the room's rotation schedule, the table
 /// `func_dryfield_water_tower_8017FB4C` walks: `field_0` is the step's
 /// threshold and `field_2` its duration. Four of them sit at 0x8018767C --
@@ -1881,22 +1855,23 @@ void func_dryfield_water_tower_80180220(void)
     Gp_RestoreStreamRng();
 }
 
-/// Sets the current view's skip-OT-link byte from the nibble-0x55 band: the
-/// argument's low byte zero skips the view's sprites, non-zero draws them. Only
-/// the stage byte 2 (the first stage table) has a record to write.
+/// Hides or shows one of the area's sprite commands from the nibble-0x55 band
+/// by setting its `GpSprtCmd::field_4`: the argument's low byte zero keeps the
+/// command's sprites out of the ordering table, non-zero draws them. Only stage
+/// 2 has a record to write.
 void func_dryfield_water_tower_801802D8(u8 arg0)
 {
-    GpAreaKey*         sess;
-    DwtwSprtViewState* vs;
+    GpAreaKey* sess;
+    GpSprtCmd* vs;
 
     sess = &gGameSession->at4.loc;
     if (sess->stage == 2) {
-        vs = ((DwtwSprtRec*)Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1])->field_DC;
+        vs = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1][18].field_4;
         if (!(arg0 & 0xFF)) {
-            vs->field_C = 1;
+            vs[1].field_4 = 1;
             return;
         }
-        vs->field_C = 0;
+        vs[1].field_4 = 0;
     }
 }
 

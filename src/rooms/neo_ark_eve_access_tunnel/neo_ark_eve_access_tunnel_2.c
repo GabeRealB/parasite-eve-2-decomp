@@ -14,38 +14,6 @@
 #include "rooms/neo_ark_eve_access_tunnel.h"
 #include "rooms/room_common.h"
 
-/// One of the per-view objects the tunnel's sprite-table record points at. Its
-/// flag sits at a different offset in each of the record's three pointers --
-/// 0x24 for `field_1C`, 0x1C for `field_28` and 0x14 for `field_34`, eight
-/// bytes apart, one `GpSprtCmd` record each, the same shape the gas station's
-/// `DryfieldNightGasStationSprtView` has. `func_neo_ark_eve_access_tunnel_8017E090`
-/// is the only writer: it sets the flag to 1 or clears it to 0.
-typedef struct NaetSprtView {
-    /* 0x00 */ byte pad_0[0x14];
-    /* 0x14 */ u8   field_14;
-    /* 0x15 */ byte pad_15[0x7];
-    /* 0x1C */ u8   field_1C;
-    /* 0x1D */ byte pad_1D[0x7];
-    /* 0x24 */ u8   field_24;
-} NaetSprtView;
-STATIC_ASSERT_SIZEOF(NaetSprtView, 0x25);
-
-/// The record `Gp_SprtTables[stage - 1]->field_0[room - 1]` really points at,
-/// reached through a cast for the same reason the neighbouring rooms' records
-/// are: it is a room-sized block, far larger than the 0xC-byte `GpSprtRec` the
-/// table's element type declares. `field_1C` / `field_28` / `field_34` are a
-/// run twelve bytes apart, one `GpSprtRec` each, and each points at one of the
-/// views above -- the first alone, the second and third as a pair.
-typedef struct NaetSprtRec {
-    /* 0x00 */ byte          pad_0[0x1C];
-    /* 0x1C */ NaetSprtView* field_1C;
-    /* 0x20 */ byte          pad_20[0x8];
-    /* 0x28 */ NaetSprtView* field_28;
-    /* 0x2C */ byte          pad_2C[0x8];
-    /* 0x34 */ NaetSprtView* field_34;
-} NaetSprtRec;
-STATIC_ASSERT_SIZEOF(NaetSprtRec, 0x38);
-
 void func_neo_ark_eve_access_tunnel_8017E244(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// Live emitters for the tunnel's views, in the shared data blob at the end of
@@ -56,40 +24,44 @@ extern SVECTOR D_neo_ark_eve_access_tunnel_8017EB08[];
 extern SVECTOR D_neo_ark_eve_access_tunnel_8017EB28[];
 extern SVECTOR D_neo_ark_eve_access_tunnel_8017EB48[];
 
+/// Hides or shows sprite commands of the area's views through their
+/// `GpSprtCmd::field_4`: `arg0` 0 drives command 4 of view 2, `arg0` 1 command
+/// 3 of view 3 and command 2 of view 4. `arg1` 0 hides them and 1 shows them;
+/// any other value changes nothing.
 void func_neo_ark_eve_access_tunnel_8017E090(s32 arg0, s32 arg1)
 {
-    GpAreaKey*    sess = &gGameSession->at4.loc;
-    NaetSprtRec*  rec  = (NaetSprtRec*)Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
-    NaetSprtView* view;
-    s32           run = arg0 & 0xFF;
-    s32           flag;
+    GpAreaKey* sess = &gGameSession->at4.loc;
+    GpSprtRec* rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
+    GpSprtCmd* view;
+    s32        run = arg0 & 0xFF;
+    s32        flag;
 
     if (run == 0) {
         flag = arg1 & 0xFF;
         if (flag == 0) {
-            view           = rec->field_1C;
-            view->field_24 = 1;
+            view            = rec[2].field_4;
+            view[4].field_4 = 1;
             return;
         }
         if (flag == 1) {
-            view           = rec->field_1C;
-            view->field_24 = 0;
+            view            = rec[2].field_4;
+            view[4].field_4 = 0;
             return;
         }
     } else if (run == 1) {
         flag = arg1 & 0xFF;
         if (flag == 0) {
-            view           = rec->field_28;
-            view->field_1C = run;
-            view           = rec->field_34;
-            view->field_14 = run;
+            view            = rec[3].field_4;
+            view[3].field_4 = run;
+            view            = rec[4].field_4;
+            view[2].field_4 = run;
             return;
         }
         if (flag == run) {
-            view           = rec->field_28;
-            view->field_1C = 0;
-            view           = rec->field_34;
-            view->field_14 = 0;
+            view            = rec[3].field_4;
+            view[3].field_4 = 0;
+            view            = rec[4].field_4;
+            view[2].field_4 = 0;
         }
     }
 }
