@@ -68,9 +68,11 @@ typedef struct Actor143900Work2 {
     /* 0x4B6 */ s16        field_4B6; // copy of `field_4B8`, kept for change detection
     /* 0x4B8 */ s16        field_4B8; // animation id the slots are seeded with
     /* 0x4BA */ s16        field_4BA; // cleared by the handler before the reseed
-    /* 0x4BC */ byte       pad_4BC[0x2E];
-    /* 0x4EA */ s16        field_4EA; // cleared next to `field_4EC` by the spawn routine
-    /* 0x4EC */ s16        field_4EC;
+    /* 0x4BC */ byte       pad_4BC[0x2A];
+    /* 0x4E6 */ u16        yaw;       // last yaw handed to `Gfx_RotMatrixY`
+    /* 0x4E8 */ byte       pad_4E8[2];
+    /* 0x4EA */ s16        field_4EA; // steps left in the walk the update performs
+    /* 0x4EC */ s16        field_4EC; // turn steps left
     /* 0x4EE */ byte       pad_4EE[0x2];
     /* 0x4F0 */ Task*      field_4F0; // first helper task
     /* 0x4F4 */ Task*      field_4F4; // second helper task
