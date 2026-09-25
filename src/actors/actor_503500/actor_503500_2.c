@@ -336,7 +336,7 @@ void func_actor_503500_80132EE8(u8 arg0)
 
 void func_actor_503500_80132EF4(void)
 {
-    func_80106350((GpActorWork*)gameGetPtrSlot(3), D_80073BA9, 0);
+    func_80106350((Task*)gameGetPtrSlot(3), D_80073BA9, 0);
 }
 
 void func_actor_503500_80132F28(void)

@@ -1989,7 +1989,7 @@ void Actor01100_Fn039D0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         SCHED_BARRIER();
         angle = 0;
     } else {
-        other     = Gp_ActorSlots[0]->extra->coords;
+        other     = ((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
         selfWorkm = &self->workm;
         __asm__("lui %0, 0x1F80" : "=r"(head) : "r"(other));
         head   = *(void**)(head + 0x3FC);
@@ -2088,7 +2088,7 @@ void Actor01100_Fn03BAC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
             SCHED_BARRIER();
             angle = 0;
         } else {
-            other     = Gp_ActorSlots[0]->extra->coords;
+            other     = ((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
             selfWorkm = &self0->workm;
             __asm__("lui %0, 0x1F80" : "=r"(head0) : "r"(other));
             head0   = *(void**)(head0 + 0x3FC);
@@ -2167,7 +2167,7 @@ void Actor01100_Fn03BAC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
             SCHED_BARRIER();
             angle3 = 0;
         } else {
-            other     = Gp_ActorSlots[0]->extra->coords;
+            other     = ((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
             selfWorkm = &self->workm;
             __asm__("lui %0, 0x1F80" : "=r"(head3) : "r"(other));
             head3   = *(void**)(head3 + 0x3FC);
@@ -2806,7 +2806,7 @@ void Actor01100_Fn04DB4(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         if (Gp_ActorSlots[0] == NULL) {
             bridge = 0;
         } else {
-            other     = Gp_ActorSlots[0]->extra->coords;
+            other     = ((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
             selfWorkm = &self->workm;
             __asm__("lui %0, 0x1F80" : "=r"(head) : "r"(other));
             head   = *(void**)(head + 0x3FC);
@@ -3132,7 +3132,7 @@ void Actor01100_Fn05678(
 
     extra = (TmdObject*)task->extra;
     if (((D_8007216C & 0xFFFF0000) == 0x05180000) && (work->field_BC8 == 0)) {
-        actor  = ((GpActorWork*)gameGetPtrSlot(3))->actor;
+        actor  = gameGetPtrSlot(3)->work;
         status = &Player_Status;
         if ((actor->field_954 != 2) && (D_80114C12 != 1) && (D_80071075 == 0) && (status->hp > 0)) {
             Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
@@ -3789,7 +3789,7 @@ void Actor01100_Fn067C0(MATRIX* arg0, ActorsShared801385e0Scale* arg1)
 s32 Actor01100_Fn06954(GsCOORDINATE2* arg0, s32 arg1)
 {
     SVECTOR        local;
-    GpActorWork*   actor;
+    Task*          actor;
     GsCOORDINATE2* coord;
     s32            angle;
     s32            result;
@@ -3801,7 +3801,7 @@ s32 Actor01100_Fn06954(GsCOORDINATE2* arg0, s32 arg1)
     if (actor == NULL) {
         return 0;
     }
-    coord = actor->extra->coords;
+    coord = ((TmdObject*)actor->extra)->coords;
     head  = *(void**)0x1F8003FC;
     vec   = head - 0x40;
 

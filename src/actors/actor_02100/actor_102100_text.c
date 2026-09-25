@@ -414,7 +414,7 @@ void Actor02100_Fn004C4(Task* arg0)
             if (work->field_60.key & 0x8000) {
                 func_800DA6E8(&enemy->node, 0, 0);
             } else if ((((u32)work->field_60.key >> 8) & 0x3F) < 0x21U) {
-                src             = Gp_ActorSlots[((u32)work->field_60.key >> 7) & 1]->extra->coords;
+                src             = ((TmdObject*)Gp_ActorSlots[((u32)work->field_60.key >> 7) & 1]->extra)->coords;
                 scratch->vec.vx = src->coord.t[0] - coord->coord.t[0];
                 scratch->vec.vy = src->coord.t[1] - coord->coord.t[1];
                 scratch->vec.vz = src->coord.t[2] - coord->coord.t[2];
@@ -717,7 +717,7 @@ void Actor02100_Fn00DCC(Task* arg0)
                 blk->to.vy   = self->workm.t[1];
                 blk->to.vz   = self->workm.t[2];
                 if (Actor02100_Fn0337C(&blk->from, &blk->to) == 0) {
-                    work->field_140 = (Task*)gameGetPtrSlot(3);
+                    work->field_140 = gameGetPtrSlot(3);
                     work->field_164 = dist;
                     work->field_180 = 1;
                 }
@@ -738,7 +738,7 @@ void Actor02100_Fn00DCC(Task* arg0)
             blk->to.vy   = self->workm.t[1];
             blk->to.vz   = self->workm.t[2];
             if (Actor02100_Fn0337C(&blk->from, &blk->to) == 0) {
-                work->field_140 = (Task*)gameGetPtrSlot(3);
+                work->field_140 = gameGetPtrSlot(3);
                 work->field_164 = 1;
                 work->field_180 = 1;
             }

@@ -23,7 +23,7 @@ void Gp_EvtCapWeaponTask(Task* arg0)
     GpRec14    recA;
 
     flags = (s32)arg0->spawnArg2;
-    actor = ((GpActorWork*)gameGetPtrSlot(3))->actor;
+    actor = gameGetPtrSlot(3)->work;
     switch (arg0->state) {
         case 0:
             if ((flags & 1) && (flags != 0xFF)) {

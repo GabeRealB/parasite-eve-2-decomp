@@ -171,7 +171,7 @@ void func_actor_342400_80162324(Task* arg0)
 
 s16 func_actor_342400_801624A4(void)
 {
-    GsCOORDINATE2* coord = (*Gp_ActorSlots)->extra->coords;
+    GsCOORDINATE2* coord = ((TmdObject*)(*Gp_ActorSlots)->extra)->coords;
     s16            x     = coord->coord.t[0];
     s16            z     = coord->coord.t[2];
 

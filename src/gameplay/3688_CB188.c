@@ -2745,7 +2745,7 @@ void Gp_DrawMapCursor(Task* arg0)
 
     obj   = arg0->spawnArg2;
     cfg   = &Player_Status;
-    actor = ((GpActorWork*)gameGetPtrSlot(3))->actor;
+    actor = gameGetPtrSlot(3)->work;
     rec   = Gp_MapRecTables[gGameSession->at4.loc.stage - 1];
     rec   = rec + gGameSession->at4.loc.area;
     if (rec->field_C != (s8)Gp_MapRoomId) {

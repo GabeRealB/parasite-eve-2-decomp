@@ -750,7 +750,7 @@ s32 func_actor_521100_80132C70(Task* arg0)
     } else {
         wrap = diff + 0x1000;
     }
-    if ((wrap < 0x400) && (work->field_6AA < 0x4E2) && (work->field_6BE == 0) && (D_80073BA0 > 0) && (work->field_69C = 0x50, (wrap < 0x20)) && (((GpActorWork*)player)->actor->field_954 != 2)) {
+    if ((wrap < 0x400) && (work->field_6AA < 0x4E2) && (work->field_6BE == 0) && (D_80073BA0 > 0) && (work->field_69C = 0x50, (wrap < 0x20)) && (((GameActor*)player->work)->field_954 != 2)) {
         msg->field_14 = 0x19;
         if (Gp_DispatchMsg(player, 0x3F8, (s32)msg, 0) == 0) {
             ret             = 1;
@@ -1247,7 +1247,7 @@ void func_actor_521100_801339B0(Task* arg0)
                 sc->pos.vx   = coord->coord.t[0] + sc->pos.vx;
                 sc->pos.vy   = coord->coord.t[1] + sc->pos.vy;
                 sc->pos.vz   = coord->coord.t[2] + sc->pos.vz;
-                pcoord       = ((GpActorWork*)player)->extra->coords;
+                pcoord       = ((TmdObject*)player->extra)->coords;
                 sc->delta.vx = sc->pos.vx - pcoord->coord.t[0];
                 sc->delta.vy = 0;
                 sc->delta.vz = sc->pos.vz - pcoord->coord.t[2];
@@ -1370,7 +1370,7 @@ void func_actor_521100_801339B0(Task* arg0)
                 gte_ldv0(&sc->vec);
                 gte_rtv0();
                 gte_stlvnl(&sc->pos);
-                pcoord         = ((GpActorWork*)player)->extra->coords;
+                pcoord         = ((TmdObject*)player->extra)->coords;
                 sc->aim.pos.vx = pcoord->coord.t[0] + sc->pos.vx;
                 sc->aim.pos.vy = pcoord->coord.t[1] + sc->pos.vy;
                 sc->aim.pos.vz = pcoord->coord.t[2] + sc->pos.vz;
@@ -1380,9 +1380,9 @@ void func_actor_521100_801339B0(Task* arg0)
                 Gp_DispatchMsg(player, 0x3E9, (s32)&sc->aim, 0);
             }
             if ((s16)work->field_68A == 0x23) {
-                Gp_SpawnEff(0x60054, ((GpActorWork*)player)->extra->coords + 3, 0x80003400, NULL);
-                Gp_SpawnEff(0x60054, ((GpActorWork*)player)->extra->coords + 3, 0x80003400, NULL);
-                Gp_SpawnEff(0x60054, ((GpActorWork*)player)->extra->coords + 3, 0x80003400, NULL);
+                Gp_SpawnEff(0x60054, ((TmdObject*)player->extra)->coords + 3, 0x80003400, NULL);
+                Gp_SpawnEff(0x60054, ((TmdObject*)player->extra)->coords + 3, 0x80003400, NULL);
+                Gp_SpawnEff(0x60054, ((TmdObject*)player->extra)->coords + 3, 0x80003400, NULL);
             }
             if ((s16)work->field_68A == 0x45) {
                 sc->msg.field_0  = (void*)&D_actor_521100_8015F7CC;
@@ -1398,7 +1398,7 @@ void func_actor_521100_801339B0(Task* arg0)
             }
             work->field_69A = turn;
             if ((s16)work->field_68A == 0x6F) {
-                coord          = ((GpActorWork*)player)->extra->coords;
+                coord          = ((TmdObject*)player->extra)->coords;
                 sc->aim.pos.vx = coord->coord.t[0];
                 sc->aim.pos.vy = coord->coord.t[1];
                 sc->aim.pos.vz = coord->coord.t[2];
@@ -1448,14 +1448,14 @@ void func_actor_521100_801339B0(Task* arg0)
             break;
         case 5:
             if ((s16)work->field_68A == 0x1A) {
-                ((GpActorWork*)player)->actor->field_956 = 0xA;
-                work->field_6A0                          = 6;
-                work->field_68E                          = 0;
-                gGameSession->deathRestartDelay          = 0x5A;
-                gGameSession->areaBgmCountdown           = 0x7F;
-                sc->vec.vx                               = 0;
-                sc->vec.vy                               = -0x96;
-                sc->vec.vz                               = 0xC8;
+                ((GameActor*)player->work)->field_956 = 0xA;
+                work->field_6A0                       = 6;
+                work->field_68E                       = 0;
+                gGameSession->deathRestartDelay       = 0x5A;
+                gGameSession->areaBgmCountdown        = 0x7F;
+                sc->vec.vx                            = 0;
+                sc->vec.vy                            = -0x96;
+                sc->vec.vz                            = 0xC8;
                 func_800FDB18(1, ((TmdObject*)gameGetPtrSlot(3)->extra)->coords + 4, &sc->vec,
                               &D_actor_521100_8015F804);
                 Gp_SpawnPadLerp(0xA, 0xFF, 8);

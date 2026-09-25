@@ -76,7 +76,7 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
     ret   = 0;
     flag  = 1;
     id    = arg0->itemId;
-    actor = ((GpActorWork*)gameGetPtrSlot(3))->actor;
+    actor = gameGetPtrSlot(3)->work;
     cfg   = &Player_Status;
 
     if (id != 0) {
@@ -1793,8 +1793,8 @@ const char D_8009745C[] = {
 
 void Gp_DebugPanTask(Task* arg0)
 {
-    GpActorWork*   slot;
-    GpActorWork*   work;
+    Task*          slot;
+    Task*          work;
     PlayerStatus*  cfg;
     TmdObject*     extra;
     GsCOORDINATE2* coord;
@@ -1896,7 +1896,7 @@ void Gp_DebugPanTask(Task* arg0)
         }
     }
 
-    actor = slot->actor;
+    actor = slot->work;
     {
         register Task* task asm("v0");
         i = 0;
@@ -1929,7 +1929,7 @@ void Gp_DebugPanTask(Task* arg0)
                a scheduling barrier. */
             register TmdObject* e asm("v0");
             e      = work->extra;
-            actor2 = work->actor;
+            actor2 = work->work;
             SOFT_TOUCH_REG(e);
             extra = e;
         }
@@ -2563,7 +2563,7 @@ void Gp_CopyDefaultBound(GpRoomBoundVec* bound)
 
 void Gp_BindDefaultMtx(Task* arg0)
 {
-    GpActorWork* slot;
+    Task*        slot;
     TmdObject*   extra;
     GameActor*   actor;
     s32          result;
@@ -2590,7 +2590,7 @@ void Gp_BindDefaultMtx(Task* arg0)
         arg0->spawnArg2     = (void*)result;
         extra->lightMtx     = mtxA;
         extra->colorMtx     = mtxB;
-        actor               = slot->actor;
+        actor               = slot->work;
         Gp_OverrideVecFlag  = 0;
         Gp_OverrideVec2Flag = 0;
         D_80114F28          = 0;
@@ -2774,7 +2774,7 @@ void Gp_DrawTargetCursor(void)
     }
 }
 
-void* Gp_ScanLockNodes(GpActorWork* arg0, VECTOR3* out, s32 flag)
+void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
 {
     void**             scratch;
     u8*                head;
@@ -2801,8 +2801,8 @@ void* Gp_ScanLockNodes(GpActorWork* arg0, VECTOR3* out, s32 flag)
         newhead = head - 0x38;
         block   = (GpLockScanScratch*)newhead;
     }
-    actor         = arg0->actor;
-    coord         = (GsCOORDINATE2*)arg0->extra->coords;
+    actor         = arg0->work;
+    coord         = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     block->src.vx = *(u16*)&coord->coord.t[0];
     block->src.vy = *(u16*)&coord->coord.t[1] - 1000;
     block->src.vz = *(u16*)&coord->coord.t[2];
@@ -3114,18 +3114,18 @@ void Gp_UpdateLockSlots(void)
 
 void Gp_UnlinkNode(GpLinkNode* node)
 {
-    s32                    i;
-    GpActorWork* volatile* p;
-    GpActorWork*           work;
-    GameActor*             actor;
-    GpLinkNode**           list;
+    s32             i;
+    Task* volatile* p;
+    Task*           work;
+    GameActor*      actor;
+    GpLinkNode**    list;
 
     i = 0;
     p = Gp_ActorSlots;
     do {
         work = *p;
         if (work != NULL) {
-            actor = work->actor;
+            actor = work->work;
             if (actor->field_90C == node) {
                 actor->field_90C = NULL;
             }
@@ -3178,11 +3178,11 @@ void Gp_LinkNode(GpLinkNode* node)
 
 s32 Gp_NodeSlotMask(GpLinkNode* node)
 {
-    s32                    mask;
-    s32                    i;
-    s32                    one;
-    GpActorWork* volatile* p;
-    GpActorWork*           work;
+    s32             mask;
+    s32             i;
+    s32             one;
+    Task* volatile* p;
+    Task*           work;
 
     mask = 0;
     i    = mask;
@@ -3191,7 +3191,7 @@ s32 Gp_NodeSlotMask(GpLinkNode* node)
     do {
         work = *p;
         if (work != NULL) {
-            if (work->actor->field_90C == node) {
+            if (((GameActor*)work->work)->field_90C == node) {
                 mask |= one << i;
             }
         }
@@ -3203,14 +3203,14 @@ s32 Gp_NodeSlotMask(GpLinkNode* node)
 
 void Gp_AssignNodeSlot0(GpLinkNode* node)
 {
-    GpActorWork* work;
-    GameActor*   actor;
-    GpLinkNode*  previous;
-    u8           val;
+    Task*       work;
+    GameActor*  actor;
+    GpLinkNode* previous;
+    u8          val;
 
     work = Gp_ActorSlots[0];
     if (work != NULL) {
-        actor    = work->actor;
+        actor    = work->work;
         previous = actor->field_90C;
         if (previous != NULL) {
             previous->targeted = 0;
@@ -3224,18 +3224,18 @@ void Gp_AssignNodeSlot0(GpLinkNode* node)
 
 void Gp_ClearNodeSlots(GpLinkNode* node)
 {
-    s32                    i;
-    GpActorWork* volatile* p;
-    GpActorWork*           work;
-    GameActor*             actor;
-    u8                     val;
+    s32             i;
+    Task* volatile* p;
+    Task*           work;
+    GameActor*      actor;
+    u8              val;
 
     i = 0;
     p = Gp_ActorSlots;
     do {
         work = *p;
         if (work != NULL) {
-            actor = work->actor;
+            actor = work->work;
             if (actor->field_90C == node) {
                 actor->field_90C = NULL;
             }
@@ -3248,14 +3248,14 @@ void Gp_ClearNodeSlots(GpLinkNode* node)
     node->flags    = val | 1;
 }
 
-void* Gp_FindLockNode(GpActorWork* arg0)
+void* Gp_FindLockNode(Task* arg0)
 {
     VECTOR3 pos;
 
     return Gp_ScanLockNodes(arg0, &pos, 0);
 }
 
-void* Gp_FindLockNodePad(GpActorWork* arg0)
+void* Gp_FindLockNodePad(Task* arg0)
 {
     VECTOR3  pos;
     VECTOR3* p;
@@ -3272,7 +3272,7 @@ void* Gp_FindLockNodePad(GpActorWork* arg0)
     return Gp_ScanLockNodes(arg0, p, flag);
 }
 
-void* Gp_FindLockNodeAt(GpActorWork* arg0, VECTOR3* pos)
+void* Gp_FindLockNodeAt(Task* arg0, VECTOR3* pos)
 {
     s32 flag;
 
@@ -3419,17 +3419,17 @@ s32 Gp_ProjectToSxy(GpPerspSrc* arg0, s32* sxy)
 
 void Gp_ClearSlotNodeFlags(void)
 {
-    s32                    i;
-    GpActorWork* volatile* p;
-    GpActorWork*           work;
-    GpLinkNode*            node;
+    s32             i;
+    Task* volatile* p;
+    Task*           work;
+    GpLinkNode*     node;
 
     i = 0;
     p = Gp_ActorSlots;
     do {
         work = *p;
         if (work != NULL) {
-            node = work->actor->field_90C;
+            node = ((GameActor*)work->work)->field_90C;
             if (node != NULL) {
                 node->targeted = 0;
             }
@@ -3489,7 +3489,7 @@ s32 Gp_GrantLocationItems(GpItemScan* arg0)
     return ret;
 }
 
-s32 Gp_LoadActorImage(GpActorWork* arg0, GpImgRec* arg1, RECT* arg2)
+s32 Gp_LoadActorImage(Task* arg0, GpImgRec* arg1, RECT* arg2)
 {
     s32        ret;
     TmdObject* extra;
@@ -5787,7 +5787,7 @@ void func_800E06AC(GpObj* node, s32 mask, s32 match)
     idx   = 3;
     msk   = mask;
     mch   = match;
-    actor = ((GpActorWork*)gameGetPtrSlot(idx))->actor;
+    actor = gameGetPtrSlot(idx)->work;
     for (; node != NULL; node = node->next) {
         if ((node->flags & msk) == mch) {
             for (; other != NULL; other = other->next) {
@@ -6811,7 +6811,7 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
 
 s32 Gp_RollEnemyChance(GpEnemy* arg0, u32 arg1, s32 arg2)
 {
-    GpActorWork*   slot;
+    Task*          slot;
     GsCOORDINATE2* pcoord;
     void**         scratch;
     u8*            head;
@@ -6858,7 +6858,7 @@ s32 Gp_RollEnemyChance(GpEnemy* arg0, u32 arg1, s32 arg2)
     blk->world.vy = arg0->coord->workm.t[1] + blk->world.vy;
     blk->world.vz = arg0->coord->workm.t[2] + blk->world.vz;
 
-    pcoord                        = (GsCOORDINATE2*)slot->extra->coords;
+    pcoord                        = (GsCOORDINATE2*)((TmdObject*)slot->extra)->coords;
     ((VECTOR3*)(head - 0x20))->vx = blk->world.vx - pcoord->workm.t[0];
     blk->local.vy                 = blk->world.vy - pcoord->workm.t[1];
     blk->local.vz                 = blk->world.vz - pcoord->workm.t[2];

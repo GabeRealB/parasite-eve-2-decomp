@@ -35,12 +35,12 @@ void func_grenade_pistol_8011DB8C(Task* task);
 /// The weapon's index. It also keys the firing sound and the shot effect.
 #define GRENADE_WEAPON (0xB + GRENADE_VARIANT)
 
-void func_grenade_pistol_8011D1D4(GpActorWork* arg0)
+void func_grenade_pistol_8011D1D4(Task* arg0)
 {
     GameActor* actor;
     s32        anim;
 
-    actor = arg0->actor;
+    actor = arg0->work;
     switch (actor->field_95E) {
         case 0:
             anim              = 1;
@@ -65,7 +65,7 @@ void func_grenade_pistol_8011D1D4(GpActorWork* arg0)
             actor->field_95E = 3;
             actor->field_981 = 0;
             actor->field_940 = 0x28;
-            Gp_PlayObjSfx(arg0->extra->coords,
+            Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords,
                           ((Player_Status.weaponSlotItem - 0xA) << 24) | 0x20000004 | (GRENADE_WEAPON << 16), 1);
             Gp_SpawnEff(0x6006C,
                         (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords, GRENADE_WEAPON,

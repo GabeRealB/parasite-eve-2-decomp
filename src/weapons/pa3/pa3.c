@@ -35,7 +35,7 @@
 /// the actor's own contact point on the 0xE variant. Case 4 runs out the
 /// `field_934` delay before playing the pump-action sound, and case 5 runs out
 /// the `field_979` grace and otherwise hands back to `func_80106550`.
-void func_pa3_8011D1DC(GpActorWork* arg0)
+void func_pa3_8011D1DC(Task* arg0)
 {
     GameActor*     actor;
     GsCOORDINATE2* coord;
@@ -50,8 +50,8 @@ void func_pa3_8011D1DC(GpActorWork* arg0)
         spot                    = (GsCOORDINATE2*)tmp;
         *(void**)G_SCRATCH_HEAD = tmp;
     }
-    actor = arg0->actor;
-    coord = arg0->extra->coords;
+    actor = arg0->work;
+    coord = ((TmdObject*)arg0->extra)->coords;
     switch (actor->field_95E) {
         case 0:
             actor->field_956 = 4;
@@ -86,7 +86,7 @@ void func_pa3_8011D1DC(GpActorWork* arg0)
             actor->field_95E++;
             actor->field_12A |= 0xC000;
             Gp_ConsumeSlotQty(WEAPON_ITEM(WEAPON_ID), 1);
-            Gp_PlayObjSfx(arg0->extra->coords,
+            Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords,
                           ((Player_Status.weaponSlotItem - 0xD) << 0x18) | 0x20000005 | (WEAPON_ID << 16), 1);
             Gp_SpawnEff(0x600A1,
                         (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
@@ -114,7 +114,7 @@ void func_pa3_8011D1DC(GpActorWork* arg0)
         case 4:
             if (--actor->field_934 == 0) {
                 actor->field_95E++;
-                Gp_PlayObjSfx(arg0->extra->coords,
+                Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords,
                               ((Player_Status.weaponSlotItem - 0xD) << 0x18) | 0x20000002 | (WEAPON_ID << 16), 0);
             }
             /* fallthrough */

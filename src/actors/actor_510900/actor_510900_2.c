@@ -2635,7 +2635,7 @@ void func_actor_510900_8013A310(Task* task)
 
     switch (work->field_CC) {
         case 0:
-            if (((GpActorWork*)player)->actor->field_954 != 2) {
+            if (((GameActor*)player->work)->field_954 != 2) {
                 scratch->query.field_14 = 0xC;
                 if (Gp_DispatchMsg(player, 0x3F8, (s32)scratch, 0) != 0) {
                     work->field_CA = 3;

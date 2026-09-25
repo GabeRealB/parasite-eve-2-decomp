@@ -121,12 +121,12 @@ const TaskFuncTable3 D_actor_210700_80149E24 = { {
 /// it underflows posts that step's image over the 0x18x0x10 rect at y 0x28.
 /// Steps 1 and 2 then reload the countdown from `field_538` and advance to the
 /// next step; step 3 returns to idle.
-void func_actor_210700_80149E30(GpActorWork* arg0)
+void func_actor_210700_80149E30(Task* arg0)
 {
     Actor210700Work* work;
     RECT             rect;
 
-    work   = (Actor210700Work*)arg0->actor;
+    work   = (Actor210700Work*)((GameActor*)arg0->work);
     rect.x = 0;
     rect.y = 0x28;
     rect.w = 0x18;
@@ -245,7 +245,7 @@ void func_actor_210700_8014A0AC(Task* task)
         Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[1]);
         func_800D7A9C(ext, (VECTOR*)((TmdObject*)task->extra)->coords[1].workm.t, 0, 3);
     }
-    func_actor_210700_80149E30((GpActorWork*)task);
+    func_actor_210700_80149E30(task);
     count = work->field_53E;
     if (count >= 0) {
         if (count == 0) {
@@ -346,14 +346,14 @@ s32 func_actor_210700_8014A344(Task* task, s32 arg1, Actor210700Place* args, s32
 /// 0x4, 2 hides it, raises 0x4 and starts the work block's `field_53E`
 /// countdown to freeing the buffers, and 3 shows it and raises 0x4. Handled
 /// modes return 0; anything else returns 1 and changes nothing.
-s32 func_actor_210700_8014A3D4(GpActorWork* arg0, s32 arg1, s32 mode)
+s32 func_actor_210700_8014A3D4(Task* arg0, s32 arg1, s32 mode)
 {
     TmdObject*       obj;
     Actor210700Work* work;
     s32              ret;
 
     obj  = arg0->extra;
-    work = (Actor210700Work*)arg0->actor;
+    work = (Actor210700Work*)((GameActor*)arg0->work);
     ret  = 0;
 
     switch (mode) {
@@ -389,7 +389,7 @@ s32 func_actor_210700_8014A3D4(GpActorWork* arg0, s32 arg1, s32 mode)
 /// first. Any other mode leaves the image NULL and returns 0.
 /// The mode-1 case is written first because the compiler lays the case bodies
 /// out in source order and that is the order the retail image has them in.
-s32 func_actor_210700_8014A4B0(GpActorWork* arg0, s32 arg1, s32 mode)
+s32 func_actor_210700_8014A4B0(Task* arg0, s32 arg1, s32 mode)
 {
     RECT      rect;
     GpImgRec* img;
@@ -410,9 +410,9 @@ s32 func_actor_210700_8014A4B0(GpActorWork* arg0, s32 arg1, s32 mode)
             img = &D_actor_210700_80157F4C;
             break;
         case 3:
-            ((Actor210700Work*)arg0->actor)->field_53C = 1;
-            ((Actor210700Work*)arg0->actor)->field_538 = 1;
-            img                                        = &D_actor_210700_8015826C;
+            ((Actor210700Work*)((GameActor*)arg0->work))->field_53C = 1;
+            ((Actor210700Work*)((GameActor*)arg0->work))->field_538 = 1;
+            img                                                     = &D_actor_210700_8015826C;
             break;
         default:
             img = NULL;

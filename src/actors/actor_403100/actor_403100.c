@@ -728,9 +728,9 @@ void func_actor_403100_80132528(Task* arg0)
     GsCOORDINATE2* coords;
 
     anim                               = D_actor_403100_80155808->field_5DE;
-    playerCoord                        = (*Gp_ActorSlots)->extra->coords;
+    playerCoord                        = ((TmdObject*)(*Gp_ActorSlots)->extra)->coords;
     coords                             = ((TmdObject*)arg0->extra)->coords;
-    player                             = (*Gp_ActorSlots)->actor;
+    player                             = (*Gp_ActorSlots)->work;
     angle                              = D_actor_403100_80155808->field_5E2;
     savedAngle                         = (u16)D_actor_403100_80155808->field_5E2;
     D_actor_403100_80155808->field_5E2 = angle * 2;
@@ -959,7 +959,7 @@ void func_actor_403100_801331D4(Task* arg0)
     coords = ((TmdObject*)arg0->extra)->coords;
     joint  = &coords[3];
     if (*Gp_ActorSlots != NULL) {
-        playerCoord                        = (*Gp_ActorSlots)->extra->coords;
+        playerCoord                        = ((TmdObject*)(*Gp_ActorSlots)->extra)->coords;
         D_actor_403100_80155808->field_90  = (u16)playerCoord->coord.t[0];
         D_actor_403100_80155808->field_92  = (u16)playerCoord->coord.t[1];
         D_actor_403100_80155808->field_94  = (u16)playerCoord->coord.t[2];
@@ -2491,22 +2491,22 @@ void func_actor_403100_80136830(Task* arg0)
     void *        scratcharg0, *scratcharg1, *scratcharg2, *scratcharg3, *scratcharg4, *scratcharg5, *scratcharg6;
     PlayerStatus* config = &Player_Status;
 
-    s32          flashTimer;
-    s16          lightTimer;
-    s16          armTimer;
-    s32          countdown;
-    s32          flash;
-    u8*          head;
-    GpEnemy*     enemy;
-    s32          flags, zero, z;
-    void*        scratchHead;
-    void*        side;
-    void*        position;
-    GpActorWork* player;
-    void*        coordinates;
-    void*        center;
-    TmdObject*   obj;
-    void*        playerCoord;
+    s32        flashTimer;
+    s16        lightTimer;
+    s16        armTimer;
+    s32        countdown;
+    s32        flash;
+    u8*        head;
+    GpEnemy*   enemy;
+    s32        flags, zero, z;
+    void*      scratchHead;
+    void*      side;
+    void*      position;
+    Task*      player;
+    void*      coordinates;
+    void*      center;
+    TmdObject* obj;
+    void*      playerCoord;
 
     obj           = arg0->extra;
     player        = *Gp_ActorSlots;
@@ -2538,7 +2538,7 @@ void func_actor_403100_80136830(Task* arg0)
                     D_actor_403100_80155808->field_65C = 0U;
                 }
             }
-            playerCoord                        = player->extra->coords;
+            playerCoord                        = ((TmdObject*)player->extra)->coords;
             D_actor_403100_80155808->field_628 = func_actor_403100_8013D9C4(*(s16*)((u8*)playerCoord + 24), *(s16*)((u8*)playerCoord + 32), D_actor_403100_80155638);
             {
                 scratch.handlers = D_actor_403100_80131E24;
@@ -2961,7 +2961,7 @@ void func_actor_403100_801376D8(Task* arg0)
             D_actor_403100_80155808->field_5F2 = 1;
             task                               = gameGetPtrSlot(3);
             if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 0), 0) == 1) {
-                (*Gp_ActorSlots)->actor->field_956 = 0xA;
+                ((GameActor*)(*Gp_ActorSlots)->work)->field_956 = 0xA;
             }
         }
         D_actor_403100_80155808->field_668.b.field_668 = 0;
@@ -3025,7 +3025,7 @@ void func_actor_403100_801379B4(Task* arg0)
             D_actor_403100_80155808->field_5F2 = 1;
             task                               = gameGetPtrSlot(3);
             if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 0), 0) == 1) {
-                (*Gp_ActorSlots)->actor->field_956 = 0xA;
+                ((GameActor*)(*Gp_ActorSlots)->work)->field_956 = 0xA;
             }
         }
         D_actor_403100_80155808->field_668.b.field_668 = 0;
@@ -3373,7 +3373,7 @@ void func_actor_403100_80138844(Task* arg0)
         D_actor_403100_80155808->field_5F2 = 1;
         player                             = gameGetPtrSlot(3);
         if (Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 0), 0) == 1) {
-            (*Gp_ActorSlots)->actor->field_956 = 0xA;
+            ((GameActor*)(*Gp_ActorSlots)->work)->field_956 = 0xA;
         }
     }
     func_actor_403100_8013C7B4(arg0);
@@ -3419,7 +3419,7 @@ void func_actor_403100_80138AB4(void)
         D_actor_403100_80155808->field_5F2 = 1;
         player                             = gameGetPtrSlot(3);
         if (Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 0), 0) == 1) {
-            (*Gp_ActorSlots)->actor->field_956 = 0xA;
+            ((GameActor*)(*Gp_ActorSlots)->work)->field_956 = 0xA;
         }
     }
     if (Actor403100_TestFlags104()) {
@@ -3767,7 +3767,7 @@ void func_actor_403100_80139818(Task* arg0)
 {
     SVECTOR          position;
     SVECTOR          velocity;
-    GpActorWork*     playerTask;
+    Task*            playerTask;
     Task*            task;
     s16              deathFrame;
     s32              sound;
@@ -3848,8 +3848,8 @@ void func_actor_403100_80139818(Task* arg0)
         Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 4), 0);
         if (config->hp <= 0) {
             sound2 = (((u16)((GpEnemy*)((Task*)playerTask)->spawnArg2)->placeKey >> 0xC) << 8) | 0x531D000B;
-            pan2   = (s8)Gp_GetObjPan(playerTask->extra->coords + 1);
-            depth2 = gpGetObjDepth(playerTask->extra->coords + 1);
+            pan2   = (s8)Gp_GetObjPan(((TmdObject*)playerTask->extra)->coords + 1);
+            depth2 = gpGetObjDepth(((TmdObject*)playerTask->extra)->coords + 1);
             SndEvt_EnqueueType6(sound2, (s32)pan2, (s8)(depth2 / 2));
             gGameSession->areaBgmCountdown    = 0x7F;
             work                              = D_actor_403100_80155808;
@@ -3861,8 +3861,8 @@ void func_actor_403100_80139818(Task* arg0)
             func_actor_403100_8013D1B8(6, 0x3FF);
         } else {
             sound3 = (((u16)((GpEnemy*)((Task*)playerTask)->spawnArg2)->placeKey >> 0xC) << 8) | 7;
-            pan3   = (s8)Gp_GetObjPan(playerTask->extra->coords + 1);
-            depth3 = gpGetObjDepth(playerTask->extra->coords + 1);
+            pan3   = (s8)Gp_GetObjPan(((TmdObject*)playerTask->extra)->coords + 1);
+            depth3 = gpGetObjDepth(((TmdObject*)playerTask->extra)->coords + 1);
             SndEvt_EnqueueType6(sound3, (s32)pan3, (s8)(depth3 / 2));
         }
     }
@@ -3981,7 +3981,7 @@ void func_actor_403100_8013A064(Task* arg0)
     u16        frame;
     s32        depth;
 
-    actor                              = (*Gp_ActorSlots)->actor;
+    actor                              = (*Gp_ActorSlots)->work;
     frame                              = D_actor_403100_80155808->field_5EC + 1;
     D_actor_403100_80155808->field_5EC = frame;
     if ((s16)frame == 0x3C) {
@@ -4022,7 +4022,7 @@ void func_actor_403100_8013A064(Task* arg0)
 }
 void func_actor_403100_8013A254(void)
 {
-    GpActorWork*     actor;
+    Task*            actor;
     Actor403100Work* work;
     s32              sound;
     s32              sound2;
@@ -4045,14 +4045,14 @@ void func_actor_403100_8013A254(void)
         Gp_SpawnPadLerp(8, 0xFFU, 8U);
         D_actor_403100_80155808->field_5FE = 8;
         sound                              = (((u16)((GpEnemy*)((Task*)actor)->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0006;
-        pan                                = (s8)Gp_GetObjPan(actor->extra->coords + 1);
-        depth                              = gpGetObjDepth(actor->extra->coords + 1);
+        pan                                = (s8)Gp_GetObjPan(((TmdObject*)actor->extra)->coords + 1);
+        depth                              = gpGetObjDepth(((TmdObject*)actor->extra)->coords + 1);
         SndEvt_EnqueueType6(sound, (s32)pan, (s8)(depth / 2));
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x1C) {
         sound2 = (((u16)((GpEnemy*)((Task*)actor)->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0007;
-        pan2   = (s8)Gp_GetObjPan(actor->extra->coords + 1);
-        depth2 = gpGetObjDepth(actor->extra->coords + 1);
+        pan2   = (s8)Gp_GetObjPan(((TmdObject*)actor->extra)->coords + 1);
+        depth2 = gpGetObjDepth(((TmdObject*)actor->extra)->coords + 1);
         SndEvt_EnqueueType6(sound2, (s32)pan2, (s8)(depth2 / 2));
     }
     D_actor_403100_80155808->field_65F = 0;
@@ -4849,7 +4849,7 @@ void func_actor_403100_8013C008(s16 arg0, s16 arg1)
 }
 void func_actor_403100_8013C214(Task* arg0)
 {
-    GpActorWork*     playerTask;
+    Task*            playerTask;
     GsCOORDINATE2*   soundCoords;
     Task*            task;
     s16              next;
@@ -4894,8 +4894,8 @@ void func_actor_403100_8013C214(Task* arg0)
                 task                               = gameGetPtrSlot(3);
                 if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 3), 0) != 0) {
                     sound = (((u16)((GpEnemy*)((Task*)playerTask)->spawnArg2)->placeKey >> 0xC) << 8) | 0x531D000B;
-                    pan   = (s8)Gp_GetObjPan(playerTask->extra->coords + 1);
-                    depth = gpGetObjDepth(playerTask->extra->coords + 1);
+                    pan   = (s8)Gp_GetObjPan(((TmdObject*)playerTask->extra)->coords + 1);
+                    depth = gpGetObjDepth(((TmdObject*)playerTask->extra)->coords + 1);
                     SndEvt_EnqueueType6(sound, (s32)pan, (s8)(depth / 2));
                     gGameSession->areaBgmCountdown    = 0x7F;
                     work                              = D_actor_403100_80155808;
@@ -4911,16 +4911,16 @@ void func_actor_403100_8013C214(Task* arg0)
                     Gp_LcgState = random;
                     randomSound = (random >> 0x10) & 3;
                     if (randomSound == 0) {
-                        soundCoords = playerTask->extra->coords + 1;
+                        soundCoords = ((TmdObject*)playerTask->extra)->coords + 1;
                         sound2      = (((u16)((GpEnemy*)((Task*)playerTask)->spawnArg2)->placeKey >> 0xC) << 8) | 6;
                         pan2        = (s8)Gp_GetObjPan(soundCoords);
-                        depth2      = gpGetObjDepth(playerTask->extra->coords + 1);
+                        depth2      = gpGetObjDepth(((TmdObject*)playerTask->extra)->coords + 1);
                         SndEvt_EnqueueType6(sound2, (s32)pan2, (s8)(depth2 / 2));
                     } else if (randomSound == 1) {
-                        soundCoords = playerTask->extra->coords + 1;
+                        soundCoords = ((TmdObject*)playerTask->extra)->coords + 1;
                         sound3      = (((u16)((GpEnemy*)((Task*)playerTask)->spawnArg2)->placeKey >> 0xC) << 8) | 7;
                         pan3        = (s8)Gp_GetObjPan(soundCoords);
-                        depth3      = gpGetObjDepth(playerTask->extra->coords + 1);
+                        depth3      = gpGetObjDepth(((TmdObject*)playerTask->extra)->coords + 1);
                         SndEvt_EnqueueType6(sound3, (s32)pan3, (s8)(depth3 / 2));
                     }
                 }
@@ -5041,7 +5041,7 @@ void func_actor_403100_8013C7B4(Task* arg0)
     GsCOORDINATE2* walker;
     GsCOORDINATE2* view;
 
-    playerCoord = (*Gp_ActorSlots)->extra->coords;
+    playerCoord = ((TmdObject*)(*Gp_ActorSlots)->extra)->coords;
     savedAngle  = (u16)D_actor_403100_80155808->field_5E2;
     coords      = ((TmdObject*)arg0->extra)->coords;
     Actor403100ResetStateInline(D_actor_403100_80155808->field_5DE, D_actor_403100_80155808->field_5E2, 0);

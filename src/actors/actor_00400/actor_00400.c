@@ -800,7 +800,7 @@ void Actor00400_Fn00B48(Task* arg0)
 void Actor00400_Fn00C84(Task* arg0)
 {
     Task*             actor;
-    GpActorWork*      player;
+    Task*             player;
     Actor100400Work*  work;
     GsCOORDINATE2*    coord;
     GsCOORDINATE2*    pc;
@@ -833,7 +833,7 @@ void Actor00400_Fn00C84(Task* arg0)
         work->pad_65C[0]++;
     }
     if (work->field_62A >= 0 && frame >= work->field_62A) {
-        pc          = player->extra->coords;
+        pc          = ((TmdObject*)player->extra)->coords;
         pos.field_0 = pc->coord.t[0];
         pos.field_2 = pc->coord.t[1];
         pos.field_4 = pc->coord.t[2];
@@ -959,7 +959,7 @@ void Actor00400_Fn01454(Task* arg0)
     GsCOORDINATE2*   coord;
     GsCOORDINATE2*   c0;
     GsCOORDINATE2*   c1;
-    GpActorWork*     player;
+    Task*            player;
     GsCOORDINATE2*   joint;
     SVECTOR          delta0;
     SVECTOR          delta1;
@@ -975,7 +975,7 @@ void Actor00400_Fn01454(Task* arg0)
     work->field_54E = coord->coord.t[1];
     work->field_550 = coord->coord.t[2];
     if (player != NULL) {
-        c0      = player->extra->coords;
+        c0      = ((TmdObject*)player->extra)->coords;
         view.vx = 0;
         view.vy = 0;
         view.vz = 0;
@@ -990,7 +990,7 @@ void Actor00400_Fn01454(Task* arg0)
             work->field_5E4.vz = c0->coord.t[2];
             work->field_640    = dist0;
         } else {
-            c1        = Gp_ActorSlots[1]->extra->coords;
+            c1        = ((TmdObject*)Gp_ActorSlots[1]->extra)->coords;
             delta1.vx = c1->coord.t[0] - view.vx;
             delta1.vy = c1->coord.t[1] - view.vy;
             delta1.vz = c1->coord.t[2] - view.vz;

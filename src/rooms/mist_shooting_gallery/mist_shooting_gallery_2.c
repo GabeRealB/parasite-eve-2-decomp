@@ -379,12 +379,12 @@ void func_mist_shooting_gallery_801826C4(GsCOORDINATE2* coord, SVECTOR* arg1, s3
 
 void func_mist_shooting_gallery_80182B1C(Task* arg0)
 {
-    GpActorWork*             slot;
+    Task*                    slot;
     GameActor*               actor;
     MistShootingGalleryWork* work;
 
-    slot  = (GpActorWork*)gameGetPtrSlot(3);
-    actor = slot->actor;
+    slot  = gameGetPtrSlot(3);
+    actor = slot->work;
 
     work       = (MistShootingGalleryWork*)memCalloc(0x24, 0);
     arg0->work = (TaskIdMap*)work;
@@ -986,18 +986,18 @@ void func_mist_shooting_gallery_801838FC(Task* arg0)
                     work->field_04++;
                     func_800E9BDC(5, 0xA);
                     xform.field_12 = 0xC00;
-                    ((void (*)(GpActorWork*, s32, GpXformArg*, s32))func_80104E00)(
-                        (GpActorWork*)gameGetPtrSlot(3), 0, &xform, 0);
+                    ((void (*)(Task*, s32, GpXformArg*, s32))func_80104E00)(
+                        (Task*)gameGetPtrSlot(3), 0, &xform, 0);
                 }
                 work->field_20++;
             }
             break;
         case 6:
-            actor = ((GpActorWork*)gameGetPtrSlot(3))->actor;
+            actor = gameGetPtrSlot(3)->work;
             func_800E9BDC(5, 0xA);
             if (actor->field_982 == 0) {
-                ((void (*)(GpActorWork*, s32, s32, s32))Gp_EnterActorMode2)(
-                    (GpActorWork*)gameGetPtrSlot(3), 0, 2, 0);
+                ((void (*)(Task*, s32, s32, s32))Gp_EnterActorMode2)(
+                    (Task*)gameGetPtrSlot(3), 0, 2, 0);
                 work->field_04++;
                 mode                 = 0x10;
                 Gp_StateC08.field_6 |= 0x10;
@@ -1252,7 +1252,7 @@ void func_mist_shooting_gallery_801842D0(Task* arg0)
     GameActor*               actor;
 
     work  = (MistShootingGalleryWork*)arg0->work;
-    actor = ((GpActorWork*)gameGetPtrSlot(3))->actor;
+    actor = gameGetPtrSlot(3)->work;
 
     switch (work->field_04) {
         case 0:
@@ -1506,7 +1506,7 @@ void func_mist_shooting_gallery_80184A80(Task* arg0)
 {
     GameActor* actor;
 
-    actor                             = ((GpActorWork*)gameGetPtrSlot(3))->actor;
+    actor                             = gameGetPtrSlot(3)->work;
     actor->field_97B                  = 0;
     actor->field_983                  = 7;
     ((GpObj*)actor->field_AC)->flags |= 0x2000;

@@ -12,7 +12,7 @@
 #include "main/session.h"
 #include "main/tmd.h"
 
-void func_m950_8011D1DC(GpActorWork* arg0)
+void func_m950_8011D1DC(Task* arg0)
 {
     GameActor*     actor;
     GsCOORDINATE2* coord;
@@ -26,7 +26,7 @@ void func_m950_8011D1DC(GpActorWork* arg0)
         spot                    = (GsCOORDINATE2*)tmp;
         *(void**)G_SCRATCH_HEAD = tmp;
     }
-    actor = arg0->actor;
+    actor = arg0->work;
     coord = (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords;
     switch (actor->field_95E) {
         case 0:
@@ -62,7 +62,7 @@ void func_m950_8011D1DC(GpActorWork* arg0)
                 actor->field_95E++;
                 actor->field_12A |= 0xC000;
                 Gp_ConsumeSlotQty(0x82, 1);
-                Gp_PlayObjSfx(arg0->extra->coords, 0x20030004, 1);
+                Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20030004, 1);
                 Gp_SpawnEff(0x6002B, coord, 3, NULL);
                 Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
             }

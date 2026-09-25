@@ -583,7 +583,7 @@ contact_loop: {
     goto contact_test;
 damage_contact:
     if (work->field_34E == 0) {
-        sourceCoord   = Gp_ActorSlots[((u32)id >> 7) & 1]->extra->coords;
+        sourceCoord   = ((TmdObject*)Gp_ActorSlots[((u32)id >> 7) & 1]->extra)->coords;
         dx            = sourceCoord->coord.t[0] - coord->coord.t[0];
         scratch->vx.w = dx;
         dy            = sourceCoord->coord.t[1] - coord->coord.t[1];

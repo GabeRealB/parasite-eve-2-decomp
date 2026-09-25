@@ -46,7 +46,7 @@ extern Actor110800Work* D_actor_110800_80139F10;
 /// drive the step dispatcher and the model through it, and
 /// `func_actor_110800_801322FC` parents a coordinate to one of its model's
 /// nodes.
-extern GpActorWork* D_actor_110800_80139F14;
+extern Task* D_actor_110800_80139F14;
 
 /// The helper task `Task_SpawnFromTable` returns in the step-0 handler; the
 /// visibility handler drives its model alongside the actor's, and the exit
@@ -104,7 +104,7 @@ void func_actor_110800_80131E24(GpEnemy* enemy, Task* task)
     enemy->node.targeted    = 0;
     obj->otOffset           = 0;
     coord->flg              = 0;
-    D_actor_110800_80139F14 = (GpActorWork*)task;
+    D_actor_110800_80139F14 = task;
     D_actor_110800_80139F18 = Task_SpawnFromTable(D_actor_110800_80139EDC, 1, 0, 0);
     func_800B3F84(&D_actor_110800_80139F10->anim, D_actor_110800_80139EF4, obj,
                   D_actor_110800_80139F10->aux, D_actor_110800_80139F10->slots);
@@ -223,13 +223,13 @@ void func_actor_110800_801322A0(Task* task)
 
 /// Parents the given task's model root to node 8 of the actor's model, offset
 /// -50 on x.
-void func_actor_110800_801322FC(GpActorWork* arg0)
+void func_actor_110800_801322FC(Task* arg0)
 {
     GsCOORDINATE2* parent;
     GsCOORDINATE2* coord;
 
-    parent            = D_actor_110800_80139F14->extra->coords;
-    coord             = arg0->extra->coords;
+    parent            = ((TmdObject*)D_actor_110800_80139F14->extra)->coords;
+    coord             = ((TmdObject*)arg0->extra)->coords;
     coord->flg        = 0;
     coord->coord.t[0] = -50;
     coord->sub        = parent + 8;
@@ -314,14 +314,14 @@ void func_actor_110800_801324AC(void)
 /// for the call's delay slot.
 s32 func_actor_110800_80132524(Task* task, s32 arg1, Actor110800AnimArgs* args)
 {
-    GpActorWork* actor;
+    Task* actor;
 
     if (args->animId < 6) {
         D_actor_110800_80139F10->animId    = args->animId;
         actor                              = D_actor_110800_80139F14;
         D_actor_110800_80139F10->field_474 = 2;
         D_actor_110800_80139F10->field_47A = 0;
-        func_actor_110800_80132368((Task*)actor);
+        func_actor_110800_80132368(actor);
         return 0;
     }
     return -1;

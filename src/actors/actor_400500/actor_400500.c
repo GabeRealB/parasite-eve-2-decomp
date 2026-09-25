@@ -554,7 +554,7 @@ void func_actor_400500_80132438(Task* arg0)
     work  = (Actor400500Work*)arg0->work;
     coord = ((TmdObject*)arg0->extra)->coords;
     if (Gp_ActorSlots[0] != NULL) {
-        other              = Gp_ActorSlots[0]->extra->coords;
+        other              = ((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
         work->field_9C0.vx = coord->coord.t[0];
         work->field_9C0.vy = coord->coord.t[1];
         work->field_9C0.vz = coord->coord.t[2];
@@ -1755,7 +1755,7 @@ void func_actor_400500_801348D8(Task* arg0, s32 arg1)
     GsCOORDINATE2*         coords;
     GsCOORDINATE2*         joint;
     GsCOORDINATE2*         player;
-    GpActorWork*           slot;
+    Task*                  slot;
     Actor400500Work*       work;
     Actor400500Work*       work2;
     Actor400500Work*       work3;
@@ -1770,7 +1770,7 @@ void func_actor_400500_801348D8(Task* arg0, s32 arg1)
     joint  = coords + 8;
     work   = (Actor400500Work*)arg0->work;
     if (slot != NULL) {
-        player = slot->extra->coords;
+        player = ((TmdObject*)slot->extra)->coords;
         work2  = work;
         if (work->field_9FA == 1) {
             if ((s16)work->field_9FC != work->field_9FE) {
@@ -2119,7 +2119,7 @@ void func_actor_400500_80135414(Task* arg0)
     func_actor_400500_80132C54(arg0);
     work4 = (Actor400500Work*)arg0->work;
     if (Gp_ActorSlots[0] != NULL) {
-        player              = Gp_ActorSlots[0]->extra->coords;
+        player              = ((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
         work4->field_9D0.vx = (u16)player->coord.t[0];
         work4->field_9D0.vy = (u16)player->coord.t[1];
         work4->field_9D0.vz = (u16)player->coord.t[2];
@@ -2256,7 +2256,7 @@ void func_actor_400500_80135770(Task* arg0)
     GpEnemy*                   enemy;
     TmdObject*                 extra0;
     TmdObject*                 obj;
-    GpActorWork*               slot;
+    Task*                      slot;
     GsCOORDINATE2*             part2;
     PlayerStatus*              cfg;
     Actor400500Msg3FF          msg;
@@ -2340,7 +2340,7 @@ void func_actor_400500_80135770(Task* arg0)
             sp.funcs[(s16)work->field_A06](arg0);
             work_pos = (Actor400500Work*)arg0->work;
             if (*Gp_ActorSlots != NULL) {
-                player                 = (*Gp_ActorSlots)->extra->coords;
+                player                 = ((TmdObject*)(*Gp_ActorSlots)->extra)->coords;
                 work_pos->field_9D0.vx = (u16)player->coord.t[0];
                 work_pos->field_9D0.vy = (u16)player->coord.t[1];
                 work_pos->field_9D0.vz = (u16)player->coord.t[2];
@@ -3499,7 +3499,7 @@ void func_actor_400500_8013771C(Task* arg0)
     s32                    cur;
 
     work            = (Actor400500Work*)arg0->work;
-    player          = Gp_ActorSlots[0]->actor;
+    player          = Gp_ActorSlots[0]->work;
     spawn           = arg0->spawnArg2;
     work->field_A04 = work->field_A04 + 1;
     work2           = (Actor400500Work*)arg0->work;
@@ -3557,7 +3557,7 @@ void func_actor_400500_8013771C(Task* arg0)
             if (Gp_ActorSlots[0] == NULL) {
                 dist = 0x7FFF;
             } else {
-                playerCoords = Gp_ActorSlots[0]->extra->coords;
+                playerCoords = ((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
                 Gp_UpdateCoord(playerCoords + 4);
                 Gp_UpdateCoord(coord8);
                 viewWorld = &Gfx_ViewWorldMtx;

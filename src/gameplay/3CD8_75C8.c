@@ -488,7 +488,7 @@ void Gp_ScriptTaskState1(Task* arg0)
                     D_801156CE = 1;
                     slot       = gameGetPtrSlot(0xA);
                     if (slot != NULL) {
-                        Gp_EndPlayerActorTask((GpActorWork*)slot);
+                        Gp_EndPlayerActorTask(slot);
                         Gp_MsgAllyWeapon(0);
                     }
                 }
@@ -1076,7 +1076,7 @@ void Gp_UpdatePadInput(void)
 {
     PadState*     pad;
     PlayerStatus* cfg;
-    GpActorWork*  work;
+    Task*         work;
     GameActor*    actor;
     u16           mask;
     register u16  prev asm("s2"); // pinned: GCC otherwise gives $s2 to `actor`
@@ -1090,7 +1090,7 @@ void Gp_UpdatePadInput(void)
     if (work == NULL) {
         return;
     }
-    actor = work->actor;
+    actor = work->work;
     Gp_ClearPadHalt();
     if (Gp_MenuLockHold == 0) {
         if (actor->field_954 == 0 && gGameSession->eventState == 0 && gGameSession->cutsceneHold == 0 &&

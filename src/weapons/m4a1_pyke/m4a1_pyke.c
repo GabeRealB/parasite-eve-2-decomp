@@ -58,7 +58,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
     base  = &Gp_RoomCoords[1];
     light = &base->data.coord;
     slot  = (GpCoordTail*)light;
-    if ((((GpActorWork*)gameGetPtrSlot(3))->extra->flags & 0x80) != 0) {
+    if ((((TmdObject*)gameGetPtrSlot(3)->extra)->flags & 0x80) != 0) {
         return;
     }
     if (Gp_State1C->eventState >= 2) {
@@ -552,7 +552,7 @@ void func_m4a1_pyke_8011E4AC(Task* task)
 /// else ends the burst, parks the beam task at sub-state 3 or 4 and plays the
 /// `0x201C0005` tail. State 6 counts `field_979` down and drops out of the
 /// firing pose once the aim check fails or the trigger has been released.
-void func_m4a1_pyke_8011E4F8(GpActorWork* arg0)
+void func_m4a1_pyke_8011E4F8(Task* arg0)
 {
     GameActor*     actor;
     GsCOORDINATE2* coord;
@@ -562,8 +562,8 @@ void func_m4a1_pyke_8011E4F8(GpActorWork* arg0)
     s32            delay;
     s32            spent;
 
-    actor                 = arg0->actor;
-    coord                 = arg0->extra->coords;
+    actor                 = arg0->work;
+    coord                 = ((TmdObject*)arg0->extra)->coords;
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD - 0x50;
     spot                  = (GsCOORDINATE2*)*(u8**)G_SCRATCH_HEAD;
     switch (actor->field_95E) {
@@ -607,7 +607,7 @@ void func_m4a1_pyke_8011E4F8(GpActorWork* arg0)
                     beam->spawnArg1 = 2;
                 }
                 Gp_ConsumeSlotQty(0x9B, 0x101);
-                Gp_PlayObjSfx(arg0->extra->coords, 0x201C0005, 1);
+                Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x201C0005, 1);
                 Gp_AnimPlayChildSlotsEx(arg0, 0xB, 0, 2);
                 break;
             }
@@ -624,7 +624,7 @@ void func_m4a1_pyke_8011E4F8(GpActorWork* arg0)
                     if (func_80106264(1) == 0) {
                         actor->field_93E = 0;
                     }
-                    Gp_PlayObjSfx(arg0->extra->coords, 0x201C0004, 1);
+                    Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x201C0004, 1);
                     Gp_SpawnEff(0x6006B,
                                 (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
                                 0x1C, NULL);

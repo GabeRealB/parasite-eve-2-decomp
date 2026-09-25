@@ -33,38 +33,38 @@ typedef struct {
     u8   field_973;
 } Actor800300DirByte;
 
-extern s16          D_80072830;
-extern s32          D_8017A99C;
-extern GpActorWork* D_80115764;
-extern void         D_actor_800300_80168880;
-extern GpImgRec**   D_actor_800300_80168950[];
-extern GpImgRec**   D_actor_800300_80168960[];
+extern s16        D_80072830;
+extern s32        D_8017A99C;
+extern Task*      D_80115764;
+extern void       D_actor_800300_80168880;
+extern GpImgRec** D_actor_800300_80168950[];
+extern GpImgRec** D_actor_800300_80168960[];
 
-s32  func_80105ED4(GpActorWork* arg0);
+s32  func_80105ED4(Task* arg0);
 s32  func_8010BC70(GsCOORDINATE2* arg0);
 s32  func_8010BCF4(Task* arg0, VECTOR3* arg1);
-void func_8010BD88(GpActorWork* arg0, VECTOR3* arg1);
-void func_8010BE5C(GpActorWork* arg0, VECTOR3* arg1);
-void Gp_PlayerMode2State0(GpActorWork* arg0);
-void Gp_PlayerMode2State1(GpActorWork* arg0);
-void Gp_PlayerMode2State2(GpActorWork* arg0);
-void Gp_PlayerMode2State6(GpActorWork* arg0);
+void func_8010BD88(Task* arg0, VECTOR3* arg1);
+void func_8010BE5C(Task* arg0, VECTOR3* arg1);
+void Gp_PlayerMode2State0(Task* arg0);
+void Gp_PlayerMode2State1(Task* arg0);
+void Gp_PlayerMode2State2(Task* arg0);
+void Gp_PlayerMode2State6(Task* arg0);
 
-void func_actor_800300_801623F8(GpActorWork* arg0);
+void func_actor_800300_801623F8(Task* arg0);
 void func_actor_800300_801625A8(Task* task);
-void func_actor_800300_80162658(GpActorWork* arg0);
-void func_actor_800300_801628D0(GpActorWork* arg0);
-void func_actor_800300_80162A98(GpActorWork* arg0);
-void func_actor_800300_80162C2C(GpActorWork* arg0);
-void func_actor_800300_80162C98(GpActorWork* arg0);
-void func_actor_800300_80162D74(GpActorWork* arg0);
-void func_actor_800300_80162EEC(GpActorWork* arg0);
-void func_actor_800300_80162F24(GpActorWork* arg0);
-void func_actor_800300_80162F98(GpActorWork* arg0);
-void func_actor_800300_80163048(GpActorWork* arg0);
-void func_actor_800300_80163074(GpActorWork* arg0);
+void func_actor_800300_80162658(Task* arg0);
+void func_actor_800300_801628D0(Task* arg0);
+void func_actor_800300_80162A98(Task* arg0);
+void func_actor_800300_80162C2C(Task* arg0);
+void func_actor_800300_80162C98(Task* arg0);
+void func_actor_800300_80162D74(Task* arg0);
+void func_actor_800300_80162EEC(Task* arg0);
+void func_actor_800300_80162F24(Task* arg0);
+void func_actor_800300_80162F98(Task* arg0);
+void func_actor_800300_80163048(Task* arg0);
+void func_actor_800300_80163074(Task* arg0);
 
-void func_actor_800300_80161E80(GpActorWork* arg0)
+void func_actor_800300_80161E80(Task* arg0)
 {
     GameActor*      actor;
     TmdObject*      extra;
@@ -78,19 +78,19 @@ void func_actor_800300_80161E80(GpActorWork* arg0)
     s32             packed;
     s8              fcc;
 
-    actor = arg0->actor;
+    actor = arg0->work;
     extra = arg0->extra;
     d4    = actor->field_910;
     addr  = &extra->coords;
     coord = *addr;
     arg0->state++;
-    arg0->field_24   = &D_actor_800300_80168880;
-    arg0->field_18   = &func_actor_800300_801625A8;
-    actor->field_938 = 0x13;
-    D_80115764       = arg0;
-    coord->sub       = &gGfxViewCoord;
-    coord->flg       = 0;
-    extra->flags     = 0;
+    arg0->msgTable     = &D_actor_800300_80168880;
+    arg0->exitCallback = &func_actor_800300_801625A8;
+    actor->field_938   = 0x13;
+    D_80115764         = arg0;
+    coord->sub         = &gGfxViewCoord;
+    coord->flg         = 0;
+    extra->flags       = 0;
     RotMatrix((SVECTOR*)&actor->field_50, &coord->coord);
     func_8010BFCC(arg0);
     actor->field_985 = 0x10;
@@ -120,7 +120,7 @@ void func_actor_800300_80161E80(GpActorWork* arg0)
     Gp_InitRec18Table((GpRec18*)actor->field_90, 0x12, 0);
     obj->flags     |= 0xC200;
     obj             = (GpObj*)actor->field_CC;
-    next            = arg0->extra->coords;
+    next            = ((TmdObject*)arg0->extra)->coords;
     obj->ctx.dir    = (GpObjDirRec*)actor->field_94;
     obj->coord      = next + 4;
     actor->field_9C = (s32)recs;
@@ -143,7 +143,7 @@ void func_actor_800300_80161E80(GpActorWork* arg0)
     d4->repeatCount = fcc;
 }
 
-void func_actor_800300_80162064(GpActorWork* arg0)
+void func_actor_800300_80162064(Task* arg0)
 {
     void**                 scratch;
     u8*                    head;
@@ -163,7 +163,7 @@ void func_actor_800300_80162064(GpActorWork* arg0)
     *scratch = head - 0x18;
     extra    = obj;
     sc       = (Actor800300VecScratch*)(head - 0x18);
-    actor    = arg0->actor;
+    actor    = arg0->work;
     coord    = extra->coords;
     if (actor->field_954 != 2 &&
         (dy = coord->coord.t[1], dy = dy - actor->field_14, dy = ABS(dy), dy >= 0x200)) {
@@ -234,7 +234,7 @@ void func_actor_800300_80162064(GpActorWork* arg0)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
 }
 
-void func_actor_800300_801623F8(GpActorWork* arg0)
+void func_actor_800300_801623F8(Task* arg0)
 {
     void**      scratch;
     u8*         head;
@@ -248,7 +248,7 @@ void func_actor_800300_801623F8(GpActorWork* arg0)
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
-    actor    = arg0->actor;
+    actor    = arg0->work;
     temp     = (s32)(head - 8);
     *scratch = (void*)temp;
     rect     = (RECT*)temp;
@@ -338,14 +338,14 @@ void func_actor_800300_801625F4(Task* task)
 }
 
 /// Handlers `func_actor_800300_80162C2C` runs, indexed by `field_954`.
-const GpActorFuncTable3 D_actor_800300_80161E34 = { {
+const TaskFuncTable3 D_actor_800300_80161E34 = { {
     func_actor_800300_80162658,
     func_actor_800300_80162F24,
     func_actor_800300_80162F98,
 } };
 
 /// Behaviours `func_actor_800300_80162658` runs, indexed by `field_956`.
-const GpActorFuncTable9 D_actor_800300_80161E40 = { {
+const TaskFuncTable9 D_actor_800300_80161E40 = { {
     func_actor_800300_80162C98,
     func_actor_800300_801628D0,
     func_actor_800300_80162A98,
@@ -357,22 +357,22 @@ const GpActorFuncTable9 D_actor_800300_80161E40 = { {
     func_actor_800300_80162C98,
 } };
 
-void func_actor_800300_80162658(GpActorWork* arg0)
+void func_actor_800300_80162658(Task* arg0)
 {
-    GpActorFuncTable9 sp;
-    GameActor*        actor;
-    GpActorD4*        d4;
-    GsCOORDINATE2*    obj;
-    s8                cc;
-    s32               pan;
-    s32               depth;
-    s32               anim;
-    s32               sound;
+    TaskFuncTable9 sp;
+    GameActor*     actor;
+    GpActorD4*     d4;
+    GsCOORDINATE2* obj;
+    s8             cc;
+    s32            pan;
+    s32            depth;
+    s32            anim;
+    s32            sound;
 
     sp    = D_actor_800300_80161E40;
-    actor = arg0->actor;
+    actor = arg0->work;
     d4    = actor->field_910;
-    obj   = arg0->extra->coords;
+    obj   = ((TmdObject*)arg0->extra)->coords;
     if (d4->decisionTimer > 0) {
         d4->decisionTimer = (u16)d4->decisionTimer - 1;
     }
@@ -428,7 +428,7 @@ void func_actor_800300_80162658(GpActorWork* arg0)
     }
 }
 
-void func_actor_800300_801628D0(GpActorWork* arg0)
+void func_actor_800300_801628D0(Task* arg0)
 {
     GameActor*     actor;
     GsCOORDINATE2* coord;
@@ -438,9 +438,9 @@ void func_actor_800300_801628D0(GpActorWork* arg0)
     s32            angle;
     s32            arg;
 
-    coord  = arg0->extra->coords;
+    coord  = ((TmdObject*)arg0->extra)->coords;
     target = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
-    actor  = arg0->actor;
+    actor  = arg0->work;
     switch (actor->field_95E) {
         case 0:
             actor->field_934 = 0;
@@ -504,7 +504,7 @@ void func_actor_800300_801628D0(GpActorWork* arg0)
     func_80105ED4(arg0);
 }
 
-void func_actor_800300_80162A98(GpActorWork* arg0)
+void func_actor_800300_80162A98(Task* arg0)
 {
     u8*            head;
     VECTOR3*       vec;
@@ -516,7 +516,7 @@ void func_actor_800300_80162A98(GpActorWork* arg0)
     s32            arg;
     s32            flag;
 
-    actor             = arg0->actor;
+    actor             = arg0->work;
     extra             = (TmdObject*)(gameGetPtrSlot(3))->extra;
     head              = *(u8**)0x1F8003FC;
     *(u8**)0x1F8003FC = head - 0x10;
@@ -563,30 +563,30 @@ void func_actor_800300_80162A98(GpActorWork* arg0)
     *(u8**)0x1F8003FC += 0x10;
 }
 
-void func_actor_800300_80162C2C(GpActorWork* arg0)
+void func_actor_800300_80162C2C(Task* arg0)
 {
-    GameActor*        actor;
-    GpActorFuncTable3 sp;
+    GameActor*     actor;
+    TaskFuncTable3 sp;
 
     sp               = D_actor_800300_80161E34;
-    actor            = arg0->actor;
+    actor            = arg0->work;
     actor->field_973 = 0;
     actor->field_975 = 0;
     sp.funcs[actor->field_954](arg0);
     actor->field_986 = 0;
 }
 
-void func_actor_800300_80162C98(GpActorWork* arg0)
+void func_actor_800300_80162C98(Task* arg0)
 {
     GameActor*     actor;
     GsCOORDINATE2* coord;
     GsCOORDINATE2* target;
     s32            val;
 
-    actor  = arg0->actor;
-    coord  = arg0->extra->coords;
+    actor  = arg0->work;
+    coord  = ((TmdObject*)arg0->extra)->coords;
     target = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
-    if (arg0->actor->field_910->decisionTimer <= 0) {
+    if (((GameActor*)arg0->work)->field_910->decisionTimer <= 0) {
         func_8010BF7C(arg0, 0x14, 0x3F);
         if ((u32)(func_8010BC70(coord) - 0x581) < 0x87F) {
             func_actor_800300_80163048(arg0);
@@ -604,7 +604,7 @@ void func_actor_800300_80162C98(GpActorWork* arg0)
     func_80105ED4(arg0);
 }
 
-void func_actor_800300_80162D74(GpActorWork* arg0)
+void func_actor_800300_80162D74(Task* arg0)
 {
     GameActor*     actor;
     GsCOORDINATE2* coord;
@@ -614,12 +614,12 @@ void func_actor_800300_80162D74(GpActorWork* arg0)
     VECTOR3*       vec;
     u16            state;
 
-    coord             = arg0->extra->coords;
+    coord             = ((TmdObject*)arg0->extra)->coords;
     target            = (GsCOORDINATE2*)((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
     head              = *(u8**)0x1F8003FC;
     *(u8**)0x1F8003FC = head - 0x10;
     vec               = (VECTOR3*)(head - 0x10);
-    actor             = arg0->actor;
+    actor             = arg0->work;
     lock              = (GpLockPos*)actor->field_90C;
     if (lock != NULL) {
         if (!(((GpLinkNode*)lock)->flags & 1)) {
@@ -653,21 +653,21 @@ void func_actor_800300_80162D74(GpActorWork* arg0)
     *(u8**)0x1F8003FC += 0x10;
 }
 
-void func_actor_800300_80162EEC(GpActorWork* arg0)
+void func_actor_800300_80162EEC(Task* arg0)
 {
-    if (arg0->actor->field_95E == 1) {
+    if (((GameActor*)arg0->work)->field_95E == 1) {
         Gp_ResetActorMove(arg0, 0);
     }
 }
 
-void func_actor_800300_80162F24(GpActorWork* arg0)
+void func_actor_800300_80162F24(Task* arg0)
 {
     GameActor*     actor;
     GsCOORDINATE2* coord;
     s32            flag;
 
-    actor = arg0->actor;
-    coord = arg0->extra->coords;
+    actor = arg0->work;
+    coord = ((TmdObject*)arg0->extra)->coords;
     switch (actor->field_95E) {
         case 0:
             flag               = 1;
@@ -683,7 +683,7 @@ void func_actor_800300_80162F24(GpActorWork* arg0)
 
 /// Handlers `func_actor_800300_80162F98` runs, indexed by `field_956`: the
 /// gameplay module's own mode-2 player states.
-const GpActorFuncTable7 D_actor_800300_80161E64 = { {
+const TaskFuncTable7 D_actor_800300_80161E64 = { {
     Gp_PlayerMode2State0,
     Gp_PlayerMode2State1,
     Gp_PlayerMode2State2,
@@ -693,13 +693,13 @@ const GpActorFuncTable7 D_actor_800300_80161E64 = { {
     Gp_PlayerMode2State6,
 } };
 
-void func_actor_800300_80162F98(GpActorWork* arg0)
+void func_actor_800300_80162F98(Task* arg0)
 {
-    GameActor*        actor;
-    GpActorFuncTable7 sp;
+    GameActor*     actor;
+    TaskFuncTable7 sp;
 
     sp    = D_actor_800300_80161E64;
-    actor = arg0->actor;
+    actor = arg0->work;
     sp.funcs[(u16)actor->field_956](arg0);
     Gp_TurnPlayer(arg0);
     if (D_80072830 <= 0) {
@@ -710,11 +710,11 @@ void func_actor_800300_80162F98(GpActorWork* arg0)
 /// Switches the actor's update into its approach behaviour (entry 1 of the
 /// behaviour table), restarting the behaviour's step and counters and setting
 /// the approach timer to 60 frames.
-void func_actor_800300_80163048(GpActorWork* arg0)
+void func_actor_800300_80163048(Task* arg0)
 {
     GameActor* actor;
 
-    actor            = arg0->actor;
+    actor            = arg0->work;
     actor->field_956 = 1;
     actor->field_95A = 1;
     actor->field_954 = 0;
@@ -726,11 +726,11 @@ void func_actor_800300_80163048(GpActorWork* arg0)
 
 /// Switches the actor's update into its turn-to-face behaviour (entry 2 of
 /// the behaviour table), restarting the behaviour's step and counters.
-void func_actor_800300_80163074(GpActorWork* arg0)
+void func_actor_800300_80163074(Task* arg0)
 {
     GameActor* actor;
 
-    actor            = arg0->actor;
+    actor            = arg0->work;
     actor->field_956 = 2;
     actor->field_954 = 0;
     actor->field_958 = 0;

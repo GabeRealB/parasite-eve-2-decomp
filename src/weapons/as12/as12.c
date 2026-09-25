@@ -24,7 +24,7 @@
 /// the actor's own contact point on the 0xE variant. Case 5 runs out the
 /// `field_979` grace, re-fires while the trigger is held and otherwise hands
 /// back to `func_80106550`.
-void func_as12_8011D1DC(GpActorWork* arg0)
+void func_as12_8011D1DC(Task* arg0)
 {
     GameActor*     actor;
     GsCOORDINATE2* coord;
@@ -39,8 +39,8 @@ void func_as12_8011D1DC(GpActorWork* arg0)
         spot                    = (GsCOORDINATE2*)tmp;
         *(void**)G_SCRATCH_HEAD = tmp;
     }
-    actor = arg0->actor;
-    coord = arg0->extra->coords;
+    actor = arg0->work;
+    coord = ((TmdObject*)arg0->extra)->coords;
     switch (actor->field_95E) {
         case 0:
             actor->field_956 = 4;
@@ -78,7 +78,7 @@ void func_as12_8011D1DC(GpActorWork* arg0)
             actor->field_95E++;
             actor->field_12A |= 0xC000;
             Gp_ConsumeSlotQty(0x8E, 1);
-            Gp_PlayObjSfx(arg0->extra->coords,
+            Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords,
                           ((Player_Status.weaponSlotItem - 0xD) << 0x18) | 0x200F0005, 1);
             Gp_SpawnEff(0x600A1,
                         (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,

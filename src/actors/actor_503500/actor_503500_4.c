@@ -616,7 +616,7 @@ void func_actor_503500_8013AF60(Task* arg0, Actor503500Work* arg1, GpRec18* rec,
         if (work->field_E8 != 0) {
             continue;
         }
-        src = Gp_ActorSlots[(id >> 7) & 1]->extra->coords;
+        src = ((TmdObject*)Gp_ActorSlots[(id >> 7) & 1]->extra)->coords;
         Gp_ComposeParentWorld(coord, &mtx, &pos);
         d.vx = src->coord.t[0] - pos.vx;
         d.vy = src->coord.t[1] - pos.vy;
@@ -1091,7 +1091,7 @@ void func_actor_503500_8013C088(Task* arg0, Actor503500Work* arg1, GpRec18* arg2
         if (work->field_E8 != 0) {
             continue;
         }
-        src = Gp_ActorSlots[(id >> 7) & 1]->extra->coords;
+        src = ((TmdObject*)Gp_ActorSlots[(id >> 7) & 1]->extra)->coords;
         Gp_ComposeParentWorld(coord, &mtx, &pos);
         d.vx = src->coord.t[0] - pos.vx;
         d.vy = src->coord.t[1] - pos.vy;
@@ -1433,7 +1433,7 @@ void func_actor_503500_8013CCBC(Task* arg0, Actor503500Work* arg1, GpRec18* arg2
         if (work->field_E8 != 0) {
             continue;
         }
-        src = Gp_ActorSlots[(id >> 7) & 1]->extra->coords;
+        src = ((TmdObject*)Gp_ActorSlots[(id >> 7) & 1]->extra)->coords;
         Gp_ComposeParentWorld(coord, &mtx, &pos);
         d.vx = src->coord.t[0] - pos.vx;
         d.vy = src->coord.t[1] - pos.vy;
@@ -1953,7 +1953,7 @@ void func_actor_503500_8013DEB4(Task* arg0, Actor503500Work* arg1, GpRec18* arg2
         if (work->field_E8 != 0) {
             continue;
         }
-        src = Gp_ActorSlots[(id >> 7) & 1]->extra->coords;
+        src = ((TmdObject*)Gp_ActorSlots[(id >> 7) & 1]->extra)->coords;
         Gp_ComposeParentWorld(coord, &mtx, &pos);
         d.vx = src->coord.t[0] - pos.vx;
         d.vy = src->coord.t[1] - pos.vy;
@@ -2386,7 +2386,7 @@ void func_actor_503500_8013EE5C(Task* arg0, Actor503500Work* arg1, GpRec18* arg2
         if (work->field_E8 != 0) {
             continue;
         }
-        src = Gp_ActorSlots[(id >> 7) & 1]->extra->coords;
+        src = ((TmdObject*)Gp_ActorSlots[(id >> 7) & 1]->extra)->coords;
         Gp_ComposeParentWorld(coord, &mtx, &pos);
         d.vx = src->coord.t[0] - pos.vx;
         d.vy = src->coord.t[1] - pos.vy;
@@ -3236,7 +3236,7 @@ void func_actor_503500_80140D38(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3
             continue;
         }
         Gp_ComposeParentWorld(coord, &mtx, &pos);
-        src  = Gp_ActorSlots[(id >> 7) & 1]->extra->coords;
+        src  = ((TmdObject*)Gp_ActorSlots[(id >> 7) & 1]->extra)->coords;
         d.vx = src->coord.t[0] - pos.vx;
         d.vy = src->coord.t[1] - pos.vy;
         d.vz = src->coord.t[2] - pos.vz;
@@ -4259,7 +4259,7 @@ void func_actor_503500_801431EC(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3
         if (work->field_218 != 0) {
             continue;
         }
-        src = Gp_ActorSlots[(id >> 7) & 1]->extra->coords;
+        src = ((TmdObject*)Gp_ActorSlots[(id >> 7) & 1]->extra)->coords;
         Gp_ComposeParentWorld(coord, &mtx, &pos);
         d.vx = src->coord.t[0] - pos.vx;
         d.vy = src->coord.t[1] - pos.vy;

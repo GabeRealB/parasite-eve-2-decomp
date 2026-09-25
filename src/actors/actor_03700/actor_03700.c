@@ -424,7 +424,7 @@ move_done:
                 }
                 break;
             case 2:
-                src                 = Gp_ActorSlots[(id >> 7) & 1]->extra->coords;
+                src                 = ((TmdObject*)Gp_ActorSlots[(id >> 7) & 1]->extra)->coords;
                 ex                  = src->coord.t[0] - coord->coord.t[0];
                 scratch->delta.vx.w = ex;
                 ey                  = src->coord.t[1] - coord->coord.t[1];
@@ -1251,7 +1251,7 @@ void Actor03700_Fn020D4(GpEnemy* enemy, Task* task)
             buf.color.vx = coord->workm.t[0];
             buf.color.vy = coord->workm.t[1];
             buf.color.vz = coord->workm.t[2];
-            Gp_UpdateActorColor((GpEnemy*)task->spawnArg2, &buf.color, 0, 0);
+            Gp_UpdateActorColor(task->spawnArg2, &buf.color, 0, 0);
             return;
         case 2:
             ((TmdObject*)task->extra)->flags |= 0x80;
@@ -1643,7 +1643,7 @@ s32 Actor03700_Fn03130(Task* task)
     scratch                 = (Actor103700HoldScratch*)*(void**)G_SCRATCH_HEAD;
 
     ret = 0;
-    if (((GpActorWork*)player)->actor->field_954 != 2) {
+    if (((GameActor*)player->work)->field_954 != 2) {
         scratch->query.field_14 = 8;
         if (Gp_DispatchMsg(player, 0x3F8, (s32)scratch, 0) == 0) {
             scratch->anim.animBlock.ptr = Actor03700_D080FC;

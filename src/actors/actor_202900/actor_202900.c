@@ -50,7 +50,7 @@ extern Actor202900Work* D_actor_202900_80156E54;
 
 /// The actor's task, published by the setup handler so the overlay's other
 /// functions can reach the actor's model without the task in hand.
-extern GpActorWork* D_actor_202900_80156E58;
+extern Task* D_actor_202900_80156E58;
 
 /// The second task the setup handler starts. Its model is textured from the
 /// area record the actor was placed from, shown and hidden together with the
@@ -59,7 +59,7 @@ extern Task* D_actor_202900_80156E5C;
 
 void func_actor_202900_8014A0B4(GpEnemy* enemy, Task* task);
 void func_actor_202900_8014A158(Task* arg0);
-void func_actor_202900_8014A194(GpActorWork* arg0);
+void func_actor_202900_8014A194(Task* arg0);
 void func_actor_202900_8014A208(void);
 void func_actor_202900_8014A260(void);
 void func_actor_202900_8014A304(void);
@@ -100,7 +100,7 @@ void func_actor_202900_80149E24(GpEnemy* enemy, Task* task)
     enemy->node.flags       = 1;
     obj->otOffset           = 1;
     obj->flags              = 0;
-    D_actor_202900_80156E58 = (GpActorWork*)task;
+    D_actor_202900_80156E58 = task;
     spawned                 = Task_SpawnFromTable(D_actor_202900_80156E24, 1, 0, 0);
     D_actor_202900_80156E5C = spawned;
     sessionKey              = (GpAreaKey*)&gGameSession->at4.loc;
@@ -136,7 +136,7 @@ void func_actor_202900_80149E24(GpEnemy* enemy, Task* task)
     D_actor_202900_80156E54->field_47C = 2;
     D_actor_202900_80156E54->field_484 = 0;
     task->msgTable                     = D_actor_202900_80156E0C;
-    func_actor_202900_8014A194((GpActorWork*)task);
+    func_actor_202900_8014A194(task);
     task->state++;
 }
 
@@ -159,14 +159,14 @@ void func_actor_202900_8014A02C(Task* task)
 
 /// Update of the second task: parents its model to the fifth coordinate of the
 /// actor's model, marks the coordinate for recomputation and shows the model.
-void func_actor_202900_8014A088(GpActorWork* arg0)
+void func_actor_202900_8014A088(Task* arg0)
 {
     GsCOORDINATE2* parent;
     GsCOORDINATE2* coord;
     TmdObject*     extra;
 
     extra        = arg0->extra;
-    parent       = D_actor_202900_80156E58->extra->coords;
+    parent       = ((TmdObject*)D_actor_202900_80156E58->extra)->coords;
     coord        = extra->coords;
     coord->flg   = 0;
     extra->flags = 0;
@@ -189,7 +189,7 @@ void func_actor_202900_8014A0B4(GpEnemy* enemy, Task* task)
     pos.vy = coord->workm.t[1] - 0x320;
     pos.vz = coord->workm.t[2];
     func_800D7A9C(obj, &pos, 0, 3);
-    func_actor_202900_8014A194((GpActorWork*)task);
+    func_actor_202900_8014A194(task);
     if ((s16)D_actor_202900_80156E54->animId == 1 && (func_actor_202900_8014A394() & 0xFF)) {
         SndEvt_EnqueueType6(0x5104000D, 0, 0);
     }
@@ -208,7 +208,7 @@ void func_actor_202900_8014A158(Task* arg0)
 /// second survives. `arg0` is handed the actor but the body ignores it: it
 /// reaches the work block through the global, like the overlay's other
 /// functions.
-void func_actor_202900_8014A194(GpActorWork* arg0)
+void func_actor_202900_8014A194(Task* arg0)
 {
     if (D_actor_202900_80156E54->field_47C == 1) {
         func_actor_202900_8014A304();
@@ -310,7 +310,7 @@ s32 func_actor_202900_8014A394(void)
 /// call's delay slot.
 s32 func_actor_202900_8014A3E0(Task* task, s32 arg1, Actor202900AnimArgs* args)
 {
-    GpActorWork* actor;
+    Task* actor;
 
     if (args->animId < 5) {
         D_actor_202900_80156E54->animId    = args->animId;

@@ -1395,10 +1395,10 @@ void Gp_AssignNodeSlot0(GpLinkNode* node);
 /// Detaches `node` from every actor slot and marks it un-lockable, leaving it
 /// on the tracked list.
 void  Gp_ClearNodeSlots(GpLinkNode* node);
-void* Gp_ScanLockNodes(GpActorWork* arg0, VECTOR3* out, s32 flag);
-void* Gp_FindLockNode(GpActorWork* arg0);
-void* Gp_FindLockNodePad(GpActorWork* arg0);
-void* Gp_FindLockNodeAt(GpActorWork* arg0, VECTOR3* pos);
+void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag);
+void* Gp_FindLockNode(Task* arg0);
+void* Gp_FindLockNodePad(Task* arg0);
+void* Gp_FindLockNodeAt(Task* arg0, VECTOR3* pos);
 void  Gp_GetLockPos(GpLockPos* arg0, VECTOR3* out);
 void  Gp_ClearLockSlots(void);
 void  Gp_ResetLinkState(void);
@@ -1407,7 +1407,7 @@ s32   Gp_ProjectToSxy(GpPerspSrc* arg0, s32* sxy);
 /// releasing the slot itself.
 void Gp_ClearSlotNodeFlags(void);
 s32  Gp_GrantLocationItems(GpItemScan* arg0);
-s32  Gp_LoadActorImage(GpActorWork* arg0, GpImgRec* arg1, RECT* arg2);
+s32  Gp_LoadActorImage(Task* arg0, GpImgRec* arg1, RECT* arg2);
 void Gp_LoadImages(GpImgRec* arg0);
 void Gp_InitStateF0(void);
 void Gp_ArmStateF0(s32 arg0);

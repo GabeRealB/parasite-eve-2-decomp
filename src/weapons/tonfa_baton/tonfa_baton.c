@@ -214,7 +214,7 @@ void func_tonfa_baton_8011DA74(Task* arg0)
 
     extra        = (TmdObject*)arg0->extra;
     coord        = (TonfaCoord*)extra->coords;
-    actor        = ((GpActorWork*)gameGetPtrSlot(3))->actor;
+    actor        = gameGetPtrSlot(3)->work;
     coord->flg   = 0;
     extra->flags = ((TmdObject*)(gameGetPtrSlot(3))->extra)->flags;
 
@@ -280,7 +280,7 @@ void func_tonfa_baton_8011DB98(Task* arg0)
 /// three ticks in and parks in case 4, whose 9 ticks clear the hit flag again.
 /// Cases 1/2 and 4 also play the connect sound once per swing when
 /// `Gp_CountRec18Hi` reports a hit.
-void func_tonfa_baton_8011DBFC(GpActorWork* arg0)
+void func_tonfa_baton_8011DBFC(Task* arg0)
 {
     GameActor*     actor;
     GsCOORDINATE2* coord;
@@ -292,7 +292,7 @@ void func_tonfa_baton_8011DBFC(GpActorWork* arg0)
     s32            swinging;
 
     swinging              = 0;
-    actor                 = arg0->actor;
+    actor                 = arg0->work;
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD - 0x18;
     swing                 = (TonfaSwing*)*(u8**)G_SCRATCH_HEAD;
     switch (actor->field_95E) {
@@ -326,7 +326,7 @@ void func_tonfa_baton_8011DBFC(GpActorWork* arg0)
                     actor->field_91C->spawnArg1 = 1;
                     actor->field_12A           |= 0x8000;
                     func_80106238(arg0, 0, 0);
-                    Gp_PlayObjSfx(arg0->extra->coords, 0x20130001, 0);
+                    Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20130001, 0);
                     eff = Gp_SpawnEff(0x6003A,
                                       (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
                                       0, NULL);
@@ -337,7 +337,7 @@ void func_tonfa_baton_8011DBFC(GpActorWork* arg0)
             }
             if (actor->field_93E != 1 && Gp_CountRec18Hi(actor->field_32C, 0x30000) != 0) {
                 actor->field_93E = 1;
-                Gp_PlayObjSfx(arg0->extra->coords, 0x20130003, 0);
+                Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20130003, 0);
             }
             if (func_80105894(arg0, 1, 0, 0) == 0) {
                 actor->field_12A &= 0x7FFF;
@@ -370,7 +370,7 @@ void func_tonfa_baton_8011DBFC(GpActorWork* arg0)
                 if (step == 3) {
                     actor->field_12A |= 0x8000;
                     func_80106238(arg0, 0, 1);
-                    Gp_PlayObjSfx(arg0->extra->coords, 0x20130002, 0);
+                    Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20130002, 0);
                 } else if (step == 0) {
                     actor->field_95E            = 4;
                     actor->field_934            = 9;
@@ -389,7 +389,7 @@ void func_tonfa_baton_8011DBFC(GpActorWork* arg0)
             }
             if (actor->field_93E != 2 && Gp_CountRec18Hi(actor->field_32C, 0x30000) != 0) {
                 actor->field_93E = 2;
-                Gp_PlayObjSfx(arg0->extra->coords, 0x20130004, 0);
+                Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20130004, 0);
             }
             if (func_80105894(arg0, 1, 0, 0) == 0) {
                 func_80106550(arg0);
@@ -406,7 +406,7 @@ void func_tonfa_baton_8011DBFC(GpActorWork* arg0)
             }
             break;
     }
-    coord = (GsCOORDINATE2*)arg0->extra->coords;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     Gfx_MatrixCol2(&coord->coord, &swing->dir);
     swing->vx             = (s16)(swing->dir.vx / 84) * swinging;
     swing->vy             = (s16)(swing->dir.vy / 84) * swinging;

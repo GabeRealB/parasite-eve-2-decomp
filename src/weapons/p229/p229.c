@@ -299,7 +299,7 @@ void func_p229_8011D860(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 /// under the weapon task. States 3/4 pick the lock-on target once (only while
 /// still in state 3) and state 5 counts `field_979` down, dropping back out of
 /// the firing pose once the aim check fails or the trigger has been released.
-void func_p229_8011DDA0(GpActorWork* arg0)
+void func_p229_8011DDA0(Task* arg0)
 {
     GameActor*     actor;
     GsCOORDINATE2* coord;
@@ -309,8 +309,8 @@ void func_p229_8011DDA0(GpActorWork* arg0)
     s32            anim;
     s16            frames;
 
-    actor = arg0->actor;
-    coord = arg0->extra->coords;
+    actor = arg0->work;
+    coord = ((TmdObject*)arg0->extra)->coords;
     rec   = &actor->field_14C;
     /* Pinned to `$v0`: the scratch block's address is stored back to
        `G_SCRATCH_HEAD` from `$v0` and copied into the callee-saved `spot`,
@@ -355,7 +355,7 @@ void func_p229_8011DDA0(GpActorWork* arg0)
                 actor->field_12A |= 0x800;
                 func_80106238(arg0, 0, 0);
                 Gp_ConsumeSlotQty(0x84, 1);
-                Gp_PlayObjSfx(arg0->extra->coords, 0x20050004, 0);
+                Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20050004, 0);
                 Gp_SpawnEff(0x6002B,
                             (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords, 5,
                             NULL);
@@ -368,7 +368,7 @@ void func_p229_8011DDA0(GpActorWork* arg0)
                 actor->field_12A &= 0xF7FF;
                 func_80106238(arg0, 0, 1);
                 Gp_ConsumeSlotQty(0x84, 0x101);
-                Gp_PlayObjSfx(arg0->extra->coords, 0x20050005, 0);
+                Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20050005, 0);
                 eff = Gp_SpawnEff(0x60040,
                                   (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords, 5,
                                   NULL);

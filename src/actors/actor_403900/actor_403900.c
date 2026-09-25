@@ -1068,7 +1068,7 @@ void func_actor_403900_8013314C(Task* arg0)
     flag                   = 0;
     switch (work->field_6CE) {
         case 0:
-            if (((GpActorWork*)player)->actor->field_954 != 2 && D_80073BA0 > 0) {
+            if (((GameActor*)player->work)->field_954 != 2 && D_80073BA0 > 0) {
                 sc->query.field_14 = 0x19;
                 if (Gp_DispatchMsg(player, 0x3F8, (s32)sc, 0) == 0) {
                     work->field_6C0 = 1;
@@ -1253,14 +1253,14 @@ void func_actor_403900_8013314C(Task* arg0)
                     SndEvt_EnqueueType6(work->field_6BC, (s8)Gp_GetObjPan((GsCOORDINATE2*)coord), (s8)gpGetObjDepth((GsCOORDINATE2*)coord));
                 }
             } else if (work->field_6C4 == 0x1A) {
-                ((GpActorWork*)player)->actor->field_956 = 0xA;
-                work->field_6CE                          = 7;
-                work->field_6D4                          = 0;
-                gGameSession->deathRestartDelay          = 0x5A;
-                gGameSession->areaBgmCountdown           = 0x7F;
-                sc->in.vy                                = -0x96;
-                sc->in.vx                                = 0;
-                sc->in.vz                                = 0xC8;
+                ((GameActor*)player->work)->field_956 = 0xA;
+                work->field_6CE                       = 7;
+                work->field_6D4                       = 0;
+                gGameSession->deathRestartDelay       = 0x5A;
+                gGameSession->areaBgmCountdown        = 0x7F;
+                sc->in.vy                             = -0x96;
+                sc->in.vx                             = 0;
+                sc->in.vz                             = 0xC8;
                 func_800FDB18(1, &((TmdObject*)gameGetPtrSlot(3)->extra)->coords[4], &sc->in, &D_actor_403900_801540C8);
                 Gp_SpawnPadLerp(0xA, 0xFF, 8);
                 Gp_DispatchMsg(player, 0x400, 0, 0);

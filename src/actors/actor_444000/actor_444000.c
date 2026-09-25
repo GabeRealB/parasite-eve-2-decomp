@@ -5658,7 +5658,7 @@ void func_actor_444000_8013E058(Task* task)
 {
     Actor444000Work*        work  = task->work;
     GpEnemy*                enemy = task->spawnArg2;
-    GpActorWork*            slot3;
+    Task*                   slot3;
     GameActor*              actor;
     Actor444000DragScratch* sc;
     Actor444000Work*        escorts;
@@ -5677,9 +5677,9 @@ void func_actor_444000_8013E058(Task* task)
     s16                     j;
     s16                     dz;
 
-    slot3 = (GpActorWork*)gameGetPtrSlot(3);
+    slot3 = gameGetPtrSlot(3);
     sc    = (Actor444000DragScratch*)(SCRATCH_SP -= sizeof(Actor444000DragScratch));
-    actor = slot3->actor;
+    actor = slot3->work;
 
     if (work->field_4 != 0) {
         work->field_7B3                  = 3;
@@ -5720,10 +5720,10 @@ void func_actor_444000_8013E058(Task* task)
         Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_actor_444000_80161888, 0x7DB);
     }
 
-    coord = slot3->extra->coords;
+    coord = ((TmdObject*)slot3->extra)->coords;
     if (coord->coord.t[1] > 0) {
-        coord->coord.t[1]         = 0;
-        slot3->extra->coords->flg = 0;
+        coord->coord.t[1]                       = 0;
+        ((TmdObject*)slot3->extra)->coords->flg = 0;
     }
     func_actor_444000_8013441C(task);
 
@@ -5756,9 +5756,9 @@ void func_actor_444000_8013E058(Task* task)
     sc->dir.vx = 0;
     Actor444000_LocalToView(&((TmdObject*)task->extra)->coords[4], &sc->dir);
 
-    sc->dir.vx = *(u16*)&slot3->extra->coords->coord.t[0] - (u16)sc->dir.vx;
-    sc->dir.vy = *(u16*)&slot3->extra->coords->coord.t[1] - (u16)sc->dir.vy;
-    sc->dir.vz = *(u16*)&slot3->extra->coords->coord.t[2] - (u16)sc->dir.vz;
+    sc->dir.vx = *(u16*)&((TmdObject*)slot3->extra)->coords->coord.t[0] - (u16)sc->dir.vx;
+    sc->dir.vy = *(u16*)&((TmdObject*)slot3->extra)->coords->coord.t[1] - (u16)sc->dir.vy;
+    sc->dir.vz = *(u16*)&((TmdObject*)slot3->extra)->coords->coord.t[2] - (u16)sc->dir.vz;
     sc->dist   = sc->dir.vx * sc->dir.vx;
     sc->dist  += sc->dir.vz * sc->dir.vz;
     sc->dist   = SquareRoot0(sc->dist);
@@ -5882,7 +5882,7 @@ void func_actor_444000_8013E058(Task* task)
         }
     }
     if (work->field_F08 >= 6) {
-        clamp = slot3->extra->coords;
+        clamp = ((TmdObject*)slot3->extra)->coords;
         if (clamp->coord.t[2] > -0x52D0) {
             clamp->coord.t[2] = -0x52D0;
         }

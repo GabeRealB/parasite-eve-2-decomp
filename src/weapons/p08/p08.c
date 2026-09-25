@@ -25,7 +25,7 @@
 #error "WEAPON_ID, P08_FLASH_EFFECT, P08_FLASH_WEAPON and P08_FIELD_940 are per-package build parameters"
 #endif
 
-void func_p08_8011D1D8(GpActorWork* arg0)
+void func_p08_8011D1D8(Task* arg0)
 {
     GameActor*     actor;
     GsCOORDINATE2* coord;
@@ -39,8 +39,8 @@ void func_p08_8011D1D8(GpActorWork* arg0)
         spot                    = (GsCOORDINATE2*)tmp;
         *(void**)G_SCRATCH_HEAD = tmp;
     }
-    actor = arg0->actor;
-    coord = arg0->extra->coords;
+    actor = arg0->work;
+    coord = ((TmdObject*)arg0->extra)->coords;
     switch (actor->field_95E) {
         case 0:
             actor->field_956 = 4;
@@ -68,7 +68,7 @@ void func_p08_8011D1D8(GpActorWork* arg0)
             func_80106238(arg0, 0, 0);
             actor->field_12A |= 0xCC00;
             Gp_ConsumeSlotQty(WEAPON_ITEM(WEAPON_ID), 1);
-            Gp_PlayObjSfx(arg0->extra->coords, 0x20000004 | (WEAPON_ID << 16), 1);
+            Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20000004 | (WEAPON_ID << 16), 1);
             Gp_SpawnEff(P08_FLASH_EFFECT,
                         (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
                         P08_FLASH_WEAPON, NULL);

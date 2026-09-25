@@ -878,16 +878,16 @@ void func_hypervelocity_8011F270(Task* arg0)
 
 void func_hypervelocity_8011F374(Task* arg0)
 {
-    Task*        parent;
-    TmdObject*   extra;
-    TmdObject*   playerExtra;
-    HyperCoord*  coord;
-    GpActorWork* work;
-    HyperMat*    mat;
-    s16          count;
+    Task*       parent;
+    TmdObject*  extra;
+    TmdObject*  playerExtra;
+    HyperCoord* coord;
+    Task*       work;
+    HyperMat*   mat;
+    s16         count;
 
     parent      = arg0->parent;
-    work        = (GpActorWork*)gameGetPtrSlot(3);
+    work        = gameGetPtrSlot(3);
     extra       = (TmdObject*)arg0->extra;
     playerExtra = work->extra;
     coord       = (HyperCoord*)extra->coords;
@@ -900,7 +900,7 @@ void func_hypervelocity_8011F374(Task* arg0)
     SCRATCH_SP -= 0x10;
     switch (arg0->spawnArg1 & 0xF) {
         case 0:
-            if (*(u32*)&work->actor->field_954 != 0x40000) {
+            if (*(u32*)&((GameActor*)work->work)->field_954 != 0x40000) {
                 arg0->spawnArg1 = 0;
             }
             break;
@@ -1017,7 +1017,7 @@ void func_hypervelocity_8011F6C0(Task* arg0)
 /// 18 ticks the third column of the weapon coordinate is scaled by the
 /// remaining ticks over 378 (or 244 on the first tick) and subtracted from the
 /// coordinate's translation, kicking the gun back along its own barrel.
-void func_hypervelocity_8011F724(GpActorWork* arg0)
+void func_hypervelocity_8011F724(Task* arg0)
 {
     void**         scratch;
     u8*            head;
@@ -1033,7 +1033,7 @@ void func_hypervelocity_8011F724(GpActorWork* arg0)
     head     = *scratch;
     rec      = (HyperRecoil*)(head - 0x18);
     *scratch = rec;
-    actor    = arg0->actor;
+    actor    = arg0->work;
     eff      = actor->field_91C;
     switch (actor->field_95E) {
         case 0:
@@ -1046,8 +1046,8 @@ void func_hypervelocity_8011F724(GpActorWork* arg0)
             actor->field_914->spawnArg1 = 1;
             actor->field_934            = 0;
             eff->spawnArg1             |= 0x10;
-            Gp_PlayObjSfx(arg0->extra->coords, 0x20160003, 0);
-            Gp_PlayObjSfx(arg0->extra->coords, 0x20160005, 0);
+            Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20160003, 0);
+            Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20160005, 0);
             Gp_AnimPlayChildSlotsEx(arg0, 0xE, 0, 3);
             /* fallthrough */
         case 1:
@@ -1061,12 +1061,12 @@ void func_hypervelocity_8011F724(GpActorWork* arg0)
                     actor->field_934 = 0x15;
                     Gp_ConsumeSlotQty(0x95, 1);
                     SndEvt_EnqueueType7(0x20160005, 1);
-                    Gp_PlayObjSfx(arg0->extra->coords, 0x20160007, 1);
+                    Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20160007, 1);
                     Gp_AnimResetChildSlots(arg0, 0xB);
                 } else if (count == 0x3C) {
                     eff->spawnArg1 |= 0x20;
                     SndEvt_EnqueueType7(0x20160003, 1);
-                    Gp_PlayObjSfx(arg0->extra->coords, 0x20160002, 0);
+                    Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20160002, 0);
                 }
                 SndEvt_EnqueueType7(0x20160004, 1);
             } else {
@@ -1075,7 +1075,7 @@ void func_hypervelocity_8011F724(GpActorWork* arg0)
                 eff->spawnArg1              = 0;
                 SndEvt_EnqueueType7(0x20160003, 1);
                 SndEvt_EnqueueType7(0x20160005, 1);
-                Gp_PlayObjSfx(arg0->extra->coords, 0x20160004, 0);
+                Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20160004, 0);
                 Gp_AnimPlayChildSlotsEx(arg0, 0xF, 0, 3);
             }
             break;
@@ -1084,7 +1084,7 @@ void func_hypervelocity_8011F724(GpActorWork* arg0)
             actor->field_934 = step;
             if (step != 0) {
                 if (step < 0x13) {
-                    coord = (GsCOORDINATE2*)arg0->extra->coords;
+                    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
                     div   = 0x17A;
                     if (step == 0x12) {
                         div = 0xF4;

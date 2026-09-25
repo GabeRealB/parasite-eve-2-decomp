@@ -27,7 +27,7 @@
 /// any occupied `field_32C` slot plays `0x201A0005`. State 7 counts `field_979`
 /// down and drops out of the firing pose once the aim check fails or the
 /// trigger has been released.
-void func_m4a1_bayonet_8011DA34(GpActorWork* arg0)
+void func_m4a1_bayonet_8011DA34(Task* arg0)
 {
     GameActor*     actor;
     GsCOORDINATE2* coord;
@@ -38,8 +38,8 @@ void func_m4a1_bayonet_8011DA34(GpActorWork* arg0)
     s32            delay;
     s16            frames;
 
-    actor                 = arg0->actor;
-    coord                 = arg0->extra->coords;
+    actor                 = arg0->work;
+    coord                 = ((TmdObject*)arg0->extra)->coords;
     rec                   = &actor->field_14C;
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD - 0x50;
     spot                  = (GsCOORDINATE2*)*(u8**)G_SCRATCH_HEAD;
@@ -101,7 +101,7 @@ void func_m4a1_bayonet_8011DA34(GpActorWork* arg0)
                     if (func_80106264(1) == 0) {
                         actor->field_93E = 0;
                     }
-                    Gp_PlayObjSfx(arg0->extra->coords, 0x201A0004, 1);
+                    Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x201A0004, 1);
                     Gp_SpawnEff(0x6006B,
                                 (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
                                 0x1A, NULL);
@@ -134,7 +134,7 @@ void func_m4a1_bayonet_8011DA34(GpActorWork* arg0)
                     actor->field_95E++;
                     actor->field_93E  = 0xA;
                     actor->field_12A |= 0xC000;
-                    Gp_PlayObjSfx(arg0->extra->coords, 0x201A0006, 0);
+                    Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x201A0006, 0);
                     eff = Gp_SpawnEff(0x6003E,
                                       (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
                                       0x1A, NULL);
@@ -147,7 +147,7 @@ void func_m4a1_bayonet_8011DA34(GpActorWork* arg0)
                 }
             }
             if (Gp_CountRec18Hi(actor->field_32C, 0x30000) != 0) {
-                Gp_PlayObjSfx(arg0->extra->coords, 0x201A0005, 0);
+                Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x201A0005, 0);
             }
             break;
         case 7:

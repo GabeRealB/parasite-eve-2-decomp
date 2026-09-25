@@ -1353,7 +1353,7 @@ void func_actor_400600_80133FC0(Task* arg0)
     s32               pan;
 
     work = (Actor400600Work*)arg0->work;
-    if (Gp_ActorSlots[0]->actor->field_954 == 2 || (func_actor_400600_801376EC(arg0) << 0x10) != 0 || work->field_728 >= 0x7D0 || (u32)(work->field_72C - 0x200) < 0xC01U) {
+    if (((GameActor*)Gp_ActorSlots[0]->work)->field_954 == 2 || (func_actor_400600_801376EC(arg0) << 0x10) != 0 || work->field_728 >= 0x7D0 || (u32)(work->field_72C - 0x200) < 0xC01U) {
         func_actor_400600_80138B40(arg0);
         work2            = (Actor400600Work*)arg0->work;
         work2->field_71C = 2;
@@ -1427,7 +1427,7 @@ void func_actor_400600_80134218(Task* arg0)
     work               = (Actor400600Work*)arg0->work;
     coord              = ((TmdObject*)arg0->extra)->coords;
     enemy              = (GpEnemy*)arg0->spawnArg2;
-    player             = Gp_ActorSlots[0]->extra->coords;
+    player             = ((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
     work->field_84    += -(s16)work->field_84 >> 2;
     coord->coord.t[0] += (player->coord.t[0] - coord->coord.t[0]) >> 2;
     coord->coord.t[2] += (player->coord.t[2] - coord->coord.t[2]) >> 2;
@@ -1463,7 +1463,7 @@ void func_actor_400600_80134218(Task* arg0)
         return;
     }
     if ((s16)work->field_718 == 0xD || (s16)work->field_718 == 0x1A) {
-        root = &Gp_ActorSlots[0]->extra->coords[4];
+        root = &((TmdObject*)Gp_ActorSlots[0]->extra)->coords[4];
         Gp_SpawnPadLerp(0xA, 0xC0, 8);
         id = 0x40060009;
         if ((arg0->spawnArg1 & 0xF0) == 0x10) {
@@ -1503,7 +1503,7 @@ void func_actor_400600_80134570(Task* arg0)
 
     work            = (Actor400600Work*)arg0->work;
     coord           = ((TmdObject*)arg0->extra)->coords;
-    player          = Gp_ActorSlots[0]->extra->coords;
+    player          = ((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
     work->field_84 += -(s16)work->field_84 >> 2;
     work->field_718++;
     if ((s16)work->field_718 >= 8) {
@@ -2269,7 +2269,7 @@ void func_actor_400600_80136670(Task* arg0)
     GsCOORDINATE2*   coord;
     GsCOORDINATE2*   player;
     GameActor*       actor;
-    GpActorWork*     slot;
+    Task*            slot;
     SVECTOR          v;
     s16              a;
     s16              b;
@@ -2283,8 +2283,8 @@ void func_actor_400600_80136670(Task* arg0)
     if (slot == NULL) {
         return;
     }
-    player = slot->extra->coords;
-    actor  = slot->actor;
+    player = ((TmdObject*)slot->extra)->coords;
+    actor  = slot->work;
     if (work->field_76E != 0) {
         a = func_actor_400600_8013886C(arg0);
         b = func_actor_400600_8013886C((Task*)slot);

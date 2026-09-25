@@ -2385,7 +2385,7 @@ void Gp_SetupDirWarp(void)
     slot7 = gameGetPtrSlot(7);
     slot3 = gameGetPtrSlot(3);
     cfg   = &Player_Status;
-    actor = ((GpActorWork*)slot3)->actor;
+    actor = slot3->work;
 
     if (gGameSession->eventState != 0) {
         D_80114CF8      = 0;
@@ -2593,7 +2593,7 @@ void Gp_MsgPlayerDirFacing(void)
     s32        facing;
     u8*        row;
 
-    actor = ((GpActorWork*)gameGetPtrSlot(3))->actor;
+    actor = gameGetPtrSlot(3)->work;
     flags = Gp_DirByte;
     if (flags & 0x80) {
         facing = actor->field_82;

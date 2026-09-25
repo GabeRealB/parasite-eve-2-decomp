@@ -919,7 +919,7 @@ extern byte              Actor04000_D0C520[];
 void Actor04000_Fn0168C(GpEnemy* arg0, Task* arg1)
 {
     Actor104000Work*       work;
-    GpActorWork*           player;
+    Task*                  player;
     GameActor*             actor;
     TmdObject*             obj;
     Actor104000AimScratch* head;
@@ -930,8 +930,8 @@ void Actor04000_Fn0168C(GpEnemy* arg0, Task* arg1)
     s32                    mag;
 
     work   = arg1->work;
-    player = (GpActorWork*)gameGetPtrSlot(3);
-    actor  = player->actor;
+    player = gameGetPtrSlot(3);
+    actor  = player->work;
     if (work->field_4 != 0) {
         obj                                     = arg1->extra;
         ((GpEnemy*)arg1->spawnArg2)->node.flags = 0;
@@ -974,7 +974,7 @@ void Actor04000_Fn0168C(GpEnemy* arg0, Task* arg1)
             if (actor->field_954 != 2) {
                 work->field_490 = 0xC;
                 if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)work->field_47C, 0) == 0) {
-                    coord     = player->extra->coords;
+                    coord     = ((TmdObject*)player->extra)->coords;
                     angle     = ratan2(sc->d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
                     sc->angle = Actor204000_WrapAngle(angle);
                     if (sc->angle < 0) {
@@ -986,7 +986,7 @@ void Actor04000_Fn0168C(GpEnemy* arg0, Task* arg1)
                     Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&Actor04000_D0C530, 0);
                     work->field_0   = 0xB;
                     work->field_496 = 1;
-                    Gfx_MatrixCol0(&player->extra->coords->coord, &sc->d);
+                    Gfx_MatrixCol0(&((TmdObject*)player->extra)->coords->coord, &sc->d);
                     sc->d.vy = 0;
                     VectorNormalSS(&sc->d, &sc->d);
                     if (sc->angle < 0) {
@@ -1000,9 +1000,9 @@ void Actor04000_Fn0168C(GpEnemy* arg0, Task* arg1)
                         gte_gpf12();
                         gte_stsv(&sc->d);
                     }
-                    ((TmdObject*)arg1->extra)->coords->coord.t[0] = player->extra->coords->coord.t[0] + sc->d.vx;
-                    ((TmdObject*)arg1->extra)->coords->coord.t[1] = player->extra->coords->coord.t[1];
-                    ((TmdObject*)arg1->extra)->coords->coord.t[2] = player->extra->coords->coord.t[2] + sc->d.vz;
+                    ((TmdObject*)arg1->extra)->coords->coord.t[0] = ((TmdObject*)player->extra)->coords->coord.t[0] + sc->d.vx;
+                    ((TmdObject*)arg1->extra)->coords->coord.t[1] = ((TmdObject*)player->extra)->coords->coord.t[1];
+                    ((TmdObject*)arg1->extra)->coords->coord.t[2] = ((TmdObject*)player->extra)->coords->coord.t[2] + sc->d.vz;
                     sc->d.vy                                      = 0;
                     VectorNormalSS(&sc->d, &sc->d);
                     gte_lddp(-0x258);
@@ -1692,7 +1692,7 @@ found:
             work->field_0 = 6;
         }
         if (work->field_496 == 1) {
-            if (((GpActorWork*)gameGetPtrSlot(3))->actor->field_954 == 2) {
+            if (((GameActor*)gameGetPtrSlot(3)->work)->field_954 == 2) {
                 Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
             }
             work->field_496 = 0;
@@ -2248,7 +2248,7 @@ void Actor04000_Fn05F0C(GpEnemy* arg0, Task* arg1)
     table.fn[work->field_0]((GpEnemy*)arg0, arg1);
     if (work->field_496 == 1) {
         if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0 || arg0->hp < 0) {
-            if (((GpActorWork*)gameGetPtrSlot(3))->actor->field_954 == 2) {
+            if (((GameActor*)gameGetPtrSlot(3)->work)->field_954 == 2) {
                 Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
             }
             work->field_496 = 0;

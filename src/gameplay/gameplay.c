@@ -5127,15 +5127,15 @@ void func_800A087C(Task* arg0)
 
 void Gp_AreaEnterTask(Task* arg0)
 {
-    u32                    key;
-    GpEndWork*             work;
-    s32                    i;
-    GpActorWork* volatile* p;
-    GpActorWork*           slot;
-    GameSession*           session;
-    GpSndParam*            pair;
-    GpItemScan*            scan;
-    McSaveData*            save;
+    u32             key;
+    GpEndWork*      work;
+    s32             i;
+    Task* volatile* p;
+    Task*           slot;
+    GameSession*    session;
+    GpSndParam*     pair;
+    GpItemScan*     scan;
+    McSaveData*     save;
 
     if (arg0->state == 0) {
         work = arg0->spawnArg2;
@@ -5147,7 +5147,7 @@ void Gp_AreaEnterTask(Task* arg0)
         do {
             slot = *p;
             if (slot != NULL) {
-                slot->actor->field_90C = NULL;
+                ((GameActor*)slot->work)->field_90C = NULL;
             }
             i++;
             p++;
@@ -6339,7 +6339,7 @@ static __inline__ s32 getAttachLevel(s32 idx)
 /// `Gp_ItemGrantCooldown` cooldown has expired.
 static __inline__ s32 hudSwapReady(void)
 {
-    GpActorWork*  work;
+    Task*         work;
     GameActor*    actor;
     PlayerStatus* p;
     s32           flag;
@@ -6348,7 +6348,7 @@ static __inline__ s32 hudSwapReady(void)
     flag = 0;
     work = Gp_ActorSlots[0];
     if (work != NULL) {
-        actor = work->actor;
+        actor = work->work;
         p     = &Player_Status;
         if (actor->field_954 == 0) {
             if (actor->field_956 == 0 || actor->field_956 == 2) {
@@ -6431,7 +6431,7 @@ static __inline__ u8 stateF0Gate_(void)
 void Gp_UseItemTask(GpIdMapC* arg0)
 {
     PlayerStatus*      cfg;
-    GpActorWork*       work;
+    Task*              work;
     GameActor*         actor;
     volatile PadState* pad;
     s32                flag;
@@ -6484,9 +6484,9 @@ void Gp_UseItemTask(GpIdMapC* arg0)
     }
     if (Gp_StateC08.field_A == 1) {
         if (gGameSession->padPrev & 0x50) {
-            work = (GpActorWork*)gameGetPtrSlot(3);
+            work = gameGetPtrSlot(3);
             if (work != NULL) {
-                work->actor->field_962 |= 0x40;
+                ((GameActor*)work->work)->field_962 |= 0x40;
             }
             Gp_StateC08.field_A = 0;
             D_80115768          = 0;
@@ -6597,7 +6597,7 @@ void Gp_UseItemTask(GpIdMapC* arg0)
     if (func_800A2104(arg0, x, y) != 0) {
         flag = 1;
     }
-    actor = ((GpActorWork*)gameGetPtrSlot(3))->actor;
+    actor = gameGetPtrSlot(3)->work;
     if ((Gp_StateC08.field_E != 0 && actor->field_954 == 2) || (Gp_StateC08.field_6 & 1)) {
         Gp_StateC08.field_E = 0;
     }
@@ -6643,7 +6643,7 @@ void Gp_HudTask(GpIdMapC* arg0)
     GpStateC08*   c08;
     GpStateF0*    f0;
     Task*         slot;
-    GpActorWork*  work;
+    Task*         work;
     POLY_FT4*     poly;
     s32           kind;
     s32           bad;
@@ -6771,7 +6771,7 @@ void Gp_HudTask(GpIdMapC* arg0)
                 PlayerStatus* p;
                 s32           mode;
 
-                actor = work->actor;
+                actor = work->work;
                 p     = &Player_Status;
                 if (actor->field_954 == 0) {
                     mode = actor->field_956;
@@ -6921,9 +6921,9 @@ after:
             }
         }
         if (sub == 2) {
-            GpStateF0*   p;
-            GpActorWork* w;
-            s32          c;
+            GpStateF0* p;
+            Task*      w;
+            s32        c;
 
             p = &Gp_StateF0;
             c = p->field_1;
@@ -6946,9 +6946,9 @@ after:
             PlayerStatus* p;
             s32           cond;
 
-            GpStateF0*   p2;
-            GpActorWork* w;
-            s32          c;
+            GpStateF0* p2;
+            Task*      w;
+            s32        c;
 
             w   = gameGetPtrSlot(3);
             hit = 0;
@@ -6960,7 +6960,7 @@ after:
                 }
             }
             if (w != NULL) {
-                if (w->actor->field_95E == 0x3E8) {
+                if (((GameActor*)w->work)->field_95E == 0x3E8) {
                     hit = 1;
                 }
             }
@@ -8707,15 +8707,15 @@ void func_800A7824(s32 arg0, s32 arg1, s32 arg2)
 
 void Gp_HudTrackSlot0(GpHudTrack* arg0)
 {
-    GpLinkNode*  target;
-    GpActorWork* work;
-    GameActor*   actor;
-    GpLinkNode*  node;
+    GpLinkNode* target;
+    Task*       work;
+    GameActor*  actor;
+    GpLinkNode* node;
 
     work   = Gp_ActorSlots[0];
     target = NULL;
     if (work != NULL) {
-        actor = work->actor;
+        actor = work->work;
         if (actor != NULL) {
             target = actor->field_90C;
         }
@@ -8953,7 +8953,7 @@ void func_800A7E4C(void)
 
 s32 func_800A7E5C(s32 arg0)
 {
-    GpActorWork*  work;
+    Task*         work;
     GameActor*    actor;
     PlayerStatus* p;
     s32           flag;
@@ -8961,7 +8961,7 @@ s32 func_800A7E5C(s32 arg0)
     flag = 0;
     work = Gp_ActorSlots[0];
     if (work != NULL) {
-        actor = work->actor;
+        actor = work->work;
         p     = &Player_Status;
         if (actor->field_954 == 0) {
             if (actor->field_956 == 0 || actor->field_956 == 2) {

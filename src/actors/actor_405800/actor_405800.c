@@ -1346,7 +1346,7 @@ void func_actor_405800_801340E0(Task* arg0)
     s32               pan;
 
     work = (Actor405800Work*)arg0->work;
-    if (Gp_ActorSlots[0]->actor->field_954 == 2 || (func_actor_405800_8013728C(arg0) << 0x10) != 0) {
+    if (((GameActor*)Gp_ActorSlots[0]->work)->field_954 == 2 || (func_actor_405800_8013728C(arg0) << 0x10) != 0) {
         func_actor_405800_801379F8(arg0);
         work3            = (Actor405800Work*)arg0->work;
         work3->field_846 = 2;
@@ -1420,7 +1420,7 @@ void func_actor_405800_80134314(Task* arg0)
     work               = (Actor405800Work*)arg0->work;
     coord              = ((TmdObject*)arg0->extra)->coords;
     enemy              = (GpEnemy*)arg0->spawnArg2;
-    player             = Gp_ActorSlots[0]->extra->coords;
+    player             = ((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
     work->field_84    += -(s16)work->field_84 >> 2;
     coord->coord.t[0] += (player->coord.t[0] - coord->coord.t[0]) >> 2;
     coord->coord.t[2] += (player->coord.t[2] - coord->coord.t[2]) >> 2;
@@ -1454,7 +1454,7 @@ void func_actor_405800_80134314(Task* arg0)
         return;
     }
     if ((s16)work->field_842 == 1 || (s16)work->field_842 == 0x10 || (s16)work->field_842 == 0x25) {
-        root = &Gp_ActorSlots[0]->extra->coords[4];
+        root = &((TmdObject*)Gp_ActorSlots[0]->extra)->coords[4];
         Gp_SpawnPadLerp(0xA, 0xC0, 8);
         id = 0x40050009;
         if ((arg0->spawnArg1 & 0xF0) == 0x10) {
@@ -1493,7 +1493,7 @@ void func_actor_405800_8013471C(Task* arg0)
 
     work            = (Actor405800Work*)arg0->work;
     coord           = ((TmdObject*)arg0->extra)->coords;
-    player          = Gp_ActorSlots[0]->extra->coords;
+    player          = ((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
     work->field_84 += -(s16)work->field_84 >> 2;
     work->field_842++;
     if ((s16)work->field_842 >= 8) {
@@ -2112,8 +2112,8 @@ void func_actor_405800_801361F8(Task* arg0)
     if (arg0 == NULL) {
         return;
     }
-    player = ((GpActorWork*)arg0)->extra->coords;
-    actor  = ((GpActorWork*)arg0)->actor;
+    player = ((TmdObject*)arg0->extra)->coords;
+    actor  = arg0->work;
     if (player->coord.t[0] < 0x3A98 || Gp_StateF0.field_0 == 0) {
         work->field_A8.vx = (u16)player->coord.t[0];
         work->field_A8.vy = (u16)player->coord.t[1];

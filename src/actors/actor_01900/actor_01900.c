@@ -2243,12 +2243,12 @@ void Actor01900_Fn03710(Task* arg0)
 /// stands within 0x1F4 of the actor in Y. Nonzero when it armed.
 static __inline__ s32 Actor01900_ArmIfPlayerLevel(Task* arg0)
 {
-    GpActorWork* player;
-    s32          dy;
+    Task* player;
+    s32   dy;
 
     player = gameGetPtrSlot(3);
-    if (player->actor->field_954 != 2) {
-        dy = ((TmdObject*)arg0->extra)->coords->coord.t[1] - player->extra->coords->coord.t[1];
+    if (((GameActor*)player->work)->field_954 != 2) {
+        dy = ((TmdObject*)arg0->extra)->coords->coord.t[1] - ((TmdObject*)player->extra)->coords->coord.t[1];
         if (ABS(dy) < 0x1F4) {
             Gp_ArmStateF0(1);
             return 1;

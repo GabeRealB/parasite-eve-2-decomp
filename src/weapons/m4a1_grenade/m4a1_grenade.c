@@ -31,7 +31,7 @@ void func_m4a1_grenade_8011DE24(Task* task);
 /// walks the animation, emitting `0x201B0008 + field_93E` on every record whose
 /// `flags` has both 0x10 and 0x20, and hands back to `func_80106550` when the
 /// clip is done or the recoil timer has run out.
-void func_m4a1_grenade_8011D1EC(GpActorWork* arg0)
+void func_m4a1_grenade_8011D1EC(Task* arg0)
 {
     GameActor*     actor;
     GsCOORDINATE2* coord;
@@ -42,8 +42,8 @@ void func_m4a1_grenade_8011D1EC(GpActorWork* arg0)
     s32            delay;
     s32            sfx;
 
-    actor = arg0->actor;
-    coord = arg0->extra->coords;
+    actor = arg0->work;
+    coord = ((TmdObject*)arg0->extra)->coords;
     slot  = Gp_GetItemSlot(D_80073BA9 + 0x7F);
     /* Reloaded rather than reused: the store leaves the block address in a
        caller-saved register and the copy into `spot` is a second read of
@@ -89,7 +89,7 @@ void func_m4a1_grenade_8011D1EC(GpActorWork* arg0)
                 actor->field_940 = 0x28;
                 actor->field_979 = 0x22;
                 Gp_ConsumeSlotQty(0x9A, 0x101);
-                Gp_PlayObjSfx(arg0->extra->coords,
+                Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords,
                               ((sfx - 0xA) << 24) | 0x201B0006, 1);
                 Gp_SpawnEff(0x6006C,
                             (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords, 0x1B,
@@ -111,7 +111,7 @@ void func_m4a1_grenade_8011D1EC(GpActorWork* arg0)
                     if (func_80106264(1) == 0) {
                         actor->field_93E = 0;
                     }
-                    Gp_PlayObjSfx(arg0->extra->coords,
+                    Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords,
                                   ((sfx - 0xA) << 24) | 0x201B0004, 1);
                     Gp_SpawnEff(0x6006B,
                                 (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
@@ -142,7 +142,7 @@ void func_m4a1_grenade_8011D1EC(GpActorWork* arg0)
             if (rec != NULL && rec != actor->field_92C) {
                 actor->field_92C = rec;
                 if ((rec->flags & 0x30) == 0x30) {
-                    Gp_PlayObjSfx(arg0->extra->coords,
+                    Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords,
                                   (actor->field_93E + 0x201B0008) | ((sfx - 0xA) << 24), 0);
                     actor->field_93E++;
                 }

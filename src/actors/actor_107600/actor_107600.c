@@ -889,7 +889,7 @@ void func_actor_107600_801332D4(Task* arg0)
 {
     Actor107600Work* work  = (Actor107600Work*)arg0->work;
     GpEnemy*         enemy = arg0->spawnArg2;
-    GpActorWork*     player;
+    Task*            player;
     GameActor*       actor;
     s32              pan;
     s32              flags;
@@ -966,9 +966,9 @@ void func_actor_107600_801332D4(Task* arg0)
             } else if ((s16)work->field_166 == 210) {
                 GsCOORDINATE2* c;
                 s32            p;
-                player          = (GpActorWork*)gameGetPtrSlot(3);
-                c               = &player->extra->coords[4];
-                actor           = player->actor;
+                player          = gameGetPtrSlot(3);
+                c               = &((TmdObject*)player->extra)->coords[4];
+                actor           = player->work;
                 work->field_166 = 0;
                 Gp_SetLightMode((GpObj4C*)enemy, 0);
                 Gp_SpawnEff(0x601BD, (GsCOORDINATE2*)c, 0, NULL);

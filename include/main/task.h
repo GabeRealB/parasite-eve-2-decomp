@@ -75,6 +75,10 @@ typedef struct {
     TaskFunc funcs[18];
 } TaskFuncTable18;
 
+typedef struct {
+    TaskFunc funcs[33];
+} TaskFuncTable33;
+
 /// Intrusive list link for a `Task`, and the type a task list is headed by.
 ///
 /// The link is the task's first member, so a pointer to one is also the task

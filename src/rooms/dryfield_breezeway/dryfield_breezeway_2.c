@@ -1528,7 +1528,7 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
     mask   = 1 << gGameSession->at4.loc.view;
     eff    = task->spawnArg2;
     coord  = ((TmdObject*)task->extra)->coords;
-    player = ((GpActorWork*)gameGetPtrSlot(3))->extra->coords;
+    player = ((TmdObject*)gameGetPtrSlot(3)->extra)->coords;
     if (mask & 0x18) {
         func_dryfield_breezeway_8018034C(coord, D_dryfield_breezeway_80183164, 0x600, 0x80);
     } else if (mask & 0x20) {

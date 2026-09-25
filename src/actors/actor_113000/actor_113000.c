@@ -97,12 +97,12 @@ const TaskFuncTable3 D_actor_113000_80131E24 = { {
 /// reloading the countdown from `field_4C0` and advancing `field_4C4` for
 /// steps 1 and 2, or clearing it for step 3, which ends the sequence until
 /// mode 3 of the message-0x7E0 handler restarts it. Step 0 does nothing.
-void func_actor_113000_80131E30(GpActorWork* arg0)
+void func_actor_113000_80131E30(Task* arg0)
 {
     Actor113000Work* work;
     RECT             rect;
 
-    work   = (Actor113000Work*)arg0->actor;
+    work   = (Actor113000Work*)((GameActor*)arg0->work);
     rect.x = 0;
     rect.y = 0x28;
     rect.w = 0x20;
@@ -212,7 +212,7 @@ void func_actor_113000_80132070(Task* task)
         Gp_UpdateCoord(&coords[1]);
         func_800D7A9C(extra, (VECTOR*)coords[1].workm.t, 0, 3);
     }
-    func_actor_113000_80131E30((GpActorWork*)task);
+    func_actor_113000_80131E30(task);
     if (work->field_4C8 >= 0) {
         if (work->field_4C8 == 0) {
             Tmd_FreeBuffers(extra);
@@ -351,7 +351,7 @@ s32 func_actor_113000_80132398(Task* task, s32 arg1, s32 mode, s32 arg3)
 /// first. Any other mode leaves the image NULL and returns 0.
 /// The mode-1 case is written first because the compiler lays the case bodies
 /// out in source order and that is the order the retail image has them in.
-s32 func_actor_113000_80132474(GpActorWork* arg0, s32 arg1, s32 mode)
+s32 func_actor_113000_80132474(Task* arg0, s32 arg1, s32 mode)
 {
     RECT      rect;
     GpImgRec* img;
@@ -372,9 +372,9 @@ s32 func_actor_113000_80132474(GpActorWork* arg0, s32 arg1, s32 mode)
             img = &D_actor_113000_8013A32C;
             break;
         case 3:
-            ((Actor113000Work*)arg0->actor)->field_4C4 = 1;
-            ((Actor113000Work*)arg0->actor)->field_4C0 = 1;
-            img                                        = &D_actor_113000_8013A74C;
+            ((Actor113000Work*)((GameActor*)arg0->work))->field_4C4 = 1;
+            ((Actor113000Work*)((GameActor*)arg0->work))->field_4C0 = 1;
+            img                                                     = &D_actor_113000_8013A74C;
             break;
         default:
             img = NULL;

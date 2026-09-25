@@ -1431,7 +1431,7 @@ void func_actor_403600_8013A444(Task* arg0)
     temp_s3  = (Actor403600Work*)arg0->work;
     temp_s7  = arg0->spawnArg2;
     temp_a0  = temp_s3->field_73E;
-    temp_s6  = (GsCOORDINATE2*)Gp_ActorSlots[0]->extra->coords;
+    temp_s6  = (GsCOORDINATE2*)((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
     switch (temp_a0) {
         case 0x0:
             temp_s3->field_736 = 1U;
@@ -1614,7 +1614,7 @@ void func_actor_403600_8013A444(Task* arg0)
                             D_actor_403600_801606A4.field_0 = (u16)D_actor_403600_80150EA4;
                             func_actor_403600_8013E470(temp_s4_4, &sp10, &sp14);
                             if ((u32)(sp10 - 0xFA0) < 0x7D1U) {
-                                temp_v1_2                       = ((GpActorWork*)gameGetPtrSlot(3))->actor;
+                                temp_v1_2                       = gameGetPtrSlot(3)->work;
                                 D_actor_403600_801606A4.field_2 = 0;
                                 D_actor_403600_801606A4.field_0 = (u16)((u16)D_actor_403600_801606A4.field_0 >> 2);
                                 temp_v1_2->field_96C            = 2;
@@ -2386,7 +2386,7 @@ void func_actor_403600_8013A444(Task* arg0)
                         temp_s3->field_76C = -1;
                         temp_s3->field_760 = 0;
                         temp_s3->field_762 = 0x28;
-                        temp_s0_27         = (GsCOORDINATE2*)Gp_ActorSlots[0]->extra->coords;
+                        temp_s0_27         = (GsCOORDINATE2*)((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
                         temp_s4            = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x54160003;
                         temp_s0_28         = (s8)Gp_GetObjPan(temp_s0_27);
                         temp_v0_33         = gpGetObjDepth(temp_s0_27);
@@ -3558,7 +3558,7 @@ void func_actor_403600_8013E470(GsCOORDINATE2* arg0, s32* arg1, s32* arg2)
     void*          scratch;
 
     head                      = *(void**)0x1F8003FC;
-    coord                     = (*Gp_ActorSlots)->extra->coords;
+    coord                     = ((TmdObject*)(*Gp_ActorSlots)->extra)->coords;
     *(s16*)((s8*)head - 0x40) = (s16)(coord->workm.t[0] - arg0->workm.t[0]);
     vec                       = head - 0x40;
     *(s16*)((s8*)vec + 2)     = (s16)(coord->workm.t[1] - arg0->workm.t[1]);
@@ -3597,7 +3597,7 @@ s16 func_actor_403600_8013E66C(GsCOORDINATE2* arg0)
     void*          head;
 
     head                      = *(void**)0x1F8003FC;
-    coord                     = (*Gp_ActorSlots)->extra->coords;
+    coord                     = ((TmdObject*)(*Gp_ActorSlots)->extra)->coords;
     *(void**)0x1F8003FC       = head - 0x7C;
     *(s16*)((s8*)head - 0x40) = (s16)(arg0->workm.t[0] - coord->workm.t[0]);
     vec                       = head - 0x40;
@@ -3622,7 +3622,7 @@ s16 func_actor_403600_8013E66C(GsCOORDINATE2* arg0)
 
 s32 func_actor_403600_8013E7D4(s32 arg0, s32 arg1)
 {
-    GpActorWork*   temp_s7;
+    Task*          temp_s7;
     GsCOORDINATE2* temp_s3;
     s32            temp_s0;
     s32            temp_s0_3;
@@ -3633,7 +3633,7 @@ s32 func_actor_403600_8013E7D4(s32 arg0, s32 arg1)
     s32            var_v1;
 
     temp_s7 = *Gp_ActorSlots;
-    temp_s3 = temp_s7->extra->coords;
+    temp_s3 = ((TmdObject*)temp_s7->extra)->coords;
     temp_s1 = D_actor_403600_801605E4.vx - temp_s3->coord.t[0];
     temp_s0 = D_actor_403600_801605E4.vz - temp_s3->coord.t[2];
     var_s4  = 0;
@@ -3982,13 +3982,13 @@ void func_actor_403600_8013F0C0(Task* arg0)
     Actor403600Work* temp_a1_3;
     Actor403600Work* temp_s3;
 
-    temp_s4 = (s32)Gp_ActorSlots[0]->extra->coords;
+    temp_s4 = (s32)((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
     temp_s3 = arg0->work;
     switch (D_actor_403600_8016056C) {
         case 1:
             temp_s3->field_760 = (u16)(temp_s3->field_760 + 1);
             temp_a1            = arg0->work;
-            temp_a0            = Gp_ActorSlots[0]->extra->coords;
+            temp_a0            = ((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
             temp_a0->coord.t[0] =
                 (s32)(temp_a0->coord.t[0] +
                       ((s32)(temp_a0->coord.m[0][2] * temp_a1->field_762) >> 0xC));
@@ -4039,7 +4039,7 @@ void func_actor_403600_8013F0C0(Task* arg0)
                 temp_s3->field_762 = 0;
             }
             temp_a1_2 = arg0->work;
-            temp_a0_2 = Gp_ActorSlots[0]->extra->coords;
+            temp_a0_2 = ((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
             temp_a0_2->coord.t[0] =
                 (s32)(temp_a0_2->coord.t[0] +
                       ((s32)(temp_a0_2->coord.m[0][2] * temp_a1_2->field_762) >> 0xC));
@@ -4072,7 +4072,7 @@ void func_actor_403600_8013F0C0(Task* arg0)
                 temp_s3->field_762 = 0;
             }
             temp_a1_3 = arg0->work;
-            temp_a0_3 = Gp_ActorSlots[0]->extra->coords;
+            temp_a0_3 = ((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
             temp_a0_3->coord.t[0] =
                 (s32)(temp_a0_3->coord.t[0] +
                       ((s32)(temp_a0_3->coord.m[0][2] * temp_a1_3->field_762) >> 0xC));
@@ -4143,7 +4143,7 @@ void func_actor_403600_8013F608(Task* arg0)
             var_s1          = 1;
             work->field_768 = 0;
             do {
-                Gp_SpawnEff(0x60080, (*Gp_ActorSlots)->extra->coords + var_s1, 0x400, NULL);
+                Gp_SpawnEff(0x60080, ((TmdObject*)(*Gp_ActorSlots)->extra)->coords + var_s1, 0x400, NULL);
                 var_s1 += 1;
             } while (var_s1 < 0x13);
         }
@@ -4169,7 +4169,7 @@ void func_actor_403600_8013F608(Task* arg0)
             temp_arg2   = work->field_76A;
             Gp_LcgState = temp_v0_5;
             Gp_SpawnEff(0x60080,
-                        (u8*)(*Gp_ActorSlots)->extra->coords + (((temp_t0 % 19) & 0xFFFF) * 0x50),
+                        (u8*)((TmdObject*)(*Gp_ActorSlots)->extra)->coords + (((temp_t0 % 19) & 0xFFFF) * 0x50),
                         temp_arg2, NULL);
             work->field_768 = 0;
         }

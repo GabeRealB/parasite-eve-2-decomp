@@ -757,7 +757,7 @@ void Actor00300_Fn00E54(Task* arg0)
                             critical = 1;
                             break;
                     }
-                    srcCoord        = Gp_ActorSlots[(u8)rec->rec4F0[0].key >> 7]->extra->coords;
+                    srcCoord        = ((TmdObject*)Gp_ActorSlots[(u8)rec->rec4F0[0].key >> 7]->extra)->coords;
                     scratch->vx.w   = (s32)(srcCoord->coord.t[0] - coord->coord.t[0]);
                     scratch->vy.w   = srcCoord->coord.t[1] - coord->coord.t[1];
                     relZ            = srcCoord->coord.t[2] - coord->coord.t[2];
@@ -2385,7 +2385,7 @@ void Actor00300_Fn04770(Task* arg0)
     GpEnemyTaskFuncTable3 sp;
 
     sp = Actor00300_D00004;
-    sp.funcs[arg0->state](((GpEnemy*)arg0->spawnArg2), (Task*)arg0);
+    sp.funcs[arg0->state](((GpEnemy*)arg0->spawnArg2), arg0);
 }
 
 void Actor00300_Fn047CC(GpEnemy* arg0, Task* arg1)
@@ -2745,7 +2745,7 @@ void Actor00300_Fn05138(Task* arg0)
     GpEnemyTaskFuncTable3 sp;
 
     sp = Actor00300_D0003C;
-    sp.funcs[arg0->state](((GpEnemy*)arg0->spawnArg2), (Task*)arg0);
+    sp.funcs[arg0->state](((GpEnemy*)arg0->spawnArg2), arg0);
 }
 
 void Actor00300_Fn05194(GpEnemy* arg0, Task* arg1)
@@ -2776,7 +2776,7 @@ void Actor00300_Fn0521C(Task* arg0)
     GpEnemyTaskFuncTable3 sp;
 
     sp = Actor00300_D00048;
-    sp.funcs[arg0->state](((GpEnemy*)arg0->spawnArg2), (Task*)arg0);
+    sp.funcs[arg0->state](((GpEnemy*)arg0->spawnArg2), arg0);
 }
 
 void Actor00300_Fn05278(GpEnemy* arg0, Task* arg1)
@@ -2868,7 +2868,7 @@ s32 Actor00300_Fn05434(Task* arg0, s32 arg1, Actor100300DestroyArgs* args)
         Gp_UnlinkObj(&work->obj538);
         Gp_UnlinkObj(&work->obj4D0);
         Gp_UnlinkObj(&work->obj5B8);
-        Gp_DestroyEnemy(enemy, (Task*)arg0);
+        Gp_DestroyEnemy(enemy, arg0);
     }
     return 0;
 }

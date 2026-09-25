@@ -43,7 +43,7 @@ extern Actor110300Work* D_actor_110300_8013A0A0;
 /// drive the animation step driver and the model through it, and the helper
 /// task's entry `func_actor_110300_80131FF8` parents its coordinate to one of
 /// its model's nodes.
-extern GpActorWork* D_actor_110300_8013A0A4;
+extern Task* D_actor_110300_8013A0A4;
 
 /// The helper task `Task_SpawnFromTable` returns in the step-0 handler; the
 /// visibility handler drives its model alongside the actor's, and the exit
@@ -63,7 +63,7 @@ extern GpMsgEntry D_actor_110300_8013A054[];
 
 void func_actor_110300_80132020(GpEnemy* enemy, Task* task);
 void func_actor_110300_80132088(Task* task);
-void func_actor_110300_801320C4(GpActorWork* arg0);
+void func_actor_110300_801320C4(Task* arg0);
 void func_actor_110300_80132138(void);
 void func_actor_110300_80132180(void);
 void func_actor_110300_80132208(void);
@@ -103,13 +103,13 @@ void func_actor_110300_80131E24(GpEnemy* enemy, Task* task)
     enemy->node.targeted    = 0;
     obj->otOffset           = 0;
     coord->flg              = 0;
-    D_actor_110300_8013A0A4 = (GpActorWork*)task;
+    D_actor_110300_8013A0A4 = task;
     D_actor_110300_8013A0A8 = Task_SpawnFromTable(D_actor_110300_8013A06C, 1, 0, 0);
     func_800B3F84(&D_actor_110300_8013A0A0->anim, D_actor_110300_8013A084, obj,
                   D_actor_110300_8013A0A0->aux, D_actor_110300_8013A0A0->slots);
     D_actor_110300_8013A0A0->animId    = 1;
     D_actor_110300_8013A0A0->field_474 = 2;
-    func_actor_110300_801320C4((GpActorWork*)task);
+    func_actor_110300_801320C4(task);
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
@@ -136,13 +136,13 @@ void func_actor_110300_80131F9C(Task* task)
 
 /// Entry of the helper task: parents the given task's model root to node 8 of
 /// the actor's model.
-void func_actor_110300_80131FF8(GpActorWork* arg0)
+void func_actor_110300_80131FF8(Task* arg0)
 {
     GsCOORDINATE2* parent;
     GsCOORDINATE2* coord;
 
-    parent     = D_actor_110300_8013A0A4->extra->coords;
-    coord      = arg0->extra->coords;
+    parent     = ((TmdObject*)D_actor_110300_8013A0A4->extra)->coords;
+    coord      = ((TmdObject*)arg0->extra)->coords;
     coord->flg = 0;
     coord->sub = parent + 8;
 }
@@ -164,7 +164,7 @@ void func_actor_110300_80132020(GpEnemy* enemy, Task* task)
 
     obj   = task->extra;
     coord = obj->coords;
-    func_actor_110300_801320C4((GpActorWork*)task);
+    func_actor_110300_801320C4(task);
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
@@ -182,7 +182,7 @@ void func_actor_110300_80132088(Task* arg0)
 /// Advances the animation per the work block's `field_474`: step 1 reseeds the
 /// slots through `func_800B4114`, step 2 resets them outright, and either moves
 /// on to step 3, which ticks them. The argument is never read.
-void func_actor_110300_801320C4(GpActorWork* arg0)
+void func_actor_110300_801320C4(Task* arg0)
 {
     if (D_actor_110300_8013A0A0->field_474 == 1) {
         func_actor_110300_80132208();
@@ -250,7 +250,7 @@ void func_actor_110300_80132208(void)
 /// for the call's delay slot.
 s32 func_actor_110300_80132280(Task* task, s32 arg1, Actor110300AnimArgs* args)
 {
-    GpActorWork* actor;
+    Task* actor;
 
     if (args->animId < 6) {
         D_actor_110300_8013A0A0->animId    = args->animId;

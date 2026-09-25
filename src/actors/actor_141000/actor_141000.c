@@ -231,7 +231,7 @@ void func_actor_141000_80133204(Task* task);
 void func_actor_141000_80133260(Task* arg0);
 void func_actor_141000_801332A0(Task* task);
 void func_actor_141000_80133490(Task* arg0);
-void func_actor_141000_801335D4(GpActorWork* arg0);
+void func_actor_141000_801335D4(Task* arg0);
 void func_actor_141000_8013392C(Task* arg0);
 void func_actor_141000_801339BC(Task* arg0);
 void func_actor_141000_801339DC(Task* arg0);
@@ -806,7 +806,7 @@ void func_actor_141000_801332A0(Task* task)
         Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[1]);
         func_800D7A9C(ext, (VECTOR*)((TmdObject*)task->extra)->coords[1].workm.t, 0, 3);
     }
-    func_actor_141000_801335D4((GpActorWork*)task);
+    func_actor_141000_801335D4(task);
     if (work->field_4C9 >= 0) {
         if (work->field_4C9 == 0) {
             Tmd_FreeBuffers(ext);
@@ -868,12 +868,12 @@ void func_actor_141000_80133490(Task* arg0)
 /// starting over for step 3. Steps 1 and 2 share their whole tail, which is
 /// what makes the compiler emit one copy of it that step 1 jumps into; step 3
 /// only differs in clearing the step instead of advancing it.
-void func_actor_141000_801335D4(GpActorWork* arg0)
+void func_actor_141000_801335D4(Task* arg0)
 {
     Actor141000Work* work;
     RECT             rect;
 
-    work   = (Actor141000Work*)arg0->actor;
+    work   = (Actor141000Work*)((GameActor*)arg0->work);
     rect.x = 0;
     rect.y = 0x40;
     rect.w = 0x19;
@@ -1331,7 +1331,7 @@ s32 func_actor_141000_80133FA8(Task* task, s32 arg1, s32 mode)
             break;
     }
     if (img != NULL) {
-        ret = Gp_LoadActorImage((GpActorWork*)task, img, &rect);
+        ret = Gp_LoadActorImage(task, img, &rect);
     }
     return ret;
 }

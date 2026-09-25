@@ -330,7 +330,7 @@ void Actor02000_Fn00078(Task* arg0)
                 if (work->field_69A != 0) {
                     break;
                 }
-                other               = Gp_ActorSlots[((u32)work->field_4EC[i].key >> 7) & 1]->extra->coords;
+                other               = ((TmdObject*)Gp_ActorSlots[((u32)work->field_4EC[i].key >> 7) & 1]->extra)->coords;
                 scratch->delta.vx.w = other->coord.t[0] - self->coord.t[0];
                 scratch->delta.vy.w = other->coord.t[1] - self->coord.t[1];
                 dz                  = other->coord.t[2] - self->coord.t[2];

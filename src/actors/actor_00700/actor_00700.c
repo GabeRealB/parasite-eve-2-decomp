@@ -470,7 +470,7 @@ contact_loop: {
     goto contact_test;
 damage_contact:
     if (work->field_378 == 0) {
-        sourceCoord   = Gp_ActorSlots[(id >> 7) & 1]->extra->coords;
+        sourceCoord   = ((TmdObject*)Gp_ActorSlots[(id >> 7) & 1]->extra)->coords;
         dx            = sourceCoord->coord.t[0] - coord->coord.t[0];
         scratch->vx.w = dx;
         dy            = sourceCoord->coord.t[1] - coord->coord.t[1];
@@ -564,7 +564,7 @@ contact_test:
     }
     contactRec = work->field_1FC;
     if (Gp_CountRec18Hi(contactRec, 0x10000) != 0) {
-        sourceCoord      = Gp_ActorSlots[(u8)work->field_1FC[4] >> 7]->extra->coords;
+        sourceCoord      = ((TmdObject*)Gp_ActorSlots[(u8)work->field_1FC[4] >> 7]->extra)->coords;
         work->field_394  = 1;
         work->field_1FA &= 0x7FFF;
         work->field_33C  = sourceCoord;
@@ -1674,7 +1674,7 @@ void Actor00700_Fn02414(Task* arg0)
             break;
         case 2:
             arg0->state = (s32)state;
-            target      = Gp_ActorSlots[(u8)work->field_154.hit.id.h.lo >> 7]->extra->coords;
+            target      = ((TmdObject*)Gp_ActorSlots[(u8)work->field_154.hit.id.h.lo >> 7]->extra)->coords;
             dx          = target->coord.t[0] - coord->coord.t[0];
             delta->vx.w = dx;
             dy          = target->coord.t[1] - coord->coord.t[1];

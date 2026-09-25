@@ -296,7 +296,7 @@ void Actor02600_Fn0006C(Task* arg0)
                 }
             }
             if ((movement != one) || (work->field_3B2 == 0)) {
-                src           = Gp_ActorSlots[((u32)work->field_2B4[i].key >> 7) & 1]->extra->coords;
+                src           = ((TmdObject*)Gp_ActorSlots[((u32)work->field_2B4[i].key >> 7) & 1]->extra)->coords;
                 dx            = src->coord.t[0] - coord->coord.t[0];
                 s->delta.vx.w = dx;
                 dy            = src->coord.t[1] - coord->coord.t[1];

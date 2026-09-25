@@ -320,7 +320,7 @@ void func_actor_300700_801622B4(Task* arg0)
             break;
         case 2:
             arg0->state = (s32)state;
-            target      = Gp_ActorSlots[(u8)work->field_154.hit.id.h.lo >> 7]->extra->coords;
+            target      = ((TmdObject*)Gp_ActorSlots[(u8)work->field_154.hit.id.h.lo >> 7]->extra)->coords;
             dx          = target->coord.t[0] - coord->coord.t[0];
             delta->vx.w = dx;
             dy          = target->coord.t[1] - coord->coord.t[1];

@@ -29,7 +29,7 @@
 /// releasing the hammer task at 0. State 6 counts `field_979` down and drops
 /// out of the firing pose once the aim check fails or the trigger has been
 /// released.
-void func_m4a1_hammer_8011E710(GpActorWork* arg0)
+void func_m4a1_hammer_8011E710(Task* arg0)
 {
     GameActor*     actor;
     GsCOORDINATE2* coord;
@@ -40,8 +40,8 @@ void func_m4a1_hammer_8011E710(GpActorWork* arg0)
     s32            delay;
     u16            flags;
 
-    actor                 = arg0->actor;
-    coord                 = arg0->extra->coords;
+    actor                 = arg0->work;
+    coord                 = ((TmdObject*)arg0->extra)->coords;
     rec                   = &actor->field_14C;
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD - 0x50;
     spot                  = (GsCOORDINATE2*)*(u8**)G_SCRATCH_HEAD;
@@ -96,7 +96,7 @@ void func_m4a1_hammer_8011E710(GpActorWork* arg0)
                     hammer->spawnArg1 = 2;
                 }
                 Gp_ConsumeSlotQty(0x98, 0x101);
-                Gp_PlayObjSfx(arg0->extra->coords, 0x20190005, 1);
+                Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20190005, 1);
                 Gp_AnimPlayChildSlotsEx(arg0, 0xB, 0, 2);
                 break;
             }
@@ -113,7 +113,7 @@ void func_m4a1_hammer_8011E710(GpActorWork* arg0)
                     if (func_80106264(1) == 0) {
                         actor->field_93E = 0;
                     }
-                    Gp_PlayObjSfx(arg0->extra->coords, 0x20190004, 1);
+                    Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20190004, 1);
                     Gp_SpawnEff(0x6006B,
                                 (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
                                 0x19, NULL);

@@ -1340,7 +1340,7 @@ void func_actor_206100_8014B698(Task* task)
     GsCOORDINATE2*   coord;
     GsCOORDINATE2*   c0;
     GsCOORDINATE2*   c1;
-    GpActorWork*     player;
+    Task*            player;
     SVECTOR          d0;
     SVECTOR          d1;
     s32              dist0;
@@ -1353,7 +1353,7 @@ void func_actor_206100_8014B698(Task* task)
     work->field_436 = (u16)coord->coord.t[1];
     work->field_438 = (u16)coord->coord.t[2];
     if (player != NULL) {
-        c0    = player->extra->coords;
+        c0    = ((TmdObject*)player->extra)->coords;
         d0.vx = (u16)c0->coord.t[0] - (u16)coord->coord.t[0];
         d0.vy = (u16)c0->coord.t[1] - (u16)coord->coord.t[1];
         d0.vz = (u16)c0->coord.t[2] - (u16)coord->coord.t[2];
@@ -1364,7 +1364,7 @@ void func_actor_206100_8014B698(Task* task)
             work->field_4D4 = c0->coord.t[2];
             work->field_528 = dist0;
         } else {
-            c1    = Gp_ActorSlots[1]->extra->coords;
+            c1    = ((TmdObject*)Gp_ActorSlots[1]->extra)->coords;
             d1.vx = (u16)c1->coord.t[0] - (u16)coord->coord.t[0];
             d1.vy = (u16)c1->coord.t[1] - (u16)coord->coord.t[1];
             d1.vz = (u16)c1->coord.t[2] - (u16)coord->coord.t[2];

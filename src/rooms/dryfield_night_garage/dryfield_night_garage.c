@@ -1478,7 +1478,7 @@ void func_dryfield_night_garage_8017FF2C(Task* task)
         Gp_AllyAnimId(&D_dryfield_night_garage_80181C68);
         Gp_DispatchMsg(player, 0x3E8, (s32)&D_dryfield_night_garage_80181C68, 0);
         func_dryfield_night_garage_80180604(0);
-        Gp_EndPlayerActorTask((GpActorWork*)player);
+        Gp_EndPlayerActorTask(player);
         if (GameFlag_GetNibble(0x8E) == 0) {
             Gp_FillAllyHp();
             GameFlag_SetNibble(0x8E, 1);

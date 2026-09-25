@@ -391,7 +391,7 @@ void Actor01500_Fn004EC(Task* actor)
                 break;
             case 2:
                 if (work->field_350 == 0) {
-                    sourceCoord       = Gp_ActorSlots[(id >> 7) & 1]->extra->coords;
+                    sourceCoord       = ((TmdObject*)Gp_ActorSlots[(id >> 7) & 1]->extra)->coords;
                     dx                = sourceCoord->coord.t[0] - coord->coord.t[0];
                     frame->delta.vx.w = dx;
                     dy                = sourceCoord->coord.t[1] - coord->coord.t[1];

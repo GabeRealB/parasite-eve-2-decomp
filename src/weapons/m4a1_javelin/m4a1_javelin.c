@@ -75,7 +75,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
     s32            t;
     u16            rnd;
 
-    actor = ((GpActorWork*)gameGetPtrSlot(3))->actor;
+    actor = gameGetPtrSlot(3)->work;
     base  = &Gp_RoomCoords[1];
     slot  = (GpCoordTail*)&base->data.coord;
     light = &base->data.coord;
@@ -734,7 +734,7 @@ void func_m4a1_javelin_8011F4E8(Task* arg0)
 /// `extern u8` at 0x80073BAA is what keeps GCC from hoisting the `lbu` above
 /// the `actor->` stores: a scalar global and a struct field do not alias, so
 /// the scheduler is free to move the load, and the block comes out reordered.
-void func_m4a1_javelin_8011F5D4(GpActorWork* arg0)
+void func_m4a1_javelin_8011F5D4(Task* arg0)
 {
     GameActor*     actor;
     GsCOORDINATE2* coord;
@@ -746,8 +746,8 @@ void func_m4a1_javelin_8011F5D4(GpActorWork* arg0)
     u16            count;
 
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - 0x58;
-    coord                   = arg0->extra->coords;
-    actor                   = arg0->actor;
+    coord                   = ((TmdObject*)arg0->extra)->coords;
+    actor                   = arg0->work;
     spot                    = (GsCOORDINATE2*)*(void**)G_SCRATCH_HEAD;
     spot->sub               = NULL;
 
@@ -797,7 +797,7 @@ void func_m4a1_javelin_8011F5D4(GpActorWork* arg0)
                 if (eff != NULL) {
                     Task_Reparent(actor->field_91C, eff->task);
                 }
-                Gp_PlayObjSfx(arg0->extra->coords, 0x201D0005, 1);
+                Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x201D0005, 1);
                 Gp_AnimPlayChildSlotsEx(arg0, 0xB, 0, 3);
                 break;
             }
@@ -815,7 +815,7 @@ void func_m4a1_javelin_8011F5D4(GpActorWork* arg0)
                     if (func_80106264(1) == 0) {
                         actor->field_93E = 0;
                     }
-                    Gp_PlayObjSfx(arg0->extra->coords, 0x201D0004, 1);
+                    Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x201D0004, 1);
                     Gp_SpawnEff(0x6006B,
                                 (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
                                 0x1D, NULL);

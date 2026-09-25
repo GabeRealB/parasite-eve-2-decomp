@@ -118,8 +118,8 @@ STATIC_ASSERT_SIZEOF(Actor511000Msg, 0x4);
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void func_actor_511000_80131E78(GpActorWork* arg0);
-void func_actor_511000_80132048(GpActorWork* arg0);
+void func_actor_511000_80131E78(Task* arg0);
+void func_actor_511000_80132048(Task* arg0);
 void func_actor_511000_801321A8(Task* task);
 void func_actor_511000_80132224(Task* task);
 void func_actor_511000_80132284(Task* task);
@@ -263,7 +263,7 @@ extern void* D_actor_511000_801550C0;
 /// model part 1, refreshes that part's coordinate and colour when the session
 /// asks, runs the texture-upload state, and ticks the `field_480` countdown
 /// that frees the model's buffers when it reaches zero.
-void func_actor_511000_80131E78(GpActorWork* arg0)
+void func_actor_511000_80131E78(Task* arg0)
 {
     Actor511000Work2* work;
     TmdObject*        extra;
@@ -274,7 +274,7 @@ void func_actor_511000_80131E78(GpActorWork* arg0)
     s32               pan;
 
     extra = arg0->extra;
-    work  = (Actor511000Work2*)arg0->actor;
+    work  = (Actor511000Work2*)((GameActor*)arg0->work);
     coord = &extra->coords[1];
     if (work->field_474 != 0) {
         for (i = 1; i < 0x14; i++) {
@@ -290,7 +290,7 @@ void func_actor_511000_80131E78(GpActorWork* arg0)
         }
     }
     if (!(extra->flags & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)arg0->extra->coords[1].workm.t, (VECTOR3*)&pos) != 0) {
+        if (func_800EA1A8((VECTOR3*)((TmdObject*)arg0->extra)->coords[1].workm.t, (VECTOR3*)&pos) != 0) {
             Gp_DrawEffGroundQuad((VECTOR3*)&pos, 0x300, Gp_State1C->groundShade);
         }
     }
@@ -316,12 +316,12 @@ void func_actor_511000_80131E78(GpActorWork* arg0)
 /// share their whole tail, which is what makes the compiler emit one copy of
 /// it that step 1 jumps into; step 3 only differs in clearing the step
 /// instead of advancing it.
-void func_actor_511000_80132048(GpActorWork* arg0)
+void func_actor_511000_80132048(Task* arg0)
 {
     Actor511000Work2* work;
     RECT              rect;
 
-    work   = (Actor511000Work2*)arg0->actor;
+    work   = (Actor511000Work2*)((GameActor*)arg0->work);
     rect.x = 0;
     rect.y = 0x28;
     rect.w = 0x18;
@@ -593,14 +593,14 @@ s32 func_actor_511000_80132724(Task* task, s32 arg1, ActorsShared8013231cArgs* a
 /// The handler reads `work` before the switch even though mode 2 is its only
 /// use, so retail's `lw $v1,0x1C($a0)` sits in the entry block. The same body
 /// shape as `func_actor_141000_80133E8C` / `func_actor_503500_80132584`.
-s32 func_actor_511000_801327A0(GpActorWork* arg0, s32 arg1, s32 mode)
+s32 func_actor_511000_801327A0(Task* arg0, s32 arg1, s32 mode)
 {
     TmdObject*        obj;
     Actor511000Work2* work;
     s32               ret;
 
     obj  = arg0->extra;
-    work = (Actor511000Work2*)arg0->actor;
+    work = (Actor511000Work2*)((GameActor*)arg0->work);
     ret  = 0;
 
     switch (mode) {
@@ -638,14 +638,14 @@ s32 func_actor_511000_801327A0(GpActorWork* arg0, s32 arg1, s32 mode)
 /// falling through the hide block: retail's single epilogue is only reached
 /// that way, the hide block and the shared return merging into one block whose
 /// first label sits on the value store.
-s32 func_actor_511000_8013287C(GpActorWork* arg0, s32 arg1, Actor511000Msg* msg)
+s32 func_actor_511000_8013287C(Task* arg0, s32 arg1, Actor511000Msg* msg)
 {
     Actor511000Work2* work;
     Task*             child;
     u16               mode;
 
     mode = msg->field_2;
-    work = (Actor511000Work2*)arg0->actor;
+    work = (Actor511000Work2*)((GameActor*)arg0->work);
 
     switch (mode) {
         case 0:
@@ -676,7 +676,7 @@ out:
 /// first. Any other mode leaves the image NULL and returns 0.
 /// The mode-1 case is written first because the compiler lays the case bodies
 /// out in source order and that is the order the retail image has them in.
-s32 func_actor_511000_80132904(GpActorWork* arg0, s32 arg1, s32 mode)
+s32 func_actor_511000_80132904(Task* arg0, s32 arg1, s32 mode)
 {
     RECT      rect;
     GpImgRec* img;
@@ -697,9 +697,9 @@ s32 func_actor_511000_80132904(GpActorWork* arg0, s32 arg1, s32 mode)
             img = &D_actor_511000_80146C74;
             break;
         case 3:
-            ((Actor511000Work2*)arg0->actor)->field_4D0 = 1;
-            ((Actor511000Work2*)arg0->actor)->field_4CC = 1;
-            img                                         = &D_actor_511000_80146F94;
+            ((Actor511000Work2*)((GameActor*)arg0->work))->field_4D0 = 1;
+            ((Actor511000Work2*)((GameActor*)arg0->work))->field_4CC = 1;
+            img                                                      = &D_actor_511000_80146F94;
             break;
         default:
             img = NULL;

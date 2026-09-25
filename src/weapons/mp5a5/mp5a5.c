@@ -307,7 +307,7 @@ void func_mp5a5_8011D864(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 /// effect under the weapon task. States 4/5 pick the lock-on target once (only
 /// while still below 6) and state 6 loops back to `fire` while the trigger is
 /// held, the ammo check passes and the burst timer has run out.
-void func_mp5a5_8011DDA4(GpActorWork* arg0)
+void func_mp5a5_8011DDA4(Task* arg0)
 {
     GameActor*     actor;
     GsCOORDINATE2* coord;
@@ -326,8 +326,8 @@ void func_mp5a5_8011DDA4(GpActorWork* arg0)
         spot                    = (GsCOORDINATE2*)tmp;
         *(void**)G_SCRATCH_HEAD = tmp;
     }
-    actor = arg0->actor;
-    coord = arg0->extra->coords;
+    actor = arg0->work;
+    coord = ((TmdObject*)arg0->extra)->coords;
     switch (actor->field_95E) {
         case 0:
             actor->field_956  = 4;
@@ -366,7 +366,7 @@ void func_mp5a5_8011DDA4(GpActorWork* arg0)
                     rec->end0Radius   = rec->end1Radius;
                     actor->field_12A |= 0x800;
                     func_80106238(arg0, 0, 1);
-                    Gp_PlayObjSfx(arg0->extra->coords, 0x20000004 | (WEAPON_ID << 16), 1);
+                    Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20000004 | (WEAPON_ID << 16), 1);
                     Gp_SpawnEff(0x6002B,
                                 (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
                                 WEAPON_ID, NULL);
@@ -380,7 +380,7 @@ void func_mp5a5_8011DDA4(GpActorWork* arg0)
                     rec->end0Radius   = 0xC00;
                     actor->field_12A &= 0xF7FF;
                     func_80106238(arg0, 0, 0);
-                    Gp_PlayObjSfx(arg0->extra->coords, 0x20000005 | (WEAPON_ID << 16), 0);
+                    Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20000005 | (WEAPON_ID << 16), 0);
                     Gp_ConsumeSlotQty(WEAPON_ITEM(WEAPON_ID), 0x101);
                     eff = Gp_SpawnEff(0x60041,
                                       (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,

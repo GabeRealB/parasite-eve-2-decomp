@@ -11202,7 +11202,7 @@ target reads a preserved register).
 
 Fix: assign the field to an explicit local *before* the calls. The pseudo's
 live range then necessarily spans them, so global alloc must home it in `$sN`.
-`func_actor_800200_80165E90` dispatches through a copied `GpActorFuncTable4`;
+`func_actor_800200_80165E90` dispatches through a copied `TaskFuncTable4`;
 writing the index inline as `sp.funcs[(u16)arg0->actor->field_96C](arg0)`
 scores 76%, while hoisting the pointer matches at 100%:
 
@@ -11876,7 +11876,7 @@ Keep the header declaration unprototyped too (`extern s32 SndBank_RemapId();`).
 The other half of the entry above, and the commoner case for actor/room
 stubs. Splat seeds the header with `void f(void);` for a function still under
 `INCLUDE_ASM`, so it has no parameters there even though the real one takes the
-`Task*`/work pointer. Matching it as `void f(GpActorWork* arg0) { ... }` then
+`Task*`/work pointer. Matching it as `void f(Task* arg0) { ... }` then
 fails to compile — either `conflicting types for 'f'` (if the definition is a
 prototype) or `too few arguments` at every bare `f()` call site, which the
 already-matched callers rely on:
@@ -24612,7 +24612,7 @@ Declaring that same callee `void` frees `$v0` immediately, so you get
 `li v0,K` instead — a one-register miss on an otherwise identical body.
 
 ```c
-s32 Gp_SetActorDest(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3);
+s32 Gp_SetActorDest(Task* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3);
 
 Gp_SetActorDest(arg0, arg1, arg2, arg3); /* jal; nop — $v0 still "holds" the return */
 actor->field_956 = 8;    /* li v1,8; sh v1,0x956(s2) */
@@ -26809,7 +26809,7 @@ already-matched C (e.g. `Gp_PlayerModeFns`, `Gp_PlayerMode1States`) land in a st
 `nonmatchings/.../D_*.s` or in `matchings/<func>.s`. `INCLUDE_RODATA` the
 splat-owned standalone file. For a table stuck in a `matchings/` dump, emit
 the words with inline `.section .rodata` / `.globl` in the C file — a C
-`GpActorFuncTable` definition is collected to the end of the TU and shifts
+`TaskFuncTable` definition is collected to the end of the TU and shifts
 later tables; a hand-written `.s` under `nonmatchings/` is deleted on the next
 `ninja_config.py` splat.
 
@@ -26949,7 +26949,7 @@ temp *before* the store. That emits the rematerialize first, so delay-slot
 filling takes `move a0, s0` for the branch and the store for the `jal`:
 
 ```c
-register GpActorWork* a asm("a0");
+register Task* a asm("a0");
 
 a       = arg0;
 p->field = 2;
@@ -27108,7 +27108,7 @@ u16 mch;
 idx   = 3;
 msk   = mask;
 mch   = match;          /* u16 local: 100% */
-actor = ((GpActorWork*)gameGetPtrSlot(idx))->actor;
+actor = gameGetPtrSlot(idx)->work;
 for (; node != NULL; node = node->next) {
     if ((node->flags & msk) == mch) {
 ```
@@ -44452,7 +44452,7 @@ chasing the name in `dist.py`'s score.
 
 ## Constant non-zero index into a `T* volatile[]` global splits the address
 
-`Gp_ActorSlots` is declared `GpActorWork* volatile Gp_ActorSlots[2]`. Index 0
+`Gp_ActorSlots` is declared `Task* volatile Gp_ActorSlots[2]`. Index 0
 folds into one addressing mode, but a constant non-zero index does not: GCC
 2.8.1 materializes the base and then adds the element offset as a *separate*
 address computation, and `-fschedule-insns` is free to hoist the now-independent
@@ -44469,7 +44469,7 @@ Cast the volatility away at the point of use so the store is a plain
 `%lo(sym+off)` reference again, which keeps the `lui` welded to its `sw`:
 
 ```c
-((GpActorWork**)Gp_ActorSlots)[1] = NULL;
+((Task**)Gp_ActorSlots)[1] = NULL;
 ```
 
 ```
@@ -44479,7 +44479,7 @@ lui    v0, %hi(Gp_ActorSlots)
 sw     zero, %lo(Gp_ActorSlots+4)(v0)
 ```
 
-`src/gameplay/3A34.c` already uses the same `((GpActorWork**)Gp_ActorSlots)[1]`
+`src/gameplay/3A34.c` already uses the same `((Task**)Gp_ActorSlots)[1]`
 cast for the *load* side. Splat names that address `D_80115764`, so the scratch
 diff still shows a name mismatch against `%lo(Gp_ActorSlots+4)` — see
 "`%lo(sym+off)` and `%lo(D_<sym+off>)` are the same instruction"; the bytes are
@@ -49080,7 +49080,7 @@ with `$a0` untouched, and m2c emitted
 Gp_AnimPlayChildSlotsEx(1, 0, 3);   /* three arguments */
 ```
 
-for the real four-argument `void Gp_AnimPlayChildSlotsEx(GpActorWork*, s32, s32, s32)`.
+for the real four-argument `void Gp_AnimPlayChildSlotsEx(Task*, s32, s32, s32)`.
 The tell is a call whose emitted argument count is one short of the prototype's
 while `$a0` has no definition between the prologue and the `jal`. Restore the
 leading argument and it matches on the first build; the matched sibling in the
@@ -55278,7 +55278,7 @@ coord = ((TmdObject*)task->extra)->coords;
 base  = &Gp_RoomCoords[1];
 light = &base->coord;                 /* not after the two `return`s */
 slot  = (GpCoordTail*)light;
-if ((((GpActorWork*)gameGetPtrSlot(3))->extra->flags & 0x80) != 0) {
+if ((((TmdObject*)gameGetPtrSlot(3)->extra)->flags & 0x80) != 0) {
     return;
 }
 if (Gp_State1C->eventState >= 2) {
@@ -63598,7 +63598,7 @@ read off the code rather than guessed. m2c renders this as a `s32*` walk with
 `+= 0x10`, which advances 0x40 a step and skips 0x30 bytes between groups; the
 loop then copies from the wrong addresses and nothing downstream can match.
 `func_actor_800200_80165F50` is the worked example - the 0x24 bytes are a
-9-entry `GpActorFuncTable9`, and `sp = D_actor_800200_80161EC8;` with
+9-entry `TaskFuncTable9`, and `sp = D_actor_800200_80161EC8;` with
 `sp.funcs[actor->field_956](arg0)` and a `RotMatrix((SVECTOR*)&actor->field_50,
 &coord->coord)` matches at 100% on the first rewrite, against 67% for m2c's
 element-wise `M2C_FIELD` version. Sizes at or below 32 bytes never reach this
@@ -63630,8 +63630,8 @@ move  a0,s1             # only $a0 is set: one argument
 renders the dispatcher as a four-argument call through a local copy of the
 table's first word (`M2C_UNK (*sp10)(void*, M2C_UNK, s32, s32)`, plus dead
 `sp14`/`sp18`) and scores 72% with `insert=3 delete=6`. The load count is the
-table's entry count, not the callee's arity: three loads mean `GpActorFuncTable3`
-and a one-argument `GpActorFunc`. `func_actor_800200_801652EC` is the worked
+table's entry count, not the callee's arity: three loads mean `TaskFuncTable3`
+and a one-argument `TaskFunc`. `func_actor_800200_801652EC` is the worked
 example — `sp = D_actor_800200_80161E34; sp.funcs[actor->field_954](arg0);`
 matches at 100% first try.
 
@@ -74747,7 +74747,7 @@ the function itself defeated m2c — it can mean the *context* failed to parse.
 
 ```c
 void func_actor_800200_8016599C(arg0)
-    GpActorWork* arg0;
+    Task* arg0;
 {
 ```
 
@@ -74762,7 +74762,7 @@ python3 tools/m2c/m2c.py --target mipsel-gcc-c -f func_actor_800200_80165380 \
     --context ctx.c asm/USA/actors/nonmatchings/actor_800200/actor_800200_2/func_actor_800200_80165380.s
 ```
 
-Rewriting the definition ANSI-style (`void func_actor_800200_8016599C(GpActorWork* arg0)`)
+Rewriting the definition ANSI-style (`void func_actor_800200_8016599C(Task* arg0)`)
 restores m2c for the whole TU and leaves the overlay checksum unchanged — the
 parameter type is explicit in both spellings, so the compiled body is identical.
 Worth doing whenever a TU's seed is blank: it unblocks every remaining function
@@ -75366,7 +75366,7 @@ which also supplies the `nonmatching`/`dlabel`/`enddlabel` markers, is
 `src/actors/actor_400500/actor_400500.c`:
 
 ```c
-extern GpActorFuncTable4 D_actor_800100_80161E88;
+extern TaskFuncTable4 D_actor_800100_80161E88;
 
 #if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
 __asm__(".section .rodata\n"
@@ -75394,7 +75394,7 @@ cross-check: it should equal the original unit's rodata span exactly.
 calls through it, exactly like its matched sibling `func_actor_800100_80165850`:
 
 ```c
-GpActorFuncTable5 sp;
+TaskFuncTable5 sp;
 
 sp = D_actor_800100_80161EC8;
 sp.funcs[D_8007272F](arg0);      /* arg0 is what moves the scratches */
@@ -105252,7 +105252,7 @@ should not be "cleaned up" to match one.
 Landing a `(void)`-stubbed actor function whose body takes `arg0` means giving
 the header the real prototype and passing `arg0` at the call site (see "A staged
 `(void)` stub taking `arg0`"). But in the *scratch* env the header is the shared
-one, so `void f(GpActorWork* arg0) { ... }` fails to compile with `conflicting
+one, so `void f(Task* arg0) { ... }` fails to compile with `conflicting
 types for 'f'` before the first score - and editing the shared header to iterate
 is exactly what a scratch run should not do.
 
@@ -108928,7 +108928,7 @@ and reads as a plausible match until the delay slot is compared.
 
 See "Migrated `D_*` tables have no `D_*.s` after a re-split" above. Matching
 `func_actor_800100_80163F04` dropped the `INCLUDE_ASM` whose `.s` carried
-`D_actor_800100_80161E58` (a 12-entry `GpActorFuncTable12` folded to the top of
+`D_actor_800100_80161E58` (a 12-entry `TaskFuncTable12` folded to the top of
 that file), and the unscoped build then failed at link with `undefined
 reference to 'D_actor_800100_80161E58'`. splat's re-split had written the table
 to `asm/USA/actors/data/actor_800100/actor_800100_2.rodata.s`, which the
