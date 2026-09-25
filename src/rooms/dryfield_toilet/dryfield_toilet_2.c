@@ -32,24 +32,13 @@ typedef struct DryfieldToiletSpriteScratch {
 } DryfieldToiletSpriteScratch;
 STATIC_ASSERT_SIZEOF(DryfieldToiletSpriteScratch, 0x18);
 
-/// The gameplay light slot, whose body is read either as a coordinate or as a
-/// light record; the glow sets `mode` to 2 and fills the light view.
-typedef struct {
-    s32 mode;
-    union {
-        GsCOORDINATE2 coord;
-        GpObj44       light;
-    } data;
-} _DryfieldToiletLight;
-
-extern s32                  D_80070F70;
-extern _DryfieldToiletLight D_80114FF8;
-extern u8                   D_801153F4;
-extern s32                  D_80115730;
-extern s32                  D_80115734;
-extern s32                  D_80115754;
-extern s32                  Gp_LcgState;
-extern s16                  D_dryfield_toilet_80181120[][3];
+extern s32 D_80070F70;
+extern u8  D_801153F4;
+extern s32 D_80115730;
+extern s32 D_80115734;
+extern s32 D_80115754;
+extern s32 Gp_LcgState;
+extern s16 D_dryfield_toilet_80181120[][3];
 
 void func_dryfield_toilet_8017EE18(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_dryfield_toilet_8017F09C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
@@ -704,7 +693,7 @@ void func_dryfield_toilet_8017F854(Task* arg0)
 /// Draws a glow at `coord`: two camera-facing textured squares, the inner one
 /// of half-size `size` and the outer one of `size * 3 / 2`, both scaled by
 /// depth, plus a flat quad on the ground beneath it when there is ground. It
-/// also places the gameplay light slot at the coordinate with a randomly
+/// also places the `Gp_RoomCoords[2]` light at the coordinate with a randomly
 /// flickering intensity. Nothing is drawn when the projection overflows.
 void func_dryfield_toilet_8017FA00(GsCOORDINATE2* coord, s16 size)
 {
@@ -722,6 +711,7 @@ void func_dryfield_toilet_8017FA00(GsCOORDINATE2* coord, s16 size)
     s32            outerSize;
     s32            shifted;
     u32            random;
+    GpCoord64*     slot;
     GpObj44*       light;
     GpRingScratch* block;
     void**         scratch;
@@ -729,25 +719,26 @@ void func_dryfield_toilet_8017FA00(GsCOORDINATE2* coord, s16 size)
     u16            vy;
     GpRingScratch* sc;
 
-    D_80114FF8.mode           = 2;
-    light                     = &D_80114FF8.data.light;
-    light->field_58           = 0x300;
-    light->field_5C           = 0x3000;
-    random                    = (Gp_LcgState * 5) + 0x71357911;
-    intensity                 = ((random >> 0x10) & 0x700) + 0x800;
-    light->field_50           = intensity;
-    shifted                   = intensity << 0x10;
-    light->field_52           = (s16)(shifted >> 0x11);
-    light->field_54           = (s16)(shifted >> 0x12);
-    light->field_18.vx        = (s32)coord->coord.t[0];
-    light->field_18.vy        = (s32)coord->coord.t[1];
-    light->field_18.vz        = coord->coord.t[2];
-    D_80114FF8.data.coord.flg = 0;
-    scratch                   = (void**)G_SCRATCH_HEAD;
-    block                     = (GpRingScratch*)*scratch - 1;
-    block->vec.vx             = *(u16*)&coord->workm.t[0];
-    alias                     = block;
-    vy                        = *(u16*)&coord->workm.t[1];
+    slot                 = &Gp_RoomCoords[2];
+    slot->framesLeft     = 2;
+    light                = &slot->data.light;
+    light->field_58      = 0x300;
+    light->field_5C      = 0x3000;
+    random               = (Gp_LcgState * 5) + 0x71357911;
+    intensity            = ((random >> 0x10) & 0x700) + 0x800;
+    light->field_50      = intensity;
+    shifted              = intensity << 0x10;
+    light->field_52      = (s16)(shifted >> 0x11);
+    light->field_54      = (s16)(shifted >> 0x12);
+    light->field_18.vx   = (s32)coord->coord.t[0];
+    light->field_18.vy   = (s32)coord->coord.t[1];
+    light->field_18.vz   = coord->coord.t[2];
+    slot->data.coord.flg = 0;
+    scratch              = (void**)G_SCRATCH_HEAD;
+    block                = (GpRingScratch*)*scratch - 1;
+    block->vec.vx        = *(u16*)&coord->workm.t[0];
+    alias                = block;
+    vy                   = *(u16*)&coord->workm.t[1];
     __asm__("move %0,%1" : "=r"(alias) : "r"(alias), "r"(vy), "r"(alias));
     sc          = alias;
     sc->vec.vy  = vy;

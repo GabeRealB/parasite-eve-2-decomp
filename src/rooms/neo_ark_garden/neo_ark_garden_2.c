@@ -26,22 +26,11 @@ typedef struct NeoArkGardenAmbience {
     s16 soundDelay; // Frames left before the view's loops are re-enqueued; set to 4 on every view change
 } NeoArkGardenAmbience;
 
-/// The gameplay-resident light slot the glow writes: `mode` becomes 2 and
-/// `data.light` takes the glow's world position and a randomised intensity.
-typedef struct {
-    s32 mode;
-    union {
-        GsCOORDINATE2 coord;
-        GpObj44       light;
-    } data;
-} _NeoArkGardenLight;
-
-extern s32                D_80070F70;
-extern _NeoArkGardenLight D_80114FF8;
-extern s32                D_80115730;
-extern s32                D_80115734;
-extern s32                D_80115754;
-extern u32                Gp_LcgState;
+extern s32 D_80070F70;
+extern s32 D_80115730;
+extern s32 D_80115734;
+extern s32 D_80115754;
+extern u32 Gp_LcgState;
 
 extern SVECTOR D_neo_ark_garden_801813D8;
 extern SVECTOR D_neo_ark_garden_801813E0[];
@@ -857,7 +846,7 @@ void func_neo_ark_garden_80180948(Task* arg0)
 /// inner one of half-extent `size` and an outer one of `size * 3 / 2` (each
 /// scaled by 0x37 / otz), and, where the ground beneath the coordinate is
 /// found, a flat quad on it through `func_neo_ark_garden_80181020`. It also
-/// points the gameplay light slot at the coordinate with a randomly
+/// points the `Gp_RoomCoords[2]` light at the coordinate with a randomly
 /// flickering intensity. Nothing is drawn when the GTE flags the projection.
 void func_neo_ark_garden_80180AF4(GsCOORDINATE2* coord, s16 size)
 {
@@ -875,6 +864,7 @@ void func_neo_ark_garden_80180AF4(GsCOORDINATE2* coord, s16 size)
     s32            outerSize;
     s32            shifted;
     u32            random;
+    GpCoord64*     slot;
     GpObj44*       light;
     GpRingScratch* block;
     void**         scratch;
@@ -882,25 +872,26 @@ void func_neo_ark_garden_80180AF4(GsCOORDINATE2* coord, s16 size)
     u16            vy;
     GpRingScratch* sc;
 
-    D_80114FF8.mode           = 2;
-    light                     = &D_80114FF8.data.light;
-    light->field_58           = 0x300;
-    light->field_5C           = 0x3000;
-    random                    = (Gp_LcgState * 5) + 0x71357911;
-    intensity                 = ((random >> 0x10) & 0x700) + 0x800;
-    light->field_50           = intensity;
-    shifted                   = intensity << 0x10;
-    light->field_52           = (s16)(shifted >> 0x11);
-    light->field_54           = (s16)(shifted >> 0x12);
-    light->field_18.vx        = (s32)coord->coord.t[0];
-    light->field_18.vy        = (s32)coord->coord.t[1];
-    light->field_18.vz        = coord->coord.t[2];
-    D_80114FF8.data.coord.flg = 0;
-    scratch                   = (void**)G_SCRATCH_HEAD;
-    block                     = (GpRingScratch*)*scratch - 1;
-    block->vec.vx             = *(u16*)&coord->workm.t[0];
-    alias                     = block;
-    vy                        = *(u16*)&coord->workm.t[1];
+    slot                 = &Gp_RoomCoords[2];
+    slot->framesLeft     = 2;
+    light                = &slot->data.light;
+    light->field_58      = 0x300;
+    light->field_5C      = 0x3000;
+    random               = (Gp_LcgState * 5) + 0x71357911;
+    intensity            = ((random >> 0x10) & 0x700) + 0x800;
+    light->field_50      = intensity;
+    shifted              = intensity << 0x10;
+    light->field_52      = (s16)(shifted >> 0x11);
+    light->field_54      = (s16)(shifted >> 0x12);
+    light->field_18.vx   = (s32)coord->coord.t[0];
+    light->field_18.vy   = (s32)coord->coord.t[1];
+    light->field_18.vz   = coord->coord.t[2];
+    slot->data.coord.flg = 0;
+    scratch              = (void**)G_SCRATCH_HEAD;
+    block                = (GpRingScratch*)*scratch - 1;
+    block->vec.vx        = *(u16*)&coord->workm.t[0];
+    alias                = block;
+    vy                   = *(u16*)&coord->workm.t[1];
     __asm__("move %0,%1" : "=r"(alias) : "r"(alias), "r"(vy), "r"(alias));
     sc          = alias;
     sc->vec.vy  = vy;

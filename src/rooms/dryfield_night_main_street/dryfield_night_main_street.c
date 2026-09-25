@@ -72,27 +72,16 @@ typedef struct {
     u8  field_A;
 } _LatchedEvent;
 
-/// The gameplay-resident light slot the glow draw writes: `mode` becomes 2
-/// and `data.light` takes the glow's world position and a random intensity.
-typedef struct {
-    s32 mode;
-    union {
-        GsCOORDINATE2 coord;
-        GpObj44       light;
-    } data;
-} _DryfieldNightMainStreetLight;
-
-extern s32                           D_80070F70;
-extern s16                           D_80071076;
-extern _DryfieldNightMainStreetLight D_80114FF8;
-extern u8                            D_801153F4;
-extern u8                            D_80115598;
-extern u8                            D_80115690;
-extern s32                           D_80115720;
-extern s32                           D_80115728;
-extern s32                           D_8011573C;
-extern s32                           D_80115744;
-extern u32                           Gp_LcgState;
+extern s32 D_80070F70;
+extern s16 D_80071076;
+extern u8  D_801153F4;
+extern u8  D_80115598;
+extern u8  D_80115690;
+extern s32 D_80115720;
+extern s32 D_80115728;
+extern s32 D_8011573C;
+extern s32 D_80115744;
+extern u32 Gp_LcgState;
 
 /// Descriptor of the room's own event task, which the message handler spawns.
 extern TaskDesc D_dryfield_night_main_street_8018208C;
@@ -1491,7 +1480,7 @@ void func_dryfield_night_main_street_80180B48(Task* arg0)
 /// Draws a flickering glow at the coordinate: an inner textured square of
 /// half-extent `size` and an outer one half as large again (each scaled by
 /// 0x37 over the OTZ), and, where the coordinate is over ground, a flat quad
-/// on the ground beneath it. It also points the gameplay light slot at the
+/// on the ground beneath it. It also points the `Gp_RoomCoords[2]` light at the
 /// coordinate with a random intensity. Nothing is drawn unless the coordinate
 /// projects.
 void func_dryfield_night_main_street_80180CF4(GsCOORDINATE2* coord, s16 size)
@@ -1510,6 +1499,7 @@ void func_dryfield_night_main_street_80180CF4(GsCOORDINATE2* coord, s16 size)
     s32            outerSize;
     s32            shifted;
     u32            random;
+    GpCoord64*     slot;
     GpObj44*       light;
     GpRingScratch* block;
     void**         scratch;
@@ -1517,25 +1507,26 @@ void func_dryfield_night_main_street_80180CF4(GsCOORDINATE2* coord, s16 size)
     u16            vy;
     GpRingScratch* sc;
 
-    D_80114FF8.mode           = 2;
-    light                     = &D_80114FF8.data.light;
-    light->field_58           = 0x300;
-    light->field_5C           = 0x3000;
-    random                    = (Gp_LcgState * 5) + 0x71357911;
-    intensity                 = ((random >> 0x10) & 0x700) + 0x800;
-    light->field_50           = intensity;
-    shifted                   = intensity << 0x10;
-    light->field_52           = (s16)(shifted >> 0x11);
-    light->field_54           = (s16)(shifted >> 0x12);
-    light->field_18.vx        = (s32)coord->coord.t[0];
-    light->field_18.vy        = (s32)coord->coord.t[1];
-    light->field_18.vz        = coord->coord.t[2];
-    D_80114FF8.data.coord.flg = 0;
-    scratch                   = (void**)G_SCRATCH_HEAD;
-    block                     = (GpRingScratch*)*scratch - 1;
-    block->vec.vx             = *(u16*)&coord->workm.t[0];
-    alias                     = block;
-    vy                        = *(u16*)&coord->workm.t[1];
+    slot                 = &Gp_RoomCoords[2];
+    slot->framesLeft     = 2;
+    light                = &slot->data.light;
+    light->field_58      = 0x300;
+    light->field_5C      = 0x3000;
+    random               = (Gp_LcgState * 5) + 0x71357911;
+    intensity            = ((random >> 0x10) & 0x700) + 0x800;
+    light->field_50      = intensity;
+    shifted              = intensity << 0x10;
+    light->field_52      = (s16)(shifted >> 0x11);
+    light->field_54      = (s16)(shifted >> 0x12);
+    light->field_18.vx   = (s32)coord->coord.t[0];
+    light->field_18.vy   = (s32)coord->coord.t[1];
+    light->field_18.vz   = coord->coord.t[2];
+    slot->data.coord.flg = 0;
+    scratch              = (void**)G_SCRATCH_HEAD;
+    block                = (GpRingScratch*)*scratch - 1;
+    block->vec.vx        = *(u16*)&coord->workm.t[0];
+    alias                = block;
+    vy                   = *(u16*)&coord->workm.t[1];
     __asm__("move %0,%1" : "=r"(alias) : "r"(alias), "r"(vy), "r"(alias));
     sc          = alias;
     sc->vec.vy  = vy;
