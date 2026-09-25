@@ -293,14 +293,6 @@ typedef struct {
 } DumpingHoleCapWindow;
 
 typedef struct {
-    u8  pad_00[0x2A];
-    u16 field_2A;
-    u8  pad_2C[0x4];
-    s32 field_30;
-    s32 field_34;
-} Sub81A48;
-
-typedef struct {
     /* 0x00 */ char magic[0x8];
     /* 0x08 */ s32  field_8;
     /* 0x0C */ s32  field_C;
@@ -361,13 +353,6 @@ typedef struct {
     u8             _pad0[0xA0];
     SprtViewState* field_A0;
 } SprtBigRec;
-
-typedef struct {
-    u8             pad0[8];
-    GsCOORDINATE2* field_8;
-    u8             pad_C[0x16];
-    u16            field_22;
-} ClumpMem;
 
 extern TaskDesc               D_shelter_b3_dumping_hole_80188C04;
 extern TaskDesc               D_shelter_b3_dumping_hole_80188BC8;
@@ -2233,20 +2218,18 @@ void func_shelter_b3_dumping_hole_80181A18(void)
 
 void func_shelter_b3_dumping_hole_80181A48(Task* arg0)
 {
-    Sub81A48* s = (Sub81A48*)arg0;
-
-    switch (s->field_30) {
+    switch (arg0->state) {
         case 0:
-            s->field_34  = 3;
-            s->field_2A  = 8;
-            s->field_30 += 1;
+            arg0->spawnArg1     = 3;
+            arg0->killCountdown = 8;
+            arg0->state        += 1;
             break;
         case 1:
-            if ((s16)(s->field_2A -= 1) < 0) {
-                s->field_30 += 1;
+            if (--arg0->killCountdown < 0) {
+                arg0->state += 1;
             }
-            Display_ClampField126(s->field_34);
-            s->field_34 = -s->field_34;
+            Display_ClampField126(arg0->spawnArg1);
+            arg0->spawnArg1 = -arg0->spawnArg1;
             break;
         default:
             Display_ClampField126(0);
@@ -4424,12 +4407,12 @@ void func_shelter_b3_dumping_hole_80186AB8(GsCOORDINATE2* arg0, s32 arg1, s32 ar
 
 void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)
 {
-    ClumpMem*      mem;
+    RoomEffWork*   mem;
     GsCOORDINATE2* coord;
     MATRIX*        m;
     s32            i;
 
-    mem   = (ClumpMem*)arg0->spawnArg2;
+    mem   = (RoomEffWork*)arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (Gp_State1C->eventState != 0) {
         func_shelter_b3_dumping_hole_80186AB8(coord, ((s16)mem->field_22 / 2) & 0xFFFF, 0x380);

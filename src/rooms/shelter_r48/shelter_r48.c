@@ -29,13 +29,6 @@ typedef struct {
     u8      _pad[0x10];
 } _ShelterR48RippleScratch;
 
-typedef struct {
-    u8             pad0[8];
-    GsCOORDINATE2* field_8;
-    u8             pad_C[0x16];
-    u16            field_22;
-} ClumpMem;
-
 /// 0x2C-byte scratch block `func_shelter_r48_80181C14` takes from
 /// `G_SCRATCH_HEAD`: the coordinate's world position, the tip point offset from
 /// it, and both points' projections. `otz0`/`sx0`/`sy0` belong to `base`,
@@ -650,12 +643,12 @@ void func_shelter_r48_8017E3B8(Task* task)
 
 void func_shelter_r48_8017E4C4(Task* arg0)
 {
-    ClumpMem*      mem;
+    RoomEffWork*   mem;
     GsCOORDINATE2* coord;
     MATRIX*        m;
     s32            i;
 
-    mem   = (ClumpMem*)arg0->spawnArg2;
+    mem   = (RoomEffWork*)arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (Gp_State1C->eventState != 0) {
         func_shelter_r48_8017FF74(coord, ((s16)mem->field_22 / 2) & 0xFFFF, 0x380);
@@ -708,11 +701,11 @@ void func_shelter_r48_8017E4C4(Task* arg0)
 
 void func_shelter_r48_8017E704(Task* arg0)
 {
-    ClumpMem*      mem;
+    RoomEffWork*   mem;
     GsCOORDINATE2* coord;
     MATRIX*        m;
 
-    mem   = (ClumpMem*)arg0->spawnArg2;
+    mem   = (RoomEffWork*)arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (Gp_State1C->eventState != 0) {
         func_shelter_r48_80180804(coord, ((s16)((s16)mem->field_22 / 2) % 12) & 0xFFFF, 0x800, 0);
@@ -762,11 +755,11 @@ void func_shelter_r48_8017E704(Task* arg0)
 
 void func_shelter_r48_8017E9B8(Task* arg0)
 {
-    ClumpMem*      mem;
+    RoomEffWork*   mem;
     GsCOORDINATE2* coord;
     MATRIX*        m;
 
-    mem   = (ClumpMem*)arg0->spawnArg2;
+    mem   = (RoomEffWork*)arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (Gp_State1C->eventState != 0) {
         func_shelter_r48_80180804(coord, ((s16)((s16)mem->field_22 / 2) % 12 | 0x1000) & 0xFFFF, 0xA00, 0);

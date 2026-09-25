@@ -74,11 +74,6 @@ extern _Pose          D_shelter_b3_garbage_incinerator_80185B88;
 extern GpAreaApplyRec D_shelter_b3_garbage_incinerator_8018FB6C;
 extern Task*          D_shelter_b3_garbage_incinerator_8018FC34;
 
-typedef struct {
-    /* 0x00 */ byte pad_0[0x30];
-    /* 0x30 */ s32  field_30;
-} GarbageIncineratorState;
-
 /// Main-executable global with no module header yet: the remaining-enemy count.
 extern s16 D_80073BA0;
 
@@ -535,10 +530,10 @@ void func_shelter_b3_garbage_incinerator_8017E70C(Task* task, s32 arg1, ActorSha
     coord->flg = 0;
 }
 
-void func_shelter_b3_garbage_incinerator_8017E7A4(GarbageIncineratorState* arg0)
+void func_shelter_b3_garbage_incinerator_8017E7A4(Task* arg0)
 {
     func_shelter_b3_garbage_incinerator_80185220();
-    arg0->field_30 = 5;
+    arg0->state = 5;
 }
 
 /// Screen-wave effect task, driven by the context passed as its spawn
@@ -1017,9 +1012,9 @@ void func_shelter_b3_garbage_incinerator_8017F6D8(Task* arg0)
     arg0->state++;
 }
 
-void func_shelter_b3_garbage_incinerator_8017F8A4(GarbageIncineratorState* arg0, s32 arg1, s32 arg2)
+void func_shelter_b3_garbage_incinerator_8017F8A4(Task* arg0, s32 arg1, s32 arg2)
 {
-    arg0->field_30 = arg2;
+    arg0->state = arg2;
 }
 
 /// Select animation set `arg0 + 0x2F`, record it in the work block, and send
