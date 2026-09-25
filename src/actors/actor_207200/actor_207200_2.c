@@ -144,7 +144,7 @@ void func_actor_207200_8014D41C(Task* arg0);
 void func_actor_207200_8014D49C(Task* arg0);
 void func_actor_207200_8014D5C4(Task* arg0);
 void func_actor_207200_8014D65C(Task* arg0);
-void func_actor_207200_8014D70C(void* arg0, Task* task);
+void func_actor_207200_8014D70C(GpEnemy* arg0, Task* task);
 void func_actor_207200_8014D77C(Task* task);
 void func_actor_207200_8014D7E8(Task* arg0);
 void func_actor_207200_8014D8DC(Task* arg0);
@@ -1277,7 +1277,7 @@ void func_actor_207200_8014D65C(Task* arg0)
 /// 0x10-byte `VECTOR` off `G_SCRATCH_HEAD`, fills it with that coordinate's
 /// world position and hands it to `Gp_UpdateActorColor` with no blend
 /// parameters. `arg0` is the colour target, passed straight through.
-void func_actor_207200_8014D70C(void* arg0, Task* task)
+void func_actor_207200_8014D70C(GpEnemy* arg0, Task* task)
 {
     GsCOORDINATE2* coord;
     void**         scratch;

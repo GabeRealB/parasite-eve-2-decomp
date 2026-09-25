@@ -176,7 +176,7 @@ void func_800D7A9C(TmdObject* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 void func_actor_521100_80135DDC(GpEnemy* spawnArg2, Task* task);
 void func_actor_521100_80135F2C(Task* task);
 void func_actor_521100_801360C4(GpEnemy* spawnArg2, Task* task);
-void func_actor_521100_80136290(void* arg0, Task* task);
+void func_actor_521100_80136290(GpEnemy* arg0, Task* task);
 void func_actor_521100_80136680(GpEnemy* arg0, Task* task);
 void func_actor_521100_801366FC(Task* task);
 void func_actor_521100_80136724(void);
@@ -374,7 +374,7 @@ void func_actor_521100_801360C4(GpEnemy* spawnArg2, Task* task)
 /// Each draw reads `Gp_LcgState` back from the global: the initialiser's store
 /// is what the next draw's shift sees, and it is why one `lw` feeds all three
 /// and each draw's value gets its own register.
-void func_actor_521100_80136290(void* arg0, Task* task)
+void func_actor_521100_80136290(GpEnemy* arg0, Task* task)
 {
     Actor521100Work4B4* work;
     GsCOORDINATE2*      coord;

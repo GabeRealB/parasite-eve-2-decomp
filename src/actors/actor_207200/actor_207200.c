@@ -40,7 +40,7 @@ void func_actor_207200_8014AF2C(Task* arg0);
 void func_actor_207200_8014B04C(Task* task);
 void func_actor_207200_8014B128(Task* arg0);
 void func_actor_207200_8014B21C(Task* task);
-void func_actor_207200_8014AFDC(void* arg0, Task* task);
+void func_actor_207200_8014AFDC(GpEnemy* arg0, Task* task);
 
 /// 0x38-byte block `func_actor_207200_8014A588` takes from `G_SCRATCH_HEAD`:
 /// `delta` receives the `func_800E0C10` push-back and is then reused for the
@@ -613,7 +613,7 @@ void func_actor_207200_8014AF2C(Task* arg0)
 /// 0x10-byte `VECTOR` off `G_SCRATCH_HEAD`, fills it with that coordinate's
 /// world position and hands it to `Gp_UpdateActorColor` with no blend
 /// parameters. `arg0` is the colour target, passed straight through.
-void func_actor_207200_8014AFDC(void* arg0, Task* task)
+void func_actor_207200_8014AFDC(GpEnemy* arg0, Task* task)
 {
     GsCOORDINATE2* coord;
     void**         scratch;
