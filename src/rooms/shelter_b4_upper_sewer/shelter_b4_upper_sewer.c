@@ -22,6 +22,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "rooms/rooms_shared_8017e4f8.h"
@@ -359,20 +360,20 @@ void func_shelter_b4_upper_sewer_8017DC88(Task* task)
 /// the duration of the call. `task` is unused.
 void func_shelter_b4_upper_sewer_8017DD98(Task* task, ShelterB4UpperSewerSurface* e, s16 y, u8 c)
 {
-    SVECTOR                       v0, v1, v2, v3;
-    s32                           sxy0, sxy1, sxy2, sxy3;
-    s32                           p, flag;
-    ShelterB4UpperSewerWaterWork* w;
-    u8*                           head;
-    POLY_F4*                      poly;
-    DR_MODE*                      dr;
-    s32                           otz;
-    s32                           i;
+    SVECTOR           v0, v1, v2, v3;
+    s32               sxy0, sxy1, sxy2, sxy3;
+    s32               p, flag;
+    RoomWaterScratch* w;
+    u8*               head;
+    POLY_F4*          poly;
+    DR_MODE*          dr;
+    s32               otz;
+    s32               i;
 
     gGfxViewCoord.flg = 0;
     head              = *(u8**)0x1F8003FC;
     *(u8**)0x1F8003FC = head - 0xC;
-    w                 = (ShelterB4UpperSewerWaterWork*)(head - 0xC);
+    w                 = (RoomWaterScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);

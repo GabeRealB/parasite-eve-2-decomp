@@ -25,21 +25,10 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 #define RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
-
-/// One water surface the strip drawers walk: a rectangle at (`field_0`,
-/// `field_2`) spanning `field_4` along X and `field_6` along Z. Where a drawer
-/// cuts it into a variable number of quads, `field_8` is that count; every
-/// list ends at an entry whose `field_8` is -1.
-typedef struct {
-    s16 field_0;
-    s16 field_2;
-    s16 field_4;
-    s16 field_6;
-    s32 field_8;
-} _Unk80184F90;
 
 /// Working copy of one surface's extents, carved off the scratchpad stack.
 typedef struct {
@@ -122,10 +111,10 @@ extern s16                      D_shelter_b4_reservoir_80184F7C;
 extern s16                      D_shelter_b4_reservoir_80184F80;
 extern s16                      D_shelter_b4_reservoir_80184F82;
 extern TaskDesc                 D_shelter_b4_reservoir_80184F84[];
-extern _Unk80184F90             D_shelter_b4_reservoir_80184F90[];
-extern _Unk80184F90             D_shelter_b4_reservoir_80184FA8[];
-extern _Unk80184F90             D_shelter_b4_reservoir_80184FCC[];
-extern _Unk80184F90             D_shelter_b4_reservoir_80184FE4[];
+extern RoomWaterSurface         D_shelter_b4_reservoir_80184F90[];
+extern RoomWaterSurface         D_shelter_b4_reservoir_80184FA8[];
+extern RoomWaterSurface         D_shelter_b4_reservoir_80184FCC[];
+extern RoomWaterSurface         D_shelter_b4_reservoir_80184FE4[];
 extern s16                      D_shelter_b4_reservoir_80185020;
 extern SVECTOR                  D_shelter_b4_reservoir_80185024[];
 extern SVECTOR                  D_shelter_b4_reservoir_80185034;
@@ -655,7 +644,7 @@ void func_shelter_b4_reservoir_8017E8E4(void)
 
 void func_shelter_b4_reservoir_8017E8EC(Task* task)
 {
-    _Unk80184F90* p = D_shelter_b4_reservoir_80184F90;
+    RoomWaterSurface* p = D_shelter_b4_reservoir_80184F90;
 
     if (D_8007217B == 0) {
         D_shelter_b4_reservoir_80187630 = (u8*)D_8005C374 + gDisplayState.otBuffer * 0xC000;
@@ -663,7 +652,7 @@ void func_shelter_b4_reservoir_8017E8EC(Task* task)
         D_shelter_b4_reservoir_80187630 = (u8*)D_8005C370 + gDisplayState.otBuffer * 0xC000;
     }
     if (gGameSession->at4.loc.view != 0xA) {
-        p->field_6 = 0x2328 - (((D_shelter_b4_reservoir_80184F80 + 0x7D0) * 0x31) >> 5);
+        p->depth = 0x2328 - (((D_shelter_b4_reservoir_80184F80 + 0x7D0) * 0x31) >> 5);
         func_shelter_b4_reservoir_8017EA00(task);
         func_shelter_b4_reservoir_8017EE04(task);
         func_shelter_b4_reservoir_8017F23C(task);
@@ -683,16 +672,16 @@ void func_shelter_b4_reservoir_8017E8EC(Task* task)
 /// the projection flags as invalid are skipped. `task` is unused.
 void func_shelter_b4_reservoir_8017EA00(Task* task)
 {
-    SVECTOR          v0, v1, v2, v3;
-    s32              sxy0, sxy1, sxy2, sxy3;
-    s32              p, flag;
-    u8*              head;
-    _SurfaceScratch* s;
-    _Unk80184F90*    e;
-    POLY_F4*         poly;
-    DR_MODE*         dr;
-    s32              otz;
-    s32              i;
+    SVECTOR           v0, v1, v2, v3;
+    s32               sxy0, sxy1, sxy2, sxy3;
+    s32               p, flag;
+    u8*               head;
+    _SurfaceScratch*  s;
+    RoomWaterSurface* e;
+    POLY_F4*          poly;
+    DR_MODE*          dr;
+    s32               otz;
+    s32               i;
 
     e                 = D_shelter_b4_reservoir_80184F90;
     head              = *(u8**)0x1F8003FC;
@@ -703,11 +692,11 @@ void func_shelter_b4_reservoir_8017EA00(Task* task)
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     ((_SurfaceScratch*)(head - 0xC))->y = D_shelter_b4_reservoir_80184F80;
-    for (; e->field_8 != -1; e++) {
-        s->dx   = e->field_4;
-        s->step = e->field_6 / 32;
-        s->x    = e->field_0 + D_shelter_b4_reservoir_80185020;
-        s->z    = e->field_2;
+    for (; e->count != -1; e++) {
+        s->dx   = e->width;
+        s->step = e->depth / 32;
+        s->x    = e->x + D_shelter_b4_reservoir_80185020;
+        s->z    = e->z;
         for (i = 0; i < 32; i++) {
             v0.vx = s->x;
             v0.vy = s->y;
@@ -757,16 +746,16 @@ void func_shelter_b4_reservoir_8017EA00(Task* task)
 /// count, and its X is used as stored rather than offset. `task` is unused.
 void func_shelter_b4_reservoir_8017EE04(Task* task)
 {
-    SVECTOR          v0, v1, v2, v3;
-    s32              sxy0, sxy1, sxy2, sxy3;
-    s32              p, flag;
-    u8*              head;
-    _SurfaceScratch* s;
-    _Unk80184F90*    e;
-    POLY_F4*         poly;
-    DR_MODE*         dr;
-    s32              otz;
-    s32              i;
+    SVECTOR           v0, v1, v2, v3;
+    s32               sxy0, sxy1, sxy2, sxy3;
+    s32               p, flag;
+    u8*               head;
+    _SurfaceScratch*  s;
+    RoomWaterSurface* e;
+    POLY_F4*          poly;
+    DR_MODE*          dr;
+    s32               otz;
+    s32               i;
 
     e                 = D_shelter_b4_reservoir_80184FA8;
     head              = *(u8**)0x1F8003FC;
@@ -777,12 +766,12 @@ void func_shelter_b4_reservoir_8017EE04(Task* task)
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     ((_SurfaceScratch*)(head - 0xC))->y = D_shelter_b4_reservoir_80184F80;
-    for (; e->field_8 != -1; e++) {
-        s->dx   = e->field_4;
-        s->step = e->field_6 / e->field_8;
-        s->x    = e->field_0;
-        s->z    = e->field_2;
-        for (i = 0; i < e->field_8; i++) {
+    for (; e->count != -1; e++) {
+        s->dx   = e->width;
+        s->step = e->depth / e->count;
+        s->x    = e->x;
+        s->z    = e->z;
+        for (i = 0; i < e->count; i++) {
             v0.vx = s->x;
             v0.vy = s->y;
             v0.vz = s->z + s->step * i;
@@ -833,16 +822,16 @@ void func_shelter_b4_reservoir_8017EE04(Task* task)
 /// and the Z extent here. `task` is unused.
 void func_shelter_b4_reservoir_8017F23C(Task* task)
 {
-    SVECTOR          v0, v1, v2, v3;
-    s32              sxy0, sxy1, sxy2, sxy3;
-    s32              p, flag;
-    u8*              head;
-    _SurfaceScratch* s;
-    _Unk80184F90*    e;
-    POLY_F4*         poly;
-    DR_MODE*         dr;
-    s32              otz;
-    s32              i;
+    SVECTOR           v0, v1, v2, v3;
+    s32               sxy0, sxy1, sxy2, sxy3;
+    s32               p, flag;
+    u8*               head;
+    _SurfaceScratch*  s;
+    RoomWaterSurface* e;
+    POLY_F4*          poly;
+    DR_MODE*          dr;
+    s32               otz;
+    s32               i;
 
     e                 = D_shelter_b4_reservoir_80184FCC;
     head              = *(u8**)0x1F8003FC;
@@ -853,12 +842,12 @@ void func_shelter_b4_reservoir_8017F23C(Task* task)
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     ((_SurfaceScratch*)(head - 0xC))->y = D_shelter_b4_reservoir_80184F80;
-    for (; e->field_8 != -1; e++) {
-        s->dx   = e->field_4 / e->field_8;
-        s->step = e->field_6;
-        s->x    = e->field_0;
-        s->z    = e->field_2;
-        for (i = 0; i < e->field_8; i++) {
+    for (; e->count != -1; e++) {
+        s->dx   = e->width / e->count;
+        s->step = e->depth;
+        s->x    = e->x;
+        s->z    = e->z;
+        for (i = 0; i < e->count; i++) {
             v0.vx = s->x + s->dx * i;
             v0.vy = s->y;
             v0.vz = s->z;
@@ -909,17 +898,17 @@ void func_shelter_b4_reservoir_8017F23C(Task* task)
 /// a quarter of it, so they brighten as the level sinks. `task` is unused.
 void func_shelter_b4_reservoir_8017F674(Task* task)
 {
-    SVECTOR          v0, v1, v2, v3;
-    s32              sxy0, sxy1, sxy2, sxy3;
-    s32              p, flag;
-    u8*              head;
-    _SurfaceScratch* s;
-    _Unk80184F90*    e;
-    POLY_F4*         poly;
-    DR_MODE*         dr;
-    s32              otz;
-    s32              i;
-    u8               c;
+    SVECTOR           v0, v1, v2, v3;
+    s32               sxy0, sxy1, sxy2, sxy3;
+    s32               p, flag;
+    u8*               head;
+    _SurfaceScratch*  s;
+    RoomWaterSurface* e;
+    POLY_F4*          poly;
+    DR_MODE*          dr;
+    s32               otz;
+    s32               i;
+    u8                c;
 
     e                 = D_shelter_b4_reservoir_80184FE4;
     head              = *(u8**)0x1F8003FC;
@@ -931,12 +920,12 @@ void func_shelter_b4_reservoir_8017F674(Task* task)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     ((_SurfaceScratch*)(head - 0xC))->y = D_shelter_b4_reservoir_80184F82;
     c                                   = -(D_shelter_b4_reservoir_80184F82 * 16) / 225;
-    for (; e->field_8 != -1; e++) {
-        s->dx   = e->field_4;
-        s->step = e->field_6 / e->field_8;
-        s->x    = e->field_0;
-        s->z    = e->field_2;
-        for (i = 0; i < e->field_8; i++) {
+    for (; e->count != -1; e++) {
+        s->dx   = e->width;
+        s->step = e->depth / e->count;
+        s->x    = e->x;
+        s->z    = e->z;
+        for (i = 0; i < e->count; i++) {
             v0.vx = s->x;
             v0.vy = s->y;
             v0.vz = s->z + s->step * i;

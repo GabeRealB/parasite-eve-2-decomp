@@ -159,4 +159,32 @@ typedef struct RoomMirrorExtentScratch {
 } RoomMirrorExtentScratch;
 STATIC_ASSERT_SIZEOF(RoomMirrorExtentScratch, 0x34);
 
+/// Per-surface values a room's water drawer keeps in a block it takes from
+/// the scratchpad stack rather than in registers: the surface height `y`, the
+/// spacing `dx` and `dz` between vertices along X and Z, the height `wave`
+/// adds to the vertex being placed, and the corner `x`, `z` of the surface
+/// being drawn.
+typedef struct RoomWaterScratch {
+    s16 y;
+    s16 dx;
+    s16 wave;
+    s16 dz;
+    s16 x;
+    s16 z;
+} RoomWaterScratch;
+STATIC_ASSERT_SIZEOF(RoomWaterScratch, 0xC);
+
+/// One water surface in the list a room's water drawer walks: a rectangle at
+/// (`x`, `z`) spanning `width` along X and `depth` along Z. A drawer that cuts
+/// surfaces into a varying number of quads takes that number from `count`;
+/// every list ends at an entry whose `count` is -1.
+typedef struct RoomWaterSurface {
+    s16 x;
+    s16 z;
+    s16 width;
+    s16 depth;
+    s32 count;
+} RoomWaterSurface;
+STATIC_ASSERT_SIZEOF(RoomWaterSurface, 0xC);
+
 #endif /* ROOMS_ROOM_H */

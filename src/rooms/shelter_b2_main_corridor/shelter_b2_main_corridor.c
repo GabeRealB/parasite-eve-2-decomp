@@ -25,30 +25,6 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-/// One water surface: a rectangle at (`x`, `z`) spanning `width` along X and
-/// `depth` along Z. A list of them ends at an entry whose `end` is -1; `end`
-/// is not otherwise read.
-typedef struct ShelterB2MainCorridorSurface {
-    s16 x;
-    s16 z;
-    s16 width;
-    s16 depth;
-    s32 end;
-} ShelterB2MainCorridorSurface;
-
-/// Per-surface values the water drawer keeps in a block taken from the
-/// scratchpad stack at `0x1F8003FC` rather than in registers. `dx` and `dz`
-/// are the spacing between vertices along X and Z, and `wave` the height the
-/// sine wave adds to the vertex being placed.
-typedef struct ShelterB2MainCorridorWaterWork {
-    s16 y;
-    s16 dx;
-    s16 wave;
-    s16 dz;
-    s16 x;
-    s16 z;
-} ShelterB2MainCorridorWaterWork;
-
 /// `Gp_StateF0.field_4` (0x801153F4). Declared as a one-element array so the
 /// store keeps the in-struct memory attribute a struct-member store has, which
 /// makes it alias the task's argument load and keeps the two in source order.
@@ -106,7 +82,7 @@ extern s32 D_shelter_b2_main_corridor_80182CA8;
 extern TaskDesc D_shelter_b2_main_corridor_80182DE0[];
 
 /// The room's water surfaces.
-extern ShelterB2MainCorridorSurface D_shelter_b2_main_corridor_80182DEC[];
+extern RoomWaterSurface D_shelter_b2_main_corridor_80182DEC[];
 
 /// Height of the water surfaces.
 extern s16 D_shelter_b2_main_corridor_80182E28;
@@ -608,18 +584,18 @@ void func_shelter_b2_main_corridor_8017E338(Task* task)
 /// Runs as the water task's second state; the task itself is not read.
 void func_shelter_b2_main_corridor_8017E390(Task* arg0)
 {
-    SVECTOR                         v0, v1, v2, v3;
-    s32                             sxy0, sxy1, sxy2, sxy3;
-    s32                             p, flag;
-    s32                             phase;
-    ShelterB2MainCorridorSurface*   e;
-    ShelterB2MainCorridorWaterWork* w;
-    u8*                             head;
-    POLY_G4*                        poly;
-    DR_MODE*                        dr;
-    s32                             otz;
-    s32                             i;
-    GpAreaKey*                      k;
+    SVECTOR           v0, v1, v2, v3;
+    s32               sxy0, sxy1, sxy2, sxy3;
+    s32               p, flag;
+    s32               phase;
+    RoomWaterSurface* e;
+    RoomWaterScratch* w;
+    u8*               head;
+    POLY_G4*          poly;
+    DR_MODE*          dr;
+    s32               otz;
+    s32               i;
+    GpAreaKey*        k;
 
     e     = D_shelter_b2_main_corridor_80182DEC;
     phase = -(gDisplayState.animFrame * 16);
@@ -639,12 +615,12 @@ void func_shelter_b2_main_corridor_8017E390(Task* arg0)
     head              = *(u8**)0x1F8003FC;
     gGfxViewCoord.flg = 0;
     *(u8**)0x1F8003FC = head - 0xC;
-    w                 = (ShelterB2MainCorridorWaterWork*)(head - 0xC);
+    w                 = (RoomWaterScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     w->y = D_shelter_b2_main_corridor_80182E28;
-    for (; e->end != -1; e++) {
+    for (; e->count != -1; e++) {
         w->dx = e->width / 2;
         w->dz = e->depth / 16;
         w->x  = e->x;

@@ -38,19 +38,6 @@ typedef struct ShelterB4WaterSupplySurface {
     s16 end;
 } ShelterB4WaterSupplySurface;
 
-/// Per-surface values the water drawers keep in a block taken from the
-/// scratchpad stack at `0x1F8003FC` rather than in registers. `dx` and `dz`
-/// are the spacing between vertices along X and Z, and `wave` the height the
-/// sine wave adds to the vertex being placed.
-typedef struct ShelterB4WaterSupplyWaterWork {
-    s16 y;
-    s16 dx;
-    s16 wave;
-    s16 dz;
-    s16 x;
-    s16 z;
-} ShelterB4WaterSupplyWaterWork;
-
 /// Block the room task `func_shelter_b4_water_supply_8017EE54` receives as
 /// `spawnArg2`. Only the halfword at 0x26 is touched there: an effect
 /// strength, set from how far a tracked part moved this frame and used as the
@@ -445,24 +432,24 @@ s32 func_shelter_b4_water_supply_8017DDFC(RoomEventMsg* in, RoomEventMsg* out)
 /// `task`, the water task whose drawing state calls it, is unused.
 void func_shelter_b4_water_supply_8017DE74(Task* task)
 {
-    SVECTOR                        v0, v1, v2, v3;
-    s32                            sxy0, sxy1, sxy2, sxy3;
-    s32                            p, flag;
-    s32                            phase;
-    ShelterB4WaterSupplySurface*   e;
-    ShelterB4WaterSupplyWaterWork* w;
-    u8*                            head;
-    POLY_G4*                       poly;
-    DR_MODE*                       dr;
-    s32                            otz;
-    s32                            i;
+    SVECTOR                      v0, v1, v2, v3;
+    s32                          sxy0, sxy1, sxy2, sxy3;
+    s32                          p, flag;
+    s32                          phase;
+    ShelterB4WaterSupplySurface* e;
+    RoomWaterScratch*            w;
+    u8*                          head;
+    POLY_G4*                     poly;
+    DR_MODE*                     dr;
+    s32                          otz;
+    s32                          i;
 
     e                 = D_shelter_b4_water_supply_80182648;
     gGfxViewCoord.flg = 0;
     head              = *(u8**)0x1F8003FC;
     phase             = -(gDisplayState.animFrame * 16);
     *(u8**)0x1F8003FC = head - 0xC;
-    w                 = (ShelterB4WaterSupplyWaterWork*)(head - 0xC);
+    w                 = (RoomWaterScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
@@ -582,24 +569,24 @@ void func_shelter_b4_water_supply_8017DE74(Task* task)
 /// whose drawing state calls it, is unused.
 void func_shelter_b4_water_supply_8017E5D8(Task* task)
 {
-    SVECTOR                        v0, v1, v2, v3;
-    s32                            sxy0, sxy1, sxy2, sxy3;
-    s32                            p, flag;
-    s32                            phase;
-    ShelterB4WaterSupplySurface*   e;
-    ShelterB4WaterSupplyWaterWork* w;
-    u8*                            head;
-    POLY_G4*                       poly;
-    DR_MODE*                       dr;
-    s32                            otz;
-    s32                            i;
+    SVECTOR                      v0, v1, v2, v3;
+    s32                          sxy0, sxy1, sxy2, sxy3;
+    s32                          p, flag;
+    s32                          phase;
+    ShelterB4WaterSupplySurface* e;
+    RoomWaterScratch*            w;
+    u8*                          head;
+    POLY_G4*                     poly;
+    DR_MODE*                     dr;
+    s32                          otz;
+    s32                          i;
 
     e                 = D_shelter_b4_water_supply_8018265C;
     gGfxViewCoord.flg = 0;
     head              = *(u8**)0x1F8003FC;
     phase             = -(gDisplayState.animFrame * 16);
     *(u8**)0x1F8003FC = head - 0xC;
-    w                 = (ShelterB4WaterSupplyWaterWork*)(head - 0xC);
+    w                 = (RoomWaterScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);

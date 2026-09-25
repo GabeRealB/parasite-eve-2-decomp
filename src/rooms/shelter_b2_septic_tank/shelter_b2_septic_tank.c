@@ -24,30 +24,6 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-/// One water surface: a rectangle at (`x`, `z`) spanning `width` along X and
-/// `depth` along Z. A list of them ends at an entry whose `end` is -1; `end`
-/// is not otherwise read.
-typedef struct ShelterB2SepticTankSurface {
-    s16 x;
-    s16 z;
-    s16 width;
-    s16 depth;
-    s32 end;
-} ShelterB2SepticTankSurface;
-
-/// Per-surface values the water drawer keeps in a block taken from the
-/// scratchpad stack at `0x1F8003FC` rather than in registers. `dx` and `dz`
-/// are the spacing between vertices along X and Z, and `wave` the height the
-/// sine wave adds to the vertex being placed.
-typedef struct ShelterB2SepticTankWaterWork {
-    s16 y;
-    s16 dx;
-    s16 wave;
-    s16 dz;
-    s16 x;
-    s16 z;
-} ShelterB2SepticTankWaterWork;
-
 extern u8  D_80071075;
 extern s16 D_80071076;
 extern s32 D_8007107C;
@@ -73,8 +49,8 @@ extern s16 D_shelter_b2_septic_tank_801832BC;
 extern TaskDesc D_shelter_b2_septic_tank_801832C0[];
 
 /// The room's water surfaces, as two lists drawn by separate functions.
-extern ShelterB2SepticTankSurface D_shelter_b2_septic_tank_801832CC[];
-extern ShelterB2SepticTankSurface D_shelter_b2_septic_tank_801832F0[];
+extern RoomWaterSurface D_shelter_b2_septic_tank_801832CC[];
+extern RoomWaterSurface D_shelter_b2_septic_tank_801832F0[];
 
 extern SVECTOR D_shelter_b2_septic_tank_80183314[];
 extern SVECTOR D_shelter_b2_septic_tank_80183344[];
@@ -302,29 +278,29 @@ void func_shelter_b2_septic_tank_8017DB10(Task* task)
 /// `D_shelter_b2_septic_tank_801832BC`.
 void func_shelter_b2_septic_tank_8017DB68(Task* task)
 {
-    SVECTOR                       v0, v1, v2, v3;
-    s32                           sxy0, sxy1, sxy2, sxy3;
-    s32                           p, flag;
-    s32                           phase;
-    ShelterB2SepticTankSurface*   e;
-    ShelterB2SepticTankWaterWork* w;
-    u8*                           head;
-    POLY_G4*                      poly;
-    DR_MODE*                      dr;
-    s32                           otz;
-    s32                           i;
+    SVECTOR           v0, v1, v2, v3;
+    s32               sxy0, sxy1, sxy2, sxy3;
+    s32               p, flag;
+    s32               phase;
+    RoomWaterSurface* e;
+    RoomWaterScratch* w;
+    u8*               head;
+    POLY_G4*          poly;
+    DR_MODE*          dr;
+    s32               otz;
+    s32               i;
 
     e                 = D_shelter_b2_septic_tank_801832CC;
     gGfxViewCoord.flg = 0;
     head              = *(u8**)0x1F8003FC;
     phase             = -(gDisplayState.animFrame * 16);
     *(u8**)0x1F8003FC = head - 0xC;
-    w                 = (ShelterB2SepticTankWaterWork*)(head - 0xC);
+    w                 = (RoomWaterScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     w->y = D_shelter_b2_septic_tank_801832BC;
-    for (; e->end != -1; e++) {
+    for (; e->count != -1; e++) {
         w->dx = e->width / 2;
         w->dz = e->depth / 16;
         w->x  = e->x;
@@ -423,29 +399,29 @@ void func_shelter_b2_septic_tank_8017DB68(Task* task)
 /// for the duration of the call.
 void func_shelter_b2_septic_tank_8017E2DC(Task* task)
 {
-    SVECTOR                       v0, v1, v2, v3;
-    s32                           sxy0, sxy1, sxy2, sxy3;
-    s32                           p, flag;
-    s32                           phase;
-    ShelterB2SepticTankSurface*   e;
-    ShelterB2SepticTankWaterWork* w;
-    u8*                           head;
-    POLY_G4*                      poly;
-    DR_MODE*                      dr;
-    s32                           otz;
-    s32                           i;
+    SVECTOR           v0, v1, v2, v3;
+    s32               sxy0, sxy1, sxy2, sxy3;
+    s32               p, flag;
+    s32               phase;
+    RoomWaterSurface* e;
+    RoomWaterScratch* w;
+    u8*               head;
+    POLY_G4*          poly;
+    DR_MODE*          dr;
+    s32               otz;
+    s32               i;
 
     e                 = D_shelter_b2_septic_tank_801832F0;
     gGfxViewCoord.flg = 0;
     head              = *(u8**)0x1F8003FC;
     phase             = -(gDisplayState.animFrame * 16);
     *(u8**)0x1F8003FC = head - 0xC;
-    w                 = (ShelterB2SepticTankWaterWork*)(head - 0xC);
+    w                 = (RoomWaterScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     w->y = D_shelter_b2_septic_tank_801832BC;
-    for (; e->end != -1; e++) {
+    for (; e->count != -1; e++) {
         w->dx = e->width / 2;
         w->dz = e->depth / 16;
         w->x  = e->x;
