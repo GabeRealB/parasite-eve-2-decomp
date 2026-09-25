@@ -154,9 +154,9 @@ static __inline__ void overlayToWorld(GpCoord* coord, SVECTOR* v)
         gte_rtv0tr();
         gte_stlvnl(blk->out);
         gte_stflg(&blk->flag);
-        blk->vec.vx = *(u16*)&blk->out[0];
-        blk->vec.vy = *(u16*)&blk->out[1];
-        blk->vec.vz = *(u16*)&blk->out[2];
+        blk->vec.vx = (u16)blk->out[0];
+        blk->vec.vy = (u16)blk->out[1];
+        blk->vec.vz = (u16)blk->out[2];
         blk->coord  = blk->coord->sub;
     }
     v->vx = blk->vec.vx;
@@ -186,9 +186,9 @@ static __inline__ void overlayToWorld2(GpCoord* coord, SVECTOR* v)
         gte_rtv0tr();
         gte_stlvnl(blk->out);
         gte_stflg(&blk->flag);
-        blk->vec.vx = *(u16*)&blk->out[0];
-        blk->vec.vy = *(u16*)&blk->out[1];
-        blk->vec.vz = *(u16*)&blk->out[2];
+        blk->vec.vx = (u16)blk->out[0];
+        blk->vec.vy = (u16)blk->out[1];
+        blk->vec.vz = (u16)blk->out[2];
         blk->coord  = blk->coord->sub;
     }
     v->vx = blk->vec.vx;
