@@ -3411,80 +3411,6 @@ void func_acropolis_bridge_80184908(AcropolisBridgeWalkerWork* work)
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x18;
 }
 
-/// 0x54-byte scratch block the walker's obstacle-avoidance pass carves off
-/// `G_SCRATCH_HEAD`. `m` is the working matrix handed to `Gfx_RotMatrixY` /
-/// `Gfx_MatrixCol2`, `dir` first the normalised facing column read out of the
-/// walker's `workm` (its `vz` decides which pair of matrix cells the facing
-/// angle is taken from) and later the GPF-scaled push actually applied.
-/// `eye` is the walker's world position, `kind` the record's `field_4` high
-/// halfword, `angle[]` the bearing of each obstacle relative to the facing
-/// direction and `ok[]` whether that obstacle still counts -- a pair whose
-/// bearings differ by less than 0x401 cancels out, so the walker only backs
-/// away from an obstacle it is not wedged between. `i` / `j` are the two loop
-/// cursors, `count` the number of records collected and `diff` the wrapped
-/// bearing difference (later the absolute bearing the push is built from).
-typedef struct AcropolisBridgeAvoidScratch {
-    /* 0x00 */ MATRIX   m;
-    /* 0x20 */ SVECTOR  dir;
-    /* 0x28 */ SVECTOR3 eye;
-    /* 0x2E */ byte     pad_2E[0x2];
-    /* 0x30 */ s32      kind;
-    /* 0x34 */ s16      angle[8];
-    /* 0x44 */ s8       ok[8];
-    /* 0x4C */ s16      face;
-    /* 0x4E */ s16      diff;
-    /* 0x50 */ u8       i;
-    /* 0x51 */ u8       j;
-    /* 0x52 */ u8       count;
-    /* 0x53 */ byte     pad_53[0x1];
-} AcropolisBridgeAvoidScratch;
-STATIC_ASSERT_SIZEOF(AcropolisBridgeAvoidScratch, 0x54);
-
-/// 0x10-byte scratch block the two bearing helpers below nest inside the
-/// avoidance block: the obstacle's offset from the walker, widened to words so
-/// `ratan2` can take two of its components directly.
-typedef struct AcropolisBridgeAvoidDelta {
-    /* 0x0 */ s32  vx;
-    /* 0x4 */ s32  vy;
-    /* 0x8 */ s32  vz;
-    /* 0xC */ byte pad_C[0x4];
-} AcropolisBridgeAvoidDelta;
-STATIC_ASSERT_SIZEOF(AcropolisBridgeAvoidDelta, 0x10);
-
-/// Bearing of `p` from `eye` in the XZ plane, staged in a scratch block of its
-/// own that is released before `ratan2` runs.
-static __inline__ s16 acropolisBridgeBearingXZ(SVECTOR3* p, SVECTOR3* eye)
-{
-    u8*                        head;
-    AcropolisBridgeAvoidDelta* d;
-
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    d                     = (AcropolisBridgeAvoidDelta*)(head - 0x10);
-    d->vx                 = p->vx - eye->vx;
-    *(u8**)G_SCRATCH_HEAD = (u8*)d;
-    d->vy                 = p->vy - eye->vy;
-    d->vz                 = p->vz - eye->vz;
-    *(u8**)G_SCRATCH_HEAD = head;
-    return ratan2(d->vx, d->vz);
-}
-
-/// Bearing of `p` from `eye` in the XY plane; used instead of the XZ one when
-/// the walker's facing column is close to vertical.
-static __inline__ s16 acropolisBridgeBearingXY(SVECTOR3* p, SVECTOR3* eye)
-{
-    u8*                        head;
-    AcropolisBridgeAvoidDelta* d;
-
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    d                     = (AcropolisBridgeAvoidDelta*)(head - 0x10);
-    d->vx                 = p->vx - eye->vx;
-    *(u8**)G_SCRATCH_HEAD = (u8*)d;
-    d->vy                 = p->vy - eye->vy;
-    d->vz                 = p->vz - eye->vz;
-    *(u8**)G_SCRATCH_HEAD = head;
-    return ratan2(d->vx, d->vy);
-}
-
 /// Pushes the walker away from the obstacles in its collision record table.
 /// Every occupied record is turned into a bearing relative to the direction
 /// the walker faces; records whose `field_4` kind is neither 0x10000 (which
@@ -3496,11 +3422,11 @@ static __inline__ s16 acropolisBridgeBearingXY(SVECTOR3* p, SVECTOR3* eye)
 /// to both `push` and the walker's own translation.
 void func_acropolis_bridge_80184B94(AcropolisBridgeWalkerWork* work)
 {
-    u8*                          head;
-    AcropolisBridgeAvoidScratch* s;
-    s16                          diff;
-    s16                          t;
-    s32                          mag;
+    u8*                  head;
+    OverlayAvoidScratch* s;
+    s16                  diff;
+    s16                  t;
+    s32                  mag;
 
     if (D_80072729 == 1) {
         return;
@@ -3512,8 +3438,8 @@ void func_acropolis_bridge_80184B94(AcropolisBridgeWalkerWork* work)
     work->push.vx = 0;
 
     head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - sizeof(AcropolisBridgeAvoidScratch);
-    s                     = (AcropolisBridgeAvoidScratch*)*(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - sizeof(OverlayAvoidScratch);
+    s                     = (OverlayAvoidScratch*)*(u8**)G_SCRATCH_HEAD;
 
     Gfx_MatrixCol1(&work->coord->workm, (SVECTOR*)(head - 0x34));
     VectorNormalSS((SVECTOR*)(head - 0x34), (SVECTOR*)(head - 0x34));
@@ -3544,10 +3470,10 @@ void func_acropolis_bridge_80184B94(AcropolisBridgeWalkerWork* work)
 
         if (ABS(s->dir.vz) < 0x818) {
             s->angle[s->count] =
-                acropolisBridgeBearingXZ((SVECTOR3*)&work->recs[s->i].point, &s->eye);
+                overlayBearingXZ((SVECTOR3*)&work->recs[s->i].point, &s->eye);
         } else {
             s->angle[s->count] =
-                acropolisBridgeBearingXY((SVECTOR3*)&work->recs[s->i].point, &s->eye);
+                overlayBearingXY((SVECTOR3*)&work->recs[s->i].point, &s->eye);
         }
         s->ok[s->count] = 1;
         s->count++;
@@ -3603,17 +3529,17 @@ void func_acropolis_bridge_80184B94(AcropolisBridgeWalkerWork* work)
     }
 
     *(u8**)G_SCRATCH_HEAD =
-        (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(AcropolisBridgeAvoidScratch);
+        (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(OverlayAvoidScratch);
 }
 
 /// Bearing of `pos` from the walker's full-width coordinate translation in
 /// the XZ plane. The temporary delta frame is released before `ratan2` runs.
 static __inline__ s32 acropolisBridgeCoordBearingXZ(SVECTOR3* pos, GsCOORDINATE2* coord)
 {
-    u8*                        head;
-    AcropolisBridgeAvoidDelta* d;
+    u8*                head;
+    OverlayAvoidDelta* d;
     head                  = *(u8**)G_SCRATCH_HEAD;
-    d                     = (AcropolisBridgeAvoidDelta*)(head - 0x10);
+    d                     = (OverlayAvoidDelta*)(head - 0x10);
     d->vx                 = pos->vx - coord->coord.t[0];
     *(u8**)G_SCRATCH_HEAD = (u8*)d;
     d->vy                 = pos->vy - coord->coord.t[1];

@@ -50,39 +50,6 @@ typedef struct ActorRepelScratch {
 } ActorRepelScratch;
 STATIC_ASSERT_SIZEOF(ActorRepelScratch, 0x88);
 
-/// Working state of the steering walk that nudges a coordinate away from the
-/// obstacles among its contact records. `angle` and `ok` hold the bearings of
-/// up to eight obstacles and whether each survived the pairwise spread check,
-/// `face` is the coordinate's own heading, `i`/`j` the loop cursors, and
-/// `blocked` is set when any record is of the blocking kind.
-typedef struct ActorAvoidScratch {
-    MATRIX   m;
-    SVECTOR  dir;
-    SVECTOR3 eye;
-    byte     pad_2E[0x2];
-    s32      kind;
-    s16      angle[8];
-    s8       ok[8];
-    s16      face;
-    s16      diff;
-    u8       i;
-    u8       j;
-    u8       count;
-    u8       blocked;
-} ActorAvoidScratch;
-STATIC_ASSERT_SIZEOF(ActorAvoidScratch, 0x54);
-
-/// The offset from one position to another, widened to words and staged on
-/// the scratch pad just long enough to take its bearing with `ratan2`. The
-/// steering walk's bearing helpers and the turn steps use it.
-typedef struct ActorAvoidDelta {
-    s32  vx;
-    s32  vy;
-    s32  vz;
-    byte pad_C[0x4];
-} ActorAvoidDelta;
-STATIC_ASSERT_SIZEOF(ActorAvoidDelta, 0x10);
-
 /// The 16.16 deltas `func_800E0C10` resolves for a contact record, followed
 /// by the step's result: whether the X or Z delta was nonzero.
 typedef struct ActorDeltaFlag {
@@ -1536,40 +1503,6 @@ STATIC_ASSERT_SIZEOF(Actor461800Work, 0x4F8);
 
 /// Nonzero while movement is frozen; the stepping helpers do nothing then.
 extern u8 D_80072729;
-
-/// Bearing of `p` from `eye` on the XZ plane. The offset is staged on the
-/// scratch pad at full width and released before `ratan2` runs.
-static __inline__ s16 actorBearingXZ(SVECTOR3* p, SVECTOR3* eye)
-{
-    u8*              head;
-    ActorAvoidDelta* d;
-
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    d                     = (ActorAvoidDelta*)(head - 0x10);
-    d->vx                 = p->vx - eye->vx;
-    *(u8**)G_SCRATCH_HEAD = (u8*)d;
-    d->vy                 = p->vy - eye->vy;
-    d->vz                 = p->vz - eye->vz;
-    *(u8**)G_SCRATCH_HEAD = head;
-    return ratan2(d->vx, d->vz);
-}
-
-/// Bearing of `p` from `eye` on the XY plane, the form the steering walk uses
-/// while the coordinate's facing column is close to vertical.
-static __inline__ s16 actorBearingXY(SVECTOR3* p, SVECTOR3* eye)
-{
-    u8*              head;
-    ActorAvoidDelta* d;
-
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    d                     = (ActorAvoidDelta*)(head - 0x10);
-    d->vx                 = p->vx - eye->vx;
-    *(u8**)G_SCRATCH_HEAD = (u8*)d;
-    d->vy                 = p->vy - eye->vy;
-    d->vz                 = p->vz - eye->vz;
-    *(u8**)G_SCRATCH_HEAD = head;
-    return ratan2(d->vx, d->vy);
-}
 
 /// The push that moves `pos` out of the contact record `rec`: how deep `pos`
 /// sits inside the record's radius, along the direction from the record's

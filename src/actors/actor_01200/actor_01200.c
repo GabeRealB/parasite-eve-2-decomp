@@ -144,19 +144,19 @@ void Actor01200_Fn03F30(GpEnemy* arg0, Task* arg1);
 /// Each survivor becomes a 10-unit step added to `push` and to the translation.
 s16 Actor01200_Fn00130(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* push)
 {
-    u8*                head;
-    ActorAvoidScratch* s;
-    s16                diff;
-    s16                t;
-    s32                mag;
+    u8*                  head;
+    OverlayAvoidScratch* s;
+    s16                  diff;
+    s16                  t;
+    s32                  mag;
 
     if (gGameSession->viewReady == 1 || D_80072729 == 1) {
         return 0;
     }
 
     head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - sizeof(ActorAvoidScratch);
-    s                     = (ActorAvoidScratch*)*(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - sizeof(OverlayAvoidScratch);
+    s                     = (OverlayAvoidScratch*)*(u8**)G_SCRATCH_HEAD;
     s->blocked            = 0;
     push->vz              = 0;
     push->vy              = 0;
@@ -191,9 +191,9 @@ s16 Actor01200_Fn00130(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
         }
 
         if (ABS(s->dir.vz) < 0x818) {
-            s->angle[s->count] = actorBearingXZ((SVECTOR3*)&recs[s->i].point, &s->eye);
+            s->angle[s->count] = overlayBearingXZ((SVECTOR3*)&recs[s->i].point, &s->eye);
         } else {
-            s->angle[s->count] = actorBearingXY((SVECTOR3*)&recs[s->i].point, &s->eye);
+            s->angle[s->count] = overlayBearingXY((SVECTOR3*)&recs[s->i].point, &s->eye);
         }
         s->ok[s->count] = 1;
         s->count++;
@@ -248,7 +248,7 @@ s16 Actor01200_Fn00130(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
         }
     }
 
-    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(ActorAvoidScratch);
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(OverlayAvoidScratch);
     return s->blocked != 0;
 }
 

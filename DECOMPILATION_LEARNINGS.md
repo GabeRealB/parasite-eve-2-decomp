@@ -8895,7 +8895,7 @@ mismatch. On the match, delete **all** of that function's `INCLUDE_ASM` lines
 
 **A host `.c`'s `static __inline__` helpers are invisible to the scratch unit.**
 The scratch env compiles only the candidate file, so a helper defined above the
-`INCLUDE_ASM` in the host `.c` (here `actorBearingXZ` / `_BearingXY`) has
+`INCLUDE_ASM` in the host `.c` (here `overlayBearingXZ` / `_BearingXY`) has
 no definition in scope: the call is emitted against an implicit declaration and
 the helper's body never appears, so the object comes out ~40 instructions short
 (310 vs 350, `delete=55`, `blocks=42/43`) and scores well below what the source

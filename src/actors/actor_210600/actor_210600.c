@@ -198,19 +198,19 @@ s32 func_actor_210600_8014A13C(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
 /// or `D_80072729` is 1.
 s32 func_actor_210600_8014A484(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
-    u8*                head;
-    ActorAvoidScratch* s;
-    s16                diff;
-    s16                t;
-    s32                mag;
+    u8*                  head;
+    OverlayAvoidScratch* s;
+    s16                  diff;
+    s16                  t;
+    s32                  mag;
 
     if (gGameSession->viewReady == 1 || D_80072729 == 1) {
         return 0;
     }
 
     head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - sizeof(ActorAvoidScratch);
-    s                     = (ActorAvoidScratch*)*(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - sizeof(OverlayAvoidScratch);
+    s                     = (OverlayAvoidScratch*)*(u8**)G_SCRATCH_HEAD;
     s->blocked            = 0;
     pos->vz               = 0;
     pos->vy               = 0;
@@ -245,9 +245,9 @@ s32 func_actor_210600_8014A484(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
         }
 
         if (ABS(s->dir.vz) < 0x818) {
-            s->angle[s->count] = actorBearingXZ((SVECTOR3*)&recs[s->i].point, &s->eye);
+            s->angle[s->count] = overlayBearingXZ((SVECTOR3*)&recs[s->i].point, &s->eye);
         } else {
-            s->angle[s->count] = actorBearingXY((SVECTOR3*)&recs[s->i].point, &s->eye);
+            s->angle[s->count] = overlayBearingXY((SVECTOR3*)&recs[s->i].point, &s->eye);
         }
         s->ok[s->count] = 1;
         s->count++;
@@ -302,7 +302,7 @@ s32 func_actor_210600_8014A484(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
         }
     }
 
-    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(ActorAvoidScratch);
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(OverlayAvoidScratch);
     return s->blocked != 0;
 }
 
@@ -890,19 +890,19 @@ s32 func_actor_210600_8014BDA4(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
 /// A second copy of `func_actor_210600_8014A484`; the package carries both.
 s32 func_actor_210600_8014C0EC(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
-    u8*                head;
-    ActorAvoidScratch* s;
-    s16                diff;
-    s16                t;
-    s32                mag;
+    u8*                  head;
+    OverlayAvoidScratch* s;
+    s16                  diff;
+    s16                  t;
+    s32                  mag;
 
     if (gGameSession->viewReady == 1 || D_80072729 == 1) {
         return 0;
     }
 
     head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - sizeof(ActorAvoidScratch);
-    s                     = (ActorAvoidScratch*)*(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - sizeof(OverlayAvoidScratch);
+    s                     = (OverlayAvoidScratch*)*(u8**)G_SCRATCH_HEAD;
     s->blocked            = 0;
     pos->vz               = 0;
     pos->vy               = 0;
@@ -937,9 +937,9 @@ s32 func_actor_210600_8014C0EC(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
         }
 
         if (ABS(s->dir.vz) < 0x818) {
-            s->angle[s->count] = actorBearingXZ((SVECTOR3*)&recs[s->i].point, &s->eye);
+            s->angle[s->count] = overlayBearingXZ((SVECTOR3*)&recs[s->i].point, &s->eye);
         } else {
-            s->angle[s->count] = actorBearingXY((SVECTOR3*)&recs[s->i].point, &s->eye);
+            s->angle[s->count] = overlayBearingXY((SVECTOR3*)&recs[s->i].point, &s->eye);
         }
         s->ok[s->count] = 1;
         s->count++;
@@ -994,7 +994,7 @@ s32 func_actor_210600_8014C0EC(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
         }
     }
 
-    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(ActorAvoidScratch);
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(OverlayAvoidScratch);
     return s->blocked != 0;
 }
 

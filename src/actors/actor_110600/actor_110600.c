@@ -171,7 +171,7 @@ typedef struct Actor110600Walker {
 STATIC_ASSERT_SIZEOF(Actor110600Walker, 0xAC);
 
 /// 0x1C-byte scratch frame the turn step opens on `G_SCRATCH_HEAD`, nested
-/// over the `ActorAvoidDelta` it stages. `angle` is the yaw the walker ends the frame
+/// over the `OverlayAvoidDelta` it stages. `angle` is the yaw the walker ends the frame
 /// facing: the wrapped bearing the turn counter just measured, clamped to the
 /// per-frame limit and made absolute against the coordinate's own yaw.
 typedef struct Actor110600TurnScratch {
@@ -1093,11 +1093,11 @@ void func_actor_110600_80132D54(Actor110600Walker* work)
 
 static __inline__ s16 Actor110600BearingXZ(SVECTOR3* p, SVECTOR3* eye)
 {
-    u8*              head;
-    ActorAvoidDelta* d;
+    u8*                head;
+    OverlayAvoidDelta* d;
 
     head                  = *(u8**)G_SCRATCH_HEAD;
-    d                     = (ActorAvoidDelta*)(head - 0x10);
+    d                     = (OverlayAvoidDelta*)(head - 0x10);
     d->vx                 = p->vx - eye->vx;
     *(u8**)G_SCRATCH_HEAD = (u8*)d;
     d->vy                 = p->vy - eye->vy;
@@ -1108,11 +1108,11 @@ static __inline__ s16 Actor110600BearingXZ(SVECTOR3* p, SVECTOR3* eye)
 
 static __inline__ s16 Actor110600BearingXY(SVECTOR3* p, SVECTOR3* eye)
 {
-    u8*              head;
-    ActorAvoidDelta* d;
+    u8*                head;
+    OverlayAvoidDelta* d;
 
     head                  = *(u8**)G_SCRATCH_HEAD;
-    d                     = (ActorAvoidDelta*)(head - 0x10);
+    d                     = (OverlayAvoidDelta*)(head - 0x10);
     d->vx                 = p->vx - eye->vx;
     *(u8**)G_SCRATCH_HEAD = (u8*)d;
     d->vy                 = p->vy - eye->vy;
@@ -1123,11 +1123,11 @@ static __inline__ s16 Actor110600BearingXY(SVECTOR3* p, SVECTOR3* eye)
 
 void func_actor_110600_80132FE0(Actor110600Walker* work)
 {
-    u8*                head;
-    ActorAvoidScratch* s;
-    s16                diff;
-    s16                t;
-    s32                mag;
+    u8*                  head;
+    OverlayAvoidScratch* s;
+    s16                  diff;
+    s16                  t;
+    s32                  mag;
 
     if (D_80072729 == 1) {
         return;
@@ -1139,8 +1139,8 @@ void func_actor_110600_80132FE0(Actor110600Walker* work)
     work->push.vx = 0;
 
     head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - sizeof(ActorAvoidScratch);
-    s                     = (ActorAvoidScratch*)*(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - sizeof(OverlayAvoidScratch);
+    s                     = (OverlayAvoidScratch*)*(u8**)G_SCRATCH_HEAD;
 
     Gfx_MatrixCol1(&work->coord->workm, (SVECTOR*)(head - 0x34));
     VectorNormalSS((SVECTOR*)(head - 0x34), (SVECTOR*)(head - 0x34));
@@ -1230,18 +1230,18 @@ void func_actor_110600_80132FE0(Actor110600Walker* work)
     }
 
     *(u8**)G_SCRATCH_HEAD =
-        (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(ActorAvoidScratch);
+        (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(OverlayAvoidScratch);
 }
 
 /// Bearing of `pos` from the walker's coordinate translation in the XZ plane,
 /// measured in a delta block of its own that is released before `ratan2` runs.
 static __inline__ s32 Actor110600CoordBearingXZ(SVECTOR3* pos, GsCOORDINATE2* coord)
 {
-    u8*              head;
-    ActorAvoidDelta* d;
+    u8*                head;
+    OverlayAvoidDelta* d;
 
     head                  = *(u8**)G_SCRATCH_HEAD;
-    d                     = (ActorAvoidDelta*)(head - 0x10);
+    d                     = (OverlayAvoidDelta*)(head - 0x10);
     d->vx                 = pos->vx - coord->coord.t[0];
     *(u8**)G_SCRATCH_HEAD = (u8*)d;
     d->vy                 = pos->vy - coord->coord.t[1];
