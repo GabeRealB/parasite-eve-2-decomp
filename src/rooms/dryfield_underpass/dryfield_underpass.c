@@ -352,7 +352,7 @@ void func_dryfield_underpass_8017DB20(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 ar
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
 }
 
 /// Per-frame effect on a model task: draws the glow sprites the current visit

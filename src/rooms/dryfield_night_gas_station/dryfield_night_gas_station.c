@@ -2233,7 +2233,7 @@ void func_dryfield_night_gas_station_801812B4(SVECTOR* arg0, s32 arg1, s32 arg2)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
@@ -2327,7 +2327,7 @@ void func_dryfield_night_gas_station_80181AF8(SVECTOR* arg0, s32 arg1, s32 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
 /// Effect task of a growing glow: over `spawnArg1` ticks it widens and
@@ -2482,7 +2482,7 @@ void func_dryfield_night_gas_station_80182024(GsCOORDINATE2* arg0, s32 arg1, s32
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when it
@@ -2561,7 +2561,7 @@ void func_dryfield_night_gas_station_80182450(GsCOORDINATE2* arg0, s32 arg1, u8*
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Effect task of a beam trail: allocates two eight-slot coordinate rings,
@@ -2685,9 +2685,9 @@ void func_dryfield_night_gas_station_80182CD4(GsCOORDINATE2* arg0, GsCOORDINATE2
     {
         register u8* tmp asm("v0");
 
-        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomDraw03Scratch);
-        blk                     = (RoomDraw03Scratch*)tmp;
-        *(void**)G_SCRATCH_HEAD = tmp;
+        tmp                = SCRATCH_HEAD(u8) - sizeof(RoomDraw03Scratch);
+        blk                = (RoomDraw03Scratch*)tmp;
+        SCRATCH_HEAD(void) = tmp;
     }
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -2763,7 +2763,7 @@ void func_dryfield_night_gas_station_80182CD4(GsCOORDINATE2* arg0, GsCOORDINATE2
         }
         i += 1;
     } while (i < 7);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomDraw03Scratch);
+    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
 }
 
 /// Effect task of a burst: spawns its particle effects, then either scatters
@@ -2972,5 +2972,5 @@ void func_dryfield_night_gas_station_80183354(GsCOORDINATE2* arg0, s16 arg1, u8*
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }

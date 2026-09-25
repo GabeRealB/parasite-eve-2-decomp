@@ -266,7 +266,7 @@ void func_dryfield_night_motel_loft_8017DE14(SVECTOR* arg0, s32 arg1, s32 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0xC;
+    SCRATCH_POP_BYTES_AT(scratch, 0xC);
 }
 
 /// Task driving one tumbling triangle, drawn each frame by
@@ -386,8 +386,8 @@ void func_dryfield_night_motel_loft_8017E540(GsCOORDINATE2* coord, s16 scale, s1
     s32                                off;
     s32                                ang;
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(_DryfieldNightMotelLoftTriScratch);
-    blk                     = (_DryfieldNightMotelLoftTriScratch*)*(void**)G_SCRATCH_HEAD;
+    SCRATCH_PUSH_BYTES(sizeof(_DryfieldNightMotelLoftTriScratch));
+    blk = SCRATCH_HEAD(_DryfieldNightMotelLoftTriScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     // `off` is the corner's byte offset in the block, initialised with the
     // other locals; indexing `v[]` instead lets loop strength reduction
@@ -428,5 +428,5 @@ void func_dryfield_night_motel_loft_8017E540(GsCOORDINATE2* coord, s16 scale, s1
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         Gp_AddTpageShift((P_TAG*)prim, ((u32)Gp_LcgState >> 16) & 1, blk->otz);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(_DryfieldNightMotelLoftTriScratch);
+    SCRATCH_POP_BYTES(sizeof(_DryfieldNightMotelLoftTriScratch));
 }

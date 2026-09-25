@@ -296,7 +296,7 @@ void func_dryfield_night_underpass_8017D9B4(SVECTOR* arg0, s32 arg1, s32 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
 /// Per-frame effect: draws the glow anchors the current visit lights, one per

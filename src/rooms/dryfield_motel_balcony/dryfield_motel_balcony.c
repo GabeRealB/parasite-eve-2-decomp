@@ -487,7 +487,7 @@ void func_dryfield_motel_balcony_8017DF84(GsCOORDINATE2* arg0, u16 arg1, u16 arg
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(u8**)G_SCRATCH_HEAD += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, unless
@@ -580,7 +580,7 @@ void func_dryfield_motel_balcony_8017E248(GsCOORDINATE2* arg0, s32 arg1, s32 arg
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, unless
@@ -657,7 +657,7 @@ void func_dryfield_motel_balcony_8017E66C(GsCOORDINATE2* arg0, s16 arg1, u8* arg
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// An expanding halo effect task. State 0 parks the effect's coordinate on its
@@ -931,8 +931,7 @@ void func_dryfield_motel_balcony_8017EF44(GsCOORDINATE2* coord, s16 size)
             func_dryfield_motel_balcony_8017F470(&ground, outerSize);
         }
     }
-    *(void**)G_SCRATCH_HEAD =
-        (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpRingScratch);
+    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
 }
 
 /// Queues one semi-transparent textured quad lying flat at the coordinate's
@@ -1021,7 +1020,7 @@ void func_dryfield_motel_balcony_8017F470(GsCOORDINATE2* arg0, s32 arg1)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, unless
@@ -1161,7 +1160,7 @@ void func_dryfield_motel_balcony_8017F7E8(GsCOORDINATE2* arg0, s16 arg1, u8* arg
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// A spark-spray effect task: for twenty ticks it turns its heading by a
@@ -1362,7 +1361,7 @@ void func_dryfield_motel_balcony_80180580(GsCOORDINATE2* arg0, s32 arg1, s32 arg
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// A second copy of the fan at 0x8017E66C: eight gouraud `POLY_G4` wedges
@@ -1438,7 +1437,7 @@ void func_dryfield_motel_balcony_801809AC(GsCOORDINATE2* arg0, s16 arg1, u8* arg
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// A beam-trail effect task. State 0 allocates sixteen coordinates, places
@@ -1568,9 +1567,9 @@ void func_dryfield_motel_balcony_80181230(GsCOORDINATE2* arg0, GsCOORDINATE2* ar
     {
         register u8* tmp asm("v0");
 
-        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomDraw03Scratch);
-        blk                     = (RoomDraw03Scratch*)tmp;
-        *(void**)G_SCRATCH_HEAD = tmp;
+        tmp                = SCRATCH_HEAD(u8) - sizeof(RoomDraw03Scratch);
+        blk                = (RoomDraw03Scratch*)tmp;
+        SCRATCH_HEAD(void) = tmp;
     }
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -1646,7 +1645,7 @@ void func_dryfield_motel_balcony_80181230(GsCOORDINATE2* arg0, GsCOORDINATE2* ar
         }
         i += 1;
     } while (i < 7);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomDraw03Scratch);
+    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
 }
 
 /// An impact effect task. State 0 spawns effect 0x60076, then either a
@@ -1855,5 +1854,5 @@ void func_dryfield_motel_balcony_801818B0(GsCOORDINATE2* arg0, s16 arg1, u8* arg
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }

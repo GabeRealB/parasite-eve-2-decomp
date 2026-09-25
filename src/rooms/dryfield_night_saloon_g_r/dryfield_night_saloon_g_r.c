@@ -780,7 +780,7 @@ void func_dryfield_night_saloon_g_r_8017E8B0(SVECTOR* arg0, s32 arg1, s32 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
 /// Draws the room's two light shafts as Gouraud quads. Both shafts share the
@@ -888,7 +888,7 @@ void func_dryfield_night_saloon_g_r_8017EB38(GsCOORDINATE2* coord)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x24;
+    SCRATCH_POP_BYTES(0x24);
 }
 
 /// Draws a tapered beam between two points of `coord`'s local space. `arg1`
@@ -1022,5 +1022,5 @@ void func_dryfield_night_saloon_g_r_8017F0A4(GsCOORDINATE2* coord, SVECTOR* arg1
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x28;
+    SCRATCH_POP_BYTES(0x28);
 }

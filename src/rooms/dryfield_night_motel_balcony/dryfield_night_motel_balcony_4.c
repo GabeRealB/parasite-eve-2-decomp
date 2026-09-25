@@ -334,7 +334,7 @@ void func_dryfield_night_motel_balcony_8017EC58(SVECTOR* arg0, s32 arg1)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Projects the point `arg0` through `Gfx_ViewWorldMtx` and, when the GTE flag
@@ -428,7 +428,7 @@ void func_dryfield_night_motel_balcony_8017F440(SVECTOR* arg0, s32 arg1, s32 arg
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
 /// Draws one axis-aligned `POLY_FT4` panel of a 0x28-pixel sprite at the packed
@@ -663,10 +663,10 @@ void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s32 arg)
     u16              vx;
 
     size                                      = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1].w - 1;
-    head                                      = *(void**)G_SCRATCH_HEAD;
+    head                                      = SCRATCH_HEAD(void);
     vx                                        = *(u16*)&coord->workm.t[0];
     vecp                                      = (GpFxQuadScratch*)(head - 0x1C);
-    *(void**)G_SCRATCH_HEAD                   = vecp;
+    SCRATCH_HEAD(void)                        = vecp;
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = vx;
     __asm__("move %0,%1" : "=r"(block) : "r"(vecp));
     block->vec.vy = *(u16*)&coord->workm.t[1];
@@ -715,7 +715,7 @@ void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s32 arg)
         prim->y2    = *(u16*)&block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void func_dryfield_night_motel_balcony_80180580(Task* task)
@@ -911,14 +911,14 @@ void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s32 unuse
     coord = ((TmdObject*)task->extra)->coords;
     work  = task->spawnArg2;
 
-    head                                    = *(void**)G_SCRATCH_HEAD;
+    head                                    = SCRATCH_HEAD(void);
     ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&coord->workm.t[0];
     vec                                     = (SVECTOR*)(head - 0x18);
     __asm__("move %0,%1" : "=r"(block) : "r"(vec));
-    block->vec.vy           = *(u16*)&coord->workm.t[1];
-    vz                      = *(u16*)&coord->workm.t[2];
-    *(void**)G_SCRATCH_HEAD = block;
-    block->vec.vz           = vz;
+    block->vec.vy      = *(u16*)&coord->workm.t[1];
+    vz                 = *(u16*)&coord->workm.t[2];
+    SCRATCH_HEAD(void) = block;
+    block->vec.vz      = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
@@ -967,7 +967,7 @@ void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s32 unuse
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Per-frame handler of an effect-spawning room task. Any non-zero event state
@@ -1204,12 +1204,12 @@ void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg)
     coord = ((TmdObject*)task->extra)->coords;
     work  = task->spawnArg2;
 
-    head                                    = *(void**)G_SCRATCH_HEAD;
+    head                                    = SCRATCH_HEAD(void);
     ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&coord->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
     block->vec.vy                           = *(u16*)&coord->workm.t[1];
     vz                                      = *(u16*)&coord->workm.t[2];
-    *(void**)G_SCRATCH_HEAD                 = block;
+    SCRATCH_HEAD(void)                      = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -1254,7 +1254,7 @@ void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Per-frame handler of a drifting room effect task. The first frame resets the
@@ -1385,14 +1385,14 @@ void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s16 tick)
     frame = work->index % 10;
     coord = ((TmdObject*)task->extra)->coords;
 
-    head                                    = *(void**)G_SCRATCH_HEAD;
+    head                                    = SCRATCH_HEAD(void);
     ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&coord->workm.t[0];
     vec                                     = (SVECTOR*)(head - 0x18);
     __asm__("move %0,%1" : "=r"(block) : "r"(vec));
-    block->vec.vy           = *(u16*)&coord->workm.t[1];
-    vz                      = *(u16*)&coord->workm.t[2];
-    *(void**)G_SCRATCH_HEAD = block;
-    block->vec.vz           = vz;
+    block->vec.vy      = *(u16*)&coord->workm.t[1];
+    vz                 = *(u16*)&coord->workm.t[2];
+    SCRATCH_HEAD(void) = block;
+    block->vec.vz      = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
@@ -1447,7 +1447,7 @@ void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s16 tick)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Spawns an 8-step burst of effect 0x6007E and then a 6-step burst of 0x60070

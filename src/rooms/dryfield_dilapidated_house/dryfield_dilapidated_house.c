@@ -1987,8 +1987,8 @@ void func_dryfield_dilapidated_house_801815E8(GsCOORDINATE2* coord, s16 arg1)
     s32              farNext;
     u8               shade;
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomQuadScratch);
-    blk                     = (RoomQuadScratch*)*(void**)G_SCRATCH_HEAD;
+    SCRATCH_PUSH_BYTES(sizeof(RoomQuadScratch));
+    blk = SCRATCH_HEAD(RoomQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     shade = (rsin(gDisplayState.animFrame << 10) >> 11) + 0x14;
     for (i = 0; i < 4; i++) {
@@ -2087,7 +2087,7 @@ void func_dryfield_dilapidated_house_801815E8(GsCOORDINATE2* coord, s16 arg1)
     setRGB3(prim, shade, shade, shade);
     addPrim((u_long*)((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomQuadScratch);
+    SCRATCH_POP_BYTES(sizeof(RoomQuadScratch));
 }
 
 /// Near and far trail offsets. `[0]` seeds the object's coordinate on the first
@@ -2214,8 +2214,8 @@ void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
     s32                        lo;
     s32                        fade;
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(OverlayFlaggedQuadScratch);
-    blk                     = (OverlayFlaggedQuadScratch*)*(void**)G_SCRATCH_HEAD;
+    SCRATCH_PUSH_BYTES(sizeof(OverlayFlaggedQuadScratch));
+    blk = SCRATCH_HEAD(OverlayFlaggedQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 7; i++) {
@@ -2262,7 +2262,7 @@ void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
             Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(OverlayFlaggedQuadScratch);
+    SCRATCH_POP_BYTES(sizeof(OverlayFlaggedQuadScratch));
 }
 
 /// Per-frame state machine of the ``DdhEffWork`` effect family's fade-in
@@ -2462,7 +2462,7 @@ void func_dryfield_dilapidated_house_80182A18(GsCOORDINATE2* arg0, s16 arg1, s16
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x118;
+    SCRATCH_POP_BYTES(0x118);
 }
 
 /// Draws the flame ring: `arg0`'s origin is projected once through
@@ -2538,7 +2538,7 @@ void func_dryfield_dilapidated_house_80182F14(GsCOORDINATE2* arg0, s32 arg1, s16
             ang = ang2;
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Draws a spinning textured sprite at `arg0`'s `workm` translation, projected
@@ -2613,7 +2613,7 @@ void func_dryfield_dilapidated_house_801832A8(GsCOORDINATE2* arg0, s16 arg1, s16
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
     DEF_REG(head);
 }
 
@@ -2702,7 +2702,7 @@ void func_dryfield_dilapidated_house_80183728(GsCOORDINATE2* arg0, s16 arg1, s32
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x118;
+    SCRATCH_POP_BYTES(0x118);
 }
 
 void func_dryfield_dilapidated_house_80183BF8(Task* arg0)

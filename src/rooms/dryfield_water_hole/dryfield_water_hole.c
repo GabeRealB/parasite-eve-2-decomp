@@ -584,7 +584,7 @@ void func_dryfield_water_hole_8017E410(GsCOORDINATE2* arg0, SVECTOR* arg1, SVECT
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x28;
+    SCRATCH_POP_BYTES(0x28);
 }
 
 /// Per-frame driver of an expanding, fading flash effect. While the room's
@@ -714,5 +714,5 @@ void func_dryfield_water_hole_8017EDE4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }

@@ -189,7 +189,7 @@ void func_dryfield_night_water_tower_8017DC70(SVECTOR* arg0, s32 arg1)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a textured semi-transparent glow sprite centred on the world point
@@ -282,5 +282,5 @@ void func_dryfield_night_water_tower_8017E458(SVECTOR* arg0, s32 arg1, s32 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }

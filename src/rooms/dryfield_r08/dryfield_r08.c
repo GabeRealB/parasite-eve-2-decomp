@@ -330,7 +330,7 @@ void func_dryfield_r08_8017DEFC(GsCOORDINATE2* arg0, u16 arg1, s32 arg2, s32 arg
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Projects `arg0`'s world translation through `GsWSMATRIX` and, unless the
@@ -417,7 +417,7 @@ void func_dryfield_r08_8017E36C(GsCOORDINATE2* arg0, u16 arg1, s32 arg2, s32 arg
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a glowing disc around the point `arg0`, projected through
@@ -495,7 +495,7 @@ void func_dryfield_r08_8017E7C8(SVECTOR* arg0, s32 arg1, s32 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 /// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
@@ -531,7 +531,7 @@ void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2)
         u8*    tmp;
 
         scratch = (void**)G_SCRATCH_HEAD;
-        tmp     = (*scratch = (u8*)*scratch - 0x14);
+        tmp     = SCRATCH_PUSH_BYTES_AT(scratch, 0x14);
         block   = (RoomDiscScratch*)tmp;
     }
 
@@ -628,7 +628,7 @@ void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
 }
 
 void func_dryfield_r08_8017F334(s32 arg0)

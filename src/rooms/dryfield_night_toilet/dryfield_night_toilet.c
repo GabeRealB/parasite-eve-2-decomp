@@ -193,7 +193,7 @@ void func_dryfield_night_toilet_8017D77C(SVECTOR* arg0, s32 arg1, s32 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0xC;
+    SCRATCH_POP_BYTES_AT(scratch, 0xC);
 }
 
 /// Draws the room's glow sprite (texture cell 1, half-extent 0x200) at the

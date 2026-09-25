@@ -168,7 +168,7 @@ void func_dryfield_night_parking_lot_8017DE10(SVECTOR* arg0, s32 arg1, s32 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0xC;
+    SCRATCH_POP_BYTES_AT(scratch, 0xC);
 }
 
 /// Projects `arg0` and `arg1` through the view matrix and, when the far point is
@@ -300,5 +300,5 @@ void func_dryfield_night_parking_lot_8017E08C(SVECTOR* arg0, SVECTOR* arg1, s32 
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }

@@ -210,7 +210,7 @@ void func_dryfield_water_hole_8017F5D4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, 
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x1C;
+    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
 /// Draws an upright sprite at the coordinate's world position, projected
@@ -303,5 +303,5 @@ void func_dryfield_water_hole_8017F9C0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }

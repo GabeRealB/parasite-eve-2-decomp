@@ -176,7 +176,7 @@ void func_dryfield_toilet_8017DEF4(Task* arg0)
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
     if (Gp_State1C->eventState < 4) {
         if (Gp_StateF0.field_4 == 1) {
             return;
@@ -453,7 +453,7 @@ void func_dryfield_toilet_8017EE18(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
 /// Queues a gouraud ring of sixteen quads around the projected world position
@@ -544,7 +544,7 @@ void func_dryfield_toilet_8017F09C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* 
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Queues a gouraud disc of eight wedges around the projected world position
@@ -614,7 +614,7 @@ void func_dryfield_toilet_8017F4C0(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// A glowing burst effect task. Each frame it draws a disc and the glow of
@@ -801,8 +801,7 @@ void func_dryfield_toilet_8017FA00(GsCOORDINATE2* coord, s16 size)
             func_dryfield_toilet_8017FF2C(&ground, outerSize);
         }
     }
-    *(void**)G_SCRATCH_HEAD =
-        (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpRingScratch);
+    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
 }
 
 /// Queues a semi-transparent textured quad lying flat at the world position of
@@ -891,5 +890,5 @@ void func_dryfield_toilet_8017FF2C(GsCOORDINATE2* arg0, s32 arg1)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }

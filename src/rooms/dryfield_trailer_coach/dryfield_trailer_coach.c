@@ -3015,7 +3015,7 @@ void func_dryfield_trailer_coach_801829A8(GsCOORDINATE2* arg0, SVECTOR* arg1, s3
             i = t2;
         } while (i < 2);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
 }
 
 extern SVECTOR D_dryfield_trailer_coach_801871C4;
@@ -3170,8 +3170,8 @@ void func_dryfield_trailer_coach_80182EB4(GsCOORDINATE2* coord, SVECTOR* data, s
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    work         = (s32)G_SCRATCH_HEAD;
-    *(u8**)work += 0x18;
+    work = (s32)G_SCRATCH_HEAD;
+    SCRATCH_POP_BYTES_AT(work, 0x18);
 }
 
 /// Picks the trailer's shaft drawer for the current camera view. The

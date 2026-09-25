@@ -1630,7 +1630,7 @@ void func_dryfield_breezeway_8018034C(GsCOORDINATE2* coord, u8* data, s32 arg2, 
             i = t2;
         } while (i < 2);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
 }
 
 void func_dryfield_breezeway_80180858(GsCOORDINATE2* coord, u8* data, s32 arg2, s32 arg3)
@@ -1768,7 +1768,7 @@ void func_dryfield_breezeway_80180858(GsCOORDINATE2* coord, u8* data, s32 arg2, 
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Per-frame update for a bouncing sprite particle drawn by
@@ -1989,5 +1989,5 @@ void func_dryfield_breezeway_80181938(Task* task, u8* color)
         prim->y2    = *(u16*)&block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }

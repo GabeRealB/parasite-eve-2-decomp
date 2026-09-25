@@ -98,14 +98,14 @@ void func_dryfield_junk_yard_8017D658(Task* task)
     tmd   = (TmdObject*)task->extra;
     coord = tmd->coords;
     if ((tmd->flags & 0x80) == 0 && tmd->buffer != 0) {
-        scratch                             = *(DjyGroundQuadScratch**)0x1F8003FC - 1;
-        *(DjyGroundQuadScratch**)0x1F8003FC = scratch;
+        scratch                            = SCRATCH_HEAD(DjyGroundQuadScratch) - 1;
+        SCRATCH_HEAD(DjyGroundQuadScratch) = scratch;
         Gp_UpdateCoord(coord);
         scratch->pos.vx = coord->workm.t[0];
         scratch->pos.vy = coord->workm.t[1];
         scratch->pos.vz = coord->workm.t[2];
         Gp_DrawEffGroundQuad(&scratch->pos, 0x1A0, 0xC0);
-        *(DjyGroundQuadScratch**)0x1F8003FC += 1;
+        SCRATCH_POP(DjyGroundQuadScratch);
     }
 }
 

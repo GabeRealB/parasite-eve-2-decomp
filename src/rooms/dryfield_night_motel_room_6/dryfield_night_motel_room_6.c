@@ -1327,7 +1327,7 @@ void func_dryfield_night_motel_room_6_8017F64C(Task* task)
         work->coord.flg   = 0;
         work->field_A0[2] = -0x78;
         work->field_A0[3] = 0x78;
-        plane             = (RoomMirrorPlaneScratch*)(*(u8**)G_SCRATCH_HEAD -= 0x70);
+        plane             = (RoomMirrorPlaneScratch*)SCRATCH_PUSH_BYTES(0x70);
         work->coord.sub   = sub;
         if (task->spawnArg1 == 0) {
             work->field_4     = 1;
@@ -1540,8 +1540,8 @@ void func_dryfield_night_motel_room_6_8017F64C(Task* task)
                 work->field_8           = 1;
             }
         }
-        work->field_C          = extra->flags;
-        *(u8**)G_SCRATCH_HEAD += 0x70;
+        work->field_C = extra->flags;
+        SCRATCH_POP_BYTES(0x70);
     }
 
     copyPending = work->field_4;
@@ -1662,7 +1662,7 @@ void func_dryfield_night_motel_room_6_8017F64C(Task* task)
             }
         }
         if (stage == 1 || stage == 5) {
-            extent = (RoomMirrorExtentScratch*)(*(u8**)G_SCRATCH_HEAD -= 0x34);
+            extent = (RoomMirrorExtentScratch*)SCRATCH_PUSH_BYTES(0x34);
             if (gGameSession->eventState != 0) {
                 Gp_UpdateCoord(refPart);
                 gte_SetTransMatrix(&refPart->workm);
@@ -1764,7 +1764,7 @@ void func_dryfield_night_motel_room_6_8017F64C(Task* task)
             } else {
                 extra->flags |= 0x80;
             }
-            *(u8**)G_SCRATCH_HEAD += 0x34;
+            SCRATCH_POP_BYTES(0x34);
         }
     }
 
@@ -2414,7 +2414,7 @@ void func_dryfield_night_motel_room_6_80181CD8(SVECTOR* arg0, s32 arg1, s32 arg2
             i = t2;
         } while (i < 2);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 /// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
@@ -2553,7 +2553,7 @@ void func_dryfield_night_motel_room_6_80182158(SVECTOR* arg0, s32 arg1, s32 arg2
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
 }
 
 /// Draws the room's highlight for the current camera view: the diamond marker

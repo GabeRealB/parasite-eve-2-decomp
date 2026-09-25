@@ -872,7 +872,7 @@ void func_dryfield_night_water_hole_8017EA6C(SVECTOR* arg0, s32 arg1)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Per-frame driver of an expanding, fading flash effect. While the room's
@@ -1002,7 +1002,7 @@ void func_dryfield_night_water_hole_8017F3A8(GsCOORDINATE2* arg0, s32 arg1, s32 
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 /// Per-frame driver of a particle effect, drawn as the spinning sprite of
@@ -1198,7 +1198,7 @@ void func_dryfield_night_water_hole_8017FB98(GsCOORDINATE2* arg0, s32 arg1, s32 
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x1C;
+    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
 /// Draws an upright sprite at the coordinate's world position, projected
@@ -1291,5 +1291,5 @@ void func_dryfield_night_water_hole_8017FF84(GsCOORDINATE2* arg0, s32 arg1, s32 
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }

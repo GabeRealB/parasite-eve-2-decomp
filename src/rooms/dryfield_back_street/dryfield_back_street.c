@@ -358,7 +358,7 @@ void func_dryfield_back_street_8017DC74(GsCOORDINATE2* arg0, s32 arg1, s32 arg2,
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a glow of eight gouraud wedges around the coordinate's projected
@@ -436,7 +436,7 @@ void func_dryfield_back_street_8017E0A0(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// A beam between two anchors, the two entries of
@@ -567,9 +567,9 @@ void func_dryfield_back_street_8017E924(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1
     {
         register u8* tmp asm("v0");
 
-        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomDraw03Scratch);
-        blk                     = (RoomDraw03Scratch*)tmp;
-        *(void**)G_SCRATCH_HEAD = tmp;
+        tmp                = SCRATCH_HEAD(u8) - sizeof(RoomDraw03Scratch);
+        blk                = (RoomDraw03Scratch*)tmp;
+        SCRATCH_HEAD(void) = tmp;
     }
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -645,7 +645,7 @@ void func_dryfield_back_street_8017E924(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1
         }
         i += 1;
     } while (i < 7);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomDraw03Scratch);
+    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
 }
 
 /// A burst on an effect's anchor. It spawns effect 0x60076 and then either,
@@ -858,5 +858,5 @@ void func_dryfield_back_street_8017EFA4(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }

@@ -445,8 +445,8 @@ void func_dryfield_warehouse_8017E414(GsCOORDINATE2* coord, s16 arg1)
     s32              farNext;
     u8               shade;
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomQuadScratch);
-    blk                     = (RoomQuadScratch*)*(void**)G_SCRATCH_HEAD;
+    SCRATCH_PUSH_BYTES(sizeof(RoomQuadScratch));
+    blk = SCRATCH_HEAD(RoomQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     shade = (rsin(gDisplayState.animFrame << 10) >> 11) + 0x18;
     for (i = 0; i < 4; i++) {
@@ -545,7 +545,7 @@ void func_dryfield_warehouse_8017E414(GsCOORDINATE2* coord, s16 arg1)
     setRGB3(prim, shade, shade, shade);
     addPrim((u_long*)((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomQuadScratch);
+    SCRATCH_POP_BYTES(sizeof(RoomQuadScratch));
 }
 
 /// Draws one ring of gouraud `POLY_G4` segments between two circles in the XZ
@@ -564,11 +564,11 @@ void func_dryfield_warehouse_8017ED34(GsCOORDINATE2* coord, s16 arg1, s16 arg2)
     s32              angle;
     s32              next;
 
-    level                  = (rsin(gDisplayState.animFrame << 10) >> 11) + 0x14;
-    *(u8**)G_SCRATCH_HEAD -= sizeof(RoomQuadScratch);
-    blk                    = *(RoomQuadScratch**)G_SCRATCH_HEAD;
-    start                  = gDisplayState.animFrame & 0xFFF;
-    step                   = 0x1000 / arg2;
+    level = (rsin(gDisplayState.animFrame << 10) >> 11) + 0x14;
+    SCRATCH_PUSH_BYTES(sizeof(RoomQuadScratch));
+    blk   = SCRATCH_HEAD(RoomQuadScratch);
+    start = gDisplayState.animFrame & 0xFFF;
+    step  = 0x1000 / arg2;
     gte_SetTransMatrix(&GsWSMATRIX);
     for (angle = start; angle < start + step * arg2; angle = next) {
         blk->v[0].vx = D_dryfield_warehouse_8017FB2C[arg1].vx + ((rsin(angle) * D_dryfield_warehouse_8017FBAC[arg1]) >> 12);
@@ -636,7 +636,7 @@ void func_dryfield_warehouse_8017ED34(GsCOORDINATE2* coord, s16 arg1, s16 arg2)
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
     }
-    *(u8**)G_SCRATCH_HEAD += sizeof(RoomQuadScratch);
+    SCRATCH_POP_BYTES(sizeof(RoomQuadScratch));
 }
 
 /// Per-frame effect on the room's model task: re-poses the model for the

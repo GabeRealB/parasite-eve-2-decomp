@@ -435,7 +435,7 @@ void func_dryfield_gas_station_80180B4C(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 
             i = t2;
         } while (i < 2);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
 }
 
 /// Draws a pulsing cyan glow at `data` in `coord`'s space: the point is
@@ -580,7 +580,7 @@ void func_dryfield_gas_station_80181058(GsCOORDINATE2* coord, SVECTOR* data, s32
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Per-frame effect: draws the gas station's shaft with the task's own model

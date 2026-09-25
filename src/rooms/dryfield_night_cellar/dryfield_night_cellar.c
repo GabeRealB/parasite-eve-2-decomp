@@ -207,7 +207,7 @@ void func_dryfield_night_cellar_8017D7A0(SVECTOR* arg0, s32 arg1, s32 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
 /// Per-frame effect: once event nibble 0x52 is 1, draws a glow sprite on each

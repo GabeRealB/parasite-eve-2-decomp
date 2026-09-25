@@ -161,7 +161,7 @@ void func_dryfield_night_trailer_coach_80182AB8(SVECTOR* arg0, s32 arg1, s32 arg
             i = t2;
         } while (i < 2);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 /// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
@@ -300,7 +300,7 @@ void func_dryfield_night_trailer_coach_80182F2C(SVECTOR* arg0, s32 arg1, s32 arg
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
 }
 
 /// Draws a glow joining two points: `arg0` and `arg0 + 1` are projected through
@@ -439,5 +439,5 @@ void func_dryfield_night_trailer_coach_801838B4(SVECTOR* arg0, s32 arg1)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }

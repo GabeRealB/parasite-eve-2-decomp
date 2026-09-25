@@ -220,7 +220,7 @@ void func_dryfield_night_junk_yard_8017DBD0(SVECTOR* arg0, s32 arg1, s32 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Projects the world point `arg0` through `Gfx_ViewWorldMtx` and, when its OTZ
@@ -314,7 +314,7 @@ void func_dryfield_night_junk_yard_8017E34C(SVECTOR* arg0, s32 arg1, s32 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0xC;
+    SCRATCH_POP_BYTES_AT(scratch, 0xC);
 }
 
 /// Flash effect task on the object's coordinate. While `eventState` is non-zero
@@ -473,7 +473,7 @@ void func_dryfield_night_junk_yard_8017E86C(GsCOORDINATE2* arg0, s32 arg1, s32 a
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when the
@@ -552,7 +552,7 @@ void func_dryfield_night_junk_yard_8017EC98(GsCOORDINATE2* arg0, s32 arg1, u8* r
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Beam trail task. On its first frame it allocates two eight-slot coordinate
@@ -682,9 +682,9 @@ void func_dryfield_night_junk_yard_8017F51C(GsCOORDINATE2* arg0, GsCOORDINATE2* 
     {
         register u8* tmp asm("v0");
 
-        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomDraw03Scratch);
-        blk                     = (RoomDraw03Scratch*)tmp;
-        *(void**)G_SCRATCH_HEAD = tmp;
+        tmp                = SCRATCH_HEAD(u8) - sizeof(RoomDraw03Scratch);
+        blk                = (RoomDraw03Scratch*)tmp;
+        SCRATCH_HEAD(void) = tmp;
     }
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -760,7 +760,7 @@ void func_dryfield_night_junk_yard_8017F51C(GsCOORDINATE2* arg0, GsCOORDINATE2* 
         }
         i += 1;
     } while (i < 7);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomDraw03Scratch);
+    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
 }
 
 /// Burst effect task on the object's coordinate. While `eventState` is non-zero
@@ -975,5 +975,5 @@ void func_dryfield_night_junk_yard_8017FB9C(GsCOORDINATE2* arg0, s16 arg1, u8* a
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }

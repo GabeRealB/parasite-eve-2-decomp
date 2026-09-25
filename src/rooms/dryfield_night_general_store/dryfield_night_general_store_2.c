@@ -151,7 +151,7 @@ void func_dryfield_night_general_store_8017DEE0(SVECTOR* arg0, s32 arg1)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws the store's light beams for the current camera view

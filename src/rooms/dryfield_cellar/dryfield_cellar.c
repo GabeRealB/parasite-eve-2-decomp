@@ -216,7 +216,7 @@ void func_dryfield_cellar_8017D7DC(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 arg2,
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
 }
 
 /// Per-frame effect on a model task: once event nibble 0x52 is 1, draws a glow

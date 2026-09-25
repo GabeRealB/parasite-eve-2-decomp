@@ -724,7 +724,7 @@ void func_dryfield_night_motel_lobby_80181404(SVECTOR* arg0, s32 arg1, s32 arg2)
             i = t2;
         } while (i < 2);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 /// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
@@ -864,7 +864,7 @@ void func_dryfield_night_motel_lobby_80181878(SVECTOR* arg0, s32 arg1, s32 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
 }
 
 /// Projects the point `arg0` through `Gfx_ViewWorldMtx` and, when the GTE flag
@@ -958,5 +958,5 @@ void func_dryfield_night_motel_lobby_80182200(SVECTOR* arg0, s32 arg1, s32 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }

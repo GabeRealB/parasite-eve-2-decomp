@@ -109,7 +109,7 @@ void func_dryfield_night_motel_room_3_8017D738(SVECTOR* arg0, s32 arg1, s32 arg2
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0xC;
+    SCRATCH_POP_BYTES_AT(scratch, 0xC);
 }
 
 /// Per-frame effect: queues the room's glowing discs for the visit

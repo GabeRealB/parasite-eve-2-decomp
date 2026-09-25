@@ -740,7 +740,7 @@ void func_dryfield_night_main_street_8017E940(SVECTOR* arg0, s32 arg1)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a textured semi-transparent sprite centred on the world point `arg0`
@@ -833,7 +833,7 @@ void func_dryfield_night_main_street_8017F128(SVECTOR* arg0, s32 arg1, s32 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
 void func_dryfield_night_main_street_8017F3B0(Task* task)
@@ -982,7 +982,7 @@ void func_dryfield_night_main_street_8017F608(GsCOORDINATE2* arg0, s32 arg1, s32
                     prim);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// A drifting mote: the spawn argument gives its brightness flags, vertical
@@ -1146,7 +1146,7 @@ void func_dryfield_night_main_street_8017FD34(GsCOORDINATE2* arg0, u16 arg1, u16
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(u8**)G_SCRATCH_HEAD += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Draws a ring of sixteen gouraud quads around the coordinate's projected
@@ -1238,7 +1238,7 @@ void func_dryfield_night_main_street_8017FFF8(GsCOORDINATE2* arg0, s32 arg1, s32
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a glow at the coordinate's projected position: eight gouraud quads
@@ -1316,7 +1316,7 @@ void func_dryfield_night_main_street_8018041C(GsCOORDINATE2* arg0, s32 arg1, u8*
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// A halo on an effect's anchor. State 0 parks the coordinate frame on the
@@ -1592,8 +1592,7 @@ void func_dryfield_night_main_street_80180CF4(GsCOORDINATE2* coord, s16 size)
             func_dryfield_night_main_street_80181220(&ground, outerSize);
         }
     }
-    *(void**)G_SCRATCH_HEAD =
-        (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpRingScratch);
+    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
 }
 
 /// Draws a textured semi-transparent quad of half-size `arg1` at the
@@ -1681,7 +1680,7 @@ void func_dryfield_night_main_street_80181220(GsCOORDINATE2* arg0, s32 arg1)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 /// Draws a star-shaped glow at the coordinate's projected position: a
@@ -1819,7 +1818,7 @@ void func_dryfield_night_main_street_80181598(GsCOORDINATE2* arg0, s16 arg1, u8*
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Emits sparks from the task's coordinate frame: each tick it turns its angle
