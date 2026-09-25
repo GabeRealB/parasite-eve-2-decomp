@@ -42,7 +42,8 @@ typedef struct Actor161500Work {
     /* 0x4B4 */ s16        state;
     /* 0x4B6 */ s16        appliedAnimId;
     /* 0x4B8 */ s16        animId;
-    /* 0x4BA */ byte       pad_4BA[0x2C];
+    /* 0x4BA */ s16        field_4BA;
+    /* 0x4BC */ byte       pad_4BC[0x2A];
     /* 0x4E6 */ u16        yaw;
     /* 0x4E8 */ byte       pad_4E8[0x2];
     /* 0x4EA */ s16        travel;
@@ -54,6 +55,15 @@ typedef struct Actor161500Work {
     /* 0x4F8 */ GpEnemy*   enemy;
 } Actor161500Work;
 STATIC_ASSERT_SIZEOF(Actor161500Work, 0x4FC);
+
+/// Payload of the "play animation" script opcode: which clip to play, and
+/// whether to seed the slots with `animArg`.
+typedef struct Actor161500AnimArgs {
+    /* 0x0 */ byte pad_0[4];
+    /* 0x4 */ s32  animId;
+    /* 0x8 */ s32  withArg;
+    /* 0xC */ u16  animArg;
+} Actor161500AnimArgs;
 
 /// Payload of the script opcode that writes the work block's `field_4EE`.
 typedef struct Actor161500FlagArgs {
