@@ -507,7 +507,6 @@ extern u32        D_actor_403000_80158C08;
 extern u32        D_actor_403000_80158C28;
 extern u32        D_actor_403000_80158CA8;
 extern u32        D_actor_403000_80158DD0;
-extern s8         D_80114C12;
 extern s8         D_actor_403000_80158364[];
 extern void*      Gp_PlayerAnimBlkTbl[];
 extern u16        Gp_WeaponIdBase[];
@@ -2145,7 +2144,7 @@ void func_actor_403000_8013603C(Task* arg0)
         work->field_6 = 0;
         Gp_SetLightMode(enemy, 0);
     }
-    if (work->field_F8C == 1 && D_80114C12 != work->field_F8C && gDisplayState.pendingMode == 0) {
+    if (work->field_F8C == 1 && Gp_StateC08.field_A != work->field_F8C && gDisplayState.pendingMode == 0) {
         Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
         work->field_F8C = 0;
     }

@@ -41,7 +41,6 @@ typedef struct {
 } ActorDirByte;
 
 extern void            D_actor_800200_80169EF0;
-extern Task*           D_80115764;
 extern u8*             D_actor_800200_80169FD0[4];
 extern GpActorPathStep D_actor_800200_80169FE0[];
 extern GpActorPathStep D_actor_800200_80169FF8[];
@@ -125,7 +124,7 @@ void func_actor_800200_80162088(Task* arg0)
     arg0->msgTable     = &D_actor_800200_80169EF0;
     arg0->exitCallback = &func_actor_800200_801626A0;
     actor->field_938   = 0x13;
-    D_80115764         = arg0;
+    Gp_ActorSlots[1]   = arg0;
     coord->sub         = &gGfxViewCoord;
     coord->flg         = 0;
     extra->flags       = 0;

@@ -34,7 +34,6 @@ typedef struct {
 } Actor800300DirByte;
 
 extern s32        D_8017A99C;
-extern Task*      D_80115764;
 extern void       D_actor_800300_80168880;
 extern GpImgRec** D_actor_800300_80168950[];
 extern GpImgRec** D_actor_800300_80168960[];
@@ -86,7 +85,7 @@ void func_actor_800300_80161E80(Task* arg0)
     arg0->msgTable     = &D_actor_800300_80168880;
     arg0->exitCallback = &func_actor_800300_801625A8;
     actor->field_938   = 0x13;
-    D_80115764         = arg0;
+    Gp_ActorSlots[1]   = arg0;
     coord->sub         = &gGfxViewCoord;
     coord->flg         = 0;
     extra->flags       = 0;

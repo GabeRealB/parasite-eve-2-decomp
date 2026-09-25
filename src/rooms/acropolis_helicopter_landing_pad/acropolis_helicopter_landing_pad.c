@@ -1,4 +1,5 @@
 #include "common.h"
+#include "gameplay/gameplay.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -43,9 +44,8 @@ typedef struct AhlpEnemyWork {
 STATIC_ASSERT_SIZEOF(AhlpEnemyWork, 0x54);
 
 /// Main-executable globals with no module header yet, both of which hold the
-/// phase tick back from phase 2: `D_80114C12` while it equals 1, `gDisplayState.pendingMode`
+/// phase tick back from phase 2: `Gp_StateC08.field_A` while it equals 1, `gDisplayState.pendingMode`
 /// while it is non-zero.
-extern s8 D_80114C12;
 
 /// The `func_800E8634` script pair the phase tick starts on entering phase 2.
 extern s32 D_acropolis_helicopter_landing_pad_80184124;
@@ -202,7 +202,7 @@ void func_acropolis_helicopter_landing_pad_8017D964(Task* task)
 }
 
 /// Per-frame phase tick of the room's script task. In phase 1 it posts msg
-/// 0x7D6 to slot-4 entry 0; once that returns 0 and neither `D_80114C12` nor
+/// 0x7D6 to slot-4 entry 0; once that returns 0 and neither `Gp_StateC08.field_A` nor
 /// `gDisplayState.pendingMode` holds it back, it moves to phase 2, starts the script pair
 /// and queues sound 0xA2. Camera view 5 of the session raises
 /// `D_acropolis_helicopter_landing_pad_80184E0C`; a cleared
@@ -213,7 +213,7 @@ void func_acropolis_helicopter_landing_pad_8017D9BC(Task* task)
 
     if (phase == 1) {
         if (Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D6, 0, 0) == 0) {
-            if ((D_80114C12 != phase) && (gDisplayState.pendingMode == 0)) {
+            if ((Gp_StateC08.field_A != phase) && (gDisplayState.pendingMode == 0)) {
                 D_acropolis_helicopter_landing_pad_80184D9C = 2;
                 func_800E8634((s32)&D_acropolis_helicopter_landing_pad_80184124, 0,
                               (s32)&D_acropolis_helicopter_landing_pad_801844B4);

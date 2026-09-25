@@ -1,4 +1,5 @@
 #include "common.h"
+#include "gameplay/gameplay.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -112,7 +113,6 @@ void func_mist_r18_8017E92C(Task* task);
 void func_mist_r18_8017E994(s32 tpage, s16 arg1);
 void func_mist_r18_8017ECF4(Task* arg0);
 
-extern s8 D_80114C12;
 extern s8 D_801156F9;
 
 /// The room's task-spawn table; its entries are started by index from the
@@ -267,7 +267,7 @@ void func_mist_r18_8017D960(Task* task)
 {
     s32 state;
 
-    if ((gGameSession->eventState == 0) && (D_80114C12 != 1) && (gDisplayState.pendingMode == 0)) {
+    if ((gGameSession->eventState == 0) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == 0)) {
         state = D_mist_r18_80186E9C;
         if (state == 1) {
             func_800E8634((s32)&D_mist_r18_80185EBC, 0, (s32)&D_mist_r18_80186564);

@@ -28,8 +28,6 @@ extern TaskDesc       D_mine_cavern_8018E3F4;
 extern s32            D_mine_cavern_8018EB50;
 extern GpAreaApplyRec D_mine_cavern_8018E32C;
 
-extern s8 D_80114C12;
-
 /// One byte of gameplay state. Read back with `lb` elsewhere, so it is signed.
 
 s32 func_mine_cavern_8017D908(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
@@ -216,7 +214,7 @@ void func_mine_cavern_8017DEE4(Task* task)
     s32 flag;
 
     flag = GameFlag_GetNibble(0xE6);
-    if ((flag == 1) && (D_mine_cavern_8018EB50 == flag) && (D_80114C12 != D_mine_cavern_8018EB50)) {
+    if ((flag == 1) && (D_mine_cavern_8018EB50 == flag) && (Gp_StateC08.field_A != D_mine_cavern_8018EB50)) {
         func_800E8634((s32)&D_mine_cavern_80188214, 0, (s32)&D_mine_cavern_801887B4);
         D_mine_cavern_8018EB50 = 2;
     }

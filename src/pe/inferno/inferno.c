@@ -24,8 +24,6 @@ InfernoFanParam D_inferno_801304E4[] = {
 /// The `SndEvt_EnqueueType6` id for each inferno stage.
 s32 D_inferno_801304F0[] = { 0xE0100001, 0xE0130001, 0xE00D0001 };
 
-extern s8 D_80114C0B;
-
 void func_inferno_8012F3EC(s16 arg0);
 void func_inferno_8012F978(GpEffWork* mem, GpCoord* coord, s32 kind, InfernoIdMap* map);
 void func_inferno_8012FF34(GpEffWork* mem, GpCoord* coord, s32 kind, InfernoIdMap* map);
@@ -39,7 +37,7 @@ void func_inferno_8012FF34(GpEffWork* mem, GpCoord* coord, s32 kind, InfernoIdMa
 /// brightness scalar (`GpEffWork::angle`) down and back up and each fire one ring of
 /// flames on their own tick, and state 12 fades out and releases. Every state
 /// updates the effect coordinate first, and any state releases immediately if
-/// the player is dying (`D_80114C0B`) or the room is fading (`Gp_State1C`).
+/// the player is dying (`Gp_StateC08.field_3`) or the room is fading (`Gp_State1C`).
 void func_inferno_8012EF88(Task* arg0)
 {
     GpEffWork* mem;
@@ -49,7 +47,7 @@ void func_inferno_8012EF88(Task* arg0)
 
     mem   = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
-    if ((D_80114C0B == -2) || (Gp_State1C->fadeState >= 4)) {
+    if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
         goto release;
     }
     coord->flg = 0;
@@ -203,7 +201,7 @@ void func_inferno_8012F530(Task* arg0)
     map   = (InfernoIdMap*)arg0->work;
     mem   = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
-    if ((D_80114C0B == -2) || (Gp_State1C->fadeState >= 4)) {
+    if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
         goto release;
     }
     coord->flg = 0;

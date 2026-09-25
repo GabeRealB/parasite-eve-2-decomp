@@ -1,4 +1,5 @@
 #include "common.h"
+#include "gameplay/gameplay.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -43,7 +44,6 @@ typedef struct {
 extern UiObjectDesc D_800611E4;
 extern UiObject*    D_80067634;
 extern UiObjectDesc D_8010EFA0;
-extern s8           D_80114C12;
 extern s16          D_80114D08;
 extern u32          D_80115694;
 extern s32          D_801350BC;
@@ -1328,7 +1328,7 @@ void func_shelter_r47_8017FCC0(void)
 {
     u8 place = gGameSession->at4.loc.place;
 
-    if (place != 1 || D_80114C12 == place) {
+    if (place != 1 || Gp_StateC08.field_A == place) {
         return;
     }
     switch (GameFlag_GetNibble(0x82)) {

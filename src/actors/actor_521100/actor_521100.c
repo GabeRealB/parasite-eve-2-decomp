@@ -88,7 +88,6 @@ typedef struct Actor521100StateChoice {
 } Actor521100StateChoice;
 STATIC_ASSERT_SIZEOF(Actor521100StateChoice, 2);
 
-extern s8                     D_80114C12;
 extern s16                    D_actor_521100_8015F57C[16];
 extern Actor521100StateChoice D_actor_521100_8015F59C[6];
 extern s16                    D_actor_521100_8015F5A8[16];
@@ -711,7 +710,7 @@ void func_actor_521100_80132DE8(Task* arg0)
 
     switch (work->field_6A0) {
         case 0:
-            if (((u32)((u8)D_80114C12 - 2) >= 2U) && (gGameSession->at4.loc.view != 2)) {
+            if (((u32)((u8)Gp_StateC08.field_A - 2) >= 2U) && (gGameSession->at4.loc.view != 2)) {
                 if (work->field_6AA < 0x8FC) {
                     if (work->field_6B8 == work->field_6B6) {
                         pairNear    = D_actor_521100_8015F59C;

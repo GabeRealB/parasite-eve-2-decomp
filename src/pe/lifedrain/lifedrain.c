@@ -36,15 +36,13 @@ s32 D_lifedrain_80130AD4[] = {
     0xE0270002,
 };
 
-extern s8 D_80114C0B;
-
 /// Scratch for the drain ribbon, plus the task handle it spawns.
 s16          D_lifedrain_80130AEC[16] = { 0 };
 struct Task* D_lifedrain_80130B0C     = NULL;
 
 /// Runs one frame of the life-drain cast: a five-state machine driven by
 /// `Task::state`, published in `D_lifedrain_80130B0C` so every mote can find
-/// it. Cancelling (`D_80114C0B == -2` or `Gp_State1C->fadeState >= 4`) releases
+/// it. Cancelling (`Gp_StateC08.field_3 == -2` or `Gp_State1C->fadeState >= 4`) releases
 /// the work block, and states 0 and 1 first cash the banked `Gp_StateF0.field_14` into
 /// `Player_Status.hp`, clamped to the max in `field_1a`.
 ///
@@ -72,7 +70,7 @@ void func_lifedrain_8012EF48(Task* arg0)
 
     mem   = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
-    if ((D_80114C0B == -2) || (Gp_State1C->fadeState >= 4)) {
+    if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
         if ((arg0->state < 2) && (arg0->spawnArg1 != 0)) {
             Player_Status.hp = (u16)Player_Status.hp + Gp_StateF0.field_14;
             if (Player_Status.hp > Player_Status.hpMax) {

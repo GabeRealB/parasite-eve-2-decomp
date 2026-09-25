@@ -111,7 +111,6 @@ extern u8            D_actor_160900_8013F198[];
 extern u8       D_actor_160900_8013F210[];
 extern u8       D_actor_160900_8013F228[];
 extern TaskDesc D_actor_160900_8013F17C;
-extern s8       D_80114C12;
 
 /// Point lists `func_actor_160900_8013418C` hands `func_actor_160900_80133758`
 /// for `Actor160900Work::field_5C` values 1-5.
@@ -1223,7 +1222,7 @@ void func_actor_160900_8013418C(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if (D_80114C12 == 1 || gDisplayState.pendingMode != 0) {
+            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != 0) {
                 return;
             }
             work       = (Actor160900Work*)Mem_Malloc(0x68, 0);

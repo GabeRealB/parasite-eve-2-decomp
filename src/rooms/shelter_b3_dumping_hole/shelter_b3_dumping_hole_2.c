@@ -299,7 +299,6 @@ extern s32                    D_shelter_b3_dumping_hole_801881E4;
 extern DumpingHoleSpawnEntry  D_shelter_b3_dumping_hole_801881FC[];
 extern DumpingHoleSpawnEntry  D_shelter_b3_dumping_hole_80188304[];
 extern DumpingHoleDebrisEntry D_shelter_b3_dumping_hole_801884CC[];
-extern s8                     D_80114C12;
 extern s32                    D_shelter_b3_dumping_hole_801880A0[];
 extern s32                    D_shelter_b3_dumping_hole_80188640;
 extern s32                    D_shelter_b3_dumping_hole_80188A78;
@@ -1183,7 +1182,7 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
             if (Gp_CapBusy() != 0) {
                 break;
             }
-            if (D_80114C12 == 1 || gDisplayState.pendingMode != 0 || Player_Status.coordMtx->t[0] < 0x36B1) {
+            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != 0 || Player_Status.coordMtx->t[0] < 0x36B1) {
                 break;
             }
             w2 = (DumpingHoleEntity*)arg0->work;
@@ -2002,7 +2001,7 @@ void func_shelter_b3_dumping_hole_80181560(Task* task)
 
     switch (task->state) {
         case 0:
-            if (D_80114C12 == 1 || gDisplayState.pendingMode != 0) {
+            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != 0) {
                 return;
             }
             obj        = task->extra.tmd;

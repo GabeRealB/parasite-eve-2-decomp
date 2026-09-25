@@ -102,10 +102,9 @@ extern GsF_LIGHT D_actor_303600_8016E490[3];
 extern u8 D_actor_303600_80162AF0[];
 extern u8 D_actor_303600_80162DD8[];
 
-/// Main-executable globals with no module header yet: a `D_80114C12` of 1 or a
+/// Main-executable globals with no module header yet: a `Gp_StateC08.field_A` of 1 or a
 /// live `gDisplayState.pendingMode` both mean a cutscene is already up, and `gDisplayState.roomVariant` is the
 /// latch state 2 below sets alongside `Mc_SaveData`.
-extern s8 D_80114C12;
 
 void func_actor_303600_80162850(Task* task);
 void func_actor_303600_80162950(Task* task);
@@ -218,7 +217,7 @@ void func_actor_303600_80161F40(Task* arg0)
     work->command = 0;
 }
 
-/// Cutscene controller for the overlay. State 0 arms it once: a `D_80114C12` of
+/// Cutscene controller for the overlay. State 0 arms it once: a `Gp_StateC08.field_A` of
 /// 1 or a live `gDisplayState.pendingMode` both mean a cutscene is already up, so the state is
 /// left where it is and the task returns; otherwise it allocates the
 /// `Actor303600Work` block, zeroes it, parks the `gameGetPtrSlot(3)` task in
@@ -236,7 +235,7 @@ void func_actor_303600_8016216C(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if (D_80114C12 == 1 || gDisplayState.pendingMode != 0) {
+            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != 0) {
                 return;
             }
             work       = (Actor303600Work*)Mem_Malloc(0x10, 0);

@@ -78,8 +78,6 @@ extern u16 D_actor_342100_801649A8[];
 /// gated on: it aims the effect only on the frames where the low nibble (or,
 /// for the other arm, the low three bits) of this global is clear.
 
-extern s8       D_80114C11;
-extern s8       D_80114C12;
 extern u8       D_80114CF8;
 extern TaskDesc D_8018B57C;
 extern TaskDesc D_8018B83C;
@@ -706,12 +704,12 @@ void func_actor_342100_801630A4(Task* arg0)
     PlayerStatus*    cfg;
 
     work = (Actor342100Work*)arg0->work;
-    if (gGameSession->field_65 != 0 || D_80114C11 != 0 || Gp_StateF0.field_4 != 0 || D_80114CF8 != 0) {
+    if (gGameSession->field_65 != 0 || Gp_StateC08.field_9 != 0 || Gp_StateF0.field_4 != 0 || D_80114CF8 != 0) {
         return;
     }
     switch (arg0->state) {
         case 0:
-            if (D_80114C12 == 1 || gDisplayState.pendingMode != 0) {
+            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != 0) {
                 break;
             }
             newWork    = Mem_Malloc(0x44, 0);

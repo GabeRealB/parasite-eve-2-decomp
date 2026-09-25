@@ -14,7 +14,6 @@ extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
 /// Main-executable globals with no module header yet, which
 /// `func_neo_ark_power_plant_1_8017D5EC` tests and sets.
-extern s8 D_80114C12;
 
 /// Script blobs in the overlay's `.data`, handed to `func_800E8634` /
 /// `func_800E8614` (which forward them to `Task_Spawn`) as raw addresses.
@@ -44,7 +43,7 @@ const TaskFuncTable3 D_neo_ark_power_plant_1_8017D5C4 = {
 
 /// Second state of the room task, run every frame. While nibble 0xDE is clear
 /// it sends message 0x7D6 to the slot-4 task, and when that returns 0 with
-/// `D_80114C12` not 1 and `gDisplayState.pendingMode` clear, it sets nibbles 0xDE and 0xF6,
+/// `Gp_StateC08.field_A` not 1 and `gDisplayState.pendingMode` clear, it sets nibbles 0xDE and 0xF6,
 /// clears 0x1B2, applies `D_neo_ark_power_plant_1_80181C00`, sets
 /// `Mc_SaveData.sceneEvent` to 0x16 and starts the event script at
 /// `D_neo_ark_power_plant_1_8017EB7C`. When `Mc_SaveData.at4.loc.view` is 3 and nibble 0xFB
@@ -61,7 +60,7 @@ void func_neo_ark_power_plant_1_8017D5EC(Task* task)
         slot = (Task*)Gp_LookupSlot4(0);
         if (slot != 0) {
             if (Gp_DispatchMsg(slot, 0x7D6, 0, 0) == 0) {
-                if (D_80114C12 != 1) {
+                if (Gp_StateC08.field_A != 1) {
                     if (gDisplayState.pendingMode == 0) {
                         GameFlag_SetNibble(0xDE, 1);
                         GameFlag_SetNibble(0xF6, 1);

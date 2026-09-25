@@ -10,8 +10,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-extern s8 D_80114C12;
-
 void func_801811C4(s32 amount);
 
 static __inline__ void Actor00100_ScaleTransform(MATRIX* matrix, s16 amount)

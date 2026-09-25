@@ -28,8 +28,6 @@ s32 D_pyrokinesis_80131DD8[] = {
     0xE0110004,
 };
 
-extern s8 D_80114C0B;
-
 void func_pyrokinesis_80130DC0(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 void func_pyrokinesis_801312B4(GpCoord* arg0, s16 arg1, s32 arg2, s16 arg3);
 void func_pyrokinesis_80131784(GpCoord* arg0, s16 arg1, s32 arg2, s32 arg3);
@@ -50,7 +48,7 @@ s16 D_pyrokinesis_80131DFC[16] = { 0 };
 /// wall, which drops to state 2 and fades the cone out. States 3 and 4 grow
 /// the two rings until they pass the combo radius, state 4 first stepping the
 /// brightness down by 8 a frame. Any state releases if the player is dying
-/// (`Gp_StateC08.field_3` / `D_80114C0B`) or the room is fading (`Gp_State1C`).
+/// (`Gp_StateC08.field_3` / `Gp_StateC08.field_3`) or the room is fading (`Gp_State1C`).
 void func_pyrokinesis_8012EF48(Task* arg0)
 {
     GpEffWork*    mem;
@@ -189,7 +187,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             Gp_ClearRec18Occupied(&work->rec);
             return;
         case 1:
-            if ((D_80114C0B == -2) || ((fade = Gp_State1C->fadeState), fade >= 4)) {
+            if ((Gp_StateC08.field_3 == -2) || ((fade = Gp_State1C->fadeState), fade >= 4)) {
                 Gp_UnlinkObj(&work->obj);
                 Gp_UnlinkObj(&work->obj2);
                 Gp_ReleaseState1CMem(mem, arg0);
@@ -274,7 +272,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             Gp_ReleaseState1CMem(mem, arg0);
             return;
         case 2:
-            if ((D_80114C0B == -2) || ((fade = Gp_State1C->fadeState), fade >= 4)) {
+            if ((Gp_StateC08.field_3 == -2) || ((fade = Gp_State1C->fadeState), fade >= 4)) {
                 Gp_UnlinkObj(&work->obj);
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
@@ -318,7 +316,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             Gp_ClearRec18Occupied(&work->rec);
             return;
         case 3:
-            if (D_80114C0B == -2) {
+            if (Gp_StateC08.field_3 == -2) {
                 Gp_UnlinkObj(&work->obj2);
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
@@ -346,7 +344,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             }
             return;
         case 4:
-            if (D_80114C0B == -2) {
+            if (Gp_StateC08.field_3 == -2) {
                 Gp_UnlinkObj(&work->obj2);
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;

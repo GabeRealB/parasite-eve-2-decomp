@@ -105,7 +105,6 @@ extern MistShootingGallerySpawn* D_mist_shooting_gallery_80186900[];
 /// Gameplay-side abort request. While it is 1 the bonus course tears itself
 /// down: the state machine remembers where it was in `field_06` / `field_21`
 /// and jumps to the state-9 shutdown banner.
-extern s8   D_80114C0B;
 extern void func_8014A908(void);
 extern void func_8014A9A0(void);
 extern void func_8014B0D4(void);
@@ -880,7 +879,7 @@ void func_mist_shooting_gallery_8018341C(Task* arg0)
 /// "ready" banner and the hand-off wait on `gGameSession::at4.loc.view`, state 4
 /// seeds the first two records of `D_mist_shooting_gallery_8018690C`, states
 /// 5-7 hand the player over to actor mode 2 while the banner counts up through
-/// `field_20`, and state 8 is the wave loop proper. `D_80114C0B` is the abort
+/// `field_20`, and state 8 is the wave loop proper. `Gp_StateC08.field_3` is the abort
 /// request: once it is raised the machine saves its place in `field_06` /
 /// `field_21` and jumps to the state-9 shutdown banner, which restores them.
 void func_mist_shooting_gallery_801838FC(Task* arg0)
@@ -1052,7 +1051,7 @@ void func_mist_shooting_gallery_801838FC(Task* arg0)
     }
 
     if (work->field_1E == 0 && work->field_20 >= 0x13) {
-        abort = D_80114C0B;
+        abort = Gp_StateC08.field_3;
         if (abort == 1) {
             prev           = work->field_04;
             work->field_1E = abort;

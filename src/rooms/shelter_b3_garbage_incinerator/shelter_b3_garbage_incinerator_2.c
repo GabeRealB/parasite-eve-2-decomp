@@ -29,7 +29,6 @@
 #include "rooms/room_common.h"
 #include "rooms/shelter_b3_garbage_incinerator.h"
 
-extern s8       D_80114C12;
 extern TaskDesc D_80164FF8;
 
 /// Work block of the task that moves its model while steering another task.
@@ -175,7 +174,7 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if (D_80114C12 == 1 || gDisplayState.pendingMode != 0) {
+            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != 0) {
                 break;
             }
             SndEvt_EnqueueType6(0x5428000D, 0, 0);

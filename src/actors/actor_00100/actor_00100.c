@@ -144,7 +144,6 @@ void func_8004BFF8(s16 angle, MATRIX* matrix);
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
 extern s8 Actor00100_D1B6D0;
-extern s8 D_80114C12;
 
 extern const GpEnemyTaskFuncTable4 Actor00100_D001A0;
 
@@ -1906,7 +1905,7 @@ void Actor00100_Fn04270(Task* argx)
         Gp_UnlinkObj((GpObj*)&work->objs[2]);
         ctx->recs = 0;
     }
-    if (work->field_6 >= 0x3D && work->field_C18 == 0 && D_80114C12 != 1 && gDisplayState.pendingMode == 0) {
+    if (work->field_6 >= 0x3D && work->field_C18 == 0 && Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == 0) {
         if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 1, 0, 0)) {
             Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, ctx->placeKey >> 12, 0);
         }
@@ -3834,7 +3833,7 @@ void Actor00100_Fn09310(Task* arg0)
         Gp_UnlinkObj((GpObj*)&work->objs[2]);
         ctx->recs = 0;
     }
-    if (((s16)work->field_6 >= 0x1F) && (work->field_C18 == 0) && (D_80114C12 != 1) && (gDisplayState.pendingMode == 0)) {
+    if (((s16)work->field_6 >= 0x1F) && (work->field_C18 == 0) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == 0)) {
         if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 1, 0, 0)) {
             Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, (s32)(ctx->placeKey >> 0xC), 0);
         }
@@ -3991,7 +3990,7 @@ void Actor00100_Fn09CCC(Task* arg0)
                 finishedObj         = arg0->extra.tmd;
                 finishedObj->flags |= 4;
             }
-            if (((s16)work->field_6 >= 0x79) && (work->field_C18 != 1) && (D_80114C12 != 1) && gDisplayState.pendingMode == 0) {
+            if (((s16)work->field_6 >= 0x79) && (work->field_C18 != 1) && (Gp_StateC08.field_A != 1) && gDisplayState.pendingMode == 0) {
                 Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, (s32)(ctx->placeKey >> 0xC), 0);
                 work->field_C2A = 1;
                 arg0->state++;

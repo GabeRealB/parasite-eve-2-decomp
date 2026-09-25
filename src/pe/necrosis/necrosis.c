@@ -26,8 +26,6 @@ NecrosisStep D_necrosis_801306BC[] = {
 /// The `SndEvt_EnqueueType6` id for each `D_necrosis_801306BC` row.
 s32 D_necrosis_801306C8[] = { 0xE0150001, 0xE0180001, 0xE01B0001 };
 
-extern s8 D_80114C0B;
-
 void func_necrosis_8012F6EC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 void func_necrosis_8012FE64(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 void func_necrosis_80130288(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
@@ -39,7 +37,7 @@ void func_necrosis_80130288(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 /// each frame, walks the coordinate, and spawns `0x80060019`; a `0x100000` hit
 /// on `obj2` zeros the offset and unlinks the list-7 object. State 2 waits
 /// `field_2 + 0x10` ticks. Any state releases if the player is dying
-/// (`Gp_StateC08.field_3` / `D_80114C0B`) or the room is fading (`Gp_State1C`).
+/// (`Gp_StateC08.field_3` / `Gp_StateC08.field_3`) or the room is fading (`Gp_State1C`).
 void func_necrosis_8012EF34(Task* arg0)
 {
     NecrosisWork* work;
@@ -143,7 +141,7 @@ void func_necrosis_8012EF34(Task* arg0)
             } else {
                 mem->age = mem->age - 1;
             }
-            if ((D_80114C0B == -2) || (Gp_State1C->fadeState >= 4)) {
+            if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
                 Gp_UnlinkObj(&work->obj);
                 Gp_UnlinkObj(&work->obj2);
                 goto release;
@@ -163,7 +161,7 @@ void func_necrosis_8012EF34(Task* arg0)
             Gp_ClearRec18Occupied(&work->rec);
             return;
         case 2:
-            if (D_80114C0B == -2) {
+            if (Gp_StateC08.field_3 == -2) {
                 goto release;
             }
             if (Gp_State1C->fadeState >= 4) {

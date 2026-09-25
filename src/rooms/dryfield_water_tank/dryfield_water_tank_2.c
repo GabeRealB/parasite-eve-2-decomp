@@ -44,11 +44,10 @@ typedef struct DwtWork {
 STATIC_ASSERT_SIZEOF(DwtWork, 0x10);
 
 /// Main-executable globals with no module header yet: the cutscene task
-/// refuses to start while `D_80114C12` is 1 or `gDisplayState.pendingMode` is non-zero.
+/// refuses to start while `Gp_StateC08.field_A` is 1 or `gDisplayState.pendingMode` is non-zero.
 /// `Player_Status.weapon` is the equipped-weapon index the slot-3 msg 0x3E8 animation
 /// record is keyed on, and `Mc_SaveData.characterId` picks which of the two weapon-id bases
 /// that record uses.
-extern s8 D_80114C12;
 
 /// Main-executable flag set to 1 before the view tasks are respawned.
 
@@ -364,7 +363,7 @@ void func_dryfield_water_tank_8017E9F8(Task* task)
     return;
 
 L_case0:
-    if ((D_80114C12 != 1) && (gDisplayState.pendingMode == 0)) {
+    if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == 0)) {
         work       = Mem_Malloc(0xC, false);
         task->work = (TaskIdMap*)work;
         if (work == NULL) {

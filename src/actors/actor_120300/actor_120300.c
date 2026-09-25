@@ -1,4 +1,5 @@
 #include "common.h"
+#include "gameplay/gameplay.h"
 
 #include "actors/actor.h"
 #include "actors/actors_shared_80133c6c.h"
@@ -70,7 +71,6 @@ extern TaskDesc D_actor_120300_80141B6C[];
 /// is what keeps the caller's zero-extension.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-extern s8             D_80114C12;
 extern s32            D_8017DD6C;
 extern s32            D_8017DEA4;
 extern s32            D_8017E1F4;
@@ -1178,7 +1178,7 @@ void func_actor_120300_801335D8(Task* arg0)
 }
 
 /// Main tick of the cutscene actor. State 0 waits until no other cutscene is
-/// up (`D_80114C12` / `gDisplayState.pendingMode`), builds the work block, then either arms
+/// up (`Gp_StateC08.field_A` / `gDisplayState.pendingMode`), builds the work block, then either arms
 /// play (`func_actor_120300_80133330`) once flag nibble 0x2D is set or sends
 /// the slot-3 weapon record and starts the script. States 1-4 step the area
 /// records, the pending `Gp_TakePendingObj4C` cue, and the overlay-load
@@ -1210,7 +1210,7 @@ void func_actor_120300_801337C4(Task* arg0)
     work  = (Actor120300Work*)arg0->work;
     switch (state) {
         case 0:
-            if ((D_80114C12 != 1) && (gDisplayState.pendingMode == 0)) {
+            if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == 0)) {
                 func_actor_120300_801335D8(arg0);
                 work = (Actor120300Work*)arg0->work;
                 if (GameFlag_GetNibble(0x2D) != 0) {

@@ -291,8 +291,6 @@ extern Task* D_actor_560800_801757AC;
 /// index.
 extern TaskDesc D_actor_560800_801718F0;
 
-extern s8 D_80114C12;
-
 void func_actor_560800_80133970(Task* arg0);
 void func_actor_560800_80134258(Task* arg0);
 void func_actor_560800_80134384(Task* arg0);
@@ -1874,7 +1872,7 @@ void func_actor_560800_80135D54(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if (D_80114C12 == 1 || gDisplayState.pendingMode != 0) {
+            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != 0) {
                 return;
             }
             func_actor_560800_80135BD8(arg0);

@@ -202,10 +202,9 @@ extern u8 D_dryfield_breezeway_80183164[];
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on, and
 /// `Mc_SaveData.characterId` picks which of the two weapon-id bases that record uses.
-/// `gDisplayState.pendingMode` gates the "everything is dead" message and `D_80114C12` the
+/// `gDisplayState.pendingMode` gates the "everything is dead" message and `Gp_StateC08.field_A` the
 /// cutscene/among-us mode flag: the second arming state machine below waits for
 /// both to be clear.
-extern s8  D_80114C12;
 extern s16 D_80114D08;
 
 void func_dryfield_breezeway_8017E464(Task* arg0);
@@ -346,7 +345,7 @@ extern s32 D_dryfield_breezeway_80181F90;
 /// stays resident to run `func_dryfield_breezeway_8017DEC0` every frame.
 ///
 /// State 0 arms the room, but only while no cutscene is running
-/// (`D_80114C12 != 1`) and the area is not cleared (`gDisplayState.pendingMode == 0`) --
+/// (`Gp_StateC08.field_A != 1`) and the area is not cleared (`gDisplayState.pendingMode == 0`) --
 /// otherwise it returns having done nothing, which retires the task on the
 /// next frame. It allocates the 0x14 `DbwWork` block, publishes the room task
 /// in `D_dryfield_breezeway_801843C0`, republishes the player's weapon as
@@ -367,7 +366,7 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if (D_80114C12 == 1 || gDisplayState.pendingMode != 0) {
+            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != 0) {
                 return;
             }
             work       = (DbwWork*)Mem_Malloc(0x14, 0);

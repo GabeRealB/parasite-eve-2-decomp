@@ -30,7 +30,6 @@ extern void Stage_RequestFromAreaTable(s32 arg0);
 extern void func_807245E4(void*);
 extern void func_80724608(void*, s32, s32, void*);
 
-extern s8 D_80114C12;
 extern u8 D_801156A4;
 
 extern GpMsgEntry     D_acropolis_cafeteria_80182AA8[];
@@ -228,7 +227,7 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             }
             break;
         case 18:
-            if (Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D6, 0, 0) == 0 && Player_Status.hp > 0 && D_80114C12 != 1 &&
+            if (Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D6, 0, 0) == 0 && Player_Status.hp > 0 && Gp_StateC08.field_A != 1 &&
                 gDisplayState.pendingMode == 0) {
                 Gp_MsgPlayerWeapon(0);
                 task->state += 1;

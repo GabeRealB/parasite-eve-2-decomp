@@ -280,7 +280,6 @@ extern s32 D_dryfield_water_tower_80187678;
 /// header yet: the raise prop `func_dryfield_water_tower_8017E1DC` runs its
 /// state machine only while it is zero, so it is the room's "leave the cap
 /// alone" gate -- the cap stops moving the moment it goes non-zero.
-extern s8 D_80114C11;
 
 /// The room's script table, the `Task::msgTable` block `Gp_DispatchMsg`
 /// reads: the raise prop `func_dryfield_water_tower_8017E1DC` hangs it off its
@@ -289,8 +288,7 @@ extern u32 D_dryfield_water_tower_80181B00;
 
 /// Main-executable gates the cap script checks, with no module header yet:
 /// the script only runs while `Player_Status.hp` is non-zero, and its state 8 holds
-/// back on `D_80114C12` == 1 or a non-zero `gDisplayState.pendingMode`.
-extern s8 D_80114C12;
+/// back on `Gp_StateC08.field_A` == 1 or a non-zero `gDisplayState.pendingMode`.
 
 /// The raised-cap sources the cap script restores the room's script-table
 /// blocks from, and the lowered-cap ones it uses when the cap is already down.
@@ -578,7 +576,7 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
     }
     new_var     = 0;
     obj->flags &= 0xFF7F;
-    if (D_80114C11 == 0) {
+    if (Gp_StateC08.field_9 == 0) {
         switch (arg0->state) {
             case 0: {
                 TmdObject* model;
@@ -1070,7 +1068,7 @@ u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
             state->field_58++;
 
         case 3:
-            if (Gp_TakePendingObj4C(&objId, &objA, &objB) != 0 && D_80114C12 != 1 && gDisplayState.pendingMode == 0 &&
+            if (Gp_TakePendingObj4C(&objId, &objA, &objB) != 0 && Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == 0 &&
                 (objId & 0x7FFF) == 5 && (reason = (s8)objA) == 2) {
                 Gp_UnlinkObj4A(0, D_dryfield_water_tower_80186C4C);
                 state->field_68 = Gp_FindViewIndex(9);
@@ -1153,7 +1151,7 @@ static inline u16 _dryfieldWaterTowerState7Step(Task* arg0)
 /// State 8 of the cap script, one call per frame, returning non-zero once the
 /// step is complete. On its first frame (`field_58` 0) it hands the room's two
 /// blocks at 0x801820B0 / 0x80182248 to `func_800E8634`, retrying on later
-/// frames while `D_80114C12` is 1 or `gDisplayState.pendingMode` is set; after that it waits
+/// frames while `Gp_StateC08.field_A` is 1 or `gDisplayState.pendingMode` is set; after that it waits
 /// for the session's `eventState` to go idle and sets nibble 0x32 to 2.
 static inline u16 _dryfieldWaterTowerState8Step(Task* arg0)
 {
@@ -1161,7 +1159,7 @@ static inline u16 _dryfieldWaterTowerState8Step(Task* arg0)
 
     switch (work->field_58) {
         case 0:
-            if (D_80114C12 == 1) {
+            if (Gp_StateC08.field_A == 1) {
                 break;
             }
             if (gDisplayState.pendingMode != 0) {
@@ -1183,7 +1181,7 @@ static inline u16 _dryfieldWaterTowerState8Step(Task* arg0)
 }
 
 /// The cap script, the task entry 0 of `D_dryfield_water_tower_80182384`
-/// runs. It does nothing while the session's `field_65` or `D_80114C11` is set
+/// runs. It does nothing while the session's `field_65` or `Gp_StateC08.field_9` is set
 /// or `Player_Status.hp` is zero. State 0 allocates the 0x7C-byte
 /// `DryfieldWaterTowerState`, publishes the task and its message table, and
 /// restores the room's three pairs of script-table blocks; state 1 spawns
@@ -1219,7 +1217,7 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
     GpObj4A*                 p3;
     GpObj4A*                 p14;
 
-    if (gGameSession->field_65 != 0 || D_80114C11 != 0 || Player_Status.hp == 0) {
+    if (gGameSession->field_65 != 0 || Gp_StateC08.field_9 != 0 || Player_Status.hp == 0) {
         return;
     }
 

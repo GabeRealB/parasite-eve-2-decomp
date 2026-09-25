@@ -1,4 +1,5 @@
 #include "common.h"
+#include "gameplay/gameplay.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -14,10 +15,9 @@
 
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
-/// `gDisplayState.pendingMode` and `D_80114C12` (the cutscene mode flag) gate the room task's
+/// `gDisplayState.pendingMode` and `Gp_StateC08.field_A` (the cutscene mode flag) gate the room task's
 /// setup, and `Mc_SaveData.characterId` picks which of the two weapon-id bases that record
 /// uses.
-extern s8 D_80114C12;
 
 /// The cutscene script's two blocks, handed to `func_800E8634` by the room
 /// task's state 0.
@@ -209,7 +209,7 @@ void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if ((D_80114C12 != 1) && (gDisplayState.pendingMode == 0)) {
+            if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == 0)) {
                 func_dryfield_motel_room_1_8017DC2C(arg0);
                 weaponId                = Player_Status.weapon;
                 anim                    = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;

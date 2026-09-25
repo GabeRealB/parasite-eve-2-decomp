@@ -35,7 +35,6 @@
 extern UiObjectDesc D_800611E4;
 extern UiObject*    D_80067634;
 extern UiObjectDesc D_8010EFA0;
-extern s8           D_80114C12;
 extern u8           D_80115598;
 extern s32          D_8011572C;
 extern s32          D_80115750;
@@ -1340,7 +1339,7 @@ void func_dryfield_night_gas_station_8017FAEC(Task* task)
 
     if (gGameSession->eventState == 0) {
         temp_v0 = GameFlag_GetNibble(0x63);
-        if ((temp_v0 == 1) && (D_80114C12 != temp_v0)) {
+        if ((temp_v0 == 1) && (Gp_StateC08.field_A != temp_v0)) {
             GameFlag_SetNibble(0x63, 2);
             func_800E8634((s32)&D_dryfield_night_gas_station_80188BF4, 0, (s32)&D_dryfield_night_gas_station_80189014);
         }

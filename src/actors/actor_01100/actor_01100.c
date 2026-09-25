@@ -74,7 +74,6 @@ extern GpU16Pair Actor01100_D074D0[];
 extern TaskDesc  Actor01100_D155E0[];
 extern u8        Actor01100_D0D8F4;
 extern u8        Actor01100_D0E4DC;
-extern s8        D_80114C12;
 
 typedef struct {
     void* tmd;
@@ -2951,7 +2950,7 @@ void Actor01100_Fn05678(
     if (((GP_LOC_WORD(Mc_SaveData.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(5, 24, 0, 0)) && (work->field_BC8 == 0)) {
         actor  = gameGetPtrSlot(3)->work;
         status = &Player_Status;
-        if ((actor->field_954 != 2) && (D_80114C12 != 1) && (gDisplayState.pendingMode == 0) && (status->hp > 0)) {
+        if ((actor->field_954 != 2) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == 0) && (status->hp > 0)) {
             Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
             work->field_BC8 = 1;
         }

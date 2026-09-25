@@ -144,8 +144,7 @@ STATIC_ASSERT_SIZEOF(Actor121300DebrisWork, 0x5C);
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the
 /// equipped-weapon index the slot-3 message 0x3E8 record is keyed on,
 /// `Mc_SaveData.characterId` picks which of the two weapon-id bases that record uses, and
-/// `gDisplayState.pendingMode` / `D_80114C12` (the cutscene mode flag) gate the actor's setup.
-extern s8 D_80114C12;
+/// `gDisplayState.pendingMode` / `Gp_StateC08.field_A` (the cutscene mode flag) gate the actor's setup.
 
 extern void func_8017F334(s32 arg0);
 extern void func_8017F340(u8 arg0, u8 arg1);
@@ -1042,7 +1041,7 @@ void func_actor_121300_80133BFC(Task* arg0)
 }
 
 /// State machine of the cutscene actor, run once per frame from its slot.
-/// State 0 waits until no other cutscene is up -- a `D_80114C12` of 1 or a live
+/// State 0 waits until no other cutscene is up -- a `Gp_StateC08.field_A` of 1 or a live
 /// `gDisplayState.pendingMode` means one is -- and then builds the work block through
 /// `func_actor_121300_80133BFC` and arms the player's weapon: the slot-3
 /// message 0x3E8 record is `Player_Status.weapon` plus 1 in the alternate weapon block
@@ -1068,7 +1067,7 @@ void func_actor_121300_80133D98(Task* arg0)
     state = arg0->state;
     switch (state) {
         case 0:
-            if ((D_80114C12 != 1) && (gDisplayState.pendingMode == 0)) {
+            if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == 0)) {
                 weaponId                    = Player_Status.weapon;
                 anim                        = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 scratch.msg.animBlock.index = anim;

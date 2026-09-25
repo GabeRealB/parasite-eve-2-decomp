@@ -24,7 +24,6 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-extern s8  D_80114C12;
 extern s32 D_8011572C;
 extern s32 D_80115738;
 extern s32 D_8011574C;
@@ -239,7 +238,7 @@ void func_shelter_b2_septic_tank_8017DA74(Task* task)
 
     if (gGameSession->at4.loc.view == 4) {
         place = gGameSession->at4.loc.place;
-        if (place == 1 && D_80114C12 != place && gDisplayState.pendingMode == 0 && D_shelter_b2_septic_tank_80187045 == 0) {
+        if (place == 1 && Gp_StateC08.field_A != place && gDisplayState.pendingMode == 0 && D_shelter_b2_septic_tank_80187045 == 0) {
             if (GameFlag_GetNibble(0xEB) == 0) {
                 func_800E8614((s32)&D_shelter_b2_septic_tank_80183004, 0);
             }

@@ -441,7 +441,7 @@ void func_actor_444000_80132358(Task* task)
     if (gGameSession->field_65 != 0) {
         return;
     }
-    if ((s8)Gp_StateC08.field_9 != 0) {
+    if (Gp_StateC08.field_9 != 0) {
         return;
     }
     if (Gp_StateF0.field_4 != 0) {

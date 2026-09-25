@@ -28,8 +28,6 @@ CombustionStep D_combustion_80130980[] = {
 /// The `SndEvt_EnqueueType6` id for each `D_combustion_80130980` row.
 s32 D_combustion_80130998[] = { 0xE00C0002, 0xE00F0002, 0xE0120002 };
 
-extern s8 D_80114C0B;
-
 void func_combustion_8012FB14(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 
 /// Live flame handle for the combustion effect.
@@ -104,7 +102,7 @@ void func_combustion_8012EF34(Task* arg0)
             return;
         case 2:
             Gp_UpdateCoord(coord);
-            if ((D_80114C0B == -2) || (Gp_State1C->fadeState >= 4) ||
+            if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4) ||
                 (mem->age > D_combustion_80130980[mem->index].field_6)) {
             release:
                 Gp_ReleaseState1CMem(mem, arg0);
@@ -126,7 +124,7 @@ void func_combustion_8012EF34(Task* arg0)
 /// `index < 2` picks the small draw helper, otherwise the large one - and
 /// one frame in four spawn a trailing ember that adopts this task as its
 /// parent. Either state releases the effect once the player is dying
-/// (`D_80114C0B`), the room is fading (`Gp_State1C`) or the flame has lived
+/// (`Gp_StateC08.field_3`), the room is fading (`Gp_State1C`) or the flame has lived
 /// 0x21 frames.
 void func_combustion_8012F2BC(Task* arg0)
 {
@@ -179,7 +177,7 @@ void func_combustion_8012F2BC(Task* arg0)
             } else {
                 func_combustion_801305F8(coord, mem->age, mem->scale);
             }
-            if ((D_80114C0B == -2) || (Gp_State1C->fadeState >= 4) || (mem->age >= 0x21)) {
+            if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4) || (mem->age >= 0x21)) {
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
             }
@@ -201,7 +199,7 @@ void func_combustion_8012F2BC(Task* arg0)
             } else {
                 func_combustion_80130184(coord, mem->age, mem->scale * 4, 0);
             }
-            if ((D_80114C0B == -2) || (Gp_State1C->fadeState >= 4) || (mem->age >= 0x21)) {
+            if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4) || (mem->age >= 0x21)) {
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
             }

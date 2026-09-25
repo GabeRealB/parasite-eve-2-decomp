@@ -1,4 +1,5 @@
 #include "common.h"
+#include "gameplay/gameplay.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -53,7 +54,6 @@ extern Task* D_dryfield_warehouse_801821C0;
 /// `DwhWork` block.
 extern Task* D_dryfield_warehouse_801821BC;
 
-extern s8  D_80114C12;
 extern s32 D_dryfield_warehouse_8017F848;
 extern s32 D_dryfield_warehouse_8017F850;
 extern s32 D_dryfield_warehouse_8017F868;
@@ -276,7 +276,7 @@ void func_dryfield_warehouse_8017DBB0(Task* arg0)
 }
 
 /// Main loop of the warehouse's cutscene task, the owner of the 0x10-byte
-/// `DwhWork` block. State 0 arms the script once: a `D_80114C12` of 1 or a live
+/// `DwhWork` block. State 0 arms the script once: a `Gp_StateC08.field_A` of 1 or a live
 /// `gDisplayState.pendingMode` both mean the cutscene is already up, so it does nothing.
 /// Otherwise it parks the zeroed work block in `Task::work` -- a failed
 /// `Mem_Malloc` kills the task, but the record below is dispatched either way --
@@ -300,7 +300,7 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if ((D_80114C12 != 1) && (gDisplayState.pendingMode == 0)) {
+            if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == 0)) {
                 work       = Mem_Malloc(0x10, false);
                 arg0->work = (TaskIdMap*)work;
                 if (work == NULL) {

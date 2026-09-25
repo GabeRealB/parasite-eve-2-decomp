@@ -50,11 +50,10 @@ void func_8004BFF8(s16 angle, MATRIX* matrix);
 /// Declared locally with a signed `arg2`; see the note in `gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-/// Main-executable globals with no module header yet: `D_80114C12` is the
+/// Main-executable globals with no module header yet: `Gp_StateC08.field_A` is the
 /// cutscene-mode flag and `gDisplayState.pendingMode` is a live cutscene. `func_80182360` is
 /// the room overlay's handler the view-matrix test calls with `t[0]`.
-extern s8 D_80114C12;
-void      func_80182360(s32);
+void func_80182360(s32);
 
 /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
 /// rotation in a matrix carved off the scratchpad head, applies the turn,
@@ -288,7 +287,7 @@ void func_actor_111800_8013251C(Task* task)
     work  = (Actor111800Work*)task->work;
     switch (state) {
         case 0:
-            if ((D_80114C12 != 1) && (gDisplayState.pendingMode == 0)) {
+            if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == 0)) {
                 func_actor_111800_80132390(task);
                 task->state += 1;
                 break;

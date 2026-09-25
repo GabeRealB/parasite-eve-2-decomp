@@ -119,7 +119,6 @@ extern s32     D_actor_136100_801402C4;
 extern s32     D_actor_136100_801404EC;
 extern s32     D_actor_136100_8014063C;
 extern Task*   D_actor_136100_8014078C;
-extern s8      D_80114C12;
 
 void func_actor_136100_80132748(Task* arg0);
 void func_actor_136100_80133238(Task* arg0);
@@ -926,7 +925,7 @@ s32 func_actor_136100_80133904(Task* task)
             }
         }
     }
-    if (ready == 0 || D_80114C12 == 1) {
+    if (ready == 0 || Gp_StateC08.field_A == 1) {
         return 0;
     }
     if (gDisplayState.pendingMode != 0) {
@@ -1164,7 +1163,7 @@ void func_actor_136100_80133BC8(Task* arg0)
         case 2:
             cue = func_actor_136100_TakeStartCue(&evtId, &evtKind, &evtSub);
             if (cue == 1 && work->field_4E4 == 0) {
-                if (D_80114C12 == 1) {
+                if (Gp_StateC08.field_A == 1) {
                     return;
                 }
                 if (gDisplayState.pendingMode != 0) {
@@ -1179,7 +1178,7 @@ void func_actor_136100_80133BC8(Task* arg0)
                 break;
             }
             if (func_actor_136100_TakeStartCue(&evtId2, &evtKind2, &evtSub2) == 2 && work->field_4E4 == 1) {
-                if (D_80114C12 == 1) {
+                if (Gp_StateC08.field_A == 1) {
                     return;
                 }
                 if (gDisplayState.pendingMode != 0) {

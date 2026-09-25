@@ -157,7 +157,7 @@ STATIC_ASSERT_SIZEOF(GpCircleScratch, 0x60);
 /// `field_E`; bit 1 is cleared by `Gp_ResetHudFx` and forces
 /// `func_800A7E5C` to 0 when that function's arg is 0). `field_9` is
 /// cleared by `Gp_SetAttachState`. `field_A` is a signed byte (`lb`, splat
-/// `D_80114C12`); `func_800A7DE0` sets `field_3 = 2` when it is >= 2,
+/// `Gp_StateC08.field_A`); `func_800A7DE0` sets `field_3 = 2` when it is >= 2,
 /// then clears it. `func_80109FC4` loads it unsigned (`lbu`) and skips
 /// the `field_25` bit `0x80` timer when the value is 2 or 3.
 /// `Gp_ResetHudFx` also zeros `field_A`, `field_C`..`field_F`,
@@ -181,7 +181,7 @@ typedef struct _GpStateC08 {
     /* 0x06 */ u8   field_6;
     /* 0x07 */ s8   field_7;
     /* 0x08 */ s8   field_8;
-    /* 0x09 */ u8   field_9;
+    /* 0x09 */ s8   field_9;
     /* 0x0A */ s8   field_A;
     /* 0x0B */ s8   field_B;
     /* 0x0C */ s8   field_C;

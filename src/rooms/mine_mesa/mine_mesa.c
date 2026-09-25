@@ -50,7 +50,6 @@ typedef struct {
     u8      unk10[8];
 } _MineMesaWall;
 
-extern s8  D_80114C12;
 extern u8  D_80115690;
 extern u8  D_801156F9;
 extern s32 D_8011572C;
@@ -175,7 +174,7 @@ void func_mine_mesa_8017D808(Task* task)
     u8  field9;
     s32 nibble;
 
-    if ((gGameSession->eventState == 0) && (D_80114C12 != 1) && (field9 = gGameSession->at4.loc.place, field9 == 1)) {
+    if ((gGameSession->eventState == 0) && (Gp_StateC08.field_A != 1) && (field9 = gGameSession->at4.loc.place, field9 == 1)) {
         if (GameFlag_GetNibble(0x90) == 0) {
             if (gameGetPtrSlot(0xA) != NULL) {
                 func_800E8634((s32)&D_mine_mesa_8018578C, 0, (s32)&D_mine_mesa_801861DC);

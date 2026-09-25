@@ -44,7 +44,6 @@ extern UiObject*     D_80067634;
 extern UiObjectDesc  D_8010D80C;
 extern RoomShopStock D_8010E138[];
 extern UiObjectDesc  D_8010EFA0;
-extern s8            D_80114C12;
 extern s16           D_80114D08;
 extern u32           D_80115694;
 extern char          Gp_StrEmpty[];
@@ -2681,7 +2680,7 @@ void func_shelter_b1_underground_parking_80182154(Task* task)
 ///
 /// The player must not be aiming (`field_954 != 2`), captions must be idle,
 /// the session room must be 7 or later, and the model root must stand with X
-/// below -0x1266 and Z inside [-0x7CF, 0x7D0), with `D_80114C12 != 1` and
+/// below -0x1266 and Z inside [-0x7CF, 0x7D0), with `Gp_StateC08.field_A != 1` and
 /// `gDisplayState.pendingMode` clear. Then the 0x1000 pad mask with the yaw in the 0x3FF-wide
 /// window opening at 0xA01, or the 0x4000 mask with it in the window at 0x201,
 /// takes the weapon away and runs the handoff.
@@ -2700,7 +2699,7 @@ void func_shelter_b1_underground_parking_801826C0(void)
         (coord->coord.t[0] < -0x1266)) {
         z = coord->coord.t[2];
         if (z < 0x7D0) {
-            if ((z >= -0x7CF) && (D_80114C12 != 1) && (gDisplayState.pendingMode == 0)) {
+            if ((z >= -0x7CF) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == 0)) {
                 facing = (u16)actor->field_52 & 0xFFF;
                 if (Pad_CheckButtons(0, 0, 0x1000) != 0) {
                     if ((u32)(facing - 0xA01) < 0x3FFU) {

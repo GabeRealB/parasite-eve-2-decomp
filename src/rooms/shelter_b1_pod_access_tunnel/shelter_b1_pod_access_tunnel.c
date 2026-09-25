@@ -38,7 +38,6 @@ STATIC_ASSERT_SIZEOF(_ShelterB1PodAccessTunnelWork, 0xC);
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
-extern s8       D_80114C12;
 extern u8       D_80115690;
 extern s32      D_8011572C;
 extern s32      D_80115750;
@@ -372,7 +371,7 @@ void func_shelter_b1_pod_access_tunnel_8017DEE8(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Two-state task: state 0, unless blocked by `D_80114C12` or `gDisplayState.pendingMode`,
+/// Two-state task: state 0, unless blocked by `Gp_StateC08.field_A` or `gDisplayState.pendingMode`,
 /// sends the slot-3 task a `GpAnimArg` built from `Player_Status.weapon` (msg 0x3E8) and runs
 /// `D_shelter_b1_pod_access_tunnel_80181120` through `func_800E8614`; state 1
 /// sets `Mc_SaveData.sceneEvent` to 0x1D and kills this task once the session is idle.
@@ -386,7 +385,7 @@ void func_shelter_b1_pod_access_tunnel_8017DF40(Task* task)
     state = task->state;
     switch (state) {
         case 0:
-            if (D_80114C12 != 1 && gDisplayState.pendingMode == 0) {
+            if (Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == 0) {
                 weaponId            = Player_Status.weapon;
                 id                  = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 rec.animBlock.index = id;

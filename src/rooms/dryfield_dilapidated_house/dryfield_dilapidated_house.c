@@ -118,7 +118,6 @@ typedef struct DdhScreenPoint {
 
 extern void func_80724608(void* owner, s32 arg1, s32 arg2, void* name);
 
-extern s8 D_80114C12;
 extern u8 D_801156F9;
 
 /// Script pair handed to `Gp_SpawnScript18`. Both live in gameplay's image, so
@@ -458,7 +457,7 @@ void func_dryfield_dilapidated_house_8017E014(Task* task)
             D_dryfield_dilapidated_house_80183EFC = 2;
         } else if ((D_dryfield_dilapidated_house_80183EFC == 2) &&
                    (Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7D6, 0, 0) == 0)) {
-            if (D_80114C12 != 1) {
+            if (Gp_StateC08.field_A != 1) {
                 if (gDisplayState.pendingMode == 0) {
                     D_dryfield_dilapidated_house_80183EFC += 1;
                     Task_SpawnFromTable(D_dryfield_dilapidated_house_80183EB4, 3, 0, 0);

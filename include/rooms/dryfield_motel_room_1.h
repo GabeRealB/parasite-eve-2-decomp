@@ -112,7 +112,7 @@ void func_dryfield_motel_room_1_8017DC2C(Task* arg0);
 /// ends here.
 void func_dryfield_motel_room_1_8017D7AC(Task* arg0);
 
-/// Main loop of the room's cutscene task. State 0 arms it once -- a `D_80114C12`
+/// Main loop of the room's cutscene task. State 0 arms it once -- a `Gp_StateC08.field_A`
 /// of 1 or a live `gDisplayState.pendingMode` both mean a cutscene is already up, so the task
 /// only steps the script. Otherwise it builds the work block, sends the slot-3
 /// weapon record as message 0x3E8 and hands the cutscene's two script blocks to

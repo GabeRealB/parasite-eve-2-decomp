@@ -1,4 +1,5 @@
 #include "common.h"
+#include "gameplay/gameplay.h"
 
 #include <psyq/libgte.h>
 
@@ -15,7 +16,6 @@
 #include "rooms/dryfield_night_motel_balcony.h"
 
 /// A gameplay state byte; the one-shot balcony event waits while it is 1.
-extern s8 D_80114C12;
 
 /// Gameplay-resident script data the room task starts: the pair handed to
 /// `func_800E8634` on the first visit, and the one handed to `func_800E8614`
@@ -271,11 +271,11 @@ void func_dryfield_night_motel_balcony_8017DC30(Task* task)
     task->state = task->state + 1;
 }
 
-/// Room task state 1: once the event state is idle, `D_80114C12` is not 1 and
+/// Room task state 1: once the event state is idle, `Gp_StateC08.field_A` is not 1 and
 /// flag nibble 0x10E is 1, runs the one-shot script and moves the nibble to 2.
 void func_dryfield_night_motel_balcony_8017DD0C(Task* task)
 {
-    if (gGameSession->eventState == 0 && D_80114C12 != 1 && GameFlag_GetNibble(0x10E) == 1) {
+    if (gGameSession->eventState == 0 && Gp_StateC08.field_A != 1 && GameFlag_GetNibble(0x10E) == 1) {
         func_800E8614((s32)&D_80165720, 0);
         GameFlag_SetNibble(0x10E, 2);
     }

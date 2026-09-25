@@ -17,8 +17,6 @@
 #include "main/tmd.h"
 #include "pe/pepper_spray.h"
 
-extern s8 D_80114C0B;
-
 /// Runs one frame of the pepper spray. State 0 parks the room light slot on
 /// the nozzle coordinate, seeds the spray yaw / spread / brightness from
 /// `Gp_LcgState`, refills the six cone yaws and plays the spray sound; state 1
@@ -26,7 +24,7 @@ extern s8 D_80114C0B;
 /// long the spray has run. Either state then redraws the nozzle, flashes the
 /// screen at the current brightness and draws the six cone quads. The effect
 /// ends after nine frames, or immediately if the player is dying
-/// (`D_80114C0B`) or the room is fading (`Gp_State1C`).
+/// (`Gp_StateC08.field_3`) or the room is fading (`Gp_State1C`).
 /// Scratch the nozzle spray walks while the cloud is alive.
 /// lists an object in the linker script at its first subsegment, and this has
 s16 D_pepper_spray_8012FB9C[6] = { 0, 0, 0, 0, 0, 0 };
@@ -49,7 +47,7 @@ void func_pepper_spray_8012EF34(Task* arg0)
     slot  = &base->data.light;
     mem   = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
-    if ((D_80114C0B == -2) || (Gp_State1C->fadeState != 0)) {
+    if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState != 0)) {
         SndEvt_EnqueueType7(0xE03F0001, 1);
         Gp_ReleaseState1CMem(mem, arg0);
         return;

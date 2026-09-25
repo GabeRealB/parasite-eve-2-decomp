@@ -224,10 +224,9 @@ MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
 extern s32 D_80115728;
 
-/// Main-executable globals with no module header yet: a `D_80114C12` of 1 or a
+/// Main-executable globals with no module header yet: a `Gp_StateC08.field_A` of 1 or a
 /// live `gDisplayState.pendingMode` means a cutscene is already up, so the death handler skips
 /// message 0x13F4.
-extern s8 D_80114C12;
 
 /// Main-executable global with no module header yet: the remaining-enemy count
 /// `func_actor_105100_80136318` tests to decide whether the fight is over.
@@ -1548,7 +1547,7 @@ void func_actor_105100_80134284(GpEnemy* arg0, Task* arg1)
             goto color_update;
         case 2:
             flag = work->field_5BA;
-            if ((flag == 1) && (((GameActor*)player->work)->field_954 != 2) && (D_80114C12 != flag) &&
+            if ((flag == 1) && (((GameActor*)player->work)->field_954 != 2) && (Gp_StateC08.field_A != flag) &&
                 (gDisplayState.pendingMode == 0)) {
                 Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
                 work->field_5BA = 0;

@@ -72,10 +72,9 @@ extern u32 D_actor_120500_80138408[];
 /// Equipped-weapon id and the flag that selects which block of animation sets
 /// it indexes (`+1` when set to 1, `+0x22` otherwise).
 
-/// Flags the tick checks before bringing the actor up (`D_80114C12` /
+/// Flags the tick checks before bringing the actor up (`Gp_StateC08.field_A` /
 /// `gDisplayState.pendingMode`), and the one it raises alongside the view tasks
 /// (`gDisplayState.at100.flags.flipMode`).
-extern s8 D_80114C12;
 
 /// Animation-set table handed to the task in pointer slot 3 as message 0x3F4's
 /// `GpAnimArg::animBlock`; the messages select sets 0, 1 and 2 of it.
@@ -325,7 +324,7 @@ void func_actor_120500_801322A0(Task* arg0)
 }
 
 /// Per-frame body of the actor task, entry 4 of the task table. State 0 waits
-/// until `D_80114C12` is not 1 and `gDisplayState.pendingMode` is clear, then brings the actor
+/// until `Gp_StateC08.field_A` is not 1 and `gDisplayState.pendingMode` is clear, then brings the actor
 /// up through `func_actor_120500_801322A0`, sends the task in pointer slot 3
 /// the equipped-weapon animation as message 0x3E8 and installs the two
 /// `func_800E8634` blocks; state 1 kills the actor once the session's
@@ -355,7 +354,7 @@ void func_actor_120500_8013241C(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if (D_80114C12 != 1 && gDisplayState.pendingMode == 0) {
+            if (Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == 0) {
                 func_actor_120500_801322A0(arg0);
                 anim = Player_Status.weapon;
                 if (Mc_SaveData.characterId == 1) {
