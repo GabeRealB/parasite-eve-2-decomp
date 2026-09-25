@@ -109129,6 +109129,14 @@ satisfies it, and the message-sized load is neither `in_struct` nor varying).
 *(volatile GpLockPos**)&actor->field_90C = NULL;
 ```
 
+**Correction (later retype):** the qualifier in that spelling applies to the
+pointee, not to the stored pointer, so the store MEM is not volatile at all.
+With the view type gone, `*(GpLinkNode**)&actor->field_90C = NULL;` - no
+qualifier - matches as well, while the plain member store
+`actor->field_90C = NULL;` does not. What the cast changes is that the store is
+no longer a component reference, so its MEM loses the in-struct flag the
+member access sets - the likely mechanism, not yet confirmed in a dump.
+
 `true_dependence`/`output_dependence` return 1 unconditionally when both MEMs
 are volatile, bypassing the address math and the exclusions, so the load becomes
 a dependent of the store and the store is released only at T-4 instead of T-2 —
