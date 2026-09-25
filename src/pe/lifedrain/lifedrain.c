@@ -82,7 +82,7 @@ void func_lifedrain_8012EF48(Task* arg0)
         Gp_ReleaseState1CMem(mem, arg0);
         return;
     }
-    mem->age = (u16)mem->age + 1;
+    mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0: {
             GpEffWork*  spawned;
@@ -129,9 +129,9 @@ void func_lifedrain_8012EF48(Task* arg0)
         }
         case 1:
             if (mem->scale != 0) {
-                mem->scale = (u16)mem->scale - 0x10;
-                rgb[0]     = (u16)mem->scale >> 1;
-                rgb[1]     = (u16)mem->scale >> 1;
+                mem->scale = mem->scale - 0x10;
+                rgb[0]     = mem->scale >> 1;
+                rgb[1]     = mem->scale >> 1;
                 rgb[2]     = *(u8*)&mem->scale;
                 Gp_DrawFadeQuad(rgb, 1);
             }
@@ -169,9 +169,9 @@ void func_lifedrain_8012EF48(Task* arg0)
 
             Gp_UpdateCoord(coord);
             if (mem->period != 0) {
-                mem->period = (u16)mem->period - 0x10;
-                rgb[0]      = (u16)mem->period >> 1;
-                rgb[1]      = (u16)mem->period >> 1;
+                mem->period = mem->period - 0x10;
+                rgb[0]      = mem->period >> 1;
+                rgb[1]      = mem->period >> 1;
                 rgb[2]      = *(u8*)&mem->period;
                 Gp_DrawFadeQuad(rgb, 1);
             }
@@ -180,9 +180,9 @@ void func_lifedrain_8012EF48(Task* arg0)
                 val += 0x10;
             }
             mem->scale = val;
-            mem->angle = (u16)mem->angle + (u16)D_lifedrain_80130AB4[mem->index].unk8;
-            rgb[0]     = (u16)mem->scale >> 1;
-            rgb[1]     = (u16)mem->scale >> 1;
+            mem->angle = mem->angle + (u16)D_lifedrain_80130AB4[mem->index].unk8;
+            rgb[0]     = mem->scale >> 1;
+            rgb[1]     = mem->scale >> 1;
             rgb[2]     = *(u8*)&mem->scale;
             i          = 0;
             if (D_lifedrain_80130AB4[mem->index].unk0 > 0) {
@@ -193,13 +193,13 @@ void func_lifedrain_8012EF48(Task* arg0)
                     p += 1;
                 } while (++i < t2[mem->index].unk0);
             }
-            Gp_DrawRing(coord, (s16)(u16)mem->angle >> 1, rgb);
-            Gp_DrawRing(coord, (s16)(u16)mem->angle >> 1, rgb);
+            Gp_DrawRing(coord, mem->angle >> 1, rgb);
+            Gp_DrawRing(coord, mem->angle >> 1, rgb);
             rgb[0] >>= 1;
             rgb[1] >>= 1;
             rgb[2] >>= 1;
             Gp_DrawArc(coord, mem->angle, 0x80, rgb);
-            if ((u16)mem->age & 1) {
+            if (mem->age & 1) {
                 Gp_DrawArc(coord, 0x80, mem->angle, rgb);
             }
             if (mem->index != 0) {
@@ -207,12 +207,12 @@ void func_lifedrain_8012EF48(Task* arg0)
                 rgb[1] >>= 1;
                 rgb[2] >>= 1;
                 Gp_DrawArc(coord,
-                           (s16)((u16)mem->angle + D_lifedrain_80130AB4[mem->index].field_4),
+                           (s16)(mem->angle + D_lifedrain_80130AB4[mem->index].field_4),
                            0x80, rgb);
                 if (mem->index == 2) {
-                    if ((u16)mem->age & 1) {
+                    if (mem->age & 1) {
                         Gp_DrawArc(coord, 0x80,
-                                   (s16)((u16)mem->angle + D_lifedrain_80130AB4[2].field_4),
+                                   (s16)(mem->angle + D_lifedrain_80130AB4[2].field_4),
                                    rgb);
                     }
                 }
@@ -243,13 +243,13 @@ void func_lifedrain_8012EF48(Task* arg0)
             s16*            p;
 
             Gp_UpdateCoord(coord);
-            mem->scale = (u16)mem->scale - 0x10;
-            mem->angle = (u16)mem->angle + (u16)D_lifedrain_80130AB4[mem->index].unk8;
+            mem->scale = mem->scale - 0x10;
+            mem->angle = mem->angle + (u16)D_lifedrain_80130AB4[mem->index].unk8;
             if (mem->scale < 0x11) {
                 arg0->state = 4;
             }
-            rgb[0] = (u16)mem->scale >> 1;
-            rgb[1] = (u16)mem->scale >> 1;
+            rgb[0] = mem->scale >> 1;
+            rgb[1] = mem->scale >> 1;
             rgb[2] = *(u8*)&mem->scale;
             i      = 0;
             if (D_lifedrain_80130AB4[mem->index].unk0 > 0) {
@@ -260,13 +260,13 @@ void func_lifedrain_8012EF48(Task* arg0)
                     p += 1;
                 } while (++i < t2[mem->index].unk0);
             }
-            Gp_DrawRing(coord, (s16)(u16)mem->angle >> 1, rgb);
-            Gp_DrawRing(coord, (s16)(u16)mem->angle >> 1, rgb);
+            Gp_DrawRing(coord, mem->angle >> 1, rgb);
+            Gp_DrawRing(coord, mem->angle >> 1, rgb);
             rgb[0] >>= 1;
             rgb[1] >>= 1;
             rgb[2] >>= 1;
             Gp_DrawArc(coord, mem->angle, 0x80, rgb);
-            if ((u16)mem->age & 1) {
+            if (mem->age & 1) {
                 Gp_DrawArc(coord, 0x80, mem->angle, rgb);
             }
             if (mem->index != 0) {
@@ -274,12 +274,12 @@ void func_lifedrain_8012EF48(Task* arg0)
                 rgb[1] >>= 1;
                 rgb[2] >>= 1;
                 Gp_DrawArc(coord,
-                           (s16)((u16)mem->angle + D_lifedrain_80130AB4[mem->index].field_4),
+                           (s16)(mem->angle + D_lifedrain_80130AB4[mem->index].field_4),
                            0x80, rgb);
                 if (mem->index == 2) {
-                    if ((u16)mem->age & 1) {
+                    if (mem->age & 1) {
                         Gp_DrawArc(coord, 0x80,
-                                   (s16)((u16)mem->angle + D_lifedrain_80130AB4[2].field_4),
+                                   (s16)(mem->angle + D_lifedrain_80130AB4[2].field_4),
                                    rgb);
                     }
                 }
@@ -307,7 +307,7 @@ void func_lifedrain_8012F9A8(Task* arg0)
 
     mem      = arg0->spawnArg2;
     coord    = ((TmdObject*)arg0->extra)->coords;
-    mem->age = (u16)mem->age + 1;
+    mem->age = mem->age + 1;
     state    = arg0->state;
     switch (state) {
         case 0:
@@ -327,13 +327,13 @@ void func_lifedrain_8012F9A8(Task* arg0)
             coord->flg        = 0;
             coord->coord.t[1] = y;
             Gp_UpdateCoord(coord);
-            if (!((u16)mem->age & 1)) {
-                mem->index = (u16)mem->index + 1;
+            if (!(mem->age & 1)) {
+                mem->index = mem->index + 1;
             }
             if (mem->index < 8) {
-                if ((u16)mem->age & 1) {
-                    Gp_DrawFxQuad(coord, (u16)mem->index, mem->angle,
-                                  (u16)mem->scale | (u16)mem->period);
+                if (mem->age & 1) {
+                    Gp_DrawFxQuad(coord, mem->index, mem->angle,
+                                  mem->scale | mem->period);
                     return;
                 }
             } else {
@@ -376,7 +376,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
     if ((Gp_StateC08.field_3 != -2) && (Gp_State1C->fadeState < 4)) {
-        mem->age = (u16)mem->age + 1;
+        mem->age = mem->age + 1;
         switch (arg0->state) {
             case 0:
                 Task_Reparent(D_lifedrain_80130B0C, arg0);
@@ -400,7 +400,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
                 coord->flg         = 0;
                 Gp_UpdateCoord(coord);
                 if (mem->age & 1) {
-                    mem->index = (u16)mem->index + 1;
+                    mem->index = mem->index + 1;
                     func_lifedrain_801301AC(coord, mem->index, mem->period);
                     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                     if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
@@ -447,7 +447,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
                     break;
                 }
                 if (mem->age & 1) {
-                    mem->index = ((u16)mem->index + 1) & 3;
+                    mem->index = (mem->index + 1) & 3;
                     func_lifedrain_801301AC(coord, mem->index, mem->period);
                     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                     if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
@@ -676,10 +676,10 @@ void func_lifedrain_801308C0(Task* arg0)
     }
 
     Gp_UpdateCoord(coord);
-    mem->angle  = (u16)mem->angle + ((s16)D_lifedrain_80130AB4[mem->index].field_2 / 3);
-    mem->period = (u16)mem->period + ((s16)D_lifedrain_80130AB4[mem->index].field_2 >> 1);
-    rgb[0]      = (u16)mem->scale >> 1;
-    rgb[1]      = (u16)mem->scale >> 1;
+    mem->angle  = mem->angle + ((s16)D_lifedrain_80130AB4[mem->index].field_2 / 3);
+    mem->period = mem->period + ((s16)D_lifedrain_80130AB4[mem->index].field_2 >> 1);
+    rgb[0]      = mem->scale >> 1;
+    rgb[1]      = mem->scale >> 1;
     rgb[2]      = *(u8*)&mem->scale;
     Gp_DrawBandEx(coord, mem->angle, mem->period, rgb);
 

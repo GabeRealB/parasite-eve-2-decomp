@@ -173,10 +173,10 @@ void Gp_EffSprTask55(Task* arg0)
                 pal          = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
                 mem->step    = pal & 3;
                 mem->index   = (arg0->spawnArg1 >> 28) & 1;
-                lo           = ((u16)mem->angle & 0xF) * rsin(mem->angle);
-                mem->move.vy = (u16)mem->move.vy - 0x18;
-                mem->move.vx = (u16)mem->move.vx + (lo >> 12);
-                mem->move.vz = (u16)mem->move.vz + ((((u16)mem->angle & 0xF) * rcos(mem->angle)) >> 12);
+                lo           = (mem->angle & 0xF) * rsin(mem->angle);
+                mem->move.vy = mem->move.vy - 0x18;
+                mem->move.vx = mem->move.vx + (lo >> 12);
+                mem->move.vz = mem->move.vz + (((mem->angle & 0xF) * rcos(mem->angle)) >> 12);
                 if (arg0->spawnArg1 & 0x100000) {
                     Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
                     mem->move.vx = (((u32)Gp_LcgState >> 16) & 0x1F) - 0x10;
@@ -233,8 +233,8 @@ void Gp_EffSprTask55(Task* arg0)
         t2                 = coord->coord.t[2] + mem->move.vz;
         coord->flg         = 0;
         coord->coord.t[2]  = t2;
-        y                  = (u16)mem->move.vy + 6;
-        next               = (u16)mem->age + 1;
+        y                  = mem->move.vy + 6;
+        next               = mem->age + 1;
         USE_REG2(y, next);
         mem->age     = next;
         n32          = next;
@@ -383,8 +383,8 @@ void Gp_EffSprTask42(Task* arg0)
         t2                 = coord->coord.t[2] + mem->move.vz;
         coord->flg         = 0;
         coord->coord.t[2]  = t2;
-        y                  = (u16)mem->move.vy + 6;
-        next               = (u16)mem->age + 1;
+        y                  = mem->move.vy + 6;
+        next               = mem->age + 1;
         USE_REG2(y, next);
         mem->age     = next;
         n32          = next;
@@ -480,7 +480,7 @@ void Gp_EffCtlTask9B(Task* arg0)
             temp              = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
             mem->angle        = temp;
             mem->period       = temp << 2;
-            if (((u16)mem->pos.vx | (u16)mem->pos.vy | (u16)mem->pos.vz) == 0) {
+            if ((mem->pos.vx | mem->pos.vy | mem->pos.vz) == 0) {
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 mem->pos.vx = (((u32)Gp_LcgState >> 16) & 0xFFF) - 0x800;
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -555,7 +555,7 @@ void Gp_EffSprTask30(Task* arg0)
             mem->pos.vz = ((u32)Gp_LcgState >> 16) & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             mem->period = 0x200 - (((u32)Gp_LcgState >> 16) & 0x3FF);
-            if (((u16)mem->move.vx | (u16)mem->move.vy | (u16)mem->move.vz) == 0) {
+            if ((mem->move.vx | mem->move.vy | mem->move.vz) == 0) {
                 Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
                 mem->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
                 Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
@@ -606,12 +606,12 @@ void Gp_EffSprTask30(Task* arg0)
                 coord->coord.t[0] -= vec.vx;
                 coord->coord.t[1] -= vec.vy;
                 coord->coord.t[2] -= vec.vz;
-                mem->move.vx       = ((s16)(u16)wpos.vx >> 1) + ((s16)(u16)mem->move.vx >> 1);
-                mem->move.vy       = wpos.vy + ((s16)(u16)mem->move.vy >> 1);
-                mem->move.vz       = ((s16)(u16)wpos.vz >> 1) + ((s16)(u16)mem->move.vz >> 1);
+                mem->move.vx       = ((s16)(u16)wpos.vx >> 1) + (mem->move.vx >> 1);
+                mem->move.vy       = wpos.vy + (mem->move.vy >> 1);
+                mem->move.vz       = ((s16)(u16)wpos.vz >> 1) + (mem->move.vz >> 1);
                 VectorNormalSS(&mem->move, &mem->move);
-                mem->scale  = (s16)(u16)mem->scale >> 1;
-                mem->period = (s16)(u16)mem->period >> 1;
+                mem->scale  = mem->scale >> 1;
+                mem->period = mem->period >> 1;
                 gte_lddp(mem->scale);
                 gte_ldsv(&mem->move);
                 gte_gpf12();
@@ -666,7 +666,7 @@ void Gp_EffSprTask30(Task* arg0)
 
                     color[0] = color[1] = color[2] = mem->angle;
                     Gp_DrawEffSpark(arg0, arg0->spawnArg1, color);
-                    mem->period += (s16)(u16)mem->pos.vx >> 4;
+                    mem->period += mem->pos.vx >> 4;
                     Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
                     rnd          = ((u32)Gp_LcgState >> 16) % 3;
                     if (rnd == 0) {
@@ -708,7 +708,7 @@ void Gp_EffSprTask30(Task* arg0)
 
                     color[0] = color[1] = color[2] = mem->angle;
                     Gp_DrawEffSpark(arg0, arg0->spawnArg1, color);
-                    mem->period += (s16)(u16)mem->pos.vx >> 4;
+                    mem->period += mem->pos.vx >> 4;
                     Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
                     rnd          = ((u32)Gp_LcgState >> 16) % 3;
                     if (rnd == 0) {
@@ -1058,7 +1058,7 @@ void Gp_EffCtlTask32(Task* arg0)
             *(s32*)&m->m[1][1]   = one;
             *(s32*)&m->m[2][0]   = 0;
             m->m[2][2]           = one;
-            angle                = ((s16)mem->age + mem->scale) * 0x18;
+            angle                = (mem->age + mem->scale) * 0x18;
             coord->coord.t[0]    = (rcos(angle) * mem->move.vx) >> 0xC;
             coord->coord.t[1] =
                 mem->move.vy +
@@ -1093,7 +1093,7 @@ void Gp_EffCtlTask32(Task* arg0)
             }
             break;
         case 2:
-            mem->step         = (u16)mem->step - 0x80;
+            mem->step         = mem->step - 0x80;
             angle             = ((s16)step + mem->scale) * 0x18;
             mem->move.vx      = (rcos(mem->move.vz) * mem->step) >> 0xC;
             mem->move.vy      = ((rsin(mem->move.vz) * mem->step) >> 0xC) - 0x400;
@@ -1125,7 +1125,7 @@ void Gp_EffCtlTask32(Task* arg0)
                 newState = 4;
                 goto set_state;
             }
-            mem->period = (u16)mem->period - 0xA;
+            mem->period = mem->period - 0xA;
             break;
     }
     goto draw;
@@ -1134,8 +1134,8 @@ set_state_4:
 set_state:
     arg0->state = newState;
 draw:
-    func_800EB6E8(coord, (u16)mem->age, (u16)mem->angle | 0x1000,
-                  (u16)mem->period | 0x1000);
+    func_800EB6E8(coord, mem->age, mem->angle | 0x1000,
+                  mem->period | 0x1000);
     if (arg0->state == 4) {
         Gp_ReleaseState1CMem(mem, arg0);
     }
@@ -1194,30 +1194,30 @@ void Gp_EffCtlTaskAE(Task* arg0)
             return;
         case 1:
             Gp_UpdateCoord(coord);
-            temp       = (u16)mem->scale + (u16)mem->step;
+            temp       = mem->scale + mem->step;
             mem->scale = temp;
             if (temp >= 0x100) {
                 mem->scale = 0xFF;
             }
-            temp       = (u16)mem->angle + 8;
+            temp       = mem->angle + 8;
             mem->angle = temp;
             if (temp >= 0x201) {
                 mem->angle = 0x200;
             }
             rgb[0] = mem->scale;
-            rgb[1] = (u16)mem->scale >> 1;
-            rgb[2] = (u16)mem->scale >> 2;
+            rgb[1] = mem->scale >> 1;
+            rgb[2] = mem->scale >> 2;
             Gp_DrawRing(coord, mem->angle, rgb);
-            Gp_DrawRing(coord, (s16)((u16)mem->angle << 1), rgb);
+            Gp_DrawRing(coord, (s16)(mem->angle << 1), rgb);
             if (mem->scale >= 0x81) {
-                temp        = ((u16)mem->step << 1) + (u16)mem->period;
+                temp        = (mem->step << 1) + mem->period;
                 mem->period = temp;
                 if (temp >= 0x100) {
                     mem->period = 0xFF;
                 }
                 rgb[0] = mem->period;
-                rgb[1] = (u16)mem->period >> 1;
-                rgb[2] = (u16)mem->period >> 2;
+                rgb[1] = mem->period >> 1;
+                rgb[2] = mem->period >> 2;
                 Gp_DrawArc(coord, ((u8)Gp_StateC08.field_2 << 24) >> 17, 0x60, rgb);
             }
             if (Gp_State1C->fadeState >= 4) {
@@ -1242,10 +1242,10 @@ void Gp_EffCtlTaskAE(Task* arg0)
                 goto kill;
             }
             rgb[0] = mem->scale;
-            rgb[1] = (u16)mem->scale >> 1;
-            rgb[2] = (u16)mem->scale >> 2;
+            rgb[1] = mem->scale >> 1;
+            rgb[2] = mem->scale >> 2;
             Gp_DrawRing(coord, mem->angle, rgb);
-            Gp_DrawRing(coord, (s16)((u16)mem->angle << 1), rgb);
+            Gp_DrawRing(coord, (s16)(mem->angle << 1), rgb);
             if (Gp_State1C->fadeState >= 4) {
                 goto snd7;
             }
@@ -1260,8 +1260,8 @@ void Gp_EffCtlTaskAE(Task* arg0)
             arg0->state = 3;
             return;
         decay:
-            mem->scale = (u16)mem->scale - 0x10;
-            mem->angle = (u16)mem->angle - 0x30;
+            mem->scale = mem->scale - 0x10;
+            mem->angle = mem->angle - 0x30;
             return;
         case 3:
             Gp_UpdateCoord(coord);
@@ -1269,11 +1269,11 @@ void Gp_EffCtlTaskAE(Task* arg0)
                 goto kill;
             }
             rgb[0] = mem->scale;
-            rgb[1] = (u16)mem->scale >> 1;
-            rgb[2] = (u16)mem->scale >> 2;
+            rgb[1] = mem->scale >> 1;
+            rgb[2] = mem->scale >> 2;
             Gp_DrawRing(coord, mem->angle, rgb);
-            Gp_DrawRing(coord, (s16)((u16)mem->angle << 1), rgb);
-            mem->scale = (u16)mem->scale - 0x10;
+            Gp_DrawRing(coord, (s16)(mem->angle << 1), rgb);
+            mem->scale = mem->scale - 0x10;
             return;
     }
     return;
@@ -1312,9 +1312,9 @@ void Gp_EffCtlTaskC1(Task* arg0)
     }
 
     Gp_UpdateCoord(coord);
-    rgb[0] = (mem->scale * (((u16)mem->period >> 8) & 0xF)) >> 3;
+    rgb[0] = (mem->scale * ((mem->period >> 8) & 0xF)) >> 3;
     rgb[1] = (mem->scale * ((u8)mem->period >> 4)) >> 3;
-    rgb[2] = (mem->scale * ((u16)mem->period & 0xF)) >> 3;
+    rgb[2] = (mem->scale * (mem->period & 0xF)) >> 3;
     Gp_DrawBandEx(coord, mem->angle, 0x100, rgb);
 
     angle      = (u16)mem->angle;
@@ -1374,9 +1374,9 @@ void Gp_EffCtlTaskF3(Task* arg0)
         rgb[2] = 0xC0;
         rgb[0] = 0xC0;
         rgb[1] = 0x60;
-        Gp_DrawEffTri(coord, (s16)((u16)mem->period + 0x80), (s16)((u16)mem->index + 6), rgb);
+        Gp_DrawEffTri(coord, (s16)(mem->period + 0x80), (s16)(mem->index + 6), rgb);
         Gp_DrawRing(coord, mem->period, rgb);
-        Gp_DrawRing(coord, (s16)((u16)mem->period << 1), rgb);
+        Gp_DrawRing(coord, (s16)(mem->period << 1), rgb);
         Gp_State1C->burstRequest = 0;
     }
 
@@ -1525,11 +1525,11 @@ void Gp_EffCtlTaskF4(Task* arg0)
     if (mem->period & 0x8000) {
     draw_lcg:
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        Gp_DrawFxQuad(coord, (u16)mem->index, mem->angle,
-                      (u16)mem->scale | (((u32)Gp_LcgState >> 16) & 0x1000));
+        Gp_DrawFxQuad(coord, mem->index, mem->angle,
+                      mem->scale | (((u32)Gp_LcgState >> 16) & 0x1000));
     } else {
-        Gp_DrawFxQuad(coord, (u16)mem->index, mem->angle,
-                      (u16)mem->scale | (u16)mem->period);
+        Gp_DrawFxQuad(coord, mem->index, mem->angle,
+                      mem->scale | mem->period);
     }
     return;
 kill:
@@ -1580,13 +1580,13 @@ void Gp_EffCtlTaskAC(Task* arg0)
     }
 
     Gp_UpdateCoord(coord);
-    mem->scale = (u16)mem->angle + (((u16)mem->age & 1) << 4);
+    mem->scale = mem->angle + ((mem->age & 1) << 4);
     col        = mem->scale;
     rgb[1]     = col;
     rgb[0]     = col;
-    rgb[2]     = (u16)mem->scale >> 1;
+    rgb[2]     = mem->scale >> 1;
     Gp_DrawRing(coord, mem->period, rgb);
-    Gp_DrawRing(coord, (s16)((u16)mem->period << 1), rgb);
+    Gp_DrawRing(coord, (s16)(mem->period << 1), rgb);
 
     if (Gp_StateC08.field_10 == 0) {
         goto kill;
@@ -1636,7 +1636,7 @@ continue_fx:
     if (mem->angle < 0x21) {
         return;
     }
-    mem->angle  = (u16)mem->angle - 8;
+    mem->angle  = mem->angle - 8;
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     if (((u32)Gp_LcgState >> 16) & 1) {
         return;
@@ -1815,12 +1815,12 @@ void Gp_EffCtlTaskA6(Task* arg0)
                 temp        = arg0->spawnArg1;
                 mem->period = -(temp << 4) - (((u32)Gp_LcgState >> 16) & 0x7F);
                 mem->step   = arg0->spawnArg1 * 24 + 0xC0;
-                Gfx_RotMatrixY(&coord->coord, (u16)mem->scale & 0xFF0, 1);
+                Gfx_RotMatrixY(&coord->coord, mem->scale & 0xFF0, 1);
                 coord->flg = 0;
                 Gp_UpdateCoord(coord);
                 arg0->state = 1;
                 mem->move.vz =
-                    ((u16)mem->scale & 0x1F) % (arg0->spawnArg1 * 3) + 7;
+                    (mem->scale & 0x1F) % (arg0->spawnArg1 * 3) + 7;
                 func_800FCD00(arg0);
                 Gp_SpawnEff(0x600A7, coord, mem->step * 3 + 0x3000, 0);
                 return;
@@ -2826,7 +2826,7 @@ void func_800FF710(Task* arg0)
             mem->period          = temp2 << 2;
         }
         Gp_UpdateCoord(coord);
-        Gp_DrawEffSpriteE2(coord, (u16)((s16)mem->age >> 1), mem->scale - 0x40, mem->index);
+        Gp_DrawEffSpriteE2(coord, (u16)(mem->age >> 1), mem->scale - 0x40, mem->index);
         if (Gp_State1C->eventState != 0) {
             return;
         }
@@ -3025,7 +3025,7 @@ void Gp_EffSprTaskE1(Task* arg0)
             setlen(prim, 9);
             setcode(prim, 0x2F);
             prim->tpage = 0x28;
-            prim->clut  = ((0x10C - (u16)mem->step) << 6) | (((0xC0 - mem->step * 80) >> 4) & 0x3F);
+            prim->clut  = ((0x10C - mem->step) << 6) | (((0xC0 - mem->step * 80) >> 4) & 0x3F);
             uv          = mem->age;
             t           = 0x88;
             prim->v0    = t;
@@ -3107,7 +3107,7 @@ void Gp_EffSprTaskE2(Task* arg0)
         }
         Gp_UpdateCoord(coord);
         if (!(mem->age & 1)) {
-            Gp_DrawEffSpriteE2(coord, (u16)((s16)mem->age >> 1),
+            Gp_DrawEffSpriteE2(coord, (u16)(mem->age >> 1),
                                (s16)(mem->scale | mem->step), mem->angle);
         }
         if (Gp_State1C->eventState != 0) {

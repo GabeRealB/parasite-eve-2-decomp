@@ -63,7 +63,7 @@ void func_antibody_8012EF34(Task* arg0)
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
     if ((state->field_3 != -2) && (Gp_State1C->fadeState < 4)) {
-        mem->age = (u16)mem->age + 1;
+        mem->age = mem->age + 1;
         switch (arg0->state) {
             case 0: {
                 GpMtxWords* rot;
@@ -117,10 +117,10 @@ void func_antibody_8012EF34(Task* arg0)
                 s16           count;
 
                 table             = D_antibody_80130BD4;
-                mem->scale        = (u16)mem->scale + table[mem->index].field_4;
+                mem->scale        = mem->scale + table[mem->index].field_4;
                 rgb[0]            = *(u8*)&mem->scale;
                 rgb[1]            = *(u8*)&mem->scale;
-                rgb[2]            = (u16)mem->scale >> 1;
+                rgb[2]            = mem->scale >> 1;
                 coord->coord.t[1] = -0x400;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
@@ -169,7 +169,7 @@ void func_antibody_8012EF34(Task* arg0)
                 }
                 if (mem->scale > D_antibody_80130BD4[mem->index].field_2) {
                     Gp_SpawnEff(0x800600AC, coord, 0, 0);
-                    mem->period = (u16)mem->scale;
+                    mem->period = mem->scale;
                     arg0->state = 2;
                 }
                 return;
@@ -183,10 +183,10 @@ void func_antibody_8012EF34(Task* arg0)
                 if (mem->scale < 0x11) {
                     goto release;
                 }
-                mem->scale        = (u16)mem->scale - 0x10;
+                mem->scale        = mem->scale - 0x10;
                 rgb[0]            = *(u8*)&mem->scale;
                 rgb[1]            = *(u8*)&mem->scale;
-                rgb[2]            = (u16)mem->scale >> 1;
+                rgb[2]            = mem->scale >> 1;
                 coord->coord.t[1] = -0x400;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
@@ -196,7 +196,7 @@ void func_antibody_8012EF34(Task* arg0)
                 Gp_DrawRing(coord, (s16)(table[mem->index].field_2 * 0xC), rgb);
                 if (mem->index != 0) {
                     if (mem->index == 2) {
-                        mem->period = (u16)mem->period + table[mem->index].field_4;
+                        mem->period = mem->period + table[mem->index].field_4;
                     }
                     rgb[0] >>= 1;
                     rgb[1] >>= 1;
@@ -259,7 +259,7 @@ void func_antibody_8012F734(Task* arg0)
 
     mem        = arg0->spawnArg2;
     coord      = ((TmdObject*)arg0->extra)->coords;
-    mem->age   = (u16)mem->age + 1;
+    mem->age   = mem->age + 1;
     coord->flg = 0;
     switch (arg0->state) {
         case 0:

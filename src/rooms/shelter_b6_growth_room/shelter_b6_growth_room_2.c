@@ -276,7 +276,7 @@ void func_shelter_b6_growth_room_8017E448(s16 arg0, s16 arg1)
 
 void func_shelter_b6_growth_room_8017E564(Task* task)
 {
-    RoomEffWork*   work  = task->spawnArg2;
+    GpEffWork*     work  = task->spawnArg2;
     GsCOORDINATE2* coord = ((TmdObject*)task->extra)->coords;
     s32            vz;
     s32            t;
@@ -284,18 +284,18 @@ void func_shelter_b6_growth_room_8017E564(Task* task)
     u32            rng2;
     u32            rng3;
 
-    work->field_22++;
+    work->age++;
     if (task->state == 0) {
-        work->field_24 = (*(u16*)&task->spawnArg1) & 0xFFF;
+        work->scale = (*(u16*)&task->spawnArg1) & 0xFFF;
 
         if (task->spawnArg1 & 0xF000) {
-            work->field_28 = (task->spawnArg1 >> 12) & 0x7;
+            work->period = (task->spawnArg1 >> 12) & 0x7;
         } else {
-            work->field_28 = 1;
+            work->period = 1;
         }
 
-        work->field_22 = 0;
-        task->state    = 1;
+        work->age   = 0;
+        task->state = 1;
 
         if (task->spawnArg1 & 0xFF0000) {
             f2a = (task->spawnArg1 >> 16) & 0xFF;
@@ -303,42 +303,42 @@ void func_shelter_b6_growth_room_8017E564(Task* task)
             f2a = 0x40;
         }
 
-        work->field_2A    = f2a;
-        work->field_10.vy = 0;
-        rng2              = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState       = rng2;
-        work->field_10.vx = 0x80 - ((rng2 >> 16) & 0xFF);
-        rng3              = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState       = rng3;
-        vz                = 0x80 - ((rng3 >> 16) & 0xFF);
-        work->field_10.vz = vz;
-        VectorNormalSS(&work->field_10, &work->field_10);
+        work->step    = f2a;
+        work->move.vy = 0;
+        rng2          = Gp_LcgState * 5 + 0x71357911;
+        Gp_LcgState   = rng2;
+        work->move.vx = 0x80 - ((rng2 >> 16) & 0xFF);
+        rng3          = Gp_LcgState * 5 + 0x71357911;
+        Gp_LcgState   = rng3;
+        vz            = 0x80 - ((rng3 >> 16) & 0xFF);
+        work->move.vz = vz;
+        VectorNormalSS(&work->move, &work->move);
 
-        gte_lddp(work->field_2A);
-        gte_ldsv(&work->field_10);
+        gte_lddp(work->step);
+        gte_ldsv(&work->move);
         gte_gpf12();
-        gte_stsv(&work->field_10);
+        gte_stsv(&work->move);
     }
 
-    if ((s16)work->field_22 < (s16)work->field_28 * 10 - 16) {
-        if ((s16)work->field_26 < 0x40) {
-            work->field_26 += 4;
+    if (work->age < work->period * 10 - 16) {
+        if (work->angle < 0x40) {
+            work->angle += 4;
         }
     } else {
-        t              = (s16)work->field_22 + 16;
-        work->field_26 = 0x40 - (t - (s16)work->field_28 * 10) * 4;
+        t           = work->age + 16;
+        work->angle = 0x40 - (t - work->period * 10) * 4;
     }
 
-    func_shelter_b6_growth_room_8017E7F0(coord, work->field_20, (s16)work->field_24, work->field_26);
+    func_shelter_b6_growth_room_8017E7F0(coord, work->index, work->scale, work->angle);
 
-    coord->coord.t[0] += work->field_10.vx;
-    coord->coord.t[1] += work->field_10.vy;
-    coord->coord.t[2] += work->field_10.vz;
+    coord->coord.t[0] += work->move.vx;
+    coord->coord.t[1] += work->move.vy;
+    coord->coord.t[2] += work->move.vz;
     coord->flg         = 0;
 
-    if (((s16)work->field_22 % (s16)work->field_28) == 0) {
-        work->field_20++;
-        if ((s16)work->field_20 >= 0xA) {
+    if ((work->age % work->period) == 0) {
+        work->index++;
+        if (work->index >= 0xA) {
             Gp_ReleaseState1CMem(work, task);
         }
     }
@@ -413,27 +413,27 @@ void func_shelter_b6_growth_room_8017E7F0(GsCOORDINATE2* coord, u16 arg1, s16 ar
 
 void func_shelter_b6_growth_room_8017EAC8(Task* task)
 {
-    RoomEffWork*   work  = task->spawnArg2;
+    GpEffWork*     work  = task->spawnArg2;
     GsCOORDINATE2* coord = ((TmdObject*)task->extra)->coords;
     s32            vz;
     s16            f2a;
     u32            rng2;
     u32            rng3;
 
-    work->field_22++;
+    work->age++;
     if (task->state == 0) {
-        work->field_24 = (*(u16*)&task->spawnArg1) & 0xFFF;
-        Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-        work->field_26 = (Gp_LcgState >> 16) & 0xFFF;
+        work->scale = (*(u16*)&task->spawnArg1) & 0xFFF;
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        work->angle = (Gp_LcgState >> 16) & 0xFFF;
 
         if (task->spawnArg1 & 0xF000) {
-            work->field_28 = (task->spawnArg1 >> 12) & 0x7;
+            work->period = (task->spawnArg1 >> 12) & 0x7;
         } else {
-            work->field_28 = 1;
+            work->period = 1;
         }
 
-        work->field_22 = 0;
-        task->state    = 1;
+        work->age   = 0;
+        task->state = 1;
 
         if (task->spawnArg1 & 0xFF0000) {
             f2a = (task->spawnArg1 >> 16) & 0xFF;
@@ -441,34 +441,34 @@ void func_shelter_b6_growth_room_8017EAC8(Task* task)
             f2a = 0x40;
         }
 
-        work->field_2A    = f2a;
-        work->field_10.vy = 0;
-        rng2              = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState       = rng2;
-        work->field_10.vx = ((rng2 >> 16) & 0x7F) + 0x40;
-        rng3              = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState       = rng3;
-        vz                = 0x40 - ((rng3 >> 16) & 0x7F);
-        work->field_10.vz = vz;
-        VectorNormalSS(&work->field_10, &work->field_10);
+        work->step    = f2a;
+        work->move.vy = 0;
+        rng2          = Gp_LcgState * 5 + 0x71357911;
+        Gp_LcgState   = rng2;
+        work->move.vx = ((rng2 >> 16) & 0x7F) + 0x40;
+        rng3          = Gp_LcgState * 5 + 0x71357911;
+        Gp_LcgState   = rng3;
+        vz            = 0x40 - ((rng3 >> 16) & 0x7F);
+        work->move.vz = vz;
+        VectorNormalSS(&work->move, &work->move);
 
-        gte_lddp(work->field_2A);
-        gte_ldsv(&work->field_10);
+        gte_lddp(work->step);
+        gte_ldsv(&work->move);
         gte_gpf12();
-        gte_stsv(&work->field_10);
+        gte_stsv(&work->move);
     }
 
-    func_shelter_b6_growth_room_8017ED28(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
+    func_shelter_b6_growth_room_8017ED28(coord, work->index, work->scale, work->angle);
 
-    coord->coord.t[0] += work->field_10.vx;
-    coord->coord.t[1] += work->field_10.vy;
-    coord->coord.t[2] += work->field_10.vz;
+    coord->coord.t[0] += work->move.vx;
+    coord->coord.t[1] += work->move.vy;
+    coord->coord.t[2] += work->move.vz;
     coord->flg         = 0;
-    work->field_10.vy += 2;
+    work->move.vy     += 2;
 
-    if (((s16)work->field_22 % (s16)work->field_28) == 0) {
-        work->field_20++;
-        if ((s16)work->field_20 >= 0xA) {
+    if ((work->age % work->period) == 0) {
+        work->index++;
+        if (work->index >= 0xA) {
             Gp_ReleaseState1CMem(work, task);
         }
     }

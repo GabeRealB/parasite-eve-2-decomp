@@ -310,7 +310,7 @@ void func_actor_800100_80161F20(Task* task)
                         break;
                     }
                     if (work->scale < 0x180) {
-                        work->scale = (u16)work->scale + 0x40;
+                        work->scale = work->scale + 0x40;
                     }
                     eff = Gp_SpawnEff(0x60181, coord, work->scale, NULL);
                     if (eff != NULL) {
@@ -462,11 +462,11 @@ void func_actor_800100_801624F0(Task* task)
     if (fade != 0) {
         Gp_UpdateCoord(coord);
         func_actor_800100_80162A14((VECTOR3*)coord->workm.t,
-                                   ((s16)(u16)work->age >> 1) + 1, work->scale,
+                                   (work->age >> 1) + 1, work->scale,
                                    work->angle);
         return;
     }
-    work->age = (u16)work->age + 1;
+    work->age = work->age + 1;
     switch (task->state) {
         case 0:
             beam = memCalloc(sizeof(Actor800100Beam), 0);
@@ -492,7 +492,7 @@ void func_actor_800100_801624F0(Task* task)
             beam->obj.coord    = coord;
             beam->obj.ctx.recs = beam->rec;
             beam->obj.key      = 0x21C9E;
-            beam->obj.radius   = (s16)(u16)work->scale >> 1;
+            beam->obj.radius   = work->scale >> 1;
             Gp_LcgState        = ang1;
             beam->obj.flags    = 1;
             Gp_LinkObj(1, &beam->obj);
@@ -500,8 +500,8 @@ void func_actor_800100_801624F0(Task* task)
             beam->obj.flags   |= 0x8000;
             /* fallthrough */
         case 1:
-            work->scale        = (u16)work->scale + 0x10;
-            work->move.vy      = (u16)work->move.vy + 8;
+            work->scale        = work->scale + 0x10;
+            work->move.vy      = work->move.vy + 8;
             before.vx          = coord->workm.t[0];
             before.vy          = coord->workm.t[1];
             before.vz          = coord->workm.t[2];
@@ -514,7 +514,7 @@ void func_actor_800100_801624F0(Task* task)
             after.vy = coord->workm.t[1];
             after.vz = coord->workm.t[2];
             func_actor_800100_80162A14((VECTOR3*)coord->workm.t,
-                                       ((s16)(u16)work->age >> 1) + 1, work->scale,
+                                       (work->age >> 1) + 1, work->scale,
                                        work->angle);
             ang2        = Gp_LcgState * 5 + 0x71357911;
             Gp_LcgState = ang2;
@@ -546,14 +546,14 @@ void func_actor_800100_801624F0(Task* task)
             Gp_ClearRec18Occupied(beam->rec);
             return;
         case 2:
-            work->scale        = (u16)work->scale + 0x40;
+            work->scale        = work->scale + 0x40;
             coord->coord.t[0] += work->move.vx;
             coord->coord.t[1] += work->move.vy;
             coord->coord.t[2] += work->move.vz;
             coord->flg         = 0;
             Gp_UpdateCoord(coord);
             func_actor_800100_80162A14((VECTOR3*)coord->workm.t,
-                                       ((s16)(u16)work->age >> 1) + 1, work->scale,
+                                       (work->age >> 1) + 1, work->scale,
                                        work->angle);
             if (work->age >= 0x15) {
                 Gp_ReleaseState1CMem(work, task);

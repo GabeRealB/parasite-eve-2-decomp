@@ -305,7 +305,7 @@ void func_acropolis_roof_garden_8017DCCC(void)
 /// `0x30 >> view - 1` bit test) and one while it is 7.
 void func_acropolis_roof_garden_8017DCDC(Task* task)
 {
-    RoomEffWork*   work;
+    GpEffWork*     work;
     GsCOORDINATE2* coord;
     SVECTOR*       vec;
     s32            i;
@@ -325,16 +325,16 @@ void func_acropolis_roof_garden_8017DCDC(Task* task)
     }
     if (Gp_State1C->eventState < 4) {
         if ((0x30 >> ((u8)gGameSession->at4.loc.view - 1)) & 1) {
-            work->field_10.vx = -0x12A2;
-            work->field_10.vy = -0xDC;
-            work->field_10.vz = -0xF19;
-            Gp_SpawnEff(0x60090, coord, 0x60E, &work->field_10);
+            work->move.vx = -0x12A2;
+            work->move.vy = -0xDC;
+            work->move.vz = -0xF19;
+            Gp_SpawnEff(0x60090, coord, 0x60E, &work->move);
         }
         if ((u8)gGameSession->at4.loc.view == 7) {
-            work->field_10.vx = -0x12A2;
-            work->field_10.vy = -0xDC;
-            work->field_10.vz = -0xF19;
-            Gp_SpawnEff(0x60090, coord, 0x8000030E, &work->field_10);
+            work->move.vx = -0x12A2;
+            work->move.vy = -0xDC;
+            work->move.vz = -0xF19;
+            Gp_SpawnEff(0x60090, coord, 0x8000030E, &work->move);
         }
     }
 }
@@ -348,7 +348,7 @@ void func_acropolis_roof_garden_8017DCDC(Task* task)
 /// `GsWSMATRIX` into a 0x14-byte `RoomShaftScratch` block taken from
 /// `G_SCRATCH_HEAD`, and the projected point becomes the centre of a
 /// semi-transparent `POLY_FT4` on tpage 0x2B whose half-extent is
-/// `field_24 * 0x27 / otz`, so the sprite shrinks with distance and is dropped
+/// `scale * 0x27 / otz`, so the sprite shrinks with distance and is dropped
 /// entirely inside `otz` 0x11. `Task::spawnArg1` is unpacked once, on the first
 /// frame: bits 16..27 are the sprite's size (defaulting to 0x280 when zero),
 /// bits 8..9 pick one of three 0x28x0x27 cells across the sheet -- and, through
@@ -643,8 +643,8 @@ void func_acropolis_roof_garden_8017E29C(Task* arg0)
 }
 
 /// One drifting mote of the room's ambient effect. The first tick seeds it
-/// from `Gp_LcgState`: a size of 0x20, a random tilt pair (`field_28` /
-/// `field_2A`) and a random drift in `field_10`. While it flies, the drift
+/// from `Gp_LcgState`: a size of 0x20, a random tilt pair (`period` /
+/// `step`) and a random drift in `move`. While it flies, the drift
 /// moves its coordinate frame and the tilt rotates it; each drift axis eases
 /// back towards zero by one a tick and re-rolls a fresh multiple of 8 when it
 /// gets there, and the tilt wanders by a random step. Once the frame has
@@ -652,7 +652,7 @@ void func_acropolis_roof_garden_8017E29C(Task* arg0)
 /// fades back out and releases its work block.
 void func_acropolis_roof_garden_8017F10C(Task* task)
 {
-    RoomEffWork*   work;
+    GpEffWork*     work;
     GsCOORDINATE2* coord;
     s32            vy;
     s32            vx;
@@ -661,87 +661,87 @@ void func_acropolis_roof_garden_8017F10C(Task* task)
     work  = task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
     Gp_UpdateCoord(coord);
-    work->field_22++;
+    work->age++;
     switch (task->state) {
         case 0:
-            work->field_24    = 0x20;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_28    = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1F0);
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_2A    = 0x80 - (((u32)Gp_LcgState >> 16) & 0xF0);
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_10.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_10.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_10.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            task->state       = 1;
+            work->scale   = 0x20;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->period  = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1F0);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->step    = 0x80 - (((u32)Gp_LcgState >> 16) & 0xF0);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+            task->state   = 1;
             /* fallthrough */
         case 1:
-            coord->coord.t[0] += work->field_10.vx;
-            coord->coord.t[1] += work->field_10.vy;
-            coord->coord.t[2] += work->field_10.vz;
-            Gfx_RotMatrixX(&coord->coord, (s16)work->field_28, 0);
-            Gfx_RotMatrixZ(&coord->coord, (s16)work->field_2A, 0);
+            coord->coord.t[0] += work->move.vx;
+            coord->coord.t[1] += work->move.vy;
+            coord->coord.t[2] += work->move.vz;
+            Gfx_RotMatrixX(&coord->coord, work->period, 0);
+            Gfx_RotMatrixZ(&coord->coord, work->step, 0);
             coord->flg = 0;
 
-            vy = work->field_10.vy;
+            vy = work->move.vy;
             if (vy >= 0x1D) {
                 vy = vy - 1;
             } else {
                 vy = vy + 1;
             }
-            work->field_10.vy = vy;
+            work->move.vy = vy;
 
-            vx = work->field_10.vx;
+            vx = work->move.vx;
             if (vx == 0) {
-                Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-                work->field_10.vx += (2 - (u16)(((u32)Gp_LcgState >> 16) % 5U)) * 8;
+                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+                work->move.vx += (2 - (u16)(((u32)Gp_LcgState >> 16) % 5U)) * 8;
             } else {
                 if (vx > 0) {
                     vx = vx - 1;
                 } else {
                     vx = vx + 1;
                 }
-                work->field_10.vx = vx;
+                work->move.vx = vx;
             }
 
-            vz = work->field_10.vz;
+            vz = work->move.vz;
             if (vz == 0) {
-                work->field_10.vz += (s16)work->field_2A % 32;
-                Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-                work->field_10.vz += (2 - (u16)(((u32)Gp_LcgState >> 16) % 5U)) * 8;
+                work->move.vz += work->step % 32;
+                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+                work->move.vz += (2 - (u16)(((u32)Gp_LcgState >> 16) % 5U)) * 8;
             } else {
                 if (vz > 0) {
                     vz = vz - 1;
                 } else {
                     vz = vz + 1;
                 }
-                work->field_10.vz = vz;
+                work->move.vz = vz;
             }
 
-            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-            work->field_28 += (1 - (u16)(((u32)Gp_LcgState >> 16) % 3U)) * 0x10;
-            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-            work->field_2A += (1 - (u16)(((u32)Gp_LcgState >> 16) % 3U)) * 8;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->period += (1 - (u16)(((u32)Gp_LcgState >> 16) % 3U)) * 0x10;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->step   += (1 - (u16)(((u32)Gp_LcgState >> 16) % 3U)) * 8;
 
             if (coord->coord.t[1] > 0) {
                 task->state = 2;
             }
-            func_acropolis_roof_garden_8017F560(coord, (s16)work->field_24, 0);
+            func_acropolis_roof_garden_8017F560(coord, work->scale, 0);
             break;
         case 2:
-            if ((s16)work->field_26 < 0x80) {
-                work->field_26 += 0x10;
+            if (work->angle < 0x80) {
+                work->angle += 0x10;
             } else {
                 task->state = 3;
             }
-            func_acropolis_roof_garden_8017F560(coord, (s16)work->field_24, 0);
+            func_acropolis_roof_garden_8017F560(coord, work->scale, 0);
             break;
         case 3:
-            if ((s16)work->field_26 >= 0x11) {
-                work->field_26 -= 0x10;
-                func_acropolis_roof_garden_8017F560(coord, (s16)work->field_24, (s16)work->field_26);
+            if (work->angle >= 0x11) {
+                work->angle -= 0x10;
+                func_acropolis_roof_garden_8017F560(coord, work->scale, work->angle);
             } else {
                 Gp_ReleaseState1CMem(work, task);
             }

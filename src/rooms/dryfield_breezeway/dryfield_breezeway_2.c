@@ -1473,7 +1473,7 @@ void func_dryfield_breezeway_8017FF1C(Task* task)
 void func_dryfield_breezeway_8017FF7C(Task* task)
 {
     s32            mask;
-    RoomEffWork*   eff;
+    GpEffWork*     eff;
     GsCOORDINATE2* coord;
     GsCOORDINATE2* player;
     s32            limit;
@@ -1494,52 +1494,52 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
     Gp_State1C->roomEffectMode = 2;
     if (GameFlag_GetNibble(0x5D) == 0) {
         if (gGameSession->at4.loc.view == 2) {
-            limit            = (player->coord.t[0] - 5856) >> 7;
-            eff->field_10.vx = 12000;
-            eff->field_10.vy = -3000;
-            eff->field_10.vz = 3000;
-            Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
+            limit        = (player->coord.t[0] - 5856) >> 7;
+            eff->move.vx = 12000;
+            eff->move.vy = -3000;
+            eff->move.vz = 3000;
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
             if ((u16)((Gp_LcgState >> 16) % 100) < limit) {
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                Gp_SpawnEff(0x6003C, coord, (s32)(Gp_LcgState >> 16) % limit + 0x40, &eff->field_10);
+                Gp_SpawnEff(0x6003C, coord, (s32)(Gp_LcgState >> 16) % limit + 0x40, &eff->move);
             }
-            if ((s16)eff->field_2A == 0) {
+            if (eff->step == 0) {
                 SndEvt_EnqueueType6(0x5216000A, 0, 0);
-                eff->field_2A = 1;
+                eff->step = 1;
             }
         } else if (gGameSession->at4.loc.view == 3) {
-            eff->field_24    = 0x10;
-            eff->field_10.vx = player->coord.t[0] + 0x100;
-            eff->field_10.vy = -3000;
-            eff->field_10.vz = 3000;
-            Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
-            Gp_SpawnEff(0x6003C, coord, ((Gp_LcgState >> 16) & 0x7F) + 0x40, &eff->field_10);
-            if ((s16)eff->field_2A < 2) {
+            eff->scale   = 0x10;
+            eff->move.vx = player->coord.t[0] + 0x100;
+            eff->move.vy = -3000;
+            eff->move.vz = 3000;
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            Gp_SpawnEff(0x6003C, coord, ((Gp_LcgState >> 16) & 0x7F) + 0x40, &eff->move);
+            if (eff->step < 2) {
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 if (!((Gp_LcgState >> 16) & 3)) {
                     pan = (s8)Gp_GetObjPan(coord);
                     SndEvt_EnqueueType6(0x5216000B, pan, (s8)gpGetObjDepth(coord));
-                    eff->field_2A = 2;
+                    eff->step = 2;
                 }
             }
         }
     } else if (GameFlag_GetNibble(0x5D) == 1) {
-        if ((s16)eff->field_2A != 0) {
+        if (eff->step != 0) {
             SndEvt_EnqueueType7(0x5216000A, 0);
-            eff->field_2A = 0;
+            eff->step = 0;
         }
-        if ((s16)eff->field_24 != 0) {
-            eff->field_24--;
-            eff->field_10.vx = 16000;
-            eff->field_10.vy = -3000;
-            eff->field_10.vz = 2750;
-            Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
-            Gp_SpawnEff(0x6003C, coord, ((Gp_LcgState >> 16) & 0xFF) + 0x40, &eff->field_10);
-            eff->field_10.vx = 17000;
-            eff->field_10.vy = -3000;
-            eff->field_10.vz = 4000;
-            Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
-            Gp_SpawnEff(0x6003C, coord, ((Gp_LcgState >> 16) & 0xFF) + 0x40, &eff->field_10);
+        if (eff->scale != 0) {
+            eff->scale--;
+            eff->move.vx = 16000;
+            eff->move.vy = -3000;
+            eff->move.vz = 2750;
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            Gp_SpawnEff(0x6003C, coord, ((Gp_LcgState >> 16) & 0xFF) + 0x40, &eff->move);
+            eff->move.vx = 17000;
+            eff->move.vy = -3000;
+            eff->move.vz = 4000;
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            Gp_SpawnEff(0x6003C, coord, ((Gp_LcgState >> 16) & 0xFF) + 0x40, &eff->move);
         }
     }
 }
@@ -1777,17 +1777,17 @@ void func_dryfield_breezeway_80180858(GsCOORDINATE2* coord, u8* data, s32 arg2, 
 /// Per-frame update for a bouncing sprite particle drawn by
 /// `func_dryfield_breezeway_80181938`. The first frame resets the model's
 /// rotation, rolls a frame period, start frame, angle and spin from the LCG,
-/// picks a random direction in `field_10` when none was supplied, and
-/// normalises it. Afterwards it steps along `field_10` at speed `field_24`
+/// picks a random direction in `move` when none was supplied, and
+/// normalises it. Afterwards it steps along `move` at speed `scale`
 /// and tests the step with `func_800DE7CC`; a hit undoes the step, blends the
 /// direction with the returned vector, halves speed and spin, and spawns
 /// effect 0x60054 while the particle is young, settling into state 2 once hits
-/// come close together at low speed. A miss adds `0x5000 / field_24` to the
-/// direction's y component. Age is `field_22`: the sprite fades from 30 to 60 and
+/// come close together at low speed. A miss adds `0x5000 / scale` to the
+/// direction's y component. Over `age` the sprite fades from 30 to 60 and
 /// is then released. The age does not advance while an event is running.
 void func_dryfield_breezeway_80181264(Task* task)
 {
-    RoomEffWork*   work  = task->spawnArg2;
+    GpEffWork*     work  = task->spawnArg2;
     GsCOORDINATE2* coord = ((TmdObject*)task->extra)->coords;
     MATRIX*        m;
     SVECTOR        delta;
@@ -1803,7 +1803,7 @@ void func_dryfield_breezeway_80181264(Task* task)
     }
 
     Gp_UpdateCoord(coord);
-    work->field_22++;
+    work->age++;
 
     switch (task->state) {
         case 0:
@@ -1813,42 +1813,42 @@ void func_dryfield_breezeway_80181264(Task* task)
             *(s32*)&m->m[1][1] = 0x1000;
             *(s32*)&m->m[2][0] = 0;
             m->m[2][2]         = 0x1000;
-            work->field_18     = (u16)task->spawnArg1 & 0xFFF;
-            work->field_24     = 0x50;
+            work->pos.vx       = (u16)task->spawnArg1 & 0xFFF;
+            work->scale        = 0x50;
             Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-            work->field_1A     = ((u32)Gp_LcgState >> 16) & 7;
+            work->pos.vy       = ((u32)Gp_LcgState >> 16) & 7;
             Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-            work->field_20     = ((u32)Gp_LcgState >> 16) & 7;
+            work->index        = ((u32)Gp_LcgState >> 16) & 7;
             Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-            work->field_1C     = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            work->pos.vz       = ((u32)Gp_LcgState >> 16) & 0xFFF;
             Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-            work->field_28     = 0x200 - (((u32)Gp_LcgState >> 16) & 0x3FF);
-            if ((work->field_10.vx | work->field_10.vy | work->field_10.vz) == 0) {
-                Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                work->field_10.vx = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                work->field_10.vy = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x40;
-                Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                work->field_10.vz = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                gte_SetRotMatrix(&work->field_8->coord);
-                gte_ldv0(&work->field_10);
+            work->period       = 0x200 - (((u32)Gp_LcgState >> 16) & 0x3FF);
+            if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                work->move.vx = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                work->move.vy = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x40;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                work->move.vz = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                gte_SetRotMatrix(&work->parent->coord);
+                gte_ldv0(&work->move);
                 gte_rtv0();
-                gte_stsv(&work->field_10);
+                gte_stsv(&work->move);
             }
-            VectorNormalSS(&work->field_10, &work->field_10);
+            VectorNormalSS(&work->move, &work->move);
             coord->flg  = 0;
             task->state = 1;
             break;
         case 1:
             if (Gp_State1C->eventState != 0) {
-                work->field_22--;
+                work->age--;
             } else {
-                work->field_1C += work->field_28;
-                if ((s16)work->field_1A != 0 && (s16)work->field_22 % (s16)work->field_1A == 0) {
-                    work->field_20++;
+                work->pos.vz += work->period;
+                if (work->pos.vy != 0 && work->age % work->pos.vy == 0) {
+                    work->index++;
                 }
-                gte_lddp(work->field_24);
-                gte_ldsv(&work->field_10);
+                gte_lddp(work->scale);
+                gte_ldsv(&work->move);
                 gte_gpf12();
                 gte_stsv(&delta);
                 coord->coord.t[0] += delta.vx;
@@ -1869,35 +1869,35 @@ void func_dryfield_breezeway_80181264(Task* task)
                     coord->coord.t[0] -= delta.vx;
                     coord->coord.t[1] -= delta.vy;
                     coord->coord.t[2] -= delta.vz;
-                    work->field_10.vx  = (pos.vx >> 1) + (work->field_10.vx >> 1);
-                    work->field_10.vy  = pos.vy + (work->field_10.vy >> 1);
-                    work->field_10.vz  = (pos.vz >> 1) + (work->field_10.vz >> 1);
-                    VectorNormalSS(&work->field_10, &work->field_10);
-                    work->field_24 = (s16)work->field_24 >> 1;
-                    work->field_28 = (s16)work->field_28 >> 1;
-                    gte_lddp(work->field_24);
-                    gte_ldsv(&work->field_10);
+                    work->move.vx      = (pos.vx >> 1) + (work->move.vx >> 1);
+                    work->move.vy      = pos.vy + (work->move.vy >> 1);
+                    work->move.vz      = (pos.vz >> 1) + (work->move.vz >> 1);
+                    VectorNormalSS(&work->move, &work->move);
+                    work->scale  = work->scale >> 1;
+                    work->period = work->period >> 1;
+                    gte_lddp(work->scale);
+                    gte_ldsv(&work->move);
                     gte_gpf12();
                     gte_stsv(&delta);
                     coord->coord.t[0] += delta.vx;
                     coord->coord.t[1] += delta.vy;
                     coord->coord.t[2] += delta.vz;
-                    if ((s16)work->field_22 < 60) {
-                        Gp_SpawnEff(0x60054, coord, (s16)work->field_18 + 0x2100, NULL);
+                    if (work->age < 60) {
+                        Gp_SpawnEff(0x60054, coord, work->pos.vx + 0x2100, NULL);
                     }
-                    if ((s16)work->field_22 - (s16)work->field_2A < 8 && (s16)work->field_24 < 0x20) {
+                    if (work->age - work->step < 8 && work->scale < 0x20) {
                         task->state = 2;
                     } else {
-                        work->field_2A = work->field_22;
+                        work->step = work->age;
                     }
-                } else if ((s16)work->field_24 > 0) {
-                    work->field_10.vy += 0x5000 / (s16)work->field_24;
+                } else if (work->scale > 0) {
+                    work->move.vy += 0x5000 / work->scale;
                 }
             }
-            if ((s16)work->field_22 < 30) {
+            if (work->age < 30) {
                 func_dryfield_breezeway_80181938(task, NULL);
-            } else if ((s16)work->field_22 < 60) {
-                color[0] = color[1] = color[2] = (60 - (s16)work->field_22) * 4;
+            } else if (work->age < 60) {
+                color[0] = color[1] = color[2] = (60 - work->age) * 4;
                 func_dryfield_breezeway_80181938(task, color);
             } else {
                 Gp_ReleaseState1CMem(work, task);
@@ -1905,12 +1905,12 @@ void func_dryfield_breezeway_80181264(Task* task)
             break;
         case 2:
             if (Gp_State1C->eventState != 0) {
-                work->field_22--;
+                work->age--;
             }
-            if ((s16)work->field_22 < 30) {
+            if (work->age < 30) {
                 func_dryfield_breezeway_80181938(task, NULL);
-            } else if ((s16)work->field_22 < 60) {
-                color[0] = color[1] = color[2] = (60 - (s16)work->field_22) * 4;
+            } else if (work->age < 60) {
+                color[0] = color[1] = color[2] = (60 - work->age) * 4;
                 func_dryfield_breezeway_80181938(task, color);
             } else {
             release:
@@ -1923,13 +1923,13 @@ void func_dryfield_breezeway_80181264(Task* task)
 /// Draws `task`'s effect as a camera-facing 16x16 `POLY_FT4` sprite at the
 /// translation of its model's coordinate, through a 0x1C-byte `G_SCRATCH_HEAD`
 /// block. Nothing is drawn when the projection flags a negative result. The
-/// frame is `field_20 & 7` along row 0xF0 of texture page 0x2B, and the quad's
-/// half extent is `field_18 * 23 / otz`, rotated by the angle in `field_1C`.
+/// frame is `index & 7` along row 0xF0 of texture page 0x2B, and the quad's
+/// half extent is `pos.vx * 23 / otz`, rotated by the angle in `pos.vz`.
 /// A non-null `color` tints the sprite and makes it semi-transparent.
 void func_dryfield_breezeway_80181938(Task* task, u8* color)
 {
     TmdObject*        extra = (TmdObject*)task->extra;
-    RoomEffWork*      work  = task->spawnArg2;
+    GpEffWork*        work  = task->spawnArg2;
     void**            scratch;
     GsCOORDINATE2*    coord;
     u8*               head;
@@ -1970,22 +1970,22 @@ void func_dryfield_breezeway_80181938(Task* task, u8* color)
         }
         prim->tpage = 0x2B;
         prim->clut  = 0x43C0;
-        prim->u0    = (work->field_20 & 7) * 16;
+        prim->u0    = (work->index & 7) * 16;
         prim->v0    = 0xF0;
-        prim->u1    = (work->field_20 & 7) * 16 + 0xF;
+        prim->u1    = (work->index & 7) * 16 + 0xF;
         prim->v1    = 0xF0;
-        prim->u2    = (work->field_20 & 7) * 16;
+        prim->u2    = (work->index & 7) * 16;
         prim->v2    = 0xFF;
-        prim->u3    = (work->field_20 & 7) * 16 + 0xF;
+        prim->u3    = (work->index & 7) * 16 + 0xF;
         prim->v3    = 0xFF;
-        block->dx   = ((((s16)work->field_18 * 0x17) / block->otz) * rsin((s16)work->field_1C)) >> 12;
-        block->dy   = ((((s16)work->field_18 * 0x17) / block->otz) * rcos((s16)work->field_1C)) >> 12;
+        block->dx   = (((work->pos.vx * 0x17) / block->otz) * rsin(work->pos.vz)) >> 12;
+        block->dy   = (((work->pos.vx * 0x17) / block->otz) * rcos(work->pos.vz)) >> 12;
         prim->x0    = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
         prim->x3    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
         prim->y0    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
         prim->y3    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
-        block->dx   = ((((s16)work->field_18 * 0x17) / block->otz) * rsin((s16)work->field_1C + 0x400)) >> 12;
-        block->dy   = ((((s16)work->field_18 * 0x17) / block->otz) * rcos((s16)work->field_1C + 0x400)) >> 12;
+        block->dx   = (((work->pos.vx * 0x17) / block->otz) * rsin(work->pos.vz + 0x400)) >> 12;
+        block->dy   = (((work->pos.vx * 0x17) / block->otz) * rcos(work->pos.vz + 0x400)) >> 12;
         prim->x1    = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
         prim->x2    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
         prim->y1    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;

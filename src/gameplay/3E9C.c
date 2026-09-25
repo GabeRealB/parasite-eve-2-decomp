@@ -353,7 +353,7 @@ void func_800ED42C(Task* arg0)
                             Gp_SpawnEff(0x60072, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x380, 0);
                             if (mem->index == 0xF) {
                                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                                Gp_DrawEffSprite6C(coord, (s16)((u16)mem->scale + 0x280),
+                                Gp_DrawEffSprite6C(coord, (s16)(mem->scale + 0x280),
                                                    ((u32)Gp_LcgState >> 16) & 0xFFF);
                             }
                             mem->scale = 4;
@@ -389,7 +389,7 @@ void func_800ED42C(Task* arg0)
                             Gp_SpawnEff(0x60072, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x380, 0);
                             if (mem->index == 0xF) {
                                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                                Gp_DrawEffSprite6C(coord, (s16)((u16)mem->scale + 0x280),
+                                Gp_DrawEffSprite6C(coord, (s16)(mem->scale + 0x280),
                                                    ((u32)Gp_LcgState >> 16) & 0xFFF);
                             }
                         }
@@ -441,7 +441,7 @@ void func_800ED42C(Task* arg0)
                             Gp_SpawnEff(0x60072, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x380, 0);
                             if (mem->index == 0xF) {
                                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                                Gp_DrawEffSprite6C(coord, (s16)((u16)mem->scale + 0x280),
+                                Gp_DrawEffSprite6C(coord, (s16)(mem->scale + 0x280),
                                                    ((u32)Gp_LcgState >> 16) & 0xFFF);
                             }
                             Gfx_RotMatrixX(&coord->coord, 0x400, 0);
@@ -821,7 +821,7 @@ void Gp_EffLineTaskA3(Task* arg0)
                 gGpuPrimCursor = prim + 1;
                 setlen(prim, 4);
                 setcode(prim, 0x50);
-                c        = 0xFF - ((u16)mem->age << 6);
+                c        = 0xFF - (mem->age << 6);
                 prim->r0 = 0;
                 prim->g0 = 0;
                 prim->b0 = 0;
@@ -1835,14 +1835,14 @@ void Gp_EffSprTask5C(Task* arg0)
             prim->v2    = rec->v + 0x27;
             prim->u3    = rec->u + 0x27;
             prim->v3    = rec->v + 0x27;
-            block->dx   = ((((s16)mem->scale * 0x27) / block->otz) * rsin(mem->angle)) >> 12;
-            block->dy   = ((((s16)mem->scale * 0x27) / block->otz) * rcos(mem->angle)) >> 12;
+            block->dx   = (((mem->scale * 0x27) / block->otz) * rsin(mem->angle)) >> 12;
+            block->dy   = (((mem->scale * 0x27) / block->otz) * rcos(mem->angle)) >> 12;
             prim->x0    = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
             prim->x3    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
             prim->y0    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
             prim->y3    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
-            block->dx   = ((((s16)mem->scale * 0x27) / block->otz) * rsin(mem->angle + 0x400)) >> 12;
-            block->dy   = ((((s16)mem->scale * 0x27) / block->otz) * rcos(mem->angle + 0x400)) >> 12;
+            block->dx   = (((mem->scale * 0x27) / block->otz) * rsin(mem->angle + 0x400)) >> 12;
+            block->dy   = (((mem->scale * 0x27) / block->otz) * rcos(mem->angle + 0x400)) >> 12;
             prim->x1    = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
             prim->x2    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
             prim->y1    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
@@ -2324,7 +2324,7 @@ void func_800F4308(Task* arg0)
         goto release;
     }
     Gp_UpdateCoord(coord);
-    mem->age = (u16)mem->age + 1;
+    mem->age = mem->age + 1;
     switch (arg0->spawnArg1) {
         case 10:
             switch (arg0->state) {
@@ -3332,7 +3332,7 @@ void Gp_EffAttachTask37(Task* arg0)
                 gte_ldsv(rot);
                 gte_gpf12();
                 gte_stsv(rot);
-                if (((s16)mem->age - mem->step) < 8 && mem->scale < 0x20) {
+                if ((mem->age - mem->step) < 8 && mem->scale < 0x20) {
                     extra->flags |= 2;
                     mem->age      = 0;
                     arg0->state   = 2;

@@ -57,7 +57,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
     slot  = &base->data.light;
 
     if ((((TmdObject*)(gameGetPtrSlot(3))->extra)->flags & 0x80) == 0 && Gp_State1C->eventState < 2) {
-        work->age = (u16)work->age + 1;
+        work->age = work->age + 1;
         switch (task->state) {
             case 0:
                 dstm              = (GpMtxWords*)&coord->coord;
@@ -85,7 +85,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                         break;
                     case 1:
                         if (Gp_State1C->eventState != 0) {
-                            work->age = (u16)work->age - 1;
+                            work->age = work->age - 1;
                             if ((work->age & 1) == 0) {
                                 func_m4a1_hammer_8011D904(coord->workm.t, work->age >> 1, work->period,
                                                           work->angle);
@@ -116,7 +116,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                         return;
                     case 2:
                         if (Gp_State1C->eventState != 0) {
-                            work->age = (u16)work->age - 1;
+                            work->age = work->age - 1;
                             if ((work->age & 1) == 0) {
                                 func_m4a1_hammer_8011DE60(coord, work->age >> 1, work->period,
                                                           work->angle);
@@ -157,9 +157,9 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                                 gte_ldv0(&work->pos);
                                 gte_rtv0();
                                 gte_stsv(&work->pos);
-                                work->pos.vx = (u16)work->pos.vx + (u16)D_m4a1_hammer_8012D668.vx;
-                                work->pos.vy = (u16)work->pos.vy + (u16)D_m4a1_hammer_8012D668.vy;
-                                work->pos.vz = (u16)work->pos.vz + (u16)D_m4a1_hammer_8012D668.vz;
+                                work->pos.vx = work->pos.vx + (u16)D_m4a1_hammer_8012D668.vx;
+                                work->pos.vy = work->pos.vy + (u16)D_m4a1_hammer_8012D668.vy;
+                                work->pos.vz = work->pos.vz + (u16)D_m4a1_hammer_8012D668.vz;
                                 func_m4a1_hammer_8011E29C(coord, &work->pos, work->age, 0x280);
                             }
                         }
@@ -172,7 +172,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                         slot->head.g     = (s16)(u16)slot->head.b >> 1;
                         Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &light->coord);
                         light->flg  = 0;
-                        work->index = (u16)work->index + 1;
+                        work->index = work->index + 1;
                         if (work->index >= 5) {
                             task->spawnArg1 = 1;
                         }

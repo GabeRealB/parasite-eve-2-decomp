@@ -65,7 +65,7 @@ void func_healing_8012EF34(Task* arg0)
         return;
     }
 
-    mem->age = (u16)mem->age + 1;
+    mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
             rot               = (GpMtxWords*)&coord->coord;
@@ -94,7 +94,7 @@ void func_healing_8012EF34(Task* arg0)
                 bright += 0x10;
             }
             mem->scale = bright;
-            mem->angle = (u16)mem->angle + (u16)D_healing_8012FC1C[mem->index].field_4;
+            mem->angle = mem->angle + (u16)D_healing_8012FC1C[mem->index].field_4;
             Gfx_RotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].field_4 * 2), 0);
             coord->flg = 0;
             Gp_UpdateCoord(coord);
@@ -102,8 +102,8 @@ void func_healing_8012EF34(Task* arg0)
             ang          = ((u32)rng >> 16) & 0xFFF;
             Gp_LcgState  = rng;
             mem->step    = ang;
-            mem->move.vx = (rcos(ang) * ((s16)mem->angle * 3 / 2)) >> 12;
-            temp_lo      = rsin(mem->step) * ((s16)mem->angle * 3 / 2);
+            mem->move.vx = (rcos(ang) * (mem->angle * 3 / 2)) >> 12;
+            temp_lo      = rsin(mem->step) * (mem->angle * 3 / 2);
             rng          = Gp_LcgState * 5 + 0x71357911;
             Gp_LcgState  = rng;
             mem->move.vy = temp_lo >> 12;
@@ -121,14 +121,14 @@ void func_healing_8012EF34(Task* arg0)
             Gfx_RotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].field_4 * 2), 0);
             coord->flg = 0;
             Gp_UpdateCoord(coord);
-            mem->scale = (u16)mem->scale - 0x10;
-            mem->angle = (u16)mem->angle + (u16)D_healing_8012FC1C[mem->index].field_4;
+            mem->scale = mem->scale - 0x10;
+            mem->angle = mem->angle + (u16)D_healing_8012FC1C[mem->index].field_4;
             if (mem->scale < 0x11) {
                 arg0->state = 3;
             }
         draw:
-            rgb[0] = (u16)mem->scale >> 2;
-            rgb[1] = (u16)mem->scale >> 1;
+            rgb[0] = mem->scale >> 2;
+            rgb[1] = mem->scale >> 1;
             rgb[2] = *(u8*)&mem->scale;
             Gp_DrawRing(coord, (s32)((u16)mem->angle << 16) >> 17, rgb);
             Gp_DrawRing(coord, (s32)((u16)mem->angle << 16) >> 17, rgb);
@@ -152,7 +152,7 @@ void func_healing_8012EF34(Task* arg0)
                 rgb[1] = g >> 1;
                 Gp_DrawArc(c, mem->angle, span, rgb);
             }
-            if ((u16)mem->age & 1) {
+            if (mem->age & 1) {
                 Gp_DrawArc(coord, 0x80, mem->angle, rgb);
             }
             if (mem->index != 0) {
@@ -173,15 +173,15 @@ void func_healing_8012EF34(Task* arg0)
                 g      = rgb[1];
                 rgb[2] = b >> 1;
                 rgb[1] = g >> 1;
-                Gp_DrawArc(c, (s16)((u16)mem->angle + 0x200), span, rgb);
+                Gp_DrawArc(c, (s16)(mem->angle + 0x200), span, rgb);
             }
             return;
         case 3:
             Gfx_RotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].field_4 * 2), 0);
             coord->flg = 0;
             Gp_UpdateCoord(coord);
-            mem->period = (u16)mem->period + 1;
-            if ((s16)mem->period < 0x1F) {
+            mem->period = mem->period + 1;
+            if (mem->period < 0x1F) {
                 return;
             }
             Gp_ReleaseState1CMem(mem, arg0);
@@ -206,7 +206,7 @@ void func_healing_8012F494(Task* arg0)
 
     mem      = arg0->spawnArg2;
     coord    = ((TmdObject*)arg0->extra)->coords;
-    mem->age = (u16)mem->age + 1;
+    mem->age = mem->age + 1;
     state    = arg0->state;
     switch (state) {
         case 0:
@@ -226,13 +226,13 @@ void func_healing_8012F494(Task* arg0)
             coord->flg        = 0;
             coord->coord.t[1] = y;
             Gp_UpdateCoord(coord);
-            if (!((u16)mem->age & 1)) {
-                mem->index = (u16)mem->index + 1;
+            if (!(mem->age & 1)) {
+                mem->index = mem->index + 1;
             }
             if (mem->index < 8) {
-                if ((u16)mem->age & 1) {
-                    Gp_DrawFxQuad(coord, (u16)mem->index, mem->angle,
-                                  (u16)mem->scale | (u16)mem->period);
+                if (mem->age & 1) {
+                    Gp_DrawFxQuad(coord, mem->index, mem->angle,
+                                  mem->scale | mem->period);
                     return;
                 }
             } else {
@@ -254,7 +254,7 @@ void func_healing_8012F5E4(Task* arg0)
 
     mem      = arg0->spawnArg2;
     coord    = ((TmdObject*)arg0->extra)->coords;
-    mem->age = (u16)mem->age + 1;
+    mem->age = mem->age + 1;
     if (arg0->state == 0) {
         coord->sub        = mem->parent;
         coord->coord.t[0] = mem->pos.vx;
@@ -277,18 +277,18 @@ void func_healing_8012F5E4(Task* arg0)
     coord->coord.t[1] = y;
     Gp_UpdateCoord(coord);
     if (mem->age < 0x1E) {
-        if ((u16)mem->age & 1) {
-            mem->index = (u16)mem->index + 1;
+        if (mem->age & 1) {
+            mem->index = mem->index + 1;
             if (mem->age >= 0x10) {
-                mem->scale = (u16)mem->scale - ((s16)D_healing_8012FC1C[mem->step].field_2 >> 4);
+                mem->scale = mem->scale - ((s16)D_healing_8012FC1C[mem->step].field_2 >> 4);
             }
             if (mem->step < 2) {
-                func_800EB6E8(coord, (u16)mem->index, (u16)mem->angle,
-                              (u16)mem->scale);
+                func_800EB6E8(coord, mem->index, mem->angle,
+                              mem->scale);
             } else {
                 func_healing_8012F7FC(coord, mem->index, mem->angle, mem->scale);
             }
-            if (((u16)mem->age & 7) == 1) {
+            if ((mem->age & 7) == 1) {
                 spawned = Gp_SpawnEff(0x60016, coord, mem->angle, 0);
                 if (spawned != NULL) {
                     Task_Reparent(arg0, spawned->task);

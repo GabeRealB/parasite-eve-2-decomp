@@ -627,7 +627,7 @@ void func_shelter_b6_corridor_8017ECA8(Task* task)
     }
     rgb[0]      = mem->scale;
     rgb[1]      = mem->scale;
-    rgb[2]      = (u16)mem->scale >> 1;
+    rgb[2]      = mem->scale >> 1;
     mem->angle += 0x18;
     Gp_DrawArc(coord, (s16)(mem->angle * 2), 0, rgb);
     Gp_DrawRing(coord, (s16)((u16)mem->angle * 4), rgb);

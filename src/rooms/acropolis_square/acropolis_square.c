@@ -2485,7 +2485,7 @@ s32 func_acropolis_square_80182360(void)
 
 void func_acropolis_square_801823DC(Task* task)
 {
-    RoomEffWork*   work;
+    GpEffWork*     work;
     GsCOORDINATE2* coord;
 
     coord = ((TmdObject*)task->extra)->coords;
@@ -2501,25 +2501,25 @@ void func_acropolis_square_801823DC(Task* task)
             return;
         case 1:
             if ((0x268 >> ((u8)gGameSession->at4.loc.view - 1)) & 1) {
-                work->field_10.vx = 0x19AA;
-                work->field_10.vy = -0xF96;
-                work->field_10.vz = 0x8DE;
+                work->move.vx = 0x19AA;
+                work->move.vy = -0xF96;
+                work->move.vz = 0x8DE;
                 Gp_SpawnEff(0x60047, coord, D_acropolis_square_80183B98 * 0x10000218 + 0x10E08,
-                            &work->field_10);
+                            &work->move);
             }
             if ((u8)gGameSession->at4.loc.view == 0xE) {
-                work->field_10.vx = 0x18D2;
-                work->field_10.vy = -0x100B;
-                work->field_10.vz = 0x8AB;
+                work->move.vx = 0x18D2;
+                work->move.vy = -0x100B;
+                work->move.vz = 0x8AB;
                 Gp_SpawnEff(0x60047, coord, D_acropolis_square_80183B98 * 0x218 + 0x10010608,
-                            &work->field_10);
+                            &work->move);
             }
             if ((u8)gGameSession->at4.loc.view == 9) {
-                work->field_10.vx = 0x19AA;
-                work->field_10.vy = -0xF96;
-                work->field_10.vz = 0x8E8;
+                work->move.vx = 0x19AA;
+                work->move.vy = -0xF96;
+                work->move.vz = 0x8E8;
                 Gp_SpawnEff(0x60047, coord, D_acropolis_square_80183B98 * 0x118 + 0x80010308,
-                            &work->field_10);
+                            &work->move);
             }
             return;
     }

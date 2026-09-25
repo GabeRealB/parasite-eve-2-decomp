@@ -65,7 +65,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
     if ((D_80114C0B != -2) && (Gp_State1C->fadeState < 4)) {
-        mem->age = (u16)mem->age + 1;
+        mem->age = mem->age + 1;
         switch (arg0->state) {
             case 0:
                 D_apobiosis_80130BA0 = arg0;
@@ -102,9 +102,9 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 }
                 func_apobiosis_8012F808(mem->step);
                 rgb[0] = rgb[1]    = mem->step >> 2;
-                rgb[2]             = (u16)mem->step >> 1;
+                rgb[2]             = mem->step >> 1;
                 coord->workm.t[1] -= 0x400;
-                mem->scale         = (u16)mem->scale + D_apobiosis_80130B5C[mem->index].field_4;
+                mem->scale         = mem->scale + D_apobiosis_80130B5C[mem->index].field_4;
                 func_apobiosis_8013017C(
                     &((TmdObject*)(gameGetPtrSlot(3))->extra)->coords[1], mem->age,
                     D_apobiosis_80130B5C[mem->index].field_2, 0);
@@ -130,7 +130,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 }
                 coord->workm.t[1] += 0x400;
                 if (mem->step >= 0x19) {
-                    mem->step = (u16)mem->step - 0x18;
+                    mem->step = mem->step - 0x18;
                     return;
                 }
                 arg0->state = 2;
@@ -140,7 +140,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 Gp_UpdateCoord(coord);
                 func_apobiosis_8012F808(mem->step);
                 if (mem->step >= 0x41) {
-                    mem->step = (u16)mem->step - 0x10;
+                    mem->step = mem->step - 0x10;
                 }
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
@@ -162,7 +162,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
             case 3:
                 func_apobiosis_8012F808(mem->step);
                 if (mem->step >= 0x21) {
-                    mem->step = (u16)mem->step - 0xC;
+                    mem->step = mem->step - 0xC;
                 }
                 Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
                 mem->scale   = ((u32)Gp_LcgState >> 16) & 0x7FF;
@@ -185,7 +185,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
             case 4:
                 func_apobiosis_8012F808(mem->step);
                 if (mem->step >= 9) {
-                    mem->step = (u16)mem->step - 8;
+                    mem->step = mem->step - 8;
                 }
                 for (i = 0; i < 2; i++) {
                     Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
@@ -203,7 +203,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
             case 5:
                 func_apobiosis_8012F808(mem->step);
                 if (mem->step >= 9) {
-                    mem->step = (u16)mem->step - 8;
+                    mem->step = mem->step - 8;
                     return;
                 }
                 break;
@@ -370,7 +370,7 @@ void func_apobiosis_8012FE10(Task* arg0)
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
     if ((D_80114C0B != -2) && (Gp_State1C->fadeState < 4)) {
-        mem->age = (u16)mem->age + 1;
+        mem->age = mem->age + 1;
         switch (arg0->state) {
             case 0:
                 Task_Reparent(D_apobiosis_80130BA0, arg0);
@@ -403,7 +403,7 @@ void func_apobiosis_8012FE10(Task* arg0)
             case 1:
                 Gp_UpdateCoord(coord);
                 if (mem->age & 1) {
-                    mem->index = (u16)mem->index + 1;
+                    mem->index = mem->index + 1;
                     func_apobiosis_8013017C(coord, mem->index,
                                             D_apobiosis_80130B5C[mem->step].field_6 * 2,
                                             mem->angle);
@@ -421,7 +421,7 @@ void func_apobiosis_8012FE10(Task* arg0)
                 coord->flg         = 0;
                 Gp_UpdateCoord(coord);
                 if (mem->age & 1) {
-                    mem->index = (u16)mem->index + 1;
+                    mem->index = mem->index + 1;
                     func_apobiosis_8013017C(coord, mem->index,
                                             D_apobiosis_80130B5C[mem->step].field_6,
                                             mem->angle);

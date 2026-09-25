@@ -146,9 +146,9 @@ void func_neo_ark_south_promenade_8017D720(Task* task)
                 work->angle += work->step;
                 task->spawnArg1--;
                 rgb[0] = work->scale;
-                rgb[1] = (u16)work->scale >> 2;
-                rgb[2] = (u16)work->scale >> 1;
-                func_neo_ark_south_promenade_8017DDF0(coord, (s16)work->angle, rgb);
+                rgb[1] = work->scale >> 2;
+                rgb[2] = work->scale >> 1;
+                func_neo_ark_south_promenade_8017DDF0(coord, work->angle, rgb);
                 rgb[0] >>= 1;
                 rgb[1] >>= 1;
                 rgb[2] >>= 1;
@@ -158,17 +158,17 @@ void func_neo_ark_south_promenade_8017D720(Task* task)
                     work->scale = 0xFF;
                     task->state = 2;
                     rgb[0]      = work->scale;
-                    rgb[1]      = (u16)work->scale >> 2;
-                    rgb[2]      = (u16)work->scale >> 1;
+                    rgb[1]      = work->scale >> 2;
+                    rgb[2]      = work->scale >> 1;
                     Gp_DrawFadeQuad(rgb, 1);
                 }
                 break;
             case 2:
-                if ((s16)work->scale >= 0x11) {
+                if (work->scale >= 0x11) {
                     rgb[0] = work->scale;
-                    rgb[1] = (u16)work->scale >> 2;
-                    rgb[2] = (u16)work->scale >> 1;
-                    func_neo_ark_south_promenade_8017ECF4(coord, (s16)((s16)work->angle * 3), rgb);
+                    rgb[1] = work->scale >> 2;
+                    rgb[2] = work->scale >> 1;
+                    func_neo_ark_south_promenade_8017ECF4(coord, (s16)(work->angle * 3), rgb);
                     work->scale -= 0x10;
                     work->angle -= 8;
                     break;
@@ -618,8 +618,8 @@ void func_neo_ark_south_promenade_8017EA6C(Task* task)
             work->angle -= 0x20;
             work->scale += 0x30;
             rgb[0]       = work->angle;
-            rgb[1]       = (u16)work->angle >> 1;
-            rgb[2]       = (u16)work->angle >> 2;
+            rgb[1]       = work->angle >> 1;
+            rgb[2]       = work->angle >> 2;
             func_neo_ark_south_promenade_8017D9C4(objCoord, 0x100, 0x100, rgb);
             func_neo_ark_south_promenade_8017D9C4(objCoord, work->scale, work->scale, rgb);
             if (work->age >= 7) {

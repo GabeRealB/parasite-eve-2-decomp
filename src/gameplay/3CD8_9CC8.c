@@ -911,7 +911,7 @@ void func_800EC47C(Task* arg0)
             current = mem->scale;
             target  = mem->angle;
             if (current == target) {
-                count       = (u16)mem->period + 1;
+                count       = mem->period + 1;
                 random      = Gp_LcgState * 5 + 0x71357911;
                 mem->period = count;
                 Gp_LcgState = random;

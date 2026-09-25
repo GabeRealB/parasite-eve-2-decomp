@@ -44,7 +44,7 @@ void flareEffectTask(Task* arg0)
         Gp_ReleaseState1CMem(mem, arg0);
         return;
     }
-    mem->age = (u16)mem->age + 1;
+    mem->age = mem->age + 1;
     if (arg0->state == 0) {
         pan = (s8)Gp_GetObjPan(coord);
         SndEvt_EnqueueType6(0xE03E0001, pan, (s8)gpGetObjDepth(coord));
@@ -93,7 +93,7 @@ void flareSparkTask(Task* arg0)
 
     mem      = arg0->spawnArg2;
     coord    = ((TmdObject*)arg0->extra)->coords;
-    mem->age = (u16)mem->age + 1;
+    mem->age = mem->age + 1;
     if (arg0->state == 0) {
         player     = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
         dstm       = (GpMtxWords*)&coord->coord;
@@ -138,8 +138,8 @@ void flareSparkTask(Task* arg0)
     coord->coord.t[2] += mem->move.vz;
     coord->flg         = 0;
     Gp_UpdateCoord(coord);
-    if (!((u16)mem->age & 1)) {
-        mem->index = (u16)mem->index + 1;
+    if (!(mem->age & 1)) {
+        mem->index = mem->index + 1;
     }
     if (mem->index < 8) {
         flareDrawSparkQuad(coord, mem->index, mem->period, mem->scale);

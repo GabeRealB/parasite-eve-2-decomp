@@ -79,7 +79,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
     mem      = arg0->spawnArg2;
     tmdo     = arg0->extra;
     coord    = tmdo->coords;
-    mem->age = (u16)mem->age + 1;
+    mem->age = mem->age + 1;
     base     = Gp_RoomCoords;
     slotc    = &base->data.coord;
     slot     = &base->data.light;
@@ -95,7 +95,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 return;
             }
             if (fade != 0) {
-                mem->age = (u16)mem->age - 1;
+                mem->age = mem->age - 1;
                 return;
             }
             work = memCalloc(0x58, 0);
@@ -196,7 +196,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 return;
             }
             if (fade != 0) {
-                mem->age = (u16)mem->age - 1;
+                mem->age = mem->age - 1;
                 return;
             }
             radius             = (mem->index << 9) + 0x380;
@@ -280,7 +280,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 return;
             }
             if (fade != 0) {
-                mem->age = (u16)mem->age - 1;
+                mem->age = mem->age - 1;
                 return;
             }
             Gp_UpdateCoord(coord);
@@ -330,7 +330,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 return;
             }
             if (fade != 0) {
-                mem->age = (u16)mem->age - 1;
+                mem->age = mem->age - 1;
                 return;
             }
             Gp_UpdateCoord(coord);
@@ -338,7 +338,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             func_pyrokinesis_80130130(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
             func_pyrokinesis_80130130(coord, (s16)((u16)mem->angle * 2),
                                       (s16)((u16)mem->scale << 16 >> 17));
-            mem->angle = (u16)mem->angle + 0x40;
+            mem->angle = mem->angle + 0x40;
             if (mem->angle > ((mem->index << 9) + 0x580)) {
                 Gp_UnlinkObj(&work->obj2);
                 Gp_ReleaseState1CMem(mem, arg0);
@@ -358,7 +358,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 return;
             }
             if (fade != 0) {
-                mem->age = (u16)mem->age - 1;
+                mem->age = mem->age - 1;
                 return;
             }
             Gp_UpdateCoord(coord);
@@ -366,10 +366,10 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             func_pyrokinesis_80130130(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
             func_pyrokinesis_80130130(coord, (s16)((u16)mem->angle * 2),
                                       (s16)((u16)mem->scale << 16 >> 17));
-            mem->angle = (u16)mem->angle + 0x40;
+            mem->angle = mem->angle + 0x40;
             if (mem->angle > ((mem->index << 9) + 0x580)) {
                 if (mem->scale >= 9) {
-                    mem->scale = (u16)mem->scale - 8;
+                    mem->scale = mem->scale - 8;
                     return;
                 }
                 Gp_UnlinkObj(&work->obj2);
@@ -397,7 +397,7 @@ void func_pyrokinesis_8012FAC8(Task* arg0)
                 if (flag != 0) {
                     return;
                 }
-                mem->age = (u16)mem->age + 1;
+                mem->age = mem->age + 1;
                 Gp_UpdateCoord(coord);
                 state = arg0->state;
                 if (state == scene) {
@@ -788,7 +788,7 @@ void func_pyrokinesis_80130C54(Task* arg0)
             if (flag != 0) {
                 return;
             }
-            mem->age = (u16)mem->age + 1;
+            mem->age = mem->age + 1;
             if (arg0->state == 0) {
                 Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
                 mem->move.vy = -(((u32)Gp_LcgState >> 16) & 0x1F);
@@ -800,12 +800,12 @@ void func_pyrokinesis_80130C54(Task* arg0)
             coord->flg        = 0;
             coord->coord.t[1] = y;
             Gp_UpdateCoord(coord);
-            if (!((u16)mem->age & 1)) {
-                mem->index = (u16)mem->index + 1;
+            if (!(mem->age & 1)) {
+                mem->index = mem->index + 1;
             }
             temp_a1 = mem->index;
             if (temp_a1 < 8) {
-                if ((u16)mem->age & 1) {
+                if (mem->age & 1) {
                     func_pyrokinesis_80130DC0(coord, temp_a1, 0x300, mem->scale);
                 }
                 return;
@@ -1132,7 +1132,7 @@ void func_pyrokinesis_80131CE4(Task* arg0)
             if (flag != 0) {
                 return;
             }
-            mem->age = (u16)mem->age + 1;
+            mem->age = mem->age + 1;
             if (arg0->state == 0) {
                 mem->scale  = 0xC0;
                 mem->angle  = 0x100;

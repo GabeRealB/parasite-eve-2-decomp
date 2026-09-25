@@ -1385,7 +1385,7 @@ void func_acropolis_bridge_8017F808(Task* task)
 /// is, so that the ambience thins out during a fight.
 void func_acropolis_bridge_8017F868(Task* task)
 {
-    RoomEffWork*   work;
+    GpEffWork*     work;
     GsCOORDINATE2* coord;
     GsCOORDINATE2* part;
     Task*          owner;
@@ -1424,7 +1424,7 @@ void func_acropolis_bridge_8017F868(Task* task)
         }
     }
 
-    work->field_22 = work->field_22 + 1;
+    work->age = work->age + 1;
     switch (view) {
         case 6:
             func_acropolis_bridge_80183654(&D_acropolis_bridge_80189A44, 0x100, 0x5C20);
@@ -1449,14 +1449,14 @@ void func_acropolis_bridge_8017F868(Task* task)
                 pos.vx = D_acropolis_bridge_8018991C[i].vx;
                 pos.vy = D_acropolis_bridge_8018991C[i].vy - 0x240;
                 pos.vz = D_acropolis_bridge_8018991C[i].vz;
-                Gp_SpawnEff(0x800600B1, coord, (s16)work->field_22 + i, &pos);
+                Gp_SpawnEff(0x800600B1, coord, work->age + i, &pos);
             }
         }
     } else {
         for (i = 0; i < 7; i++) {
             if (D_acropolis_bridge_801899EC[i] & bit) {
-                Gp_SpawnEff(0x800600B1, coord, (s16)work->field_22 + i, &D_acropolis_bridge_8018991C[i]);
-                Gp_SpawnEff(0x600B2, coord, (s16)work->field_22 + i, &D_acropolis_bridge_80189954[i]);
+                Gp_SpawnEff(0x800600B1, coord, work->age + i, &D_acropolis_bridge_8018991C[i]);
+                Gp_SpawnEff(0x600B2, coord, work->age + i, &D_acropolis_bridge_80189954[i]);
             }
         }
     }
@@ -1491,22 +1491,22 @@ void func_acropolis_bridge_8017F868(Task* task)
             if (axis < 0) {
                 axis = part->workm.t[1] - prev;
             }
-            dist           = delta + axis;
-            prev           = D_acropolis_bridge_80189A34[i].vz;
-            axis           = part->workm.t[2];
-            delta          = prev - axis;
-            delta          = ((delta >= 0) ? (dist + delta) : (dist + (axis - prev))) + 0x20;
-            work->field_26 = delta;
+            dist        = delta + axis;
+            prev        = D_acropolis_bridge_80189A34[i].vz;
+            axis        = part->workm.t[2];
+            delta       = prev - axis;
+            delta       = ((delta >= 0) ? (dist + delta) : (dist + (axis - prev))) + 0x20;
+            work->angle = delta;
 
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             rnd         = (u32)Gp_LcgState >> 16;
-            if ((rnd & 0x1FF) < (s16)work->field_26) {
+            if ((rnd & 0x1FF) < work->angle) {
                 Gp_SpawnEff(D_8011574C, part, 0x40, NULL);
             }
-            work->field_26 = work->field_26 - 0x20;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            rnd            = (u32)Gp_LcgState >> 16;
-            if ((rnd & 0x1FF) < (s16)work->field_26) {
+            work->angle = work->angle - 0x20;
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            rnd         = (u32)Gp_LcgState >> 16;
+            if ((rnd & 0x1FF) < work->angle) {
                 Gp_SpawnEff(D_80115738, part, 0x1202180, NULL);
             }
 
@@ -1523,13 +1523,13 @@ void func_acropolis_bridge_8017F868(Task* task)
         case 0:
             break;
         case 1:
-            lastView = work->field_24;
+            lastView = work->scale;
             if (lastView != view) {
                 for (i = 0; i < 0x1E; i++) {
                     Gp_SpawnEff(0x600B4, coord, view, NULL);
                 }
             } else if (Gp_State1C->battleState != 1) {
-                if (work->field_22 & 0x200) {
+                if (work->age & 0x200) {
                     Gp_SpawnEff(0x600B4, coord, lastView, NULL);
                     Gp_SpawnEff(0x600B4, coord, lastView, NULL);
                 } else {
@@ -1546,7 +1546,7 @@ void func_acropolis_bridge_8017F868(Task* task)
             }
             break;
         case 2:
-            lastView = work->field_24;
+            lastView = work->scale;
             if (lastView != view) {
                 for (i = 0; i < 0x1E; i++) {
                     Gp_SpawnEff(0x600B5, coord, view, NULL);
@@ -1562,7 +1562,7 @@ void func_acropolis_bridge_8017F868(Task* task)
             }
             break;
         case 3:
-            lastView = work->field_24;
+            lastView = work->scale;
             if (lastView != view) {
                 for (i = 0; i < 0x1E; i++) {
                     Gp_SpawnEff(0x600B6, coord, view, NULL);
@@ -1578,7 +1578,7 @@ void func_acropolis_bridge_8017F868(Task* task)
             }
             break;
         case 5:
-            lastView = work->field_24;
+            lastView = work->scale;
             if (lastView != view) {
                 for (i = 0; i < 0x1E; i++) {
                     Gp_SpawnEff(0x600B7, coord, view, NULL);
@@ -1594,7 +1594,7 @@ void func_acropolis_bridge_8017F868(Task* task)
             }
             break;
         case 6:
-            lastView = work->field_24;
+            lastView = work->scale;
             if (lastView != view) {
                 for (i = 0; i < 0x1E; i++) {
                     Gp_SpawnEff(0x600B8, coord, view, NULL);
@@ -1611,14 +1611,14 @@ void func_acropolis_bridge_8017F868(Task* task)
             break;
     }
 
-    work->field_24 = view;
+    work->scale = view;
 }
 
 /// The wide variant of the bridge's falling dust streak: same one-pixel `DR_MOVE`
 /// smear as `func_acropolis_bridge_80180FF0`, rolled over the whole drop height
 /// instead of the upper band. The first frame rolls the streak out of
-/// `Gp_LcgState`: `field_10.vy` is the row it starts on (0x60..0xEF),
-/// `field_24` the lifetime in frames, `field_26` the width and `field_28` the
+/// `Gp_LcgState`: `move.vy` is the row it starts on (0x60..0xEF),
+/// `scale` the lifetime in frames, `angle` the width and `period` the
 /// number of frames each row of fall takes. The column window widens with the
 /// starting row - it runs from `0x40 - (vy - 0x60) / 3` to `0xD0 + spread`,
 /// where `spread` is half the drop from 0x60 capped at 0x20 - so streaks that
@@ -1629,55 +1629,55 @@ void func_acropolis_bridge_8017F868(Task* task)
 /// out, or the streak falls off the bottom of the screen.
 void func_acropolis_bridge_80180320(Task* task)
 {
-    RoomEffWork* work;
-    RECT         rect;
-    DR_MOVE*     mv;
-    u16          rnd;
-    s32          rndx;
-    s32          range;
-    s32          bufferY;
-    s32          x;
-    s32          y;
-    s32          depth;
+    GpEffWork* work;
+    RECT       rect;
+    DR_MOVE*   mv;
+    u16        rnd;
+    s32        rndx;
+    s32        range;
+    s32        bufferY;
+    s32        x;
+    s32        y;
+    s32        depth;
 
     work    = task->spawnArg2;
     bufferY = gDisplayState.drawBuffer * 0x110;
     if ((u8)Gp_GetViewIndex() == task->spawnArg1) {
-        if ((s16)work->field_22 == 0) {
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            rnd               = (u32)Gp_LcgState >> 16;
-            work->field_10.vy = (u32)rnd % 144 + 0x60;
+        if (work->age == 0) {
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            rnd           = (u32)Gp_LcgState >> 16;
+            work->move.vy = (u32)rnd % 144 + 0x60;
             /* x and y double as the drift and spread of the column window here */
-            x                 = (work->field_10.vy - 0x60) / 3;
-            y                 = work->field_10.vy < 0xA0 ? (work->field_10.vy - 0x60) / 2 : 0x20;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            rndx              = (u32)Gp_LcgState >> 16;
-            range             = y + 0x90;
-            work->field_10.vx = rndx % (x + range) + (0x40 - x);
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            rnd               = (u32)Gp_LcgState >> 16;
-            work->field_24    = (u32)rnd % 90 + 0x1E;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_26    = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x10;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_28    = (((u32)Gp_LcgState >> 16) & 3) + 1;
+            x             = (work->move.vy - 0x60) / 3;
+            y             = work->move.vy < 0xA0 ? (work->move.vy - 0x60) / 2 : 0x20;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            rndx          = (u32)Gp_LcgState >> 16;
+            range         = y + 0x90;
+            work->move.vx = rndx % (x + range) + (0x40 - x);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            rnd           = (u32)Gp_LcgState >> 16;
+            work->scale   = (u32)rnd % 90 + 0x1E;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->angle   = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x10;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->period  = (((u32)Gp_LcgState >> 16) & 3) + 1;
             task->state++;
         }
-        y     = work->field_10.vy + (s16)work->field_22 / (s16)work->field_28;
-        x     = work->field_10.vx;
+        y     = work->move.vy + work->age / work->period;
+        x     = work->move.vx;
         depth = 0x840 - (y - 0x60) * 8;
         if (y < 0xEF) {
             rect.x                      = x;
             rect.y                      = y + bufferY;
-            rect.w                      = work->field_26;
+            rect.w                      = work->angle;
             rect.h                      = 1;
             mv                          = D_acropolis_bridge_801917AC;
             D_acropolis_bridge_801917AC = mv + 1;
             SetDrawMove(mv, &rect, x, y + bufferY + 1);
             addPrim(gGpuCurrentOt + (depth >> 4), mv);
         }
-        work->field_22++;
-        if ((s16)work->field_22 <= (s16)work->field_24 && y < 0xEF) {
+        work->age++;
+        if (work->age <= work->scale && y < 0xEF) {
             return;
         }
     }
@@ -1688,9 +1688,9 @@ void func_acropolis_bridge_80180320(Task* task)
 /// `DR_MOVE` smear as `func_acropolis_bridge_80180FF0`, rolled over the whole
 /// drop height and sorted by a squared depth ramp like
 /// `func_acropolis_bridge_80180CC0`, but nearer the camera. The first frame
-/// rolls the streak out of `Gp_LcgState`: `field_10.vy` is the row it starts on
-/// (0x48..0xEF), `field_24` the lifetime in frames, `field_26` the width and
-/// `field_28` the number of frames each row of fall takes. The column window
+/// rolls the streak out of `Gp_LcgState`: `move.vy` is the row it starts on
+/// (0x48..0xEF), `scale` the lifetime in frames, `angle` the width and
+/// `period` the number of frames each row of fall takes. The column window
 /// widens with the starting row - it runs from `0x58 - drift` to
 /// `0xA0 + spread`, where `drift` is the whole drop from 0x48 capped at 0x58
 /// and `spread` five thirds of it capped at 0x50 - so streaks that begin higher
@@ -1701,58 +1701,58 @@ void func_acropolis_bridge_80180320(Task* task)
 /// lifetime runs out, or the streak falls off the bottom of the screen.
 void func_acropolis_bridge_8018063C(Task* task)
 {
-    RoomEffWork* work;
-    RECT         rect;
-    DR_MOVE*     mv;
-    u16          rnd;
-    s32          rndx;
-    s32          col;
-    s32          range;
-    s32          bufferY;
-    s32          x;
-    s32          y;
-    s32          depth;
+    GpEffWork* work;
+    RECT       rect;
+    DR_MOVE*   mv;
+    u16        rnd;
+    s32        rndx;
+    s32        col;
+    s32        range;
+    s32        bufferY;
+    s32        x;
+    s32        y;
+    s32        depth;
 
     work    = task->spawnArg2;
     bufferY = gDisplayState.drawBuffer * 0x110;
     if ((u8)Gp_GetViewIndex() == task->spawnArg1) {
-        if ((s16)work->field_22 == 0) {
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            rnd               = (u32)Gp_LcgState >> 16;
-            work->field_10.vy = (u32)rnd % 168 + 0x48;
+        if (work->age == 0) {
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            rnd           = (u32)Gp_LcgState >> 16;
+            work->move.vy = (u32)rnd % 168 + 0x48;
             /* x and y double as the drift and spread of the column window here */
-            x                 = work->field_10.vy < 0xA0 ? work->field_10.vy - 0x48 : 0x58;
-            y                 = work->field_10.vy < 0x78 ? (work->field_10.vy - 0x48) * 5 / 3 : 0x50;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            rndx              = (u32)Gp_LcgState >> 16;
-            range             = y + 0x48;
-            col               = rndx % (x + range) + 0x58;
-            col              -= x;
-            work->field_10.vx = col;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            rnd               = (u32)Gp_LcgState >> 16;
-            work->field_24    = (u32)rnd % 90 + 0x1E;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_26    = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x10;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_28    = (((u32)Gp_LcgState >> 16) & 3) + 1;
+            x             = work->move.vy < 0xA0 ? work->move.vy - 0x48 : 0x58;
+            y             = work->move.vy < 0x78 ? (work->move.vy - 0x48) * 5 / 3 : 0x50;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            rndx          = (u32)Gp_LcgState >> 16;
+            range         = y + 0x48;
+            col           = rndx % (x + range) + 0x58;
+            col          -= x;
+            work->move.vx = col;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            rnd           = (u32)Gp_LcgState >> 16;
+            work->scale   = (u32)rnd % 90 + 0x1E;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->angle   = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x10;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->period  = (((u32)Gp_LcgState >> 16) & 3) + 1;
             task->state++;
         }
-        y     = work->field_10.vy + (s16)work->field_22 / (s16)work->field_28;
-        x     = work->field_10.vx;
+        y     = work->move.vy + work->age / work->period;
+        x     = work->move.vx;
         depth = (0xF0 - y) * (0xF0 - y) / 15 + 0x2C0;
         if (y < 0xEF) {
             rect.x                      = x;
             rect.y                      = y + bufferY;
-            rect.w                      = work->field_26;
+            rect.w                      = work->angle;
             rect.h                      = 1;
             mv                          = D_acropolis_bridge_801917AC;
             D_acropolis_bridge_801917AC = mv + 1;
             SetDrawMove(mv, &rect, x, y + bufferY + 1);
             addPrim(gGpuCurrentOt + (depth >> 4), mv);
         }
-        work->field_22++;
-        if ((s16)work->field_22 <= (s16)work->field_24 && y < 0xEF) {
+        work->age++;
+        if (work->age <= work->scale && y < 0xEF) {
             return;
         }
     }
@@ -1762,9 +1762,9 @@ void func_acropolis_bridge_8018063C(Task* task)
 /// The narrow variant of the bridge's falling dust streak: the same one-pixel
 /// `DR_MOVE` smear as `func_acropolis_bridge_80180FF0`, but rolled over the
 /// lower part of the drop and sorted nearer the camera. The first frame rolls
-/// the streak out of `Gp_LcgState`: `field_10.vy` is the row it starts on
-/// (0x68..0xEF), `field_24` the lifetime in frames, `field_26` the width and
-/// `field_28` the number of frames each row of fall takes. The column window
+/// the streak out of `Gp_LcgState`: `move.vy` is the row it starts on
+/// (0x68..0xEF), `scale` the lifetime in frames, `angle` the width and
+/// `period` the number of frames each row of fall takes. The column window
 /// widens with the starting row - it runs from `0x20 - drift` to
 /// `0x60 + spread`, where `drift` is twice and `spread` nine times the drop
 /// from 0x68, both capped once the streak starts at 0x78 or below - so streaks
@@ -1775,58 +1775,58 @@ void func_acropolis_bridge_8018063C(Task* task)
 /// out, or the streak falls off the bottom of the screen.
 void func_acropolis_bridge_8018099C(Task* task)
 {
-    RoomEffWork* work;
-    RECT         rect;
-    DR_MOVE*     mv;
-    u16          rnd;
-    s32          rndx;
-    s32          col;
-    s32          range;
-    s32          bufferY;
-    s32          x;
-    s32          y;
-    s32          depth;
+    GpEffWork* work;
+    RECT       rect;
+    DR_MOVE*   mv;
+    u16        rnd;
+    s32        rndx;
+    s32        col;
+    s32        range;
+    s32        bufferY;
+    s32        x;
+    s32        y;
+    s32        depth;
 
     work    = task->spawnArg2;
     bufferY = gDisplayState.drawBuffer * 0x110;
     if ((u8)Gp_GetViewIndex() == task->spawnArg1) {
-        if ((s16)work->field_22 == 0) {
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            rnd               = (u32)Gp_LcgState >> 16;
-            work->field_10.vy = (u32)rnd % 136 + 0x68;
+        if (work->age == 0) {
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            rnd           = (u32)Gp_LcgState >> 16;
+            work->move.vy = (u32)rnd % 136 + 0x68;
             /* x and y double as the drift and spread of the column window here */
-            x                 = work->field_10.vy < 0x78 ? (work->field_10.vy - 0x68) * 2 : 0x20;
-            y                 = work->field_10.vy < 0x78 ? (work->field_10.vy - 0x68) * 9 : 0x90;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            rndx              = (u32)Gp_LcgState >> 16;
-            range             = y + 0x40;
-            col               = rndx % (x + range) + 0x20;
-            col              -= x;
-            work->field_10.vx = col;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            rnd               = (u32)Gp_LcgState >> 16;
-            work->field_24    = (u32)rnd % 90 + 0x1E;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_26    = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x10;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_28    = (((u32)Gp_LcgState >> 16) & 3) + 1;
+            x             = work->move.vy < 0x78 ? (work->move.vy - 0x68) * 2 : 0x20;
+            y             = work->move.vy < 0x78 ? (work->move.vy - 0x68) * 9 : 0x90;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            rndx          = (u32)Gp_LcgState >> 16;
+            range         = y + 0x40;
+            col           = rndx % (x + range) + 0x20;
+            col          -= x;
+            work->move.vx = col;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            rnd           = (u32)Gp_LcgState >> 16;
+            work->scale   = (u32)rnd % 90 + 0x1E;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->angle   = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x10;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->period  = (((u32)Gp_LcgState >> 16) & 3) + 1;
             task->state++;
         }
-        y     = work->field_10.vy + (s16)work->field_22 / (s16)work->field_28;
-        x     = work->field_10.vx;
+        y     = work->move.vy + work->age / work->period;
+        x     = work->move.vx;
         depth = 0x600 - (y - 0x68) * 8;
         if (y < 0xEF) {
             rect.x                      = x;
             rect.y                      = y + bufferY;
-            rect.w                      = work->field_26;
+            rect.w                      = work->angle;
             rect.h                      = 1;
             mv                          = D_acropolis_bridge_801917AC;
             D_acropolis_bridge_801917AC = mv + 1;
             SetDrawMove(mv, &rect, x, y + bufferY + 1);
             addPrim(gGpuCurrentOt + (depth >> 4), mv);
         }
-        work->field_22++;
-        if ((s16)work->field_22 <= (s16)work->field_24 && y < 0xEF) {
+        work->age++;
+        if (work->age <= work->scale && y < 0xEF) {
             return;
         }
     }
@@ -1836,9 +1836,9 @@ void func_acropolis_bridge_8018099C(Task* task)
 /// The tallest variant of the bridge's falling dust streak: the same one-pixel
 /// `DR_MOVE` smear as `func_acropolis_bridge_80180FF0`, but rolled over the
 /// whole screen height and sorted by a squared depth ramp. The first frame
-/// rolls the streak out of `Gp_LcgState`: `field_10.vy` is the row it starts on
-/// (0x48..0xEF), `field_24` the lifetime in frames, `field_26` the width and
-/// `field_28` the number of frames each row of fall takes. The column window
+/// rolls the streak out of `Gp_LcgState`: `move.vy` is the row it starts on
+/// (0x48..0xEF), `scale` the lifetime in frames, `angle` the width and
+/// `period` the number of frames each row of fall takes. The column window
 /// widens with the starting row - it runs from `0x58 - drift` to
 /// `0xA0 + spread`, where `drift` is a third and `spread` a half of the drop
 /// from 0x48 - so streaks that begin higher up stay nearer the middle of the
@@ -1849,58 +1849,58 @@ void func_acropolis_bridge_8018099C(Task* task)
 /// streak falls off the bottom of the screen.
 void func_acropolis_bridge_80180CC0(Task* task)
 {
-    RoomEffWork* work;
-    RECT         rect;
-    DR_MOVE*     mv;
-    u16          rnd;
-    s32          rndx;
-    s32          col;
-    s32          range;
-    s32          bufferY;
-    s32          x;
-    s32          y;
-    s32          depth;
+    GpEffWork* work;
+    RECT       rect;
+    DR_MOVE*   mv;
+    u16        rnd;
+    s32        rndx;
+    s32        col;
+    s32        range;
+    s32        bufferY;
+    s32        x;
+    s32        y;
+    s32        depth;
 
     work    = task->spawnArg2;
     bufferY = gDisplayState.drawBuffer * 0x110;
     if ((u8)Gp_GetViewIndex() == task->spawnArg1) {
-        if ((s16)work->field_22 == 0) {
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            rnd               = (u32)Gp_LcgState >> 16;
-            work->field_10.vy = (u32)rnd % 168 + 0x48;
+        if (work->age == 0) {
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            rnd           = (u32)Gp_LcgState >> 16;
+            work->move.vy = (u32)rnd % 168 + 0x48;
             /* x and y double as the drift and spread of the column window here */
-            x                 = (work->field_10.vy - 0x48) / 3;
-            y                 = (work->field_10.vy - 0x48) / 2;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            rndx              = (u32)Gp_LcgState >> 16;
-            range             = y + 0x48;
-            col               = rndx % (x + range) + 0x58;
-            col              -= x;
-            work->field_10.vx = col;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            rnd               = (u32)Gp_LcgState >> 16;
-            work->field_24    = (u32)rnd % 90 + 0x1E;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_26    = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x10;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_28    = (((u32)Gp_LcgState >> 16) & 3) + 1;
+            x             = (work->move.vy - 0x48) / 3;
+            y             = (work->move.vy - 0x48) / 2;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            rndx          = (u32)Gp_LcgState >> 16;
+            range         = y + 0x48;
+            col           = rndx % (x + range) + 0x58;
+            col          -= x;
+            work->move.vx = col;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            rnd           = (u32)Gp_LcgState >> 16;
+            work->scale   = (u32)rnd % 90 + 0x1E;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->angle   = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x10;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->period  = (((u32)Gp_LcgState >> 16) & 3) + 1;
             task->state++;
         }
-        y     = work->field_10.vy + (s16)work->field_22 / (s16)work->field_28;
-        x     = work->field_10.vx;
+        y     = work->move.vy + work->age / work->period;
+        x     = work->move.vx;
         depth = (0xF0 - y) * (0xF0 - y) / 15 + 0x400;
         if (y < 0xEF) {
             rect.x                      = x;
             rect.y                      = y + bufferY;
-            rect.w                      = work->field_26;
+            rect.w                      = work->angle;
             rect.h                      = 1;
             mv                          = D_acropolis_bridge_801917AC;
             D_acropolis_bridge_801917AC = mv + 1;
             SetDrawMove(mv, &rect, x, y + bufferY + 1);
             addPrim(gGpuCurrentOt + (depth >> 4), mv);
         }
-        work->field_22++;
-        if ((s16)work->field_22 <= (s16)work->field_24 && y < 0xEF) {
+        work->age++;
+        if (work->age <= work->scale && y < 0xEF) {
             return;
         }
     }
@@ -1909,9 +1909,9 @@ void func_acropolis_bridge_80180CC0(Task* task)
 
 /// One falling dust streak on the bridge, drawn as a `DR_MOVE` that smears a
 /// one-pixel-tall strip of the frame buffer down by a pixel. The first frame
-/// rolls the whole streak out of `Gp_LcgState`: `field_10.vy` is the row it
-/// starts on (0x68..0xE7), `field_10.vx` the column, `field_24` the lifetime in
-/// frames, `field_26` the width and `field_28` the number of frames each row of
+/// rolls the whole streak out of `Gp_LcgState`: `move.vy` is the row it
+/// starts on (0x68..0xE7), `move.vx` the column, `scale` the lifetime in
+/// frames, `angle` the width and `period` the number of frames each row of
 /// fall takes. The column is drawn from a range that widens with the starting
 /// row - `(vy - 0x58) * 6`, capped at the full 240-pixel width once the streak
 /// starts at 0x80 or below the horizon - so streaks that begin higher up stay
@@ -1922,49 +1922,49 @@ void func_acropolis_bridge_80180CC0(Task* task)
 /// of the screen.
 void func_acropolis_bridge_80180FF0(Task* task)
 {
-    RoomEffWork* work;
-    RECT         rect;
-    DR_MOVE*     mv;
-    u16          rnd;
-    s32          rndx;
-    s32          bufferY;
-    s32          x;
-    s32          y;
-    s32          depth;
+    GpEffWork* work;
+    RECT       rect;
+    DR_MOVE*   mv;
+    u16        rnd;
+    s32        rndx;
+    s32        bufferY;
+    s32        x;
+    s32        y;
+    s32        depth;
 
     work    = task->spawnArg2;
     bufferY = gDisplayState.drawBuffer * 0x110;
     if ((u8)Gp_GetViewIndex() == task->spawnArg1) {
-        if ((s16)work->field_22 == 0) {
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_10.vy = (((u32)Gp_LcgState >> 16) & 0x7F) + 0x68;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            rndx              = (u32)Gp_LcgState >> 16;
-            work->field_10.vx = work->field_10.vy < 0x80 ? rndx % ((work->field_10.vy - 0x58) * 6) : rndx % 240;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            rnd               = (u32)Gp_LcgState >> 16;
-            work->field_24    = (u32)rnd % 90 + 0x1E;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_26    = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x10;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_28    = (((u32)Gp_LcgState >> 16) & 3) + 1;
+        if (work->age == 0) {
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->move.vy = (((u32)Gp_LcgState >> 16) & 0x7F) + 0x68;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            rndx          = (u32)Gp_LcgState >> 16;
+            work->move.vx = work->move.vy < 0x80 ? rndx % ((work->move.vy - 0x58) * 6) : rndx % 240;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            rnd           = (u32)Gp_LcgState >> 16;
+            work->scale   = (u32)rnd % 90 + 0x1E;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->angle   = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x10;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->period  = (((u32)Gp_LcgState >> 16) & 3) + 1;
             task->state++;
         }
-        y     = work->field_10.vy + (s16)work->field_22 / (s16)work->field_28;
-        x     = work->field_10.vx;
+        y     = work->move.vy + work->age / work->period;
+        x     = work->move.vx;
         depth = 0x800 - (y - 0x68) * 8;
         if (y < 0xEF) {
             rect.x                      = x;
             rect.y                      = y + bufferY;
-            rect.w                      = work->field_26;
+            rect.w                      = work->angle;
             rect.h                      = 1;
             mv                          = D_acropolis_bridge_801917AC;
             D_acropolis_bridge_801917AC = mv + 1;
             SetDrawMove(mv, &rect, x, y + bufferY + 1);
             addPrim(gGpuCurrentOt + (depth >> 4), mv);
         }
-        work->field_22++;
-        if ((s16)work->field_22 <= (s16)work->field_24 && y < 0xEF) {
+        work->age++;
+        if (work->age <= work->scale && y < 0xEF) {
             return;
         }
     }
@@ -1976,17 +1976,17 @@ void func_acropolis_bridge_80180FF0(Task* task)
 /// `RoomSpriteScratch` block taken from `G_SCRATCH_HEAD`, and two
 /// `POLY_FT4`s are linked into the OT at that depth. The first is an upright
 /// 0x1680 / otz square whose 0x10-wide texture cell is picked by
-/// `work->field_22 % 6`, drawn with texture blending off (`code |= 3`). The
+/// `work->age % 6`, drawn with texture blending off (`code |= 3`). The
 /// second is the same point drawn as a spinning semi-transparent grey quad:
 /// its two half-diagonals are `(0x3A80 / otz) * rsin` / `rcos` of
-/// `work->field_24`, which advances with `gDisplayState.animFrame`, and its tint
+/// `work->scale`, which advances with `gDisplayState.animFrame`, and its tint
 /// is a fresh random grey (0x20..0x7F) every frame. Depths under 0x11 drop
 /// both quads. The task releases its work block each tick, so the spark lasts
 /// one frame.
 void func_acropolis_bridge_801812F4(Task* task)
 {
     GsCOORDINATE2*     coord;
-    RoomEffWork*       work;
+    GpEffWork*         work;
     void**             scratch;
     u8*                head;
     RoomSpriteScratch* blk;
@@ -1997,15 +1997,15 @@ void func_acropolis_bridge_801812F4(Task* task)
     coord = ((TmdObject*)task->extra)->coords;
     work  = task->spawnArg2;
     Gp_UpdateCoord(coord);
-    work->field_22 = task->spawnArg1;
-    scratch        = (void**)G_SCRATCH_HEAD;
-    head           = *scratch;
-    blk            = (RoomSpriteScratch*)(head - 0x18);
-    otzp           = &blk->otz;
-    blk->vec.vx    = coord->workm.t[0];
-    blk->vec.vy    = coord->workm.t[1];
-    *scratch       = blk;
-    blk->vec.vz    = coord->workm.t[2];
+    work->age   = task->spawnArg1;
+    scratch     = (void**)G_SCRATCH_HEAD;
+    head        = *scratch;
+    blk         = (RoomSpriteScratch*)(head - 0x18);
+    otzp        = &blk->otz;
+    blk->vec.vx = coord->workm.t[0];
+    blk->vec.vy = coord->workm.t[1];
+    *scratch    = blk;
+    blk->vec.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&blk->vec);
@@ -2020,13 +2020,13 @@ void func_acropolis_bridge_801812F4(Task* task)
         prim->tpage = 0x2B;
         prim->clut  = 0x4380;
         prim->code |= 3;
-        prim->u0    = ((s16)work->field_22 % 6) * 16;
+        prim->u0    = (work->age % 6) * 16;
         prim->v0    = 0;
-        prim->u1    = ((s16)work->field_22 % 6) * 16 + 0xF;
+        prim->u1    = (work->age % 6) * 16 + 0xF;
         prim->v1    = 0;
-        prim->u2    = ((s16)work->field_22 % 6) * 16;
+        prim->u2    = (work->age % 6) * 16;
         prim->v2    = 0xF;
-        prim->u3    = ((s16)work->field_22 % 6) * 16 + 0xF;
+        prim->u3    = (work->age % 6) * 16 + 0xF;
         prim->v3    = 0xF;
         blk->dx     = 0x1680 / blk->otz;
         prim->x0 = prim->x2 = blk->sxy.vx - blk->dx;
@@ -2057,19 +2057,19 @@ void func_acropolis_bridge_801812F4(Task* task)
         prim->g0    = grey;
         prim->b0    = grey;
 
-        work->field_24 = gDisplayState.animFrame + work->field_22;
-        blk->dx        = ((0x3A80 / blk->otz) * rsin((s16)work->field_24)) >> 12;
-        blk->dy        = ((0x3A80 / blk->otz) * rcos((s16)work->field_24)) >> 12;
-        prim->x0       = blk->sxy.vx + blk->dx;
-        prim->x3       = blk->sxy.vx - blk->dx;
-        prim->y0       = blk->sxy.vy - blk->dy;
-        prim->y3       = blk->sxy.vy + blk->dy;
-        blk->dx        = ((0x3A80 / blk->otz) * rsin((s16)work->field_24 + 0x400)) >> 12;
-        blk->dy        = ((0x3A80 / blk->otz) * rcos((s16)work->field_24 + 0x400)) >> 12;
-        prim->x1       = blk->sxy.vx + blk->dx;
-        prim->x2       = blk->sxy.vx - blk->dx;
-        prim->y1       = blk->sxy.vy - blk->dy;
-        prim->y2       = blk->sxy.vy + blk->dy;
+        work->scale = gDisplayState.animFrame + work->age;
+        blk->dx     = ((0x3A80 / blk->otz) * rsin(work->scale)) >> 12;
+        blk->dy     = ((0x3A80 / blk->otz) * rcos(work->scale)) >> 12;
+        prim->x0    = blk->sxy.vx + blk->dx;
+        prim->x3    = blk->sxy.vx - blk->dx;
+        prim->y0    = blk->sxy.vy - blk->dy;
+        prim->y3    = blk->sxy.vy + blk->dy;
+        blk->dx     = ((0x3A80 / blk->otz) * rsin(work->scale + 0x400)) >> 12;
+        blk->dy     = ((0x3A80 / blk->otz) * rcos(work->scale + 0x400)) >> 12;
+        prim->x1    = blk->sxy.vx + blk->dx;
+        prim->x2    = blk->sxy.vx - blk->dx;
+        prim->y1    = blk->sxy.vy - blk->dy;
+        prim->y2    = blk->sxy.vy + blk->dy;
         addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
@@ -2094,7 +2094,7 @@ void func_acropolis_bridge_801819C8(Task* task)
     AcropolisBridgeQuadCorner*  tbl;
     POLY_FT4*                   prim;
     GsCOORDINATE2*              coord;
-    RoomEffWork*                work;
+    GpEffWork*                  work;
     MATRIX*                     m;
     SVECTOR*                    v;
     s32                         i;
@@ -2104,14 +2104,14 @@ void func_acropolis_bridge_801819C8(Task* task)
     work  = task->spawnArg2;
     Gp_UpdateCoord(coord);
 
-    scratch        = (void**)G_SCRATCH_HEAD;
-    i              = 0;
-    m              = &coord->workm;
-    tbl            = D_acropolis_bridge_8018990C;
-    head           = (u8*)*scratch - sizeof(AcropolisBridgeQuadScratch);
-    work->field_22 = ((GpEffSpawnArg*)&task->spawnArg1)->field_0;
-    *scratch       = head;
-    block          = (AcropolisBridgeQuadScratch*)*scratch;
+    scratch   = (void**)G_SCRATCH_HEAD;
+    i         = 0;
+    m         = &coord->workm;
+    tbl       = D_acropolis_bridge_8018990C;
+    head      = (u8*)*scratch - sizeof(AcropolisBridgeQuadScratch);
+    work->age = ((GpEffSpawnArg*)&task->spawnArg1)->field_0;
+    *scratch  = head;
+    block     = (AcropolisBridgeQuadScratch*)*scratch;
     do {
         v                = ((AcropolisBridgeQuadScratch*)((SVECTOR*)block + i))->vec;
         block->vec[i].vx = tbl[i].x * 0x300;
@@ -2169,7 +2169,7 @@ void func_acropolis_bridge_801819C8(Task* task)
 void func_acropolis_bridge_80181D28(Task* task)
 {
     GsCOORDINATE2*         coord;
-    RoomEffWork*           work;
+    GpEffWork*             work;
     void**                 scratch;
     u8*                    head;
     RoomGlowSpriteScratch* blk;
@@ -2286,10 +2286,10 @@ s32 func_acropolis_bridge_801820A0(Task* task)
 }
 
 /// One falling mote of the bridge's ambient dust: drifts the task's coordinate
-/// frame by the per-mote velocity in `RoomEffWork::field_10`, projects the
+/// frame by the per-mote velocity in `GpEffWork::move`, projects the
 /// result through `GsWSMATRIX` with a single `RTPS`, and links a 1x1 tile into
 /// the OT at the resulting depth. The velocity and the grey level are rolled
-/// once, on the first tick (`field_22 == 0`); the mote is released after 0x1F
+/// once, on the first tick (`age == 0`); the mote is released after 0x1F
 /// ticks or once it has fallen past y = -0x1D.
 void func_acropolis_bridge_80182394(Task* task)
 {
@@ -2299,7 +2299,7 @@ void func_acropolis_bridge_80182394(Task* task)
     RoomMoteScratch* depth;
     TILE_1*          prim;
     GsCOORDINATE2*   coord;
-    RoomEffWork*     work;
+    GpEffWork*       work;
 
     scratch  = (void**)G_SCRATCH_HEAD;
     coord    = ((TmdObject*)task->extra)->coords;
@@ -2310,19 +2310,19 @@ void func_acropolis_bridge_80182394(Task* task)
     work     = task->spawnArg2;
     Gp_UpdateCoord(coord);
 
-    if ((s16)work->field_22 == 0) {
-        work->field_10.vz = 0;
-        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-        work->field_10.vx = ((u32)Gp_LcgState >> 16) & 0xF;
-        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-        work->field_10.vy = (((u32)Gp_LcgState >> 16) & 3) - 1;
-        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-        work->field_24    = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x30;
+    if (work->age == 0) {
+        work->move.vz = 0;
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        work->move.vx = ((u32)Gp_LcgState >> 16) & 0xF;
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        work->move.vy = (((u32)Gp_LcgState >> 16) & 3) - 1;
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        work->scale   = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x30;
     }
 
-    coord->coord.t[0] += work->field_10.vx;
-    coord->coord.t[1] += work->field_10.vy;
-    coord->coord.t[2] += work->field_10.vz;
+    coord->coord.t[0] += work->move.vx;
+    coord->coord.t[1] += work->move.vy;
+    coord->coord.t[2] += work->move.vz;
     coord->flg         = 0;
     block->vec.vx      = *(u16*)&coord->workm.t[0];
     block->vec.vy      = *(u16*)&coord->workm.t[1];
@@ -2338,47 +2338,47 @@ void func_acropolis_bridge_80182394(Task* task)
     gte_stsxy(&prim->x0);
     gte_stszotz(&depth->otz);
     if (((RoomMoteScratch*)(head - 0xC))->otz >= 0x11) {
-        setRGB0(prim, work->field_24 >> 1, work->field_24, work->field_24);
+        setRGB0(prim, work->scale >> 1, work->scale, work->scale);
         addPrim((u_long*)(((((u32)((RoomMoteScratch*)(head - 0xC))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 0, ((RoomMoteScratch*)(head - 0xC))->otz);
-        work->field_10.vy += 6;
+        work->move.vy += 6;
     }
     *scratch = (u8*)*scratch + 0xC;
-    work->field_22++;
-    if ((s16)work->field_22 >= 0x1F || coord->coord.t[1] >= -0x1D) {
+    work->age++;
+    if (work->age >= 0x1F || coord->coord.t[1] >= -0x1D) {
         Gp_ReleaseState1CMem(work, task);
     }
 }
 
 void func_acropolis_bridge_80182694(Task* task)
 {
-    RoomEffWork*   work;
+    GpEffWork*     work;
     GsCOORDINATE2* coord;
 
     work  = task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
     if (Gp_State1C->eventState != 0) {
-        func_acropolis_bridge_801827EC(coord, (s16)work->field_26, (s16)work->field_24);
+        func_acropolis_bridge_801827EC(coord, work->angle, work->scale);
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
-        work->field_22++;
+        work->age++;
         switch (task->state) {
             case 0:
-                work->field_24 = 0x40;
-                work->field_26 = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
-                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+                work->scale = 0x40;
+                work->angle = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
                 coord->flg  = 0;
                 task->state = 1;
                 /* fallthrough */
             case 1:
-                work->field_26 += 0x20;
-                func_acropolis_bridge_801827EC(coord, (s16)work->field_26, (s16)work->field_24);
-                if ((s16)work->field_24 >= 3) {
-                    work->field_24 -= 2;
+                work->angle += 0x20;
+                func_acropolis_bridge_801827EC(coord, work->angle, work->scale);
+                if (work->scale >= 3) {
+                    work->scale -= 2;
                 } else {
                     Gp_ReleaseState1CMem(work, task);
                 }
@@ -2463,29 +2463,29 @@ void func_acropolis_bridge_801827EC(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
 /// coordinate frame by a velocity it rolls once, and hands the frame to
 /// `func_acropolis_bridge_80182F8C` (state 1) or `func_acropolis_bridge_801833A0`
 /// (state 2) to be drawn. Everything the piece needs is packed into
-/// `Task::spawnArg1`: bits 0-11 become `field_24`, bits 12-15 the number of
-/// ticks each animation step lasts (`field_28`, 1 if zero), bits 16-23 the
-/// speed the velocity is scaled to (`field_2A`, 0x40 if zero), bits 24-27 the
+/// `Task::spawnArg1`: bits 0-11 become `scale`, bits 12-15 the number of
+/// ticks each animation step lasts (`period`, 1 if zero), bits 16-23 the
+/// speed the velocity is scaled to (`step`, 0x40 if zero), bits 24-27 the
 /// launch pattern and bits 28-31 pick which of the two draw helpers runs. The
-/// first tick also rolls the 12-bit `field_26` out of `Gp_LcgState`; both it
-/// and `field_24` are passed to the draw helper every tick.
+/// first tick also rolls the 12-bit `angle` out of `Gp_LcgState`; both it
+/// and `scale` are passed to the draw helper every tick.
 ///
-/// The launch pattern rolls `field_10` when the caller left it zero: 1 spreads
+/// The launch pattern rolls `move` when the caller left it zero: 1 spreads
 /// X and Z evenly over +/-0x80 and biases Y to -0x40..-0xBF, 2 spreads all
 /// three evenly over +/-0x80, 3 keeps X and Z inside +/-0x10 and drives Y to
-/// 0..-0xFF, 5 copies the velocity the caller staged at `field_18`, and 0 stops
-/// the piece from drifting at all by zeroing `field_2A`. The rolled direction
-/// is then normalized and scaled back up to `field_2A` with one GTE `GPF`, so
+/// 0..-0xFF, 5 copies the velocity the caller staged at `pos`, and 0 stops
+/// the piece from drifting at all by zeroing `step`. The rolled direction
+/// is then normalized and scaled back up to `step` with one GTE `GPF`, so
 /// the pattern only picks a direction and the packed speed sets the length.
 ///
-/// Once running, a piece with a non-zero `field_2A` adds its velocity onto the
+/// Once running, a piece with a non-zero `step` adds its velocity onto the
 /// coordinate's translation each tick and bends Y by 6 as it goes, and every
-/// `field_28` ticks steps `field_20`; the eighth step releases the work block.
+/// `period` ticks steps `index`; the eighth step releases the work block.
 /// While `Gp_State1C->eventState` is set the room is fading out, so the piece only
 /// keeps drawing, and releases itself once the fade reaches 4.
 void func_acropolis_bridge_80182AF8(Task* task)
 {
-    RoomEffWork*   work;
+    GpEffWork*     work;
     GsCOORDINATE2* coord;
     SVECTOR*       vec;
     s32            kind;
@@ -2496,101 +2496,101 @@ void func_acropolis_bridge_80182AF8(Task* task)
     work  = task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
     if (Gp_State1C->eventState != 0) {
-        func_acropolis_bridge_80182F8C(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
+        func_acropolis_bridge_80182F8C(coord, work->index, work->scale, work->angle);
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;
     }
-    work->field_22++;
+    work->age++;
     switch (task->state) {
         case 0:
-            work->field_24 = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            work->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            work->scale = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            work->angle = ((u32)Gp_LcgState >> 16) & 0xFFF;
             if (task->spawnArg1 & 0xF000) {
                 step = (task->spawnArg1 >> 12) & 0xF;
             } else {
                 step = 1;
             }
-            work->field_28 = step;
-            work->field_22 = 0;
-            state          = 1;
+            work->period = step;
+            work->age    = 0;
+            state        = 1;
             if (task->spawnArg1 & 0xF0000000) {
                 state = 2;
             }
             task->state = state;
-            if (((u16)work->field_10.vx | (u16)work->field_10.vy | (u16)work->field_10.vz) == 0) {
+            if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
                 if (task->spawnArg1 & 0xFF0000) {
                     level = (task->spawnArg1 >> 16) & 0xFF;
                 } else {
                     level = 0x40;
                 }
-                work->field_2A = level;
-                kind           = ((GpEffSpawnArgHi*)&task->spawnArg1)->field_3;
+                work->step = level;
+                kind       = ((GpEffSpawnArgHi*)&task->spawnArg1)->field_3;
                 switch (kind & 0xF) {
                     case 0:
-                        work->field_2A = 0;
+                        work->step = 0;
                         break;
                     case 1:
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vy = 0xFFC0 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vy = 0xFFC0 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
                         break;
                     case 2:
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
                         break;
                     case 3:
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vy = -(((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vy = -(((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
                         break;
                     case 5:
-                        work->field_10.vx = work->field_18;
-                        work->field_10.vy = work->field_1A;
-                        work->field_10.vz = work->field_1C;
+                        work->move.vx = work->pos.vx;
+                        work->move.vy = work->pos.vy;
+                        work->move.vz = work->pos.vz;
                         break;
                 }
-                vec = &work->field_10;
+                vec = &work->move;
                 VectorNormalSS(vec, vec);
-                gte_lddp(work->field_2A);
+                gte_lddp(work->step);
                 gte_ldsv(vec);
                 gte_gpf12();
                 gte_stsv(vec);
             } else {
-                work->field_2A = 0x40;
+                work->step = 0x40;
             }
             return;
         case 1:
-            func_acropolis_bridge_80182F8C(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
+            func_acropolis_bridge_80182F8C(coord, work->index, work->scale, work->angle);
             break;
         case 2:
-            func_acropolis_bridge_801833A0(coord, work->field_20, (s16)work->field_24);
+            func_acropolis_bridge_801833A0(coord, work->index, work->scale);
             break;
         default:
             return;
     }
-    if ((s16)work->field_2A != 0) {
-        coord->coord.t[0] += work->field_10.vx;
-        coord->coord.t[1] += work->field_10.vy;
-        coord->coord.t[2] += work->field_10.vz;
+    if (work->step != 0) {
+        coord->coord.t[0] += work->move.vx;
+        coord->coord.t[1] += work->move.vy;
+        coord->coord.t[2] += work->move.vz;
         coord->flg         = 0;
-        work->field_10.vy += 6;
+        work->move.vy     += 6;
     }
-    if (((s16)work->field_22 % (s16)work->field_28) == 0) {
-        work->field_20++;
-        if ((s16)work->field_20 >= 8) {
+    if ((work->age % work->period) == 0) {
+        work->index++;
+        if (work->index >= 8) {
             Gp_ReleaseState1CMem(work, task);
         }
     }

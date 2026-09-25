@@ -277,13 +277,13 @@ void func_neo_ark_forest_zone_8017DBBC(Task* task)
 /// a random velocity. State 1 moves and tilts it each frame: the vertical
 /// speed eases towards 0x1C, the sideways speeds decay and get a fresh random
 /// kick whenever they reach zero, and the tilts wobble. Once it drops below
-/// the ground plane (`t[1] > 0`) state 2 holds it while `field_26` counts up to
-/// 0x80, and state 3 fades it out, drawn semi-transparent at `field_26` as that
+/// the ground plane (`t[1] > 0`) state 2 holds it while `angle` counts up to
+/// 0x80, and state 3 fades it out, drawn semi-transparent at `angle` as that
 /// counts back down, before releasing the work block. Until the fade it is
 /// drawn as an opaque textured quad.
 void func_neo_ark_forest_zone_8017DC20(Task* task)
 {
-    RoomEffWork*   work;
+    GpEffWork*     work;
     GsCOORDINATE2* coord;
     s32            vy;
     s32            vx;
@@ -292,87 +292,87 @@ void func_neo_ark_forest_zone_8017DC20(Task* task)
     work  = task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
     Gp_UpdateCoord(coord);
-    work->field_22++;
+    work->age++;
     switch (task->state) {
         case 0:
-            work->field_24    = 0x20;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_28    = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1F0);
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_2A    = 0x80 - (((u32)Gp_LcgState >> 16) & 0xF0);
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_10.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_10.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_10.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            task->state       = 1;
+            work->scale   = 0x20;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->period  = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1F0);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->step    = 0x80 - (((u32)Gp_LcgState >> 16) & 0xF0);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+            task->state   = 1;
             /* fallthrough */
         case 1:
-            coord->coord.t[0] += work->field_10.vx;
-            coord->coord.t[1] += work->field_10.vy;
-            coord->coord.t[2] += work->field_10.vz;
-            Gfx_RotMatrixX(&coord->coord, (s16)work->field_28, 0);
-            Gfx_RotMatrixZ(&coord->coord, (s16)work->field_2A, 0);
+            coord->coord.t[0] += work->move.vx;
+            coord->coord.t[1] += work->move.vy;
+            coord->coord.t[2] += work->move.vz;
+            Gfx_RotMatrixX(&coord->coord, work->period, 0);
+            Gfx_RotMatrixZ(&coord->coord, work->step, 0);
             coord->flg = 0;
 
-            vy = work->field_10.vy;
+            vy = work->move.vy;
             if (vy >= 0x1D) {
                 vy = vy - 1;
             } else {
                 vy = vy + 1;
             }
-            work->field_10.vy = vy;
+            work->move.vy = vy;
 
-            vx = work->field_10.vx;
+            vx = work->move.vx;
             if (vx == 0) {
-                Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-                work->field_10.vx += (2 - (u16)(((u32)Gp_LcgState >> 16) % 5U)) * 8;
+                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+                work->move.vx += (2 - (u16)(((u32)Gp_LcgState >> 16) % 5U)) * 8;
             } else {
                 if (vx > 0) {
                     vx = vx - 1;
                 } else {
                     vx = vx + 1;
                 }
-                work->field_10.vx = vx;
+                work->move.vx = vx;
             }
 
-            vz = work->field_10.vz;
+            vz = work->move.vz;
             if (vz == 0) {
-                work->field_10.vz += (s16)work->field_2A % 32;
-                Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-                work->field_10.vz += (2 - (u16)(((u32)Gp_LcgState >> 16) % 5U)) * 8;
+                work->move.vz += work->step % 32;
+                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+                work->move.vz += (2 - (u16)(((u32)Gp_LcgState >> 16) % 5U)) * 8;
             } else {
                 if (vz > 0) {
                     vz = vz - 1;
                 } else {
                     vz = vz + 1;
                 }
-                work->field_10.vz = vz;
+                work->move.vz = vz;
             }
 
-            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-            work->field_28 += (1 - (u16)(((u32)Gp_LcgState >> 16) % 3U)) * 0x10;
-            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-            work->field_2A += (1 - (u16)(((u32)Gp_LcgState >> 16) % 3U)) * 8;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->period += (1 - (u16)(((u32)Gp_LcgState >> 16) % 3U)) * 0x10;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->step   += (1 - (u16)(((u32)Gp_LcgState >> 16) % 3U)) * 8;
 
             if (coord->coord.t[1] > 0) {
                 task->state = 2;
             }
-            func_neo_ark_forest_zone_8017E074(coord, (s16)work->field_24, 0);
+            func_neo_ark_forest_zone_8017E074(coord, work->scale, 0);
             break;
         case 2:
-            if ((s16)work->field_26 < 0x80) {
-                work->field_26 += 0x10;
+            if (work->angle < 0x80) {
+                work->angle += 0x10;
             } else {
                 task->state = 3;
             }
-            func_neo_ark_forest_zone_8017E074(coord, (s16)work->field_24, 0);
+            func_neo_ark_forest_zone_8017E074(coord, work->scale, 0);
             break;
         case 3:
-            if ((s16)work->field_26 >= 0x11) {
-                work->field_26 -= 0x10;
-                func_neo_ark_forest_zone_8017E074(coord, (s16)work->field_24, (s16)work->field_26);
+            if (work->angle >= 0x11) {
+                work->angle -= 0x10;
+                func_neo_ark_forest_zone_8017E074(coord, work->scale, work->angle);
             } else {
                 Gp_ReleaseState1CMem(work, task);
             }
@@ -521,9 +521,9 @@ void func_neo_ark_forest_zone_8017E420(Task* task)
                 work->angle += work->step;
                 task->spawnArg1--;
                 rgb[0] = work->scale;
-                rgb[1] = (u16)work->scale >> 2;
-                rgb[2] = (u16)work->scale >> 1;
-                func_neo_ark_forest_zone_8017EAF0(coord, (s16)work->angle, rgb);
+                rgb[1] = work->scale >> 2;
+                rgb[2] = work->scale >> 1;
+                func_neo_ark_forest_zone_8017EAF0(coord, work->angle, rgb);
                 rgb[0] >>= 1;
                 rgb[1] >>= 1;
                 rgb[2] >>= 1;
@@ -533,17 +533,17 @@ void func_neo_ark_forest_zone_8017E420(Task* task)
                     work->scale = 0xFF;
                     task->state = 2;
                     rgb[0]      = work->scale;
-                    rgb[1]      = (u16)work->scale >> 2;
-                    rgb[2]      = (u16)work->scale >> 1;
+                    rgb[1]      = work->scale >> 2;
+                    rgb[2]      = work->scale >> 1;
                     Gp_DrawFadeQuad(rgb, 1);
                 }
                 break;
             case 2:
-                if ((s16)work->scale >= 0x11) {
+                if (work->scale >= 0x11) {
                     rgb[0] = work->scale;
-                    rgb[1] = (u16)work->scale >> 2;
-                    rgb[2] = (u16)work->scale >> 1;
-                    func_neo_ark_forest_zone_8017F9F4(coord, (s16)((s16)work->angle * 3), rgb);
+                    rgb[1] = work->scale >> 2;
+                    rgb[2] = work->scale >> 1;
+                    func_neo_ark_forest_zone_8017F9F4(coord, (s16)(work->angle * 3), rgb);
                     work->scale -= 0x10;
                     work->angle -= 8;
                     break;
@@ -993,8 +993,8 @@ void func_neo_ark_forest_zone_8017F76C(Task* task)
             work->angle -= 0x20;
             work->scale += 0x30;
             rgb[0]       = work->angle;
-            rgb[1]       = (u16)work->angle >> 1;
-            rgb[2]       = (u16)work->angle >> 2;
+            rgb[1]       = work->angle >> 1;
+            rgb[2]       = work->angle >> 2;
             func_neo_ark_forest_zone_8017E6C4(objCoord, 0x100, 0x100, rgb);
             func_neo_ark_forest_zone_8017E6C4(objCoord, work->scale, work->scale, rgb);
             if (work->age >= 7) {

@@ -88,7 +88,7 @@ void func_hypervelocity_8011D1E8(Task* task)
         return;
     }
 
-    work->age = (u16)work->age + 1;
+    work->age = work->age + 1;
     switch (task->state) {
         case 0:
             dstm              = (GpMtxWords*)&coord->coord;
@@ -162,8 +162,8 @@ void func_hypervelocity_8011D1E8(Task* task)
             if (work->angle >= 0x201) {
                 work->angle = 0x200;
             }
-            rgb[0] = (u16)work->scale >> 1;
-            rgb[1] = (u16)work->scale >> 1;
+            rgb[0] = work->scale >> 1;
+            rgb[1] = work->scale >> 1;
             rgb[2] = work->scale;
             Gp_DrawRing(coord, work->angle, rgb);
             Gp_DrawRing(coord, (s16)((u16)work->angle * 2), rgb);
@@ -176,8 +176,8 @@ void func_hypervelocity_8011D1E8(Task* task)
                 if (work->period >= 0x100) {
                     work->period = 0xFF;
                 }
-                rgb[0] = (u16)work->period >> 1;
-                rgb[1] = (u16)work->period >> 1;
+                rgb[0] = work->period >> 1;
+                rgb[1] = work->period >> 1;
                 rgb[2] = work->period;
                 Gp_DrawArc(coord, (s16)((u16)task->spawnArg1 * 128), 0x60, rgb);
             }
@@ -202,14 +202,14 @@ void func_hypervelocity_8011D1E8(Task* task)
             work->move.vy = -((work->age & 0xF) << 6);
             Gp_SpawnEff(0x600E1, coord, 0x180, &work->move);
             if (work->angle > 0) {
-                rgb[0] = (u16)work->scale >> 1;
-                rgb[1] = (u16)work->scale >> 1;
+                rgb[0] = work->scale >> 1;
+                rgb[1] = work->scale >> 1;
                 rgb[2] = work->scale;
                 Gp_DrawRing(coord, work->angle, rgb);
                 Gp_DrawRing(coord, (s16)((u16)work->angle * 2), rgb);
                 Gp_DrawFadeQuad(rgb, 1);
-                work->scale = (u16)work->scale - 0x20;
-                work->angle = (u16)work->angle - 0x20;
+                work->scale = work->scale - 0x20;
+                work->angle = work->angle - 0x20;
             }
             player      = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -268,7 +268,7 @@ void func_hypervelocity_8011D830(Task* task)
     slot  = &base->data.light;
 
     if (Gp_State1C->eventState != 0) {
-        work->age = (u16)work->age - 1;
+        work->age = work->age - 1;
         if (Gp_State1C->eventState >= 4) {
             if (task->state != 0) {
                 Gp_UnlinkObj(&beam->obj);
@@ -278,7 +278,7 @@ void func_hypervelocity_8011D830(Task* task)
         return;
     }
 
-    work->age = (u16)work->age + 1;
+    work->age = work->age + 1;
     switch (task->state) {
         case 0:
             beam = memCalloc(sizeof(HyperBeam), 0);
@@ -338,9 +338,9 @@ void func_hypervelocity_8011D830(Task* task)
             light->coord.t[1] = coord->coord.t[1];
             light->coord.t[2] = coord->coord.t[2];
             light->flg        = 0;
-            rgb[0]            = (u16)work->scale >> 2;
-            rgb[1]            = (u16)work->scale >> 2;
-            rgb[2]            = (u16)work->scale >> 1;
+            rgb[0]            = work->scale >> 2;
+            rgb[1]            = work->scale >> 2;
+            rgb[2]            = work->scale >> 1;
             Gp_LcgState       = ang;
             func_hypervelocity_8011E494(coord, work->age, work->angle, work->period);
             Gp_DrawRing(coord, work->angle, rgb);
@@ -359,9 +359,9 @@ void func_hypervelocity_8011D830(Task* task)
             after.vx = coord->workm.t[0];
             after.vy = coord->workm.t[1];
             after.vz = coord->workm.t[2];
-            rgb[0]   = (u16)work->scale >> 2;
-            rgb[1]   = (u16)work->scale >> 2;
-            rgb[2]   = (u16)work->scale >> 1;
+            rgb[0]   = work->scale >> 2;
+            rgb[1]   = work->scale >> 2;
+            rgb[2]   = work->scale >> 1;
             func_hypervelocity_8011E494(coord, work->age, work->angle, work->period);
             Gp_DrawRing(coord, work->angle, rgb);
             func_hypervelocity_8011DF34(coord, work->age, work->angle, 0);
@@ -399,10 +399,10 @@ void func_hypervelocity_8011D830(Task* task)
             return;
         case 2:
             Gp_UpdateCoord(coord);
-            work->angle = (u16)work->angle - 0x40;
-            rgb[0]      = (u16)work->scale >> 2;
-            rgb[1]      = (u16)work->scale >> 2;
-            rgb[2]      = (u16)work->scale >> 1;
+            work->angle = work->angle - 0x40;
+            rgb[0]      = work->scale >> 2;
+            rgb[1]      = work->scale >> 2;
+            rgb[2]      = work->scale >> 1;
             func_hypervelocity_8011E494(coord, work->age, work->angle, work->period);
             Gp_DrawRing(coord, work->angle, rgb);
             if (work->angle < 0x80) {

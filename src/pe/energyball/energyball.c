@@ -54,7 +54,7 @@ void func_energyball_8012EF48(Task* arg0)
 
     mem      = arg0->spawnArg2;
     coord    = ((TmdObject*)arg0->extra)->coords;
-    mem->age = (u16)mem->age + 1;
+    mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
             mem->index = Gp_StateC08.field_0 % 10 - 1;
@@ -75,7 +75,7 @@ void func_energyball_8012EF48(Task* arg0)
                 if (D_80115724 + i >= 3) {
                     break;
                 }
-                mem->scale   = i * 0x555 - (s16)(u16)mem->index * 0x2AA;
+                mem->scale   = i * 0x555 - mem->index * 0x2AA;
                 mem->move.vx = (mem->angle * rsin(mem->scale)) >> 12;
                 mem->move.vz = (mem->angle * rcos(mem->scale)) >> 12;
                 Gp_SpawnEff(0x800600F8, coord, i, &mem->move);
@@ -144,7 +144,7 @@ void func_energyball_8012F180(Task* arg0)
         }
         Gp_UpdateCoord(coord);
         func_energyball_8013035C(coord, mem->age, mem->angle, mem->period);
-        func_energyball_8012FFD0(coord, mem->angle, (s16)(u16)mem->scale >> 2);
+        func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
         if ((arg0->state < 3) && (Gp_State1C->groundTrace != 0) &&
             (Gp_TraceGroundCoord(coord, &ground) == 1)) {
             func_energyball_801307D4(&ground, mem->angle);
@@ -152,7 +152,7 @@ void func_energyball_8012F180(Task* arg0)
         return;
     }
 
-    mem->age = (u16)mem->age + 1;
+    mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
             work = memCalloc(0x38, 0);
@@ -175,7 +175,7 @@ void func_energyball_8012F180(Task* arg0)
             /* fallthrough */
         case 1:
             if (mem->angle < D_energyball_80131194[mem->index].field_0) {
-                mem->angle         = (u16)mem->angle + (u16)D_energyball_80131194[mem->index].field_2;
+                mem->angle         = mem->angle + (u16)D_energyball_80131194[mem->index].field_2;
                 coord->coord.t[0] += mem->move.vx;
                 coord->coord.t[1] += mem->move.vy;
                 coord->coord.t[2] += mem->move.vz;
@@ -189,7 +189,7 @@ void func_energyball_8012F180(Task* arg0)
                 work->obj.key      = ((u16)(Gp_StateC08.field_0 / 100) - 1) * 9 +
                                 ((u16)((u16)(Gp_StateC08.field_0 % 100) / 10) - 1) * 3 +
                                 (u16)(Gp_StateC08.field_0 % 10) + 0x28000;
-                work->obj.radius = (s16)(u16)mem->angle >> 1;
+                work->obj.radius = mem->angle >> 1;
                 work->obj.flags  = 1;
                 Gp_LinkObj(1, &work->obj);
                 dir              = &mem->move;
@@ -203,7 +203,7 @@ void func_energyball_8012F180(Task* arg0)
                 Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
                 mem->move.vz     = 0x800 - (((u32)Gp_LcgState >> 16) & 0xFFF);
                 VectorNormalSS(dir, dir);
-                gte_lddp((u16)mem->step);
+                gte_lddp(mem->step);
                 gte_ldsv(dir);
                 gte_gpf12();
                 gte_stsv(dir);
@@ -224,7 +224,7 @@ void func_energyball_8012F180(Task* arg0)
             sc->coord.t[2]   = coord->coord.t[2];
             sc->flg          = 0;
             func_energyball_8013035C(coord, mem->age, mem->angle, mem->period);
-            func_energyball_8012FFD0(coord, mem->angle, (s16)(u16)mem->scale >> 2);
+            func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
             if ((Gp_State1C->groundTrace != 0) && (Gp_TraceGroundCoord(coord, &ground) == 1)) {
                 func_energyball_801307D4(&ground, mem->angle);
             }
@@ -245,7 +245,7 @@ void func_energyball_8012F180(Task* arg0)
             }
             return;
         case 2:
-            if (((u16)mem->age & 7) == 0) {
+            if ((mem->age & 7) == 0) {
                 player = &((TmdObject*)(gameGetPtrSlot(3))->extra)->coords[1];
                 vec.vx = player->workm.t[0] - coord->workm.t[0];
                 vec.vy = player->workm.t[1] - coord->workm.t[1];
@@ -263,7 +263,7 @@ void func_energyball_8012F180(Task* arg0)
                 gte_gpf12();
                 gte_stsv(&mem->move);
             }
-            if ((u16)mem->age & 1) {
+            if (mem->age & 1) {
                 cur          = mem->move.vx;
                 mem->move.vx = (cur < mem->pos.vx) ? cur + 0x10 : cur - 0x10;
                 cur          = mem->move.vy;
@@ -289,7 +289,7 @@ void func_energyball_8012F180(Task* arg0)
             sc->coord.t[2]   = coord->coord.t[2];
             sc->flg          = 0;
             func_energyball_8013035C(coord, mem->age, mem->angle, mem->period);
-            func_energyball_8012FFD0(coord, mem->angle, (s16)(u16)mem->scale >> 2);
+            func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
             if (Gp_State1C->groundTrace != 0) {
                 if (Gp_TraceGroundCoord(coord, &ground) == 1) {
                     func_energyball_801307D4(&ground, mem->angle);
@@ -337,9 +337,9 @@ void func_energyball_8012F180(Task* arg0)
         case 3:
             Gp_UpdateCoord(coord);
             func_energyball_8013035C(coord, mem->age, mem->angle, mem->period);
-            func_energyball_8012FFD0(coord, mem->angle, (s16)(u16)mem->scale >> 2);
-            func_energyball_8012FFD0(coord, (u16)mem->angle * 2, (s16)(u16)mem->scale >> 2);
-            mem->angle = (u16)mem->angle + (u16)D_energyball_80131194[mem->index].field_2;
+            func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
+            func_energyball_8012FFD0(coord, (u16)mem->angle * 2, mem->scale >> 2);
+            mem->angle = mem->angle + (u16)D_energyball_80131194[mem->index].field_2;
             if (((u16)(Gp_StateC08.field_0 / 10) != 0x2B) &&
                 ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4))) {
                 if (D_80115724 > 0) {
@@ -365,9 +365,9 @@ void func_energyball_8012F180(Task* arg0)
         case 4:
             Gp_UpdateCoord(coord);
             func_energyball_8013035C(coord, mem->age, mem->angle, mem->period);
-            func_energyball_8012FFD0(coord, mem->angle, (s16)(u16)mem->scale >> 2);
-            func_energyball_8012FFD0(coord, (u16)mem->angle * 2, (s16)(u16)mem->scale >> 2);
-            mem->angle = (u16)mem->angle - (u16)D_energyball_80131194[mem->index].field_2;
+            func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
+            func_energyball_8012FFD0(coord, (u16)mem->angle * 2, mem->scale >> 2);
+            mem->angle = mem->angle - (u16)D_energyball_80131194[mem->index].field_2;
             if (((u16)(Gp_StateC08.field_0 / 10) != 0x2B) &&
                 ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4))) {
                 if (D_80115724 > 0) {
@@ -767,9 +767,9 @@ void func_energyball_8013107C(Task* arg0)
     }
 
     Gp_UpdateCoord(coord);
-    rgb[0] = (u16)mem->scale >> 1;
+    rgb[0] = mem->scale >> 1;
     rgb[1] = *(u8*)&mem->scale;
-    rgb[2] = (u16)mem->scale >> 1;
+    rgb[2] = mem->scale >> 1;
     Gp_DrawBandEx(coord, mem->angle, 0x180, rgb);
 
     angle      = (u16)mem->angle;

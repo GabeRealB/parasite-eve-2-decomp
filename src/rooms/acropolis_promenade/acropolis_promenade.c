@@ -451,7 +451,7 @@ void func_acropolis_promenade_8017DFD4(Task* arg0)
 void func_acropolis_promenade_8017E03C(Task* task)
 {
     GsCOORDINATE2* coord;
-    RoomEffWork*   work;
+    GpEffWork*     work;
     u8             view;
     s32            i;
     s32            mask;
@@ -463,15 +463,15 @@ void func_acropolis_promenade_8017E03C(Task* task)
     if (Gp_State1C->eventState >= 4) {
         return;
     }
-    work->field_22++;
+    work->age++;
     if (view == 7) {
         return;
     }
     mask = 1 << (view - 1);
     if (D_acropolis_promenade_80181B74 & mask) {
-        Gp_SpawnEff(0x8006004B, coord, (s16)work->field_22, &D_acropolis_promenade_80181AFC[0]);
-        Gp_SpawnEff(0x8006004B, coord, (s16)work->field_22, &D_acropolis_promenade_80181AFC[1]);
-        Gp_SpawnEff(0x60057, coord, (s16)work->field_22, &D_acropolis_promenade_80181B0C[0]);
+        Gp_SpawnEff(0x8006004B, coord, work->age, &D_acropolis_promenade_80181AFC[0]);
+        Gp_SpawnEff(0x8006004B, coord, work->age, &D_acropolis_promenade_80181AFC[1]);
+        Gp_SpawnEff(0x60057, coord, work->age, &D_acropolis_promenade_80181B0C[0]);
         func_acropolis_promenade_8017F434(&D_acropolis_promenade_80181AFC[-1], 0x100, 0x5C40);
     }
     for (i = 0; i < 3; i++) {
@@ -497,7 +497,7 @@ void func_acropolis_promenade_8017E03C(Task* task)
         Gp_SpawnEff(0x60062, coord, 1, &D_acropolis_promenade_80181B14[11]);
     }
     if (D_acropolis_promenade_80181B76 & mask) {
-        prev = work->field_24;
+        prev = work->scale;
         if (prev != view) {
             for (i = 0; i < 0x28; i++) {
                 Gp_SpawnEff(0x60056, coord, view, NULL);
@@ -507,63 +507,63 @@ void func_acropolis_promenade_8017E03C(Task* task)
             Gp_SpawnEff(0x60056, coord, prev, NULL);
         }
     }
-    work->field_24 = view;
+    work->scale = view;
 }
 
 /// One falling water drip on the promenade, drawn as a `DR_MOVE` that smears a
 /// one-pixel-tall strip of the frame buffer down by a pixel. The first frame
-/// rolls the whole drip out of `Gp_LcgState`: `field_10.vx` is the column
-/// (0..0xEF), `field_10.vy` the row it starts on (0xB0..0xEF), `field_24` the
-/// lifetime in frames, `field_26` the width and `field_28` the number of frames
+/// rolls the whole drip out of `Gp_LcgState`: `move.vx` is the column
+/// (0..0xEF), `move.vy` the row it starts on (0xB0..0xEF), `scale` the
+/// lifetime in frames, `angle` the width and `period` the number of frames
 /// each row of fall takes. `gDisplayState.drawBuffer` picks the buffer half, and
 /// the OT slot is the row scaled into the 0x500-deep range so a drip sorts
 /// against the room behind it. The task releases itself once the camera turns
 /// away, the lifetime runs out, or the drip falls off the bottom of the screen.
 void func_acropolis_promenade_8017E394(Task* task)
 {
-    RoomEffWork* work;
-    RECT         rect;
-    DR_MOVE*     mv;
-    u16          rnd;
-    s32          bufferY;
-    s32          x;
-    s32          y;
-    s32          onScreen;
-    s32          depth;
+    GpEffWork* work;
+    RECT       rect;
+    DR_MOVE*   mv;
+    u16        rnd;
+    s32        bufferY;
+    s32        x;
+    s32        y;
+    s32        onScreen;
+    s32        depth;
 
     work    = task->spawnArg2;
     bufferY = gDisplayState.drawBuffer * 0x110;
     if ((u8)Gp_GetViewIndex() == task->spawnArg1) {
-        if ((s16)work->field_22 == 0) {
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_10.vx = ((u32)Gp_LcgState >> 16) % 240;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_10.vy = (((u32)Gp_LcgState >> 16) & 0x3F) + 0xB0;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            rnd               = (u32)Gp_LcgState >> 16;
-            work->field_24    = (u32)rnd % 90 + 0x1E;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_26    = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x10;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_28    = (((u32)Gp_LcgState >> 16) & 3) + 1;
+        if (work->age == 0) {
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->move.vx = ((u32)Gp_LcgState >> 16) % 240;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->move.vy = (((u32)Gp_LcgState >> 16) & 0x3F) + 0xB0;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            rnd           = (u32)Gp_LcgState >> 16;
+            work->scale   = (u32)rnd % 90 + 0x1E;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->angle   = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x10;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->period  = (((u32)Gp_LcgState >> 16) & 3) + 1;
             task->state++;
         }
-        y        = work->field_10.vy + (s16)work->field_22 / (s16)work->field_28;
-        x        = work->field_10.vx;
+        y        = work->move.vy + work->age / work->period;
+        x        = work->move.vx;
         depth    = 0x500 - (y - 0xB0) * 10;
         onScreen = y < 0xEF;
         if (onScreen) {
             rect.x         = x;
             rect.y         = y + bufferY;
-            rect.w         = work->field_26;
+            rect.w         = work->angle;
             rect.h         = 1;
             mv             = (DR_MOVE*)gGpuPrimCursor;
             gGpuPrimCursor = mv + 1;
             SetDrawMove(mv, &rect, x, y + bufferY + 1);
             addPrim(gGpuCurrentOt + (depth >> 4), mv);
         }
-        work->field_22++;
-        if ((s16)work->field_22 <= (s16)work->field_24 && onScreen) {
+        work->age++;
+        if (work->age <= work->scale && onScreen) {
             return;
         }
     }
@@ -578,10 +578,10 @@ void func_acropolis_promenade_8017E394(Task* task)
 ///
 /// The lower quad is upright, of half-extent `0x1680 / otz`, and animates
 /// through six 0x10x0x10 cells at v = 0 on tpage 0x2B by stepping `u` with
-/// `work->field_22 % 6`; it is drawn `code |= 3`, so semi-transparent *and*
+/// `work->age % 6`; it is drawn `code |= 3`, so semi-transparent *and*
 /// unshaded. The upper quad is the 0x27x0x27 flare at v = 0x10 with clut
 /// 0x4381, drawn at `0x3A80 / otz` from the centre along the spin angle
-/// `work->field_24` and its quarter-turn (`+ 0x400`), so it rotates a frame at
+/// `work->scale` and its quarter-turn (`+ 0x400`), so it rotates a frame at
 /// a time. Its colour is a fresh random grey (0x20..0x7F, equal on all three
 /// channels) every frame, which is what makes the star flicker.
 ///
@@ -591,7 +591,7 @@ void func_acropolis_promenade_8017E394(Task* task)
 void func_acropolis_promenade_8017E634(Task* task)
 {
     GsCOORDINATE2*     coord;
-    RoomEffWork*       work;
+    GpEffWork*         work;
     void**             scratch;
     u8*                head;
     RoomSpriteScratch* blk;
@@ -602,15 +602,15 @@ void func_acropolis_promenade_8017E634(Task* task)
     coord = ((TmdObject*)task->extra)->coords;
     work  = task->spawnArg2;
     Gp_UpdateCoord(coord);
-    work->field_22 = task->spawnArg1;
-    scratch        = (void**)G_SCRATCH_HEAD;
-    head           = *scratch;
-    blk            = (RoomSpriteScratch*)(head - 0x18);
-    otzp           = &blk->otz;
-    blk->vec.vx    = coord->workm.t[0];
-    blk->vec.vy    = coord->workm.t[1];
-    *scratch       = blk;
-    blk->vec.vz    = coord->workm.t[2];
+    work->age   = task->spawnArg1;
+    scratch     = (void**)G_SCRATCH_HEAD;
+    head        = *scratch;
+    blk         = (RoomSpriteScratch*)(head - 0x18);
+    otzp        = &blk->otz;
+    blk->vec.vx = coord->workm.t[0];
+    blk->vec.vy = coord->workm.t[1];
+    *scratch    = blk;
+    blk->vec.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&blk->vec);
@@ -625,13 +625,13 @@ void func_acropolis_promenade_8017E634(Task* task)
         prim->tpage = 0x2B;
         prim->clut  = 0x4380;
         prim->code |= 3;
-        prim->u0    = ((s16)work->field_22 % 6) * 16;
+        prim->u0    = (work->age % 6) * 16;
         prim->v0    = 0;
-        prim->u1    = ((s16)work->field_22 % 6) * 16 + 0xF;
+        prim->u1    = (work->age % 6) * 16 + 0xF;
         prim->v1    = 0;
-        prim->u2    = ((s16)work->field_22 % 6) * 16;
+        prim->u2    = (work->age % 6) * 16;
         prim->v2    = 0xF;
-        prim->u3    = ((s16)work->field_22 % 6) * 16 + 0xF;
+        prim->u3    = (work->age % 6) * 16 + 0xF;
         prim->v3    = 0xF;
         blk->dx     = 0x1680 / blk->otz;
         blk->dy     = 0x1680 / blk->otz;
@@ -663,19 +663,19 @@ void func_acropolis_promenade_8017E634(Task* task)
         prim->g0    = grey;
         prim->b0    = grey;
 
-        work->field_24 = gDisplayState.animFrame + work->field_22;
-        blk->dx        = ((0x3A80 / blk->otz) * rsin((s16)work->field_24)) >> 12;
-        blk->dy        = ((0x3A80 / blk->otz) * rcos((s16)work->field_24)) >> 12;
-        prim->x0       = blk->sxy.vx + blk->dx;
-        prim->x3       = blk->sxy.vx - blk->dx;
-        prim->y0       = blk->sxy.vy - blk->dy;
-        prim->y3       = blk->sxy.vy + blk->dy;
-        blk->dx        = ((0x3A80 / blk->otz) * rsin((s16)work->field_24 + 0x400)) >> 12;
-        blk->dy        = ((0x3A80 / blk->otz) * rcos((s16)work->field_24 + 0x400)) >> 12;
-        prim->x1       = blk->sxy.vx + blk->dx;
-        prim->x2       = blk->sxy.vx - blk->dx;
-        prim->y1       = blk->sxy.vy - blk->dy;
-        prim->y2       = blk->sxy.vy + blk->dy;
+        work->scale = gDisplayState.animFrame + work->age;
+        blk->dx     = ((0x3A80 / blk->otz) * rsin(work->scale)) >> 12;
+        blk->dy     = ((0x3A80 / blk->otz) * rcos(work->scale)) >> 12;
+        prim->x0    = blk->sxy.vx + blk->dx;
+        prim->x3    = blk->sxy.vx - blk->dx;
+        prim->y0    = blk->sxy.vy - blk->dy;
+        prim->y3    = blk->sxy.vy + blk->dy;
+        blk->dx     = ((0x3A80 / blk->otz) * rsin(work->scale + 0x400)) >> 12;
+        blk->dy     = ((0x3A80 / blk->otz) * rcos(work->scale + 0x400)) >> 12;
+        prim->x1    = blk->sxy.vx + blk->dx;
+        prim->x2    = blk->sxy.vx - blk->dx;
+        prim->y1    = blk->sxy.vy - blk->dy;
+        prim->y2    = blk->sxy.vy + blk->dy;
         addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
@@ -703,7 +703,7 @@ void func_acropolis_promenade_8017E634(Task* task)
 void func_acropolis_promenade_8017ED44(Task* task)
 {
     GsCOORDINATE2*   coord;
-    RoomEffWork*     work;
+    GpEffWork*       work;
     void**           scratch;
     u8*              head;
     RoomQuadScratch* blk;
@@ -715,11 +715,11 @@ void func_acropolis_promenade_8017ED44(Task* task)
     coord = ((TmdObject*)task->extra)->coords;
     work  = task->spawnArg2;
     Gp_UpdateCoord(coord);
-    scratch        = (void**)G_SCRATCH_HEAD;
-    head           = *scratch;
-    work->field_22 = task->spawnArg1;
-    *scratch       = head - 0x24;
-    blk            = (RoomQuadScratch*)(head - 0x24);
+    scratch   = (void**)G_SCRATCH_HEAD;
+    head      = *scratch;
+    work->age = task->spawnArg1;
+    *scratch  = head - 0x24;
+    blk       = (RoomQuadScratch*)(head - 0x24);
     for (i = 0; i < 4; i++) {
         blk->v[i].vx = D_acropolis_promenade_80181AE4[i].x * 0x300;
         // Spelled as an offset rather than `&blk->v[i]` so it stays a separate
@@ -791,7 +791,7 @@ void func_acropolis_promenade_8017ED44(Task* task)
 void func_acropolis_promenade_8017F0BC(Task* task)
 {
     GsCOORDINATE2*         coord;
-    RoomEffWork*           work;
+    GpEffWork*             work;
     void**                 scratch;
     u8*                    head;
     RoomGlowSpriteScratch* blk;

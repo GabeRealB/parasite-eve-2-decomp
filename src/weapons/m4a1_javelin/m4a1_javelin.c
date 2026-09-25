@@ -89,7 +89,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
         return;
     }
 
-    work->age = (u16)work->age + 1;
+    work->age = work->age + 1;
     switch (task->state) {
         case 0:
             dstm              = (GpMtxWords*)&coord->coord;
@@ -132,16 +132,16 @@ void func_m4a1_javelin_8011D1E4(Task* task)
             if (work->scale == 0xC0) {
                 task->state = 2;
             } else {
-                work->scale  = (u16)work->scale + 0x20;
-                work->angle  = (u16)work->angle + 0xC0;
-                work->period = (u16)work->period - 0xF0;
+                work->scale  = work->scale + 0x20;
+                work->angle  = work->angle + 0xC0;
+                work->period = work->period - 0xF0;
             }
             pa.vx = ((M4a1JavelinVecLo*)coord->workm.t)->vx;
             pa.vy = ((M4a1JavelinVecLo*)coord->workm.t)->vy;
             pa.vz = ((M4a1JavelinVecLo*)coord->workm.t)->vz;
             for (i = 0; i < 0x1000; i += 0x200) {
                 pb.vx = (work->period * rsin(i)) >> 12;
-                pb.vy = (u16)work->angle;
+                pb.vy = work->angle;
                 pb.vz = (work->period * rcos(i)) >> 12;
                 gte_SetRotMatrix(&coord->workm);
                 gte_ldv0(&pb);
@@ -208,9 +208,9 @@ void func_m4a1_javelin_8011D1E4(Task* task)
                 }
                 pb.vy = (u16)pb.vy + 0x100;
                 for (i = 5; i >= 0; i--) {
-                    pa.vx = (u16)pa.vx + (u16)work->pos.vx;
-                    pa.vy = (u16)pa.vy + (u16)work->pos.vy;
-                    pa.vz = (u16)pa.vz + (u16)work->pos.vz;
+                    pa.vx = (u16)pa.vx + work->pos.vx;
+                    pa.vy = (u16)pa.vy + work->pos.vy;
+                    pa.vz = (u16)pa.vz + work->pos.vz;
                     func_m4a1_javelin_8011DAB0(&pa, &pb, D_m4a1_javelin_8011FAA0[i],
                                                D_m4a1_javelin_8011FAAC[work->step]);
                     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
@@ -224,7 +224,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
                     if (func_800DE7CC(&qa, &pa, &qa, NULL) == 1) {
                         if (i < lim) {
                             func_m4a1_javelin_8011E4A8(&qa, &qb, D_m4a1_javelin_8011FAA0[i],
-                                                       D_m4a1_javelin_8011FAAC[(s16)(u16)work->step >> 1]);
+                                                       D_m4a1_javelin_8011FAAC[work->step >> 1]);
                         }
                         lim = i;
                     } else {
@@ -240,9 +240,9 @@ void func_m4a1_javelin_8011D1E4(Task* task)
                 }
             } else {
                 for (i = 5; i >= 0; i--) {
-                    pa.vx = (u16)pa.vx + (u16)work->pos.vx;
-                    pa.vy = (u16)pa.vy + (u16)work->pos.vy;
-                    pa.vz = (u16)pa.vz + (u16)work->pos.vz;
+                    pa.vx = (u16)pa.vx + work->pos.vx;
+                    pa.vy = (u16)pa.vy + work->pos.vy;
+                    pa.vz = (u16)pa.vz + work->pos.vz;
                     func_m4a1_javelin_8011DAB0(&pa, &pb, D_m4a1_javelin_8011FAA0[i], 0x36C);
                     pb.vx = (u16)pa.vx;
                     pb.vy = (u16)pa.vy;
@@ -250,12 +250,12 @@ void func_m4a1_javelin_8011D1E4(Task* task)
                 }
             }
             if (work->age >= 0x21) {
-                work->step = (u16)work->step - 1;
+                work->step = work->step - 1;
                 if (work->step < 0) {
                     Gp_ReleaseState1CMem(work, task);
                 }
             } else if (*(s32*)&actor->field_954 != 0x40000) {
-                work->age = (u16)work->age + 0x20;
+                work->age = work->age + 0x20;
             }
             break;
     }

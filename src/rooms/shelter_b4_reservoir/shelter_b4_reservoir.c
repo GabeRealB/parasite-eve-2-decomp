@@ -1132,39 +1132,39 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
 }
 
 /// Effect task drawing a flat quad through `func_shelter_b4_reservoir_80180530`
-/// that spreads and fades. Its first frame sets the size (`field_26`) from the
-/// low 12 bits of the spawn argument and the brightness (`field_24`) to 0x40,
+/// that spreads and fades. Its first frame sets the size (`angle`) from the
+/// low 12 bits of the spawn argument and the brightness (`scale`) to 0x40,
 /// and turns the coordinate to a random angle about Y. Every frame after that
 /// grows the size by 0x20 and dims the brightness by 2, releasing the effect
 /// once the brightness drops under 2. While `Gp_State1C->eventState` is
 /// non-zero it only redraws at the current values, releasing from state 4.
 void func_shelter_b4_reservoir_801803DC(Task* task)
 {
-    RoomEffWork*   work;
+    GpEffWork*     work;
     GsCOORDINATE2* coord;
 
     work  = task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
     if (Gp_State1C->eventState != 0) {
-        func_shelter_b4_reservoir_80180530(coord, (s16)work->field_26, (s16)work->field_24);
+        func_shelter_b4_reservoir_80180530(coord, work->angle, work->scale);
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
         Gp_UpdateCoord(coord);
-        work->field_22++;
+        work->age++;
         if (task->state == 0) {
-            work->field_24 = 0x40;
-            work->field_26 = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            work->scale = 0x40;
+            work->angle = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
             coord->flg  = 0;
             task->state = 1;
         }
-        work->field_26 += 0x20;
-        func_shelter_b4_reservoir_80180530(coord, (s16)work->field_26, (s16)work->field_24);
-        work->field_24 -= 2;
-        if ((s16)work->field_24 < 2) {
+        work->angle += 0x20;
+        func_shelter_b4_reservoir_80180530(coord, work->angle, work->scale);
+        work->scale -= 2;
+        if (work->scale < 2) {
             Gp_ReleaseState1CMem(work, task);
         }
     }
@@ -1270,7 +1270,7 @@ void func_shelter_b4_reservoir_80180530(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
 /// `Gp_State1C->eventState` is non-zero it only draws, releasing from state 4.
 void func_shelter_b4_reservoir_80180864(Task* task)
 {
-    RoomEffWork*   work;
+    GpEffWork*     work;
     GsCOORDINATE2* coord;
     SVECTOR*       vec;
     s32            kind;
@@ -1283,9 +1283,9 @@ void func_shelter_b4_reservoir_80180864(Task* task)
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             if (task->state < 2) {
-                func_shelter_b4_reservoir_80180D20(coord, (s16)work->field_20, (s16)work->field_24, (s16)work->field_26);
+                func_shelter_b4_reservoir_80180D20(coord, work->index, work->scale, work->angle);
             } else {
-                func_shelter_b4_reservoir_8018110C(coord, (s16)work->field_20, (s16)work->field_24);
+                func_shelter_b4_reservoir_8018110C(coord, work->index, work->scale);
             }
             return;
         }
@@ -1293,95 +1293,95 @@ void func_shelter_b4_reservoir_80180864(Task* task)
         return;
     }
     Gp_UpdateCoord(coord);
-    work->field_22++;
+    work->age++;
     switch (task->state) {
         case 0:
-            work->field_24 = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            work->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            work->scale = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            work->angle = ((u32)Gp_LcgState >> 16) & 0xFFF;
             if (task->spawnArg1 & 0xF000) {
                 step = (task->spawnArg1 >> 12) & 0xF;
             } else {
                 step = 1;
             }
-            work->field_28 = step;
-            work->field_22 = 0;
-            state          = 1;
+            work->period = step;
+            work->age    = 0;
+            state        = 1;
             if (task->spawnArg1 & 0xF0000000) {
                 state = 2;
             }
             task->state = state;
-            if (((u16)work->field_10.vx | (u16)work->field_10.vy | (u16)work->field_10.vz) == 0) {
+            if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
                 if (task->spawnArg1 & 0xFF0000) {
                     level = (task->spawnArg1 >> 16) & 0xFF;
                 } else {
                     level = 0x40;
                 }
-                work->field_2A = level;
-                kind           = ((GpEffSpawnArgHi*)&task->spawnArg1)->field_3;
+                work->step = level;
+                kind       = ((GpEffSpawnArgHi*)&task->spawnArg1)->field_3;
                 switch (kind & 0xF) {
                     case 0:
-                        work->field_2A = 0;
+                        work->step = 0;
                         break;
                     case 1:
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vy = 0xFFC0 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vy = 0xFFC0 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
                         break;
                     case 2:
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
                         break;
                     case 3:
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vy = -(((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vy = -(((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
                         break;
                     case 5:
-                        work->field_10.vx = work->field_18;
-                        work->field_10.vy = work->field_1A;
-                        work->field_10.vz = work->field_1C;
+                        work->move.vx = work->pos.vx;
+                        work->move.vy = work->pos.vy;
+                        work->move.vz = work->pos.vz;
                         break;
                 }
-                vec = &work->field_10;
+                vec = &work->move;
                 VectorNormalSS(vec, vec);
-                gte_lddp(work->field_2A);
+                gte_lddp(work->step);
                 gte_ldsv(vec);
                 gte_gpf12();
                 gte_stsv(vec);
             } else {
-                work->field_2A = 0x40;
+                work->step = 0x40;
             }
             return;
         case 1:
-            func_shelter_b4_reservoir_80180D20(coord, (s16)work->field_20, (s16)work->field_24, (s16)work->field_26);
+            func_shelter_b4_reservoir_80180D20(coord, work->index, work->scale, work->angle);
             break;
         case 2:
-            func_shelter_b4_reservoir_8018110C(coord, (s16)work->field_20, (s16)work->field_24);
+            func_shelter_b4_reservoir_8018110C(coord, work->index, work->scale);
             break;
         default:
             return;
     }
-    if ((s16)work->field_2A != 0) {
-        coord->coord.t[0] += work->field_10.vx;
-        coord->coord.t[1] += work->field_10.vy;
-        coord->coord.t[2] += work->field_10.vz;
+    if (work->step != 0) {
+        coord->coord.t[0] += work->move.vx;
+        coord->coord.t[1] += work->move.vy;
+        coord->coord.t[2] += work->move.vz;
         coord->flg         = 0;
-        work->field_10.vy += 6;
+        work->move.vy     += 6;
     }
-    if (((s16)work->field_22 % (s16)work->field_28) == 0) {
-        work->field_20++;
-        if ((s16)work->field_20 >= 8) {
+    if ((work->age % work->period) == 0) {
+        work->index++;
+        if (work->index >= 8) {
             Gp_ReleaseState1CMem(work, task);
         }
     }
@@ -1543,32 +1543,32 @@ void func_shelter_b4_reservoir_8018110C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 
 void func_shelter_b4_reservoir_801813F0(Task* task)
 {
-    RoomEffWork*   work  = task->spawnArg2;
+    GpEffWork*     work  = task->spawnArg2;
     GsCOORDINATE2* coord = ((TmdObject*)task->extra)->coords;
     s16            f2a;
     u32            rng;
 
     if (Gp_State1C->eventState != 0) {
-        func_shelter_b4_reservoir_80181668(coord, work->field_20, (s16)work->field_24);
+        func_shelter_b4_reservoir_80181668(coord, work->index, work->scale);
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;
     }
 
-    work->field_22++;
+    work->age++;
     switch (task->state) {
         case 0:
-            work->field_24 = (*(u16*)&task->spawnArg1) & 0xFFF;
+            work->scale = (*(u16*)&task->spawnArg1) & 0xFFF;
 
             if (task->spawnArg1 & 0xF000) {
-                work->field_28 = (task->spawnArg1 >> 12) & 0x7;
+                work->period = (task->spawnArg1 >> 12) & 0x7;
             } else {
-                work->field_28 = 1;
+                work->period = 1;
             }
 
-            work->field_22 = 0;
-            task->state    = 1;
+            work->age   = 0;
+            task->state = 1;
 
             if (task->spawnArg1 & 0xFF0000) {
                 f2a = (task->spawnArg1 >> 16) & 0xFF;
@@ -1576,30 +1576,30 @@ void func_shelter_b4_reservoir_801813F0(Task* task)
                 f2a = 0x40;
             }
 
-            work->field_2A    = f2a;
-            work->field_10.vy = 0;
-            work->field_10.vz = 0;
-            rng               = Gp_LcgState * 5 + 0x71357911;
-            Gp_LcgState       = rng;
-            work->field_10.vx = -((rng >> 16) & 0x3F) - 0x40;
-            VectorNormalSS(&work->field_10, &work->field_10);
+            work->step    = f2a;
+            work->move.vy = 0;
+            work->move.vz = 0;
+            rng           = Gp_LcgState * 5 + 0x71357911;
+            Gp_LcgState   = rng;
+            work->move.vx = -((rng >> 16) & 0x3F) - 0x40;
+            VectorNormalSS(&work->move, &work->move);
 
-            gte_lddp(work->field_2A);
-            gte_ldsv(&work->field_10);
+            gte_lddp(work->step);
+            gte_ldsv(&work->move);
             gte_gpf12();
-            gte_stsv(&work->field_10);
+            gte_stsv(&work->move);
             break;
         case 1:
-            func_shelter_b4_reservoir_80181668(coord, work->field_20, (s16)work->field_24);
-            if ((s16)work->field_2A != 0) {
-                coord->coord.t[0] += work->field_10.vx;
-                coord->coord.t[1] += work->field_10.vy;
-                coord->coord.t[2] += work->field_10.vz;
+            func_shelter_b4_reservoir_80181668(coord, work->index, work->scale);
+            if (work->step != 0) {
+                coord->coord.t[0] += work->move.vx;
+                coord->coord.t[1] += work->move.vy;
+                coord->coord.t[2] += work->move.vz;
                 coord->flg         = 0;
             }
-            if (((s16)work->field_22 % (s16)work->field_28) == 0) {
-                work->field_20++;
-                if ((s16)work->field_20 >= 6) {
+            if ((work->age % work->period) == 0) {
+                work->index++;
+                if (work->index >= 6) {
                     Gp_ReleaseState1CMem(work, task);
                 }
             }
@@ -2080,8 +2080,8 @@ void func_shelter_b4_reservoir_80182B1C(Task* arg0)
             col[2] = mem->scale >> D_shelter_b4_reservoir_801850BC[arg0->spawnArg1][2];
             func_shelter_b4_reservoir_80183940(coord, mem->angle, col);
             col[0] = mem->scale;
-            col[1] = (u16)mem->scale >> 1;
-            col[2] = (u16)mem->scale >> 2;
+            col[1] = mem->scale >> 1;
+            col[2] = mem->scale >> 2;
             if (mem->period == 0) {
                 mem->move.vy = -0x100;
                 mem->move.vz = 0x100;
@@ -2118,7 +2118,7 @@ void func_shelter_b4_reservoir_80182B1C(Task* arg0)
 /// 4.
 void func_shelter_b4_reservoir_80183074(Task* task)
 {
-    RoomEffWork*   work;
+    GpEffWork*     work;
     GsCOORDINATE2* coord;
     GsCOORDINATE2* target;
     VECTOR         delta;
@@ -2127,36 +2127,36 @@ void func_shelter_b4_reservoir_80183074(Task* task)
     coord  = ((TmdObject*)task->extra)->coords;
     target = (GsCOORDINATE2*)task->spawnArg1;
     if (Gp_State1C->eventState == 0) {
-        work->field_22++;
+        work->age++;
         switch (task->state) {
             case 0:
                 delta.vx = target->workm.t[0] - coord->workm.t[0];
                 delta.vy = target->workm.t[1] - coord->workm.t[1];
                 delta.vz = target->workm.t[2] - coord->workm.t[2];
                 ApplyTransposeMatrixLV(&coord->workm, &delta, &delta);
-                work->field_18 = delta.vx;
-                work->field_1A = delta.vy;
-                work->field_1C = delta.vz;
+                work->pos.vx = delta.vx;
+                work->pos.vy = delta.vy;
+                work->pos.vz = delta.vz;
                 gte_SetRotMatrix(&coord->coord);
-                gte_ldv0(&work->field_18);
+                gte_ldv0(&work->pos);
                 gte_rtv0();
-                gte_stsv(&work->field_18);
+                gte_stsv(&work->pos);
                 gte_lddp(0xCC);
-                gte_ldsv(&work->field_18);
+                gte_ldsv(&work->pos);
                 gte_gpf12();
-                gte_stsv(&work->field_18);
+                gte_stsv(&work->pos);
                 task->state = 1;
                 break;
             case 1:
-                coord->coord.t[0] += (s16)work->field_18;
-                coord->coord.t[1] += (s16)work->field_1A;
-                coord->coord.t[2] += (s16)work->field_1C;
+                coord->coord.t[0] += work->pos.vx;
+                coord->coord.t[1] += work->pos.vy;
+                coord->coord.t[2] += work->pos.vz;
                 coord->flg         = 0;
                 Gp_UpdateCoord(coord);
-                if (work->field_22 & 1) {
-                    func_shelter_b4_reservoir_80183298(coord, (s16)++work->field_20, 0x200, 0x80);
+                if (work->age & 1) {
+                    func_shelter_b4_reservoir_80183298(coord, ++work->index, 0x200, 0x80);
                 }
-                if ((s16)work->field_22 >= 20) {
+                if (work->age >= 20) {
                     Gp_ReleaseState1CMem(work, task);
                 }
                 break;
@@ -2445,16 +2445,16 @@ void func_shelter_b4_reservoir_80183CD4(Task* arg0)
         }
         Gp_UpdateCoord(coord);
         rgb[0]     = mem->scale;
-        rgb[1]     = (u16)mem->scale >> 1;
-        rgb[2]     = (u16)mem->scale >> 2;
+        rgb[1]     = mem->scale >> 1;
+        rgb[2]     = mem->scale >> 2;
         step       = mem->angle + 0x10;
         mem->angle = step;
         func_shelter_b4_reservoir_80183940(coord, (s16)(step * 2), rgb);
         func_shelter_b4_reservoir_80183E80(coord, mem->angle);
         if (mem->period >= 0x19) {
             rgb[0] = mem->period;
-            rgb[1] = (u16)mem->period >> 1;
-            rgb[2] = (u16)mem->period >> 2;
+            rgb[1] = mem->period >> 1;
+            rgb[2] = mem->period >> 2;
             func_shelter_b4_reservoir_8018351C(coord, (s16)(mem->step * 3 / 2), 0x60, rgb);
             mem->period -= 0x18;
             mem->step   += 0x30;

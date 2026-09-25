@@ -1920,7 +1920,7 @@ void func_shelter_b6_nursery_80181314(Task* task)
     SVECTOR        pos;
     SVECTOR        base;
     TmdObject*     obj;
-    RoomEffWork*   work;
+    GpEffWork*     work;
     GsCOORDINATE2* coord;
     s16            eventState;
 
@@ -1940,28 +1940,28 @@ void func_shelter_b6_nursery_80181314(Task* task)
         } else {
             Gp_UpdateCoord(coord);
             if (task->state == 0) {
-                obj->flags       &= 0xFF7F;
-                Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                work->field_10.vx = ((Gp_LcgState >> 16) & 0x3F) + 0x60;
-                work->field_10.vy = 0;
-                Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                work->field_10.vz = ((Gp_LcgState >> 16) & 0x3F) + 0x20;
-                Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                work->field_24    = ((Gp_LcgState >> 16) & 0x3F) + 0x40;
-                VectorNormalSS(&work->field_10, &work->field_10);
-                work->field_1A = 0;
-                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-                work->field_18 = -((Gp_LcgState >> 16) & 0x3F);
-                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-                work->field_1C = 0x40 - ((Gp_LcgState >> 16) & 0x7F);
-                coord->flg     = 0;
+                obj->flags   &= 0xFF7F;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                work->move.vx = ((Gp_LcgState >> 16) & 0x3F) + 0x60;
+                work->move.vy = 0;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                work->move.vz = ((Gp_LcgState >> 16) & 0x3F) + 0x20;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                work->scale   = ((Gp_LcgState >> 16) & 0x3F) + 0x40;
+                VectorNormalSS(&work->move, &work->move);
+                work->pos.vy = 0;
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                work->pos.vx = -((Gp_LcgState >> 16) & 0x3F);
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                work->pos.vz = 0x40 - ((Gp_LcgState >> 16) & 0x7F);
+                coord->flg   = 0;
                 task->state++;
                 return;
             }
-            Gfx_RotMatrixXYZ(&coord->coord, (SVECTOR*)&work->field_18, 0);
+            Gfx_RotMatrixXYZ(&coord->coord, (SVECTOR*)&work->pos.vx, 0);
             MatrixNormal(&coord->coord, &coord->coord);
-            gte_lddp(work->field_24);
-            gte_ldsv(&work->field_10);
+            gte_lddp(work->scale);
+            gte_ldsv(&work->move);
             gte_gpf12();
             gte_stsv(&step);
             coord->coord.t[0] += step.vx;
@@ -1982,23 +1982,23 @@ void func_shelter_b6_nursery_80181314(Task* task)
                 coord->coord.t[0] -= step.vx;
                 coord->coord.t[1] -= step.vy;
                 coord->coord.t[2] -= step.vz;
-                work->field_10.vx  = (base.vx >> 1) + (work->field_10.vx >> 1);
-                work->field_10.vy  = base.vy + (work->field_10.vy >> 1);
-                work->field_10.vz  = (base.vz >> 1) + (work->field_10.vz >> 1);
-                VectorNormalSS(&work->field_10, &work->field_10);
-                work->field_24 = (s16)work->field_24 * 2 / 3;
-                gte_lddp(work->field_24);
-                gte_ldsv(&work->field_10);
+                work->move.vx      = (base.vx >> 1) + (work->move.vx >> 1);
+                work->move.vy      = base.vy + (work->move.vy >> 1);
+                work->move.vz      = (base.vz >> 1) + (work->move.vz >> 1);
+                VectorNormalSS(&work->move, &work->move);
+                work->scale = work->scale * 2 / 3;
+                gte_lddp(work->scale);
+                gte_ldsv(&work->move);
                 gte_gpf12();
                 gte_stsv(&step);
                 coord->coord.t[0] += step.vx;
                 coord->coord.t[1] += step.vy;
                 coord->coord.t[2] += step.vz;
             } else {
-                work->field_10.vy += 0x180;
+                work->move.vy += 0x180;
             }
-            if (work->field_22 & 1) {
-                if ((s16)work->field_22 > 0x40) {
+            if (work->age & 1) {
+                if (work->age > 0x40) {
                     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                     Gp_SpawnEff(0x601A4, coord, ((Gp_LcgState >> 16) & 0x10FF) + 0x02183300, NULL);
                 } else {
@@ -2006,14 +2006,14 @@ void func_shelter_b6_nursery_80181314(Task* task)
                     Gp_SpawnEff(0x601A4, coord, ((Gp_LcgState >> 16) & 0x1000) + 0x82101300, NULL);
                 }
             }
-            work->field_22++;
+            work->age++;
         }
     }
 }
 
 void func_shelter_b6_nursery_80181820(Task* task)
 {
-    RoomEffWork*   work;
+    GpEffWork*     work;
     GsCOORDINATE2* coord;
     SVECTOR*       vec;
     s32            step;
@@ -2021,126 +2021,126 @@ void func_shelter_b6_nursery_80181820(Task* task)
 
     work  = task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
-    work->field_22++;
+    work->age++;
     switch (task->state) {
         case 0:
-            work->field_24 = task->spawnArg1 & 0xFFF;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            work->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            work->scale = task->spawnArg1 & 0xFFF;
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            work->angle = ((u32)Gp_LcgState >> 16) & 0xFFF;
             if (task->spawnArg1 & 0xF000) {
                 step = (task->spawnArg1 >> 12) & 7;
             } else {
                 step = 1;
             }
-            work->field_28 = step;
-            work->field_22 = 0;
-            task->state    = task->spawnArg1 < 0 ? 2 : 1;
-            if (((u16)work->field_10.vx | (u16)work->field_10.vy | (u16)work->field_10.vz) == 0) {
+            work->period = step;
+            work->age    = 0;
+            task->state  = task->spawnArg1 < 0 ? 2 : 1;
+            if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
                 if (task->spawnArg1 & 0xFF0000) {
                     level = (task->spawnArg1 >> 16) & 0xFF;
                 } else {
                     level = 0x40;
                 }
-                work->field_2A = level;
+                work->step = level;
                 switch ((task->spawnArg1 >> 24) & 0xF) {
                     case 0:
-                        work->field_2A = 0;
+                        work->step = 0;
                         break;
                     case 1:
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vy = 0xFFC0 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vy = 0xFFC0 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
                         break;
                     case 2:
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
                         break;
                     case 3:
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vy = -(((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vy = -(((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
                         break;
                     case 5:
-                        work->field_10.vx = work->field_18;
-                        work->field_10.vy = work->field_1A;
-                        work->field_10.vz = work->field_1C;
+                        work->move.vx = work->pos.vx;
+                        work->move.vy = work->pos.vy;
+                        work->move.vz = work->pos.vz;
                         break;
                     case 6:
-                        work->field_10.vy = 0;
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        work->move.vy = 0;
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
                         break;
                     case 7:
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vz = ((u32)Gp_LcgState >> 16) & 0xFF;
-                        gte_SetRotMatrix(&work->field_8->coord);
-                        gte_ldv0(&work->field_10);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vz = ((u32)Gp_LcgState >> 16) & 0xFF;
+                        gte_SetRotMatrix(&work->parent->coord);
+                        gte_ldv0(&work->move);
                         gte_rtv0();
-                        gte_stsv(&work->field_10);
+                        gte_stsv(&work->move);
                         break;
                 }
-                vec = &work->field_10;
+                vec = &work->move;
                 VectorNormalSS(vec, vec);
-                gte_lddp(work->field_2A);
+                gte_lddp(work->step);
                 gte_ldsv(vec);
                 gte_gpf12();
                 gte_stsv(vec);
             } else {
-                work->field_2A = 0x40;
+                work->step = 0x40;
             }
             break;
         case 1:
-            func_shelter_b6_nursery_80181EDC(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
-            if ((s16)work->field_2A != 0) {
-                coord->coord.t[0] += (s16)work->field_10.vx;
-                coord->coord.t[1] += (s16)work->field_10.vy;
-                coord->coord.t[2] += (s16)work->field_10.vz;
+            func_shelter_b6_nursery_80181EDC(coord, work->index, work->scale, work->angle);
+            if (work->step != 0) {
+                coord->coord.t[0] += work->move.vx;
+                coord->coord.t[1] += work->move.vy;
+                coord->coord.t[2] += work->move.vz;
                 coord->flg         = 0;
                 if (((task->spawnArg1 >> 24) & 0xF) == 7) {
-                    work->field_10.vy += (s16)work->field_22 / 10;
+                    work->move.vy += work->age / 10;
                 } else {
-                    work->field_10.vy -= 2;
+                    work->move.vy -= 2;
                 }
             }
-            if (((s16)work->field_22 % (s16)work->field_28) == 0) {
-                work->field_20++;
-                if ((s16)work->field_20 >= 10) {
+            if ((work->age % work->period) == 0) {
+                work->index++;
+                if (work->index >= 10) {
                     Gp_ReleaseState1CMem(work, task);
                 }
             }
             break;
         case 2:
-            func_shelter_b6_nursery_80182330(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
-            if ((s16)work->field_2A != 0) {
-                coord->coord.t[0] += (s16)work->field_10.vx;
-                coord->coord.t[1] += (s16)work->field_10.vy;
-                coord->coord.t[2] += (s16)work->field_10.vz;
+            func_shelter_b6_nursery_80182330(coord, work->index, work->scale, work->angle);
+            if (work->step != 0) {
+                coord->coord.t[0] += work->move.vx;
+                coord->coord.t[1] += work->move.vy;
+                coord->coord.t[2] += work->move.vz;
                 coord->flg         = 0;
                 if (((task->spawnArg1 >> 24) & 0xF) == 7) {
-                    work->field_10.vy += (s16)work->field_22 / 10;
+                    work->move.vy += work->age / 10;
                 } else {
-                    work->field_10.vy -= 1;
+                    work->move.vy -= 1;
                 }
             }
-            if (((s16)work->field_22 % (s16)work->field_28) == 0) {
-                work->field_20++;
-                if ((s16)work->field_20 >= 8) {
+            if ((work->age % work->period) == 0) {
+                work->index++;
+                if (work->index >= 8) {
                     Gp_ReleaseState1CMem(work, task);
                 }
             }
@@ -2280,7 +2280,7 @@ void func_shelter_b6_nursery_80182330(GsCOORDINATE2* coord, u16 arg1, s16 arg2, 
 void func_shelter_b6_nursery_80182730(Task* task)
 {
     SVECTOR        step;
-    RoomEffWork*   work;
+    GpEffWork*     work;
     GsCOORDINATE2* coord;
     s16            eventState;
 
@@ -2293,43 +2293,43 @@ void func_shelter_b6_nursery_80182730(Task* task)
         }
     } else {
         if (task->state == 0) {
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_10.vx = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_10.vy = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_10.vz = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_24    = ((Gp_LcgState >> 16) & 0x3F) + 0x40;
-            work->field_26    = task->spawnArg1 & 0xFFF;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_28    = ((Gp_LcgState >> 16) & 0x7F) + 0x40;
-            VectorNormalSS(&work->field_10, &work->field_10);
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            work->field_18 = 0x100 - ((Gp_LcgState >> 16) & 0x1FF);
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            work->field_1A = 0x100 - ((Gp_LcgState >> 16) & 0x1FF);
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            work->field_1C = 0x100 - ((Gp_LcgState >> 16) & 0x1FF);
-            coord->flg     = 0;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->move.vx = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->move.vy = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->move.vz = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->scale   = ((Gp_LcgState >> 16) & 0x3F) + 0x40;
+            work->angle   = task->spawnArg1 & 0xFFF;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->period  = ((Gp_LcgState >> 16) & 0x7F) + 0x40;
+            VectorNormalSS(&work->move, &work->move);
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            work->pos.vx = 0x100 - ((Gp_LcgState >> 16) & 0x1FF);
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            work->pos.vy = 0x100 - ((Gp_LcgState >> 16) & 0x1FF);
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            work->pos.vz = 0x100 - ((Gp_LcgState >> 16) & 0x1FF);
+            coord->flg   = 0;
             task->state++;
             return;
         }
-        Gfx_RotMatrixXYZ(&coord->coord, (SVECTOR*)&work->field_18, 0);
+        Gfx_RotMatrixXYZ(&coord->coord, (SVECTOR*)&work->pos.vx, 0);
         MatrixNormal(&coord->coord, &coord->coord);
-        gte_lddp(work->field_24);
-        gte_ldsv(&work->field_10);
+        gte_lddp(work->scale);
+        gte_ldsv(&work->move);
         gte_gpf12();
         gte_stsv(&step);
         coord->coord.t[0] += step.vx;
         coord->coord.t[1] += step.vy;
         coord->coord.t[2] += step.vz;
         coord->flg         = 0;
-        func_shelter_b6_nursery_801829E4(coord, work->field_26, work->field_28);
+        func_shelter_b6_nursery_801829E4(coord, work->angle, work->period);
         if (coord->coord.t[1] > 0) {
             Gp_ReleaseState1CMem(work, task);
         } else {
-            work->field_10.vy += 0x180;
+            work->move.vy += 0x180;
         }
     }
 }
@@ -2423,9 +2423,9 @@ void func_shelter_b6_nursery_80182D28(Task* task)
                 work->angle += work->step;
                 task->spawnArg1--;
                 rgb[0] = work->scale;
-                rgb[1] = (u16)work->scale >> 2;
-                rgb[2] = (u16)work->scale >> 1;
-                func_shelter_b6_nursery_801833F8(coord, (s16)work->angle, rgb);
+                rgb[1] = work->scale >> 2;
+                rgb[2] = work->scale >> 1;
+                func_shelter_b6_nursery_801833F8(coord, work->angle, rgb);
                 rgb[0] >>= 1;
                 rgb[1] >>= 1;
                 rgb[2] >>= 1;
@@ -2435,17 +2435,17 @@ void func_shelter_b6_nursery_80182D28(Task* task)
                     work->scale = 0xFF;
                     task->state = 2;
                     rgb[0]      = work->scale;
-                    rgb[1]      = (u16)work->scale >> 2;
-                    rgb[2]      = (u16)work->scale >> 1;
+                    rgb[1]      = work->scale >> 2;
+                    rgb[2]      = work->scale >> 1;
                     Gp_DrawFadeQuad(rgb, 1);
                 }
                 break;
             case 2:
-                if ((s16)work->scale >= 0x11) {
+                if (work->scale >= 0x11) {
                     rgb[0] = work->scale;
-                    rgb[1] = (u16)work->scale >> 2;
-                    rgb[2] = (u16)work->scale >> 1;
-                    func_shelter_b6_nursery_801842FC(coord, (s16)((s16)work->angle * 3), rgb);
+                    rgb[1] = work->scale >> 2;
+                    rgb[2] = work->scale >> 1;
+                    func_shelter_b6_nursery_801842FC(coord, (s16)(work->angle * 3), rgb);
                     work->scale -= 0x10;
                     work->angle -= 8;
                     break;
@@ -2892,8 +2892,8 @@ void func_shelter_b6_nursery_80184074(Task* task)
             work->angle -= 0x20;
             work->scale += 0x30;
             rgb[0]       = work->angle;
-            rgb[1]       = (u16)work->angle >> 1;
-            rgb[2]       = (u16)work->angle >> 2;
+            rgb[1]       = work->angle >> 1;
+            rgb[2]       = work->angle >> 2;
             func_shelter_b6_nursery_80182FCC(objCoord, 0x100, 0x100, rgb);
             func_shelter_b6_nursery_80182FCC(objCoord, work->scale, work->scale, rgb);
             if (work->age >= 7) {

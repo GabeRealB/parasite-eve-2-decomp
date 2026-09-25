@@ -474,52 +474,52 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
 /// Per-frame update of a drifting effect drawn by
 /// `func_shelter_b1_sterilization_room_801826F0`. State 0 seeds the work block
 /// from the LCG and takes a direction from a table indexed by the 12-bit angle
-/// in `spawnArg1`, scaled through the GTE by `field_28` and jittered into the
-/// velocity `field_10`. Each tick then moves the coordinate by that velocity
-/// and adds `field_2A` to `field_24`; while an event is running the tick
-/// counter is held instead. The drawn frame advances every `field_20` ticks
+/// in `spawnArg1`, scaled through the GTE by `period` and jittered into the
+/// velocity `move`. Each tick then moves the coordinate by that velocity
+/// and adds `step` to `scale`; while an event is running the tick
+/// counter is held instead. The drawn frame advances every `index` ticks
 /// and the task is released once ten frames have passed.
 void func_shelter_b1_sterilization_room_801823D8(Task* task)
 {
-    RoomEffWork*   work;
+    GpEffWork*     work;
     GsCOORDINATE2* coord;
     SVECTOR*       vec;
     s32            base;
 
     work  = task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
-    work->field_22++;
+    work->age++;
     switch (task->state) {
         case 0:
             base             = ((GpEffSpawnArg*)&task->spawnArg1)->field_2;
-            work->field_24   = (u16)((((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFF) + 0x180) + base;
-            work->field_26   = ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFFF;
+            work->scale      = ((((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFF) + 0x180) + base;
+            work->angle      = ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFFF;
             task->spawnArg1 &= 0xFFF;
-            work->field_20   = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3) + 1;
-            work->field_28   = ((s16)work->field_24 >> 5) + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF);
-            work->field_2A   = ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF;
-            gte_lddp(work->field_28);
+            work->index      = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3) + 1;
+            work->period     = (work->scale >> 5) + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF);
+            work->step       = ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF;
+            gte_lddp(work->period);
             gte_ldsv(&D_shelter_b1_sterilization_room_80189334[task->spawnArg1 / 16]);
             gte_gpf12();
-            vec = &work->field_10;
+            vec = &work->move;
             gte_stsv(vec);
-            work->field_10.vx -= (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF) - 8;
-            work->field_10.vy -= (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF) - 8;
-            work->field_10.vz -= (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF) - 8;
-            task->state        = 1;
+            work->move.vx -= (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF) - 8;
+            work->move.vy -= (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF) - 8;
+            work->move.vz -= (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF) - 8;
+            task->state    = 1;
         case 1:
             if (Gp_State1C->eventState == 0) {
-                coord->coord.t[0] += work->field_10.vx;
-                coord->coord.t[1] += work->field_10.vy;
-                coord->coord.t[2] += work->field_10.vz;
+                coord->coord.t[0] += work->move.vx;
+                coord->coord.t[1] += work->move.vy;
+                coord->coord.t[2] += work->move.vz;
                 coord->flg         = 0;
-                work->field_24    += work->field_2A;
+                work->scale       += work->step;
             } else {
-                work->field_22--;
+                work->age--;
             }
-            func_shelter_b1_sterilization_room_801826F0(coord, ((s16)work->field_22 - 1) / (s16)work->field_20,
-                                                        work->field_24, work->field_26);
-            if ((s16)work->field_20 * 10 - 1 < (s16)work->field_22) {
+            func_shelter_b1_sterilization_room_801826F0(coord, (work->age - 1) / work->index,
+                                                        work->scale, work->angle);
+            if (work->index * 10 - 1 < work->age) {
                 Gp_ReleaseState1CMem(work, task);
             }
             break;

@@ -53,7 +53,7 @@ void func_energyshot_8012EF34(Task* arg0)
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
     if ((state->field_3 != -2) && (Gp_State1C->fadeState < 4)) {
-        mem->age = (u16)mem->age + 1;
+        mem->age = mem->age + 1;
         switch (arg0->state) {
             case 0: {
                 GpMtxWords* rot;
@@ -135,9 +135,9 @@ void func_energyshot_8012EF34(Task* arg0)
                 s16              count;
 
                 table             = D_energyshot_801300E4;
-                mem->scale        = (u16)mem->scale + table[mem->index].field_4;
+                mem->scale        = mem->scale + table[mem->index].field_4;
                 rgb[0]            = *(u8*)&mem->scale;
-                rgb[1]            = (u16)mem->scale >> 1;
+                rgb[1]            = mem->scale >> 1;
                 rgb[2]            = *(u8*)&mem->scale;
                 coord->coord.t[1] = -table[mem->index].field_6;
                 coord->flg        = 0;
@@ -181,7 +181,7 @@ void func_energyshot_8012EF34(Task* arg0)
                             &mem->move);
                 if (D_energyshot_801300E4[mem->index].field_2 < mem->scale) {
                     Gp_SpawnEff(0x800600F3, coord, 0, 0);
-                    mem->period = (u16)mem->scale;
+                    mem->period = mem->scale;
                     arg0->state = 2;
                 }
                 return;
@@ -195,9 +195,9 @@ void func_energyshot_8012EF34(Task* arg0)
                 if (mem->scale < 0x11) {
                     goto release;
                 }
-                mem->scale        = (u16)mem->scale - 0x10;
+                mem->scale        = mem->scale - 0x10;
                 rgb[0]            = *(u8*)&mem->scale;
-                rgb[1]            = (u16)mem->scale >> 1;
+                rgb[1]            = mem->scale >> 1;
                 rgb[2]            = *(u8*)&mem->scale;
                 table             = D_energyshot_801300E4;
                 coord->coord.t[1] = -table[mem->index].field_6;
@@ -222,7 +222,7 @@ void func_energyshot_8012EF34(Task* arg0)
                 if (mem->index != 0) {
                     if (mem->index == 2) {
                         mem->period =
-                            (u16)mem->period + D_energyshot_801300E4[2].field_4;
+                            mem->period + D_energyshot_801300E4[2].field_4;
                         func_energyshot_8012FA50(
                             coord, (s16)(mem->period * 8),
                             (s16)(u16)D_energyshot_801300E4[mem->index].field_6 >> 1,
@@ -403,7 +403,7 @@ void func_energyshot_8012FFB8(Task* arg0)
 
     mem      = arg0->spawnArg2;
     coord    = ((TmdObject*)arg0->extra)->coords;
-    mem->age = (u16)mem->age + 1;
+    mem->age = mem->age + 1;
     if (arg0->state == 0) {
         mem->move.vx = 0;
         mem->move.vz = 0;
@@ -419,10 +419,10 @@ void func_energyshot_8012FFB8(Task* arg0)
     coord->coord.t[1] = y;
     Gp_UpdateCoord(coord);
     if ((mem->age & 3) == 0) {
-        mem->index = (u16)mem->index + 1;
+        mem->index = mem->index + 1;
     }
     if (mem->index < 8) {
-        Gp_DrawFxQuad(coord, (u16)mem->index, 0x400, (u16)mem->scale);
+        Gp_DrawFxQuad(coord, mem->index, 0x400, mem->scale);
         return;
     }
     Gp_ReleaseState1CMem(mem, arg0);

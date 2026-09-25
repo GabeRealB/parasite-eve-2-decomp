@@ -598,7 +598,7 @@ void func_shelter_b3_elevator_hall_8017DFB0(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// room's event state reaches 4.
 void func_shelter_b3_elevator_hall_8017E7F4(Task* task)
 {
-    RoomEffWork*   work;
+    GpEffWork*     work;
     GsCOORDINATE2* coord;
     s32            lifetime;
 
@@ -609,63 +609,63 @@ void func_shelter_b3_elevator_hall_8017E7F4(Task* task)
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
-        work->field_22++;
+        work->age++;
         switch (task->state) {
             case 0:
                 if (task->spawnArg1 & 3) {
-                    work->field_24    = 0x80;
-                    work->field_26    = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xFFF;
-                    work->field_28    = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xF000;
-                    lifetime          = ((RoomMoteArg*)&task->spawnArg1)->lifetime;
-                    work->field_2A    = lifetime;
-                    work->field_10.vx = 0;
-                    work->field_10.vy = ((RoomMoteArg*)&task->spawnArg1)->speed;
-                    work->field_10.vz = 0;
+                    work->scale   = 0x80;
+                    work->angle   = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xFFF;
+                    work->period  = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xF000;
+                    lifetime      = ((RoomMoteArg*)&task->spawnArg1)->lifetime;
+                    work->step    = lifetime;
+                    work->move.vx = 0;
+                    work->move.vy = ((RoomMoteArg*)&task->spawnArg1)->speed;
+                    work->move.vz = 0;
                     if (task->spawnArg1 & 2) {
-                        work->field_10.vy = -work->field_10.vy;
+                        work->move.vy = -work->move.vy;
                     }
                     task->state = 2;
                 } else {
-                    work->field_24    = 0x20;
-                    work->field_26    = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xFFF;
-                    work->field_28    = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xF000;
-                    lifetime          = ((RoomMoteArg*)&task->spawnArg1)->lifetime;
-                    work->field_2A    = lifetime;
-                    work->field_10.vx = 0;
-                    work->field_10.vy = -((RoomMoteArg*)&task->spawnArg1)->speed - (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x3F);
-                    work->field_10.vz = 0;
-                    task->state       = (task->spawnArg1 & 1) + 1;
+                    work->scale   = 0x20;
+                    work->angle   = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xFFF;
+                    work->period  = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xF000;
+                    lifetime      = ((RoomMoteArg*)&task->spawnArg1)->lifetime;
+                    work->step    = lifetime;
+                    work->move.vx = 0;
+                    work->move.vy = -((RoomMoteArg*)&task->spawnArg1)->speed - (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x3F);
+                    work->move.vz = 0;
+                    task->state   = (task->spawnArg1 & 1) + 1;
                 }
                 break;
             case 1:
-                coord->coord.t[1] += work->field_10.vy;
+                coord->coord.t[1] += work->move.vy;
                 coord->flg         = 0;
                 Gp_UpdateCoord(coord);
-                if (work->field_22 & 1) {
-                    work->field_20++;
-                    func_shelter_b3_elevator_hall_8017EAC0(coord, work->field_20, work->field_26 | 0x1000, work->field_24 | work->field_28);
+                if (work->age & 1) {
+                    work->index++;
+                    func_shelter_b3_elevator_hall_8017EAC0(coord, work->index, work->angle | 0x1000, work->scale | work->period);
                 }
-                if ((s16)work->field_24 > 0) {
-                    if ((s16)work->field_2A - 8 < (s16)work->field_22) {
-                        work->field_24 -= 0x10;
-                    } else if ((s16)work->field_24 < 0x80) {
-                        work->field_24 += 0x20;
+                if (work->scale > 0) {
+                    if (work->step - 8 < work->age) {
+                        work->scale -= 0x10;
+                    } else if (work->scale < 0x80) {
+                        work->scale += 0x20;
                     }
                 } else {
                     Gp_ReleaseState1CMem(work, task);
                 }
                 break;
             case 2:
-                coord->coord.t[1] += work->field_10.vy;
+                coord->coord.t[1] += work->move.vy;
                 coord->flg         = 0;
                 Gp_UpdateCoord(coord);
-                if (work->field_22 & 1) {
-                    work->field_20++;
-                    func_shelter_b3_elevator_hall_8017EAC0(coord, work->field_20, work->field_26, work->field_24 | work->field_28);
+                if (work->age & 1) {
+                    work->index++;
+                    func_shelter_b3_elevator_hall_8017EAC0(coord, work->index, work->angle, work->scale | work->period);
                 }
-                if ((s16)work->field_24 > 0) {
-                    if ((s16)work->field_2A - 8 < (s16)work->field_22) {
-                        work->field_24 -= 0x10;
+                if (work->scale > 0) {
+                    if (work->step - 8 < work->age) {
+                        work->scale -= 0x10;
                     }
                 } else {
                     Gp_ReleaseState1CMem(work, task);
@@ -979,7 +979,7 @@ void func_shelter_b3_elevator_hall_8017F53C(Task* arg0)
                 rgb[1] = rgb[1] >> 1;
                 rgb[2] = rgb[2] >> 1;
                 if (mem->age & 1) {
-                    func_shelter_b3_elevator_hall_8017F1A8(coord, (s16)((u16)mem->angle + 0x100), rgb);
+                    func_shelter_b3_elevator_hall_8017F1A8(coord, (s16)(mem->angle + 0x100), rgb);
                 }
                 func_shelter_b3_elevator_hall_8017ED84(coord, (s16)(0x300 - (u16)mem->angle * 2), 0x80, rgb);
                 if (arg0->spawnArg1 == 0) {
@@ -1042,16 +1042,16 @@ void func_shelter_b3_elevator_hall_8017F8D4(Task* arg0)
         }
         Gp_UpdateCoord(coord);
         rgb[0]     = mem->scale;
-        rgb[1]     = (u16)mem->scale >> 1;
-        rgb[2]     = (u16)mem->scale >> 2;
+        rgb[1]     = mem->scale >> 1;
+        rgb[2]     = mem->scale >> 2;
         step       = mem->angle + 0x10;
         mem->angle = step;
         func_shelter_b3_elevator_hall_8017F1A8(coord, (s16)(step * 2), rgb);
         func_shelter_b3_elevator_hall_8017FA80(coord, mem->angle);
         if (mem->period >= 0x19) {
             rgb[0] = mem->period;
-            rgb[1] = (u16)mem->period >> 1;
-            rgb[2] = (u16)mem->period >> 2;
+            rgb[1] = mem->period >> 1;
+            rgb[2] = mem->period >> 2;
             func_shelter_b3_elevator_hall_8017ED84(coord, (s16)(mem->step * 3 / 2), 0x60, rgb);
             mem->period -= 0x18;
             mem->step   += 0x30;

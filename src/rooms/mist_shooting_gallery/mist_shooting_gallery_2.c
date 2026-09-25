@@ -172,8 +172,8 @@ void func_mist_shooting_gallery_80182064(Task* task)
     if (Gp_State1C->eventState != 0) {
         func_mist_shooting_gallery_80182294(coord, work->index, 0x600, work->angle);
         func_mist_shooting_gallery_801826C4(coord, &work->pos, work->index, 0x600);
-        rgb[0] = (u16)work->scale >> 1;
-        rgb[1] = (u16)work->scale >> 1;
+        rgb[0] = work->scale >> 1;
+        rgb[1] = work->scale >> 1;
         rgb[2] = work->scale;
         Gp_DrawFadeQuad(rgb, 1);
         return;
@@ -205,8 +205,8 @@ void func_mist_shooting_gallery_80182064(Task* task)
                 func_mist_shooting_gallery_80182294(coord, ++work->index, 0x400, work->angle);
                 func_mist_shooting_gallery_801826C4(coord, &work->pos, work->index, 0x400);
             }
-            rgb[0] = (u16)work->scale >> 1;
-            rgb[1] = (u16)work->scale >> 1;
+            rgb[0] = work->scale >> 1;
+            rgb[1] = work->scale >> 1;
             rgb[2] = work->scale;
             Gp_DrawFadeQuad(rgb, 1);
             work->scale -= 8;

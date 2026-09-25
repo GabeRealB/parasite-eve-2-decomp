@@ -109,10 +109,10 @@ void func_plasma_8012EF34(Task* arg0)
                 if ((s16)next == 8) {
                     state->field_6 |= 8;
                 }
-                mem->scale  = (u16)mem->scale - 8;
+                mem->scale  = mem->scale - 8;
                 mem->angle  = (u16)mem->angle + 0x60 + (mem->index * 0x30);
-                mem->period = (u16)mem->period - 0x20;
-                mem->step   = (u16)mem->step + 0x20;
+                mem->period = mem->period - 0x20;
+                mem->step   = mem->step + 0x20;
             } else {
                 mem->age = prev;
             }
@@ -191,10 +191,10 @@ void func_plasma_8012EF34(Task* arg0)
                 if ((s16)next == 8) {
                     state->field_6 |= 8;
                 }
-                mem->scale  = (u16)mem->scale - 8;
-                mem->angle  = (u16)mem->angle + 0xC0;
-                mem->period = (u16)mem->period - 0x20;
-                mem->step   = (u16)mem->step + 0x20;
+                mem->scale  = mem->scale - 8;
+                mem->angle  = mem->angle + 0xC0;
+                mem->period = mem->period - 0x20;
+                mem->step   = mem->step + 0x20;
             } else {
                 mem->age = prev;
             }
@@ -281,11 +281,11 @@ void func_plasma_8012F568(GpEffWork* arg0, GsCOORDINATE2* arg1, s32 arg2)
     u16              f28;
 
     row      = &D_plasma_8012FF34[arg2];
-    f28      = (u16)arg0->period;
-    r1       = (u16)arg0->angle;
+    f28      = arg0->period;
+    r1       = arg0->angle;
     y        = f28 + (u16)row->yOff;
     r1      += (u16)row->rInner;
-    r0       = r1 + (u16)arg0->step + (u16)row->rExtra;
+    r0       = r1 + arg0->step + (u16)row->rExtra;
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = (u8*)*scratch;
     *scratch = head - 0x118;

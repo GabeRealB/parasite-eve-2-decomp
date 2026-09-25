@@ -47,30 +47,30 @@ extern SVECTOR D_neo_ark_island_80181B8C;
 /// at state 4.
 void func_neo_ark_island_8017EB68(Task* task)
 {
-    RoomEffWork*   work;
+    GpEffWork*     work;
     GsCOORDINATE2* coord;
 
     work  = task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
     if (Gp_State1C->eventState != 0) {
-        func_neo_ark_island_8017ECB4(coord, (s16)work->field_26, (s16)work->field_24);
+        func_neo_ark_island_8017ECB4(coord, work->angle, work->scale);
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
-        work->field_22++;
+        work->age++;
         if (task->state == 0) {
-            work->field_24 = 0x40;
-            work->field_26 = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            work->scale = 0x40;
+            work->angle = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
             coord->flg  = 0;
             task->state = 1;
         }
-        work->field_26 += 0x20;
-        func_neo_ark_island_8017ECB4(coord, (s16)work->field_26, (s16)work->field_24);
-        work->field_24 -= 2;
-        if ((s16)work->field_24 < 2) {
+        work->angle += 0x20;
+        func_neo_ark_island_8017ECB4(coord, work->angle, work->scale);
+        work->scale -= 2;
+        if (work->scale < 2) {
             Gp_ReleaseState1CMem(work, task);
         }
     }
@@ -174,7 +174,7 @@ void func_neo_ark_island_8017ECB4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
 /// event state leaves zero it only draws, and releases at state 4.
 void func_neo_ark_island_8017EFE8(Task* task)
 {
-    RoomEffWork*   work;
+    GpEffWork*     work;
     GsCOORDINATE2* coord;
     SVECTOR*       vec;
     s32            kind;
@@ -186,104 +186,104 @@ void func_neo_ark_island_8017EFE8(Task* task)
     coord = ((TmdObject*)task->extra)->coords;
     if (Gp_State1C->eventState != 0) {
         if (task->state < 2) {
-            func_neo_ark_island_8017F4A4(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
+            func_neo_ark_island_8017F4A4(coord, (u16)work->index, work->scale, work->angle);
         } else {
-            func_neo_ark_island_8017F890(coord, work->field_20, (s16)work->field_24);
+            func_neo_ark_island_8017F890(coord, (u16)work->index, work->scale);
         }
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;
     }
-    work->field_22++;
+    work->age++;
     switch (task->state) {
         case 0:
-            work->field_24 = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            work->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            work->scale = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            work->angle = ((u32)Gp_LcgState >> 16) & 0xFFF;
             if (task->spawnArg1 & 0xF000) {
                 step = (task->spawnArg1 >> 12) & 0xF;
             } else {
                 step = 1;
             }
-            work->field_28 = step;
-            work->field_22 = 0;
-            state          = 1;
+            work->period = step;
+            work->age    = 0;
+            state        = 1;
             if (task->spawnArg1 & 0xF0000000) {
                 state = 2;
             }
             task->state = state;
-            if (((u16)work->field_10.vx | (u16)work->field_10.vy | (u16)work->field_10.vz) == 0) {
+            if (((u16)work->move.vx | (u16)work->move.vy | (u16)work->move.vz) == 0) {
                 if (task->spawnArg1 & 0xFF0000) {
                     level = (task->spawnArg1 >> 16) & 0xFF;
                 } else {
                     level = 0x40;
                 }
-                work->field_2A = level;
-                kind           = ((GpEffSpawnArgHi*)&task->spawnArg1)->field_3;
+                work->step = level;
+                kind       = ((GpEffSpawnArgHi*)&task->spawnArg1)->field_3;
                 switch (kind & 0xF) {
                     case 0:
-                        work->field_2A = 0;
+                        work->step = 0;
                         break;
                     case 1:
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vy = 0xFFC0 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vy = 0xFFC0 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
                         break;
                     case 2:
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
                         break;
                     case 3:
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vy = -(((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vy = -(((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
                         break;
                     case 5:
-                        work->field_10.vx = work->field_18;
-                        work->field_10.vy = work->field_1A;
-                        work->field_10.vz = work->field_1C;
+                        work->move.vx = work->pos.vx;
+                        work->move.vy = work->pos.vy;
+                        work->move.vz = work->pos.vz;
                         break;
                 }
-                vec = &work->field_10;
+                vec = &work->move;
                 VectorNormalSS(vec, vec);
-                gte_lddp(work->field_2A);
+                gte_lddp(work->step);
                 gte_ldsv(vec);
                 gte_gpf12();
                 gte_stsv(vec);
             } else {
-                work->field_2A = 0x40;
+                work->step = 0x40;
             }
             return;
         case 1:
-            func_neo_ark_island_8017F4A4(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
+            func_neo_ark_island_8017F4A4(coord, (u16)work->index, work->scale, work->angle);
             break;
         case 2:
-            func_neo_ark_island_8017F890(coord, work->field_20, (s16)work->field_24);
+            func_neo_ark_island_8017F890(coord, (u16)work->index, work->scale);
             break;
         default:
             return;
     }
-    if ((s16)work->field_2A != 0) {
-        coord->coord.t[0] += work->field_10.vx;
-        coord->coord.t[1] += work->field_10.vy;
-        coord->coord.t[2] += work->field_10.vz;
+    if (work->step != 0) {
+        coord->coord.t[0] += work->move.vx;
+        coord->coord.t[1] += work->move.vy;
+        coord->coord.t[2] += work->move.vz;
         coord->flg         = 0;
-        work->field_10.vy += 6;
+        work->move.vy     += 6;
     }
-    if (((s16)work->field_22 % (s16)work->field_28) == 0) {
-        work->field_20++;
-        if ((s16)work->field_20 >= 8) {
+    if ((work->age % work->period) == 0) {
+        work->index++;
+        if (work->index >= 8) {
             Gp_ReleaseState1CMem(work, task);
         }
     }
@@ -495,9 +495,9 @@ void func_neo_ark_island_8017FB9C(Task* task)
                 work->angle += work->step;
                 task->spawnArg1--;
                 rgb[0] = work->scale;
-                rgb[1] = (u16)work->scale >> 2;
-                rgb[2] = (u16)work->scale >> 1;
-                func_neo_ark_island_8018026C(coord, (s16)work->angle, rgb);
+                rgb[1] = work->scale >> 2;
+                rgb[2] = work->scale >> 1;
+                func_neo_ark_island_8018026C(coord, work->angle, rgb);
                 rgb[0] >>= 1;
                 rgb[1] >>= 1;
                 rgb[2] >>= 1;
@@ -507,17 +507,17 @@ void func_neo_ark_island_8017FB9C(Task* task)
                     work->scale = 0xFF;
                     task->state = 2;
                     rgb[0]      = work->scale;
-                    rgb[1]      = (u16)work->scale >> 2;
-                    rgb[2]      = (u16)work->scale >> 1;
+                    rgb[1]      = work->scale >> 2;
+                    rgb[2]      = work->scale >> 1;
                     Gp_DrawFadeQuad(rgb, 1);
                 }
                 break;
             case 2:
-                if ((s16)work->scale >= 0x11) {
+                if (work->scale >= 0x11) {
                     rgb[0] = work->scale;
-                    rgb[1] = (u16)work->scale >> 2;
-                    rgb[2] = (u16)work->scale >> 1;
-                    func_neo_ark_island_80181170(coord, (s16)((s16)work->angle * 3), rgb);
+                    rgb[1] = work->scale >> 2;
+                    rgb[2] = work->scale >> 1;
+                    func_neo_ark_island_80181170(coord, (s16)(work->angle * 3), rgb);
                     work->scale -= 0x10;
                     work->angle -= 8;
                     break;
@@ -972,8 +972,8 @@ void func_neo_ark_island_80180EE8(Task* task)
             work->angle -= 0x20;
             work->scale += 0x30;
             rgb[0]       = work->angle;
-            rgb[1]       = (u16)work->angle >> 1;
-            rgb[2]       = (u16)work->angle >> 2;
+            rgb[1]       = work->angle >> 1;
+            rgb[2]       = work->angle >> 2;
             func_neo_ark_island_8017FE40(objCoord, 0x100, 0x100, rgb);
             func_neo_ark_island_8017FE40(objCoord, work->scale, work->scale, rgb);
             if (work->age >= 7) {

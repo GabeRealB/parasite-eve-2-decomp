@@ -280,7 +280,7 @@ void func_shelter_b2_pod_access_tunnel_8017DF64(SVECTOR* arg0, s32 arg1, s32 arg
 /// only draws, and releases once the event state reaches 4.
 void func_shelter_b2_pod_access_tunnel_8017E6E0(Task* task)
 {
-    RoomEffWork*   work;
+    GpEffWork*     work;
     GsCOORDINATE2* coord;
     SVECTOR*       vec;
     s32            step;
@@ -290,125 +290,125 @@ void func_shelter_b2_pod_access_tunnel_8017E6E0(Task* task)
     coord = ((TmdObject*)task->extra)->coords;
     if (Gp_State1C->eventState != 0) {
         if (task->state < 2) {
-            func_shelter_b2_pod_access_tunnel_8017ED5C(coord, work->field_20 | work->field_18, work->field_24, work->field_26);
+            func_shelter_b2_pod_access_tunnel_8017ED5C(coord, work->index | work->pos.vx, work->scale, work->angle);
         } else {
-            func_shelter_b2_pod_access_tunnel_8017F1BC(coord, work->field_20 | work->field_18, work->field_24, work->field_26);
+            func_shelter_b2_pod_access_tunnel_8017F1BC(coord, work->index | work->pos.vx, work->scale, work->angle);
         }
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
         }
         return;
     }
-    work->field_22++;
+    work->age++;
     switch (task->state) {
         case 0:
-            work->field_24 = task->spawnArg1 & 0xFFF;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            work->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            work->scale = task->spawnArg1 & 0xFFF;
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            work->angle = ((u32)Gp_LcgState >> 16) & 0xFFF;
             if (task->spawnArg1 & 0xF000) {
                 step = (task->spawnArg1 >> 12) & 7;
             } else {
                 step = 1;
             }
-            work->field_28 = step;
-            work->field_22 = 0;
-            task->state    = 1;
-            task->state    = task->spawnArg1 < 0 ? 2 : 1;
-            work->field_18 = (task->spawnArg1 >> 16) & 0x7000;
-            if (((u16)work->field_10.vx | (u16)work->field_10.vy | (u16)work->field_10.vz) == 0) {
+            work->period = step;
+            work->age    = 0;
+            task->state  = 1;
+            task->state  = task->spawnArg1 < 0 ? 2 : 1;
+            work->pos.vx = (task->spawnArg1 >> 16) & 0x7000;
+            if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
                 if (task->spawnArg1 & 0xFF0000) {
                     level = (task->spawnArg1 >> 16) & 0xFF;
                 } else {
                     level = 0x40;
                 }
-                work->field_2A = level;
+                work->step = level;
                 switch ((task->spawnArg1 >> 24) & 0xF) {
                     case 0:
-                        work->field_2A = 0;
+                        work->step = 0;
                         break;
                     case 1:
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vy = 0xFFC0 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vy = 0xFFC0 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
                         break;
                     case 2:
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
                         break;
                     case 3:
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vy = -(((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vy = -(((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
                         break;
                     case 5:
-                        work->field_10.vx = work->field_18;
-                        work->field_10.vy = work->field_1A;
-                        work->field_10.vz = work->field_1C;
+                        work->move.vx = work->pos.vx;
+                        work->move.vy = work->pos.vy;
+                        work->move.vz = work->pos.vz;
                         break;
                     case 6:
-                        work->field_10.vy = 0;
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        work->move.vy = 0;
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
                         break;
                 }
-                vec = &work->field_10;
+                vec = &work->move;
                 VectorNormalSS(vec, vec);
-                gte_lddp(work->field_2A);
+                gte_lddp(work->step);
                 gte_ldsv(vec);
                 gte_gpf12();
                 gte_stsv(vec);
             } else {
-                work->field_2A = 0x40;
+                work->step = 0x40;
             }
             break;
         case 1:
-            func_shelter_b2_pod_access_tunnel_8017ED5C(coord, work->field_20 | work->field_18, work->field_24, work->field_26);
-            if ((s16)work->field_2A != 0) {
-                coord->coord.t[0] += (s16)work->field_10.vx;
-                coord->coord.t[1] += (s16)work->field_10.vy;
-                coord->coord.t[2] += (s16)work->field_10.vz;
+            func_shelter_b2_pod_access_tunnel_8017ED5C(coord, work->index | work->pos.vx, work->scale, work->angle);
+            if (work->step != 0) {
+                coord->coord.t[0] += work->move.vx;
+                coord->coord.t[1] += work->move.vy;
+                coord->coord.t[2] += work->move.vz;
                 coord->flg         = 0;
                 if (((task->spawnArg1 >> 24) & 0xF) == 7) {
-                    work->field_10.vy += (s16)work->field_22 / 10;
+                    work->move.vy += work->age / 10;
                 } else {
-                    work->field_10.vy -= 2;
+                    work->move.vy -= 2;
                 }
             }
-            if (((s16)work->field_22 % (s16)work->field_28) == 0) {
-                work->field_20++;
-                if ((s16)work->field_20 >= 12) {
+            if ((work->age % work->period) == 0) {
+                work->index++;
+                if (work->index >= 12) {
                     Gp_ReleaseState1CMem(work, task);
                 }
             }
             break;
         case 2:
-            func_shelter_b2_pod_access_tunnel_8017F1BC(coord, work->field_20 | work->field_18, work->field_24, work->field_26);
-            if ((s16)work->field_2A != 0) {
-                coord->coord.t[0] += (s16)work->field_10.vx;
-                coord->coord.t[1] += (s16)work->field_10.vy;
-                coord->coord.t[2] += (s16)work->field_10.vz;
+            func_shelter_b2_pod_access_tunnel_8017F1BC(coord, work->index | work->pos.vx, work->scale, work->angle);
+            if (work->step != 0) {
+                coord->coord.t[0] += work->move.vx;
+                coord->coord.t[1] += work->move.vy;
+                coord->coord.t[2] += work->move.vz;
                 coord->flg         = 0;
                 if (((task->spawnArg1 >> 24) & 0xF) == 7) {
-                    work->field_10.vy += (s16)work->field_22 / 10;
+                    work->move.vy += work->age / 10;
                 } else {
-                    work->field_10.vy -= 1;
+                    work->move.vy -= 1;
                 }
             }
-            if (((s16)work->field_22 % (s16)work->field_28) == 0) {
-                work->field_20++;
-                if ((s16)work->field_20 >= 10) {
+            if ((work->age % work->period) == 0) {
+                work->index++;
+                if (work->index >= 10) {
                     Gp_ReleaseState1CMem(work, task);
                 }
             }
@@ -564,7 +564,7 @@ void func_shelter_b2_pod_access_tunnel_8017F1BC(GsCOORDINATE2* arg0, u16 arg1, s
 /// dark, or when the room's event state reaches 4.
 void func_shelter_b2_pod_access_tunnel_8017F608(Task* task)
 {
-    RoomEffWork*   work;
+    GpEffWork*     work;
     GsCOORDINATE2* coord;
     s32            lifetime;
 
@@ -575,63 +575,63 @@ void func_shelter_b2_pod_access_tunnel_8017F608(Task* task)
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
-        work->field_22++;
+        work->age++;
         switch (task->state) {
             case 0:
                 if (task->spawnArg1 & 3) {
-                    work->field_24    = 0x80;
-                    work->field_26    = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xFFF;
-                    work->field_28    = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xF000;
-                    lifetime          = ((RoomMoteArg*)&task->spawnArg1)->lifetime;
-                    work->field_2A    = lifetime;
-                    work->field_10.vx = 0;
-                    work->field_10.vy = ((RoomMoteArg*)&task->spawnArg1)->speed;
-                    work->field_10.vz = 0;
+                    work->scale   = 0x80;
+                    work->angle   = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xFFF;
+                    work->period  = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xF000;
+                    lifetime      = ((RoomMoteArg*)&task->spawnArg1)->lifetime;
+                    work->step    = lifetime;
+                    work->move.vx = 0;
+                    work->move.vy = ((RoomMoteArg*)&task->spawnArg1)->speed;
+                    work->move.vz = 0;
                     if (task->spawnArg1 & 2) {
-                        work->field_10.vy = -work->field_10.vy;
+                        work->move.vy = -work->move.vy;
                     }
                     task->state = 2;
                 } else {
-                    work->field_24    = 0x20;
-                    work->field_26    = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xFFF;
-                    work->field_28    = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xF000;
-                    lifetime          = ((RoomMoteArg*)&task->spawnArg1)->lifetime;
-                    work->field_2A    = lifetime;
-                    work->field_10.vx = 0;
-                    work->field_10.vy = -((RoomMoteArg*)&task->spawnArg1)->speed - (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x3F);
-                    work->field_10.vz = 0;
-                    task->state       = (task->spawnArg1 & 1) + 1;
+                    work->scale   = 0x20;
+                    work->angle   = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xFFF;
+                    work->period  = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xF000;
+                    lifetime      = ((RoomMoteArg*)&task->spawnArg1)->lifetime;
+                    work->step    = lifetime;
+                    work->move.vx = 0;
+                    work->move.vy = -((RoomMoteArg*)&task->spawnArg1)->speed - (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x3F);
+                    work->move.vz = 0;
+                    task->state   = (task->spawnArg1 & 1) + 1;
                 }
                 break;
             case 1:
-                coord->coord.t[1] += work->field_10.vy;
+                coord->coord.t[1] += work->move.vy;
                 coord->flg         = 0;
                 Gp_UpdateCoord(coord);
-                if (work->field_22 & 1) {
-                    work->field_20++;
-                    func_shelter_b2_pod_access_tunnel_8017F8D4(coord, work->field_20, work->field_26 | 0x1000, work->field_24 | work->field_28);
+                if (work->age & 1) {
+                    work->index++;
+                    func_shelter_b2_pod_access_tunnel_8017F8D4(coord, work->index, work->angle | 0x1000, work->scale | work->period);
                 }
-                if ((s16)work->field_24 > 0) {
-                    if ((s16)work->field_2A - 8 < (s16)work->field_22) {
-                        work->field_24 -= 0x10;
-                    } else if ((s16)work->field_24 < 0x80) {
-                        work->field_24 += 0x20;
+                if (work->scale > 0) {
+                    if (work->step - 8 < work->age) {
+                        work->scale -= 0x10;
+                    } else if (work->scale < 0x80) {
+                        work->scale += 0x20;
                     }
                 } else {
                     Gp_ReleaseState1CMem(work, task);
                 }
                 break;
             case 2:
-                coord->coord.t[1] += work->field_10.vy;
+                coord->coord.t[1] += work->move.vy;
                 coord->flg         = 0;
                 Gp_UpdateCoord(coord);
-                if (work->field_22 & 1) {
-                    work->field_20++;
-                    func_shelter_b2_pod_access_tunnel_8017F8D4(coord, work->field_20, work->field_26, work->field_24 | work->field_28);
+                if (work->age & 1) {
+                    work->index++;
+                    func_shelter_b2_pod_access_tunnel_8017F8D4(coord, work->index, work->angle, work->scale | work->period);
                 }
-                if ((s16)work->field_24 > 0) {
-                    if ((s16)work->field_2A - 8 < (s16)work->field_22) {
-                        work->field_24 -= 0x10;
+                if (work->scale > 0) {
+                    if (work->step - 8 < work->age) {
+                        work->scale -= 0x10;
                     }
                 } else {
                     Gp_ReleaseState1CMem(work, task);
@@ -1020,16 +1020,16 @@ void func_shelter_b2_pod_access_tunnel_801806E8(Task* arg0)
         }
         Gp_UpdateCoord(coord);
         rgb[0]     = mem->scale;
-        rgb[1]     = (u16)mem->scale >> 1;
-        rgb[2]     = (u16)mem->scale >> 2;
+        rgb[1]     = mem->scale >> 1;
+        rgb[2]     = mem->scale >> 2;
         step       = mem->angle + 0x10;
         mem->angle = step;
         func_shelter_b2_pod_access_tunnel_8017FFBC(coord, (s16)(step * 2), rgb);
         func_shelter_b2_pod_access_tunnel_80180894(coord, mem->angle);
         if (mem->period >= 0x19) {
             rgb[0] = mem->period;
-            rgb[1] = (u16)mem->period >> 1;
-            rgb[2] = (u16)mem->period >> 2;
+            rgb[1] = mem->period >> 1;
+            rgb[2] = mem->period >> 2;
             func_shelter_b2_pod_access_tunnel_8017FB98(coord, (s16)(mem->step * 3 / 2), 0x60, rgb);
             mem->period -= 0x18;
             mem->step   += 0x30;
@@ -1484,8 +1484,8 @@ void func_shelter_b2_pod_access_tunnel_80181C2C(Task* arg0)
                 mem->angle      += mem->step;
                 arg0->spawnArg1 -= 1;
                 rgb[0]           = mem->scale;
-                rgb[1]           = (u16)mem->scale >> 2;
-                rgb[2]           = (u16)mem->scale >> 1;
+                rgb[1]           = mem->scale >> 2;
+                rgb[2]           = mem->scale >> 1;
                 func_shelter_b2_pod_access_tunnel_801822FC(coord, mem->angle, rgb);
                 rgb[0] = rgb[0] >> 1;
                 rgb[1] = rgb[1] >> 1;
@@ -1496,8 +1496,8 @@ void func_shelter_b2_pod_access_tunnel_80181C2C(Task* arg0)
                     mem->scale  = 0xFF;
                     arg0->state = 2;
                     rgb[0]      = mem->scale;
-                    rgb[1]      = (u16)mem->scale >> 2;
-                    rgb[2]      = (u16)mem->scale >> 1;
+                    rgb[1]      = mem->scale >> 2;
+                    rgb[2]      = mem->scale >> 1;
                     Gp_DrawFadeQuad(rgb, 1);
                     return;
                 }
@@ -1505,8 +1505,8 @@ void func_shelter_b2_pod_access_tunnel_80181C2C(Task* arg0)
             case 2:
                 if (mem->scale >= 0x11) {
                     rgb[0] = mem->scale;
-                    rgb[1] = (u16)mem->scale >> 2;
-                    rgb[2] = (u16)mem->scale >> 1;
+                    rgb[1] = mem->scale >> 2;
+                    rgb[2] = mem->scale >> 1;
                     func_shelter_b2_pod_access_tunnel_80183200(coord, mem->angle * 3, rgb);
                     mem->scale -= 0x10;
                     mem->angle -= 8;
@@ -1958,8 +1958,8 @@ void func_shelter_b2_pod_access_tunnel_80182F78(Task* task)
             work->angle -= 0x20;
             work->scale += 0x30;
             rgb[0]       = work->angle;
-            rgb[1]       = (u16)work->angle >> 1;
-            rgb[2]       = (u16)work->angle >> 2;
+            rgb[1]       = work->angle >> 1;
+            rgb[2]       = work->angle >> 2;
             func_shelter_b2_pod_access_tunnel_80181ED0(objCoord, 0x100, 0x100, rgb);
             func_shelter_b2_pod_access_tunnel_80181ED0(objCoord, work->scale, work->scale, rgb);
             if (work->age >= 7) {

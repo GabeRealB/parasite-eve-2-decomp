@@ -54,7 +54,7 @@ void func_inferno_8012EF88(Task* arg0)
     }
     coord->flg = 0;
     Gp_UpdateCoord(coord);
-    mem->age = (u16)mem->age + 1;
+    mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
             mem->scale = 0x200;
@@ -93,7 +93,7 @@ void func_inferno_8012EF88(Task* arg0)
             return;
         case 10:
             func_inferno_8012F3EC(mem->angle);
-            mem->angle = (u16)mem->angle - 0x10;
+            mem->angle = mem->angle - 0x10;
             if (mem->age != 0xC) {
                 return;
             }
@@ -111,7 +111,7 @@ void func_inferno_8012EF88(Task* arg0)
         case 11:
             func_inferno_8012F3EC(mem->angle);
             if (mem->angle < 0xF0) {
-                mem->angle = (u16)mem->angle + 0x10;
+                mem->angle = mem->angle + 0x10;
             }
             if (mem->age != 0x18) {
                 return;
@@ -132,7 +132,7 @@ void func_inferno_8012EF88(Task* arg0)
         case 12:
             func_inferno_8012F3EC(mem->angle);
             if (mem->angle >= 9) {
-                mem->angle = (u16)mem->angle - 8;
+                mem->angle = mem->angle - 8;
                 return;
             }
             break;
@@ -208,7 +208,7 @@ void func_inferno_8012F530(Task* arg0)
     }
     coord->flg = 0;
     Gp_UpdateCoord(coord);
-    mem->age = (u16)mem->age + 1;
+    mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
             map = memCalloc(0xC, 0);
@@ -242,12 +242,12 @@ void func_inferno_8012F530(Task* arg0)
         case 1:
             if (mem->scale >= 5) {
                 if (mem->period < 0xC00) {
-                    mem->period = (u16)mem->period + 0xC0;
+                    mem->period = mem->period + 0xC0;
                 } else {
-                    mem->scale = (u16)mem->scale - 4;
+                    mem->scale = mem->scale - 4;
                 }
-                mem->angle = (u16)mem->angle + 0x20;
-                mem->step  = (u16)mem->step + 0x18;
+                mem->angle = mem->angle + 0x20;
+                mem->step  = mem->step + 0x18;
                 func_inferno_8012F978(mem, coord, 0, map);
                 func_inferno_8012FF34(mem, coord, 1, map);
                 return;
@@ -255,10 +255,10 @@ void func_inferno_8012F530(Task* arg0)
             break;
         case 2:
             if (mem->scale >= 9) {
-                mem->scale  = (u16)mem->scale - 8;
-                mem->angle  = (u16)mem->angle + 0x20;
-                mem->period = (u16)mem->period + 0xC0;
-                mem->step   = (u16)mem->step + 0x18;
+                mem->scale  = mem->scale - 8;
+                mem->angle  = mem->angle + 0x20;
+                mem->period = mem->period + 0xC0;
+                mem->step   = mem->step + 0x18;
                 func_inferno_8012F978(mem, coord, 0, map);
                 func_inferno_8012FF34(mem, coord, 1, map);
                 return;
@@ -271,10 +271,10 @@ void func_inferno_8012F530(Task* arg0)
             coord->flg         = 0;
             coord->coord.t[2]  = tz;
             if (mem->scale >= 9) {
-                mem->scale  = (u16)mem->scale - 8;
-                mem->angle  = (u16)mem->angle + 0x20;
-                mem->period = (u16)mem->period + 0xC0;
-                mem->step   = (u16)mem->step + 0x18;
+                mem->scale  = mem->scale - 8;
+                mem->angle  = mem->angle + 0x20;
+                mem->period = mem->period + 0xC0;
+                mem->step   = mem->step + 0x18;
                 func_inferno_8012F978(mem, coord, 0, map);
                 func_inferno_8012FF34(mem, coord, 1, map);
                 return;
@@ -282,10 +282,10 @@ void func_inferno_8012F530(Task* arg0)
             break;
         case 4:
             if (mem->scale >= 7) {
-                mem->scale  = (u16)mem->scale - 6;
-                mem->angle  = (u16)mem->angle + 0x40;
-                mem->period = (u16)mem->period + 0xC0;
-                mem->step   = (u16)mem->step + 0x10;
+                mem->scale  = mem->scale - 6;
+                mem->angle  = mem->angle + 0x40;
+                mem->period = mem->period + 0xC0;
+                mem->step   = mem->step + 0x10;
                 func_inferno_8012F978(mem, coord, 0, map);
                 func_inferno_8012FF34(mem, coord, 1, map);
                 return;
@@ -293,10 +293,10 @@ void func_inferno_8012F530(Task* arg0)
             break;
         case 5:
             if (mem->scale >= 7) {
-                mem->scale  = (u16)mem->scale - 6;
-                mem->angle  = (u16)mem->angle + 0x40;
-                mem->period = (u16)mem->period + 0x40;
-                mem->step   = (u16)mem->step + 0x18;
+                mem->scale  = mem->scale - 6;
+                mem->angle  = mem->angle + 0x40;
+                mem->period = mem->period + 0x40;
+                mem->step   = mem->step + 0x18;
                 func_inferno_8012F978(mem, coord, 0, map);
                 func_inferno_8012FF34(mem, coord, 1, map);
                 return;
@@ -304,10 +304,10 @@ void func_inferno_8012F530(Task* arg0)
             break;
         case 6:
             if (mem->scale >= 7) {
-                mem->scale  = (u16)mem->scale - 6;
-                mem->angle  = (u16)mem->angle + 0x80;
-                mem->period = (u16)mem->period + 0x20;
-                mem->step   = (u16)mem->step + 0x20;
+                mem->scale  = mem->scale - 6;
+                mem->angle  = mem->angle + 0x80;
+                mem->period = mem->period + 0x20;
+                mem->step   = mem->step + 0x20;
                 func_inferno_8012F978(mem, coord, 0, map);
                 func_inferno_8012FF34(mem, coord, 1, map);
                 return;
@@ -348,9 +348,9 @@ void func_inferno_8012F978(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, Infer
     scratch  = (void**)G_SCRATCH_HEAD;
     tbl      = D_inferno_801304E4;
     row      = &tbl[kind];
-    h        = (u16)mem->period + row->field_2;
-    inner    = (u16)mem->angle + row->field_0;
-    outer    = row->field_4 + (inner + (u16)mem->step);
+    h        = mem->period + row->field_2;
+    inner    = mem->angle + row->field_0;
+    outer    = row->field_4 + (inner + mem->step);
     head     = (u8*)*scratch;
     *scratch = head - 0x70;
     block    = (InfernoFanScratch*)(head - 0x70);
@@ -449,8 +449,8 @@ void func_inferno_8012FF34(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, Infer
     scratch  = (void**)G_SCRATCH_HEAD;
     tbl      = D_inferno_801304E4;
     row      = &tbl[kind];
-    inner    = (u16)mem->angle + row->field_0;
-    outer    = row->field_4 + (inner + (u16)mem->step);
+    inner    = mem->angle + row->field_0;
+    outer    = row->field_4 + (inner + mem->step);
     h        = row->field_2;
     head     = (u8*)*scratch;
     *scratch = head - 0x70;

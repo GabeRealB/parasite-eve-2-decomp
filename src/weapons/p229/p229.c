@@ -92,8 +92,8 @@ void func_p229_8011D1DC(Task* task)
                both fields with `lhu` and sign-extends in the shift pair
                (`sll 16` / `sra 17`). A plain `>>= 1` on the `s16` field emits
                `lh` / `sra 1` instead. */
-            work->scale  = (s16)(u16)work->scale >> 1;
-            work->period = (s16)(u16)work->period >> 1;
+            work->scale  = work->scale >> 1;
+            work->period = work->period >> 1;
             break;
     }
 

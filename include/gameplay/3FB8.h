@@ -144,6 +144,10 @@ extern s32      D_80112C7C[];
 /// brightness and radius, a palette blend - and the comments below give the
 /// reading its users most often give them. `task`, `parent`, `pos` and `age`
 /// are the part they all agree on.
+///
+/// The trailing halfwords are signed: the effect tasks that own the block
+/// compare, divide and shift them as signed values. A task that wants one of
+/// them unsigned converts it where it reads it.
 typedef struct GpEffWork {
     struct Task*           task;    // the effect's own task, which carries this block as its `spawnArg2`
     s32                    field_4; // role unproven: zeroed by the spawn path, never read

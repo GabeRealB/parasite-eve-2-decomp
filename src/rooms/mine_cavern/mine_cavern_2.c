@@ -563,7 +563,7 @@ void func_mine_cavern_8017EFB8(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// soon as the room's event state reaches 4.
 void func_mine_cavern_8017F240(Task* task)
 {
-    RoomEffWork*   work;
+    GpEffWork*     work;
     GsCOORDINATE2* coord;
     s32            lifetime;
 
@@ -574,63 +574,63 @@ void func_mine_cavern_8017F240(Task* task)
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
-        work->field_22++;
+        work->age++;
         switch (task->state) {
             case 0:
                 if (task->spawnArg1 & 3) {
-                    work->field_24    = 0x80;
-                    work->field_26    = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xFFF;
-                    work->field_28    = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xF000;
-                    lifetime          = ((RoomMoteArg*)&task->spawnArg1)->lifetime;
-                    work->field_2A    = lifetime;
-                    work->field_10.vx = 0;
-                    work->field_10.vy = ((RoomMoteArg*)&task->spawnArg1)->speed;
-                    work->field_10.vz = 0;
+                    work->scale   = 0x80;
+                    work->angle   = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xFFF;
+                    work->period  = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xF000;
+                    lifetime      = ((RoomMoteArg*)&task->spawnArg1)->lifetime;
+                    work->step    = lifetime;
+                    work->move.vx = 0;
+                    work->move.vy = ((RoomMoteArg*)&task->spawnArg1)->speed;
+                    work->move.vz = 0;
                     if (task->spawnArg1 & 2) {
-                        work->field_10.vy = -work->field_10.vy;
+                        work->move.vy = -work->move.vy;
                     }
                     task->state = 2;
                 } else {
-                    work->field_24    = 0x20;
-                    work->field_26    = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xFFF;
-                    work->field_28    = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xF000;
-                    lifetime          = ((RoomMoteArg*)&task->spawnArg1)->lifetime;
-                    work->field_2A    = lifetime;
-                    work->field_10.vx = 0;
-                    work->field_10.vy = -((RoomMoteArg*)&task->spawnArg1)->speed - (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x3F);
-                    work->field_10.vz = 0;
-                    task->state       = (task->spawnArg1 & 1) + 1;
+                    work->scale   = 0x20;
+                    work->angle   = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xFFF;
+                    work->period  = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xF000;
+                    lifetime      = ((RoomMoteArg*)&task->spawnArg1)->lifetime;
+                    work->step    = lifetime;
+                    work->move.vx = 0;
+                    work->move.vy = -((RoomMoteArg*)&task->spawnArg1)->speed - (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x3F);
+                    work->move.vz = 0;
+                    task->state   = (task->spawnArg1 & 1) + 1;
                 }
                 break;
             case 1:
-                coord->coord.t[1] += work->field_10.vy;
+                coord->coord.t[1] += work->move.vy;
                 coord->flg         = 0;
                 Gp_UpdateCoord(coord);
-                if (work->field_22 & 1) {
-                    work->field_20++;
-                    func_mine_cavern_8017F50C(coord, work->field_20, work->field_26 | 0x1000, work->field_24 | work->field_28);
+                if (work->age & 1) {
+                    work->index++;
+                    func_mine_cavern_8017F50C(coord, work->index, work->angle | 0x1000, work->scale | work->period);
                 }
-                if ((s16)work->field_24 > 0) {
-                    if ((s16)work->field_2A - 8 < (s16)work->field_22) {
-                        work->field_24 -= 0x10;
-                    } else if ((s16)work->field_24 < 0x80) {
-                        work->field_24 += 0x20;
+                if (work->scale > 0) {
+                    if (work->step - 8 < work->age) {
+                        work->scale -= 0x10;
+                    } else if (work->scale < 0x80) {
+                        work->scale += 0x20;
                     }
                 } else {
                     Gp_ReleaseState1CMem(work, task);
                 }
                 break;
             case 2:
-                coord->coord.t[1] += work->field_10.vy;
+                coord->coord.t[1] += work->move.vy;
                 coord->flg         = 0;
                 Gp_UpdateCoord(coord);
-                if (work->field_22 & 1) {
-                    work->field_20++;
-                    func_mine_cavern_8017F50C(coord, work->field_20, work->field_26, work->field_24 | work->field_28);
+                if (work->age & 1) {
+                    work->index++;
+                    func_mine_cavern_8017F50C(coord, work->index, work->angle, work->scale | work->period);
                 }
-                if ((s16)work->field_24 > 0) {
-                    if ((s16)work->field_2A - 8 < (s16)work->field_22) {
-                        work->field_24 -= 0x10;
+                if (work->scale > 0) {
+                    if (work->step - 8 < work->age) {
+                        work->scale -= 0x10;
                     }
                 } else {
                     Gp_ReleaseState1CMem(work, task);
@@ -953,7 +953,7 @@ void func_mine_cavern_8017FF88(Task* arg0)
                 rgb[1] = rgb[1] >> 1;
                 rgb[2] = rgb[2] >> 1;
                 if (mem->age & 1) {
-                    func_mine_cavern_8017FBF4(coord, (s16)((u16)mem->angle + 0x100), rgb);
+                    func_mine_cavern_8017FBF4(coord, (s16)(mem->angle + 0x100), rgb);
                 }
                 func_mine_cavern_8017F7D0(coord, (s16)(0x300 - (u16)mem->angle * 2), 0x80, rgb);
                 if (arg0->spawnArg1 == 0) {
@@ -988,16 +988,16 @@ kill:
 /// `field_4` gates the whole room-effect family: 1-3 park the effect for the
 /// frame and 4 or more tear its work block down, so a task that sees them either
 /// returns or releases. Otherwise the effect ticks its lifetime counter, stages
-/// `field_24` into an RGB triple, advances the coordinate, and draws the
-/// eight-wedge `func_mine_cavern_8017FBF4` ring at twice `field_26` plus the cavern's own
-/// glow quads at half-extent `field_26`. Once `field_28` reaches 0x19 the
-/// two ramps swap roles - a `func_mine_cavern_8017F7D0` ring is drawn at `field_2A * 3 / 2` and
-/// then `field_28` shrinks by 0x18 and `field_2A` grows by 0x30 - and the effect
-/// otherwise fades `field_24` by 0x18 a frame until it drops under 0x18 and the
+/// `scale` into an RGB triple, advances the coordinate, and draws the
+/// eight-wedge `func_mine_cavern_8017FBF4` ring at twice `angle` plus the cavern's own
+/// glow quads at half-extent `angle`. Once `period` reaches 0x19 the
+/// two ramps swap roles - a `func_mine_cavern_8017F7D0` ring is drawn at `step * 3 / 2` and
+/// then `period` shrinks by 0x18 and `step` grows by 0x30 - and the effect
+/// otherwise fades `scale` by 0x18 a frame until it drops under 0x18 and the
 /// work block is handed back with `Gp_ReleaseState1CMem`.
 void func_mine_cavern_80180320(Task* task)
 {
-    RoomEffWork*   work;
+    GpEffWork*     work;
     GsCOORDINATE2* coord;
     u8             sp10[3];
     u16            temp;
@@ -1009,36 +1009,36 @@ void func_mine_cavern_80180320(Task* task)
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
-        work->field_22++;
+        work->age++;
         if (task->state == 0) {
-            work->field_22 = 1;
-            work->field_24 = 0xE0;
-            work->field_26 = 0x80;
-            work->field_28 = 0xE0;
-            work->field_2A = 0x80;
-            task->state    = 1;
+            work->age    = 1;
+            work->scale  = 0xE0;
+            work->angle  = 0x80;
+            work->period = 0xE0;
+            work->step   = 0x80;
+            task->state  = 1;
         }
         Gp_UpdateCoord(coord);
-        sp10[0]        = (u8)work->field_24;
-        sp10[1]        = (u8)(work->field_24 >> 1);
-        sp10[2]        = (u8)(work->field_24 >> 2);
-        temp           = work->field_26 + 0x10;
-        work->field_26 = temp;
+        sp10[0]     = (u8)work->scale;
+        sp10[1]     = (u8)(work->scale >> 1);
+        sp10[2]     = (u8)(work->scale >> 2);
+        temp        = work->angle + 0x10;
+        work->angle = temp;
         func_mine_cavern_8017FBF4(coord, (s16)(temp * 2), sp10);
-        func_mine_cavern_801804CC(coord, (s16)work->field_26);
-        if ((s16)work->field_28 >= 0x19) {
+        func_mine_cavern_801804CC(coord, work->angle);
+        if (work->period >= 0x19) {
             u32 temp_a1;
-            sp10[0] = (u8)work->field_28;
-            sp10[1] = (u8)(work->field_28 >> 1);
-            sp10[2] = (u8)(work->field_28 >> 2);
-            temp_a1 = (s16)work->field_2A * 3;
+            sp10[0] = (u8)work->period;
+            sp10[1] = (u8)(work->period >> 1);
+            sp10[2] = (u8)(work->period >> 2);
+            temp_a1 = work->step * 3;
             func_mine_cavern_8017F7D0(coord, (s32)((temp_a1 + (temp_a1 >> 0x1F)) << 0xF) >> 0x10, 0x60, sp10);
-            work->field_28 -= 0x18;
-            work->field_2A += 0x30;
+            work->period -= 0x18;
+            work->step   += 0x30;
             return;
         }
-        temp           = work->field_24 - 0x18;
-        work->field_24 = temp;
+        temp        = work->scale - 0x18;
+        work->scale = temp;
         if ((s16)temp < 0x18) {
             Gp_ReleaseState1CMem(work, task);
         }

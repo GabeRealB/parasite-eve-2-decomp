@@ -142,7 +142,7 @@ void func_neo_ark_north_promenade_8017D720(Task* arg0)
 /// once the room's event state reaches 4.
 void func_neo_ark_north_promenade_8017D7B0(Task* task)
 {
-    RoomEffWork*   work;
+    GpEffWork*     work;
     GsCOORDINATE2* coord;
     s32            lifetime;
 
@@ -153,63 +153,63 @@ void func_neo_ark_north_promenade_8017D7B0(Task* task)
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
-        work->field_22++;
+        work->age++;
         switch (task->state) {
             case 0:
                 if (task->spawnArg1 & 3) {
-                    work->field_24    = 0x80;
-                    work->field_26    = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xFFF;
-                    work->field_28    = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xF000;
-                    lifetime          = ((RoomMoteArg*)&task->spawnArg1)->lifetime;
-                    work->field_2A    = lifetime;
-                    work->field_10.vx = 0;
-                    work->field_10.vy = ((RoomMoteArg*)&task->spawnArg1)->speed;
-                    work->field_10.vz = 0;
+                    work->scale   = 0x80;
+                    work->angle   = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xFFF;
+                    work->period  = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xF000;
+                    lifetime      = ((RoomMoteArg*)&task->spawnArg1)->lifetime;
+                    work->step    = lifetime;
+                    work->move.vx = 0;
+                    work->move.vy = ((RoomMoteArg*)&task->spawnArg1)->speed;
+                    work->move.vz = 0;
                     if (task->spawnArg1 & 2) {
-                        work->field_10.vy = -work->field_10.vy;
+                        work->move.vy = -work->move.vy;
                     }
                     task->state = 2;
                 } else {
-                    work->field_24    = 0x20;
-                    work->field_26    = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xFFF;
-                    work->field_28    = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xF000;
-                    lifetime          = ((RoomMoteArg*)&task->spawnArg1)->lifetime;
-                    work->field_2A    = lifetime;
-                    work->field_10.vx = 0;
-                    work->field_10.vy = -((RoomMoteArg*)&task->spawnArg1)->speed - (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x3F);
-                    work->field_10.vz = 0;
-                    task->state       = (task->spawnArg1 & 1) + 1;
+                    work->scale   = 0x20;
+                    work->angle   = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xFFF;
+                    work->period  = ((RoomMoteArg*)&task->spawnArg1)->flags & 0xF000;
+                    lifetime      = ((RoomMoteArg*)&task->spawnArg1)->lifetime;
+                    work->step    = lifetime;
+                    work->move.vx = 0;
+                    work->move.vy = -((RoomMoteArg*)&task->spawnArg1)->speed - (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x3F);
+                    work->move.vz = 0;
+                    task->state   = (task->spawnArg1 & 1) + 1;
                 }
                 break;
             case 1:
-                coord->coord.t[1] += work->field_10.vy;
+                coord->coord.t[1] += work->move.vy;
                 coord->flg         = 0;
                 Gp_UpdateCoord(coord);
-                if (work->field_22 & 1) {
-                    work->field_20++;
-                    func_neo_ark_north_promenade_8017DA7C(coord, work->field_20, work->field_26 | 0x1000, work->field_24 | work->field_28);
+                if (work->age & 1) {
+                    work->index++;
+                    func_neo_ark_north_promenade_8017DA7C(coord, work->index, work->angle | 0x1000, work->scale | work->period);
                 }
-                if ((s16)work->field_24 > 0) {
-                    if ((s16)work->field_2A - 8 < (s16)work->field_22) {
-                        work->field_24 -= 0x10;
-                    } else if ((s16)work->field_24 < 0x80) {
-                        work->field_24 += 0x20;
+                if (work->scale > 0) {
+                    if (work->step - 8 < work->age) {
+                        work->scale -= 0x10;
+                    } else if (work->scale < 0x80) {
+                        work->scale += 0x20;
                     }
                 } else {
                     Gp_ReleaseState1CMem(work, task);
                 }
                 break;
             case 2:
-                coord->coord.t[1] += work->field_10.vy;
+                coord->coord.t[1] += work->move.vy;
                 coord->flg         = 0;
                 Gp_UpdateCoord(coord);
-                if (work->field_22 & 1) {
-                    work->field_20++;
-                    func_neo_ark_north_promenade_8017DA7C(coord, work->field_20, work->field_26, work->field_24 | work->field_28);
+                if (work->age & 1) {
+                    work->index++;
+                    func_neo_ark_north_promenade_8017DA7C(coord, work->index, work->angle, work->scale | work->period);
                 }
-                if ((s16)work->field_24 > 0) {
-                    if ((s16)work->field_2A - 8 < (s16)work->field_22) {
-                        work->field_24 -= 0x10;
+                if (work->scale > 0) {
+                    if (work->step - 8 < work->age) {
+                        work->scale -= 0x10;
                     }
                 } else {
                     Gp_ReleaseState1CMem(work, task);
@@ -590,16 +590,16 @@ void func_neo_ark_north_promenade_8017E890(Task* arg0)
         }
         Gp_UpdateCoord(coord);
         rgb[0]     = mem->scale;
-        rgb[1]     = (u16)mem->scale >> 1;
-        rgb[2]     = (u16)mem->scale >> 2;
+        rgb[1]     = mem->scale >> 1;
+        rgb[2]     = mem->scale >> 2;
         step       = mem->angle + 0x10;
         mem->angle = step;
         func_neo_ark_north_promenade_8017E164(coord, (s16)(step * 2), rgb);
         func_neo_ark_north_promenade_8017EA3C(coord, mem->angle);
         if (mem->period >= 0x19) {
             rgb[0] = mem->period;
-            rgb[1] = (u16)mem->period >> 1;
-            rgb[2] = (u16)mem->period >> 2;
+            rgb[1] = mem->period >> 1;
+            rgb[2] = mem->period >> 2;
             func_neo_ark_north_promenade_8017DD40(coord, (s16)(mem->step * 3 / 2), 0x60, rgb);
             mem->period -= 0x18;
             mem->step   += 0x30;
@@ -1048,8 +1048,8 @@ void func_neo_ark_north_promenade_8017FDD4(Task* arg0)
                 mem->angle      += mem->step;
                 arg0->spawnArg1 -= 1;
                 rgb[0]           = mem->scale;
-                rgb[1]           = (u16)mem->scale >> 2;
-                rgb[2]           = (u16)mem->scale >> 1;
+                rgb[1]           = mem->scale >> 2;
+                rgb[2]           = mem->scale >> 1;
                 func_neo_ark_north_promenade_801804A4(coord, mem->angle, rgb);
                 rgb[0] = rgb[0] >> 1;
                 rgb[1] = rgb[1] >> 1;
@@ -1060,8 +1060,8 @@ void func_neo_ark_north_promenade_8017FDD4(Task* arg0)
                     mem->scale  = 0xFF;
                     arg0->state = 2;
                     rgb[0]      = mem->scale;
-                    rgb[1]      = (u16)mem->scale >> 2;
-                    rgb[2]      = (u16)mem->scale >> 1;
+                    rgb[1]      = mem->scale >> 2;
+                    rgb[2]      = mem->scale >> 1;
                     Gp_DrawFadeQuad(rgb, 1);
                     return;
                 }
@@ -1069,8 +1069,8 @@ void func_neo_ark_north_promenade_8017FDD4(Task* arg0)
             case 2:
                 if (mem->scale >= 0x11) {
                     rgb[0] = mem->scale;
-                    rgb[1] = (u16)mem->scale >> 2;
-                    rgb[2] = (u16)mem->scale >> 1;
+                    rgb[1] = mem->scale >> 2;
+                    rgb[2] = mem->scale >> 1;
                     func_neo_ark_north_promenade_801813A8(coord, mem->angle * 3, rgb);
                     mem->scale -= 0x10;
                     mem->angle -= 8;
@@ -1526,8 +1526,8 @@ void func_neo_ark_north_promenade_80181120(Task* task)
             work->angle -= 0x20;
             work->scale += 0x30;
             rgb[0]       = work->angle;
-            rgb[1]       = (u16)work->angle >> 1;
-            rgb[2]       = (u16)work->angle >> 2;
+            rgb[1]       = work->angle >> 1;
+            rgb[2]       = work->angle >> 2;
             func_neo_ark_north_promenade_80180078(objCoord, 0x100, 0x100, rgb);
             func_neo_ark_north_promenade_80180078(objCoord, work->scale, work->scale, rgb);
             if (work->age >= 7) {

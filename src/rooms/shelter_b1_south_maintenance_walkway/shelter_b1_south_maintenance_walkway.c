@@ -499,9 +499,9 @@ void func_shelter_b1_south_maintenance_walkway_8017E760(Task* task)
                 work->angle += work->step;
                 task->spawnArg1--;
                 rgb[0] = work->scale;
-                rgb[1] = (u16)work->scale >> 2;
-                rgb[2] = (u16)work->scale >> 1;
-                func_shelter_b1_south_maintenance_walkway_8017EE30(coord, (s16)work->angle, rgb);
+                rgb[1] = work->scale >> 2;
+                rgb[2] = work->scale >> 1;
+                func_shelter_b1_south_maintenance_walkway_8017EE30(coord, work->angle, rgb);
                 rgb[0] >>= 1;
                 rgb[1] >>= 1;
                 rgb[2] >>= 1;
@@ -511,17 +511,17 @@ void func_shelter_b1_south_maintenance_walkway_8017E760(Task* task)
                     work->scale = 0xFF;
                     task->state = 2;
                     rgb[0]      = work->scale;
-                    rgb[1]      = (u16)work->scale >> 2;
-                    rgb[2]      = (u16)work->scale >> 1;
+                    rgb[1]      = work->scale >> 2;
+                    rgb[2]      = work->scale >> 1;
                     Gp_DrawFadeQuad(rgb, 1);
                 }
                 break;
             case 2:
-                if ((s16)work->scale >= 0x11) {
+                if (work->scale >= 0x11) {
                     rgb[0] = work->scale;
-                    rgb[1] = (u16)work->scale >> 2;
-                    rgb[2] = (u16)work->scale >> 1;
-                    func_shelter_b1_south_maintenance_walkway_8017FD34(coord, (s16)((s16)work->angle * 3), rgb);
+                    rgb[1] = work->scale >> 2;
+                    rgb[2] = work->scale >> 1;
+                    func_shelter_b1_south_maintenance_walkway_8017FD34(coord, (s16)(work->angle * 3), rgb);
                     work->scale -= 0x10;
                     work->angle -= 8;
                     break;
@@ -968,8 +968,8 @@ void func_shelter_b1_south_maintenance_walkway_8017FAAC(Task* task)
             work->angle -= 0x20;
             work->scale += 0x30;
             rgb[0]       = work->angle;
-            rgb[1]       = (u16)work->angle >> 1;
-            rgb[2]       = (u16)work->angle >> 2;
+            rgb[1]       = work->angle >> 1;
+            rgb[2]       = work->angle >> 2;
             func_shelter_b1_south_maintenance_walkway_8017EA04(objCoord, 0x100, 0x100, rgb);
             func_shelter_b1_south_maintenance_walkway_8017EA04(objCoord, work->scale, work->scale, rgb);
             if (work->age >= 7) {
@@ -1211,8 +1211,8 @@ void func_shelter_b1_south_maintenance_walkway_801806F4(Task* arg0)
             col[2] = mem->scale >> D_shelter_b1_south_maintenance_walkway_801823E8[arg0->spawnArg1].b;
             func_shelter_b1_south_maintenance_walkway_80181518(coord, mem->angle, col);
             col[0] = mem->scale;
-            col[1] = (u16)mem->scale >> 1;
-            col[2] = (u16)mem->scale >> 2;
+            col[1] = mem->scale >> 1;
+            col[2] = mem->scale >> 2;
             if (mem->period == 0) {
                 mem->move.vy = -0x100;
                 mem->move.vz = 0x100;
@@ -1249,7 +1249,7 @@ void func_shelter_b1_south_maintenance_walkway_801806F4(Task* arg0)
 /// reaches 4.
 void func_shelter_b1_south_maintenance_walkway_80180C4C(Task* task)
 {
-    RoomEffWork*   work;
+    GpEffWork*     work;
     GsCOORDINATE2* coord;
     GsCOORDINATE2* target;
     VECTOR         delta;
@@ -1258,36 +1258,36 @@ void func_shelter_b1_south_maintenance_walkway_80180C4C(Task* task)
     coord  = ((TmdObject*)task->extra)->coords;
     target = (GsCOORDINATE2*)task->spawnArg1;
     if (Gp_State1C->eventState == 0) {
-        work->field_22++;
+        work->age++;
         switch (task->state) {
             case 0:
                 delta.vx = target->workm.t[0] - coord->workm.t[0];
                 delta.vy = target->workm.t[1] - coord->workm.t[1];
                 delta.vz = target->workm.t[2] - coord->workm.t[2];
                 ApplyTransposeMatrixLV(&coord->workm, &delta, &delta);
-                work->field_18 = delta.vx;
-                work->field_1A = delta.vy;
-                work->field_1C = delta.vz;
+                work->pos.vx = delta.vx;
+                work->pos.vy = delta.vy;
+                work->pos.vz = delta.vz;
                 gte_SetRotMatrix(&coord->coord);
-                gte_ldv0(&work->field_18);
+                gte_ldv0(&work->pos);
                 gte_rtv0();
-                gte_stsv(&work->field_18);
+                gte_stsv(&work->pos);
                 gte_lddp(0xCC);
-                gte_ldsv(&work->field_18);
+                gte_ldsv(&work->pos);
                 gte_gpf12();
-                gte_stsv(&work->field_18);
+                gte_stsv(&work->pos);
                 task->state = 1;
                 break;
             case 1:
-                coord->coord.t[0] += (s16)work->field_18;
-                coord->coord.t[1] += (s16)work->field_1A;
-                coord->coord.t[2] += (s16)work->field_1C;
+                coord->coord.t[0] += work->pos.vx;
+                coord->coord.t[1] += work->pos.vy;
+                coord->coord.t[2] += work->pos.vz;
                 coord->flg         = 0;
                 Gp_UpdateCoord(coord);
-                if (work->field_22 & 1) {
-                    func_shelter_b1_south_maintenance_walkway_80180E70(coord, (s16)++work->field_20, 0x200, 0x80);
+                if (work->age & 1) {
+                    func_shelter_b1_south_maintenance_walkway_80180E70(coord, ++work->index, 0x200, 0x80);
                 }
-                if ((s16)work->field_22 >= 20) {
+                if (work->age >= 20) {
                     Gp_ReleaseState1CMem(work, task);
                 }
                 break;
@@ -1577,16 +1577,16 @@ void func_shelter_b1_south_maintenance_walkway_801818AC(Task* arg0)
         }
         Gp_UpdateCoord(coord);
         rgb[0]     = mem->scale;
-        rgb[1]     = (u16)mem->scale >> 1;
-        rgb[2]     = (u16)mem->scale >> 2;
+        rgb[1]     = mem->scale >> 1;
+        rgb[2]     = mem->scale >> 2;
         step       = mem->angle + 0x10;
         mem->angle = step;
         func_shelter_b1_south_maintenance_walkway_80181518(coord, (s16)(step * 2), rgb);
         func_shelter_b1_south_maintenance_walkway_80181A58(coord, mem->angle);
         if (mem->period >= 0x19) {
             rgb[0] = mem->period;
-            rgb[1] = (u16)mem->period >> 1;
-            rgb[2] = (u16)mem->period >> 2;
+            rgb[1] = mem->period >> 1;
+            rgb[2] = mem->period >> 2;
             func_shelter_b1_south_maintenance_walkway_801810F4(coord, (s16)(mem->step * 3 / 2), 0x60, rgb);
             mem->period -= 0x18;
             mem->step   += 0x30;

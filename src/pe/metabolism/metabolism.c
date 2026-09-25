@@ -62,7 +62,7 @@ void func_metabolism_8012EF34(Task* arg0)
         return;
     }
 
-    mem->age = (u16)mem->age + 1;
+    mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
             rot               = (GpMtxWords*)&coord->coord;
@@ -101,7 +101,7 @@ void func_metabolism_8012EF34(Task* arg0)
                 bright += 0x10;
             }
             mem->scale = bright;
-            mem->angle = (u16)mem->angle + D_metabolism_8012FB54[mem->index].field_4;
+            mem->angle = mem->angle + D_metabolism_8012FB54[mem->index].field_4;
             {
                 s32 rng;
                 s32 rng2;
@@ -143,15 +143,15 @@ void func_metabolism_8012EF34(Task* arg0)
                 func_metabolism_8012F840(coord, mem->angle, D_metabolism_8012FB78[i],
                                          mem->scale);
             }
-            mem->scale = (u16)mem->scale - 0x10;
-            mem->angle = (u16)mem->angle + D_metabolism_8012FB54[mem->index].field_4;
+            mem->scale = mem->scale - 0x10;
+            mem->angle = mem->angle + D_metabolism_8012FB54[mem->index].field_4;
             if (mem->scale < 0x11) {
                 arg0->state = 3;
             }
         draw:
-            rgb[0] = (u16)mem->scale >> 2;
+            rgb[0] = mem->scale >> 2;
             rgb[1] = *(u8*)&mem->scale;
-            rgb[2] = (u16)mem->scale >> 1;
+            rgb[2] = mem->scale >> 1;
             Gp_DrawRing(coord, (s32)((u16)mem->angle << 16) >> 17, rgb);
             Gp_DrawRing(coord, (s32)((u16)mem->angle << 16) >> 17, rgb);
             {
@@ -174,7 +174,7 @@ void func_metabolism_8012EF34(Task* arg0)
                 rgb[1] = g >> 1;
                 Gp_DrawArc(c, mem->angle, span, rgb);
             }
-            if ((u16)mem->age & 1) {
+            if (mem->age & 1) {
                 unsigned int g;
                 unsigned int b;
 
@@ -202,7 +202,7 @@ void func_metabolism_8012EF34(Task* arg0)
                 g      = rgb[1];
                 rgb[2] = b >> 1;
                 rgb[1] = g >> 1;
-                Gp_DrawArc(c, (s16)((u16)mem->angle + 0x200), span, rgb);
+                Gp_DrawArc(c, (s16)(mem->angle + 0x200), span, rgb);
             }
             return;
         case 3:
@@ -227,7 +227,7 @@ void func_metabolism_8012F5A0(Task* arg0)
 
     mem      = arg0->spawnArg2;
     coord    = ((TmdObject*)arg0->extra)->coords;
-    mem->age = (u16)mem->age + 1;
+    mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
             mem->move.vx = 0;
@@ -254,13 +254,13 @@ void func_metabolism_8012F5A0(Task* arg0)
             coord->flg        = 0;
             coord->coord.t[1] = y;
             Gp_UpdateCoord(coord);
-            if (!((u16)mem->age & 1)) {
-                mem->index = (u16)mem->index + 1;
+            if (!(mem->age & 1)) {
+                mem->index = mem->index + 1;
             }
             if (mem->index < 8) {
-                if ((u16)mem->age & 1) {
-                    Gp_DrawFxQuad(coord, (u16)mem->index, mem->angle,
-                                  (u16)mem->scale | (u16)mem->period);
+                if (mem->age & 1) {
+                    Gp_DrawFxQuad(coord, mem->index, mem->angle,
+                                  mem->scale | mem->period);
                     return;
                 }
             } else {
@@ -274,14 +274,14 @@ void func_metabolism_8012F5A0(Task* arg0)
             coord->flg        = 0;
             coord->coord.t[1] = y;
             Gp_UpdateCoord(coord);
-            if (!((u16)mem->age & 1)) {
-                mem->index = (u16)mem->index + 1;
+            if (!(mem->age & 1)) {
+                mem->index = mem->index + 1;
             }
             if (mem->index < 8) {
-                if ((u16)mem->age & 1) {
-                    func_800EB6E8(coord, (u16)mem->index, (u16)mem->angle,
-                                  (u16)mem->scale | (u16)mem->period);
-                    mem->scale = (u16)mem->scale - 0x18;
+                if (mem->age & 1) {
+                    func_800EB6E8(coord, mem->index, mem->angle,
+                                  mem->scale | mem->period);
+                    mem->scale = mem->scale - 0x18;
                     return;
                 }
             } else {

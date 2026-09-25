@@ -1586,44 +1586,44 @@ void func_acropolis_fire_escape_8017FF24(Task* task)
 /// parameters of the current view, for views 3, 6, 8 and 9.
 void func_acropolis_fire_escape_8017FF7C(Task* task)
 {
-    RoomEffWork*   work;
+    GpEffWork*     work;
     GsCOORDINATE2* coord;
 
     work  = task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
     switch (task->state) {
         case 0:
-            work->field_10.vx = 0xB58;
-            work->field_10.vy = -0x822;
-            work->field_10.vz = -0xE5;
-            Gp_SpawnEff(0x6008C, coord, 0x42000, &work->field_10);
+            work->move.vx = 0xB58;
+            work->move.vy = -0x822;
+            work->move.vz = -0xE5;
+            Gp_SpawnEff(0x6008C, coord, 0x42000, &work->move);
             task->state = task->state + 1;
             break;
         case 1:
             if (Gp_State1C->eventState < 4) {
                 if ((u8)gGameSession->at4.loc.view == 3) {
-                    work->field_10.vx = 0x48F;
-                    work->field_10.vy = -0x391;
-                    work->field_10.vz = 0x686;
-                    Gp_SpawnEff(0x6004F, coord, 0x60E, &work->field_10);
+                    work->move.vx = 0x48F;
+                    work->move.vy = -0x391;
+                    work->move.vz = 0x686;
+                    Gp_SpawnEff(0x6004F, coord, 0x60E, &work->move);
                 }
                 if ((u8)gGameSession->at4.loc.view == 8) {
-                    work->field_10.vx = 0x48F;
-                    work->field_10.vy = -0x391;
-                    work->field_10.vz = 0x686;
-                    Gp_SpawnEff(0x6004F, coord, 0x8000030E, &work->field_10);
+                    work->move.vx = 0x48F;
+                    work->move.vy = -0x391;
+                    work->move.vz = 0x686;
+                    Gp_SpawnEff(0x6004F, coord, 0x8000030E, &work->move);
                 }
                 if ((u8)gGameSession->at4.loc.view == 6) {
-                    work->field_10.vx = -0xC1F;
-                    work->field_10.vy = -0xD10;
-                    work->field_10.vz = 0x8E0;
-                    Gp_SpawnEff(0x6004F, coord, 0x10408, &work->field_10);
+                    work->move.vx = -0xC1F;
+                    work->move.vy = -0xD10;
+                    work->move.vz = 0x8E0;
+                    Gp_SpawnEff(0x6004F, coord, 0x10408, &work->move);
                 }
                 if ((u8)gGameSession->at4.loc.view == 9) {
-                    work->field_10.vx = -0xC1F;
-                    work->field_10.vy = -0xD10;
-                    work->field_10.vz = 0x8E0;
-                    Gp_SpawnEff(0x6004F, coord, 0x80010208, &work->field_10);
+                    work->move.vx = -0xC1F;
+                    work->move.vy = -0xD10;
+                    work->move.vz = 0x8E0;
+                    Gp_SpawnEff(0x6004F, coord, 0x80010208, &work->move);
                 }
             }
             break;
@@ -1633,8 +1633,8 @@ void func_acropolis_fire_escape_8017FF7C(Task* task)
 /// Draws a flickering glow at the task's coordinate while the scene is not in
 /// a cutscene and the camera is on views 2, 3 or 7. The coordinate is
 /// projected through `GsWSMATRIX` and nothing is drawn unless its biased depth
-/// stays beyond 0x10. Every 32 frames `field_20` picks one of four flicker
-/// modes, which set the brightness `field_24` each frame: random 0/0x10/0x20/0x30,
+/// stays beyond 0x10. Every 32 frames `index` picks one of four flicker
+/// modes, which set the brightness `scale` each frame: random 0/0x10/0x20/0x30,
 /// the same but changing only on odd frames, a steady 0x30, or random 0/0x10.
 /// Rising from 0x10 or less to 0x20 or more plays sound event 0x510F0006 panned
 /// to the coordinate. The glow is eight `POLY_G4` wedges around the projected
@@ -1645,7 +1645,7 @@ void func_acropolis_fire_escape_8017FF7C(Task* task)
 /// Every wedge takes the semi-transparent tpage of `Gp_AddTpageShift`.
 void func_acropolis_fire_escape_80180154(Task* task)
 {
-    RoomEffWork*                    work;
+    GpEffWork*                      work;
     GsCOORDINATE2*                  coord;
     void**                          scratch;
     u8*                             head;
@@ -1681,34 +1681,34 @@ void func_acropolis_fire_escape_80180154(Task* task)
         block->otz -= 0x20;
         if (block->otz > 0x10) {
             if (!(gDisplayState.animFrame & 0x1F)) {
-                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-                work->field_20 = (Gp_LcgState >> 16) & 3;
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                work->index = (Gp_LcgState >> 16) & 3;
             }
-            level = work->field_24;
-            if ((s16)work->field_24 < 0x11) {
+            level = work->scale;
+            if (work->scale < 0x11) {
                 play = 1;
             }
-            switch ((s16)work->field_20) {
+            switch (work->index) {
                 case 0:
-                    Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-                    work->field_24 = (Gp_LcgState >> 16) & 0x30;
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    work->scale = (Gp_LcgState >> 16) & 0x30;
                     break;
                 case 1:
                     if (gDisplayState.animFrame & 1) {
                         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                         level       = (Gp_LcgState >> 16) & 0x30;
                     }
-                    work->field_24 = level;
+                    work->scale = level;
                     break;
                 case 2:
-                    work->field_24 = 0x30;
+                    work->scale = 0x30;
                     break;
                 case 3:
-                    Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-                    work->field_24 = (Gp_LcgState >> 16) & 0x10;
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    work->scale = (Gp_LcgState >> 16) & 0x10;
                     break;
             }
-            if (play && (s16)work->field_24 >= 0x20) {
+            if (play && work->scale >= 0x20) {
                 SndEvt_EnqueueType6(0x510F0006, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             }
             block->radius  = (((task->spawnArg1 >> 8) & 0xFF) * 0x600) / block->otz;
@@ -1720,7 +1720,7 @@ void func_acropolis_fire_escape_80180154(Task* task)
                 setcode(prim, 0x38);
                 setRGB0(prim, 0, 0, 0);
                 setRGB1(prim, 0, 0, 0);
-                setRGB2(prim, work->field_24 >> 1, work->field_24 >> 1, work->field_24 >> 1);
+                setRGB2(prim, work->scale >> 1, work->scale >> 1, work->scale >> 1);
                 setRGB3(prim, 0, 0, 0);
                 prim->x0 = block->sx + ((block->radius * D_acropolis_fire_escape_80181D7C[i + 4]) >> 12);
                 prim->y0 = block->sy + ((block->radius * D_acropolis_fire_escape_80181D7C[i]) >> 12);
@@ -1739,7 +1739,7 @@ void func_acropolis_fire_escape_80180154(Task* task)
                 setcode(prim, 0x38);
                 setRGB0(prim, 0, 0, 0);
                 setRGB1(prim, 0, 0, 0);
-                setRGB2(prim, work->field_24, work->field_24, work->field_24);
+                setRGB2(prim, work->scale, work->scale, work->scale);
                 setRGB3(prim, 0, 0, 0);
                 prim->x0 = block->sx + ((block->radius * D_acropolis_fire_escape_80181D7C[i + 4]) >> 13);
                 prim->y0 = block->sy + ((block->radius * D_acropolis_fire_escape_80181D7C[i]) >> 13);
@@ -1758,7 +1758,7 @@ void func_acropolis_fire_escape_80180154(Task* task)
                 setcode(prim, 0x38);
                 setRGB0(prim, 0, 0, 0);
                 setRGB1(prim, 0, 0, 0);
-                setRGB2(prim, (u8)work->field_24 * 4, (u8)work->field_24 * 4, (u8)work->field_24 * 4);
+                setRGB2(prim, (u8)work->scale * 4, (u8)work->scale * 4, (u8)work->scale * 4);
                 setRGB3(prim, 0, 0, 0);
                 prim->x0 = block->sx + ((block->radius * D_acropolis_fire_escape_80181D7C[i + 4]) >> 15);
                 prim->y0 = block->sy + ((block->radius * D_acropolis_fire_escape_80181D7C[i]) >> 15);

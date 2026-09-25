@@ -754,8 +754,8 @@ void func_shelter_b2_operating_room_8017ECFC(Task* arg0)
             col[2] = mem->scale >> D_shelter_b2_operating_room_80180BBC[arg0->spawnArg1][2];
             func_shelter_b2_operating_room_8017FB20(coord, mem->angle, col);
             col[0] = mem->scale;
-            col[1] = (u16)mem->scale >> 1;
-            col[2] = (u16)mem->scale >> 2;
+            col[1] = mem->scale >> 1;
+            col[2] = mem->scale >> 2;
             if (mem->period == 0) {
                 mem->move.vy = -0x100;
                 mem->move.vz = 0x100;
@@ -792,7 +792,7 @@ void func_shelter_b2_operating_room_8017ECFC(Task* arg0)
 /// state 4.
 void func_shelter_b2_operating_room_8017F254(Task* task)
 {
-    RoomEffWork*   work;
+    GpEffWork*     work;
     GsCOORDINATE2* coord;
     GsCOORDINATE2* target;
     VECTOR         delta;
@@ -801,36 +801,36 @@ void func_shelter_b2_operating_room_8017F254(Task* task)
     coord  = ((TmdObject*)task->extra)->coords;
     target = (GsCOORDINATE2*)task->spawnArg1;
     if (Gp_State1C->eventState == 0) {
-        work->field_22++;
+        work->age++;
         switch (task->state) {
             case 0:
                 delta.vx = target->workm.t[0] - coord->workm.t[0];
                 delta.vy = target->workm.t[1] - coord->workm.t[1];
                 delta.vz = target->workm.t[2] - coord->workm.t[2];
                 ApplyTransposeMatrixLV(&coord->workm, &delta, &delta);
-                work->field_18 = delta.vx;
-                work->field_1A = delta.vy;
-                work->field_1C = delta.vz;
+                work->pos.vx = delta.vx;
+                work->pos.vy = delta.vy;
+                work->pos.vz = delta.vz;
                 gte_SetRotMatrix(&coord->coord);
-                gte_ldv0(&work->field_18);
+                gte_ldv0(&work->pos);
                 gte_rtv0();
-                gte_stsv(&work->field_18);
+                gte_stsv(&work->pos);
                 gte_lddp(0xCC);
-                gte_ldsv(&work->field_18);
+                gte_ldsv(&work->pos);
                 gte_gpf12();
-                gte_stsv(&work->field_18);
+                gte_stsv(&work->pos);
                 task->state = 1;
                 break;
             case 1:
-                coord->coord.t[0] += (s16)work->field_18;
-                coord->coord.t[1] += (s16)work->field_1A;
-                coord->coord.t[2] += (s16)work->field_1C;
+                coord->coord.t[0] += work->pos.vx;
+                coord->coord.t[1] += work->pos.vy;
+                coord->coord.t[2] += work->pos.vz;
                 coord->flg         = 0;
                 Gp_UpdateCoord(coord);
-                if (work->field_22 & 1) {
-                    func_shelter_b2_operating_room_8017F478(coord, (s16)++work->field_20, 0x200, 0x80);
+                if (work->age & 1) {
+                    func_shelter_b2_operating_room_8017F478(coord, ++work->index, 0x200, 0x80);
                 }
-                if ((s16)work->field_22 >= 20) {
+                if (work->age >= 20) {
                     Gp_ReleaseState1CMem(work, task);
                 }
                 break;
@@ -1120,16 +1120,16 @@ void func_shelter_b2_operating_room_8017FEB4(Task* arg0)
         }
         Gp_UpdateCoord(coord);
         rgb[0]     = mem->scale;
-        rgb[1]     = (u16)mem->scale >> 1;
-        rgb[2]     = (u16)mem->scale >> 2;
+        rgb[1]     = mem->scale >> 1;
+        rgb[2]     = mem->scale >> 2;
         step       = mem->angle + 0x10;
         mem->angle = step;
         func_shelter_b2_operating_room_8017FB20(coord, (s16)(step * 2), rgb);
         func_shelter_b2_operating_room_80180060(coord, mem->angle);
         if (mem->period >= 0x19) {
             rgb[0] = mem->period;
-            rgb[1] = (u16)mem->period >> 1;
-            rgb[2] = (u16)mem->period >> 2;
+            rgb[1] = mem->period >> 1;
+            rgb[2] = mem->period >> 2;
             func_shelter_b2_operating_room_8017F6FC(coord, (s16)(mem->step * 3 / 2), 0x60, rgb);
             mem->period -= 0x18;
             mem->step   += 0x30;

@@ -239,12 +239,12 @@ void func_gunblade_8011DAA4(Task* task)
                 work->angle = work->step = 0x80;
             }
             rgb[0] = rgb[1] = work->scale;
-            rgb[2]          = (u16)work->scale >> 2;
+            rgb[2]          = work->scale >> 2;
             work->angle    += 0x10;
             Gp_DrawRing(coord, (s16)(work->angle * 2), rgb);
             if (work->period >= 0x11) {
                 rgb[0] = rgb[1] = work->period;
-                rgb[2]          = (u16)work->period >> 2;
+                rgb[2]          = work->period >> 2;
                 Gp_DrawArc(coord, (s16)(work->step * 3 / 2), 0x60, rgb);
                 if (work->age & 1) {
                     Gp_DrawArc(coord, 0x60, (s16)(work->step * 3 / 2), rgb);
@@ -274,14 +274,14 @@ void func_gunblade_8011DAA4(Task* task)
                 work->angle = work->step = 0x80;
             }
             rgb[0]       = work->scale;
-            rgb[1]       = (u16)work->scale >> 1;
-            rgb[2]       = (u16)work->scale >> 2;
+            rgb[1]       = work->scale >> 1;
+            rgb[2]       = work->scale >> 2;
             work->angle += 0x10;
             Gp_DrawRing(coord, (s16)(work->angle * 2), rgb);
             if (work->period >= 0x11) {
                 rgb[0] = work->period;
-                rgb[1] = (u16)work->period >> 1;
-                rgb[2] = (u16)work->period >> 2;
+                rgb[1] = work->period >> 1;
+                rgb[2] = work->period >> 2;
                 Gp_DrawArc(coord, (s16)(work->step * 3 / 2), 0x60, rgb);
                 if (work->age & 1) {
                     Gp_DrawArc(coord, 0x60, (s16)(work->step * 3 / 2), rgb);
@@ -309,14 +309,14 @@ void func_gunblade_8011DAA4(Task* task)
                 work->scale = work->period = 0xE0;
                 work->angle = work->step = 0x80;
             }
-            rgb[0]       = (u16)work->scale >> 2;
-            rgb[1]       = (u16)work->scale >> 1;
+            rgb[0]       = work->scale >> 2;
+            rgb[1]       = work->scale >> 1;
             rgb[2]       = work->scale;
             work->angle += 0x10;
             Gp_DrawRing(coord, (s16)(work->angle * 2), rgb);
-            if ((s16)(u16)work->period >= 0x11) {
-                rgb[0] = (s16)(u16)work->period >> 2;
-                rgb[1] = (u16)work->period >> 1;
+            if (work->period >= 0x11) {
+                rgb[0] = work->period >> 2;
+                rgb[1] = work->period >> 1;
                 rgb[2] = work->period;
                 Gp_DrawArc(coord, (s16)(work->step * 3 / 2), 0x60, rgb);
                 if (work->age & 1) {

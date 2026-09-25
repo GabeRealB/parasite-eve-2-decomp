@@ -86,8 +86,8 @@ void func_pepper_spray_8012EF34(Task* arg0)
             SndEvt_EnqueueType6(0xE03F0001, pan, (s8)gpGetObjDepth(coord));
             break;
         case 1:
-            mem->scale  = (u16)mem->scale - age * ((s16)mem->scale >> 4);
-            mem->period = (u16)mem->period - (u16)mem->age * ((s16)mem->period >> 4);
+            mem->scale  = mem->scale - age * (mem->scale >> 4);
+            mem->period = mem->period - mem->age * (mem->period >> 4);
             break;
     }
     func_pepper_spray_8012F21C(coord, mem->scale, mem->angle);

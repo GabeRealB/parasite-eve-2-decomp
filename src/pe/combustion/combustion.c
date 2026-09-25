@@ -53,7 +53,7 @@ void func_combustion_8012EF34(Task* arg0)
 
     mem      = arg0->spawnArg2;
     coord    = ((TmdObject*)arg0->extra)->coords;
-    mem->age = (u16)mem->age + 1;
+    mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
             if (arg0->spawnArg1 == 0) {
@@ -90,8 +90,8 @@ void func_combustion_8012EF34(Task* arg0)
             if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
                 goto release;
             }
-            mem->move.vy = (u16)mem->move.vy + D_combustion_80130980[mem->index].field_0;
-            mem->move.vz = (u16)mem->move.vz + D_combustion_80130980[mem->index].field_2;
+            mem->move.vy = mem->move.vy + D_combustion_80130980[mem->index].field_0;
+            mem->move.vz = mem->move.vz + D_combustion_80130980[mem->index].field_2;
             spawned      = Gp_SpawnEff(0x8006001C, coord, mem->age, &mem->move);
             if (spawned != NULL) {
                 Task_Reparent(arg0, spawned->task);
@@ -143,7 +143,7 @@ void func_combustion_8012F2BC(Task* arg0)
 
     mem      = arg0->spawnArg2;
     coord    = ((TmdObject*)arg0->extra)->coords;
-    mem->age = (u16)mem->age + 1;
+    mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
             rot        = (GpMtxWords*)&coord->coord;
@@ -320,7 +320,7 @@ void func_combustion_8012F888(Task* arg0)
 
     mem      = arg0->spawnArg2;
     coord    = ((TmdObject*)arg0->extra)->coords;
-    mem->age = (u16)mem->age + 1;
+    mem->age = mem->age + 1;
     state    = arg0->state;
     switch (state) {
         case 0:
@@ -350,12 +350,12 @@ void func_combustion_8012F888(Task* arg0)
             coord->flg        = 0;
             coord->coord.t[1] = y;
             Gp_UpdateCoord(coord);
-            if (!((u16)mem->age & 1)) {
-                mem->index = (u16)mem->index + 1;
+            if (!(mem->age & 1)) {
+                mem->index = mem->index + 1;
             }
             frame = mem->index;
             if (frame < 8) {
-                if ((u16)mem->age & 1) {
+                if (mem->age & 1) {
                     func_combustion_8012FB14(coord, frame, mem->angle, mem->scale);
                     return;
                 }
@@ -370,7 +370,7 @@ void func_combustion_8012F888(Task* arg0)
             coord->flg        = 0;
             coord->coord.t[1] = y;
             Gp_UpdateCoord(coord);
-            frame      = (u16)mem->index + 1;
+            frame      = mem->index + 1;
             mem->index = frame;
             if (frame < 8) {
                 func_combustion_8012FF0C(coord, frame, mem->angle);
@@ -384,7 +384,7 @@ void func_combustion_8012F888(Task* arg0)
             coord->flg        = 0;
             coord->coord.t[1] = y;
             Gp_UpdateCoord(coord);
-            frame      = (u16)mem->index + 1;
+            frame      = mem->index + 1;
             mem->index = frame;
             if (frame < 6) {
                 func_combustion_8012F5EC(coord, frame, mem->angle);

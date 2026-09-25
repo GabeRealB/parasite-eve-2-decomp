@@ -214,8 +214,8 @@ void func_neo_ark_woodland_path_8017EA08(Task* task)
 
 /// One drifting mote of the room's ambient effect, drawn through
 /// `func_neo_ark_woodland_path_8017F154`. State 0 seeds it from `Gp_LcgState`:
-/// a size of 0x20, a random tilt pair (`field_28` / `field_2A`) and a random
-/// drift in `field_10`. State 1 flies it: the drift moves the coordinate's
+/// a size of 0x20, a random tilt pair (`period` / `step`) and a random
+/// drift in `move`. State 1 flies it: the drift moves the coordinate's
 /// translation and the tilt rotates it about X and Z; each drift axis eases
 /// back towards zero by one a tick and re-rolls a fresh multiple of 8 when it
 /// gets there, and the tilt wanders by a random step. Once the mote has risen
@@ -223,7 +223,7 @@ void func_neo_ark_woodland_path_8017EA08(Task* task)
 /// and state 3 fades it out, releasing the work block when the fade runs out.
 void func_neo_ark_woodland_path_8017ED00(Task* task)
 {
-    RoomEffWork*   work;
+    GpEffWork*     work;
     GsCOORDINATE2* coord;
     s32            vy;
     s32            vx;
@@ -232,87 +232,87 @@ void func_neo_ark_woodland_path_8017ED00(Task* task)
     work  = task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
     Gp_UpdateCoord(coord);
-    work->field_22++;
+    work->age++;
     switch (task->state) {
         case 0:
-            work->field_24    = 0x20;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_28    = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1F0);
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_2A    = 0x80 - (((u32)Gp_LcgState >> 16) & 0xF0);
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_10.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_10.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            work->field_10.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            task->state       = 1;
+            work->scale   = 0x20;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->period  = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1F0);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->step    = 0x80 - (((u32)Gp_LcgState >> 16) & 0xF0);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+            task->state   = 1;
             /* fallthrough */
         case 1:
-            coord->coord.t[0] += work->field_10.vx;
-            coord->coord.t[1] += work->field_10.vy;
-            coord->coord.t[2] += work->field_10.vz;
-            Gfx_RotMatrixX(&coord->coord, (s16)work->field_28, 0);
-            Gfx_RotMatrixZ(&coord->coord, (s16)work->field_2A, 0);
+            coord->coord.t[0] += work->move.vx;
+            coord->coord.t[1] += work->move.vy;
+            coord->coord.t[2] += work->move.vz;
+            Gfx_RotMatrixX(&coord->coord, work->period, 0);
+            Gfx_RotMatrixZ(&coord->coord, work->step, 0);
             coord->flg = 0;
 
-            vy = work->field_10.vy;
+            vy = work->move.vy;
             if (vy >= 0x1D) {
                 vy = vy - 1;
             } else {
                 vy = vy + 1;
             }
-            work->field_10.vy = vy;
+            work->move.vy = vy;
 
-            vx = work->field_10.vx;
+            vx = work->move.vx;
             if (vx == 0) {
-                Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-                work->field_10.vx += (2 - (u16)(((u32)Gp_LcgState >> 16) % 5U)) * 8;
+                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+                work->move.vx += (2 - (u16)(((u32)Gp_LcgState >> 16) % 5U)) * 8;
             } else {
                 if (vx > 0) {
                     vx = vx - 1;
                 } else {
                     vx = vx + 1;
                 }
-                work->field_10.vx = vx;
+                work->move.vx = vx;
             }
 
-            vz = work->field_10.vz;
+            vz = work->move.vz;
             if (vz == 0) {
-                work->field_10.vz += (s16)work->field_2A % 32;
-                Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-                work->field_10.vz += (2 - (u16)(((u32)Gp_LcgState >> 16) % 5U)) * 8;
+                work->move.vz += work->step % 32;
+                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+                work->move.vz += (2 - (u16)(((u32)Gp_LcgState >> 16) % 5U)) * 8;
             } else {
                 if (vz > 0) {
                     vz = vz - 1;
                 } else {
                     vz = vz + 1;
                 }
-                work->field_10.vz = vz;
+                work->move.vz = vz;
             }
 
-            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-            work->field_28 += (1 - (u16)(((u32)Gp_LcgState >> 16) % 3U)) * 0x10;
-            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-            work->field_2A += (1 - (u16)(((u32)Gp_LcgState >> 16) % 3U)) * 8;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->period += (1 - (u16)(((u32)Gp_LcgState >> 16) % 3U)) * 0x10;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->step   += (1 - (u16)(((u32)Gp_LcgState >> 16) % 3U)) * 8;
 
             if (coord->coord.t[1] > 0) {
                 task->state = 2;
             }
-            func_neo_ark_woodland_path_8017F154(coord, (s16)work->field_24, 0);
+            func_neo_ark_woodland_path_8017F154(coord, work->scale, 0);
             break;
         case 2:
-            if ((s16)work->field_26 < 0x80) {
-                work->field_26 += 0x10;
+            if (work->angle < 0x80) {
+                work->angle += 0x10;
             } else {
                 task->state = 3;
             }
-            func_neo_ark_woodland_path_8017F154(coord, (s16)work->field_24, 0);
+            func_neo_ark_woodland_path_8017F154(coord, work->scale, 0);
             break;
         case 3:
-            if ((s16)work->field_26 >= 0x11) {
-                work->field_26 -= 0x10;
-                func_neo_ark_woodland_path_8017F154(coord, (s16)work->field_24, (s16)work->field_26);
+            if (work->angle >= 0x11) {
+                work->angle -= 0x10;
+                func_neo_ark_woodland_path_8017F154(coord, work->scale, work->angle);
             } else {
                 Gp_ReleaseState1CMem(work, task);
             }
@@ -423,31 +423,31 @@ void func_neo_ark_woodland_path_8017F154(GsCOORDINATE2* arg0, s32 arg1, s16 arg2
 /// leaves zero it only draws, and releases at state 4.
 void func_neo_ark_woodland_path_8017F4A0(Task* task)
 {
-    RoomEffWork*   work;
+    GpEffWork*     work;
     GsCOORDINATE2* coord;
 
     work  = task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
     if (Gp_State1C->eventState != 0) {
-        func_neo_ark_woodland_path_8017F5F4(coord, (s16)work->field_26, (s16)work->field_24);
+        func_neo_ark_woodland_path_8017F5F4(coord, work->angle, work->scale);
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
         }
     } else {
         Gp_UpdateCoord(coord);
-        work->field_22++;
+        work->age++;
         if (task->state == 0) {
-            work->field_24 = 0x40;
-            work->field_26 = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            work->scale = 0x40;
+            work->angle = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
             coord->flg  = 0;
             task->state = 1;
         }
-        work->field_26 += 0x20;
-        func_neo_ark_woodland_path_8017F5F4(coord, (s16)work->field_26, (s16)work->field_24);
-        work->field_24 -= 2;
-        if ((s16)work->field_24 < 2) {
+        work->angle += 0x20;
+        func_neo_ark_woodland_path_8017F5F4(coord, work->angle, work->scale);
+        work->scale -= 2;
+        if (work->scale < 2) {
             Gp_ReleaseState1CMem(work, task);
         }
     }
@@ -544,15 +544,15 @@ void func_neo_ark_woodland_path_8017F5F4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2
 /// `func_neo_ark_woodland_path_8017FDE4` (state 1) or
 /// `func_neo_ark_woodland_path_801801D0` (state 2). State 0 seeds the work
 /// from `spawnArg1`: the two draw parameters (the second one random), the
-/// frame period and, when the spawner left `field_10` zero, a velocity chosen
-/// by the top nibble and scaled to `field_2A` through the GTE. Later ticks draw, drift the coordinate by
+/// frame period and, when the spawner left `move` zero, a velocity chosen
+/// by the top nibble and scaled to `step` through the GTE. Later ticks draw, drift the coordinate by
 /// that velocity with `vy` growing by 6 each tick, and advance the frame every
-/// `field_28` ticks, releasing the task after frame 7. While an event is
+/// `period` ticks, releasing the task after frame 7. While an event is
 /// running the task only draws, and it is released once the event state
 /// reaches 4.
 void func_neo_ark_woodland_path_8017F928(Task* task)
 {
-    RoomEffWork*   work;
+    GpEffWork*     work;
     GsCOORDINATE2* coord;
     SVECTOR*       vec;
     s32            kind;
@@ -565,9 +565,9 @@ void func_neo_ark_woodland_path_8017F928(Task* task)
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             if (task->state < 2) {
-                func_neo_ark_woodland_path_8017FDE4(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
+                func_neo_ark_woodland_path_8017FDE4(coord, (u16)work->index, work->scale, work->angle);
             } else {
-                func_neo_ark_woodland_path_801801D0(coord, work->field_20, (s16)work->field_24);
+                func_neo_ark_woodland_path_801801D0(coord, (u16)work->index, work->scale);
             }
             return;
         }
@@ -575,95 +575,95 @@ void func_neo_ark_woodland_path_8017F928(Task* task)
         return;
     }
     Gp_UpdateCoord(coord);
-    work->field_22++;
+    work->age++;
     switch (task->state) {
         case 0:
-            work->field_24 = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            work->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            work->scale = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            work->angle = ((u32)Gp_LcgState >> 16) & 0xFFF;
             if (task->spawnArg1 & 0xF000) {
                 step = (task->spawnArg1 >> 12) & 0xF;
             } else {
                 step = 1;
             }
-            work->field_28 = step;
-            work->field_22 = 0;
-            state          = 1;
+            work->period = step;
+            work->age    = 0;
+            state        = 1;
             if (task->spawnArg1 & 0xF0000000) {
                 state = 2;
             }
             task->state = state;
-            if (((u16)work->field_10.vx | (u16)work->field_10.vy | (u16)work->field_10.vz) == 0) {
+            if (((u16)work->move.vx | (u16)work->move.vy | (u16)work->move.vz) == 0) {
                 if (task->spawnArg1 & 0xFF0000) {
                     level = (task->spawnArg1 >> 16) & 0xFF;
                 } else {
                     level = 0x40;
                 }
-                work->field_2A = level;
-                kind           = ((GpEffSpawnArgHi*)&task->spawnArg1)->field_3;
+                work->step = level;
+                kind       = ((GpEffSpawnArgHi*)&task->spawnArg1)->field_3;
                 switch (kind & 0xF) {
                     case 0:
-                        work->field_2A = 0;
+                        work->step = 0;
                         break;
                     case 1:
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vy = 0xFFC0 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vy = 0xFFC0 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
                         break;
                     case 2:
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
                         break;
                     case 3:
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vy = -(((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-                        work->field_10.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vy = -(((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                        work->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
                         break;
                     case 5:
-                        work->field_10.vx = work->field_18;
-                        work->field_10.vy = work->field_1A;
-                        work->field_10.vz = work->field_1C;
+                        work->move.vx = work->pos.vx;
+                        work->move.vy = work->pos.vy;
+                        work->move.vz = work->pos.vz;
                         break;
                 }
-                vec = &work->field_10;
+                vec = &work->move;
                 VectorNormalSS(vec, vec);
-                gte_lddp(work->field_2A);
+                gte_lddp(work->step);
                 gte_ldsv(vec);
                 gte_gpf12();
                 gte_stsv(vec);
             } else {
-                work->field_2A = 0x40;
+                work->step = 0x40;
             }
             return;
         case 1:
-            func_neo_ark_woodland_path_8017FDE4(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
+            func_neo_ark_woodland_path_8017FDE4(coord, (u16)work->index, work->scale, work->angle);
             break;
         case 2:
-            func_neo_ark_woodland_path_801801D0(coord, work->field_20, (s16)work->field_24);
+            func_neo_ark_woodland_path_801801D0(coord, (u16)work->index, work->scale);
             break;
         default:
             return;
     }
-    if ((s16)work->field_2A != 0) {
-        coord->coord.t[0] += work->field_10.vx;
-        coord->coord.t[1] += work->field_10.vy;
-        coord->coord.t[2] += work->field_10.vz;
+    if (work->step != 0) {
+        coord->coord.t[0] += work->move.vx;
+        coord->coord.t[1] += work->move.vy;
+        coord->coord.t[2] += work->move.vz;
         coord->flg         = 0;
-        work->field_10.vy += 6;
+        work->move.vy     += 6;
     }
-    if (((s16)work->field_22 % (s16)work->field_28) == 0) {
-        work->field_20++;
-        if ((s16)work->field_20 >= 8) {
+    if ((work->age % work->period) == 0) {
+        work->index++;
+        if (work->index >= 8) {
             Gp_ReleaseState1CMem(work, task);
         }
     }

@@ -42,7 +42,7 @@ void ofudaEffectTask(Task* arg0)
         goto kill;
     }
 
-    mem->age = (u16)mem->age + 1;
+    mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
             arg0->spawnArg1 = 0x1E;
@@ -63,12 +63,12 @@ void ofudaEffectTask(Task* arg0)
             mem->scale = cur + addend;
             copy       = addend;
             COPY_REG_EC(copy, addend);
-            mem->angle = (u16)mem->angle + (copy << 3);
+            mem->angle = mem->angle + (copy << 3);
         }
             arg0->spawnArg1 = arg0->spawnArg1 - 1;
             rgb[0]          = *(u8*)&mem->scale;
-            rgb[1]          = (u16)mem->scale >> 2;
-            rgb[2]          = (u16)mem->scale >> 1;
+            rgb[1]          = mem->scale >> 2;
+            rgb[2]          = mem->scale >> 1;
             Gp_DrawRing(coord, mem->angle, rgb);
             Gp_DrawRing(coord, (s16)((u16)mem->angle * 2), rgb);
             Gp_DrawArc(coord, (s16)(((u16)arg0->spawnArg1 << 4) + 0x800), 0x100, rgb);
@@ -105,12 +105,12 @@ void ofudaEffectTask(Task* arg0)
                 goto kill;
             }
             rgb[0] = *(u8*)&mem->scale;
-            rgb[1] = (u16)mem->scale >> 2;
-            rgb[2] = (u16)mem->scale >> 1;
+            rgb[1] = mem->scale >> 2;
+            rgb[2] = mem->scale >> 1;
             Gp_DrawRing(coord, mem->angle, rgb);
             Gp_DrawRing(coord, (s16)((u16)mem->angle * 2), rgb);
-            mem->scale = (u16)mem->scale - 8;
-            mem->angle = (u16)mem->angle - 0x30;
+            mem->scale = mem->scale - 8;
+            mem->angle = mem->angle - 0x30;
             Gp_DrawFadeQuad(rgb, 1);
             Gp_DrawFadeQuad(rgb, 1);
             return;
