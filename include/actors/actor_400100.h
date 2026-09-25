@@ -142,29 +142,6 @@ typedef struct Actor00100RecordWork {
     /* 0xB0C */ Actor00100Record records[5];
 } Actor00100RecordWork;
 
-typedef struct Actor00100Ctx {
-    /* 0x00 */ byte pad_0[8];
-    /* 0x08 */ u16  field_8;
-    /* 0x0A */ byte pad_A[6];
-    /* 0x10 */ byte field_10[4];
-    /* 0x14 */ u8   field_14;
-    /* 0x15 */ byte pad_15[0x2B];
-    /* 0x40 */ u16  field_40;
-    /* 0x42 */ byte pad_42[0xA];
-    /* 0x4C */ u8   field_4C;
-    /* 0x4D */ byte pad_4D[7];
-    /* 0x54 */ s32  field_54;
-} Actor00100Ctx;
-
-typedef struct Actor00100 {
-    /* 0x00 */ byte            pad_0[0x1C];
-    /* 0x1C */ Actor00100Work* field_1C;
-    /* 0x20 */ Actor00100Ctx*  field_20;
-    /* 0x24 */ byte            pad_24[8];
-    /* 0x2C */ TmdObject*      field_2C;
-    /* 0x30 */ s32             field_30;
-} Actor00100;
-
 /// 0x34-byte block taken from `G_SCRATCH_HEAD`: a `MATRIX` plus the `VECTOR`
 /// handed to `ScaleMatrix` and the yaw stored before `Gfx_RotMatrixY`.
 typedef struct Actor00100MtxScratch {
@@ -369,16 +346,16 @@ extern char  Actor00100_D11F90;
 extern char  Actor00100_D12470;
 extern void* D_80114B78[1];
 
-void Actor00100_Fn09310(Actor00100* arg0);
+void Actor00100_Fn09310(Task* arg0);
 
-void Actor00100_Fn04270(Actor00100* argx);
+void Actor00100_Fn04270(Task* argx);
 s32  Actor00100_Fn00A54(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2);
-s32  Actor00100_Fn00BF8(Actor00100* arg0);
-void Actor00100_Fn02788(Actor00100* arg0);
-void Actor00100_Fn0B658(Actor00100* arg0);
+s32  Actor00100_Fn00BF8(Task* arg0);
+void Actor00100_Fn02788(Task* arg0);
+void Actor00100_Fn0B658(Task* arg0);
 void Actor00100_Fn0B3B4(Task* task);
 s32  Actor00100_Fn0B264(Task* task);
-s32  Actor00100_Fn0B1A4(Actor00100* arg0, s32 arg1, s32 arg2);
+s32  Actor00100_Fn0B1A4(Task* arg0, s32 arg1, s32 arg2);
 
 s32 Actor00100_Fn00508(GsCOORDINATE2* coord, GpRec18* records, s16 count, SVECTOR* pos);
 

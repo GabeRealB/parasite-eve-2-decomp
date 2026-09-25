@@ -96,9 +96,9 @@ static __inline__ void Actor00100_MoveForwardNonzero(GsCOORDINATE2* coord, s16 a
     }
 }
 
-static __inline__ s16 Actor00100_HasRecord10(Actor00100* actor)
+static __inline__ s16 Actor00100_HasRecord10(Task* actor)
 {
-    Actor00100RecordWork* work  = (Actor00100RecordWork*)actor->field_1C;
+    Actor00100RecordWork* work  = (Actor00100RecordWork*)((Actor00100Work*)actor->work);
     s16                   found = 0;
     s16                   i;
     for (i = 0; i < 5; i++) {

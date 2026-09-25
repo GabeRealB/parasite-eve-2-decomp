@@ -63,12 +63,12 @@ static __inline__ void Actor00100_ConfigPositionDelta(PlayerStatus* config, GsCO
     pos->vz = config->coordMtx->t[2] - coord->coord.t[2];
 }
 
-static __inline__ s16 Actor00100_PositionYaw(Actor00100* actor, SVECTOR* pos, PlayerStatus* config)
+static __inline__ s16 Actor00100_PositionYaw(Task* actor, SVECTOR* pos, PlayerStatus* config)
 {
     GsCOORDINATE2* coord;
     s32            angle;
-    Actor00100_ConfigPositionDelta(config, actor->field_2C->coords, pos);
-    coord = actor->field_2C->coords;
+    Actor00100_ConfigPositionDelta(config, ((TmdObject*)actor->extra)->coords, pos);
+    coord = ((TmdObject*)actor->extra)->coords;
     angle = ratan2(pos->vx, pos->vz);
     return Actor00100_NormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
 }
@@ -88,7 +88,7 @@ typedef struct {
     s16 field_C1E;
 } Actor00100FacingWork;
 
-static __inline__ s32 Actor00100_PlayerContactMessage(Actor00100Ctx* ctx, s32 mode)
+static __inline__ s32 Actor00100_PlayerContactMessage(GpEnemy* ctx, s32 mode)
 {
     Task* player = gameGetPtrSlot(3);
     return Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair((GpObj50*)ctx, mode), 0);

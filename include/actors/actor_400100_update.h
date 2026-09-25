@@ -16,7 +16,7 @@ typedef struct Actor00100PlayerAnim {
 } Actor00100PlayerAnim;
 
 typedef struct Actor00100StateTable {
-    void (*fn[39])(Actor00100*);
+    TaskFunc fn[39];
 } Actor00100StateTable;
 STATIC_ASSERT_SIZEOF(Actor00100StateTable, 0x9C);
 
@@ -30,21 +30,21 @@ extern u16                   Gp_WeaponIdBase[];
 extern Actor00100AnimWord    Actor00100_D1B9BC, Actor00100_D1B9C0;
 extern s8                    D_8007218A;
 extern u8                    D_80073BA9, D_801153F4;
-void                         Actor00100_Fn01900(Actor00100*, s16, s16, s16, s16, u8);
-void                         Actor00100_Fn0375C(Actor00100*);
+void                         Actor00100_Fn01900(Task*, s16, s16, s16, s16, u8);
+void                         Actor00100_Fn0375C(Task*);
 
-static __inline__ s16 Actor00100_InRegion(Actor00100* actor)
+static __inline__ s16 Actor00100_InRegion(Task* actor)
 {
-    GsCOORDINATE2* coord = actor->field_2C->coords;
+    GsCOORDINATE2* coord = ((TmdObject*)actor->extra)->coords;
     if ((u32)(coord->coord.t[0] - 0x1541) < 0x196DU) {
         if (coord->coord.t[2] < 0x5B4)
             return 1;
     }
     return 0;
 }
-static __inline__ s16 Actor00100_InDirection(Actor00100* actor, VECTOR* motion)
+static __inline__ s16 Actor00100_InDirection(Task* actor, VECTOR* motion)
 {
-    GsCOORDINATE2* coord = actor->field_2C->coords;
+    GsCOORDINATE2* coord = ((TmdObject*)actor->extra)->coords;
     if (abs((s16)ratan2(motion->vx, motion->vz)) >= 0x501) {
         if (coord->coord.t[0] < 0x2AF9)
             return 1;
