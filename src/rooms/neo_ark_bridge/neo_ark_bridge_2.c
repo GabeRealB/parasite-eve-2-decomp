@@ -22,7 +22,6 @@ extern s32 D_80115738;
 extern s32 D_8011574C;
 extern s32 D_80115750;
 extern s32 D_80115758;
-extern u32 Gp_LcgState;
 
 /// Where the bridge effect task draws its pulsing marker and spawns its two
 /// sparks.

@@ -32,7 +32,6 @@ extern TaskDesc D_acropolis_helicopter_landing_pad_80184DA0[];
 extern s16 D_80071076;
 extern s8  D_801153F1;
 extern s32 D_801156A8;
-extern s32 Gp_LcgState;
 
 /// Main-executable byte with no module header yet; `+ 1` seeds the slot-3
 /// msg 0x3E8 record's `field_0` in `func_acropolis_helicopter_landing_pad_8017DA9C`.

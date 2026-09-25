@@ -256,8 +256,6 @@ extern void* D_800678F0[1];
 extern s8    D_80115414[1];
 extern s8    D_80115417;
 
-extern s32 Gp_LcgState;
-
 extern u8 D_801153F4;
 
 extern s32 D_80115738;

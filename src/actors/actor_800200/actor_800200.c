@@ -40,7 +40,6 @@ typedef struct {
     u8   field_973;
 } ActorDirByte;
 
-extern u32             Gp_LcgState;
 extern void            D_actor_800200_80169EF0;
 extern GpActorWork*    D_80115764;
 extern u8              D_801153F4;

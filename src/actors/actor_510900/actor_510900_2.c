@@ -303,7 +303,6 @@ extern u8 D_801153F4;
 /// in the room overlay, not here.
 extern s32 D_80187D34;
 extern s32 D_80187D3C;
-extern u32 Gp_LcgState;
 extern s16 D_80073BA0;
 
 /// The player's world matrix; its third column is the direction they face.

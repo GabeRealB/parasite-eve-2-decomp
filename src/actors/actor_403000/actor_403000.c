@@ -528,11 +528,6 @@ extern SVECTOR D_actor_403000_80158CE0[];
 /// the display object against, one per bit of `GameFlag_GetNibble(0xE2)`.
 extern SVECTOR D_actor_403000_80158D64[];
 
-/// The game's shared 32-bit LCG state: a draw is
-/// `Gp_LcgState = Gp_LcgState * 5 + 0x71357911`, read back from the global,
-/// with the caller taking the bits it wants out of the high half.
-extern u32 Gp_LcgState;
-
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 void func_8004BFF8(s16 angle, MATRIX* matrix);
 

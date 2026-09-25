@@ -42,7 +42,6 @@ extern u8  D_80115690;
 extern s32 D_8011572C;
 extern s32 D_80115750;
 extern s32 D_80115758;
-extern s32 Gp_LcgState;
 
 extern TaskDesc               D_neo_ark_savanna_zone_8017F9A0;
 extern GpSaveLoc              D_neo_ark_savanna_zone_80180990;

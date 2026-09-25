@@ -79,7 +79,6 @@ STATIC_ASSERT_SIZEOF(AhlpFlareScratch, 0x1C);
 
 extern s8        D_8007106B;
 extern s32       D_80070F70;
-extern s32       Gp_LcgState;
 extern SVECTOR   D_acropolis_helicopter_landing_pad_80184E80[12];
 extern s32       D_acropolis_helicopter_landing_pad_80184EE0[12];
 extern AhlpLight D_80115188[2];

@@ -32,8 +32,6 @@ typedef struct {
 } Actor341300Shard;
 STATIC_ASSERT_SIZEOF(Actor341300Shard, 0x30);
 
-extern u32 Gp_LcgState;
-
 extern s8 D_8007272D;
 
 /// Spawn positions `func_actor_341300_80162878`'s shards start from, indexed

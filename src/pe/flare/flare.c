@@ -16,8 +16,6 @@
 
 /// This overlay's id, the `u16` every package opens with.
 
-extern s32 Gp_LcgState;
-
 /// PROVISIONAL: written before `Task` was processed, so the statements
 /// about `Task` fields rest on unverified names. Rewrite once `Task` is done.
 /// Emits the flare's shower of sparks.

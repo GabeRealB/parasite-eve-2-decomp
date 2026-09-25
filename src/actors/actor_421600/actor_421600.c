@@ -559,8 +559,6 @@ extern MATRIX* D_80073B8C;
 /// `Actor00100_MoveForward` makes before touching a coordinate.
 extern u8 D_80072729;
 
-extern u32 Gp_LcgState;
-
 /// 4x4 zone table `func_actor_421600_8013A404` samples with the X and Z
 /// buckets of the actor's position, cell `x | z * 4`; the sample is compared
 /// against 0xB to pick between the 6 and 0x24 states.

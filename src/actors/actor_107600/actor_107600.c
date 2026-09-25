@@ -140,10 +140,6 @@ typedef struct Actor107600 {
     /* 0x1C */ Actor107600Work* field_1C;
 } Actor107600;
 
-/// LCG shared by the actor overlays (`state = state * 5 + 0x71357911`); this
-/// overlay rolls its low 3 bits of the high half into `Actor107600Work.field_16A`.
-extern u32 Gp_LcgState;
-
 /// Global scene mode the actor updates switch on: 0 runs the full update, 1 only
 /// refreshes the colour, 2 hides the model (`TmdObject.flags` bit 0x80).
 extern u8 D_801153F4;

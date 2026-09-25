@@ -5,6 +5,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
@@ -148,8 +149,6 @@ typedef struct Actor103700SteerScratch {
     /* 0x10 */ SVECTOR normal;
 } Actor103700SteerScratch;
 STATIC_ASSERT_SIZEOF(Actor103700SteerScratch, 0x18);
-
-extern u32 Gp_LcgState;
 
 /* `D_80067704` selects the model stream the next `Gp_SpawnEff` builds its
  * `TmdObject` from. */

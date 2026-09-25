@@ -97,7 +97,6 @@ extern s32 D_80115738;
 extern s32 D_8011574C;
 extern s32 D_80115750;
 extern s32 D_80115758;
-extern s32 Gp_LcgState;
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 

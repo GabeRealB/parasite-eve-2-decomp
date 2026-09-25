@@ -373,7 +373,6 @@ extern TaskDesc               D_shelter_b3_dumping_hole_80188C04;
 extern TaskDesc               D_shelter_b3_dumping_hole_80188BC8;
 extern s16                    D_shelter_b3_dumping_hole_8018809C;
 extern Task*                  D_shelter_b3_dumping_hole_8018F4A8;
-extern u32                    Gp_LcgState;
 extern s16                    D_shelter_b3_dumping_hole_80188154[];
 extern DumpingHoleAnimFrame   D_shelter_b3_dumping_hole_801880B8[];
 extern s16                    D_shelter_b3_dumping_hole_8018816C[];

@@ -10,6 +10,7 @@
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 
 #include "main/display.h"
 #include "main/gfx.h"
@@ -40,8 +41,6 @@ typedef struct _DryfieldNightMotelLoftShard {
     s16     size;
     s16     shade;
 } _DryfieldNightMotelLoftShard;
-
-extern s32 Gp_LcgState;
 
 /// The room's sprite points. The room draws them by view - 0 and 5 for views
 /// 2 and 9, 1, 2 and 4 for 3 and 10, 2 for 4, 3 for 6, 4 and 5 for 7 and

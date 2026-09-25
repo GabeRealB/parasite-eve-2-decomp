@@ -21,7 +21,6 @@ extern s32 D_80070F70;
 extern s32 D_80115730;
 extern s32 D_80115734;
 extern s32 D_80115754;
-extern s32 Gp_LcgState;
 
 /// Right shifts applied to the red, green and blue channels of the burst's
 /// level, one row per spawn argument.

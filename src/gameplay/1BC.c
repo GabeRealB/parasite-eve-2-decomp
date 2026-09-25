@@ -63,7 +63,6 @@ extern TaskDesc       D_80182FAC[];
 extern TaskDesc       D_8018384C[];
 extern s32            Gp_Slot4MsgTable[];
 extern char           Gp_StrNewEnemyNull[];
-extern s32            Gp_LcgState;
 extern u8             D_800626E8;
 extern u8*            D_80114D10;
 extern u16            D_80114D14[2];

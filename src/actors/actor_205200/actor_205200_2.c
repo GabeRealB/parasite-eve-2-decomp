@@ -73,7 +73,6 @@ extern u32     D_actor_205200_801567D0;
 extern u8      D_801153F4;
 extern u16     D_80071078;
 extern s16     D_80073BA0;
-extern u32     Gp_LcgState;
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.

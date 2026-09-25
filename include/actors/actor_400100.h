@@ -371,8 +371,6 @@ extern void* D_80114B78[1];
 
 void Actor00100_Fn09310(Actor00100* arg0);
 
-extern u32 Gp_LcgState;
-
 void Actor00100_Fn04270(Actor00100* argx);
 s32  Actor00100_Fn00A54(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2);
 s32  Actor00100_Fn00BF8(Actor00100* arg0);

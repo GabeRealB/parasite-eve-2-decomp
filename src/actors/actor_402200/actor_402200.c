@@ -433,11 +433,6 @@ STATIC_ASSERT_SIZEOF(Actor402200AimScratch, 0x48);
 /// as its fifth argument when it reseeds animation slots 1..0x12.
 extern s16 D_actor_402200_801383AC[];
 
-/// The game's shared 32-bit LCG state: every draw is
-/// `Gp_LcgState = Gp_LcgState * 5 + 0x71357911`, read back from the global,
-/// with the caller taking the bits it wants out of the high half.
-extern u32 Gp_LcgState;
-
 /// One 4-byte entry of `D_actor_402200_801383D8`: the first entry whose
 /// `frame` is not below the animation frame `Actor402200Work::field_6C4`
 /// supplies `value` for `field_6C8`.

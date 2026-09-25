@@ -13,6 +13,7 @@
 #include "gte.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/3FB8.h"
+#include "gameplay/gameplay.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -258,8 +259,6 @@ typedef void (*Actor02100StateFunc)(Actor02100Ctx* arg0, Actor02100* arg1);
 typedef struct {
     Actor02100StateFunc funcs[3];
 } Actor02100StateFuncTable3;
-
-extern u32 Gp_LcgState;
 
 extern GpU16Pair                 Actor02100_D03D64;
 extern GpPairSrcE                Actor02100_D03D78;

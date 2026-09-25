@@ -5,6 +5,7 @@
 #include "actors/actors_shared_80135b58.h"
 #include "gameplay/3E9C.h"
 #include "gameplay/areaplace.h"
+#include "gameplay/gameplay.h"
 #include "gameplay/pairsrc.h"
 #include "gameplay/3FB8.h"
 #include "main/gfx.h"
@@ -210,7 +211,6 @@ typedef struct {
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-extern s32                   Gp_LcgState;
 extern Actor02500GridParams* Gp_GridParams;
 extern Actor02500StateF0     Gp_StateF0;
 extern s8                    D_80115410[];

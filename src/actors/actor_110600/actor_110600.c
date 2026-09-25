@@ -779,11 +779,6 @@ void func_actor_110600_80138D7C(Actor110600* arg0);
 /// rebuilds and rescales it from the actor's own heading.
 s32 func_actor_110600_80133E48(Task* task, s32 arg1, ActorShared8013411cPlacement* placement);
 
-/// The game's shared 32-bit LCG state: a draw is
-/// `Gp_LcgState = Gp_LcgState * 5 + 0x71357911`, read back from the global,
-/// with the caller taking the bits it wants out of the high half.
-extern u32 Gp_LcgState;
-
 /// Five-frame shake counter. Incremented each call, wraps at 5, and drives
 /// `Display_ClampField126` with the low bit (0 or 1). Returns 1 on wrap.
 extern s16 D_actor_110600_8014865C;

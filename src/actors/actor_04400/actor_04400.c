@@ -295,8 +295,7 @@ s32  Actor04400_Fn08DBC(Task* arg0);
 /// `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-extern u32 Gp_LcgState;
-extern s8  D_80115415; // absolute; set once CD command 0x21 is queued
+extern s8 D_80115415; // absolute; set once CD command 0x21 is queued
 
 /* `D_800678F0` selects the model stream the next `Gp_SpawnEff` copies into
  * its effect's `TmdObject`. Declared as a one-element array so GCC 2.8.1

@@ -72,7 +72,6 @@ extern s32 D_8011574C;
 extern s32 D_80115750;
 extern s32 D_80115754;
 extern s32 D_80115758;
-extern s32 Gp_LcgState;
 
 /// The room's event task, spawned when its message handler latches an event.
 extern TaskDesc D_neo_ark_pavilion_80183864;

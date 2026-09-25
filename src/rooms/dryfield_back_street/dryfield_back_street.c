@@ -22,7 +22,6 @@
 extern s32 D_8011572C;
 extern s32 D_80115750;
 extern s32 D_80115758;
-extern s32 Gp_LcgState;
 
 /// The room's message table, installed on the room entry task.
 extern GpMsgEntry D_dryfield_back_street_8017F964[];

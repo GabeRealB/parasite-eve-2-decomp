@@ -140,9 +140,4 @@ typedef struct Actor521100Work {
 } Actor521100Work;
 STATIC_ASSERT_SIZEOF(Actor521100Work, 0x6C0);
 
-/// The game-wide 32-bit LCG. `func_actor_521100_80136290` draws it three times
-/// in a row, scaling the second coordinate's world position by `field_488`
-/// through the top half of each draw.
-extern u32 Gp_LcgState;
-
 #endif

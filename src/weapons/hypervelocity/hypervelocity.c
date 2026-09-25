@@ -24,8 +24,6 @@
 /// (the muzzle), `(0, 0x240, 0x80)`.
 SVECTOR D_hypervelocity_8011FB74 = { 0, 0x240, 0x80, 0 };
 
-extern s32 Gp_LcgState;
-
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 #define SCRATCH_SP (*(u32*)G_SCRATCH_HEAD)
 

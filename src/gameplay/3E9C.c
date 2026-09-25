@@ -18,7 +18,6 @@
 #include <psyq/libgte.h>
 #include <psyq/memory.h>
 
-extern s32     Gp_LcgState;
 extern SVECTOR D_801124DC[];
 extern SVECTOR D_801125EC[];
 extern SVECTOR D_801126FC[];

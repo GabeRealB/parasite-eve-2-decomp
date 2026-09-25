@@ -25,7 +25,6 @@ extern s32 D_80115720;
 extern s32 D_80115728;
 extern s32 D_8011573C;
 extern s32 D_80115744;
-extern s32 Gp_LcgState;
 
 /// The passage's per-view emitter placements, one `SVECTOR` per position, 8
 /// bytes apart. All four names address the same 24-entry run: `ED8` is `EC8[2]`,

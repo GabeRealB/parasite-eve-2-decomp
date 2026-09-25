@@ -14,8 +14,6 @@
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 
-extern u32 Gp_LcgState;
-
 void func_dryfield_water_hole_8017F5D4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_dryfield_water_hole_8017F9C0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
 

@@ -110,7 +110,6 @@ extern s32          D_8013A84C;
 extern s32          D_8013A8DC;
 extern s32          D_8013AF8C;
 extern s32          D_8013BA84;
-extern u32          Gp_LcgState;
 
 /// Location key of the save data.
 extern _ShelterB6NurserySaveLoc D_8007216C;

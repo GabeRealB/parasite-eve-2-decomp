@@ -82,10 +82,6 @@ extern u16 D_actor_342100_801649A8[];
 /// for the other arm, the low three bits) of this global is clear.
 extern s32 D_80070F70;
 
-/// Random-number state the overlay's spawn task rolls once per tick: the
-/// product's high halfword picks the model part.
-extern u32 Gp_LcgState;
-
 extern s16      D_800691CA;
 extern u8       D_80070F87;
 extern u8       D_80071075;

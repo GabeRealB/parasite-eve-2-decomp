@@ -20,8 +20,6 @@
 /// Fixed offset from the parent coordinate that the hammer effect starts at.
 SVECTOR D_m4a1_hammer_8011EB60 = { 0, 0x280, 0x20, 0 };
 
-extern u32 Gp_LcgState;
-
 /// Per-frame task for the hammer's charge flare. `Task::spawnArg2` is the
 /// `Gp_State1C` work block, `Task::extra` reaches the coordinate the flare
 /// hangs on, and `Task::spawnArg1` is the charge phase the firing code drives.

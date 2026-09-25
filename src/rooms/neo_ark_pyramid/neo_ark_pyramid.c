@@ -34,7 +34,6 @@ extern u8 D_8007216C;
 extern s32 D_8011572C;
 extern s32 D_80115750;
 extern s32 D_80115758;
-extern s32 Gp_LcgState;
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 

@@ -235,7 +235,6 @@ STATIC_ASSERT_SIZEOF(Actor01200AvoidDelta, 0x10);
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 extern MATRIX* D_80073B8C;
-extern u32     Gp_LcgState;
 extern u8      D_80072729;
 extern u8      D_801153F4;
 

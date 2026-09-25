@@ -11,6 +11,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflow.h"
@@ -127,11 +128,6 @@ STATIC_ASSERT_SIZEOF(Actor121300FadeWork, 0x8);
 /// effect spawners gate on: `func_actor_121300_8013343C` only runs on every
 /// fourth frame (`& 3`), `func_actor_121300_80133580` too.
 extern s32 D_actor_121300_8013CC00;
-
-/// The gameplay LCG the effect spawners draw their jitter from,
-/// `state = state * 5 + 0x71357911`; the draws are logical shifts of the high
-/// half (`srl`), which a signed declaration would turn into arithmetic ones.
-extern u32 Gp_LcgState;
 
 /// The two position tables `func_actor_121300_8013343C` walks, each an array
 /// of `SVECTOR`s ending on a zeroed one -- the walker's guard is `vx != 0`, so

@@ -685,10 +685,6 @@ extern Actor403200GameMode D_801153F4;
 /// body from walking its model out.
 extern u8 D_80072729;
 
-/// LCG state the spawn, drop and state-selecting code rolls its random values
-/// out of.
-extern s32 Gp_LcgState;
-
 /// Player HP the per-frame tick reads before it latches the death cinematic.
 extern s16 D_80073BA0;
 /// View index the tick publishes when the selector and the task disagree.

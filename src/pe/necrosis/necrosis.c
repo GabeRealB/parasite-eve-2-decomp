@@ -26,8 +26,7 @@ NecrosisStep D_necrosis_801306BC[] = {
 /// The `SndEvt_EnqueueType6` id for each `D_necrosis_801306BC` row.
 s32 D_necrosis_801306C8[] = { 0xE0150001, 0xE0180001, 0xE01B0001 };
 
-extern s8  D_80114C0B;
-extern s32 Gp_LcgState;
+extern s8 D_80114C0B;
 
 void func_necrosis_8012F6EC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
 void func_necrosis_8012FE64(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);

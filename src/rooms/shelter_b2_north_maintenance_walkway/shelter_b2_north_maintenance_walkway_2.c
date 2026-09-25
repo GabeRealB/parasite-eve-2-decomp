@@ -29,7 +29,6 @@ extern s32 D_8011573C;
 extern s32 D_80115744;
 extern s32 D_80115750;
 extern s32 D_80115758;
-extern s32 Gp_LcgState;
 
 /// Anchor points of the glows the room task draws.
 extern SVECTOR D_shelter_b2_north_maintenance_walkway_80183B90[];

@@ -61,7 +61,6 @@ extern u8  D_801156F9;
 extern s32 D_8011572C;
 extern s32 D_80115750;
 extern s32 D_80115758;
-extern u32 Gp_LcgState;
 
 extern TaskDesc D_8014D8A4;
 

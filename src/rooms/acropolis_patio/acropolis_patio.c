@@ -65,8 +65,7 @@ extern s32      D_acropolis_patio_80180C64;
 extern s32      D_acropolis_patio_8018280C;
 extern s32      D_acropolis_patio_80182BE4;
 
-extern u8  D_801153F4;
-extern s32 Gp_LcgState;
+extern u8 D_801153F4;
 
 /// The 14 anchor points of the patio's fountain spray, in the room object's own
 /// space. The first three double as the jitter centres for the mist burst.

@@ -10,6 +10,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
+#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -24,8 +25,6 @@ extern s32     D_shelter_b1_sterilization_room_80188C94;
 extern s32     D_shelter_b1_sterilization_room_80188E14;
 extern SVECTOR D_shelter_b1_sterilization_room_8018909C[];
 extern SVECTOR D_shelter_b1_sterilization_room_80189334[];
-
-extern u32 Gp_LcgState;
 
 extern void func_800E8634(s32 arg0, s32 arg1, s32 arg2);
 

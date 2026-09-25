@@ -58,7 +58,6 @@ extern s32 D_80115750;
 extern s32 D_80115758;
 extern u8  D_801153F4;
 extern u8  D_80115690;
-extern s32 Gp_LcgState;
 
 /// The room's message table, installed by its first task state.
 extern GpMsgEntry D_shelter_b2_septic_tank_80182F4C[];

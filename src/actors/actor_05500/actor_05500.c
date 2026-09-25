@@ -123,8 +123,6 @@ typedef struct Actor105500Ctx {
     /* 0x54 */ s32          field_54;
 } Actor105500Ctx;
 
-extern u32 Gp_LcgState;
-
 typedef struct Actor105500LineScratch {
     s32     unused[4];
     SVECTOR position;

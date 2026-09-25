@@ -90,8 +90,6 @@ typedef struct Actor311500 {
 /// coordinates.
 extern u8 D_801153F4;
 
-extern s32 Gp_LcgState;
-
 extern GpPairSrcE D_actor_311500_801692C0;
 extern u8         D_actor_311500_801692F4[];
 extern u32        D_actor_311500_80169330;

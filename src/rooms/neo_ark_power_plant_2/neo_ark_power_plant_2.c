@@ -30,7 +30,6 @@ extern AhlpLight D_801150C0[];
 extern s32       D_8011572C;
 extern s32       D_80115750;
 extern s32       D_80115758;
-extern u32       Gp_LcgState;
 
 extern GpMsgEntry     D_neo_ark_power_plant_2_801801F8[];
 extern s32            D_neo_ark_power_plant_2_801802A8;

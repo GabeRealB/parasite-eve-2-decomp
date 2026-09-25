@@ -130,7 +130,6 @@ typedef struct {
 /// Scratchpad stack pointer, initialised by GameMain.
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-extern u32       Gp_LcgState;
 extern u8        Actor01100_D15660[];
 extern GpU16Pair Actor01100_D074D0[];
 extern TaskDesc  Actor01100_D155E0[];

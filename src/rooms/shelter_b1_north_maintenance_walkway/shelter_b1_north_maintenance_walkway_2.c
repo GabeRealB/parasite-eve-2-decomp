@@ -24,7 +24,6 @@
 extern s32 D_80070F70;
 extern s32 D_80115728;
 extern s32 D_80115730;
-extern s32 Gp_LcgState;
 
 /// Per-palette channel shifts for the halo, indexed by the palette the spawn
 /// argument selects.

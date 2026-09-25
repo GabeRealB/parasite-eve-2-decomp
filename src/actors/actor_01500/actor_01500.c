@@ -114,7 +114,6 @@ typedef struct Actor101500RotScratch {
 } Actor101500RotScratch;
 STATIC_ASSERT_SIZEOF(Actor101500RotScratch, 0x18);
 
-extern u32     Gp_LcgState;
 extern u8      D_801153F2[2];
 extern u8      D_801153F4;
 extern MATRIX* D_80073B8C;

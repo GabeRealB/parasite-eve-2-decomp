@@ -36,8 +36,7 @@ s32 D_lifedrain_80130AD4[] = {
     0xE0270002,
 };
 
-extern s8  D_80114C0B;
-extern s32 Gp_LcgState;
+extern s8 D_80114C0B;
 
 /// Health the drain has banked so far, in HP. Every mote that reaches the
 /// collector adds its share here; the cast pays it into `Player_Status.hp`

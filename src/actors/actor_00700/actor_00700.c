@@ -18,6 +18,7 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 #include "gameplay/areaplace.h"
+#include "gameplay/gameplay.h"
 #include "gameplay/pairsrc.h"
 #include "gameplay/3FB8.h"
 
@@ -265,7 +266,6 @@ STATIC_ASSERT_SIZEOF(Actor00700InitWork, 0x39C);
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-extern s32     Gp_LcgState;
 extern MATRIX* D_80073B8C;
 extern u8      D_801153F4;
 extern s8      D_80115408;

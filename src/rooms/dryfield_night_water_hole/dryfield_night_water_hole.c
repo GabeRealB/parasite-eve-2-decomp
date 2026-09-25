@@ -101,7 +101,6 @@ extern s16 D_80071076;
 extern u8  D_801153F4;
 extern s32 D_80115738;
 extern s32 D_8011574C;
-extern u32 Gp_LcgState;
 /// Resident task table the ending task is spawned from, descriptor 1.
 extern TaskDesc D_801351FC[];
 

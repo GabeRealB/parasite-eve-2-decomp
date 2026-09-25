@@ -42,7 +42,6 @@ extern u8           D_801153F4;
 extern u16          D_801153F6;
 extern s32          D_80115738;
 extern s32          D_8011574C;
-extern s32          Gp_LcgState;
 
 extern GpMsgEntry D_acropolis_bridge_80188E4C[];
 extern TaskDesc   D_acropolis_bridge_80188E7C[];

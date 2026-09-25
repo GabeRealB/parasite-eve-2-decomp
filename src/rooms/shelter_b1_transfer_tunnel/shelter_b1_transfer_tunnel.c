@@ -31,7 +31,6 @@ extern s32 D_8011573C;
 extern s32 D_80115744;
 extern s32 D_80115750;
 extern s32 D_80115758;
-extern s32 Gp_LcgState;
 
 /// The room's message table, installed in `Task::msgTable` by
 /// `func_shelter_b1_transfer_tunnel_8017D62C`.

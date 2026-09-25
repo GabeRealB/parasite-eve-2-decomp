@@ -20,8 +20,6 @@ STATIC_ASSERT_SIZEOF(ActorsShared80136938Work, 0x58);
 /// Each carrier supplies its own contact identity pair at this symbol.
 extern GpU16Pair ActorsShared80136938Pair;
 
-extern u32 Gp_LcgState;
-
 void ActorsShared80136938(Task* arg0);
 
 #endif

@@ -821,7 +821,6 @@ extern s32 D_actor_444000_80144A8C;
 /// Script pair the drag tick spawns every `period` frames.
 extern s32 D_actor_444000_80144A94;
 extern s32 D_actor_444000_80144AA0;
-extern s32 Gp_LcgState;
 
 /// Animation-set tables: the host's two blocks, escort 0's two and escort 1's.
 extern GpAnimSet* D_actor_444000_80161448[];

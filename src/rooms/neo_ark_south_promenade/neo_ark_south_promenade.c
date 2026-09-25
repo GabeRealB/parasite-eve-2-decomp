@@ -24,7 +24,6 @@ extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 extern s32 D_8011572C;
 extern s32 D_80115750;
 extern s32 D_80115758;
-extern s32 Gp_LcgState;
 
 /// The room's message table, which the message-driven task installs.
 extern GpMsgEntry D_neo_ark_south_promenade_8017F6B4[];

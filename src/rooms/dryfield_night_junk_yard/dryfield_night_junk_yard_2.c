@@ -20,7 +20,6 @@
 extern s32     D_8011572C;
 extern s32     D_80115750;
 extern s32     D_80115758;
-extern s32     Gp_LcgState;
 extern SVECTOR D_dryfield_night_junk_yard_8018073C[];
 extern SVECTOR D_dryfield_night_junk_yard_80180754[];
 extern SVECTOR D_dryfield_night_junk_yard_80180774[];

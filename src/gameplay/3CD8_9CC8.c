@@ -17,7 +17,6 @@
 #include "main/wipsys.h"
 
 extern TaskFuncTable3 D_80097678;
-extern s32            Gp_LcgState;
 extern s32            D_80115720;
 extern s32            D_80115724;
 extern s32            D_80115728;

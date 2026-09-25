@@ -35,8 +35,6 @@ u16 D_m4a1_javelin_8011FAA0[6] = { 1, 0, 0, 0, 0, 2 };
 /// The four RGB444 beam colours `GpEffWork::step` fades through.
 u16 D_m4a1_javelin_8011FAAC[4] = { 0x12, 0x124, 0x248, 0x36C };
 
-extern u32 Gp_LcgState;
-
 /// Per-frame task for the javelin's guide beam. `Task::spawnArg2` is the
 /// `Gp_State1C` work block and `Task::extra` reaches the coordinate the beam
 /// hangs on. Any room fade of 4 or more tears the effect down; a fade of 1 to 3

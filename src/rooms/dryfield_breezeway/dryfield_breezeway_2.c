@@ -224,10 +224,6 @@ extern RoomHotspot D_dryfield_breezeway_80182E00[];
 /// on.
 extern RoomHotspot D_dryfield_breezeway_80182DDC[];
 
-/// The game-wide LCG every effect draw steps as `state * 5 + 0x71357911`,
-/// taking its upper half as the random value.
-extern u32 Gp_LcgState;
-
 /// Data block in the room's trailing blob that
 /// `func_dryfield_breezeway_8017FF7C` hands to both of the per-view drawers
 /// below, together with the room task's coordinate frame.

@@ -90,7 +90,6 @@ extern s8  D_8007106B;
 extern s32 D_8011572C;
 extern s32 D_80115750;
 extern s32 D_80115758;
-extern s32 Gp_LcgState;
 
 extern GpMsgEntry D_acropolis_cafeteria_80184CEC[];
 extern s32        D_acropolis_cafeteria_80184CFC;

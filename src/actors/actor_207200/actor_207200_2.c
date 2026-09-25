@@ -15,6 +15,7 @@
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3E9C.h"
+#include "gameplay/gameplay.h"
 
 #include "actors/actors_shared_80135b58.h"
 #include "actors/actor_207200.h"
@@ -121,7 +122,6 @@ extern u8      D_actor_207200_80150BCC[];
 extern u8      D_actor_207200_80151074[];
 extern u8      D_actor_207200_801517F8[];
 extern SVECTOR D_actor_207200_80153F18;
-extern u32     Gp_LcgState;
 /// Spawned task's setup argument (`D_800626EC[5].arg.model`).
 extern s32 D_80062730;
 

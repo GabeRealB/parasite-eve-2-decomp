@@ -704,8 +704,6 @@ extern s8 D_8007216C;
 
 extern s32 D_80115738;
 
-extern u32 Gp_LcgState;
-
 extern s16 D_801818B8;
 
 extern u16 D_80181A48;

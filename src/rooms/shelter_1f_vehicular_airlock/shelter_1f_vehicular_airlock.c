@@ -51,7 +51,6 @@ extern u8  D_801153F4;
 extern s32 D_80115750;
 extern s32 D_80115758;
 extern u8  D_80115690;
-extern s32 Gp_LcgState;
 
 extern TaskDesc D_shelter_1f_vehicular_airlock_80182028;
 

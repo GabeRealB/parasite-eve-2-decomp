@@ -257,7 +257,6 @@ STATIC_ASSERT_SIZEOF(Actor104000AvoidDelta, 0x10);
 extern u8      D_80072729;
 extern u8      D_8007216C;
 extern MATRIX* D_80073B8C;
-extern u32     Gp_LcgState;
 extern u8      D_801153F4;
 
 extern Actor104000* Actor04000_D0C710[2];

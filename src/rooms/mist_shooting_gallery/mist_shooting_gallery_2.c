@@ -128,7 +128,6 @@ extern s8 D_80072310;
 /// down: the state machine remembers where it was in `field_06` / `field_21`
 /// and jumps to the state-9 shutdown banner.
 extern s8   D_80114C0B;
-extern s32  Gp_LcgState;
 extern void func_8014A908(void);
 extern void func_8014A9A0(void);
 extern void func_8014B0D4(void);

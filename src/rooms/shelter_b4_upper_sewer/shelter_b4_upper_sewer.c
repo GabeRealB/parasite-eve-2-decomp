@@ -36,7 +36,6 @@ extern u8  D_80115690;
 extern s32 D_8007107C;
 extern s8  D_8007217B;
 extern s32 D_80070F70;
-extern s32 Gp_LcgState;
 extern s32 D_80115720;
 extern s32 D_80115728;
 extern s32 D_8011572C;

@@ -19,7 +19,6 @@
 
 extern s32 D_80070F70;
 extern s32 D_80115730;
-extern s32 Gp_LcgState;
 
 /// Per-colour channel shifts for the halo task, indexed by the colour its
 /// spawn argument selects.

@@ -167,9 +167,8 @@ extern SVECTOR D_actor_160900_8013F400[];
 extern SVECTOR D_actor_160900_8013F458[];
 
 /// Pair of blocks `func_actor_160900_8013418C` passes to `func_800E8634`.
-extern u8  D_actor_160900_8013F538[];
-extern u8  D_actor_160900_8013FAA8[];
-extern u32 Gp_LcgState;
+extern u8 D_actor_160900_8013F538[];
+extern u8 D_actor_160900_8013FAA8[];
 
 extern s16 D_800691CA;
 

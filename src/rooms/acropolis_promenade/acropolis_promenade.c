@@ -99,7 +99,6 @@ STATIC_ASSERT_SIZEOF(ApmPropWork, 0x4);
 
 extern s16 D_8007107A;
 extern s8  D_8007272D;
-extern s32 Gp_LcgState;
 
 extern s32          D_acropolis_promenade_80180F00;
 extern s32          D_acropolis_promenade_80181068;

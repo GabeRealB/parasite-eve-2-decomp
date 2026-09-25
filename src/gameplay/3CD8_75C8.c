@@ -25,7 +25,6 @@
 #include "main/text.h"
 #include "main/wipsys.h"
 
-extern s32            Gp_LcgState;
 extern u8             D_80062734;
 extern u16            D_8007A396;
 extern u16            D_8007A39C;

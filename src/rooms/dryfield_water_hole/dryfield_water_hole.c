@@ -45,7 +45,6 @@ extern s8  D_8007217B;
 extern u8  D_801153F4;
 extern s32 D_80115738;
 extern s32 D_8011574C;
-extern u32 Gp_LcgState;
 
 /// The room's message table, the `GpMsgEntry` list the room task publishes in
 /// `Task::msgTable` for `Gp_DispatchMsg` to walk: 0x13EE, 0x13F1, 0x13EF, 0x13F0

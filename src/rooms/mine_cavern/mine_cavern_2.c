@@ -26,8 +26,6 @@
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "rooms/rooms_shared_8017ff88.h"
 
-extern u32 Gp_LcgState;
-
 extern u8  D_8007216D;
 extern s32 D_80070F70;
 extern s32 D_80115720;

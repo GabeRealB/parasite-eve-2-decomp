@@ -153,9 +153,6 @@ typedef struct Actor02400PushScratch {
 } Actor02400PushScratch;
 STATIC_ASSERT_SIZEOF(Actor02400PushScratch, 0x58);
 
-/// Unsigned so that the draws, which take the high half, shift logically.
-extern u32 Gp_LcgState;
-
 /// Global flags; bit 1 of the first byte, polled when the idle countdown runs
 /// out, wakes the body.
 extern u8 D_801153F2[2];

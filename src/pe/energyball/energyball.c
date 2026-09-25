@@ -34,7 +34,6 @@ EnergyBallStep D_energyball_80131194[] = {
 };
 
 extern s32 D_80115724;
-extern s32 Gp_LcgState;
 
 /// Fires the energy ball: on the first frame it picks the charge level from the
 /// combo counter, plays the matching loop sound, refills the surface-jitter

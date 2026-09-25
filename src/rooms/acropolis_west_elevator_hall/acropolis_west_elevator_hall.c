@@ -101,7 +101,6 @@ typedef struct {
 
 extern s32 D_80070F70;
 extern s8  D_8007272D;
-extern s32 Gp_LcgState;
 
 /// The save's location key, read as one word to test its view and area
 /// together.

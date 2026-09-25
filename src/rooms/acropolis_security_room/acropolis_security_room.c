@@ -141,7 +141,6 @@ STATIC_ASSERT_SIZEOF(AsrQuadCorner, 0x4);
 
 extern s8  D_8007216C;
 extern s16 D_80114D08;
-extern u32 Gp_LcgState;
 
 /// The tasks `func_acropolis_security_room_8017D77C` and
 /// `func_acropolis_security_room_8017D834` spawn and poll until they end;

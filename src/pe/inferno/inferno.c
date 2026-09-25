@@ -24,8 +24,7 @@ InfernoFanParam D_inferno_801304E4[] = {
 /// The `SndEvt_EnqueueType6` id for each inferno stage.
 s32 D_inferno_801304F0[] = { 0xE0100001, 0xE0130001, 0xE00D0001 };
 
-extern s8  D_80114C0B;
-extern s32 Gp_LcgState;
+extern s8 D_80114C0B;
 
 void func_inferno_8012F3EC(s16 arg0);
 void func_inferno_8012F978(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, InfernoIdMap* map);

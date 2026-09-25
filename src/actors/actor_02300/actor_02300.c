@@ -190,8 +190,6 @@ extern u16* Actor02300_D15C80[];
 extern TaskDesc Actor02300_D15C98;
 /// Animation bank `func_800B3F84` binds to the work block.
 extern u8 Actor02300_D15CBC[];
-/// The gameplay LCG state the setup state advances for its coin flip.
-extern u32 Gp_LcgState;
 
 /// Per-weapon-id weak-point flags (`id & 0x7F`) for the two hit families,
 /// picked by the id's 0x8000 bit.

@@ -10,6 +10,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gfx.h"
@@ -19,8 +20,6 @@
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 #include "rooms/shelter_b3_garbage_incinerator.h"
-
-extern u32 Gp_LcgState;
 
 typedef struct {
     /* 0x00 */ byte pad_0[0x24];

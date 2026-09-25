@@ -78,7 +78,6 @@ void Gp_DrawEffSprite7C(GsCOORDINATE2* arg0, s32 arg1, u32 arg2);
 
 void func_actor_510900_80134C90(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
 
-extern u32 Gp_LcgState;
 extern s32 D_80070F70;
 
 /// The twelve muzzle-flash CLUTs `func_actor_510900_80134C90` indexes by frame.

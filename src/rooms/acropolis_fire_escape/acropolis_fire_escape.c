@@ -84,7 +84,6 @@ extern UiObjectDesc   D_8010EFA0;
 extern s16            D_80114D08;
 extern s8             D_801153F4;
 extern GpAreaApplyRec D_80188888[];
-extern u32            Gp_LcgState;
 
 /// The save's location key read as one word; the cutscene's end compares its
 /// upper half against one location.

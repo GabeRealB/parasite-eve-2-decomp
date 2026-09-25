@@ -49,7 +49,6 @@ extern u8  D_801156F9;
 extern s32 D_8011572C;
 extern s32 D_80115750;
 extern s32 D_80115758;
-extern u32 Gp_LcgState;
 
 /// Descriptor of the room's own event task, which the message handler spawns.
 extern TaskDesc D_dryfield_main_street_80180E7C;

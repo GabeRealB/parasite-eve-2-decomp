@@ -267,12 +267,6 @@ typedef struct Actor105100 {
     /* 0x30 */ s32               state;
 } Actor105100;
 
-/// The gameplay LCG the reroll steps draw from, `state = state * 5 + 0x71357911`.
-/// Unsigned here for the same reason as `Gp_LcgState` elsewhere: the draws are
-/// logical shifts of the high half (`srl`), which a signed declaration would
-/// turn into an arithmetic one.
-extern u32 Gp_LcgState;
-
 /// Scratchpad block the ground quad is built in: the four corners in world
 /// space, then their projected screen positions.
 typedef struct Actor105100GroundScratch {

@@ -28,8 +28,7 @@ CombustionStep D_combustion_80130980[] = {
 /// The `SndEvt_EnqueueType6` id for each `D_combustion_80130980` row.
 s32 D_combustion_80130998[] = { 0xE00C0002, 0xE00F0002, 0xE0120002 };
 
-extern s8  D_80114C0B;
-extern s32 Gp_LcgState;
+extern s8 D_80114C0B;
 
 void func_combustion_8012FB14(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
 

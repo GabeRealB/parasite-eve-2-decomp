@@ -404,11 +404,6 @@ typedef struct Actor403900ProjectScratch {
 } Actor403900ProjectScratch;
 STATIC_ASSERT_SIZEOF(Actor403900ProjectScratch, 0x18);
 
-/// The game's shared 32-bit LCG state: every draw is
-/// `Gp_LcgState = Gp_LcgState * 5 + 0x71357911`, read back from the global,
-/// with the caller taking the bits it wants out of the high half.
-extern u32 Gp_LcgState;
-
 /// One 4-byte entry of `D_actor_403900_801383DC`: the first entry whose
 /// `frame` is not below the animation frame `Actor403900Work::field_6C4`
 /// supplies `value` for `field_6C8`.

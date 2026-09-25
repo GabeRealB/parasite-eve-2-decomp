@@ -159,12 +159,6 @@ typedef struct Actor05400Pose {
 } Actor05400Pose;
 STATIC_ASSERT_SIZEOF(Actor05400Pose, 0x10);
 
-/// The gameplay LCG the clip schedules reseed their countdowns from,
-/// `state = state * 5 + 0x71357911`. Unsigned here for the same reason as
-/// `Gp_LcgState` elsewhere: the draws are logical shifts of the high half
-/// (`srl`), which a signed declaration would turn into an arithmetic one.
-extern u32 Gp_LcgState;
-
 extern GpPairSrcE         D_actor_105400_8013CE40;
 extern Actor05400SpawnPos D_actor_105400_80133A20[2];
 extern Actor05400Clip     D_actor_105400_8013CE84[];

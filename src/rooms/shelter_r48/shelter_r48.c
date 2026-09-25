@@ -80,7 +80,6 @@ extern s32      D_8014D158;
 extern s32 D_8007107C;
 extern u8  D_80071090;
 extern u8  D_801153F4;
-extern u32 Gp_LcgState;
 
 /// The room's message table, installed on the room task.
 extern GpMsgEntry D_shelter_r48_80182FB8[];

@@ -20,7 +20,6 @@
 
 extern s32 D_80070F70;
 extern s32 D_80115730;
-extern s32 Gp_LcgState;
 extern s16 D_shelter_b1_control_room_80181C64[][3];
 
 void func_shelter_b1_control_room_801806FC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);

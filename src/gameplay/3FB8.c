@@ -33,7 +33,6 @@ extern u16            D_80112DF4[];
 extern u16            D_80113F9C[];
 extern u16            Gp_AllyIdBase[];
 extern void*          Gp_AnimBlkTbl[];
-extern s32            Gp_LcgState;
 
 s32  Gp_ApplyHpDamage(s32 arg0);
 void Gp_TickActorAnimState(GpActorWork* arg0);

@@ -62,7 +62,6 @@ extern s32      D_8011572C;
 extern s32      D_80115750;
 extern s32      D_80115758;
 extern TaskDesc D_801348D8;
-extern s32      Gp_LcgState;
 
 /// Descriptor of the event task the message handler spawns.
 extern TaskDesc D_shelter_b1_pod_access_tunnel_801810CC;

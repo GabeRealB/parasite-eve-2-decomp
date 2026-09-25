@@ -55,7 +55,6 @@ extern s8  D_80115410;
 extern s32 D_8011572C;
 extern s32 D_80115750;
 extern s32 D_80115758;
-extern s32 Gp_LcgState;
 
 extern TaskDesc         D_neo_ark_shrine_80182404[];
 extern u16              D_neo_ark_shrine_80182410[16];

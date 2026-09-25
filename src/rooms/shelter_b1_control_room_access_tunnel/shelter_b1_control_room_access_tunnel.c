@@ -25,7 +25,6 @@ extern s32 D_80115734;
 extern s32 D_80115750;
 extern s32 D_80115754;
 extern s32 D_80115758;
-extern s32 Gp_LcgState;
 
 /// The room's message table, installed on its task by state 0.
 extern GpMsgEntry D_shelter_b1_control_room_access_tunnel_80181E74[];

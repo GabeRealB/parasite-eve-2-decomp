@@ -257,9 +257,6 @@ extern s8 D_80115419;
 /// body where it stands and 2 hides it.
 extern u8 D_801153F4;
 
-/// LCG the idle lengths and hit tilts are rolled from.
-extern u32 Gp_LcgState;
-
 /// Frame counts of the actor's animations, indexed by `Actor105600Work.field_694`.
 extern s16 Actor05600_D04CFC[];
 

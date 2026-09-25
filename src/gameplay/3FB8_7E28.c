@@ -15,8 +15,6 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
-extern s32 Gp_LcgState;
-
 void Gp_DrawEffSprite81(Task* arg0)
 {
     void**                    scratch;

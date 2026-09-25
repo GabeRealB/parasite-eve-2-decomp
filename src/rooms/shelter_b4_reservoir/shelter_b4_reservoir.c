@@ -90,7 +90,6 @@ extern s32 D_80115734;
 extern s32 D_80115738;
 extern s32 D_8011574C;
 extern s32 D_80115754;
-extern u32 Gp_LcgState;
 
 /// Spawn table of the screen-wave task, and the context it is spawned with.
 /// The context's mode word is written through its own symbol, which is how the

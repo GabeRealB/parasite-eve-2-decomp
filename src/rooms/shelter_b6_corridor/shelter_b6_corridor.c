@@ -28,7 +28,6 @@ extern u8  D_80070F87;
 extern s32 D_80070F70;
 extern s8  D_801153F1;
 extern u8  D_801153F4;
-extern u32 Gp_LcgState;
 
 extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
 

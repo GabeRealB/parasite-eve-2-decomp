@@ -30,7 +30,6 @@ extern s32 D_80070F70;
 extern s32 D_80115730;
 extern s32 D_80115734;
 extern s32 D_80115754;
-extern u32 Gp_LcgState;
 
 extern SVECTOR D_neo_ark_garden_801813D8;
 extern SVECTOR D_neo_ark_garden_801813E0[];

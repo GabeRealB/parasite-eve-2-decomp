@@ -17,8 +17,7 @@
 #include "main/tmd.h"
 #include "pe/pepper_spray.h"
 
-extern s8  D_80114C0B;
-extern s32 Gp_LcgState;
+extern s8 D_80114C0B;
 
 /// Runs one frame of the pepper spray. State 0 parks the room light slot on
 /// the nozzle coordinate, seeds the spray yaw / spread / brightness from

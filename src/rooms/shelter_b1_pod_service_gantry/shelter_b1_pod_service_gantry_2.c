@@ -41,7 +41,6 @@ typedef struct {
 extern s32 D_80115738;
 extern s32 D_801752EC;
 extern s8  D_shelter_b1_pod_service_gantry_8018256C[];
-extern u32 Gp_LcgState;
 
 void func_shelter_b1_pod_service_gantry_8017DF70(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
 void func_shelter_b1_pod_service_gantry_8017E400(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);

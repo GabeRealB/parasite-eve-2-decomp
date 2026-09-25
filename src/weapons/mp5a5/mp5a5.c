@@ -26,8 +26,6 @@
 void func_mp5a5_8011D468(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
 void func_mp5a5_8011D864(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
 
-extern s32 Gp_LcgState;
-
 /// The weapon's index: 0x1E for the MP5A5, 0x1F and 0x20 for its two upgrades.
 /// The three packages are this source built once each, and each declares its
 /// index in the manifest. It keys the firing sounds, the shot id and the item.

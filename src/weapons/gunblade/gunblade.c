@@ -20,8 +20,6 @@ SVECTOR D_gunblade_8011E704[1] = { { 0, 0x0060, 0x0080, 0 } };
 /// to its own address - so it has to be a separate object, not element 1.
 SVECTOR D_gunblade_8011E70C = { 0, 0x0060, 0x0380, 0 };
 
-extern s32 Gp_LcgState;
-
 void func_gunblade_8011D1E4(Task* task)
 {
     GsCOORDINATE2  local;

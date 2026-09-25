@@ -146,8 +146,6 @@ extern s32 D_actor_460200_8013FC8C;
 
 extern u8 D_actor_460200_8013FCCC[];
 
-extern s32 Gp_LcgState;
-
 extern s32 D_actor_460200_80135F14;
 extern s32 D_actor_460200_8013607C;
 extern s32 D_actor_460200_80136234;

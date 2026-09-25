@@ -66,7 +66,6 @@ typedef struct {
     s16    room;
 } _DescentWork;
 
-extern u32            Gp_LcgState;
 extern s8             D_8007216D;
 extern u8             D_801153F4;
 extern _Pose          D_shelter_b3_garbage_incinerator_80185B58[2];

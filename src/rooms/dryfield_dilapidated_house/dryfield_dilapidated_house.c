@@ -181,10 +181,6 @@ extern u8  D_801156F9;
 extern s32 D_80114A24;
 extern s32 D_80114A34;
 
-/// Unsigned: the original shifts the register right and then masks, so the
-/// shift has to compile to `srl` rather than `sra`.
-extern u32 Gp_LcgState;
-
 /// Current displacement of the screen wave, recomputed every frame from the
 /// context's ramp.
 extern s32 D_dryfield_dilapidated_house_80183E60;

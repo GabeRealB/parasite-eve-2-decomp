@@ -25,7 +25,6 @@ void func_neo_ark_island_8018026C(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
 void func_neo_ark_island_80180AF0(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
 void func_neo_ark_island_80181170(GsCOORDINATE2* arg0, s16 arg1, u8* rgb);
 
-extern s32 Gp_LcgState;
 extern s32 D_8011572C;
 extern s32 D_80115738;
 extern s32 D_8011574C;

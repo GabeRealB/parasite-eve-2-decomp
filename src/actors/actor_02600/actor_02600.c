@@ -168,7 +168,6 @@ typedef struct Actor202600 {
     /* 0x30 */ s32               field_30;
 } Actor202600;
 
-extern u32 Gp_LcgState;
 typedef struct Actor202600RotScratch {
     /* 0x00 */ VECTOR  vec;
     /* 0x10 */ SVECTOR rot;

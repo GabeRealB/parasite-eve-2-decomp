@@ -50,7 +50,6 @@ extern s32          D_8011572C;
 extern s32          D_80115750;
 extern s32          D_80115758;
 extern u8           D_801156F9;
-extern u32          Gp_LcgState;
 
 void func_8004BFF8(s16 angle, MATRIX* matrix);
 

@@ -25,8 +25,6 @@ EnergyShotScale D_energyshot_801300E4[] = {
 /// The `SndEvt_EnqueueType6` id for each `D_energyshot_801300E4` row.
 s32 D_energyshot_801300FC[] = { 0xE02A0001, 0xE02D0001, 0xE0300001 };
 
-extern s32 Gp_LcgState;
-
 void func_energyshot_8012FA50(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u8* arg3);
 void func_energyshot_8012F750(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
 

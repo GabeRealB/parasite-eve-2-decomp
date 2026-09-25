@@ -358,7 +358,6 @@ typedef struct Actor100400CoordPos {
 } Actor100400CoordPos;
 STATIC_ASSERT_SIZEOF(Actor100400CoordPos, 0x24);
 
-extern u32 Gp_LcgState;
 extern u8  D_801153F2[2];
 extern u8  D_801153F4;
 extern s8  D_80115413;

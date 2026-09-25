@@ -18,8 +18,6 @@
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 
-extern u32 Gp_LcgState;
-
 extern SVECTOR D_dryfield_night_motel_balcony_80182C60[];
 extern SVECTOR D_dryfield_night_motel_balcony_80182C70;
 extern SVECTOR D_dryfield_night_motel_balcony_80182C80;

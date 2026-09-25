@@ -297,7 +297,6 @@ extern s8                   D_801153F1;
 extern TaskDesc             D_8016E468;
 extern MATRIX*              D_80073B8C;
 extern s16                  D_80073BA0;
-extern u32                  Gp_LcgState;
 extern u8                   D_actor_403600_80150ED4;
 extern TaskDesc             D_actor_403600_801421A0;
 extern s32                  D_actor_403600_8016056C;

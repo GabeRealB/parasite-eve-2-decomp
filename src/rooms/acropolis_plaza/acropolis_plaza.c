@@ -246,7 +246,6 @@ typedef union AcropolisPlazaTailMsg {
 STATIC_ASSERT_SIZEOF(AcropolisPlazaTailMsg, 0x1C);
 
 extern s32 D_80070F70;
-extern u32 Gp_LcgState;
 extern s16 D_acropolis_plaza_801987E0[];
 
 extern s8       D_8007106B;

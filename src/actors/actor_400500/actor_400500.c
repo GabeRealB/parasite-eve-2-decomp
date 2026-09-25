@@ -269,7 +269,6 @@ extern u8         D_actor_400500_80153CC0[];
 extern TaskDesc   D_actor_400500_80153D48;
 extern u16        D_actor_400500_80153DB4[];
 extern u8         D_actor_400500_80153DD4[];
-extern s32        Gp_LcgState;
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.

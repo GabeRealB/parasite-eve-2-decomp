@@ -7,6 +7,7 @@
 
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -27,7 +28,6 @@ typedef struct {
 } GolemXfm;
 
 extern s32 D_80070F70;
-extern u32 Gp_LcgState;
 
 #define GOLEM_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
 

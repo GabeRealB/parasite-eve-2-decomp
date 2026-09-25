@@ -356,7 +356,6 @@ extern void*                 Actor01900_D1728C;
 extern char                  Actor01900_D16960;
 extern void*                 Actor01900_D171B4;
 extern MATRIX*               D_80073B8C;
-extern u32                   Gp_LcgState;
 extern Actor01900HeightClamp Actor01900_D172CC[];
 /// Twelve preset hit-reaction directions `Actor01900_Fn02664` copies from;
 /// `pad` carries the index of the coordinate the effect is attached to.

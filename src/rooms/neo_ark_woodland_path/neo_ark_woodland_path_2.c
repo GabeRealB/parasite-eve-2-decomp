@@ -30,9 +30,6 @@
 extern s32 D_80115738;
 extern s32 D_8011574C;
 
-/// Gameplay's LCG state, stepped as `state * 5 + 0x71357911`.
-extern u32 Gp_LcgState;
-
 extern u16 D_801153F6;
 
 /// The room's frame countdown at `D_neo_ark_woodland_path_8018498E`. Signed,

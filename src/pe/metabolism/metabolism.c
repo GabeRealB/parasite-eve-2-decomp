@@ -28,8 +28,6 @@ s32 D_metabolism_8012FB6C[] = { 0xE01F0001, 0xE0220001, 0xE0250001 };
 /// Scratch for the drain ring (was its own _work unit).
 s16 D_metabolism_8012FB78[16] = { 0 };
 
-extern s32 Gp_LcgState;
-
 void func_metabolism_8012F840(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 /// Runs one frame of the metabolism cast. Cancel (`Gp_StateC08.field_3 == -2`

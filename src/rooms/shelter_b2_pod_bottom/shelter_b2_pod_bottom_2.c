@@ -9,13 +9,12 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
-
-extern u32 Gp_LcgState;
 
 /// Scratch block `func_shelter_b2_pod_bottom_8017F994` pops from
 /// `G_SCRATCH_HEAD`: the projected world position, its `gte_stszotz` depth

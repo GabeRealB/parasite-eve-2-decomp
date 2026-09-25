@@ -37,7 +37,6 @@ extern s32 D_8011573C;
 extern s32 D_80115744;
 extern s32 D_80115750;
 extern s32 D_80115758;
-extern s32 Gp_LcgState;
 
 /// Descriptor of the event task the gate spawns.
 extern TaskDesc D_dryfield_motel_balcony_80182270;

@@ -63,7 +63,6 @@ extern RECT           D_80114BD0;
 extern CVECTOR        D_80114BA8;
 extern u8             Gp_DebugAttachLevels[];
 extern TaskFuncTable6 Gp_PlayClockStates;
-extern s32            Gp_LcgState;
 /// "new_disp_2d ----> NULL\n" printed when the 2D display body a task spawns
 /// with cannot be allocated.
 extern const char gGpStrNewDisp2dNull[];

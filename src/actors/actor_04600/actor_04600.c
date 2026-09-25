@@ -190,10 +190,6 @@ typedef struct Actor104600Msg {
     /* 0x2 */ u16 field_2;
 } Actor104600Msg;
 
-/// Free-running random state: `state = state * 5 + 0x71357911`, read back
-/// through the high halfword.
-extern u32 Gp_LcgState;
-
 extern u8 D_801153F2[2];
 extern u8 D_801153F4;
 

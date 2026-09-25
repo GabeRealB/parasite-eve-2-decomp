@@ -296,9 +296,6 @@ extern s8 D_80115419;
 /// switches on it to draw or park the body instead of running the states.
 extern u8 D_801153F4;
 
-/// LCG the approach-cycle ticks roll into the `field_6AE` frame budget.
-extern u32 Gp_LcgState;
-
 /// Per-weapon-id weak-point flags (`id & 0x7F`) for the two hit families,
 /// picked by the id's 0x8000 bit.
 extern s16 Actor05700_D17118[];

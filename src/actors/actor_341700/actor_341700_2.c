@@ -142,8 +142,6 @@ extern SVECTOR D_actor_341700_80176360;
 /// state handler as well.
 extern u8 D_801153F4;
 
-extern u32 Gp_LcgState;
-
 /// Main-executable byte; while it is 1 the contact-record push and avoid
 /// helpers return at once without touching the coordinate.
 extern u8 D_80072729;

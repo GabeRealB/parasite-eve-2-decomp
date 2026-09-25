@@ -27,8 +27,6 @@ AntibodyStep D_antibody_80130BD4[] = {
 /// The `SndEvt_EnqueueType6` id for each `D_antibody_80130BD4` row.
 s32 D_antibody_80130C00[] = { 0xE0290001, 0xE02C0001, 0xE02F0001 };
 
-extern s32 Gp_LcgState;
-
 void func_antibody_801308D4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
 void func_antibody_8012FBB0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
 void func_antibody_8012FFEC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);

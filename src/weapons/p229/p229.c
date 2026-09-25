@@ -25,8 +25,6 @@
 void func_p229_8011D464(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
 void func_p229_8011D860(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
 
-extern s32 Gp_LcgState;
-
 /// Muzzle offset of the P229, in the firing hand's coordinate frame.
 SVECTOR D_p229_8011E0F0 = { 0, 0x140, 0x20, 0 };
 

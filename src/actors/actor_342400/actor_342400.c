@@ -5,6 +5,7 @@
 #include "gameplay/D4.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
+#include "gameplay/gameplay.h"
 #include "actors/actor_342400.h"
 
 /// 4-byte record in the table at `D_actor_342400_8016C010`, indexed (1..16)
@@ -25,8 +26,6 @@ extern Actor342400Limit D_actor_342400_8016C010[];
 extern s16              D_actor_342400_8016C054[][4]; // spawn variant per player-position band, 4 random picks
 extern TaskDesc         D_actor_342400_80173A54;
 extern u16              D_actor_342400_80173AAC;      // spawn counter, `<< 12` into `GpEnemy::placeKey`
-
-extern u32 Gp_LcgState;
 
 s16  func_actor_342400_801624A4(void);
 s16  func_actor_342400_801626CC(s16 arg0, s16 arg1, s16 arg2);

@@ -44,8 +44,6 @@ typedef struct RgFlareScratch {
     /* 0x16 */ u16     sy;
 } RgFlareScratch;
 
-extern s32 Gp_LcgState;
-
 extern s32          D_80070F70;
 extern GpQuadCorner D_80111E38[];
 extern u8           D_801153F4;

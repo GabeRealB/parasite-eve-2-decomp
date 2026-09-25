@@ -179,10 +179,6 @@ typedef struct Actor107000SpawnWork {
 } Actor107000SpawnWork;
 STATIC_ASSERT_SIZEOF(Actor107000SpawnWork, 0x2E4);
 
-/// Free-running linear congruential state every overlay draws its random numbers
-/// from: `state = state * 5 + 0x71357911`, read back through the high halfword.
-extern u32 Gp_LcgState;
-
 extern u8 D_801153F4;
 void      ActorsShared801349d8(Task*);
 

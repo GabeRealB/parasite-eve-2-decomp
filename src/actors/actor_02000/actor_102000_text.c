@@ -12,6 +12,7 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 #include "gameplay/areaplace.h"
+#include "gameplay/gameplay.h"
 #include "gameplay/pairsrc.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -241,7 +242,6 @@ s32                SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2);
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-extern u32 Gp_LcgState;
 extern s32 D_8011572C;
 extern s8  D_80115419;
 extern s16 Actor02000_D03784[];

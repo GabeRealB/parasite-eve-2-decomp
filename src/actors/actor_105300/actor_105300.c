@@ -101,12 +101,6 @@ typedef struct Actor05300Clip {
 } Actor05300Clip;
 STATIC_ASSERT_SIZEOF(Actor05300Clip, 0x4);
 
-/// The gameplay LCG the clip schedules reseed their countdowns from,
-/// `state = state * 5 + 0x71357911`. Unsigned here for the same reason as
-/// `Gp_LcgState` elsewhere: the draws are logical shifts of the high half
-/// (`srl`), which a signed declaration would turn into an arithmetic one.
-extern u32 Gp_LcgState;
-
 /// 0x48-byte part object the spawn allocates with `memCalloc` and parks in
 /// `Task::work`. It leads with the `GpObj` list node linked into
 /// `Gp_ObjLists[2]` -- and the one the part teardown hands back to

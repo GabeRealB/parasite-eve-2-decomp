@@ -28,8 +28,7 @@ s32 D_pyrokinesis_80131DD8[] = {
     0xE0110004,
 };
 
-extern s8  D_80114C0B;
-extern s32 Gp_LcgState;
+extern s8 D_80114C0B;
 
 void func_pyrokinesis_80130DC0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
 void func_pyrokinesis_801312B4(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, s16 arg3);

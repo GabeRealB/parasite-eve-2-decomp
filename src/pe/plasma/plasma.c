@@ -35,8 +35,6 @@ s32 D_plasma_8012FF48[] = { 0xE0160001, 0xE0190001, 0xE01C0001 };
 /// Per-vertex jitter the ring walks each frame; three banks of 16.
 PlasmaJitter D_plasma_8012FF54 = { 0 };
 
-extern s32 Gp_LcgState;
-
 /// Plasma PE ring. `Task::spawnArg2` is the `GpEffWork` block (`scale`
 /// brightness, `index` combo index, `age` tick / inner radius);
 /// `Task::extra` reaches the coordinate. Cancel (`Gp_StateC08.field_3 == -2`

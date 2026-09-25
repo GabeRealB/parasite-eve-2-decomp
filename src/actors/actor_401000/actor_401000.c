@@ -453,10 +453,6 @@ extern Actor401000SeedRec D_actor_401000_8013E0AC[3];
 /// Animation table `func_actor_401000_80133274` writes to `Task::msgTable`.
 extern s32 D_actor_401000_80154F90;
 
-/// Linear congruential generator state `func_actor_401000_8013DF6C` advances
-/// with the same `(x * 5 + 0x71357911) >> 16` draw the 401300 sibling uses.
-extern u32 Gp_LcgState;
-
 /// Overlay-data word `func_actor_401000_8013922C` points
 /// `D_actor_401000_80154E88` at on entering its state.
 extern s32  D_actor_401000_80154634;

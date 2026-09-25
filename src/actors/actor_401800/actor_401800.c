@@ -603,11 +603,6 @@ extern u16 D_actor_401800_80155AC0;
 /// coordinate against for its proximity test. Same global `Actor401300` reads.
 extern MATRIX* D_80073B8C;
 
-/// LCG seed the actor handlers `Gp_LcgState = Gp_LcgState * 5 + 0x71357911`
-/// step and read the high half of; `func_actor_401800_8013E5A4` takes 3 bits
-/// of it as the extra idle steps it adds to `Actor401800Work.field_6`.
-extern u32 Gp_LcgState;
-
 /// The block `func_actor_401800_8013A034` posts into `D_actor_401800_80155978`
 /// when the actor's live flag is set, taking over the animation the actor had
 /// been running. Same pair `Actor401300` keeps as `D_actor_401300_80158878` /

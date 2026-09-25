@@ -43,7 +43,6 @@ STATIC_ASSERT_SIZEOF(_GpPanScratch, 0x18);
 
 void Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
 
-extern s32        Gp_LcgState;
 extern GpItemRec* Gp_SelItemRec;
 
 s32 Gp_ApplyItemUse(GpItemRec* arg0)

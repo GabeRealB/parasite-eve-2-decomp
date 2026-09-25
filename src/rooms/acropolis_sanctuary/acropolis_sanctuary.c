@@ -211,9 +211,6 @@ extern s16 D_80071076;
 extern s8  D_8007218A;
 extern s8  D_80114C12;
 
-/// Gameplay's LCG seed; it has no module header yet.
-extern s32 Gp_LcgState;
-
 extern GpMsgEntry     D_acropolis_sanctuary_8018081C[];
 extern RoomPlacement  D_acropolis_sanctuary_801808BC;
 extern GpRec14        D_acropolis_sanctuary_801809F8;

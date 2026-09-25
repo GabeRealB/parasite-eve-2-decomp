@@ -18,8 +18,6 @@
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 
-extern s32 Gp_LcgState;
-
 extern s32 D_8011572C;
 extern s32 D_80115738;
 extern s32 D_8011574C;

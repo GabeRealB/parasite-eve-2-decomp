@@ -8,6 +8,7 @@
 
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -27,8 +28,6 @@ typedef struct {
     u16 sx;
     u16 sy;
 } _DryfieldR08DiscScratch;
-
-extern s32 Gp_LcgState;
 
 extern SVECTOR D_dryfield_r08_8017F464[];
 extern SVECTOR D_dryfield_r08_8017F4C4[];

@@ -136,7 +136,6 @@ typedef struct Actor341700Msg {
 } Actor341700Msg;
 STATIC_ASSERT_SIZEOF(Actor341700Msg, 0x4);
 
-extern u32        Gp_LcgState;
 extern u8         D_801153F4;                // absolute; the enemy callbacks' mode: 2 hides the model, 1 only recolours it
 extern GpPairSrcE D_actor_341700_8017188C;   // the main enemy's `GpEnemy::param` record
 extern u8         D_actor_341700_80174CEC[]; // animation bank handed to `func_800B3F84`

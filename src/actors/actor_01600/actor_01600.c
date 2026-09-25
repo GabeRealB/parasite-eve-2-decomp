@@ -520,7 +520,7 @@ s32                     Gp_PackPair(struct GpU16Pair* pair, s32 index);
 void                    func_8004BFF8(s16 angle, MATRIX* matrix);
 extern struct GpU16Pair Actor01600_D09F04;
 
-extern s32     Gp_LcgState;
+extern u32     Gp_LcgState;
 extern s32*    Gp_GridParams;
 extern u8      D_80071075;
 extern s16     D_80072830;

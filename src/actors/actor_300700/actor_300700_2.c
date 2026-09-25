@@ -7,6 +7,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3E9C.h"
+#include "gameplay/gameplay.h"
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/task.h"
@@ -44,9 +45,8 @@ void func_actor_300700_801628C8(Actor300700* arg0);
 void func_actor_300700_801633B8(Actor300700* arg0);
 void func_actor_300700_80162EFC(Actor300700* arg0);
 
-extern u8  D_801153F4;
-extern s8  D_80115408;
-extern s32 Gp_LcgState;
+extern u8 D_801153F4;
+extern s8 D_80115408;
 /// `D_80073B8C` is the camera-target matrix positions are measured from.
 extern MATRIX* D_80073B8C;
 /// Per-variant base speed, indexed by `GpAreaPlace::rowIndex`.

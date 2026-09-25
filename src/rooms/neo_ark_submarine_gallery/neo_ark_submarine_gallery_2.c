@@ -36,7 +36,6 @@ extern SVECTOR D_neo_ark_submarine_gallery_80181928[];
 
 extern s32 D_80115738;
 extern s32 D_8011574C;
-extern s32 Gp_LcgState;
 
 void func_neo_ark_submarine_gallery_8017F3DC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
 void func_neo_ark_submarine_gallery_8017FBCC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);

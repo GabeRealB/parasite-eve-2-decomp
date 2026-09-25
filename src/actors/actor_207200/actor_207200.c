@@ -10,14 +10,14 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/gameplay.h"
 
 #include "actors/actors_shared_80135b58.h"
 #include "actors/actors_shared_8014df20.h"
 #include "actors/actor_207200.h"
 
-extern u32 Gp_LcgState;
-extern u8  D_801153F2[2];
-extern u8  D_801153F4;
+extern u8 D_801153F2[2];
+extern u8 D_801153F4;
 
 extern GpPairSrcE D_actor_207200_8014DBBC;
 extern u8         D_actor_207200_8014E7B0[];

@@ -37,7 +37,6 @@ extern u8  D_801153F4;
 extern s32 D_80115730;
 extern s32 D_80115734;
 extern s32 D_80115754;
-extern s32 Gp_LcgState;
 extern s16 D_dryfield_toilet_80181120[][3];
 
 void func_dryfield_toilet_8017EE18(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);

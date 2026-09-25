@@ -10,8 +10,6 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
-extern s32 Gp_LcgState;
-
 void Gp_EffSprTask46(Task* arg0)
 {
     GpEffWork*     mem;

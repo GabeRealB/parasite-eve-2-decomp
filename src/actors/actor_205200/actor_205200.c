@@ -62,7 +62,6 @@ extern s16           D_800691CA;
 extern u8            D_80070F87;
 extern u16           D_80071078;
 extern u8            D_801153F4;
-extern u32           Gp_LcgState;
 extern s32           D_actor_205200_8014CA5C;
 extern ActorWaveCtx* D_actor_205200_80156814;
 extern ActorWaveRec  D_actor_205200_80156818[9];

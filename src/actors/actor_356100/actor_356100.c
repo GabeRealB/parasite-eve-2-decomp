@@ -323,8 +323,6 @@ extern s8 D_actor_356100_801728CC[][45];
 /// overlay keeps its own copy like those two do.
 extern MATRIX* D_80073B8C;
 
-extern u32 Gp_LcgState;
-
 /// Movement-freeze flag: when it is 1 the root coordinate is left alone, so
 /// `func_actor_356100_8016804C`'s two collision pushes are skipped entirely.
 /// Same slot and role as `Actor00100_MoveForwardNonzero`'s guard.

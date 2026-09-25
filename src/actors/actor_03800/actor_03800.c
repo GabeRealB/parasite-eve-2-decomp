@@ -6,6 +6,7 @@
 #include "gameplay/3E9C.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/task.h"
@@ -178,7 +179,6 @@ extern u8    Actor03800_D0492C[];
 extern s8         D_80115410;
 extern u8         D_801153F2;
 extern u8         D_801153F4;
-extern s32        Gp_LcgState;
 extern s16        Actor03800_D05F90[];
 extern s16        Actor03800_D05FA8[];
 extern u16        Actor03800_D05F40;

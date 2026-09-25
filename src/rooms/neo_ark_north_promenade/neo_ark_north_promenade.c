@@ -32,7 +32,6 @@ extern s32 D_8011573C;
 extern s32 D_80115744;
 extern s32 D_80115750;
 extern s32 D_80115758;
-extern s32 Gp_LcgState;
 
 extern GpMsgEntry D_neo_ark_north_promenade_80181D68[];
 

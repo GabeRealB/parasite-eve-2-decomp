@@ -79,7 +79,6 @@ extern s32 D_8011572C;
 extern s32 D_80115750;
 extern s32 D_80115758;
 
-extern s32          Gp_LcgState;
 extern GpQuadCorner D_80111E38[];
 
 /// The fourteen spawn offsets of the forked road's ambient effects, indexed

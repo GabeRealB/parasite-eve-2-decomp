@@ -9,6 +9,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -89,7 +90,6 @@ typedef struct {
 } _ShelterB6TrainingRoomBandShape;
 
 extern s32                             D_80070F70;
-extern u32                             Gp_LcgState;
 extern GsCOORDINATE2*                  D_shelter_b6_training_room_80185C90;
 extern GsCOORDINATE2*                  D_shelter_b6_training_room_80185C94;
 extern u16                             D_shelter_b6_training_room_80185C98;

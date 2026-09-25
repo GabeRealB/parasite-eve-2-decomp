@@ -213,7 +213,6 @@ extern s32       D_80115720;
 extern s32       D_80115728;
 extern s32       D_80115744;
 extern s32       D_8011573C;
-extern s32       Gp_LcgState;
 extern GpU16Pair Actor00300_D15FD8;
 
 extern s16 Actor00300_D16394[];

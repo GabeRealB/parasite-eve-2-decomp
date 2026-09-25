@@ -163,7 +163,6 @@ STATIC_ASSERT_SIZEOF(Actor800100QuadScratch, 0x44);
 extern GpImgRec** D_actor_800100_80167200[];
 extern GpImgRec** D_actor_800100_80167210[];
 
-extern u32 Gp_LcgState;
 
 /// Translation the flare's own coordinate starts at, `(0, 0x200, 0x40)`.
 extern SVECTOR D_actor_800100_80167128;

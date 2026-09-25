@@ -27,8 +27,7 @@ ApobiosisStep D_apobiosis_80130B5C[] = {
 /// The `SndEvt_EnqueueType6` id for each `D_apobiosis_80130B5C` row.
 s32 D_apobiosis_80130B74[] = { 0xE0170001, 0xE01A0001, 0xE01D0001 };
 
-extern s8  D_80114C0B;
-extern s32 Gp_LcgState;
+extern s8 D_80114C0B;
 
 void func_apobiosis_8013017C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
 void func_apobiosis_80130630(GsCOORDINATE2* arg0, s16* arg1, s16 arg2, s16 arg3);

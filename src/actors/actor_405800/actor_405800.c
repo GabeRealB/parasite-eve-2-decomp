@@ -217,8 +217,7 @@ typedef struct Actor405800Work {
 } Actor405800Work;
 STATIC_ASSERT_SIZEOF(Actor405800Work, 0x89C);
 
-extern s32 Gp_LcgState;
-extern u8  D_801153F4;
+extern u8 D_801153F4;
 
 /* `D_800678F0` selects the model stream the next `Gp_SpawnEff` uses as the
  * source for the effect's own `TmdObject`.

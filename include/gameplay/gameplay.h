@@ -363,6 +363,13 @@ extern u16 Gp_ReplayFramesLeft;
 extern s32          D_80114C34;
 extern GpPadReplay* Gp_ReplayCursor;
 
+/// State of the gameplay random generator, kept in the resident image so every
+/// overlay draws from one sequence. A draw steps it to `state * 5 +
+/// 0x71357911` and takes the high halfword. Starting a stream saves it and
+/// resets it to 0, and `Gp_RestoreStreamRng` puts it back, so play resumes the
+/// sequence it left.
+extern u32 Gp_LcgState;
+
 void  Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void  Gp_UpdateCoordEx(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
 void* Gp_AttachTmd(Task* task, TmdSource* src);

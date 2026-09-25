@@ -28,7 +28,6 @@ extern s32 D_8011573C;
 extern s32 D_80115744;
 extern s32 D_80115750;
 extern s32 D_80115758;
-extern s32 Gp_LcgState;
 
 /// The beam placements the view-dependent beam task draws for camera views 2,
 /// 3/6 and 4/7: pairs of end points, of which each view draws a subset.

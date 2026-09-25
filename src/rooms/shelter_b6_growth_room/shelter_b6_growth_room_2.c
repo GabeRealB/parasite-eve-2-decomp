@@ -8,6 +8,7 @@
 
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -47,7 +48,6 @@ void func_shelter_b6_growth_room_8017ED28(GsCOORDINATE2* coord, u16 arg1, s16 ar
 
 extern TaskDesc D_80135E78;
 extern s32      D_80070F70;
-extern u32      Gp_LcgState;
 extern SVECTOR  D_shelter_b6_growth_room_8017F258[];
 extern SVECTOR  D_shelter_b6_growth_room_8017F298[];
 extern SVECTOR  D_shelter_b6_growth_room_8017F2C8[];
