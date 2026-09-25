@@ -45,7 +45,7 @@ void func_kyle_800102_80167A84(Task* arg0)
     work     = memCalloc(sizeof(WeaponGrenadeWork), 0);
     vec      = blk;
     if (work == NULL) {
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+        SCRATCH_POP_BYTES(8);
         taskKill(arg0);
         return;
     }
@@ -110,8 +110,8 @@ void func_kyle_800102_80167A84(Task* arg0)
     work->d4rec.end1.vz    = -(work->field_88.w >> 10);
     Gp_LinkObj(1, &work->obj2);
     Gp_InitRec18Table(work->d4rec.recs, 1, 0);
-    work->obj2.flags       |= 0x4400;
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+    work->obj2.flags |= 0x4400;
+    SCRATCH_POP_BYTES(8);
 }
 
 /// Flight state of Kyle's thrown object. Detonates when the shot has touched
@@ -140,12 +140,12 @@ void func_kyle_800102_80167DE0(Task* arg0)
     s32                   sfxarg;
     s32                   sfxbase;
 
-    work                    = (WeaponGrenadeWork*)arg0->work;
-    coord                   = ((TmdObject*)arg0->extra)->coords;
-    head                    = *(u8**)G_SCRATCH_HEAD;
-    *(void**)G_SCRATCH_HEAD = head - sizeof(WeaponGrenadeScratch);
-    blk                     = (WeaponGrenadeScratch*)(head - sizeof(WeaponGrenadeScratch));
-    coord->flg              = 0;
+    work               = (WeaponGrenadeWork*)arg0->work;
+    coord              = ((TmdObject*)arg0->extra)->coords;
+    head               = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(void) = head - sizeof(WeaponGrenadeScratch);
+    blk                = (WeaponGrenadeScratch*)(head - sizeof(WeaponGrenadeScratch));
+    coord->flg         = 0;
     if (Gp_CountRec18Hi(work->rec0, 0x30000) != 0) {
     explode:
         blk->field_30 = arg0->spawnArg1 & 0xFF00;
@@ -163,10 +163,10 @@ void func_kyle_800102_80167DE0(Task* arg0)
         if (blk->sfx == 0xB) {
             clip = 1;
         }
-        work->field_88.w        = clip;
-        work->obj.flags        &= 0xBFFF;
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(WeaponGrenadeScratch);
-        work->obj.radius        = D_kyle_800102_80177434[blk->sfx - 0xA];
+        work->field_88.w = clip;
+        work->obj.flags &= 0xBFFF;
+        SCRATCH_POP_BYTES(sizeof(WeaponGrenadeScratch));
+        work->obj.radius = D_kyle_800102_80177434[blk->sfx - 0xA];
         return;
     }
 
@@ -221,7 +221,7 @@ move:
     }
     Gp_ClearRec18Occupied(work->rec0);
     Gp_ClearRec18Occupied(work->rec1);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(WeaponGrenadeScratch);
+    SCRATCH_POP_BYTES(sizeof(WeaponGrenadeScratch));
 }
 
 void func_kyle_800102_80168244(Task* arg0)

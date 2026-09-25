@@ -628,5 +628,5 @@ void Title_EnqueueDemoScene(s32 arg0)
     param2[1] = 0;
     CdCmd_Enqueue(0x21, param1, p2);
 
-    *scratch = (u8*)*scratch + 8;
+    SCRATCH_POP_BYTES_AT(scratch, 8);
 }
