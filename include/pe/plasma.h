@@ -8,19 +8,6 @@
 #include "main/coord.h"
 #include "gameplay/3CD8.h"
 
-/// Three 16-entry LCG columns used as per-vertex jitter. `func_plasma_8012EF34`
-/// refills them on state 0 by walking an `s16*` across the object so stores
-/// land at 0x00 / 0x20 / 0x40; `func_plasma_8012F568` consumes column `arg2`.
-typedef struct PlasmaJitter {
-    /* 0x00 */ s16 a;
-    /* 0x02 */ s16 pad_a[15];
-    /* 0x20 */ s16 b;
-    /* 0x22 */ s16 pad_b[15];
-    /* 0x40 */ s16 c;
-    /* 0x42 */ s16 pad_c[15];
-} PlasmaJitter;
-STATIC_ASSERT_SIZEOF(PlasmaJitter, 0x60);
-
 /// Per-ring radius scale for `func_plasma_8012F568`, indexed by ring number
 /// (0..2). `rInner` widens the inner radius (`GpEffWork::angle`), `rExtra`
 /// the outer radius on top of that (`+ GpEffWork::step`), and `yOff` raises
@@ -37,7 +24,10 @@ extern PlasmaRingScale D_plasma_8012FF34[];
 /// `SndEvt` ids for the plasma ring, indexed by `Gp_StateC08.field_0 % 10 - 1`.
 extern s32 D_plasma_8012FF48[];
 
-extern PlasmaJitter D_plasma_8012FF54;
+/// Three 16-entry columns of per-wedge jitter. `func_plasma_8012EF34` fills
+/// them with LCG bytes when the ring spawns; `func_plasma_8012F568` reads
+/// column `arg2` to pick each wedge's texture.
+extern s16 D_plasma_8012FF54[3][16];
 
 /// Draws textured band `arg2` (0..2) of the plasma ring around `arg1`: sixteen
 /// `POLY_FT4` wedges between an outer circle of radius

@@ -140896,3 +140896,23 @@ substituted where it is used.
 that needs a mutable count (`n = arg2;` at the top of the `else`). The `li` is
 then born inside that arm, and the compare still stays a register test because
 CSE loses the value at the loop's exit label.
+
+## `(s16)(x << 6)` narrows an `s16` field's load to `lhu`; `(s16)(x * 64)` keeps `lh` (func_plasma_8012EF34)
+
+**Symptom.** A call argument `(s16)(mem->age << 6)`, where `age` is `s16`,
+loads the field with `lhu` before the `sll 22; sra 16`; the target has `lh`.
+A per-block `s32` local copied from the field fixed it, and needed barriers to
+hold the rest of the block in place.
+
+**Cause.** `convert_to_integer` pushes the truncation to `short` down through a
+left shift by a constant, so the shift and the load happen in HImode and the
+load is emitted unsigned. It does not narrow a `MULT_EXPR` the same way, so the
+multiply keeps the operand promoted to `int` and the load stays signed - which
+is also why a `* 0xC0` argument in the same function matched from the start.
+
+**Fix.** Write the scale as a multiply (`mem->age * 64`, `mem->index * 128 +
+0x100`); the code is identical apart from the load. The same function's
+`arg0` / `&Gp_StateC08` `$s` swap, pinned with two `USE_REG(arg0)`, was the
+release path written once behind a `goto`: each state that releases calling
+`Gp_ReleaseState1CMem(mem, arg0)` itself adds the references that rank `arg0`
+first, and cross-jumping merges the calls back into one tail.
