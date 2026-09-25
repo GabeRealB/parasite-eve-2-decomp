@@ -18,8 +18,10 @@
 /// ticks them. `appliedAnimId` records the id the slots were last seeded with.
 /// `animId` 4 is the walk clip, which `travel` counts down. `yaw` caches the
 /// heading the placement and walk-to opcodes last gave the root coordinate.
-/// `field_4EE` nonzero enables the per-frame effect spawns. `enemy` is the
-/// enemy the actor's task belongs to.
+/// `field_4EE` nonzero enables the per-frame effect spawns. `pairTask` is the
+/// task whose model the visibility opcode drives alongside the actor's own when
+/// `Task::spawnArg1` is set; nothing in this actor stores it, so it keeps the
+/// allocation's zero. `enemy` is the enemy the actor's task belongs to.
 typedef struct Actor160600Work {
     /* 0x000 */ MATRIX     light;
     /* 0x020 */ MATRIX     color;
@@ -37,7 +39,7 @@ typedef struct Actor160600Work {
     /* 0x4EA */ s16        travel;
     /* 0x4EC */ s16        animArg;
     /* 0x4EE */ s16        field_4EE;
-    /* 0x4F0 */ byte       pad_4F0[0x4];
+    /* 0x4F0 */ Task*      pairTask;
     /* 0x4F4 */ GpEnemy*   enemy;
 } Actor160600Work;
 STATIC_ASSERT_SIZEOF(Actor160600Work, 0x4F8);
