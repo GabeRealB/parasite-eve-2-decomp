@@ -3,40 +3,8 @@
 
 #include "common.h"
 
-#include "main/task.h"
-
-/// Work block of the actor's callback task. `promptKind` is the picked hotspot's
-/// prompt display mode, copied from its `Actor143000Rect::field_A` by
-/// `func_actor_143000_801325F0` and handed to `func_800D4E78` when
-/// `func_actor_143000_80133698` re-spawns the prompt.
-typedef struct Actor143000Work {
-    /* 0x00 */ byte pad_0[2];
-    /* 0x02 */ u16  field_2;
-    /* 0x04 */ s16  field_4;
-    /* 0x06 */ s8   promptKind;
-    /* 0x07 */ s8   field_7;
-    /* 0x08 */ s16  field_8;
-    /* 0x0A */ s16  field_A;
-    /* 0x0C */ s32  field_C;
-    /* 0x10 */ s16  field_10;
-    /* 0x12 */ s8   field_12;
-    /* 0x13 */ s8   field_13;
-    /* 0x14 */ s16  field_14;
-    /* 0x16 */ s16  field_16;
-    /* 0x18 */ s16  field_18;
-    /* 0x1A */ s16  field_1A;
-} Actor143000Work;
-STATIC_ASSERT_SIZEOF(Actor143000Work, 0x1C);
-
-typedef struct Actor143000 {
-    /* 0x00 */ byte             pad_0[0x1C];
-    /* 0x1C */ Actor143000Work* field_1C;
-    /* 0x20 */ byte             pad_20[0xA];
-    /* 0x2A */ s16              field_2A;
-    /* 0x2C */ byte             pad_2C[4];
-    /* 0x30 */ s32              field_30;
-} Actor143000;
-
+/// Spawn argument the actor hands to the task it starts once the code is
+/// entered (`D_actor_143000_80135C08`); that task sets `field_1` when it starts.
 typedef struct Actor143000Spawn {
     /* 0x0 */ u8  field_0;
     /* 0x1 */ u8  field_1;
@@ -44,52 +12,6 @@ typedef struct Actor143000Spawn {
 } Actor143000Spawn;
 STATIC_ASSERT_SIZEOF(Actor143000Spawn, 4);
 
-/// One entry of the `D_actor_143000_80134580` list, a screen-space sprite rect
-/// `func_actor_143000_80133334` draws as `(x, y, x + w, y + h)`. The list is
-/// terminated by an entry whose `field_8` is -1.
-typedef struct Actor143000Rect {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 y;
-    /* 0x4 */ s16 w;
-    /* 0x6 */ s16 h;
-    /* 0x8 */ s16 field_8;
-    /* 0xA */ s8  field_A;
-    /// Non-zero while the entry is live for `func_actor_143000_801325F0`;
-    /// `func_actor_143000_801324C8` clears it on every entry at spawn.
-    /* 0xB */ s8 field_B;
-} Actor143000Rect;
-STATIC_ASSERT_SIZEOF(Actor143000Rect, 0xC);
-
-/// Spawn argument for the task that captures successive horizontal image strips.
-typedef struct Actor143000CaptureArgs {
-    /* 0x0 */ u16 x;
-    /* 0x2 */ s16 y;
-    /* 0x4 */ u16 w;
-    /* 0x6 */ s16 h;
-    /* 0x8 */ s32 total;
-    /* 0xC */ s32 count;
-} Actor143000CaptureArgs;
-STATIC_ASSERT_SIZEOF(Actor143000CaptureArgs, 0x10);
-
-/// State table of the actor's `Task::callback`, `func_actor_143000_801335C8`:
-/// eleven `TaskFunc` entries, one per `Task::state`, which that body copies
-/// onto its stack before indexing. Entry 7 is the step-switch body
-/// `func_actor_143000_80132A04`; the rest are the spawners and per-state
-/// handlers in the sibling units.
-extern TaskFuncTable11 D_actor_143000_80131E84;
-
-void func_actor_143000_80132A04(Actor143000* arg0);
-void func_actor_143000_80132D10(Actor143000* arg0);
-s32  func_actor_143000_80133AE8(Actor143000Rect* p, s16 x, s16 y);
-void func_actor_143000_80133C2C(void);
-void func_actor_143000_80133CF0(Task* arg0);
-void func_actor_143000_80133334(Actor143000Rect* arg0, u8 r, u8 g, u8 b);
-void func_actor_143000_80133EE4(Task* arg0);
-
-/// State 1 of the action-prompt task: the per-frame cursor driver.
-void func_actor_143000_80131F80(Task* task);
-
-/// State 0 of the action-prompt task: resets both prompt slots.
-void func_actor_143000_80133C90(Task* task);
+extern Actor143000Spawn D_actor_143000_80135C08;
 
 #endif

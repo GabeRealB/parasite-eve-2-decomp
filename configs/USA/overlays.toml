@@ -4289,13 +4289,7 @@ id = 132
 objects = [
   { kind = "packageId" },
   { unit = "actor_143000/actor_143000", rodata = "0x4", text = "0x160" },
-  { unit = "actor_143000/actor_143000_3", rodata = "0xA4", text = "0x18C8" },
-  { unit = "actor_143000/actor_143000_5", rodata = "0xB8", text = "0x20C4" },
-  { unit = "actor_143000/actor_143000_6", text = "0x1758" },
-  { unit = "actor_143000/actor_143000_2", text = "0x17A8" },
-  { unit = "actor_143000/actor_143000_7", text = "0x1844" },
-  { unit = "actor_143000/actor_143000_8", text = "0x1E70" },
-  { unit = "actor_143000/actor_143000_4", text = "0x1ED0" },
+  { unit = "actor_143000/actor_143000_2", rodata = "0xB8", text = "0x20C4" },
   { kind = "data", at = "0x2738" },
 ]
 

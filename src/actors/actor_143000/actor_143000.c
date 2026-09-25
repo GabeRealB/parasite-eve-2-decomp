@@ -1,10 +1,15 @@
 #include "common.h"
 
+#include <psyq/memory.h>
+#include <psyq/rand.h>
+
 #include "actors/actor_143000.h"
 #include "gameplay/268.h"
+#include "gameplay/3688.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/display.h"
+#include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/pad.h"
 #include "main/session.h"
@@ -12,32 +17,85 @@
 #include "main/task.h"
 #include "psyq/strings.h"
 #include "rooms/room_common.h"
-extern TaskDesc D_actor_143000_801350C8;
 
-extern s32              D_80070F6C;
-extern s8               D_8007218B;
-extern u8               D_801153F4;
-extern GpAreaApplyRec   D_80186488;
-extern GpAreaApplyRec   D_8018649C;
-extern char             D_actor_143000_80131EB0[];
-extern char             D_actor_143000_80131EBC[];
-extern TaskDesc         D_actor_143000_80134558;
-extern u8               D_actor_143000_80134570[];
-extern Actor143000Rect  D_actor_143000_80134580[];
-extern s32              D_actor_143000_801351B0;
-extern s32              D_actor_143000_80135870;
-extern s32              D_actor_143000_80135A20;
-extern s32              D_actor_143000_80135AE0;
-extern s32              D_actor_143000_80135C00;
-extern s32              D_actor_143000_80135C04;
-extern Actor143000Spawn D_actor_143000_80135C08;
-extern u8               D_actor_143000_80135C0C;
-extern s32              D_actor_143000_80135C14;
-extern s32              D_actor_143000_80135C18;
-extern s32              D_actor_143000_80135C1C;
-extern char             D_actor_143000_80135C20[];
-extern u8               D_actor_143000_80135C38[];
-void                    func_actor_143000_801323E0(s32 x, s32 y, s32 variant);
+/// Work block of the actor's callback task. `promptKind` is the picked hotspot's
+/// prompt display mode, copied from its `Actor143000Rect::field_A` by
+/// `func_actor_143000_801325F0` and handed to `func_800D4E78` when
+/// `func_actor_143000_80133698` re-spawns the prompt.
+typedef struct Actor143000Work {
+    /* 0x00 */ byte pad_0[2];
+    /* 0x02 */ u16  field_2;
+    /* 0x04 */ s16  field_4;
+    /* 0x06 */ s8   promptKind;
+    /* 0x07 */ s8   field_7;
+    /* 0x08 */ s16  field_8;
+    /* 0x0A */ s16  field_A;
+    /* 0x0C */ s32  field_C;
+    /* 0x10 */ s16  field_10;
+    /* 0x12 */ s8   field_12;
+    /* 0x13 */ s8   field_13;
+    /* 0x14 */ s16  field_14;
+    /* 0x16 */ s16  field_16;
+    /* 0x18 */ s16  field_18;
+    /* 0x1A */ s16  field_1A;
+} Actor143000Work;
+STATIC_ASSERT_SIZEOF(Actor143000Work, 0x1C);
+
+/// One hotspot of the `D_actor_143000_80134580` list: a screen rect
+/// `func_actor_143000_80133AE8` hit-tests the prompt cursor against. The list
+/// ends on an entry whose `field_8` is -1.
+typedef struct Actor143000Rect {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 y;
+    /* 0x4 */ s16 w;
+    /* 0x6 */ s16 h;
+    /* 0x8 */ s16 field_8;
+    /* 0xA */ s8  field_A;
+    /// Set while the prompt cursor is inside the rect; cleared on every entry
+    /// when `func_actor_143000_801324C8` starts the actor.
+    /* 0xB */ s8 field_B;
+} Actor143000Rect;
+STATIC_ASSERT_SIZEOF(Actor143000Rect, 0xC);
+
+/// Spawn argument of `func_actor_143000_80133CF0`, the task that captures
+/// successive horizontal image strips.
+typedef struct Actor143000CaptureArgs {
+    /* 0x0 */ u16 x;
+    /* 0x2 */ s16 y;
+    /* 0x4 */ u16 w;
+    /* 0x6 */ s16 h;
+    /* 0x8 */ s32 total;
+    /* 0xC */ s32 count;
+} Actor143000CaptureArgs;
+STATIC_ASSERT_SIZEOF(Actor143000CaptureArgs, 0x10);
+
+extern s8              D_8007216C;
+extern s8              D_8007218B;
+extern s16             D_80114D08;
+extern u8              D_801153F4;
+extern TaskDesc        D_actor_143000_80134558;
+extern u8              D_actor_143000_80134570[];
+extern Actor143000Rect D_actor_143000_80134580[];
+extern char*           D_actor_143000_801345F8[];
+extern TaskDesc        D_actor_143000_801350B0;
+extern s32             D_actor_143000_80135C00;
+extern s32             D_actor_143000_80135C04;
+extern u8              D_actor_143000_80135C0C;
+extern char            D_actor_143000_80135C20[];
+
+void func_actor_143000_801323E0(s32 x, s32 y, s32 variant);
+void func_actor_143000_80132A04(Task* arg0);
+void func_actor_143000_80133664(Task* task);
+void func_actor_143000_80133698(Task* task);
+void func_actor_143000_801336E8(Task* arg0);
+void func_actor_143000_80133800(Task* arg0);
+void func_actor_143000_801338C8(Task* arg0);
+void func_actor_143000_801338E0(Task* arg0);
+void func_actor_143000_801339CC(Task* arg0);
+void func_actor_143000_80133AC0(Task* arg0);
+s32  func_actor_143000_80133AE8(Actor143000Rect* p, s16 x, s16 y);
+void func_actor_143000_80133C2C(void);
+void func_actor_143000_80133C90(Task* task);
 
 /// Per-frame cursor driver of the action prompt, run as state 1 of the prompt
 /// task that `func_actor_143000_80133578` dispatches.
@@ -275,7 +333,7 @@ void func_actor_143000_801324C8(Task* arg0)
     Gp_MsgPlayer3F3(0);
 }
 
-void func_actor_143000_801325F0(Actor143000* arg0)
+void func_actor_143000_801325F0(Task* arg0)
 {
     Actor143000Work*  work;
     u8                u;
@@ -292,7 +350,7 @@ void func_actor_143000_801325F0(Actor143000* arg0)
     u8                uw;
     u8                vh;
 
-    work                     = arg0->field_1C;
+    work                     = arg0->work;
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
     p                        = D_actor_143000_80134580;
@@ -319,14 +377,14 @@ void func_actor_143000_801325F0(Actor143000* arg0)
                         prompt->targetId = 0;
                         work->field_8    = prompt->screen.xy.x;
                         work->field_A    = prompt->screen.xy.y;
-                        arg0->field_30   = 8;
+                        arg0->state      = 8;
                         return;
                     }
                     prompt->mode     = 0;
                     prompt->targetId = 0;
                     work->field_2    = p->field_8;
                     work->promptKind = p->field_A;
-                    arg0->field_30   = 3;
+                    arg0->state      = 3;
                     return;
                 }
             }
@@ -377,44 +435,53 @@ void func_actor_143000_801325F0(Actor143000* arg0)
         prompt->mode = 1;
     }
     if (prompt->buttons[1].state == 2) {
-        arg0->field_30 = 5;
+        arg0->state = 5;
     }
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_143000/actor_143000", D_actor_143000_80131E54);
+/// The three rows of the code keypad, bottom row first;
+/// `D_actor_143000_801345F8` lists them top row first.
+const char D_actor_143000_80131E54[] = "NOPQRSTUVWXYZ";
+const char D_actor_143000_80131E64[] = "ABCDEFGHIJKLM";
+const char D_actor_143000_80131E74[] = "0123456789-# ";
 
-INCLUDE_RODATA("actors/nonmatchings/actor_143000/actor_143000", D_actor_143000_80131E84);
+/// State table of the actor's callback, `func_actor_143000_801335C8`, which
+/// copies it onto its stack and indexes it with `Task::state`.
+const TaskFuncTable11 D_actor_143000_80131E84 = { {
+    func_actor_143000_801324C8,
+    func_actor_143000_80133664,
+    func_actor_143000_801325F0,
+    func_actor_143000_80133698,
+    func_actor_143000_801336E8,
+    func_actor_143000_80133800,
+    func_actor_143000_801338C8,
+    func_actor_143000_80132A04,
+    func_actor_143000_801338E0,
+    func_actor_143000_801339CC,
+    func_actor_143000_80133AC0,
+} };
 
-INCLUDE_RODATA("actors/nonmatchings/actor_143000/actor_143000", D_actor_143000_80131EB0);
+/// The codes `func_actor_143000_80132A04` accepts; the second only while
+/// `D_8007218B` is non-zero.
+const char D_actor_143000_80131EB0[] = "A3EILM2S2Y";
+const char D_actor_143000_80131EBC[] = "YSD";
 
-#if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
-__asm__(".section .rodata\n"
-        "\t.align 2\n"
-        "\t.globl D_actor_143000_80131EBC\n"
-        "D_actor_143000_80131EBC:\n"
-        "\t.asciz \"YSD\"\n"
-        "\t.align 2\n"
-        "\t.asciz \"\"\n"
-        "\t.align 2\n"
-        ".section .text\n");
-#endif
-
-void func_actor_143000_80132A04(Actor143000* arg0)
+void func_actor_143000_80132A04(Task* arg0)
 {
     s32              var_s2;
     Actor143000Work* temp_s0;
 
     COMPILER_BARRIER();
-    temp_s0 = arg0->field_1C;
+    temp_s0 = arg0->work;
     var_s2  = 0;
-    if (arg0->field_2A == 0) {
+    if (arg0->killCountdown == 0) {
         if ((strcmp(D_actor_143000_80135C20, D_actor_143000_80131EB0) == 0) || ((strcmp(D_actor_143000_80135C20, D_actor_143000_80131EBC) == 0) && (D_8007218B != 0))) {
             var_s2 = 1;
         }
         temp_s0->field_C = var_s2;
     }
     if (temp_s0->field_C != 0) {
-        switch (arg0->field_2A) {
+        switch (arg0->killCountdown) {
             case 0:
                 temp_s0->field_12 = 2;
                 break;
@@ -443,16 +510,16 @@ void func_actor_143000_80132A04(Actor143000* arg0)
                 temp_s0->field_12 = 5;
                 break;
             case 0x14A:
-                arg0->field_30                  = 0xA;
+                arg0->state                     = 0xA;
                 D_actor_143000_80135C08.field_0 = 0;
                 D_actor_143000_80135C08.field_1 = 0;
                 D_actor_143000_80135C08.field_2 = 0xF;
-                arg0->field_2A                  = 0xF;
+                arg0->killCountdown             = 0xF;
                 Task_Spawn(1, 0x31, 0, (s32)&D_actor_143000_80135C08);
                 break;
         }
     } else {
-        switch (arg0->field_2A) {
+        switch (arg0->killCountdown) {
             case 0:
                 temp_s0->field_12 = 2;
                 break;
@@ -497,14 +564,14 @@ void func_actor_143000_80132A04(Actor143000* arg0)
             case 0x14A:
                 temp_s0->field_12 = 1;
                 temp_s0->field_10 = 0;
-                arg0->field_30    = 2;
+                arg0->state       = 2;
                 break;
         }
     }
-    arg0->field_2A = (s16)((u16)arg0->field_2A + 1);
+    arg0->killCountdown = (s16)((u16)arg0->killCountdown + 1);
 }
 
-void func_actor_143000_80132D10(Actor143000* arg0)
+void func_actor_143000_80132D10(Task* arg0)
 {
     Actor143000Work* work;
     POLY_FT4*        prim;
@@ -522,7 +589,7 @@ void func_actor_143000_80132D10(Actor143000* arg0)
     s16              clut;
 
     x1                                      = -0x48;
-    work                                    = arg0->field_1C;
+    work                                    = arg0->work;
     D_actor_143000_80135C20[work->field_10] = 0;
     D_actor_143000_80135C00++;
     y = 0x10;
@@ -543,7 +610,7 @@ void func_actor_143000_80132D10(Actor143000* arg0)
         addPrim(&gGpuCurrentOt[0x3FE], prim);
         x1 += 8;
     }
-    if (work->field_10 != 0x14 && arg0->field_30 != 7) {
+    if (work->field_10 != 0x14 && arg0->state != 7) {
         u              = 0x60;
         v              = 0xB8;
         prim           = (POLY_FT4*)gGpuPrimCursor;
@@ -616,7 +683,7 @@ void func_actor_143000_80132D10(Actor143000* arg0)
     setShadeTex(prim, 1);
     addPrim(&gGpuCurrentOt[0x3FE], prim);
     D_actor_143000_80135C04 += work->field_18;
-    if (arg0->field_30 != 7 && arg0->field_30 != 0xA) {
+    if (arg0->state != 7 && arg0->state != 0xA) {
         work->field_16 -= work->field_18;
         if (work->field_16 < -0xD00) {
             work->field_16 = 0xA00;
@@ -682,4 +749,304 @@ void func_actor_143000_80133334(Actor143000Rect* rect, u8 r, u8 g, u8 b)
     line->g0 = g;
     line->b0 = b;
     addPrim(gGpuCurrentOt + 1, line);
+}
+
+/// Callback of the action-prompt task that `func_actor_143000_801324C8` spawns
+/// from `D_actor_143000_80134558`: a two-state dispatcher whose handler table
+/// is built on the stack. State 0, `func_actor_143000_80133C90`, resets both
+/// prompt slots; state 1, `func_actor_143000_80131F80`, drives the cursor every
+/// frame from then on.
+void func_actor_143000_80133578(Task* task)
+{
+    TaskFunc funcs[2] = {
+        func_actor_143000_80133C90,
+        func_actor_143000_80131F80,
+    };
+
+    funcs[task->state](task);
+}
+
+void func_actor_143000_801335C8(Task* arg0)
+{
+    TaskFuncTable11 fns;
+
+    fns = D_actor_143000_80131E84;
+    fns.funcs[arg0->state](arg0);
+    func_actor_143000_80132D10(arg0);
+}
+
+/// State 1 of the actor's callback: arms the first action-prompt slot with
+/// target id 0x80, marks it highlighted (`mode` 1), clears its screen position
+/// and steps the task on to state 2.
+void func_actor_143000_80133664(Task* task)
+{
+    RoomActionPrompt* prompt = &D_80114D28;
+
+    prompt->targetId    = 0x80;
+    prompt->mode        = 1;
+    prompt->screen.xy.x = 0;
+    prompt->screen.xy.y = 0;
+    task->state         = task->state + 1;
+}
+
+/// State 3 of the actor's callback, entered once a hotspot is picked: clears
+/// the prompt's highlight and target, re-spawns the prompt at its current
+/// screen position with the picked hotspot's `promptKind`, and moves the task
+/// to state 4.
+void func_actor_143000_80133698(Task* task)
+{
+    RoomActionPrompt* prompt = &D_80114D28;
+    Actor143000Work*  work   = (Actor143000Work*)task->work;
+
+    prompt->mode     = 0;
+    prompt->targetId = 0;
+    func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
+    task->state = 4;
+}
+
+void func_actor_143000_801336E8(Task* arg0)
+{
+    Actor143000Work*  work   = arg0->work;
+    RoomActionPrompt* prompt = &D_80114D28;
+    s32               cmd;
+
+    prompt->mode     = 0;
+    prompt->targetId = 0;
+    if (func_800D4EC0() != 0) {
+        switch ((s16)(work->field_2 - 1)) {
+            case 0:
+                cmd = 8;
+                goto run;
+            case 1:
+                cmd = 7;
+                goto run;
+            case 3:
+                cmd = 9;
+            run:
+                Gp_RunCapCmd(cmd, 0);
+                arg0->state = 2;
+                break;
+            case 2:
+                SndEvt_EnqueueType6(0x541F0010, 0, 0);
+                arg0->state         = 7;
+                arg0->killCountdown = 0;
+                break;
+            case 4:
+                work->field_7 = 1;
+                Gp_RunCapCmd(0xA, 0);
+                if (GameFlag_GetNibble(0xD0) == 1) {
+                    arg0->killCountdown = 0xA;
+                    arg0->state         = 9;
+                } else {
+                    arg0->state = 2;
+                }
+                break;
+            default:
+                arg0->state = 2;
+                break;
+        }
+    } else if (work->field_4 != 0) {
+        arg0->state = 6;
+    } else {
+        arg0->state = 2;
+    }
+}
+
+void func_actor_143000_80133800(Task* arg0)
+{
+    Actor143000Work* work = (Actor143000Work*)arg0->work;
+
+    Display_ReleaseRef();
+    gGameSession->cutsceneHold = 0;
+    if (work->field_C == 0) {
+        D_80114D08               = 0xA;
+        gGameSession->eventState = 0;
+        gGameSession->hideHud    = 0;
+        D_801153F4               = 0;
+        D_8007216C               = D_actor_143000_80135C0C;
+        Gp_MsgPlayer3F3(1);
+    } else {
+        Task_SpawnFromTable(&D_actor_143000_801350B0, 1, 0, (s32)&D_actor_143000_80135C08);
+    }
+    taskKill((Task*)arg0->spawnArg2);
+    Task_RequestKill(arg0, work->field_C);
+}
+
+void func_actor_143000_801338C8(Task* arg0)
+{
+    ((Actor143000Work*)arg0->work)->field_4 = 0;
+    arg0->state                             = 2;
+}
+
+void func_actor_143000_801338E0(Task* arg0)
+{
+    Actor143000Work* work = arg0->work;
+    s32              col  = (work->field_8 + 0x80) / 16;
+    s32              row  = (work->field_A - 0x20) / 16;
+    char*            key;
+
+    if ((u32)col < 13) {
+        if (row >= 0) {
+            if (row < 3) {
+                key = D_actor_143000_801345F8[row] + col;
+                if ((s8)*key == '#') {
+                    work->field_10 = 0;
+                } else if ((s8)*key == '-') {
+                    if (work->field_10 > 0) {
+                        work->field_10--;
+                    }
+                } else if (work->field_10 < 20) {
+                    D_actor_143000_80135C20[work->field_10] = *key;
+                    work->field_10++;
+                }
+                work->field_18 = 0x30;
+            }
+        }
+    }
+    arg0->state = 2;
+}
+
+void func_actor_143000_801339CC(Task* arg0)
+{
+    Actor143000Work* work = arg0->work;
+    u32              count;
+
+    if (Gp_CapBusy() == 0) {
+        count               = (u16)arg0->killCountdown - 1;
+        arg0->killCountdown = count;
+        if ((s16)count <= 0) {
+            arg0->killCountdown = (rand() * 8 >> 15) + 8;
+            work->field_10++;
+            SndEvt_EnqueueType6(0x541F0013, 0, 0);
+            memcpy(D_actor_143000_80135C20, D_actor_143000_80131EB0, 11);
+            count = work->field_10;
+            if (count >= 0xA) {
+                arg0->state = 2;
+            }
+        }
+    }
+}
+
+void func_actor_143000_80133AC0(Task* arg0)
+{
+    u16 count = (u16)arg0->killCountdown - 1;
+
+    arg0->killCountdown = count;
+    if ((s16)count <= 0) {
+        arg0->state = 5;
+    }
+}
+
+s32 func_actor_143000_80133AE8(Actor143000Rect* p, s16 x, s16 y)
+{
+    s32 result = 0;
+
+    if (p->field_8 != -1) {
+        do {
+            if (x >= p->x && x < p->x + p->w && y >= p->y && y < p->y + p->h) {
+                if (Mc_SaveData.demoScene == 9) {
+                    func_actor_143000_80133334(p, 0, 0, 0);
+                }
+                p->field_B = 1;
+                if (result == 0) {
+                    result = p->field_8;
+                }
+            } else {
+                if (Mc_SaveData.demoScene == 9) {
+                    func_actor_143000_80133334(p, 0xFF, 0, 0);
+                }
+                p->field_B = 0;
+            }
+            p++;
+        } while (p->field_8 != -1);
+    }
+    return result;
+}
+
+void func_actor_143000_80133C2C(void)
+{
+    Actor143000Rect* p = D_actor_143000_80134580;
+
+    if (p->field_8 != -1) {
+        do {
+            func_actor_143000_80133334(p, 0, 0xFF, 0);
+            p++;
+        } while (p->field_8 != -1);
+    }
+}
+
+/// State 0 of the action-prompt task: resets both prompt slots before the
+/// first cursor frame -- clears the position accumulators and the two
+/// buttons' held-frame counters, parks the target id (the cursor speed) at
+/// 0x100 and `field_E` (the double-press window) at 0xF, marks the slot
+/// highlighted -- and steps the task on one state.
+void func_actor_143000_80133C90(Task* task)
+{
+    RoomActionPrompt* prompt = &D_80114D28;
+    s32               i;
+
+    for (i = 0; i < 2; i++, prompt++) {
+        prompt->field_0               = 0;
+        prompt->field_4               = 0;
+        prompt->targetId              = 0x100;
+        prompt->field_E               = 0xF;
+        prompt->buttons[0].heldFrames = 0;
+        prompt->buttons[1].heldFrames = 0;
+        prompt->mode                  = 1;
+    }
+    task->state = task->state + 1;
+}
+
+void func_actor_143000_80133CF0(Task* arg0)
+{
+    Actor143000CaptureArgs* p = arg0->spawnArg2;
+    RECT                    r;
+    RECT                    r2;
+    s32                     n;
+    s32                     offset;
+    RECT*                   rp;
+    s32                     bottom;
+    Task*                   killTask = arg0;
+
+    SOFT_TOUCH_REG(killTask);
+    if (gGameSession->at4.loc.view == 0xE) {
+        switch (arg0->state) {
+            case 0:
+                arg0->killCountdown = 6;
+                p->count            = 0;
+                arg0->state++;
+                return;
+            case 1:
+                if (--arg0->killCountdown > 0) {
+                    return;
+                }
+                arg0->killCountdown = 6;
+                r.x                 = p->x;
+                r.w                 = p->w;
+                r.y                 = p->y + p->h * p->count / p->total;
+                n                   = p->count + 1;
+                rp                  = &r2;
+                SOFT_TOUCH_REG_USE(rp, n);
+                p->count = n;
+                bottom   = p->y + p->h * n / p->total;
+                offset   = r.y * 640;
+                r.h      = bottom - r.y;
+                SOFT_USE_REG(offset);
+                r2    = r;
+                r2.x  = 0x1C0;
+                rp->w = 0x140;
+                r2.y += 0x100;
+                StoreImage(rp, (u32*)((u8*)Fs_ImgBuffers + offset));
+                killTask = arg0;
+                if (p->count >= p->total) {
+                    goto kill;
+                }
+                break;
+        }
+    } else {
+        goto kill;
+    }
+    return;
+kill:
+    taskKill(killTask);
 }
