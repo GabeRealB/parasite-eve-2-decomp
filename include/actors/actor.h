@@ -610,6 +610,41 @@ typedef struct Actor05300SndRow {
 } Actor05300SndRow;
 STATIC_ASSERT_SIZEOF(Actor05300SndRow, 0x4);
 
+/// Work block of the enemy whose code both actor_350500 and actor_350700
+/// carry, allocated zeroed at its full size and kept at `Task::work`. The two
+/// matrices are published as the model's light and colour matrices, so the
+/// actor draws with its own lighting.
+typedef struct Actor350500Work {
+    GpAnimCtx  anim;
+    GpAnimSlot slots[0x13];  // the slot array handed to `func_800B3F84`
+    byte       poses[0x130]; // pose buffer handed to `func_800B3F84`
+    s8         field_43C;    // animation-tick enable
+    s8         field_43D;    // current animation id
+    s8         field_43E;    // current bank index
+    s8         field_43F;    // animation id the approach step plays on arrival
+    MATRIX     light;
+    MATRIX     color;
+    VECTOR3    target;    // world position the actor walks to
+    byte       pad_48C[0x4];
+    VECTOR3    step;      // per-frame world-space delta the accumulators take
+    byte       pad_49C[0x4];
+    s32        field_4A0; // 16.16 accumulators; only the high half reaches the coordinate
+    s32        field_4A4;
+    s32        field_4A8;
+    byte       pad_4AC[0x4];
+    SVECTOR    limit;     // per-axis stop threshold; 0x7FFF on all three disables it
+    u16        field_4B8; // placement rotation
+    u16        field_4BA; // placement yaw the final turn steers toward
+    u16        field_4BC;
+    byte       pad_4BE[0x2];
+    u16        field_4C0; // selects the idle or the walk tick handler
+    u16        field_4C2; // index into the walk-step table
+    s8         field_4C4; // variant the two-case message handler latches
+    s8         field_4C5; // frames until the model buffers are freed; -1 disables
+    byte       pad_4C6[0x2];
+} Actor350500Work;
+STATIC_ASSERT_SIZEOF(Actor350500Work, 0x4C8);
+
 /* Contexts. */
 
 /// Ramp context of the screen-wave task. Whoever spawns the task seeds the

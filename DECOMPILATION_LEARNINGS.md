@@ -99973,7 +99973,7 @@ while the extracted field is `s16` is the part m2c cannot infer.
 
 **Two work blocks in one overlay overlap at 0x4B8, and the shared body reads
 the other one.** This body's `arg0->idMap` is the *actor* block (0x4C8,
-`Actor350700Work`), so `field_4BA` there is a plain `u16`. It looks impossible
+`Actor350500Work`), so `field_4BA` there is a plain `u16`. It looks impossible
 beside `func_actor_350700_801630C0`, which stores three *words* at
 0x4B8/0x4BC/0x4C0 - but that body runs on the *controller* block, the 0x50C
 allocation `func_actor_350700_80162B30` parks in a different task's `idMap`

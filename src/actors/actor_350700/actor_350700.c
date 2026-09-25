@@ -15,46 +15,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Work block allocated by `func_actor_350700_80162404` (`memCalloc(0x4C8)`)
-/// and parked in that task's `Task::work` slot -- that slot is not a
-/// `TaskIdMap` here. `func_actor_350700_801624B4` republishes the two matrices
-/// onto `TmdObject::lightMtx` / `field_20`, the light/colour pair
-/// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`.
-///
-/// The size is the allocation, and the fields below are the ones the init
-/// seeds: the three `sb` bytes at 0x43D/0x43E/0x4C5 are set to -1, and the
-/// three words at 0x4A0..0x4A8 are cleared.
-typedef struct Actor350700Work {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[0x13];  // the slot array `func_800B3F84` is handed
-    /* 0x30C */ byte       poses[0x130]; // pose buffer `func_800B3F84` is handed
-    /* 0x43C */ s8         field_43C;    // animation-tick enable
-    /* 0x43D */ s8         field_43D;
-    /* 0x43E */ s8         field_43E;
-    /* 0x43F */ s8         field_43F;
-    /* 0x440 */ MATRIX     light;
-    /* 0x460 */ MATRIX     color;
-    /* 0x480 */ VECTOR3    target;
-    /* 0x48C */ byte       pad_48C[0x4];
-    /* 0x490 */ VECTOR3    step; // local-space offset `ApplyMatrixLV` rotates into world space
-    /* 0x49C */ byte       pad_49C[0x4];
-    /* 0x4A0 */ s32        field_4A0;
-    /* 0x4A4 */ s32        field_4A4;
-    /* 0x4A8 */ s32        field_4A8;
-    /* 0x4AC */ byte       pad_4AC[0x4];
-    /* 0x4B0 */ SVECTOR    limit;     // per-axis stop threshold; 0x7FFF on all three disables it
-    /* 0x4B8 */ u16        field_4B8;
-    /* 0x4BA */ u16        field_4BA; // target yaw the turn-to-face body steers toward
-    /* 0x4BC */ u16        field_4BC;
-    /* 0x4BE */ byte       pad_4BE[0x2];
-    /* 0x4C0 */ u16        field_4C0; // body counter the turn-to-face body clears on arrival
-    /* 0x4C2 */ u16        field_4C2; // index into the state-handler table `D_actor_350700_80161E30`
-    /* 0x4C4 */ s8         field_4C4;
-    /* 0x4C5 */ s8         field_4C5;
-    /* 0x4C6 */ byte       pad_4C6[0x2];
-} Actor350700Work;
-STATIC_ASSERT_SIZEOF(Actor350700Work, 0x4C8);
-
 /// 0x14-byte animation preset the two 0x7D3 handlers take:
 /// `func_actor_350700_80162860` for the enemy actor, `func_actor_350700_801636A8`
 /// for the parent. `field_0` is the bank index, `field_4` the animation id,
@@ -71,7 +31,7 @@ typedef struct Actor350700AnimPreset {
 STATIC_ASSERT_SIZEOF(Actor350700AnimPreset, 0x14);
 
 /// Spawn placement `func_actor_350700_801621B4` copies into the work block:
-/// the position into `Actor350700Work::target`, the rotation into
+/// the position into `Actor350500Work::target`, the rotation into
 /// `field_4B8..field_4BC`.
 typedef struct Actor350700Placement {
     /* 0x00 */ VECTOR  pos;
@@ -100,7 +60,7 @@ STATIC_ASSERT_SIZEOF(Actor350700Coord, 0x4C);
 
 /// Payload of the two-case message handler `func_actor_350700_80162AF4`:
 /// only the halfword at 0x2 is read, selecting the variant it latches into
-/// `Actor350700Work::field_4C4`.
+/// `Actor350500Work::field_4C4`.
 typedef struct Actor350700Msg {
     /* 0x0 */ u16 field_0;
     /* 0x2 */ u16 field_2;
@@ -109,14 +69,14 @@ STATIC_ASSERT_SIZEOF(Actor350700Msg, 0x4);
 
 /// Work block allocated by `func_actor_350700_80162B30` (`memCalloc(0x50C)`)
 /// and parked in that task's `Task::work` slot -- that slot is not a
-/// `TaskIdMap` here, just as with `Actor350700Work`. This is the parent
+/// `TaskIdMap` here, just as with `Actor350500Work`. This is the parent
 /// actor's block: the init seeds the
 /// two `sb` bytes at 0x475/0x476 and the word at 0x508 to -1, clears the
 /// three words at 0x4D8..0x4E0, and stores the three child tasks it spawns
 /// from `D_actor_350700_801708DC` at 0x4FC/0x500/0x504. `func_actor_350700_801633DC`
 /// then republishes the light/colour matrix pair onto the parent's
 /// `TmdObject::lightMtx` / `field_20`, exactly as `func_actor_350700_801624B4`
-/// does for `Actor350700Work`.
+/// does for `Actor350500Work`.
 ///
 /// The size is the allocation; the fields below are the ones the parent's
 /// handlers touch. The tick keeps a
@@ -205,7 +165,7 @@ const TaskFuncTable3 D_actor_350700_80161E24 = { {
     func_actor_350700_80162494,
 } };
 
-/// Tick handlers of the enemy actor, indexed by `Actor350700Work::field_4C2`:
+/// Tick handlers of the enemy actor, indexed by `Actor350500Work::field_4C2`:
 /// turn to face `target`, start moving, approach until arrival, then turn to
 /// the placement yaw.
 const TaskFuncTable4 D_actor_350700_80161E30 = { {
@@ -261,7 +221,7 @@ const VECTOR D_actor_350700_80161E78 = { 0, 0, 0x200000, 0 };
 void func_actor_350700_80161E88(Task* arg0)
 {
     TmdObject*       ext      = arg0->extra;
-    Actor350700Work* work     = (Actor350700Work*)arg0->work;
+    Actor350500Work* work     = (Actor350500Work*)arg0->work;
     TaskFunc         funcs[2] = { func_actor_350700_801624D0, func_actor_350700_801624D8 };
     VECTOR3          pos;
     GsCOORDINATE2*   coord;
@@ -307,14 +267,14 @@ void func_actor_350700_80161E88(Task* arg0)
 /// the new `limit`.
 void func_actor_350700_80162070(Task* arg0)
 {
-    Actor350700Work*      work;
+    Actor350500Work*      work;
     GsCOORDINATE2*        coord;
     SVECTOR               d;
     s32                   dx;
     s32                   dz;
     Actor350700AnimPreset preset;
 
-    work  = (Actor350700Work*)arg0->work;
+    work  = (Actor350500Work*)arg0->work;
     coord = ((TmdObject*)arg0->extra)->coords;
     if (work->target.vx - coord->coord.t[0] >= 0) {
         dx = (u16)work->target.vx - (u16)coord->coord.t[0];
@@ -351,14 +311,14 @@ void func_actor_350700_80162070(Task* arg0)
 /// `func_actor_350700_80162860` written out inline. Returns 0.
 s32 func_actor_350700_801621B4(Task* task, s32 arg1, Actor350700Placement* place, Actor350700SpawnAnim* anim)
 {
-    Actor350700Work*       work;
-    Actor350700Work*       w;
+    Actor350500Work*       work;
+    Actor350500Work*       w;
     Actor350700AnimPreset  preset;
     Actor350700AnimPreset* msg;
     s32                    i;
     TmdObject*             ext;
 
-    w              = (Actor350700Work*)task->work;
+    w              = (Actor350500Work*)task->work;
     w->field_4C0   = 1;
     w->field_4C2   = 0;
     w->target.vx   = place->pos.vx;
@@ -384,7 +344,7 @@ s32 func_actor_350700_801621B4(Task* task, s32 arg1, Actor350700Placement* place
     preset.field_10 = 1;
 
     msg  = &preset;
-    work = (Actor350700Work*)task->work;
+    work = (Actor350500Work*)task->work;
     ext  = task->extra;
     if (msg->field_0 != work->field_43E) {
         work->field_43E = msg->field_0;
@@ -432,9 +392,9 @@ void func_actor_350700_80162398(Task* task)
 /// leaving a half-built actor behind.
 void func_actor_350700_80162404(Task* arg0)
 {
-    Actor350700Work* work;
+    Actor350500Work* work;
 
-    work = memCalloc(sizeof(Actor350700Work), false);
+    work = memCalloc(sizeof(Actor350500Work), false);
     if (work == NULL) {
         Gp_EnemyTaskExit(arg0);
         return;
@@ -467,10 +427,10 @@ void func_actor_350700_80162494(Task* arg0)
 void func_actor_350700_801624B4(Task* arg0)
 {
     TmdObject*       ext;
-    Actor350700Work* work;
+    Actor350500Work* work;
 
     ext           = arg0->extra;
-    work          = (Actor350700Work*)arg0->work;
+    work          = (Actor350500Work*)arg0->work;
     ext->lightMtx = &work->light;
     ext->colorMtx = &work->color;
 }
@@ -485,9 +445,9 @@ void func_actor_350700_801624D0(Task* arg0)
 void func_actor_350700_801624D8(Task* arg0)
 {
     TaskFuncTable4   sp;
-    Actor350700Work* work;
+    Actor350500Work* work;
 
-    work = (Actor350700Work*)arg0->work;
+    work = (Actor350500Work*)arg0->work;
     sp   = D_actor_350700_80161E30;
     sp.funcs[(s16)work->field_4C2](arg0);
 }
@@ -500,13 +460,13 @@ void func_actor_350700_801624D8(Task* arg0)
 /// bumping `field_4C2` moves on to the next handler.
 void func_actor_350700_80162540(Task* task)
 {
-    Actor350700Work*  work;
+    Actor350500Work*  work;
     Actor350700Coord* coord;
     VECTOR            delta;
     SVECTOR           dir;
     SVECTOR           rot;
 
-    work  = (Actor350700Work*)task->work;
+    work  = (Actor350500Work*)task->work;
     coord = (Actor350700Coord*)((TmdObject*)task->extra)->coords;
 
     delta.vx = work->target.vx - coord->coord.t[0];
@@ -538,12 +498,12 @@ void func_actor_350700_80162540(Task* task)
 /// shrinks it to -0.4 of its length whenever `field_4C4` is clear.
 void func_actor_350700_8016261C(Task* arg0)
 {
-    Actor350700Work* work;
+    Actor350500Work* work;
     GsCOORDINATE2*   coord;
     VECTOR           vec;
 
     coord = ((TmdObject*)arg0->extra)->coords;
-    work  = (Actor350700Work*)arg0->work;
+    work  = (Actor350500Work*)arg0->work;
 
     vec = D_actor_350700_80161E40;
     if (work->field_4C4 == 0) {
@@ -568,7 +528,7 @@ void func_actor_350700_8016261C(Task* arg0)
 /// `_gpUpdateCoordTree` picks up once `flg` is cleared.
 void func_actor_350700_80162764(Task* arg0)
 {
-    Actor350700Work*      work;
+    Actor350500Work*      work;
     ActorMatWords*        words;
     GsCOORDINATE2*        coord;
     SVECTOR               vec;
@@ -577,7 +537,7 @@ void func_actor_350700_80162764(Task* arg0)
     s16                   diff;
 
     coord = ((TmdObject*)arg0->extra)->coords;
-    work  = (Actor350700Work*)arg0->work;
+    work  = (Actor350500Work*)arg0->work;
 
     Gp_ExtractEuler(&vec, &coord->coord);
     diff = (u16)work->field_4BA - (u16)vec.vy;
@@ -621,11 +581,11 @@ void func_actor_350700_80162764(Task* arg0)
 /// of that. Returns 0.
 s32 func_actor_350700_80162860(Task* task, s32 arg1, Actor350700AnimPreset* msg, s32 arg3)
 {
-    Actor350700Work* work;
+    Actor350500Work* work;
     TmdObject*       ext;
     s32              i;
 
-    work = (Actor350700Work*)task->work;
+    work = (Actor350500Work*)task->work;
     ext  = task->extra;
     if (msg->field_0 != work->field_43E) {
         work->field_43E = msg->field_0;
@@ -698,7 +658,7 @@ s32 func_actor_350700_80162A14(Task* task, s32 arg1, s32 mode)
             break;
         case 2:
             obj->flags                               |= 0x80;
-            ((Actor350700Work*)task->work)->field_4C5 = mode;
+            ((Actor350500Work*)task->work)->field_4C5 = mode;
             obj->flags                               |= 4;
             break;
         case 3:
@@ -717,9 +677,9 @@ s32 func_actor_350700_80162A14(Task* task, s32 arg1, s32 mode)
 /// leaves it. Always returns 0.
 s32 func_actor_350700_80162AF4(Task* task, s32 arg1, Actor350700Msg* msg)
 {
-    Actor350700Work* work;
+    Actor350500Work* work;
 
-    work = (Actor350700Work*)task->work;
+    work = (Actor350500Work*)task->work;
     switch (msg->field_2) {
         case 1:
             work->field_4C4 = 0;
