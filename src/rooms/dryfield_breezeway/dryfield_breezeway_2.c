@@ -142,19 +142,6 @@ typedef union DbwMsgBuf {
 } DbwMsgBuf;
 STATIC_ASSERT_SIZEOF(DbwMsgBuf, 0x14);
 
-/// 0x18-byte placement record this room sends as `Gp_DispatchMsg`'s `arg2` for
-/// message 0x7D4, the reset that drops `pos` into the receiving display object's
-/// coordinate frame -- the actor side's handler of that message reads only the
-/// yaw back out (`rot.vy`). Same shape as the shared
-/// `ActorShared8013411cPlacement`, and the same shape the cafeteria's 0x7D4
-/// payload has. `D_dryfield_breezeway_80181E28` is the first of a
-/// three-record run in the room's data blob, stride 0x18.
-typedef struct DbwPlacement {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} DbwPlacement;
-STATIC_ASSERT_SIZEOF(DbwPlacement, 0x18);
-
 /// A point in the plane the room works in: an `SVECTOR`'s three components plus
 /// the halfword that rounds the record up to the 8-byte stride the room's stack
 /// slots for it have, with `vz` a real component the room pins to zero.
@@ -195,7 +182,7 @@ extern Task* D_dryfield_breezeway_801843C0;
 /// Placement this room hands on with message 0x7D4 from
 /// `func_dryfield_breezeway_8017E2D4`, `func_dryfield_breezeway_8017E390` and
 /// `func_dryfield_breezeway_8017DEC0`: world x 17000, y 0, z 3000, yaw 0xA00.
-extern DbwPlacement D_dryfield_breezeway_80181E28;
+extern RoomPlacement D_dryfield_breezeway_80181E28;
 
 /// The two placements that follow it in the same three-record run, which
 /// `func_dryfield_breezeway_8017DEC0` sends to slot 3 as the second and third
@@ -203,7 +190,7 @@ extern DbwPlacement D_dryfield_breezeway_80181E28;
 /// player with, and `[1]` -- the run's third record -- the one message 0x3EE
 /// does. The label the decomp references is the start of this array, so the
 /// third record is reached as `[1]` rather than by a symbol of its own.
-extern DbwPlacement D_dryfield_breezeway_80181E40[];
+extern RoomPlacement D_dryfield_breezeway_80181E40[];
 
 /// The key-item prompt's own hotspot table: the one-entry 0xFFFF-terminated
 /// `RoomHotspot` run `func_dryfield_breezeway_8017E65C` hit-tests at the

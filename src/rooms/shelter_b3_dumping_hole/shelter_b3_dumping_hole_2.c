@@ -207,12 +207,6 @@ typedef struct {
     u16     fall;
 } DumpingHoleShard;
 
-/// Position and rotation the task hands itself with message 0x7D4.
-typedef struct {
-    VECTOR  pos;
-    SVECTOR rot;
-} DumpingHolePose;
-
 /// A `MATRIX` plus the word-wise view its rotation is reset to identity
 /// through: five aligned stores instead of nine halfword ones.
 typedef union {
@@ -227,28 +221,28 @@ typedef union {
 } DumpingHoleMatWords;
 
 typedef struct {
-    MATRIX          lightMtx;
-    MATRIX          colorMtx;
-    DumpingHolePose pose;     // Sent to the task itself with message 0x7D4
-    SVECTOR         field_58; // Spawn parameters handed by address to the table spawns
-    SVECTOR         field_60;
-    GsCOORDINATE2*  field_68;
-    s16             field_6C;
-    s16             field_6E;
-    VECTOR          scale; // Per-axis scale applied to the rotation of model part 3
-    Task*           field_80;
-    Task*           field_84;
-    Task*           field_88;
-    u16             state; // One-shot command, cleared once handled
-    u16             step;  // Progress through the sequence the command started
-    u16             timer; // Frames spent in the current step
-    u8              pad_92[0x2];
-    s16             field_94;
-    s16             field_96;
-    s16             field_98; // X rotation of model part 1 once the sequence reaches step 2
-    s16             field_9A;
-    u16             field_9C; // Latch: set once the state-F0 release has been issued
-    u8              pad_9E[0x2];
+    MATRIX         lightMtx;
+    MATRIX         colorMtx;
+    RoomPlacement  pose;     // Sent to the task itself with message 0x7D4
+    SVECTOR        field_58; // Spawn parameters handed by address to the table spawns
+    SVECTOR        field_60;
+    GsCOORDINATE2* field_68;
+    s16            field_6C;
+    s16            field_6E;
+    VECTOR         scale; // Per-axis scale applied to the rotation of model part 3
+    Task*          field_80;
+    Task*          field_84;
+    Task*          field_88;
+    u16            state; // One-shot command, cleared once handled
+    u16            step;  // Progress through the sequence the command started
+    u16            timer; // Frames spent in the current step
+    u8             pad_92[0x2];
+    s16            field_94;
+    s16            field_96;
+    s16            field_98; // X rotation of model part 1 once the sequence reaches step 2
+    s16            field_9A;
+    u16            field_9C; // Latch: set once the state-F0 release has been issued
+    u8             pad_9E[0x2];
 } DumpingHoleEntity4;
 
 typedef struct {
@@ -398,7 +392,7 @@ extern s32                    D_shelter_b3_dumping_hole_80188A78;
 extern DumpingHoleFlags       D_shelter_b3_dumping_hole_8018EF04;
 extern u16                    D_shelter_b3_dumping_hole_8018F4B0;
 extern Task*                  D_shelter_b3_dumping_hole_8018F4AC;
-extern DumpingHolePose        D_shelter_b3_dumping_hole_8018966C;
+extern RoomPlacement          D_shelter_b3_dumping_hole_8018966C;
 extern TaskDesc               D_shelter_b3_dumping_hole_80189ADC;
 extern s32                    D_shelter_b3_dumping_hole_8018F4D8;
 extern s32                    D_shelter_b3_dumping_hole_8018965C;

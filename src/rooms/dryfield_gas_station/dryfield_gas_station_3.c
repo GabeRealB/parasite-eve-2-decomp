@@ -43,14 +43,6 @@ typedef struct DgsWork {
 } DgsWork;
 STATIC_ASSERT_SIZEOF(DgsWork, 0x10);
 
-/// Payload of message 0x3E9: the world position and rotation the owner is
-/// placed at.
-typedef struct DgsPlacement {
-    VECTOR  pos;
-    SVECTOR rot;
-} DgsPlacement;
-STATIC_ASSERT_SIZEOF(DgsPlacement, 0x18);
-
 /// Payload of message 0x3FE, a displacement the owner is asked to move by.
 /// Only `x`, `y`, `z` and `field_10` are written here; the role of `field_10`
 /// and `field_12` is not established by this room.
@@ -65,16 +57,16 @@ typedef struct DgsMsg3FE {
 } DgsMsg3FE;
 STATIC_ASSERT_SIZEOF(DgsMsg3FE, 0x14);
 
-extern u8           D_80071075;
-extern s8           D_80114C12;
-extern s32          D_dryfield_gas_station_80182E30;
-extern DgsPlacement D_dryfield_gas_station_80182E44[];
-extern DgsPlacement D_dryfield_gas_station_80182E5C;
-extern DgsPlacement D_dryfield_gas_station_80182E74;
-extern s32          D_dryfield_gas_station_80182E8C;
-extern s32          D_dryfield_gas_station_8018303C;
-extern TaskDesc     D_dryfield_gas_station_8018312C[];
-extern SVECTOR      D_dryfield_gas_station_80183144;
+extern u8            D_80071075;
+extern s8            D_80114C12;
+extern s32           D_dryfield_gas_station_80182E30;
+extern RoomPlacement D_dryfield_gas_station_80182E44[];
+extern RoomPlacement D_dryfield_gas_station_80182E5C;
+extern RoomPlacement D_dryfield_gas_station_80182E74;
+extern s32           D_dryfield_gas_station_80182E8C;
+extern s32           D_dryfield_gas_station_8018303C;
+extern TaskDesc      D_dryfield_gas_station_8018312C[];
+extern SVECTOR       D_dryfield_gas_station_80183144;
 
 /// The cutscene task `func_dryfield_gas_station_801807E0` publishes once its
 /// `DgsWork` block is set up, so the room's script helpers can reach it.

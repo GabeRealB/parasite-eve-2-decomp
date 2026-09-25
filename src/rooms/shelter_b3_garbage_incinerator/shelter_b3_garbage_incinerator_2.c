@@ -36,13 +36,6 @@ extern s8       D_8007218A;
 extern s8       D_80114C12;
 extern TaskDesc D_80164FF8;
 
-/// A position and orientation: the payload of message 0x7D4, and the shape of
-/// the room's two-entry table of resting poses.
-typedef struct {
-    VECTOR  pos;
-    SVECTOR rot;
-} _Pose;
-
 /// Work block of the task that moves its model while steering another task.
 /// `lightMtx` and `colorMtx` are the model's own light and colour matrices,
 /// `target` is the task that receives each frame's pose, `start*` its
@@ -66,9 +59,9 @@ typedef struct {
 } _DescentWork;
 
 extern s8             D_8007216D;
-extern _Pose          D_shelter_b3_garbage_incinerator_80185B58[2];
+extern RoomPlacement  D_shelter_b3_garbage_incinerator_80185B58[2];
 extern GpMsgEntry     D_shelter_b3_garbage_incinerator_80185B40[];
-extern _Pose          D_shelter_b3_garbage_incinerator_80185B88;
+extern RoomPlacement  D_shelter_b3_garbage_incinerator_80185B88;
 extern GpAreaApplyRec D_shelter_b3_garbage_incinerator_8018FB6C;
 extern Task*          D_shelter_b3_garbage_incinerator_8018FC34;
 
@@ -273,7 +266,7 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
 /// the sequence is over.
 s16 func_shelter_b3_garbage_incinerator_8017DF24(Task* arg0)
 {
-    _Pose          msg;
+    RoomPlacement  msg;
     _DescentWork*  work  = arg0->work;
     GsCOORDINATE2* coord = ((TmdObject*)arg0->extra)->coords;
     GsCOORDINATE2* ref   = ((TmdObject*)work->target->extra)->coords;
