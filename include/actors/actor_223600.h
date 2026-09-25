@@ -35,7 +35,8 @@ typedef struct Actor223600Work {
     /* 0x174 */ s16        field_174; ///< motion state
     /* 0x176 */ u16        field_176;
     /* 0x178 */ s16        field_178;
-    /* 0x17A */ byte       pad_17A[0x4];
+    /* 0x17A */ s16        field_17A; ///< frames since the motion last restarted
+    /* 0x17C */ s16        field_17C; ///< frames since then with `field_58` bit 1 set
     /* 0x17E */ s16        field_17E;
     /* 0x180 */ u8         field_180;
     /* 0x181 */ u8         field_181;
@@ -125,13 +126,14 @@ extern u8 D_801153F4;
 /// step for that frame.
 extern u8 D_80072729;
 
-/// The three state handlers `func_actor_223600_8014CA00` copies onto its stack
-/// before the indirect call, in the order the dispatcher indexes them: entry 0
-/// is the shared idle handler, 1 the show handler and 2 the hide handler. The
-/// entries are `GpEnemyTaskFunc`s, so the tick is an `ActorsShared80135df4`
-/// handler alongside `func_actor_223600_8014B540` and `Gp_DestroyEnemy` in
-/// `ActorsShared80135df4Table`.
+/// The three handlers `func_actor_223600_8014CA00` picks between by the work
+/// block's state word, copied onto its stack before the indirect call: 0 the
+/// idle state, 1 the approach state and 2 the parked state.
 extern const GpEnemyTaskFuncTable3 D_actor_223600_80149E4C;
+
+/// The enemy's three task states -- spawn, per-frame tick and teardown -- which
+/// `func_actor_223600_8014CF6C` runs by `Task::state`.
+extern const GpEnemyTaskFuncTable3 D_actor_223600_80149E58;
 
 /// Restarts the model's motion for the work block's current state. Declared
 /// without a prototype because its two call sites pass different argument
@@ -145,5 +147,6 @@ void func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task);
 void func_actor_223600_8014CA00(GpEnemy* enemy, Task* task);
 s32  func_actor_223600_8014CC04(Task* task, s32 arg1, s32 arg2);
 s32  func_actor_223600_8014CCD4(Task* task, s32 arg1, Actor223600Event* event);
+void func_actor_223600_8014CF3C(GpEnemy* arg0, Task* arg1);
 
 #endif // ACTOR_223600_H

@@ -1,15 +1,1 @@
 // Overlay-local symbols for actor_223600.
-ActorsShared80135990 = 0x8014CD54; // shared body, see src/lib/
-ActorsShared80135df4Table = 0x80149E58; // shared body data, see src/lib/
-ActorsShared80135df4 = 0x8014CF6C; // shared body, see src/lib/
-ActorsShared80135a60 = 0x8014CE24; // shared body, see src/lib/
-ActorsShared80132808 = 0x80149E64; // shared body, see src/lib/
-ActorsShared80134178 = 0x8014CF3C; // shared body, see src/lib/
-ActorsSharedFn000e8 = 0x8014A170; // shared body, see src/lib/
-func_actor_223600_8014A170 = 0x8014A170; // type:func absolute:True
-ActorsSharedFn00430 = 0x8014A4B8; // shared body, see src/lib/
-func_actor_223600_8014A4B8 = 0x8014A4B8; // type:func absolute:True
-ActorsSharedFn00820 = 0x8014B2F4; // shared body, see src/lib/
-func_actor_223600_8014B2F4 = 0x8014B2F4; // type:func absolute:True
-RoomsShared80182078 = 0x8014ABA8; // shared body, see src/lib/
-func_actor_223600_8014ABA8 = 0x8014ABA8; // type:func absolute:True

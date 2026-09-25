@@ -1,7 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_223600.h"
-#include "actors/actors_shared_80134178.h"
 #include "gameplay/3A34.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -529,23 +528,23 @@ void func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task)
 /// object rather than a local initialiser.
 const GpEnemyTaskFuncTable3 D_actor_223600_80149E4C = {
     {
-        ActorsShared80134178,
+        func_actor_223600_8014CF3C,
         func_actor_223600_8014B840,
         func_actor_223600_8014BBF4,
     },
 };
 
-/// Per-frame tick of the park/unpark machine `ActorsShared80135df4` dispatches
-/// to. The game mode word selects a one-shot arm first: mode 0 clears the
-/// model's `field_C` when the work block is parked and then falls through to
-/// the shared body, mode 1 does the same and returns, and mode 2 forces
-/// `field_C` to 0x80 and returns. The shared body records the state change in
-/// `field_4` and the dispatched state in `field_2`, runs the state handler,
+/// Per-frame tick of this enemy, entry 1 of `D_actor_223600_80149E58`. The
+/// game mode word selects a one-shot arm first: mode 0 clears the model's
+/// `field_C` when the work block's state is nonzero and then carries on, mode 1
+/// does the same and returns, and mode 2 forces `field_C` to 0x80 and returns.
+/// The common path records the state change in `field_4` and the dispatched
+/// state in `field_2`, runs the state handler from `D_actor_223600_80149E4C`,
 /// turns the animation latch `func_actor_223600_8014B464` raises into a
-/// `SndEvt_EnqueueType6` cue -- the work id from the enemy's `field_8` in its
+/// `SndEvt_EnqueueType6` cue -- the top nibble of the enemy's `placeKey` in
 /// bits 8-11, with the model's pan and depth -- and finally re-parks the model
-/// through `func_800D7A9C` while `field_20C` is set, latching it once the
-/// non-resident mode or an empty coordinate arrives.
+/// through `func_800D7A9C` while `field_20C` is set, latching `field_20C` once
+/// the session's `viewReady` or a dirty coordinate arrives.
 void func_actor_223600_8014CA00(GpEnemy* enemy, Task* task)
 {
     Actor223600Work*      work;
@@ -603,7 +602,7 @@ void func_actor_223600_8014CA00(GpEnemy* enemy, Task* task)
     work->field_20C = 0;
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_223600/actor_223600_2", ActorsShared80135df4Table);
+INCLUDE_RODATA("actors/nonmatchings/actor_223600/actor_223600_2", D_actor_223600_80149E58);
 
 /// Message handler (id 0x7D5 in `D_actor_223600_80150B28`). Drives the model's
 /// `field_C` flag word and the work block's state word from `arg2`: 0 sets 0x80

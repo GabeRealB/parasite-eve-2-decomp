@@ -1,7 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_223600.h"
-#include "actors/actors_shared_80134178.h"
 #include "gameplay/3A34.h"
 #include "main/gfx.h"
 #include "main/mem.h"
