@@ -21,6 +21,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "rooms/rooms_shared_8017e4f8.h"
@@ -45,7 +46,7 @@ extern GpMsgEntry D_dryfield_motel_balcony_8018227C[];
 
 /// Per-tint channel shifts for the halo task, indexed by the tint the spawn
 /// argument selects.
-extern RoomsShared8017e4f8Shade D_dryfield_motel_balcony_801822AC[];
+extern RoomHaloShade D_dryfield_motel_balcony_801822AC[];
 
 /// The beam's two anchor offsets, relative to the effect's parent. The second
 /// is also reached by its own name.

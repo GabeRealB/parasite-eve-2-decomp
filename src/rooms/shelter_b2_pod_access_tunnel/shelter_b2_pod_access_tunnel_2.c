@@ -16,6 +16,7 @@
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "rooms/rooms_shared_8017e4f8.h"
@@ -37,7 +38,7 @@ extern SVECTOR D_shelter_b2_pod_access_tunnel_80183CC8[];
 
 /// Tint rows for the expanding halo, indexed by the palette selector in its
 /// spawn argument.
-extern RoomsShared8017e4f8Shade D_shelter_b2_pod_access_tunnel_80183DC8[];
+extern RoomHaloShade D_shelter_b2_pod_access_tunnel_80183DC8[];
 
 /// The two offsets the trail task places its coordinates at: `[0]` for the
 /// object's own coordinate and `[1]` for the second trail. The per-tick path

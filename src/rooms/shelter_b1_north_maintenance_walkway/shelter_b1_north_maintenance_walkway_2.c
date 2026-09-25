@@ -16,6 +16,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "rooms/rooms_shared_8017e4f8.h"
@@ -27,7 +28,7 @@ extern s32 D_80115730;
 
 /// Per-palette channel shifts for the halo, indexed by the palette the spawn
 /// argument selects.
-extern RoomsShared8017e4f8Shade D_shelter_b1_north_maintenance_walkway_80184B50[];
+extern RoomHaloShade D_shelter_b1_north_maintenance_walkway_80184B50[];
 
 /// Offsets from the anchor of the two points the twin trail follows. The
 /// second is also reached under its own name.
@@ -36,7 +37,7 @@ extern SVECTOR D_shelter_b1_north_maintenance_walkway_80184B6C;
 
 /// Per-colour channel shifts for the glowing disc, indexed by the spawn
 /// argument.
-extern RoomsShared8017e4f8Shade D_shelter_b1_north_maintenance_walkway_80184B74[];
+extern RoomHaloShade D_shelter_b1_north_maintenance_walkway_80184B74[];
 
 void func_shelter_b1_north_maintenance_walkway_8017EB84(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3);
 void func_shelter_b1_north_maintenance_walkway_8017FB44(GsCOORDINATE2* coord, s16 size);

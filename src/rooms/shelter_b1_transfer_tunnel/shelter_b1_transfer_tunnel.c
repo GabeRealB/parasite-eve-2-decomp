@@ -17,6 +17,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "rooms/rooms_shared_8017e4f8.h"
@@ -43,7 +44,7 @@ extern SVECTOR D_shelter_b1_transfer_tunnel_801828F8[];
 
 /// Per-palette right shifts that turn the halo's level into its red, green
 /// and blue channels.
-extern RoomsShared8017e4f8Shade D_shelter_b1_transfer_tunnel_80182930[];
+extern RoomHaloShade D_shelter_b1_transfer_tunnel_80182930[];
 
 /// The smoke trail's two spawn offsets: `[0]` places the effect's own
 /// coordinate and `[1]` the second trail's origin. State 1 reads `[1]` again

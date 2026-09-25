@@ -16,6 +16,7 @@
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "rooms/rooms_shared_8017e4f8.h"
@@ -37,7 +38,7 @@ extern SVECTOR D_shelter_b1_elevator_hall_80182D34[];
 extern SVECTOR D_shelter_b1_elevator_hall_80182D84[];
 
 /// Per-index shifts applied to the flash brightness, one per colour channel.
-extern RoomsShared8017e4f8Shade D_shelter_b1_elevator_hall_80182DD4[];
+extern RoomHaloShade D_shelter_b1_elevator_hall_80182DD4[];
 
 /// Offsets of the two trail anchors from the effect's parent; the second entry
 /// is also reached through its own name.

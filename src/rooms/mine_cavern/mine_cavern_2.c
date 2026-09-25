@@ -44,7 +44,7 @@ extern SVECTOR D_mine_cavern_80188FB4[];
 extern SVECTOR D_mine_cavern_80188FBC;
 extern SVECTOR D_mine_cavern_80188FC4[];
 
-extern RoomsShared8017ff88Shade D_mine_cavern_80188FCC[];
+extern RoomHaloShade D_mine_cavern_80188FCC[];
 
 void func_mine_cavern_8017F50C(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3);
 void func_mine_cavern_801804CC(GsCOORDINATE2* coord, s16 size);

@@ -19,15 +19,6 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-/// Per-band radius and height offsets `func_shelter_r48_8017F124` adds to the
-/// effect work's ring parameters: `rInner` widens the inner ring, `rExtra` the
-/// outer ring on top of the step, `yOff` raises the inner ring.
-typedef struct {
-    s16 rInner;
-    s16 yOff;
-    s16 rExtra;
-} _ShelterR48RingScale;
-
 s32     rcos(s32);
 s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
@@ -48,9 +39,9 @@ extern u8  D_80071090;
 /// The room's message table, installed on the room task.
 extern GpMsgEntry D_shelter_r48_80182FB8[];
 
-extern SVECTOR              D_shelter_r48_8018300C;
-extern u8                   D_shelter_r48_8018BE54[6][16];
-extern _ShelterR48RingScale D_shelter_r48_80182FE8[];
+extern SVECTOR       D_shelter_r48_8018300C;
+extern u8            D_shelter_r48_8018BE54[6][16];
+extern RoomRingShape D_shelter_r48_80182FE8[];
 
 void func_shelter_r48_8017E1A4(Task* arg0);
 void func_shelter_r48_8017E214(Task* task);
@@ -904,21 +895,21 @@ void func_shelter_r48_8017EFD8(Task* task)
 /// texture cell from the band's `D_shelter_r48_8018BE54` row and the work's age.
 void func_shelter_r48_8017F124(GpEffWork* work, GsCOORDINATE2* coord, s32 part)
 {
-    void**                scratch;
-    u8*                   head;
-    GpBandScratch*        block;
-    SVECTOR*              op;
-    POLY_FT4*             prim;
-    _ShelterR48RingScale* row;
-    s32                   i;
-    s32                   next;
-    s32                   ang;
-    s32                   u;
-    u16                   idx;
-    s16                   r0;
-    s16                   r1;
-    u16                   y;
-    u16                   f28;
+    void**         scratch;
+    u8*            head;
+    GpBandScratch* block;
+    SVECTOR*       op;
+    POLY_FT4*      prim;
+    RoomRingShape* row;
+    s32            i;
+    s32            next;
+    s32            ang;
+    s32            u;
+    u16            idx;
+    s16            r0;
+    s16            r1;
+    u16            y;
+    u16            f28;
 
     row      = &D_shelter_r48_80182FE8[part];
     f28      = (u16)work->period;

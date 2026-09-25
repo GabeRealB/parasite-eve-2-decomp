@@ -60,7 +60,7 @@ extern SVECTOR D_neo_ark_pavilion_801838A0;
 
 /// Per-tint channel shifts for the glowing disc, indexed by the tint the spawn
 /// argument selects.
-extern RoomsShared8017e4f8Shade D_neo_ark_pavilion_801838A8[];
+extern RoomHaloShade D_neo_ark_pavilion_801838A8[];
 
 /// Spawn argument of the helper task 0x31 the room's event task starts.
 extern GpStateBD8 D_neo_ark_pavilion_80187A0C;

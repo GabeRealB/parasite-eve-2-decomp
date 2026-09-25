@@ -17,6 +17,7 @@
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "rooms/rooms_shared_8017e4f8.h"
@@ -39,7 +40,7 @@ extern SVECTOR D_shelter_b2_north_maintenance_walkway_80183C30[];
 
 /// Per-palette channel shifts for the halo, indexed by the palette the spawn
 /// argument selects.
-extern RoomsShared8017e4f8Shade D_shelter_b2_north_maintenance_walkway_80183C38[];
+extern RoomHaloShade D_shelter_b2_north_maintenance_walkway_80183C38[];
 
 /// Offsets from the anchor of the two points the smoke trail follows. The
 /// second is also reached under its own name.

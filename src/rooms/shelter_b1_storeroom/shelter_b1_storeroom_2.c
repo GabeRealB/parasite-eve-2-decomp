@@ -17,6 +17,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "rooms/rooms_shared_8017e4f8.h"
@@ -33,15 +34,15 @@ extern s32 D_80115750;
 extern s32 D_80115754;
 extern s32 D_80115758;
 
-extern SVECTOR                  D_shelter_b1_storeroom_80184998[];
-extern SVECTOR                  D_shelter_b1_storeroom_80184A18[];
-extern SVECTOR                  D_shelter_b1_storeroom_80184A38[];
-extern SVECTOR                  D_shelter_b1_storeroom_80184A98[];
-extern SVECTOR                  D_shelter_b1_storeroom_80184AB8[];
-extern RoomsShared8017e4f8Shade D_shelter_b1_storeroom_80184B20[];
-extern SVECTOR                  D_shelter_b1_storeroom_80184B34[];
-extern SVECTOR                  D_shelter_b1_storeroom_80184B3C;
-extern s16                      D_shelter_b1_storeroom_80184B44[][3];
+extern SVECTOR       D_shelter_b1_storeroom_80184998[];
+extern SVECTOR       D_shelter_b1_storeroom_80184A18[];
+extern SVECTOR       D_shelter_b1_storeroom_80184A38[];
+extern SVECTOR       D_shelter_b1_storeroom_80184A98[];
+extern SVECTOR       D_shelter_b1_storeroom_80184AB8[];
+extern RoomHaloShade D_shelter_b1_storeroom_80184B20[];
+extern SVECTOR       D_shelter_b1_storeroom_80184B34[];
+extern SVECTOR       D_shelter_b1_storeroom_80184B3C;
+extern s16           D_shelter_b1_storeroom_80184B44[][3];
 
 void func_shelter_b1_storeroom_8017DBC4(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_shelter_b1_storeroom_8017E408(SVECTOR* arg0, s32 arg1, s32 arg2);

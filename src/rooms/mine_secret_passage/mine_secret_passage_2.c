@@ -16,6 +16,7 @@
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "rooms/rooms_shared_8017ff88.h"
@@ -37,7 +38,7 @@ extern SVECTOR D_mine_secret_passage_80180F08[];
 
 /// Shift per colour channel for each of the halo's tints, indexed by the tint
 /// selector the spawn argument carries.
-extern RoomsShared8017ff88Shade D_mine_secret_passage_80180F88[];
+extern RoomHaloShade D_mine_secret_passage_80180F88[];
 
 void func_mine_secret_passage_8017DC84(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_mine_secret_passage_8017E4C8(SVECTOR* arg0, s32 arg1, s32 arg2);

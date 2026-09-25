@@ -37,18 +37,8 @@ void func_shelter_b2_pod_bottom_8017E788(GsCOORDINATE2* coord, s16 arg1, s16 arg
 void func_shelter_b2_pod_bottom_8017EEAC(RoomEffWork* work, GsCOORDINATE2* coord, s32 arg2);
 void func_shelter_b2_pod_bottom_8018101C(GsCOORDINATE2* coord, s16 size, u16 color, u16 scale);
 
-/// Per-ring offsets `func_shelter_b2_pod_bottom_8017EEAC` adds to the work's
-/// ramps: `rInner` widens the ring drawn at the frame's origin height, `rExtra`
-/// widens the second ring beyond that plus the work's step, and `yOff` raises
-/// the second ring on top of the work's height.
-typedef struct {
-    s16 rInner;
-    s16 yOff;
-    s16 rExtra;
-} _RingScale;
-
-extern u16        D_shelter_b2_pod_bottom_80188790[3][16];
-extern _RingScale D_shelter_b2_pod_bottom_80181C94[];
+extern u16           D_shelter_b2_pod_bottom_80188790[3][16];
+extern RoomRingShape D_shelter_b2_pod_bottom_80181C94[];
 
 /// Tint rows for `func_shelter_b2_pod_bottom_8017F448`: per-channel right
 /// shifts (0-2) applied to its colour ramp, one row chosen at random.
@@ -549,7 +539,7 @@ void func_shelter_b2_pod_bottom_8017EEAC(RoomEffWork* work, GsCOORDINATE2* coord
     GpBandScratch* block;
     SVECTOR*       op;
     POLY_FT4*      prim;
-    _RingScale*    row;
+    RoomRingShape* row;
     s32            i;
     s32            next;
     s32            ang;

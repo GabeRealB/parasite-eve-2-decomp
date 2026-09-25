@@ -77,7 +77,7 @@ extern SVECTOR D_shelter_b4_upper_sewer_80186520[];
 
 /// Colour shifts per spawn variant: each channel is the fade level shifted
 /// right by the entry's value.
-extern RoomsShared8017e4f8Shade D_shelter_b4_upper_sewer_80186560[];
+extern RoomHaloShade D_shelter_b4_upper_sewer_80186560[];
 
 /// The two points the trail is emitted from, relative to the effect's parent:
 /// the first positions the effect's own coordinate, the second is the other

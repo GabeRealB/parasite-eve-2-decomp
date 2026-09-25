@@ -53,7 +53,7 @@ extern SVECTOR D_shelter_b1_south_maintenance_walkway_801823E0;
 
 /// Per-colour channel shifts for the glowing disc, indexed by the spawn
 /// argument.
-extern RoomsShared8017e4f8Shade D_shelter_b1_south_maintenance_walkway_801823E8[];
+extern RoomHaloShade D_shelter_b1_south_maintenance_walkway_801823E8[];
 
 /// Spawn payload of the task 0x31 the event task may start.
 extern GpStateBD8       D_shelter_b1_south_maintenance_walkway_80183634;

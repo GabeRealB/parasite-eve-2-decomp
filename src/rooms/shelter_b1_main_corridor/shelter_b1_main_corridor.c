@@ -71,7 +71,7 @@ extern SVECTOR D_shelter_b1_main_corridor_80183144[];
 
 /// Per-colour shift amounts the flash effect's brightness is scaled down by,
 /// one row per colour its spawner can pick.
-extern RoomsShared8017e4f8Shade D_shelter_b1_main_corridor_801831D4[];
+extern RoomHaloShade D_shelter_b1_main_corridor_801831D4[];
 
 /// The two points the beam runs between, relative to its parent coordinate;
 /// the second is also declared on its own.

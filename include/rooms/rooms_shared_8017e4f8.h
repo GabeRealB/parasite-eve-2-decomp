@@ -4,19 +4,10 @@
 #include "common.h"
 
 #include "main/task.h"
+#include "rooms/room.h"
 
-/// One row of `RoomsShared8017e4f8Shades`, indexed by
-/// `GpEffWork.index` (the palette selector packed into the spawn arg).
-/// Each field is the right-shift applied to the effect's fade level to get
-/// that colour channel, so a row picks the tint of the halo.
-typedef struct _RoomsShared8017e4f8Shade {
-    /* 0x0 */ s16 r;
-    /* 0x2 */ s16 g;
-    /* 0x4 */ s16 b;
-} RoomsShared8017e4f8Shade;
-STATIC_ASSERT_SIZEOF(RoomsShared8017e4f8Shade, 0x6);
-
-extern RoomsShared8017e4f8Shade RoomsShared8017e4f8Shades[];
+/// The halo's shade table, one row per palette selector.
+extern RoomHaloShade RoomsShared8017e4f8Shades[];
 
 /// The two draw helpers the halo task calls: the per-frame halo itself and the
 /// fading afterglow. Each carrying room names its own pair at its own address,

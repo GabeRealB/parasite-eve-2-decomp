@@ -51,23 +51,14 @@ typedef struct {
     u32     sxy3;
 } _ShelterB6TrainingRoomBandScratch;
 
-/// Per-band offsets `func_shelter_b6_training_room_80181368` adds to the effect
-/// work's ring parameters: `radius` to the ground rim's radius, `lift` to the
-/// raised rim's height, and `spread` to how much wider the raised rim is.
-typedef struct {
-    s16 radius;
-    s16 lift;
-    s16 spread;
-} _ShelterB6TrainingRoomBandShape;
-
-extern s32                             D_80070F70;
-extern GsCOORDINATE2*                  D_shelter_b6_training_room_80185C90;
-extern GsCOORDINATE2*                  D_shelter_b6_training_room_80185C94;
-extern u16                             D_shelter_b6_training_room_80185C98;
-extern SVECTOR                         D_shelter_b6_training_room_80184334[];
-extern u16                             D_shelter_b6_training_room_801843FC[];
-extern _ShelterB6TrainingRoomBandShape D_shelter_b6_training_room_80184404[];
-extern u8                              D_shelter_b6_training_room_80185C60[][16];
+extern s32            D_80070F70;
+extern GsCOORDINATE2* D_shelter_b6_training_room_80185C90;
+extern GsCOORDINATE2* D_shelter_b6_training_room_80185C94;
+extern u16            D_shelter_b6_training_room_80185C98;
+extern SVECTOR        D_shelter_b6_training_room_80184334[];
+extern u16            D_shelter_b6_training_room_801843FC[];
+extern RoomRingShape  D_shelter_b6_training_room_80184404[];
+extern u8             D_shelter_b6_training_room_80185C60[][16];
 
 void func_shelter_b6_training_room_8017E28C(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_shelter_b6_training_room_8017EAD0(SVECTOR* arg0, s32 arg1, s32 arg2);
@@ -1179,7 +1170,7 @@ void func_shelter_b6_training_room_80181368(GpEffWork* mem, GsCOORDINATE2* coord
     _ShelterB6TrainingRoomBandScratch* block;
     SVECTOR*                           bp;
     POLY_FT4*                          prim;
-    _ShelterB6TrainingRoomBandShape*   shape;
+    RoomRingShape*                     shape;
     s32                                i;
     s32                                next;
     s32                                ang;
@@ -1193,9 +1184,9 @@ void func_shelter_b6_training_room_80181368(GpEffWork* mem, GsCOORDINATE2* coord
     shape    = &D_shelter_b6_training_room_80184404[band];
     period   = (u16)mem->period;
     rBase    = (u16)mem->angle;
-    height   = period + (u16)shape->lift;
-    rBase   += (u16)shape->radius;
-    rTop     = rBase + (u16)mem->step + (u16)shape->spread;
+    height   = period + (u16)shape->yOff;
+    rBase   += (u16)shape->rInner;
+    rTop     = rBase + (u16)mem->step + (u16)shape->rExtra;
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = (u8*)*scratch;
     *scratch = head - 0x78;

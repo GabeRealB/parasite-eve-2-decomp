@@ -105,7 +105,7 @@ extern s32 D_dryfield_night_main_street_80182230[];
 
 /// Per-tint channel shifts for the halo task, indexed by the tint the spawn
 /// argument selects.
-extern RoomsShared8017ff88Shade D_dryfield_night_main_street_80182270[];
+extern RoomHaloShade D_dryfield_night_main_street_80182270[];
 
 /// Spawn argument of the helper task 0x31 the room's event task starts.
 extern GpStateBD8 D_dryfield_night_main_street_80188BA4;

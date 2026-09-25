@@ -18,6 +18,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "rooms/rooms_shared_8017e4f8.h"
@@ -35,7 +36,7 @@ extern s32 D_80115758;
 
 extern GpMsgEntry D_neo_ark_north_promenade_80181D68[];
 
-extern RoomsShared8017e4f8Shade D_neo_ark_north_promenade_80181D90[];
+extern RoomHaloShade D_neo_ark_north_promenade_80181D90[];
 
 /// The smoke trail's two spawn offsets: `[0]` places the object's own frame
 /// and `[1]` the second trail's frame. `D_neo_ark_north_promenade_80181DAC` is

@@ -21,6 +21,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "rooms/rooms_shared_8017ff88.h"
@@ -53,7 +54,7 @@ extern SVECTOR    D_shelter_b3_elevator_hall_80182AB4[];
 extern SVECTOR    D_shelter_b3_elevator_hall_80182AF4[];
 /// Per-palette right shifts applied to the halo's level for red, green and
 /// blue, selected by the palette index in the spawn argument.
-extern RoomsShared8017ff88Shade D_shelter_b3_elevator_hall_80182B34[];
+extern RoomHaloShade D_shelter_b3_elevator_hall_80182B34[];
 
 void func_shelter_b3_elevator_hall_8017DDCC(Task* task);
 void func_shelter_b3_elevator_hall_8017DE10(Task* task);

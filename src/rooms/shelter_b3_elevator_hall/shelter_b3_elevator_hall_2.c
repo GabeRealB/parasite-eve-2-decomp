@@ -16,6 +16,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017ff88.h"
 
@@ -24,7 +25,7 @@ extern s32 D_80115730;
 
 /// Per-colour right shifts applied to the glowing disc's level for red, green
 /// and blue, selected by the spawn argument.
-extern RoomsShared8017ff88Shade D_shelter_b3_elevator_hall_80182B48[];
+extern RoomHaloShade D_shelter_b3_elevator_hall_80182B48[];
 
 void func_shelter_b3_elevator_hall_80181594(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_shelter_b3_elevator_hall_80181818(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);

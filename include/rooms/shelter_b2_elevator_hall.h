@@ -9,6 +9,7 @@
 
 #include "gameplay/D4.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017e4f8.h"
 
@@ -25,7 +26,7 @@ extern GpMsgEntry D_shelter_b2_elevator_hall_801837A8[];
 
 /// Per-index channel shifts `func_shelter_b2_elevator_hall_8017FF20` applies to
 /// its brightness to colour the flash.
-extern RoomsShared8017e4f8Shade D_shelter_b2_elevator_hall_801838B8[];
+extern RoomHaloShade D_shelter_b2_elevator_hall_801838B8[];
 
 /// Positions `func_shelter_b2_elevator_hall_80182260` places its two trail
 /// anchors at; the second entry is also named on its own below.
