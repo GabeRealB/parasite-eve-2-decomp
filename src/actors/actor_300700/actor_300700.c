@@ -15,8 +15,6 @@
 #include "psyq/inline_c.h"
 #include "gte.h"
 
-#define SCRATCH_SP (*(u32*)0x1F8003FC)
-
 /// The 0x2F4-byte allocation `func_actor_300700_80161E80` makes with
 /// `memCalloc` and stores in the task's work slot, then fills with the three
 /// `GpObj` render nodes (`Gp_LinkObj`, shapes 2/2/3) and their `GpRec18`
@@ -268,8 +266,8 @@ void func_actor_300700_801622B4(Task* arg0)
     GpDeltaScratch*  delta;
 
     work     = arg0->work;
-    head     = *(void**)0x1F8003FC;
-    delta    = (*(void**)0x1F8003FC = head - 1);
+    head     = SCRATCH_HEAD(void);
+    delta    = (SCRATCH_HEAD(void) = head - 1);
     coord    = ((TmdObject*)arg0->extra)->coords;
     movement = func_800E0C10(&work->field_18C, delta, 4, 0);
     switch (movement) {
@@ -321,7 +319,7 @@ void func_actor_300700_801622B4(Task* arg0)
             break;
     }
     Gp_ClearRec18Occupied(&work->field_154.rec);
-    *(void**)0x1F8003FC += 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 /// Sweeps the actor's spare rotation on the scratchpad: every 16th frame rolls
@@ -340,7 +338,7 @@ void func_actor_300700_8016252C(Task* arg0)
     s32              direction2;
     s32              product;
 
-    sc   = (SVECTOR*)(SCRATCH_SP -= 8);
+    sc   = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
     work = arg0->work;
     if (++work->field_2E0 >= 16) {
         work->field_2E0 = 0;
@@ -375,7 +373,7 @@ void func_actor_300700_8016252C(Task* arg0)
     coord2       = ((TmdObject*)arg0->extra)->coords;
     RotMatrix(sc, &coord2[3].coord);
     coord2[3].flg = 0;
-    SCRATCH_SP   += 8;
+    SCRATCH_POP_BYTES(8);
 }
 
 void func_actor_300700_801626C0(Task* arg0)
@@ -396,7 +394,7 @@ void func_actor_300700_801626C0(Task* arg0)
     s16               turn;
     s16               wrap;
 
-    sc    = (ActorFaceScratch*)(SCRATCH_SP -= 0x18);
+    sc    = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
     work  = arg0->work;
     coord = ((TmdObject*)arg0->extra)->coords;
     switch (work->field_2E6) {
@@ -447,7 +445,7 @@ void func_actor_300700_801626C0(Task* arg0)
     sc->rot.vy = work->field_2DC;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    SCRATCH_SP += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 void func_actor_300700_801628C8(Task* arg0)
@@ -556,9 +554,9 @@ void func_actor_300700_80162BC8(GpEnemy* arg0, Task* arg1)
             break;
         case 0:
         default:
-            head                   = *(SVECTOR**)0x1F8003FC;
-            rot                    = head - 1;
-            *(SVECTOR**)0x1F8003FC = rot;
+            head                  = SCRATCH_HEAD(SVECTOR);
+            rot                   = head - 1;
+            SCRATCH_HEAD(SVECTOR) = rot;
             switch (work->field_2DE) {
                 case 0:
                     Gp_StateF0.field_18              = 1;
@@ -614,7 +612,7 @@ void func_actor_300700_80162BC8(GpEnemy* arg0, Task* arg1)
                     }
                     break;
             }
-            *(SVECTOR**)0x1F8003FC += 1;
+            SCRATCH_POP(SVECTOR);
             break;
     }
 }
@@ -631,7 +629,7 @@ void func_actor_300700_80162EFC(Task* arg0)
     POLY_FT4*         prim;
     ActorSpriteUv*    uv;
     obj         = arg0->extra;
-    sc          = (ActorQuadScratch*)(SCRATCH_SP -= 0x28);
+    sc          = (ActorQuadScratch*)SCRATCH_PUSH_BYTES(0x28);
     coord       = obj->coords;
     work        = arg0->work;
     sc->v[0].vx = coord->workm.t[0];
@@ -644,7 +642,7 @@ void func_actor_300700_80162EFC(Task* arg0)
     gte_stsxy(&sc->sxy);
     gte_stszotz(&sc->otz);
     if (sc->otz < 20) {
-        SCRATCH_SP += 0x28;
+        SCRATCH_POP_BYTES(0x28);
         return;
     }
     if (work->field_2E0 == 1) {
@@ -703,7 +701,7 @@ void func_actor_300700_80162EFC(Task* arg0)
     prim->x3    = sc->v[3].vx;
     prim->y3    = sc->v[3].vy;
     addPrim((u_long*)(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), prim);
-    SCRATCH_SP += 0x28;
+    SCRATCH_POP_BYTES(0x28);
 }
 /// The first variant's state handlers, dispatched by `func_actor_300700_8016335C`
 /// on the task's state: spawn, per-frame update, and the handler for state 2.
@@ -744,11 +742,11 @@ void func_actor_300700_80163410(Task* arg0)
     ActorScaleScratch* scratch;
     Actor300700Work*   work;
 
-    head                = *(MATRIX**)0x1F8003FC;
-    work                = arg0->work;
-    scratch             = (ActorScaleScratch*)((u8*)head - 0x30);
-    *(void**)0x1F8003FC = scratch;
-    coord               = ((TmdObject*)arg0->extra)->coords;
+    head               = SCRATCH_HEAD(MATRIX);
+    work               = arg0->work;
+    scratch            = (ActorScaleScratch*)((u8*)head - 0x30);
+    SCRATCH_HEAD(void) = scratch;
+    coord              = ((TmdObject*)arg0->extra)->coords;
     if (work->field_2E2 >= 0x201) {
         work->field_2E2 = (u16)work->field_2E2 - 0x50;
     }
@@ -765,7 +763,7 @@ void func_actor_300700_80163410(Task* arg0)
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->flg = 0;
     Gp_UpdateCoord(coord);
-    *(u8**)0x1F8003FC += 0x30;
+    SCRATCH_POP_BYTES(0x30);
 }
 
 /// Second variant's spawn: allocates its 0x39C-byte work block, binds the two

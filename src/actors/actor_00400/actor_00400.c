@@ -632,7 +632,7 @@ void Actor00400_Fn005DC(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, s32 arg3)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + sizeof(GpEffFlareScratch);
+    SCRATCH_POP_BYTES_AT(scratch, sizeof(GpEffFlareScratch));
 }
 
 void Actor00400_Fn00A14(Task* arg0)
@@ -771,7 +771,7 @@ void Actor00400_Fn00E3C(Task* actor, s16 firstJoint, s16 secondJoint, s16 width,
     firstCoord  = coords + firstJoint;
     secondCoord = coords + secondJoint;
     if (firstJoint != secondJoint) {
-        s = (ActorBeamScratch*)(*(u8**)G_SCRATCH_HEAD -= sizeof(ActorBeamScratch));
+        s = (ActorBeamScratch*)SCRATCH_PUSH_BYTES(sizeof(ActorBeamScratch));
         Gp_UpdateCoord(firstCoord);
         Gp_UpdateCoord(secondCoord);
         Gp_WorldToLocal(&Gfx_ViewWorldMtx, &firstCoord->workm, &s->firstMatrix);
@@ -823,7 +823,7 @@ void Actor00400_Fn00E3C(Task* actor, s16 firstJoint, s16 secondJoint, s16 width,
             setRGB0(poly, shade, shade, shade);
             addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), poly);
         }
-        *(u8**)G_SCRATCH_HEAD += sizeof(ActorBeamScratch);
+        SCRATCH_POP_BYTES(sizeof(ActorBeamScratch));
     }
 }
 
@@ -1765,13 +1765,13 @@ void Actor00400_Fn02FF8(Task* arg0)
     s32                        dz;
     s32                        distance;
 
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - 0x1C;
-    scratch               = (Actor100400NearestScratch*)*(u8**)G_SCRATCH_HEAD;
-    work                  = arg0->work;
-    scratch->index        = 1;
-    scratch->bestIndex    = 0;
-    scratch->best         = 0x7FFFFFFF;
+    head               = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(u8)   = head - 0x1C;
+    scratch            = (Actor100400NearestScratch*)SCRATCH_HEAD(u8);
+    work               = arg0->work;
+    scratch->index     = 1;
+    scratch->bestIndex = 0;
+    scratch->best      = 0x7FFFFFFF;
     for (;;) {
         index  = scratch->index;
         record = (Actor100400Record*)(index * sizeof(Actor100400Record) + (u32)work->field_608);
@@ -1799,7 +1799,7 @@ done:
         work->field_64A                          = scratch->bestIndex;
         work->field_608[work->field_64A].field_6 = 1;
     }
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Finds the nearest eligible waypoint record in `field_608` and returns its
@@ -1817,13 +1817,13 @@ void Actor00400_Fn031A4(Task* arg0, SVECTOR* arg1)
     s32                        dz;
     s32                        distance;
 
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - 0x1C;
-    scratch               = (Actor100400NearestScratch*)*(u8**)G_SCRATCH_HEAD;
-    work                  = arg0->work;
-    scratch->index        = 1;
-    scratch->bestIndex    = 0;
-    scratch->best         = 0x7FFFFFFF;
+    head               = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(u8)   = head - 0x1C;
+    scratch            = (Actor100400NearestScratch*)SCRATCH_HEAD(u8);
+    work               = arg0->work;
+    scratch->index     = 1;
+    scratch->bestIndex = 0;
+    scratch->best      = 0x7FFFFFFF;
 loop:
     index  = scratch->index;
     record = (Actor100400Record*)(index * sizeof(Actor100400Record) + (u32)work->field_608);
@@ -1844,7 +1844,7 @@ loop:
         scratch->index = scratch->index + 1;
         goto loop;
     }
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Projects the four `corner` vertices through the view matrix and queues one
@@ -1854,7 +1854,7 @@ void Actor00400_Fn03318(SVECTOR* corner0, SVECTOR* corner1, SVECTOR* corner2, SV
     Actor100400TextQuadScratch* s;
     POLY_FT4*                   poly;
 
-    s                 = (Actor100400TextQuadScratch*)(*(u8**)G_SCRATCH_HEAD -= sizeof(Actor100400TextQuadScratch));
+    s                 = (Actor100400TextQuadScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor100400TextQuadScratch));
     gGfxViewCoord.flg = 0;
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
@@ -1876,7 +1876,7 @@ void Actor00400_Fn03318(SVECTOR* corner0, SVECTOR* corner1, SVECTOR* corner2, SV
         setRGB0(poly, shade >> 1, shade, shade);
         addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), poly);
     }
-    *(u8**)G_SCRATCH_HEAD += sizeof(Actor100400TextQuadScratch);
+    SCRATCH_POP_BYTES(sizeof(Actor100400TextQuadScratch));
 }
 
 /// Re-aim one joint by `yaw` about Y in world space: build the joint's
@@ -1888,15 +1888,15 @@ void Actor00400_Fn03570(GsCOORDINATE2* coord, s16 yaw)
     MATRIX*        rotation;
     GsCOORDINATE2* out;
 
-    *(MATRIX**)G_SCRATCH_HEAD -= 1;
-    rotation                   = *(MATRIX**)G_SCRATCH_HEAD;
+    SCRATCH_PUSH(MATRIX);
+    rotation = SCRATCH_HEAD(MATRIX);
     Actor00400_AccumulateRotation(coord, rotation, &gGfxViewCoord);
     func_8004BFF8(yaw, rotation);
     out = Actor00400_LocalizeRotation(coord, rotation);
     __builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->flg = 0;
     Gp_UpdateCoord(out);
-    *(MATRIX**)G_SCRATCH_HEAD += 1;
+    SCRATCH_POP(MATRIX);
 }
 
 /* The state tables below are defined among the functions, not with the other
@@ -2253,17 +2253,17 @@ void Actor00400_Fn03920(Task* arg0)
 static __inline__ void Actor00400_UpdateColor(Task* arg0, GsCOORDINATE2* coord,
                                               Actor100400Work* work, TmdObject* ctx)
 {
-    VECTOR* block = (VECTOR*)(*(u8**)G_SCRATCH_HEAD - 0x10);
+    VECTOR* block = (VECTOR*)(SCRATCH_HEAD(u8) - 0x10);
 
-    block->vx                 = coord->workm.t[0];
-    block->vy                 = coord->workm.t[1];
-    block->vz                 = coord->workm.t[2];
-    *(VECTOR**)G_SCRATCH_HEAD = block;
+    block->vx            = coord->workm.t[0];
+    block->vy            = coord->workm.t[1];
+    block->vz            = coord->workm.t[2];
+    SCRATCH_HEAD(VECTOR) = block;
     Gp_UpdateActorColor(arg0->spawnArg2, block, 0, 0);
     if (work->field_65F != 0) {
         Gp_SetObjTrans(ctx, 0, 0, 0);
     }
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 /// States `Actor00400_Fn040DC` dispatches on `Actor100400Work.field_638`.

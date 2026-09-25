@@ -268,8 +268,8 @@ void Actor02400_Fn00064(GsCOORDINATE2* coord, s16 size)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD =
-        (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpRingScratch);
+    SCRATCH_HEAD(void) =
+        (u8*)SCRATCH_HEAD(void) + sizeof(GpRingScratch);
 }
 
 /// Draws a flat textured quad on the ground under `arg0`: the corners of the
@@ -370,7 +370,7 @@ void Actor02400_Fn005BC(GsCOORDINATE2* arg0, s32 arg1)
                     prim);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(OverlayGroundScratch);
+    SCRATCH_POP_BYTES(sizeof(OverlayGroundScratch));
 }
 
 /// The main body's state handlers, run by `Actor02400_Fn02DB0` for the task's
@@ -487,7 +487,7 @@ void Actor02400_Fn00C08(Task* task)
     push    = 0;
     lastId  = 0;
     work    = task->work;
-    scratch = (ActorPushFrame*)(*(u8**)G_SCRATCH_HEAD -= 0x58);
+    scratch = (ActorPushFrame*)SCRATCH_PUSH_BYTES(0x58);
     coord   = ((TmdObject*)task->extra)->coords;
     enemy   = task->spawnArg2;
     res     = func_800E0C10(work->rec60, &scratch->delta, 4, NULL);
@@ -665,7 +665,7 @@ move_done:
             work->field_150 = 0;
         }
     }
-    *(u8**)G_SCRATCH_HEAD += 0x58;
+    SCRATCH_POP_BYTES(0x58);
 }
 
 /// The projectile's state handlers, run by `Actor02400_Fn03358` for the task's
@@ -1076,9 +1076,9 @@ void Actor02400_Fn0208C(Task* task)
     coord                      = ((TmdObject*)task->extra)->coords;
     work                       = task->work;
     work->field_100            = coord->coord;
-    head                       = *(MATRIX**)0x1F8003FC;
+    head                       = SCRATCH_HEAD(MATRIX);
     scratch                    = (Actor02400ScaleScratch*)((u8*)head - 0x40);
-    *(void**)0x1F8003FC        = scratch;
+    SCRATCH_HEAD(void)         = scratch;
     work->obj40.pos.vy         = -0xC8000 / work->field_12A;
     work->objC0.pos.vz         = (work->field_12C * 250) / 4096;
     scratch->scale.vx          = work->field_128;
@@ -1095,11 +1095,11 @@ void Actor02400_Fn0208C(Task* task)
     scratch->mat.ident.m22     = 0x1000;
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
-    coord->coord.t[0]  = scratch->t.vx;
-    coord->coord.t[1]  = scratch->t.vy;
-    *(u8**)0x1F8003FC += 0x40;
-    coord->coord.t[2]  = scratch->t.vz;
-    coord->flg         = 0;
+    coord->coord.t[0] = scratch->t.vx;
+    coord->coord.t[1] = scratch->t.vy;
+    SCRATCH_POP_BYTES(0x40);
+    coord->coord.t[2] = scratch->t.vz;
+    coord->flg        = 0;
 }
 
 /// Turns the body towards `field_146` by at most `field_13A` per frame and
@@ -1120,7 +1120,7 @@ void Actor02400_Fn02264(Task* task)
     s32               next;
     s32               wrapStep;
 
-    sc    = (ActorFaceScratch*)(*(u32*)0x1F8003FC -= 0x18);
+    sc    = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
     coord = ((TmdObject*)task->extra)->coords;
     work  = task->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
@@ -1172,7 +1172,7 @@ done:
     sc->rot.vy = work->field_144;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    *(u32*)0x1F8003FC += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Every 25 frames plays the body's idle sound, panned and placed from the
@@ -1309,15 +1309,15 @@ void Actor02400_Fn02790(GpEnemy* arg0, Task* arg1)
     GsCOORDINATE2*       coord;
     GsCOORDINATE2*       parentCoord;
 
-    head                = *(void**)0x1F8003FC;
-    scratch             = (ActorOffsetScratch*)((u8*)head - 0x18);
-    *(void**)0x1F8003FC = scratch;
-    offset              = &scratch->offset;
-    parent              = arg1->parent;
-    coord               = ((TmdObject*)arg1->extra)->coords;
-    parentCoord         = ((TmdObject*)parent->extra)->coords;
-    parentWork          = parent->work;
-    work                = memCalloc(0xB4, 0);
+    head               = SCRATCH_HEAD(void);
+    scratch            = (ActorOffsetScratch*)((u8*)head - 0x18);
+    SCRATCH_HEAD(void) = scratch;
+    offset             = &scratch->offset;
+    parent             = arg1->parent;
+    coord              = ((TmdObject*)arg1->extra)->coords;
+    parentCoord        = ((TmdObject*)parent->extra)->coords;
+    parentWork         = parent->work;
+    work               = memCalloc(0xB4, 0);
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;
@@ -1391,8 +1391,8 @@ void Actor02400_Fn02790(GpEnemy* arg0, Task* arg1)
     work->field_B0      = 0x5A;
     work->obj_58.flags |= 0x4400;
     Task_DetachFromParent(arg1);
-    arg1->state        = 1;
-    *(u8**)0x1F8003FC += 0x18;
+    arg1->state = 1;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Flight handler of the projectile: moves it along `field_A8` / `field_AC`
@@ -1698,7 +1698,7 @@ void Actor02400_Fn03278(Task* task)
     ScaleMatrix(&blk->mat.mat, &blk->scale);
     MulMatrix(&coord->coord, &blk->mat.mat);
     coord->flg = 0;
-    *scratch   = (u8*)*scratch + 0x30;
+    SCRATCH_POP_BYTES_AT(scratch, 0x30);
 }
 
 /// Task callback of the projectile: runs the `Actor02400_D0003C` handler for

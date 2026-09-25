@@ -99,7 +99,6 @@ typedef struct Actor02500OffsetPair {
 } Actor02500OffsetPair;
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-#define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 extern GpPairSrcE           Actor02500_D05B38;
 extern GpU16Pair            Actor02500_D05B30[];
@@ -319,7 +318,7 @@ void Actor02500_Fn00494(Task* actor)
     bestPush   = 0;
     lastId     = 0;
     work       = actor->work;
-    scratchSp  = (Actor02500MoveScratch**)&SCRATCH_SP;
+    scratchSp  = (Actor02500MoveScratch**)G_SCRATCH_HEAD;
     scratchEnd = *scratchSp;
     SOFT_TOUCH_REG2_USE(scratchEnd, scratchSp, work->field_22C);
     SOFT_TOUCH_REG(scratchSp);
@@ -513,7 +512,7 @@ move_done:
         Gp_ArmStateF0(1);
     }
     Gp_ClearRec18Occupied(work->field_18C);
-    SCRATCH_SP += 0x30;
+    SCRATCH_POP_BYTES(0x30);
 }
 
 void Actor02500_Fn00B18(Task* actor)
@@ -532,12 +531,12 @@ void Actor02500_Fn00B18(Task* actor)
     VECTOR*         vector;
     VECTOR*         scratchEnd;
 
-    scratchEnd = (VECTOR*)SCRATCH_SP;
-    vector     = scratchEnd - 1;
-    SCRATCH_SP = (u32)vector;
-    work       = actor->work;
-    state      = work->field_324;
-    coord      = ((TmdObject*)actor->extra)->coords;
+    scratchEnd         = SCRATCH_HEAD(VECTOR);
+    vector             = scratchEnd - 1;
+    SCRATCH_HEAD(void) = vector;
+    work               = actor->work;
+    state              = work->field_324;
+    coord              = ((TmdObject*)actor->extra)->coords;
     switch (state) {
         case 0:
             work->field_31C = 1;
@@ -596,7 +595,7 @@ void Actor02500_Fn00B18(Task* actor)
             break;
     }
     work->field_328 = (s16)Actor02500_D05B48[((GpEnemy*)actor->spawnArg2)->place->rowIndex];
-    SCRATCH_SP     += 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 void Actor02500_Fn00DD8(Task* actor)
@@ -618,12 +617,12 @@ void Actor02500_Fn00DD8(Task* actor)
     VECTOR*         vector;
     VECTOR*         scratchEnd;
 
-    scratchEnd = (VECTOR*)SCRATCH_SP;
-    vector     = scratchEnd - 1;
-    SCRATCH_SP = (u32)vector;
-    work       = actor->work;
-    state      = work->field_324;
-    coord      = ((TmdObject*)actor->extra)->coords;
+    scratchEnd         = SCRATCH_HEAD(VECTOR);
+    vector             = scratchEnd - 1;
+    SCRATCH_HEAD(void) = vector;
+    work               = actor->work;
+    state              = work->field_324;
+    coord              = ((TmdObject*)actor->extra)->coords;
     switch (state) {
         case 0:
             work->field_31C = 4;
@@ -694,7 +693,7 @@ void Actor02500_Fn00DD8(Task* actor)
             break;
     }
     work->field_328 = (s16)Actor02500_D05B68[((GpEnemy*)actor->spawnArg2)->place->rowIndex];
-    SCRATCH_SP     += 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 void Actor02500_Fn01144(Task* actor)
@@ -757,7 +756,7 @@ void Actor02500_Fn012F0(Task* actor)
     ActorFaceScratch*     scratch;
     Actor02500OffsetPair* pair;
 
-    scratch   = (ActorFaceScratch*)(*(u32*)0x1F8003FC -= 0x18);
+    scratch   = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
     loadedObj = actor->extra;
     __asm__("" : "+r"(loadedObj) : : "v0");
     work = actor->work;
@@ -849,7 +848,7 @@ void Actor02500_Fn012F0(Task* actor)
             }
         }
     }
-    *(u32*)0x1F8003FC += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 void Actor02500_Fn016FC(Task* arg0)
@@ -866,7 +865,7 @@ void Actor02500_Fn016FC(Task* arg0)
     s32               next;
     s32               wrapStep;
 
-    sc    = (ActorFaceScratch*)(SCRATCH_SP -= 0x18);
+    sc    = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
     coord = ((TmdObject*)arg0->extra)->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
@@ -918,7 +917,7 @@ done:
     sc->rot.vy = work->field_32C;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    SCRATCH_SP += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 void Actor02500_Fn0184C(Task* arg0)
@@ -1439,11 +1438,11 @@ void Actor02500_Fn02480(Task* arg0)
     ActorScaleScratch* scratch;
     Actor02500Work*    work;
 
-    head                = *(MATRIX**)0x1F8003FC;
-    work                = arg0->work;
-    scratch             = (ActorScaleScratch*)((u8*)head - 0x30);
-    *(void**)0x1F8003FC = scratch;
-    coord               = ((TmdObject*)arg0->extra)->coords;
+    head               = SCRATCH_HEAD(MATRIX);
+    work               = arg0->work;
+    scratch            = (ActorScaleScratch*)((u8*)head - 0x30);
+    SCRATCH_HEAD(void) = scratch;
+    coord              = ((TmdObject*)arg0->extra)->coords;
     if (work->field_332 >= 0x201) {
         work->field_332 = (u16)work->field_332 - 0x50;
     }
@@ -1458,8 +1457,8 @@ void Actor02500_Fn02480(Task* arg0)
     scratch->mat.ident.m22     = 0x1000;
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
-    coord->flg         = 0;
-    *(u8**)0x1F8003FC += 0x30;
+    coord->flg = 0;
+    SCRATCH_POP_BYTES(0x30);
 }
 
 void Actor02500_Fn02574(Task* arg0)

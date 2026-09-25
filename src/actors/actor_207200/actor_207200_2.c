@@ -21,7 +21,6 @@
 #include "actors/actor_207200.h"
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-#define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 extern GpU16Pair  D_actor_207200_8014E7CC;
 extern GpPairSrcE D_actor_207200_8014E7D4;
@@ -291,9 +290,9 @@ void func_actor_207200_8014B628(Task* arg0)
     u32              rnd;
     u16              hi;
 
-    *(u8**)G_SCRATCH_HEAD -= 8;
-    work                   = (Actor207200Work*)arg0->work;
-    obj                    = ((TmdObject*)arg0->extra)->coords;
+    SCRATCH_PUSH_BYTES(8);
+    work = (Actor207200Work*)arg0->work;
+    obj  = ((TmdObject*)arg0->extra)->coords;
     if (work->field_4A6 == 0) {
         if (Gp_CountRec18Hi((GpRec18*)work->field_1DC.field_20, 0x10000) != 0) {
             work->field_4A2 = 1;
@@ -338,7 +337,7 @@ void func_actor_207200_8014B628(Task* arg0)
             }
             break;
     }
-    *(u8**)G_SCRATCH_HEAD += 8;
+    SCRATCH_POP_BYTES(8);
 }
 
 /// Helper-slot state 1 of the enemy, stepped by `field_49A`. Stage 0 waits out
@@ -569,12 +568,12 @@ void func_actor_207200_8014BEF4(Task* arg0)
     s32                    n;
     s32                    snd;
 
-    work                                     = (Actor207200Work*)arg0->work;
-    head                                     = *(Actor207200DmgScratch**)G_SCRATCH_HEAD;
-    *(Actor207200DmgScratch**)G_SCRATCH_HEAD = head - 1;
-    sc                                       = head - 1;
-    coord                                    = ((TmdObject*)arg0->extra)->coords;
-    enemy                                    = arg0->spawnArg2;
+    work                                = (Actor207200Work*)arg0->work;
+    head                                = SCRATCH_HEAD(Actor207200DmgScratch);
+    SCRATCH_HEAD(Actor207200DmgScratch) = head - 1;
+    sc                                  = head - 1;
+    coord                               = ((TmdObject*)arg0->extra)->coords;
+    enemy                               = arg0->spawnArg2;
 
     switch (func_800E0C10((GpRec18*)work->field_2C4.field_20, &head[-1].d.delta, 6, NULL)) {
         case 0:
@@ -648,8 +647,8 @@ void func_actor_207200_8014BEF4(Task* arg0)
                     func_800DA6E8(&enemy->node, damage, 0);
                     if (damage != 0) {
                         arg0->state++;
-                        work->field_48C                          = 0xB;
-                        *(Actor207200DmgScratch**)G_SCRATCH_HEAD = *(Actor207200DmgScratch**)G_SCRATCH_HEAD + 1;
+                        work->field_48C                     = 0xB;
+                        SCRATCH_HEAD(Actor207200DmgScratch) = SCRATCH_HEAD(Actor207200DmgScratch) + 1;
                         return;
                     }
                 } else {
@@ -761,7 +760,7 @@ void func_actor_207200_8014BEF4(Task* arg0)
             Gp_ClearRec18Occupied((GpRec18*)work->field_3AC.field_20);
         }
     }
-    *(Actor207200DmgScratch**)G_SCRATCH_HEAD = *(Actor207200DmgScratch**)G_SCRATCH_HEAD + 1;
+    SCRATCH_HEAD(Actor207200DmgScratch) = SCRATCH_HEAD(Actor207200DmgScratch) + 1;
 }
 
 /// Ticks the shatter timers the enemy runs while it dies. Every time a timer
@@ -857,7 +856,7 @@ static __inline__ void Actor207200_UpdateColor(GpEnemy* enemy, Task* actor)
     block->vz = coord->workm.t[2];
     *scratch  = block;
     Gp_UpdateActorColor(enemy, block, 0, 0);
-    *scratch = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
 /// Teardown tick. Mode 2 of `Gp_StateF0.field_4` hides the model, mode 1 does nothing;
@@ -969,12 +968,12 @@ s32 func_actor_207200_8014CE20(GsCOORDINATE2* arg0, u32* arg1)
     void*          matrix;
 
     coord = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
-    head  = *(void**)0x1F8003FC;
+    head  = SCRATCH_HEAD(void);
     base  = head - 0x40;
     __asm__("move %0,%1" : "=r"(vec) : "r"(base));
     *(s16*)((s8*)base + 0) = (s16)(coord->workm.t[0] - arg0->workm.t[0]);
     *(s16*)((s8*)vec + 2)  = (s16)(coord->workm.t[1] - arg0->workm.t[1]);
-    *(void**)0x1F8003FC    = vec;
+    SCRATCH_HEAD(void)     = vec;
     *(s16*)((s8*)vec + 4)  = (s16)(coord->workm.t[2] - arg0->workm.t[2]);
     matrix                 = head - 0x20;
     TransposeMatrix(&arg0->workm, matrix);
@@ -995,7 +994,7 @@ s32 func_actor_207200_8014CE20(GsCOORDINATE2* arg0, u32* arg1)
     z                     = coord->coord.t[2] - arg0->coord.t[2];
     *(s16*)((s8*)vec + 4) = z;
     *arg1                 = SquareRoot0((x * x) + (z * z));
-    *(void**)0x1F8003FC  += 0x40;
+    SCRATCH_POP_BYTES(0x40);
     return angle;
 }
 
@@ -1287,7 +1286,7 @@ void func_actor_207200_8014D70C(GpEnemy* arg0, Task* task)
     block->vz = coord->workm.t[2];
     *scratch  = block;
     Gp_UpdateActorColor(arg0, block, 0, 0);
-    *scratch = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
 /// Draws the enemy's ground quad under its model root, at the translation of
@@ -1298,12 +1297,12 @@ void func_actor_207200_8014D77C(Task* task)
     VECTOR3*       vec;
 
     coord   = ((TmdObject*)task->extra)->coords;
-    vec     = (VECTOR3*)(SCRATCH_SP -= 0x18);
+    vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
     vec->vx = coord->workm.t[0];
     vec->vy = coord->workm.t[1];
     vec->vz = coord->workm.t[2];
     Gp_DrawEffGroundQuad(vec, 0x1C0, 0);
-    SCRATCH_SP += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Rebuilds the first coordinate node of the actor's model from the transform
@@ -1319,11 +1318,11 @@ void func_actor_207200_8014D7E8(Task* arg0)
     ActorScaleScratch* scratch;
     Actor207200Work*   work;
 
-    head                = *(MATRIX**)0x1F8003FC;
-    work                = arg0->work;
-    scratch             = (ActorScaleScratch*)((u8*)head - 0x30);
-    *(void**)0x1F8003FC = scratch;
-    coord               = (*(TmdObject**)&arg0->extra)->coords;
+    head               = SCRATCH_HEAD(MATRIX);
+    work               = arg0->work;
+    scratch            = (ActorScaleScratch*)((u8*)head - 0x30);
+    SCRATCH_HEAD(void) = scratch;
+    coord              = (*(TmdObject**)&arg0->extra)->coords;
     if (work->field_49C >= 0x201) {
         work->field_49C = (u16)work->field_49C - 0x50;
     }
@@ -1338,8 +1337,8 @@ void func_actor_207200_8014D7E8(Task* arg0)
     scratch->mat.ident.m22     = 0x1000;
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
-    coord->flg         = 0;
-    *(u8**)0x1F8003FC += 0x30;
+    coord->flg = 0;
+    SCRATCH_POP_BYTES(0x30);
 }
 
 /// Re-picks the model part the enemy's `coord` points at and relinks its
