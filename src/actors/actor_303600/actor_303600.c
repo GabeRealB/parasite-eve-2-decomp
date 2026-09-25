@@ -1,10 +1,14 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+
 #include "actors/actor_303600.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/gameplay.h"
+#include "main/display.h"
 #include "main/gameflow.h"
 #include "main/mc.h"
 #include "main/mem.h"
@@ -29,7 +33,33 @@ extern s8  D_80114C12;
 
 void func_actor_303600_80161F40(Task* arg0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_303600/actor_303600", func_actor_303600_80161E60);
+/// Entry 3 of `D_actor_303600_80162E98`, spawned by the teardown and by
+/// command 8: every frame it covers the screen with an opaque black tile,
+/// linked 15 slots below `gGpuCurrentOt`, followed by a draw-mode packet with
+/// dithering on. It never ends itself.
+void func_actor_303600_80161E60(Task* task)
+{
+    TILE*     p;
+    DR_TPAGE* dr;
+
+    p              = (TILE*)gGpuPrimCursor;
+    gGpuPrimCursor = (u8*)(p + 1);
+    setlen(p, 3);
+    setcode(p, 0x60);
+    p->r0 = 0;
+    p->g0 = 0;
+    p->b0 = 0;
+    p->x0 = -0xA0;
+    p->y0 = -0x78;
+    p->w  = 0x140;
+    p->h  = 0xF0;
+    addPrim(gGpuCurrentOt - 0xF, p);
+
+    dr             = (DR_TPAGE*)gGpuPrimCursor;
+    gGpuPrimCursor = (u8*)(dr + 1);
+    setDrawTPage(dr, 0, 1, 0);
+    addPrim(gGpuCurrentOt - 0xF, dr);
+}
 
 /// Command dispatcher the cutscene controller steps while the cutscene is up.
 /// Commands 1-5 send the slot-4 task message 0x7DA carrying the session's two id

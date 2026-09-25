@@ -2,7 +2,33 @@
 
 #include "actors/actor_303600.h"
 #include "main/mem.h"
+#include "main/task.h"
 #include "main/tmd.h"
+
+/// Main-executable byte with no module header yet: while it is set, both
+/// state dispatchers below skip the frame.
+extern u8 D_801153F4;
+
+void func_actor_303600_801626C0(Task* task);
+void func_actor_303600_801627B8(Task* task);
+void func_actor_303600_80162950(Task* task);
+void func_actor_303600_80162A04(Task* task);
+
+/// State table of the rig controller: spawn, per-frame motion and the kill
+/// callback. Dispatched by `func_actor_303600_80162A7C`.
+const TaskFuncTable3 D_actor_303600_80161E48 = { {
+    func_actor_303600_801626C0,
+    func_actor_303600_801627B8,
+    func_actor_303600_80162850,
+} };
+
+/// State table of the rig's model tasks: spawn, an empty per-frame tick and
+/// `taskKill`. Dispatched by `func_actor_303600_801628E4`.
+const TaskFuncTable3 D_actor_303600_80161E54 = { {
+    func_actor_303600_80162950,
+    func_actor_303600_80162A04,
+    taskKill,
+} };
 
 /// Message 0x7DB handler, listed in `D_actor_303600_8016E480` -- the table
 /// `func_actor_303600_801626C0` installs at `Task::msgTable`.  The payload is
@@ -34,9 +60,18 @@ s32 func_actor_303600_80162870(Task* task, s32 msgId, Actor303600Msg7DA* msg)
     return 0;
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_303600/actor_303600_3", D_actor_303600_80161E48);
+/// Per-frame dispatcher of the rig's model tasks: runs their spawn, tick or
+/// exit state from `D_actor_303600_80161E54`, skipping the frame while
+/// `D_801153F4` is set.
+void func_actor_303600_801628E4(Task* task)
+{
+    TaskFuncTable3 sp;
 
-INCLUDE_ASM("actors/nonmatchings/actor_303600/actor_303600_3", func_actor_303600_801628E4);
+    sp = D_actor_303600_80161E54;
+    if (D_801153F4 == 0) {
+        sp.funcs[task->state](task);
+    }
+}
 
 /// Builds the actor's light / colour matrix pair, hangs it off the task's
 /// `work` slot, and splices this task's model root under its spawn parent's.
@@ -64,7 +99,7 @@ void func_actor_303600_80162950(Task* task)
     task->state += 1;
 }
 
-void func_actor_303600_80162A04(void)
+void func_actor_303600_80162A04(Task* task)
 {
 }
 
@@ -84,4 +119,15 @@ void func_actor_303600_80162A0C(Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_303600/actor_303600_3", func_actor_303600_80162A7C);
+/// Per-frame dispatcher of the rig controller: runs its spawn, motion or exit
+/// state from `D_actor_303600_80161E48`, skipping the frame while
+/// `D_801153F4` is set.
+void func_actor_303600_80162A7C(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_303600_80161E48;
+    if (D_801153F4 == 0) {
+        sp.funcs[task->state](task);
+    }
+}
