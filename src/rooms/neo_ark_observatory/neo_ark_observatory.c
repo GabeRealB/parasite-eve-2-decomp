@@ -71,49 +71,6 @@ typedef union _NeoArkObservatorySaveLoc {
     s32       head;
 } _NeoArkObservatorySaveLoc;
 
-/// Scratchpad block the mirror takes while it rebuilds its coordinate frame.
-/// `viewRow` is the view matrix's second row, negated through the GTE for the
-/// floor mirror. The other mirrors reflect through a plane: `normal` is the
-/// plane's unit normal, `refAxis` the coordinate axis least aligned with it
-/// (picked through `leastAbs` / `leastAxis` / `axisAbs`), `basis` the
-/// orthonormal frame built from the two and `reflect` the reflection matrix
-/// derived from it. `offset` is the plane's position relative to the view,
-/// rotated in place into the reflected frame.
-typedef struct {
-    SVECTOR viewRow;
-    SVECTOR refAxis;
-    byte    unknown_10[8];
-    MATRIX  basis;
-    MATRIX  reflect;
-    SVECTOR normal;
-    SVECTOR offset;
-    s16     leastAbs;
-    s16     leastAxis;
-    s16     axisAbs;
-    byte    unknown_6E[2];
-} _MirrorPlaneScratch;
-
-/// Scratchpad block the mirror takes to find where the reflection lands on
-/// screen. Two points above and below one of the reflected model's parts are
-/// projected through `pos`: `sxyHead` / `otzHead` for the upper point,
-/// `sxyFoot` / `otzFoot` for the lower. `left` .. `bottom` is the screen
-/// rectangle the reflection quads cover and `texX` the x of the texture page
-/// they sample the off-screen copy of the frame from.
-typedef struct {
-    SVECTOR pos;
-    s32     dp;
-    s32     flag;
-    s32     otzFoot;
-    s32     otzHead;
-    DVECTOR sxyFoot;
-    DVECTOR sxyHead;
-    u16     texX;
-    s32     left;
-    s32     right;
-    s32     top;
-    s32     bottom;
-} _MirrorExtentScratch;
-
 /// Scratch block one band segment is projected in: the four corners in world
 /// space, the GTE depth and flag, and the projected corners.
 typedef struct _NeoArkObservatoryBandScratch {
@@ -299,36 +256,36 @@ void func_neo_ark_observatory_8017D6F4(Task* task)
 /// frame it copies the player's pose and light matrices onto the reflection.
 void func_neo_ark_observatory_8017D8A8(Task* task)
 {
-    RoomMirrorWork*       work;
-    PlayerStatus*         status;
-    TmdObject*            extra;
-    TmdObject*            model;
-    Task*                 owner;
-    GameActor*            actor;
-    Task*                 child;
-    Task*                 spawned;
-    _MirrorPlaneScratch*  plane;
-    _MirrorExtentScratch* extent;
-    GsCOORDINATE2*        parts;
-    GsCOORDINATE2*        refPart;
-    DR_AREA*              drArea;
-    DR_STP*               drStp;
-    DR_OFFSET*            drOffset;
-    SPRT*                 sprt;
-    DR_TPAGE*             tpage;
-    TILE*                 tile;
-    POLY_FT4*             poly;
-    s32                   stage;
-    s32                   area;
-    s32                   view;
-    s32                   width;
-    s32                   viewFlg;
-    s32                   copyPending;
-    s32                   halfWidth;
-    s32                   texX;
-    s32                   i;
-    s32                   layer;
-    u32                   j;
+    RoomMirrorWork*          work;
+    PlayerStatus*            status;
+    TmdObject*               extra;
+    TmdObject*               model;
+    Task*                    owner;
+    GameActor*               actor;
+    Task*                    child;
+    Task*                    spawned;
+    RoomMirrorPlaneScratch*  plane;
+    RoomMirrorExtentScratch* extent;
+    GsCOORDINATE2*           parts;
+    GsCOORDINATE2*           refPart;
+    DR_AREA*                 drArea;
+    DR_STP*                  drStp;
+    DR_OFFSET*               drOffset;
+    SPRT*                    sprt;
+    DR_TPAGE*                tpage;
+    TILE*                    tile;
+    POLY_FT4*                poly;
+    s32                      stage;
+    s32                      area;
+    s32                      view;
+    s32                      width;
+    s32                      viewFlg;
+    s32                      copyPending;
+    s32                      halfWidth;
+    s32                      texX;
+    s32                      i;
+    s32                      layer;
+    u32                      j;
 
     width  = 0x1C0;
     work   = task->work;
@@ -365,7 +322,7 @@ void func_neo_ark_observatory_8017D8A8(Task* task)
         work->coord.flg   = 0;
         work->field_A0[2] = -0x78;
         work->field_A0[3] = 0x78;
-        plane             = (_MirrorPlaneScratch*)(*(u8**)G_SCRATCH_HEAD -= 0x70);
+        plane             = (RoomMirrorPlaneScratch*)(*(u8**)G_SCRATCH_HEAD -= 0x70);
         work->coord.sub   = sub;
         if (task->spawnArg1 == 0) {
             work->field_4     = 1;
@@ -700,7 +657,7 @@ void func_neo_ark_observatory_8017D8A8(Task* task)
             }
         }
         if (stage == 1 || stage == 5) {
-            extent = (_MirrorExtentScratch*)(*(u8**)G_SCRATCH_HEAD -= 0x34);
+            extent = (RoomMirrorExtentScratch*)(*(u8**)G_SCRATCH_HEAD -= 0x34);
             if (gGameSession->eventState != 0) {
                 Gp_UpdateCoord(refPart);
                 gte_SetTransMatrix(&refPart->workm);

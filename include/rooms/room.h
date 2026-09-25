@@ -113,4 +113,50 @@ typedef struct RoomRippleScratch {
 } RoomRippleScratch;
 STATIC_ASSERT_SIZEOF(RoomRippleScratch, 0x4C);
 
+/// The scratchpad block a mirror task takes while it rebuilds the reflected
+/// coordinate frame in its `RoomMirrorWork`. A floor mirror only needs
+/// `viewRow`, the view matrix's second row, which it negates through the GTE.
+/// The other mirrors reflect through a plane: `normal` is the plane's unit
+/// normal, `refAxis` the coordinate axis least aligned with it (picked through
+/// `leastAbs`, `leastAxis` and `axisAbs`), `basis` the orthonormal frame built
+/// from the two and `reflect` the reflection matrix derived from it. `offset`
+/// is the plane's position relative to the view, rotated in place into the
+/// reflected frame.
+typedef struct RoomMirrorPlaneScratch {
+    SVECTOR viewRow;
+    SVECTOR refAxis;
+    byte    unknown_10[8];
+    MATRIX  basis;
+    MATRIX  reflect;
+    SVECTOR normal;
+    SVECTOR offset;
+    s16     leastAbs;
+    s16     leastAxis;
+    s16     axisAbs;
+    byte    unknown_6E[2];
+} RoomMirrorPlaneScratch;
+STATIC_ASSERT_SIZEOF(RoomMirrorPlaneScratch, 0x70);
+
+/// The scratchpad block a mirror task takes to find where the reflection
+/// lands on screen. It projects two points above and below one of the
+/// reflected model's parts through `pos`: `sxyHead` and `otzHead` for the
+/// upper point, `sxyFoot` and `otzFoot` for the lower. `left` to `bottom` is
+/// the screen rectangle the reflection quads cover, and `texX` the x of the
+/// texture page they sample the off-screen copy of the frame from.
+typedef struct RoomMirrorExtentScratch {
+    SVECTOR pos;
+    s32     dp;
+    s32     flag;
+    s32     otzFoot;
+    s32     otzHead;
+    DVECTOR sxyFoot;
+    DVECTOR sxyHead;
+    u16     texX;
+    s32     left;
+    s32     right;
+    s32     top;
+    s32     bottom;
+} RoomMirrorExtentScratch;
+STATIC_ASSERT_SIZEOF(RoomMirrorExtentScratch, 0x34);
+
 #endif /* ROOMS_ROOM_H */
