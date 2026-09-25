@@ -1415,7 +1415,6 @@ void func_actor_403100_801342B4(Task* arg0)
 }
 void func_actor_403100_801345E0(Task* arg0, Task* arg1)
 {
-    s32      x;
     Task*    task;
     GpCoord* coord;
 
@@ -1424,56 +1423,31 @@ void func_actor_403100_801345E0(Task* arg0, Task* arg1)
         task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
-            USE_REG(coord);
-            x                 = D_actor_403100_80155794[0][0];
-            coord->coord.t[0] = x;
-            USE_REG(x);
-            coord->coord.t[1] = 0;
-            coord->coord.t[2] = D_actor_403100_80155794[0][1];
+            _actor403100PlaceSpawned(coord, 0);
         }
         if (!(D_actor_403100_80155808->field_5EC & 0x3F)) {
             task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
             if (task != NULL) {
                 coord = task->extra.tmd->coords;
-                USE_REG(coord);
-                x                 = D_actor_403100_80155794[1][0];
-                coord->coord.t[0] = x;
-                USE_REG(x);
-                coord->coord.t[1] = 0;
-                coord->coord.t[2] = D_actor_403100_80155794[1][1];
+                _actor403100PlaceSpawned(coord, 1);
             }
             if (!(D_actor_403100_80155808->field_5EC & 0x3F)) {
                 task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
                 if (task != NULL) {
                     coord = task->extra.tmd->coords;
-                    USE_REG(coord);
-                    x                 = D_actor_403100_80155794[2][0];
-                    coord->coord.t[0] = x;
-                    USE_REG(x);
-                    coord->coord.t[1] = 0;
-                    coord->coord.t[2] = D_actor_403100_80155794[2][1];
+                    _actor403100PlaceSpawned(coord, 2);
                 }
                 if (!(D_actor_403100_80155808->field_5EC & 0x3F)) {
                     task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
                     if (task != NULL) {
                         coord = task->extra.tmd->coords;
-                        USE_REG(coord);
-                        x                 = D_actor_403100_80155794[3][0];
-                        coord->coord.t[0] = x;
-                        USE_REG(x);
-                        coord->coord.t[1] = 0;
-                        coord->coord.t[2] = D_actor_403100_80155794[3][1];
+                        _actor403100PlaceSpawned(coord, 3);
                     }
                     if (!(D_actor_403100_80155808->field_5EC & 0x3F)) {
                         task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
                         if (task != NULL) {
                             coord = task->extra.tmd->coords;
-                            USE_REG(coord);
-                            x                 = D_actor_403100_80155794[4][0];
-                            coord->coord.t[0] = x;
-                            USE_REG(x);
-                            coord->coord.t[1] = 0;
-                            coord->coord.t[2] = D_actor_403100_80155794[4][1];
+                            _actor403100PlaceSpawned(coord, 4);
                         }
                     }
                 }

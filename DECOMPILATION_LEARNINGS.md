@@ -140940,3 +140940,16 @@ copies in each preheader, and an `s16` whose value is known to be small loses
 its extension in combine. Before padding or pinning a loop to stop a hoist,
 count the loop's insns in the `.loop` dump and check the types and the array
 spelling of the addresses in it.
+
+### Pass an inline helper a named local, not the expression, when `lui %hi(table)` must follow the pointer load (func_actor_403100_801345E0, 2026-09-26)
+
+A spawn-and-place block `coord = task->extra.tmd->coords; helper(coord, i);`
+emits `lw 0x2C; lw 0x8; lui %hi(table); lh %lo(table)(...)`. Writing the call
+as `helper(task->extra.tmd->coords, i)` instead lets sched1 hoist the `lui`
+above the second `lw` (its chain through `addiu`/`lh`/`sw` outranks the load
+chain), so it lands in another register and reorg steals it into the
+preceding `beqz` delay slot - 83%. Through the named local, the inline's
+parameter is a copy of a user variable, and that extra link lengthens the
+pointer chain enough that the `lui` stays after it. The old body pinned the
+same order with `USE_REG(coord)` / `USE_REG(x)`; check whether a sibling in
+the TU already calls the helper through a local before steering.
