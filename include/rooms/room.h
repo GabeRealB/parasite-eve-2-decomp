@@ -29,4 +29,22 @@ typedef struct RoomFadeWork {
 } RoomFadeWork;
 STATIC_ASSERT_SIZEOF(RoomFadeWork, 0x8);
 
+/// A room's command to its actors, the payload of message 0x7DB. A room sends
+/// it to one actor directly, or as message 0x7DA to the actor manager in
+/// pointer slot 4, which passes it on to its actors as 0x7DB. `from` says who
+/// the command is from, usually the stage and area of the room sending it; a
+/// receiver tests the two bytes together as one halfword before it acts on
+/// `command`.
+typedef struct RoomActorMsg {
+    union {
+        struct {
+            u8 stage;
+            u8 area;
+        } loc;
+        u16 key; // `loc` read as one halfword, area in the high byte
+    } from;
+    u16 command; // What the receiver is to do: a state to enter or a request number
+} RoomActorMsg;
+STATIC_ASSERT_SIZEOF(RoomActorMsg, 0x4);
+
 #endif /* ROOMS_ROOM_H */
