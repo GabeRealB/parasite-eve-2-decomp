@@ -449,22 +449,6 @@ typedef struct _GpSlot70 {
 } GpSlot70;
 STATIC_ASSERT_SIZEOF(GpSlot70, 0xC);
 
-/// Overlay used by `Gp_ProjectToSxy`. `field_8` is a `GsCOORDINATE2*`
-/// (`workm` is loaded as both rotation and translation). `field_C` /
-/// `field_10` / `field_14` are the low halves of a `VECTOR3` at +0xC
-/// (the enemy's `bodyPos`, seen from its lock-on `node`).
-typedef struct _GpPerspSrc {
-    /* 0x00 */ byte  pad_0[8];
-    /* 0x08 */ void* field_8;
-    /* 0x0C */ u16   field_C;
-    /* 0x0E */ byte  pad_E[2];
-    /* 0x10 */ u16   field_10;
-    /* 0x12 */ byte  pad_12[2];
-    /* 0x14 */ u16   field_14;
-    /* 0x16 */ byte  pad_16[2];
-} GpPerspSrc;
-STATIC_ASSERT_SIZEOF(GpPerspSrc, 0x18);
-
 /// 0x38-byte scratch from `G_SCRATCH_HEAD` used by `Gp_ScanLockNodes`.
 /// `src` is the actor's `coord.t` (lowered by 1000 on Y) before
 /// `Gfx_ViewWorldMtx` rotates it into `self`, the world-space aim origin.
@@ -1214,7 +1198,7 @@ void* Gp_FindLockNodeAt(Task* arg0, VECTOR3* pos);
 void  Gp_GetLockPos(GpLinkNode* arg0, VECTOR3* out);
 void  Gp_ClearLockSlots(void);
 void  Gp_ResetLinkState(void);
-s32   Gp_ProjectToSxy(GpPerspSrc* arg0, s32* sxy);
+s32   Gp_ProjectToSxy(GpLinkNode* arg0, s32* sxy);
 /// Drops the `targeted` mark from every actor slot's current node, without
 /// releasing the slot itself.
 void Gp_ClearSlotNodeFlags(void);

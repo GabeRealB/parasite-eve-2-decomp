@@ -2956,19 +2956,19 @@ done:
 static __inline__ void project_slot(s32* sxy, GpSlot70* slot)
 {
     u8*                      head;
-    GpPerspSrc*              src;
+    GpLinkNode*              src;
     register GpPerspScratch* block asm("v1");
 
-    src           = (GpPerspSrc*)slot->field_0;
+    src           = slot->field_0;
     head          = *(u8**)G_SCRATCH_HEAD;
     block         = (GpPerspScratch*)(head - 0x14);
-    block->vec.vx = src->field_C;
-    block->vec.vy = src->field_10;
-    block->vec.vz = src->field_14;
+    block->vec.vx = GP_NODE_ENEMY(src)->bodyPos.vx;
+    block->vec.vy = GP_NODE_ENEMY(src)->bodyPos.vy;
+    block->vec.vz = GP_NODE_ENEMY(src)->bodyPos.vz;
     COMPILER_BARRIER();
     *(void**)G_SCRATCH_HEAD = block;
-    gte_SetRotMatrix(&((GsCOORDINATE2*)src->field_8)->workm);
-    gte_SetTransMatrix(&((GsCOORDINATE2*)src->field_8)->workm);
+    gte_SetRotMatrix(&GP_NODE_ENEMY(src)->coord->workm);
+    gte_SetTransMatrix(&GP_NODE_ENEMY(src)->coord->workm);
     gte_ldv0(&block->vec);
     gte_rtps();
     gte_stsxy(sxy);
@@ -3389,7 +3389,7 @@ void Gp_ResetLinkState(void)
     D_8010F9EC = 0xFFF00000;
 }
 
-s32 Gp_ProjectToSxy(GpPerspSrc* arg0, s32* sxy)
+s32 Gp_ProjectToSxy(GpLinkNode* arg0, s32* sxy)
 {
     void**          scratch;
     u8*             head;
@@ -3399,13 +3399,13 @@ s32 Gp_ProjectToSxy(GpPerspSrc* arg0, s32* sxy)
     scratch       = (void**)G_SCRATCH_HEAD;
     head          = *scratch;
     block         = (GpPerspScratch*)(head - 0x14);
-    block->vec.vx = arg0->field_C;
-    block->vec.vy = arg0->field_10;
+    block->vec.vx = GP_NODE_ENEMY(arg0)->bodyPos.vx;
+    block->vec.vy = GP_NODE_ENEMY(arg0)->bodyPos.vy;
     *scratch      = block;
-    block->vec.vz = arg0->field_14;
+    block->vec.vz = GP_NODE_ENEMY(arg0)->bodyPos.vz;
     COMPILER_BARRIER();
-    gte_SetRotMatrix(&((GsCOORDINATE2*)arg0->field_8)->workm);
-    gte_SetTransMatrix(&((GsCOORDINATE2*)arg0->field_8)->workm);
+    gte_SetRotMatrix(&GP_NODE_ENEMY(arg0)->coord->workm);
+    gte_SetTransMatrix(&GP_NODE_ENEMY(arg0)->coord->workm);
     gte_ldv0(&block->vec);
     gte_rtps();
     gte_stsxy(sxy);

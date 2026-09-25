@@ -1122,12 +1122,12 @@ s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, Actor104900SpawnWork* work, A
 /// flag byte's address and cannot share the call's result register.
 void Actor01100_Fn01B90(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    GpLinkXform* xform;
-    s32          flag;
-    s32          off;
-    s32          i;
-    u32          dist;
-    s16          walk;
+    GpLinkNode* lockNode;
+    s32         flag;
+    s32         off;
+    s32         i;
+    u32         dist;
+    s16         walk;
 
     flag = 0;
     dist = Actor01100_Fn06AC8(((TmdObject*)task->extra)->coords);
@@ -1167,12 +1167,12 @@ void Actor01100_Fn01B90(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         }
     }
 
-    xform             = (GpLinkXform*)&enemy->node;
-    enemy->node.flags = 0;
-    xform->coord      = &((TmdObject*)task->extra)->coords[3];
-    xform->src.vx     = 0;
-    xform->src.vy     = -0xC8;
-    xform->src.vz     = 0xC8;
+    lockNode                            = &enemy->node;
+    enemy->node.flags                   = 0;
+    GP_NODE_ENEMY(lockNode)->coord      = &((TmdObject*)task->extra)->coords[3];
+    GP_NODE_ENEMY(lockNode)->bodyPos.vx = 0;
+    GP_NODE_ENEMY(lockNode)->bodyPos.vy = -0xC8;
+    GP_NODE_ENEMY(lockNode)->bodyPos.vz = 0xC8;
     if (Actor01100_Fn00F58(enemy, task, (Actor104900SpawnWork*)work, arg) != 0) {
         flag = 1;
     }
@@ -1526,15 +1526,15 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
                 break;
             case 1: {
                 GsCOORDINATE2* c;
-                GpLinkXform*   xform;
+                GpLinkNode*    lockNode;
 
-                enemy->node.flags = 0;
-                c                 = ((TmdObject*)task->extra)->coords;
-                xform             = (GpLinkXform*)&enemy->node;
-                xform->src.vy     = -0xC8;
-                xform->src.vx     = 0;
-                xform->src.vz     = 0xC8;
-                xform->coord      = c + 3;
+                enemy->node.flags                   = 0;
+                c                                   = ((TmdObject*)task->extra)->coords;
+                lockNode                            = &enemy->node;
+                GP_NODE_ENEMY(lockNode)->bodyPos.vy = -0xC8;
+                GP_NODE_ENEMY(lockNode)->bodyPos.vx = 0;
+                GP_NODE_ENEMY(lockNode)->bodyPos.vz = 0xC8;
+                GP_NODE_ENEMY(lockNode)->coord      = c + 3;
                 if (Actor01100_Fn00F58(enemy, task, (Actor104900SpawnWork*)work, arg) == 0 && task->spawnArg1 == 0 && work->field_BC9 == 1 && work->field_BA9 == 1 && Actor01100_Fn06AC8(((TmdObject*)task->extra)->coords) > 0xA62B10) {
                     i   = 0;
                     off = 0x9C8;
@@ -1556,7 +1556,7 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
             }
             case 2: {
                 GsCOORDINATE2* c;
-                GpLinkXform*   xform;
+                GpLinkNode*    lockNode;
 
                 if (work->field_BAB != 1) {
                     if (work->field_B96 >= 0x400) {
@@ -1588,12 +1588,12 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
                         }
                     }
                 }
-                c             = ((TmdObject*)task->extra)->coords;
-                xform         = (GpLinkXform*)&enemy->node;
-                xform->src.vy = -0xC8;
-                xform->src.vx = 0;
-                xform->src.vz = 0xC8;
-                xform->coord  = c + 3;
+                c                                   = ((TmdObject*)task->extra)->coords;
+                lockNode                            = &enemy->node;
+                GP_NODE_ENEMY(lockNode)->bodyPos.vy = -0xC8;
+                GP_NODE_ENEMY(lockNode)->bodyPos.vx = 0;
+                GP_NODE_ENEMY(lockNode)->bodyPos.vz = 0xC8;
+                GP_NODE_ENEMY(lockNode)->coord      = c + 3;
                 Actor01100_Fn00F58(enemy, task, (Actor104900SpawnWork*)work, arg);
                 break;
             }
@@ -3763,10 +3763,10 @@ void Actor01100_Fn06B6C(GsCOORDINATE2* arg0, ActorsShared8013898cVec* arg1, s32 
     }
 }
 
-/// Points the enemy's link transform at the model's fourth part coordinate -
-/// the same `TmdObject::coords[3]` that `Gp_UpdateLinkXforms` reads back
-/// through `GpEnemy.coord` - and arms the 0xC8-box local offset the actor
-/// spawns inside. `GpLinkXform::field_4` clears the node's slot byte.
+/// Points the enemy's body at the model's fourth part coordinate - the same
+/// `TmdObject::coords[3]` that `Gp_UpdateLinkXforms` reads back through
+/// `GpEnemy.coord` - and sets the body position the actor spawns inside, and
+/// clears the lock-on node's flags.
 ///
 /// The restart path then needs three things at once: `Actor01100_Fn00F58`
 /// idle, `Task::spawnArg1` clear, and the work block's trigger pair
@@ -3777,17 +3777,17 @@ void Actor01100_Fn06B6C(GsCOORDINATE2* arg0, ActorsShared8013898cVec* arg1, s32 
 /// `field_BA8` is cleared either way, so the sub-state re-arms from the top.
 void Actor01100_Fn06C0C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    GpLinkXform* xform;
-    s32          off;
-    s32          i;
-    u8           trigger;
+    GpLinkNode* lockNode;
+    s32         off;
+    s32         i;
+    u8          trigger;
 
-    xform             = (GpLinkXform*)&enemy->node;
-    enemy->node.flags = 0;
-    xform->coord      = &((TmdObject*)task->extra)->coords[3];
-    xform->src.vx     = 0;
-    xform->src.vy     = -0xC8;
-    xform->src.vz     = 0xC8;
+    lockNode                            = &enemy->node;
+    enemy->node.flags                   = 0;
+    GP_NODE_ENEMY(lockNode)->coord      = &((TmdObject*)task->extra)->coords[3];
+    GP_NODE_ENEMY(lockNode)->bodyPos.vx = 0;
+    GP_NODE_ENEMY(lockNode)->bodyPos.vy = -0xC8;
+    GP_NODE_ENEMY(lockNode)->bodyPos.vz = 0xC8;
     if ((Actor01100_Fn00F58(enemy, task, (Actor104900SpawnWork*)work, arg) == 0) && (task->spawnArg1 == 0)) {
         trigger = work->field_BC9;
         if ((trigger == 1) && (work->field_BA9 == trigger)) {
@@ -3823,8 +3823,8 @@ void Actor01100_Fn06C0C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 /// 0xC8-box local offset through `src` - and `Actor01100_Fn00F58` runs last.
 void Actor01100_Fn06D3C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    GpLinkXform* xform;
-    s16          walk;
+    GpLinkNode* lockNode;
+    s16         walk;
 
     if (work->field_BAB != 1) {
         if (work->field_B96 >= 0x400) {
@@ -3856,11 +3856,11 @@ void Actor01100_Fn06D3C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
             }
         }
     }
-    xform         = (GpLinkXform*)&enemy->node;
-    xform->coord  = &((TmdObject*)task->extra)->coords[3];
-    xform->src.vx = 0;
-    xform->src.vy = -0xC8;
-    xform->src.vz = 0xC8;
+    lockNode                            = &enemy->node;
+    GP_NODE_ENEMY(lockNode)->coord      = &((TmdObject*)task->extra)->coords[3];
+    GP_NODE_ENEMY(lockNode)->bodyPos.vx = 0;
+    GP_NODE_ENEMY(lockNode)->bodyPos.vy = -0xC8;
+    GP_NODE_ENEMY(lockNode)->bodyPos.vz = 0xC8;
     Actor01100_Fn00F58(enemy, task, (Actor104900SpawnWork*)work, arg);
 }
 
