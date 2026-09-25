@@ -16,20 +16,6 @@
 #include "main/tmd.h"
 #include "rooms/room.h"
 
-/// The object a slot-4 task holds in `Task::spawnArg2`. Only the pending
-/// spawn value at 0x40 (-999 while waiting for one) and the byte at 0x4C,
-/// cleared when a value is handed over, are known; the size is not.
-///
-/// The halfword at 0x40 is compared through an `(s16)` cast of the `u16`
-/// member: the reads that compare it are `lh`, the store is `sh`.
-typedef struct NeoArkForestZoneObj {
-    /* 0x00 */ byte pad_0[0x40];
-    /* 0x40 */ u16  field_40;
-    /* 0x42 */ byte pad_42[0xA];
-    /* 0x4C */ u8   field_4C;
-    /* 0x4D */ byte pad_4D[3];
-} NeoArkForestZoneObj;
-
 /// A placement for a spawned task: the x and z written into its coordinate
 /// translation (y is always zero) and the Y rotation passed to
 /// `Gfx_RotMatrixY`. The halfword after `x` is not read.
@@ -177,17 +163,17 @@ void func_neo_ark_forest_zone_801804B0(Task* task)
 /// countdown down, releases a pending `Gp_StateF0` reference, and once that
 /// reference has dropped folds the still-pending spawn slots back into game
 /// flags 0x168 and 0x10C. On a placement request it hands the first pending
-/// slot to a waiting slot-4 task (one whose parameter is -999), sends it
+/// slot to a waiting slot-4 task (one whose enemy `hp` still reads -999), sends it
 /// message 0x7DB and places it at the requested point.
 void func_neo_ark_forest_zone_80180620(Task* task)
 {
-    s16                  i;
-    s16                  count;
-    s32                  a;
-    s32                  b;
-    NeoArkForestZoneObj* obj;
-    s16                  j;
-    s16                  k;
+    s16      i;
+    s16      count;
+    s32      a;
+    s32      b;
+    GpEnemy* obj;
+    s16      j;
+    s16      k;
 
     gameGetPtrSlot(3);
     if (D_neo_ark_forest_zone_80182D54[gGameSession->at4.loc.place] == 0) {
@@ -242,16 +228,16 @@ void func_neo_ark_forest_zone_80180620(Task* task)
             if (obj == NULL) {
                 break;
             }
-            if ((s16)obj->field_40 == -999) {
+            if (obj->hp == -999) {
                 for (j = 0; j < D_neo_ark_forest_zone_80182D64; j++) {
                     if (((s16*)D_neo_ark_forest_zone_80182E54)[j] > 0) {
-                        obj->field_40                     = D_neo_ark_forest_zone_80182E54[j];
-                        obj->field_4C                     = 0;
+                        obj->hp                           = D_neo_ark_forest_zone_80182E54[j];
+                        obj->reactionFlags                = 0;
                         D_neo_ark_forest_zone_80182E54[j] = 0;
                         break;
                     }
                 }
-                if ((s16)obj->field_40 > 0) {
+                if (obj->hp > 0) {
                     Gp_IncStateF0Ref(0);
                     D_neo_ark_forest_zone_80182D62 += 0x5A;
                     Gp_DispatchMsg((Task*)Gp_LookupSlot4(i), 0x7DB, (s32)&D_neo_ark_forest_zone_80182E44, 0);
@@ -276,9 +262,9 @@ void func_neo_ark_forest_zone_80180620(Task* task)
 /// for command 2.
 s32 func_neo_ark_forest_zone_80180A60(Task* task, s32 arg1, RoomActorMsg* msg)
 {
-    s32                  result;
-    u16                  cmd;
-    NeoArkForestZoneObj* obj;
+    s32      result;
+    u16      cmd;
+    GpEnemy* obj;
 
     result = 0;
     if (msg->from.key == 0xB05) {
@@ -301,9 +287,9 @@ s32 func_neo_ark_forest_zone_80180A60(Task* task, s32 arg1, RoomActorMsg* msg)
                     ((TmdObject*)((Task*)Gp_LookupSlot4(0))->extra)->coords->coord.t[1] = 0;
                     ((TmdObject*)((Task*)Gp_LookupSlot4(0))->extra)->coords->coord.t[2] = -0x320;
                     if (obj != 0) {
-                        obj->field_40                     = D_neo_ark_forest_zone_80182E54[0];
+                        obj->hp                           = D_neo_ark_forest_zone_80182E54[0];
                         D_neo_ark_forest_zone_80182E54[0] = 0;
-                        obj->field_4C                     = 0;
+                        obj->reactionFlags                = 0;
                     }
                     Gfx_RotMatrixY(&((TmdObject*)((Task*)Gp_LookupSlot4(0))->extra)->coords->coord,
                                    0x400, 1);
@@ -354,13 +340,13 @@ void func_neo_ark_forest_zone_80180BB4(Task* task)
 
 void func_neo_ark_forest_zone_80180D24(Task* arg0)
 {
-    s16                  i;
-    s16                  count;
-    s32                  a;
-    s32                  b;
-    NeoArkForestZoneObj* obj;
-    s16                  j;
-    s16                  k;
+    s16      i;
+    s16      count;
+    s32      a;
+    s32      b;
+    GpEnemy* obj;
+    s16      j;
+    s16      k;
 
     gameGetPtrSlot(3);
     if (D_neo_ark_forest_zone_80182D44[gGameSession->at4.loc.place] == 0) {
@@ -419,16 +405,16 @@ void func_neo_ark_forest_zone_80180D24(Task* arg0)
             if (obj == NULL) {
                 break;
             }
-            if ((s16)obj->field_40 == -999) {
+            if (obj->hp == -999) {
                 for (j = 0; j < D_neo_ark_forest_zone_80182D64; j++) {
                     if (((s16*)D_neo_ark_forest_zone_80182E54)[j] > 0) {
-                        obj->field_40                     = D_neo_ark_forest_zone_80182E54[j];
-                        obj->field_4C                     = 0;
+                        obj->hp                           = D_neo_ark_forest_zone_80182E54[j];
+                        obj->reactionFlags                = 0;
                         D_neo_ark_forest_zone_80182E54[j] = 0;
                         break;
                     }
                 }
-                if ((s16)obj->field_40 > 0) {
+                if (obj->hp > 0) {
                     Gp_IncStateF0Ref(0);
                     D_neo_ark_forest_zone_80182D62 += 0x5A;
                     Gp_DispatchMsg((Task*)Gp_LookupSlot4(i), 0x7DB, (s32)&D_neo_ark_forest_zone_80182E44, 0);

@@ -44,25 +44,6 @@ extern s32 D_8011574C;
 /// `in_struct`".
 extern s16 D_neo_ark_woodland_path_8018498E;
 
-/// The object `Task::spawnArg2` holds for this room: the pending spawn
-/// parameter handed over by `D_neo_ark_woodland_path_80184A60`, and the state
-/// byte the handler clears once it has been taken. Trailing pad keeps pointer
-/// alignment; the full object size is not known yet.
-///
-/// The halfword at 0x40 is reached through a cast rather than as a member,
-/// because the original compiles it as a *scalar* reference: `MEM_IN_STRUCT_P`
-/// (the `/s` on a MEM) feeds the scheduler's dependence analysis, and as a
-/// member access the neighbouring `D_neo_ark_woodland_path_80184A60` store is
-/// scheduled differently - see `DECOMPILATION_LEARNINGS.md`, "Scalar memory
-/// references".
-typedef struct NeoArkWoodlandPathObj {
-    /* 0x00 */ byte pad_0[0x40];
-    /* 0x40 */ u16  field_40;
-    /* 0x42 */ byte pad_42[0xA];
-    /* 0x4C */ u8   field_4C;
-    /* 0x4D */ byte pad_4D[3];
-} NeoArkWoodlandPathObj;
-
 extern RoomActorMsg D_neo_ark_woodland_path_80184A5C;
 
 /// The room's five spawn slots: `func_neo_ark_woodland_path_8018046C` fills the
@@ -156,7 +137,7 @@ extern s16 D_neo_ark_woodland_path_801849F0;
 /// `func_neo_ark_woodland_path_8017EA08`. Only the halfword at 0x26 is known:
 /// the chance, out of 0x200, of spawning an effect this frame. It is recomputed
 /// from how far the tracked model parts moved. Nothing yet shows whether this
-/// is the same object as `NeoArkWoodlandPathObj`.
+/// is the same object as `GpEnemy`.
 typedef struct NeoArkWoodlandPathTrailObj {
     /* 0x00 */ byte pad_0[0x26];
     /* 0x26 */ s16  chance;
@@ -917,17 +898,17 @@ void func_neo_ark_woodland_path_80180568(Task* task)
 /// the room's countdown down, and once the reference count on `Gp_StateF0`
 /// has dropped to zero folds the still-pending spawn slots back into game
 /// flags 0x168 and 0x10C. When a spawn point has been requested it hands the
-/// first pending slot to a waiting slot-4 task (one whose parameter is -999),
+/// first pending slot to a waiting slot-4 task (one whose enemy `hp` still reads -999),
 /// sends it the 0x7DB message and places it at that point.
 void func_neo_ark_woodland_path_801806D8(Task* task)
 {
-    s16                    i;
-    s16                    count;
-    s32                    a;
-    s32                    b;
-    NeoArkWoodlandPathObj* obj;
-    s16                    j;
-    s16                    k;
+    s16      i;
+    s16      count;
+    s32      a;
+    s32      b;
+    GpEnemy* obj;
+    s16      j;
+    s16      k;
 
     gameGetPtrSlot(3);
     if (D_neo_ark_woodland_path_80184980[gGameSession->at4.loc.place] == 0) {
@@ -982,16 +963,16 @@ void func_neo_ark_woodland_path_801806D8(Task* task)
             if (obj == NULL) {
                 break;
             }
-            if ((s16)obj->field_40 == -999) {
+            if (obj->hp == -999) {
                 for (j = 0; j < D_neo_ark_woodland_path_80184990; j++) {
                     if (((s16*)D_neo_ark_woodland_path_80184A60)[j] > 0) {
-                        obj->field_40                       = D_neo_ark_woodland_path_80184A60[j];
-                        obj->field_4C                       = 0;
+                        obj->hp                             = D_neo_ark_woodland_path_80184A60[j];
+                        obj->reactionFlags                  = 0;
                         D_neo_ark_woodland_path_80184A60[j] = 0;
                         break;
                     }
                 }
-                if ((s16)obj->field_40 > 0) {
+                if (obj->hp > 0) {
                     Gp_IncStateF0Ref(0);
                     D_neo_ark_woodland_path_8018498E += 0x5A;
                     Gp_DispatchMsg((Task*)Gp_LookupSlot4(i), 0x7DB, (s32)&D_neo_ark_woodland_path_80184A5C, 0);
@@ -1020,9 +1001,9 @@ const TaskFuncTable4 D_neo_ark_woodland_path_8017D638 = {
 
 s32 func_neo_ark_woodland_path_80180B18(Task* task, s32 arg1, RoomActorMsg* msg)
 {
-    s32                    result;
-    u16                    cmd;
-    NeoArkWoodlandPathObj* obj;
+    s32      result;
+    u16      cmd;
+    GpEnemy* obj;
 
     result = 0;
     if (msg->from.key == 0xB05) {
@@ -1047,7 +1028,7 @@ s32 func_neo_ark_woodland_path_80180B18(Task* task, s32 arg1, RoomActorMsg* msg)
                     if (obj != 0) {
                         *(u16*)((u8*)obj + 0x40)            = D_neo_ark_woodland_path_80184A60[0];
                         D_neo_ark_woodland_path_80184A60[0] = 0;
-                        obj->field_4C                       = 0;
+                        obj->reactionFlags                  = 0;
                     }
                     Gfx_RotMatrixY(&((TmdObject*)((Task*)Gp_LookupSlot4(0))->extra)->coords->coord,
                                    0x400, 1);
@@ -1106,13 +1087,13 @@ void func_neo_ark_woodland_path_80180C6C(Task* task)
 /// sends it the 0x7DB message and places it at one of five fixed points.
 void func_neo_ark_woodland_path_80180DDC(Task* task)
 {
-    s16                    i;
-    s16                    count;
-    s32                    a;
-    s32                    b;
-    NeoArkWoodlandPathObj* obj;
-    s16                    j;
-    s16                    k;
+    s16      i;
+    s16      count;
+    s32      a;
+    s32      b;
+    GpEnemy* obj;
+    s16      j;
+    s16      k;
 
     gameGetPtrSlot(3);
     if (D_neo_ark_woodland_path_80184970[gGameSession->at4.loc.place] == 0) {
@@ -1171,16 +1152,16 @@ void func_neo_ark_woodland_path_80180DDC(Task* task)
             if (obj == NULL) {
                 break;
             }
-            if ((s16)obj->field_40 == -999) {
+            if (obj->hp == -999) {
                 for (j = 0; j < D_neo_ark_woodland_path_80184990; j++) {
                     if (((s16*)D_neo_ark_woodland_path_80184A60)[j] > 0) {
-                        obj->field_40                       = D_neo_ark_woodland_path_80184A60[j];
-                        obj->field_4C                       = 0;
+                        obj->hp                             = D_neo_ark_woodland_path_80184A60[j];
+                        obj->reactionFlags                  = 0;
                         D_neo_ark_woodland_path_80184A60[j] = 0;
                         break;
                     }
                 }
-                if ((s16)obj->field_40 > 0) {
+                if (obj->hp > 0) {
                     Gp_IncStateF0Ref(0);
                     D_neo_ark_woodland_path_8018498E += 0x5A;
                     Gp_DispatchMsg((Task*)Gp_LookupSlot4(i), 0x7DB, (s32)&D_neo_ark_woodland_path_80184A5C, 0);
