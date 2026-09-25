@@ -3760,12 +3760,6 @@ id = 102
 objects = [
   { kind = "packageId" },
   { unit = "actor_113100/actor_113100", rodata = "0x4", text = "0x38" },
-  { unit = "actor_113100/actor_113100_3", rodata = "0x28", text = "0x1120" },
-  { unit = "actor_113100/actor_113100_5", text = "0xFE0" },
-  { unit = "actor_113100/actor_113100_2", text = "0x1078" },
-  { unit = "actor_113100/actor_113100_6", text = "0x1104" },
-  { unit = "actor_113100/actor_113100_7", text = "0x151C" },
-  { unit = "actor_113100/actor_113100_4", text = "0x1598" },
   { kind = "model", at = "0x164C" },
   { kind = "model", at = "0x7868" },
   { kind = "model", at = "0x7A64" },
