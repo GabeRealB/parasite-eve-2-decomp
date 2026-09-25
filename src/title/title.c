@@ -316,137 +316,82 @@ void Title_ExitTask(Task* arg0)
     Task_CallExit(arg0);
 }
 
-void Title_DemoStreamTask(Task* arg0)
+void Title_DemoStreamTask(Task* task)
 {
-    u8                     slotParam[4];
-    GameLoc                key;
-    u8                     param1[4];
-    u8                     param2[4];
-    CdCmdQueue*            queue;
-    s16                    slot;
-    register DisplayState* ds asm("s0");
-    register Task*         task asm("s1");
+    u8          slotParam[4];
+    GameLoc     key;
+    u8          param1[4];
+    u8          param2[4];
+    CdCmdQueue* queue = &CdCmd_Queue;
 
-    task  = arg0;
-    queue = &CdCmd_Queue;
     switch (task->state) {
         case 0:
-            goto L_case0;
+            Mem_CopyUnaligned(Fs_Streams, Stream_Slots, 0x190);
+            SetDispMask(0);
+            Mem_AllocAuxWithImages(1);
+            task->state++;
+            break;
         case 1:
-            goto L_case1;
+            key = gGameSession->at4;
+            if (Wip_SysFlags.field_0 == 2) {
+                key.loc.view = 0x65;
+            } else {
+                key.loc.view = 0x64;
+            }
+            slotParam[0] = Stream_FindSlot(key.raw.data, 0, 0);
+            CdCmd_Enqueue(0x61, 0, slotParam);
+            task->state++;
+            break;
         case 2:
-            goto L_case2;
+            if (queue->field_1FA != 0) {
+                SetDispMask(1);
+                task->state++;
+            }
+            break;
         case 3:
-            goto L_case3;
+            if (CdCmd_IsIdle()) {
+                task->state++;
+            } else if (Pad_CheckFlag800()) {
+                Title_SkipFadeFlag = 0;
+                SetDispMask(0);
+                CdCmd_ActivatePhase1();
+                task->state++;
+            }
+            break;
         case 4:
-            goto L_case4;
+            if (CdCmd_IsIdle()) {
+                CdCmd_Queue.field_23E = 1;
+                param1[3]             = 0;
+                param1[2]             = 0;
+                param1[0]             = 2;
+                param2[0]             = 0;
+                param2[1]             = 0;
+                param2[2]             = 0;
+                param2[3]             = 0;
+                CdCmd_Enqueue(0x21, param1, param2);
+                task->state++;
+            }
+            break;
         case 5:
-            goto L_case5;
+            if (CdCmd_IsIdle()) {
+                Display_SetMode(0xD010);
+                task->state++;
+            }
+            break;
         case 6:
-            goto L_case6;
+            Stream_ResetRestoreState();
+            Display_LoadImageStrips(gDisplayState.drawBuffer);
+            Display_LoadImageStrips(gDisplayState.drawBuffer ^ 1);
+            gDisplayState.at100.flags.imageSource = 1;
+            task->state++;
+            break;
         case 7:
-            goto L_case7;
+            if (Stream_RestoreAfterLoad(0, 0)) {
+                taskKill(task);
+                Display_ResetHeapWrapper();
+            }
+            break;
     }
-    return;
-
-L_case0:
-    Mem_CopyUnaligned(Fs_Streams, Stream_Slots, 0x190);
-    SetDispMask(0);
-    Mem_AllocAuxWithImages(1);
-    goto advance;
-
-L_case1:
-    key = gGameSession->at4;
-    if (Wip_SysFlags.field_0 == 2) {
-        key.loc.view = 0x65;
-    } else {
-        key.loc.view = 0x64;
-    }
-    slot = Stream_FindSlot(key.raw.data, 0, 0);
-    {
-        register s32 cmd asm("a0");
-        register s32 zero asm("a1");
-        register u8* p asm("a2");
-        cmd  = 0x61;
-        zero = 0;
-        p    = slotParam;
-        SOFT_TOUCH_REG4(cmd, zero, p, slot);
-        slotParam[0] = slot;
-        CdCmd_Enqueue(cmd, zero, p);
-    }
-    goto advance;
-
-L_case2:
-    if (queue->field_1FA == 0) {
-        return;
-    }
-    SetDispMask(1);
-    goto advance;
-
-L_case3:
-    if (CdCmd_IsIdle() & 0xFFFF) {
-        goto advance;
-    }
-    if (Pad_CheckFlag800() == 0) {
-        return;
-    }
-    {
-        register s32 mask asm("a0");
-        mask = 0;
-        SOFT_TOUCH_REG(mask);
-        Title_SkipFadeFlag = 0;
-        SetDispMask(mask);
-    }
-    CdCmd_ActivatePhase1();
-    goto advance;
-
-L_case4:
-    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
-        return;
-    }
-    {
-        register s32 cmd asm("a0");
-        u8*          p1;
-        u8*          p2;
-        cmd = 0x21;
-        p1  = param1;
-        p2  = param2;
-        SOFT_TOUCH_REG3(cmd, p1, p2);
-        CdCmd_Queue.field_23E = 1;
-        param1[3]             = 0;
-        param1[2]             = 0;
-        param1[0]             = 2;
-        param2[0]             = 0;
-        param2[1]             = 0;
-        param2[2]             = 0;
-        param2[3]             = 0;
-        CdCmd_Enqueue(cmd, p1, p2);
-    }
-    goto advance;
-
-L_case5:
-    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
-        return;
-    }
-    Display_SetMode(0xD010);
-    goto advance;
-
-L_case6:
-    Stream_ResetRestoreState();
-    ds = &gDisplayState;
-    Display_LoadImageStrips(ds->drawBuffer);
-    Display_LoadImageStrips(ds->drawBuffer ^ 1);
-    ds->at100.flags.imageSource = 1;
-advance:
-    task->state = task->state + 1;
-    return;
-
-L_case7:
-    if ((Stream_RestoreAfterLoad(0, 0) & 0xFFFF) == 0) {
-        return;
-    }
-    taskKill(task);
-    Display_ResetHeapWrapper();
 }
 
 void Title_BootTask(Task* arg0)

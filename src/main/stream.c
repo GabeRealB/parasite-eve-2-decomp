@@ -191,7 +191,7 @@ s16 Stream_FindSlotByKey(u8* arg0)
     return -1;
 }
 
-s32 Stream_RestoreAfterLoad(s32 arg0, s32 arg1)
+u16 Stream_RestoreAfterLoad(s32 arg0, s32 arg1)
 {
     RECT         rect;
     u8           param1[8];
