@@ -2382,7 +2382,7 @@ void Gp_AnimWritePoseBlend(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPo
                            s32 arg5)
 {
     void**            scratch;
-    void*             head;
+    GpAnimPose*       head;
     GpAnimSlot*       slot;
     GsCOORDINATE2*    dest;
     register SVECTOR* st asm("a0");
@@ -2393,9 +2393,9 @@ void Gp_AnimWritePoseBlend(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPo
 
     scratch                           = SCRATCH_HEAD_ADDR;
     slot                              = &arg0->slots[arg1];
-    head                              = SCRATCH_HEAD_AT(scratch, void);
+    head                              = SCRATCH_HEAD_AT(scratch, GpAnimPose);
     idx                               = slot->mtxIndex;
-    trans                             = (SVECTOR*)((u8*)head - 0x10);
+    trans                             = &head[-1].trans;
     SCRATCH_HEAD_AT(scratch, SVECTOR) = trans;
     off                               = idx * 0x50;
     USE_REG(off);
@@ -2420,18 +2420,18 @@ void Gp_AnimWritePoseBlend(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPo
     gte_lddp(arg5);
     gte_ldsv(&arg3->rot);
     gte_gpl12();
-    rot = (SVECTOR*)((u8*)head - 8);
+    rot = &head[-1].rot;
     gte_stsv(rot);
     RotMatrix_gte(rot, &dest->coord);
     dest->flg = 0;
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_POP(GpAnimPose);
 }
 
 void Gp_AnimWritePoseCopy(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
                           s32 arg5)
 {
     void**         scratch;
-    void*          head;
+    GpAnimPose*    head;
     GpAnimSlot*    slot;
     GsCOORDINATE2* dest;
     SVECTOR*       rot;
@@ -2439,9 +2439,9 @@ void Gp_AnimWritePoseCopy(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPos
 
     scratch                        = SCRATCH_HEAD_ADDR;
     slot                           = &arg0->slots[arg1];
-    head                           = SCRATCH_HEAD_AT(scratch, void);
+    head                           = SCRATCH_HEAD_AT(scratch, GpAnimPose);
     idx                            = slot->mtxIndex;
-    SCRATCH_HEAD_AT(scratch, void) = (u8*)head - 0x10;
+    SCRATCH_HEAD_AT(scratch, void) = head - 1;
     dest                           = &arg0->coords[idx];
     if (slot->poseKind == 1) {
         dest->coord.t[0] = arg2->trans.vx;
@@ -2454,11 +2454,11 @@ void Gp_AnimWritePoseCopy(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPos
     gte_lddp(arg5);
     gte_ldsv(&arg3->rot);
     gte_gpl12();
-    rot = (SVECTOR*)((u8*)head - 8);
+    rot = &head[-1].rot;
     gte_stsv(rot);
     RotMatrix_gte(rot, &dest->coord);
     dest->flg = 0;
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_POP(GpAnimPose);
 }
 
 void Gp_AnimTickIndex(GpAnimCtx* arg0, s32 arg1)
@@ -2631,14 +2631,14 @@ void Gp_SaveEnemyPose(GpEnemy* arg0)
     }
 
     {
-        void**         scratch;
-        register void* tmp asm("v0");
+        void**            scratch;
+        register SVECTOR* tmp asm("v0");
 
         scratch                           = SCRATCH_HEAD_ADDR;
         rec                               = Mc_SaveData.enemyPoses;
-        tmp                               = SCRATCH_HEAD_AT(scratch, void);
+        tmp                               = SCRATCH_HEAD_AT(scratch, SVECTOR);
         i                                 = 0;
-        tmp                               = (u8*)tmp - 8;
+        tmp                               = tmp - 1;
         euler                             = tmp;
         SCRATCH_HEAD_AT(scratch, SVECTOR) = euler;
     }
@@ -2678,7 +2678,7 @@ void Gp_SaveEnemyPose(GpEnemy* arg0)
     rec->yaw   = euler->vy;
     euler->vz  = (s16)euler->vz >> 8;
     rec->roll  = euler->vz;
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_POP(SVECTOR);
 }
 
 void Gp_SpawnArea(GpAreaKey* arg0)
