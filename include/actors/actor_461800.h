@@ -120,6 +120,8 @@ void func_actor_461800_80133724(void);
 void func_actor_461800_80133770(void);
 void func_actor_461800_8013380C(void);
 void func_actor_461800_80132A90(Task* task);
+void func_actor_461800_80132AD8(Task* task);
+void func_actor_461800_80133B98(Task* task);
 void func_actor_461800_80133634(Task* task);
 void func_actor_461800_8013365C(Task* task);
 s32  func_actor_461800_80133928(Task* task, s32 arg1, s32 arg2);

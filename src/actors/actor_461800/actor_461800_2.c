@@ -7,6 +7,8 @@
 #include "actors/actors_shared_8013411c.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
+#include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/task.h"
@@ -15,7 +17,32 @@
 extern u8 D_actor_461800_801437BC[];
 extern u8 D_actor_461800_801437F8[];
 
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800_80132AD8);
+/* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
+#define SCRATCH_SP (*(u32*)0x1F8003FC)
+
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+
+/// Draws the ground shadow quad under the model root, unless the model is
+/// hidden (`flags & 0x80`) or has no buffer yet. The root's world translation
+/// is staged in a scratchpad `VECTOR3`, and the quad's brightness follows the
+/// room's current ground shade.
+void func_actor_461800_80132AD8(Task* task)
+{
+    TmdObject*     obj;
+    GsCOORDINATE2* coord;
+    VECTOR3*       vec;
+
+    obj   = (TmdObject*)task->extra;
+    coord = obj->coords;
+    if (!(obj->flags & 0x80) && obj->buffer != NULL) {
+        vec     = (VECTOR3*)(SCRATCH_SP -= 0x18);
+        vec->vx = coord->workm.t[0];
+        vec->vy = coord->workm.t[1];
+        vec->vz = coord->workm.t[2];
+        Gp_DrawEffGroundQuad(vec, 0x200, Gp_State1C->groundShade);
+        SCRATCH_SP += 0x18;
+    }
+}
 
 /// State handler of the actor's model task: the spawn tick hangs the task's own
 /// coordinate frame off the actor's part `spawnArg1` and steps to state 1, and
@@ -318,4 +345,22 @@ void func_actor_461800_80133554(Task* task)
     fns[task->state](task->spawnArg2, task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_2", func_actor_461800_801335B0);
+/// Second state of the second variant's task: refreshes the model root's world
+/// matrix, relights the model from a point 0x320 above its translation, then
+/// runs the per-frame update and draws the ground shadow.
+void func_actor_461800_801335B0(GpEnemy* enemy, Task* task)
+{
+    TmdObject*     obj;
+    GsCOORDINATE2* coord;
+    VECTOR         vec;
+
+    obj   = task->extra;
+    coord = obj->coords;
+    Gp_UpdateCoord(coord);
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1] - 0x320;
+    vec.vz = coord->workm.t[2];
+    func_800D7A9C(obj, &vec, 0, 3);
+    func_actor_461800_801331E4(task);
+    func_actor_461800_80133B98(task);
+}

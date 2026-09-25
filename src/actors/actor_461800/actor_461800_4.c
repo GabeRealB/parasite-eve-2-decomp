@@ -2,6 +2,7 @@
 
 #include "actors/actor_461800.h"
 #include "actors/actors_shared_8013411c.h"
+#include "gameplay/3CD8.h"
 #include "main/gfx.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -86,4 +87,29 @@ s32 func_actor_461800_80133A3C(Task* task, s32 arg1, VECTOR* target, s32 mode)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800_4", func_actor_461800_80133B98);
+/* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
+#define SCRATCH_SP (*(u32*)0x1F8003FC)
+
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+
+/// Draws the ground shadow quad under the model root, unless the model is
+/// hidden (`flags & 0x80`) or has no buffer yet. The root's world translation
+/// is staged in a scratchpad `VECTOR3`, and the quad's brightness follows the
+/// room's current ground shade.
+void func_actor_461800_80133B98(Task* task)
+{
+    TmdObject*     obj;
+    GsCOORDINATE2* coord;
+    VECTOR3*       vec;
+
+    obj   = (TmdObject*)task->extra;
+    coord = obj->coords;
+    if (!(obj->flags & 0x80) && obj->buffer != NULL) {
+        vec     = (VECTOR3*)(SCRATCH_SP -= 0x18);
+        vec->vx = coord->workm.t[0];
+        vec->vy = coord->workm.t[1];
+        vec->vz = coord->workm.t[2];
+        Gp_DrawEffGroundQuad(vec, 0x200, Gp_State1C->groundShade);
+        SCRATCH_SP += 0x18;
+    }
+}

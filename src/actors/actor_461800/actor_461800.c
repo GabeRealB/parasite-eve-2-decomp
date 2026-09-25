@@ -4,7 +4,9 @@
 #include "actors/actor_461800_move.h"
 #include "gameplay/1BC.h"
 #include "gameplay/268.h"
+#include "gameplay/3A34.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -367,4 +369,22 @@ void func_actor_461800_801329B0(Task* task)
     fns[task->state](task->spawnArg2, task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_461800/actor_461800", func_actor_461800_80132A0C);
+/// Second state of the first variant's task: refreshes the model root's world
+/// matrix, relights the model from a point 0x320 above its translation, then
+/// runs the per-frame update and draws the ground shadow.
+void func_actor_461800_80132A0C(GpEnemy* enemy, Task* task)
+{
+    TmdObject*     obj;
+    GsCOORDINATE2* coord;
+    VECTOR         vec;
+
+    obj   = task->extra;
+    coord = obj->coords;
+    Gp_UpdateCoord(coord);
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1] - 0x320;
+    vec.vz = coord->workm.t[2];
+    func_800D7A9C(obj, &vec, 0, 3);
+    func_actor_461800_80132660(task);
+    func_actor_461800_80132AD8(task);
+}
