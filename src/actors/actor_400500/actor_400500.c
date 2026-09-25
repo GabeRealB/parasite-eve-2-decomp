@@ -3569,12 +3569,12 @@ void func_actor_400500_8013771C(Task* arg0)
                 dist    = SquareRoot0((dvec.vx * dvec.vx) + (dvec.vz * dvec.vz));
             }
             if ((s16)dist < 0x500) {
-                one               = 1;
-                slot.msg.field_0  = D_actor_400500_80153CB0;
-                slot.msg.field_4  = one;
-                slot.msg.field_8  = 0;
-                slot.msg.field_C  = 0;
-                slot.msg.field_10 = 0;
+                one                    = 1;
+                slot.msg.animBlock.ptr = D_actor_400500_80153CB0;
+                slot.msg.field_4       = one;
+                slot.msg.field_8       = 0;
+                slot.msg.field_C       = 0;
+                slot.msg.field_10      = 0;
                 Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F4, (s32)&slot.msg, 0);
                 work->field_A48      = one;
                 Gp_StateC08.field_6 |= one;

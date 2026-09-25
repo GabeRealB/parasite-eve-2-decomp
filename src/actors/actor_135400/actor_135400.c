@@ -29,7 +29,7 @@
 ///
 /// `field_43C` is the flag the 0x7D3 handler `func_actor_135400_80132D24`
 /// raises once it has run the slots; `field_43D` / `field_43E` latch the
-/// `field_4` / `field_0` of the `GpAnimArg` that call was handed (`-1` until
+/// `field_4` / `animBlock.index` of the `GpAnimArg` that call was handed (`-1` until
 /// then), and `params` holds the `D_actor_135400_80131EA0` defaults. The block
 /// opens with its own animation context, the nineteen 0x28-byte slots and the
 /// pose buffer the handler passes `func_800B3F84`; `func_actor_135400_801329B0`
@@ -545,8 +545,8 @@ s32 func_actor_135400_80132650(Task* task, s32 anim, GpAnimArg* params, s32 arg3
 
     work = (Actor135400MainWork*)task->work;
     ext  = task->extra;
-    if ((s32)params->field_0 != work->field_476) {
-        work->field_476 = (s32)params->field_0;
+    if (params->animBlock.index != work->field_476) {
+        work->field_476 = params->animBlock.index;
         func_800B3F84(&work->anim, D_actor_135400_8013A4A8[work->field_476], ext, work->poses, work->slots);
     }
     work->field_475 = params->field_4;
@@ -815,8 +815,8 @@ s32 func_actor_135400_80132D24(Task* task, s32 anim, GpAnimArg* params, s32 arg3
 
     work = (Actor135400Work*)task->work;
     ext  = task->extra;
-    if ((s32)params->field_0 != work->field_43E) {
-        work->field_43E = (s32)params->field_0;
+    if (params->animBlock.index != work->field_43E) {
+        work->field_43E = params->animBlock.index;
         func_800B3F84(&work->anim, D_actor_135400_8013F8D4[work->field_43E], ext, work->poses, work->slots);
     }
     work->field_43D = params->field_4;

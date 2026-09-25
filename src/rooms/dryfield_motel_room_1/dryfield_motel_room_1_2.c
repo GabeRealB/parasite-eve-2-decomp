@@ -282,14 +282,14 @@ void func_dryfield_motel_room_1_8017DFD0(void)
     s32           weaponId;
     s32           anim;
 
-    work         = (Dmr1Work*)D_dryfield_motel_room_1_8018159C->work;
-    weaponId     = D_80073BA9;
-    anim         = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-    msg.field_0  = (void*)anim;
-    msg.field_4  = 9;
-    msg.field_8  = 0;
-    msg.field_C  = 0;
-    msg.field_10 = 0;
+    work                = (Dmr1Work*)D_dryfield_motel_room_1_8018159C->work;
+    weaponId            = D_80073BA9;
+    anim                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    msg.animBlock.index = anim;
+    msg.field_4         = 9;
+    msg.field_8         = 0;
+    msg.field_C         = 0;
+    msg.field_10        = 0;
     Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&msg, 0);
     cfg            = &Player_Status;
     work->field_14 = cfg->coordMtx->t[0];

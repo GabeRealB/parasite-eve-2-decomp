@@ -380,12 +380,12 @@ void func_actor_120300_80132338(Task* arg0)
                 nextu = ((u16*)D_actor_120300_8014095C)[work->field_4D2];
                 w     = (Actor120300Work*)arg0->work;
                 if (w->field_4B4 != NULL) {
-                    msg.anim.field_0  = D_actor_120300_801408CC;
-                    w->field_4D2      = nextu;
-                    msg.anim.field_4  = nextu;
-                    msg.anim.field_8  = 1;
-                    msg.anim.field_C  = 0xA;
-                    msg.anim.field_10 = 1;
+                    msg.anim.animBlock.ptr = D_actor_120300_801408CC;
+                    w->field_4D2           = nextu;
+                    msg.anim.field_4       = nextu;
+                    msg.anim.field_8       = 1;
+                    msg.anim.field_C       = 0xA;
+                    msg.anim.field_10      = 1;
                     Gp_DispatchMsg(w->field_4B4, 0x3F4, (s32)&msg.anim, 0);
                 }
             }
@@ -398,13 +398,13 @@ void func_actor_120300_80132338(Task* arg0)
             w      = (Actor120300Work*)arg0->work;
             var_a1 = 0x3F4;
             if (w->field_4B4 != NULL) {
-                var_a2           = (s32)&msg.anim;
-                msg.anim.field_0 = D_actor_120300_801408CC;
-                var_v0           = 1;
-                w->field_4D2     = 0;
-                msg.anim.field_4 = 0;
-                msg.anim.field_8 = 0;
-                msg.anim.field_C = 0;
+                var_a2                 = (s32)&msg.anim;
+                msg.anim.animBlock.ptr = D_actor_120300_801408CC;
+                var_v0                 = 1;
+                w->field_4D2           = 0;
+                msg.anim.field_4       = 0;
+                msg.anim.field_8       = 0;
+                msg.anim.field_C       = 0;
                 SCHED_BARRIER();
                 msg.anim.field_10 = var_v0;
                 goto dispatch_work;
@@ -422,13 +422,13 @@ void func_actor_120300_80132338(Task* arg0)
             w      = (Actor120300Work*)arg0->work;
             var_a1 = 0x3F4;
             if (w->field_4B4 != NULL) {
-                var_a2            = (s32)&msg.anim;
-                msg.anim.field_0  = D_actor_120300_801408CC;
-                w->field_4D2      = 1;
-                msg.anim.field_4  = 1;
-                msg.anim.field_8  = 0;
-                msg.anim.field_C  = 0;
-                msg.anim.field_10 = 1;
+                var_a2                 = (s32)&msg.anim;
+                msg.anim.animBlock.ptr = D_actor_120300_801408CC;
+                w->field_4D2           = 1;
+                msg.anim.field_4       = 1;
+                msg.anim.field_8       = 0;
+                msg.anim.field_C       = 0;
+                msg.anim.field_10      = 1;
                 goto dispatch_work;
             }
             goto clear;
@@ -436,13 +436,13 @@ void func_actor_120300_80132338(Task* arg0)
             w      = (Actor120300Work*)arg0->work;
             var_a1 = 0x3F4;
             if (w->field_4B4 != NULL) {
-                var_a2            = (s32)&msg.anim;
-                msg.anim.field_0  = D_actor_120300_801408CC;
-                w->field_4D2      = 2;
-                msg.anim.field_4  = 2;
-                msg.anim.field_8  = 1;
-                msg.anim.field_C  = 0xA;
-                msg.anim.field_10 = 1;
+                var_a2                 = (s32)&msg.anim;
+                msg.anim.animBlock.ptr = D_actor_120300_801408CC;
+                w->field_4D2           = 2;
+                msg.anim.field_4       = 2;
+                msg.anim.field_8       = 1;
+                msg.anim.field_C       = 0xA;
+                msg.anim.field_10      = 1;
                 goto dispatch_work;
             }
             goto clear;
@@ -452,13 +452,13 @@ void func_actor_120300_80132338(Task* arg0)
             w      = (Actor120300Work*)arg0->work;
             var_a1 = 0x3F4;
             if (w->field_4B4 != NULL) {
-                var_a2            = (s32)&msg.anim;
-                msg.anim.field_0  = D_actor_120300_801408CC;
-                w->field_4D2      = 3;
-                msg.anim.field_4  = 3;
-                msg.anim.field_8  = 1;
-                msg.anim.field_C  = 0xA;
-                msg.anim.field_10 = 1;
+                var_a2                 = (s32)&msg.anim;
+                msg.anim.animBlock.ptr = D_actor_120300_801408CC;
+                w->field_4D2           = 3;
+                msg.anim.field_4       = 3;
+                msg.anim.field_8       = 1;
+                msg.anim.field_C       = 0xA;
+                msg.anim.field_10      = 1;
                 goto dispatch_work;
             }
             goto clear;
@@ -466,13 +466,13 @@ void func_actor_120300_80132338(Task* arg0)
             w      = (Actor120300Work*)arg0->work;
             var_a1 = 0x3F4;
             if (w->field_4B4 != NULL) {
-                var_a2            = (s32)&msg.anim;
-                msg.anim.field_0  = D_actor_120300_801408CC;
-                w->field_4D2      = 5;
-                msg.anim.field_4  = 5;
-                msg.anim.field_8  = 1;
-                msg.anim.field_C  = 0xA;
-                msg.anim.field_10 = 1;
+                var_a2                 = (s32)&msg.anim;
+                msg.anim.animBlock.ptr = D_actor_120300_801408CC;
+                w->field_4D2           = 5;
+                msg.anim.field_4       = 5;
+                msg.anim.field_8       = 1;
+                msg.anim.field_C       = 0xA;
+                msg.anim.field_10      = 1;
                 goto dispatch_work;
             }
             goto clear;
@@ -480,13 +480,13 @@ void func_actor_120300_80132338(Task* arg0)
             w      = (Actor120300Work*)arg0->work;
             var_a1 = 0x3F4;
             if (w->field_4B4 != NULL) {
-                var_a2            = (s32)&msg.anim;
-                msg.anim.field_0  = D_actor_120300_801408CC;
-                w->field_4D2      = 6;
-                msg.anim.field_4  = 6;
-                msg.anim.field_8  = 1;
-                msg.anim.field_C  = 0xA;
-                msg.anim.field_10 = 1;
+                var_a2                 = (s32)&msg.anim;
+                msg.anim.animBlock.ptr = D_actor_120300_801408CC;
+                w->field_4D2           = 6;
+                msg.anim.field_4       = 6;
+                msg.anim.field_8       = 1;
+                msg.anim.field_C       = 0xA;
+                msg.anim.field_10      = 1;
                 goto dispatch_work;
             }
             goto clear;
@@ -503,13 +503,13 @@ void func_actor_120300_80132338(Task* arg0)
                         w      = (Actor120300Work*)arg0->work;
                         var_a1 = 0x3F4;
                         if (w->field_4B4 != NULL) {
-                            var_a2            = (s32)&msg.anim;
-                            msg.anim.field_0  = D_actor_120300_801408CC;
-                            w->field_4D2      = 7;
-                            msg.anim.field_4  = 7;
-                            msg.anim.field_8  = 1;
-                            msg.anim.field_C  = 0xA;
-                            msg.anim.field_10 = 1;
+                            var_a2                 = (s32)&msg.anim;
+                            msg.anim.animBlock.ptr = D_actor_120300_801408CC;
+                            w->field_4D2           = 7;
+                            msg.anim.field_4       = 7;
+                            msg.anim.field_8       = 1;
+                            msg.anim.field_C       = 0xA;
+                            msg.anim.field_10      = 1;
                             goto dispatch_work;
                         }
                         goto clear;
@@ -526,12 +526,12 @@ void func_actor_120300_80132338(Task* arg0)
         case 10:
             w = (Actor120300Work*)arg0->work;
             if (w->field_4B4 != NULL) {
-                msg.anim.field_0  = D_actor_120300_801408CC;
-                w->field_4D2      = 8;
-                msg.anim.field_4  = 8;
-                msg.anim.field_8  = 1;
-                msg.anim.field_C  = 0xA;
-                msg.anim.field_10 = 1;
+                msg.anim.animBlock.ptr = D_actor_120300_801408CC;
+                w->field_4D2           = 8;
+                msg.anim.field_4       = 8;
+                msg.anim.field_8       = 1;
+                msg.anim.field_C       = 0xA;
+                msg.anim.field_10      = 1;
                 Gp_DispatchMsg(w->field_4B4, 0x3F4, (s32)&msg.anim, 0);
             }
             var_a0 = work->field_4B4;
@@ -543,12 +543,12 @@ void func_actor_120300_80132338(Task* arg0)
             Gp_DispatchMsg(((Actor120300Work*)arg0->work)->field_4B4, 0x3E9, (s32)&D_actor_120300_80140A9C, 0);
             w = (Actor120300Work*)arg0->work;
             if (w->field_4B4 != NULL) {
-                msg.anim.field_0  = D_actor_120300_801408CC;
-                w->field_4D2      = 0xB;
-                msg.anim.field_4  = 0xB;
-                msg.anim.field_8  = 1;
-                msg.anim.field_C  = 0xA;
-                msg.anim.field_10 = 1;
+                msg.anim.animBlock.ptr = D_actor_120300_801408CC;
+                w->field_4D2           = 0xB;
+                msg.anim.field_4       = 0xB;
+                msg.anim.field_8       = 1;
+                msg.anim.field_C       = 0xA;
+                msg.anim.field_10      = 1;
                 Gp_DispatchMsg(w->field_4B4, 0x3F4, (s32)&msg.anim, 0);
             }
             var_a0 = work->field_4B4;
@@ -559,12 +559,12 @@ void func_actor_120300_80132338(Task* arg0)
         case 12:
             w = (Actor120300Work*)arg0->work;
             if (w->field_4B4 != NULL) {
-                msg.anim.field_0  = D_actor_120300_801408CC;
-                w->field_4D2      = 9;
-                msg.anim.field_4  = 9;
-                msg.anim.field_8  = 1;
-                msg.anim.field_C  = 0xA;
-                msg.anim.field_10 = 1;
+                msg.anim.animBlock.ptr = D_actor_120300_801408CC;
+                w->field_4D2           = 9;
+                msg.anim.field_4       = 9;
+                msg.anim.field_8       = 1;
+                msg.anim.field_C       = 0xA;
+                msg.anim.field_10      = 1;
                 Gp_DispatchMsg(w->field_4B4, 0x3F4, (s32)&msg.anim, 0);
             }
             var_a0 = work->field_4B4;
@@ -576,28 +576,28 @@ void func_actor_120300_80132338(Task* arg0)
             s32 id;
 
             Gp_DispatchMsg(((Actor120300Work*)arg0->work)->field_4B4, 0x3E9, (s32)&D_actor_120300_80140ACC, 0);
-            weaponId          = D_80073BA9;
-            id                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-            var_a1            = 0x3E8;
-            msg.anim.field_0  = (void*)id;
-            msg.anim.field_4  = 1;
-            msg.anim.field_8  = 0;
-            msg.anim.field_C  = 0;
-            msg.anim.field_10 = 0;
-            var_a0            = work->field_4B4;
-            var_a2            = (s32)&msg.anim;
+            weaponId                 = D_80073BA9;
+            id                       = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            var_a1                   = 0x3E8;
+            msg.anim.animBlock.index = id;
+            msg.anim.field_4         = 1;
+            msg.anim.field_8         = 0;
+            msg.anim.field_C         = 0;
+            msg.anim.field_10        = 0;
+            var_a0                   = work->field_4B4;
+            var_a2                   = (s32)&msg.anim;
             goto dispatch;
         }
         case 14:
             w = (Actor120300Work*)arg0->work;
             p = &msg2.anim;
             if (w->field_4B4 != NULL) {
-                msg2.anim.field_0 = D_actor_120300_801408CC;
-                w->field_4D2      = 0xF;
-                p->field_4        = 0xF;
-                p->field_8        = 1;
-                p->field_C        = 0xA;
-                p->field_10       = 1;
+                msg2.anim.animBlock.ptr = D_actor_120300_801408CC;
+                w->field_4D2            = 0xF;
+                p->field_4              = 0xF;
+                p->field_8              = 1;
+                p->field_C              = 0xA;
+                p->field_10             = 1;
                 Gp_DispatchMsg(w->field_4B4, 0x3F4, (s32)p, 0);
             }
             var_a0 = work->field_4B4;
@@ -609,12 +609,12 @@ void func_actor_120300_80132338(Task* arg0)
             w = (Actor120300Work*)arg0->work;
             p = &msg2.anim;
             if (w->field_4B4 != NULL) {
-                msg2.anim.field_0 = D_actor_120300_801408CC;
-                w->field_4D2      = 0xE;
-                p->field_4        = 0xE;
-                p->field_8        = 1;
-                p->field_C        = 0xA;
-                p->field_10       = 1;
+                msg2.anim.animBlock.ptr = D_actor_120300_801408CC;
+                w->field_4D2            = 0xE;
+                p->field_4              = 0xE;
+                p->field_8              = 1;
+                p->field_C              = 0xA;
+                p->field_10             = 1;
                 Gp_DispatchMsg(w->field_4B4, 0x3F4, (s32)p, 0);
             }
             var_a0 = work->field_4B4;
@@ -626,12 +626,12 @@ void func_actor_120300_80132338(Task* arg0)
             w = (Actor120300Work*)arg0->work;
             p = &msg2.anim;
             if (w->field_4B4 != NULL) {
-                msg2.anim.field_0 = D_actor_120300_801408CC;
-                w->field_4D2      = 0xD;
-                p->field_4        = 0xD;
-                p->field_8        = 1;
-                p->field_C        = 0xA;
-                p->field_10       = 1;
+                msg2.anim.animBlock.ptr = D_actor_120300_801408CC;
+                w->field_4D2            = 0xD;
+                p->field_4              = 0xD;
+                p->field_8              = 1;
+                p->field_C              = 0xA;
+                p->field_10             = 1;
                 Gp_DispatchMsg(w->field_4B4, 0x3F4, (s32)p, 0);
             }
             var_a0 = work->field_4B4;
@@ -643,12 +643,12 @@ void func_actor_120300_80132338(Task* arg0)
             w = (Actor120300Work*)arg0->work;
             p = &msg2.anim;
             if (w->field_4B4 != NULL) {
-                msg2.anim.field_0 = D_actor_120300_801408CC;
-                w->field_4D2      = 0xE;
-                p->field_4        = 0xE;
-                p->field_8        = 1;
-                p->field_C        = 0xA;
-                p->field_10       = 1;
+                msg2.anim.animBlock.ptr = D_actor_120300_801408CC;
+                w->field_4D2            = 0xE;
+                p->field_4              = 0xE;
+                p->field_8              = 1;
+                p->field_C              = 0xA;
+                p->field_10             = 1;
                 Gp_DispatchMsg(w->field_4B4, 0x3F4, (s32)p, 0);
             }
             var_a0 = work->field_4B4;
@@ -660,30 +660,30 @@ void func_actor_120300_80132338(Task* arg0)
             s32 weaponId;
             s32 id;
 
-            weaponId           = D_80073BA9;
-            id                 = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-            var_a1             = 0x3E8;
-            msg2.anim.field_0  = (void*)id;
-            msg2.anim.field_4  = 1;
-            msg2.anim.field_8  = 1;
-            msg2.anim.field_C  = 0xA;
-            msg2.anim.field_10 = 0;
-            var_a0             = work->field_4B4;
-            var_a2             = (s32)&msg2.anim;
+            weaponId                  = D_80073BA9;
+            id                        = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            var_a1                    = 0x3E8;
+            msg2.anim.animBlock.index = id;
+            msg2.anim.field_4         = 1;
+            msg2.anim.field_8         = 1;
+            msg2.anim.field_C         = 0xA;
+            msg2.anim.field_10        = 0;
+            var_a0                    = work->field_4B4;
+            var_a2                    = (s32)&msg2.anim;
             goto dispatch;
         }
         case 19:
             w = (Actor120300Work*)arg0->work;
             p = &msg3.anim;
             if (w->field_4B4 != NULL) {
-                var_a1            = 0x3F4;
-                msg3.anim.field_0 = D_actor_120300_801408CC;
-                w->field_4D2      = 0x10;
-                p->field_4        = 0x10;
-                p->field_8        = 1;
-                p->field_C        = 0xA;
-                p->field_10       = 1;
-                var_a2            = (s32)p;
+                var_a1                  = 0x3F4;
+                msg3.anim.animBlock.ptr = D_actor_120300_801408CC;
+                w->field_4D2            = 0x10;
+                p->field_4              = 0x10;
+                p->field_8              = 1;
+                p->field_C              = 0xA;
+                p->field_10             = 1;
+                var_a2                  = (s32)p;
                 goto dispatch_work;
             }
             goto clear;

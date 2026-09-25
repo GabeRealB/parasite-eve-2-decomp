@@ -2882,9 +2882,9 @@ void func_actor_401000_801378DC(Actor401000* arg0)
         angle = Actor401000_MatrixPositionYaw(arg0, &delta, D_80073B8C);
         if (abs(angle) < 0x10 && !Actor401000_OutOfRange(&delta, 0x44C)) {
             if (D_8007218A == 1) {
-                D_actor_401000_80154F1C.field_0 = &D_actor_401000_80154F08;
+                D_actor_401000_80154F1C.animBlock.ptr = &D_actor_401000_80154F08;
             } else {
-                D_actor_401000_80154F1C.field_0 = &D_actor_401000_80154F00;
+                D_actor_401000_80154F1C.animBlock.ptr = &D_actor_401000_80154F00;
             }
             D_actor_401000_80155038.field_14 = 8;
             if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&D_actor_401000_80155038, 0) == 0) {

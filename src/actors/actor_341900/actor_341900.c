@@ -548,13 +548,13 @@ void func_actor_341900_801628B8(Task* arg0)
                 s32 weaponId;
                 s32 anim;
 
-                weaponId     = D_80073BA9;
-                anim         = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-                msg.field_0  = (void*)anim;
-                msg.field_4  = 1;
-                msg.field_8  = 0;
-                msg.field_C  = 0;
-                msg.field_10 = 0;
+                weaponId            = D_80073BA9;
+                anim                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+                msg.animBlock.index = anim;
+                msg.field_4         = 1;
+                msg.field_8         = 0;
+                msg.field_C         = 0;
+                msg.field_10        = 0;
                 Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&msg, 0);
             }
             break;
@@ -565,22 +565,22 @@ void func_actor_341900_801628B8(Task* arg0)
             Gp_DispatchMsg(work->field_0, 0x3E9, (s32)&D_actor_341900_80163AF8, 0);
             w = (Actor341900Work*)arg0->work;
             if (w->field_0 != NULL) {
-                msg.field_0  = &D_actor_341900_801639A4;
-                msg.field_4  = 0;
-                msg.field_8  = 0;
-                msg.field_C  = 0;
-                msg.field_10 = 0;
+                msg.animBlock.ptr = &D_actor_341900_801639A4;
+                msg.field_4       = 0;
+                msg.field_8       = 0;
+                msg.field_C       = 0;
+                msg.field_10      = 0;
                 Gp_DispatchMsg(w->field_0, 0x3F4, (s32)&msg, 0);
             }
             break;
         case 4:
             w = (Actor341900Work*)arg0->work;
             if (w->field_0 != NULL) {
-                msg.field_0  = &D_actor_341900_801639A4;
-                msg.field_4  = 1;
-                msg.field_8  = 1;
-                msg.field_C  = 10;
-                msg.field_10 = 0;
+                msg.animBlock.ptr = &D_actor_341900_801639A4;
+                msg.field_4       = 1;
+                msg.field_8       = 1;
+                msg.field_C       = 10;
+                msg.field_10      = 0;
                 Gp_DispatchMsg(w->field_0, 0x3F4, (s32)&msg, 0);
             }
             break;
@@ -588,13 +588,13 @@ void func_actor_341900_801628B8(Task* arg0)
             s32 weaponId;
             s32 anim;
 
-            weaponId     = D_80073BA9;
-            anim         = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-            msg.field_0  = (void*)anim;
-            msg.field_4  = 9;
-            msg.field_8  = 0;
-            msg.field_C  = 0;
-            msg.field_10 = 0;
+            weaponId            = D_80073BA9;
+            anim                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            msg.animBlock.index = anim;
+            msg.field_4         = 9;
+            msg.field_8         = 0;
+            msg.field_C         = 0;
+            msg.field_10        = 0;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&msg, 0);
         }
             Gp_DispatchMsg(work->field_0, 0x3E9, (s32)&D_actor_341900_80163B10, 0);
@@ -624,10 +624,10 @@ void func_actor_341900_80162AD4(Task* arg0)
         case 1:
             switch ((u16)work->field_66) {
                 case 0:
-                    msg.field_4 = 1;
-                    msg.field_8 = 1;
-                    msg.field_0 = 0;
-                    msg.field_C = 10;
+                    msg.field_4         = 1;
+                    msg.field_8         = 1;
+                    msg.animBlock.index = 0;
+                    msg.field_C         = 10;
                     Gp_DispatchMsg(work->field_8, 0x7D3, (s32)&msg, 0);
                     work->field_14.pos.vx = D_actor_341900_80163A48.pos.vx;
                     work->field_14.pos.vy = D_actor_341900_80163A48.pos.vy;
@@ -652,10 +652,10 @@ void func_actor_341900_80162AD4(Task* arg0)
         case 2:
             switch ((u16)work->field_66) {
                 case 0:
-                    msg2.field_4 = 2;
-                    msg2.field_8 = 1;
-                    msg2.field_0 = 0;
-                    msg2.field_C = 10;
+                    msg2.field_4         = 2;
+                    msg2.field_8         = 1;
+                    msg2.animBlock.index = 0;
+                    msg2.field_C         = 10;
                     Gp_DispatchMsg(work->field_8, 0x7D3, (s32)&msg2, 0);
                     Gp_DispatchMsg(work->field_8, 0x7D4, (s32)&D_actor_341900_80163A60, 0);
                     work->field_68 = 0;
@@ -977,14 +977,14 @@ void func_actor_341900_801635A4(void)
     s32              weaponId;
     s32              anim;
 
-    work         = (Actor341900Work*)D_actor_341900_80164208->work;
-    weaponId     = D_80073BA9;
-    anim         = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-    msg.field_0  = (void*)anim;
-    msg.field_4  = 9;
-    msg.field_8  = 0;
-    msg.field_C  = 0;
-    msg.field_10 = 0;
+    work                = (Actor341900Work*)D_actor_341900_80164208->work;
+    weaponId            = D_80073BA9;
+    anim                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    msg.animBlock.index = anim;
+    msg.field_4         = 9;
+    msg.field_8         = 0;
+    msg.field_C         = 0;
+    msg.field_10        = 0;
     Gp_DispatchMsg(work->field_0, 0x3E8, (s32)&msg, 0);
     Gp_DispatchMsg(work->field_0, 0x3E9, (s32)&D_actor_341900_80163B28, 0);
     CdCmd_CancelReplaceAndActivate();

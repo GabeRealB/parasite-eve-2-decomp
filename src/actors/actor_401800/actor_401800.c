@@ -3270,9 +3270,9 @@ static __inline__ s16 Actor401800_ViewYaw(GsCOORDINATE2* coord, SVECTOR* dir)
 static __inline__ void Actor401800_SetGrabAnim(void)
 {
     if (D_8007218A == 1) {
-        D_actor_401800_80155A0C.field_0 = D_actor_401800_801559F8;
+        D_actor_401800_80155A0C.animBlock.ptr = D_actor_401800_801559F8;
     } else {
-        D_actor_401800_80155A0C.field_0 = D_actor_401800_801559F0;
+        D_actor_401800_80155A0C.animBlock.ptr = D_actor_401800_801559F0;
     }
 }
 

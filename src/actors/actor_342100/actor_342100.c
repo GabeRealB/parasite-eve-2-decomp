@@ -443,16 +443,16 @@ s32 func_actor_342100_801629B8(Task* arg0)
     if (D_actor_342100_80164910[work->field_3C - 0x2F] < 0) {
         goto ret1;
     }
-    anim         = (u16)D_actor_342100_80164910[work->field_3C - 0x2F] + 0x2F;
-    w            = (Actor342100Work*)arg0->work;
-    weaponId     = D_80073BA9;
-    setId        = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-    msg.field_0  = (void*)setId;
-    w->field_3C  = anim;
-    msg.field_4  = anim;
-    msg.field_8  = 1;
-    msg.field_C  = 0xA;
-    msg.field_10 = 0;
+    anim                = (u16)D_actor_342100_80164910[work->field_3C - 0x2F] + 0x2F;
+    w                   = (Actor342100Work*)arg0->work;
+    weaponId            = D_80073BA9;
+    setId               = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    msg.animBlock.index = setId;
+    w->field_3C         = anim;
+    msg.field_4         = anim;
+    msg.field_8         = 1;
+    msg.field_C         = 0xA;
+    msg.field_10        = 0;
     Gp_DispatchMsg(w->field_2C, 0x3E8, (s32)&msg, 0);
     return 1;
 }
@@ -804,16 +804,16 @@ void func_actor_342100_8016334C(s32 arg0)
     s32              weaponId;
     s32              setId;
 
-    work           = (Actor342100Work*)D_actor_342100_80164BB8->work;
-    anim           = arg0 + 0x2F;
-    weaponId       = D_80073BA9;
-    setId          = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-    msg.field_0    = (void*)setId;
-    work->field_3C = anim;
-    msg.field_4    = anim;
-    msg.field_8    = 1;
-    msg.field_C    = 0xF;
-    msg.field_10   = 0;
+    work                = (Actor342100Work*)D_actor_342100_80164BB8->work;
+    anim                = arg0 + 0x2F;
+    weaponId            = D_80073BA9;
+    setId               = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    msg.animBlock.index = setId;
+    work->field_3C      = anim;
+    msg.field_4         = anim;
+    msg.field_8         = 1;
+    msg.field_C         = 0xF;
+    msg.field_10        = 0;
     Gp_DispatchMsg(work->field_2C, 0x3E8, (s32)&msg, 0);
 }
 

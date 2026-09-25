@@ -301,7 +301,7 @@ STATIC_ASSERT_SIZEOF(Actor560800Msg, 0x4);
 /// and read by the sub-task handlers.
 extern Task* D_actor_560800_8017578C;
 
-/// Animation block `func_actor_560800_80136378` points the `field_0` of its
+/// Animation block `func_actor_560800_80136378` points the `animBlock` of its
 /// `GpAnimArg` at when it sends message 0x3F4 - the same role
 /// `D_actor_400600_80151A48` plays in that overlay.
 extern u8 D_actor_560800_8016EA40[];
@@ -493,13 +493,13 @@ s32 func_actor_560800_80132340(Task* arg0)
             if (entry->field_2 < 0) {
                 return 1;
             }
-            anim           = entry->field_2;
-            msg.field_0    = D_actor_560800_8016EA40;
-            work->field_60 = anim;
-            msg.field_4    = anim;
-            msg.field_8    = 1;
-            msg.field_C    = 0xA;
-            msg.field_10   = 1;
+            anim              = entry->field_2;
+            msg.animBlock.ptr = D_actor_560800_8016EA40;
+            work->field_60    = anim;
+            msg.field_4       = anim;
+            msg.field_8       = 1;
+            msg.field_C       = 0xA;
+            msg.field_10      = 1;
             Gp_DispatchMsg(work->field_0, 0x3F4, (s32)&msg, 0);
             work->field_62 = 0;
         } else {
@@ -515,13 +515,13 @@ s32 func_actor_560800_80132340(Task* arg0)
         }
         work = (Actor560800Work*)arg0->work;
         if (work->field_0 != NULL) {
-            anim2          = entry2->field_2;
-            msg.field_0    = D_actor_560800_8016EA40;
-            work->field_60 = anim2;
-            msg.field_4    = anim2;
-            msg.field_8    = 1;
-            msg.field_C    = 0xA;
-            msg.field_10   = 1;
+            anim2             = entry2->field_2;
+            msg.animBlock.ptr = D_actor_560800_8016EA40;
+            work->field_60    = anim2;
+            msg.field_4       = anim2;
+            msg.field_8       = 1;
+            msg.field_C       = 0xA;
+            msg.field_10      = 1;
             Gp_DispatchMsg(work->field_0, 0x3F4, (s32)&msg, 0);
             work->field_62 = 0;
         }
@@ -1163,12 +1163,12 @@ static inline void Actor560800_PlayAnim(Task* task, u16 anim)
 
     work = (Actor560800Work*)task->work;
     if (work->field_0 != NULL) {
-        msg.field_0    = D_actor_560800_8016EA40;
-        work->field_60 = anim;
-        msg.field_4    = anim;
-        msg.field_8    = 0;
-        msg.field_C    = 0;
-        msg.field_10   = 1;
+        msg.animBlock.ptr = D_actor_560800_8016EA40;
+        work->field_60    = anim;
+        msg.field_4       = anim;
+        msg.field_8       = 0;
+        msg.field_C       = 0;
+        msg.field_10      = 1;
         Gp_DispatchMsg(work->field_0, 0x3F4, (s32)&msg, 0);
         work->field_62 = 0;
     }
@@ -1181,12 +1181,12 @@ static inline void Actor560800_PlayAnimB(Task* task, u16 anim, s32 argC)
 
     work = (Actor560800Work*)task->work;
     if (work->field_0 != NULL) {
-        msg.field_0    = D_actor_560800_8016EA40;
-        work->field_60 = anim;
-        msg.field_4    = anim;
-        msg.field_8    = 1;
-        msg.field_C    = argC;
-        msg.field_10   = 1;
+        msg.animBlock.ptr = D_actor_560800_8016EA40;
+        work->field_60    = anim;
+        msg.field_4       = anim;
+        msg.field_8       = 1;
+        msg.field_C       = argC;
+        msg.field_10      = 1;
         Gp_DispatchMsg(work->field_0, 0x3F4, (s32)&msg, 0);
         work->field_62 = 0;
     }
@@ -2159,13 +2159,13 @@ void func_actor_560800_80136378(s16 arg0)
 
     work = (Actor560800Work*)D_actor_560800_8017578C->work;
     if (work->field_0 != NULL) {
-        anim           = arg0;
-        msg.field_0    = D_actor_560800_8016EA40;
-        work->field_60 = arg0;
-        msg.field_4    = anim;
-        msg.field_8    = 1;
-        msg.field_C    = 0xA;
-        msg.field_10   = 1;
+        anim              = arg0;
+        msg.animBlock.ptr = D_actor_560800_8016EA40;
+        work->field_60    = arg0;
+        msg.field_4       = anim;
+        msg.field_8       = 1;
+        msg.field_C       = 0xA;
+        msg.field_10      = 1;
         Gp_DispatchMsg(work->field_0, 0x3F4, (s32)&msg, 0);
         work->field_62 = 0;
     }

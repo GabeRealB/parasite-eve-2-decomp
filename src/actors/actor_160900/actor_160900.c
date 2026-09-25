@@ -358,13 +358,13 @@ s32 func_actor_160900_801326EC(Task* arg0)
             if (entry->field_2 < 0) {
                 return 1;
             }
-            anim           = entry->field_2;
-            msg.field_0    = D_actor_160900_8013F198;
-            work->field_64 = anim;
-            msg.field_4    = anim;
-            msg.field_8    = 1;
-            msg.field_C    = 0xA;
-            msg.field_10   = 1;
+            anim              = entry->field_2;
+            msg.animBlock.ptr = D_actor_160900_8013F198;
+            work->field_64    = anim;
+            msg.field_4       = anim;
+            msg.field_8       = 1;
+            msg.field_C       = 0xA;
+            msg.field_10      = 1;
             Gp_DispatchMsg(work->field_34, 0x3F4, (s32)&msg, 0);
             work->field_66 = 0;
         } else {
@@ -380,13 +380,13 @@ s32 func_actor_160900_801326EC(Task* arg0)
         }
         work = (Actor160900Work*)arg0->work;
         if (work->field_34 != NULL) {
-            anim2          = entry2->field_2;
-            msg.field_0    = D_actor_160900_8013F198;
-            work->field_64 = anim2;
-            msg.field_4    = anim2;
-            msg.field_8    = 1;
-            msg.field_C    = 0xA;
-            msg.field_10   = 1;
+            anim2             = entry2->field_2;
+            msg.animBlock.ptr = D_actor_160900_8013F198;
+            work->field_64    = anim2;
+            msg.field_4       = anim2;
+            msg.field_8       = 1;
+            msg.field_C       = 0xA;
+            msg.field_10      = 1;
             Gp_DispatchMsg(work->field_34, 0x3F4, (s32)&msg, 0);
             work->field_66 = 0;
         }
@@ -747,12 +747,12 @@ static inline void func_actor_160900_SetAnim(Task* task, u16 anim)
     work = (Actor160900Work*)task->work;
     p    = &msg;
     if (work->field_34 != NULL) {
-        p->field_0     = D_actor_160900_8013F198;
-        work->field_64 = anim;
-        p->field_4     = anim;
-        p->field_8     = 1;
-        p->field_C     = 10;
-        p->field_10    = 1;
+        p->animBlock.ptr = D_actor_160900_8013F198;
+        work->field_64   = anim;
+        p->field_4       = anim;
+        p->field_8       = 1;
+        p->field_C       = 10;
+        p->field_10      = 1;
         Gp_DispatchMsg(work->field_34, 0x3F4, (s32)p, 0);
         work->field_66 = 0;
     }
@@ -767,12 +767,12 @@ static inline void func_actor_160900_SetAnimZ(Task* task, u16 anim)
     work = (Actor160900Work*)task->work;
     p    = &msg;
     if (work->field_34 != NULL) {
-        p->field_0     = D_actor_160900_8013F198;
-        work->field_64 = anim;
-        p->field_4     = anim;
-        p->field_8     = 0;
-        p->field_C     = 0;
-        p->field_10    = 1;
+        p->animBlock.ptr = D_actor_160900_8013F198;
+        work->field_64   = anim;
+        p->field_4       = anim;
+        p->field_8       = 0;
+        p->field_C       = 0;
+        p->field_10      = 1;
         Gp_DispatchMsg(work->field_34, 0x3F4, (s32)p, 0);
         work->field_66 = 0;
     }
@@ -797,12 +797,12 @@ void func_actor_160900_80133238(Task* arg0)
             Gp_DispatchMsg(work->field_34, 0x3E9, (s32)D_actor_160900_8013F210, 0);
             w = (Actor160900Work*)arg0->work;
             if (w->field_34 != NULL) {
-                msg.field_0  = D_actor_160900_8013F198;
-                w->field_64  = 10;
-                msg.field_4  = 10;
-                msg.field_8  = 0;
-                msg.field_C  = 0;
-                msg.field_10 = 1;
+                msg.animBlock.ptr = D_actor_160900_8013F198;
+                w->field_64       = 10;
+                msg.field_4       = 10;
+                msg.field_8       = 0;
+                msg.field_C       = 0;
+                msg.field_10      = 1;
                 Gp_DispatchMsg(w->field_34, 0x3F4, (s32)&msg, 0);
                 w->field_66 = 0;
             }
@@ -810,12 +810,12 @@ void func_actor_160900_80133238(Task* arg0)
         case 2:
             w = (Actor160900Work*)arg0->work;
             if (w->field_34 != NULL) {
-                msg.field_0  = D_actor_160900_8013F198;
-                w->field_64  = 1;
-                msg.field_4  = 1;
-                msg.field_8  = 0;
-                msg.field_C  = 0;
-                msg.field_10 = 1;
+                msg.animBlock.ptr = D_actor_160900_8013F198;
+                w->field_64       = 1;
+                msg.field_4       = 1;
+                msg.field_8       = 0;
+                msg.field_C       = 0;
+                msg.field_10      = 1;
                 Gp_DispatchMsg(w->field_34, 0x3F4, (s32)&msg, 0);
                 w->field_66 = 0;
             }
@@ -828,16 +828,16 @@ void func_actor_160900_80133238(Task* arg0)
                 } else {
                     v = x + 0x22;
                 }
-                msg.field_0  = (u8*)v;
-                msg.field_4  = 1;
-                msg.field_8  = 0;
-                msg.field_C  = 0;
-                msg.field_10 = 0;
+                msg.animBlock.index = v;
+                msg.field_4         = 1;
+                msg.field_8         = 0;
+                msg.field_C         = 0;
+                msg.field_10        = 0;
                 Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&msg, 0);
                 Gp_DispatchMsg(work->field_34, 0x3E9, (s32)D_actor_160900_8013F228, 0);
-                msg.field_0 = (u8*)-0x7D0;
-                msg.field_4 = 0;
-                msg.field_8 = 0xC80;
+                msg.animBlock.index = -0x7D0;
+                msg.field_4         = 0;
+                msg.field_8         = 0xC80;
                 Gp_DispatchMsg(work->field_34, 0x3FB, (s32)&msg, 0);
                 work->field_4E++;
             }

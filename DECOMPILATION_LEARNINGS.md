@@ -98599,7 +98599,7 @@ overlays' `GpAnimArg` (0x14 bytes - five words) is exactly this shape, and
 
 ```c
 GpAnimArg msg;
-msg.field_0 = (void*)anim;   /* all five stores survive, in order */
+msg.animBlock.index = anim;   /* all five stores survive, in order */
 msg.field_4 = 1;
 ...
 Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&msg, 0);

@@ -783,7 +783,7 @@ extern u8 D_actor_444000_8014431C;
 extern u8 D_actor_444000_801444E4;
 
 /// Animation-set table this overlay hands the player task as message 0x3F4's
-/// `GpAnimArg::field_0`, the counterpart of `D_actor_403100_8015570C`. The first
+/// `GpAnimArg::animBlock`, the counterpart of `D_actor_403100_8015570C`. The first
 /// entry is a `GpAnimSet` in the overlay's own data; the other three point at
 /// its work areas.
 extern GpAnimSet* D_actor_444000_8014430C[4];
@@ -971,20 +971,20 @@ void func_actor_444000_80132054(Task* task)
             } else {
                 anim += 0x22;
             }
-            msg.field_0  = (void*)anim;
-            msg.field_4  = 1;
-            msg.field_8  = 1;
-            msg.field_C  = 0xA;
-            msg.field_10 = 0;
+            msg.animBlock.index = anim;
+            msg.field_4         = 1;
+            msg.field_8         = 1;
+            msg.field_C         = 0xA;
+            msg.field_10        = 0;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&msg, 0);
             break;
         case 2:
             if (work->field_20 != NULL) {
-                msg.field_0  = D_actor_444000_8014430C;
-                msg.field_4  = 3;
-                msg.field_8  = 0;
-                msg.field_C  = 0;
-                msg.field_10 = 0;
+                msg.animBlock.ptr = D_actor_444000_8014430C;
+                msg.field_4       = 3;
+                msg.field_8       = 0;
+                msg.field_C       = 0;
+                msg.field_10      = 0;
                 Gp_DispatchMsg(work->field_20, 0x3F4, (s32)&msg, 0);
             }
             /* Same one-shot cue as func_actor_444000_80132608. */
@@ -999,11 +999,11 @@ void func_actor_444000_80132054(Task* task)
             Gp_StateC08.field_6 |= 1;
             target               = (Actor444000EventWork*)task->work;
             if (target->field_20 != NULL) {
-                msg.field_0  = D_actor_444000_8014430C;
-                msg.field_4  = 0;
-                msg.field_8  = 1;
-                msg.field_C  = 0xA;
-                msg.field_10 = 0;
+                msg.animBlock.ptr = D_actor_444000_8014430C;
+                msg.field_4       = 0;
+                msg.field_8       = 1;
+                msg.field_C       = 0xA;
+                msg.field_10      = 0;
                 Gp_DispatchMsg(target->field_20, 0x3F4, (s32)&msg, 0);
             }
             break;
@@ -3253,11 +3253,11 @@ void func_actor_444000_80138490(GpEnemy* enemy, Actor444000Grab* task)
             cfg->hp > 0) {
             D_actor_444000_80161898.field_14 = 0x28;
             if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&D_actor_444000_80161898, 0) == 0) {
-                D_actor_444000_80144A6C = 1;
-                work->anim.field_0      = D_actor_444000_80161694;
-                work->anim.field_4      = 1;
-                work->anim.field_8      = 0;
-                work->anim.field_C      = 3;
+                D_actor_444000_80144A6C  = 1;
+                work->anim.animBlock.ptr = D_actor_444000_80161694;
+                work->anim.field_4       = 1;
+                work->anim.field_8       = 0;
+                work->anim.field_C       = 3;
                 Gp_DispatchMsg(player, 0x3FF, (s32)&work->anim, 0);
                 work->field_1B2 = 1;
             }
@@ -3316,10 +3316,10 @@ void func_actor_444000_801389EC(GpEnemy* enemy, Actor444000Grab* task)
         }
         D_actor_444000_80161694[2] =
             ((Actor444000AnimTable*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + D_80073BA9])->sets[9];
-        work->anim.field_0 = D_actor_444000_80161694;
-        work->anim.field_4 = 2;
-        work->anim.field_8 = armed;
-        work->anim.field_C = 9;
+        work->anim.animBlock.ptr = D_actor_444000_80161694;
+        work->anim.field_4       = 2;
+        work->anim.field_8       = armed;
+        work->anim.field_C       = 9;
         Gp_DispatchMsg(player, 0x3FF, (s32)&work->anim, 0);
         task->extra->flags = 0x80;
     }
@@ -4600,15 +4600,15 @@ void func_actor_444000_8013AFF8(GpEnemy* enemy, Actor444000* task)
     gte_gpf12();
     gte_stsv(gteDir);
 
-    work->anim.field_0  = NULL;
-    work->anim.field_4  = 1;
-    work->anim.field_8  = 0;
-    work->anim.field_C  = 3;
-    work->anim.field_10 = 1;
-    work->field_F12     = 0;
-    task->field_24      = &D_actor_444000_80161818;
-    coord->sub          = &gGfxViewCoord;
-    coord->flg          = 0;
+    work->anim.animBlock.ptr = NULL;
+    work->anim.field_4       = 1;
+    work->anim.field_8       = 0;
+    work->anim.field_C       = 3;
+    work->anim.field_10      = 1;
+    work->field_F12          = 0;
+    task->field_24           = &D_actor_444000_80161818;
+    coord->sub               = &gGfxViewCoord;
+    coord->flg               = 0;
     Gp_UpdateCoord(coord);
 
     D_actor_444000_80161880.coord      = ((TmdObject*)task->extra)->coords;
@@ -6046,9 +6046,9 @@ static __inline__ void Actor444000_PlacePlayerAhead(Actor444000* task, Actor4440
         } else {
             sc->angle = yaw + 0x800;
         }
-        work->anim.field_0 = D_actor_444000_80161680;
+        work->anim.animBlock.ptr = D_actor_444000_80161680;
     } else {
-        work->anim.field_0 = D_actor_444000_80161670;
+        work->anim.animBlock.ptr = D_actor_444000_80161670;
     }
     coord      = ((TmdObject*)player->extra)->coords;
     sc->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
@@ -6485,11 +6485,11 @@ scanned:
         if (work->field_ECA == 1) {
             ((GameActor*)player->work)->field_956 = 0xA;
         }
-        work->anim.field_0 = D_actor_444000_80161670;
-        work->field_EC8    = 1;
-        work->anim.field_4 = 2;
-        work->anim.field_8 = 0;
-        work->anim.field_C = 0;
+        work->anim.animBlock.ptr = D_actor_444000_80161670;
+        work->field_EC8          = 1;
+        work->anim.field_4       = 2;
+        work->anim.field_8       = 0;
+        work->anim.field_C       = 0;
         Gp_DispatchMsg(player, 0x3FF, (s32)&work->anim, 0);
         work->field_7CA = 0;
     }
@@ -6500,16 +6500,16 @@ scanned:
         work->field_7CA = count;
         if (work->field_ECA == mode) {
             if (work->anim.field_4 == 2) {
-                work->anim.field_0 = D_actor_444000_80161670;
-                work->anim.field_8 = 0;
-                work->anim.field_C = 0;
+                work->anim.animBlock.ptr = D_actor_444000_80161670;
+                work->anim.field_8       = 0;
+                work->anim.field_C       = 0;
                 Gp_DispatchMsg(player, 0x3FF, (s32)&work->anim, 0);
                 work->field_7CA = 0;
             }
         } else if (work->anim.field_4 == 2 && (s16)count < 0x28) {
-            work->anim.field_0 = D_actor_444000_80161670;
-            work->anim.field_8 = 0;
-            work->anim.field_C = 0;
+            work->anim.animBlock.ptr = D_actor_444000_80161670;
+            work->anim.field_8       = 0;
+            work->anim.field_C       = 0;
             Gp_DispatchMsg(player, 0x3FF, (s32)&work->anim, 0);
         }
 
@@ -6517,7 +6517,7 @@ scanned:
             switch (work->anim.field_4) {
                 case 2:
                     if (work->field_ECA != 1 && (s16)work->field_7CA >= 0x17) {
-                        work->anim.field_0         = D_actor_444000_80161670;
+                        work->anim.animBlock.ptr   = D_actor_444000_80161670;
                         D_actor_444000_80161670[4] = ((Actor444000AnimTable*)Gp_PlayerAnimBlkTbl
                                                           [Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon])
                                                          ->sets[7];

@@ -3298,12 +3298,12 @@ void Gp_InitPlayerWork(GpActorWork* arg0)
         Gp_SpawnWeaponEff();
     }
     if (kind == 2) {
-        sp.field_C  = 0;
-        idx         = actor->field_93A;
-        sp.field_8  = 0;
-        sp.field_4  = anim;
-        sp.field_10 = 0;
-        sp.field_0  = (void*)idx;
+        sp.field_C         = 0;
+        idx                = actor->field_93A;
+        sp.field_8         = 0;
+        sp.field_4         = anim;
+        sp.field_10        = 0;
+        sp.animBlock.index = idx;
         func_80104508(arg0, 0, &sp, 0);
         actor->field_984 = 0x38;
     }
@@ -5287,11 +5287,11 @@ s32 func_80104508(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3)
         ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
     }
     actor->field_956 = 1;
-    if (actor->field_928 != Gp_PlayerAnimBlkTbl[(s32)arg2->field_0]) {
-        actor->field_928 = Gp_PlayerAnimBlkTbl[(s32)arg2->field_0];
+    if (actor->field_928 != Gp_PlayerAnimBlkTbl[arg2->animBlock.index]) {
+        actor->field_928 = Gp_PlayerAnimBlkTbl[arg2->animBlock.index];
         func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
                       actor->field_438);
-        actor->field_93A = (u16)arg2->field_0;
+        actor->field_93A = (u16)arg2->animBlock.index;
     }
     actor->field_985 = 0x10;
     if (arg2->field_8 == 0) {
@@ -5525,7 +5525,7 @@ s32 func_80104B54(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2)
         ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
     }
     actor->field_956 = 1;
-    actor->field_928 = arg2->field_0;
+    actor->field_928 = arg2->animBlock.ptr;
     actor->field_93A = 0x7FFF;
     actor->field_985 = 0x10;
     if (arg2->field_8 == 0) {
@@ -5551,7 +5551,7 @@ s32 func_80104CAC(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2)
 
     actor            = arg0->actor;
     extra            = arg0->extra;
-    actor->field_928 = arg2->field_0;
+    actor->field_928 = arg2->animBlock.ptr;
     actor->field_93A = 0x7FFF;
     actor->field_985 = 0x10;
     if (arg2->field_8 == 0) {
@@ -10043,11 +10043,11 @@ s32 func_8010C4F0(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2)
     actor->field_12A &= 0x3FFF;
     func_80106350(arg0, D_80167218[Mc_SaveData.companionVariant], 0);
     actor->field_956 = 1;
-    if (actor->field_928 != Gp_AnimBlkTbl[(s32)arg2->field_0]) {
-        actor->field_928 = Gp_AnimBlkTbl[(s32)arg2->field_0];
+    if (actor->field_928 != Gp_AnimBlkTbl[arg2->animBlock.index]) {
+        actor->field_928 = Gp_AnimBlkTbl[arg2->animBlock.index];
         func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
                       actor->field_438);
-        actor->field_93A = (u16)arg2->field_0;
+        actor->field_93A = (u16)arg2->animBlock.index;
     }
     actor->field_985 = 0x10;
     if (arg2->field_8 == 0) {

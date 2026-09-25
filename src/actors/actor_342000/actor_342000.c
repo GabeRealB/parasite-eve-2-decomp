@@ -735,12 +735,12 @@ void func_actor_342000_80162BBC(Task* arg0)
                     return;
                 case 2:
                     if (++work->field_6C > 10) {
-                        work->field_68 = 0;
-                        msg.field_0    = D_actor_342000_801647E8;
-                        msg.field_4    = 0;
-                        msg.field_8    = 0;
-                        msg.field_C    = 0;
-                        msg.field_10   = 0;
+                        work->field_68    = 0;
+                        msg.animBlock.ptr = D_actor_342000_801647E8;
+                        msg.field_4       = 0;
+                        msg.field_8       = 0;
+                        msg.field_C       = 0;
+                        msg.field_10      = 0;
                         Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F4, (s32)&msg, 0);
                     }
                     return;
@@ -748,63 +748,63 @@ void func_actor_342000_80162BBC(Task* arg0)
             return;
         case 3:
             Gp_DispatchMsg(work->field_48, 0x3E9, (s32)&D_actor_342000_80164948, 0);
-            msg.field_0  = D_actor_342000_801647E8;
-            msg.field_4  = 0;
-            msg.field_8  = 0;
-            msg.field_C  = 0;
-            msg.field_10 = 0;
+            msg.animBlock.ptr = D_actor_342000_801647E8;
+            msg.field_4       = 0;
+            msg.field_8       = 0;
+            msg.field_C       = 0;
+            msg.field_10      = 0;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F4, (s32)&msg, 0);
             break;
         case 4:
-            msg.field_0  = D_actor_342000_801647E8;
-            msg.field_4  = 1;
-            msg.field_8  = 1;
-            msg.field_C  = 10;
-            msg.field_10 = 0;
+            msg.animBlock.ptr = D_actor_342000_801647E8;
+            msg.field_4       = 1;
+            msg.field_8       = 1;
+            msg.field_C       = 10;
+            msg.field_10      = 0;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F4, (s32)&msg, 0);
             break;
         case 5: {
             s32 weaponId;
             s32 anim;
 
-            weaponId     = D_80073BA9;
-            anim         = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-            msg.field_0  = (void*)anim;
-            msg.field_4  = 1;
-            msg.field_8  = 0;
-            msg.field_C  = 0;
-            msg.field_10 = 0;
+            weaponId            = D_80073BA9;
+            anim                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            msg.animBlock.index = anim;
+            msg.field_4         = 1;
+            msg.field_8         = 0;
+            msg.field_C         = 0;
+            msg.field_10        = 0;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&msg, 0);
             break;
         }
         case 6:
-            msg.field_0  = D_actor_342000_801647E8;
-            msg.field_4  = 2;
-            msg.field_8  = 1;
-            msg.field_C  = 10;
-            msg.field_10 = 0;
+            msg.animBlock.ptr = D_actor_342000_801647E8;
+            msg.field_4       = 2;
+            msg.field_8       = 1;
+            msg.field_C       = 10;
+            msg.field_10      = 0;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F4, (s32)&msg, 0);
             break;
         case 7: {
             s32 weaponId;
             s32 anim;
 
-            weaponId     = D_80073BA9;
-            anim         = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-            msg.field_0  = (void*)anim;
-            msg.field_4  = 1;
-            msg.field_8  = 1;
-            msg.field_C  = 10;
-            msg.field_10 = 0;
+            weaponId            = D_80073BA9;
+            anim                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            msg.animBlock.index = anim;
+            msg.field_4         = 1;
+            msg.field_8         = 1;
+            msg.field_C         = 10;
+            msg.field_10        = 0;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&msg, 0);
             break;
         }
         case 8:
-            msg.field_0  = D_actor_342000_801647E8;
-            msg.field_4  = 3;
-            msg.field_8  = 0;
-            msg.field_C  = 0;
-            msg.field_10 = 0;
+            msg.animBlock.ptr = D_actor_342000_801647E8;
+            msg.field_4       = 3;
+            msg.field_8       = 0;
+            msg.field_C       = 0;
+            msg.field_10      = 0;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F4, (s32)&msg, 0);
             ev = (Actor342000EventWork*)D_actor_342000_80165070->work;
             if (ev->field_7A == 0) {
@@ -1471,13 +1471,13 @@ void func_actor_342000_8016439C(void)
     work = (Actor342000EventWork*)D_actor_342000_80165070->work;
     Gp_DispatchMsg(work->field_48, 0x3E9, (s32)&D_actor_342000_80164948, 0);
     func_8018507C();
-    weaponId     = D_80073BA9;
-    anim         = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-    msg.field_0  = (void*)anim;
-    msg.field_4  = 1;
-    msg.field_8  = 0;
-    msg.field_C  = 0;
-    msg.field_10 = 0;
+    weaponId            = D_80073BA9;
+    anim                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    msg.animBlock.index = anim;
+    msg.field_4         = 1;
+    msg.field_8         = 0;
+    msg.field_C         = 0;
+    msg.field_10        = 0;
     Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&msg, 0);
     Gp_DispatchMsg(((Actor342000EventWork*)D_actor_342000_80165070->work)->field_48, 0x3F3, 1, 0);
     if (work->field_64 != NULL) {

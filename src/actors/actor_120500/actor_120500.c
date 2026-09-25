@@ -101,7 +101,7 @@ extern u8 D_80071075;
 extern s8 D_8007106B;
 
 /// Animation-set table handed to the task in pointer slot 3 as message 0x3F4's
-/// `GpAnimArg::field_0`; the messages select sets 0, 1 and 2 of it.
+/// `GpAnimArg::animBlock`; the messages select sets 0, 1 and 2 of it.
 extern GpAnimSet* D_actor_120500_8013807C[];
 
 /// Placement records sent to that same task as message 0x3E9, passed by
@@ -224,11 +224,11 @@ void func_actor_120500_80132028(Task* arg0)
                     w3 = (Actor120500Work*)arg0->work;
                     p  = &msg;
                     if (w3->field_4B4 != NULL) {
-                        msg.field_0 = D_actor_120500_8013807C;
-                        msg.field_4 = 0;
-                        msg.field_8 = 0;
-                        msg.field_C = 0;
-                        p->field_10 = 1;
+                        msg.animBlock.ptr = D_actor_120500_8013807C;
+                        msg.field_4       = 0;
+                        msg.field_8       = 0;
+                        msg.field_C       = 0;
+                        p->field_10       = 1;
                         Gp_DispatchMsg(w3->field_4B4, 0x3F4, (s32)p, 0);
                     }
                     work->field_4BA = work->field_4BA + 1;
@@ -248,11 +248,11 @@ void func_actor_120500_80132028(Task* arg0)
             w2 = (Actor120500Work*)arg0->work;
             p  = &msg;
             if (w2->field_4B4 != NULL) {
-                msg.field_0 = D_actor_120500_8013807C;
-                p->field_4  = 1;
-                msg.field_8 = 0;
-                msg.field_C = 0;
-                p->field_10 = 1;
+                msg.animBlock.ptr = D_actor_120500_8013807C;
+                p->field_4        = 1;
+                msg.field_8       = 0;
+                msg.field_C       = 0;
+                p->field_10       = 1;
                 Gp_DispatchMsg(w2->field_4B4, 0x3F4, (s32)p, 0);
             }
             break;
@@ -260,11 +260,11 @@ void func_actor_120500_80132028(Task* arg0)
             w2 = (Actor120500Work*)arg0->work;
             p  = &msg;
             if (w2->field_4B4 != NULL) {
-                msg.field_0 = D_actor_120500_8013807C;
-                p->field_4  = 2;
-                p->field_8  = 1;
-                p->field_C  = 8;
-                p->field_10 = 1;
+                msg.animBlock.ptr = D_actor_120500_8013807C;
+                p->field_4        = 2;
+                p->field_8        = 1;
+                p->field_C        = 8;
+                p->field_10       = 1;
                 Gp_DispatchMsg(w2->field_4B4, 0x3F4, (s32)p, 0);
             }
             break;
@@ -278,11 +278,11 @@ void func_actor_120500_80132028(Task* arg0)
             } else {
                 anim = base + 0x22;
             }
-            msg.field_0  = (void*)anim;
-            msg.field_4  = 1;
-            msg.field_8  = 0;
-            msg.field_C  = 0;
-            msg.field_10 = 0;
+            msg.animBlock.index = anim;
+            msg.field_4         = 1;
+            msg.field_8         = 0;
+            msg.field_C         = 0;
+            msg.field_10        = 0;
             Gp_DispatchMsg(work->field_4B4, 0x3E8, (s32)&msg, 0);
             break;
     }
@@ -386,11 +386,11 @@ void func_actor_120500_8013241C(Task* arg0)
                 } else {
                     anim = anim + 0x22;
                 }
-                args.msg.field_0  = (u8*)anim;
-                args.msg.field_4  = 1;
-                args.msg.field_8  = 1;
-                args.msg.field_C  = 10;
-                args.msg.field_10 = 0;
+                args.msg.animBlock.index = anim;
+                args.msg.field_4         = 1;
+                args.msg.field_8         = 1;
+                args.msg.field_C         = 10;
+                args.msg.field_10        = 0;
                 Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&args.msg, 0);
                 func_800E3FAC(0xA2, 0xD);
                 func_800E8634((s32)D_actor_120500_801380D8, 0, (s32)D_actor_120500_80138318);
@@ -599,11 +599,11 @@ void func_actor_120500_80132920(void)
     work->field_4C8 = 0;
     animWork        = actor->field_1C;
     if (animWork->field_4B4 != NULL) {
-        msg.field_0  = D_actor_120500_8013807C;
-        msg.field_4  = 2;
-        msg.field_8  = 0;
-        msg.field_C  = 0;
-        msg.field_10 = 1;
+        msg.animBlock.ptr = D_actor_120500_8013807C;
+        msg.field_4       = 2;
+        msg.field_8       = 0;
+        msg.field_C       = 0;
+        msg.field_10      = 1;
         Gp_DispatchMsg(animWork->field_4B4, 0x3F4, (s32)&msg, 0);
     }
     work = actor->field_1C;

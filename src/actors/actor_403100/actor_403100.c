@@ -5339,7 +5339,7 @@ void func_actor_403100_8013D1B8(s16 arg0, s16 arg1)
 {
     GpAnimArg msg;
 
-    msg.field_0                        = &D_actor_403100_8015570C;
+    msg.animBlock.ptr                  = &D_actor_403100_8015570C;
     msg.field_4                        = (s32)arg0;
     msg.field_8                        = 0;
     msg.field_C                        = 0;
@@ -5744,7 +5744,7 @@ void func_actor_403100_8013E1E4(void)
 
     if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
         D_actor_403100_8015570C.sets[4] = ((Actor403100AnimTable*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + D_80073BA9])->sets[7];
-        sp.field_0                      = &D_actor_403100_8015570C;
+        sp.animBlock.ptr                = &D_actor_403100_8015570C;
         sp.field_8                      = 1;
         sp.field_C                      = 3;
         sp.field_10                     = 0;

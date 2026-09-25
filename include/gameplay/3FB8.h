@@ -762,21 +762,24 @@ typedef struct _GpDelayArg {
     /* 0x14 */ s32  field_14;
 } GpDelayArg;
 
-/// 0x14-byte argument for `func_80104508` / `func_80104B54` / `func_80104CAC` /
-/// `func_8010C4F0`. `func_80104B54` / `func_80104CAC` copy `field_0` to
-/// `GameActor.field_928`. `func_80104508` / `func_8010C4F0` treat `field_0` as
-/// an index into `Gp_PlayerAnimBlkTbl` / `Gp_AnimBlkTbl` and only reinstall when that
-/// pointer differs. `field_8 == 0` runs `Gp_AnimResetChildSlots` (plus `func_800B3F84`
-/// in `func_80104B54` / `func_80104CAC`, and in `func_80104508` /
-/// `func_8010C4F0` only on a table miss); otherwise
-/// `Gp_AnimPlayChildSlotsEx(..., field_4, 0 or 1, field_C)`. `field_10` selects
-/// `field_983` (7 if nonzero, `0x38` if zero).
+/// Payload of the messages that start an animation on an actor. `animBlock`
+/// selects the animation block to play from, in one of two ways depending on
+/// the message: the player's 0x3E8 / 0x3EA-0x3EC handlers and the actors' 0x7D3
+/// handlers take an `index` into the receiver's own block table and reinstall
+/// only when the block changes, while the 0x3F4 / 0x3FF handlers take the block
+/// itself as `ptr`. `field_4` is the animation within the block; `field_8 == 0`
+/// resets the child slots to it, otherwise it is played through
+/// `Gp_AnimPlayChildSlotsEx` with `field_C`. `field_10` selects `field_983`
+/// (7 if nonzero, `0x38` if zero).
 typedef struct _GpAnimArg {
-    /* 0x00 */ void* field_0;
-    /* 0x04 */ s32   field_4;
-    /* 0x08 */ s32   field_8;
-    /* 0x0C */ s32   field_C;
-    /* 0x10 */ s32   field_10;
+    union {
+        s32   index;
+        void* ptr;
+    } animBlock;
+    s32 field_4;
+    s32 field_8;
+    s32 field_C;
+    s32 field_10;
 } GpAnimArg;
 STATIC_ASSERT_SIZEOF(GpAnimArg, 0x14);
 

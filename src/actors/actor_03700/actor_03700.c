@@ -121,7 +121,7 @@ extern u16        Actor03700_D07F10;
 extern u8    Actor03700_D080E4[];
 extern void* Actor03700_D08108;
 
-/// Animation-set table handed to the player as the 0x3FF payload's `field_0`.
+/// Animation-set table handed to the player as the 0x3FF payload's `animBlock`.
 extern GpAnimSet* Actor03700_D080FC[];
 
 /// 0x58-byte scratch from `G_SCRATCH_HEAD` used by `Actor03700_Fn0042C`:
@@ -944,11 +944,11 @@ void Actor03700_Fn01550(Task* task)
             }
             break;
         case 3:
-            arg->field_0  = Actor03700_D080FC;
-            arg->field_4  = 2;
-            arg->field_8  = 0;
-            arg->field_C  = 0;
-            arg->field_10 = 1;
+            arg->animBlock.ptr = Actor03700_D080FC;
+            arg->field_4       = 2;
+            arg->field_8       = 0;
+            arg->field_C       = 0;
+            arg->field_10      = 1;
             Gp_DispatchMsg(player, 0x3F4, (s32)arg, 0);
             sound = ((((GpEnemy*)task->spawnArg2)->placeKey >> 12) << 8) | 6;
             SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(obj), (s8)gpGetObjDepth(obj));
@@ -1069,11 +1069,11 @@ void Actor03700_Fn01C94(Task* task)
 
     switch (work->field_250) {
         case 0:
-            arg->field_0  = Actor03700_D080FC;
-            arg->field_4  = 2;
-            arg->field_8  = 0;
-            arg->field_C  = 0;
-            arg->field_10 = 1;
+            arg->animBlock.ptr = Actor03700_D080FC;
+            arg->field_4       = 2;
+            arg->field_8       = 0;
+            arg->field_C       = 0;
+            arg->field_10      = 1;
             Gp_DispatchMsg(player, 0x3F4, (s32)arg, 0);
             sound = ((((GpEnemy*)task->spawnArg2)->placeKey >> 12) << 8) | 6;
             pan   = (s8)Gp_GetObjPan(obj);
@@ -1274,11 +1274,11 @@ void Actor03700_Fn020D4(GpEnemy* enemy, Task* task)
                     sound        = ((((GpEnemy*)task->spawnArg2)->placeKey >> 12) << 8) | 0x40250003;
                     SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(obj), (s8)gpGetObjDepth(obj));
                     if (work->field_262 != 0) {
-                        arg.field_0  = Actor03700_D080FC;
-                        arg.field_4  = 2;
-                        arg.field_8  = 0;
-                        arg.field_C  = 0;
-                        arg.field_10 = 1;
+                        arg.animBlock.ptr = Actor03700_D080FC;
+                        arg.field_4       = 2;
+                        arg.field_8       = 0;
+                        arg.field_C       = 0;
+                        arg.field_10      = 1;
                         Gp_DispatchMsg(player, 0x3F4, (s32)&arg, 0);
                         sound2 = ((((GpEnemy*)task->spawnArg2)->placeKey >> 12) << 8) | 6;
                         SndEvt_EnqueueType6(sound2, (s8)Gp_GetObjPan(obj), (s8)gpGetObjDepth(obj));
@@ -1649,11 +1649,11 @@ s32 Actor03700_Fn03130(Task* task)
     if (((GpActorWork*)player)->actor->field_954 != 2) {
         scratch->query.field_14 = 8;
         if (Gp_DispatchMsg(player, 0x3F8, (s32)scratch, 0) == 0) {
-            scratch->anim.field_0  = Actor03700_D080FC;
-            scratch->anim.field_4  = 1;
-            scratch->anim.field_8  = 0;
-            scratch->anim.field_C  = 0;
-            scratch->anim.field_10 = 1;
+            scratch->anim.animBlock.ptr = Actor03700_D080FC;
+            scratch->anim.field_4       = 1;
+            scratch->anim.field_8       = 0;
+            scratch->anim.field_C       = 0;
+            scratch->anim.field_10      = 1;
             Gp_DispatchMsg(player, 0x3FF, (s32)&scratch->anim, 0);
             work->field_262 = 1;
             ret             = 1;

@@ -1474,15 +1474,15 @@ void func_actor_105100_80133CE4(Actor105100* arg0)
     switch (work->field_5A4) {
         case 0:
             if (((GameActor*)player->work)->field_954 != 2) {
-                scratch->delta.vx      = target->coord.t[0] - coord->coord.t[0];
-                scratch->delta.vy      = 0;
-                scratch->delta.vz      = target->coord.t[2] - coord->coord.t[2];
-                work->field_5A0        = (scratch->delta.vx * target->coord.m[0][2] + scratch->delta.vz * target->coord.m[2][2]) > 0;
-                scratch->anim.field_0  = &D_actor_105100_801414B4;
-                scratch->anim.field_4  = work->field_5A0 + 1;
-                scratch->anim.field_8  = 0;
-                scratch->anim.field_C  = 0;
-                scratch->anim.field_10 = 1;
+                scratch->delta.vx           = target->coord.t[0] - coord->coord.t[0];
+                scratch->delta.vy           = 0;
+                scratch->delta.vz           = target->coord.t[2] - coord->coord.t[2];
+                work->field_5A0             = (scratch->delta.vx * target->coord.m[0][2] + scratch->delta.vz * target->coord.m[2][2]) > 0;
+                scratch->anim.animBlock.ptr = &D_actor_105100_801414B4;
+                scratch->anim.field_4       = work->field_5A0 + 1;
+                scratch->anim.field_8       = 0;
+                scratch->anim.field_C       = 0;
+                scratch->anim.field_10      = 1;
                 Gp_DispatchMsg(player, 0x3F4, (s32)scratch, 0);
                 work->field_5A4 = 1;
                 work->field_5A6 = 0;
@@ -1521,11 +1521,11 @@ void func_actor_105100_80133CE4(Actor105100* arg0)
             }
             count = (s16)++work->field_5A6;
             if ((work->field_5A0 != 0 && count >= 0x1E) || (work->field_5A0 == 0 && count >= 0x20)) {
-                scratch->anim.field_0  = &D_actor_105100_801414B4;
-                scratch->anim.field_4  = work->field_5A0 + 3;
-                scratch->anim.field_8  = 0;
-                scratch->anim.field_C  = 0;
-                scratch->anim.field_10 = 1;
+                scratch->anim.animBlock.ptr = &D_actor_105100_801414B4;
+                scratch->anim.field_4       = work->field_5A0 + 3;
+                scratch->anim.field_8       = 0;
+                scratch->anim.field_C       = 0;
+                scratch->anim.field_10      = 1;
                 Gp_DispatchMsg(player, 0x3F4, (s32)scratch, 0);
                 work->field_5A4 = 2;
                 work->field_5A6 = 0;

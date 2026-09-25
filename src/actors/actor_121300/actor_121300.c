@@ -1102,13 +1102,13 @@ void func_actor_121300_80133D98(Task* arg0)
     switch (state) {
         case 0:
             if ((D_80114C12 != 1) && (D_80071075 == 0)) {
-                weaponId             = D_80073BA9;
-                anim                 = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-                scratch.msg.field_0  = (void*)anim;
-                scratch.msg.field_4  = 1;
-                scratch.msg.field_8  = 0;
-                scratch.msg.field_C  = 0;
-                scratch.msg.field_10 = 0;
+                weaponId                    = D_80073BA9;
+                anim                        = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+                scratch.msg.animBlock.index = anim;
+                scratch.msg.field_4         = 1;
+                scratch.msg.field_8         = 0;
+                scratch.msg.field_C         = 0;
+                scratch.msg.field_10        = 0;
                 Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&scratch.msg, 0);
                 func_actor_121300_80133BFC(arg0);
                 arg0->state += 1;

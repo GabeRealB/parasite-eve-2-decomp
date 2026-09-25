@@ -1027,7 +1027,7 @@ void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
                     {
                         DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
                         s32                weaponId = D_80073BA9;
-                        msg.anim.field_0            = (void*)((D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22);
+                        msg.anim.animBlock.index    = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
                         msg.anim.field_4            = 0x2F;
                         msg.anim.field_8            = 1;
                         msg.anim.field_C            = 0xA;
@@ -1042,7 +1042,7 @@ void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
         case 2: {
             DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
             s32                weaponId = D_80073BA9;
-            msg.anim.field_0            = (void*)((D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22);
+            msg.anim.animBlock.index    = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.anim.field_4            = 0x32;
             msg.anim.field_8            = 0;
             msg.anim.field_C            = 0;
@@ -1058,7 +1058,7 @@ void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
             {
                 DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
                 s32                weaponId = D_80073BA9;
-                msg.anim.field_0            = (void*)((D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22);
+                msg.anim.animBlock.index    = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
                 msg.anim.field_4            = 9;
                 msg.anim.field_8            = 0;
                 msg.anim.field_C            = 0;
@@ -1084,7 +1084,7 @@ void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
                     {
                         DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
                         s32                weaponId = D_80073BA9;
-                        msg.anim.field_0            = (void*)((D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22);
+                        msg.anim.animBlock.index    = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
                         msg.anim.field_4            = 0x30;
                         msg.anim.field_8            = 1;
                         msg.anim.field_C            = 0xA;
@@ -1099,7 +1099,7 @@ void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
         case 6: {
             DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
             s32                weaponId = D_80073BA9;
-            msg.anim.field_0            = (void*)((D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22);
+            msg.anim.animBlock.index    = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.anim.field_4            = 0x33;
             msg.anim.field_8            = 1;
             msg.anim.field_C            = 0xA;
@@ -1111,7 +1111,7 @@ void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
         case 7: {
             DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
             s32                weaponId = D_80073BA9;
-            msg.anim.field_0            = (void*)((D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22);
+            msg.anim.animBlock.index    = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.anim.field_4            = 0x31;
             msg.anim.field_8            = 1;
             msg.anim.field_C            = 0xA;
@@ -1287,13 +1287,13 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
             msg.table = &D_shelter_b3_dumping_hole_801880A0[0];
             msg.count = n & 0xFFFF;
             Gp_DispatchMsg(w2->field_24, 0x3F7, (s32)&msg, 0);
-            weaponId      = D_80073BA9;
-            p             = &anim;
-            anim.field_0  = (void*)((D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22);
-            p->field_4    = 1;
-            p->field_8    = 1;
-            p->field_C    = 0xA;
-            anim.field_10 = 0;
+            weaponId             = D_80073BA9;
+            p                    = &anim;
+            anim.animBlock.index = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            p->field_4           = 1;
+            p->field_8           = 1;
+            p->field_C           = 0xA;
+            anim.field_10        = 0;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&anim, 0);
             arg0->state++;
             break;

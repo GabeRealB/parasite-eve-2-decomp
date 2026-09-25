@@ -856,16 +856,16 @@ s32 func_shelter_b3_garbage_incinerator_8017F318(Task* arg0)
     if (D_shelter_b3_garbage_incinerator_80186F88[work->field_38 - 0x2F] < 0) {
         goto ret1;
     }
-    anim              = (u16)D_shelter_b3_garbage_incinerator_80186F88[work->field_38 - 0x2F] + 0x2F;
-    msgWork           = (GarbageIncineratorWork*)arg0->work;
-    weaponId          = D_80073BA9;
-    setId             = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-    msg.field_0       = (void*)setId;
-    msgWork->field_38 = anim;
-    msg.field_4       = anim;
-    msg.field_8       = 1;
-    msg.field_C       = 0xA;
-    msg.field_10      = 0;
+    anim                = (u16)D_shelter_b3_garbage_incinerator_80186F88[work->field_38 - 0x2F] + 0x2F;
+    msgWork             = (GarbageIncineratorWork*)arg0->work;
+    weaponId            = D_80073BA9;
+    setId               = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    msg.animBlock.index = setId;
+    msgWork->field_38   = anim;
+    msg.field_4         = anim;
+    msg.field_8         = 1;
+    msg.field_C         = 0xA;
+    msg.field_10        = 0;
     Gp_DispatchMsg(msgWork->field_2C, 0x3E8, (s32)&msg, 0);
     return 1;
 }
@@ -1034,16 +1034,16 @@ void func_shelter_b3_garbage_incinerator_8017F8AC(s32 arg0)
     s32                     weaponId;
     s32                     setId;
 
-    work           = D_shelter_b3_garbage_incinerator_8018FC3C->work;
-    anim           = arg0 + 0x2F;
-    weaponId       = D_80073BA9;
-    setId          = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-    msg.field_0    = (void*)setId;
-    work->field_38 = anim;
-    msg.field_4    = anim;
-    msg.field_8    = 1;
-    msg.field_C    = 0xF;
-    msg.field_10   = 0;
+    work                = D_shelter_b3_garbage_incinerator_8018FC3C->work;
+    anim                = arg0 + 0x2F;
+    weaponId            = D_80073BA9;
+    setId               = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    msg.animBlock.index = setId;
+    work->field_38      = anim;
+    msg.field_4         = anim;
+    msg.field_8         = 1;
+    msg.field_C         = 0xF;
+    msg.field_10        = 0;
     Gp_DispatchMsg(work->field_2C, 0x3E8, (s32)&msg, 0);
 }
 

@@ -151,7 +151,7 @@ STATIC_ASSERT_SIZEOF(Actor510900HitScratch, 0x2C);
 /// The pair `Gp_PackPair` packs entry 4 of for the 0x3F9 message the hold sends.
 extern GpU16Pair D_actor_510900_80167968;
 
-/// Animation-set table handed to the player as the 0x3FF payload's `field_0`.
+/// Animation-set table handed to the player as the 0x3FF payload's `animBlock`.
 extern GpAnimSet* D_actor_510900_80167B2C[];
 
 /// Spawn position of the child, indexed by its `Task::spawnArg1`.
@@ -2643,11 +2643,11 @@ void func_actor_510900_8013A310(Task* task)
                     break;
                 }
                 Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(&D_actor_510900_80167968, 4), 0);
-                scratch->anim.field_0  = D_actor_510900_80167B2C;
-                scratch->anim.field_4  = 1;
-                scratch->anim.field_8  = 0;
-                scratch->anim.field_C  = 0;
-                scratch->anim.field_10 = 1;
+                scratch->anim.animBlock.ptr = D_actor_510900_80167B2C;
+                scratch->anim.field_4       = 1;
+                scratch->anim.field_8       = 0;
+                scratch->anim.field_C       = 0;
+                scratch->anim.field_10      = 1;
                 Gp_DispatchMsg(player, 0x3FF, (s32)&scratch->anim, 0);
                 work->field_CC = 1;
                 work->field_CE = 0;
@@ -2663,12 +2663,12 @@ void func_actor_510900_8013A310(Task* task)
             if ((s16)tick < 0x3D && parent->field_5BC != 1 && parent->field_592 != 0) {
                 break;
             }
-            parent->field_5BC      = 0;
-            scratch->anim.field_0  = D_actor_510900_80167B2C;
-            scratch->anim.field_4  = 2;
-            scratch->anim.field_8  = 0;
-            scratch->anim.field_C  = 0;
-            scratch->anim.field_10 = 1;
+            parent->field_5BC           = 0;
+            scratch->anim.animBlock.ptr = D_actor_510900_80167B2C;
+            scratch->anim.field_4       = 2;
+            scratch->anim.field_8       = 0;
+            scratch->anim.field_C       = 0;
+            scratch->anim.field_10      = 1;
             Gp_DispatchMsg(player, 0x3FF, (s32)&scratch->anim, 0);
             work->field_CC = 2;
             work->field_CE = 0;

@@ -550,12 +550,12 @@ static inline void func_actor_136100_PlayAnim(Task* task, u16 anim, s32 blend, s
     GpAnimArg        msg;
 
     if (work->field_4C0 != NULL) {
-        msg.field_0     = &D_actor_136100_8013F1D4;
-        work->field_4E2 = anim;
-        msg.field_4     = anim;
-        msg.field_8     = blend;
-        msg.field_C     = speed;
-        msg.field_10    = 0;
+        msg.animBlock.ptr = &D_actor_136100_8013F1D4;
+        work->field_4E2   = anim;
+        msg.field_4       = anim;
+        msg.field_8       = blend;
+        msg.field_C       = speed;
+        msg.field_10      = 0;
         Gp_DispatchMsg(work->field_4C0, 0x3F4, (s32)&msg, 0);
     }
 }
@@ -798,7 +798,7 @@ void func_actor_136100_80133558(Task* arg0)
         if (D_actor_136100_8013F218[work->field_4E2] >= 0) {
             msgWork = (Actor136100Work*)arg0->work;
             if (msgWork->field_4C0 != NULL) {
-                msg.field_0        = &D_actor_136100_8013F1D4;
+                msg.animBlock.ptr  = &D_actor_136100_8013F1D4;
                 msgWork->field_4E2 = anim;
                 msg.field_4        = anim;
                 msg.field_8        = 1;

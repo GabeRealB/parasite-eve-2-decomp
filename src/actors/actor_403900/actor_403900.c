@@ -1156,11 +1156,11 @@ void func_actor_403900_8013314C(Actor403900* arg0)
             }
             break;
         case 1:
-            sc->anim.field_0  = &D_actor_403900_801540B4;
-            sc->anim.field_4  = 1;
-            sc->anim.field_8  = 0;
-            sc->anim.field_C  = 0;
-            sc->anim.field_10 = 1;
+            sc->anim.animBlock.ptr = &D_actor_403900_801540B4;
+            sc->anim.field_4       = 1;
+            sc->anim.field_8       = 0;
+            sc->anim.field_C       = 0;
+            sc->anim.field_10      = 1;
             Gp_DispatchMsg(player, 0x3FF, (s32)&sc->anim, 0);
             work->field_6CE = 2;
             work->field_6DC = 0x3C;
@@ -1171,16 +1171,16 @@ void func_actor_403900_8013314C(Actor403900* arg0)
             break;
         case 2:
             if (work->field_6C4 >= 0x29) {
-                work->field_6C0   = 2;
-                work->field_6CE   = 3;
-                work->field_6D6   = 0x1E;
-                work->field_6D4   = 0;
-                work->field_6F6   = 0;
-                sc->anim.field_0  = &D_actor_403900_801540B4;
-                sc->anim.field_4  = 2;
-                sc->anim.field_8  = 0;
-                sc->anim.field_C  = 0;
-                sc->anim.field_10 = 1;
+                work->field_6C0        = 2;
+                work->field_6CE        = 3;
+                work->field_6D6        = 0x1E;
+                work->field_6D4        = 0;
+                work->field_6F6        = 0;
+                sc->anim.animBlock.ptr = &D_actor_403900_801540B4;
+                sc->anim.field_4       = 2;
+                sc->anim.field_8       = 0;
+                sc->anim.field_C       = 0;
+                sc->anim.field_10      = 1;
                 Gp_DispatchMsg(player, 0x3FF, (s32)&sc->anim, 0);
                 Gp_ArmStateF0(1);
                 work->field_70A = 0;
@@ -1217,13 +1217,13 @@ void func_actor_403900_8013314C(Actor403900* arg0)
                         flag = 1;
                     }
                     if (flag != 0) {
-                        work->field_6C0   = 3;
-                        work->field_6CE   = 5;
-                        sc->anim.field_0  = &D_actor_403900_801540B4;
-                        sc->anim.field_4  = 3;
-                        sc->anim.field_8  = 0;
-                        sc->anim.field_C  = 0;
-                        sc->anim.field_10 = 1;
+                        work->field_6C0        = 3;
+                        work->field_6CE        = 5;
+                        sc->anim.animBlock.ptr = &D_actor_403900_801540B4;
+                        sc->anim.field_4       = 3;
+                        sc->anim.field_8       = 0;
+                        sc->anim.field_C       = 0;
+                        sc->anim.field_10      = 1;
                         Gp_DispatchMsg(player, 0x3FF, (s32)&sc->anim, 0);
                     } else {
                         work->field_6D4 = 0x14;
@@ -1258,13 +1258,13 @@ void func_actor_403900_8013314C(Actor403900* arg0)
                     func_actor_403900_801324E8(arg0, work->field_70A);
                     work->field_71A = 0;
                 }
-                work->field_718   = 2;
-                work->field_6F4   = 0;
-                sc->anim.field_0  = &D_actor_403900_801540B4;
-                sc->anim.field_4  = 4;
-                sc->anim.field_8  = 0;
-                sc->anim.field_C  = 0;
-                sc->anim.field_10 = 1;
+                work->field_718        = 2;
+                work->field_6F4        = 0;
+                sc->anim.animBlock.ptr = &D_actor_403900_801540B4;
+                sc->anim.field_4       = 4;
+                sc->anim.field_8       = 0;
+                sc->anim.field_C       = 0;
+                sc->anim.field_10      = 1;
                 Gp_DispatchMsg(player, 0x3FF, (s32)&sc->anim, 0);
             }
             break;
@@ -1285,13 +1285,13 @@ void func_actor_403900_8013314C(Actor403900* arg0)
         case 5:
             if (work->field_6C4 < 0x1A) {
                 if (work->field_6F4 != 0) {
-                    work->field_6C0   = 0xC;
-                    work->field_6F4   = 0;
-                    sc->anim.field_0  = &D_actor_403900_801540B4;
-                    sc->anim.field_4  = 4;
-                    sc->anim.field_8  = 0;
-                    sc->anim.field_C  = 0;
-                    sc->anim.field_10 = 1;
+                    work->field_6C0        = 0xC;
+                    work->field_6F4        = 0;
+                    sc->anim.animBlock.ptr = &D_actor_403900_801540B4;
+                    sc->anim.field_4       = 4;
+                    sc->anim.field_8       = 0;
+                    sc->anim.field_C       = 0;
+                    sc->anim.field_10      = 1;
                     Gp_DispatchMsg(player, 0x3FF, (s32)&sc->anim, 0);
                     work->field_6D4 = 0x69;
                     work->field_6DA = 3;

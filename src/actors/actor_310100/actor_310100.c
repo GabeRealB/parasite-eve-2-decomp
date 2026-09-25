@@ -204,11 +204,11 @@ void func_actor_310100_80161F80(Task* task)
         if (D_actor_310100_8017989C[0][work->field_4F6] >= 0) {
             msg = (Actor310100Work*)task->work;
             if (msg->field_4E8 != NULL) {
-                arg.field_0  = &D_actor_310100_801797FC;
-                arg.field_4  = seed;
-                arg.field_8  = 1;
-                arg.field_C  = 0xA;
-                arg.field_10 = 1;
+                arg.animBlock.ptr = &D_actor_310100_801797FC;
+                arg.field_4       = seed;
+                arg.field_8       = 1;
+                arg.field_C       = 0xA;
+                arg.field_10      = 1;
                 Gp_DispatchMsg(msg->field_4E8, 0x3F4, (s32)&arg, 0);
             }
             work->field_4F6 = seed;
@@ -685,11 +685,11 @@ void func_actor_310100_80162D50(Task* task, s32 msgId, Actor310100Placement* pla
         vy              = placement->pos.vy;
         vz              = placement->pos.vz;
         if (msgDisp->field_4E8 != NULL) {
-            arg.field_0  = &D_actor_310100_801797FC;
-            arg.field_4  = vy;
-            arg.field_8  = vz;
-            arg.field_C  = 0xA;
-            arg.field_10 = 1;
+            arg.animBlock.ptr = &D_actor_310100_801797FC;
+            arg.field_4       = vy;
+            arg.field_8       = vz;
+            arg.field_C       = 0xA;
+            arg.field_10      = 1;
             Gp_DispatchMsg(msgDisp->field_4E8, 0x3F4, (s32)&arg, 0);
         }
     } else {

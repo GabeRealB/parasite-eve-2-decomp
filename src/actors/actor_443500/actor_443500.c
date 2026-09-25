@@ -508,8 +508,8 @@ s32 func_actor_443500_801327E0(Task* task, s32 anim, GpAnimArg* params, s32 arg3
 
     work = (Actor443500Work*)task->work;
     ext  = task->extra;
-    if (params->field_0 != work->field_476) {
-        work->field_476 = params->field_0;
+    if (params->animBlock.index != work->field_476) {
+        work->field_476 = params->animBlock.index;
         func_800B3F84(&work->anim, D_actor_443500_80158724[work->field_476], ext, work->field_334,
                       work->slots);
     }
