@@ -123261,7 +123261,10 @@ push, the three gather/`gpf 12`/scatter columns and the pop into one
 written with `SCRATCH_PUSH`/`SCRATCH_POP`) matched with no `lui` asm, no
 `TOUCH_REG` and no column barriers. The inlined RTL keeps each head access
 absolute and the helper's own `sv` stops the `-8(head)` fold. So try the helper
-before reaching for the pins above.
+before reaching for the pins above. The same helper later removed every pin
+from `func_actor_342000_801628C8` itself, unchanged, with the `ang` local
+still needed: calling the three `Gfx_RotMatrix*` on `work->field_27x` directly
+drops to 97.5%.
 ## A two-case `switch`'s decision tree is a linear list, so the emitted branch order is fixed by *case count*, not by source order - give the switch a third label (func_actor_341700_8016CEB4, 2026-09-17)
 
 `func_actor_341700_8016CEB4` dispatches on a `u16` sub-command with bodies for

@@ -433,29 +433,20 @@ void func_actor_342000_801625D8(Task* arg0)
     func_800D7A9C(extra, &pos, 0, 3);
 }
 
-/// Display state 1 rebuilds the actor coordinate: an identity rotation is
-/// splatted through `OverlayMat`, the euler angles below it are
-/// composed onto it (Y, then X, then Z) and every column is scaled by the
-/// matching component of `Actor342000Work::field_264` -- a scratchpad `SVECTOR`
-/// is gathered from the column, run through `GPF` and scattered back, with the
-/// scratch released again at the end. The tail is shared with the other display
-/// states: it ticks the actor's own animation bank and the two child tasks and
-/// hands the model's second part translation to `func_800D7A9C`.
-///
-/// The `lui` / `sw` pair around the scratchpad is written out because that is
-/// the only way to reach `G_SCRATCH_HEAD` as a `lui` plus a `0x3FC` displacement
-/// rather than a materialised 32-bit constant.
+/// Display handler of the actor itself. The spawn tick initialises the work
+/// block and sends message 0x7D4. State 1 rebuilds the actor coordinate: an
+/// identity rotation, the euler angles below it composed onto it (Y, then X,
+/// then Z), and every column scaled by the matching component of
+/// `Actor342000Work::field_264`. Every later tick ticks the actor's own
+/// animation bank and the two child tasks and hands the model's second part
+/// translation to `func_800D7A9C`.
 void func_actor_342000_801628C8(Task* arg0)
 {
     Actor342000Work* work;
     Actor342000Work* data;
     OverlayMat*      mtx;
     s32*             ang;
-    VECTOR*          sc;
     TmdObject*       extra;
-    u8*              head;
-    SVECTOR*         sv;
-    u32              scratch;
     VECTOR           pos;
 
     work = (Actor342000Work*)arg0->work;
@@ -477,41 +468,8 @@ void func_actor_342000_801628C8(Task* arg0)
             Gfx_RotMatrixY(&mtx->mat, ang[1], 1);
             Gfx_RotMatrixX(&mtx->mat, ang[0], 0);
             Gfx_RotMatrixZ(&mtx->mat, ang[2], 0);
-            TOUCH_REG(mtx);
-            __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
-            scratch = *(u32*)(head + 0x3FC);
-            sc      = &work->field_264;
-            sv      = (SVECTOR*)(scratch - 8);
-            __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv) : "memory");
-            TOUCH_REG(sv);
-            gte_ReadMatrixColumn(&mtx->mat, 0, sv);
-            gte_lddp(sc->vx);
-            gte_ldsv(sv);
-            gte_gpf12();
-            gte_stsv(sv);
-            gte_WriteMatrixColumn(sv, &mtx->mat, 0);
-
-            COMPILER_BARRIER();
-            gte_ReadMatrixColumn(&mtx->mat, 1, sv);
-            gte_lddp(sc->vy);
-            gte_ldsv(sv);
-            gte_gpf12();
-            gte_stsv(sv);
-            gte_WriteMatrixColumn(sv, &mtx->mat, 1);
-
-            COMPILER_BARRIER();
-            gte_ReadMatrixColumn(&mtx->mat, 2, sv);
-            gte_lddp(sc->vz);
-            gte_ldsv(sv);
-            gte_gpf12();
-            gte_stsv(sv);
-            gte_WriteMatrixColumn(sv, &mtx->mat, 2);
-
-            __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
-            scratch         = *(u32*)(head + 0x3FC);
+            _actor342000ScaleColumns(&mtx->mat, &work->field_264);
             work->coord.flg = 0;
-            scratch        += 8;
-            __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(scratch) : "memory");
             /* fallthrough */
         default:
             data = (Actor342000Work*)arg0->work;
