@@ -1,20 +1,25 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "actors/actor_460200.h"
-#include "actors/actors_shared_80132514.h"
-#include "actors/actors_shared_8014c874.h"
 #include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/mem.h"
 #include "main/stage.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "psyq/rand.h"
 
+extern u8 D_80072729;
 extern s8 D_8007272D;
 extern u8 D_801156F9;
 
@@ -39,6 +44,69 @@ extern s32 D_actor_460200_80138070;
 
 extern RECT D_actor_460200_80135E0C;
 extern RECT D_actor_460200_80135E14;
+
+extern TaskDesc D_actor_460200_80148118[];
+extern u8       D_actor_460200_80148130[];
+extern u8       D_actor_460200_801480E8[];
+extern s32      D_actor_460200_801514FC;
+extern s32      D_actor_460200_80151538;
+
+/// Scratchpad stack pointer the per-frame helpers carve temporary frames off.
+#define SCRATCH_SP (*(u32*)0x1F8003FC)
+
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// the note in `include/gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
+/// Steps `coord` `amount` units along its local Z axis, unless movement is
+/// frozen. The direction is staged on the scratchpad stack.
+static __inline__ void Actor460200_MoveForward(GsCOORDINATE2* coord, s16 amount)
+{
+    SVECTOR* head;
+    SVECTOR* vec;
+
+    if (D_80072729 == 1) {
+        return;
+    }
+    head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+    vec                        = head - 1;
+    *(SVECTOR**)G_SCRATCH_HEAD = vec;
+    Gfx_MatrixCol2(&coord->coord, vec);
+    VectorNormalSS(vec, vec);
+    gte_lddp(amount);
+    gte_ldsv(vec);
+    gte_gpf12();
+    gte_stsv(vec);
+    coord->coord.t[0]          += head[-1].vx;
+    coord->coord.t[1]          += vec->vy;
+    coord->coord.t[2]          += vec->vz;
+    coord->flg                  = 0;
+    *(SVECTOR**)G_SCRATCH_HEAD += 1;
+}
+
+void func_actor_460200_80131FB0(void);
+void func_actor_460200_80132808(GpEnemy* enemy, Task* task);
+void func_actor_460200_80132950(Task* task);
+void func_actor_460200_80132978(Task* task);
+void func_actor_460200_80132A04(Task* task);
+void func_actor_460200_80132A50(Task* task);
+void func_actor_460200_80132AC8(Task* task);
+void func_actor_460200_80132F0C(Task* task);
+void func_actor_460200_8013311C(void* enemy, Task* task);
+void func_actor_460200_8013322C(Task* task);
+void func_actor_460200_80133254(Task* task);
+void func_actor_460200_801332E0(Task* task);
+void func_actor_460200_8013332C(Task* task);
+void func_actor_460200_801333A4(Task* task);
+void func_actor_460200_801338C0(GpEnemy* enemy, Task* task);
+void func_actor_460200_80133A04(void* enemy, Task* task);
+void func_actor_460200_80133A88(Task* task);
+void func_actor_460200_80133AB0(Task* task);
+void func_actor_460200_80133B3C(Task* task);
+void func_actor_460200_80133B88(Task* task);
+void func_actor_460200_80133C00(Task* task);
 
 void func_actor_460200_80131E24(Task* task)
 {
@@ -323,8 +391,6 @@ void func_actor_460200_80132390(void)
     }
 }
 
-void func_actor_460200_80132978(Task* task);
-
 /// Per-frame step of the actor's first state: rolls `idx` from the shared
 /// 12-entry byte table, parks the model's `idx`-th sub-coordinate (`sub`) for
 /// the effect spawn below, and pushes the enemy's own coordinate through
@@ -378,16 +444,16 @@ void func_actor_460200_80132468(GpEnemy* enemy, Task* task)
     }
 }
 
-void func_actor_460200_80132AC8(Task* task);
-void func_actor_460200_80132A50(Task* task);
-void func_actor_460200_80132A04(Task* task);
-
+/// Step body of the actor's animation state machine. States 1 and 2 reseed the
+/// animation slots (with and without `animArg`) and advance to state 3; state 3
+/// walks the root coordinate 12 units per frame while clip 4 has `travel`
+/// left, dropping back to clip 1 with argument 0xA when it runs out, then ticks the slots.
 void func_actor_460200_801325FC(Task* task)
 {
-    ActorsShared8014c874Work* work;
-    s16                       animId;
+    Actor460200Work* work;
+    s16              animId;
 
-    work = (ActorsShared8014c874Work*)task->work;
+    work = (Actor460200Work*)task->work;
     if (work->state == 1) {
         func_actor_460200_80132AC8(task);
         work->state = 3;
@@ -417,9 +483,6 @@ void func_actor_460200_801325FC(Task* task)
     }
 }
 
-void func_actor_460200_80132808(GpEnemy* enemy, Task* task);
-void func_actor_460200_80132950(Task* task);
-
 void func_actor_460200_801327B4(Task* task)
 {
     void (*fns[2])(void*, Task*) = { func_actor_460200_80132808, func_actor_460200_80132468 };
@@ -431,7 +494,7 @@ void func_actor_460200_801327B4(Task* task)
 /// hands it back to `Gp_DestroyEnemy`: it allocates the 0x4F8 work block (the
 /// matrix pair its sub-model reads through `TmdObject::lightMtx`/`field_20`
 /// plus the animation state below), parks the enemy in `Actor460200Work::enemy`
-/// and starts state 2, the visibility opcode `func_actor_460200_801325FC` runs.
+/// and runs the step body `func_actor_460200_801325FC` once in state 2.
 ///
 /// Same body as `func_actor_460200_801338C0` with a different exit callback,
 /// animation bank and initial clip (`animId` 0xA rather than 2).
@@ -516,19 +579,21 @@ void func_actor_460200_80132A04(Task* task)
     } while (i < 0x14);
 }
 
+/// Resets animation slots 1..0x13 to clip `animId` at rate 1, without a reseed
+/// argument, and records the clip as the applied one.
 void func_actor_460200_80132A50(Task* task)
 {
-    ActorsShared80132514Work* work;
-    s32                       i;
+    Actor460200Work* work;
+    s32              i;
 
-    work = (ActorsShared80132514Work*)task->work;
+    work = (Actor460200Work*)task->work;
     i    = 1;
     do {
         work->slots[i].rate = 1;
-        Gp_AnimResetSlot(&work->anim, i, work->field_4B8);
+        Gp_AnimResetSlot(&work->anim, i, work->animId);
         i++;
     } while (i < 0x14);
-    work->field_4B6 = work->field_4B8;
+    work->appliedAnimId = work->animId;
 }
 
 /// Reseeds animation slots 1..0x13 with clip `animId` and argument `animArg`,
@@ -589,12 +654,12 @@ s32 func_actor_460200_80132B2C(Task* task, s32 arg1, Actor460200AnimArgs* args)
 /// drives its own model twice.
 s32 func_actor_460200_80132B98(Task* task, s32 arg1, s32 flags)
 {
-    Actor460200PairedWork* work;
-    TmdObject*             self;
-    TmdObject*             other;
+    Actor460200Work* work;
+    TmdObject*       self;
+    TmdObject*       other;
 
     self = (TmdObject*)task->extra;
-    work = (Actor460200PairedWork*)task->work;
+    work = (Actor460200Work*)task->work;
     if (task->spawnArg1 != 0) {
         other = (TmdObject*)work->field_4F0->extra;
     } else {
@@ -632,5 +697,682 @@ s32 func_actor_460200_80132C14(Task* task, s32 arg1, Actor460200Placement* place
     coord->coord.t[1] = placement->pos.vy;
     coord->coord.t[2] = placement->pos.vz;
     coord->flg        = 0;
+    return 0;
+}
+
+/// Script opcode: raise the work block's `field_4EE`, which lets the per-frame
+/// state spawn its effect, when the payload is exactly 1. Any other payload is
+/// ignored and leaves the flag as it was.
+s32 func_actor_460200_80132C8C(Task* task, s32 arg1, Actor460200FlagArgs* args)
+{
+    Actor460200Work* work;
+    u16              value;
+
+    value = args->value;
+    work  = (Actor460200Work*)task->work;
+    if (value == 1) {
+        work->field_4EE = value;
+    }
+    return 0;
+}
+
+/// Script opcode "walk to": aims the actor's root coordinate at `target` by
+/// taking the yaw of the horizontal offset from the coordinate's own
+/// translation, caches that yaw in the work block and rebuilds the local
+/// matrix from it, then records the distance, in steps of 12, for the step
+/// body to walk off.
+s32 func_actor_460200_80132CAC(Task* task, s32 arg1, Actor460200WalkTarget* target)
+{
+    GsCOORDINATE2*   coord;
+    Actor460200Work* work;
+    s32              dx;
+    s32              dz;
+    u16              yaw;
+
+    coord     = ((TmdObject*)task->extra)->coords;
+    work      = (Actor460200Work*)task->work;
+    dx        = target->pos.vx - coord->coord.t[0];
+    dz        = target->pos.vz - coord->coord.t[2];
+    yaw       = ratan2(dx, dz);
+    work->yaw = yaw;
+    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
+    work->travel = SquareRoot0(dx * dx + dz * dz) / 12;
+    return 0;
+}
+
+void func_actor_460200_80132D74(GpEnemy* enemy, Task* task)
+{
+    VECTOR               vec;
+    Actor460200PairWork* work;
+    GsCOORDINATE2*       coord;
+    TmdObject*           obj;
+    GpEnemy*             spawned;
+
+    coord      = ((TmdObject*)task->extra)->coords;
+    obj        = task->extra;
+    work       = (Actor460200PairWork*)memCalloc(0x4FC, false);
+    task->work = (TaskIdMap*)work;
+    if (work == NULL) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+    task->exitCallback   = func_actor_460200_8013322C;
+    coord->sub           = &gGfxViewCoord;
+    enemy->field_4       = &coord->coord;
+    enemy->field_48      = 0;
+    enemy->node.targeted = 0;
+    enemy->node.flags    = 1;
+    obj->otOffset        = 1;
+    work->enemy          = enemy;
+    if (task->spawnArg1 != 0) {
+        spawned = Gp_SpawnEnemyFromTable(D_actor_460200_80148118, 1, 0, enemy);
+        Task_Reparent(task, spawned->task);
+        work->field_4F4 = spawned->task;
+        work->animId    = 2;
+    } else {
+        work->animId = 1;
+    }
+    work->field_4EE = 0;
+    work->field_4F0 = 0;
+    obj->lightMtx   = &work->light;
+    obj->colorMtx   = &work->color;
+    vec.vx          = coord->workm.t[0];
+    vec.vy          = coord->workm.t[1] - 0x320;
+    vec.vz          = coord->workm.t[2];
+    func_800D7A9C(obj, &vec, 0, 3);
+    func_800B3F84(&work->anim, D_actor_460200_80148130, obj,
+                  work->pose, work->slots);
+    work->state    = 2;
+    task->msgTable = D_actor_460200_801480E8;
+    func_actor_460200_80132F0C(task);
+    task->state += 1;
+}
+
+/// Step body of the actor's animation state machine. States 1 and 2 reseed the
+/// animation slots (with and without `animArg`) and advance to state 3; state 3
+/// walks the root coordinate 0x1E units per frame while clip 4 has `travel`
+/// left, dropping back to clip 1 with argument 0xA and to state 1 when it runs out, then ticks the slots.
+void func_actor_460200_80132F0C(Task* task)
+{
+    Actor460200PairWork* work;
+    s16                  animId;
+
+    work = (Actor460200PairWork*)task->work;
+    if (work->state == 1) {
+        func_actor_460200_801333A4(task);
+        work->state = 3;
+        return;
+    }
+    if (work->state == 2) {
+        func_actor_460200_8013332C(task);
+        work->state = 3;
+        return;
+    }
+    if (work->state == 3) {
+        do {
+        } while (0);
+        animId = work->animId;
+        if (animId == 4 && work->travel != 0) {
+            Actor460200_MoveForward(((TmdObject*)task->extra)->coords, 0x1E);
+            work->travel = (u16)work->travel - 1;
+            if (work->travel == 0) {
+                work->state   = 1;
+                work->animArg = 0xA;
+                work->animId  = 1;
+            }
+        }
+        func_actor_460200_801332E0(task);
+        return;
+    }
+}
+
+void func_actor_460200_801330C8(Task* task)
+{
+    void (*fns[2])(void*, Task*) = { func_actor_460200_80132D74, func_actor_460200_8013311C };
+
+    fns[task->state](task->spawnArg2, task);
+}
+
+/// Per-tick state 1 of this actor: faces the model toward the `gameGetPtrSlot(3)`
+/// task. The root coordinate of the model is updated, a copy of its translation
+/// lifted by 0x320 is used as the look-at point, and the work block's
+/// `field_4F0` rate is stepped +0x200 or -0x200 per tick depending on
+/// `field_4EE`, clamped to 0x1000 and 0 respectively.
+void func_actor_460200_8013311C(void* enemy, Task* task)
+{
+    Actor460200PairWork* work;
+    GsCOORDINATE2*       coord;
+    TmdObject*           obj;
+    VECTOR               vec;
+    u16                  angle;
+
+    obj   = task->extra;
+    coord = obj->coords;
+    work  = (Actor460200PairWork*)task->work;
+    Gp_UpdateCoord(coord);
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1] - 0x320;
+    vec.vz = coord->workm.t[2];
+    func_800D7A9C(obj, &vec, 0, 3);
+    func_actor_460200_80132F0C(task);
+    if (work->field_4EE == 1) {
+        angle           = work->field_4F0 + 0x200;
+        work->field_4F0 = angle;
+        if ((s16)angle >= 0x1001) {
+            work->field_4F0 = 0x1000;
+        }
+    } else {
+        angle           = work->field_4F0 - 0x200;
+        work->field_4F0 = angle;
+        if ((s16)angle < 0) {
+            work->field_4F0 = 0;
+        }
+    }
+    func_800B0928(task, gameGetPtrSlot(3), 0x200, 0x100, (s16)work->field_4F0);
+    func_actor_460200_80133254(task);
+}
+
+void func_actor_460200_8013322C(Task* task)
+{
+    Gp_DestroyEnemy(task->spawnArg2, task);
+}
+
+/// Draws the actor's ground shadow under its root part, unless the model is
+/// hidden (`flags` bit 0x80) or has no buffer. The position is the root part's
+/// world translation, staged on the scratchpad stack.
+void func_actor_460200_80133254(Task* task)
+{
+    TmdObject*     obj;
+    GsCOORDINATE2* coord;
+    VECTOR3*       vec;
+
+    obj   = (TmdObject*)task->extra;
+    coord = obj->coords;
+    if (!(obj->flags & 0x80) && obj->buffer != NULL) {
+        vec     = (VECTOR3*)(SCRATCH_SP -= 0x18);
+        vec->vx = coord->workm.t[0];
+        vec->vy = coord->workm.t[1];
+        vec->vz = coord->workm.t[2];
+        Gp_DrawEffGroundQuad(vec, 0x200, 0xC0);
+        SCRATCH_SP += 0x18;
+    }
+}
+
+/// Ticks animation slots 1..0x13.
+void func_actor_460200_801332E0(Task* task)
+{
+    Actor460200PairWork* work;
+    s32                  i;
+
+    work = (Actor460200PairWork*)task->work;
+    i    = 1;
+    do {
+        Gp_AnimTickIndex(&work->anim, i);
+        i++;
+    } while (i < 0x14);
+}
+
+/// Resets animation slots 1..0x13 to clip `animId` at rate 1, without a reseed
+/// argument, and records the clip as the applied one.
+void func_actor_460200_8013332C(Task* task)
+{
+    Actor460200PairWork* work;
+    s32                  i;
+
+    work = (Actor460200PairWork*)task->work;
+    i    = 1;
+    do {
+        work->slots[i].rate = 1;
+        Gp_AnimResetSlot(&work->anim, i, work->animId);
+        i++;
+    } while (i < 0x14);
+    work->appliedAnimId = work->animId;
+}
+
+/// Reseeds animation slots 1..0x13 with clip `animId` and argument `animArg`,
+/// and records the clip as the applied one.
+void func_actor_460200_801333A4(Task* task)
+{
+    Actor460200PairWork* work;
+    s32                  i;
+
+    work = (Actor460200PairWork*)task->work;
+    i    = 1;
+    do {
+        func_800B4114(&work->anim, i, work->animId, 0, work->animArg);
+        i++;
+    } while (i < 0x14);
+    work->appliedAnimId = work->animId;
+}
+
+/// Script opcode: start animation `args->animId` on this actor, rejecting ids
+/// of 0xC and above. State 1 (via `func_actor_460200_801333A4`) carries
+/// `args->animArg`; state 2 (via `func_actor_460200_8013332C`) does not.
+///
+/// The `SOFT_BARRIER` is the same codegen pin as in
+/// `func_actor_460200_80132B2C`: without it the delay slot of the `beqz` fills
+/// from the fall-through arm (`state = 1`) instead of the else arm's
+/// `state = 2`.
+s32 func_actor_460200_80133408(Task* task, s32 arg1, Actor460200AnimArgs* args)
+{
+    Actor460200PairWork* work;
+
+    work = (Actor460200PairWork*)task->work;
+    if (args->animId >= 0xC) {
+        return -1;
+    }
+
+    work->animId = args->animId;
+    if (args->withArg != 0) {
+        SOFT_BARRIER();
+        work->state   = 1;
+        work->animArg = args->animArg;
+    } else {
+        work->state = 2;
+    }
+    work->field_4BA = 0;
+    func_actor_460200_80132F0C(task);
+    return 0;
+}
+
+/// Script opcode: set the visibility flags of this actor's model and of the
+/// model of the partner task its spawn routine parked in `field_4F4`. `flags`
+/// bit 0 hides both models (`TmdObject::flags` = 0) and its absence restores
+/// the default 0x80; bit 1 additionally ORs in 0x4. With no partner spawned
+/// (`Task::spawnArg1` == 0) the actor drives its own model twice.
+s32 func_actor_460200_80133474(Task* task, s32 arg1, s32 flags)
+{
+    Actor460200PairWork* work;
+    TmdObject*           self;
+    TmdObject*           other;
+
+    self = (TmdObject*)task->extra;
+    work = (Actor460200PairWork*)task->work;
+    if (task->spawnArg1 != 0) {
+        other = (TmdObject*)work->field_4F4->extra;
+    } else {
+        other = self;
+    }
+    if (flags & 1) {
+        self->flags  = 0;
+        other->flags = 0;
+    } else {
+        self->flags  = 0x80;
+        other->flags = 0x80;
+    }
+    if (flags & 2) {
+        self->flags  |= 4;
+        other->flags |= 4;
+    }
+    return 0;
+}
+
+/// Script opcode "place at": yaws the actor's root coordinate to
+/// `placement->rot.vy`, caching that yaw in the work block, then drops the
+/// placement translation into the matrix and marks it dirty.
+s32 func_actor_460200_801334F0(Task* task, s32 arg1, Actor460200Placement* placement)
+{
+    GsCOORDINATE2*       coord;
+    Actor460200PairWork* work;
+    u16                  yaw;
+
+    coord     = ((TmdObject*)task->extra)->coords;
+    work      = (Actor460200PairWork*)task->work;
+    yaw       = placement->rot.vy;
+    work->yaw = yaw;
+    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
+    coord->coord.t[0] = placement->pos.vx;
+    coord->coord.t[1] = placement->pos.vy;
+    coord->coord.t[2] = placement->pos.vz;
+    coord->flg        = 0;
+    return 0;
+}
+
+/// Script opcode: set the work block's `field_4EE`, which selects whether the
+/// per-frame state blends the model toward the `gameGetPtrSlot(3)` task or away
+/// from it, to the payload.
+s32 func_actor_460200_80133568(Task* task, s32 arg1, Actor460200FlagArgs* args)
+{
+    ((Actor460200PairWork*)task->work)->field_4EE = args->value;
+    return 0;
+}
+
+/// Script opcode "walk to": aims the actor's root coordinate at `target` by
+/// taking the yaw of the horizontal offset from the coordinate's own
+/// translation, caches that yaw in the work block and rebuilds the local
+/// matrix from it, then records the distance, in steps of 30, for the walk
+/// that follows.
+s32 func_actor_460200_80133580(Task* task, s32 arg1, Actor460200WalkTarget* target)
+{
+    GsCOORDINATE2*       coord;
+    Actor460200PairWork* work;
+    s32                  dx;
+    s32                  dz;
+    u16                  yaw;
+
+    coord     = ((TmdObject*)task->extra)->coords;
+    work      = (Actor460200PairWork*)task->work;
+    dx        = target->pos.vx - coord->coord.t[0];
+    dz        = target->pos.vz - coord->coord.t[2];
+    yaw       = ratan2(dx, dz);
+    work->yaw = yaw;
+    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
+    work->travel = SquareRoot0(dx * dx + dz * dz) / 30;
+    return 0;
+}
+
+/// Per-frame task of this actor's sub-model, with the sub-model's own
+/// `TmdObject` in `Task::extra` and the actor as `Task::parent`. The first
+/// frame lights the sub-model with the matrix pair at the front of the
+/// parent's work block and hangs its coordinate off the parent model's eighth
+/// coordinate; every frame marks the coordinate dirty.
+void func_actor_460200_8013364C(Task* task)
+{
+    Task*          parent = task->parent;
+    TmdObject*     obj    = task->extra;
+    GsCOORDINATE2* coord  = obj->coords;
+    GsCOORDINATE2* sub    = &((TmdObject*)parent->extra)->coords[7];
+    MATRIX*        work   = (MATRIX*)parent->work;
+
+    switch (task->state) {
+        case 0:
+            coord->flg    = 0;
+            obj->lightMtx = work;
+            obj->colorMtx = work + 1;
+            coord->sub    = sub;
+            task->state++;
+            break;
+        case 1:
+            coord->flg = 0;
+            break;
+    }
+}
+
+/// Step body of the actor's animation state machine. States 1 and 2 reseed the
+/// animation slots (with and without `animArg`) and advance to state 3; state 3
+/// walks the root coordinate 12 units per frame while clip 4 has `travel`
+/// left, dropping back to clip 1 with argument 0xA when it runs out, then ticks the slots.
+void func_actor_460200_801336B4(Task* task)
+{
+    Actor460200Work* work;
+    s16              animId;
+
+    work = (Actor460200Work*)task->work;
+    if (work->state == 1) {
+        func_actor_460200_80133C00(task);
+        work->state = 3;
+        return;
+    }
+    if (work->state == 2) {
+        func_actor_460200_80133B88(task);
+        work->state = 3;
+        return;
+    }
+    if (work->state == 3) {
+        // The loop-end note ends cse's first block here, so the pause check
+        // loads its own 1 instead of reusing the state test's.
+        do {
+        } while (0);
+        animId = work->animId;
+        if (animId == 4 && work->travel != 0) {
+            Actor460200_MoveForward(((TmdObject*)task->extra)->coords, 0xC);
+            work->travel = (u16)work->travel - 1;
+            if (work->travel == 0) {
+                work->animArg = 0xA;
+                work->animId  = 1;
+            }
+        }
+        func_actor_460200_80133B3C(task);
+        return;
+    }
+}
+
+void func_actor_460200_8013386C(Task* task)
+{
+    void (*fns[2])(void*, Task*) = { func_actor_460200_801338C0, func_actor_460200_80133A04 };
+
+    fns[task->state](task->spawnArg2, task);
+}
+
+/// Spawn routine of the actor whose `func_actor_460200_80133A88` exit path
+/// hands it back to `Gp_DestroyEnemy`: it allocates the 0x4F8 work block (the
+/// matrix pair its sub-model reads through `TmdObject::lightMtx`/`field_20`
+/// plus the animation state below), parks the enemy in `Actor460200Work::enemy`
+/// and runs the step body `func_actor_460200_801336B4` once in state 2.
+void func_actor_460200_801338C0(GpEnemy* enemy, Task* task)
+{
+    Actor460200Work* work;
+    void*            workMem;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    MATRIX*          mtx;
+    VECTOR           vec;
+
+    obj     = task->extra;
+    coord   = obj->coords;
+    workMem = memCalloc(0x4F8, 0);
+    work    = (Actor460200Work*)workMem;
+    if ((task->work = (TaskIdMap*)work) == NULL) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+    task->exitCallback   = func_actor_460200_80133A88;
+    coord->sub           = &gGfxViewCoord;
+    enemy->field_4       = &coord->coord;
+    enemy->field_48      = 0;
+    enemy->node.targeted = 0;
+    enemy->node.flags    = 1;
+    obj->flags           = 0;
+    obj->otOffset        = 1;
+    work->enemy          = enemy;
+    work->animId         = 2;
+    mtx                  = (MATRIX*)work;
+    obj->lightMtx        = mtx;
+    obj->colorMtx        = mtx + 1;
+    vec.vx               = coord->workm.t[0];
+    vec.vy               = coord->workm.t[1] - 0x320;
+    vec.vz               = coord->workm.t[2];
+    func_800D7A9C(obj, &vec, 0, 3);
+    func_800B3F84(&work->anim, &D_actor_460200_80151538, obj, &work->slots[0x14], work->slots);
+    work->state    = 2;
+    task->msgTable = &D_actor_460200_801514FC;
+    func_actor_460200_801336B4(task);
+    task->state += 1;
+}
+
+void func_actor_460200_80133A04(void* arg0, Task* task)
+{
+    TmdObject*     obj;
+    GsCOORDINATE2* coord;
+    VECTOR         vec;
+
+    obj   = task->extra;
+    coord = obj->coords;
+    Gp_UpdateCoord(coord);
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1] - 0x320;
+    vec.vz = coord->workm.t[2];
+    func_800D7A9C(obj, &vec, 0, 3);
+    func_actor_460200_801336B4(task);
+    func_actor_460200_80133AB0(task);
+}
+
+void func_actor_460200_80133A88(Task* task)
+{
+    Gp_DestroyEnemy(task->spawnArg2, task);
+}
+
+/// Draws the actor's ground shadow under its root part, unless the model is
+/// hidden (`flags` bit 0x80) or has no buffer. The position is the root part's
+/// world translation, staged on the scratchpad stack.
+void func_actor_460200_80133AB0(Task* task)
+{
+    TmdObject*     obj;
+    GsCOORDINATE2* coord;
+    VECTOR3*       vec;
+
+    obj   = (TmdObject*)task->extra;
+    coord = obj->coords;
+    if (!(obj->flags & 0x80) && obj->buffer != NULL) {
+        vec     = (VECTOR3*)(SCRATCH_SP -= 0x18);
+        vec->vx = coord->workm.t[0];
+        vec->vy = coord->workm.t[1];
+        vec->vz = coord->workm.t[2];
+        Gp_DrawEffGroundQuad(vec, 0x200, 0xC0);
+        SCRATCH_SP += 0x18;
+    }
+}
+
+/// Ticks animation slots 1..0x13.
+void func_actor_460200_80133B3C(Task* task)
+{
+    Actor460200Work* work;
+    s32              i;
+
+    work = (Actor460200Work*)task->work;
+    i    = 1;
+    do {
+        Gp_AnimTickIndex(&work->anim, i);
+        i++;
+    } while (i < 0x14);
+}
+
+/// Resets animation slots 1..0x13 to clip `animId` at rate 1, without a reseed
+/// argument, and records the clip as the applied one.
+void func_actor_460200_80133B88(Task* task)
+{
+    Actor460200Work* work;
+    s32              i;
+
+    work = (Actor460200Work*)task->work;
+    i    = 1;
+    do {
+        work->slots[i].rate = 1;
+        Gp_AnimResetSlot(&work->anim, i, work->animId);
+        i++;
+    } while (i < 0x14);
+    work->appliedAnimId = work->animId;
+}
+
+/// Reseeds animation slots 1..0x13 with clip `animId` and argument `animArg`,
+/// and records the clip as the applied one.
+void func_actor_460200_80133C00(Task* task)
+{
+    Actor460200Work* work;
+    s32              i;
+
+    work = (Actor460200Work*)task->work;
+    i    = 1;
+    do {
+        func_800B4114(&work->anim, i, work->animId, 0, work->animArg);
+        i++;
+    } while (i < 0x14);
+    work->appliedAnimId = work->animId;
+}
+
+s32 func_actor_460200_80133C64(Task* task, s32 arg1, Actor460200AnimArgs* args)
+{
+    Actor460200Work* work;
+
+    work = (Actor460200Work*)task->work;
+    if (args->animId >= 0x12) {
+        return -1;
+    }
+
+    work->animId = args->animId;
+    if (args->withArg != 0) {
+        SOFT_BARRIER();
+        work->state   = 1;
+        work->animArg = args->animArg;
+    } else {
+        work->state = 2;
+    }
+    work->field_4BA = 0;
+    func_actor_460200_801336B4(task);
+    return 0;
+}
+
+/// Script opcode: set the visibility flags of this actor's model and of the
+/// model owned by the enemy task it was paired with. `flags` bit 0 hides both
+/// models (`TmdObject::flags` = 0) and its absence restores the default
+/// 0x80; bit 1 additionally ORs in 0x4. With no enemy paired
+/// (`Task::spawnArg1` == 0) the actor drives its own model twice.
+///
+/// Same body as `func_actor_460200_80132B98`, the other 0x4F8-block actor's
+/// visibility opcode.
+s32 func_actor_460200_80133CD0(Task* task, s32 arg1, s32 flags)
+{
+    Actor460200Work* work;
+    TmdObject*       self;
+    TmdObject*       other;
+
+    self = (TmdObject*)task->extra;
+    work = (Actor460200Work*)task->work;
+    if (task->spawnArg1 != 0) {
+        other = (TmdObject*)work->field_4F0->extra;
+    } else {
+        other = self;
+    }
+    if (flags & 1) {
+        self->flags  = 0;
+        other->flags = 0;
+    } else {
+        self->flags  = 0x80;
+        other->flags = 0x80;
+    }
+    if (flags & 2) {
+        self->flags  |= 4;
+        other->flags |= 4;
+    }
+    return 0;
+}
+
+/// Script opcode "place at": yaws the actor's root coordinate to
+/// `placement->rot.vy`, caching that yaw in the work block, then drops the
+/// placement translation into the matrix and marks it dirty.
+s32 func_actor_460200_80133D4C(Task* task, s32 arg1, Actor460200Placement* placement)
+{
+    GsCOORDINATE2*   coord;
+    Actor460200Work* work;
+    u16              yaw;
+
+    coord     = ((TmdObject*)task->extra)->coords;
+    work      = (Actor460200Work*)task->work;
+    yaw       = placement->rot.vy;
+    work->yaw = yaw;
+    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
+    coord->coord.t[0] = placement->pos.vx;
+    coord->coord.t[1] = placement->pos.vy;
+    coord->coord.t[2] = placement->pos.vz;
+    coord->flg        = 0;
+    return 0;
+}
+
+s32 func_actor_460200_80133DC4(void)
+{
+    return 0;
+}
+
+/// Script opcode "walk to": aims the actor's root coordinate at `target` by
+/// taking the yaw of the horizontal offset from the coordinate's own
+/// translation, caches that yaw in the work block and rebuilds the local
+/// matrix from it, then records the distance, in steps of 12, for the step
+/// body to walk off.
+s32 func_actor_460200_80133DCC(Task* task, s32 arg1, Actor460200WalkTarget* target)
+{
+    GsCOORDINATE2*   coord;
+    Actor460200Work* work;
+    s32              dx;
+    s32              dz;
+    u16              yaw;
+
+    coord     = ((TmdObject*)task->extra)->coords;
+    work      = (Actor460200Work*)task->work;
+    dx        = target->pos.vx - coord->coord.t[0];
+    dz        = target->pos.vz - coord->coord.t[2];
+    yaw       = ratan2(dx, dz);
+    work->yaw = yaw;
+    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
+    work->travel = SquareRoot0(dx * dx + dz * dz) / 12;
     return 0;
 }
