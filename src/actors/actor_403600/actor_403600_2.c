@@ -214,18 +214,10 @@ void func_actor_403600_80141F58(GpCoord* arg0, s32 arg1);
     __asm__("lh %0, %%lo(D_actor_403600_801605D4)(%1)" : "=r"(out) : "r"(hi))
 #define actor_403600_load_scratch_head(out) \
     __asm__ volatile("lui %0, 0x1F80; lw %0, 0x3FC(%0)" : "=r"(out))
-#define actor_403600_load_scratch_head_nop(out) \
-    __asm__ volatile("lui %0, 0x1F80; lw %0, 0x3FC(%0); nop" : "=r"(out))
 #define actor_403600_store_scratch_head(value) \
     __asm__ volatile("lui $1, 0x1F80; sw %0, 0x3FC($1)" : : "r"(value) : "$1", "memory")
 #define actor_403600_restore_scratch_head(value) \
     __asm__("addiu %0, %0, 24; lui $1, 0x1F80; sw %0, 0x3FC($1)" : "+r"(value) : : "$1")
-#define actor_403600_color_tail(z, a3, block, work, zero)                                   \
-    __asm__ volatile("lw %0, 1272(%3); addu %1, %4, $zero; lui $1, 0x1F80; sw %2, 1020($1)" \
-                     : "=r"(z), "=r"(a3), "+r"(block) : "r"(work), "r"(zero) : "$1")
-#define actor_403600_color_tail_in_place(work, a3, block, zero)                             \
-    __asm__ volatile("lw %0, 1272(%0); addu %1, %3, $zero; lui $1, 0x1F80; sw %2, 1020($1)" \
-                     : "+r"(work), "=r"(a3), "+r"(block) : "r"(zero) : "$1")
 #define actor_403600_cutscene_color_tail(work, a3, block, zero)                             \
     __asm__ volatile("lw %0, 1272(%0); addu %1, %3, $zero; lui $1, 0x1F80; sw %2, 1020($1)" \
                      : "=r"(work), "=r"(a3), "=r"(block) : "r"(zero), "0"(work), "2"(block) : "$1")
@@ -235,12 +227,6 @@ void func_actor_403600_80141F58(GpCoord* arg0, s32 arg1);
         __asm__ volatile("sll $s0, $s0, 16; sra $s0, $s0, 16"); \
         result;                                                 \
     })
-#define actor_403600_rot_setup(object, rot, matrix, coord, actor, work, head)             \
-    __asm__ volatile("lw %0, 44(%4); addiu %1, %5, 1792; addiu %2, %6, -32; lw %3, 8(%0)" \
-                     : "=r"(object), "=r"(rot), "=r"(matrix), "=r"(coord)                 \
-                     : "r"(actor), "r"(work), "r"(head))
-#define actor_403600_coord_advance(head, work) \
-    __asm__ volatile("sw $zero, 1208(%1); addiu %0, %0, 32" : "+r"(head) : "r"(work))
 
 extern TaskDesc D_80162E98;
 /// Models effect 0x80005 spawns, set in `D_800626EC[5].arg.model`.
@@ -4284,188 +4270,132 @@ void func_actor_403600_8013F7B8(GpEnemy* enemy, Task* task)
     task->state       += 1;
 }
 
+/// Colours `enemy` from the world position of the work block's own
+/// coordinate, passed through a `VECTOR` taken off the scratch stack for the
+/// call.
+static __inline__ void _actor403600UpdateColor(GpEnemy* enemy, Task* task)
+{
+    Actor403600Work* work;
+    VECTOR*          pos;
+
+    work                 = task->work;
+    pos                  = SCRATCH_HEAD(VECTOR) - 1;
+    pos->vx              = work->field_4B8.workm.t[0];
+    pos->vy              = work->field_4B8.workm.t[1];
+    SCRATCH_HEAD(VECTOR) = pos;
+    pos->vz              = work->field_4B8.workm.t[2];
+    Gp_UpdateActorColor(enemy, pos, 0, 0);
+    SCRATCH_POP(VECTOR);
+}
+
+/// Steps the rig's twenty parts: restarts every part on the animation in
+/// `field_736` when it changed, otherwise advances the frame counter and
+/// ticks each part at rate `field_778`. Animations with no entry in
+/// `D_actor_403600_8016057C` are not played.
+static __inline__ void _actor403600UpdateAnimation(Task* task, u8 count)
+{
+    Actor403600Work* work;
+    s32              i;
+
+    work = task->work;
+    if (D_actor_403600_8016057C[work->field_736] != 0) {
+        if (work->field_736 != work->field_738) {
+            work->field_738 = work->field_736;
+            work->field_73A = 0;
+            for (i = 1; i < count; i++) {
+                func_800B4114(&work->rig.anim, i, work->field_736, 0, work->field_756);
+            }
+        } else {
+            work->field_73A++;
+            for (i = 1; i < count; i++) {
+                work->rig.slots[i].rate = work->field_778;
+                Gp_AnimTickIndex(&work->rig.anim, i);
+            }
+        }
+    }
+}
+
+/// Turns coordinate 2 by the twist in `field_700`, then eases the twist back
+/// towards zero by 0x20 a frame.
+static __inline__ void _actor403600RotateParts(Task* task)
+{
+    Actor403600Work* work;
+    GpCoord*         coord;
+    MATRIX*          matrix;
+
+    work = task->work;
+    SCRATCH_PUSH(MATRIX);
+    matrix = SCRATCH_HEAD(MATRIX);
+    coord  = task->extra.tmd->coords;
+    RotMatrix((SVECTOR*)&work->field_700, matrix);
+    gte_SetRotMatrix(&coord[2].coord);
+    gte_ldclmv(matrix);
+    gte_rtir();
+    gte_stclmv(&coord[2].coord);
+    gte_ldclmv(&matrix->m[0][1]);
+    gte_rtir();
+    gte_stclmv(&coord[2].coord.m[0][1]);
+    gte_ldclmv(&matrix->m[0][2]);
+    gte_rtir();
+    gte_stclmv(&coord[2].coord.m[0][2]);
+    if (work->field_700 != 0) {
+        if (work->field_700 >= 0x20) {
+            work->field_700 -= 0x20;
+            if (work->field_700 <= 0) {
+                work->field_700 = 0;
+            }
+        }
+        if (work->field_700 <= 0x20) {
+            work->field_700 += 0x20;
+            if (work->field_700 >= 0) {
+                work->field_700 = 0;
+            }
+        }
+    }
+    SCRATCH_POP(MATRIX);
+}
+
 void func_actor_403600_8013FC2C(GpEnemy* arg0, Task* arg1)
 {
-    s16                       temp_a0;
-    s16                       temp_v0_3;
-    s16                       temp_v0_4;
-    s16                       temp_v0_5;
-    s32                       state;
-    s32                       var_s0;
-    u16                       temp_v0_6;
-    u16                       temp_v0_8;
-    u16                       temp_v0_9;
-    VECTOR*                   temp_a1_2;
-    MATRIX*                   temp_a1_5;
-    register MATRIX*          matrix_head asm("s1");
-    register MATRIX*          matrix_arg asm("a1");
-    register MATRIX*          gte_block asm("s2");
-    register SVECTOR*         rot_arg asm("a0");
-    register TmdObject*       coord_object asm("v0");
-    VECTOR*                   temp_a1_7;
-    register GpCoord*         temp_s0 asm("s0");
-    s16*                      temp_s0_2;
-    Actor403600Work*          temp_s1;
-    Actor403600Work*          temp_s3;
-    Actor403600Work*          temp_s4;
-    TmdObject*                temp_s7;
-    s16*                      temp_v0;
-    s16*                      temp_v0_2;
-    u8*                       restore1;
-    u8*                       restore2;
-    u8*                       var_s2;
-    register GpEnemy*         color_actor1 asm("a0");
-    register s32              color_zero1 asm("a2");
-    register GpEnemy*         color_actor2 asm("a0");
-    register s32              color_zero2 asm("a2");
-    register Actor403600Work* color_work2 asm("v0");
-    register s32              color_z1 asm("v0");
-    register s32              color_arg3_1 asm("a3");
-    register s32              color_arg3_2 asm("a3");
+    TmdObject*       obj;
+    Actor403600Work* work;
 
-    temp_s7 = arg1->extra.tmd;
-    temp_s4 = arg1->work;
-    state   = Gp_StateF0.field_4;
-    if (state == 1) {
-        goto case1;
-    }
-    if (state < 2) {
-        goto default_body;
-    }
-    if (state == 2) {
-        goto case2;
-    }
-    goto default_body;
-
-case1:
-    color_actor1 = arg0;
-    actor_403600_load_scratch_head(temp_a1_2);
-    temp_a1_2[-1].vx = temp_s4->field_4B8.workm.t[0];
-    color_zero1      = 0;
-    temp_a1_2        = temp_a1_2 - 1;
-    temp_a1_2->vy    = temp_s4->field_4B8.workm.t[1];
-    actor_403600_color_tail(color_z1, color_arg3_1, temp_a1_2, temp_s4, color_zero1);
-    temp_a1_2->vz = color_z1;
-    Gp_UpdateActorColor(color_actor1, temp_a1_2, color_zero1, color_arg3_1);
-    actor_403600_load_scratch_head_nop(restore1);
-    restore1 += 0x10;
-    actor_403600_store_scratch_head(restore1);
-    goto end;
-
-case2:
-    temp_s7->flags           = 0x80;
-    arg0->node.state.b.flags = 9;
-    goto end;
-
-default_body:
-    func_actor_403600_80141C3C(arg1);
-    func_actor_403600_8013DC7C(arg1);
-    func_actor_403600_8013D15C(arg1);
-    temp_s1 = arg1->work;
-    temp_a0 = temp_s1->field_736;
-    if (D_actor_403600_8016057C[temp_a0] != 0) {
-        var_s0 = 1;
-        if (temp_a0 != temp_s1->field_738) {
-            temp_s1->field_738 = (s16)(u16)temp_s1->field_736;
-            temp_s1->field_73A = 0U;
-            do {
-                func_800B4114(&temp_s1->rig.anim, var_s0, temp_s1->field_736, 0,
-                              (s32)temp_s1->field_756);
-                var_s0 += 1;
-            } while (var_s0 < 0x14);
-        } else {
-            TOUCH_REG(var_s0);
-            temp_s1->field_73A += var_s0;
-            /* A byte cursor 0x28 bytes into the block reaches each slot's `rate` at
-             * +0x1D. The slot index is hidden from the compiler for the update
-             * above, so indexing `rig.slots` would derive the cursor from it with
-             * a multiply instead of this constant start. */
-            var_s2 = (u8*)temp_s1 + 0x28;
-            do {
-                var_s2[0x1D] = (u8)temp_s1->field_778;
-                Gp_AnimTickIndex(&temp_s1->rig.anim, var_s0);
-                var_s0 += 1;
-                var_s2 += 0x28;
-            } while (var_s0 < 0x14);
-        }
-    }
-    temp_s3 = arg1->work;
-    actor_403600_load_scratch_head(matrix_head);
-    actor_403600_rot_setup(coord_object, rot_arg, matrix_arg, temp_s0, arg1, temp_s3, matrix_head);
-    actor_403600_store_scratch_head(matrix_arg);
-    gte_block = matrix_arg;
-    RotMatrix(rot_arg, matrix_arg);
-    temp_v0 = &temp_s0[2].coord.m[0][0];
-    gte_SetRotMatrix(temp_v0);
-    gte_ldclmv(gte_block);
-    gte_rtir();
-    gte_stclmv(temp_v0);
-    gte_ldclmv(&matrix_head[-1].m[0][1]);
-    gte_rtir();
-    temp_v0_2 = &temp_s0[2].coord.m[0][1];
-    gte_stclmv(temp_v0_2);
-    matrix_head = (MATRIX*)&matrix_head[-1].m[0][2];
-    gte_ldclmv(matrix_head);
-    gte_rtir();
-    temp_s0_2 = &temp_s0[2].coord.m[0][2];
-    gte_stclmv(temp_s0_2);
-    temp_v0_3 = temp_s3->field_700;
-    if (temp_v0_3 != 0) {
-        if (temp_v0_3 >= 0x20) {
-            temp_v0_4          = (u16)temp_s3->field_700 - 0x20;
-            temp_s3->field_700 = temp_v0_4;
-            if ((temp_v0_4 << 0x10) <= 0) {
-                temp_s3->field_700 = 0;
+    obj  = arg1->extra.tmd;
+    work = arg1->work;
+    switch (Gp_StateF0.field_4) {
+        case 1:
+            _actor403600UpdateColor(arg0, arg1);
+            return;
+        case 2:
+            obj->flags               = 0x80;
+            arg0->node.state.b.flags = 9;
+            return;
+        case 0:
+        default:
+            func_actor_403600_80141C3C(arg1);
+            func_actor_403600_8013DC7C(arg1);
+            func_actor_403600_8013D15C(arg1);
+            _actor403600UpdateAnimation(arg1, 20);
+            _actor403600RotateParts(arg1);
+            work->field_4B8.flg = 0;
+            Gp_UpdateCoord(&work->field_4B8);
+            if ((s16)++work->field_74C >= 10) {
+                work->field_74C = 0;
+                _actor403600UpdateColor(arg0, arg1);
             }
-        }
-        if (temp_s3->field_700 < 0x21) {
-            temp_v0_5          = (u16)temp_s3->field_700 + 0x20;
-            temp_s3->field_700 = temp_v0_5;
-            if ((temp_v0_5 << 0x10) >= 0) {
-                temp_s3->field_700 = 0;
+            if ((s16)++work->field_74E % 42 == 0) {
+                if ((s16)++work->field_750 >= 100) {
+                    work->field_750 = 100;
+                }
             }
-        }
+            if ((s16)work->field_74E >= work->field_754 || work->field_742 != 0) {
+                arg0->node.state.b.flags = 1;
+                obj->lightLevel          = 0x12C;
+                arg1->killCountdown      = 0x3C;
+                arg1->state++;
+            }
+            break;
     }
-    actor_403600_load_scratch_head(temp_a1_5);
-    actor_403600_coord_advance(temp_a1_5, temp_s4);
-    actor_403600_store_scratch_head(temp_a1_5);
-    Gp_UpdateCoord(&temp_s4->field_4B8);
-    temp_v0_6          = temp_s4->field_74C + 1;
-    temp_s4->field_74C = temp_v0_6;
-    if ((s16)temp_v0_6 >= 0xA) {
-        color_actor2       = arg0;
-        temp_s4->field_74C = 0U;
-        color_work2        = arg1->work;
-        actor_403600_load_scratch_head(temp_a1_7);
-        temp_a1_7[-1].vx = color_work2->field_4B8.workm.t[0];
-        color_zero2      = 0;
-        temp_a1_7        = temp_a1_7 - 1;
-        temp_a1_7->vy    = color_work2->field_4B8.workm.t[1];
-        actor_403600_color_tail_in_place(color_work2, color_arg3_2, temp_a1_7, color_zero2);
-        temp_a1_7->vz = (s32)color_work2;
-        Gp_UpdateActorColor(color_actor2, temp_a1_7, color_zero2, color_arg3_2);
-        actor_403600_load_scratch_head_nop(restore2);
-        restore2 += 0x10;
-        actor_403600_store_scratch_head(restore2);
-    }
-    temp_v0_8          = temp_s4->field_74E + 1;
-    temp_s4->field_74E = temp_v0_8;
-    if ((((s16)temp_v0_8 % 42) << 0x10) == 0) {
-        temp_v0_9          = temp_s4->field_750 + 1;
-        temp_s4->field_750 = temp_v0_9;
-        if ((s16)temp_v0_9 >= 0x64) {
-            temp_s4->field_750 = 0x64U;
-        }
-    }
-    if (((s16)temp_s4->field_74E >= temp_s4->field_754) || (temp_s4->field_742 != 0)) {
-        arg0->node.state.b.flags = 1;
-        temp_s7->lightLevel      = 0x12C;
-        arg1->killCountdown      = 0x3C;
-        arg1->state              = (s32)(arg1->state + 1);
-    }
-
-end:
-    return;
 }
 
 /// Handlers for states 0-2 of the task `func_actor_403600_80141BE0` dispatches,

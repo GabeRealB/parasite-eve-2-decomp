@@ -140681,3 +140681,22 @@ the row as a pointer (`helper(coord, tbl[1])`) folds the same way. What the
 target needs is `helper(coord, 1)` with `tbl[i][0]` / `tbl[i][1]` inside the
 `static inline` body: the offset stays in the load and the helper's statements
 keep their place after the caller's `coord = ...`.
+
+## A handler's inlined steps may already exist as functions later in the unit; that tells you which helpers to write, but not that they can share a body (func_actor_403600_8013FC2C, 2026-09-26)
+
+The handler's scratch-head colour update, twenty-part animation step and
+coordinate twist were held together by 15 pins and asm macros. The same three
+sequences stand later in the file as ordinary functions (`801411D4` with the
+part count as a parameter, `801412D0`, `80141338`), and the neighbouring
+`actor_07000` handler is built from the same three as `static __inline__`
+helpers inside a `switch` with `case 0: default:`. Writing the handler that way
+matched with no hacks at all, the count-parameter helper called with `20`
+included. The `case 0: default:` label is what produces the target's extra
+`slti a0,2` test between the two case compares.
+
+Wrapping the later functions around the same helpers is not a free
+consolidation. The animation step wrapper matched, but the two that touch the
+scratch head did not: compiled out of line, cse keeps `0x1F8003FC` in a register
+(`lui`/`ori`, `lw a1,0(s0)`), while the inlined expansions reload the address at
+each use. So the standalone copies keep their own bodies, and a helper that has
+to reproduce both forms needs one written body for each.
