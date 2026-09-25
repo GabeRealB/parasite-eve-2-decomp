@@ -54,13 +54,6 @@ typedef union Actor120500Args {
     /* 0x0 */ VECTOR    pos; // model part-1 translation
 } Actor120500Args;
 
-/// `Task` as the setters see it: only the slot at 0x1C is retyped, holding the
-/// actor's own work block rather than a `TaskIdMap`.
-typedef struct Actor120500 {
-    /* 0x00 */ byte             pad_0[0x1C];
-    /* 0x1C */ Actor120500Work* field_1C;
-} Actor120500;
-
 /// Channel block both fade tasks keep at `Task::work`, sized by their own
 /// `Mem_Malloc(8, 0)`: the three halfwords are the colour `Fade_DrawOverlay`
 /// draws. The leading halfword is never touched.
@@ -74,7 +67,7 @@ STATIC_ASSERT_SIZEOF(Actor120500FadeWork, 0x8);
 
 /// The actor task, published by `func_actor_120500_801322A0` so the setters,
 /// which take no task, can reach its work block.
-extern Actor120500* D_actor_120500_80138454;
+extern Task* D_actor_120500_80138454;
 
 /// The actor's five-entry task table: 0 the streamed sequence
 /// (`func_actor_120500_80131E58`), 1 the fade from black, 2 the fade to black,
@@ -321,7 +314,7 @@ void func_actor_120500_801322A0(Task* arg0)
     work = (Actor120500Work*)map;
     Mem_Set(work, 0, 0x4CC);
     work->field_4B4         = gameGetPtrSlot(3);
-    D_actor_120500_80138454 = (Actor120500*)arg0;
+    D_actor_120500_80138454 = arg0;
     coord->sub              = &gGfxViewCoord;
     tmd->lightMtx           = &work->field_474;
     tmd->flags              = 0;
@@ -427,7 +420,7 @@ loop_slots:
 
     if (work->field_4C0 != 0) {
         if (work->field_4C0 == 1) {
-            Tmd_AllocBuffers((TmdObject*)arg0->extra);
+            Tmd_AllocBuffers(arg0->extra);
             Task_SpawnFromTable(D_actor_120500_80138418, 1, 8, 0);
             Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_actor_120500_801380C0, 0);
         }
@@ -555,7 +548,7 @@ void func_actor_120500_801327E4(Task* arg0)
 /// next two arm the pairs the tick consumes at 0x4C0 and 0x4C8.
 void func_actor_120500_801328C0(s16 arg0)
 {
-    Actor120500Work* work = D_actor_120500_80138454->field_1C;
+    Actor120500Work* work = D_actor_120500_80138454->work;
 
     work->field_4B8 = arg0;
     work->field_4BA = 0;
@@ -563,7 +556,7 @@ void func_actor_120500_801328C0(s16 arg0)
 
 void func_actor_120500_801328E0(s16 arg0)
 {
-    Actor120500Work* work = D_actor_120500_80138454->field_1C;
+    Actor120500Work* work = D_actor_120500_80138454->work;
 
     work->field_4C0 = arg0;
     work->field_4C2 = 0;
@@ -571,7 +564,7 @@ void func_actor_120500_801328E0(s16 arg0)
 
 void func_actor_120500_80132900(s16 arg0)
 {
-    Actor120500Work* work = D_actor_120500_80138454->field_1C;
+    Actor120500Work* work = D_actor_120500_80138454->work;
 
     work->field_4C8 = arg0;
     work->field_4CA = 0;
@@ -585,19 +578,19 @@ void func_actor_120500_80132900(s16 arg0)
 /// as message 0x3E9, with the override vector cleared in between.
 void func_actor_120500_80132920(void)
 {
-    Actor120500*     actor;
+    Task*            actor;
     Actor120500Work* work;
     Actor120500Work* animWork;
     GpAnimArg        msg;
 
     actor = D_actor_120500_80138454;
-    work  = actor->field_1C;
+    work  = actor->work;
     SndEvt_EnqueueType7(0x521E0007, 0xA);
-    Gp_DispatchMsg((Task*)actor, 0x7D5, 2, 0);
+    Gp_DispatchMsg(actor, 0x7D5, 2, 0);
     work->field_4B8 = 0;
     work->field_4C0 = 0;
     work->field_4C8 = 0;
-    animWork        = actor->field_1C;
+    animWork        = actor->work;
     if (animWork->field_4B4 != NULL) {
         msg.animBlock.ptr = D_actor_120500_8013807C;
         msg.field_4       = 2;
@@ -606,7 +599,7 @@ void func_actor_120500_80132920(void)
         msg.field_10      = 1;
         Gp_DispatchMsg(animWork->field_4B4, 0x3F4, (s32)&msg, 0);
     }
-    work = actor->field_1C;
+    work = actor->work;
     Gp_SetOverrideVec(NULL);
     Gp_DispatchMsg(work->field_4B4, 0x3F3, 1, 0);
     Gp_DispatchMsg(work->field_4B4, 0x3E9, (s32)&D_actor_120500_801380A8, 0);

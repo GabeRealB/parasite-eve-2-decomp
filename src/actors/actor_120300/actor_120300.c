@@ -14,7 +14,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Work block this overlay hangs off `Actor120300.field_1C`; each pair at
+/// Work block this overlay hangs off `Task::work`; each pair at
 /// 0x4C0 and 0x4C8 is a request code plus its phase counter, reset together.
 /// `field_4DE` is a 0/1 latch: `func_actor_120300_80133E94` calls
 /// `Gp_SpawnWeaponEff` while it is set, clears it, then hands
@@ -59,14 +59,7 @@ typedef struct Actor120300Work {
 } Actor120300Work;
 STATIC_ASSERT_SIZEOF(Actor120300Work, 0x4E4);
 
-/// `Task` as this overlay uses it: only the slot at 0x1C is retyped, holding
-/// the actor's own work block rather than a `TaskIdMap`.
-typedef struct Actor120300 {
-    /* 0x00 */ byte             pad_0[0x1C];
-    /* 0x1C */ Actor120300Work* field_1C;
-} Actor120300;
-
-extern Actor120300* D_actor_120300_80141BA8;
+extern Task* D_actor_120300_80141BA8;
 
 /// The actor's five-entry task table, spawned from by index. Entries 2 and 3
 /// are the two tasks kept in `field_4B8`/`field_4BC`; entry 4 is the fade to
@@ -1045,7 +1038,7 @@ void func_actor_120300_80133330(s32 arg0)
     s32              weaponId;
     s32              id;
 
-    task                             = (Task*)D_actor_120300_80141BA8;
+    task                             = D_actor_120300_80141BA8;
     work                             = (Actor120300Work*)task->work;
     ((TmdObject*)task->extra)->flags = 0;
     Gp_DispatchMsg(task, 0x7D4, (s32)&D_actor_120300_80140B2C, 0);
@@ -1085,11 +1078,11 @@ void func_actor_120300_80133330(s32 arg0)
 /// record 0x41A34 once and then only counts 0x4D8.  Each of the two phases
 /// returns 1 while the session at `gGameSession->eventState` is still 0, so the
 /// task that calls this keeps the actor alive until play starts.
-s32 func_actor_120300_801334A4(Actor120300* arg0)
+s32 func_actor_120300_801334A4(Task* arg0)
 {
     Actor120300Work* work;
 
-    work = arg0->field_1C;
+    work = arg0->work;
     switch (work->field_4DA) {
         case 0:
             switch (work->field_4D8) {
@@ -1165,7 +1158,7 @@ void func_actor_120300_801335D8(Task* arg0)
     work = (Actor120300Work*)map;
     Mem_Set(work, 0, 0x4E4);
     work->field_4B4         = gameGetPtrSlot(3);
-    D_actor_120300_80141BA8 = (Actor120300*)arg0;
+    D_actor_120300_80141BA8 = arg0;
     coord->sub              = &gGfxViewCoord;
     Tmd_AllocBuffers(tmd);
     tmd->lightMtx = &work->field_474;
@@ -1300,7 +1293,7 @@ void func_actor_120300_801337C4(Task* arg0)
             }
             break;
         case 3:
-            if ((s16)func_actor_120300_801334A4((Actor120300*)arg0) != 0) {
+            if ((s16)func_actor_120300_801334A4(arg0) != 0) {
                 arg0->state -= 1;
             }
             break;
@@ -1406,14 +1399,14 @@ void func_actor_120300_80133C6C(Task* task, s32 arg1, ActorShared80133c6cPlaceme
 /// are accepted.
 void func_actor_120300_80133D04(s32 arg0)
 {
-    Actor120300Work* work = D_actor_120300_80141BA8->field_1C;
+    Actor120300Work* work = D_actor_120300_80141BA8->work;
 
     if (arg0 == 0) {
-        Gp_DispatchMsg((Task*)D_actor_120300_80141BA8, 0x7D5, 0, 0);
+        Gp_DispatchMsg(D_actor_120300_80141BA8, 0x7D5, 0, 0);
         Gp_DispatchMsg(work->field_4B8, 0x7D5, 0, 0);
         Gp_DispatchMsg(work->field_4BC, 0x7D5, 0, 0);
     } else if (arg0 == 1) {
-        Gp_DispatchMsg((Task*)D_actor_120300_80141BA8, 0x7D5, 1, 0);
+        Gp_DispatchMsg(D_actor_120300_80141BA8, 0x7D5, 1, 0);
         Gp_DispatchMsg(work->field_4B8, 0x7D5, 1, 0);
         Gp_DispatchMsg(work->field_4BC, 0x7D5, 1, 0);
     }
@@ -1437,7 +1430,7 @@ void func_actor_120300_80133DF4(void)
 
 void func_actor_120300_80133E14(s16 arg0)
 {
-    Actor120300Work* work = D_actor_120300_80141BA8->field_1C;
+    Actor120300Work* work = D_actor_120300_80141BA8->work;
 
     work->field_4C0 = arg0;
     work->field_4C2 = 0;
@@ -1445,7 +1438,7 @@ void func_actor_120300_80133E14(s16 arg0)
 
 void func_actor_120300_80133E34(s16 arg0)
 {
-    Actor120300Work* work = D_actor_120300_80141BA8->field_1C;
+    Actor120300Work* work = D_actor_120300_80141BA8->work;
 
     work->field_4C8 = arg0;
     work->field_4CA = 0;
@@ -1455,7 +1448,7 @@ void func_actor_120300_80133E34(s16 arg0)
 /// call happens once, and `func_actor_120300_80133E94` consumes the latch.
 void func_actor_120300_80133E54(void)
 {
-    Actor120300Work* work = D_actor_120300_80141BA8->field_1C;
+    Actor120300Work* work = D_actor_120300_80141BA8->work;
 
     if (work->field_4DE == 0) {
         work->field_4DE = 1;
@@ -1468,7 +1461,7 @@ void func_actor_120300_80133E54(void)
 /// the clear is the same zero.
 void func_actor_120300_80133E94(void)
 {
-    Actor120300Work* work = D_actor_120300_80141BA8->field_1C;
+    Actor120300Work* work = D_actor_120300_80141BA8->work;
 
     if (work->field_4DE != 0) {
         Gp_SpawnWeaponEff();
