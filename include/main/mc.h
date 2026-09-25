@@ -164,12 +164,12 @@ typedef struct {
     McPosRec   enemyPoses[0x20];  // The placed enemies taken out of the world, filed by their placement key
     s8         buttonLayout;      // Button layout the pad is remapped through (0..2)
     s8         soundMode;         // Sound output (0 stereo, 1 mono)
-    u8         musicVolume;       // Music volume (0..3, 3 is off)
+    s8         musicVolume;       // Music volume (0..3, 3 is off)
     s8         cursorMode;        // Cursor behaviour in the menus (0 remembers the row, 1 resets it)
     McItemRec  itemRows[0x100];   // The save's own item table, indexed by row; the rows the player carries are `carriedItems`
     s32        collectedBits[4];  // 128 bits, one per collectible the player has picked up
     McItemScan carriedItems;      // Window on the player's rows of `itemRows`
-    byte       unknown_5C0;
+    u8         unknown_5C0;
     u8         field_5C1;         // Role unproven: while it reads 1 the actors stop moving and stop pushing each other apart
     s8         cheatMode;         // While set nothing is spent - no MP for the abilities, no ammunition and no attachments - and the save is left out of the save-slot comparison
     s8         interlace;         // Non-zero runs the display interlaced

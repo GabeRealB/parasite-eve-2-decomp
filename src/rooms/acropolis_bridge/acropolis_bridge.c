@@ -31,8 +31,6 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-extern s32 D_80070F70;
-extern u8  D_80072728;
 /// Table of 0x80-byte actor config blocks; `Player_Status` is entry 1.
 extern PlayerStatus D_80073B08[];
 extern s16          D_80114D08;
@@ -3340,7 +3338,7 @@ void func_acropolis_bridge_80185104(OverlayWalker* work, SVECTOR3* pos)
     s32                       angle;
     u16                       frames;
 
-    if (D_80072728 == 1)
+    if (Mc_SaveData.unknown_5C0 == 1)
         return;
     head             = SCRATCH_HEAD(u8);
     SCRATCH_HEAD(u8) = head - 0x1C;
@@ -3635,7 +3633,6 @@ void func_acropolis_bridge_8018581C(Task* task)
     }
 }
 
-extern u8                D_8007218A;
 extern GpPairSrcE        D_acropolis_bridge_80190C5C;
 extern s32               D_acropolis_bridge_801915C8;
 extern OverlayWalkerNode D_acropolis_bridge_8019162C[];
@@ -3777,7 +3774,7 @@ void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
     work->walker.state            = step;
     work->walker.field_6B         = 1;
     work->walker.field_6C         = 1;
-    work->walker.field_6E         = D_8007218A;
+    work->walker.field_6E         = Mc_SaveData.characterId;
 
     __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
     head                     = *(u8**)(head + 0x3FC);
@@ -4427,7 +4424,7 @@ void func_acropolis_bridge_80187078(Task* task)
     }
     task->extra.tmd->coords->coord.t[1] = work->field_1FA + work->field_1F8;
     task->extra.tmd->coords->coord.t[1] +=
-        rsin((D_80070F70 << 5) + task->extra.tmd->coords->coord.t[0]) >> 6;
+        rsin((gDisplayState.animFrame << 5) + task->extra.tmd->coords->coord.t[0]) >> 6;
     if (bridge_rec_kind1(work->recs) != 0) {
         coord  = task->extra.tmd->coords;
         dir.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];

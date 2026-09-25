@@ -109,12 +109,6 @@ UiObjectDesc D_options_801D5EFC = {
     0,
 };
 
-extern s8 D_80072189;
-extern u8 D_8007218D;
-extern s8 D_80072311;
-extern s8 D_80072312;
-extern s8 D_80072313;
-
 void func_options_801D404C(DialogPrompt* arg0, UiObject* arg1)
 {
     u8*          labels[2];
@@ -145,7 +139,7 @@ void func_options_801D404C(DialogPrompt* arg0, UiObject* arg1)
     labels[1] = D_options_801D5B70;
     Text_DrawPrompt((UiObject*)a0tmp, arg1->field_1C + 6, arg0->field_1A, title, arg0->field_1C, 1, 0);
     SCHED_BARRIER();
-    saved    = D_80072311;
+    saved    = Mc_SaveData.soundMode;
     y        = i;
     selected = saved;
     x        = arg1->field_1C + 0x78;
@@ -178,7 +172,7 @@ void func_options_801D404C(DialogPrompt* arg0, UiObject* arg1)
             }
         }
     }
-    D_80072311 = selected;
+    Mc_SaveData.soundMode = selected;
     SOFT_BARRIER();
     tmp = selected << 24;
     SOFT_TOUCH_REG(tmp);
@@ -236,7 +230,7 @@ void func_options_801D42A8(DialogPrompt* arg0, UiObject* arg1)
     Text_DrawPrompt((UiObject*)a0tmp, arg1->field_1C + 6, arg0->field_1A, title, arg0->field_1C, 1, 0);
     i        = 0;
     p        = labels;
-    saved    = D_80072312;
+    saved    = Mc_SaveData.musicVolume;
     y        = i;
     selected = saved;
     x        = arg1->field_1C + 0x78;
@@ -268,7 +262,7 @@ void func_options_801D42A8(DialogPrompt* arg0, UiObject* arg1)
             }
         }
     }
-    D_80072312 = selected;
+    Mc_SaveData.musicVolume = selected;
     if (saved != (s8)selected) {
         Snd_ApplyVolumeTable(0);
     }
@@ -307,7 +301,7 @@ void func_options_801D4504(DialogPrompt* arg0, UiObject* arg1)
     labels[0] = D_options_801D5BA4;
     labels[1] = D_options_801D5B98;
     Text_DrawPrompt((UiObject*)a0tmp, arg1->field_1C + 6, arg0->field_1A, title, arg0->field_1C, 1, 0);
-    selected = D_80072313;
+    selected = Mc_SaveData.cursorMode;
     x        = arg1->field_1C + 0x78;
     span     = (s16)arg1->field_1E - x;
     n2       = 2;
@@ -339,7 +333,7 @@ void func_options_801D4504(DialogPrompt* arg0, UiObject* arg1)
             }
         }
     }
-    D_80072313 = selected;
+    Mc_SaveData.cursorMode = selected;
     SOFT_BARRIER();
     status = arg1->status;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->field_10 == arg0->field_8)) {
@@ -375,7 +369,7 @@ void func_options_801D4724(DialogPrompt* arg0, UiObject* arg1)
     labels[0] = D_options_801D5B58;
     labels[1] = D_options_801D5B5C;
     Text_DrawPrompt((UiObject*)a0tmp, arg1->field_1C + 6, arg0->field_1A, title, arg0->field_1C, 1, 0);
-    selected = D_80072189;
+    selected = Mc_SaveData.vibration;
     x        = arg1->field_1C + 0x78;
     span     = (s16)arg1->field_1E - x;
     n2       = 2;
@@ -407,7 +401,7 @@ void func_options_801D4724(DialogPrompt* arg0, UiObject* arg1)
             }
         }
     }
-    D_80072189 = selected;
+    Mc_SaveData.vibration = selected;
     SOFT_BARRIER();
     status = arg1->status;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->field_10 == arg0->field_8)) {
@@ -443,7 +437,7 @@ void func_options_801D4944(DialogPrompt* arg0, UiObject* arg1)
     labels[0] = D_options_801D5BC4;
     labels[1] = D_options_801D5BCC;
     Text_DrawPrompt((UiObject*)a0tmp, arg1->field_1C + 6, arg0->field_1A, title, arg0->field_1C, 1, 0);
-    selected = D_8007218D;
+    selected = Mc_SaveData.moveMode;
     x        = arg1->field_1C + 0x78;
     span     = (s16)arg1->field_1E - x;
     n2       = 2;
@@ -475,7 +469,7 @@ void func_options_801D4944(DialogPrompt* arg0, UiObject* arg1)
             }
         }
     }
-    D_8007218D = selected;
+    Mc_SaveData.moveMode = selected;
     SOFT_BARRIER();
     status = arg1->status;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->field_10 == arg0->field_8)) {
