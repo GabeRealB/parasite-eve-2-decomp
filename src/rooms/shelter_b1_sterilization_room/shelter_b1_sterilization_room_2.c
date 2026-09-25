@@ -533,33 +533,33 @@ void func_shelter_b1_sterilization_room_801823D8(Task* task)
 /// `arg2 * 47 / otz` and `arg3` is the spin angle.
 void func_shelter_b1_sterilization_room_801826F0(GsCOORDINATE2* coord, s16 frame, s16 arg2, s16 arg3)
 {
-    void**             scratch;
-    u8*                head;
-    RoomDraw27Scratch* block;
-    POLY_FT4*          prim;
-    SVECTOR*           vec;
-    s32                u0;
-    s32                v0;
-    s32                ang2;
-    u16                vz;
+    void**           scratch;
+    u8*              head;
+    GpFxQuadScratch* block;
+    POLY_FT4*        prim;
+    SVECTOR*         vec;
+    s32              u0;
+    s32              v0;
+    s32              ang2;
+    u16              vz;
 
-    scratch                                     = (void**)G_SCRATCH_HEAD;
-    head                                        = *scratch;
-    ((RoomDraw27Scratch*)(head - 0x1C))->vec.vx = *(u16*)&coord->workm.t[0];
-    block                                       = (RoomDraw27Scratch*)(head - 0x1C);
-    block->vec.vy                               = *(u16*)&coord->workm.t[1];
-    vz                                          = *(u16*)&coord->workm.t[2];
-    *scratch                                    = block;
-    block->vec.vz                               = vz;
-    vec                                         = &block->vec;
+    scratch                                   = (void**)G_SCRATCH_HEAD;
+    head                                      = *scratch;
+    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&coord->workm.t[0];
+    block                                     = (GpFxQuadScratch*)(head - 0x1C);
+    block->vec.vy                             = *(u16*)&coord->workm.t[1];
+    vz                                        = *(u16*)&coord->workm.t[2];
+    *scratch                                  = block;
+    block->vec.vz                             = vz;
+    vec                                       = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
     gte_rtps();
-    gte_stsxy(&((RoomDraw27Scratch*)(head - 0x1C))->sx);
-    gte_stflg(&((RoomDraw27Scratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((RoomDraw27Scratch*)(head - 0x1C))->otz);
+        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);

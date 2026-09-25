@@ -423,35 +423,35 @@ void func_shelter_b2_pod_access_tunnel_8017E6E0(Task* task)
 /// quad's rotation. Nothing is drawn when the projection fails.
 void func_shelter_b2_pod_access_tunnel_8017ED5C(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
-    u8*                head;
-    RoomDraw19Scratch* block;
-    POLY_FT4*          prim;
-    u16                col;
-    u16                row;
-    s32                u0;
-    s32                v0;
-    s32                ang;
-    s32                ang2;
-    u16                bank;
-    u32                idx;
+    u8*              head;
+    GpFxQuadScratch* block;
+    POLY_FT4*        prim;
+    u16              col;
+    u16              row;
+    s32              u0;
+    s32              v0;
+    s32              ang;
+    s32              ang2;
+    u16              bank;
+    u32              idx;
 
-    head                                        = *(u8**)G_SCRATCH_HEAD;
-    ((RoomDraw19Scratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
-    *(void**)G_SCRATCH_HEAD                     = head - 0x1C;
-    block                                       = *(RoomDraw19Scratch**)G_SCRATCH_HEAD;
-    block->vec.vy                               = arg0->workm.t[1];
-    block->vec.vz                               = arg0->workm.t[2];
-    idx                                         = arg1;
-    idx                                        &= 0xFFF;
-    bank                                        = arg1 >> 12;
+    head                                      = *(u8**)G_SCRATCH_HEAD;
+    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
+    *(void**)G_SCRATCH_HEAD                   = head - 0x1C;
+    block                                     = *(GpFxQuadScratch**)G_SCRATCH_HEAD;
+    block->vec.vy                             = arg0->workm.t[1];
+    block->vec.vz                             = arg0->workm.t[2];
+    idx                                       = arg1;
+    idx                                      &= 0xFFF;
+    bank                                      = arg1 >> 12;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(block);
     gte_rtps();
-    gte_stsxy(&((RoomDraw19Scratch*)(head - 0x1C))->sx);
-    gte_stflg(&((RoomDraw19Scratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((RoomDraw19Scratch*)(head - 0x1C))->otz);
+        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -493,34 +493,34 @@ void func_shelter_b2_pod_access_tunnel_8017ED5C(GsCOORDINATE2* arg0, u16 arg1, s
 /// nibble of `arg1`.
 void func_shelter_b2_pod_access_tunnel_8017F1BC(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
-    u8*                head;
-    RoomDraw19Scratch* block;
-    POLY_FT4*          prim;
-    u16                col;
-    u16                row;
-    s32                u0;
-    s32                v0;
-    s32                ang;
-    s32                ang2;
-    u16                bank;
-    u16                vz;
+    u8*              head;
+    GpFxQuadScratch* block;
+    POLY_FT4*        prim;
+    u16              col;
+    u16              row;
+    s32              u0;
+    s32              v0;
+    s32              ang;
+    s32              ang2;
+    u16              bank;
+    u16              vz;
 
-    bank                                        = arg1 >> 12;
-    arg1                                       &= 0xFFF;
-    head                                        = *(u8**)G_SCRATCH_HEAD;
-    ((RoomDraw19Scratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
-    *(void**)G_SCRATCH_HEAD                     = head - 0x1C;
-    block                                       = *(RoomDraw19Scratch**)G_SCRATCH_HEAD;
-    block->vec.vy                               = arg0->workm.t[1];
-    block->vec.vz                               = arg0->workm.t[2];
+    bank                                      = arg1 >> 12;
+    arg1                                     &= 0xFFF;
+    head                                      = *(u8**)G_SCRATCH_HEAD;
+    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
+    *(void**)G_SCRATCH_HEAD                   = head - 0x1C;
+    block                                     = *(GpFxQuadScratch**)G_SCRATCH_HEAD;
+    block->vec.vy                             = arg0->workm.t[1];
+    block->vec.vz                             = arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(block);
     gte_rtps();
-    gte_stsxy(&((RoomDraw19Scratch*)(head - 0x1C))->sx);
-    gte_stflg(&((RoomDraw19Scratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((RoomDraw19Scratch*)(head - 0x1C))->otz);
+        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);

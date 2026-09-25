@@ -101,24 +101,6 @@ typedef struct _Actor800100LineScratch {
 } Actor800100LineScratch;
 STATIC_ASSERT_SIZEOF(Actor800100LineScratch, 0x1C);
 
-/// 0x1C-byte block from `G_SCRATCH_HEAD` used by
-/// `func_actor_800100_80162A14` to draw one frame of the launched
-/// projectile's spinning sprite. `vec` is the effect coordinate's `workm.t[]`
-/// truncated to s16 and pushed through `GsWSMATRIX` by a single `RTPS`; `flag`
-/// is its `gte_stflg`, `otz` its `gte_stszotz` (biased by 1 so it can also be
-/// the divisor) and `sxy` its `gte_stsxy`. `dx` / `dy` are the rotated
-/// half-extents `(width * 39 / otz) * rsin/rcos(angle) >> 12` that offset `sxy`
-/// into the four corners of the billboard `POLY_FT4`.
-typedef struct _Actor800100SpinScratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ s32     flag;
-    /* 0x10 */ s32     dx;
-    /* 0x14 */ s32     dy;
-    /* 0x18 */ DVECTOR sxy;
-} Actor800100SpinScratch;
-STATIC_ASSERT_SIZEOF(Actor800100SpinScratch, 0x1C);
-
 /// 0x30-byte block from `G_SCRATCH_HEAD` used by
 /// `func_actor_800100_80162E90` to draw the projectile's ground splash: the
 /// four corners of the unit quad `D_80111E38`, each scaled to the splash
@@ -589,34 +571,34 @@ void func_actor_800100_801624F0(Task* task)
 /// near plane cannot divide by zero.
 void func_actor_800100_80162A14(VECTOR3* pos, u16 frame, u16 width, s16 ang)
 {
-    void**                  scratch;
-    u8*                     head;
-    Actor800100SpinScratch* block;
-    Actor800100SpinScratch* vecp;
-    POLY_FT4*               prim;
-    GpEffUv8*               rec;
-    u16                     idx;
-    s32                     a;
-    u16                     vz;
+    void**           scratch;
+    u8*              head;
+    GpFxQuadScratch* block;
+    GpFxQuadScratch* vecp;
+    POLY_FT4*        prim;
+    GpEffUv8*        rec;
+    u16              idx;
+    s32              a;
+    u16              vz;
 
-    scratch                                          = (void**)G_SCRATCH_HEAD;
-    head                                             = *scratch;
-    ((Actor800100SpinScratch*)(head - 0x1C))->vec.vx = *(u16*)&pos->vx;
-    block                                            = (Actor800100SpinScratch*)(head - 0x1C);
-    block->vec.vy                                    = *(u16*)&pos->vy;
-    vz                                               = *(u16*)&pos->vz;
-    *scratch                                         = block;
-    block->vec.vz                                    = vz;
-    vecp                                             = block;
+    scratch                                   = (void**)G_SCRATCH_HEAD;
+    head                                      = *scratch;
+    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&pos->vx;
+    block                                     = (GpFxQuadScratch*)(head - 0x1C);
+    block->vec.vy                             = *(u16*)&pos->vy;
+    vz                                        = *(u16*)&pos->vz;
+    *scratch                                  = block;
+    block->vec.vz                             = vz;
+    vecp                                      = block;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&vecp->vec);
     gte_rtps();
     idx = frame % 12;
-    gte_stsxy(&((Actor800100SpinScratch*)(head - 0x1C))->sxy);
-    gte_stflg(&((Actor800100SpinScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((Actor800100SpinScratch*)(head - 0x1C))->otz);
+        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         block->otz     = block->otz + 1;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -636,17 +618,17 @@ void func_actor_800100_80162A14(VECTOR3* pos, u16 frame, u16 width, s16 ang)
         a           = ang;
         block->dx   = (((width * 0x27) / block->otz) * rsin(a)) >> 12;
         block->dy   = (((width * 0x27) / block->otz) * rcos(a)) >> 12;
-        prim->x0    = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
-        prim->x3    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
-        prim->y0    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
+        prim->x0    = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x3    = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y0    = *(u16*)&block->sy - *(u16*)&block->dy;
         a           = a + 0x400;
-        prim->y3    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        prim->y3    = *(u16*)&block->sy + *(u16*)&block->dy;
         block->dx   = (((width * 0x27) / block->otz) * rsin(a)) >> 12;
         block->dy   = (((width * 0x27) / block->otz) * rcos(a)) >> 12;
-        prim->x1    = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
-        prim->x2    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
-        prim->y1    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
-        prim->y2    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        prim->x1    = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x2    = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y1    = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y2    = *(u16*)&block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);

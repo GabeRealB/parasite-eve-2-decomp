@@ -230,20 +230,6 @@ typedef struct RoomBeamScratch {
 } RoomBeamScratch;
 STATIC_ASSERT_SIZEOF(RoomBeamScratch, 0x2C);
 
-/// The scratch block a room's muzzle-flash or spark drawer takes from
-/// `G_SCRATCH_HEAD`: `vec` is the flash's world position, one `RTPS` fills
-/// `sxy`, `flag` and `otz`, and `dx`, `dy` are the rotated half size the four
-/// corners are offset by around `sxy`.
-typedef struct RoomFlashScratch {
-    SVECTOR vec;
-    s32     otz;
-    s32     flag;
-    s32     dx;
-    s32     dy;
-    DVECTOR sxy;
-} RoomFlashScratch;
-STATIC_ASSERT_SIZEOF(RoomFlashScratch, 0x1C);
-
 /// The scratch block a room's glow-sprite drawer takes from `G_SCRATCH_HEAD`:
 /// `pos` is the task coordinate's translation, projected through `GsWSMATRIX`
 /// into `sxy`; `otz` is the resulting depth and `half` the half extent the

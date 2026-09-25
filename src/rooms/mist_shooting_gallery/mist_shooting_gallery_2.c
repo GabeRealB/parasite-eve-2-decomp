@@ -226,31 +226,31 @@ void func_mist_shooting_gallery_80182064(Task* task)
 /// same OT slot. Nothing is drawn if the centre projects off-screen.
 void func_mist_shooting_gallery_80182294(GsCOORDINATE2* coord, s16 arg1, s16 arg2, s16 arg3)
 {
-    void**            scratch;
-    u8*               head;
-    RoomFlashScratch* block;
-    RoomFlashScratch* vecp;
-    POLY_FT4*         prim;
-    s16               u;
-    u16               vz;
+    void**           scratch;
+    u8*              head;
+    GpFxQuadScratch* block;
+    GpFxQuadScratch* vecp;
+    POLY_FT4*        prim;
+    s16              u;
+    u16              vz;
 
-    scratch                                    = (void**)G_SCRATCH_HEAD;
-    head                                       = *scratch;
-    ((RoomFlashScratch*)(head - 0x1C))->vec.vx = *(u16*)&coord->workm.t[0];
-    block                                      = (RoomFlashScratch*)(head - 0x1C);
-    block->vec.vy                              = *(u16*)&coord->workm.t[1];
-    vz                                         = *(u16*)&coord->workm.t[2];
-    *scratch                                   = block;
-    block->vec.vz                              = vz;
-    vecp                                       = block;
+    scratch                                   = (void**)G_SCRATCH_HEAD;
+    head                                      = *scratch;
+    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&coord->workm.t[0];
+    block                                     = (GpFxQuadScratch*)(head - 0x1C);
+    block->vec.vy                             = *(u16*)&coord->workm.t[1];
+    vz                                        = *(u16*)&coord->workm.t[2];
+    *scratch                                  = block;
+    block->vec.vz                             = vz;
+    vecp                                      = block;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&vecp->vec);
     gte_rtps();
-    gte_stsxy(&((RoomFlashScratch*)(head - 0x1C))->sxy);
-    gte_stflg(&((RoomFlashScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((RoomFlashScratch*)(head - 0x1C))->otz);
+        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -268,16 +268,16 @@ void func_mist_shooting_gallery_80182294(GsCOORDINATE2* coord, s16 arg1, s16 arg
         prim->u3    = u * 40 + 0x27;
         block->dx   = (((arg2 * 39) / block->otz) * rsin(arg3)) >> 12;
         block->dy   = (((arg2 * 39) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0    = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
-        prim->x3    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
-        prim->y0    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
-        prim->y3    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        prim->x0    = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x3    = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y0    = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y3    = *(u16*)&block->sy + *(u16*)&block->dy;
         block->dx   = (((arg2 * 39) / block->otz) * rsin(arg3 + 0x400)) >> 12;
         block->dy   = (((arg2 * 39) / block->otz) * rcos(arg3 + 0x400)) >> 12;
-        prim->x1    = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
-        prim->x2    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
-        prim->y1    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
-        prim->y2    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        prim->x1    = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x2    = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y1    = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y2    = *(u16*)&block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }

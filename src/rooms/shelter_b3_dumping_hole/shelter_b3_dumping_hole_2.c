@@ -3959,35 +3959,35 @@ void func_shelter_b3_dumping_hole_8018521C(Task* task)
 
 void func_shelter_b3_dumping_hole_8018596C(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
-    u8*                head;
-    RoomDraw19Scratch* block;
-    POLY_FT4*          prim;
-    u16                col;
-    u16                row;
-    s32                u0;
-    s32                v0;
-    s32                ang;
-    s32                ang2;
-    u16                bank;
-    u32                idx;
+    u8*              head;
+    GpFxQuadScratch* block;
+    POLY_FT4*        prim;
+    u16              col;
+    u16              row;
+    s32              u0;
+    s32              v0;
+    s32              ang;
+    s32              ang2;
+    u16              bank;
+    u32              idx;
 
-    head                                        = *(u8**)G_SCRATCH_HEAD;
-    ((RoomDraw19Scratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
-    *(void**)G_SCRATCH_HEAD                     = head - 0x1C;
-    block                                       = *(RoomDraw19Scratch**)G_SCRATCH_HEAD;
-    block->vec.vy                               = arg0->workm.t[1];
-    block->vec.vz                               = arg0->workm.t[2];
-    idx                                         = arg1;
-    idx                                        &= 0xFFF;
-    bank                                        = arg1 >> 12;
+    head                                      = *(u8**)G_SCRATCH_HEAD;
+    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
+    *(void**)G_SCRATCH_HEAD                   = head - 0x1C;
+    block                                     = *(GpFxQuadScratch**)G_SCRATCH_HEAD;
+    block->vec.vy                             = arg0->workm.t[1];
+    block->vec.vz                             = arg0->workm.t[2];
+    idx                                       = arg1;
+    idx                                      &= 0xFFF;
+    bank                                      = arg1 >> 12;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(block);
     gte_rtps();
-    gte_stsxy(&((RoomDraw19Scratch*)(head - 0x1C))->sx);
-    gte_stflg(&((RoomDraw19Scratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((RoomDraw19Scratch*)(head - 0x1C))->otz);
+        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -4033,34 +4033,34 @@ void func_shelter_b3_dumping_hole_8018596C(GsCOORDINATE2* arg0, u16 arg1, s16 ar
 /// error.
 void func_shelter_b3_dumping_hole_80185DCC(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
-    u8*                head;
-    RoomDraw19Scratch* block;
-    POLY_FT4*          prim;
-    u16                col;
-    u16                row;
-    s32                u0;
-    s32                v0;
-    s32                ang;
-    s32                ang2;
-    u16                bank;
-    u16                vz;
+    u8*              head;
+    GpFxQuadScratch* block;
+    POLY_FT4*        prim;
+    u16              col;
+    u16              row;
+    s32              u0;
+    s32              v0;
+    s32              ang;
+    s32              ang2;
+    u16              bank;
+    u16              vz;
 
-    bank                                        = arg1 >> 12;
-    arg1                                       &= 0xFFF;
-    head                                        = *(u8**)G_SCRATCH_HEAD;
-    ((RoomDraw19Scratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
-    *(void**)G_SCRATCH_HEAD                     = head - 0x1C;
-    block                                       = *(RoomDraw19Scratch**)G_SCRATCH_HEAD;
-    block->vec.vy                               = arg0->workm.t[1];
-    block->vec.vz                               = arg0->workm.t[2];
+    bank                                      = arg1 >> 12;
+    arg1                                     &= 0xFFF;
+    head                                      = *(u8**)G_SCRATCH_HEAD;
+    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
+    *(void**)G_SCRATCH_HEAD                   = head - 0x1C;
+    block                                     = *(GpFxQuadScratch**)G_SCRATCH_HEAD;
+    block->vec.vy                             = arg0->workm.t[1];
+    block->vec.vz                             = arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(block);
     gte_rtps();
-    gte_stsxy(&((RoomDraw19Scratch*)(head - 0x1C))->sx);
-    gte_stflg(&((RoomDraw19Scratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((RoomDraw19Scratch*)(head - 0x1C))->otz);
+        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -4227,35 +4227,35 @@ void func_shelter_b3_dumping_hole_80186218(Task* task)
 /// an error.
 void func_shelter_b3_dumping_hole_801866CC(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
-    void**             scratch;
-    u8*                head;
-    RoomDraw40Scratch* block;
-    POLY_FT4*          prim;
-    SVECTOR*           vec;
-    s32                u0;
-    s32                u1;
-    s32                v;
-    s32                ang;
-    s32                ang2;
-    u16                vz;
+    void**           scratch;
+    u8*              head;
+    GpFxQuadScratch* block;
+    POLY_FT4*        prim;
+    SVECTOR*         vec;
+    s32              u0;
+    s32              u1;
+    s32              v;
+    s32              ang;
+    s32              ang2;
+    u16              vz;
 
-    scratch                                     = (void**)G_SCRATCH_HEAD;
-    head                                        = *scratch;
-    ((RoomDraw40Scratch*)(head - 0x1C))->vec.vx = *(u16*)&arg0->workm.t[0];
-    block                                       = (RoomDraw40Scratch*)(head - 0x1C);
-    block->vec.vy                               = *(u16*)&arg0->workm.t[1];
-    vz                                          = *(u16*)&arg0->workm.t[2];
-    *scratch                                    = block;
-    block->vec.vz                               = vz;
-    vec                                         = &block->vec;
+    scratch                                   = (void**)G_SCRATCH_HEAD;
+    head                                      = *scratch;
+    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&arg0->workm.t[0];
+    block                                     = (GpFxQuadScratch*)(head - 0x1C);
+    block->vec.vy                             = *(u16*)&arg0->workm.t[1];
+    vz                                        = *(u16*)&arg0->workm.t[2];
+    *scratch                                  = block;
+    block->vec.vz                             = vz;
+    vec                                       = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
     gte_rtps();
-    gte_stsxy(&((RoomDraw40Scratch*)(head - 0x1C))->sx);
-    gte_stflg(&((RoomDraw40Scratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((RoomDraw40Scratch*)(head - 0x1C))->otz);
+        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         ang            = arg3;
         gGpuPrimCursor = prim + 1;

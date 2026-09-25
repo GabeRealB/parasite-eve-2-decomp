@@ -109732,7 +109732,8 @@ layout is what the compiler sees.
 `func_actor_800100_80162A14` is the third of that overlay's drawers to come
 from `m4a1_pyke`: `find` reported it against `func_m4a1_pyke_8011DCEC` as
 `identical bytes: 2`, so the `=` case above applied again and the port needed
-only the scratch type name (`Actor800100SpinScratch`) against the sibling's
+only the scratch type name (then `Actor800100SpinScratch`, since folded into
+gameplay's `GpFxQuadScratch`) against the sibling's
 `M4a1PykeQuadScratch` - both are the 0x1C `vec / otz / flag / dx / dy / sxy`
 block, and `actor_510900.h` carries a fourth copy of it. 100.000% on the first
 build.

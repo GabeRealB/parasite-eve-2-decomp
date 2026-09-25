@@ -206,17 +206,17 @@ void func_shelter_b1_pod_service_gantry_8017D8F4(Task* task)
 /// anything higher the fixed CLUT 0x428F.
 void func_shelter_b1_pod_service_gantry_8017DF70(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
-    void**             scratch;
-    u8*                head;
-    RoomDraw19Scratch* block;
-    POLY_FT4*          prim;
-    u16                bank;
-    u32                idx;
-    u16                col;
-    u16                row;
-    s32                u0;
-    s32                v0;
-    s32                ang;
+    void**           scratch;
+    u8*              head;
+    GpFxQuadScratch* block;
+    POLY_FT4*        prim;
+    u16              bank;
+    u32              idx;
+    u16              col;
+    u16              row;
+    s32              u0;
+    s32              v0;
+    s32              ang;
 
     idx      = arg1;
     idx     &= 0xFFF;
@@ -224,19 +224,19 @@ void func_shelter_b1_pod_service_gantry_8017DF70(GsCOORDINATE2* arg0, u16 arg1, 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
     *scratch = head - 0x1C;
-    block    = (RoomDraw19Scratch*)(head - 0x1C);
+    block    = (GpFxQuadScratch*)(head - 0x1C);
     Mem_Set(block, 0, 0x1C);
-    ((RoomDraw19Scratch*)(head - 0x1C))->vec.vx = *(u16*)&arg0->workm.t[0];
-    block->vec.vy                               = *(u16*)&arg0->workm.t[1];
-    block->vec.vz                               = *(u16*)&arg0->workm.t[2];
+    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&arg0->workm.t[0];
+    block->vec.vy                             = *(u16*)&arg0->workm.t[1];
+    block->vec.vz                             = *(u16*)&arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((RoomDraw19Scratch*)(head - 0x1C))->sx);
-    gte_stflg(&((RoomDraw19Scratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((RoomDraw19Scratch*)(head - 0x1C))->otz);
+        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -282,36 +282,36 @@ void func_shelter_b1_pod_service_gantry_8017DF70(GsCOORDINATE2* arg0, u16 arg1, 
 /// texture grid, and any bit above them selects CLUT 0x428F instead of 0x43D0.
 void func_shelter_b1_pod_service_gantry_8017E400(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
-    void**             scratch;
-    u8*                head;
-    RoomDraw19Scratch* block;
-    POLY_FT4*          prim;
-    u16                bank;
-    u16                col;
-    u16                row;
-    s32                u0;
-    s32                v0;
-    s32                ang;
-    s32                ang2;
+    void**           scratch;
+    u8*              head;
+    GpFxQuadScratch* block;
+    POLY_FT4*        prim;
+    u16              bank;
+    u16              col;
+    u16              row;
+    s32              u0;
+    s32              v0;
+    s32              ang;
+    s32              ang2;
 
     bank     = arg1 >> 12;
     arg1    &= 0xFFF;
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
     *scratch = head - 0x1C;
-    block    = (RoomDraw19Scratch*)(head - 0x1C);
+    block    = (GpFxQuadScratch*)(head - 0x1C);
     Mem_Set(block, 0, 0x1C);
-    ((RoomDraw19Scratch*)(head - 0x1C))->vec.vx = *(u16*)&arg0->workm.t[0];
-    block->vec.vy                               = *(u16*)&arg0->workm.t[1];
-    block->vec.vz                               = *(u16*)&arg0->workm.t[2];
+    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&arg0->workm.t[0];
+    block->vec.vy                             = *(u16*)&arg0->workm.t[1];
+    block->vec.vz                             = *(u16*)&arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((RoomDraw19Scratch*)(head - 0x1C))->sx);
-    gte_stflg(&((RoomDraw19Scratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((RoomDraw19Scratch*)(head - 0x1C))->otz);
+        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);

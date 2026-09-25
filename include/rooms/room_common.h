@@ -7,6 +7,7 @@
 
 #include "gameplay/coord.h"
 #include "gameplay/message.h"
+#include "gameplay/3CD8.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/ui.h"
@@ -778,33 +779,6 @@ typedef struct _RoomDraw24Scratch {
     /* 0x26 */ u16     sy1;
 } RoomDraw24Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw24Scratch, 0x28);
-
-/// 0x1C-byte scratch block `Room_Draw27` takes from `G_SCRATCH_HEAD`. Same
-/// projection preamble as `RoomDraw10Scratch` (`vec` through `GsWSMATRIX`,
-/// one `RTPS`) but `dx` / `dy` hold the current
-/// `(arg2 * 31 / otz) * rsin|rcos(angle) >> 12` half-extents added to and
-/// subtracted from `sx` / `sy` to build the four `POLY_FT4` corners. Only
-/// the low halves of `dx` / `dy` are read back. Same layout as the gameplay
-/// `GpFxQuadScratch`.
-typedef struct _RoomDraw27Scratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ s32     flag;
-    /* 0x10 */ s32     dx;
-    /* 0x14 */ s32     dy;
-    /* 0x18 */ s16     sx;
-    /* 0x1A */ s16     sy;
-} RoomDraw27Scratch;
-STATIC_ASSERT_SIZEOF(RoomDraw27Scratch, 0x1C);
-
-/// 0x1C-byte scratch block `Room_Draw19` takes from `G_SCRATCH_HEAD`. Same
-/// layout as `RoomDraw27Scratch`.
-typedef RoomDraw27Scratch RoomDraw19Scratch;
-
-/// 0x1C-byte scratch block `Room_Draw40` takes from `G_SCRATCH_HEAD`. Same
-/// layout and same `(arg2 * 31 / otz) * rsin|rcos(angle) >> 12` half-extents
-/// as `RoomDraw27Scratch`.
-typedef RoomDraw27Scratch RoomDraw40Scratch;
 
 /// 0x1C-byte scratch block `Room_Draw07` takes from `G_SCRATCH_HEAD`. Same
 /// projection and two-radius ring as `RoomDraw09Scratch`, but `flag` sits at
