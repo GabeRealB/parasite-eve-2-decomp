@@ -84,3 +84,23 @@ gpStreamPrimGt3PreXformOffsetLayer = 0x8009FA24; // type:func absolute:True
 gpStreamPrimGt4PreXformOffsetLayer = 0x8009FB28; // type:func absolute:True
 gpStreamPrimG4 = 0x8009FC44; // type:func absolute:True
 gpStreamPrimG3 = 0x8009FC90; // type:func absolute:True
+
+// Code main calls in whichever overlay occupies a load slot at the time (the
+// map-UI, room, options and actor slots). No single overlay owns these
+// addresses, so they are declared here rather than in an overlay's map.
+func_80179954 = 0x80179954; // type:func absolute:True
+func_80179988 = 0x80179988; // type:func absolute:True
+func_801799BC = 0x801799BC; // type:func absolute:True
+func_80179BE4 = 0x80179BE4; // type:func absolute:True
+func_8017D6D4 = 0x8017D6D4; // type:func absolute:True
+func_801D4B64 = 0x801D4B64; // type:func absolute:True
+D_80136224 = 0x80136224; // type:func absolute:True
+D_80136500 = 0x80136500; // type:func absolute:True
+D_8013685C = 0x8013685C; // type:func absolute:True
+D_80136C00 = 0x80136C00; // type:func absolute:True
+D_8013700C = 0x8013700C; // type:func absolute:True
+D_80137300 = 0x80137300; // type:func absolute:True
+D_801375F8 = 0x801375F8; // type:func absolute:True
+D_801379B4 = 0x801379B4; // type:func absolute:True
+D_80138004 = 0x80138004; // type:func absolute:True
+D_801386EC = 0x801386EC; // type:func absolute:True
