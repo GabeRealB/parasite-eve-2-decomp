@@ -27,6 +27,7 @@
 #include "gameplay/3E9C.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
+#include "main/gfxgte.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
@@ -2757,12 +2758,7 @@ void Actor07000_Fn04B18(Task* arg0)
     GpEffWork*                eff;
     GpObj*                    obj;
     GpActorD4Rec*             rec;
-    GpMtxWords*               rot;
-    SVECTOR*                  head;
     SVECTOR*                  vec;
-    SVECTOR                   local;
-    MATRIX*                   matrix;
-    u32                       rng;
     s32                       angle;
     s32                       pan;
 
@@ -2772,43 +2768,29 @@ void Actor07000_Fn04B18(Task* arg0)
         Task_CallExit(arg0);
         return;
     }
-    head                  = SCRATCH_HEAD(SVECTOR);
-    vec                   = head - 1;
-    SCRATCH_HEAD(SVECTOR) = vec;
-    obj                   = &work->obj;
-    arg0->work            = work;
-    eff                   = Gp_SpawnEff(0x60081, coord, 0, NULL);
-    arg0->spawnArg2       = eff->task;
+    obj             = &work->obj;
+    rec             = &work->rec;
+    vec             = SCRATCH_PUSH(SVECTOR);
+    arg0->work      = work;
+    eff             = Gp_SpawnEff(0x60081, coord, 0, NULL);
+    arg0->spawnArg2 = eff->task;
     Task_Reparent(arg0, eff->task);
     angle       = arg0->spawnArg1;
     vec->vy     = -rcos(angle);
     vec->vx     = rsin(angle);
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     vec->vz     = 0xE000 - ((Gp_LcgState >> 16) & 0x1FFF);
-    matrix      = &coord->coord;
-    local       = *vec;
-    SOFT_BARRIER();
-    rec = &work->rec;
-    gte_SetRotMatrix(matrix);
-    __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)" : : "m"(local) : "$2");
-    gte_rtv0();
-    gte_stsv(vec);
+    gfxRotateSv(&coord->coord, vec);
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     gte_lddp(((Gp_LcgState >> 16) & 0x1F) + 0x1E);
     gte_ldsv(vec);
     gte_gpf12();
     gte_stsv(&work->vec);
-    rot                = (GpMtxWords*)&coord->coord;
-    rot->m00_m01       = 0x1000;
-    rot->m02_m10       = 0;
-    rot->m11_m12       = 0x1000;
-    rot->m20_m21       = 0;
-    rot->m22           = 0x1000;
+    gfxSetRotIdentity(&coord->coord);
     coord->coord.t[0] += work->vec.vx;
-    rng                = Gp_LcgState * 5 + 0x71357911;
-    coord->coord.t[1] += (rng >> 16) & 0x7F;
+    Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
+    coord->coord.t[1] += (Gp_LcgState >> 16) & 0x7F;
     coord->coord.t[2] += work->vec.vz;
-    Gp_LcgState        = rng;
     coord->flg         = 0;
     obj->coord         = coord;
     obj->ctx.d4rec     = rec;
@@ -2833,8 +2815,7 @@ void Actor07000_Fn04B18(Task* arg0)
     arg0->exitCallback = Actor07000_Fn068F0;
     SCRATCH_POP(SVECTOR);
     arg0->state += 1;
-    __asm__("" : "=r"(rec), "+r"(coord));
-    pan = (s8)Gp_GetObjPan(coord);
+    pan          = (s8)Gp_GetObjPan(coord);
     SndEvt_EnqueueType6(0x40460002, pan, (s8)gpGetObjDepth(coord));
     Actor07000_Fn04E60(arg0);
 }
