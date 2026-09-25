@@ -1102,7 +1102,7 @@ STATIC_ASSERT_SIZEOF(Actor403200TickScratch, 0x1C);
 /// The 25 state handlers at `D_actor_403200_80132154`. The tick copies the
 /// whole table onto the stack and calls `fn[field_0]`.
 typedef struct Actor403200StateTable {
-    void (*fn[0x19])(Task* task);
+    TaskFunc fn[0x19];
 } Actor403200StateTable;
 STATIC_ASSERT_SIZEOF(Actor403200StateTable, 0x64);
 
@@ -1111,18 +1111,13 @@ typedef struct Actor403200PendingPos {
     SVECTOR pos;
 } Actor403200PendingPos;
 
-typedef struct Actor403200TaskView {
-    byte pad_0[0x36];
-    s16  field_36;
-} Actor403200TaskView;
-
 void func_actor_403200_8013FB54(GpEnemy* arg0, Task* arg1);
 
 void func_actor_403200_80141B40(Task* arg0);
 
-void func_actor_403200_8014122C(void);
+void func_actor_403200_8014122C(Task* arg0);
 
-void func_actor_403200_80141234(void);
+void func_actor_403200_80141234(Task* arg0);
 
 void func_actor_403200_8014123C(Task* arg0);
 
@@ -7210,8 +7205,8 @@ const Actor403200StateTable D_actor_403200_80132154 = {
         func_actor_403200_8013C84C,
         func_actor_403200_8013EF6C,
         func_actor_403200_8013F700,
-        (void (*)(Task*))func_actor_403200_8014122C,
-        (void (*)(Task*))func_actor_403200_80141234,
+        func_actor_403200_8014122C,
+        func_actor_403200_80141234,
         func_actor_403200_8014123C,
     },
 };
@@ -7585,7 +7580,7 @@ after_mode:
     if (work->field_F04 == 0 && work->field_0 != 0) {
         scratch->view = D_actor_403200_8015E6E8[work->field_F06](arg1, work->field_F08);
         if (((Gp_GetViewIndex() & 0xFF) != scratch->view) &&
-            ((Actor403200TaskView*)arg1)->field_36 == 0) {
+            (arg1->spawnArg1 >> 16) == 0) {
             D_8007216C = scratch->view;
         }
     }
@@ -7897,11 +7892,11 @@ s32 func_actor_403200_801411A8(void)
     return value;
 }
 
-void func_actor_403200_8014122C(void)
+void func_actor_403200_8014122C(Task* arg0)
 {
 }
 
-void func_actor_403200_80141234(void)
+void func_actor_403200_80141234(Task* arg0)
 {
 }
 
