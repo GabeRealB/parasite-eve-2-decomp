@@ -429,15 +429,15 @@ void Actor07000_Fn05400(GpEnemy* arg0, Task* arg1);
 void Actor07000_Fn0595C(Task* arg0);
 void Actor07000_Fn05ED4(Task* arg0);
 void Actor07000_Fn05F84(Task* task);
-void Actor07000_Fn05FF8(ActorShared80137e18* arg0);
-void Actor07000_Fn06088(ActorShared80137ea8* arg0);
+void Actor07000_Fn05FF8(Task* arg0);
+void Actor07000_Fn06088(Task* arg0);
 void Actor07000_Fn060FC(Task* arg0);
 void Actor07000_Fn062A8(Task* arg0);
 void Actor07000_Fn06390(Task* arg0);
 void Actor07000_Fn0662C(Task* arg0);
 void Actor07000_Fn066FC(Task* dst, Task* src);
 void Actor07000_Fn06750(Task* task);
-void Actor07000_Fn06820(ActorShared80138640* arg0);
+void Actor07000_Fn06820(Task* arg0);
 void Actor07000_Fn068B4(Task* arg0);
 void Actor07000_Fn068F0(Task* arg0);
 
@@ -1530,7 +1530,7 @@ s32 Actor07000_Fn01FF8(Task* arg0, s32 arg1, Actor107000Msg* arg2)
                     work->field_2B0 = heading + 0x1000;
                 }
             }
-            Tmd_AllocBuffers((TmdObject*)arg0->extra);
+            Tmd_AllocBuffers(arg0->extra);
             ((TmdObject*)arg0->extra)->flags &= 0xFF7F;
             ((TmdObject*)arg0->extra)->flags &= 0xFFFB;
             enemy->node.flags                 = 0;
@@ -2416,7 +2416,7 @@ void Actor07000_Fn03E08(Task* arg0)
                     dz                  = Player_Status.coordMtx->t[2] - coord->coord.t[2];
                     scratch->delta.vz.w = dz;
                     damage              = Gp_ComputeDamage(work->field_24C[i].key, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
-                    if (Gp_RollEnemyChance((GpEnemy*)arg0->spawnArg2, work->field_24C[i].key, 0) != 0) {
+                    if (Gp_RollEnemyChance(arg0->spawnArg2, work->field_24C[i].key, 0) != 0) {
                         Gp_SpawnEff(0x6009C, ((TmdObject*)arg0->extra)->coords, 0, 0);
                         damage *= 4;
                     }
@@ -2615,7 +2615,7 @@ default_body:
             if (work->field_394 == 0) {
                 SndEvt_EnqueueType6(0xD, 0, 0);
                 obj->flags = 2;
-                Actor07000_Fn05FF8((ActorShared80137e18*)arg1);
+                Actor07000_Fn05FF8(arg1);
             }
             arg0->recs = 0;
             Gp_UnlinkNode(&arg0->node);
@@ -2629,7 +2629,7 @@ default_body:
             break;
         case 1:
             if (work->field_394 == 0) {
-                Actor07000_Fn06088((ActorShared80137ea8*)arg1);
+                Actor07000_Fn06088(arg1);
             } else {
                 obj->flags = 0x80;
             }
@@ -3224,7 +3224,7 @@ void Actor07000_Fn05400(GpEnemy* arg0, Task* arg1)
     work = (Actor107000Spawn2Work*)arg1->work;
     switch (D_801153F4) {
         case 1:
-            update_color((GpEnemy*)arg1->spawnArg2, &((TmdObject*)arg1->extra)->coords[1]);
+            update_color(arg1->spawnArg2, &((TmdObject*)arg1->extra)->coords[1]);
             return;
         case 2:
             ((TmdObject*)arg1->extra)->flags = 0x80;
@@ -3233,18 +3233,18 @@ void Actor07000_Fn05400(GpEnemy* arg0, Task* arg1)
         case 0:
         default:
             if (work->field_396 != 0) {
-                Actor07000_Fn06820((ActorShared80138640*)arg1);
+                Actor07000_Fn06820(arg1);
                 Actor07000_Fn0595C(arg1);
                 update_animation(arg1);
                 rotate_parts(arg1);
                 Gp_UpdateCoord(((TmdObject*)arg1->extra)->coords);
-                update_color((GpEnemy*)arg1->spawnArg2, &((TmdObject*)arg1->extra)->coords[1]);
+                update_color(arg1->spawnArg2, &((TmdObject*)arg1->extra)->coords[1]);
                 work->field_378 -= 2;
                 if (work->field_378 < 0)
                     work->field_378 = 0;
                 coord = ((TmdObject*)arg1->extra)->coords;
                 if (coord->coord.t[1] > 0) {
-                    sound = (((u16)((GpEnemy*)arg1->spawnArg2)->placeKey >> 12) << 8) | 0x402C0009;
+                    sound = ((((GpEnemy*)arg1->spawnArg2)->placeKey >> 12) << 8) | 0x402C0009;
                     pan   = (s8)Gp_GetObjPan(coord);
                     SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
                     work->field_38C                               = 1;
@@ -3377,7 +3377,7 @@ s32 Actor07000_Fn05AB8(Task* arg0, s32 arg1, Actor107000Msg* arg2)
                 coord->coord.t[1] = D_801874C4[arg2->field_2 >> 8].y;
                 coord->coord.t[2] = D_801874C4[arg2->field_2 >> 8].z;
             }
-            Tmd_AllocBuffers((TmdObject*)arg0->extra);
+            Tmd_AllocBuffers(arg0->extra);
             ((TmdObject*)arg0->extra)->flags &= 0xFF7F;
             ((TmdObject*)arg0->extra)->flags &= 0xFFFB;
             enemy->node.flags                 = 0;
@@ -3479,15 +3479,15 @@ void Actor07000_Fn05F84(Task* task)
 /// part, with an identity rotation, marks both dirty and resets the scale
 /// `SVECTOR` beside it to one. `field_36E` is cleared, and unless the reaction
 /// sub-state `field_36A` is 5 the 0x600A5 effect is spawned on the root.
-void Actor07000_Fn05FF8(ActorShared80137e18* arg0)
+void Actor07000_Fn05FF8(Task* arg0)
 {
     GsCOORDINATE2*           parts;
     GsCOORDINATE2*           coord;
     ActorShared80137e18Mat*  mat;
     ActorShared80137e18Work* work;
 
-    work               = arg0->field_1C;
-    parts              = arg0->field_2C->field_8;
+    work               = arg0->work;
+    parts              = ((TmdObject*)arg0->extra)->coords;
     coord              = &work->coord;
     coord->sub         = parts;
     parts[1].sub       = coord;
@@ -3504,20 +3504,20 @@ void Actor07000_Fn05FF8(ActorShared80137e18* arg0)
     work->scale.vz     = 0x1000;
     work->field_36E    = 0;
     if (work->field_36A != 5) {
-        Gp_SpawnEff(0x600A5, arg0->field_2C->field_8, 2, NULL);
+        Gp_SpawnEff(0x600A5, ((TmdObject*)arg0->extra)->coords, 2, NULL);
     }
 }
 
 /// Flattens the coordinate `Actor07000_Fn05FF8` spliced in: the Y scale
 /// `field_34E` loses 2 and the matrix's second column is scaled by it, then
 /// the coordinate is marked dirty.
-void Actor07000_Fn06088(ActorShared80137ea8* arg0)
+void Actor07000_Fn06088(Task* arg0)
 {
     u16                      scale;
     GsCOORDINATE2*           coord;
     ActorShared80137ea8Work* work;
 
-    work                 = arg0->field_1C;
+    work                 = arg0->work;
     coord                = &work->coord;
     scale                = work->field_34E - 2;
     work->field_34E      = scale;
@@ -3739,13 +3739,13 @@ void Actor07000_Fn067B4(Task* task)
 /// Steps the second form's root one frame: saves the current translation in
 /// `field_33C`, advances X and Z along the rotation's Z column scaled by the
 /// step length `field_378`, and Y by the fall speed `field_398`.
-void Actor07000_Fn06820(ActorShared80138640* arg0)
+void Actor07000_Fn06820(Task* arg0)
 {
     GsCOORDINATE2*           coord;
     ActorShared80138640Work* work;
 
-    coord = arg0->field_2C->field_8;
-    work  = arg0->field_1C;
+    coord = ((TmdObject*)arg0->extra)->coords;
+    work  = arg0->work;
 
     work->field_33C.vx = coord->coord.t[0];
     work->field_33C.vy = coord->coord.t[1];
