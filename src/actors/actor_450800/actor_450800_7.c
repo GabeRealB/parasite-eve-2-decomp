@@ -52,7 +52,7 @@ void func_actor_450800_80131F70(u32 arg0)
 /// call in the first arm before that pass runs - which is why the object sets
 /// `$a1`/`$a2` twice and shares one `jal`.
 ///
-/// The global is an `s32` (see `func_actor_450800_80131E34`, which increments
+/// The global is an `s32` (see `func_actor_450800_80131E2C`, which increments
 /// it whole), but this arm only wants its low half, which is the `lhu`.
 void func_actor_450800_80131F98(s32 arg0)
 {

@@ -41,13 +41,12 @@ void func_actor_450800_80132448(Task* task);
 void func_actor_450800_80132868(Task* task);
 void func_actor_450800_80132AE0(Task* task);
 
-void func_actor_450800_80131E34(void)
+void func_actor_450800_80131E2C(void)
 {
-    GameSession* session;
-    s32          temp_v0;
-    s32          n;
+    s32 temp_v0;
+    s32 n;
 
-    if ((u8)session->at4.loc.view == 4) {
+    if (gGameSession->at4.loc.view == 4) {
         if (GameFlag_GetNibble(0xC7) == 1) {
             temp_v0                 = D_actor_450800_8013930C + 1;
             D_actor_450800_8013930C = temp_v0;

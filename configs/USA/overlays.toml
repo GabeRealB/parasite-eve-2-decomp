@@ -4437,11 +4437,13 @@ objects = [
 ]
 
 [actors.overlays.actor_450800]
+label = "Code starts at 0xC: GCC hoisted the lui/lw of gGameSession above the first function's addiu $sp prologue, so the span detector starts 8 bytes late; the function reads the loaded $v0 without setting it"
 slot = 1
 id = 262
+text = ["0xC", "0x1990"]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_450800/actor_450800", rodata = "0x4", text = "0x14" },
+  { unit = "actor_450800/actor_450800", text = "0xC" },
   { lib = true, unit = "actors_shared_80131f28", text = "0x108" },
   { unit = "actor_450800/actor_450800_7", rodata = "0x4", text = "0x150" },
   { lib = true, unit = "actors_shared_80132404", text = "0xBFC" },
