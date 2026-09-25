@@ -521,7 +521,7 @@ s32 func_actor_146300_80132A2C(Task* task, s32 arg1, s32 flags)
 /// Message 0x7D4 handler: turns the model root to `placement`'s yaw
 /// (recorded in the work block's `yaw`), moves it to `placement`'s position and
 /// marks the coordinate for recomputation. Only the Y rotation is applied.
-s32 func_actor_146300_80132A98(Task* task, s32 arg1, ActorShared8013411cPlacement* placement)
+s32 func_actor_146300_80132A98(Task* task, s32 arg1, GpPlaceArg* placement)
 {
     GsCOORDINATE2* coord;
     u16            yaw;

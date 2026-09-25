@@ -1170,7 +1170,7 @@ void func_actor_121300_801340F0(void)
 /// Scene-script handler that places the task's model: `placement`'s position
 /// becomes the translation of the `TmdObject`'s first coordinate, its angles
 /// are applied Y, then X, then Z, and the coordinate is marked dirty.
-void func_actor_121300_8013411C(Task* task, s32 arg1, ActorShared8013411cPlacement* placement)
+void func_actor_121300_8013411C(Task* task, s32 arg1, GpPlaceArg* placement)
 {
     GsCOORDINATE2* coord;
     MATRIX*        mtx;

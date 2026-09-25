@@ -1359,7 +1359,7 @@ void func_actor_136100_801346EC(Task* task, s32 arg1, s32 arg2)
 /// Places the task's model in the world frame: its coordinate is re-parented
 /// to the view coordinate, takes `placement`'s three longs as its translation
 /// and its three shorts as yaw, pitch and roll.
-void func_actor_136100_80134720(Task* task, s32 arg1, ActorShared80133c6cPlacement* placement)
+void func_actor_136100_80134720(Task* task, s32 arg1, GpPlaceArg* placement)
 {
     GsCOORDINATE2* coord;
     MATRIX*        mtx;

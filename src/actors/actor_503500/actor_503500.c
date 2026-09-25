@@ -156,7 +156,7 @@ void func_actor_503500_801324EC(Task* arg0)
 /// coordinate's local matrix, the Euler angles into the coordinate's `rot`
 /// slot, from which the rotation is rebuilt. Clearing `flg` has the world
 /// matrix recomputed. Returns 0.
-s32 func_actor_503500_80132508(Task* task, s32 arg1, Actor503500PlaceArgs* args)
+s32 func_actor_503500_80132508(Task* task, s32 arg1, GpPlaceArg* args)
 {
     Actor503500Coord* coord;
 

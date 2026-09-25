@@ -89,14 +89,6 @@ typedef struct Actor210600DispatchCtx {
 } Actor210600DispatchCtx;
 STATIC_ASSERT_SIZEOF(Actor210600DispatchCtx, 0x14);
 
-/// Payload of message 0x7D4: the position and orientation the actor is placed
-/// at. The three longs become the model root's translation and the three
-/// shorts its X / Y / Z Euler angles.
-typedef struct Actor210600Placement {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} Actor210600Placement;
-
 /// 0x20-byte block the world-space walk takes from `G_SCRATCH_HEAD`: `coord`
 /// is the frame the walk currently stands on (it climbs the
 /// `GsCOORDINATE2::sub` chain until NULL), `vec` the vector being carried up,
@@ -795,7 +787,7 @@ s32 func_actor_210600_8014B5F4(Task* task, s32 arg1, s32 arg2)
 /// translation, the X, Y and Z angles are then applied in that order through
 /// `Gfx_RotMatrixX` / `Y` / `Z`, and the coordinate is marked dirty. `msgId`
 /// is unused; the handler always reports the message handled.
-s32 func_actor_210600_8014B6A0(Task* task, s32 msgId, Actor210600Placement* placement)
+s32 func_actor_210600_8014B6A0(Task* task, s32 msgId, GpPlaceArg* placement)
 {
     ((TmdObject*)task->extra)->coords->coord.t[0] = placement->pos.vx;
     ((TmdObject*)task->extra)->coords->coord.t[1] = placement->pos.vy;

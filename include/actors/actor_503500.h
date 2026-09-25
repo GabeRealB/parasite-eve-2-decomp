@@ -37,14 +37,6 @@ typedef struct Actor503500Coord {
 } Actor503500Coord;
 STATIC_ASSERT_SIZEOF(Actor503500Coord, 0x4C);
 
-/// Placement argument block: a world translation followed by the Euler angles
-/// handed to `RotMatrix`, the same shape `ActorsShared8013231cArgs` takes.
-typedef struct Actor503500PlaceArgs {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} Actor503500PlaceArgs;
-STATIC_ASSERT_SIZEOF(Actor503500PlaceArgs, 0x18);
-
 /// Bytes 0x40..0x60 of an `actor_503500` work block, which the two enemies
 /// that reach them disagree about. The 0x160 block parks its display node
 /// there -- `func_actor_503500_801372C8` links `obj` and

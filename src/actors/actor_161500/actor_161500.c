@@ -107,19 +107,6 @@ typedef struct Actor161500FlagArgs {
     /* 0x2 */ u16  value;
 } Actor161500FlagArgs;
 
-/// Payload of the walk-to opcode: the world position to walk to. Only the
-/// horizontal components are read.
-typedef struct Actor161500WalkTarget {
-    /* 0x00 */ VECTOR pos;
-} Actor161500WalkTarget;
-
-/// Payload of the placement opcode: a world translation followed by Euler
-/// angles, of which only the yaw (`rot.vy`) is used.
-typedef struct Actor161500Placement {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} Actor161500Placement;
-
 void func_actor_161500_8013252C(Task* task);
 void func_actor_161500_8013273C(GpEnemy* enemy, Task* task);
 void func_actor_161500_8013284C(Task* task);
@@ -583,7 +570,7 @@ s32 func_actor_161500_80132A94(Task* task, s32 arg1, s32 flags)
 /// Script opcode "place at": yaws the actor's root coordinate to
 /// `placement->rot.vy`, caching that yaw in the work block, then drops the
 /// placement translation into the matrix and marks it dirty.
-s32 func_actor_161500_80132B10(Task* task, s32 arg1, Actor161500Placement* placement)
+s32 func_actor_161500_80132B10(Task* task, s32 arg1, GpPlaceArg* placement)
 {
     GsCOORDINATE2*   coord;
     Actor161500Work* work;
@@ -615,7 +602,7 @@ s32 func_actor_161500_80132B88(Task* task, s32 arg1, Actor161500FlagArgs* args)
 /// translation, caches that yaw in the work block and rebuilds the local
 /// matrix from it, then records the distance, in steps of 30, for the walk
 /// that follows.
-s32 func_actor_161500_80132BA0(Task* task, s32 arg1, Actor161500WalkTarget* target)
+s32 func_actor_161500_80132BA0(Task* task, s32 arg1, GpPlaceArg* target)
 {
     GsCOORDINATE2*   coord;
     Actor161500Work* work;

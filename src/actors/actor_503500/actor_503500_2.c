@@ -16,25 +16,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Message payload at `D_actor_503500_8017655C`. `func_actor_503500_80132DEC`
-/// fills it from the player actor: the three words are the translation of the
-/// `GsCOORDINATE2` at `TmdObject::coords` (`MATRIX.t`), the three
-/// halfwords the rotation triple at +0x50/+0x52/+0x54 of that task's `work`
-/// block. `func_actor_503500_80132DD4` clears the position;
-/// `func_actor_503500_80132E7C` hands the record to `Gp_DispatchMsg` as
-/// message 0x3E9 while any position word is non-zero.
-///
-/// Size is bounded by the next `.bss` symbol in the overlay
-/// (`D_actor_503500_80176574`, 0x18 bytes later).
-typedef struct Actor503500MsgPos {
-    /* 0x00 */ s32     x;
-    /* 0x04 */ s32     y;
-    /* 0x08 */ s32     z;
-    /* 0x0C */ byte    pad_C[0x4];
-    /* 0x10 */ SVECTOR rot;
-} Actor503500MsgPos;
-STATIC_ASSERT_SIZEOF(Actor503500MsgPos, 0x18);
-
 /// Work block `func_actor_503500_80132778` allocates (`memCalloc(0xC)`) and
 /// parks in `Task::work`. Each spawn packs `field_0 & 0xFFF` and
 /// `field_4 & 0xF000` into the `Gp_SpawnEff` argument; `field_8` is a 16.16
@@ -64,8 +45,9 @@ extern u8 D_actor_503500_8014CD98[];
 extern u8 D_actor_503500_8014D098[];
 /// Lives in the room overlay slot: whatever room overlay is resident owns the
 /// body.
-extern void              func_8017E27C(s32 arg0);
-extern Actor503500MsgPos D_actor_503500_8017655C;
+extern void func_8017E27C(s32 arg0);
+/// The pose this overlay sends the player as message 0x3E9.
+extern GpPlaceArg D_actor_503500_8017655C;
 /// Player-facing flag byte in the main executable; no module header owns it yet.
 extern u8 D_80073BA9;
 /// Player-facing mode byte in the main executable, also written by the
@@ -287,9 +269,9 @@ void func_actor_503500_80132DB4(s32 arg0)
 
 void func_actor_503500_80132DD4(void)
 {
-    D_actor_503500_8017655C.x = 0;
-    D_actor_503500_8017655C.y = 0;
-    D_actor_503500_8017655C.z = 0;
+    D_actor_503500_8017655C.pos.vx = 0;
+    D_actor_503500_8017655C.pos.vy = 0;
+    D_actor_503500_8017655C.pos.vz = 0;
 }
 
 void func_actor_503500_80132DEC(void)
@@ -301,9 +283,9 @@ void func_actor_503500_80132DEC(void)
     slot3 = gameGetPtrSlot(3);
     coord = ((TmdObject*)slot3->extra)->coords;
 
-    D_actor_503500_8017655C.x = coord->coord.t[0];
-    D_actor_503500_8017655C.y = coord->coord.t[1];
-    D_actor_503500_8017655C.z = coord->coord.t[2];
+    D_actor_503500_8017655C.pos.vx = coord->coord.t[0];
+    D_actor_503500_8017655C.pos.vy = coord->coord.t[1];
+    D_actor_503500_8017655C.pos.vz = coord->coord.t[2];
 
     /* Anchoring the rotation pointer *after* the three word stores is what
      * makes cse keep the plain symbol as the base address; taking it first
@@ -320,8 +302,8 @@ void func_actor_503500_80132E7C(void)
     Task* slot3;
 
     slot3 = gameGetPtrSlot(3);
-    if ((D_actor_503500_8017655C.x != 0) || (D_actor_503500_8017655C.y != 0) ||
-        (D_actor_503500_8017655C.z != 0)) {
+    if ((D_actor_503500_8017655C.pos.vx != 0) || (D_actor_503500_8017655C.pos.vy != 0) ||
+        (D_actor_503500_8017655C.pos.vz != 0)) {
         Gp_DispatchMsg(slot3, 0x3E9, (s32)&D_actor_503500_8017655C, 0);
     }
 }

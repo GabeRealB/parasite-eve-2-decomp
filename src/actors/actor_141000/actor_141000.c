@@ -125,18 +125,6 @@ typedef struct Actor141000AnimPreset {
 } Actor141000AnimPreset;
 STATIC_ASSERT_SIZEOF(Actor141000AnimPreset, 0x14);
 
-/// Payload of the two placement messages: a world position and Euler angles.
-/// Message 0x7DD (`func_actor_141000_801336DC`) copies it into the work block,
-/// the position into `Actor141000Work::target` and the rotation into
-/// `field_4B8..field_4BC` (the yaw being the turn-to-face target); message
-/// 0x7D4 (`func_actor_141000_80133E10`) applies it to the root coordinate at
-/// once.
-typedef struct Actor141000Placement {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} Actor141000Placement;
-STATIC_ASSERT_SIZEOF(Actor141000Placement, 0x18);
-
 /// `GsCOORDINATE2` at `TmdObject::coords` as the placement code uses it: the
 /// libgs `param` slot at 0x44 holds the Euler angles written there and then
 /// handed straight to `RotMatrix`.
@@ -896,7 +884,7 @@ void func_actor_141000_801335D4(Task* arg0)
 /// does (inlined here). The default anim id is chosen by the `field_4C8`
 /// variant; writing it as an if/else into the preset (not a ternary) is what
 /// keeps CSE from reusing the earlier constant 1 for the `field_43F` store.
-s32 func_actor_141000_801336DC(Task* task, s32 arg1, Actor141000Placement* place, Actor141000SpawnAnim* anim)
+s32 func_actor_141000_801336DC(Task* task, s32 arg1, GpPlaceArg* place, Actor141000SpawnAnim* anim)
 {
     Actor141000Work*       work;
     Actor141000Work*       w;
@@ -1193,7 +1181,7 @@ s32 func_actor_141000_80133CD8(Task* task, s32 arg1, Actor141000AnimPreset* msg,
 /// translation into the root coordinate, keeps its Euler angles in the
 /// coordinate's `rot` slot and rebuilds the rotation from them, then clears
 /// `flg` so the world matrix is recomputed.
-s32 func_actor_141000_80133E10(Task* task, s32 arg1, Actor141000Placement* args)
+s32 func_actor_141000_80133E10(Task* task, s32 arg1, GpPlaceArg* args)
 {
     Actor141000Coord* coord;
 

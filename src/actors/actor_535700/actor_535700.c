@@ -113,13 +113,6 @@ typedef struct Actor535700Msg {
     /* 0x2 */ u16  field_2;
 } Actor535700Msg;
 
-/// Payload of the placement opcode: the position the model's root coordinate
-/// is moved to, and the rotation whose `vy` becomes its yaw.
-typedef struct Actor535700Placement {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} Actor535700Placement;
-
 /// Script args of the "start animation" opcodes of both enemies,
 /// `func_actor_535700_801327BC` and `func_actor_535700_801331E4`: the clip id,
 /// a flag choosing the start path, and the reset argument only that path
@@ -501,7 +494,7 @@ s32 func_actor_535700_8013284C(Task* task, s32 arg1, s32 arg2)
 /// Placement opcode of the first enemy: yaws the model's root coordinate to
 /// `placement->rot.vy`, caching that yaw in the work block's `field_4AE`, then
 /// drops the placement translation into the matrix and marks it dirty.
-s32 func_actor_535700_80132894(Task* task, s32 arg1, Actor535700Placement* placement)
+s32 func_actor_535700_80132894(Task* task, s32 arg1, GpPlaceArg* placement)
 {
     GsCOORDINATE2* coord;
     u16            yaw;
@@ -892,7 +885,7 @@ s32 func_actor_535700_80133250(Task* task, s32 arg1, s32 flags)
 /// Placement opcode of the second enemy: yaws its root coordinate to
 /// `placement->rot.vy`, caching that yaw in `Actor535700SpawnWork::yaw`, then
 /// drops the placement translation into the matrix and marks it dirty.
-s32 func_actor_535700_801332B4(Task* task, s32 arg1, Actor535700Placement* placement)
+s32 func_actor_535700_801332B4(Task* task, s32 arg1, GpPlaceArg* placement)
 {
     GsCOORDINATE2*        coord;
     Actor535700SpawnWork* work;

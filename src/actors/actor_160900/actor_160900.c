@@ -1393,7 +1393,7 @@ void func_actor_160900_801345D0(Task* task, s32 arg1, s32 arg2)
 /// the task's `TmdObject` coordinate frame. The three longs become the
 /// translation, then yaw / pitch / roll are applied with `Gfx_RotMatrixY` /
 /// `X` / `Z` and the coordinate is marked dirty.
-void func_actor_160900_80134624(Task* task, s32 arg1, ActorShared8013411cPlacement* placement)
+void func_actor_160900_80134624(Task* task, s32 arg1, GpPlaceArg* placement)
 {
     GsCOORDINATE2* coord;
     MATRIX*        mtx;

@@ -152,15 +152,6 @@ typedef struct Actor335800AnimPreset {
 } Actor335800AnimPreset;
 STATIC_ASSERT_SIZEOF(Actor335800AnimPreset, 0x14);
 
-/// Position and Euler angles carried by messages 0x7D4 and 0x7DD. The 0x7D4
-/// handlers place the root part there directly; `func_actor_335800_80162C80`
-/// (0x7DD) copies them into the parent block, the position into `target`, the
-/// rotation into `field_4F0..field_4F4`, and its child-block twin does the same.
-typedef struct Actor335800Placement {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} Actor335800Placement;
-
 /// Optional start animation for `func_actor_335800_80162C80`: the preset's
 /// `field_4` and the `field_477` byte. Absent, the defaults are 0xD and 1.
 typedef struct Actor335800SpawnAnim {
@@ -206,11 +197,11 @@ extern GpRec14  D_actor_335800_80164E7C;
 
 /// The warp-payload table the two dispatchers reach by entry:
 /// `func_actor_335800_801621B4` selects `n * 3` 8-byte units of it.
-extern GpMsg3EE D_actor_335800_80164EA4[];
-extern s32      D_actor_335800_80164EBC;
-extern s32      D_actor_335800_80164ED4;
-extern s32      D_actor_335800_80165FC0;
-extern s32      D_actor_335800_80166098;
+extern GpPlaceArg D_actor_335800_80164EA4[];
+extern s32        D_actor_335800_80164EBC;
+extern s32        D_actor_335800_80164ED4;
+extern s32        D_actor_335800_80165FC0;
+extern s32        D_actor_335800_80166098;
 
 /// Animation bank tables of the parent and the child block.
 extern void* D_actor_335800_8016EAD8[];
@@ -771,7 +762,7 @@ void func_actor_335800_80162B3C(Task* arg0)
 /// Placement handler for the parent block: stores the spawn position and
 /// rotation, then applies a start preset exactly as `func_actor_335800_801632A4`
 /// does (inlined here).
-s32 func_actor_335800_80162C80(Task* task, s32 arg1, Actor335800Placement* place, Actor335800SpawnAnim* anim)
+s32 func_actor_335800_80162C80(Task* task, s32 arg1, GpPlaceArg* place, Actor335800SpawnAnim* anim)
 {
     Actor335800MainWork*   work;
     Actor335800MainWork*   w;
@@ -1049,7 +1040,7 @@ s32 func_actor_335800_801632A4(Task* task, s32 arg1, Actor335800AnimPreset* msg,
 /// Message 0x7D4 handler of the parent block: places the root part at the
 /// message's position and Euler angles, rebuilding the rotation from them and
 /// clearing `flg` so the world matrix is recomputed. Returns 0.
-s32 func_actor_335800_801633C0(Task* task, s32 arg1, Actor335800Placement* args)
+s32 func_actor_335800_801633C0(Task* task, s32 arg1, GpPlaceArg* args)
 {
     Actor335800Coord* coord;
 
@@ -1210,7 +1201,7 @@ void func_actor_335800_8016373C(Task* arg0)
 /// `func_actor_335800_80162C80`: stores the spawn position and rotation, then
 /// applies a start preset exactly as `func_actor_335800_80163E20` does
 /// (inlined here).
-s32 func_actor_335800_80163880(Task* task, s32 arg1, Actor335800Placement* place, Actor335800SpawnAnim* anim)
+s32 func_actor_335800_80163880(Task* task, s32 arg1, GpPlaceArg* place, Actor335800SpawnAnim* anim)
 {
     Actor335800Work*       work;
     Actor335800Work*       w;
@@ -1486,7 +1477,7 @@ s32 func_actor_335800_80163E20(Task* task, s32 arg1, Actor335800AnimPreset* msg,
 /// Message 0x7D4 handler of the child block: places the root part at the
 /// message's position and Euler angles, rebuilding the rotation from them and
 /// clearing `flg` so the world matrix is recomputed. Returns 0.
-s32 func_actor_335800_80163F3C(Task* task, s32 arg1, Actor335800Placement* args)
+s32 func_actor_335800_80163F3C(Task* task, s32 arg1, GpPlaceArg* args)
 {
     Actor335800Coord* coord;
 

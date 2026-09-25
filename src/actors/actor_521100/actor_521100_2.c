@@ -64,13 +64,6 @@ typedef struct Actor521100Msg {
 } Actor521100Msg;
 STATIC_ASSERT_SIZEOF(Actor521100Msg, 0x4);
 
-/// Argument block of the "walk to" script opcode: the world position to walk
-/// to. Only the horizontal components are read.
-typedef struct Actor521100Target {
-    /* 0x00 */ VECTOR pos;
-} Actor521100Target;
-STATIC_ASSERT_SIZEOF(Actor521100Target, 0x10);
-
 /// Argument block of the message handler `func_actor_521100_801369B8`
 /// implements: which animation to start. Same 4-byte-id prefix as
 /// `Actor202900AnimArgs`, and the same `(u16)` narrowing on the store into the
@@ -569,7 +562,7 @@ s32 func_actor_521100_80136A1C(Task* task, s32 arg1, s32 arg2)
 /// the yaw of the argument block's angles is used, cached in the work block's
 /// `field_48C.yaw` and applied with `Gfx_RotMatrixY`, then the position becomes
 /// the root coordinate's translation and `flg` is cleared.
-s32 func_actor_521100_80136A64(Task* task, s32 arg1, ActorsShared80132074Args* placement)
+s32 func_actor_521100_80136A64(Task* task, s32 arg1, GpPlaceArg* placement)
 {
     GsCOORDINATE2* coord;
     u16            yaw;
@@ -626,7 +619,7 @@ s32 func_actor_521100_80136AE0(Task* task, s32 arg1, Actor521100Msg* msg)
     }
     return 0;
 }
-s32 func_actor_521100_80136BE8(Task* task, s32 arg1, Actor521100Target* target)
+s32 func_actor_521100_80136BE8(Task* task, s32 arg1, GpPlaceArg* target)
 {
     GsCOORDINATE2* coord;
     s32            dx;

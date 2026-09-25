@@ -758,7 +758,7 @@ s32 func_actor_312200_80163510(Task* task, s32 arg1, s32 arg2)
 /// onto the actor's root coordinate, the Euler angles are applied X / Y / Z,
 /// and the resulting heading is read back out of the matrix Z-axis with
 /// `ratan2` and cached in `Actor312200Work::yaw`.
-s32 func_actor_312200_801635CC(Task* task, s32 arg1, ActorShared80169f74Placement* placement)
+s32 func_actor_312200_801635CC(Task* task, s32 arg1, GpPlaceArg* placement)
 {
     GsCOORDINATE2*   coord;
     s32              mx;

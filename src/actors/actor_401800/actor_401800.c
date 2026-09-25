@@ -411,18 +411,8 @@ extern Actor401800TintRow D_actor_401800_8013E700[];
 /// `Actor01900_D1728C` plays for actor 01900.
 extern void* D_actor_401800_80155A80;
 
-/// Payload of the `0x3E9` message `func_actor_401800_80138C28` sends: the
-/// slot-3 task's root position followed by the heading `ratan2` derives from
-/// the direction to the actor. Same 0x18-byte shape the `Actor401300Work`
-/// fields `field_CD4` / `field_CE4` form.
-typedef struct Actor401800Msg3E9 {
-    /* 0x00 */ VECTOR  field_0;
-    /* 0x10 */ SVECTOR field_10;
-} Actor401800Msg3E9;
-STATIC_ASSERT_SIZEOF(Actor401800Msg3E9, 0x18);
-
 /// Payload `func_actor_401800_80138C28` fills and sends with message 0x3E9.
-extern Actor401800Msg3E9 D_actor_401800_80155AD8;
+extern GpPlaceArg D_actor_401800_80155AD8;
 
 /// Frame counter the chase body of `func_actor_80136EAC` accumulates its step
 /// `field_BFC` into and the init body clears; the aim-and-rescale body reads it
@@ -2808,13 +2798,13 @@ void func_actor_401800_80138C28(Task* arg0)
         work->field_89E                          = 5;
         ((TmdObject*)player->extra)->coords->flg = 0;
         Gp_UpdateCoord(((TmdObject*)player->extra)->coords);
-        D_actor_401800_80155AD8.field_0.vx = ((TmdObject*)player->extra)->coords->coord.t[0];
-        D_actor_401800_80155AD8.field_0.vy = ((TmdObject*)player->extra)->coords->coord.t[1];
-        D_actor_401800_80155AD8.field_0.vz = ((TmdObject*)player->extra)->coords->coord.t[2];
-        pdir                               = &dir;
-        dir.vx                             = ((GpCoordXZ*)((TmdObject*)arg0->extra)->coords)->field_18 - ((GpCoordXZ*)((TmdObject*)player->extra)->coords)->field_18;
-        dir.vy                             = 0;
-        dir.vz                             = ((GpCoordXZ*)((TmdObject*)arg0->extra)->coords)->field_20 - ((GpCoordXZ*)((TmdObject*)player->extra)->coords)->field_20;
+        D_actor_401800_80155AD8.pos.vx = ((TmdObject*)player->extra)->coords->coord.t[0];
+        D_actor_401800_80155AD8.pos.vy = ((TmdObject*)player->extra)->coords->coord.t[1];
+        D_actor_401800_80155AD8.pos.vz = ((TmdObject*)player->extra)->coords->coord.t[2];
+        pdir                           = &dir;
+        dir.vx                         = ((GpCoordXZ*)((TmdObject*)arg0->extra)->coords)->field_18 - ((GpCoordXZ*)((TmdObject*)player->extra)->coords)->field_18;
+        dir.vy                         = 0;
+        dir.vz                         = ((GpCoordXZ*)((TmdObject*)arg0->extra)->coords)->field_20 - ((GpCoordXZ*)((TmdObject*)player->extra)->coords)->field_20;
         VectorNormalSS(pdir, pdir);
         gte_lddp(0x3E8);
         gte_ldsv(pdir);
@@ -2823,9 +2813,9 @@ void func_actor_401800_80138C28(Task* arg0)
         ((TmdObject*)arg0->extra)->coords->coord.t[0] = ((TmdObject*)player->extra)->coords->coord.t[0] + dir.vx;
         ((TmdObject*)arg0->extra)->coords->coord.t[2] = ((TmdObject*)player->extra)->coords->coord.t[2] + dir.vz;
         ((TmdObject*)arg0->extra)->coords->flg        = 0;
-        D_actor_401800_80155AD8.field_10.vx           = 0;
-        D_actor_401800_80155AD8.field_10.vy           = ratan2(dir.vx, dir.vz);
-        D_actor_401800_80155AD8.field_10.vz           = 0;
+        D_actor_401800_80155AD8.rot.vx                = 0;
+        D_actor_401800_80155AD8.rot.vy                = ratan2(dir.vx, dir.vz);
+        D_actor_401800_80155AD8.rot.vz                = 0;
         Gp_DispatchMsg(player, 0x3E9, (s32)&D_actor_401800_80155AD8, 0);
         Gp_SpawnPadLerp(0xC, 8, 0x8F);
     }
@@ -4285,7 +4275,7 @@ s32 func_actor_401800_8013DDEC(Task* task)
 /// coordinate for every field), then stores the resulting heading - `ratan2`
 /// of the rotation matrix's Z axis - in the work block's `field_16`. Always
 /// returns 1.
-s32 func_actor_401800_8013DE3C(Task* task, s32 arg1, ActorShared80169f74Placement* placement)
+s32 func_actor_401800_8013DE3C(Task* task, s32 arg1, GpPlaceArg* placement)
 {
     GsCOORDINATE2*   coord;
     s32              mx;

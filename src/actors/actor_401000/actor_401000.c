@@ -348,7 +348,7 @@ extern ActorHeightClamp D_actor_401000_80154FD0[];
 /// world position, then the yaw from the actor to it, handed straight to the
 /// slot-3 handler. The 401000 twin of the block `func_actor_401300_80138800`
 /// keeps inline at `Actor401300Work.field_CD4` / `.field_CE4`.
-extern GpMsg3EE D_actor_401000_80155018;
+extern GpPlaceArg D_actor_401000_80155018;
 
 /// Gameplay slot `Gp_SpawnEff` effects read their model data from; set before
 /// each spawn in `func_actor_401000_8013B1E4`.
@@ -2462,7 +2462,7 @@ void func_actor_401000_801380B8(Task* arg0)
     GpEnemy*         enemy;
     Task*            player;
     SVECTOR*         pdir;
-    GpMsg3EE*        msg;
+    GpPlaceArg*      msg;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2;
@@ -2477,14 +2477,14 @@ void func_actor_401000_801380B8(Task* arg0)
         work->field_89E                          = 5;
         ((TmdObject*)player->extra)->coords->flg = 0;
         Gp_UpdateCoord(((TmdObject*)player->extra)->coords);
-        msg          = &D_actor_401000_80155018;
-        msg->field_0 = ((TmdObject*)player->extra)->coords->coord.t[0];
-        msg->field_4 = ((TmdObject*)player->extra)->coords->coord.t[1];
-        msg->field_8 = ((TmdObject*)player->extra)->coords->coord.t[2];
-        pdir         = &dir;
-        dir.vx       = ((GpCoordXZ*)((TmdObject*)arg0->extra)->coords)->field_18 - ((GpCoordXZ*)((TmdObject*)player->extra)->coords)->field_18;
-        dir.vy       = 0;
-        dir.vz       = ((GpCoordXZ*)((TmdObject*)arg0->extra)->coords)->field_20 - ((GpCoordXZ*)((TmdObject*)player->extra)->coords)->field_20;
+        msg         = &D_actor_401000_80155018;
+        msg->pos.vx = ((TmdObject*)player->extra)->coords->coord.t[0];
+        msg->pos.vy = ((TmdObject*)player->extra)->coords->coord.t[1];
+        msg->pos.vz = ((TmdObject*)player->extra)->coords->coord.t[2];
+        pdir        = &dir;
+        dir.vx      = ((GpCoordXZ*)((TmdObject*)arg0->extra)->coords)->field_18 - ((GpCoordXZ*)((TmdObject*)player->extra)->coords)->field_18;
+        dir.vy      = 0;
+        dir.vz      = ((GpCoordXZ*)((TmdObject*)arg0->extra)->coords)->field_20 - ((GpCoordXZ*)((TmdObject*)player->extra)->coords)->field_20;
         VectorNormalSS(pdir, pdir);
         gte_lddp(0x3E8);
         gte_ldsv(pdir);
@@ -2493,9 +2493,9 @@ void func_actor_401000_801380B8(Task* arg0)
         ((TmdObject*)arg0->extra)->coords->coord.t[0] = ((TmdObject*)player->extra)->coords->coord.t[0] + dir.vx;
         ((TmdObject*)arg0->extra)->coords->coord.t[2] = ((TmdObject*)player->extra)->coords->coord.t[2] + dir.vz;
         ((TmdObject*)arg0->extra)->coords->flg        = 0;
-        msg->field_10                                 = 0;
-        msg->field_12                                 = ratan2(dir.vx, dir.vz);
-        msg->field_14                                 = 0;
+        msg->rot.vx                                   = 0;
+        msg->rot.vy                                   = ratan2(dir.vx, dir.vz);
+        msg->rot.vz                                   = 0;
         Gp_DispatchMsg(player, 0x3E9, (s32)msg, 0);
         Gp_SpawnPadLerp(0xC, 8, 0x8F);
     }
@@ -4078,7 +4078,7 @@ s32 func_actor_401000_8013D7C4(Task* task)
 /// root coordinate, then the X, Y and Z rotations are applied in that order.
 /// The heading of the rotated Z axis is stored as the work block's `yaw`.
 /// Returns 1.
-s32 func_actor_401000_8013D814(Task* task, s32 arg1, ActorShared80169f74Placement* placement)
+s32 func_actor_401000_8013D814(Task* task, s32 arg1, GpPlaceArg* placement)
 {
     GsCOORDINATE2*   coord;
     s32              mx;

@@ -70,15 +70,6 @@ typedef struct Actor403200Msg3F8 {
 } Actor403200Msg3F8;
 STATIC_ASSERT_SIZEOF(Actor403200Msg3F8, 0x18);
 
-/// Position and Euler rotation the launch tick sends slot 3 as message 0x3E9.
-/// `rot.vy` is also named `D_actor_403200_8015F9D2`, which the same tick stores
-/// the placement yaw through.
-typedef struct Actor403200MsgPos {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} Actor403200MsgPos;
-STATIC_ASSERT_SIZEOF(Actor403200MsgPos, 0x18);
-
 /// 0x20-byte scratchpad frame the state-selecting tick
 /// `func_actor_403200_8013EB64` carves off `SCRATCH_SP`. `delta` is the
 /// player-relative offset whose length is `dist`, the range the three
@@ -551,8 +542,8 @@ extern Actor403200DropCoord D_actor_403200_8015F970;
 
 /// Position and Euler rotation the launch tick sends the player as message
 /// 0x3E9. The yaw halfword at `rot.vy` is also `D_actor_403200_8015F9D2`.
-extern Actor403200MsgPos D_actor_403200_8015F9C0;
-extern s16               D_actor_403200_8015F9D2;
+extern GpPlaceArg D_actor_403200_8015F9C0;
+extern s16        D_actor_403200_8015F9D2;
 
 /// Handwritten overlay-local follow helper. `arg1`/`arg2` select the axis pair
 /// and `arg3` the mode; takes the task, not the work block.
@@ -7804,7 +7795,7 @@ s32 func_actor_403200_80141974(Task* task)
 /// Place the task's model from `placement`: the three longs become the root
 /// coordinate's translation, then the X, Y and Z rotations are applied in that
 /// order and the coordinate is marked dirty. Returns 1.
-s32 func_actor_403200_801419C4(Task* task, s32 arg1, ActorShared80135990Placement* placement)
+s32 func_actor_403200_801419C4(Task* task, s32 arg1, GpPlaceArg* placement)
 {
     ((TmdObject*)task->extra)->coords->coord.t[0] = placement->pos.vx;
     ((TmdObject*)task->extra)->coords->coord.t[1] = placement->pos.vy;

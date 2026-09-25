@@ -2813,7 +2813,7 @@ s32 Actor00300_Fn05304(Task* arg0, s32 arg1, Actor100300AnimArgs* args)
     return 0;
 }
 
-s32 Actor00300_Fn05388(Task* arg0, s32 arg1, ActorsShared80132074Args* args)
+s32 Actor00300_Fn05388(Task* arg0, s32 arg1, GpPlaceArg* args)
 {
     GsCOORDINATE2* coord = ((TmdObject*)arg0->extra)->coords;
 

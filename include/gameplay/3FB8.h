@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "gameplay/message.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -665,15 +666,6 @@ typedef struct _GpPitchScratch {
 } GpPitchScratch;
 STATIC_ASSERT_SIZEOF(GpPitchScratch, 0x84);
 
-/// Argument for `Gp_SetActorDest`. `field_0` / `field_4` / `field_8` are
-/// copied onto `GameActor.field_20` / `field_24` / `field_28`.
-typedef struct _GpVecArg {
-    /* 0x0 */ s32 field_0;
-    /* 0x4 */ s32 field_4;
-    /* 0x8 */ s32 field_8;
-} GpVecArg;
-STATIC_ASSERT_SIZEOF(GpVecArg, 0xC);
-
 /// Optional companion for `Gp_SetActorDest`. `field_0` / `field_4` are copied
 /// onto `GameActor.field_93C` / `field_93E`. NULL zeros both halfwords.
 typedef struct _GpOverrideArg {
@@ -747,11 +739,8 @@ typedef struct _GpCopyArg {
 } GpCopyArg;
 STATIC_ASSERT_SIZEOF(GpCopyArg, 8);
 
-/// Position + rotation argument for `func_80104D68` / `func_80104E00`.
-/// `field_0` / `field_4` / `field_8` are copied onto `GsCOORDINATE2.coord.t`;
-/// `field_10` / `field_12` / `field_14` are copied onto `GameActor` 0x50 and
-/// passed to `RotMatrix`. `func_80104E00` copies `field_12` onto
-/// `GameActor.field_82` and picks anim 6 or 5 from the `func_80103E7C` delta.
+/// A second field-numbered spelling of `GpPlaceArg`, still used by room code
+/// that calls the player's warp handler directly. New code uses `GpPlaceArg`.
 typedef struct _GpXformArg {
     /* 0x00 */ s32  field_0;
     /* 0x04 */ s32  field_4;
@@ -942,8 +931,8 @@ void  Gp_TriggerPeState(s32 arg0, s32 arg1);
 void  func_8010A42C(Task* arg0, s32 arg1);
 void  Gp_DetachLinkNode(Task* arg0);
 s32   Gp_ApplyDirArg(Task* arg0, GpDirArg* arg1);
-s32   func_80104E00(Task* arg0, s32 arg1, GpXformArg* arg2);
-s32   Gp_SetActorDest(Task* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3);
+s32   func_80104E00(Task* arg0, s32 arg1, GpPlaceArg* arg2);
+s32   Gp_SetActorDest(Task* arg0, s32 arg1, GpPlaceArg* arg2, GpOverrideArg* arg3);
 s32   Gp_MoveActorBy(Task* arg0, s32 arg1, GpMoveArg* arg2);
 s32   Gp_PickNearestRec18(GpRec18* arg0, struct _GsCOORDINATE2* arg1, struct _GsCOORDINATE2* arg2);
 void  Gp_MoveActorByKeep(Task* arg0, s32 arg1, GpMoveArg* arg2);

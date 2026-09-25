@@ -5790,7 +5790,7 @@ return_one:
 ///
 /// The `TmdObject` is re-read from `Task::extra` for every access because the
 /// stores and the `Gfx_RotMatrix*` calls in between may alias it.
-s32 func_actor_421600_8013E52C(Task* task, s32 arg1, ActorShared80164954Placement* placement)
+s32 func_actor_421600_8013E52C(Task* task, s32 arg1, GpPlaceArg* placement)
 {
     Actor421600Work* work;
 

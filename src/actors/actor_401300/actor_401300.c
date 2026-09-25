@@ -4999,7 +4999,7 @@ s32 func_actor_401300_801415C4(Task* task)
 /// Places the model's root coordinate from `placement`: sets its translation,
 /// applies the X, Y and Z rotations in turn, and caches the resulting heading
 /// (`ratan2` of the matrix Z axis) in `Actor401300Work::yaw`. Always returns 1.
-s32 func_actor_401300_80141614(Task* task, s32 arg1, ActorShared80169f74Placement* placement)
+s32 func_actor_401300_80141614(Task* task, s32 arg1, GpPlaceArg* placement)
 {
     GsCOORDINATE2*   coord;
     s32              mx;

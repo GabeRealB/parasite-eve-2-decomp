@@ -85,15 +85,6 @@ typedef struct Actor120400AnimPreset {
 } Actor120400AnimPreset;
 STATIC_ASSERT_SIZEOF(Actor120400AnimPreset, 0x14);
 
-/// Position and Euler angles carried by messages 0x7D4 and 0x7DD: 0x7D4 places
-/// the root coordinate there, 0x7DD stores them in the parent block as the
-/// walk's destination and final heading.
-typedef struct Actor120400Placement {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} Actor120400Placement;
-STATIC_ASSERT_SIZEOF(Actor120400Placement, 0x18);
-
 /// Optional start animation for `func_actor_120400_80132398`: the preset's
 /// `field_4` and the `field_477` byte. Absent, the defaults are 0x10 and 1.
 typedef struct Actor120400SpawnAnim {
@@ -356,7 +347,7 @@ void func_actor_120400_80132254(Task* arg0)
 /// already ticking is pushed onto `func_800B4114`'s per-slot loop instead of
 /// the `Gp_AnimResetSlot` one, followed by a `Gp_AnimTickIndex` pass over the
 /// same 0x14 slots and `field_474` raised. Returns 0 either way.
-s32 func_actor_120400_80132398(Task* task, s32 arg1, Actor120400Placement* place, Actor120400SpawnAnim* anim)
+s32 func_actor_120400_80132398(Task* task, s32 arg1, GpPlaceArg* place, Actor120400SpawnAnim* anim)
 {
     Actor120400MainWork*   work;
     Actor120400MainWork*   w;
@@ -675,7 +666,7 @@ s32 func_actor_120400_80132AA0(Task* task, s32 arg1, Actor120400AnimPreset* msg,
 /// Message 0x7D4 handler of the parent: places the root part at the message's
 /// position and Euler angles, rebuilding the rotation from them and clearing
 /// `flg` so the world matrix is recomputed. Returns 0.
-s32 func_actor_120400_80132BBC(Task* task, s32 arg1, Actor120400Placement* args)
+s32 func_actor_120400_80132BBC(Task* task, s32 arg1, GpPlaceArg* args)
 {
     Actor120400Coord* coord;
 

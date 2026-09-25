@@ -114,17 +114,6 @@ typedef struct Actor113100Msg7DB {
 } Actor113100Msg7DB;
 STATIC_ASSERT_SIZEOF(Actor113100Msg7DB, 0x4);
 
-/// Placement payload: a world position followed by Euler angles. The 0x7DD
-/// handler `func_actor_113100_801328EC` copies it into the work block (the
-/// position into `field_4F0`..`field_4F8`, the rotation into
-/// `field_528`..`field_52C`, the yaw being the turn-to-face target); the 0x7D4
-/// handler `func_actor_113100_8013333C` applies it to the root coordinate.
-typedef struct Actor113100Placement {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} Actor113100Placement;
-STATIC_ASSERT_SIZEOF(Actor113100Placement, 0x18);
-
 /// Optional start animation for the 0x7DD handler: the preset's `field_4` and
 /// the `field_477` id byte. Absent, the defaults are anim 2 and id 1.
 typedef struct Actor113100SpawnAnim {
@@ -657,7 +646,7 @@ s32 func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3)
 /// preset in place -- the body of the 0x7D3 handler
 /// `func_actor_113100_801331E8` written out inline against a preset built on
 /// this function's own stack, `anim` picking the preset's `field_4`.
-s32 func_actor_113100_801328EC(Task* task, s32 msgId, Actor113100Placement* place, Actor113100SpawnAnim* anim)
+s32 func_actor_113100_801328EC(Task* task, s32 msgId, GpPlaceArg* place, Actor113100SpawnAnim* anim)
 {
     Actor113100Work*       work;
     Actor113100Work*       w;
@@ -1038,7 +1027,7 @@ s32 func_actor_113100_801331E8(Task* task, s32 msgId, Actor113100AnimPreset* pre
 /// The translation goes straight into the root part's local matrix, the Euler
 /// angles into the coordinate's `rot` slot, from which `RotMatrix` rebuilds
 /// the rotation; clearing `flg` makes the world matrix be recomputed.
-s32 func_actor_113100_8013333C(Task* task, s32 msgId, Actor113100Placement* args)
+s32 func_actor_113100_8013333C(Task* task, s32 msgId, GpPlaceArg* args)
 {
     ActorsShared8013231cCoord* coord;
 

@@ -4450,7 +4450,7 @@ s32 Actor00100_Fn0B264(Task* task)
     return ret;
 }
 
-s32 Actor00100_Fn0B2B4(Task* task, s32 arg1, ActorShared80169f74Placement* placement)
+s32 Actor00100_Fn0B2B4(Task* task, s32 arg1, GpPlaceArg* placement)
 {
     GsCOORDINATE2*            coord;
     s32                       mx;

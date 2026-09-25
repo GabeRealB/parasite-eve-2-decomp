@@ -1281,7 +1281,7 @@ s32 func_actor_323400_80164824(Task* task)
 ///
 /// The `TmdObject` is re-read from `Task::extra` for every access because the
 /// stores and the `Gfx_RotMatrix*` calls in between may alias it.
-s32 func_actor_323400_80164874(Task* task, s32 arg1, ActorShared80164954Placement* placement)
+s32 func_actor_323400_80164874(Task* task, s32 arg1, GpPlaceArg* placement)
 {
     Actor323000Work* work;
 

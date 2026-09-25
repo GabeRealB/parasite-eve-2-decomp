@@ -18,16 +18,6 @@
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 
-/// Position and Euler rotation payload: sent to slot 3 as message 0x3E9, and
-/// to the child actors as message 0x7D4, whose handler
-/// `func_actor_341900_801632A0` copies the longs onto the model's root
-/// translation and applies the shorts as Y, X, Z rotations.
-typedef struct Actor341900MsgPos {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} Actor341900MsgPos;
-STATIC_ASSERT_SIZEOF(Actor341900MsgPos, 0x18);
-
 /// Work block of the overlay's sequence/event task -- the one
 /// `D_actor_341900_80164208` points at.
 ///
@@ -58,23 +48,23 @@ STATIC_ASSERT_SIZEOF(Actor341900MsgPos, 0x18);
 /// `Gp_KillPlayerEffs`) and `func_actor_341900_80163438` (calls
 /// `Gp_SpawnWeaponEff` while it is set, then clears it).
 typedef struct Actor341900Work {
-    /* 0x00 */ Task*             field_0; // gameGetPtrSlot(3)
-    /* 0x04 */ Task*             field_4; // Gp_FindWorkById(session slot)->field_0
-    /* 0x08 */ Task*             field_8;
-    /* 0x0C */ Task*             field_C;
-    /* 0x10 */ Task*             field_10;
-    /* 0x14 */ Actor341900MsgPos field_14;
-    /* 0x2C */ Actor341900MsgPos field_2C;
-    /* 0x44 */ Actor341900MsgPos field_44;
-    /* 0x5C */ s16               field_5C;
-    /* 0x5E */ s16               field_5E;
-    /* 0x60 */ byte              pad_60[0x4];
-    /* 0x64 */ s16               field_64;
-    /* 0x66 */ s16               field_66;
-    /* 0x68 */ s16               field_68;
-    /* 0x6A */ byte              pad_6A[0x2];
-    /* 0x6C */ u16               field_6C;
-    /* 0x6E */ byte              pad_6E[0x2];
+    /* 0x00 */ Task*      field_0; // gameGetPtrSlot(3)
+    /* 0x04 */ Task*      field_4; // Gp_FindWorkById(session slot)->field_0
+    /* 0x08 */ Task*      field_8;
+    /* 0x0C */ Task*      field_C;
+    /* 0x10 */ Task*      field_10;
+    /* 0x14 */ GpPlaceArg field_14;
+    /* 0x2C */ GpPlaceArg field_2C;
+    /* 0x44 */ GpPlaceArg field_44;
+    /* 0x5C */ s16        field_5C;
+    /* 0x5E */ s16        field_5E;
+    /* 0x60 */ byte       pad_60[0x4];
+    /* 0x64 */ s16        field_64;
+    /* 0x66 */ s16        field_66;
+    /* 0x68 */ s16        field_68;
+    /* 0x6A */ byte       pad_6A[0x2];
+    /* 0x6C */ u16        field_6C;
+    /* 0x6E */ byte       pad_6E[0x2];
 } Actor341900Work;
 STATIC_ASSERT_SIZEOF(Actor341900Work, 0x70);
 
@@ -219,18 +209,18 @@ extern u8  D_actor_341900_801639C4[];
 extern s16 D_actor_341900_801639D0[];
 /// Placements sent to the two effect children (`field_C` / `field_10`) as
 /// message 0x7D4 (states 3 and 4), and to `field_8` (states 1 and 2).
-extern Actor341900MsgPos D_actor_341900_801639D8[2];
-extern GpMsgEntry        D_actor_341900_80163A38[];
-extern Actor341900MsgPos D_actor_341900_80163A48;
-extern Actor341900MsgPos D_actor_341900_80163A60;
-extern GpMsgEntry        D_actor_341900_80163A78[];
+extern GpPlaceArg D_actor_341900_801639D8[2];
+extern GpMsgEntry D_actor_341900_80163A38[];
+extern GpPlaceArg D_actor_341900_80163A48;
+extern GpPlaceArg D_actor_341900_80163A60;
+extern GpMsgEntry D_actor_341900_80163A78[];
 /// Slot-3 placements and payloads sent by `func_actor_341900_801628B8`;
 /// `func_actor_341900_801635A4` also warps slot 3 to the last one.
-extern Actor341900MsgPos D_actor_341900_80163AC8;
-extern Actor341900MsgPos D_actor_341900_80163AE0;
-extern Actor341900MsgPos D_actor_341900_80163AF8;
-extern Actor341900MsgPos D_actor_341900_80163B10;
-extern Actor341900MsgPos D_actor_341900_80163B28;
+extern GpPlaceArg D_actor_341900_80163AC8;
+extern GpPlaceArg D_actor_341900_80163AE0;
+extern GpPlaceArg D_actor_341900_80163AF8;
+extern GpPlaceArg D_actor_341900_80163B10;
+extern GpPlaceArg D_actor_341900_80163B28;
 /// Opaque script/table blobs in the overlay's `.data`, handed to
 /// `func_800E8634` (which forwards them to `Task_Spawn`) as raw addresses.
 extern u8       D_actor_341900_80163B48[];
@@ -840,7 +830,7 @@ void func_actor_341900_80163224(Task* arg0, s32 arg1, s32 arg2)
 /// placement onto the model's root coordinate, the three longs as its
 /// translation and the three angles as its rotation (Y, then X, then Z), and
 /// marks the coordinate dirty.
-void func_actor_341900_801632A0(Task* task, s32 arg1, Actor341900MsgPos* placement)
+void func_actor_341900_801632A0(Task* task, s32 arg1, GpPlaceArg* placement)
 {
     GsCOORDINATE2* coord;
     MATRIX*        mtx;

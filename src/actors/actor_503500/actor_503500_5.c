@@ -995,7 +995,7 @@ s32 func_actor_503500_8014652C(Task* task, s32 arg1, Actor503500AnimPreset* msg)
 /// Message-0x7D4 handler of the effect task's table (the one
 /// `func_actor_503500_8014642C` installs): places the effect's model at `args`
 /// exactly as `func_actor_503500_80132508` places the actor. Returns 0.
-s32 func_actor_503500_80146664(Task* task, s32 arg1, Actor503500PlaceArgs* args)
+s32 func_actor_503500_80146664(Task* task, s32 arg1, GpPlaceArg* args)
 {
     Actor503500Coord* coord;
 

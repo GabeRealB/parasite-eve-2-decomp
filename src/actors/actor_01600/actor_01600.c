@@ -291,16 +291,9 @@ typedef struct Actor01600Msg7DB {
 } Actor01600Msg7DB;
 STATIC_ASSERT_SIZEOF(Actor01600Msg7DB, 0x4);
 
-/// Position and rotation payload for message 0x3E9.
-typedef struct Actor01600Msg3E9 {
-    /* 0x00 */ VECTOR  position;
-    /* 0x10 */ SVECTOR rotation;
-} Actor01600Msg3E9;
-STATIC_ASSERT_SIZEOF(Actor01600Msg3E9, 0x18);
-
 extern Task*            Gp_ActorSlots[];
 extern Actor01600Msg3F8 Actor01600_D12878;
-extern Actor01600Msg3E9 Actor01600_D12890;
+extern GpPlaceArg       Actor01600_D12890;
 
 extern s32 Actor01600_D12874;
 extern s32 Actor01600_D127DC;
@@ -2729,12 +2722,12 @@ s32 Actor01600_Fn047A0(Task* arg0)
                         } else if (angle < -0x800) {
                             heading = angle + 0x1000;
                         }
-                        Actor01600_D12890.rotation.vx = 0;
-                        Actor01600_D12890.rotation.vy = heading;
-                        Actor01600_D12890.rotation.vz = 0;
-                        Actor01600_D12890.position.vx = (s32)other->coord.t[0];
-                        Actor01600_D12890.position.vy = (s32)other->coord.t[1];
-                        Actor01600_D12890.position.vz = (s32)other->coord.t[2];
+                        Actor01600_D12890.rot.vx = 0;
+                        Actor01600_D12890.rot.vy = heading;
+                        Actor01600_D12890.rot.vz = 0;
+                        Actor01600_D12890.pos.vx = (s32)other->coord.t[0];
+                        Actor01600_D12890.pos.vy = (s32)other->coord.t[1];
+                        Actor01600_D12890.pos.vz = (s32)other->coord.t[2];
                         Gp_DispatchMsg(task, 0x3E9, (s32)&Actor01600_D12890, 0);
                         Actor01600_D12870 = 1;
                         return 1;

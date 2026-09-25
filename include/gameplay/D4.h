@@ -4,6 +4,7 @@
 #include "common.h"
 
 #include "gameplay/areaplace.h"
+#include "gameplay/message.h"
 #include "main/display.h"
 #include "main/task.h"
 

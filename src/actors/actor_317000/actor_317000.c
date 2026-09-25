@@ -100,17 +100,6 @@ typedef struct Actor317000AnimPreset {
 } Actor317000AnimPreset;
 STATIC_ASSERT_SIZEOF(Actor317000AnimPreset, 0x14);
 
-/// Position and Euler angles carried by messages 0x7DD and 0x7D4.
-/// `func_actor_317000_80162458` copies them into its work block (the position
-/// into `Actor317000Work::target`, the rotation into `field_4B8..field_4BC`,
-/// the yaw being the turn-to-face target); `func_actor_317000_80162B48` places
-/// the root coordinate at them.
-typedef struct Actor317000Placement {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} Actor317000Placement;
-STATIC_ASSERT_SIZEOF(Actor317000Placement, 0x18);
-
 /// Optional start animation for the same handler: the preset's `field_4` and
 /// the `field_43F` byte. Absent, the defaults are anim 2 and 1.
 typedef struct Actor317000SpawnAnim {
@@ -399,7 +388,7 @@ void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s32 arg3
 /// onto `func_800B4114`'s per-slot loop instead of the `Gp_AnimResetSlot`
 /// one, followed by a `Gp_AnimTickIndex` pass over the same 0x12 slots and
 /// `field_43C` raised. Returns 0 either way.
-s32 func_actor_317000_80162458(Task* task, s32 arg1, Actor317000Placement* place, Actor317000SpawnAnim* anim)
+s32 func_actor_317000_80162458(Task* task, s32 arg1, GpPlaceArg* place, Actor317000SpawnAnim* anim)
 {
     Actor317000Work*       work;
     Actor317000Work*       w;
@@ -695,7 +684,7 @@ s32 func_actor_317000_80162A10(Task* task, s32 arg1, Actor317000AnimPreset* msg,
 /// position into the root coordinate's translation and its Euler angles into
 /// `Actor317000Coord::rot`, rebuilds the rotation from them with `RotMatrix`
 /// and clears `flg` so the world matrix is recomputed. Returns 0.
-s32 func_actor_317000_80162B48(Task* task, s32 arg1, Actor317000Placement* args)
+s32 func_actor_317000_80162B48(Task* task, s32 arg1, GpPlaceArg* args)
 {
     Actor317000Coord* coord;
 

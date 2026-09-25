@@ -82,14 +82,6 @@ typedef struct Actor451100Msg {
     /* 0x2 */ u16  field_2;
 } Actor451100Msg;
 
-/// Payload of the placement opcode (message 0x7D4) both actors' message
-/// tables carry: the position the model's root coordinate is moved to, and the
-/// rotation whose `vy` becomes its yaw.
-typedef struct Actor451100Placement {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} Actor451100Placement;
-
 /// Work block of the actor `func_actor_451100_801322D4` dispatches, published
 /// by its spawn handler so the actor's message handlers and animation helpers
 /// reach it without the task.
@@ -372,7 +364,7 @@ s32 func_actor_451100_801325C8(Task* task, s32 arg1, s32 arg2)
 /// yaws the task's root coordinate to `placement->rot.vy`, caching that yaw in
 /// the published work block, then drops the placement translation into the
 /// matrix and marks it dirty.
-s32 func_actor_451100_80132610(Task* task, s32 arg1, Actor451100Placement* placement)
+s32 func_actor_451100_80132610(Task* task, s32 arg1, GpPlaceArg* placement)
 {
     GsCOORDINATE2* coord;
     u16            yaw;
@@ -737,7 +729,7 @@ s32 func_actor_451100_80132F04(Task* task, s32 arg1, s32 flags)
 /// yaws the actor's root coordinate to `placement->rot.vy`, caching that yaw
 /// in the work block, then drops the placement translation into the matrix
 /// and marks it dirty.
-s32 func_actor_451100_80132F68(Task* task, s32 arg1, Actor451100Placement* placement)
+s32 func_actor_451100_80132F68(Task* task, s32 arg1, GpPlaceArg* placement)
 {
     GsCOORDINATE2*   coord;
     Actor451100Work* work;

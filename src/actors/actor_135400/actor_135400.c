@@ -99,14 +99,6 @@ typedef struct Actor135400Msg7DB {
 } Actor135400Msg7DB;
 STATIC_ASSERT_SIZEOF(Actor135400Msg7DB, 0x4);
 
-/// Payload of the 0x7D4 placement message: a world translation and the Euler
-/// angles handed to `RotMatrix`.
-typedef struct Actor135400Placement {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} Actor135400Placement;
-STATIC_ASSERT_SIZEOF(Actor135400Placement, 0x18);
-
 /// `GsCOORDINATE2` at `TmdObject::coords` as the placement handlers use it:
 /// the libgs `param` slot at 0x44 holds the Euler angles written there and
 /// then handed straight to `RotMatrix`.
@@ -122,8 +114,8 @@ STATIC_ASSERT_SIZEOF(Actor135400Coord, 0x4C);
 /// spawn copies the pair in one go and then hands the branch picked by game
 /// flag 0x6C to the 0x7D4 handler `func_actor_135400_8013276C`.
 typedef struct Actor135400Places {
-    /* 0x00 */ Actor135400Placement field_0;
-    /* 0x18 */ Actor135400Placement field_18;
+    /* 0x00 */ GpPlaceArg field_0;
+    /* 0x18 */ GpPlaceArg field_18;
 } Actor135400Places;
 STATIC_ASSERT_SIZEOF(Actor135400Places, 0x30);
 
@@ -181,7 +173,7 @@ void func_actor_135400_8013252C(Task* task);
 void func_actor_135400_80132614(Task* arg0);
 void func_actor_135400_80132634(Task* task);
 s32  func_actor_135400_80132650(Task* task, s32 anim, GpAnimArg* params, s32 arg3);
-s32  func_actor_135400_8013276C(Task* task, s32 anim, Actor135400Placement* args, s32 arg3);
+s32  func_actor_135400_8013276C(Task* task, s32 anim, GpPlaceArg* args, s32 arg3);
 s32  func_actor_135400_801327E8(Task* task, s32 msgId, s32 mode, s32 arg3);
 void func_actor_135400_80132B60(Task* arg0);
 void func_actor_135400_80132C90(Task* arg0);
@@ -552,7 +544,7 @@ s32 func_actor_135400_80132650(Task* task, s32 anim, GpAnimArg* params, s32 arg3
 /// root part's local matrix and its Euler angles into the coordinate's `rot`
 /// slot, rebuilds the rotation from them and clears `flg` so the world matrix
 /// is recomputed.
-s32 func_actor_135400_8013276C(Task* task, s32 anim, Actor135400Placement* args, s32 arg3)
+s32 func_actor_135400_8013276C(Task* task, s32 anim, GpPlaceArg* args, s32 arg3)
 {
     Actor135400Coord* coord;
 
@@ -820,7 +812,7 @@ s32 func_actor_135400_80132D24(Task* task, s32 anim, GpAnimArg* params, s32 arg3
 
 /// The 0x7D4 handler of the same task: the same placement as
 /// `func_actor_135400_8013276C`, applied to this task's root coordinate.
-s32 func_actor_135400_80132E40(Task* task, s32 anim, Actor135400Placement* args, s32 arg3)
+s32 func_actor_135400_80132E40(Task* task, s32 anim, GpPlaceArg* args, s32 arg3)
 {
     Actor135400Coord* coord;
 

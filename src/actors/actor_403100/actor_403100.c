@@ -92,13 +92,6 @@ typedef struct Actor403100AnimTable {
 } Actor403100AnimTable;
 STATIC_ASSERT_SIZEOF(Actor403100AnimTable, 0x20);
 
-/// Position and Euler rotation payload sent to slot 3 as message 0x3E9.
-typedef struct Actor403100MsgPos {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} Actor403100MsgPos;
-STATIC_ASSERT_SIZEOF(Actor403100MsgPos, 0x18);
-
 /// The word at `Actor403100Work::field_664`, which the overlay reads both as a
 /// whole word and as four separate bytes: `func_actor_403100_8013D2A0` gates a
 /// new request on `word & 0xFFFF00` (the two bytes at 0x665 / 0x666) being
@@ -5284,7 +5277,7 @@ void func_actor_403100_8013D06C(void)
 
 void func_actor_403100_8013D0B8(s16 arg0, s16 arg1, s16 arg2, s16 arg3)
 {
-    Actor403100MsgPos msg;
+    GpPlaceArg msg;
 
     msg.pos.vx = arg0;
     msg.pos.vy = arg1;

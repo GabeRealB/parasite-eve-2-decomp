@@ -5,6 +5,7 @@
 
 #include <psyq/libgte.h>
 
+#include "gameplay/message.h"
 #include "main/task.h"
 
 /// Work block the actors sharing this body hang off the task's `Task::work`
@@ -23,17 +24,10 @@ typedef struct ActorsShared801326acWork {
 } ActorsShared801326acWork;
 STATIC_ASSERT_SIZEOF(ActorsShared801326acWork, 0x4EC);
 
-/// Argument block of the script opcode this body implements: the world
-/// position to walk to. Only the horizontal components are read.
-typedef struct ActorsShared801326acTarget {
-    /* 0x00 */ VECTOR pos;
-} ActorsShared801326acTarget;
-STATIC_ASSERT_SIZEOF(ActorsShared801326acTarget, 0x10);
-
 /// Aims the actor's root coordinate at `target`: takes the yaw of the
 /// horizontal offset from the coordinate's own translation with `ratan2`,
 /// caches it and rebuilds the local matrix from it, then records the remaining
 /// distance in twelfths for the walk that follows.
-s32 ActorsShared801326ac(Task* task, s32 arg1, ActorsShared801326acTarget* target);
+s32 ActorsShared801326ac(Task* task, s32 arg1, GpPlaceArg* target);
 
 #endif

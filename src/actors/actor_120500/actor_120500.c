@@ -97,7 +97,7 @@ extern u8 D_actor_120500_801380D8[];
 extern u8 D_actor_120500_80138318[];
 
 /// The actor's own placement, sent to itself as message 0x7D4.
-extern ActorShared8013411cPlacement D_actor_120500_801380C0;
+extern GpPlaceArg D_actor_120500_801380C0;
 
 /// Entry 0 of the task table: plays a streamed sequence, then restores the
 /// scene. It looks up the stream slot for the current location with view 0x64
@@ -623,7 +623,7 @@ void func_actor_120500_80132A04(Task* task, s32 arg1, s32 arg2)
 /// coordinate is parented to the view coordinate, takes `placement`'s
 /// position as its translation and its rotation applied Y, then X, then Z.
 /// `arg1` is the message id.
-void func_actor_120500_80132A74(Task* task, s32 arg1, ActorShared8013411cPlacement* placement)
+void func_actor_120500_80132A74(Task* task, s32 arg1, GpPlaceArg* placement)
 {
     GsCOORDINATE2* coord;
     MATRIX*        mtx;

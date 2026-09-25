@@ -37,13 +37,6 @@ typedef struct Actor350500AnimPreset {
 } Actor350500AnimPreset;
 STATIC_ASSERT_SIZEOF(Actor350500AnimPreset, 0x14);
 
-/// Position and rotation a placement message carries.
-typedef struct Actor350500Placement {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} Actor350500Placement;
-STATIC_ASSERT_SIZEOF(Actor350500Placement, 0x18);
-
 /// Optional start animation the placement handler takes: the preset's
 /// `field_4` and the `field_43F` byte. Absent, the defaults are anim 3 (or 2
 /// once `field_4C4` is set) and 1.
@@ -205,7 +198,7 @@ void func_actor_350500_80162038(Task* arg0)
 /// animation from `anim` (or anim 3, 2 once `field_4C4` is set), installing
 /// it with the body of `func_actor_350500_80162828` written out inline.
 /// Returns 0.
-s32 func_actor_350500_8016217C(Task* task, s32 arg1, Actor350500Placement* place, Actor350500SpawnAnim* anim)
+s32 func_actor_350500_8016217C(Task* task, s32 arg1, GpPlaceArg* place, Actor350500SpawnAnim* anim)
 {
     Actor350500Work*       work;
     Actor350500Work*       w;
@@ -504,7 +497,7 @@ s32 func_actor_350500_80162828(Task* task, s32 arg1, Actor350500AnimPreset* msg,
 /// goes straight into the local matrix, the Euler angles into the
 /// coordinate's `rot` slot, from which `RotMatrix` rebuilds the rotation;
 /// clearing `flg` makes the world matrix be recomputed. Returns 0.
-s32 func_actor_350500_80162960(Task* task, s32 msgId, Actor350500Placement* args)
+s32 func_actor_350500_80162960(Task* task, s32 msgId, GpPlaceArg* args)
 {
     Actor350500Coord* coord;
 

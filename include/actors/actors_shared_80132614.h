@@ -5,6 +5,7 @@
 
 #include <psyq/libgte.h>
 
+#include "gameplay/message.h"
 #include "main/task.h"
 
 /// Work block the actors sharing this body hang off the task's `Task::work`
@@ -25,17 +26,8 @@ typedef struct ActorsShared80132614Work {
 } ActorsShared80132614Work;
 STATIC_ASSERT_SIZEOF(ActorsShared80132614Work, 0x4E8);
 
-/// Argument block of the script opcode this body implements: a world
-/// translation followed by Euler angles, of which only the yaw (`rot.vy`) is
-/// used.
-typedef struct ActorsShared80132614Placement {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} ActorsShared80132614Placement;
-STATIC_ASSERT_SIZEOF(ActorsShared80132614Placement, 0x18);
-
 /// Yaws the actor's root coordinate to `placement->rot.vy` and drops the
 /// placement translation into that matrix.
-s32 ActorsShared80132614(Task* task, s32 arg1, ActorsShared80132614Placement* placement);
+s32 ActorsShared80132614(Task* task, s32 arg1, GpPlaceArg* placement);
 
 #endif

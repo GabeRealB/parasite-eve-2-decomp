@@ -496,7 +496,7 @@ s32 func_actor_260400_8014A998(Task* task, s32 arg1, s32 arg2)
 /// Message 0x7D4 (placement): turns the model to the placement's yaw, keeping
 /// that yaw in the work block, and moves it to the placement's position. Only
 /// the Y rotation is applied.
-s32 func_actor_260400_8014AA28(Task* task, s32 arg1, ActorShared8013411cPlacement* placement)
+s32 func_actor_260400_8014AA28(Task* task, s32 arg1, GpPlaceArg* placement)
 {
     GsCOORDINATE2* coord;
     u16            yaw;

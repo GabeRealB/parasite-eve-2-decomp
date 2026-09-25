@@ -87,10 +87,9 @@ typedef struct _GpMsg13EF {
 } GpMsg13EF;
 STATIC_ASSERT_SIZEOF(GpMsg13EF, 4);
 
-/// 0x18-byte stack payload for the slot-3 warp messages. `Gp_MsgPlayer3EE`
-/// writes `Gp_DirNibble << 4` at `field_12` and zeros `field_10` / `field_14`;
-/// senders of msg `0x3F2` fill the destination position in
-/// `field_0` / `field_4` / `field_8` instead.
+/// The field-numbered spelling of `GpPlaceArg` that room code still declares
+/// its placement and warp payloads with. It is the same record; new code uses
+/// `GpPlaceArg`.
 typedef struct _GpMsg3EE {
     /* 0x00 */ s32 field_0;
     /* 0x04 */ s32 field_4;

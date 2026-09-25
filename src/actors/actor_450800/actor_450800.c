@@ -149,14 +149,6 @@ typedef struct Actor450800AnimArgs {
     /* 0xC */ u16  animArg;
 } Actor450800AnimArgs;
 
-/// Payload of the placement opcode (message 0x7D4) both of the overlay's
-/// message tables carry: the position the model's root coordinate is moved to,
-/// and the rotation whose `vy` becomes its yaw.
-typedef struct Actor450800Placement {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} Actor450800Placement;
-
 /// Spawn offset `func_actor_450800_80132108` copies into a local and hands to
 /// `Gp_SpawnEff` as the effect's position.
 const SVECTOR D_actor_450800_80131E24 = { 0x19C8, -0x578, 0x3C0, 0 };
@@ -733,7 +725,7 @@ s32 func_actor_450800_80132BB0(Task* task, s32 arg1, s32 arg2)
 /// yaws the actor's root coordinate to `placement->rot.vy`, caching that yaw in
 /// `Actor450800Work::yaw`, then drops the placement translation into the matrix
 /// and marks it dirty.
-s32 func_actor_450800_80132C68(Task* task, s32 arg1, Actor450800Placement* placement)
+s32 func_actor_450800_80132C68(Task* task, s32 arg1, GpPlaceArg* placement)
 {
     GsCOORDINATE2*   coord;
     Actor450800Work* work;
@@ -1130,7 +1122,7 @@ s32 func_actor_450800_80133594(Task* task, s32 arg1, s32 flags)
 /// opcode: yaws its root coordinate to `placement->rot.vy`, caching that yaw
 /// in `Actor450800SpawnWork::yaw`, then drops the placement translation into
 /// the matrix and marks it dirty.
-s32 func_actor_450800_801335F8(Task* task, s32 arg1, Actor450800Placement* placement)
+s32 func_actor_450800_801335F8(Task* task, s32 arg1, GpPlaceArg* placement)
 {
     GsCOORDINATE2*        coord;
     Actor450800SpawnWork* work;

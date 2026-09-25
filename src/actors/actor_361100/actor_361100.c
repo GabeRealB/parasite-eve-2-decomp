@@ -73,16 +73,6 @@ typedef struct Actor361100Work {
 } Actor361100Work;
 STATIC_ASSERT_SIZEOF(Actor361100Work, 0x4A4);
 
-/// Payload of message 0x7D4, the placement opcode: a world translation
-/// followed by Euler angles. Both of the entry's 0x7D4 handlers take it,
-/// `func_actor_361100_80162F58` building the rotation with `RotMatrixZYX` and
-/// `func_actor_361100_801635F4` with `RotMatrix`.
-typedef struct Actor361100Placement {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} Actor361100Placement;
-STATIC_ASSERT_SIZEOF(Actor361100Placement, 0x18);
-
 /// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`.
 /// The overlay's 0x7DB handlers, `func_actor_361100_80163750` and
 /// `func_actor_361100_801630D4`, switch on the halfword at 0x2.
@@ -958,7 +948,7 @@ s32 func_actor_361100_80162E20(Task* task, s32 arg1, Actor361100AnimPreset* msg)
 /// `RotMatrixZYX`. Clearing `flg` makes `_gpUpdateCoordTree` recompute the
 /// world matrix from it, and the six words the body then clears are the work
 /// block's two vector accumulators.
-s32 func_actor_361100_80162F58(Task* task, s32 arg1, Actor361100Placement* placement)
+s32 func_actor_361100_80162F58(Task* task, s32 arg1, GpPlaceArg* placement)
 {
     Actor361100Coord* coord;
     Actor361100Work*  work;
@@ -1207,7 +1197,7 @@ s32 func_actor_361100_801634D0(Task* task, s32 arg1, Actor361100AnimPreset* msg)
 /// keeps its Euler angles in the coordinate's `rot` slot and rebuilds the
 /// rotation from them with `RotMatrix`, then clears `flg` so the world matrix
 /// is recomputed.
-s32 func_actor_361100_801635F4(Task* task, s32 arg1, Actor361100Placement* placement)
+s32 func_actor_361100_801635F4(Task* task, s32 arg1, GpPlaceArg* placement)
 {
     Actor361100Coord* coord;
 

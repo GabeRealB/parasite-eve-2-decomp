@@ -454,16 +454,6 @@ typedef struct Actor206100ChildWork {
 } Actor206100ChildWork;
 STATIC_ASSERT_SIZEOF(Actor206100ChildWork, 0x68);
 
-/// Position and Euler rotation payload `func_actor_206100_8014CD08` sends to
-/// slot 3 as message 0x3E9 when the actor's `field_51E` counter reaches 0x22,
-/// teleporting it to (0x690, 0x1388, 0x898) with a 0xA00 yaw.  The same
-/// `VECTOR` + `SVECTOR` pair `Actor403100MsgPos` and `Actor341900MsgPos` carry.
-typedef struct Actor206100Msg3E9 {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} Actor206100Msg3E9;
-STATIC_ASSERT_SIZEOF(Actor206100Msg3E9, 0x18);
-
 /// Spawn arg `func_actor_206100_8014CB68` hands the child task it starts off
 /// `D_actor_206100_80158AF0` -- written to `Task::spawnArg2` by
 /// `Task_SpawnFromDesc`, and parked by that child in
@@ -2090,11 +2080,11 @@ loop:
 /// describes as it goes.
 void func_actor_206100_8014CB68(Task* task)
 {
-    Actor206100Work*  work;
-    Actor206100Work*  work2;
-    TmdObject*        tmd;
-    GsCOORDINATE2*    coord;
-    Actor206100Msg3E9 msg;
+    Actor206100Work* work;
+    Actor206100Work* work2;
+    TmdObject*       tmd;
+    GsCOORDINATE2*   coord;
+    GpPlaceArg       msg;
 
     work  = (Actor206100Work*)task->work;
     tmd   = task->extra;
@@ -2142,11 +2132,11 @@ void func_actor_206100_8014CB68(Task* task)
 }
 void func_actor_206100_8014CD08(Task* task)
 {
-    Actor206100Work*  work;
-    Actor206100Work*  work2;
-    TmdObject*        tmd;
-    GsCOORDINATE2*    coord;
-    Actor206100Msg3E9 msg;
+    Actor206100Work* work;
+    Actor206100Work* work2;
+    TmdObject*       tmd;
+    GsCOORDINATE2*   coord;
+    GpPlaceArg       msg;
 
     work            = (Actor206100Work*)task->work;
     tmd             = task->extra;

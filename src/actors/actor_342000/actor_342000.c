@@ -23,23 +23,6 @@
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 
-/// Position + rotation argument of the overlay's id 0x7D4 message handlers,
-/// one per message table (`func_actor_342000_801640C0` and
-/// `func_actor_342000_80164034`). `field_0` / `field_4` / `field_8` are copied
-/// onto a coordinate's `coord.t`; `field_10` / `field_12` / `field_14` are the
-/// euler angles its matrix is rebuilt from. Same shape as gameplay's
-/// `GpXformArg`.
-typedef struct _Actor342000Move {
-    /* 0x00 */ s32  field_0;
-    /* 0x04 */ s32  field_4;
-    /* 0x08 */ s32  field_8;
-    /* 0x0C */ byte pad_C[4];
-    /* 0x10 */ s16  field_10;
-    /* 0x12 */ s16  field_12;
-    /* 0x14 */ s16  field_14;
-} Actor342000Move;
-STATIC_ASSERT_SIZEOF(Actor342000Move, 0x18);
-
 /// Script command payload of the overlay's message handlers -- the `arg2` of
 /// the id 0x7DB handler `func_actor_342000_80164110`, which reads `field_2`
 /// and latches it in `Actor342000Work::field_2AA`. Same shape as the
@@ -68,7 +51,7 @@ STATIC_ASSERT_SIZEOF(Actor342000Cmd, 0x4);
 /// `field_278`, then `X` of `field_274`, then `Z` of `field_27C`, word loads),
 /// scales each of its columns by the matching `field_264` component through
 /// `gpf 12` and clears `coord.flg`; `func_actor_342000_801640C0` writes all of
-/// it from an `Actor342000Move`.
+/// it from a `GpPlaceArg`.
 ///
 /// `field_264` holds that per-axis scale, 1.12 fixed point like the matrix it
 /// multiplies: each column `j` is gathered into a scratchpad `SVECTOR`, run
@@ -129,28 +112,28 @@ STATIC_ASSERT_SIZEOF(Actor342000Work, 0x2AC);
 /// spawned child tasks the teardown helpers kill. `field_7A` and `field_7C`
 /// are once-only latches guarding a sound cue and the fade-out setup.
 typedef struct Actor342000EventWork {
-    /* 0x00 */ Actor342000Move field_0[2];
-    /* 0x30 */ Actor342000Move field_30;
-    /* 0x48 */ Task*           field_48;
-    /* 0x4C */ s32             field_4C;
-    /* 0x50 */ Task*           field_50;
-    /* 0x54 */ Task*           field_54;
-    /* 0x58 */ Task*           field_58;
-    /* 0x5C */ Task*           field_5C;
-    /* 0x60 */ Task*           field_60;
-    /* 0x64 */ Task*           field_64;
-    /* 0x68 */ u16             field_68;
-    /* 0x6A */ u16             field_6A;
-    /* 0x6C */ u16             field_6C;
-    /* 0x6E */ byte            pad_6E[0x2];
-    /* 0x70 */ s16             field_70;
-    /* 0x72 */ s16             field_72;
-    /* 0x74 */ u16             field_74;
-    /* 0x76 */ byte            pad_76[0x2];
-    /* 0x78 */ s16             field_78;
-    /* 0x7A */ u16             field_7A;
-    /* 0x7C */ u16             field_7C;
-    /* 0x7E */ u16             field_7E;
+    /* 0x00 */ GpPlaceArg field_0[2];
+    /* 0x30 */ GpPlaceArg field_30;
+    /* 0x48 */ Task*      field_48;
+    /* 0x4C */ s32        field_4C;
+    /* 0x50 */ Task*      field_50;
+    /* 0x54 */ Task*      field_54;
+    /* 0x58 */ Task*      field_58;
+    /* 0x5C */ Task*      field_5C;
+    /* 0x60 */ Task*      field_60;
+    /* 0x64 */ Task*      field_64;
+    /* 0x68 */ u16        field_68;
+    /* 0x6A */ u16        field_6A;
+    /* 0x6C */ u16        field_6C;
+    /* 0x6E */ byte       pad_6E[0x2];
+    /* 0x70 */ s16        field_70;
+    /* 0x72 */ s16        field_72;
+    /* 0x74 */ u16        field_74;
+    /* 0x76 */ byte       pad_76[0x2];
+    /* 0x78 */ s16        field_78;
+    /* 0x7A */ u16        field_7A;
+    /* 0x7C */ u16        field_7C;
+    /* 0x7E */ u16        field_7E;
 } Actor342000EventWork;
 STATIC_ASSERT_SIZEOF(Actor342000EventWork, 0x80);
 
@@ -184,12 +167,12 @@ STATIC_ASSERT_SIZEOF(Actor342000ColorMtx, 0x44);
 extern Task* D_actor_342000_80165070;
 
 /// Message 0x7D4's static payload, handed to `Gp_DispatchMsg` by the actor's
-/// spawn tick. Same shape as the `Actor342000Move` the handler takes.
-extern Actor342000Move D_actor_342000_801648B8;
+/// spawn tick. The same record the handler takes.
+extern GpPlaceArg D_actor_342000_801648B8;
 
 /// Fixed placement `func_actor_342000_8016439C` warps slot 3 to, sent as
 /// message 0x3E9 and again as 0x3F2 by `func_actor_342000_80162BBC`.
-extern Actor342000Move D_actor_342000_80164948;
+extern GpPlaceArg D_actor_342000_80164948;
 
 extern GpMsgEntry D_actor_342000_801648A8[];
 
@@ -670,7 +653,7 @@ extern s8 D_8007218A;
 extern u8 D_actor_342000_801647E8[];
 
 /// Placement sent as message 0x3E9 by sequence step 1.
-extern Actor342000Move D_actor_342000_80164930;
+extern GpPlaceArg D_actor_342000_80164930;
 
 /// Per-tick sequence driver of the event task: raises 0x3ED on `field_48`,
 /// then runs the one-shot step latched in `field_68` (warps, animation
@@ -791,25 +774,25 @@ void func_actor_342000_80162BBC(Task* arg0)
     work->field_68 = 0;
 }
 
-extern Actor342000Move D_actor_342000_80164818[2];
-extern Actor342000Move D_actor_342000_80164848[2];
-extern Actor342000Move D_actor_342000_80164878[2];
-extern Actor342000Move D_actor_342000_801648D0;
-extern u8              D_8007216C;
-extern s32             D_80070F70;
-extern s32             D_80144A74;
-extern s32             D_80144A7C;
+extern GpPlaceArg D_actor_342000_80164818[2];
+extern GpPlaceArg D_actor_342000_80164848[2];
+extern GpPlaceArg D_actor_342000_80164878[2];
+extern GpPlaceArg D_actor_342000_801648D0;
+extern u8         D_8007216C;
+extern s32        D_80070F70;
+extern s32        D_80144A74;
+extern s32        D_80144A7C;
 
 void func_80143490(s32 arg0);
 
-static inline void Actor342000_CopyMove(Actor342000Move* dst, Actor342000Move* src)
+static inline void Actor342000_CopyMove(GpPlaceArg* dst, GpPlaceArg* src)
 {
-    dst->field_0  = src->field_0;
-    dst->field_4  = src->field_4;
-    dst->field_8  = src->field_8;
-    dst->field_10 = src->field_10;
-    dst->field_12 = src->field_12;
-    dst->field_14 = src->field_14;
+    dst->pos.vx = src->pos.vx;
+    dst->pos.vy = src->pos.vy;
+    dst->pos.vz = src->pos.vz;
+    dst->rot.vx = src->rot.vx;
+    dst->rot.vy = src->rot.vy;
+    dst->rot.vz = src->rot.vz;
 }
 
 static inline void Actor342000_SetAnim(Task* task, u16 anim, u16 blend, u16 n)
@@ -854,7 +837,7 @@ void func_actor_342000_80162F28(Task* arg0)
 {
     Actor342000EventWork* work;
     Actor342000Work*      actor;
-    Actor342000Move*      src;
+    GpPlaceArg*           src;
     s32                   v;
 
     work  = (Actor342000EventWork*)arg0->work;
@@ -868,17 +851,17 @@ void func_actor_342000_80162F28(Task* arg0)
                     Gp_DispatchMsg(work->field_60, 0x7D5, 1, 0);
                     Actor342000_CopyMove(&work->field_0[0], &D_actor_342000_80164818[0]);
                     Actor342000_CopyMove(&work->field_0[1], &D_actor_342000_80164818[1]);
-                    actor->field_264.vx     = 0x1000;
-                    actor->field_264.vy     = 0x1000;
-                    actor->field_264.vz     = 0x1000;
-                    src                     = &D_actor_342000_801648B8;
-                    work->field_30.field_0  = src->field_0;
-                    work->field_30.field_4  = src->field_4;
-                    work->field_30.field_8  = src->field_8;
-                    work->field_30.field_10 = src->field_10;
-                    work->field_30.field_12 = src->field_12;
-                    work->field_30.field_14 = src->field_14;
-                    work->field_74          = 0;
+                    actor->field_264.vx   = 0x1000;
+                    actor->field_264.vy   = 0x1000;
+                    actor->field_264.vz   = 0x1000;
+                    src                   = &D_actor_342000_801648B8;
+                    work->field_30.pos.vx = src->pos.vx;
+                    work->field_30.pos.vy = src->pos.vy;
+                    work->field_30.pos.vz = src->pos.vz;
+                    work->field_30.rot.vx = src->rot.vx;
+                    work->field_30.rot.vy = src->rot.vy;
+                    work->field_30.rot.vz = src->rot.vz;
+                    work->field_74        = 0;
                     work->field_72++;
                 case 1:
                     if (++work->field_74 == 60) {
@@ -886,12 +869,12 @@ void func_actor_342000_80162F28(Task* arg0)
                         Actor342000_SetAnim(work->field_54, 1, 10, 4);
                         Actor342000_SetAnim(work->field_58, 1, 10, 4);
                     }
-                    actor->field_264.vx      -= 4;
-                    work->field_0[0].field_0 += 5;
-                    work->field_0[1].field_0 -= 5;
+                    actor->field_264.vx     -= 4;
+                    work->field_0[0].pos.vx += 5;
+                    work->field_0[1].pos.vx -= 5;
                     Gp_DispatchMsg(work->field_5C, 0x7D4, (s32)&work->field_0[0], 0);
                     Gp_DispatchMsg(work->field_60, 0x7D4, (s32)&work->field_0[1], 0);
-                    work->field_30.field_4 += 3;
+                    work->field_30.pos.vy += 3;
                     Gp_DispatchMsg(work->field_50, 0x7D4, (s32)&work->field_30, 0);
                     break;
             }
@@ -922,12 +905,12 @@ void func_actor_342000_80162F28(Task* arg0)
                     work->field_72++;
                 case 1:
                     actor->field_264.vx -= 4;
-                    Actor342000_Add(&work->field_0[0].field_0, 5);
-                    Actor342000_Add(&work->field_0[1].field_0, -5);
-                    v = Actor342000_Sway(work->field_0[0].field_8, -20);
-                    Actor342000_Store(&work->field_0[0].field_8, v);
-                    v = Actor342000_Sway(work->field_0[1].field_8, 20);
-                    Actor342000_Store(&work->field_0[1].field_8, v);
+                    Actor342000_Add(&work->field_0[0].pos.vx, 5);
+                    Actor342000_Add(&work->field_0[1].pos.vx, -5);
+                    v = Actor342000_Sway(work->field_0[0].pos.vz, -20);
+                    Actor342000_Store(&work->field_0[0].pos.vz, v);
+                    v = Actor342000_Sway(work->field_0[1].pos.vz, 20);
+                    Actor342000_Store(&work->field_0[1].pos.vz, v);
                     Gp_DispatchMsg(work->field_5C, 0x7D4, (s32)&work->field_0[0], 0);
                     Gp_DispatchMsg(work->field_60, 0x7D4, (s32)&work->field_0[1], 0);
                     break;
@@ -957,8 +940,8 @@ void func_actor_342000_80162F28(Task* arg0)
                 Gp_DispatchMsg(work->field_5C, 0x7D5, 1, 0);
                 Gp_DispatchMsg(work->field_60, 0x7D5, 1, 0);
             }
-            work->field_0[0].field_0 += 5;
-            work->field_0[1].field_0 -= 5;
+            work->field_0[0].pos.vx += 5;
+            work->field_0[1].pos.vx -= 5;
             Gp_DispatchMsg(work->field_5C, 0x7D4, (s32)&work->field_0[0], 0);
             Gp_DispatchMsg(work->field_60, 0x7D4, (s32)&work->field_0[1], 0);
             return;
@@ -974,11 +957,11 @@ void func_actor_342000_80162F28(Task* arg0)
                     Actor342000_CopyMove(&work->field_0[1], &D_actor_342000_80164878[1]);
                     work->field_72++;
                 case 1:
-                    work->field_0[0].field_0 += 5;
-                    work->field_0[1].field_0 -= 5;
-                    if (work->field_0[0].field_0 >= 0x36B0) {
-                        work->field_0[0].field_0 = 0x36B0;
-                        work->field_0[1].field_0 = 0x36B0;
+                    work->field_0[0].pos.vx += 5;
+                    work->field_0[1].pos.vx -= 5;
+                    if (work->field_0[0].pos.vx >= 0x36B0) {
+                        work->field_0[0].pos.vx = 0x36B0;
+                        work->field_0[1].pos.vx = 0x36B0;
                         Task_Reparent(arg0, Gp_SpawnScript18((s32)&D_80144A74, (s32)&D_80144A7C));
                         func_80143490(3);
                         work->field_70 = 0;
@@ -1075,8 +1058,8 @@ void func_actor_342000_8016382C(Task* arg0)
     Actor342000EventWork* ev;
     Actor342000EventWork* alloc;
     Actor342000EventWork* seq;
-    Actor342000Move*      src;
-    Actor342000Move*      dst;
+    GpPlaceArg*           src;
+    GpPlaceArg*           dst;
     Task*                 child;
     u16                   i;
     s16                   timer;
@@ -1293,47 +1276,47 @@ void func_actor_342000_80163FB8(Task* arg0, s32 arg1, s32 arg2)
 /// the payload onto the model's root coordinate, the three longs as its
 /// translation and the three angles as its rotation (Y, then X, then Z), and
 /// marks the coordinate dirty.
-void func_actor_342000_80164034(Task* task, s32 arg1, Actor342000Move* arg2)
+void func_actor_342000_80164034(Task* task, s32 arg1, GpPlaceArg* arg2)
 {
     GsCOORDINATE2* coord;
     MATRIX*        mtx;
 
     coord             = ((TmdObject*)task->extra)->coords;
-    coord->coord.t[0] = arg2->field_0;
-    coord->coord.t[1] = arg2->field_4;
+    coord->coord.t[0] = arg2->pos.vx;
+    coord->coord.t[1] = arg2->pos.vy;
     mtx               = &coord->coord;
-    coord->coord.t[2] = arg2->field_8;
-    Gfx_RotMatrixY(mtx, arg2->field_12, 1);
-    Gfx_RotMatrixX(mtx, arg2->field_10, 0);
-    Gfx_RotMatrixZ(mtx, arg2->field_14, 0);
+    coord->coord.t[2] = arg2->pos.vz;
+    Gfx_RotMatrixY(mtx, arg2->rot.vy, 1);
+    Gfx_RotMatrixX(mtx, arg2->rot.vx, 0);
+    Gfx_RotMatrixZ(mtx, arg2->rot.vz, 0);
     coord->flg = 0;
 }
 
-void func_actor_342000_801640C0(Task* arg0, s32 arg1, Actor342000Move* arg2)
+void func_actor_342000_801640C0(Task* arg0, s32 arg1, GpPlaceArg* arg2)
 {
     Actor342000Work* work;
     GsCOORDINATE2*   coord;
 
     work              = (Actor342000Work*)arg0->work;
     coord             = &work->coord;
-    coord->coord.t[0] = arg2->field_0;
-    coord->coord.t[1] = arg2->field_4;
-    coord->coord.t[2] = arg2->field_8;
-    work->field_274   = arg2->field_10;
-    work->field_278   = arg2->field_12;
-    work->field_27C   = arg2->field_14;
+    coord->coord.t[0] = arg2->pos.vx;
+    coord->coord.t[1] = arg2->pos.vy;
+    coord->coord.t[2] = arg2->pos.vz;
+    work->field_274   = arg2->rot.vx;
+    work->field_278   = arg2->rot.vy;
+    work->field_27C   = arg2->rot.vz;
     work->coord.flg   = 0;
 }
 
-void func_actor_342000_80164110(Task* arg0, s32 arg1, Actor342000Cmd* arg2, Actor342000Move* arg3)
+void func_actor_342000_80164110(Task* arg0, s32 arg1, Actor342000Cmd* arg2, GpPlaceArg* arg3)
 {
     Actor342000Work* work;
 
     work = (Actor342000Work*)arg0->work;
     if (arg2->field_2 == 0xA) {
-        work->field_264.vx = arg3->field_0;
-        work->field_264.vy = arg3->field_4;
-        work->field_264.vz = arg3->field_8;
+        work->field_264.vx = arg3->pos.vx;
+        work->field_264.vy = arg3->pos.vy;
+        work->field_264.vz = arg3->pos.vz;
     }
     work->field_2AA = arg2->field_2;
 }

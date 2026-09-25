@@ -52,14 +52,6 @@ typedef struct Actor443500Work {
 } Actor443500Work;
 STATIC_ASSERT_SIZEOF(Actor443500Work, 0x4C4);
 
-/// Argument block of message 0x7D4: a world translation followed by the Euler
-/// angles handed to `RotMatrix`.
-typedef struct Actor443500PlaceArgs {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} Actor443500PlaceArgs;
-STATIC_ASSERT_SIZEOF(Actor443500PlaceArgs, 0x18);
-
 /// `GsCOORDINATE2` at `TmdObject::coords`, with the Euler angles kept in the
 /// slot libgs names `param` (0x44), from which the rotation is rebuilt.
 typedef struct Actor443500Coord {
@@ -523,7 +515,7 @@ s32 func_actor_443500_801327E0(Task* task, s32 anim, GpAnimArg* params, s32 arg3
 /// straight into the root coordinate's local matrix, the Euler angles into the
 /// coordinate's `rot` slot, from which the rotation is rebuilt. Clearing `flg`
 /// has the world matrix recomputed. Returns 0.
-s32 func_actor_443500_80132900(Task* task, s32 arg1, Actor443500PlaceArgs* args)
+s32 func_actor_443500_80132900(Task* task, s32 arg1, GpPlaceArg* args)
 {
     Actor443500Coord* coord;
 

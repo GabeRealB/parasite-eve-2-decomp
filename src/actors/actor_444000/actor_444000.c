@@ -356,14 +356,6 @@ typedef struct Actor444000DragScratch {
 } Actor444000DragScratch;
 STATIC_ASSERT_SIZEOF(Actor444000DragScratch, 0x4C);
 
-/// Position and Euler rotation payload the escort-order tick sends slot 3 as
-/// message 0x3E9; `D_actor_444000_80161908` is the overlay's only instance.
-typedef struct Actor444000MsgPos {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} Actor444000MsgPos;
-STATIC_ASSERT_SIZEOF(Actor444000MsgPos, 0x18);
-
 /// The overlay's event/controller task, whose `work` holds an
 /// `Actor444000EventWork`.
 extern Task* D_actor_444000_80161860;
@@ -516,7 +508,7 @@ extern GpAnimSet* D_actor_444000_80161680[];
 /// 1 marks the plain re-placement, 0 the full grab.
 extern s8 D_actor_444000_80161868;
 /// Shared message 0x3E9 placement payload the escort-order tick sends slot 3.
-extern Actor444000MsgPos D_actor_444000_80161908;
+extern GpPlaceArg D_actor_444000_80161908;
 /// Reply buffer the fight hands message 0x3F8 before asking for the hold.
 extern Actor444000Msg3F8 D_actor_444000_80161928;
 
@@ -7844,7 +7836,7 @@ s32 func_actor_444000_80143D68(Task* arg0)
 /// longs become the translation, the Euler angles are applied X/Y/Z unless the
 /// work block's state index is 0x12 or 0x13, and the coordinate is marked
 /// dirty. Same body as `ActorsShared80135990` with that state gate added.
-s32 func_actor_444000_80143D7C(Task* arg0, s32 arg1, ActorShared80135990Placement* placement)
+s32 func_actor_444000_80143D7C(Task* arg0, s32 arg1, GpPlaceArg* placement)
 {
     Actor444000Work* work = arg0->work;
 

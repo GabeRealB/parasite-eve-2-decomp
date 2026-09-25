@@ -1367,7 +1367,7 @@ void func_actor_120300_80133C38(Task* task, s32 arg1, s32 arg2)
 /// coordinate is parented to the view coordinate, takes `placement`'s
 /// position as its translation and its rotation applied Y, then X, then Z.
 /// `arg1` is the message id.
-void func_actor_120300_80133C6C(Task* task, s32 arg1, ActorShared80133c6cPlacement* placement)
+void func_actor_120300_80133C6C(Task* task, s32 arg1, GpPlaceArg* placement)
 {
     GsCOORDINATE2* coord;
     MATRIX*        mtx;

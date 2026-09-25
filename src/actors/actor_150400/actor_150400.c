@@ -68,19 +68,6 @@ typedef struct Actor150400AnimArgs {
     /* 0xC */ u16  animArg;
 } Actor150400AnimArgs;
 
-/// Argument block of the placement opcode: a world translation followed by
-/// Euler angles, of which only the yaw (`rot.vy`) is read.
-typedef struct Actor150400Placement {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} Actor150400Placement;
-
-/// Argument block of the walk-to opcode: the world position to walk to. Only
-/// the horizontal components are read.
-typedef struct Actor150400WalkTarget {
-    /* 0x00 */ VECTOR pos;
-} Actor150400WalkTarget;
-
 extern TaskDesc D_actor_150400_80132CF0;
 extern TaskDesc D_80181BBC;
 extern Task*    D_actor_150400_8013C924;
@@ -485,7 +472,7 @@ s32 func_actor_150400_80132710(Task* task, s32 arg1, s32 flags)
 /// Script opcode: place the actor. Yaws its root coordinate to
 /// `placement->rot.vy`, caching that yaw in `yaw`, then drops the placement
 /// translation into the matrix and marks it for recomputation.
-s32 func_actor_150400_80132774(Task* task, s32 arg1, Actor150400Placement* placement)
+s32 func_actor_150400_80132774(Task* task, s32 arg1, GpPlaceArg* placement)
 {
     GsCOORDINATE2*   coord;
     Actor150400Work* work;
@@ -512,7 +499,7 @@ s32 func_actor_150400_801327EC(void)
 /// the yaw of the horizontal offset from the coordinate's own translation,
 /// caches that yaw in `yaw` and rebuilds the local matrix from it, then sets
 /// `travel` to the distance divided by 17, the step body's per-frame stride.
-s32 func_actor_150400_801327F4(Task* task, s32 arg1, Actor150400WalkTarget* target)
+s32 func_actor_150400_801327F4(Task* task, s32 arg1, GpPlaceArg* target)
 {
     GsCOORDINATE2*   coord;
     Actor150400Work* work;

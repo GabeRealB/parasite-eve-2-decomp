@@ -318,7 +318,7 @@ s32 func_actor_213100_8014A258(Task* task, s32 arg1, Actor213100AnimPreset* msg,
 /// the translation goes straight into the root coordinate's local matrix, the
 /// Euler angles into the coordinate's `rot` slot, from which the rotation is
 /// rebuilt. Clearing `flg` has the world matrix recomputed. Returns 0.
-s32 func_actor_213100_8014A390(Task* task, s32 arg1, ActorsShared8013231cArgs* args)
+s32 func_actor_213100_8014A390(Task* task, s32 arg1, GpPlaceArg* args)
 {
     ActorsShared8013231cCoord* coord;
 

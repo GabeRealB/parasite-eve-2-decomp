@@ -50,8 +50,8 @@ s16  func_80103E7C(s16 arg0, s16 arg1);
 void Gp_TrackLockTarget(Task* arg0);
 void Gp_PlaceCoordOffset(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2);
 s32  func_80104B54(Task* arg0, s32 arg1, GpAnimArg* arg2);
-s32  func_80104E00(Task* arg0, s32 arg1, GpXformArg* arg2);
-s32  Gp_SetActorDest(Task* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3);
+s32  func_80104E00(Task* arg0, s32 arg1, GpPlaceArg* arg2);
+s32  Gp_SetActorDest(Task* arg0, s32 arg1, GpPlaceArg* arg2, GpOverrideArg* arg3);
 s32  Gp_MoveActorBy(Task* arg0, s32 arg1, GpMoveArg* arg2);
 s32  func_801055D4(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 s32  func_80105690(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -5570,7 +5570,7 @@ s32 func_80104CAC(Task* arg0, s32 arg1, GpAnimArg* arg2)
     return 0;
 }
 
-s32 func_80104D68(Task* arg0, s32 arg1, GpXformArg* arg2)
+s32 func_80104D68(Task* arg0, s32 arg1, GpPlaceArg* arg2)
 {
     TmdObject*     extra;
     GameActor*     actor;
@@ -5580,12 +5580,12 @@ s32 func_80104D68(Task* arg0, s32 arg1, GpXformArg* arg2)
     extra             = (TmdObject*)arg0->extra;
     actor             = (GameActor*)arg0->work;
     coord             = (GsCOORDINATE2*)extra->coords;
-    coord->coord.t[0] = arg2->field_0;
-    coord->coord.t[1] = arg2->field_4;
-    coord->coord.t[2] = arg2->field_8;
-    actor->field_50   = arg2->field_10;
-    actor->field_52   = arg2->field_12;
-    actor->field_54   = arg2->field_14;
+    coord->coord.t[0] = arg2->pos.vx;
+    coord->coord.t[1] = arg2->pos.vy;
+    coord->coord.t[2] = arg2->pos.vz;
+    actor->field_50   = arg2->rot.vx;
+    actor->field_52   = arg2->rot.vy;
+    actor->field_54   = arg2->rot.vz;
     mtx               = &coord->coord;
     RotMatrix((SVECTOR*)&actor->field_50, mtx);
     MatrixNormal(mtx, mtx);
@@ -5594,7 +5594,7 @@ s32 func_80104D68(Task* arg0, s32 arg1, GpXformArg* arg2)
     return 0;
 }
 
-s32 func_80104E00(Task* arg0, s32 arg1, GpXformArg* arg2)
+s32 func_80104E00(Task* arg0, s32 arg1, GpPlaceArg* arg2)
 {
     GameActor*          actor;
     register GameActor* inner asm("s1");
@@ -5635,7 +5635,7 @@ s32 func_80104E00(Task* arg0, s32 arg1, GpXformArg* arg2)
     inner->field_982     = 1;
     inner->field_956     = flag;
     inner->field_983     = 0x38;
-    angle                = (u16)arg2->field_12;
+    angle                = (u16)arg2->rot.vy;
     inner->field_82      = angle;
     val                  = func_80103E7C(inner->field_52, angle);
     *(s32*)(head - 0x10) = val;
@@ -5688,7 +5688,7 @@ s32 func_80104F5C(Task* arg0, s32 arg1, GpFacingArg* arg2)
     return 0;
 }
 
-s32 Gp_SetActorDest(Task* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3)
+s32 Gp_SetActorDest(Task* arg0, s32 arg1, GpPlaceArg* arg2, GpOverrideArg* arg3)
 {
     GameActor*    actor;
     PlayerStatus* p;
@@ -5717,9 +5717,9 @@ s32 Gp_SetActorDest(Task* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3)
     actor->field_956 = 4;
     actor->field_982 = 1;
     actor->field_983 = 0x38;
-    actor->field_20  = arg2->field_0;
-    actor->field_24  = arg2->field_4;
-    actor->field_28  = arg2->field_8;
+    actor->field_20  = arg2->pos.vx;
+    actor->field_24  = arg2->pos.vy;
+    actor->field_28  = arg2->pos.vz;
     if (arg3 != NULL) {
         actor->field_93C = arg3->field_0;
         actor->field_93E = arg3->field_4;
@@ -5730,7 +5730,7 @@ s32 Gp_SetActorDest(Task* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3)
     return 0;
 }
 
-s32 func_80105190(Task* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3)
+s32 func_80105190(Task* arg0, s32 arg1, GpPlaceArg* arg2, GpOverrideArg* arg3)
 {
     GameActor*    actor;
     PlayerStatus* p;
@@ -5759,9 +5759,9 @@ s32 func_80105190(Task* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3)
     actor->field_956 = 4;
     actor->field_982 = 1;
     actor->field_983 = 0x38;
-    actor->field_20  = arg2->field_0;
-    actor->field_24  = arg2->field_4;
-    actor->field_28  = arg2->field_8;
+    actor->field_20  = arg2->pos.vx;
+    actor->field_24  = arg2->pos.vy;
+    actor->field_28  = arg2->pos.vz;
     if (arg3 != NULL) {
         actor->field_93C = arg3->field_0;
         actor->field_93E = arg3->field_4;
@@ -10074,7 +10074,7 @@ s32 func_8010C648(Task* arg0, s32 arg1, GpAnimArg* arg2)
     return 0;
 }
 
-s32 func_8010C688(Task* arg0, s32 arg1, GpXformArg* arg2)
+s32 func_8010C688(Task* arg0, s32 arg1, GpPlaceArg* arg2)
 {
     PlayerStatus* p;
     u8            saved;
@@ -10086,7 +10086,7 @@ s32 func_8010C688(Task* arg0, s32 arg1, GpXformArg* arg2)
     return 0;
 }
 
-s32 func_8010C6C8(Task* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3)
+s32 func_8010C6C8(Task* arg0, s32 arg1, GpPlaceArg* arg2, GpOverrideArg* arg3)
 {
     PlayerStatus* p;
     u8            saved;
@@ -10098,7 +10098,7 @@ s32 func_8010C6C8(Task* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3)
     return 0;
 }
 
-s32 func_8010C708(Task* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3)
+s32 func_8010C708(Task* arg0, s32 arg1, GpPlaceArg* arg2, GpOverrideArg* arg3)
 {
     PlayerStatus* p;
     u8            saved;

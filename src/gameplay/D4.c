@@ -2372,7 +2372,7 @@ void Gp_SetupDirWarp(void)
     GameActor*    actor;
     GpAreaKey*    sess;
     GpWarpRec     rec;
-    GpMsg3EE      msg;
+    GpPlaceArg    msg;
     SVECTOR       pos;
     SVECTOR       pos2;
     s32           stage;
@@ -2419,16 +2419,16 @@ void Gp_SetupDirWarp(void)
             } else {
                 D_80114CF0 = 0;
             }
-            msg.field_10 = 0;
-            msg.field_14 = 0;
-            msg.field_12 = (rec.field_0 + 0x800) & 0xFFF;
+            msg.rot.vx = 0;
+            msg.rot.vz = 0;
+            msg.rot.vy = (rec.field_0 + 0x800) & 0xFFF;
             if (rec.field_0 == 0x7800 || rec.field_0 == 0x7FFF) {
-                pos.vx       = -0x5C1;
-                pos.vy       = 0;
-                pos.vz       = 0x9C1;
-                msg.field_12 = Gp_YawToPosXZ((Task*)Gp_ActorSlots[0], (GpPosXZ*)&pos);
+                pos.vx     = -0x5C1;
+                pos.vy     = 0;
+                pos.vz     = 0x9C1;
+                msg.rot.vy = Gp_YawToPosXZ((Task*)Gp_ActorSlots[0], (GpPosXZ*)&pos);
             } else if (rec.field_0 == 0x7FFE) {
-                msg.field_12 = actor->field_52;
+                msg.rot.vy = actor->field_52;
             }
             Gp_DispatchMsg(slot3, 0x3EE, (s32)&msg, 0);
             if (rec.field_35 & 2) {
@@ -2461,16 +2461,16 @@ void Gp_SetupDirWarp(void)
                 }
                 return;
             }
-            msg.field_10 = 0;
-            msg.field_14 = 0;
-            msg.field_12 = (rec.field_0 + 0x800) & 0xFFF;
+            msg.rot.vx = 0;
+            msg.rot.vz = 0;
+            msg.rot.vy = (rec.field_0 + 0x800) & 0xFFF;
             if (rec.field_0 == 0x7800 || rec.field_0 == 0x7FFF) {
-                pos2.vx      = -0x5C1;
-                pos2.vy      = 0;
-                pos2.vz      = 0x9C1;
-                msg.field_12 = Gp_YawToPosXZ((Task*)Gp_ActorSlots[0], (GpPosXZ*)&pos2);
+                pos2.vx    = -0x5C1;
+                pos2.vy    = 0;
+                pos2.vz    = 0x9C1;
+                msg.rot.vy = Gp_YawToPosXZ((Task*)Gp_ActorSlots[0], (GpPosXZ*)&pos2);
             } else if (rec.field_0 == 0x7FFE) {
-                msg.field_12 = actor->field_52;
+                msg.rot.vy = actor->field_52;
             }
             Gp_DispatchMsg(slot3, 0x3EE, (s32)&msg, 0);
             Gp_DirPhase++;

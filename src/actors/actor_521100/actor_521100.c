@@ -83,17 +83,12 @@ typedef struct Actor521100FireMsg {
     /* 0x10 */ s32   field_10;
 } Actor521100FireMsg;
 
-typedef struct Actor521100FireAim {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} Actor521100FireAim;
-
 typedef struct Actor521100FireScratch {
     /* 0x00 */ VECTOR             pos;
     /* 0x10 */ VECTOR             delta;
     /* 0x20 */ SVECTOR            vec;
     /* 0x28 */ Actor521100FireMsg msg;
-    /* 0x3C */ Actor521100FireAim aim;
+    /* 0x3C */ GpPlaceArg         aim;
 } Actor521100FireScratch;
 STATIC_ASSERT_SIZEOF(Actor521100FireScratch, 0x54);
 
@@ -2362,7 +2357,7 @@ s32 func_actor_521100_80135C14(Task* arg0, s32 arg1, Actor521100AnimPreset* args
 /// Message 0x7D4 handler in `D_actor_521100_8015F6FC`, placing the actor: builds the root coordinate's
 /// matrix from the argument block's angles, stores its translation and clears
 /// `flg` so the world matrix is recomputed.
-s32 func_actor_521100_80135CAC(Task* task, s32 arg1, ActorsShared80132074Args* args)
+s32 func_actor_521100_80135CAC(Task* task, s32 arg1, GpPlaceArg* args)
 {
     TmdObject*     ext   = task->extra;
     GsCOORDINATE2* coord = ext->coords;

@@ -39,14 +39,6 @@ typedef struct Actor403900Msg3F8 {
 } Actor403900Msg3F8;
 STATIC_ASSERT_SIZEOF(Actor403900Msg3F8, 0x18);
 
-/// Payload of message 0x3E9: the world position and rotation the player is
-/// placed at.
-typedef struct Actor403900Msg3E9 {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} Actor403900Msg3E9;
-STATIC_ASSERT_SIZEOF(Actor403900Msg3E9, 0x18);
-
 /// 0x5C-byte block `func_actor_403900_8013314C` takes from `G_SCRATCH_HEAD`:
 /// the 0x3F8 query, the `GpAnimArg` sent as message 0x3FF, the 0x3E9
 /// placement, and the offset `in` rotated through the actor's root into `out`
@@ -54,7 +46,7 @@ STATIC_ASSERT_SIZEOF(Actor403900Msg3E9, 0x18);
 typedef struct Actor403900GrabScratch {
     /* 0x00 */ Actor403900Msg3F8 query;
     /* 0x18 */ GpAnimArg         anim;
-    /* 0x2C */ Actor403900Msg3E9 place;
+    /* 0x2C */ GpPlaceArg        place;
     /* 0x44 */ VECTOR            out;
     /* 0x54 */ SVECTOR           in;
 } Actor403900GrabScratch;

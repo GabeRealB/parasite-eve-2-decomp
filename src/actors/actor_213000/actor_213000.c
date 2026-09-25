@@ -63,14 +63,6 @@ typedef struct Actor213000AnimPreset {
 } Actor213000AnimPreset;
 STATIC_ASSERT_SIZEOF(Actor213000AnimPreset, 0x10);
 
-/// Payload of the placement message 0x7D4: a world translation followed by
-/// the Euler angles the handler rebuilds the root rotation from.
-typedef struct Actor213000Placement {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} Actor213000Placement;
-STATIC_ASSERT_SIZEOF(Actor213000Placement, 0x18);
-
 /// `GsCOORDINATE2` as this actor uses it: the libgs `param` slot at 0x44 holds
 /// the Euler angles the placement handler writes there and then hands straight
 /// to `RotMatrix`.
@@ -535,7 +527,7 @@ s32 func_actor_213000_8014A70C(Task* task, s32 arg1, Actor213000AnimPreset* msg)
 /// translation goes straight into the root coordinate's local matrix, the
 /// Euler angles into the coordinate's `rot` slot, from which the rotation is
 /// rebuilt. Clearing `flg` has the world matrix recomputed. Returns 0.
-s32 func_actor_213000_8014A828(Task* task, s32 arg1, Actor213000Placement* args)
+s32 func_actor_213000_8014A828(Task* task, s32 arg1, GpPlaceArg* args)
 {
     Actor213000Coord* coord;
 

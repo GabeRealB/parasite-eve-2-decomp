@@ -59,16 +59,6 @@ typedef struct Actor151000Work {
 } Actor151000Work;
 STATIC_ASSERT_SIZEOF(Actor151000Work, 0x4C0);
 
-/// Payload of the placement opcode: the position the model's root coordinate
-/// is moved to, and the yaw it is turned to.
-typedef struct Actor151000Placement {
-    /* 0x00 */ VECTOR pos;
-    /* 0x10 */ byte   pad_10[2];
-    /* 0x12 */ u16    yaw;
-    /* 0x14 */ byte   pad_14[2];
-} Actor151000Placement;
-STATIC_ASSERT_SIZEOF(Actor151000Placement, 0x18);
-
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
@@ -432,16 +422,16 @@ s32 func_actor_151000_801327C8(Task* task, s32 arg1, s32 arg2)
     return 0;
 }
 
-/// Placement opcode: yaws the model's root coordinate to `placement->yaw`,
+/// Placement opcode: yaws the model's root coordinate to `placement->rot.vy`,
 /// caching that yaw in the work block, then drops the placement translation
 /// into the matrix and marks it dirty.
-s32 func_actor_151000_80132810(Task* task, s32 arg1, Actor151000Placement* placement)
+s32 func_actor_151000_80132810(Task* task, s32 arg1, GpPlaceArg* placement)
 {
     GsCOORDINATE2* coord;
     u16            yaw;
 
     coord                        = ((TmdObject*)task->extra)->coords;
-    D_actor_151000_8013D37C->yaw = yaw = placement->yaw;
+    D_actor_151000_8013D37C->yaw = yaw = placement->rot.vy;
     Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;

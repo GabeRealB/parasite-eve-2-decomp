@@ -68,13 +68,6 @@ typedef struct Actor403600MsgArg {
 } Actor403600MsgArg;
 STATIC_ASSERT_SIZEOF(Actor403600MsgArg, 0x4);
 
-/// Position and rotation sent to the player with message 0x3E9.
-typedef struct Actor403600MsgPos {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} Actor403600MsgPos;
-STATIC_ASSERT_SIZEOF(Actor403600MsgPos, 0x18);
-
 /// Payload sent to the view task with message 0x7DB.
 typedef struct Actor403600Msg7DB {
     /* 0x0 */ s8  field_0;
@@ -171,23 +164,23 @@ extern Actor403600TargetPair D_actor_403600_8016064C;
 extern u8                    D_actor_403600_80160694;
 extern u8                    D_actor_403600_80160695;
 
-extern SVECTOR           D_actor_403600_801605D4;
-extern SVECTOR           D_actor_403600_801605DC;
-extern s16               D_actor_403600_801605DE;
-extern SVECTOR           D_actor_403600_801605E4;
-extern SVECTOR           D_actor_403600_801605EC;
-extern s16               D_actor_403600_801606F2;
-extern TaskDesc          D_actor_403600_80160514;
-extern Task*             D_actor_403600_801606B0;
-extern Actor403600MsgPos D_actor_403600_801606E0;
-extern GpU16Pair         D_8016A408[];
-extern u16               D_8016AEF8[];
-extern u16               D_8016E450;
-extern SVECTOR           D_actor_403600_8016065C;
-extern SVECTOR           D_actor_403600_80160664;
-extern u16               D_actor_403600_80150EA4;
-extern u16               D_actor_403600_80150EAC;
-extern s32               D_actor_403600_80160700[9];
+extern SVECTOR    D_actor_403600_801605D4;
+extern SVECTOR    D_actor_403600_801605DC;
+extern s16        D_actor_403600_801605DE;
+extern SVECTOR    D_actor_403600_801605E4;
+extern SVECTOR    D_actor_403600_801605EC;
+extern s16        D_actor_403600_801606F2;
+extern TaskDesc   D_actor_403600_80160514;
+extern Task*      D_actor_403600_801606B0;
+extern GpPlaceArg D_actor_403600_801606E0;
+extern GpU16Pair  D_8016A408[];
+extern u16        D_8016AEF8[];
+extern u16        D_8016E450;
+extern SVECTOR    D_actor_403600_8016065C;
+extern SVECTOR    D_actor_403600_80160664;
+extern u16        D_actor_403600_80150EA4;
+extern u16        D_actor_403600_80150EAC;
+extern s32        D_actor_403600_80160700[9];
 
 void func_actor_403600_80138EF8(struct GpEnemy* enemy, Task* task);
 void func_actor_403600_8013938C(GpEnemy* arg0, Task* arg1);
@@ -4757,28 +4750,28 @@ common:
 
 s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, Actor403600MsgArg* arg2)
 {
-    SVECTOR            angles;
-    s32                messageZero;
-    s32                messageId;
-    Actor403600MsgPos* position;
-    Task*              actor;
-    s16                nodeFlags;
-    SVECTOR*           rotation;
-    u16                message;
-    GpEnemy*           enemy;
-    Actor403600Work*   work;
-    Actor403600Work*   initialWork;
-    Actor403600Work*   resetWork;
-    TmdObject*         hiddenObject;
-    TmdObject*         bufferedObject;
-    TmdObject*         resetBuffers;
-    TmdObject*         shownObject;
-    TmdObject*         restartBuffers;
-    TmdObject*         restartedObject;
-    TmdObject*         stoppedObject;
-    TmdObject*         stoppedBuffers;
-    Actor403600Work*   childWork;
-    TmdObject*         childObject;
+    SVECTOR          angles;
+    s32              messageZero;
+    s32              messageId;
+    GpPlaceArg*      position;
+    Task*            actor;
+    s16              nodeFlags;
+    SVECTOR*         rotation;
+    u16              message;
+    GpEnemy*         enemy;
+    Actor403600Work* work;
+    Actor403600Work* initialWork;
+    Actor403600Work* resetWork;
+    TmdObject*       hiddenObject;
+    TmdObject*       bufferedObject;
+    TmdObject*       resetBuffers;
+    TmdObject*       shownObject;
+    TmdObject*       restartBuffers;
+    TmdObject*       restartedObject;
+    TmdObject*       stoppedObject;
+    TmdObject*       stoppedBuffers;
+    Actor403600Work* childWork;
+    TmdObject*       childObject;
 
     message = arg2->field_2;
     work    = arg0->work;

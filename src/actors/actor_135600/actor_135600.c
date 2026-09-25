@@ -77,15 +77,6 @@ typedef struct Actor135600AnimPreset {
 } Actor135600AnimPreset;
 STATIC_ASSERT_SIZEOF(Actor135600AnimPreset, 0x14);
 
-/// The world translation and Euler angles the 0x7D4 handler
-/// `func_actor_135600_801331C4` places the root part at, and the placement the
-/// motion-start handler `func_actor_135600_8013282C` walks the actor to.
-typedef struct Actor135600PlaceArgs {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} Actor135600PlaceArgs;
-STATIC_ASSERT_SIZEOF(Actor135600PlaceArgs, 0x18);
-
 /// Optional start animation for `func_actor_135600_8013282C`: the preset's
 /// `field_4` and the `field_477` byte. Absent, the defaults are anim 0xD and 1.
 typedef struct Actor135600SpawnAnim {
@@ -142,7 +133,7 @@ void func_actor_135600_80132E68(Task* task);
 void func_actor_135600_80132F28(Task* task);
 void func_actor_135600_80132FA8(Task* task);
 s32  func_actor_135600_801330A8(Task* task, s32 msgId, Actor135600AnimPreset* preset, s32 arg3);
-s32  func_actor_135600_801331C4(Task* task, s32 msgId, Actor135600PlaceArgs* args, s32 arg3);
+s32  func_actor_135600_801331C4(Task* task, s32 msgId, GpPlaceArg* args, s32 arg3);
 s32  func_actor_135600_80133240(Task* task, s32 msgId, s32 mode, s32 arg3);
 
 /// States of the two part tasks (`D_actor_135600_8013B0C4` entries 1 and 2),
@@ -323,7 +314,7 @@ void func_actor_135600_80132234(Task* task)
     u32                   raw2;
     u8                    areaByte0;
     u8                    areaByte1;
-    Actor135600PlaceArgs  args;
+    GpPlaceArg            args;
     Actor135600AnimPreset preset;
     GpAreaKey             key;
 
@@ -527,7 +518,7 @@ void func_actor_135600_801326E8(Task* arg0)
 /// `field_4F0..field_4F4`, then applies a start preset -- `anim`'s, or anim 0xD
 /// with preset byte 1 when absent -- with the body of
 /// `func_actor_135600_801330A8` written out inline. Returns 0.
-s32 func_actor_135600_8013282C(Task* task, s32 arg1, Actor135600PlaceArgs* place, Actor135600SpawnAnim* anim)
+s32 func_actor_135600_8013282C(Task* task, s32 arg1, GpPlaceArg* place, Actor135600SpawnAnim* anim)
 {
     Actor135600Work*       work;
     Actor135600Work*       w;
@@ -918,7 +909,7 @@ s32 func_actor_135600_801330A8(Task* task, s32 msgId, Actor135600AnimPreset* msg
 /// the Euler angles in the coordinate's own `rot` slot and rebuilds the
 /// rotation from them; clearing `flg` makes the world matrix be recomputed.
 /// Returns 0.
-s32 func_actor_135600_801331C4(Task* task, s32 msgId, Actor135600PlaceArgs* args, s32 arg3)
+s32 func_actor_135600_801331C4(Task* task, s32 msgId, GpPlaceArg* args, s32 arg3)
 {
     Actor135600Coord* coord;
 

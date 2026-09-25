@@ -290,8 +290,8 @@ void Gp_CommitSaveLoc(void)
 
 void Gp_MsgPlayer3EE(void)
 {
-    GpMsg3EE sp;
-    void*    slot;
+    GpPlaceArg sp;
+    void*      slot;
 
     slot = gameGetPtrSlot(3);
     if (gGameSession->eventState != 0) {
@@ -304,9 +304,9 @@ void Gp_MsgPlayer3EE(void)
         D_80114CD4      = 0;
         D_80114CDD      = 0;
     } else {
-        sp.field_10 = 0;
-        sp.field_14 = 0;
-        sp.field_12 = Gp_DirNibble << 4;
+        sp.rot.vx = 0;
+        sp.rot.vz = 0;
+        sp.rot.vy = Gp_DirNibble << 4;
         Gp_DispatchMsg(slot, 0x3EE, (s32)&sp, 0);
         Gp_DirPhase++;
     }
