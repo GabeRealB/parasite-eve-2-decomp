@@ -13,8 +13,36 @@
 /// `func_actor_350700_80162404`; terminator id 0x7FFFFFFF.
 extern GpMsgEntry D_actor_350700_80169D1C[];
 
+/// Global freeze byte in the main executable; the state dispatchers run
+/// nothing while it is non-zero.
+extern u8 D_801153F4;
+
+void func_actor_350700_80161E88(Task* arg0);
+void func_actor_350700_80162070(Task* arg0);
+void func_actor_350700_80162404(Task* arg0);
 void func_actor_350700_801624D0(Task* arg0);
 void func_actor_350700_801624D8(Task* arg0);
+void func_actor_350700_80162540(Task* task);
+void func_actor_350700_8016261C(Task* arg0);
+void func_actor_350700_80162764(Task* arg0);
+
+/// Spawn, tick and exit handlers of the enemy actor, dispatched by
+/// `func_actor_350700_80162398`.
+const TaskFuncTable3 D_actor_350700_80161E24 = { {
+    func_actor_350700_80162404,
+    func_actor_350700_80161E88,
+    func_actor_350700_80162494,
+} };
+
+/// Tick handlers of the enemy actor, indexed by `Actor350700Work::field_4C2`:
+/// turn to face `target`, start moving, approach until arrival, then turn to
+/// the placement yaw.
+const TaskFuncTable4 D_actor_350700_80161E30 = { {
+    func_actor_350700_80162540,
+    func_actor_350700_8016261C,
+    func_actor_350700_80162070,
+    func_actor_350700_80162764,
+} };
 
 /// Per-frame tick of the enemy actor, the same body as
 /// `func_actor_335800_80163568`: dispatches through the local two-entry table
@@ -49,7 +77,7 @@ void func_actor_350700_80161E88(Task* arg0)
     work->field_4A8    = (u16)work->field_4A8;
     if (work->field_43C != 0) {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            Gp_AnimTickIndex(&work->anim, i);
         }
     }
     if (!(ext->flags & 0x80)) {
@@ -68,7 +96,50 @@ void func_actor_350700_80161E88(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700", func_actor_350700_80162070);
+/// State handler at index 2 of `D_actor_350700_80161E30`, the approach test.
+/// Once the X/Z distances from the root coordinate to `target` stop shrinking
+/// below `limit`, plays anim 0x7D3 with a preset carrying the `field_43F` byte,
+/// clears `step` and advances `field_4C2`; otherwise records the distances as
+/// the new `limit`.
+void func_actor_350700_80162070(Task* arg0)
+{
+    Actor350700Work*      work;
+    GsCOORDINATE2*        coord;
+    SVECTOR               d;
+    s32                   dx;
+    s32                   dz;
+    Actor350700AnimPreset preset;
+
+    work  = (Actor350700Work*)arg0->work;
+    coord = ((TmdObject*)arg0->extra)->coords;
+    if (work->target.vx - coord->coord.t[0] >= 0) {
+        dx = (u16)work->target.vx - (u16)coord->coord.t[0];
+    } else {
+        dx = (u16)coord->coord.t[0] - (u16)work->target.vx;
+    }
+    d.vx = dx;
+    if (work->target.vz - coord->coord.t[2] >= 0) {
+        dz = (u16)work->target.vz - (u16)coord->coord.t[2];
+    } else {
+        dz = (u16)coord->coord.t[2] - (u16)work->target.vz;
+    }
+    d.vz = dz;
+    if (d.vx >= work->limit.vx && d.vz >= work->limit.vz) {
+        preset.field_0  = 0;
+        preset.field_4  = work->field_43F;
+        preset.field_8  = 1;
+        preset.field_C  = 5;
+        preset.field_10 = 0;
+        func_actor_350700_80162860(arg0, 0x7D3, &preset, 0);
+        work->step.vx = 0;
+        work->step.vy = 0;
+        work->step.vz = 0;
+        work->field_4C2++;
+        return;
+    }
+    work->limit.vx = d.vx < 0 ? -d.vx : d.vx;
+    work->limit.vz = d.vz < 0 ? -d.vz : d.vz;
+}
 
 void         func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 extern void* D_actor_350700_80169D0C[];
@@ -117,28 +188,40 @@ s32 func_actor_350700_801621B4(Task* task, s32 arg1, Actor350700Placement* place
     if (msg->field_0 != work->field_43E) {
         work->field_43E = msg->field_0;
         work->field_43D = -1;
-        func_800B3F84((GpAnimCtx*)work, D_actor_350700_80169D0C[work->field_43E], ext, work->poses,
+        func_800B3F84(&work->anim, D_actor_350700_80169D0C[work->field_43E], ext, work->poses,
                       work->slots);
     }
     if (msg->field_4 != work->field_43D) {
         work->field_43D = msg->field_4;
         if (msg->field_8 != 0 && work->field_43C != 0) {
             for (i = 1; i < 0x13; i++) {
-                func_800B4114((GpAnimCtx*)work, i, work->field_43D, 0, msg->field_C);
+                func_800B4114(&work->anim, i, work->field_43D, 0, msg->field_C);
             }
         } else {
             for (i = 1; i < 0x13; i++) {
-                Gp_AnimResetSlot((GpAnimCtx*)work, i, work->field_43D);
+                Gp_AnimResetSlot(&work->anim, i, work->field_43D);
             }
         }
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            Gp_AnimTickIndex(&work->anim, i);
         }
         work->field_43C = 1;
     }
     return 0;
 }
-INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700", func_actor_350700_80162398);
+
+/// Per-frame dispatcher of the enemy actor: runs its spawn, tick or exit state
+/// from `D_actor_350700_80161E24`, skipping the frame while the global freeze
+/// byte is set.
+void func_actor_350700_80162398(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_350700_80161E24;
+    if (D_801153F4 == 0) {
+        sp.funcs[task->state](task);
+    }
+}
 
 /// Spawn state of the enemy actor: allocates the 0x4C8-byte work block that
 /// every later handler reads through `Task::work`, seeds the three -1 bytes
@@ -191,7 +274,17 @@ void func_actor_350700_801624D0(Task* arg0)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700", func_actor_350700_801624D8);
+/// Tick handler 1 of the enemy actor: runs the state handler of
+/// `D_actor_350700_80161E30` that `field_4C2` selects.
+void func_actor_350700_801624D8(Task* arg0)
+{
+    TaskFuncTable4   sp;
+    Actor350700Work* work;
+
+    work = (Actor350700Work*)arg0->work;
+    sp   = D_actor_350700_80161E30;
+    sp.funcs[(s16)work->field_4C2](arg0);
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_350700/actor_350700", D_actor_350700_80161E40);
 

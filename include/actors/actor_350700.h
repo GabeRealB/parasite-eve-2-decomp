@@ -20,7 +20,7 @@
 /// seeds: the three `sb` bytes at 0x43D/0x43E/0x4C5 are set to -1, and the
 /// three words at 0x4A0..0x4A8 are cleared.
 typedef struct Actor350700Work {
-    /* 0x000 */ byte       pad_0[0x14];
+    /* 0x000 */ GpAnimCtx  anim;
     /* 0x014 */ GpAnimSlot slots[0x13];  // the slot array `func_800B3F84` is handed
     /* 0x30C */ byte       poses[0x130]; // pose buffer `func_800B3F84` is handed
     /* 0x43C */ s8         field_43C;    // animation-tick enable
@@ -131,29 +131,34 @@ STATIC_ASSERT_SIZEOF(Actor350700Msg, 0x4);
 /// `step`; only each accumulator's high half reaches the root
 /// coordinate, and the low half is re-zeroed every frame.
 typedef struct Actor350700MainWork {
-    /* 0x000 */ byte    pad_0[0x474];
-    /* 0x474 */ s8      field_474; // non-zero while the animation slots tick
-    /* 0x475 */ s8      field_475;
-    /* 0x476 */ s8      field_476;
-    /* 0x477 */ byte    pad_477[0x1];
-    /* 0x478 */ MATRIX  light;
-    /* 0x498 */ MATRIX  color;
-    /* 0x4B8 */ VECTOR3 target;    // world position the turn-to-face step steers toward
-    /* 0x4C4 */ byte    pad_4C4[0x4];
-    /* 0x4C8 */ VECTOR3 step;      // per-frame local-space deltas the accumulators take
-    /* 0x4D4 */ byte    pad_4D4[0x4];
-    /* 0x4D8 */ s32     field_4D8; // 16.16 accumulators; only the high half reaches the coordinate
-    /* 0x4DC */ s32     field_4DC;
-    /* 0x4E0 */ s32     field_4E0;
-    /* 0x4E4 */ byte    pad_4E4[0x4];
-    /* 0x4E8 */ SVECTOR limit;     // per-axis stop threshold; 0x7FFF on all three disables it
-    /* 0x4F0 */ byte    pad_4F0[0x8];
-    /* 0x4F8 */ s16     field_4F8; // selects which of the two handlers the tick runs
-    /* 0x4FA */ u16     field_4FA; // index into the step-handler table `D_actor_350700_80161E68`
-    /* 0x4FC */ Task*   field_4FC;
-    /* 0x500 */ Task*   field_500;
-    /* 0x504 */ Task*   field_504;
-    /* 0x508 */ s32     field_508;
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[0x14];  // the slot array `func_800B3F84` is handed
+    /* 0x334 */ byte       poses[0x140]; // pose buffer `func_800B3F84` is handed
+    /* 0x474 */ s8         field_474;    // non-zero while the animation slots tick
+    /* 0x475 */ s8         field_475;    // current animation id
+    /* 0x476 */ s8         field_476;    // current bank index into `D_actor_350700_801708D8`
+    /* 0x477 */ s8         field_477;    // preset byte the arrival and turn steps pass as `field_4`
+    /* 0x478 */ MATRIX     light;
+    /* 0x498 */ MATRIX     color;
+    /* 0x4B8 */ VECTOR3    target;    // world position the turn-to-face step steers toward
+    /* 0x4C4 */ byte       pad_4C4[0x4];
+    /* 0x4C8 */ VECTOR3    step;      // per-frame local-space deltas the accumulators take
+    /* 0x4D4 */ byte       pad_4D4[0x4];
+    /* 0x4D8 */ s32        field_4D8; // 16.16 accumulators; only the high half reaches the coordinate
+    /* 0x4DC */ s32        field_4DC;
+    /* 0x4E0 */ s32        field_4E0;
+    /* 0x4E4 */ byte       pad_4E4[0x4];
+    /* 0x4E8 */ SVECTOR    limit;     // per-axis stop threshold; 0x7FFF on all three disables it
+    /* 0x4F0 */ u16        field_4F0;
+    /* 0x4F2 */ u16        field_4F2; // target yaw the turn-to-face step steers toward
+    /* 0x4F4 */ u16        field_4F4;
+    /* 0x4F6 */ byte       pad_4F6[0x2];
+    /* 0x4F8 */ s16        field_4F8; // selects which of the two handlers the tick runs
+    /* 0x4FA */ u16        field_4FA; // index into the step-handler table `D_actor_350700_80161E68`
+    /* 0x4FC */ Task*      field_4FC;
+    /* 0x500 */ Task*      field_500;
+    /* 0x504 */ Task*      field_504;
+    /* 0x508 */ s32        field_508;
 } Actor350700MainWork;
 STATIC_ASSERT_SIZEOF(Actor350700MainWork, 0x50C);
 
@@ -180,7 +185,8 @@ void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 /// Installs an animation on the task's model: first argument is the preset
 /// `func_actor_350700_80162764` fills, second the anim id it plays (0x7D3).
-void func_actor_350700_80162860(Task* arg0, s32 arg1, Actor350700AnimPreset* arg2, s32 arg3);
+s32 func_actor_350700_80162860(Task* task, s32 arg1, Actor350700AnimPreset* msg, s32 arg3);
+s32 func_actor_350700_801636A8(Task* task, s32 arg1, Actor350700AnimPreset* msg, s32 arg3);
 
 /// Exit callback `func_actor_350700_80162404` installs; tears the task down.
 void func_actor_350700_80162494(Task* arg0);

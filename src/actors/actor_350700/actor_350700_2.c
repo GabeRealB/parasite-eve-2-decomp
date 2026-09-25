@@ -20,6 +20,11 @@
 extern TaskDesc   D_actor_350700_801708DC;
 extern GpMsgEntry D_actor_350700_8017090C[];
 
+/// Animation bank table of the enemy actor.
+extern void* D_actor_350700_80169D0C[];
+
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
 /// State handler at index 1 of `D_actor_350700_80161E30`, the move body that
 /// mirrors the parent's `func_actor_350700_80163528`: rotates the constant local-space offset
 /// `D_actor_350700_80161E40` through the root part's matrix into `work->step`,
@@ -101,6 +106,63 @@ void func_actor_350700_80162764(Task* arg0)
     coord->flg = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700_2", func_actor_350700_80162860);
+/// Message-0x7D3 handler of the enemy actor, also called directly by the
+/// approach and turn-to-face handlers with a preset of their own. A changed
+/// bank index re-seeds the whole animation slot array through `func_800B3F84`
+/// from the bank table and forgets the current animation id. A changed
+/// animation id is then stored and installed on every slot - through
+/// `func_800B4114` when the preset's `field_8` is set and the slots have
+/// already been started, through `Gp_AnimResetSlot` otherwise - after which
+/// every slot is ticked once and `field_43C` latches. An unchanged id skips all
+/// of that. Returns 0.
+s32 func_actor_350700_80162860(Task* task, s32 arg1, Actor350700AnimPreset* msg, s32 arg3)
+{
+    Actor350700Work* work;
+    TmdObject*       ext;
+    s32              i;
 
-INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700_2", func_actor_350700_80162998);
+    work = (Actor350700Work*)task->work;
+    ext  = task->extra;
+    if (msg->field_0 != work->field_43E) {
+        work->field_43E = msg->field_0;
+        work->field_43D = -1;
+        func_800B3F84(&work->anim, D_actor_350700_80169D0C[work->field_43E], ext, work->poses, work->slots);
+    }
+    if (msg->field_4 != work->field_43D) {
+        work->field_43D = msg->field_4;
+        if (msg->field_8 != 0 && work->field_43C != 0) {
+            for (i = 1; i < 0x13; i++) {
+                func_800B4114(&work->anim, i, work->field_43D, 0, msg->field_C);
+            }
+        } else {
+            for (i = 1; i < 0x13; i++) {
+                Gp_AnimResetSlot(&work->anim, i, work->field_43D);
+            }
+        }
+        for (i = 1; i < 0x13; i++) {
+            Gp_AnimTickIndex(&work->anim, i);
+        }
+        work->field_43C = 1;
+    }
+    return 0;
+}
+
+/// Message-0x7D4 handler of the enemy actor: places the root part at
+/// `args`. The translation goes straight into the local matrix, the Euler
+/// angles into the coordinate's `rot` slot, from which `RotMatrix` rebuilds the
+/// rotation; clearing `flg` makes the world matrix be recomputed. Returns 0.
+s32 func_actor_350700_80162998(Task* task, s32 msgId, Actor350700Placement* args)
+{
+    Actor350700Coord* coord;
+
+    coord             = (Actor350700Coord*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0] = args->pos.vx;
+    coord->coord.t[1] = args->pos.vy;
+    coord->coord.t[2] = args->pos.vz;
+    coord->rot.vx     = args->rot.vx;
+    coord->rot.vy     = args->rot.vy;
+    coord->rot.vz     = args->rot.vz;
+    RotMatrix(&coord->rot, &coord->coord);
+    coord->flg = 0;
+    return 0;
+}

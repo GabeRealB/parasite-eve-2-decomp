@@ -20,6 +20,11 @@
 extern TaskDesc   D_actor_350700_801708DC;
 extern GpMsgEntry D_actor_350700_8017090C[];
 
+/// Animation bank table of the parent block.
+extern void* D_actor_350700_801708D8[];
+
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
 /// The parent's spawn handler, the same body `func_actor_335800_80162640` runs.
 /// Allocates the 0x50C `Actor350700MainWork` block, seeds it, and spawns the
 /// three children `D_actor_350700_801708DC` holds -- table entries 1, 2 and 3 --
@@ -153,7 +158,7 @@ void func_actor_350700_80162D5C(Task* arg0)
     work->field_4E0    = (u16)work->field_4E0;
     if (work->field_474 != 0) {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            Gp_AnimTickIndex(&work->anim, i);
         }
     }
     if (!(ext->flags & 0x80)) {
@@ -175,9 +180,109 @@ void func_actor_350700_80162D5C(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700_6", func_actor_350700_80162F7C);
+/// Step 2 of the parent: the arrival check. Once the X/Z distances from the
+/// root coordinate to `target` stop shrinking below `limit`, plays anim 0x7D3
+/// with a preset carrying the `field_477` byte, clears `step` and advances
+/// `field_4FA`; otherwise records the distances as the new `limit`.
+void func_actor_350700_80162F7C(Task* arg0)
+{
+    Actor350700MainWork*  work;
+    GsCOORDINATE2*        coord;
+    SVECTOR               d;
+    s32                   dx;
+    s32                   dz;
+    Actor350700AnimPreset preset;
 
-INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700_6", func_actor_350700_801630C0);
+    work  = (Actor350700MainWork*)arg0->work;
+    coord = ((TmdObject*)arg0->extra)->coords;
+    if (work->target.vx - coord->coord.t[0] >= 0) {
+        dx = (u16)work->target.vx - (u16)coord->coord.t[0];
+    } else {
+        dx = (u16)coord->coord.t[0] - (u16)work->target.vx;
+    }
+    d.vx = dx;
+    if (work->target.vz - coord->coord.t[2] >= 0) {
+        dz = (u16)work->target.vz - (u16)coord->coord.t[2];
+    } else {
+        dz = (u16)coord->coord.t[2] - (u16)work->target.vz;
+    }
+    d.vz = dz;
+    if (d.vx >= work->limit.vx && d.vz >= work->limit.vz) {
+        preset.field_0  = 0;
+        preset.field_4  = work->field_477;
+        preset.field_8  = 1;
+        preset.field_C  = 5;
+        preset.field_10 = 0;
+        func_actor_350700_801636A8(arg0, 0x7D3, &preset, 0);
+        work->step.vx = 0;
+        work->step.vy = 0;
+        work->step.vz = 0;
+        work->field_4FA++;
+        return;
+    }
+    work->limit.vx = d.vx < 0 ? -d.vx : d.vx;
+    work->limit.vz = d.vz < 0 ? -d.vz : d.vz;
+}
+
+/// Message-0x7DD handler of the parent: starts the motion sequence, storing
+/// the placement position as `target` and its rotation in
+/// `field_4F0..field_4F4`, then applies a start preset -- `anim`'s, or anim 0xD
+/// with preset byte 1 when absent -- with the body of
+/// `func_actor_350700_801636A8` written out inline. Returns 0.
+s32 func_actor_350700_801630C0(Task* task, s32 arg1, Actor350700Placement* place, Actor350700SpawnAnim* anim)
+{
+    Actor350700MainWork*   work;
+    Actor350700MainWork*   w;
+    Actor350700AnimPreset  preset;
+    Actor350700AnimPreset* msg;
+    s32                    i;
+    TmdObject*             ext;
+
+    w              = (Actor350700MainWork*)task->work;
+    w->field_4F8   = 1;
+    w->field_4FA   = 0;
+    w->target.vx   = place->pos.vx;
+    w->target.vy   = place->pos.vy;
+    w->target.vz   = place->pos.vz;
+    w->field_4F0   = place->rot.vx;
+    w->field_4F2   = place->rot.vy;
+    w->field_4F4   = place->rot.vz;
+    preset.field_0 = 0;
+    if (anim != NULL) {
+        preset.field_4 = anim->field_0;
+        w->field_477   = anim->field_4;
+    } else {
+        preset.field_4 = 0xD;
+        w->field_477   = 1;
+    }
+    preset.field_8  = 1;
+    preset.field_C  = 5;
+    preset.field_10 = 1;
+
+    msg  = &preset;
+    work = (Actor350700MainWork*)task->work;
+    ext  = task->extra;
+    if (msg->field_0 != work->field_476) {
+        work->field_476 = msg->field_0;
+        func_800B3F84(&work->anim, D_actor_350700_801708D8[work->field_476], ext, work->poses,
+                      work->slots);
+    }
+    work->field_475 = msg->field_4;
+    if (msg->field_8 != 0 && work->field_474 != 0) {
+        for (i = 1; i < 0x14; i++) {
+            func_800B4114(&work->anim, i, work->field_475, 0, msg->field_C);
+        }
+    } else {
+        for (i = 1; i < 0x14; i++) {
+            Gp_AnimResetSlot(&work->anim, i, work->field_475);
+        }
+    }
+    for (i = 1; i < 0x14; i++) {
+        Gp_AnimTickIndex(&work->anim, i);
+    }
+    work->field_474 = 1;
+    return 0;
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_350700/actor_350700_6", D_actor_350700_80161E68);
 
