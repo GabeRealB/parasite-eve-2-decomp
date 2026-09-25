@@ -3253,119 +3253,83 @@ u32* func_actor_403600_80138004(TmdScratchModelBlock* ws, s32 flags, u32* stream
     return tmdDrawStreamGt4(ws, flags, stream);
 }
 
-u32* func_actor_403600_801386EC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
-{
-    CVECTOR color;
-    SVECTOR local;
-    u8*     head;
-    u8*     scratch;
-    MATRIX* saved;
-    MATRIX* transposed;
-    MATRIX* active;
-    u8*     stream;
-    u8*     record;
-    u8*     coord;
-    s32     previous;
-    u16     colorOffset;
-    s32     count;
-    s32     loadedCount;
+/// Scratch-pad frame of a triangle pass that works in the frame of a reference
+/// coordinate: the quad frame with room for three vertices.
+typedef struct {
+    VECTOR  trans;    // GTE translation on entry
+    SVECTOR offset;   // Entry translation relative to the reference, rotated into its frame
+    SVECTOR verts[3]; // The element's vertices in the reference frame, clamped to y <= 0
+    s32     index[3]; // The element's vertex indices
+    MATRIX  savedRot; // GTE rotation on entry
+    MATRIX  local;    // Model-to-reference transform
+} _Actor403600TriScratch;
 
-    __asm__("move %0,%1" : "=r"(stream) : "r"(arg2), "r"(D_actor_403600_801606A0));
+u32* func_actor_403600_801386EC(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+{
+    CVECTOR                 color;
+    u8*                     head;
+    _Actor403600TriScratch* sc;
+    GpCoord*                coord;
+    u16*                    rec;
+    s32                     previous;
+
     if (D_actor_403600_801606A0 != NULL) {
         previous = -1;
         color    = D_actor_403600_80131E34;
-        if (arg0->elemCount == 0) {
-            return (u32*)stream;
+        if (ws->elemCount == 0) {
+            return stream;
         }
-
-        head    = SCRATCH_HEAD(u8);
-        scratch = (SCRATCH_HEAD(u8) = head - 0x7C);
-        gte_sttr(scratch);
-        saved = (MATRIX*)(head - 0x40);
-        SOFT_USE_REG(saved);
-        SOFT_USE_REG(saved);
-        SOFT_USE_REG(saved);
-        SOFT_USE_REG(saved);
-        SOFT_USE_REG(saved);
-        SOFT_USE_REG(saved);
-        SOFT_USE_REG(saved);
-        SOFT_USE_REG(saved);
-        gte_ReadRotMatrix(saved);
-        transposed = (MATRIX*)(head - 0x20);
-        TransposeMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm, transposed);
-
-        coord                   = (u8*)D_actor_403600_801606A0;
-        *(s16*)(scratch + 0x10) = *(u16*)(head - 0x7C) - *(u16*)(coord + 0x38);
-        *(s16*)(scratch + 0x12) = *(u16*)(scratch + 0x04) - *(u16*)(coord + 0x3C);
-        *(s16*)(scratch + 0x14) = *(u16*)(scratch + 0x08) - *(u16*)(coord + 0x40);
-
-        local = *(SVECTOR*)(head - 0x6C);
-        gte_SetRotMatrix(transposed);
-        gte_ldv0(&local);
-        gte_rtv0();
-        gte_stsv(scratch + 0x10);
-
-        gte_SetRotMatrix(transposed);
-        gte_ldclmv(saved);
-        gte_rtir();
-        gte_stclmv(transposed);
-        gte_ldclmv(head - 0x3E);
-        gte_rtir();
-        gte_stclmv(&transposed->m[0][1]);
-        gte_ldclmv(head - 0x3C);
-        gte_rtir();
-        gte_stclmv(&transposed->m[0][2]);
-
-        *(s32*)(scratch + 0x70) = *(s16*)(scratch + 0x10);
-        *(s32*)(scratch + 0x74) = *(s16*)(scratch + 0x12);
-        *(s32*)(scratch + 0x78) = *(s16*)(scratch + 0x14);
+        head = SCRATCH_HEAD(u8);
+        sc   = SCRATCH_HEAD(_Actor403600TriScratch) =
+            (_Actor403600TriScratch*)(head - sizeof(_Actor403600TriScratch));
+        gte_sttr(&sc->trans);
+        gte_ReadRotMatrix(&sc->savedRot);
+        TransposeMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm, &sc->local);
+        coord         = (GpCoord*)D_actor_403600_801606A0;
+        sc->offset.vx = sc->trans.vx - coord->workm.t[0];
+        sc->offset.vy = sc->trans.vy - coord->workm.t[1];
+        sc->offset.vz = sc->trans.vz - coord->workm.t[2];
+        _actor403600RotateSv(&sc->local, &sc->offset);
+        gte_MulMatrix0(&sc->local, &sc->savedRot, &sc->local);
+        sc->local.t[0] = sc->offset.vx;
+        sc->local.t[1] = sc->offset.vy;
+        sc->local.t[2] = sc->offset.vz;
         gte_ldrgb(&color);
-
-        if (arg0->elemCount-- > 0) {
-            active = transposed;
-            saved  = (MATRIX*)(head - 0x64);
-            do {
-                record = stream;
-                if (*(u16*)(stream + 0) != previous) {
-                    gte_SetTransMatrix(active);
-                    gte_SetRotMatrix(active);
-                    gte_ldv0((u8*)arg0->verts + (*(u16*)(stream + 0) & 0xFFF8));
-                    gte_rtv0tr();
-                    gte_stsv(saved);
-                    if (*(s16*)(scratch + 0x1A) > 0) {
-                        *(s16*)(scratch + 0x1A) = 0;
-                    }
-                    gte_SetRotMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm);
-                    gte_SetTransMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm);
-                    gte_ldv0(saved);
-                    gte_rtps();
-                    gte_stsz(&arg0->gteResult);
-                    gte_stflg(&arg0->gteFlag);
-                    if (arg0->gteFlag & 0x80000000) {
-                        arg0->gteResult |= 0x80000000;
-                    }
-                    arg0->szTable[*(u16*)(stream + 0) >> 3] = arg0->gteResult;
+        while (ws->elemCount-- > 0) {
+            rec = (u16*)stream;
+            if (rec[0] != previous) {
+                gte_SetTransMatrix(&sc->local);
+                gte_SetRotMatrix(&sc->local);
+                gte_ldv0(&ws->verts[rec[0] >> 3]);
+                gte_rtv0tr();
+                gte_stsv(&sc->verts[0]);
+                if (sc->verts[0].vy > 0) {
+                    sc->verts[0].vy = 0;
                 }
-                gte_stsxy(arg0->preXformWrite + *(u16*)(record + 4));
-                gte_ldv0((u8*)arg0->normals + (*(u16*)(record + 2) & 0xFFF8));
-                gte_nccs();
-                colorOffset = *(u16*)(record + 6);
-                stream     += arg0->elemStride * 4;
-                gte_strgb(arg0->preXformWrite + colorOffset);
-                loadedCount = arg0->elemCount;
-                SOFT_USE_REG(loadedCount);
-                previous = *(u16*)(record + 0);
-                __asm__ volatile("move %0,%1" : "=r"(count) : "r"(loadedCount));
-                arg0->elemCount = loadedCount - 1;
-            } while (count > 0);
+                gte_SetRotMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm);
+                gte_SetTransMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm);
+                gte_ldv0(&sc->verts[0]);
+                gte_rtps();
+                gte_stsz(&ws->gteResult);
+                gte_stflg(&ws->gteFlag);
+                if (ws->gteFlag & 0x80000000) {
+                    ws->gteResult |= 0x80000000;
+                }
+                ws->szTable[rec[0] >> 3] = ws->gteResult;
+            }
+            gte_stsxy(ws->preXformWrite + rec[2]);
+            gte_ldv0(&ws->normals[rec[1] >> 3]);
+            gte_nccs();
+            stream += ws->elemStride;
+            gte_strgb(ws->preXformWrite + rec[3]);
+            previous = rec[0];
         }
-
-        gte_SetTransVector(scratch);
-        gte_SetRotMatrix(scratch + 0x3C);
-        SCRATCH_POP_BYTES(0x7C);
-        return (u32*)stream;
+        gte_SetTransVector(&sc->trans);
+        gte_SetRotMatrix(&sc->savedRot);
+        SCRATCH_POP_BYTES(sizeof(_Actor403600TriScratch));
+        return stream;
     }
-    return tmdXformStreamVerts(arg0, arg1, (u32*)stream);
+    return tmdXformStreamVerts(ws, flags, stream);
 }
 
 const CVECTOR D_actor_403600_80131E34 = { 0x80, 0x80, 0x80, 0 };
