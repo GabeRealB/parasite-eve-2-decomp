@@ -6,7 +6,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-#include "actors/actors_shared_801344ac.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
@@ -20,6 +19,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/dryfield_gas_station.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// Work block for the gas-station cutscene task, allocated as 0x10 zeroed bytes
@@ -292,13 +292,13 @@ void func_dryfield_gas_station_80180944(void)
 /// `Task::spawnArg1`, killing itself once red has gone negative.
 void func_dryfield_gas_station_80180984(Task* arg0)
 {
-    ActorShared801344acWork* fade;
-    ActorShared801344acWork* alloc;
+    RoomFadeWork* fade;
+    RoomFadeWork* alloc;
 
-    fade = (ActorShared801344acWork*)arg0->work;
+    fade = (RoomFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (ActorShared801344acWork*)Mem_Malloc(8, 0);
+            alloc      = (RoomFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);

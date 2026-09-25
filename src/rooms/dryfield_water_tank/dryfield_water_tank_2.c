@@ -22,6 +22,7 @@
 #include "main/tmd.h"
 
 #include "rooms/dryfield_water_tank.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// Work block for the water-tank cutscene task, allocated as 0xC zeroed bytes
@@ -136,17 +137,17 @@ extern Task* D_dryfield_water_tank_80188D50;
 /// of the same pair is `func_dryfield_water_tank_8017E220`.
 void func_dryfield_water_tank_8017E3C4(Task* arg0)
 {
-    DwtFadeWork* fade;
-    DwtFadeWork* alloc;
-    u8           r;
-    u8           g;
-    TILE*        tile;
-    DR_TPAGE*    dr;
+    RoomFadeWork* fade;
+    RoomFadeWork* alloc;
+    u8            r;
+    u8            g;
+    TILE*         tile;
+    DR_TPAGE*     dr;
 
-    fade = (DwtFadeWork*)arg0->work;
+    fade = (RoomFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (DwtFadeWork*)Mem_Malloc(8, 0);
+            alloc      = (RoomFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 goto kill;

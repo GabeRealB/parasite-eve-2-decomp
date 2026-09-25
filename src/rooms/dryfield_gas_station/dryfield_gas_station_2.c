@@ -1,7 +1,5 @@
 #include "common.h"
 
-#include "actors/actors_shared_801344ac.h"
-
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflow.h"
@@ -18,6 +16,7 @@
 #include "gameplay/gameplay.h"
 
 #include "rooms/dryfield_gas_station.h"
+#include "rooms/room.h"
 
 /// Work block the gas station's shaft sequencer (`func_dryfield_gas_station_801802C0`)
 /// allocates as 4 bytes in its state 0 and hangs off `Task::work` (0x1C) for
@@ -126,13 +125,13 @@ L_case5:
 /// `Task::spawnArg1`, killing itself once red has gone negative.
 void func_dryfield_gas_station_801801E4(Task* arg0)
 {
-    ActorShared801344acWork* fade;
-    ActorShared801344acWork* alloc;
+    RoomFadeWork* fade;
+    RoomFadeWork* alloc;
 
-    fade = (ActorShared801344acWork*)arg0->work;
+    fade = (RoomFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (ActorShared801344acWork*)Mem_Malloc(8, 0);
+            alloc      = (RoomFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);

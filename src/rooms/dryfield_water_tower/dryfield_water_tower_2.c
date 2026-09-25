@@ -56,27 +56,6 @@ typedef struct DwtwWork {
 } DwtwWork;
 STATIC_ASSERT_SIZEOF(DwtwWork, 0x18);
 
-/// Fade block the room's two fade tasks allocate with `Mem_Malloc(8, 0)` and
-/// park in `Task::work` -- a second, smaller work block in this room, distinct
-/// from `DwtwWork`. Reach it with `(DwtwFadeWork*)task->work`. The size is the
-/// allocation's.
-///
-/// The three halfwords are the RGB channels `Fade_DrawOverlay` draws: the
-/// fade-out `func_dryfield_water_tower_80180038` raises all three by
-/// `spawnArg1` each frame from zero, the fade-in
-/// `func_dryfield_water_tower_8017FF5C` lowers them from 0xFF, so `spawnArg1`
-/// is the fade rate, not a colour. `field_0` is never touched.
-///
-/// The same 8-byte block the actors' fade tasks carry as
-/// `Actor560800FadeWork`.
-typedef struct DwtwFadeWork {
-    /* 0x0 */ byte pad_0[2];
-    /* 0x2 */ u16  r;
-    /* 0x4 */ u16  g;
-    /* 0x6 */ u16  b;
-} DwtwFadeWork;
-STATIC_ASSERT_SIZEOF(DwtwFadeWork, 0x8);
-
 /// Scratch the raise-prop body `func_dryfield_water_tower_8017E1DC` stages its
 /// two vectors in. The spawn tick's `vec` -- the model translation it hands to
 /// `func_800D7A9C` -- is overwritten before the cap is drawn, so it and the
@@ -1759,20 +1738,20 @@ void func_dryfield_water_tower_8017FD64(Task* task)
 
 /// The room's fade-in task, entry 2 of `D_dryfield_water_tower_8018277C`: the
 /// reverse of the fade-out `func_dryfield_water_tower_80180038`. State 0
-/// allocates the `DwtwFadeWork` block into `Task::work` and saturates its
+/// allocates the `RoomFadeWork` block into `Task::work` and saturates its
 /// three channels at 0xFF; a failed allocation kills the task. Every state-1
 /// frame draws the overlay tinted `r`/`g`/`r` with `Fade_DrawOverlay` and
 /// lowers each channel by `Task::spawnArg1`, the fade rate; once `r` falls
 /// below zero the task kills itself.
 void func_dryfield_water_tower_8017FF5C(Task* arg0)
 {
-    DwtwFadeWork* work;
-    DwtwFadeWork* alloc;
+    RoomFadeWork* work;
+    RoomFadeWork* alloc;
 
-    work = (DwtwFadeWork*)arg0->work;
+    work = (RoomFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (DwtwFadeWork*)Mem_Malloc(8, 0);
+            alloc      = (RoomFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
@@ -1796,7 +1775,7 @@ void func_dryfield_water_tower_8017FF5C(Task* arg0)
     }
 }
 
-/// The room's fade-out task: state 0 allocates the 8-byte `DwtwFadeWork` block
+/// The room's fade-out task: state 0 allocates the 8-byte `RoomFadeWork` block
 /// into `Task::work` and clears its three channels, and every state-1 frame
 /// draws them with `Fade_DrawOverlay` and raises each by `Task::spawnArg1`, the
 /// fade rate. The red channel is the one watched: once it passes 0x100 the fade
@@ -1806,13 +1785,13 @@ void func_dryfield_water_tower_8017FF5C(Task* arg0)
 /// runs the same body backwards, from saturated channels falling past zero.
 void func_dryfield_water_tower_80180038(Task* arg0)
 {
-    DwtwFadeWork* work;
-    DwtwFadeWork* alloc;
+    RoomFadeWork* work;
+    RoomFadeWork* alloc;
 
-    work = (DwtwFadeWork*)arg0->work;
+    work = (RoomFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (DwtwFadeWork*)Mem_Malloc(8, 0);
+            alloc      = (RoomFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);

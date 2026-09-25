@@ -20,6 +20,7 @@
 #include "main/tmd.h"
 
 #include "rooms/dryfield_warehouse.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// Work block of the warehouse's cutscene task, allocated as 0x10 zeroed bytes
@@ -39,19 +40,6 @@ typedef struct DwhWork {
     /* 0x0E */ u16   field_E;
 } DwhWork;
 STATIC_ASSERT_SIZEOF(DwhWork, 0x10);
-
-/// The 8-byte block the room's two screen-fade tasks allocate with
-/// `Mem_Malloc(8, 0)` and park in `Task::work`: two unused bytes, then the
-/// three channels `Fade_DrawOverlay` draws. `func_dryfield_warehouse_8017E22C`
-/// walks them down from 0xFF and `func_dryfield_warehouse_8017E308` up from 0,
-/// both by `Task::spawnArg1`; `r` is the one each end test watches.
-typedef struct DwhFadeWork {
-    /* 0x0 */ u8  pad_0[0x2];
-    /* 0x2 */ s16 r;
-    /* 0x4 */ s16 g;
-    /* 0x6 */ s16 b;
-} DwhFadeWork;
-STATIC_ASSERT_SIZEOF(DwhFadeWork, 0x8);
 
 /// The screen-fade task the warehouse's script spawns and keeps the handle of.
 /// `func_dryfield_warehouse_8017DBB0` stores the task `Task_SpawnFromTable`
@@ -368,13 +356,13 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
 /// the task kills itself.
 void func_dryfield_warehouse_8017E22C(Task* arg0)
 {
-    DwhFadeWork* fade;
-    DwhFadeWork* alloc;
+    RoomFadeWork* fade;
+    RoomFadeWork* alloc;
 
-    fade = (DwhFadeWork*)arg0->work;
+    fade = (RoomFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (DwhFadeWork*)Mem_Malloc(8, 0);
+            alloc      = (RoomFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
@@ -406,13 +394,13 @@ void func_dryfield_warehouse_8017E22C(Task* arg0)
 /// itself.
 void func_dryfield_warehouse_8017E308(Task* arg0)
 {
-    DwhFadeWork* fade;
-    DwhFadeWork* alloc;
+    RoomFadeWork* fade;
+    RoomFadeWork* alloc;
 
-    fade = (DwhFadeWork*)arg0->work;
+    fade = (RoomFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (DwhFadeWork*)Mem_Malloc(8, 0);
+            alloc      = (RoomFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);

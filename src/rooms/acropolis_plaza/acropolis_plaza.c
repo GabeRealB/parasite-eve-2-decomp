@@ -25,6 +25,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/unknown_syms.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// Scratch block for the plaza's eight-quad glow. `vec` holds the coordinate
@@ -144,22 +145,6 @@ typedef struct AcropolisPlazaWork {
     /* 0x26 */ byte  pad_26[0x2];
 } AcropolisPlazaWork;
 STATIC_ASSERT_SIZEOF(AcropolisPlazaWork, 0x28);
-
-/// Colour ramp of the plaza's two white-fade tasks, the fade-out
-/// (`func_acropolis_plaza_8017D8AC`) and the fade-in
-/// (`func_acropolis_plaza_8017DA58`). Each allocates it with `Mem_Malloc(8, 0)`
-/// and parks it in `Task::work` -- that slot is not a `TaskIdMap` here. All
-/// three channels start together (at 0 for the fade-out, 0xFF for the fade-in)
-/// and step by `Task::spawnArg1` every frame, but the semi-transparent
-/// full-screen `TILE` both tasks link into `gGpuCurrentOt[-16]` takes its blue
-/// from `r`, so `b` is only ever stepped and never read.
-typedef struct AcropolisPlazaFadeWork {
-    /* 0x0 */ byte pad_0[0x2];
-    /* 0x2 */ s16  r;
-    /* 0x4 */ s16  g;
-    /* 0x6 */ s16  b;
-} AcropolisPlazaFadeWork;
-STATIC_ASSERT_SIZEOF(AcropolisPlazaFadeWork, 0x8);
 
 /// Work block the plaza's opening sequence (`func_acropolis_plaza_8017ECF8`)
 /// allocates with `Mem_Malloc(8, 0)` and parks in `Task::work` -- that slot is
@@ -389,7 +374,7 @@ void func_acropolis_plaza_8017D6D4(void)
 
 /// Fade the plaza to white and tear the task down.
 ///
-/// State 0 allocates the `AcropolisPlazaFadeWork` ramp at `Task::work` and
+/// State 0 allocates the `RoomFadeWork` ramp at `Task::work` and
 /// zeroes it; a failed allocation kills the task outright. State 1 runs every
 /// frame: it links a semi-transparent full-screen `TILE` (`-0xA0,-0x78`,
 /// `0x140x0xF0`) plus the `0xE1000240` `DR_TPAGE` into `gGpuCurrentOt[-16]`,
@@ -398,17 +383,17 @@ void func_acropolis_plaza_8017D6D4(void)
 /// so the task blanks the display and kills itself.
 void func_acropolis_plaza_8017D8AC(Task* arg0)
 {
-    AcropolisPlazaFadeWork* fade;
-    AcropolisPlazaFadeWork* alloc;
-    u8                      r;
-    u8                      g;
-    TILE*                   tile;
-    DR_TPAGE*               dr;
+    RoomFadeWork* fade;
+    RoomFadeWork* alloc;
+    u8            r;
+    u8            g;
+    TILE*         tile;
+    DR_TPAGE*     dr;
 
-    fade = (AcropolisPlazaFadeWork*)arg0->work;
+    fade = (RoomFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (AcropolisPlazaFadeWork*)Mem_Malloc(8, 0);
+            alloc      = (RoomFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 goto kill;
@@ -455,7 +440,7 @@ void func_acropolis_plaza_8017D8AC(Task* arg0)
 
 /// Fade the plaza up from white, then tear the task down.
 ///
-/// State 0 allocates the `AcropolisPlazaFadeWork` ramp at `Task::work` and
+/// State 0 allocates the `RoomFadeWork` ramp at `Task::work` and
 /// saturates all three channels at 0xFF; a failed allocation kills the task
 /// outright. State 1 runs every frame: it links a semi-transparent full-screen
 /// `TILE` (`-0xA0,-0x78`, `0x140x0xF0`) plus the `0xE1000240` `DR_TPAGE` into
@@ -464,17 +449,17 @@ void func_acropolis_plaza_8017D8AC(Task* arg0)
 /// fully clear, so the task kills itself.
 void func_acropolis_plaza_8017DA58(Task* arg0)
 {
-    AcropolisPlazaFadeWork* fade;
-    AcropolisPlazaFadeWork* alloc;
-    u8                      r;
-    u8                      g;
-    TILE*                   tile;
-    DR_TPAGE*               dr;
+    RoomFadeWork* fade;
+    RoomFadeWork* alloc;
+    u8            r;
+    u8            g;
+    TILE*         tile;
+    DR_TPAGE*     dr;
 
-    fade = (AcropolisPlazaFadeWork*)arg0->work;
+    fade = (RoomFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (AcropolisPlazaFadeWork*)Mem_Malloc(8, 0);
+            alloc      = (RoomFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 goto kill;
