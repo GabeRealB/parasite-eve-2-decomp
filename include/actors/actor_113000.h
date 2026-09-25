@@ -66,4 +66,9 @@ STATIC_ASSERT_SIZEOF(Actor113000Work, 0x4CC);
 /// countdown for steps 1 and 2 or clearing the step for step 3.
 void func_actor_113000_80131E30(GpActorWork* arg0);
 
+/// The actor's three state handlers - spawn `func_actor_113000_80131F90`,
+/// per-frame tick `func_actor_113000_80132070` and exit `Gp_EnemyTaskExit` -
+/// indexed by `Task::state`.
+extern TaskFuncTable3 D_actor_113000_80131E24;
+
 #endif // ACTOR_113000_H
