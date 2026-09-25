@@ -201,38 +201,6 @@ typedef struct _GpRoomCoordSet {
 } GpRoomCoordSet;
 STATIC_ASSERT_SIZEOF(GpRoomCoordSet, 0x18);
 
-/// 0x6C-byte walk overlay of `GpSpotLight` starting at `dir`. `Gp_UpdateRoomCoords`
-/// increments this by one object per loop.
-typedef struct _Gp6CDirWalk {
-    /* 0x00 */ SVECTOR dir;
-    /* 0x08 */ byte    pad[0x64];
-} Gp6CDirWalk;
-STATIC_ASSERT_SIZEOF(Gp6CDirWalk, 0x6C);
-
-/// 0x6C-byte walk overlay of `GpSpotLight` starting at `head.u.coord.coord`.
-typedef struct _Gp6CMatWalk {
-    /* 0x00 */ MATRIX mtx;
-    /* 0x20 */ byte   pad[0x4C];
-} Gp6CMatWalk;
-STATIC_ASSERT_SIZEOF(Gp6CMatWalk, 0x6C);
-
-/// Overlay of `GpSpotLight` starting at `head.u.coord.sub`. `dir` is at +0xC, so a
-/// pointer to `Gp6CDirWalk.dir` minus `OFFSET_OF(Gp6CMid, dir)` is this
-/// object. `Gp_UpdateRoomCoords` writes `sub` as `gGfxViewCoord`.
-typedef struct _Gp6CMid {
-    /* 0x00 */ GpCoord* sub;
-    /* 0x04 */ byte     pad[8];
-    /* 0x0C */ SVECTOR  dir;
-} Gp6CMid;
-
-/// 0x64-byte walk overlay of `GpCoord64` starting at `data.coord`. `Gp_UpdateRoomCoords`
-/// writes `coord.sub` while a parallel `GpCoord64*` writes `framesLeft`.
-typedef struct _GpCoord64View {
-    /* 0x00 */ GpCoord coord;
-    /* 0x50 */ byte    pad[0x14];
-} GpCoord64View;
-STATIC_ASSERT_SIZEOF(GpCoord64View, 0x64);
-
 /// Record in the 8-entry arrays pointed to by `Gp_RoomParamTables`.
 /// `Gp_LoadRoomParams` copies `field_3` into `Gp_RoomParams[]`. Nearby helpers
 /// also load `field_1` (`func_800DDDF8`, `func_800DE7CC`) and `field_2`

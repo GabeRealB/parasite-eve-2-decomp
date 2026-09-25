@@ -140596,3 +140596,19 @@ the `lhu`, then `lbu $a0, %lo(...)($a0)`. The seed had faked exactly that pair
 with two `asm` statements. The same function's `hp / 10` needed its `s16`
 operand copied into an `s32` local first, or the quotient is narrowed to a
 short (`sll 16; sra 15` instead of `sll 1`) - see the clamped-halfword entry.
+## A `move s0,a0` element copy with the step taken from the copy is a long-lived member-pointer local (Gp_UpdateRoomCoords, 2026-09-25)
+
+Target loop over an array: `move s0,a0; ...uses of s0...; addiu a0,s0,0x60`
+in the back-branch slot. The walking pointer (`$a0`) dies at the copy and is
+recomputed from it, and the copy sits in a callee-saved register even in loops
+with no call. The body had `cur = p; ... p = cur + 1;` with both pinned.
+The source was one function-scope `GpCoord* coord`, assigned `coord =
+&elem->head.u.coord` at the top of every loop and used for the stores or the
+call argument. Because `coord` is used in later loops, its last use is later
+than the walking pointer's, so cse's `make_regs_eqv` makes it canonical and
+rewrites `p + 1` as `coord + 1`; being live across the later calls also puts
+it in `$s0` everywhere. A loop whose target has *no* copy is the last one to
+use `coord` (combine then folds the copy into the argument), or uses the
+element pointer directly. The counter swaps (`i` in `$s1` where the target has
+the loop's pointer there) were a loop in its own inline helper, whose counter
+is a separate, lower-priority pseudo.

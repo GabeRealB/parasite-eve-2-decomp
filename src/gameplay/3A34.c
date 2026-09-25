@@ -666,204 +666,104 @@ void Gp_DrawWeaponLabel(Task* arg0)
     Ui_DrawText(panel, Gp_StrWeapon);
 }
 
-void Gp_UpdateRoomCoords(Task* arg0)
+/// Re-evaluates each lit transient light slot against the view.
+static inline void _gpUpdateRoomCoordSlots(void)
 {
-    Task*           task;
+    GpCoord64* slot;
+    s32        i;
+
+    slot = Gp_RoomCoords;
+    for (i = 0; i < 8; i++, slot++) {
+        if (slot->framesLeft != 0) {
+            Gp_UpdateCoordEx(&slot->data.coord, &gGfxViewCoord);
+        }
+    }
+}
+
+void Gp_UpdateRoomCoords(Task* task)
+{
     GpRoomCoordSet* set;
     SVECTOR*        vec;
-    GpCoord*        parent6C;
+    GpLight*        light;
+    GpPointLight*   point;
+    GpSpotLight*    spot;
+    GpCoord*        coord;
     s32             i;
     s32             j;
-    u16             tmp;
 
-    task = arg0;
-    {
-        register GameSession* gs asm("a0");
-
-        gs  = gGameSession;
-        set = (GpRoomCoordSet*)Gp_GetRoomCoordSet(&gs->at4.loc);
-    }
+    set = (GpRoomCoordSet*)Gp_GetRoomCoordSet(&gGameSession->at4.loc);
     if (set == NULL) {
         taskKill(task);
         return;
     }
 
-    {
-        register u8* head asm("v1");
-
-        head             = SCRATCH_HEAD(u8);
-        head            -= 0x1C;
-        SCRATCH_HEAD(u8) = head;
-        vec              = (SVECTOR*)head;
-        if (task->state == 0) {
-            {
-                register GpPointLight* p asm("a0");
-                register GpPointLight* cur asm("s0");
-                GpCoord*               parent;
-
-                p = set->arr60;
-                if (set->n60 > 0) {
-                    i      = 0;
-                    parent = &gGfxViewCoord;
-                    do {
-                        cur                   = p;
-                        i                    += 1;
-                        cur->head.u.coord.sub = parent;
-                        cur->head.u.coord.flg = 0;
-                        p                     = cur + 1;
-                    } while (i < set->n60);
-                }
-            }
-
-            {
-                register GpSpotLight* obj asm("s3");
-                GpSpotLight*          cur;
-                register Gp6CDirWalk* dirw asm("s2");
-                register Gp6CMatWalk* matw asm("s6");
-
-                obj = set->arr6C;
-                i   = 0;
-                if (set->n6C > 0) {
-                    parent6C = &gGfxViewCoord;
-                    dirw     = (Gp6CDirWalk*)&obj->dir;
-                    matw     = (Gp6CMatWalk*)&obj->head.u.coord.coord;
-                    do {
-                        cur                                                    = obj;
-                        ((Gp6CMid*)((u8*)dirw - OFFSET_OF(Gp6CMid, dir)))->sub = parent6C;
-                        if (dirw->dir.vy != 0) {
-                            goto perp;
-                        }
-                        if (dirw->dir.vz == 0) {
-                            goto along_x;
-                        }
-                    perp:
-                        vec->vx = 0;
-                        vec->vy = -(s16)(u16)dirw->dir.vz;
-                        vec->vz = (u16)dirw->dir.vy;
-                        goto join;
-                    along_x:
-                        vec->vx = (u16)dirw->dir.vy;
-                        tmp     = (u16)dirw->dir.vx;
-                        vec->vz = 0;
-                        vec->vy = -(s16)tmp;
-                    join:
-                        Gfx_OrthonormalBasis(&matw->mtx, &dirw->dir, vec);
-                        i                    += 1;
-                        dirw                 += 1;
-                        matw                 += 1;
-                        cur->head.u.coord.flg = 0;
-                        obj                  += 1;
-                    } while (i < set->n6C);
-                }
-            }
-
-            j = 0;
-            if (set->n58 > 0) {
-                register GpLight* p asm("a0");
-                register GpLight* cur asm("s0");
-                GpCoord*          parent;
-
-                p = set->arr58;
-                TOUCH_REG(j);
-                i = 0;
-                if (i < set->n58) {
-                    parent = &gGfxViewCoord;
-                    do {
-                        cur              = p;
-                        i               += 1;
-                        cur->u.coord.sub = parent;
-                        cur->u.coord.flg = 0;
-                        p                = cur + 1;
-                    } while (i < set->n58);
-                    j = 0;
-                }
-            }
-
-            {
-                GpCoord*       parent;
-                GpCoord64View* view;
-                GpCoord64*     slot;
-                register void* base asm("v0");
-
-                parent = &gGfxViewCoord;
-                base   = Gp_RoomCoords;
-                view   = (GpCoord64View*)&((GpCoord64*)base)->data.coord;
-                slot   = (GpCoord64*)base;
-                do {
-                    slot->framesLeft = 0;
-                    view->coord.sub  = parent;
-                    view            += 1;
-                    j               += 1;
-                    slot            += 1;
-                } while (j < 8);
-            }
-
-            task->state += 1;
+    vec = SCRATCH_PUSH_BYTES(0x1C);
+    if (task->state == 0) {
+        point = set->arr60;
+        for (i = 0; i < set->n60; i++, point++) {
+            coord      = &point->head.u.coord;
+            coord->sub = &gGfxViewCoord;
+            coord->flg = 0;
         }
+
+        spot = set->arr6C;
+        for (i = 0; i < set->n6C; i++, spot++) {
+            coord      = &spot->head.u.coord;
+            coord->sub = &gGfxViewCoord;
+            if (spot->dir.vy != 0 || spot->dir.vz != 0) {
+                vec->vx = 0;
+                vec->vy = -spot->dir.vz;
+                vec->vz = spot->dir.vy;
+            } else {
+                vec->vx = spot->dir.vy;
+                vec->vy = -spot->dir.vx;
+                vec->vz = 0;
+            }
+            Gfx_OrthonormalBasis(&coord->coord, &spot->dir, vec);
+            coord->flg = 0;
+        }
+
+        if (set->n58 > 0) {
+            GpLight* dir;
+
+            dir = set->arr58;
+            for (i = 0; i < set->n58; i++, dir++) {
+                coord      = &dir->u.coord;
+                coord->sub = &gGfxViewCoord;
+                coord->flg = 0;
+            }
+        }
+
+        for (j = 0; j < 8; j++) {
+            Gp_RoomCoords[j].framesLeft = 0;
+            coord                       = &Gp_RoomCoords[j].data.coord;
+            coord->sub                  = &gGfxViewCoord;
+        }
+
+        task->state++;
     }
 
     Gp_UpdateCoord(&gGfxViewCoord);
 
-    {
-        s32                 hi;
-        register GpCoord64* p asm("s1");
-        s32                 k;
+    _gpUpdateRoomCoordSlots();
 
-        __asm__ volatile(
-            "lui\t%0, %%hi(Gp_RoomCoords)\n\t"
-            "addiu\t%1, %0, %%lo(Gp_RoomCoords)"
-            : "=r"(hi), "=r"(p));
-        k = 0;
-        do {
-            if (p->framesLeft != 0) {
-                Gp_UpdateCoordEx(&p->data.coord, &gGfxViewCoord);
-            }
-            k += 1;
-            p += 1;
-        } while (k < 8);
+    point = set->arr60;
+    for (i = 0; i < set->n60; i++, point++) {
+        coord = &point->head.u.coord;
+        Gp_UpdateCoordEx(coord, &gGfxViewCoord);
     }
 
-    {
-        register GpPointLight* p asm("a0");
-        GpPointLight*          cur;
-
-        p = set->arr60;
-        TOUCH_REG(p);
-        i = 0;
-        if (set->n60 > 0) {
-            do {
-                cur = p;
-                Gp_UpdateCoordEx(&cur->head.u.coord, &gGfxViewCoord);
-                i += 1;
-                p  = cur + 1;
-            } while (i < set->n60);
-        }
-    }
-
-    {
-        register GpSpotLight* obj asm("s3");
-        register GpSpotLight* cur asm("s0");
-
-        obj = set->arr6C;
-        i   = 0;
-        if (set->n6C > 0) {
-            do {
-                cur = obj;
-                Gp_UpdateCoordEx(&cur->head.u.coord, &gGfxViewCoord);
-                i  += 1;
-                obj = cur + 1;
-            } while (i < set->n6C);
-        }
+    spot = set->arr6C;
+    for (i = 0; i < set->n6C; i++, spot++) {
+        coord = &spot->head.u.coord;
+        Gp_UpdateCoordEx(coord, &gGfxViewCoord);
     }
 
     if (set->n58 > 0) {
-        GpLight* p;
-
-        p = set->arr58;
-        for (i = 0; i < set->n58;) {
-            Gp_UpdateCoordEx(&p->u.coord, &gGfxViewCoord);
-            i += 1;
-            p += 1;
+        light = set->arr58;
+        for (i = 0; i < set->n58; i++, light++) {
+            coord = &light->u.coord;
+            Gp_UpdateCoordEx(coord, &gGfxViewCoord);
         }
     }
 
