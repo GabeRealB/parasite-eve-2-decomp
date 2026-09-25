@@ -48327,7 +48327,7 @@ so whichever sorts first takes `$s0`, and `allocno_compare` ranks by
 
 ```c
 if (D_actor_444000_80144A68 == 1 ||
-    (work = memCalloc(sizeof(Actor444000GrabWork), false), task->field_1C = work, work == NULL)) {
+    (work = memCalloc(sizeof(Actor403200GrabWork), false), task->field_1C = work, work == NULL)) {
     Gp_DestroyEnemy(enemy, (Task*)task);
     return;
 }
@@ -48344,7 +48344,7 @@ if (D_actor_444000_80144A68 == 1) {
     return;
 }
 
-work           = memCalloc(sizeof(Actor444000GrabWork), false);
+work           = memCalloc(sizeof(Actor403200GrabWork), false);
 task->field_1C = work;
 if (work == NULL) {
     Gp_DestroyEnemy(enemy, (Task*)task);
@@ -71813,7 +71813,7 @@ widen it to the whole `GsCOORDINATE2` when the identity is built in a local
 coordinate:
 
 ```c
-typedef union Actor444000DropCoord {
+typedef union Actor403200DropCoord {
     GsCOORDINATE2 c;
     struct {
         /* 0x00 */ s32 flg;
@@ -71823,7 +71823,7 @@ typedef union Actor444000DropCoord {
         /* 0x10 */ s32 m20_m21;
         /* 0x14 */ s16 m22;
     } ident;
-} Actor444000DropCoord;
+} Actor403200DropCoord;
 
 coord.ident.m00_m01  = 0x1000;
 coord.ident.m02_m10  = 0;
@@ -73336,7 +73336,7 @@ late inside the `%hi`/`%lo` cluster that computes
 
 ```c
 D_actor_444000_80161670[4] =
-    ((Actor444000AnimTable*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + D_80073BA9])->sets[7];
+    ((Actor403200AnimTable*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + D_80073BA9])->sets[7];
 ```
 
 Nothing about the allocation or the statement order was wrong - swapping the two

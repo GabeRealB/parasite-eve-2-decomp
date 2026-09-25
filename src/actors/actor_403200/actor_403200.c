@@ -25,20 +25,6 @@
 
 typedef struct Actor403200Obj Actor403200Obj;
 
-/// Scratch coordinate with word access to its identity rotation matrix.
-typedef union Actor403200DropCoord {
-    GsCOORDINATE2 c;
-    struct {
-        /* 0x00 */ s32 flg;
-        /* 0x04 */ s32 m00_m01;
-        /* 0x08 */ s32 m02_m10;
-        /* 0x0C */ s32 m11_m12;
-        /* 0x10 */ s32 m20_m21;
-        /* 0x14 */ s16 m22;
-    } ident;
-} Actor403200DropCoord;
-STATIC_ASSERT_SIZEOF(Actor403200DropCoord, 0x50);
-
 /// Reference positions used by the distance-based view selector.
 typedef struct Actor403200ViewPoints {
     /* 0x00 */ SVECTOR v[4];
@@ -93,37 +79,6 @@ typedef struct Actor403200MsgPos {
 } Actor403200MsgPos;
 STATIC_ASSERT_SIZEOF(Actor403200MsgPos, 0x18);
 
-/// One of the nine back-to-back collision groups in `Actor403200Work` at
-/// 0x7F4. `obj` is the `GpObj` the gameplay collision list carries and `recs`
-/// is the `GpRec18` table it fills in for that part, which is why the stride is
-/// 0x98. `obj.field_8` is the part's own coordinate -- what the hit handler
-/// spawns the hit effect on. The same shape as `Actor444000HitGroup`.
-typedef struct Actor403200HitGroup {
-    /* 0x00 */ GpObj   obj;
-    /* 0x20 */ GpRec18 recs[5];
-} Actor403200HitGroup;
-STATIC_ASSERT_SIZEOF(Actor403200HitGroup, 0x98);
-
-/// 0x30-byte scratchpad frame the group-0 hit handler
-/// `func_actor_403200_80139A60` carves off `SCRATCH_HEAD` for the one hit it
-/// takes this frame. `pos` is the contact point copied out of the `GpRec18`;
-/// `delta` is the player-relative offset whose length is `dist`, the range
-/// `Gp_ComputeDamage` scales `damage` by. `rot` doubles as `Gp_SpawnEff`'s
-/// rotation argument and, afterwards, as the workspace for the contact point
-/// relative to the part's world translation, which `angle` is the yaw of.
-typedef struct Actor403200HitScratch {
-    /* 0x00 */ VECTOR3 delta;
-    /* 0x0C */ byte    pad_C[0x4];
-    /* 0x10 */ SVECTOR rot;
-    /* 0x18 */ SVECTOR pos;
-    /* 0x20 */ s32     id;     // attack id of the hit that landed, 0 for none
-    /* 0x24 */ u32     damage; // HP taken off the enemy
-    /* 0x28 */ s32     dist;   // distance from the player, in world units
-    /* 0x2C */ s16     angle;  // yaw of the contact point, wrapped to +/-0x800
-    /* 0x2E */ byte    pad_2E[0x2];
-} Actor403200HitScratch;
-STATIC_ASSERT_SIZEOF(Actor403200HitScratch, 0x30);
-
 /// 0x20-byte scratchpad frame the state-selecting tick
 /// `func_actor_403200_8013EB64` carves off `SCRATCH_SP`. `delta` is the
 /// player-relative offset whose length is `dist`, the range the three
@@ -174,38 +129,6 @@ typedef struct Actor403200DragScratch {
     /* 0x52 */ byte    pad_52[0x2];
 } Actor403200DragScratch;
 STATIC_ASSERT_SIZEOF(Actor403200DragScratch, 0x54);
-
-/// 0xC-byte scratchpad frame `func_actor_403200_8013EF6C` carves off
-/// `SCRATCH_SP` for the escort-spawn tick: `delta` is the player-relative
-/// offset the tick yaws the host by, and `i` is the escort slot the loop and
-/// the 0x7DB message both index `Actor403200Work::field_EE8` with.
-typedef struct Actor403200SpawnScratch {
-    /* 0x0 */ SVECTOR delta;
-    /* 0x8 */ byte    pad_8[0x2];
-    /* 0xA */ s16     i; // escort slot, 0 or 1
-} Actor403200SpawnScratch;
-STATIC_ASSERT_SIZEOF(Actor403200SpawnScratch, 0xC);
-
-/// Scratchpad frame the spawn state carves off `G_SCRATCH_HEAD` to flatten the
-/// host's root coordinate: `Gfx_RotMatrixY` writes `m`, `scale` is the uniform
-/// 1.0 vector `ScaleMatrix` applies to it, and `angle` is the `ratan2` yaw the
-/// rotation was built from. Same shape as `Actor444000RotScratch`.
-typedef struct Actor403200RotScratch {
-    /* 0x00 */ MATRIX m;
-    /* 0x20 */ VECTOR scale;
-    /* 0x30 */ s16    angle;
-    /* 0x32 */ byte   pad_32[2];
-} Actor403200RotScratch;
-STATIC_ASSERT_SIZEOF(Actor403200RotScratch, 0x34);
-
-/// Scratchpad frame the hit-effect spawner `func_actor_403200_80134044` carves
-/// off `SCRATCH_SP` to hand `func_800FDB18` an effect rotation together with
-/// the `GpEffArg` naming the coordinate the effect hangs off.
-typedef struct Actor403200EffScratch {
-    /* 0x0 */ SVECTOR  rot; // effect rotation, chosen from the attack's param 0
-    /* 0x8 */ GpEffArg eff; // coordinate, 0x500, 3
-} Actor403200EffScratch;
-STATIC_ASSERT_SIZEOF(Actor403200EffScratch, 0x10);
 
 /// Per-actor state block for the `actor_403200` overlay.
 ///
@@ -378,7 +301,7 @@ typedef struct Actor403200Work {
     /* 0xEAF */ s8 field_EAF;
     /// Message 0x3FF payload the launch state sends the player. Same slot and
     /// role as `Actor444000Work::anim`.
-    /* 0xEB0 */ GpAnimArg field_EB0;
+    /* 0xEB0 */ GpAnimArg anim;
     /// First three bytes of the last 0x7DB payload received.
     /* 0xEC4 */ u8   field_EC4;
     /* 0xEC5 */ u8   field_EC5;
@@ -436,16 +359,16 @@ typedef struct Actor403200Work {
     /// (`func_actor_403200_8013A4A0`) draws down alongside the host's HP, and
     /// refills to 0x32 when it runs out. Same slot and role as
     /// `Actor444000Work::field_F0A`.
-    /* 0xF0A */ u16 field_F0A;
+    /* 0xF0A */ s16 field_F0A;
     /// Damage pool the hit handler for collision groups 6, 7 and 8
     /// (`func_actor_403200_8013AB70`) draws down alongside the host's HP, and
     /// refills to 0x3C when it runs out. Same slot and role as
     /// `Actor444000Work::field_F0C`.
-    /* 0xF0C */ u16 field_F0C;
+    /* 0xF0C */ s16 field_F0C;
     /// Damage pool the hit handler for collision groups 1 and 2
     /// (`func_actor_403200_80139E94`) draws down alongside the host's HP. Same
     /// slot and role as `Actor444000Work::field_F0E`.
-    /* 0xF0E */ u16 field_F0E;
+    /* 0xF0E */ s16 field_F0E;
     /// Start-of-state countdown the attack state reads against `field_6`: the
     /// state body only runs once `field_6` has reached it, and it is seeded to
     /// 0x28 if still zero. Same slot and role as `Actor444000Work::field_F10`.
@@ -480,112 +403,6 @@ typedef struct Actor403200Work {
 } Actor403200Work;
 STATIC_ASSERT_SIZEOF(Actor403200Work, 0xF24);
 
-/// Work block of the enemies spawned through `D_actor_403200_80131E90`,
-/// `D_actor_403200_80131E9C` and `D_actor_403200_80131F04`: their spawn states
-/// allocate it with `memCalloc(0x1C0, 0)` and park it in the task's
-/// `Task::work` slot, so the size below is the allocation, not a guess.
-///
-/// The spawn states drop the model onto the view coordinate and hang one or two
-/// `GpObj` display nodes off it. `rec0` is the table the first node carries,
-/// `rec1` the second's; the two matrices are handed out through the task's
-/// `TmdObject::lightMtx` / `colorMtx`. `field_1AA` is a ninth of the model's
-/// height and `field_1AC` the step counter, both re-read by the states that
-/// follow the spawn.
-typedef struct Actor403200GrabWork {
-    /// Horizontal gap to the player, a fifteenth of which the later states add
-    /// to the model each step; only `vx` and `vz` are filled in here.
-    /* 0x000 */ VECTOR3 vel;
-    /* 0x00C */ byte    pad_C[0x54];
-    /// The work block's own coordinate, parented to the view coordinate and
-    /// kept tracking the model's world position so the ground marker under it
-    /// can be drawn from `coord.workm.t`.
-    /* 0x060 */ GsCOORDINATE2 coord;
-    /// The two display nodes, linked with `prio` 3 and 2.
-    /* 0x0B0 */ GpObj obj0;
-    /* 0x0D0 */ GpObj obj1;
-    /// Their collision-record tables.
-    /* 0x0F0 */ GpRec18 rec0;
-    /* 0x108 */ GpRec18 rec1;
-    /* 0x120 */ byte    pad_120[0x30];
-    /// The colour and light matrices: `field_1C` of the task's `TmdObject` is
-    /// handed `lightMtx` and `field_20` `colorMtx`.
-    /* 0x150 */ MATRIX colorMtx;
-    /* 0x170 */ MATRIX lightMtx;
-    /* 0x190 */ byte   pad_190[0x4];
-    /// Message 0x3FF payload the hold states send the player, by address.
-    /* 0x194 */ GpAnimArg anim;
-    /// Armed to 1 by the spawn state `func_actor_403200_8013509C` once the
-    /// model has been stood up on its escort's part 1; the states that follow
-    /// re-arm the step counter and the first display node on the tick they see
-    /// it set. Same slot and role as `Actor444000GrabWork::field_1A8`.
-    /* 0x1A8 */ s16  field_1A8;
-    /* 0x1AA */ s16  field_1AA;
-    /* 0x1AC */ s16  field_1AC;
-    /* 0x1AE */ byte pad_1AE[0x2];
-    /// Radius of the ground marker, in eighths once shifted down.
-    /* 0x1B0 */ u16 field_1B0;
-    /// Set while the player animation this enemy sent is installed, so only
-    /// the state that set it sends the cancel.
-    /* 0x1B2 */ s16 field_1B2;
-    /// The state the dispatcher last ran, so it can spot a change.
-    /* 0x1B4 */ s16  field_1B4;
-    /* 0x1B6 */ byte pad_1B6[0xA];
-} Actor403200GrabWork;
-STATIC_ASSERT_SIZEOF(Actor403200GrabWork, 0x1C0);
-
-/// Work block of the enemy dispatched through `D_actor_403200_80131F14`, the one
-/// that rises out of view and slams back down onto the floor. Its spawn state
-/// allocates it with `memCalloc(0x1C0, 0)` and parks it in the task's
-/// `Task::work` slot, so the size is the allocation.
-///
-/// `target` is the landing point the spawn state picks; `coord` is the
-/// coordinate its shadow marker is drawn at, kept on the floor directly under
-/// the model and refreshed every step; `obj` is its collision node, whose
-/// `radius` is the marker size, carrying the one-entry `rec` table. `timer` is
-/// the step counter of the current state.
-typedef struct Actor403200DropWork {
-    /* 0x000 */ VECTOR3       target;
-    /* 0x00C */ byte          pad_C[0x4];
-    /* 0x010 */ GsCOORDINATE2 coord;
-    /* 0x060 */ byte          pad_60[0x50];
-    /* 0x0B0 */ GpObj         obj;
-    /* 0x0D0 */ byte          pad_D0[0x20];
-    /* 0x0F0 */ GpRec18       rec;
-    /* 0x108 */ byte          pad_108[0x88];
-    /// The effect the spawn state starts, reparented onto the task so it dies
-    /// with it; the landing state tells it to finish.
-    /* 0x190 */ GpEffWork* eff;
-    /* 0x194 */ byte       pad_194[0x16];
-    /* 0x1AA */ s16        field_1AA;
-    /* 0x1AC */ u16        timer;
-    /// Per-step bias of the rise and fall, rolled off the LCG.
-    /* 0x1AE */ s16  field_1AE;
-    /* 0x1B0 */ byte pad_1B0[0x10];
-} Actor403200DropWork;
-STATIC_ASSERT_SIZEOF(Actor403200DropWork, 0x1C0);
-
-/// Work block of the spinner enemy dispatched through `D_actor_403200_80131F28`:
-/// its spawn state allocates it with `memCalloc(0xA0, 0)` and parks it in the
-/// task's `Task::work` slot. `spin` counts down while the model only yaws in
-/// place and is also the phase that yaw follows; `field_98` is the homing
-/// speed and radius and `field_96` the step count that accelerates it.
-typedef struct Actor403200SpinnerWork {
-    /* 0x00 */ byte   pad_0[0x50];
-    /* 0x50 */ MATRIX colorMtx;
-    /* 0x70 */ MATRIX lightMtx;
-    /// Set when the dispatcher sees the state change, cleared when it has not.
-    /* 0x90 */ s16  field_90;
-    /* 0x92 */ byte pad_92[0x2];
-    /// The state the dispatcher last ran, so it can spot the change.
-    /* 0x94 */ s16  field_94;
-    /* 0x96 */ s16  field_96;
-    /* 0x98 */ s16  field_98;
-    /* 0x9A */ byte pad_9A[0x2];
-    /* 0x9C */ u8   spin;
-    /* 0x9D */ byte pad_9D[0x3];
-} Actor403200SpinnerWork;
-STATIC_ASSERT_SIZEOF(Actor403200SpinnerWork, 0xA0);
-
 extern MATRIX* D_80073B8C;
 
 /// Exit callback of the boss task, installed by its spawn state.
@@ -619,14 +436,6 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_8010C980(GsCOORDINATE2* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3, s32 arg4, s32 arg5);
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
-
-/// Ten-set view of one `Gp_PlayerAnimBlkTbl` entry: an array of animation-set
-/// pointers. The launch state reads `sets[7]` and the grab's hold state
-/// `sets[9]`.
-typedef struct Actor403200AnimTable {
-    /* 0x00 */ GpAnimSet* sets[10];
-} Actor403200AnimTable;
-STATIC_ASSERT_SIZEOF(Actor403200AnimTable, 0x28);
 
 /// Non-zero while the overlay is shutting down: the spawn states tear their
 /// enemies down instead of standing them up, and the state-selecting tick
@@ -780,15 +589,6 @@ static __inline__ void Actor403200_StepForward(GsCOORDINATE2* coord)
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 void func_8004BFF8(s16 angle, MATRIX* matrix);
 
-/// 0x14-byte scratchpad frame `func_actor_403200_801324D0` carves off
-/// `G_SCRATCH_HEAD`: the `GpDeltaScratch` it hands `func_800E0C10` plus the
-/// "did the coordinate actually move" flag it returns.
-typedef struct Actor403200DeltaScratch {
-    /* 0x00 */ GpDeltaScratch delta;
-    /* 0x10 */ s32            field_10;
-} Actor403200DeltaScratch;
-STATIC_ASSERT_SIZEOF(Actor403200DeltaScratch, 0x14);
-
 /// Integer part of the last step `func_actor_403200_801324D0` applied.
 extern SVECTOR D_actor_403200_8015F8E8;
 
@@ -804,11 +604,11 @@ void func_actor_403200_8014139C(GpEnemy* enemy, Task* arg1);
 /// coordinate; as an inline the scratch-head accesses stay absolute.
 static __inline__ void Actor403200_ScaleRotation(GsCOORDINATE2* coord, s16 xz, s32 y)
 {
-    Actor403200RotScratch* sc;
-    s16                    ang;
+    ActorScaleRotScratch* sc;
+    s16                   ang;
 
-    sc                                       = (Actor403200RotScratch*)(*(u8**)G_SCRATCH_HEAD - sizeof(Actor403200RotScratch));
-    *(Actor403200RotScratch**)G_SCRATCH_HEAD = sc;
+    sc                                      = (ActorScaleRotScratch*)(*(u8**)G_SCRATCH_HEAD - sizeof(ActorScaleRotScratch));
+    *(ActorScaleRotScratch**)G_SCRATCH_HEAD = sc;
 
     ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle = ang;
@@ -829,17 +629,17 @@ static __inline__ void Actor403200_ScaleRotation(GsCOORDINATE2* coord, s16 xz, s
     coord->coord.m[2][2] = sc->m.m[2][2];
     coord->flg           = 0;
 
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(Actor403200RotScratch);
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(ActorScaleRotScratch);
 }
 
 /// The same rebuild at a uniform half scale.
 static __inline__ void Actor403200_ShrinkRotation(GsCOORDINATE2* coord)
 {
-    Actor403200RotScratch* sc;
-    s16                    ang;
+    ActorScaleRotScratch* sc;
+    s16                   ang;
 
-    sc                                       = (Actor403200RotScratch*)(*(u8**)G_SCRATCH_HEAD - sizeof(Actor403200RotScratch));
-    *(Actor403200RotScratch**)G_SCRATCH_HEAD = sc;
+    sc                                      = (ActorScaleRotScratch*)(*(u8**)G_SCRATCH_HEAD - sizeof(ActorScaleRotScratch));
+    *(ActorScaleRotScratch**)G_SCRATCH_HEAD = sc;
 
     ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle = ang;
@@ -860,7 +660,7 @@ static __inline__ void Actor403200_ShrinkRotation(GsCOORDINATE2* coord)
     coord->coord.m[2][2] = sc->m.m[2][2];
     coord->flg           = 0;
 
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(Actor403200RotScratch);
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(ActorScaleRotScratch);
 }
 
 /// Gap from `coord` to the camera target `D_80073B8C`, into `out`.
@@ -875,12 +675,12 @@ void func_actor_403200_80141800(GpEnemy* arg0, Task* arg1);
 
 static __inline__ void Actor403200_SeedRootCoord(Task* task, Actor403200Work* work)
 {
-    GsCOORDINATE2*         coord = ((TmdObject*)task->extra)->coords;
-    Actor403200RotScratch* sc;
-    s16                    ang;
+    GsCOORDINATE2*        coord = ((TmdObject*)task->extra)->coords;
+    ActorScaleRotScratch* sc;
+    s16                   ang;
 
-    sc                                       = (Actor403200RotScratch*)(*(u8**)G_SCRATCH_HEAD - sizeof(Actor403200RotScratch));
-    *(Actor403200RotScratch**)G_SCRATCH_HEAD = sc;
+    sc                                      = (ActorScaleRotScratch*)(*(u8**)G_SCRATCH_HEAD - sizeof(ActorScaleRotScratch));
+    *(ActorScaleRotScratch**)G_SCRATCH_HEAD = sc;
 
     ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle = ang;
@@ -901,7 +701,7 @@ static __inline__ void Actor403200_SeedRootCoord(Task* task, Actor403200Work* wo
 
     work->field_0                    = 0;
     ((TmdObject*)task->extra)->flags = 0;
-    *(u8**)G_SCRATCH_HEAD            = *(u8**)G_SCRATCH_HEAD + sizeof(Actor403200RotScratch);
+    *(u8**)G_SCRATCH_HEAD            = *(u8**)G_SCRATCH_HEAD + sizeof(ActorScaleRotScratch);
 }
 
 typedef s32 (*Actor403200ViewFn)(Task* task, s16 arg);
@@ -965,25 +765,25 @@ void func_actor_403200_801321C4(GsCOORDINATE2* coord, s16 yaw)
 /// latched step are nudged one unit further from zero.
 s32 func_actor_403200_801324D0(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2)
 {
-    void**                   scratch;
-    u8*                      head;
-    Actor403200DeltaScratch* s;
-    register void*           p asm("v1");
-    s32                      val;
+    void**          scratch;
+    u8*             head;
+    ActorDeltaFlag* s;
+    register void*  p asm("v1");
+    s32             val;
 
-    scratch     = (void**)G_SCRATCH_HEAD;
-    head        = *scratch;
-    p           = head - 0x14;
-    s           = p;
-    *scratch    = p;
-    s->field_10 = 0;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    p        = head - 0x14;
+    s        = p;
+    *scratch = p;
+    s->moved = 0;
     if (func_800E0C10(rec, &s->delta, (s16)arg2, NULL) != 0) {
-        coord->coord.t[0]         += ((Actor403200DeltaScratch*)(head - 0x14))->delta.vx.h.hi;
+        coord->coord.t[0]         += ((ActorDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
         coord->coord.t[2]         += s->delta.vz.h.hi;
-        D_actor_403200_8015F8E8.vx = ((Actor403200DeltaScratch*)(head - 0x14))->delta.vx.w >> 16;
+        D_actor_403200_8015F8E8.vx = ((ActorDeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
         D_actor_403200_8015F8E8.vy = s->delta.vy.w >> 16;
         D_actor_403200_8015F8E8.vz = s->delta.vz.w >> 16;
-        val                        = ((Actor403200DeltaScratch*)(head - 0x14))->delta.vx.w;
+        val                        = ((ActorDeltaFlag*)(head - 0x14))->delta.vx.w;
         if ((val & 0xFFFF) != 0) {
             if (val > 0) {
                 coord->coord.t[0]++;
@@ -1005,10 +805,10 @@ s32 func_actor_403200_801324D0(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2)
         }
     }
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
-        s->field_10 = 1;
+        s->moved = 1;
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
-    return s->field_10;
+    return s->moved;
 }
 
 /// Rebuild quad `index` of the collision grid as a wall across the front of
@@ -3245,12 +3045,12 @@ void func_actor_403200_80137788(GpEnemy* enemy, Task* task)
 /// carries cannot come from plain C here.
 void func_actor_403200_801379EC(GpEnemy* enemy, Task* task)
 {
-    Actor403200DropWork*   work;
-    TmdObject*             extra;
-    GsCOORDINATE2*         coord;
-    Actor403200RotScratch* blk;
-    u8*                    head;
-    s16                    ang;
+    Actor403200DropWork*  work;
+    TmdObject*            extra;
+    GsCOORDINATE2*        coord;
+    ActorScaleRotScratch* blk;
+    u8*                   head;
+    s16                   ang;
 
     work = (Actor403200DropWork*)task->work;
     work->timer++;
@@ -3274,9 +3074,9 @@ void func_actor_403200_801379EC(GpEnemy* enemy, Task* task)
         blk->scale.vx = 0x4000;
         blk->scale.vy = 0x66;
         blk->scale.vz = 0x4000;
-        ScaleMatrix(&blk->m, &((Actor403200RotScratch*)(head - 0x34))->scale);
+        ScaleMatrix(&blk->m, &((ActorScaleRotScratch*)(head - 0x34))->scale);
 
-        coord->coord.m[0][0] = *(u16*)&((Actor403200RotScratch*)(head - 0x34))->m.m[0][0];
+        coord->coord.m[0][0] = *(u16*)&((ActorScaleRotScratch*)(head - 0x34))->m.m[0][0];
         coord->coord.m[0][1] = *(u16*)&blk->m.m[0][1];
         coord->coord.m[0][2] = *(u16*)&blk->m.m[0][2];
         coord->coord.m[1][0] = *(u16*)&blk->m.m[1][0];
@@ -3313,9 +3113,9 @@ void func_actor_403200_801379EC(GpEnemy* enemy, Task* task)
         blk->scale.vx = 0x4C00;
         blk->scale.vy = 0x199;
         blk->scale.vz = 0x4C00;
-        ScaleMatrix(&blk->m, &((Actor403200RotScratch*)(head - 0x34))->scale);
+        ScaleMatrix(&blk->m, &((ActorScaleRotScratch*)(head - 0x34))->scale);
 
-        coord->coord.m[0][0] = *(u16*)&((Actor403200RotScratch*)(head - 0x34))->m.m[0][0];
+        coord->coord.m[0][0] = *(u16*)&((ActorScaleRotScratch*)(head - 0x34))->m.m[0][0];
         coord->coord.m[0][1] = *(u16*)&blk->m.m[0][1];
         coord->coord.m[0][2] = *(u16*)&blk->m.m[0][2];
         coord->coord.m[1][0] = *(u16*)&blk->m.m[1][0];
@@ -3912,15 +3712,15 @@ void func_actor_403200_80138AFC(GpEnemy* enemy, Task* task)
     gte_gpf12();
     gte_stsv(gteDir);
 
-    work->field_EB0.animBlock.ptr = NULL;
-    work->field_EB0.field_4       = 1;
-    work->field_EB0.field_8       = 0;
-    work->field_EB0.field_C       = 3;
-    work->field_EB0.field_10      = 1;
-    work->field_F12               = 0;
-    task->msgTable                = &D_actor_403200_8015F770;
-    coord->sub                    = &gGfxViewCoord;
-    coord->flg                    = 0;
+    work->anim.animBlock.ptr = NULL;
+    work->anim.field_4       = 1;
+    work->anim.field_8       = 0;
+    work->anim.field_C       = 3;
+    work->anim.field_10      = 1;
+    work->field_F12          = 0;
+    task->msgTable           = &D_actor_403200_8015F770;
+    coord->sub               = &gGfxViewCoord;
+    coord->flg               = 0;
     Gp_UpdateCoord(coord);
 
     work->field_2 = -1;
@@ -4684,7 +4484,7 @@ stored:
     esc1->hp         = hp;
     esc0->hp         = hp;
     work->field_F0A -= sc->damage;
-    if ((s16)work->field_F0A <= 0 && (state = work->field_0, state != 0xD) && state != 3 && state != 9 && state != 0xE &&
+    if (work->field_F0A <= 0 && (state = work->field_0, state != 0xD) && state != 3 && state != 9 && state != 0xE &&
         state != 0xF && state != 8 && state != 0xB && work->field_EC8 != 1 && Gp_StateF0.field_6 == 1) {
         sc->rot.vy = 0;
         sc->rot.vx = 0;
@@ -4897,7 +4697,7 @@ stored:
     func_800E2C78(host, sc->id, sc->damage, 0);
     host->hp        -= sc->damage;
     work->field_F0C -= sc->damage;
-    if ((s16)work->field_F0C <= 0 && (state = work->field_0, state != 0xD) && state != 3 && state != 9 && state != 0xE &&
+    if (work->field_F0C <= 0 && (state = work->field_0, state != 0xD) && state != 3 && state != 9 && state != 0xE &&
         state != 0xF && state != 8 && state != 0xB && work->field_EC8 != 1 && Gp_StateF0.field_6 == 1) {
         sc->rot.vy = 0;
         sc->rot.vx = 0;
@@ -5478,21 +5278,21 @@ void func_actor_403200_8013B8C4(Task* arg0)
 
             sc->angle = ext;
             if (abs(ext) < 0x400) {
-                D_actor_403200_8015F9D2       = ratan2((s32)sc->dir.vx, (s32)sc->dir.vz);
-                work->field_EB0.animBlock.ptr = D_actor_403200_8015E6AC;
+                D_actor_403200_8015F9D2  = ratan2((s32)sc->dir.vx, (s32)sc->dir.vz);
+                work->anim.animBlock.ptr = D_actor_403200_8015E6AC;
             } else {
-                D_actor_403200_8015F9D2       = ratan2((s32)sc->dir.vx, (s32)sc->dir.vz) + 0x800;
-                work->field_EB0.animBlock.ptr = D_actor_403200_8015E6CC;
+                D_actor_403200_8015F9D2  = ratan2((s32)sc->dir.vx, (s32)sc->dir.vz) + 0x800;
+                work->anim.animBlock.ptr = D_actor_403200_8015E6CC;
             }
         }
         if (cfg->hp > 0) {
             Gp_DispatchMsg(task, 0x3E9, (s32)&D_actor_403200_8015F9C0, 0);
         }
-        work->field_EB0.field_4 = 1;
-        work->field_EB0.field_8 = 0;
-        work->field_EB0.field_C = 0;
-        work->field_F02         = 1;
-        Gp_DispatchMsg(task, 0x3F4, (s32)&work->field_EB0, 0);
+        work->anim.field_4 = 1;
+        work->anim.field_8 = 0;
+        work->anim.field_C = 0;
+        work->field_F02    = 1;
+        Gp_DispatchMsg(task, 0x3F4, (s32)&work->anim, 0);
         work->field_7CA = 0;
     }
 
@@ -5711,7 +5511,7 @@ void func_actor_403200_8013C84C(Task* arg0)
     }
     if (work->field_6 < 0x18) {
         SndEvt_EnqueueType7((((u16)enemy->placeKey >> 12) << 8) | 0x4020000A, 1);
-        Gp_DispatchMsg(task, 0x3FF, (s32)&work->field_EB0, 0);
+        Gp_DispatchMsg(task, 0x3FF, (s32)&work->anim, 0);
         work->field_7CA = 0;
     }
     SCRATCH_SP += 0x3C;
@@ -5925,12 +5725,12 @@ scanned:
         if (reply == 1) {
             ((GameActor*)task->work)->field_956 = 0xA;
         }
-        work->field_EB0.animBlock.ptr = D_actor_403200_8015E6AC;
-        work->field_EC8               = 1;
-        work->field_EB0.field_4       = 2;
-        work->field_EB0.field_8       = 0;
-        work->field_EB0.field_C       = 0;
-        Gp_DispatchMsg(task, 0x3FF, (s32)&work->field_EB0, 0);
+        work->anim.animBlock.ptr = D_actor_403200_8015E6AC;
+        work->field_EC8          = 1;
+        work->anim.field_4       = 2;
+        work->anim.field_8       = 0;
+        work->anim.field_C       = 0;
+        Gp_DispatchMsg(task, 0x3FF, (s32)&work->anim, 0);
         work->field_7CA = 0;
     }
 
@@ -7408,33 +7208,33 @@ after_mode:
         count           = work->field_7CA + 1;
         work->field_7CA = count;
         if (work->field_ECA == mode) {
-            if (work->field_EB0.field_4 == 2) {
-                work->field_EB0.animBlock.ptr = D_actor_403200_8015E6AC;
-                work->field_EB0.field_8       = 0;
-                work->field_EB0.field_C       = 0;
-                Gp_DispatchMsg(player, 0x3FF, (s32)&work->field_EB0, 0);
+            if (work->anim.field_4 == 2) {
+                work->anim.animBlock.ptr = D_actor_403200_8015E6AC;
+                work->anim.field_8       = 0;
+                work->anim.field_C       = 0;
+                Gp_DispatchMsg(player, 0x3FF, (s32)&work->anim, 0);
                 work->field_7CA = 0;
             }
-        } else if (work->field_EB0.field_4 == 2 && (s16)count < 0x28) {
-            work->field_EB0.animBlock.ptr = D_actor_403200_8015E6AC;
-            work->field_EB0.field_8       = 0;
-            work->field_EB0.field_C       = 0;
-            Gp_DispatchMsg(player, 0x3FF, (s32)&work->field_EB0, 0);
+        } else if (work->anim.field_4 == 2 && (s16)count < 0x28) {
+            work->anim.animBlock.ptr = D_actor_403200_8015E6AC;
+            work->anim.field_8       = 0;
+            work->anim.field_C       = 0;
+            Gp_DispatchMsg(player, 0x3FF, (s32)&work->anim, 0);
         }
 
         if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
-            switch (work->field_EB0.field_4) {
+            switch (work->anim.field_4) {
                 case 2:
                     if (work->field_ECA != 1 && (s16)work->field_7CA >= 0x17) {
-                        work->field_EB0.animBlock.ptr = D_actor_403200_8015E6AC;
+                        work->anim.animBlock.ptr = D_actor_403200_8015E6AC;
                         D_actor_403200_8015E6AC[4] =
                             ((Actor403200AnimTable*)Gp_PlayerAnimBlkTbl
                                  [Gp_WeaponIdBase[D_8007218A[0] - 1] + D_80073BA9])
                                 ->sets[7];
-                        work->field_EB0.field_4 = 4;
-                        work->field_EB0.field_8 = 1;
-                        work->field_EB0.field_C = 3;
-                        Gp_DispatchMsg(player, 0x3FF, (s32)&work->field_EB0, 0);
+                        work->anim.field_4 = 4;
+                        work->anim.field_8 = 1;
+                        work->anim.field_C = 3;
+                        Gp_DispatchMsg(player, 0x3FF, (s32)&work->anim, 0);
                         work->field_7CA = 0;
                     }
                     break;

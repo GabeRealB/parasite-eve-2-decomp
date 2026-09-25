@@ -1134,6 +1134,190 @@ typedef struct Actor110300Work {
 } Actor110300Work;
 STATIC_ASSERT_SIZEOF(Actor110300Work, 0x55C);
 
+/* actor_403200 and actor_444000 carry variants of the same boss code; their
+ * main work blocks still differ in the declared signedness of the state
+ * index, but the helper tasks' blocks and the tables are the same. Function
+ * and data names in these comments are actor_403200's. */
+
+/// Ten-set view of one `Gp_PlayerAnimBlkTbl` entry: an array of animation-set
+/// pointers. The launch state reads `sets[7]` and the grab's hold state
+/// `sets[9]`.
+typedef struct Actor403200AnimTable {
+    GpAnimSet* sets[10];
+} Actor403200AnimTable;
+STATIC_ASSERT_SIZEOF(Actor403200AnimTable, 0x28);
+
+/// Scratch coordinate with word access to its identity rotation matrix.
+typedef union Actor403200DropCoord {
+    GsCOORDINATE2 c;
+    struct {
+        s32 flg;
+        s32 m00_m01;
+        s32 m02_m10;
+        s32 m11_m12;
+        s32 m20_m21;
+        s16 m22;
+    } ident;
+} Actor403200DropCoord;
+STATIC_ASSERT_SIZEOF(Actor403200DropCoord, 0x50);
+
+/// One of the nine back-to-back collision groups in `Actor403200Work` at
+/// 0x7F4. `obj` is the `GpObj` the gameplay collision list carries and `recs`
+/// is the `GpRec18` table it fills in for that part, which is why the stride is
+/// 0x98. `obj.field_8` is the part's own coordinate -- what the hit handler
+/// spawns the hit effect on. The same shape as `Actor403200HitGroup`.
+typedef struct Actor403200HitGroup {
+    GpObj   obj;
+    GpRec18 recs[5];
+} Actor403200HitGroup;
+STATIC_ASSERT_SIZEOF(Actor403200HitGroup, 0x98);
+
+/// 0x30-byte scratchpad frame the group-0 hit handler
+/// `func_actor_403200_80139A60` carves off `SCRATCH_HEAD` for the one hit it
+/// takes this frame. `pos` is the contact point copied out of the `GpRec18`;
+/// `delta` is the player-relative offset whose length is `dist`, the range
+/// `Gp_ComputeDamage` scales `damage` by. `rot` doubles as `Gp_SpawnEff`'s
+/// rotation argument and, afterwards, as the workspace for the contact point
+/// relative to the part's world translation, which `angle` is the yaw of.
+typedef struct Actor403200HitScratch {
+    VECTOR3 delta;
+    byte    pad_C[0x4];
+    SVECTOR rot;
+    SVECTOR pos;
+    s32     id;     // attack id of the hit that landed, 0 for none
+    u32     damage; // HP taken off the enemy
+    s32     dist;   // distance from the player, in world units
+    s16     angle;  // yaw of the contact point, wrapped to +/-0x800
+    byte    pad_2E[0x2];
+} Actor403200HitScratch;
+STATIC_ASSERT_SIZEOF(Actor403200HitScratch, 0x30);
+
+/// 0xC-byte scratchpad frame `func_actor_403200_8013EF6C` carves off
+/// `SCRATCH_SP` for the escort-spawn tick: `delta` is the player-relative
+/// offset the tick yaws the host by, and `i` is the escort slot the loop and
+/// the 0x7DB message both index `Actor403200Work::field_EE8` with.
+typedef struct Actor403200SpawnScratch {
+    SVECTOR delta;
+    byte    pad_8[0x2];
+    s16     i; // escort slot, 0 or 1
+} Actor403200SpawnScratch;
+STATIC_ASSERT_SIZEOF(Actor403200SpawnScratch, 0xC);
+
+/// Scratchpad frame the hit-effect spawner `func_actor_403200_80134044` carves
+/// off `SCRATCH_SP` to hand `func_800FDB18` an effect rotation together with
+/// the `GpEffArg` naming the coordinate the effect hangs off.
+typedef struct Actor403200EffScratch {
+    SVECTOR  rot; // effect rotation, chosen from the attack's param 0
+    GpEffArg eff; // coordinate, 0x500, 3
+} Actor403200EffScratch;
+STATIC_ASSERT_SIZEOF(Actor403200EffScratch, 0x10);
+
+/// Work block of the enemies spawned through `D_actor_403200_80131E90`,
+/// `D_actor_403200_80131E9C` and `D_actor_403200_80131F04`: their spawn states
+/// allocate it with `memCalloc(0x1C0, 0)` and park it in the task's
+/// `Task::work` slot, so the size below is the allocation, not a guess.
+///
+/// The spawn states drop the model onto the view coordinate and hang one or two
+/// `GpObj` display nodes off it. `rec0` is the table the first node carries,
+/// `rec1` the second's; the two matrices are handed out through the task's
+/// `TmdObject::lightMtx` / `colorMtx`. `field_1AA` is a ninth of the model's
+/// height and `field_1AC` the step counter, both re-read by the states that
+/// follow the spawn.
+typedef struct Actor403200GrabWork {
+    /// Horizontal gap to the player, a fifteenth of which the later states add
+    /// to the model each step; only `vx` and `vz` are filled in here.
+    VECTOR3 vel;
+    byte    pad_C[0x54];
+    /// The work block's own coordinate, parented to the view coordinate and
+    /// kept tracking the model's world position so the ground marker under it
+    /// can be drawn from `coord.workm.t`.
+    GsCOORDINATE2 coord;
+    /// The two display nodes, linked with `prio` 3 and 2.
+    GpObj obj0;
+    GpObj obj1;
+    /// Their collision-record tables.
+    GpRec18 rec0;
+    GpRec18 rec1;
+    byte    pad_120[0x30];
+    /// The colour and light matrices: `field_1C` of the task's `TmdObject` is
+    /// handed `lightMtx` and `field_20` `colorMtx`.
+    MATRIX colorMtx;
+    MATRIX lightMtx;
+    byte   pad_190[0x4];
+    /// Message 0x3FF payload the hold states send the player, by address.
+    GpAnimArg anim;
+    /// Armed to 1 by the spawn state `func_actor_403200_8013509C` once the
+    /// model has been stood up on its escort's part 1; the states that follow
+    /// re-arm the step counter and the first display node on the tick they see
+    /// it set. Same slot and role as `Actor403200GrabWork::field_1A8`.
+    s16  field_1A8;
+    s16  field_1AA;
+    s16  field_1AC;
+    byte pad_1AE[0x2];
+    /// Radius of the ground marker, in eighths once shifted down.
+    u16 field_1B0;
+    /// Set while the player animation this enemy sent is installed, so only
+    /// the state that set it sends the cancel.
+    s16 field_1B2;
+    /// The state the dispatcher last ran, so it can spot a change.
+    s16  field_1B4;
+    byte pad_1B6[0xA];
+} Actor403200GrabWork;
+STATIC_ASSERT_SIZEOF(Actor403200GrabWork, 0x1C0);
+
+/// Work block of the enemy dispatched through `D_actor_403200_80131F14`, the one
+/// that rises out of view and slams back down onto the floor. Its spawn state
+/// allocates it with `memCalloc(0x1C0, 0)` and parks it in the task's
+/// `Task::work` slot, so the size is the allocation.
+///
+/// `target` is the landing point the spawn state picks; `coord` is the
+/// coordinate its shadow marker is drawn at, kept on the floor directly under
+/// the model and refreshed every step; `obj` is its collision node, whose
+/// `radius` is the marker size, carrying the one-entry `rec` table. `timer` is
+/// the step counter of the current state.
+typedef struct Actor403200DropWork {
+    VECTOR3       target;
+    byte          pad_C[0x4];
+    GsCOORDINATE2 coord;
+    byte          pad_60[0x50];
+    GpObj         obj;
+    byte          pad_D0[0x20];
+    GpRec18       rec;
+    byte          pad_108[0x88];
+    /// The effect the spawn state starts, reparented onto the task so it dies
+    /// with it; the landing state tells it to finish.
+    GpEffWork* eff;
+    byte       pad_194[0x16];
+    s16        field_1AA;
+    u16        timer;
+    /// Per-step bias of the rise and fall, rolled off the LCG.
+    s16  field_1AE;
+    byte pad_1B0[0x10];
+} Actor403200DropWork;
+STATIC_ASSERT_SIZEOF(Actor403200DropWork, 0x1C0);
+
+/// Work block of the spinner enemy dispatched through `D_actor_403200_80131F28`:
+/// its spawn state allocates it with `memCalloc(0xA0, 0)` and parks it in the
+/// task's `Task::work` slot. `spin` counts down while the model only yaws in
+/// place and is also the phase that yaw follows; `field_98` is the homing
+/// speed and radius and `field_96` the step count that accelerates it.
+typedef struct Actor403200SpinnerWork {
+    byte   pad_0[0x50];
+    MATRIX colorMtx;
+    MATRIX lightMtx;
+    /// Set when the dispatcher sees the state change, cleared when it has not.
+    s16  field_90;
+    byte pad_92[0x2];
+    /// The state the dispatcher last ran, so it can spot the change.
+    s16  field_94;
+    s16  field_96;
+    s16  field_98;
+    byte pad_9A[0x2];
+    u8   spin;
+    byte pad_9D[0x3];
+} Actor403200SpinnerWork;
+STATIC_ASSERT_SIZEOF(Actor403200SpinnerWork, 0xA0);
+
 /* Contexts. */
 
 /// Ramp context of the screen-wave task. Whoever spawns the task seeds the
