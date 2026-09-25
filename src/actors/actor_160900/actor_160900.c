@@ -1074,4 +1074,22 @@ void func_actor_160900_801344D8(Task* arg0)
             break;
     }
 }
-INCLUDE_ASM("actors/nonmatchings/actor_160900/actor_160900", func_actor_160900_801345D0);
+/// Message 0x7D5 handler of `D_actor_160900_8013F200`: argument 1 clears the
+/// 0x84 bits of the task's `TmdObject` flags, argument 2 sets them, and any
+/// other value does nothing.
+void func_actor_160900_801345D0(Task* task, s32 arg1, s32 arg2)
+{
+    TmdObject* extra;
+
+    extra = (TmdObject*)task->extra;
+    switch (arg2) {
+        case 0:
+            break;
+        case 1:
+            extra->flags = extra->flags & 0xFF7B;
+            return;
+        case 2:
+            extra->flags = extra->flags | 0x84;
+            return;
+    }
+}
