@@ -6,8 +6,6 @@
 #include <psyq/rand.h>
 #include <psyq/strings.h>
 
-#include "actors/actor_215100.h"
-#include "actors/actor_342100.h"
 #include "actors/actors_shared_80133c6c.h"
 #include "actors/actors_shared_80149e54.h"
 #include "gameplay/1BC.h"
@@ -29,6 +27,7 @@
 #include "main/text.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/shelter_b3_garbage_incinerator.h"
 
@@ -85,7 +84,7 @@ extern ActorWaveRec  D_shelter_b3_garbage_incinerator_8018FCB0[30];
 extern POLY_FT4      D_shelter_b3_garbage_incinerator_8018FEE0[][30][8];
 
 /* Shared in source with actors 342100 (the encounter's fade and spawn) and
-   215100 (the caption drawing): their data here, with their types. */
+   215100 (the caption drawing): their data here. */
 extern u8         D_shelter_b3_garbage_incinerator_80186F70[];
 extern TaskDesc   D_shelter_b3_garbage_incinerator_80185BAC;
 extern GlyphUvwh  D_8010FB70[];
@@ -99,13 +98,13 @@ extern u16        D_shelter_b3_garbage_incinerator_8018FC5A;
 extern s16        D_shelter_b3_garbage_incinerator_80187180;
 extern s16        D_shelter_b3_garbage_incinerator_80187182;
 
-extern Actor215100Caption** D_shelter_b3_garbage_incinerator_8018FC40;
-extern Actor215100Caption*  D_shelter_b3_garbage_incinerator_8018FC48;
-extern s16                  D_shelter_b3_garbage_incinerator_8018FC52;
-extern s16                  D_shelter_b3_garbage_incinerator_8018FC56;
-extern u8                   D_shelter_b3_garbage_incinerator_8018FC5C;
-extern s32                  D_shelter_b3_garbage_incinerator_80187278;
-extern s32                  D_shelter_b3_garbage_incinerator_8018727C;
+extern GpEvt12** D_shelter_b3_garbage_incinerator_8018FC40;
+extern GpEvt12*  D_shelter_b3_garbage_incinerator_8018FC48;
+extern s16       D_shelter_b3_garbage_incinerator_8018FC52;
+extern s16       D_shelter_b3_garbage_incinerator_8018FC56;
+extern u8        D_shelter_b3_garbage_incinerator_8018FC5C;
+extern s32       D_shelter_b3_garbage_incinerator_80187278;
+extern s32       D_shelter_b3_garbage_incinerator_8018727C;
 
 void func_shelter_b3_garbage_incinerator_8017F0A8(Task* arg0);
 void func_shelter_b3_garbage_incinerator_8017F930(s32 arg0);
@@ -121,25 +120,22 @@ void func_shelter_b3_garbage_incinerator_80180994(void);
 s32  func_shelter_b3_garbage_incinerator_80180E0C(u16* arg0);
 
 /// Work block of the task in `D_shelter_b3_garbage_incinerator_8018FC3C`.
-/// `field_2C` is the task animation messages are dispatched to, `child` the
-/// task spawned from the room's table, `field_34` the task started from spawn
-/// entry 2 when the encounter is armed, `field_38` the last animation set
-/// selected, and `field_3A` the arming state.
+/// `wave` is the ramp context handed to the screen-wave task, which the fade
+/// task ends by raising its ramp state. `field_2C` is the task animation
+/// messages are dispatched to, `child` the task spawned from the room's table,
+/// `field_34` the task started from spawn entry 2 when the encounter is armed,
+/// `field_38` the last animation set selected, and `field_3A` the arming state.
 typedef struct {
-    byte  pad_0[0x2C];
-    Task* field_2C;
-    Task* child;
-    Task* field_34;
-    s16   field_38;
-    s16   field_3A;
+    byte         pad_0[0x20];
+    ActorWaveCtx wave;
+    Task*        field_2C;
+    Task*        child;
+    Task*        field_34;
+    s16          field_38;
+    s16          field_3A;
+    byte         pad_3C[0x4];
 } GarbageIncineratorWork;
-
-/// Payload of message 0x3F7: a null-terminated pointer table and the number
-/// of live entries the sender counted in it.
-typedef struct {
-    s32* table;
-    s32  count;
-} GarbageIncineratorMsg3F7;
+STATIC_ASSERT_SIZEOF(GarbageIncineratorWork, 0x40);
 
 /// One window of the caption schedule: while the scene clock lies in
 /// (`field_4 * 30`, `field_0 * 30`], caption script `field_8` is started at
@@ -737,63 +733,63 @@ void func_shelter_b3_garbage_incinerator_8017E7D0(Task* arg0)
 ///
 /// State 0 allocates the ramp, zeroes the three channels and parks the
 /// message record `D_shelter_b3_garbage_incinerator_80186F70` in `Task::msgTable`. States 2 and
-/// 3 step `field_2` -- the first by 0xA up to 0x50, the second by 1 up to
+/// 3 step `r` -- the first by 0xA up to 0x50, the second by 1 up to
 /// 0xFF -- and each hands the state machine back to 1 when it clamps, so the
-/// two ramps run back to back. State 4 steps `field_4` / `field_6` by 8; once
-/// `field_4` passes 0xFF the display mode is switched, `Fs_ImgBuffers` is
-/// filled white, the parent work block's `field_24` is raised, and state 5
+/// two ramps run back to back. State 4 steps `g` / `b` by 8; once
+/// `g` passes 0xFF the display mode is switched, `Fs_ImgBuffers` is
+/// filled white, the parent work block's wave ramp is ended, and state 5
 /// draws the full-screen white `TILE` + `DR_TPAGE` packed into
 /// `gGpuPrimCursor` before returning without the fade call. Every other state
 /// -- 1, 6 and up -- only draws the fade.
 void func_shelter_b3_garbage_incinerator_8017F0A8(Task* arg0)
 {
-    Actor342100FadeWork* work;
-    Actor342100FadeWork* alloc;
-    Actor342100Work*     parent;
-    TILE*                tile;
-    DR_TPAGE*            dr;
+    RoomFadeWork*           work;
+    RoomFadeWork*           alloc;
+    GarbageIncineratorWork* parent;
+    TILE*                   tile;
+    DR_TPAGE*               dr;
 
-    work = (Actor342100FadeWork*)arg0->work;
+    work = (RoomFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (Actor342100FadeWork*)Mem_Malloc(8, 0);
+            alloc      = (RoomFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
                 return;
             }
             work           = alloc;
-            work->field_6  = 0;
-            work->field_4  = 0;
-            work->field_2  = 0;
+            work->b        = 0;
+            work->g        = 0;
+            work->r        = 0;
             arg0->msgTable = &D_shelter_b3_garbage_incinerator_80186F70;
             arg0->state   += 1;
             break;
         case 2:
-            work->field_2 += 0xA;
-            if ((s16)work->field_2 >= 0x51) {
-                work->field_2 = 0x50;
-                arg0->state   = 1;
+            work->r += 0xA;
+            if ((s16)work->r >= 0x51) {
+                work->r     = 0x50;
+                arg0->state = 1;
             }
             break;
         case 3:
-            work->field_2 += 1;
-            if ((s16)work->field_2 >= 0x100) {
-                work->field_2 = 0xFF;
-                arg0->state   = 1;
+            work->r += 1;
+            if ((s16)work->r >= 0x100) {
+                work->r     = 0xFF;
+                arg0->state = 1;
             }
             break;
         case 4:
-            work->field_4 += 8;
-            work->field_6 += 8;
-            if ((s16)work->field_4 >= 0x100) {
-                parent           = (Actor342100Work*)((Task*)arg0->spawnArg2)->work;
-                parent->field_24 = 2;
+            work->g += 8;
+            work->b += 8;
+            if ((s16)work->g >= 0x100) {
+                parent               = (GarbageIncineratorWork*)((Task*)arg0->spawnArg2)->work;
+                parent->wave.field_4 = 2;
                 Display_SetMode(0xD010);
                 Mem_Set(Fs_ImgBuffers, 0xFF, 0x25800);
-                work->field_6 = 0xFF;
-                work->field_4 = 0xFF;
-                arg0->state   = 5;
+                work->b     = 0xFF;
+                work->g     = 0xFF;
+                arg0->state = 5;
             }
             break;
         case 5:
@@ -817,7 +813,7 @@ void func_shelter_b3_garbage_incinerator_8017F0A8(Task* arg0)
             addPrim(gGpuCurrentOt - 16, dr);
             return;
     }
-    Fade_DrawOverlay((u8)work->field_2, (u8)work->field_4, (u8)work->field_6, 1);
+    Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->b, 1);
 }
 
 /// Step `field_2C` to the next animation set in the table. Returns 0 when
@@ -916,10 +912,10 @@ void func_shelter_b3_garbage_incinerator_8017F410(Task* arg0)
 /// `func_shelter_b3_garbage_incinerator_8017F318` with the task and returns 0.
 s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
 {
-    GarbageIncineratorWork*  work = (GarbageIncineratorWork*)arg0->work;
-    GarbageIncineratorWork*  msgWork;
-    GarbageIncineratorMsg3F7 msg;
-    s32                      n;
+    GarbageIncineratorWork* work = (GarbageIncineratorWork*)arg0->work;
+    GarbageIncineratorWork* msgWork;
+    GpCopyArg               msg;
+    s32                     n;
 
     switch (work->field_3A) {
         case 0:
@@ -928,8 +924,8 @@ s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
             while (D_shelter_b3_garbage_incinerator_80186F78[n & 0xFFFF] != 0) {
                 n += 1;
             }
-            msg.table = &D_shelter_b3_garbage_incinerator_80186F78[0];
-            msg.count = n & 0xFFFF;
+            msg.field_0 = &D_shelter_b3_garbage_incinerator_80186F78[0];
+            msg.field_4 = n & 0xFFFF;
             Gp_DispatchMsg(msgWork->field_2C, 0x3F7, (s32)&msg, 0);
             Gp_MsgPlayerWeapon(0);
             Gp_StateC08.field_6 |= 1;
@@ -1042,7 +1038,7 @@ void func_shelter_b3_garbage_incinerator_8017F8AC(s32 arg0)
 
 void func_shelter_b3_garbage_incinerator_8017F930(s32 arg0)
 {
-    Actor342100Work* work = (Actor342100Work*)D_shelter_b3_garbage_incinerator_8018FC3C->work;
+    GarbageIncineratorWork* work = (GarbageIncineratorWork*)D_shelter_b3_garbage_incinerator_8018FC3C->work;
 
     Gp_DispatchMsg(work->field_34, 0x7DB, arg0, 0);
 }
@@ -1051,11 +1047,11 @@ void func_shelter_b3_garbage_incinerator_8017F930(s32 arg0)
 /// them, passing the block itself as `Task::spawnArg2`.
 void func_shelter_b3_garbage_incinerator_8017F968(void)
 {
-    Actor342100Work* work = (Actor342100Work*)D_shelter_b3_garbage_incinerator_8018FC3C->work;
+    GarbageIncineratorWork* work = (GarbageIncineratorWork*)D_shelter_b3_garbage_incinerator_8018FC3C->work;
 
-    work->field_20 = 0x258;
-    work->field_22 = 0x100;
-    Task_SpawnFromTable(&D_shelter_b3_garbage_incinerator_80185BAC, 0, 0, (s32)&work->field_20);
+    work->wave.field_0 = 0x258;
+    work->wave.field_2 = 0x100;
+    Task_SpawnFromTable(&D_shelter_b3_garbage_incinerator_80185BAC, 0, 0, (s32)&work->wave);
 }
 
 void func_shelter_b3_garbage_incinerator_8017F9B4(s32 arg0)
@@ -1188,7 +1184,7 @@ s32 func_shelter_b3_garbage_incinerator_8017FC5C(GpCapFile* file)
     }
 
     D_shelter_b3_garbage_incinerator_8018FC44 = (GlyphUvwh*)file->field_8;
-    D_shelter_b3_garbage_incinerator_8018FC40 = (Actor215100Caption**)((GpCapPtrTable*)file->field_10 + 1);
+    D_shelter_b3_garbage_incinerator_8018FC40 = (GpEvt12**)((GpCapPtrTable*)file->field_10 + 1);
     return 1;
 }
 
@@ -1197,8 +1193,8 @@ s32 func_shelter_b3_garbage_incinerator_8017FC5C(GpCapFile* file)
 /// table has no such script, 0 once it is started.
 s32 func_shelter_b3_garbage_incinerator_8017FD64(s16 arg0, s16 arg1, s32 arg2)
 {
-    Actor215100Caption* caption;
-    s16                 entry;
+    GpEvt12* caption;
+    s16      entry;
 
     caption                                   = D_shelter_b3_garbage_incinerator_8018FC40[arg0];
     D_shelter_b3_garbage_incinerator_8018FC48 = caption;
@@ -1788,15 +1784,15 @@ s32 func_shelter_b3_garbage_incinerator_80180E0C(u16* arg0)
 /// whose key is the requested one, or of the script's terminator.
 s32 func_shelter_b3_garbage_incinerator_80180EC4(s32 arg0)
 {
-    s32                 flag;
-    s32                 id;
-    s32                 base;
-    Actor215100Caption* p;
+    s32      flag;
+    s32      id;
+    s32      base;
+    GpEvt12* p;
 
     flag = -1;
     id   = D_shelter_b3_garbage_incinerator_8018FC56;
     base = (s32)D_shelter_b3_garbage_incinerator_8018FC48;
-    p    = (Actor215100Caption*)(arg0 * sizeof(Actor215100Caption) + base);
+    p    = (GpEvt12*)(arg0 * sizeof(GpEvt12) + base);
 loop:
     if (p->field_8 == flag) {
         goto done;

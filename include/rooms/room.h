@@ -17,4 +17,16 @@ typedef struct RoomLatchedEvent {
 } RoomLatchedEvent;
 STATIC_ASSERT_SIZEOF(RoomLatchedEvent, 0xC);
 
+/// The colour ramp of a room's screen-fade task: an 8-byte block the task
+/// allocates for itself and keeps at `Task::work`. The task steps the three
+/// channels together every frame, up to fade out or down to fade in, and
+/// draws them as a full-screen overlay; its end test watches `r`.
+typedef struct RoomFadeWork {
+    byte pad_0[0x2];
+    s16  r;
+    s16  g;
+    s16  b;
+} RoomFadeWork;
+STATIC_ASSERT_SIZEOF(RoomFadeWork, 0x8);
+
 #endif /* ROOMS_ROOM_H */
