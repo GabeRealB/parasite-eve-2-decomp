@@ -1,7 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_303600.h"
-#include "actors/actors_shared_80162850.h"
 #include "gameplay/D4.h"
 #include "main/mem.h"
 #include "main/task.h"
@@ -51,7 +50,7 @@ void func_actor_303600_801626C0(Task* task)
         childCoord->coord.t[2] = 0;
     }
     task->msgTable     = D_actor_303600_8016E480;
-    task->exitCallback = ActorsShared80162850;
+    task->exitCallback = func_actor_303600_80162850;
     task->state       += 1;
 }
 

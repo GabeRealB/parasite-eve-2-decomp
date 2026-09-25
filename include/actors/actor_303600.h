@@ -122,4 +122,6 @@ STATIC_ASSERT_SIZEOF(Actor303600RigWork, 0x3C);
 /// `func_actor_303600_80162A0C`; one `GsF_LIGHT` (0x10 bytes) each.
 extern GsF_LIGHT D_actor_303600_8016E490[3];
 
+void func_actor_303600_80162850(Task* task);
+
 #endif // ACTOR_303600_H
