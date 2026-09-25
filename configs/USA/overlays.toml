@@ -3683,10 +3683,6 @@ id = 152
 objects = [
   { kind = "packageId" },
   { unit = "actor_213000/actor_213000", rodata = "0x4", text = "0x34" },
-  { unit = "actor_213000/actor_213000_4", text = "0x2BC" },
-  { unit = "actor_213000/actor_213000_2", text = "0x338" },
-  { unit = "actor_213000/actor_213000_5", text = "0xA08" },
-  { unit = "actor_213000/actor_213000_3", text = "0xA84" },
   { kind = "model", at = "0xC2C" },
   { kind = "model", at = "0x67D4" },
   { kind = "model", at = "0x6E08" },
