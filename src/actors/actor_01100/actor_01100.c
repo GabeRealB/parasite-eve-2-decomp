@@ -3019,10 +3019,7 @@ void Actor01100_Fn05E68(Task* task)
     GpCoord*                  coord;
     GpEffWork*                eff;
     GpObj*                    obj;
-    MATRIX*                   mtx;
-    SVECTOR                   local;
     SVECTOR*                  vec;
-    u8*                       head;
     s32                       angle;
 
     coord = task->extra.tmd->coords;
@@ -3042,20 +3039,13 @@ void Actor01100_Fn05E68(Task* task)
     angle               = task->spawnArg1;
     task->killCountdown = 0x5A;
 
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - 8;
-    vec              = (SVECTOR*)(head - 8);
-    Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
-    vec->vy          = 0xE000 - ((Gp_LcgState >> 16) & 0x1FF);
-    vec->vx          = rsin(angle);
-    vec->vz          = rcos(angle);
+    vec         = SCRATCH_PUSH(SVECTOR);
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    vec->vy     = 0xE000 - ((Gp_LcgState >> 16) & 0x1FF);
+    vec->vx     = rsin(angle);
+    vec->vz     = rcos(angle);
 
-    mtx   = &coord->coord;
-    local = *(SVECTOR*)(head - 8);
-    gte_SetRotMatrix(mtx);
-    __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
-    gte_rtv0();
-    gte_stsv(vec);
+    gfxRotateSv(&coord->coord, vec);
 
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     gte_lddp(((Gp_LcgState >> 16) & 0x1F) + 0x28);
@@ -3063,11 +3053,7 @@ void Actor01100_Fn05E68(Task* task)
     gte_gpf12();
     gte_stsv(&work->vel);
 
-    MATRIX_PAIR(mtx, 0, 0) = 0x1000;
-    MATRIX_PAIR(mtx, 0, 2) = 0;
-    MATRIX_PAIR(mtx, 1, 1) = 0x1000;
-    MATRIX_PAIR(mtx, 2, 0) = 0;
-    mtx->m[2][2]           = 0x1000;
+    gfxSetRotIdentity(&coord->coord);
 
     coord->coord.t[0] += work->vel.vx;
     Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
