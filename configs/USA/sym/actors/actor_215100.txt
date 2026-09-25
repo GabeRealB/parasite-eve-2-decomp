@@ -1,1 +1,6 @@
 // Overlay-local symbols for actor_215100.
+D_actor_215100_801544EE = 0x801544EE; // type:s16 size:0x2
+D_actor_215100_8015E65E = 0x8015E65E; // type:s16 size:0x2
+D_actor_215100_8015E662 = 0x8015E662; // type:s16 size:0x2
+D_actor_215100_8015E666 = 0x8015E666; // type:s16 size:0x2
+D_actor_215100_8015E66A = 0x8015E66A; // type:u16 size:0x2

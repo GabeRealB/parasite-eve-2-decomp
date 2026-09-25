@@ -1,4 +1,5 @@
 // Overlay-local symbols for actor_403200.
+D_actor_403200_80141C5A = 0x80141C5A; // type:s16 size:0x2
 D_actor_403200_8015F8F4 = 0x8015F8F4; // type:GpCmdArg size:0x4
 D_actor_403200_8015F9C0 = 0x8015F9C0; // type:GpXformArg size:0x18
 

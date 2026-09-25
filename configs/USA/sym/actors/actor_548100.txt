@@ -1,1 +1,15 @@
 // Overlay-local symbols for actor_548100.
+D_actor_548100_80135885 = 0x80135885; // type:u8 size:0x1
+D_actor_548100_80135886 = 0x80135886; // type:u8 size:0x1
+D_actor_548100_80135887 = 0x80135887; // type:u8 size:0x1
+D_actor_548100_80135889 = 0x80135889; // type:u8 size:0x1
+D_actor_548100_8013588A = 0x8013588A; // type:u8 size:0x1
+D_actor_548100_8013588B = 0x8013588B; // type:u8 size:0x1
+D_actor_548100_80135B52 = 0x80135B52; // type:u8 size:0x1
+D_actor_548100_80135B53 = 0x80135B53; // type:s8 size:0x1
+D_actor_548100_80135B55 = 0x80135B55; // type:s8 size:0x1
+D_actor_548100_80135B56 = 0x80135B56; // type:s8 size:0x1
+D_actor_548100_80135B57 = 0x80135B57; // type:s8 size:0x1
+D_actor_548100_80135B59 = 0x80135B59; // type:s8 size:0x1
+D_actor_548100_80135B5A = 0x80135B5A; // type:s8 size:0x1
+D_actor_548100_80135B5B = 0x80135B5B; // type:s8 size:0x1
