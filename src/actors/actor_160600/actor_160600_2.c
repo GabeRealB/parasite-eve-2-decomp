@@ -9,13 +9,11 @@
 #include "gameplay/3A34.h"
 
 #include "actors/actor_160600.h"
-#include "actors/actors_shared_801366fc.h"
-#include "actors/actors_shared_8014c874.h"
 
 extern u8 D_actor_160600_8013DFAC[];
 extern u8 D_actor_160600_8013DF70[];
 
-void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
+void func_actor_160600_80132208(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor160600Work* work;
@@ -32,7 +30,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback   = ActorsShared801366fc;
+    task->exitCallback   = func_actor_160600_80132350;
     coord->sub           = &gGfxViewCoord;
     enemy->field_4       = &coord->coord;
     enemy->field_48      = 0;
@@ -52,6 +50,6 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
                   &work->field_374, work->slots);
     work->state    = 2;
     task->msgTable = D_actor_160600_8013DF70;
-    ActorsShared8014c874(task);
+    func_actor_160600_80131FFC(task);
     task->state++;
 }

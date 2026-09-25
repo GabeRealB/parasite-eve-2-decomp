@@ -10,11 +10,8 @@
 #include "gameplay/gameplay.h"
 
 #include "actors/actor_160600.h"
-#include "actors/actors_shared_8014c874.h"
 
 extern u8 D_actor_160600_8013DFEC[];
-
-void ActorsShared80132378(Task* task);
 
 void func_actor_160600_80131E24(void)
 {
@@ -24,12 +21,12 @@ void func_actor_160600_80131E24(void)
     }
 }
 
-/// State-1 handler: refreshes the root coordinate, re-lights the model at the
-/// root translation raised by 800, then runs the shared step and shadow
-/// bodies. While `field_4EE` is set and the object is live with an aux buffer,
+/// The actor's per-frame body (task state 1): refreshes the root coordinate,
+/// re-lights the model at the root translation raised by 800, then runs the
+/// step body and draws the ground shadow. While `field_4EE` is set and the object is live with an aux buffer,
 /// every other frame spawns effect 0x60070 on a randomly chosen part, with
 /// two `Gp_LcgState` draws packed into the effect argument.
-void ActorsShared80131e24Sub1(GpEnemy* enemy, Task* task)
+void func_actor_160600_80131E68(GpEnemy* enemy, Task* task)
 {
     TmdObject*       obj;
     GsCOORDINATE2*   coord;
@@ -48,8 +45,8 @@ void ActorsShared80131e24Sub1(GpEnemy* enemy, Task* task)
     pos.vy = coord->workm.t[1] - 800;
     pos.vz = coord->workm.t[2];
     func_800D7A9C(obj, &pos, 0, 3);
-    ActorsShared8014c874(task);
-    ActorsShared80132378(task);
+    func_actor_160600_80131FFC(task);
+    func_actor_160600_80132378(task);
     if (work->field_4EE != 0 && !(obj->flags & 0x80) && obj->buffer != NULL) {
         if (task->killCountdown & 1) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;

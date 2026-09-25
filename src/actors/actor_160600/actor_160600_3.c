@@ -1,12 +1,12 @@
 #include "common.h"
 
 #include "actors/actor_160600.h"
-#include "actors/actors_shared_8014c874.h"
 
 /// Script opcode: start animation `args->animId` on this actor.
 ///
-/// `withArg` selects between the two start paths `ActorsShared8014c874`
-/// dispatches on, and only the first carries `animArg`. Returns -1, without
+/// `withArg` selects between the two start paths the step body
+/// `func_actor_160600_80131FFC` dispatches on, and only the first carries
+/// `animArg`. Returns -1, without
 /// touching the work block, when the clip id is out of range.
 ///
 /// Both halves of the shape are load-bearing, not stylistic. The two bare
@@ -35,7 +35,7 @@ s32 func_actor_160600_8013252C(Task* task, s32 arg1, Actor160600AnimArgs* args)
         work->state = 2;
     }
     work->field_4BA = 0;
-    ActorsShared8014c874(task);
+    func_actor_160600_80131FFC(task);
     return 0;
 }
 
