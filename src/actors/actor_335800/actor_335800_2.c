@@ -2,8 +2,6 @@
 
 #include "actors/actor_335800.h"
 
-#include "actors/actors_shared_801327f8.h"
-
 #include "gameplay/1A8.h"
 
 #include "gameplay/1BC.h"
@@ -333,13 +331,14 @@ void func_actor_335800_80162640(Task* arg0)
 }
 
 void func_actor_335800_80162FF4(Task* arg0);
+void func_actor_335800_80162FFC(Task* task);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 void func_actor_335800_80162844(Task* task)
 {
     TmdObject*           ext      = task->extra;
     Actor335800MainWork* work     = (Actor335800MainWork*)task->work;
-    TaskFunc             funcs[2] = { func_actor_335800_80162FF4, ActorsShared801327f8 };
+    TaskFunc             funcs[2] = { func_actor_335800_80162FF4, func_actor_335800_80162FFC };
     VECTOR3              pos;
     GsCOORDINATE2*       coord;
     GpAnimRec*           rec;
@@ -348,9 +347,9 @@ void func_actor_335800_80162844(Task* task)
 
     funcs[work->field_4F8](task);
     coord              = ((TmdObject*)task->extra)->coords;
-    work->field_4D8   += work->field_4C8;
-    work->field_4DC   += work->field_4CC;
-    work->field_4E0   += work->field_4D0;
+    work->field_4D8   += work->step.vx;
+    work->field_4DC   += work->step.vy;
+    work->field_4E0   += work->step.vz;
     coord->coord.t[0] += (s16)(work->field_4D8 >> 16);
     coord->coord.t[1] += (s16)(work->field_4DC >> 16);
     coord->coord.t[2] += (s16)(work->field_4E0 >> 16);
@@ -403,9 +402,9 @@ void func_actor_335800_80162844(Task* task)
 
 s32 func_actor_335800_801632A4(Task* task, s32 arg1, Actor335800AnimPreset* msg, s32 arg3);
 
-/// Arrival check for the parent block: once both planar distances to the
-/// root coordinate stop shrinking, plays anim 0x7D3 and advances `field_4FA`;
-/// otherwise records the new distances.
+/// Arrival check for the parent block: once the X/Z distances from the root
+/// coordinate to `target` stop shrinking below `limit`, plays anim 0x7D3,
+/// clears `step` and advances `field_4FA`; otherwise records the distances.
 void func_actor_335800_80162B3C(Task* arg0)
 {
     Actor335800MainWork*  work;
@@ -417,33 +416,33 @@ void func_actor_335800_80162B3C(Task* arg0)
 
     work  = (Actor335800MainWork*)arg0->work;
     coord = ((TmdObject*)arg0->extra)->coords;
-    if (work->field_4B8 - coord->coord.t[0] >= 0) {
-        dx = (u16)work->field_4B8 - (u16)coord->coord.t[0];
+    if (work->target.vx - coord->coord.t[0] >= 0) {
+        dx = (u16)work->target.vx - (u16)coord->coord.t[0];
     } else {
-        dx = (u16)coord->coord.t[0] - (u16)work->field_4B8;
+        dx = (u16)coord->coord.t[0] - (u16)work->target.vx;
     }
     d.vx = dx;
-    if (work->field_4C0 - coord->coord.t[2] >= 0) {
-        dz = (u16)work->field_4C0 - (u16)coord->coord.t[2];
+    if (work->target.vz - coord->coord.t[2] >= 0) {
+        dz = (u16)work->target.vz - (u16)coord->coord.t[2];
     } else {
-        dz = (u16)coord->coord.t[2] - (u16)work->field_4C0;
+        dz = (u16)coord->coord.t[2] - (u16)work->target.vz;
     }
     d.vz = dz;
-    if (d.vx >= work->field_4E8 && d.vz >= work->field_4EC) {
+    if (d.vx >= work->limit.vx && d.vz >= work->limit.vz) {
         preset.field_0  = 0;
         preset.field_4  = work->field_477;
         preset.field_8  = 1;
         preset.field_C  = 5;
         preset.field_10 = 0;
         func_actor_335800_801632A4(arg0, 0x7D3, &preset, 0);
-        work->field_4C8 = 0;
-        work->field_4CC = 0;
-        work->field_4D0 = 0;
+        work->step.vx = 0;
+        work->step.vy = 0;
+        work->step.vz = 0;
         work->field_4FA++;
         return;
     }
-    work->field_4E8 = d.vx < 0 ? -d.vx : d.vx;
-    work->field_4EC = d.vz < 0 ? -d.vz : d.vz;
+    work->limit.vx = d.vx < 0 ? -d.vx : d.vx;
+    work->limit.vz = d.vz < 0 ? -d.vz : d.vz;
 }
 
 void         func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
@@ -464,9 +463,9 @@ s32 func_actor_335800_80162C80(Task* task, s32 arg1, Actor335800Placement* place
     w              = (Actor335800MainWork*)task->work;
     w->field_4F8   = 1;
     w->field_4FA   = 0;
-    w->field_4B8   = place->pos.vx;
-    w->field_4BC   = place->pos.vy;
-    w->field_4C0   = place->pos.vz;
+    w->target.vx   = place->pos.vx;
+    w->target.vy   = place->pos.vy;
+    w->target.vz   = place->pos.vz;
     w->field_4F0   = place->rot.vx;
     w->field_4F2   = place->rot.vy;
     w->field_4F4   = place->rot.vz;
@@ -507,13 +506,13 @@ s32 func_actor_335800_80162C80(Task* task, s32 arg1, Actor335800Placement* place
     return 0;
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_335800/actor_335800_2", ActorsShared80138404Table);
+INCLUDE_RODATA("actors/nonmatchings/actor_335800/actor_335800_2", D_actor_335800_80161E24);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_335800/actor_335800_2", D_actor_335800_80161E30);
 
-INCLUDE_RODATA("actors/nonmatchings/actor_335800/actor_335800_2", ActorsShared801327f8Table);
+INCLUDE_RODATA("actors/nonmatchings/actor_335800/actor_335800_2", D_actor_335800_80161E3C);
 
-INCLUDE_RODATA("actors/nonmatchings/actor_335800/actor_335800_2", ActorsShared80132920Offset);
+INCLUDE_RODATA("actors/nonmatchings/actor_335800/actor_335800_2", D_actor_335800_80161E4C);
 INCLUDE_RODATA("actors/nonmatchings/actor_335800/actor_335800_2", D_actor_335800_80161E5C);
 INCLUDE_RODATA("actors/nonmatchings/actor_335800/actor_335800_2", D_actor_335800_80161E68);
 INCLUDE_RODATA("actors/nonmatchings/actor_335800/actor_335800_2", D_actor_335800_80161E78);

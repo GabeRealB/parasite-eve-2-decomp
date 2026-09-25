@@ -14,8 +14,7 @@
 /// and parked in that task's `Task::work` slot -- that slot is not a
 /// `TaskIdMap` here. `func_actor_335800_80163B54` republishes the two matrices
 /// onto `TmdObject::lightMtx` / `field_20`, the light/colour pair
-/// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`,
-/// exactly as `func_actor_213100_8014A23C` does for `Actor213100Work`.
+/// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`.
 ///
 /// The size is the allocation, and the fields below are the ones the init
 /// seeds: the two `sb` bytes at 0x43D/0x43E and the `sh` at 0x4C4 are set to
@@ -30,7 +29,7 @@ typedef struct Actor335800Work {
     /* 0x43F */ s8         field_43F;
     /* 0x440 */ MATRIX     light;
     /* 0x460 */ MATRIX     color;
-    /* 0x480 */ VECTOR3    target; // world position the shared turn-to-face body steers toward
+    /* 0x480 */ VECTOR3    target; // world position the turn-to-face handler steers toward
     /* 0x48C */ byte       pad_48C[0x4];
     /* 0x490 */ VECTOR3    step;   // local-space offset `ApplyMatrixLV` rotates into world space
     /* 0x49C */ byte       pad_49C[0x4];
@@ -50,10 +49,13 @@ typedef struct Actor335800Work {
 } Actor335800Work;
 STATIC_ASSERT_SIZEOF(Actor335800Work, 0x4C8);
 
-/// The constant local-space offset `func_actor_335800_80163CA0` rotates,
-/// `{ 0, 0, 0x200000, 0 }` -- straight ahead along the part's own +Z, the same
-/// offset body `ActorsShared80132920` uses. The overlay keeps its own copy in
-/// `.rodata`, so the address comes from the per-overlay symbol map.
+/// The constant local-space offset `func_actor_335800_80163124` rotates for
+/// the parent block, `{ 0, 0, 0x200000, 0 }`: straight ahead along the part's
+/// own +Z.
+extern VECTOR D_actor_335800_80161E4C;
+
+/// The child block's copy of the same offset, rotated by
+/// `func_actor_335800_80163CA0`.
 extern VECTOR D_actor_335800_80161E78;
 
 /// Work block allocated by `func_actor_335800_80162640` (`memCalloc(0x50C)`)
@@ -78,28 +80,21 @@ typedef struct Actor335800MainWork {
     /* 0x477 */ s8         field_477; // preset byte the turn-to-face body passes as `field_4`
     /* 0x478 */ MATRIX     light;
     /* 0x498 */ MATRIX     color;
-    /* 0x4B8 */ s32        field_4B8;
-    /* 0x4BC */ s32        field_4BC;
-    /* 0x4C0 */ s32        field_4C0;
+    /* 0x4B8 */ VECTOR3    target; // world position the turn-to-face handler steers toward
     /* 0x4C4 */ byte       pad_4C4[0x4];
-    /* 0x4C8 */ s32        field_4C8;
-    /* 0x4CC */ s32        field_4CC;
-    /* 0x4D0 */ s32        field_4D0;
+    /* 0x4C8 */ VECTOR3    step;   // 16.16 per-frame velocity added onto `field_4D8`
     /* 0x4D4 */ byte       pad_4D4[0x4];
     /* 0x4D8 */ s32        field_4D8;
     /* 0x4DC */ s32        field_4DC;
     /* 0x4E0 */ s32        field_4E0;
     /* 0x4E4 */ byte       pad_4E4[0x4];
-    /* 0x4E8 */ s16        field_4E8;
-    /* 0x4EA */ byte       pad_4EA[0x2];
-    /* 0x4EC */ s16        field_4EC;
-    /* 0x4EE */ byte       pad_4EE[0x2];
+    /* 0x4E8 */ SVECTOR    limit;     // per-axis stop threshold; 0x7FFF on all three disables it
     /* 0x4F0 */ u16        field_4F0;
     /* 0x4F2 */ u16        field_4F2; // target yaw the turn-to-face body steers toward
     /* 0x4F4 */ u16        field_4F4;
     /* 0x4F6 */ byte       pad_4F6[0x2];
-    /* 0x4F8 */ s16        field_4F8; // body counters the turn-to-face body clears on arrival
-    /* 0x4FA */ s16        field_4FA;
+    /* 0x4F8 */ s16        field_4F8; // motion handler the tick runs: 0 idle, 1 the step sequence
+    /* 0x4FA */ s16        field_4FA; // index into the step-handler table `D_actor_335800_80161E3C`
     /* 0x4FC */ Task*      field_4FC;
     /* 0x500 */ Task*      field_500;
     /* 0x504 */ s16        field_504;
@@ -145,7 +140,7 @@ typedef struct Actor335800SprtRec {
 /// 0x14-byte animation preset `func_actor_335800_801631A4` builds for
 /// `func_actor_335800_801632A4`: the turn-to-face body fills `field_0` with 0,
 /// `field_4` with the `field_477` byte, `field_8` with 1, `field_C` with 5 and
-/// `field_10` with 0 -- the same five-word shape as `Actor141000AnimPreset`.
+/// `field_10` with 0.
 typedef struct Actor335800AnimPreset {
     /* 0x00 */ s32 field_0;
     /* 0x04 */ s32 field_4;
@@ -156,8 +151,7 @@ typedef struct Actor335800AnimPreset {
 STATIC_ASSERT_SIZEOF(Actor335800AnimPreset, 0x14);
 
 /// Spawn placement `func_actor_335800_80162C80` copies into the parent block:
-/// the position into `field_4B8..field_4C0`, the rotation into
-/// `field_4F0..field_4F4`.
+/// the position into `target`, the rotation into `field_4F0..field_4F4`.
 typedef struct Actor335800Placement {
     /* 0x00 */ VECTOR  pos;
     /* 0x10 */ SVECTOR rot;
@@ -172,8 +166,7 @@ typedef struct Actor335800SpawnAnim {
 
 /// A `MATRIX`'s word-wise view, for the identity splat `func_actor_335800_801631A4`
 /// writes over the root coordinate before `RotMatrix` overwrites the 3x3: five
-/// aligned stores rather than nine halfword ones (the same shape as
-/// `Actor141000MatWords`).
+/// aligned stores rather than nine halfword ones.
 typedef struct Actor335800MatWords {
     /* 0x00 */ s32 m00_m01;
     /* 0x04 */ s32 m02_m10;

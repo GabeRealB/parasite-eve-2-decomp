@@ -8,14 +8,12 @@
 
 #include "main/tmd.h"
 
-/// State handler at index 1 of `D_actor_335800_80161E68`, the step after the
-/// shared turn-to-face body `ActorsShared80133a68` -- the same slot
-/// `func_actor_141000_80133B28` takes in its own table. The move body
-/// `ActorsShared80132920` is: rotates the constant local-space offset
-/// `D_actor_335800_80161E78` through the root part's matrix into
-/// `work->step`, opens the per-axis stop threshold to 0x7FFF, which disables
-/// it for the update loop, and advances `field_4C2` so the dispatcher
-/// `func_actor_335800_80163B78` runs the next handler.
+/// State handler 1 of the child block's table `D_actor_335800_80161E68`, the
+/// step after the turn-to-face handler `func_actor_335800_80163BE0`: rotates
+/// the constant forward offset `D_actor_335800_80161E78` through the root
+/// part's matrix into `work->step`, opens the per-axis stop threshold to
+/// 0x7FFF, which disables it for the update loop, and advances `field_4C2` so
+/// the dispatcher `func_actor_335800_80163B78` runs the next handler.
 void func_actor_335800_80163CA0(Task* task)
 {
     Actor335800Work* work;
