@@ -140953,3 +140953,17 @@ parameter is a copy of a user variable, and that extra link lengthens the
 pointer chain enough that the `lui` stays after it. The old body pinned the
 same order with `USE_REG(coord)` / `USE_REG(x)`; check whether a sibling in
 the TU already calls the helper through a local before steering.
+
+## An inline helper's pointer argument keeps `base + i*size + off` in the target's order (func_actor_403600_80132E40, 2026-09-26)
+
+Passing `&scratch->dirs[i]` to a `static inline` helper expands the argument
+as `(i*8 + scratch) + 96` - `sll`, `addu` with the base, then `addiu 0x60` -
+and computes it early, which is the retail order. Every direct spelling at the
+use site (`&x[i]`, `x + i`, `&x[i].vx`) folds to `(i*8 + 96) + scratch`
+instead. In a loop the helper form also lets strength reduction merge a store
+and a load through the same element into one induction variable. Here that
+removed a hand-walked pointer, an integer-cast address and about thirty
+steering locals. The same function's `set_rot_matrix_dep`/`ldv0_dep` asm
+variants stood for the copy-then-GTE sequence living inside an inline helper:
+the helper's own stack local keeps the `addiu vN,sp,0x10` out of CSE's reach,
+so it lands after the volatile `ctc2`s.
