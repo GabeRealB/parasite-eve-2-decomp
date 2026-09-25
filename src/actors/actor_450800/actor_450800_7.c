@@ -7,6 +7,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/mem.h"
@@ -34,9 +35,15 @@ extern s16  D_80071076;
 extern void func_80180038(s32);
 extern void func_80182D14(s32, s32);
 
+/* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
+#define SCRATCH_SP (*(u32*)0x1F8003FC)
+
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+
 void func_actor_450800_80132448(Task* task);
 void func_actor_450800_80132868(Task* task);
 void func_actor_450800_80132AE0(Task* task);
+void func_actor_450800_801328BC(Task* task);
 
 void func_actor_450800_80131F70(u32 arg0)
 {
@@ -298,7 +305,26 @@ void func_actor_450800_80132790(Task* task)
     fns[task->state](task->spawnArg2, task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800_7", func_actor_450800_801327E4);
+/// Per-frame handler of the actor's own task, state 1 of the `fns` table
+/// `func_actor_450800_80132790` dispatches through: refreshes the model root's
+/// world matrix, relights the model from a point 0x320 above its translation,
+/// then runs the animation state machine and draws the ground shadow.
+void func_actor_450800_801327E4(void* enemy, Task* task)
+{
+    TmdObject*     obj;
+    GsCOORDINATE2* coord;
+    VECTOR         vec;
+
+    obj   = task->extra;
+    coord = obj->coords;
+    Gp_UpdateCoord(coord);
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1] - 0x320;
+    vec.vz = coord->workm.t[2];
+    func_800D7A9C(obj, &vec, 0, 3);
+    func_actor_450800_80132448(task);
+    func_actor_450800_801328BC(task);
+}
 
 void func_actor_450800_80132868(Task* task)
 {
@@ -310,7 +336,28 @@ void func_actor_450800_80132868(Task* task)
     taskKill(work->field_4F8);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800_7", func_actor_450800_801328BC);
+/// Draws the actor's ground shadow quad under the model root, skipped while
+/// the model's `flags` has 0x80 set or it has no buffer yet. The world
+/// position is the translation of the root part's `workm`, staged in a
+/// scratchpad VECTOR3 rather than on the stack, and the quad's shade is the
+/// room's current `Gp_State1C` level.
+void func_actor_450800_801328BC(Task* task)
+{
+    TmdObject*     obj;
+    GsCOORDINATE2* coord;
+    VECTOR3*       vec;
+
+    obj   = (TmdObject*)task->extra;
+    coord = obj->coords;
+    if (!(obj->flags & 0x80) && obj->buffer != NULL) {
+        vec     = (VECTOR3*)(SCRATCH_SP -= 0x18);
+        vec->vx = coord->workm.t[0];
+        vec->vy = coord->workm.t[1];
+        vec->vz = coord->workm.t[2];
+        Gp_DrawEffGroundQuad(vec, 0x200, Gp_State1C->groundShade);
+        SCRATCH_SP += 0x18;
+    }
+}
 
 /// State handler of one of the actor's model tasks: the spawn tick hangs this
 /// task's own coordinate frame off part `spawnArg1` of the actor's model and
