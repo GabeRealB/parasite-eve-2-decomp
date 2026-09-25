@@ -121,8 +121,6 @@ STATIC_ASSERT_SIZEOF(Actor01200TurnScratch, 0xC);
 
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-extern u8 D_80072729;
-
 extern GpPairSrcE Actor01200_D04034;
 extern s32        Actor01200_D04044;
 extern s32        Actor01200_D04050;
@@ -149,7 +147,7 @@ s16 Actor01200_Fn00130(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
     s16                  t;
     s32                  mag;
 
-    if (gGameSession->viewReady == 1 || D_80072729 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData.field_5C1 == 1) {
         return 0;
     }
 

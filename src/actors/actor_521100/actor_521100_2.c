@@ -17,8 +17,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-extern u8 D_80072729;
-
 /// The attach coordinate's rotation as the scale-in step snapshots it, and the
 /// cache the "walk to" placement opcode writes beside it: the heading it
 /// applied to the root coordinate and the remaining distance, scaled by 20.

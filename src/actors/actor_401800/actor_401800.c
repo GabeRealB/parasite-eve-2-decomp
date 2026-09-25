@@ -315,10 +315,6 @@ extern TmdSource D_actor_401800_80143E9C;
 extern TmdSource D_actor_401800_80144434;
 extern TmdSource D_actor_401800_80144F24;
 
-/// Movement is frozen while this is 1. Same flag `actorMoveForwardNonzero`
-/// and the other families' step helpers test.
-extern u8 D_80072729;
-
 s32  func_actor_401800_8013271C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos);
 s32  func_actor_401800_80132C68(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2);
 s32  func_actor_401800_80132E0C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push);
@@ -391,7 +387,7 @@ s32 func_actor_401800_801323D4(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
     ActorRepelScratch* blk;
     SVECTOR*           offset;
 
-    if (D_80072729 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     coord->flg                           = 0;
@@ -448,7 +444,7 @@ s32 func_actor_401800_8013271C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
     s16                  t;
     s32                  mag;
 
-    if (gGameSession->viewReady == 1 || D_80072729 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData.field_5C1 == 1) {
         return 0;
     }
 
@@ -1931,7 +1927,7 @@ s32 func_actor_401800_8013629C(Task* arg0, GpRec18* recs, s16 count)
     ActorPushScratch* s;
     ActorPushScratch* blk;
 
-    if (D_80072729 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     ((TmdObject*)arg0->extra)->coords[1].flg = 0;

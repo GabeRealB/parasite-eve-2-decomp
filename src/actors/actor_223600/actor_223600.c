@@ -129,10 +129,6 @@ typedef union Actor223600Event {
 } Actor223600Event;
 STATIC_ASSERT_SIZEOF(Actor223600Event, 0x4);
 
-/// While this is 1, the push-out helpers return without moving anything and
-/// the forward step is skipped.
-extern u8 D_80072729;
-
 /// Integer part of the last movement step `func_actor_223600_8014AA04`
 /// applied.
 extern SVECTOR D_actor_223600_80150B54;
@@ -169,7 +165,7 @@ void func_actor_223600_80149E64(GsCOORDINATE2* coord, s16 yaw)
 /// coordinate's world position from it; the last such push is kept in the
 /// scratch block, and its length is scaled down to 0x100 when longer. Returns
 /// whether any record of those kinds was met. Does nothing, returning 0, while
-/// `D_80072729` or the session's `viewReady` is 1.
+/// `Mc_SaveData.field_5C1` or the session's `viewReady` is 1.
 s32 func_actor_223600_8014A170(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
 {
     ActorRepelScratch* head;
@@ -177,7 +173,7 @@ s32 func_actor_223600_8014A170(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
     ActorRepelScratch* blk;
     SVECTOR*           offset;
 
-    if (D_80072729 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     coord->flg                           = 0;
@@ -225,7 +221,7 @@ s32 func_actor_223600_8014A170(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
 /// the first `count` of `recs`, drops both bearings of every pair more than 0x400 apart, and
 /// for each bearing left steps `coord` 10 units away from it, accumulating the
 /// total XZ step in `pos`. Returns whether any kind 0x10000 record was met;
-/// returns 0 at once when the session's `viewReady` or `D_80072729` is 1.
+/// returns 0 at once when the session's `viewReady` or `Mc_SaveData.field_5C1` is 1.
 s32 func_actor_223600_8014A4B8(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
@@ -234,7 +230,7 @@ s32 func_actor_223600_8014A4B8(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
     s16                  t;
     s32                  mag;
 
-    if (gGameSession->viewReady == 1 || D_80072729 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData.field_5C1 == 1) {
         return 0;
     }
 
@@ -662,13 +658,13 @@ static __inline__ void Actor223600_ScaleForward(SVECTOR* dir, s16 amount)
 
 /// Steps the model `amount` units along its facing -- the coordinate matrix's z
 /// column, normalised and GTE-scaled in a scratch-pad vector -- and invalidates
-/// the coordinate. Skipped entirely while `D_80072729` is 1.
+/// the coordinate. Skipped entirely while `Mc_SaveData.field_5C1` is 1.
 static __inline__ void Actor223600_MoveForward(GsCOORDINATE2* coord, s16 amount)
 {
     SVECTOR* head;
     SVECTOR* vec;
 
-    if (D_80072729 != 1) {
+    if (Mc_SaveData.field_5C1 != 1) {
         head                       = *(SVECTOR**)G_SCRATCH_HEAD;
         vec                        = head - 1;
         *(SVECTOR**)G_SCRATCH_HEAD = vec;

@@ -4,12 +4,12 @@
 #include "actors/actor.h"
 #include "actors/actor_400100.h"
 #include "main/gfx.h"
+#include "main/mc.h"
 #include "main/mem.h"
 #include "main/wipsys.h"
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-extern u8 D_80072729;
 extern s8 D_80114C12;
 extern u8 D_80071075;
 

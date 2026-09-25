@@ -369,10 +369,6 @@ void func_actor_403200_80141018(Task* arg0);
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-/// Global freeze flag: 1 while the game is halted, which stops the per-frame
-/// body from walking its model out.
-extern u8 D_80072729;
-
 /// Player HP the per-frame tick reads before it latches the death cinematic.
 extern s16 D_80073BA0;
 /// Equipped character, read as an in-struct byte so the weapon-anim load stays
@@ -2005,7 +2001,7 @@ void func_actor_403200_80134D40(Task* arg0)
     work->field_7D8 = work->slots0[2].curRec & 0x3FF;
 
     model = ((TmdObject*)arg0->extra)->coords;
-    if (D_80072729 != 1) {
+    if (Mc_SaveData.field_5C1 != 1) {
         Actor403200_StepForward(model);
     }
     ((TmdObject*)arg0->extra)->coords->flg = 0;

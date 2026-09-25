@@ -148,8 +148,6 @@ typedef struct Actor104000StateTable {
 } Actor104000StateTable;
 STATIC_ASSERT_SIZEOF(Actor104000StateTable, 0x4C);
 
-extern u8 D_80072729;
-
 extern Task* Actor04000_D0C710[2];
 extern Task* Actor04000_D0C718[6];
 
@@ -175,7 +173,7 @@ s32 Actor04000_Fn0024C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
     s16                  t;
     s32                  mag;
 
-    if (gGameSession->viewReady == 1 || D_80072729 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData.field_5C1 == 1) {
         return 0;
     }
 

@@ -397,11 +397,6 @@ extern void* D_80114B78[1];
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 void func_8004BFF8(s16 angle, MATRIX* matrix);
 
-/// Non-1 while the model is being aimed rather than left alone; the guards
-/// `func_actor_421600_80138D24` runs around its gte scale are the same test
-/// `actorMoveForward` makes before touching a coordinate.
-extern u8 D_80072729;
-
 /// 4x4 zone table `func_actor_421600_8013A404` samples with the X and Z
 /// buckets of the actor's position, cell `x | z * 4`; the sample is compared
 /// against 0xB to pick between the 6 and 0x24 states.
@@ -524,7 +519,7 @@ void func_actor_421600_80132004(GsCOORDINATE2* coord, s16 yaw)
 /// 0x400 to another cancel each other, and each remaining one moves the
 /// coordinate 10 units along it in the XZ plane. `pos` receives the total
 /// displacement. Returns whether a kind-0x10000 record was among them. Does
-/// nothing, returning 0, while `gGameSession->viewReady` or `D_80072729` is 1.
+/// nothing, returning 0, while `gGameSession->viewReady` or `Mc_SaveData.field_5C1` is 1.
 s32 func_actor_421600_80132310(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
@@ -533,7 +528,7 @@ s32 func_actor_421600_80132310(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
     s16                  t;
     s32                  mag;
 
-    if (gGameSession->viewReady == 1 || D_80072729 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData.field_5C1 == 1) {
         return 0;
     }
 
@@ -1022,7 +1017,7 @@ s32 func_actor_421600_801335BC(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
     s16                      t;
     s32                      mag;
 
-    if (D_80072729 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
 
@@ -2221,7 +2216,7 @@ void func_actor_421600_801354D8(Task* arg0)
                 SndEvt_EnqueueType6(hitSound, hitPan,
                                     (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
             }
-            debugMode = D_80072729;
+            debugMode = Mc_SaveData.field_5C1;
             if (debugMode == 1) {
                 enemy->hp       = 0x64;
                 work->field_838 = 9;

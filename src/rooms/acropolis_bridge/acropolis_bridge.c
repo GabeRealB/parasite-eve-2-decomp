@@ -33,7 +33,6 @@
 
 extern s32 D_80070F70;
 extern u8  D_80072728;
-extern u8  D_80072729;
 /// Table of 0x80-byte actor config blocks; `Player_Status` is entry 1.
 extern PlayerStatus D_80073B08[];
 extern s16          D_80114D08;
@@ -3220,7 +3219,7 @@ void func_acropolis_bridge_80184B94(OverlayWalker* work)
     s16                  t;
     s32                  mag;
 
-    if (D_80072729 == 1) {
+    if (Mc_SaveData.field_5C1 == 1) {
         return;
     }
 
@@ -3395,7 +3394,7 @@ void func_acropolis_bridge_80185104(OverlayWalker* work, SVECTOR3* pos)
 /// ramps towards `field_5C` by `field_60` a frame; while it is non-zero it
 /// scales (`GPF`) the normalised facing column of the model matrix into the
 /// per-frame world step, which is added to the coordinate's translation and
-/// kept in `moveStep`. `D_80072729` (a global freeze flag) zeroes the step
+/// kept in `moveStep`. `Mc_SaveData.field_5C1` (a global freeze flag) zeroes the step
 /// instead.
 static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
                                   OverlayWalkerTickScratch* block)
@@ -3466,7 +3465,7 @@ static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
     coord = walker->coord;
     speed = walker->field_5E;
     step  = &walker->moveStep;
-    if (D_80072729 == 1) {
+    if (Mc_SaveData.field_5C1 == 1) {
         step->vz            = 0;
         step->vy            = 0;
         walker->moveStep.vx = 0;

@@ -281,11 +281,6 @@ void func_actor_356100_80163508(Task* arg0);
 /// Per-clip transition values indexed by the current and requested clip.
 extern s8 D_actor_356100_801728CC[][45];
 
-/// Movement-freeze flag: when it is 1 the root coordinate is left alone, so
-/// `func_actor_356100_8016804C`'s two collision pushes are skipped entirely.
-/// Same slot and role as `actorMoveForwardNonzero`'s guard.
-extern u8 D_80072729;
-
 /// Player-to-`coord` vector, in the 16-bit `SVECTOR` view of both matrices.
 static __inline__ void Actor356100_PositionDelta(GsCOORDINATE2* coord, SVECTOR* pos)
 {
@@ -561,7 +556,7 @@ void func_actor_356100_80161F4C(GsCOORDINATE2* coord, s16 yaw)
 /// in a scratch block carved off `G_SCRATCH_HEAD`, the push that would move
 /// `coord` out of the last record of kind 0x10000 or 0x30000, scaled down to
 /// 0x100 units when longer. Returns whether any such record was found; returns
-/// 0 at once when `gGameSession->viewReady` or `D_80072729` is 1.
+/// 0 at once when `gGameSession->viewReady` or `Mc_SaveData.field_5C1` is 1.
 s32 func_actor_356100_80162258(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
 {
     ActorRepelScratch* head;
@@ -569,7 +564,7 @@ s32 func_actor_356100_80162258(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
     ActorRepelScratch* blk;
     SVECTOR*           offset;
 
-    if (D_80072729 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     coord->flg                           = 0;
@@ -619,7 +614,7 @@ s32 func_actor_356100_80162258(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
 /// discards any pair more than 0x400 apart, and for each remaining bearing
 /// nudges both `coord`'s translation and `*pos` a short step away from it.
 /// `*pos` accumulates the total nudge. Returns whether any record was of kind
-/// 0x10000; returns 0 at once when `gGameSession->viewReady` or `D_80072729`
+/// 0x10000; returns 0 at once when `gGameSession->viewReady` or `Mc_SaveData.field_5C1`
 /// is 1.
 s32 func_actor_356100_801625A0(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
@@ -629,7 +624,7 @@ s32 func_actor_356100_801625A0(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
     s16                  t;
     s32                  mag;
 
-    if (gGameSession->viewReady == 1 || D_80072729 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData.field_5C1 == 1) {
         return 0;
     }
 
@@ -1273,7 +1268,7 @@ static __inline__ void Actor356100_StepForward(GsCOORDINATE2* coord, s16 amount)
     SVECTOR* head;
     SVECTOR* vec;
 
-    if (D_80072729 != 1) {
+    if (Mc_SaveData.field_5C1 != 1) {
         head                       = *(SVECTOR**)G_SCRATCH_HEAD;
         *(SVECTOR**)G_SCRATCH_HEAD = head - 1;
         vec                        = head - 1;
@@ -1305,7 +1300,7 @@ static __inline__ void Actor356100_PushRecords(GsCOORDINATE2* coord, GpRec18* re
     OverlayDeltaFlag* s;
     s32               val;
 
-    if (D_80072729 != 1) {
+    if (Mc_SaveData.field_5C1 != 1) {
         scratch                              = (void**)G_SCRATCH_HEAD;
         head                                 = *scratch;
         *(OverlayDeltaFlag**)G_SCRATCH_HEAD -= 1;
@@ -1341,7 +1336,7 @@ static __inline__ void Actor356100_PushRecords(GsCOORDINATE2* coord, GpRec18* re
 }
 
 /// `Actor356100_PushRecords` without the freeze guard, returning `field_10`
-/// after the scratch is given back. The caller names `D_80072729` first so the
+/// after the scratch is given back. The caller names `Mc_SaveData.field_5C1` first so the
 /// compare interleaves with the coordinate load.
 static __inline__ s32 Actor356100_PushRecordsAlways(GsCOORDINATE2* coord, GpRec18* rec, s32 count, s16 height)
 {
@@ -1517,7 +1512,7 @@ void func_actor_356100_80164ACC(Task* arg0)
     s                                        = head - 1;
     ((TmdObject*)arg0->extra)->coords->flg   = 0;
     func_actor_356100_80163508(arg0);
-    paused    = D_80072729;
+    paused    = Mc_SaveData.field_5C1;
     pushCoord = ((TmdObject*)arg0->extra)->coords;
     hit       = (s32)&work->field_A58;
     if (paused == 1) {
@@ -1971,7 +1966,7 @@ void func_actor_356100_801668FC(Task* arg0)
     if ((u32)(work->field_5A & 0x3FF) - 0x10 < 7U) {
         save  = &Mc_SaveData;
         coord = ((TmdObject*)arg0->extra)->coords;
-        if ((u8)save->unknown_5C0[1] != 1) {
+        if (save->field_5C1 != 1) {
             base                       = PSX_SCRATCH;
             slot                       = *(u8**)(base + 0x3FC);
             base                       = slot;
@@ -1997,7 +1992,7 @@ void func_actor_356100_801668FC(Task* arg0)
             base                       = slot;
         }
         root = ((TmdObject*)arg0->extra)->coords;
-        if ((u8)save->unknown_5C0[1] != 1) {
+        if (save->field_5C1 != 1) {
             base2                                = PSX_SCRATCH;
             slot2                                = *(u8**)(base2 + 0x3FC);
             base2                                = slot2;
@@ -2333,7 +2328,7 @@ static __inline__ void Actor356100_MoveForward(GsCOORDINATE2* coord, s16 amount)
     SVECTOR* head;
     SVECTOR* vec;
 
-    if (D_80072729 != 1) {
+    if (Mc_SaveData.field_5C1 != 1) {
         head                       = *(SVECTOR**)G_SCRATCH_HEAD - 1;
         vec                        = head;
         *(SVECTOR**)G_SCRATCH_HEAD = vec;
@@ -2472,7 +2467,7 @@ void func_actor_356100_8016804C(Task* arg0)
 }
 
 /// `actorMoveForwardNonzero` testing the freeze flag through a
-/// `McSaveData*` rather than `D_80072729`, and without its zero-amount guard.
+/// `McSaveData*` rather than `Mc_SaveData.field_5C1`, and without its zero-amount guard.
 /// Reads the X component back through `vec`, as `Actor01900_StepForward` does —
 /// the `head[-1]` spelling gives the scratch release value a register of its
 /// own and costs three instructions here. Same body as
@@ -2482,7 +2477,7 @@ static __inline__ void Actor356100_StepForwardSave(McSaveData* save, GsCOORDINAT
     SVECTOR* head;
     SVECTOR* vec;
 
-    if ((u8)save->unknown_5C0[1] != 1) {
+    if (save->field_5C1 != 1) {
         head                       = *(SVECTOR**)G_SCRATCH_HEAD;
         vec                        = head - 1;
         *(SVECTOR**)G_SCRATCH_HEAD = vec;
@@ -2510,7 +2505,7 @@ static __inline__ void Actor356100_PushRecordsSave(McSaveData* save, GsCOORDINAT
     OverlayDeltaFlag* s;
     s32               val;
 
-    if ((u8)save->unknown_5C0[1] != 1) {
+    if (save->field_5C1 != 1) {
         head                                 = *(u8**)G_SCRATCH_HEAD;
         *(OverlayDeltaFlag**)G_SCRATCH_HEAD -= 1;
         s                                    = *(OverlayDeltaFlag**)G_SCRATCH_HEAD;
@@ -2614,11 +2609,11 @@ void func_actor_356100_801684F0(Task* arg0)
         work->field_6++;
         save  = &Mc_SaveData;
         coord = ((TmdObject*)arg0->extra)->coords;
-        if ((u8)save->unknown_5C0[1] != 1) {
+        if (save->field_5C1 != 1) {
             Actor356100_StepForwardSave(save, coord, -0x10);
         }
         root = ((TmdObject*)arg0->extra)->coords;
-        if ((u8)save->unknown_5C0[1] != 1) {
+        if (save->field_5C1 != 1) {
             Actor356100_PushRecordsSave(save, root, &work->field_A58, 3, 0x10);
         }
         ((TmdObject*)arg0->extra)->coords->flg = 0;

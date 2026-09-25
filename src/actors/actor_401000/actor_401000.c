@@ -342,10 +342,6 @@ extern TmdSource D_actor_401000_80144830;
 extern TmdSource D_actor_401000_8014599C;
 extern TmdSource D_actor_401000_80146190;
 
-/// 0 = movement running, 1 = frozen; the same flag byte `actorStepForward`
-/// and `actorMoveForward` test.
-extern u8 D_80072729;
-
 /// Handlers defined after the state table and the init that name them.
 void func_actor_401000_8013DA78(Task* task);
 void func_actor_401000_8013DB10(Task* arg0);
@@ -1743,7 +1739,7 @@ s32 func_actor_401000_80135374(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2, s16
     s16             clamped;
     SVECTOR*        step;
 
-    if (D_80072729 == 1) {
+    if (Mc_SaveData.field_5C1 == 1) {
         return 0;
     }
     head                              = *(ActorStepDelta**)G_SCRATCH_HEAD;
@@ -1817,7 +1813,7 @@ s32 func_actor_401000_80135704(Task* arg0, GpRec18* recs, s16 count)
     ActorPushScratch* s;
     ActorPushScratch* blk;
 
-    if (D_80072729 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     ((TmdObject*)arg0->extra)->coords[1].flg = 0;

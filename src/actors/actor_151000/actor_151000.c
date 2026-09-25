@@ -92,8 +92,6 @@ extern TaskDesc D_actor_151000_80133360;
 extern GpMsgEntry D_actor_151000_8013D2B0[];
 extern u8         D_actor_151000_8013D2EC[];
 
-extern u8 D_80072729;
-
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);

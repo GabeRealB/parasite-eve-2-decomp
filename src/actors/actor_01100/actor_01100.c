@@ -87,10 +87,6 @@ extern GpPairSrcE Actor01100_D074E8;
 extern GpPairSrcE Actor01100_D07510;
 extern u8         Actor01100_D15604[];
 
-/// When 1, `Actor01100_Fn00F58` skips pushing the model out of its world
-/// contacts for the frame.
-extern u8 D_80072729;
-
 /// Effect ids `Actor01100_Fn02960` passes to `Gp_SpawnEff`: `D_8011574C`
 /// at the model root when the low four bits of `D_80070F70` are clear, and
 /// `D_80115738` for the splash.
@@ -225,7 +221,7 @@ const ActorsShared801385e0Scale Actor01100_D00010 = { 0x1400, 0x1400, 0x1400, 0 
 /// coordinate's world position from it; the last such push is kept in the
 /// scratch block, and its length is scaled down to 0x100 when longer. Returns
 /// whether any record of those kinds was met. Does nothing, returning 0, while
-/// `D_80072729` or the session's `viewReady` is 1.
+/// `Mc_SaveData.field_5C1` or the session's `viewReady` is 1.
 s32 Actor01100_Fn000E8(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
 {
     ActorRepelScratch* head;
@@ -233,7 +229,7 @@ s32 Actor01100_Fn000E8(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
     ActorRepelScratch* blk;
     SVECTOR*           offset;
 
-    if (D_80072729 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     coord->flg                           = 0;
@@ -283,7 +279,7 @@ s32 Actor01100_Fn000E8(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
 /// 0x400 to another cancel each other, and each remaining one moves the
 /// coordinate 10 units along it in the XZ plane. `pos` receives the total
 /// displacement. Returns whether a kind 0x10000 record was among them. Does
-/// nothing, returning 0, while the session's `viewReady` or `D_80072729` is 1.
+/// nothing, returning 0, while the session's `viewReady` or `Mc_SaveData.field_5C1` is 1.
 s32 Actor01100_Fn00430(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
@@ -292,7 +288,7 @@ s32 Actor01100_Fn00430(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
     s16                  t;
     s32                  mag;
 
-    if (gGameSession->viewReady == 1 || D_80072729 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData.field_5C1 == 1) {
         return 0;
     }
 
@@ -664,13 +660,13 @@ static __inline__ s32 _actor01100FindClass2Contact(SVECTOR* out, GpRec18* contac
 /// `func_800E0C10`, stepping each nonzero fractional X/Z delta one unit away
 /// from zero, and raises the height by 0x80 for the caller to restore.
 /// Returns nonzero when the push moved the model on X or Z; always 0 while
-/// `D_80072729` is 1.
+/// `Mc_SaveData.field_5C1` is 1.
 static __inline__ s32 _actor01100PushOut(GsCOORDINATE2* coord, GpRec18* contacts)
 {
     OverlayDeltaFlag* head;
     OverlayDeltaFlag* blk;
 
-    if (D_80072729 == 1) {
+    if (Mc_SaveData.field_5C1 == 1) {
         return 0;
     }
     head                                 = *(OverlayDeltaFlag**)G_SCRATCH_HEAD;
@@ -2837,7 +2833,7 @@ static __inline__ void Actor104900_MatrixCol2(MATRIX* arg0, volatile SVECTOR* ar
 /// not finished, then `Actor01100_Fn039D0` supplies the yaw at 0xB90. While
 /// the frame sits in [1, 0x2E) the model's `field_46` turns toward that yaw by
 /// at most 0x10 and the Y rotation is rebuilt. The same window steps
-/// `((frame - 13) * 900) / 33` and, while `D_80072729` is clear, adds the
+/// `((frame - 13) * 900) / 33` and, while `Mc_SaveData.field_5C1` is clear, adds the
 /// scaled facing column's X/Z onto the translation through the frame block's
 /// vector at 0x10. Frame 1 cues `0x400B0002` and frame 0x2E cues `0x400B0001`.
 ///
@@ -2920,7 +2916,7 @@ void Actor01100_Fn0516C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         frame     = work->field_BAD;
         scale     = ((frame - 13) * 900) / 33 - ((frame - 14) * 900) / 33;
         coords    = ((TmdObject*)task->extra)->coords;
-        if (D_80072729 == 0) {
+        if (Mc_SaveData.field_5C1 == 0) {
             Actor104900_MatrixCol2(&coords->coord, (volatile SVECTOR*)&arg->vec, scale);
             coords->coord.t[0] += arg->vec.vx;
             coords->coord.t[2] += arg->vec.vz;
@@ -3743,7 +3739,7 @@ s32 Actor01100_Fn06AC8(GsCOORDINATE2* arg0)
 /// itself needs and no call site confirms them.
 void Actor01100_Fn06B6C(GsCOORDINATE2* arg0, ActorsShared8013898cVec* arg1, s32 arg2)
 {
-    if (D_80072729 == 0) {
+    if (Mc_SaveData.field_5C1 == 0) {
         ACTOR_COPY_MATRIX_COLUMN_TO_SV(&arg0->coord, &arg1->vec, 4, 10, 16);
         gte_lddp(arg2);
         gte_ldsv(&arg1->vec);

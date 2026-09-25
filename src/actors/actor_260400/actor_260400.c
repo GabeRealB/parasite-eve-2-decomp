@@ -94,8 +94,6 @@ extern Task* D_actor_260400_80154C74;
 /// which the split covers as padding, so it has no symbol-file declaration.
 extern s16 D_actor_260400_80154C78;
 
-extern u8 D_80072729;
-
 void func_actor_260400_8014A200(Task* task);
 void func_actor_260400_8014A5AC(GpEnemy* enemy, Task* task);
 void func_actor_260400_8014A630(Task* task);

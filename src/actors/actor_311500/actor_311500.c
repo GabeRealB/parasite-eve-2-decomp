@@ -27,10 +27,6 @@ void func_8004BFF8(s16 angle, MATRIX* matrix);
 /// `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-/// Movement-freeze flag: while it is 1 the collision push and the obstacle
-/// steering leave the coordinate alone.
-extern u8 D_80072729;
-
 typedef struct Actor311500Work {
     /// Animation context the block itself begins with: `func_actor_311500_80162F28`
     /// hands the block straight to `func_800B4114` / `Gp_AnimTickIndex`.
@@ -88,7 +84,7 @@ extern s32 D_actor_311500_80169324;
 /// in a scratch block carved off `G_SCRATCH_HEAD`, the push that would move
 /// `coord` out of the last record of kind 0x10000 or 0x30000, scaled down to
 /// 0x100 units when longer. Returns whether any such record was found; returns
-/// 0 at once when `gGameSession->viewReady` or `D_80072729` is 1.
+/// 0 at once when `gGameSession->viewReady` or `Mc_SaveData.field_5C1` is 1.
 s32 func_actor_311500_80161E38(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
 {
     ActorRepelScratch* head;
@@ -96,7 +92,7 @@ s32 func_actor_311500_80161E38(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
     ActorRepelScratch* blk;
     SVECTOR*           offset;
 
-    if (D_80072729 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     coord->flg                           = 0;
@@ -146,7 +142,7 @@ s32 func_actor_311500_80161E38(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
 /// discards any pair more than 0x400 apart, and for each remaining bearing
 /// nudges both `coord`'s translation and `*pos` a short step away from it.
 /// `*pos` accumulates the total nudge. Returns whether any record was of kind
-/// 0x10000; returns 0 at once when `gGameSession->viewReady` or `D_80072729`
+/// 0x10000; returns 0 at once when `gGameSession->viewReady` or `Mc_SaveData.field_5C1`
 /// is 1.
 s32 func_actor_311500_80162180(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
@@ -156,7 +152,7 @@ s32 func_actor_311500_80162180(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
     s16                  t;
     s32                  mag;
 
-    if (gGameSession->viewReady == 1 || D_80072729 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData.field_5C1 == 1) {
         return 0;
     }
 

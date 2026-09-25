@@ -70,7 +70,6 @@ extern GpMsgEntry D_actor_150400_8013C8C4[];
 
 extern s16            D_80071076;
 extern GpAreaApplyRec D_80183BE0;
-extern u8             D_80072729;
 
 /// Scratchpad stack pointer the per-frame helpers carve temporary frames off.
 #define SCRATCH_SP (*(u32*)0x1F8003FC)

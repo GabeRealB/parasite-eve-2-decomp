@@ -58,10 +58,6 @@ STATIC_ASSERT_SIZEOF(Actor341700SubWork, 0x80);
 /// applied, rounded away from zero when the step had a fraction.
 extern SVECTOR D_actor_341700_80176360;
 
-/// Main-executable byte; while it is 1 the contact-record push and avoid
-/// helpers return at once without touching the coordinate.
-extern u8 D_80072729;
-
 extern SVECTOR D_actor_341700_80175F7C[];
 extern u8      D_actor_341700_801760FC[];
 extern u8      D_actor_341700_80175F5C[]; // stored into `Task::msgTable` by func_actor_341700_8016D130
@@ -101,7 +97,7 @@ void func_actor_341700_8016AC64(GsCOORDINATE2* coord, s16 yaw)
 /// in a scratch block carved off `G_SCRATCH_HEAD`, the push that would move
 /// `coord` out of the last record of kind 0x10000 or 0x30000, scaled down to
 /// 0x100 units when longer. Returns whether any such record was found; returns
-/// 0 at once when `gGameSession->viewReady` or `D_80072729` is 1.
+/// 0 at once when `gGameSession->viewReady` or `Mc_SaveData.field_5C1` is 1.
 s32 func_actor_341700_8016AF70(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
 {
     ActorRepelScratch* head;
@@ -109,7 +105,7 @@ s32 func_actor_341700_8016AF70(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
     ActorRepelScratch* blk;
     SVECTOR*           offset;
 
-    if (D_80072729 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     coord->flg                           = 0;
@@ -159,7 +155,7 @@ s32 func_actor_341700_8016AF70(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
 /// discards any pair more than 0x400 apart, and for each remaining bearing
 /// nudges both `coord`'s translation and `*pos` a short step away from it.
 /// `*pos` accumulates the total nudge. Returns whether any record was of kind
-/// 0x10000; returns 0 at once when `gGameSession->viewReady` or `D_80072729`
+/// 0x10000; returns 0 at once when `gGameSession->viewReady` or `Mc_SaveData.field_5C1`
 /// is 1.
 s32 func_actor_341700_8016B2B8(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
@@ -169,7 +165,7 @@ s32 func_actor_341700_8016B2B8(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
     s16                  t;
     s32                  mag;
 
-    if (gGameSession->viewReady == 1 || D_80072729 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData.field_5C1 == 1) {
         return 0;
     }
 

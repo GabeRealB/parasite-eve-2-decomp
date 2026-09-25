@@ -133,8 +133,6 @@ s16                     func_actor_215100_8014C298(u16* arg0);
 s32                     func_actor_215100_8014C418(s32 arg0);
 void                    func_actor_215100_8014BEE8(void);
 
-extern u8 D_80072729;
-
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);

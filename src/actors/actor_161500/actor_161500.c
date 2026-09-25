@@ -22,8 +22,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-extern u8 D_80072729;
-
 extern TaskDesc D_actor_161500_801401B0[];
 extern u8       D_actor_161500_801401C8[];
 extern u8       D_actor_161500_80140180[];

@@ -82,10 +82,6 @@ typedef struct Actor210600DispatchCtx {
 } Actor210600DispatchCtx;
 STATIC_ASSERT_SIZEOF(Actor210600DispatchCtx, 0x14);
 
-/// While this is 1, the repel and avoid helpers return without moving
-/// anything.
-extern u8 D_80072729;
-
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 void func_8004BFF8(s16 angle, MATRIX* matrix);
 
@@ -137,7 +133,7 @@ void func_actor_210600_80149E30(GsCOORDINATE2* coord, s16 yaw)
 /// coordinate's world position from it; the last such push is kept in the
 /// scratch block, and its length is scaled down to 0x100 when longer. Returns
 /// whether any record of those kinds was met. Does nothing, returning 0, while
-/// `D_80072729` or the session's `viewReady` is 1.
+/// `Mc_SaveData.field_5C1` or the session's `viewReady` is 1.
 s32 func_actor_210600_8014A13C(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
 {
     ActorRepelScratch* head;
@@ -145,7 +141,7 @@ s32 func_actor_210600_8014A13C(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
     ActorRepelScratch* blk;
     SVECTOR*           offset;
 
-    if (D_80072729 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     coord->flg                           = 0;
@@ -195,7 +191,7 @@ s32 func_actor_210600_8014A13C(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
 /// apart cancel each other; each bearing left steps `coord` 10 units away from
 /// it, the total XZ step accumulating in `pos`. Returns whether a kind 0x10000
 /// record was among them; returns 0 at once while the session's `viewReady`
-/// or `D_80072729` is 1.
+/// or `Mc_SaveData.field_5C1` is 1.
 s32 func_actor_210600_8014A484(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
@@ -204,7 +200,7 @@ s32 func_actor_210600_8014A484(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
     s16                  t;
     s32                  mag;
 
-    if (gGameSession->viewReady == 1 || D_80072729 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData.field_5C1 == 1) {
         return 0;
     }
 
@@ -843,7 +839,7 @@ s32 func_actor_210600_8014BDA4(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
     ActorRepelScratch* blk;
     SVECTOR*           offset;
 
-    if (D_80072729 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     coord->flg                           = 0;
@@ -896,7 +892,7 @@ s32 func_actor_210600_8014C0EC(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
     s16                  t;
     s32                  mag;
 
-    if (gGameSession->viewReady == 1 || D_80072729 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData.field_5C1 == 1) {
         return 0;
     }
 

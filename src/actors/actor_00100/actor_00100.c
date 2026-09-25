@@ -185,7 +185,7 @@ void Actor00100_Fn001FC(GsCOORDINATE2* coord, s16 yaw)
 /// apart cancel each other. Each remaining bearing becomes a short step
 /// against it, added to both `pos` and the coordinate's translation. Returns
 /// whether a kind 0x10000 record was among them. Does nothing, and returns 0,
-/// while the session's `viewReady` or `D_80072729` is 1.
+/// while the session's `viewReady` or `Mc_SaveData.field_5C1` is 1.
 s32 Actor00100_Fn00508(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
@@ -194,7 +194,7 @@ s32 Actor00100_Fn00508(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
     s16                  t;
     s32                  mag;
 
-    if (gGameSession->viewReady == 1 || D_80072729 == 1) {
+    if (gGameSession->viewReady == 1 || Mc_SaveData.field_5C1 == 1) {
         return 0;
     }
 
@@ -574,7 +574,7 @@ s32 Actor00100_Fn01388(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
     *(u8**)G_SCRATCH_HEAD = head - sizeof(Actor00100AvoidScratch16);
     s                     = (Actor00100AvoidScratch16*)*(u8**)G_SCRATCH_HEAD;
 
-    if (D_80072729 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
 

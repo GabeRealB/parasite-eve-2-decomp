@@ -268,9 +268,6 @@ typedef struct Actor401300LungeScratch {
 } Actor401300LungeScratch;
 STATIC_ASSERT_SIZEOF(Actor401300LungeScratch, 0x24);
 
-/// Movement freeze flag: `actorMoveForward` skips its step when it is 1.
-extern u8 D_80072729;
-
 /// Gameplay slot `Gp_SpawnEff` effects read their model data from; set before
 /// each spawn in `func_actor_401300_8013B6E8`.
 extern void* D_80114B78[1];
@@ -487,7 +484,7 @@ s32 func_actor_401300_80132910(Task* arg0, GpRec18* recs, s16 count)
     ActorPushScratch* s;
     ActorPushScratch* blk;
 
-    if (D_80072729 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     ((TmdObject*)arg0->extra)->coords[1].flg = 0;
@@ -577,7 +574,7 @@ s32 func_actor_401300_80132C78(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2, s16
     s16             vy;
     SVECTOR*        step;
 
-    if (D_80072729 == 1 || gGameSession->viewReady == 1) {
+    if (Mc_SaveData.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     head                              = *(ActorStepDelta**)G_SCRATCH_HEAD;
@@ -2183,7 +2180,7 @@ static __inline__ void Actor401300_MoveBy(GsCOORDINATE2* coord, s16 amount)
     SVECTOR* vec;
     SVECTOR* v;
 
-    if (D_80072729 != 1) {
+    if (Mc_SaveData.field_5C1 != 1) {
         head                       = *(SVECTOR**)G_SCRATCH_HEAD;
         vec                        = head - 1;
         *(SVECTOR**)G_SCRATCH_HEAD = vec;
@@ -3797,7 +3794,7 @@ static __inline__ void Actor401300_MoveForwardSave(McSaveData* save, GsCOORDINAT
     SVECTOR* head;
     SVECTOR* vec;
 
-    if ((u8)save->unknown_5C0[1] != 1) {
+    if (save->field_5C1 != 1) {
         head                       = *(SVECTOR**)G_SCRATCH_HEAD;
         vec                        = head - 1;
         *(SVECTOR**)G_SCRATCH_HEAD = vec;
@@ -4023,14 +4020,14 @@ void func_actor_401300_8013DADC(Task* arg0)
 }
 
 /// `actorMoveForwardNonzero` testing the same flag byte through a
-/// `McSaveData*` (`D_80072729` is `Mc_SaveData.unknown_5C0[1]`).
+/// `McSaveData*` (`Mc_SaveData.field_5C1` is `Mc_SaveData.unknown_5C0[1]`).
 static __inline__ void Actor401300_MoveForwardNonzeroSave(McSaveData* save, GsCOORDINATE2* coord, s16 amount)
 {
     SVECTOR* head;
     SVECTOR* vec;
     SVECTOR* gteVec;
 
-    if ((u8)save->unknown_5C0[1] != 1) {
+    if (save->field_5C1 != 1) {
         head                       = *(SVECTOR**)G_SCRATCH_HEAD;
         vec                        = head - 1;
         *(SVECTOR**)G_SCRATCH_HEAD = vec;

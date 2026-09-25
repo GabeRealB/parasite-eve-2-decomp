@@ -167,7 +167,8 @@ typedef struct {
     McItemRec  itemRows[0x100];   // The save's own item table, indexed by row; the rows the player carries are `carriedItems`
     s32        collectedBits[4];  // 128 bits, one per collectible the player has picked up
     McItemScan carriedItems;      // Window on the player's rows of `itemRows`
-    byte       unknown_5C0[0x2];
+    byte       unknown_5C0;
+    u8         field_5C1;         // Role unproven: while it reads 1 the actors stop moving and stop pushing each other apart
     s8         cheatMode;         // While set nothing is spent - no MP for the abilities, no ammunition and no attachments - and the save is left out of the save-slot comparison
     s8         interlace;         // Non-zero runs the display interlaced
     byte       unknown_5C4;

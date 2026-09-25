@@ -83,8 +83,6 @@ extern s32        D_actor_260500_8014DCC0;
 extern GpMsgEntry D_actor_260500_80159D80[];
 extern u8         D_actor_260500_80159DBC[];
 
-extern u8 D_80072729;
-
 void func_actor_260500_8014A110(Task* task);
 void func_actor_260500_8014A4BC(GpEnemy* enemy, Task* task);
 void func_actor_260500_8014A540(Task* task);

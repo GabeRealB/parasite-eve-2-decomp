@@ -18,8 +18,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-extern u8 D_80072729;
-
 extern u8 D_actor_160600_8013DF70[];
 extern u8 D_actor_160600_8013DFAC[];
 extern u8 D_actor_160600_8013DFEC[];

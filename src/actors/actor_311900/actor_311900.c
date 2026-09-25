@@ -69,10 +69,6 @@ extern u8 D_actor_311900_8016EBF4[];
 /// The palette rows `func_actor_311900_80161E3C` reads back, greys and uploads.
 extern u16 D_actor_311900_8016EC18[][0x100];
 
-/// Non-zero while the game is paused, which freezes the per-frame step of
-/// `func_actor_311900_80162658`.
-extern u8 D_80072729;
-
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
@@ -407,7 +403,7 @@ void func_actor_311900_801625F0(GpEnemy* enemy, Task* task)
 /// `arg0->coord`'s rotation with `Gfx_MatrixCol2`, normalizes it with
 /// `VectorNormalSS`, scales it by the step on the GTE, adds it to
 /// `arg0->coord.t` and clears `arg0->flg`. Returns the step, or 0 having
-/// touched nothing while the game is paused (`D_80072729 == 1`) or when the
+/// touched nothing while the game is paused (`Mc_SaveData.field_5C1 == 1`) or when the
 /// step is zero. `arg0` is the per-part `GsCOORDINATE2` the caller takes from
 /// `TmdObject::coords`.
 ///
@@ -421,7 +417,7 @@ s32 func_actor_311900_80162658(GsCOORDINATE2* arg0, s16 arg1)
     SVECTOR* vec;
     SVECTOR* gte;
 
-    if (D_80072729 == 1) {
+    if (Mc_SaveData.field_5C1 == 1) {
         return 0;
     }
     head                       = *(SVECTOR**)G_SCRATCH_HEAD;

@@ -415,9 +415,6 @@ extern GpCmdArg D_actor_444000_80161888;
 /// Gameplay's escort `TaskDesc` table; entry 3 is the pair this boss spawns.
 extern TaskDesc D_80172604;
 
-/// Global freeze flag: 1 while the game is halted, which stops the run below
-/// from advancing the model.
-extern u8         D_80072729;
 extern GpAnimSet* D_actor_444000_80161694[];
 
 /// Which of the three drop-point groups the falling enemies use this round,
@@ -1646,7 +1643,7 @@ void func_actor_444000_8013482C(Task* task)
 
     switch (work->field_F08) {
         case 0: {
-            s32            paused = D_80072729;
+            s32            paused = Mc_SaveData.field_5C1;
             GsCOORDINATE2* c      = ((TmdObject*)task->extra)->coords;
 
             if (paused != 1) {
@@ -1663,7 +1660,7 @@ void func_actor_444000_8013482C(Task* task)
         case 1:
             coord = ((TmdObject*)task->extra)->coords;
             if (coord->coord.t[0] < 0x2134) {
-                if (D_80072729 != 1) {
+                if (Mc_SaveData.field_5C1 != 1) {
                     Actor444000_StepForward(coord);
                 }
             } else {
@@ -1705,7 +1702,7 @@ void func_actor_444000_8013482C(Task* task)
             break;
 
         case 2: {
-            s32            paused = D_80072729;
+            s32            paused = Mc_SaveData.field_5C1;
             GsCOORDINATE2* c      = ((TmdObject*)task->extra)->coords;
 
             if (paused != 1) {
@@ -1720,7 +1717,7 @@ void func_actor_444000_8013482C(Task* task)
             break;
 
         case 3: {
-            s32            paused = D_80072729;
+            s32            paused = Mc_SaveData.field_5C1;
             GsCOORDINATE2* c      = ((TmdObject*)task->extra)->coords;
 
             if (paused != 1) {
@@ -1735,7 +1732,7 @@ void func_actor_444000_8013482C(Task* task)
             break;
 
         case 4: {
-            s32            paused = D_80072729;
+            s32            paused = Mc_SaveData.field_5C1;
             GsCOORDINATE2* c      = ((TmdObject*)task->extra)->coords;
 
             if (paused != 1) {
@@ -1750,7 +1747,7 @@ void func_actor_444000_8013482C(Task* task)
             break;
 
         case 5: {
-            s32            paused = D_80072729;
+            s32            paused = Mc_SaveData.field_5C1;
             GsCOORDINATE2* c      = ((TmdObject*)task->extra)->coords;
 
             if (paused != 1) {

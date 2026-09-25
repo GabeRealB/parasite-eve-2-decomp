@@ -101,7 +101,6 @@ s32 func_actor_460200_80133C64(Task* task, s32 arg1, GpAnimArg* args);
 
 s32 func_actor_460200_80133CD0(Task* task, s32 arg1, s32 flags);
 
-extern u8 D_80072729;
 extern s8 D_8007272D;
 extern u8 D_801156F9;
 

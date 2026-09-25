@@ -12,6 +12,7 @@
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "main/gfx.h"
+#include "main/mc.h"
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -1493,9 +1494,6 @@ STATIC_ASSERT_SIZEOF(Actor461800Work, 0x4F8);
  * They stay inline: the callers' code was generated with the body expanded in
  * place, which a call would not reproduce. */
 
-/// Nonzero while movement is frozen; the stepping helpers do nothing then.
-extern u8 D_80072729;
-
 /// The push that moves `pos` out of the contact record `rec`: how deep `pos`
 /// sits inside the record's radius, along the direction from the record's
 /// centre carried into grid space. Only X and Z are written.
@@ -1728,7 +1726,7 @@ static __inline__ void actorMoveForward(GsCOORDINATE2* coord, s16 amount)
     SVECTOR* head;
     SVECTOR* vec;
 
-    if (D_80072729 != 1) {
+    if (Mc_SaveData.field_5C1 != 1) {
         head                       = *(SVECTOR**)G_SCRATCH_HEAD;
         vec                        = head - 1;
         *(SVECTOR**)G_SCRATCH_HEAD = vec;
@@ -1754,7 +1752,7 @@ static __inline__ void actorMoveForwardNonzero(GsCOORDINATE2* coord, s16 amount)
     SVECTOR* vec;
     SVECTOR* gteVec;
 
-    if (D_80072729 != 1) {
+    if (Mc_SaveData.field_5C1 != 1) {
         head                       = *(SVECTOR**)G_SCRATCH_HEAD;
         vec                        = head - 1;
         *(SVECTOR**)G_SCRATCH_HEAD = vec;
@@ -1784,7 +1782,7 @@ static __inline__ void actorMoveModelForward(Task* task, s16 amount)
     SVECTOR*       vec;
 
     coord = ((TmdObject*)task->extra)->coords;
-    if (D_80072729 != 1) {
+    if (Mc_SaveData.field_5C1 != 1) {
         head                       = *(SVECTOR**)G_SCRATCH_HEAD;
         vec                        = head - 1;
         *(SVECTOR**)G_SCRATCH_HEAD = vec;
@@ -1880,7 +1878,7 @@ static __inline__ void actorStepForward(GsCOORDINATE2* coord, s16 amount)
     SVECTOR* head;
     SVECTOR* vec;
 
-    if (D_80072729 != 1) {
+    if (Mc_SaveData.field_5C1 != 1) {
         head                       = *(SVECTOR**)G_SCRATCH_HEAD;
         vec                        = head - 1;
         *(SVECTOR**)G_SCRATCH_HEAD = vec;

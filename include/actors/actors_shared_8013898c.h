@@ -5,9 +5,7 @@
 
 #include <psyq/libgte.h>
 #include <psyq/libgs.h>
-
-/// Movement freeze flag: the body skips its whole step while this is set.
-extern u8 D_80072729;
+#include "main/mc.h"
 
 /// The caller's vector slot: the column copy fills the `SVECTOR` at 0x10, GPF
 /// scales it in place and the translation update reads `vx` / `vz` back out of
