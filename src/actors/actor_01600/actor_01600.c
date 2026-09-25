@@ -339,15 +339,7 @@ STATIC_ASSERT_SIZEOF(Actor01600StepScratch, 0x3C);
 
 void Actor01600_Fn03A60(Task* actor);
 
-typedef struct Actor01600MsgState {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-} Actor01600MsgState;
-STATIC_ASSERT_SIZEOF(Actor01600MsgState, 0x10);
-
-extern Actor01600MsgState Actor01600_D127D8;
+extern GpAnimArg Actor01600_D127D8;
 
 s32  Actor01600_Fn047A0(Task* actor);
 s32  Actor01600_Fn04974(Task* actor, s32 angle, s32 distance, s32 flags);

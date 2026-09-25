@@ -59,20 +59,6 @@ typedef struct Actor143900Msg {
 } Actor143900Msg;
 STATIC_ASSERT_SIZEOF(Actor143900Msg, 0x4);
 
-/// Animation preset the overlay's play-animation message handlers apply to
-/// their variant's work block: `field_4` is the animation id, `field_8` picks
-/// the reset path -- 1 for the blended `func_800B4114` reseed, 2 for a plain
-/// one -- and `field_C` becomes the reset argument the reseed forwards. Each
-/// handler accepts its own id range: the first variant's the first 0x14, the
-/// second variant's the first 0xC.
-typedef struct Actor143900AnimPreset {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-} Actor143900AnimPreset;
-STATIC_ASSERT_SIZEOF(Actor143900AnimPreset, 0x10);
-
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
@@ -377,7 +363,7 @@ void func_actor_143900_801325A4(void)
 /// argument the reseed uses, then hands the published task to the per-frame
 /// update. Ids past the range are rejected with -1 and leave the work block
 /// untouched.
-s32 func_actor_143900_80132624(Task* task, s32 arg1, Actor143900AnimPreset* preset)
+s32 func_actor_143900_80132624(Task* task, s32 arg1, GpAnimArg* preset)
 {
     if (preset->field_4 < 0x14) {
         D_actor_143900_801496B8->field_4B8 = preset->field_4;
@@ -736,7 +722,7 @@ void func_actor_143900_80133144(void)
 /// argument the reseed uses, then hands the published task to the per-frame
 /// update. Ids past the range are rejected with -1 and leave the work block
 /// untouched.
-s32 func_actor_143900_801331C4(Task* task, s32 arg1, Actor143900AnimPreset* preset)
+s32 func_actor_143900_801331C4(Task* task, s32 arg1, GpAnimArg* preset)
 {
     if (preset->field_4 < 0xC) {
         D_actor_143900_801496C4->field_4B8 = preset->field_4;

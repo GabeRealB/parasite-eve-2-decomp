@@ -69,15 +69,6 @@ typedef struct Actor151000Msg {
     /* 0x2 */ u16  field_2;
 } Actor151000Msg;
 
-/// Script args of the "start animation" opcode: the clip id, a flag choosing
-/// the start path, and the reset argument only that path carries.
-typedef struct Actor151000AnimArgs {
-    /* 0x0 */ byte pad_0[4];
-    /* 0x4 */ s32  animId;
-    /* 0x8 */ s32  withArg;
-    /* 0xC */ u16  animArg;
-} Actor151000AnimArgs;
-
 /// The enemy's work block, published by its spawn handler and by its task
 /// body.
 extern Actor151000Work* D_actor_151000_8013D37C;
@@ -386,13 +377,13 @@ void func_actor_151000_801326AC(void)
 /// `animArg`, which it leaves in `D_actor_151000_8013D2AC`. The runner is then
 /// run once on the task published in `D_actor_151000_8013D380`. Returns -1,
 /// without touching the work block, when the clip id is 0x23 or more.
-s32 func_actor_151000_80132738(Task* task, s32 arg1, Actor151000AnimArgs* args, s32 arg3)
+s32 func_actor_151000_80132738(Task* task, s32 arg1, GpAnimArg* args, s32 arg3)
 {
-    if (args->animId < 0x23) {
-        D_actor_151000_8013D37C->animId = args->animId;
-        if (args->withArg != 0) {
+    if (args->field_4 < 0x23) {
+        D_actor_151000_8013D37C->animId = args->field_4;
+        if (args->field_8 != 0) {
             D_actor_151000_8013D37C->state = 1;
-            D_actor_151000_8013D2AC        = args->animArg;
+            D_actor_151000_8013D2AC        = args->field_C;
         } else {
             D_actor_151000_8013D37C->state = 2;
         }

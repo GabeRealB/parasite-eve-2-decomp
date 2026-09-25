@@ -17,19 +17,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// 0x14-byte animation preset `func_actor_113000_80132208` reads: `field_0` is
-/// the animation bank index it compares against `Actor113000Work::field_47C`,
-/// `field_4` the animation id it stores in `field_478`, and `field_8` selects
-/// between `func_800B4114` and `Gp_AnimResetSlot`.
-typedef struct Actor113000AnimPreset {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-    /* 0x10 */ s32 field_10;
-} Actor113000AnimPreset;
-STATIC_ASSERT_SIZEOF(Actor113000AnimPreset, 0x14);
-
 /// Animation source table `func_actor_113000_80132208` indexes by the preset's
 /// bank index and hands `func_800B3F84` as its data argument.
 extern void* D_actor_113000_8013ABB0[];
@@ -247,7 +234,7 @@ void func_actor_113000_801321A8(Task* task)
 /// animation id is then latched, every slot 1..0x13 restarted -- through
 /// `func_800B4114` when the preset asks for it, through `Gp_AnimResetSlot`
 /// otherwise -- ticked once, and `field_474` raised.
-s32 func_actor_113000_80132208(Task* task, s32 msgId, Actor113000AnimPreset* msg, s32 arg3)
+s32 func_actor_113000_80132208(Task* task, s32 msgId, GpAnimArg* msg, s32 arg3)
 {
     Actor113000Work* work;
     TmdObject*       ext;
@@ -255,8 +242,8 @@ s32 func_actor_113000_80132208(Task* task, s32 msgId, Actor113000AnimPreset* msg
 
     work = (Actor113000Work*)task->work;
     ext  = task->extra;
-    if (msg->field_0 != work->field_47C) {
-        work->field_47C = msg->field_0;
+    if (msg->animBlock.index != work->field_47C) {
+        work->field_47C = msg->animBlock.index;
         work->field_478 = -1;
         func_800B3F84(&work->anim, D_actor_113000_8013ABB0[work->field_47C], ext, work->field_334,
                       work->slots);

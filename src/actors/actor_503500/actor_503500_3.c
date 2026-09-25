@@ -145,15 +145,15 @@ void func_actor_503500_80136F40(Actor503500Work* work, s32 slot, s32 arg2, s32 a
 /// Animation-preset table indexed by preset id; `func_actor_503500_80135FB4`
 /// and `func_actor_503500_80132F64` hand entry pointers to
 /// `func_actor_503500_80135950`.
-extern Actor503500AnimPreset D_actor_503500_8016EAC0[];
+extern GpAnimArg D_actor_503500_8016EAC0[];
 /// Applies preset `arg2` to the boss block's animation slots; `arg1` and `arg3`
 /// are passed by every caller but the body ignores them. Always returns 0.
 s32 func_actor_503500_80135950(Task* arg0, s32 arg1,
-                               Actor503500AnimPreset* arg2, s32 arg3);
+                               GpAnimArg* arg2, s32 arg3);
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-/// Animation-bank table indexed by `Actor503500AnimPreset::field_0`.
+/// Animation-bank table indexed by `GpAnimArg::field_0`.
 extern void* D_actor_503500_8016EAB8[];
 void         func_actor_503500_80136450(Task* arg0);
 void         func_actor_503500_801369E4(Task* arg0);
@@ -269,15 +269,15 @@ void func_actor_503500_8013A470(SVECTOR* pts, GsCOORDINATE2* coords, s32 phase);
 void func_actor_503500_80137048(Task* arg0, s32 rate);
 /// The animation preset `func_actor_503500_80136D30` re-applies when the boss
 /// finishes the clip it was gating on.
-extern Actor503500AnimPreset D_actor_503500_8016EAD4;
-extern Actor503500VecSet     D_80183EEC;
-extern Actor503500VecSet     D_actor_503500_8016F03C;
-void                         func_actor_503500_80132F64(Task* arg0);
-void                         func_actor_503500_80133270(Task* arg0);
-void                         func_actor_503500_801372C8(Task* arg0);
-void                         func_actor_503500_8013815C(Task* arg0);
-void                         func_actor_503500_8013852C(Task* arg0);
-void                         func_actor_503500_80138898(Task* arg0);
+extern GpAnimArg         D_actor_503500_8016EAD4;
+extern Actor503500VecSet D_80183EEC;
+extern Actor503500VecSet D_actor_503500_8016F03C;
+void                     func_actor_503500_80132F64(Task* arg0);
+void                     func_actor_503500_80133270(Task* arg0);
+void                     func_actor_503500_801372C8(Task* arg0);
+void                     func_actor_503500_8013815C(Task* arg0);
+void                     func_actor_503500_8013852C(Task* arg0);
+void                     func_actor_503500_80138898(Task* arg0);
 
 /// `Task::state` handlers `func_actor_503500_80137238` dispatches through.
 const TaskFuncTable3 D_actor_503500_80131E44 = {
@@ -1640,7 +1640,7 @@ void func_actor_503500_80135828(Task* arg0, s8* arg1)
 /// changes, then sets every slot 1..0x13 to clip `field_4` (blended over
 /// `field_C` frames by `func_800B4114` when `field_8` is set and the array was
 /// already seeded) and ticks it once, before re-applying the part scales.
-s32 func_actor_503500_80135950(Task* arg0, s32 arg1, Actor503500AnimPreset* arg2, s32 arg3)
+s32 func_actor_503500_80135950(Task* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3)
 {
     Actor503500Work* work;
     Actor503500Work* work2;
@@ -1649,8 +1649,8 @@ s32 func_actor_503500_80135950(Task* arg0, s32 arg1, Actor503500AnimPreset* arg2
 
     work = arg0->work;
     ext  = arg0->extra;
-    if (arg2->field_0 != work->field_7D6) {
-        work->field_7D6 = arg2->field_0;
+    if (arg2->animBlock.index != work->field_7D6) {
+        work->field_7D6 = arg2->animBlock.index;
         func_800B3F84((GpAnimCtx*)work, D_actor_503500_8016EAB8[work->field_7D6], ext,
                       work->field_334, (GpAnimSlot*)&work->obj.pos.vz);
         work->field_7D4 = 0;

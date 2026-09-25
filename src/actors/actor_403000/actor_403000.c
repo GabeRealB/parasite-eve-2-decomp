@@ -214,13 +214,6 @@ typedef struct Actor403000AnimWork {
     /* 0xAF0 */ u32        field_AF0;
 } Actor403000AnimWork;
 
-/// Payload the sender of the animation message passes as `Gp_DispatchMsg`'s
-/// `arg2`; only the animation id at 0x4 is read.
-typedef struct Actor403000Msg {
-    /* 0x0 */ byte pad_0[0x4];
-    /* 0x4 */ u16  field_4;
-} Actor403000Msg;
-
 /// Event record `func_actor_403000_801324EC` dispatches on: `w[0]` is the
 /// event kind (only 0x204 is handled) and `w[1]` its sub-code, and the first
 /// three bytes are also copied raw into `Actor403000Work::field_FA4`..`field_FA6`.
@@ -520,7 +513,7 @@ s32 func_actor_403000_80132348(GsCOORDINATE2* coord, GpRec18* recs, s16 count);
 s32 func_actor_403000_8013D364(Task* task, s32 arg1, GpPlaceArg* placement);
 
 /// Latch the requested animation and restart the animation state machine.
-s32 func_actor_403000_8013D464(Task* task, s32 arg1, Actor403000Msg* msg);
+s32 func_actor_403000_8013D464(Task* task, s32 arg1, GpAnimArg* msg);
 
 /// Report whether the work block's five-entry record run holds a live entry:
 /// the walk stops at the first empty `key` and answers 1 if any record it
@@ -4760,7 +4753,7 @@ s32 func_actor_403000_8013D364(Task* task, s32 arg1, GpPlaceArg* placement)
     return 1;
 }
 
-s32 func_actor_403000_8013D464(Task* task, s32 arg1, Actor403000Msg* msg)
+s32 func_actor_403000_8013D464(Task* task, s32 arg1, GpAnimArg* msg)
 {
     Actor403000Work* work = (Actor403000Work*)task->work;
 

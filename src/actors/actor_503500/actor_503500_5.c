@@ -959,7 +959,7 @@ void func_actor_503500_80146524(Task* arg0)
 {
 }
 
-s32 func_actor_503500_8014652C(Task* task, s32 arg1, Actor503500AnimPreset* msg)
+s32 func_actor_503500_8014652C(Task* task, s32 arg1, GpAnimArg* msg)
 {
     Actor503500Effect4CC* work;
     TmdObject*            ext;
@@ -967,8 +967,8 @@ s32 func_actor_503500_8014652C(Task* task, s32 arg1, Actor503500AnimPreset* msg)
 
     work = (Actor503500Effect4CC*)task->work;
     ext  = task->extra;
-    if (msg->field_0 != work->field_43E) {
-        work->field_43E = msg->field_0;
+    if (msg->animBlock.index != work->field_43E) {
+        work->field_43E = msg->animBlock.index;
         work->field_43D = -1;
         func_800B3F84(&work->anim, D_actor_503500_80176520[work->field_43E], ext, work->field_30C,
                       work->slots);

@@ -59,15 +59,6 @@ typedef struct Actor150400Work {
 } Actor150400Work;
 STATIC_ASSERT_SIZEOF(Actor150400Work, 0x4C0);
 
-/// Argument block of the script opcode `func_actor_150400_801326A4`
-/// implements: which animation to play, and how.
-typedef struct Actor150400AnimArgs {
-    /* 0x0 */ byte pad_0[4];
-    /* 0x4 */ s32  animId;
-    /* 0x8 */ s32  withArg;
-    /* 0xC */ u16  animArg;
-} Actor150400AnimArgs;
-
 extern TaskDesc D_actor_150400_80132CF0;
 extern TaskDesc D_80181BBC;
 extern Task*    D_actor_150400_8013C924;
@@ -408,7 +399,7 @@ void func_actor_150400_80132640(Task* task)
     work->appliedAnimId = work->animId;
 }
 
-/// Script opcode: start animation `args->animId` on this actor.
+/// Script opcode: start animation `args->field_4` on this actor.
 ///
 /// `withArg` selects between the two start paths `func_actor_150400_80132228`
 /// dispatches on, and only the first carries `animArg`. Returns -1, without
@@ -420,20 +411,20 @@ void func_actor_150400_80132640(Task* task)
 /// once an `asm` at the head of the fall-through stops it searching that
 /// thread. See DECOMPILATION_LEARNINGS.md, "An empty asm at the head of the
 /// then-arm moves the delay slot to the else arm".
-s32 func_actor_150400_801326A4(Task* task, s32 arg1, Actor150400AnimArgs* args)
+s32 func_actor_150400_801326A4(Task* task, s32 arg1, GpAnimArg* args)
 {
     Actor150400Work* work;
 
     work = (Actor150400Work*)task->work;
-    if (args->animId >= 6) {
+    if (args->field_4 >= 6) {
         return -1;
     }
 
-    work->animId = args->animId;
-    if (args->withArg != 0) {
+    work->animId = args->field_4;
+    if (args->field_8 != 0) {
         SOFT_BARRIER();
         work->state   = 1;
-        work->animArg = args->animArg;
+        work->animArg = args->field_C;
     } else {
         work->state = 2;
     }

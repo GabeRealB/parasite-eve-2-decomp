@@ -90,13 +90,6 @@ typedef struct Actor511000Work2 {
 } Actor511000Work2;
 STATIC_ASSERT_SIZEOF(Actor511000Work2, 0x4D4);
 
-/// Animation preset `func_actor_511000_80133DEC` takes as `arg2`. `field_4`
-/// is the animation id copied into `Actor511000Work2::field_47C`.
-typedef struct Actor511000AnimPreset {
-    /* 0x0 */ s32 field_0;
-    /* 0x4 */ s32 field_4;
-} Actor511000AnimPreset;
-
 /// Payload of message 0x7DB; the handler `func_actor_511000_8013287C` reads
 /// the halfword at 0x2 as its mode.
 typedef struct Actor511000Msg {
@@ -519,7 +512,7 @@ void func_actor_511000_801325A4(Task* task)
 /// animation id changes, restarts slots 1..19 on it, blended when the
 /// payload's third word is set, steps them once and turns on the tick state's
 /// per-frame stepping.
-s32 func_actor_511000_80132604(Task* task, s32 arg1, ActorsShared80132604Args* msg, s32 arg3)
+s32 func_actor_511000_80132604(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 {
     Actor511000Work2* work;
     s32               i;
@@ -527,7 +520,7 @@ s32 func_actor_511000_80132604(Task* task, s32 arg1, ActorsShared80132604Args* m
     TmdObject*        ext;
 
     work = (Actor511000Work2*)task->work;
-    id   = msg->field_0;
+    id   = msg->animBlock.index;
     ext  = (TmdObject*)task->extra;
     if (id != work->field_47C) {
         work->field_478 = -1;
@@ -1407,7 +1400,7 @@ void func_actor_511000_80133D90(Task* task)
 /// Copies the animation id from `preset` into the work block parked in
 /// `task->work`, reseeds slots 1..0x12 through `Gp_AnimResetSlot`, and
 /// clears `field_480`'s halfword.
-s32 func_actor_511000_80133DEC(Task* task, s32 arg1, Actor511000AnimPreset* preset)
+s32 func_actor_511000_80133DEC(Task* task, s32 arg1, GpAnimArg* preset)
 {
     Actor511000Work2* work;
     s32               i;

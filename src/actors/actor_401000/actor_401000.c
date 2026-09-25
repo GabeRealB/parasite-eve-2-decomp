@@ -264,16 +264,6 @@ typedef struct Actor401000StateTable {
 } Actor401000StateTable;
 STATIC_ASSERT_SIZEOF(Actor401000StateTable, 0x88);
 
-/// Message payload of `func_actor_401000_8013D694`, the actor's animation
-/// request handler: `field_4` is the requested clip index, which the handler
-/// maps onto `Actor401000Work.field_89E` (0x22-0x25, 0x27) and then restarts
-/// the state halfwords. Only the two leading words of the argument block are
-/// read, so the struct covers just those.
-typedef struct Actor401000Msg {
-    /* 0x0 */ s32 field_0;
-    /* 0x4 */ s32 field_4;
-} Actor401000Msg;
-
 /// 0x10-byte `G_SCRATCH_HEAD` block `func_actor_401000_80136E20` carves off
 /// for the offset from the actor to `Player_Status.coordMtx`, the wrapped turn
 /// toward it and the facing yaw.
@@ -3984,7 +3974,7 @@ static const GpEnemyTaskFuncTable3 D_actor_401000_8013207C = { {
     Gp_DestroyEnemy,
 } };
 
-s32 func_actor_401000_8013D694(Task* arg0, s32 arg1, Actor401000Msg* arg2)
+s32 func_actor_401000_8013D694(Task* arg0, s32 arg1, GpAnimArg* arg2)
 {
     Actor401000Work* work = arg0->work;
 

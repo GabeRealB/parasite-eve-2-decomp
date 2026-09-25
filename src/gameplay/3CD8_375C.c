@@ -9,30 +9,30 @@
 #include "main/task.h"
 #include "main/wipsys.h"
 
-extern GpRec14 D_8010FB10;
-extern GpRec14 D_8010FB24;
-extern GpRec14 Gp_WeaponMsgRec;
-extern u16     Gp_WeaponIdBase[];
+extern GpAnimArg D_8010FB10;
+extern GpAnimArg D_8010FB24;
+extern GpAnimArg Gp_WeaponMsgRec;
+extern u16       Gp_WeaponIdBase[];
 
 void Gp_EvtCapWeaponTask(Task* arg0)
 {
     s32        flags;
     GameActor* actor;
     s32        mode;
-    GpRec14    recB;
-    GpRec14    recA;
+    GpAnimArg  recB;
+    GpAnimArg  recA;
 
     flags = (s32)arg0->spawnArg2;
     actor = gameGetPtrSlot(3)->work;
     switch (arg0->state) {
         case 0:
             if ((flags & 1) && (flags != 0xFF)) {
-                recA         = Gp_WeaponMsgRec;
-                recA.field_0 = Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon;
+                recA                 = Gp_WeaponMsgRec;
+                recA.animBlock.index = Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon;
                 Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&recA, 0);
             }
-            recB         = D_8010FB10;
-            recB.field_0 = Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon;
+            recB                 = D_8010FB10;
+            recB.animBlock.index = Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FA, 0, 0);
             arg0->state++;
             break;
@@ -78,8 +78,8 @@ void Gp_EvtCapWeaponTask(Task* arg0)
             if (D_80115598 != 0) {
                 Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F2, (s32)arg0->spawnArg2 + 0x64, 0);
             }
-            recB         = D_8010FB24;
-            recB.field_0 = Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon;
+            recB                 = D_8010FB24;
+            recB.animBlock.index = Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FA, 1, 0);
             arg0->state++;
             break;

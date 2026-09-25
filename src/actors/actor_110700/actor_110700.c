@@ -21,13 +21,6 @@ typedef struct Actor110700Work {
 } Actor110700Work;
 STATIC_ASSERT_SIZEOF(Actor110700Work, 0x480);
 
-/// Payload of message 0x7D3: the animation to start, after a word the handler
-/// does not read.
-typedef struct Actor110700AnimArgs {
-    byte pad_0[4];
-    s32  animId;
-} Actor110700AnimArgs;
-
 /// The actor's message table: handlers for 0x7D3 (start an animation), 0x7D4
 /// (place the actor) and 0x7D5 (visibility), then the terminator.
 extern GpMsgEntry D_actor_110700_8013BFA0[];
@@ -108,13 +101,13 @@ void func_actor_110700_80131F44(GpEnemy* enemy, Task* task)
 
 /// Message 0x7D3 handler: starts the animation the payload names, storing its
 /// id in the work block and reseeding slots 1..0x12 with it.
-s32 func_actor_110700_8013201C(Task* task, s32 msgId, Actor110700AnimArgs* args)
+s32 func_actor_110700_8013201C(Task* task, s32 msgId, GpAnimArg* args)
 {
     Actor110700Work* work;
     s32              i;
 
     work         = (Actor110700Work*)task->work;
-    work->animId = args->animId;
+    work->animId = args->field_4;
     i            = 1;
     do {
         Gp_AnimResetSlot(&work->anim, i, work->animId);

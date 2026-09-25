@@ -139,19 +139,6 @@ typedef struct Actor503500WorkB4 {
 } Actor503500WorkB4;
 STATIC_ASSERT_SIZEOF(Actor503500WorkB4, 0xB4);
 
-/// Element of `D_actor_503500_801714E0`, the payload
-/// `func_actor_503500_801437D0` sends the player as message 0x3FF. It picks one
-/// of the two rows by which side of the player the hit coordinate lies on.
-/// Every row seen so far points `field_0` at `D_actor_503500_801714C8`.
-typedef struct Actor503500Msg3FF {
-    /* 0x00 */ void* field_0;
-    /* 0x04 */ s32   field_4;
-    /* 0x08 */ s32   field_8;
-    /* 0x0C */ s32   field_C;
-    /* 0x10 */ s32   field_10;
-} Actor503500Msg3FF;
-STATIC_ASSERT_SIZEOF(Actor503500Msg3FF, 0x14);
-
 /// Work block of the knock-back task `func_actor_503500_801437D0` spawns
 /// (`Mem_Set(_, 0x38)` in `func_actor_503500_80143AC0`). `rot` is a copy of the
 /// rotation handed over in `Task::spawnArg2`; every frame `speed` is pushed
@@ -435,8 +422,8 @@ extern s32 D_actor_503500_801715BC[];
 void func_8004BFF8(s32 angle, MATRIX* m);
 /// Task table `func_actor_503500_801437D0` spawns entry 0 from.
 extern TaskDesc D_actor_503500_8017146C;
-/// Message 0x3FF payloads, indexed by side (see `Actor503500Msg3FF`).
-extern Actor503500Msg3FF D_actor_503500_801714E0[];
+/// Message 0x3FF payloads, indexed by side (see `GpAnimArg`).
+extern GpAnimArg D_actor_503500_801714E0[];
 /// Payload of the 0x3F8 query `func_actor_503500_801437D0` sends the player.
 extern s32 D_actor_503500_80171544;
 void       func_actor_503500_80143F78(Task* arg0);
@@ -470,9 +457,9 @@ extern Actor503500Work38 D_actor_503500_80178F10;
 /// Rows 2 and 3 of `D_actor_503500_801714E0` (the 0x3FF payload after the push,
 /// indexed by side) and row 4 (the one sent once the player's weapon animation
 /// word has been parked in `D_actor_503500_801714DC`).
-extern Actor503500Msg3FF D_actor_503500_80171508[];
-extern Actor503500Msg3FF D_actor_503500_80171530;
-extern s32               D_actor_503500_801714DC;
+extern GpAnimArg D_actor_503500_80171508[];
+extern GpAnimArg D_actor_503500_80171530;
+extern s32       D_actor_503500_801714DC;
 /// Script pair handed to `Gp_SpawnScript18` when the push starts.
 extern u8         D_actor_503500_8017159C[];
 extern u8         D_actor_503500_801715A4[];

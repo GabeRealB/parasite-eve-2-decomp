@@ -63,18 +63,6 @@ typedef struct Actor260400Msg {
 } Actor260400Msg;
 STATIC_ASSERT_SIZEOF(Actor260400Msg, 0x4);
 
-/// Animation preset the actor's play-animation message handler applies to the
-/// work block: `field_4` is the animation id, `field_8` picks the reset path --
-/// non-zero for the blended reseed, zero for a plain one -- and `field_C`
-/// becomes the reset argument the blended reseed forwards.
-typedef struct Actor260400AnimPreset {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-} Actor260400AnimPreset;
-STATIC_ASSERT_SIZEOF(Actor260400AnimPreset, 0x10);
-
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
@@ -447,7 +435,7 @@ void func_actor_260400_8014A888(void)
 /// 2 for the plain one -- and the reset argument the blended reseed forwards,
 /// then runs the update on the actor's task. Ids past the range are rejected
 /// with -1 and leave the work block untouched.
-s32 func_actor_260400_8014A908(Task* task, s32 arg1, Actor260400AnimPreset* preset)
+s32 func_actor_260400_8014A908(Task* task, s32 arg1, GpAnimArg* preset)
 {
     if (preset->field_4 < 0x10) {
         D_actor_260400_80154C70->field_4B8 = preset->field_4;

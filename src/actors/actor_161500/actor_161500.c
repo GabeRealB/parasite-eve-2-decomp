@@ -92,15 +92,6 @@ typedef struct Actor161500Work {
 } Actor161500Work;
 STATIC_ASSERT_SIZEOF(Actor161500Work, 0x4FC);
 
-/// Payload of the "play animation" script opcode: which clip to play, and
-/// whether to seed the slots with `animArg`.
-typedef struct Actor161500AnimArgs {
-    /* 0x0 */ byte pad_0[4];
-    /* 0x4 */ s32  animId;
-    /* 0x8 */ s32  withArg;
-    /* 0xC */ u16  animArg;
-} Actor161500AnimArgs;
-
 /// Payload of the script opcode that writes the work block's `field_4EE`.
 typedef struct Actor161500FlagArgs {
     /* 0x0 */ byte pad_0[2];
@@ -505,28 +496,28 @@ void func_actor_161500_801329C4(Task* task)
     work->appliedAnimId = work->animId;
 }
 
-/// Script opcode: starts clip `args->animId` on this actor, rejecting ids of
-/// 0xC and above. With `args->withArg` set it queues the reseed that carries
-/// `args->animArg` (state 1), otherwise the plain one (state 2), then runs the
+/// Script opcode: starts clip `args->field_4` on this actor, rejecting ids of
+/// 0xC and above. With `args->field_8` set it queues the reseed that carries
+/// `args->field_C` (state 1), otherwise the plain one (state 2), then runs the
 /// step body at once so the new clip is seeded this frame.
 ///
 /// The `SOFT_BARRIER` pins the delay slot of the `beqz`: without it the slot
 /// fills from the fall-through arm (`state = 1`) instead of the else arm's
 /// `state = 2`.
-s32 func_actor_161500_80132A28(Task* task, s32 arg1, Actor161500AnimArgs* args)
+s32 func_actor_161500_80132A28(Task* task, s32 arg1, GpAnimArg* args)
 {
     Actor161500Work* work;
 
     work = (Actor161500Work*)task->work;
-    if (args->animId >= 0xC) {
+    if (args->field_4 >= 0xC) {
         return -1;
     }
 
-    work->animId = args->animId;
-    if (args->withArg != 0) {
+    work->animId = args->field_4;
+    if (args->field_8 != 0) {
         SOFT_BARRIER();
         work->state   = 1;
-        work->animArg = args->animArg;
+        work->animArg = args->field_C;
     } else {
         work->state = 2;
     }

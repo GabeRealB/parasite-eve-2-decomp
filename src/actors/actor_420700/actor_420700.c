@@ -62,13 +62,6 @@ typedef struct Actor420700ModeArgs {
     /* 0x2 */ u16 mode;
 } Actor420700ModeArgs;
 
-/// Message 0x7D3 selects an animation bank, index and transition mode.
-typedef struct Actor420700Msg7D3 {
-    /* 0x0 */ s32 field_0;
-    /* 0x4 */ s32 field_4;
-    /* 0x8 */ s32 field_8;
-} Actor420700Msg7D3;
-
 void func_actor_420700_8013239C(Task* task);
 void func_actor_420700_80132478(Task* task);
 void func_actor_420700_801324EC(void);
@@ -368,13 +361,13 @@ void func_actor_420700_801325C8(void)
 /// and sets the actor step to 1 (reseed through `func_800B4114`) when `field_8`
 /// is non-zero or 2 (plain slot reset) otherwise, then runs the step at once on
 /// the actor's own task. Returns 0, or -1 for an index out of range.
-s32 func_actor_420700_80132644(Task* task, s32 arg1, Actor420700Msg7D3* args)
+s32 func_actor_420700_80132644(Task* task, s32 arg1, GpAnimArg* args)
 {
     s32              offset;
     Actor420700Work* work;
 
     if (args->field_4 < 0x15) {
-        switch (args->field_0) {
+        switch (args->animBlock.index) {
             case 1:
                 offset = 0xA;
                 break;

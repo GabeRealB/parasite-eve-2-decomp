@@ -43,16 +43,6 @@ typedef struct Actor400500Zone {
 } Actor400500Zone;
 STATIC_ASSERT_SIZEOF(Actor400500Zone, 0xA);
 
-/// Payload sent to session task slot 3 with message 0x3F4 or 0x3FF.
-typedef struct Actor400500Msg3FF {
-    /* 0x00 */ void* field_0;
-    /* 0x04 */ s32   field_4;
-    /* 0x08 */ s32   field_8;
-    /* 0x0C */ s32   field_C;
-    /* 0x10 */ s32   field_10;
-} Actor400500Msg3FF;
-STATIC_ASSERT_SIZEOF(Actor400500Msg3FF, 0x14);
-
 /// View-space sample written by `func_actor_400500_8013DBCC`: the X and Z of
 /// the translation `Gp_WorldToLocal` produces for one of the actor's
 /// coordinate nodes. `func_actor_400500_80132C54` passes
@@ -2234,7 +2224,7 @@ void func_actor_400500_80135770(Task* arg0)
     Task*                      slot;
     GsCOORDINATE2*             part2;
     PlayerStatus*              cfg;
-    Actor400500Msg3FF          msg;
+    GpAnimArg                  msg;
     Actor400500TaskFuncTable13 sp;
     ActorMat                   rot;
     s8                         handshake;
@@ -2278,10 +2268,10 @@ void func_actor_400500_80135770(Task* arg0)
             }
             break;
         case 2:
-            msg.field_0  = &D_actor_400500_80153CB0;
-            msg.field_8  = 0;
-            msg.field_C  = 0;
-            msg.field_10 = 0;
+            msg.animBlock.ptr = &D_actor_400500_80153CB0;
+            msg.field_8       = 0;
+            msg.field_C       = 0;
+            msg.field_10      = 0;
             if (work->field_A4D != 0) {
                 msg.field_4     = 3;
                 work->field_A48 = 4;

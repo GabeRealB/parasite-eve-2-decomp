@@ -532,14 +532,6 @@ STATIC_ASSERT_SIZEOF(Actor110600StateTable, 0x64);
 
 extern const Actor110600StateTable D_actor_110600_80131F3C;
 
-/// Message payload the `0x7D3` display handler is handed: `field_4` is the
-/// requested state, `field_0` unused here. The same message id carries the
-/// identical record as `Actor01900Msg7D3` / `Actor401800Msg7D3`.
-typedef struct Actor110600Msg7D3 {
-    /* 0x0 */ s32 field_0;
-    /* 0x4 */ s32 field_4;
-} Actor110600Msg7D3;
-
 /// One of the model objects `func_actor_110600_80134040` parks in the four
 /// display slots below. They live in main's data; this overlay only ever takes
 /// their addresses, so their layout is not modelled here.
@@ -573,7 +565,7 @@ s32 func_actor_110600_80134040(Task* arg0, s32 arg1, Actor110600Event* arg2);
 
 /// The `0x7D3` display handler: parks the actor in state 0x11 with
 /// `field_892` set from the requested state.
-s32 func_actor_110600_8013839C(Task* arg0, s32 arg1, Actor110600Msg7D3* arg2);
+s32 func_actor_110600_8013839C(Task* arg0, s32 arg1, GpAnimArg* arg2);
 
 /// Rebuilds `coord`'s Y rotation from its current yaw (`ratan2` of
 /// `-m[2][0], m[2][2]`), scaled independently on each axis through a
@@ -3797,7 +3789,7 @@ const GpEnemyTaskFuncTable3 D_actor_110600_80131FA0 = {
 /// `rodata_head`: it lands at 0x18C, 8-aligned only if this unit's `.rodata`
 /// starts at 0x4 rather than 0x0 — the package id ahead of it is prepended, not
 /// compiled — and behind the id it picks up `.align 3`'s 4-byte pad instead.
-s32 func_actor_110600_8013839C(Task* arg0, s32 arg1, Actor110600Msg7D3* arg2)
+s32 func_actor_110600_8013839C(Task* arg0, s32 arg1, GpAnimArg* arg2)
 {
     Actor110600Work* work;
     GpEnemy*         enemy;

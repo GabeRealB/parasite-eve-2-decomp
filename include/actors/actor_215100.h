@@ -32,13 +32,4 @@ typedef struct Actor215100Caption {
 } Actor215100Caption;
 STATIC_ASSERT_SIZEOF(Actor215100Caption, 0xC);
 
-/// Argument block of the script opcode `func_actor_215100_8014CCE0`
-/// implements: which animation to play, and how.
-typedef struct Actor215100AnimArgs {
-    /* 0x0 */ byte pad_0[4];
-    /* 0x4 */ s32  animId;
-    /* 0x8 */ s32  withArg;
-    /* 0xC */ u16  animArg;
-} Actor215100AnimArgs;
-
 #endif

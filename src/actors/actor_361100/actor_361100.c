@@ -82,23 +82,6 @@ typedef struct Actor361100Msg {
 } Actor361100Msg;
 STATIC_ASSERT_SIZEOF(Actor361100Msg, 0x4);
 
-/// Payload the sender of message 0x7D3 passes as `Gp_DispatchMsg`'s `arg2`,
-/// whose handlers are `func_actor_361100_80162E20` and
-/// `func_actor_361100_801634D0`. `field_0` indexes the handler's animation
-/// bank table (`D_actor_361100_8016BAE0` or `D_actor_361100_80171BA8`) and is
-/// latched into
-/// `Actor361100Work::field_43E`, re-seeding the slot array whenever it
-/// changes; `field_4` is the animation id stored into `field_43D`; `field_8`
-/// picks between `func_800B4114` -- which also takes `field_C` -- and
-/// `Gp_AnimResetSlot`.
-typedef struct Actor361100AnimPreset {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-} Actor361100AnimPreset;
-STATIC_ASSERT_SIZEOF(Actor361100AnimPreset, 0x10);
-
 /// State block `func_actor_361100_80161E3C` allocates with `memCalloc(0xE8)`
 /// and parks in `Task::work` -- that slot is not a `TaskIdMap` here. The body
 /// seeds the two halfwords at `field_8E` / `field_E0` and then hands the block
@@ -897,7 +880,7 @@ void func_actor_361100_80162E04(Task* arg0)
 /// and the `field_43C` latch alike. That gate is also the only reason this body
 /// differs from `func_actor_361100_801634D0` at all; the loops and the
 /// short-circuit on `field_8` / `field_43C` are the same code.
-s32 func_actor_361100_80162E20(Task* task, s32 arg1, Actor361100AnimPreset* msg)
+s32 func_actor_361100_80162E20(Task* task, s32 arg1, GpAnimArg* msg)
 {
     Actor361100Work* work;
     TmdObject*       ext;
@@ -905,8 +888,8 @@ s32 func_actor_361100_80162E20(Task* task, s32 arg1, Actor361100AnimPreset* msg)
 
     work = (Actor361100Work*)task->work;
     ext  = task->extra;
-    if (msg->field_0 != work->field_43E) {
-        work->field_43E = msg->field_0;
+    if (msg->animBlock.index != work->field_43E) {
+        work->field_43E = msg->animBlock.index;
         work->field_43D = -1;
         func_800B3F84(&work->anim, D_actor_361100_8016BAE0[work->field_43E], ext, work->field_30C,
                       work->slots);
@@ -1149,7 +1132,7 @@ void func_actor_361100_801634B4(Task* arg0)
 /// `func_800B4114` (preset `field_8` set and the slots already started once)
 /// or resets them through `Gp_AnimResetSlot`, and finally ticks the whole
 /// array with `Gp_AnimTickIndex`.
-s32 func_actor_361100_801634D0(Task* task, s32 arg1, Actor361100AnimPreset* msg)
+s32 func_actor_361100_801634D0(Task* task, s32 arg1, GpAnimArg* msg)
 {
     Actor361100Work* work;
     TmdObject*       ext;
@@ -1157,8 +1140,8 @@ s32 func_actor_361100_801634D0(Task* task, s32 arg1, Actor361100AnimPreset* msg)
 
     work = (Actor361100Work*)task->work;
     ext  = task->extra;
-    if (msg->field_0 != work->field_43E) {
-        work->field_43E = msg->field_0;
+    if (msg->animBlock.index != work->field_43E) {
+        work->field_43E = msg->animBlock.index;
         work->field_43D = -1;
         func_800B3F84(&work->anim, D_actor_361100_80171BA8[work->field_43E], ext, work->field_30C,
                       work->slots);

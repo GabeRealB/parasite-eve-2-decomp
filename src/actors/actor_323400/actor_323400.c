@@ -1337,7 +1337,7 @@ s32 func_actor_323400_80164974(Task* task, s32 arg1, Actor323400Msg* msg, s32 ar
 
 /// Handler for message 0x7D3: latches the requested animation id into
 /// `field_82E` and restarts the state machine at state 1.
-s32 func_actor_323400_80164A50(Task* task, s32 arg1, ActorShared80164af0Msg* msg, s32 arg3)
+s32 func_actor_323400_80164A50(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 {
     Actor323000Work* work = (Actor323000Work*)task->work;
 

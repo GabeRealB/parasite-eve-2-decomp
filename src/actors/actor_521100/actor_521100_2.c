@@ -64,15 +64,6 @@ typedef struct Actor521100Msg {
 } Actor521100Msg;
 STATIC_ASSERT_SIZEOF(Actor521100Msg, 0x4);
 
-/// Argument block of the message handler `func_actor_521100_801369B8`
-/// implements: which animation to start. Same 4-byte-id prefix as
-/// `Actor202900AnimArgs`, and the same `(u16)` narrowing on the store into the
-/// work block's `animId`. The stored id is `args->animId + 1`.
-typedef struct Actor521100AnimArgs {
-    /* 0x0 */ byte pad_0[4];
-    /* 0x4 */ s32  animId;
-} Actor521100AnimArgs;
-
 extern Actor521100Work4B4* D_actor_521100_8016A3D8;
 
 /// Stack copy `func_actor_521100_80136604` makes before the indirect call.
@@ -516,7 +507,7 @@ void func_actor_521100_801368B0(Task* task)
     *(u8**)0x1F8003FC += 0x30;
 }
 /// Animation-start handler: seeds the work block's `animId` with
-/// `args->animId + 1`, rejecting anything whose incremented id is 0xB or up,
+/// `args->field_4 + 1`, rejecting anything whose incremented id is 0xB or up,
 /// and leaves the actor in step 2 with `field_482` cleared before running the
 /// step dispatcher.
 ///
@@ -524,12 +515,12 @@ void func_actor_521100_801368B0(Task* task)
 /// purpose: that is where the original evaluates it, and it is what puts the
 /// global's `lui`/`lw` ahead of the `li 2` and leaves the `field_482` clear
 /// for the call's delay slot.
-s32 func_actor_521100_801369B8(Task* task, s32 arg1, Actor521100AnimArgs* args)
+s32 func_actor_521100_801369B8(Task* task, s32 arg1, GpAnimArg* args)
 {
     Task* dispatcher;
 
-    if (args->animId + 1 < 0xB) {
-        D_actor_521100_8016A3D8->animId    = (u16)args->animId + 1;
+    if (args->field_4 + 1 < 0xB) {
+        D_actor_521100_8016A3D8->animId    = (u16)args->field_4 + 1;
         dispatcher                         = D_actor_521100_8016A3DC;
         D_actor_521100_8016A3D8->field_47C = 2;
         D_actor_521100_8016A3D8->field_482 = 0;

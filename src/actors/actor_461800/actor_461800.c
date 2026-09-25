@@ -72,20 +72,6 @@ typedef struct Actor461800Msg {
     /* 0x2 */ u16  field_2;
 } Actor461800Msg;
 
-/// Animation preset the overlay's "play animation" message handlers apply to
-/// their work block: `field_4` is the animation id, `field_8` picks the reset
-/// path -- 1 for the blended `func_800B4114` reseed, 2 for a plain one -- and
-/// `field_C` becomes the reset argument the reseed forwards. The id range each
-/// handler accepts is that variant's own: `func_actor_461800_80132D84` takes
-/// the first variant's six ids, `func_actor_461800_80133898` the second
-/// variant's 0x23.
-typedef struct Actor461800AnimPreset {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-} Actor461800AnimPreset;
-
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
@@ -604,7 +590,7 @@ void func_actor_461800_80132D04(void)
 /// taken from the preset or left at 2, then the whole slot array is re-seeded.
 /// Only the six known animation ids are accepted; anything else leaves the work
 /// block untouched and reports the failure.
-s32 func_actor_461800_80132D84(Task* task, s32 arg1, Actor461800AnimPreset* preset, s32 arg3)
+s32 func_actor_461800_80132D84(Task* task, s32 arg1, GpAnimArg* preset, s32 arg3)
 {
     if (preset->field_4 < 6) {
         D_actor_461800_80143894->field_4B8 = preset->field_4;
@@ -929,7 +915,7 @@ void func_actor_461800_8013380C(void)
 /// animation is restarted through `func_actor_461800_801331E4`. Only the ids
 /// this variant owns are accepted; anything else leaves the work block
 /// untouched and reports the failure.
-s32 func_actor_461800_80133898(Task* task, s32 arg1, Actor461800AnimPreset* preset, s32 arg3)
+s32 func_actor_461800_80133898(Task* task, s32 arg1, GpAnimArg* preset, s32 arg3)
 {
     if (preset->field_4 < 0x23) {
         D_actor_461800_801438A0->field_480 = preset->field_4;

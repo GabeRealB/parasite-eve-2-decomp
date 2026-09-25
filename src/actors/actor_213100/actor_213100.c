@@ -43,23 +43,6 @@ typedef struct Actor213100Work {
 } Actor213100Work;
 STATIC_ASSERT_SIZEOF(Actor213100Work, 0x488);
 
-/// Animation preset the 0x7D3 handler `func_actor_213100_8014A258` takes;
-/// the spawn state builds one on its stack as `{ 0, 5, 0, 0, 0 }` and calls
-/// the handler with it directly. `field_0` is the bank index into
-/// `D_actor_213100_801521A4`, latched into `Actor213100Work::field_43E`;
-/// `field_4` is the animation id, latched into `field_43D`; a nonzero
-/// `field_8` installs the id through `func_800B4114`, which also takes
-/// `field_C`, once the slots have been started. Nothing here reads
-/// `field_10`; the size is the five words the spawn state stores.
-typedef struct Actor213100AnimPreset {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-    /* 0x10 */ s32 field_10;
-} Actor213100AnimPreset;
-STATIC_ASSERT_SIZEOF(Actor213100AnimPreset, 0x14);
-
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// `gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
@@ -87,7 +70,7 @@ void func_actor_213100_8014A0B8(Task* task);
 void func_actor_213100_8014A118(Task* arg0);
 void func_actor_213100_8014A21C(Task* arg0);
 void func_actor_213100_8014A23C(Task* arg0);
-s32  func_actor_213100_8014A258(Task* task, s32 arg1, Actor213100AnimPreset* msg, s32 arg3);
+s32  func_actor_213100_8014A258(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3);
 
 /// Per-frame tick: ticks the work block's animation slots once they have been
 /// started, and while the model is shown samples the child part's
@@ -218,10 +201,10 @@ void func_actor_213100_8014A0C0(Task* task)
 /// installs its message table and exit callback and advances to the tick.
 void func_actor_213100_8014A118(Task* arg0)
 {
-    Actor213100Work*      work;
-    Actor213100AnimPreset preset;
-    TmdObject*            ext;
-    Task*                 child;
+    Actor213100Work* work;
+    GpAnimArg        preset;
+    TmdObject*       ext;
+    Task*            child;
 
     work = (Actor213100Work*)memCalloc(0x488, 0);
     if (work == NULL) {
@@ -239,15 +222,15 @@ void func_actor_213100_8014A118(Task* arg0)
         return;
     }
     func_actor_213100_8014A23C(arg0);
-    ext             = arg0->extra;
-    ext->flags     |= 0x80;
-    ext             = work->field_480->extra;
-    ext->flags     |= 0x80;
-    preset.field_0  = 0;
-    preset.field_4  = 5;
-    preset.field_8  = 0;
-    preset.field_C  = 0;
-    preset.field_10 = 0;
+    ext                    = arg0->extra;
+    ext->flags            |= 0x80;
+    ext                    = work->field_480->extra;
+    ext->flags            |= 0x80;
+    preset.animBlock.index = 0;
+    preset.field_4         = 5;
+    preset.field_8         = 0;
+    preset.field_C         = 0;
+    preset.field_10        = 0;
     func_actor_213100_8014A258(arg0, 0, &preset, 0);
     arg0->msgTable     = D_actor_213100_801521C0;
     arg0->exitCallback = func_actor_213100_8014A21C;
@@ -281,7 +264,7 @@ void func_actor_213100_8014A23C(Task* arg0)
 /// slots have already been started, through `Gp_AnimResetSlot` otherwise -
 /// after which every slot is ticked once and `field_43C` latches. An
 /// unchanged id skips all of that. Returns 0.
-s32 func_actor_213100_8014A258(Task* task, s32 arg1, Actor213100AnimPreset* msg, s32 arg3)
+s32 func_actor_213100_8014A258(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 {
     Actor213100Work* work;
     TmdObject*       ext;
@@ -289,8 +272,8 @@ s32 func_actor_213100_8014A258(Task* task, s32 arg1, Actor213100AnimPreset* msg,
 
     work = (Actor213100Work*)task->work;
     ext  = task->extra;
-    if (msg->field_0 != work->field_43E) {
-        work->field_43E = msg->field_0;
+    if (msg->animBlock.index != work->field_43E) {
+        work->field_43E = msg->animBlock.index;
         work->field_43D = -1;
         func_800B3F84(&work->anim, D_actor_213100_801521A4[work->field_43E], ext, work->field_30C,
                       work->slots);

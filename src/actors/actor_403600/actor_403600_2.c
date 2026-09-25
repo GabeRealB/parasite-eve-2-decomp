@@ -55,12 +55,6 @@ typedef struct Actor403600Pattern {
 } __attribute__((packed)) Actor403600Pattern;
 STATIC_ASSERT_SIZEOF(Actor403600Pattern, 9);
 
-typedef struct Actor403600Msg {
-    /* 0x0 */ void* field_0;
-    /* 0x4 */ s32   field_4;
-} Actor403600Msg;
-STATIC_ASSERT_SIZEOF(Actor403600Msg, 0x8);
-
 /// Incoming scripted message; field_2 selects the actor's transition.
 typedef struct Actor403600MsgArg {
     /* 0x0 */ u16 field_0;
@@ -271,7 +265,7 @@ extern s16                  D_80073BA0;
 extern u8                   D_actor_403600_80150ED4;
 extern TaskDesc             D_actor_403600_801421A0;
 extern s32                  D_actor_403600_8016056C;
-extern Actor403600Msg       D_actor_403600_80160568;
+extern GpAnimArg            D_actor_403600_80160568;
 extern s32                  D_actor_403600_8016057C[];
 extern Actor403600Point     D_actor_403600_801605F4[];
 extern GpU16Pair            D_actor_403600_801606A4;
@@ -1387,8 +1381,8 @@ void func_actor_403600_8013A444(Task* arg0)
     GsCOORDINATE2*   temp_s0_5;
     GsCOORDINATE2*   temp_s0_8;
     GsCOORDINATE2*   temp_sound_28;
-    Actor403600Msg*  temp_s0_msg;
-    Actor403600Msg*  temp_s1_3;
+    GpAnimArg*       temp_s0_msg;
+    GpAnimArg*       temp_s1_3;
     Actor403600Work* temp_s3;
     GsCOORDINATE2*   temp_s4_4;
     GsCOORDINATE2*   temp_s6;

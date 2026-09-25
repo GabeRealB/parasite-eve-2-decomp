@@ -162,17 +162,6 @@ typedef struct Actor510900ChildWork {
 } Actor510900ChildWork;
 STATIC_ASSERT_SIZEOF(Actor510900ChildWork, 0x7C);
 
-/// 0x7D3 argument block. `field_4` is the animation the actor switches to,
-/// biased by 0x1B into the id the handler stores in `Actor510900Work::field_586`
-/// and reseeds animation slots 1..0x12 with; a non-zero `field_8` starts every
-/// reseeded slot at blend 0x80 instead of snapping to the new pose.
-typedef struct Actor510900AnimArgs {
-    /* 0x00 */ byte pad_0[4];
-    /* 0x04 */ u16  field_4;
-    /* 0x06 */ byte pad_6[2];
-    /* 0x08 */ s32  field_8;
-} Actor510900AnimArgs;
-
 /// Table the state 1 handler below picks `field_59C` from; a 4-bit
 /// `Gp_LcgState` draw indexes at least sixteen `u16` entries.
 extern u16 D_actor_510900_801679F0[];
@@ -3586,7 +3575,7 @@ s32 func_actor_510900_8013BD5C(Task* arg0)
     return 0;
 }
 
-s32 func_actor_510900_8013BD84(Task* arg0, s32 arg1, Actor510900AnimArgs* arg2)
+s32 func_actor_510900_8013BD84(Task* arg0, s32 arg1, GpAnimArg* arg2)
 {
     Actor510900Work* work;
     s32              blend;

@@ -58,15 +58,6 @@ typedef struct Actor460200Work {
 } Actor460200Work;
 STATIC_ASSERT_SIZEOF(Actor460200Work, 0x4F8);
 
-/// Argument block of the actor's "play animation" script opcodes: which clip
-/// to play, and whether to seed the slots with `animArg`.
-typedef struct Actor460200AnimArgs {
-    /* 0x0 */ byte pad_0[4];
-    /* 0x4 */ s32  animId;
-    /* 0x8 */ s32  withArg;
-    /* 0xC */ u16  animArg;
-} Actor460200AnimArgs;
-
 /// Work block of the paired variant whose spawn routine allocates it with
 /// `memCalloc(0x4FC, 0)`: `light` / `color` go to the sub-model's
 /// `TmdObject::lightMtx` / `field_20`, and `anim`, `slots` and `pose` are what
@@ -104,9 +95,9 @@ STATIC_ASSERT_SIZEOF(Actor460200PairWork, 0x4FC);
 
 void func_actor_460200_801325FC(Task* task);
 
-s32 func_actor_460200_80132B2C(Task* task, s32 arg1, Actor460200AnimArgs* args);
+s32 func_actor_460200_80132B2C(Task* task, s32 arg1, GpAnimArg* args);
 
-s32 func_actor_460200_80133C64(Task* task, s32 arg1, Actor460200AnimArgs* args);
+s32 func_actor_460200_80133C64(Task* task, s32 arg1, GpAnimArg* args);
 
 s32 func_actor_460200_80133CD0(Task* task, s32 arg1, s32 flags);
 
@@ -688,7 +679,7 @@ void func_actor_460200_80132AC8(Task* task)
     work->appliedAnimId = work->animId;
 }
 
-/// Script opcode: start animation `args->animId` on this actor.
+/// Script opcode: start animation `args->field_4` on this actor.
 ///
 /// `withArg` selects between the two start paths `func_actor_460200_801325FC`
 /// dispatches on, and only the first carries `animArg`. Returns -1, without
@@ -700,20 +691,20 @@ void func_actor_460200_80132AC8(Task* task)
 /// once an `asm` at the head of the fall-through stops it searching that
 /// thread. See DECOMPILATION_LEARNINGS.md, "An empty asm at the head of the
 /// then-arm moves the delay slot to the else arm".
-s32 func_actor_460200_80132B2C(Task* task, s32 arg1, Actor460200AnimArgs* args)
+s32 func_actor_460200_80132B2C(Task* task, s32 arg1, GpAnimArg* args)
 {
     Actor460200Work* work;
 
     work = (Actor460200Work*)task->work;
-    if (args->animId >= 0x10) {
+    if (args->field_4 >= 0x10) {
         return -1;
     }
 
-    work->animId = args->animId;
-    if (args->withArg != 0) {
+    work->animId = args->field_4;
+    if (args->field_8 != 0) {
         SOFT_BARRIER();
         work->state   = 1;
-        work->animArg = args->animArg;
+        work->animArg = args->field_C;
     } else {
         work->state = 2;
     }
@@ -1021,28 +1012,28 @@ void func_actor_460200_801333A4(Task* task)
     work->appliedAnimId = work->animId;
 }
 
-/// Script opcode: start animation `args->animId` on this actor, rejecting ids
+/// Script opcode: start animation `args->field_4` on this actor, rejecting ids
 /// of 0xC and above. State 1 (via `func_actor_460200_801333A4`) carries
-/// `args->animArg`; state 2 (via `func_actor_460200_8013332C`) does not.
+/// `args->field_C`; state 2 (via `func_actor_460200_8013332C`) does not.
 ///
 /// The `SOFT_BARRIER` is the same codegen pin as in
 /// `func_actor_460200_80132B2C`: without it the delay slot of the `beqz` fills
 /// from the fall-through arm (`state = 1`) instead of the else arm's
 /// `state = 2`.
-s32 func_actor_460200_80133408(Task* task, s32 arg1, Actor460200AnimArgs* args)
+s32 func_actor_460200_80133408(Task* task, s32 arg1, GpAnimArg* args)
 {
     Actor460200PairWork* work;
 
     work = (Actor460200PairWork*)task->work;
-    if (args->animId >= 0xC) {
+    if (args->field_4 >= 0xC) {
         return -1;
     }
 
-    work->animId = args->animId;
-    if (args->withArg != 0) {
+    work->animId = args->field_4;
+    if (args->field_8 != 0) {
         SOFT_BARRIER();
         work->state   = 1;
-        work->animArg = args->animArg;
+        work->animArg = args->field_C;
     } else {
         work->state = 2;
     }
@@ -1346,20 +1337,20 @@ void func_actor_460200_80133C00(Task* task)
     work->appliedAnimId = work->animId;
 }
 
-s32 func_actor_460200_80133C64(Task* task, s32 arg1, Actor460200AnimArgs* args)
+s32 func_actor_460200_80133C64(Task* task, s32 arg1, GpAnimArg* args)
 {
     Actor460200Work* work;
 
     work = (Actor460200Work*)task->work;
-    if (args->animId >= 0x12) {
+    if (args->field_4 >= 0x12) {
         return -1;
     }
 
-    work->animId = args->animId;
-    if (args->withArg != 0) {
+    work->animId = args->field_4;
+    if (args->field_8 != 0) {
         SOFT_BARRIER();
         work->state   = 1;
-        work->animArg = args->animArg;
+        work->animArg = args->field_C;
     } else {
         work->state = 2;
     }

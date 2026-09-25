@@ -113,17 +113,6 @@ typedef struct Actor535700Msg {
     /* 0x2 */ u16  field_2;
 } Actor535700Msg;
 
-/// Script args of the "start animation" opcodes of both enemies,
-/// `func_actor_535700_801327BC` and `func_actor_535700_801331E4`: the clip id,
-/// a flag choosing the start path, and the reset argument only that path
-/// carries.
-typedef struct Actor535700AnimArgs {
-    /* 0x0 */ byte pad_0[4];
-    /* 0x4 */ s32  animId;
-    /* 0x8 */ s32  withArg;
-    /* 0xC */ u16  animArg;
-} Actor535700AnimArgs;
-
 /// Fade countdown. `func_actor_535700_80131EF0` seeds it from its argument and
 /// spawns the fade task from `D_actor_535700_8013346C`; that task
 /// (`func_actor_535700_80131E24`) draws a full-screen black `TILE` into
@@ -455,13 +444,13 @@ void func_actor_535700_80132730(void)
 /// only the first carries `animArg`, which it leaves in
 /// `D_actor_535700_8013DAA8`. Returns -1, without touching the work block, when
 /// the clip id is 0x23 or more.
-s32 func_actor_535700_801327BC(Task* task, s32 arg1, Actor535700AnimArgs* args, s32 arg3)
+s32 func_actor_535700_801327BC(Task* task, s32 arg1, GpAnimArg* args, s32 arg3)
 {
-    if (args->animId < 0x23) {
-        D_actor_535700_80146844->animId = args->animId;
-        if (args->withArg != 0) {
+    if (args->field_4 < 0x23) {
+        D_actor_535700_80146844->animId = args->field_4;
+        if (args->field_8 != 0) {
             D_actor_535700_80146844->state = 1;
-            D_actor_535700_8013DAA8        = args->animArg;
+            D_actor_535700_8013DAA8        = args->field_C;
         } else {
             D_actor_535700_80146844->state = 2;
         }
@@ -834,20 +823,20 @@ void func_actor_535700_80133180(Task* task)
 /// The `SOFT_BARRIER()` is a codegen pin, not a semantic one: without it GCC's
 /// delay-slot pass fills the `beqz` from the fall-through arm (`state = 1`)
 /// rather than the else arm's `state = 2`, which the ROM has there.
-s32 func_actor_535700_801331E4(Task* task, s32 arg1, Actor535700AnimArgs* args)
+s32 func_actor_535700_801331E4(Task* task, s32 arg1, GpAnimArg* args)
 {
     Actor535700SpawnWork* work;
 
     work = (Actor535700SpawnWork*)task->work;
-    if (args->animId >= 6) {
+    if (args->field_4 >= 6) {
         return -1;
     }
 
-    work->animId = args->animId;
-    if (args->withArg != 0) {
+    work->animId = args->field_4;
+    if (args->field_8 != 0) {
         SOFT_BARRIER();
         work->state   = 1;
-        work->animArg = args->animArg;
+        work->animArg = args->field_C;
     } else {
         work->state = 2;
     }

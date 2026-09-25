@@ -50,19 +50,6 @@ typedef struct Actor213000Msg {
 } Actor213000Msg;
 STATIC_ASSERT_SIZEOF(Actor213000Msg, 0x4);
 
-/// Animation preset message 0x7D3 carries: `field_0` indexes the animation
-/// bank table and is latched into the work block's `field_476`, re-seeding the
-/// slot array whenever it changes; `field_4` is the animation id stored into
-/// `field_475`; a nonzero `field_8` installs the id through `func_800B4114`
-/// rather than `Gp_AnimResetSlot`. The handler never reads `field_C`.
-typedef struct Actor213000AnimPreset {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-} Actor213000AnimPreset;
-STATIC_ASSERT_SIZEOF(Actor213000AnimPreset, 0x10);
-
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
@@ -480,7 +467,7 @@ void func_actor_213000_8014A6AC(Task* task)
 /// slot - through `func_800B4114` with a blend length of 6 when the preset's
 /// `field_8` is set, through `Gp_AnimResetSlot` otherwise - after which every
 /// slot is ticked once and `field_474` latches. Returns 0.
-s32 func_actor_213000_8014A70C(Task* task, s32 arg1, Actor213000AnimPreset* msg)
+s32 func_actor_213000_8014A70C(Task* task, s32 arg1, GpAnimArg* msg)
 {
     Actor213000Work* work;
     TmdObject*       ext;
@@ -488,8 +475,8 @@ s32 func_actor_213000_8014A70C(Task* task, s32 arg1, Actor213000AnimPreset* msg)
 
     work = (Actor213000Work*)task->work;
     ext  = task->extra;
-    if (msg->field_0 != work->field_476) {
-        work->field_476 = msg->field_0;
+    if (msg->animBlock.index != work->field_476) {
+        work->field_476 = msg->animBlock.index;
         work->field_475 = -1;
         func_800B3F84(&work->anim, D_actor_213000_80157DDC[work->field_476], ext, work->field_334,
                       work->slots);

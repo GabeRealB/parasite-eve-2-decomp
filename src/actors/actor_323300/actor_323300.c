@@ -72,21 +72,6 @@ typedef struct Actor323300Work {
 } Actor323300Work;
 STATIC_ASSERT_SIZEOF(Actor323300Work, 0x504);
 
-/// 0x14-byte animation preset the spawn handlers and the state functions hand
-/// `func_actor_323300_801628B8` / `func_actor_323300_80163718`: `field_0` is
-/// the animation bank index the helper compares against the block's current
-/// bank, `field_4` the animation id it compares against the current id, and
-/// `field_8` selects between `func_800B4114` -- which also takes `field_C` --
-/// and `Gp_AnimResetSlot`. `field_10` is unread.
-typedef struct {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-    /* 0x10 */ s32 field_10;
-} Actor323300AnimPreset;
-STATIC_ASSERT_SIZEOF(Actor323300AnimPreset, 0x14);
-
 /// Vertex-morph source `func_actor_323300_80162A6C` blends the model with.
 /// `field_8` and `field_C` are the key vertex and key normal arrays -- 8-byte
 /// `SVECTOR`s, the stride `gteMIMefunc` itself takes -- which that function
@@ -166,17 +151,17 @@ extern GpPlaceArg D_actor_323300_8017259C;
 
 /// Animation presets the spawn handler, the 0x7DB handler and the two states
 /// hand `func_actor_323300_801628B8`.
-extern Actor323300AnimPreset D_actor_323300_801725B4;
-extern Actor323300AnimPreset D_actor_323300_801725C8;
-extern Actor323300AnimPreset D_actor_323300_801725DC;
+extern GpAnimArg D_actor_323300_801725B4;
+extern GpAnimArg D_actor_323300_801725C8;
+extern GpAnimArg D_actor_323300_801725DC;
 
 /// Animation source table `func_actor_323300_80163718` indexes by the 0x6B0
 /// block's bank index, one `void*` per bank. `func_actor_323300_80162BE4`
 /// applies the preset `D_actor_323300_80174A74` through it and places the
 /// actor at `D_actor_323300_80174AB0`.
-extern void*                 D_actor_323300_80174A70[];
-extern Actor323300AnimPreset D_actor_323300_80174A74;
-extern GpPlaceArg            D_actor_323300_80174AB0;
+extern void*      D_actor_323300_80174A70[];
+extern GpAnimArg  D_actor_323300_80174A74;
+extern GpPlaceArg D_actor_323300_80174AB0;
 
 /// Vertex-morph source `func_actor_323300_80162DF0` re-blends every frame off
 /// the 0x6B0 block's squash ramp. Absolute, so it lives outside the overlay.
@@ -198,13 +183,13 @@ void func_actor_323300_801626EC(Task* arg0);
 void func_actor_323300_801626F4(Task* arg0);
 void func_actor_323300_80162748(Task* arg0);
 void func_actor_323300_801627B4(Task* arg0);
-s32  func_actor_323300_801628B8(Task* arg0, s32 arg1, Actor323300AnimPreset* arg2, s32 arg3);
+s32  func_actor_323300_801628B8(Task* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3);
 s32  func_actor_323300_801629F0(Task* arg0, s32 arg1, GpPlaceArg* arg2, s32 arg3);
 void func_actor_323300_801634B0(Task* arg0);
 void func_actor_323300_80163510(Task* arg0);
 void func_actor_323300_8016359C(Task* arg0, s16 arg1);
 s32  func_actor_323300_8016369C(Task* arg0, s32 arg1, GpPlaceArg* arg2, s32 arg3);
-s32  func_actor_323300_80163718(Task* arg0, s32 arg1, Actor323300AnimPreset* arg2, s32 arg3);
+s32  func_actor_323300_80163718(Task* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3);
 
 /// State table `func_actor_323300_80162630` copies onto the stack and indexes
 /// by `Task::state`: spawn, per-frame runner and exit of the 0x504 block.
@@ -395,15 +380,15 @@ s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
 /// `func_actor_323300_801628B8`), 13 posts effect 0x600A2 on part 6.
 s32 func_actor_323300_80162360(Task* arg0, s32 arg1, Actor323300Msg7DB* msg, GpPlaceArg* place)
 {
-    Actor323300Work*       w;
-    Actor323300Work*       work;
-    Actor323300AnimPreset* preset;
-    TmdObject*             extra;
-    Task*                  spawned;
-    GsCOORDINATE2*         src;
-    GsCOORDINATE2*         dst;
-    SVECTOR                vec;
-    s32                    i;
+    Actor323300Work* w;
+    Actor323300Work* work;
+    GpAnimArg*       preset;
+    TmdObject*       extra;
+    Task*            spawned;
+    GsCOORDINATE2*   src;
+    GsCOORDINATE2*   dst;
+    SVECTOR          vec;
+    s32              i;
 
     w = (Actor323300Work*)arg0->work;
     switch (msg->field_2) {
@@ -441,8 +426,8 @@ s32 func_actor_323300_80162360(Task* arg0, s32 arg1, Actor323300Msg7DB* msg, GpP
             preset = &D_actor_323300_801725C8;
             work   = (Actor323300Work*)arg0->work;
             extra  = arg0->extra;
-            if (preset->field_0 != work->field_43E) {
-                work->field_43E = preset->field_0;
+            if (preset->animBlock.index != work->field_43E) {
+                work->field_43E = preset->animBlock.index;
                 work->field_43D = -1;
                 func_800B3F84(&work->anim, D_actor_323300_80172558[work->field_43E], extra,
                               work->pad_30C, work->slots);
@@ -599,7 +584,7 @@ void func_actor_323300_801627B4(Task* arg0)
 /// and the slots have already been started, through `Gp_AnimResetSlot`
 /// otherwise - after which every slot is ticked once and `field_43C` latches.
 /// An unchanged id skips all of that. Returns 0.
-s32 func_actor_323300_801628B8(Task* task, s32 arg1, Actor323300AnimPreset* msg, s32 arg3)
+s32 func_actor_323300_801628B8(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 {
     Actor323300Work* work;
     TmdObject*       ext;
@@ -607,8 +592,8 @@ s32 func_actor_323300_801628B8(Task* task, s32 arg1, Actor323300AnimPreset* msg,
 
     work = (Actor323300Work*)task->work;
     ext  = task->extra;
-    if (msg->field_0 != work->field_43E) {
-        work->field_43E = msg->field_0;
+    if (msg->animBlock.index != work->field_43E) {
+        work->field_43E = msg->animBlock.index;
         work->field_43D = -1;
         func_800B3F84(&work->anim, D_actor_323300_80172558[work->field_43E], ext, work->pad_30C, work->slots);
     }
@@ -1022,7 +1007,7 @@ s32 func_actor_323300_8016369C(Task* task, s32 msgId, GpPlaceArg* args, s32 arg3
 /// `func_800B4114` when the preset asks for it and the block has been started
 /// before, through `Gp_AnimResetSlot` otherwise -- ticks them once and latches
 /// `field_43C` so the next preset takes the first branch.
-s32 func_actor_323300_80163718(Task* arg0, s32 arg1, Actor323300AnimPreset* arg2, s32 arg3)
+s32 func_actor_323300_80163718(Task* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3)
 {
     Actor323300MtxWork* work;
     TmdObject*          ext;
@@ -1030,8 +1015,8 @@ s32 func_actor_323300_80163718(Task* arg0, s32 arg1, Actor323300AnimPreset* arg2
 
     work = (Actor323300MtxWork*)arg0->work;
     ext  = arg0->extra;
-    if (arg2->field_0 != work->field_440) {
-        work->field_440 = arg2->field_0;
+    if (arg2->animBlock.index != work->field_440) {
+        work->field_440 = arg2->animBlock.index;
         work->field_444 = -1;
         func_800B3F84(&work->anim, D_actor_323300_80174A70[work->field_440], ext,
                       work->pad_30C, work->slots);

@@ -67,15 +67,6 @@ typedef struct Actor160600Work {
 } Actor160600Work;
 STATIC_ASSERT_SIZEOF(Actor160600Work, 0x4F8);
 
-/// Payload of the "play animation" script opcode: which clip to play, and
-/// whether to seed the slots with `animArg`.
-typedef struct Actor160600AnimArgs {
-    /* 0x0 */ byte pad_0[4];
-    /* 0x4 */ s32  animId;
-    /* 0x8 */ s32  withArg;
-    /* 0xC */ s16  animArg;
-} Actor160600AnimArgs;
-
 /// Payload of the script opcode that sets the work block's `field_4EE`.
 typedef struct Actor160600FlagArgs {
     /* 0x0 */ byte pad_0[2];
@@ -313,7 +304,7 @@ void func_actor_160600_801324C8(Task* task)
     work->appliedAnimId = work->animId;
 }
 
-/// Script opcode: start animation `args->animId` on this actor.
+/// Script opcode: start animation `args->field_4` on this actor.
 ///
 /// `withArg` selects between the two start paths the step body
 /// `func_actor_160600_80131FFC` dispatches on, and only the first carries
@@ -328,20 +319,20 @@ void func_actor_160600_801324C8(Task* task)
 /// (`state = 2`), which is what the ROM has; without it the function is 92.37%.
 /// See DECOMPILATION_LEARNINGS.md, "An empty `asm` at the head of the then-arm
 /// moves the branch delay slot to the else arm".
-s32 func_actor_160600_8013252C(Task* task, s32 arg1, Actor160600AnimArgs* args)
+s32 func_actor_160600_8013252C(Task* task, s32 arg1, GpAnimArg* args)
 {
     Actor160600Work* work;
 
     work = (Actor160600Work*)task->work;
-    if (args->animId >= 0x10) {
+    if (args->field_4 >= 0x10) {
         return -1;
     }
 
-    work->animId = args->animId;
-    if (args->withArg != 0) {
+    work->animId = args->field_4;
+    if (args->field_8 != 0) {
         SOFT_BARRIER();
         work->state   = 1;
-        work->animArg = args->animArg;
+        work->animArg = args->field_C;
     } else {
         work->state = 2;
     }

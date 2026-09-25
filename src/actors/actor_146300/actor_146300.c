@@ -45,19 +45,6 @@ STATIC_ASSERT_SIZEOF(Actor146300Work, 0x4EC);
 /// `func_actor_146300_801326CC` and by the spawn routine.
 extern Actor146300Work* D_actor_146300_80142828;
 
-/// Animation preset the overlay's 0x7D3 message handler applies to
-/// the work block: `field_4` is the animation id, `field_8` picks the reset
-/// path -- non-zero for the reseed through `func_800B4114` with a reset
-/// argument, zero for a plain one -- and `field_C` becomes that reset argument.
-/// `func_actor_146300_8013299C` accepts the first 0x11 ids.
-typedef struct Actor146300AnimPreset {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-} Actor146300AnimPreset;
-STATIC_ASSERT_SIZEOF(Actor146300AnimPreset, 0x10);
-
 /// The actor's own task, published by the spawn routine: the 0x7D3 handler
 /// runs the per-frame update on it, and the 0x7D5 handler and the companion's
 /// handler `func_actor_146300_80132B1C` reach the actor's model through its
@@ -475,7 +462,7 @@ void func_actor_146300_8013291C(void)
 /// one of the first 0x11, latching the reset mode and the reset argument the
 /// reseed forwards, then hands the published task to the per-frame update. Ids
 /// past the range are rejected with -1 and leave the work block untouched.
-s32 func_actor_146300_8013299C(Task* task, s32 arg1, Actor146300AnimPreset* preset)
+s32 func_actor_146300_8013299C(Task* task, s32 arg1, GpAnimArg* preset)
 {
     if (preset->field_4 < 0x11) {
         D_actor_146300_80142828->field_4B8 = preset->field_4;

@@ -91,7 +91,7 @@ void Gp_ScriptTaskState1(Task* arg0)
 {
     GpEvsState* st;
     GpEvsState* st2;
-    GpRec14     rec;
+    GpAnimArg   rec;
     SVECTOR     vec;
     TextDrawReq req;
     Task*       slot;
@@ -249,11 +249,11 @@ void Gp_ScriptTaskState1(Task* arg0)
 
             case 10:
                 slot = gameGetPtrSlot(st->pc->arg0);
-                rec  = *(GpRec14*)st->pc->arg3;
+                rec  = *(GpAnimArg*)st->pc->arg3;
                 if (st->pc->arg0 == 3) {
-                    Gp_PlayerWeaponId(&rec.field_0);
+                    Gp_PlayerWeaponId(&rec.animBlock.index);
                 } else {
-                    Gp_AllyAnimId(&rec.field_0);
+                    Gp_AllyAnimId(&rec.animBlock.index);
                 }
                 if (slot != NULL) {
                     Gp_DispatchMsg(slot, st->pc->arg2, (s32)&rec, st->pc->arg4);

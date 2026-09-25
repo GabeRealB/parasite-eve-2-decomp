@@ -66,18 +66,6 @@ extern s16 D_actor_260500_80159D7C;
 /// update picks its step length from it.
 extern s16 D_actor_260500_80159E54;
 
-/// Animation preset the actor's play-animation message handler applies to the
-/// work block: `field_4` is the animation id, `field_8` picks the reset path --
-/// non-zero for the blended reseed, zero for the plain one -- and `field_C`
-/// becomes the reset argument the blended reseed forwards.
-typedef struct Actor260500AnimPreset {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-} Actor260500AnimPreset;
-STATIC_ASSERT_SIZEOF(Actor260500AnimPreset, 0x10);
-
 /// Payload of the actor's 0x7DB message; the handler reads only the halfword
 /// at 0x2.
 typedef struct Actor260500Msg {
@@ -350,7 +338,7 @@ void func_actor_260500_8014A644(void)
 /// 2 for the plain one -- and the reset argument the blended reseed forwards,
 /// then runs the update on the actor's task. Ids past the range are rejected
 /// with -1 and leave the work block untouched.
-s32 func_actor_260500_8014A6C4(Task* task, s32 arg1, Actor260500AnimPreset* preset)
+s32 func_actor_260500_8014A6C4(Task* task, s32 arg1, GpAnimArg* preset)
 {
     if (preset->field_4 < 0x24) {
         D_actor_260500_80159E4C->field_480 = preset->field_4;

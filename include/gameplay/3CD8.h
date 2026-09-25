@@ -8,6 +8,7 @@
 #include <psyq/libgs.h>
 
 #include "gameplay/light.h"
+#include "gameplay/message.h"
 #include "main/session.h"
 #include "main/task.h"
 
@@ -111,14 +112,9 @@ typedef struct _GpOverlayIds {
 } GpOverlayIds;
 STATIC_ASSERT_SIZEOF(GpOverlayIds, 6);
 
-/// 0x14-byte payload copied from `Gp_WeaponMsgRec` by `Gp_MsgPlayerWeapon` (arg 0)
-/// and sent as slot-3 msg `0x3E8`. `field_0` is overwritten with
-/// `Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon`
-/// (same value `Gp_PlayerWeaponId` writes). `Gp_MsgAllyWeapon` copies the same
-/// record to slot 0xA and overwrites `field_0` with
-/// `Gp_AllyIdBase[Mc_SaveData.companionType - 1] + Mc_SaveData.companionVariant`
-/// (same value `Gp_AllyAnimId` writes). Nearby `D_8010FB10` /
-/// `D_8010FB24` are the same size (`Gp_EvtCapWeaponTask` copies them for msg `0x3FA`).
+/// The field-numbered spelling of `GpAnimArg` that room code still declares
+/// its animation payloads with. It is the same record; new code uses
+/// `GpAnimArg`.
 typedef struct _GpRec14 {
     /* 0x00 */ s32 field_0;
     /* 0x04 */ s32 field_4;

@@ -66,17 +66,6 @@ typedef union Actor400600State {
 } Actor400600State;
 STATIC_ASSERT_SIZEOF(Actor400600State, 0x4);
 
-/// Payload `func_actor_400600_80133FC0` sends the `gameGetPtrSlot(3)` task as
-/// message 0x3FF, with `field_0` pointing at `D_actor_400600_80151A48`.
-typedef struct Actor400600Msg3FF {
-    /* 0x00 */ void* field_0;
-    /* 0x04 */ s32   field_4;
-    /* 0x08 */ s32   field_8;
-    /* 0x0C */ s32   field_C;
-    /* 0x10 */ s32   field_10;
-} Actor400600Msg3FF;
-STATIC_ASSERT_SIZEOF(Actor400600Msg3FF, 0x14);
-
 /// Reply buffer `func_actor_400600_80133FC0` passes with message 0x3F8; only
 /// `field_14` is seeded (to 8) before the query.
 typedef struct Actor400600Msg3F8 {
@@ -1299,7 +1288,7 @@ void func_actor_400600_80133E38(Task* arg0)
 
 void func_actor_400600_80133FC0(Task* arg0)
 {
-    Actor400600Msg3FF msg;
+    GpAnimArg         msg;
     Actor400600Msg3F8 query;
     Actor400600Work*  work;
     Actor400600Work*  work2;
@@ -1337,7 +1326,7 @@ void func_actor_400600_80133FC0(Task* arg0)
     Gp_StateC08.field_6 |= 1;
     work->field_767      = 1;
     work->field_9A       = work->field_92;
-    msg.field_0          = D_actor_400600_80151A48;
+    msg.animBlock.ptr    = D_actor_400600_80151A48;
     msg.field_8          = 0;
     msg.field_C          = 0;
     msg.field_10         = 0;
@@ -1364,21 +1353,21 @@ void func_actor_400600_80133FC0(Task* arg0)
 
 void func_actor_400600_80134218(Task* arg0)
 {
-    Actor400600Msg3FF msg;
-    SVECTOR           vec;
-    Actor400600Work*  work;
-    Actor400600Work*  work2;
-    GpEnemy*          enemy;
-    GsCOORDINATE2*    coord;
-    GsCOORDINATE2*    player;
-    GsCOORDINATE2*    root;
-    s32               id;
-    s32               sound;
-    s32               pan;
-    s32               sound2;
-    s32               pan2;
-    s32               y;
-    s32               ty;
+    GpAnimArg        msg;
+    SVECTOR          vec;
+    Actor400600Work* work;
+    Actor400600Work* work2;
+    GpEnemy*         enemy;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   player;
+    GsCOORDINATE2*   root;
+    s32              id;
+    s32              sound;
+    s32              pan;
+    s32              sound2;
+    s32              pan2;
+    s32              y;
+    s32              ty;
 
     work               = (Actor400600Work*)arg0->work;
     coord              = ((TmdObject*)arg0->extra)->coords;
@@ -1399,11 +1388,11 @@ void func_actor_400600_80134218(Task* arg0)
     if (work->field_763 == 1 || work->field_764 == 1 || enemy->hp <= 0 || work->field_75C.b.field_75C >= 3) {
         work->field_763 = 0;
         if (work->field_764 == 0) {
-            msg.field_0  = D_actor_400600_80151A48;
-            msg.field_8  = 1;
-            msg.field_C  = 8;
-            msg.field_10 = 0;
-            msg.field_4  = 2;
+            msg.animBlock.ptr = D_actor_400600_80151A48;
+            msg.field_8       = 1;
+            msg.field_C       = 8;
+            msg.field_10      = 0;
+            msg.field_4       = 2;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F4, (s32)&msg, 0);
         }
         work2                = (Actor400600Work*)arg0->work;

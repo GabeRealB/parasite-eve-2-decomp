@@ -33,13 +33,6 @@ typedef struct Actor202900Work {
     /* 0x484 */ s16        field_484; // frame the second slot last held when it was 0x15, kept for change detection
 } Actor202900Work;
 
-/// Argument block of the animation-start message `func_actor_202900_8014A3E0`
-/// handles: which animation to start.
-typedef struct Actor202900AnimArgs {
-    /* 0x0 */ byte pad_0[4];
-    /* 0x4 */ s32  animId;
-} Actor202900AnimArgs;
-
 extern u8       D_actor_202900_80156E0C[];
 extern TaskDesc D_actor_202900_80156E24[];
 extern u8       D_actor_202900_80156E3C[];
@@ -308,12 +301,12 @@ s32 func_actor_202900_8014A394(void)
 /// is where the original evaluates it, and it is what puts the global's
 /// `lui`/`lw` ahead of the `li 2` and leaves the `field_482` clear for the
 /// call's delay slot.
-s32 func_actor_202900_8014A3E0(Task* task, s32 arg1, Actor202900AnimArgs* args)
+s32 func_actor_202900_8014A3E0(Task* task, s32 arg1, GpAnimArg* args)
 {
     Task* actor;
 
-    if (args->animId < 5) {
-        D_actor_202900_80156E54->animId    = args->animId;
+    if (args->field_4 < 5) {
+        D_actor_202900_80156E54->animId    = args->field_4;
         actor                              = D_actor_202900_80156E58;
         D_actor_202900_80156E54->field_47C = 2;
         D_actor_202900_80156E54->field_482 = 0;

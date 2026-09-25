@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "gameplay/message.h"
 #include "main/task.h"
 
 /// Head of the enemy work block `actor_323000`, `actor_323400` and
@@ -20,15 +21,8 @@ typedef struct ActorShared80164af0Work {
     /* 0x82E */ u16  field_82E;
 } ActorShared80164af0Work;
 
-/// Payload the sender of message 0x7D3 passes as `Gp_DispatchMsg`'s `arg2`;
-/// only the animation id at 0x4 is read.
-typedef struct ActorShared80164af0Msg {
-    /* 0x0 */ byte pad_0[0x4];
-    /* 0x4 */ u16  field_4;
-} ActorShared80164af0Msg;
-
 /// Handler for message 0x7D3 in all three overlays: latches the requested
 /// animation and restarts the animation state machine.
-s32 ActorsShared80164af0(Task* task, s32 arg1, ActorShared80164af0Msg* msg, s32 arg3);
+s32 ActorsShared80164af0(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3);
 
 #endif

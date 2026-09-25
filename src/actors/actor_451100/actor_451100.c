@@ -67,15 +67,6 @@ typedef struct Actor451100Work {
 } Actor451100Work;
 STATIC_ASSERT_SIZEOF(Actor451100Work, 0x4C0);
 
-/// Argument block of the "start animation" script opcodes: which animation to
-/// play, and how.
-typedef struct Actor451100AnimArgs {
-    /* 0x0 */ byte pad_0[4];
-    /* 0x4 */ s32  animId;
-    /* 0x8 */ s32  withArg;
-    /* 0xC */ u16  animArg;
-} Actor451100AnimArgs;
-
 /// Payload of the message handlers that only read the halfword at 0x2.
 typedef struct Actor451100Msg {
     /* 0x0 */ byte pad_0[2];
@@ -315,7 +306,7 @@ void func_actor_451100_801324B8(void)
     D_actor_451100_8014E744->field_47E = D_actor_451100_8014E744->animId;
 }
 
-/// Script opcode: start animation `args->animId` on this actor through
+/// Script opcode: start animation `args->field_4` on this actor through
 /// `func_actor_451100_80131F84`, the step routine of the actor whose block is
 /// published in `D_actor_451100_8014E744`.
 ///
@@ -323,13 +314,13 @@ void func_actor_451100_801324B8(void)
 /// `func_actor_451100_80132E98`; only the accepted id range (0x25 instead of
 /// 0x12) and the run entry point differ. `animArg` goes to the overlay's reset
 /// word instead of the work block's own slot.
-s32 func_actor_451100_80132538(Task* task, s32 arg1, Actor451100AnimArgs* args)
+s32 func_actor_451100_80132538(Task* task, s32 arg1, GpAnimArg* args)
 {
-    if (args->animId < 0x25) {
-        D_actor_451100_8014E744->animId = args->animId;
-        if (args->withArg != 0) {
+    if (args->field_4 < 0x25) {
+        D_actor_451100_8014E744->animId = args->field_4;
+        if (args->field_8 != 0) {
             D_actor_451100_8014E744->state = 1;
-            D_actor_451100_8013F700        = args->animArg;
+            D_actor_451100_8013F700        = args->field_C;
         } else {
             D_actor_451100_8014E744->state = 2;
         }
@@ -664,7 +655,7 @@ void func_actor_451100_80132E34(Task* task)
     work->field_47E = work->animId;
 }
 
-/// Script opcode: start animation `args->animId` on this actor.
+/// Script opcode: start animation `args->field_4` on this actor.
 ///
 /// `withArg` selects between the two start paths `func_actor_451100_80132A1C`
 /// dispatches on, and only the first carries `animArg`. Returns -1, without
@@ -676,20 +667,20 @@ void func_actor_451100_80132E34(Task* task)
 /// once an `asm` at the head of the fall-through stops it searching that
 /// thread. See DECOMPILATION_LEARNINGS.md, "An empty asm at the head of the
 /// then-arm moves the delay slot to the else arm".
-s32 func_actor_451100_80132E98(Task* task, s32 arg1, Actor451100AnimArgs* args)
+s32 func_actor_451100_80132E98(Task* task, s32 arg1, GpAnimArg* args)
 {
     Actor451100Work* work;
 
     work = (Actor451100Work*)task->work;
-    if (args->animId >= 0x12) {
+    if (args->field_4 >= 0x12) {
         return -1;
     }
 
-    work->animId = args->animId;
-    if (args->withArg != 0) {
+    work->animId = args->field_4;
+    if (args->field_8 != 0) {
         SOFT_BARRIER();
         work->state   = 1;
-        work->animArg = args->animArg;
+        work->animArg = args->field_C;
     } else {
         work->state = 2;
     }

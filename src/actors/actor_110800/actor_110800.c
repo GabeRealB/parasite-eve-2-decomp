@@ -12,13 +12,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Argument block of the 0x7D3 message: the animation to start, after a
-/// 4-byte field the handler does not read.
-typedef struct Actor110800AnimArgs {
-    /* 0x0 */ byte pad_0[4];
-    /* 0x4 */ s32  animId;
-} Actor110800AnimArgs;
-
 /// The block above, published by `func_actor_110800_801322A0` from the task's
 /// `Task::work`.
 extern Actor110300Work* D_actor_110800_80139F10;
@@ -286,19 +279,19 @@ void func_actor_110800_801324AC(void)
     D_actor_110800_80139F10->field_476 = D_actor_110800_80139F10->animId;
 }
 
-/// Message 0x7D3 handler: starts animation `args->animId`, rejecting anything
+/// Message 0x7D3 handler: starts animation `args->field_4`, rejecting anything
 /// from 6 up, and leaves the actor in step 2 with `field_47A` cleared before
 /// running the animation step driver.
 ///
 /// The actor is read into a local between the first two stores: that puts the
 /// global's `lui`/`lw` ahead of the `li 2` and leaves the `field_47A` clear
 /// for the call's delay slot.
-s32 func_actor_110800_80132524(Task* task, s32 arg1, Actor110800AnimArgs* args)
+s32 func_actor_110800_80132524(Task* task, s32 arg1, GpAnimArg* args)
 {
     Task* actor;
 
-    if (args->animId < 6) {
-        D_actor_110800_80139F10->animId    = args->animId;
+    if (args->field_4 < 6) {
+        D_actor_110800_80139F10->animId    = args->field_4;
         actor                              = D_actor_110800_80139F14;
         D_actor_110800_80139F10->field_474 = 2;
         D_actor_110800_80139F10->field_47A = 0;

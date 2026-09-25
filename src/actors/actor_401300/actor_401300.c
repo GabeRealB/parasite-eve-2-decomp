@@ -30,14 +30,6 @@ typedef struct Actor401300Waypoint {
     /* 0x2 */ s16 z;
 } Actor401300Waypoint;
 
-/// Payload `func_actor_401300_80138B24` sends with message 0x3FF, seeded from
-/// `D_actor_401300_80158914` at init; `field_4` is the sub-code.
-typedef struct Actor401300Msg3FF {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8[3];
-} Actor401300Msg3FF;
-
 /// Private work block of the actor 401300 task, hanging off `Task::work`.
 ///
 /// Only the fields the matched code touches are named so far: `yaw` at 0x18
@@ -129,14 +121,14 @@ typedef struct Actor401300Work {
     /* 0xCA6 */ byte    pad_CA6[2];
     /// Copy of the first three bytes of the last event
     /// `func_actor_401300_80132554` handled.
-    /* 0xCA8 */ u8                field_CA8[3];
-    /* 0xCAB */ byte              pad_CAB;
-    /* 0xCAC */ Actor401300Msg3FF field_CAC;
-    /* 0xCC0 */ s32               field_CC0[3];
-    /* 0xCCC */ byte              pad_CCC[4];
-    /* 0xCD0 */ s16               field_CD0;
-    /* 0xCD2 */ u8                field_CD2;
-    /* 0xCD3 */ byte              pad_CD3;
+    /* 0xCA8 */ u8        field_CA8[3];
+    /* 0xCAB */ byte      pad_CAB;
+    /* 0xCAC */ GpAnimArg field_CAC;
+    /* 0xCC0 */ s32       field_CC0[3];
+    /* 0xCCC */ byte      pad_CCC[4];
+    /* 0xCD0 */ s16       field_CD0;
+    /* 0xCD2 */ u8        field_CD2;
+    /* 0xCD3 */ byte      pad_CD3;
     /// Player position and facing sent with message 0x3E9 by
     /// `func_actor_401300_80138800`.
     /* 0xCD4 */ VECTOR  field_CD4;
@@ -197,14 +189,6 @@ typedef struct Actor401300AnimWork {
     /* 0x8B0 */ s16        field_8B0;
 } Actor401300AnimWork;
 
-/// Payload of the message `func_actor_401300_80141494` handles; `field_4`
-/// selects the animation id written to `Actor401300Work::field_8A2`. Same
-/// shape as `Actor01900Msg7D3`.
-typedef struct Actor401300Msg {
-    /* 0x0 */ s32 field_0;
-    /* 0x4 */ u32 field_4;
-} Actor401300Msg;
-
 /// Event record `func_actor_401300_80132554` dispatches on: `w[0]` is the
 /// event kind (0x301, 0xB05, 0x1D05) and `w[1]` its sub-code, and the first
 /// three bytes are also copied raw into `Actor401300Work::field_CA8`.
@@ -236,10 +220,10 @@ extern SVECTOR D_actor_401300_80158A08[2];
 extern GpPairSrcE D_actor_401300_80141FA0;
 extern SVECTOR    D_actor_401300_80141FB0[3];
 extern s32        D_actor_401300_80158838;
-/// Handler table `func_actor_401300_80138160` points `field_CAC.field_0` at.
-extern s32               D_actor_401300_801588F0;
-extern Actor401300Msg3FF D_actor_401300_80158914;
-extern s32               D_actor_401300_80158988;
+/// The animation block the 0x3FF payload in `field_CAC` hands the player.
+extern s32       D_actor_401300_801588F0;
+extern GpAnimArg D_actor_401300_80158914;
+extern s32       D_actor_401300_80158988;
 
 /// Twelve vectors `func_actor_401300_80134BA4` picks from by LCG, grouped by
 /// `|arg1|`: 0-4 below 0x200, 5-7 above 0x600, else 8-9 / 10-11 by sign.
@@ -2574,8 +2558,8 @@ void func_actor_401300_80138160(Task* arg0)
     if ((work->field_5E & 0x3FF) == 0x10 && player->field_954 != 2) {
         angle = actorMatrixPositionYaw(arg0, &pos, D_80073B8C);
         if (abs(angle) < 0x10 && !actorOutOfRange(&pos, 0x44C)) {
-            work->field_CAC.field_0 = (s32)&D_actor_401300_801588F0;
-            work->field_D00         = 8;
+            work->field_CAC.animBlock.ptr = &D_actor_401300_801588F0;
+            work->field_D00               = 8;
             if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&work->field_CEC, 0) == 0) {
                 work->field_0           = 0xC;
                 work->field_D20         = 1;
@@ -3956,17 +3940,17 @@ void func_actor_401300_8013DADC(Task* arg0)
                 work->field_D00 = 0x7F;
                 if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&work->field_CEC, 0) == 0) {
                     Gp_SpawnPadLerp(0x10, 8, 0xFF);
-                    work->field_D20         = 1;
-                    work->field_CAC.field_0 = (s32)&D_actor_401300_801588F0;
-                    work->field_CC0[2]      = 0;
-                    work->field_CC0[1]      = 0;
-                    work->field_CC0[0]      = 0;
-                    work->field_CD0         = 7;
-                    work->field_CD2         = 1;
-                    aim->delta.vx           = -aim->delta.vx;
-                    aim->delta.vy           = -aim->delta.vy;
-                    aim->delta.vz           = -aim->delta.vz;
-                    aim->angle              = actorYawTo(((TmdObject*)task->extra)->coords, aim->delta.vx, aim->delta.vz);
+                    work->field_D20               = 1;
+                    work->field_CAC.animBlock.ptr = &D_actor_401300_801588F0;
+                    work->field_CC0[2]            = 0;
+                    work->field_CC0[1]            = 0;
+                    work->field_CC0[0]            = 0;
+                    work->field_CD0               = 7;
+                    work->field_CD2               = 1;
+                    aim->delta.vx                 = -aim->delta.vx;
+                    aim->delta.vy                 = -aim->delta.vy;
+                    aim->delta.vz                 = -aim->delta.vz;
+                    aim->angle                    = actorYawTo(((TmdObject*)task->extra)->coords, aim->delta.vx, aim->delta.vz);
                     if (abs(aim->angle) < 0x400) {
                         amount                  = -0x64;
                         work->field_CAC.field_4 = 4;
@@ -4181,12 +4165,12 @@ void func_actor_401300_8013E930(Task* arg0)
                     Gp_SpawnPadLerp(0x10, 8, 0xFF);
                     SndEvt_EnqueueType6(6, (s8)Gp_GetObjPan(((TmdObject*)task->extra)->coords),
                                         (s8)gpGetObjDepth(((TmdObject*)task->extra)->coords));
-                    work->field_D20         = 1;
-                    work->field_CAC.field_0 = (s32)&D_actor_401300_801588F0;
-                    blk->delta.vx           = work->field_D04 - ((TmdObject*)task->extra)->coords->coord.t[0];
-                    blk->delta.vy           = work->field_D06 - ((TmdObject*)task->extra)->coords->coord.t[1];
-                    blk->delta.vz           = work->field_D08 - ((TmdObject*)task->extra)->coords->coord.t[2];
-                    blk->angle              = actorYawTo(((TmdObject*)task->extra)->coords, head[-1].delta.vx, delta->vz);
+                    work->field_D20               = 1;
+                    work->field_CAC.animBlock.ptr = &D_actor_401300_801588F0;
+                    blk->delta.vx                 = work->field_D04 - ((TmdObject*)task->extra)->coords->coord.t[0];
+                    blk->delta.vy                 = work->field_D06 - ((TmdObject*)task->extra)->coords->coord.t[1];
+                    blk->delta.vz                 = work->field_D08 - ((TmdObject*)task->extra)->coords->coord.t[2];
+                    blk->angle                    = actorYawTo(((TmdObject*)task->extra)->coords, head[-1].delta.vx, delta->vz);
                     if (abs(blk->angle) < 0x400) {
                         amount                  = -0x46;
                         work->field_CAC.field_4 = 4;
@@ -4906,7 +4890,7 @@ const GpEnemyTaskFuncTable3 D_actor_401300_8013201C = { {
     Gp_DestroyEnemy,
 } };
 
-s32 func_actor_401300_80141494(Task* arg0, s32 arg1, Actor401300Msg* arg2)
+s32 func_actor_401300_80141494(Task* arg0, s32 arg1, GpAnimArg* arg2)
 {
     Actor401300Work* work = arg0->work;
 

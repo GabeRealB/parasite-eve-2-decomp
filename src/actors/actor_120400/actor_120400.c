@@ -63,18 +63,6 @@ STATIC_ASSERT_SIZEOF(Actor120400MainWork, 0x504);
 /// `func_800B3F84`.
 extern void* D_actor_120400_8013E744[];
 
-/// Animation preset: `field_0` is the bank id, `field_4` the animation id,
-/// `field_8` selects restarting the slots through `func_800B4114` over
-/// resetting them, and `field_C` is the restart's last argument.
-typedef struct Actor120400AnimPreset {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-    /* 0x10 */ s32 field_10;
-} Actor120400AnimPreset;
-STATIC_ASSERT_SIZEOF(Actor120400AnimPreset, 0x14);
-
 /// Optional start animation for `func_actor_120400_80132398`: the preset's
 /// `field_4` and the `field_477` byte. Absent, the defaults are 0x10 and 1.
 typedef struct Actor120400SpawnAnim {
@@ -103,7 +91,7 @@ void func_actor_120400_801327F8(Task* task);
 void func_actor_120400_80132860(Task* task);
 void func_actor_120400_80132920(Task* task);
 void func_actor_120400_801329A0(Task* arg0);
-s32  func_actor_120400_80132AA0(Task* task, s32 arg1, Actor120400AnimPreset* msg, s32 arg3);
+s32  func_actor_120400_80132AA0(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3);
 
 /// Spawn, tick and teardown handlers of the two child tasks, dispatched by
 /// `func_actor_120400_8013254C`.
@@ -287,12 +275,12 @@ void func_actor_120400_80132050(Task* arg0)
 /// the 0x7D3 handler, stops the velocity `step` and advances `field_4FA`.
 void func_actor_120400_80132254(Task* arg0)
 {
-    Actor120400MainWork*  work;
-    GsCOORDINATE2*        coord;
-    SVECTOR               d;
-    s32                   dx;
-    s32                   dz;
-    Actor120400AnimPreset preset;
+    Actor120400MainWork* work;
+    GsCOORDINATE2*       coord;
+    SVECTOR              d;
+    s32                  dx;
+    s32                  dz;
+    GpAnimArg            preset;
 
     work  = (Actor120400MainWork*)arg0->work;
     coord = ((TmdObject*)arg0->extra)->coords;
@@ -309,11 +297,11 @@ void func_actor_120400_80132254(Task* arg0)
     }
     d.vz = dz;
     if (d.vx >= work->limit.vx && d.vz >= work->limit.vz) {
-        preset.field_0  = 0;
-        preset.field_4  = work->field_477;
-        preset.field_8  = 1;
-        preset.field_C  = 5;
-        preset.field_10 = 0;
+        preset.animBlock.index = 0;
+        preset.field_4         = work->field_477;
+        preset.field_8         = 1;
+        preset.field_C         = 5;
+        preset.field_10        = 0;
         func_actor_120400_80132AA0(arg0, 0x7D3, &preset, 0);
         work->step.vx = 0;
         work->step.vy = 0;
@@ -339,23 +327,23 @@ void func_actor_120400_80132254(Task* arg0)
 /// same 0x14 slots and `field_474` raised. Returns 0 either way.
 s32 func_actor_120400_80132398(Task* task, s32 arg1, GpPlaceArg* place, Actor120400SpawnAnim* anim)
 {
-    Actor120400MainWork*   work;
-    Actor120400MainWork*   w;
-    Actor120400AnimPreset  preset;
-    Actor120400AnimPreset* msg;
-    s32                    i;
-    TmdObject*             ext;
+    Actor120400MainWork* work;
+    Actor120400MainWork* w;
+    GpAnimArg            preset;
+    GpAnimArg*           msg;
+    s32                  i;
+    TmdObject*           ext;
 
-    w              = (Actor120400MainWork*)task->work;
-    w->field_4F8   = 1;
-    w->field_4FA   = 0;
-    w->target.vx   = place->pos.vx;
-    w->target.vy   = place->pos.vy;
-    w->target.vz   = place->pos.vz;
-    w->field_4F0   = place->rot.vx;
-    w->field_4F2   = place->rot.vy;
-    w->field_4F4   = place->rot.vz;
-    preset.field_0 = 0;
+    w                      = (Actor120400MainWork*)task->work;
+    w->field_4F8           = 1;
+    w->field_4FA           = 0;
+    w->target.vx           = place->pos.vx;
+    w->target.vy           = place->pos.vy;
+    w->target.vz           = place->pos.vz;
+    w->field_4F0           = place->rot.vx;
+    w->field_4F2           = place->rot.vy;
+    w->field_4F4           = place->rot.vz;
+    preset.animBlock.index = 0;
     if (anim != NULL) {
         preset.field_4 = anim->field_0;
         w->field_477   = anim->field_4;
@@ -370,8 +358,8 @@ s32 func_actor_120400_80132398(Task* task, s32 arg1, GpPlaceArg* place, Actor120
     msg  = &preset;
     work = (Actor120400MainWork*)task->work;
     ext  = task->extra;
-    if (msg->field_0 != work->field_476) {
-        work->field_476 = msg->field_0;
+    if (msg->animBlock.index != work->field_476) {
+        work->field_476 = msg->animBlock.index;
         func_800B3F84(&work->anim, D_actor_120400_8013E744[work->field_476], ext, work->poses,
                       work->slots);
     }
@@ -575,13 +563,13 @@ void func_actor_120400_80132920(Task* task)
 /// root coordinate is rebuilt as the identity matrix rotated by `vec`.
 void func_actor_120400_801329A0(Task* arg0)
 {
-    Actor120400MainWork*  work;
-    ActorMatWords*        words;
-    GsCOORDINATE2*        coord;
-    SVECTOR               vec;
-    Actor120400AnimPreset preset;
-    s32                   vy;
-    s16                   diff;
+    Actor120400MainWork* work;
+    ActorMatWords*       words;
+    GsCOORDINATE2*       coord;
+    SVECTOR              vec;
+    GpAnimArg            preset;
+    s32                  vy;
+    s16                  diff;
 
     coord = ((TmdObject*)arg0->extra)->coords;
     work  = (Actor120400MainWork*)arg0->work;
@@ -596,12 +584,12 @@ void func_actor_120400_801329A0(Task* arg0)
             vec.vy = vy + 0x40;
         }
     } else {
-        vec.vy          = work->field_4F2;
-        preset.field_0  = 0;
-        preset.field_4  = work->field_477;
-        preset.field_8  = 1;
-        preset.field_C  = 5;
-        preset.field_10 = 0;
+        vec.vy                 = work->field_4F2;
+        preset.animBlock.index = 0;
+        preset.field_4         = work->field_477;
+        preset.field_8         = 1;
+        preset.field_C         = 5;
+        preset.field_10        = 0;
         func_actor_120400_80132AA0(arg0, 0x7D3, &preset, 0);
         work->field_4F8 = 0;
         work->field_4FA = 0;
@@ -623,7 +611,7 @@ void func_actor_120400_801329A0(Task* arg0)
 /// already live, restarts animation `field_4` on every slot through
 /// `func_800B4114` (passing `field_C`), otherwise resets every slot to it, and
 /// ticks them all once. Returns 0.
-s32 func_actor_120400_80132AA0(Task* task, s32 arg1, Actor120400AnimPreset* msg, s32 arg3)
+s32 func_actor_120400_80132AA0(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 {
     Actor120400MainWork* work;
     TmdObject*           ext;
@@ -631,8 +619,8 @@ s32 func_actor_120400_80132AA0(Task* task, s32 arg1, Actor120400AnimPreset* msg,
 
     work = (Actor120400MainWork*)task->work;
     ext  = task->extra;
-    if (msg->field_0 != work->field_476) {
-        work->field_476 = msg->field_0;
+    if (msg->animBlock.index != work->field_476) {
+        work->field_476 = msg->animBlock.index;
         func_800B3F84(&work->anim, D_actor_120400_8013E744[work->field_476], ext, work->poses,
                       work->slots);
     }

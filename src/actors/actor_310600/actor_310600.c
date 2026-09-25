@@ -62,17 +62,6 @@ typedef struct Actor310600Work {
 } Actor310600Work;
 STATIC_ASSERT_SIZEOF(Actor310600Work, 0x538);
 
-/// The 0x14-byte command block the actor's state handlers build on the stack
-/// and hand to `func_actor_310600_8016246C`, which reads it as
-/// `{animId, state, path, param}`.
-typedef struct Actor310600Cmd {
-    /* 0x00 */ s32 animId;
-    /* 0x04 */ s32 state;
-    /* 0x08 */ s32 path;
-    /* 0x0C */ s32 param;
-    /* 0x10 */ s32 unk10;
-} Actor310600Cmd;
-
 /// Spawn table entry 1 is this actor's `Task::state` dispatcher; the type-1
 /// setup entry it is spawned from is `func_actor_310600_80161E64`.
 extern TaskDesc D_actor_310600_801796A4[];
@@ -98,7 +87,7 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_actor_310600_80161E64(Task* task);
 void func_actor_310600_80161FA0(Task* task);
 void func_actor_310600_8016231C(Task* arg0);
-s32  func_actor_310600_8016246C(Task* task, s32 arg1, Actor310600Cmd* cmd, s32 arg3);
+s32  func_actor_310600_8016246C(Task* task, s32 arg1, GpAnimArg* cmd, s32 arg3);
 s32  func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3);
 void func_actor_310600_801627A4(Task* task);
 void func_actor_310600_801628B0(Task* task);
@@ -303,7 +292,7 @@ void func_actor_310600_8016231C(Task* arg0)
     SVECTOR          d;
     s32              dx;
     s32              dz;
-    Actor310600Cmd   cmd;
+    GpAnimArg        cmd;
 
     work  = (Actor310600Work*)arg0->work;
     coord = (GpCoordExt*)((TmdObject*)arg0->extra)->coords;
@@ -321,11 +310,11 @@ void func_actor_310600_8016231C(Task* arg0)
     d.vz = dz;
     if (d.vx >= work->limit.vx && d.vz >= work->limit.vz) {
         if (work->field_475 == 0xC) {
-            cmd.animId = 0;
-            cmd.state  = 0xD;
-            cmd.path   = 1;
-            cmd.param  = 0xA;
-            cmd.unk10  = 0;
+            cmd.animBlock.index = 0;
+            cmd.field_4         = 0xD;
+            cmd.field_8         = 1;
+            cmd.field_C         = 0xA;
+            cmd.field_10        = 0;
             func_actor_310600_8016246C(arg0, 0x7D3, &cmd, 0);
         }
         work->step.vx   = 0;
@@ -349,8 +338,8 @@ void func_actor_310600_8016231C(Task* arg0)
 /// The two byte stores must stay in this order. The second one is a QImode
 /// store to a varying address, so cse treats it as aliasing everything and
 /// drops the equivalence the first one recorded; that is what keeps
-/// `work->field_476` a reload instead of the register `cmd->animId` arrived in.
-s32 func_actor_310600_8016246C(Task* task, s32 arg1, Actor310600Cmd* cmd, s32 arg3)
+/// `work->field_476` a reload instead of the register `cmd->animBlock.index` arrived in.
+s32 func_actor_310600_8016246C(Task* task, s32 arg1, GpAnimArg* cmd, s32 arg3)
 {
     Actor310600Work* work;
     TmdObject*       ext;
@@ -359,17 +348,17 @@ s32 func_actor_310600_8016246C(Task* task, s32 arg1, Actor310600Cmd* cmd, s32 ar
 
     work = (Actor310600Work*)task->work;
     ext  = task->extra;
-    if (cmd->animId != work->field_476) {
-        work->field_476 = cmd->animId;
+    if (cmd->animBlock.index != work->field_476) {
+        work->field_476 = cmd->animBlock.index;
         work->field_475 = -1;
         func_800B3F84(&work->anim, D_actor_310600_80179640[work->field_476], ext, work->field_334,
                       work->slots);
     }
-    if (cmd->state != work->field_475) {
-        work->field_475 = cmd->state;
-        if (cmd->path != 0) {
+    if (cmd->field_4 != work->field_475) {
+        work->field_475 = cmd->field_4;
+        if (cmd->field_8 != 0) {
             for (i = 1; i < 0x14; i++) {
-                func_800B4114(&work->anim, i, work->field_475, 0, cmd->param);
+                func_800B4114(&work->anim, i, work->field_475, 0, cmd->field_C);
             }
         } else {
             for (i = 1; i < 0x14; i++) {
@@ -701,7 +690,7 @@ s32 func_actor_310600_80162C18(Task* task, s32 arg1, GpPlaceArg* args)
 void func_actor_310600_80162C94(Task* arg0, s32 arg1, VECTOR* arg2)
 {
     Actor310600Work* work;
-    Actor310600Cmd   cmd;
+    GpAnimArg        cmd;
 
     work = (Actor310600Work*)arg0->work;
 
@@ -710,11 +699,11 @@ void func_actor_310600_80162C94(Task* arg0, s32 arg1, VECTOR* arg2)
     work->field_4FC = arg2->vy;
     work->field_500 = arg2->vz;
 
-    cmd.animId = 0;
-    cmd.state  = 0xC;
-    cmd.path   = 0;
-    cmd.param  = 0;
-    cmd.unk10  = 0;
+    cmd.animBlock.index = 0;
+    cmd.field_4         = 0xC;
+    cmd.field_8         = 0;
+    cmd.field_C         = 0;
+    cmd.field_10        = 0;
 
     func_actor_310600_8016246C(arg0, 0x7D3, &cmd, 0);
 }

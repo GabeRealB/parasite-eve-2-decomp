@@ -703,27 +703,6 @@ typedef struct _GpDelayArg {
     /* 0x14 */ s32  field_14;
 } GpDelayArg;
 
-/// Payload of the messages that start an animation on an actor. `animBlock`
-/// selects the animation block to play from, in one of two ways depending on
-/// the message: the player's 0x3E8 / 0x3EA-0x3EC handlers and the actors' 0x7D3
-/// handlers take an `index` into the receiver's own block table and reinstall
-/// only when the block changes, while the 0x3F4 / 0x3FF handlers take the block
-/// itself as `ptr`. `field_4` is the animation within the block; `field_8 == 0`
-/// resets the child slots to it, otherwise it is played through
-/// `Gp_AnimPlayChildSlotsEx` with `field_C`. `field_10` selects `field_983`
-/// (7 if nonzero, `0x38` if zero).
-typedef struct _GpAnimArg {
-    union {
-        s32   index;
-        void* ptr;
-    } animBlock;
-    s32 field_4;
-    s32 field_8;
-    s32 field_C;
-    s32 field_10;
-} GpAnimArg;
-STATIC_ASSERT_SIZEOF(GpAnimArg, 0x14);
-
 /// Animation data pointed to by `Gp_PlayerAnimBlkTbl` / `Gp_AnimBlkTbl` /
 /// `GameActor.field_928`. `Gp_CopyPlayerAnim` and `Gp_CopyAllyAnim` copy up to
 /// 0x20 words onto `field_BC`.

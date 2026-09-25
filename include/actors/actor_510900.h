@@ -44,7 +44,7 @@ typedef struct Actor510900Work {
     /* 0x580 */ s32     field_580; ///< last sound id queued
     /* 0x584 */ s16     field_584;
     /// Animation id the 0x7D3 handler reseeds slots 1..0x12 with; the handler
-    /// stores `Actor510900AnimArgs::field_4 + 0x1B` here.
+    /// stores `GpAnimArg::field_4 + 0x1B` here.
     /* 0x586 */ s16 field_586;
     /// Animation id the slots were last reseeded with; `func_actor_510900_8013BB20`
     /// reseeds 1..0x12 whenever this differs from `field_586`.

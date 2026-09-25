@@ -78,28 +78,6 @@ typedef struct Actor317000Work {
 } Actor317000Work;
 STATIC_ASSERT_SIZEOF(Actor317000Work, 0x4CC);
 
-/// 0x14-byte animation preset the overlay's state bodies build for
-/// `func_actor_317000_80162A10` (`func_actor_317000_801627D0` and
-/// `func_actor_317000_80162950`) and for its spawn body
-/// `func_actor_317000_80162458`, which is that same install written out
-/// in-line. `field_0` is compared against `Actor317000Work::field_43E` and
-/// `field_4` against `field_43D`, and whichever differs is latched through
-/// `func_800B3F84` and the `Gp_AnimResetSlot` / `Gp_AnimTickIndex` slot loops
-/// -- `field_0` also selects the bank in `D_actor_317000_8016CF40`. `field_0`
-/// is 0 and `field_8` is 1 and `field_C` is 5 in all three; `field_10` is 0 in
-/// the two state bodies and 1 in the spawn body, whose `field_4` is its
-/// optional start animation (the literal 2 when absent) -- the state bodies
-/// take the `field_43F` byte and the literal 2 there. The same five-word shape
-/// as `GpAnimArg`.
-typedef struct Actor317000AnimPreset {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-    /* 0x10 */ s32 field_10;
-} Actor317000AnimPreset;
-STATIC_ASSERT_SIZEOF(Actor317000AnimPreset, 0x14);
-
 /// Optional start animation for the same handler: the preset's `field_4` and
 /// the `field_43F` byte. Absent, the defaults are anim 2 and 1.
 typedef struct Actor317000SpawnAnim {
@@ -141,7 +119,7 @@ void func_actor_317000_80162768(Task* arg0);
 void func_actor_317000_801627D0(Task* arg0);
 void func_actor_317000_801628D8(Task* task);
 void func_actor_317000_80162950(Task* arg0);
-s32  func_actor_317000_80162A10(Task* task, s32 arg1, Actor317000AnimPreset* msg, s32 arg3);
+s32  func_actor_317000_80162A10(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3);
 s32  func_actor_317000_80162BC4(Task* task, s32 arg1, s32 mode, s32 arg3);
 
 /// The actor's three task states, which `func_actor_317000_80162624` runs by
@@ -378,22 +356,22 @@ void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s32 arg3
 /// `field_43C` raised. Returns 0 either way.
 s32 func_actor_317000_80162458(Task* task, s32 arg1, GpPlaceArg* place, Actor317000SpawnAnim* anim)
 {
-    Actor317000Work*       work;
-    Actor317000Work*       w;
-    Actor317000AnimPreset  preset;
-    Actor317000AnimPreset* msg;
-    s32                    i;
-    TmdObject*             ext;
+    Actor317000Work* work;
+    Actor317000Work* w;
+    GpAnimArg        preset;
+    GpAnimArg*       msg;
+    s32              i;
+    TmdObject*       ext;
 
-    w              = (Actor317000Work*)task->work;
-    w->field_4C0   = 1;
-    w->target.vx   = place->pos.vx;
-    w->target.vy   = place->pos.vy;
-    w->target.vz   = place->pos.vz;
-    w->field_4B8   = place->rot.vx;
-    w->field_4BA   = place->rot.vy;
-    w->field_4BC   = place->rot.vz;
-    preset.field_0 = 0;
+    w                      = (Actor317000Work*)task->work;
+    w->field_4C0           = 1;
+    w->target.vx           = place->pos.vx;
+    w->target.vy           = place->pos.vy;
+    w->target.vz           = place->pos.vz;
+    w->field_4B8           = place->rot.vx;
+    w->field_4BA           = place->rot.vy;
+    w->field_4BC           = place->rot.vz;
+    preset.animBlock.index = 0;
     if (anim != NULL) {
         preset.field_4 = anim->field_0;
         w->field_43F   = anim->field_4;
@@ -408,8 +386,8 @@ s32 func_actor_317000_80162458(Task* task, s32 arg1, GpPlaceArg* place, Actor317
     msg  = &preset;
     work = (Actor317000Work*)task->work;
     ext  = task->extra;
-    if (msg->field_0 != work->field_43E) {
-        work->field_43E = msg->field_0;
+    if (msg->animBlock.index != work->field_43E) {
+        work->field_43E = msg->animBlock.index;
         work->field_43D = -1;
         func_800B3F84((GpAnimCtx*)work, D_actor_317000_8016CF40[work->field_43E], ext, work->poses,
                       work->slots);
@@ -529,13 +507,13 @@ void func_actor_317000_80162768(Task* arg0)
 /// identity matrix rotated by `vec`.
 void func_actor_317000_801627D0(Task* arg0)
 {
-    Actor317000Work*      work;
-    ActorMatWords*        words;
-    GsCOORDINATE2*        coord;
-    SVECTOR               vec;
-    Actor317000AnimPreset preset;
-    s32                   vy;
-    s16                   diff;
+    Actor317000Work* work;
+    ActorMatWords*   words;
+    GsCOORDINATE2*   coord;
+    SVECTOR          vec;
+    GpAnimArg        preset;
+    s32              vy;
+    s16              diff;
 
     coord = ((TmdObject*)arg0->extra)->coords;
     work  = (Actor317000Work*)arg0->work;
@@ -550,12 +528,12 @@ void func_actor_317000_801627D0(Task* arg0)
             vec.vy = vy + 0x40;
         }
     } else {
-        vec.vy          = work->field_4BA;
-        preset.field_0  = 0;
-        preset.field_4  = 2;
-        preset.field_8  = 1;
-        preset.field_C  = 5;
-        preset.field_10 = 0;
+        vec.vy                 = work->field_4BA;
+        preset.animBlock.index = 0;
+        preset.field_4         = 2;
+        preset.field_8         = 1;
+        preset.field_C         = 5;
+        preset.field_10        = 0;
         func_actor_317000_80162A10(arg0, 0x7D3, &preset, 0);
         work->field_4C4 = 0;
         work->field_4C2++;
@@ -600,21 +578,21 @@ void func_actor_317000_801628D8(Task* task)
 /// flag the previous body raised is cleared and the dispatcher advances again.
 void func_actor_317000_80162950(Task* arg0)
 {
-    GsCOORDINATE2*        coord;
-    Actor317000Work*      work;
-    Actor317000AnimPreset preset;
-    s32                   pan;
+    GsCOORDINATE2*   coord;
+    Actor317000Work* work;
+    GpAnimArg        preset;
+    s32              pan;
 
     coord = ((TmdObject*)arg0->extra)->coords;
     work  = (Actor317000Work*)arg0->work;
     if (coord->coord.t[1] < -0x30) {
         return;
     }
-    preset.field_0  = 0;
-    preset.field_4  = work->field_43F;
-    preset.field_8  = 1;
-    preset.field_C  = 5;
-    preset.field_10 = 0;
+    preset.animBlock.index = 0;
+    preset.field_4         = work->field_43F;
+    preset.field_8         = 1;
+    preset.field_C         = 5;
+    preset.field_10        = 0;
     func_actor_317000_80162A10(arg0, 0x7D3, &preset, 0);
     pan = (s8)Gp_GetObjPan(coord);
     SndEvt_EnqueueType6(0x400A000B, pan, (s8)gpGetObjDepth(coord));
@@ -636,7 +614,7 @@ void func_actor_317000_80162950(Task* arg0)
 /// through `func_800B4114` with `field_C` when the preset's `field_8` is set and
 /// `field_43C` says the slots are already ticking, through `Gp_AnimResetSlot`
 /// otherwise -- then ticks each slot once and raises `field_43C`. Returns 0.
-s32 func_actor_317000_80162A10(Task* task, s32 arg1, Actor317000AnimPreset* msg, s32 arg3)
+s32 func_actor_317000_80162A10(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 {
     Actor317000Work* work;
     TmdObject*       ext;
@@ -644,8 +622,8 @@ s32 func_actor_317000_80162A10(Task* task, s32 arg1, Actor317000AnimPreset* msg,
 
     work = (Actor317000Work*)task->work;
     ext  = task->extra;
-    if (msg->field_0 != work->field_43E) {
-        work->field_43E = msg->field_0;
+    if (msg->animBlock.index != work->field_43E) {
+        work->field_43E = msg->animBlock.index;
         work->field_43D = -1;
         func_800B3F84(&work->ctx, D_actor_317000_8016CF40[work->field_43E], ext, work->poses, work->slots);
     }

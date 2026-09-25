@@ -442,15 +442,6 @@ extern char D_actor_401800_80143E9C;
 extern char D_actor_401800_80144434;
 extern char D_actor_401800_80144F24;
 
-/// Payload of message `0x7D3`, the "set animation state" request the handler
-/// table `D_actor_401800_80155A80` routes to `func_actor_401800_8013DCBC`:
-/// `field_4` is the requested state, 0..4. The 01900 actor's table entry for
-/// the same message id carries the identical record as `Actor01900Msg7D3`.
-typedef struct Actor401800Msg7D3 {
-    /* 0x0 */ s32 field_0;
-    /* 0x4 */ s32 field_4;
-} Actor401800Msg7D3;
-
 /// Movement is frozen while this is 1. Same flag `actorMoveForwardNonzero`
 /// and the other families' step helpers test.
 extern u8 D_80072729;
@@ -462,7 +453,7 @@ s32  func_actor_401800_8013629C(Task* arg0, GpRec18* recs, s16 count);
 s32  func_actor_401800_80133558(GsCOORDINATE2* coord, s16 arg1, s16 arg2);
 s32  func_actor_401800_80133918(Task* arg0);
 void func_actor_401800_801348A8(Task* arg0, s16 arg1, s32 arg2);
-s32  func_actor_401800_8013DCBC(Task* arg0, s32 arg1, Actor401800Msg7D3* arg2);
+s32  func_actor_401800_8013DCBC(Task* arg0, s32 arg1, GpAnimArg* arg2);
 void func_actor_401800_80133EB8(Task* arg0);
 void func_actor_401800_801320C8(GsCOORDINATE2* coord, s16 yaw);
 void func_actor_401800_801337EC(Task* arg0);
@@ -4180,7 +4171,7 @@ const GpEnemyTaskFuncTable3 D_actor_401800_80132064 = { {
 /// The `0x7D3` handler of the `D_actor_401800_80155A80` table: maps the
 /// requested state onto the work block's `field_89E` animation slot (5 selects
 /// nothing), then resets the actor to state `0x11` with `field_2` cleared.
-s32 func_actor_401800_8013DCBC(Task* arg0, s32 arg1, Actor401800Msg7D3* arg2)
+s32 func_actor_401800_8013DCBC(Task* arg0, s32 arg1, GpAnimArg* arg2)
 {
     Actor401800Work* work = arg0->work;
 

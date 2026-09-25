@@ -53,21 +53,6 @@ typedef struct Actor521100Msg3F8 {
 } Actor521100Msg3F8;
 STATIC_ASSERT_SIZEOF(Actor521100Msg3F8, 0x18);
 
-/// Argument block of the "start animation" script opcode 0x7D3, whose handler
-/// is `func_actor_521100_80135C14`. `field_0` is the animation bank and picks
-/// the clip the bank starts at (`0` maps to 0x14, every other bank to 0x1D);
-/// `field_4` is the offset of the clip inside that bank; `field_8`, when
-/// non-zero, blends to it over `field_C` frames instead of snapping. Same
-/// four-word shape as `Actor361100AnimPreset` and `Actor503500AnimPreset`.
-typedef struct Actor521100AnimPreset {
-    /* 0x00 */ s32  field_0;
-    /* 0x04 */ u16  field_4;
-    /* 0x06 */ byte pad_6[2];
-    /* 0x08 */ s32  field_8;
-    /* 0x0C */ s32  field_C;
-} Actor521100AnimPreset;
-STATIC_ASSERT_SIZEOF(Actor521100AnimPreset, 0x10);
-
 typedef struct Actor521100FireRow {
     /* 0x0 */ s16 field_0;
     /* 0x2 */ u16 field_2;
@@ -75,20 +60,12 @@ typedef struct Actor521100FireRow {
 
 extern Actor521100FireRow D_actor_521100_8015F80C[][17];
 
-typedef struct Actor521100FireMsg {
-    /* 0x00 */ void* field_0;
-    /* 0x04 */ s32   field_4;
-    /* 0x08 */ s32   field_8;
-    /* 0x0C */ s32   field_C;
-    /* 0x10 */ s32   field_10;
-} Actor521100FireMsg;
-
 typedef struct Actor521100FireScratch {
-    /* 0x00 */ VECTOR             pos;
-    /* 0x10 */ VECTOR             delta;
-    /* 0x20 */ SVECTOR            vec;
-    /* 0x28 */ Actor521100FireMsg msg;
-    /* 0x3C */ GpPlaceArg         aim;
+    /* 0x00 */ VECTOR     pos;
+    /* 0x10 */ VECTOR     delta;
+    /* 0x20 */ SVECTOR    vec;
+    /* 0x28 */ GpAnimArg  msg;
+    /* 0x3C */ GpPlaceArg aim;
 } Actor521100FireScratch;
 STATIC_ASSERT_SIZEOF(Actor521100FireScratch, 0x54);
 
@@ -1184,24 +1161,24 @@ void func_actor_521100_801339B0(Task* arg0)
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
                                     (s8)gpGetObjDepth(coord));
             } else if ((s16)work->field_68A == 0xC) {
-                flag             = (D_80073B8C->m[0][2] * coord->coord.m[0][2] + D_80073B8C->m[1][2] * coord->coord.m[1][2] + D_80073B8C->m[2][2] * coord->coord.m[2][2]);
-                work->field_6A4  = (u32)flag >> 31;
-                sc->msg.field_0  = (void*)&D_actor_521100_8015F7CC;
-                sc->msg.field_4  = work->field_6A4 ? 2 : 6;
-                sc->msg.field_8  = 0;
-                sc->msg.field_C  = 0;
-                sc->msg.field_10 = 1;
+                flag                  = (D_80073B8C->m[0][2] * coord->coord.m[0][2] + D_80073B8C->m[1][2] * coord->coord.m[1][2] + D_80073B8C->m[2][2] * coord->coord.m[2][2]);
+                work->field_6A4       = (u32)flag >> 31;
+                sc->msg.animBlock.ptr = (void*)&D_actor_521100_8015F7CC;
+                sc->msg.field_4       = work->field_6A4 ? 2 : 6;
+                sc->msg.field_8       = 0;
+                sc->msg.field_C       = 0;
+                sc->msg.field_10      = 1;
                 Gp_DispatchMsg(player, 0x3FF, (s32)&sc->msg, 0);
             } else if ((s16)work->field_68A >= 0x2B) {
-                work->field_6A0  = 1;
-                work->field_686  = 0xB;
-                work->field_68E  = 0;
-                work->field_690  = 0;
-                sc->msg.field_0  = (void*)&D_actor_521100_8015F7CC;
-                sc->msg.field_4  = work->field_6A4 ? 3 : 7;
-                sc->msg.field_8  = 0;
-                sc->msg.field_C  = 0;
-                sc->msg.field_10 = 1;
+                work->field_6A0       = 1;
+                work->field_686       = 0xB;
+                work->field_68E       = 0;
+                work->field_690       = 0;
+                sc->msg.animBlock.ptr = (void*)&D_actor_521100_8015F7CC;
+                sc->msg.field_4       = work->field_6A4 ? 3 : 7;
+                sc->msg.field_8       = 0;
+                sc->msg.field_C       = 0;
+                sc->msg.field_10      = 1;
                 Gp_DispatchMsg(player, 0x3FF, (s32)&sc->msg, 0);
             }
             if ((u16)(work->field_68A - 4) < 9) {
@@ -1267,13 +1244,13 @@ void func_actor_521100_801339B0(Task* arg0)
             work->field_68E = timer;
             if ((s16)timer <= 0) {
                 if (D_80073BA0 <= D_actor_521100_8015F570[D_8011541B]) {
-                    work->field_686  = 0x14;
-                    work->field_6A0  = 5;
-                    sc->msg.field_0  = (void*)&D_actor_521100_8015F7CC;
-                    sc->msg.field_4  = work->field_6A4 ? 0xC : 0xD;
-                    sc->msg.field_8  = 0;
-                    sc->msg.field_C  = 0;
-                    sc->msg.field_10 = 1;
+                    work->field_686       = 0x14;
+                    work->field_6A0       = 5;
+                    sc->msg.animBlock.ptr = (void*)&D_actor_521100_8015F7CC;
+                    sc->msg.field_4       = work->field_6A4 ? 0xC : 0xD;
+                    sc->msg.field_8       = 0;
+                    sc->msg.field_C       = 0;
+                    sc->msg.field_10      = 1;
                     Gp_DispatchMsg(player, 0x3FF, (s32)&sc->msg, 0);
                     flag = 1;
                 } else {
@@ -1287,14 +1264,14 @@ void func_actor_521100_801339B0(Task* arg0)
                     flag = work->field_6A4 == 1;
                 }
                 if (flag != 0) {
-                    work->field_6A0  = 3;
-                    work->field_6A8  = 0;
-                    work->field_68A  = 0;
-                    sc->msg.field_0  = (void*)&D_actor_521100_8015F7CC;
-                    sc->msg.field_4  = 5;
-                    sc->msg.field_8  = 0;
-                    sc->msg.field_C  = 0;
-                    sc->msg.field_10 = 1;
+                    work->field_6A0       = 3;
+                    work->field_6A8       = 0;
+                    work->field_68A       = 0;
+                    sc->msg.animBlock.ptr = (void*)&D_actor_521100_8015F7CC;
+                    sc->msg.field_4       = 5;
+                    sc->msg.field_8       = 0;
+                    sc->msg.field_C       = 0;
+                    sc->msg.field_10      = 1;
                     Gp_DispatchMsg(player, 0x3FF, (s32)&sc->msg, 0);
                 } else {
                     if (work->field_6A8 == 0) {
@@ -1304,14 +1281,14 @@ void func_actor_521100_801339B0(Task* arg0)
                             break;
                         }
                     }
-                    work->field_6A0  = 2;
-                    work->field_686  = 0x13;
-                    work->field_6A8  = 0;
-                    sc->msg.field_0  = (void*)&D_actor_521100_8015F7CC;
-                    sc->msg.field_4  = work->field_6A4 ? 9 : 0xA;
-                    sc->msg.field_8  = 0;
-                    sc->msg.field_C  = 0;
-                    sc->msg.field_10 = 1;
+                    work->field_6A0       = 2;
+                    work->field_686       = 0x13;
+                    work->field_6A8       = 0;
+                    sc->msg.animBlock.ptr = (void*)&D_actor_521100_8015F7CC;
+                    sc->msg.field_4       = work->field_6A4 ? 9 : 0xA;
+                    sc->msg.field_8       = 0;
+                    sc->msg.field_C       = 0;
+                    sc->msg.field_10      = 1;
                     Gp_DispatchMsg(player, 0x3FF, (s32)&sc->msg, 0);
                 }
             }
@@ -1353,11 +1330,11 @@ void func_actor_521100_801339B0(Task* arg0)
                 Gp_SpawnEff(0x60054, ((TmdObject*)player->extra)->coords + 3, 0x80003400, NULL);
             }
             if ((s16)work->field_68A == 0x45) {
-                sc->msg.field_0  = (void*)&D_actor_521100_8015F7CC;
-                sc->msg.field_4  = 0xB;
-                sc->msg.field_8  = 0;
-                sc->msg.field_C  = 0;
-                sc->msg.field_10 = 1;
+                sc->msg.animBlock.ptr = (void*)&D_actor_521100_8015F7CC;
+                sc->msg.field_4       = 0xB;
+                sc->msg.field_8       = 0;
+                sc->msg.field_C       = 0;
+                sc->msg.field_10      = 1;
                 Gp_DispatchMsg(player, 0x3FF, (s32)&sc->msg, 0);
             }
             turn = 0;
@@ -1394,13 +1371,13 @@ void func_actor_521100_801339B0(Task* arg0)
                 snd = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8) | 0x401C000E;
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
                                     (s8)gpGetObjDepth(coord));
-                work->field_6A0  = 4;
-                work->field_686  = 0xD;
-                sc->msg.field_0  = (void*)&D_actor_521100_8015F7CC;
-                sc->msg.field_4  = 4;
-                sc->msg.field_8  = 0;
-                sc->msg.field_C  = 0;
-                sc->msg.field_10 = 1;
+                work->field_6A0       = 4;
+                work->field_686       = 0xD;
+                sc->msg.animBlock.ptr = (void*)&D_actor_521100_8015F7CC;
+                sc->msg.field_4       = 4;
+                sc->msg.field_8       = 0;
+                sc->msg.field_C       = 0;
+                sc->msg.field_10      = 1;
                 Gp_DispatchMsg(player, 0x3FF, (s32)&sc->msg, 0);
             }
             break;
@@ -2328,7 +2305,7 @@ s32 func_actor_521100_80135BEC(Task* arg0)
     return 0;
 }
 
-s32 func_actor_521100_80135C14(Task* arg0, s32 arg1, Actor521100AnimPreset* args)
+s32 func_actor_521100_80135C14(Task* arg0, s32 arg1, GpAnimArg* args)
 {
     Actor521100Work* work;
     s32              i;
@@ -2339,7 +2316,7 @@ s32 func_actor_521100_80135C14(Task* arg0, s32 arg1, Actor521100AnimPreset* args
     frames = 0;
     work   = arg0->work;
     base   = 0x1D;
-    if (args->field_0 == 0) {
+    if (args->animBlock.index == 0) {
         base = 0x14;
     }
     clip            = args->field_4 + base;

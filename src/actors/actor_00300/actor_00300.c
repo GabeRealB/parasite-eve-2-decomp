@@ -153,14 +153,6 @@ typedef struct Actor100300Work {
     /* 0x6A2 */ s16               field_6A2;
 } Actor100300Work;
 
-typedef struct Actor100300AnimArgs {
-    /* 0x00 */ byte pad_0[4];
-    /* 0x04 */ u16  field_4;
-    /* 0x06 */ byte pad_6[2];
-    /* 0x08 */ s32  field_8;
-    /* 0x0C */ s32  field_C;
-} Actor100300AnimArgs;
-
 typedef struct Actor100300DestroyArgs {
     /* 0x00 */ byte pad_0[2];
     /* 0x02 */ u16  field_2;
@@ -2792,7 +2784,7 @@ void Actor00300_Fn05278(GpEnemy* arg0, Task* arg1)
     }
 }
 
-s32 Actor00300_Fn05304(Task* arg0, s32 arg1, Actor100300AnimArgs* args)
+s32 Actor00300_Fn05304(Task* arg0, s32 arg1, GpAnimArg* args)
 {
     Actor100300Work* work;
     s32              i;

@@ -144,13 +144,6 @@ typedef struct Actor104000AimScratch {
 } Actor104000AimScratch;
 STATIC_ASSERT_SIZEOF(Actor104000AimScratch, 0x14);
 
-/// Argument block for the lunge state's message 0x3FF: the side-dependent
-/// animation data and a count.
-typedef struct Actor104000MsgArg {
-    /* 0x0 */ void* field_0;
-    /* 0x4 */ s32   field_4;
-} Actor104000MsgArg;
-
 /// 0x34-byte scratch from `G_SCRATCH_HEAD` for rebuilding a coordinate as a
 /// scaled yaw: the rotation, the uniform scale applied to it and the yaw.
 typedef struct Actor104000FaceScratch {
@@ -750,11 +743,11 @@ void Actor04000_Fn010B8(GpEnemy* arg0, Task* arg1)
 
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-extern Actor104000MsgArg Actor04000_D0C530;
-extern s32               Actor04000_D07094;
-extern s32               Actor04000_D070A0;
-extern byte              Actor04000_D0C510[];
-extern byte              Actor04000_D0C520[];
+extern GpAnimArg Actor04000_D0C530;
+extern s32       Actor04000_D07094;
+extern s32       Actor04000_D070A0;
+extern byte      Actor04000_D0C510[];
+extern byte      Actor04000_D0C520[];
 
 /// Lunge state: steps forward on frames 8 and 9, then from frame 9 on grabs
 /// the player when within 600 units and a quarter turn of the facing, dispatches
@@ -821,9 +814,9 @@ void Actor04000_Fn0168C(GpEnemy* arg0, Task* arg1)
                     angle     = ratan2(sc->d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
                     sc->angle = actorWrapAngle(angle);
                     if (sc->angle < 0) {
-                        Actor04000_D0C530.field_0 = Actor04000_D0C510;
+                        Actor04000_D0C530.animBlock.ptr = Actor04000_D0C510;
                     } else {
-                        Actor04000_D0C530.field_0 = Actor04000_D0C520;
+                        Actor04000_D0C530.animBlock.ptr = Actor04000_D0C520;
                     }
                     Actor04000_D0C530.field_4 = 1;
                     Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&Actor04000_D0C530, 0);
@@ -2243,7 +2236,7 @@ s32 Actor04000_Fn06704(Task* arg0, s32 arg1, void* arg2)
 
 /// Handler for message 0x7D3: latches the animation id the sender asks for and
 /// picks motion state 2 when its flag is clear, 1 otherwise. Always answers 1.
-s32 Actor04000_Fn06728(Task* task, s32 arg1, ActorShared80138548Msg* msg, s32 arg3)
+s32 Actor04000_Fn06728(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 {
     Actor104000Work* work = (Actor104000Work*)task->work;
 

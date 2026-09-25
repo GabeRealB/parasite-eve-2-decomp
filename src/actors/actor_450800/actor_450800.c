@@ -138,17 +138,6 @@ typedef struct Actor450800Msg {
     /* 0x2 */ u16  field_2;
 } Actor450800Msg;
 
-/// Script args the "start animation" opcodes receive - the actor's
-/// `func_actor_450800_80132B44` and the enemy's `func_actor_450800_80133528`:
-/// the clip id, a flag choosing the start path, and the reset argument only
-/// that path carries.
-typedef struct Actor450800AnimArgs {
-    /* 0x0 */ byte pad_0[4];
-    /* 0x4 */ s32  animId;
-    /* 0x8 */ s32  withArg;
-    /* 0xC */ u16  animArg;
-} Actor450800AnimArgs;
-
 /// Spawn offset `func_actor_450800_80132108` copies into a local and hands to
 /// `Gp_SpawnEff` as the effect's position.
 const SVECTOR D_actor_450800_80131E24 = { 0x19C8, -0x578, 0x3C0, 0 };
@@ -643,7 +632,7 @@ void func_actor_450800_80132AE0(Task* task)
     work->field_4B6 = work->field_4B8;
 }
 
-/// Script opcode: start animation `args->animId` on this actor.
+/// Script opcode: start animation `args->field_4` on this actor.
 ///
 /// `withArg` selects between the two start paths `func_actor_450800_80132448`
 /// dispatches on, and only the first carries `animArg`. Returns -1, without
@@ -655,20 +644,20 @@ void func_actor_450800_80132AE0(Task* task)
 /// once an `asm` at the head of the fall-through stops it searching that
 /// thread. See DECOMPILATION_LEARNINGS.md, "An empty asm at the head of the
 /// then-arm moves the delay slot to the else arm".
-s32 func_actor_450800_80132B44(Task* task, s32 arg1, Actor450800AnimArgs* args)
+s32 func_actor_450800_80132B44(Task* task, s32 arg1, GpAnimArg* args)
 {
     Actor450800Work* work;
 
     work = (Actor450800Work*)task->work;
-    if (args->animId >= 0x1F) {
+    if (args->field_4 >= 0x1F) {
         return -1;
     }
 
-    work->field_4B8 = args->animId;
-    if (args->withArg != 0) {
+    work->field_4B8 = args->field_4;
+    if (args->field_8 != 0) {
         SOFT_BARRIER();
         work->state     = 1;
-        work->field_4FC = args->animArg;
+        work->field_4FC = args->field_C;
     } else {
         work->state = 2;
     }
@@ -1070,20 +1059,20 @@ void func_actor_450800_801334C4(Task* task)
 /// once an `asm` at the head of the fall-through stops it searching that
 /// thread. See DECOMPILATION_LEARNINGS.md, "An empty asm at the head of the
 /// then-arm moves the delay slot to the else arm".
-s32 func_actor_450800_80133528(Task* task, s32 arg1, Actor450800AnimArgs* args)
+s32 func_actor_450800_80133528(Task* task, s32 arg1, GpAnimArg* args)
 {
     Actor450800SpawnWork* work;
 
     work = (Actor450800SpawnWork*)task->work;
-    if (args->animId >= 6) {
+    if (args->field_4 >= 6) {
         return -1;
     }
 
-    work->animId = args->animId;
-    if (args->withArg != 0) {
+    work->animId = args->field_4;
+    if (args->field_8 != 0) {
         SOFT_BARRIER();
         work->state   = 1;
-        work->animArg = args->animArg;
+        work->animArg = args->field_C;
     } else {
         work->state = 2;
     }

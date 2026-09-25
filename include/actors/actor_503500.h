@@ -360,24 +360,6 @@ typedef struct Actor503500UVec {
 } Actor503500UVec;
 STATIC_ASSERT_SIZEOF(Actor503500UVec, 8);
 
-/// 0x14-byte entry of the animation-preset table `func_actor_503500_80135950`
-/// is handed a pointer into (`D_actor_503500_8016EAC0`, indexed by preset id).
-/// That helper copies `field_0`'s low byte into `Actor503500Work::field_7D6`
-/// and re-seeds the whole slot array whenever it changes, stores `field_4` in
-/// `field_7D5`, and uses `field_8` to choose between `func_800B4114` -- which
-/// also takes `field_C` -- and `Gp_AnimResetSlot`. `field_10` is unread.
-/// `func_actor_503500_8014652C` takes the same record as its message payload
-/// and applies it to `Actor503500Effect4CC`, with `field_0` indexing the bank
-/// table `D_actor_503500_80176520`.
-typedef struct Actor503500AnimPreset {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-    /* 0x10 */ s32 field_10;
-} Actor503500AnimPreset;
-STATIC_ASSERT_SIZEOF(Actor503500AnimPreset, 0x14);
-
 /// Work block of the enemy whose state-0 init is
 /// `func_actor_503500_801423C8` (`Mem_Set(_, 0x224)`), viewed through its own
 /// type rather than the shared `Actor503500Work`: its three display nodes sit

@@ -1574,24 +1574,24 @@ void func_actor_215100_8014CC7C(Task* task)
     work->appliedAnimId = work->animId;
 }
 
-/// Script opcode: plays clip `args->animId` (ids from 0x19 up are refused
-/// with -1). With `args->withArg` set the slots are reseeded with
-/// `args->animArg`, otherwise they are reset; the step body then applies it
+/// Script opcode: plays clip `args->field_4` (ids from 0x19 up are refused
+/// with -1). With `args->field_8` set the slots are reseeded with
+/// `args->field_C`, otherwise they are reset; the step body then applies it
 /// straight away.
-s32 func_actor_215100_8014CCE0(Task* task, s32 arg1, Actor215100AnimArgs* args)
+s32 func_actor_215100_8014CCE0(Task* task, s32 arg1, GpAnimArg* args)
 {
     Actor160700Work* work;
 
     work = (Actor160700Work*)task->work;
-    if (args->animId >= 0x19) {
+    if (args->field_4 >= 0x19) {
         return -1;
     }
 
-    work->animId = args->animId;
-    if (args->withArg != 0) {
+    work->animId = args->field_4;
+    if (args->field_8 != 0) {
         SOFT_BARRIER();
         work->state   = 1;
-        work->animArg = args->animArg;
+        work->animArg = args->field_C;
     } else {
         work->state = 2;
     }

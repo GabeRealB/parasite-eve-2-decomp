@@ -141,15 +141,6 @@ typedef struct Actor01900AnimWork {
     /* 0x8B4 */ s32        field_8B4;
 } Actor01900AnimWork;
 
-/// Payload of the `0x7D3` message the overlay's `Actor01900_D1728C` handler
-/// table dispatches to `Actor01900_Fn0A31C`. Senders build the record in their
-/// own data (`D_actor_146300_80137AAC` and friends); `field_4` selects which
-/// animation id the actor switches to.
-typedef struct Actor01900Msg7D3 {
-    /* 0x0 */ s32 field_0;
-    /* 0x4 */ s32 field_4;
-} Actor01900Msg7D3;
-
 /// The actor's state handlers, indexed by `Actor01900Work::field_0`.
 /// `Actor01900_Fn09D3C` copies the table to its frame before dispatching.
 typedef struct Actor01900StateTable {
@@ -196,7 +187,7 @@ s32  Actor01900_Fn03FF8(Task* arg0, GpRec18* recs, s16 count);
 void Actor01900_Fn08724(Task* arg0);
 void Actor01900_Fn0A7C0(Task* arg0);
 void Actor01900_Fn03C04(GpAreaKey* session, GsCOORDINATE2* coord);
-s32  Actor01900_Fn0A31C(Task* arg0, s32 arg1, Actor01900Msg7D3* arg2);
+s32  Actor01900_Fn0A31C(Task* arg0, s32 arg1, GpAnimArg* arg2);
 s32  Actor01900_Fn0A5A4(Task* arg0, s32 arg1, u16* arg2);
 s32  Actor01900_Fn0A38C(Task* arg0, s32 arg1, s32 arg2);
 
@@ -3465,7 +3456,7 @@ const GpEnemyTaskFuncTable4 Actor01900_D0023C = { {
     Gp_DestroyEnemy,
 } };
 
-s32 Actor01900_Fn0A31C(Task* arg0, s32 arg1, Actor01900Msg7D3* arg2)
+s32 Actor01900_Fn0A31C(Task* arg0, s32 arg1, GpAnimArg* arg2)
 {
     Actor01900Work* work = arg0->work;
 
