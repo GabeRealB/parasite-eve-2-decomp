@@ -58,7 +58,7 @@ typedef struct Actor521100Work {
     /// rotates that coordinate's matrix back by them, stepping each angle 0x20
     /// towards zero per frame until both arrive and it clears the flag. Same
     /// pair as `Actor510900Work::field_570` / `field_584` and
-    /// `Actor02000Work::field_688` / `field_6B4`.
+    /// `Actor105600Work::field_688` / `field_6B4`.
     /* 0x678 */ SVECTOR field_678;
     /* 0x680 */ s16     field_680;
     /* 0x682 */ s16     field_682; // non-zero while the tick in func_actor_521100_80135B80 remaps the model's field_C

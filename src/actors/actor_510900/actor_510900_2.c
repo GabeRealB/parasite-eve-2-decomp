@@ -102,18 +102,6 @@ typedef struct Actor510900ChildFx {
 } Actor510900ChildFx;
 STATIC_ASSERT_SIZEOF(Actor510900ChildFx, 0xD0);
 
-/// 0x38-byte scratch `func_actor_510900_801397F0` takes from `G_SCRATCH_HEAD`
-/// to place the child effect: `rot` is first the local spawn offset and then
-/// the yaw the model is turned by, `pos` that offset rotated into world space
-/// and afterwards the player's XZ delta the distance is measured from, and
-/// `mtx` the rotation `RotMatrix` builds and composes into the coordinate.
-typedef struct Actor510900ChildFxScratch {
-    /* 0x00 */ SVECTOR rot;
-    /* 0x08 */ VECTOR  pos;
-    /* 0x18 */ MATRIX  mtx;
-} Actor510900ChildFxScratch;
-STATIC_ASSERT_SIZEOF(Actor510900ChildFxScratch, 0x38);
-
 /// 0x28-byte scratch `func_actor_510900_80139C10` takes from `G_SCRATCH_HEAD`
 /// every frame the child effect turns: `rot` is the yaw it spins by (and then
 /// the offset the trail effect is spawned along), `mtx` the rotation
@@ -2303,15 +2291,15 @@ void func_actor_510900_801395AC(void* enemy, Task* task)
 /// distance to the player in units of 1000, clamped to the last entry.
 void func_actor_510900_801397F0(GpEnemy* arg0, Task* arg1)
 {
-    Actor510900ChildFx*        work;
-    Actor510900ChildFxScratch* scratch;
-    TmdObject*                 tmd;
-    GsCOORDINATE2*             coord;
-    GsCOORDINATE2*             parentCoords;
-    GsCOORDINATE2*             parentCoord;
-    s32                        dx;
-    s32                        dz;
-    s32                        idx;
+    Actor510900ChildFx*      work;
+    Actor105600PlaceScratch* scratch;
+    TmdObject*               tmd;
+    GsCOORDINATE2*           coord;
+    GsCOORDINATE2*           parentCoords;
+    GsCOORDINATE2*           parentCoord;
+    s32                      dx;
+    s32                      dz;
+    s32                      idx;
 
     tmd          = arg1->extra;
     coord        = tmd->coords;
@@ -2324,7 +2312,7 @@ void func_actor_510900_801397F0(GpEnemy* arg0, Task* arg1)
     }
     arg1->work    = (TaskIdMap*)work;
     tmd->flags    = 0;
-    scratch       = (Actor510900ChildFxScratch*)(*(u8**)G_SCRATCH_HEAD -= sizeof(Actor510900ChildFxScratch));
+    scratch       = (Actor105600PlaceScratch*)(*(u8**)G_SCRATCH_HEAD -= sizeof(Actor105600PlaceScratch));
     tmd->lightMtx = &work->lightMtx;
     tmd->colorMtx = &work->colorMtx;
 
@@ -2406,7 +2394,7 @@ void func_actor_510900_801397F0(GpEnemy* arg0, Task* arg1)
     work->obj78.flags |= 0x4000;
 
     arg1->state            = 1;
-    *(u8**)G_SCRATCH_HEAD += sizeof(Actor510900ChildFxScratch);
+    *(u8**)G_SCRATCH_HEAD += sizeof(Actor105600PlaceScratch);
 }
 
 /// Per-frame handler of the effect child while it is alive: spins the object by

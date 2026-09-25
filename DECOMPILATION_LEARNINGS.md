@@ -45897,7 +45897,7 @@ work - the original adds a byte offset to a pointer.
 splits the padding - `pad_314[0x128]`, `MATRIX field_43C`, `MATRIX field_45C` -
 and the body becomes `obj->field_1C = &work->field_45C;`. Every later field keeps
 its offset and the two `addiu`s become the target's. This is the same pair the
-sibling types carry (`ActorsShared80135b64Work`, `Actor02000Work`): the colour
+sibling types carry (`ActorsShared80135b64Work`, `Actor105600Work`): the colour
 matrix at 0x43C is handed to `TmdObject::colorMtx`, the light matrix at 0x45C to
 `field_1C`.
 
@@ -79497,7 +79497,7 @@ So for a body the index reports as `~`, the sibling's `.s` is worth diffing
 against the target directly, and if only those two relocations move, the
 sibling's matched C is the seed — paste it, rename the callee, give the target
 overlay's work struct the field offsets the source reads (here the 0x694-0x6B2
-halfwords of `Actor02000Work`, which `Actor105700Work` had not modelled), and
+halfwords of `Actor105600Work`, which `Actor105600Work` had not modelled), and
 it is 100% on the first build with all penalties zero. Do this before writing
 anything from the m2c seed: for this family the cheapest seed is almost always
 another overlay's matched body, not the bootstrap output.

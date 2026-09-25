@@ -22,163 +22,6 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
-/// 0xF0-byte body block `Actor05600_Fn031B0` parks at `Task::work`.
-/// The two leading matrices are the light/colour pair published on the model
-/// root's `TmdObject`; the three `GpObj` bodies collide against `rec60`
-/// (shared by the first two) and, through the `GpActorD4Rec` between them,
-/// `recD0`. `field_EE` mirrors the placement table's variant flag.
-typedef struct Actor105600FxWork {
-    /* 0x00 */ MATRIX       colorMtx;
-    /* 0x20 */ MATRIX       lightMtx;
-    /* 0x40 */ GpObj        obj40;
-    /* 0x60 */ GpRec18      rec60[1];
-    /* 0x78 */ GpObj        obj78;
-    /* 0x98 */ GpObj        obj98;
-    /* 0xB8 */ GpActorD4Rec d4rec;
-    /* 0xD0 */ GpRec18      recD0[1];
-    /* 0xE8 */ s16          field_E8;
-    /* 0xEA */ s16          field_EA;
-    /// Teardown step: 0 unlinks the three bodies, 1 counts `field_E8` up to
-    /// the frame the task is destroyed on.
-    /* 0xEC */ s16 field_EC;
-    /* 0xEE */ s16 field_EE;
-} Actor105600FxWork;
-STATIC_ASSERT_SIZEOF(Actor105600FxWork, 0xF0);
-
-/// 0x14-byte placement descriptor in the overlay's `.data`, handed to
-/// `Gp_PackPair` as the source of the body objects' `GpObj.key`.
-/// `field_E` is the variant flag `Actor05600_Fn031B0` latches into its
-/// work block: it is 1 when the actor is placed normally, and anything else
-/// puts the body in the other pose.
-typedef struct Actor105600PlaceSrc {
-    /* 0x00 */ GpU16Pair pair;
-    /* 0x04 */ u16       field_4;
-    /* 0x06 */ u16       field_6;
-    /* 0x08 */ u16       field_8;
-    /* 0x0A */ u16       field_A;
-    /* 0x0C */ u16       field_C;
-    /* 0x0E */ u16       field_E;
-    /* 0x10 */ u16       field_10;
-    /* 0x12 */ u16       field_12;
-} Actor105600PlaceSrc;
-STATIC_ASSERT_SIZEOF(Actor105600PlaceSrc, 0x14);
-
-/// 0x38-byte scratch carved off `G_SCRATCH_HEAD` by
-/// `Actor05600_Fn031B0`. `rot` first holds the local offset the root
-/// coordinate is translated by (through `gte_rtv0` into `pos`), then the
-/// placement angles `RotMatrix` turns into `mtx` for the three `rtir` column
-/// transforms that overwrite the root coordinate's matrix.
-typedef struct Actor105600PlaceScratch {
-    /* 0x00 */ SVECTOR rot;
-    /* 0x08 */ VECTOR  pos;
-    /* 0x18 */ MATRIX  mtx;
-} Actor105600PlaceScratch;
-STATIC_ASSERT_SIZEOF(Actor105600PlaceScratch, 0x38);
-
-/// 0x6E4-byte animation/state work block hung off the actor task's
-/// `Task::work`, allocated by `Actor05600_Fn03924`. It opens with the
-/// animation context and its nineteen 0x28-byte slots, carries the light and
-/// colour matrices the model is drawn under and the five body objects, then
-/// the halfwords the state handlers drive.
-typedef struct Actor105600Work {
-    /* 0x000 */ GpAnimCtx  ctx;
-    /* 0x014 */ GpAnimSlot slots[19];
-    /* 0x30C */ byte       field_30C[0x130];
-    /// Colour and light matrices the model object's `colorMtx` / `lightMtx`
-    /// are pointed at.
-    /* 0x43C */ MATRIX field_43C;
-    /* 0x45C */ MATRIX field_45C;
-    /// The five collision/proximity list nodes the spawn handler links, each
-    /// followed by the `GpRec18` table it walks. The first and last reach
-    /// their tables through a `GpActorD4Rec`.
-    /* 0x47C */ GpObj        field_47C;
-    /* 0x49C */ GpActorD4Rec field_49C;
-    /* 0x4B4 */ GpRec18      field_4B4[1];
-    /* 0x4CC */ GpObj        field_4CC;
-    /* 0x4EC */ GpRec18      field_4EC[5];
-    /* 0x564 */ GpObj        field_564;
-    /* 0x584 */ GpRec18      field_584[4];
-    /* 0x5E4 */ GpObj        field_5E4;
-    /* 0x604 */ GpRec18      field_604[1];
-    /* 0x61C */ GpObj        field_61C;
-    /* 0x63C */ GpActorD4Rec field_63C;
-    /* 0x654 */ GpRec18      field_654[1];
-    /// The spawn table the companion enemy comes from.
-    /* 0x66C */ TaskDesc* field_66C;
-    /// Record the hit effects are spawned with, placed under model part 3.
-    /* 0x670 */ GpEffArg field_670;
-    /// World position of the root coordinate as of the previous frame, saved
-    /// before the per-frame drift below is applied.
-    /* 0x678 */ s32  field_678;
-    /* 0x67C */ s32  field_67C;
-    /* 0x680 */ s32  field_680;
-    /* 0x684 */ byte pad_684[4];
-    /// Tilt angles a landed hit sets and `Actor05600_Fn016C4` decays toward
-    /// zero while `field_6B4` is raised.
-    /* 0x688 */ SVECTOR field_688;
-    /// Effect whose task a landed hit sends to state 3 before dropping the
-    /// pointer; nothing in this actor sets it.
-    /* 0x690 */ struct GpEffWork* field_690;
-    /// Animation index selected by the state machine.
-    /* 0x694 */ s16 field_694;
-    /// Animation the playing clip was started from; when it differs from
-    /// `field_694` the frame counter is reset and the slots reseeded.
-    /* 0x696 */ s16 field_696;
-    /// Current frame of the playing clip.
-    /* 0x698 */ s16 field_698;
-    /// Frames before another weapon hit is taken, loaded from the hit's
-    /// parameters and counted down every frame.
-    /* 0x69A */ s16 field_69A;
-    /* 0x69C */ s16 field_69C; ///< forward speed, applied along the root Z axis
-                               /// Non-zero runs the turn helper, which turns by this much per frame.
-    /* 0x69E */ s16 field_69E;
-    /// Bits 4 and 5 of the animation record's flags as of the last frame;
-    /// `Actor05600_Fn018D0` plays a cue when either drops.
-    /* 0x6A0 */ u16 field_6A0;
-    /* 0x6A2 */ s16 field_6A2; ///< yaw the root coordinate currently faces
-    /* 0x6A4 */ s16 field_6A4; ///< yaw the actor wants to face
-    /* 0x6A6 */ s16 field_6A6; ///< state-machine step, indexes the handler table
-    /* 0x6A8 */ s16 field_6A8;
-    /// Picks the clip `Actor05600_Fn0485C` plays: 1 starts animation
-    /// 0x12, anything else 0x13.
-    /* 0x6AA */ s16 field_6AA;
-    /// Awake variant the actor was placed in (bit 0 of the placement record's
-    /// `mode`); non-zero starts it on the longer approach.
-    /* 0x6AC */ s16  field_6AC;
-    /* 0x6AE */ s16  field_6AE;
-    /* 0x6B0 */ byte pad_6B0[2];
-    /* 0x6B2 */ s16  field_6B2; ///< non-zero forces the state-F0 path
-    /* 0x6B4 */ s16  field_6B4; ///< non-zero runs the tilt helper
-    /* 0x6B6 */ s16  field_6B6;
-    /* 0x6B8 */ s16  field_6B8;
-    /* 0x6BA */ s16  field_6BA;
-    /* 0x6BC */ s16  field_6BC;
-    /* 0x6BE */ s16  field_6BE;
-    /* 0x6C0 */ byte pad_6C0[2];
-    /* 0x6C2 */ s16  field_6C2;
-    /// Non-zero quarters the damage of a hit with key bit 0x8000.
-    /* 0x6C4 */ s16  field_6C4;
-    /* 0x6C6 */ byte pad_6C6[4];
-    /* 0x6CA */ s16  field_6CA;
-    /* 0x6CC */ s16  field_6CC;
-    /* 0x6CE */ s16  field_6CE;
-    /* 0x6D0 */ s16  field_6D0;
-    /* 0x6D2 */ s16  field_6D2;
-    /// Raised while the pose-change handlers play; while it is set a hit in
-    /// the second pose does not switch to handler 0xC or 0xE.
-    /* 0x6D4 */ s16 field_6D4;
-    /// Streaming cue id for this room, looked up in `Actor05600_D16478`.
-    /* 0x6D6 */ s16  field_6D6;
-    /* 0x6D8 */ byte pad_6D8[2];
-    /// Approach budget, 1000 per unit of the placement record's `variant`.
-    /* 0x6DA */ s16  field_6DA;
-    /* 0x6DC */ s16  field_6DC;
-    /* 0x6DE */ s16  field_6DE; ///< below 2 the actor also drifts upward
-    /* 0x6E0 */ s16  field_6E0;
-    /* 0x6E2 */ byte pad_6E2[2];
-} Actor105600Work;
-STATIC_ASSERT_SIZEOF(Actor105600Work, 0x6E4);
-
 /// Placement descriptor for this actor.
 extern Actor105600PlaceSrc Actor05600_D161BC;
 
@@ -199,45 +42,6 @@ extern void Actor05600_D164C4;
 /// Sound id of the burst cue, with the spawn context's room/channel bits packed
 /// in.
 extern s32 Actor05600_D162F0;
-
-/// 0x40-byte scratch carved off `G_SCRATCH_HEAD` by `Actor05600_Fn000A4`.
-typedef struct Actor105600HitScratch {
-    /* 0x00 */ GpDeltaScratch delta;
-    /* 0x10 */ VECTOR         normal;
-    /* 0x20 */ VECTOR         push;
-    /* 0x30 */ SVECTOR        effOfs;
-    /* 0x38 */ SVECTOR        target;
-} Actor105600HitScratch;
-STATIC_ASSERT_SIZEOF(Actor105600HitScratch, 0x40);
-
-/// 0x40-byte scratch carved off `G_SCRATCH_HEAD` by `Actor05600_Fn02548`:
-/// the converted matrix, the `gte_rtv0` output and the two vectors fed through
-/// it (`rot` and `vec` are also the pair handed to `Actor05600_Fn02950`).
-typedef struct Actor105600AimScratch {
-    /* 0x00 */ MATRIX  mtx;
-    /* 0x20 */ VECTOR  pos;
-    /* 0x30 */ SVECTOR rot;
-    /* 0x38 */ SVECTOR vec;
-} Actor105600AimScratch;
-STATIC_ASSERT_SIZEOF(Actor105600AimScratch, 0x40);
-
-/// 0x48-byte scratch carved off `G_SCRATCH_HEAD` by `Actor05600_Fn02950`:
-/// the beam is walked in eight steps from `vec` to `rot`, each step projected
-/// into `cur` (packed screen xy) and `curZ` (OTZ). `xs`/`ys` hold the two
-/// projected ends followed by the four offset corners the ribbon polygons are
-/// cut from.
-typedef struct Actor105600BeamScratch {
-    /* 0x00 */ VECTOR  vec;
-    /* 0x10 */ SVECTOR pt;
-    /* 0x18 */ SVECTOR step;
-    /* 0x20 */ s32     prev;
-    /* 0x24 */ s32     cur;
-    /* 0x28 */ s32     prevZ;
-    /* 0x2C */ s32     curZ;
-    /* 0x30 */ s16     xs[6];
-    /* 0x3C */ s16     ys[6];
-} Actor105600BeamScratch;
-STATIC_ASSERT_SIZEOF(Actor105600BeamScratch, 0x48);
 
 /// Flag byte whose writer lies outside this actor; the proximity check reacts
 /// to three groups of its bits.
@@ -1141,7 +945,7 @@ void Actor05600_Fn018D0(Task* arg0)
     work = (Actor105600Work*)arg0->work;
     self = ((TmdObject*)arg0->extra)->coords;
     if (work->field_6D6 != 0) {
-        rec = Gp_AnimGetRec(&work->ctx, (GpAnimSlot*)&work->slots[1]);
+        rec = Gp_AnimGetRec(&work->anim, (GpAnimSlot*)&work->slots[1]);
         if (rec != NULL) {
             if (!(rec->flags & 0x20) && (work->field_6A0 & 0x20)) {
                 snd = Actor05600_D162AC[work->field_6D6 * 2 - 1] |
@@ -1251,7 +1055,7 @@ void Actor05600_Fn01A4C(GpEnemy* arg0, Task* arg1)
         animWork->field_698 = 0U;
         duration            = Actor05600_D04CFC[animWork->field_694];
         do {
-            func_800B4114(&animWork->ctx, i, animWork->field_694, 0, (s32)duration);
+            func_800B4114(&animWork->anim, i, animWork->field_694, 0, (s32)duration);
             i += 1;
         } while (i < 0x13);
         coord->flg = 0;
@@ -1259,7 +1063,7 @@ void Actor05600_Fn01A4C(GpEnemy* arg0, Task* arg1)
         TOUCH_REG(i);
         animWork->field_698 = (u16)(animWork->field_698 + i);
         do {
-            Gp_AnimTickIndex(&animWork->ctx, i);
+            Gp_AnimTickIndex(&animWork->anim, i);
             i += 1;
         } while (i < 0x13);
         coord->flg = 0;
@@ -1966,9 +1770,9 @@ void Actor05600_Fn03924(GpEnemy* ctx, Task* actor)
     work->field_670.coord      = &((TmdObject*)actor->extra)->coords[3];
     work->field_670.spawnArgLo = 0x500;
     work->field_670.spawnArgHi = 2;
-    func_800B3F84(&work->ctx, &Actor05600_D164C4, obj, work->field_30C, work->slots);
+    func_800B3F84(&work->anim, &Actor05600_D164C4, obj, work->poses, work->slots);
     for (i = 1; i < 0x13; i++) {
-        Gp_AnimResetSlot(&work->ctx, i, 1);
+        Gp_AnimResetSlot(&work->anim, i, 1);
     }
     eff        = Gp_SpawnEnemyFromTable(Actor05600_D164A0, 1, 0, ctx);
     sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
@@ -2226,14 +2030,14 @@ void Actor05600_Fn03EBC(GpEnemy* ctx, Task* actor)
         animWork->field_698 = 0;
         duration            = Actor05600_D04CFC[animWork->field_694];
         do {
-            func_800B4114(&animWork->ctx, i, animWork->field_694, 0, duration);
+            func_800B4114(&animWork->anim, i, animWork->field_694, 0, duration);
             i += 1;
         } while (i < 0x13);
     } else {
         TOUCH_REG(i);
         animWork->field_698 = (u16)animWork->field_698 + i;
         do {
-            Gp_AnimTickIndex(&animWork->ctx, i);
+            Gp_AnimTickIndex(&animWork->anim, i);
             i += 1;
         } while (i < 0x13);
     }

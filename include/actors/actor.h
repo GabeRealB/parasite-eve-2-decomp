@@ -1318,6 +1318,209 @@ typedef struct Actor403200SpinnerWork {
 } Actor403200SpinnerWork;
 STATIC_ASSERT_SIZEOF(Actor403200SpinnerWork, 0xA0);
 
+/* actor_05600, actor_05700 and actor_02300 carry the same enemy code, and
+ * actor_02000 shares its hit handling. Function names in these comments are
+ * actor_05600's or actor_05700's. */
+
+/// Work block of that enemy, allocated at its full size and kept at
+/// `Task::work`: the animation context with its nineteen slots and pose
+/// records, the light and colour matrices, the body objects with their
+/// collision records, and the animation and state halfwords the handlers
+/// drive.
+typedef struct Actor105600Work {
+    GpAnimCtx  anim;
+    GpAnimSlot slots[19];
+    byte       poses[0x130];
+    MATRIX     field_43C;
+    MATRIX     field_45C;
+    /// First body object, handed to `Gp_UnlinkObj` by the teardown of
+    /// `Actor05700_Fn01A58`; its `pos.vz` is the pose the state-0
+    /// branch of `Actor05700_Fn01318` parks (-0xA7 or 0x109) and its
+    /// `radius` the frame count parked alongside it.
+    GpObj        field_47C;
+    GpActorD4Rec field_49C;
+    GpRec18      field_4B4[1];
+    /// Second body object; `pos.vz` is the pose the state-0 branch parks
+    /// (0x15E) and `flags` the bits whose 0x4000 it raises.
+    GpObj   field_4CC;
+    GpRec18 field_4EC[5];
+    /// Third body object; `flags` is the field whose bit 0x4000 the state-0
+    /// branch clears.
+    GpObj   field_564;
+    GpRec18 field_584[4];
+    /// Fourth body object: `key` is the object `Gp_PackPair` hands it when
+    /// `field_698` first reaches the animation's 0x1C mark and `flags` the
+    /// bits whose 0x8000 is raised with it and dropped at the 0x28 mark
+    /// (`Actor05700_Fn023AC`).
+    GpObj   field_5E4;
+    GpRec18 field_604[1];
+    /// Fifth body object, unlinked with the others by `Actor05700_Fn01A58`.
+    GpObj        field_61C;
+    GpActorD4Rec field_63C;
+    GpRec18      field_654[1];
+    TaskDesc*    field_66C;
+    GpEffArg     field_670;
+    s32          field_678;
+    s32          field_67C;
+    s32          field_680;
+    byte         pad_684[4];
+    /// Tilt angles decayed toward zero by `Actor05700_Fn016D0`.
+    SVECTOR           field_688;
+    struct GpEffWork* field_690;
+    /// Animation index selected by the state machine; 4 is the "handover"
+    /// clip of `Actor05700_Fn04CC0`'s state 0.
+    s16 field_694;
+    /// Animation the playing clip was started from; when it differs from
+    /// `field_694` the frame counter is reset and the slots reseeded.
+    s16 field_696;
+    s16 field_698; ///< current frame of the playing clip
+    s16 field_69A;
+    s16 field_69C; ///< dwell counter, cleared on state 0 entry
+    s16 field_69E; ///< dwell counter, cleared on state 0 entry
+    u16 field_6A0; ///< sound flags; bit 5/4 gate the two cues
+                   /// Current yaw, walked toward `field_6A4` by
+                   /// `Actor05700_Fn01544`, using `field_69E` as the per-frame step.
+    s16 field_6A2;
+    s16 field_6A4; ///< yaw the actor wants to face
+    s16 field_6A6; ///< parked animation for the state-F0 path
+    s16 field_6A8; ///< state-machine step
+    s16 field_6AA; ///< animation the state-0 branch picks
+    s16 field_6AC;
+    s16 field_6AE; ///< state-0 frame budget
+    s16 field_6B0;
+    s16 field_6B2; ///< non-zero forces the state-F0 path
+    s16 field_6B4; ///< cleared once the tilt has settled
+    s16 field_6B6;
+    /// State-0 branch selector: 1 picks the short dwell and animation 1,
+    /// 2 the long dwell and animation 2.
+    s16  field_6B8;
+    s16  field_6BA;
+    s16  field_6BC;
+    s16  field_6BE;
+    s16  field_6C0;
+    s16  field_6C2;
+    s16  field_6C4;
+    byte pad_6C6[4];
+    /// Body variant select: `Actor05700_Fn01A58` drops the fifth body
+    /// object for the two values 0x38 / 0x39 and hands the halfword to
+    /// `Gp_ReleaseStateF0Add`.
+    s16 field_6CA;
+    s16 field_6CC;
+    s16 field_6CE;
+    s16 field_6D0;
+    /// Spawn state driven by `Actor05700_Fn05310`: 0 clears the
+    /// coordinate, 1 fires the effect burst and sound cue, 2 is idle.
+    s16 field_6D2;
+    /// Latched on state-0 entry, cleared when the frame budget runs out.
+    s16 field_6D4;
+    s16 field_6D6; ///< animation index, used as a table row
+    s16 field_6D8;
+    s16 field_6DA; ///< state-0 frame budget, drained by `field_69C`
+    s16 field_6DC;
+    /// State-1 step gate: 1 while the state-0 exit is still to be seen, 2
+    /// once it has been.
+    s16 field_6DE;
+    /// State-1 branch selector: zero picks the short dwell and animation 2,
+    /// non-zero the long dwell and animation 0x14.
+    s16  field_6E0;
+    byte pad_6E2[2];
+} Actor105600Work;
+STATIC_ASSERT_SIZEOF(Actor105600Work, 0x6E4);
+
+/// 0xF0-byte body block `Actor05600_Fn031B0` parks at `Task::work`.
+/// The two leading matrices are the light/colour pair published on the model
+/// root's `TmdObject`; the three `GpObj` bodies collide against `rec60`
+/// (shared by the first two) and, through the `GpActorD4Rec` between them,
+/// `recD0`. `field_EE` mirrors the placement table's variant flag.
+typedef struct Actor105600FxWork {
+    MATRIX       colorMtx;
+    MATRIX       lightMtx;
+    GpObj        obj40;
+    GpRec18      rec60[1];
+    GpObj        obj78;
+    GpObj        obj98;
+    GpActorD4Rec d4rec;
+    GpRec18      recD0[1];
+    s16          field_E8;
+    s16          field_EA;
+    /// Teardown step: 0 unlinks the three bodies, 1 counts `field_E8` up to
+    /// the frame the task is destroyed on.
+    s16 field_EC;
+    s16 field_EE;
+} Actor105600FxWork;
+STATIC_ASSERT_SIZEOF(Actor105600FxWork, 0xF0);
+
+/// 0x14-byte placement descriptor in the overlay's `.data`, handed to
+/// `Gp_PackPair` as the source of the body objects' `GpObj.key`.
+/// `field_E` is the variant flag `Actor05600_Fn031B0` latches into its
+/// work block: it is 1 when the actor is placed normally, and anything else
+/// puts the body in the other pose.
+typedef struct Actor105600PlaceSrc {
+    GpU16Pair pair;
+    u16       field_4;
+    u16       field_6;
+    u16       field_8;
+    u16       field_A;
+    u16       field_C;
+    u16       field_E;
+    u16       field_10;
+    u16       field_12;
+} Actor105600PlaceSrc;
+STATIC_ASSERT_SIZEOF(Actor105600PlaceSrc, 0x14);
+
+/// 0x40-byte scratch carved off `G_SCRATCH_HEAD` by `Actor05600_Fn02548`:
+/// the converted matrix, the `gte_rtv0` output and the two vectors fed through
+/// it (`rot` and `vec` are also the pair handed to `Actor05600_Fn02950`).
+typedef struct Actor105600AimScratch {
+    MATRIX  mtx;
+    VECTOR  pos;
+    SVECTOR rot;
+    SVECTOR vec;
+} Actor105600AimScratch;
+STATIC_ASSERT_SIZEOF(Actor105600AimScratch, 0x40);
+
+/// 0x48-byte scratch carved off `G_SCRATCH_HEAD` by `Actor05600_Fn02950`:
+/// the beam is walked in eight steps from `vec` to `rot`, each step projected
+/// into `cur` (packed screen xy) and `curZ` (OTZ). `xs`/`ys` hold the two
+/// projected ends followed by the four offset corners the ribbon polygons are
+/// cut from.
+typedef struct Actor105600BeamScratch {
+    VECTOR  vec;
+    SVECTOR pt;
+    SVECTOR step;
+    s32     prev;
+    s32     cur;
+    s32     prevZ;
+    s32     curZ;
+    s16     xs[6];
+    s16     ys[6];
+} Actor105600BeamScratch;
+STATIC_ASSERT_SIZEOF(Actor105600BeamScratch, 0x48);
+
+/// 0x38-byte scratch carved off `G_SCRATCH_HEAD` by
+/// `Actor05600_Fn031B0`. `rot` first holds the local offset the root
+/// coordinate is translated by (through `gte_rtv0` into `pos`), then the
+/// placement angles `RotMatrix` turns into `mtx` for the three `rtir` column
+/// transforms that overwrite the root coordinate's matrix.
+typedef struct Actor105600PlaceScratch {
+    SVECTOR rot;
+    VECTOR  pos;
+    MATRIX  mtx;
+} Actor105600PlaceScratch;
+STATIC_ASSERT_SIZEOF(Actor105600PlaceScratch, 0x38);
+
+/// Scratch-pad block of that enemy's push-back and hit: the deltas the
+/// collision walk resolves, their normal, the push, and the effect offset and
+/// target.
+typedef struct Actor105600HitScratch {
+    GpDeltaScratch delta;
+    VECTOR         normal;
+    VECTOR         push;
+    SVECTOR        effOfs;
+    SVECTOR        target;
+} Actor105600HitScratch;
+STATIC_ASSERT_SIZEOF(Actor105600HitScratch, 0x40);
+
 /* Contexts. */
 
 /// Ramp context of the screen-wave task. Whoever spawns the task seeds the
