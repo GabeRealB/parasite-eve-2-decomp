@@ -596,4 +596,41 @@ void func_actor_113100_80132C9C(Task* task)
     sp.funcs[task->state](task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_113100/actor_113100", func_actor_113100_80132CF4);
+/// Setup state of the child task whose state table is
+/// `D_actor_113100_80131E30`: hides the child's model, then mirrors the parent's
+/// (`spawnArg2`) model flag bits 0x80 and 0x4 as the tick state does. It draws
+/// the model at order-table offset -2, hangs the child's root coordinate off the
+/// parent's part `spawnArg1`, shares the parent's light and colour matrices,
+/// reparents the task under the parent and steps to the next state.
+void func_actor_113100_80132CF4(Task* task)
+{
+    Task*          parent;
+    TmdObject*     obj;
+    TmdObject*     parentObj;
+    GsCOORDINATE2* coords;
+    GsCOORDINATE2* root;
+
+    parent      = task->spawnArg2;
+    obj         = task->extra;
+    parentObj   = parent->extra;
+    coords      = parentObj->coords;
+    obj->flags |= 0x80;
+    root        = obj->coords;
+    if (!(parentObj->flags & 0x80)) {
+        obj->flags &= 0xFF7F;
+    }
+    if (!(parentObj->flags & 4)) {
+        obj->flags &= 0xFFFB;
+        Tmd_AllocBuffers(obj);
+    } else {
+        obj->flags |= 4;
+    }
+    obj->otOffset = -2;
+    coords       += task->spawnArg1;
+    root->flg     = 0;
+    root->sub     = coords;
+    obj->lightMtx = parentObj->lightMtx;
+    obj->colorMtx = parentObj->colorMtx;
+    Task_Reparent(parent, task);
+    task->state++;
+}
