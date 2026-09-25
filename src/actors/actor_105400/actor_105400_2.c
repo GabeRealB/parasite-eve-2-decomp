@@ -83,21 +83,21 @@ void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1)
     arg0->field_4  = &coord->coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->coord      = coord;
-    pose             = &D_actor_105400_80133A30;
-    arg0->bodyPos.vx = pose->field_8.vx;
-    arg0->bodyPos.vy = pose->field_8.vy;
-    arg0->bodyPos.vz = pose->field_8.vz;
-    arg0->param      = &D_actor_105400_8013CE30;
-    arg0->recs       = work->recs;
-    arg0->hp         = D_actor_105400_8013CE30.hpMax;
-    work->coord      = coord;
-    work->field_2F8  = 0x500;
-    work->field_2FA  = 3;
-    func_800B3F84((GpAnimCtx*)work, D_actor_105400_8013CEB8, obj, work->poses,
+    arg0->coord                = coord;
+    pose                       = &D_actor_105400_80133A30;
+    arg0->bodyPos.vx           = pose->field_8.vx;
+    arg0->bodyPos.vy           = pose->field_8.vy;
+    arg0->bodyPos.vz           = pose->field_8.vz;
+    arg0->param                = &D_actor_105400_8013CE30;
+    arg0->recs                 = work->rec18;
+    arg0->hp                   = D_actor_105400_8013CE30.hpMax;
+    work->field_2F4.coord      = coord;
+    work->field_2F4.spawnArgLo = 0x500;
+    work->field_2F4.spawnArgHi = 3;
+    func_800B3F84(&work->anim, D_actor_105400_8013CEB8, obj, work->poses,
                   work->slots);
     for (i = 1; i < 0xA; i++) {
-        Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
+        Gp_AnimResetSlot(&work->anim, i, 1);
     }
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
     work->field_334      = 1;
@@ -106,7 +106,7 @@ void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1)
     work->field_338      = 1;
     work->field_33C      = D_actor_105400_8013CE34[0];
     work->node0.coord    = coord;
-    work->node0.ctx.recs = work->recs;
+    work->node0.ctx.recs = work->rec18;
     work->node0.pos.vx   = 0;
     work->node0.pos.vy   = 0;
     work->node0.pos.vz   = 0;
@@ -114,9 +114,9 @@ void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1)
     work->node0.radius   = 0x5DC;
     work->node0.flags    = 1;
     Gp_LinkObj(2, &work->node0);
-    Gp_InitRec18Table(work->recs, 2, 0);
+    Gp_InitRec18Table(work->rec18, 2, 0);
     work->node1.coord    = coord;
-    work->node1.ctx.recs = work->recs;
+    work->node1.ctx.recs = work->rec18;
     work->node0.flags    = (u16)(work->node0.flags | 0x8000);
     pose2                = &D_actor_105400_80133A30;
     work->node1.pos.vx   = pose2->field_8.vx;

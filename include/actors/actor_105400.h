@@ -3,72 +3,171 @@
 
 #include "common.h"
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
 #include "gameplay/1BC.h"
+#include "main/session.h"
+#include "main/task.h"
 
-/// Spawn offsets the state-0 setup reads into the enemy's `field_1C` vector
-/// and into the second list node's halfword triple: the first entry of
-/// `D_actor_105400_80133A30` is unused here, the second `field_8` is what both
-/// reads take. Read through this view the components load signed (`lh`), which
-/// is what the 32-bit `field_1C` store needs.
+#include "gameplay/3FB8.h"
+
+/// The model object in `Task::extra`, seen through this overlay: `field_8` is
+/// the object's trailing `GsCOORDINATE2` array. The spawn seeds one of those
+/// coordinates from `D_actor_105400_80133A20` and hands it to the enemy as
+/// `GpEnemy::coord`.
+typedef struct Actor05400Obj2C {
+    /* 0x00 */ byte           pad_0[8];
+    /* 0x08 */ GsCOORDINATE2* field_8;
+    /* 0x0C */ u16            field_C;
+} Actor05400Obj2C;
+
+/// Work block of the task this enemy hangs off -- the part spawn reaches it as
+/// `task->parent->work`, and the part teardown reads the sound id `field_31C`
+/// from it. `field_334` is the enemy's sub-state index: it selects the spawn
+/// position in `D_actor_105400_80133A20` and also which of the two per-enemy
+/// death flags the part spawn raises. This actor's own spawn always sets it
+/// to 1.
+///
+/// The pose half is what the per-frame handlers drive: `field_32C` is the
+/// animation sub-state `func_actor_105400_8013222C` dispatches on, `field_328`
+/// the row of the clip table that state walks, `field_32A` the countdown the
+/// LCG reseeds and `field_320` / `field_324` the pose the pose tick
+/// `func_actor_105400_80133610` queues and the frames it has counted for it.
+/// `field_2FC` is the local coordinate matrix that handler copies into the
+/// model's own coordinate each frame. `field_320` / `field_324` are unsigned
+/// here: every signed read of them casts at the use.
+typedef struct Actor05400Work {
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[10];
+    /* 0x1A4 */ GpAnimPose poses[10];
+    /* 0x244 */ MATRIX     field_244;
+    /* 0x264 */ MATRIX     field_264;
+    /* 0x284 */ GpObj      node0;
+    /* 0x2A4 */ GpObj      node1;
+    /* 0x2C4 */ GpRec18    rec18[2];
+    /* 0x2F4 */ GpEffArg   field_2F4;
+    /* 0x2FC */ MATRIX     field_2FC;
+    /* 0x31C */ s32        field_31C;
+    /* 0x320 */ u16        field_320;
+    /* 0x322 */ s16        field_322;
+    /* 0x324 */ u16        field_324;
+    /* 0x326 */ u16        field_326;
+    /* 0x328 */ u16        field_328;
+    /* 0x32A */ u16        field_32A;
+    /* 0x32C */ u16        field_32C;
+    /* 0x32E */ u16        field_32E;
+    /* 0x330 */ u16        field_330;
+    /* 0x332 */ s16        field_332;
+    /* 0x334 */ s16        field_334;
+    /* 0x336 */ s16        field_336;
+    /* 0x338 */ s16        field_338;
+    /* 0x33A */ s16        field_33A;
+    /* 0x33C */ s16        field_33C;
+    /* 0x33E */ s16        field_33E;
+} Actor05400Work;
+STATIC_ASSERT_SIZEOF(Actor05400Work, 0x340);
+
+/// 0x48-byte part object the spawn allocates with `memCalloc` and parks in
+/// `Task::work`. It leads with the `GpObj` list node linked into
+/// `Gp_ObjLists[2]` -- and the one the part teardown hands back to
+/// `Gp_UnlinkObj` -- so `obj.ctx.recs` is the single-entry `GpRec18` collision
+/// table at 0x20. `field_38` holds the same coordinate `obj.coord` points at,
+/// and `field_46` is the sub-state the teardown reads back to pick its death
+/// flag.
+typedef struct Actor05400Part {
+    /* 0x00 */ GpObj    obj;
+    /* 0x20 */ GpRec18  rec18[1];
+    /* 0x38 */ GpEffArg field_38; // record this part's death effect is spawned with
+    /* 0x40 */ s16      field_40;
+    /* 0x42 */ u16      field_42;
+    /* 0x44 */ s16      field_44;
+    /* 0x46 */ s16      field_46;
+} Actor05400Part;
+STATIC_ASSERT_SIZEOF(Actor05400Part, 0x48);
+
+/// The task whose work block is `Actor05400Work`, reached as `task->field_1C`
+/// (the `Task::work` slot). `field_20` is the `Task::spawnArg2` slot holding
+/// the enemy: the sound events this enemy plays carry its actor id in the
+/// high nibble of `GpEnemy::placeKey`. `field_2C` is the `Task::extra` model
+/// object.
+typedef struct Actor05400 {
+    /* 0x00 */ byte             pad_0[0x1C];
+    /* 0x1C */ Actor05400Work*  field_1C;
+    /* 0x20 */ GpEnemy*         field_20;
+    /* 0x24 */ byte             pad_24[8];
+    /* 0x2C */ Actor05400Obj2C* field_2C;
+    /* 0x30 */ s32              field_30;
+} Actor05400;
+
+/// The 0x18-byte block the hit handler pushes on the scratchpad stack at
+/// `0x1F8003FC`: the player-to-enemy delta and the effect offset it hands
+/// `Gp_SpawnEff` / `func_800FDB18`.
+typedef struct Actor05400Scratch {
+    /* 0x00 */ VECTOR  delta;
+    /* 0x10 */ SVECTOR ofs;
+} Actor05400Scratch;
+STATIC_ASSERT_SIZEOF(Actor05400Scratch, 0x18);
+
+/// Spawn position copied into a coordinate's translation, one entry per
+/// `Actor05400Work::field_334` sub-state.
+typedef struct Actor05400SpawnPos {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 y;
+    /* 0x4 */ s16 z;
+} Actor05400SpawnPos;
+STATIC_ASSERT_SIZEOF(Actor05400SpawnPos, 0x6);
+
+/// One row of the two clip/scale tables (`D_actor_105400_8013CE84` for sub-
+/// state 0, `D_actor_105400_8013CE90` for 1) the animation schedule walks by
+/// `Actor05400Work::field_328`. A zero `field_0` advances the row; a non-zero
+/// one ends the clip and reseeds the countdown, so each table's last row is
+/// its terminator. `field_2` is the scale that row hands
+/// `func_actor_105400_801336D4`.
+typedef struct Actor05400Clip {
+    /* 0x0 */ s16 field_0;
+    /* 0x2 */ u16 field_2;
+} Actor05400Clip;
+STATIC_ASSERT_SIZEOF(Actor05400Clip, 0x4);
+
+/// One row of the per-view sound table `D_actor_105400_8013CE64`, indexed by
+/// `GameSession::at4.loc.view`. `field_0` and `field_2` are the two s8
+/// parameters handed with the work block's sound id: to `SndEvt_EnqueueType6`
+/// when the spawn starts the sound, to `SndEvt_EnqueueTypeA` each frame after.
+typedef struct Actor05400SndRow {
+    /* 0x0 */ s8 field_0;
+    /* 0x1 */ s8 pad_1;
+    /* 0x2 */ s8 field_2;
+    /* 0x3 */ s8 pad_3;
+} Actor05400SndRow;
+STATIC_ASSERT_SIZEOF(Actor05400SndRow, 0x4);
+
+/// Spawn offsets at `D_actor_105400_80133A30`: the spawn reads only the second
+/// vector, `field_8`, into the enemy's body position and the second list
+/// node's position.
 typedef struct Actor05400Pose {
     /* 0x0 */ SVECTOR field_0;
     /* 0x8 */ SVECTOR field_8;
 } Actor05400Pose;
 STATIC_ASSERT_SIZEOF(Actor05400Pose, 0x10);
 
-/// 4-byte pan/volume row of the sound table `D_actor_105400_8013CE64`, indexed
-/// by `gGameSession->at4.loc.view`; `field_0` and `field_2` are the second and third
-/// `SndEvt_EnqueueType6` arguments.
-typedef struct Actor05400SndRow {
-    /* 0x0 */ s8 field_0;
-    /* 0x1 */ s8 field_1;
-    /* 0x2 */ s8 field_2;
-    /* 0x3 */ s8 field_3;
-} Actor05400SndRow;
-STATIC_ASSERT_SIZEOF(Actor05400SndRow, 4);
+/// The gameplay LCG the clip schedules reseed their countdowns from,
+/// `state = state * 5 + 0x71357911`. Unsigned here for the same reason as
+/// `Gp_LcgState` elsewhere: the draws are logical shifts of the high half
+/// (`srl`), which a signed declaration would turn into an arithmetic one.
+extern u32 Gp_LcgState;
 
-/// The 0x340-byte block the state-0 setup allocates and stores at
-/// `Task::work` (the same slot `Actor05400::field_1C` names). Its 0x14 prefix
-/// is the `GpAnimCtx` handed to `func_800B3F84`; `slots`/`poses` are that
-/// call's last two arguments. The two `MATRIX`es at 0x244 / 0x264 are the
-/// model's colour and light matrices (`TmdObject::colorMtx` / `field_1C`),
-/// `node0` / `node1` the `GpObj` list nodes linked onto list 2 with their two
-/// `GpRec18` records, and `field_2FC` the working copy of the coordinate
-/// matrix.
-typedef struct Actor05400Work {
-    /* 0x000 */ GpAnimCtx      anim;
-    /* 0x014 */ GpAnimSlot     slots[10];
-    /* 0x1A4 */ byte           poses[0xA0];
-    /* 0x244 */ MATRIX         field_244;
-    /* 0x264 */ MATRIX         field_264;
-    /* 0x284 */ GpObj          node0;
-    /* 0x2A4 */ GpObj          node1;
-    /* 0x2C4 */ GpRec18        recs[2];
-    /* 0x2F4 */ GsCOORDINATE2* coord;
-    /* 0x2F8 */ u16            field_2F8;
-    /* 0x2FA */ s16            field_2FA;
-    /* 0x2FC */ MATRIX         field_2FC;
-    /* 0x31C */ s32            field_31C;
-    /* 0x320 */ byte           pad_320[6];
-    /* 0x326 */ s16            field_326;
-    /* 0x328 */ byte           pad_328[0xC];
-    /* 0x334 */ s16            field_334;
-    /* 0x336 */ byte           pad_336[2];
-    /* 0x338 */ s16            field_338;
-    /* 0x33A */ byte           pad_33A[2];
-    /* 0x33C */ u16            field_33C;
-    /* 0x33E */ byte           pad_33E[2];
-} Actor05400Work;
-STATIC_ASSERT_SIZEOF(Actor05400Work, 0x340);
+extern Actor05400Clip D_actor_105400_8013CE90[];
+extern s16            D_actor_105400_80133A18[];
+extern s16            D_actor_105400_80133A2C[];
 
-typedef struct Actor05400 {
-    /* 0x00 */ byte            pad_0[0x1C];
-    /* 0x1C */ Actor05400Work* field_1C;
-} Actor05400;
-
-s16 Actor05400_Fn01B70(Actor05400* arg0);
-
+void func_actor_105400_80131E3C(Actor05400* arg0);
+void func_actor_105400_8013222C(Actor05400* arg0);
+void func_actor_105400_80133530(Actor05400* arg0);
+void func_actor_105400_801335B8(Actor05400* arg0);
+void func_actor_105400_80133610(Actor05400* arg0);
+void func_actor_105400_801336D4(Actor05400* arg0, MATRIX* arg1, s16 arg2, s32 arg3);
 void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1);
+s16  Actor05400_Fn01B70(Actor05400* arg0);
 
 #endif

@@ -1,16 +1,2 @@
 // Overlay-local symbols for actor_105400.
-ActorsShared80133468 = 0x80133468; // shared body, see src/lib/
-ActorsShared80133468_Fn31E3C = 0x80131E3C; // type:func absolute:True
-ActorsShared80133468_Fn3222C = 0x8013222C; // type:func absolute:True
-
 Actor05400_Fn01B70 = 0x80133990; // type:func
-ActorsShared80134ff0 = 0x801335B8; // shared body, see src/lib/
-ActorsShared80136574 = 0x801336D4; // shared body, see src/lib/
-ActorsShared80133530 = 0x80133530; // shared body, see src/lib/
-ActorsShared8013391c = 0x8013391C; // shared body, see src/lib/
-ActorsShared80133838 = 0x80133838; // shared body, see src/lib/
-ActorsShared80133610 = 0x80133610; // shared body, see src/lib/
-ActorsShared80133610Table = 0x80133A18; // shared body data, see src/lib/
-ActorsShared8013246cClips = 0x8013CE90; // shared death animation clip table
-ActorsShared8013246cReleaseArgs = 0x80133A2C; // shared death handler release-argument table
-ActorsShared8013246c = 0x8013246C; // shared body, see src/lib/

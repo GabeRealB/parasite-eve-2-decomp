@@ -1,7 +1,6 @@
 #include "common.h"
-#include "actors/actors_shared_8013246c.h"
-#include "actors/actors_shared_80133610.h"
-#include "actors/actors_shared_80136574.h"
+
+#include "actors/actor_105400.h"
 #include "gameplay/1A8.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -9,21 +8,35 @@
 #include "main/gameflag.h"
 #include "main/sound.h"
 #include "main/wipsys.h"
+
 extern u8 D_801153F4;
 extern s8 D_80115416;
 
-void func_800B4114(Actor05300Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
+void func_800B4114(Actor05400Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
-void ActorsShared8013246c(GpEnemy* arg0, Actor05300* arg1)
+/// Death handler of the main task (its state 2). Death state `field_32E` 3 is
+/// the wait the hit handler enters when the enemy dies: effects are spawned
+/// every fourth frame until message bit 1 moves it to 0. State 0 drops the
+/// enemy's lock-on node and both collision objects and starts the sequence;
+/// state 1 runs it for 0x78 frames, shrinking the model towards an eighth of
+/// its scale while flickering through `D_actor_105400_8013CE90`, spawning the
+/// same two randomly offset effects every fourth frame, setting bit 1 of the
+/// model's `field_C` at frame 0x14, spawning effect 0x600A5 at 0x1E and
+/// switching the light mode at 0x6E, then ends in state 2. Independently,
+/// `field_330` 0 calls `Gp_ReleaseStateF0Add` once with this sub-state's entry
+/// of `D_actor_105400_80133A2C` (message bit 2 clears the hold value 2). The
+/// pose and colour are ticked every frame, and the enemy is destroyed once the
+/// sequence has ended and the release has run.
+void func_actor_105400_8013246C(GpEnemy* arg0, Actor05400* arg1)
 {
     SVECTOR          ofs;
     VECTOR           pos;
-    Actor05300Obj2C* obj;
-    Actor05300Work*  work;
-    Actor05300Work*  anim;
+    Actor05400Obj2C* obj;
+    Actor05400Work*  work;
+    Actor05400Work*  anim;
     GsCOORDINATE2*   coord;
     GsCOORDINATE2*   tmp;
-    Actor05300Clip*  clip;
+    Actor05400Clip*  clip;
     u16              scale;
     s32              r;
     s8               flag;
@@ -96,7 +109,7 @@ void ActorsShared8013246c(GpEnemy* arg0, Actor05300* arg1)
                     scale = work->field_326;
                     break;
                 case 1:
-                    clip  = &ActorsShared8013246cClips[(s16)work->field_32A];
+                    clip  = &D_actor_105400_8013CE90[(s16)work->field_32A];
                     scale = ((s16)work->field_326 * (s16)clip->field_2) >> 12;
                     if (clip->field_0 != 0) {
                         work->field_32C = 0;
@@ -107,7 +120,7 @@ void ActorsShared8013246c(GpEnemy* arg0, Actor05300* arg1)
                     }
                     break;
             }
-            ActorsShared80136574((ActorShared80136574*)arg1, &work->field_2FC, scale, 0);
+            func_actor_105400_801336D4(arg1, &work->field_2FC, scale, 0);
             if (!(work->field_328 & 3)) {
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 x           = (Gp_LcgState >> 16) & 0x3FF;
@@ -195,7 +208,7 @@ void ActorsShared8013246c(GpEnemy* arg0, Actor05300* arg1)
             break;
     }
     if ((s16)work->field_330 == 0) {
-        Gp_ReleaseStateF0Add((GpObj20E*)arg1, ActorsShared8013246cReleaseArgs[work->field_334]);
+        Gp_ReleaseStateF0Add((GpObj20E*)arg1, D_actor_105400_80133A2C[work->field_334]);
         work->field_330 = 1;
         Gp_ClearAreaFlag4((GpAreaKey*)&gGameSession->at4);
     }
@@ -204,7 +217,7 @@ void ActorsShared8013246c(GpEnemy* arg0, Actor05300* arg1)
     if ((s16)anim->field_320 != anim->field_322) {
         anim->field_322 = anim->field_320;
         anim->field_324 = 0;
-        value           = ActorsShared80133610Table[(s16)anim->field_320];
+        value           = D_actor_105400_80133A18[(s16)anim->field_320];
         for (; i < 10; i++) {
             func_800B4114(anim, i, (s16)anim->field_320, 0, value);
         }
@@ -212,7 +225,7 @@ void ActorsShared8013246c(GpEnemy* arg0, Actor05300* arg1)
         TOUCH_REG(i);
         anim->field_324 += i;
         do {
-            Gp_AnimTickIndex((GpAnimCtx*)anim, i);
+            Gp_AnimTickIndex(&anim->anim, i);
             i++;
         } while (i < 10);
     }

@@ -1,25 +1,28 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
-#include "main/mem.h"
-
+#include "actors/actor_105400.h"
 #include "actors/actors_shared_80136574.h"
+#include "main/mem.h"
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-/// Multiplies `arg1` into the coordinate `arg0->field_2C` points at, scaled by
-/// `arg2`: through a 0x30-byte block borrowed from the scratchpad and released
-/// again, an identity rotation is splatted word-wise and `ScaleMatrix` scales
-/// it. `arg3` selects the axis layout - non-zero scales all three axes by
-/// `arg2`, zero leaves X and Z at 0x1000 and scales only Y.
+/// Sets the model's coordinate to `arg1` scaled by `arg2` and marks it for
+/// recomputation. The scale is built in a 0x30-byte block borrowed from the
+/// scratchpad: an identity rotation is written word-wise and `ScaleMatrix`
+/// scales it, on all three axes when `arg3` is non-zero and on Y alone when it
+/// is zero.
 ///
-/// The scratchpad head is deliberately written twice, from two separate
-/// computations of `head - 0x30`. CSE cannot substitute a value that holds no
-/// register, so the store keeps the block-local `$v1` while `blk` - which
-/// crosses both calls - is copied into `$s0` by `reload_cse_regs`. Folding the
-/// two into one variable allocates `blk`'s register for the store as well and
-/// loses the copy, the delay-slot fill and the frame layout.
-void ActorsShared80136574(ActorShared80136574* arg0, MATRIX* arg1, s16 arg2, s32 arg3)
+/// The scratchpad head is written twice, from two separate computations of
+/// `head - 0x30`. CSE cannot substitute a value that holds no register, so the
+/// store keeps the block-local `$v1` while `blk` - which crosses both calls -
+/// is copied into `$s0` by `reload_cse_regs`. Folding the two into one
+/// variable allocates `blk`'s register for the store as well and loses the
+/// copy, the delay-slot fill and the frame layout.
+void func_actor_105400_801336D4(Actor05400* arg0, MATRIX* arg1, s16 arg2, s32 arg3)
 {
     void*                       head;
     ActorShared80136574Scratch* blk;
