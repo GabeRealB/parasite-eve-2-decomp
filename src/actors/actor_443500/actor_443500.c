@@ -18,14 +18,6 @@
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 
-/// Position context the spawn handler reads through `Task::spawnArg2` (0x20):
-/// the halfword at 0x8 packs the area position, shifted down by 12 into the
-/// index `Gp_GetNestedAreaRec`'s table is walked with.
-typedef struct Actor443500Ctx {
-    /* 0x00 */ byte pad_0[8];
-    /* 0x08 */ u16  field_8;
-} Actor443500Ctx;
-
 /// Work block `func_actor_443500_80132078` `memCalloc`s (0x4C4) and parks in
 /// the task's `Task::work` slot, which holds no `TaskIdMap` here. The spawn
 /// handler seeds the two `sb` bytes at 0x475/0x476 and the word at 0x4BC to
@@ -265,7 +257,7 @@ void func_actor_443500_80132078(Task* task)
     spawned         = Task_SpawnFromTable(&D_actor_443500_8015873C, 1, 4, (s32)task);
     if (spawned != NULL) {
         sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
-        raw        = ((Actor443500Ctx*)task->spawnArg2)->field_8;
+        raw        = ((GpEnemy*)task->spawnArg2)->placeKey;
         model      = (TmdObject*)spawned->extra;
         key.stage  = sessionKey->stage;
         key.area   = sessionKey->area;
