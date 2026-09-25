@@ -8229,15 +8229,12 @@ void Gp_SetViewFromCoord(GpCoord* arg0, VECTOR* arg1)
 /// world offset stored in the task's 0x10-byte payload.
 s32 Gp_SpawnViewCoordTask(GpCoord* arg0, VECTOR* arg1)
 {
-    MATRIX*           localMtx;
-    register MATRIX*  relMtx asm("s0");
-    register MATRIX*  dstMtx asm("v0");
-    GpCoord*          coord;
-    Task*             task;
-    VECTOR*           pos;
-    GpCoord*          root;
-    register GpCoord* parent asm("v1");
-    GpCoord           rel;
+    GpCoord* coord;
+    Task*    task;
+    VECTOR*  pos;
+    GpCoord* root;
+    GpCoord* parent;
+    GpCoord  rel;
 
     task = Task_Spawn(0, 0xE, 0, 0);
     if (task == NULL) {
@@ -8263,28 +8260,17 @@ s32 Gp_SpawnViewCoordTask(GpCoord* arg0, VECTOR* arg1)
     parent = arg0->sub;
     root   = &gGfxViewCoord;
     if (parent == root) {
-        localMtx = &arg0->coord;
-        dstMtx   = &coord->coord;
-        TOUCH_REG2(localMtx, dstMtx);
-        gte_TransposeMatrix(localMtx, dstMtx);
-
+        gte_TransposeMatrix(&arg0->coord, &coord->coord);
         coord->coord.t[0] = -arg0->coord.t[0];
         coord->coord.t[1] = -arg0->coord.t[1];
         coord->coord.t[2] = -arg0->coord.t[2];
     } else {
         coordToRoot(arg0, root, &rel.coord);
-        TOUCH_REG(coord);
-
-        dstMtx = &coord->coord;
-        relMtx = &rel.coord;
-        TOUCH_REG2(dstMtx, relMtx);
-        gte_TransposeMatrix(relMtx, dstMtx);
-
+        gte_TransposeMatrix(&rel.coord, &coord->coord);
         coord->coord.t[0] = -rel.coord.t[0];
         coord->coord.t[1] = -rel.coord.t[1];
         coord->coord.t[2] = -rel.coord.t[2];
     }
-    USE_REG(arg1);
     return 1;
 }
 
