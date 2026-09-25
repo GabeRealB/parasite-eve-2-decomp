@@ -140916,3 +140916,27 @@ is also why a `* 0xC0` argument in the same function matched from the start.
 release path written once behind a `goto`: each state that releases calling
 `Gp_ReleaseState1CMem(mem, arg0)` itself adds the references that rank `arg0`
 first, and cross-jumping merges the calls back into one tail.
+## The OT slot spelling moves loop.c's hoisting threshold: `&ot[(z << shift) >> 4 & 0x3FF]` is one RTL insn longer than `((z << shift) >> 2 & 0xFFC) + ot` (func_acropolis_security_room_801817A4, 2026-09-26)
+
+**Symptom.** Two draw loops, each with a call, where the target leaves some
+invariants inside the loop (`lui %hi(gGpuPrimCursor)`, `lui 0xFF00`, a colour
+`mult` with a spilled operand) that the natural source hoists. The old body got
+there with seven empty `USE_REG`s (padding the loop's insn count), a
+`TOUCH_REG` on the `0xFF000000` mask and two `asm` copies of the brightness.
+
+**Mechanism.** `move_movables` hoists when
+`threshold * savings * lifetime >= insn_count`, with `threshold = 29` in a loop
+with a call, minus 3 per insn moved; `insn_count` is counted on the cse1 output,
+before combine. `&gGpuCurrentOt[(otz << shift) >> 4 & 0x3FF]` expands to
+`srl 4; and 0x3FF; sll 2`, which combine later folds into the byte-offset form's
+`srl 2; andi 0xFFC` - identical final code, but one more insn per OT address at
+loop time, two per `addPrim`. That was exactly the gap: the quad loop went 88 ->
+90 and the line loop 92 -> 94, which kept the colour multiply below the line
+(`23 * 2 * 2 = 92 < 94`) while leaving every other decision as it was.
+
+**Also.** The colours were `s16` locals (`red`, `green`, the random `lum`): the
+2-insn sign extensions of `lum` are what loop.c hoists as the `move s3,fp`
+copies in each preheader, and an `s16` whose value is known to be small loses
+its extension in combine. Before padding or pinning a loop to stop a hoist,
+count the loop's insns in the `.loop` dump and check the types and the array
+spelling of the addresses in it.

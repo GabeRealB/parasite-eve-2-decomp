@@ -2314,136 +2314,75 @@ void func_acropolis_security_room_80181108(Task* arg0)
     }
 }
 
-void func_acropolis_security_room_801817A4(Task* taskArg)
+/// Draws a flash at the object's projected position: two gouraud quads and two
+/// lines meeting at the centre, sized `0xC00 / otz` and skipped when the point
+/// is too near (otz <= 0x10). `spawnArg1` bit 1 lights the red channel and bit 0
+/// the green one, both at one random brightness.
+void func_acropolis_security_room_801817A4(Task* task)
 {
-    Task* task;
-    void* mem;
-
+    GpCoord*         coord;
+    void*            mem;
+    AsrFlashScratch* scratch;
     POLY_G4*         quad;
     LINE_G3*         line;
-    s32              nextIndex;
-    s32              greenBit;
-    s32              quadLum;
-    s32              lineLum;
-    u32              tagMask;
-    u32              addrMask;
-    s32              tpageMode;
-    s32              savedLum;
-    s32              rawLum;
-    u16              vz;
-    s32              direction;
+    s16              lum;
+    s16              red;
+    s16              green;
     s32              i;
-    s32              redBit;
-    s32              product;
-    s32              greenProduct;
-    u8               lineRed;
-    u8               lineGreen;
-    s32              redProduct;
-    u16              redHalf;
-    u16              x;
-    u16              y;
-    u32              rng;
-    u8*              head;
-    GpCoord*         coord;
-    AsrFlashScratch* scratch;
 
-    task  = taskArg;
     coord = task->extra.tmd->coords;
     mem   = task->spawnArg2;
     Gp_UpdateCoord(coord);
-    head = SCRATCH_HEAD(u8);
-    {
-        u8* tmp;
-        tmp = head - 0x14;
-        SOFT_TOUCH_REG(tmp);
-        scratch = (AsrFlashScratch*)tmp;
-    }
-    scratch->v.vx      = (u16)coord->workm.t[0];
-    scratch->v.vy      = (u16)coord->workm.t[1];
-    vz                 = (u16)coord->workm.t[2];
-    SCRATCH_HEAD(void) = scratch;
-    scratch->v.vz      = vz;
+    scratch       = SCRATCH_PUSH(AsrFlashScratch);
+    scratch->v.vx = coord->workm.t[0];
+    scratch->v.vy = coord->workm.t[1];
+    scratch->v.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((AsrFlashScratch*)(head - 0x14))->v);
+    gte_ldv0(&scratch->v);
     gte_rtps();
-    gte_stsxy(&((AsrFlashScratch*)(head - 0x14))->x);
+    gte_stsxy(&scratch->x);
     gte_stszotz(&scratch->otz);
-    if (((AsrFlashScratch*)(head - 0x14))->otz >= 0x11) {
-        redBit  = ((s32)task->spawnArg1 >> 1) & 1;
-        redHalf = redBit;
-
-        rng      = (Gp_LcgState * 5) + 0x71357911;
-        greenBit = (u16)task->spawnArg1 & 1;
-        rawLum   = ((rng >> 0x10) & 0x70) + 0x40;
-        __asm__("move %0,%1" : "=r"(quadLum) : "r"(rawLum));
-        redProduct  = quadLum * redBit;
-        i           = 0;
-        addrMask    = 0xFFFFFF;
-        Gp_LcgState = rng;
-        __asm__("move %0,%1" : "=r"(savedLum) : "r"(rawLum));
-        scratch->step = 0xC00 / ((AsrFlashScratch*)(head - 0x14))->otz;
-        do {
+    if (scratch->otz >= 0x11) {
+        red           = (task->spawnArg1 >> 1) & 1;
+        green         = task->spawnArg1 & 1;
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        lum           = ((Gp_LcgState >> 16) & 0x70) + 0x40;
+        scratch->step = 0xC00 / scratch->otz;
+        for (i = 0; i < 2; i++) {
             quad           = (POLY_G4*)gGpuPrimCursor;
             gGpuPrimCursor = quad + 1;
             setPolyG4(quad);
             setRGB0(quad, 0, 0, 0);
             setRGB1(quad, 0, 0, 0);
-            setRGB2(quad, redProduct, greenBit * quadLum, 0);
+            setRGB2(quad, lum * red, green * lum, 0);
             setRGB3(quad, 0, 0, 0);
-            quad->x0  = scratch->x - (u16)scratch->step;
-            x         = scratch->x;
-            quad->x2  = x;
-            quad->x1  = x;
-            quad->x3  = scratch->x + (u16)scratch->step;
-            y         = scratch->y;
-            quad->y3  = y;
-            quad->y2  = y;
-            quad->y0  = y;
-            quad->y1  = (scratch->y - (u16)scratch->step) + (scratch->step * (i << 1));
-            tagMask   = 0xFF000000;
-            quad->tag = (quad->tag & tagMask) | (*((u_long*)(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt)) & addrMask);
-            TOUCH_REG(tagMask);
-            __asm__("addiu %0,$0,1" : "=r"(tpageMode) : "r"(i));
-            *((u_long*)(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt)) = (*((u_long*)(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt)) & tagMask) | ((u32)quad & addrMask);
-            i                                                                                                    += tpageMode;
-            Gp_AddTpageShift((P_TAG*)quad, tpageMode, scratch->otz);
-            USE_REG(scratch);
-            USE_REG(scratch);
-            USE_REG(scratch);
-            USE_REG(scratch);
-            USE_REG(scratch);
-            USE_REG(scratch);
-            USE_REG(scratch);
-        } while (i < 2);
-        i       = 0;
-        lineLum = savedLum;
-        do {
+            quad->x0 = scratch->x - scratch->step;
+            quad->x1 = quad->x2 = scratch->x;
+            quad->x3            = scratch->x + scratch->step;
+            quad->y0 = quad->y2 = quad->y3 = scratch->y;
+            quad->y1                       = (scratch->y - scratch->step) + scratch->step * (i + i);
+            addPrim(&gGpuCurrentOt[((u32)scratch->otz << gDisplayState.otDepthShift) >> 4 & 0x3FF], quad);
+            Gp_AddTpageShift((P_TAG*)quad, 1, scratch->otz);
+        }
+        for (i = 0; i < 2; i++) {
             line           = (LINE_G3*)gGpuPrimCursor;
             gGpuPrimCursor = line + 1;
             setLineG3(line);
             setRGB0(line, 0, 0, 0);
-            product   = redHalf * lineLum;
-            lineRed   = product;
-            product   = (greenProduct = greenBit * lineLum);
-            lineGreen = product;
-            setRGB1(line, lineRed, lineGreen, 0);
+            setRGB1(line, lum * red, green * lum, 0);
             setRGB2(line, 0, 0, 0);
-            direction = (i << 1) - 1;
-            product   = scratch->step * direction;
-            line->x0  = scratch->x + product;
-            nextIndex = i + 1;
-            line->y0  = scratch->y - (scratch->step * nextIndex);
-            line->x1  = scratch->x;
-            line->y1  = scratch->y;
-            line->x2  = scratch->x - (scratch->step * direction);
-            line->y2  = scratch->y + (scratch->step * nextIndex);
-            addPrim((u_long*)(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), line);
+            line->x0 = scratch->x + scratch->step * (i * 2 - 1);
+            line->y0 = scratch->y - scratch->step * (i + 1);
+            line->x1 = scratch->x;
+            line->y1 = scratch->y;
+            line->x2 = scratch->x - scratch->step * (i * 2 - 1);
+            line->y2 = scratch->y + scratch->step * (i + 1);
+            addPrim(&gGpuCurrentOt[((u32)scratch->otz << gDisplayState.otDepthShift) >> 4 & 0x3FF], line);
             Gp_AddTpageShift((P_TAG*)line, 1, scratch->otz);
-            i = nextIndex;
-        } while (i < 2);
+        }
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_POP(AsrFlashScratch);
     Gp_ReleaseState1CMem(mem, task);
 }
 
