@@ -8727,7 +8727,7 @@ increments a second counter, a pointer `p++` plus `i++` still becomes
 ```c
 count = 0;
 for (i = 0; i < 8; i++) {
-    if (Gp_RoomCoords[i].field_0 != 0) {
+    if (Gp_RoomCoords[i].framesLeft != 0) {
         count++;
     }
 }
@@ -55255,7 +55255,7 @@ hoist, here it lets a store sink.
 **Problem.** `func_m4a1_pyke_8011D1F8` keeps five callee-saved pointers. Every
 instruction matched except that the task argument and one alias pointer had
 swapped registers — the ROM uses `s2` for the `Task*` and `s3` for the
-`GpCoordTail*` view of `Gp_RoomCoords[1].coord`, ours used `s3` and `s2`.
+`GpCoordTail*` view of `Gp_RoomCoords[1].data.coord`, ours used `s3` and `s2`.
 
 **Symptom.** Nothing in the C looked register-related; `.greg` showed the
 allocation order line

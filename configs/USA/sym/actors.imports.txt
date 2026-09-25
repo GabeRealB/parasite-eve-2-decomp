@@ -149,7 +149,7 @@ Pad_States = 0x80071620; // absolute:True
 Mc_SaveData = 0x80072168; // absolute:True
 Player_Status = 0x80073B88; // absolute:True
 
-// --- from gameplay (213 symbols)
+// --- from gameplay (214 symbols)
 Gp_UpdateCoord = 0x80098F58; // absolute:True
 func_8009EA50 = 0x8009EA50; // absolute:True
 Gp_SpendMp = 0x800A7F34; // absolute:True
@@ -357,6 +357,7 @@ Gp_RoomParamTables = 0x8010CBB8; // absolute:True
 Gp_WeaponIdBase = 0x80112D68; // absolute:True
 Gp_PlayerAnimBlkTbl = 0x80112D6C; // absolute:True
 Gp_StateC08 = 0x80114C08; // absolute:True
+Gp_RoomCoords = 0x80114F30; // absolute:True
 Gp_StateF0 = 0x801153F0; // absolute:True
 Gp_GridParams = 0x80115448; // absolute:True
 Gp_PendingObj4C = 0x8011556C; // absolute:True

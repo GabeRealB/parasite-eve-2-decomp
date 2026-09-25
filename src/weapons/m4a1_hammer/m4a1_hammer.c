@@ -55,7 +55,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
     work  = task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
     base  = &Gp_RoomCoords[1];
-    light = &base->coord;
+    light = &base->data.coord;
     slot  = (GpCoordTail*)light;
 
     if ((((TmdObject*)(gameGetPtrSlot(3))->extra)->flags & 0x80) == 0 && Gp_State1C->eventState < 2) {
@@ -105,13 +105,13 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                             func_m4a1_hammer_8011D904(coord->workm.t, work->age >> 1, work->period,
                                                       work->angle);
                         }
-                        base->field_0  = 4;
-                        slot->field_58 = 0x80;
-                        slot->field_5C = 0x400;
-                        Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-                        slot->field_54 = ((Gp_LcgState >> 16) & 0x700) + 0x400;
-                        slot->field_50 = (u16)slot->field_54 >> 1;
-                        slot->field_52 = (u16)slot->field_54 >> 1;
+                        base->framesLeft = 4;
+                        slot->field_58   = 0x80;
+                        slot->field_5C   = 0x400;
+                        Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
+                        slot->field_54   = ((Gp_LcgState >> 16) & 0x700) + 0x400;
+                        slot->field_50   = (u16)slot->field_54 >> 1;
+                        slot->field_52   = (u16)slot->field_54 >> 1;
                         Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &light->coord);
                         light->flg  = 0;
                         work->index = 0;
@@ -165,13 +165,13 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                                 func_m4a1_hammer_8011E29C(coord, &work->pos, work->age, 0x280);
                             }
                         }
-                        base->field_0  = 4;
-                        slot->field_58 = 0x400;
-                        slot->field_5C = 0x4000;
-                        Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-                        slot->field_54 = ((Gp_LcgState >> 16) & 0x700) + 0x800;
-                        slot->field_50 = (u16)slot->field_54 >> 1;
-                        slot->field_52 = (s16)(u16)slot->field_54 >> 1;
+                        base->framesLeft = 4;
+                        slot->field_58   = 0x400;
+                        slot->field_5C   = 0x4000;
+                        Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
+                        slot->field_54   = ((Gp_LcgState >> 16) & 0x700) + 0x800;
+                        slot->field_50   = (u16)slot->field_54 >> 1;
+                        slot->field_52   = (s16)(u16)slot->field_54 >> 1;
                         Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &light->coord);
                         light->flg  = 0;
                         work->index = (u16)work->index + 1;

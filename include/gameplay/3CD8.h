@@ -7,6 +7,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "gameplay/light.h"
 #include "main/session.h"
 #include "main/task.h"
 
@@ -311,8 +312,8 @@ typedef struct {
 } GpState1C;
 STATIC_ASSERT_SIZEOF(GpState1C, 0x1C);
 
-/// Overlay of `GpCoord64.coord` plus the 0x10-byte tail. `Gp_EffCtlTask6B`
-/// holds `&Gp_RoomCoords[0].coord` as this type so `field_50` / `field_58`
+/// Overlay of `GpCoord64.data.coord` plus the 0x10-byte tail. `Gp_EffCtlTask6B`
+/// holds `&Gp_RoomCoords[0].data.coord` as this type so `field_50` / `field_58`
 /// are addressed from the coordinate pointer (`s5 + 0x50` / `s5 + 0x58`).
 typedef struct _GpCoordTail {
     /* 0x00 */ GsCOORDINATE2 coord;
@@ -324,25 +325,6 @@ typedef struct _GpCoordTail {
     /* 0x5C */ s32           field_5C;
 } GpCoordTail;
 STATIC_ASSERT_SIZEOF(GpCoordTail, 0x60);
-
-/// 0x64-byte world-coord slot. `Gp_InitRoomCoords` inits all 8 entries of
-/// `Gp_RoomCoords`: `coord.sub` is the parent (`&gGfxViewCoord`) and `field_0`
-/// is a refcount (decremented by `Gp_DecRoomCoordRefs`). `Gp_CountRoomCoords` returns
-/// how many slots currently have a non-zero refcount. `Gp_EffCtlTask6B`
-/// copies the actor translation into `coord`, writes `0xC00` into
-/// `field_54` / `field_56` / `field_58`, and decays `field_5C` by `0x190`
-/// while it is `>= 0x191`.
-typedef struct _GpCoord64 {
-    /* 0x00 */ s32           field_0;
-    /* 0x04 */ GsCOORDINATE2 coord;
-    /* 0x54 */ s16           field_54;
-    /* 0x56 */ s16           field_56;
-    /* 0x58 */ s16           field_58;
-    /* 0x5A */ s16           pad_5A;
-    /* 0x5C */ s32           field_5C;
-    /* 0x60 */ s32           field_60;
-} GpCoord64;
-STATIC_ASSERT_SIZEOF(GpCoord64, 0x64);
 
 /// 0x10-byte scratch from `G_SCRATCH_HEAD` used by `Gp_TraceGroundCoord` and
 /// `func_800EA1A8`. `pos` is the low halves of the source XYZ. `dir`
@@ -429,7 +411,6 @@ STATIC_ASSERT_SIZEOF(GpBandScratch, 0x118);
 
 extern GpState1C* Gp_State1C;
 extern Task*      Gp_State1CTask;
-extern GpCoord64  Gp_RoomCoords[8];
 /// Six CLUT X coordinates (0x20, 0x30, 0xC0, 0xD0, 0xE0, 0xF0) selected by
 /// the top nibble of `Gp_DrawFxQuad`'s angle argument and paired with CLUT
 /// Y 0x10B.

@@ -43,7 +43,7 @@ void Gp_EffCtlTask2B(Task* arg0)
     mem   = arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     base  = Gp_RoomCoords;
-    slot  = (GpCoordTail*)&base->coord;
+    slot  = (GpCoordTail*)&base->data.coord;
     if (Gp_State1C->eventState < 2) {
         mem->age++;
         switch (arg0->state) {
@@ -54,7 +54,7 @@ void Gp_EffCtlTask2B(Task* arg0)
                 slot->coord.coord.t[0] = coord->coord.t[0];
                 slot->coord.coord.t[1] = coord->coord.t[1];
                 t2                     = coord->coord.t[2];
-                base->coord.flg        = 0;
+                base->data.coord.flg   = 0;
                 slot->field_50         = 0xC00;
                 slot->field_52         = 0xC00;
                 slot->field_54         = 0xC00;
@@ -76,8 +76,8 @@ void Gp_EffCtlTask2B(Task* arg0)
                         idx         = arg0->spawnArg1;
                         arg0->state = 1;
                         Gp_SpawnEff(0x60036, coord, idx, &D_801125EC[idx]);
-                        mem->scale    = 4;
-                        base->field_0 = 4;
+                        mem->scale       = 4;
+                        base->framesLeft = 4;
                         break;
                     case 2:
                     case 3:
@@ -87,8 +87,8 @@ void Gp_EffCtlTask2B(Task* arg0)
                         idx         = arg0->spawnArg1;
                         arg0->state = 1;
                         Gp_SpawnEff(0x60036, coord, idx, &D_801125EC[idx]);
-                        mem->scale    = 4;
-                        base->field_0 = 4;
+                        mem->scale       = 4;
+                        base->framesLeft = 4;
                         break;
                     case 30:
                     case 31:
@@ -99,15 +99,15 @@ void Gp_EffCtlTask2B(Task* arg0)
                         Gp_SpawnEff(0x60034, coord, (((u32)rng >> 16) & 0x1FF) + 0x300, 0);
                         idx = arg0->spawnArg1;
                         Gp_SpawnEff(0x60036, coord, idx, &D_801125EC[idx]);
-                        mem->scale    = 2;
-                        base->field_0 = 2;
+                        mem->scale       = 2;
+                        base->framesLeft = 2;
                         break;
                     case 5:
                         idx         = arg0->spawnArg1;
                         arg0->state = 1;
                         Gp_SpawnEff(0x60066, coord, idx, &D_801125EC[idx]);
-                        mem->scale    = 4;
-                        base->field_0 = 0;
+                        mem->scale       = 4;
+                        base->framesLeft = 0;
                         break;
                     case 33:
                         mem->index  = 1;
@@ -117,8 +117,8 @@ void Gp_EffCtlTask2B(Task* arg0)
                         Gp_SpawnEff(0x60034, coord, (((u32)rng >> 16) & 0x1FF) + 0x300, 0);
                         idx = arg0->spawnArg1;
                         Gp_SpawnEff(0x60066, coord, idx, &D_801125EC[idx]);
-                        mem->scale    = 4;
-                        base->field_0 = 0;
+                        mem->scale       = 4;
+                        base->framesLeft = 0;
                         break;
                 }
                 if (mem->index == 0) {
@@ -154,27 +154,27 @@ void Gp_EffCtlTask6A(Task* arg0)
     base  = Gp_RoomCoords;
     mem   = arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
-    slot  = (GpCoordTail*)&base->coord;
+    slot  = (GpCoordTail*)&base->data.coord;
     if (Gp_State1C->eventState < 2) {
         mem->age++;
         switch (arg0->state) {
             case 0:
-                slot->coord.coord.t[0] = coord->coord.t[0];
-                slot->coord.coord.t[1] = coord->coord.t[1];
-                t2                     = coord->coord.t[2];
-                base->coord.flg        = 0;
-                slot->field_54         = 0xC00;
-                slot->field_52         = 0xC00;
-                slot->field_50         = 0xC00;
-                slot->field_58         = 0xFA0;
-                slot->field_5C         = 0x12C0;
-                Gp_RoomCoords->field_0 = 4;
-                slot->coord.coord.t[2] = t2;
-                coord->sub             = mem->parent;
-                coord->coord.t[0]      = D_801124DC[arg0->spawnArg1].vx;
-                coord->coord.t[1]      = D_801124DC[arg0->spawnArg1].vy;
-                coord->coord.t[2]      = D_801124DC[arg0->spawnArg1].vz;
-                coord->flg             = 0;
+                slot->coord.coord.t[0]    = coord->coord.t[0];
+                slot->coord.coord.t[1]    = coord->coord.t[1];
+                t2                        = coord->coord.t[2];
+                base->data.coord.flg      = 0;
+                slot->field_54            = 0xC00;
+                slot->field_52            = 0xC00;
+                slot->field_50            = 0xC00;
+                slot->field_58            = 0xFA0;
+                slot->field_5C            = 0x12C0;
+                Gp_RoomCoords->framesLeft = 4;
+                slot->coord.coord.t[2]    = t2;
+                coord->sub                = mem->parent;
+                coord->coord.t[0]         = D_801124DC[arg0->spawnArg1].vx;
+                coord->coord.t[1]         = D_801124DC[arg0->spawnArg1].vy;
+                coord->coord.t[2]         = D_801124DC[arg0->spawnArg1].vz;
+                coord->flg                = 0;
                 Gp_UpdateCoord(coord);
                 mem->move.vx = 0;
                 mem->move.vy = 0;
@@ -226,7 +226,7 @@ void Gp_EffCtlTask6B(Task* arg0)
     s32            count;
 
     base  = Gp_RoomCoords;
-    slot  = (GpCoordTail*)&base->coord;
+    slot  = (GpCoordTail*)&base->data.coord;
     mem   = arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     st    = Gp_State1C;
@@ -239,7 +239,7 @@ void Gp_EffCtlTask6B(Task* arg0)
             slot->coord.coord.t[0] = coord->coord.t[0];
             slot->coord.coord.t[1] = coord->coord.t[1];
             t2                     = coord->coord.t[2];
-            base->coord.flg        = 0;
+            base->data.coord.flg   = 0;
             slot->field_50         = 0xC00;
             slot->field_52         = 0xC00;
             slot->field_54         = 0xC00;
@@ -269,11 +269,11 @@ void Gp_EffCtlTask6B(Task* arg0)
             arg0->state = 1;
             Gp_SpawnEff(0x60067, coord, idx, &D_801125EC[idx]);
             if (arg0->spawnArg1 == 0x11) {
-                mem->scale             = 1;
-                Gp_RoomCoords->field_0 = 1;
+                mem->scale                = 1;
+                Gp_RoomCoords->framesLeft = 1;
             } else {
-                mem->scale             = 4;
-                Gp_RoomCoords->field_0 = 4;
+                mem->scale                = 4;
+                Gp_RoomCoords->framesLeft = 4;
             }
             if (mem->index == 0) {
                 Gp_State1C->burstRequest = 1;
@@ -304,7 +304,7 @@ void func_800ED42C(Task* arg0)
     mem   = arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     base  = Gp_RoomCoords;
-    slot  = (GpCoordTail*)&base->coord;
+    slot  = (GpCoordTail*)&base->data.coord;
     if (Gp_State1C->eventState < 2) {
         mem->age++;
         switch (arg0->state) {
@@ -315,7 +315,7 @@ void func_800ED42C(Task* arg0)
                 slot->coord.coord.t[0] = coord->coord.t[0];
                 slot->coord.coord.t[1] = coord->coord.t[1];
                 t2                     = coord->coord.t[2];
-                base->coord.flg        = 0;
+                base->data.coord.flg   = 0;
                 slot->field_50         = 0xE00;
                 slot->field_52         = 0xA00;
                 slot->field_54         = 0xA00;
@@ -458,7 +458,7 @@ void func_800ED42C(Task* arg0)
                         arg0->state = 2;
                         mem->scale  = 4;
                 }
-                base->field_0            = 4;
+                base->framesLeft         = 4;
                 Gp_State1C->burstRequest = 1;
                 break;
             case 1:
@@ -495,7 +495,7 @@ void Gp_EffCtlTask6C(Task* arg0)
     mem   = arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     base  = Gp_RoomCoords;
-    slot  = (GpCoordTail*)&base->coord;
+    slot  = (GpCoordTail*)&base->data.coord;
     if (Gp_State1C->eventState < 2) {
         mem->age++;
         switch (arg0->state) {
@@ -506,7 +506,7 @@ void Gp_EffCtlTask6C(Task* arg0)
                 slot->coord.coord.t[0] = coord->coord.t[0];
                 slot->coord.coord.t[1] = coord->coord.t[1];
                 t2                     = coord->coord.t[2];
-                base->coord.flg        = 0;
+                base->data.coord.flg   = 0;
                 slot->field_50         = 0xC00;
                 slot->field_52         = 0xC00;
                 slot->field_54         = 0xC00;
@@ -548,7 +548,7 @@ void Gp_EffCtlTask6C(Task* arg0)
                         mem->scale  = 0x18;
                         break;
                 }
-                base->field_0 = 4;
+                base->framesLeft = 4;
                 if (mem->index == 0) {
                     Gp_State1C->burstRequest = 1;
                 }
@@ -2314,7 +2314,7 @@ void func_800F4308(Task* arg0)
     s32            tmp;
 
     room      = &Gp_RoomCoords[1];
-    slot      = (GpCoordTail*)&room->coord;
+    slot      = (GpCoordTail*)&room->data.coord;
     roomCoord = &slot->coord;
     extra     = arg0->extra;
     mem       = arg0->spawnArg2;
@@ -2373,7 +2373,7 @@ void func_800F4308(Task* arg0)
                     }
                     break;
             }
-            room->field_0         = 0x10;
+            room->framesLeft      = 0x10;
             count                 = mem->age;
             slot->field_5C        = 0x2580;
             slot->field_50        = 0x1000;
@@ -2452,7 +2452,7 @@ void func_800F4308(Task* arg0)
                     i += 1;
                 } while (i < 3);
             }
-            room->field_0         = 0x10;
+            room->framesLeft      = 0x10;
             count                 = mem->age;
             slot->field_5C        = 0x2580;
             slot->field_50        = 0xC00;
@@ -2515,7 +2515,7 @@ void func_800F4308(Task* arg0)
                     Gp_DrawFadeQuad(rgb, 1);
                 }
             }
-            room->field_0         = 0x10;
+            room->framesLeft      = 0x10;
             count                 = mem->age;
             slot->field_5C        = 0x2580;
             slot->field_50        = 0x800;

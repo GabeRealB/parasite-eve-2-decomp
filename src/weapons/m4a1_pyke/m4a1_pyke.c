@@ -58,7 +58,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
     work  = task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
     base  = &Gp_RoomCoords[1];
-    light = &base->coord;
+    light = &base->data.coord;
     slot  = (GpCoordTail*)light;
     if ((((GpActorWork*)gameGetPtrSlot(3))->extra->flags & 0x80) != 0) {
         return;
@@ -96,11 +96,11 @@ void func_m4a1_pyke_8011D1F8(Task* task)
                     }
                     Gp_UpdateCoord(coord);
                     func_m4a1_pyke_8011D548((VECTOR3*)&coord->workm.t, work->age, 0x80);
-                    base->field_0  = 4;
-                    slot->field_58 = 0x80;
-                    slot->field_5C = 0x400;
-                    ang            = Gp_LcgState * 5 + 0x71357911;
-                    Gp_LcgState    = ang;
+                    base->framesLeft = 4;
+                    slot->field_58   = 0x80;
+                    slot->field_5C   = 0x400;
+                    ang              = Gp_LcgState * 5 + 0x71357911;
+                    Gp_LcgState      = ang;
                     /* `field_52` reads the halfword back as unsigned and
                        `field_54` as signed, so the two shifts come off the same
                        register: a plain `ang >> 1` / `ang >> 2` pair would drop
@@ -125,14 +125,14 @@ void func_m4a1_pyke_8011D1F8(Task* task)
                     if (eff != NULL) {
                         Task_Reparent(task, eff->task);
                     }
-                    base->field_0  = 4;
-                    slot->field_58 = 0x400;
-                    slot->field_5C = 0x4000;
-                    ang            = Gp_LcgState * 5 + 0x71357911;
-                    Gp_LcgState    = ang;
-                    slot->field_50 = ((ang >> 16) & 0x700) + 0x800;
-                    slot->field_52 = (u16)slot->field_50 >> 1;
-                    slot->field_54 = slot->field_50 >> 2;
+                    base->framesLeft = 4;
+                    slot->field_58   = 0x400;
+                    slot->field_5C   = 0x4000;
+                    ang              = Gp_LcgState * 5 + 0x71357911;
+                    Gp_LcgState      = ang;
+                    slot->field_50   = ((ang >> 16) & 0x700) + 0x800;
+                    slot->field_52   = (u16)slot->field_50 >> 1;
+                    slot->field_54   = slot->field_50 >> 2;
                     Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &light->coord);
                     light->flg = 0;
                     break;

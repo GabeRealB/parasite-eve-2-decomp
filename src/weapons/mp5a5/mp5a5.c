@@ -59,7 +59,7 @@ void func_mp5a5_8011D1E0(Task* task)
     work  = (GpEffWork*)task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
     base  = &Gp_RoomCoords[0];
-    slot  = (GpCoordTail*)&base->coord;
+    slot  = (GpCoordTail*)&base->data.coord;
 
     if (Gp_State1C->eventState >= 2) {
         return;
@@ -71,13 +71,13 @@ void func_mp5a5_8011D1E0(Task* task)
             slot->coord.coord.t[0] = coord->coord.t[0];
             slot->coord.coord.t[1] = coord->coord.t[1];
             slot->coord.coord.t[2] = coord->coord.t[2];
-            base->coord.flg        = 0;
+            base->data.coord.flg   = 0;
             slot->field_50         = 0x1000;
             slot->field_52         = 0x1000;
             slot->field_54         = 0x1000;
             slot->field_58         = 0xFA0;
             slot->field_5C         = 0x12C0;
-            base->field_0          = 4;
+            base->framesLeft       = 4;
 
             coord->sub        = work->parent;
             coord->coord.t[0] = D_mp5a5_8011E128.vx;

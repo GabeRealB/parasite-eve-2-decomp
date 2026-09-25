@@ -47,7 +47,7 @@ void func_pepper_spray_8012EF34(Task* arg0)
     u8             rgb[3];
 
     base  = Gp_RoomCoords;
-    slot  = (GpCoordTail*)&base->coord;
+    slot  = (GpCoordTail*)&base->data.coord;
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
     if ((D_80114C0B == -2) || (Gp_State1C->fadeState != 0)) {
@@ -66,13 +66,13 @@ void func_pepper_spray_8012EF34(Task* arg0)
             Gp_LcgState            = Gp_LcgState * 5 + 0x71357911;
             spread                 = ((u32)Gp_LcgState >> 16) & 0xFFF;
             tz                     = coord->coord.t[2];
-            base->coord.flg        = 0;
+            base->data.coord.flg   = 0;
             slot->field_50         = 0x1000;
             slot->field_52         = 0x1000;
             slot->field_54         = 0x1000;
             slot->field_58         = 0xFA0;
             slot->field_5C         = 0x12C0;
-            base->field_0          = 6;
+            base->framesLeft       = 6;
             slot->coord.coord.t[2] = tz;
             mem->period            = 0xE0;
             mem->scale             = yaw;

@@ -71,7 +71,7 @@ typedef struct AcropolisPlazaBeamWork {
     /* 0x28 */ s16 spread;
 } AcropolisPlazaBeamWork;
 
-/// View of a room light starting at GpCoord64::coord.
+/// View of a room light starting at `GpCoord64.data.coord`.
 typedef struct AcropolisPlazaLightView {
     /* 0x00 */ GsCOORDINATE2 coord;
     /* 0x50 */ s16           red;
@@ -1930,7 +1930,7 @@ void func_acropolis_plaza_801802C0(Task* task)
 
     slot       = task->spawnArg1;
     entry      = &Gp_RoomCoords[slot & 7];
-    light      = (AcropolisPlazaLightView*)&entry->coord;
+    light      = (AcropolisPlazaLightView*)&entry->data.coord;
     coord      = ((TmdObject*)task->extra)->coords;
     work       = (AcropolisPlazaBeamWork*)task->spawnArg2;
     lightCoord = &light->coord;
@@ -1956,7 +1956,7 @@ void func_acropolis_plaza_801802C0(Task* task)
     gte_rtps();
     gte_stsxy(&((AcropolisPlazaBeamScratch*)(head - 0x60))->sx);
     gte_stszotz(&((AcropolisPlazaBeamScratch*)(head - 0x60))->otz);
-    entry->field_0 = 0;
+    entry->framesLeft = 0;
     if (blk->otz >= 0x11) {
         if (__builtin_abs(blk->sx) < 0xC0 && __builtin_abs(blk->sy) < 0x98) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -1992,7 +1992,7 @@ void func_acropolis_plaza_801802C0(Task* task)
             lightCoord->coord.t[1] = coord->coord.t[1];
             lightCoord->coord.t[2] = coord->coord.t[2];
             lightCoord->flg        = 0;
-            entry->field_0         = 2;
+            entry->framesLeft      = 2;
             light->radius          = 0x600;
             light->falloff         = work->spread + 0x600;
             light->red             = red << 4;

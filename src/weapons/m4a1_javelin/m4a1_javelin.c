@@ -79,8 +79,8 @@ void func_m4a1_javelin_8011D1E4(Task* task)
 
     actor = ((GpActorWork*)gameGetPtrSlot(3))->actor;
     base  = &Gp_RoomCoords[1];
-    slot  = (GpCoordTail*)&base->coord;
-    light = &base->coord;
+    slot  = (GpCoordTail*)&base->data.coord;
+    light = &base->data.coord;
     work  = task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
 
@@ -121,14 +121,14 @@ void func_m4a1_javelin_8011D1E4(Task* task)
             /* fallthrough */
         case 1:
             Gp_UpdateCoord(coord);
-            base->field_0  = 4;
-            slot->field_58 = 0x100;
-            slot->field_5C = 0x1000;
-            t              = (s16)(u16)slot->field_50 >> 1;
-            slot->field_50 = t;
-            slot->field_52 = t >> 2;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            slot->field_54 = ((Gp_LcgState >> 16) & 0x700) + 0x400;
+            base->framesLeft = 4;
+            slot->field_58   = 0x100;
+            slot->field_5C   = 0x1000;
+            t                = (s16)(u16)slot->field_50 >> 1;
+            slot->field_50   = t;
+            slot->field_52   = t >> 2;
+            Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
+            slot->field_54   = ((Gp_LcgState >> 16) & 0x700) + 0x400;
             Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &light->coord);
             light->flg = 0;
             if (work->scale == 0xC0) {
@@ -157,14 +157,14 @@ void func_m4a1_javelin_8011D1E4(Task* task)
             return;
         case 2:
             Gp_UpdateCoord(coord);
-            base->field_0  = 4;
-            slot->field_58 = 0x400;
-            slot->field_5C = 0x4000;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            rnd            = ((Gp_LcgState >> 16) & 0x700) + 0x800;
-            slot->field_54 = rnd;
-            slot->field_50 = rnd >> 1;
-            slot->field_52 = rnd >> 1;
+            base->framesLeft = 4;
+            slot->field_58   = 0x400;
+            slot->field_5C   = 0x4000;
+            Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
+            rnd              = ((Gp_LcgState >> 16) & 0x700) + 0x800;
+            slot->field_54   = rnd;
+            slot->field_50   = rnd >> 1;
+            slot->field_52   = rnd >> 1;
             Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &light->coord);
             D_m4a1_javelin_8012EB64 = 0;
             light->flg              = 0;

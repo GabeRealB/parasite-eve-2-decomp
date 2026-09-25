@@ -74,23 +74,6 @@ typedef struct Actor510900Anim {
 } Actor510900Anim;
 STATIC_ASSERT_SIZEOF(Actor510900Anim, 0x43C);
 
-/// Gameplay-resident block at `D_8011505C` the spawn handler below seeds: a
-/// mode word, then a `GsCOORDINATE2` (set local to `Gfx_ViewWorldMtx`) followed
-/// by a rotation and two distances.
-typedef struct Actor510900CamCoord {
-    /* 0x00 */ GsCOORDINATE2 coord;
-    /* 0x50 */ SVECTOR       rot;
-    /* 0x58 */ s32           field_58;
-    /* 0x5C */ s32           field_5C;
-} Actor510900CamCoord;
-
-typedef struct Actor510900Cam {
-    /* 0x00 */ s32                 field_0;
-    /* 0x04 */ Actor510900CamCoord cam;
-} Actor510900Cam;
-
-extern Actor510900Cam D_8011505C;
-
 void Gp_DrawEffSprite7C(GsCOORDINATE2* arg0, s32 arg1, u32 arg2);
 
 void func_actor_510900_80134C90(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
@@ -100,10 +83,6 @@ extern s32 D_80070F70;
 
 /// The twelve muzzle-flash CLUTs `func_actor_510900_80134C90` indexes by frame.
 extern Actor510900SprClut D_actor_510900_8013C48C[];
-
-/// Gameplay-resident camera-shake slot: `field_0` is the frame countdown and
-/// `coord` is set local to `Gfx_ViewWorldMtx` each frame it runs.
-extern GpCoord64 D_80114FF8;
 
 void func_actor_510900_80131F24(Task* arg0)
 {
@@ -119,11 +98,11 @@ void func_actor_510900_80131F24(Task* arg0)
 
     mem   = arg0->spawnArg2;
     coord = &((Actor510900Obj2C*)arg0->extra)->field_8->field_0;
-    base  = &D_80114FF8;
-    slot  = (GpCoordTail*)&base->coord;
+    base  = &Gp_RoomCoords[2];
+    slot  = (GpCoordTail*)&base->data.coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
-            base->field_0 = 0;
+            base->framesLeft = 0;
         }
         if (arg0->spawnArg1 == 4) {
             Gp_ReleaseState1CMem(mem, arg0);
@@ -146,17 +125,17 @@ void func_actor_510900_80131F24(Task* arg0)
         arg0->state       = 1;
     }
     Gp_UpdateCoord(coord);
-    if (base->field_0 != 0) {
+    if (base->framesLeft != 0) {
         slot->field_50 = 0x1000;
         slot->field_52 = 0x800;
         slot->field_54 = 0x400;
         if (slot->field_58 >= 0x191) {
             slot->field_58 -= 0x190;
         }
-        base->field_0--;
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &base->coord.coord);
-        base->coord.flg = 0;
-        if (base->field_0 == 0) {
+        base->framesLeft--;
+        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &base->data.coord.coord);
+        base->data.coord.flg = 0;
+        if (base->framesLeft == 0) {
             arg0->spawnArg1 = 0;
             mem->age        = 0;
             mem->scale      = 0;
@@ -178,11 +157,11 @@ void func_actor_510900_80131F24(Task* arg0)
                     Task_Reparent(arg0, eff->task);
                 }
             }
-            base->field_0  = 0x10;
-            slot->field_58 = 0x1F40;
-            slot->field_5C = 0x2710;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            bits           = Gp_LcgState >> 16;
+            base->framesLeft = 0x10;
+            slot->field_58   = 0x1F40;
+            slot->field_5C   = 0x2710;
+            Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
+            bits             = Gp_LcgState >> 16;
             /* The `field_24 + 0x10000` sums below are evaluated as their own
              * operand. Written plainly, `fold` reassociates the constant onto
              * the draw; held in a local, sched1 moves the load ahead of it. */
@@ -249,9 +228,9 @@ void func_actor_510900_80131F24(Task* arg0)
             }
             break;
         case 2:
-            base->field_0  = 0x10;
-            slot->field_58 = 0x1F40;
-            slot->field_5C = 0x2710;
+            base->framesLeft = 0x10;
+            slot->field_58   = 0x1F40;
+            slot->field_5C   = 0x2710;
             for (i = 0; i < 3; i++) {
                 Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
                 mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
@@ -375,19 +354,19 @@ void func_actor_510900_80131F24(Task* arg0)
                         Task_Reparent(arg0, eff->task);
                     }
                 }
-                base->field_0  = 0x10;
-                slot->field_58 = 0x1F40;
-                slot->field_5C = 0x2710;
+                base->framesLeft = 0x10;
+                slot->field_58   = 0x1F40;
+                slot->field_5C   = 0x2710;
             } else if (mem->age < 0x3C) {
-                base->field_0  = 2;
-                slot->field_58 = 0x190;
-                slot->field_5C = 0x190;
-                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx   = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                mem->move.vy   = 0x80;
-                mem->move.vz   = 0;
-                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-                eff            = Gp_SpawnEff(0x60059, coord, ((Gp_LcgState >> 16) & 0xF0) | 0x100, &mem->move);
+                base->framesLeft = 2;
+                slot->field_58   = 0x190;
+                slot->field_5C   = 0x190;
+                Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
+                mem->move.vx     = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                mem->move.vy     = 0x80;
+                mem->move.vz     = 0;
+                Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
+                eff              = Gp_SpawnEff(0x60059, coord, ((Gp_LcgState >> 16) & 0xF0) | 0x100, &mem->move);
                 if (eff != NULL) {
                     Task_Reparent(arg0, eff->task);
                 }
@@ -846,19 +825,19 @@ void func_actor_510900_80133C84(Task* arg0)
 
 void func_actor_510900_801340E8(Task* arg0)
 {
-    Actor510900Cam*         base;
+    GpCoord64*              base;
     GsCOORDINATE2*          cam;
-    Actor510900CamCoord*    ext;
+    GpObj44*                ext;
     GpEffWork*              eff;
     Actor510900Coord*       coord;
     Actor510900MatrixWords* mat;
     s32                     i;
 
-    base  = &D_8011505C;
-    cam   = &base->cam.coord;
+    base  = &Gp_RoomCoords[3];
+    cam   = &base->data.coord;
     eff   = arg0->spawnArg2;
     coord = ((Actor510900Obj2C*)arg0->extra)->field_8;
-    ext   = (Actor510900CamCoord*)cam;
+    ext   = &base->data.light;
     if (Gp_State1C->eventState != 0) {
         Gp_ReleaseState1CMem(eff, arg0);
         return;
@@ -883,12 +862,12 @@ void func_actor_510900_801340E8(Task* arg0)
         Gp_SpawnEff(0x60065, &coord->field_0, 0, &eff->move);
         Gp_SpawnEff(0x600A4, &coord->field_0, 1, NULL);
     }
-    base->field_0 = 4;
-    ext->field_58 = 0xFA0;
-    ext->field_5C = 0x12C0;
-    ext->rot.vx   = 0xC00;
-    ext->rot.vy   = 0x800;
-    ext->rot.vz   = 0x400;
+    base->framesLeft = 4;
+    ext->field_58    = 0xFA0;
+    ext->field_5C    = 0x12C0;
+    ext->field_50    = 0xC00;
+    ext->field_52    = 0x800;
+    ext->field_54    = 0x400;
     Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->field_0.workm, &cam->coord);
     cam->flg = 0;
     Gp_ReleaseState1CMem(eff, arg0);

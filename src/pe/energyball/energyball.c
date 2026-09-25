@@ -123,7 +123,7 @@ void func_energyball_8012F180(Task* arg0)
     s32             cur;
 
     slot  = &Gp_RoomCoords[arg0->spawnArg1 + 4];
-    sc    = &slot->coord;
+    sc    = &slot->data.coord;
     tail  = (GpCoordTail*)sc;
     coord = ((TmdObject*)arg0->extra)->coords;
     fade  = Gp_State1C->fadeState;
@@ -212,18 +212,18 @@ void func_energyball_8012F180(Task* arg0)
                 mem->pos.vy = -(u16)D_energyball_80131194[mem->index].field_2;
                 mem->pos.vz = 0;
             }
-            slot->field_0  = 2;
-            tail->field_58 = 0x100;
-            tail->field_5C = 0x1000;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            r              = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
-            tail->field_52 = r;
-            tail->field_50 = (u16)tail->field_52 >> 1;
-            tail->field_54 = tail->field_52 >> 1;
-            sc->coord.t[0] = coord->coord.t[0];
-            sc->coord.t[1] = coord->coord.t[1];
-            sc->coord.t[2] = coord->coord.t[2];
-            sc->flg        = 0;
+            slot->framesLeft = 2;
+            tail->field_58   = 0x100;
+            tail->field_5C   = 0x1000;
+            Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
+            r                = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
+            tail->field_52   = r;
+            tail->field_50   = (u16)tail->field_52 >> 1;
+            tail->field_54   = tail->field_52 >> 1;
+            sc->coord.t[0]   = coord->coord.t[0];
+            sc->coord.t[1]   = coord->coord.t[1];
+            sc->coord.t[2]   = coord->coord.t[2];
+            sc->flg          = 0;
             func_energyball_8013035C(coord, mem->age, mem->angle, mem->period);
             func_energyball_8012FFD0(coord, mem->angle, (s16)(u16)mem->scale >> 2);
             if ((Gp_State1C->groundTrace != 0) && (Gp_TraceGroundCoord(coord, &ground) == 1)) {
@@ -277,18 +277,18 @@ void func_energyball_8012F180(Task* arg0)
             coord->coord.t[2] += mem->move.vz;
             coord->flg         = 0;
             Gp_UpdateCoord(coord);
-            slot->field_0  = 2;
-            tail->field_58 = 0x100;
-            tail->field_5C = 0x1000;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            r              = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
-            tail->field_52 = r;
-            tail->field_50 = (u16)tail->field_52 >> 1;
-            tail->field_54 = tail->field_52 >> 1;
-            sc->coord.t[0] = coord->coord.t[0];
-            sc->coord.t[1] = coord->coord.t[1];
-            sc->coord.t[2] = coord->coord.t[2];
-            sc->flg        = 0;
+            slot->framesLeft = 2;
+            tail->field_58   = 0x100;
+            tail->field_5C   = 0x1000;
+            Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
+            r                = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
+            tail->field_52   = r;
+            tail->field_50   = (u16)tail->field_52 >> 1;
+            tail->field_54   = tail->field_52 >> 1;
+            sc->coord.t[0]   = coord->coord.t[0];
+            sc->coord.t[1]   = coord->coord.t[1];
+            sc->coord.t[2]   = coord->coord.t[2];
+            sc->flg          = 0;
             func_energyball_8013035C(coord, mem->age, mem->angle, mem->period);
             func_energyball_8012FFD0(coord, mem->angle, (s16)(u16)mem->scale >> 2);
             if (Gp_State1C->groundTrace != 0) {

@@ -789,14 +789,14 @@ void Gp_UpdateRoomCoords(Task* arg0)
 
                 parent = &gGfxViewCoord;
                 base   = Gp_RoomCoords;
-                view   = (GpCoord64View*)&((GpCoord64*)base)->coord;
+                view   = (GpCoord64View*)&((GpCoord64*)base)->data.coord;
                 slot   = (GpCoord64*)base;
                 do {
-                    slot->field_0   = 0;
-                    view->coord.sub = parent;
-                    view           += 1;
-                    j              += 1;
-                    slot           += 1;
+                    slot->framesLeft = 0;
+                    view->coord.sub  = parent;
+                    view            += 1;
+                    j               += 1;
+                    slot            += 1;
                 } while (j < 8);
             }
 
@@ -818,8 +818,8 @@ void Gp_UpdateRoomCoords(Task* arg0)
             : "=r"(hi), "=r"(p));
         k = 0;
         do {
-            if (p->field_0 != 0) {
-                Gp_UpdateCoordEx(&p->coord, &gGfxViewCoord);
+            if (p->framesLeft != 0) {
+                Gp_UpdateCoordEx(&p->data.coord, &gGfxViewCoord);
             }
             k += 1;
             p += 1;
@@ -1500,7 +1500,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     coord = Gp_RoomCoords;
     n     = set->n58 + set->n60 + set->n6C;
     do {
-        if (coord->field_0 != 0) {
+        if (coord->framesLeft != 0) {
             nOcc++;
         }
         idx++;
@@ -1594,8 +1594,8 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         block->pos.vy = block->local.vy;
         block->pos.vz = block->local.vz;
         do {
-            if (p->field_0 != 0) {
-                obj = (GpObj44*)&p->coord;
+            if (p->framesLeft != 0) {
+                obj = &p->data.light;
                 val = Gp_LightPoint(obj, (VECTOR3*)&block->pos);
                 SOFT_USE_REG(obj);
                 block->intensity = val;
@@ -2325,7 +2325,7 @@ s32 Gp_CountRoomCoords(void)
 
     count = 0;
     for (i = 0; i < 8; i++) {
-        if (Gp_RoomCoords[i].field_0 != 0) {
+        if (Gp_RoomCoords[i].framesLeft != 0) {
             count++;
         }
     }

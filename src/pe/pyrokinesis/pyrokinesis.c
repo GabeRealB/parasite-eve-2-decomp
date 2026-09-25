@@ -82,7 +82,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
     coord    = tmdo->coords;
     mem->age = (u16)mem->age + 1;
     base     = Gp_RoomCoords;
-    slotc    = &base->coord;
+    slotc    = &base->data.coord;
     slot     = (GpCoordTail*)slotc;
     switch (arg0->state) {
         case 0:
@@ -226,7 +226,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                     func_pyrokinesis_801304C4(&ground, mem->angle);
                 }
             }
-            base->field_0     = 4;
+            base->framesLeft  = 4;
             slot->field_58    = (mem->index << 9) + 0x200;
             slot->field_5C    = slot->field_58 * 16;
             Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;

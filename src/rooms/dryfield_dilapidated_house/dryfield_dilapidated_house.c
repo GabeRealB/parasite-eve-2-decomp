@@ -2352,7 +2352,7 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
     tick1          = tick + 1;
     work->field_22 = tick1;
     rc             = &Gp_RoomCoords[0];
-    tail           = (GpCoordTail*)&rc->coord;
+    tail           = (GpCoordTail*)&rc->data.coord;
 
     switch (task->state) {
         case 0:
@@ -2375,19 +2375,19 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
             rgb[1] = 0x7F;
             rgb[2] = 0x3F;
             Gp_DrawFadeQuad(rgb, 1);
-            Gp_RoomCoords[0].field_0 = 4;
-            tail->field_58           = 0x200;
-            tail->field_5C           = 0x2000;
-            Gp_LcgState              = Gp_LcgState * 5 + 0x71357911;
-            size                     = ((Gp_LcgState >> 16) & 0x700) + 0x800;
-            tail->field_50           = size;
-            tail->field_52           = size >> 1;
-            tail->field_54           = size >> 2;
-            tail->coord.coord.t[0]   = coord->coord.t[0];
-            tail->coord.coord.t[1]   = coord->coord.t[1];
-            tail->coord.coord.t[2]   = coord->coord.t[2];
-            rc->coord.flg            = 0;
-            i                        = 0;
+            Gp_RoomCoords[0].framesLeft = 4;
+            tail->field_58              = 0x200;
+            tail->field_5C              = 0x2000;
+            Gp_LcgState                 = Gp_LcgState * 5 + 0x71357911;
+            size                        = ((Gp_LcgState >> 16) & 0x700) + 0x800;
+            tail->field_50              = size;
+            tail->field_52              = size >> 1;
+            tail->field_54              = size >> 2;
+            tail->coord.coord.t[0]      = coord->coord.t[0];
+            tail->coord.coord.t[1]      = coord->coord.t[1];
+            tail->coord.coord.t[2]      = coord->coord.t[2];
+            rc->data.coord.flg          = 0;
+            i                           = 0;
             func_dryfield_dilapidated_house_801832A8(coord, (s16)work->field_22, work->field_26, work->field_28);
             func_dryfield_dilapidated_house_80182F14(coord, work->field_26, (s16)(u16)work->field_24 >> 1);
             work->field_26 = 0x380;

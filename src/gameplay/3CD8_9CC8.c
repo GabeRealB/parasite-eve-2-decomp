@@ -263,8 +263,8 @@ void Gp_DecRoomCoordRefs(void)
 
     p = Gp_RoomCoords;
     for (i = 0; i < 8; i++) {
-        if (p->field_0 != 0) {
-            p->field_0--;
+        if (p->framesLeft != 0) {
+            p->framesLeft--;
         }
         p++;
     }
@@ -277,8 +277,8 @@ void Gp_InitRoomCoords(void)
 
     p = Gp_RoomCoords;
     for (i = 0; i < 8; i++) {
-        p->coord.sub = &gGfxViewCoord;
-        p->field_0   = 0;
+        p->data.coord.sub = &gGfxViewCoord;
+        p->framesLeft     = 0;
         p++;
     }
 }

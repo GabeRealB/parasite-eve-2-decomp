@@ -79,7 +79,7 @@ void func_hypervelocity_8011D1E8(Task* task)
 
     work  = task->spawnArg2;
     base  = &Gp_RoomCoords[1];
-    light = &base->coord;
+    light = &base->data.coord;
     slot  = (GpCoordTail*)light;
     coord = ((TmdObject*)task->extra)->coords;
 
@@ -118,13 +118,13 @@ void func_hypervelocity_8011D1E8(Task* task)
             if (work->age & 1) {
                 Gp_SpawnEff(0x600E1, coord, 0x180, &work->move);
             }
-            base->field_0  = 4;
-            slot->field_58 = 0x100;
-            slot->field_5C = 0x1000;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            slot->field_54 = (((u32)Gp_LcgState >> 16) & 0x700) + 0x400;
-            slot->field_50 = (u16)slot->field_54 >> 1;
-            slot->field_52 = (s16)(u16)slot->field_54 >> 1;
+            base->framesLeft = 4;
+            slot->field_58   = 0x100;
+            slot->field_5C   = 0x1000;
+            Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
+            slot->field_54   = (((u32)Gp_LcgState >> 16) & 0x700) + 0x400;
+            slot->field_50   = (u16)slot->field_54 >> 1;
+            slot->field_52   = (s16)(u16)slot->field_54 >> 1;
             Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &light->coord);
             light->flg = 0;
             if (task->spawnArg1 < 0) {
@@ -147,13 +147,13 @@ void func_hypervelocity_8011D1E8(Task* task)
             Gp_UpdateCoord(coord);
             work->move.vy = -((work->age & 0xF) << 6);
             Gp_SpawnEff(0x600E0, coord, 0x180, &work->move);
-            base->field_0  = 4;
-            slot->field_58 = 0x400;
-            slot->field_5C = 0x4000;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            slot->field_54 = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
-            slot->field_50 = (u16)slot->field_54 >> 1;
-            slot->field_52 = (s16)(u16)slot->field_54 >> 1;
+            base->framesLeft = 4;
+            slot->field_58   = 0x400;
+            slot->field_5C   = 0x4000;
+            Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
+            slot->field_54   = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
+            slot->field_50   = (u16)slot->field_54 >> 1;
+            slot->field_52   = (s16)(u16)slot->field_54 >> 1;
             Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &light->coord);
             light->flg   = 0;
             work->scale += work->step;
@@ -266,7 +266,7 @@ void func_hypervelocity_8011D830(Task* task)
     work  = task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
     base  = &Gp_RoomCoords[0];
-    light = &base->coord;
+    light = &base->data.coord;
     slot  = (GpCoordTail*)light;
 
     if (Gp_State1C->eventState != 0) {
@@ -329,7 +329,7 @@ void func_hypervelocity_8011D830(Task* task)
                 Task_Reparent(task, eff->task);
             }
             task->state       = 1;
-            base->field_0     = 4;
+            base->framesLeft  = 4;
             slot->field_58    = (work->index << 9) + 0x200;
             slot->field_5C    = slot->field_58 * 16;
             ang               = Gp_LcgState * 5 + 0x71357911;
@@ -385,7 +385,7 @@ void func_hypervelocity_8011D830(Task* task)
             Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
             slot->field_54    = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
             slot->field_50    = (u16)slot->field_54 >> 1;
-            base->field_0     = 4;
+            base->framesLeft  = 4;
             slot->field_52    = (s16)(u16)slot->field_54 >> 1;
             if (func_800DE7CC(&after, &before, NULL, NULL) == 1) {
                 Gp_UnlinkObj(&beam->obj);

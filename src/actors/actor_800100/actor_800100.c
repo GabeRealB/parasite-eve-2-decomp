@@ -163,12 +163,6 @@ STATIC_ASSERT_SIZEOF(Actor800100QuadScratch, 0x44);
 extern GpImgRec** D_actor_800100_80167200[];
 extern GpImgRec** D_actor_800100_80167210[];
 
-/// Room-light slot 3 (`&Gp_RoomCoords[3]`) that `func_actor_800100_80161F20`
-/// claims as the coordinate its flare is lit from: `field_0` is the claim
-/// refcount, `coord` the world coordinate driven from the actor's own, and the
-/// tail the rotation and falloff recomputed from `Gp_LcgState` each frame.
-extern GpCoord64 D_8011505C;
-
 extern u32 Gp_LcgState;
 
 /// Translation the flare's own coordinate starts at, `(0, 0x200, 0x40)`.
@@ -280,8 +274,8 @@ void func_actor_800100_80161F20(Task* task)
 
     work  = task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
-    base  = &D_8011505C;
-    light = &base->coord;
+    base  = &Gp_RoomCoords[3];
+    light = &base->data.coord;
     slot  = (GpCoordTail*)light;
     if ((((GpActorWork*)gameGetPtrSlot(10))->extra->flags & 0x80) != 0) {
         return;
@@ -320,14 +314,14 @@ void func_actor_800100_80161F20(Task* task)
                     }
                     func_actor_800100_80162264(
                         (VECTOR3*)&coord->workm.t, work->age, 0x80);
-                    base->field_0  = 4;
-                    slot->field_58 = 0x80;
-                    slot->field_5C = 0x400;
-                    ang            = Gp_LcgState * 5 + 0x71357911;
-                    Gp_LcgState    = ang;
-                    slot->field_50 = ((ang >> 16) & 0x700) + 0x400;
-                    slot->field_52 = (u16)slot->field_50 >> 1;
-                    slot->field_54 = slot->field_50 >> 2;
+                    base->framesLeft = 4;
+                    slot->field_58   = 0x80;
+                    slot->field_5C   = 0x400;
+                    ang              = Gp_LcgState * 5 + 0x71357911;
+                    Gp_LcgState      = ang;
+                    slot->field_50   = ((ang >> 16) & 0x700) + 0x400;
+                    slot->field_52   = (u16)slot->field_50 >> 1;
+                    slot->field_54   = slot->field_50 >> 2;
                     Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &light->coord);
                     light->flg  = 0;
                     work->scale = 0x40;
@@ -344,14 +338,14 @@ void func_actor_800100_80161F20(Task* task)
                     if (eff != NULL) {
                         Task_Reparent(task, eff->task);
                     }
-                    base->field_0  = 4;
-                    slot->field_58 = 0x400;
-                    slot->field_5C = 0x4000;
-                    ang            = Gp_LcgState * 5 + 0x71357911;
-                    Gp_LcgState    = ang;
-                    slot->field_50 = ((ang >> 16) & 0x700) + 0x800;
-                    slot->field_52 = (u16)slot->field_50 >> 1;
-                    slot->field_54 = slot->field_50 >> 2;
+                    base->framesLeft = 4;
+                    slot->field_58   = 0x400;
+                    slot->field_5C   = 0x4000;
+                    ang              = Gp_LcgState * 5 + 0x71357911;
+                    Gp_LcgState      = ang;
+                    slot->field_50   = ((ang >> 16) & 0x700) + 0x800;
+                    slot->field_52   = (u16)slot->field_50 >> 1;
+                    slot->field_54   = slot->field_50 >> 2;
                     Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &light->coord);
                     light->flg = 0;
                     break;
