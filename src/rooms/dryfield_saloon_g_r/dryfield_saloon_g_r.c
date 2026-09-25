@@ -294,44 +294,44 @@ void func_dryfield_saloon_g_r_8017DA70(Task* arg0)
 /// flat colour is 0x20 or 0x30 on the parity of `gDisplayState.animFrame`.
 void func_dryfield_saloon_g_r_8017DBB4(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
 {
-    void**             scratch;
-    u8*                head;
-    RoomDraw35Scratch* block;
-    POLY_FT4*          prim;
-    DisplayState*      ds;
-    s32                su;
-    s32                sv;
-    s32                u0;
-    s32                u1;
-    s32                flip;
-    s32                rgb;
-    s16                xy;
+    void**            scratch;
+    u8*               head;
+    RoomShaftScratch* block;
+    POLY_FT4*         prim;
+    DisplayState*     ds;
+    s32               su;
+    s32               sv;
+    s32               u0;
+    s32               u1;
+    s32               flip;
+    s32               rgb;
+    s16               xy;
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
     *scratch = head - 0x14;
-    block    = (RoomDraw35Scratch*)(head - 0x14);
+    block    = (RoomShaftScratch*)(head - 0x14);
 
     gte_SetRotMatrix(&arg0->workm);
     gte_ldv0(arg1);
     gte_rtv0();
-    gte_stsv(&((RoomDraw35Scratch*)(head - 0x14))->vec);
+    gte_stsv(&((RoomShaftScratch*)(head - 0x14))->vec);
     block->vec.vx = (u16)block->vec.vx + (u16)arg0->workm.t[0];
     block->vec.vy = (u16)block->vec.vy + (u16)arg0->workm.t[1];
     block->vec.vz = (u16)block->vec.vz + (u16)arg0->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((RoomDraw35Scratch*)(head - 0x14))->vec);
+    gte_ldv0(&((RoomShaftScratch*)(head - 0x14))->vec);
     gte_rtps();
 
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
-    gte_stsxy(&((RoomDraw35Scratch*)(head - 0x14))->sx);
+    gte_stsxy(&((RoomShaftScratch*)(head - 0x14))->sx);
     gte_stszotz(&block->otz);
-    if (((RoomDraw35Scratch*)(head - 0x14))->otz >= 0x11) {
+    if (((RoomShaftScratch*)(head - 0x14))->otz >= 0x11) {
         ds          = &gDisplayState;
         flip        = (u8)ds->animFrame;
         su          = (s16)arg2;

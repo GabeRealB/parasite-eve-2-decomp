@@ -488,7 +488,7 @@ void RoomsShared8017e3f4(RoomShopList* shop, UiObject* obj, s32 item);
 /// projected centre and `otz` its depth. `halfWidth` is a size divided by
 /// `otz`, the on-screen half extent the primitive's corners are offset by, so
 /// it narrows with distance.
-typedef struct _RoomShaftScratch {
+typedef struct {
     /* 0x00 */ s32     otz;
     /* 0x04 */ s32     halfWidth;
     /* 0x08 */ SVECTOR vec;
@@ -496,14 +496,6 @@ typedef struct _RoomShaftScratch {
     /* 0x12 */ u16     sy;
 } RoomShaftScratch;
 STATIC_ASSERT_SIZEOF(RoomShaftScratch, 0x14);
-
-/// 0x14-byte scratch block `Room_Draw35` takes from `G_SCRATCH_HEAD`. Same
-/// layout as `RoomShaftScratch`: `vec` is the sprite's offset rotated out of
-/// the caller's local space by the coordinate's `workm` and translated by it,
-/// then projected through `GsWSMATRIX` with one `RTPS` into `sx` / `sy` and
-/// `otz`. `halfWidth` is `(s16)arg3 * 39 / otz`, the quad's on-screen half
-/// extent.
-typedef RoomShaftScratch RoomDraw35Scratch;
 
 /// Overlay of `Task::spawnArg1` for that task: `phase` steps the shaft's
 /// pulsing red channel off the global frame counter, `height` is the length
@@ -618,27 +610,26 @@ typedef struct _RoomDraw11Scratch {
 } RoomDraw11Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw11Scratch, 0x18);
 
-/// 0x18-byte scratch block `Room_Draw04` takes from `G_SCRATCH_HEAD`. Same
-/// projection as `GpRingScratch` (`vec` through `GsWSMATRIX`, one `RTPS`)
-/// but `radius` sits at 0xC and `flag` at 0x10. `radius` is
-/// `(s16)arg1 * 64 / (otz + 1)`, the on-screen half-extent of the eight
-/// `POLY_G4` wedges.
-typedef struct _RoomDraw04Scratch {
+/// The scratch block a room's fan drawer takes from `G_SCRATCH_HEAD` for the
+/// fan's centre: `vec` is the centre, pushed through `GsWSMATRIX` with one
+/// `RTPS` into `sx` / `sy`, `otz` and `flag`. `radius` is a size divided by
+/// `otz + 1`, the on-screen length of the `POLY_G4` wedges fanned about it.
+typedef struct {
     /* 0x00 */ SVECTOR vec;
     /* 0x08 */ s32     otz;
     /* 0x0C */ s32     radius;
     /* 0x10 */ s32     flag;
     /* 0x14 */ u16     sx;
     /* 0x16 */ u16     sy;
-} RoomDraw04Scratch;
-STATIC_ASSERT_SIZEOF(RoomDraw04Scratch, 0x18);
+} RoomFanScratch;
+STATIC_ASSERT_SIZEOF(RoomFanScratch, 0x18);
 
-/// 0x1C-byte scratch block `Room_Draw09` takes from `G_SCRATCH_HEAD`. Same
-/// projection as `RoomDraw04Scratch` (`vec` through `GsWSMATRIX`, one `RTPS`)
-/// plus a second radius: `rOuter` is `(s16)arg1 * 64 / (otz + 1)` and `rInner`
-/// is `(s16)(arg1 + arg2) * 64 / (otz + 1)`. `flag` is `gte_stflg` and
-/// `sx`/`sy` are the projected centre.
-typedef struct _RoomDraw09Scratch {
+/// The scratch block a room's billboard drawer takes from `G_SCRATCH_HEAD`:
+/// `vec` is the billboard's world position, pushed through `GsWSMATRIX` with
+/// one `RTPS` into `sx` / `sy`, `otz` and `flag`. `rOuter` and `rInner` are
+/// sizes divided by `otz + 1`, the on-screen radii of the outer and inner
+/// rings of `POLY_G4` wedges it is drawn with.
+typedef struct {
     /* 0x00 */ SVECTOR vec;
     /* 0x08 */ s32     otz;
     /* 0x0C */ s32     rOuter;
@@ -646,19 +637,8 @@ typedef struct _RoomDraw09Scratch {
     /* 0x14 */ s32     flag;
     /* 0x18 */ u16     sx;
     /* 0x1A */ u16     sy;
-} RoomDraw09Scratch;
-STATIC_ASSERT_SIZEOF(RoomDraw09Scratch, 0x1C);
-
-/// 0x1C-byte scratch block `Room_DrawBillboard` takes from `G_SCRATCH_HEAD`
-/// (and the motel-balcony copies of that body). Same layout as
-/// `RoomDraw09Scratch`. `vec` is the world position copied out of the
-/// caller's `GpCoord` (`workm.t`), projected with a single `RTPS`:
-/// `sx`/`sy` come from `gte_stsxy`, `flag` from `gte_stflg` and `otz` from
-/// `gte_stszotz`. `otz` is then incremented and used as the divisor that
-/// turns the caller's half-size into the two screen-space radii the fan is
-/// drawn with - `rOuter` for the eight outer `POLY_G4` wedges, `rInner` for
-/// the two inner ones.
-typedef RoomDraw09Scratch RoomBillboardScratch;
+} RoomBillboardScratch;
+STATIC_ASSERT_SIZEOF(RoomBillboardScratch, 0x1C);
 
 /// 0x28-byte scratch block `Room_Draw24` takes from `G_SCRATCH_HEAD`. `vec0`
 /// and `vec1` are the beam's two endpoints, rotated out of the caller's local
@@ -682,7 +662,7 @@ typedef struct _RoomDraw24Scratch {
 STATIC_ASSERT_SIZEOF(RoomDraw24Scratch, 0x28);
 
 /// 0x1C-byte scratch block `Room_Draw02` takes from `G_SCRATCH_HEAD`. Same
-/// projection and two-radius ring as `RoomDraw09Scratch`, but `otz` sits at
+/// projection and two-radius ring as `RoomBillboardScratch`, but `otz` sits at
 /// 0x0 with `rOuter` at 0x4, `rInner` at 0x8, `flag` at 0xC and `vec` at 0x10.
 /// `rOuter` is `(s16)arg1 * 64 / (otz + 1)` and `rInner` is
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`.

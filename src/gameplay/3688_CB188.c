@@ -471,8 +471,8 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
     GpUseCreatePair*          p;
     GpUseCreatePair*          q;
     GpUseCreatePair*          start;
-    GpItemSlot*               slotSrc;
-    GpItemSlot*               slotDst;
+    McItemSlot*               slotSrc;
+    McItemSlot*               slotDst;
     McItemRec*                rec;
     PlayerStatus*             cfg;
 
@@ -3804,8 +3804,8 @@ void Gp_DiscardWarnTask(Task* arg0)
             parentObj = arg0->parent->spawnArg2;
             if (childObj->field_2C == 0x33) {
                 if ((u32)(id - 0x80) < 0x20U) {
-                    GpItemSlot*   ret;
-                    GpItemSlot*   slot;
+                    McItemSlot*   ret;
+                    McItemSlot*   slot;
                     register s32  a0id asm("a0");
                     PlayerStatus* cfg;
 
@@ -3820,7 +3820,7 @@ void Gp_DiscardWarnTask(Task* arg0)
                     }
                 } else if ((u32)(id - 0xA0) < 0x20U) {
                     s32         i;
-                    GpItemSlot* slot;
+                    McItemSlot* slot;
 
                     i = 0x80;
                     do {

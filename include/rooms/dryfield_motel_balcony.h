@@ -7,8 +7,4 @@
 
 #include "rooms/room_common.h"
 
-/// The scratch block of the room's two fan-drawing routines, laid out like
-/// `RoomDraw04Scratch`.
-typedef RoomDraw04Scratch RoomFanScratch;
-
 #endif

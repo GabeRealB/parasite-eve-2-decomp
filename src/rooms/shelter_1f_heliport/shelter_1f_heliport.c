@@ -1056,7 +1056,7 @@ void func_shelter_1f_heliport_8017F2D4(Task* task)
 {
     UiObject*   obj;
     GpItemMap*  map;
-    GpItemSlot* slot;
+    McItemSlot* slot;
     s32         slotId;
     s32         itemId;
     s32         curItem;

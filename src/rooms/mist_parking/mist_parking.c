@@ -979,7 +979,7 @@ void func_mist_parking_8017F49C(Task* task)
 {
     UiObject*   obj;
     GpItemMap*  map;
-    GpItemSlot* slot;
+    McItemSlot* slot;
     s32         slotId;
     s32         itemId;
     s32         curItem;

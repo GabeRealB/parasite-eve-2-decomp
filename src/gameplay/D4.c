@@ -130,7 +130,7 @@ void Gp_EnqueueWeaponCd(void)
             }
             break;
         case 0x1B: {
-            register GpItemSlot* slot asm("a0");
+            register McItemSlot* slot asm("a0");
 
             param1[0] = 0x10;
             slot      = Gp_GetItemSlot(item + 0x7F);

@@ -2075,7 +2075,7 @@ void func_shelter_b1_underground_parking_801813B0(Task* task)
 {
     UiObject*   obj;
     GpItemMap*  map;
-    GpItemSlot* slot;
+    McItemSlot* slot;
     s32         slotId;
     s32         itemId;
     s32         curItem;

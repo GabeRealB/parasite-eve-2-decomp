@@ -1025,7 +1025,7 @@ void func_dryfield_night_trailer_coach_8017F3C0(Task* task)
 {
     UiObject*   obj;
     GpItemMap*  map;
-    GpItemSlot* slot;
+    McItemSlot* slot;
     s32         slotId;
     s32         itemId;
     s32         curItem;

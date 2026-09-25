@@ -1607,15 +1607,15 @@ void Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
     if (item > 0) {
         if (item != 0x92) {
             item   = (s32)Gp_GetItemSlot(item);
-            attach = ((GpItemSlot*)item)->ammoId;
-            count  = ((GpItemSlot*)item)->ammoQty;
+            attach = ((McItemSlot*)item)->ammoId;
+            count  = ((McItemSlot*)item)->ammoQty;
             if (attach != 0) {
                 Gp_DrawQty((UiObject*)arg0, arg1, arg2, count, color);
             }
             Gp_DrawItemNameRow((UiObject*)arg0, arg1, arg2, attach, color, 0);
-            if (((GpItemSlot*)item)->attachId != 0xFF) {
-                attach = ((GpItemSlot*)item)->attachId;
-                count  = ((GpItemSlot*)item)->attachQty;
+            if (((McItemSlot*)item)->attachId != 0xFF) {
+                attach = ((McItemSlot*)item)->attachId;
+                count  = ((McItemSlot*)item)->attachQty;
                 arg2  += 0x10;
                 if (attach != 0) {
                     Gp_DrawQty((UiObject*)arg0, arg1, arg2, count, color);
@@ -1633,7 +1633,7 @@ void func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     s32           equipped;
     s32           hasMod;
     PlayerStatus* cfg;
-    GpItemSlot*   slot;
+    McItemSlot*   slot;
     s32           color;
     s32           x;
     s32           y;
@@ -2550,7 +2550,7 @@ void Gp_WeaponMenuTask(Task* arg0)
     obj->field_2E = 0;
     Ui_DrawText((UiPanel*)obj, Gp_StrWeaponTitle);
     if (arg0->state == 0) {
-        GpItemSlot*  slot;
+        McItemSlot*  slot;
         register s32 n asm("v0");
 
         id   = Player_Status.weapon + 0x7F;
@@ -2580,7 +2580,7 @@ void Gp_WeaponMenuTask(Task* arg0)
         arg0->state = arg0->state + 1;
     }
     {
-        GpItemSlot*  slot;
+        McItemSlot*  slot;
         register s32 n asm("v0");
 
         id   = Player_Status.weapon + 0x7F;
@@ -4801,7 +4801,7 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
     UiList*       list;
     SPRT*         p;
     GpItemAttr*   attr;
-    GpItemSlot*   slot;
+    McItemSlot*   slot;
     PlayerStatus* cfg;
     s16           field18;
     s32           color;
@@ -5002,7 +5002,7 @@ void Gp_EquipSummaryTask(Task* arg0)
     s32*               stored;
     s32                mode;
     register UiObject* obj asm("s3");
-    GpItemSlot*        slotp;
+    McItemSlot*        slotp;
     s32                x;
     s32                y;
     s32                color;
@@ -5458,7 +5458,7 @@ void Gp_DrawRemoveAmmoRow(DialogPrompt* arg0, UiObject* arg1)
     s32*          p;
     McItemRec*    rec;
     s32           qty;
-    GpItemSlot*   attach;
+    McItemSlot*   attach;
     union {
         struct {
             u8          buf[0x20];
@@ -5636,7 +5636,7 @@ void Gp_BuildAttachList(UiList* arg0, s32 arg1)
     s32         item;
     s32         qty;
     s32*        dst;
-    GpItemSlot* slot;
+    McItemSlot* slot;
 
     scan  = &Mc_SaveData.carriedItems;
     mode  = Gp_ReloadMode;
@@ -5710,7 +5710,7 @@ void Gp_AttachListTask(Task* arg0)
     register Task* task asm("s3");
     s32            one;
     s32            state;
-    GpItemSlot*    slot;
+    McItemSlot*    slot;
     u8             temp;
     Task*          child;
     Task*          next;
@@ -6224,7 +6224,7 @@ void Gp_ReloadPromptTask(Task* arg0)
     s32         rows;
     s32         color;
     s32         one;
-    GpItemSlot* slot;
+    McItemSlot* slot;
 
     obj           = arg0->spawnArg2;
     lo            = arg0->spawnArg1 & 0xFF;

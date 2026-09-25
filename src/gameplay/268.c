@@ -424,7 +424,7 @@ void Gp_InitStarterInv(void)
     McItemRec*    added;
     McItemScan**  scans;
     McItemScan*   dest;
-    GpItemSlot*   slots;
+    McItemSlot*   slots;
     s32           i;
     s32           j;
     u8            item;
@@ -535,7 +535,7 @@ void func_800B8014(void)
     McSaveData*   save;
     GpItemDesc*   desc;
     u8*           str;
-    GpItemSlot*   slots;
+    McItemSlot*   slots;
     McItemScan*   scan;
     McItemScan**  scans;
     PlayerStatus* cfg;
@@ -1456,7 +1456,7 @@ s32 Gp_NthRelatedId(McItemScan* arg0, s32 arg1, s32 arg2)
 void Gp_RefreshItemRow(McItemRec* arg0)
 {
     u8           item;
-    GpItemSlot*  slot;
+    McItemSlot*  slot;
     register s32 found asm("a3");
     s32          i;
     GpItemMap*   p;
@@ -1482,7 +1482,7 @@ void Gp_RefreshItemRow(McItemRec* arg0)
     }
 
     found = 0;
-    slot  = &((GpItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[item];
+    slot  = &((McItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[item];
     for (i = found, p = Gp_ItemMaps; i < 8; i++, p++) {
         if (item == p->field_1) {
             found = 1;
@@ -2120,7 +2120,7 @@ void Gp_ResetInventory(void)
 {
     PlayerStatus*        cfg;
     register s32         item asm("a1");
-    GpItemSlot*          slot;
+    McItemSlot*          slot;
     s32                  found;
     s32                  i;
     GpItemMap*           p;
@@ -2148,7 +2148,7 @@ void Gp_ResetInventory(void)
         asm("addiu %0, %1, 0x7F" : "=r"(item) : "r"(val));
         if ((u32)(val - 1) < 0x20U) {
             found = 0;
-            slot  = &((GpItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[item];
+            slot  = &((McItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[item];
             for (i = found, p = Gp_ItemMaps; i < 8; i++, p++) {
                 if (item == p->field_1) {
                     found = 1;
@@ -2235,7 +2235,7 @@ void Gp_ClearInventory(void)
 {
     PlayerStatus*       cfg;
     s32                 item;
-    GpItemSlot*         slot;
+    McItemSlot*         slot;
     s32                 found;
     s32                 i;
     GpItemMap*          p;
@@ -2271,7 +2271,7 @@ void Gp_ClearInventory(void)
         item = val + 0x7F;
         if ((u32)(val - 1) < 0x20U) {
             found = 0;
-            slot  = &((GpItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[item];
+            slot  = &((McItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[item];
             for (i = found, p = Gp_ItemMaps; i < 8; i++, p++) {
                 if (item == p->field_1) {
                     found = 1;
@@ -2401,7 +2401,7 @@ void Gp_InitModeEquip(void)
     s32           limit;
     s32           off;
     s32           item;
-    GpItemSlot*   slots;
+    McItemSlot*   slots;
     u8            slotItem;
 
     cfg = &Player_Status;
@@ -2441,7 +2441,7 @@ void Gp_InitModeEquip(void)
         }
     }
     if (cfg->weapon == 2) {
-        slots    = (GpItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400);
+        slots    = (McItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400);
         slotItem = slots[0x81].ammoId;
         if ((slotItem == 0) || (slotItem == 0xA0)) {
             Gp_EquipRelatedItem(&Mc_SaveData.carriedItems, 0x81, 0xA0, -1);
@@ -2762,9 +2762,9 @@ s32 Gp_CountScanItems(McItemScan* arg0)
     return ret;
 }
 
-GpItemSlot* Gp_GetItemSlot(s32 arg0)
+McItemSlot* Gp_GetItemSlot(s32 arg0)
 {
-    return &((GpItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[arg0];
+    return &((McItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[arg0];
 }
 
 s32 Gp_CountEquippedRelated(McItemScan* arg0, s32 arg1)
@@ -2775,9 +2775,9 @@ s32 Gp_CountEquippedRelated(McItemScan* arg0, s32 arg1)
     s32         end;
     s32         limit;
     McItemRec*  rec;
-    GpItemSlot* slots;
-    GpItemSlot* slot;
-    GpItemSlot* alt;
+    McItemSlot* slots;
+    McItemSlot* slot;
+    McItemSlot* alt;
     s32         itemId;
     s32         off;
     s32         ret;
@@ -2788,14 +2788,14 @@ s32 Gp_CountEquippedRelated(McItemScan* arg0, s32 arg1)
         start = arg0->firstRow;
         end   = start + arg0->rowCount;
         if (start < end) {
-            slots = (GpItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400);
+            slots = (McItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400);
             limit = end;
             off   = start << 2;
             rec   = (McItemRec*)(off + (s32)table);
             for (; start < limit; start++, rec++) {
                 itemId = rec->itemId;
                 if ((u32)(itemId - 0x80) < 0x20U) {
-                    slot = (GpItemSlot*)((itemId << 3) + (s32)slots);
+                    slot = (McItemSlot*)((itemId << 3) + (s32)slots);
                     alt  = slot;
                     if (slot->ammoId == arg1) {
                         count += slot->ammoQty;
@@ -2814,7 +2814,7 @@ s32 Gp_CountEquippedRelated(McItemScan* arg0, s32 arg1)
 
 void Gp_ClearEquipSlot(s32 arg0)
 {
-    GpItemSlot*  slot;
+    McItemSlot*  slot;
     register s32 found asm("a3");
     s32          i;
     GpItemMap*   p;
@@ -2824,7 +2824,7 @@ void Gp_ClearEquipSlot(s32 arg0)
     }
 
     found = 0;
-    slot  = &((GpItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[arg0];
+    slot  = &((McItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[arg0];
     for (i = found, p = Gp_ItemMaps; i < 8; i++, p++) {
         if (arg0 == p->field_1) {
             found = 1;
@@ -2847,7 +2847,7 @@ void Gp_ClearEquipSlot(s32 arg0)
 
 void Gp_ClearEquipSlotSel(s32 arg0, s32 arg1)
 {
-    GpItemSlot*  slot;
+    McItemSlot*  slot;
     register s32 found asm("t0");
     s32          i;
     GpItemMap*   p;
@@ -2857,7 +2857,7 @@ void Gp_ClearEquipSlotSel(s32 arg0, s32 arg1)
     }
 
     found = 0;
-    slot  = &((GpItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[arg0];
+    slot  = &((McItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[arg0];
     for (i = found, p = Gp_ItemMaps; i < 8; i++, p++) {
         if (arg0 == p->field_1) {
             found = 1;
@@ -2966,11 +2966,11 @@ after_loop:
 
 s32 Gp_FillRelated(s32 arg0, s32 arg1)
 {
-    GpItemSlot* slot;
-    GpItemSlot* alt;
+    McItemSlot* slot;
+    McItemSlot* alt;
     s32         ret;
 
-    slot = &((GpItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[arg0];
+    slot = &((McItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[arg0];
     alt  = slot;
     if (arg1 != 0) {
         ret = Gp_EquipRelatedItem(&Mc_SaveData.carriedItems, arg0, slot->attachId, -1);
@@ -2982,11 +2982,11 @@ s32 Gp_FillRelated(s32 arg0, s32 arg1)
 
 s32 Gp_UnequipRelated(s32 arg0, s32 arg1)
 {
-    GpItemSlot* slot;
-    GpItemSlot* alt;
+    McItemSlot* slot;
+    McItemSlot* alt;
     s32         ret;
 
-    slot = &((GpItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[arg0];
+    slot = &((McItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[arg0];
     alt  = slot;
     if (arg1 == 0) {
         ret = Gp_EquipRelatedItem(&Mc_SaveData.carriedItems, arg0, slot->ammoId, 0);
@@ -3502,7 +3502,7 @@ s32 Gp_HasMappedItem(void)
 
 void Gp_ResetAuxSlots(void)
 {
-    GpItemSlot* p;
+    McItemSlot* p;
     s32         i;
 
     p = Mc_SaveData.weaponItems;
@@ -3543,7 +3543,7 @@ void Gp_SetPlayerScan(s32 arg0)
 void Gp_SyncHeldRelated(void)
 {
     PlayerStatus* p;
-    GpItemSlot*   slots;
+    McItemSlot*   slots;
     s32           idx;
     u8            item;
 
@@ -3551,7 +3551,7 @@ void Gp_SyncHeldRelated(void)
     if (p->weapon == 0) {
         p->weaponSlotItem = 0;
     } else {
-        slots = (GpItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400);
+        slots = (McItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400);
         idx   = p->weapon + 0x7F;
         item  = slots[idx].ammoId;
         if (item == 0) {

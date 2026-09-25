@@ -12,10 +12,6 @@
 struct GpEnemy;
 struct _UiObject;
 
-/// Per-weapon item slot: the ammunition the weapon is loaded with and the
-/// attachment fitted to it. Gameplay's name for `McItemSlot`.
-typedef McItemSlot GpItemSlot;
-
 /// 4-byte table entry in `Gp_ItemMaps` (8 entries). field_1 is an item id
 /// used to index `Mc_SaveData.weaponItems`; field_0 selects which (id, count) pair;
 /// field_2 is the mapped item id (`Gp_ApplyItemMap`).
@@ -31,7 +27,7 @@ STATIC_ASSERT_SIZEOF(GpItemMap, 0x4);
 /// 0x80–0x9F). field_0 is a count (`Gp_GetRelatedQty` / `Gp_ApplyItemMap`);
 /// field_1–3 are related item ids (`Gp_BuildAttachList` / `Gp_NthRelatedId` /
 /// `Gp_NthStockRelated` / `Gp_EquipRelatedBank`).
-/// `Gp_RelatedQty0` is the first `GpItemSlot` pair (arg0 == 0);
+/// `Gp_RelatedQty0` is the first `McItemSlot` pair (arg0 == 0);
 /// `Gp_RelatedQty1` is the second.
 /// `Gp_QtyById0` / `Gp_QtyById1` are the same tables indexed by raw item id
 /// (`Gp_RelatedQty0` is `Gp_QtyById0 + 0x200`).
@@ -281,7 +277,7 @@ char* Gp_GetItemText(s32 arg0, s32 arg1, s32 arg2);
 /// in `Gp_RelatedQty0` / `Gp_RelatedQty1` and the row is stocked or selected.
 s32         Gp_NthRelatedId(McItemScan* arg0, s32 arg1, s32 arg2);
 void        Gp_RefreshItemRow(McItemRec* arg0);
-GpItemSlot* Gp_GetItemSlot(s32 arg0);
+McItemSlot* Gp_GetItemSlot(s32 arg0);
 s32         Gp_CountEquippedRelated(McItemScan* arg0, s32 arg1);
 void        Gp_ClearEquipSlot(s32 arg0);
 void        Gp_ClearEquipSlotSel(s32 arg0, s32 arg1);

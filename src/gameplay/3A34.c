@@ -55,7 +55,7 @@ s32 Gp_ApplyItemUse(McItemRec* arg0)
     McItemScan*   scanRel;
     McItemScan*   scanFree;
     McItemScan*   scanId;
-    GpItemSlot*   slot;
+    McItemSlot*   slot;
     McItemRec*    table;
     McItemRec*    rec;
     McItemRec*    found;

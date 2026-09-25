@@ -36,7 +36,7 @@ void func_m4a1_grenade_8011D1EC(Task* arg0)
     GpCoord*    coord;
     GpCoord*    spot;
     GpAnimRec*  rec;
-    GpItemSlot* slot;
+    McItemSlot* slot;
     s32         anim;
     s32         delay;
     s32         sfx;
@@ -260,7 +260,7 @@ void func_m4a1_grenade_8011D994(Task* arg0)
     M4a1GrenadeScratch* blk;
     WeaponGrenadeWork*  work;
     GpCoord*            coord;
-    GpItemSlot*         slot;
+    McItemSlot*         slot;
     GpRec18*            rec;
     GpRoomParamRec*     param;
     u8*                 head;

@@ -1045,7 +1045,7 @@ void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
     s32                  i;
     register McItemScan* scan asm("s3");
     McItemRec*           rec;
-    GpItemSlot*          slot;
+    McItemSlot*          slot;
     s32                  attach;
     s32                  mode;
 

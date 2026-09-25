@@ -5418,7 +5418,7 @@ void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
     TextDrawReq   req2;
     RECT          rect;
     PlayerStatus* cfg;
-    GpItemSlot*   slot;
+    McItemSlot*   slot;
     s32           item;
     s32           count2;
     s32           count1;

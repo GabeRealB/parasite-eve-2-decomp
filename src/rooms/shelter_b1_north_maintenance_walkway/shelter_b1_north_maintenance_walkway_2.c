@@ -420,21 +420,21 @@ void func_shelter_b1_north_maintenance_walkway_8017EB84(GpCoord* arg0, u16 arg1,
 /// both scaled by depth. Nothing is drawn when the projection overflows.
 void func_shelter_b1_north_maintenance_walkway_8017EE48(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
-    RoomDraw09Scratch* block;
-    POLY_G4*           prim;
-    s32                ang;
-    register void**    scratch asm("a1");
-    register s32       saved asm("t1");
-    register u8*       head asm("t0");
-    register s32       sum asm("a1");
-    register s32       otz asm("v0");
-    register s32       rOuter asm("a0");
-    register s32       rInner asm("v1");
-    register u8*       color asm("s4");
-    s32                t;
-    u16                vz;
-    u32                maskLo;
-    u32                maskHi;
+    RoomBillboardScratch* block;
+    POLY_G4*              prim;
+    s32                   ang;
+    register void**       scratch asm("a1");
+    register s32          saved asm("t1");
+    register u8*          head asm("t0");
+    register s32          sum asm("a1");
+    register s32          otz asm("v0");
+    register s32          rOuter asm("a0");
+    register s32          rInner asm("v1");
+    register u8*          color asm("s4");
+    s32                   t;
+    u16                   vz;
+    u32                   maskLo;
+    u32                   maskHi;
 
     saved   = arg1;
     scratch = (void**)G_SCRATCH_HEAD;
@@ -443,13 +443,13 @@ void func_shelter_b1_north_maintenance_walkway_8017EE48(GpCoord* arg0, s32 arg1,
     USE_REG(head);
     {
         register u16 vx asm("v0");
-        vx                                          = (u16)arg0->workm.t[0];
-        ((RoomDraw09Scratch*)(head - 0x1C))->vec.vx = vx;
+        vx                                             = (u16)arg0->workm.t[0];
+        ((RoomBillboardScratch*)(head - 0x1C))->vec.vx = vx;
     }
     {
         register u8* tmp asm("v0");
         tmp   = head - 0x1C;
-        block = (RoomDraw09Scratch*)tmp;
+        block = (RoomBillboardScratch*)tmp;
     }
     block->vec.vy = (u16)arg0->workm.t[1];
     vz            = (u16)arg0->workm.t[2];
@@ -461,10 +461,10 @@ void func_shelter_b1_north_maintenance_walkway_8017EE48(GpCoord* arg0, s32 arg1,
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((RoomDraw09Scratch*)(head - 0x1C))->sx);
-    gte_stflg(&((RoomDraw09Scratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((RoomBillboardScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((RoomBillboardScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((RoomDraw09Scratch*)(head - 0x1C))->otz);
+        gte_stszotz(&((RoomBillboardScratch*)(head - 0x1C))->otz);
         USE_REG(head);
         otz        = block->otz + 1;
         rOuter     = ((s16)saved * 64) / otz;
@@ -511,29 +511,29 @@ void func_shelter_b1_north_maintenance_walkway_8017EE48(GpCoord* arg0, s32 arg1,
 /// `arg1` scaled by depth. Nothing is drawn when the projection overflows.
 void func_shelter_b1_north_maintenance_walkway_8017F26C(GpCoord* arg0, s32 arg1, u8* rgb)
 {
-    RoomDraw04Scratch* block;
-    POLY_G4*           prim;
-    s32                ang;
-    register void**    scratch asm("a1");
-    u8*                head;
-    s32                otz;
-    s32                radius;
-    s32                t;
-    s32                t2;
-    u16                vz;
+    RoomFanScratch* block;
+    POLY_G4*        prim;
+    s32             ang;
+    register void** scratch asm("a1");
+    u8*             head;
+    s32             otz;
+    s32             radius;
+    s32             t;
+    s32             t2;
+    u16             vz;
 
     scratch = (void**)G_SCRATCH_HEAD;
     head    = *scratch;
     USE_REG(head);
     {
         register u16 vx asm("v0");
-        vx                                          = (u16)arg0->workm.t[0];
-        ((RoomDraw04Scratch*)(head - 0x18))->vec.vx = vx;
+        vx                                       = (u16)arg0->workm.t[0];
+        ((RoomFanScratch*)(head - 0x18))->vec.vx = vx;
     }
     {
         register u8* tmp asm("v0");
         tmp   = head - 0x18;
-        block = (RoomDraw04Scratch*)tmp;
+        block = (RoomFanScratch*)tmp;
     }
     block->vec.vy = (u16)arg0->workm.t[1];
     vz            = (u16)arg0->workm.t[2];
@@ -544,10 +544,10 @@ void func_shelter_b1_north_maintenance_walkway_8017F26C(GpCoord* arg0, s32 arg1,
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((RoomDraw04Scratch*)(head - 0x18))->sx);
-    gte_stflg(&((RoomDraw04Scratch*)(head - 0x18))->flag);
+    gte_stsxy(&((RoomFanScratch*)(head - 0x18))->sx);
+    gte_stflg(&((RoomFanScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((RoomDraw04Scratch*)(head - 0x18))->otz);
+        gte_stszotz(&((RoomFanScratch*)(head - 0x18))->otz);
         USE_REG(head);
         otz           = block->otz + 1;
         radius        = ((s16)arg1 * 64) / otz;
@@ -1300,29 +1300,29 @@ void func_shelter_b1_north_maintenance_walkway_80181180(GpCoord* arg0, s32 arg1,
 /// `arg1` scaled by depth. Nothing is drawn when the projection overflows.
 void func_shelter_b1_north_maintenance_walkway_801815AC(GpCoord* arg0, s32 arg1, u8* rgb)
 {
-    RoomDraw04Scratch* block;
-    POLY_G4*           prim;
-    s32                ang;
-    register void**    scratch asm("a1");
-    u8*                head;
-    s32                otz;
-    s32                radius;
-    s32                t;
-    s32                t2;
-    u16                vz;
+    RoomFanScratch* block;
+    POLY_G4*        prim;
+    s32             ang;
+    register void** scratch asm("a1");
+    u8*             head;
+    s32             otz;
+    s32             radius;
+    s32             t;
+    s32             t2;
+    u16             vz;
 
     scratch = (void**)G_SCRATCH_HEAD;
     head    = *scratch;
     USE_REG(head);
     {
         register u16 vx asm("v0");
-        vx                                          = (u16)arg0->workm.t[0];
-        ((RoomDraw04Scratch*)(head - 0x18))->vec.vx = vx;
+        vx                                       = (u16)arg0->workm.t[0];
+        ((RoomFanScratch*)(head - 0x18))->vec.vx = vx;
     }
     {
         register u8* tmp asm("v0");
         tmp   = head - 0x18;
-        block = (RoomDraw04Scratch*)tmp;
+        block = (RoomFanScratch*)tmp;
     }
     block->vec.vy = (u16)arg0->workm.t[1];
     vz            = (u16)arg0->workm.t[2];
@@ -1333,10 +1333,10 @@ void func_shelter_b1_north_maintenance_walkway_801815AC(GpCoord* arg0, s32 arg1,
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((RoomDraw04Scratch*)(head - 0x18))->sx);
-    gte_stflg(&((RoomDraw04Scratch*)(head - 0x18))->flag);
+    gte_stsxy(&((RoomFanScratch*)(head - 0x18))->sx);
+    gte_stflg(&((RoomFanScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((RoomDraw04Scratch*)(head - 0x18))->otz);
+        gte_stszotz(&((RoomFanScratch*)(head - 0x18))->otz);
         USE_REG(head);
         otz           = block->otz + 1;
         radius        = ((s16)arg1 * 64) / otz;

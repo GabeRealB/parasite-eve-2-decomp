@@ -612,29 +612,29 @@ void func_shelter_1f_bulwark_8017E630(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb
 /// `rgb` and the rim is black; `arg1` is the radius before depth scaling.
 void func_shelter_1f_bulwark_8017EA5C(GpCoord* arg0, s32 arg1, u8* rgb)
 {
-    RoomDraw04Scratch* block;
-    POLY_G4*           prim;
-    s32                ang;
-    register void**    scratch asm("a1");
-    u8*                head;
-    s32                otz;
-    s32                radius;
-    s32                t;
-    s32                t2;
-    u16                vz;
+    RoomFanScratch* block;
+    POLY_G4*        prim;
+    s32             ang;
+    register void** scratch asm("a1");
+    u8*             head;
+    s32             otz;
+    s32             radius;
+    s32             t;
+    s32             t2;
+    u16             vz;
 
     scratch = (void**)G_SCRATCH_HEAD;
     head    = *scratch;
     USE_REG(head);
     {
         register u16 vx asm("v0");
-        vx                                          = (u16)arg0->workm.t[0];
-        ((RoomDraw04Scratch*)(head - 0x18))->vec.vx = vx;
+        vx                                       = (u16)arg0->workm.t[0];
+        ((RoomFanScratch*)(head - 0x18))->vec.vx = vx;
     }
     {
         register u8* tmp asm("v0");
         tmp   = head - 0x18;
-        block = (RoomDraw04Scratch*)tmp;
+        block = (RoomFanScratch*)tmp;
     }
     block->vec.vy = (u16)arg0->workm.t[1];
     vz            = (u16)arg0->workm.t[2];
@@ -645,10 +645,10 @@ void func_shelter_1f_bulwark_8017EA5C(GpCoord* arg0, s32 arg1, u8* rgb)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((RoomDraw04Scratch*)(head - 0x18))->sx);
-    gte_stflg(&((RoomDraw04Scratch*)(head - 0x18))->flag);
+    gte_stsxy(&((RoomFanScratch*)(head - 0x18))->sx);
+    gte_stflg(&((RoomFanScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((RoomDraw04Scratch*)(head - 0x18))->otz);
+        gte_stszotz(&((RoomFanScratch*)(head - 0x18))->otz);
         USE_REG(head);
         otz           = block->otz + 1;
         radius        = ((s16)arg1 * 64) / otz;
