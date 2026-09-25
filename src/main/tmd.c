@@ -312,8 +312,8 @@ void tmdProcessStream(TmdObject* obj)
     obj->bufferIndex ^= 1;
     ws->verts         = obj->source->verts;
     ws->normals       = obj->source->normals;
-    ws->tpage         = (s8)obj->tpage;
-    ws->clut          = (s8)obj->clut << 6;
+    ws->tpage         = obj->tpage;
+    ws->clut          = obj->clut << 6;
     goto read_id;
 
     for (;;) {

@@ -91,8 +91,8 @@ typedef struct {
     void*          buffer;      // Both buffer halves, allocated together; NULL while there are none
     MATRIX*        lightMtx;    // Light matrix the model is drawn under
     MATRIX*        colorMtx;    // Colour matrix the model is drawn under
-    u8             tpage;       // Texture page the model's primitives are offset by
-    u8             clut;        // CLUT the model's primitives are offset by, in 64-entry rows
+    s8             tpage;       // Texture page the model's primitives are offset by
+    s8             clut;        // CLUT the model's primitives are offset by, in 64-entry rows
     u8             tpageOffset; // Further texture page offset the handlers that use one add to a primitive
     u8             clutOffset;  // Further CLUT row offset the handlers that use one add, in 64-entry rows
     byte           unknown_28[0x4];

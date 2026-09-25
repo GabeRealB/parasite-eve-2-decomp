@@ -704,8 +704,8 @@ void func_actor_300700_80162EFC(Task* arg0)
     setcode(prim, 0x2E);
     setRGB0(prim, 0x80, 0x80, 0x80);
     setShadeTex(prim, 1);
-    prim->tpage = ((((s8)obj->tpage * 64 + 0x180) & 0x3FF) >> 6) | 0xD0;
-    prim->clut  = ((s8)obj->clut << 6) + 0x3D40;
+    prim->tpage = (((obj->tpage * 64 + 0x180) & 0x3FF) >> 6) | 0xD0;
+    prim->clut  = (obj->clut << 6) + 0x3D40;
     uv          = &D_actor_300700_80165B9C[(s16)(work->field_2E0 / 3)];
     prim->u0    = uv->u;
     prim->v0    = uv->v;
