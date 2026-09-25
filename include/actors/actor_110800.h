@@ -27,6 +27,13 @@ typedef struct Actor110800Work {
 } Actor110800Work;
 STATIC_ASSERT_SIZEOF(Actor110800Work, 0x480);
 
+/// Argument block of the 0x7D3 message: the animation to start, after a
+/// 4-byte field the handler does not read.
+typedef struct Actor110800AnimArgs {
+    /* 0x0 */ byte pad_0[4];
+    /* 0x4 */ s32  animId;
+} Actor110800AnimArgs;
+
 /// The block above, published by `func_actor_110800_801322A0` from the task's
 /// `Task::work`.
 extern Actor110800Work* D_actor_110800_80139F10;
