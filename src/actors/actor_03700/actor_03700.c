@@ -651,16 +651,16 @@ void Actor03700_Fn00ABC(Task* task)
 {
     Actor103700Work* work;
     GsCOORDINATE2*   coord;
-    void*            head;
+    SVECTOR*         head;
     SVECTOR*         vec;
     s16              angle;
     s32              dist;
 
-    head               = SCRATCH_HEAD(void);
-    vec                = (SVECTOR*)((u8*)head - sizeof(SVECTOR));
-    SCRATCH_HEAD(void) = vec;
-    work               = (Actor103700Work*)task->work;
-    coord              = ((TmdObject*)task->extra)->coords;
+    head                  = SCRATCH_HEAD(SVECTOR);
+    vec                   = head - 1;
+    SCRATCH_HEAD(SVECTOR) = vec;
+    work                  = (Actor103700Work*)task->work;
+    coord                 = ((TmdObject*)task->extra)->coords;
 
     switch (work->field_250) {
         case 0:
@@ -696,7 +696,7 @@ void Actor03700_Fn00ABC(Task* task)
         work->field_250      = 0;
         Gp_StateF0.field_19 |= 1;
     }
-    SCRATCH_POP_BYTES(sizeof(SVECTOR));
+    SCRATCH_POP(SVECTOR);
 }
 
 void Actor03700_Fn00D5C(Task* task)

@@ -1574,7 +1574,7 @@ void Actor04600_Fn0294C(Task* arg0, GsCOORDINATE2* arg1)
     gte_stsv(vec);
     ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, matrix, 4, 10, 16);
 
-    scratch->head = (u8*)scratch->head + 8;
+    SCRATCH_POP_AT(&scratch->head, SVECTOR);
 }
 
 /// Rebuilds the first enemy's root coordinate from the transform saved in

@@ -849,7 +849,7 @@ void Actor00300_Fn00E54(Task* arg0)
         ((SVECTOR*)(scratch + 2))[1].vx = (u16)coord->workm.t[0];
         ((SVECTOR*)(scratch + 2))[1].vy = (u16)coord->workm.t[1];
         ((SVECTOR*)(scratch + 2))[1].vz = (u16)coord->workm.t[2];
-        if (Actor00300_Fn04B14((SVECTOR*)(scratch + 2), (SVECTOR*)(scratch + 2) + 1) == 0) {
+        if (Actor00300_Fn04B14(&((SVECTOR*)(scratch + 2))[0], &((SVECTOR*)(scratch + 2))[1]) == 0) {
             work->field_6A0 = 0x1C2;
             work->field_6A2 = 1;
         } else {

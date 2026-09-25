@@ -32,7 +32,7 @@ static __inline__ void Actor00100_ScaleTransform(MATRIX* matrix, s16 amount)
     scratch->trans.vy = matrix->t[1];
     scratch->trans.vz = matrix->t[2];
     gte_lddp(amount);
-    vec = (SVECTOR*)head - 1;
+    vec = &(head - 1)->trans;
     gte_ldsv(vec);
     gte_gpf12();
     gte_stsv(vec);
