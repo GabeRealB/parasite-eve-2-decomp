@@ -20,6 +20,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
@@ -205,7 +206,6 @@ extern u8            Actor05500_D08AD4[];
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 void    Gp_UpdateCoord(GsCOORDINATE2* arg0);
-void    Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 void    func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 void Actor05500_Fn00754(Actor105500* arg0);

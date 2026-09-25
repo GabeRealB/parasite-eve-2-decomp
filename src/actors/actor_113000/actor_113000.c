@@ -9,6 +9,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
 
@@ -73,8 +74,6 @@ extern GpImgRec D_actor_113000_8013AB6C;
 /// Message dispatch table the spawn handler parks in `Task::msgTable`:
 /// message id / handler pairs, terminated by 0x7FFFFFFF and a null word.
 extern u8 D_actor_113000_8013ABC0[];
-
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.

@@ -3,6 +3,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include "actors/actors_shared_80135b58.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/pairsrc.h"
 #include "gameplay/3FB8.h"
@@ -240,7 +241,6 @@ void                 Gp_SetLightMode(Actor02500Ctx* arg0, s32 arg1);
 void                 Gp_LinkObj(s32 arg0, GpObj* arg1);
 void                 Gp_InitRec18Table(GpRec18* arg0, s32 arg1, s32 arg2);
 s32                  Gp_PackPair(void* pairs, s32 index);
-void                 Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 s32                  Gp_FindRec18(GpRec18* arg0, s32 arg1);
 s32                  func_800E0C10(GpRec18* arg0, Actor02500MoveScratch* arg1, s32 arg2, s32 arg3);
 s32                  Gp_ComputeDamage(u32 arg0, s32 arg1, s32 arg2, s32 arg3);

@@ -12,6 +12,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -204,8 +205,6 @@ extern SVECTOR D_actor_123200_80137240;
 void func_8004BFF8(s16 angle, MATRIX* matrix);
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
-
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 void func_actor_123200_80134178(GpEnemy* arg0, Task* arg1);
 

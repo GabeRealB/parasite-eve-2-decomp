@@ -2,6 +2,7 @@
 
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
@@ -25,7 +26,6 @@ extern SVECTOR D_8011280C[];
 
 void Gp_DrawEffSprite6C();
 void Gp_DrawEffSprite3B(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 void Gp_DrawEffSprite7C(GsCOORDINATE2* arg0, s32 arg1, u32 arg2);
 
 void Gp_EffCtlTask2B(Task* arg0)
@@ -3086,7 +3086,7 @@ void Gp_DrawEffSprite7C(GsCOORDINATE2* arg0, s32 arg1, u32 arg2)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
 }
 
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2)
+void Gp_DrawEffGroundQuad(VECTOR3* pos, s32 size, s16 shade)
 {
     void**            scratch;
     register u8*      head asm("v1");
@@ -3096,7 +3096,7 @@ void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2)
     GpQuadCorner*     tbl;
     POLY_FT4*         prim;
 
-    if (arg2 >= 0 && Gp_State1C->eventState < 2) {
+    if (shade >= 0 && Gp_State1C->eventState < 2) {
         scratch  = (void**)G_SCRATCH_HEAD;
         head     = (u8*)*scratch - 0x38;
         block    = (GpQuadScratch*)head;
@@ -3106,18 +3106,18 @@ void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2)
         v   = block->vec;
         tbl = D_80111E38;
         do {
-            v->vx = tbl->x * arg1;
+            v->vx = tbl->x * size;
             v->vy = 0;
-            v->vz = tbl->y * arg1;
+            v->vz = tbl->y * size;
             gte_SetRotMatrix(&Gfx_ViewWorldMtx);
             gte_ldv0(v);
             gte_rtv0();
             gte_stsv(v);
-            *(u16*)&v->vx = *(u16*)&v->vx + *(u16*)&arg0->vx;
+            *(u16*)&v->vx = *(u16*)&v->vx + *(u16*)&pos->vx;
             tbl++;
-            *(u16*)&v->vy = *(u16*)&v->vy + *(u16*)&arg0->vy;
+            *(u16*)&v->vy = *(u16*)&v->vy + *(u16*)&pos->vy;
             i++;
-            *(u16*)&v->vz = *(u16*)&v->vz + *(u16*)&arg0->vz;
+            *(u16*)&v->vz = *(u16*)&v->vz + *(u16*)&pos->vz;
             v++;
         } while (i < 4);
 
@@ -3135,12 +3135,12 @@ void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2)
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2C);
-            if (arg2 == 0) {
+            if (shade == 0) {
                 setcode(prim, 0x2D);
             } else {
-                prim->r0 = arg2;
-                prim->g0 = arg2;
-                prim->b0 = arg2;
+                prim->r0 = shade;
+                prim->g0 = shade;
+                prim->b0 = shade;
             }
             prim->tpage = 0x48;
             prim->clut  = 0x4283;

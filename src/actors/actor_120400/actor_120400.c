@@ -8,6 +8,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/mem.h"
@@ -123,9 +124,6 @@ extern u8 D_801153F4;
 extern TaskDesc   D_actor_120400_8013E748;
 extern GpMsgEntry D_actor_120400_8013E76C[];
 
-/// Draws the ground-effect quad `func_800EA1A8` filled in, at the splash id
-/// the caller selects and the current ground-shade row `Gp_State1C->groundShade`.
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 void func_actor_120400_80131E5C(Task* arg0);

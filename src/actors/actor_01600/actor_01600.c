@@ -6,6 +6,7 @@
 #include "gte.h"
 
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/pairsrc.h"
 #include "main/gfx.h"
@@ -551,7 +552,6 @@ s32     Gp_TickObjFlag4(Actor01600Ctx* arg0);
 s32     Gp_ObjFlag4Expired(Actor01600Ctx* arg0);
 s32     Gp_GetObjPan(void* arg0);
 s32     gpGetObjDepth(GsCOORDINATE2* coord);
-void    Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 s32     Gp_DispatchMsg(Task* task, s32 message, s32 payload, s32 flags);
 s32     Gp_PackObjPair(struct _GpObj50* ctx, s32 arg1);
 void    Gp_LinkNode(GpLinkNode* node);

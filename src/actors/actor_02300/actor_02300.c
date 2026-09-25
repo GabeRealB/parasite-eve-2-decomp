@@ -20,6 +20,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
@@ -222,7 +223,6 @@ extern s32 Actor02300_D15B08;
 /// Effect id the part-7 child spawns when its countdown runs out.
 extern s32 D_8011572C;
 
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
 s32  Actor02300_Fn0371C(SVECTOR* arg0, SVECTOR* arg1);

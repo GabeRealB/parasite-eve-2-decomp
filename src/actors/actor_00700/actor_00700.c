@@ -9,6 +9,7 @@
 #include "actors/actors_shared_80135b58.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/mem.h"
@@ -262,7 +263,6 @@ STATIC_ASSERT_SIZEOF(Actor00700InitWork, 0x39C);
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 void func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 extern s32     Gp_LcgState;

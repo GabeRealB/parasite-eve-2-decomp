@@ -7,6 +7,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
 #include "main/gfx.h"
@@ -70,7 +71,6 @@ extern s32  func_8010BC70(GsCOORDINATE2*);
 extern s32  func_8010BCF4(Task*, VECTOR3*);
 extern void func_8010BD88(GpActorWork*, VECTOR3*);
 extern void func_8010BE5C(GpActorWork*, VECTOR3*);
-void        Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 void        Gp_PlayerMode2State0(GpActorWork* arg0);
 void        Gp_PlayerMode2State1(GpActorWork* arg0);
 

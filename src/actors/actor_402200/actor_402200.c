@@ -16,6 +16,7 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
+#include "gameplay/3E9C.h"
 #include "gameplay/gameplay.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -585,7 +586,6 @@ extern u8 D_8011541B;
 extern u8 D_801153F4;
 
 void    func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void    Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 

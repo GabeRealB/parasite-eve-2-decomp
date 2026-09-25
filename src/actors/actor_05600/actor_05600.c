@@ -9,6 +9,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
 #include "main/fs.h"
@@ -275,7 +276,6 @@ extern void (*Actor05600_D16540[])(Task*);
 
 void Gp_AnimTickIndex(GpAnimCtx* arg0, s32 arg1);
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 void Actor05600_Fn00CFC(Task* arg0);
 void Actor05600_Fn02548(Task* arg0);

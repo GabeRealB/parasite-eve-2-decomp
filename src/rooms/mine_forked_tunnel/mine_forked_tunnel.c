@@ -9,6 +9,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/268.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
@@ -167,7 +168,6 @@ extern s32        D_mine_forked_tunnel_801834F4;
 extern u8         D_80062735;
 extern u8         D_801153F4;
 
-void       Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
 void func_mine_forked_tunnel_8017D5E8(Task* arg0);

@@ -5,6 +5,7 @@
 #include "actors/actors_shared_80135b58.h"
 
 #include "gameplay/1BC.h"
+#include "gameplay/3E9C.h"
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/task.h"
@@ -83,7 +84,6 @@ void func_actor_300700_80165230(Actor300700* arg0);
 void func_actor_300700_801652F4(Actor300700* arg0);
 void func_actor_300700_8016534C(Actor300700* arg0);
 void func_actor_300700_8016539C(Actor300700* arg0);
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 void func_800B4114(Actor300700Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
 void func_actor_300700_801622B4(Actor300700* arg0);

@@ -9,6 +9,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
@@ -262,7 +263,6 @@ extern u8      D_801153F4;
 extern Actor104000* Actor04000_D0C710[2];
 extern Actor104000* Actor04000_D0C718[6];
 
-void    Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
 void Actor04000_Fn06A5C(GpEnemy* enemy, Task* task);

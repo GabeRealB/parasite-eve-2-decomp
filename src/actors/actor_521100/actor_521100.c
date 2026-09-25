@@ -10,6 +10,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
@@ -204,7 +205,6 @@ extern u8         D_actor_521100_8015F6FC[];
 extern u8         D_actor_521100_8015F73C[];
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 void func_actor_521100_801322F8(Actor521100* arg0, Actor521100Obj2C* arg1, s32 arg2);
 void func_actor_521100_80132958(Actor521100* arg0);

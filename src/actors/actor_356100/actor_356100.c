@@ -10,6 +10,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/gfx.h"
@@ -855,10 +856,6 @@ typedef struct Actor356100StateTable {
     /* 0x00 */ Actor356100StateFn f[31];
 } Actor356100StateTable;
 STATIC_ASSERT_SIZEOF(Actor356100StateTable, 0x7C);
-
-/// Draws the ground-shadow quad at `arg0` (a coordinate's `workm.t`), shaded
-/// by `arg2` and scaled by `arg1`.
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 /// The per-frame tick: rebinds the model colour matrix from part 1's world
 /// translation, draws the ground quad under the model unless the actor is

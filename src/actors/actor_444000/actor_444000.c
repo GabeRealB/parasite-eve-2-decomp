@@ -10,6 +10,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
@@ -914,7 +915,6 @@ extern s8 D_actor_444000_80160C5C[][0x2D];
 extern void func_80185220(void);
 void        func_8004BFF8(s16 angle, MATRIX* matrix);
 MATRIX*     ScaleMatrix(MATRIX* m, VECTOR* v);
-void        Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 void        func_8010C980(void* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3, s32 arg4, s32 arg5);
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see

@@ -13,6 +13,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
 
@@ -184,11 +185,6 @@ void func_8004BFF8(s32 angle, MATRIX* matrix);
 /// Main-executable helper the spawn runs on the flag-clear path, once the
 /// actor is placed. Unmatched, so declared here.
 void func_80180414(s32 arg0);
-
-/// The actors' ground shadow (`src/gameplay/3E9C.c`): `arg0` is the point the
-/// quad is centred on, `arg1` its size -- the corner table is scaled by it --
-/// and `arg2` the shade, negative to skip the draw.
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 /// Declared here with a signed `arg2`: every caller passes a sign-extended
 /// animation id, which the definition's `u16` prototype would re-extend.

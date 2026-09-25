@@ -14,6 +14,7 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
+#include "gameplay/3E9C.h"
 #include "gameplay/D4.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
@@ -3545,8 +3546,6 @@ void func_actor_510900_8013BB20(Actor510900* arg0)
         } while (i < 0x13);
     }
 }
-
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 /// Draws the actor's ground shadow: a 0x300-wide quad at shade 0x80, placed at
 /// the second coordinate's x/z and the first coordinate's y, so it lies on the

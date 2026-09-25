@@ -13,6 +13,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
@@ -727,10 +728,6 @@ STATIC_ASSERT_SIZEOF(Actor401800SightScratch, 0x1C);
 extern s8 D_actor_401800_8015514C;
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
-
-/// Gameplay routine the frame update calls with the root position, 0x180 and
-/// the view's ground shade; no gameplay header declares it.
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 /// Builds `joint`'s absolute rotation in `out`: its own rotation, then each
 /// ancestor pre-multiplied in turn (renormalised after every step) up to but

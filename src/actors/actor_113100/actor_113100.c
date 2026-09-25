@@ -16,6 +16,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/D4.h"
 
 /// Work block of the actor's main task. The setup handler
@@ -191,8 +192,6 @@ extern MATRIX* Gp_GetStageView(u8*, s32, void*);
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 /// Declared as `gameplay/gameplay.h` does; that header cannot be included
 /// here because its `Gp_GetStageView` prototype conflicts with the one above.

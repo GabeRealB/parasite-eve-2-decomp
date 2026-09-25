@@ -14,6 +14,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 
 #include "actors/actors_shared_80135b58.h"
 #include "actors/actor_207200.h"
@@ -131,7 +132,6 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 void    Gp_UpdateCoord(GsCOORDINATE2* arg0);
-void    Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1);
 void func_actor_207200_8014C870(Task* arg0, s32 arg1);

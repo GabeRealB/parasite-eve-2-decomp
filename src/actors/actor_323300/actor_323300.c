@@ -10,6 +10,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/gameflag.h"
@@ -223,10 +224,6 @@ extern u8 D_801153F4;
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// `gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-
-/// Draws the ground-shadow quad at `pos`; gameplay code with no header
-/// declaring it yet.
-void Gp_DrawEffGroundQuad(VECTOR3* pos, s32 size, s16 shade);
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 void func_8004BFF8(s16 angle, MATRIX* matrix);

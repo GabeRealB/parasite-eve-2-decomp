@@ -11,6 +11,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
@@ -252,7 +253,6 @@ void Actor00300_Fn0505C(Actor100300* arg0, MATRIX* arg1, s16 arg2);
 void Actor00300_Fn05194(Actor100300Ctx* arg0, Actor100300* arg1);
 void Actor00300_Fn05278(GpEnemy* arg0, Task* arg1);
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 extern GpPairSrcE           Actor00300_D15FE8;
 extern Actor00300AreaConfig Actor00300_D16020[];

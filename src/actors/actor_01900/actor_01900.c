@@ -8,6 +8,7 @@
 #include "actors/actors_shared_80169f74.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
@@ -369,7 +370,6 @@ extern u8      D_801153F4;
 s32  Actor01900_Fn00E00(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2);
 void Actor01900_Fn02A50(Actor01900* arg0);
 void Actor01900_Fn02664(Actor01900* arg0, s16 yaw, s32 id);
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 s32  Actor01900_Fn016F0(Actor01900* arg0);
 void Actor01900_Fn01C94(Actor01900* arg0);
 void Actor01900_Fn0AB1C(Actor01900* arg0);

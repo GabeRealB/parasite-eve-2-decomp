@@ -12,6 +12,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+#include "gameplay/3E9C.h"
 #include "gameplay/D4.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -114,8 +115,6 @@ typedef struct Actor511000Msg {
     /* 0x2 */ u16 field_2;
 } Actor511000Msg;
 STATIC_ASSERT_SIZEOF(Actor511000Msg, 0x4);
-
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 

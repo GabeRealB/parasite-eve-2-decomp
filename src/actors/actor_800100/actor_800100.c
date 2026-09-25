@@ -10,6 +10,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
@@ -44,7 +45,6 @@ extern u8 D_801153F4;
 void func_actor_800100_801635F4(GpActorWork* arg0);
 void func_actor_800100_80163A58(GpActorWork* arg0);
 void func_actor_800100_80165528(GpActorWork* arg0);
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 /// 0x38 block `func_actor_800100_801624F0` allocates with `memCalloc` when
 /// its task enters state 0 and stores at `Task::work`: the launched

@@ -3,6 +3,7 @@
 #include "gameplay/1A8.h"
 #include "gameplay/268.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/4CC.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
@@ -21,8 +22,6 @@ typedef struct {
     byte    pad_C[0xC];
 } DjyGroundQuadScratch;
 STATIC_ASSERT_SIZEOF(DjyGroundQuadScratch, 0x18);
-
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 /// Resident routine at the fixed address `0x80724608`, outside every image
 /// the build links. The room hands it the slot-0xA game pointer, two

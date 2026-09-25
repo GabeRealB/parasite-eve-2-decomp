@@ -10,6 +10,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/gameplay.h"
 
 /// Work block the spawn state `func_actor_213100_8014A118` allocates
@@ -58,8 +59,6 @@ typedef struct Actor213100AnimPreset {
     /* 0x10 */ s32 field_10;
 } Actor213100AnimPreset;
 STATIC_ASSERT_SIZEOF(Actor213100AnimPreset, 0x14);
-
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// `gameplay/1BC.h`.

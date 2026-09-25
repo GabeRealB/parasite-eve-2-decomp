@@ -14,6 +14,7 @@
 
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 
@@ -108,8 +109,6 @@ STATIC_ASSERT_SIZEOF(Actor443500Layout, 0x14);
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 void func_actor_443500_80132078(Task* task);
 void func_actor_443500_801321F0(Task* task);

@@ -24,6 +24,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
 #include "main/mem.h"
@@ -384,7 +385,6 @@ extern s32 D_80062730;
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
-void    Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 void Actor07000_Fn000EC(GpEnemy* arg0, Task* arg1);
 void Actor07000_Fn00478(Task* arg0);

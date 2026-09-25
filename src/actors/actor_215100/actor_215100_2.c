@@ -8,6 +8,7 @@
 #include "actors/actors_shared_801326ac.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/D4.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
@@ -164,8 +165,6 @@ s32                         func_actor_215100_8014C418(s32 arg0);
 void                        func_actor_215100_8014BEE8(void);
 
 extern u8 D_80072729;
-
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.

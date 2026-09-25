@@ -3,6 +3,7 @@
 #include "psyq/inline_c.h"
 #include "gte.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/3FB8.h"
 #include "main/fs.h"
 #include "main/mem.h"
@@ -1112,7 +1113,6 @@ void Actor02000_Fn018A4(Actor02000* arg0)
 
 extern u8 D_801153F4;
 void      Gp_AnimTickIndex(Actor02000Work*, s32);
-void      Gp_DrawEffGroundQuad(VECTOR3*, s32, s32);
 void      Gp_ReleaseStateF0Add(Actor02000*, s32);
 void      Gp_SaveEnemyPose(Actor02000Ctx*);
 void      Gp_UnlinkObj(GpObj*);

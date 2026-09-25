@@ -9,6 +9,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
 #include "main/gfx.h"
@@ -246,8 +247,6 @@ extern u8         Actor01200_D07058[];
 
 /// Integer part of the last movement step `Actor01200_Fn0067C` applied.
 extern SVECTOR Actor01200_D07084;
-
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 void Actor01200_Fn03D58(Actor01200Ctx* arg0, Actor01200* arg1);
 void Actor01200_Fn03DC0(Actor01200Ctx* arg0, Actor01200* arg1);

@@ -7,6 +7,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/mem.h"
@@ -78,7 +79,6 @@ extern u32     Gp_LcgState;
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 void func_8017EBA4(Actor205200* arg0);
 void func_80181930(Actor205200* arg0);
 

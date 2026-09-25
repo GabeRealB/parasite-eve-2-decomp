@@ -9,6 +9,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
@@ -609,7 +610,6 @@ extern Actor403000Msg7DA D_actor_403000_80158D8C;
 extern SVECTOR D_actor_403000_80158D84;
 
 void func_800B4114(GpAnimCtx* anim, s32 slot, s16 animation, s32 arg3, s32 arg4);
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 void func_actor_403000_80132AE0(GsCOORDINATE2* coord);
 void func_actor_403000_80134F44(Actor403000* arg0);
 void func_actor_403000_8013D72C(Actor403000* arg0);

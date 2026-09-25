@@ -6,6 +6,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
 #include "main/fs.h"
@@ -264,7 +265,6 @@ typedef struct Actor105700FxWork {
 } Actor105700FxWork;
 STATIC_ASSERT_SIZEOF(Actor105700FxWork, 0xF0);
 
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
 void Actor05700_Fn00D08(Actor105700* arg0);

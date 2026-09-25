@@ -5,6 +5,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/mem.h"
@@ -113,7 +114,6 @@ extern s8    D_actor_310600_80179644[]; // extra ticks owed to the animation id 
 extern TaskDesc D_80182AD8[];
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 void func_actor_310600_80161E64(Task* task);
 void func_actor_310600_80161FA0(Task* task);

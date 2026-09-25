@@ -9,6 +9,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
@@ -513,8 +514,6 @@ extern void* D_80114B78[1];
 /// on a state-0x18 actor.
 extern u8 D_801153F2[2];
 extern u8 D_801153F4;
-
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 /// Overlay effect model data `func_actor_401000_8013B1E4` points
 /// `D_80114B78` at before spawning, one per animation-latch key frame

@@ -9,6 +9,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
@@ -707,10 +708,6 @@ extern TaskDesc D_80174D58;
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 void func_8010C980(GsCOORDINATE2* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3, s32 arg4, s32 arg5);
-
-/// Gameplay's ground-marker quad under a world point: `arg1` is its size and
-/// `arg2` the ground shade. Not declared in a gameplay header yet.
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 

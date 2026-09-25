@@ -14,6 +14,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3E9C.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
@@ -3800,8 +3801,6 @@ extern s16 D_80073BA0;
 /// to 0x80 for the hidden pose, and 1 leaves it alone. Same switch the sibling
 /// `Actor01900_Fn09D3C` runs.
 extern u8 D_801153F4;
-
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 /// Per-frame step the tick hands off to once the `field_8AA` countdown reaches
 /// zero.
