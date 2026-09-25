@@ -3661,11 +3661,6 @@ id = 100
 objects = [
   { kind = "packageId" },
   { unit = "actor_113000/actor_113000", rodata = "0x4", text = "0x10" },
-  { unit = "actor_113000/actor_113000_4", text = "0x118" },
-  { unit = "actor_113000/actor_113000_2", text = "0x170" },
-  { unit = "actor_113000/actor_113000_5", text = "0x4FC" },
-  { unit = "actor_113000/actor_113000_6", text = "0x578" },
-  { unit = "actor_113000/actor_113000_3", text = "0x654" },
   { kind = "model", at = "0x714" },
   { kind = "data", at = "0x5AE4" },
 ]
