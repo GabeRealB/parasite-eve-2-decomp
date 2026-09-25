@@ -1,32 +1,175 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/abs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
 
 #include "decomp/common.h"
 
+#include "main/fs.h"
 #include "main/mem.h"
+#include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/tmd.h"
 #include "main/wipsys.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
-#include "main/tmd.h"
-#include "main/session.h"
-#include "main/fs.h"
-#include "gameplay/D4.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
+#include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 
-#include <psyq/abs.h>
+/// Per-instance work block this overlay's task holds in the 0x1C slot of
+/// `Actor102300`, the same shape the other enemy overlays give theirs:
+/// `field_694` is the current animation id, `field_698` the frame counter the
+/// state handlers compare against the per-animation start frame table
+/// `Actor02300_D03F44`, and `field_6A8` the state the frame dispatcher
+/// switches on.
+typedef struct Actor102300Work {
+    /// Animation context `func_800B3F84` fills in, followed by the nineteen
+    /// slots and the pose buffer it is handed.
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[0x13];
+    /* 0x30C */ byte       poses[0x130];
+    /// Light and colour matrices the model object is pointed at, in place of
+    /// the defaults `Tmd_SetupDraw` would otherwise load.
+    /* 0x43C */ MATRIX field_43C;
+    /* 0x45C */ MATRIX field_45C;
+    /// The four list nodes the spawn handler links, each with its own
+    /// `GpRec18` table. `field_47C` goes on list 3 through the bounding-box
+    /// record at `field_49C`; the other three point straight at their tables.
+    /* 0x47C */ GpObj        field_47C;
+    /* 0x49C */ GpActorD4Rec field_49C;
+    /* 0x4B4 */ GpRec18      field_4B4[1];
+    /* 0x4CC */ GpObj        field_4CC;
+    /* 0x4EC */ GpRec18      field_4EC[5];
+    /* 0x564 */ GpObj        field_564;
+    /* 0x584 */ GpRec18      field_584[4];
+    /// Collision/proximity list node, the slot the lunge raises bit 0x8000 of
+    /// and parks its `Gp_PackPair` entry in.
+    /* 0x5E4 */ GpObj   field_5E4;
+    /* 0x604 */ GpRec18 field_604[1];
+    /// Fifth list node, unlinked with the others by the teardown state when
+    /// `field_6CA` is 0x38 or 0x39.
+    /* 0x61C */ GpObj field_61C;
+    /* 0x63C */ byte  pad_63C[0x30];
+    /// The spawn table this overlay's enemies come from, kept for the state
+    /// handlers to respawn through.
+    /* 0x66C */ TaskDesc* field_66C;
+    /* 0x670 */ GpEffArg  field_670;
+    /// Root coordinate the collision tick restores when a push-out resolves
+    /// back to the recorded spawn position.
+    /* 0x678 */ s32  field_678;
+    /* 0x67C */ s32  field_67C;
+    /* 0x680 */ s32  field_680;
+    /* 0x684 */ byte pad_684[4];
+    /// Hit tilt, seeded from the LCG when a hit lands with no reaction state.
+    /* 0x688 */ SVECTOR           field_688;
+    /* 0x690 */ struct GpEffWork* field_690;
+    /* 0x694 */ s16               field_694;
+    /// Animation the slots were last seeded for; when `field_694` differs the
+    /// frame counter restarts and the slots are reseeded.
+    /* 0x696 */ s16 field_696;
+    /* 0x698 */ s16 field_698;
+    /// Hit cooldown in frames, seeded from `Gp_GetIdParam2`; while non-zero the
+    /// weapon-hit records are ignored.
+    /* 0x69A */ s16 field_69A;
+    /* 0x69C */ s16 field_69C;
+    /* 0x69E */ s16 field_69E;
+    /// Cue bits 0x20 / 0x10 of the playing animation record, kept from the
+    /// previous frame so each cue plays once on its falling edge.
+    /* 0x6A0 */ u16 field_6A0;
+    /// Facing angle the lunge steers `field_6A4` towards; the tick compares the
+    /// two and only commits once they are within 0x100.
+    /* 0x6A2 */ s16 field_6A2;
+    /* 0x6A4 */ s16 field_6A4;
+    /* 0x6A6 */ s16 field_6A6;
+    /* 0x6A8 */ s16 field_6A8;
+    /// 1 when the attacker is in front of this enemy, 0 behind; taken from the
+    /// sign of the hit vector against the root's forward axis.
+    /* 0x6AA */ s16 field_6AA;
+    /// Awake variant this enemy starts in, taken from bit 0 of the placement
+    /// record's `mode`.
+    /* 0x6AC */ s16 field_6AC;
+    /* 0x6AE */ s16 field_6AE;
+    /// Frame counter of the per-frame tick's dust puffs: one every third frame.
+    /* 0x6B0 */ s16 field_6B0;
+    /// Raised by the collision node once the lunge connects; the state
+    /// handlers check it to break out of the approach cycle.
+    /* 0x6B2 */ s16 field_6B2;
+    /// Raised with `field_688` when a hit lands and no reaction animation is
+    /// selected; the tilt decay clears it.
+    /* 0x6B4 */ s16 field_6B4;
+    /// Frames spent in the current lunge cycle; at 0x4C the tick gives up and
+    /// falls back to animation 8.
+    /* 0x6B6 */ s16 field_6B6;
+    /// Non-zero selects the second reaction family (animations 4/6/0xC/0xE).
+    /* 0x6B8 */ s16  field_6B8;
+    /* 0x6BA */ byte pad_6BA[6];
+    /// Shift count for the idle-to-lunge draw: each cycle widens the LCG mask
+    /// by one bit, so the enemy grows less likely to lunge again.
+    /* 0x6C0 */ s16 field_6C0;
+    /* 0x6C2 */ s16 field_6C2;
+    /// 1 or 2, picked from bit 16 of the next LCG draw.
+    /* 0x6C4 */ s16  field_6C4;
+    /* 0x6C6 */ byte pad_6C6[4];
+    /* 0x6CA */ s16  field_6CA;
+    /* 0x6CC */ s16  field_6CC;
+    /* 0x6CE */ s16  field_6CE;
+    /* 0x6D0 */ s16  field_6D0;
+    /* 0x6D2 */ s16  field_6D2;
+    /// Non-zero suppresses the two reaction animations that would otherwise
+    /// interrupt the one already playing.
+    /* 0x6D4 */ s16 field_6D4;
+    /// Sector id of the enemy's voice stream, looked up per room from
+    /// `Actor02300_D15C80` and queued with `CdCmd_Enqueue(0x21, ...)`.
+    /* 0x6D6 */ s16 field_6D6;
+    /// Countdown the part-7 child's spawn state seeds and its tick drains; the
+    /// effect spawns on the frame it reaches zero.
+    /* 0x6D8 */ s16 field_6D8;
+    /// Dwell budget in thousandths, scaled by the placement record's `variant`.
+    /* 0x6DA */ s16 field_6DA;
+    /* 0x6DC */ s16 field_6DC;
+    /// Step gate of the approach-cycle states: set to 1 on state-0 entry and
+    /// to 2 once state 1 has run; below 2 the per-frame tick adds 0x80 to the
+    /// root coordinate's y.
+    /* 0x6DE */ s16 field_6DE;
+    /// Non-zero suppresses the crit and knock-back reactions.
+    /* 0x6E0 */ s16  field_6E0;
+    /* 0x6E2 */ byte pad_6E2[2];
+} Actor102300Work;
+STATIC_ASSERT_SIZEOF(Actor102300Work, 0x6E4);
 
-#include "actors/actor_102300.h"
+/// The enemy's own task, seen through the fields its handlers read: every
+/// member sits where `Task` keeps the same thing. `field_1C` is the work block
+/// above (`Task::work`), `field_20` the `GpEnemy` the spawner left in
+/// `Task::spawnArg2`, `field_2C` the model (`Task::extra`) and `field_30` the
+/// handler state (`Task::state`) the teardown steps set to hand over.
+typedef struct Actor102300 {
+    /* 0x00 */ byte             pad_0[0x1C];
+    /* 0x1C */ Actor102300Work* field_1C;
+    /* 0x20 */ GpEnemy*         field_20;
+    /* 0x24 */ byte             pad_24[8];
+    /* 0x2C */ TmdObject*       field_2C;
+    /* 0x30 */ s32              field_30;
+} Actor102300;
 
-/// The enemy's three state handlers - spawn/setup, per-frame tick and
-/// teardown - dispatched through by state.
-extern GpEnemyTaskFuncTable3 Actor02300_D00060;
+/// 0x40-byte scratch the hit tick claims from `G_SCRATCH_HEAD`: the collision
+/// delta `func_800E0C10` fills in, the normalised push-out derived from it, and
+/// the two points `Actor02300_Fn0371C` tests the player's sight line over.
+typedef struct Actor102300HitScratch {
+    /* 0x00 */ GpDeltaScratch delta;
+    /* 0x10 */ VECTOR         normal;
+    /* 0x20 */ VECTOR         push;
+    /* 0x30 */ SVECTOR        effOfs;
+    /* 0x38 */ SVECTOR        target;
+} Actor102300HitScratch;
+STATIC_ASSERT_SIZEOF(Actor102300HitScratch, 0x40);
 
 /// First frame of each animation, indexed by `Actor102300Work::field_694`;
 /// the state handlers offset it to get the frames their cues fire on.
@@ -74,11 +217,20 @@ extern s8 D_80115419;
 /// Scene hold: 0 runs the enemy, 1 only redraws it, 2 hides it.
 extern u8 D_801153F4;
 
+/// Sound id of the part-11 child's cue, ORed with the enemy's id nibble.
+extern s32 Actor02300_D15B08;
+/// Effect id the part-7 child spawns when its countdown runs out.
+extern s32 D_8011572C;
+
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
 s32  Actor02300_Fn0371C(SVECTOR* arg0, SVECTOR* arg1);
 void Actor02300_Fn00CD0(Actor102300* arg0);
+void Actor02300_Fn03C04(GpEnemy* arg0, Task* task);
+void Actor02300_Fn03C50(GpEnemy* arg0, Task* task);
+void Actor02300_Fn03D44(GpEnemy* arg0, Task* task);
+void Actor02300_Fn03D88(GpEnemy* arg0, Task* arg1);
 
 /// `G_SCRATCH_HEAD` viewed as a struct; the hit-tilt tick claims its matrix
 /// through this view rather than a plain pointer dereference.
@@ -690,8 +842,6 @@ void Actor02300_Fn00E0C(Actor102300* arg0)
             break;
     }
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_02300/actor_102300", Actor02300_D00060);
 
 /// Entry 0xC of the `field_6A6` table. State 0 picks the animation from
 /// `field_6B8`: 1 selects 0x17 into state 1, anything else 0x1B into state 2.
@@ -1966,4 +2116,408 @@ void Actor02300_Fn0327C(Actor102300* actor)
             break;
     }
     *(s32*)G_SCRATCH_HEAD += 0x10;
+}
+
+/// Tests the segment from `arg0` to `arg1` against the collision faces on the
+/// `D_80115550` list: the segment's direction is normalised in a 0x10-byte
+/// block carved off `G_SCRATCH_HEAD`, and every face with bit 0x40 of
+/// `field_3A` set is tested until one reports a hit. Returns 1 on a hit and
+/// the last test's result otherwise.
+s32 Actor02300_Fn0371C(SVECTOR* arg0, SVECTOR* arg1)
+{
+    void**   scratch;
+    u8*      head;
+    VECTOR*  vec;
+    GpObj3A* node;
+    s32      ret;
+
+    ret                          = 0;
+    scratch                      = (void**)G_SCRATCH_HEAD;
+    node                         = D_80115550;
+    head                         = *scratch;
+    ((VECTOR*)(head - 0x10))->vx = arg1->vx - arg0->vx;
+    head                         = head - 0x10;
+    TOUCH_REG_USE(head, node);
+    vec      = (VECTOR*)head;
+    vec->vy  = arg1->vy - arg0->vy;
+    *scratch = vec;
+    vec->vz  = arg1->vz - arg0->vz;
+    VectorNormal(vec, vec);
+    for (; node != NULL; node = node->next) {
+        if (node->field_3A & 0x40) {
+            ret = func_800DFCCC(node, arg0, arg1, vec);
+            if (ret == 1) {
+                break;
+            }
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    return ret;
+}
+
+/// Entry 0 of the `field_6A6` state table, the idle. State 0 counts
+/// `field_6AE` up to 0x5B frames and then switches to animation 4 and state 1,
+/// running the proximity check `Actor02300_Fn00CD0` every frame meanwhile;
+/// state 1 waits for `field_698` to reach 0x5E and drops back to state 0 with
+/// animation 1. A set `field_6B2` or `D_80115419` overrides both with
+/// animation 2, entry 2 and the shared state-F0 slot.
+void Actor02300_Fn03828(Actor102300* arg0)
+{
+    Actor102300Work* work;
+    s16              state;
+
+    work  = arg0->field_1C;
+    state = work->field_6A8;
+    switch (state) {
+        case 0:
+            work->field_6AE++;
+            if (work->field_6AE >= 0x5B) {
+                work->field_694 = 4;
+                work->field_6AE = 0;
+                work->field_6A8 = 1;
+            }
+            Actor02300_Fn00CD0(arg0);
+            break;
+        case 1:
+            if (work->field_698 >= 0x5E) {
+                work->field_694 = 1;
+                work->field_6A8 = 0;
+            }
+            break;
+    }
+
+    if ((work->field_6B2 != 0) || (D_80115419 != 0)) {
+        work->field_6A6 = 2;
+        work->field_6A8 = 0;
+        work->field_694 = 2;
+        work->field_6AE = 0;
+        Gp_ArmStateF0(1);
+    }
+}
+
+/// Entry 8 of the `field_6A6` state table `Actor02300_D15D38`: step 0 starts
+/// animation 0x11 and clears both dwell counters; step 1 waits for frame 0x37,
+/// then parks on animation 2 (entry 2) or, with `field_6E0` set, on animation
+/// 0x14 (entry 0xA).
+void Actor02300_Fn03908(Actor102300* arg0)
+{
+    Actor102300Work* work;
+    s16              state;
+
+    work  = arg0->field_1C;
+    state = work->field_6A8;
+    switch (state) {
+        case 0:
+            work->field_694 = 0x11;
+            work->field_6A8 = 1;
+            work->field_69C = 0;
+            work->field_69E = 0;
+            break;
+        case 1:
+            if (work->field_698 >= 0x37) {
+                if (work->field_6E0 == 0) {
+                    work->field_694 = 2;
+                    work->field_6A6 = 2;
+                    work->field_6A8 = 0;
+                } else {
+                    work->field_694 = 0x14;
+                    work->field_6A6 = 0xA;
+                    work->field_6A8 = 0;
+                }
+            }
+            break;
+    }
+}
+
+/// Entry 9 of the `field_6A6` table: step 0 starts animation 0x12 when
+/// `field_6AA` is 1 (step 1, waits for frame 0x50) and animation 0x13
+/// otherwise (step 2, waits for frame 0x3B); either way the dwell counters are
+/// cleared and the enemy parks on animation 2 (entry 2) when done.
+void Actor02300_Fn03994(Actor102300* arg0)
+{
+    Actor102300Work* work;
+    s32              state;
+    s32              next;
+
+    work  = arg0->field_1C;
+    state = work->field_6A8;
+    switch (state) {
+        case 0:
+            next = work->field_6AA;
+            if (next == 1) {
+                work->field_694 = 0x12;
+                work->field_6A8 = next;
+            } else {
+                work->field_694 = 0x13;
+                work->field_6A8 = 2;
+            }
+            work->field_69C = 0;
+            work->field_69E = 0;
+            break;
+        case 1:
+            if (work->field_698 >= 0x50) {
+                work->field_694 = 2;
+                work->field_6A6 = 2;
+                work->field_6A8 = 0;
+            }
+            break;
+        case 2:
+            if (work->field_698 >= 0x3B) {
+                work->field_694 = state;
+                work->field_6A6 = state;
+                work->field_6A8 = 0;
+            }
+            break;
+    }
+}
+
+/// Entry 0xA of the `field_6A6` table: step 0 waits for `Gp_TickObjFlag2` on
+/// the spawn context to fire, then starts animation 0x13 and clears
+/// `field_6E0`; step 1 waits for frame 0x3B and parks on animation 2
+/// (entry 2).
+void Actor02300_Fn03A5C(Actor102300* arg0)
+{
+    Actor102300Work* work;
+    s16              state;
+
+    work  = arg0->field_1C;
+    state = work->field_6A8;
+    switch (state) {
+        case 0:
+            if (Gp_TickObjFlag2((GpObj5D*)arg0->field_20) != 0) {
+                work->field_694 = 0x13;
+                work->field_6A8 = 1;
+                work->field_6E0 = 0;
+            }
+            break;
+        case 1:
+            if (work->field_698 >= 0x3B) {
+                work->field_694 = 2;
+                work->field_6A6 = 2;
+                work->field_6A8 = 0;
+            }
+            break;
+    }
+}
+
+/// Entry 0xE of the `field_6A6` table: step 0 starts animation 0x17 when
+/// `field_6B8` is 1 (step 1, waits for frame 0x10) and animation 0x1B
+/// otherwise (step 2, waits for frame 0x16); when done the enemy's handler
+/// chain advances to state 2.
+void Actor02300_Fn03AE8(Actor102300* arg0)
+{
+    Actor102300Work* work;
+    s32              sel;
+    s16              state;
+
+    work  = arg0->field_1C;
+    state = work->field_6A8;
+    switch (state) {
+        case 0:
+            /* The 32-bit local is load-bearing: an s16 one makes combine fold
+             * the sign-extension into a second `lh` of field_6B8. */
+            sel = work->field_6B8;
+            if (sel == 1) {
+                work->field_694 = 0x17;
+                work->field_6A8 = sel;
+                return;
+            }
+            work->field_694 = 0x1B;
+            work->field_6A8 = 2;
+            return;
+        case 1:
+            if (work->field_698 >= 0x10) {
+                arg0->field_30  = 2;
+                work->field_6A8 = 0;
+            }
+            return;
+        case 2:
+            if (work->field_698 >= 0x16) {
+                arg0->field_30  = state;
+                work->field_6A8 = 0;
+            }
+            return;
+    }
+}
+
+void Actor02300_Fn03BA0(void)
+{
+}
+
+/// State handlers of the child task hung off part 7 of the enemy's model -
+/// spawn/setup, per-frame tick and teardown - dispatched through by
+/// `Actor02300_Fn03BA8`.
+const GpEnemyTaskFuncTable3 Actor02300_D00060 = {
+    Actor02300_Fn03C04,
+    Actor02300_Fn03C50,
+    Gp_DestroyEnemy,
+};
+
+void Actor02300_Fn03BA8(Task* arg0)
+{
+    GpEnemyTaskFuncTable3 sp;
+
+    sp = Actor02300_D00060;
+    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+}
+
+/// Spawn state of the child task driven by `Actor02300_Fn03BA8`: parents the
+/// child's root coordinate to part 7 of the enemy's model, points the child's
+/// model at the enemy's light and colour matrices and seeds the enemy's
+/// `field_6D8` countdown the child's tick drains, then advances to state 1.
+/// `arg0` is the spawn context every state handler takes and is unused here.
+void Actor02300_Fn03C04(GpEnemy* arg0, Task* task)
+{
+    Task*            parent;
+    TmdObject*       obj;
+    Actor102300Work* work;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   parentCoords;
+
+    parent       = task->parent;
+    obj          = (TmdObject*)task->extra;
+    parentCoords = ((TmdObject*)parent->extra)->coords;
+    coord        = obj->coords;
+    work         = (Actor102300Work*)parent->work;
+
+    coord->flg      = 0;
+    coord->sub      = &parentCoords[7];
+    obj->lightMtx   = &work->field_45C;
+    obj->colorMtx   = &work->field_43C;
+    obj->flags      = 0;
+    task->state     = 1;
+    work->field_6D8 = 0xA;
+}
+
+/// Per-frame state of the child task `Actor02300_Fn03C04` sets up. It mirrors
+/// the enemy's model flags onto its own model and drains the enemy's
+/// `field_6D8` countdown; on the frame it reaches zero it spawns a
+/// `Gp_SpawnEff` effect at part 7 of the enemy's coordinate array and
+/// reparents the effect's task to this child. `arg0` is the spawn context
+/// every state handler takes and is unused here.
+void Actor02300_Fn03C50(GpEnemy* arg0, Task* task)
+{
+    GpEffWork*       effect;
+    Task*            parent;
+    Actor102300Work* work;
+    s16              count;
+
+    parent                           = task->parent;
+    work                             = (Actor102300Work*)parent->work;
+    ((TmdObject*)task->extra)->flags = (u16)((TmdObject*)parent->extra)->flags;
+    if (work->field_6D8 > 0) {
+        count           = (u16)work->field_6D8 - 1;
+        work->field_6D8 = count;
+        if (count == 0) {
+            effect = Gp_SpawnEff(D_8011572C | 0x80000000,
+                                 &((TmdObject*)task->parent->extra)->coords[7], 0, NULL);
+            if (effect != NULL) {
+                Task_Reparent(task, effect->task);
+            }
+        }
+    }
+}
+
+/// State handlers of the child task hung off part 11 of the enemy's model -
+/// spawn/setup, per-frame tick and teardown - dispatched through by
+/// `Actor02300_Fn03CE8`.
+const GpEnemyTaskFuncTable3 Actor02300_D0006C = {
+    Actor02300_Fn03D44,
+    Actor02300_Fn03D88,
+    Gp_DestroyEnemy,
+};
+
+void Actor02300_Fn03CE8(Task* arg0)
+{
+    GpEnemyTaskFuncTable3 sp;
+
+    sp = Actor02300_D0006C;
+    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+}
+
+/// Spawn state of the child task driven by `Actor02300_Fn03CE8`: parents the
+/// child's root coordinate to part 11 of the enemy's model, points the child's
+/// model at the enemy's light and colour matrices and advances to state 1.
+/// `arg0` is the spawn context every state handler takes and is unused here.
+void Actor02300_Fn03D44(GpEnemy* arg0, Task* task)
+{
+    Task*            parent;
+    TmdObject*       obj;
+    Actor102300Work* work;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   parentCoords;
+
+    parent       = task->parent;
+    obj          = (TmdObject*)task->extra;
+    parentCoords = ((TmdObject*)parent->extra)->coords;
+    coord        = obj->coords;
+    work         = (Actor102300Work*)parent->work;
+
+    coord->flg    = 0;
+    coord->sub    = &parentCoords[11];
+    obj->lightMtx = &work->field_45C;
+    obj->flags    = 0;
+    obj->colorMtx = &work->field_43C;
+    task->state   = 1;
+}
+
+/// The enemy's own state handlers - spawn/setup, per-frame tick and
+/// teardown - dispatched through by `Actor02300_Fn03EE8`. Each takes the task
+/// as the enemy view it is.
+const GpEnemyTaskFuncTable3 Actor02300_D00078 = {
+    (GpEnemyTaskFunc)Actor02300_Fn028AC,
+    (GpEnemyTaskFunc)Actor02300_Fn02EA0,
+    (GpEnemyTaskFunc)Actor02300_Fn01A20,
+};
+
+/// Per-frame state of the child task `Actor02300_Fn03D44` sets up at part 11
+/// of the enemy's model. It mirrors the enemy's model flags onto its own and
+/// runs on the enemy's `field_6D2`: 0 marks its coordinate for recomputation, 1 spawns
+/// four effects on it, plays the cue and moves to 2, and 2 hands the task over
+/// to state 2.
+void Actor02300_Fn03D88(GpEnemy* arg0, Task* arg1)
+{
+    Actor102300*     owner;
+    TmdObject*       obj;
+    TmdObject*       ownerObj;
+    Actor102300Work* work;
+    GsCOORDINATE2*   coord;
+    s16              state;
+    s32              snd;
+    s32              pan;
+
+    owner      = (Actor102300*)arg1->parent;
+    obj        = (TmdObject*)arg1->extra;
+    ownerObj   = owner->field_2C;
+    work       = owner->field_1C;
+    coord      = obj->coords;
+    obj->flags = ownerObj->flags;
+    state      = work->field_6D2;
+
+    switch (state) {
+        case 0:
+            coord->flg = 0;
+            return;
+        case 1:
+            Gp_SpawnEff(0x6005C, coord, 0x10002600, NULL);
+            Gp_SpawnEff(0x6005C, coord, 0x01002600, NULL);
+            Gp_SpawnEff(0x6005C, coord, 0x01002600, NULL);
+            Gp_SpawnEff(0x6005C, coord, 0x02002600, NULL);
+            work->field_6D2 = 2;
+            snd             = Actor02300_D15B08 | (((u16)((GpEnemy*)arg1->spawnArg2)->placeKey >> 0xC) << 8);
+            pan             = (s8)Gp_GetObjPan(coord);
+            SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
+            return;
+        case 2:
+            arg1->state = state;
+            return;
+    }
+}
+
+void Actor02300_Fn03EE8(Task* arg0)
+{
+    GpEnemyTaskFuncTable3 sp;
+
+    sp = Actor02300_D00078;
+    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
 }
