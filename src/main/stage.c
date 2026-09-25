@@ -843,45 +843,39 @@ success:
 
 void Mdec_StripCallback(void);
 
+static __inline__ void mdecFinishDecode(void)
+{
+    CdCmdQueue* q = &CdCmd_Queue;
+
+    if ((s8)gDisplayState.keepGraphics == 0) {
+        Tmd_AllocMissingBuffers();
+    }
+    q->field_1FE = 0xFF;
+    q->field_200 = 0;
+    D_8007A35C   = 0;
+    q->field_202 = 0;
+    q->field_246 = 0;
+}
+
 void Mdec_ProcessDecode(void)
 {
-    s32           temp_s0;
-    s32           temp_v0;
-    s32           temp_v0_2;
-    s32           temp_v0_3;
-    s32           var_a0;
-    s32           var_s1;
-    register s32  var_s1_2 asm("s1");
-    u8*           var_a0_2;
-    s32           temp_a1_2;
-    CdCmd58Entry* entry;
-    CdCmdQueue*   p;
-    CdCmdQueue*   q;
-    s16           new_var;
+    CdCmdQueue* p;
+    u16         i;
+    s32         r;
 
     p = &CdCmd_Queue;
     switch ((s16)p->field_202) {
         case -1:
             Mdec_ResolveStreamBuffer(&gGameSession->at4.loc.view);
-            temp_v0    = D_8007A358 + 1;
-            D_8007A358 = temp_v0;
-            if ((u32)temp_v0 >= 0x5BU) {
+            if ((u32)++D_8007A358 >= 0x5B) {
                 D_8007A358 = 0;
                 Gpu_ResetGraphAndOt();
                 if (Stage_CdEntry->field_34 == 0) {
                     p->field_188 = (s32)p->field_194;
                 }
-                if ((s8)gDisplayState.keepGraphics == 0) {
-                    Tmd_AllocMissingBuffers();
-                }
-                p->field_1FE = 0xFF;
-                p->field_200 = 0;
-                D_8007A35C   = 0;
-                p->field_202 = 0;
-                p->field_246 = 0;
-                return;
+                mdecFinishDecode();
             }
-            return;
+            break;
         case 0:
             Gpu_ResetGraphAndOt();
             p->field_1EC = 1;
@@ -896,204 +890,62 @@ void Mdec_ProcessDecode(void)
                        (u_short*)p->field_18C);
             D_8007A35E = 1;
             DecDCToutCallback(Mdec_StripCallback);
-            DecDCTin((u_long*)gMemActiveAuxHeap, (s32)p->field_22A);
+            DecDCTin((u_long*)gMemActiveAuxHeap, p->field_22A);
             p->field_22A = 0;
             DecDCTout((u_long*)Fs_ImgBuffers, 0x780);
-            D_8007A358    = 0;
-            p->field_202 += 1;
+            D_8007A358 = 0;
+            p->field_202++;
             /* fallthrough */
         case 1:
             if (p->field_1EC == 0) {
-                register s32 hi368 asm("s5");
-                register s32 hiMode asm("s7");
-                register s32 hi233 asm("s6");
-                register s32 hi364 asm("s4");
-                s16          one;
-                s16          limit;
-
-                var_s1 = 0;
-                one    = 1;
-                limit  = 0x7F;
-                __asm__ volatile(
-                    "lui %0, %%hi(Stage_CdEntry)\n\t"
-                    "lui %1, %%hi(Fs_ChunkMode)\n\t"
-                    "lui %2, %%hi(D5B498_8006C233)\n\t"
-                    "lui %3, %%hi(Mdec_DecodeBase)"
-                    : "=&r"(hi368), "=&r"(hiMode), "=&r"(hi233), "=r"(hi364));
-                do {
-                    /* Mirror target: andi a0; lw v1,%lo(368)(s5); sll s0,a0,2;
-                       addu a1,v1,s0; lw v0,4(a1) */
-                    register s32 base asm("v1");
-                    s32          t;
-                    s32          field4;
-
-                    var_a0 = var_s1 & 0xFFFF;
-                    __asm__ volatile("lw %0, %%lo(Stage_CdEntry)(%1)"
-                                     : "=r"(base)
-                                     : "r"(hi368));
-                    temp_s0 = var_a0 * 4;
-                    entry   = (CdCmd58Entry*)base;
-                    new_var = limit;
-                    field4  = entry->field_4[var_a0];
-                    if (field4 != 0) {
-                        {
-                            register s32 f24 asm("v0");
-                            f24 = entry->field_24[var_a0];
-                            __asm__ volatile(
-                                ".set\tnoreorder\n\t"
-                                "nop\n\t"
-                                "beqz %0, 1f\n\t"
-                                "li $2, 2\n\t"
-                                "sb $2, %%lo(Fs_ChunkMode)(%1)\n\t"
-                                "li $2, -8\n\t"
-                                "sb $2, %%lo(D5B498_8006C233)(%2)\n\t"
-                                "1:\n\t"
-                                ".set\treorder"
-                                :
-                                : "r"(f24), "r"(hiMode), "r"(hi233)
-                                : "$2", "memory");
+                for (i = 0; i < 3; i++) {
+                    if (Stage_CdEntry->field_4[i] != 0) {
+                        if (Stage_CdEntry->field_24[i] != 0) {
+                            Fs_ChunkMode    = 2;
+                            D5B498_8006C233 = -8;
                         }
-                        {
-                            register s32 o asm("a0");
-                            u8*          b;
-                            __asm__ volatile("lw %0, %%lo(Mdec_DecodeBase)(%1)"
-                                             : "=r"(b)
-                                             : "r"(hi364));
-                            o        = entry->field_4[var_a0];
-                            var_a0_2 = b + o;
-                        }
-                    loop_21:
-                        Fs_CopyWorkEntries((FsWorkEntry*)var_a0_2);
-                    loop_22:
-                        if ((Fs_LoadImageStrip(1) & 0xFF) != one) {
-                            temp_v0_2 = Fs_LoadImageStrip(1) & 0xFF;
-                            if (temp_v0_2 != one) {
-                                if (temp_v0_2 == new_var) {
-                                    register s32 o asm("a0");
-                                    u8*          b;
-                                    s32          e;
-                                    __asm__ volatile(
-                                        "lw %0, %%lo(Stage_CdEntry)(%1)"
-                                        : "=r"(e)
-                                        : "r"(hi368));
-                                    __asm__ volatile(
-                                        "lw %0, %%lo(Mdec_DecodeBase)(%1)"
-                                        : "=r"(b)
-                                        : "r"(hi364));
-                                    o        = *(s32*)(e + temp_s0 + 4);
-                                    var_a0_2 = b + o;
-                                    goto loop_21;
-                                }
-                                goto loop_22;
+                        Fs_CopyWorkEntries((FsWorkEntry*)(Mdec_DecodeBase + Stage_CdEntry->field_4[i]));
+                        while ((Fs_LoadImageStrip(1) & 0xFF) != 1) {
+                            r = Fs_LoadImageStrip(1) & 0xFF;
+                            if (r == 1) {
+                                break;
+                            }
+                            if (r == 0x7F) {
+                                Fs_CopyWorkEntries((FsWorkEntry*)(Mdec_DecodeBase + Stage_CdEntry->field_4[i]));
                             }
                         }
-                        /* sb zero for Mode and C233 */
-                        __asm__ volatile(
-                            "sb $0, %%lo(Fs_ChunkMode)(%0)\n\t"
-                            "sb $0, %%lo(D5B498_8006C233)(%1)"
-                            :
-                            : "r"(hiMode), "r"(hi233)
-                            : "memory");
+                        Fs_ChunkMode    = 0;
+                        D5B498_8006C233 = 0;
                     }
-                    var_s1 += 1;
-                } while ((u32)(var_s1 & 0xFFFF) < 3U);
-
-                var_s1_2 = 0;
-                {
-                    register s32 h368b asm("s3");
-                    s32          hModeb;
-                    register s32 h234b asm("s4");
-                    s32          h364b;
-                    __asm__ volatile(
-                        "lui %0, %%hi(Stage_CdEntry)\n\t"
-                        "lui %1, %%hi(Fs_ChunkMode)\n\t"
-                        "lui %2, %%hi(D5B498_8006C234)\n\t"
-                        "lui %3, %%hi(Mdec_DecodeBase)"
-                        : "=&r"(h368b), "=&r"(hModeb), "=&r"(h234b), "=r"(h364b));
-                    do {
-                        s32          idx;
-                        register s32 ebase asm("v1");
-                        register s32 t4 asm("a1");
-                        idx = var_s1_2 & 0xFFFF;
-                        __asm__ volatile("lw %0, %%lo(Stage_CdEntry)(%1)"
-                                         : "=r"(ebase) : "r"(h368b));
-                        t4        = idx * 4;
-                        temp_a1_2 = t4;
-                        if (*(s32*)(ebase + t4 + 0x10) != 0) {
-                            {
-                                register s32 off asm("v0");
-                                register s32 f2a asm("v0");
-                                off = idx * 2;
-                                off = ebase + off;
-                                f2a = *(s16*)(off + 0x2A);
-                                __asm__ volatile(
-                                    ".set\tnoreorder\n\t"
-                                    "nop\n\t"
-                                    "beqz %0, 1f\n\t"
-                                    "li $2, 2\n\t"
-                                    "sb $2, %%lo(Fs_ChunkMode)(%1)\n\t"
-                                    "li $2, -3\n\t"
-                                    "sb $2, %%lo(D5B498_8006C234)(%2)\n\t"
-                                    "1:\n\t"
-                                    ".set\treorder"
-                                    :
-                                    : "r"(f2a), "r"(hModeb), "r"(h234b)
-                                    : "$2", "memory");
-                            }
-                            temp_s0 = t4; /* move s0, a1 */
-                            do {
-                                s32          e;
-                                s32          b;
-                                register s32 o asm("a0");
-                                s32          a1c;
-                                __asm__ volatile("lw %0, %%lo(Stage_CdEntry)(%1)"
-                                                 : "=r"(e) : "r"(h368b));
-                                __asm__ volatile("lw %0, %%lo(Mdec_DecodeBase)(%1)"
-                                                 : "=r"(b) : "r"(h364b));
-                                o         = *(s32*)(e + temp_s0 + 0x10);
-                                o         = b + o;
-                                a1c       = 1;
-                                temp_v0_2 = Fs_LoadImageChunk((FsImageChunk*)o, a1c) & 0xFF;
-                            } while (temp_v0_2);
-                            __asm__ volatile(
-                                "sb $0, %%lo(Fs_ChunkMode)(%0)\n\t"
-                                "sb $0, %%lo(D5B498_8006C234)(%1)"
-                                :
-                                : "r"(hModeb), "r"(h234b)
-                                : "memory");
-                        }
-                        var_s1_2 += 1;
-                    } while ((u32)(var_s1_2 & 0xFFFF) < 3U);
                 }
-
+                for (i = 0; i < 3; i++) {
+                    if (Stage_CdEntry->field_10[i] != 0) {
+                        if (Stage_CdEntry->field_2A[i] != 0) {
+                            Fs_ChunkMode    = 2;
+                            D5B498_8006C234 = -3;
+                        }
+                        while (Fs_LoadImageChunk((FsImageChunk*)(Mdec_DecodeBase + Stage_CdEntry->field_10[i]), 1) & 0xFF) {
+                        }
+                        Fs_ChunkMode    = 0;
+                        D5B498_8006C234 = 0;
+                    }
+                }
                 p->field_21C = 1;
                 if (Stage_CdEntry->field_34 == 0) {
                     p->field_188 = (s32)p->field_194;
                 }
                 if (p->field_190->field_3 != 0) {
                     Mem_CopyUnaligned(&Mdec_DecodeBase[Stage_CdEntry->field_1C], p->field_1A4,
-                                      (u32)Stage_CdEntry->field_38);
+                                      Stage_CdEntry->field_38);
                 }
-                goto block_44;
-            }
-            temp_v0_3  = D_8007A358 + 1;
-            D_8007A358 = temp_v0_3;
-            if ((u32)temp_v0_3 >= 0x5BU) {
+                mdecFinishDecode();
+            } else if ((u32)++D_8007A358 >= 0x5B) {
                 D_8007A358 = 0;
                 Gpu_ResetGraphAndOt();
                 if (Stage_CdEntry->field_34 == 0) {
                     p->field_188 = (s32)p->field_194;
                 }
-            block_44:
-                q = &CdCmd_Queue;
-                if ((s8)gDisplayState.keepGraphics == 0) {
-                    Tmd_AllocMissingBuffers();
-                }
-                q->field_1FE = 0xFF;
-                q->field_200 = 0;
-                D_8007A35C   = 0;
-                q->field_202 = 0;
-                q->field_246 = 0;
+                mdecFinishDecode();
             }
             break;
     }
