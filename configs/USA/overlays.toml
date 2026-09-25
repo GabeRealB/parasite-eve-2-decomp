@@ -3630,7 +3630,7 @@ id = 149
 objects = [
   { kind = "packageId" },
   { unit = "actor_111800/actor_111800", rodata = "0x4", text = "0x32C" },
-  { lib = true, unit = "actors_shared_80132808", text = "0x20" },
+  { unit = "actor_111800/actor_111800_2", text = "0x20" },
   { kind = "model", at = "0xBA4" },
   { kind = "data", at = "0x6208" },
 ]

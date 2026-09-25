@@ -1,16 +1,20 @@
 #include "common.h"
+
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
+#include "gte.h"
+
+#include "actors/actor_111800.h"
+#include "gameplay/1BC.h"
+#include "gameplay/3CD8.h"
+#include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
-
-#include "gameplay/1BC.h"
-#include "gameplay/gameplay.h"
-
-#include "actors/actor_111800.h"
-#include "actors/actors_shared_80132808.h"
-#include "psyq/inline_c.h"
 
 /// Declared locally with a signed `arg2`; see the note in `gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
@@ -178,9 +182,11 @@ void func_actor_111800_80132390(Task* task)
     Gp_SetTmdBytes(obj, (s8)place->tpage, (s8)place->clut);
 }
 
-/// `ActorsShared80132808_Accumulate` with the seed copy taken from `src`
-/// (`coords[5].coord`) rather than `arg0->coord`, so the 8-word load is
-/// `0x194(coords)` while `arg0` stays the part pointer.
+/// Builds `arg0`'s absolute rotation in `arg1`, seeded from `src` rather than
+/// from `arg0->coord`: each ancestor is pre-multiplied in turn (renormalised
+/// after every step) up to but not including the view coordinate. Returns
+/// whether the walk reached the view coordinate. The caller passes the part's
+/// own rotation as `src`, addressed through the coordinate array.
 static __inline__ s32 Actor111800_Accumulate(GsCOORDINATE2* arg0, MATRIX* arg1, MATRIX* src)
 {
     MATRIX         matrix;
@@ -210,7 +216,7 @@ static __inline__ s32 Actor111800_Accumulate(GsCOORDINATE2* arg0, MATRIX* arg1, 
 /// `field_492`, and advances after `func_80182360` when the view matrix is in
 /// range. State 2 runs the sequence handler and kills the task once the
 /// session is idle. Every path but the state-0 wait then pitches part 5 by
-/// `field_494`, writes it back, yaws it through `ActorsShared80132808`, and
+/// `field_494`, writes it back, yaws it through `func_actor_111800_80131E40`, and
 /// rebuilds the colour matrix around part 1's translation.
 void func_actor_111800_8013251C(Task* task)
 {
@@ -267,11 +273,11 @@ void func_actor_111800_8013251C(Task* task)
     part   = coords + 5;
     Actor111800_Accumulate(part, &mtx, &coords[5].coord);
     RotMatrixX((s32)(s16)angle, &mtx);
-    ActorsShared80132808_Localize(part, &mtx);
+    Actor111800_LocalizeRotation(part, &mtx);
     Mem_CopyUnaligned(&mtx, &part->coord, 0x12U);
     part->flg = 0;
     Gp_UpdateCoord(part);
-    ActorsShared80132808(((TmdObject*)task->extra)->coords + 5, work->field_48C);
+    func_actor_111800_80131E40(((TmdObject*)task->extra)->coords + 5, work->field_48C);
     obj                 = (TmdObject*)task->extra;
     work2               = (Actor111800Work*)task->work;
     ((VECTOR*)&mtx)->vx = obj->coords[1].workm.t[0];

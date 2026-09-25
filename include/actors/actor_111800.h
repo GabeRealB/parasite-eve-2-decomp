@@ -5,8 +5,11 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
+#include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/1BC.h"
+#include "main/gfx.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -49,6 +52,66 @@ extern u8 D_actor_111800_8013A448[];
 /// reuse `$v0` after the `sw $v0, 0x47C` store.
 extern MATRIX* D_80073B8C[1];
 
+/// Turns the world-space rotation in `rotation` back into one relative to
+/// `joint`'s parent: accumulates the chain above the parent up to the view
+/// coordinate, transposes it and pre-multiplies. Nothing is done when the
+/// parent is the view coordinate itself. Returns `joint`; the caller stores
+/// through the returned pointer, which the matched code needs.
+static __inline__ GsCOORDINATE2* Actor111800_LocalizeRotation(GsCOORDINATE2* joint, MATRIX* rotation)
+{
+    MATRIX         matrix;
+    MATRIX         normal;
+    MATRIX         transposed;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* view;
+
+    coord = joint->sub;
+    if (coord != &gGfxViewCoord) {
+        view   = &gGfxViewCoord;
+        matrix = coord->coord;
+        while (1) {
+            coord = coord->sub;
+            if (coord == NULL) {
+                break;
+            }
+            if (coord == view) {
+                __asm__ volatile(
+                    "lhu $12, 0(%0);"
+                    "lhu $13, 6(%0);"
+                    "lhu $14, 12(%0);"
+                    "sh $12, 0(%1);"
+                    "sh $13, 2(%1);"
+                    "sh $14, 4(%1);"
+                    "lhu $12, 2(%0);"
+                    "lhu $13, 8(%0);"
+                    "lhu $14, 14(%0);"
+                    "sh $12, 6(%1);"
+                    "sh $13, 8(%1);"
+                    "sh $14, 10(%1);"
+                    "lhu $12, 4(%0);"
+                    "lhu $13, 10(%0);"
+                    "lhu $14, 16(%0);"
+                    "sh $12, 12(%1);"
+                    "sh $13, 14(%1);"
+                    "sh $14, 16(%1);"
+                    : : "r"(&matrix), "r"(&transposed) : "$12", "$13", "$14", "memory");
+                gte_SetRotMatrix(&transposed);
+                MulRotMatrix(rotation);
+                break;
+            }
+            gte_SetRotMatrix(&coord->coord);
+            MulRotMatrix(&matrix);
+            MatrixNormal(&matrix, &normal);
+            matrix = normal;
+        }
+    }
+    return joint;
+}
+
+/// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
+void func_8004BFF8(s16 angle, MATRIX* matrix);
+
+void func_actor_111800_80131E40(GsCOORDINATE2* coord, s16 yaw);
 void func_actor_111800_8013214C(Task* task);
 void func_actor_111800_80132390(Task* task);
 void func_actor_111800_8013251C(Task* task);
