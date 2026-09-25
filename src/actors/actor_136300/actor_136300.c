@@ -78,6 +78,9 @@ void func_actor_136300_80131E40(Task* arg0)
     s32             waveX2, waveY2, waveX3, waveY3;
 
     D_800691CA = 2;
+    /* `Task::state` read as a scalar through a cast: that keeps the load
+       behind the `D_800691CA` store, which a member read lets GCC hoist
+       above it. */
     switch (*(s32*)((u8*)arg0 + OFFSET_OF(Task, state))) {
         case 0:
             for (i = 0; i < 11; i++) {

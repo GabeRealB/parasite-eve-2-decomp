@@ -717,6 +717,9 @@ void func_actor_206100_80149ED0(Task* task)
     s32             waveX2, waveY2, waveX3, waveY3;
 
     D_800691CA = 2;
+    /* `Task::state` read as a scalar through a cast: that keeps the load
+       behind the `D_800691CA` store, which a member read lets GCC hoist
+       above it. */
     switch (*(s32*)((u8*)task + OFFSET_OF(Task, state))) {
         case 0:
             for (i = 0; i < 11; i++) {
@@ -2128,7 +2131,7 @@ void func_actor_206100_8014CD08(Task* task)
         coord->coord.t[1]        = 0x1B58;
         work->field_43E          = 0;
         Mc_SaveData.at4.loc.view = 6;
-        Gp_SetLightMode(*(void**)((u8*)task + OFFSET_OF(Task, spawnArg2)), 0);
+        Gp_SetLightMode(task->spawnArg2, 0);
         Gp_MsgPlayer3F3(0);
         msg.pos.vx = 0x690;
         msg.pos.vy = 0x1388;
