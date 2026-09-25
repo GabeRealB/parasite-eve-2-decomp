@@ -1,25 +1,27 @@
 #include "common.h"
 
-#include "actors/actors_shared_80135a60.h"
+#include "actors/actor_210600.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
-/// Rebuilds `coord`'s Y rotation from its current yaw (`ratan2` of
-/// `-m[2][0], m[2][2]`), uniformly scaled by `scale`, through a 0x34-byte
-/// block borrowed from the scratchpad. Marks the coordinate dirty.
-void ActorsShared80135a60(GsCOORDINATE2* coord, s16 scale)
+/// Rebuilds `coord`'s rotation as a pure Y rotation by the yaw it currently
+/// faces (`ratan2` of `-m[2][0], m[2][2]`), uniformly scaled by `scale`,
+/// through a 0x34-byte block borrowed from `G_SCRATCH_HEAD` and handed back
+/// once the matrix is copied. Marks the coordinate dirty. Nothing in the
+/// overlay calls it: the update body carries the same code inline.
+void func_actor_210600_8014B7B0(GsCOORDINATE2* coord, s16 scale)
 {
-    void**                      scratch;
-    void*                       head;
-    ActorShared80135a60Scratch* blk;
-    s16                         ang;
-    u16                         m22;
+    void**              scratch;
+    void*               head;
+    Actor210600Scratch* blk;
+    s16                 ang;
+    u16                 m22;
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
-    blk      = (ActorShared80135a60Scratch*)((u8*)head - 0x34);
+    blk      = (Actor210600Scratch*)((u8*)head - 0x34);
     *scratch = blk;
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
@@ -30,7 +32,7 @@ void ActorsShared80135a60(GsCOORDINATE2* coord, s16 scale)
     blk->scale.vx = scale;
     ScaleMatrix(&blk->m, &blk->scale);
 
-    coord->coord.m[0][0] = *(u16*)&((ActorShared80135a60Scratch*)((u8*)head - 0x34))->m.m[0][0];
+    coord->coord.m[0][0] = *(u16*)&((Actor210600Scratch*)((u8*)head - 0x34))->m.m[0][0];
     coord->coord.m[0][1] = *(u16*)&blk->m.m[0][1];
     coord->coord.m[0][2] = *(u16*)&blk->m.m[0][2];
     coord->coord.m[1][0] = *(u16*)&blk->m.m[1][0];

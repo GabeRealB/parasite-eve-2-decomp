@@ -1,16 +1,16 @@
 #include "common.h"
 
-#include "actors/actors_shared_80135990.h"
+#include "actors/actor_210600.h"
 #include "main/gfx.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Seeds the task's `TmdObject` coordinate frame from `placement`: the three
-/// longs become the translation, then pitch / yaw / roll are applied with
-/// `Gfx_RotMatrixX` / `Y` / `Z` and the coordinate is marked dirty. Unlike
-/// `ActorsShared8013411c` the rotations go X first and the coordinate is
-/// re-fetched for every field, and the caller gets a constant 1 back.
-s32 ActorsShared80135990(Task* task, s32 arg1, ActorShared80135990Placement* placement)
+/// Message 0x7D4 handler, listed in `D_actor_210600_8015A4CC`: places the
+/// model root at `placement`. The three longs become the coordinate's
+/// translation, the X, Y and Z angles are then applied in that order through
+/// `Gfx_RotMatrixX` / `Y` / `Z`, and the coordinate is marked dirty. `msgId`
+/// is unused; the handler always reports the message handled.
+s32 func_actor_210600_8014B6A0(Task* task, s32 msgId, Actor210600Placement* placement)
 {
     ((TmdObject*)task->extra)->coords->coord.t[0] = placement->pos.vx;
     ((TmdObject*)task->extra)->coords->coord.t[1] = placement->pos.vy;

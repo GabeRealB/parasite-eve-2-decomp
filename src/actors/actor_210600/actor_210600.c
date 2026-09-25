@@ -1,7 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_210600.h"
-#include "actors/actors_shared_80135a60.h"
 
 #include "gameplay/3FB8.h"
 #include "main/gfx.h"
@@ -79,20 +78,20 @@ MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 /// Rebuilds the model's root part rotation around the yaw it already faces and
 /// rescales it uniformly through a 0x34-byte block borrowed from
 /// `G_SCRATCH_HEAD`, which is handed back once the rotation has been copied
-/// onto the coordinate. Same body as `ActorsShared80135a60`, inlined so the
-/// scratch-head accesses stay absolute.
+/// onto the coordinate. The same code as `func_actor_210600_8014B7B0`,
+/// expanded in place where the update body calls it.
 static __inline__ void Actor210600_ScaleRotation(Task* task, s16 scale)
 {
-    ActorShared80135a60Scratch* blk;
-    GsCOORDINATE2*              coord;
-    u8*                         head;
-    s16                         ang;
-    u16                         m22;
+    Actor210600Scratch* blk;
+    GsCOORDINATE2*      coord;
+    u8*                 head;
+    s16                 ang;
+    u16                 m22;
 
-    head                                          = *(u8**)G_SCRATCH_HEAD;
-    coord                                         = ((TmdObject*)task->extra)->coords;
-    blk                                           = (ActorShared80135a60Scratch*)(head - 0x34);
-    *(ActorShared80135a60Scratch**)G_SCRATCH_HEAD = blk;
+    head                                  = *(u8**)G_SCRATCH_HEAD;
+    coord                                 = ((TmdObject*)task->extra)->coords;
+    blk                                   = (Actor210600Scratch*)(head - 0x34);
+    *(Actor210600Scratch**)G_SCRATCH_HEAD = blk;
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle = ang;
@@ -102,7 +101,7 @@ static __inline__ void Actor210600_ScaleRotation(Task* task, s16 scale)
     blk->scale.vx = scale;
     ScaleMatrix(&blk->m, &blk->scale);
 
-    coord->coord.m[0][0]  = *(u16*)&((ActorShared80135a60Scratch*)(head - 0x34))->m.m[0][0];
+    coord->coord.m[0][0]  = *(u16*)&((Actor210600Scratch*)(head - 0x34))->m.m[0][0];
     coord->coord.m[0][1]  = *(u16*)&blk->m.m[0][1];
     coord->coord.m[0][2]  = *(u16*)&blk->m.m[0][2];
     coord->coord.m[1][0]  = *(u16*)&blk->m.m[1][0];

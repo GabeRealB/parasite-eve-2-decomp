@@ -103,6 +103,25 @@ typedef struct Actor210600DispatchCtx {
 } Actor210600DispatchCtx;
 STATIC_ASSERT_SIZEOF(Actor210600DispatchCtx, 0x14);
 
+/// Payload of message 0x7D4: the position and orientation the actor is placed
+/// at. The three longs become the model root's translation and the three
+/// shorts its X / Y / Z Euler angles.
+typedef struct Actor210600Placement {
+    /* 0x00 */ VECTOR  pos;
+    /* 0x10 */ SVECTOR rot;
+} Actor210600Placement;
+
+/// 0x34-byte block borrowed from `G_SCRATCH_HEAD` while the model root's
+/// rotation is rebuilt: the rotation matrix, the uniform scale handed to
+/// `ScaleMatrix`, and the yaw it was rebuilt from.
+typedef struct Actor210600Scratch {
+    /* 0x00 */ MATRIX m;
+    /* 0x20 */ VECTOR scale;
+    /* 0x30 */ s16    angle;
+    /* 0x32 */ s16    pad_32;
+} Actor210600Scratch;
+STATIC_ASSERT_SIZEOF(Actor210600Scratch, 0x34);
+
 /// Spawn body: allocates the actor's 0x8D8-byte `Actor210600Work`, hands it to
 /// the task, and seeds the enemy object, the model's root coordinate and the
 /// animation context from the `TmdObject` in `Task::extra`. `enemy` is the

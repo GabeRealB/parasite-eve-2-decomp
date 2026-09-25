@@ -3512,9 +3512,9 @@ id = 161
 objects = [
   { kind = "packageId" },
   { unit = "actor_210600/actor_210600", rodata = "0x4", text = "0x10" },
-  { lib = true, unit = "actors_shared_80135990", text = "0x1880" },
+  { unit = "actor_210600/actor_210600_4", text = "0x1880" },
   { unit = "actor_210600/actor_210600_2", text = "0x1950" },
-  { lib = true, unit = "actors_shared_80135a60", text = "0x1990" },
+  { unit = "actor_210600/actor_210600_5", text = "0x1990" },
   { unit = "actor_210600/actor_210600_3", text = "0x1AA8" },
   { kind = "data", at = "0x3108" },
   { kind = "model", at = "0xA078" },
