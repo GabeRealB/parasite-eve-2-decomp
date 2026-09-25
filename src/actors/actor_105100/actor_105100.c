@@ -2540,7 +2540,7 @@ void func_actor_105100_801362A0(Task* arg0)
 /// Last-enemy handler. While the remaining-enemy count is still positive it
 /// retires the queued sound events, unlinks the running effect, drops the
 /// 0x8000 bit of `obj4E4.flags` and pins the task to the tick handler (`state` 2);
-/// once the count is spent it puts the enemy's HP (`Actor105100Ctx::field_40`)
+/// once the count is spent it puts the enemy's HP (`GpEnemy::hp`)
 /// at 1 and arms pose 6, leaving `state` alone.
 ///
 /// The work block is read twice on purpose. The two loads do not CSE (the

@@ -296,7 +296,7 @@ void Actor05500_Fn0006C(Task* arg0)
                     result = 1;
             }
             if ((result != one) || (work->field_3B2 == 0)) {
-                sourceCoord     = ((TmdObject*)((Task*)Gp_ActorSlots[((u32)id >> 7) & 1])->extra)->coords;
+                sourceCoord     = ((TmdObject*)Gp_ActorSlots[((u32)id >> 7) & 1]->extra)->coords;
                 dx              = sourceCoord->coord.t[0] - coord->coord.t[0];
                 hit->delta.vx.w = dx;
                 dy              = sourceCoord->coord.t[1] - coord->coord.t[1];
