@@ -18,19 +18,8 @@
 #include "main/tmd.h"
 
 #include "rooms/dryfield_water_tank.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
-
-/// Payload of the room broadcast 0x7DB, the record `Gp_DispatchMsg` hands its
-/// handler as `arg2`. The same four bytes the other rooms' 0x7DB handlers read;
-/// this room only ever looks at the halfword at 0x2, which carries the script
-/// state the receiver moves to. The driver sends it with the payload staged on
-/// its own frame, only `field_2` filled in.
-typedef struct DwtMsg7DB {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ u16 field_2;
-} DwtMsg7DB;
-STATIC_ASSERT_SIZEOF(DwtMsg7DB, 0x4);
 
 /// Work block of the water-tank room's script-driver task, a
 /// `Mem_Malloc(0x58, 0)` the driver `func_dryfield_water_tank_8017DEA4` hangs
@@ -440,7 +429,7 @@ void func_dryfield_water_tank_8017DD20(Task* arg0)
 void func_dryfield_water_tank_8017DEA4(Task* arg0)
 {
     DwtScriptWork* work;
-    DwtMsg7DB      msg;
+    RoomActorMsg   msg;
 
     work = (DwtScriptWork*)arg0->work;
     switch (arg0->state) {
@@ -480,7 +469,7 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
         case 1:
             Gp_DispatchMsg(work->owner, 0x3F3, 0, 0);
             Gp_DispatchMsg(work->child, 0x7D5, 1, 0);
-            msg.field_2 = 2;
+            msg.command = 2;
             Gp_DispatchMsg(work->child, 0x7DB, (s32)&msg, 0);
             break;
         case 2:
@@ -540,7 +529,7 @@ void func_dryfield_water_tank_8017E0E8(Task* task, s32 arg1, RoomPlacement* plac
 /// Message 0x7DB handler of the model task: restarts its script, clearing the
 /// script state and `field_54` in its work block and moving the task to the
 /// state the payload carries.
-void func_dryfield_water_tank_8017E174(Task* task, s32 msgId, DwtMsg7DB* msg)
+void func_dryfield_water_tank_8017E174(Task* task, s32 msgId, RoomActorMsg* msg)
 {
     DwtColorMtx* work;
     s32          state;
@@ -548,7 +537,7 @@ void func_dryfield_water_tank_8017E174(Task* task, s32 msgId, DwtMsg7DB* msg)
     work                = (DwtColorMtx*)task->work;
     work->field_4C      = 0;
     work->field_54      = 0;
-    state               = msg->field_2;
+    state               = msg->command;
     task->killCountdown = 0;
     task->state         = state;
 }

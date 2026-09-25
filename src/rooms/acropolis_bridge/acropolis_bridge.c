@@ -28,6 +28,7 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 #include "rooms/acropolis_bridge.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 extern s8  D_8007216C;
@@ -543,7 +544,7 @@ void func_acropolis_bridge_8017DC1C(Task* arg0)
 
 void func_acropolis_bridge_8017DC68(Task* arg0)
 {
-    AcropolisBridgeMsg7DA msg = { 1, 0xB, 1 };
+    RoomActorMsg msg = { { { 1, 0xB } }, 1 };
 
     if (Task_PollKill(D_acropolis_bridge_80191798, &D_acropolis_bridge_801917A0) != 0) {
         if (D_acropolis_bridge_801917A0 == 0) {
@@ -1420,7 +1421,7 @@ void func_acropolis_bridge_8017F544(Task* task)
         work->field_A = 0;
         task->state   = 7;
     } else {
-        AcropolisBridgeMsg7DA msg = { 1, 0xE, 2 };
+        RoomActorMsg msg = { { { 1, 0xE } }, 2 };
 
         Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
         SndEvt_EnqueueType6(0x510E0009, 0, 0);
@@ -3828,7 +3829,7 @@ void func_acropolis_bridge_8018532C(AcropolisBridgeWalkerWork* walker)
 /// work block are given the stat block's starting HP and the behaviour state
 /// advances to 4; otherwise the state resets to 0 and the mesh is hidden behind
 /// the default flag set. Always reports success.
-s32 func_acropolis_bridge_801856E0(Task* task, s32 msgId, AcropolisBridgeMsg7DB* msg)
+s32 func_acropolis_bridge_801856E0(Task* task, s32 msgId, RoomActorMsg* msg)
 {
     AcropolisBridgeEnemyWork* work  = (AcropolisBridgeEnemyWork*)task->work;
     GpEnemy*                  enemy = (GpEnemy*)task->spawnArg2;
@@ -3836,7 +3837,7 @@ s32 func_acropolis_bridge_801856E0(Task* task, s32 msgId, AcropolisBridgeMsg7DB*
     s32                       variant;
     u16                       sub;
 
-    if (msg->field_0 == 0xB01 && msg->field_2 == 1) {
+    if (msg->from.key == 0xB01 && msg->command == 1) {
         variant = enemy->placeKey >> 12;
         switch (variant) {
             case 0:
@@ -3846,8 +3847,8 @@ s32 func_acropolis_bridge_801856E0(Task* task, s32 msgId, AcropolisBridgeMsg7DB*
                 break;
         }
     }
-    if (msg->field_0 == 0xE01) {
-        sub = msg->field_2;
+    if (msg->from.key == 0xE01) {
+        sub = msg->command;
         if (sub == 2) {
             variant = enemy->placeKey >> 12;
             switch (variant) {

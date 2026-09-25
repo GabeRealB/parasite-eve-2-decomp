@@ -8,6 +8,7 @@
 #include "main/task.h"
 
 #include "rooms/dryfield_motel_room_1.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 extern GpMsgEntry D_dryfield_motel_room_1_8017E0A8[];
@@ -57,14 +58,14 @@ s32 func_dryfield_motel_room_1_8017D624(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
 /// advance state.
 void func_dryfield_motel_room_1_8017D69C(Task* arg0)
 {
-    Dmr1Msg7DA msg;
+    RoomActorMsg msg;
 
     arg0->msgTable = D_dryfield_motel_room_1_8017E0A8;
     Game_SetPtrSlot(arg0, 7);
     if (gGameSession->at4.loc.place == 3 && GameFlag_GetNibble(0x5C) == 0) {
-        msg.field_0 = gGameSession->at4.loc.stage;
-        msg.field_1 = gGameSession->at4.loc.area;
-        msg.field_2 = 0;
+        msg.from.loc.stage = gGameSession->at4.loc.stage;
+        msg.from.loc.area  = gGameSession->at4.loc.area;
+        msg.command        = 0;
         Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
     }
     arg0->state = arg0->state + 1;

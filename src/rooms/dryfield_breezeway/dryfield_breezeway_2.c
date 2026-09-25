@@ -24,6 +24,7 @@
 #include "main/tmd.h"
 
 #include "rooms/dryfield_breezeway.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// 0x14 work block the breezeway's room task hangs off the `Task::work` slot
@@ -134,10 +135,10 @@ extern GpMsgEntry D_dryfield_breezeway_80182DCC[];
 /// payloads in, which is why they share a frame slot: `rec` is the 0x14-byte
 /// slot-3 weapon record msg 0x3E8 takes (the `GpRec14` `Gp_MsgPlayerWeapon`
 /// also sends, with `field_4` set to this room's 9 and `field_C`/`field_10`
-/// zeroed), and `msg` the `DbwMsg7DA` the 0x7DA prompt takes right after it.
+/// zeroed), and `msg` the `RoomActorMsg` the 0x7DA prompt takes right after it.
 typedef union DbwMsgBuf {
-    /* 0x0 */ GpRec14   rec;
-    /* 0x0 */ DbwMsg7DA msg;
+    /* 0x0 */ GpRec14      rec;
+    /* 0x0 */ RoomActorMsg msg;
 } DbwMsgBuf;
 STATIC_ASSERT_SIZEOF(DbwMsgBuf, 0x14);
 
@@ -317,12 +318,12 @@ const TaskFuncTable7 D_dryfield_breezeway_8017D5E8 = {
 /// allocation the original compiler reached.
 void func_dryfield_breezeway_8017DEC0(Task* arg0)
 {
-    DbwMsg7DA msg;
-    DbwMsgBuf buf;
-    GpRec14*  rec;
-    DbwWork*  work;
-    s32       state;
-    s32       id;
+    RoomActorMsg msg;
+    DbwMsgBuf    buf;
+    GpRec14*     rec;
+    DbwWork*     work;
+    s32          state;
+    s32          id;
 
     work  = (DbwWork*)arg0->work;
     state = work->field_C;
@@ -334,9 +335,9 @@ void func_dryfield_breezeway_8017DEC0(Task* arg0)
         case 0:
             break;
         case 1:
-            msg.field_0 = gGameSession->at4.loc.stage;
-            msg.field_1 = gGameSession->at4.loc.area;
-            msg.field_2 = 1;
+            msg.from.loc.stage = gGameSession->at4.loc.stage;
+            msg.from.loc.area  = gGameSession->at4.loc.area;
+            msg.command        = 1;
             Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
             Gp_DispatchMsg(work->field_4, 0x7D4, (s32)&D_dryfield_breezeway_80181E28, 0);
             Gp_DispatchMsg(work->field_0, 0x3E9, (s32)&D_dryfield_breezeway_80181E40[0], 0);
@@ -457,13 +458,13 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
 
 void func_dryfield_breezeway_8017E2D4(void)
 {
-    DbwWork*  work;
-    DbwMsg7DA msg;
+    DbwWork*     work;
+    RoomActorMsg msg;
 
-    work        = (DbwWork*)D_dryfield_breezeway_801843C0->work;
-    msg.field_0 = gGameSession->at4.loc.stage;
-    msg.field_1 = gGameSession->at4.loc.area;
-    msg.field_2 = 2;
+    work               = (DbwWork*)D_dryfield_breezeway_801843C0->work;
+    msg.from.loc.stage = gGameSession->at4.loc.stage;
+    msg.from.loc.area  = gGameSession->at4.loc.area;
+    msg.command        = 2;
     Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
     Gp_DispatchMsg(work->field_8, 0x7D4, (s32)&D_dryfield_breezeway_80181E28, 0);
 }
@@ -496,10 +497,10 @@ void func_dryfield_breezeway_8017E390(void)
     buf.rec.field_10 = 0;
     Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&buf, 0);
 
-    work            = (DbwWork*)D_dryfield_breezeway_801843C0->work;
-    buf.msg.field_0 = gGameSession->at4.loc.stage;
-    buf.msg.field_1 = gGameSession->at4.loc.area;
-    buf.msg.field_2 = 2;
+    work                   = (DbwWork*)D_dryfield_breezeway_801843C0->work;
+    buf.msg.from.loc.stage = gGameSession->at4.loc.stage;
+    buf.msg.from.loc.area  = gGameSession->at4.loc.area;
+    buf.msg.command        = 2;
     Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&buf, 0x7DB);
     Gp_DispatchMsg(work->field_8, 0x7D4, (s32)&D_dryfield_breezeway_80181E28, 0);
 }

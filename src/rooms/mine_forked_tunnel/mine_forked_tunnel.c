@@ -20,6 +20,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// The enemy's position / rotation path, one `SVECTOR` per step: `pos` and
@@ -56,19 +57,6 @@ extern SVECTOR D_mine_forked_tunnel_801819C4[54];
 /// Two-entry `TaskDesc` table `func_mine_forked_tunnel_8017D5E8` spawns the
 /// child enemy from; `Task_SpawnFromTable` picks entry 1.
 extern TaskDesc D_mine_forked_tunnel_80181B74;
-
-/// Payload message 0x7DB carries into this room's enemy task, handed to the
-/// handler as `Gp_DispatchMsg`'s `arg2`: the four bytes `3CD8.c` fills from
-/// `GpCapSpawnArg` (`field_2` / `field_3` there), read here as the one
-/// halfword at 0x2 that selects the command. Same record as
-/// `Actor205200Msg7DB` and `NeoArkWoodlandPathMsg7DB`; the senders are the
-/// game-script gates, not this overlay.
-typedef struct MineForkedTunnelMsg7DB {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ u16 field_2;
-} MineForkedTunnelMsg7DB;
-STATIC_ASSERT_SIZEOF(MineForkedTunnelMsg7DB, 0x4);
 
 /// The `{id, TaskFunc}` pairs the tunnel's enemy restores through
 /// `Task::msgTable` - `0x7D5` maps to `func_mine_forked_tunnel_8017DD08` and
@@ -289,7 +277,7 @@ void func_mine_forked_tunnel_8017D724(Task* arg0)
 /// local-alloc's quantity rank is built from those counts, so the wrapper -
 /// and only the wrapper - lifts the six placement reads above the placement
 /// pointer and gives `$v0` to the values instead of the address.
-s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, MineForkedTunnelMsg7DB* msg)
+s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, RoomActorMsg* msg)
 {
     RoomPlacement         placement;
     RoomPlacement*        place;
@@ -297,7 +285,7 @@ s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, MineForkedTunnelMsg7D
     RoomCoord*            coord;
     MineForkedTunnelWork* work;
 
-    switch (msg->field_2) {
+    switch (msg->command) {
         case 0:
             work                = task->work;
             task->spawnArg1     = 0;

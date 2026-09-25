@@ -27,19 +27,9 @@
 #include "main/text.h"
 #include "main/tmd.h"
 #include "main/ui.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8018055c.h"
-
-/// 4-byte payload this room sends as `Gp_DispatchMsg`'s `arg2` for message
-/// 0x7DA, which the slot-4 task forwards to the 0x7DB handlers tagged with the
-/// action taken. `field_0` / `field_1` are the session's two id bytes and
-/// `field_2` the halfword the receiver switches on.
-typedef struct DnsgrMsg7DA {
-    /* 0x0 */ u8  field_0; // gGameSession::at4.loc.stage
-    /* 0x1 */ u8  field_1; // gGameSession::at4.loc.area
-    /* 0x2 */ s16 field_2;
-} DnsgrMsg7DA;
-STATIC_ASSERT_SIZEOF(DnsgrMsg7DA, 0x4);
 
 /// Scratch block `func_dryfield_night_saloon_g_r_8017EB38` takes from
 /// `G_SCRATCH_HEAD` for one light shaft. The four vectors are the shaft's
@@ -394,8 +384,8 @@ s32 func_dryfield_night_saloon_g_r_8017DD84(Task* task, s32 msgId, s32 arg2, s32
 /// non-zero action halfword, and sets nibble 0xB0. Always returns 0.
 s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, GpMsg13EF* arg2)
 {
-    DnsgrMsg7DA msg;
-    u8          temp_s0;
+    RoomActorMsg msg;
+    u8           temp_s0;
 
     if (arg2->field_2 == 7 && GameFlag_GetNibble(0x59) == 0) {
         func_800E8634((s32)&D_dryfield_night_saloon_g_r_80183C94, 0, (s32)&D_dryfield_night_saloon_g_r_801847A4);
@@ -407,9 +397,9 @@ s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, GpMsg13EF* ar
             Gp_UnlinkObj4A(0, &D_dryfield_night_saloon_g_r_80188BB8);
             SndEvt_EnqueueType6(0x5312000C, 0, 0);
         } else if (arg2->field_2 == temp_s0) {
-            msg.field_0 = gGameSession->at4.loc.stage;
-            msg.field_1 = gGameSession->at4.loc.area;
-            msg.field_2 = 1;
+            msg.from.loc.stage = gGameSession->at4.loc.stage;
+            msg.from.loc.area  = gGameSession->at4.loc.area;
+            msg.command        = 1;
             Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
             GameFlag_SetNibble(0xB0, 1);
         }
@@ -424,14 +414,14 @@ s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, GpMsg13EF* ar
 /// carrying the session's two id bytes and a zero halfword. Then advance state.
 void func_dryfield_night_saloon_g_r_8017DF90(Task* task)
 {
-    DnsgrMsg7DA msg;
+    RoomActorMsg msg;
 
     task->msgTable = D_dryfield_night_saloon_g_r_8017F918;
     Game_SetPtrSlot(task, 7);
     if (gGameSession->at4.loc.place == 2 && GameFlag_GetNibble(0xB0) == 0) {
-        msg.field_0 = gGameSession->at4.loc.stage;
-        msg.field_1 = gGameSession->at4.loc.area;
-        msg.field_2 = 0;
+        msg.from.loc.stage = gGameSession->at4.loc.stage;
+        msg.from.loc.area  = gGameSession->at4.loc.area;
+        msg.command        = 0;
         Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
     }
     task->state = task->state + 1;

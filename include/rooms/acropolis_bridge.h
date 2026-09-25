@@ -8,6 +8,7 @@
 #include <psyq/libgs.h>
 
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// Work block this room's script tasks keep at `Task::work`
@@ -25,26 +26,6 @@ typedef struct AcropolisBridgePromptWork {
     /* 0x0E */ s8  promptKind;
     /* 0x0F */ s8  promptBusy;
 } AcropolisBridgePromptWork;
-
-/// Payload this room passes as `Gp_DispatchMsg`'s `arg2` for message 0x7DA,
-/// sent by both `func_acropolis_bridge_8017DC68` and
-/// `func_acropolis_bridge_8017F544`. It is forwarded unchanged to the 0x7DB
-/// handlers, which read the two id bytes back as one halfword; see
-/// `AcropolisBridgeMsg7DB`.
-typedef struct AcropolisBridgeMsg7DA {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ s16 field_2;
-} AcropolisBridgeMsg7DA;
-
-/// The same four bytes as `AcropolisBridgeMsg7DA`, as the bridge enemy's 0x7DB
-/// handler reads them. `func_acropolis_bridge_801856E0` compares the id bytes
-/// as a single halfword (0x0B01 for the lower request, 0x0E01 for the end of
-/// the run) instead of testing `field_0` and `field_1` separately.
-typedef struct AcropolisBridgeMsg7DB {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-} AcropolisBridgeMsg7DB;
 
 extern RoomHotspot D_acropolis_bridge_8018983C[];
 extern s32         D_acropolis_bridge_801917A8;

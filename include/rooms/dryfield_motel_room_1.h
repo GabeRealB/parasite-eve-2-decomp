@@ -7,6 +7,7 @@
 
 #include "main/task.h"
 
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// Work block hung off `Task::work` (0x1C) of the room task parked in
@@ -53,26 +54,15 @@ typedef struct Dmr1Work {
 } Dmr1Work;
 STATIC_ASSERT_SIZEOF(Dmr1Work, 0x38);
 
-/// Four-byte payload `func_dryfield_motel_room_1_8017DF08` hands
-/// `Gp_DispatchMsg` as `arg2` for message 0x7DA: the session's two id bytes
-/// followed by the halfword the 0x7DB receiver switches on. Same record the
-/// actors' `ActorsShared80132724` sends.
-typedef struct Dmr1Msg7DA {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ s16 field_2;
-} Dmr1Msg7DA;
-STATIC_ASSERT_SIZEOF(Dmr1Msg7DA, 0x4);
-
 /// The one scratch buffer `func_dryfield_motel_room_1_8017DD3C` builds both of
 /// its payloads in, which is why they share a frame slot: `rec` is the 0x14-byte
 /// slot-3 record message 0x3E8 takes (`GpRec14`, `field_0` the equipped weapon's
 /// animation id, `field_4` / `field_8` 1, `field_C` 5, `field_10` 0) and `msg` the
-/// `Dmr1Msg7DA` the 0x7DA poke takes in states 1 and 2. Same shape as the
+/// `RoomActorMsg` the 0x7DA poke takes in states 1 and 2. Same shape as the
 /// breezeway's `DbwMsgBuf`.
 typedef union Dmr1MsgBuf {
-    /* 0x0 */ GpRec14    rec;
-    /* 0x0 */ Dmr1Msg7DA msg;
+    /* 0x0 */ GpRec14      rec;
+    /* 0x0 */ RoomActorMsg msg;
 } Dmr1MsgBuf;
 STATIC_ASSERT_SIZEOF(Dmr1MsgBuf, 0x14);
 
@@ -80,8 +70,8 @@ STATIC_ASSERT_SIZEOF(Dmr1MsgBuf, 0x14);
 /// `Dmr1MsgBuf`; the first step of action 6 builds its 0x3E8 record in
 /// `shifted.rec`, eight bytes further in, for no reason the code shows.
 typedef union Dmr1DriverBuf {
-    /* 0x0 */ GpRec14    rec;
-    /* 0x0 */ Dmr1Msg7DA msg;
+    /* 0x0 */ GpRec14      rec;
+    /* 0x0 */ RoomActorMsg msg;
     struct {
         /* 0x0 */ s32     pad[2];
         /* 0x8 */ GpRec14 rec;

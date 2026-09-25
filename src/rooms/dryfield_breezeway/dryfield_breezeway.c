@@ -9,6 +9,7 @@
 #include "main/task.h"
 
 #include "rooms/dryfield_breezeway.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// `GpMsgEntry` (`gameplay/D4.h`), forward-declared because that header's
@@ -330,14 +331,14 @@ void func_dryfield_breezeway_8017DCE4(Task* task)
 
 void func_dryfield_breezeway_8017DDB0(Task* task)
 {
-    DbwMsg7DA msg;
+    RoomActorMsg msg;
 
     task->msgTable = D_dryfield_breezeway_80181DE0;
     Game_SetPtrSlot(task, 7);
     if (GameFlag_GetNibble(0x5D) == 0) {
-        msg.field_0 = gGameSession->at4.loc.stage;
-        msg.field_1 = gGameSession->at4.loc.area;
-        msg.field_2 = 0;
+        msg.from.loc.stage = gGameSession->at4.loc.stage;
+        msg.from.loc.area  = gGameSession->at4.loc.area;
+        msg.command        = 0;
         Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
         Task_SpawnFromTable(D_dryfield_breezeway_801820B0, 0, 0, 0);
     }

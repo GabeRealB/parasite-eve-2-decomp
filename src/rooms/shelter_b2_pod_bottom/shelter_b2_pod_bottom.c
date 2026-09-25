@@ -8,15 +8,8 @@
 #include "gameplay/D4.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
-
-/// Payload of the 0x7DB message this room sends to the slot-4 task when it is
-/// entered on any place other than 1.
-typedef struct {
-    u8  field_0;
-    u8  field_1;
-    s16 field_2;
-} _Msg7DB;
 
 void       func_80162B0C(s32);
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
@@ -65,7 +58,7 @@ s32 func_shelter_b2_pod_bottom_8017D640(void)
 /// `func_800E8634`; elsewhere it sends message 0x7DB to the slot-4 task.
 void func_shelter_b2_pod_bottom_8017D648(Task* arg0)
 {
-    _Msg7DB msg;
+    RoomActorMsg msg;
 
     arg0->msgTable = D_shelter_b2_pod_bottom_80181C6C;
     Game_SetPtrSlot(arg0, 7);
@@ -73,9 +66,9 @@ void func_shelter_b2_pod_bottom_8017D648(Task* arg0)
         func_80162B0C(0);
         func_800E8634((s32)&D_80165F48, 0, (s32)&D_80166848);
     } else {
-        msg.field_0 = 0;
-        msg.field_1 = 0;
-        msg.field_2 = 7;
+        msg.from.loc.stage = 0;
+        msg.from.loc.area  = 0;
+        msg.command        = 7;
         Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7DB, (s32)&msg, 0);
     }
     arg0->state++;

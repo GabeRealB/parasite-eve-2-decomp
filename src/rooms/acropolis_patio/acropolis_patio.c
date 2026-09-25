@@ -17,6 +17,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/acropolis_patio.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 #include <psyq/inline_c.h>
@@ -35,14 +36,6 @@ typedef struct {
     /* 0x5 */ u8  field_5;
     /* 0x6 */ u16 field_6;
 } AcropolisPatioMsg8;
-
-/// Four-byte payload this room hands `Gp_DispatchMsg` as `arg2` for message
-/// 0x7DB once the session is on its second visit.
-typedef struct {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ u16 field_2;
-} AcropolisPatioSlotMsg;
 
 extern s8       D_8007272D;
 extern s16      D_80071076;
@@ -93,8 +86,8 @@ const TaskFuncTable3 D_acropolis_patio_8017D5C4 = {
 /// `gGameSession::at4.loc.place`.
 void func_acropolis_patio_8017D5EC(Task* arg0)
 {
-    AcropolisPatioSlotMsg msg;
-    s32                   temp;
+    RoomActorMsg msg;
+    s32          temp;
 
     arg0->msgTable = &D_acropolis_patio_8018028C;
     Game_SetPtrSlot(arg0, 7);
@@ -117,9 +110,9 @@ void func_acropolis_patio_8017D5EC(Task* arg0)
         }
     }
     if ((gGameSession->at4.loc.place == 2) && (GameFlag_GetNibble(0x26) == 0)) {
-        msg.field_0 = 1;
-        msg.field_1 = 3;
-        msg.field_2 = 0;
+        msg.from.loc.stage = 1;
+        msg.from.loc.area  = 3;
+        msg.command        = 0;
         Gp_DispatchMsg((Task*)Gp_LookupSlot4(2), 0x7DB, (s32)&msg, 0);
         Gp_DispatchMsg((Task*)Gp_LookupSlot4(3), 0x7DB, (s32)&msg, 0);
     }

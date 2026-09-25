@@ -14,18 +14,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
-
-/// Four-byte payload of message 0x7DB: a sender id, which the room writes as
-/// two bytes (0x05, 0x0B for its spawn messages) and its own handler reads as
-/// one halfword (0xB05), followed by a halfword command.
-typedef struct NeoArkForestZoneMsg7DB {
-    union {
-        u8  bytes[2];
-        u16 id;
-    } sender;
-    u16 field_2;
-} NeoArkForestZoneMsg7DB;
-STATIC_ASSERT_SIZEOF(NeoArkForestZoneMsg7DB, 0x4);
+#include "rooms/room.h"
 
 /// The object a slot-4 task holds in `Task::spawnArg2`. Only the pending
 /// spawn value at 0x40 (-999 while waiting for one) and the byte at 0x4C,
@@ -98,7 +87,7 @@ extern NeoArkForestZoneSpawnPos D_neo_ark_forest_zone_80182DE8[5];
 extern s16 D_neo_ark_forest_zone_80182DC4;
 
 /// The payload the room sends with message 0x7DB.
-extern NeoArkForestZoneMsg7DB D_neo_ark_forest_zone_80182E44;
+extern RoomActorMsg D_neo_ark_forest_zone_80182E44;
 
 /// The room's five pending spawn values; a positive entry is handed to the
 /// first waiting object and then cleared.
@@ -242,9 +231,9 @@ void func_neo_ark_forest_zone_80180620(Task* task)
         gGameSession->field_126 = 0;
     }
     if (Gp_StateF0.field_0 != 2 && D_neo_ark_forest_zone_80182D66 != 0) {
-        D_neo_ark_forest_zone_80182E44.sender.bytes[0] = 5;
-        D_neo_ark_forest_zone_80182E44.sender.bytes[1] = 0x1D;
-        D_neo_ark_forest_zone_80182E44.field_2         = 0xB;
+        D_neo_ark_forest_zone_80182E44.from.loc.stage = 5;
+        D_neo_ark_forest_zone_80182E44.from.loc.area  = 0x1D;
+        D_neo_ark_forest_zone_80182E44.command        = 0xB;
         for (i = 0; i < 2; i++) {
             if (Gp_LookupSlot4(i) == 0) {
                 break;
@@ -285,25 +274,25 @@ void func_neo_ark_forest_zone_80180620(Task* task)
 /// spawn slot 0 to the first slot-4 task, sends it message 0x7DB and places it
 /// at (5, 0, -0x320) facing 0x400, restarting the countdown. Answers 1 only
 /// for command 2.
-s32 func_neo_ark_forest_zone_80180A60(Task* task, s32 arg1, NeoArkForestZoneMsg7DB* msg)
+s32 func_neo_ark_forest_zone_80180A60(Task* task, s32 arg1, RoomActorMsg* msg)
 {
     s32                  result;
     u16                  cmd;
     NeoArkForestZoneObj* obj;
 
     result = 0;
-    if (msg->sender.id == 0xB05) {
-        cmd = msg->field_2;
+    if (msg->from.key == 0xB05) {
+        cmd = msg->command;
         switch (cmd) {
             case 0:
                 D_neo_ark_forest_zone_80182D62 = -1;
                 result                         = 0;
                 return result;
             case 2:
-                D_neo_ark_forest_zone_80182E44.sender.bytes[0] = 5;
-                D_neo_ark_forest_zone_80182E44.sender.bytes[1] = 0xB;
-                D_neo_ark_forest_zone_80182E44.field_2         = 0xC;
-                result                                         = 1;
+                D_neo_ark_forest_zone_80182E44.from.loc.stage = 5;
+                D_neo_ark_forest_zone_80182E44.from.loc.area  = 0xB;
+                D_neo_ark_forest_zone_80182E44.command        = 0xC;
+                result                                        = 1;
                 if (Gp_LookupSlot4(0) != 0) {
                     Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7DB,
                                    (s32)&D_neo_ark_forest_zone_80182E44, 0);
@@ -419,9 +408,9 @@ void func_neo_ark_forest_zone_80180D24(Task* arg0)
         gGameSession->field_126 = 0;
     }
     if (Gp_StateF0.field_0 != 2 && D_neo_ark_forest_zone_80182D66 != 0) {
-        D_neo_ark_forest_zone_80182E44.sender.bytes[0] = 5;
-        D_neo_ark_forest_zone_80182E44.sender.bytes[1] = 0xB;
-        D_neo_ark_forest_zone_80182E44.field_2         = 0xB;
+        D_neo_ark_forest_zone_80182E44.from.loc.stage = 5;
+        D_neo_ark_forest_zone_80182E44.from.loc.area  = 0xB;
+        D_neo_ark_forest_zone_80182E44.command        = 0xB;
         for (i = 0; i < 2; i++) {
             if (Gp_LookupSlot4(i) == 0) {
                 break;

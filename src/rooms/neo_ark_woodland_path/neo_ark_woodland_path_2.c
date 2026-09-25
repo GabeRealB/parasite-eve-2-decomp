@@ -19,6 +19,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// The distance between `a` and `b`, spelled as a conditional subtraction.
@@ -43,24 +44,6 @@ extern s32 D_8011574C;
 /// `in_struct`".
 extern s16 D_neo_ark_woodland_path_8018498E;
 
-/// Payload the 0x7DB handlers take as `Gp_DispatchMsg`'s `arg2`: the two-byte
-/// sender id `0xB05` followed by the command the switch dispatches on.
-typedef struct NeoArkWoodlandPathMsg {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-} NeoArkWoodlandPathMsg;
-STATIC_ASSERT_SIZEOF(NeoArkWoodlandPathMsg, 0x4);
-
-/// The same four bytes as this room builds them for its own 0x7DB send:
-/// two id bytes (0x05, 0x0B, which the receiver reads as the halfword 0xB05)
-/// followed by the spawn parameter.
-typedef struct NeoArkWoodlandPathMsg7DB {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ u16 field_2;
-} NeoArkWoodlandPathMsg7DB;
-STATIC_ASSERT_SIZEOF(NeoArkWoodlandPathMsg7DB, 0x4);
-
 /// The object `Task::spawnArg2` holds for this room: the pending spawn
 /// parameter handed over by `D_neo_ark_woodland_path_80184A60`, and the state
 /// byte the handler clears once it has been taken. Trailing pad keeps pointer
@@ -80,7 +63,7 @@ typedef struct NeoArkWoodlandPathObj {
     /* 0x4D */ byte pad_4D[3];
 } NeoArkWoodlandPathObj;
 
-extern NeoArkWoodlandPathMsg7DB D_neo_ark_woodland_path_80184A5C;
+extern RoomActorMsg D_neo_ark_woodland_path_80184A5C;
 
 /// The room's five spawn slots: `func_neo_ark_woodland_path_8018046C` fills the
 /// first free one with a countdown and `func_neo_ark_woodland_path_80180B18`
@@ -988,9 +971,9 @@ void func_neo_ark_woodland_path_801806D8(Task* task)
         gGameSession->field_126 = 0;
     }
     if (Gp_StateF0.field_0 != 2 && D_neo_ark_woodland_path_80184992 != 0) {
-        D_neo_ark_woodland_path_80184A5C.field_0 = 5;
-        D_neo_ark_woodland_path_80184A5C.field_1 = 0x1D;
-        D_neo_ark_woodland_path_80184A5C.field_2 = 0xB;
+        D_neo_ark_woodland_path_80184A5C.from.loc.stage = 5;
+        D_neo_ark_woodland_path_80184A5C.from.loc.area  = 0x1D;
+        D_neo_ark_woodland_path_80184A5C.command        = 0xB;
         for (i = 0; i < 2; i++) {
             if (Gp_LookupSlot4(i) == 0) {
                 break;
@@ -1035,25 +1018,25 @@ const TaskFuncTable4 D_neo_ark_woodland_path_8017D638 = {
       func_neo_ark_woodland_path_801814D4, taskKill }
 };
 
-s32 func_neo_ark_woodland_path_80180B18(Task* task, s32 arg1, NeoArkWoodlandPathMsg* msg)
+s32 func_neo_ark_woodland_path_80180B18(Task* task, s32 arg1, RoomActorMsg* msg)
 {
     s32                    result;
     u16                    cmd;
     NeoArkWoodlandPathObj* obj;
 
     result = 0;
-    if (msg->field_0 == 0xB05) {
-        cmd = msg->field_2;
+    if (msg->from.key == 0xB05) {
+        cmd = msg->command;
         switch (cmd) {
             case 0:
                 D_neo_ark_woodland_path_8018498E = -1;
                 result                           = 0;
                 return result;
             case 2:
-                D_neo_ark_woodland_path_80184A5C.field_0 = 5;
-                D_neo_ark_woodland_path_80184A5C.field_1 = 0xB;
-                D_neo_ark_woodland_path_80184A5C.field_2 = 0xC;
-                result                                   = 1;
+                D_neo_ark_woodland_path_80184A5C.from.loc.stage = 5;
+                D_neo_ark_woodland_path_80184A5C.from.loc.area  = 0xB;
+                D_neo_ark_woodland_path_80184A5C.command        = 0xC;
+                result                                          = 1;
                 if (Gp_LookupSlot4(0) != 0) {
                     Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7DB,
                                    (s32)&D_neo_ark_woodland_path_80184A5C, 0);
@@ -1177,9 +1160,9 @@ void func_neo_ark_woodland_path_80180DDC(Task* task)
         gGameSession->field_126 = 0;
     }
     if (Gp_StateF0.field_0 != 2 && D_neo_ark_woodland_path_80184992 != 0) {
-        D_neo_ark_woodland_path_80184A5C.field_0 = 5;
-        D_neo_ark_woodland_path_80184A5C.field_1 = 0xB;
-        D_neo_ark_woodland_path_80184A5C.field_2 = 0xB;
+        D_neo_ark_woodland_path_80184A5C.from.loc.stage = 5;
+        D_neo_ark_woodland_path_80184A5C.from.loc.area  = 0xB;
+        D_neo_ark_woodland_path_80184A5C.command        = 0xB;
         for (i = 0; i < 2; i++) {
             if (Gp_LookupSlot4(i) == 0) {
                 break;

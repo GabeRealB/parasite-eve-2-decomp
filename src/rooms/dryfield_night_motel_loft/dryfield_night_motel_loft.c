@@ -10,16 +10,8 @@
 #include "main/task.h"
 
 #include "rooms/dryfield_night_motel_loft.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
-
-/// 4-byte payload of the 0x7DB message the room task sends to the slot-4
-/// task. Only the halfword at 0x2 is written, raised to 1 before the send; its
-/// meaning is not established here.
-typedef struct DryfieldNightMotelLoftMsg7DB {
-    u16 field_0;
-    u16 field_2;
-} DryfieldNightMotelLoftMsg7DB;
-STATIC_ASSERT_SIZEOF(DryfieldNightMotelLoftMsg7DB, 0x4);
 
 extern u8 D_8007216D;
 extern s8 D_8007272D;
@@ -36,7 +28,7 @@ extern u8      D_dryfield_night_motel_loft_8017EB78[];
 extern GpObj4A D_dryfield_night_motel_loft_80180440;
 
 /// The room's 0x7DB payload buffer.
-extern DryfieldNightMotelLoftMsg7DB D_dryfield_night_motel_loft_8018092C;
+extern RoomActorMsg D_dryfield_night_motel_loft_8018092C;
 
 void func_dryfield_night_motel_loft_8017D6F8(Task* arg0);
 
@@ -140,7 +132,7 @@ void func_dryfield_night_motel_loft_8017D808(Task* arg0)
     arg0->msgTable = D_dryfield_night_motel_loft_8017EB1C;
     Game_SetPtrSlot(arg0, 7);
     if (Gp_LookupSlot4(0) != 0 && GameFlag_GetNibble(0x96) != 0) {
-        D_dryfield_night_motel_loft_8018092C.field_2 = 1;
+        D_dryfield_night_motel_loft_8018092C.command = 1;
         Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7DB, (s32)&D_dryfield_night_motel_loft_8018092C, 0);
     }
     func_dryfield_night_motel_loft_8017D9BC(Gp_GetCurBit2Flag(0xA) == 2);
