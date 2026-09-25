@@ -1024,9 +1024,9 @@ s32 func_actor_312200_801636CC(Task* task, s32 msgId, Actor312200Msg7DB* msg)
     return 1;
 }
 
-/// Show handler. On a live actor it flags the enemy's link node, raises the
-/// model's 0x80 draw bit, clears `GpEnemy::field_4D` and drops bit 0x8000 of
-/// the display node's flags, so the actor becomes visible again.
+/// On a live actor, sets the enemy's link-node flags to 1, raises the model's
+/// 0x80 bit (which takes it out of `Tmd_DrawActiveNodes`), clears
+/// `GpEnemy::field_4D` and drops bit 0x8000 of the `field_8BC` node's flags.
 void func_actor_312200_80163778(Task* task)
 {
     Actor312200Work* work;
