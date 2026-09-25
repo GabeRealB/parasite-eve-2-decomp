@@ -1,10 +1,4 @@
 // Overlay-local symbols for actor_361100.
-ActorsShared8016447c = 0x8016291C; // shared body, see src/lib/
-ActorsShared8016449c = 0x8016293C; // shared body, see src/lib/
-ActorsShared80162080 = 0x8016295C; // shared body, see src/lib/
-ActorsShared80132bd8 = 0x8016297C; // shared body, see src/lib/
-ActorsShared8013231c = 0x801635F4; // shared body, see src/lib/
-ActorsShared80132d00 = 0x80162AEC; // shared body, see src/lib/
 
 // Referenced in another actor load slot, resident beside this one.
 func_801353D0 = 0x801353D0; // absolute:True

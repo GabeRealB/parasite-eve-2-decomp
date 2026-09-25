@@ -63,10 +63,10 @@ typedef struct Actor361100Work {
 } Actor361100Work;
 STATIC_ASSERT_SIZEOF(Actor361100Work, 0x4A4);
 
-/// Placement argument block of the script opcode `func_actor_361100_80162F58`
-/// handles: a world translation followed by the Euler angles handed to
-/// `RotMatrixZYX`, the same block `ActorsShared8013231cArgs` and
-/// `Actor503500PlaceArgs` take.
+/// Payload of message 0x7D4, the placement opcode: a world translation
+/// followed by Euler angles. Both of the entry's 0x7D4 handlers take it,
+/// `func_actor_361100_80162F58` building the rotation with `RotMatrixZYX` and
+/// `func_actor_361100_801635F4` with `RotMatrix`.
 typedef struct Actor361100Placement {
     /* 0x00 */ VECTOR  pos;
     /* 0x10 */ SVECTOR rot;
@@ -103,8 +103,8 @@ STATIC_ASSERT_SIZEOF(Actor361100AnimPreset, 0x10);
 
 /// Overlay of `GsCOORDINATE2` at `TmdObject::coords`. Offset 0x44 (libgs's
 /// `param`, with `super` at 0x48) holds the Euler angles the code writes and
-/// then hands straight to `RotMatrixZYX`, the same reuse `RoomCoord` and
-/// `ActorsShared8013231cCoord` document.
+/// then hands straight to the rotation builder, so the angles live in the
+/// coordinate itself.
 typedef struct Actor361100Coord {
     /* 0x00 */ s32     flg;
     /* 0x04 */ MATRIX  coord;
