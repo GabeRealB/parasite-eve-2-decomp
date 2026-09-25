@@ -94,11 +94,11 @@ void func_m4a1_javelin_8011D1E4(Task* task)
         case 0:
             dstm              = (GpMtxWords*)&coord->coord;
             coord->sub        = work->parent;
-            dstm->w0          = 0x1000;
-            dstm->w1          = 0;
-            dstm->w2          = 0x1000;
-            dstm->w3          = 0;
-            dstm->h4          = 0x1000;
+            dstm->m00_m01     = 0x1000;
+            dstm->m02_m10     = 0;
+            dstm->m11_m12     = 0x1000;
+            dstm->m20_m21     = 0;
+            dstm->m22         = 0x1000;
             coord->coord.t[0] = D_m4a1_javelin_8011FA90.vx;
             coord->coord.t[1] = D_m4a1_javelin_8011FA90.vy;
             coord->coord.t[2] = D_m4a1_javelin_8011FA90.vz;

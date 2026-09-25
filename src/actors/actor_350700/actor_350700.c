@@ -437,7 +437,7 @@ void func_actor_350700_8016261C(Task* arg0)
 void func_actor_350700_80162764(Task* arg0)
 {
     Actor350500Work* work;
-    OverlayMatWords* words;
+    GpMtxWords*      words;
     GsCOORDINATE2*   coord;
     SVECTOR          vec;
     GpAnimArg        preset;
@@ -468,7 +468,7 @@ void func_actor_350700_80162764(Task* arg0)
         work->walk.motionStep = 0;
     }
 
-    words          = (OverlayMatWords*)&coord->coord;
+    words          = (GpMtxWords*)&coord->coord;
     words->m00_m01 = ONE;
     words->m02_m10 = 0;
     words->m11_m12 = ONE;
@@ -1016,7 +1016,7 @@ void func_actor_350700_80163528(Task* task)
 void func_actor_350700_801635A8(Task* arg0)
 {
     Actor135600Work* work;
-    OverlayMatWords* words;
+    GpMtxWords*      words;
     GsCOORDINATE2*   coord;
     SVECTOR          vec;
     GpAnimArg        preset;
@@ -1047,7 +1047,7 @@ void func_actor_350700_801635A8(Task* arg0)
         work->walk.motionStep = 0;
     }
 
-    words          = (OverlayMatWords*)&coord->coord;
+    words          = (GpMtxWords*)&coord->coord;
     words->m00_m01 = ONE;
     words->m02_m10 = 0;
     words->m11_m12 = ONE;

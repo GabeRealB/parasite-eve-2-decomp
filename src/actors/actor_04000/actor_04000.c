@@ -2007,7 +2007,7 @@ void Actor04000_Fn05F0C(GpEnemy* arg0, Task* arg1)
     Actor104000StateTable table;
     GsCOORDINATE2         coord;
     Actor104000Work*      work;
-    OverlayMatWords*      mw;
+    GpMtxWords*           mw;
     s32                   snd;
     s32                   pan;
     s32                   id;
@@ -2028,17 +2028,17 @@ void Actor04000_Fn05F0C(GpEnemy* arg0, Task* arg1)
                 Gp_DrawEffGroundQuad((VECTOR3*)((TmdObject*)arg1->extra)->coords->workm.t, 0x100, Gp_State1C->groundShade);
             }
             if (work->field_0 == 0xF) {
-                mw                                        = (OverlayMatWords*)&coord.coord;
-                mw->m00_m01                               = 0x1000;
-                ((OverlayMatWords*)&coord.coord)->m02_m10 = 0;
-                mw->m11_m12                               = 0x1000;
-                ((OverlayMatWords*)&coord.coord)->m20_m21 = 0;
-                mw->m22                                   = 0x1000;
-                coord.coord.t[0]                          = ((TmdObject*)arg1->extra)->coords->coord.t[0];
-                coord.coord.t[1]                          = 0;
-                coord.coord.t[2]                          = ((TmdObject*)arg1->extra)->coords->coord.t[2];
-                coord.sub                                 = &gGfxViewCoord;
-                coord.flg                                 = 0;
+                mw                                   = (GpMtxWords*)&coord.coord;
+                mw->m00_m01                          = 0x1000;
+                ((GpMtxWords*)&coord.coord)->m02_m10 = 0;
+                mw->m11_m12                          = 0x1000;
+                ((GpMtxWords*)&coord.coord)->m20_m21 = 0;
+                mw->m22                              = 0x1000;
+                coord.coord.t[0]                     = ((TmdObject*)arg1->extra)->coords->coord.t[0];
+                coord.coord.t[1]                     = 0;
+                coord.coord.t[2]                     = ((TmdObject*)arg1->extra)->coords->coord.t[2];
+                coord.sub                            = &gGfxViewCoord;
+                coord.flg                            = 0;
                 Gp_UpdateCoord(&coord);
                 Gp_DrawEffGroundQuad((VECTOR3*)coord.workm.t, 0x60, Gp_State1C->groundShade);
             }

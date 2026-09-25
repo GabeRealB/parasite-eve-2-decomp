@@ -578,11 +578,11 @@ void func_actor_342100_80162C88(void)
         task              = Task_SpawnFromTable(&D_actor_342100_80164B78, 4, (rng >> 16) & 0x1F, 0);
         coord             = ((TmdObject*)task->extra)->coords;
         rot               = (GpMtxWords*)&coord->coord;
-        rot->w0           = 0x1000;
-        rot->w1           = 0;
-        rot->w2           = 0x1000;
-        rot->w3           = 0;
-        rot->h4           = 0x1000;
+        rot->m00_m01      = 0x1000;
+        rot->m02_m10      = 0;
+        rot->m11_m12      = 0x1000;
+        rot->m20_m21      = 0;
+        rot->m22          = 0x1000;
         coord->coord.t[0] = pos->vx;
         coord->coord.t[1] = pos->vy;
         coord->coord.t[2] = pos->vz;

@@ -524,12 +524,12 @@ void func_acropolis_cafeteria_8017F390(Task* task)
             }
             break;
     }
-    rot     = (GpMtxWords*)&coord->coord;
-    rot->w0 = 0x1000;
-    rot->w1 = 0;
-    rot->w2 = 0x1000;
-    rot->w3 = 0;
-    rot->h4 = 0x1000;
+    rot          = (GpMtxWords*)&coord->coord;
+    rot->m00_m01 = 0x1000;
+    rot->m02_m10 = 0;
+    rot->m11_m12 = 0x1000;
+    rot->m20_m21 = 0;
+    rot->m22     = 0x1000;
     Gfx_RotMatrixY(&coord->coord, work->scale, 0);
     COPY_MATRIX_COLUMN2(&coord->coord, &work->move);
     work->move.vx      = (work->move.vx * work->angle) >> 16;

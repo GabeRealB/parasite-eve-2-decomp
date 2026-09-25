@@ -710,7 +710,7 @@ void Actor04400_Fn00874(Task* arg0)
 {
     SVECTOR          rot;
     OverlayMat       mtx;
-    OverlayMatWords* ident;
+    GpMtxWords*      ident;
     Actor104400Work* work;
     GsCOORDINATE2*   coords;
     MATRIX*          m5;
@@ -1750,7 +1750,7 @@ void Actor04400_Fn0304C(Task* arg0)
     GsCOORDINATE2*   coord;
     VECTOR           scale;
     OverlayMat       m;
-    OverlayMatWords* ident;
+    GpMtxWords*      ident;
     SVECTOR          ofs;
 
     work             = (Actor104400Work*)arg0->work;
@@ -4676,7 +4676,7 @@ void Actor04400_Fn08C64(Task* arg0)
     GsCOORDINATE2*   coord;
     VECTOR           scale;
     OverlayMat       m;
-    OverlayMatWords* ident;
+    GpMtxWords*      ident;
 
     work             = (Actor104400Work*)arg0->work;
     ident            = &m.ident;

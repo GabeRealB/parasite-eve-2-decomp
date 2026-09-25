@@ -80,15 +80,15 @@ void func_necrosis_8012EF34(Task* arg0)
                 mem->age = 0;
                 return;
             }
-            player     = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
-            dstm       = (GpMtxWords*)&coord->coord;
-            srcm       = (GpMtxWords*)&player->coord;
-            dstm->w0   = srcm->w0;
-            dstm->w1   = srcm->w1;
-            dstm->w2   = srcm->w2;
-            dstm->w3   = srcm->w3;
-            dstm->h4   = srcm->h4;
-            coord->flg = 0;
+            player        = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
+            dstm          = (GpMtxWords*)&coord->coord;
+            srcm          = (GpMtxWords*)&player->coord;
+            dstm->m00_m01 = srcm->m00_m01;
+            dstm->m02_m10 = srcm->m02_m10;
+            dstm->m11_m12 = srcm->m11_m12;
+            dstm->m20_m21 = srcm->m20_m21;
+            dstm->m22     = srcm->m22;
+            coord->flg    = 0;
             Gp_UpdateCoord(coord);
             mem->move.vx = 0;
             mem->move.vy = 0;

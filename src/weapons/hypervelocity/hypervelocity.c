@@ -93,11 +93,11 @@ void func_hypervelocity_8011D1E8(Task* task)
         case 0:
             dstm              = (GpMtxWords*)&coord->coord;
             coord->sub        = work->parent;
-            dstm->w0          = 0x1000;
-            dstm->w1          = 0;
-            dstm->w2          = 0x1000;
-            dstm->w3          = 0;
-            dstm->h4          = 0x1000;
+            dstm->m00_m01     = 0x1000;
+            dstm->m02_m10     = 0;
+            dstm->m11_m12     = 0x1000;
+            dstm->m20_m21     = 0;
+            dstm->m22         = 0x1000;
             coord->coord.t[0] = D_hypervelocity_8011FB74.vx;
             coord->coord.t[1] = D_hypervelocity_8011FB74.vy;
             coord->coord.t[2] = D_hypervelocity_8011FB74.vz;
@@ -290,11 +290,11 @@ void func_hypervelocity_8011D830(Task* task)
             player             = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
             dstm               = (GpMtxWords*)&coord->coord;
             srcm               = (GpMtxWords*)&player->coord;
-            dstm->w0           = srcm->w0;
-            dstm->w1           = srcm->w1;
-            dstm->w2           = srcm->w2;
-            dstm->w3           = srcm->w3;
-            dstm->h4           = srcm->h4;
+            dstm->m00_m01      = srcm->m00_m01;
+            dstm->m02_m10      = srcm->m02_m10;
+            dstm->m11_m12      = srcm->m11_m12;
+            dstm->m20_m21      = srcm->m20_m21;
+            dstm->m22          = srcm->m22;
             coord->flg         = 0;
             gGfxViewCoord.flg  = 0;
             Gp_UpdateCoord(coord);
@@ -881,16 +881,16 @@ void func_hypervelocity_8011F374(Task* arg0)
     Task*       parent;
     TmdObject*  extra;
     TmdObject*  playerExtra;
-    HyperCoord* coord;
+    GpCoordExt* coord;
     Task*       work;
-    HyperMat*   mat;
+    GpMtxWords* mat;
     s16         count;
 
     parent      = arg0->parent;
     work        = gameGetPtrSlot(3);
     extra       = (TmdObject*)arg0->extra;
     playerExtra = work->extra;
-    coord       = (HyperCoord*)extra->coords;
+    coord       = (GpCoordExt*)extra->coords;
 
     coord->flg      = 0;
     extra->flags    = playerExtra->flags;
@@ -916,29 +916,29 @@ void func_hypervelocity_8011F374(Task* arg0)
                     SndEvt_EnqueueType7(0x20160004, 1);
                 }
             }
-            coord->coord.mat.t[0] = 0;
-            coord->coord.mat.t[1] = -arg0->killCountdown * 4;
-            coord->coord.mat.t[2] = -0x16;
+            coord->coord.t[0] = 0;
+            coord->coord.t[1] = -arg0->killCountdown * 4;
+            coord->coord.t[2] = -0x16;
             break;
         case 2:
             if (parent->spawnArg1 & 0x20) {
-                if (coord->angle >= -0x3FF) {
-                    coord->angle = coord->angle - 0x110;
+                if (coord->param.rot.vx >= -0x3FF) {
+                    coord->param.rot.vx = coord->param.rot.vx - 0x110;
                 }
-            } else if (coord->angle < 0) {
-                coord->angle = coord->angle + 0x110;
+            } else if (coord->param.rot.vx < 0) {
+                coord->param.rot.vx = coord->param.rot.vx + 0x110;
             }
-            coord->coord.mat.t[0] = -0x14;
-            coord->coord.mat.t[1] = -0x15C;
-            coord->coord.mat.t[2] = 0xA8;
+            coord->coord.t[0] = -0x14;
+            coord->coord.t[1] = -0x15C;
+            coord->coord.t[2] = 0xA8;
 
-            mat                = &coord->coord;
-            mat->ident.m00_m01 = 0x1000;
-            mat->ident.m02_m10 = 0;
-            mat->ident.m11_m12 = 0x1000;
-            mat->ident.m20_m21 = 0;
-            mat->ident.m22     = 0x1000;
-            RotMatrixX(coord->angle, &mat->mat);
+            mat          = (GpMtxWords*)&coord->coord;
+            mat->m00_m01 = 0x1000;
+            mat->m02_m10 = 0;
+            mat->m11_m12 = 0x1000;
+            mat->m20_m21 = 0;
+            mat->m22     = 0x1000;
+            RotMatrixX(coord->param.rot.vx, &coord->coord);
             break;
     }
     SCRATCH_SP += 0x10;

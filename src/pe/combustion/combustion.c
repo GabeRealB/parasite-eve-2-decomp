@@ -62,11 +62,11 @@ void func_combustion_8012EF34(Task* arg0)
             D_combustion_801309A4 = coord->workm.t[1];
             rot                   = (GpMtxWords*)&coord->coord;
             coord->sub            = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
-            rot->w0               = 0x1000;
-            rot->w2               = 0x1000;
-            rot->h4               = 0x1000;
-            rot->w1               = 0;
-            rot->w3               = 0;
+            rot->m00_m01          = 0x1000;
+            rot->m11_m12          = 0x1000;
+            rot->m22              = 0x1000;
+            rot->m02_m10          = 0;
+            rot->m20_m21          = 0;
             coord->coord.t[0]     = 0;
             coord->coord.t[1]     = -0x400;
             coord->coord.t[2]     = 0;
@@ -146,13 +146,13 @@ void func_combustion_8012F2BC(Task* arg0)
     mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
-            rot        = (GpMtxWords*)&coord->coord;
-            coord->sub = mem->parent;
-            rot->w0    = 0x1000;
-            rot->w1    = 0;
-            rot->w2    = 0x1000;
-            rot->w3    = 0;
-            rot->h4    = 0x1000;
+            rot          = (GpMtxWords*)&coord->coord;
+            coord->sub   = mem->parent;
+            rot->m00_m01 = 0x1000;
+            rot->m02_m10 = 0;
+            rot->m11_m12 = 0x1000;
+            rot->m20_m21 = 0;
+            rot->m22     = 0x1000;
 
             coord->coord.t[0] = mem->pos.vx;
             coord->coord.t[1] = mem->pos.vy;

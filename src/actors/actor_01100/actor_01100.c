@@ -469,12 +469,12 @@ void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
     work->field_BA5 = 1;
     work->field_BA4 = 1;
 
-    mtx     = (GpMtxWords*)&work->coord.coord;
-    mtx->w0 = 0x1000;
-    mtx->w1 = 0;
-    mtx->w2 = 0x1000;
-    mtx->w3 = 0;
-    mtx->h4 = 0x1000;
+    mtx          = (GpMtxWords*)&work->coord.coord;
+    mtx->m00_m01 = 0x1000;
+    mtx->m02_m10 = 0;
+    mtx->m11_m12 = 0x1000;
+    mtx->m20_m21 = 0;
+    mtx->m22     = 0x1000;
     if ((s8)work->field_BBB == 0x31) {
         scale = Actor01100_D00010;
         Actor01100_Fn067C0(&work->coord.coord, &scale);
@@ -3458,11 +3458,11 @@ void Actor01100_Fn0638C(Task* task)
     task->killCountdown = 0x5A;
     rotation            = (GpMtxWords*)&coord->coord;
     obj                 = &work->obj;
-    rotation->w0        = 0x1000;
-    rotation->w1        = 0;
-    rotation->w2        = 0x1000;
-    rotation->w3        = 0;
-    rotation->h4        = 0x1000;
+    rotation->m00_m01   = 0x1000;
+    rotation->m02_m10   = 0;
+    rotation->m11_m12   = 0x1000;
+    rotation->m20_m21   = 0;
+    rotation->m22       = 0x1000;
     rec                 = work->rec18;
     coord->flg          = 0;
     coord->coord.t[1]  += 0x30;

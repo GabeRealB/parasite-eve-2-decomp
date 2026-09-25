@@ -1077,7 +1077,7 @@ void func_actor_206100_8014B0AC(Task* task, u8 arg1)
                     work->field_53C = 0x1000;
                     /* fallthrough */
                 case 1: {
-                    OverlayMatWords* ir;
+                    GpMtxWords* ir;
 
                     work->field_4D8.vx = (u16)work->field_4D8.vx + ((s32) - (work->field_4D8.vx * 0x10) >> 7);
                     work->field_4D8.vy = (u16)work->field_4D8.vy + ((s32) - (work->field_4D8.vy * 0x10) >> 7);
@@ -1111,10 +1111,10 @@ void func_actor_206100_8014B0AC(Task* task, u8 arg1)
                     break;
                 }
                 case 2: {
-                    OverlayMatWords* ia;
-                    OverlayMatWords* ib;
-                    OverlayMatWords* ic;
-                    OverlayMatWords* ir;
+                    GpMtxWords* ia;
+                    GpMtxWords* ib;
+                    GpMtxWords* ic;
+                    GpMtxWords* ir;
 
                     Gp_MtxToEuler(&c4->coord, &euler);
                     work->field_53C  = (u16)work->field_53C + ((0x2AA - work->field_53C) >> 3);
@@ -1176,10 +1176,10 @@ void func_actor_206100_8014B0AC(Task* task, u8 arg1)
             base[4].flg = 0;
             Gp_UpdateCoord(c4);
             if (work->field_53C < 0xF80) {
-                OverlayMatWords* ia;
-                OverlayMatWords* ib;
-                OverlayMatWords* ic;
-                OverlayMatWords* ir;
+                GpMtxWords* ia;
+                GpMtxWords* ib;
+                GpMtxWords* ic;
+                GpMtxWords* ir;
 
                 Gp_MtxToEuler(&c4->coord, &euler);
                 work->field_53C  = (u16)work->field_53C + ((0x1000 - work->field_53C) >> 2);
@@ -2985,9 +2985,9 @@ void func_actor_206100_8014E228(Task* task)
     Actor206100Work* work;
     GsCOORDINATE2*   base;
     GsCOORDINATE2*   c2;
-    OverlayMatWords* ia;
-    OverlayMatWords* ib;
-    OverlayMatWords* ic;
+    GpMtxWords*      ia;
+    GpMtxWords*      ib;
+    GpMtxWords*      ic;
     MATRIX*          m2;
     MATRIX*          m3;
     MATRIX*          dest;

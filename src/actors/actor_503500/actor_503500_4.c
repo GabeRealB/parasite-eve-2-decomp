@@ -2677,7 +2677,7 @@ void func_actor_503500_8013FA74(Task* arg0)
     GpRec18*            rec;
     GpRec18*            rec2;
     OverlayMat          m;
-    OverlayMatWords*    ident;
+    GpMtxWords*         ident;
     s32                 idx;
     s32                 i;
 
@@ -3975,7 +3975,7 @@ void func_actor_503500_80142980(Task* arg0)
     OverlayMat          m;
     s8                  param1[8];
     s8                  param2[8];
-    OverlayMatWords*    ident;
+    GpMtxWords*         ident;
     Actor503500Work224* work;
     GpEnemy*            enemy;
     GsCOORDINATE2*      coord;
@@ -4690,12 +4690,12 @@ void func_actor_503500_80144300(Task* arg0)
         v.vz = (s32)arg0->spawnArg2;
         ApplyMatrixLV(&coord->coord, &v, &work->field_A4);
     } else {
-        m     = (GpMtxWords*)&coord->coord;
-        m->w0 = 0x1000;
-        m->w1 = 0;
-        m->w2 = 0x1000;
-        m->w3 = 0;
-        m->h4 = 0x1000;
+        m          = (GpMtxWords*)&coord->coord;
+        m->m00_m01 = 0x1000;
+        m->m02_m10 = 0;
+        m->m11_m12 = 0x1000;
+        m->m20_m21 = 0;
+        m->m22     = 0x1000;
     }
     rec = work->rec;
 
@@ -4885,11 +4885,11 @@ void func_actor_503500_801448E8(Task* arg0)
         work->field_A8 = (s32)arg0->spawnArg2;
     } else {
         m              = (GpMtxWords*)&coord->coord;
-        m->w0          = 0x1000;
-        m->w1          = 0;
-        m->w2          = 0x1000;
-        m->w3          = 0;
-        m->h4          = 0x1000;
+        m->m00_m01     = 0x1000;
+        m->m02_m10     = 0;
+        m->m11_m12     = 0x1000;
+        m->m20_m21     = 0;
+        m->m22         = 0x1000;
         work->field_A8 = 0x100000;
     }
     rec = work->rec;

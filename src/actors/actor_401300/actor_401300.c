@@ -1338,7 +1338,7 @@ void func_actor_401300_80134454(GpEnemy* enemy, Task* actor)
     Actor401300Work* work;
     GpObj*           body;
     GpObj*           head;
-    OverlayMatWords* mw;
+    GpMtxWords*      mw;
 
     root        = ((TmdObject*)actor->extra)->coords;
     obj         = actor->extra;
@@ -1384,7 +1384,7 @@ void func_actor_401300_80134454(GpEnemy* enemy, Task* actor)
     func_actor_401300_80133A3C(actor);
 
     work->field_920.sub        = &gGfxViewCoord;
-    mw                         = (OverlayMatWords*)&work->field_920.coord;
+    mw                         = (GpMtxWords*)&work->field_920.coord;
     mw->m00_m01                = 0x1000;
     mw->m02_m10                = 0;
     mw->m11_m12                = 0x1000;
@@ -2818,7 +2818,7 @@ void func_actor_401300_80139134(Task* arg0)
     Actor401300Work* work;
     GpEnemy*         enemy;
     TmdObject*       obj;
-    OverlayMatWords* w;
+    GpMtxWords*      w;
     SVECTOR          pos;
     s16              t;
 
@@ -2837,7 +2837,7 @@ void func_actor_401300_80139134(Task* arg0)
     if (work->field_6 <= 0x400) {
         switch (++work->field_6) {
             case 30:
-                w          = (OverlayMatWords*)&work->field_8C0.coord;
+                w          = (GpMtxWords*)&work->field_8C0.coord;
                 w->m00_m01 = 0x1000;
                 w->m02_m10 = 0;
                 w->m11_m12 = 0x1000;

@@ -62,11 +62,11 @@ void func_m4a1_hammer_8011D1E0(Task* task)
             case 0:
                 dstm              = (GpMtxWords*)&coord->coord;
                 coord->sub        = work->parent;
-                dstm->w0          = 0x1000;
-                dstm->w2          = 0x1000;
-                dstm->h4          = 0x1000;
-                dstm->w1          = 0;
-                dstm->w3          = 0;
+                dstm->m00_m01     = 0x1000;
+                dstm->m11_m12     = 0x1000;
+                dstm->m22         = 0x1000;
+                dstm->m02_m10     = 0;
+                dstm->m20_m21     = 0;
                 coord->coord.t[0] = D_m4a1_hammer_8011EB60.vx;
                 coord->coord.t[1] = D_m4a1_hammer_8011EB60.vy;
                 coord->coord.t[2] = D_m4a1_hammer_8011EB60.vz;

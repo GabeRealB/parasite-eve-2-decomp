@@ -66,11 +66,11 @@ void func_actor_503500_80132778(Task* task)
         coord->coord.t[1] = pos->vy;
         coord->coord.t[2] = pos->vz;
         rot               = (GpMtxWords*)&coord->coord;
-        rot->w0           = 0x1000;
-        rot->w1           = 0;
-        rot->w2           = 0x1000;
-        rot->w3           = 0;
-        rot->h4           = 0x1000;
+        rot->m00_m01      = 0x1000;
+        rot->m02_m10      = 0;
+        rot->m11_m12      = 0x1000;
+        rot->m20_m21      = 0;
+        rot->m22          = 0x1000;
         coord->flg        = 0;
         work              = memCalloc(0xC, false);
         if (work == NULL) {

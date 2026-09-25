@@ -484,13 +484,13 @@ void func_shelter_b2_pod_bottom_8017EC78(Task* task)
         work->age  = tick + 1;
         switch (task->state) {
             case 0:
-                rot         = (GpMtxWords*)&coord->coord;
-                rot->w0     = 0x1000;
-                rot->w1     = 0;
-                rot->w2     = 0x1000;
-                rot->w3     = 0;
-                rot->h4     = 0x1000;
-                work->scale = 0xA0;
+                rot          = (GpMtxWords*)&coord->coord;
+                rot->m00_m01 = 0x1000;
+                rot->m02_m10 = 0;
+                rot->m11_m12 = 0x1000;
+                rot->m20_m21 = 0;
+                rot->m22     = 0x1000;
+                work->scale  = 0xA0;
                 task->state++;
                 return;
             case 1:
@@ -647,19 +647,19 @@ void func_shelter_b2_pod_bottom_8017F448(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                rot         = (GpMtxWords*)&coord->coord;
-                rot->w0     = 0x1000;
-                rot->w1     = 0;
-                rot->w2     = 0x1000;
-                rot->w3     = 0;
-                rot->h4     = 0x1000;
-                coord->flg  = 0;
-                work->scale = 0;
-                work->angle = 0x80;
-                work->step  = 0xC0 / task->spawnArg1;
-                task->state = 1;
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                work->index = (Gp_LcgState >> 16) % 18;
+                rot          = (GpMtxWords*)&coord->coord;
+                rot->m00_m01 = 0x1000;
+                rot->m02_m10 = 0;
+                rot->m11_m12 = 0x1000;
+                rot->m20_m21 = 0;
+                rot->m22     = 0x1000;
+                coord->flg   = 0;
+                work->scale  = 0;
+                work->angle  = 0x80;
+                work->step   = 0xC0 / task->spawnArg1;
+                task->state  = 1;
+                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+                work->index  = (Gp_LcgState >> 16) % 18;
             case 1:
                 if (Gp_State1C->eventState != 0) {
                     work->age--;
@@ -859,17 +859,17 @@ void func_shelter_b2_pod_bottom_8018016C(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                rot         = (GpMtxWords*)&coord->coord;
-                rot->w0     = 0x1000;
-                rot->w1     = 0;
-                rot->w2     = 0x1000;
-                rot->w3     = 0;
-                rot->h4     = 0x1000;
-                coord->flg  = 0;
-                work->scale = 0;
-                work->angle = 0x80;
-                work->step  = 0xC0 / task->spawnArg1;
-                task->state = 1;
+                rot          = (GpMtxWords*)&coord->coord;
+                rot->m00_m01 = 0x1000;
+                rot->m02_m10 = 0;
+                rot->m11_m12 = 0x1000;
+                rot->m20_m21 = 0;
+                rot->m22     = 0x1000;
+                coord->flg   = 0;
+                work->scale  = 0;
+                work->angle  = 0x80;
+                work->step   = 0xC0 / task->spawnArg1;
+                task->state  = 1;
                 for (i = 0; i < 8; i++) {
                     Gp_LcgState                         = Gp_LcgState * 5 + 0x71357911;
                     D_shelter_b2_pod_bottom_801887F0[i] = (i << 9) + ((Gp_LcgState >> 16) & 0x1FF);

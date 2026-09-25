@@ -2742,7 +2742,7 @@ void func_actor_503500_80137678(Task* arg0)
 {
     SVECTOR          rot;
     OverlayMat       m;
-    OverlayMatWords* ident;
+    GpMtxWords*      ident;
     Actor503500Work* work;
     GpEnemy*         enemy;
     GsCOORDINATE2*   coord;
@@ -3163,7 +3163,7 @@ void func_actor_503500_8013852C(Task* arg0)
     Actor503500Work2EC* work;
     GpRec18*            rec;
     OverlayMat          m;
-    OverlayMatWords*    ident;
+    GpMtxWords*         ident;
     s32                 idx;
     s32                 i;
 
@@ -3307,7 +3307,7 @@ void func_actor_503500_80138A30(Task* arg0)
 {
     Actor503500Work2EC* work;
     OverlayMat          m;
-    OverlayMatWords*    ident;
+    GpMtxWords*         ident;
     SVECTOR             v;
     s32                 idx;
     s16                 hp;

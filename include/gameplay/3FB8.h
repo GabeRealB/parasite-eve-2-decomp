@@ -164,17 +164,15 @@ typedef struct GpEffWork {
 } GpEffWork;
 STATIC_ASSERT_SIZEOF(GpEffWork, 0x2C);
 
-/// 32-bit view of a `MATRIX` rotation block. `Gp_EffSprTask30` writes an
-/// identity rotation into `GsCOORDINATE2.coord` with word-sized stores:
-/// `w0` covers `m[0][0]` / `m[0][1]`, `w1` covers `m[0][2]` / `m[1][0]`,
-/// `w2` covers `m[1][1]` / `m[1][2]`, `w3` covers `m[2][0]` / `m[2][1]`,
-/// and `h4` is `m[2][2]`.
+/// The leading rotation entries of a `MATRIX`, paired into words, so a
+/// rotation can be reset to identity with five aligned word stores instead of
+/// nine halfword ones.
 typedef struct _GpMtxWords {
-    /* 0x00 */ s32 w0;
-    /* 0x04 */ s32 w1;
-    /* 0x08 */ s32 w2;
-    /* 0x0C */ s32 w3;
-    /* 0x10 */ s16 h4;
+    /* 0x00 */ s32 m00_m01;
+    /* 0x04 */ s32 m02_m10;
+    /* 0x08 */ s32 m11_m12;
+    /* 0x0C */ s32 m20_m21;
+    /* 0x10 */ s16 m22;
 } GpMtxWords;
 
 /// 4-byte row of `D_8011291C`, indexed by `Task::spawnArg1`.

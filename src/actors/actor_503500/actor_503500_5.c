@@ -203,19 +203,19 @@ void func_actor_503500_80144E8C(Task* arg0)
     arg0->work     = (TaskIdMap*)work;
     work->field_C4 = 0x1000;
 
-    m1     = (GpMtxWords*)&coord->coord;
-    m1->w0 = 0x1000;
-    m1->w1 = 0;
-    m1->w2 = 0x1000;
-    m1->w3 = 0;
-    m1->h4 = 0x1000;
+    m1          = (GpMtxWords*)&coord->coord;
+    m1->m00_m01 = 0x1000;
+    m1->m02_m10 = 0;
+    m1->m11_m12 = 0x1000;
+    m1->m20_m21 = 0;
+    m1->m22     = 0x1000;
 
-    m2     = (GpMtxWords*)&work->field_9C;
-    m2->w0 = 0x1000;
-    m2->w1 = 0;
-    m2->w2 = 0x1000;
-    m2->w3 = 0;
-    m2->h4 = 0x1000;
+    m2          = (GpMtxWords*)&work->field_9C;
+    m2->m00_m01 = 0x1000;
+    m2->m02_m10 = 0;
+    m2->m11_m12 = 0x1000;
+    m2->m20_m21 = 0;
+    m2->m22     = 0x1000;
 
     d4  = &work->head.d4;
     rec = work->head.rec;
@@ -302,13 +302,13 @@ void func_actor_503500_801450A0(Task* arg0)
                 GpMtxWords* m;
 
                 m                 = (GpMtxWords*)&work->field_9C;
-                m->w0             = 0x1000;
+                m->m00_m01        = 0x1000;
                 work->field_C0   += step;
                 work->field_BC.w += work->field_C0;
-                m->w1             = 0;
-                m->w2             = 0x1000;
-                m->w3             = 0;
-                m->h4             = 0x1000;
+                m->m02_m10        = 0;
+                m->m11_m12        = 0x1000;
+                m->m20_m21        = 0;
+                m->m22            = 0x1000;
             }
             func_8004BFF8(work->field_BC.h.hi, &work->field_9C);
             ang = work->field_BC.h.hi;
@@ -337,12 +337,12 @@ void func_actor_503500_801450A0(Task* arg0)
                 GpMtxWords* m;
 
                 m                 = (GpMtxWords*)&work->field_9C;
-                m->w0             = 0x1000;
+                m->m00_m01        = 0x1000;
                 work->field_BC.w += work->field_C0;
-                m->w1             = 0;
-                m->w2             = 0x1000;
-                m->w3             = 0;
-                m->h4             = 0x1000;
+                m->m02_m10        = 0;
+                m->m11_m12        = 0x1000;
+                m->m20_m21        = 0;
+                m->m22            = 0x1000;
             }
             func_8004BFF8(work->field_BC.h.hi, &work->field_9C);
             break;
@@ -449,12 +449,12 @@ void func_actor_503500_801455A4(Task* arg0)
     }
     arg0->work = (TaskIdMap*)work;
 
-    m     = (GpMtxWords*)&coord->coord;
-    m->w0 = 0x1000;
-    m->w1 = 0;
-    m->w2 = 0x1000;
-    m->w3 = 0;
-    m->h4 = 0x1000;
+    m          = (GpMtxWords*)&coord->coord;
+    m->m00_m01 = 0x1000;
+    m->m02_m10 = 0;
+    m->m11_m12 = 0x1000;
+    m->m20_m21 = 0;
+    m->m22     = 0x1000;
 
     work->head.obj.coord    = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
     work->head.obj.ctx.recs = &work->head.rec;
@@ -596,12 +596,12 @@ void func_actor_503500_80145A2C(Task* arg0)
     }
     arg0->work = (TaskIdMap*)work;
 
-    m     = (GpMtxWords*)&coord->coord;
-    m->w0 = 0x1000;
-    m->w1 = 0;
-    m->w2 = 0x1000;
-    m->w3 = 0;
-    m->h4 = 0x1000;
+    m          = (GpMtxWords*)&coord->coord;
+    m->m00_m01 = 0x1000;
+    m->m02_m10 = 0;
+    m->m11_m12 = 0x1000;
+    m->m20_m21 = 0;
+    m->m22     = 0x1000;
 
     d4  = &work->head.d4;
     rec = work->head.rec;

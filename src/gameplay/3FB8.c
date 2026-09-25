@@ -413,11 +413,11 @@ void func_800F91AC(Task* arg0)
         if (arg0->state == 0) {
             coord->sub        = mem->parent;
             rot               = (GpMtxWords*)&coord->coord;
-            rot->w0           = 0x1000;
-            rot->w1           = 0;
-            rot->w2           = 0x1000;
-            rot->w3           = 0;
-            rot->h4           = 0x1000;
+            rot->m00_m01      = 0x1000;
+            rot->m02_m10      = 0;
+            rot->m11_m12      = 0x1000;
+            rot->m20_m21      = 0;
+            rot->m22          = 0x1000;
             coord->coord.t[0] = mem->pos.vx;
             coord->coord.t[1] = mem->pos.vy;
             coord->coord.t[2] = mem->pos.vz;
@@ -539,22 +539,22 @@ void Gp_EffSprTask30(Task* arg0)
     mem->age++;
     switch (arg0->state) {
         case 0:
-            rot         = (GpMtxWords*)&coord->coord;
-            rot->w0     = 0x1000;
-            rot->w2     = 0x1000;
-            rot->h4     = 0x1000;
-            rot->w1     = 0;
-            rot->w3     = 0;
-            mem->pos.vx = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0 & 0xFFF;
-            mem->scale  = 0x100;
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            mem->pos.vy = ((u32)Gp_LcgState >> 16) & 7;
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            mem->index  = ((u32)Gp_LcgState >> 16) & 7;
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            mem->pos.vz = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            mem->period = 0x200 - (((u32)Gp_LcgState >> 16) & 0x3FF);
+            rot          = (GpMtxWords*)&coord->coord;
+            rot->m00_m01 = 0x1000;
+            rot->m11_m12 = 0x1000;
+            rot->m22     = 0x1000;
+            rot->m02_m10 = 0;
+            rot->m20_m21 = 0;
+            mem->pos.vx  = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0 & 0xFFF;
+            mem->scale   = 0x100;
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            mem->pos.vy  = ((u32)Gp_LcgState >> 16) & 7;
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            mem->index   = ((u32)Gp_LcgState >> 16) & 7;
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            mem->pos.vz  = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            mem->period  = 0x200 - (((u32)Gp_LcgState >> 16) & 0x3FF);
             if ((mem->move.vx | mem->move.vy | mem->move.vz) == 0) {
                 Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
                 mem->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
@@ -2698,11 +2698,11 @@ void Gp_EffSprTask3F(Task* arg0)
                 if (mem->index != 0) {
                     rot               = (GpMtxWords*)&coord->coord;
                     coord->sub        = mem->parent;
-                    rot->w0           = 0x1000;
-                    rot->w1           = 0;
-                    rot->w2           = 0x1000;
-                    rot->w3           = 0;
-                    rot->h4           = 0x1000;
+                    rot->m00_m01      = 0x1000;
+                    rot->m02_m10      = 0;
+                    rot->m11_m12      = 0x1000;
+                    rot->m20_m21      = 0;
+                    rot->m22          = 0x1000;
                     coord->coord.t[2] = 0;
                     coord->coord.t[1] = 0;
                     coord->coord.t[0] = 0;

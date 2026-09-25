@@ -378,7 +378,7 @@ void func_actor_350500_801625E4(Task* arg0)
 void func_actor_350500_8016272C(Task* arg0)
 {
     Actor350500Work* work;
-    OverlayMatWords* words;
+    GpMtxWords*      words;
     GsCOORDINATE2*   coord;
     SVECTOR          vec;
     GpAnimArg        preset;
@@ -409,7 +409,7 @@ void func_actor_350500_8016272C(Task* arg0)
         work->walk.motionStep = 0;
     }
 
-    words          = (OverlayMatWords*)&coord->coord;
+    words          = (GpMtxWords*)&coord->coord;
     words->m00_m01 = ONE;
     words->m02_m10 = 0;
     words->m11_m12 = ONE;

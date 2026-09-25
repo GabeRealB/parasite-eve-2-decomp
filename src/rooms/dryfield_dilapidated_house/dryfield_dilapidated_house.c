@@ -1269,26 +1269,26 @@ void func_dryfield_dilapidated_house_8017F568(Task* task, SVECTOR* verts, s32 ar
 /// `killCountdown`.
 void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts, s32* arg2, s32* arg3)
 {
-    SVECTOR          a;
-    SVECTOR          b;
-    OverlayMat       rot;
-    DdhScreenPoint   proj[2];
-    DdhCoordWork*    work;
-    MATRIX*          mtx;
-    SVECTOR*         src;
-    s16              t;
-    s16              r;
-    s32              scale;
-    OverlayMatWords* words;
-    s32              i;
-    u16              f;
-    u16              x0;
-    s32              y0;
-    u16              x1;
-    s32              y1;
-    s32              dx;
-    s32              dy;
-    s32              side;
+    SVECTOR        a;
+    SVECTOR        b;
+    OverlayMat     rot;
+    DdhScreenPoint proj[2];
+    DdhCoordWork*  work;
+    MATRIX*        mtx;
+    SVECTOR*       src;
+    s16            t;
+    s16            r;
+    s32            scale;
+    GpMtxWords*    words;
+    s32            i;
+    u16            f;
+    u16            x0;
+    s32            y0;
+    u16            x1;
+    s32            y1;
+    s32            dx;
+    s32            dy;
+    s32            side;
 
     side = task->spawnArg1;
     work = ((Task*)task->spawnArg2)->work;

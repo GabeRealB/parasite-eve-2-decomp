@@ -1027,16 +1027,16 @@ void func_shelter_b6_training_room_80180DB4(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                rot         = (GpMtxWords*)&coord->coord;
-                rot->w0     = 0x1000;
-                rot->w1     = 0;
-                rot->w2     = 0x1000;
-                rot->w3     = 0;
-                rot->h4     = 0x1000;
-                coord->flg  = 0;
-                work->scale = 0;
-                work->angle = 0x100;
-                work->step  = 0xC0 / task->spawnArg1;
+                rot          = (GpMtxWords*)&coord->coord;
+                rot->m00_m01 = 0x1000;
+                rot->m02_m10 = 0;
+                rot->m11_m12 = 0x1000;
+                rot->m20_m21 = 0;
+                rot->m22     = 0x1000;
+                coord->flg   = 0;
+                work->scale  = 0;
+                work->angle  = 0x100;
+                work->step   = 0xC0 / task->spawnArg1;
                 if (work->step == 0) {
                     work->step = 1;
                 }
@@ -1293,11 +1293,11 @@ void func_shelter_b6_training_room_80181A3C(Task* task)
 
             rot               = (GpMtxWords*)&coord->coord;
             coord->sub        = mem->parent;
-            rot->w0           = 0x1000;
-            rot->w1           = 0;
-            rot->w2           = 0x1000;
-            rot->w3           = 0;
-            rot->h4           = 0x1000;
+            rot->m00_m01      = 0x1000;
+            rot->m02_m10      = 0;
+            rot->m11_m12      = 0x1000;
+            rot->m20_m21      = 0;
+            rot->m22          = 0x1000;
             coord->coord.t[0] = mem->pos.vx;
             Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
             first             = Gp_LcgState;

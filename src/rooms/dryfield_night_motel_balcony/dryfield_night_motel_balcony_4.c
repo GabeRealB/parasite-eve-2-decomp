@@ -832,11 +832,11 @@ void func_dryfield_night_motel_balcony_801809CC(Task* task)
     switch (task->state) {
         case 0:
             rot           = (GpMtxWords*)&coord->coord;
-            rot->w0       = 0x1000;
-            rot->w1       = 0;
-            rot->w2       = 0x1000;
-            rot->w3       = 0;
-            rot->h4       = 0x1000;
+            rot->m00_m01  = 0x1000;
+            rot->m02_m10  = 0;
+            rot->m11_m12  = 0x1000;
+            rot->m20_m21  = 0;
+            rot->m22      = 0x1000;
             work->pos.vx  = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
             work->scale   = 0xA0;
             Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;

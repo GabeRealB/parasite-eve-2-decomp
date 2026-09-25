@@ -388,7 +388,7 @@ void func_actor_341700_801626C4(Task* arg0)
 {
     SVECTOR          rot;
     OverlayMat       mtx;
-    OverlayMatWords* ident;
+    GpMtxWords*      ident;
     Actor341700Work* work;
     GsCOORDINATE2*   coords;
     MATRIX*          m5;
@@ -1555,7 +1555,7 @@ void func_actor_341700_80164E9C(Task* arg0)
     GsCOORDINATE2*   coord;
     VECTOR           scale;
     OverlayMat       m;
-    OverlayMatWords* ident;
+    GpMtxWords*      ident;
     SVECTOR          ofs;
 
     work             = (Actor341700Work*)arg0->work;
@@ -4474,7 +4474,7 @@ void func_actor_341700_8016AAB4(Task* arg0)
     GsCOORDINATE2*   coord;
     VECTOR           scale;
     OverlayMat       m;
-    OverlayMatWords* ident;
+    GpMtxWords*      ident;
 
     work             = (Actor341700Work*)arg0->work;
     ident            = &m.ident;

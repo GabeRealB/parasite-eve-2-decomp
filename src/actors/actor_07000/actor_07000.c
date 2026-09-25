@@ -2838,11 +2838,11 @@ void Actor07000_Fn04B18(Task* arg0)
     gte_gpf12();
     gte_stsv(&work->vec);
     rot                = (GpMtxWords*)&coord->coord;
-    rot->w0            = 0x1000;
-    rot->w1            = 0;
-    rot->w2            = 0x1000;
-    rot->w3            = 0;
-    rot->h4            = 0x1000;
+    rot->m00_m01       = 0x1000;
+    rot->m02_m10       = 0;
+    rot->m11_m12       = 0x1000;
+    rot->m20_m21       = 0;
+    rot->m22           = 0x1000;
     coord->coord.t[0] += work->vec.vx;
     rng                = Gp_LcgState * 5 + 0x71357911;
     coord->coord.t[1] += (rng >> 16) & 0x7F;

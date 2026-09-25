@@ -67,11 +67,11 @@ void func_metabolism_8012EF34(Task* arg0)
         case 0:
             rot               = (GpMtxWords*)&coord->coord;
             coord->sub        = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
-            rot->w0           = 0x1000;
-            rot->w1           = 0;
-            rot->w2           = 0x1000;
-            rot->w3           = 0;
-            rot->h4           = 0x1000;
+            rot->m00_m01      = 0x1000;
+            rot->m02_m10      = 0;
+            rot->m11_m12      = 0x1000;
+            rot->m20_m21      = 0;
+            rot->m22          = 0x1000;
             coord->coord.t[0] = 0;
             coord->coord.t[1] = -0x400;
             coord->coord.t[2] = 0;
