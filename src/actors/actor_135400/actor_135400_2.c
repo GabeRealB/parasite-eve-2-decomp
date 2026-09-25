@@ -28,18 +28,82 @@ extern s32 D_actor_135400_8013F8E4;
 /// animation. The first and last entries are zero, so neither ever expires.
 extern s16 D_actor_135400_8013F8C4[];
 
+/// Animation banks the two 0x7D3 handlers re-seed their slots from, indexed by
+/// the request's `field_0`: `D_actor_135400_8013A4A8` for the main task,
+/// `D_actor_135400_8013F8D4` for the task `func_actor_135400_80132B60` sets up.
+extern void* D_actor_135400_8013A4A8[];
+extern void* D_actor_135400_8013F8D4[];
+
+/// Main-executable mode byte: while it is nonzero the dispatcher skips the
+/// frame.
+extern u8 D_801153F4;
+
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
 /// The actor's default animation arguments; defined at the end of this file so
 /// its `.rodata` lands after the other units' tables.
 extern const GpAnimArg D_actor_135400_80131EA0;
 
-void func_actor_135400_80132D24(Task* task, s32 anim, GpAnimArg* params, s32 arg3);
+s32  func_actor_135400_80132D24(Task* task, s32 anim, GpAnimArg* params, s32 arg3);
 s32  func_actor_135400_80132EBC(Task* task, s32 anim, s32 arg2, s32 arg3);
 void func_actor_135400_80132C90(Task* task);
+void func_actor_135400_80132B60(Task* arg0);
 void func_actor_135400_80132CB0(Task* task);
 
-INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400_2", func_actor_135400_80132650);
+/// The main task's 0x7D3 handler: when the request names a different bank
+/// than the one latched in `field_476`, re-seeds the twenty slots from
+/// `D_actor_135400_8013A4A8`; then, with `field_8` set and the slots already
+/// live, starts animation `field_4` on every slot through `func_800B4114`
+/// (passing `field_C`), otherwise resets every slot to it, and ticks them all
+/// once.
+s32 func_actor_135400_80132650(Task* task, s32 anim, GpAnimArg* params, s32 arg3)
+{
+    Actor135400MainWork* work;
+    TmdObject*           ext;
+    s32                  i;
 
-INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400_2", func_actor_135400_8013276C);
+    work = (Actor135400MainWork*)task->work;
+    ext  = task->extra;
+    if ((s32)params->field_0 != work->field_476) {
+        work->field_476 = (s32)params->field_0;
+        func_800B3F84(&work->anim, D_actor_135400_8013A4A8[work->field_476], ext, work->poses, work->slots);
+    }
+    work->field_475 = params->field_4;
+    if (params->field_8 != 0 && work->field_474 != 0) {
+        for (i = 1; i < 0x14; i++) {
+            func_800B4114(&work->anim, i, work->field_475, 0, params->field_C);
+        }
+    } else {
+        for (i = 1; i < 0x14; i++) {
+            Gp_AnimResetSlot(&work->anim, i, work->field_475);
+        }
+    }
+    for (i = 1; i < 0x14; i++) {
+        Gp_AnimTickIndex(&work->anim, i);
+    }
+    work->field_474 = 1;
+    return 0;
+}
+
+/// The main task's 0x7D4 handler: drops the placement's translation into the
+/// root part's local matrix and its Euler angles into the coordinate's `rot`
+/// slot, rebuilds the rotation from them and clears `flg` so the world matrix
+/// is recomputed.
+s32 func_actor_135400_8013276C(Task* task, s32 anim, Actor135400Placement* args, s32 arg3)
+{
+    Actor135400Coord* coord;
+
+    coord             = (Actor135400Coord*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0] = args->pos.vx;
+    coord->coord.t[1] = args->pos.vy;
+    coord->coord.t[2] = args->pos.vz;
+    coord->rot.vx     = args->rot.vx;
+    coord->rot.vy     = args->rot.vy;
+    coord->rot.vz     = args->rot.vz;
+    RotMatrix(&coord->rot, &coord->coord);
+    coord->flg = 0;
+    return 0;
+}
 
 /// `Gp_DispatchMsg` handler for message 0x7D5, run against the `TmdObject`
 /// parked in `Task::extra` -- the same four-way model switch
@@ -175,7 +239,26 @@ void func_actor_135400_801329B0(Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400_2", func_actor_135400_80132AF4);
+/// The spawn, tick and exit states of the task `func_actor_135400_80132B60`
+/// sets up, dispatched by `func_actor_135400_80132AF4`.
+const TaskFuncTable3 D_actor_135400_80131E94 = { {
+    func_actor_135400_80132B60,
+    func_actor_135400_801329B0,
+    func_actor_135400_80132C90,
+} };
+
+/// Per-frame dispatcher of the task `func_actor_135400_80132B60` sets up: runs
+/// its spawn, tick or exit state from `D_actor_135400_80131E94`, skipping the
+/// frame while `D_801153F4` is set.
+void func_actor_135400_80132AF4(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_135400_80131E94;
+    if (D_801153F4 == 0) {
+        sp.funcs[task->state](task);
+    }
+}
 
 void func_actor_135400_80132B60(Task* arg0)
 {
@@ -222,9 +305,58 @@ void func_actor_135400_80132CB0(Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400_2", func_actor_135400_80132D24);
+/// The 0x7D3 handler of the task `func_actor_135400_80132B60` sets up: when
+/// the request names a different bank than the one latched in `field_43E`,
+/// re-seeds the nineteen slots from `D_actor_135400_8013F8D4`; then, with
+/// `field_8` set and the slots already live, starts animation `field_4` on
+/// every slot through `func_800B4114` (passing `field_C`), otherwise resets
+/// every slot to it, and ticks them all once.
+s32 func_actor_135400_80132D24(Task* task, s32 anim, GpAnimArg* params, s32 arg3)
+{
+    Actor135400Work* work;
+    TmdObject*       ext;
+    s32              i;
 
-INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400_2", func_actor_135400_80132E40);
+    work = (Actor135400Work*)task->work;
+    ext  = task->extra;
+    if ((s32)params->field_0 != work->field_43E) {
+        work->field_43E = (s32)params->field_0;
+        func_800B3F84(&work->anim, D_actor_135400_8013F8D4[work->field_43E], ext, work->poses, work->slots);
+    }
+    work->field_43D = params->field_4;
+    if (params->field_8 != 0 && work->field_43C != 0) {
+        for (i = 1; i < 0x13; i++) {
+            func_800B4114(&work->anim, i, work->field_43D, 0, params->field_C);
+        }
+    } else {
+        for (i = 1; i < 0x13; i++) {
+            Gp_AnimResetSlot(&work->anim, i, work->field_43D);
+        }
+    }
+    for (i = 1; i < 0x13; i++) {
+        Gp_AnimTickIndex(&work->anim, i);
+    }
+    work->field_43C = 1;
+    return 0;
+}
+
+/// The 0x7D4 handler of the same task: the same placement as
+/// `func_actor_135400_8013276C`, applied to this task's root coordinate.
+s32 func_actor_135400_80132E40(Task* task, s32 anim, Actor135400Placement* args, s32 arg3)
+{
+    Actor135400Coord* coord;
+
+    coord             = (Actor135400Coord*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0] = args->pos.vx;
+    coord->coord.t[1] = args->pos.vy;
+    coord->coord.t[2] = args->pos.vz;
+    coord->rot.vx     = args->rot.vx;
+    coord->rot.vy     = args->rot.vy;
+    coord->rot.vz     = args->rot.vz;
+    RotMatrix(&coord->rot, &coord->coord);
+    coord->flg = 0;
+    return 0;
+}
 
 /// `Gp_DispatchMsg` handler for the actor's 4-way model-mode switch, run
 /// against the `TmdObject` parked in `Task::extra`. Mode 0 shows the model and

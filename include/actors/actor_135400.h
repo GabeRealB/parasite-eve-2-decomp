@@ -3,8 +3,6 @@
 
 #include "common.h"
 
-#include "actors/actors_shared_8013231c.h"
-
 #include "gameplay/1BC.h"
 #include "gameplay/3FB8.h"
 #include "main/task.h"
@@ -26,17 +24,17 @@
 /// `field_20` at them and fills them from the three `D_actor_135400_8013F904`
 /// lights.
 ///
-/// `field_43C` is the per-slot flag `func_actor_135400_80132D24` raises once it
-/// has set the actor up; `field_43D` / `field_43E` latch the `field_4` / `field_0`
-/// of the `GpAnimArg` that call was handed (`-1` until then), and `params` holds
-/// the `D_actor_135400_80131EA0` defaults. The block opens with its own
-/// animation context and the twenty 0x28-byte slots that follow it, the same
-/// 0x334-byte prefix `Actor136100Work` carries: `func_actor_135400_801329B0`
-/// ticks those slots through `Gp_AnimTickIndex` once `field_43C` is set.
+/// `field_43C` is the flag the 0x7D3 handler `func_actor_135400_80132D24`
+/// raises once it has run the slots; `field_43D` / `field_43E` latch the
+/// `field_4` / `field_0` of the `GpAnimArg` that call was handed (`-1` until
+/// then), and `params` holds the `D_actor_135400_80131EA0` defaults. The block
+/// opens with its own animation context, the nineteen 0x28-byte slots and the
+/// pose buffer the handler passes `func_800B3F84`; `func_actor_135400_801329B0`
+/// ticks slots 1..18 through `Gp_AnimTickIndex` once `field_43C` is set.
 typedef struct Actor135400Work {
     /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[0x14];
-    /* 0x334 */ byte       pad_334[0x108];
+    /* 0x014 */ GpAnimSlot slots[0x13];
+    /* 0x30C */ byte       poses[0x130];
     /* 0x43C */ s8         field_43C;
     /* 0x43D */ s8         field_43D;
     /* 0x43E */ s8         field_43E;
@@ -55,11 +53,10 @@ STATIC_ASSERT_SIZEOF(Actor135400Work, 0x498);
 /// function parks the 0x7D3 / 0x7D4 / 0x7D5 / 0x7DB handler table
 /// `D_actor_135400_8013A4D0` in that task's `field_24`.
 ///
-/// The block opens with its own animation context and the twenty 0x28-byte
-/// slots that follow it, the same 0x474-byte prefix `Actor311900Anim` and
-/// `Actor136100Work` carry: `func_actor_135400_80132650`, the tick's animation
-/// setter, hands `func_800B3F84` the block itself, `work + 0x14` and
-/// `work + 0x334`. `field_474` is the live flag that setter raises once it has
+/// The block opens with its own animation context, the twenty 0x28-byte slots
+/// and the pose buffer: `func_actor_135400_80132650`, the task's 0x7D3
+/// handler, hands `func_800B3F84` the context, the pose buffer and the slots.
+/// `field_474` is the live flag that handler raises once it has
 /// run the slots -- `func_actor_135400_801322A8` only ticks them while it is
 /// set -- and `field_475` / `field_476` are the two bytes it latches out of the
 /// animation request: `field_476` indexes `D_actor_135400_8013A4A8` for the
@@ -77,7 +74,7 @@ STATIC_ASSERT_SIZEOF(Actor135400Work, 0x498);
 typedef struct Actor135400MainWork {
     /* 0x000 */ GpAnimCtx  anim;
     /* 0x014 */ GpAnimSlot slots[0x14];
-    /* 0x334 */ byte       pad_334[0x140];
+    /* 0x334 */ byte       poses[0x140];
     /* 0x474 */ s8         field_474;
     /* 0x475 */ s8         field_475;
     /* 0x476 */ s8         field_476;
@@ -116,14 +113,32 @@ s32 func_actor_135400_801328DC(Task* task, s32 msgId, Actor135400Msg7DB* msg, s3
 /// the sibling packages do.
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
+/// Payload of the 0x7D4 placement message: a world translation and the Euler
+/// angles handed to `RotMatrix`.
+typedef struct Actor135400Placement {
+    /* 0x00 */ VECTOR  pos;
+    /* 0x10 */ SVECTOR rot;
+} Actor135400Placement;
+STATIC_ASSERT_SIZEOF(Actor135400Placement, 0x18);
+
+/// `GsCOORDINATE2` at `TmdObject::coords` as the placement handlers use it:
+/// the libgs `param` slot at 0x44 holds the Euler angles written there and
+/// then handed straight to `RotMatrix`.
+typedef struct Actor135400Coord {
+    /* 0x00 */ s32     flg;
+    /* 0x04 */ MATRIX  coord;
+    /* 0x24 */ MATRIX  workm;
+    /* 0x44 */ SVECTOR rot;
+} Actor135400Coord;
+STATIC_ASSERT_SIZEOF(Actor135400Coord, 0x4C);
+
 /// The two placements `func_actor_135400_80132064` starts the actor from, in
-/// the `.rodata` at `D_actor_135400_80131E48`: a world translation followed by
-/// the Euler angles handed to `RotMatrix`, the same block the 0x7D4 opcode
-/// takes. The spawn copies the pair in one go and then hands the branch picked
-/// by game flag 0x6C to `func_actor_135400_8013276C`.
+/// the `.rodata` at `D_actor_135400_80131E48`. The spawn copies the pair in
+/// one go and then hands the branch picked by game flag 0x6C to the 0x7D4
+/// handler `func_actor_135400_8013276C`.
 typedef struct Actor135400Places {
-    /* 0x00 */ ActorsShared8013231cArgs field_0;
-    /* 0x18 */ ActorsShared8013231cArgs field_18;
+    /* 0x00 */ Actor135400Placement field_0;
+    /* 0x18 */ Actor135400Placement field_18;
 } Actor135400Places;
 STATIC_ASSERT_SIZEOF(Actor135400Places, 0x30);
 
@@ -140,16 +155,14 @@ extern TaskDesc D_actor_135400_8013A4AC;
 /// (0x24): the 0x7D3 / 0x7D4 / 0x7D5 / 0x7DB bodies of `actor_135400_2`.
 extern s32 D_actor_135400_8013A4D0;
 
-/// Per-frame animation setter for the 0x7D3 opcode: plays the animation the
-/// `GpAnimArg` names across the work block's twenty slots and latches
-/// `field_474`. Built by `actor_135400_2`.
+/// The main task's 0x7D3 handler: plays the animation the `GpAnimArg` names
+/// across the work block's twenty slots and latches `field_474`. Built by
+/// `actor_135400_2`.
 s32 func_actor_135400_80132650(Task* task, s32 anim, GpAnimArg* params, s32 arg3);
 
-/// The 0x7D4 opcode's body: installs its argument block's translation and
-/// Euler angles onto the root part's coordinate. Byte-identical to
-/// `ActorsShared8013231c`, which the other packages link; built by
-/// `actor_135400_2`.
-s32 func_actor_135400_8013276C(Task* task, s32 anim, ActorsShared8013231cArgs* args, s32 arg3);
+/// The main task's 0x7D4 handler: installs the placement's translation and
+/// Euler angles onto the root part's coordinate. Built by `actor_135400_2`.
+s32 func_actor_135400_8013276C(Task* task, s32 anim, Actor135400Placement* args, s32 arg3);
 
 /// `Gp_DispatchMsg` handler for message 0x7D5: the 4-way model-mode switch
 /// that keeps the part task's model in step. Built by `actor_135400_2`.

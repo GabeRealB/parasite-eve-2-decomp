@@ -18,6 +18,11 @@
 /// teardown - dispatched through by state.
 extern TaskFuncTable3 D_actor_135400_80131E24;
 extern TaskFuncTable3 D_actor_135400_80131E30;
+extern TaskFuncTable3 D_actor_135400_80131E3C;
+
+/// Main-executable mode byte: while it is nonzero the main task's dispatcher
+/// skips the frame.
+extern u8 D_801153F4;
 
 /// Second state handler of the actor's part-2 table (`D_actor_135400_80131E30`,
 /// dispatched by `func_actor_135400_801324D4`): a three-phase machine run off
@@ -261,9 +266,45 @@ void func_actor_135400_801324D4(Task* task)
     sp.funcs[task->state](task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400", func_actor_135400_8013252C);
+/// State 0 of the second part task (`D_actor_135400_80131E30`): hangs the
+/// part's root coordinate under the parent's coordinate that `spawnArg1`
+/// indexes, shares the parent model's light and colour matrices and reparents
+/// the task onto the parent before advancing the state.
+void func_actor_135400_8013252C(Task* task)
+{
+    Task*          parent;
+    s32            part;
+    TmdObject*     extra;
+    TmdObject*     parentExtra;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* dest;
 
-INCLUDE_ASM("actors/nonmatchings/actor_135400/actor_135400", func_actor_135400_801325A8);
+    parent          = (Task*)task->spawnArg2;
+    part            = task->spawnArg1;
+    extra           = (TmdObject*)task->extra;
+    parentExtra     = (TmdObject*)parent->extra;
+    coord           = extra->coords;
+    dest            = &parentExtra->coords[part];
+    coord->flg      = 0;
+    coord->sub      = dest;
+    extra->lightMtx = parentExtra->lightMtx;
+    extra->colorMtx = parentExtra->colorMtx;
+    Task_Reparent(parent, task);
+    task->state += 1;
+}
+
+/// Per-frame dispatcher of the main task: runs its spawn, tick or exit state
+/// from `D_actor_135400_80131E3C`, skipping the frame while `D_801153F4` is
+/// set.
+void func_actor_135400_801325A8(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_135400_80131E3C;
+    if (D_801153F4 == 0) {
+        sp.funcs[task->state](task);
+    }
+}
 
 void func_actor_135400_80132614(Task* arg0)
 {
