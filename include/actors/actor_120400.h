@@ -94,6 +94,10 @@ typedef struct Actor120400SpawnAnim {
 } Actor120400SpawnAnim;
 STATIC_ASSERT_SIZEOF(Actor120400SpawnAnim, 0x8);
 
+/// Spawn, tick and teardown handlers of the parent task, dispatched by
+/// `func_actor_120400_80132748`.
+extern TaskFuncTable3 D_actor_120400_80131E30;
+
 /// Spawn, tick and teardown handlers of the two child tasks, dispatched by
 /// `func_actor_120400_8013254C`.
 extern TaskFuncTable3 D_actor_120400_80131E24;
@@ -123,6 +127,7 @@ s32 func_actor_120400_80132398(Task* task, s32 arg1, Actor120400Placement* place
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
+s32 func_actor_120400_80132AA0(Task* task, s32 arg1, Actor120400AnimPreset* msg, s32 arg3);
 s32 func_actor_120400_80132BBC(Task* task, s32 arg1, Actor120400Placement* args);
 s32 func_actor_120400_80132C38(Task* task, s32 arg1, s32 mode, s32 arg3);
 

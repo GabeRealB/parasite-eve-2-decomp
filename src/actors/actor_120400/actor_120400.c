@@ -161,7 +161,50 @@ void func_actor_120400_80132050(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_120400/actor_120400", func_actor_120400_80132254);
+/// Walk step 2, the arrival check: takes the X/Z distance from the root
+/// coordinate to `target`. While it keeps shrinking below `limit` it is stored
+/// as the new `limit`; once it no longer does, the target has been reached or
+/// passed, so the step plays the preset carrying the `field_477` byte through
+/// the 0x7D3 handler, stops the velocity `step` and advances `field_4FA`.
+void func_actor_120400_80132254(Task* arg0)
+{
+    Actor120400MainWork*  work;
+    GsCOORDINATE2*        coord;
+    SVECTOR               d;
+    s32                   dx;
+    s32                   dz;
+    Actor120400AnimPreset preset;
+
+    work  = (Actor120400MainWork*)arg0->work;
+    coord = ((TmdObject*)arg0->extra)->coords;
+    if (work->target.vx - coord->coord.t[0] >= 0) {
+        dx = (u16)work->target.vx - (u16)coord->coord.t[0];
+    } else {
+        dx = (u16)coord->coord.t[0] - (u16)work->target.vx;
+    }
+    d.vx = dx;
+    if (work->target.vz - coord->coord.t[2] >= 0) {
+        dz = (u16)work->target.vz - (u16)coord->coord.t[2];
+    } else {
+        dz = (u16)coord->coord.t[2] - (u16)work->target.vz;
+    }
+    d.vz = dz;
+    if (d.vx >= work->limit.vx && d.vz >= work->limit.vz) {
+        preset.field_0  = 0;
+        preset.field_4  = work->field_477;
+        preset.field_8  = 1;
+        preset.field_C  = 5;
+        preset.field_10 = 0;
+        func_actor_120400_80132AA0(arg0, 0x7D3, &preset, 0);
+        work->step.vx = 0;
+        work->step.vy = 0;
+        work->step.vz = 0;
+        work->field_4FA++;
+        return;
+    }
+    work->limit.vx = d.vx < 0 ? -d.vx : d.vx;
+    work->limit.vz = d.vz < 0 ? -d.vz : d.vz;
+}
 
 /// Message 0x7DD handler of the parent: starts the walk sequence toward a
 /// placement. The position and rotation are copied into `target` and
