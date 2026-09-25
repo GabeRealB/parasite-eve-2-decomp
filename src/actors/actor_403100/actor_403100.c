@@ -2415,41 +2415,158 @@ const TaskFuncTable11 D_actor_403100_80131F34 = {
     },
 };
 
+/// Runs the per-frame hook `D_actor_403100_80131E24` selects by `field_5F2`.
+static inline void _actor403100RunHook(void)
+{
+    Actor403100VoidTable4 hooks = D_actor_403100_80131E24;
+
+    hooks.funcs[D_actor_403100_80155808->field_5F2]();
+}
+
+/// Wraps the root yaw `field_82` to 12 bits and replaces the rotation of the
+/// root coordinate with the one `func_8004BFF8` builds from it.
+static inline void _actor403100SetRootYaw(Task* task)
+{
+    MATRIX   rotation;
+    MATRIX*  dest;
+    GpCoord* coords;
+
+    coords                            = task->extra.tmd->coords;
+    D_actor_403100_80155808->field_82 = (s32)((u16)D_actor_403100_80155808->field_82 << 20) >> 20;
+    gfxSetRotIdentity(&rotation);
+    func_8004BFF8(D_actor_403100_80155808->field_82, &rotation);
+    dest          = &coords->coord;
+    dest->m[0][0] = rotation.m[0][0];
+    dest->m[0][1] = rotation.m[0][1];
+    dest->m[0][2] = rotation.m[0][2];
+    dest->m[1][0] = rotation.m[1][0];
+    dest->m[1][1] = rotation.m[1][1];
+    dest->m[1][2] = rotation.m[1][2];
+    dest->m[2][0] = rotation.m[2][0];
+    dest->m[2][1] = rotation.m[2][1];
+    dest->m[2][2] = rotation.m[2][2];
+    coords->flg   = 0;
+}
+
+/// Scales the root coordinate's matrix by `factor` on all three axes.
+static inline void _actor403100ScaleRoot(Task* task, s32 factor)
+{
+    VECTOR   scale;
+    MATRIX   scaling;
+    GpCoord* coords;
+
+    coords   = task->extra.tmd->coords;
+    scale.vx = factor;
+    scale.vy = scale.vx;
+    scale.vz = scale.vx;
+    gfxSetRotIdentity(&scaling);
+    ScaleMatrix(&scaling, &scale);
+    MulMatrix(&coords->coord, &scaling);
+}
+
+/// Adds the angles `field_A0`, `field_A2` and `field_A4` to the rotation of
+/// model part 6 and updates the part.
+static inline void _actor403100TurnPart6(Task* task)
+{
+    SVECTOR  angles;
+    MATRIX   rotation;
+    MATRIX*  dest;
+    GpCoord* coords;
+
+    coords      = task->extra.tmd->coords + 6;
+    dest        = &coords->coord;
+    coords->flg = 0;
+    gfxSetRotIdentity(&rotation);
+    Gp_MtxToEuler(dest, &angles);
+    angles.vz += D_actor_403100_80155808->field_A4;
+    angles.vy += D_actor_403100_80155808->field_A2;
+    angles.vx += D_actor_403100_80155808->field_A0;
+    RotMatrix(&angles, &rotation);
+    dest->m[0][0] = rotation.m[0][0];
+    dest->m[0][1] = rotation.m[0][1];
+    dest->m[0][2] = rotation.m[0][2];
+    dest->m[1][0] = rotation.m[1][0];
+    dest->m[1][1] = rotation.m[1][1];
+    dest->m[1][2] = rotation.m[1][2];
+    dest->m[2][0] = rotation.m[2][0];
+    dest->m[2][1] = rotation.m[2][1];
+    dest->m[2][2] = rotation.m[2][2];
+    Gp_UpdateCoord(coords);
+}
+
+/// Adds `field_5E8` to the X angle of model part 4 and `field_5EA` to that of
+/// part 3, reusing one workspace for both.
+static inline void _actor403100PitchArms(Task* task)
+{
+    SVECTOR  angles;
+    MATRIX   rotation;
+    MATRIX*  dest;
+    GpCoord* coords;
+
+    coords = task->extra.tmd->coords;
+    gfxSetRotIdentity(&rotation);
+    dest = &coords[4].coord;
+    Gp_MtxToEuler(dest, &angles);
+    angles.vx += D_actor_403100_80155808->field_5E8;
+    RotMatrix(&angles, &rotation);
+    dest->m[0][0] = rotation.m[0][0];
+    dest->m[0][1] = rotation.m[0][1];
+    dest->m[0][2] = rotation.m[0][2];
+    dest->m[1][0] = rotation.m[1][0];
+    dest->m[1][1] = rotation.m[1][1];
+    dest->m[1][2] = rotation.m[1][2];
+    dest->m[2][0] = rotation.m[2][0];
+    dest->m[2][1] = rotation.m[2][1];
+    dest->m[2][2] = rotation.m[2][2];
+
+    coords = task->extra.tmd->coords;
+    gfxSetRotIdentity(&rotation);
+    dest = &coords[3].coord;
+    Gp_MtxToEuler(dest, &angles);
+    angles.vx += D_actor_403100_80155808->field_5EA;
+    RotMatrix(&angles, &rotation);
+    dest->m[0][0] = rotation.m[0][0];
+    dest->m[0][1] = rotation.m[0][1];
+    dest->m[0][2] = rotation.m[0][2];
+    dest->m[1][0] = rotation.m[1][0];
+    dest->m[1][1] = rotation.m[1][1];
+    dest->m[1][2] = rotation.m[1][2];
+    dest->m[2][0] = rotation.m[2][0];
+    dest->m[2][1] = rotation.m[2][1];
+    dest->m[2][2] = rotation.m[2][2];
+}
+
+/// Hands the world position of `coord` to `Gp_UpdateActorColor`, staged in a
+/// `VECTOR` taken off the scratch stack.
+static inline void _actor403100UpdateColor(Task* task, GpCoord* coord)
+{
+    VECTOR* pos;
+
+    pos                  = SCRATCH_HEAD(VECTOR) - 1;
+    pos->vx              = coord->workm.t[0];
+    pos->vy              = coord->workm.t[1];
+    pos->vz              = coord->workm.t[2];
+    SCRATCH_HEAD(VECTOR) = pos;
+    Gp_UpdateActorColor(task->spawnArg2, pos, 0, 0);
+    SCRATCH_POP_BYTES(sizeof(VECTOR));
+}
+
 void func_actor_403100_80136830(Task* arg0)
 {
-    /* Share the scale and Euler workspaces to preserve the original frame. */
-    s32             identity;
     TaskFuncTable11 stateHandlers;
-    union {
-        Actor403100VoidTable4 handlers;
-        struct {
-            VECTOR     scale;
-            OverlayMat matrix;
-        } scaling;
-        struct {
-            SVECTOR    angles;
-            OverlayMat matrix;
-        } rotation;
-    } scratch;
-    void *        scratcharg0, *scratcharg1, *scratcharg2, *scratcharg3, *scratcharg4, *scratcharg5, *scratcharg6;
-    PlayerStatus* config = &Player_Status;
-
-    s32        flashTimer;
-    s16        lightTimer;
-    s16        armTimer;
-    s32        countdown;
-    s32        flash;
-    u8*        head;
-    GpEnemy*   enemy;
-    s32        flags, zero, z;
-    VECTOR*    scratchHead;
-    GpCoord*   side;
-    VECTOR*    position;
-    Task*      player;
-    GpCoord*   coordinates;
-    GpCoord*   center;
-    TmdObject* obj;
-    GpCoord*   playerCoord;
+    PlayerStatus*   config = &Player_Status;
+    s32             flashTimer;
+    s32             scale;
+    s16             lightTimer;
+    s16             armTimer;
+    s32             countdown;
+    s32             flash;
+    GpCoord*        side;
+    Task*           player;
+    GpCoord*        coordinates;
+    GpCoord*        center;
+    TmdObject*      obj;
+    GpCoord*        playerCoord;
 
     obj           = arg0->extra.tmd;
     player        = *Gp_ActorSlots;
@@ -2483,10 +2600,7 @@ void func_actor_403100_80136830(Task* arg0)
             }
             playerCoord                        = player->extra.tmd->coords;
             D_actor_403100_80155808->field_628 = func_actor_403100_8013D9C4((s16)playerCoord->coord.t[0], (s16)playerCoord->coord.t[2], D_actor_403100_80155638);
-            {
-                scratch.handlers = D_actor_403100_80131E24;
-                scratch.handlers.funcs[D_actor_403100_80155808->field_5F2]();
-            }
+            _actor403100RunHook();
             stateHandlers.funcs[(s16)D_actor_403100_80155808->field_5F8](arg0);
             if ((D_actor_403100_80155808->field_65C != 0) && ((u8)D_actor_403100_80155808->pad_660[1] == 0) && ((u8)D_actor_403100_80155808->pad_670[1] == 0)) {
                 D_actor_403100_80155808->field_5F8 = 9;
@@ -2510,131 +2624,12 @@ void func_actor_403100_80136830(Task* arg0)
                 Display_ClampField126(0);
             }
             func_actor_403100_8013B5E0(arg0, D_actor_403100_80155808->field_61C);
-            identity = 0x1000;
-            USE_REG(identity);
-            {
-                MATRIX * mtx, *dest;
-                GpCoord* coords;
-                coords                               = arg0->extra.tmd->coords;
-                D_actor_403100_80155808->field_82    = (s32)((u16)D_actor_403100_80155808->field_82 << 20) >> 20;
-                scratch.scaling.matrix.ident.m00_m01 = identity;
-                mtx                                  = &scratch.scaling.matrix.mat;
-                scratch.scaling.matrix.ident.m02_m10 = 0;
-                MATRIX_PAIR(mtx, 1, 1)               = identity;
-                scratch.scaling.matrix.ident.m20_m21 = 0;
-                mtx->m[2][2]                         = identity;
-                func_8004BFF8(D_actor_403100_80155808->field_82, mtx);
-                dest          = &coords->coord;
-                dest->m[0][0] = scratch.scaling.matrix.mat.m[0][0];
-                dest->m[0][1] = scratch.scaling.matrix.mat.m[0][1];
-                dest->m[0][2] = scratch.scaling.matrix.mat.m[0][2];
-                dest->m[1][0] = scratch.scaling.matrix.mat.m[1][0];
-                dest->m[1][1] = scratch.scaling.matrix.mat.m[1][1];
-                dest->m[1][2] = scratch.scaling.matrix.mat.m[1][2];
-                dest->m[2][0] = scratch.scaling.matrix.mat.m[2][0];
-                dest->m[2][1] = scratch.scaling.matrix.mat.m[2][1];
-                dest->m[2][2] = scratch.scaling.matrix.mat.m[2][2];
-                coords->flg   = 0;
-                coords        = arg0->extra.tmd->coords;
-                __asm__("la %0,%1" : "=r"(scratcharg0) : "m"(*(u8*)&scratch));
-                scratch.scaling.scale.vx             = 0x1400;
-                scratch.scaling.scale.vy             = 0x1400;
-                scratch.scaling.scale.vz             = 0x1400;
-                scratch.scaling.matrix.ident.m00_m01 = identity;
-                mtx                                  = &scratch.scaling.matrix.mat;
-                scratch.scaling.matrix.ident.m02_m10 = 0;
-                MATRIX_PAIR(mtx, 1, 1)               = identity;
-                scratch.scaling.matrix.ident.m20_m21 = 0;
-                mtx->m[2][2]                         = identity;
-                ScaleMatrix(mtx, (VECTOR*)scratcharg0);
-                MulMatrix(&coords->coord, mtx);
-            }
+            _actor403100SetRootYaw(arg0);
+            scale = 0x1400;
+            _actor403100ScaleRoot(arg0, scale);
             func_actor_403100_801328DC(arg0);
-            {
-                MATRIX *mtx, *dest;
-                /* Kept across UpdateCoord; the unpinned lifetime displaces identity. */
-                register GpCoord* coords asm("s3");
-                coords        = arg0->extra.tmd->coords;
-                dest          = &coords[6].coord;
-                coords[6].flg = 0;
-                mtx           = &scratch.rotation.matrix.mat;
-                __asm__("la %0,%1" : "=r"(scratcharg1) : "m"(*(u8*)&scratch));
-                scratch.rotation.matrix.ident.m00_m01 = identity;
-                scratch.rotation.matrix.ident.m02_m10 = 0;
-                MATRIX_PAIR(mtx, 1, 1)                = identity;
-                scratch.rotation.matrix.ident.m20_m21 = 0;
-                mtx->m[2][2]                          = identity;
-                Gp_MtxToEuler(dest, (SVECTOR*)scratcharg1);
-                __asm__("la %0,%1" : "=r"(scratcharg2) : "m"(*(u8*)&scratch));
-                scratch.rotation.angles.vz += D_actor_403100_80155808->field_A4;
-                scratch.rotation.angles.vy += D_actor_403100_80155808->field_A2;
-                scratch.rotation.angles.vx += D_actor_403100_80155808->field_A0;
-                RotMatrix((SVECTOR*)scratcharg2, &scratch.rotation.matrix.mat);
-                dest->m[0][0] = scratch.rotation.matrix.mat.m[0][0];
-                dest->m[0][1] = scratch.rotation.matrix.mat.m[0][1];
-                dest->m[0][2] = scratch.rotation.matrix.mat.m[0][2];
-                dest->m[1][0] = scratch.rotation.matrix.mat.m[1][0];
-                dest->m[1][1] = scratch.rotation.matrix.mat.m[1][1];
-                dest->m[1][2] = scratch.rotation.matrix.mat.m[1][2];
-                dest->m[2][0] = scratch.rotation.matrix.mat.m[2][0];
-                dest->m[2][1] = scratch.rotation.matrix.mat.m[2][1];
-                dest->m[2][2] = scratch.rotation.matrix.mat.m[2][2];
-                coords       += 6;
-                Gp_UpdateCoord(coords);
-                USE_REG(coords);
-            }
-            {
-                MATRIX * mtx, *dest;
-                GpCoord* coords;
-                coords = arg0->extra.tmd->coords;
-                mtx    = &scratch.rotation.matrix.mat;
-                __asm__("la %0,%1" : "=r"(scratcharg3) : "m"(*(u8*)&scratch));
-                scratch.rotation.matrix.ident.m00_m01 = identity;
-                scratch.rotation.matrix.ident.m02_m10 = 0;
-                MATRIX_PAIR(mtx, 1, 1)                = identity;
-                scratch.rotation.matrix.ident.m20_m21 = 0;
-                mtx->m[2][2]                          = identity;
-                dest                                  = &coords[4].coord;
-                Gp_MtxToEuler(dest, (SVECTOR*)scratcharg3);
-                __asm__("la %0,%1" : "=r"(scratcharg4) : "m"(*(u8*)&scratch));
-                scratch.rotation.angles.vx += D_actor_403100_80155808->field_5E8;
-                RotMatrix((SVECTOR*)scratcharg4, &scratch.rotation.matrix.mat);
-                dest->m[0][0] = scratch.rotation.matrix.mat.m[0][0];
-                dest->m[0][1] = scratch.rotation.matrix.mat.m[0][1];
-                dest->m[0][2] = scratch.rotation.matrix.mat.m[0][2];
-                dest->m[1][0] = scratch.rotation.matrix.mat.m[1][0];
-                dest->m[1][1] = scratch.rotation.matrix.mat.m[1][1];
-                dest->m[1][2] = scratch.rotation.matrix.mat.m[1][2];
-                dest->m[2][0] = scratch.rotation.matrix.mat.m[2][0];
-                dest->m[2][1] = scratch.rotation.matrix.mat.m[2][1];
-                dest->m[2][2] = scratch.rotation.matrix.mat.m[2][2];
-            }
-            {
-                MATRIX * mtx, *dest;
-                GpCoord* coords;
-                coords = arg0->extra.tmd->coords;
-                mtx    = &scratch.rotation.matrix.mat;
-                __asm__("la %0,%1" : "=r"(scratcharg5) : "m"(*(u8*)&scratch));
-                scratch.rotation.matrix.ident.m00_m01 = identity;
-                scratch.rotation.matrix.ident.m02_m10 = 0;
-                MATRIX_PAIR(mtx, 1, 1)                = identity;
-                scratch.rotation.matrix.ident.m20_m21 = 0;
-                mtx->m[2][2]                          = identity;
-                dest                                  = &coords[3].coord;
-                Gp_MtxToEuler(dest, (SVECTOR*)scratcharg5);
-                __asm__("la %0,%1" : "=r"(scratcharg6) : "m"(*(u8*)&scratch));
-                scratch.rotation.angles.vx += D_actor_403100_80155808->field_5EA;
-                RotMatrix((SVECTOR*)scratcharg6, &scratch.rotation.matrix.mat);
-                dest->m[0][0] = scratch.rotation.matrix.mat.m[0][0];
-                dest->m[0][1] = scratch.rotation.matrix.mat.m[0][1];
-                dest->m[0][2] = scratch.rotation.matrix.mat.m[0][2];
-                dest->m[1][0] = scratch.rotation.matrix.mat.m[1][0];
-                dest->m[1][1] = scratch.rotation.matrix.mat.m[1][1];
-                dest->m[1][2] = scratch.rotation.matrix.mat.m[1][2];
-                dest->m[2][0] = scratch.rotation.matrix.mat.m[2][0];
-                dest->m[2][1] = scratch.rotation.matrix.mat.m[2][1];
-                dest->m[2][2] = scratch.rotation.matrix.mat.m[2][2];
-            }
+            _actor403100TurnPart6(arg0);
+            _actor403100PitchArms(arg0);
             func_actor_403100_8013335C(arg0);
             if (D_actor_403100_80155808->field_60C != 0) {
                 lightTimer = --D_actor_403100_80155808->field_60C;
@@ -2678,23 +2673,8 @@ void func_actor_403100_80136830(Task* arg0)
             center             = coordinates + 3;
             Gp_UpdateCoord(coordinates + 8);
             Gp_UpdateCoord(side);
-            __asm__ volatile("lui %0, 0x1F80" : "=r"(scratchHead));
-            scratchHead        = *(VECTOR**)((u8*)scratchHead + 0x3FC);
-            scratchHead[-1].vx = center->workm.t[0];
-            position           = scratchHead - 1;
-            position->vy       = center->workm.t[1];
-            z                  = center->workm.t[2];
-            __asm__("addu %0,$zero,$zero" : "=r"(zero) : "r"(z));
-            position->vz = z;
-            enemy        = arg0->spawnArg2;
-            __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(position), "r"(enemy), "r"(zero) : "memory");
-            Gp_UpdateActorColor(enemy, position, zero, zero);
-            __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
-            head  = *(u8**)(head + 0x3FC);
-            head += 16;
-            flags = obj->flags & 0xFF7F;
-            __asm__ volatile("sw %0, 0x1F8003FC" : "+r"(head) : "r"(flags) : "memory");
-            obj->flags = flags;
+            _actor403100UpdateColor(arg0, center);
+            obj->flags &= 0xFF7F;
             return;
     }
 }

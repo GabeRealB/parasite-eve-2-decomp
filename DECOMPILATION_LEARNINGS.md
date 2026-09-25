@@ -140762,3 +140762,24 @@ with two identical case bodies (cross-jumping merges them after reload).
 splat may still fail to pair some `%lo` uses with such a distant `%hi`; declare
 those in the package's `relocs` file (`configs/USA/rel.<package>.txt`) so the
 objdiff target carries the relocation too.
+
+## A constant stored into an inlined helper's local keeps the helper's frame base alive (func_actor_403100_80136830)
+
+When `integrate.c` copies an inlined insn it substitutes known constants into
+the address *and* the stored value as one change group. `(set (mem ...)
+(const_int 0x1400))` is not a valid MIPS insn, so the whole group is dropped
+and the address stays on the inline's frame-base pseudo (`base`, `base + 4`).
+CSE turns a bare `(mem base)` back into `N(sp)`, but `base + 4` survives, the
+base pseudo stays live, and CSE then routes every later `sp + N` address -
+including the next helpers' `&angles` arguments - through it: one extra saved
+register, and a function-wide re-colouring. Zero stores and non-constant
+values substitute cleanly. So the target's mix - identity words at `N(sp)` for
+offset 0, `8(s2)` / `0x10(s2)` through the matrix pointer, `&angles`
+recomputed per call - came from `gfxSetRotIdentity(&m)` (constants only at the
+pointer's offset 0 and through the pointer), `scale.vy = scale.vx;` for the
+later vector words, and the scale factor passed from a caller local. A frame
+whose slots are reused by several helpers (here 0x40 held a handler table, a
+`VECTOR` + `MATRIX`, and `SVECTOR` + `MATRIX` twice) is itself evidence that
+each block was a `static inline`; block-scoped locals never share. The union
+of all the layouts plus `la` asm that the seed used is what those helpers
+compile to.
