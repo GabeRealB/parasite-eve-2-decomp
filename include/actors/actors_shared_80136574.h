@@ -6,6 +6,8 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "main/task.h"
+
 /// A `MATRIX` plus the word-wise view `ActorsShared80136574` uses to splat an
 /// identity rotation: five aligned stores instead of nine halfword ones, each
 /// word holding two adjacent `m[][]` entries.
@@ -30,16 +32,6 @@ typedef struct ActorShared80136574Scratch {
 } ActorShared80136574Scratch;
 STATIC_ASSERT_SIZEOF(ActorShared80136574Scratch, 0x30);
 
-typedef struct ActorShared80136574Obj2C {
-    /* 0x00 */ byte           pad_0[8];
-    /* 0x08 */ GsCOORDINATE2* field_8;
-} ActorShared80136574Obj2C;
-
-typedef struct ActorShared80136574 {
-    /* 0x00 */ byte                      pad_0[0x2C];
-    /* 0x2C */ ActorShared80136574Obj2C* field_2C;
-} ActorShared80136574;
-
-void ActorsShared80136574(ActorShared80136574* arg0, MATRIX* arg1, s16 arg2, s32 arg3);
+void ActorsShared80136574(Task* task, MATRIX* arg1, s16 arg2, s32 arg3);
 
 #endif
