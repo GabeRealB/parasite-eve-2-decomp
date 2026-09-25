@@ -299,16 +299,16 @@ void func_acropolis_cafeteria_8017E89C(Task* task)
 /// view mode no longer hold.
 void func_acropolis_cafeteria_8017EA90(Task* task)
 {
-    GpEffWork*                  work;
-    GsCOORDINATE2*              coord;
-    u8*                         head;
-    RoomSpriteScratch*          block;
-    register RoomSpriteScratch* newHead asm("v0");
-    POLY_FT4*                   prim;
-    u8                          mode;
-    u8                          shade;
-    s32                         quot;
-    u16                         vz;
+    GpEffWork*                     work;
+    GsCOORDINATE2*                 coord;
+    u8*                            head;
+    OverlaySpriteScratch*          block;
+    register OverlaySpriteScratch* newHead asm("v0");
+    POLY_FT4*                      prim;
+    u8                             mode;
+    u8                             shade;
+    s32                            quot;
+    u16                            vz;
 
     work  = task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
@@ -316,25 +316,25 @@ void func_acropolis_cafeteria_8017EA90(Task* task)
         mode = gGameSession->at4.loc.view;
         if (mode == 9) {
             Gp_UpdateCoord(coord);
-            head                                 = *(u8**)G_SCRATCH_HEAD;
-            newHead                              = (RoomSpriteScratch*)(head - 0x18);
-            block                                = newHead;
-            block->vec.vx                        = *(u16*)&coord->workm.t[0];
-            block->vec.vy                        = *(u16*)&coord->workm.t[1];
-            vz                                   = *(u16*)&coord->workm.t[2];
-            *(RoomSpriteScratch**)G_SCRATCH_HEAD = block;
-            block->vec.vz                        = vz;
+            head                                    = *(u8**)G_SCRATCH_HEAD;
+            newHead                                 = (OverlaySpriteScratch*)(head - 0x18);
+            block                                   = newHead;
+            block->vec.vx                           = *(u16*)&coord->workm.t[0];
+            block->vec.vy                           = *(u16*)&coord->workm.t[1];
+            vz                                      = *(u16*)&coord->workm.t[2];
+            *(OverlaySpriteScratch**)G_SCRATCH_HEAD = block;
+            block->vec.vz                           = vz;
             gte_SetTransMatrix(&GsWSMATRIX);
             gte_SetRotMatrix(&GsWSMATRIX);
-            gte_ldv0(&((RoomSpriteScratch*)(head - 0x18))->vec);
+            gte_ldv0(&((OverlaySpriteScratch*)(head - 0x18))->vec);
             gte_rtps();
             prim           = (POLY_FT4*)gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setcode(prim, 0x2C);
             setlen(prim, mode);
-            gte_stsxy(&((RoomSpriteScratch*)(head - 0x18))->sxy);
+            gte_stsxy(&((OverlaySpriteScratch*)(head - 0x18))->sxy);
             gte_stszotz(&block->otz);
-            if (((RoomSpriteScratch*)(head - 0x18))->otz > 16 && work->age == 0) {
+            if (((OverlaySpriteScratch*)(head - 0x18))->otz > 16 && work->age == 0) {
                 Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
                 work->scale   = ((u32)Gp_LcgState >> 16) & 0xFFF;
                 work->angle   = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;

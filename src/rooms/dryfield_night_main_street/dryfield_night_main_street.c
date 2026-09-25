@@ -615,23 +615,23 @@ void func_dryfield_night_main_street_8017E484(Task* task)
 /// the frame counter.
 void func_dryfield_night_main_street_8017E940(SVECTOR* arg0, s32 arg1)
 {
-    void**             scratch;
-    u8*                head;
-    SVECTOR*           p1;
-    RoomDraw08Scratch* block;
-    POLY_G4*           prim;
-    DisplayState*      ds;
-    s32                raw;
-    s32                ang;
-    s32                angEnd;
-    s32                limit;
-    s32                angStart;
-    s32                t;
-    s32                t2;
-    s32                t3;
-    s32                conn;
-    s32                scaled;
-    s32                blend;
+    void**                   scratch;
+    u8*                      head;
+    SVECTOR*                 p1;
+    OverlayPointPairScratch* block;
+    POLY_G4*                 prim;
+    DisplayState*            ds;
+    s32                      raw;
+    s32                      ang;
+    s32                      angEnd;
+    s32                      limit;
+    s32                      angStart;
+    s32                      t;
+    s32                      t2;
+    s32                      t3;
+    s32                      conn;
+    s32                      scaled;
+    s32                      blend;
 
     p1      = arg0 + 1;
     scratch = (void**)G_SCRATCH_HEAD;
@@ -639,7 +639,7 @@ void func_dryfield_night_main_street_8017E940(SVECTOR* arg0, s32 arg1)
     {
         register u8* tmp asm("v0");
         tmp      = head - 0x1C;
-        block    = (RoomDraw08Scratch*)tmp;
+        block    = (OverlayPointPairScratch*)tmp;
         *scratch = tmp;
     }
 
@@ -647,18 +647,18 @@ void func_dryfield_night_main_street_8017E940(SVECTOR* arg0, s32 arg1)
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
     gte_rtps();
-    gte_stsxy(&((RoomDraw08Scratch*)(head - 0x1C))->sx0);
-    gte_stflg(&((RoomDraw08Scratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((OverlayPointPairScratch*)(head - 0x1C))->sx0);
+    gte_stflg(&((OverlayPointPairScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz0);
         gte_ldv0(p1);
         gte_rtps();
-        gte_stsxy(&((RoomDraw08Scratch*)(head - 0x1C))->sx1);
-        gte_stflg(&((RoomDraw08Scratch*)(head - 0x1C))->flag);
+        gte_stsxy(&((OverlayPointPairScratch*)(head - 0x1C))->sx1);
+        gte_stflg(&((OverlayPointPairScratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
-            gte_stszotz(&((RoomDraw08Scratch*)(head - 0x1C))->otz1);
+            gte_stszotz(&((OverlayPointPairScratch*)(head - 0x1C))->otz1);
             scaled    = (s16)arg1 * 64;
-            block->r0 = scaled / ((RoomDraw08Scratch*)(head - 0x1C))->otz0;
+            block->r0 = scaled / ((OverlayPointPairScratch*)(head - 0x1C))->otz0;
             block->r1 = scaled / block->otz1;
             raw       = ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
             ds        = &gDisplayState;
@@ -905,26 +905,26 @@ void func_dryfield_night_main_street_8017F3B0(Task* task)
 /// screen; `arg3` is the angle the quad is rotated by.
 void func_dryfield_night_main_street_8017F608(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    void**               scratch;
-    u8*                  head;
-    OverlaySparkScratch* block;
-    s32*                 otzp;
-    POLY_FT4*            prim;
-    s32                  ang;
-    s32                  ang2;
-    s32                  sine;
-    s32                  span;
-    s32                  u0;
-    s32                  v0;
-    s32                  u1;
-    s32                  v1;
-    u16                  vz;
-    u16                  tex;
+    void**             scratch;
+    u8*                head;
+    GpEffFlareScratch* block;
+    s32*               otzp;
+    POLY_FT4*          prim;
+    s32                ang;
+    s32                ang2;
+    s32                sine;
+    s32                span;
+    s32                u0;
+    s32                v0;
+    s32                u1;
+    s32                v1;
+    u16                vz;
+    u16                tex;
 
     scratch = (void**)G_SCRATCH_HEAD;
     SOFT_TOUCH_REG_USE(arg2, scratch);
     head          = *scratch;
-    block         = (OverlaySparkScratch*)(head - 0x1C);
+    block         = (GpEffFlareScratch*)(head - 0x1C);
     block->vec.vx = *(u16*)&arg0->workm.t[0];
     block->vec.vy = *(u16*)&arg0->workm.t[1];
     vz            = *(u16*)&arg0->workm.t[2];
@@ -933,17 +933,17 @@ void func_dryfield_night_main_street_8017F608(GsCOORDINATE2* arg0, s32 arg1, s32
     block->vec.vz = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((OverlaySparkScratch*)(head - 0x1C))->vec);
+    gte_ldv0(&((GpEffFlareScratch*)(head - 0x1C))->vec);
     gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
-    gte_stsxy(&((OverlaySparkScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((OverlaySparkScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((GpEffFlareScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((GpEffFlareScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(otzp);
-        if (((OverlaySparkScratch*)(head - 0x1C))->otz >= 0x41) {
+        if (((GpEffFlareScratch*)(head - 0x1C))->otz >= 0x41) {
             ang         = (s16)arg3;
             prim->tpage = 0x2B;
             prim->clut  = 0x4383;
@@ -958,23 +958,23 @@ void func_dryfield_night_main_street_8017F608(GsCOORDINATE2* arg0, s32 arg1, s32
             sine = rsin(ang);
             span = (s16)arg2 * 0x2F;
             block->dx =
-                ((span / ((OverlaySparkScratch*)(head - 0x1C))->otz) * sine) >> 12;
+                ((span / ((GpEffFlareScratch*)(head - 0x1C))->otz) * sine) >> 12;
             block->dy =
-                ((span / ((OverlaySparkScratch*)(head - 0x1C))->otz) * rcos(ang)) >> 12;
+                ((span / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(ang)) >> 12;
             prim->x0 = *(u16*)&block->sx + *(u16*)&block->dx;
             prim->x3 = *(u16*)&block->sx - *(u16*)&block->dx;
             prim->y0 = *(u16*)&block->sy - *(u16*)&block->dy;
             prim->y3 = *(u16*)&block->sy + *(u16*)&block->dy;
             ang2     = ang + 0x400;
             block->dx =
-                ((span / ((OverlaySparkScratch*)(head - 0x1C))->otz) * rsin(ang2)) >> 12;
+                ((span / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rsin(ang2)) >> 12;
             block->dy =
-                ((span / ((OverlaySparkScratch*)(head - 0x1C))->otz) * rcos(ang2)) >> 12;
+                ((span / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(ang2)) >> 12;
             prim->x1 = *(u16*)&block->sx + *(u16*)&block->dx;
             prim->x2 = *(u16*)&block->sx - *(u16*)&block->dx;
             prim->y1 = *(u16*)&block->sy - *(u16*)&block->dy;
             prim->y2 = *(u16*)&block->sy + *(u16*)&block->dy;
-            addPrim((u_long*)(((((u32)((OverlaySparkScratch*)(head - 0x1C))->otz
+            addPrim((u_long*)(((((u32)((GpEffFlareScratch*)(head - 0x1C))->otz
                                  << gDisplayState.otDepthShift) >>
                                 2) &
                                0xFFC) +

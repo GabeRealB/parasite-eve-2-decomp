@@ -273,40 +273,40 @@ void func_m4a1_javelin_8011D1E4(Task* task)
 /// and the third sweeps at double rate to skin the beam between the two.
 void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
 {
-    u8*                     head;
-    M4a1JavelinRingScratch* sc;
-    LINE_F2*                line;
-    POLY_G4*                prim;
-    s32                     i;
-    s32                     tipAng;
-    s32                     baseAng;
-    s32                     bodyAng;
-    s32                     tint;
-    u32                     rgb;
-    u8                      r;
-    u8                      g;
-    u8                      b;
-    u16                     angle;
+    u8*                      head;
+    OverlayPointPairScratch* sc;
+    LINE_F2*                 line;
+    POLY_G4*                 prim;
+    s32                      i;
+    s32                      tipAng;
+    s32                      baseAng;
+    s32                      bodyAng;
+    s32                      tint;
+    u32                      rgb;
+    u8                       r;
+    u8                       g;
+    u8                       b;
+    u16                      angle;
 
     head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - sizeof(M4a1JavelinRingScratch);
-    sc                    = (M4a1JavelinRingScratch*)(head - sizeof(M4a1JavelinRingScratch));
+    *(u8**)G_SCRATCH_HEAD = head - sizeof(OverlayPointPairScratch);
+    sc                    = (OverlayPointPairScratch*)(head - sizeof(OverlayPointPairScratch));
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(p0);
     gte_rtps();
-    gte_stsxy(&((M4a1JavelinRingScratch*)(head - sizeof(M4a1JavelinRingScratch)))->sx0);
-    gte_stflg(&((M4a1JavelinRingScratch*)(head - sizeof(M4a1JavelinRingScratch)))->flag);
+    gte_stsxy(&((OverlayPointPairScratch*)(head - sizeof(OverlayPointPairScratch)))->sx0);
+    gte_stflg(&((OverlayPointPairScratch*)(head - sizeof(OverlayPointPairScratch)))->flag);
     if (sc->flag >= 0) {
-        gte_stszotz(&((M4a1JavelinRingScratch*)(head - sizeof(M4a1JavelinRingScratch)))->otz0);
+        gte_stszotz(&((OverlayPointPairScratch*)(head - sizeof(OverlayPointPairScratch)))->otz0);
         sc->otz0++;
         gte_ldv0(p1);
         gte_rtps();
-        gte_stsxy(&((M4a1JavelinRingScratch*)(head - sizeof(M4a1JavelinRingScratch)))->sx1);
-        gte_stflg(&((M4a1JavelinRingScratch*)(head - sizeof(M4a1JavelinRingScratch)))->flag);
+        gte_stsxy(&((OverlayPointPairScratch*)(head - sizeof(OverlayPointPairScratch)))->sx1);
+        gte_stflg(&((OverlayPointPairScratch*)(head - sizeof(OverlayPointPairScratch)))->flag);
         if (sc->flag >= 0) {
-            gte_stszotz(&((M4a1JavelinRingScratch*)(head - sizeof(M4a1JavelinRingScratch)))->otz1);
+            gte_stszotz(&((OverlayPointPairScratch*)(head - sizeof(OverlayPointPairScratch)))->otz1);
             rgb = color;
             r   = (rgb >> 4) & 0xF0;
             g   = rgb & 0xF0;
@@ -412,7 +412,7 @@ void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
     } else {
         D_m4a1_javelin_8012EB64 = 1;
     }
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(M4a1JavelinRingScratch);
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(OverlayPointPairScratch);
 }
 
 /// Draws the javelin launcher's targeting reticle: a `LINE_F2` between the two
@@ -428,41 +428,41 @@ void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
 /// constant on-screen size as the target moves away.
 void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
 {
-    u8*                     head;
-    M4a1JavelinRingScratch* sc;
-    LINE_F2*                line;
-    POLY_G4*                poly;
-    u32                     dither;
-    u32                     c;
-    u8                      r;
-    u8                      g;
-    u8                      b;
-    u16                     ang;
-    s32                     i;
+    u8*                      head;
+    OverlayPointPairScratch* sc;
+    LINE_F2*                 line;
+    POLY_G4*                 poly;
+    u32                      dither;
+    u32                      c;
+    u8                       r;
+    u8                       g;
+    u8                       b;
+    u16                      ang;
+    s32                      i;
 
     head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - sizeof(M4a1JavelinRingScratch);
-    sc                    = (M4a1JavelinRingScratch*)(head - sizeof(M4a1JavelinRingScratch));
+    *(u8**)G_SCRATCH_HEAD = head - sizeof(OverlayPointPairScratch);
+    sc                    = (OverlayPointPairScratch*)(head - sizeof(OverlayPointPairScratch));
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(p0);
     gte_rtps();
-    gte_stsxy(&((M4a1JavelinRingScratch*)head)[-1].sx0);
-    gte_stflg(&((M4a1JavelinRingScratch*)head)[-1].flag);
+    gte_stsxy(&((OverlayPointPairScratch*)head)[-1].sx0);
+    gte_stflg(&((OverlayPointPairScratch*)head)[-1].flag);
     if (sc->flag < 0) {
         goto fail;
     }
-    gte_stszotz(&((M4a1JavelinRingScratch*)head)[-1].otz0);
-    ((M4a1JavelinRingScratch*)head)[-1].otz0++;
+    gte_stszotz(&((OverlayPointPairScratch*)head)[-1].otz0);
+    ((OverlayPointPairScratch*)head)[-1].otz0++;
     gte_ldv0(p1);
     gte_rtps();
-    gte_stsxy(&((M4a1JavelinRingScratch*)head)[-1].sx1);
-    gte_stflg(&((M4a1JavelinRingScratch*)head)[-1].flag);
+    gte_stsxy(&((OverlayPointPairScratch*)head)[-1].sx1);
+    gte_stflg(&((OverlayPointPairScratch*)head)[-1].flag);
     if (sc->flag < 0) {
         goto fail;
     }
-    gte_stszotz(&((M4a1JavelinRingScratch*)head)[-1].otz1);
+    gte_stszotz(&((OverlayPointPairScratch*)head)[-1].otz1);
 
     sc->otz1++;
     line           = (LINE_F2*)gGpuPrimCursor;
@@ -478,11 +478,11 @@ void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
     line->y0 = sc->sy0;
     line->x1 = sc->sx1;
     line->y1 = sc->sy1;
-    addPrim((u_long*)(((((u32)((M4a1JavelinRingScratch*)head)[-1].otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+    addPrim((u_long*)(((((u32)((OverlayPointPairScratch*)head)[-1].otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                       (s32)gGpuCurrentOt),
             line);
-    Gp_AddTpageShift((P_TAG*)line, 1, ((M4a1JavelinRingScratch*)head)[-1].otz0);
-    sc->r0 = 0x4000 / ((M4a1JavelinRingScratch*)head)[-1].otz0;
+    Gp_AddTpageShift((P_TAG*)line, 1, ((OverlayPointPairScratch*)head)[-1].otz0);
+    sc->r0 = 0x4000 / ((OverlayPointPairScratch*)head)[-1].otz0;
     sc->r1 = 0x4000 / sc->otz1;
 
     if ((flags & 2) || D_m4a1_javelin_8012EB66 != 0) {
@@ -558,7 +558,7 @@ void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
 fail:
     D_m4a1_javelin_8012EB66 = 1;
 done:
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(M4a1JavelinRingScratch);
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(OverlayPointPairScratch);
 }
 
 /* `otz0` is taken before the branch on purpose: the address is the same one

@@ -521,28 +521,28 @@ void func_neo_ark_submarine_gallery_8017FFB8(GsCOORDINATE2* arg0, s32 arg1, s32 
 /// is pulled 0x40 closer before it sets the radius and the OT slot.
 void func_neo_ark_submarine_gallery_80180254(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
-    void**             scratch;
-    u8*                head;
-    RoomDraw08Scratch* block;
-    POLY_G4*           prim;
-    DisplayState*      ds;
-    SVECTOR*           p1;
-    s32                ang;
-    s32                t;
-    s32                t3;
-    s32                t2;
-    s32                limit;
-    s32                angStart;
-    s32                packed;
-    s32                blend;
-    s32                tr;
-    s32                tg;
-    s32                scaled;
-    s32                sum;
-    s32                otz;
-    u8                 r;
-    u8                 g;
-    u8                 b;
+    void**                   scratch;
+    u8*                      head;
+    OverlayPointPairScratch* block;
+    POLY_G4*                 prim;
+    DisplayState*            ds;
+    SVECTOR*                 p1;
+    s32                      ang;
+    s32                      t;
+    s32                      t3;
+    s32                      t2;
+    s32                      limit;
+    s32                      angStart;
+    s32                      packed;
+    s32                      blend;
+    s32                      tr;
+    s32                      tg;
+    s32                      scaled;
+    s32                      sum;
+    s32                      otz;
+    u8                       r;
+    u8                       g;
+    u8                       b;
 
     p1      = arg0 + 1;
     scratch = (void**)G_SCRATCH_HEAD;
@@ -550,7 +550,7 @@ void func_neo_ark_submarine_gallery_80180254(SVECTOR* arg0, s32 arg1, s32 arg2)
     {
         register u8* tmp asm("v0");
         tmp      = head - 0x1C;
-        block    = (RoomDraw08Scratch*)tmp;
+        block    = (OverlayPointPairScratch*)tmp;
         *scratch = tmp;
     }
 
@@ -558,26 +558,26 @@ void func_neo_ark_submarine_gallery_80180254(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
     gte_rtps();
-    gte_stsxy(&((RoomDraw08Scratch*)(head - 0x1C))->sx0);
-    gte_stflg(&((RoomDraw08Scratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((OverlayPointPairScratch*)(head - 0x1C))->sx0);
+    gte_stflg(&((OverlayPointPairScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz0);
-        otz = ((RoomDraw08Scratch*)(head - 0x1C))->otz0;
+        otz = ((OverlayPointPairScratch*)(head - 0x1C))->otz0;
         if (otz > 0x50) {
-            ((RoomDraw08Scratch*)(head - 0x1C))->otz0 = otz - 0x40;
+            ((OverlayPointPairScratch*)(head - 0x1C))->otz0 = otz - 0x40;
         }
         gte_ldv0(p1);
         gte_rtps();
-        gte_stsxy(&((RoomDraw08Scratch*)(head - 0x1C))->sx1);
-        gte_stflg(&((RoomDraw08Scratch*)(head - 0x1C))->flag);
+        gte_stsxy(&((OverlayPointPairScratch*)(head - 0x1C))->sx1);
+        gte_stflg(&((OverlayPointPairScratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
-            gte_stszotz(&((RoomDraw08Scratch*)(head - 0x1C))->otz1);
+            gte_stszotz(&((OverlayPointPairScratch*)(head - 0x1C))->otz1);
             otz = block->otz1;
             if (otz > 0x50) {
                 block->otz1 = otz - 0x40;
             }
             scaled    = (s16)arg1 * 64;
-            block->r0 = scaled / ((RoomDraw08Scratch*)(head - 0x1C))->otz0;
+            block->r0 = scaled / ((OverlayPointPairScratch*)(head - 0x1C))->otz0;
             block->r1 = scaled / block->otz1;
             ang       = ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
             ds        = &gDisplayState;

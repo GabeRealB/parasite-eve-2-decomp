@@ -590,14 +590,14 @@ void func_acropolis_promenade_8017E394(Task* task)
 /// every frame it wants the star.
 void func_acropolis_promenade_8017E634(Task* task)
 {
-    GsCOORDINATE2*     coord;
-    GpEffWork*         work;
-    void**             scratch;
-    u8*                head;
-    RoomSpriteScratch* blk;
-    s32*               otzp;
-    POLY_FT4*          prim;
-    s32                grey;
+    GsCOORDINATE2*        coord;
+    GpEffWork*            work;
+    void**                scratch;
+    u8*                   head;
+    OverlaySpriteScratch* blk;
+    s32*                  otzp;
+    POLY_FT4*             prim;
+    s32                   grey;
 
     coord = ((TmdObject*)task->extra)->coords;
     work  = task->spawnArg2;
@@ -605,7 +605,7 @@ void func_acropolis_promenade_8017E634(Task* task)
     work->age   = task->spawnArg1;
     scratch     = (void**)G_SCRATCH_HEAD;
     head        = *scratch;
-    blk         = (RoomSpriteScratch*)(head - 0x18);
+    blk         = (OverlaySpriteScratch*)(head - 0x18);
     otzp        = &blk->otz;
     blk->vec.vx = coord->workm.t[0];
     blk->vec.vy = coord->workm.t[1];

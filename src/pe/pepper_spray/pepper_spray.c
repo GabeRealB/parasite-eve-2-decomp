@@ -106,16 +106,16 @@ void func_pepper_spray_8012EF34(Task* arg0)
 
 void func_pepper_spray_8012F21C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 {
-    void**                    scratch;
-    u8*                       head;
-    PepperSprayNozzleScratch* blk;
-    PepperSprayNozzleScratch* copy;
-    POLY_FT4*                 prim;
-    s32                       ang;
+    void**             scratch;
+    u8*                head;
+    GpEffFlareScratch* blk;
+    GpEffFlareScratch* copy;
+    POLY_FT4*          prim;
+    s32                ang;
 
     scratch     = (void**)G_SCRATCH_HEAD;
     head        = *scratch;
-    blk         = (PepperSprayNozzleScratch*)(head - 0x1C);
+    blk         = (GpEffFlareScratch*)(head - 0x1C);
     copy        = blk;
     blk->vec.vx = *(u16*)&arg0->workm.t[0];
     blk->vec.vy = *(u16*)&arg0->workm.t[1];
@@ -123,35 +123,35 @@ void func_pepper_spray_8012F21C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     *scratch    = blk;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((PepperSprayNozzleScratch*)(head - 0x1C))->vec);
+    gte_ldv0(&((GpEffFlareScratch*)(head - 0x1C))->vec);
     gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyFT4(prim);
-    gte_stsxy(&((PepperSprayNozzleScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((PepperSprayNozzleScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((GpEffFlareScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((GpEffFlareScratch*)(head - 0x1C))->flag);
     if (blk->flag >= 0) {
         gte_stszotz(copy);
-        ((PepperSprayNozzleScratch*)(head - 0x1C))->otz++;
+        ((GpEffFlareScratch*)(head - 0x1C))->otz++;
         prim->tpage = 0x29;
         prim->clut  = 0x428B;
         setUV4(prim, 0x70, 0xC8, 0xA7, 0xC8, 0x70, 0xFF, 0xA7, 0xFF);
         prim->code |= 3;
         ang         = arg2;
-        blk->dx     = (((arg1 * 0x37) / ((PepperSprayNozzleScratch*)(head - 0x1C))->otz) * rsin(ang)) >> 12;
-        blk->dz     = (((arg1 * 0x37) / ((PepperSprayNozzleScratch*)(head - 0x1C))->otz) * rcos(ang)) >> 12;
+        blk->dx     = (((arg1 * 0x37) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rsin(ang)) >> 12;
+        blk->dy     = (((arg1 * 0x37) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(ang)) >> 12;
         prim->x0    = *(u16*)&blk->sx + *(u16*)&blk->dx;
         prim->x3    = *(u16*)&blk->sx - *(u16*)&blk->dx;
-        prim->y0    = *(u16*)&blk->sy - *(u16*)&blk->dz;
-        prim->y3    = *(u16*)&blk->sy + *(u16*)&blk->dz;
+        prim->y0    = *(u16*)&blk->sy - *(u16*)&blk->dy;
+        prim->y3    = *(u16*)&blk->sy + *(u16*)&blk->dy;
         ang         = ang + 0x400;
-        blk->dx     = (((arg1 * 0x37) / ((PepperSprayNozzleScratch*)(head - 0x1C))->otz) * rsin(ang)) >> 12;
-        blk->dz     = (((arg1 * 0x37) / ((PepperSprayNozzleScratch*)(head - 0x1C))->otz) * rcos(ang)) >> 12;
+        blk->dx     = (((arg1 * 0x37) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rsin(ang)) >> 12;
+        blk->dy     = (((arg1 * 0x37) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(ang)) >> 12;
         prim->x1    = *(u16*)&blk->sx + *(u16*)&blk->dx;
         prim->x2    = *(u16*)&blk->sx - *(u16*)&blk->dx;
-        prim->y1    = *(u16*)&blk->sy - *(u16*)&blk->dz;
-        prim->y2    = *(u16*)&blk->sy + *(u16*)&blk->dz;
-        addPrim((u_long*)(((((u32)((PepperSprayNozzleScratch*)(head - 0x1C))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+        prim->y1    = *(u16*)&blk->sy - *(u16*)&blk->dy;
+        prim->y2    = *(u16*)&blk->sy + *(u16*)&blk->dy;
+        addPrim((u_long*)(((((u32)((GpEffFlareScratch*)(head - 0x1C))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
     }
@@ -163,21 +163,21 @@ void func_pepper_spray_8012F21C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
    the `blk` register the way CSE off `blk` would. */
 void func_pepper_spray_8012F634(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 {
-    void**              scratch;
-    u8*                 head;
-    PepperSprayScratch* blk;
-    PepperSprayScratch* copy;
-    POLY_G4*            prim;
-    MATRIX*             wm;
-    s32                 ang;
-    s32                 back;
-    s32                 depth;
-    s16                 color;
+    void**                     scratch;
+    u8*                        head;
+    OverlayFlaggedQuadScratch* blk;
+    OverlayFlaggedQuadScratch* copy;
+    POLY_G4*                   prim;
+    MATRIX*                    wm;
+    s32                        ang;
+    s32                        back;
+    s32                        depth;
+    s16                        color;
 
     depth    = -0x200;
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
-    blk      = (PepperSprayScratch*)(head - sizeof(PepperSprayScratch));
+    blk      = (OverlayFlaggedQuadScratch*)(head - sizeof(OverlayFlaggedQuadScratch));
     *scratch = blk;
     copy     = blk;
     color    = arg2;
@@ -190,9 +190,9 @@ void func_pepper_spray_8012F634(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     blk->v[0].vz = 0;
     wm           = &arg0->workm;
     gte_SetRotMatrix(wm);
-    gte_ldv0(&((PepperSprayScratch*)(head - 0x28))->v[0]);
+    gte_ldv0(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[0]);
     gte_rtv0();
-    gte_stsv(&((PepperSprayScratch*)(head - 0x28))->v[0]);
+    gte_stsv(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[0]);
     *(u16*)&blk->v[0].vx = *(u16*)&blk->v[0].vx + *(u16*)&arg0->workm.t[0];
     *(u16*)&blk->v[0].vy = *(u16*)&blk->v[0].vy + *(u16*)&arg0->workm.t[1];
     *(u16*)&blk->v[0].vz = *(u16*)&blk->v[0].vz + *(u16*)&arg0->workm.t[2];
@@ -201,9 +201,9 @@ void func_pepper_spray_8012F634(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     blk->v[1].vy = (u32)rcos(ang) >> 1;
     blk->v[1].vz = depth;
     gte_SetRotMatrix(wm);
-    gte_ldv0(&((PepperSprayScratch*)(head - 0x28))->v[1]);
+    gte_ldv0(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[1]);
     gte_rtv0();
-    gte_stsv(&((PepperSprayScratch*)(head - 0x28))->v[1]);
+    gte_stsv(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[1]);
     *(u16*)&blk->v[1].vx = *(u16*)&blk->v[1].vx + *(u16*)&arg0->workm.t[0];
     *(u16*)&blk->v[1].vy = *(u16*)&blk->v[1].vy + *(u16*)&arg0->workm.t[1];
     *(u16*)&blk->v[1].vz = *(u16*)&blk->v[1].vz + *(u16*)&arg0->workm.t[2];
@@ -212,9 +212,9 @@ void func_pepper_spray_8012F634(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     blk->v[2].vy = (u32)rcos(ang) >> 4;
     blk->v[2].vz = 0;
     gte_SetRotMatrix(wm);
-    gte_ldv0(&((PepperSprayScratch*)(head - 0x28))->v[2]);
+    gte_ldv0(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[2]);
     gte_rtv0();
-    gte_stsv(&((PepperSprayScratch*)(head - 0x28))->v[2]);
+    gte_stsv(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[2]);
     *(u16*)&blk->v[2].vx = *(u16*)&blk->v[2].vx + *(u16*)&arg0->workm.t[0];
     ang                  = ang + 0xC0;
     *(u16*)&blk->v[2].vy = *(u16*)&blk->v[2].vy + *(u16*)&arg0->workm.t[1];
@@ -224,42 +224,42 @@ void func_pepper_spray_8012F634(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     blk->v[3].vy = (u32)rcos(ang) >> 4;
     blk->v[3].vz = 0;
     gte_SetRotMatrix(wm);
-    gte_ldv0(&((PepperSprayScratch*)(head - 0x28))->v[3]);
+    gte_ldv0(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[3]);
     gte_rtv0();
-    gte_stsv(&((PepperSprayScratch*)(head - 0x28))->v[3]);
+    gte_stsv(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[3]);
     *(u16*)&blk->v[3].vx = *(u16*)&blk->v[3].vx + *(u16*)&arg0->workm.t[0];
     *(u16*)&blk->v[3].vy = *(u16*)&blk->v[3].vy + *(u16*)&arg0->workm.t[1];
     *(u16*)&blk->v[3].vz = *(u16*)&blk->v[3].vz + *(u16*)&arg0->workm.t[2];
 
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((PepperSprayScratch*)(head - 0x28))->v[0]);
+    gte_ldv0(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[0]);
     gte_rtps();
     prim           = (POLY_G4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyG4(prim);
     gte_stsxy(&prim->x0);
-    gte_stflg(&((PepperSprayScratch*)(head - 0x28))->flag);
+    gte_stflg(&((OverlayFlaggedQuadScratch*)(head - 0x28))->flag);
     if (blk->flag >= 0) {
-        gte_ldv3(&((PepperSprayScratch*)(head - 0x28))->v[1],
-                 &((PepperSprayScratch*)(head - 0x28))->v[2],
-                 &((PepperSprayScratch*)(head - 0x28))->v[3]);
+        gte_ldv3(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[1],
+                 &((OverlayFlaggedQuadScratch*)(head - 0x28))->v[2],
+                 &((OverlayFlaggedQuadScratch*)(head - 0x28))->v[3]);
         gte_rtpt();
         gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
-        gte_stflg(&((PepperSprayScratch*)(head - 0x28))->flag);
+        gte_stflg(&((OverlayFlaggedQuadScratch*)(head - 0x28))->flag);
         if (blk->flag >= 0) {
             gte_stszotz(copy);
-            ((PepperSprayScratch*)(head - 0x28))->otz++;
+            ((OverlayFlaggedQuadScratch*)(head - 0x28))->otz++;
             setRGB0(prim, 0, 0, 0);
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, arg2 >> 1, arg2 >> 1, color);
             setRGB3(prim, 0, 0, 0);
-            addPrim((u_long*)(((((u32)((PepperSprayScratch*)(head - 0x28))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+            addPrim((u_long*)(((((u32)((OverlayFlaggedQuadScratch*)(head - 0x28))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
                     prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, ((PepperSprayScratch*)(head - 0x28))->otz);
+            Gp_AddTpageShift((P_TAG*)prim, 1, ((OverlayFlaggedQuadScratch*)(head - 0x28))->otz);
         }
     }
     /* Restore through the symbol so `lui 0x1F80` can fill the `bltz` delay
        slots. A live `scratch` pointer would keep the address in `$fp`. */
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(PepperSprayScratch);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(OverlayFlaggedQuadScratch);
 }

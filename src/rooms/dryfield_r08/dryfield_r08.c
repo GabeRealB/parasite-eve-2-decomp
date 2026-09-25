@@ -255,27 +255,27 @@ void func_dryfield_r08_8017D8B4(Task* task)
 /// for 0 and 1, the fixed clut 0x428F otherwise.
 void func_dryfield_r08_8017DEFC(GsCOORDINATE2* arg0, u16 arg1, s32 arg2, s32 arg3)
 {
-    void**               scratch;
-    u8*                  head;
-    OverlaySparkScratch* block;
-    POLY_FT4*            prim;
-    s32                  ang;
-    s32                  ang2;
-    s32                  span;
-    s32                  u0;
-    s32                  v0;
-    s32                  u1;
-    s32                  v1;
-    u16                  vz;
-    s32                  tex;
-    u16                  sel;
-    s32                  sine;
-    OverlaySparkScratch* tmp;
+    void**             scratch;
+    u8*                head;
+    GpEffFlareScratch* block;
+    POLY_FT4*          prim;
+    s32                ang;
+    s32                ang2;
+    s32                span;
+    s32                u0;
+    s32                v0;
+    s32                u1;
+    s32                v1;
+    u16                vz;
+    s32                tex;
+    u16                sel;
+    s32                sine;
+    GpEffFlareScratch* tmp;
 
     scratch = (void**)G_SCRATCH_HEAD;
     SOFT_TOUCH_REG(arg2);
     head = *scratch;
-    tmp  = (OverlaySparkScratch*)(head - 0x1C);
+    tmp  = (GpEffFlareScratch*)(head - 0x1C);
     SOFT_TOUCH_REG(tmp);
     block         = tmp;
     block->vec.vx = *(u16*)&arg0->workm.t[0];
@@ -287,14 +287,14 @@ void func_dryfield_r08_8017DEFC(GsCOORDINATE2* arg0, u16 arg1, s32 arg2, s32 arg
     block->vec.vz = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((OverlaySparkScratch*)(head - 0x1C))->vec);
+    gte_ldv0(&((GpEffFlareScratch*)(head - 0x1C))->vec);
     gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
-    gte_stsxy(&((OverlaySparkScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((OverlaySparkScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((GpEffFlareScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((GpEffFlareScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
         prim->tpage = 0x2B;
@@ -342,27 +342,27 @@ void func_dryfield_r08_8017DEFC(GsCOORDINATE2* arg0, u16 arg1, s32 arg2, s32 arg
 /// `arg3 + 0x400`, so it shrinks with distance and spins with the angle.
 void func_dryfield_r08_8017E36C(GsCOORDINATE2* arg0, u16 arg1, s32 arg2, s32 arg3)
 {
-    void**               scratch;
-    u8*                  head;
-    OverlaySparkScratch* block;
-    POLY_FT4*            prim;
-    s32                  ang;
-    s32                  ang2;
-    s32                  span;
-    s32                  u0;
-    s32                  v0;
-    s32                  u1;
-    s32                  v1;
-    u16                  vz;
-    u16                  tex;
-    u16                  sel;
-    s32                  sine;
-    OverlaySparkScratch* tmp;
+    void**             scratch;
+    u8*                head;
+    GpEffFlareScratch* block;
+    POLY_FT4*          prim;
+    s32                ang;
+    s32                ang2;
+    s32                span;
+    s32                u0;
+    s32                v0;
+    s32                u1;
+    s32                v1;
+    u16                vz;
+    u16                tex;
+    u16                sel;
+    s32                sine;
+    GpEffFlareScratch* tmp;
 
     scratch = (void**)G_SCRATCH_HEAD;
     SOFT_TOUCH_REG(arg2);
     head = *scratch;
-    tmp  = (OverlaySparkScratch*)(head - 0x1C);
+    tmp  = (GpEffFlareScratch*)(head - 0x1C);
     SOFT_TOUCH_REG(tmp);
     block         = tmp;
     block->vec.vx = *(u16*)&arg0->workm.t[0];
@@ -374,14 +374,14 @@ void func_dryfield_r08_8017E36C(GsCOORDINATE2* arg0, u16 arg1, s32 arg2, s32 arg
     block->vec.vz = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((OverlaySparkScratch*)(head - 0x1C))->vec);
+    gte_ldv0(&((GpEffFlareScratch*)(head - 0x1C))->vec);
     gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
-    gte_stsxy(&((OverlaySparkScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((OverlaySparkScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((GpEffFlareScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((GpEffFlareScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
         prim->tpage = 0x2C;

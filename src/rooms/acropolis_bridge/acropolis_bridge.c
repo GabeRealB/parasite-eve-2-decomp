@@ -1970,7 +1970,7 @@ void func_acropolis_bridge_80180FF0(Task* task)
 
 /// One frame of the bridge's twinkling dust spark: the task coordinate's
 /// translation is projected through `GsWSMATRIX` with a single `RTPS` into an
-/// `RoomSpriteScratch` block taken from `G_SCRATCH_HEAD`, and two
+/// `OverlaySpriteScratch` block taken from `G_SCRATCH_HEAD`, and two
 /// `POLY_FT4`s are linked into the OT at that depth. The first is an upright
 /// 0x1680 / otz square whose 0x10-wide texture cell is picked by
 /// `work->age % 6`, drawn with texture blending off (`code |= 3`). The
@@ -1982,14 +1982,14 @@ void func_acropolis_bridge_80180FF0(Task* task)
 /// one frame.
 void func_acropolis_bridge_801812F4(Task* task)
 {
-    GsCOORDINATE2*     coord;
-    GpEffWork*         work;
-    void**             scratch;
-    u8*                head;
-    RoomSpriteScratch* blk;
-    s32*               otzp;
-    POLY_FT4*          prim;
-    s32                grey;
+    GsCOORDINATE2*        coord;
+    GpEffWork*            work;
+    void**                scratch;
+    u8*                   head;
+    OverlaySpriteScratch* blk;
+    s32*                  otzp;
+    POLY_FT4*             prim;
+    s32                   grey;
 
     coord = ((TmdObject*)task->extra)->coords;
     work  = task->spawnArg2;
@@ -1997,7 +1997,7 @@ void func_acropolis_bridge_801812F4(Task* task)
     work->age   = task->spawnArg1;
     scratch     = (void**)G_SCRATCH_HEAD;
     head        = *scratch;
-    blk         = (RoomSpriteScratch*)(head - 0x18);
+    blk         = (OverlaySpriteScratch*)(head - 0x18);
     otzp        = &blk->otz;
     blk->vec.vx = coord->workm.t[0];
     blk->vec.vy = coord->workm.t[1];
@@ -2394,30 +2394,30 @@ void func_acropolis_bridge_80182694(Task* task)
 /// semi-transparent, and links into the OT at the projected depth.
 void func_acropolis_bridge_801827EC(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
 {
-    register GsCOORDINATE2* coord asm("t7");
-    void**                  scratch;
-    u8*                     head;
-    RoomFlaggedQuadScratch* blk;
-    POLY_FT4*               prim;
-    GpQuadCorner*           tbl;
-    SVECTOR*                sv;
-    MATRIX*                 wm;
-    s32                     i;
+    register GsCOORDINATE2*    coord asm("t7");
+    void**                     scratch;
+    u8*                        head;
+    OverlayFlaggedQuadScratch* blk;
+    POLY_FT4*                  prim;
+    GpQuadCorner*              tbl;
+    SVECTOR*                   sv;
+    MATRIX*                    wm;
+    s32                        i;
 
     coord = arg0;
     SOFT_TOUCH_REG(coord);
     scratch = (void**)G_SCRATCH_HEAD;
-    head    = (u8*)*scratch - sizeof(RoomFlaggedQuadScratch);
+    head    = (u8*)*scratch - sizeof(OverlayFlaggedQuadScratch);
     SOFT_TOUCH_REG(head);
     *scratch = head;
-    blk      = (RoomFlaggedQuadScratch*)head;
+    blk      = (OverlayFlaggedQuadScratch*)head;
     gte_SetTransMatrix(&GsWSMATRIX);
     i   = 0;
     wm  = &coord->workm;
     tbl = D_80111E38;
     do {
         blk->v[i].vx = tbl[i].x * arg1;
-        sv           = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(RoomFlaggedQuadScratch, v));
+        sv           = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(OverlayFlaggedQuadScratch, v));
         sv->vy       = 0;
         sv->vz       = tbl[i].y * arg1;
         gte_SetRotMatrix(wm);
@@ -2453,7 +2453,7 @@ void func_acropolis_bridge_801827EC(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
         addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomFlaggedQuadScratch);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(OverlayFlaggedQuadScratch);
 }
 
 /// Controller for one piece of the bridge's blown debris: it drifts the task's

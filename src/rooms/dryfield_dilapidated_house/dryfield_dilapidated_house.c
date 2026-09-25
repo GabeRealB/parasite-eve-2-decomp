@@ -2202,20 +2202,20 @@ void func_dryfield_dilapidated_house_80181F08(Task* task)
 /// bits 8, 4 and 0 that each multiply the 0x40-9i fade.
 void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
 {
-    RoomFlaggedQuadScratch* blk;
-    GsCOORDINATE2*          a;
-    GsCOORDINATE2*          b;
-    POLY_G4*                prim;
-    s32                     i;
-    s32                     j;
-    s32                     i0;
-    s32                     i1;
-    s32                     hi;
-    s32                     lo;
-    s32                     fade;
+    OverlayFlaggedQuadScratch* blk;
+    GsCOORDINATE2*             a;
+    GsCOORDINATE2*             b;
+    POLY_G4*                   prim;
+    s32                        i;
+    s32                        j;
+    s32                        i0;
+    s32                        i1;
+    s32                        hi;
+    s32                        lo;
+    s32                        fade;
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomFlaggedQuadScratch);
-    blk                     = (RoomFlaggedQuadScratch*)*(void**)G_SCRATCH_HEAD;
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(OverlayFlaggedQuadScratch);
+    blk                     = (OverlayFlaggedQuadScratch*)*(void**)G_SCRATCH_HEAD;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 7; i++) {
@@ -2262,7 +2262,7 @@ void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
             Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomFlaggedQuadScratch);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(OverlayFlaggedQuadScratch);
 }
 
 /// Per-frame state machine of the ``DdhEffWork`` effect family's fade-in

@@ -356,24 +356,24 @@ void Actor00300_Fn00078(GsCOORDINATE2* coord, s16 size)
 /// coordinate's world position, with the texture alternating each frame.
 void Actor00300_Fn005D0(GsCOORDINATE2* arg0, s32 arg1)
 {
-    void**              scratch;
-    u8*                 head;
-    ActorGroundScratch* sc;
-    POLY_FT4*           prim;
-    GpQuadCorner*       tbl;
-    SVECTOR*            v;
-    s32                 i;
-    s32                 otz;
-    s32                 flag;
-    s32                 u;
-    s32                 prod;
+    void**                scratch;
+    u8*                   head;
+    OverlayGroundScratch* sc;
+    POLY_FT4*             prim;
+    GpQuadCorner*         tbl;
+    SVECTOR*              v;
+    s32                   i;
+    s32                   otz;
+    s32                   flag;
+    s32                   u;
+    s32                   prod;
 
     scratch = (void**)G_SCRATCH_HEAD;
-    head    = (u8*)*scratch - sizeof(ActorGroundScratch);
+    head    = (u8*)*scratch - sizeof(OverlayGroundScratch);
 
     SOFT_TOUCH_REG(head);
     *scratch = head;
-    sc       = (ActorGroundScratch*)head;
+    sc       = (OverlayGroundScratch*)head;
     gte_SetTransMatrix(&GsWSMATRIX);
     i   = 0;
     v   = sc->vec;
@@ -446,7 +446,7 @@ void Actor00300_Fn005D0(GsCOORDINATE2* arg0, s32 arg1)
                     prim);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(ActorGroundScratch);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(OverlayGroundScratch);
 }
 
 void Actor00300_Fn00970(GpEnemy* enemy, Task* task)

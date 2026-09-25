@@ -199,23 +199,23 @@ void func_dryfield_night_breezeway_8017D6D8(SVECTOR* arg0, s16 arg1, s32 arg2)
 /// on the scratchpad stack.
 void func_dryfield_night_breezeway_8017DB4C(SVECTOR* arg0, s32 arg1)
 {
-    void**             scratch;
-    u8*                head;
-    SVECTOR*           p1;
-    RoomDraw08Scratch* block;
-    POLY_G4*           prim;
-    DisplayState*      ds;
-    s32                raw;
-    s32                ang;
-    s32                angEnd;
-    s32                limit;
-    s32                angStart;
-    s32                t;
-    s32                t2;
-    s32                t3;
-    s32                conn;
-    s32                scaled;
-    s32                blend;
+    void**                   scratch;
+    u8*                      head;
+    SVECTOR*                 p1;
+    OverlayPointPairScratch* block;
+    POLY_G4*                 prim;
+    DisplayState*            ds;
+    s32                      raw;
+    s32                      ang;
+    s32                      angEnd;
+    s32                      limit;
+    s32                      angStart;
+    s32                      t;
+    s32                      t2;
+    s32                      t3;
+    s32                      conn;
+    s32                      scaled;
+    s32                      blend;
 
     p1      = arg0 + 1;
     scratch = (void**)G_SCRATCH_HEAD;
@@ -223,7 +223,7 @@ void func_dryfield_night_breezeway_8017DB4C(SVECTOR* arg0, s32 arg1)
     {
         register u8* tmp asm("v0");
         tmp      = head - 0x1C;
-        block    = (RoomDraw08Scratch*)tmp;
+        block    = (OverlayPointPairScratch*)tmp;
         *scratch = tmp;
     }
 
@@ -231,18 +231,18 @@ void func_dryfield_night_breezeway_8017DB4C(SVECTOR* arg0, s32 arg1)
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
     gte_rtps();
-    gte_stsxy(&((RoomDraw08Scratch*)(head - 0x1C))->sx0);
-    gte_stflg(&((RoomDraw08Scratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((OverlayPointPairScratch*)(head - 0x1C))->sx0);
+    gte_stflg(&((OverlayPointPairScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz0);
         gte_ldv0(p1);
         gte_rtps();
-        gte_stsxy(&((RoomDraw08Scratch*)(head - 0x1C))->sx1);
-        gte_stflg(&((RoomDraw08Scratch*)(head - 0x1C))->flag);
+        gte_stsxy(&((OverlayPointPairScratch*)(head - 0x1C))->sx1);
+        gte_stflg(&((OverlayPointPairScratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
-            gte_stszotz(&((RoomDraw08Scratch*)(head - 0x1C))->otz1);
+            gte_stszotz(&((OverlayPointPairScratch*)(head - 0x1C))->otz1);
             scaled    = (s16)arg1 * 64;
-            block->r0 = scaled / ((RoomDraw08Scratch*)(head - 0x1C))->otz0;
+            block->r0 = scaled / ((OverlayPointPairScratch*)(head - 0x1C))->otz0;
             block->r1 = scaled / block->otz1;
             raw       = ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
             ds        = &gDisplayState;

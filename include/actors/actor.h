@@ -227,17 +227,6 @@ typedef struct ActorProjectScratch {
 } ActorProjectScratch;
 STATIC_ASSERT_SIZEOF(ActorProjectScratch, 0x18);
 
-/// A flat quad on the ground under an actor: its four corners in world space
-/// and their projected screen positions.
-typedef struct ActorGroundScratch {
-    SVECTOR vec[4];
-    DVECTOR sxy0;
-    DVECTOR sxy1;
-    DVECTOR sxy2;
-    DVECTOR sxy3;
-} ActorGroundScratch;
-STATIC_ASSERT_SIZEOF(ActorGroundScratch, 0x30);
-
 /// Four points projected together, with the first one's screen position and
 /// the depth the primitive drawn from them is sorted at.
 typedef struct ActorQuadScratch {

@@ -8,6 +8,7 @@
 #include "gameplay/3A34.h"
 #include "main/session.h"
 #include "gameplay/3CD8.h"
+#include "overlay.h"
 
 /// 0x18-byte scratchpad block `func_hypervelocity_8011F724` reserves for one
 /// frame of the barrel's recoil kick. `dir` receives the third column of the
@@ -63,23 +64,6 @@ typedef struct HyperConeScratch {
     /* 0x54 */ DVECTOR sxy3;
 } HyperConeScratch;
 STATIC_ASSERT_SIZEOF(HyperConeScratch, 0x58);
-
-/// 0x30-byte scratchpad block `func_hypervelocity_8011E8A0` reserves for the
-/// scorch quad the round paints on the ground it is aimed at. `vec` holds the
-/// four corners of the unit quad `D_80111E38` scaled to the flare's radius in
-/// the ground plane (`vy` is always 0), rotated by `Gfx_ViewWorldMtx` and
-/// shifted onto the traced ground point; `sxy0`..`sxy3` are the four screen
-/// corners the single `RTPS` + `RTPT` pair projects them to. Unlike the other
-/// blocks in this overlay it carries no `otz` / `flag` - those are function
-/// locals here.
-typedef struct HyperGroundScratch {
-    /* 0x00 */ SVECTOR vec[4];
-    /* 0x20 */ DVECTOR sxy0;
-    /* 0x24 */ DVECTOR sxy1;
-    /* 0x28 */ DVECTOR sxy2;
-    /* 0x2C */ DVECTOR sxy3;
-} HyperGroundScratch;
-STATIC_ASSERT_SIZEOF(HyperGroundScratch, 0x30);
 
 /// 0x38 block the round's spawn state allocates with `memCalloc` and parks in
 /// `Task::work`. It leads with the `GpObj` list node `func_hypervelocity_8011F11C`

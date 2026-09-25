@@ -5,39 +5,8 @@
 
 #include <psyq/libgte.h>
 #include <psyq/libgs.h>
-
-/// 0x1C-byte scratch block `func_pepper_spray_8012F21C` takes from
-/// `G_SCRATCH_HEAD` for the spray nozzle quad. `vec` is the effect
-/// coordinate's `workm.t[]` truncated to s16 and projected through
-/// `GsWSMATRIX` with one `RTPS`: `flag` is the `gte_stflg` of that projection
-/// (a negative value drops the quad), `otz` its `gte_stszotz` and `sx` / `sy`
-/// its `gte_stsxy`. `dx` / `dz` hold the current
-/// `(arg1 * 0x37 / otz) * rsin|rcos(angle) >> 12` offsets that are added to
-/// and subtracted from `sx` / `sy` to build the four corners; only their low
-/// halves are read back.
-typedef struct PepperSprayNozzleScratch {
-    /* 0x00 */ s32     otz;
-    /* 0x04 */ s32     dx;
-    /* 0x08 */ s32     dz;
-    /* 0x0C */ s32     flag;
-    /* 0x10 */ SVECTOR vec;
-    /* 0x18 */ s16     sx;
-    /* 0x1A */ s16     sy;
-} PepperSprayNozzleScratch;
-STATIC_ASSERT_SIZEOF(PepperSprayNozzleScratch, 0x1C);
-
-/// 0x28-byte scratch block `func_pepper_spray_8012F634` takes from
-/// `G_SCRATCH_HEAD` for one spray quad. `v` is built in the effect
-/// coordinate's frame, rotated by its `workm` and translated by its `t`, then
-/// projected through `GsWSMATRIX`; `flag` is the `gte_stflg` of that
-/// projection (a negative value drops the quad) and `otz` is its
-/// `gte_stszotz`, incremented by 1 before it picks the OT bucket.
-typedef struct PepperSprayScratch {
-    /* 0x00 */ s32     otz;
-    /* 0x04 */ s32     flag;
-    /* 0x08 */ SVECTOR v[4];
-} PepperSprayScratch;
-STATIC_ASSERT_SIZEOF(PepperSprayScratch, 0x28);
+#include "gameplay/3FB8.h"
+#include "overlay.h"
 
 /// The six spray-cone yaws, refilled once per cast by
 /// `func_pepper_spray_8012EF34` from `Gp_LcgState`: entry `i` is a 0x400-wide

@@ -16,12 +16,13 @@
 #include "main/wipsys.h"
 
 /*
- * Types that room and actor overlays both carry.
+ * Types that more than one overlay family carries.
  *
  * Every overlay is linked on its own, so code that several of them share was
- * compiled into each one. The layouts below are the ones that code repeats in
- * rooms and actors alike and that neither the gameplay nor the main executable
- * owns; one declaration serves both families.
+ * compiled into each one. The layouts below are the ones that code repeats
+ * across families - rooms and actors, and some also weapons and PE - and that
+ * neither the gameplay nor the main executable owns; one declaration serves
+ * every family.
  */
 
 /// Work block of a full-screen fade task, allocated eight bytes at a time and
@@ -227,22 +228,6 @@ static __inline__ s32 overlayOutOfRange(SVECTOR* d, s16 r)
     return ret;
 }
 
-/// The scratch-pad block of a sprite spun about one projected point: `vec` is
-/// the point, and one `RTPS` fills `sx`, `sy`, `flag` and `otz`. `dx` and `dy`
-/// are the half extent scaled by the depth and rotated by the spin angle; they
-/// are added to and subtracted from the projected point to place the corners,
-/// and only their low halves are read back.
-typedef struct OverlaySparkScratch {
-    s32     otz;
-    s32     dx;
-    s32     dy;
-    s32     flag;
-    SVECTOR vec;
-    s16     sx;
-    s16     sy;
-} OverlaySparkScratch;
-STATIC_ASSERT_SIZEOF(OverlaySparkScratch, 0x1C);
-
 /// One enemy slot of a scripted encounter, in the table its controller works
 /// through in order. `kind` selects the task that holds the slot's enemies
 /// (one enemy from either of two tables, or a pair), and `command` is what
@@ -338,6 +323,56 @@ typedef struct OverlayAvoidScratch {
     u8       blocked;
 } OverlayAvoidScratch;
 STATIC_ASSERT_SIZEOF(OverlayAvoidScratch, 0x54);
+
+/// The scratch-pad block of a flat quad on the ground: its four corners in
+/// world space and their projected screen positions.
+typedef struct OverlayGroundScratch {
+    SVECTOR vec[4];
+    DVECTOR sxy0;
+    DVECTOR sxy1;
+    DVECTOR sxy2;
+    DVECTOR sxy3;
+} OverlayGroundScratch;
+STATIC_ASSERT_SIZEOF(OverlayGroundScratch, 0x30);
+
+/// The scratch-pad block of a sprite drawer projecting and sizing one
+/// camera-facing quad: `vec` is the point it projects, `sxy` and `otz` the
+/// resulting screen point and depth, and `dx`, `dy` the offsets from `sxy` to
+/// the quad's corners, derived from `otz` so the sprite shrinks with distance.
+typedef struct OverlaySpriteScratch {
+    s32     otz;
+    s32     dx;
+    s32     dy;
+    SVECTOR vec;
+    DVECTOR sxy;
+} OverlaySpriteScratch;
+STATIC_ASSERT_SIZEOF(OverlaySpriteScratch, 0x18);
+
+/// The scratch-pad block of a quad drawer that keeps the GTE flag word: the
+/// depth the quad is sorted at, the flag, and the quad's four corners.
+typedef struct OverlayFlaggedQuadScratch {
+    s32     otz;
+    s32     flag;
+    SVECTOR v[4];
+} OverlayFlaggedQuadScratch;
+STATIC_ASSERT_SIZEOF(OverlayFlaggedQuadScratch, 0x28);
+
+/// The scratch-pad block of two points projected one after the other, each
+/// with a radius scaled by its own depth: `otz0` and `otz1` are the depths,
+/// `flag` the GTE flag word of whichever projection ran last, `r0` and `r1`
+/// the two radii and `sx0`, `sy0`, `sx1`, `sy1` the two screen points.
+typedef struct OverlayPointPairScratch {
+    s32 otz0;
+    s32 otz1;
+    s32 flag;
+    s32 r0;
+    s32 r1;
+    u16 sx0;
+    u16 sy0;
+    u16 sx1;
+    u16 sy1;
+} OverlayPointPairScratch;
+STATIC_ASSERT_SIZEOF(OverlayPointPairScratch, 0x1C);
 
 /// The offset from one position to another, widened to words and staged on
 /// the scratch pad just long enough to take its bearing with `ratan2`.

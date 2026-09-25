@@ -79,19 +79,19 @@ void func_dryfield_toilet_8017DCF0(Task* arg0)
 
 void func_dryfield_toilet_8017DEF4(Task* arg0)
 {
-    GpEffWork*         mem;
-    GsCOORDINATE2*     coord;
-    void**             scratch;
-    u8*                head;
-    RoomSpriteScratch* block;
-    POLY_FT4*          prim;
-    s32                rng;
-    s32                temp;
-    SVECTOR*           vec;
-    s32                t2;
-    u8*                tmp;
-    u16                vx;
-    u16                vz;
+    GpEffWork*            mem;
+    GsCOORDINATE2*        coord;
+    void**                scratch;
+    u8*                   head;
+    OverlaySpriteScratch* block;
+    POLY_FT4*             prim;
+    s32                   rng;
+    s32                   temp;
+    SVECTOR*              vec;
+    s32                   t2;
+    u8*                   tmp;
+    u16                   vx;
+    u16                   vz;
 
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     mem   = arg0->spawnArg2;
@@ -101,7 +101,7 @@ void func_dryfield_toilet_8017DEF4(Task* arg0)
     vx      = *(u16*)&coord->workm.t[0];
     tmp     = head - 0x18;
     SOFT_USE_REG(tmp); /* keeps the carve apart from `block`, so the head store takes the copy */
-    block         = (RoomSpriteScratch*)tmp;
+    block         = (OverlaySpriteScratch*)tmp;
     block->vec.vx = vx;
     block->vec.vy = *(u16*)&coord->workm.t[1];
     vz            = *(u16*)&coord->workm.t[2];
@@ -109,15 +109,15 @@ void func_dryfield_toilet_8017DEF4(Task* arg0)
     block->vec.vz = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((RoomSpriteScratch*)(head - 0x18))->vec);
+    gte_ldv0(&((OverlaySpriteScratch*)(head - 0x18))->vec);
     gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
-    gte_stsxy(&((RoomSpriteScratch*)(head - 0x18))->sxy);
+    gte_stsxy(&((OverlaySpriteScratch*)(head - 0x18))->sxy);
     gte_stszotz(&block->otz);
-    if (((RoomSpriteScratch*)(head - 0x18))->otz >= 0x11) {
+    if (((OverlaySpriteScratch*)(head - 0x18))->otz >= 0x11) {
         if (arg0->state == 0) {
             rng         = Gp_LcgState * 5 + 0x71357911;
             mem->scale  = (u16)arg0->spawnArg1 & 0xFFF;

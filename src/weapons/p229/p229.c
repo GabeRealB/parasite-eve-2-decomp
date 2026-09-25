@@ -130,17 +130,17 @@ void func_p229_8011D1DC(Task* task)
 
 void func_p229_8011D464(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 {
-    void**                  scratch;
-    u8*                     head;
-    WeaponFlashCoreScratch* blk;
-    WeaponFlashCoreScratch* otzp;
-    POLY_FT4*               prim;
-    s32                     ang;
-    u16                     vz;
+    void**                scratch;
+    u8*                   head;
+    OverlaySpriteScratch* blk;
+    OverlaySpriteScratch* otzp;
+    POLY_FT4*             prim;
+    s32                   ang;
+    u16                   vz;
 
     scratch     = (void**)G_SCRATCH_HEAD;
     head        = *scratch;
-    blk         = (WeaponFlashCoreScratch*)(head - sizeof(WeaponFlashCoreScratch));
+    blk         = (OverlaySpriteScratch*)(head - sizeof(OverlaySpriteScratch));
     blk->vec.vx = *(u16*)&arg0->workm.t[0];
     blk->vec.vy = *(u16*)&arg0->workm.t[1];
     vz          = *(u16*)&arg0->workm.t[2];
@@ -149,38 +149,38 @@ void func_p229_8011D464(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     blk->vec.vz = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((WeaponFlashCoreScratch*)(head - 0x18))->vec);
+    gte_ldv0(&((OverlaySpriteScratch*)(head - 0x18))->vec);
     gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
-    gte_stsxy(&((WeaponFlashCoreScratch*)(head - 0x18))->sxy);
+    gte_stsxy(&((OverlaySpriteScratch*)(head - 0x18))->sxy);
     gte_stszotz(&otzp->otz);
-    if (((WeaponFlashCoreScratch*)(head - 0x18))->otz >= 0x11) {
+    if (((OverlaySpriteScratch*)(head - 0x18))->otz >= 0x11) {
         ang         = arg2;
         prim->tpage = 0x29;
         prim->clut  = 0x428B;
         setUV4(prim, 0x70, 0xC8, 0xA7, 0xC8, 0x70, 0xFF, 0xA7, 0xFF);
         setcode(prim, getcode(prim) | 3);
-        blk->dx  = (((arg1 * 55) / ((WeaponFlashCoreScratch*)(head - 0x18))->otz) * rsin(ang)) >> 12;
-        blk->dy  = (((arg1 * 55) / ((WeaponFlashCoreScratch*)(head - 0x18))->otz) * rcos(ang)) >> 12;
+        blk->dx  = (((arg1 * 55) / ((OverlaySpriteScratch*)(head - 0x18))->otz) * rsin(ang)) >> 12;
+        blk->dy  = (((arg1 * 55) / ((OverlaySpriteScratch*)(head - 0x18))->otz) * rcos(ang)) >> 12;
         prim->x0 = *(u16*)&blk->sxy.vx + *(u16*)&blk->dx;
         prim->x3 = *(u16*)&blk->sxy.vx - *(u16*)&blk->dx;
         prim->y0 = *(u16*)&blk->sxy.vy - *(u16*)&blk->dy;
         ang      = ang + 0x400;
         prim->y3 = *(u16*)&blk->sxy.vy + *(u16*)&blk->dy;
-        blk->dx  = (((arg1 * 55) / ((WeaponFlashCoreScratch*)(head - 0x18))->otz) * rsin(ang)) >> 12;
-        blk->dy  = (((arg1 * 55) / ((WeaponFlashCoreScratch*)(head - 0x18))->otz) * rcos(ang)) >> 12;
+        blk->dx  = (((arg1 * 55) / ((OverlaySpriteScratch*)(head - 0x18))->otz) * rsin(ang)) >> 12;
+        blk->dy  = (((arg1 * 55) / ((OverlaySpriteScratch*)(head - 0x18))->otz) * rcos(ang)) >> 12;
         prim->x1 = *(u16*)&blk->sxy.vx + *(u16*)&blk->dx;
         prim->x2 = *(u16*)&blk->sxy.vx - *(u16*)&blk->dx;
         prim->y1 = *(u16*)&blk->sxy.vy - *(u16*)&blk->dy;
         prim->y2 = *(u16*)&blk->sxy.vy + *(u16*)&blk->dy;
-        addPrim((u_long*)(((((u32)((WeaponFlashCoreScratch*)(head - 0x18))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+        addPrim((u_long*)(((((u32)((OverlaySpriteScratch*)(head - 0x18))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + sizeof(WeaponFlashCoreScratch);
+    *scratch = (u8*)*scratch + sizeof(OverlaySpriteScratch);
 }
 
 /// Draws a gun's muzzle flash as one Gouraud quad: three corners on a 0x100

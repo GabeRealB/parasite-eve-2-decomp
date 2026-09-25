@@ -2091,7 +2091,7 @@ void Gp_EffSprTaskA7(Task* arg0)
     gte_ldv0(&((GpEffFlareScratch*)(head - 0x1C))->vec);
     gte_rtps();
     n = (((s32)arg0->spawnArg1 >> 12) & 3) + 1;
-    gte_stsxy(&((GpEffFlareScratch*)(head - 0x1C))->sxy);
+    gte_stsxy(&((GpEffFlareScratch*)(head - 0x1C))->sx);
     gte_stflg(&((GpEffFlareScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&otzp->otz);
@@ -2124,18 +2124,18 @@ void Gp_EffSprTaskA7(Task* arg0)
             USE_REG(prod); /* keep prod live so the shift lands in $v0 */
         }
         block->dy = (((mem->angle * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(mem->scale)) >> 12;
-        prim->x0  = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
-        prim->x3  = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
-        prim->y0  = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
-        prim->y3  = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        prim->x0  = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x3  = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y0  = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y3  = *(u16*)&block->sy + *(u16*)&block->dy;
         prod      = ((mem->angle * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rsin(mem->scale + 0x400);
         block->dx = prod >> 12;
         USE_REG(prod);
         block->dy = (((mem->angle * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(mem->scale + 0x400)) >> 12;
-        prim->x1  = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
-        prim->x2  = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
-        prim->y1  = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
-        prim->y2  = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        prim->x1  = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)((GpEffFlareScratch*)(head - 0x1C))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);

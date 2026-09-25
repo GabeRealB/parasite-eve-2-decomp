@@ -560,26 +560,26 @@ void func_energyball_8013035C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 /// `(0x20, 0x30, 0x20)`.
 void func_energyball_801307D4(GsCOORDINATE2* arg0, s32 arg1)
 {
-    void**               scratch;
-    u8*                  head;
-    EnergyGroundScratch* sc;
-    POLY_FT4*            prim;
-    GpQuadCorner*        tbl;
-    SVECTOR*             v;
-    s32                  i;
-    s32                  otz;
-    s32                  flag;
-    s32                  u;
-    s32                  prod;
-    s32                  rb;
+    void**                scratch;
+    u8*                   head;
+    OverlayGroundScratch* sc;
+    POLY_FT4*             prim;
+    GpQuadCorner*         tbl;
+    SVECTOR*              v;
+    s32                   i;
+    s32                   otz;
+    s32                   flag;
+    s32                   u;
+    s32                   prod;
+    s32                   rb;
 
     scratch = (void**)G_SCRATCH_HEAD;
-    head    = (u8*)*scratch - sizeof(EnergyGroundScratch);
+    head    = (u8*)*scratch - sizeof(OverlayGroundScratch);
     /* Store the freshly computed head and keep a copy for the rest of the
        function; without the barrier GCC folds the two together. */
     SOFT_TOUCH_REG(head);
     *scratch = head;
-    sc       = (EnergyGroundScratch*)head;
+    sc       = (OverlayGroundScratch*)head;
     gte_SetTransMatrix(&GsWSMATRIX);
     i   = 0;
     v   = sc->vec;
@@ -650,7 +650,7 @@ void func_energyball_801307D4(GsCOORDINATE2* arg0, s32 arg1)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(EnergyGroundScratch);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(OverlayGroundScratch);
 }
 
 /// Draws the energy ball's surface: two 16-vertex rings of the same radius

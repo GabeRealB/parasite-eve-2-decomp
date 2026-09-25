@@ -170,20 +170,6 @@ typedef struct RoomStreamWork {
 } RoomStreamWork;
 STATIC_ASSERT_SIZEOF(RoomStreamWork, 0x14);
 
-/// The scratch block a room's sprite drawer takes from `G_SCRATCH_HEAD` to
-/// project and size one camera-facing quad: `vec` is the point it projects,
-/// `sxy` and `otz` the resulting screen point and depth, and `dx`, `dy` the
-/// offsets from `sxy` to the quad's corners, derived from `otz` so the sprite
-/// shrinks with distance.
-typedef struct RoomSpriteScratch {
-    s32     otz;
-    s32     dx;
-    s32     dy;
-    SVECTOR vec;
-    DVECTOR sxy;
-} RoomSpriteScratch;
-STATIC_ASSERT_SIZEOF(RoomSpriteScratch, 0x18);
-
 /// The scratch block a room's mote or mist-puff drawer takes from
 /// `G_SCRATCH_HEAD` for one projection: `vec` is the point's world position,
 /// projected with a single `RTPS` through `GsWSMATRIX`, and `otz` the depth
@@ -239,16 +225,6 @@ typedef struct RoomDiscScratch {
     u16 sy;
 } RoomDiscScratch;
 STATIC_ASSERT_SIZEOF(RoomDiscScratch, 0x14);
-
-/// The scratch block a room's quad drawer takes from `G_SCRATCH_HEAD` when it
-/// keeps the GTE flag word as well: `RoomQuadScratch` with `flag` between the
-/// depth and the four corners.
-typedef struct RoomFlaggedQuadScratch {
-    s32     otz;
-    s32     flag;
-    SVECTOR v[4];
-} RoomFlaggedQuadScratch;
-STATIC_ASSERT_SIZEOF(RoomFlaggedQuadScratch, 0x28);
 
 /// The scratch block a room's quad drawer projects one quad in when it keeps
 /// the screen corners: the four corners in world space, the GTE depth and

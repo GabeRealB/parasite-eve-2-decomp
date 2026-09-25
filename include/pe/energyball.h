@@ -8,6 +8,7 @@
 
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "overlay.h"
 
 /// `SndEvt` ids for the energy ball, indexed by `GpEffWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`, so the sound scales with the combo
@@ -59,21 +60,6 @@ void func_energyball_8013035C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 /// centre with `(arg2 / 2, arg2, arg2 / 2)`, each wedge given the
 /// semi-transparent tpage of `Gp_AddTpageShift`.
 void func_energyball_8012FFD0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
-
-/// 0x30-byte scratch from `G_SCRATCH_HEAD` used by `func_energyball_801307D4`
-/// for the ground-plane quad. `vec` holds the four corners of the unit quad
-/// `D_80111E38`, scaled to the caller's half-size, rotated flat by
-/// `Gfx_ViewWorldMtx` and shifted onto `arg0->workm.t`; `sxy0`..`sxy3` are the
-/// four screen corners the single `RTPS` + `RTPT` pair projects them to.
-/// `otz` and `flag` are function locals, not fields of this block.
-typedef struct EnergyGroundScratch {
-    /* 0x00 */ SVECTOR vec[4];
-    /* 0x20 */ DVECTOR sxy0;
-    /* 0x24 */ DVECTOR sxy1;
-    /* 0x28 */ DVECTOR sxy2;
-    /* 0x2C */ DVECTOR sxy3;
-} EnergyGroundScratch;
-STATIC_ASSERT_SIZEOF(EnergyGroundScratch, 0x30);
 
 /// Draws a ground-plane quad at `arg0`'s `workm` translation: the unit quad
 /// `D_80111E38` is scaled to `arg1` half-size (Y stays 0), rotated flat by

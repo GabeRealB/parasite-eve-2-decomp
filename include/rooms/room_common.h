@@ -618,25 +618,6 @@ typedef struct _RoomDraw11Scratch {
 } RoomDraw11Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw11Scratch, 0x18);
 
-/// 0x1C-byte scratch block `Room_Draw08` and `Room_Draw01` take from
-/// `G_SCRATCH_HEAD`. Same
-/// two-point projection as `RoomDraw11Scratch` -- `arg0` and `arg0 + 1` through
-/// `Gfx_ViewWorldMtx` -- but the two `gte_stflg` results share `flag` at 0x8,
-/// which pushes the radii to 0xC/0x10 and the projected coordinates to
-/// 0x14..0x1A. `r0` is `(s16)arg1 * 64 / otz0` and `r1` the same over `otz1`.
-typedef struct _RoomDraw08Scratch {
-    /* 0x00 */ s32 otz0;
-    /* 0x04 */ s32 otz1;
-    /* 0x08 */ s32 flag;
-    /* 0x0C */ s32 r0;
-    /* 0x10 */ s32 r1;
-    /* 0x14 */ u16 sx0;
-    /* 0x16 */ u16 sy0;
-    /* 0x18 */ u16 sx1;
-    /* 0x1A */ u16 sy1;
-} RoomDraw08Scratch;
-STATIC_ASSERT_SIZEOF(RoomDraw08Scratch, 0x1C);
-
 /// 0x18-byte scratch block `Room_Draw04` takes from `G_SCRATCH_HEAD`. Same
 /// projection as `GpRingScratch` (`vec` through `GsWSMATRIX`, one `RTPS`)
 /// but `radius` sits at 0xC and `flag` at 0x10. `radius` is

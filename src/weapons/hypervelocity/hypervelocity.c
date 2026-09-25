@@ -600,20 +600,20 @@ void func_hypervelocity_8011E494(GsCOORDINATE2* coord, s16 age, s16 spin, s16 an
 /// ROM does not do.
 void func_hypervelocity_8011E8A0(GsCOORDINATE2* ground, s32 spin)
 {
-    void**              scratch;
-    register u8*        head asm("v1");
-    HyperGroundScratch* sc;
-    POLY_FT4*           prim;
-    GpQuadCorner*       tbl;
-    register SVECTOR*   v asm("a2");
-    s32                 i;
-    s32                 otz;
-    s32                 flag;
-    s32                 u;
+    void**                scratch;
+    register u8*          head asm("v1");
+    OverlayGroundScratch* sc;
+    POLY_FT4*             prim;
+    GpQuadCorner*         tbl;
+    register SVECTOR*     v asm("a2");
+    s32                   i;
+    s32                   otz;
+    s32                   flag;
+    s32                   u;
 
     scratch  = (void**)G_SCRATCH_HEAD;
-    head     = (u8*)*scratch - sizeof(HyperGroundScratch);
-    sc       = (HyperGroundScratch*)head;
+    head     = (u8*)*scratch - sizeof(OverlayGroundScratch);
+    sc       = (OverlayGroundScratch*)head;
     *scratch = head;
     gte_SetTransMatrix(&GsWSMATRIX);
     i   = 0;
@@ -677,7 +677,7 @@ void func_hypervelocity_8011E8A0(GsCOORDINATE2* ground, s32 spin)
         prim->y3    = sc->sxy3.vy;
         addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(HyperGroundScratch);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(OverlayGroundScratch);
 }
 
 /// Draws the discharge cone `func_hypervelocity_8011F270` leaves behind: two

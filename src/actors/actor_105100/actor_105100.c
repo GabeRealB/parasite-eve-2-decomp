@@ -447,24 +447,24 @@ void func_actor_105100_80131EBC(GsCOORDINATE2* coord, s16 size)
 /// display's animation frame.
 void func_actor_105100_80132414(GsCOORDINATE2* arg0, s32 arg1)
 {
-    void**              scratch;
-    u8*                 head;
-    ActorGroundScratch* sc;
-    POLY_FT4*           prim;
-    GpQuadCorner*       tbl;
-    SVECTOR*            v;
-    s32                 i;
-    s32                 otz;
-    s32                 flag;
-    s32                 u;
-    s32                 prod;
+    void**                scratch;
+    u8*                   head;
+    OverlayGroundScratch* sc;
+    POLY_FT4*             prim;
+    GpQuadCorner*         tbl;
+    SVECTOR*              v;
+    s32                   i;
+    s32                   otz;
+    s32                   flag;
+    s32                   u;
+    s32                   prod;
 
     scratch = (void**)G_SCRATCH_HEAD;
-    head    = (u8*)*scratch - sizeof(ActorGroundScratch);
+    head    = (u8*)*scratch - sizeof(OverlayGroundScratch);
 
     SOFT_TOUCH_REG(head);
     *scratch = head;
-    sc       = (ActorGroundScratch*)head;
+    sc       = (OverlayGroundScratch*)head;
     gte_SetTransMatrix(&GsWSMATRIX);
     i   = 0;
     v   = sc->vec;
@@ -537,7 +537,7 @@ void func_actor_105100_80132414(GsCOORDINATE2* arg0, s32 arg1)
                     prim);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(ActorGroundScratch);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(OverlayGroundScratch);
 }
 
 /// Spawn/setup handler. It allocates the 0x5C4-byte work block and hangs it off

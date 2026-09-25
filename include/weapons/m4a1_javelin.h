@@ -4,6 +4,7 @@
 #include "common.h"
 #include <psyq/libgte.h>
 #include "gameplay/3CD8.h"
+#include "overlay.h"
 
 /// Low halves of a `VECTOR3` (typically `GsCOORDINATE2.workm.t`).
 typedef struct M4a1JavelinVecLo {
@@ -30,28 +31,6 @@ typedef struct M4a1JavelinLineScratch {
     /* 0x12 */ u16 sy1;
 } M4a1JavelinLineScratch;
 STATIC_ASSERT_SIZEOF(M4a1JavelinLineScratch, 0x14);
-
-/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by
-/// `func_m4a1_javelin_8011DAB0` and `func_m4a1_javelin_8011E4A8` for the two
-/// ends of the javelin guide line. Each end is pushed through
-/// `GsWSMATRIX` by its own `RTPS`: `otz0` / `otz1` are the two `gte_stszotz`
-/// results (each biased by 1 so they can also be divisors), `flag` is the
-/// shared `gte_stflg` of whichever projection just ran and `sx0` / `sy0` /
-/// `sx1` / `sy1` the two `gte_stsxy` screen points the `LINE_F2` is built
-/// from. `r0` / `r1` are the perspective-corrected ring radii `0x4000 / otz`
-/// the `POLY_G4` fans around each end are drawn with.
-typedef struct M4a1JavelinRingScratch {
-    /* 0x00 */ s32 otz0;
-    /* 0x04 */ s32 otz1;
-    /* 0x08 */ s32 flag;
-    /* 0x0C */ s32 r0;
-    /* 0x10 */ s32 r1;
-    /* 0x14 */ u16 sx0;
-    /* 0x16 */ u16 sy0;
-    /* 0x18 */ u16 sx1;
-    /* 0x1A */ u16 sy1;
-} M4a1JavelinRingScratch;
-STATIC_ASSERT_SIZEOF(M4a1JavelinRingScratch, 0x1C);
 
 /// Fixed local offset the guide beam's coordinate hangs at.
 extern SVECTOR D_m4a1_javelin_8011FA90;
