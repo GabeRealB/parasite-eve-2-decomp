@@ -140658,3 +140658,15 @@ Same function: the scratch-pad `lui 0x1F80` / `sw 0x1F8003FC` asm, a second
 one inline helper called twice - `SCRATCH_PUSH(MATRIX)`, a coordinate-to-view
 walk, a write-back, `SCRATCH_POP(MATRIX)`. CSE folds the first call's pop and
 the second call's push into `sw h+0x20; sw h` on its own.
+## `li sN,K` right after storing the same `K` through `$v0` wants the stored value in `HImode` (func_actor_120300_80132C60, 2026-09-25)
+
+A post-reload `reload_cse_regs` pass replaces `li $s2,10` with `move $s2,$v0`
+when `$v0` still holds 10 in the same mode and no label or call lies between
+them. A `do { } while (0)` note does not reset its table, so the loop-note
+barrier (see the sched1-barrier entry) is not enough on its own where the
+animation id equals the loop's constant. The target keeps the `li` because
+the id reached the `u16` field as an `HImode` value (`movhi_internal2`): pass it
+through a `u16` helper parameter, not an `s32` one, and the recorded `$v0` no
+longer equals the `SImode` constant. The store-then-barrier-then-loop shape
+itself was an inline "set animation" helper whose slot walk was a
+`do { for (...) } while (0)` macro.

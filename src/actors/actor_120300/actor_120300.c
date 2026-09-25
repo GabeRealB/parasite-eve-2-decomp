@@ -731,22 +731,52 @@ clear:
     work->field_4C0 = 0;
 }
 
+/// Cross-fades body slots 1..19 of `work`'s animation context to animation
+/// `id` over `frames` frames.
+#define _ACTOR120300_BLEND_SLOTS(work, id, frames)                   \
+    do {                                                             \
+        u16 _i;                                                      \
+        for (_i = 1; _i < 0x14; _i++) {                              \
+            func_800B4114(&(work)->rig.anim, _i, (id), 0, (frames)); \
+        }                                                            \
+    } while (0)
+
+/// Parks `anim` in `field_4D4` and cross-fades every body slot to it over ten
+/// frames.
+static inline void _actor120300BlendAll(Task* task, u16 anim)
+{
+    Actor120300Work* work = (Actor120300Work*)task->work;
+
+    work->field_4D4 = anim;
+    _ACTOR120300_BLEND_SLOTS(work, anim, 10);
+}
+
+/// Parks `anim` in `field_4D4` and restarts every body slot on it at rate 0x10.
+static inline void _actor120300ResetAll(Task* task, u16 anim)
+{
+    Actor120300Work* work = (Actor120300Work*)task->work;
+    u16              i;
+
+    work->field_4D4 = anim;
+    for (i = 1; i < 0x14; i++) {
+        work->rig.slots[i].rate = 0x10;
+        Gp_AnimResetSlot(&work->rig.anim, i, anim);
+    }
+}
+
 /// After `func_actor_120300_80131EE0`, runs the request at `field_4C8` (0..19):
 /// most codes park an animation id in `field_4D4` and walk slots 1..19 through
 /// `func_800B4114` or `Gp_AnimResetSlot`; a few also send message 0x7D4 or
-/// change `field_4E0`. Case 1 phase 1 slides the model on X until
-/// `coord.t[0] < 0xF3D`. Codes 0, 14, 19 and out-of-range clear `field_4C8`.
+/// change `field_4E0`. Code 1 is two-phase, stepped by `field_4CA`: phase 1
+/// slides the model on X until `coord.t[0] < 0xF3D`. Every other code, and
+/// code 1 once the slide ends, clears `field_4C8`.
 void func_actor_120300_80132C60(Task* arg0)
 {
     TmdObject*       tmd;
     GpCoord*         coord;
     Actor120300Work* work;
-    Actor120300Work* animWork;
-    s32              i;
     s32              x;
     s32              msg;
-    s32              n;
-    s32              t;
 
     tmd   = arg0->extra.tmd;
     work  = (Actor120300Work*)arg0->work;
@@ -757,19 +787,8 @@ void func_actor_120300_80132C60(Task* arg0)
             switch ((u16)work->field_4CA) {
                 case 0:
                     Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_actor_120300_80140AFC, 0);
-                    i        = 1;
-                    n        = 0x10;
-                    animWork = (Actor120300Work*)arg0->work;
-                    TOUCH_REG(animWork);
-                    t = i;
-                    TOUCH_REG(t);
-                    animWork->field_4D4 = t;
-                    do {
-                        animWork->rig.slots[(u16)i].rate = n;
-                        Gp_AnimResetSlot(&animWork->rig.anim, (u16)i, 1);
-                        i++;
-                    } while ((u16)i < 0x14U);
-                    work->field_4CA = (u16)work->field_4CA + 1;
+                    _actor120300ResetAll(arg0, 1);
+                    work->field_4CA++;
                     return;
                 case 1:
                     x                 = coord->coord.t[0];
@@ -777,15 +796,7 @@ void func_actor_120300_80132C60(Task* arg0)
                     x                -= 0x14;
                     coord->coord.t[0] = x;
                     if (x < 0xF3D) {
-                        animWork            = (Actor120300Work*)arg0->work;
-                        animWork->field_4D4 = 0xE;
-                        SCHED_BARRIER();
-                        i = 1;
-                        n = 10;
-                        do {
-                            func_800B4114(&animWork->rig.anim, (u16)i, 0xE, 0, n);
-                            i++;
-                        } while ((u16)i < 0x14U);
+                        _actor120300BlendAll(arg0, 0xE);
                         work->field_4C8 = 0;
                     }
                     return;
@@ -793,207 +804,64 @@ void func_actor_120300_80132C60(Task* arg0)
             return;
         case 2:
             Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_actor_120300_80140B14, 0);
-            work->field_4C8 = 0;
-            return;
+            break;
         case 3:
-            animWork            = (Actor120300Work*)arg0->work;
-            animWork->field_4D4 = 4;
-            SCHED_BARRIER();
-            i = 1;
-            n = 10;
-            do {
-                func_800B4114(&animWork->rig.anim, (u16)i, 4, 0, n);
-                i++;
-            } while ((u16)i < 0x14U);
-            work->field_4C8 = 0;
-            return;
+            _actor120300BlendAll(arg0, 4);
+            break;
         case 4:
-            animWork            = (Actor120300Work*)arg0->work;
-            animWork->field_4D4 = 0x12;
-            SCHED_BARRIER();
-            i = 1;
-            n = 10;
-            do {
-                func_800B4114(&animWork->rig.anim, (u16)i, 0x12, 0, n);
-                i++;
-            } while ((u16)i < 0x14U);
-            work->field_4C8 = 0;
-            return;
+            _actor120300BlendAll(arg0, 0x12);
+            break;
         case 5:
-            animWork            = (Actor120300Work*)arg0->work;
-            animWork->field_4D4 = 6;
-            SCHED_BARRIER();
-            i = 1;
-            n = 10;
-            do {
-                func_800B4114(&animWork->rig.anim, (u16)i, 6, 0, n);
-                i++;
-            } while ((u16)i < 0x14U);
-            work->field_4C8 = 0;
-            return;
+            _actor120300BlendAll(arg0, 6);
+            break;
         case 6:
-            animWork            = (Actor120300Work*)arg0->work;
-            animWork->field_4D4 = 7;
-            SCHED_BARRIER();
-            i = 1;
-            n = 10;
-            do {
-                func_800B4114(&animWork->rig.anim, (u16)i, 7, 0, n);
-                i++;
-            } while ((u16)i < 0x14U);
-            work->field_4C8 = 0;
-            return;
+            _actor120300BlendAll(arg0, 7);
+            break;
         case 7:
-            animWork            = (Actor120300Work*)arg0->work;
-            animWork->field_4D4 = 0xD;
-            SCHED_BARRIER();
-            i = 1;
-            n = 10;
-            do {
-                func_800B4114(&animWork->rig.anim, (u16)i, 0xD, 0, n);
-                i++;
-            } while ((u16)i < 0x14U);
-            work->field_4C8 = 0;
-            return;
+            _actor120300BlendAll(arg0, 0xD);
+            break;
         case 8:
             msg = (s32)&D_actor_120300_80140B2C;
             Gp_DispatchMsg(arg0, 0x7D4, msg, 0);
             Gp_DispatchMsg(work->field_4BC, 0x7D4, msg + 0x30, 0);
-            animWork            = (Actor120300Work*)arg0->work;
-            animWork->field_4D4 = 8;
-            i                   = 1;
-            do {
-                animWork->rig.slots[(u16)i].rate = 0x10;
-                Gp_AnimResetSlot(&animWork->rig.anim, (u16)i, 8);
-                i++;
-            } while ((u16)i < 0x14U);
-            work->field_4C8 = 0;
-            return;
+            _actor120300ResetAll(arg0, 8);
+            break;
         case 9:
-            animWork            = (Actor120300Work*)arg0->work;
-            animWork->field_4D4 = 0xB;
-            SCHED_BARRIER();
-            i = 1;
-            n = 10;
-            do {
-                func_800B4114(&animWork->rig.anim, (u16)i, 0xB, 0, n);
-                i++;
-            } while ((u16)i < 0x14U);
-            work->field_4C8 = 0;
-            return;
+            _actor120300BlendAll(arg0, 0xB);
+            break;
         case 10:
-            animWork            = (Actor120300Work*)arg0->work;
-            animWork->field_4D4 = 9;
-            SCHED_BARRIER();
-            i = 1;
-            n = 10;
-            do {
-                func_800B4114(&animWork->rig.anim, (u16)i, 9, 0, n);
-                i++;
-            } while ((u16)i < 0x14U);
-            work->field_4C8 = 0;
-            return;
+            _actor120300BlendAll(arg0, 9);
+            break;
         case 11:
-            animWork            = (Actor120300Work*)arg0->work;
-            animWork->field_4D4 = 0xA;
-            SCHED_BARRIER();
-            i = 1;
-            n = 10;
-            do {
-                func_800B4114(&animWork->rig.anim, (u16)i, 0xA, 0, n);
-                i++;
-            } while ((u16)i < 0x14U);
-            work->field_4C8 = 0;
-            return;
+            _actor120300BlendAll(arg0, 0xA);
+            break;
         case 12:
-            animWork            = (Actor120300Work*)arg0->work;
-            animWork->field_4D4 = 0xC;
-            SCHED_BARRIER();
-            i = 1;
-            n = 10;
-            do {
-                func_800B4114(&animWork->rig.anim, (u16)i, 0xC, 0, n);
-                i++;
-            } while ((u16)i < 0x14U);
-            work->field_4C8 = 0;
-            return;
+            _actor120300BlendAll(arg0, 0xC);
+            break;
         case 13:
             work->field_4E0 = 0x400;
             Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_actor_120300_80140B74, 0);
-            i                   = 1;
-            n                   = 0x10;
-            animWork            = (Actor120300Work*)arg0->work;
-            animWork->field_4D4 = 0xE;
-            do {
-                animWork->rig.slots[(u16)i].rate = n;
-                Gp_AnimResetSlot(&animWork->rig.anim, (u16)i, 0xE);
-                i++;
-            } while ((u16)i < 0x14U);
-            work->field_4C8 = 0;
-            return;
+            _actor120300ResetAll(arg0, 0xE);
+            break;
         case 14:
             work->field_4E0 = 0x1000;
             break;
         case 15:
-            animWork            = (Actor120300Work*)arg0->work;
-            animWork->field_4D4 = 0xF;
-            SCHED_BARRIER();
-            i = 1;
-            n = 10;
-            do {
-                func_800B4114(&animWork->rig.anim, (u16)i, 0xF, 0, n);
-                i++;
-            } while ((u16)i < 0x14U);
-            work->field_4C8 = 0;
-            return;
+            _actor120300BlendAll(arg0, 0xF);
+            break;
         case 16:
-            animWork            = (Actor120300Work*)arg0->work;
-            animWork->field_4D4 = 0x10;
-            SCHED_BARRIER();
-            i = 1;
-            n = 10;
-            do {
-                func_800B4114(&animWork->rig.anim, (u16)i, 0x10, 0, n);
-                i++;
-            } while ((u16)i < 0x14U);
-            work->field_4C8 = 0;
-            return;
+            _actor120300BlendAll(arg0, 0x10);
+            break;
         case 17:
             Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_actor_120300_80140B44, 0);
-            i                   = 1;
-            n                   = 0x10;
-            animWork            = (Actor120300Work*)arg0->work;
-            animWork->field_4D4 = 0x11;
-            do {
-                animWork->rig.slots[(u16)i].rate = n;
-                Gp_AnimResetSlot(&animWork->rig.anim, (u16)i, 0x11);
-                i++;
-            } while ((u16)i < 0x14U);
-            work->field_4C8 = 0;
-            return;
+            _actor120300ResetAll(arg0, 0x11);
+            break;
         case 18:
             Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_actor_120300_80140B2C, 0);
-            i                   = 1;
-            n                   = 0x10;
-            animWork            = (Actor120300Work*)arg0->work;
-            animWork->field_4D4 = 8;
-            do {
-                animWork->rig.slots[(u16)i].rate = n;
-                Gp_AnimResetSlot(&animWork->rig.anim, (u16)i, 8);
-                i++;
-            } while ((u16)i < 0x14U);
-            work->field_4C8 = 0;
-            return;
+            _actor120300ResetAll(arg0, 8);
+            break;
         case 19:
-            animWork            = (Actor120300Work*)arg0->work;
-            animWork->field_4D4 = 5;
-            SCHED_BARRIER();
-            i = 1;
-            n = 10;
-            do {
-                func_800B4114(&animWork->rig.anim, (u16)i, 5, 0, n);
-                i++;
-            } while ((u16)i < 0x14U);
+            _actor120300BlendAll(arg0, 5);
             break;
         case 0:
         default:
