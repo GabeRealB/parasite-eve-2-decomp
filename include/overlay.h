@@ -222,4 +222,20 @@ static __inline__ s32 overlayOutOfRange(SVECTOR* d, s16 r)
     return ret;
 }
 
+/// The scratch-pad block of a sprite spun about one projected point: `vec` is
+/// the point, and one `RTPS` fills `sx`, `sy`, `flag` and `otz`. `dx` and `dy`
+/// are the half extent scaled by the depth and rotated by the spin angle; they
+/// are added to and subtracted from the projected point to place the corners,
+/// and only their low halves are read back.
+typedef struct OverlaySparkScratch {
+    s32     otz;
+    s32     dx;
+    s32     dy;
+    s32     flag;
+    SVECTOR vec;
+    s16     sx;
+    s16     sy;
+} OverlaySparkScratch;
+STATIC_ASSERT_SIZEOF(OverlaySparkScratch, 0x1C);
+
 #endif /* OVERLAY_H */

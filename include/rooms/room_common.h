@@ -806,24 +806,6 @@ typedef RoomDraw27Scratch RoomDraw19Scratch;
 /// as `RoomDraw27Scratch`.
 typedef RoomDraw27Scratch RoomDraw40Scratch;
 
-/// 0x1C-byte scratch block `Room_Draw39` takes from `G_SCRATCH_HEAD`. `vec`
-/// is the coordinate's `workm.t[]` at 0x10, projected through `GsWSMATRIX`
-/// with one `RTPS`. `otz` is `gte_stszotz`, `flag` is `gte_stflg`, and
-/// `sx`/`sy` are `gte_stsxy`. `dx` / `dy` hold the current
-/// `(arg2 * 47 / otz) * rsin|rcos(angle) >> 12` half-extents added to and
-/// subtracted from `sx` / `sy` to build the four `POLY_FT4` corners. Only
-/// the low halves of `dx` / `dy` are read back.
-typedef struct _RoomDraw39Scratch {
-    /* 0x00 */ s32     otz;
-    /* 0x04 */ s32     dx;
-    /* 0x08 */ s32     dy;
-    /* 0x0C */ s32     flag;
-    /* 0x10 */ SVECTOR vec;
-    /* 0x18 */ s16     sx;
-    /* 0x1A */ s16     sy;
-} RoomDraw39Scratch;
-STATIC_ASSERT_SIZEOF(RoomDraw39Scratch, 0x1C);
-
 /// 0x1C-byte scratch block `Room_Draw07` takes from `G_SCRATCH_HEAD`. Same
 /// projection and two-radius ring as `RoomDraw09Scratch`, but `flag` sits at
 /// 0xC with `rOuter` at 0x10 and `rInner` at 0x14. `rOuter` is

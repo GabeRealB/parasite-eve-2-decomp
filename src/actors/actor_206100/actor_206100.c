@@ -926,18 +926,18 @@ void func_actor_206100_8014A70C(GsCOORDINATE2* coord, u16 arg1, u16 arg2, u32 ar
 /// `arg3 + 0x400`, so the spark shrinks with depth.
 void func_actor_206100_8014AB3C(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, s32 arg3)
 {
-    void**             scratch;
-    u8*                head;
-    ActorSparkScratch* blk;
-    ActorSparkScratch* copy;
-    POLY_FT4*          prim;
-    s32                ang;
-    u16                frame;
-    s32                u;
+    void**               scratch;
+    u8*                  head;
+    OverlaySparkScratch* blk;
+    OverlaySparkScratch* copy;
+    POLY_FT4*            prim;
+    s32                  ang;
+    u16                  frame;
+    s32                  u;
 
     scratch     = (void**)G_SCRATCH_HEAD;
     head        = *scratch;
-    blk         = (ActorSparkScratch*)(head - sizeof(ActorSparkScratch));
+    blk         = (OverlaySparkScratch*)(head - sizeof(OverlaySparkScratch));
     copy        = blk;
     blk->vec.vx = *(u16*)&arg0->workm.t[0];
     blk->vec.vy = *(u16*)&arg0->workm.t[1];
@@ -945,13 +945,13 @@ void func_actor_206100_8014AB3C(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, s32 arg
     *scratch    = blk;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((ActorSparkScratch*)(head - sizeof(ActorSparkScratch)))->vec);
+    gte_ldv0(&((OverlaySparkScratch*)(head - sizeof(OverlaySparkScratch)))->vec);
     gte_rtps();
-    gte_stsxy(&((ActorSparkScratch*)(head - sizeof(ActorSparkScratch)))->sx);
-    gte_stflg(&((ActorSparkScratch*)(head - sizeof(ActorSparkScratch)))->flag);
+    gte_stsxy(&((OverlaySparkScratch*)(head - sizeof(OverlaySparkScratch)))->sx);
+    gte_stflg(&((OverlaySparkScratch*)(head - sizeof(OverlaySparkScratch)))->flag);
     if (blk->flag >= 0) {
         gte_stszotz(copy);
-        ((ActorSparkScratch*)(head - sizeof(ActorSparkScratch)))->otz++;
+        ((OverlaySparkScratch*)(head - sizeof(OverlaySparkScratch)))->otz++;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -962,24 +962,24 @@ void func_actor_206100_8014AB3C(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, s32 arg
         u           = frame * 0x28;
         setUV4(prim, u, 0x38, u + 0x27, 0x38, u, 0x5F, u + 0x27, 0x5F);
         ang      = (s16)arg3;
-        blk->dx  = (((arg2 * 0x27) / ((ActorSparkScratch*)(head - sizeof(ActorSparkScratch)))->otz) * rsin(ang)) >> 12;
-        blk->dy  = (((arg2 * 0x27) / ((ActorSparkScratch*)(head - sizeof(ActorSparkScratch)))->otz) * rcos(ang)) >> 12;
+        blk->dx  = (((arg2 * 0x27) / ((OverlaySparkScratch*)(head - sizeof(OverlaySparkScratch)))->otz) * rsin(ang)) >> 12;
+        blk->dy  = (((arg2 * 0x27) / ((OverlaySparkScratch*)(head - sizeof(OverlaySparkScratch)))->otz) * rcos(ang)) >> 12;
         prim->x0 = *(u16*)&blk->sx + *(u16*)&blk->dx;
         prim->x3 = *(u16*)&blk->sx - *(u16*)&blk->dx;
         prim->y0 = *(u16*)&blk->sy - *(u16*)&blk->dy;
         prim->y3 = *(u16*)&blk->sy + *(u16*)&blk->dy;
         ang      = ang + 0x400;
-        blk->dx  = (((arg2 * 0x27) / ((ActorSparkScratch*)(head - sizeof(ActorSparkScratch)))->otz) * rsin(ang)) >> 12;
-        blk->dy  = (((arg2 * 0x27) / ((ActorSparkScratch*)(head - sizeof(ActorSparkScratch)))->otz) * rcos(ang)) >> 12;
+        blk->dx  = (((arg2 * 0x27) / ((OverlaySparkScratch*)(head - sizeof(OverlaySparkScratch)))->otz) * rsin(ang)) >> 12;
+        blk->dy  = (((arg2 * 0x27) / ((OverlaySparkScratch*)(head - sizeof(OverlaySparkScratch)))->otz) * rcos(ang)) >> 12;
         prim->x1 = *(u16*)&blk->sx + *(u16*)&blk->dx;
         prim->x2 = *(u16*)&blk->sx - *(u16*)&blk->dx;
         prim->y1 = *(u16*)&blk->sy - *(u16*)&blk->dy;
         prim->y2 = *(u16*)&blk->sy + *(u16*)&blk->dy;
-        addPrim((u_long*)(((((u32)((ActorSparkScratch*)(head - sizeof(ActorSparkScratch)))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+        addPrim((u_long*)(((((u32)((OverlaySparkScratch*)(head - sizeof(OverlaySparkScratch)))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + sizeof(ActorSparkScratch);
+    *scratch = (u8*)*scratch + sizeof(OverlaySparkScratch);
 }
 
 void func_actor_206100_8014AF74(Task* task)

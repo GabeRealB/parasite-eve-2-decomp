@@ -308,20 +308,6 @@ typedef struct ActorQuadScratch {
 } ActorQuadScratch;
 STATIC_ASSERT_SIZEOF(ActorQuadScratch, 0x28);
 
-/// A spark sprite drawn around one projected point: the depth it is sorted
-/// at, the corner offset worked out for each pair of corners, the projection
-/// flags, the point and its screen position.
-typedef struct ActorSparkScratch {
-    s32     otz;
-    s32     dx;
-    s32     dy;
-    s32     flag;
-    SVECTOR vec;
-    s16     sx;
-    s16     sy;
-} ActorSparkScratch;
-STATIC_ASSERT_SIZEOF(ActorSparkScratch, 0x1C);
-
 /// Picking the next point to walk to relative to the player: the offset to
 /// the player, turned and scaled into a step toward the new point, the
 /// target, the matrix the turn is built in, and the turn with the yaws it is
