@@ -205,13 +205,13 @@ void func_acropolis_helicopter_landing_pad_8017EE2C(Task* arg0)
 
 void func_acropolis_helicopter_landing_pad_8017EE80(Task* arg0)
 {
-    s32   args[2];
-    Task* slot;
+    GpFacingArg args;
+    Task*       slot;
 
-    slot    = gameGetPtrSlot(3);
-    args[0] = 1;
-    args[1] = 3;
-    Gp_DispatchMsg(slot, 0x3EF, (s32)args, 0);
+    slot         = gameGetPtrSlot(3);
+    args.field_0 = 1;
+    args.field_4 = 3;
+    Gp_DispatchMsg(slot, 0x3EF, (s32)&args, 0);
     arg0->state = arg0->state + 1;
 }
 

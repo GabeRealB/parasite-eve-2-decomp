@@ -80,4 +80,55 @@ typedef struct GpCmdArg {
 } GpCmdArg;
 STATIC_ASSERT_SIZEOF(GpCmdArg, 4);
 
+/// The same 0x7DB record as `GpCmdArg`, as the event script runner sends it
+/// and a receiver that answers it sees it: `key` is the id the runner looked
+/// its target up by, and the halfword `GpCmdArg` reads as `command` is two
+/// bytes here. The receiver sets `done` once it has carried the request out,
+/// which the runner waits for; the runner sets `field_3` with each request.
+///
+/// It stays a type of its own rather than a union inside `GpCmdArg` because a
+/// union at `command` changes how the code that builds a `GpCmdArg` in place
+/// schedule its stores.
+typedef struct GpCmdReply {
+    u16 key;
+    s8  done;
+    s8  field_3;
+} GpCmdReply;
+STATIC_ASSERT_SIZEOF(GpCmdReply, 4);
+
+/// The payload of message 0x3FE, which moves the receiver by a displacement:
+/// `x`, `y` and `z` are added onto its coordinate. With `field_10` 7 the move
+/// also decides whether the receiver faces along it or away from it, from
+/// `x` / `z`; the receiver keeps `field_10` in its own state either way.
+/// `field_12` zero first resets the receiver's movement state, so a sender
+/// moving it over several frames sets it after the first.
+typedef struct GpMoveArg {
+    s32  x;
+    s32  y;
+    s32  z;
+    byte pad_C[4];
+    s16  field_10;
+    u8   field_12;
+    byte pad_13;
+} GpMoveArg;
+STATIC_ASSERT_SIZEOF(GpMoveArg, 0x14);
+
+/// The payload of message 0x3EF, which stops the receiver where it is and
+/// plays one of two animations: `field_0` non-zero picks the second. The
+/// receiver keeps both words in its own state; senders fill them as two words.
+typedef struct GpFacingArg {
+    s32 field_0;
+    s32 field_4;
+} GpFacingArg;
+STATIC_ASSERT_SIZEOF(GpFacingArg, 8);
+
+/// The optional second payload of message 0x3F2, which sends the receiver to a
+/// `GpXformArg` destination: two values the receiver keeps in its own state
+/// while it gets there. Without one it clears both.
+typedef struct GpOverrideArg {
+    s32 field_0;
+    s32 field_4;
+} GpOverrideArg;
+STATIC_ASSERT_SIZEOF(GpOverrideArg, 8);
+
 #endif

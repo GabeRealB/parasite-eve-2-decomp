@@ -223,20 +223,6 @@ typedef union Actor403000Event {
     u16 w[2];
 } Actor403000Event;
 
-/// Payload of message 0x3FE, the push the actor asks the player to take:
-/// `x`/`z` are the displacement, `field_10`/`field_12` the kind and count.
-/// `func_actor_403000_801384E8` clears the vector once the player accepts it.
-typedef struct Actor403000Msg3FE {
-    /* 0x00 */ s32  x;
-    /* 0x04 */ s32  y;
-    /* 0x08 */ s32  z;
-    /* 0x0C */ byte pad_C[0x4];
-    /* 0x10 */ s16  field_10;
-    /* 0x12 */ s8   field_12;
-    /* 0x13 */ byte pad_13[0x1];
-} Actor403000Msg3FE;
-STATIC_ASSERT_SIZEOF(Actor403000Msg3FE, 0x14);
-
 /// 0x34-byte scratch from `G_SCRATCH_HEAD` used by
 /// `func_actor_403000_80134F44`: `pos` and `id` are the first damage record
 /// found on the four hit tables, `d`/`dist` the player's offset from the model
@@ -440,7 +426,7 @@ extern u8 D_actor_403000_80158D48[];
 
 /// The push message `func_actor_403000_801384E8` keeps resending to the
 /// player.
-extern Actor403000Msg3FE D_actor_403000_80158DB0;
+extern GpMoveArg D_actor_403000_80158DB0;
 
 /// The grab message `func_actor_403000_801386E8` sends as 0x3E9.
 extern GpXformArg D_actor_403000_80158D90;

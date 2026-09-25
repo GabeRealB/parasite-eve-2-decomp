@@ -40,7 +40,7 @@ extern s32            D_8010FB90[];
 extern u16            Gp_WeaponIdBase[];
 extern u16            Gp_AllyIdBase[];
 extern GpEvt12*       Gp_CapTable;
-extern GpCapSpawnArg  D_801155A0;
+extern GpCmdReply     D_801155A0;
 extern s16            D_801155AC;
 extern u16            D_801155AE;
 extern s16            D_801155B0;
@@ -614,32 +614,32 @@ resumeView:
 
             if (Gp_CapTable[(s16)D_801155AE].field_6 != 0) {
                 if (D_801155AC == 0) {
-                    D_801155A0.field_0 = Gp_CapTable[(s16)D_801155AE].field_6;
-                    if (D_801155A0.field_0 < 0x65U) {
-                        if (Gp_GetCurBit2Flag((s32)D_801155A0.field_0) == 2) {
+                    D_801155A0.key = Gp_CapTable[(s16)D_801155AE].field_6;
+                    if (D_801155A0.key < 0x65U) {
+                        if (Gp_GetCurBit2Flag((s32)D_801155A0.key) == 2) {
                             D_801155AC         = 1;
-                            D_801155A0.field_2 = 1;
+                            D_801155A0.done    = 1;
                             D_801155A0.field_3 = 1;
                             return;
                         }
-                        if (D_801155A0.field_0 < 0x65U) {
+                        if (D_801155A0.key < 0x65U) {
                             goto spawnDialog;
                         }
                     }
                     lookupTask = gameGetPtrSlot(4);
                     target     = lookupTask;
-                    Gp_DispatchMsg(lookupTask, 0x7D8, D_801155A0.field_0 - 0x64, (s32)&target);
+                    Gp_DispatchMsg(lookupTask, 0x7D8, D_801155A0.key - 0x64, (s32)&target);
                     if (target != NULL) {
-                        D_801155A0.field_2 = 0;
+                        D_801155A0.done    = 0;
                         D_801155A0.field_3 = 1;
                         Gp_DispatchMsg(target, 0x7DB, (s32)&D_801155A0, 0);
                     } else {
-                        D_801155A0.field_2 = 1;
+                        D_801155A0.done    = 1;
                         D_801155A0.field_3 = 1;
                     }
                     goto waitDialog;
                 spawnDialog:
-                    D_801155A0.field_2 = 0;
+                    D_801155A0.done = 0;
                     if (D_80115666 == 1) {
                         D_8011566D               = Mc_SaveData.at4.loc.view;
                         Mc_SaveData.at4.loc.view = D_80115694;
@@ -653,7 +653,7 @@ resumeView:
                     D_801155AC = 1;
                     return;
                 }
-                if (D_801155A0.field_2 != 0) {
+                if (D_801155A0.done != 0) {
                     if (D_80115666 != 0) {
                         Mc_SaveData.at4.loc.view = D_8011566D;
                     }

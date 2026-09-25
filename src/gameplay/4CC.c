@@ -1160,7 +1160,7 @@ void Gp_ItemPickupTilt(Task* arg0)
     VECTOR         vec;
     VECTOR         vec2;
     MATRIX*        mem;
-    GpItemObj2*    done;
+    GpCmdReply*    done;
     u32            mapId;
     s32            room;
     s32            check;
@@ -1331,9 +1331,9 @@ void Gp_ItemPickupTilt(Task* arg0)
         rot->flg = 0;
         if (arg0->killCountdown == 0) {
             arg0->status = 0;
-            done         = (GpItemObj2*)arg0->extraState;
+            done         = (GpCmdReply*)arg0->extraState;
             if (done != NULL) {
-                done->field_2    = 1;
+                done->done       = 1;
                 arg0->extraState = 0;
             }
             arg0->state = 1;
@@ -1457,7 +1457,7 @@ void Gp_HolderPromptTask(Task* arg0)
     }
 }
 
-s32 Gp_BindItemObj2(Task* arg0, s32 arg1, GpItemObj2* arg2)
+s32 Gp_BindItemObj2(Task* arg0, s32 arg1, GpCmdReply* arg2)
 {
     s32         flag;
     GpItemObj8* obj;
@@ -1467,7 +1467,7 @@ s32 Gp_BindItemObj2(Task* arg0, s32 arg1, GpItemObj2* arg2)
     arg0->status     = flag;
     arg0->extraState = (s32)arg2;
     if (Gp_GetCurBit2Flag(obj->field_8) == 2) {
-        arg2->field_2 = flag;
+        arg2->done = flag;
     }
     return 0;
 }

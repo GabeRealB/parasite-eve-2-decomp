@@ -4912,7 +4912,7 @@ void Gp_DetachLinkNode(Task* arg0)
     inner->field_97E = 1;
 }
 
-s32 Gp_ApplyDirArg(Task* arg0, GpDirArg* arg1)
+s32 Gp_ApplyDirArg(Task* arg0, GpMoveArg* arg1)
 {
     GameActor*     actor;
     GsCOORDINATE2* coord;
@@ -4922,10 +4922,10 @@ s32 Gp_ApplyDirArg(Task* arg0, GpDirArg* arg1)
 
     actor = arg0->work;
     if (arg1->field_10 == 7) {
-        if ((arg1->field_0 != 0) || (arg1->field_8 != 0)) {
+        if ((arg1->x != 0) || (arg1->z != 0)) {
             coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
             delta = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-            delta = delta - ratan2(arg1->field_0, arg1->field_8);
+            delta = delta - ratan2(arg1->x, arg1->z);
             temp  = delta;
             if ((s16)delta >= 0x802) {
                 temp = delta - 0x1000;
@@ -5840,10 +5840,10 @@ s32 Gp_MoveActorBy(Task* arg0, s32 arg1, GpMoveArg* arg2)
         actor->field_982 = 1;
     }
     actor->field_983   = arg2->field_10;
-    coord->coord.t[0] += arg2->field_0;
-    coord->coord.t[1] += arg2->field_4;
-    coord->coord.t[2] += arg2->field_8;
-    Gp_ApplyDirArg(arg0, (GpDirArg*)arg2);
+    coord->coord.t[0] += arg2->x;
+    coord->coord.t[1] += arg2->y;
+    coord->coord.t[2] += arg2->z;
+    Gp_ApplyDirArg(arg0, arg2);
     return func_801041B4(arg0);
 }
 

@@ -21,13 +21,6 @@ typedef struct _GpItemObj8 {
     /* 0x0A */ u16  field_A;
 } GpItemObj8;
 
-/// Object stored in `Task::extraState` by `Gp_BindItemObj2`. `field_2` is set
-/// when `Gp_GetCurBit2Flag` returns 2.
-typedef struct _GpItemObj2 {
-    /* 0x00 */ byte pad_0[2];
-    /* 0x02 */ u8   field_2;
-} GpItemObj2;
-
 /// 8-byte item descriptor in `Gp_ItemDescs` / `Gp_ItemDescsHi`, indexed by item id.
 /// `Gp_InitItemSeenBits` / `Gp_GetItemText` use `Gp_ItemDescs[id]` when `id < 0x100`
 /// and `Gp_ItemDescsHi[id]` otherwise (same raw index, different base).
@@ -193,7 +186,7 @@ void func_800BDF6C(Task* task);
 void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1);
 /// Task callback. `extra` is a `TmdObject`; `spawnArg2` is a `GpItemObj8`.
 /// Tilts `field_8[2]` (a `GsCOORDINATE2`) while playing a location-specific
-/// type-6 sound, then signals `extraState` (`GpItemObj2.field_2 = 1`) when
+/// type-6 sound, then signals `extraState` (`GpCmdReply.done = 1`) when
 /// the motion returns to 0.
 void Gp_ItemPickupTilt(Task* arg0);
 void Gp_ForEachUiChild(UiObject* arg0, void (*arg1)(UiObject*, Task*));
@@ -208,7 +201,7 @@ void Gp_ItemMenuListTask(Task* arg0);
 /// as `Wip_UiHolder`. `spawnArg1` is a text pointer; when non-zero, two prompt
 /// lines are drawn at `field_18 + 0xF` / `+ 0x1E` in color `0x606060`.
 void Gp_HolderPromptTask(Task* arg0);
-s32  Gp_BindItemObj2(Task* arg0, s32 arg1, GpItemObj2* arg2);
+s32  Gp_BindItemObj2(Task* arg0, s32 arg1, GpCmdReply* arg2);
 /// First state of the `D_80096E70` dispatcher. Copies `field_8` /
 /// `field_A` into `Gp_PubItemId` / `Gp_PubItemLoc`, remaps owned 0x60–0x7F
 /// items to 0xD and 0x80–0x9F items to 0x3D, then publishes a stack

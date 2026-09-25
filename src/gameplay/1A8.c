@@ -321,13 +321,13 @@ void Gp_MsgPlayer3F0(void)
 
 void Gp_MsgPlayer3EF(void)
 {
-    s32   sp[2];
-    void* slot;
+    GpFacingArg sp;
+    void*       slot;
 
-    slot  = gameGetPtrSlot(3);
-    sp[0] = (Gp_DirFlags >> 8) & 1;
-    sp[1] = Gp_DirByte & 0xF;
-    Gp_DispatchMsg(slot, 0x3EF, (s32)sp, 0);
+    slot       = gameGetPtrSlot(3);
+    sp.field_0 = (Gp_DirFlags >> 8) & 1;
+    sp.field_4 = Gp_DirByte & 0xF;
+    Gp_DispatchMsg(slot, 0x3EF, (s32)&sp, 0);
     Gp_DirAltNibble = 0;
     Gp_DirAlt       = 0;
     D_80114CD4      = 0;

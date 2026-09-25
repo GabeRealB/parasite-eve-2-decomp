@@ -290,31 +290,6 @@ typedef struct _GpIdRec {
     /* 0x4 */ s32  field_4;
 } GpIdRec;
 
-/// Direction argument for `Gp_ApplyDirArg`. `field_0` / `field_8` are the
-/// X/Z components passed to `ratan2`. `field_10 == 7` selects the
-/// facing-vs-direction update of `GameActor.field_973`.
-typedef struct _GpDirArg {
-    /* 0x00 */ s32  field_0;
-    /* 0x04 */ s32  field_4;
-    /* 0x08 */ s32  field_8;
-    /* 0x0C */ byte pad_C[4];
-    /* 0x10 */ s16  field_10;
-} GpDirArg;
-
-/// Argument for `Gp_MoveActorBy` / `Gp_MoveActorByKeep`. Same XYZ words as
-/// `GpDirArg` (added onto `GsCOORDINATE2.coord.t` and passed through to
-/// `Gp_ApplyDirArg`). `field_10` is copied to `GameActor.field_983`.
-/// `field_12 == 0` runs the shared actor-state reset.
-typedef struct _GpMoveArg {
-    /* 0x00 */ s32  field_0;
-    /* 0x04 */ s32  field_4;
-    /* 0x08 */ s32  field_8;
-    /* 0x0C */ byte pad_C[4];
-    /* 0x10 */ u8   field_10;
-    /* 0x11 */ byte pad_11;
-    /* 0x12 */ u8   field_12;
-} GpMoveArg;
-
 /// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `Gp_DrawEffSprite81` and
 /// `Gp_EffSprTask8D`.
 /// `vec` is `workm.t[]` truncated to s16 for `gte_ldv0`. `otz` is
@@ -656,24 +631,6 @@ typedef struct _GpPitchScratch {
 } GpPitchScratch;
 STATIC_ASSERT_SIZEOF(GpPitchScratch, 0x84);
 
-/// Optional companion for `Gp_SetActorDest`. `field_0` / `field_4` are copied
-/// onto `GameActor.field_93C` / `field_93E`. NULL zeros both halfwords.
-typedef struct _GpOverrideArg {
-    /* 0x0 */ u16  field_0;
-    /* 0x2 */ byte pad_2[2];
-    /* 0x4 */ u16  field_4;
-} GpOverrideArg;
-STATIC_ASSERT_SIZEOF(GpOverrideArg, 6);
-
-/// Argument for `func_80104F5C`. `field_0` (low 16 bits) is copied onto
-/// `GameActor.field_80`; `field_4` is copied onto `GameActor.field_82`.
-/// Nonzero `field_0` selects anim 0x25, else 0x24, via `Gp_AnimPlayChildSlots`.
-typedef struct _GpFacingArg {
-    /* 0x0 */ s32 field_0;
-    /* 0x4 */ s16 field_4;
-} GpFacingArg;
-STATIC_ASSERT_SIZEOF(GpFacingArg, 8);
-
 /// Argument for `func_801052B8`. `field_0` is copied onto
 /// `GameActor.field_93E`; `field_4` is copied onto `GameActor.field_934`.
 typedef struct _GpCountArg {
@@ -872,7 +829,7 @@ s32   func_80109290(Task* arg0);
 void  Gp_TriggerPeState(s32 arg0, s32 arg1);
 void  func_8010A42C(Task* arg0, s32 arg1);
 void  Gp_DetachLinkNode(Task* arg0);
-s32   Gp_ApplyDirArg(Task* arg0, GpDirArg* arg1);
+s32   Gp_ApplyDirArg(Task* arg0, GpMoveArg* arg1);
 s32   func_80104E00(Task* arg0, s32 arg1, GpXformArg* arg2);
 s32   Gp_SetActorDest(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3);
 s32   Gp_MoveActorBy(Task* arg0, s32 arg1, GpMoveArg* arg2);

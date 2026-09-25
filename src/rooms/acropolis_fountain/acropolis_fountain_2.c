@@ -93,13 +93,13 @@ void func_acropolis_fountain_8017DB00(Task* arg0)
 
 void func_acropolis_fountain_8017DB54(Task* arg0)
 {
-    s32   args[2];
-    Task* slot;
+    GpFacingArg args;
+    Task*       slot;
 
-    slot    = gameGetPtrSlot(3);
-    args[0] = 0;
-    args[1] = 1;
-    Gp_DispatchMsg(slot, 0x3EF, (s32)args, 0);
+    slot         = gameGetPtrSlot(3);
+    args.field_0 = 0;
+    args.field_4 = 1;
+    Gp_DispatchMsg(slot, 0x3EF, (s32)&args, 0);
     arg0->state = arg0->state + 1;
 }
 

@@ -154,19 +154,6 @@ typedef struct Actor503500Work38 {
 } Actor503500Work38;
 STATIC_ASSERT_SIZEOF(Actor503500Work38, 0x38);
 
-/// Payload of message 0x3FE: the displacement `func_actor_503500_80143AC0` asks
-/// the player to move by. A nonzero reply stops the push.
-typedef struct Actor503500Msg3FE {
-    /* 0x00 */ s32  x;
-    /* 0x04 */ s32  y;
-    /* 0x08 */ s32  z;
-    /* 0x0C */ byte pad_C[0x4];
-    /* 0x10 */ s16  field_10;
-    /* 0x12 */ s8   field_12;
-    /* 0x13 */ byte pad_13[0x1];
-} Actor503500Msg3FE;
-STATIC_ASSERT_SIZEOF(Actor503500Msg3FE, 0x14);
-
 /// Work block of the 0xF4 enemy whose state-0 init is
 /// `func_actor_503500_8013ECBC` (`D_actor_503500_80177A6C`), viewed through its
 /// own type rather than the shared `Actor503500Work`: it keeps a halfword at
@@ -4400,7 +4387,7 @@ void func_actor_503500_801437D0(Task* arg0, GpRec18* rec, s32 count)
 void func_actor_503500_80143AC0(Task* arg0)
 {
     VECTOR             vec;
-    Actor503500Msg3FE  msg;
+    GpMoveArg          msg;
     Actor503500Work38* work;
     Task*              player;
     GsCOORDINATE2*     coord;

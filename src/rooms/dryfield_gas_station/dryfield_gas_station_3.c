@@ -43,20 +43,6 @@ typedef struct DgsWork {
 } DgsWork;
 STATIC_ASSERT_SIZEOF(DgsWork, 0x10);
 
-/// Payload of message 0x3FE, a displacement the owner is asked to move by.
-/// Only `x`, `y`, `z` and `field_10` are written here; the role of `field_10`
-/// and `field_12` is not established by this room.
-typedef struct DgsMsg3FE {
-    s32  x;
-    s32  y;
-    s32  z;
-    byte pad_C[0x4];
-    s16  field_10;
-    s8   field_12;
-    byte pad_13[0x1];
-} DgsMsg3FE;
-STATIC_ASSERT_SIZEOF(DgsMsg3FE, 0x14);
-
 extern u8         D_80071075;
 extern s8         D_80114C12;
 extern s32        D_dryfield_gas_station_80182E30;
@@ -89,7 +75,7 @@ void func_dryfield_gas_station_801803C0(Task* task)
     Task*    shared;
     union {
         GpAnimArg rec;
-        DgsMsg3FE move;
+        GpMoveArg move;
     } msg;
     GpAnimArg  script;
     GpAnimArg* rec;
