@@ -6,9 +6,7 @@
 /// Extent in bytes of the primary heap.
 #define G_HEAP_SIZE 0xFF80
 
-/// Scratchpad temporary arena (grows downward from head).
-#define G_SCRATCH_HEAD         PSX_SCRATCH_ADDR(0x3FC)
-#define GameResetScratchHead() *(void**)G_SCRATCH_HEAD = G_SCRATCH_HEAD
+#include "main/scratch.h"
 
 // Types
 
