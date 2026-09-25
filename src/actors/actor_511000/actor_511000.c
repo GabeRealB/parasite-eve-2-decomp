@@ -141,12 +141,12 @@ void func_actor_511000_80133760(Task* task);
 void func_actor_511000_801337F0(Task* task);
 void func_actor_511000_80133958(GpEnemy* enemy, Task* task);
 void func_actor_511000_80133B80(GpEnemy* enemy, Task* task);
-void func_actor_511000_80133F48(void* enemy, Task* task);
-void func_actor_511000_80133F88(void* enemy, Task* task);
-void func_actor_511000_8013401C(void* enemy, Task* task);
-void func_actor_511000_8013405C(void* enemy, Task* task);
-void func_actor_511000_801340F0(void* enemy, Task* task);
-void func_actor_511000_80134130(void* enemy, Task* task);
+void func_actor_511000_80133F48(GpEnemy* enemy, Task* task);
+void func_actor_511000_80133F88(GpEnemy* enemy, Task* task);
+void func_actor_511000_8013401C(GpEnemy* enemy, Task* task);
+void func_actor_511000_8013405C(GpEnemy* enemy, Task* task);
+void func_actor_511000_801340F0(GpEnemy* enemy, Task* task);
+void func_actor_511000_80134130(GpEnemy* enemy, Task* task);
 
 /// State table of a child chained under a part of its spawner's model: the
 /// attach state, an empty tick and the kill.
@@ -1471,7 +1471,7 @@ s32 func_actor_511000_80133EAC(Task* task, s32 arg1, s32 arg2)
 
 void func_actor_511000_80133EF4(Task* task)
 {
-    void (*fns[2])(void*, Task*) = { func_actor_511000_80133F48, func_actor_511000_80133F88 };
+    GpEnemyTaskFunc fns[2] = { func_actor_511000_80133F48, func_actor_511000_80133F88 };
 
     fns[task->state](task->spawnArg2, task);
 }
@@ -1479,7 +1479,7 @@ void func_actor_511000_80133EF4(Task* task)
 /// Spawn state of the model child attached to the spawner's part 8: chains
 /// the root coordinate under that part, takes the spawner work block's light
 /// and colour matrices, shows the model and advances to the tick state.
-void func_actor_511000_80133F48(void* enemy, Task* task)
+void func_actor_511000_80133F48(GpEnemy* enemy, Task* task)
 {
     Task*                  parent;
     TmdObject*             obj;
@@ -1500,7 +1500,7 @@ void func_actor_511000_80133F48(void* enemy, Task* task)
     task->state   = 1;
 }
 
-void func_actor_511000_80133F88(void* arg0, Task* arg1)
+void func_actor_511000_80133F88(GpEnemy* arg0, Task* arg1)
 {
     ((TmdObject*)arg1->extra)->coords->flg = 0;
     Gp_UpdateCoord(((TmdObject*)arg1->extra)->coords);
@@ -1508,12 +1508,12 @@ void func_actor_511000_80133F88(void* arg0, Task* arg1)
 
 void func_actor_511000_80133FC8(Task* task)
 {
-    void (*fns[2])(void*, Task*) = { func_actor_511000_8013401C, func_actor_511000_8013405C };
+    GpEnemyTaskFunc fns[2] = { func_actor_511000_8013401C, func_actor_511000_8013405C };
 
     fns[task->state](task->spawnArg2, task);
 }
 
-void func_actor_511000_8013401C(void* enemy, Task* task)
+void func_actor_511000_8013401C(GpEnemy* enemy, Task* task)
 {
     Task*                  parent;
     TmdObject*             obj;
@@ -1534,7 +1534,7 @@ void func_actor_511000_8013401C(void* enemy, Task* task)
     task->state   = 1;
 }
 
-void func_actor_511000_8013405C(void* arg0, Task* arg1)
+void func_actor_511000_8013405C(GpEnemy* arg0, Task* arg1)
 {
     ((TmdObject*)arg1->extra)->coords->flg = 0;
     Gp_UpdateCoord(((TmdObject*)arg1->extra)->coords);
@@ -1542,12 +1542,12 @@ void func_actor_511000_8013405C(void* arg0, Task* arg1)
 
 void func_actor_511000_8013409C(Task* task)
 {
-    void (*fns[2])(void*, Task*) = { func_actor_511000_801340F0, func_actor_511000_80134130 };
+    GpEnemyTaskFunc fns[2] = { func_actor_511000_801340F0, func_actor_511000_80134130 };
 
     fns[task->state](task->spawnArg2, task);
 }
 
-void func_actor_511000_801340F0(void* enemy, Task* task)
+void func_actor_511000_801340F0(GpEnemy* enemy, Task* task)
 {
     Task*                  parent;
     TmdObject*             obj;
@@ -1568,7 +1568,7 @@ void func_actor_511000_801340F0(void* enemy, Task* task)
     task->state   = 1;
 }
 
-void func_actor_511000_80134130(void* arg0, Task* arg1)
+void func_actor_511000_80134130(GpEnemy* arg0, Task* arg1)
 {
     ((TmdObject*)arg1->extra)->coords->flg = 0;
     Gp_UpdateCoord(((TmdObject*)arg1->extra)->coords);

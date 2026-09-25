@@ -197,14 +197,14 @@ extern void func_80182D14(s32, s32);
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 void func_actor_450800_80132448(Task* task);
-void func_actor_450800_801327E4(void* enemy, Task* task);
+void func_actor_450800_801327E4(GpEnemy* enemy, Task* task);
 void func_actor_450800_80132868(Task* task);
 void func_actor_450800_801328BC(Task* task);
 void func_actor_450800_80132A1C(Task* task);
 void func_actor_450800_80132A68(Task* task);
 void func_actor_450800_80132AE0(Task* task);
 void func_actor_450800_801330AC(Task* task);
-void func_actor_450800_801332B8(void* enemy, Task* task);
+void func_actor_450800_801332B8(GpEnemy* enemy, Task* task);
 void func_actor_450800_8013333C(Task* task);
 void func_actor_450800_80133364(Task* task);
 void func_actor_450800_80133400(Task* task);
@@ -342,9 +342,9 @@ void func_actor_450800_80132108(void)
 /// `work`'s, so it takes `$s1` and pushes `work` into `$s2`, which is the
 /// ROM's split. See DECOMPILATION_LEARNINGS.md, "A `do { } while (0)` around
 /// one of two identical calls adds its `REF` back".
-void func_actor_450800_80132160(void* enemyArg, Task* task)
+void func_actor_450800_80132160(GpEnemy* enemyArg, Task* task)
 {
-    GpEnemy* enemy = (GpEnemy*)enemyArg;
+    GpEnemy* enemy = enemyArg;
 
     VECTOR           vec;
     GpAreaKey        key;
@@ -512,7 +512,7 @@ void func_actor_450800_80132448(Task* task)
 
 void func_actor_450800_80132790(Task* task)
 {
-    void (*fns[2])(void*, Task*) = { func_actor_450800_80132160, func_actor_450800_801327E4 };
+    GpEnemyTaskFunc fns[2] = { func_actor_450800_80132160, func_actor_450800_801327E4 };
 
     fns[task->state](task->spawnArg2, task);
 }
@@ -521,7 +521,7 @@ void func_actor_450800_80132790(Task* task)
 /// `func_actor_450800_80132790` dispatches through: refreshes the model root's
 /// world matrix, relights the model from a point 0x320 above its translation,
 /// then runs the animation state machine and draws the ground shadow.
-void func_actor_450800_801327E4(void* enemy, Task* task)
+void func_actor_450800_801327E4(GpEnemy* enemy, Task* task)
 {
     TmdObject*     obj;
     GsCOORDINATE2* coord;
@@ -845,9 +845,9 @@ s32 func_actor_450800_80132D74(Task* task, s32 arg1, VECTOR* target, s32 mode)
 /// the same kind of pin on the `memCalloc` result: the ROM keeps a short-lived
 /// copy for the `work` store, the NULL test and `field_4BC`, and a longer-lived
 /// one for everything after.
-void func_actor_450800_80132E9C(void* enemyArg, Task* task)
+void func_actor_450800_80132E9C(GpEnemy* enemyArg, Task* task)
 {
-    GpEnemy*              enemy = (GpEnemy*)enemyArg;
+    GpEnemy*              enemy = enemyArg;
     VECTOR                vec;
     GpAreaKey             key;
     Actor450800SpawnWork* work;
@@ -961,7 +961,7 @@ void func_actor_450800_801330AC(Task* task)
 
 void func_actor_450800_80133264(Task* task)
 {
-    void (*fns[2])(void*, Task*) = { func_actor_450800_80132E9C, func_actor_450800_801332B8 };
+    GpEnemyTaskFunc fns[2] = { func_actor_450800_80132E9C, func_actor_450800_801332B8 };
 
     fns[task->state](task->spawnArg2, task);
 }
@@ -973,7 +973,7 @@ void func_actor_450800_80133264(Task* task)
 /// (lowered by 800 on y, to sit on the ground) to `func_800D7A9C`, then ticks
 /// the enemy's animation state through `func_actor_450800_801330AC` and draws its
 /// ground shadow.
-void func_actor_450800_801332B8(void* enemy, Task* task)
+void func_actor_450800_801332B8(GpEnemy* enemy, Task* task)
 {
     TmdObject*     obj;
     GsCOORDINATE2* coord;
