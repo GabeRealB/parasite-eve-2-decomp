@@ -1,1 +1,12 @@
 // Overlay-local symbols for mine_cavern.
+D_mine_cavern_8018E351 = 0x8018E351; // type:u8 size:0x1
+D_mine_cavern_8018E352 = 0x8018E352; // type:u8 size:0x1
+D_mine_cavern_8018E353 = 0x8018E353; // type:u8 size:0x1
+D_mine_cavern_8018E355 = 0x8018E355; // type:u8 size:0x1
+D_mine_cavern_8018E359 = 0x8018E359; // type:u8 size:0x1
+D_mine_cavern_8018E35A = 0x8018E35A; // type:u8 size:0x1
+D_mine_cavern_8018E35B = 0x8018E35B; // type:u8 size:0x1
+D_mine_cavern_8018E35D = 0x8018E35D; // type:u8 size:0x1
+D_mine_cavern_8018E362 = 0x8018E362; // type:u16 size:0x2
+D_mine_cavern_8018E366 = 0x8018E366; // type:u16 size:0x2
+D_mine_cavern_8018EB5C = 0x8018EB5C; // type:u16 size:0x2
