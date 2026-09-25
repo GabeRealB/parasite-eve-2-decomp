@@ -49,7 +49,7 @@ extern u32 Gp_LcgState;
 extern s16 Actor02300_D159E8[];
 extern s16 Actor02300_D15A44[];
 
-s32 Actor00300_Fn04B14(SVECTOR* arg0, SVECTOR* arg1);
+s32 Actor02300_Fn0371C(SVECTOR* arg0, SVECTOR* arg1);
 
 /// Hit and push tick. Applies the `field_584` / `field_4EC` collision deltas
 /// to the root coordinate, then walks the five `field_4EC` records: kind 2 is a
@@ -354,7 +354,7 @@ void Actor02300_Fn00084(Actor102300* arg0)
         scratch->target.vx = self->workm.t[0];
         scratch->target.vy = self->workm.t[1];
         scratch->target.vz = self->workm.t[2];
-        if (Actor00300_Fn04B14(&scratch->effOfs, &scratch->target) == 0) {
+        if (Actor02300_Fn0371C(&scratch->effOfs, &scratch->target) == 0) {
             work->field_6B2 = 1;
         }
     }

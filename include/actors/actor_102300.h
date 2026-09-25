@@ -108,8 +108,10 @@ typedef struct Actor102300Work {
     /* 0x6D4 */ s16 field_6D4;
     /// Sector id of the enemy's voice stream, looked up per room from
     /// `Actor02300_D15C80` and queued with `CdCmd_Enqueue(0x21, ...)`.
-    /* 0x6D6 */ s16  field_6D6;
-    /* 0x6D8 */ byte pad_6D8[2];
+    /* 0x6D6 */ s16 field_6D6;
+    /// Countdown the part-7 child's spawn state seeds and its tick drains; the
+    /// effect spawns on the frame it reaches zero.
+    /* 0x6D8 */ s16 field_6D8;
     /// Dwell budget in thousandths, scaled by the placement record's `variant`.
     /* 0x6DA */ s16  field_6DA;
     /* 0x6DC */ s16  field_6DC;
@@ -136,7 +138,7 @@ typedef struct Actor102300 {
 
 /// 0x40-byte scratch the hit tick claims from `G_SCRATCH_HEAD`: the collision
 /// delta `func_800E0C10` fills in, the normalised push-out derived from it, and
-/// the two points `Actor00300_Fn04B14` tests the player's sight line over.
+/// the two points `Actor02300_Fn0371C` tests the player's sight line over.
 typedef struct Actor102300HitScratch {
     /* 0x00 */ GpDeltaScratch delta;
     /* 0x10 */ VECTOR         normal;
