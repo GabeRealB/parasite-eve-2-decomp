@@ -1,10 +1,10 @@
 #include "common.h"
 
-#include "actors/actor_450900.h"
-
+#include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/mem.h"
@@ -13,6 +13,30 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/unknown_syms.h"
+#include "psyq/rand.h"
+
+/// Head-aim record `func_actor_450900_80132548` allocates and parks in
+/// `Task::work`, handed to `func_800B17D4` as its `GpHeadAim`: the yaw and
+/// pitch clamps, and the `rate` fraction of the remaining angle the capture
+/// task ramps one 0x200 step per frame. `lastPitch` and `inited` belong to
+/// `func_800B17D4`, which this body never reads them for.
+///
+/// The allocation is 12 bytes where `GpHeadAim` is 10, so the record carries
+/// two bytes `func_800B17D4` does not see; whether this and `GpHeadAim` are one
+/// type is open.
+///
+/// `rate` is read as an unsigned halfword and reinterpreted as `s16` for the
+/// clamp; declaring it `s16` compiles to the same bytes, and it never leaves
+/// [0, 0x1000], so its signedness is not pinned.
+typedef struct Actor450900HeadAim {
+    /* 0x0 */ s16  yawLimit;
+    /* 0x2 */ s16  pitchLimit;
+    /* 0x4 */ u16  rate;
+    /* 0x6 */ s16  lastPitch;
+    /* 0x8 */ s8   inited;
+    /* 0x9 */ byte pad_9[0x3];
+} Actor450900HeadAim;
+STATIC_ASSERT_SIZEOF(Actor450900HeadAim, 0xC);
 
 extern s16 D_80071076;
 extern u8  D_801153F4;
@@ -376,12 +400,11 @@ void func_actor_450900_801327A8(void)
     }
 }
 
-/// Save-point gate: reads the ally actor's root coordinate and, once it has
-/// walked past `Z < -0x76C`, hands over to the save-data teardown task instead
-/// of starting the save-point capture. The chain is the one
-/// `func_actor_450900_80132684` and `func_actor_161500_80132210` use: the ally
-/// task's `Task::extra` is its `TmdObject`, whose `field_8` is the root
-/// `GsCOORDINATE2`, so `coord.t[2]` is that coordinate's world Z.
+/// Reads the root coordinate of the slot-0xA task's `TmdObject` (reached through
+/// `Task::extra`, as `func_actor_450900_80132684` does) and, when its world Z is
+/// below -0x76C, spawns entry 4 of `D_actor_450900_80135E78`
+/// (`func_actor_450900_8013235C`); otherwise it starts capture slot 0xB with
+/// `Gp_StartCapSlot`.
 void func_actor_450900_80132834(void)
 {
     GsCOORDINATE2* coord;
