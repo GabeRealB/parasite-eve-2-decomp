@@ -132,7 +132,7 @@ def data_run(
 ) -> list[str]:
     """One trailing-data run, with model streams carved out as `databin`.
 
-    A `databin` writes the bytes to `assets/USA/incbin/` and `.incbin`s them
+    A `databin` writes the bytes to `asm/USA/incbin/` and `.incbin`s them
     back, so the build still matches while the disassembly stops pretending a
     mesh is 60,000 `.word` lines it understands. Everything between the carves
     stays ordinary `data`, because that is what we have *not* identified.

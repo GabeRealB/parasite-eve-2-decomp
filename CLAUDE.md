@@ -559,8 +559,8 @@ forces it into the owning TU's section, not as a cleanup exercise.
 
 Content embedded in a binary is handled twice over, and neither route puts it
 in git. For the **build**, a splat `databin` / `rodatabin` segment writes the
-bytes to `assets/USA/incbin/` and emits a small `.s` that `.incbin`s them back,
-so the build keeps matching. For **inspection**, catalogue it by address in
+bytes to `asm/USA/incbin/` (per worktree, like the rest of `asm/`) and emits a
+small `.s` that `.incbin`s them back, so the build keeps matching. For **inspection**, catalogue it by address in
 `asset_db.EMBEDDED_ASSETS` and it flows through the normal extract pipeline
 into `raw/{type}/` and the type directory, like any on-disc asset. See
 `doc/ASSET_FORMATS.md` 7.7.
