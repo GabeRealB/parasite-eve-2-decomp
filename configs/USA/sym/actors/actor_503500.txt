@@ -1,2 +1,3 @@
 // Overlay-local symbols for actor_503500.
 D_actor_503500_8016F414 = 0x8016F414; // reached as &D_actor_503500_8016F414[spawnArg1 - 0xD], folded to 0x8016F3AC
+D_actor_503500_80176574 = 0x80176574; // type:Actor503500Work size:0x7E8

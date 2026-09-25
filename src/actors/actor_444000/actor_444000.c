@@ -415,10 +415,6 @@ extern TaskDesc D_actor_444000_801616B0;
 extern GpEffArg D_actor_444000_80161880;
 /// Shared 0x7DA payload buffer, also used by `func_actor_444000_80141618`.
 extern GpCmdArg D_actor_444000_80161888;
-/// The halfword at `D_actor_444000_80161888 + 2` under its own label: the
-/// escort-spawn tick reaches the action selector both ways, so both names are
-/// declared (see DECOMPILATION_LEARNINGS.md, "A second label on the same run").
-extern s16 D_actor_444000_8016188A;
 /// Gameplay's escort `TaskDesc` table; entry 3 is the pair this boss spawns.
 extern TaskDesc D_80172604;
 
@@ -6644,16 +6640,16 @@ void func_actor_444000_80141618(Task* task)
                 if (sc->i == 0) {
                     Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
                     if (!(((u32)Gp_LcgState >> 16) & 1)) {
-                        D_actor_444000_8016188A = 3;
+                        D_actor_444000_80161888.command = 3;
                     } else {
-                        D_actor_444000_8016188A = 4;
+                        D_actor_444000_80161888.command = 4;
                     }
                 } else {
                     Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
                     if (!(((u32)Gp_LcgState >> 16) & 1)) {
-                        D_actor_444000_8016188A = 5;
+                        D_actor_444000_80161888.command = 5;
                     } else {
-                        D_actor_444000_8016188A = 6;
+                        D_actor_444000_80161888.command = 6;
                     }
                 }
                 break;
@@ -6662,16 +6658,16 @@ void func_actor_444000_80141618(Task* task)
                 if (sc->i == 0) {
                     Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
                     if (!(((u32)Gp_LcgState >> 16) & 1)) {
-                        D_actor_444000_8016188A = 0xd;
+                        D_actor_444000_80161888.command = 0xd;
                     } else {
-                        D_actor_444000_8016188A = 8;
+                        D_actor_444000_80161888.command = 8;
                     }
                 } else {
                     Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
                     if (!(((u32)Gp_LcgState >> 16) & 1)) {
-                        D_actor_444000_8016188A = 7;
+                        D_actor_444000_80161888.command = 7;
                     } else {
-                        D_actor_444000_8016188A = 0xe;
+                        D_actor_444000_80161888.command = 0xe;
                     }
                 }
                 break;
@@ -6680,16 +6676,16 @@ void func_actor_444000_80141618(Task* task)
                 if (sc->i == 0) {
                     Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
                     if ((((u32)Gp_LcgState >> 16) & 1)) {
-                        D_actor_444000_8016188A = 9;
+                        D_actor_444000_80161888.command = 9;
                     } else {
-                        D_actor_444000_8016188A = 0xf;
+                        D_actor_444000_80161888.command = 0xf;
                     }
                 } else {
                     Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
                     if (!(((u32)Gp_LcgState >> 16) & 1)) {
-                        D_actor_444000_8016188A = 9;
+                        D_actor_444000_80161888.command = 9;
                     } else {
-                        D_actor_444000_8016188A = 0xf;
+                        D_actor_444000_80161888.command = 0xf;
                     }
                 }
                 break;

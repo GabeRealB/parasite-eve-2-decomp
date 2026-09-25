@@ -487,11 +487,6 @@ extern Task* D_actor_403200_8015F8F0;
 /// Shared 0x7DA payload buffer.
 extern GpCmdArg D_actor_403200_8015F8F4;
 
-/// The halfword at `D_actor_403200_8015F8F4 + 2` under its own label: the
-/// escort-spawn tick reaches the action selector both ways, so both names are
-/// declared (see DECOMPILATION_LEARNINGS.md, "A second label on the same run").
-extern s16 D_actor_403200_8015F8F6;
-
 /// View-space point the launch tick clears and fills from the host's fourth
 /// model part on a state change; the spinner enemies home on it.
 extern SVECTOR D_actor_403200_8015F8F8;
@@ -510,9 +505,8 @@ extern MATRIX        D_actor_403200_8015F924;
 extern Actor403200DropCoord D_actor_403200_8015F970;
 
 /// Position and Euler rotation the launch tick sends the player as message
-/// 0x3E9. The yaw halfword at `rot.vy` is also `D_actor_403200_8015F9D2`.
+/// 0x3E9.
 extern GpXformArg D_actor_403200_8015F9C0;
-extern s16        D_actor_403200_8015F9D2;
 
 /// Handwritten overlay-local follow helper. `arg1`/`arg2` select the axis pair
 /// and `arg3` the mode; takes the task, not the work block.
@@ -5238,11 +5232,11 @@ void func_actor_403200_8013B8C4(Task* arg0)
 
             sc->angle = ext;
             if (abs(ext) < 0x400) {
-                D_actor_403200_8015F9D2  = ratan2((s32)sc->dir.vx, (s32)sc->dir.vz);
-                work->anim.animBlock.ptr = D_actor_403200_8015E6AC;
+                D_actor_403200_8015F9C0.rot.vy = ratan2((s32)sc->dir.vx, (s32)sc->dir.vz);
+                work->anim.animBlock.ptr       = D_actor_403200_8015E6AC;
             } else {
-                D_actor_403200_8015F9D2  = ratan2((s32)sc->dir.vx, (s32)sc->dir.vz) + 0x800;
-                work->anim.animBlock.ptr = D_actor_403200_8015E6CC;
+                D_actor_403200_8015F9C0.rot.vy = ratan2((s32)sc->dir.vx, (s32)sc->dir.vz) + 0x800;
+                work->anim.animBlock.ptr       = D_actor_403200_8015E6CC;
             }
         }
         if (cfg->hp > 0) {
@@ -6608,9 +6602,9 @@ void func_actor_403200_8013EF6C(Task* arg0)
                 goto L_join;
             L_default:
                 if (sc->i == 0) {
-                    D_actor_403200_8015F8F6 = 5;
+                    D_actor_403200_8015F8F4.command = 5;
                 } else {
-                    D_actor_403200_8015F8F6 = 0xB;
+                    D_actor_403200_8015F8F4.command = 0xB;
                 }
             L_join:
                 D_actor_403200_8015F8F4.command <<= 8;

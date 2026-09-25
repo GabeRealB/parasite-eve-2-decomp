@@ -707,7 +707,6 @@ extern s16 D_actor_110600_80148688;
 /// Argument record `func_actor_110600_80135E20` fills for `func_800FDB18`:
 /// model part 1's coordinate, scale 0x100 and count 3.
 extern GpEffArg D_actor_110600_80148698;
-extern s8       D_actor_110600_80148392;
 
 /// `Task::exitCallback` installed by the spawn handler: bump the two helper
 /// tasks' `state` if present, unlink the three display nodes, drop the enemy's
@@ -1803,7 +1802,7 @@ s32 func_actor_110600_80134564(Actor110600AnimWork* anim)
 /// `field_890` stage: the `0x2D`-byte row of the animation table this overlay's
 /// data carries at `D_actor_110600_80147D20`, indexed by the clip id. The row
 /// stride is the row's own length, so the load is a signed byte.
-extern s8 D_actor_110600_80147D20[];
+extern s8 D_actor_110600_80147D20[][0x2D];
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
@@ -3285,9 +3284,9 @@ void func_actor_110600_801372CC(Task* arg0)
 
     if (((work->field_BDC.raw & 0xFFFFFF) == 0x30401) && (work->field_892 != 0x1E)) {
         if ((work->field_4E & 0x3FF) == 0xB) {
-            D_actor_110600_80148392 = 6;
-            work->field_892         = 0x1E;
-            work->field_88C         = 1;
+            D_actor_110600_80147D20[0x24][0x1E] = 6;
+            work->field_892                     = 0x1E;
+            work->field_88C                     = 1;
         }
         if (work->field_892 != 0x1E) {
             if (((work->field_4E & 0x3FF) == 4) && (work->field_8AC != (work->field_4E & 0x3FF))) {

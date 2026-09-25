@@ -1,4 +1,5 @@
 // Overlay-local symbols for actor_110600.
+D_actor_110600_80147D20 = 0x80147D20; // type:s8 size:0x7E9
 
 // Referenced in another actor load slot, resident beside this one.
 D_8015BD7C = 0x8015BD7C; // absolute:True

@@ -1,4 +1,5 @@
 // Overlay-local symbols for actor_444000.
+D_actor_444000_80161888 = 0x80161888; // type:GpCmdArg size:0x4
 
 // Referenced in another actor load slot, resident beside this one.
 D_80172604 = 0x80172604; // absolute:True

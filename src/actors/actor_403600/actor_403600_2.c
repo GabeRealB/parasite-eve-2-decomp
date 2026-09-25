@@ -145,10 +145,8 @@ extern u8                    D_actor_403600_80160695;
 
 extern SVECTOR    D_actor_403600_801605D4;
 extern SVECTOR    D_actor_403600_801605DC;
-extern s16        D_actor_403600_801605DE;
 extern SVECTOR    D_actor_403600_801605E4;
 extern SVECTOR    D_actor_403600_801605EC;
-extern s16        D_actor_403600_801606F2;
 extern TaskDesc   D_actor_403600_80160514;
 extern Task*      D_actor_403600_801606B0;
 extern GpXformArg D_actor_403600_801606E0;
@@ -1552,7 +1550,7 @@ void func_actor_403600_8013A444(Task* arg0)
                     temp_s3->field_73C = 0x320U;
                     temp_s3->field_74A = 0;
                     func_actor_403600_801417A8(arg0, 0x14);
-                    if (((D_actor_403600_801605DE - 0x1388) < temp_s3->field_4B8.coord.t[1]) && (temp_s3->field_734 == 0)) {
+                    if (((D_actor_403600_801605DC.vy - 0x1388) < temp_s3->field_4B8.coord.t[1]) && (temp_s3->field_734 == 0)) {
                         temp_s3->field_734 = 1;
                         temp_s0_5          = &temp_s3->field_4B8;
                         temp_s4            = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x54160005;
@@ -1560,7 +1558,7 @@ void func_actor_403600_8013A444(Task* arg0)
                         temp_v0_6          = gpGetObjDepth(temp_s0_5);
                         SndEvt_EnqueueType6(temp_s4, temp_s0_6, (s32)(((temp_v0_6 >> 0x1F) + temp_v0_6) << 0x17) >> 0x18);
                     }
-                    if ((D_actor_403600_801605DE - 0x3E8) < temp_s3->field_4B8.coord.t[1]) {
+                    if ((D_actor_403600_801605DC.vy - 0x3E8) < temp_s3->field_4B8.coord.t[1]) {
                         Gp_SpawnPadLerp(0xA, 0xFF, 0x50);
                         var_s2 = 0;
                         if (D_80073B8C->t[1] < -0xF3B) {
@@ -3609,15 +3607,15 @@ s32 func_actor_403600_8013E7D4(s32 arg0, s32 arg1)
     }
     if (arg1 & 1) {
         if (temp_s0_3 >= temp_s5) {
-            D_actor_403600_801606F2 = (s16)var_v1;
+            D_actor_403600_801606E0.rot.vy = (s16)var_v1;
         } else {
             goto block_14;
         }
     } else if (temp_s5 < temp_s0_3) {
     block_14:
-        D_actor_403600_801606F2 = (s16)var_s2;
+        D_actor_403600_801606E0.rot.vy = (s16)var_s2;
     } else {
-        D_actor_403600_801606F2 = (s16)var_v1;
+        D_actor_403600_801606E0.rot.vy = (s16)var_v1;
     }
     SOFT_USE_REG(arg1);
     __asm__ volatile(

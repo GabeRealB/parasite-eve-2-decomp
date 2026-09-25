@@ -111,12 +111,9 @@ void func_actor_503500_8013AC6C(s32 p0, s32 p1, s32 p2, s32 p3, SVECTOR* coeff);
 
 /// The boss work block, cleared by `func_actor_503500_80132F64`.
 extern Actor503500Work D_actor_503500_80176574;
-extern s8              D_actor_503500_80176D5A;
-extern s16             D_actor_503500_80176D2E;
 /// 18-entry table of per-slot u16 counters, indexed by slot in
 /// `func_actor_503500_801360A4` / `_801360BC` / `_8013611C`.
 extern u16 D_actor_503500_80176D64[];
-extern u16 D_actor_503500_80176D24;
 /// Main-executable globals with no module header yet: `D_80071075` gates the
 /// "everything is dead" message, `D_80073BA0` is the remaining-enemy count and
 /// `D_80114C12` the cutscene/among-us mode flag.
@@ -1894,7 +1891,7 @@ void func_actor_503500_80136048(Task* arg0)
 /// argument, and callers pass unrelated pointers they already hold.
 s32 func_actor_503500_8013608C(void* arg0)
 {
-    return (u32)(D_actor_503500_80176D24 - 2) < 3U;
+    return (u32)((u16)D_actor_503500_80176574.field_7B0 - 2) < 3U;
 }
 
 void func_actor_503500_801360A4(s32 arg0, s16 arg1)
@@ -1960,12 +1957,12 @@ s16 func_actor_503500_80136134(Task* arg0)
 
 s32 func_actor_503500_80136208(void)
 {
-    return D_actor_503500_80176D5A;
+    return D_actor_503500_80176574.field_7E6;
 }
 
 s16 func_actor_503500_80136218(void)
 {
-    return D_actor_503500_80176D2E;
+    return D_actor_503500_80176574.field_7BA;
 }
 
 /// Exit callback of the boss task: tears down the second body part's display

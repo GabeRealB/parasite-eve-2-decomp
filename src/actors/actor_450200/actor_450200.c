@@ -25,14 +25,17 @@ extern s32      D_actor_450200_80138C60;
 extern s32      D_actor_450200_80138E88;
 extern s32      D_actor_450200_80139098;
 extern TaskDesc D_actor_450200_80137A60;
-extern s16      D_actor_450200_80137DD6;
 extern TaskDesc D_actor_450200_8013FB40;
-extern Task*    D_actor_450200_801401E0;
-extern Task*    D_actor_450200_801401E4;
-extern u16      D_actor_450200_801401E8[256];
-extern u16      D_actor_450200_801403E8[256];
-extern u16      D_actor_450200_801405E8[256];
-extern u16      D_actor_450200_801407E8[256];
+
+/// Placement payload that four of the overlay's data records pair with message
+/// 0x3EE. Only its yaw changes, set by `func_actor_450200_8013219C`.
+extern GpXformArg D_actor_450200_80137DC4;
+extern Task*      D_actor_450200_801401E0;
+extern Task*      D_actor_450200_801401E4;
+extern u16        D_actor_450200_801401E8[256];
+extern u16        D_actor_450200_801403E8[256];
+extern u16        D_actor_450200_801405E8[256];
+extern u16        D_actor_450200_801407E8[256];
 
 /// Effect state machine of this actor's first sub-task: state 0 arms the
 /// self-destruct countdown at 0x64 and state 2 re-arms it at 0x80, both then
@@ -164,9 +167,9 @@ void func_actor_450200_8013217C(s32 arg0)
     }
 }
 
-/// Stores in `D_actor_450200_80137DD6` the heading, as a 12-bit angle, from
-/// the slot-3 task's root coordinate to the `gameGetPtrSlot(0xA)` task's,
-/// refreshing both coordinates first so the X/Z offset is current.
+/// Stores in the yaw of `D_actor_450200_80137DC4` the heading, as a 12-bit
+/// angle, from the slot-3 task's root coordinate to the `gameGetPtrSlot(0xA)`
+/// task's, refreshing both coordinates first so the X/Z offset is current.
 void func_actor_450200_8013219C(void)
 {
     GsCOORDINATE2* target;
@@ -176,7 +179,7 @@ void func_actor_450200_8013219C(void)
     looker = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
     Gp_UpdateCoord(target);
     Gp_UpdateCoord(looker);
-    D_actor_450200_80137DD6 =
+    D_actor_450200_80137DC4.rot.vy =
         ratan2(target->coord.t[0] - looker->coord.t[0], target->coord.t[2] - looker->coord.t[2]) & 0xFFF;
 }
 
