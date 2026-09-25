@@ -42,7 +42,10 @@ typedef struct Actor102300Work {
     /// and parks its `Gp_PackPair` entry in.
     /* 0x5E4 */ GpObj   field_5E4;
     /* 0x604 */ GpRec18 field_604[1];
-    /* 0x61C */ byte    pad_61C[0x50];
+    /// Fifth list node, unlinked with the others by the teardown state when
+    /// `field_6CA` is 0x38 or 0x39.
+    /* 0x61C */ GpObj field_61C;
+    /* 0x63C */ byte  pad_63C[0x30];
     /// The spawn table this overlay's enemies come from, kept for the state
     /// handlers to respawn through.
     /* 0x66C */ TaskDesc* field_66C;
@@ -57,17 +60,21 @@ typedef struct Actor102300Work {
     /* 0x688 */ SVECTOR           field_688;
     /* 0x690 */ struct GpEffWork* field_690;
     /* 0x694 */ s16               field_694;
-    /* 0x696 */ byte              pad_696[2];
-    /* 0x698 */ s16               field_698;
+    /// Animation the slots were last seeded for; when `field_694` differs the
+    /// frame counter restarts and the slots are reseeded.
+    /* 0x696 */ s16 field_696;
+    /* 0x698 */ s16 field_698;
     /// Hit cooldown in frames, seeded from `Gp_GetIdParam2`; while non-zero the
     /// weapon-hit records are ignored.
-    /* 0x69A */ s16  field_69A;
-    /* 0x69C */ s16  field_69C;
-    /* 0x69E */ s16  field_69E;
-    /* 0x6A0 */ byte pad_6A0[2];
+    /* 0x69A */ s16 field_69A;
+    /* 0x69C */ s16 field_69C;
+    /* 0x69E */ s16 field_69E;
+    /// Cue bits 0x20 / 0x10 of the playing animation record, kept from the
+    /// previous frame so each cue plays once on its falling edge.
+    /* 0x6A0 */ u16 field_6A0;
     /// Facing angle the lunge steers `field_6A4` towards; the tick compares the
     /// two and only commits once they are within 0x100.
-    /* 0x6A2 */ u16 field_6A2;
+    /* 0x6A2 */ s16 field_6A2;
     /* 0x6A4 */ s16 field_6A4;
     /* 0x6A6 */ s16 field_6A6;
     /* 0x6A8 */ s16 field_6A8;
@@ -76,9 +83,10 @@ typedef struct Actor102300Work {
     /* 0x6AA */ s16 field_6AA;
     /// Awake variant this enemy starts in, taken from bit 0 of the placement
     /// record's `mode`.
-    /* 0x6AC */ s16  field_6AC;
-    /* 0x6AE */ s16  field_6AE;
-    /* 0x6B0 */ byte pad_6B0[2];
+    /* 0x6AC */ s16 field_6AC;
+    /* 0x6AE */ s16 field_6AE;
+    /// Frame counter of the per-frame tick's dust puffs: one every third frame.
+    /* 0x6B0 */ s16 field_6B0;
     /// Raised by the collision node once the lunge connects; the state
     /// handlers check it to break out of the approach cycle.
     /* 0x6B2 */ s16 field_6B2;
@@ -113,9 +121,12 @@ typedef struct Actor102300Work {
     /// effect spawns on the frame it reaches zero.
     /* 0x6D8 */ s16 field_6D8;
     /// Dwell budget in thousandths, scaled by the placement record's `variant`.
-    /* 0x6DA */ s16  field_6DA;
-    /* 0x6DC */ s16  field_6DC;
-    /* 0x6DE */ byte pad_6DE[2];
+    /* 0x6DA */ s16 field_6DA;
+    /* 0x6DC */ s16 field_6DC;
+    /// Step gate of the approach-cycle states: set to 1 on state-0 entry and
+    /// to 2 once state 1 has run; below 2 the per-frame tick adds 0x80 to the
+    /// root coordinate's y.
+    /* 0x6DE */ s16 field_6DE;
     /// Non-zero suppresses the crit and knock-back reactions.
     /* 0x6E0 */ s16  field_6E0;
     /* 0x6E2 */ byte pad_6E2[2];

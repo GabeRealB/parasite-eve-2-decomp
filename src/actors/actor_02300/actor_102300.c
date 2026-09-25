@@ -1,5 +1,8 @@
 #include "common.h"
 
+#include <psyq/inline_c.h>
+#include "gte.h"
+
 #include "decomp/common.h"
 
 #include "main/mem.h"
@@ -13,7 +16,9 @@
 #include "main/session.h"
 #include "main/fs.h"
 #include "gameplay/D4.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
+#include "gameplay/gameplay.h"
 
 #include <psyq/abs.h>
 
@@ -49,7 +54,59 @@ extern u32 Gp_LcgState;
 extern s16 Actor02300_D159E8[];
 extern s16 Actor02300_D15A44[];
 
-s32 Actor02300_Fn0371C(SVECTOR* arg0, SVECTOR* arg1);
+/// Voice-cue sound ids, indexed from `Actor102300Work::field_6D6`.
+extern s32 Actor02300_D15AB4[];
+/// Sound ids of the burst state's two cues.
+extern s32 Actor02300_D15B00;
+extern s32 Actor02300_D15B04;
+/// Effect id the burst state spawns at part 4.
+extern s32 D_80115758;
+
+/// Handlers of the `Actor102300Work::field_6A6` states, one per entry.
+extern void (*Actor02300_D15D38[])(Actor102300*);
+
+/// Flag bits the proximity check tests: one group raises contact within
+/// 0x5DC, the other two start the approach.
+extern u8 D_801153F2;
+/// Raised by the teardown state; the approach states drop out of their cycle
+/// while it is set.
+extern s8 D_80115419;
+/// Scene hold: 0 runs the enemy, 1 only redraws it, 2 hides it.
+extern u8 D_801153F4;
+
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
+
+s32  Actor02300_Fn0371C(SVECTOR* arg0, SVECTOR* arg1);
+void Actor02300_Fn00CD0(Actor102300* arg0);
+
+/// `G_SCRATCH_HEAD` viewed as a struct; the hit-tilt tick claims its matrix
+/// through this view rather than a plain pointer dereference.
+typedef struct Actor102300ScratchStack {
+    u32 sp;
+} Actor102300ScratchStack;
+
+/// Dust puff of the per-frame state: every third call spawns a spark effect at
+/// part 3 with a random upward offset, out of an 8-byte `G_SCRATCH_HEAD` block.
+static __inline__ void Actor02300_SpawnDust(Actor102300* actor)
+{
+    Actor102300Work* work;
+    SVECTOR*         head;
+    SVECTOR*         rot;
+
+    work                       = actor->field_1C;
+    head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+    rot                        = head - 1;
+    *(SVECTOR**)G_SCRATCH_HEAD = rot;
+    if (++work->field_6B0 >= 3) {
+        work->field_6B0 = 0;
+        head[-1].vx     = 0;
+        rot->vz         = 0;
+        rot->vy         = -(((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x1FF);
+        Gp_SpawnEff(0x600E0, &actor->field_2C->coords[3], 0x100, rot);
+    }
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 8;
+}
 
 /// Hit and push tick. Applies the `field_584` / `field_4EC` collision deltas
 /// to the root coordinate, then walks the five `field_4EC` records: kind 2 is a
@@ -362,25 +419,715 @@ void Actor02300_Fn00084(Actor102300* arg0)
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x40;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_02300/actor_102300", Actor02300_Fn00AEC);
+/// Approach-cycle state (entry 1 of `Actor02300_D15D38`). State 0 drains the
+/// `field_6DA` budget by `field_69C` (0 while `field_698` is under the
+/// animation's start frame in `Actor02300_D03F44`, 0x14 once past it) and runs
+/// the proximity check `Actor02300_Fn00CD0` every frame; when the budget runs
+/// out it switches to animation 4 and state 1. State 1 waits for `field_698`
+/// to reach 0x60, then either falls back to animation 2 (budget left) or
+/// turns about: animation 3, state 2, a fresh budget of 1000 per unit of the
+/// placement record's `variant`, and `field_6A2` / `field_6A4` set to the
+/// current yaw and its opposite. State 2 turns at `field_69E` = 0x3B until
+/// `field_698` reaches 0x23, then returns to animation 2 and state 0. A set
+/// `field_6B2` or `D_80115419` overrides everything with animation 2, entry 2
+/// and the shared state-F0 slot.
+void Actor02300_Fn00AEC(Actor102300* arg0)
+{
+    GpEnemy*         spawn;
+    Actor102300Work* work;
+    GsCOORDINATE2*   self;
+    u8*              head;
+    s16              state;
+    s16              delta;
+    s32              ang;
+    s32              param;
 
-INCLUDE_ASM("actors/nonmatchings/actor_02300/actor_102300", Actor02300_Fn00CD0);
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - 0x10;
 
-INCLUDE_ASM("actors/nonmatchings/actor_02300/actor_102300", Actor02300_Fn00E0C);
+    self  = arg0->field_2C->coords;
+    work  = arg0->field_1C;
+    spawn = arg0->field_20;
+    state = work->field_6A8;
+
+    switch (state) {
+        case 0:
+            delta = 0;
+            if (work->field_698 >= Actor02300_D03F44[work->field_694]) {
+                delta = 0x14;
+            }
+            work->field_69C  = delta;
+            work->field_69E  = 0;
+            work->field_6DA -= work->field_69C;
+            if (work->field_6DA <= 0) {
+                work->field_694 = 4;
+                work->field_6AE = 0;
+                work->field_6A8 = 1;
+                work->field_69C = 0;
+            }
+            Actor02300_Fn00CD0(arg0);
+            break;
+        case 1:
+            work->field_69C = 0;
+            work->field_69E = 0;
+            if (work->field_698 >= 0x60) {
+                if (work->field_6DA <= 0) {
+                    param           = spawn->place->variant;
+                    work->field_694 = 3;
+                    work->field_6A8 = 2;
+                    work->field_6DA = param * 1000;
+                    ang             = ratan2(self->coord.m[0][2], self->coord.m[2][2]) & 0xFFF;
+                    work->field_6A2 = ang;
+                    work->field_6A4 = (ang + 0x800) & 0xFFF;
+                } else {
+                    work->field_694 = 2;
+                    work->field_6A8 = 0;
+                }
+            }
+            break;
+        case 2:
+            work->field_69C = 0;
+            work->field_69E = 0x3B;
+            if (work->field_698 >= 0x23) {
+                work->field_694 = 2;
+                work->field_6A8 = 0;
+            }
+            break;
+    }
+
+    if ((work->field_6B2 != 0) || (D_80115419 != 0)) {
+        work->field_6A6 = 2;
+        work->field_6A8 = 0;
+        work->field_694 = 2;
+        work->field_6AE = 0;
+        Gp_ArmStateF0(1);
+    }
+
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x10;
+}
+
+/// Proximity check of the approach states. Measures the player's horizontal
+/// distance from the root coordinate through a 0x10-byte `G_SCRATCH_HEAD`
+/// block: under 0x5DC one of `D_801153F2`'s bit groups raises `field_6B2`;
+/// past it the other two (the second only within 0xBB8) put the enemy into
+/// animation 4 and state 1.
+void Actor02300_Fn00CD0(Actor102300* arg0)
+{
+    Actor102300Work* work;
+    GsCOORDINATE2*   self;
+    s32              dx;
+    s32              distance;
+    s32              dz;
+    s32              trigger;
+    VECTOR*          head;
+    VECTOR*          delta;
+
+    self                      = arg0->field_2C->coords;
+    work                      = arg0->field_1C;
+    head                      = *(VECTOR**)G_SCRATCH_HEAD;
+    delta                     = head - 1;
+    head[-1].vx               = (s32)(Player_Status.coordMtx->t[0] - self->coord.t[0]);
+    delta->vy                 = 0;
+    dz                        = Player_Status.coordMtx->t[2] - self->coord.t[2];
+    delta->vz                 = dz;
+    dx                        = head[-1].vx;
+    trigger                   = 0;
+    *(VECTOR**)G_SCRATCH_HEAD = delta;
+    distance                  = SquareRoot0((dx * dx) + (dz * dz));
+    if (distance < 0x5DC) {
+        if (D_801153F2 & 0x17) {
+            work->field_6B2 = 1;
+        }
+    } else {
+        if (D_801153F2 & 5) {
+            trigger = 1;
+        }
+        if ((D_801153F2 & 0x12) && (distance < 0xBB8)) {
+            trigger = 1;
+        }
+        if (trigger != 0) {
+            work->field_694 = 4;
+            work->field_69C = 0;
+            work->field_69E = 0;
+            work->field_6AE = 0;
+            work->field_6A8 = 1;
+        }
+    }
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x10;
+}
+
+/// Entry 0xB of the `field_6A6` state table `Actor02300_D15D38`. State 0 picks
+/// the reaction from `field_6AA` (animation 0x16 into state 1, or 0x1A into
+/// state 2), parks the second body node's pose and radius, raises its 0x4000
+/// flag, drops the third node's, and clears the enemy's `reactionFlags`.
+/// States 1 and 2 play the voice cues at their frame marks and, at the end of
+/// the animation, settle on an idle (0x19 / 0x1D) with a fresh 6-bit dwell
+/// from `Gp_LcgState`: into state 3 while the enemy has hit points left,
+/// otherwise handing the task over to state 2. States 3 and 4 alternate
+/// between the two idles until the dwell runs out.
+void Actor02300_Fn00E0C(Actor102300* arg0)
+{
+    s16              state;
+    s16              nextAnim;
+    s16              nextAnim2;
+    s32              snd;
+    s32              random3;
+    s32              pan;
+    s32              pan2;
+    s32              pan3;
+    u16              timer;
+    u16              timer2;
+    u32              random;
+    u32              random2;
+    Actor102300Work* work;
+    GsCOORDINATE2*   self;
+
+    work  = arg0->field_1C;
+    self  = arg0->field_2C->coords;
+    state = work->field_6A8;
+    switch (state) {
+        case 0:
+            if (work->field_6AA == 0) {
+                work->field_694        = 0x16;
+                work->field_6A8        = 1;
+                work->field_6B8        = 1;
+                work->field_4CC.pos.vz = -0xA7;
+            } else {
+                work->field_694        = 0x1A;
+                work->field_6A8        = 2;
+                work->field_6B8        = 2;
+                work->field_4CC.pos.vz = 0x109;
+            }
+            work->field_4CC.radius        = 0x15E;
+            work->field_69C               = 0;
+            work->field_69E               = 0;
+            work->field_6DE               = 1;
+            work->field_4CC.flags         = (u16)(work->field_4CC.flags | 0x4000);
+            work->field_564.flags         = (u16)(work->field_564.flags & 0xBFFF);
+            arg0->field_20->reactionFlags = 0;
+            work->field_6D4               = 1;
+            break;
+        case 1:
+            if (work->field_698 == 0x14) {
+                snd = Actor02300_D15AB4[work->field_6D6 + 0xC] | (((u16)arg0->field_20->placeKey >> 0xC) << 8);
+                pan = (s8)Gp_GetObjPan(self);
+                SndEvt_EnqueueType6(snd, (s32)pan, (s8)gpGetObjDepth(self));
+            }
+            if (work->field_698 == 0x2C) {
+                snd  = Actor02300_D15AB4[work->field_6D6 + 8] | (((u16)arg0->field_20->placeKey >> 0xC) << 8);
+                pan2 = (s8)Gp_GetObjPan(self);
+                SndEvt_EnqueueType6(snd, (s32)pan2, (s8)gpGetObjDepth(self));
+            }
+            if (work->field_698 >= 0x42) {
+                work->field_694 = 0x19;
+                work->field_6D4 = 0;
+                random          = (Gp_LcgState * 5) + 0x71357911;
+                work->field_6AE = (u16)((random >> 0x10) & 0x3F);
+                Gp_LcgState     = (s32)random;
+                if (arg0->field_20->hp > 0) {
+                    work->field_6A8 = 3;
+                } else {
+                    arg0->field_30  = 2;
+                    work->field_6A8 = 0;
+                }
+            }
+            if (work->field_6DE == 1) {
+                work->field_6DE = 2;
+                break;
+            }
+            break;
+        case 2:
+            if (work->field_698 == 0x19) {
+                snd  = Actor02300_D15AB4[work->field_6D6 + 8] | (((u16)arg0->field_20->placeKey >> 0xC) << 8);
+                pan3 = (s8)Gp_GetObjPan(self);
+                SndEvt_EnqueueType6(snd, (s32)pan3, (s8)gpGetObjDepth(self));
+            }
+            if (work->field_698 >= 0x31) {
+                work->field_694 = 0x1D;
+                work->field_6D4 = 0;
+                random2         = (Gp_LcgState * 5) + 0x71357911;
+                work->field_6AE = (u16)((random2 >> 0x10) & 0x3F);
+                Gp_LcgState     = (s32)random2;
+                if (arg0->field_20->hp > 0) {
+                    work->field_6A8 = 3;
+                } else {
+                    arg0->field_30  = 2;
+                    work->field_6A8 = 0;
+                }
+            }
+            if (work->field_6DE == 1) {
+                work->field_6DE = 2;
+            }
+            break;
+        case 3:
+            timer           = work->field_6AE - 1;
+            work->field_6AE = timer;
+            if ((s16)timer <= 0) {
+                nextAnim = 0x1C;
+                if (work->field_6B8 == 1) {
+                    nextAnim = 0x18;
+                }
+                work->field_6AE = 0xAU;
+                work->field_694 = nextAnim;
+                work->field_6A8 = 4;
+                break;
+            }
+            break;
+        case 4:
+            timer2          = work->field_6AE - 1;
+            work->field_6AE = timer2;
+            if ((s16)timer2 <= 0) {
+                nextAnim2 = 0x1D;
+                if (work->field_6B8 == 1) {
+                    nextAnim2 = 0x19;
+                }
+                work->field_694 = nextAnim2;
+                work->field_6A8 = 3;
+                random3         = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState     = random3;
+                work->field_6AE = (u16)(((u32)random3 >> 0x10) & 0x3F);
+            }
+            break;
+    }
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_02300/actor_102300", Actor02300_D00060);
 
-INCLUDE_ASM("actors/nonmatchings/actor_02300/actor_102300", Actor02300_Fn011E8);
+/// Entry 0xC of the `field_6A6` table. State 0 picks the animation from
+/// `field_6B8`: 1 selects 0x17 into state 1, anything else 0x1B into state 2.
+/// States 1 and 2 wait for `field_698` to reach 0x10 / 0x16, then settle on
+/// the matching idle (0x19 / 0x1D), move to entry 0xB's state 3 and roll a
+/// fresh 6-bit dwell into `field_6AE`.
+void Actor02300_Fn011E8(Actor102300* arg0)
+{
+    Actor102300Work* work;
+    s16              state;
+    s32              next;
 
-INCLUDE_ASM("actors/nonmatchings/actor_02300/actor_102300", Actor02300_Fn012E0);
+    work  = arg0->field_1C;
+    state = work->field_6A8;
+    switch (state) {
+        case 0:
+            next = work->field_6B8;
+            if (next == 1) {
+                work->field_694 = 0x17;
+                work->field_6A8 = next;
+            } else {
+                work->field_694 = 0x1B;
+                work->field_6A8 = 2;
+            }
+            break;
+        case 1:
+            if (work->field_698 >= 0x10) {
+                work->field_694 = 0x19;
+                work->field_6A6 = 0xB;
+                work->field_6A8 = 3;
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                work->field_6AE = ((u32)Gp_LcgState >> 16) & 0x3F;
+            }
+            break;
+        case 2:
+            if (work->field_698 >= 0x16) {
+                work->field_694 = 0x1D;
+                work->field_6A6 = 0xB;
+                work->field_6A8 = 3;
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                work->field_6AE = ((u32)Gp_LcgState >> 16) & 0x3F;
+            }
+            break;
+    }
+}
 
-INCLUDE_ASM("actors/nonmatchings/actor_02300/actor_102300", Actor02300_Fn0150C);
+/// Entry 0xD of the `field_6A6` table. State 0 arms the reaction: `field_6AA`
+/// picks animation 0x16 with a 0x42-frame budget or 0x1A with 0x31 frames,
+/// the second body node's pose and radius are parked and its 0x4000 flag
+/// raised, the third node's dropped, and the enemy's `reactionFlags` cleared.
+/// State 1 plays the voice cues of the animation `field_6B8` selects at its
+/// frame marks and, when the `field_6AE` budget runs out, hands the task over
+/// to state 2.
+void Actor02300_Fn012E0(Actor102300* arg0)
+{
+    Actor102300Work* work;
+    GsCOORDINATE2*   self;
+    s32              snd;
+    s16              state;
 
-INCLUDE_ASM("actors/nonmatchings/actor_02300/actor_102300", Actor02300_Fn01698);
+    work  = arg0->field_1C;
+    self  = arg0->field_2C->coords;
+    state = work->field_6A8;
 
-INCLUDE_ASM("actors/nonmatchings/actor_02300/actor_102300", Actor02300_Fn018A4);
+    switch (state) {
+        case 0:
+            if (work->field_6AA == 0) {
+                work->field_694        = 0x16;
+                work->field_6A8        = 1;
+                work->field_6B8        = 1;
+                work->field_6AE        = 0x42;
+                work->field_4CC.pos.vz = -0xA7;
+            } else {
+                work->field_694        = 0x1A;
+                work->field_6A8        = 1;
+                work->field_6B8        = 2;
+                work->field_6AE        = 0x31;
+                work->field_4CC.pos.vz = 0x109;
+            }
+            work->field_4CC.radius        = 0x15E;
+            work->field_69C               = 0;
+            work->field_69E               = 0;
+            work->field_6DE               = 1;
+            work->field_4CC.flags        |= 0x4000;
+            work->field_564.flags        &= 0xBFFF;
+            arg0->field_20->reactionFlags = 0;
+            work->field_6D4               = 1;
+            break;
+        case 1:
+            if (work->field_6DE == 1) {
+                work->field_6DE = 2;
+            }
+            if (work->field_6B8 == 1) {
+                if (work->field_698 == 0x14) {
+                    s32 pan;
 
-INCLUDE_ASM("actors/nonmatchings/actor_02300/actor_102300", Actor02300_Fn01A20);
+                    snd = Actor02300_D15AB4[work->field_6D6 + 0xC] |
+                          (((u16)arg0->field_20->placeKey >> 0xC) << 8);
+                    pan = (s8)Gp_GetObjPan(self);
+
+                    SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(self));
+                }
+                if (work->field_698 == 0x2C) {
+                    s32 pan;
+
+                    snd = Actor02300_D15AB4[work->field_6D6 + 8] |
+                          (((u16)arg0->field_20->placeKey >> 0xC) << 8);
+                    pan = (s8)Gp_GetObjPan(self);
+
+                    SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(self));
+                }
+            } else if (work->field_698 == 0x19) {
+                s32 pan;
+
+                snd = Actor02300_D15AB4[work->field_6D6 + 8] |
+                      (((u16)arg0->field_20->placeKey >> 0xC) << 8);
+                pan = (s8)Gp_GetObjPan(self);
+
+                SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(self));
+            }
+            work->field_6AE--;
+            if (work->field_6AE <= 0) {
+                arg0->field_30  = 2;
+                work->field_6A8 = 0;
+                work->field_6D4 = 0;
+            }
+            break;
+    }
+}
+
+/// Steps the yaw `field_6A2` from the root coordinate's own heading toward the
+/// target `field_6A4` by `field_69E` per frame: within half a turn it closes on
+/// the target directly (or, on animation 3, turns the other way by the step),
+/// past that it goes round the long way, snapping onto the target once the
+/// step would overshoot. The result rebuilds the root coordinate's matrix.
+void Actor02300_Fn0150C(Actor102300* arg0)
+{
+    Actor102300Work* work;
+    GsCOORDINATE2*   coord;
+    SVECTOR*         rot;
+    s32              ang;
+    u16              want;
+    s16              diff;
+    s32              adiff;
+    s32              step;
+    s32              ustep;
+    s32              wstep;
+    s32              cur;
+    s32              next;
+    s32              wrapStep;
+
+    rot   = (SVECTOR*)(*(u8**)G_SCRATCH_HEAD -= 8);
+    coord = arg0->field_2C->coords;
+    work  = arg0->field_1C;
+    ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
+    want  = work->field_6A4;
+    diff  = want - ang;
+    adiff = diff >= 0 ? diff : -diff;
+
+    work->field_6A2 = ang;
+    if (adiff < 0x800) {
+        step  = work->field_69E;
+        ustep = (u16)work->field_69E;
+        if (step >= adiff) {
+            work->field_6A2 = want;
+        } else {
+            if (work->field_694 == 3) {
+                next = ang - ustep;
+            } else {
+                next = work->field_6A2;
+                if (diff <= 0) {
+                    next -= step;
+                } else {
+                    next += step;
+                }
+            }
+            work->field_6A2 = next;
+        }
+    } else {
+        wstep = work->field_69E;
+        if (diff > 0) {
+            if (wstep >= 0x1000 - diff) {
+                goto snap;
+            } else {
+                goto turn;
+            }
+        } else if (wstep >= 0x1000 + diff) {
+            goto snap;
+        } else {
+            goto turn;
+        }
+    snap:
+        work->field_6A2 = work->field_6A4;
+        goto done;
+    turn:
+        if (work->field_694 == 3) {
+            work->field_6A2 = (u16)work->field_6A2 - (u16)work->field_69E;
+        } else {
+            wrapStep = work->field_69E;
+            cur      = work->field_6A2;
+            if (diff > 0) {
+                work->field_6A2 = cur - wrapStep;
+            } else {
+                work->field_6A2 = cur + wrapStep;
+            }
+        }
+    }
+done:
+    rot->vx = 0;
+    rot->vy = work->field_6A2;
+    rot->vz = 0;
+    RotMatrix(rot, &coord->coord);
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 8;
+}
+
+/// Applies the decaying hit tilt `field_688` to part 3 of the model: the tilt's
+/// rotation matrix is multiplied column by column into that part's matrix,
+/// then X and Y each step 0x20 toward zero, snapping to zero within 0x20.
+/// Once both have settled, `field_6B4` is cleared.
+void Actor02300_Fn01698(Actor102300* arg0)
+{
+    Actor102300Work* work;
+    GsCOORDINATE2*   coord;
+    MATRIX*          matrix;
+    s32              angleX;
+    s32              angleY;
+    s32              absX;
+    s32              nextX;
+    s32              absY;
+    s32              nextY;
+    s32              active;
+
+    matrix                                         = (MATRIX*)(((Actor102300ScratchStack*)G_SCRATCH_HEAD)->sp - 0x20);
+    ((Actor102300ScratchStack*)G_SCRATCH_HEAD)->sp = (u32)matrix;
+    active                                         = 0;
+    work                                           = arg0->field_1C;
+    coord                                          = arg0->field_2C->coords;
+    RotMatrix(&work->field_688, matrix);
+    USE_REG(matrix);
+    gte_SetRotMatrix(&coord[3].coord);
+    gte_ldclmv(matrix);
+    gte_rtir();
+    gte_stclmv(&coord[3].coord);
+    gte_ldclmv((char*)matrix + 2);
+    gte_rtir();
+    gte_stclmv((char*)&coord[3].coord + 2);
+    gte_ldclmv((char*)matrix + 4);
+    gte_rtir();
+    gte_stclmv((char*)&coord[3].coord + 4);
+    angleX = work->field_688.vx;
+    if (angleX != 0) {
+        absX = __builtin_abs(angleX);
+        if (absX < 0x21) {
+            work->field_688.vx = 0;
+        } else {
+            nextX = angleX - 0x20;
+            if (angleX <= 0) {
+                nextX = angleX + 0x20;
+            }
+            work->field_688.vx = nextX;
+            active             = 1;
+        }
+    }
+    angleY = work->field_688.vy;
+    if (angleY != 0) {
+        absY = __builtin_abs(angleY);
+        if (absY < 0x21) {
+            work->field_688.vy = 0;
+        } else {
+            nextY = angleY - 0x20;
+            if (angleY <= 0) {
+                nextY = angleY + 0x20;
+            }
+            work->field_688.vy = nextY;
+            active             = 1;
+        }
+    }
+    if (active == 0) {
+        work->field_6B4 = 0;
+    }
+    *(u32*)G_SCRATCH_HEAD += 0x20;
+}
+
+/// Animation sound cues. While the enemy has a voice row (`field_6D6`), reads the
+/// current record of animation slot 1 and plays the row's two cues on the
+/// falling edge of its 0x20 and 0x10 bits, remembering them in `field_6A0`.
+void Actor02300_Fn018A4(Actor102300* arg0)
+{
+    s32              snd;
+    s32              pan;
+    s32              pan2;
+    Actor102300Work* work;
+    GsCOORDINATE2*   self;
+    GpAnimRec*       rec;
+
+    work = arg0->field_1C;
+    self = arg0->field_2C->coords;
+    if (work->field_6D6 != 0) {
+        rec = Gp_AnimGetRec(&work->anim, &work->slots[1]);
+        if (rec != NULL) {
+            if (!(rec->flags & 0x20) && (work->field_6A0 & 0x20)) {
+                snd = Actor02300_D15AB4[work->field_6D6 * 2 - 1] |
+                      (((u16)arg0->field_20->placeKey >> 0xC) << 8);
+                pan = (s8)Gp_GetObjPan(self);
+                SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(self));
+            }
+            if (!(rec->flags & 0x10) && (work->field_6A0 & 0x10)) {
+                snd = Actor02300_D15AB4[work->field_6D6 * 2] |
+                      (((u16)arg0->field_20->placeKey >> 0xC) << 8);
+                pan2 = (s8)Gp_GetObjPan(self);
+                SndEvt_EnqueueType6(snd, pan2, (s8)gpGetObjDepth(self));
+            }
+            work->field_6A0 = (u16)(rec->flags & 0x30);
+        }
+    }
+}
+
+/// Teardown state of the enemy (entry 2 of `Actor02300_D00078`).
+/// `D_801153F4` gates it: 1 only redraws and 2 hides the model and its lock-on
+/// node, both returning; 0 shows them and runs the states. State 0 unlinks the enemy's lock-on
+/// node and collision bodies, releases its state-F0 slot, settles on the idle
+/// `field_6B8` selects, files the pose with `Gp_SaveEnemyPose` so the enemy is
+/// restored in that pose, and raises `D_80115419`. State 1 spawns a spark
+/// every fourth frame. Either way the animation slots advance or are reseeded
+/// and the model is drawn with its ground shadow.
+void Actor02300_Fn01A20(GpEnemy* arg0, Actor102300* arg1)
+{
+    Actor102300Work* work;
+    Actor102300Work* animWork;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   root;
+    GsCOORDINATE2*   part;
+    SVECTOR*         scratch;
+    VECTOR3          pos;
+    s16              anim;
+    s16              duration;
+    s32              i;
+    u32              random;
+
+    work    = arg1->field_1C;
+    coord   = arg1->field_2C->coords;
+    scratch = (SVECTOR*)(*(u8**)G_SCRATCH_HEAD -= 8);
+    switch (D_801153F4) {
+        case 0:
+            arg1->field_2C->flags = 0;
+            arg0->node.flags      = 0;
+            break;
+        case 1:
+            coord->flg                    = 0;
+            arg1->field_2C->coords[3].flg = 0;
+            Gp_UpdateCoord(coord);
+            root   = arg1->field_2C->coords;
+            pos.vx = root->workm.t[0];
+            pos.vy = root->workm.t[1];
+            pos.vz = root->workm.t[2];
+            Gp_UpdateActorColor(arg1->field_20, (VECTOR*)&pos, 0, 0);
+            root   = arg1->field_2C->coords;
+            part   = &root[3];
+            pos.vx = part->workm.t[0];
+            pos.vy = root->workm.t[1];
+            pos.vz = part->workm.t[2];
+            Gp_DrawEffGroundQuad(&pos, 0x300, 0x80);
+            return;
+        case 2:
+            arg1->field_2C->flags = 0x80;
+            arg0->node.flags      = 1;
+            return;
+    }
+    switch (work->field_6A8) {
+        case 0:
+            arg0->recs = 0;
+            Gp_UnlinkNode(&arg0->node);
+            Gp_UnlinkObj(&work->field_47C);
+            Gp_UnlinkObj(&work->field_564);
+            Gp_UnlinkObj(&work->field_4CC);
+            Gp_UnlinkObj(&work->field_5E4);
+            if ((u32)((u16)work->field_6CA - 0x38) < 2U) {
+                Gp_UnlinkObj(&work->field_61C);
+            }
+            Gp_ReleaseStateF0Add((GpObj20E*)arg1, work->field_6CA);
+            anim = 0x1D;
+            if (work->field_6B8 == 1) {
+                anim = 0x19;
+            }
+            work->field_694  = anim;
+            work->field_6A8  = 1;
+            arg0->spawnState = (u8)work->field_6B8;
+            Gp_SaveEnemyPose(arg0);
+            D_80115419 = 1;
+            break;
+        case 1:
+            if (!(work->field_698 & 3)) {
+                scratch->vx = 0;
+                scratch->vz = 0;
+                random      = (Gp_LcgState * 5) + 0x71357911;
+                scratch->vy = -((random >> 0x10) & 0x1FF);
+                Gp_LcgState = random;
+                Gp_SpawnEff(0x600E0, &arg1->field_2C->coords[3], 0x400, scratch);
+            }
+            break;
+    }
+    animWork = arg1->field_1C;
+    i        = 1;
+    if (animWork->field_694 != animWork->field_696) {
+        animWork->field_696 = (s16)(u16)animWork->field_694;
+        animWork->field_698 = 0U;
+        duration            = Actor02300_D03F44[animWork->field_694];
+        do {
+            func_800B4114(&animWork->anim, i, animWork->field_694, 0, (s32)duration);
+            i += 1;
+        } while (i < 0x13);
+        coord->flg = 0;
+    } else {
+        TOUCH_REG(i);
+        animWork->field_698 = (u16)(animWork->field_698 + i);
+        do {
+            Gp_AnimTickIndex(&animWork->anim, i);
+            i += 1;
+        } while (i < 0x13);
+        coord->flg = 0;
+    }
+    arg1->field_2C->coords[3].flg = 0;
+    Gp_UpdateCoord(coord);
+    root   = arg1->field_2C->coords;
+    pos.vx = root->workm.t[0];
+    pos.vy = root->workm.t[1];
+    pos.vz = root->workm.t[2];
+    Gp_UpdateActorColor(arg1->field_20, (VECTOR*)&pos, 0, 0);
+    root   = arg1->field_2C->coords;
+    part   = &root[3];
+    pos.vx = part->workm.t[0];
+    pos.vy = root->workm.t[1];
+    pos.vz = part->workm.t[2];
+    Gp_DrawEffGroundQuad(&pos, 0x300, 0x80);
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 8;
+}
 
 /// Per-frame tick for the enemy's charge, sharing `field_6A8` with the rest of
 /// the overlay and measuring the offset to the player through a 0x10-byte
@@ -600,7 +1347,96 @@ void Actor02300_Fn02290(Actor102300* arg0)
     *scratch += 0x10;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_02300/actor_102300", Actor02300_Fn02518);
+/// Entry 5 of the `field_6A6` table, a four-step burst. State 0 spawns the
+/// effect at part 4 and plays the first cue on entry, rumbles every tenth
+/// frame, and either ends once `field_6B6` passes 0x28 (entry 9 when
+/// `field_6C4` runs out, else animation 0x15 into state 3) or times out at
+/// 0x96 frames into state 1. State 1 counts `field_6AE` down into state 2,
+/// which triggers the PE state, returns to entry 2 and plays the second cue.
+/// State 3 spawns a spark every fourth frame until `field_6AE` runs out.
+void Actor02300_Fn02518(Actor102300* arg0)
+{
+    Actor102300Work* work;
+    GsCOORDINATE2*   self;
+    SVECTOR*         scratch;
+    s32              sound;
+    u32              random;
+
+    scratch = (SVECTOR*)(*(u8**)G_SCRATCH_HEAD -= 8);
+    work    = arg0->field_1C;
+    self    = arg0->field_2C->coords;
+    switch (work->field_6A8) {
+        case 0:
+            if (work->field_6AE == 0) {
+                scratch->vx     = 0;
+                scratch->vy     = 0;
+                scratch->vz     = 0;
+                work->field_690 = Gp_SpawnEff(D_80115758, &arg0->field_2C->coords[4], 0x96, scratch);
+                sound           = Actor02300_D15B00 | (((u16)arg0->field_20->placeKey >> 0xC) << 8);
+                SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(self), (s8)gpGetObjDepth(self));
+            }
+            work->field_6CE = work->field_6D0 > 0;
+            if ((s16)(work->field_6AE % 10) == 0) {
+                Gp_SpawnPadLerp(5, 0x80, 8);
+            }
+            if (work->field_6B6 >= 0x29) {
+                work->field_6C2 = 0;
+                if (--work->field_6C4 <= 0) {
+                    work->field_6A6 = 9;
+                    work->field_6A8 = 0;
+                } else {
+                    work->field_6A6 = 5;
+                    work->field_6A8 = 3;
+                    work->field_694 = 0x15;
+                    work->field_6AE = 0x4F;
+                }
+                work->field_6CE = 0;
+                if (work->field_690 != NULL) {
+                    work->field_690->task->state = 3;
+                }
+                work->field_690 = NULL;
+            } else if (++work->field_6AE >= 0x96) {
+                work->field_6AE = 8;
+                work->field_6A8 = 1;
+                work->field_694 = 0xB;
+                work->field_6C2 = 0;
+                work->field_6CE = 0;
+                work->field_690 = NULL;
+                Gp_SpawnPadLerp(0xF, 0xFF, 8);
+            }
+            break;
+        case 1:
+            if (--work->field_6AE <= 0) {
+                work->field_6A8 = 2;
+                work->field_6AE = 0;
+            }
+            break;
+        case 2:
+            Gp_TriggerPeState(0, 0x10);
+            work->field_6A6 = 2;
+            work->field_6A8 = 0;
+            work->field_694 = 2;
+            sound           = Actor02300_D15B04 | (((u16)arg0->field_20->placeKey >> 0xC) << 8);
+            SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(self), (s8)gpGetObjDepth(self));
+            break;
+        case 3:
+            if (!(work->field_698 & 3)) {
+                scratch->vx = 0;
+                scratch->vz = 0;
+                random      = Gp_LcgState * 5 + 0x71357911;
+                scratch->vy = -((random >> 16) & 0x1FF);
+                Gp_LcgState = random;
+                Gp_SpawnEff(0x600E0, &arg0->field_2C->coords[3], 0x100, scratch);
+            }
+            if (--work->field_6AE <= 0) {
+                work->field_6A6 = 2;
+                work->field_6A8 = 0;
+                work->field_694 = 2;
+            }
+            break;
+    }
+    *(u8**)G_SCRATCH_HEAD += 8;
+}
 
 /// Spawn/setup state for this enemy. Allocates the 0x6E4 work block, wires the
 /// model object to the block's own light/colour matrices, primes the nineteen
@@ -857,7 +1693,115 @@ case2:
     actor->field_30 = kind;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_02300/actor_102300", Actor02300_Fn02EA0);
+/// Per-frame state of the enemy (entry 1 of `Actor02300_D00078`). Unless
+/// `D_801153F4` holds the scene (1 only redraws, 2 hides the model and its
+/// lock-on node), it turns a pending knock-back into entry 0xA, runs the hit
+/// tick and the `field_6A6` state handler, turns toward `field_6A4`, steps the
+/// root coordinate forward by `field_69C`, advances or reseeds the animation
+/// slots, applies the hit tilt and the sound cues, and every third frame while
+/// `field_6C4` is 0 puffs dust at part 3. It then draws the model with its
+/// ground shadow.
+void Actor02300_Fn02EA0(GpEnemy* ctx, Actor102300* actor)
+{
+    VECTOR3          pos;
+    GpEnemy*         spawn;
+    TmdObject*       model;
+    Actor102300Work* moveWork;
+    Actor102300Work* animWork;
+    Actor102300Work* work;
+    Actor102300Work* flagWork;
+    GsCOORDINATE2*   moveCoord;
+    GsCOORDINATE2*   part;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   root;
+    s16              duration;
+    s32              i;
+    u8               flags;
+
+    work  = actor->field_1C;
+    model = actor->field_2C;
+    coord = model->coords;
+    switch (D_801153F4) {
+        case 0:
+            model->flags    = 0;
+            ctx->node.flags = 0;
+            break;
+        case 1:
+            goto draw;
+        case 2:
+            model->flags    = 0x80;
+            ctx->node.flags = 1;
+            return;
+    }
+
+    if (ctx->reactionFlags != 0) {
+        spawn    = actor->field_20;
+        flags    = spawn->reactionFlags;
+        flagWork = actor->field_1C;
+        if ((flags & 2) && (flagWork->field_6B8 == 0)) {
+            spawn->reactionFlags = flags & 0xFD;
+            flagWork->field_6A6  = 0xA;
+            flagWork->field_694  = 0x14;
+            flagWork->field_6A8  = 0;
+            flagWork->field_6E0  = 1;
+        }
+    }
+    Actor02300_Fn00084(actor);
+    Actor02300_D15D38[work->field_6A6](actor);
+    if (work->field_69E != 0) {
+        Actor02300_Fn0150C(actor);
+    }
+    moveCoord              = actor->field_2C->coords;
+    moveWork               = actor->field_1C;
+    moveWork->field_678    = moveCoord->coord.t[0];
+    moveWork->field_67C    = moveCoord->coord.t[1];
+    moveWork->field_680    = moveCoord->coord.t[2];
+    moveCoord->coord.t[0] += (s32)(moveCoord->coord.m[0][2] * moveWork->field_69C) >> 0xC;
+    if (moveWork->field_6DE < 2) {
+        moveCoord->coord.t[1] += 0x80;
+    }
+    moveCoord->coord.t[2] += (s32)(moveCoord->coord.m[2][2] * moveWork->field_69C) >> 0xC;
+    animWork               = actor->field_1C;
+    i                      = 1;
+    if (animWork->field_694 != animWork->field_696) {
+        animWork->field_696 = (s16)(u16)animWork->field_694;
+        animWork->field_698 = 0;
+        duration            = Actor02300_D03F44[animWork->field_694];
+        do {
+            func_800B4114(&animWork->anim, i, animWork->field_694, 0, duration);
+            i += 1;
+        } while (i < 0x13);
+    } else {
+        TOUCH_REG(i);
+        animWork->field_698 = (u16)animWork->field_698 + i;
+        do {
+            Gp_AnimTickIndex(&animWork->anim, i);
+            i += 1;
+        } while (i < 0x13);
+    }
+    if (work->field_6B4 != 0) {
+        Actor02300_Fn01698(actor);
+    }
+    Actor02300_Fn018A4(actor);
+    coord->flg                     = 0;
+    actor->field_2C->coords[3].flg = 0;
+    Gp_UpdateCoord(coord);
+    if (work->field_6C4 == 0) {
+        Actor02300_SpawnDust(actor);
+    }
+draw:
+    USE_REG(coord);
+    pos.vx = coord->workm.t[0];
+    pos.vy = coord->workm.t[1];
+    pos.vz = coord->workm.t[2];
+    Gp_UpdateActorColor(actor->field_20, (VECTOR*)&pos, 0, 0);
+    root   = actor->field_2C->coords;
+    part   = root + 3;
+    pos.vx = part->workm.t[0];
+    pos.vy = root->workm.t[1];
+    pos.vz = part->workm.t[2];
+    Gp_DrawEffGroundQuad(&pos, 0x300, 0x80);
+}
 
 /// The lunge's own tick, run out of a 0x10-byte `G_SCRATCH_HEAD` block. State
 /// 0 is the wind-up: it holds `field_69C` at 0 until the animation reaches its
