@@ -20,8 +20,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-/// Work block this overlay hangs off `Actor107600.field_1C` (the task's
-/// `Task::work` slot, which is not a `TaskIdMap` here). The display node at
+/// Work block this overlay hangs off `Task::work`. The display node at
 /// +0x60 is the one the exit callback `func_actor_107600_80134920` hands back
 /// to `Gp_UnlinkObj`. The state pair at +0x158/+0x15A is what
 /// `func_actor_107600_80134B98` writes: the new state in `field_158` and its
@@ -135,11 +134,6 @@ typedef struct Actor107600QuadScratch {
     /* 0x14 */ SVECTOR v[4];
 } Actor107600QuadScratch;
 
-typedef struct Actor107600 {
-    /* 0x00 */ byte             pad_0[0x1C];
-    /* 0x1C */ Actor107600Work* field_1C;
-} Actor107600;
-
 /// Global scene mode the actor updates switch on: 0 runs the full update, 1 only
 /// refreshes the colour, 2 hides the model (`TmdObject.flags` bit 0x80).
 extern u8 D_801153F4;
@@ -153,14 +147,14 @@ void func_actor_107600_80132AC0(Task* arg0);
 void func_actor_107600_80132B0C(Task* arg0);
 void func_actor_107600_80132B7C(Task* arg0);
 void func_actor_107600_80132C4C(MATRIX* src, MATRIX* dst);
-void func_actor_107600_80132CB8(Actor107600* arg0);
+void func_actor_107600_80132CB8(Task* arg0);
 void func_actor_107600_80132CD4(Task* arg0);
 void func_actor_107600_80132D54(Task* arg0);
 void func_actor_107600_80132DF0(GpEnemy* arg0, s32 arg1, s32 arg2);
 void func_actor_107600_80132ED0(Task* arg0);
 void func_actor_107600_80133024(Task* arg0);
 void func_actor_107600_801332D4(Task* arg0);
-void func_actor_107600_80133668(Actor107600* arg0);
+void func_actor_107600_80133668(Task* arg0);
 void func_actor_107600_801337FC(Task* arg0);
 void func_actor_107600_801339A4(Task* arg0);
 void func_actor_107600_80133FA8(GsCOORDINATE2* arg0, SVECTOR* arg1);
@@ -173,13 +167,13 @@ void func_actor_107600_80134958(Task* arg0);
 void func_actor_107600_801349E0(Task* arg0);
 void func_actor_107600_80134A50(Task* arg0);
 void func_actor_107600_80134B2C(MATRIX* src, MATRIX* dst);
-void func_actor_107600_80134B98(Actor107600* arg0, s16 arg1);
-s32  func_actor_107600_80134BAC(Actor107600* arg0);
+void func_actor_107600_80134B98(Task* arg0, s16 arg1);
+s32  func_actor_107600_80134BAC(Task* arg0);
 void func_actor_107600_80134C54(Task* arg0);
-void func_actor_107600_80134D10(Actor107600* arg0);
-void func_actor_107600_80134D30(Actor107600* arg0);
-void func_actor_107600_80134D50(Actor107600* arg0);
-void func_actor_107600_80134D70(Actor107600* arg0);
+void func_actor_107600_80134D10(Task* arg0);
+void func_actor_107600_80134D30(Task* arg0);
+void func_actor_107600_80134D50(Task* arg0);
+void func_actor_107600_80134D70(Task* arg0);
 void func_actor_107600_80134D9C(Task* arg0);
 void func_actor_107600_80134E5C(GsCOORDINATE2* arg0);
 void func_actor_107600_80134EF4(Task* arg0);
@@ -537,13 +531,13 @@ const TaskFuncTable4 D_actor_107600_80131E74 = { {
 const TaskFuncTable10 D_actor_107600_80131E84 = { {
     func_actor_107600_80134C54,
     func_actor_107600_801332D4,
-    (TaskFunc)func_actor_107600_80133668,
-    (TaskFunc)func_actor_107600_80133668,
-    (TaskFunc)func_actor_107600_80134D10,
-    (TaskFunc)func_actor_107600_80134D30,
-    (TaskFunc)func_actor_107600_80134D50,
+    func_actor_107600_80133668,
+    func_actor_107600_80133668,
+    func_actor_107600_80134D10,
+    func_actor_107600_80134D30,
+    func_actor_107600_80134D50,
     func_actor_107600_801337FC,
-    (TaskFunc)func_actor_107600_80134D70,
+    func_actor_107600_80134D70,
     func_actor_107600_801339A4,
 } };
 
@@ -683,9 +677,9 @@ void func_actor_107600_80132C4C(MATRIX* src, MATRIX* dst)
     dst->m[2][2] = src->m[2][2];
 }
 
-void func_actor_107600_80132CB8(Actor107600* arg0)
+void func_actor_107600_80132CB8(Task* arg0)
 {
-    Actor107600Work* work = arg0->field_1C;
+    Actor107600Work* work = arg0->work;
 
     work->field_13E++;
 }
@@ -852,7 +846,7 @@ void func_actor_107600_80133024(Task* arg0)
                 }
                 Gp_ClearRec18Occupied(work->rec18);
                 if (enemy->hp <= 0) {
-                    func_actor_107600_80134B98((Actor107600*)arg0, 9);
+                    func_actor_107600_80134B98(arg0, 9);
                 }
             }
         case 1:
@@ -901,7 +895,7 @@ void func_actor_107600_801332D4(Task* arg0)
     s32              flags;
     s16              v;
 
-    if ((s16)func_actor_107600_80134BAC((Actor107600*)arg0) != 0) {
+    if ((s16)func_actor_107600_80134BAC(arg0) != 0) {
         return;
     }
     switch (work->field_15A) {
@@ -956,7 +950,7 @@ void func_actor_107600_801332D4(Task* arg0)
         case 5:
             flags = arg0->spawnArg1;
             if (flags & 0x40) {
-                func_actor_107600_80134B98((Actor107600*)arg0, 7);
+                func_actor_107600_80134B98(arg0, 7);
                 return;
             }
             if (!(flags & 0x20000000)) {
@@ -1001,9 +995,9 @@ void func_actor_107600_801332D4(Task* arg0)
 /// Hit-flinch sub-state machine in `field_15A`: swings `field_50` for six
 /// frames with a step scaled by `field_160` (capped at 0x200), then flickers it
 /// on odd frames and hands off to state 1 / sub-state 3.
-void func_actor_107600_80133668(Actor107600* arg0)
+void func_actor_107600_80133668(Task* arg0)
 {
-    Actor107600Work* work = arg0->field_1C;
+    Actor107600Work* work = arg0->work;
     s32              step;
     s16              count;
 
@@ -1623,9 +1617,9 @@ void func_actor_107600_80134B2C(MATRIX* src, MATRIX* dst)
     dst->m[2][2] = src->m[2][2];
 }
 
-void func_actor_107600_80134B98(Actor107600* arg0, s16 arg1)
+void func_actor_107600_80134B98(Task* arg0, s16 arg1)
 {
-    Actor107600Work* work = arg0->field_1C;
+    Actor107600Work* work = arg0->work;
 
     work->field_158 = arg1;
     work->field_15A = 0;
@@ -1635,42 +1629,42 @@ void func_actor_107600_80134B98(Actor107600* arg0, s16 arg1)
 /// requests 1..5 open states 2, 3, 4, 6 and 5 through the same stores as
 /// `func_actor_107600_80134B98` (written out, since the setter is not
 /// inlined). The request is always consumed; returns whether one was pending.
-s32 func_actor_107600_80134BAC(Actor107600* arg0)
+s32 func_actor_107600_80134BAC(Task* arg0)
 {
-    Actor107600Work* work = arg0->field_1C;
+    Actor107600Work* work = arg0->work;
 
     if (work->field_156 == 1) {
         switch ((s16)(work->field_15E - 1)) {
             case 0: {
-                Actor107600Work* w = arg0->field_1C;
+                Actor107600Work* w = arg0->work;
 
                 w->field_158 = 2;
                 w->field_15A = 0;
                 break;
             }
             case 1: {
-                Actor107600Work* w = arg0->field_1C;
+                Actor107600Work* w = arg0->work;
 
                 w->field_158 = 3;
                 w->field_15A = 0;
                 break;
             }
             case 2: {
-                Actor107600Work* w = arg0->field_1C;
+                Actor107600Work* w = arg0->work;
 
                 w->field_158 = 4;
                 w->field_15A = 0;
                 break;
             }
             case 3: {
-                Actor107600Work* w = arg0->field_1C;
+                Actor107600Work* w = arg0->work;
 
                 w->field_158 = 6;
                 w->field_15A = 0;
                 break;
             }
             case 4: {
-                Actor107600Work* w = arg0->field_1C;
+                Actor107600Work* w = arg0->work;
 
                 w->field_158 = 5;
                 w->field_15A = 0;
@@ -1716,24 +1710,24 @@ void func_actor_107600_80134C54(Task* arg0)
     }
 }
 
-void func_actor_107600_80134D10(Actor107600* arg0)
+void func_actor_107600_80134D10(Task* arg0)
 {
     func_actor_107600_80134B98(arg0, 1);
 }
 
-void func_actor_107600_80134D30(Actor107600* arg0)
+void func_actor_107600_80134D30(Task* arg0)
 {
     func_actor_107600_80134B98(arg0, 1);
 }
 
-void func_actor_107600_80134D50(Actor107600* arg0)
+void func_actor_107600_80134D50(Task* arg0)
 {
     func_actor_107600_80134B98(arg0, 1);
 }
 
-void func_actor_107600_80134D70(Actor107600* arg0)
+void func_actor_107600_80134D70(Task* arg0)
 {
-    arg0->field_1C->field_16B = 3;
+    ((Actor107600Work*)arg0->work)->field_16B = 3;
     func_actor_107600_80134B98(arg0, 7);
 }
 
