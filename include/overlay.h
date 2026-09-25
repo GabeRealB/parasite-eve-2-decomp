@@ -7,6 +7,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include "main/coord.h"
+#include "main/gfx.h"
 #include <psyq/inline_c.h>
 #include "gte.h"
 

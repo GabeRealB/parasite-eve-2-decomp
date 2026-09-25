@@ -165,17 +165,6 @@ typedef struct GpEffWork {
 } GpEffWork;
 STATIC_ASSERT_SIZEOF(GpEffWork, 0x2C);
 
-/// The leading rotation entries of a `MATRIX`, paired into words, so a
-/// rotation can be reset to identity with five aligned word stores instead of
-/// nine halfword ones.
-typedef struct _GpMtxWords {
-    /* 0x00 */ s32 m00_m01;
-    /* 0x04 */ s32 m02_m10;
-    /* 0x08 */ s32 m11_m12;
-    /* 0x0C */ s32 m20_m21;
-    /* 0x10 */ s16 m22;
-} GpMtxWords;
-
 /// 4-byte row of `D_8011291C`, indexed by `Task::spawnArg1`.
 /// `Gp_EffPolyTask9C` copies `field_0` / `field_2` into `GpEffWork.period` /
 /// `field_2A` (draw param for `Gp_DrawEffShard` and per-frame `field_26` step).

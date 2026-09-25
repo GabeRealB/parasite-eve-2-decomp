@@ -580,60 +580,30 @@ void GameMain_Loop(void)
 
 void Gfx_InitCoordinateTrees(void)
 {
-    MATRIX*  m;
-    GpCoord* c1;
-    GpCoord* c2;
-    GpCoord* c3;
-    s32      one;
+    gfxSetRotIdentity(&Gfx_ViewOffsetCoord.coord);
+    Gfx_ViewOffsetCoord.sub        = NULL;
+    Gfx_ViewOffsetCoord.coord.t[0] = 0;
+    Gfx_ViewOffsetCoord.coord.t[1] = 0;
+    Gfx_ViewOffsetCoord.coord.t[2] = 0x8000;
+    Gfx_ViewOffsetCoord.flg        = 0;
 
-    *(s32*)&Gfx_ViewOffsetCoord.coord = ONE;
-    one                               = ONE;
-    m                                 = &Gfx_ViewOffsetCoord.coord;
-    c1                                = &Gfx_ViewOffsetCoord;
-    MATRIX_PAIR(m, 0, 2)              = 0;
-    MATRIX_PAIR(m, 1, 1)              = one;
-    MATRIX_PAIR(m, 2, 0)              = 0;
-    m->m[2][2]                        = one;
-    c1->sub                           = NULL;
-    c1->coord.t[0]                    = 0;
-    c1->coord.t[1]                    = 0;
-    c1->coord.t[2]                    = 0x8000;
-    c1->flg                           = 0;
+    gfxSetRotIdentity(&gGfxViewRotCoord.coord);
+    gGfxViewRotCoord.sub        = &Gfx_ViewOffsetCoord;
+    gGfxViewRotCoord.coord.t[0] = 0;
+    gGfxViewRotCoord.coord.t[1] = 0;
+    gGfxViewRotCoord.coord.t[2] = 0;
+    gGfxViewRotCoord.flg        = 0;
 
-    *(s32*)&gGfxViewRotCoord.coord = one;
-    m                              = &gGfxViewRotCoord.coord;
-    c2                             = &gGfxViewRotCoord;
-    MATRIX_PAIR(m, 0, 2)           = 0;
-    MATRIX_PAIR(m, 1, 1)           = one;
-    MATRIX_PAIR(m, 2, 0)           = 0;
-    m->m[2][2]                     = one;
-    c2->sub                        = c1;
-    c2->coord.t[0]                 = 0;
-    c2->coord.t[1]                 = 0;
-    c2->coord.t[2]                 = 0;
-    c2->flg                        = 0;
-
-    *(s32*)&gGfxViewCoord.coord = one;
-    m                           = &gGfxViewCoord.coord;
-    c3                          = &gGfxViewCoord;
-    MATRIX_PAIR(m, 0, 2)        = 0;
-    MATRIX_PAIR(m, 1, 1)        = one;
-    MATRIX_PAIR(m, 2, 0)        = 0;
-    m->m[2][2]                  = one;
-    c3->sub                     = c2;
-    c3->coord.t[0]              = 0;
-    c3->coord.t[1]              = 0;
-    c3->coord.t[2]              = 0;
-    c3->flg                     = 0;
+    gfxSetRotIdentity(&gGfxViewCoord.coord);
+    gGfxViewCoord.sub        = &gGfxViewRotCoord;
+    gGfxViewCoord.coord.t[0] = 0;
+    gGfxViewCoord.coord.t[1] = 0;
+    gGfxViewCoord.coord.t[2] = 0;
+    gGfxViewCoord.flg        = 0;
 
     gte_SetGeomScreen(0x400);
 
-    *(s32*)&GsWSMATRIX   = one;
-    m                    = &GsWSMATRIX;
-    MATRIX_PAIR(m, 0, 2) = 0;
-    MATRIX_PAIR(m, 1, 1) = one;
-    MATRIX_PAIR(m, 2, 0) = 0;
-    m->m[2][2]           = one;
+    gfxSetRotIdentity(&GsWSMATRIX);
 }
 
 void Display_LoadImageStrips(s32 arg0)

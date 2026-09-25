@@ -89,11 +89,29 @@ extern GpCoord gGfxViewCoord;
 #define MATRIX_PAIR(mat, r, c) (*(s32*)&(mat)->m[r][c])
 /// A `MATRIX_PAIR` word from its two elements, the first in the low half.
 #define MATRIX_PAIR_VALUE(first, second) ((u16)(first) | ((s32)(second) << 16))
-/// Sets a matrix's rotation to identity, `one` being the fixed-point 1.0, word
-/// by word; the translation is left alone.
-#define MATRIX_SET_ROT_IDENTITY(mat, one)                                                        \
-    (MATRIX_PAIR(mat, 0, 0) = (one), MATRIX_PAIR(mat, 0, 2) = 0, MATRIX_PAIR(mat, 1, 1) = (one), \
-     MATRIX_PAIR(mat, 2, 0) = 0, (mat)->m[2][2] = (one))
+/// The leading rotation entries of a `MATRIX`, paired into words, as code
+/// resets and copies a rotation.
+typedef struct _GpMtxWords {
+    s32 m00_m01;
+    s32 m02_m10;
+    s32 m11_m12;
+    s32 m20_m21;
+    s16 m22;
+} GpMtxWords;
+
+/// Sets a matrix's rotation to identity in five word stores; the translation
+/// is left alone.
+static __inline__ void gfxSetRotIdentity(MATRIX* m)
+{
+    GpMtxWords* w = (GpMtxWords*)m;
+
+    w->m00_m01 = ONE;
+    w->m02_m10 = 0;
+    w->m11_m12 = ONE;
+    w->m20_m21 = 0;
+    w->m22     = ONE;
+}
+
 /// A matrix's translation as a vector.
 #define MATRIX_TRANS(mat) ((VECTOR3*)(mat)->t)
 
