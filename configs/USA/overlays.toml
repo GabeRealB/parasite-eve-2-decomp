@@ -4317,23 +4317,12 @@ objects = [
 ]
 
 [actors.overlays.actor_160700]
+label = "One code object: the package has no rodata of its own, so nothing pins a boundary"
 slot = 1
 id = 148
 objects = [
   { kind = "packageId" },
   { unit = "actor_160700/actor_160700", rodata = "0x4", text = "0x4" },
-  { unit = "actor_160700/actor_160700_3", text = "0x364" },
-  { unit = "actor_160700/actor_160700_5", text = "0x51C" },
-  { unit = "actor_160700/actor_160700_2", text = "0x570" },
-  { unit = "actor_160700/actor_160700_6", text = "0x5F4" },
-  { unit = "actor_160700/actor_160700_7", text = "0x61C" },
-  { unit = "actor_160700/actor_160700_8", text = "0x6A8" },
-  { unit = "actor_160700/actor_160700_9", text = "0x76C" },
-  { unit = "actor_160700/actor_160700_10", text = "0x7D0" },
-  { unit = "actor_160700/actor_160700_11", text = "0x8A0" },
-  { unit = "actor_160700/actor_160700_4", text = "0x918" },
-  { unit = "actor_160700/actor_160700_12", text = "0x920" },
-  { unit = "actor_160700/actor_160700_13", text = "0x9E8" },
   { kind = "data", at = "0xA5C" },
   { kind = "model", at = "0x46E4" },
   { kind = "model", at = "0xA900" },

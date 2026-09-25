@@ -1,7 +1,15 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/inline_c.h>
+#include "gte.h"
 
-#include "gameplay/3CD8.h"
+#include "actors/actors_shared_80132614.h"
+#include "actors/actors_shared_801326ac.h"
 #include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -9,7 +17,53 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-#include "actors/actor_160700.h"
+/* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
+#define SCRATCH_SP (*(u32*)0x1F8003FC)
+
+/// Work block the actor's spawn handler allocates (0x4F8 bytes, cleared) and
+/// hangs off `Task::work`, which is not a `TaskIdMap` here.
+///
+/// The head holds the light and colour matrices the actor's model and its
+/// attached sub-model draw with, and the animation context with its twenty
+/// slots. `state` selects what the step body does next: 1 reseeds the slots
+/// from `animId` with `animArg`, 2 resets them to `animId`, and both then
+/// advance to 3, which ticks the slots. `appliedAnimId` records the clip the
+/// slots were last seeded with. The placement opcodes cache the root yaw in
+/// `yaw`; the "walk to" opcode leaves the remaining distance, in steps of 12,
+/// in `travel`, which the step body counts down while clip 4 plays.
+/// `field_4F0` is the task of the enemy spawned alongside this one, whose
+/// model the visibility opcode drives together with the actor's own, and
+/// `enemy` is the enemy this actor's own task belongs to.
+typedef struct Actor160700Work {
+    /* 0x000 */ MATRIX     light;
+    /* 0x020 */ MATRIX     color;
+    /* 0x040 */ GpAnimCtx  anim;
+    /* 0x054 */ GpAnimSlot slots[0x14];
+    /* 0x374 */ byte       field_374;
+    /* 0x375 */ byte       pad_375[0x13F];
+    /* 0x4B4 */ s16        state;
+    /* 0x4B6 */ s16        appliedAnimId;
+    /* 0x4B8 */ s16        animId;
+    /* 0x4BA */ s16        field_4BA;
+    /* 0x4BC */ byte       pad_4BC[0x2A];
+    /* 0x4E6 */ u16        yaw;
+    /* 0x4E8 */ byte       pad_4E8[0x2];
+    /* 0x4EA */ s16        travel;
+    /* 0x4EC */ s16        animArg;
+    /* 0x4EE */ byte       pad_4EE[0x2];
+    /* 0x4F0 */ Task*      field_4F0;
+    /* 0x4F4 */ GpEnemy*   enemy;
+} Actor160700Work;
+STATIC_ASSERT_SIZEOF(Actor160700Work, 0x4F8);
+
+/// Argument block of the play-animation script opcode: which clip to play,
+/// and whether to reseed the slots with `animArg` or just reset them.
+typedef struct Actor160700AnimArgs {
+    /* 0x0 */ byte pad_0[4];
+    /* 0x4 */ s32  animId;
+    /* 0x8 */ s32  withArg;
+    /* 0xC */ u16  animArg;
+} Actor160700AnimArgs;
 
 extern TaskDesc D_actor_160700_801416A8[];
 extern u8       D_actor_160700_801416C0[];
@@ -21,6 +75,48 @@ extern s32 D_actor_160700_80135ACC;
 extern s32 D_actor_160700_80135BD4;
 extern s32 D_actor_160700_801362F4;
 extern s32 D_actor_160700_80136414;
+
+extern u8 D_80072729;
+
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// the note in `include/gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
+void func_actor_160700_80132184(Task* task);
+void func_actor_160700_80132390(GpEnemy* enemy, Task* task);
+void func_actor_160700_80132414(Task* task);
+void func_actor_160700_8013243C(Task* task);
+void func_actor_160700_801324C8(Task* task);
+void func_actor_160700_80132514(Task* task);
+void func_actor_160700_8013258C(Task* task);
+
+/// Steps `coord` `amount` units along its local Z axis, unless movement is
+/// frozen. The direction is staged on the scratchpad stack.
+static __inline__ void Actor160700_MoveForward(GsCOORDINATE2* coord, s16 amount)
+{
+    SVECTOR* head;
+    SVECTOR* vec;
+
+    if (D_80072729 == 1) {
+        return;
+    }
+    head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+    vec                        = head - 1;
+    *(SVECTOR**)G_SCRATCH_HEAD = vec;
+    Gfx_MatrixCol2(&coord->coord, vec);
+    VectorNormalSS(vec, vec);
+    gte_lddp(amount);
+    gte_ldsv(vec);
+    gte_gpf12();
+    gte_stsv(vec);
+    coord->coord.t[0]          += head[-1].vx;
+    coord->coord.t[1]          += vec->vy;
+    coord->coord.t[2]          += vec->vz;
+    coord->flg                  = 0;
+    *(SVECTOR**)G_SCRATCH_HEAD += 1;
+}
 
 void func_actor_160700_80131E24(void)
 {
@@ -135,4 +231,280 @@ void func_actor_160700_80131F70(GpEnemy* enemy, Task* task)
     task->msgTable = D_actor_160700_80141678;
     func_actor_160700_80132184(task);
     task->state += 1;
+}
+
+/// The actor's animation step. State 1 reseeds the slots with `animArg` and
+/// state 2 resets them, each then moving on to state 3; state 3 walks the
+/// root coordinate 12 units forward per frame while clip 4 still has `travel`
+/// left, switching to clip 1 when it runs out, and ticks the slots.
+void func_actor_160700_80132184(Task* task)
+{
+    Actor160700Work* work;
+    s16              animId;
+
+    work = (Actor160700Work*)task->work;
+    if (work->state == 1) {
+        func_actor_160700_8013258C(task);
+        work->state = 3;
+        return;
+    }
+    if (work->state == 2) {
+        func_actor_160700_80132514(task);
+        work->state = 3;
+        return;
+    }
+    if (work->state == 3) {
+        // The loop-end note ends cse's first block here, so the pause check
+        // loads its own 1 instead of reusing the state test's.
+        do {
+        } while (0);
+        animId = work->animId;
+        if (animId == 4 && work->travel != 0) {
+            Actor160700_MoveForward(((TmdObject*)task->extra)->coords, 0xC);
+            work->travel = (u16)work->travel - 1;
+            if (work->travel == 0) {
+                work->animArg = 0xA;
+                work->animId  = 1;
+            }
+        }
+        func_actor_160700_801324C8(task);
+        return;
+    }
+}
+
+/// Two-state dispatcher, its handler table built on the stack: state 0 spawns
+/// the actor, state 1 runs it. Both handlers take the task's `GpEnemy` as
+/// well as the task.
+void func_actor_160700_8013233C(Task* task)
+{
+    void (*fns[2])(GpEnemy*, Task*) = {
+        func_actor_160700_80131F70,
+        func_actor_160700_80132390,
+    };
+
+    fns[task->state](task->spawnArg2, task);
+}
+
+/// State-1 handler of the actor's dispatcher: recomputes the root part's
+/// world matrix, hands the position 800 units above it to the model's
+/// light/colour step, then runs the animation step and draws the shadow.
+void func_actor_160700_80132390(GpEnemy* enemy, Task* task)
+{
+    TmdObject*     obj;
+    GsCOORDINATE2* coord;
+    VECTOR         vec;
+
+    obj   = task->extra;
+    coord = obj->coords;
+    Gp_UpdateCoord(coord);
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1] - 800;
+    vec.vz = coord->workm.t[2];
+    func_800D7A9C(obj, &vec, 0, 3);
+    func_actor_160700_80132184(task);
+    func_actor_160700_8013243C(task);
+}
+
+/// Exit callback: hands the task's `GpEnemy` back to `Gp_DestroyEnemy`.
+void func_actor_160700_80132414(Task* task)
+{
+    Gp_DestroyEnemy(task->spawnArg2, task);
+}
+
+/// Draws the actor's ground shadow under its root part, unless the model's
+/// `flags` bit 0x80 (hidden) is set or it has no buffer. The position is the
+/// root part's world translation, staged on the scratchpad stack.
+void func_actor_160700_8013243C(Task* task)
+{
+    TmdObject*     obj;
+    GsCOORDINATE2* coord;
+    VECTOR3*       vec;
+
+    obj   = (TmdObject*)task->extra;
+    coord = obj->coords;
+    if (!(obj->flags & 0x80) && obj->buffer != NULL) {
+        vec     = (VECTOR3*)(SCRATCH_SP -= 0x18);
+        vec->vx = coord->workm.t[0];
+        vec->vy = coord->workm.t[1];
+        vec->vz = coord->workm.t[2];
+        Gp_DrawEffGroundQuad(vec, 0x200, 0xC0);
+        SCRATCH_SP += 0x18;
+    }
+}
+
+/// Ticks animation slots 1..0x13.
+void func_actor_160700_801324C8(Task* task)
+{
+    Actor160700Work* work;
+    s32              i;
+
+    work = (Actor160700Work*)task->work;
+    i    = 1;
+    do {
+        Gp_AnimTickIndex(&work->anim, i);
+        i++;
+    } while (i < 0x14);
+}
+
+/// Resets animation slots 1..0x13 to clip `animId` and records it as the
+/// applied clip.
+void func_actor_160700_80132514(Task* task)
+{
+    Actor160700Work* work;
+    s32              i;
+
+    work = (Actor160700Work*)task->work;
+    i    = 1;
+    do {
+        work->slots[i].rate = 1;
+        Gp_AnimResetSlot(&work->anim, i, work->animId);
+        i++;
+    } while (i < 0x14);
+    work->appliedAnimId = work->animId;
+}
+
+/// Reseeds animation slots 1..0x13 with clip `animId` and argument `animArg`,
+/// and records the clip as the applied one.
+void func_actor_160700_8013258C(Task* task)
+{
+    Actor160700Work* work;
+    s32              i;
+
+    work = (Actor160700Work*)task->work;
+    i    = 1;
+    do {
+        func_800B4114(&work->anim, i, work->animId, 0, work->animArg);
+        i++;
+    } while (i < 0x14);
+    work->appliedAnimId = work->animId;
+}
+
+/// Script opcode: plays clip `args->animId` (ids from 0x19 up are refused
+/// with -1). With `args->withArg` set the slots are reseeded with
+/// `args->animArg`, otherwise they are reset; the step body then applies it
+/// straight away.
+s32 func_actor_160700_801325F0(Task* task, s32 arg1, Actor160700AnimArgs* args)
+{
+    Actor160700Work* work;
+
+    work = (Actor160700Work*)task->work;
+    if (args->animId >= 0x19) {
+        return -1;
+    }
+
+    work->animId = args->animId;
+    if (args->withArg != 0) {
+        SOFT_BARRIER();
+        work->state   = 1;
+        work->animArg = args->animArg;
+    } else {
+        work->state = 2;
+    }
+    work->field_4BA = 0;
+    func_actor_160700_80132184(task);
+    return 0;
+}
+
+/// Script opcode: sets the visibility flags of the actor's model and of the
+/// model of the enemy spawned alongside it. `flags` bit 0 makes both visible
+/// (`TmdObject::flags` 0) and its absence hides them (0x80); bit 1 also sets
+/// 0x4. The middle argument is the one every opcode of the table receives.
+s32 func_actor_160700_8013265C(Task* task, s32 arg1, s32 flags)
+{
+    TmdObject* self;
+    TmdObject* other;
+
+    self  = (TmdObject*)task->extra;
+    other = (TmdObject*)((Actor160700Work*)task->work)->field_4F0->extra;
+
+    if (flags & 1) {
+        self->flags  = 0;
+        other->flags = 0;
+    } else {
+        self->flags  = 0x80;
+        other->flags = 0x80;
+    }
+
+    if (flags & 2) {
+        self->flags  |= 4;
+        other->flags |= 4;
+    }
+    return 0;
+}
+
+/// Script opcode: yaws the actor's root coordinate to `placement->rot.vy`,
+/// caching the yaw in the work block, and moves it to `placement->pos`.
+s32 func_actor_160700_801326C0(Task* task, s32 arg1, ActorsShared80132614Placement* placement)
+{
+    GsCOORDINATE2*   coord;
+    Actor160700Work* work;
+    u16              yaw;
+
+    coord     = ((TmdObject*)task->extra)->coords;
+    work      = (Actor160700Work*)task->work;
+    yaw       = placement->rot.vy;
+    work->yaw = yaw;
+    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
+    coord->coord.t[0] = placement->pos.vx;
+    coord->coord.t[1] = placement->pos.vy;
+    coord->coord.t[2] = placement->pos.vz;
+    coord->flg        = 0;
+    return 0;
+}
+
+/// Script opcode (message 0x7DB) that does nothing.
+s32 func_actor_160700_80132738(void)
+{
+    return 0;
+}
+
+/// Script opcode "walk to": turns the actor's root coordinate to face
+/// `target` horizontally, caching the yaw, and stores the horizontal distance
+/// in steps of 12 as `travel` for the step body to walk off.
+s32 func_actor_160700_80132740(Task* task, s32 arg1, ActorsShared801326acTarget* target)
+{
+    GsCOORDINATE2*   coord;
+    Actor160700Work* work;
+    s32              dx;
+    s32              dz;
+    u16              yaw;
+
+    coord     = ((TmdObject*)task->extra)->coords;
+    work      = (Actor160700Work*)task->work;
+    dx        = target->pos.vx - coord->coord.t[0];
+    dz        = target->pos.vz - coord->coord.t[2];
+    yaw       = ratan2(dx, dz);
+    work->yaw = yaw;
+    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
+    work->travel = SquareRoot0(dx * dx + dz * dz) / 12;
+    return 0;
+}
+
+/// Handler of the sub-model the actor spawns and adopts as its child. On the
+/// first frame it points the sub-model's light and colour matrices at the
+/// parent's, makes it visible with `flags` 0 and parents its root coordinate
+/// to part 4 of the parent's model; every frame it clears the coordinate's
+/// `flg` so it is recomputed from that part.
+void func_actor_160700_80132808(Task* task)
+{
+    char             pad[0x10];
+    Task*            parent = task->parent;
+    TmdObject*       obj    = task->extra;
+    GsCOORDINATE2*   coord  = obj->coords;
+    GsCOORDINATE2*   sub    = &((TmdObject*)parent->extra)->coords[4];
+    Actor160700Work* work   = (Actor160700Work*)parent->work;
+
+    switch (task->state) {
+        case 0:
+            coord->flg    = 0;
+            obj->lightMtx = &work->light;
+            obj->flags    = 0;
+            obj->colorMtx = &work->color;
+            coord->sub    = sub;
+            task->state++;
+            break;
+        case 1:
+            coord->flg = 0;
+            break;
+    }
 }
