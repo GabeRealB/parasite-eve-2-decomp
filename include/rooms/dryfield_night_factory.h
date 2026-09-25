@@ -131,7 +131,7 @@ extern TaskDesc D_dryfield_night_factory_80186E94[];
 /// The script's message table, parked in `Task::msgTable`.
 extern GpMsgEntry D_dryfield_night_factory_80186EAC[];
 /// The room's 0xFFFF-terminated hotspot table.
-extern RoomHotspot D_dryfield_night_factory_80186EBC[];
+extern OverlayHotspot D_dryfield_night_factory_80186EBC[];
 
 /// The collision grids of the two stage variants, whose faces the factory
 /// model's handlers rewrite as it moves.
@@ -223,7 +223,7 @@ void func_dryfield_night_factory_80181620(s32 show);
 
 /// Marks every hotspot of `table` under (`x`, `y`) as hit; answers whether any
 /// was.
-s32 func_dryfield_night_factory_80181778(RoomHotspot* table, s16 x, s16 y);
+s32 func_dryfield_night_factory_80181778(OverlayHotspot* table, s16 x, s16 y);
 
 /// As `func_dryfield_night_factory_80181620`, for view 11.
 void func_dryfield_night_factory_80181B38(s32 show);

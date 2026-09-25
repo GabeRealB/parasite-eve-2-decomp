@@ -129,7 +129,7 @@ extern TaskDesc D_shelter_r47_80186F70;
 extern TaskDesc D_shelter_r47_80186F94;
 
 /// Hotspot table hit-tested by `func_shelter_r47_80182B9C`.
-extern RoomHotspot D_shelter_r47_80186FB4[];
+extern OverlayHotspot D_shelter_r47_80186FB4[];
 
 extern TaskDesc D_shelter_r47_80187020;
 
@@ -1973,7 +1973,7 @@ void func_shelter_r47_80181148(RoomRect* rect, u8 r, u8 g, u8 b)
 void func_shelter_r47_8018138C(Task* task)
 {
     ShelterR47State* work;
-    RoomHotspot*     hs;
+    OverlayHotspot*  hs;
     s32              arg1;
 
     work = memCalloc(0x54, false);
@@ -2046,7 +2046,7 @@ void func_shelter_r47_8018138C(Task* task)
 void func_shelter_r47_80181568(Task* task)
 {
     ShelterR47State*  work;
-    RoomHotspot*      hs;
+    OverlayHotspot*   hs;
     RoomActionPrompt* prompt;
 
     hs     = D_shelter_r47_80186FB4;

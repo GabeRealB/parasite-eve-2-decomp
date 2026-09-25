@@ -26,8 +26,8 @@ typedef struct AcropolisBridgePromptWork {
     /* 0x0F */ s8  promptBusy;
 } AcropolisBridgePromptWork;
 
-extern RoomHotspot D_acropolis_bridge_8018983C[];
-extern s32         D_acropolis_bridge_801917A8;
+extern OverlayHotspot D_acropolis_bridge_8018983C[];
+extern s32            D_acropolis_bridge_801917A8;
 
 /// Cursor into the packet buffer the bridge's screen-smear effects draw from.
 /// Every `DR_MOVE` task of the room takes the packet it points at

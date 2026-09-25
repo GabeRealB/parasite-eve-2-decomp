@@ -633,4 +633,19 @@ typedef struct OverlayDeltaFlag {
 } OverlayDeltaFlag;
 STATIC_ASSERT_SIZEOF(OverlayDeltaFlag, 0x14);
 
+/// One entry of a 0xFFFF-terminated hotspot table: a screen rectangle `x`,
+/// `y`, `w`, `h` the action cursor is tested against. A hit raises `hit` on
+/// that entry and clears it on every other; the owner then reads `id`, the
+/// script variant the hotspot selects, and `promptKind` from the raised entry.
+typedef struct OverlayHotspot {
+    s16 x;
+    s16 y;
+    s16 w;
+    s16 h;
+    s16 id;
+    u8  promptKind;
+    s8  hit;
+} OverlayHotspot;
+STATIC_ASSERT_SIZEOF(OverlayHotspot, 0xC);
+
 #endif /* OVERLAY_H */

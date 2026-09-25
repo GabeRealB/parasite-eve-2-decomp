@@ -264,12 +264,12 @@ extern TaskDesc D_shelter_b1_underground_parking_80187670;
 
 extern GpMsgEntry D_shelter_b1_underground_parking_80187230[];
 
-extern DVECTOR     D_shelter_b1_underground_parking_801876D4[];
-extern u8          D_shelter_b1_underground_parking_8018D788;
-extern u8          D_shelter_b1_underground_parking_8018D789;
-extern TaskDesc    D_shelter_b1_underground_parking_80187664[];
-extern RoomHotspot D_shelter_b1_underground_parking_8018767C[];
-extern u8          D_shelter_b1_underground_parking_801876C4[];
+extern DVECTOR        D_shelter_b1_underground_parking_801876D4[];
+extern u8             D_shelter_b1_underground_parking_8018D788;
+extern u8             D_shelter_b1_underground_parking_8018D789;
+extern TaskDesc       D_shelter_b1_underground_parking_80187664[];
+extern OverlayHotspot D_shelter_b1_underground_parking_8018767C[];
+extern u8             D_shelter_b1_underground_parking_801876C4[];
 
 extern SVECTOR D_shelter_b1_underground_parking_80187714[];
 extern SVECTOR D_shelter_b1_underground_parking_8018771C[];
@@ -3621,7 +3621,7 @@ void func_shelter_b1_underground_parking_80184284(Task* task)
 void func_shelter_b1_underground_parking_80184304(Task* task)
 {
     SbupExamineWork* st;
-    RoomHotspot*     hs;
+    OverlayHotspot*  hs;
 
     st = memCalloc(0x10, 0);
     if (st == NULL) {
@@ -3666,7 +3666,7 @@ void func_shelter_b1_underground_parking_801843F0(Task* task)
 void func_shelter_b1_underground_parking_80184468(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
-    RoomHotspot*      hs     = D_shelter_b1_underground_parking_8018767C;
+    OverlayHotspot*   hs     = D_shelter_b1_underground_parking_8018767C;
     SbupExamineWork*  work   = (SbupExamineWork*)task->work;
 
     func_shelter_b1_underground_parking_80183B9C();
@@ -3828,7 +3828,7 @@ void func_shelter_b1_underground_parking_8018491C(void)
     gGameSession->roomObjsDirty = 1;
 }
 
-s32 func_shelter_b1_underground_parking_80184964(RoomHotspot* table, s16 x, s16 y)
+s32 func_shelter_b1_underground_parking_80184964(OverlayHotspot* table, s16 x, s16 y)
 {
     s32 hit;
 

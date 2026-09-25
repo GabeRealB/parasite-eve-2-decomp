@@ -167,7 +167,7 @@ void func_neo_ark_shrine_8017D948(Task* task)
 /// `task`, so the copy itself is dropped by the allocator.
 void func_neo_ark_shrine_8017D9A0(Task* task)
 {
-    RoomHotspot*        hs     = D_neo_ark_shrine_80182430;
+    OverlayHotspot*     hs     = D_neo_ark_shrine_80182430;
     RoomActionPrompt*   prompt = &D_80114D28;
     NeoArkShrineScript* st     = (NeoArkShrineScript*)task->work;
     u16                 id;

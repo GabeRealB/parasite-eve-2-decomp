@@ -801,7 +801,7 @@ void func_shelter_r47_80182B18(Task* task)
 /// its -1 terminator, raising `hit` on each entry whose rectangle contains the
 /// point (edges inclusive) and clearing it on the rest. Entry 0x101 is never
 /// raised while the task's `field_4F` is 1. Returns 1 if any entry was raised.
-s32 func_shelter_r47_80182B9C(Task* task, RoomHotspot* table, s16 x, s16 y)
+s32 func_shelter_r47_80182B9C(Task* task, OverlayHotspot* table, s16 x, s16 y)
 {
     ShelterR47State* work;
     s32              hit;

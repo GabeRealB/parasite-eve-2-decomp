@@ -180,29 +180,14 @@ typedef struct Actor548100TexRect {
 } Actor548100TexRect;
 STATIC_ASSERT_SIZEOF(Actor548100TexRect, 0x8);
 
-/// Entry of a 0xFFFF-terminated hit-test table, walked by
-/// `func_actor_548100_801348A4`: a screen rectangle (`x`, `y`, `w`, `h`) whose
-/// `hit` is raised when the point lies inside it. Same layout as the rooms'
-/// `RoomHotspot`.
-typedef struct Actor548100Hotspot {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 y;
-    /* 0x4 */ s16 w;
-    /* 0x6 */ s16 h;
-    /* 0x8 */ s16 id; // list terminator is -1
-    /* 0xA */ u8  promptKind;
-    /* 0xB */ s8  hit;
-} Actor548100Hotspot;
-STATIC_ASSERT_SIZEOF(Actor548100Hotspot, 0xC);
-
 void func_actor_548100_80132338(s32 x, s32 y, s32 variant);
 void func_actor_548100_80132420(Task* task);
 void func_actor_548100_80132550(Task* task);
 void func_actor_548100_80132684(Task* task);
 void func_actor_548100_80132808(Task* arg0);
 void func_actor_548100_801330EC(void);
-void func_actor_548100_80134400(Actor548100Hotspot* unused);
-s32  func_actor_548100_801348A4(Actor548100Hotspot* table, s16 x, s16 y);
+void func_actor_548100_80134400(OverlayHotspot* unused);
+s32  func_actor_548100_801348A4(OverlayHotspot* table, s16 x, s16 y);
 s32  func_actor_548100_80134CB8(s32 nodeA, u8 nodeB);
 void func_actor_548100_80134D88(Task* task);
 void func_actor_548100_80134DBC(Task* task);
@@ -227,7 +212,7 @@ extern u8                 D_80070F87;
 extern s8                 D_8007216C;
 extern TaskDesc           D_actor_548100_801351B4;
 extern GpMsgEntry         D_actor_548100_801351C0[];
-extern Actor548100Hotspot D_actor_548100_801357E8[];
+extern OverlayHotspot     D_actor_548100_801357E8[];
 extern Actor548100Route   D_actor_548100_801356D8;
 extern Actor548100Route   D_actor_548100_80135750;
 extern Actor548100TexRect D_actor_548100_801357C0[];
@@ -477,9 +462,9 @@ void func_actor_548100_80132338(s32 x, s32 y, s32 variant)
 /// action-prompt task and initializes the map UI.
 void func_actor_548100_80132420(Task* task)
 {
-    Actor548100Work*    work;
-    Actor548100Hotspot* rec;
-    Actor548100Hotspot* start;
+    Actor548100Work* work;
+    OverlayHotspot*  rec;
+    OverlayHotspot*  start;
 
     work = memCalloc(0x18, 0);
     if (work == NULL) {
@@ -513,9 +498,9 @@ void func_actor_548100_80132420(Task* task)
 
 void func_actor_548100_80132550(Task* task)
 {
-    RoomActionPrompt*   prompt = &D_80114D28;
-    Actor548100Hotspot* hs     = D_actor_548100_801357E8;
-    Actor548100Work*    work   = (Actor548100Work*)task->work;
+    RoomActionPrompt* prompt = &D_80114D28;
+    OverlayHotspot*   hs     = D_actor_548100_801357E8;
+    Actor548100Work*  work   = (Actor548100Work*)task->work;
 
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
@@ -1528,7 +1513,7 @@ void func_actor_548100_801342D8(s32 id, s32 stop, s16 pos)
 /// coordinates in `field_4` / `field_6` and their span less 2 in `dist`.
 /// Finally reset each edge's `state` for the current stage, as
 /// `func_actor_548100_80134BF0` does.
-void func_actor_548100_80134400(Actor548100Hotspot* unused)
+void func_actor_548100_80134400(OverlayHotspot* unused)
 {
     Actor548100Edge* edge;
     Actor548100Edge* cell;
@@ -1676,7 +1661,7 @@ void func_actor_548100_801347F8(Task* arg0)
 
 /// Hit-tests (`x`, `y`) against `table`, raising `hit` on every containing entry
 /// and clearing it on the rest. Returns the `id` of the first entry hit, or 0.
-s32 func_actor_548100_801348A4(Actor548100Hotspot* table, s16 x, s16 y)
+s32 func_actor_548100_801348A4(OverlayHotspot* table, s16 x, s16 y)
 {
     s32 hit;
 

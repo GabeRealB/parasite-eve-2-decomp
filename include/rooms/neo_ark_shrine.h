@@ -39,7 +39,7 @@ extern const TaskFuncTable4 D_neo_ark_shrine_8017D610;
 extern const TaskFuncTable3 D_neo_ark_shrine_8017D620;
 
 /// Hotspot table of the shrine's cap script, terminated by an `id` of -1.
-extern RoomHotspot D_neo_ark_shrine_80182430[];
+extern OverlayHotspot D_neo_ark_shrine_80182430[];
 
 extern TaskDesc D_neo_ark_shrine_80182508;
 
@@ -67,7 +67,7 @@ void func_neo_ark_shrine_8017DF7C(void);
 /// their generated code needs, and the helper ignores it.
 void func_neo_ark_shrine_8017EAC0();
 
-s32  func_neo_ark_shrine_8017EC10(RoomHotspot* table, s16 x, s16 y);
+s32  func_neo_ark_shrine_8017EC10(OverlayHotspot* table, s16 x, s16 y);
 void func_neo_ark_shrine_8017ECC4(Task* task);
 void func_neo_ark_shrine_8017EDAC(Task* task);
 void func_neo_ark_shrine_8017EDE0(Task* task);

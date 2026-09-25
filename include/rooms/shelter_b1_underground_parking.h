@@ -59,7 +59,7 @@ void func_shelter_b1_underground_parking_801848BC(Task* task);
 
 /// Marks every hotspot of `table` under (`x`, `y`) as hit; answers whether any
 /// was.
-s32 func_shelter_b1_underground_parking_80184964(RoomHotspot* table, s16 x, s16 y);
+s32 func_shelter_b1_underground_parking_80184964(OverlayHotspot* table, s16 x, s16 y);
 
 /// Glow markers the room's view handler draws at world-space points.
 void func_shelter_b1_underground_parking_80184C54(SVECTOR* pos, s32 size, s32 angle, s32 tint);

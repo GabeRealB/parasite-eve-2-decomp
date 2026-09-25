@@ -70,7 +70,7 @@ STATIC_ASSERT_SIZEOF(DbwWork, 0x14);
 /// when it is 1 and state 2 otherwise.
 ///
 /// `promptKind` is the display mode the hotspot scan
-/// `func_dryfield_breezeway_8017E65C` copies off the `RoomHotspot` the cursor
+/// `func_dryfield_breezeway_8017E65C` copies off the `OverlayHotspot` the cursor
 /// landed on (whose id it parks at 0x4C) before it picks state 3;
 /// `func_dryfield_breezeway_8017FD9C` forwards it to `func_800D4E78` when it
 /// re-spawns the prompt.
@@ -175,16 +175,16 @@ extern GpXformArg D_dryfield_breezeway_80181E28;
 extern GpXformArg D_dryfield_breezeway_80181E40[];
 
 /// The key-item prompt's own hotspot table: the one-entry 0xFFFF-terminated
-/// `RoomHotspot` run `func_dryfield_breezeway_8017E65C` hit-tests at the
+/// `OverlayHotspot` run `func_dryfield_breezeway_8017E65C` hit-tests at the
 /// prompt's own screen position and walks for the entry the cursor landed on,
 /// where the prop table below is hit-tested at the cursor itself. Its `id` is
 /// the script variant the prompt confirms, which the scan parks in the event
 /// work block (`DbwEventWork.field_4C`, with `promptKind` at 0x5C) before state
 /// 3. `func_dryfield_breezeway_8017E464` clears its `hit` along with the other
 /// table's.
-extern RoomHotspot D_dryfield_breezeway_80182E00[];
+extern OverlayHotspot D_dryfield_breezeway_80182E00[];
 
-/// This room's prop hotspot table, the 0xFFFF-terminated `RoomHotspot` run
+/// This room's prop hotspot table, the 0xFFFF-terminated `OverlayHotspot` run
 /// `func_dryfield_breezeway_8017FCB4` hit-tests the action cursor against. Its
 /// entries are the room's interactive props:
 /// `func_dryfield_breezeway_8017E464` clears every entry's `hit` through it
@@ -192,7 +192,7 @@ extern RoomHotspot D_dryfield_breezeway_80182E00[];
 /// clean too -- and the scan in
 /// `func_dryfield_breezeway_8017E81C` walks it for the entry the cursor landed
 /// on.
-extern RoomHotspot D_dryfield_breezeway_80182DDC[];
+extern OverlayHotspot D_dryfield_breezeway_80182DDC[];
 
 /// Data block in the room's trailing blob that
 /// `func_dryfield_breezeway_8017FF7C` hands to both of the per-view drawers
@@ -223,7 +223,7 @@ void func_dryfield_breezeway_8017F998(s32 x, s32 y, s32 variant);
 s16  func_dryfield_breezeway_8017FAD0(DbwVec* target, DbwVec* pos);
 void func_dryfield_breezeway_8017FB30(Task* task, s16 arg1, s16 arg2);
 s16  func_dryfield_breezeway_8017FBEC(s16 arg0, s16 arg1, s16 arg2, s16 arg3);
-s32  func_dryfield_breezeway_8017FCB4(RoomHotspot* table, s16 x, s16 y);
+s32  func_dryfield_breezeway_8017FCB4(OverlayHotspot* table, s16 x, s16 y);
 void func_dryfield_breezeway_8017FD68(Task* task);
 void func_dryfield_breezeway_8017FD9C(Task* task);
 void func_dryfield_breezeway_8017FE08(Task* task);
@@ -490,10 +490,10 @@ void func_dryfield_breezeway_8017E390(void)
 /// already holds.
 void func_dryfield_breezeway_8017E464(Task* arg0)
 {
-    TmdObject*     ext;
-    GsCOORDINATE2* coord;
-    DbwEventWork*  work;
-    RoomHotspot*   hs;
+    TmdObject*      ext;
+    GsCOORDINATE2*  coord;
+    DbwEventWork*   work;
+    OverlayHotspot* hs;
 
     ext   = arg0->extra;
     coord = ext->coords;
@@ -618,7 +618,7 @@ extern GpImgRec D_dryfield_breezeway_80183144;
 void func_dryfield_breezeway_8017E65C(Task* task)
 {
     DbwEventWork*     work;
-    RoomHotspot*      hs;
+    OverlayHotspot*   hs;
     RoomActionPrompt* prompt;
     GsCOORDINATE2*    coord;
     MATRIX*           m;
@@ -692,7 +692,7 @@ void func_dryfield_breezeway_8017E81C(Task* task)
     RoomActionPrompt* prompt = &D_80114D28;
     GsCOORDINATE2*    coord  = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;
     DbwEventWork*     work   = (DbwEventWork*)task->work;
-    RoomHotspot*      hs     = D_dryfield_breezeway_80182DDC;
+    OverlayHotspot*   hs     = D_dryfield_breezeway_80182DDC;
     MATRIX*           m;
 
     prompt->mode     = 1;
@@ -1343,7 +1343,7 @@ void func_dryfield_breezeway_8017FC38(Task* task)
 /// Hit-tests the point (`x`, `y`) against the 0xFFFF-terminated hotspot table
 /// `table`, raising `hit` on every entry whose rectangle contains the point and
 /// clearing it on every other one. Returns non-zero if any entry was hit.
-s32 func_dryfield_breezeway_8017FCB4(RoomHotspot* table, s16 x, s16 y)
+s32 func_dryfield_breezeway_8017FCB4(OverlayHotspot* table, s16 x, s16 y)
 {
     s32 hit;
 

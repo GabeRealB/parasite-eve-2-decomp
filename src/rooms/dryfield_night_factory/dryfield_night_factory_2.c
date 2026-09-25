@@ -427,7 +427,7 @@ void func_dryfield_night_factory_801809F4(Task* task)
 void func_dryfield_night_factory_80180A4C(Task* task)
 {
     RoomActionPrompt*       prompt = &D_80114D28;
-    RoomHotspot*            hs     = D_dryfield_night_factory_80186EBC;
+    OverlayHotspot*         hs     = D_dryfield_night_factory_80186EBC;
     NightFactoryScriptWork* st     = (NightFactoryScriptWork*)task->work;
 
     gGameSession->hideHud    = 1;
@@ -866,7 +866,7 @@ void func_dryfield_night_factory_80181768(Task* task)
     ((NightFactoryScriptWork*)task->work)->field_A = 1;
 }
 
-s32 func_dryfield_night_factory_80181778(RoomHotspot* table, s16 x, s16 y)
+s32 func_dryfield_night_factory_80181778(OverlayHotspot* table, s16 x, s16 y)
 {
     s32 hit;
 
@@ -886,7 +886,7 @@ s32 func_dryfield_night_factory_80181778(RoomHotspot* table, s16 x, s16 y)
 void func_dryfield_night_factory_8018182C(Task* task)
 {
     NightFactoryScriptWork* work;
-    RoomHotspot*            hs;
+    OverlayHotspot*         hs;
 
     work = memCalloc(0x10, 0);
     if (work == NULL) {

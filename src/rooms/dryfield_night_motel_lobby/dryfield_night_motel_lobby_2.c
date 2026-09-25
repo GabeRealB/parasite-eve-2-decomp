@@ -430,7 +430,7 @@ void func_dryfield_night_motel_lobby_80180D58(Task* task)
     states.funcs[task->state](task);
 }
 
-s32 func_dryfield_night_motel_lobby_80180DE4(RoomHotspot* table, s16 x, s16 y)
+s32 func_dryfield_night_motel_lobby_80180DE4(OverlayHotspot* table, s16 x, s16 y)
 {
     s32 hit;
 
@@ -450,7 +450,7 @@ s32 func_dryfield_night_motel_lobby_80180DE4(RoomHotspot* table, s16 x, s16 y)
 void func_dryfield_night_motel_lobby_80180E98(Task* task)
 {
     DnmlExamineWork* work;
-    RoomHotspot*     hs;
+    OverlayHotspot*  hs;
     u8*              p;
     u8               empty;
     s32              i;

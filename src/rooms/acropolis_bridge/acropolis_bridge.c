@@ -113,7 +113,7 @@ void func_acropolis_bridge_8017F460(Task* task);
 void func_acropolis_bridge_8017F4CC(Task* task);
 void func_acropolis_bridge_8017F544(Task* task);
 void func_acropolis_bridge_8017F658(Task* task);
-s32  func_acropolis_bridge_8017F6D4(RoomHotspot* table, s16 x, s16 y);
+s32  func_acropolis_bridge_8017F6D4(OverlayHotspot* table, s16 x, s16 y);
 void func_acropolis_bridge_8017F808(Task* task);
 void func_acropolis_bridge_801827EC(GsCOORDINATE2* arg0, s32 arg1, s16 arg2);
 void func_acropolis_bridge_80182F8C(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
@@ -537,7 +537,7 @@ void func_acropolis_bridge_8017E04C(Task* task)
 {
     AcropolisBridgePromptWork* work;
     GpAreaKey*                 sess;
-    RoomHotspot*               hs;
+    OverlayHotspot*            hs;
     GpSprtRec*                 rec;
     s32                        view;
 
@@ -577,7 +577,7 @@ void func_acropolis_bridge_8017E04C(Task* task)
 void func_acropolis_bridge_8017E1D0(Task* task)
 {
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
-    RoomHotspot*               hs     = D_acropolis_bridge_8018983C;
+    OverlayHotspot*            hs     = D_acropolis_bridge_8018983C;
     RoomActionPrompt*          prompt = &D_80114D28;
 
     gGameSession->hideHud    = 1;
@@ -641,7 +641,7 @@ void func_acropolis_bridge_8017E1D0(Task* task)
 void func_acropolis_bridge_8017E3A0(Task* task)
 {
     RoomActionPrompt*          prompt = &D_80114D28;
-    RoomHotspot*               hs     = D_acropolis_bridge_8018983C;
+    OverlayHotspot*            hs     = D_acropolis_bridge_8018983C;
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
     GpAreaKey*                 sess   = &gGameSession->at4.loc;
     GpSprtRec*                 rec;
@@ -692,7 +692,7 @@ after:
 void func_acropolis_bridge_8017E4FC(Task* task)
 {
     RoomActionPrompt*          prompt = &D_80114D28;
-    RoomHotspot*               hs     = D_acropolis_bridge_8018983C;
+    OverlayHotspot*            hs     = D_acropolis_bridge_8018983C;
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
     s16                        tick;
     u8                         retry;
@@ -1269,7 +1269,7 @@ void func_acropolis_bridge_8017F544(Task* task)
 {
     RoomActionPrompt*          prompt = &D_80114D28;
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
-    RoomHotspot*               hs     = D_acropolis_bridge_8018983C;
+    OverlayHotspot*            hs     = D_acropolis_bridge_8018983C;
 
     if (work->field_A < 0xA) {
         work->field_A++;
@@ -1311,7 +1311,7 @@ void func_acropolis_bridge_8017F658(Task* task)
 /// Hit-tests (`x`, `y`) against the hotspot table `table`, terminated by an
 /// `id` of -1: raises `hit` on every entry whose rectangle contains the point
 /// and clears it on the others, and answers whether any entry was hit.
-s32 func_acropolis_bridge_8017F6D4(RoomHotspot* table, s16 x, s16 y)
+s32 func_acropolis_bridge_8017F6D4(OverlayHotspot* table, s16 x, s16 y)
 {
     s32 hit;
 

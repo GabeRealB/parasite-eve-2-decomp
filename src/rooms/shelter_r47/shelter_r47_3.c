@@ -23,8 +23,8 @@ extern GpAreaKey D_8007216C;
 extern s16       D_80114D08;
 
 /// Hotspot tables of the second cap script; `spawnArg1` 2 selects the second.
-extern RoomHotspot D_shelter_r47_8018739C[];
-extern RoomHotspot D_shelter_r47_801873D8[];
+extern OverlayHotspot D_shelter_r47_8018739C[];
+extern OverlayHotspot D_shelter_r47_801873D8[];
 
 /// Area views of the map pages the second cap script steps through, indexed by
 /// `ShelterR47State2::field_1C`.
@@ -44,7 +44,7 @@ void func_shelter_r47_80184F40(s32 x, s32 y, s32 variant);
 void func_shelter_r47_80185028(Task* task);
 void func_shelter_r47_80185098(Task* task);
 void func_shelter_r47_801851B8(Task* task);
-s32  func_shelter_r47_801852A0(RoomHotspot* table, s16 x, s16 y);
+s32  func_shelter_r47_801852A0(OverlayHotspot* table, s16 x, s16 y);
 void func_shelter_r47_80185354(Task* task);
 void func_shelter_r47_80185450(Task* task);
 void func_shelter_r47_80185510(Task* task);
@@ -88,7 +88,7 @@ void func_shelter_r47_8018431C(Task* task)
 {
     ShelterR47State2* state;
     s16               spriteX;
-    RoomHotspot*      hs;
+    OverlayHotspot*   hs;
     s32               arg;
     u8                view;
     s32               level;
@@ -152,7 +152,7 @@ void func_shelter_r47_801844A0(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     ShelterR47State2* st     = (ShelterR47State2*)task->work;
-    RoomHotspot*      hs     = st->hotspots;
+    OverlayHotspot*   hs     = st->hotspots;
 
     if (st->field_2C != 0) {
         if (--st->field_2C == 0) {
@@ -606,7 +606,7 @@ void func_shelter_r47_80185214(Task* task)
     states.funcs[task->state](task);
 }
 
-s32 func_shelter_r47_801852A0(RoomHotspot* table, s16 x, s16 y)
+s32 func_shelter_r47_801852A0(OverlayHotspot* table, s16 x, s16 y)
 {
     s32 hit;
 

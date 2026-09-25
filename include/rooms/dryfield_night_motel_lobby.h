@@ -31,10 +31,10 @@ typedef struct DnmlExamineWork {
 } DnmlExamineWork;
 STATIC_ASSERT_SIZEOF(DnmlExamineWork, 0xA);
 
-/// The lobby's hotspot table: fifteen `RoomHotspot` entries, the last of them
+/// The lobby's hotspot table: fifteen `OverlayHotspot` entries, the last of them
 /// (index 14) the `id == -1` terminator the scans stop on. The room's init
 /// clears every entry's `hit` flag on the way in.
-extern RoomHotspot D_dryfield_night_motel_lobby_80182820[];
+extern OverlayHotspot D_dryfield_night_motel_lobby_80182820[];
 
 /// The eleven states of the room's examine task, run by
 /// `func_dryfield_night_motel_lobby_80180D58`.
@@ -53,7 +53,7 @@ void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key);
 
 /// Hit-tests (`x`, `y`) against every entry of the hotspot `table`, setting
 /// each entry's `hit` flag, and returns whether any entry was hit.
-s32 func_dryfield_night_motel_lobby_80180DE4(RoomHotspot* table, s16 x, s16 y);
+s32 func_dryfield_night_motel_lobby_80180DE4(OverlayHotspot* table, s16 x, s16 y);
 
 /// States of the examine task, in the order `D_dryfield_night_motel_lobby_8017D6B0`
 /// lists them.

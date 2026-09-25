@@ -30,16 +30,16 @@ typedef struct RoomUtil21Work {
 extern s8  D_8007216C;
 extern s16 D_80114D08;
 
-extern TaskDesc    D_dryfield_factory_80186E88[];
-extern GpMsgEntry  D_dryfield_factory_80186EA0[];
-extern RoomHotspot D_dryfield_factory_80186EB0[];
-extern SVECTOR     D_dryfield_factory_80186EF8;
-extern SVECTOR     D_dryfield_factory_80186F00;
-extern SVECTOR     D_dryfield_factory_80186F08;
+extern TaskDesc       D_dryfield_factory_80186E88[];
+extern GpMsgEntry     D_dryfield_factory_80186EA0[];
+extern OverlayHotspot D_dryfield_factory_80186EB0[];
+extern SVECTOR        D_dryfield_factory_80186EF8;
+extern SVECTOR        D_dryfield_factory_80186F00;
+extern SVECTOR        D_dryfield_factory_80186F08;
 
 void func_dryfield_factory_80180A4C(Task* task);
 void func_dryfield_factory_80181538(s32 x, s32 y, s32 variant);
-s32  func_dryfield_factory_80181778(RoomHotspot* table, s16 x, s16 y);
+s32  func_dryfield_factory_80181778(OverlayHotspot* table, s16 x, s16 y);
 void func_dryfield_factory_8018182C(Task* task);
 void func_dryfield_factory_80181938(Task* task);
 void func_dryfield_factory_8018196C(Task* task);
@@ -72,7 +72,7 @@ const TaskFuncTable7 D_dryfield_factory_8017D678 = {
 void func_dryfield_factory_80180A4C(Task* task)
 {
     RoomActionPrompt*       prompt = &D_80114D28;
-    RoomHotspot*            hs     = D_dryfield_factory_80186EB0;
+    OverlayHotspot*         hs     = D_dryfield_factory_80186EB0;
     NightFactoryScriptWork* st     = (NightFactoryScriptWork*)task->work;
 
     gGameSession->hideHud    = 1;
@@ -497,7 +497,7 @@ void func_dryfield_factory_80181768(Task* task)
     ((NightFactoryScriptWork*)task->work)->field_A = 1;
 }
 
-s32 func_dryfield_factory_80181778(RoomHotspot* table, s16 x, s16 y)
+s32 func_dryfield_factory_80181778(OverlayHotspot* table, s16 x, s16 y)
 {
     s32 hit;
 
@@ -521,7 +521,7 @@ s32 func_dryfield_factory_80181778(RoomHotspot* table, s16 x, s16 y)
 void func_dryfield_factory_8018182C(Task* task)
 {
     NightFactoryScriptWork* work;
-    RoomHotspot*            hs;
+    OverlayHotspot*         hs;
 
     work = memCalloc(0x10, 0);
     if (work == NULL) {

@@ -303,7 +303,7 @@ void func_neo_ark_shrine_8017EBB8(Task* task)
 
 /// Hit-tests (`x`, `y`) against every rectangle of the `-1`-terminated hotspot
 /// table, setting each entry's `hit` flag, and returns whether any was hit.
-s32 func_neo_ark_shrine_8017EC10(RoomHotspot* table, s16 x, s16 y)
+s32 func_neo_ark_shrine_8017EC10(OverlayHotspot* table, s16 x, s16 y)
 {
     s32 hit;
 
@@ -326,7 +326,7 @@ s32 func_neo_ark_shrine_8017EC10(RoomHotspot* table, s16 x, s16 y)
 void func_neo_ark_shrine_8017ECC4(Task* task)
 {
     NeoArkShrineScript* st;
-    RoomHotspot*        hs;
+    OverlayHotspot*     hs;
 
     st = memCalloc(0x10, 0);
     if (st == NULL) {

@@ -151,7 +151,7 @@ extern TaskDesc   D_acropolis_security_room_8018263C;
 
 /// The security monitor's own hotspot table, hit-tested by
 /// `func_acropolis_security_room_8017ECB4`.
-extern RoomHotspot D_acropolis_security_room_80182648[];
+extern OverlayHotspot D_acropolis_security_room_80182648[];
 
 /// The five camera ids the security monitor can display, in the order the
 /// `GameFlag_GetNibble(0x2A)` nibble indexes them.
@@ -164,7 +164,7 @@ extern TaskDesc D_acropolis_security_room_801826C0[];
 extern GpMsgEntry D_acropolis_security_room_801826CC[];
 
 /// The script's hotspot table, terminated by an entry whose `id` is -1.
-extern RoomHotspot D_acropolis_security_room_801826DC[];
+extern OverlayHotspot D_acropolis_security_room_801826DC[];
 
 /// The two `TaskDesc`s this room's script spawns from: index 0 is
 /// `func_acropolis_security_room_80180368`, index 1 is
@@ -221,7 +221,7 @@ void func_acropolis_security_room_8017EA28(Task* task);
 void func_acropolis_security_room_8017EA5C(Task* task);
 void func_acropolis_security_room_8017EADC(Task* task);
 void func_acropolis_security_room_8017EB9C(Task* task);
-s32  func_acropolis_security_room_8017ECB4(RoomHotspot* table, s16 x, s16 y);
+s32  func_acropolis_security_room_8017ECB4(OverlayHotspot* table, s16 x, s16 y);
 void func_acropolis_security_room_8017EDE4(Task* task);
 void func_acropolis_security_room_8017EE44(Task* task);
 void func_acropolis_security_room_8017F480(Task* task);
@@ -231,7 +231,7 @@ void func_acropolis_security_room_8017FB20(Task* task);
 void func_acropolis_security_room_8017FB54(Task* task);
 void func_acropolis_security_room_8017FBA4(Task* task);
 void func_acropolis_security_room_8017FC30(Task* task);
-s32  func_acropolis_security_room_8017FCB0(RoomHotspot* table, s16 x, s16 y);
+s32  func_acropolis_security_room_8017FCB0(OverlayHotspot* table, s16 x, s16 y);
 void func_acropolis_security_room_8017FD64(s32 flags);
 void func_acropolis_security_room_8017FE6C(Task* task);
 void func_acropolis_security_room_8017FF0C(Task* task);
@@ -393,7 +393,7 @@ void func_acropolis_security_room_8017D984(Task* task)
 void func_acropolis_security_room_8017D9DC(Task* task)
 {
     AsrMonitorWork* work;
-    RoomHotspot*    hs;
+    OverlayHotspot* hs;
     s16             flag;
     s32             state;
     s16             stateElse;
@@ -447,7 +447,7 @@ void func_acropolis_security_room_8017D9DC(Task* task)
 void func_acropolis_security_room_8017DB30(Task* task)
 {
     AsrMonitorWork*   work;
-    RoomHotspot*      hs;
+    OverlayHotspot*   hs;
     RoomActionPrompt* prompt;
 
     hs     = D_acropolis_security_room_80182648;
@@ -1013,7 +1013,7 @@ done:
 void func_acropolis_security_room_8017EB9C(Task* task)
 {
     RoomActionPrompt* prompt  = &D_80114D28;
-    RoomHotspot*      hotspot = D_acropolis_security_room_80182648;
+    OverlayHotspot*   hotspot = D_acropolis_security_room_80182648;
 
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
@@ -1049,7 +1049,7 @@ void func_acropolis_security_room_8017EB9C(Task* task)
 /// any entry was hit, so `func_acropolis_security_room_8017EB9C` can tell
 /// "cursor is over something" from "cursor is over nothing" without rescanning
 /// the table. Same body as `func_acropolis_security_room_8017FCB0`.
-s32 func_acropolis_security_room_8017ECB4(RoomHotspot* table, s16 x, s16 y)
+s32 func_acropolis_security_room_8017ECB4(OverlayHotspot* table, s16 x, s16 y)
 {
     s32 hit;
 
@@ -1130,7 +1130,7 @@ void func_acropolis_security_room_8017EDE4(Task* task)
 void func_acropolis_security_room_8017EE44(Task* task)
 {
     RoomActionPrompt*           prompt = &D_80114D28;
-    RoomHotspot*                hs     = D_acropolis_security_room_801826DC;
+    OverlayHotspot*             hs     = D_acropolis_security_room_801826DC;
     AcropolisSecurityRoomState* st     = (AcropolisSecurityRoomState*)task->work;
 
     gGameSession->hideHud    = 1;
@@ -1521,7 +1521,7 @@ void func_acropolis_security_room_8017F9C8(Task* task)
 void func_acropolis_security_room_8017FA18(Task* task)
 {
     AcropolisSecurityRoomState* st;
-    RoomHotspot*                hs;
+    OverlayHotspot*             hs;
 
     st = memCalloc(sizeof(AcropolisSecurityRoomState), 0);
     if (st == NULL) {
@@ -1622,7 +1622,7 @@ void func_acropolis_security_room_8017FC30(Task* task)
 /// contains the point and clearing it on every other one. Returns non-zero if
 /// any entry was hit, so the caller can tell "cursor is over something" from
 /// "cursor is over nothing" without rescanning the table.
-s32 func_acropolis_security_room_8017FCB0(RoomHotspot* table, s16 x, s16 y)
+s32 func_acropolis_security_room_8017FCB0(OverlayHotspot* table, s16 x, s16 y)
 {
     s32 hit;
 

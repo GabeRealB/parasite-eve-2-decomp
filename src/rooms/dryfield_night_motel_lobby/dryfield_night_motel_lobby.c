@@ -1459,7 +1459,7 @@ void func_dryfield_night_motel_lobby_8017FE38(Task* task)
 void func_dryfield_night_motel_lobby_8017FE90(Task* task)
 {
     DnmlExamineWork*  work   = (DnmlExamineWork*)task->work;
-    RoomHotspot*      hs     = D_dryfield_night_motel_lobby_80182820;
+    OverlayHotspot*   hs     = D_dryfield_night_motel_lobby_80182820;
     RoomActionPrompt* prompt = &D_80114D28;
 
     work->field_7            = 0;
