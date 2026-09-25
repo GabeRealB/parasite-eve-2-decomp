@@ -6,6 +6,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "main/task.h"
 
@@ -29,12 +30,12 @@ typedef struct Actor205200Work {
     /* 0x000 */ GsCOORDINATE2* field_0[3];  // candidate coords `func_actor_205200_8014ACD4` measures
     /* 0x00C */ GsCOORDINATE2* field_C;     // nearest of `field_0` to the stage view
     /* 0x010 */ u32            field_10;    // its distance
-    /* 0x014 */ s32            field_14;    // sound-event id `ActorsShared80131e24Sub1` plays; also the first anim slot
+    /* 0x014 */ s32            field_14;    // sound-event id `func_actor_205200_8014A958` plays; also the first anim slot
     /* 0x018 */ s16            field_18[3]; // 1 marks the matching `field_0` slot active
     /* 0x01E */ s16            field_1E;    // selects the spawn tables `func_actor_205200_8014AE0C` reads
     /* 0x020 */ s16            field_20;    // index into the timer reload table `D_actor_205200_8014C9CC`
     /* 0x022 */ u16            field_22;    // countdown `func_actor_205200_8014AB98` ticks in both of its sub-states
-    /* 0x024 */ s16            field_24;    // state of `ActorsShared80131e24Sub1` (0 wait, 1 run, 2 stop, 3 done)
+    /* 0x024 */ s16            field_24;    // state of `func_actor_205200_8014A958` (0 wait, 1 run, 2 stop, 3 done)
     /* 0x026 */ s16            field_26;    // sub-state of `func_actor_205200_8014AB98`
     /* 0x028 */ s16            field_28;
     /* 0x02A */ s16            field_2A;
@@ -57,7 +58,7 @@ typedef struct Actor205200Work {
     /* 0x554 */ GpEffArg       field_554; // record the charge's hit effect is spawned with
     /* 0x55C */ byte           pad_55C[0x20];
     /* 0x57C */ s16            field_57C;
-    /* 0x57E */ s16            field_57E; // animation id the work is playing, the same pair `Actor207200Work.field_28C`/`field_28E` holds
+    /* 0x57E */ s16            field_57E; // animation id the work is playing
     /* 0x580 */ u16            field_580; // id the three helper slots last saw
     /* 0x582 */ u16            field_582; // frames spent on the current id
     /* 0x584 */ s16            field_584; // sub-state `func_actor_205200_8014C67C` dispatches on: 0 runs the idle handler, 1 the charge handler
@@ -112,13 +113,16 @@ typedef struct Actor205200 {
 
 /// Spawn record `func_actor_205200_8014AB98` hands `Task_SpawnFromTable` once
 /// `field_4` reaches 2. `field_4` is also written directly by that function and
-/// by the shared `ActorsShared80131e24Sub0`/`Sub1` bodies.
+/// by the controller's state handlers `func_actor_205200_8014A72C` and
+/// `func_actor_205200_8014A958`.
 typedef struct Actor205200SpawnRec {
     /* 0x0 */ s16 field_0;
     /* 0x2 */ s16 field_2;
     /* 0x4 */ s16 field_4;
 } Actor205200SpawnRec;
 
+void func_actor_205200_8014A72C(GpEnemy* enemy, Task* task);
+void func_actor_205200_8014A958(GpEnemy* enemy, Actor205200* task);
 void func_actor_205200_8014AB98(Actor205200* arg0);
 void func_actor_205200_8014ACD4(Actor205200* arg0);
 s32  func_actor_205200_8014B914(s32 arg0);
@@ -136,9 +140,9 @@ typedef struct Actor205200AttackScratch {
 STATIC_ASSERT_SIZEOF(Actor205200AttackScratch, 0x44);
 
 /// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
-/// the same 4-byte record as `Actor342400Msg7DB`, whose halfword at 0x2 is the
-/// only part the handler below reads. Senders seed it from a `Task`'s
-/// `spawnArg1` halfword -- `Gp_DispatchMsg` in `3CD8.c` sends `D_801155A0`.
+/// its halfword at 0x2 is the only part the handlers below read. Senders seed
+/// it from a `Task`'s `spawnArg1` halfword -- `Gp_DispatchMsg` in `3CD8.c`
+/// sends `D_801155A0`.
 typedef struct Actor205200Msg7DB {
     /* 0x0 */ u8  field_0;
     /* 0x1 */ u8  field_1;
@@ -159,6 +163,7 @@ s32 func_actor_205200_8014C9A0(Actor205200* arg0, s32 arg1, Actor205200Msg7DB* a
 s32 func_actor_205200_8014B94C(Actor205200* arg0, s32 arg1, Actor205200Msg7DB* arg2);
 
 void func_actor_205200_8014C59C(Actor205200Ctx* arg0, Actor205200* arg1);
+void func_actor_205200_8014C87C(Actor205200* arg0);
 void func_actor_205200_8014C924(Actor205200Ctx* arg0, Actor205200* arg1);
 
 /// The live states' shared body: applies the part's damage-kind hits

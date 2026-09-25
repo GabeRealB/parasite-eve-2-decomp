@@ -1,7 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_205200.h"
-#include "actors/actors_shared_80134ff0.h"
 #include "gameplay/1BC.h"
 #include "gameplay/gameplay.h"
 #include "main/gameflag.h"
@@ -27,7 +26,7 @@ void func_8017E090(s32, s32);
 void func_8017EE08(s32, s32);
 void func_80182A14(s32, s32);
 
-void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
+void func_actor_205200_8014A72C(GpEnemy* enemy, Task* task)
 {
     Actor205200Work* work;
     u16              kind;
@@ -82,7 +81,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     task->state    = 1;
 }
 
-void ActorsShared80131e24Sub1(GpEnemy* enemy, Actor205200* task)
+void func_actor_205200_8014A958(GpEnemy* enemy, Actor205200* task)
 {
     Actor205200Work* work = task->field_1C;
     s16              state;

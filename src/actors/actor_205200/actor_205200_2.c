@@ -1,7 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_205200.h"
-#include "actors/actors_shared_80134ff0.h"
 #include "main/session.h"
 
 #include "gameplay/1BC.h"
@@ -488,7 +487,7 @@ default_body:
     coord->flg = 0;
     Gp_UpdateCoord(coord);
 case1:
-    ActorsShared80134ff0((ActorShared80134ff0*)arg1);
+    func_actor_205200_8014C87C(arg1);
     func_actor_205200_8014C8D4(arg1);
 }
 
@@ -558,9 +557,7 @@ void func_actor_205200_8014C748(Actor205200* arg0)
 /// Keeps the work's animation id bound to its helper slots. When the id has
 /// changed since the last tick the remembered id follows it, the frame counter
 /// at 0x582 restarts and every slot 1..18 is pointed at the new id at weight 8;
-/// otherwise the counter ticks and the slots are simply advanced. The same body
-/// is matched once for the actors that share it as `ActorsShared8014af2c`,
-/// which differs only in the slot count and the id offsets.
+/// otherwise the counter ticks and the slots are simply advanced.
 void func_actor_205200_8014C7CC(Actor205200* arg0)
 {
     Actor205200Work* work;
