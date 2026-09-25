@@ -502,16 +502,14 @@ typedef struct _GpPushBackScratch {
 } GpPushBackScratch;
 STATIC_ASSERT_SIZEOF(GpPushBackScratch, 0x40);
 
-/// 0x68-byte scratch from `G_SCRATCH_HEAD` used by `func_8010BE5C`.
-/// `vec` overlays a `VECTOR3` for `func_80103C74` / `ratan2`. `rot` is
-/// the zeroed `SVECTOR` passed to `Gp_PlaceCoordOffset`. The remaining 0x50
-/// bytes are a temp `GsCOORDINATE2` at `head - 0x50`.
+/// Scratch-pad block `func_8010BE5C` aims with: a coordinate placed at an
+/// offset from one of the actor's parts, the zero rotation it is placed with,
+/// and the vector from it to the target that the heading is taken from.
 typedef struct _GpAimScratch {
-    /* 0x00 */ VECTOR3  vec;
-    /* 0x0C */ s32      pad_C;
-    /* 0x10 */ SVECTOR3 rot;
-    /* 0x16 */ s16      pad_16;
-    /* 0x18 */ byte     pad_18[0x50];
+    /* 0x00 */ VECTOR3       vec;
+    /* 0x0C */ s32           pad_C;
+    /* 0x10 */ SVECTOR       rot;
+    /* 0x18 */ GsCOORDINATE2 coord;
 } GpAimScratch;
 STATIC_ASSERT_SIZEOF(GpAimScratch, 0x68);
 

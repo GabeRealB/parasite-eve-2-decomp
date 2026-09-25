@@ -7364,7 +7364,7 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     }
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     if (arg3 & 4) {
-        other      = (GsCOORDINATE2*)((TmdObject*)slot->extra)->coords + 4;
+        other      = &((TmdObject*)slot->extra)->coords[4];
         sc->vec.vx = 0;
         sc->vec.vy = 0x12C;
         sc->vec.vz = 0;

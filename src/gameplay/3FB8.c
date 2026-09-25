@@ -960,7 +960,7 @@ void Gp_EffTask07State1(Task* arg0)
             return;
         }
         Gp_SpawnEff(spawnId,
-                    (GsCOORDINATE2*)((TmdObject*)slot->extra)->coords + D_80112B28[idx], 0,
+                    &((TmdObject*)slot->extra)->coords[D_80112B28[idx]], 0,
                     0);
     }
 }
@@ -1394,8 +1394,7 @@ lcg:
     slot        = gameGetPtrSlot(3);
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     Gp_SpawnEff(0x600F4,
-                (GsCOORDINATE2*)((TmdObject*)slot->extra)->coords +
-                    ((((u32)Gp_LcgState >> 16) & 1) * 3 + 15),
+                &((TmdObject*)slot->extra)->coords[(((u32)Gp_LcgState >> 16) & 1) * 3 + 15],
                 mem->step | 0x8000, 0);
 }
 
@@ -1618,8 +1617,7 @@ continue_fx:
             slot        = gameGetPtrSlot(3);
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gp_SpawnEff(0x600E0,
-                        (GsCOORDINATE2*)((TmdObject*)slot->extra)->coords +
-                            ((((u32)Gp_LcgState >> 16) & 0xF) + 3),
+                        &((TmdObject*)slot->extra)->coords[(((u32)Gp_LcgState >> 16) & 0xF) + 3],
                         0x10080, 0);
         }
     }
@@ -1636,8 +1634,7 @@ continue_fx:
     slot        = gameGetPtrSlot(3);
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     Gp_SpawnEff(0x600E0,
-                (GsCOORDINATE2*)((TmdObject*)slot->extra)->coords +
-                    ((((u32)Gp_LcgState >> 16) & 0xF) + 3),
+                &((TmdObject*)slot->extra)->coords[(((u32)Gp_LcgState >> 16) & 0xF) + 3],
                 0x10200, 0);
 }
 
@@ -4080,6 +4077,7 @@ void Gp_AimYawToLock(Task* arg0, s32 arg1)
             asm("addiu %0, %1, %%lo(D_80112E30)" : "=r"(tbl) : "r"(tbl));
             asm("lbu %0, %%lo(Player_Status+0x21)(%1)" : "=r"(cmp) : "r"(val));
             asm("lui %0, 0x1F80" : "=r"(val) : "r"(cmp));
+            /* The scratch-pad head, read through the pad base the asm above built. */
             val = (s32) * (void**)((u8*)val + 0x3FC);
             USE_REG(val);
             cmp                = tbl[cmp];
@@ -6126,9 +6124,9 @@ s32 Gp_PickNearestRec18(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2)
         pidx    = &idx;
         rec     = arg0;
         {
-            register void* p asm("v0");
-            p                              = SCRATCH_HEAD_AT(scratch, void);
-            p                              = (u8*)p - 0x68;
+            register GpPickScratch* p asm("v0");
+            p                              = SCRATCH_HEAD_AT(scratch, GpPickScratch);
+            p                              = p - 1;
             block                          = p;
             SCRATCH_HEAD_AT(scratch, void) = p;
         }
@@ -6209,7 +6207,7 @@ s32 Gp_PickNearestRec18(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2)
         } else {
             i = 0;
         }
-        SCRATCH_POP_BYTES(0x68);
+        SCRATCH_POP(GpPickScratch);
         return i;
     }
     return 0;
@@ -9754,7 +9752,7 @@ void func_8010BD88(Task* arg0, VECTOR3* arg1)
 
 void func_8010BE5C(Task* arg0, VECTOR3* arg1)
 {
-    u8*            head;
+    GpAimScratch*  head;
     GpAimScratch*  block;
     GsCOORDINATE2* coord;
     SVECTOR*       rot;
@@ -9762,20 +9760,20 @@ void func_8010BE5C(Task* arg0, VECTOR3* arg1)
     GameActor*     actor;
     s32            val;
 
-    head  = SCRATCH_HEAD(u8);
+    head  = SCRATCH_HEAD(GpAimScratch);
     extra = arg0->extra;
     actor = arg0->work;
-    coord = (GsCOORDINATE2*)(head - 0x50);
-    rot   = (SVECTOR*)(head - 0x58);
+    coord = &head[-1].coord;
+    rot   = &head[-1].rot;
     /* The coord array replaces the object in the same register (v0). */
     extra = (TmdObject*)extra->coords;
-    block = SCRATCH_HEAD(GpAimScratch) = (GpAimScratch*)(head - 0x68);
+    block = SCRATCH_HEAD(GpAimScratch) = head - 1;
     block->rot.vx                      = 0;
     block->rot.vy                      = 0;
     block->rot.vz                      = 0;
     Gp_PlaceCoordOffset((GsCOORDINATE2*)extra + 4, coord, rot);
-    func_80103C74(coord, arg1, (VECTOR3*)block);
-    val = ratan2(((VECTOR3*)(head - 0x68))->vx, block->vec.vz) - actor->field_52;
+    func_80103C74(coord, arg1, &block->vec);
+    val = ratan2(head[-1].vec.vx, block->vec.vz) - actor->field_52;
     val = func_80103E7C(actor->field_6A, val);
     if (val > 0x20) {
         val = 0x20;
@@ -9785,7 +9783,7 @@ void func_8010BE5C(Task* arg0, VECTOR3* arg1)
     if (ABS(actor->field_6A + val) < 0x1A0) {
         actor->field_6A += val;
     }
-    SCRATCH_POP_BYTES(0x68);
+    SCRATCH_POP(GpAimScratch);
 }
 
 void func_8010BF7C(Task* arg0, s32 arg1, s32 arg2)
