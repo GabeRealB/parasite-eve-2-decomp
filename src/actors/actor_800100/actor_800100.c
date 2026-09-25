@@ -1114,7 +1114,7 @@ void func_actor_800100_80163D54(Task* arg0)
     actor  = arg0->work;
     coord  = arg0->extra.tmd->coords;
     target = (gameGetPtrSlot(3))->extra.tmd->coords;
-    flag   = (*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x042A0000;
+    flag   = (GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 42, 0, 0);
     if (((GameActor*)arg0->work)->field_910->decisionTimer <= 0) {
         func_8010BF7C(arg0, 0xA, 0x1F);
         dist = func_8010BC70(coord);
@@ -1258,7 +1258,7 @@ void func_actor_800100_80164184(Task* arg0)
     coord  = arg0->extra.tmd->coords;
     target = (gameGetPtrSlot(3))->extra.tmd->coords;
     actor  = arg0->work;
-    flag   = (*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x042A0000;
+    flag   = (GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 42, 0, 0);
     dist   = func_actor_800100_8016709C(coord, &actor->field_910->contact, NULL);
     if (dist != 0 && dist < 0x301 && flag == 0) {
         GameActor* actor2 = arg0->work;

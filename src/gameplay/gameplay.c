@@ -4821,7 +4821,7 @@ void Gp_EndingTask(Task* arg0)
         work                = arg0->spawnArg2;
         work->field_4       = 1;
         arg0->killCountdown = 0x1E;
-        if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x4300000) {
+        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 48, 0, 0)) {
             arg0->killCountdown = 0x5A;
         }
         SndEvt_EnqueueType6(0xB, 0, 0);
@@ -5138,8 +5138,8 @@ void Gp_AreaEnterTask(Task* arg0)
 
     if (arg0->state == 0) {
         work = arg0->spawnArg2;
-        key  = *(u32*)&gGameSession->at4.loc;
-        key &= 0xFFFF0000;
+        key  = GP_LOC_WORD(gGameSession->at4.loc);
+        key &= GP_LOC_STAGE_AREA;
         Stage_InitPrimBufOnce();
         i = 0;
         p = Gp_ActorSlots;
@@ -5153,7 +5153,7 @@ void Gp_AreaEnterTask(Task* arg0)
         } while (i < 2);
         SndEvt_EnqueueType8(0xD);
         Gp_EnqueueSndCd((Gp_GetAttachLevel(7) + 0x15) & 0xFF);
-        if (key == 0x1140000) {
+        if (key == GP_LOC_KEY(1, 20, 0, 0)) {
             arg0->spawnArg2 = Ui_SpawnFromDesc(&D_80185000, arg0->spawnArg1, 1, 4, NULL);
         } else {
             arg0->spawnArg2 = Ui_SpawnFromDesc(&D_8010CA40, arg0->spawnArg1, 1, 1, NULL);
@@ -5162,7 +5162,7 @@ void Gp_AreaEnterTask(Task* arg0)
                 work->field_0 = 0;
                 Gp_SetAreaFlag2(1, (GpAreaKey*)&gGameSession->at4.loc);
                 gGameSession->field_126 = 1;
-                if (key == 0x50B0000 || key == 0x51D0000) {
+                if (key == GP_LOC_KEY(5, 11, 0, 0) || key == GP_LOC_KEY(5, 29, 0, 0)) {
                     if (gGameSession->at4.loc.place - 1 < 3U) {
                         goto skip_count;
                     }
@@ -5275,7 +5275,7 @@ u16 Gp_GetAttachParam(s32 arg0)
         ret = 1;
     } else {
         p = &Player_Status;
-        if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
+        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(1, 20, 0, 0)) {
             cond = 0;
         } else {
             cond = p->field_26 == 4;
@@ -5327,7 +5327,7 @@ void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
         ret = 1;
     } else {
         p = &Player_Status;
-        if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
+        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(1, 20, 0, 0)) {
             cond = 0;
         } else {
             cond = p->field_26 == 4;
@@ -5626,7 +5626,7 @@ s32 Gp_CheckAttachThreshold(s32 arg0)
         ret = 1;
     } else {
         p = cfg;
-        if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
+        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(1, 20, 0, 0)) {
             cond = 0;
         } else {
             cond = cfg->field_26 == 4;
@@ -5767,7 +5767,7 @@ void Gp_SetAttachState(s32 arg0)
     ret = 1;
     if (n < 0xC) {
         cfg = &Player_Status;
-        if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
+        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(1, 20, 0, 0)) {
             cond = 0;
         } else {
             cond = cfg->field_26 == 4;
@@ -5816,7 +5816,7 @@ static __inline__ s32 stepAttachWheelSaved(s32 arg0, s32 arg1, McSaveData* save)
     u8*           table;
 
     p = &Player_Status;
-    if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
+    if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(1, 20, 0, 0)) {
         cond = 0;
     } else {
         cond = p->field_26 == 4;
@@ -5858,7 +5858,7 @@ static __inline__ s32 stepAttachWheel(s32 arg0, s32 arg1)
     u8*           table;
 
     p = &Player_Status;
-    if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
+    if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(1, 20, 0, 0)) {
         cond = 0;
     } else {
         cond = p->field_26 == 4;
@@ -5904,7 +5904,7 @@ static __inline__ s32 getAttachWheelLevel(s32 idx)
         lvl = 1;
     } else {
         p = &Player_Status;
-        if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
+        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(1, 20, 0, 0)) {
             cond = 0;
         } else {
             cond = p->field_26 == 4;
@@ -6003,7 +6003,7 @@ s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
     gGameSession->uiOpen = 1;
     cfg                  = &Player_Status;
     count                = 0;
-    if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
+    if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(1, 20, 0, 0)) {
         cond = 0;
     } else {
         cond = cfg->field_26 == 4;
@@ -6286,7 +6286,7 @@ static __inline__ u8* getAttachLevels(void)
     s32           cond;
 
     p = &Player_Status;
-    if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
+    if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(1, 20, 0, 0)) {
         cond = 0;
     } else {
         cond = p->field_26 == 4;
@@ -6309,7 +6309,7 @@ static __inline__ s32 getAttachLevel(s32 idx)
         lvl = 1;
     } else {
         p = &Player_Status;
-        if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
+        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(1, 20, 0, 0)) {
             cond = 0;
         } else {
             cond = p->field_26 == 4;
@@ -6649,8 +6649,8 @@ void Gp_HudTask(GpIdMapC* arg0)
     s32           b;
 
     bad   = 0;
-    kind  = *(u32*)&gGameSession->at4.loc;
-    kind &= 0xFFFF0000;
+    kind  = GP_LOC_WORD(gGameSession->at4.loc);
+    kind &= GP_LOC_STAGE_AREA;
     cfg   = &Player_Status;
     ds    = &gDisplayState;
     if (ds->demoScene != 0) {
@@ -6808,7 +6808,7 @@ void Gp_HudTask(GpIdMapC* arg0)
                 s32           cond;
 
                 p = &Player_Status;
-                if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
+                if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(1, 20, 0, 0)) {
                     cond = 0;
                 } else {
                     cond = p->field_26 == 4;
@@ -6844,10 +6844,10 @@ after:
             if (bad != 0) {
                 goto tail;
             }
-            k             = *(u32*)&gGameSession->at4.loc;
-            k            &= 0xFFFF0000;
+            k             = GP_LOC_WORD(gGameSession->at4.loc);
+            k            &= GP_LOC_STAGE_AREA;
             arg0->field_8 = 0;
-            if (k != 0x1140000) {
+            if (k != GP_LOC_KEY(1, 20, 0, 0)) {
                 Display_InitModeObj(&D_8010CAB0, 0, (s32)arg0, 0x100);
             } else {
                 arg0->field_4 = arg0->field_4 + 1;
@@ -6893,7 +6893,7 @@ after:
             } else {
                 GameSession* session;
 
-                if (kind != 0x1140000) {
+                if (kind != GP_LOC_KEY(1, 20, 0, 0)) {
                     goto tail;
                 }
                 session = gGameSession;
@@ -6977,7 +6977,7 @@ after:
             item = p->weapon + 0x7F;
             Gp_FillRelated(item, 0);
             Gp_FillRelated(item, 1);
-            if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
+            if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(1, 20, 0, 0)) {
                 cond = 0;
             } else {
                 cond = p->field_26 == 4;
@@ -6999,7 +6999,7 @@ after:
             GpStateC08*   q;
 
             p = &Player_Status;
-            if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
+            if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(1, 20, 0, 0)) {
                 cond = 0;
             } else {
                 cond = p->field_26 == 4;
@@ -8541,7 +8541,7 @@ u8* Gp_GetAttachLevels(void)
     s32           cond;
 
     p = &Player_Status;
-    if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
+    if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(1, 20, 0, 0)) {
         cond = 0;
     } else {
         cond = p->field_26 == 4;
@@ -8557,7 +8557,7 @@ s32 Gp_IsDebugAttachRoom(void)
     PlayerStatus* p;
 
     p = &Player_Status;
-    if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
+    if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(1, 20, 0, 0)) {
         return 0;
     }
     return p->field_26 == 4;
@@ -8784,7 +8784,7 @@ s32 Gp_GetAttachLevel(s32 arg0)
     ret = 1;
     if (arg0 < 0xC) {
         p = &Player_Status;
-        if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
+        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(1, 20, 0, 0)) {
             cond = 0;
         } else {
             cond = p->field_26 == 4;
@@ -8815,7 +8815,7 @@ s32 Gp_StepAttachSlot(s32 arg0, s32 arg1)
     u8*           table;
 
     p = &Player_Status;
-    if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x1140000) {
+    if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(1, 20, 0, 0)) {
         cond = 0;
     } else {
         cond = p->field_26 == 4;

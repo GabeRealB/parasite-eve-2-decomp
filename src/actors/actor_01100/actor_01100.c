@@ -379,7 +379,7 @@ void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
         return;
     }
 
-    map = *(u32*)&Mc_SaveData.at4.loc;
+    map = GP_LOC_WORD(Mc_SaveData.at4.loc);
     SOFT_BARRIER();
     param1[2] = 0xA;
     param2[0] = 0xB;
@@ -387,7 +387,7 @@ void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
     param2[3] = 0;
     param2[2] = 0;
     param2[1] = 0;
-    if ((map & 0xFFFF0000) == 0x03200000) {
+    if ((map & GP_LOC_STAGE_AREA) == GP_LOC_KEY(3, 32, 0, 0)) {
         param1[0]       = 2;
         work->field_BB8 = 1;
     } else {
@@ -882,7 +882,7 @@ s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wor
             work->field_B92 = hp;
             enemy->hp       = hp;
             if (work->field_B92 <= 0) {
-                if ((*(u32*)&Mc_SaveData.at4.loc & 0xFFFF0000) == 0x05180000) {
+                if ((GP_LOC_WORD(Mc_SaveData.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(5, 24, 0, 0)) {
                     work->field_BC8 = 0;
                 } else {
                     Gp_ReleaseStateF0Add(task, (s8)work->field_BBB);
@@ -2950,7 +2950,7 @@ void Actor01100_Fn05678(
     u8*                        tmdC;
 
     extra = task->extra.tmd;
-    if (((*(u32*)&Mc_SaveData.at4.loc & 0xFFFF0000) == 0x05180000) && (work->field_BC8 == 0)) {
+    if (((GP_LOC_WORD(Mc_SaveData.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(5, 24, 0, 0)) && (work->field_BC8 == 0)) {
         actor  = gameGetPtrSlot(3)->work;
         status = &Player_Status;
         if ((actor->field_954 != 2) && (D_80114C12 != 1) && (D_80071075 == 0) && (status->hp > 0)) {
@@ -3062,7 +3062,7 @@ void Actor01100_Fn05678(
     } else {
         time            = (u16)work->field_B8C - 1;
         work->field_B8C = time;
-        if (((time << 16) == 0) && ((*(u32*)&Mc_SaveData.at4.loc & 0xFFFF0000) != 0x05180000)) {
+        if (((time << 16) == 0) && ((GP_LOC_WORD(Mc_SaveData.at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(5, 24, 0, 0))) {
             work->field_BA6 = 0x10;
         }
     }
@@ -3325,11 +3325,11 @@ void Actor01100_Fn06198(Task* task)
     s16                       countdown;
 
     work = (ActorsShared80137fb8Work*)task->work;
-    map  = *(u32*)&Mc_SaveData.at4.loc;
+    map  = GP_LOC_WORD(Mc_SaveData.at4.loc);
     mask = 0xFFFF0000;
     SOFT_TOUCH_REG(mask);
     map       &= mask;
-    flag       = map == 0x03200000;
+    flag       = map == GP_LOC_KEY(3, 32, 0, 0);
     coord      = task->extra.tmd->coords;
     soundCoord = coord;
     d4         = &work->rec;
@@ -3390,7 +3390,7 @@ void Actor01100_Fn0638C(Task* task)
     GpMtxWords*               rotation;
 
     coord   = task->extra.tmd->coords;
-    area    = *(u32*)&Mc_SaveData.at4.loc & 0xFFFF0000;
+    area    = GP_LOC_WORD(Mc_SaveData.at4.loc) & GP_LOC_STAGE_AREA;
     variant = area == 0x03200000;
     work    = memCalloc(sizeof(ActorsShared80137fb8Work), 0);
     if (work == NULL) {

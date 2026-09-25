@@ -53,8 +53,8 @@ void Tmd_InitSourceStream(TmdSource* src)
 
     stream = src->stream;
     if (src->handlersResolved == 0) {
-        tmp  = *(u32*)&gGameSession->at4.loc;
-        tmp  = (tmp & 0xFFFF0000) ^ 0x02100000;
+        tmp  = GP_LOC_WORD(gGameSession->at4.loc);
+        tmp  = (tmp & GP_LOC_STAGE_AREA) ^ GP_LOC_KEY(2, 16, 0, 0);
         flag = tmp < 1;
         goto read_id;
 
@@ -290,11 +290,11 @@ void tmdProcessStream(TmdObject* obj)
     src                                = obj->source;
     tmp                                = SCRATCH_HEAD(TmdScratchModelBlock);
     stream                             = src->stream;
-    hi                                 = *(u32*)&gGameSession->at4.loc;
+    hi                                 = GP_LOC_WORD(gGameSession->at4.loc);
     head                               = tmp - 1;
-    hi                                &= 0xFFFF0000;
+    hi                                &= GP_LOC_STAGE_AREA;
     SCRATCH_HEAD(TmdScratchModelBlock) = head;
-    if ((hi == 0x020F0000) || (hi == 0x02100000)) {
+    if ((hi == GP_LOC_KEY(2, 15, 0, 0)) || (hi == GP_LOC_KEY(2, 16, 0, 0))) {
         flag = 1;
     }
     ws = head;

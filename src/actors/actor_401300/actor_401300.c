@@ -1217,7 +1217,7 @@ void func_actor_401300_80133A3C(Task* arg0)
                 Actor401300_SpawnEffVar(&D_8011574C, &arg0->extra.tmd->coords[15], 0x40, 0, 0x1C2, -100);
             }
         }
-        if (snd != 0 && (*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x051D0000) {
+        if (snd != 0 && (GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(5, 29, 0, 0)) {
             switch (snd) {
                 case 0x400D0001:
                 case 0x400D0003:
@@ -2018,7 +2018,7 @@ void func_actor_401300_80136238(Task* arg0)
     aim                          = SCRATCH_HEAD(ActorChaseScratch);
     arg0->extra.tmd->coords->flg = 0;
     if (work->field_6C & 0x100) {
-        if (func_actor_401300_80132FF4(arg0) == 1 && (*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x051D0000) {
+        if (func_actor_401300_80132FF4(arg0) == 1 && (GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(5, 29, 0, 0)) {
             work->field_0 = 8;
         } else {
             work->field_0 = 7;
@@ -5178,7 +5178,7 @@ void func_actor_401300_80141C88(Task* arg0)
     }
     func_actor_401300_80133A3C(arg0);
     if (work->field_6C & 0x100) {
-        if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x051D0000) {
+        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(5, 29, 0, 0)) {
             work->field_0 = 8;
         } else {
             work->field_0 = 7;

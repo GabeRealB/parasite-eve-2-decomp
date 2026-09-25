@@ -2130,7 +2130,7 @@ void Actor00400_Fn03920(Task* arg0)
             }
             break;
         case 1:
-            if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x042D0000) {
+            if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 45, 0, 0)) {
                 if (GameFlag_GetNibble(0xB7) == 0) {
                     work->field_666 = 1;
                     w               = arg0->work;

@@ -1214,7 +1214,7 @@ void func_shelter_r47_8017F628(Task* task)
                 if (GameFlag_GetNibble(0) == 2) {
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
-                    if ((*(u32*)&Mc_SaveData.at4.loc & 0xFFFF0000) == 0x1010000) {
+                    if ((GP_LOC_WORD(Mc_SaveData.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 1, 0, 0)) {
                         Gp_ApplyAreaRecs(&D_shelter_r47_80188888);
                         func_800E3FAC(0xA2, 5);
                     }

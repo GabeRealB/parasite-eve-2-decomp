@@ -469,7 +469,7 @@ void Actor05500_Fn00A94(Task* arg0)
     work                               = actor->work;
     coord                              = actor->extra.tmd->coords;
     state                              = work->field_39C;
-    sessionFlags                       = *(u32*)&gGameSession->at4.loc;
+    sessionFlags                       = GP_LOC_WORD(gGameSession->at4.loc);
     value                              = 0;
     switch (state) {
         case 0:
@@ -496,7 +496,7 @@ void Actor05500_Fn00A94(Task* arg0)
                 work->field_2E4.pos.vy = -0x12C;
                 work->field_2E4.key    = Gp_PackPair(&Actor05500_D08958, 5);
                 work->field_2E4.flags |= 0x8000;
-                if ((sessionFlags & 0xFFFF0000) == 0x05200000) {
+                if ((sessionFlags & GP_LOC_STAGE_AREA) == GP_LOC_KEY(5, 32, 0, 0)) {
                     value = ((((GpEnemy*)actor->spawnArg2)->placeKey >> 0xC) << 8) | 0x55200006;
                     pan0  = (s8)Gp_GetObjPan(coord);
                     SndEvt_EnqueueType6(value, (s32)pan0, (s8)gpGetObjDepth(coord));
@@ -515,7 +515,7 @@ void Actor05500_Fn00A94(Task* arg0)
                 work->field_2E4.pos.vy = -0x12C;
                 work->field_2E4.key    = Gp_PackPair(&Actor05500_D08958, 5);
                 work->field_2E4.flags |= 0x8000;
-                if ((sessionFlags & 0xFFFF0000) == 0x05200000) {
+                if ((sessionFlags & GP_LOC_STAGE_AREA) == GP_LOC_KEY(5, 32, 0, 0)) {
                     value = ((((GpEnemy*)actor->spawnArg2)->placeKey >> 0xC) << 8) | 0x55200006;
                     pan1  = (s8)Gp_GetObjPan(coord);
                     SndEvt_EnqueueType6(value, (s32)pan1, (s8)gpGetObjDepth(coord));

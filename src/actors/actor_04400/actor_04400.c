@@ -2225,7 +2225,7 @@ void Actor04400_Fn042C4(Task* arg0)
             obj->flags &= 0xFFFB;
         }
         enemy->node.state.b.flags = 0;
-        map                       = *(u32*)&gGameSession->at4.loc & 0xFFFF0000;
+        map                       = GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA;
         if (map == 0x4270000) {
             work->field_78    = 0;
             work->field_7A    = (D_8018B74C[(work->field_44C >> 8) & 0xF].heading + 0x800) & 0xFFF;

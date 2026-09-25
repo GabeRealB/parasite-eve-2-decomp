@@ -3283,7 +3283,7 @@ void Gp_InitPlayerWork(Task* arg0)
         func_80104508(arg0, 0, &sp, 0);
         actor->field_984 = 0x38;
     }
-    if ((*(u32*)&save->at4.loc & 0xFFFF0000) == 0x1050000) {
+    if ((GP_LOC_WORD(save->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 5, 0, 0)) {
         actor->field_991 = 1;
     }
 }

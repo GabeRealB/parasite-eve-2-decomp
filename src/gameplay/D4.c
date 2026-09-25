@@ -764,7 +764,7 @@ void func_800AA548(s32 arg0)
     warp  = sess->warp;
     rec   = Gp_WarpTables[stage - 1][sess->area - 1][warp - 1];
     if (!(gDisplayState.at100.word & 0xFFFF00)) {
-        if (((*(u32*)&gGameSession->at4.loc & ~0xFF) == 0x03180200) && (gGameSession->at4.loc.warp == 2)) {
+        if (((GP_LOC_WORD(gGameSession->at4.loc) & ~0xFF) == GP_LOC_KEY(3, 24, 2, 0)) && (gGameSession->at4.loc.warp == 2)) {
             Mc_SaveData.at4.loc.view = gGameSession->at4.loc.view = 2;
         } else {
             Mc_SaveData.at4.loc.view = gGameSession->at4.loc.view = rec.field_34;
@@ -1004,7 +1004,7 @@ void Gp_LoadState2(Task* task)
         save = &Mc_SaveData;
         TOUCH_REG(save); /* keeps `save` as `sess - 4` (addiu s0, s0, -4) */
         Mem_ConfigureAuxHeap(save->at4.loc.stage, save->at4.loc.area);
-        if ((*(u32*)&save->at4.loc & 0xFFFF0000) == 0x1050000) {
+        if ((GP_LOC_WORD(save->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 5, 0, 0)) {
             Mem_SetActiveAuxHeap(true);
         }
         Mem_InitAux();
@@ -1137,7 +1137,7 @@ void Gp_LoadWaitSave(Task* task)
         GameSession* session;
 
         session = gGameSession;
-        if ((*(u32*)&session->at4.loc & 0xFFFF0000) == 0x3010000) {
+        if ((GP_LOC_WORD(session->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(3, 1, 0, 0)) {
             if (session->at4.loc.room >= 4) {
                 GameSession* sess;
                 s32          cmd;
@@ -1398,7 +1398,7 @@ void Gp_ApplyNpcRoomSnd(void)
 
     save  = &Mc_SaveData;
     stage = save->at4.loc.stage;
-    if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x3200000) {
+    if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(3, 32, 0, 0)) {
         bytes = D_80114198[GameFlag_GetNibble(0x4B)].field_0;
         if (bytes != NULL) {
             if (D_80114198[GameFlag_GetNibble(0x4B)].field_4 == stage) {
@@ -1549,7 +1549,7 @@ void Gp_LoadFinishTask(Task* task)
         Gpu_ClearOTag(1);
         Pad_RemapState->field_3 = 0;
         taskKill(task);
-        if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x1050000) {
+        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 5, 0, 0)) {
             func_800AA548(1);
         } else {
             func_800AA548(0);
@@ -1558,7 +1558,7 @@ void Gp_LoadFinishTask(Task* task)
         gDisplayState.holdState &= 0x7F;
         Display_AcquireRef();
         Task_Spawn(0, 0x21, 0, 0);
-        if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x1050000) {
+        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 5, 0, 0)) {
             Task_SpawnFromTable(D_80183824, 0, 0, 0);
             CdCmd_SetupMdecBuffers();
             CdCmd_SelectMdecBuffer();

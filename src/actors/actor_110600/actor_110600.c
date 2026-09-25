@@ -1761,7 +1761,7 @@ void func_actor_110600_80134AB4(GpEnemy* enemy, Task* task)
     work->walker.avoidRecs  = contactRecs;
     work->walker.scale      = 0;
     work->walker.field_5A   = 0x20;
-    if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x01030000) {
+    if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 3, 0, 0)) {
         work->walker.field_6B = 0;
     } else {
         work->walker.field_6B = enabled;

@@ -1605,51 +1605,51 @@ void Gp_FadeWorkTask(Task* arg0)
 
 void func_800B25B0(void)
 {
-    switch (*(u32*)&Mc_SaveData.at4.loc & 0xFFFF0000) {
-        case 0x51B0000:
+    switch (GP_LOC_WORD(Mc_SaveData.at4.loc) & GP_LOC_STAGE_AREA) {
+        case GP_LOC_KEY(5, 27, 0, 0):
             Task_SpawnFromTable(D_80181F18, 0, 0, 0);
             break;
-        case 0x50F0000:
+        case GP_LOC_KEY(5, 15, 0, 0):
             Task_SpawnFromTable(D_80181398, 0, 0, 0);
             break;
-        case 0x50E0000:
+        case GP_LOC_KEY(5, 14, 0, 0):
             Task_SpawnFromTable(D_80181B30, 0, 0, 0);
             break;
-        case 0x50D0000:
+        case GP_LOC_KEY(5, 13, 0, 0):
             Task_SpawnFromTable(D_8018384C, 0, 0, 0);
             break;
-        case 0x50C0000:
+        case GP_LOC_KEY(5, 12, 0, 0):
             Task_SpawnFromTable(D_801810E4, 1, 0, 0);
             break;
-        case 0x5070000:
+        case GP_LOC_KEY(5, 7, 0, 0):
             Task_SpawnFromTable(D_80180DBC, 0, 0, 0);
             break;
-        case 0x21E0000:
+        case GP_LOC_KEY(2, 30, 0, 0):
             Task_SpawnFromTable(D_80182D0C, 0, 1, 0);
             break;
-        case 0x31E0000:
+        case GP_LOC_KEY(3, 30, 0, 0):
             Task_SpawnFromTable(D_80182E74, 0, 1, 0);
             break;
-        case 0x4120000:
+        case GP_LOC_KEY(4, 18, 0, 0):
             Task_SpawnFromTable(D_80181B88, 0, 0, 0);
             break;
-        case 0x51F0000:
+        case GP_LOC_KEY(5, 31, 0, 0):
             Task_SpawnFromTable(D_8017D9E8, 0, 0, 0);
             break;
-        case 0x51E0000:
+        case GP_LOC_KEY(5, 30, 0, 0):
             Task_SpawnFromTable(D_8018186C, 0, 0, 0);
             Task_SpawnFromTable(D_8018186C, 1, 0, 0);
             break;
-        case 0x51D0000:
+        case GP_LOC_KEY(5, 29, 0, 0):
             Task_SpawnFromTable(D_80181638, 0, 0, 0);
             break;
-        case 0x4160000:
+        case GP_LOC_KEY(4, 22, 0, 0):
             Task_SpawnFromTable(D_801637C8, 0, 0, 0);
             break;
-        case 0x4300000:
+        case GP_LOC_KEY(4, 48, 0, 0):
             Task_SpawnFromTable(D_80182FAC, 0, 0, 0);
             break;
-        case 0x1140000:
+        case GP_LOC_KEY(1, 20, 0, 0):
             func_8017FBD8();
             break;
     }

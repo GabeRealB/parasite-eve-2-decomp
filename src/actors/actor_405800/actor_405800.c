@@ -887,7 +887,7 @@ void func_actor_405800_801334B8(Task* arg0)
     model = arg0->extra.tmd;
     enemy = (GpEnemy*)arg0->spawnArg2;
     coord = model->coords;
-    if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x04080000) {
+    if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(4, 8, 0, 0)) {
         Gp_DestroyEnemy(enemy, arg0);
         return;
     }

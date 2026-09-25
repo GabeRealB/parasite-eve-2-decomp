@@ -1169,7 +1169,7 @@ void Gp_ItemPickupTilt(Task* arg0)
     extra   = arg0->extra.tmd;
     obj     = arg0->spawnArg2;
     session = gGameSession;
-    mapId   = *(u32*)&session->at4.loc & 0xFFFF00FF;
+    mapId   = GP_LOC_WORD(session->at4.loc) & GP_LOC_STAGE_AREA_VIEW;
     item    = obj->field_A;
     coord   = extra->coords;
     rot     = coord + 2;

@@ -649,7 +649,7 @@ void func_acropolis_west_elevator_hall_8017D7B0(Task* task)
             if (halfWidth >= 0x60) {
                 halfWidth = 0x5F;
             }
-            if ((*(u32*)&Mc_SaveData.at4.loc & 0xFF00FF) == 0x20005) {
+            if ((GP_LOC_WORD(Mc_SaveData.at4.loc) & GP_LOC_AREA_VIEW) == GP_LOC_KEY(0, 2, 0, 5)) {
                 if (task->spawnArg1 == 0) {
                     halfWidth = 0x5F;
                 } else {

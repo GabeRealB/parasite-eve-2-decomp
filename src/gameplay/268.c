@@ -1505,62 +1505,62 @@ void Gp_RefreshItemRow(GpItemRec* arg0)
 
 void func_800B92CC(void)
 {
-    switch (*(u32*)&Mc_SaveData.at4.loc & 0xFFFF0000) {
-        case 0x1010000:
+    switch (GP_LOC_WORD(Mc_SaveData.at4.loc) & GP_LOC_STAGE_AREA) {
+        case GP_LOC_KEY(1, 1, 0, 0):
             func_80180804();
             break;
-        case 0x10F0000:
+        case GP_LOC_KEY(1, 15, 0, 0):
             func_8017EA68();
             break;
-        case 0x1130000:
+        case GP_LOC_KEY(1, 19, 0, 0):
             func_80181468();
             break;
-        case 0x2010000:
+        case GP_LOC_KEY(2, 1, 0, 0):
             func_8017EA90();
             break;
-        case 0x2110000:
+        case GP_LOC_KEY(2, 17, 0, 0):
             func_8017E9E8();
             break;
-        case 0x21B0000:
+        case GP_LOC_KEY(2, 27, 0, 0):
             func_80181364();
             break;
-        case 0x3010000:
+        case GP_LOC_KEY(3, 1, 0, 0):
             func_8017E9F8();
             break;
-        case 0x3110000:
+        case GP_LOC_KEY(3, 17, 0, 0):
             func_8017EAE0();
             break;
-        case 0x31B0000:
+        case GP_LOC_KEY(3, 27, 0, 0):
             func_8018138C();
             break;
-        case 0x4060000:
+        case GP_LOC_KEY(4, 6, 0, 0):
             func_8017EA78();
             break;
-        case 0x4100000:
+        case GP_LOC_KEY(4, 16, 0, 0):
             func_8017EB2C();
             break;
-        case 0x4140000:
+        case GP_LOC_KEY(4, 20, 0, 0):
             func_8017EDE8();
             break;
-        case 0x41F0000:
+        case GP_LOC_KEY(4, 31, 0, 0):
             func_8017EAB4();
             break;
-        case 0x4290000:
+        case GP_LOC_KEY(4, 41, 0, 0):
             func_8017EA64();
             break;
-        case 0x42F0000:
+        case GP_LOC_KEY(4, 47, 0, 0):
             func_8017EC04();
             break;
-        case 0x5160000:
+        case GP_LOC_KEY(5, 22, 0, 0):
             func_8017EAC4();
             break;
-        case 0x51C0000:
+        case GP_LOC_KEY(5, 28, 0, 0):
             func_8017EA60();
             break;
-        case 0x21E0000:
+        case GP_LOC_KEY(2, 30, 0, 0):
             func_8017EA58();
             break;
-        case 0x31E0000:
+        case GP_LOC_KEY(3, 30, 0, 0):
             func_8017EA74();
             break;
     }

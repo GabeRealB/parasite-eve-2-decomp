@@ -1007,7 +1007,7 @@ void func_actor_400600_80133434(Task* arg0)
         return;
     }
     func_actor_400600_8013B640();
-    if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x03140000) {
+    if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(3, 20, 0, 0)) {
         work->field_76E = 1;
     }
     model->lightMtx   = &work->matrix_40;
@@ -3100,7 +3100,7 @@ s32 func_actor_400600_80137C34(Task* arg0)
             work->field_76D = 0;
             dist            = func_actor_400600_801376EC(arg0);
             if ((u16)(dist - 0x7D1) < 0x3E8) {
-                if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x4080000) {
+                if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 8, 0, 0)) {
                     y = -0x9C4;
                 } else {
                     y = coord->coord.t[1] - dist;
@@ -3517,7 +3517,7 @@ void func_actor_400600_80139110(Task* arg0)
     func_actor_400600_80138AA4(arg0);
     if ((s16)func_actor_400600_80136FA8(arg0) == 0) {
         fns[(s16)work->field_71E](arg0);
-        if ((s16)func_actor_400600_80137C34(arg0) == 0 && (s16)func_actor_400600_80137AF0(arg0) == 0 && (*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x4080000 && work->field_768 != 0 && arg0->extra.tmd->coords->coord.t[0] > 10000) {
+        if ((s16)func_actor_400600_80137C34(arg0) == 0 && (s16)func_actor_400600_80137AF0(arg0) == 0 && (GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 8, 0, 0) && work->field_768 != 0 && arg0->extra.tmd->coords->coord.t[0] > 10000) {
             Actor400600Work* cur = (Actor400600Work*)arg0->work;
 
             cur->field_71C = 0xD;
@@ -4643,7 +4643,7 @@ void func_actor_400600_8013B640(void)
     if (Gp_StateF0.field_25 == 0) {
         /* Same shape as ActorsShared801692e8: each branch makes its own call
          * and jump2's cross-jumping merges the identical tails. */
-        if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x3200000 && gGameSession->at4.loc.place == 1) {
+        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(3, 32, 0, 0) && gGameSession->at4.loc.place == 1) {
             param1[2] = 0x28;
             param1[0] = 2;
             param1[3] = 0;

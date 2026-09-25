@@ -2736,7 +2736,7 @@ void func_actor_444000_80138FC4(GpEnemy* enemy, Task* task)
         work->vel.vx = 0;
     }
 
-    if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x04270000 &&
+    if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 39, 0, 0) &&
         task->extra.tmd->coords->coord.t[0] >= 0x4B65) {
         work->vel.vx = 0;
     }
@@ -2821,7 +2821,7 @@ void func_actor_444000_8013928C(GpEnemy* enemy, Task* task)
 
     work->field_1AC++;
 
-    if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x04270000 &&
+    if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 39, 0, 0) &&
         task->extra.tmd->coords->coord.t[0] >= 0x4B65) {
         work->vel.vx = 0;
     }

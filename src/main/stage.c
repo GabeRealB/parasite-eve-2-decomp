@@ -652,7 +652,7 @@ s32 Display_InitModeObj(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
     temp->field_8 = arg2;
     temp->field_C = arg3;
     if (arg3 == 0) {
-        if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x1050000) {
+        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 5, 0, 0)) {
             temp->field_C = 1;
         }
     }

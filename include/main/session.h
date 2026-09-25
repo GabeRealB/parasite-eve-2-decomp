@@ -63,6 +63,23 @@ typedef union {
 } GameLoc;
 STATIC_ASSERT_SIZEOF(GameLoc, 8);
 
+/// The first four bytes of a place key - view, room, area and stage - read as
+/// one word, which is how code tests for a place. The key is byte-aligned, so
+/// this is a view of its bytes, not a member; it is only ever applied to keys
+/// that sit on a word boundary. Build the value to compare with `GP_LOC_KEY`
+/// and select the bytes that matter with `GP_LOC_STAGE_AREA` or another mask.
+#define GP_LOC_WORD(key) (*(u32*)&(key))
+
+/// `GP_LOC_WORD` of a place: the stage in the high byte, then the area, the
+/// room and the view.
+#define GP_LOC_KEY(stage, area, room, view) \
+    (((u32)(stage) << 24) | ((u32)(area) << 16) | ((u32)(room) << 8) | (u32)(view))
+
+/// Masks of `GP_LOC_WORD` selecting the bytes a test compares.
+#define GP_LOC_STAGE_AREA      GP_LOC_KEY(0xFF, 0xFF, 0, 0)
+#define GP_LOC_STAGE_AREA_VIEW GP_LOC_KEY(0xFF, 0xFF, 0, 0xFF)
+#define GP_LOC_AREA_VIEW       GP_LOC_KEY(0, 0xFF, 0, 0xFF)
+
 /// Live play-state object shared by main and every overlay.
 ///
 /// One BSS instance is pointed to by `gGameSession`. It holds the current

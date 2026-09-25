@@ -2545,7 +2545,7 @@ void Actor01900_Fn06B4C(Task* arg0)
     }
     Actor01900_Fn01C94(arg0);
     if ((work->field_5A & 0x3FF) == 0xF && work->field_894 != (work->field_5A & 0x3FF) &&
-        (*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x01090000) {
+        (GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 9, 0, 0)) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         sound       = 0x51090009;
         if ((u16)((Gp_LcgState >> 16) % 3) == 0) {
@@ -2568,7 +2568,7 @@ void Actor01900_Fn06B4C(Task* arg0)
         work->field_8B8.coord      = arg0->extra.tmd->coords + 1;
         work->field_8B8.spawnArgLo = 0x200;
         work->field_8B8.spawnArgHi = 2;
-        if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) != 0x01030000 || (u8)Gp_GetViewIndex() != 0x10) {
+        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(1, 3, 0, 0) || (u8)Gp_GetViewIndex() != 0x10) {
             func_800FDB18((u16)Gp_GetIdParam1(0x1001), arg0->extra.tmd->coords + 5, NULL, &work->field_8B8);
         }
     }

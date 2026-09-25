@@ -2584,7 +2584,7 @@ void Gp_DrawNoCmd(DialogPrompt* arg0, UiObject* arg1)
 void func_800CFD78(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80114DCC = *(u32*)&gGameSession->at4.loc & 0xFFFF0000;
+        D_80114DCC = GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA;
     }
     switch (D_80114DCC) {
         case 0x1010000:
@@ -2652,7 +2652,7 @@ void Gp_MapTaskState2(Task* arg0)
             obj->field_2C = 0x101;
             func_800D1F90(arg0);
             obj->field_2E = 6;
-            if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x04280000) {
+            if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 40, 0, 0)) {
                 Gp_LoadViewAndCd(1);
             }
             arg0->state = 3;
@@ -2661,7 +2661,7 @@ void Gp_MapTaskState2(Task* arg0)
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             func_800D1F90(arg0);
             obj->field_2E = -1;
-            if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x04280000) {
+            if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 40, 0, 0)) {
                 Gp_LoadViewAndCd(1);
             }
             arg0->state = 3;
@@ -2717,7 +2717,7 @@ void Gp_MapTaskState2(Task* arg0)
         if (child->field_2E == -1) {
             func_800D1F90(arg0);
             obj->field_2E = -1;
-            if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x04280000) {
+            if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 40, 0, 0)) {
                 Gp_LoadViewAndCd(1);
             }
             arg0->state = 3;
