@@ -23,17 +23,17 @@ typedef struct Actor342100 {
 /// at. `field_30` and `field_34` are further message targets, both sent
 /// 0x7DB, and `field_38` is a task the overlay spawns itself: with a non-zero
 /// argument `func_actor_342100_80163454` writes 1 into its
-/// `Task::spawnArg1`. `field_20` / `field_22` are seeded with 0x258 and 0x100
-/// by `func_actor_342100_80163408` just before it hands their address to
-/// `Task_SpawnFromTable` as the fourth argument, and `field_3C` takes
-/// `arg0 + 0x2F` from `func_actor_342100_8016334C`'s integer argument, the
-/// same value that function forwards as the animation message's second word.
+/// `Task::spawnArg1`. `field_3C` takes `arg0 + 0x2F` from
+/// `func_actor_342100_8016334C`'s integer argument, the same value that
+/// function forwards as the animation message's second word.
 ///
-/// `field_24` is raised to 2 by the fade task `func_actor_342100_80162748`,
-/// which reaches this block through `Task::spawnArg2` (that task is spawned
-/// with the task owning this block as its fourth `Task_SpawnFromTable`
-/// argument), at the moment the screen has been blanked white. Nothing in the
-/// decompiled overlay reads it back yet.
+/// The 0xC bytes from `field_20` are the ramp of the screen-wave task
+/// `func_actor_342100_80161E70`, which reads them as an `ActorWaveCtx`:
+/// `func_actor_342100_80163408` seeds its span (`field_20`) and scale
+/// (`field_22`) with 0x258 and 0x100 and spawns the task on it. The fade task
+/// `func_actor_342100_80162748`, which reaches this block through
+/// `Task::spawnArg2`, sets the ramp state (`field_24`) to 2 once the screen
+/// has been blanked white, which ends the wave.
 typedef struct Actor342100Work {
     /* 0x00 */ byte  pad_0[0x20];
     /* 0x20 */ s16   field_20;

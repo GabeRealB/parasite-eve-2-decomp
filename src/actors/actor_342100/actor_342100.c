@@ -23,11 +23,9 @@ extern s16 D_80073BA0;
 extern u8 D_80073BA9;
 extern s8 D_8007218A;
 
-/// Single-entry, type-0 spawn table: `func_actor_342100_80163408` starts entry
-/// 0 and hands it the address of `Actor342100Work::field_20`. The task's
-/// callback takes that block back through `Task::spawnArg2` and works the
-/// surrounding fields -- it reads `field_22` and zeroes the words at +0x4 and
-/// +0x6 -- so the seeded pair and the table belong together.
+/// Single-entry spawn table of the screen-wave task
+/// `func_actor_342100_80161E70`: `func_actor_342100_80163408` starts entry 0
+/// and hands it the address of `Actor342100Work::field_20` as its ramp.
 extern TaskDesc D_actor_342100_801648DC;
 
 /// Null-terminated table of the overlay's per-state message tables, counted
@@ -93,7 +91,7 @@ extern u32 Gp_LcgState;
 /// 0xFF -- and each hands the state machine back to 1 when it clamps, so the
 /// two ramps run back to back. State 4 steps `field_4` / `field_6` by 8; once
 /// `field_4` passes 0xFF the display mode is switched, `Fs_ImgBuffers` is
-/// filled white, the parent work block's `field_24` is raised, and state 5
+/// filled white, the parent work block's wave ramp is sent to state 2, and state 5
 /// draws the full-screen white `TILE` + `DR_TPAGE` packed into
 /// `gGpuPrimCursor` before returning without the fade call. Every other state
 /// -- 1, 6 and up -- only draws the fade.

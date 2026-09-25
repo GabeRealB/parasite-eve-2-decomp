@@ -4174,7 +4174,7 @@ id = 237
 objects = [
   { kind = "packageId" },
   { unit = "actor_342100/actor_342100", rodata = "0x4", text = "0x928" },
-  { lib = true, unit = "actors_shared_80149e54", text = "0x50" },
+  { unit = "actor_342100/actor_342100_2", text = "0x50" },
   { kind = "data", at = "0x1714" },
 ]
 
