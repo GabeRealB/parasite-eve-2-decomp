@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "actors/actor.h"
 #include "actors/actors_shared_8013231c.h"
 
 #include "gameplay/1BC.h"
@@ -28,11 +29,7 @@ extern void* D_actor_113000_8013ABB0[];
 /// `color` are the matrices the TMD object's `lightMtx` / `colorMtx` are
 /// pointed at.
 typedef struct Actor113000Work {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[20];
-    /// The pose buffer `func_800B3F84` is handed, immediately after the
-    /// slots.
-    /* 0x334 */ byte field_334[0x140];
+    /* 0x000 */ ActorAnimRig20 rig;
     /// Raised once a preset has started the slots; the per-frame tick only
     /// advances them while it is set.
     /* 0x474 */ s32    field_474;
@@ -185,7 +182,7 @@ void func_actor_113000_80132070(Task* task)
     extra = (TmdObject*)task->extra;
     if (work->field_474 != 0) {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
     if (!(extra->flags & 0x80)) {
@@ -245,21 +242,21 @@ s32 func_actor_113000_80132208(Task* task, s32 msgId, GpAnimArg* msg, s32 arg3)
     if (msg->animBlock.index != work->field_47C) {
         work->field_47C = msg->animBlock.index;
         work->field_478 = -1;
-        func_800B3F84(&work->anim, D_actor_113000_8013ABB0[work->field_47C], ext, work->field_334,
-                      work->slots);
+        func_800B3F84(&work->rig.anim, D_actor_113000_8013ABB0[work->field_47C], ext, work->rig.poses,
+                      work->rig.slots);
     }
     work->field_478 = msg->field_4;
     if (msg->field_8 != 0) {
         for (i = 1; i < 0x14; i++) {
-            func_800B4114(&work->anim, i, work->field_478, 0, 6);
+            func_800B4114(&work->rig.anim, i, work->field_478, 0, 6);
         }
     } else {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimResetSlot(&work->anim, i, work->field_478);
+            Gp_AnimResetSlot(&work->rig.anim, i, work->field_478);
         }
     }
     for (i = 1; i < 0x14; i++) {
-        Gp_AnimTickIndex(&work->anim, i);
+        Gp_AnimTickIndex(&work->rig.anim, i);
     }
     work->field_474 = 1;
     return 0;

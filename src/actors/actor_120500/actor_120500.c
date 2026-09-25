@@ -29,20 +29,18 @@
 /// through `TmdObject::lightMtx` / `colorMtx`. The three code/phase pairs at
 /// the end are requests the setters arm and the tick consumes.
 typedef struct Actor120500Work {
-    /* 0x000 */ GpAnimCtx  anim;             // `func_800B3F84` arg0
-    /* 0x014 */ GpAnimSlot slots[0x14];
-    /* 0x334 */ byte       field_334[0x140]; // pose buffer, `func_800B3F84` arg3
-    /* 0x474 */ MATRIX     field_474;        // light matrix, into TmdObject::lightMtx
-    /* 0x494 */ MATRIX     field_494;        // colour matrix, into TmdObject::colorMtx
-    /* 0x4B4 */ Task*      field_4B4;        // task in pointer slot 3, the animation messages' target
-    /* 0x4B8 */ s16        field_4B8;
-    /* 0x4BA */ s16        field_4BA;
-    /* 0x4BC */ byte       pad_4BC[0x4];
-    /* 0x4C0 */ u16        field_4C0;
-    /* 0x4C2 */ s16        field_4C2;
-    /* 0x4C4 */ byte       pad_4C4[0x4];
-    /* 0x4C8 */ u16        field_4C8;
-    /* 0x4CA */ s16        field_4CA;
+    /* 0x000 */ ActorAnimRig20 rig;
+    /* 0x474 */ MATRIX         field_474; // light matrix, into TmdObject::lightMtx
+    /* 0x494 */ MATRIX         field_494; // colour matrix, into TmdObject::colorMtx
+    /* 0x4B4 */ Task*          field_4B4; // task in pointer slot 3, the animation messages' target
+    /* 0x4B8 */ s16            field_4B8;
+    /* 0x4BA */ s16            field_4BA;
+    /* 0x4BC */ byte           pad_4BC[0x4];
+    /* 0x4C0 */ u16            field_4C0;
+    /* 0x4C2 */ s16            field_4C2;
+    /* 0x4C4 */ byte           pad_4C4[0x4];
+    /* 0x4C8 */ u16            field_4C8;
+    /* 0x4CA */ s16            field_4CA;
 } Actor120500Work;
 STATIC_ASSERT_SIZEOF(Actor120500Work, 0x4CC);
 
@@ -319,13 +317,13 @@ void func_actor_120500_801322A0(Task* arg0)
         id = place->entryId;
     }
     Gp_SetTmdBytes(tmd, ((s8*)place)[0xD], ((s8*)place)[0xE]);
-    func_800B3F84(&work->anim, D_actor_120500_80138088, tmd, work->field_334, work->slots);
+    func_800B3F84(&work->rig.anim, D_actor_120500_80138088, tmd, work->rig.poses, work->rig.slots);
     slotsWork      = (Actor120500Work*)arg0->work;
     arg0->msgTable = &D_actor_120500_80138408;
     i              = 1;
     do {
-        slotsWork->slots[(u16)i].rate = 0x10;
-        Gp_AnimResetSlot(&slotsWork->anim, (u16)i, 1);
+        slotsWork->rig.slots[(u16)i].rate = 0x10;
+        Gp_AnimResetSlot(&slotsWork->rig.anim, (u16)i, 1);
         i++;
     } while ((u16)i < 0x14U);
 }
@@ -395,13 +393,13 @@ void func_actor_120500_8013241C(Task* arg0)
 
     i = 1;
     do {
-        Gp_AnimTickIndex(&slotsWork->anim, (u16)i);
+        Gp_AnimTickIndex(&slotsWork->rig.anim, (u16)i);
         i++;
     } while ((u16)i < 0x14U);
 
     i = 1;
 loop_slots:
-    if ((slotsWork->slots[(u16)i].flags & 1) != 0) {
+    if ((slotsWork->rig.slots[(u16)i].flags & 1) != 0) {
         i++;
         if ((u16)i < 0x14U) {
             goto loop_slots;

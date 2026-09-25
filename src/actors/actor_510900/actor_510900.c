@@ -45,18 +45,6 @@ typedef struct Actor510900SprClut {
 } Actor510900SprClut;
 STATIC_ASSERT_SIZEOF(Actor510900SprClut, 4);
 
-/// Animation view of `Actor510900Work`'s prefix. `func_800B3F84` is handed the
-/// block as a `GpAnimCtx`, the nineteen `GpAnimSlot`s that live at 0x14 and the
-/// pose buffer that follows them at 0x30C -- the same bytes the child-task
-/// views (`Actor510900ChildAnim`, `Actor510900ChildWork`) label as `GpObj`s,
-/// which is why the handlers reach slot 1 as `&work->obj38.prev`.
-typedef struct Actor510900Anim {
-    /* 0x000 */ GpAnimCtx  context;
-    /* 0x014 */ GpAnimSlot slots[0x13];
-    /* 0x30C */ byte       poses[0x130];
-} Actor510900Anim;
-STATIC_ASSERT_SIZEOF(Actor510900Anim, 0x43C);
-
 void Gp_DrawEffSprite7C(GsCOORDINATE2* arg0, s32 arg1, u32 arg2);
 
 void func_actor_510900_80134C90(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
@@ -1237,7 +1225,7 @@ void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1)
     work->field_53C.spawnArgLo = 0x400;
     work->field_53C.spawnArgHi = 2;
     func_800B3F84((GpAnimCtx*)work, D_actor_510900_80167AA4, (TmdObject*)obj,
-                  ((Actor510900Anim*)work)->poses, ((Actor510900Anim*)work)->slots);
+                  ((ActorAnimRig19*)work)->poses, ((ActorAnimRig19*)work)->slots);
     for (i = 1; i < 0x13; i++) {
         Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
     }

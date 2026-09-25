@@ -30,9 +30,7 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 typedef struct Actor311500Work {
     /// Animation context the block itself begins with: `func_actor_311500_80162F28`
     /// hands the block straight to `func_800B4114` / `Gp_AnimTickIndex`.
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[19];
-    /* 0x30C */ byte       pad_30C[0x130];
+    /* 0x000 */ ActorAnimRig19 rig;
     /// List node `func_actor_311500_801630A4` unlinks on the first step of
     /// state 1. Sits directly in front of the collision table.
     /* 0x43C */ GpObj field_43C;
@@ -303,16 +301,16 @@ void func_actor_311500_801629D8(Task* arg0)
     tmd->lightMtx = &work2->light;
     tmd->colorMtx = &work2->color;
     tmd->flags    = 0;
-    func_800B3F84(&work2->anim, D_actor_311500_801692F4, tmd, work2->pad_30C,
-                  &work2->slots[0]);
+    func_800B3F84(&work2->rig.anim, D_actor_311500_801692F4, tmd, work2->rig.poses,
+                  &work2->rig.slots[0]);
     work2->field_4B4 = gameGetPtrSlot(3);
     work2->field_4B8 = Player_Status.coordMtx;
     rate             = 0x10;
     i                = 1;
     work3            = (Actor311500Work*)arg0->work;
     do {
-        work3->slots[i & 0xFFFF].rate = rate;
-        Gp_AnimResetSlot(&work3->anim, i & 0xFFFF, 0);
+        work3->rig.slots[i & 0xFFFF].rate = rate;
+        Gp_AnimResetSlot(&work3->rig.anim, i & 0xFFFF, 0);
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
     enemy->field_48   = 0;
@@ -373,8 +371,8 @@ void func_actor_311500_80162C34(Task* arg0, TmdObject* arg1)
                 anim = arg0->work;
                 i    = 1;
                 do {
-                    anim->slots[i & 0xFFFF].rate = rate;
-                    Gp_AnimResetSlot(&anim->anim, i & 0xFFFF, 0);
+                    anim->rig.slots[i & 0xFFFF].rate = rate;
+                    Gp_AnimResetSlot(&anim->rig.anim, i & 0xFFFF, 0);
                     i += 1;
                 } while (((u32)(i & 0xFFFF)) < 0x13U);
                 work->field_4C0 = (u16)work->field_4C0 + 2;
@@ -395,10 +393,10 @@ void func_actor_311500_80162C34(Task* arg0, TmdObject* arg1)
             anim2 = work;
             i     = 1;
             do {
-                Gp_AnimTickIndex(&anim2->anim, i & 0xFFFF);
+                Gp_AnimTickIndex(&anim2->rig.anim, i & 0xFFFF);
                 i += 1;
             } while (((u32)(i & 0xFFFF)) < 0x13U);
-            if (!(anim2->slots[1].flags & 1)) {
+            if (!(anim2->rig.slots[1].flags & 1)) {
                 SOFT_BARRIER();
                 v = 0;
             } else {
@@ -479,7 +477,7 @@ s32 func_actor_311500_80162F28(Task* arg0)
       i = 1;
       do
     {
-      func_800B4114(&anim->anim, i & 0xFFFF, 1, 0, 0xA);
+      func_800B4114(&anim->rig.anim, i & 0xFFFF, 1, 0, 0xA);
       i += 1;
     }
     while (((u32) (i & 0xFFFF)) < 0x13U);
@@ -501,11 +499,11 @@ s32 func_actor_311500_80162F28(Task* arg0)
     case 1:
       i = 1;
       do {
-      Gp_AnimTickIndex(&work->anim, i & 0xFFFF);
+      Gp_AnimTickIndex(&work->rig.anim, i & 0xFFFF);
       i += 1;
       } while (((u32) (i & 0xFFFF)) < 0x13U);
       var_v1 = 1;
-      if (!(work->slots[1].flags & 1)) {
+      if (!(work->rig.slots[1].flags & 1)) {
       asm("");
       var_v1 = 0;
       }
@@ -673,7 +671,7 @@ case0:
             anim = work;
             i    = 1;
             do {
-                Gp_AnimTickIndex(&anim->anim, i & 0xFFFF);
+                Gp_AnimTickIndex(&anim->rig.anim, i & 0xFFFF);
                 i += 1;
             } while (((u32)(i & 0xFFFF)) < 0x13U);
             actor->state += 1;

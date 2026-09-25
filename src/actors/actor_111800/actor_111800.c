@@ -24,21 +24,19 @@
 /// `field_45C` are the light and colour matrices handed to the model
 /// `TmdObject`.
 typedef struct Actor111800Work {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[0x13];
-    /* 0x30C */ byte       field_30C[0x130];
-    /* 0x43C */ MATRIX     field_43C;
-    /* 0x45C */ MATRIX     field_45C;
-    /* 0x47C */ void*      field_47C; // gameGetPtrSlot(3)
-    /* 0x480 */ MATRIX*    field_480; // Player_Status.coordMtx, the player's coordinate matrix
-    /* 0x484 */ u16        field_484; // sequence step the per-frame handler switches on
-    /* 0x486 */ byte       pad_486[2];
-    /* 0x488 */ u16        field_488; // frames spent in the current step
-    /* 0x48A */ byte       pad_48A[2];
-    /* 0x48C */ s16        field_48C; // angle ramped in steps 1 and 3
-    /* 0x48E */ byte       pad_48E[4];
-    /* 0x492 */ s16        field_492; // latched copy of slots[1].curRec
-    /* 0x494 */ s16        field_494; // angle ramped in step 1; spawn seeds 0x155
+    /* 0x000 */ ActorAnimRig19 rig;
+    /* 0x43C */ MATRIX         field_43C;
+    /* 0x45C */ MATRIX         field_45C;
+    /* 0x47C */ void*          field_47C; // gameGetPtrSlot(3)
+    /* 0x480 */ MATRIX*        field_480; // Player_Status.coordMtx, the player's coordinate matrix
+    /* 0x484 */ u16            field_484; // sequence step the per-frame handler switches on
+    /* 0x486 */ byte           pad_486[2];
+    /* 0x488 */ u16            field_488; // frames spent in the current step
+    /* 0x48A */ byte           pad_48A[2];
+    /* 0x48C */ s16            field_48C; // angle ramped in steps 1 and 3
+    /* 0x48E */ byte           pad_48E[4];
+    /* 0x492 */ s16            field_492; // latched copy of slots[1].curRec
+    /* 0x494 */ s16            field_494; // angle ramped in step 1; spawn seeds 0x155
 } Actor111800Work;
 STATIC_ASSERT_SIZEOF(Actor111800Work, 0x498);
 
@@ -102,14 +100,14 @@ void func_actor_111800_8013214C(Task* task)
     ctx   = work;
     coord = obj->coords;
     do {
-        Gp_AnimTickIndex(&ctx->anim, i & 0xFFFF);
+        Gp_AnimTickIndex(&ctx->rig.anim, i & 0xFFFF);
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
     SCHED_BARRIER();
     SCHED_BARRIER();
     SCHED_BARRIER();
     SCHED_BARRIER();
-    ctx->field_492 = ctx->slots[1].curRec;
+    ctx->field_492 = ctx->rig.slots[1].curRec;
     switch (work->field_484) {
         case 0:
             work0            = (Actor111800Work*)task->work;
@@ -117,7 +115,7 @@ void func_actor_111800_8013214C(Task* task)
             SCHED_BARRIER();
             i = 1;
             do {
-                func_800B4114(&work0->anim, i & 0xFFFF, 0, 0, 0xF);
+                func_800B4114(&work0->rig.anim, i & 0xFFFF, 0, 0, 0xF);
                 i += 1;
             } while ((u32)(i & 0xFFFF) < 0x13U);
             goto advance;
@@ -161,7 +159,7 @@ void func_actor_111800_8013214C(Task* task)
             work4->field_492 = 0;
             SCHED_BARRIER();
             do {
-                func_800B4114(&work4->anim, i & 0xFFFF, 2, 0, 0xA);
+                func_800B4114(&work4->rig.anim, i & 0xFFFF, 2, 0, 0xA);
                 i += 1;
             } while ((u32)(i & 0xFFFF) < 0x13U);
             goto advance;
@@ -215,16 +213,16 @@ void func_actor_111800_80132390(Task* task)
     obj->lightMtx = &work->field_43C;
     obj->colorMtx = &work->field_45C;
     obj->flags    = 0;
-    func_800B3F84(&work->anim, D_actor_111800_8013A448, obj, work->field_30C,
-                  &work->slots[0]);
+    func_800B3F84(&work->rig.anim, D_actor_111800_8013A448, obj, work->rig.poses,
+                  &work->rig.slots[0]);
     work->field_47C  = gameGetPtrSlot(3);
     work->field_480  = Player_Status.coordMtx;
     i                = 1;
     work2            = (Actor111800Work*)task->work;
     work2->field_492 = 0;
     do {
-        work2->slots[i & 0xFFFF].rate = 0x10;
-        Gp_AnimResetSlot(&work2->anim, i & 0xFFFF, 5);
+        work2->rig.slots[i & 0xFFFF].rate = 0x10;
+        Gp_AnimResetSlot(&work2->rig.anim, i & 0xFFFF, 5);
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
     work->field_494 = 0x155;
@@ -301,10 +299,10 @@ void func_actor_111800_8013251C(Task* task)
             ctx = work;
             i   = 1;
             do {
-                Gp_AnimTickIndex(&ctx->anim, i & 0xFFFF);
+                Gp_AnimTickIndex(&ctx->rig.anim, i & 0xFFFF);
                 i += 1;
             } while ((u32)(i & 0xFFFF) < 0x13U);
-            ctx->field_492 = ctx->slots[1].curRec;
+            ctx->field_492 = ctx->rig.slots[1].curRec;
             viewMtx        = work->field_480;
             x              = viewMtx->t[0];
             if ((x >= 0x5DD && viewMtx->t[2] >= -0x513) || (x >= 0xC81 && viewMtx->t[2] < -0x514)) {

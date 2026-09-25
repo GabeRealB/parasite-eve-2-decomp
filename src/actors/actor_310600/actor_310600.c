@@ -2,6 +2,7 @@
 
 #include <psyq/libgte.h>
 
+#include "actors/actor.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -32,33 +33,31 @@
 /// bank index and the animation id, latched on change and re-read from the
 /// block by the loops below them.
 typedef struct Actor310600Work {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[0x14];
-    /* 0x334 */ byte       field_334[0x140];
-    /* 0x474 */ s8         field_474;
-    /* 0x475 */ s8         field_475;
-    /* 0x476 */ s8         field_476;
-    /* 0x477 */ s8         field_477;
-    /* 0x478 */ s16        field_478;
-    /* 0x47A */ s16        field_47A;
-    /* 0x47C */ s16        field_47C;
-    /* 0x47E */ u16        field_47E;
-    /* 0x480 */ MATRIX     light;
-    /* 0x4A0 */ MATRIX     color;
-    /* 0x4C0 */ GpObj      obj;
-    /* 0x4E0 */ GpRec18    rec;
-    /* 0x4F8 */ s32        field_4F8;
-    /* 0x4FC */ s32        field_4FC;
-    /* 0x500 */ s32        field_500;
-    /* 0x504 */ byte       pad_504[0x4];
-    /* 0x508 */ VECTOR3    step; // local-space offset `ApplyMatrixLV` rotates into world space
-    /* 0x514 */ byte       pad_514[0x4];
-    /* 0x518 */ s32        field_518;
-    /* 0x51C */ s32        field_51C;
-    /* 0x520 */ s32        field_520;
-    /* 0x524 */ byte       pad_524[0x4];
-    /* 0x528 */ SVECTOR    limit; // per-axis stop threshold; 0x7FFF on all three disables it
-    /* 0x530 */ byte       pad_530[0x8];
+    /* 0x000 */ ActorAnimRig20 rig;
+    /* 0x474 */ s8             field_474;
+    /* 0x475 */ s8             field_475;
+    /* 0x476 */ s8             field_476;
+    /* 0x477 */ s8             field_477;
+    /* 0x478 */ s16            field_478;
+    /* 0x47A */ s16            field_47A;
+    /* 0x47C */ s16            field_47C;
+    /* 0x47E */ u16            field_47E;
+    /* 0x480 */ MATRIX         light;
+    /* 0x4A0 */ MATRIX         color;
+    /* 0x4C0 */ GpObj          obj;
+    /* 0x4E0 */ GpRec18        rec;
+    /* 0x4F8 */ s32            field_4F8;
+    /* 0x4FC */ s32            field_4FC;
+    /* 0x500 */ s32            field_500;
+    /* 0x504 */ byte           pad_504[0x4];
+    /* 0x508 */ VECTOR3        step; // local-space offset `ApplyMatrixLV` rotates into world space
+    /* 0x514 */ byte           pad_514[0x4];
+    /* 0x518 */ s32            field_518;
+    /* 0x51C */ s32            field_51C;
+    /* 0x520 */ s32            field_520;
+    /* 0x524 */ byte           pad_524[0x4];
+    /* 0x528 */ SVECTOR        limit; // per-axis stop threshold; 0x7FFF on all three disables it
+    /* 0x530 */ byte           pad_530[0x8];
 } Actor310600Work;
 STATIC_ASSERT_SIZEOF(Actor310600Work, 0x538);
 
@@ -220,7 +219,7 @@ void func_actor_310600_80161FA0(Task* task)
     work->field_520    = (u16)work->field_520;
     if (work->field_474 != 0) {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
     if (work->field_475 > 0) {
@@ -351,23 +350,23 @@ s32 func_actor_310600_8016246C(Task* task, s32 arg1, GpAnimArg* cmd, s32 arg3)
     if (cmd->animBlock.index != work->field_476) {
         work->field_476 = cmd->animBlock.index;
         work->field_475 = -1;
-        func_800B3F84(&work->anim, D_actor_310600_80179640[work->field_476], ext, work->field_334,
-                      work->slots);
+        func_800B3F84(&work->rig.anim, D_actor_310600_80179640[work->field_476], ext, work->rig.poses,
+                      work->rig.slots);
     }
     if (cmd->field_4 != work->field_475) {
         work->field_475 = cmd->field_4;
         if (cmd->field_8 != 0) {
             for (i = 1; i < 0x14; i++) {
-                func_800B4114(&work->anim, i, work->field_475, 0, cmd->field_C);
+                func_800B4114(&work->rig.anim, i, work->field_475, 0, cmd->field_C);
             }
         } else {
             for (i = 1; i < 0x14; i++) {
-                Gp_AnimResetSlot(&work->anim, i, work->field_475);
+                Gp_AnimResetSlot(&work->rig.anim, i, work->field_475);
             }
         }
         for (j = 0; j <= D_actor_310600_80179644[work->field_475]; j++) {
             for (i = 1; i < 0x14; i++) {
-                Gp_AnimTickIndex(&work->anim, i);
+                Gp_AnimTickIndex(&work->rig.anim, i);
             }
         }
         work->field_474 = 1;

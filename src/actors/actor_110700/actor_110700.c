@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "actors/actor.h"
 #include "actors/actors_shared_80132074.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -12,12 +13,10 @@
 /// `Task::work`. It holds the model's animation context and slot array and the
 /// light and colour matrices the model is drawn under.
 typedef struct Actor110700Work {
-    GpAnimCtx  anim;
-    GpAnimSlot slots[0x13];
-    byte       field_30C[0x130]; // the fourth argument `func_800B3F84` is handed
-    MATRIX     colorMtx;
-    MATRIX     lightMtx;
-    s32        animId; // animation the slots were last seeded with; 0 until message 0x7D3 arrives
+    ActorAnimRig19 rig;
+    MATRIX         colorMtx;
+    MATRIX         lightMtx;
+    s32            animId; // animation the slots were last seeded with; 0 until message 0x7D3 arrives
 } Actor110700Work;
 STATIC_ASSERT_SIZEOF(Actor110700Work, 0x480);
 
@@ -66,7 +65,7 @@ void func_actor_110700_80131E78(GpEnemy* enemy, Task* task)
     obj->lightMtx = &work->lightMtx;
     obj->colorMtx = &work->colorMtx;
     obj->flags    = 0;
-    func_800B3F84(&work->anim, D_actor_110700_8013BFC0, obj, work->field_30C, work->slots);
+    func_800B3F84(&work->rig.anim, D_actor_110700_8013BFC0, obj, work->rig.poses, work->rig.slots);
     work->animId   = 0;
     task->msgTable = D_actor_110700_8013BFA0;
     coord->flg     = 0;
@@ -89,7 +88,7 @@ void func_actor_110700_80131F44(GpEnemy* enemy, Task* task)
     block                   = (VECTOR*)*(void**)G_SCRATCH_HEAD;
     if (work->animId != 0) {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
     block->vx = coord->workm.t[0];
@@ -110,7 +109,7 @@ s32 func_actor_110700_8013201C(Task* task, s32 msgId, GpAnimArg* args)
     work->animId = args->field_4;
     i            = 1;
     do {
-        Gp_AnimResetSlot(&work->anim, i, work->animId);
+        Gp_AnimResetSlot(&work->rig.anim, i, work->animId);
         i++;
     } while (i < 0x13);
     return 0;

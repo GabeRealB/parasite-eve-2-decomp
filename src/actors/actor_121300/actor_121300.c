@@ -45,13 +45,11 @@ extern TaskDesc D_actor_121300_8013D390;
 /// model's light and colour matrices, published through `TmdObject::lightMtx`
 /// / `field_20`.
 typedef struct Actor121300Work {
-    /* 0x000 */ GpAnimCtx      anim;             // `func_800B3F84` arg0
-    /* 0x014 */ GpAnimSlot     slots[0x13];
-    /* 0x30C */ byte           field_30C[0x130]; // pose buffer, `func_800B3F84` arg3
-    /* 0x43C */ MATRIX         field_43C;        // light matrix, into TmdObject::lightMtx
-    /* 0x45C */ MATRIX         field_45C;        // colour matrix, into TmdObject::colorMtx
-    /* 0x47C */ OverlayWaveCtx wave;             // ramp of the screen-wave task `func_actor_121300_80131EB0`
-    /* 0x488 */ Task*          field_488;        // gameGetPtrSlot(3) task, the Gp_DispatchMsg target
+    /* 0x000 */ ActorAnimRig19 rig;
+    /* 0x43C */ MATRIX         field_43C; // light matrix, into TmdObject::lightMtx
+    /* 0x45C */ MATRIX         field_45C; // colour matrix, into TmdObject::colorMtx
+    /* 0x47C */ OverlayWaveCtx wave;      // ramp of the screen-wave task `func_actor_121300_80131EB0`
+    /* 0x488 */ Task*          field_488; // gameGetPtrSlot(3) task, the Gp_DispatchMsg target
     /* 0x48C */ Task*          field_48C;
     /* 0x490 */ byte           pad_490[0x8];
     /* 0x498 */ s16            field_498; // set by func_actor_121300_80134250
@@ -394,12 +392,12 @@ s32 func_actor_121300_80132818(Task* arg0)
 
     work = (Actor121300Work*)arg0->work;
     for (i = 1; i < 0x13; i++) {
-        Gp_AnimTickIndex(&work->anim, i);
+        Gp_AnimTickIndex(&work->rig.anim, i);
     }
     i    = 1;
     done = 1;
     for (; i < 0x13; i++) {
-        if (!(work->slots[i].flags & 0x100)) {
+        if (!(work->rig.slots[i].flags & 0x100)) {
             goto fail;
         }
     }
@@ -415,7 +413,7 @@ check:
             goto check;
         loop:
             for (i = 1; i < 0x13; i++) {
-                func_800B4114(&ctx->anim, i, anim, 0, 10);
+                func_800B4114(&ctx->rig.anim, i, anim, 0, 10);
             }
         }
         return 1;
@@ -864,7 +862,7 @@ static inline void func_actor_121300_PlayAll(Task* arg0, s32 anim)
     work->field_4A0 = anim;
     SCHED_BARRIER();
     for (i = 1; i < 0x13; i++) {
-        func_800B4114(&work->anim, i, anim, 0, 10);
+        func_800B4114(&work->rig.anim, i, anim, 0, 10);
     }
 }
 
@@ -893,8 +891,8 @@ void func_actor_121300_80133854(Task* arg0)
                 slotsWork            = (Actor121300Work*)arg0->work;
                 slotsWork->field_4A0 = 1;
                 for (i = 1; (u16)i < 0x13U; i++) {
-                    slotsWork->slots[(u16)i].rate = 0x10;
-                    Gp_AnimResetSlot(&slotsWork->anim, (u16)i, 1);
+                    slotsWork->rig.slots[(u16)i].rate = 0x10;
+                    Gp_AnimResetSlot(&slotsWork->rig.anim, (u16)i, 1);
                 }
             }
             work->field_498 = 0;
@@ -934,8 +932,8 @@ void func_actor_121300_80133854(Task* arg0)
                     slotsWork            = (Actor121300Work*)arg0->work;
                     slotsWork->field_4A0 = 1;
                     for (i = 1; (u16)i < 0x13U; i++) {
-                        slotsWork->slots[(u16)i].rate = 0x10;
-                        Gp_AnimResetSlot(&slotsWork->anim, (u16)i, 1);
+                        slotsWork->rig.slots[(u16)i].rate = 0x10;
+                        Gp_AnimResetSlot(&slotsWork->rig.anim, (u16)i, 1);
                     }
                 }
                 func_8017F438(1);
@@ -1035,14 +1033,14 @@ void func_actor_121300_80133BFC(Task* arg0)
     }
     Gp_SetTmdBytes(tmd, ((s8*)place)[0xD], ((s8*)place)[0xE]);
     work->field_4AC = (s16)(s8)place->tpage;
-    func_800B3F84(&work->anim, &D_actor_121300_8013CC08, tmd, work->field_30C,
-                  work->slots);
+    func_800B3F84(&work->rig.anim, &D_actor_121300_8013CC08, tmd, work->rig.poses,
+                  work->rig.slots);
     slotsWork            = (Actor121300Work*)arg0->work;
     slotsWork->field_4A0 = 1;
     i                    = 1;
     do {
-        slotsWork->slots[(u16)i].rate = 0x10;
-        Gp_AnimResetSlot(&slotsWork->anim, (u16)i, 1);
+        slotsWork->rig.slots[(u16)i].rate = 0x10;
+        Gp_AnimResetSlot(&slotsWork->rig.anim, (u16)i, 1);
         i++;
     } while ((u16)i < 0x13U);
     arg0->msgTable = &D_actor_121300_8013CC88;

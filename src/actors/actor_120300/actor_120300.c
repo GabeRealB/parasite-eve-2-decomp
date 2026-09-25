@@ -33,30 +33,28 @@
 /// after parking 8 in `field_4D4`, then lifts the scale at `field_4E0` to
 /// 0x1000 once the actor is up.
 typedef struct Actor120300Work {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[20];
-    /* 0x334 */ byte       pad_334[0x140];
-    /* 0x474 */ MATRIX     field_474; // light matrix, into TmdObject::lightMtx
-    /* 0x494 */ MATRIX     field_494; // colour matrix, into TmdObject::colorMtx
-    /* 0x4B4 */ Task*      field_4B4; // Gp_DispatchMsg target for msgs 0x3E8/0x3E9
-    /* 0x4B8 */ Task*      field_4B8;
-    /* 0x4BC */ Task*      field_4BC;
-    /* 0x4C0 */ s16        field_4C0;
-    /* 0x4C2 */ s16        field_4C2;
-    /* 0x4C4 */ u16        field_4C4; // phase countdown; request 9 advances once it reaches 0x10
-    /* 0x4C6 */ byte       pad_4C6[0x2];
-    /* 0x4C8 */ s16        field_4C8;
-    /* 0x4CA */ s16        field_4CA;
-    /* 0x4CC */ byte       pad_4CC[0x6];
-    /* 0x4D2 */ u16        field_4D2; // animation index sent with message 0x3F4
-    /* 0x4D4 */ u16        field_4D4; // animation id, indexed into the -1-terminated table below; written by func_actor_120300_80133330
-    /* 0x4D6 */ u16        field_4D6;
-    /* 0x4D8 */ u16        field_4D8;
-    /* 0x4DA */ u16        field_4DA;
-    /* 0x4DC */ s16        field_4DC; // facing, copied to and from the player's aim yaw
-    /* 0x4DE */ s16        field_4DE; // player-eff flag: Gp_SpawnWeaponEff
-    /* 0x4E0 */ s16        field_4E0; // uniform scale: broadcast to all three axes of a ScaleMatrix vector, so 0x1000 is 1.0
-    /* 0x4E2 */ byte       pad_4E2[0x2];
+    /* 0x000 */ ActorAnimRig20 rig;
+    /* 0x474 */ MATRIX         field_474; // light matrix, into TmdObject::lightMtx
+    /* 0x494 */ MATRIX         field_494; // colour matrix, into TmdObject::colorMtx
+    /* 0x4B4 */ Task*          field_4B4; // Gp_DispatchMsg target for msgs 0x3E8/0x3E9
+    /* 0x4B8 */ Task*          field_4B8;
+    /* 0x4BC */ Task*          field_4BC;
+    /* 0x4C0 */ s16            field_4C0;
+    /* 0x4C2 */ s16            field_4C2;
+    /* 0x4C4 */ u16            field_4C4; // phase countdown; request 9 advances once it reaches 0x10
+    /* 0x4C6 */ byte           pad_4C6[0x2];
+    /* 0x4C8 */ s16            field_4C8;
+    /* 0x4CA */ s16            field_4CA;
+    /* 0x4CC */ byte           pad_4CC[0x6];
+    /* 0x4D2 */ u16            field_4D2; // animation index sent with message 0x3F4
+    /* 0x4D4 */ u16            field_4D4; // animation id, indexed into the -1-terminated table below; written by func_actor_120300_80133330
+    /* 0x4D6 */ u16            field_4D6;
+    /* 0x4D8 */ u16            field_4D8;
+    /* 0x4DA */ u16            field_4DA;
+    /* 0x4DC */ s16            field_4DC; // facing, copied to and from the player's aim yaw
+    /* 0x4DE */ s16            field_4DE; // player-eff flag: Gp_SpawnWeaponEff
+    /* 0x4E0 */ s16            field_4E0; // uniform scale: broadcast to all three axes of a ScaleMatrix vector, so 0x1000 is 1.0
+    /* 0x4E2 */ byte           pad_4E2[0x2];
 } Actor120300Work;
 STATIC_ASSERT_SIZEOF(Actor120300Work, 0x4E4);
 
@@ -138,12 +136,12 @@ s32 func_actor_120300_80131EE0(Task* arg0)
 
     work = (Actor120300Work*)arg0->work;
     for (i = 1; i < 0x14; i++) {
-        Gp_AnimTickIndex(&work->anim, i);
+        Gp_AnimTickIndex(&work->rig.anim, i);
     }
     i    = 1;
     done = 1;
     for (; i < 0x14; i++) {
-        if (!(work->slots[i].flags & 0x100)) {
+        if (!(work->rig.slots[i].flags & 0x100)) {
             goto fail;
         }
     }
@@ -159,7 +157,7 @@ check:
             goto check;
         loop:
             for (i = 1; i < 0x14; i++) {
-                func_800B4114(&animWork->anim, i, anim, 0, 10);
+                func_800B4114(&animWork->rig.anim, i, anim, 0, 10);
             }
         }
         return 1;
@@ -772,8 +770,8 @@ void func_actor_120300_80132C60(Task* arg0)
                     TOUCH_REG(t);
                     animWork->field_4D4 = t;
                     do {
-                        animWork->slots[(u16)i].rate = n;
-                        Gp_AnimResetSlot(&animWork->anim, (u16)i, 1);
+                        animWork->rig.slots[(u16)i].rate = n;
+                        Gp_AnimResetSlot(&animWork->rig.anim, (u16)i, 1);
                         i++;
                     } while ((u16)i < 0x14U);
                     work->field_4CA = (u16)work->field_4CA + 1;
@@ -790,7 +788,7 @@ void func_actor_120300_80132C60(Task* arg0)
                         i = 1;
                         n = 10;
                         do {
-                            func_800B4114(&animWork->anim, (u16)i, 0xE, 0, n);
+                            func_800B4114(&animWork->rig.anim, (u16)i, 0xE, 0, n);
                             i++;
                         } while ((u16)i < 0x14U);
                         work->field_4C8 = 0;
@@ -809,7 +807,7 @@ void func_actor_120300_80132C60(Task* arg0)
             i = 1;
             n = 10;
             do {
-                func_800B4114(&animWork->anim, (u16)i, 4, 0, n);
+                func_800B4114(&animWork->rig.anim, (u16)i, 4, 0, n);
                 i++;
             } while ((u16)i < 0x14U);
             work->field_4C8 = 0;
@@ -821,7 +819,7 @@ void func_actor_120300_80132C60(Task* arg0)
             i = 1;
             n = 10;
             do {
-                func_800B4114(&animWork->anim, (u16)i, 0x12, 0, n);
+                func_800B4114(&animWork->rig.anim, (u16)i, 0x12, 0, n);
                 i++;
             } while ((u16)i < 0x14U);
             work->field_4C8 = 0;
@@ -833,7 +831,7 @@ void func_actor_120300_80132C60(Task* arg0)
             i = 1;
             n = 10;
             do {
-                func_800B4114(&animWork->anim, (u16)i, 6, 0, n);
+                func_800B4114(&animWork->rig.anim, (u16)i, 6, 0, n);
                 i++;
             } while ((u16)i < 0x14U);
             work->field_4C8 = 0;
@@ -845,7 +843,7 @@ void func_actor_120300_80132C60(Task* arg0)
             i = 1;
             n = 10;
             do {
-                func_800B4114(&animWork->anim, (u16)i, 7, 0, n);
+                func_800B4114(&animWork->rig.anim, (u16)i, 7, 0, n);
                 i++;
             } while ((u16)i < 0x14U);
             work->field_4C8 = 0;
@@ -857,7 +855,7 @@ void func_actor_120300_80132C60(Task* arg0)
             i = 1;
             n = 10;
             do {
-                func_800B4114(&animWork->anim, (u16)i, 0xD, 0, n);
+                func_800B4114(&animWork->rig.anim, (u16)i, 0xD, 0, n);
                 i++;
             } while ((u16)i < 0x14U);
             work->field_4C8 = 0;
@@ -870,8 +868,8 @@ void func_actor_120300_80132C60(Task* arg0)
             animWork->field_4D4 = 8;
             i                   = 1;
             do {
-                animWork->slots[(u16)i].rate = 0x10;
-                Gp_AnimResetSlot(&animWork->anim, (u16)i, 8);
+                animWork->rig.slots[(u16)i].rate = 0x10;
+                Gp_AnimResetSlot(&animWork->rig.anim, (u16)i, 8);
                 i++;
             } while ((u16)i < 0x14U);
             work->field_4C8 = 0;
@@ -883,7 +881,7 @@ void func_actor_120300_80132C60(Task* arg0)
             i = 1;
             n = 10;
             do {
-                func_800B4114(&animWork->anim, (u16)i, 0xB, 0, n);
+                func_800B4114(&animWork->rig.anim, (u16)i, 0xB, 0, n);
                 i++;
             } while ((u16)i < 0x14U);
             work->field_4C8 = 0;
@@ -895,7 +893,7 @@ void func_actor_120300_80132C60(Task* arg0)
             i = 1;
             n = 10;
             do {
-                func_800B4114(&animWork->anim, (u16)i, 9, 0, n);
+                func_800B4114(&animWork->rig.anim, (u16)i, 9, 0, n);
                 i++;
             } while ((u16)i < 0x14U);
             work->field_4C8 = 0;
@@ -907,7 +905,7 @@ void func_actor_120300_80132C60(Task* arg0)
             i = 1;
             n = 10;
             do {
-                func_800B4114(&animWork->anim, (u16)i, 0xA, 0, n);
+                func_800B4114(&animWork->rig.anim, (u16)i, 0xA, 0, n);
                 i++;
             } while ((u16)i < 0x14U);
             work->field_4C8 = 0;
@@ -919,7 +917,7 @@ void func_actor_120300_80132C60(Task* arg0)
             i = 1;
             n = 10;
             do {
-                func_800B4114(&animWork->anim, (u16)i, 0xC, 0, n);
+                func_800B4114(&animWork->rig.anim, (u16)i, 0xC, 0, n);
                 i++;
             } while ((u16)i < 0x14U);
             work->field_4C8 = 0;
@@ -932,8 +930,8 @@ void func_actor_120300_80132C60(Task* arg0)
             animWork            = (Actor120300Work*)arg0->work;
             animWork->field_4D4 = 0xE;
             do {
-                animWork->slots[(u16)i].rate = n;
-                Gp_AnimResetSlot(&animWork->anim, (u16)i, 0xE);
+                animWork->rig.slots[(u16)i].rate = n;
+                Gp_AnimResetSlot(&animWork->rig.anim, (u16)i, 0xE);
                 i++;
             } while ((u16)i < 0x14U);
             work->field_4C8 = 0;
@@ -948,7 +946,7 @@ void func_actor_120300_80132C60(Task* arg0)
             i = 1;
             n = 10;
             do {
-                func_800B4114(&animWork->anim, (u16)i, 0xF, 0, n);
+                func_800B4114(&animWork->rig.anim, (u16)i, 0xF, 0, n);
                 i++;
             } while ((u16)i < 0x14U);
             work->field_4C8 = 0;
@@ -960,7 +958,7 @@ void func_actor_120300_80132C60(Task* arg0)
             i = 1;
             n = 10;
             do {
-                func_800B4114(&animWork->anim, (u16)i, 0x10, 0, n);
+                func_800B4114(&animWork->rig.anim, (u16)i, 0x10, 0, n);
                 i++;
             } while ((u16)i < 0x14U);
             work->field_4C8 = 0;
@@ -972,8 +970,8 @@ void func_actor_120300_80132C60(Task* arg0)
             animWork            = (Actor120300Work*)arg0->work;
             animWork->field_4D4 = 0x11;
             do {
-                animWork->slots[(u16)i].rate = n;
-                Gp_AnimResetSlot(&animWork->anim, (u16)i, 0x11);
+                animWork->rig.slots[(u16)i].rate = n;
+                Gp_AnimResetSlot(&animWork->rig.anim, (u16)i, 0x11);
                 i++;
             } while ((u16)i < 0x14U);
             work->field_4C8 = 0;
@@ -985,8 +983,8 @@ void func_actor_120300_80132C60(Task* arg0)
             animWork            = (Actor120300Work*)arg0->work;
             animWork->field_4D4 = 8;
             do {
-                animWork->slots[(u16)i].rate = n;
-                Gp_AnimResetSlot(&animWork->anim, (u16)i, 8);
+                animWork->rig.slots[(u16)i].rate = n;
+                Gp_AnimResetSlot(&animWork->rig.anim, (u16)i, 8);
                 i++;
             } while ((u16)i < 0x14U);
             work->field_4C8 = 0;
@@ -998,7 +996,7 @@ void func_actor_120300_80132C60(Task* arg0)
             i = 1;
             n = 10;
             do {
-                func_800B4114(&animWork->anim, (u16)i, 5, 0, n);
+                func_800B4114(&animWork->rig.anim, (u16)i, 5, 0, n);
                 i++;
             } while ((u16)i < 0x14U);
             break;
@@ -1038,8 +1036,8 @@ void func_actor_120300_80133330(s32 arg0)
     animWork->field_4D4 = 8;
     i                   = 1;
     do {
-        animWork->slots[(u16)i].rate = 0x10;
-        Gp_AnimResetSlot(&animWork->anim, (u16)i, 8);
+        animWork->rig.slots[(u16)i].rate = 0x10;
+        Gp_AnimResetSlot(&animWork->rig.anim, (u16)i, 8);
         i++;
     } while ((u16)i < 0x14U);
 
@@ -1165,13 +1163,13 @@ void func_actor_120300_801335D8(Task* arg0)
         id = place->entryId;
     }
     Gp_SetTmdBytes(tmd, ((s8*)place)[0xD], ((s8*)place)[0xE]);
-    func_800B3F84(&work->anim, &D_actor_120300_80140910, tmd, work->pad_334, work->slots);
+    func_800B3F84(&work->rig.anim, &D_actor_120300_80140910, tmd, work->rig.poses, work->rig.slots);
     animWork            = (Actor120300Work*)arg0->work;
     animWork->field_4D4 = 0xE;
     i                   = 1;
     do {
-        animWork->slots[(u16)i].rate = 0x10;
-        Gp_AnimResetSlot(&animWork->anim, (u16)i, 0xE);
+        animWork->rig.slots[(u16)i].rate = 0x10;
+        Gp_AnimResetSlot(&animWork->rig.anim, (u16)i, 0xE);
         i++;
     } while ((u16)i < 0x14U);
     work->field_4B8 = Task_SpawnFromTable(D_actor_120300_80141B6C, 2, 0, (s32)arg0);

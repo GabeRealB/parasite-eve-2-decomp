@@ -13,19 +13,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Animation view of the work block's 0x474-byte prefix. The spawn handler
-/// hands the block itself to `func_800B3F84` as a `GpAnimCtx`, the
-/// `GpAnimSlot` array at 0x14 as its fourth argument and the packed-pose run
-/// at 0x334 as its third -- `func_800B3448` reaches that run as `GpPackedSvec`
-/// at a 0x10 stride, one group per slot. Both counts are what fills the gap:
-/// the 20 slots of 0x28 reach 0x334 and the 20 pose groups reach 0x474.
-typedef struct Actor311900Anim {
-    /* 0x000 */ GpAnimCtx  context;
-    /* 0x014 */ GpAnimSlot slots[0x14];
-    /* 0x334 */ byte       poses[0x140];
-} Actor311900Anim;
-STATIC_ASSERT_SIZEOF(Actor311900Anim, 0x474);
-
 /// Work block allocated by the spawn state `func_actor_311900_8016228C`
 /// (`memCalloc(0x4CC)`) and parked in that task's `Task::work` slot -- that
 /// slot is not a `TaskIdMap` here. `func_actor_311900_8016278C` republishes the
@@ -42,19 +29,19 @@ STATIC_ASSERT_SIZEOF(Actor311900Anim, 0x474);
 /// while `field_474` is 3 -- the running step, which is where both seeding
 /// steps leave it.
 typedef struct Actor311900Work {
-    /* 0x000 */ Actor311900Anim anim;
-    /* 0x474 */ s16             field_474;
-    /* 0x476 */ s16             field_476;
-    /* 0x478 */ u16             field_478;
-    /* 0x47A */ u16             field_47A;
-    /* 0x47C */ u8              field_47C;
-    /* 0x47D */ byte            pad_47D[0x7];
-    /* 0x484 */ MATRIX          light;
-    /* 0x4A4 */ MATRIX          color;
-    /* 0x4C4 */ u16             field_4C4;
-    /* 0x4C6 */ u16             field_4C6;
-    /* 0x4C8 */ u8              field_4C8; ///< CLUT grey-fade step, func_actor_311900_80161E3C
-    /* 0x4C9 */ byte            pad_4C9[0x3];
+    /* 0x000 */ ActorAnimRig20 rig;
+    /* 0x474 */ s16            field_474;
+    /* 0x476 */ s16            field_476;
+    /* 0x478 */ u16            field_478;
+    /* 0x47A */ u16            field_47A;
+    /* 0x47C */ u8             field_47C;
+    /* 0x47D */ byte           pad_47D[0x7];
+    /* 0x484 */ MATRIX         light;
+    /* 0x4A4 */ MATRIX         color;
+    /* 0x4C4 */ u16            field_4C4;
+    /* 0x4C6 */ u16            field_4C6;
+    /* 0x4C8 */ u8             field_4C8; ///< CLUT grey-fade step, func_actor_311900_80161E3C
+    /* 0x4C9 */ byte           pad_4C9[0x3];
 } Actor311900Work;
 STATIC_ASSERT_SIZEOF(Actor311900Work, 0x4CC);
 
@@ -192,8 +179,8 @@ void func_actor_311900_80162100(Task* task)
     if (work->field_474 == 1) {
         start = (Actor311900Work*)task->work;
         for (i = 1; i < 0x14; i++) {
-            start->anim.slots[i].rate = start->field_47C;
-            func_800B4114(&start->anim.context, i, (s16)start->field_478, 0, 0);
+            start->rig.slots[i].rate = start->field_47C;
+            func_800B4114(&start->rig.anim, i, (s16)start->field_478, 0, 0);
         }
         start->field_476 = start->field_478;
         work->field_474  = 3;
@@ -203,8 +190,8 @@ void func_actor_311900_80162100(Task* task)
     if (work->field_474 == 2) {
         start = (Actor311900Work*)task->work;
         for (j = 1; j < 0x14; j++) {
-            start->anim.slots[j].rate = start->field_47C;
-            Gp_AnimResetSlot(&start->anim.context, j, (s16)start->field_478);
+            start->rig.slots[j].rate = start->field_47C;
+            Gp_AnimResetSlot(&start->rig.anim, j, (s16)start->field_478);
         }
         start->field_476 = start->field_478;
         work->field_474  = 3;
@@ -215,7 +202,7 @@ void func_actor_311900_80162100(Task* task)
         work->field_47A++;
         tick = (Actor311900Work*)task->work;
         for (k = 1; k < 0x14; k++) {
-            Gp_AnimTickIndex(&tick->anim.context, k);
+            Gp_AnimTickIndex(&tick->rig.anim, k);
         }
     }
 }
@@ -282,8 +269,8 @@ void func_actor_311900_8016228C(GpEnemy* enemy, Task* task)
     enemy->field_4  = &coord->coord;
     enemy->field_48 = 0;
     obj->flags      = 0;
-    func_800B3F84((GpAnimCtx*)work, D_actor_311900_8016EBE8, obj, work->anim.poses,
-                  work->anim.slots);
+    func_800B3F84(&work->rig.anim, D_actor_311900_8016EBE8, obj, work->rig.poses,
+                  work->rig.slots);
     coord->sub      = &gGfxViewCoord;
     work->field_474 = 2;
     work->field_478 = 1;
@@ -376,8 +363,8 @@ void func_actor_311900_801624F8(GpEnemy* enemy, Task* task)
     enemy->field_4  = &coord->coord;
     enemy->field_48 = 0;
     obj->flags      = 0;
-    func_800B3F84((GpAnimCtx*)work, D_actor_311900_8016EBF4, obj, work->anim.poses,
-                  work->anim.slots);
+    func_800B3F84(&work->rig.anim, D_actor_311900_8016EBF4, obj, work->rig.poses,
+                  work->rig.slots);
     coord->sub      = &gGfxViewCoord;
     work->field_474 = 2;
     work->field_478 = 1;

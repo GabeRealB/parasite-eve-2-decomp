@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "actors/actor.h"
 #include "actors/actors_shared_8013231c.h"
 
 #include "main/mem.h"
@@ -29,17 +30,15 @@
 /// visibility; `field_484` is the countdown after which the tick frees the
 /// model's buffers, -1 while idle.
 typedef struct Actor213100Work {
-    /* 0x000 */ GpAnimCtx    anim;
-    /* 0x014 */ GpAnimSlot   slots[0x13];
-    /* 0x30C */ byte         field_30C[0x130];
-    /* 0x43C */ s8           field_43C;
-    /* 0x43D */ s8           field_43D;
-    /* 0x43E */ s8           field_43E;
-    /* 0x43F */ byte         pad_43F[0x1];
-    /* 0x440 */ MATRIX       light;
-    /* 0x460 */ MATRIX       color;
-    /* 0x480 */ struct Task* field_480;
-    /* 0x484 */ s32          field_484;
+    /* 0x000 */ ActorAnimRig19 rig;
+    /* 0x43C */ s8             field_43C;
+    /* 0x43D */ s8             field_43D;
+    /* 0x43E */ s8             field_43E;
+    /* 0x43F */ byte           pad_43F[0x1];
+    /* 0x440 */ MATRIX         light;
+    /* 0x460 */ MATRIX         color;
+    /* 0x480 */ struct Task*   field_480;
+    /* 0x484 */ s32            field_484;
 } Actor213100Work;
 STATIC_ASSERT_SIZEOF(Actor213100Work, 0x488);
 
@@ -91,7 +90,7 @@ void func_actor_213100_80149E3C(Task* task)
     extra = (TmdObject*)task->extra;
     if (work->field_43C != 0) {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
     if (!(extra->flags & 0x80)) {
@@ -275,22 +274,22 @@ s32 func_actor_213100_8014A258(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
     if (msg->animBlock.index != work->field_43E) {
         work->field_43E = msg->animBlock.index;
         work->field_43D = -1;
-        func_800B3F84(&work->anim, D_actor_213100_801521A4[work->field_43E], ext, work->field_30C,
-                      work->slots);
+        func_800B3F84(&work->rig.anim, D_actor_213100_801521A4[work->field_43E], ext, work->rig.poses,
+                      work->rig.slots);
     }
     if (msg->field_4 != work->field_43D) {
         work->field_43D = msg->field_4;
         if (msg->field_8 != 0 && work->field_43C != 0) {
             for (i = 1; i < 0x13; i++) {
-                func_800B4114(&work->anim, i, work->field_43D, 0, msg->field_C);
+                func_800B4114(&work->rig.anim, i, work->field_43D, 0, msg->field_C);
             }
         } else {
             for (i = 1; i < 0x13; i++) {
-                Gp_AnimResetSlot(&work->anim, i, work->field_43D);
+                Gp_AnimResetSlot(&work->rig.anim, i, work->field_43D);
             }
         }
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
         work->field_43C = 1;
     }

@@ -24,32 +24,30 @@
 /// `func_actor_205200_8014C924` unlinks, and the state of the charge and
 /// attack sub-states.
 typedef struct Actor205200Work {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[0x13];
-    /* 0x30C */ byte       field_30C[0x130]; // pose buffer, one 0x10-byte record per slot
-    /* 0x43C */ MATRIX     field_43C;        // color matrix, `TmdObject.colorMtx`
-    /* 0x45C */ MATRIX     field_45C;        // light matrix, `TmdObject.lightMtx`
-    /* 0x47C */ GpObj      field_47C;
-    /* 0x49C */ GpRec18    field_49C[3];
-    /* 0x4E4 */ GpObj      field_4E4;
-    /* 0x504 */ GpRec18    field_504;
-    /* 0x51C */ byte       pad_51C[0x38];
-    /* 0x554 */ GpEffArg   field_554; // record the charge's hit effect is spawned with
-    /* 0x55C */ byte       pad_55C[0x20];
-    /* 0x57C */ s16        field_57C;
-    /* 0x57E */ s16        field_57E; // animation id the work is playing
-    /* 0x580 */ u16        field_580; // id the helper slots last saw
-    /* 0x582 */ u16        field_582; // frames spent on the current id
-    /* 0x584 */ s16        field_584; // sub-state `func_actor_205200_8014C67C` dispatches on: 0 runs the idle handler, 1 the charge handler
-    /* 0x586 */ s16        field_586; // sub-state of the charge handler `func_actor_205200_8014C748`, which arms it to 1 and clears it again
-    /* 0x588 */ s16        field_588; // non-zero while the attack body `func_actor_205200_8014C0C0` is running; the body clears it when it finishes
-    /* 0x58A */ s16        field_58A; // state of the attack body `func_actor_205200_8014C0C0`
-    /* 0x58C */ u16        field_58C; // its frame counter
-    /* 0x58E */ s16        field_58E; // sign of the player offset dotted with the player's facing axis
-    /* 0x590 */ s16        field_590; // loaded with 600 by the charge handler `func_actor_205200_8014C748` when it finishes
-    /* 0x592 */ s16        field_592; // countdown to the next random roll in `func_actor_205200_8014BF28`
-    /* 0x594 */ s16        field_594; // raised by message 0x7DB; pushes the actor to state 2
-    /* 0x596 */ s16        field_596; // placement mode; selects the tick `func_actor_205200_8014C67C` runs: zero goes to `func_8017EBA4`, non-zero to `func_80181930`
+    /* 0x000 */ ActorAnimRig19 rig;
+    /* 0x43C */ MATRIX         field_43C; // color matrix, `TmdObject.colorMtx`
+    /* 0x45C */ MATRIX         field_45C; // light matrix, `TmdObject.lightMtx`
+    /* 0x47C */ GpObj          field_47C;
+    /* 0x49C */ GpRec18        field_49C[3];
+    /* 0x4E4 */ GpObj          field_4E4;
+    /* 0x504 */ GpRec18        field_504;
+    /* 0x51C */ byte           pad_51C[0x38];
+    /* 0x554 */ GpEffArg       field_554; // record the charge's hit effect is spawned with
+    /* 0x55C */ byte           pad_55C[0x20];
+    /* 0x57C */ s16            field_57C;
+    /* 0x57E */ s16            field_57E; // animation id the work is playing
+    /* 0x580 */ u16            field_580; // id the helper slots last saw
+    /* 0x582 */ u16            field_582; // frames spent on the current id
+    /* 0x584 */ s16            field_584; // sub-state `func_actor_205200_8014C67C` dispatches on: 0 runs the idle handler, 1 the charge handler
+    /* 0x586 */ s16            field_586; // sub-state of the charge handler `func_actor_205200_8014C748`, which arms it to 1 and clears it again
+    /* 0x588 */ s16            field_588; // non-zero while the attack body `func_actor_205200_8014C0C0` is running; the body clears it when it finishes
+    /* 0x58A */ s16            field_58A; // state of the attack body `func_actor_205200_8014C0C0`
+    /* 0x58C */ u16            field_58C; // its frame counter
+    /* 0x58E */ s16            field_58E; // sign of the player offset dotted with the player's facing axis
+    /* 0x590 */ s16            field_590; // loaded with 600 by the charge handler `func_actor_205200_8014C748` when it finishes
+    /* 0x592 */ s16            field_592; // countdown to the next random roll in `func_actor_205200_8014BF28`
+    /* 0x594 */ s16            field_594; // raised by message 0x7DB; pushes the actor to state 2
+    /* 0x596 */ s16            field_596; // placement mode; selects the tick `func_actor_205200_8014C67C` runs: zero goes to `func_8017EBA4`, non-zero to `func_80181930`
 } Actor205200Work;
 STATIC_ASSERT_SIZEOF(Actor205200Work, 0x598);
 
@@ -124,10 +122,10 @@ void func_actor_205200_8014BAE8(GpEnemy* enemy, Task* task)
     work->field_554.coord      = &((TmdObject*)task->extra)->coords[3];
     work->field_554.spawnArgLo = 0x200;
     work->field_554.spawnArgHi = 1;
-    func_800B3F84(&work->anim, &D_actor_205200_801567E8, tmd, work->field_30C, work->slots);
+    func_800B3F84(&work->rig.anim, &D_actor_205200_801567E8, tmd, work->rig.poses, work->rig.slots);
     i = 1;
     do {
-        Gp_AnimResetSlot(&work->anim, i, 1);
+        Gp_AnimResetSlot(&work->rig.anim, i, 1);
         i++;
     } while (i < 0x13);
     work->field_596          = enemy->place->mode;
@@ -520,7 +518,7 @@ void func_actor_205200_8014C7CC(Task* arg0)
         work->field_580 = work->field_57E;
         work->field_582 = 0;
         do {
-            func_800B4114(&work->anim, i, work->field_57E, 0, 8);
+            func_800B4114(&work->rig.anim, i, work->field_57E, 0, 8);
             i++;
         } while (i < 0x13);
         return;
@@ -528,7 +526,7 @@ void func_actor_205200_8014C7CC(Task* arg0)
     TOUCH_REG(i);
     work->field_582 = (u16)(work->field_582 + i);
     do {
-        Gp_AnimTickIndex(&work->anim, i);
+        Gp_AnimTickIndex(&work->rig.anim, i);
         i++;
     } while (i < 0x13);
 }

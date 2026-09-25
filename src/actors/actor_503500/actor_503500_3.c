@@ -72,24 +72,6 @@ typedef struct Actor503500Work2EC {
 } Actor503500Work2EC;
 STATIC_ASSERT_SIZEOF(Actor503500Work2EC, 0x2EC);
 
-/// Animation head of the boss block (`D_actor_503500_80176574`,
-/// `Mem_Set(_, 0x7E8)`), viewed through its own type rather than the shared
-/// `Actor503500Work`: the boss fronts its allocation with a `GpAnimCtx` --
-/// `func_actor_503500_80136D30` passes the block itself to `Gp_AnimTickIndex`
-/// -- whose slot array is inline at 0x14 and whose pose buffer starts
-/// at 0x334, the two addresses `func_actor_503500_80135950` hands to
-/// `func_800B3F84`. Twenty 0x28-byte slots fit exactly between them, and both
-/// tick loops walk indices 1..0x13. That run covers 0x40..0x60, where the
-/// shared view names the 0x160 block's display node, so the two blocks
-/// genuinely disagree about it: the halfword the shared view calls
-/// `Actor503500Slot40::boss.flags_4C` is `slots[1].field_10`, that animation
-/// slot's flags word. This type stops at the pose buffer.
-typedef struct Actor503500WorkBoss {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[20];
-} Actor503500WorkBoss;
-STATIC_ASSERT_SIZEOF(Actor503500WorkBoss, 0x334);
-
 /// Twelve-byte record of `Actor503500VecSet::field_C`, copied whole.
 typedef struct Actor503500Rec12 {
     /* 0x00 */ s16 field_0[6];
@@ -1840,11 +1822,11 @@ void func_actor_503500_80135F9C(Task* arg0, s32 arg1, s16 arg2)
 /// exactly as `func_actor_503500_80137048` does -- then applies preset `arg1`.
 void func_actor_503500_80135FB4(Task* arg0, s32 arg1, s32 rate)
 {
-    Actor503500WorkBoss* work;
-    GpAnimSlot*          slot;
-    s32                  i;
+    ActorAnimRig20* work;
+    GpAnimSlot*     slot;
+    s32             i;
 
-    work = (Actor503500WorkBoss*)arg0->work;
+    work = (ActorAnimRig20*)arg0->work;
     slot = &work->slots[1];
     if (rate == 0) {
         rate = 0x10;
@@ -2375,7 +2357,7 @@ void func_actor_503500_80136B64(Task* arg0, s32 arg1, s32 arg2)
 /// still running, so every slot 1..0x13 is ticked; once the bit is set the clip
 /// has finished, and in state 0 the boss resets the slot rates and re-applies
 /// preset `D_actor_503500_8016EAD4`. The block is passed to `Gp_AnimTickIndex`
-/// as the `GpAnimCtx` it is fronted by (`Actor503500WorkBoss::anim`).
+/// as the `GpAnimCtx` it is fronted by (`ActorAnimRig20::anim`).
 void func_actor_503500_80136D30(Task* arg0)
 {
     Actor503500Work* work;
@@ -2499,11 +2481,11 @@ s32 func_actor_503500_80136FDC(Actor503500Work* work, s32 slot)
 /// meaning that default.
 void func_actor_503500_80137048(Task* arg0, s32 rate)
 {
-    Actor503500WorkBoss* work;
-    GpAnimSlot*          slot;
-    s32                  i;
+    ActorAnimRig20* work;
+    GpAnimSlot*     slot;
+    s32             i;
 
-    work = (Actor503500WorkBoss*)arg0->work;
+    work = (ActorAnimRig20*)arg0->work;
     slot = &work->slots[1];
     if (rate == 0) {
         rate = 0x10;

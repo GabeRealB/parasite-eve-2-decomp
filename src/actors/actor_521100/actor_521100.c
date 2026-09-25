@@ -212,12 +212,12 @@ void func_actor_521100_80131E8C(GpEnemy* enemy, Task* task)
     work->eff.coord      = &((TmdObject*)task->extra)->coords[3];
     work->eff.spawnArgLo = 0x400;
     work->eff.spawnArgHi = 3;
-    func_800B3F84(&work->anim, D_actor_521100_8015F73C, obj, work->poses, work->slots);
+    func_800B3F84(&work->rig.anim, D_actor_521100_8015F73C, obj, work->rig.poses, work->rig.slots);
     work->field_686 = 0x15;
     work->field_688 = 0x15;
     i               = 1;
     do {
-        Gp_AnimResetSlot(&work->anim, i, work->field_686);
+        Gp_AnimResetSlot(&work->rig.anim, i, work->field_686);
         i++;
     } while (i < 0x13);
     work->field_6B2 = 1;
@@ -1702,7 +1702,7 @@ void func_actor_521100_80134D88(Task* arg0)
 
     work  = arg0->work;
     coord = ((TmdObject*)arg0->extra)->coords;
-    rec   = Gp_AnimGetRec(&work->anim, &work->slots[1]);
+    rec   = Gp_AnimGetRec(&work->rig.anim, &work->rig.slots[1]);
     if (rec != NULL) {
         if (!(rec->flags & 0x20) && (work->field_6B4 & 0x20)) {
             snd = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8) | 0x401C0001;

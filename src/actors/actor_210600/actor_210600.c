@@ -35,9 +35,8 @@ STATIC_ASSERT_SIZEOF(Actor210600Rate, 0x2);
 typedef struct Actor210600Work {
     /// Animation context the spawn body starts through `func_800B3F84`, with
     /// its 19 slots directly behind it and the pose buffer after them.
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[0x13];
-    /* 0x30C */ byte       field_30C[0x570];
+    /* 0x000 */ ActorAnimRig19 rig;
+    /* 0x43C */ byte           pad_43C[0x440];
     /// Animation request state. `field_87C` is the step the seeding body
     /// `func_actor_210600_8014B2C0` dispatches on -- 1 seeks every slot to
     /// `field_882`, 2 resets them, and both settle on 3 and clear the frame
@@ -526,8 +525,8 @@ void func_actor_210600_8014B2C0(Task* task)
     if (work->field_87C == 1) {
         start = (Actor210600Work*)task->work;
         for (i = 1; i < 0x13; i++) {
-            start->slots[i].rate = start->field_886.byte;
-            func_800B4114(&start->anim, i, (s16)start->field_882, 0,
+            start->rig.slots[i].rate = start->field_886.byte;
+            func_800B4114(&start->rig.anim, i, (s16)start->field_882, 0,
                           D_actor_210600_8015A498[start->field_880][(s16)start->field_882]);
         }
         start->field_880 = start->field_882;
@@ -536,8 +535,8 @@ void func_actor_210600_8014B2C0(Task* task)
     if (work->field_87C == 2) {
         reset = (Actor210600Work*)task->work;
         for (j = 1; j < 0x13; j++) {
-            reset->slots[j].rate = reset->field_886.byte;
-            Gp_AnimResetSlot(&reset->anim, j, (s16)reset->field_882);
+            reset->rig.slots[j].rate = reset->field_886.byte;
+            Gp_AnimResetSlot(&reset->rig.anim, j, (s16)reset->field_882);
         }
         reset->field_880 = reset->field_882;
     advance:
@@ -550,8 +549,8 @@ void func_actor_210600_8014B2C0(Task* task)
     work->field_884++;
     tick = (Actor210600Work*)task->work;
     for (k = 1; k < 0x13; k++) {
-        tick->slots[k].rate = tick->field_886.byte;
-        Gp_AnimTickIndex(&tick->anim, k);
+        tick->rig.slots[k].rate = tick->field_886.byte;
+        Gp_AnimTickIndex(&tick->rig.anim, k);
     }
 }
 
@@ -612,7 +611,7 @@ void func_actor_210600_8014B434(GpEnemy* enemy, Task* task)
         func_actor_210600_8014B2C0(task);
         Actor210600_ScaleRotation(task, 0xC00);
 
-        id = work->slots[1].curRec & 0x3FF;
+        id = work->rig.slots[1].curRec & 0x3FF;
         if (id == 7 && work->field_896 != id) {
             memset(&vec, 0, 8);
             eff.coord      = ((TmdObject*)task->extra)->coords;
@@ -620,7 +619,7 @@ void func_actor_210600_8014B434(GpEnemy* enemy, Task* task)
             eff.spawnArgHi = 2;
             func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, ((TmdObject*)task->extra)->coords + 1, &vec, &eff);
         }
-        work->field_896 = work->slots[0].curRec & 0x3FF;
+        work->field_896 = work->rig.slots[0].curRec & 0x3FF;
     }
 }
 
@@ -779,7 +778,7 @@ void func_actor_210600_8014B8C8(GpEnemy* enemy, Task* task)
     enemy->field_4D           = 0;
     enemy->reactionFlags      = 0;
     enemy->field_4D           = 0;
-    func_800B3F84(&work->anim, D_actor_210600_8015A4B4, obj, work->field_30C, work->slots);
+    func_800B3F84(&work->rig.anim, D_actor_210600_8015A4B4, obj, work->rig.poses, work->rig.slots);
     work->field_87C = 2;
     work->field_882 = 1;
     func_actor_210600_8014B2C0(task);

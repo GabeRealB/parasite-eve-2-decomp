@@ -887,7 +887,7 @@ void Actor02000_Fn018A4(Task* arg0)
     work = arg0->work;
     self = ((TmdObject*)arg0->extra)->coords;
     if (work->field_6D6 != 0) {
-        rec = Gp_AnimGetRec(&work->anim, &work->slots[1]);
+        rec = Gp_AnimGetRec(&work->rig.anim, &work->rig.slots[1]);
         if (rec != NULL) {
             if (!(rec->flags & 0x20) && (work->field_6A0 & 0x20)) {
                 snd = Actor02000_D15DEC[work->field_6D6 * 2 - 1] | (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8);
@@ -997,7 +997,7 @@ void Actor02000_Fn01A20(GpEnemy* ctx, Task* actor)
         animWork->field_698 = 0U;
         duration            = Actor02000_D03784[animWork->field_694];
         do {
-            func_800B4114(&animWork->anim, i, animWork->field_694, 0, (s32)duration);
+            func_800B4114(&animWork->rig.anim, i, animWork->field_694, 0, (s32)duration);
             i++;
         } while (i < 0x13);
         coord->flg = 0;
@@ -1005,7 +1005,7 @@ void Actor02000_Fn01A20(GpEnemy* ctx, Task* actor)
         TOUCH_REG(i);
         animWork->field_698 = (u16)(animWork->field_698 + i);
         do {
-            Gp_AnimTickIndex(&animWork->anim, i);
+            Gp_AnimTickIndex(&animWork->rig.anim, i);
             i += 1;
         } while (i < 0x13);
         coord->flg = 0;
@@ -1292,9 +1292,9 @@ void Actor02000_Fn0251C(GpEnemy* ctx, Task* actor)
     work->field_670.coord      = &((TmdObject*)actor->extra)->coords[3];
     work->field_670.spawnArgLo = 0x500;
     work->field_670.spawnArgHi = 2;
-    func_800B3F84(&work->anim, &Actor02000_D15FE8, obj, work->poses, work->slots);
+    func_800B3F84(&work->rig.anim, &Actor02000_D15FE8, obj, work->rig.poses, work->rig.slots);
     for (i = 1; i < 0x13; i++) {
-        Gp_AnimResetSlot(&work->anim, i, 1);
+        Gp_AnimResetSlot(&work->rig.anim, i, 1);
     }
     eff        = Gp_SpawnEnemyFromTable(Actor02000_D15FD0, 1, 0, ctx);
     sessionKey = &gGameSession->at4.loc;
@@ -1528,14 +1528,14 @@ void Actor02000_Fn02A34(GpEnemy* ctx, Task* actor)
         animWork->field_698 = 0;
         duration            = Actor02000_D03784[animWork->field_694];
         do {
-            func_800B4114(&animWork->anim, i, (s32)animWork->field_694, 0, (s32)duration);
+            func_800B4114(&animWork->rig.anim, i, (s32)animWork->field_694, 0, (s32)duration);
             i += 1;
         } while (i < 0x13);
     } else {
         TOUCH_REG(i);
         animWork->field_698 = (u16)animWork->field_698 + i;
         do {
-            Gp_AnimTickIndex(&animWork->anim, i);
+            Gp_AnimTickIndex(&animWork->rig.anim, i);
             i += 1;
         } while (i < 0x13);
     }

@@ -1720,11 +1720,9 @@ STATIC_ASSERT_SIZEOF(Actor403200Work, 0xF24);
 /// collision records, and the animation and state halfwords the handlers
 /// drive.
 typedef struct Actor105600Work {
-    GpAnimCtx  anim;
-    GpAnimSlot slots[19];
-    byte       poses[0x130];
-    MATRIX     field_43C;
-    MATRIX     field_45C;
+    ActorAnimRig19 rig;
+    MATRIX         field_43C;
+    MATRIX         field_45C;
     /// First body object, handed to `Gp_UnlinkObj` by the teardown of
     /// `Actor05700_Fn01A58`; its `pos.vz` is the pose the state-0
     /// branch of `Actor05700_Fn01318` parks (-0xA7 or 0x109) and its

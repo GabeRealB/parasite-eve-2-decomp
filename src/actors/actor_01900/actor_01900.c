@@ -116,28 +116,25 @@ typedef struct Actor01900Work {
 /// driver can reach both through one pointer. The bytes the arrays do not
 /// cover are not yet described.
 typedef struct Actor01900AnimWork {
-    /* 0x000 */ byte       pad_0[0x1C];
-    /* 0x01C */ GpAnimCtx  anim;
-    /* 0x030 */ GpAnimSlot slots[19];
-    /* 0x328 */ byte       pad_328[0x130];
-    /* 0x458 */ GpAnimCtx  blendAnim;
-    /* 0x46C */ GpAnimSlot blendSlots[19];
-    /* 0x764 */ byte       pad_764[0x134];
-    /* 0x898 */ s16        field_898;
-    /* 0x89A */ s16        field_89A;
-    /* 0x89C */ s16        field_89C;
-    /* 0x89E */ s16        field_89E;
-    /* 0x8A0 */ u16        field_8A0;
-    /* 0x8A2 */ s16        field_8A2;
-    /* 0x8A4 */ byte       pad_8A4[2];
-    /* 0x8A6 */ s16        field_8A6;
-    /* 0x8A8 */ s16        field_8A8;
-    /* 0x8AA */ s16        field_8AA;
-    /* 0x8AC */ s16        field_8AC;
-    /* 0x8AE */ s16        field_8AE;
-    /* 0x8B0 */ s16        field_8B0;
-    /* 0x8B2 */ byte       pad_8B2[2];
-    /* 0x8B4 */ s32        field_8B4;
+    /* 0x000 */ byte           pad_0[0x1C];
+    /* 0x01C */ ActorAnimRig19 rig;
+    /* 0x458 */ ActorAnimRig19 blend;
+    /* 0x894 */ byte           pad_894[0x4];
+    /* 0x898 */ s16            field_898;
+    /* 0x89A */ s16            field_89A;
+    /* 0x89C */ s16            field_89C;
+    /* 0x89E */ s16            field_89E;
+    /* 0x8A0 */ u16            field_8A0;
+    /* 0x8A2 */ s16            field_8A2;
+    /* 0x8A4 */ byte           pad_8A4[2];
+    /* 0x8A6 */ s16            field_8A6;
+    /* 0x8A8 */ s16            field_8A8;
+    /* 0x8AA */ s16            field_8AA;
+    /* 0x8AC */ s16            field_8AC;
+    /* 0x8AE */ s16            field_8AE;
+    /* 0x8B0 */ s16            field_8B0;
+    /* 0x8B2 */ byte           pad_8B2[2];
+    /* 0x8B4 */ s32            field_8B4;
 } Actor01900AnimWork;
 
 /// The actor's state handlers, indexed by `Actor01900Work::field_0`.
@@ -797,17 +794,17 @@ void Actor01900_Fn01950(Task* arg0)
 
     work   = (Actor01900AnimWork*)((Actor01900Work*)arg0->work);
     weight = work->field_8AC;
-    anim   = &work->anim;
+    anim   = &work->rig.anim;
     for (i = 1; i < 0x13; i++) {
         if (i < 0xB) {
-            work->blendSlots[i].rate = (u8)work->field_8AA;
-            work->slots[i].rate      = (u8)(work->field_8A2 - 3);
+            work->blend.slots[i].rate = (u8)work->field_8AA;
+            work->rig.slots[i].rate   = (u8)(work->field_8A2 - 3);
             func_800B3448(anim, i, (s32)&pose, 0);
-            func_800B3448(&work->blendAnim, i, (s32)&blendPose, 0);
+            func_800B3448(&work->blend.anim, i, (s32)&blendPose, 0);
             Gp_AnimWritePoseCopy(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
         } else {
-            work->slots[i].rate = (u8)(work->field_8A2 - 3);
-            Gp_AnimTickIndex(&work->anim, i);
+            work->rig.slots[i].rate = (u8)(work->field_8A2 - 3);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
 }
@@ -943,8 +940,8 @@ void Actor01900_Fn01C94(Task* arg0)
         w1 = work;
         if (work->field_89C != work->field_89E) {
             for (i = 1; i < 0x13; i++) {
-                w1->slots[i].rate = (u8)w1->field_8A2;
-                func_800B4114(&w1->anim, i, w1->field_89E, 0,
+                w1->rig.slots[i].rate = (u8)w1->field_8A2;
+                func_800B4114(&w1->rig.anim, i, w1->field_89E, 0,
                               (s32)Actor01900_D16988[w1->field_89C][w1->field_89E]);
             }
             /* Keeps this store from being merged with the identical one the
@@ -958,8 +955,8 @@ void Actor01900_Fn01C94(Task* arg0)
         w2 = work;
         i2 = 1;
         do {
-            w2->slots[i2].rate = (u8)w2->field_8A2;
-            Gp_AnimResetSlot(&w2->anim, i2, w2->field_89E);
+            w2->rig.slots[i2].rate = (u8)w2->field_8A2;
+            Gp_AnimResetSlot(&w2->rig.anim, i2, w2->field_89E);
             i2++;
         } while (i2 < 0x13);
         w2->field_89C = (s16)(u16)w2->field_89E;
@@ -974,8 +971,8 @@ void Actor01900_Fn01C94(Task* arg0)
         w1->field_8AA = 0x30;
         w1->field_8AC = 0x800;
         do {
-            w1->slots[i3].rate = (u8)w1->field_8AA;
-            Gp_AnimResetSlot(&w1->blendAnim, i3, w1->field_8A8);
+            w1->rig.slots[i3].rate = (u8)w1->field_8AA;
+            Gp_AnimResetSlot(&w1->blend.anim, i3, w1->field_8A8);
             i3++;
         } while (i3 < 0x13);
         work->field_8A6 = 3;
@@ -985,13 +982,13 @@ void Actor01900_Fn01C94(Task* arg0)
         w3 = (Actor01900AnimWork*)((Actor01900Work*)arg0->work);
         i4 = 1;
         do {
-            w3->slots[i4].rate = (u8)w3->field_8A2;
-            Gp_AnimTickIndex(&w3->anim, i4);
+            w3->rig.slots[i4].rate = (u8)w3->field_8A2;
+            Gp_AnimTickIndex(&w3->rig.anim, i4);
             i4++;
         } while (i4 < 0x13);
     } else {
         Actor01900_Fn01950(arg0);
-        if (work->blendSlots[1].flags & 0x100) {
+        if (work->blend.slots[1].flags & 0x100) {
             work->field_89A = 0;
         }
     }
@@ -1087,10 +1084,10 @@ void Actor01900_Fn02018(GpEnemy* enemy, Task* actor)
     enemy->hp                 = (s16)Actor01900_D0AC54.hpMax;
     enemy->param              = &Actor01900_D0AC54;
     enemy->recs               = &work->field_8E8;
-    func_800B3F84(&((Actor01900AnimWork*)work)->anim, Actor01900_D17174, obj,
-                  ((Actor01900AnimWork*)work)->pad_328, ((Actor01900AnimWork*)work)->slots);
-    func_800B3F84(&((Actor01900AnimWork*)work)->blendAnim, Actor01900_D17174, obj,
-                  ((Actor01900AnimWork*)work)->pad_764, ((Actor01900AnimWork*)work)->blendSlots);
+    func_800B3F84(&((Actor01900AnimWork*)work)->rig.anim, Actor01900_D17174, obj,
+                  ((Actor01900AnimWork*)work)->rig.poses, ((Actor01900AnimWork*)work)->rig.slots);
+    func_800B3F84(&((Actor01900AnimWork*)work)->blend.anim, Actor01900_D17174, obj,
+                  ((Actor01900AnimWork*)work)->blend.poses, ((Actor01900AnimWork*)work)->blend.slots);
     work->field_898 = 2;
     work->field_89A = 0;
     work->field_89E = 2;

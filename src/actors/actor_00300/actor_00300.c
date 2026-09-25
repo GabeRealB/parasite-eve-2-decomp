@@ -39,9 +39,7 @@ typedef struct Actor00300InitWork {
 STATIC_ASSERT_SIZEOF(Actor00300InitWork, 0x8C);
 
 typedef struct Actor00300MainWork {
-    /* 0x000 */ GpAnimCtx      anim;
-    /* 0x014 */ GpAnimSlot     field_14[19];
-    /* 0x30C */ u8             field_30C[0x130];
+    /* 0x000 */ ActorAnimRig19 rig;
     /* 0x43C */ Task*          field_43C;
     /* 0x440 */ u8             field_440[32];
     /* 0x460 */ u8             field_460[32];
@@ -504,10 +502,10 @@ void Actor00300_Fn00970(GpEnemy* enemy, Task* task)
     work->field_5F0   = (void*)(((TmdObject*)task->extra)->coords + 3);
     work->field_5F4   = 0x300;
     work->field_5F6   = 2;
-    func_800B3F84((GpAnimCtx*)work, &Actor00300_D1633C, obj,
-                  work->field_30C, work->field_14);
+    func_800B3F84(&work->rig.anim, &Actor00300_D1633C, obj,
+                  work->rig.poses, work->rig.slots);
     do {
-        Gp_AnimResetSlot((GpAnimCtx*)work, slot, 1);
+        Gp_AnimResetSlot(&work->rig.anim, slot, 1);
         slot += 1;
     } while (slot < 0x13);
     ((void (*)(s32))Gp_IncStateF0Ref)(0);

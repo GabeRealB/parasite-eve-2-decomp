@@ -1,4 +1,5 @@
 #include "common.h"
+#include "actors/actor.h"
 #include "gameplay/1BC.h"
 #include "gameplay/gameplay.h"
 #include "gameplay/D4.h"
@@ -20,9 +21,7 @@
 /// array, so the prefix is the shared actor anim layout: a `GpAnimCtx` and the
 /// nineteen slots the frame handler ticks.
 typedef struct Actor310100Work {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[19];
-    /* 0x30C */ byte       pad_30C[0x130];
+    /* 0x000 */ ActorAnimRig19 rig;
     /// Light and colour matrices, handed to the model `TmdObject`'s `field_1C`
     /// and `field_20`.
     /* 0x43C */ MATRIX     field_43C;
@@ -128,7 +127,7 @@ s32 func_actor_310100_80161E24(Task* task)
 
     work = (Actor310100Work*)task->work;
     obj  = ((TmdObject*)task->extra)->coords;
-    rec  = Gp_AnimGetRec(&work->anim, &work->slots[1]);
+    rec  = Gp_AnimGetRec(&work->rig.anim, &work->rig.slots[1]);
     if (rec != work->field_4EC) {
         if (rec != NULL) {
             if (work->field_508 == 0x6C) {
@@ -152,10 +151,10 @@ s32 func_actor_310100_80161E24(Task* task)
     }
     i = 1;
     do {
-        Gp_AnimTickIndex(&work->anim, i & 0xFFFF);
+        Gp_AnimTickIndex(&work->rig.anim, i & 0xFFFF);
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
-    return work->slots[1].flags & 1;
+    return work->rig.slots[1].flags & 1;
 }
 
 void func_actor_310100_80161F80(Task* task)
@@ -176,7 +175,7 @@ void func_actor_310100_80161F80(Task* task)
             anim = (Actor310100Work*)task->work;
             i    = 1;
             do {
-                func_800B4114(&anim->anim, i & 0xFFFF, seed & 0xFFFF, 0, 8);
+                func_800B4114(&anim->rig.anim, i & 0xFFFF, seed & 0xFFFF, 0, 8);
                 i += 1;
             } while ((u32)(i & 0xFFFF) < 0x13U);
             work->field_4FA = seed;
@@ -369,18 +368,18 @@ void func_actor_310100_80162414(Task* task, s32 arg1)
     obj->colorMtx = &work->field_45C;
     obj->flags    = 0;
     if (mode == 0x6C) {
-        func_800B3F84(&work->anim, &D_actor_310100_80179754, obj, work->pad_30C,
-                      &work->slots[0]);
+        func_800B3F84(&work->rig.anim, &D_actor_310100_80179754, obj, work->rig.poses,
+                      &work->rig.slots[0]);
     } else {
-        func_800B3F84(&work->anim, &D_actor_310100_80179794, obj, work->pad_30C,
-                      &work->slots[0]);
+        func_800B3F84(&work->rig.anim, &D_actor_310100_80179794, obj, work->rig.poses,
+                      &work->rig.slots[0]);
     }
     i      = 1;
     active = task->spawnArg1;
     work2  = (Actor310100Work*)task->work;
     do {
-        work2->slots[i & 0xFFFF].rate = 0x10;
-        Gp_AnimResetSlot(&work2->anim, i & 0xFFFF, active);
+        work2->rig.slots[i & 0xFFFF].rate = 0x10;
+        Gp_AnimResetSlot(&work2->rig.anim, i & 0xFFFF, active);
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
     func_actor_310100_80161F80(task);
@@ -429,19 +428,19 @@ void func_actor_310100_801625E4(Task* task, s32 arg1)
     obj->colorMtx = &work->field_45C;
     obj->flags    = 0;
     if (mode == 0x6C) {
-        func_800B3F84(&work->anim, &D_actor_310100_80179754, obj, work->pad_30C,
-                      &work->slots[0]);
+        func_800B3F84(&work->rig.anim, &D_actor_310100_80179754, obj, work->rig.poses,
+                      &work->rig.slots[0]);
     } else {
-        func_800B3F84(&work->anim, &D_actor_310100_80179794, obj, work->pad_30C,
-                      &work->slots[0]);
+        func_800B3F84(&work->rig.anim, &D_actor_310100_80179794, obj, work->rig.poses,
+                      &work->rig.slots[0]);
     }
     i               = 1;
     work->field_504 = task->spawnArg1;
     active          = work->field_504;
     work2           = (Actor310100Work*)task->work;
     do {
-        work2->slots[i & 0xFFFF].rate = 0x10;
-        Gp_AnimResetSlot(&work2->anim, i & 0xFFFF, active);
+        work2->rig.slots[i & 0xFFFF].rate = 0x10;
+        Gp_AnimResetSlot(&work2->rig.anim, i & 0xFFFF, active);
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
     func_actor_310100_80161F80(task);
@@ -688,13 +687,13 @@ void func_actor_310100_80162D50(Task* task, s32 msgId, GpXformArg* placement)
         i         = 1;
         if (blend == 0) {
             do {
-                resetDisp->slots[i & 0xFFFF].rate = 0x10;
-                Gp_AnimResetSlot(&resetDisp->anim, i & 0xFFFF, active);
+                resetDisp->rig.slots[i & 0xFFFF].rate = 0x10;
+                Gp_AnimResetSlot(&resetDisp->rig.anim, i & 0xFFFF, active);
                 i += 1;
             } while ((u32)(i & 0xFFFF) < 0x13U);
         } else {
             do {
-                func_800B4114(&resetDisp->anim, i & 0xFFFF, active, 0, 8);
+                func_800B4114(&resetDisp->rig.anim, i & 0xFFFF, active, 0, 8);
                 i += 1;
             } while ((u32)(i & 0xFFFF) < 0x13U);
         }

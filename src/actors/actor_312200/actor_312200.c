@@ -72,12 +72,7 @@ typedef struct Actor312200Work {
     /// Animation context the spawn body hands `func_800B3F84` first, with its
     /// 19 slots directly behind it: the pose buffer that function is handed
     /// fourth starts directly after the 19 slots.
-    /* 0x010 */ GpAnimCtx  anim;
-    /* 0x024 */ GpAnimSlot slots[0x13];
-    /// The flag halfword the per-tick callback tests: it falls inside the slot
-    /// array, being the second slot's `field_10`, because the animation state
-    /// runs from 0x24 to the pose buffer.
-    /* 0x31C */ byte poses[0x130];
+    /* 0x010 */ ActorAnimRig19 rig;
     /// Second animation context, seeded when the 0x89A request word is 2. It
     /// lives inside the pose buffer the first context was handed, and the slots
     /// it resets are the first context's, so the two share their slot array.
@@ -527,8 +522,8 @@ void func_actor_312200_80162FB4(Task* task)
     if (work->field_88C == 1) {
         start = (Actor312200Work*)task->work;
         for (i = 1; i < 0x13; i++) {
-            start->slots[i].rate = start->field_896.byte;
-            func_800B4114(&start->anim, i, (s16)start->field_892, 0,
+            start->rig.slots[i].rate = start->field_896.byte;
+            func_800B4114(&start->rig.anim, i, (s16)start->field_892, 0,
                           D_actor_312200_80169F28[start->field_890][(s16)start->field_892]);
         }
         start->field_890 = start->field_892;
@@ -537,8 +532,8 @@ void func_actor_312200_80162FB4(Task* task)
     if (work->field_88C == 2) {
         reset = (Actor312200Work*)task->work;
         for (j = 1; j < 0x13; j++) {
-            reset->slots[j].rate = reset->field_896.byte;
-            Gp_AnimResetSlot(&reset->anim, j, (s16)reset->field_892);
+            reset->rig.slots[j].rate = reset->field_896.byte;
+            Gp_AnimResetSlot(&reset->rig.anim, j, (s16)reset->field_892);
         }
         reset->field_890 = reset->field_892;
     advance:
@@ -551,7 +546,7 @@ void func_actor_312200_80162FB4(Task* task)
         second->field_89E.half = 0x30;
         second->field_8A0      = 0x500;
         for (k = 1; k < 0x13; k++) {
-            second->slots[k].rate = second->field_89E.byte;
+            second->rig.slots[k].rate = second->field_89E.byte;
             Gp_AnimResetSlot(&second->anim2, k, (s16)second->field_89C);
         }
         work->field_89A = 3;
@@ -559,8 +554,8 @@ void func_actor_312200_80162FB4(Task* task)
     work->field_894++;
     tick = (Actor312200Work*)task->work;
     for (m = 1; m < 0x13; m++) {
-        tick->slots[m].rate = tick->field_896.byte;
-        Gp_AnimTickIndex(&tick->anim, m);
+        tick->rig.slots[m].rate = tick->field_896.byte;
+        Gp_AnimTickIndex(&tick->rig.anim, m);
     }
 }
 
@@ -608,7 +603,7 @@ void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
     enemy->field_4D           = 0;
     enemy->reactionFlags      = 0;
     enemy->field_4D           = 0;
-    func_800B3F84(&work->anim, D_actor_312200_80169F44, obj, work->poses, work->slots);
+    func_800B3F84(&work->rig.anim, D_actor_312200_80169F44, obj, work->rig.poses, work->rig.slots);
     work->field_88C      = 2;
     work->field_892      = 1;
     work->field_896.half = 0x10;
@@ -841,7 +836,7 @@ void func_actor_312200_801637CC(Task* task)
         work->field_896.half = 0x10;
         func_actor_312200_80162FB4(task);
     }
-    if ((s16)work->field_892 == 0x10 && (work->slots[1].flags & 1)) {
+    if ((s16)work->field_892 == 0x10 && (work->rig.slots[1].flags & 1)) {
         work->field_892 = 4;
         work->field_88C = 1;
     }

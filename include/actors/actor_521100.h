@@ -18,15 +18,13 @@
 /// `obj57C` / `obj59C` sharing `rec5BC`, and `obj5D4` / `obj5F4` sharing
 /// `rec62C`, the first of that pair carrying the `shape` segment.
 typedef struct Actor521100Work {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[0x13];
-    /* 0x30C */ byte       poses[0x130];
-    /* 0x43C */ MATRIX     color;
-    /* 0x45C */ MATRIX     light;
-    /* 0x47C */ GpObj      obj47C;
-    /* 0x49C */ GpRec18    rec49C[5];
-    /* 0x514 */ GpObj      obj514;
-    /* 0x534 */ GpRec18    rec534[3];
+    /* 0x000 */ ActorAnimRig19 rig;
+    /* 0x43C */ MATRIX         color;
+    /* 0x45C */ MATRIX         light;
+    /* 0x47C */ GpObj          obj47C;
+    /* 0x49C */ GpRec18        rec49C[5];
+    /* 0x514 */ GpObj          obj514;
+    /* 0x534 */ GpRec18        rec534[3];
     /// The two collision nodes the burn-out sequence arms, the pair
     /// `Actor510900Work`'s `obj4E4` / `obj504` carry. `func_actor_521100_80131E8C`
     /// fills both - the two pointers, `pos` and

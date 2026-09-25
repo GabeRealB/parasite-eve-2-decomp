@@ -2,6 +2,7 @@
 
 #include <psyq/libgte.h>
 
+#include "actors/actor.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -22,9 +23,7 @@
 /// `func_actor_210700_8014A208` points the model at, and the texture-upload
 /// state the upload handler runs.
 typedef struct Actor210700Work {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[0x14];
-    /* 0x334 */ byte       field_334[0x140];
+    /* 0x000 */ ActorAnimRig20 rig;
     /// Non-zero once an animation has been started; gates the per-frame tick
     /// of slots 1..0x13.
     /* 0x474 */ s32 field_474;
@@ -215,7 +214,7 @@ void func_actor_210700_8014A0AC(Task* task)
     ext  = task->extra;
     if (work->field_474 != 0) {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
     if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
@@ -275,21 +274,21 @@ s32 func_actor_210700_8014A224(Task* task, s32 arg1, Actor210700Anim* msg, s32 a
     if (id != work->field_47C) {
         work->field_478 = -1;
         work->field_47C = id;
-        func_800B3F84(&work->anim, D_actor_210700_801585C8[id], ext, work->field_334, work->slots);
+        func_800B3F84(&work->rig.anim, D_actor_210700_801585C8[id], ext, work->rig.poses, work->rig.slots);
     }
     if (msg->field_4 != work->field_478) {
         work->field_478 = msg->field_4;
         if (msg->field_8 != 0) {
             for (i = 1; i < 0x14; i++) {
-                func_800B4114(&work->anim, i, work->field_478, 0, 6);
+                func_800B4114(&work->rig.anim, i, work->field_478, 0, 6);
             }
         } else {
             for (i = 1; i < 0x14; i++) {
-                Gp_AnimResetSlot(&work->anim, i, work->field_478);
+                Gp_AnimResetSlot(&work->rig.anim, i, work->field_478);
             }
         }
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
         work->field_474 = 1;
     }

@@ -77,16 +77,6 @@ typedef struct Actor105100ProjScratch {
 } Actor105100ProjScratch;
 STATIC_ASSERT_SIZEOF(Actor105100ProjScratch, 0x38);
 
-/// Animation view of the work block's prefix. `func_800B3F84` is handed the
-/// block as a `GpAnimCtx` and the nineteen `GpAnimSlot`s live at 0x14, over the
-/// bytes the object-list code sees as `Actor105100Work::obj0` / `obj38`: the handler
-/// reaches slot 1 as `&work->obj38.prev`.
-typedef struct Actor105100Anim {
-    /* 0x000 */ GpAnimCtx  context;
-    /* 0x014 */ GpAnimSlot slots[0x13];
-} Actor105100Anim;
-STATIC_ASSERT_SIZEOF(Actor105100Anim, 0x30C);
-
 /// The actor's animation work area. `field_58E` is the pose the animation
 /// tables are indexed by and `field_598` the step of the schedule that drives
 /// it. `field_592` is unsigned in this overlay's view -- the accumulation in
@@ -579,7 +569,7 @@ void func_actor_105100_801327B4(GpEnemy* arg0, Task* arg1)
     work->field_554.spawnArgLo = 0x500;
     work->field_554.spawnArgHi = 3;
     func_800B3F84((GpAnimCtx*)work, D_actor_105100_80141488, (TmdObject*)obj, work->field_30C,
-                  ((Actor105100Anim*)work)->slots);
+                  ((ActorAnimRig19*)work)->slots);
     for (i = 1; i < 0x13; i++) {
         Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
     }

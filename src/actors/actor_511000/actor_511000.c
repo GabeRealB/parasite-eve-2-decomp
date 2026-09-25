@@ -5,6 +5,8 @@
 #include "psyq/inline_c.h"
 #include "gte.h"
 
+#include "actors/actor.h"
+
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
@@ -22,7 +24,6 @@
 #include "actors/actors_shared_80132074.h"
 #include "actors/actors_shared_8013231c.h"
 #include "actors/actors_shared_801334c4.h"
-#include "actors/actors_shared_80132604.h"
 
 /// Work block of the enemy task, reached by its model-attach children through
 /// the parent task's `Task::work`. The spawn handler
@@ -69,15 +70,13 @@ STATIC_ASSERT_SIZEOF(Actor511000Work, 0x70);
 /// buffer handed to `func_800B3F84`. Its light/color pair is republished onto
 /// model part 1, not the root coordinate.
 typedef struct Actor511000Work2 {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[0x14];
-    /* 0x334 */ byte       field_334[0x140];
-    /* 0x474 */ s32        field_474; ///< nonzero while the tick state steps animation slots 1..19
-    /* 0x478 */ s32        field_478; ///< animation id the slots were last restarted on; -1 out of the spawn handler
-    /* 0x47C */ s32        field_47C; ///< animation source last loaded; also the id `func_actor_511000_80133DEC` resets slots to
+    /* 0x000 */ ActorAnimRig20 rig;
+    /* 0x474 */ s32            field_474; ///< nonzero while the tick state steps animation slots 1..19
+    /* 0x478 */ s32            field_478; ///< animation id the slots were last restarted on; -1 out of the spawn handler
+    /* 0x47C */ s32            field_47C; ///< animation source last loaded; also the id `func_actor_511000_80133DEC` resets slots to
     /* 0x480 */ union {
-        s32 word;                     ///< seeded to -1 whole by the spawn handler
-        s16 half;                     ///< the halfword `func_actor_511000_80133DEC` clears after the slot reseed
+        s32 word;                         ///< seeded to -1 whole by the spawn handler
+        s16 half;                         ///< the halfword `func_actor_511000_80133DEC` clears after the slot reseed
     } field_480;
     /* 0x484 */ MATRIX light;
     /* 0x4A4 */ MATRIX color;
@@ -252,7 +251,7 @@ void func_actor_511000_80131E78(Task* arg0)
     coord = &extra->coords[1];
     if (work->field_474 != 0) {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
         if (work->field_478 == 1) {
             if (++work->field_4D2 == 0x10) {
@@ -517,21 +516,21 @@ s32 func_actor_511000_80132604(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
     if (id != work->field_47C) {
         work->field_478 = -1;
         work->field_47C = id;
-        func_800B3F84(&work->anim, D_actor_511000_801472E4[id], ext, work->field_334, work->slots);
+        func_800B3F84(&work->rig.anim, D_actor_511000_801472E4[id], ext, work->rig.poses, work->rig.slots);
     }
     if (msg->field_4 != work->field_478) {
         work->field_478 = msg->field_4;
         if (msg->field_8 != 0) {
             for (i = 1; i < 0x14; i++) {
-                func_800B4114(&work->anim, i, work->field_478, 0, 6);
+                func_800B4114(&work->rig.anim, i, work->field_478, 0, 6);
             }
         } else {
             for (i = 1; i < 0x14; i++) {
-                Gp_AnimResetSlot(&work->anim, i, work->field_478);
+                Gp_AnimResetSlot(&work->rig.anim, i, work->field_478);
             }
         }
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
         work->field_474 = 1;
     }
@@ -1401,7 +1400,7 @@ s32 func_actor_511000_80133DEC(Task* task, s32 arg1, GpAnimArg* preset)
     work->field_47C = preset->field_4;
     i               = 1;
     do {
-        Gp_AnimResetSlot((GpAnimCtx*)work, i, work->field_47C);
+        Gp_AnimResetSlot(&work->rig.anim, i, work->field_47C);
         i++;
     } while (i < 0x13);
     work->field_480.half = 0;

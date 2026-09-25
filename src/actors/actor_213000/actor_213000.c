@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "actors/actor.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/D4.h"
@@ -27,18 +28,16 @@
 /// `field_4BC` / `field_4C0` hold the two children spawned from table entries
 /// 1 and 2, whose models the 0x7DB handler shows and hides.
 typedef struct Actor213000Work {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[0x14];
-    /* 0x334 */ byte       field_334[0x140];
-    /* 0x474 */ s8         field_474;
-    /* 0x475 */ s8         field_475;
-    /* 0x476 */ s8         field_476;
-    /* 0x477 */ s8         field_477;
-    /* 0x478 */ s32        field_478;
-    /* 0x47C */ MATRIX     light;
-    /* 0x49C */ MATRIX     color;
-    /* 0x4BC */ Task*      field_4BC;
-    /* 0x4C0 */ Task*      field_4C0;
+    /* 0x000 */ ActorAnimRig20 rig;
+    /* 0x474 */ s8             field_474;
+    /* 0x475 */ s8             field_475;
+    /* 0x476 */ s8             field_476;
+    /* 0x477 */ s8             field_477;
+    /* 0x478 */ s32            field_478;
+    /* 0x47C */ MATRIX         light;
+    /* 0x49C */ MATRIX         color;
+    /* 0x4BC */ Task*          field_4BC;
+    /* 0x4C0 */ Task*          field_4C0;
 } Actor213000Work;
 STATIC_ASSERT_SIZEOF(Actor213000Work, 0x4C4);
 
@@ -418,7 +417,7 @@ void func_actor_213000_8014A5D0(Task* task)
     coords = &extra->coords[1];
     if (work->field_474 != 0) {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
     if (gGameSession->viewReady != 0) {
@@ -470,21 +469,21 @@ s32 func_actor_213000_8014A70C(Task* task, s32 arg1, GpAnimArg* msg)
     if (msg->animBlock.index != work->field_476) {
         work->field_476 = msg->animBlock.index;
         work->field_475 = -1;
-        func_800B3F84(&work->anim, D_actor_213000_80157DDC[work->field_476], ext, work->field_334,
-                      work->slots);
+        func_800B3F84(&work->rig.anim, D_actor_213000_80157DDC[work->field_476], ext, work->rig.poses,
+                      work->rig.slots);
     }
     work->field_475 = msg->field_4;
     if (msg->field_8 != 0) {
         for (i = 1; i < 0x14; i++) {
-            func_800B4114(&work->anim, i, work->field_475, 0, 6);
+            func_800B4114(&work->rig.anim, i, work->field_475, 0, 6);
         }
     } else {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimResetSlot(&work->anim, i, work->field_475);
+            Gp_AnimResetSlot(&work->rig.anim, i, work->field_475);
         }
     }
     for (i = 1; i < 0x14; i++) {
-        Gp_AnimTickIndex(&work->anim, i);
+        Gp_AnimTickIndex(&work->rig.anim, i);
     }
     work->field_474 = 1;
     return 0;
