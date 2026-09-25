@@ -1,1 +1,7 @@
 // Overlay-local symbols for replay_bonus (file 21000).
+D_replay_bonus_80119225 = 0x80119225; // type:u8 size:0x1
+D_replay_bonus_80119226 = 0x80119226; // type:u8 size:0x1
+D_replay_bonus_80119227 = 0x80119227; // type:u8 size:0x1
+D_replay_bonus_80119266 = 0x80119266; // type:u16 size:0x2
+D_replay_bonus_8011926A = 0x8011926A; // type:u16 size:0x2
+D_replay_bonus_8011926E = 0x8011926E; // type:s16 size:0x2
