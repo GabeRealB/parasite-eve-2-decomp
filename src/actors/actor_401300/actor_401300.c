@@ -1279,22 +1279,22 @@ static __inline__ void Actor401300_BindMatrices(Task* actor)
 /// defaults while the rotation scratch block is still held.
 static __inline__ void Actor401300_InitPose(GsCOORDINATE2* coord, Actor401300Work* work)
 {
-    void*                 top;
+    ActorScaleRotScratch* top;
     ActorScaleRotScratch* blk;
     s16                   ang;
     u16                   m22;
 
-    top                = SCRATCH_HEAD(void);
-    blk                = (ActorScaleRotScratch*)((u8*)top - 0x34);
-    SCRATCH_HEAD(void) = blk;
-    ang                = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    blk->angle         = ang;
+    top                                = SCRATCH_HEAD(ActorScaleRotScratch);
+    blk                                = top - 1;
+    SCRATCH_HEAD(ActorScaleRotScratch) = blk;
+    ang                                = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    blk->angle                         = ang;
     Gfx_RotMatrixY(&blk->m, ang, 1);
     blk->scale.vz = 0x1964;
     blk->scale.vy = 0x1964;
     blk->scale.vx = 0x1964;
     ScaleMatrix(&blk->m, &blk->scale);
-    coord->coord.m[0][0] = *(u16*)&((ActorScaleRotScratch*)((u8*)top - 0x34))->m.m[0][0];
+    coord->coord.m[0][0] = *(u16*)&(top - 1)->m.m[0][0];
     coord->coord.m[0][1] = *(u16*)&blk->m.m[0][1];
     coord->coord.m[0][2] = *(u16*)&blk->m.m[0][2];
     coord->coord.m[1][0] = *(u16*)&blk->m.m[1][0];
@@ -1311,7 +1311,7 @@ static __inline__ void Actor401300_InitPose(GsCOORDINATE2* coord, Actor401300Wor
     work->field_8B8      = 0x100;
     work->field_8B6      = 0x170;
     work->field_8BA      = 0x20;
-    SCRATCH_POP_BYTES(0x34);
+    SCRATCH_POP(ActorScaleRotScratch);
 }
 
 void func_actor_401300_80134454(GpEnemy* enemy, Task* actor)
@@ -2765,14 +2765,14 @@ void func_actor_401300_80138FCC(Task* arg0)
 /// and `y` on Y. `actorRescaleYaw` with a separate Y scale.
 static __inline__ void Actor401300_RescaleYawXZ(GsCOORDINATE2* coord, s32 xz, s16 y)
 {
-    void*                 head;
+    ActorScaleRotScratch* head;
     ActorScaleRotScratch* blk;
     s16                   ang;
     u16                   m22;
 
-    head               = SCRATCH_HEAD(void);
-    blk                = (ActorScaleRotScratch*)((u8*)head - 0x34);
-    SCRATCH_HEAD(void) = blk;
+    head                               = SCRATCH_HEAD(ActorScaleRotScratch);
+    blk                                = head - 1;
+    SCRATCH_HEAD(ActorScaleRotScratch) = blk;
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle = ang;
@@ -2782,7 +2782,7 @@ static __inline__ void Actor401300_RescaleYawXZ(GsCOORDINATE2* coord, s32 xz, s1
     blk->scale.vz = xz;
     ScaleMatrix(&blk->m, &blk->scale);
 
-    coord->coord.m[0][0] = *(u16*)&((ActorScaleRotScratch*)((u8*)head - 0x34))->m.m[0][0];
+    coord->coord.m[0][0] = *(u16*)&(head - 1)->m.m[0][0];
     coord->coord.m[0][1] = *(u16*)&blk->m.m[0][1];
     coord->coord.m[0][2] = *(u16*)&blk->m.m[0][2];
     coord->coord.m[1][0] = *(u16*)&blk->m.m[1][0];
@@ -2791,7 +2791,7 @@ static __inline__ void Actor401300_RescaleYawXZ(GsCOORDINATE2* coord, s32 xz, s1
     coord->coord.m[2][0] = *(u16*)&blk->m.m[2][0];
     coord->coord.m[2][1] = *(u16*)&blk->m.m[2][1];
     m22                  = *(u16*)&blk->m.m[2][2];
-    SCRATCH_POP_BYTES(0x34);
+    SCRATCH_POP(ActorScaleRotScratch);
     coord->flg           = 0;
     coord->coord.m[2][2] = m22;
 }
@@ -3735,15 +3735,15 @@ void func_actor_401300_8013D6C4(Task* arg0)
 static __inline__ void Actor401300_ResetActorYaw(Task* actor)
 {
     GsCOORDINATE2*        coord;
-    void*                 head;
+    ActorScaleRotScratch* head;
     ActorScaleRotScratch* blk;
     s16                   ang;
     u16                   m22;
 
-    coord              = ((TmdObject*)actor->extra)->coords;
-    head               = SCRATCH_HEAD(void);
-    blk                = (ActorScaleRotScratch*)((u8*)head - 0x34);
-    SCRATCH_HEAD(void) = blk;
+    coord                              = ((TmdObject*)actor->extra)->coords;
+    head                               = SCRATCH_HEAD(ActorScaleRotScratch);
+    blk                                = head - 1;
+    SCRATCH_HEAD(ActorScaleRotScratch) = blk;
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle = ang;
@@ -3753,7 +3753,7 @@ static __inline__ void Actor401300_ResetActorYaw(Task* actor)
     blk->scale.vx = 0x1964;
     ScaleMatrix(&blk->m, &blk->scale);
 
-    coord->coord.m[0][0]                    = *(u16*)&((ActorScaleRotScratch*)((u8*)head - 0x34))->m.m[0][0];
+    coord->coord.m[0][0]                    = *(u16*)&(head - 1)->m.m[0][0];
     coord->coord.m[0][1]                    = *(u16*)&blk->m.m[0][1];
     coord->coord.m[0][2]                    = *(u16*)&blk->m.m[0][2];
     coord->coord.m[1][0]                    = *(u16*)&blk->m.m[1][0];
@@ -3765,7 +3765,7 @@ static __inline__ void Actor401300_ResetActorYaw(Task* actor)
     coord->flg                              = 0;
     coord->coord.m[2][2]                    = m22;
     ((TmdObject*)actor->extra)->coords->flg = 0;
-    SCRATCH_POP_BYTES(0x34);
+    SCRATCH_POP(ActorScaleRotScratch);
 }
 
 /// Facing yaw of `coord`.
