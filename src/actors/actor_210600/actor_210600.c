@@ -1,23 +1,421 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
+#include "gte.h"
+#include <psyq/abs.h>
+
 #include "actors/actor_210600.h"
 
+#include "gameplay/3A34.h"
 #include "gameplay/3FB8.h"
 #include "main/gfx.h"
 #include "main/mem.h"
+#include "main/session.h"
 #include "main/tmd.h"
 
-#include <psyq/inline_c.h>
+/// Integer part of the last movement step `func_actor_210600_8014A9D0`
+/// applied.
+extern SVECTOR D_actor_210600_8015D310;
 
-INCLUDE_ASM("actors/nonmatchings/actor_210600/actor_210600", func_actor_210600_80149E30);
+/// Turns joint `coord` by `yaw` about the world Y axis: builds its world
+/// rotation in a matrix carved off the scratchpad head, applies the turn,
+/// converts the result back into the parent's frame, writes the 3x3 into the
+/// joint and refreshes it.
+void func_actor_210600_80149E30(GsCOORDINATE2* coord, s16 yaw)
+{
+    MATRIX*        rotation;
+    GsCOORDINATE2* out;
 
-INCLUDE_ASM("actors/nonmatchings/actor_210600/actor_210600", func_actor_210600_8014A13C);
+    *(MATRIX**)G_SCRATCH_HEAD -= 1;
+    rotation                   = *(MATRIX**)G_SCRATCH_HEAD;
+    Actor210600_AccumulateRotation(coord, rotation, &gGfxViewCoord);
+    func_8004BFF8(yaw, rotation);
+    out = Actor210600_LocalizeRotation(coord, rotation);
+    __builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
+    out->flg = 0;
+    Gp_UpdateCoord(out);
+    *(MATRIX**)G_SCRATCH_HEAD += 1;
+}
 
-INCLUDE_ASM("actors/nonmatchings/actor_210600/actor_210600", func_actor_210600_8014A484);
+/// Walks the first `count` records of `recs`, up to an empty key, and for
+/// every kind 0x10000 or 0x30000 record computes the XZ push-out of the
+/// coordinate's world position from it; the last such push is kept in the
+/// scratch block, and its length is scaled down to 0x100 when longer. Returns
+/// whether any record of those kinds was met. Does nothing, returning 0, while
+/// `D_80072729` or the session's `viewReady` is 1.
+s32 func_actor_210600_8014A13C(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
+{
+    Actor210600RepelScratch* head;
+    Actor210600RepelScratch* s;
+    Actor210600RepelScratch* blk;
+    SVECTOR*                 offset;
 
-INCLUDE_ASM("actors/nonmatchings/actor_210600/actor_210600", func_actor_210600_8014A9D0);
+    if (D_80072729 == 1 || gGameSession->viewReady == 1) {
+        return 0;
+    }
+    coord->flg                                 = 0;
+    head                                       = *(Actor210600RepelScratch**)G_SCRATCH_HEAD;
+    blk                                        = head - 1;
+    *(Actor210600RepelScratch**)G_SCRATCH_HEAD = blk;
+    s                                          = blk;
+    Gp_UpdateCoord(coord);
+    s->pos.vx  = coord->workm.t[0];
+    s->pos.vy  = coord->workm.t[1];
+    s->pos.vz  = coord->workm.t[2];
+    s->last.vz = 0;
+    s->last.vy = 0;
+    s->last.vx = 0;
+    s->hit     = 0;
+    for (s->i = 0; s->i < count; s->i++) {
+        if (recs[s->i].key == 0) {
+            s->dist[s->i] = 0x7FFE;
+            break;
+        }
+        s->kind = recs[s->i].key & 0xFFFF0000;
+        if (s->kind == 0x10000 || s->kind == 0x30000) {
+            s->hit = 1;
+            Actor210600_CalcPush(&s->pos, &recs[s->i], &s->offset);
+            s->last.vx = s->offset.vx;
+            s->last.vz = s->offset.vz;
+        }
+    }
+    s->len = SquareRoot0(s->offset.vx * s->offset.vx + s->offset.vy * s->offset.vy +
+                         s->offset.vz * s->offset.vz);
+    if (s->len > 0x100) {
+        offset = &s->offset;
+        VectorNormalSS(offset, offset);
+        gte_lddp(0x100);
+        gte_ldsv(offset);
+        gte_gpf12();
+        gte_stsv(offset);
+    }
+    coord->flg                                  = 0;
+    *(Actor210600RepelScratch**)G_SCRATCH_HEAD += 1;
+    return s->hit;
+}
 
-INCLUDE_ASM("actors/nonmatchings/actor_210600/actor_210600", func_actor_210600_8014AB74);
+/// Collects the bearings of up to eight kind 0x10000 / 0x30000 records among
+/// the first `count` of `recs`, taken in the XZ plane unless the coordinate's
+/// facing is near vertical. Any two bearings more than a quarter turn (0x400)
+/// apart cancel each other; each bearing left steps `coord` 10 units away from
+/// it, the total XZ step accumulating in `pos`. Returns whether a kind 0x10000
+/// record was among them; returns 0 at once while the session's `viewReady`
+/// or `D_80072729` is 1.
+s32 func_actor_210600_8014A484(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos)
+{
+    u8*                      head;
+    Actor210600AvoidScratch* s;
+    s16                      diff;
+    s16                      t;
+    s32                      mag;
+
+    if (gGameSession->viewReady == 1 || D_80072729 == 1) {
+        return 0;
+    }
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - sizeof(Actor210600AvoidScratch);
+    s                     = (Actor210600AvoidScratch*)*(u8**)G_SCRATCH_HEAD;
+    s->blocked            = 0;
+    pos->vz               = 0;
+    pos->vy               = 0;
+    pos->vx               = 0;
+
+    Gfx_MatrixCol1(&coord->workm, (SVECTOR*)(head - 0x34));
+    VectorNormalSS((SVECTOR*)(head - 0x34), (SVECTOR*)(head - 0x34));
+
+    if (ABS(s->dir.vz) < 0x818) {
+        s->face = ratan2(-coord->workm.m[2][0], coord->workm.m[2][2]);
+    } else {
+        s->face = -ratan2(-coord->workm.m[0][2], coord->workm.m[1][2]);
+    }
+
+    s->eye.vx = *(u16*)&coord->workm.t[0];
+    s->eye.vy = *(u16*)&coord->workm.t[1];
+    s->eye.vz = *(u16*)&coord->workm.t[2];
+    s->count  = 0;
+
+    for (s->i = 0; s->i < count; s->i++) {
+        if (recs[s->i].key == 0) {
+            break;
+        }
+        s->kind = recs[s->i].key & 0xFFFF0000;
+        switch (s->kind) {
+            case 0x10000:
+                s->blocked = 1;
+            case 0x30000:
+                break;
+            default:
+                continue;
+        }
+
+        if (ABS(s->dir.vz) < 0x818) {
+            s->angle[s->count] = Actor210600_BearingXZ((SVECTOR3*)&recs[s->i].point, &s->eye);
+        } else {
+            s->angle[s->count] = Actor210600_BearingXY((SVECTOR3*)&recs[s->i].point, &s->eye);
+        }
+        s->ok[s->count] = 1;
+        s->count++;
+        if (s->count >= 8) {
+            break;
+        }
+    }
+
+    for (s->i = 0; s->i < s->count; s->i++) {
+        for (s->j = s->i + 1; s->j < s->count; s->j++) {
+            diff = (u16)s->angle[s->i] - (u16)s->angle[s->j];
+            t    = diff;
+            if (diff < 0) {
+            wrapUp:
+                if (t < -0x800) {
+                    t += 0x1000;
+                    goto wrapUp;
+                }
+            } else {
+            wrapDown:
+                if (t > 0x800) {
+                    t -= 0x1000;
+                    goto wrapDown;
+                }
+            }
+            mag     = t;
+            s->diff = mag;
+            SOFT_BARRIER();
+            if (mag < 0) {
+                mag = -mag;
+            }
+            if (mag >= 0x401) {
+                s->ok[s->i] = 0;
+                s->ok[s->j] = 0;
+            }
+        }
+        if (s->ok[s->i] != 0) {
+            diff = ((u16)s->angle[s->i] - (u16)s->face) +
+                   ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+            s->diff = diff;
+            Gfx_RotMatrixY(&s->m, diff, 1);
+            Gfx_MatrixCol2(&s->m, &s->dir);
+            VectorNormalSS(&s->dir, &s->dir);
+            gte_lddp(-10);
+            gte_ldsv(&s->dir);
+            gte_gpf12();
+            gte_stsv(&s->dir);
+            pos->vx           += s->dir.vx;
+            pos->vz           += s->dir.vz;
+            coord->coord.t[0] += s->dir.vx;
+            coord->coord.t[2] += s->dir.vz;
+        }
+    }
+
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(Actor210600AvoidScratch);
+    return s->blocked != 0;
+}
+
+/// Steps `coord` by the movement the first `arg2` records of `movement`
+/// resolve to, and latches the integer part of that delta into
+/// `D_actor_210600_8015D310`. Returns the "moved" flag: set when the X or Z
+/// delta is nonzero; where a delta also has a fractional part, the coordinate
+/// and the latched step are nudged one unit further away from zero.
+s32 func_actor_210600_8014A9D0(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2)
+{
+    void**                scratch;
+    u8*                   head;
+    Actor210600DeltaFlag* s;
+    register void*        p asm("v1");
+    s32                   val;
+
+    scratch     = (void**)G_SCRATCH_HEAD;
+    head        = *scratch;
+    p           = head - 0x14;
+    s           = p;
+    *scratch    = p;
+    s->field_10 = 0;
+    if (func_800E0C10(movement, &s->delta, (s32)arg2, NULL) != 0) {
+        coord->coord.t[0]          = coord->coord.t[0] + ((Actor210600DeltaFlag*)(head - 0x14))->delta.vx.h.hi;
+        coord->coord.t[2]          = coord->coord.t[2] + s->delta.vz.h.hi;
+        D_actor_210600_8015D310.vx = ((Actor210600DeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
+        D_actor_210600_8015D310.vy = s->delta.vy.w >> 16;
+        D_actor_210600_8015D310.vz = s->delta.vz.w >> 16;
+        val                        = ((Actor210600DeltaFlag*)(head - 0x14))->delta.vx.w;
+        if ((val & 0xFFFF) != 0) {
+            if (val > 0) {
+                coord->coord.t[0]++;
+                D_actor_210600_8015D310.vx++;
+            } else {
+                coord->coord.t[0]--;
+                D_actor_210600_8015D310.vx--;
+            }
+        }
+        val = s->delta.vz.w;
+        if ((val & 0xFFFF) != 0) {
+            if (val > 0) {
+                coord->coord.t[2]++;
+                D_actor_210600_8015D310.vz++;
+            } else {
+                coord->coord.t[2]--;
+                D_actor_210600_8015D310.vz--;
+            }
+        }
+    }
+    if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
+        s->field_10 = 1;
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    return s->field_10;
+}
+
+/// Pushes `coord` `push` units away from each obstacle among the first
+/// `count` contact records (kind 0x10000 or 0x30000) whose bearing lies within
+/// 0x400 of every other obstacle's. Bearings are taken in world space from the
+/// frame's position, relative to the point one unit in front of it. Returns
+/// whether any push was applied; returns 0 at once when
+/// `gGameSession->viewReady` is 1.
+s32 func_actor_210600_8014AB74(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push)
+{
+    void**                  scratch;
+    void**                  tail;
+    u8*                     head;
+    Actor210600PushScratch* st;
+    u16                     vz;
+    s16                     d;
+    s16                     dz;
+    s32                     t;
+    s32                     hit;
+
+    if (gGameSession->viewReady == 1) {
+        return 0;
+    }
+
+    scratch = (void**)G_SCRATCH_HEAD;
+    head    = *scratch;
+    {
+        register u8* tmp asm("v0");
+        tmp = head - sizeof(Actor210600PushScratch);
+        st  = (Actor210600PushScratch*)tmp;
+    }
+    st->eye.vx = *(u16*)&coord->coord.t[0];
+    st->eye.vy = *(u16*)&coord->coord.t[1];
+    vz         = *(u16*)&coord->coord.t[2];
+    *scratch   = st;
+    st->eye.vz = vz;
+
+    Actor210600_ToWorld(coord->sub, &st->eye);
+
+    st->aim.vx = 0;
+    st->aim.vy = 0;
+    st->aim.vz = 0x1000;
+
+    Actor210600_ToWorld2(coord, &st->aim);
+
+    for (st->i = 0; st->i < count; st->i++) {
+        if (recs[st->i].key == 0) {
+            st->angle[st->i] = 0x7FFE;
+            break;
+        }
+        st->kind = recs[st->i].key & 0xFFFF0000;
+        if ((st->kind != 0x10000) && (st->kind != 0x30000)) {
+            st->angle[st->i] = 0x7FFF;
+        } else {
+            st->delta.vx     = *(u16*)&recs[st->i].point.vx - *(u16*)&st->eye.vx;
+            st->delta.vy     = *(u16*)&recs[st->i].point.vy - *(u16*)&st->eye.vy;
+            dz               = *(u16*)&recs[st->i].point.vz - *(u16*)&st->eye.vz;
+            st->delta.vz     = dz;
+            st->angle[st->i] = ratan2(st->delta.vx, dz);
+
+            st->delta.vx     = *(u16*)&st->aim.vx - *(u16*)&st->eye.vx;
+            st->delta.vy     = *(u16*)&st->aim.vy - *(u16*)&st->eye.vy;
+            dz               = *(u16*)&st->aim.vz - *(u16*)&st->eye.vz;
+            st->delta.vz     = dz;
+            st->angle[st->i] = *(u16*)&st->angle[st->i] - ratan2(st->delta.vx, dz);
+
+            d = st->angle[st->i];
+            if (st->angle[st->i] < 0) {
+            wrapUp1:
+                if (d < -0x800) {
+                    d += 0x1000;
+                    goto wrapUp1;
+                }
+            } else {
+            wrapDown1:
+                if (d > 0x800) {
+                    d -= 0x1000;
+                    goto wrapDown1;
+                }
+            }
+            st->angle[st->i] = d;
+        }
+    }
+
+    st->hit = 0;
+    for (st->i = 0; st->i < count; st->i++) {
+        if (st->angle[st->i] == 0x7FFE) {
+            break;
+        }
+        if (st->angle[st->i] == 0x7FFF) {
+            continue;
+        }
+        for (st->j = 0; st->j < count; st->j++) {
+            if (st->i == st->j) {
+                continue;
+            }
+            if (st->angle[st->j] == 0x7FFF) {
+                continue;
+            }
+            if (st->angle[st->j] != 0x7FFE) {
+                st->diff = (u16)st->angle[st->j] - (u16)st->angle[st->i];
+                d        = st->diff;
+                if (st->diff < 0) {
+                wrapUp2:
+                    if (d < -0x800) {
+                        d += 0x1000;
+                        goto wrapUp2;
+                    }
+                } else {
+                wrapDown2:
+                    if (d > 0x800) {
+                        d -= 0x1000;
+                        goto wrapDown2;
+                    }
+                }
+                t        = d;
+                st->diff = t;
+                SOFT_BARRIER();
+                if (t < 0) {
+                    t = -t;
+                }
+                if (t >= 0x401) {
+                    break;
+                }
+                if (st->angle[st->j] != 0x7FFE) {
+                    if (st->j + 1 < count) {
+                        continue;
+                    }
+                }
+            }
+            st->hit = 1;
+            Gfx_RotMatrixY(&st->m,
+                           st->angle[st->i] + (s16)ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]),
+                           1);
+            Gfx_MatrixCol2(&st->m, &st->aim);
+            VectorNormalSS(&st->aim, &st->aim);
+            gte_lddp(-push);
+            gte_ldsv(&st->aim);
+            gte_gpf12();
+            gte_stsv(&st->delta);
+            coord->coord.t[0] += st->delta.vx;
+            coord->coord.t[2] += st->delta.vz;
+            break;
+        }
+    }
+
+    tail  = (void**)G_SCRATCH_HEAD;
+    hit   = st->hit;
+    *tail = (u8*)*tail + sizeof(Actor210600PushScratch);
+    return hit;
+}
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
