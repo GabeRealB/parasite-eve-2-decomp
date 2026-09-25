@@ -323,6 +323,8 @@ void func_actor_460200_80132390(void)
     }
 }
 
+void func_actor_460200_80132978(Task* task);
+
 /// Per-frame step of the actor's first state: rolls `idx` from the shared
 /// 12-entry byte table, parks the model's `idx`-th sub-coordinate (`sub`) for
 /// the effect spawn below, and pushes the enemy's own coordinate through
@@ -416,7 +418,6 @@ void func_actor_460200_801325FC(Task* task)
 }
 
 void func_actor_460200_80132808(GpEnemy* enemy, Task* task);
-s32  func_actor_460200_80132978(Task* task);
 void func_actor_460200_80132950(Task* task);
 
 void func_actor_460200_801327B4(Task* task)
@@ -480,9 +481,40 @@ void func_actor_460200_80132950(Task* task)
     Gp_DestroyEnemy(task->spawnArg2, task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_80132978);
+/// Draws the actor's ground shadow under its root part, unless the model is
+/// hidden (`flags` bit 0x80) or has no buffer. The position is the root part's
+/// world translation, staged on the scratchpad stack.
+void func_actor_460200_80132978(Task* task)
+{
+    TmdObject*     obj;
+    GsCOORDINATE2* coord;
+    VECTOR3*       vec;
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_80132A04);
+    obj   = (TmdObject*)task->extra;
+    coord = obj->coords;
+    if (!(obj->flags & 0x80) && obj->buffer != NULL) {
+        vec     = (VECTOR3*)(SCRATCH_SP -= 0x18);
+        vec->vx = coord->workm.t[0];
+        vec->vy = coord->workm.t[1];
+        vec->vz = coord->workm.t[2];
+        Gp_DrawEffGroundQuad(vec, 0x200, 0xC0);
+        SCRATCH_SP += 0x18;
+    }
+}
+
+/// Ticks animation slots 1..0x13.
+void func_actor_460200_80132A04(Task* task)
+{
+    Actor460200Work* work;
+    s32              i;
+
+    work = (Actor460200Work*)task->work;
+    i    = 1;
+    do {
+        Gp_AnimTickIndex(&work->anim, i);
+        i++;
+    } while (i < 0x14);
+}
 
 void func_actor_460200_80132A50(Task* task)
 {
@@ -499,7 +531,21 @@ void func_actor_460200_80132A50(Task* task)
     work->field_4B6 = work->field_4B8;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_80132AC8);
+/// Reseeds animation slots 1..0x13 with clip `animId` and argument `animArg`,
+/// and records the clip as the applied one.
+void func_actor_460200_80132AC8(Task* task)
+{
+    Actor460200Work* work;
+    s32              i;
+
+    work = (Actor460200Work*)task->work;
+    i    = 1;
+    do {
+        func_800B4114(&work->anim, i, work->animId, 0, work->animArg);
+        i++;
+    } while (i < 0x14);
+    work->appliedAnimId = work->animId;
+}
 
 /// Script opcode: start animation `args->animId` on this actor.
 ///
@@ -568,4 +614,23 @@ s32 func_actor_460200_80132B98(Task* task, s32 arg1, s32 flags)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_80132C14);
+/// Script opcode "place at": yaws the actor's root coordinate to
+/// `placement->rot.vy`, caching that yaw in the work block, then drops the
+/// placement translation into the matrix and marks it dirty.
+s32 func_actor_460200_80132C14(Task* task, s32 arg1, Actor460200Placement* placement)
+{
+    GsCOORDINATE2*   coord;
+    Actor460200Work* work;
+    u16              yaw;
+
+    coord     = ((TmdObject*)task->extra)->coords;
+    work      = (Actor460200Work*)task->work;
+    yaw       = placement->rot.vy;
+    work->yaw = yaw;
+    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
+    coord->coord.t[0] = placement->pos.vx;
+    coord->coord.t[1] = placement->pos.vy;
+    coord->coord.t[2] = placement->pos.vz;
+    coord->flg        = 0;
+    return 0;
+}

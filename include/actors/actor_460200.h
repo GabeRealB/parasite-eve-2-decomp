@@ -11,7 +11,16 @@
 #include "main/mem.h"
 #include "main/task.h"
 
+/// Scratchpad stack pointer the per-frame helpers carve temporary frames off.
+#define SCRATCH_SP (*(u32*)0x1F8003FC)
+
 extern u8 D_80072729;
+
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// the note in `include/gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 /// Steps `coord` `amount` units along its local Z axis, unless movement is
 /// frozen. The direction is staged on the scratchpad stack.
@@ -39,36 +48,36 @@ static __inline__ void Actor460200_MoveForward(GsCOORDINATE2* coord, s16 amount)
     *(SVECTOR**)G_SCRATCH_HEAD += 1;
 }
 
-/// Work block this overlay's actors hang off their task's `Task::work` slot
-/// (0x1C), which is not a `TaskIdMap` here. `ActorsShared80132514Work`
-/// describes the same block from the animation-reset path's side.
+/// Work block of the actors whose spawn routine allocates it with
+/// `memCalloc(0x4F8, 0)` and hangs it off their task's `Task::work` slot, which
+/// is not a `TaskIdMap` here.
 ///
-/// `state` drives `func_actor_460200_801325FC`: 1 starts the animation through
-/// `func_actor_460200_80132AC8` and 2 through `func_actor_460200_80132A50`,
-/// both of which then advance it to 3. `animId` is the clip those slots are
-/// seeded with and `animArg` the extra argument the first path carries; they
-/// are the same two fields `ActorsShared80132514Work` names `field_4B8` /
-/// `field_4EC`, which is also where `func_actor_460200_80132A50` latches
-/// `animId` onto `field_4B6`.
+/// `state` drives the actor's step body: 1 reseeds the animation slots with
+/// `animId` and `animArg`, 2 resets them to `animId` without the argument, and
+/// both then advance it to 3, which walks off `travel` while clip 4 plays and
+/// ticks the slots. Either reseed records the clip it applied in
+/// `appliedAnimId`.
 ///
-/// `slots` is the twenty-element `GpAnimSlot` array at +0x54 those resets walk,
-/// and the `0x374` pose buffer the spawn routine hands `func_800B3F84` sits
-/// directly past it. `enemy` is the `GpEnemy` the spawn routine is passed in
-/// its first argument (`Task::spawnArg2`) and parks for the exit path. `yaw`
-/// caches the heading the placement opcode last gave the root coordinate.
+/// `slots` is the twenty-element `GpAnimSlot` array those resets walk, and the
+/// `0x374` pose buffer the spawn routine hands `func_800B3F84` sits directly
+/// past it. `yaw` caches the heading the placement and walk-to opcodes last
+/// gave the root coordinate. `enemy` is the `GpEnemy` the spawn routine is
+/// passed in its first argument (`Task::spawnArg2`) and parks for the exit
+/// path.
 typedef struct Actor460200Work {
     /* 0x000 */ byte       pad_0[0x40];
     /* 0x040 */ GpAnimCtx  anim;
     /* 0x054 */ GpAnimSlot slots[0x14];
     /* 0x374 */ byte       pad_374[0x140];
     /* 0x4B4 */ s16        state;
-    /* 0x4B6 */ s16        field_4B6;
-    /* 0x4B8 */ u16        animId;
+    /* 0x4B6 */ s16        appliedAnimId;
+    /* 0x4B8 */ s16        animId;
     /* 0x4BA */ s16        field_4BA;
     /* 0x4BC */ byte       pad_4BC[0x2A];
     /* 0x4E6 */ u16        yaw;
-    /* 0x4E8 */ byte       pad_4E8[0x4];
-    /* 0x4EC */ u16        animArg;
+    /* 0x4E8 */ byte       pad_4E8[0x2];
+    /* 0x4EA */ s16        travel;
+    /* 0x4EC */ s16        animArg;
     /* 0x4EE */ s16        field_4EE;
     /* 0x4F0 */ u16        field_4F0;
     /* 0x4F2 */ byte       pad_4F2[2];
@@ -107,9 +116,10 @@ typedef struct Actor460200AnimArgs {
 /// `TmdObject::lightMtx` / `field_20`, and `anim`, `slots` and `pose` are what
 /// `func_800B3F84` fills in. When `Task::spawnArg1` is set the routine spawns a
 /// partner enemy, reparents its own task under the partner's and parks that task
-/// in `field_4F4`; `animId` is then 2 rather than 1. `yaw` is the heading the
-/// walk-to opcode aimed the root coordinate at and `travel` the number of
-/// steps left on that walk. `enemy` is the actor's own
+/// in `field_4F4`; `animId` is then 2 rather than 1. `state`, `animId`,
+/// `animArg`, `appliedAnimId`, `yaw` and `travel` play the roles they play in
+/// `Actor460200Work`, the walk-to opcode here counting steps of 30 rather than
+/// 12. `enemy` is the actor's own
 /// `GpEnemy`, handed back to `Gp_DestroyEnemy` on exit.
 typedef struct Actor460200PairWork {
     /* 0x000 */ MATRIX     light;
@@ -118,13 +128,13 @@ typedef struct Actor460200PairWork {
     /* 0x054 */ GpAnimSlot slots[0x14];
     /* 0x374 */ byte       pose[0x140];
     /* 0x4B4 */ s16        state;
-    /* 0x4B6 */ s16        field_4B6;
-    /* 0x4B8 */ u16        animId;
+    /* 0x4B6 */ s16        appliedAnimId;
+    /* 0x4B8 */ s16        animId;
     /* 0x4BA */ byte       pad_4BA[0x2C];
     /* 0x4E6 */ u16        yaw;
     /* 0x4E8 */ byte       pad_4E8[0x2];
     /* 0x4EA */ s16        travel;
-    /* 0x4EC */ byte       pad_4EC[0x2];
+    /* 0x4EC */ s16        animArg;
     /* 0x4EE */ s16        field_4EE;
     /* 0x4F0 */ s16        field_4F0;
     /* 0x4F2 */ byte       pad_4F2[0x2];

@@ -10,7 +10,29 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200_2", func_actor_460200_80132CAC);
+/// Script opcode "walk to": aims the actor's root coordinate at `target` by
+/// taking the yaw of the horizontal offset from the coordinate's own
+/// translation, caches that yaw in the work block and rebuilds the local
+/// matrix from it, then records the distance, in steps of 12, for the step
+/// body to walk off.
+s32 func_actor_460200_80132CAC(Task* task, s32 arg1, Actor460200WalkTarget* target)
+{
+    GsCOORDINATE2*   coord;
+    Actor460200Work* work;
+    s32              dx;
+    s32              dz;
+    u16              yaw;
+
+    coord     = ((TmdObject*)task->extra)->coords;
+    work      = (Actor460200Work*)task->work;
+    dx        = target->pos.vx - coord->coord.t[0];
+    dz        = target->pos.vz - coord->coord.t[2];
+    yaw       = ratan2(dx, dz);
+    work->yaw = yaw;
+    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
+    work->travel = SquareRoot0(dx * dx + dz * dz) / 12;
+    return 0;
+}
 
 extern TaskDesc D_actor_460200_80148118[];
 extern u8       D_actor_460200_80148130[];
@@ -161,9 +183,40 @@ void func_actor_460200_8013322C(Task* task)
     Gp_DestroyEnemy(task->spawnArg2, task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200_2", func_actor_460200_80133254);
+/// Draws the actor's ground shadow under its root part, unless the model is
+/// hidden (`flags` bit 0x80) or has no buffer. The position is the root part's
+/// world translation, staged on the scratchpad stack.
+void func_actor_460200_80133254(Task* task)
+{
+    TmdObject*     obj;
+    GsCOORDINATE2* coord;
+    VECTOR3*       vec;
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200_2", func_actor_460200_801332E0);
+    obj   = (TmdObject*)task->extra;
+    coord = obj->coords;
+    if (!(obj->flags & 0x80) && obj->buffer != NULL) {
+        vec     = (VECTOR3*)(SCRATCH_SP -= 0x18);
+        vec->vx = coord->workm.t[0];
+        vec->vy = coord->workm.t[1];
+        vec->vz = coord->workm.t[2];
+        Gp_DrawEffGroundQuad(vec, 0x200, 0xC0);
+        SCRATCH_SP += 0x18;
+    }
+}
+
+/// Ticks animation slots 1..0x13.
+void func_actor_460200_801332E0(Task* task)
+{
+    Actor460200PairWork* work;
+    s32                  i;
+
+    work = (Actor460200PairWork*)task->work;
+    i    = 1;
+    do {
+        Gp_AnimTickIndex(&work->anim, i);
+        i++;
+    } while (i < 0x14);
+}
 
 void func_actor_460200_8013332C(Task* task)
 {
@@ -180,7 +233,21 @@ void func_actor_460200_8013332C(Task* task)
     work->field_4B6 = work->field_4B8;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200_2", func_actor_460200_801333A4);
+/// Reseeds animation slots 1..0x13 with clip `animId` and argument `animArg`,
+/// and records the clip as the applied one.
+void func_actor_460200_801333A4(Task* task)
+{
+    Actor460200PairWork* work;
+    s32                  i;
+
+    work = (Actor460200PairWork*)task->work;
+    i    = 1;
+    do {
+        func_800B4114(&work->anim, i, work->animId, 0, work->animArg);
+        i++;
+    } while (i < 0x14);
+    work->appliedAnimId = work->animId;
+}
 
 /// Script opcode: start animation `args->animId` on this actor, rejecting ids
 /// of 0xC and above. State 1 (via `func_actor_460200_801333A4`) carries

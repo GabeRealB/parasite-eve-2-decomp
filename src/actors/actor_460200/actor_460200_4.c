@@ -136,9 +136,40 @@ void func_actor_460200_80133A88(Task* task)
     Gp_DestroyEnemy(task->spawnArg2, task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200_4", func_actor_460200_80133AB0);
+/// Draws the actor's ground shadow under its root part, unless the model is
+/// hidden (`flags` bit 0x80) or has no buffer. The position is the root part's
+/// world translation, staged on the scratchpad stack.
+void func_actor_460200_80133AB0(Task* task)
+{
+    TmdObject*     obj;
+    GsCOORDINATE2* coord;
+    VECTOR3*       vec;
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200_4", func_actor_460200_80133B3C);
+    obj   = (TmdObject*)task->extra;
+    coord = obj->coords;
+    if (!(obj->flags & 0x80) && obj->buffer != NULL) {
+        vec     = (VECTOR3*)(SCRATCH_SP -= 0x18);
+        vec->vx = coord->workm.t[0];
+        vec->vy = coord->workm.t[1];
+        vec->vz = coord->workm.t[2];
+        Gp_DrawEffGroundQuad(vec, 0x200, 0xC0);
+        SCRATCH_SP += 0x18;
+    }
+}
+
+/// Ticks animation slots 1..0x13.
+void func_actor_460200_80133B3C(Task* task)
+{
+    Actor460200Work* work;
+    s32              i;
+
+    work = (Actor460200Work*)task->work;
+    i    = 1;
+    do {
+        Gp_AnimTickIndex(&work->anim, i);
+        i++;
+    } while (i < 0x14);
+}
 
 void func_actor_460200_80133B88(Task* task)
 {
@@ -155,7 +186,21 @@ void func_actor_460200_80133B88(Task* task)
     work->field_4B6 = work->field_4B8;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200_4", func_actor_460200_80133C00);
+/// Reseeds animation slots 1..0x13 with clip `animId` and argument `animArg`,
+/// and records the clip as the applied one.
+void func_actor_460200_80133C00(Task* task)
+{
+    Actor460200Work* work;
+    s32              i;
+
+    work = (Actor460200Work*)task->work;
+    i    = 1;
+    do {
+        func_800B4114(&work->anim, i, work->animId, 0, work->animArg);
+        i++;
+    } while (i < 0x14);
+    work->appliedAnimId = work->animId;
+}
 
 s32 func_actor_460200_80133C64(Task* task, s32 arg1, Actor460200AnimArgs* args)
 {
