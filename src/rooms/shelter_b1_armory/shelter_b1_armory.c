@@ -30,7 +30,7 @@ extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
 extern char          Gp_StrEmpty[];
 extern UiObject*     D_80067634;
-extern GpItemScan    D_80072724;
+extern McItemScan    D_80072724;
 extern UiObjectDesc  D_8010D80C;
 extern RoomShopStock D_8010E138[];
 extern UiObjectDesc  D_8010EFA0;
@@ -379,7 +379,7 @@ void func_shelter_b1_armory_8017DDD8(DialogPrompt* prompt, UiObject* obj)
     TextDrawReq   req;
     u8            buf[0x20];
     RoomShopList* shop;
-    GpItemScan*   scan;
+    McItemScan*   scan;
     s32           y;
     s32           scaled;
     UiObject*     child;
@@ -930,7 +930,7 @@ void func_shelter_b1_armory_8017EF78(DialogPrompt* prompt, UiObject* obj)
     TextDrawReq   req;
     UiObject*     child;
     PlayerStatus* cfg;
-    GpItemScan*   scan;
+    McItemScan*   scan;
     s32           itemId;
     s32           mode;
     s32           price;
@@ -1133,7 +1133,7 @@ void func_shelter_b1_armory_8017F5D4(Task* task)
     s32         guard;
     s32         i;
     s32         n;
-    GpItemRec*  rec;
+    McItemRec*  rec;
 
     item         = D_shelter_b1_armory_80182290;
     obj          = task->spawnArg2;

@@ -197,7 +197,7 @@ void func_mist_shooting_gallery_80181CC4(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 void func_mist_shooting_gallery_8017DCAC(s32 mode)
 {
-    GpItemScan* scan;
+    McItemScan* scan;
     u8*         levels;
     s32         row;
     s32         col;
@@ -263,7 +263,7 @@ void func_mist_shooting_gallery_8017DE7C(DialogPrompt* arg0, UiObject* arg1)
     s32         ammo;
     GpItemQty*  row;
     u8*         weaponIdx;
-    GpItemScan* scan;
+    McItemScan* scan;
 
     item = 0;
     skip = arg0->field_8;

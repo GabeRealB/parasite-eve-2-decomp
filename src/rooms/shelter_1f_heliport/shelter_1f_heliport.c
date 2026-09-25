@@ -44,7 +44,7 @@ extern void func_80179B14(RoomEventMsg* src, RoomEventMsg* dst);
 
 extern char          Gp_StrEmpty[];
 extern UiObject*     D_80067634;
-extern GpItemScan    D_80072724;
+extern McItemScan    D_80072724;
 extern UiObjectDesc  D_8010D80C;
 extern RoomShopStock D_8010E138[];
 extern UiObjectDesc  D_8010EFA0;
@@ -404,7 +404,7 @@ void func_shelter_1f_heliport_8017DDA0(DialogPrompt* prompt, UiObject* obj)
     TextDrawReq   req;
     u8            buf[0x20];
     RoomShopList* shop;
-    GpItemScan*   scan;
+    McItemScan*   scan;
     s32           y;
     s32           scaled;
     UiObject*     child;
@@ -955,7 +955,7 @@ void func_shelter_1f_heliport_8017EF40(DialogPrompt* prompt, UiObject* obj)
     TextDrawReq   req;
     UiObject*     child;
     PlayerStatus* cfg;
-    GpItemScan*   scan;
+    McItemScan*   scan;
     s32           itemId;
     s32           mode;
     s32           price;
@@ -1158,7 +1158,7 @@ void func_shelter_1f_heliport_8017F59C(Task* task)
     s32         guard;
     s32         i;
     s32         n;
-    GpItemRec*  rec;
+    McItemRec*  rec;
 
     item         = D_shelter_1f_heliport_80180F48;
     obj          = task->spawnArg2;

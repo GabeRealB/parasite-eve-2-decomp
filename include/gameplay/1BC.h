@@ -523,7 +523,7 @@ s32  Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 /// (ids `0x80..0x9F`) in the table selected by `arg0`. Tries `Gp_QtyById0`
 /// then `Gp_QtyById1` for a matching related id. `arg3 < 0` uses that
 /// row's max qty. Returns the stored count, 0 if `arg3 == 0`, or -1.
-s32 Gp_EquipRelatedItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
+s32 Gp_EquipRelatedItem(McItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 // Functions defined in this module but not previously declared anywhere.
 // Without a prototype m2c cannot type a call to them and the decompiled

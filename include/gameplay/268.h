@@ -27,14 +27,6 @@ typedef struct _GpItemMap {
 } GpItemMap;
 STATIC_ASSERT_SIZEOF(GpItemMap, 0x4);
 
-/// Window on the rows of an item table an inventory operation works on;
-/// gameplay's name for `McItemScan`.
-typedef McItemScan GpItemScan;
-
-/// Row of the item tables `GpItemScan` selects between; gameplay's name for
-/// `McItemRec`.
-typedef McItemRec GpItemRec;
-
 /// 4-byte entry in `Gp_RelatedQty1` / `Gp_RelatedQty0` (32 entries, item ids
 /// 0x80–0x9F). field_0 is a count (`Gp_GetRelatedQty` / `Gp_ApplyItemMap`);
 /// field_1–3 are related item ids (`Gp_BuildAttachList` / `Gp_NthRelatedId` /
@@ -171,16 +163,16 @@ extern GpBit2Bank Gp_Bit2Banks[];
 extern GpItemQty  Gp_QtyById1[];
 extern GpItemQty  Gp_RelatedQty1[];
 extern GpItemMap  Gp_ItemMaps[];
-extern GpItemScan Gp_DefaultScan;
+extern McItemScan Gp_DefaultScan;
 /// Source item-table scan (`Gp_CanMoveItems` / item-move UI). field_0 is the
 /// start index, field_1 the entry count, field_2 the table id.
-extern GpItemScan Gp_MoveScanSrc;
+extern McItemScan Gp_MoveScanSrc;
 /// Dest item-table scan immediately after `Gp_MoveScanSrc` (`Gp_CanMoveItems`).
-extern GpItemScan Gp_MoveScanDst;
-/// Array of `GpItemScan*` (`Gp_InitStarterInv` clears `[1]` and `[2]`).
-extern GpItemScan* Gp_ScanPtrs[];
+extern McItemScan Gp_MoveScanDst;
+/// Array of `McItemScan*` (`Gp_InitStarterInv` clears `[1]` and `[2]`).
+extern McItemScan* Gp_ScanPtrs[];
 /// Scan dest used while `Gp_InitStarterInv` copies the current inventory out.
-extern GpItemScan* D_8010D55C;
+extern McItemScan* D_8010D55C;
 extern GpStatRow   Gp_StatRows[];
 extern GpItemAttr  Gp_ItemAttrs[];
 /// Qty table indexed by raw item id. `Gp_RelatedQty0` is the 0x80–0x9F slice
@@ -201,8 +193,8 @@ extern u8 Gp_ItemSortKeyA0[];
 /// 0xFFFF-terminated item-id list walked by `Gp_NthCollectedId`. Each id's
 /// low 7 bits index a collected-item bit in `Mc_SaveData.collectedBits`.
 extern u16        Gp_CollectedIds[];
-extern GpItemRec  Gp_ItemTable2[];
-extern GpItemRec* Gp_ItemTable1;
+extern McItemRec  Gp_ItemTable2[];
+extern McItemRec* Gp_ItemTable1;
 /// Overlay string table for item ids `>= 0x500`, indexed by `id - 0x500`
 /// (`Gp_GetItemText`).
 extern char* Gp_ItemTextHi[];
@@ -218,8 +210,8 @@ void Gp_RecalcMaxMp(void);
 /// HP/MP into `Gp_HpMpWork`; any other id returns without that copy.
 void       Gp_EquipMod(s32 arg0);
 void       Gp_InitStarterInv(void);
-GpItemRec* Gp_GiveItem(GpItemScan* arg0, s32 arg1, s32 arg2);
-s32        Gp_RemoveItem(GpItemScan* arg0, GpItemRec* arg1, s32 arg2);
+McItemRec* Gp_GiveItem(McItemScan* arg0, s32 arg1, s32 arg2);
+s32        Gp_RemoveItem(McItemScan* arg0, McItemRec* arg1, s32 arg2);
 /// Confirmation UI for raising `Mc_SaveData.itemLevelBonus` of the equipped
 /// 0x60–0x7F item (`Player_Status.armor`). If the clamped level is
 /// already 10, `Gp_NoticePanelTask` is shown with spawnArg1 0x1A. Otherwise
@@ -248,37 +240,37 @@ void Gp_ClearInventory(void);
 void func_800B8014(void);
 /// Moves the item at scan slot `arg1` onto slot `arg2`, shifting the
 /// occupied rows between them toward the hole left at `arg1`.
-void Gp_MoveItemSlot(GpItemScan* arg0, s32 arg1, s32 arg2);
+void Gp_MoveItemSlot(McItemScan* arg0, s32 arg1, s32 arg2);
 /// Selection-sorts the item table selected by `arg0` using the same
 /// sort-key remap as `Gp_ItemSortKey` (`Gp_ItemSortKey0` / `Gp_ItemSortKey60` /
 /// `Gp_ItemSortKey80` / `Gp_ItemSortKeyA0`). `arg1` is unused.
-void Gp_SortItems(GpItemScan* arg0, s32 arg1);
+void Gp_SortItems(McItemScan* arg0, s32 arg1);
 void Gp_InitModeEquip(void);
 void Gp_ApplyBit2Bank(s32 arg0);
 void Gp_SetCurBit2Flag(s32 arg0, u8 arg1);
-void Gp_ClearScanItems(GpItemScan* arg0);
+void Gp_ClearScanItems(McItemScan* arg0);
 void Gp_ClearCollectedBits(void);
 s32  Gp_CountCollectedBits(void);
-s32  Gp_CountScanItems(GpItemScan* arg0);
+s32  Gp_CountScanItems(McItemScan* arg0);
 /// True if `arg2` of item `arg1` can be added to the item table selected
 /// by `arg0`. Ids `>= 0x100` always succeed. Ids `0xA0..0xFF` stack onto
 /// an existing row when `qty + arg2` fits `Gp_StackLimits[id-0xA0].field_2`;
 /// `arg2 < 0` uses that row's `field_0` as the addend. Other ids need a
 /// free slot.
-s32 Gp_CanAddItemQty(GpItemScan* arg0, s32 arg1, s32 arg2);
+s32 Gp_CanAddItemQty(McItemScan* arg0, s32 arg1, s32 arg2);
 /// True if `arg1` can be added to the item table selected by `arg0`.
-s32 Gp_CanAddItem(GpItemScan* arg0, s32 arg1);
+s32 Gp_CanAddItem(McItemScan* arg0, s32 arg1);
 /// Writes item `arg2` into scan slot `arg1`. Ids `0xA0..0xBF` are added with
 /// `Gp_GiveItem` first, then an existing stack is moved onto the slot when
 /// it is empty. Other ids overwrite the slot (re-adding the previous item).
-GpItemRec* Gp_SetScanItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
+McItemRec* Gp_SetScanItem(McItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// Adds `arg2` of item `arg1` to the item table selected by `arg0`.
 /// Ids `0xA0..0xBF` stack onto an existing row, clamped to
 /// `Gp_StackLimits[id-0xA0].field_2`. `arg2 < 0` uses that row's `field_0`
 /// as the count, or `field_2` when `arg2 == -2`; out-of-range ids use 1.
 /// Other ids take the first free slot with quantity 1. Returns the
 /// written row, or NULL if none was free.
-GpItemRec* Gp_AddItem(GpItemScan* arg0, s32 arg1, s32 arg2);
+McItemRec* Gp_AddItem(McItemScan* arg0, s32 arg1, s32 arg2);
 /// Returns the `arg1`-th text field of item `arg0` (NUL / `\\n` / `\\N`
 /// delimiters). `arg2 == 0` reads `Mc_SaveData.itemSeenBits` and adds 3 to
 /// `arg1` when the bit is clear. Ids `>= 0x500` index `Gp_ItemTextHi`;
@@ -287,28 +279,28 @@ char* Gp_GetItemText(s32 arg0, s32 arg1, s32 arg2);
 /// Returns the `arg1`-th matching item id from the table selected by `arg0`.
 /// `0x80..0x9F` ids match when `arg2 == 0`, or when `arg2` is a related id
 /// in `Gp_RelatedQty0` / `Gp_RelatedQty1` and the row is stocked or selected.
-s32         Gp_NthRelatedId(GpItemScan* arg0, s32 arg1, s32 arg2);
-void        Gp_RefreshItemRow(GpItemRec* arg0);
+s32         Gp_NthRelatedId(McItemScan* arg0, s32 arg1, s32 arg2);
+void        Gp_RefreshItemRow(McItemRec* arg0);
 GpItemSlot* Gp_GetItemSlot(s32 arg0);
-s32         Gp_CountEquippedRelated(GpItemScan* arg0, s32 arg1);
+s32         Gp_CountEquippedRelated(McItemScan* arg0, s32 arg1);
 void        Gp_ClearEquipSlot(s32 arg0);
 void        Gp_ClearEquipSlotSel(s32 arg0, s32 arg1);
-s32         Gp_ScanStackQty(GpItemScan* arg0, s32 arg1);
-void        Gp_ConsumeScanQty(GpItemScan* arg0, s32 arg1, s32 arg2);
+s32         Gp_ScanStackQty(McItemScan* arg0, s32 arg1);
+void        Gp_ConsumeScanQty(McItemScan* arg0, s32 arg1, s32 arg2);
 s32         Gp_FillRelated(s32 arg0, s32 arg1);
 s32         Gp_UnequipRelated(s32 arg0, s32 arg1);
 s32         Gp_GetCurBit2Flag(s32 arg0);
 s32         Gp_HasCollectedBit(s32 arg0);
 s32         Gp_AgeFlag119(void);
 void        Gp_ClearCollectedBit(s32 arg0);
-GpItemRec*  Gp_GetItemTable(GpItemScan* arg0);
-s32         Gp_ScanIndexOf(GpItemScan* arg0, GpItemRec* arg1);
+McItemRec*  Gp_GetItemTable(McItemScan* arg0);
+s32         Gp_ScanIndexOf(McItemScan* arg0, McItemRec* arg1);
 /// `arg2` is unused; some callers pass 0 so the `jal` delay slot is `move a2, zero`.
-GpItemRec* Gp_GetScanSlot(GpItemScan* arg0, s32 arg1, s32 arg2);
-s32        Gp_GetScanItemId(GpItemScan* arg0, s32 arg1);
+McItemRec* Gp_GetScanSlot(McItemScan* arg0, s32 arg1, s32 arg2);
+s32        Gp_GetScanItemId(McItemScan* arg0, s32 arg1);
 /// `arg1` is unused; some callers pass 0 so the `jal` delay slot is `move a1, zero`.
 s32             Gp_NthCollectedId(s32 arg0, s32 arg1);
-s32             Gp_SumScanQty(GpItemScan* arg0, s32 arg1);
+s32             Gp_SumScanQty(McItemScan* arg0, s32 arg1);
 void            Gp_SetItemSeenBit(s32 arg0, s32 arg1);
 void            Gp_ApplyBit2List(GpBit2List* arg0, u32* arg1);
 void            Gp_SetBit2Flag(s32 arg0, u8 arg1, s32 arg2);
@@ -327,7 +319,7 @@ void            Gp_InitItemSeenBits(void);
 s32             Gp_HasItemSeenBit(s32 arg0);
 void            Gp_RecalcMaxHp(void);
 /// Number of rows `scan` covers, i.e. how many items the window can hold.
-s32  Gp_GetScanCount(GpItemScan* scan);
+s32  Gp_GetScanCount(McItemScan* scan);
 s32  Gp_ItemSortKey(s32 arg0);
 s32  Gp_GetModLevel(s32 arg0);
 void Gp_TickBoostPanel(Task* arg0);
@@ -342,7 +334,7 @@ void Gp_MarkPlayTime(void);
 
 s32  Gp_GetRelatedQty(s32 arg0, s32 arg1);
 void Gp_SetCollectedBit(s32 arg0);
-s32  Gp_FindScanQty(GpItemRec* arg0, GpItemScan* arg1, s32* arg2, s32 arg3);
+s32  Gp_FindScanQty(McItemRec* arg0, McItemScan* arg1, s32* arg2, s32 arg3);
 void Gp_FillHpMp(void);
 void func_800BC4BC(void);
 void func_800BC4E4(void);

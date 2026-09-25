@@ -44,21 +44,21 @@ STATIC_ASSERT_SIZEOF(_GpPanScratch, 0x18);
 
 void Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
 
-extern GpItemRec* Gp_SelItemRec;
+extern McItemRec* Gp_SelItemRec;
 
-s32 Gp_ApplyItemUse(GpItemRec* arg0)
+s32 Gp_ApplyItemUse(McItemRec* arg0)
 {
     PlayerStatus* cfg;
     GameActor*    actor;
-    GpItemScan*   scanEquip;
-    GpItemScan*   scanQty;
-    GpItemScan*   scanRel;
-    GpItemScan*   scanFree;
-    GpItemScan*   scanId;
+    McItemScan*   scanEquip;
+    McItemScan*   scanQty;
+    McItemScan*   scanRel;
+    McItemScan*   scanFree;
+    McItemScan*   scanId;
     GpItemSlot*   slot;
-    GpItemRec*    table;
-    GpItemRec*    rec;
-    GpItemRec*    found;
+    McItemRec*    table;
+    McItemRec*    rec;
+    McItemRec*    found;
     s32           id;
     s32           ret;
     s32           flag;
@@ -72,7 +72,7 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
     s32           avail;
     s32           slotNum;
     s32           sel;
-    GpItemRec*    hit;
+    McItemRec*    hit;
 
     ret   = 0;
     flag  = 1;
@@ -309,10 +309,10 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
     return ret;
 }
 
-s32 Gp_ItemIsUnusable(s32 arg0, GpItemRec* arg1)
+s32 Gp_ItemIsUnusable(s32 arg0, McItemRec* arg1)
 {
     PlayerStatus* cfg;
-    GpItemScan*   scan;
+    McItemScan*   scan;
     s32           ret;
     s32           val;
 
@@ -393,15 +393,15 @@ void func_800D6334(Task* task)
     TextDrawReq name;
     TextDrawReq label;
     UiObject*   panel;
-    GpItemRec*  selected;
-    GpItemRec*  table;
-    GpItemScan* scan;
-    GpItemRec*  firstRec;
-    GpItemRec*  firstTable;
-    GpItemRec*  useRec;
-    GpItemRec*  useTable;
-    GpItemScan* firstScan;
-    GpItemScan* useScan;
+    McItemRec*  selected;
+    McItemRec*  table;
+    McItemScan* scan;
+    McItemRec*  firstRec;
+    McItemRec*  firstTable;
+    McItemRec*  useRec;
+    McItemRec*  useTable;
+    McItemScan* firstScan;
+    McItemScan* useScan;
     s32         firstI;
     s32         firstCount;
     s32         useI;
@@ -583,13 +583,13 @@ s32 Gp_FlushPendingRelated(s32 arg0, s32 arg1)
     return Gp_EquipRelatedItem(&Mc_SaveData.carriedItems, arg0, val, -1);
 }
 
-GpItemRec* Gp_FindItemById(s32 arg0)
+McItemRec* Gp_FindItemById(s32 arg0)
 {
-    GpItemScan* scan;
-    GpItemRec*  table;
+    McItemScan* scan;
+    McItemRec*  table;
     s32         i;
     s32         count;
-    GpItemRec*  rec;
+    McItemRec*  rec;
 
     rec   = NULL;
     scan  = &Mc_SaveData.carriedItems;
@@ -606,13 +606,13 @@ GpItemRec* Gp_FindItemById(s32 arg0)
     return rec;
 }
 
-GpItemRec* Gp_FindItemByKind(s32 arg0)
+McItemRec* Gp_FindItemByKind(s32 arg0)
 {
-    GpItemScan* scan;
-    GpItemRec*  table;
+    McItemScan* scan;
+    McItemRec*  table;
     s32         i;
     s32         count;
-    GpItemRec*  rec;
+    McItemRec*  rec;
 
     rec   = NULL;
     scan  = &Mc_SaveData.carriedItems;
@@ -630,12 +630,12 @@ GpItemRec* Gp_FindItemByKind(s32 arg0)
     return rec;
 }
 
-GpItemRec* Gp_FindItemInScan(s32 arg0, GpItemScan* arg1)
+McItemRec* Gp_FindItemInScan(s32 arg0, McItemScan* arg1)
 {
-    GpItemRec* table;
+    McItemRec* table;
     s32        i;
     s32        count;
-    GpItemRec* rec;
+    McItemRec* rec;
 
     rec   = NULL;
     table = Gp_GetItemTable(arg1);
@@ -3404,7 +3404,7 @@ void Gp_ClearSlotNodeFlags(void)
     } while (i < 2);
 }
 
-s32 Gp_GrantLocationItems(GpItemScan* arg0)
+s32 Gp_GrantLocationItems(McItemScan* arg0)
 {
     GpAreaKey* loc;
     GpGiveRec* rec;

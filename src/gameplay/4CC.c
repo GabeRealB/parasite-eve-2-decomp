@@ -24,7 +24,7 @@ extern s32          Pad_MaskMenu;
 extern char         Gp_StrSwitch[];
 extern UiObject*    D_80067634;
 extern u8           D_8010D828[];
-extern GpItemRec*   Gp_SelItemRec;
+extern McItemRec*   Gp_SelItemRec;
 extern UiObjectDesc D_8010EFA0;
 
 void Gp_ClearPreviewItems(void);
@@ -33,25 +33,25 @@ void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
 {
     GpItemMoveState* mem;
     UiObject*        obj;
-    GpItemRec*       tbl;
-    GpItemScan*      scanSrc;
+    McItemRec*       tbl;
+    McItemScan*      scanSrc;
     s32              i;
     s32              base;
     s32              flag;
     s32              val;
-    GpItemScan*      dst;
-    GpItemScan*      src;
-    GpItemRec*       recDst;
-    GpItemRec*       recSrc;
+    McItemScan*      dst;
+    McItemScan*      src;
+    McItemRec*       recDst;
+    McItemRec*       recSrc;
     s32              rowDst;
     s32              rowSrc;
     s32              idDst;
     s32              idSrc;
     s32              qtyDst;
     s32              qtySrc;
-    GpItemScan*      scan;
-    GpItemRec*       recA;
-    GpItemRec*       recB;
+    McItemScan*      scan;
+    McItemRec*       recA;
+    McItemRec*       recB;
     s32              rowA;
     s32              rowB;
     s32              idA;
@@ -192,8 +192,8 @@ void Gp_ItemMoveTask(Task* arg0)
     UiObject*        obj;
     GpItemMoveState* mem;
     s32              i;
-    GpItemScan*      src;
-    GpItemScan**     scans;
+    McItemScan*      src;
+    McItemScan**     scans;
     u16              item;
     s32              val;
     s32              code;
@@ -272,7 +272,7 @@ end:
 
 void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1)
 {
-    GpItemRec*     rec;
+    McItemRec*     rec;
     s32            item;
     register Task* owner asm("a1");
     s32            item2;
@@ -373,7 +373,7 @@ void Gp_ItemPaneTask(Task* arg0)
 {
     UiObject*   obj;
     UiList*     menu;
-    GpItemScan* scan;
+    McItemScan* scan;
     s32         count;
     s32         n;
     s32         status;
@@ -395,7 +395,7 @@ void Gp_ItemPaneTask(Task* arg0)
         }
         {
             s32                  val;
-            register GpItemScan* s asm("v0");
+            register McItemScan* s asm("v0");
 
             s             = &Gp_MoveScanSrc;
             val           = s[arg0->spawnArg1].rowCount;
@@ -515,7 +515,7 @@ void func_800BD6DC(DialogPrompt* arg0, UiObject* arg1)
 {
     TextDrawReq req;
     s32         flags;
-    GpItemRec*  rec;
+    McItemRec*  rec;
     Task*       scanOwner;
     Task*       owner;
     s32         idx;
@@ -602,7 +602,7 @@ void Gp_ItemActionConfirm(DialogPrompt* arg0, UiObject* arg1)
     TextDrawReq   req;
     s32           selected;
     s32           idx;
-    GpItemRec*    rec;
+    McItemRec*    rec;
     s32           item;
     s32           flag;
     s32           flags;
@@ -655,13 +655,13 @@ void Gp_ItemActionConfirm(DialogPrompt* arg0, UiObject* arg1)
 
 void Gp_FillItemActions(UiList* arg0, UiObject* arg1)
 {
-    GpItemRec*      rec;
+    McItemRec*      rec;
     s32             item;
     s32             count;
     s32             idx;
     UiListItemFunc* table;
     Task*           owner;
-    GpItemScan*     scan;
+    McItemScan*     scan;
 
     owner = arg1->owner;
     idx   = owner->spawnArg1;
@@ -756,7 +756,7 @@ void func_800BDF6C(Task* task)
     s32               width;
     s32               widthM2;
     s32               half;
-    GpItemScan*       consumeScan;
+    McItemScan*       consumeScan;
     LINE_F2*          line;
     UiObject*         obj;
     s16               panelY;
@@ -794,9 +794,9 @@ void func_800BDF6C(Task* task)
     u8                message;
     s16               result;
     PadState*         pad;
-    GpItemScan*       sourceScan;
-    GpItemScan*       initScan;
-    GpItemScan*       dstScan;
+    McItemScan*       sourceScan;
+    McItemScan*       initScan;
+    McItemScan*       dstScan;
     GpAmmoSplitState* state;
 
     obj           = task->spawnArg2;
@@ -1043,8 +1043,8 @@ void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
     GpPromptTexts        texts;
     s32                  one;
     s32                  i;
-    register GpItemScan* scan asm("s3");
-    GpItemRec*           rec;
+    register McItemScan* scan asm("s3");
+    McItemRec*           rec;
     GpItemSlot*          slot;
     s32                  attach;
     s32                  mode;

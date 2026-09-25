@@ -35,7 +35,7 @@ s32         func_800D4D2C(s32 arg0);
 extern char          Gp_StrEmpty[];
 extern UiObject*     D_80067634;
 extern s8            D_8007272D;
-extern GpItemScan    D_80072724;
+extern McItemScan    D_80072724;
 extern RoomShopStock D_8010E138[];
 extern UiObjectDesc  D_8010D80C;
 extern UiObjectDesc  D_8010EFA0;
@@ -397,7 +397,7 @@ void func_dryfield_night_garage_8017DDC4(DialogPrompt* prompt, UiObject* obj)
     TextDrawReq   req;
     u8            buf[0x20];
     RoomShopList* shop;
-    GpItemScan*   scan;
+    McItemScan*   scan;
     s32           y;
     s32           scaled;
     UiObject*     child;
@@ -949,7 +949,7 @@ void func_dryfield_night_garage_8017EF64(DialogPrompt* prompt, UiObject* obj)
     TextDrawReq   req;
     UiObject*     child;
     PlayerStatus* cfg;
-    GpItemScan*   scan;
+    McItemScan*   scan;
     s32           itemId;
     s32           mode;
     s32           price;
@@ -1152,7 +1152,7 @@ void func_dryfield_night_garage_8017F5C0(Task* task)
     s32         guard;
     s32         i;
     s32         n;
-    GpItemRec*  rec;
+    McItemRec*  rec;
 
     item         = D_dryfield_night_garage_801819EC;
     obj          = task->spawnArg2;

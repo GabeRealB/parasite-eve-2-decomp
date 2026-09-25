@@ -215,7 +215,7 @@ void       func_8017F2F8(Task* task);
 void       func_8017F304(Task* task);
 void       func_80181184(Task* task);
 void       func_801811A0(Task* task);
-s32        Gp_EquipRelatedItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
+s32        Gp_EquipRelatedItem(McItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
 void       Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void       Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1);
 void       Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -223,7 +223,7 @@ void       Gp_DrawItemLabel(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 ar
 void       Gp_DrawItemNameRow(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 void       Gp_DrawQty(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void       Gp_ItemListTask(Task* arg0);
-void       Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, GpItemRec* arg3);
+void       Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, McItemRec* arg3);
 void       Gp_DrawMovePrompt(DialogPrompt* arg0, UiObject* arg1);
 void       Gp_DrawExchangeSlotCmd(DialogPrompt* arg0, UiObject* arg1);
 void       Gp_DrawDiscardCmd(DialogPrompt* arg0, UiObject* arg1);
@@ -267,7 +267,7 @@ void       Gp_BuildAttachList(UiList* arg0, s32 arg1);
 void       Gp_AttachListTask(Task* arg0);
 void       func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void       func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-GpItemRec* Gp_NthEquippableRec(McItemScan* arg0, s32 arg1, s32 arg2);
+McItemRec* Gp_NthEquippableRec(McItemScan* arg0, s32 arg1, s32 arg2);
 s32        Stage_RequestImageCapture(void);
 s32        Stage_GetFadeStatus(void);
 void       Stage_InitOtOnce(void);
@@ -306,7 +306,7 @@ void Gp_ItemCmdMenuTask(Task* arg0)
         if (ptr != NULL) {
             val = *ptr;
         }
-        Gp_BuildItemCmdList(menu, obj, val, (GpItemRec*)ptr);
+        Gp_BuildItemCmdList(menu, obj, val, (McItemRec*)ptr);
         Ui_LayoutListPanel(menu, (UiPanel*)obj);
         y = 0x46 - ((s16)obj->field_E + (s16)obj->field_12);
         if (y < 0) {
@@ -375,7 +375,7 @@ void Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
         if (arg2 < 0x100) {
             if (arg2 < 4) {
                 if (hp < cfg->hpMax) {
-                    Gp_RemoveItem(0, (GpItemRec*)Gp_SelItemRec, 1);
+                    Gp_RemoveItem(0, (McItemRec*)Gp_SelItemRec, 1);
                 }
                 if (arg2 == 3) {
                     cfg->hp = cfg->hpMax;
@@ -386,13 +386,13 @@ void Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
                 }
             } else if (arg2 == 5) {
                 if ((mp < cfg->mpMax) || (hp < cfg->hpMax)) {
-                    Gp_RemoveItem(0, (GpItemRec*)Gp_SelItemRec, 1);
+                    Gp_RemoveItem(0, (McItemRec*)Gp_SelItemRec, 1);
                 }
                 cfg->mp = cfg->mp + 0x50;
                 cfg->hp = cfg->hp + 0x14;
             } else if ((u32)(arg2 - 6) < 2U) {
                 if (mp < cfg->mpMax) {
-                    Gp_RemoveItem(0, (GpItemRec*)Gp_SelItemRec, 1);
+                    Gp_RemoveItem(0, (McItemRec*)Gp_SelItemRec, 1);
                 }
                 if (arg2 == 7) {
                     cfg->mp = cfg->mpMax;
@@ -401,7 +401,7 @@ void Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
                 }
             } else if (arg2 == 0x3D) {
                 if ((mp < cfg->mpMax) || (hp < cfg->hpMax)) {
-                    Gp_RemoveItem(0, (GpItemRec*)Gp_SelItemRec, 1);
+                    Gp_RemoveItem(0, (McItemRec*)Gp_SelItemRec, 1);
                 }
                 cfg->mp = cfg->mpMax;
                 cfg->hp = cfg->hpMax;
@@ -465,15 +465,15 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
     s32                       hiddenMode;
     s32                       textY;
     u16                       cd;
-    GpItemScan*               scan;
-    GpItemScan*               scanInit;
+    McItemScan*               scan;
+    McItemScan*               scanInit;
     GpUseCreateWork*          newWork;
     GpUseCreatePair*          p;
     GpUseCreatePair*          q;
     GpUseCreatePair*          start;
     GpItemSlot*               slotSrc;
     GpItemSlot*               slotDst;
-    GpItemRec*                rec;
+    McItemRec*                rec;
     PlayerStatus*             cfg;
 
     if (arg1->state == 0) {
@@ -564,7 +564,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
             newWork    = (GpUseCreateWork*)memCalloc(0x14, 0);
             scanInit   = &Mc_SaveData.carriedItems;
             arg1->work = (TaskIdMap*)newWork;
-            Gp_RemoveItem(scanInit, (GpItemRec*)Gp_SelItemRec, 1);
+            Gp_RemoveItem(scanInit, (McItemRec*)Gp_SelItemRec, 1);
             rec->itemId = (u8)result;
             Gp_ClearEquipSlotSel(result, 0);
             slotDst->ammoId = slotSrc->ammoId;
@@ -753,7 +753,7 @@ void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
         Ui_UpdateLayoutSize((UiPanel*)arg0, width + 5, Ui_Scale15(2) + 1);
         ((UiPanel*)arg0)->field_C.x = (-((UiPanel*)arg0)->field_C.w) >> 1;
         ((UiPanel*)arg0)->field_C.y = ((-((UiPanel*)arg0)->field_C.h) >> 1) - 0x14;
-        Gp_RemoveItem(&Mc_SaveData.carriedItems, (GpItemRec*)Gp_SelItemRec, 1);
+        Gp_RemoveItem(&Mc_SaveData.carriedItems, (McItemRec*)Gp_SelItemRec, 1);
 
         i    = (arg2 - 0xF) / 3;
         n    = arg2 - 0xF;
@@ -991,7 +991,7 @@ void Gp_ItemCountHeaderTask(Task* arg0)
     TextDrawReq req;
     TextDrawReq req2;
     UiObject*   obj;
-    GpItemScan* scan;
+    McItemScan* scan;
     s32         cur;
     s32         cap;
     s32         color;
@@ -1225,7 +1225,7 @@ void Gp_PickupAskTask(Task* arg0)
     UiObject*   spawned;
     UiObject*   childObj;
     Task*       child;
-    GpItemScan* scan;
+    McItemScan* scan;
     s32         color;
     s32         one;
     s32         flag;
@@ -1492,7 +1492,7 @@ void Gp_DrawQty(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     Ui_LayoutWithMode0(arg0, (arg1 + 0x69), (arg2 - 8), 0x1B, 7, 0x102010);
 }
 
-void Gp_DrawStackLeft(UiObject* arg0, s32 arg1, s32 arg2, GpItemRec* arg3, s32 arg4, s32 arg5)
+void Gp_DrawStackLeft(UiObject* arg0, s32 arg1, s32 arg2, McItemRec* arg3, s32 arg4, s32 arg5)
 {
     u8          buf[0x20];
     TextDrawReq req;
@@ -1918,12 +1918,12 @@ void Gp_DrawExitCmd(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-GpItemRec* func_800CE980(GpItemScan* arg0, s32 arg1)
+McItemRec* func_800CE980(McItemScan* arg0, s32 arg1)
 {
-    GpItemRec* table;
+    McItemRec* table;
     s32        i;
     s32        count;
-    GpItemRec* rec;
+    McItemRec* rec;
 
     table = Gp_GetItemTable(arg0);
     i     = 0;
@@ -1940,12 +1940,12 @@ GpItemRec* func_800CE980(GpItemScan* arg0, s32 arg1)
     return rec;
 }
 
-s32 func_800CEA00(GpItemScan* arg0, s32 arg1)
+s32 func_800CEA00(McItemScan* arg0, s32 arg1)
 {
-    GpItemRec* table;
+    McItemRec* table;
     s32        i;
     s32        count;
-    GpItemRec* rec;
+    McItemRec* rec;
 
     table = Gp_GetItemTable(arg0);
     i     = 0;
@@ -2008,7 +2008,7 @@ s32 Gp_IsEquippedItem(s32 arg0)
     return ret;
 }
 
-s32 func_800CEC5C(GpItemRec* arg0)
+s32 func_800CEC5C(McItemRec* arg0)
 {
     PlayerStatus* p;
     s32           ret;
@@ -2029,13 +2029,13 @@ s32 func_800CEC5C(GpItemRec* arg0)
     return ret;
 }
 
-GpItemRec* func_800CECC0(GpItemScan* arg0, s32 arg1)
+McItemRec* func_800CECC0(McItemScan* arg0, s32 arg1)
 {
-    GpItemRec*    table;
+    McItemRec*    table;
     s32           i;
     s32           count;
     s32           n;
-    GpItemRec*    rec;
+    McItemRec*    rec;
     PlayerStatus* p;
     register s32  ok asm("a2");
     s32           id;
@@ -2173,8 +2173,8 @@ void Gp_DrawSortCmd(DialogPrompt* arg0, UiObject* arg1)
 void func_800CF090(UiList* arg0, UiObject* arg1)
 {
     PlayerStatus*       p;
-    GpItemScan*         scan;
-    volatile GpItemRec* table;
+    McItemScan*         scan;
+    volatile McItemRec* table;
     s32                 count;
     s32                 i;
 
@@ -2322,8 +2322,8 @@ void Gp_DrawUseCmd(DialogPrompt* arg0, UiObject* arg1)
 void Gp_EquipHeld(s32 arg0)
 {
     PlayerStatus* p;
-    GpItemRec*    rec;
-    GpItemRec*    prev;
+    McItemRec*    rec;
+    McItemRec*    prev;
     u8            field21;
 
     p       = &Player_Status;
@@ -2344,7 +2344,7 @@ void Gp_EquipHeld(s32 arg0)
     }
 }
 
-s32 Gp_NthStockRelated(GpItemScan* arg0, s32 arg1, s32 arg2)
+s32 Gp_NthStockRelated(McItemScan* arg0, s32 arg1, s32 arg2)
 {
     s32        i;
     s32        result;
@@ -3845,7 +3845,7 @@ void Gp_DiscardWarnTask(Task* arg0)
                         cfg->armor = 0;
                     }
                 }
-                Gp_RemoveItem(&Mc_SaveData.carriedItems, (GpItemRec*)rec, -1);
+                Gp_RemoveItem(&Mc_SaveData.carriedItems, (McItemRec*)rec, -1);
                 USE_REG(id);
             }
             parentObj->field_2E = 6;

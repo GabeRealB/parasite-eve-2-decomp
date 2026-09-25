@@ -17,7 +17,7 @@
 #include "main/wipsys.h"
 
 extern u16          Gp_PlayTimeMark;
-extern GpItemRec*   Gp_SelItemRec;
+extern McItemRec*   Gp_SelItemRec;
 extern UiObjectDesc Gp_BoostPanelDesc;
 extern u8           Gp_DebugAttachLevels[];
 extern char         Gp_StrNotice2[];
@@ -52,14 +52,14 @@ void func_8017EA60(void);
 void Gp_EquipHeld(s32 arg0);
 void Gp_ApplyItemMap(void);
 void Gp_SetCollectedBit(s32 arg0);
-s32  Gp_FindScanQty(GpItemRec* arg0, GpItemScan* arg1, s32* arg2, s32 arg3);
+s32  Gp_FindScanQty(McItemRec* arg0, McItemScan* arg1, s32* arg2, s32 arg3);
 void Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1);
 void func_801061F0(void);
 void Gp_NoticePanelTask(Task* arg0);
 
 s32 func_800B7420(s32 arg0)
 {
-    GpItemScan scan;
+    McItemScan scan;
     s32        i;
     s32        id;
 
@@ -301,15 +301,15 @@ void Gp_RecalcMaxMp(void)
 void Gp_EquipMod(s32 arg0)
 {
     PlayerStatus* cfg;
-    GpItemRec*    rec;
-    GpItemRec*    tmp;
-    GpItemScan*   scan;
+    McItemRec*    rec;
+    McItemRec*    tmp;
+    McItemScan*   scan;
     s32           i;
 
     cfg = &Player_Status;
     if ((u32)(arg0 - 0x60) < 0x20U) {
         if (cfg->armor != (arg0 - 0x5F)) {
-            GpItemRec* found;
+            McItemRec* found;
 
             found = Gp_FindItemById(arg0);
             if (found != NULL) {
@@ -415,15 +415,15 @@ void Gp_EquipMod(s32 arg0)
 
 void Gp_InitStarterInv(void)
 {
-    GpItemScan*   scan;
+    McItemScan*   scan;
     McSaveData*   save;
     PlayerStatus* cfg;
     PlayerStatus* cfg2;
-    GpItemRec*    tmp;
-    GpItemRec*    rec;
-    GpItemRec*    added;
-    GpItemScan**  scans;
-    GpItemScan*   dest;
+    McItemRec*    tmp;
+    McItemRec*    rec;
+    McItemRec*    added;
+    McItemScan**  scans;
+    McItemScan*   dest;
     GpItemSlot*   slots;
     s32           i;
     s32           j;
@@ -528,7 +528,7 @@ void Gp_InitStarterInv(void)
 
 void func_800B8014(void)
 {
-    GpItemRec*    rec;
+    McItemRec*    rec;
     McSaveData*   initSave;
     McSaveData*   playerSave;
     McSaveData*   p;
@@ -536,8 +536,8 @@ void func_800B8014(void)
     GpItemDesc*   desc;
     u8*           str;
     GpItemSlot*   slots;
-    GpItemScan*   scan;
-    GpItemScan**  scans;
+    McItemScan*   scan;
+    McItemScan**  scans;
     PlayerStatus* cfg;
     s32*          header;
     s32           word;
@@ -671,13 +671,13 @@ void func_800B8014(void)
     }
 }
 
-void Gp_MoveItemSlot(GpItemScan* arg0, s32 arg1, s32 arg2)
+void Gp_MoveItemSlot(McItemScan* arg0, s32 arg1, s32 arg2)
 {
-    register GpItemRec* tmp asm("v0");
-    GpItemRec*          table;
-    GpItemRec*          rec;
-    GpItemRec*          src;
-    GpItemRec           saved;
+    register McItemRec* tmp asm("v0");
+    McItemRec*          table;
+    McItemRec*          rec;
+    McItemRec*          src;
+    McItemRec           saved;
     s32                 i;
     s32                 off;
 
@@ -704,9 +704,9 @@ void Gp_MoveItemSlot(GpItemScan* arg0, s32 arg1, s32 arg2)
 
     if (arg1 < arg2) {
         off         = arg2 << 2;
-        rec         = (GpItemRec*)(off + (s32)table);
+        rec         = (McItemRec*)(off + (s32)table);
         off         = arg1 << 2;
-        src         = (GpItemRec*)(off + (s32)table);
+        src         = (McItemRec*)(off + (s32)table);
         saved       = *src;
         src->itemId = 0;
         src->qty    = 0;
@@ -720,7 +720,7 @@ void Gp_MoveItemSlot(GpItemScan* arg0, s32 arg1, s32 arg2)
         }
         if (i < arg2) {
             off = i << 2;
-            rec = (GpItemRec*)(off + (s32)table);
+            rec = (McItemRec*)(off + (s32)table);
             do {
                 *rec = rec[1];
                 i++;
@@ -729,13 +729,13 @@ void Gp_MoveItemSlot(GpItemScan* arg0, s32 arg1, s32 arg2)
         }
     } else {
         off         = arg1 << 2;
-        src         = (GpItemRec*)(off + (s32)table);
+        src         = (McItemRec*)(off + (s32)table);
         saved       = *src;
         src->itemId = 0;
         src->qty    = 0;
         if (arg2 < arg1) {
             off = arg2 << 2;
-            rec = (GpItemRec*)(off + (s32)table);
+            rec = (McItemRec*)(off + (s32)table);
         loop2:
             if (rec->itemId != 0) {
                 i++;
@@ -747,7 +747,7 @@ void Gp_MoveItemSlot(GpItemScan* arg0, s32 arg1, s32 arg2)
         }
         if (arg2 < i) {
             off = i << 2;
-            rec = (GpItemRec*)(off + (s32)table);
+            rec = (McItemRec*)(off + (s32)table);
             do {
                 *rec = rec[-1];
                 i--;
@@ -755,16 +755,16 @@ void Gp_MoveItemSlot(GpItemScan* arg0, s32 arg1, s32 arg2)
             } while (arg2 < i);
         }
     }
-    *(GpItemRec*)((arg2 << 2) + (s32)table) = saved;
+    *(McItemRec*)((arg2 << 2) + (s32)table) = saved;
 }
 
-void Gp_SortItems(GpItemScan* arg0, s32 arg1)
+void Gp_SortItems(McItemScan* arg0, s32 arg1)
 {
-    GpItemRec*          tmp;
-    register GpItemRec* table;
-    GpItemRec*          rec;
-    GpItemRec*          other;
-    GpItemRec           saved;
+    McItemRec*          tmp;
+    register McItemRec* table;
+    McItemRec*          rec;
+    McItemRec*          other;
+    McItemRec           saved;
     s32                 i;
     s32                 j;
     s32                 key;
@@ -792,8 +792,8 @@ void Gp_SortItems(GpItemScan* arg0, s32 arg1)
                     break;
             }
             table = tmp;
-            rec   = (GpItemRec*)((s32)table + (arg0->firstRow << 2));
-            rec   = (GpItemRec*)((s32)rec + (i << 2));
+            rec   = (McItemRec*)((s32)table + (arg0->firstRow << 2));
+            rec   = (McItemRec*)((s32)rec + (i << 2));
             id    = rec->itemId;
 
             key = 0;
@@ -832,9 +832,9 @@ void Gp_SortItems(GpItemScan* arg0, s32 arg1)
             }
             table = tmp;
             j     = i + 1;
-            other = (GpItemRec*)((s32)table + (arg0->firstRow << 2));
+            other = (McItemRec*)((s32)table + (arg0->firstRow << 2));
             next  = (i << 2) + 4;
-            other = (GpItemRec*)((s32)other + next);
+            other = (McItemRec*)((s32)other + next);
             if (j < arg0->rowCount) {
                 do {
                     id = other->itemId;
@@ -880,11 +880,11 @@ void Gp_SortItems(GpItemScan* arg0, s32 arg1)
     }
 }
 
-s32 Gp_CanAddItemQty(GpItemScan* arg0, s32 arg1, s32 arg2)
+s32 Gp_CanAddItemQty(McItemScan* arg0, s32 arg1, s32 arg2)
 {
-    GpItemRec* tmp;
-    GpItemRec* table;
-    GpItemRec* rec;
+    McItemRec* tmp;
+    McItemRec* table;
+    McItemRec* rec;
     s32        i;
     s32        occupied;
     s32        count;
@@ -892,8 +892,8 @@ s32 Gp_CanAddItemQty(GpItemScan* arg0, s32 arg1, s32 arg2)
     s32        limit;
     s32        used;
     s32        found;
-    GpItemRec* table2;
-    GpItemRec* walker;
+    McItemRec* table2;
+    McItemRec* walker;
     s32        count2;
     s32        start2;
     GpItemA0*  p;
@@ -919,7 +919,7 @@ s32 Gp_CanAddItemQty(GpItemScan* arg0, s32 arg1, s32 arg2)
     occupied = i;
     if (count != 0) {
         limit = count;
-        rec   = (GpItemRec*)((start << 2) + (s32)table);
+        rec   = (McItemRec*)((start << 2) + (s32)table);
         do {
             if (rec->itemId != 0) {
                 occupied++;
@@ -958,7 +958,7 @@ s32 Gp_CanAddItemQty(GpItemScan* arg0, s32 arg1, s32 arg2)
             p      = Gp_StackLimits;
             idx    = arg1 - 0xA0;
             cap    = (GpItemA0*)((idx << 2) + (s32)p);
-            walker = (GpItemRec*)((start2 << 2) + (s32)table2);
+            walker = (McItemRec*)((start2 << 2) + (s32)table2);
             do {
                 if (walker->itemId == arg1) {
                     found = 2;
@@ -984,11 +984,11 @@ s32 Gp_CanAddItemQty(GpItemScan* arg0, s32 arg1, s32 arg2)
     return used <= capacity;
 }
 
-s32 Gp_CanAddItem(GpItemScan* arg0, s32 arg1)
+s32 Gp_CanAddItem(McItemScan* arg0, s32 arg1)
 {
-    GpItemRec* tmp;
-    GpItemRec* table;
-    GpItemRec* rec;
+    McItemRec* tmp;
+    McItemRec* table;
+    McItemRec* rec;
     s32        i;
     s32        occupied;
     s32        count;
@@ -996,8 +996,8 @@ s32 Gp_CanAddItem(GpItemScan* arg0, s32 arg1)
     s32        limit;
     s32        used;
     s32        found;
-    GpItemRec* table2;
-    GpItemRec* walker;
+    McItemRec* table2;
+    McItemRec* walker;
     s32        count2;
     s32        start2;
     GpItemA0*  p;
@@ -1023,7 +1023,7 @@ s32 Gp_CanAddItem(GpItemScan* arg0, s32 arg1)
     occupied = i;
     if (count != 0) {
         limit = count;
-        rec   = (GpItemRec*)((start << 2) + (s32)table);
+        rec   = (McItemRec*)((start << 2) + (s32)table);
         do {
             if (rec->itemId != 0) {
                 occupied++;
@@ -1059,7 +1059,7 @@ s32 Gp_CanAddItem(GpItemScan* arg0, s32 arg1)
             p      = Gp_StackLimits;
             idx    = arg1 - 0xA0;
             cap    = (GpItemA0*)((idx << 2) + (s32)p);
-            walker = (GpItemRec*)((start2 << 2) + (s32)table2);
+            walker = (McItemRec*)((start2 << 2) + (s32)table2);
             do {
                 if (walker->itemId == arg1) {
                     if (walker->qty < cap->field_2) {
@@ -1086,15 +1086,15 @@ s32 Gp_CanAddItem(GpItemScan* arg0, s32 arg1)
     return used <= capacity;
 }
 
-GpItemRec* Gp_SetScanItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
+McItemRec* Gp_SetScanItem(McItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    GpItemRec*          tmp;
-    register GpItemRec* table asm("s1");
-    GpItemRec*          dest;
-    GpItemRec*          walker;
-    register GpItemRec* rec asm("v1");
-    GpItemRec*          found;
-    GpItemRec*          slot;
+    McItemRec*          tmp;
+    register McItemRec* table asm("s1");
+    McItemRec*          dest;
+    McItemRec*          walker;
+    register McItemRec* rec asm("v1");
+    McItemRec*          found;
+    McItemRec*          slot;
     s32                 i;
     s32                 start;
     register s32        idx asm("v1");
@@ -1117,7 +1117,7 @@ GpItemRec* Gp_SetScanItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
     if ((u32)(arg2 - 0xA0) < 0x20U) {
         dest = Gp_GiveItem(arg0, arg2, arg3);
         i    = arg0->firstRow;
-        if (((GpItemRec*)(((i + arg1) << 2) + (s32)table))->itemId != 0) {
+        if (((McItemRec*)(((i + arg1) << 2) + (s32)table))->itemId != 0) {
             goto done;
         }
         start = i;
@@ -1126,16 +1126,16 @@ GpItemRec* Gp_SetScanItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
             return dest;
         }
         i      = 0;
-        walker = (GpItemRec*)((start << 2) + (s32)table);
+        walker = (McItemRec*)((start << 2) + (s32)table);
         do {
             if (walker->itemId == arg2) {
                 if (i == arg1) {
                     return dest;
                 }
-                dest          = (GpItemRec*)((s32)table + ((arg0->firstRow + arg1) << 2));
+                dest          = (McItemRec*)((s32)table + ((arg0->firstRow + arg1) << 2));
                 dest->itemId  = arg2;
                 found         = walker;
-                slot          = (GpItemRec*)(((arg0->firstRow + arg1) << 2) + (s32)table);
+                slot          = (McItemRec*)(((arg0->firstRow + arg1) << 2) + (s32)table);
                 slot->qty     = found->qty;
                 found->itemId = 0;
                 table         = found;
@@ -1151,7 +1151,7 @@ GpItemRec* Gp_SetScanItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
     idx    = field0 + arg1;
     field0 = idx << 2;
     USE_REG(field0);
-    rec = (GpItemRec*)(field0 + (s32)tmp);
+    rec = (McItemRec*)(field0 + (s32)tmp);
     if (rec->itemId == 0) {
         dest         = rec;
         dest->itemId = arg2;
@@ -1168,18 +1168,18 @@ done:
     return dest;
 }
 
-GpItemRec* Gp_AddItem(GpItemScan* arg0, s32 arg1, s32 arg2)
+McItemRec* Gp_AddItem(McItemScan* arg0, s32 arg1, s32 arg2)
 {
-    register GpItemRec* tmp asm("v0");
-    GpItemRec*          table;
-    register GpItemRec* dest asm("t2");
+    register McItemRec* tmp asm("v0");
+    McItemRec*          table;
+    register McItemRec* dest asm("t2");
     s32                 found;
     s32                 start;
     s32                 i;
     register s32        idx asm("v1");
     s32                 off;
-    GpItemRec*          result;
-    GpItemRec*          rec;
+    McItemRec*          result;
+    McItemRec*          rec;
     GpItemA0*           attrs;
     s32                 temp;
     s32                 count;
@@ -1219,7 +1219,7 @@ GpItemRec* Gp_AddItem(GpItemScan* arg0, s32 arg1, s32 arg2)
             attrs = Gp_StackLimits;
             idx   = (idx << 2) + (s32)attrs;
             do {
-                rec = (GpItemRec*)((start << 2) + (s32)table);
+                rec = (McItemRec*)((start << 2) + (s32)table);
                 if (rec->itemId == arg1) {
                     arg2 += rec->qty;
                     if (((GpItemA0*)idx)->field_2 < arg2) {
@@ -1248,7 +1248,7 @@ GpItemRec* Gp_AddItem(GpItemScan* arg0, s32 arg1, s32 arg2)
         idx   = arg1 - 0xA0;
         idx   = (idx << 2) + (s32)attrs;
         off   = start << 2;
-        rec   = (GpItemRec*)(off + (s32)table);
+        rec   = (McItemRec*)(off + (s32)table);
         do {
             if (rec->itemId == 0) {
                 rec->itemId = arg1;
@@ -1268,7 +1268,7 @@ GpItemRec* Gp_AddItem(GpItemScan* arg0, s32 arg1, s32 arg2)
 
     goto loop_header;
 fill:
-    dest             = (GpItemRec*)idx;
+    dest             = (McItemRec*)idx;
     dest->itemId     = arg1;
     dest->qty        = 1;
     dest->attachSlot = 0;
@@ -1280,7 +1280,7 @@ loop_header:
         off = start << 2;
         idx = off + (s32)table;
         do {
-            if (((GpItemRec*)idx)->itemId == 0) {
+            if (((McItemRec*)idx)->itemId == 0) {
                 goto fill;
             }
             i++;
@@ -1365,12 +1365,12 @@ char* Gp_GetItemText(s32 arg0, s32 arg1, s32 arg2)
     return str;
 }
 
-s32 Gp_NthRelatedId(GpItemScan* arg0, s32 arg1, s32 arg2)
+s32 Gp_NthRelatedId(McItemScan* arg0, s32 arg1, s32 arg2)
 {
-    GpItemRec*          tmp;
-    GpItemRec*          table;
-    register GpItemRec* rec asm("t1");
-    GpItemRec*          rec2;
+    McItemRec*          tmp;
+    McItemRec*          table;
+    register McItemRec* rec asm("t1");
+    McItemRec*          rec2;
     PlayerStatus*       cfg;
     GpItemQty*          table0;
     GpItemQty*          table1;
@@ -1398,7 +1398,7 @@ s32 Gp_NthRelatedId(GpItemScan* arg0, s32 arg1, s32 arg2)
         table0 = Gp_RelatedQty0;
         table1 = Gp_RelatedQty1;
         temp   = idx << 2;
-        rec    = (GpItemRec*)(temp + (s32)table);
+        rec    = (McItemRec*)(temp + (s32)table);
         do {
             if ((u8)(rec->itemId + 0x80) < 0x20) {
                 rec2 = rec;
@@ -1453,7 +1453,7 @@ s32 Gp_NthRelatedId(GpItemScan* arg0, s32 arg1, s32 arg2)
     return table[idx].itemId;
 }
 
-void Gp_RefreshItemRow(GpItemRec* arg0)
+void Gp_RefreshItemRow(McItemRec* arg0)
 {
     u8           item;
     GpItemSlot*  slot;
@@ -1566,14 +1566,14 @@ void func_800B92CC(void)
     }
 }
 
-static __inline void func_800B996C_RemoveItem(GpItemScan* arg0, GpItemRec* arg1, s32 arg2)
+static __inline void func_800B996C_RemoveItem(McItemScan* arg0, McItemRec* arg1, s32 arg2)
 {
-    GpItemRec*          tmp;
-    register GpItemRec* table asm("v1");
+    McItemRec*          tmp;
+    register McItemRec* table asm("v1");
     s32                 qty;
-    register GpItemRec* base asm("t0");
+    register McItemRec* base asm("t0");
     register s32        item asm("t1");
-    GpItemRec*          rec;
+    McItemRec*          rec;
     s32                 i;
     s32                 count;
     register s32        end asm("v1");
@@ -1609,7 +1609,7 @@ static __inline void func_800B996C_RemoveItem(GpItemScan* arg0, GpItemRec* arg1,
         end   = i + count;
         if (i < end) {
             loop_end = end;
-            rec      = (GpItemRec*)((i << 2) + (s32)base);
+            rec      = (McItemRec*)((i << 2) + (s32)base);
         loop:
             if (rec->itemId != item) {
                 i++;
@@ -1831,8 +1831,8 @@ void Gp_UiBoostHp(UiObject* arg0, Task* arg1)
 
 static __inline__ s32 Gp_HasStockedItemInline(s32 arg0)
 {
-    GpItemScan* scan;
-    GpItemRec*  table;
+    McItemScan* scan;
+    McItemRec*  table;
     s32         i;
     s32         ret;
     s32         count;
@@ -1965,8 +1965,8 @@ s32 func_800B9D80(s32 arg0)
         case 0x10000:
             stateA = 0;
             {
-                GpItemScan* scan;
-                GpItemRec*  table;
+                McItemScan* scan;
+                McItemRec*  table;
                 s32         i;
                 s32         count;
 
@@ -2001,8 +2001,8 @@ s32 func_800B9D80(s32 arg0)
         case 0x20000:
             stateA = 0;
             {
-                GpItemScan* scan;
-                GpItemRec*  table;
+                McItemScan* scan;
+                McItemRec*  table;
                 s32         i;
                 s32         count;
 
@@ -2037,8 +2037,8 @@ s32 func_800B9D80(s32 arg0)
         case 0x40000:
             stateA = 0;
             {
-                GpItemScan* scan;
-                GpItemRec*  table;
+                McItemScan* scan;
+                McItemRec*  table;
                 s32         i;
                 s32         count;
 
@@ -2073,8 +2073,8 @@ s32 func_800B9D80(s32 arg0)
         case 0x80000:
             stateA = 0;
             {
-                GpItemScan* scan;
-                GpItemRec*  table;
+                McItemScan* scan;
+                McItemRec*  table;
                 s32         i;
                 s32         count;
 
@@ -2124,15 +2124,15 @@ void Gp_ResetInventory(void)
     s32                  found;
     s32                  i;
     GpItemMap*           p;
-    GpItemScan*          scan;
-    GpItemRec*           tmp;
-    register GpItemRec*  table asm("v1");
+    McItemScan*          scan;
+    McItemRec*           tmp;
+    register McItemRec*  table asm("v1");
     s32                  count;
     s32                  start;
     s32                  off;
     McSaveData*          save;
-    GpItemScan*          dest;
-    register GpItemScan* src asm("t4");
+    McItemScan*          dest;
+    register McItemScan* src asm("t4");
     PlayerStatus*        pcfg;
     u16                  hp;
     u16                  mp;
@@ -2188,7 +2188,7 @@ void Gp_ResetInventory(void)
     start = scan->firstRow;
     if (count != 0) {
         off   = start << 2;
-        table = (GpItemRec*)(off + (s32)table);
+        table = (McItemRec*)(off + (s32)table);
         do {
             i++;
             table->itemId     = 0;
@@ -2239,9 +2239,9 @@ void Gp_ClearInventory(void)
     s32                 found;
     s32                 i;
     GpItemMap*          p;
-    GpItemScan*         scan;
-    GpItemRec*          tmp;
-    register GpItemRec* table asm("v1");
+    McItemScan*         scan;
+    McItemRec*          tmp;
+    register McItemRec* table asm("v1");
     s32                 count;
     s32                 start;
     s32                 off;
@@ -2251,8 +2251,8 @@ void Gp_ClearInventory(void)
     u16                 mp;
     GpStateC08*         state;
     s32                 val;
-    GpItemScan*         dest;
-    GpItemRec*          rec;
+    McItemScan*         dest;
+    McItemRec*          rec;
     s32                 j;
     GpStatRow*          rows;
     GpItemAttr*         attrs;
@@ -2311,7 +2311,7 @@ void Gp_ClearInventory(void)
     start = scan->firstRow;
     if (count != 0) {
         off   = start << 2;
-        table = (GpItemRec*)(off + (s32)table);
+        table = (McItemRec*)(off + (s32)table);
         do {
             i++;
             table->itemId     = 0;
@@ -2339,7 +2339,7 @@ void Gp_ClearInventory(void)
             break;
     }
     j   = 0;
-    rec = (GpItemRec*)((s32)rec + (dest->firstRow << 2));
+    rec = (McItemRec*)((s32)rec + (dest->firstRow << 2));
     if (dest->rowCount != 0) {
         rows  = Gp_StatRows;
         save2 = &Mc_SaveData;
@@ -2390,10 +2390,10 @@ void Gp_ClearInventory(void)
 void Gp_InitModeEquip(void)
 {
     PlayerStatus* cfg;
-    GpItemScan*   scan;
-    GpItemRec*    tmp;
-    GpItemRec*    table;
-    GpItemRec*    rec;
+    McItemScan*   scan;
+    McItemRec*    tmp;
+    McItemRec*    table;
+    McItemRec*    rec;
     s32           i;
     s32           acc;
     s32           count;
@@ -2427,7 +2427,7 @@ void Gp_InitModeEquip(void)
         if (count != 0) {
             limit = count;
             off   = start << 2;
-            rec   = (GpItemRec*)(off + (s32)table);
+            rec   = (McItemRec*)(off + (s32)table);
             do {
                 if (rec->itemId == item) {
                     acc += rec->qty;
@@ -2538,10 +2538,10 @@ void Gp_SetCurBit2Flag(s32 arg0, u8 arg1)
     *p    = (temp & nmask) | mask;
 }
 
-void Gp_ClearScanItems(GpItemScan* arg0)
+void Gp_ClearScanItems(McItemScan* arg0)
 {
-    GpItemRec*          tmp;
-    register GpItemRec* table asm("v1");
+    McItemRec*          tmp;
+    register McItemRec* table asm("v1");
     s32                 i;
     s32                 count;
     s32                 start;
@@ -2564,7 +2564,7 @@ void Gp_ClearScanItems(GpItemScan* arg0)
     start = arg0->firstRow;
     if (count != 0) {
         off   = start << 2;
-        table = (GpItemRec*)(off + (s32)table);
+        table = (McItemRec*)(off + (s32)table);
         do {
             i++;
             table->itemId     = 0;
@@ -2576,19 +2576,19 @@ void Gp_ClearScanItems(GpItemScan* arg0)
     USE_REG(i);
 }
 
-GpItemRec* Gp_GiveItem(GpItemScan* arg0, s32 arg1, s32 arg2)
+McItemRec* Gp_GiveItem(McItemScan* arg0, s32 arg1, s32 arg2)
 {
     return Gp_AddItem(arg0, arg1, arg2);
 }
 
-s32 Gp_RemoveItem(GpItemScan* arg0, GpItemRec* arg1, s32 arg2)
+s32 Gp_RemoveItem(McItemScan* arg0, McItemRec* arg1, s32 arg2)
 {
-    GpItemRec*          tmp;
-    register GpItemRec* table asm("v1");
+    McItemRec*          tmp;
+    register McItemRec* table asm("v1");
     register s32        qty asm("t0");
-    register GpItemRec* base asm("t1");
+    register McItemRec* base asm("t1");
     s32                 item;
-    GpItemRec*          rec;
+    McItemRec*          rec;
     s32                 i;
     s32                 count;
     s32                 end;
@@ -2623,7 +2623,7 @@ s32 Gp_RemoveItem(GpItemScan* arg0, GpItemRec* arg1, s32 arg2)
         end   = i + count;
         if (i < end) {
             loop_end = end;
-            rec      = (GpItemRec*)((i << 2) + (s32)base);
+            rec      = (McItemRec*)((i << 2) + (s32)base);
         loop:
             if (rec->itemId != item) {
                 i++;
@@ -2719,11 +2719,11 @@ s32 Gp_CountCollectedBits(void)
     return count;
 }
 
-s32 Gp_CountScanItems(GpItemScan* arg0)
+s32 Gp_CountScanItems(McItemScan* arg0)
 {
-    GpItemRec* tmp;
-    GpItemRec* table;
-    GpItemRec* rec;
+    McItemRec* tmp;
+    McItemRec* table;
+    McItemRec* rec;
     s32        i;
     s32        ret;
     s32        count;
@@ -2750,7 +2750,7 @@ s32 Gp_CountScanItems(GpItemScan* arg0)
     if (count != 0) {
         limit = count;
         off   = start << 2;
-        rec   = (GpItemRec*)(off + (s32)table);
+        rec   = (McItemRec*)(off + (s32)table);
         do {
             if (rec->itemId != 0) {
                 ret++;
@@ -2767,14 +2767,14 @@ GpItemSlot* Gp_GetItemSlot(s32 arg0)
     return &((GpItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[arg0];
 }
 
-s32 Gp_CountEquippedRelated(GpItemScan* arg0, s32 arg1)
+s32 Gp_CountEquippedRelated(McItemScan* arg0, s32 arg1)
 {
-    GpItemRec*  table;
+    McItemRec*  table;
     s32         start;
     s32         count;
     s32         end;
     s32         limit;
-    GpItemRec*  rec;
+    McItemRec*  rec;
     GpItemSlot* slots;
     GpItemSlot* slot;
     GpItemSlot* alt;
@@ -2791,7 +2791,7 @@ s32 Gp_CountEquippedRelated(GpItemScan* arg0, s32 arg1)
             slots = (GpItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400);
             limit = end;
             off   = start << 2;
-            rec   = (GpItemRec*)(off + (s32)table);
+            rec   = (McItemRec*)(off + (s32)table);
             for (; start < limit; start++, rec++) {
                 itemId = rec->itemId;
                 if ((u32)(itemId - 0x80) < 0x20U) {
@@ -2882,11 +2882,11 @@ void Gp_ClearEquipSlotSel(s32 arg0, s32 arg1)
     }
 }
 
-s32 Gp_ScanStackQty(GpItemScan* arg0, s32 arg1)
+s32 Gp_ScanStackQty(McItemScan* arg0, s32 arg1)
 {
     s32        index;
     s32        ret;
-    GpItemRec* table;
+    McItemRec* table;
 
     index = arg0->firstRow;
     table = Gp_GetItemTable(arg0);
@@ -2898,13 +2898,13 @@ s32 Gp_ScanStackQty(GpItemScan* arg0, s32 arg1)
     return ret;
 }
 
-void Gp_ConsumeScanQty(GpItemScan* arg0, s32 arg1, s32 arg2)
+void Gp_ConsumeScanQty(McItemScan* arg0, s32 arg1, s32 arg2)
 {
-    GpItemRec*          tmp;
-    register GpItemRec* table asm("v1");
+    McItemRec*          tmp;
+    register McItemRec* table asm("v1");
     register s32        qty asm("t1");
-    register GpItemRec* base asm("t2");
-    GpItemRec*          rec;
+    register McItemRec* base asm("t2");
+    McItemRec*          rec;
     s32                 i;
     s32                 count;
     s32                 end;
@@ -2933,7 +2933,7 @@ void Gp_ConsumeScanQty(GpItemScan* arg0, s32 arg1, s32 arg2)
     end   = i + count;
     if (i < end) {
         loop_end = end;
-        rec      = (GpItemRec*)((i << 2) + (s32)base);
+        rec      = (McItemRec*)((i << 2) + (s32)base);
     loop:
         if (rec->itemId != arg1) {
             i++;
@@ -3023,7 +3023,7 @@ s32 Gp_HasCollectedBit(s32 arg0)
     return val != 0;
 }
 
-GpItemRec* Gp_GetItemTable(GpItemScan* arg0)
+McItemRec* Gp_GetItemTable(McItemScan* arg0)
 {
     switch (arg0->table) {
         case 2:
@@ -3035,9 +3035,9 @@ GpItemRec* Gp_GetItemTable(GpItemScan* arg0)
     }
 }
 
-s32 Gp_ScanIndexOf(GpItemScan* arg0, GpItemRec* arg1)
+s32 Gp_ScanIndexOf(McItemScan* arg0, McItemRec* arg1)
 {
-    GpItemRec*   table;
+    McItemRec*   table;
     register s32 i asm("a2");
     s32          ret;
 
@@ -3065,9 +3065,9 @@ s32 Gp_ScanIndexOf(GpItemScan* arg0, GpItemRec* arg1)
     return ret;
 }
 
-GpItemRec* Gp_GetScanSlot(GpItemScan* arg0, s32 arg1, s32 arg2)
+McItemRec* Gp_GetScanSlot(McItemScan* arg0, s32 arg1, s32 arg2)
 {
-    GpItemRec* table;
+    McItemRec* table;
 
     switch (arg0->table) {
         case 2:
@@ -3083,10 +3083,10 @@ GpItemRec* Gp_GetScanSlot(GpItemScan* arg0, s32 arg1, s32 arg2)
     return &table[arg0->firstRow + arg1];
 }
 
-s32 Gp_GetScanItemId(GpItemScan* arg0, s32 arg1)
+s32 Gp_GetScanItemId(McItemScan* arg0, s32 arg1)
 {
-    GpItemRec* table;
-    GpItemRec* rec;
+    McItemRec* table;
+    McItemRec* rec;
 
     switch (arg0->table) {
         case 2:
@@ -3137,11 +3137,11 @@ s32 Gp_NthCollectedId(s32 arg0, s32 arg1)
     return ret;
 }
 
-s32 Gp_SumScanQty(GpItemScan* arg0, s32 arg1)
+s32 Gp_SumScanQty(McItemScan* arg0, s32 arg1)
 {
-    GpItemRec* tmp;
-    GpItemRec* table;
-    GpItemRec* rec;
+    McItemRec* tmp;
+    McItemRec* table;
+    McItemRec* rec;
     s32        i;
     s32        acc;
     s32        count;
@@ -3172,7 +3172,7 @@ s32 Gp_SumScanQty(GpItemScan* arg0, s32 arg1)
     if (count != 0) {
         limit = count;
         off   = start << 2;
-        rec   = (GpItemRec*)(off + (s32)table);
+        rec   = (McItemRec*)(off + (s32)table);
         do {
             if (rec->itemId == arg1) {
                 acc += rec->qty;
@@ -3433,7 +3433,7 @@ void Gp_WaitItemFlag2(Task* arg0)
     }
 }
 
-s32 Gp_FindScanQty(GpItemRec* arg0, GpItemScan* arg1, s32* arg2, s32 arg3)
+s32 Gp_FindScanQty(McItemRec* arg0, McItemScan* arg1, s32* arg2, s32 arg3)
 {
     s32 i;
     s32 ret;
@@ -3459,7 +3459,7 @@ s32 Gp_FindScanQty(GpItemRec* arg0, GpItemScan* arg1, s32* arg2, s32 arg3)
 
 s32 Gp_NextMappedSlot(s32 arg0)
 {
-    GpItemScan* scan;
+    McItemScan* scan;
     s32         i;
     GpItemMap*  p;
 
@@ -3484,7 +3484,7 @@ GpItemMap* Gp_GetItemMap(s32 arg0)
 s32 Gp_HasMappedItem(void)
 {
     s32         found;
-    GpItemScan* scan;
+    McItemScan* scan;
     s32         i;
     GpItemMap*  p;
 
@@ -3523,7 +3523,7 @@ void Gp_ResetAuxSlots(void)
 
 s32 Gp_SumItemQty(s32 arg0)
 {
-    GpItemScan query;
+    McItemScan query;
 
     memset(&query, 0, sizeof(query));
     query.rowCount = 0xFF;
@@ -3650,7 +3650,7 @@ void Gp_FillHpMp(void)
     p->mp = p->mpMax;
 }
 
-s32 Gp_GetScanCount(GpItemScan* scan)
+s32 Gp_GetScanCount(McItemScan* scan)
 {
     return scan->rowCount;
 }
@@ -3766,8 +3766,8 @@ void Gp_TickBoostPanel(Task* arg0)
 
 s32 Gp_HasStockedItem(s32 arg0)
 {
-    GpItemScan* scan;
-    GpItemRec*  table;
+    McItemScan* scan;
+    McItemRec*  table;
     s32         i;
     s32         ret;
     s32         count;
@@ -3823,10 +3823,10 @@ void func_800BC4E4(void)
 s32 Gp_CanMoveItems(void)
 {
     s32                  ret;
-    register GpItemScan* src asm("s3");
-    GpItemRec*           table;
+    register McItemScan* src asm("s3");
+    McItemRec*           table;
     s32                  flag;
-    GpItemRec*           rec;
+    McItemRec*           rec;
     s32                  count;
     s32                  i;
     register s32         off asm("v0");
@@ -3847,11 +3847,11 @@ s32 Gp_CanMoveItems(void)
     if (ret < src->rowCount) {
         destHi = 0x80110000; /* %hi(Gp_MoveScanDst); must precede the rec address */
         off    = start << 2;
-        rec    = (GpItemRec*)(off + (s32)table);
+        rec    = (McItemRec*)(off + (s32)table);
         do {
             if (rec->itemId != 0) {
                 if ((u8)(rec->itemId + 0x60) < 0x20) {
-                    if (Gp_FindItemInScan(rec->itemId, (GpItemScan*)(destHi + (s32)(s16)0xD62C)) == 0) {
+                    if (Gp_FindItemInScan(rec->itemId, (McItemScan*)(destHi + (s32)(s16)0xD62C)) == 0) {
                         count++;
                     }
                 } else {

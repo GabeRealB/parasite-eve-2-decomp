@@ -4043,8 +4043,8 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     s32         index;
     s32         index2;
-    GpItemRec*  table;
-    GpItemScan* scan;
+    McItemRec*  table;
+    McItemScan* scan;
     GpItemSlot* slot;
     s32         found;
     s32         have;
@@ -4064,7 +4064,7 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
             register s32        end asm("a0");
             register s32        off asm("v0");
             s32                 limit;
-            register GpItemRec* rec asm("a0");
+            register McItemRec* rec asm("a0");
 
             i     = scan->firstRow;
             count = scan->rowCount;
@@ -4072,7 +4072,7 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
             if (i < end) {
                 off   = i << 2;
                 limit = end;
-                rec   = (GpItemRec*)(off + (s32)table);
+                rec   = (McItemRec*)(off + (s32)table);
                 for (; i < limit; i++, rec++) {
                     if (rec->itemId == arg1) {
                         found = 1;
@@ -4162,11 +4162,11 @@ success:
     return 0;
 }
 
-s32 Gp_EquipRelatedItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 Gp_EquipRelatedItem(McItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     s32         index;
     s32         index2;
-    GpItemRec*  table;
+    McItemRec*  table;
     GpItemSlot* slot;
     s32         found;
     s32         have;
@@ -4193,7 +4193,7 @@ s32 Gp_EquipRelatedItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
         register s32        end asm("a0");
         register s32        off asm("v0");
         s32                 limit;
-        register GpItemRec* rec asm("a0");
+        register McItemRec* rec asm("a0");
 
         i     = arg0->firstRow;
         count = arg0->rowCount;
@@ -4201,7 +4201,7 @@ s32 Gp_EquipRelatedItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
         if (i < end) {
             off   = i << 2;
             limit = end;
-            rec   = (GpItemRec*)(off + (s32)table);
+            rec   = (McItemRec*)(off + (s32)table);
             for (; i < limit; i++, rec++) {
                 if (rec->itemId == arg1) {
                     found = 1;

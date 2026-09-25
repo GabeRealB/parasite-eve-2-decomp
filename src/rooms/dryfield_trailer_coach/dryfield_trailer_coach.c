@@ -320,7 +320,7 @@ u16* func_dryfield_trailer_coach_8017D7F4(s32 mode)
     return D_dryfield_trailer_coach_80183E2C;
 }
 
-extern GpItemScan    D_80072724;
+extern McItemScan    D_80072724;
 extern RoomShopStock D_8010E138[];
 extern UiObjectDesc  D_8010EFA0;
 extern char          Gp_StrEmpty[];
@@ -345,7 +345,7 @@ void func_dryfield_trailer_coach_8017DE64(DialogPrompt* prompt, UiObject* obj)
     TextDrawReq   req;
     u8            buf[0x20];
     RoomShopList* shop;
-    GpItemScan*   scan;
+    McItemScan*   scan;
     s32           y;
     s32           scaled;
     UiObject*     child;
@@ -931,7 +931,7 @@ void func_dryfield_trailer_coach_8017F004(DialogPrompt* prompt, UiObject* obj)
     TextDrawReq   req;
     UiObject*     child;
     PlayerStatus* cfg;
-    GpItemScan*   scan;
+    McItemScan*   scan;
     s32           itemId;
     s32           mode;
     s32           price;
@@ -1134,7 +1134,7 @@ void func_dryfield_trailer_coach_8017F660(Task* task)
     s32         guard;
     s32         i;
     s32         n;
-    GpItemRec*  rec;
+    McItemRec*  rec;
 
     item         = D_dryfield_trailer_coach_80183D44;
     obj          = task->spawnArg2;

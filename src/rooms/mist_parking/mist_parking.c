@@ -30,7 +30,7 @@
 
 extern UiObjectDesc  D_800611E4;
 extern UiObject*     D_80067634;
-extern GpItemScan    D_80072724;
+extern McItemScan    D_80072724;
 extern UiObjectDesc  D_8010D80C;
 extern RoomShopStock D_8010E138[];
 extern UiObjectDesc  D_8010EFA0;
@@ -325,7 +325,7 @@ void func_mist_parking_8017DF68(DialogPrompt* prompt, UiObject* obj)
     TextDrawReq   req;
     u8            buf[0x20];
     RoomShopList* shop;
-    GpItemScan*   scan;
+    McItemScan*   scan;
     s32           y;
     s32           scaled;
     UiObject*     child;
@@ -881,7 +881,7 @@ void func_mist_parking_8017F108(DialogPrompt* prompt, UiObject* obj)
     TextDrawReq   req;
     UiObject*     child;
     PlayerStatus* cfg;
-    GpItemScan*   scan;
+    McItemScan*   scan;
     s32           itemId;
     s32           mode;
     s32           price;
@@ -1081,7 +1081,7 @@ void func_mist_parking_8017F764(Task* task)
     s32         guard;
     s32         i;
     s32         n;
-    GpItemRec*  rec;
+    McItemRec*  rec;
 
     item         = D_mist_parking_8018644C;
     obj          = task->spawnArg2;

@@ -41,7 +41,7 @@ extern void func_80131E38(void);
 
 extern UiObjectDesc  D_800611E4;
 extern UiObject*     D_80067634;
-extern GpItemScan    D_80072724;
+extern McItemScan    D_80072724;
 extern s8            D_8007272D;
 extern UiObjectDesc  D_8010D80C;
 extern RoomShopStock D_8010E138[];
@@ -1445,7 +1445,7 @@ void func_shelter_b1_underground_parking_8017FE7C(DialogPrompt* prompt, UiObject
     TextDrawReq   req;
     u8            buf[0x20];
     RoomShopList* shop;
-    GpItemScan*   scan;
+    McItemScan*   scan;
     s32           y;
     s32           scaled;
     UiObject*     child;
@@ -1970,7 +1970,7 @@ void func_shelter_b1_underground_parking_8018101C(DialogPrompt* prompt, UiObject
     TextDrawReq   req;
     UiObject*     child;
     PlayerStatus* cfg;
-    GpItemScan*   scan;
+    McItemScan*   scan;
     s32           itemId;
     s32           mode;
     s32           price;
@@ -2177,7 +2177,7 @@ void func_shelter_b1_underground_parking_80181678(Task* task)
     s32         guard;
     s32         i;
     s32         n;
-    GpItemRec*  rec;
+    McItemRec*  rec;
 
     item         = D_shelter_b1_underground_parking_80186FB0;
     obj          = task->spawnArg2;

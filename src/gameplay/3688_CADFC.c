@@ -14,7 +14,7 @@ void Gp_DrawMovePrompt(DialogPrompt* arg0, UiObject* arg1);
 void Gp_DrawExchangeSlotCmd(DialogPrompt* arg0, UiObject* arg1);
 void Gp_DrawDiscardCmd(DialogPrompt* arg0, UiObject* arg1);
 
-void Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, GpItemRec* arg3)
+void Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, McItemRec* arg3)
 {
     s32 n;
     s32 mode;

@@ -36,7 +36,7 @@
 extern u8           Gp_StrItemObtained[]; // "Item obtained!"
 extern u8           Gp_StrBonusItem[];    // "Bonus item!!"
 extern s32          Gp_ItemGrantCooldown;
-extern GpItemScan   D_8010CA2C;
+extern McItemScan   D_8010CA2C;
 extern UiObjectDesc D_8010CA40;
 extern UiObjectDesc D_8010CA78[];
 extern UiObjectDesc D_8010D6D8;
@@ -94,7 +94,7 @@ extern s16           D_80114C40;
 extern DR_STP        D_80114C50;
 extern s32           D_80115724;
 
-extern GpItemRec* Gp_SelItemRec;
+extern McItemRec* Gp_SelItemRec;
 
 void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_80108874(void);
@@ -5133,7 +5133,7 @@ void Gp_AreaEnterTask(Task* arg0)
     Task*           slot;
     GameSession*    session;
     GpSndParam*     pair;
-    GpItemScan*     scan;
+    McItemScan*     scan;
     McSaveData*     save;
 
     if (arg0->state == 0) {

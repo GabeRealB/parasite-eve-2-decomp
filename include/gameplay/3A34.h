@@ -1093,13 +1093,13 @@ extern const char Gp_StrGetLockPosNull[];
 
 /// Returns 1 if item `arg0` cannot be used, 0 if it can.
 /// `arg1` supplies `field_2` (capacity) for ammo ids 0xA0–0xBF.
-s32 Gp_ItemIsUnusable(s32 arg0, GpItemRec* arg1);
+s32 Gp_ItemIsUnusable(s32 arg0, McItemRec* arg1);
 /// `arg1` is passed by `Gp_PlayerNormalState5` (the actor's `field_960`) but the body
 /// ignores it.
 s32        Gp_FlushPendingRelated(s32 arg0, s32 arg1);
-GpItemRec* Gp_FindItemById(s32 arg0);
-GpItemRec* Gp_FindItemByKind(s32 arg0);
-GpItemRec* Gp_FindItemInScan(s32 arg0, GpItemScan* arg1);
+McItemRec* Gp_FindItemById(s32 arg0);
+McItemRec* Gp_FindItemByKind(s32 arg0);
+McItemRec* Gp_FindItemInScan(s32 arg0, McItemScan* arg1);
 void       Gp_DrawWeaponLabel(Task* arg0);
 /// First-run init plus per-frame update of the current room's `GpRoomCoordSet`
 /// coordinate arrays (parented to `gGfxViewCoord`) and the `Gp_RoomCoords` slots.
@@ -1201,7 +1201,7 @@ s32   Gp_ProjectToSxy(GpLinkNode* arg0, s32* sxy);
 /// Drops the `targeted` mark from every actor slot's current node, without
 /// releasing the slot itself.
 void Gp_ClearSlotNodeFlags(void);
-s32  Gp_GrantLocationItems(GpItemScan* arg0);
+s32  Gp_GrantLocationItems(McItemScan* arg0);
 s32  Gp_LoadActorImage(Task* arg0, GpImgRec* arg1, RECT* arg2);
 void Gp_LoadImages(GpImgRec* arg0);
 void Gp_InitStateF0(void);
@@ -1328,6 +1328,6 @@ void Gp_UpdatePlayerMove(void);
 // seed fails to compile ('invalid use of void expression') - the single
 // largest cause of unusable seeds in the bulk m2c pass.
 
-s32 Gp_ApplyItemUse(GpItemRec* arg0);
+s32 Gp_ApplyItemUse(McItemRec* arg0);
 
 #endif // GAMEPLAY_3A34_H
