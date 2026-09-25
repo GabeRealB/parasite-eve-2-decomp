@@ -34,7 +34,6 @@ typedef struct RoomUtil20Work {
 
 extern s16 D_80071076;
 extern u8  D_8007216D;
-extern u8  D_801153F4;
 extern u8  D_8018A7BC[];
 extern u8  D_8018A7C8[];
 
@@ -135,7 +134,7 @@ void func_dryfield_factory_8017D85C(Task* task)
 {
     switch (task->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd1(D_dryfield_factory_8018A3CC.field_0);
             if (D_dryfield_factory_8018A3CC.field_8 != 0) {

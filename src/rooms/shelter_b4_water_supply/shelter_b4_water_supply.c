@@ -83,7 +83,6 @@ extern s16 D_80071076;
 extern s32 D_8007107C;
 extern s8  D_8007217B;
 extern s16 D_80114D08;
-extern u8  D_801153F4;
 extern s32 D_80115730;
 extern s32 D_80115734;
 extern s32 D_80115738;
@@ -234,7 +233,7 @@ void func_shelter_b4_water_supply_8017D7C0(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd(arg0->spawnArg1, 0);
             arg0->state++;
@@ -248,11 +247,11 @@ void func_shelter_b4_water_supply_8017D7C0(Task* arg0)
             if (Gp_GetCapEventKey() != 0xA) {
                 taskKill(arg0);
                 Gp_MsgPlayerWeapon(1);
-                D_801153F4 = 0;
-                D_80114D08 = 0xA;
+                Gp_StateF0.field_4 = 0;
+                D_80114D08         = 0xA;
                 break;
             }
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_TriggerPeIfArmed();
             D_shelter_b4_water_supply_80184E34.field_0 = 0;
             D_shelter_b4_water_supply_80184E34.field_1 = 0;

@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "gameplay/268.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/gameflag.h"
@@ -11,7 +12,6 @@
 #include "rooms/room_common.h"
 
 extern s16 D_80071076;
-extern u8  D_801153F4;
 
 /// The `GpAreaApplyRec` list the 0x11 answer applies when the event fires.
 /// The address sits past the end of this package, so the linker resolves it
@@ -103,7 +103,7 @@ void func_dryfield_parking_lot_8017D74C(Task* task)
 {
     switch (task->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd1(D_dryfield_parking_lot_8017FB5C.field_0);
             if (D_dryfield_parking_lot_8017FB5C.field_8 != 0) {

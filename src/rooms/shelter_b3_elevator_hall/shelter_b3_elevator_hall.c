@@ -27,7 +27,6 @@
 
 extern s32 D_80070F70;
 extern s16 D_80071076;
-extern u8  D_801153F4;
 extern s32 D_80115720;
 extern s32 D_80115728;
 extern s32 D_80115730;
@@ -129,7 +128,7 @@ void func_shelter_b3_elevator_hall_8017D790(Task* task)
 {
     switch (task->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd1(D_shelter_b3_elevator_hall_80184A0C.field_0);
             if (D_shelter_b3_elevator_hall_80184A0C.field_8 != 0) {
@@ -185,16 +184,16 @@ void func_shelter_b3_elevator_hall_8017D900(Task* task)
     switch (task->state) {
         case 0:
             Gp_MsgPlayerWeapon(0);
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             goto next;
         case 1:
             if (Gp_CapBusy() == 0) {
-                D_801153F4 = 0;
+                Gp_StateF0.field_4 = 0;
                 goto next;
             }
             break;
         case 2:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             switch (Gp_GetCapEventKey()) {
                 case 0xB:
                     Mc_SaveData.at4.loc.area = 9;
@@ -210,7 +209,7 @@ void func_shelter_b3_elevator_hall_8017D900(Task* task)
                     break;
                 default:
                     Gp_MsgPlayerWeapon(1);
-                    D_801153F4 = 0;
+                    Gp_StateF0.field_4 = 0;
                     taskKill(task);
                     break;
             }
@@ -274,7 +273,7 @@ void func_shelter_b3_elevator_hall_8017DAF0(Task* arg0)
 
 L_case0:
     Gp_MsgPlayerWeapon(0);
-    D_801153F4 = 1;
+    Gp_StateF0.field_4 = 1;
     goto advance;
 
 L_case1:
@@ -307,7 +306,7 @@ L_case4:
         Mc_SaveData.at4.loc.room = 1;
     } else {
         Gp_MsgPlayerWeapon(1);
-        D_801153F4 = 0;
+        Gp_StateF0.field_4 = 0;
         taskKill(task);
     }
     goto advance;

@@ -6,6 +6,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
@@ -57,7 +58,6 @@ extern s32 D_80115738;
 extern s32 D_8011574C;
 extern s32 D_80115750;
 extern s32 D_80115758;
-extern u8  D_801153F4;
 extern u8  D_80115690;
 
 /// The room's message table, installed by its first task state.
@@ -146,7 +146,7 @@ void func_shelter_b2_septic_tank_8017D614(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd(D_shelter_b2_septic_tank_80187048.capCmd, 0);
             D_80115690 = 1;

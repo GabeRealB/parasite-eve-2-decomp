@@ -3,6 +3,7 @@
 #include <psyq/libgte.h>
 
 #include "gameplay/268.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/gameflag.h"
@@ -15,7 +16,6 @@
 
 extern s16 D_80071076;
 extern s8  D_8007272D;
-extern u8  D_801153F4;
 
 /// A gameplay state byte; the one-shot balcony event waits while it is 1.
 extern s8 D_80114C12;
@@ -97,7 +97,7 @@ s32 func_dryfield_night_motel_balcony_8017D694(RoomEventReq* req, RoomEventMsg* 
     return ret;
 }
 
-/// The event task the gate spawns. It raises `D_801153F4`, runs the latched
+/// The event task the gate spawns. It raises `Gp_StateF0.field_4`, runs the latched
 /// request's CAP command, plays its two stage sounds in turn (either may be
 /// absent) waiting for each voice to finish, then stores the latched
 /// message's `msgId`, `field_2` and `field_3` as the save location's area,
@@ -106,7 +106,7 @@ void func_dryfield_night_motel_balcony_8017D7F8(Task* task)
 {
     switch (task->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd1(D_dryfield_night_motel_balcony_8018F2E0.field_0);
             if (D_dryfield_night_motel_balcony_8018F2E0.field_8 != 0) {

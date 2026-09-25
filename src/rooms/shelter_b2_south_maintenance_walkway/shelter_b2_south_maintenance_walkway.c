@@ -27,7 +27,6 @@
 
 extern s32 D_80070F70;
 extern s16 D_80071076;
-extern u8  D_801153F4;
 extern u8  D_80115690;
 extern s32 D_8011572C;
 extern s32 D_80115730;
@@ -154,7 +153,7 @@ void func_shelter_b2_south_maintenance_walkway_8017D774(Task* task)
 {
     switch (task->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd1(D_shelter_b2_south_maintenance_walkway_801838F8.field_0);
             if (D_shelter_b2_south_maintenance_walkway_801838F8.field_8 != 0) {
@@ -229,7 +228,7 @@ void func_shelter_b2_south_maintenance_walkway_8017D8E4(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd(D_shelter_b2_south_maintenance_walkway_80183918.capCmd, 0);
             D_80115690 = 1;

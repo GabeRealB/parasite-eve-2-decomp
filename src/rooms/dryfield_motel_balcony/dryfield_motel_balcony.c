@@ -29,7 +29,6 @@
 extern s32 D_80070F70;
 extern s16 D_80071076;
 extern s8  D_8007272D;
-extern u8  D_801153F4;
 extern s32 D_80115720;
 extern s32 D_80115728;
 extern s32 D_8011572C;
@@ -126,7 +125,7 @@ s32 func_dryfield_motel_balcony_8017D5E8(RoomEventReq* req, RoomEventMsg* msg)
     return ret;
 }
 
-/// The event task the gate spawns. It raises `D_801153F4`, runs the latched
+/// The event task the gate spawns. It raises `Gp_StateF0.field_4`, runs the latched
 /// request's CAP command, plays its two stage sounds in turn (either may be
 /// absent) waiting for each voice to finish, then stores the latched
 /// message's `msgId`, `field_2` and `field_3` as the save location's area,
@@ -135,7 +134,7 @@ void func_dryfield_motel_balcony_8017D74C(Task* task)
 {
     switch (task->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd1(D_dryfield_motel_balcony_80186730.field_0);
             if (D_dryfield_motel_balcony_80186730.field_8 != 0) {

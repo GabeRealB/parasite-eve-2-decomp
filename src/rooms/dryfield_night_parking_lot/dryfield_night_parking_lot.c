@@ -2,6 +2,7 @@
 
 #include "gameplay/1A8.h"
 #include "gameplay/268.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/gameflag.h"
@@ -12,7 +13,6 @@
 #include "rooms/room_common.h"
 
 extern s16 D_80071076;
-extern u8  D_801153F4;
 
 /// One byte of gameplay state, written by room script tables and read back with
 /// `lb` by the field text actor (`actor_101600_text`), so it is signed.
@@ -104,7 +104,7 @@ void func_dryfield_night_parking_lot_8017D760(Task* task)
 {
     switch (task->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd1(D_dryfield_night_parking_lot_80181570.field_0);
             if (D_dryfield_night_parking_lot_80181570.field_8 != 0) {

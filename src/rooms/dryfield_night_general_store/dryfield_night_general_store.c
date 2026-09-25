@@ -15,7 +15,6 @@
 extern s16 D_80071076;
 extern u8  D_8007216C;
 extern u8  D_80115598;
-extern u8  D_801153F4;
 extern u8  D_80115690;
 
 /// The event message and request the gate latched for the event task, and the
@@ -113,7 +112,7 @@ void func_dryfield_night_general_store_8017D794(Task* task)
 {
     switch (task->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd1(D_dryfield_night_general_store_801858C8.field_0);
             if (D_dryfield_night_general_store_801858C8.field_8 != 0) {
@@ -236,11 +235,11 @@ s32 func_dryfield_night_general_store_8017D904(s32 arg0, s32 arg1, RoomEventMsg*
 /// player's weapon messages, saves the stage byte `Mc_SaveData.at4.loc.view`
 /// and forces it to 0x10; states 1 and 3 each let one frame pass. State 2
 /// queues stage sound 0x5203000D, runs CAP command 0xF and raises
-/// `D_801153F4` / `D_80115690`.
+/// `Gp_StateF0.field_4` / `D_80115690`.
 ///
 /// State 4 checks the CAP event key: 0xB spawns helper task 0x31 with a
 /// zeroed record whose `field_2` is 8 and moves on; any other key ends the
-/// cutscene - `D_801153F4` cleared, stage sound 0x5203000E, the saved stage
+/// cutscene - `Gp_StateF0.field_4` cleared, stage sound 0x5203000E, the saved stage
 /// byte written to `D_8007216C` and the weapon messages re-enabled. State 5
 /// queues sound event 0x80000000, points the save's location at area 0x26
 /// with the latched warp point and room, raises `D_80071076` and spawns
@@ -261,7 +260,7 @@ void func_dryfield_night_general_store_8017DAF0(Task* arg0)
             return;
         case 2:
             Gp_EnqueueStageSnd6(0x5203000D, 0, 0);
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_RunCapCmd1(0xF);
             D_80115690   = 1;
             arg0->state += 1;
@@ -275,7 +274,7 @@ void func_dryfield_night_general_store_8017DAF0(Task* arg0)
                 arg0->state += 1;
                 return;
             }
-            D_801153F4 = 0;
+            Gp_StateF0.field_4 = 0;
             Gp_EnqueueStageSnd6(0x5203000E, 0, 0);
             D_8007216C = D_dryfield_night_general_store_801858B4;
             Gp_MsgPlayerWeapon(1);

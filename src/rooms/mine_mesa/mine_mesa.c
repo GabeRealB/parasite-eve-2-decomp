@@ -55,7 +55,6 @@ extern s8  D_8007106B;
 extern s8  D_8007217B;
 extern s8  D_8007218B;
 extern s8  D_80114C12;
-extern u8  D_801153F4;
 extern s16 D_801153F6;
 extern u8  D_80115690;
 extern u8  D_801156F9;
@@ -134,7 +133,7 @@ void func_mine_mesa_8017D670(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd(D_mine_mesa_80189B60.capCmd, 0);
             D_80115690 = 1;
@@ -604,7 +603,7 @@ void func_mine_mesa_8017E2A4(Task* arg0)
 /// including the frames the switch kills the task on -- only the colours differ
 /// there, since `r`/`g`/`b` are read before the switch.
 ///
-/// This is `func_actor_503500_80132990` minus its `D_801153F4` gate and minus
+/// This is `func_actor_503500_80132990` minus its `Gp_StateF0.field_4` gate and minus
 /// the `gGameSession->evtSkipped != 0` term of its state-1 test; the tile packet
 /// itself is built byte-for-byte the same way.
 void func_mine_mesa_8017E3E0(Task* arg0)

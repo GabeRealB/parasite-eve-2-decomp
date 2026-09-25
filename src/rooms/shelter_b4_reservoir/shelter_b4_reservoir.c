@@ -82,7 +82,6 @@ extern u8  D_8007216C;
 extern u8  D_8007216D;
 extern s8  D_8007217B;
 extern s16 D_80114D08;
-extern u8  D_801153F4;
 extern u8  D_80115680;
 extern u8  D_80115690;
 extern s32 D_80115730;
@@ -346,7 +345,7 @@ void func_shelter_b4_reservoir_8017DE8C(Task* task)
             }
             break;
         case 3:
-            D_801153F4 = 0;
+            Gp_StateF0.field_4 = 0;
             if (Gp_GetCapEventKey() == 0xC) {
                 taskKill(task);
                 D_8007216C = 5;
@@ -389,7 +388,7 @@ void func_shelter_b4_reservoir_8017E0AC(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd(arg0->spawnArg1, 0);
             arg0->state++;
@@ -403,11 +402,11 @@ void func_shelter_b4_reservoir_8017E0AC(Task* arg0)
             if (Gp_GetCapEventKey() != 0xA) {
                 taskKill(arg0);
                 Gp_MsgPlayerWeapon(1);
-                D_801153F4 = 0;
-                D_80114D08 = 0xA;
+                Gp_StateF0.field_4 = 0;
+                D_80114D08         = 0xA;
                 break;
             }
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_TriggerPeIfArmed();
             D_shelter_b4_reservoir_80187500.field_0 = 0;
             D_shelter_b4_reservoir_80187500.field_1 = 0;
@@ -473,8 +472,8 @@ s32 func_shelter_b4_reservoir_8017E354(s32 arg0, s32 arg1, s32 arg2)
         Gp_MsgAlly3F3(0);
         Gp_MsgPlayerWeapon(0);
         Gp_MsgAllyWeapon(0);
-        D_8007216C = 6;
-        D_801153F4 = 2;
+        D_8007216C         = 6;
+        Gp_StateF0.field_4 = 2;
         Task_SpawnFromTable(&D_shelter_b4_reservoir_801848EC, 0, 0, 0);
     }
     return 0;

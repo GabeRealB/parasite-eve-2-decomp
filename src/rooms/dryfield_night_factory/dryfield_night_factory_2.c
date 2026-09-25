@@ -3,6 +3,7 @@
 #include "gameplay/1A8.h"
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
@@ -27,7 +28,6 @@
 extern s16 D_80071076;
 extern s8  D_8007216C;
 extern s16 D_80114D08;
-extern u8  D_801153F4;
 
 /// The pending event message and request the gate latched, the flag saying
 /// one was latched, and the descriptor of the task the gate spawns to play it.
@@ -123,7 +123,7 @@ void func_dryfield_night_factory_801802C8(Task* task)
 {
     switch (task->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd1(D_dryfield_night_factory_8018A7EC.field_0);
             if (D_dryfield_night_factory_8018A7EC.field_8 != 0) {

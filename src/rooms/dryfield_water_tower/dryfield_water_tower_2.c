@@ -238,8 +238,6 @@ extern Task* D_dryfield_water_tower_801876AC;
 /// 0x7C-byte scratch block into the task's `work` first.
 extern Task* D_dryfield_water_tower_801876A4;
 
-extern u8 D_801153F4;
-
 /// `Mc_SaveData.at4.loc.view`, the saved location's view byte, spelled by
 /// address because that is the name the room imports. Two stores below name the
 /// field instead, where its struct spelling is needed for aliasing.

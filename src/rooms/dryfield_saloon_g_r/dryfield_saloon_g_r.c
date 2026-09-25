@@ -6,6 +6,7 @@
 #include "gte.h"
 
 #include "gameplay/268.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
@@ -31,7 +32,6 @@ typedef struct {
 } _DryfieldSaloonGRShaftScratch;
 
 extern s16 D_80071076;
-extern u8  D_801153F4;
 
 /// The event message and request the gate latched for the event task, and the
 /// flag saying one was latched this call.
@@ -132,7 +132,7 @@ void func_dryfield_saloon_g_r_8017D74C(Task* task)
 {
     switch (task->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd1(D_dryfield_saloon_g_r_80181BE8.field_0);
             if (D_dryfield_saloon_g_r_80181BE8.field_8 != 0) {

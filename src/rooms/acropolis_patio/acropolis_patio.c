@@ -2,6 +2,7 @@
 
 #include "gameplay/1BC.h"
 #include "gameplay/268.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
@@ -64,8 +65,6 @@ extern s32      D_acropolis_patio_8018082C;
 extern s32      D_acropolis_patio_80180C64;
 extern s32      D_acropolis_patio_8018280C;
 extern s32      D_acropolis_patio_80182BE4;
-
-extern u8 D_801153F4;
 
 /// The 14 anchor points of the patio's fountain spray, in the room object's own
 /// space. The first three double as the jitter centres for the mist burst.
@@ -368,7 +367,7 @@ void func_acropolis_patio_8017DF48(void)
 }
 void func_acropolis_patio_8017DF70(u8 arg0)
 {
-    D_801153F4 = arg0;
+    Gp_StateF0.field_4 = arg0;
 }
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_patio/acropolis_patio", D_acropolis_patio_8017D5E8);
@@ -389,11 +388,11 @@ void func_acropolis_patio_8017DF8C(Task* task)
 void func_acropolis_patio_8017DFE4(s32 arg0)
 {
     if (arg0 != 0) {
-        D_801153F4 = 0;
+        Gp_StateF0.field_4 = 0;
         Gp_ArmStateF0(1);
         return;
     }
-    D_801153F4 = 1;
+    Gp_StateF0.field_4 = 1;
 }
 void func_acropolis_patio_8017E024(void)
 {

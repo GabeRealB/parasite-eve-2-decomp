@@ -20,7 +20,6 @@ struct _GpMsgEntry;
 s32 Gp_DispatchMsg();
 
 extern s16 D_80071076;
-extern u8  D_801153F4;
 
 /// The message and request the event gate latched, and the descriptor of the
 /// event task it spawns to act on them.
@@ -122,7 +121,7 @@ void func_dryfield_breezeway_8017D79C(Task* task)
 {
     switch (task->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd1(D_dryfield_breezeway_801843AC.field_0);
             if (D_dryfield_breezeway_801843AC.field_8 != 0) {

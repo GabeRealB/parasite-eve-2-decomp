@@ -27,7 +27,6 @@ extern s16 D_800691CA;
 extern u8  D_80070F87;
 extern s32 D_80070F70;
 extern s8  D_801153F1;
-extern u8  D_801153F4;
 
 extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -186,7 +185,7 @@ void func_shelter_b6_corridor_8017D5D0(Task* arg0)
                     break;
                 case 1:
                     if (ctx->field_6 > 0) {
-                        if (D_801153F4 == 0) {
+                        if (Gp_StateF0.field_4 == 0) {
                             ctx->field_6--;
                         }
                     } else {

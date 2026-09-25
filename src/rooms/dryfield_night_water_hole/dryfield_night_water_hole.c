@@ -98,7 +98,6 @@ typedef struct _DryfieldNightWaterHoleSplash {
 
 extern s8  D_8007217B;
 extern s16 D_80071076;
-extern u8  D_801153F4;
 extern s32 D_80115738;
 extern s32 D_8011574C;
 /// Resident task table the ending task is spawned from, descriptor 1.
@@ -517,7 +516,7 @@ void func_dryfield_night_water_hole_8017DE88(DnwhParamOverride* list)
 /// through the view matrix. The seam between the strips is lifted by a sine
 /// wave that runs along X and scrolls with
 /// `D_dryfield_night_water_hole_8018362C`, which only advances while
-/// `D_801153F4` is clear. The outer edges are coloured (0xFF, 0, 0) and the seam
+/// `Gp_StateF0.field_4` is clear. The outer edges are coloured (0xFF, 0, 0) and the seam
 /// (0x20, 0x20, 0x20); each quad is followed by a draw-mode packet selecting
 /// blend mode 2. Quads the projection flags as invalid are skipped. `task` is
 /// unused.
@@ -542,7 +541,7 @@ void func_dryfield_night_water_hole_8017DF28(Task* task)
     } else {
         D_dryfield_night_water_hole_80183628 = (u8*)D_8005C370 + gDisplayState.otBuffer * 0xC000;
     }
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         D_dryfield_night_water_hole_8018362C++;
     }
     phase             = -(D_dryfield_night_water_hole_8018362C * 16);

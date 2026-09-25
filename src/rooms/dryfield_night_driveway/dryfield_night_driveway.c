@@ -26,7 +26,6 @@
 
 extern s16 D_80071076;
 extern s8  D_8011540A;
-extern u8  D_801153F4;
 extern u8  D_80115690;
 
 /// Descriptor of the room's event task, which the event gate spawns.
@@ -76,7 +75,7 @@ void func_dryfield_night_driveway_8017D608(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd(D_dryfield_night_driveway_80182124.capCmd, 0);
             D_80115690 = 1;

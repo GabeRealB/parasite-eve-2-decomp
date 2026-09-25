@@ -63,7 +63,6 @@
 
 extern s32 D_80070F70;
 extern s16 D_80071076;
-extern u8  D_801153F4;
 extern u8  D_80115598;
 extern u8  D_80115690;
 extern s32 D_80115720;
@@ -145,7 +144,7 @@ void func_dryfield_night_main_street_8017D600(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd(D_dryfield_night_main_street_80188BC8.capCmd, 0);
             D_80115690 = 1;
@@ -251,7 +250,7 @@ void func_dryfield_night_main_street_8017D8FC(Task* task)
 {
     switch (task->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd1(D_dryfield_night_main_street_80188BD8.field_0);
             if (D_dryfield_night_main_street_80188BD8.field_8 != 0) {

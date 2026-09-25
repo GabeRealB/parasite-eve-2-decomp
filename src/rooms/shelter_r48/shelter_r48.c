@@ -72,7 +72,6 @@ extern s32      D_8014D158;
 
 extern s32 D_8007107C;
 extern u8  D_80071090;
-extern u8  D_801153F4;
 
 /// The room's message table, installed on the room task.
 extern GpMsgEntry D_shelter_r48_80182FB8[];
@@ -215,7 +214,7 @@ void func_shelter_r48_8017D660(Task* arg0)
         ptr += 0x4000;
     }
     prim = (POLY_FT4*)ptr - 1;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         arg0->killCountdown = (u16)arg0->killCountdown + 0x20;
     }
     ang2  = arg0->killCountdown * 2;

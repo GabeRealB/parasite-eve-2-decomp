@@ -6,6 +6,7 @@
 #include "gte.h"
 
 #include "gameplay/268.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
@@ -21,7 +22,6 @@
 #include "rooms/room_common.h"
 
 extern s16 D_80071076;
-extern u8  D_801153F4;
 extern u8  D_80115690;
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
@@ -127,7 +127,7 @@ void func_shelter_b1_access_tunnel_8017D760(Task* task)
 {
     switch (task->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd1(D_shelter_b1_access_tunnel_8017FF70.field_0);
             if (D_shelter_b1_access_tunnel_8017FF70.field_8 != 0) {
@@ -179,7 +179,7 @@ void func_shelter_b1_access_tunnel_8017D8D0(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd(D_shelter_b1_access_tunnel_8017FF90.capCmd, 0);
             D_80115690 = 1;

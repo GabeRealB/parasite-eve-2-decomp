@@ -6,6 +6,7 @@
 #include "gte.h"
 #include <psyq/abs.h>
 
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
@@ -42,7 +43,6 @@ typedef struct {
 } _DryfieldWaterHoleSplash;
 
 extern s8  D_8007217B;
-extern u8  D_801153F4;
 extern s32 D_80115738;
 extern s32 D_8011574C;
 
@@ -206,7 +206,7 @@ void func_dryfield_water_hole_8017D840(Task* task)
 /// semi-transparent Gouraud quads laid side by side along Z, projected through
 /// the view matrix. The seam between the strips is lifted by a sine wave that
 /// runs along X and scrolls with `D_dryfield_water_hole_801828D0`, which only
-/// advances while `D_801153F4` is clear. The outer edges are coloured
+/// advances while `Gp_StateF0.field_4` is clear. The outer edges are coloured
 /// (0xFF, 0, 0) and the seam (0x20, 0x20, 0x20); each quad is followed by a
 /// draw-mode packet selecting blend mode 2. Quads the projection flags as
 /// invalid are skipped. `task` is unused.
@@ -231,7 +231,7 @@ void func_dryfield_water_hole_8017D898(Task* task)
     } else {
         D_dryfield_water_hole_801828CC = (u8*)D_8005C370 + gDisplayState.otBuffer * 0xC000;
     }
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         D_dryfield_water_hole_801828D0++;
     }
     phase             = -(D_dryfield_water_hole_801828D0 * 16);

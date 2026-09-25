@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/gameflag.h"
@@ -21,7 +22,6 @@ extern TaskDesc     D_shelter_b3_garbage_incinerator_80185BA0;
 extern TaskDesc     D_shelter_b3_garbage_incinerator_80187150[];
 extern TaskDesc     D_shelter_b3_garbage_incinerator_801855CC;
 extern RoomEventMsg D_shelter_b3_garbage_incinerator_8018FC2C;
-extern u8           D_801153F4;
 extern s16          D_80071076;
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
@@ -43,7 +43,7 @@ void func_shelter_b3_garbage_incinerator_8017D6EC(Task* arg0)
     switch (arg0->state) {
         case 0:
             Gp_MsgPlayerWeapon(0);
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_RunCapCmd(0x12, 0);
             arg0->state++;
             break;
@@ -54,7 +54,7 @@ void func_shelter_b3_garbage_incinerator_8017D6EC(Task* arg0)
             break;
         case 2:
             if (Gp_GetCapEventKey() == 0) {
-                D_801153F4 = 0;
+                Gp_StateF0.field_4 = 0;
                 Gp_MsgPlayerWeapon(1);
                 taskKill(arg0);
             } else {
@@ -92,7 +92,7 @@ s32 func_shelter_b3_garbage_incinerator_8017D840(s32 arg0, s32 arg1, RoomEventMs
         if (in->field_5 != 0) {
             return 0;
         }
-        D_801153F4 = 1;
+        Gp_StateF0.field_4 = 1;
         if (gGameSession->at4.loc.room < 4) {
             Gp_SpawnIfCapIdle(3, 1);
             return 0;

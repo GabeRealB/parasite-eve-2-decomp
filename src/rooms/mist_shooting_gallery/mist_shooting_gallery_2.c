@@ -95,7 +95,6 @@ STATIC_ASSERT_SIZEOF(MistShootingGalleryFlashScratch, 0x1C);
 extern TaskDesc D_mist_shooting_gallery_801856B8;
 extern TaskDesc D_mist_shooting_gallery_801856D0;
 extern TaskDesc D_80134F94;
-extern u8       D_801153F4;
 extern u8       D_80073BA9;
 /// The wave script the round loop walks: a run of records sharing
 /// `field_00` is spawned together, `0xFFF1` waits for the current wave to
@@ -726,7 +725,7 @@ void func_mist_shooting_gallery_801831B0(Task* arg0)
 /// "ready" banner and the hand-off wait on `gGameSession::at4.loc.view`, gated on
 /// the countdown hold `D_80071075`; states 4-5 wait on the player picking up
 /// item 0x40, states 6-8 count the banner up through `field_20` while
-/// `D_801153F4` holds, state 9 spawns the start jingle and state 10 is the
+/// `Gp_StateF0.field_4` holds, state 9 spawns the start jingle and state 10 is the
 /// wave loop over `D_mist_shooting_gallery_80186908`. `D_80072310` picks the
 /// banner sprite the hand-off draws (`variant + 4`).
 void func_mist_shooting_gallery_8018341C(Task* arg0)
@@ -815,7 +814,7 @@ void func_mist_shooting_gallery_8018341C(Task* arg0)
             break;
         case 6:
             if (work->field_0A <= 0) {
-                if (D_801153F4 == 0) {
+                if (Gp_StateF0.field_4 == 0) {
                     func_mist_shooting_gallery_80184BB8(0x13, work->field_20, 0x8E0);
                     if (work->field_20 == 0xB) {
                         work->field_0A = 0xF;
@@ -843,7 +842,7 @@ void func_mist_shooting_gallery_8018341C(Task* arg0)
             break;
         case 8:
             if (work->field_0A <= 0) {
-                if (D_801153F4 == 0) {
+                if (Gp_StateF0.field_4 == 0) {
                     func_mist_shooting_gallery_80184BB8(0x13, work->field_20, 0x8E0);
                     if (work->field_20 == 0x13) {
                         work->field_0A = 0xF;
@@ -1057,7 +1056,7 @@ void func_mist_shooting_gallery_801838FC(Task* arg0)
             break;
         case 9:
             if (work->field_0A <= 0) {
-                if (D_801153F4 == 0) {
+                if (Gp_StateF0.field_4 == 0) {
                     func_mist_shooting_gallery_80184BB8(0x14, work->field_20, 0x8E0);
                     step = work->field_20;
                     if (step == 0x17) {
@@ -1519,7 +1518,7 @@ u16 func_mist_shooting_gallery_80184AE0(MistShootingGalleryWork* work)
 {
     u16 temp = work->field_02;
 
-    if ((temp != 0) && (D_801153F4 == 0)) {
+    if ((temp != 0) && (Gp_StateF0.field_4 == 0)) {
         work->field_02 = temp - 1;
     }
     return work->field_02;

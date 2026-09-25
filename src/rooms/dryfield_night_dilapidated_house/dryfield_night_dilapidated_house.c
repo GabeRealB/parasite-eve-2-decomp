@@ -2,6 +2,7 @@
 
 #include "gameplay/1BC.h"
 #include "gameplay/268.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/fs.h"
@@ -14,7 +15,6 @@
 #include "rooms/dryfield_night_dilapidated_house.h"
 
 extern s16 D_80071076;
-extern u8  D_801153F4;
 
 /// Cutscene script blob arguments of `func_800E8634`.
 extern s32 D_dryfield_night_dilapidated_house_801868F4;
@@ -91,7 +91,7 @@ s32 func_dryfield_night_dilapidated_house_8017D600(RoomEventReq* req, RoomEventM
     return ret;
 }
 
-/// The event task the gate spawns. It raises `D_801153F4`, runs the latched
+/// The event task the gate spawns. It raises `Gp_StateF0.field_4`, runs the latched
 /// request's CAP command, plays its two stage sounds in turn (either may be
 /// absent) waiting for each voice to finish, then stores the latched
 /// message's `msgId`, `field_2` and `field_3` as the save location's area,
@@ -100,7 +100,7 @@ void func_dryfield_night_dilapidated_house_8017D764(Task* task)
 {
     switch (task->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd1(D_dryfield_night_dilapidated_house_8018A110.field_0);
             if (D_dryfield_night_dilapidated_house_8018A110.field_8 != 0) {

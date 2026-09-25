@@ -7,6 +7,7 @@
 #include "gte.h"
 
 #include "gameplay/1A8.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
@@ -74,7 +75,6 @@ typedef struct ShelterB2MainCorridorWaterWork {
 /// `Gp_StateF0.field_4` (0x801153F4). Declared as a one-element array so the
 /// store keeps the in-struct memory attribute a struct-member store has, which
 /// makes it alias the task's argument load and keeps the two in source order.
-extern u8  D_801153F4[1];
 extern u8  D_80115690;
 extern s16 D_80071076;
 extern s32 D_8007107C;
@@ -238,7 +238,7 @@ void func_shelter_b2_main_corridor_8017D82C(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            D_801153F4[0] = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd(D_shelter_b2_main_corridor_80189674.capCmd, 0);
             D_80115690 = 1;
@@ -434,7 +434,7 @@ void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            D_801153F4[0] = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_RunCapCmd1(arg0->spawnArg1);
             D_80115690 = 1;
             arg0->state++;
@@ -447,7 +447,7 @@ void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
             break;
         case 2:
             if (Gp_GetCapEventKey() == 0xC) {
-                D_801153F4[0] = 0;
+                Gp_StateF0.field_4 = 0;
                 taskKill(arg0);
                 Gp_MsgPlayerWeapon(1);
                 break;

@@ -3,6 +3,7 @@
 #include <psyq/libgte.h>
 
 #include "gameplay/268.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
@@ -21,7 +22,6 @@ s32 Gp_DispatchMsg();
 /// address because that is the name the room imports.
 extern u8  D_8007216C;
 extern s16 D_80071076;
-extern u8  D_801153F4;
 
 /// The saved view byte the scene task keeps while its CAP command runs, and
 /// puts back when the answer is not 0xA.
@@ -115,7 +115,7 @@ void func_dryfield_water_tower_8017D7D8(Task* task)
 {
     switch (task->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd1(D_dryfield_water_tower_801876B0.field_0);
             if (D_dryfield_water_tower_801876B0.field_8 != 0) {
@@ -188,7 +188,7 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
             break;
         case 1:
             if (Gp_CapBusy() == 0) {
-                D_801153F4 = 2;
+                Gp_StateF0.field_4 = 2;
                 /* keeps the `lw state` behind the `sb` instead of filling its load delay */
                 SOFT_BARRIER();
                 arg0->state = arg0->state + 1;
@@ -198,13 +198,13 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
             if (Gp_GetCapEventKey() == 0xA) {
                 GameFlag_SetNibble(0x55, 2);
                 func_dryfield_water_tower_8017DCB4();
-                D_801153F4 = 0;
+                Gp_StateF0.field_4 = 0;
                 Gp_DispatchMsg(D_dryfield_water_tower_801876A0, 0x13EC, 0, 0);
                 SndEvt_EnqueueType6(0x52140009, 0, 0);
             } else {
                 gGameSession->eventState = 0;
                 gGameSession->hideHud    = 0;
-                D_801153F4               = 0;
+                Gp_StateF0.field_4       = 0;
                 D_8007216C               = D_dryfield_water_tower_8018768C;
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);

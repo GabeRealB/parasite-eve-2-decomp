@@ -77,7 +77,6 @@ extern GpItemScan    D_80072724;
 extern UiObjectDesc  D_8010D80C;
 extern RoomShopStock D_8010E138[];
 extern UiObjectDesc  D_8010EFA0;
-extern u8            D_801153F4;
 extern u8            D_80115690;
 extern TaskDesc      D_80136CDC;
 
@@ -1459,7 +1458,7 @@ void func_shelter_1f_heliport_8017FF08(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd(D_shelter_1f_heliport_80182CB4.capCmd, 0);
             D_80115690 = 1;

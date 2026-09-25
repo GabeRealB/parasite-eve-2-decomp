@@ -91,7 +91,6 @@ STATIC_ASSERT_SIZEOF(DwtColorMtx, 0x58);
 /// commits a view switch; the entry cutscene saves and restores it around the
 /// capture it plays.
 extern u8 D_8007216C;
-extern u8 D_801153F4;
 
 /// Main-executable flag word with no module header yet: while its bit 2 is
 /// raised the model task nudges the model 5 units off each position it snaps to.
@@ -148,14 +147,14 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
             return;
         case 1:
             if (Gp_CapBusy() == 0) {
-                D_801153F4 = 2;
+                Gp_StateF0.field_4 = 2;
                 SOFT_BARRIER();
                 task->state = task->state + 1;
             }
             return;
         case 2:
             if (Gp_GetCapEventKey() == 0xA) {
-                D_801153F4 = 0;
+                Gp_StateF0.field_4 = 0;
                 GameFlag_SetNibble(0x55, 3);
                 SndEvt_EnqueueType6(0x52150004, 0, 0);
                 Task_SpawnFromTable(&D_dryfield_water_tank_8017FF88, 0, 0, 0);
@@ -163,7 +162,7 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
             } else {
                 gGameSession->eventState = 0;
                 gGameSession->hideHud    = 0;
-                D_801153F4               = 0;
+                Gp_StateF0.field_4       = 0;
                 D_8007216C               = (u8)D_dryfield_water_tank_80188D48;
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);

@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 
 #include "gameplay/1A8.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/gameflag.h"
@@ -15,7 +16,6 @@
 
 /// `Mc_SaveData.at4.loc.view`, the area id forced for the duration of the cutscene.
 extern u8 D_8007216C;
-extern s8 D_801153F4;
 
 /// 0xFF-terminated area-record list applied the first time the altar fires.
 extern GpAreaApplyRec D_neo_ark_altar_801800A0;
@@ -52,7 +52,7 @@ void func_neo_ark_altar_8017D668(Task* task)
             D_8007216C               = 5;
             gGameSession->hideHud    = 1;
             gGameSession->eventState = 1;
-            D_801153F4               = 2;
+            Gp_StateF0.field_4       = 2;
             Gp_MsgPlayerWeapon(0);
             Gp_MsgPlayer3F3(0);
             task->state++;
@@ -116,7 +116,7 @@ void func_neo_ark_altar_8017D668(Task* task)
             D_8007216C               = 2;
             gGameSession->hideHud    = 0;
             gGameSession->eventState = 0;
-            D_801153F4               = 0;
+            Gp_StateF0.field_4       = 0;
             Gp_MsgPlayerWeapon(1);
             Gp_MsgPlayer3F3(1);
             taskKill(task);

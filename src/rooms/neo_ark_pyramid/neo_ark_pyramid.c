@@ -6,6 +6,7 @@
 #include "gte.h"
 
 #include "gameplay/1A8.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
@@ -27,7 +28,6 @@
 /// load where the source put it and lets jump.c cross-jump case 0's `task->state++`
 /// into the shared tail. A plain `u8` declaration assembles to the same bytes but is
 /// scheduled one statement early.
-extern u8 D_801153F4[1];
 extern u8 D_80115690;
 extern u8 D_8007216C;
 
@@ -80,7 +80,7 @@ void func_neo_ark_pyramid_8017D600(Task* task)
             D_8007216C               = 8;
             gGameSession->hideHud    = 1;
             gGameSession->eventState = 1;
-            D_801153F4[0]            = 2;
+            Gp_StateF0.field_4       = 2;
             task->state++;
             break;
         case 1:
@@ -130,7 +130,7 @@ void func_neo_ark_pyramid_8017D600(Task* task)
             D_8007216C               = 3;
             gGameSession->hideHud    = 0;
             gGameSession->eventState = 0;
-            D_801153F4[0]            = 0;
+            Gp_StateF0.field_4       = 0;
             Gp_MsgPlayerWeapon(1);
             Gp_MsgPlayer3F3(1);
             taskKill(task);

@@ -7,6 +7,7 @@
 #include <psyq/rand.h>
 
 #include "gameplay/1A8.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
@@ -42,7 +43,6 @@ extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
 
 extern s32 D_8007107C;
 extern u8  D_80071090;
-extern u8  D_801153F4;
 
 extern GpAreaApplyRec D_neo_ark_garden_80182BF8[];
 
@@ -72,7 +72,7 @@ static inline void _neoArkGardenRotTrans(MATRIX* m, SVECTOR* v)
 /// buffer shifted vertically by a `rsin` / `rcos` wave that fades in over the
 /// first 8 rows of the range and of the split. The wave phases derive from
 /// `Task::killCountdown`, seeded from `rand()` on the first call and advanced
-/// by 0x20 per call while `D_801153F4` is clear; views 6 and 7 of area 13
+/// by 0x20 per call while `Gp_StateF0.field_4` is clear; views 6 and 7 of area 13
 /// advance them by 0x20 while it is set instead.
 ///
 /// Matching note: `wave = w` is written in both arms of the scale test and the
@@ -228,7 +228,7 @@ void func_neo_ark_garden_8017D64C(Task* task)
                 end   = 0xF0;
                 split = 0;
                 scale = 0x800;
-                if (D_801153F4 != 0) {
+                if (Gp_StateF0.field_4 != 0) {
                     task->killCountdown += 0x20;
                 }
                 break;
@@ -237,7 +237,7 @@ void func_neo_ark_garden_8017D64C(Task* task)
                 end   = 0xF0;
                 kind  = 4;
                 scale = 0x800;
-                if (D_801153F4 != 0) {
+                if (Gp_StateF0.field_4 != 0) {
                     task->killCountdown += 0x20;
                 }
                 break;
@@ -319,7 +319,7 @@ void func_neo_ark_garden_8017D64C(Task* task)
         prim += 488;
     }
     prim--;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         task->killCountdown += 0x20;
     }
     sinArg                                        = task->killCountdown * 2;
@@ -570,7 +570,7 @@ void func_neo_ark_garden_8017D64C(Task* task)
 /// `D_8006D860`, and nothing is drawn when it holds fewer than 976 of them.
 /// The wave phases derive from
 /// `Task::killCountdown`, seeded from `rand()` on the first call and advanced
-/// every call while `D_801153F4` is clear.
+/// every call while `Gp_StateF0.field_4` is clear.
 ///
 /// Matching note: `spare` is never assigned, so `spare >> 16` is always zero;
 /// it stands in for the stack slot the retail frame carries, which the
@@ -681,7 +681,7 @@ void func_neo_ark_garden_8017E2A0(Task* task)
         prim--;
     }
 
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         task->killCountdown++;
     }
     sinArg             = task->killCountdown << 5;

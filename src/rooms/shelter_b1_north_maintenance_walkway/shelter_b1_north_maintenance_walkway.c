@@ -20,7 +20,6 @@ extern GpMsgEntry D_shelter_b1_north_maintenance_walkway_80184A84[];
 extern TaskDesc   D_shelter_b1_north_maintenance_walkway_80184AAC[];
 extern u8         D_80071075;
 extern s16        D_80071076;
-extern u8         D_801153F4;
 extern u8         D_80115690;
 
 extern s32 D_80115720;
@@ -82,7 +81,7 @@ void func_shelter_b1_north_maintenance_walkway_8017D60C(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd(D_shelter_b1_north_maintenance_walkway_80185B80.capCmd, 0);
             D_80115690 = 1;

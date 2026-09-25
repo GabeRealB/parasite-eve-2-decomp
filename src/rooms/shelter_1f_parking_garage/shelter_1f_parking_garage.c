@@ -6,6 +6,7 @@
 #include "gte.h"
 
 #include "gameplay/1A8.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
@@ -41,7 +42,6 @@ typedef struct {
 } _Shelter1fParkingGarageKeyRecord;
 
 extern s16 D_80071076;
-extern u8  D_801153F4;
 extern u8  D_80115690;
 extern s32 D_8011572C;
 extern s32 D_80115750;
@@ -264,7 +264,7 @@ void func_shelter_1f_parking_garage_8017D958(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd(D_shelter_1f_parking_garage_80181998.capCmd, 0);
             D_80115690 = 1;
@@ -306,11 +306,11 @@ void func_shelter_1f_parking_garage_8017D958(Task* arg0)
     }
 }
 
-/// Task body that holds `D_801153F4` set while the caption plays. On caption
+/// Task body that holds `Gp_StateF0.field_4` set while the caption plays. On caption
 /// key 0xB it spawns the 0x31 task and, 30 frames later, advances flag nibble
 /// 0x4B from 9 to 0xA, publishes `D_shelter_1f_parking_garage_80181988` and
 /// spawns entry 0 of `D_shelter_1f_parking_garage_80180BA0`. Any other key
-/// clears `D_801153F4`, restores the weapon and ends the task.
+/// clears `Gp_StateF0.field_4`, restores the weapon and ends the task.
 void func_shelter_1f_parking_garage_8017DAF0(Task* task)
 {
     _Shelter1fParkingGarageKeyRecord  rec;
@@ -320,7 +320,7 @@ void func_shelter_1f_parking_garage_8017DAF0(Task* task)
 
     switch (task->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             if (Gp_CapBusy() == 0) {
                 task->state++;
             }
@@ -334,7 +334,7 @@ void func_shelter_1f_parking_garage_8017DAF0(Task* task)
                 task->killCountdown = 0x1E;
                 task->state++;
             } else {
-                D_801153F4 = 0;
+                Gp_StateF0.field_4 = 0;
                 Gp_MsgPlayerWeapon(1);
                 taskKill(task);
             }

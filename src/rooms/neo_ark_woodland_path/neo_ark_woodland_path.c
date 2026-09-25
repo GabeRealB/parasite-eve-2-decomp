@@ -6,6 +6,7 @@
 #include <psyq/rand.h>
 
 #include "gameplay/1A8.h"
+#include "gameplay/3A34.h"
 #include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/fs.h"
@@ -34,7 +35,6 @@ MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
 extern s32 D_8007107C;
 extern u8  D_80071090;
-extern u8  D_801153F4;
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
@@ -70,7 +70,7 @@ static inline void _neoArkWoodlandPathRotTrans(MATRIX* m, SVECTOR* v)
 /// vertically by a `rsin` / `rcos` wave that fades in over the first 8 rows of
 /// the range and of the split. The phases come from `Task::killCountdown`,
 /// seeded from `rand()` on the first call and advanced by 0x20 per call while
-/// `D_801153F4` is clear.
+/// `Gp_StateF0.field_4` is clear.
 ///
 /// Matching note: `wave = w` is written in both arms of the scale test, and
 /// the pass-1 fade starts with `v = 0x79`. jump2 merges the two copies and the
@@ -225,7 +225,7 @@ void func_neo_ark_woodland_path_8017D694(Task* task)
                 end   = 0xF0;
                 split = 0;
                 scale = 0x800;
-                if (D_801153F4 != 0) {
+                if (Gp_StateF0.field_4 != 0) {
                     task->killCountdown += 0x20;
                 }
                 break;
@@ -234,7 +234,7 @@ void func_neo_ark_woodland_path_8017D694(Task* task)
                 end   = 0xF0;
                 kind  = 4;
                 scale = 0x800;
-                if (D_801153F4 != 0) {
+                if (Gp_StateF0.field_4 != 0) {
                     task->killCountdown += 0x20;
                 }
                 break;
@@ -316,7 +316,7 @@ void func_neo_ark_woodland_path_8017D694(Task* task)
         prim += 488;
     }
     prim--;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         task->killCountdown += 0x20;
     }
     sinArg                                              = task->killCountdown * 2;
@@ -673,7 +673,7 @@ void func_neo_ark_woodland_path_8017E2E8(Task* task)
         prim--;
     }
 
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         task->killCountdown++;
     }
     sinArg             = task->killCountdown << 5;

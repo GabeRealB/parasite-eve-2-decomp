@@ -86,7 +86,6 @@ extern s32            D_80072A98;
 extern u16            D_8007A39C;
 extern UiObjectDesc   D_8010EFA0;
 extern s16            D_80114D08;
-extern s8             D_801153F4;
 extern TaskDesc       D_80134564;
 extern GpAreaApplyRec D_80188888[];
 
@@ -1229,7 +1228,7 @@ void func_shelter_b2_laboratory_8017F4D8(Task* task)
             }
             gGameSession->hideHud    = 1;
             gGameSession->eventState = 1;
-            D_801153F4               = 2;
+            Gp_StateF0.field_4       = 2;
             Gp_MsgPlayer3F3(0);
             Gp_MsgAlly3F3(0);
             if (p->field_4 != 0) {
@@ -1348,7 +1347,7 @@ void func_shelter_b2_laboratory_8017F4D8(Task* task)
             }
             gGameSession->hideHud    = 0;
             gGameSession->eventState = 0;
-            D_801153F4               = 0;
+            Gp_StateF0.field_4       = 0;
             if (p->field_3 != 0) {
                 Gp_ResetCap();
             }
@@ -1453,7 +1452,7 @@ void func_shelter_b2_laboratory_8017FBA8(Task* task)
 {
     switch (task->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd1(D_shelter_b2_laboratory_8018652C.field_0);
             if (D_shelter_b2_laboratory_8018652C.field_8 != 0) {

@@ -12,13 +12,13 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "gameplay/268.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/gameplay.h"
 #include "rooms/room_common.h"
 #include "rooms/mist_parking.h"
 
 extern s8 D_8007106B;
-extern u8 D_801153F4;
 
 extern RoomPlacement D_mist_parking_8018FC3C;
 
@@ -244,7 +244,7 @@ void func_mist_parking_80183B40(Task* task)
 {
     TaskFunc states[3] = { func_mist_parking_801839CC, func_mist_parking_80183A28, taskKill };
 
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         states[task->state](task);
     }
 }

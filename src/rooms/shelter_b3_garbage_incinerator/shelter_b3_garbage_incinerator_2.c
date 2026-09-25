@@ -67,7 +67,6 @@ typedef struct {
 } _DescentWork;
 
 extern s8             D_8007216D;
-extern u8             D_801153F4;
 extern _Pose          D_shelter_b3_garbage_incinerator_80185B58[2];
 extern GpMsgEntry     D_shelter_b3_garbage_incinerator_80185B40[];
 extern _Pose          D_shelter_b3_garbage_incinerator_80185B88;
@@ -352,7 +351,7 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
     s32            want;
     s32            t;
 
-    if (gGameSession->field_65 != 0 || (s8)Gp_StateC08.field_9 != 0 || D_801153F4 != 0 || Gp_StateC08.field_A == 1) {
+    if (gGameSession->field_65 != 0 || (s8)Gp_StateC08.field_9 != 0 || Gp_StateF0.field_4 != 0 || Gp_StateC08.field_A == 1) {
         return;
     }
     switch (task->state) {
@@ -657,7 +656,7 @@ void func_shelter_b3_garbage_incinerator_8017E7D0(Task* arg0)
                     break;
                 case 1:
                     if (ctx->field_6 > 0) {
-                        if (D_801153F4 == 0) {
+                        if (Gp_StateF0.field_4 == 0) {
                             ctx->field_6--;
                         }
                     } else {
@@ -950,7 +949,7 @@ s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
 }
 
 /// Does nothing while `gGameSession->field_65`, `Gp_StateC08.field_9`,
-/// `D_801153F4` or `D_80114CF8` is set. State 0 allocates and clears the work block (killing the task if that
+/// `Gp_StateF0.field_4` or `D_80114CF8` is set. State 0 allocates and clears the work block (killing the task if that
 /// fails), records `gameGetPtrSlot(3)` in `field_2C` and the task in
 /// `D_shelter_b3_garbage_incinerator_8018FC3C`, spawns the table entry and,
 /// with `spawnArg1` zero, queues sound event 0x54280005. State 1 advances once
@@ -964,7 +963,7 @@ void func_shelter_b3_garbage_incinerator_8017F6D8(Task* arg0)
     s32                     ok;
     PlayerStatus*           ps;
 
-    if (session->field_65 != 0 || (s8)Gp_StateC08.field_9 != 0 || D_801153F4 != 0 || D_80114CF8 != 0) {
+    if (session->field_65 != 0 || (s8)Gp_StateC08.field_9 != 0 || Gp_StateF0.field_4 != 0 || D_80114CF8 != 0) {
         return;
     }
     switch (arg0->state) {
@@ -1083,7 +1082,7 @@ void func_shelter_b3_garbage_incinerator_8017FA3C(void)
 /// `D_shelter_b3_garbage_incinerator_801871A8` for the first window containing
 /// `gGameSession->sceneClock`; when one is found its script is started at its
 /// line key with the low half of the task's `spawnArg1`. The clock then ticks
-/// down one unless the caption system is busy or `D_801153F4` is set.
+/// down one unless the caption system is busy or `Gp_StateF0.field_4` is set.
 void func_shelter_b3_garbage_incinerator_8017FA58(Task* task, s32 arg1)
 {
     s32 i;
@@ -1111,7 +1110,7 @@ void func_shelter_b3_garbage_incinerator_8017FA58(Task* task, s32 arg1)
                 func_shelter_b3_garbage_incinerator_8017FD64(script, key, (s16)task->spawnArg1);
                 func_shelter_b3_garbage_incinerator_8017FB80();
             }
-            if ((Gp_CapBusy() == 0) && (D_801153F4 == 0)) {
+            if ((Gp_CapBusy() == 0) && (Gp_StateF0.field_4 == 0)) {
                 gGameSession->sceneClock = (u16)gGameSession->sceneClock - 1;
             }
             break;

@@ -28,7 +28,6 @@
 
 extern s16 D_80071076;
 extern s32 D_80070F70;
-extern u8  D_801153F4;
 extern u8  D_80115690;
 extern s32 D_80115720;
 extern s32 D_80115728;
@@ -155,7 +154,7 @@ void func_shelter_b1_main_corridor_8017D784(Task* task)
 {
     switch (task->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd1(D_shelter_b1_main_corridor_80185D48.field_0);
             if (D_shelter_b1_main_corridor_80185D48.field_8 != 0) {
@@ -207,7 +206,7 @@ void func_shelter_b1_main_corridor_8017D8F4(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd(D_shelter_b1_main_corridor_80185D68.capCmd, 0);
             D_80115690 = 1;

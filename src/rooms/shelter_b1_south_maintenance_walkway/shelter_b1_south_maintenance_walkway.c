@@ -27,7 +27,6 @@
 
 extern s32 D_80070F70;
 extern s16 D_80071076;
-extern u8  D_801153F4;
 extern u8  D_80115690;
 extern s32 D_8011572C;
 extern s32 D_80115730;
@@ -107,7 +106,7 @@ void func_shelter_b1_south_maintenance_walkway_8017D5F8(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd(D_shelter_b1_south_maintenance_walkway_80183648.capCmd, 0);
             D_80115690 = 1;

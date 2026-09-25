@@ -48,7 +48,6 @@ extern s16        D_neo_ark_submarine_gallery_801818B8;
 extern s16 D_80071076;
 extern s32 D_8007107C;
 extern u8  D_80071090;
-extern u8  D_801153F4;
 extern s8  D_80115690;
 
 /// 0x1E pair the gallery hands `Task_Spawn` for the helper it raises in state 3,
@@ -85,7 +84,7 @@ static inline void _neoArkSubmarineGalleryRotTrans(MATRIX* m, SVECTOR* v)
 /// vertically by a `rsin` / `rcos` wave, faded in over the first 8 rows of the
 /// range and of the split. The wave phases come from `Task::killCountdown`,
 /// seeded with `rand()` on the first call and stepped by 0x20 per call while
-/// `D_801153F4` is clear (views 6 and 7 of area 13 step it while it is set).
+/// `Gp_StateF0.field_4` is clear (views 6 and 7 of area 13 step it while it is set).
 ///
 /// Matching note: `wave = w` is written in both arms of the scale test and the
 /// pass-1 fade starts from `v = 0x79`; both shape the register allocation and
@@ -239,7 +238,7 @@ void func_neo_ark_submarine_gallery_8017D678(Task* task)
                 end   = 0xF0;
                 split = 0;
                 scale = 0x800;
-                if (D_801153F4 != 0) {
+                if (Gp_StateF0.field_4 != 0) {
                     task->killCountdown += 0x20;
                 }
                 break;
@@ -248,7 +247,7 @@ void func_neo_ark_submarine_gallery_8017D678(Task* task)
                 end   = 0xF0;
                 kind  = 4;
                 scale = 0x800;
-                if (D_801153F4 != 0) {
+                if (Gp_StateF0.field_4 != 0) {
                     task->killCountdown += 0x20;
                 }
                 break;
@@ -330,7 +329,7 @@ void func_neo_ark_submarine_gallery_8017D678(Task* task)
         prim += 488;
     }
     prim--;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         task->killCountdown += 0x20;
     }
     sinArg                                                  = task->killCountdown * 2;
@@ -578,7 +577,7 @@ void func_neo_ark_submarine_gallery_8017D678(Task* task)
 /// band's last 16 rows, each row linked one ordering-table slot nearer. View 5
 /// of area 30 draws a second band. The wave phases come from
 /// `Task::killCountdown`, seeded with `rand()` on the first call and stepped
-/// every call while `D_801153F4` is clear.
+/// every call while `Gp_StateF0.field_4` is clear.
 ///
 /// Matching note: `spare` is never assigned, so `spare >> 16` is always zero;
 /// it stands in for the stack slot the retail frame carries, which the
@@ -689,7 +688,7 @@ void func_neo_ark_submarine_gallery_8017E2CC(Task* task)
         prim--;
     }
 
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         task->killCountdown++;
     }
     sinArg             = task->killCountdown << 5;
@@ -800,7 +799,7 @@ void func_neo_ark_submarine_gallery_8017E86C(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd(9, 0);
             D_80115690 = 1;
@@ -815,10 +814,10 @@ void func_neo_ark_submarine_gallery_8017E86C(Task* arg0)
             if (Gp_GetCapEventKey() != 0xA) {
                 taskKill(arg0);
                 Gp_MsgPlayerWeapon(1);
-                D_801153F4 = 0;
+                Gp_StateF0.field_4 = 0;
                 break;
             }
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_TriggerPeIfArmed();
             arg0->state++;
             break;

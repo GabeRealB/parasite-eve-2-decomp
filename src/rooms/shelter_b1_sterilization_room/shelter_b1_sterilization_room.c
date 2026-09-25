@@ -144,7 +144,6 @@ extern s32          D_80072A98;
 extern s16          D_80073BA0;
 extern UiObjectDesc D_8010EFA0;
 extern s16          D_80114D08;
-extern u8           D_801153F4;
 extern u32          D_80115694;
 extern s32          D_80135AC0;
 extern s32          D_80135D78;
@@ -1131,7 +1130,7 @@ void func_shelter_b1_sterilization_room_8017F550(Task* task)
             }
             gGameSession->hideHud    = 1;
             gGameSession->eventState = 1;
-            D_801153F4               = 2;
+            Gp_StateF0.field_4       = 2;
             Gp_MsgPlayer3F3(0);
             Gp_MsgAlly3F3(0);
             if (rec->field_4 != 0) {
@@ -1252,7 +1251,7 @@ void func_shelter_b1_sterilization_room_8017F550(Task* task)
             }
             gGameSession->hideHud    = 0;
             gGameSession->eventState = 0;
-            D_801153F4               = 0;
+            Gp_StateF0.field_4       = 0;
             if (rec->field_3 != 0) {
                 Gp_ResetCap();
             }
@@ -1884,7 +1883,7 @@ void func_shelter_b1_sterilization_room_80180F74(Task* task)
             return;
         case 1:
             if (GameFlag_GetNibble(0x77) == 0) {
-                if (gGameSession->eventState == 0 && D_801153F4 == 0) {
+                if (gGameSession->eventState == 0 && Gp_StateF0.field_4 == 0) {
                     player = gameGetPtrSlot(3);
                     task->killCountdown++;
                     if (task->killCountdown == 0x78) {

@@ -45,7 +45,6 @@ extern GpItemScan    D_80072724;
 extern UiObjectDesc  D_8010D80C;
 extern RoomShopStock D_8010E138[];
 extern UiObjectDesc  D_8010EFA0;
-extern u8            D_801153F4;
 
 /// `Mc_SaveData.at4.loc.view`, spelled by address because the store below
 /// relocates against this name.
@@ -1473,7 +1472,7 @@ void func_shelter_b1_armory_801800A4(Task* task)
 {
     switch (task->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd1(D_shelter_b1_armory_80185590.field_0);
             if (D_shelter_b1_armory_80185590.field_8 != 0) {

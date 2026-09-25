@@ -7,6 +7,7 @@
 #include <psyq/rand.h>
 
 #include "gameplay/1A8.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
@@ -43,7 +44,6 @@ extern u8         D_80071090;
 extern u8         D_80115598;
 extern GpMsgEntry D_neo_ark_island_80181B48[];
 extern s16        D_80071076;
-extern u8         D_801153F4;
 
 /// Staging save location the island commits: `field_2` / `field_4` / `field_1`
 /// hold what `func_neo_ark_island_8017E968` copies out of the incoming
@@ -80,7 +80,7 @@ static inline void _neoArkIslandRotTrans(MATRIX* m, SVECTOR* v)
 /// sample the other display buffer, displaced vertically by a `rsin` / `rcos`
 /// wave that fades in over the first 8 rows of the range and of the split.
 /// The phases live in `Task::killCountdown`: seeded from `rand()` on the first
-/// call, advanced by 0x20 per call while `D_801153F4` is clear, and, for views
+/// call, advanced by 0x20 per call while `Gp_StateF0.field_4` is clear, and, for views
 /// 6 and 7 of area 13, by 0x20 while it is set.
 ///
 /// Matching note: `wave = w` is written in both arms of the scale test and the
@@ -236,7 +236,7 @@ void func_neo_ark_island_8017D650(Task* task)
                 end   = 0xF0;
                 split = 0;
                 scale = 0x800;
-                if (D_801153F4 != 0) {
+                if (Gp_StateF0.field_4 != 0) {
                     task->killCountdown += 0x20;
                 }
                 break;
@@ -245,7 +245,7 @@ void func_neo_ark_island_8017D650(Task* task)
                 end   = 0xF0;
                 kind  = 4;
                 scale = 0x800;
-                if (D_801153F4 != 0) {
+                if (Gp_StateF0.field_4 != 0) {
                     task->killCountdown += 0x20;
                 }
                 break;
@@ -327,7 +327,7 @@ void func_neo_ark_island_8017D650(Task* task)
         prim += 488;
     }
     prim--;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         task->killCountdown += 0x20;
     }
     sinArg                                        = task->killCountdown * 2;
@@ -575,7 +575,7 @@ void func_neo_ark_island_8017D650(Task* task)
 /// out over the band's last 16 rows, each row linked one depth nearer into
 /// `gGpuCurrentOt`. One view of area 30 draws a second band. The phases live
 /// in `Task::killCountdown`, seeded from `rand()` on the first call and
-/// advanced every call while `D_801153F4` is clear.
+/// advanced every call while `Gp_StateF0.field_4` is clear.
 ///
 /// Matching note: `spare` is never assigned, so `spare >> 16` is always zero;
 /// it stands in for the stack slot the retail frame carries, which the
@@ -686,7 +686,7 @@ void func_neo_ark_island_8017E2A4(Task* task)
         prim--;
     }
 
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         task->killCountdown++;
     }
     sinArg             = task->killCountdown << 5;
@@ -807,7 +807,7 @@ void func_neo_ark_island_8017E844(Task* arg0)
                 Gp_MsgPlayerWeapon(1);
                 return;
             }
-            D_801153F4 = 0;
+            Gp_StateF0.field_4 = 0;
             goto L_advance;
         case 3:
         L_advance:

@@ -21,7 +21,6 @@
 
 extern s16 D_80071076;
 extern u8  D_8007216D;
-extern u8  D_801153F4;
 extern s8  D_8011540A;
 extern u8  D_80115690;
 
@@ -48,7 +47,7 @@ void func_dryfield_driveway_8017D5E4(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd(D_dryfield_driveway_80180694.capCmd, 0);
             D_80115690 = 1;

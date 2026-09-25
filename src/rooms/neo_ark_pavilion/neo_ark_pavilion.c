@@ -50,7 +50,6 @@ extern s32 D_80070F70;
 extern s32 D_8007107C;
 extern s16 D_80071076;
 extern u8  D_80071090;
-extern u8  D_801153F4;
 extern u8  D_80115690;
 extern s32 D_8011572C;
 extern s32 D_80115730;
@@ -125,7 +124,7 @@ static inline void _neoArkPavilionRotTrans(MATRIX* m, SVECTOR* v)
 /// vertically by a `rsin` / `rcos` wave that fades in over the first 8 rows of
 /// the range and of the split. The phases come from `Task::killCountdown`,
 /// seeded from `rand()` on the first call and advanced by 0x20 per call while
-/// `D_801153F4` is clear.
+/// `Gp_StateF0.field_4` is clear.
 ///
 /// Matching note: `wave = w` is written in both arms of the scale test, and
 /// the pass-1 fade starts with `v = 0x79`. jump2 merges the two copies and the
@@ -280,7 +279,7 @@ void func_neo_ark_pavilion_8017D660(Task* task)
                 end   = 0xF0;
                 split = 0;
                 scale = 0x800;
-                if (D_801153F4 != 0) {
+                if (Gp_StateF0.field_4 != 0) {
                     task->killCountdown += 0x20;
                 }
                 break;
@@ -289,7 +288,7 @@ void func_neo_ark_pavilion_8017D660(Task* task)
                 end   = 0xF0;
                 kind  = 4;
                 scale = 0x800;
-                if (D_801153F4 != 0) {
+                if (Gp_StateF0.field_4 != 0) {
                     task->killCountdown += 0x20;
                 }
                 break;
@@ -371,7 +370,7 @@ void func_neo_ark_pavilion_8017D660(Task* task)
         prim += 488;
     }
     prim--;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         task->killCountdown += 0x20;
     }
     sinArg                                          = task->killCountdown * 2;
@@ -728,7 +727,7 @@ void func_neo_ark_pavilion_8017E2B4(Task* task)
         prim--;
     }
 
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         task->killCountdown++;
     }
     sinArg             = task->killCountdown << 5;
@@ -829,7 +828,7 @@ void func_neo_ark_pavilion_8017E854(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd(D_neo_ark_pavilion_80187A20.capCmd, 0);
             D_80115690 = 1;

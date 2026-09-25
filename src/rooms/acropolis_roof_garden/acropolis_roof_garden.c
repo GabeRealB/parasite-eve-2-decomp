@@ -9,6 +9,7 @@
 #include "decomp/common.h"
 #include "gameplay/1BC.h"
 #include "gameplay/268.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/4CC.h"
@@ -46,7 +47,6 @@ typedef struct RgFlareScratch {
 
 extern s32          D_80070F70;
 extern GpQuadCorner D_80111E38[];
-extern u8           D_801153F4;
 
 /// One byte of gameplay state that field actors read back with `lb`.
 extern s8 D_8011540E;
@@ -203,7 +203,7 @@ s32 func_acropolis_roof_garden_8017D8AC(s32 arg0, s32 arg1, s32 arg2)
             GameFlag_SetNibble(3, 0);
             GameFlag_SetNibble(0x155, 6);
         }
-        D_801153F4 = 1;
+        Gp_StateF0.field_4 = 1;
         Gp_RunCapCmd(4, 0);
         func_800E3FAC(0xA2, 7);
     }

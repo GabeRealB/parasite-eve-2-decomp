@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "gameplay/268.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/gameflag.h"
@@ -11,7 +12,6 @@
 #include "rooms/room_common.h"
 
 extern s16 D_80071076;
-extern u8  D_801153F4;
 
 /// The event the room's gate `func_dryfield_night_water_tower_8017D60C`
 /// latched: the incoming message and the request, kept for the event task it
@@ -90,7 +90,7 @@ void func_dryfield_night_water_tower_8017D770(Task* task)
 {
     switch (task->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd1(D_dryfield_night_water_tower_80182C5C.field_0);
             if (D_dryfield_night_water_tower_80182C5C.field_8 != 0) {

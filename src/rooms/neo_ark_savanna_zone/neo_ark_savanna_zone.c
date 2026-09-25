@@ -7,6 +7,7 @@
 #include "gte.h"
 
 #include "gameplay/1A8.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
@@ -26,7 +27,6 @@
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
 extern s16 D_80071076;
-extern u8  D_801153F4;
 extern u8  D_80115690;
 extern s32 D_8011572C;
 extern s32 D_80115750;
@@ -63,7 +63,7 @@ void func_neo_ark_savanna_zone_8017D5E4(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd(D_neo_ark_savanna_zone_8018099C.capCmd, 0);
             D_80115690 = 1;

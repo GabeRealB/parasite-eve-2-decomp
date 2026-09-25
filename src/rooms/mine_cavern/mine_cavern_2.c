@@ -129,13 +129,12 @@ extern s16 D_mine_cavern_8018E3DC;
 /// on its previous run.
 extern s32 D_mine_cavern_8018EB58;
 
-/// Tick counter `func_mine_cavern_80182184` advances while `D_801153F4` is
+/// Tick counter `func_mine_cavern_80182184` advances while `Gp_StateF0.field_4` is
 /// clear; the emitters spawn on every ninth tick.
 extern u16 D_mine_cavern_8018EB5C;
 
 /// Mode byte the cavern enemy's hit check switches on: 1 skips the check and 2
 /// hides the model and skips it. Its wider role is unproven.
-extern u8 D_801153F4;
 
 /// Damage the cavern enemy takes from a contact, indexed by the low seven bits
 /// of the contact's key.
@@ -1693,7 +1692,7 @@ void func_mine_cavern_80181D80(s16 point)
 /// current view in `D_mine_cavern_8018E3BC` also runs
 /// `func_mine_cavern_80181D80`, and on every ninth tick or on entering the view
 /// spawns effect `0x60080` within 64 units of the point on each axis, unless
-/// `D_801153F4` is set.
+/// `Gp_StateF0.field_4` is set.
 void func_mine_cavern_80182184(void)
 {
     VECTOR        unused;
@@ -1725,7 +1724,7 @@ void func_mine_cavern_80182184(void)
             if ((s16)((s16)D_mine_cavern_8018EB5C % 9) != 0 && D_mine_cavern_8018E3DC == k) {
                 continue;
             }
-            if (D_801153F4 != 0) {
+            if (Gp_StateF0.field_4 != 0) {
                 continue;
             }
             m                           = &coord.coord;
@@ -1743,7 +1742,7 @@ void func_mine_cavern_80182184(void)
             Gp_SpawnEff(0x60080, &coord, 0x800004FF, NULL);
         }
     }
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         D_mine_cavern_8018EB5C++;
     }
     D_mine_cavern_8018E3DC = view;
@@ -2161,7 +2160,7 @@ void func_mine_cavern_801830F0(GpEnemy* arg0, Task* arg1)
 
     work   = arg1->work;
     player = gameGetPtrSlot(3);
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             ((TmdObject*)arg1->extra)->flags = 0x80;
             return;

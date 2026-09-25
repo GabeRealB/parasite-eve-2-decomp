@@ -33,7 +33,6 @@ typedef struct DryfieldToiletSpriteScratch {
 STATIC_ASSERT_SIZEOF(DryfieldToiletSpriteScratch, 0x18);
 
 extern s32 D_80070F70;
-extern u8  D_801153F4;
 extern s32 D_80115730;
 extern s32 D_80115734;
 extern s32 D_80115754;
@@ -54,7 +53,7 @@ void func_dryfield_toilet_8017DCF0(Task* arg0)
     mem   = arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (Gp_State1C->eventState < 4) {
-        if (D_801153F4 == 1) {
+        if (Gp_StateF0.field_4 == 1) {
             return;
         }
         if (arg0->state == 0) {
@@ -193,7 +192,7 @@ void func_dryfield_toilet_8017DEF4(Task* arg0)
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
     if (Gp_State1C->eventState < 4) {
-        if (D_801153F4 == 1) {
+        if (Gp_StateF0.field_4 == 1) {
             return;
         }
         if (arg0->state == 2) {

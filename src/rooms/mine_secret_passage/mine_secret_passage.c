@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "gameplay/1A8.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
@@ -20,7 +21,6 @@ extern TaskDesc D_mine_secret_passage_80180EBC;
 
 extern u8  D_80062735;
 extern s16 D_80071076;
-extern s8  D_801153F4;
 
 /// The passage's message table, which the room task answers messages with.
 extern GpMsgEntry D_mine_secret_passage_80180E8C[];
@@ -61,16 +61,16 @@ void func_mine_secret_passage_8017D60C(Task* arg0)
             if (Gp_CapBusy() != 0) {
                 break;
             }
-            D_801153F4 = 0;
+            Gp_StateF0.field_4 = 0;
             goto advance;
         case 2:
             if (Gp_GetCapEventKey() != 0xA) {
                 taskKill(arg0);
                 Gp_MsgPlayerWeapon(1);
-                D_801153F4 = 0;
+                Gp_StateF0.field_4 = 0;
                 break;
             }
-            D_801153F4          = 1;
+            Gp_StateF0.field_4  = 1;
             arg0->killCountdown = 3;
             arg0->state++;
             break;

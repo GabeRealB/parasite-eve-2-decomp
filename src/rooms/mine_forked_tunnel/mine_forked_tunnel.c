@@ -8,6 +8,7 @@
 #include "gameplay/1A8.h"
 #include "gameplay/1BC.h"
 #include "gameplay/268.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3E9C.h"
 #include "gameplay/D4.h"
@@ -166,7 +167,6 @@ extern GpMsgEntry D_mine_forked_tunnel_80181C80[];
 extern s32        D_mine_forked_tunnel_801831AC;
 extern s32        D_mine_forked_tunnel_801834F4;
 extern u8         D_80062735;
-extern u8         D_801153F4;
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -385,13 +385,13 @@ void func_mine_forked_tunnel_8017DAB8(Task* arg0)
 
 /// Dispatches the tunnel's enemy task through its three-state table (set-up,
 /// path walk, exit), copied onto the stack first; nothing runs while
-/// `D_801153F4` is non-zero.
+/// `Gp_StateF0.field_4` is non-zero.
 void func_mine_forked_tunnel_8017DBE4(Task* task)
 {
     TaskFuncTable3 sp;
 
     sp = D_mine_forked_tunnel_8017D5C4;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         sp.funcs[task->state](task);
     }
 }
@@ -476,13 +476,13 @@ s32 func_mine_forked_tunnel_8017DD08(Task* task, s32 arg1, s32 mode, s32 arg3)
 
 /// Dispatches the enemy's pitch-animated child through its three-state table
 /// (attach, pitch walk, `taskKill`), copied onto the stack first; nothing runs
-/// while `D_801153F4` is non-zero.
+/// while `Gp_StateF0.field_4` is non-zero.
 void func_mine_forked_tunnel_8017DDE8(Task* task)
 {
     TaskFuncTable3 sp;
 
     sp = D_mine_forked_tunnel_8017D5D0;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         sp.funcs[task->state](task);
     }
 }

@@ -38,7 +38,6 @@ extern u8  D_80072729;
 extern PlayerStatus D_80073B08[];
 extern MATRIX*      D_80073B8C;
 extern s16          D_80114D08;
-extern u8           D_801153F4;
 extern u16          D_801153F6;
 extern s32          D_80115738;
 extern s32          D_8011574C;
@@ -4921,7 +4920,7 @@ void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
 
 /// Ticks the bridge enemy once per frame. It refreshes the model's root
 /// coordinate and relights it, then branches on the global pause mode
-/// `D_801153F4`: mode 1 only releases the collision records, mode 2 also hides
+/// `Gp_StateF0.field_4`: mode 1 only releases the collision records, mode 2 also hides
 /// the mesh, and mode 0 keeps the model's visibility in step with the camera
 /// -- re-allocating or releasing the TMD's aux buffers when the view changes,
 /// and remembering the view it last synced to in `field_292`. Outside the
@@ -4954,7 +4953,7 @@ void func_acropolis_bridge_80187850(GpEnemy* enemy, Task* task)
     pos.vz = ((TmdObject*)task->extra)->coords->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
 
-    mode = D_801153F4;
+    mode = Gp_StateF0.field_4;
     if (mode == 1) {
         goto paused;
     }

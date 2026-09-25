@@ -8,6 +8,7 @@
 #include "gameplay/1A8.h"
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/display.h"
@@ -80,7 +81,6 @@ extern s32            D_80072A98;
 extern UiObjectDesc   D_8010EFA0;
 extern s16            D_80114D08;
 extern u8             D_80115598;
-extern s8             D_801153F4;
 extern TaskDesc       D_801358D8;
 extern GpAreaApplyRec D_80188888[];
 
@@ -1204,7 +1204,7 @@ void func_mine_refuge_8017F49C(Task* task)
             }
             gGameSession->hideHud    = 1;
             gGameSession->eventState = 1;
-            D_801153F4               = 2;
+            Gp_StateF0.field_4       = 2;
             Gp_MsgPlayer3F3(0);
             Gp_MsgAlly3F3(0);
             if (script->field_4 != 0) {
@@ -1335,7 +1335,7 @@ void func_mine_refuge_8017F49C(Task* task)
             }
             gGameSession->hideHud    = 0;
             gGameSession->eventState = 0;
-            D_801153F4               = 0;
+            Gp_StateF0.field_4       = 0;
             if (script->field_3 != 0) {
                 Gp_ResetCap();
             }

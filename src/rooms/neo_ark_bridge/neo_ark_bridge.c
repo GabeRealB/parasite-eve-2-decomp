@@ -7,6 +7,7 @@
 #include <psyq/rand.h>
 
 #include "gameplay/1A8.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "main/display.h"
@@ -40,7 +41,6 @@ extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
 extern s32 D_8007107C;
 extern u8  D_80071090;
-extern u8  D_801153F4;
 
 /// The room's message table.
 extern GpMsgEntry D_neo_ark_bridge_80181F30[];
@@ -67,7 +67,7 @@ static inline void _neoArkBridgeRotTrans(MATRIX* m, SVECTOR* v)
 /// buffer shifted vertically by a `rsin` / `rcos` wave that fades in over the
 /// first 8 rows of the range and of the split. The wave phases derive from
 /// `Task::killCountdown`, seeded from `rand()` on the first call and advanced
-/// by 0x20 per call while `D_801153F4` is clear; views 6 and 7 of area 13
+/// by 0x20 per call while `Gp_StateF0.field_4` is clear; views 6 and 7 of area 13
 /// advance them by 0x20 while it is set instead.
 ///
 /// Matching note: `wave = w` is written in both arms of the scale test and the
@@ -223,7 +223,7 @@ void func_neo_ark_bridge_8017D638(Task* task)
                 end   = 0xF0;
                 split = 0;
                 scale = 0x800;
-                if (D_801153F4 != 0) {
+                if (Gp_StateF0.field_4 != 0) {
                     task->killCountdown += 0x20;
                 }
                 break;
@@ -232,7 +232,7 @@ void func_neo_ark_bridge_8017D638(Task* task)
                 end   = 0xF0;
                 kind  = 4;
                 scale = 0x800;
-                if (D_801153F4 != 0) {
+                if (Gp_StateF0.field_4 != 0) {
                     task->killCountdown += 0x20;
                 }
                 break;
@@ -314,7 +314,7 @@ void func_neo_ark_bridge_8017D638(Task* task)
         prim += 488;
     }
     prim--;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         task->killCountdown += 0x20;
     }
     sinArg                                        = task->killCountdown * 2;
@@ -562,7 +562,7 @@ void func_neo_ark_bridge_8017D638(Task* task)
 /// wave, faded out over the band's last 16 rows; the strips are linked into
 /// `gGpuCurrentOt` one depth nearer per row. One view of area 30 draws a second
 /// band. The wave phases derive from `Task::killCountdown`, seeded from
-/// `rand()` on the first call and advanced every call while `D_801153F4` is
+/// `rand()` on the first call and advanced every call while `Gp_StateF0.field_4` is
 /// clear.
 ///
 /// Matching note: `spare` is never assigned, so `spare >> 16` is always zero;
@@ -674,7 +674,7 @@ void func_neo_ark_bridge_8017E28C(Task* task)
         prim--;
     }
 
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         task->killCountdown++;
     }
     sinArg             = task->killCountdown << 5;

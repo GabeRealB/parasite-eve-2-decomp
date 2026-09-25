@@ -391,7 +391,6 @@ extern TaskDesc               D_shelter_b3_dumping_hole_8018AFBC;
 extern DumpingHoleSpawnElem*  D_shelter_b3_dumping_hole_8018F4BC;
 extern s16                    D_shelter_b3_dumping_hole_8018F4C6;
 extern DumpingHoleCapWindow   D_shelter_b3_dumping_hole_8018B5A0[];
-extern u8                     D_801153F4;
 extern GlyphUvwh*             D_shelter_b3_dumping_hole_8018F4B8;
 extern s32                    D_shelter_b3_dumping_hole_8018F4B4;
 extern s16                    D_shelter_b3_dumping_hole_8018F4C0;
@@ -2254,7 +2253,7 @@ void func_shelter_b3_dumping_hole_80181B44(s32 arg0)
 /// holding `gGameSession->sceneClock` and, on a hit, starts that window's
 /// caption at its line key, with the low half of the task's `spawnArg1` as
 /// the line delay, and shows its current line. The clock then counts down one, unless a
-/// caption is running or `D_801153F4` is set.
+/// caption is running or `Gp_StateF0.field_4` is set.
 void func_shelter_b3_dumping_hole_80181B64(Task* task, s32 arg1)
 {
     s32 i;
@@ -2282,7 +2281,7 @@ void func_shelter_b3_dumping_hole_80181B64(Task* task, s32 arg1)
                 func_shelter_b3_dumping_hole_80181E70(script, key, (s16)task->spawnArg1);
                 func_shelter_b3_dumping_hole_80181C8C();
             }
-            if ((Gp_CapBusy() == 0) && (D_801153F4 == 0)) {
+            if ((Gp_CapBusy() == 0) && (Gp_StateF0.field_4 == 0)) {
                 gGameSession->sceneClock = (u16)gGameSession->sceneClock - 1;
             }
             break;
@@ -3163,7 +3162,7 @@ void func_shelter_b3_dumping_hole_80183550(Task* task)
     TaskFuncTable4 sp;
 
     sp = D_shelter_b3_dumping_hole_8017D654;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         sp.funcs[task->state](task);
     }
 }

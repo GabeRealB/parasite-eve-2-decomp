@@ -7,6 +7,7 @@
 #include "gte.h"
 
 #include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
@@ -43,7 +44,6 @@ extern s8       D_8007218A;
 extern s8       D_8007272D;
 extern u8       D_80073BA9;
 extern s8       D_80114C12;
-extern u8       D_801153F4;
 extern u8       D_80115690;
 extern s32      D_8011572C;
 extern s32      D_80115750;
@@ -98,7 +98,7 @@ void func_shelter_b1_pod_access_tunnel_8017D61C(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd(D_shelter_b1_pod_access_tunnel_80184D10.capCmd, 0);
             D_80115690 = 1;
@@ -226,7 +226,7 @@ void func_shelter_b1_pod_access_tunnel_8017DA74(Task* task)
     switch (task->state) {
         case 0:
             Gp_RunCapCmd1(GameFlag_GetNibble(0xFC) != 0 ? 5 : 1);
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             goto L_advance;
         case 1:
             var_v0 = Gp_CapBusy();
@@ -236,7 +236,7 @@ void func_shelter_b1_pod_access_tunnel_8017DA74(Task* task)
                 if (Gp_GetCapEventKey() == 1) {
                     GameFlag_SetNibble(0x1B6, 2);
                 }
-                D_801153F4 = 0;
+                Gp_StateF0.field_4 = 0;
                 taskKill(task);
                 Gp_MsgPlayerWeapon(1);
                 return;
@@ -276,14 +276,14 @@ void func_shelter_b1_pod_access_tunnel_8017DC18(Task* task)
     switch (task->state) {
         case 0:
             Gp_RunCapCmd1(9);
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             goto L_advance;
         case 1:
             var_v0 = Gp_CapBusy();
             goto L_idle;
         case 2:
             if (Gp_GetCapEventKey() != 0xA) {
-                D_801153F4 = 0;
+                Gp_StateF0.field_4 = 0;
                 taskKill(task);
                 Gp_MsgPlayerWeapon(1);
                 return;

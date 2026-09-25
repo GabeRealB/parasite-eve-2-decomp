@@ -82,7 +82,6 @@ extern s32            D_80072A94;
 extern s32            D_80072A98;
 extern UiObjectDesc   D_8010EFA0;
 extern s16            D_80114D08;
-extern s8             D_801153F4;
 extern GpAreaApplyRec D_80188888[];
 
 /// The save's location key read as one word; the cutscene's end compares its
@@ -1209,7 +1208,7 @@ void func_acropolis_fire_escape_8017F48C(Task* task)
             }
             gGameSession->hideHud    = 1;
             gGameSession->eventState = 1;
-            D_801153F4               = 2;
+            Gp_StateF0.field_4       = 2;
             Gp_MsgPlayer3F3(0);
             Gp_MsgAlly3F3(0);
             if (script->field_4 != 0) {
@@ -1340,7 +1339,7 @@ void func_acropolis_fire_escape_8017F48C(Task* task)
             }
             gGameSession->hideHud    = 0;
             gGameSession->eventState = 0;
-            D_801153F4               = 0;
+            Gp_StateF0.field_4       = 0;
             if (script->field_3 != 0) {
                 Gp_ResetCap();
             }
