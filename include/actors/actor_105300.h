@@ -22,18 +22,17 @@ typedef struct Actor05300Obj2C {
     /* 0x0C */ u16            field_C;
 } Actor05300Obj2C;
 
-/// Work block of the task this enemy hangs off -- the spawn reaches it as
-/// `task->parent->work`, the same slot `ActorsShared80133838` (the shared
-/// teardown of `actor_105300` / `actor_105400`) reads as the sound id
-/// `field_31C`. `field_334` is the enemy's sub-state index: it selects the
-/// spawn position in `D_actor_105300_80133A20` and also which of the two
-/// per-enemy death flags the spawn raises.
+/// Work block of the task this enemy hangs off -- the part spawn reaches it as
+/// `task->parent->work`, and the part teardown reads the sound id `field_31C`
+/// from it. `field_334` is the enemy's sub-state index: it selects the spawn
+/// position in `D_actor_105300_80133A20` and also which of the two per-enemy
+/// death flags the spawn raises.
 ///
 /// The pose half is what the per-frame handlers drive: `field_32C` is the
 /// animation sub-state `func_actor_105300_8013222C` dispatches on, `field_328`
 /// the row of the clip table that state walks, `field_32A` the countdown the
-/// LCG reseeds and `field_320` / `field_324` the pose the shared animation unit
-/// `ActorsShared80133610` ticks and the frames it has counted for it.
+/// LCG reseeds and `field_320` / `field_324` the pose the pose tick
+/// `func_actor_105300_80133610` queues and the frames it has counted for it.
 /// `field_2FC` is the local coordinate matrix that handler copies into the
 /// model's own coordinate each frame. `field_320` / `field_324` are unsigned
 /// here: every signed read of them casts at the use.
@@ -63,8 +62,8 @@ typedef struct Actor05300Work {
     /* 0x336 */ s16        field_336;
     /* 0x338 */ s16        field_338;
     /* 0x33A */ s16        field_33A;
-    /* 0x33C */ u16        field_33C;
-    /* 0x33E */ byte       pad_33E[2];
+    /* 0x33C */ s16        field_33C;
+    /* 0x33E */ s16        field_33E;
 } Actor05300Work;
 STATIC_ASSERT_SIZEOF(Actor05300Work, 0x340);
 
@@ -73,8 +72,8 @@ STATIC_ASSERT_SIZEOF(Actor05300Work, 0x340);
 /// `Gp_ObjLists[2]` -- and the one the shared teardown hands back to
 /// `Gp_UnlinkObj` -- so `obj.ctx.recs` is the single-entry `GpRec18` collision
 /// table at 0x20. `field_38` holds the same coordinate `obj.coord` points at,
-/// and `field_46` is the `ActorsShared80133838Work::field_46` the teardown
-/// reads back to pick its death flag.
+/// and `field_46` is the sub-state the teardown reads back to pick its death
+/// flag.
 typedef struct Actor05300Part {
     /* 0x00 */ GpObj    obj;
     /* 0x20 */ GpRec18  rec18[1];
@@ -82,7 +81,7 @@ typedef struct Actor05300Part {
     /* 0x40 */ s16      field_40;
     /* 0x42 */ u16      field_42;
     /* 0x44 */ s16      field_44;
-    /* 0x46 */ u16      field_46;
+    /* 0x46 */ s16      field_46;
 } Actor05300Part;
 STATIC_ASSERT_SIZEOF(Actor05300Part, 0x48);
 
@@ -123,7 +122,7 @@ STATIC_ASSERT_SIZEOF(Actor05300SpawnPos, 0x6);
 /// `Actor05300Work::field_328`. A zero `field_0` advances the row; a non-zero
 /// one ends the clip and reseeds the countdown, so each table's last row is
 /// its terminator. `field_2` is the scale that row hands
-/// `ActorsShared80136574`.
+/// `func_actor_105300_801336D4`.
 typedef struct Actor05300Clip {
     /* 0x0 */ s16 field_0;
     /* 0x2 */ u16 field_2;
@@ -147,6 +146,16 @@ STATIC_ASSERT_SIZEOF(Actor05300SndRow, 0x4);
 /// (`srl`), which a signed declaration would turn into an arithmetic one.
 extern u32 Gp_LcgState;
 
-s16 Actor05300_Fn01B70(Actor05300* arg0);
+extern Actor05300Clip D_actor_105300_8013D3EC[];
+extern s16            D_actor_105300_80133A18[];
+extern s16            D_actor_105300_80133A2C[];
+
+void func_actor_105300_80131E3C(Actor05300* arg0);
+void func_actor_105300_8013222C(Actor05300* arg0);
+void func_actor_105300_80133530(Actor05300* arg0);
+void func_actor_105300_801335B8(Actor05300* arg0);
+void func_actor_105300_80133610(Actor05300* arg0);
+void func_actor_105300_801336D4(Actor05300* arg0, MATRIX* arg1, s16 arg2, s32 arg3);
+s16  Actor05300_Fn01B70(Actor05300* arg0);
 
 #endif

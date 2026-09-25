@@ -1,10 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_105300.h"
-#include "actors/actors_shared_8013246c.h"
-
-#include "actors/actors_shared_80133610.h"
-#include "actors/actors_shared_80136574.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -120,19 +116,20 @@ end:
     *(Actor05300Scratch**)0x1F8003FC += 1;
 }
 
-/// Per-frame animation schedule of the enemy, one of the three handlers the
-/// shared dispatcher `ActorsShared80133468` runs each frame. The sub-state
-/// (`field_32C`) picks the clip table: state 0 walks `D_actor_105300_8013D3E0`
-/// once the countdown `field_32A` has run out, and on that table's terminator
-/// row resets the row index, reseeds the countdown from the gameplay LCG and
-/// plays the work block's sound id with the actor id in the high nibble of
-/// `GpEnemy::placeKey`; state 1 walks `ActorsShared8013246cClips` and moves to
-/// state 2 on its terminator; state 2 hands the pose back to 0 once
-/// `ActorsShared80133610` has ticked `field_324` frames past the pose's own
-/// length. The row's `field_2` is the scale `ActorsShared80136574` applies to
-/// the work block's coordinate matrix, 0x1000 when no row was read, and while
-/// the session is in the `field_4D` state the per-area row of
-/// `D_actor_105300_8013D3C4` is enqueued as the enemy's sound.
+/// Idle schedule of the enemy, one of the steps the tick handler
+/// `func_actor_105300_80133468` runs each frame. The sub-state (`field_32C`)
+/// picks what it does: state 0 walks `D_actor_105300_8013D3E0` once the
+/// countdown `field_32A` has run out, and on that table's terminator row
+/// resets the row index, reseeds the countdown from the gameplay LCG and plays
+/// the sound id `D_actor_105300_8013D3BC` with the placement number in the
+/// high nibble of `GpEnemy::placeKey`; state 1 (entered on a hit) walks
+/// `D_actor_105300_8013D3EC` and moves to state 2 on its terminator; state 2
+/// returns to pose 1 and state 0 once the pose has run 0x23 frames past its
+/// entry of `D_actor_105300_80133A18`. The row's `field_2` is the scale
+/// `func_actor_105300_801336D4` applies to the saved coordinate matrix
+/// `field_2FC`, 0x1000 when no row was read, and while the session's
+/// `viewReady` is 1 the per-view row of `D_actor_105300_8013D3C4` is enqueued
+/// with the work block's sound id.
 void func_actor_105300_8013222C(Actor05300* arg0)
 {
     Actor05300Work* work;
@@ -164,8 +161,8 @@ void func_actor_105300_8013222C(Actor05300* arg0)
             }
             break;
         case 1:
-            scale = ActorsShared8013246cClips[(s16)work->field_328].field_2;
-            if (ActorsShared8013246cClips[(s16)work->field_328].field_0 != 0) {
+            scale = D_actor_105300_8013D3EC[(s16)work->field_328].field_2;
+            if (D_actor_105300_8013D3EC[(s16)work->field_328].field_0 != 0) {
                 work->field_328 = 0;
                 work->field_32C = 2;
                 Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
@@ -175,13 +172,13 @@ void func_actor_105300_8013222C(Actor05300* arg0)
             }
             break;
         case 2:
-            if ((s16)work->field_324 >= ActorsShared80133610Table[(s16)work->field_320] + 0x23) {
+            if ((s16)work->field_324 >= D_actor_105300_80133A18[(s16)work->field_320] + 0x23) {
                 work->field_320 = 1;
                 work->field_32C = 0;
             }
             break;
     }
-    ActorsShared80136574((ActorShared80136574*)arg0, &work->field_2FC, scale, 1);
+    func_actor_105300_801336D4(arg0, &work->field_2FC, scale, 1);
     if (gGameSession->viewReady == 1) {
         SndEvt_EnqueueTypeA(work->field_31C, D_actor_105300_8013D3C4[gGameSession->at4.loc.view].field_0,
                             D_actor_105300_8013D3C4[gGameSession->at4.loc.view].field_2);
