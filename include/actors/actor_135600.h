@@ -7,7 +7,9 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "gameplay/1BC.h"
 #include "main/gfx.h"
+#include "main/session.h"
 #include "main/task.h"
 
 /// Work block of the `actor_135600` enemy task, the `memCalloc(0x50C, 0)`
@@ -20,41 +22,43 @@
 /// and `field_4FA` belong to the motion sequence the step handlers of
 /// `D_actor_135600_80131E48` run.
 typedef struct Actor135600Work {
-    /* 0x000 */ byte    pad_000[0x474];
-    /* 0x474 */ s8      field_474; // non-zero while the animation slots tick
-    /* 0x475 */ s8      field_475;
-    /* 0x476 */ s8      field_476;
-    /* 0x477 */ byte    pad_477[0x478 - 0x477];
-    /* 0x478 */ MATRIX  light;
-    /* 0x498 */ MATRIX  color;
-    /* 0x4B8 */ VECTOR3 target;    // world position the turn-to-face step steers toward
-    /* 0x4C4 */ byte    pad_4C4[0x4C8 - 0x4C4];
-    /* 0x4C8 */ VECTOR3 step;      // per-frame deltas the accumulators take
-    /* 0x4D4 */ byte    pad_4D4[0x4D8 - 0x4D4];
-    /* 0x4D8 */ s32     field_4D8; // 16.16 accumulators; only the high half reaches the coordinate
-    /* 0x4DC */ s32     field_4DC;
-    /* 0x4E0 */ s32     field_4E0;
-    /* 0x4E4 */ byte    pad_4E4[0x4E8 - 0x4E4];
-    /* 0x4E8 */ SVECTOR limit;     // per-axis stop threshold; 0x7FFF on all three disables it
-    /* 0x4F0 */ byte    pad_4F0[0x4F8 - 0x4F0];
-    /* 0x4F8 */ s16     field_4F8; // selects which of the two handlers the tick runs
-    /* 0x4FA */ u16     field_4FA; // index into the step-handler table `D_actor_135600_80131E48`
-    /* 0x4FC */ Task*   field_4FC;
-    /* 0x500 */ Task*   field_500;
-    /* 0x504 */ Task*   field_504;
-    /* 0x508 */ s32     field_508;
-    /* 0x50C */ byte    pad_50C[0];
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[0x14];  // the slot array `func_800B3F84` is handed
+    /* 0x334 */ byte       poses[0x140]; // pose buffer `func_800B3F84` is handed
+    /* 0x474 */ s8         field_474;    // non-zero while the animation slots tick
+    /* 0x475 */ s8         field_475;    // current animation id
+    /* 0x476 */ s8         field_476;    // current bank index into `D_actor_135600_8013B0C0`
+    /* 0x477 */ s8         field_477;    // preset byte the arrival and turn steps pass as `field_4`
+    /* 0x478 */ MATRIX     light;
+    /* 0x498 */ MATRIX     color;
+    /* 0x4B8 */ VECTOR3    target;    // world position the turn-to-face step steers toward
+    /* 0x4C4 */ byte       pad_4C4[0x4C8 - 0x4C4];
+    /* 0x4C8 */ VECTOR3    step;      // per-frame deltas the accumulators take
+    /* 0x4D4 */ byte       pad_4D4[0x4D8 - 0x4D4];
+    /* 0x4D8 */ s32        field_4D8; // 16.16 accumulators; only the high half reaches the coordinate
+    /* 0x4DC */ s32        field_4DC;
+    /* 0x4E0 */ s32        field_4E0;
+    /* 0x4E4 */ byte       pad_4E4[0x4E8 - 0x4E4];
+    /* 0x4E8 */ SVECTOR    limit;     // per-axis stop threshold; 0x7FFF on all three disables it
+    /* 0x4F0 */ u16        field_4F0;
+    /* 0x4F2 */ u16        field_4F2; // placement yaw the last step turns to
+    /* 0x4F4 */ u16        field_4F4;
+    /* 0x4F6 */ byte       pad_4F6[0x4F8 - 0x4F6];
+    /* 0x4F8 */ s16        field_4F8; // selects which of the two handlers the tick runs
+    /* 0x4FA */ u16        field_4FA; // index into the step-handler table `D_actor_135600_80131E48`
+    /* 0x4FC */ Task*      field_4FC;
+    /* 0x500 */ Task*      field_500;
+    /* 0x504 */ Task*      field_504;
+    /* 0x508 */ s32        field_508;
+    /* 0x50C */ byte       pad_50C[0];
 } Actor135600Work;
 STATIC_ASSERT_SIZEOF(Actor135600Work, 0x50C);
 
-/// Animation preset the 0x7D3 handler `func_actor_135600_801330A8` applies to
-/// the work block. `field_0` is the animation id it compares against
-/// `Actor135600Work::field_476` and latches there when the two differ,
-/// `field_4` the byte it copies into `field_475`, `field_8` selects the reset
-/// path and `field_C` is the per-slot argument that path passes on, so the
-/// caller stores a word where the callee reads a byte. The five-word shape,
-/// and the trailing `field_10` no callee reads, are `Actor113100AnimPreset`'s:
-/// the setup handlers of this family build the same block.
+/// Animation preset the 0x7D3 handler `func_actor_135600_801330A8` applies.
+/// `field_0` is the bank index into `D_actor_135600_8013B0C0`, `field_4` the
+/// animation id, `field_8` selects a blended restart once the slots run and
+/// `field_C` is handed to that restart. The arrival and turn steps build one on
+/// their own stack.
 typedef struct Actor135600AnimPreset {
     /* 0x00 */ s32 field_0;
     /* 0x04 */ s32 field_4;
@@ -64,13 +68,21 @@ typedef struct Actor135600AnimPreset {
 } Actor135600AnimPreset;
 STATIC_ASSERT_SIZEOF(Actor135600AnimPreset, 0x14);
 
-/// The world translation and Euler angles the actor's 0x7D4 handler
-/// `func_actor_135600_801331C4` places its root part at.
+/// The world translation and Euler angles the 0x7D4 handler
+/// `func_actor_135600_801331C4` places the root part at, and the placement the
+/// motion-start handler `func_actor_135600_8013282C` walks the actor to.
 typedef struct Actor135600PlaceArgs {
     /* 0x00 */ VECTOR  pos;
     /* 0x10 */ SVECTOR rot;
 } Actor135600PlaceArgs;
 STATIC_ASSERT_SIZEOF(Actor135600PlaceArgs, 0x18);
+
+/// Optional start animation for `func_actor_135600_8013282C`: the preset's
+/// `field_4` and the `field_477` byte. Absent, the defaults are anim 0xD and 1.
+typedef struct Actor135600SpawnAnim {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ u8  field_4;
+} Actor135600SpawnAnim;
 
 /// Overlay of the `GsCOORDINATE2` at `TmdObject::coords`, the actor's root
 /// part. Offset 0x44 (libgs `param`) holds the Euler angles the placement and
@@ -109,6 +121,18 @@ typedef union Actor135600Matrix {
     Actor135600MatrixWords ident;
 } Actor135600Matrix;
 STATIC_ASSERT_SIZEOF(Actor135600Matrix, 0x20);
+
+/// Animation bank table the 0x7D3 handler seeds the slot array from, indexed
+/// by the preset's bank index.
+extern void* D_actor_135600_8013B0C0[];
+
+/// Declared locally with a signed animation id, as every caller passes one.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
+/// The 0x7D3 entry of `D_actor_135600_8013B0F4`, also called directly by the
+/// setup handler and the arrival and turn steps: applies `preset` to the
+/// animation slots. Returns 0.
+s32 func_actor_135600_801330A8(Task* task, s32 msgId, Actor135600AnimPreset* preset, s32 arg3);
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 void func_8004BFF8(s16 angle, MATRIX* matrix);
