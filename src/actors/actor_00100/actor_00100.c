@@ -1490,7 +1490,7 @@ void Actor00100_Fn02C54(GpEnemy* arg0, Task* arg1)
     work->field_82E = 0;
     work->field_844 = 0;
     work->field_840 = 0;
-    if (((u16)arg0->placeKey >> 0xC) & 1) {
+    if ((arg0->placeKey >> 0xC) & 1) {
         work->field_834 = 0xF;
         work->field_832 = 0xF;
     } else {
@@ -3915,7 +3915,7 @@ void Actor00100_Fn09310(Task* arg0)
             effectObj                        = task->extra;
             if (effectObj->buffer != 0) {
                 tmdProcessStream((TmdObject*)effectObj);
-                tmdProcessStream((TmdObject*)task->extra);
+                tmdProcessStream(task->extra);
             }
         }
         if ((s16)work->field_6 == 2) {
@@ -3930,7 +3930,7 @@ void Actor00100_Fn09310(Task* arg0)
                 effectObj2                        = task2->extra;
                 if (effectObj2->buffer != 0) {
                     tmdProcessStream((TmdObject*)effectObj2);
-                    tmdProcessStream((TmdObject*)task2->extra);
+                    tmdProcessStream(task2->extra);
                 }
             }
         }
@@ -3945,7 +3945,7 @@ void Actor00100_Fn09310(Task* arg0)
             effectObj3                        = task3->extra;
             if (effectObj3->buffer != 0) {
                 tmdProcessStream((TmdObject*)effectObj3);
-                tmdProcessStream((TmdObject*)task3->extra);
+                tmdProcessStream(task3->extra);
             }
         }
     }
@@ -3959,7 +3959,7 @@ void Actor00100_Fn09310(Task* arg0)
             effectObj4                        = task4->extra;
             if (effectObj4->buffer != 0) {
                 tmdProcessStream((TmdObject*)effectObj4);
-                tmdProcessStream((TmdObject*)task4->extra);
+                tmdProcessStream(task4->extra);
             }
         }
     }
@@ -4305,12 +4305,12 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
                     Gp_DispatchMsg(player, 0x3FE, (s32)(&work->field_8D8), 0);
                     if ((s16)work->field_C28 == 0xF) {
                         if ((Gp_GetViewIndex() & 0xFF) == 8) {
-                            sound = (((u16)enemy->placeKey >> 0xC) << 8) | 0x54010004;
+                            sound = ((enemy->placeKey >> 0xC) << 8) | 0x54010004;
                             pan   = (s8)Gp_GetObjPan(((TmdObject*)actor->extra)->coords);
                             depth = gpGetObjDepth(((TmdObject*)actor->extra)->coords);
                             SndEvt_EnqueueType6(sound, (s8)pan, (s8)(depth + abs(Gp_GetObjPan(((TmdObject*)actor->extra)->coords)) / 2));
                         } else {
-                            sound2 = (((u16)enemy->placeKey >> 0xC) << 8) | 0x54010004;
+                            sound2 = ((enemy->placeKey >> 0xC) << 8) | 0x54010004;
                             pan2   = (s8)Gp_GetObjPan(((TmdObject*)actor->extra)->coords);
                             SndEvt_EnqueueType6(sound2, pan2, (s8)gpGetObjDepth(((TmdObject*)actor->extra)->coords));
                         }

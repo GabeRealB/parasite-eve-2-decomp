@@ -2356,7 +2356,7 @@ static __inline__ void Actor00400_UpdateColor(Task* arg0, GsCOORDINATE2* coord,
     block->vy                 = coord->workm.t[1];
     block->vz                 = coord->workm.t[2];
     *(VECTOR**)G_SCRATCH_HEAD = block;
-    Gp_UpdateActorColor(((GpEnemy*)arg0->spawnArg2), block, 0, 0);
+    Gp_UpdateActorColor(arg0->spawnArg2, block, 0, 0);
     if (work->field_65F != 0) {
         Gp_SetObjTrans((GpObj20*)ctx, 0, 0, 0);
     }
@@ -3846,7 +3846,7 @@ void Actor00400_Fn07518(Task* arg0)
         work->field_628 = 0x12;
         work->field_624 = 1;
     }
-    if (Actor00400_ConsumeStateRequest(((Actor100400Work*)arg0->work)) == 0) {
+    if (Actor00400_ConsumeStateRequest(arg0->work) == 0) {
         phase           = (u16)work->field_636 + 1;
         work->field_636 = phase;
         work->field_63E = work->field_658 + ((u16)work->field_64E + ((rsin(phase << 16 >> 9) * 0x10) >> 9));
@@ -5585,7 +5585,7 @@ void Actor00400_Fn0A414(Task* arg0)
     frame           = (u16)work->field_636 + 1;
     work->field_636 = frame;
     if ((s16)frame >= 0x12D) {
-        Gp_DestroyEnemy(((GpEnemy*)arg0->spawnArg2), arg0);
+        Gp_DestroyEnemy(arg0->spawnArg2, arg0);
     }
 }
 

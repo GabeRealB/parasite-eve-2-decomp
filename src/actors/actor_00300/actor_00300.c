@@ -544,7 +544,7 @@ void Actor00300_Fn00970(GpEnemy* enemy, Task* task)
     work->field_688 = 0xA;
     work->field_666 = 0x28;
     child           = Gp_SpawnEnemyFromTable(&Actor00300_D162F0, 1, 0, enemy);
-    rawId           = (u16)enemy->placeKey;
+    rawId           = enemy->placeKey;
     model           = child->task->extra;
     sessionKey      = (GpAreaKey*)&gGameSession->at4.loc;
     key.stage       = sessionKey->stage;
@@ -2052,7 +2052,7 @@ case1:
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(((GpEnemy*)arg1->spawnArg2), &vec, 0, 0);
+    Gp_UpdateActorColor(arg1->spawnArg2, &vec, 0, 0);
     return;
 case2:
     obj->flags                                  = 0x80;
@@ -2081,7 +2081,7 @@ common:
             vec.vx = c->workm.t[0];
             vec.vy = c->workm.t[1];
             vec.vz = c->workm.t[2];
-            Gp_UpdateActorColor(((GpEnemy*)arg1->spawnArg2), &vec, 0, 0);
+            Gp_UpdateActorColor(arg1->spawnArg2, &vec, 0, 0);
             if (work->field_654 != NULL) {
                 work->field_654->task->state = 3;
                 work->field_654              = NULL;
@@ -2108,7 +2108,7 @@ common:
             vec.vx = c->workm.t[0];
             vec.vy = c->workm.t[1];
             vec.vz = c->workm.t[2];
-            Gp_UpdateActorColor(((GpEnemy*)arg1->spawnArg2), &vec, 0, 0);
+            Gp_UpdateActorColor(arg1->spawnArg2, &vec, 0, 0);
             return;
         case 2:
             Gp_DestroyEnemy(arg0, arg1);
@@ -2698,7 +2698,7 @@ void Actor00300_Fn04FB0(Task* arg0)
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(((GpEnemy*)arg0->spawnArg2), &vec, 0, 0);
+    Gp_UpdateActorColor(arg0->spawnArg2, &vec, 0, 0);
 }
 
 void Actor00300_Fn05008(Task* arg0)
