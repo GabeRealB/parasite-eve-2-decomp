@@ -4,12 +4,11 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Approach mode the last `func_actor_260500_8014A83C` call selected.
-extern s16 D_actor_260500_80159E54;
-
-/// Turns the model to face `target` -- away from it in mode 1 -- and stores the
-/// per-step distance in the work block: the planar distance over 60 steps in
-/// mode 0, 15 in mode 1 and 25 in mode 2.
+/// Approach handler: turns the model to face `target` -- away from it in mode
+/// 1, where the update then walks it backwards -- keeps the mode in
+/// `D_actor_260500_80159E54`, and stores the number of steps the walk takes:
+/// the planar distance over the mode's step length, 60 in mode 0, 15 in mode 1
+/// and 25 in mode 2.
 s32 func_actor_260500_8014A83C(Task* task, s32 arg1, VECTOR* target, s32 mode)
 {
     GsCOORDINATE2*   coord;

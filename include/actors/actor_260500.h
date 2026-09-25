@@ -31,8 +31,8 @@ typedef struct Actor260500Work {
     /* 0x484 */ byte       pad_484[0x2A];
     /* 0x4AE */ s16        yaw;       // last yaw handed to `Gfx_RotMatrixY`
     /* 0x4B0 */ byte       pad_4B0[0x2];
-    /* 0x4B2 */ s16        field_4B2; // planar distance over the approach mode's step count
-    /* 0x4B4 */ s16        field_4B4; // armed at 0x14 by message 0x7DB, cleared at spawn
+    /* 0x4B2 */ s16        field_4B2; // steps left in the walk the approach handler sets up
+    /* 0x4B4 */ s16        field_4B4; // turn steps left while animation 3 plays; message 0x7DB arms it at 0x14
     /* 0x4B6 */ byte       pad_4B6[0x2];
 } Actor260500Work;
 STATIC_ASSERT_SIZEOF(Actor260500Work, 0x4B8);
@@ -50,6 +50,10 @@ extern Task* D_actor_260500_80159E50;
 /// preset's `field_C` here and `func_actor_260500_8014A110`'s reseed path reads
 /// it back.
 extern s16 D_actor_260500_80159D7C;
+
+/// Approach mode the last `func_actor_260500_8014A83C` call selected; the
+/// update picks its step length from it.
+extern s16 D_actor_260500_80159E54;
 
 /// Animation preset the overlay's "play animation" message handler applies to
 /// the work block: `field_4` is the animation id, `field_8` picks the reset
@@ -76,7 +80,9 @@ void func_actor_260500_80149FB0(GpEnemy* enemy, Task* task);
 void func_actor_260500_8014A110(Task* task);
 void func_actor_260500_8014A4BC(GpEnemy* enemy, Task* task);
 void func_actor_260500_8014A540(Task* task);
+void func_actor_260500_8014A568(void);
 void func_actor_260500_8014A5B4(void);
+void func_actor_260500_8014A644(void);
 void func_actor_260500_8014A99C(Task* task);
 s32  func_actor_260500_8014A6C4(Task* task, s32 arg1, Actor260500AnimPreset* preset);
 
