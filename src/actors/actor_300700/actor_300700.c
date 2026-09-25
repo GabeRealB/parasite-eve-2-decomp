@@ -3,7 +3,6 @@
 #include "actors/actor.h"
 #include "actors/actor_300700.h"
 #include "actors/actor_300700_spawn2.h"
-#include "actors/actors_shared_80135b58.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3E9C.h"
@@ -751,14 +750,14 @@ void func_actor_300700_801633B8(Task* arg0)
 
 void func_actor_300700_80163410(Task* arg0)
 {
-    GsCOORDINATE2*              coord;
-    MATRIX*                     head;
-    ActorShared80135b58Scratch* scratch;
-    Actor300700Work*            work;
+    GsCOORDINATE2*     coord;
+    MATRIX*            head;
+    ActorScaleScratch* scratch;
+    Actor300700Work*   work;
 
     head                = *(MATRIX**)0x1F8003FC;
     work                = arg0->work;
-    scratch             = (ActorShared80135b58Scratch*)((u8*)head - 0x30);
+    scratch             = (ActorScaleScratch*)((u8*)head - 0x30);
     *(void**)0x1F8003FC = scratch;
     coord               = ((TmdObject*)arg0->extra)->coords;
     if (work->field_2E2 >= 0x201) {

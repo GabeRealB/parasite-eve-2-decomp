@@ -6,7 +6,6 @@
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "actors/actors_shared_80135b58.h"
 #include "actors/actors_shared_80135c4c.h"
 
 #include "main/display.h"
@@ -2063,14 +2062,14 @@ void Actor05500_Fn03AC8(Task* arg0)
 /// `field_3A0 / 0x1000`, through a 0x30-byte scratchpad block.
 void Actor05500_Fn03B60(Task* arg0)
 {
-    GsCOORDINATE2*              coord;
-    MATRIX*                     head;
-    ActorShared80135b58Scratch* scratch;
-    Actor105500Work*            work;
+    GsCOORDINATE2*     coord;
+    MATRIX*            head;
+    ActorScaleScratch* scratch;
+    Actor105500Work*   work;
 
     head                = *(MATRIX**)0x1F8003FC;
     work                = arg0->work;
-    scratch             = (ActorShared80135b58Scratch*)((u8*)head - 0x30);
+    scratch             = (ActorScaleScratch*)((u8*)head - 0x30);
     *(void**)0x1F8003FC = scratch;
     coord               = ((TmdObject*)arg0->extra)->coords;
     if (work->field_3A0 >= 0x201) {
@@ -2134,14 +2133,14 @@ void Actor05500_Fn03C54(Task* actor)
 /// and `MulMatrix` multiplies the result into `field_8[2].coord`.
 void Actor05500_Fn03D40(Task* actor)
 {
-    void**                      scratch;
-    void*                       head;
-    ActorShared80135b58Scratch* blk;
-    GsCOORDINATE2*              coord;
+    void**             scratch;
+    void*              head;
+    ActorScaleScratch* blk;
+    GsCOORDINATE2*     coord;
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
-    blk      = (ActorShared80135b58Scratch*)((u8*)head - 0x30);
+    blk      = (ActorScaleScratch*)((u8*)head - 0x30);
     *scratch = blk;
     coord    = ((TmdObject*)actor->extra)->coords;
 

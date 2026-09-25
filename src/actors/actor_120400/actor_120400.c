@@ -5,6 +5,7 @@
 #include <psyq/libgs.h>
 #include <psyq/abs.h>
 
+#include "actors/actor.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -100,19 +101,6 @@ typedef struct Actor120400SpawnAnim {
     /* 0x04 */ u8  field_4;
 } Actor120400SpawnAnim;
 STATIC_ASSERT_SIZEOF(Actor120400SpawnAnim, 0x8);
-
-/// A `MATRIX`'s word-wise view, for the identity splat
-/// `func_actor_120400_801329A0` writes over the root coordinate before
-/// `RotMatrix` overwrites the 3x3: five aligned stores rather than nine
-/// halfword ones.
-typedef struct Actor120400MatWords {
-    /* 0x00 */ s32 m00_m01;
-    /* 0x04 */ s32 m02_m10;
-    /* 0x08 */ s32 m11_m12;
-    /* 0x0C */ s32 m20_m21;
-    /* 0x10 */ s16 m22;
-} Actor120400MatWords;
-STATIC_ASSERT_SIZEOF(Actor120400MatWords, 0x14);
 
 /// The task table the parent is spawned from and its two children are spawned
 /// from (entries 1 and 2), and the message table the parent points its
@@ -607,7 +595,7 @@ void func_actor_120400_80132920(Task* task)
 void func_actor_120400_801329A0(Task* arg0)
 {
     Actor120400MainWork*  work;
-    Actor120400MatWords*  words;
+    ActorMatWords*        words;
     GsCOORDINATE2*        coord;
     SVECTOR               vec;
     Actor120400AnimPreset preset;
@@ -638,7 +626,7 @@ void func_actor_120400_801329A0(Task* arg0)
         work->field_4FA = 0;
     }
 
-    words          = (Actor120400MatWords*)&coord->coord;
+    words          = (ActorMatWords*)&coord->coord;
     words->m00_m01 = ONE;
     words->m02_m10 = 0;
     words->m11_m12 = ONE;

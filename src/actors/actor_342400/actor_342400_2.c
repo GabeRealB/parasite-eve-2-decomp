@@ -20,12 +20,13 @@
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 
+#include "actors/actor.h"
 #include "actors/actor_342400.h"
 #include "actors/actors_shared_80163354.h"
-#include "actors/actors_shared_801639a8.h"
 #include "actors/actors_shared_801673f8.h"
-#include "actors/actors_shared_8016a538.h"
-#include "actors/actors_shared_8016bd98.h"
+
+/// Psy-Q `RotMatrixY`, taking the angle as a `long`.
+void func_8004BFF8(s32 angle, MATRIX* matrix);
 
 extern GpPairSrcE D_actor_342400_80170588;   // the main enemy's `GpEnemy::param` record
 extern u8         D_actor_342400_801739E8[]; // animation bank handed to `func_800B3F84`
@@ -386,14 +387,14 @@ void func_actor_342400_801637DC(Task* arg0)
 /// one shared part pointer comes out a saved register short.
 void func_actor_342400_801639A8(Task* arg0)
 {
-    SVECTOR                       rot;
-    ActorsShared801639a8Mat       mtx;
-    ActorsShared801639a8MatWords* ident;
-    Actor342400Work*              work;
-    GsCOORDINATE2*                coords;
-    MATRIX*                       m5;
-    MATRIX*                       m4;
-    MATRIX*                       m3;
+    SVECTOR          rot;
+    ActorMat         mtx;
+    ActorMatWords*   ident;
+    Actor342400Work* work;
+    GsCOORDINATE2*   coords;
+    MATRIX*          m5;
+    MATRIX*          m4;
+    MATRIX*          m3;
 
     work   = (Actor342400Work*)arg0->work;
     ident  = &mtx.ident;
@@ -1101,12 +1102,12 @@ void func_actor_342400_80164F3C(Task* arg0)
 /// sub-state.
 void func_actor_342400_8016513C(Task* arg0)
 {
-    Actor342400Work*         work;
-    GsCOORDINATE2*           coord;
-    ActorsShared8016a538Mat  rot;
-    ActorsShared8016a538Mat* src;
-    MATRIX*                  dst;
-    Actor342400Work*         anim;
+    Actor342400Work* work;
+    GsCOORDINATE2*   coord;
+    ActorMat         rot;
+    ActorMat*        src;
+    MATRIX*          dst;
+    Actor342400Work* anim;
 
     work               = (Actor342400Work*)arg0->work;
     coord              = ((TmdObject*)arg0->extra)->coords;
@@ -1573,13 +1574,13 @@ void func_actor_342400_80165FC0(Task* arg0)
 /// hides the model and advances the state.
 void func_actor_342400_80166180(Task* arg0)
 {
-    Actor342400Work*              work;
-    TmdObject*                    obj;
-    GsCOORDINATE2*                coord;
-    VECTOR                        scale;
-    ActorsShared8016bd98Mat       m;
-    ActorsShared8016bd98MatWords* ident;
-    SVECTOR                       ofs;
+    Actor342400Work* work;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    VECTOR           scale;
+    ActorMat         m;
+    ActorMatWords*   ident;
+    SVECTOR          ofs;
 
     work             = (Actor342400Work*)arg0->work;
     ident            = &m.ident;
@@ -3576,12 +3577,12 @@ void func_actor_342400_8016A4FC(Task* arg0)
 /// sub-state.
 void func_actor_342400_8016A538(Task* arg0)
 {
-    Actor342400Work*         work;
-    GsCOORDINATE2*           coord;
-    ActorsShared8016a538Mat  rot;
-    ActorsShared8016a538Mat* src;
-    MATRIX*                  dst;
-    s16                      pitch;
+    Actor342400Work* work;
+    GsCOORDINATE2*   coord;
+    ActorMat         rot;
+    ActorMat*        src;
+    MATRIX*          dst;
+    s16              pitch;
 
     work               = (Actor342400Work*)arg0->work;
     coord              = ((TmdObject*)arg0->extra)->coords;
@@ -4492,12 +4493,12 @@ void func_actor_342400_8016BD3C(Task* arg0)
 /// hides the model, clears the frame counter and advances the state.
 void func_actor_342400_8016BD98(Task* arg0)
 {
-    Actor342400Work*              work;
-    TmdObject*                    obj;
-    GsCOORDINATE2*                coord;
-    VECTOR                        scale;
-    ActorsShared8016bd98Mat       m;
-    ActorsShared8016bd98MatWords* ident;
+    Actor342400Work* work;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    VECTOR           scale;
+    ActorMat         m;
+    ActorMatWords*   ident;
 
     work             = (Actor342400Work*)arg0->work;
     ident            = &m.ident;

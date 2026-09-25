@@ -3,6 +3,7 @@
 #include <psyq/libgte.h>
 #include <psyq/abs.h>
 
+#include "actors/actor.h"
 #include "gameplay/1A8.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -166,18 +167,6 @@ typedef struct Actor335800SpawnAnim {
     /* 0x00 */ s32 field_0;
     /* 0x04 */ u8  field_4;
 } Actor335800SpawnAnim;
-
-/// A `MATRIX`'s word-wise view, for the identity splat `func_actor_335800_801631A4`
-/// writes over the root coordinate before `RotMatrix` overwrites the 3x3: five
-/// aligned stores rather than nine halfword ones.
-typedef struct Actor335800MatWords {
-    /* 0x00 */ s32 m00_m01;
-    /* 0x04 */ s32 m02_m10;
-    /* 0x08 */ s32 m11_m12;
-    /* 0x0C */ s32 m20_m21;
-    /* 0x10 */ s16 m22;
-} Actor335800MatWords;
-STATIC_ASSERT_SIZEOF(Actor335800MatWords, 0x14);
 
 /// Overlay of the `GsCOORDINATE2` at `TmdObject::coords`, the actor's root
 /// part. Offset 0x44 (libgs `param`) holds the Euler angles
@@ -982,7 +971,7 @@ void func_actor_335800_80163124(Task* task)
 void func_actor_335800_801631A4(Task* arg0)
 {
     Actor335800MainWork*  work;
-    Actor335800MatWords*  words;
+    ActorMatWords*        words;
     GsCOORDINATE2*        coord;
     SVECTOR               vec;
     Actor335800AnimPreset preset;
@@ -1013,7 +1002,7 @@ void func_actor_335800_801631A4(Task* arg0)
         work->field_4FA = 0;
     }
 
-    words          = (Actor335800MatWords*)&coord->coord;
+    words          = (ActorMatWords*)&coord->coord;
     words->m00_m01 = ONE;
     words->m02_m10 = 0;
     words->m11_m12 = ONE;
@@ -1419,7 +1408,7 @@ void func_actor_335800_80163CA0(Task* task)
 void func_actor_335800_80163D20(Task* arg0)
 {
     Actor335800Work*      work;
-    Actor335800MatWords*  words;
+    ActorMatWords*        words;
     GsCOORDINATE2*        coord;
     SVECTOR               vec;
     Actor335800AnimPreset preset;
@@ -1450,7 +1439,7 @@ void func_actor_335800_80163D20(Task* arg0)
         work->field_4C2 = 0;
     }
 
-    words          = (Actor335800MatWords*)&coord->coord;
+    words          = (ActorMatWords*)&coord->coord;
     words->m00_m01 = ONE;
     words->m02_m10 = 0;
     words->m11_m12 = ONE;

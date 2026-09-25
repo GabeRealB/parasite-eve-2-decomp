@@ -5,6 +5,7 @@
 
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "actors/actors_shared_80135990.h"
 
 #include "gameplay/1BC.h"
@@ -38,7 +39,7 @@ STATIC_ASSERT_SIZEOF(Actor444000HitGroup, 0x98);
 
 /// `GsCOORDINATE2` with the leading words of its rotation matrix named, so the
 /// identity can be written with the aligned word stores GCC 2.8.1 emits -- the
-/// same shape as `Actor403100Matrix`, widened to cover the whole coordinate
+/// same shape as `ActorMat`, widened to cover the whole coordinate
 /// because the descent state builds the identity in a local `GsCOORDINATE2`.
 typedef union Actor444000DropCoord {
     GsCOORDINATE2 c;
@@ -398,24 +399,6 @@ typedef struct Actor444000RotScratch {
 } Actor444000RotScratch;
 STATIC_ASSERT_SIZEOF(Actor444000RotScratch, 0x34);
 
-/// Word-wise view of the `MATRIX` in `Actor444000RunScratch`, used only to
-/// splat an identity rotation: five aligned stores instead of nine halfword
-/// ones, each word holding two adjacent `m[][]` entries. Same shape as
-/// `ActorsShared8016bd98MatWords`.
-typedef struct Actor444000RunMatWords {
-    /* 0x00 */ s32 m00_m01;
-    /* 0x04 */ s32 m02_m10;
-    /* 0x08 */ s32 m11_m12;
-    /* 0x0C */ s32 m20_m21;
-    /* 0x10 */ s16 m22;
-} Actor444000RunMatWords;
-
-typedef union Actor444000RunMat {
-    MATRIX                 mat;
-    Actor444000RunMatWords ident;
-} Actor444000RunMat;
-STATIC_ASSERT_SIZEOF(Actor444000RunMat, 0x20);
-
 /// Scratchpad frame `func_actor_444000_8013482C` carves off `G_SCRATCH_HEAD`
 /// for the run-out / turn / run-back pass. `dir` is first the offset from the
 /// model to the player, whose yaw against the model's own facing becomes
@@ -423,10 +406,10 @@ STATIC_ASSERT_SIZEOF(Actor444000RunMat, 0x20);
 /// turn adds to the coordinate; `m` is the working copy of the model's root
 /// coordinate and `angle` the yaw `Gfx_RotMatrixY` rebuilds it from.
 typedef struct Actor444000RunScratch {
-    /* 0x00 */ SVECTOR           dir;
-    /* 0x08 */ Actor444000RunMat m;
-    /* 0x28 */ s16               pad_28;
-    /* 0x2A */ s16               angle;
+    /* 0x00 */ SVECTOR  dir;
+    /* 0x08 */ ActorMat m;
+    /* 0x28 */ s16      pad_28;
+    /* 0x2A */ s16      angle;
 } Actor444000RunScratch;
 STATIC_ASSERT_SIZEOF(Actor444000RunScratch, 0x2C);
 
@@ -486,24 +469,6 @@ typedef struct Actor444000DropWork {
     /* 0x1B0 */ byte          pad_1B0[0x10];
 } Actor444000DropWork;
 STATIC_ASSERT_SIZEOF(Actor444000DropWork, 0x1C0);
-
-/// A `MATRIX` plus the word-wise view `func_actor_444000_80140BBC` uses to
-/// splat an identity rotation into the shared coordinate
-/// `D_actor_444000_801618B8`: five aligned stores instead of nine halfword
-/// ones, each word holding two adjacent `m[][]` entries. The same shape as
-/// `Actor403100Matrix`; the rotation half of `Actor444000DropCoord` seen
-/// through a pointer, which is what keeps those stores in source order.
-typedef union Actor444000Matrix {
-    MATRIX mat;
-    struct {
-        /* 0x00 */ s32 m00_m01;
-        /* 0x04 */ s32 m02_m10;
-        /* 0x08 */ s32 m11_m12;
-        /* 0x0C */ s32 m20_m21;
-        /* 0x10 */ s16 m22;
-    } ident;
-} Actor444000Matrix;
-STATIC_ASSERT_SIZEOF(Actor444000Matrix, 0x20);
 
 /// Work block of the enemy dispatched through `D_actor_444000_80131EA8`, the
 /// one that seizes the player: its states install a scripted animation on the
@@ -1972,7 +1937,7 @@ static __inline__ void Actor444000_StepForward(GsCOORDINATE2* coord)
 void func_actor_444000_8013482C(Task* task)
 {
     Actor444000RunScratch* sc;
-    Actor444000RunMat*     mat;
+    ActorMat*              mat;
     TmdObject*             tmd;
     Actor444000Work*       work;
     GpEnemy*               enemy;
@@ -3547,7 +3512,7 @@ void func_actor_444000_80139594(GpEnemy* enemy, Task* task)
     GpEnemy*             owner;
     Task*                parent;
     Task*                player;
-    Actor444000Matrix*   mtx;
+    ActorMat*            mtx;
     SVECTOR              vec;
     s32                  dist;
     s32                  rnd;
@@ -3645,7 +3610,7 @@ void func_actor_444000_80139594(GpEnemy* enemy, Task* task)
     vec.vz = 0;
 
     work->coord.sub    = &gGfxViewCoord;
-    mtx                = (Actor444000Matrix*)&work->coord.coord;
+    mtx                = (ActorMat*)&work->coord.coord;
     mtx->ident.m00_m01 = 0x1000;
     mtx->ident.m02_m10 = 0;
     mtx->ident.m11_m12 = 0x1000;
@@ -4453,23 +4418,23 @@ static __inline__ void Actor444000_SeedRootCoord(Task* task, Actor444000Work* wo
 /// before the fight announces itself with message 0x7DA.
 void func_actor_444000_8013AFF8(GpEnemy* enemy, Task* task)
 {
-    Actor444000Work*   work;
-    Actor444000Work*   buffers;
-    Actor444000Work*   escorts;
-    Actor444000Matrix* mtx;
-    TmdObject*         tmd;
-    TmdObject*         model;
-    TmdObject*         escortTmd;
-    GsCOORDINATE2*     coord;
-    GsCOORDINATE2*     freeCoord;
-    GpEnemy*           esc;
-    Task*              escTask;
-    SVECTOR            dir;
-    SVECTOR*           gteDir;
-    VECTOR             pos;
-    s16                i;
-    s16                j;
-    s16                k;
+    Actor444000Work* work;
+    Actor444000Work* buffers;
+    Actor444000Work* escorts;
+    ActorMat*        mtx;
+    TmdObject*       tmd;
+    TmdObject*       model;
+    TmdObject*       escortTmd;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   freeCoord;
+    GpEnemy*         esc;
+    Task*            escTask;
+    SVECTOR          dir;
+    SVECTOR*         gteDir;
+    VECTOR           pos;
+    s16              i;
+    s16              j;
+    s16              k;
 
     tmd   = (TmdObject*)task->extra;
     coord = tmd->coords;
@@ -4649,7 +4614,7 @@ void func_actor_444000_8013AFF8(GpEnemy* enemy, Task* task)
     freeCoord                     = &work->field_E3C.c;
     work->field_E3C.c.sub         = ((TmdObject*)task->extra)->coords;
     work->field_E3C.ident.m00_m01 = 0x1000;
-    mtx                           = (Actor444000Matrix*)&work->field_E3C.c.coord;
+    mtx                           = (ActorMat*)&work->field_E3C.c.coord;
     mtx->ident.m02_m10            = 0;
     mtx->ident.m11_m12            = 0x1000;
     mtx->ident.m20_m21            = 0;
@@ -6626,16 +6591,16 @@ void func_actor_444000_801404C0(Task* arg0)
 /// rebuild.
 void func_actor_444000_80140BBC(Task* arg0)
 {
-    Actor444000Work*   work;
-    Actor444000Work*   escorts;
-    Actor444000Work*   buffers;
-    TmdObject*         tmd;
-    TmdObject*         escortTmd;
-    Actor444000Matrix* mtx;
-    GsCOORDINATE2*     coords;
-    s16                i;
-    s16                j;
-    s32                frame;
+    Actor444000Work* work;
+    Actor444000Work* escorts;
+    Actor444000Work* buffers;
+    TmdObject*       tmd;
+    TmdObject*       escortTmd;
+    ActorMat*        mtx;
+    GsCOORDINATE2*   coords;
+    s16              i;
+    s16              j;
+    s32              frame;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -6673,7 +6638,7 @@ void func_actor_444000_80140BBC(Task* arg0)
     if (work->field_7B3 == 9 && work->field_6 == 0x2D) {
         coords                                = ((TmdObject*)arg0->extra)->coords;
         D_actor_444000_801618B8.ident.m00_m01 = 0x1000;
-        mtx                                   = (Actor444000Matrix*)&D_actor_444000_801618B8.c.coord;
+        mtx                                   = (ActorMat*)&D_actor_444000_801618B8.c.coord;
         mtx->ident.m02_m10                    = 0;
         mtx->ident.m11_m12                    = 0x1000;
         mtx->ident.m20_m21                    = 0;

@@ -160,16 +160,6 @@ typedef struct Actor104000FaceScratch {
 } Actor104000FaceScratch;
 STATIC_ASSERT_SIZEOF(Actor104000FaceScratch, 0x34);
 
-/// A `MATRIX` rotation block written a word at a time: the identity is stored
-/// as 0x1000 / 0 pairs over the halfword elements, `m22` last.
-typedef struct Actor104000MatWords {
-    /* 0x00 */ s32 m00_m01;
-    /* 0x04 */ s32 m02_m10;
-    /* 0x08 */ s32 m11_m12;
-    /* 0x0C */ s32 m20_m21;
-    /* 0x10 */ s16 m22;
-} Actor104000MatWords;
-
 /// The nineteen handlers the tick copies onto its stack before dispatching.
 typedef struct Actor104000StateTable {
     /* 0x00 */ GpEnemyTaskFunc fn[19];
@@ -2138,7 +2128,7 @@ void Actor04000_Fn05F0C(GpEnemy* arg0, Task* arg1)
     Actor104000StateTable table;
     GsCOORDINATE2         coord;
     Actor104000Work*      work;
-    Actor104000MatWords*  mw;
+    ActorMatWords*        mw;
     s32                   snd;
     s32                   pan;
     s32                   id;
@@ -2159,17 +2149,17 @@ void Actor04000_Fn05F0C(GpEnemy* arg0, Task* arg1)
                 Gp_DrawEffGroundQuad((VECTOR3*)((TmdObject*)arg1->extra)->coords->workm.t, 0x100, Gp_State1C->groundShade);
             }
             if (work->field_0 == 0xF) {
-                mw                                            = (Actor104000MatWords*)&coord.coord;
-                mw->m00_m01                                   = 0x1000;
-                ((Actor104000MatWords*)&coord.coord)->m02_m10 = 0;
-                mw->m11_m12                                   = 0x1000;
-                ((Actor104000MatWords*)&coord.coord)->m20_m21 = 0;
-                mw->m22                                       = 0x1000;
-                coord.coord.t[0]                              = ((TmdObject*)arg1->extra)->coords->coord.t[0];
-                coord.coord.t[1]                              = 0;
-                coord.coord.t[2]                              = ((TmdObject*)arg1->extra)->coords->coord.t[2];
-                coord.sub                                     = &gGfxViewCoord;
-                coord.flg                                     = 0;
+                mw                                      = (ActorMatWords*)&coord.coord;
+                mw->m00_m01                             = 0x1000;
+                ((ActorMatWords*)&coord.coord)->m02_m10 = 0;
+                mw->m11_m12                             = 0x1000;
+                ((ActorMatWords*)&coord.coord)->m20_m21 = 0;
+                mw->m22                                 = 0x1000;
+                coord.coord.t[0]                        = ((TmdObject*)arg1->extra)->coords->coord.t[0];
+                coord.coord.t[1]                        = 0;
+                coord.coord.t[2]                        = ((TmdObject*)arg1->extra)->coords->coord.t[2];
+                coord.sub                               = &gGfxViewCoord;
+                coord.flg                               = 0;
                 Gp_UpdateCoord(&coord);
                 Gp_DrawEffGroundQuad((VECTOR3*)coord.workm.t, 0x60, Gp_State1C->groundShade);
             }

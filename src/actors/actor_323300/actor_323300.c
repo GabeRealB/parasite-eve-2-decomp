@@ -7,6 +7,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -108,21 +109,6 @@ typedef struct Actor323300Coord {
 } Actor323300Coord;
 STATIC_ASSERT_SIZEOF(Actor323300Coord, 0x4C);
 
-/// Word-wise view of a `MATRIX` used to splat an identity rotation: five
-/// aligned stores instead of nine halfword ones, each word holding two adjacent
-/// `m[][]` entries.
-typedef union Actor323300Matrix {
-    MATRIX mat;
-    struct {
-        /* 0x00 */ s32 m00_m01;
-        /* 0x04 */ s32 m02_m10;
-        /* 0x08 */ s32 m11_m12;
-        /* 0x0C */ s32 m20_m21;
-        /* 0x10 */ s16 m22;
-    } ident;
-} Actor323300Matrix;
-STATIC_ASSERT_SIZEOF(Actor323300Matrix, 0x20);
-
 /// Vertex-morph source `func_actor_323300_80162A6C` blends the model with.
 /// `field_8` and `field_C` are the key vertex and key normal arrays -- 8-byte
 /// `SVECTOR`s, the stride `gteMIMefunc` itself takes -- which that function
@@ -159,18 +145,18 @@ typedef struct {
 /// `field_43C` the once-only flag its tick path sets. `field_44C` is the 0x3000
 /// that same initialiser stores.
 typedef struct Actor323300MtxWork {
-    /* 0x000 */ GpAnimCtx         anim;
-    /* 0x014 */ GpAnimSlot        slots[19];
-    /* 0x30C */ byte              pad_30C[0x130];
-    /* 0x43C */ s32               field_43C; // set once the slots have been started
-    /* 0x440 */ s32               field_440; // animation bank index the slots were seeded with
-    /* 0x444 */ s32               field_444; // animation id the slots were seeded with
-    /* 0x448 */ byte              pad_448[0x4];
-    /* 0x44C */ s32               field_44C;
-    /* 0x450 */ GsCOORDINATE2     shadow[3];   // unsquashed copies of parts 3..5, re-parented onto 4..6
-    /* 0x540 */ VECTOR            partPos[19]; // original part translations, before the squash
-    /* 0x670 */ Actor323300Matrix light;
-    /* 0x690 */ Actor323300Matrix color;
+    /* 0x000 */ GpAnimCtx     anim;
+    /* 0x014 */ GpAnimSlot    slots[19];
+    /* 0x30C */ byte          pad_30C[0x130];
+    /* 0x43C */ s32           field_43C; // set once the slots have been started
+    /* 0x440 */ s32           field_440; // animation bank index the slots were seeded with
+    /* 0x444 */ s32           field_444; // animation id the slots were seeded with
+    /* 0x448 */ byte          pad_448[0x4];
+    /* 0x44C */ s32           field_44C;
+    /* 0x450 */ GsCOORDINATE2 shadow[3];   // unsquashed copies of parts 3..5, re-parented onto 4..6
+    /* 0x540 */ VECTOR        partPos[19]; // original part translations, before the squash
+    /* 0x670 */ ActorMat      light;
+    /* 0x690 */ ActorMat      color;
 } Actor323300MtxWork;
 STATIC_ASSERT_SIZEOF(Actor323300MtxWork, 0x6B0);
 
@@ -668,13 +654,13 @@ void func_actor_323300_80162748(Task* arg0)
 /// cleared so the next `Gp_UpdateCoord` recomputes it.
 void func_actor_323300_801627B4(Task* arg0)
 {
-    Actor323300Work*   work;
-    Actor323300Matrix* words;
-    GsCOORDINATE2*     coord;
-    SVECTOR            vec;
-    s16                diff;
-    s32                vy;
-    s32                i;
+    Actor323300Work* work;
+    ActorMat*        words;
+    GsCOORDINATE2*   coord;
+    SVECTOR          vec;
+    s16              diff;
+    s32              vy;
+    s32              i;
 
     coord = ((TmdObject*)arg0->extra)->coords;
     work  = (Actor323300Work*)arg0->work;
@@ -698,7 +684,7 @@ void func_actor_323300_801627B4(Task* arg0)
         work->field_4FE = 0;
     }
 
-    words                = (Actor323300Matrix*)&coord->coord;
+    words                = (ActorMat*)&coord->coord;
     words->ident.m00_m01 = 0x1000;
     words->ident.m02_m10 = 0;
     words->ident.m11_m12 = 0x1000;
@@ -1051,8 +1037,8 @@ void func_actor_323300_801634B0(Task* arg0)
 void func_actor_323300_80163510(Task* arg0)
 {
     Actor323300MtxWork* work;
-    Actor323300Matrix*  light;
-    Actor323300Matrix*  color;
+    ActorMat*           light;
+    ActorMat*           color;
     GsCOORDINATE2*      coords;
     TmdObject*          extra;
 

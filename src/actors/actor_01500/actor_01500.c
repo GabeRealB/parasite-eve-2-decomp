@@ -1,7 +1,6 @@
 #include "common.h"
 
 #include "actors/actor.h"
-#include "actors/actors_shared_80135b58.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -1599,14 +1598,14 @@ void Actor01500_Fn02B70(Task* arg0)
 /// matrix is rebuilt.
 void Actor01500_Fn02C34(Task* arg0)
 {
-    GsCOORDINATE2*              coord;
-    MATRIX*                     head;
-    ActorShared80135b58Scratch* scratch;
-    Actor101500Work*            work;
+    GsCOORDINATE2*     coord;
+    MATRIX*            head;
+    ActorScaleScratch* scratch;
+    Actor101500Work*   work;
 
     head                    = *(MATRIX**)G_SCRATCH_HEAD;
     work                    = arg0->work;
-    scratch                 = (ActorShared80135b58Scratch*)((u8*)head - 0x30);
+    scratch                 = (ActorScaleScratch*)((u8*)head - 0x30);
     *(void**)G_SCRATCH_HEAD = scratch;
     coord                   = ((TmdObject*)arg0->extra)->coords;
     if (work->field_368 >= 0x201) {

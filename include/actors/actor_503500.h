@@ -7,6 +7,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "actors/actor.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -338,23 +339,6 @@ typedef struct Actor503500Work {
     /* 0x7E7 */ s8   field_7E7; // 1 while the sound started by D_80071075 plays
 } Actor503500Work;
 STATIC_ASSERT_SIZEOF(Actor503500Work, 0x7E8);
-
-/// Word-wise view of a `MATRIX` that `func_actor_503500_8013852C` uses to
-/// splat an identity rotation: five aligned stores instead of nine halfword
-/// ones, each word holding two adjacent `m[][]` entries.
-typedef struct Actor503500MatWords {
-    /* 0x00 */ s32 m00_m01;
-    /* 0x04 */ s32 m02_m10;
-    /* 0x08 */ s32 m11_m12;
-    /* 0x0C */ s32 m20_m21;
-    /* 0x10 */ s16 m22;
-} Actor503500MatWords;
-
-typedef union Actor503500IdentMat {
-    MATRIX              mat;
-    Actor503500MatWords ident;
-} Actor503500IdentMat;
-STATIC_ASSERT_SIZEOF(Actor503500IdentMat, 0x20);
 
 /// Identity rotation, written two halfwords per word store. Being inline is
 /// what matches: the argument is expanded as an address sum, so the caller's

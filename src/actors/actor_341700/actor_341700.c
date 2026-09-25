@@ -20,11 +20,12 @@
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 
+#include "actors/actor.h"
 #include "actors/actors_shared_80163354.h"
-#include "actors/actors_shared_801639a8.h"
 #include "actors/actors_shared_801673f8.h"
-#include "actors/actors_shared_8016a538.h"
-#include "actors/actors_shared_8016bd98.h"
+
+/// Psy-Q `RotMatrixY`, taking the angle as a `long`.
+void func_8004BFF8(s32 angle, MATRIX* matrix);
 
 /// Status flags at `Actor341700Work` + 0xEC, read through two widths.
 ///
@@ -495,14 +496,14 @@ void func_actor_341700_801624F8(Task* arg0)
 /// one shared part pointer comes out a saved register short.
 void func_actor_341700_801626C4(Task* arg0)
 {
-    SVECTOR                       rot;
-    ActorsShared801639a8Mat       mtx;
-    ActorsShared801639a8MatWords* ident;
-    Actor341700Work*              work;
-    GsCOORDINATE2*                coords;
-    MATRIX*                       m5;
-    MATRIX*                       m4;
-    MATRIX*                       m3;
+    SVECTOR          rot;
+    ActorMat         mtx;
+    ActorMatWords*   ident;
+    Actor341700Work* work;
+    GsCOORDINATE2*   coords;
+    MATRIX*          m5;
+    MATRIX*          m4;
+    MATRIX*          m3;
 
     work   = (Actor341700Work*)arg0->work;
     ident  = &mtx.ident;
@@ -1210,12 +1211,12 @@ void func_actor_341700_80163C58(Task* arg0)
 /// sub-state.
 void func_actor_341700_80163E58(Task* arg0)
 {
-    Actor341700Work*         work;
-    GsCOORDINATE2*           coord;
-    ActorsShared8016a538Mat  rot;
-    ActorsShared8016a538Mat* src;
-    MATRIX*                  dst;
-    Actor341700Work*         anim;
+    Actor341700Work* work;
+    GsCOORDINATE2*   coord;
+    ActorMat         rot;
+    ActorMat*        src;
+    MATRIX*          dst;
+    Actor341700Work* anim;
 
     work               = (Actor341700Work*)arg0->work;
     coord              = ((TmdObject*)arg0->extra)->coords;
@@ -1682,13 +1683,13 @@ void func_actor_341700_80164CDC(Task* arg0)
 /// hides the model and advances the state.
 void func_actor_341700_80164E9C(Task* arg0)
 {
-    Actor341700Work*              work;
-    TmdObject*                    obj;
-    GsCOORDINATE2*                coord;
-    VECTOR                        scale;
-    ActorsShared8016bd98Mat       m;
-    ActorsShared8016bd98MatWords* ident;
-    SVECTOR                       ofs;
+    Actor341700Work* work;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    VECTOR           scale;
+    ActorMat         m;
+    ActorMatWords*   ident;
+    SVECTOR          ofs;
 
     work             = (Actor341700Work*)arg0->work;
     ident            = &m.ident;
@@ -3685,12 +3686,12 @@ void func_actor_341700_80169218(Task* arg0)
 /// sub-state.
 void func_actor_341700_80169254(Task* arg0)
 {
-    Actor341700Work*         work;
-    GsCOORDINATE2*           coord;
-    ActorsShared8016a538Mat  rot;
-    ActorsShared8016a538Mat* src;
-    MATRIX*                  dst;
-    s16                      pitch;
+    Actor341700Work* work;
+    GsCOORDINATE2*   coord;
+    ActorMat         rot;
+    ActorMat*        src;
+    MATRIX*          dst;
+    s16              pitch;
 
     work               = (Actor341700Work*)arg0->work;
     coord              = ((TmdObject*)arg0->extra)->coords;
@@ -4601,12 +4602,12 @@ void func_actor_341700_8016AA58(Task* arg0)
 /// hides the model, clears the frame counter and advances the state.
 void func_actor_341700_8016AAB4(Task* arg0)
 {
-    Actor341700Work*              work;
-    TmdObject*                    obj;
-    GsCOORDINATE2*                coord;
-    VECTOR                        scale;
-    ActorsShared8016bd98Mat       m;
-    ActorsShared8016bd98MatWords* ident;
+    Actor341700Work* work;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    VECTOR           scale;
+    ActorMat         m;
+    ActorMatWords*   ident;
 
     work             = (Actor341700Work*)arg0->work;
     ident            = &m.ident;

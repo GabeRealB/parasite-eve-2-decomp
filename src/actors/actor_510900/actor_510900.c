@@ -85,15 +85,15 @@ extern Actor510900SprClut D_actor_510900_8013C48C[];
 
 void func_actor_510900_80131F24(Task* arg0)
 {
-    GpEffWork*              mem;
-    GsCOORDINATE2*          coord;
-    GpPointLight*           slot;
-    GpCoord64*              base;
-    GpEffWork*              eff;
-    Actor510900MatrixWords* mat;
-    s32                     i;
-    s32                     bits;
-    s32                     z;
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    GpPointLight*  slot;
+    GpCoord64*     base;
+    GpEffWork*     eff;
+    ActorMatWords* mat;
+    s32            i;
+    s32            bits;
+    s32            z;
 
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
@@ -109,7 +109,7 @@ void func_actor_510900_80131F24(Task* arg0)
         return;
     }
     if (arg0->state == 0) {
-        mat               = (Actor510900MatrixWords*)&coord->coord;
+        mat               = (ActorMatWords*)&coord->coord;
         coord->sub        = mem->parent;
         mat->m00_m01      = 0x1000;
         mat->m02_m10      = 0;
@@ -824,13 +824,13 @@ void func_actor_510900_80133C84(Task* arg0)
 
 void func_actor_510900_801340E8(Task* arg0)
 {
-    GpCoord64*              base;
-    GsCOORDINATE2*          cam;
-    GpPointLight*           ext;
-    GpEffWork*              eff;
-    GsCOORDINATE2*          coord;
-    Actor510900MatrixWords* mat;
-    s32                     i;
+    GpCoord64*     base;
+    GsCOORDINATE2* cam;
+    GpPointLight*  ext;
+    GpEffWork*     eff;
+    GsCOORDINATE2* coord;
+    ActorMatWords* mat;
+    s32            i;
 
     base  = &Gp_RoomCoords[3];
     cam   = &base->data.coord;
@@ -841,7 +841,7 @@ void func_actor_510900_801340E8(Task* arg0)
         Gp_ReleaseState1CMem(eff, arg0);
         return;
     }
-    mat               = (Actor510900MatrixWords*)&coord->coord;
+    mat               = (ActorMatWords*)&coord->coord;
     coord->sub        = eff->parent;
     mat->m00_m01      = 0x1000;
     mat->m02_m10      = 0;

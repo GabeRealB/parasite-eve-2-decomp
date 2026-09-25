@@ -7,7 +7,6 @@
 
 #include "actors/actor.h"
 #include "actors/actor_100300.h"
-#include "actors/actors_shared_80135b58.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -108,19 +107,11 @@ STATIC_ASSERT_SIZEOF(Actor02400ChildScratch, 0x18);
 /// scaled per axis by `scale`, and the coordinate's translation `t`, restored
 /// after the multiply.
 typedef struct Actor02400ScaleScratch {
-    /* 0x00 */ ActorShared80135b58Mat mat;
-    /* 0x20 */ VECTOR                 scale;
-    /* 0x30 */ VECTOR                 t;
+    /* 0x00 */ ActorMat mat;
+    /* 0x20 */ VECTOR   scale;
+    /* 0x30 */ VECTOR   t;
 } Actor02400ScaleScratch;
 STATIC_ASSERT_SIZEOF(Actor02400ScaleScratch, 0x40);
-
-/// Scratchpad block the dying body is squashed through: an identity `mat`
-/// scaled by `scale`.
-typedef struct Actor02400SquashScratch {
-    /* 0x00 */ ActorShared80135b58Mat mat;
-    /* 0x20 */ VECTOR                 scale;
-} Actor02400SquashScratch;
-STATIC_ASSERT_SIZEOF(Actor02400SquashScratch, 0x30);
 
 /// Scratchpad block the hit handling works in: `delta` receives the
 /// `func_800E0C10` push-back and is then reused for each record's offset,
@@ -1709,15 +1700,15 @@ void Actor02400_Fn03228(Task* task)
 /// the root coordinate and scales it on Y by `field_12A`.
 void Actor02400_Fn03278(Task* task)
 {
-    void**                   scratch;
-    void*                    head;
-    Actor02400SquashScratch* blk;
-    Actor02400Work*          work;
-    GsCOORDINATE2*           coord;
+    void**             scratch;
+    void*              head;
+    ActorScaleScratch* blk;
+    Actor02400Work*    work;
+    GsCOORDINATE2*     coord;
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
-    blk      = (Actor02400SquashScratch*)((u8*)head - 0x30);
+    blk      = (ActorScaleScratch*)((u8*)head - 0x30);
     *scratch = blk;
     coord    = ((TmdObject*)task->extra)->coords;
     work     = task->work;

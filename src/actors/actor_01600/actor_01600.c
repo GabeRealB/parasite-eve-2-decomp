@@ -5,6 +5,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
@@ -330,46 +331,18 @@ typedef struct Actor01600GroundScratch {
 } Actor01600GroundScratch;
 STATIC_ASSERT_SIZEOF(Actor01600GroundScratch, 0x18);
 
-/// Word-wise view of a `MATRIX` used to splat an identity rotation: five
-/// aligned stores instead of nine halfword ones, each word holding two adjacent
-/// `m[][]` entries. Same shape as `Actor206100MatrixWords`.
-typedef struct Actor01600MatWords {
-    /* 0x00 */ s32 m00_m01;
-    /* 0x04 */ s32 m02_m10;
-    /* 0x08 */ s32 m11_m12;
-    /* 0x0C */ s32 m20_m21;
-    /* 0x10 */ s16 m22;
-} Actor01600MatWords;
-
-typedef union Actor01600Matrix {
-    MATRIX             mat;
-    Actor01600MatWords ident;
-} Actor01600Matrix;
-STATIC_ASSERT_SIZEOF(Actor01600Matrix, 0x20);
-
 /// 0x3C-byte `G_SCRATCH_HEAD` block `Actor01600_Fn06974` steps the attachment
 /// coordinate in: the step vector the coordinate's facing is rotated into, the
 /// `SVECTOR` `Gfx_MatrixCol2` reads that facing into, the rotation
 /// `func_8004BFF8` builds for the yaw and the yaw itself.
 typedef struct Actor01600StepScratch {
-    /* 0x00 */ VECTOR           move;
-    /* 0x10 */ SVECTOR          dir;
-    /* 0x18 */ Actor01600Matrix mat;
-    /* 0x38 */ s16              yaw;
-    /* 0x3A */ byte             pad_3A[2];
+    /* 0x00 */ VECTOR   move;
+    /* 0x10 */ SVECTOR  dir;
+    /* 0x18 */ ActorMat mat;
+    /* 0x38 */ s16      yaw;
+    /* 0x3A */ byte     pad_3A[2];
 } Actor01600StepScratch;
 STATIC_ASSERT_SIZEOF(Actor01600StepScratch, 0x3C);
-
-/// 0x30-byte `G_SCRATCH_HEAD` block `Actor01600_Fn06880` squashes the attachment
-/// coordinate with: an identity `mat` scaled per axis by `scale` and multiplied
-/// into the coordinate's own rotation. The axis scales are 1.0, the work
-/// block's decaying `field_518` and 1.0 again. Same shape as the
-/// `ActorShared80135b58Scratch` the other actors' shrinking bodies borrow.
-typedef struct Actor01600ScaleScratch {
-    /* 0x00 */ Actor01600Matrix mat;
-    /* 0x20 */ VECTOR           scale;
-} Actor01600ScaleScratch;
-STATIC_ASSERT_SIZEOF(Actor01600ScaleScratch, 0x30);
 
 void Actor01600_Fn03A60(Task* actor);
 
@@ -3827,14 +3800,14 @@ void Actor01600_Fn06810(GpEnemy* arg0, Task* arg1)
 /// `flg` is cleared so its own work matrix is rebuilt from `coord` next frame.
 void Actor01600_Fn06880(Task* arg0)
 {
-    GsCOORDINATE2*          coord;
-    u8*                     head;
-    Actor01600ScaleScratch* scratch;
-    Actor01600Work*         work;
+    GsCOORDINATE2*     coord;
+    u8*                head;
+    ActorScaleScratch* scratch;
+    Actor01600Work*    work;
 
     head                = *(u8**)0x1F8003FC;
     work                = arg0->work;
-    scratch             = (Actor01600ScaleScratch*)(head - 0x30);
+    scratch             = (ActorScaleScratch*)(head - 0x30);
     *(void**)0x1F8003FC = scratch;
     coord               = ((TmdObject*)arg0->extra)->coords;
     if (work->field_518 >= 0x201) {
@@ -3862,7 +3835,7 @@ void Actor01600_Fn06880(Task* arg0)
 /// result is added to `coord.t`.
 void Actor01600_Fn06974(Task* actor, s32 distance)
 {
-    Actor01600Matrix*      mat;
+    ActorMat*              mat;
     Actor01600StepScratch* work;
     GsCOORDINATE2*         coord;
     VECTOR*                head;
@@ -3877,7 +3850,7 @@ void Actor01600_Fn06974(Task* actor, s32 distance)
     work->move.vz = 0;
     *scratch      = work;
     Gfx_MatrixCol2(&((TmdObject*)actor->extra)->coords->coord, (SVECTOR*)((u8*)head - 0x2C));
-    mat                = (Actor01600Matrix*)((u8*)head - 0x24);
+    mat                = (ActorMat*)((u8*)head - 0x24);
     work->yaw          = ratan2(work->dir.vx, work->dir.vz);
     mat->ident.m00_m01 = 0x1000;
     mat->ident.m02_m10 = 0;

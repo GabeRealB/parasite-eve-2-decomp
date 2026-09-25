@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/abs.h>
 
+#include "actors/actor.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/D4.h"
@@ -123,19 +124,6 @@ typedef struct Actor317000SpawnAnim {
 /// ever read; the words after it (among them the address of
 /// `func_actor_317000_80162624`) suggest a larger record, not a bank array.
 extern void* D_actor_317000_8016CF40[];
-
-/// A `MATRIX`'s word-wise view, for the identity splat
-/// `func_actor_317000_801627D0` writes over the root coordinate before
-/// `RotMatrix` overwrites the 3x3: five aligned stores rather than nine
-/// halfword ones.
-typedef struct Actor317000MatWords {
-    /* 0x00 */ s32 m00_m01;
-    /* 0x04 */ s32 m02_m10;
-    /* 0x08 */ s32 m11_m12;
-    /* 0x0C */ s32 m20_m21;
-    /* 0x10 */ s16 m22;
-} Actor317000MatWords;
-STATIC_ASSERT_SIZEOF(Actor317000MatWords, 0x14);
 
 /// Overlay of `GsCOORDINATE2` at `TmdObject::coords`. Offset 0x44 (libgs
 /// `param`) holds the facing `func_actor_317000_801620BC` derives from the
@@ -339,17 +327,17 @@ void func_actor_317000_801620BC(Task* task)
 /// calls and puts `&target[4]` in its own register.
 void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s32 arg3, s32 arg4)
 {
-    GsCOORDINATE2*       coord;
-    GsCOORDINATE2*       target;
-    GsCOORDINATE2*       head;
-    GsCOORDINATE2*       aim;
-    MATRIX*              arm;
-    Actor317000MatWords* words;
-    VECTOR               delta;
-    VECTOR               dir;
-    SVECTOR              ang;
-    SVECTOR              vec;
-    SVECTOR              rot;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* target;
+    GsCOORDINATE2* head;
+    GsCOORDINATE2* aim;
+    MATRIX*        arm;
+    ActorMatWords* words;
+    VECTOR         delta;
+    VECTOR         dir;
+    SVECTOR        ang;
+    SVECTOR        vec;
+    SVECTOR        rot;
 
     coord  = ((TmdObject*)task->extra)->coords;
     target = ((TmdObject*)targetTask->extra)->coords;
@@ -386,7 +374,7 @@ void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s32 arg3
     vec.vy = vec.vy * 5 / 8;
     vec.vz = vec.vz * 5 / 8;
 
-    words          = (Actor317000MatWords*)&coord[5].coord;
+    words          = (ActorMatWords*)&coord[5].coord;
     words->m00_m01 = ONE;
     words->m02_m10 = 0;
     words->m11_m12 = ONE;
@@ -565,7 +553,7 @@ void func_actor_317000_80162768(Task* arg0)
 void func_actor_317000_801627D0(Task* arg0)
 {
     Actor317000Work*      work;
-    Actor317000MatWords*  words;
+    ActorMatWords*        words;
     GsCOORDINATE2*        coord;
     SVECTOR               vec;
     Actor317000AnimPreset preset;
@@ -596,7 +584,7 @@ void func_actor_317000_801627D0(Task* arg0)
         work->field_4C2++;
     }
 
-    words          = (Actor317000MatWords*)&coord->coord;
+    words          = (ActorMatWords*)&coord->coord;
     words->m00_m01 = ONE;
     words->m02_m10 = 0;
     words->m11_m12 = ONE;

@@ -3,6 +3,7 @@
 #include <psyq/libgte.h>
 #include <psyq/abs.h>
 
+#include "actors/actor.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -89,19 +90,6 @@ typedef struct Actor350500SpawnAnim {
     /* 0x00 */ s32 field_0;
     /* 0x04 */ u8  field_4;
 } Actor350500SpawnAnim;
-
-/// A `MATRIX`'s word-wise view, for the identity splat
-/// `func_actor_350500_8016272C` writes over the root coordinate before
-/// `RotMatrix` overwrites the 3x3: five aligned stores rather than nine
-/// halfword ones.
-typedef struct Actor350500MatWords {
-    /* 0x00 */ s32 m00_m01;
-    /* 0x04 */ s32 m02_m10;
-    /* 0x08 */ s32 m11_m12;
-    /* 0x0C */ s32 m20_m21;
-    /* 0x10 */ s16 m22;
-} Actor350500MatWords;
-STATIC_ASSERT_SIZEOF(Actor350500MatWords, 0x14);
 
 /// Overlay of the `GsCOORDINATE2` at `TmdObject::coords`, the actor's root
 /// part. Offset 0x44 (libgs `param`) holds the Euler angles the placement
@@ -470,7 +458,7 @@ void func_actor_350500_801625E4(Task* arg0)
 void func_actor_350500_8016272C(Task* arg0)
 {
     Actor350500Work*      work;
-    Actor350500MatWords*  words;
+    ActorMatWords*        words;
     GsCOORDINATE2*        coord;
     SVECTOR               vec;
     Actor350500AnimPreset preset;
@@ -501,7 +489,7 @@ void func_actor_350500_8016272C(Task* arg0)
         work->field_4C2 = 0;
     }
 
-    words          = (Actor350500MatWords*)&coord->coord;
+    words          = (ActorMatWords*)&coord->coord;
     words->m00_m01 = ONE;
     words->m02_m10 = 0;
     words->m11_m12 = ONE;

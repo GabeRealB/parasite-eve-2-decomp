@@ -6,6 +6,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "main/fs.h"
 #include "main/gameflow.h"
 #include "main/gfx.h"
@@ -48,21 +49,6 @@ typedef struct _Actor342000Cmd {
     /* 0x2 */ u16  field_2;
 } Actor342000Cmd;
 STATIC_ASSERT_SIZEOF(Actor342000Cmd, 0x4);
-
-/// A `MATRIX` plus the word-wise view `func_actor_342000_801628C8` splats the
-/// actor coordinate's identity rotation through: five aligned stores rather
-/// than nine halfword ones.
-typedef union Actor342000MatWords {
-    MATRIX mat;
-    struct {
-        /* 0x00 */ s32 m00_m01;
-        /* 0x04 */ s32 m02_m10;
-        /* 0x08 */ s32 m11_m12;
-        /* 0x0C */ s32 m20_m21;
-        /* 0x10 */ s16 m22;
-    } ident;
-} Actor342000MatWords;
-STATIC_ASSERT_SIZEOF(Actor342000MatWords, 0x20);
 
 /// Per-instance work block for the overlay's model actor.
 ///
@@ -325,8 +311,8 @@ extern GpMsgEntry D_actor_342000_801648E8[];
 /// of being hoisted to the top of each case.
 static inline void Actor342000_InitCoord(Task* arg0, Actor342000Work* w)
 {
-    GsCOORDINATE2*       coord;
-    Actor342000MatWords* mtx;
+    GsCOORDINATE2* coord;
+    ActorMat*      mtx;
 
     coord                                  = &w->coord;
     coord->sub                             = ((Actor342000Work*)arg0->work)->field_2A4;
@@ -334,7 +320,7 @@ static inline void Actor342000_InitCoord(Task* arg0, Actor342000Work* w)
     coord->coord.t[0]                      = 0;
     coord->coord.t[1]                      = 0;
     coord->coord.t[2]                      = 0;
-    mtx                                    = (Actor342000MatWords*)&w->coord.coord;
+    mtx                                    = (ActorMat*)&w->coord.coord;
     mtx->ident.m00_m01                     = 0x1000;
     mtx->ident.m02_m10                     = 0;
     mtx->ident.m11_m12                     = 0x1000;
@@ -444,20 +430,20 @@ void func_actor_342000_80162158(Task* arg0)
 /// first column read through the work block.
 void func_actor_342000_801625D8(Task* arg0)
 {
-    register short       t4 asm("t4");
-    register short       t5 asm("t5");
-    register short       t6 asm("t6");
-    Actor342000Work*     work;
-    Actor342000MatWords* mtx;
-    Actor342000Work*     data;
-    s32                  one;
-    GsCOORDINATE2*       coord;
-    VECTOR*              sc;
-    TmdObject*           extra;
-    u8*                  head;
-    SVECTOR*             sv;
-    u32                  scratch;
-    VECTOR               pos;
+    register short   t4 asm("t4");
+    register short   t5 asm("t5");
+    register short   t6 asm("t6");
+    Actor342000Work* work;
+    ActorMat*        mtx;
+    Actor342000Work* data;
+    s32              one;
+    GsCOORDINATE2*   coord;
+    VECTOR*          sc;
+    TmdObject*       extra;
+    u8*              head;
+    SVECTOR*         sv;
+    u32              scratch;
+    VECTOR           pos;
 
     work = (Actor342000Work*)arg0->work;
 
@@ -477,7 +463,7 @@ void func_actor_342000_801625D8(Task* arg0)
             data = (Actor342000Work*)work->field_298->work;
             __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
             scratch            = *(u32*)(head + 0x3FC);
-            mtx                = (Actor342000MatWords*)&work->coord.coord;
+            mtx                = (ActorMat*)&work->coord.coord;
             mtx->ident.m00_m01 = one;
             mtx->ident.m02_m10 = 0;
             mtx->ident.m11_m12 = one;
@@ -559,7 +545,7 @@ void func_actor_342000_801625D8(Task* arg0)
 }
 
 /// Display state 1 rebuilds the actor coordinate: an identity rotation is
-/// splatted through `Actor342000MatWords`, the euler angles below it are
+/// splatted through `ActorMat`, the euler angles below it are
 /// composed onto it (Y, then X, then Z) and every column is scaled by the
 /// matching component of `Actor342000Work::field_264` -- a scratchpad `SVECTOR`
 /// is gathered from the column, run through `GPF` and scattered back, with the
@@ -572,19 +558,19 @@ void func_actor_342000_801625D8(Task* arg0)
 /// rather than a materialised 32-bit constant.
 void func_actor_342000_801628C8(Task* arg0)
 {
-    register short       t4 asm("t4");
-    register short       t5 asm("t5");
-    register short       t6 asm("t6");
-    Actor342000Work*     work;
-    Actor342000Work*     data;
-    Actor342000MatWords* mtx;
-    s32*                 ang;
-    VECTOR*              sc;
-    TmdObject*           extra;
-    u8*                  head;
-    SVECTOR*             sv;
-    u32                  scratch;
-    VECTOR               pos;
+    register short   t4 asm("t4");
+    register short   t5 asm("t5");
+    register short   t6 asm("t6");
+    Actor342000Work* work;
+    Actor342000Work* data;
+    ActorMat*        mtx;
+    s32*             ang;
+    VECTOR*          sc;
+    TmdObject*       extra;
+    u8*              head;
+    SVECTOR*         sv;
+    u32              scratch;
+    VECTOR           pos;
 
     work = (Actor342000Work*)arg0->work;
 
@@ -595,7 +581,7 @@ void func_actor_342000_801628C8(Task* arg0)
             arg0->state += 1;
             return;
         case 1:
-            mtx                = (Actor342000MatWords*)&work->coord.coord;
+            mtx                = (ActorMat*)&work->coord.coord;
             mtx->ident.m00_m01 = 0x1000;
             mtx->ident.m02_m10 = 0;
             mtx->ident.m11_m12 = 0x1000;

@@ -22,8 +22,10 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_8013a0b0.h"
-#include "actors/actors_shared_8016a538.h"
 #include "actors/actors_shared_801692e8.h"
+
+/// Psy-Q `RotMatrixY`, taking the angle as a `long`.
+void func_8004BFF8(s32 angle, MATRIX* matrix);
 
 /// Three packed halfwords filled by `func_actor_400600_80139F4C`: the actor's
 /// view-space X/Y (the translation of the `Gp_WorldToLocal` result) and the low
@@ -1824,19 +1826,19 @@ void func_actor_400600_80135578(Task* arg0)
 /// their light / color matrices at this actor's own.
 void func_actor_400600_801356E0(Task* arg0)
 {
-    Actor400600Work*         work;
-    GsCOORDINATE2*           coord;
-    GsCOORDINATE2*           root;
-    GsCOORDINATE2*           parent;
-    GsCOORDINATE2*           parent2;
-    Task*                    task;
-    TmdObject*               obj;
-    TmdObject*               dst;
-    TmdObject*               src;
-    MATRIX*                  mdst;
-    ActorsShared8016a538Mat* pm;
-    ActorsShared8016a538Mat* pm2;
-    ActorsShared8016a538Mat  m;
+    Actor400600Work* work;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   root;
+    GsCOORDINATE2*   parent;
+    GsCOORDINATE2*   parent2;
+    Task*            task;
+    TmdObject*       obj;
+    TmdObject*       dst;
+    TmdObject*       src;
+    MATRIX*          mdst;
+    ActorMat*        pm;
+    ActorMat*        pm2;
+    ActorMat         m;
 
     root            = ((TmdObject*)arg0->extra)->coords;
     work            = (Actor400600Work*)arg0->work;
@@ -2773,17 +2775,17 @@ void func_actor_400600_80137240(Task* arg0)
  * its own matrix pointer so local-alloc puts it in `$s0` ahead of `work`. */
 void func_actor_400600_80137498(Task* arg0, s16 arg1)
 {
-    Actor400600Work*        work = (Actor400600Work*)arg0->work;
-    SVECTOR                 v;
-    SVECTOR                 out;
-    ActorsShared8016a538Mat rot;
-    s16                     n;
+    Actor400600Work* work = (Actor400600Work*)arg0->work;
+    SVECTOR          v;
+    SVECTOR          out;
+    ActorMat         rot;
+    s16              n;
 
     work->field_76A = arg1;
     switch (arg1) {
         case 0:
             if (work->field_768 == 0) {
-                ActorsShared8016a538Mat* m = &rot;
+                ActorMat* m = &rot;
 
                 v.vx              = work->field_A8.x - ((TmdObject*)arg0->extra)->coords->coord.t[0];
                 v.vy              = work->field_A8.y - ((TmdObject*)arg0->extra)->coords->coord.t[1] - 0x384;
@@ -2799,7 +2801,7 @@ void func_actor_400600_80137498(Task* arg0, s16 arg1)
                 func_8004BFF8(-(s16)work->field_82, &m->mat);
                 ApplyMatrixSV(&m->mat, &v, &out);
             } else {
-                ActorsShared8016a538Mat* m = &rot;
+                ActorMat* m = &rot;
 
                 v.vx              = work->field_A8.x - ((TmdObject*)arg0->extra)->coords->coord.t[0];
                 v.vy              = work->field_A8.y - ((TmdObject*)arg0->extra)->coords->coord.t[1] - 0x640;
@@ -2889,32 +2891,32 @@ s32 func_actor_400600_801376EC(Task* arg0)
 
 void func_actor_400600_80137840(Task* arg0)
 {
-    Actor400600Work*         work;
-    Actor400600Work*         work2;
-    Actor400600Work*         work3;
-    Actor400600Work*         work4;
-    Actor400600Work*         work5;
-    Task*                    child;
-    Task*                    child2;
-    Task*                    child3;
-    Task*                    child4;
-    GsCOORDINATE2*           coord;
-    GsCOORDINATE2*           coord2;
-    GsCOORDINATE2*           coord3;
-    GsCOORDINATE2*           coord4;
-    ActorsShared8016a538Mat  rot;
-    ActorsShared8016a538Mat* m1;
-    ActorsShared8016a538Mat* m2;
-    ActorsShared8016a538Mat* m3;
-    ActorsShared8016a538Mat* m4;
-    MATRIX*                  dst;
-    MATRIX*                  dst2;
-    MATRIX*                  dst3;
-    MATRIX*                  dst4;
-    s16                      angle1;
-    s32                      angle2;
-    s16                      angle3;
-    s16                      angle4;
+    Actor400600Work* work;
+    Actor400600Work* work2;
+    Actor400600Work* work3;
+    Actor400600Work* work4;
+    Actor400600Work* work5;
+    Task*            child;
+    Task*            child2;
+    Task*            child3;
+    Task*            child4;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   coord2;
+    GsCOORDINATE2*   coord3;
+    GsCOORDINATE2*   coord4;
+    ActorMat         rot;
+    ActorMat*        m1;
+    ActorMat*        m2;
+    ActorMat*        m3;
+    ActorMat*        m4;
+    MATRIX*          dst;
+    MATRIX*          dst2;
+    MATRIX*          dst3;
+    MATRIX*          dst4;
+    s16              angle1;
+    s32              angle2;
+    s16              angle3;
+    s16              angle4;
 
     work = (Actor400600Work*)arg0->work;
     if ((u8)work->field_765 != 0) {

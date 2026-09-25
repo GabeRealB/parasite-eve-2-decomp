@@ -2745,15 +2745,15 @@ void func_actor_503500_801374BC(Task* arg0)
 /// `D_actor_503500_8016F078`.
 void func_actor_503500_80137678(Task* arg0)
 {
-    SVECTOR              rot;
-    Actor503500IdentMat  m;
-    Actor503500MatWords* ident;
-    Actor503500Work*     work;
-    GpEnemy*             enemy;
-    GsCOORDINATE2*       coord;
-    s32*                 src;
-    s32*                 out;
-    s32                  i;
+    SVECTOR          rot;
+    ActorMat         m;
+    ActorMatWords*   ident;
+    Actor503500Work* work;
+    GpEnemy*         enemy;
+    GsCOORDINATE2*   coord;
+    s32*             src;
+    s32*             out;
+    s32              i;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2;
@@ -3161,16 +3161,16 @@ const TaskFuncTable3 D_actor_503500_80131F9C = {
 /// table row add, and `idx * 8` would drag the row pointer into `$s0`.
 void func_actor_503500_8013852C(Task* arg0)
 {
-    GpEnemy*             enemy;
-    TmdObject*           tmd;
-    GsCOORDINATE2*       coord;
-    GsCOORDINATE2*       part;
-    Actor503500Work2EC*  work;
-    GpRec18*             rec;
-    Actor503500IdentMat  m;
-    Actor503500MatWords* ident;
-    s32                  idx;
-    s32                  i;
+    GpEnemy*            enemy;
+    TmdObject*          tmd;
+    GsCOORDINATE2*      coord;
+    GsCOORDINATE2*      part;
+    Actor503500Work2EC* work;
+    GpRec18*            rec;
+    ActorMat            m;
+    ActorMatWords*      ident;
+    s32                 idx;
+    s32                 i;
 
     idx   = arg0->spawnArg1 - 2;
     enemy = arg0->spawnArg2;
@@ -3310,12 +3310,12 @@ void func_actor_503500_80138898(Task* arg0)
 /// `D_actor_503500_8016F0C8` rotated through `field_2A4`, spinning that angle.
 void func_actor_503500_80138A30(Task* arg0)
 {
-    Actor503500Work2EC*  work;
-    Actor503500IdentMat  m;
-    Actor503500MatWords* ident;
-    SVECTOR              v;
-    s32                  idx;
-    s16                  hp;
+    Actor503500Work2EC* work;
+    ActorMat            m;
+    ActorMatWords*      ident;
+    SVECTOR             v;
+    s32                 idx;
+    s16                 hp;
 
     work = (Actor503500Work2EC*)arg0->work;
     idx  = arg0->spawnArg1 - 2;

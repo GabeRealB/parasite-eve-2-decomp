@@ -24,7 +24,6 @@
 
 #include "actors/actors_shared_80133cd0.h"
 #include "actors/actors_shared_80134810.h"
-#include "actors/actors_shared_80135b58.h"
 #include "actors/actors_shared_801673f8.h"
 
 /// The 0x2E4-byte work block of the package's first enemy, which both of its
@@ -1632,14 +1631,14 @@ void Actor04600_Fn0294C(Task* arg0, GsCOORDINATE2* arg1)
 /// `Gp_UpdateCoord` recomputes it.
 void Actor04600_Fn02B14(Task* arg0)
 {
-    GsCOORDINATE2*              coord;
-    MATRIX*                     head;
-    ActorShared80135b58Scratch* scratch;
-    Actor104600Work*            work;
+    GsCOORDINATE2*     coord;
+    MATRIX*            head;
+    ActorScaleScratch* scratch;
+    Actor104600Work*   work;
 
     head                = *(MATRIX**)0x1F8003FC;
     work                = arg0->work;
-    scratch             = (ActorShared80135b58Scratch*)((u8*)head - 0x30);
+    scratch             = (ActorScaleScratch*)((u8*)head - 0x30);
     *(void**)0x1F8003FC = scratch;
     coord               = (*(TmdObject**)&arg0->extra)->coords;
     if (work->field_2CA >= 0x201) {
@@ -2348,14 +2347,14 @@ void Actor04600_Fn03F30(Task* task)
 /// `Gp_UpdateCoord` recomputes it.
 void Actor04600_Fn0400C(Task* arg0)
 {
-    GsCOORDINATE2*              coord;
-    MATRIX*                     head;
-    ActorShared80135b58Scratch* scratch;
-    Actor104600Enemy2Work*      work;
+    GsCOORDINATE2*         coord;
+    MATRIX*                head;
+    ActorScaleScratch*     scratch;
+    Actor104600Enemy2Work* work;
 
     head                = *(MATRIX**)0x1F8003FC;
     work                = arg0->work;
-    scratch             = (ActorShared80135b58Scratch*)((u8*)head - 0x30);
+    scratch             = (ActorScaleScratch*)((u8*)head - 0x30);
     *(void**)0x1F8003FC = scratch;
     coord               = (*(TmdObject**)&arg0->extra)->coords;
     if (work->field_2A0 >= 0x201) {

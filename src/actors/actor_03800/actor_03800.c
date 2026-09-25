@@ -1,6 +1,6 @@
 #include "common.h"
 
-#include "actors/actors_shared_80135b58.h"
+#include "actors/actor.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3E9C.h"
@@ -17,21 +17,6 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-/// A `MATRIX` plus the word-wise view `Actor03800_Fn003B8` splats an identity
-/// rotation through: five aligned stores rather than nine halfword ones (the
-/// same idiom as `Actor342000MatWords`).
-typedef union Actor103800MatWords {
-    MATRIX mat;
-    struct {
-        /* 0x00 */ s32 m00_m01;
-        /* 0x04 */ s32 m02_m10;
-        /* 0x08 */ s32 m11_m12;
-        /* 0x0C */ s32 m20_m21;
-        /* 0x10 */ s16 m22;
-    } ident;
-} Actor103800MatWords;
-STATIC_ASSERT_SIZEOF(Actor103800MatWords, 0x20);
 
 typedef struct Actor103800Work {
     /* 0x000 */ GpAnimCtx  anim;
@@ -288,17 +273,17 @@ void Actor03800_Fn000B8(GpEnemy* arg0, Task* arg1)
 /// products then turn the detached coordinate by 0x400 / 0x800 about X.
 void Actor03800_Fn003B8(Task* arg0)
 {
-    Actor103800Work*     work;
-    GpEnemy*             ctx;
-    GsCOORDINATE2*       src;
-    Actor103800MatWords* mtx;
-    Actor103800MatWords* srcmtx;
-    Actor103800MatWords* mtx2;
-    Actor103800MatWords* srcmtx2;
-    SVECTOR              rot;
-    MATRIX               mat;
-    s16                  mode;
-    s16                  kind;
+    Actor103800Work* work;
+    GpEnemy*         ctx;
+    GsCOORDINATE2*   src;
+    ActorMat*        mtx;
+    ActorMat*        srcmtx;
+    ActorMat*        mtx2;
+    ActorMat*        srcmtx2;
+    SVECTOR          rot;
+    MATRIX           mat;
+    s16              mode;
+    s16              kind;
 
     ctx  = (GpEnemy*)arg0->spawnArg2;
     work = (Actor103800Work*)arg0->work;
@@ -336,7 +321,7 @@ void Actor03800_Fn003B8(Task* arg0)
             work->field_37A = 0;
             work->field_2CC = src->coord;
 
-            mtx                = (Actor103800MatWords*)&work->coord.coord;
+            mtx                = (ActorMat*)&work->coord.coord;
             mtx->ident.m00_m01 = 0x1000;
             mtx->ident.m02_m10 = 0;
             mtx->ident.m11_m12 = 0x1000;
@@ -349,7 +334,7 @@ void Actor03800_Fn003B8(Task* arg0)
             work->coord.coord.t[1] = src->coord.t[1];
             work->coord.coord.t[2] = src->coord.t[2];
 
-            srcmtx                = (Actor103800MatWords*)&src->coord;
+            srcmtx                = (ActorMat*)&src->coord;
             srcmtx->ident.m00_m01 = 0x1000;
             srcmtx->ident.m02_m10 = 0;
             srcmtx->ident.m11_m12 = 0x1000;
@@ -386,7 +371,7 @@ void Actor03800_Fn003B8(Task* arg0)
             work->field_37A = 0;
             work->field_2CC = src->coord;
 
-            mtx2                = (Actor103800MatWords*)&work->coord.coord;
+            mtx2                = (ActorMat*)&work->coord.coord;
             mtx2->ident.m00_m01 = 0x1000;
             mtx2->ident.m02_m10 = 0;
             mtx2->ident.m11_m12 = 0x1000;
@@ -399,7 +384,7 @@ void Actor03800_Fn003B8(Task* arg0)
             work->coord.coord.t[1] = src->coord.t[1];
             work->coord.coord.t[2] = src->coord.t[2];
 
-            srcmtx2                = (Actor103800MatWords*)&src->coord;
+            srcmtx2                = (ActorMat*)&src->coord;
             srcmtx2->ident.m00_m01 = 0x1000;
             srcmtx2->ident.m02_m10 = 0;
             srcmtx2->ident.m11_m12 = 0x1000;
@@ -2055,14 +2040,14 @@ void Actor03800_Fn03744(Task* arg0)
 
 void Actor03800_Fn037E0(Task* arg0)
 {
-    Actor103800Work*            work;
-    GsCOORDINATE2*              coord;
-    MATRIX*                     head;
-    ActorShared80135b58Scratch* scratch;
+    Actor103800Work*   work;
+    GsCOORDINATE2*     coord;
+    MATRIX*            head;
+    ActorScaleScratch* scratch;
 
     work                = arg0->work;
     head                = *(MATRIX**)0x1F8003FC;
-    scratch             = (ActorShared80135b58Scratch*)((u8*)head - 0x30);
+    scratch             = (ActorScaleScratch*)((u8*)head - 0x30);
     *(void**)0x1F8003FC = scratch;
     coord               = work->field_344;
     if (work->field_35A >= 0x201) {

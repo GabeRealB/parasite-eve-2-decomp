@@ -5,6 +5,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "actors/actors_shared_80135990.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -37,19 +38,6 @@ typedef union Actor403200DropCoord {
     } ident;
 } Actor403200DropCoord;
 STATIC_ASSERT_SIZEOF(Actor403200DropCoord, 0x50);
-
-/// Rotation matrix view used for the aligned identity stores.
-typedef union Actor403200Matrix {
-    MATRIX mat;
-    struct {
-        /* 0x00 */ s32 m00_m01;
-        /* 0x04 */ s32 m02_m10;
-        /* 0x08 */ s32 m11_m12;
-        /* 0x0C */ s32 m20_m21;
-        /* 0x10 */ s16 m22;
-    } ident;
-} Actor403200Matrix;
-STATIC_ASSERT_SIZEOF(Actor403200Matrix, 0x20);
 
 /// Reference positions used by the distance-based view selector.
 typedef struct Actor403200ViewPoints {
@@ -3185,7 +3173,7 @@ void func_actor_403200_8013709C(GpEnemy* enemy, Task* task)
     GpEnemy*             owner;
     Task*                parent;
     Task*                player;
-    Actor403200Matrix*   mtx;
+    ActorMat*            mtx;
     SVECTOR              vec;
     s32                  dist;
     s32                  rnd;
@@ -3283,7 +3271,7 @@ void func_actor_403200_8013709C(GpEnemy* enemy, Task* task)
     vec.vz = 0;
 
     work->coord.sub    = &gGfxViewCoord;
-    mtx                = (Actor403200Matrix*)&work->coord.coord;
+    mtx                = (ActorMat*)&work->coord.coord;
     mtx->ident.m00_m01 = 0x1000;
     mtx->ident.m02_m10 = 0;
     mtx->ident.m11_m12 = 0x1000;
@@ -4023,21 +4011,21 @@ s32 func_actor_403200_80138748(Task* task, s32 msgId, Actor403200Msg7DB* msg)
 /// the seven escorts that make up the rest of the creature.
 void func_actor_403200_80138AFC(GpEnemy* enemy, Task* task)
 {
-    Actor403200Work*   work;
-    Actor403200Work*   buffers;
-    Actor403200Work*   escorts;
-    Actor403200Matrix* mtx;
-    TmdObject*         tmd;
-    GsCOORDINATE2*     coord;
-    GsCOORDINATE2*     freeCoord;
-    GpEnemy*           esc;
-    Task*              escTask;
-    GpRec18*           recs2;
-    SVECTOR            dir;
-    SVECTOR*           gteDir;
-    VECTOR             pos;
-    s16                i;
-    s16                j;
+    Actor403200Work* work;
+    Actor403200Work* buffers;
+    Actor403200Work* escorts;
+    ActorMat*        mtx;
+    TmdObject*       tmd;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   freeCoord;
+    GpEnemy*         esc;
+    Task*            escTask;
+    GpRec18*         recs2;
+    SVECTOR          dir;
+    SVECTOR*         gteDir;
+    VECTOR           pos;
+    s16              i;
+    s16              j;
 
     tmd   = (TmdObject*)task->extra;
     coord = tmd->coords;
@@ -4249,7 +4237,7 @@ void func_actor_403200_80138AFC(GpEnemy* enemy, Task* task)
 
     work->field_E3C.c.sub         = ((TmdObject*)task->extra)->coords;
     work->field_E3C.ident.m00_m01 = 0x1000;
-    mtx                           = (Actor403200Matrix*)&work->field_E3C.c.coord;
+    mtx                           = (ActorMat*)&work->field_E3C.c.coord;
     mtx->ident.m02_m10            = 0;
     mtx->ident.m11_m12            = 0x1000;
     mtx->ident.m20_m21            = 0;
@@ -6436,15 +6424,15 @@ void func_actor_403200_8013DC3C(Task* arg0)
 
 void func_actor_403200_8013E2FC(Task* arg0)
 {
-    Actor403200Work*   work;
-    Actor403200Work*   escorts;
-    Actor403200Work*   dying;
-    Actor403200Matrix* mtx;
-    GsCOORDINATE2*     coords;
-    s32                state;
-    s32                frame;
-    s16                i;
-    s16                j;
+    Actor403200Work* work;
+    Actor403200Work* escorts;
+    Actor403200Work* dying;
+    ActorMat*        mtx;
+    GsCOORDINATE2*   coords;
+    s32              state;
+    s32              frame;
+    s16              i;
+    s16              j;
 
     work = (Actor403200Work*)arg0->work;
     if (work->field_4 != 0) {
@@ -6480,7 +6468,7 @@ void func_actor_403200_8013E2FC(Task* arg0)
     if (work->field_7B3 == 9 && work->field_6 == 0x2D) {
         coords                                = ((TmdObject*)arg0->extra)->coords;
         D_actor_403200_8015F970.ident.m00_m01 = 0x1000;
-        mtx                                   = (Actor403200Matrix*)&D_actor_403200_8015F970.c.coord;
+        mtx                                   = (ActorMat*)&D_actor_403200_8015F970.c.coord;
         mtx->ident.m02_m10                    = 0;
         mtx->ident.m11_m12                    = 0x1000;
         mtx->ident.m20_m21                    = 0;

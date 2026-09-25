@@ -4,6 +4,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "actors/actor_521100.h"
 #include "actors/actors_shared_80132074.h"
 #include "gameplay/1BC.h"
@@ -17,31 +18,6 @@
 #include "main/tmd.h"
 
 extern u8 D_80072729;
-
-/// A `MATRIX` plus the word-wise view `func_actor_521100_801368B0` uses to
-/// splat an identity rotation before `ScaleMatrix` scales it: five aligned
-/// stores instead of nine halfword ones, each word holding two adjacent
-/// `m[][]` entries.
-typedef union Actor521100ScaleMat {
-    MATRIX mat;
-    struct {
-        /* 0x00 */ s32 m00_m01;
-        /* 0x04 */ s32 m02_m10;
-        /* 0x08 */ s32 m11_m12;
-        /* 0x0C */ s32 m20_m21;
-        /* 0x10 */ s16 m22;
-    } ident;
-} Actor521100ScaleMat;
-STATIC_ASSERT_SIZEOF(Actor521100ScaleMat, 0x20);
-
-/// 0x30-byte scratch from `G_SCRATCH_HEAD` used by `func_actor_521100_801368B0`:
-/// an identity `mat` scaled down by the work block's `field_488`, then
-/// multiplied into the actor's attach coordinate.
-typedef struct Actor521100ScaleScratch {
-    /* 0x00 */ Actor521100ScaleMat mat;
-    /* 0x20 */ VECTOR              scale;
-} Actor521100ScaleScratch;
-STATIC_ASSERT_SIZEOF(Actor521100ScaleScratch, 0x30);
 
 /// The attach coordinate's rotation as the scale-in step snapshots it, and the
 /// cache the "walk to" placement opcode writes beside it: the heading it
@@ -554,14 +530,14 @@ void func_actor_521100_80136820(void)
 /// between the `addiu` and the `sw` (and the `nop` in the load's delay slot).
 void func_actor_521100_801368B0(Task* task)
 {
-    MATRIX*                  head;
-    Actor521100ScaleScratch* scratch;
-    Actor521100Work4B4*      work;
-    GsCOORDINATE2*           coord;
+    MATRIX*             head;
+    ActorScaleScratch*  scratch;
+    Actor521100Work4B4* work;
+    GsCOORDINATE2*      coord;
 
     head    = *(MATRIX**)0x1F8003FC;
     work    = task->work;
-    scratch = (*(void**)0x1F8003FC = (Actor521100ScaleScratch*)((u8*)head - 0x30));
+    scratch = (*(void**)0x1F8003FC = (ActorScaleScratch*)((u8*)head - 0x30));
     coord   = ((TmdObject*)task->extra)->coords;
     if ((s16)work->field_488 >= 0x101) {
         work->field_488 = (u16)work->field_488 - 0x10;

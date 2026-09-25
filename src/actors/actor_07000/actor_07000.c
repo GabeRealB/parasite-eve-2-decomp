@@ -9,7 +9,6 @@
 #include "actors/actor.h"
 #include "actors/actors_shared_80133cd0.h"
 #include "actors/actors_shared_80134810.h"
-#include "actors/actors_shared_80135b58.h"
 #include "actors/actors_shared_80136288.h"
 #include "actors/actors_shared_80136938.h"
 #include "actors/actors_shared_80136c80.h"
@@ -1812,14 +1811,14 @@ void Actor07000_Fn029F0(Task* arg0, GsCOORDINATE2* arg1)
 /// `Gp_UpdateCoord` recomputes it.
 void Actor07000_Fn02BB8(Task* arg0)
 {
-    GsCOORDINATE2*              coord;
-    MATRIX*                     head;
-    ActorShared80135b58Scratch* scratch;
-    Actor107000Work*            work;
+    GsCOORDINATE2*     coord;
+    MATRIX*            head;
+    ActorScaleScratch* scratch;
+    Actor107000Work*   work;
 
     head                = *(MATRIX**)0x1F8003FC;
     work                = arg0->work;
-    scratch             = (ActorShared80135b58Scratch*)((u8*)head - 0x30);
+    scratch             = (ActorScaleScratch*)((u8*)head - 0x30);
     *(void**)0x1F8003FC = scratch;
     coord               = (*(TmdObject**)&arg0->extra)->coords;
     if (work->field_2CA >= 0x201) {
@@ -3471,7 +3470,7 @@ void Actor07000_Fn05FF8(Task* arg0)
 {
     GsCOORDINATE2*           parts;
     GsCOORDINATE2*           coord;
-    ActorShared80137e18Mat*  mat;
+    ActorMat*                mat;
     ActorShared80137e18Work* work;
 
     work               = arg0->work;
@@ -3479,7 +3478,7 @@ void Actor07000_Fn05FF8(Task* arg0)
     coord              = &work->coord;
     coord->sub         = parts;
     parts[1].sub       = coord;
-    mat                = (ActorShared80137e18Mat*)&coord->coord;
+    mat                = (ActorMat*)&coord->coord;
     mat->ident.m00_m01 = 0x1000;
     mat->ident.m02_m10 = 0;
     mat->ident.m11_m12 = 0x1000;

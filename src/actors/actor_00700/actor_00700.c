@@ -7,7 +7,6 @@
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "actors/actors_shared_80135b58.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3E9C.h"
@@ -1422,14 +1421,14 @@ void Actor00700_Fn01E9C(Task* arg0)
 
 void Actor00700_Fn01EEC(Task* arg0)
 {
-    GsCOORDINATE2*              coord;
-    MATRIX*                     head;
-    ActorShared80135b58Scratch* scratch;
-    Actor00700Work*             work;
+    GsCOORDINATE2*     coord;
+    MATRIX*            head;
+    ActorScaleScratch* scratch;
+    Actor00700Work*    work;
 
     head                = *(MATRIX**)0x1F8003FC;
     work                = arg0->work;
-    scratch             = (ActorShared80135b58Scratch*)((u8*)head - 0x30);
+    scratch             = (ActorScaleScratch*)((u8*)head - 0x30);
     *(void**)0x1F8003FC = scratch;
     coord               = ((TmdObject*)arg0->extra)->coords;
     if (work->field_390 >= 0x201) {
@@ -2076,14 +2075,14 @@ void Actor00700_Fn03518(Task* arg0)
 
 void Actor00700_Fn03570(Task* arg0)
 {
-    GsCOORDINATE2*              coord;
-    MATRIX*                     head;
-    ActorShared80135b58Scratch* scratch;
-    Actor00700Work*             work;
+    GsCOORDINATE2*     coord;
+    MATRIX*            head;
+    ActorScaleScratch* scratch;
+    Actor00700Work*    work;
 
     head                = *(MATRIX**)0x1F8003FC;
     work                = arg0->work;
-    scratch             = (ActorShared80135b58Scratch*)((u8*)head - 0x30);
+    scratch             = (ActorScaleScratch*)((u8*)head - 0x30);
     *(void**)0x1F8003FC = scratch;
     coord               = ((TmdObject*)arg0->extra)->coords;
     if (work->field_2E2 >= 0x201) {

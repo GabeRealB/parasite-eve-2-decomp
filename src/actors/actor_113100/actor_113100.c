@@ -5,6 +5,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "actors/actor.h"
 #include "actors/actors_shared_8013231c.h"
 
 #include "main/gameflag.h"
@@ -146,19 +147,6 @@ typedef struct Actor113100AnimPreset {
     /* 0x10 */ s32 field_10;
 } Actor113100AnimPreset;
 STATIC_ASSERT_SIZEOF(Actor113100AnimPreset, 0x14);
-
-/// A `MATRIX`'s word-wise view, for the identity splat
-/// `func_actor_113100_801330E8` writes over the root coordinate before
-/// `RotMatrix` refills the 3x3: five aligned stores rather than nine halfword
-/// ones.
-typedef struct Actor113100MatWords {
-    /* 0x00 */ s32 m00_m01;
-    /* 0x04 */ s32 m02_m10;
-    /* 0x08 */ s32 m11_m12;
-    /* 0x0C */ s32 m20_m21;
-    /* 0x10 */ s16 m22;
-} Actor113100MatWords;
-STATIC_ASSERT_SIZEOF(Actor113100MatWords, 0x14);
 
 /// Child task table the setup handler `func_actor_113100_80131E58` spawns
 /// from, four `TaskDesc` entries. Index 1 is spawned only when
@@ -477,8 +465,8 @@ void func_actor_113100_801324DC(Task* task)
 {
     Actor113100Work*      work;
     GsCOORDINATE2*        coord;
-    Actor113100MatWords*  words;
-    Actor113100MatWords*  turnWords;
+    ActorMatWords*        words;
+    ActorMatWords*        turnWords;
     VECTOR                delta;
     Actor113100AnimPreset preset;
     s32                   angle;
@@ -498,7 +486,7 @@ void func_actor_113100_801324DC(Task* task)
         } else {
             yaw = angle16 + 0x40;
         }
-        turnWords          = (Actor113100MatWords*)&coord->coord;
+        turnWords          = (ActorMatWords*)&coord->coord;
         turnWords->m00_m01 = ONE;
         turnWords->m02_m10 = 0;
         turnWords->m11_m12 = ONE;
@@ -507,7 +495,7 @@ void func_actor_113100_801324DC(Task* task)
         func_8004BFF8((s16)yaw, &coord->coord);
         coord->flg = 0;
     } else {
-        words          = (Actor113100MatWords*)&coord->coord;
+        words          = (ActorMatWords*)&coord->coord;
         words->m00_m01 = ONE;
         words->m02_m10 = 0;
         words->m11_m12 = ONE;
@@ -960,7 +948,7 @@ void func_actor_113100_8013301C(Task* arg0)
 void func_actor_113100_801330E8(Task* arg0)
 {
     Actor113100Work*      work;
-    Actor113100MatWords*  words;
+    ActorMatWords*        words;
     GsCOORDINATE2*        coord;
     SVECTOR               vec;
     Actor113100AnimPreset preset;
@@ -991,7 +979,7 @@ void func_actor_113100_801330E8(Task* arg0)
         work->field_532 = 0;
     }
 
-    words          = (Actor113100MatWords*)&coord->coord;
+    words          = (ActorMatWords*)&coord->coord;
     words->m00_m01 = ONE;
     words->m02_m10 = 0;
     words->m11_m12 = ONE;

@@ -3,7 +3,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include "actors/actor.h"
-#include "actors/actors_shared_80135b58.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3E9C.h"
@@ -1436,14 +1435,14 @@ void Actor02500_Fn02430(Task* arg0)
 
 void Actor02500_Fn02480(Task* arg0)
 {
-    GsCOORDINATE2*              coord;
-    MATRIX*                     head;
-    ActorShared80135b58Scratch* scratch;
-    Actor02500Work*             work;
+    GsCOORDINATE2*     coord;
+    MATRIX*            head;
+    ActorScaleScratch* scratch;
+    Actor02500Work*    work;
 
     head                = *(MATRIX**)0x1F8003FC;
     work                = arg0->work;
-    scratch             = (ActorShared80135b58Scratch*)((u8*)head - 0x30);
+    scratch             = (ActorScaleScratch*)((u8*)head - 0x30);
     *(void**)0x1F8003FC = scratch;
     coord               = ((TmdObject*)arg0->extra)->coords;
     if (work->field_332 >= 0x201) {

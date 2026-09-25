@@ -27,20 +27,6 @@
 #include "actors/actors_shared_80131fc8.h"
 #include <psyq/libgte.h>
 
-/// A `MATRIX` plus the word-wise view used to splat an identity rotation
-/// with five aligned stores instead of nine halfword ones.
-typedef union Actor400500Matrix {
-    MATRIX mat;
-    struct {
-        /* 0x00 */ s32 m00_m01;
-        /* 0x04 */ s32 m02_m10;
-        /* 0x08 */ s32 m11_m12;
-        /* 0x0C */ s32 m20_m21;
-        /* 0x10 */ s16 m22;
-    } ident;
-} Actor400500Matrix;
-STATIC_ASSERT_SIZEOF(Actor400500Matrix, 0x20);
-
 /// State handlers copied onto the stack by func_actor_400500_80135770.
 typedef struct Actor400500TaskFuncTable13 {
     TaskFunc funcs[13];
@@ -455,17 +441,17 @@ void func_actor_400500_80132000(Task* arg0)
 
 void func_actor_400500_8013226C(Task* arg0)
 {
-    Actor400500Work*   work;
-    Actor400500Matrix  rot;
-    Actor400500Matrix* src;
-    GsCOORDINATE2*     parts;
-    GsCOORDINATE2*     part7;
-    GsCOORDINATE2*     part10;
-    GsCOORDINATE2*     coord;
-    Task*              child;
-    TmdObject*         extra;
-    TmdObject*         tmd;
-    TmdObject*         parentTmd;
+    Actor400500Work* work;
+    ActorMat         rot;
+    ActorMat*        src;
+    GsCOORDINATE2*   parts;
+    GsCOORDINATE2*   part7;
+    GsCOORDINATE2*   part10;
+    GsCOORDINATE2*   coord;
+    Task*            child;
+    TmdObject*       extra;
+    TmdObject*       tmd;
+    TmdObject*       parentTmd;
 
     parts              = ((TmdObject*)arg0->extra)->coords;
     work               = (Actor400500Work*)arg0->work;
@@ -524,21 +510,21 @@ void func_actor_400500_8013226C(Task* arg0)
 
 void func_actor_400500_80132438(Task* arg0)
 {
-    SVECTOR            dir;
-    SVECTOR*           dirp;
-    SVECTOR            delta;
-    Actor400500Matrix  rot;
-    Actor400500Matrix* src;
-    Actor400500Work*   work;
-    GsCOORDINATE2*     coord;
-    GsCOORDINATE2*     other;
-    s16                dist;
-    s16                heading;
-    s16                vz;
-    s32                y;
-    s32                z;
-    s32                one;
-    u16                counter;
+    SVECTOR          dir;
+    SVECTOR*         dirp;
+    SVECTOR          delta;
+    ActorMat         rot;
+    ActorMat*        src;
+    Actor400500Work* work;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   other;
+    s16              dist;
+    s16              heading;
+    s16              vz;
+    s32              y;
+    s32              z;
+    s32              one;
+    u16              counter;
 
     work  = (Actor400500Work*)arg0->work;
     coord = ((TmdObject*)arg0->extra)->coords;
@@ -731,11 +717,11 @@ void func_actor_400500_80132AB0(Task* arg0, s16 arg1, s32 arg2)
 
 void func_actor_400500_80132C54(Task* arg0)
 {
-    Actor400500Work*   work;
-    Actor400500Matrix  rot;
-    Actor400500Matrix* src;
-    GsCOORDINATE2*     coord;
-    s32                tx;
+    Actor400500Work* work;
+    ActorMat         rot;
+    ActorMat*        src;
+    GsCOORDINATE2*   coord;
+    s32              tx;
 
     work  = (Actor400500Work*)arg0->work;
     coord = ((TmdObject*)arg0->extra)->coords;
@@ -2250,12 +2236,12 @@ void func_actor_400500_80135770(Task* arg0)
     PlayerStatus*              cfg;
     Actor400500Msg3FF          msg;
     Actor400500TaskFuncTable13 sp;
-    Actor400500Matrix          rot;
+    ActorMat                   rot;
     s8                         handshake;
     Actor400500Work*           work_pos;
     Actor400500Work*           work_dead;
     Actor400500Work*           work_rot;
-    Actor400500Matrix*         src;
+    ActorMat*                  src;
     s32                        one;
     s16                        ang;
     s16                        ang_z;
@@ -2533,9 +2519,9 @@ void func_actor_400500_80135EBC(Task* arg0)
 
 void func_actor_400500_801361EC(Task* arg0)
 {
-    Actor400500Matrix      rot;
+    ActorMat               rot;
     MATRIX                 local;
-    Actor400500Matrix*     src;
+    ActorMat*              src;
     MATRIX*                dst;
     Actor400500Work*       work;
     Actor400500Work*       workA;
@@ -3432,10 +3418,10 @@ void func_actor_400500_801375B8(Task* arg0)
 
 void func_actor_400500_8013771C(Task* arg0)
 {
-    SVECTOR            in;
-    SVECTOR            out;
-    Actor400500Matrix  rot;
-    Actor400500Matrix* src;
+    SVECTOR   in;
+    SVECTOR   out;
+    ActorMat  rot;
+    ActorMat* src;
     union {
         MATRIX    mat;
         GpAnimArg msg;
@@ -3969,7 +3955,7 @@ void func_actor_400500_801387E8(Task* arg0)
     Actor400500Work*    work2;
     Actor400500Work*    work3;
     Actor400500HitView* hit;
-    Actor400500Matrix   rot;
+    ActorMat            rot;
     s32                 soundId;
     s32                 pan;
     s32                 cond;
@@ -4093,7 +4079,7 @@ void func_actor_400500_80138B78(Task* arg0)
 {
     Actor400500Work*    work;
     Actor400500HitView* hit;
-    Actor400500Matrix   rot;
+    ActorMat            rot;
     s32                 soundId;
     s32                 pan;
     s32                 cond;
@@ -4131,12 +4117,12 @@ void func_actor_400500_80138B78(Task* arg0)
 
 void func_actor_400500_80138CE8(Task* arg0)
 {
-    Actor400500Work*   work;
-    Actor400500Matrix  rot;
-    Actor400500Matrix* src;
-    Task*              child;
-    GsCOORDINATE2*     coord;
-    s32                angle;
+    Actor400500Work* work;
+    ActorMat         rot;
+    ActorMat*        src;
+    Task*            child;
+    GsCOORDINATE2*   coord;
+    s32              angle;
 
     work                              = (Actor400500Work*)arg0->work;
     src                               = &rot;
@@ -4499,10 +4485,10 @@ void func_actor_400500_801395D0(Task* arg0)
 
 void func_actor_400500_8013973C(Task* arg0)
 {
-    Actor400500Matrix      rot;
+    ActorMat               rot;
     MATRIX                 local0;
     MATRIX                 local3;
-    Actor400500Matrix*     src;
+    ActorMat*              src;
     MATRIX*                view;
     Actor400500Work*       work;
     Actor400500Work*       workRot;
@@ -4842,9 +4828,9 @@ void func_actor_400500_80139F6C(Task* arg0)
 
 void func_actor_400500_8013A0B8(Task* arg0)
 {
-    Actor400500Matrix      rot;
+    ActorMat               rot;
     MATRIX                 local2;
-    Actor400500Matrix*     src;
+    ActorMat*              src;
     Actor400500Work*       work;
     Actor400500Work*       ang;
     Actor400500Work*       work3;
@@ -6001,13 +5987,13 @@ void func_actor_400500_8013BE50(Task* arg0)
 
 void func_actor_400500_8013BEC4(Task* arg0)
 {
-    Actor400500Work*   work;
-    Actor400500Matrix  rot;
-    Actor400500Matrix* src;
-    Task*              child;
-    GsCOORDINATE2*     coord;
-    Actor400500Work*   work2;
-    s32                angle;
+    Actor400500Work* work;
+    ActorMat         rot;
+    ActorMat*        src;
+    Task*            child;
+    GsCOORDINATE2*   coord;
+    Actor400500Work* work2;
+    s32              angle;
 
     work                              = (Actor400500Work*)arg0->work;
     src                               = &rot;
@@ -6059,13 +6045,13 @@ void func_actor_400500_8013BFB0(Task* arg0)
 
 void func_actor_400500_8013C018(Task* arg0)
 {
-    Actor400500Work*   work;
-    Actor400500Matrix  rot;
-    Actor400500Matrix* src;
-    Task*              child;
-    GsCOORDINATE2*     coord;
-    Actor400500Work*   work2;
-    s32                angle;
+    Actor400500Work* work;
+    ActorMat         rot;
+    ActorMat*        src;
+    Task*            child;
+    GsCOORDINATE2*   coord;
+    Actor400500Work* work2;
+    s32              angle;
 
     work                              = (Actor400500Work*)arg0->work;
     src                               = &rot;

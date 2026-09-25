@@ -7,6 +7,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -154,18 +155,6 @@ typedef struct Actor141000SpawnAnim {
     /* 0x00 */ s32 field_0;
     /* 0x04 */ u8  field_4;
 } Actor141000SpawnAnim;
-
-/// A `MATRIX`'s word-wise view, for the identity splat
-/// `func_actor_141000_80132FD0` writes over the root coordinate: five aligned
-/// stores rather than nine halfword ones.
-typedef struct Actor141000MatWords {
-    /* 0x00 */ s32 m00_m01;
-    /* 0x04 */ s32 m02_m10;
-    /* 0x08 */ s32 m11_m12;
-    /* 0x0C */ s32 m20_m21;
-    /* 0x10 */ s16 m22;
-} Actor141000MatWords;
-STATIC_ASSERT_SIZEOF(Actor141000MatWords, 0x14);
 
 extern s32 D_80070F70;
 
@@ -390,25 +379,25 @@ void func_actor_141000_80131E94(Task* arg0, Actor141000Point* arg1, s32 arg2)
 
 void func_actor_141000_801323F0(Task* arg0, Actor141000Point* arg1, s32* arg2, s32* arg3)
 {
-    SVECTOR              a;
-    SVECTOR              b;
-    MATRIX               rot;
-    Actor141000Proj      proj[2];
-    Task*                parent;
-    MATRIX*              mtx;
-    SVECTOR*             src;
-    s16                  t;
-    s16                  r;
-    s32                  scale;
-    Actor141000MatWords* words;
-    s32                  i;
-    u16                  f;
-    u16                  x0;
-    s32                  y0;
-    u16                  x1;
-    s32                  y1;
-    s32                  dx;
-    s32                  dy;
+    SVECTOR         a;
+    SVECTOR         b;
+    MATRIX          rot;
+    Actor141000Proj proj[2];
+    Task*           parent;
+    MATRIX*         mtx;
+    SVECTOR*        src;
+    s16             t;
+    s16             r;
+    s32             scale;
+    ActorMatWords*  words;
+    s32             i;
+    u16             f;
+    u16             x0;
+    s32             y0;
+    u16             x1;
+    s32             y1;
+    s32             dx;
+    s32             dy;
 
     parent = arg0->spawnArg2;
     mtx    = &((TmdObject*)parent->extra)->coords->coord;
@@ -451,20 +440,20 @@ void func_actor_141000_801323F0(Task* arg0, Actor141000Point* arg1, s32* arg2, s
     gte_stdp(&proj[0].z);
     gte_stflg(arg3);
     gte_stszotz(&proj[1].z);
-    dy                                    = proj[0].sxy.vy - proj[1].sxy.vy;
-    dx                                    = proj[1].sxy.vx - proj[0].sxy.vx;
-    x1                                    = proj[1].sxy.vx;
-    x0                                    = proj[0].sxy.vx;
-    y0                                    = proj[0].sxy.vy;
-    y1                                    = proj[1].sxy.vy;
-    i                                     = ratan2(dx, dy);
-    scale                                 = gDisplayState.screenDistance;
-    ((Actor141000MatWords*)&rot)->m00_m01 = 0x1000;
-    ((Actor141000MatWords*)&rot)->m02_m10 = 0;
-    words                                 = (Actor141000MatWords*)&rot;
-    words->m11_m12                        = 0x1000;
-    ((Actor141000MatWords*)&rot)->m20_m21 = 0;
-    words->m22                            = 0x1000;
+    dy                              = proj[0].sxy.vy - proj[1].sxy.vy;
+    dx                              = proj[1].sxy.vx - proj[0].sxy.vx;
+    x1                              = proj[1].sxy.vx;
+    x0                              = proj[0].sxy.vx;
+    y0                              = proj[0].sxy.vy;
+    y1                              = proj[1].sxy.vy;
+    i                               = ratan2(dx, dy);
+    scale                           = gDisplayState.screenDistance;
+    ((ActorMatWords*)&rot)->m00_m01 = 0x1000;
+    ((ActorMatWords*)&rot)->m02_m10 = 0;
+    words                           = (ActorMatWords*)&rot;
+    words->m11_m12                  = 0x1000;
+    ((ActorMatWords*)&rot)->m20_m21 = 0;
+    words->m22                      = 0x1000;
     RotMatrixZ(i, &rot);
     gte_SetRotMatrix(&rot);
     for (i = 0; i < 6; i++) {
@@ -658,10 +647,10 @@ void func_actor_141000_80132FC8(Task* arg0)
 /// state-2 handler at 0x80132EF4 advances `state` on.
 s32 func_actor_141000_80132FD0(GsCOORDINATE2* arg0, s32 arg1)
 {
-    Actor141000MatWords* words;
-    SVECTOR*             pos;
-    s32                  idx;
-    s32                  ret;
+    ActorMatWords* words;
+    SVECTOR*       pos;
+    s32            idx;
+    s32            ret;
 
     if (arg1 < 0x5A) {
         idx = arg1;
@@ -670,7 +659,7 @@ s32 func_actor_141000_80132FD0(GsCOORDINATE2* arg0, s32 arg1)
         idx = 0x59;
         ret = 1;
     }
-    words          = (Actor141000MatWords*)&arg0->coord;
+    words          = (ActorMatWords*)&arg0->coord;
     words->m00_m01 = 0x1000;
     words->m02_m10 = 0;
     words->m11_m12 = 0x1000;
@@ -707,13 +696,13 @@ void func_actor_141000_8013308C(GsCOORDINATE2* arg0, s32 arg1)
 /// taking over kills the task outright.
 void func_actor_141000_801330C0(Task* arg0)
 {
-    GsCOORDINATE2*       coord;
-    Actor141000MatWords* words;
-    u16                  count;
+    GsCOORDINATE2* coord;
+    ActorMatWords* words;
+    u16            count;
 
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (arg0->state == 0) {
-        words          = (Actor141000MatWords*)&coord->coord;
+        words          = (ActorMatWords*)&coord->coord;
         words->m00_m01 = 0x1000;
         words->m02_m10 = 0;
         words->m11_m12 = 0x1000;
@@ -1119,7 +1108,7 @@ void func_actor_141000_80133B28(Task* arg0)
 void func_actor_141000_80133BD8(Task* arg0)
 {
     Actor141000Work*      work;
-    Actor141000MatWords*  words;
+    ActorMatWords*        words;
     GsCOORDINATE2*        coord;
     SVECTOR               vec;
     Actor141000AnimPreset preset;
@@ -1150,7 +1139,7 @@ void func_actor_141000_80133BD8(Task* arg0)
         work->field_4C2 = 0;
     }
 
-    words          = (Actor141000MatWords*)&coord->coord;
+    words          = (ActorMatWords*)&coord->coord;
     words->m00_m01 = ONE;
     words->m02_m10 = 0;
     words->m11_m12 = ONE;

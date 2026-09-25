@@ -4,6 +4,7 @@
 #include "psyq/inline_c.h"
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "main/fs.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -132,25 +133,6 @@ typedef struct Actor104400Msg {
     /* 0x2 */ u16 field_2;
 } Actor104400Msg;
 STATIC_ASSERT_SIZEOF(Actor104400Msg, 0x4);
-
-/// A `MATRIX`'s word-wise view, for the identity splat `Actor04400_Fn08C64`
-/// writes over the root coordinate before `ScaleMatrix` scales it: five aligned
-/// stores instead of nine halfword ones, each word holding two adjacent `m[][]`
-/// entries. `Actor04400_Fn00874` and `Actor04400_Fn07404` use the same view
-/// for their identity rotations.
-typedef struct Actor104400MatWords {
-    /* 0x00 */ s32 m00_m01;
-    /* 0x04 */ s32 m02_m10;
-    /* 0x08 */ s32 m11_m12;
-    /* 0x0C */ s32 m20_m21;
-    /* 0x10 */ s16 m22;
-} Actor104400MatWords;
-
-typedef union Actor104400Mat {
-    MATRIX              mat;
-    Actor104400MatWords ident;
-} Actor104400Mat;
-STATIC_ASSERT_SIZEOF(Actor104400Mat, 0x20);
 
 extern u8                   Actor04400_D10814[]; // per animation id (1-based): the value to put in `field_44F`
 extern u8                   Actor04400_D10828[]; // per animation id (1-based): the animation to follow it
@@ -737,14 +719,14 @@ void Actor04400_Fn006A8(Task* arg0)
 /// 3x3 and marks the coordinate dirty.
 void Actor04400_Fn00874(Task* arg0)
 {
-    SVECTOR              rot;
-    Actor104400Mat       mtx;
-    Actor104400MatWords* ident;
-    Actor104400Work*     work;
-    GsCOORDINATE2*       coords;
-    MATRIX*              m5;
-    MATRIX*              m4;
-    MATRIX*              m3;
+    SVECTOR          rot;
+    ActorMat         mtx;
+    ActorMatWords*   ident;
+    Actor104400Work* work;
+    GsCOORDINATE2*   coords;
+    MATRIX*          m5;
+    MATRIX*          m4;
+    MATRIX*          m3;
 
     work   = (Actor104400Work*)arg0->work;
     ident  = &mtx.ident;
@@ -1370,8 +1352,8 @@ void Actor04400_Fn02008(Task* arg0)
 {
     Actor104400Work* work;
     GsCOORDINATE2*   coord;
-    Actor104400Mat   rot;
-    Actor104400Mat*  src;
+    ActorMat         rot;
+    ActorMat*        src;
     MATRIX*          dst;
     Actor104400Work* anim;
 
@@ -1774,13 +1756,13 @@ void Actor04400_Fn02E8C(Task* arg0)
 /// 32.
 void Actor04400_Fn0304C(Task* arg0)
 {
-    Actor104400Work*     work;
-    TmdObject*           obj;
-    GsCOORDINATE2*       coord;
-    VECTOR               scale;
-    Actor104400Mat       m;
-    Actor104400MatWords* ident;
-    SVECTOR              ofs;
+    Actor104400Work* work;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    VECTOR           scale;
+    ActorMat         m;
+    ActorMatWords*   ident;
+    SVECTOR          ofs;
 
     work             = (Actor104400Work*)arg0->work;
     ident            = &m.ident;
@@ -3776,8 +3758,8 @@ void Actor04400_Fn07404(Task* arg0)
 {
     Actor104400Work* work;
     GsCOORDINATE2*   coord;
-    Actor104400Mat   rot;
-    Actor104400Mat*  src;
+    ActorMat         rot;
+    ActorMat*        src;
     MATRIX*          dst;
     s16              pitch;
 
@@ -4700,12 +4682,12 @@ void Actor04400_Fn08C08(Task* arg0)
 /// the model is hidden (flag 0x80) and the state advances.
 void Actor04400_Fn08C64(Task* arg0)
 {
-    Actor104400Work*     work;
-    TmdObject*           obj;
-    GsCOORDINATE2*       coord;
-    VECTOR               scale;
-    Actor104400Mat       m;
-    Actor104400MatWords* ident;
+    Actor104400Work* work;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    VECTOR           scale;
+    ActorMat         m;
+    ActorMatWords*   ident;
 
     work             = (Actor104400Work*)arg0->work;
     ident            = &m.ident;

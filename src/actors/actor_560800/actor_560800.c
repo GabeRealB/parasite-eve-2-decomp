@@ -6,6 +6,7 @@
 #include "gte.h"
 #include "psyq/abs.h"
 
+#include "actors/actor.h"
 #include "actors/actors_shared_8013411c.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -272,20 +273,6 @@ extern Actor560800PartPose D_actor_560800_801753D4[];
 extern Actor560800PartPose D_actor_560800_80175494[];
 extern Actor560800PartPose D_actor_560800_80175554[];
 extern Actor560800PartPose D_actor_560800_80175614[];
-
-/// Word-wise view of a `MATRIX`, which lets an identity rotation be written
-/// as four `sw` and one `sh` instead of nine halfword stores.
-typedef union Actor560800MatWords {
-    MATRIX mat;
-    struct {
-        /* 0x00 */ s32 m00_m01;
-        /* 0x04 */ s32 m02_m10;
-        /* 0x08 */ s32 m11_m12;
-        /* 0x0C */ s32 m20_m21;
-        /* 0x10 */ s16 m22;
-    } ident;
-} Actor560800MatWords;
-STATIC_ASSERT_SIZEOF(Actor560800MatWords, 0x20);
 
 /// Payload `func_actor_560800_8013631C` passes as `Gp_DispatchMsg`'s `arg2` for
 /// message 0x7DB: the same 4-byte record the other actors send, whose halfword
@@ -2899,7 +2886,7 @@ void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg)
     Actor560800PartPose*  pose;
     Actor560800ModelWork* part;
     GsCOORDINATE2*        coord;
-    Actor560800MatWords*  mat;
+    ActorMat*             mat;
     s32                   i;
     s32                   j;
 
@@ -2922,7 +2909,7 @@ void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg)
             do {
                 if (work->parts[i & 0xFFFF] != NULL) {
                     coord              = ((TmdObject*)work->parts[i & 0xFFFF]->extra)->coords;
-                    mat                = (Actor560800MatWords*)&coord->coord;
+                    mat                = (ActorMat*)&coord->coord;
                     mat->ident.m00_m01 = 0x1000;
                     mat->ident.m02_m10 = 0;
                     mat->ident.m11_m12 = 0x1000;

@@ -5,6 +5,7 @@
 #include "psyq/inline_c.h"
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "main/gfx.h"
 #include "main/sound.h"
 #include "main/mc.h"
@@ -60,19 +61,6 @@ typedef union Actor403100Flags {
     } h;
 } Actor403100Flags;
 STATIC_ASSERT_SIZEOF(Actor403100Flags, 0x4);
-
-/// Rotation matrix with aligned word stores for identity initialization.
-typedef union Actor403100Matrix {
-    MATRIX mat;
-    struct {
-        /* 0x00 */ s32 m00_m01;
-        /* 0x04 */ s32 m02_m10;
-        /* 0x08 */ s32 m11_m12;
-        /* 0x0C */ s32 m20_m21;
-        /* 0x10 */ s16 m22;
-    } ident;
-} Actor403100Matrix;
-STATIC_ASSERT_SIZEOF(Actor403100Matrix, 0x20);
 
 extern GpPairSrcE D_actor_403100_8014762C;
 
@@ -595,16 +583,16 @@ const Actor403100VoidTable4 D_actor_403100_80131E24 = {
 
 void func_actor_403100_80132064(Task* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
-    SVECTOR            end;
-    Actor403100Matrix  matrix;
-    u16                mode;
-    Actor403100Matrix* identity;
-    GsCOORDINATE2*     joint;
-    s32                i;
-    u32                random;
-    GpRec18*           records;
-    GpObj*             obj;
-    GsCOORDINATE2*     coord;
+    SVECTOR        end;
+    ActorMat       matrix;
+    u16            mode;
+    ActorMat*      identity;
+    GsCOORDINATE2* joint;
+    s32            i;
+    u32            random;
+    GpRec18*       records;
+    GpObj*         obj;
+    GsCOORDINATE2* coord;
 
     i      = 0;
     mode   = arg3;
@@ -1170,23 +1158,23 @@ void func_actor_403100_801339EC(Task* arg0)
         (void (*)(Task*))func_actor_403100_8013E5FC,
         func_actor_403100_8013E624
     };
-    Actor403100Matrix rotation;
-    VECTOR            scale;
-    Actor403100Matrix scaling;
-    GsCOORDINATE2*    coords;
-    GsCOORDINATE2*    center;
-    GsCOORDINATE2*    coords2;
-    MATRIX*           mtx;
-    MATRIX*           mtx2;
-    GsCOORDINATE2*    side;
-    GsCOORDINATE2*    scaled;
-    Actor403100Work*  work;
-    s32               flash;
-    u8*               head;
-    u8*               head2;
-    MATRIX*           dest;
-    VECTOR*           pos;
-    s32               brightness;
+    ActorMat         rotation;
+    VECTOR           scale;
+    ActorMat         scaling;
+    GsCOORDINATE2*   coords;
+    GsCOORDINATE2*   center;
+    GsCOORDINATE2*   coords2;
+    MATRIX*          mtx;
+    MATRIX*          mtx2;
+    GsCOORDINATE2*   side;
+    GsCOORDINATE2*   scaled;
+    Actor403100Work* work;
+    s32              flash;
+    u8*              head;
+    u8*              head2;
+    MATRIX*          dest;
+    VECTOR*          pos;
+    s32              brightness;
 
     handlers[(s16)D_actor_403100_80155808->field_5F8](arg0);
     func_actor_403100_801327CC(arg0);
@@ -1727,24 +1715,24 @@ void func_actor_403100_80134D50(Task* arg0)
         func_actor_403100_8013ECD0,
         (void (*)(Task*))func_actor_403100_8013ED48
     };
-    Actor403100Matrix rotation;
-    VECTOR            scale;
-    Actor403100Matrix scaling;
-    GsCOORDINATE2*    coords;
-    GsCOORDINATE2*    center;
-    GsCOORDINATE2*    coords2;
-    MATRIX*           mtx;
-    MATRIX*           mtx2;
-    GsCOORDINATE2*    side;
-    GsCOORDINATE2*    scaled;
-    Actor403100Work*  work;
-    s32               flash;
-    u8*               head;
-    u8*               head2;
-    MATRIX*           dest;
-    VECTOR*           pos;
-    s32               brightness;
-    s32               timer;
+    ActorMat         rotation;
+    VECTOR           scale;
+    ActorMat         scaling;
+    GsCOORDINATE2*   coords;
+    GsCOORDINATE2*   center;
+    GsCOORDINATE2*   coords2;
+    MATRIX*          mtx;
+    MATRIX*          mtx2;
+    GsCOORDINATE2*   side;
+    GsCOORDINATE2*   scaled;
+    Actor403100Work* work;
+    s32              flash;
+    u8*              head;
+    u8*              head2;
+    MATRIX*          dest;
+    VECTOR*          pos;
+    s32              brightness;
+    s32              timer;
 
     D_actor_403100_80155808 = arg0->work;
     D_actor_403100_8015580C = arg0->spawnArg2;
@@ -2479,12 +2467,12 @@ void func_actor_403100_80136830(Task* arg0)
     union {
         Actor403100VoidTable4 handlers;
         struct {
-            VECTOR            scale;
-            Actor403100Matrix matrix;
+            VECTOR   scale;
+            ActorMat matrix;
         } scaling;
         struct {
-            SVECTOR           angles;
-            Actor403100Matrix matrix;
+            SVECTOR  angles;
+            ActorMat matrix;
         } rotation;
     } scratch;
     void *        scratcharg0, *scratcharg1, *scratcharg2, *scratcharg3, *scratcharg4, *scratcharg5, *scratcharg6;
@@ -5523,12 +5511,12 @@ void func_actor_403100_8013D74C(Task* arg0)
 }
 void func_actor_403100_8013D770(Task* arg0)
 {
-    SVECTOR           rotation;
-    Actor403100Matrix matrix;
-    MATRIX*           dest;
-    MATRIX*           mtx;
-    GsCOORDINATE2*    coords;
-    GsCOORDINATE2*    updated;
+    SVECTOR        rotation;
+    ActorMat       matrix;
+    MATRIX*        dest;
+    MATRIX*        mtx;
+    GsCOORDINATE2* coords;
+    GsCOORDINATE2* updated;
 
     coords               = ((TmdObject*)arg0->extra)->coords;
     dest                 = &coords[6].coord;

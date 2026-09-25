@@ -8,7 +8,6 @@
 #include "actors/actor.h"
 #include "actors/actor_100300.h"
 #include "actors/actors_shared_80132074.h"
-#include "actors/actors_shared_80135b58.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -2122,16 +2121,16 @@ common:
 
 static __inline__ void Actor00300_UpdateTransform(GpEnemy* arg0, Task* arg1)
 {
-    TmdObject*                  obj;
-    TmdObject*                  original;
-    GsCOORDINATE2*              saved;
-    Actor100300Work*            work;
-    s32                         disabled;
-    s16                         flags;
-    s16                         scale;
-    MATRIX*                     head;
-    ActorShared80135b58Scratch* scratch;
-    GsCOORDINATE2*              coord;
+    TmdObject*         obj;
+    TmdObject*         original;
+    GsCOORDINATE2*     saved;
+    Actor100300Work*   work;
+    s32                disabled;
+    s16                flags;
+    s16                scale;
+    MATRIX*            head;
+    ActorScaleScratch* scratch;
+    GsCOORDINATE2*     coord;
 
     original = arg1->extra;
     disabled = Gp_StateF0.field_4;
@@ -2153,7 +2152,7 @@ static __inline__ void Actor00300_UpdateTransform(GpEnemy* arg0, Task* arg1)
             return;
         }
         head                       = *(MATRIX**)0x1F8003FC;
-        scratch                    = (ActorShared80135b58Scratch*)((u8*)head - 0x30);
+        scratch                    = (ActorScaleScratch*)((u8*)head - 0x30);
         coord                      = ((TmdObject*)arg1->extra)->coords;
         *(void**)0x1F8003FC        = scratch;
         scratch->scale.vx          = 0x1000;
@@ -2706,12 +2705,12 @@ void Actor00300_Fn05008(Task* arg0)
 
 void Actor00300_Fn0505C(Task* arg0, MATRIX* arg1, s16 arg2)
 {
-    GsCOORDINATE2*              coord;
-    MATRIX*                     head;
-    ActorShared80135b58Scratch* scratch;
+    GsCOORDINATE2*     coord;
+    MATRIX*            head;
+    ActorScaleScratch* scratch;
 
     head                       = *(MATRIX**)0x1F8003FC;
-    scratch                    = (ActorShared80135b58Scratch*)((u8*)head - 0x30);
+    scratch                    = (ActorScaleScratch*)((u8*)head - 0x30);
     *(void**)0x1F8003FC        = scratch;
     coord                      = ((TmdObject*)arg0->extra)->coords;
     scratch->scale.vx          = 0x1000;

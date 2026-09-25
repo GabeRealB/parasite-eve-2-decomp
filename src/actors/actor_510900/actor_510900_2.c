@@ -2220,15 +2220,15 @@ s32 func_actor_510900_801391B8(Task* arg0, s32 arg1, s32 arg2)
 /// Weight 0x52 restores the parented identity frame.
 void func_actor_510900_801395AC(void* enemy, Task* task)
 {
-    TmdObject*              obj;
-    Actor510900Work*        work;
-    GsCOORDINATE2*          coord;
-    GsCOORDINATE2*          parentCoord;
-    Actor510900MatrixWords* mat;
-    Actor510900MatrixWords* mat2;
-    s16                     blend;
-    s16                     r;
-    s32                     dy;
+    TmdObject*       obj;
+    Actor510900Work* work;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   parentCoord;
+    ActorMatWords*   mat;
+    ActorMatWords*   mat2;
+    s16              blend;
+    s16              r;
+    s32              dy;
 
     work  = (Actor510900Work*)task->parent->work;
     obj   = (TmdObject*)task->extra;
@@ -2255,7 +2255,7 @@ void func_actor_510900_801395AC(void* enemy, Task* task)
             if (blend < 0x50) {
                 r = blend % 40;
                 if (r < 0xF) {
-                    mat               = (Actor510900MatrixWords*)&coord->coord;
+                    mat               = (ActorMatWords*)&coord->coord;
                     mat->m00_m01      = 0x1000;
                     mat->m11_m12      = 0x1000;
                     mat->m22          = 0x1000;
@@ -2278,7 +2278,7 @@ void func_actor_510900_801395AC(void* enemy, Task* task)
                 coord->flg = 0;
                 Gp_UpdateCoord(coord);
             } else if (blend == 0x52) {
-                mat2              = (Actor510900MatrixWords*)&coord->coord;
+                mat2              = (ActorMatWords*)&coord->coord;
                 mat2->m00_m01     = 0x1000;
                 mat2->m02_m10     = 0;
                 mat2->m11_m12     = 0x1000;
@@ -2981,9 +2981,9 @@ end:
 
 void func_actor_510900_8013AD90(GpEnemy* enemy, Task* task)
 {
-    GsCOORDINATE2*          coord;
-    Actor510900MatrixWords* mat;
-    Actor510900ChildWork*   work;
+    GsCOORDINATE2*        coord;
+    ActorMatWords*        mat;
+    Actor510900ChildWork* work;
 
     coord = ((TmdObject*)task->extra)->coords;
     work  = memCalloc(sizeof(Actor510900ChildWork), false);
@@ -2991,7 +2991,7 @@ void func_actor_510900_8013AD90(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    mat               = (Actor510900MatrixWords*)&coord->coord;
+    mat               = (ActorMatWords*)&coord->coord;
     task->work        = (TaskIdMap*)work;
     mat->m00_m01      = 0x1000;
     mat->m11_m12      = 0x1000;

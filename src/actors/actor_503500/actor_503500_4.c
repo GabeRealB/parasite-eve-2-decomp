@@ -2696,17 +2696,17 @@ const TaskFuncTable3 D_actor_503500_80132108 = {
 
 void func_actor_503500_8013FA74(Task* arg0)
 {
-    GpEnemy*             enemy;
-    TmdObject*           tmd;
-    GsCOORDINATE2*       coord;
-    GsCOORDINATE2*       part;
-    Actor503500Work3D8*  work;
-    GpRec18*             rec;
-    GpRec18*             rec2;
-    Actor503500IdentMat  m;
-    Actor503500MatWords* ident;
-    s32                  idx;
-    s32                  i;
+    GpEnemy*            enemy;
+    TmdObject*          tmd;
+    GsCOORDINATE2*      coord;
+    GsCOORDINATE2*      part;
+    Actor503500Work3D8* work;
+    GpRec18*            rec;
+    GpRec18*            rec2;
+    ActorMat            m;
+    ActorMatWords*      ident;
+    s32                 idx;
+    s32                 i;
 
     idx   = arg0->spawnArg1 - 0xD;
     enemy = arg0->spawnArg2;
@@ -3998,24 +3998,24 @@ void func_actor_503500_8014271C(Task* arg0)
 /// every fourth frame sprays two effects from `D_actor_503500_80171564`.
 void func_actor_503500_80142980(Task* arg0)
 {
-    SVECTOR              rot;
-    Actor503500IdentMat  m;
-    s8                   param1[8];
-    s8                   param2[8];
-    Actor503500MatWords* ident;
-    Actor503500Work224*  work;
-    GpEnemy*             enemy;
-    GsCOORDINATE2*       coord;
-    GsCOORDINATE2*       src;
-    TmdObject*           tmd;
-    s32*                 in;
-    s32*                 out;
-    s32*                 in2;
-    s32*                 out2;
-    s32                  side;
-    s32                  i;
-    s32                  j;
-    s32                  k;
+    SVECTOR             rot;
+    ActorMat            m;
+    s8                  param1[8];
+    s8                  param2[8];
+    ActorMatWords*      ident;
+    Actor503500Work224* work;
+    GpEnemy*            enemy;
+    GsCOORDINATE2*      coord;
+    GsCOORDINATE2*      src;
+    TmdObject*          tmd;
+    s32*                in;
+    s32*                out;
+    s32*                in2;
+    s32*                out2;
+    s32                 side;
+    s32                 i;
+    s32                 j;
+    s32                 k;
 
     work  = (Actor503500Work224*)arg0->work;
     enemy = arg0->spawnArg2;

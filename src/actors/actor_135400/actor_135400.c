@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "actors/actor.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -126,21 +127,6 @@ typedef struct Actor135400Places {
 } Actor135400Places;
 STATIC_ASSERT_SIZEOF(Actor135400Places, 0x30);
 
-/// A `MATRIX` plus a word-wise view of its front, which
-/// `func_actor_135400_80131EB4` uses to write an identity rotation in five
-/// aligned stores before `RotMatrixY` overwrites it.
-typedef union Actor135400Mat {
-    MATRIX mat;
-    struct {
-        s32 m00_m01;
-        s32 m02_m10;
-        s32 m11_m12;
-        s32 m20_m21;
-        s16 m22;
-    } ident;
-} Actor135400Mat;
-STATIC_ASSERT_SIZEOF(Actor135400Mat, 0x20);
-
 /// The actor's two-entry `TaskDesc` table, indexed by `Task_SpawnFromTable`:
 /// entry 1 is the model-bearing part task `func_actor_135400_80132450`
 /// reparents, entry 2 the second part (`func_actor_135400_8013252C`).
@@ -248,10 +234,10 @@ const Actor135400Places D_actor_135400_80131E48 = {
 /// world position (0x12FE, -0x1B3, 0x157C) and drops the phase back to 0.
 void func_actor_135400_80131EB4(Task* task)
 {
-    Actor135400Mat  rot;
-    Actor135400Mat* src;
-    SVECTOR         sv;
-    GsCOORDINATE2*  coord;
+    ActorMat       rot;
+    ActorMat*      src;
+    SVECTOR        sv;
+    GsCOORDINATE2* coord;
 
     switch (task->spawnArg1) {
         case 1:

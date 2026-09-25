@@ -418,17 +418,6 @@ typedef struct Actor403000FacingScratch {
 } Actor403000FacingScratch;
 STATIC_ASSERT_SIZEOF(Actor403000FacingScratch, 0xC);
 
-/// 0x34-byte `G_SCRATCH_HEAD` block `func_actor_403000_801365D0` takes to
-/// rebuild the model's rotation: a yaw-only matrix from the current facing
-/// (`angle`), scaled by `scale`, copied back into the coordinate.
-typedef struct Actor403000ScaleScratch {
-    /* 0x00 */ MATRIX m;
-    /* 0x20 */ VECTOR scale;
-    /* 0x30 */ s16    angle;
-    /* 0x32 */ byte   pad_32[0x2];
-} Actor403000ScaleScratch;
-STATIC_ASSERT_SIZEOF(Actor403000ScaleScratch, 0x34);
-
 typedef union Actor403000Sxy {
     s32     w;
     DVECTOR v;
@@ -2249,29 +2238,29 @@ void func_actor_403000_80135F08(Task* arg0)
 
 static __inline__ void Actor403000_FaceScale(GsCOORDINATE2* coord, s16 sy)
 {
-    Actor403000ScaleScratch* head;
-    Actor403000ScaleScratch* scratch;
+    ActorScaleRotScratch* head;
+    ActorScaleRotScratch* scratch;
 
-    head                                       = *(Actor403000ScaleScratch**)G_SCRATCH_HEAD;
-    scratch                                    = head - 1;
-    *(Actor403000ScaleScratch**)G_SCRATCH_HEAD = scratch;
-    scratch->angle                             = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    head                                    = *(ActorScaleRotScratch**)G_SCRATCH_HEAD;
+    scratch                                 = head - 1;
+    *(ActorScaleRotScratch**)G_SCRATCH_HEAD = scratch;
+    scratch->angle                          = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     Gfx_RotMatrixY(&scratch->m, scratch->angle, 1);
     scratch->scale.vx = 0x1000;
     scratch->scale.vy = sy;
     scratch->scale.vz = 0x1000;
     ScaleMatrix(&scratch->m, &scratch->scale);
-    coord->coord.m[0][0]                        = head[-1].m.m[0][0];
-    coord->coord.m[0][1]                        = scratch->m.m[0][1];
-    coord->coord.m[0][2]                        = scratch->m.m[0][2];
-    coord->coord.m[1][0]                        = scratch->m.m[1][0];
-    coord->coord.m[1][1]                        = scratch->m.m[1][1];
-    coord->coord.m[1][2]                        = scratch->m.m[1][2];
-    coord->coord.m[2][0]                        = scratch->m.m[2][0];
-    coord->coord.m[2][1]                        = scratch->m.m[2][1];
-    coord->coord.m[2][2]                        = scratch->m.m[2][2];
-    coord->flg                                  = 0;
-    *(Actor403000ScaleScratch**)G_SCRATCH_HEAD += 1;
+    coord->coord.m[0][0]                     = head[-1].m.m[0][0];
+    coord->coord.m[0][1]                     = scratch->m.m[0][1];
+    coord->coord.m[0][2]                     = scratch->m.m[0][2];
+    coord->coord.m[1][0]                     = scratch->m.m[1][0];
+    coord->coord.m[1][1]                     = scratch->m.m[1][1];
+    coord->coord.m[1][2]                     = scratch->m.m[1][2];
+    coord->coord.m[2][0]                     = scratch->m.m[2][0];
+    coord->coord.m[2][1]                     = scratch->m.m[2][1];
+    coord->coord.m[2][2]                     = scratch->m.m[2][2];
+    coord->flg                               = 0;
+    *(ActorScaleRotScratch**)G_SCRATCH_HEAD += 1;
 }
 
 void func_actor_403000_8013603C(Task* arg0)

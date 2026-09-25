@@ -91,20 +91,9 @@ typedef struct Actor100400Entry8 {
     /* 0x6 */ byte pad_6[2];
 } Actor100400Entry8;
 
-/// Word-wise view of a `MATRIX` used to splat an identity rotation before
-/// `RotMatrixX` / `RotMatrixY` overwrites it: five aligned stores instead of
-/// nine halfword ones, each word holding two adjacent `m[][]` entries.
-typedef struct Actor100400MatWords {
-    /* 0x00 */ s32 m00_m01;
-    /* 0x04 */ s32 m02_m10;
-    /* 0x08 */ s32 m11_m12;
-    /* 0x0C */ s32 m20_m21;
-    /* 0x10 */ s16 m22;
-} Actor100400MatWords;
-
 typedef union Actor100400Mat {
-    MATRIX              mat;
-    Actor100400MatWords ident;
+    MATRIX        mat;
+    ActorMatWords ident;
     /// The same storage reused as the view-space position `Actor00400_Fn0A08C`
     /// fills in, once the rotation it held has been handed to the coordinate.
     SVECTOR vec;
@@ -957,26 +946,26 @@ void Actor00400_Fn01454(Task* arg0)
    inverse of all three lands in `c4`. */
 void Actor00400_Fn016A4(Task* arg0, s32 arg1)
 {
-    SVECTOR              euler;
-    SVECTOR              rot1;
-    SVECTOR              rot2;
-    MATRIX               t1;
-    MATRIX               t2;
-    MATRIX               t3;
-    Actor100400Mat       ma;
-    Actor100400Mat       mb;
-    Actor100400Mat       mc;
-    Actor100400MatWords* ia;
-    Actor100400MatWords* ib;
-    Actor100400MatWords* ic;
-    GsCOORDINATE2*       base;
-    GsCOORDINATE2*       c1;
-    GsCOORDINATE2*       c2;
-    GsCOORDINATE2*       c3;
-    GsCOORDINATE2*       c4;
-    Actor100400Work*     work;
-    MATRIX*              m2;
-    MATRIX*              m3;
+    SVECTOR          euler;
+    SVECTOR          rot1;
+    SVECTOR          rot2;
+    MATRIX           t1;
+    MATRIX           t2;
+    MATRIX           t3;
+    Actor100400Mat   ma;
+    Actor100400Mat   mb;
+    Actor100400Mat   mc;
+    ActorMatWords*   ia;
+    ActorMatWords*   ib;
+    ActorMatWords*   ic;
+    GsCOORDINATE2*   base;
+    GsCOORDINATE2*   c1;
+    GsCOORDINATE2*   c2;
+    GsCOORDINATE2*   c3;
+    GsCOORDINATE2*   c4;
+    Actor100400Work* work;
+    MATRIX*          m2;
+    MATRIX*          m3;
 
     base = ((TmdObject*)arg0->extra)->coords;
     c1   = &base[1];
@@ -1503,7 +1492,7 @@ void Actor00400_Fn02648(Task* arg0, s32 arg1)
                 work->field_654 = 0x1000;
                 /* fallthrough */
             case 1: {
-                Actor100400MatWords* ir;
+                ActorMatWords* ir;
 
                 ir                 = &rot.ident;
                 work->field_5EC.vx = (u16)work->field_5EC.vx + ((s32) - (work->field_5EC.vx * 0x10) >> 6);
@@ -1537,10 +1526,10 @@ void Actor00400_Fn02648(Task* arg0, s32 arg1)
                 break;
             }
             case 2: {
-                Actor100400MatWords* ia;
-                Actor100400MatWords* ib;
-                Actor100400MatWords* ic;
-                Actor100400MatWords* ir;
+                ActorMatWords* ia;
+                ActorMatWords* ib;
+                ActorMatWords* ic;
+                ActorMatWords* ir;
 
                 Gp_MtxToEuler(&c4->coord, &euler2);
                 work->field_654  = (u16)work->field_654 + ((0x2AA - work->field_654) >> 3);
@@ -1601,10 +1590,10 @@ void Actor00400_Fn02648(Task* arg0, s32 arg1)
         base[4].flg = 0;
         Gp_UpdateCoord(c4);
         if (work->field_654 < 0xF80) {
-            Actor100400MatWords* ia;
-            Actor100400MatWords* ib;
-            Actor100400MatWords* ic;
-            Actor100400MatWords* ir;
+            ActorMatWords* ia;
+            ActorMatWords* ib;
+            ActorMatWords* ic;
+            ActorMatWords* ir;
 
             Gp_MtxToEuler(&c4->coord, &euler2);
             work->field_654  = (u16)work->field_654 + ((0x1000 - work->field_654) >> 3);
@@ -1651,9 +1640,9 @@ void Actor00400_Fn02648(Task* arg0, s32 arg1)
             MulMatrix(&mc.mat, &rot.mat);
             Actor00400_Fn08A1C(&mc.mat, &c4->coord);
         } else {
-            Actor100400MatWords* ir;
-            MATRIX*              m2;
-            MATRIX*              m3;
+            ActorMatWords* ir;
+            MATRIX*        m2;
+            MATRIX*        m3;
 
             m2 = &base[2].coord;
             Gp_MtxToEuler(m2, &euler0);
@@ -2458,20 +2447,20 @@ const TaskFuncTable10 Actor00400_D000A8 = { {
 
 void Actor00400_Fn04580(Task* arg0)
 {
-    Actor100400Work*     work = arg0->work;
-    GpEnemy*             obj  = arg0->spawnArg2;
-    TmdObject*           ctx  = arg0->extra;
-    TaskFuncTable10      fns;
-    Actor100400Mat       m;
-    Actor100400MatWords* ia;
-    Actor100400Work*     w;
-    Actor100400Work*     w2;
-    Actor100400Work*     w3;
-    Actor100400Work*     work2;
-    TmdObject*           ctx2;
-    GsCOORDINATE2*       coord;
-    MATRIX*              dst;
-    s32                  i;
+    Actor100400Work* work = arg0->work;
+    GpEnemy*         obj  = arg0->spawnArg2;
+    TmdObject*       ctx  = arg0->extra;
+    TaskFuncTable10  fns;
+    Actor100400Mat   m;
+    ActorMatWords*   ia;
+    Actor100400Work* w;
+    Actor100400Work* w2;
+    Actor100400Work* w3;
+    Actor100400Work* work2;
+    TmdObject*       ctx2;
+    GsCOORDINATE2*   coord;
+    MATRIX*          dst;
+    s32              i;
 
     fns = Actor00400_D000A8;
     switch (Gp_StateF0.field_4) {
@@ -2726,28 +2715,28 @@ const TaskFuncTable15 Actor00400_D000F8 = { {
 /// rooms of area 0x21.
 void Actor00400_Fn04E18(Task* arg0)
 {
-    Actor100400Work*     work   = arg0->work;
-    GsCOORDINATE2*       coord0 = ((TmdObject*)arg0->extra)->coords;
-    GpEnemy*             obj    = arg0->spawnArg2;
-    TmdObject*           ctx    = arg0->extra;
-    TaskFuncTable15      fns;
-    Actor100400Mat       m;
-    Actor100400MatWords* ia;
-    Actor100400Work*     w;
-    Actor100400Work*     wA;
-    Actor100400Work*     w2;
-    Actor100400Work*     w3;
-    Actor100400Work*     w4;
-    Actor100400Work*     work2;
-    GpEnemy*             obj2;
-    TmdObject*           ctx2;
-    TmdObject*           ctx3;
-    TmdObject*           ctxN;
-    GpAreaKey*           sess;
-    GsCOORDINATE2*       coord;
-    GsCOORDINATE2*       coordN;
-    MATRIX*              dst;
-    s32                  i;
+    Actor100400Work* work   = arg0->work;
+    GsCOORDINATE2*   coord0 = ((TmdObject*)arg0->extra)->coords;
+    GpEnemy*         obj    = arg0->spawnArg2;
+    TmdObject*       ctx    = arg0->extra;
+    TaskFuncTable15  fns;
+    Actor100400Mat   m;
+    ActorMatWords*   ia;
+    Actor100400Work* w;
+    Actor100400Work* wA;
+    Actor100400Work* w2;
+    Actor100400Work* w3;
+    Actor100400Work* w4;
+    Actor100400Work* work2;
+    GpEnemy*         obj2;
+    TmdObject*       ctx2;
+    TmdObject*       ctx3;
+    TmdObject*       ctxN;
+    GpAreaKey*       sess;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   coordN;
+    MATRIX*          dst;
+    s32              i;
 
     fns = Actor00400_D000F8;
     switch (Gp_StateF0.field_4) {
@@ -3469,20 +3458,20 @@ void Actor00400_Fn06A44(Task* arg0)
 /// before falling through to the draw half, and 1 is the draw half on its own.
 void Actor00400_Fn06B7C(Task* arg0)
 {
-    Actor100400Work*     work             = arg0->work;
-    GpEnemy*             obj              = arg0->spawnArg2;
-    TmdObject*           ctx              = arg0->extra;
-    void                 (*fns[2])(Task*) = { Actor00400_Fn08A88, Actor00400_Fn08B40 };
-    Actor100400Mat       m;
-    Actor100400MatWords* ia;
-    Actor100400Work*     w;
-    Actor100400Work*     w2;
-    Actor100400Work*     w3;
-    Actor100400Work*     work2;
-    TmdObject*           ctx2;
-    GsCOORDINATE2*       coord;
-    MATRIX*              dst;
-    s32                  i;
+    Actor100400Work* work             = arg0->work;
+    GpEnemy*         obj              = arg0->spawnArg2;
+    TmdObject*       ctx              = arg0->extra;
+    void             (*fns[2])(Task*) = { Actor00400_Fn08A88, Actor00400_Fn08B40 };
+    Actor100400Mat   m;
+    ActorMatWords*   ia;
+    Actor100400Work* w;
+    Actor100400Work* w2;
+    Actor100400Work* w3;
+    Actor100400Work* work2;
+    TmdObject*       ctx2;
+    GsCOORDINATE2*   coord;
+    MATRIX*          dst;
+    s32              i;
 
     switch (Gp_StateF0.field_4) {
         case 2:
@@ -3651,21 +3640,21 @@ void Actor00400_Fn0A4BC(Task* arg0);
 /// sixteenth of the way towards `field_63E` and falls through.
 void Actor00400_Fn070C0(Task* arg0)
 {
-    Actor100400Work*     work             = arg0->work;
-    TmdObject*           ctx              = arg0->extra;
-    GpEnemy*             obj              = arg0->spawnArg2;
-    GsCOORDINATE2*       coord0           = ctx->coords;
-    void                 (*fns[2])(Task*) = { Actor00400_Fn0A468, Actor00400_Fn0A4BC };
-    Actor100400Mat       m;
-    Actor100400MatWords* ia;
-    Actor100400Work*     w;
-    Actor100400Work*     w2;
-    Actor100400Work*     w3;
-    Actor100400Work*     work2;
-    TmdObject*           ctx2;
-    GsCOORDINATE2*       coord;
-    MATRIX*              dst;
-    s32                  i;
+    Actor100400Work* work             = arg0->work;
+    TmdObject*       ctx              = arg0->extra;
+    GpEnemy*         obj              = arg0->spawnArg2;
+    GsCOORDINATE2*   coord0           = ctx->coords;
+    void             (*fns[2])(Task*) = { Actor00400_Fn0A468, Actor00400_Fn0A4BC };
+    Actor100400Mat   m;
+    ActorMatWords*   ia;
+    Actor100400Work* w;
+    Actor100400Work* w2;
+    Actor100400Work* w3;
+    Actor100400Work* work2;
+    TmdObject*       ctx2;
+    GsCOORDINATE2*   coord;
+    MATRIX*          dst;
+    s32              i;
 
     switch (Gp_StateF0.field_4) {
         case 2:

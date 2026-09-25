@@ -25,23 +25,6 @@
 #include "gameplay/gameplay.h"
 #include "actors/actors_shared_80149ed0.h"
 
-/// Word-wise view of a `MATRIX` used to splat an identity rotation: five
-/// aligned stores instead of nine halfword ones, each word holding two adjacent
-/// `m[][]` entries.  The same shape `ActorsShared801639a8MatWords` has.
-typedef struct Actor206100MatrixWords {
-    /* 0x00 */ s32 m00_m01;
-    /* 0x04 */ s32 m02_m10;
-    /* 0x08 */ s32 m11_m12;
-    /* 0x0C */ s32 m20_m21;
-    /* 0x10 */ s16 m22;
-} Actor206100MatrixWords;
-
-typedef union Actor206100Matrix {
-    MATRIX                 mat;
-    Actor206100MatrixWords ident;
-} Actor206100Matrix;
-STATIC_ASSERT_SIZEOF(Actor206100Matrix, 0x20);
-
 /// Shared stack storage for posing the actor, spawning its beam, and walking
 /// the parent coordinates to determine whether the actor can be locked onto.
 typedef struct Actor206100GteView {
@@ -54,7 +37,7 @@ typedef struct Actor206100GteView {
 } Actor206100GteView;
 
 typedef union Actor206100VecScratch {
-    Actor206100Matrix  matrix;
+    ActorMat           matrix;
     Actor206100GteView gte;
 } Actor206100VecScratch;
 
@@ -1103,18 +1086,18 @@ void func_actor_206100_8014AF74(Task* task)
 /// the two, costing the case-2 copy of the last fifty instructions.
 void func_actor_206100_8014B0AC(Task* task, u8 arg1)
 {
-    VECTOR            scale;
-    Actor206100Matrix rot;
-    Actor206100Matrix ma;
-    Actor206100Matrix mb;
-    SVECTOR           euler;
-    Actor206100Matrix mc;
-    Actor206100Work*  work;
-    GsCOORDINATE2*    base;
-    GsCOORDINATE2*    c2;
-    GsCOORDINATE2*    c3;
-    GsCOORDINATE2*    c4;
-    s32               invScale;
+    VECTOR           scale;
+    ActorMat         rot;
+    ActorMat         ma;
+    ActorMat         mb;
+    SVECTOR          euler;
+    ActorMat         mc;
+    Actor206100Work* work;
+    GsCOORDINATE2*   base;
+    GsCOORDINATE2*   c2;
+    GsCOORDINATE2*   c3;
+    GsCOORDINATE2*   c4;
+    s32              invScale;
 
     base = ((TmdObject*)task->extra)->coords;
     work = (Actor206100Work*)task->work;
@@ -1138,7 +1121,7 @@ void func_actor_206100_8014B0AC(Task* task, u8 arg1)
                     work->field_53C = 0x1000;
                     /* fallthrough */
                 case 1: {
-                    Actor206100MatrixWords* ir;
+                    ActorMatWords* ir;
 
                     work->field_4D8.vx = (u16)work->field_4D8.vx + ((s32) - (work->field_4D8.vx * 0x10) >> 7);
                     work->field_4D8.vy = (u16)work->field_4D8.vy + ((s32) - (work->field_4D8.vy * 0x10) >> 7);
@@ -1172,10 +1155,10 @@ void func_actor_206100_8014B0AC(Task* task, u8 arg1)
                     break;
                 }
                 case 2: {
-                    Actor206100MatrixWords* ia;
-                    Actor206100MatrixWords* ib;
-                    Actor206100MatrixWords* ic;
-                    Actor206100MatrixWords* ir;
+                    ActorMatWords* ia;
+                    ActorMatWords* ib;
+                    ActorMatWords* ic;
+                    ActorMatWords* ir;
 
                     Gp_MtxToEuler(&c4->coord, &euler);
                     work->field_53C  = (u16)work->field_53C + ((0x2AA - work->field_53C) >> 3);
@@ -1237,10 +1220,10 @@ void func_actor_206100_8014B0AC(Task* task, u8 arg1)
             base[4].flg = 0;
             Gp_UpdateCoord(c4);
             if (work->field_53C < 0xF80) {
-                Actor206100MatrixWords* ia;
-                Actor206100MatrixWords* ib;
-                Actor206100MatrixWords* ic;
-                Actor206100MatrixWords* ir;
+                ActorMatWords* ia;
+                ActorMatWords* ib;
+                ActorMatWords* ic;
+                ActorMatWords* ir;
 
                 Gp_MtxToEuler(&c4->coord, &euler);
                 work->field_53C  = (u16)work->field_53C + ((0x1000 - work->field_53C) >> 2);
@@ -1896,7 +1879,7 @@ void func_actor_206100_8014C458(Task* task)
     TaskFuncTable9            states = D_actor_206100_80149E70;
     Actor206100VecScratch     scratch;
     VECTOR                    scale;
-    Actor206100Matrix         scaling;
+    ActorMat                  scaling;
     Actor206100Work*          next;
     Actor206100Work*          dying;
     Actor206100Work*          sub;
@@ -2728,18 +2711,18 @@ void func_actor_206100_8014DA28(Task* task)
         func_actor_206100_8014FAE4,
         func_actor_206100_8014DD3C,
     };
-    Actor206100Work*  next;
-    Actor206100Work*  sub;
-    GsCOORDINATE2*    coord;
-    GsCOORDINATE2*    scaled;
-    MATRIX*           mtx;
-    MATRIX*           mtx2;
-    MATRIX*           dest;
-    Actor206100Matrix matrix;
-    VECTOR            scale;
-    Actor206100Matrix scaling;
-    s32               i;
-    s16               state;
+    Actor206100Work* next;
+    Actor206100Work* sub;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   scaled;
+    MATRIX*          mtx;
+    MATRIX*          mtx2;
+    MATRIX*          dest;
+    ActorMat         matrix;
+    VECTOR           scale;
+    ActorMat         scaling;
+    s32              i;
+    s16              state;
 
     switch (Gp_StateF0.field_4) {
         case 2:
@@ -3018,39 +3001,39 @@ void func_actor_206100_8014E0C0(Task* task)
 }
 void func_actor_206100_8014E228(Task* task)
 {
-    SVECTOR                 ang;
-    SVECTOR*                aim;
-    SVECTOR                 rot1;
-    SVECTOR                 rot2;
-    MATRIX                  t1;
-    MATRIX                  t2;
-    MATRIX                  t3;
-    Actor206100Matrix       ma;
-    Actor206100Matrix       mb;
-    Actor206100Matrix       mc;
-    MATRIX                  view;
-    VECTOR                  delta;
-    VECTOR                  local;
-    GsCOORDINATE2*          c1;
-    GsCOORDINATE2*          c3;
-    GsCOORDINATE2*          c4;
-    Actor206100Work*        work;
-    GsCOORDINATE2*          base;
-    GsCOORDINATE2*          c2;
-    Actor206100MatrixWords* ia;
-    Actor206100MatrixWords* ib;
-    Actor206100MatrixWords* ic;
-    MATRIX*                 m2;
-    MATRIX*                 m3;
-    MATRIX*                 dest;
-    s32                     hx;
-    s32                     hy;
-    s32                     hz;
-    s32                     total;
-    u16                     yaw;
-    u16                     pitch;
-    u32                     pitchDiff;
-    s16                     limit;
+    SVECTOR          ang;
+    SVECTOR*         aim;
+    SVECTOR          rot1;
+    SVECTOR          rot2;
+    MATRIX           t1;
+    MATRIX           t2;
+    MATRIX           t3;
+    ActorMat         ma;
+    ActorMat         mb;
+    ActorMat         mc;
+    MATRIX           view;
+    VECTOR           delta;
+    VECTOR           local;
+    GsCOORDINATE2*   c1;
+    GsCOORDINATE2*   c3;
+    GsCOORDINATE2*   c4;
+    Actor206100Work* work;
+    GsCOORDINATE2*   base;
+    GsCOORDINATE2*   c2;
+    ActorMatWords*   ia;
+    ActorMatWords*   ib;
+    ActorMatWords*   ic;
+    MATRIX*          m2;
+    MATRIX*          m3;
+    MATRIX*          dest;
+    s32              hx;
+    s32              hy;
+    s32              hz;
+    s32              total;
+    u16              yaw;
+    u16              pitch;
+    u32              pitchDiff;
+    s16              limit;
 
     base = ((TmdObject*)task->extra)->coords;
     work = (Actor206100Work*)task->work;
@@ -3285,12 +3268,12 @@ void func_actor_206100_8014EB48(Task* task, s16 arg1)
 
 void func_actor_206100_8014EB60(Task* task)
 {
-    Actor206100Work*  work;
-    GsCOORDINATE2*    coords;
-    SVECTOR           rot;
-    Actor206100Matrix matrix;
-    MATRIX*           dest;
-    MATRIX*           mtx;
+    Actor206100Work* work;
+    GsCOORDINATE2*   coords;
+    SVECTOR          rot;
+    ActorMat         matrix;
+    MATRIX*          dest;
+    MATRIX*          mtx;
 
     work   = (Actor206100Work*)task->work;
     coords = ((TmdObject*)task->extra)->coords;

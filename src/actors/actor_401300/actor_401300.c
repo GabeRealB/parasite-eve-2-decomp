@@ -317,17 +317,6 @@ typedef struct Actor401300ScaleScratch {
 } Actor401300ScaleScratch;
 STATIC_ASSERT_SIZEOF(Actor401300ScaleScratch, 0x18);
 
-/// Word-wise view of a `MATRIX` used to splat an identity rotation: five
-/// aligned stores instead of nine halfword ones, each word holding two adjacent
-/// `m[][]` entries. Same shape as `Actor206100MatrixWords`.
-typedef struct Actor401300MatWords {
-    /* 0x00 */ s32 m00_m01;
-    /* 0x04 */ s32 m02_m10;
-    /* 0x08 */ s32 m11_m12;
-    /* 0x0C */ s32 m20_m21;
-    /* 0x10 */ s16 m22;
-} Actor401300MatWords;
-
 extern MATRIX* D_80073B8C;
 
 /// Movement freeze flag: `Actor401300_MoveForward` skips its step when it is 1.
@@ -1513,15 +1502,15 @@ static __inline__ void Actor401300_InitPose(GsCOORDINATE2* coord, Actor401300Wor
 
 void func_actor_401300_80134454(GpEnemy* enemy, Task* actor)
 {
-    SVECTOR              dir;
-    VECTOR               pos;
-    SVECTOR*             v;
-    TmdObject*           obj;
-    GsCOORDINATE2*       root;
-    Actor401300Work*     work;
-    GpObj*               body;
-    GpObj*               head;
-    Actor401300MatWords* mw;
+    SVECTOR          dir;
+    VECTOR           pos;
+    SVECTOR*         v;
+    TmdObject*       obj;
+    GsCOORDINATE2*   root;
+    Actor401300Work* work;
+    GpObj*           body;
+    GpObj*           head;
+    ActorMatWords*   mw;
 
     root        = ((TmdObject*)actor->extra)->coords;
     obj         = actor->extra;
@@ -1567,7 +1556,7 @@ void func_actor_401300_80134454(GpEnemy* enemy, Task* actor)
     func_actor_401300_80133A3C(actor);
 
     work->field_920.sub        = &gGfxViewCoord;
-    mw                         = (Actor401300MatWords*)&work->field_920.coord;
+    mw                         = (ActorMatWords*)&work->field_920.coord;
     mw->m00_m01                = 0x1000;
     mw->m02_m10                = 0;
     mw->m11_m12                = 0x1000;
@@ -3185,12 +3174,12 @@ static __inline__ void Actor401300_RescaleYawXZ(GsCOORDINATE2* coord, s32 xz, s1
 /// root coordinate's Y scale; state 0x24 follows after frame 64.
 void func_actor_401300_80139134(Task* arg0)
 {
-    Actor401300Work*     work;
-    GpEnemy*             enemy;
-    TmdObject*           obj;
-    Actor401300MatWords* w;
-    SVECTOR              pos;
-    s16                  t;
+    Actor401300Work* work;
+    GpEnemy*         enemy;
+    TmdObject*       obj;
+    ActorMatWords*   w;
+    SVECTOR          pos;
+    s16              t;
 
     work  = arg0->work;
     obj   = arg0->extra;
@@ -3207,7 +3196,7 @@ void func_actor_401300_80139134(Task* arg0)
     if (work->field_6 <= 0x400) {
         switch (++work->field_6) {
             case 30:
-                w          = (Actor401300MatWords*)&work->field_8C0.coord;
+                w          = (ActorMatWords*)&work->field_8C0.coord;
                 w->m00_m01 = 0x1000;
                 w->m02_m10 = 0;
                 w->m11_m12 = 0x1000;

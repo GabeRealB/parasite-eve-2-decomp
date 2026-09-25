@@ -4,6 +4,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "gameplay/1BC.h"
 #include "gameplay/D4.h"
 #include "main/gameflag.h"
@@ -11,21 +12,6 @@
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
-
-/// A `MATRIX` plus the word-wise view `func_actor_311900_8016278C` and
-/// `func_actor_311900_8016281C` seed the light / colour pair's identity
-/// through: five aligned stores rather than nine halfword ones.
-typedef union Actor311900MatWords {
-    MATRIX mat;
-    struct {
-        /* 0x00 */ s32 m00_m01;
-        /* 0x04 */ s32 m02_m10;
-        /* 0x08 */ s32 m11_m12;
-        /* 0x0C */ s32 m20_m21;
-        /* 0x10 */ s16 m22;
-    } ident;
-} Actor311900MatWords;
-STATIC_ASSERT_SIZEOF(Actor311900MatWords, 0x20);
 
 /// Animation view of the work block's 0x474-byte prefix. The spawn handler
 /// hands the block itself to `func_800B3F84` as a `GpAnimCtx`, the
@@ -467,15 +453,15 @@ s32 func_actor_311900_80162658(GsCOORDINATE2* arg0, s16 arg1)
 /// for `m[1][0]` and `m[2][2]`, the colour matrix fully pass-through.
 void func_actor_311900_8016278C(Task* task)
 {
-    Actor311900MatWords* color;
-    Actor311900MatWords* light;
-    TmdObject*           ext;
-    Actor311900Work*     work;
+    ActorMat*        color;
+    ActorMat*        light;
+    TmdObject*       ext;
+    Actor311900Work* work;
 
     work  = (Actor311900Work*)task->work;
     ext   = task->extra;
-    light = (Actor311900MatWords*)&work->light;
-    color = (Actor311900MatWords*)&work->color;
+    light = (ActorMat*)&work->light;
+    color = (ActorMat*)&work->color;
 
     light->ident.m00_m01 = 0x1000;
     light->ident.m02_m10 = 0;
@@ -520,15 +506,15 @@ void func_actor_311900_8016278C(Task* task)
 /// matrix flat except for a negated `m[0][0]`.
 void func_actor_311900_8016281C(Task* task)
 {
-    Actor311900MatWords* color;
-    Actor311900MatWords* light;
-    TmdObject*           ext;
-    Actor311900Work*     work;
+    ActorMat*        color;
+    ActorMat*        light;
+    TmdObject*       ext;
+    Actor311900Work* work;
 
     work  = (Actor311900Work*)task->work;
     ext   = task->extra;
-    light = (Actor311900MatWords*)&work->light;
-    color = (Actor311900MatWords*)&work->color;
+    light = (ActorMat*)&work->light;
+    color = (ActorMat*)&work->color;
 
     light->ident.m00_m01 = 0x1000;
     light->ident.m02_m10 = 0;

@@ -28,7 +28,6 @@
 #include "actors/actors_shared_80131fc8.h"
 #include "actors/actors_shared_80132688.h"
 #include "actors/actors_shared_80136184.h"
-#include "actors/actors_shared_80137ca4.h"
 
 /// One 0x10-byte entry of the box table `Actor403900Work::field_6B4`: the
 /// entry's kind at `field_0` (0 a circle of radius `field_2` round
@@ -57,17 +56,6 @@ typedef struct Actor403900Spot {
     /* 0x6 */ u16 field_6;
 } Actor403900Spot;
 STATIC_ASSERT_SIZEOF(Actor403900Spot, 0x8);
-
-/// Word view of a `GsCOORDINATE2::coord` matrix, the shape
-/// `func_actor_403900_80134968` resets it to identity through: whole-word
-/// stores over `m[0][0]`..`m[2][1]` and a halfword for `m[2][2]`.
-typedef struct Actor403900MatrixWords {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-    /* 0x10 */ s16 field_10;
-} Actor403900MatrixWords;
 
 /// Per-instance work block the actor's task holds in `Task::work`, allocated with `memCalloc(0x71C)` by the spawn handler
 /// `func_actor_403900_80137444`; the same shape the other enemy overlays give
@@ -1700,19 +1688,19 @@ void func_actor_403900_801347F4(Task* arg0)
 /// fourth part on odd animation frames.
 void func_actor_403900_80134968(Task* arg0)
 {
-    SVECTOR*                sc;
-    Actor403900Work*        work;
-    TmdObject*              obj;
-    GsCOORDINATE2*          coord;
-    Actor403900MatrixWords* m;
-    s32                     snd;
-    s32                     pan;
-    s32                     v;
-    s32                     w;
-    s32                     sy;
-    s32                     y;
-    u32                     random;
-    s16                     t;
+    SVECTOR*         sc;
+    Actor403900Work* work;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    ActorMatWords*   m;
+    s32              snd;
+    s32              pan;
+    s32              v;
+    s32              w;
+    s32              sy;
+    s32              y;
+    u32              random;
+    s16              t;
 
     sc    = (SVECTOR*)(*(u32*)G_SCRATCH_HEAD -= 8);
     work  = arg0->work;
@@ -1850,12 +1838,12 @@ void func_actor_403900_80134968(Task* arg0)
                 if (obj->lightLevel <= 0) {
                     obj->lightLevel                  = 0;
                     work->field_6DA                  = 0;
-                    m                                = (Actor403900MatrixWords*)&((TmdObject*)arg0->extra)->coords[0].coord;
-                    m->field_0                       = 0x1000;
-                    m->field_4                       = 0;
-                    m->field_8                       = 0x1000;
-                    m->field_C                       = 0;
-                    m->field_10                      = 0x1000;
+                    m                                = (ActorMatWords*)&((TmdObject*)arg0->extra)->coords[0].coord;
+                    m->m00_m01                       = 0x1000;
+                    m->m02_m10                       = 0;
+                    m->m11_m12                       = 0x1000;
+                    m->m20_m21                       = 0;
+                    m->m22                           = 0x1000;
                     ((TmdObject*)arg0->extra)->flags = 0x80;
                 }
             }
@@ -3117,15 +3105,15 @@ void func_actor_403900_80137B78(Task* arg0)
 /// matrix is multiplied into it.
 void func_actor_403900_80137CA8(Task* arg0)
 {
-    void**                  scratch;
-    void*                   head;
-    ActorShared80137ca4Mat* m;
-    GsCOORDINATE2*          coord;
-    Actor403900Work*        work;
+    void**           scratch;
+    void*            head;
+    ActorMat*        m;
+    GsCOORDINATE2*   coord;
+    Actor403900Work* work;
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
-    m        = (ActorShared80137ca4Mat*)((u8*)head - 0x20);
+    m        = (ActorMat*)((u8*)head - 0x20);
     *scratch = m;
     coord    = &((TmdObject*)arg0->extra)->coords[0];
     work     = arg0->work;

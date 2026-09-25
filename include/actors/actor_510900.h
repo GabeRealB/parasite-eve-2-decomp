@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "actors/actor.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "main/task.h"
@@ -112,17 +113,6 @@ typedef struct Actor510900Work {
     /* 0x5C6 */ byte pad_5C6[2];
 } Actor510900Work;
 STATIC_ASSERT_SIZEOF(Actor510900Work, 0x5C8);
-
-/// Word-wise view of a `MATRIX` used to splat an identity rotation: five
-/// aligned stores instead of nine halfword ones, each word holding two adjacent
-/// `m[][]` entries. The same shape `Actor206100MatrixWords` has.
-typedef struct Actor510900MatrixWords {
-    /* 0x00 */ s32 m00_m01;
-    /* 0x04 */ s32 m02_m10;
-    /* 0x08 */ s32 m11_m12;
-    /* 0x0C */ s32 m20_m21;
-    /* 0x10 */ s16 m22;
-} Actor510900MatrixWords;
 
 /// `TaskDesc` table the state hands `Gp_SpawnEnemyFromTable` (entry 4).
 extern TaskDesc D_actor_510900_80167A18[];

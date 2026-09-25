@@ -7,23 +7,8 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "actors/actor.h"
 #include "main/task.h"
-
-/// A `MATRIX` plus the word-wise view this body uses to splat an identity
-/// rotation: five aligned stores instead of nine halfword ones, each word
-/// holding two adjacent `m[][]` entries. The other actor overlays spell the
-/// same union `ActorShared80135b58Mat`.
-typedef union ActorShared80137e18Mat {
-    MATRIX mat;
-    struct {
-        /* 0x00 */ s32 m00_m01;
-        /* 0x04 */ s32 m02_m10;
-        /* 0x08 */ s32 m11_m12;
-        /* 0x0C */ s32 m20_m21;
-        /* 0x10 */ s16 m22;
-    } ident;
-} ActorShared80137e18Mat;
-STATIC_ASSERT_SIZEOF(ActorShared80137e18Mat, 0x20);
 
 /// Work block the carriers hang off `Task::work`. `coord` is the extra
 /// `GsCOORDINATE2` this body wires as `sub` of the model's second part;

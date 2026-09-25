@@ -3,7 +3,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
-#include "actors/actors_shared_80136574.h"
+#include "actors/actor.h"
 #include "actors/actors_shared_8013391c.h"
 #include "gameplay/1A8.h"
 #include "gameplay/1BC.h"
@@ -962,13 +962,13 @@ void func_actor_105400_80133610(Task* arg0)
 /// copy, the delay-slot fill and the frame layout.
 void func_actor_105400_801336D4(Task* arg0, MATRIX* arg1, s16 arg2, s32 arg3)
 {
-    void*                       head;
-    ActorShared80136574Scratch* blk;
-    GsCOORDINATE2*              coord;
+    void*              head;
+    ActorScaleScratch* blk;
+    GsCOORDINATE2*     coord;
 
     head                    = *(void**)G_SCRATCH_HEAD;
     *(void**)G_SCRATCH_HEAD = (u8*)head - 0x30;
-    blk                     = (ActorShared80136574Scratch*)((u8*)head - 0x30);
+    blk                     = (ActorScaleScratch*)((u8*)head - 0x30);
     coord                   = ((TmdObject*)arg0->extra)->coords;
 
     if (arg3 == 0) {
