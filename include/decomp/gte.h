@@ -330,7 +330,5 @@
 /// only for the IR vector (`gte_rtir_sf0`): the product of the rotation matrix
 /// and V0, V1 or V2, with no translation added.
 #define gte_rtv0_sf0() __asm__ volatile("nop; nop; .word 0x4A406012")
-#define gte_rtv1_sf0() __asm__ volatile("nop; nop; .word 0x4A40E012")
-#define gte_rtv2_sf0() __asm__ volatile("nop; nop; .word 0x4A416012")
 
 #endif

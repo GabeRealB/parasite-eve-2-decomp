@@ -216,14 +216,115 @@ s32  func_800A7550(void);
 #define gte_ldsz2(r0)  __asm__ volatile("mtc2 %0, $18" : : "r"(r0))
 #define gte_ldsz3s(r0) __asm__ volatile("mtc2 %0, $19" : : "r"(r0))
 
-#define and_mask(dst, m) __asm__ volatile("and %0, %1, %0" : "+r"(dst) : "r"(m))
-
-#define gte_ldVXY0(r) __asm__ volatile("mtc2 %0, $0" : : "r"(r))
-#define gte_ldVZ0(r)  __asm__ volatile("mtc2 %0, $1" : : "r"(r))
-#define gte_ldVXY1(r) __asm__ volatile("mtc2 %0, $2" : : "r"(r))
-#define gte_ldVZ1(r)  __asm__ volatile("mtc2 %0, $3" : : "r"(r))
-#define gte_ldVXY2(r) __asm__ volatile("mtc2 %0, $4" : : "r"(r))
-#define gte_ldVZ2(r)  __asm__ volatile("mtc2 %0, $5" : : "r"(r))
+/* r1 = long vector in, r2 = long vector out: r2 = RT * r1 + TR at full
+ * 32-bit precision, the input split into three 10/11-bit slices. */
+#define gte_RotTransLV(r1, r2) __asm__ volatile( \
+    "lw	$14, 0( %0 );"                           \
+    "lw	$15, 4( %0 );"                           \
+    "addiu	$16, $0, -0x400;"                     \
+    "sra	$12, $14, 21;"                          \
+    "and	$12, $16, $12;"                         \
+    "andi	$13, $14, 0x3ff;"                      \
+    "or	$12, $13, $12;"                          \
+    "andi	$12, $12, 0xffff;"                     \
+    "sra	$13, $15, 21;"                          \
+    "and	$13, $16, $13;"                         \
+    "andi	$16, $15, 0x3ff;"                      \
+    "or	$13, $16, $13;"                          \
+    "sll	$13, $13, 16;"                          \
+    "or	$12, $13, $12;"                          \
+    "mtc2	$12, $0;"                              \
+    "sra	$14, $14, 10;"                          \
+    "sra	$15, $15, 10;"                          \
+    "addiu	$16, $0, -0x400;"                     \
+    "sra	$12, $14, 21;"                          \
+    "and	$12, $16, $12;"                         \
+    "andi	$13, $14, 0x3ff;"                      \
+    "or	$12, $13, $12;"                          \
+    "sra	$13, $15, 21;"                          \
+    "and	$13, $16, $13;"                         \
+    "andi	$16, $15, 0x3ff;"                      \
+    "or	$13, $16, $13;"                          \
+    "srl	$16, $15, 31;"                          \
+    "addu	$13, $13, $16;"                        \
+    "sll	$13, $13, 16;"                          \
+    "srl	$16, $14, 31;"                          \
+    "addu	$12, $12, $16;"                        \
+    "andi	$12, $12, 0xffff;"                     \
+    "or	$12, $13, $12;"                          \
+    "mtc2	$12, $2;"                              \
+    "sra	$14, $14, 10;"                          \
+    "sra	$15, $15, 10;"                          \
+    "andi	$12, $14, 0xffff;"                     \
+    "srl	$16, $14, 31;"                          \
+    "addu	$12, $16, $12;"                        \
+    "andi	$12, $12, 0xffff;"                     \
+    "andi	$13, $15, 0xffff;"                     \
+    "srl	$16, $15, 31;"                          \
+    "addu	$13, $16, $13;"                        \
+    "sll	$13, $13, 16;"                          \
+    "or	$12, $13, $12;"                          \
+    "mtc2	$12, $4;"                              \
+    "lw	$16, 8( %0 );"                           \
+    "addiu	$14, $0, -0x400;"                     \
+    "srl	$15, $16, 31;"                          \
+    "sra	$12, $16, 21;"                          \
+    "and	$12, $14, $12;"                         \
+    "andi	$13, $16, 0x3ff;"                      \
+    "or	$12, $13, $12;"                          \
+    "mtc2	$12, $1;"                              \
+    "sra	$16, $16, 10;"                          \
+    "sra	$12, $16, 21;"                          \
+    "and	$12, $14, $12;"                         \
+    "andi	$13, $16, 0x3ff;"                      \
+    "or	$12, $13, $12;"                          \
+    "addu	$12, $12, $15;"                        \
+    "mtc2	$12, $3;"                              \
+    "sra	$16, $16, 10;"                          \
+    "addu	$12, $16, $15;"                        \
+    "mtc2	$12, $5;"                              \
+    "nop;"                                       \
+    "nop;"                                       \
+    ".word 0x4A480012;"                          \
+    "mfc2	$14, $25;"                             \
+    "mfc2	$15, $26;"                             \
+    "mfc2	$16, $27;"                             \
+    "nop;"                                       \
+    "nop;"                                       \
+    ".word 0x4A40E012;"                          \
+    "mfc2	$12, $25;"                             \
+    "nop;"                                       \
+    "sra	$12, $12, 2;"                           \
+    "addu	$14, $12, $14;"                        \
+    "mfc2	$12, $26;"                             \
+    "nop;"                                       \
+    "sra	$12, $12, 2;"                           \
+    "addu	$15, $12, $15;"                        \
+    "mfc2	$12, $27;"                             \
+    "nop;"                                       \
+    "sra	$12, $12, 2;"                           \
+    "addu	$16, $12, $16;"                        \
+    "nop;"                                       \
+    "nop;"                                       \
+    ".word 0x4A416012;"                          \
+    "mfc2	$12, $25;"                             \
+    "nop;"                                       \
+    "sll	$12, $12, 8;"                           \
+    "addu	$14, $12, $14;"                        \
+    "mfc2	$12, $26;"                             \
+    "nop;"                                       \
+    "sll	$12, $12, 8;"                           \
+    "addu	$15, $12, $15;"                        \
+    "mfc2	$12, $27;"                             \
+    "nop;"                                       \
+    "sll	$12, $12, 8;"                           \
+    "addu	$16, $12, $16;"                        \
+    "sw	$14, 0( %1 );"                           \
+    "sw	$15, 4( %1 );"                           \
+    "sw	$16, 8( %1 )"                            \
+    :                                            \
+    : "r"(r1), "r"(r2)                           \
+    : "$12", "$13", "$14", "$15", "$16", "memory")
 
 /// Writes the transpose of the 3x3 rotation part of `s` into `d`.
 /// Needs `t4` / `t5` / `t6` in scope (the target reads a whole column
@@ -274,731 +375,88 @@ typedef struct {
 } _GpRelMatScratch;
 STATIC_ASSERT_SIZEOF(_GpRelMatScratch, 0x30);
 
+/// Brings one coordinate up to date for the current pass, as
+/// `_gpUpdateCoordTree` describes: the body that function and the draw passes
+/// share, inlined into each. The high-precision translation is composed with
+/// `gte_RotTransLV`.
+static __inline__ void _gpRefreshCoord(GpCoord* coord, s32 stamp, s32 parity, GpCoord* root)
+{
+    GpCoord* parent;
+
+    parent     = coord->sub;
+    coord->flg = (coord->flg << 1) >> 1;
+    if (parent == root) {
+        if (coord->flg == 0) {
+            coord->workm = coord->coord;
+            coord->flg   = stamp;
+        }
+    } else {
+        if ((parent->flg == 0) || ((parent->flg >> 31) != parity)) {
+            _gpUpdateCoordTree(parent, stamp, parity, root);
+        }
+        if (coord->flg < (parent->flg & 0x7FFFFFFF)) {
+            gte_CompMatrix(&parent->workm, &coord->coord, &coord->workm);
+            coord->flg = stamp;
+            gte_SetRotMatrix(&parent->workm);
+            gte_ldclmv(&coord->coord.m[0][0]);
+            gte_rtir();
+            gte_stclmv(&coord->workm.m[0][0]);
+            gte_ldclmv(&coord->coord.m[0][1]);
+            gte_rtir();
+            coord->flg = stamp;
+            gte_stclmv(&coord->workm.m[0][1]);
+            gte_ldclmv(&coord->coord.m[0][2]);
+            gte_rtir();
+            gte_SetTransVector(parent->workm.t);
+            gte_stclmv(&coord->workm.m[0][2]);
+            gte_RotTransLV(coord->coord.t, coord->workm.t);
+        }
+    }
+    if (parity != 0) {
+        coord->flg |= 0x80000000;
+    }
+}
+
+/// Brings every coordinate the draw passes use up to date for this frame: the
+/// 2D displays' single coordinates, then each model's part coordinates, and
+/// advances the frame stamp the next pass will compare against.
+static __inline__ void _gpRefreshAllCoords(void)
+{
+    TmdObject* node;
+    GpCoord*   coord;
+    s32        stamp;
+    s32        parity;
+    u32        i;
+
+    stamp  = D_80071210 & 0x7FFFFFFF;
+    parity = D_80071210 & 1;
+    for (node = PARENT_OF(gTmdDisp2dList.next, TmdObject, link); node != NULL;
+         node = PARENT_OF(node->link.next, TmdObject, link)) {
+        _gpRefreshCoord(node->coords, stamp, parity, NULL);
+    }
+    for (node = PARENT_OF(gTmdList.next, TmdObject, link); node != NULL;
+         node = PARENT_OF(node->link.next, TmdObject, link)) {
+        coord = node->coords;
+        for (i = 0; i < node->partCount; i++) {
+            _gpRefreshCoord(coord, stamp, parity, NULL);
+            coord++;
+        }
+    }
+    D_80071210 += 1;
+}
+
+/// Refreshes every coordinate for this frame, then draws the models the
+/// flagged pass draws.
 void Gp_DrawActorTmdFlagged(GpuOtBuf* arg0)
 {
-    TmdObject*             node;
-    GpCoord*               coord;
-    s32                    flag;
-    s32                    bit;
-    register s32           vy asm("t7");
-    u32                    i;
-    register GpCoordFromT* tail asm("s2");
-    GpCoord*               parent;
-
-    {
-        register s32 tmp asm("v0");
-        register s32 mask asm("a0");
-
-        mask = 0x7FFFFFFF;
-        tmp  = D_80071210;
-        node = PARENT_OF(gTmdDisp2dList.next, TmdObject, link);
-        flag = tmp & mask;
-        bit  = tmp & 1;
-    }
-    if (node != NULL) {
-        do {
-            coord      = node->coords;
-            parent     = coord->sub;
-            coord->flg = (coord->flg << 1) >> 1;
-            if (parent == NULL) {
-                if (coord->flg == 0) {
-                    coord->workm = coord->coord;
-                    coord->flg   = flag;
-                }
-            } else {
-                if ((parent->flg == 0) || ((parent->flg >> 31) != bit)) {
-                    _gpUpdateCoordTree(parent, flag, bit, 0);
-                }
-                if (coord->flg < (parent->flg & 0x7FFFFFFF)) {
-                    MATRIX*          pwm;
-                    register VECTOR* out asm("v1");
-                    register VECTOR* trans asm("a0");
-
-                    pwm = &parent->workm;
-                    gte_SetRotMatrix(pwm);
-                    gte_ldclmv(&coord->coord);
-                    gte_rtir();
-                    gte_stclmv(&coord->workm);
-                    gte_ldclmv(&coord->coord.m[0][1]);
-                    gte_rtir();
-                    gte_stclmv(&coord->workm.m[0][1]);
-                    gte_ldclmv(&coord->coord.m[0][2]);
-                    gte_rtir();
-                    gte_stclmv(&coord->workm.m[0][2]);
-                    gte_SetTransMatrix(pwm);
-                    trans = (VECTOR*)coord->coord.t;
-                    gte_ldlv0(trans);
-                    gte_rtv0tr();
-                    out = (VECTOR*)coord->workm.t;
-                    gte_stlvnl(out);
-                    coord->flg = flag;
-
-                    gte_SetRotMatrix(pwm);
-                    gte_ldclmv(&coord->coord);
-                    gte_rtir();
-                    gte_stclmv(&coord->workm);
-                    gte_ldclmv(&coord->coord.m[0][1]);
-                    gte_rtir();
-                    coord->flg = flag;
-                    gte_stclmv(&coord->workm.m[0][1]);
-                    gte_ldclmv(&coord->coord.m[0][2]);
-                    gte_rtir();
-                    gte_SetTransVector(parent->workm.t);
-                    gte_stclmv(&coord->workm.m[0][2]);
-
-                    {
-                        register s32 vx asm("t6");
-                        register s32 t4 asm("t4");
-                        register s32 t5 asm("t5");
-                        register s32 mask asm("s0");
-
-                        __asm__ volatile("lw %0, 0(%1)" : "=r"(vx) : "r"(trans));
-                        __asm__ volatile("lw %0, 4(%1)" : "=r"(vy) : "r"(trans));
-                        mask = -0x400;
-                        t4   = vx >> 21;
-                        and_mask(t4, mask);
-                        t5  = vx & 0x3FF;
-                        t4  = t5 | t4;
-                        t4 &= 0xFFFF;
-                        t5  = vy >> 21;
-                        and_mask(t5, mask);
-                        mask = vy & 0x3FF;
-                        t5   = mask | t5;
-                        t5 <<= 16;
-                        t4   = t5 | t4;
-                        gte_ldVXY0(t4);
-
-                        vx >>= 10;
-                        vy >>= 10;
-                        TOUCH_REG2(vx, vy);
-                        mask = -0x400;
-                        t4   = vx >> 21;
-                        and_mask(t4, mask);
-                        t5 = vx & 0x3FF;
-                        t4 = t5 | t4;
-                        t5 = vy >> 21;
-                        and_mask(t5, mask);
-                        mask = vy & 0x3FF;
-                        t5   = mask | t5;
-                        mask = (u32)vy >> 31;
-                        t5  += mask;
-                        t5 <<= 16;
-                        mask = (u32)vx >> 31;
-                        t4  += mask;
-                        t4  &= 0xFFFF;
-                        t4   = t5 | t4;
-                        gte_ldVXY1(t4);
-
-                        vx >>= 10;
-                        vy >>= 10;
-                        t4   = vx & 0xFFFF;
-                        mask = (u32)vx >> 31;
-                        t4   = mask + t4;
-                        t4  &= 0xFFFF;
-                        t5   = vy & 0xFFFF;
-                        mask = (u32)vy >> 31;
-                        t5   = mask + t5;
-                        t5 <<= 16;
-                        t4   = t5 | t4;
-                        gte_ldVXY2(t4);
-
-                        __asm__ volatile("lw %0, 8(%1)" : "=r"(mask) : "r"(trans));
-                        vx = -0x400;
-                        vy = (u32)mask >> 31;
-                        t4 = mask >> 21;
-                        and_mask(t4, vx);
-                        t5 = mask & 0x3FF;
-                        t4 = t5 | t4;
-                        gte_ldVZ0(t4);
-                        mask >>= 10;
-                        TOUCH_REG(mask);
-                        t4 = mask >> 21;
-                        and_mask(t4, vx);
-                        t5  = mask & 0x3FF;
-                        t4  = t5 | t4;
-                        t4 += vy;
-                        gte_ldVZ1(t4);
-                        mask >>= 10;
-                        t4     = mask + vy;
-                        gte_ldVZ2(t4);
-
-                        gte_rtv0tr();
-                        __asm__ volatile("mfc2 %0, $25" : "=r"(vx));
-                        __asm__ volatile("mfc2 %0, $26" : "=r"(vy));
-                        __asm__ volatile("mfc2 %0, $27" : "=r"(mask));
-                        gte_rtv1_sf0();
-                        __asm__ volatile("mfc2 %0, $25; nop" : "=r"(t4));
-                        t4 >>= 2;
-                        vx   = t4 + vx;
-                        __asm__ volatile("mfc2 %0, $26; nop" : "=r"(t4));
-                        t4 >>= 2;
-                        vy   = t4 + vy;
-                        __asm__ volatile("mfc2 %0, $27; nop" : "=r"(t4));
-                        t4 >>= 2;
-                        mask = t4 + mask;
-                        gte_rtv2_sf0();
-                        __asm__ volatile("mfc2 %0, $25; nop" : "=r"(t4));
-                        t4 <<= 8;
-                        vx   = t4 + vx;
-                        __asm__ volatile("mfc2 %0, $26; nop" : "=r"(t4));
-                        t4 <<= 8;
-                        vy   = t4 + vy;
-                        __asm__ volatile("mfc2 %0, $27; nop" : "=r"(t4));
-                        t4 <<= 8;
-                        mask = t4 + mask;
-                        __asm__ volatile("sw %1, 0(%0); sw %2, 4(%0); sw %3, 8(%0)"
-                                         :
-                                         : "r"(out), "r"(vx), "r"(vy), "r"(mask)
-                                         : "memory");
-                    }
-                }
-            }
-            if (bit != 0) {
-                coord->flg |= 0x80000000;
-            }
-            node = PARENT_OF(node->link.next, TmdObject, link);
-        } while (node != NULL);
-    }
-
-    node = PARENT_OF(gTmdList.next, TmdObject, link);
-    if (node != NULL) {
-        do {
-            coord = node->coords;
-            i     = 0;
-            if (node->partCount != 0) {
-                tail = (GpCoordFromT*)coord->workm.t;
-                do {
-                    parent     = tail->sub;
-                    coord->flg = (coord->flg << 1) >> 1;
-                    if (parent == NULL) {
-                        if (coord->flg == 0) {
-                            GpCoord* c;
-                            c          = PARENT_OF(tail, GpCoord, workm.t);
-                            c->workm   = c->coord;
-                            coord->flg = flag;
-                        }
-                    } else {
-                        if ((parent->flg == 0) || ((parent->flg >> 31) != bit)) {
-                            _gpUpdateCoordTree(parent, flag, bit, 0);
-                        }
-                        if (coord->flg < (parent->flg & 0x7FFFFFFF)) {
-                            MATRIX*          pwm;
-                            register VECTOR* trans asm("v1");
-
-                            pwm = &parent->workm;
-                            gte_SetRotMatrix(pwm);
-                            gte_ldclmv(&coord->coord);
-                            gte_rtir();
-                            gte_stclmv(&coord->workm);
-                            gte_ldclmv(&coord->coord.m[0][1]);
-                            gte_rtir();
-                            gte_stclmv(&coord->workm.m[0][1]);
-                            gte_ldclmv(&coord->coord.m[0][2]);
-                            gte_rtir();
-                            gte_stclmv(&coord->workm.m[0][2]);
-                            gte_SetTransMatrix(pwm);
-                            trans = (VECTOR*)coord->coord.t;
-                            gte_ldlv0(trans);
-                            gte_rtv0tr();
-                            gte_stlvnl((VECTOR*)tail);
-                            coord->flg = flag;
-
-                            gte_SetRotMatrix(pwm);
-                            gte_ldclmv(&coord->coord);
-                            gte_rtir();
-                            gte_stclmv(&coord->workm);
-                            gte_ldclmv(&coord->coord.m[0][1]);
-                            gte_rtir();
-                            coord->flg = flag;
-                            gte_stclmv(&coord->workm.m[0][1]);
-                            gte_ldclmv(&coord->coord.m[0][2]);
-                            gte_rtir();
-                            gte_SetTransVector(parent->workm.t);
-                            gte_stclmv(&coord->workm.m[0][2]);
-
-                            {
-                                register s32 vx asm("t6");
-                                register s32 t4 asm("t4");
-                                register s32 t5 asm("t5");
-                                register s32 mask asm("s0");
-
-                                __asm__ volatile("lw %0, 0(%1)" : "=r"(vx) : "r"(trans));
-                                __asm__ volatile("lw %0, 4(%1)" : "=r"(vy) : "r"(trans));
-                                mask = -0x400;
-                                t4   = vx >> 21;
-                                and_mask(t4, mask);
-                                t5  = vx & 0x3FF;
-                                t4  = t5 | t4;
-                                t4 &= 0xFFFF;
-                                t5  = vy >> 21;
-                                and_mask(t5, mask);
-                                mask = vy & 0x3FF;
-                                t5   = mask | t5;
-                                t5 <<= 16;
-                                t4   = t5 | t4;
-                                gte_ldVXY0(t4);
-
-                                vx >>= 10;
-                                vy >>= 10;
-                                TOUCH_REG2(vx, vy);
-                                mask = -0x400;
-                                t4   = vx >> 21;
-                                and_mask(t4, mask);
-                                t5 = vx & 0x3FF;
-                                t4 = t5 | t4;
-                                t5 = vy >> 21;
-                                and_mask(t5, mask);
-                                mask = vy & 0x3FF;
-                                t5   = mask | t5;
-                                mask = (u32)vy >> 31;
-                                t5  += mask;
-                                t5 <<= 16;
-                                mask = (u32)vx >> 31;
-                                t4  += mask;
-                                t4  &= 0xFFFF;
-                                t4   = t5 | t4;
-                                gte_ldVXY1(t4);
-
-                                vx >>= 10;
-                                vy >>= 10;
-                                t4   = vx & 0xFFFF;
-                                mask = (u32)vx >> 31;
-                                t4   = mask + t4;
-                                t4  &= 0xFFFF;
-                                t5   = vy & 0xFFFF;
-                                mask = (u32)vy >> 31;
-                                t5   = mask + t5;
-                                t5 <<= 16;
-                                t4   = t5 | t4;
-                                gte_ldVXY2(t4);
-
-                                __asm__ volatile("lw %0, 8(%1)" : "=r"(mask) : "r"(trans));
-                                vx = -0x400;
-                                vy = (u32)mask >> 31;
-                                t4 = mask >> 21;
-                                and_mask(t4, vx);
-                                t5 = mask & 0x3FF;
-                                t4 = t5 | t4;
-                                gte_ldVZ0(t4);
-                                mask >>= 10;
-                                TOUCH_REG(mask);
-                                t4 = mask >> 21;
-                                and_mask(t4, vx);
-                                t5  = mask & 0x3FF;
-                                t4  = t5 | t4;
-                                t4 += vy;
-                                gte_ldVZ1(t4);
-                                mask >>= 10;
-                                t4     = mask + vy;
-                                gte_ldVZ2(t4);
-
-                                gte_rtv0tr();
-                                __asm__ volatile("mfc2 %0, $25" : "=r"(vx));
-                                __asm__ volatile("mfc2 %0, $26" : "=r"(vy));
-                                __asm__ volatile("mfc2 %0, $27" : "=r"(mask));
-                                gte_rtv1_sf0();
-                                __asm__ volatile("mfc2 %0, $25; nop" : "=r"(t4));
-                                t4 >>= 2;
-                                vx   = t4 + vx;
-                                __asm__ volatile("mfc2 %0, $26; nop" : "=r"(t4));
-                                t4 >>= 2;
-                                vy   = t4 + vy;
-                                __asm__ volatile("mfc2 %0, $27; nop" : "=r"(t4));
-                                t4 >>= 2;
-                                mask = t4 + mask;
-                                gte_rtv2_sf0();
-                                __asm__ volatile("mfc2 %0, $25; nop" : "=r"(t4));
-                                t4 <<= 8;
-                                vx   = t4 + vx;
-                                __asm__ volatile("mfc2 %0, $26; nop" : "=r"(t4));
-                                t4 <<= 8;
-                                vy   = t4 + vy;
-                                __asm__ volatile("mfc2 %0, $27; nop" : "=r"(t4));
-                                t4 <<= 8;
-                                mask = t4 + mask;
-                                __asm__ volatile("sw %1, 0(%0); sw %2, 4(%0); sw %3, 8(%0)"
-                                                 :
-                                                 : "r"(tail), "r"(vx), "r"(vy), "r"(mask)
-                                                 : "memory");
-                            }
-                        }
-                    }
-                    if (bit != 0) {
-                        coord->flg |= 0x80000000;
-                    }
-                    tail++;
-                    coord++;
-                } while (++i < (u32)node->partCount);
-            }
-            node = PARENT_OF(node->link.next, TmdObject, link);
-        } while (node != NULL);
-    }
-
-    D_80071210 += 1;
+    _gpRefreshAllCoords();
     Tmd_DrawFlaggedNodes(PARENT_OF(gTmdList.next, TmdObject, link));
 }
 
+/// Refreshes every coordinate for this frame, then draws the active models.
 void Gp_DrawActorTmdActive(GpuOtBuf* arg0)
 {
-    TmdObject*             node;
-    GpCoord*               coord;
-    s32                    flag;
-    s32                    bit;
-    register s32           vy asm("t7");
-    u32                    i;
-    register GpCoordFromT* tail asm("s2");
-    GpCoord*               parent;
-
-    {
-        register s32 tmp asm("v0");
-        register s32 mask asm("a0");
-
-        mask = 0x7FFFFFFF;
-        tmp  = D_80071210;
-        node = PARENT_OF(gTmdDisp2dList.next, TmdObject, link);
-        flag = tmp & mask;
-        bit  = tmp & 1;
-    }
-    if (node != NULL) {
-        do {
-            coord      = node->coords;
-            parent     = coord->sub;
-            coord->flg = (coord->flg << 1) >> 1;
-            if (parent == NULL) {
-                if (coord->flg == 0) {
-                    coord->workm = coord->coord;
-                    coord->flg   = flag;
-                }
-            } else {
-                if ((parent->flg == 0) || ((parent->flg >> 31) != bit)) {
-                    _gpUpdateCoordTree(parent, flag, bit, 0);
-                }
-                if (coord->flg < (parent->flg & 0x7FFFFFFF)) {
-                    MATRIX*          pwm;
-                    register VECTOR* out asm("v1");
-                    register VECTOR* trans asm("a0");
-
-                    pwm = &parent->workm;
-                    gte_SetRotMatrix(pwm);
-                    gte_ldclmv(&coord->coord);
-                    gte_rtir();
-                    gte_stclmv(&coord->workm);
-                    gte_ldclmv(&coord->coord.m[0][1]);
-                    gte_rtir();
-                    gte_stclmv(&coord->workm.m[0][1]);
-                    gte_ldclmv(&coord->coord.m[0][2]);
-                    gte_rtir();
-                    gte_stclmv(&coord->workm.m[0][2]);
-                    gte_SetTransMatrix(pwm);
-                    trans = (VECTOR*)coord->coord.t;
-                    gte_ldlv0(trans);
-                    gte_rtv0tr();
-                    out = (VECTOR*)coord->workm.t;
-                    gte_stlvnl(out);
-                    coord->flg = flag;
-
-                    gte_SetRotMatrix(pwm);
-                    gte_ldclmv(&coord->coord);
-                    gte_rtir();
-                    gte_stclmv(&coord->workm);
-                    gte_ldclmv(&coord->coord.m[0][1]);
-                    gte_rtir();
-                    coord->flg = flag;
-                    gte_stclmv(&coord->workm.m[0][1]);
-                    gte_ldclmv(&coord->coord.m[0][2]);
-                    gte_rtir();
-                    gte_SetTransVector(parent->workm.t);
-                    gte_stclmv(&coord->workm.m[0][2]);
-
-                    {
-                        register s32 vx asm("t6");
-                        register s32 t4 asm("t4");
-                        register s32 t5 asm("t5");
-                        register s32 mask asm("s0");
-
-                        __asm__ volatile("lw %0, 0(%1)" : "=r"(vx) : "r"(trans));
-                        __asm__ volatile("lw %0, 4(%1)" : "=r"(vy) : "r"(trans));
-                        mask = -0x400;
-                        t4   = vx >> 21;
-                        and_mask(t4, mask);
-                        t5  = vx & 0x3FF;
-                        t4  = t5 | t4;
-                        t4 &= 0xFFFF;
-                        t5  = vy >> 21;
-                        and_mask(t5, mask);
-                        mask = vy & 0x3FF;
-                        t5   = mask | t5;
-                        t5 <<= 16;
-                        t4   = t5 | t4;
-                        gte_ldVXY0(t4);
-
-                        vx >>= 10;
-                        vy >>= 10;
-                        TOUCH_REG2(vx, vy);
-                        mask = -0x400;
-                        t4   = vx >> 21;
-                        and_mask(t4, mask);
-                        t5 = vx & 0x3FF;
-                        t4 = t5 | t4;
-                        t5 = vy >> 21;
-                        and_mask(t5, mask);
-                        mask = vy & 0x3FF;
-                        t5   = mask | t5;
-                        mask = (u32)vy >> 31;
-                        t5  += mask;
-                        t5 <<= 16;
-                        mask = (u32)vx >> 31;
-                        t4  += mask;
-                        t4  &= 0xFFFF;
-                        t4   = t5 | t4;
-                        gte_ldVXY1(t4);
-
-                        vx >>= 10;
-                        vy >>= 10;
-                        t4   = vx & 0xFFFF;
-                        mask = (u32)vx >> 31;
-                        t4   = mask + t4;
-                        t4  &= 0xFFFF;
-                        t5   = vy & 0xFFFF;
-                        mask = (u32)vy >> 31;
-                        t5   = mask + t5;
-                        t5 <<= 16;
-                        t4   = t5 | t4;
-                        gte_ldVXY2(t4);
-
-                        __asm__ volatile("lw %0, 8(%1)" : "=r"(mask) : "r"(trans));
-                        vx = -0x400;
-                        vy = (u32)mask >> 31;
-                        t4 = mask >> 21;
-                        and_mask(t4, vx);
-                        t5 = mask & 0x3FF;
-                        t4 = t5 | t4;
-                        gte_ldVZ0(t4);
-                        mask >>= 10;
-                        TOUCH_REG(mask);
-                        t4 = mask >> 21;
-                        and_mask(t4, vx);
-                        t5  = mask & 0x3FF;
-                        t4  = t5 | t4;
-                        t4 += vy;
-                        gte_ldVZ1(t4);
-                        mask >>= 10;
-                        t4     = mask + vy;
-                        gte_ldVZ2(t4);
-
-                        gte_rtv0tr();
-                        __asm__ volatile("mfc2 %0, $25" : "=r"(vx));
-                        __asm__ volatile("mfc2 %0, $26" : "=r"(vy));
-                        __asm__ volatile("mfc2 %0, $27" : "=r"(mask));
-                        gte_rtv1_sf0();
-                        __asm__ volatile("mfc2 %0, $25; nop" : "=r"(t4));
-                        t4 >>= 2;
-                        vx   = t4 + vx;
-                        __asm__ volatile("mfc2 %0, $26; nop" : "=r"(t4));
-                        t4 >>= 2;
-                        vy   = t4 + vy;
-                        __asm__ volatile("mfc2 %0, $27; nop" : "=r"(t4));
-                        t4 >>= 2;
-                        mask = t4 + mask;
-                        gte_rtv2_sf0();
-                        __asm__ volatile("mfc2 %0, $25; nop" : "=r"(t4));
-                        t4 <<= 8;
-                        vx   = t4 + vx;
-                        __asm__ volatile("mfc2 %0, $26; nop" : "=r"(t4));
-                        t4 <<= 8;
-                        vy   = t4 + vy;
-                        __asm__ volatile("mfc2 %0, $27; nop" : "=r"(t4));
-                        t4 <<= 8;
-                        mask = t4 + mask;
-                        __asm__ volatile("sw %1, 0(%0); sw %2, 4(%0); sw %3, 8(%0)"
-                                         :
-                                         : "r"(out), "r"(vx), "r"(vy), "r"(mask)
-                                         : "memory");
-                    }
-                }
-            }
-            if (bit != 0) {
-                coord->flg |= 0x80000000;
-            }
-            node = PARENT_OF(node->link.next, TmdObject, link);
-        } while (node != NULL);
-    }
-
-    node = PARENT_OF(gTmdList.next, TmdObject, link);
-    if (node != NULL) {
-        do {
-            coord = node->coords;
-            i     = 0;
-            if (node->partCount != 0) {
-                tail = (GpCoordFromT*)coord->workm.t;
-                do {
-                    parent     = tail->sub;
-                    coord->flg = (coord->flg << 1) >> 1;
-                    if (parent == NULL) {
-                        if (coord->flg == 0) {
-                            GpCoord* c;
-                            c          = PARENT_OF(tail, GpCoord, workm.t);
-                            c->workm   = c->coord;
-                            coord->flg = flag;
-                        }
-                    } else {
-                        if ((parent->flg == 0) || ((parent->flg >> 31) != bit)) {
-                            _gpUpdateCoordTree(parent, flag, bit, 0);
-                        }
-                        if (coord->flg < (parent->flg & 0x7FFFFFFF)) {
-                            MATRIX*          pwm;
-                            register VECTOR* trans asm("v1");
-
-                            pwm = &parent->workm;
-                            gte_SetRotMatrix(pwm);
-                            gte_ldclmv(&coord->coord);
-                            gte_rtir();
-                            gte_stclmv(&coord->workm);
-                            gte_ldclmv(&coord->coord.m[0][1]);
-                            gte_rtir();
-                            gte_stclmv(&coord->workm.m[0][1]);
-                            gte_ldclmv(&coord->coord.m[0][2]);
-                            gte_rtir();
-                            gte_stclmv(&coord->workm.m[0][2]);
-                            gte_SetTransMatrix(pwm);
-                            trans = (VECTOR*)coord->coord.t;
-                            gte_ldlv0(trans);
-                            gte_rtv0tr();
-                            gte_stlvnl((VECTOR*)tail);
-                            coord->flg = flag;
-
-                            gte_SetRotMatrix(pwm);
-                            gte_ldclmv(&coord->coord);
-                            gte_rtir();
-                            gte_stclmv(&coord->workm);
-                            gte_ldclmv(&coord->coord.m[0][1]);
-                            gte_rtir();
-                            coord->flg = flag;
-                            gte_stclmv(&coord->workm.m[0][1]);
-                            gte_ldclmv(&coord->coord.m[0][2]);
-                            gte_rtir();
-                            gte_SetTransVector(parent->workm.t);
-                            gte_stclmv(&coord->workm.m[0][2]);
-
-                            {
-                                register s32 vx asm("t6");
-                                register s32 t4 asm("t4");
-                                register s32 t5 asm("t5");
-                                register s32 mask asm("s0");
-
-                                __asm__ volatile("lw %0, 0(%1)" : "=r"(vx) : "r"(trans));
-                                __asm__ volatile("lw %0, 4(%1)" : "=r"(vy) : "r"(trans));
-                                mask = -0x400;
-                                t4   = vx >> 21;
-                                and_mask(t4, mask);
-                                t5  = vx & 0x3FF;
-                                t4  = t5 | t4;
-                                t4 &= 0xFFFF;
-                                t5  = vy >> 21;
-                                and_mask(t5, mask);
-                                mask = vy & 0x3FF;
-                                t5   = mask | t5;
-                                t5 <<= 16;
-                                t4   = t5 | t4;
-                                gte_ldVXY0(t4);
-
-                                vx >>= 10;
-                                vy >>= 10;
-                                TOUCH_REG2(vx, vy);
-                                mask = -0x400;
-                                t4   = vx >> 21;
-                                and_mask(t4, mask);
-                                t5 = vx & 0x3FF;
-                                t4 = t5 | t4;
-                                t5 = vy >> 21;
-                                and_mask(t5, mask);
-                                mask = vy & 0x3FF;
-                                t5   = mask | t5;
-                                mask = (u32)vy >> 31;
-                                t5  += mask;
-                                t5 <<= 16;
-                                mask = (u32)vx >> 31;
-                                t4  += mask;
-                                t4  &= 0xFFFF;
-                                t4   = t5 | t4;
-                                gte_ldVXY1(t4);
-
-                                vx >>= 10;
-                                vy >>= 10;
-                                t4   = vx & 0xFFFF;
-                                mask = (u32)vx >> 31;
-                                t4   = mask + t4;
-                                t4  &= 0xFFFF;
-                                t5   = vy & 0xFFFF;
-                                mask = (u32)vy >> 31;
-                                t5   = mask + t5;
-                                t5 <<= 16;
-                                t4   = t5 | t4;
-                                gte_ldVXY2(t4);
-
-                                __asm__ volatile("lw %0, 8(%1)" : "=r"(mask) : "r"(trans));
-                                vx = -0x400;
-                                vy = (u32)mask >> 31;
-                                t4 = mask >> 21;
-                                and_mask(t4, vx);
-                                t5 = mask & 0x3FF;
-                                t4 = t5 | t4;
-                                gte_ldVZ0(t4);
-                                mask >>= 10;
-                                TOUCH_REG(mask);
-                                t4 = mask >> 21;
-                                and_mask(t4, vx);
-                                t5  = mask & 0x3FF;
-                                t4  = t5 | t4;
-                                t4 += vy;
-                                gte_ldVZ1(t4);
-                                mask >>= 10;
-                                t4     = mask + vy;
-                                gte_ldVZ2(t4);
-
-                                gte_rtv0tr();
-                                __asm__ volatile("mfc2 %0, $25" : "=r"(vx));
-                                __asm__ volatile("mfc2 %0, $26" : "=r"(vy));
-                                __asm__ volatile("mfc2 %0, $27" : "=r"(mask));
-                                gte_rtv1_sf0();
-                                __asm__ volatile("mfc2 %0, $25; nop" : "=r"(t4));
-                                t4 >>= 2;
-                                vx   = t4 + vx;
-                                __asm__ volatile("mfc2 %0, $26; nop" : "=r"(t4));
-                                t4 >>= 2;
-                                vy   = t4 + vy;
-                                __asm__ volatile("mfc2 %0, $27; nop" : "=r"(t4));
-                                t4 >>= 2;
-                                mask = t4 + mask;
-                                gte_rtv2_sf0();
-                                __asm__ volatile("mfc2 %0, $25; nop" : "=r"(t4));
-                                t4 <<= 8;
-                                vx   = t4 + vx;
-                                __asm__ volatile("mfc2 %0, $26; nop" : "=r"(t4));
-                                t4 <<= 8;
-                                vy   = t4 + vy;
-                                __asm__ volatile("mfc2 %0, $27; nop" : "=r"(t4));
-                                t4 <<= 8;
-                                mask = t4 + mask;
-                                __asm__ volatile("sw %1, 0(%0); sw %2, 4(%0); sw %3, 8(%0)"
-                                                 :
-                                                 : "r"(tail), "r"(vx), "r"(vy), "r"(mask)
-                                                 : "memory");
-                            }
-                        }
-                    }
-                    if (bit != 0) {
-                        coord->flg |= 0x80000000;
-                    }
-                    tail++;
-                    coord++;
-                } while (++i < (u32)node->partCount);
-            }
-            node = PARENT_OF(node->link.next, TmdObject, link);
-        } while (node != NULL);
-    }
-
-    D_80071210 += 1;
+    _gpRefreshAllCoords();
     Tmd_DrawActiveNodes(PARENT_OF(gTmdList.next, TmdObject, link));
 }
 
@@ -1184,177 +642,9 @@ void Gp_RestoreTmdLists(void)
 /// relative to it, and its own world matrix is neither updated nor folded in,
 /// because the caller that passes one applies that transformation itself.
 /// `NULL` stops at the top of the chain.
-static void _gpUpdateCoordTree(GpCoord* coord, s32 stamp, s32 parity,
-                               GpCoord* root)
+static void _gpUpdateCoordTree(GpCoord* coord, s32 stamp, s32 parity, GpCoord* root)
 {
-    register s32 s2 asm("s2");
-    s32          s3;
-    register s32 vy asm("t7");
-    GpCoord*     parent;
-
-    s2 = stamp;
-    s3 = parity;
-    TOUCH_REG3(coord, s2, s3);
-    parent     = coord->sub;
-    coord->flg = (coord->flg << 1) >> 1;
-    if (parent == root) {
-        if (coord->flg == 0) {
-            coord->workm = coord->coord;
-            coord->flg   = s2;
-        }
-    } else {
-        if ((parent->flg == 0) || ((parent->flg >> 31) != s3)) {
-            _gpUpdateCoordTree(parent, s2, s3, root);
-        }
-        if (coord->flg < (parent->flg & 0x7FFFFFFF)) {
-            MATRIX*          pwm;
-            register VECTOR* out asm("v1");
-            VECTOR*          trans;
-
-            pwm = &parent->workm;
-            gte_SetRotMatrix(pwm);
-            gte_ldclmv(&coord->coord);
-            gte_rtir();
-            gte_stclmv(&coord->workm);
-            gte_ldclmv(&coord->coord.m[0][1]);
-            gte_rtir();
-            gte_stclmv(&coord->workm.m[0][1]);
-            gte_ldclmv(&coord->coord.m[0][2]);
-            gte_rtir();
-            gte_stclmv(&coord->workm.m[0][2]);
-            gte_SetTransMatrix(pwm);
-            trans = (VECTOR*)coord->coord.t;
-            TOUCH_REG(trans);
-            gte_ldlv0(trans);
-            gte_rtv0tr();
-            out = (VECTOR*)coord->workm.t;
-            TOUCH_REG(out);
-            gte_stlvnl(out);
-            coord->flg = s2;
-
-            gte_SetRotMatrix(pwm);
-            gte_ldclmv(&coord->coord);
-            gte_rtir();
-            gte_stclmv(&coord->workm);
-            gte_ldclmv(&coord->coord.m[0][1]);
-            gte_rtir();
-            coord->flg = s2;
-            gte_stclmv(&coord->workm.m[0][1]);
-            gte_ldclmv(&coord->coord.m[0][2]);
-            gte_rtir();
-            gte_SetTransVector(parent->workm.t);
-            gte_stclmv(&coord->workm.m[0][2]);
-
-            {
-                register s32 vx asm("t6");
-                register s32 t4 asm("t4");
-                register s32 t5 asm("t5");
-                register s32 mask asm("s0");
-
-                vx = trans->vx;
-                vy = trans->vy;
-                TOUCH_REG2(vx, vy);
-                mask = -0x400;
-                t4   = vx >> 21;
-                and_mask(t4, mask);
-                t5  = vx & 0x3FF;
-                t4  = t5 | t4;
-                t4 &= 0xFFFF;
-                t5  = vy >> 21;
-                and_mask(t5, mask);
-                mask = vy & 0x3FF;
-                t5   = mask | t5;
-                t5 <<= 16;
-                t4   = t5 | t4;
-                gte_ldVXY0(t4);
-
-                vx >>= 10;
-                vy >>= 10;
-                TOUCH_REG2(vx, vy);
-                mask = -0x400;
-                t4   = vx >> 21;
-                and_mask(t4, mask);
-                t5 = vx & 0x3FF;
-                t4 = t5 | t4;
-                t5 = vy >> 21;
-                and_mask(t5, mask);
-                mask = vy & 0x3FF;
-                t5   = mask | t5;
-                mask = (u32)vy >> 31;
-                t5  += mask;
-                t5 <<= 16;
-                mask = (u32)vx >> 31;
-                t4  += mask;
-                t4  &= 0xFFFF;
-                t4   = t5 | t4;
-                gte_ldVXY1(t4);
-
-                vx >>= 10;
-                vy >>= 10;
-                t4   = vx & 0xFFFF;
-                mask = (u32)vx >> 31;
-                t4   = mask + t4;
-                t4  &= 0xFFFF;
-                t5   = vy & 0xFFFF;
-                mask = (u32)vy >> 31;
-                t5   = mask + t5;
-                t5 <<= 16;
-                t4   = t5 | t4;
-                gte_ldVXY2(t4);
-
-                mask = trans->vz;
-                vx   = -0x400;
-                vy   = (u32)mask >> 31;
-                t4   = mask >> 21;
-                and_mask(t4, vx);
-                t5 = mask & 0x3FF;
-                t4 = t5 | t4;
-                gte_ldVZ0(t4);
-                mask >>= 10;
-                TOUCH_REG(mask);
-                t4 = mask >> 21;
-                and_mask(t4, vx);
-                t5  = mask & 0x3FF;
-                t4  = t5 | t4;
-                t4 += vy;
-                gte_ldVZ1(t4);
-                mask >>= 10;
-                t4     = mask + vy;
-                gte_ldVZ2(t4);
-
-                gte_rtv0tr();
-                __asm__ volatile("mfc2 %0, $25" : "=r"(vx));
-                __asm__ volatile("mfc2 %0, $26" : "=r"(vy));
-                __asm__ volatile("mfc2 %0, $27" : "=r"(mask));
-                gte_rtv1_sf0();
-                __asm__ volatile("mfc2 %0, $25; nop" : "=r"(t4));
-                t4 >>= 2;
-                vx   = t4 + vx;
-                __asm__ volatile("mfc2 %0, $26; nop" : "=r"(t4));
-                t4 >>= 2;
-                vy   = t4 + vy;
-                __asm__ volatile("mfc2 %0, $27; nop" : "=r"(t4));
-                t4 >>= 2;
-                mask = t4 + mask;
-                gte_rtv2_sf0();
-                __asm__ volatile("mfc2 %0, $25; nop" : "=r"(t4));
-                t4 <<= 8;
-                vx   = t4 + vx;
-                __asm__ volatile("mfc2 %0, $26; nop" : "=r"(t4));
-                t4 <<= 8;
-                vy   = t4 + vy;
-                __asm__ volatile("mfc2 %0, $27; nop" : "=r"(t4));
-                t4    <<= 8;
-                mask    = t4 + mask;
-                out->vx = vx;
-                out->vy = vy;
-                out->vz = mask;
-            }
-        }
-    }
-    if (s3 != 0) {
-        coord->flg |= 0x80000000;
-    }
+    _gpRefreshCoord(coord, stamp, parity, root);
 }
 
 Task* Gp_FindTaskByCoord(GpCoord* arg0)

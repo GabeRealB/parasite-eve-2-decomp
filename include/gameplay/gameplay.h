@@ -306,17 +306,6 @@ typedef struct _GpViewTbl {
 /// Per-stage pointer table. Index is `GameSession.at4.loc.stage - 1`.
 extern GpViewTbl* Gp_ViewTables[];
 
-/// View of `GpCoord` starting at `workm.t`. `sub` is at +0x14 (coord
-/// +0x4C). Size is the coord stride so `tail++` walks the coord array.
-typedef struct {
-    /* 0x00 */ long           t[3];
-    /* 0x0C */ GsCOORD2PARAM* param;
-    /* 0x10 */ GpCoord*       super;
-    /* 0x14 */ GpCoord*       sub;
-    /* 0x18 */ byte           pad[0x38];
-} GpCoordFromT;
-STATIC_ASSERT_SIZEOF(GpCoordFromT, 0x50);
-
 /// A 2D-display body: the node a spawnType-2 task carries and hangs on
 /// `gTmdDisp2dList`, holding one coordinate of its own instead of a model.
 ///
