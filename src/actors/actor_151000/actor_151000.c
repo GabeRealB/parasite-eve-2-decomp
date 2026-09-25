@@ -20,45 +20,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Work block of the overlay's enemy, allocated by its spawn handler
-/// `func_actor_151000_80131F1C` with `memCalloc(0x4C0, 0)`, so the size is the
-/// allocation. The handler publishes it in `D_actor_151000_8013D37C` as well as
-/// the task's `Task::work`, and most of the enemy's code reaches it through the
-/// global.
-///
-/// `light` and `color` become the model's light and colour matrices; `anim`,
-/// `field_34C` and `slots` are handed to `func_800B3F84` to start the
-/// animation. `state` is what the runner `func_actor_151000_80132084`
-/// dispatches on: 1 restarts the clip in `animId` through
-/// `func_actor_151000_801326AC` and 2 through `func_actor_151000_80132610`,
-/// both then leaving it at 3, and both latch the clip into `field_47E`. `yaw` is
-/// the heading last applied to the model's root coordinate, `travel` the frames
-/// of walking left and `turnFrames` the frames of turning left. `stepRec` is
-/// the last animation record the footstep check saw, and `footsteps` a flag the
-/// message handler sets that makes the runner play footsteps.
-typedef struct Actor151000Work {
-    /* 0x000 */ MATRIX     light;
-    /* 0x020 */ MATRIX     color;
-    /* 0x040 */ GpAnimCtx  anim;
-    /* 0x054 */ GpAnimSlot slots[0x13];
-    /* 0x34C */ byte       field_34C;
-    /* 0x34D */ byte       pad_34D[0x12F];
-    /* 0x47C */ s16        state;
-    /* 0x47E */ u16        field_47E;
-    /* 0x480 */ s16        animId;
-    /* 0x482 */ s16        field_482;
-    /* 0x484 */ byte       pad_484[0x2A];
-    /* 0x4AE */ s16        yaw;
-    /* 0x4B0 */ byte       pad_4B0[0x2];
-    /* 0x4B2 */ s16        travel;
-    /* 0x4B4 */ s16        turnFrames;
-    /* 0x4B6 */ byte       pad_4B6[0x2];
-    /* 0x4B8 */ GpAnimRec* stepRec;
-    /* 0x4BC */ u8         footsteps;
-    /* 0x4BD */ byte       pad_4BD[0x3];
-} Actor151000Work;
-STATIC_ASSERT_SIZEOF(Actor151000Work, 0x4C0);
-
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
@@ -178,11 +139,11 @@ void func_actor_151000_80131F1C(GpEnemy* enemy, Task* task)
     D_actor_151000_8013D380      = task;
     vec.vz                       = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&D_actor_151000_8013D37C->anim, D_actor_151000_8013D2EC, obj,
-                  &D_actor_151000_8013D37C->field_34C, D_actor_151000_8013D37C->slots);
-    D_actor_151000_8013D37C->animId     = 1;
-    D_actor_151000_8013D37C->state      = 2;
-    D_actor_151000_8013D37C->travel     = 0;
+    func_800B3F84(&D_actor_151000_8013D37C->rig.anim, D_actor_151000_8013D2EC, obj,
+                  &D_actor_151000_8013D37C->rig.poses, D_actor_151000_8013D37C->rig.slots);
+    D_actor_151000_8013D37C->st.animId  = 1;
+    D_actor_151000_8013D37C->st.state   = 2;
+    D_actor_151000_8013D37C->st.travel  = 0;
     D_actor_151000_8013D37C->turnFrames = 0;
     D_actor_151000_8013D37C->stepRec    = 0;
     D_actor_151000_8013D37C->footsteps  = 0;
@@ -202,15 +163,15 @@ void func_actor_151000_80132084(Task* task)
     GsCOORDINATE2*   coord = ((TmdObject*)task->extra)->coords;
     Actor151000Work* work  = (Actor151000Work*)task->work;
 
-    if (D_actor_151000_8013D37C->state == 1) {
+    if (D_actor_151000_8013D37C->st.state == 1) {
         func_actor_151000_801326AC();
-        D_actor_151000_8013D37C->state = 3;
-    } else if (D_actor_151000_8013D37C->state == 2) {
+        D_actor_151000_8013D37C->st.state = 3;
+    } else if (D_actor_151000_8013D37C->st.state == 2) {
         func_actor_151000_80132610();
-        D_actor_151000_8013D37C->state = 3;
-    } else if (D_actor_151000_8013D37C->state == 3) {
-        if (work->animId == 0xE || work->animId == 2 || work->animId == 0xF) {
-            if (work->travel != 0) {
+        D_actor_151000_8013D37C->st.state = 3;
+    } else if (D_actor_151000_8013D37C->st.state == 3) {
+        if (work->st.animId == 0xE || work->st.animId == 2 || work->st.animId == 0xF) {
+            if (work->st.travel != 0) {
                 switch (D_actor_151000_8013D384) {
                     case 0:
                         actorMoveModelForward(task, 0x3C);
@@ -222,16 +183,16 @@ void func_actor_151000_80132084(Task* task)
                         actorMoveModelForward(task, 0x19);
                         break;
                 }
-                if (--work->travel == 0) {
-                    work->state             = 1;
+                if (--work->st.travel == 0) {
+                    work->st.state          = 1;
                     D_actor_151000_8013D2AC = 10;
-                    work->animId            = 0xD;
+                    work->st.animId         = 0xD;
                 }
             }
         }
-        if (work->animId == 3 && work->turnFrames != 0) {
-            work->yaw += 0x33;
-            Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
+        if (work->st.animId == 3 && work->turnFrames != 0) {
+            work->st.yaw += 0x33;
+            Gfx_RotMatrixY(&coord->coord, work->st.yaw, 1);
             coord->flg = 0;
             work->turnFrames--;
         }
@@ -299,7 +260,7 @@ void func_actor_151000_801324FC(Task* task)
 
     work = (Actor151000Work*)task->work;
     obj  = ((TmdObject*)task->extra)->coords + 1;
-    rec  = Gp_AnimGetRec(&work->anim, &work->slots[1]);
+    rec  = Gp_AnimGetRec(&work->rig.anim, &work->rig.slots[1]);
     if (rec == NULL || rec == work->stepRec) {
         return;
     }
@@ -324,13 +285,13 @@ void func_actor_151000_801325C4(void)
 
     i = 1;
     do {
-        Gp_AnimTickIndex(&D_actor_151000_8013D37C->anim, i);
+        Gp_AnimTickIndex(&D_actor_151000_8013D37C->rig.anim, i);
         i++;
     } while (i < 0x13);
 }
 
 /// Resets animation slots 1..0x12 to clip `animId` at rate 1, without a
-/// reset argument, and latches the clip into `field_47E`. Clears the footstep
+/// reset argument, and latches the clip into `st.appliedAnimId`. Clears the footstep
 /// check's record first.
 void func_actor_151000_80132610(void)
 {
@@ -339,16 +300,16 @@ void func_actor_151000_80132610(void)
     D_actor_151000_8013D37C->stepRec = NULL;
     i                                = 1;
     do {
-        D_actor_151000_8013D37C->slots[i].rate = 1;
-        Gp_AnimResetSlot(&D_actor_151000_8013D37C->anim, i, (s16)D_actor_151000_8013D37C->animId);
+        D_actor_151000_8013D37C->rig.slots[i].rate = 1;
+        Gp_AnimResetSlot(&D_actor_151000_8013D37C->rig.anim, i, D_actor_151000_8013D37C->st.animId);
         i++;
     } while (i < 0x13);
-    D_actor_151000_8013D37C->field_47E = D_actor_151000_8013D37C->animId;
+    D_actor_151000_8013D37C->st.appliedAnimId = D_actor_151000_8013D37C->st.animId;
 }
 
 /// Starts animation slots 1..0x12 on clip `animId`, forwarding
 /// `D_actor_151000_8013D2AC` as the reset argument, and latches the clip into
-/// `field_47E`. Clears the footstep check's record first.
+/// `st.appliedAnimId`. Clears the footstep check's record first.
 void func_actor_151000_801326AC(void)
 {
     s32 i;
@@ -356,11 +317,11 @@ void func_actor_151000_801326AC(void)
     D_actor_151000_8013D37C->stepRec = NULL;
     i                                = 1;
     do {
-        func_800B4114(&D_actor_151000_8013D37C->anim, i, (s16)D_actor_151000_8013D37C->animId, 0,
+        func_800B4114(&D_actor_151000_8013D37C->rig.anim, i, D_actor_151000_8013D37C->st.animId, 0,
                       D_actor_151000_8013D2AC);
         i++;
     } while (i < 0x13);
-    D_actor_151000_8013D37C->field_47E = D_actor_151000_8013D37C->animId;
+    D_actor_151000_8013D37C->st.appliedAnimId = D_actor_151000_8013D37C->st.animId;
 }
 
 /// "Start animation" opcode: `withArg` selects between the two start paths the
@@ -371,14 +332,14 @@ void func_actor_151000_801326AC(void)
 s32 func_actor_151000_80132738(Task* task, s32 arg1, GpAnimArg* args, s32 arg3)
 {
     if (args->field_4 < 0x23) {
-        D_actor_151000_8013D37C->animId = args->field_4;
+        D_actor_151000_8013D37C->st.animId = args->field_4;
         if (args->field_8 != 0) {
-            D_actor_151000_8013D37C->state = 1;
-            D_actor_151000_8013D2AC        = args->field_C;
+            D_actor_151000_8013D37C->st.state = 1;
+            D_actor_151000_8013D2AC           = args->field_C;
         } else {
-            D_actor_151000_8013D37C->state = 2;
+            D_actor_151000_8013D37C->st.state = 2;
         }
-        D_actor_151000_8013D37C->field_482 = 0;
+        D_actor_151000_8013D37C->st.field_6 = 0;
         func_actor_151000_80132084(D_actor_151000_8013D380);
         return 0;
     }
@@ -412,8 +373,8 @@ s32 func_actor_151000_80132810(Task* task, s32 arg1, GpXformArg* placement)
     GsCOORDINATE2* coord;
     u16            yaw;
 
-    coord                        = ((TmdObject*)task->extra)->coords;
-    D_actor_151000_8013D37C->yaw = yaw = placement->rot.vy;
+    coord                           = ((TmdObject*)task->extra)->coords;
+    D_actor_151000_8013D37C->st.yaw = yaw = placement->rot.vy;
     Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;
@@ -460,11 +421,11 @@ s32 func_actor_151000_801328DC(Task* task, s32 arg1, VECTOR* target, s32 mode)
     dx                      = target->vx - coord->coord.t[0];
     dz                      = target->vz - coord->coord.t[2];
     angle                   = ratan2(dx, dz);
-    work->yaw               = angle;
+    work->st.yaw            = angle;
     if (D_actor_151000_8013D384 == 1) {
-        work->yaw = angle + 0x800;
+        work->st.yaw = angle + 0x800;
     }
-    Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
+    Gfx_RotMatrixY(&coord->coord, work->st.yaw, 1);
     dist = SquareRoot0(dx * dx + dz * dz);
     switch (D_actor_151000_8013D384) {
         case 0:
@@ -477,7 +438,7 @@ s32 func_actor_151000_801328DC(Task* task, s32 arg1, VECTOR* target, s32 mode)
             steps = 0x19;
             break;
     }
-    work->travel = dist / steps;
+    work->st.travel = dist / steps;
     return 0;
 }
 

@@ -1522,29 +1522,78 @@ STATIC_ASSERT_SIZEOF(Actor105600HitScratch, 0x40);
 /// Work block of the animated enemy whose code actor_461800 and actor_143900's
 /// second variant both carry, allocated zeroed at its full size and kept both
 /// at `Task::work` and in a global the other handlers reach it through: the
-/// model's light and colour matrices, the animation context with its slots
-/// and poses, the animation state, the yaw seeding the root coordinate, and
-/// the two helper tasks the exit callback kills.
+/// model's light and colour matrices, its rig and animation state, the frames
+/// of turning left while animation 3 plays, and the two helper tasks the spawn
+/// routine starts and the exit callback kills.
 typedef struct Actor461800Work {
-    MATRIX     light; // model light matrix (`TmdObject::lightMtx`)
-    MATRIX     color; // model colour matrix (`TmdObject::colorMtx`)
-    GpAnimCtx  anim;
-    GpAnimSlot slots[0x14];
-    byte       pose[0x140];
-    s16        field_4B4; // reset mode the play-animation handler selects (1 or 2)
-    s16        field_4B6; // copy of `field_4B8`, kept for change detection
-    s16        field_4B8; // animation id the slots are seeded with
-    s16        field_4BA; // cleared by the play-animation handler before the reseed
-    byte       pad_4BC[0x2A];
-    s16        yaw;       // yaw seeding the root coordinate
-    byte       pad_4E8[0x2];
-    s16        field_4EA; // distance to the target over the step count
-    s16        field_4EC; // reset argument handed to `func_800B4114`
-    byte       pad_4EE[0x2];
-    Task*      field_4F0; // first helper task the spawn starts
-    Task*      field_4F4; // second helper task
+    MATRIX          light;
+    MATRIX          color;
+    ActorAnimRig20  rig;
+    ActorEnemyState st;
+    s16             turnFrames;
+    byte            pad_4EE[0x2];
+    Task*           helper1;
+    Task*           helper2;
 } Actor461800Work;
 STATIC_ASSERT_SIZEOF(Actor461800Work, 0x4F8);
+
+/// Work block of the animated enemy whose code actor_151000, actor_535700 and
+/// actor_461800's second variant carry, allocated zeroed at its full size and
+/// kept both at `Task::work` and in a global the other handlers reach it
+/// through: the model's light and colour matrices, its nineteen-part rig and
+/// animation state, and the frames of turning left while animation 3 plays.
+/// `stepRec` is the last animation record the footstep check saw, so each
+/// footstep fires once, and `footsteps` is the flag the message handler sets
+/// that makes the per-frame step play them.
+typedef struct Actor151000Work {
+    MATRIX          light;
+    MATRIX          color;
+    ActorAnimRig19  rig;
+    ActorEnemyState st;
+    s16             turnFrames;
+    byte            pad_4B6[0x2];
+    GpAnimRec*      stepRec;
+    u8              footsteps;
+    byte            pad_4BD[0x3];
+} Actor151000Work;
+STATIC_ASSERT_SIZEOF(Actor151000Work, 0x4C0);
+
+/// Work block of the animated enemy whose code actor_260500 and the first
+/// actor of actor_451100 carry, allocated zeroed at its full size and kept
+/// both at `Task::work` and in a global the message handlers reach it
+/// through: the model's light and colour matrices, its nineteen-part rig and
+/// animation state, and the frames of turning left while animation 3 plays,
+/// which message 0x7DB arms.
+typedef struct Actor260500Work {
+    MATRIX          light;
+    MATRIX          color;
+    ActorAnimRig19  rig;
+    ActorEnemyState st;
+    s16             turnFrames;
+    byte            pad_4B6[0x2];
+} Actor260500Work;
+STATIC_ASSERT_SIZEOF(Actor260500Work, 0x4B8);
+
+/// Work block of the animated enemy whose code actor_150400, actor_535700's
+/// second enemy, actor_450800's spawned enemy and actor_451100's second actor
+/// carry, allocated zeroed at its full size and kept at `Task::work`: the
+/// matrices the enemy's model and its sub-model are lit with, its
+/// nineteen-part rig and animation state, and `animArg`, the argument the
+/// blended reseed passes on. `pairTask` is the task of the partner model the
+/// spawn routine starts and reparents the enemy's own task under, whose model
+/// the visibility command drives alongside the enemy's, and `enemy` the enemy
+/// the block belongs to.
+typedef struct Actor150400Work {
+    MATRIX          light;
+    MATRIX          color;
+    ActorAnimRig19  rig;
+    ActorEnemyState st;
+    s16             animArg;
+    byte            pad_4B6[0x2];
+    Task*           pairTask;
+    GpEnemy*        enemy;
+} Actor150400Work;
+STATIC_ASSERT_SIZEOF(Actor150400Work, 0x4C0);
 
 /* Helpers.
  *

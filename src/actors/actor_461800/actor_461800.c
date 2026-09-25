@@ -31,36 +31,7 @@ extern Actor461800Work* D_actor_461800_80143894;
 /// `func_actor_461800_80132390` alongside it.
 extern Task* D_actor_461800_80143898;
 
-/// Work block of the overlay's second actor variant. `func_actor_461800_8013307C`
-/// allocates it with `memCalloc(0x4C0, 0)` and stores the pointer in
-/// `D_actor_461800_801438A0` and in the task's `Task::work` slot, the same pair
-/// of places the first variant's block goes -- so the size below is the
-/// allocation, not a guess. The animation context sits at the same 0x40, but
-/// this variant keeps its change-detection pair at 0x47E / 0x480 where
-/// `Actor461800Work` has 0x4B6 / 0x4B8.
-typedef struct Actor461800Work2 {
-    /* 0x000 */ MATRIX     light;
-    /* 0x020 */ MATRIX     color;
-    /* 0x040 */ GpAnimCtx  anim;
-    /* 0x054 */ GpAnimSlot slots[0x14];
-    /* 0x374 */ byte       pad_374[0x108];
-    /* 0x47C */ s16        field_47C; // 1 or 2, picked by the message at 80133898
-    /* 0x47E */ s16        field_47E; // copy of `field_480`, kept for change detection
-    /* 0x480 */ s16        field_480; // animation id the slots are seeded with
-    /* 0x482 */ s16        field_482;
-    /* 0x484 */ byte       pad_484[0x2A];
-    /* 0x4AE */ s16        field_4AE;
-    /* 0x4B0 */ byte       pad_4B0[0x2];
-    /* 0x4B2 */ s16        field_4B2;
-    /* 0x4B4 */ s16        field_4B4; // reset argument the message handler writes
-    /* 0x4B6 */ byte       pad_4B6[0x2];
-    /* 0x4B8 */ GpAnimRec* field_4B8; // last `Gp_AnimGetRec` record the footstep check saw
-    /* 0x4BC */ u8         field_4BC;
-    /* 0x4BD */ byte       pad_4BD[0x3];
-} Actor461800Work2;
-STATIC_ASSERT_SIZEOF(Actor461800Work2, 0x4C0);
-
-extern Actor461800Work2* D_actor_461800_801438A0;
+extern Actor151000Work* D_actor_461800_801438A0;
 
 /// The second variant's task, published by its spawn routine
 /// `func_actor_461800_8013307C` so the handlers can reach its model.
@@ -330,20 +301,20 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
     D_actor_461800_80143898      = task;
     vec.vz                       = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&D_actor_461800_80143894->anim, D_actor_461800_80139FB0, obj,
-                  D_actor_461800_80143894->pose, D_actor_461800_80143894->slots);
-    D_actor_461800_80143894->field_4B8 = 1;
-    D_actor_461800_80143894->field_4B4 = 2;
+    func_800B3F84(&D_actor_461800_80143894->rig.anim, D_actor_461800_80139FB0, obj,
+                  D_actor_461800_80143894->rig.poses, D_actor_461800_80143894->rig.slots);
+    D_actor_461800_80143894->st.animId = 1;
+    D_actor_461800_80143894->st.state  = 2;
 
     spawned1 = Task_SpawnFromTable(&D_actor_461800_80139F8C, 1, 8, 0);
     if (spawned1 != NULL) {
-        D_actor_461800_80143894->field_4F0 = spawned1;
-        sessionKey1                        = (GpAreaKey*)&gGameSession->at4.loc;
-        raw1                               = ((GpEnemy*)task->spawnArg2)->placeKey;
-        model1                             = spawned1->extra;
-        key.stage                          = sessionKey1->stage;
-        key.area                           = sessionKey1->area;
-        areaByte1                          = sessionKey1->room;
+        D_actor_461800_80143894->helper1 = spawned1;
+        sessionKey1                      = (GpAreaKey*)&gGameSession->at4.loc;
+        raw1                             = ((GpEnemy*)task->spawnArg2)->placeKey;
+        model1                           = spawned1->extra;
+        key.stage                        = sessionKey1->stage;
+        key.area                         = sessionKey1->area;
+        areaByte1                        = sessionKey1->room;
         SOFT_BARRIER();
         keyp = &key;
         TOUCH_REG(keyp);
@@ -363,13 +334,13 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
 
     spawned2 = Task_SpawnFromTable(&D_actor_461800_80139F8C, 2, 0xC, 0);
     if (spawned2 != NULL) {
-        D_actor_461800_80143894->field_4F4 = spawned2;
-        sessionKey2                        = (GpAreaKey*)&gGameSession->at4.loc;
-        raw2                               = ((GpEnemy*)task->spawnArg2)->placeKey;
-        model2                             = spawned2->extra;
-        key.stage                          = sessionKey2->stage;
-        key.area                           = sessionKey2->area;
-        areaByte1                          = sessionKey2->room;
+        D_actor_461800_80143894->helper2 = spawned2;
+        sessionKey2                      = (GpAreaKey*)&gGameSession->at4.loc;
+        raw2                             = ((GpEnemy*)task->spawnArg2)->placeKey;
+        model2                           = spawned2->extra;
+        key.stage                        = sessionKey2->stage;
+        key.area                         = sessionKey2->area;
+        areaByte1                        = sessionKey2->room;
         SOFT_BARRIER();
         keyp = &key;
         TOUCH_REG(keyp);
@@ -387,31 +358,31 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
         }
     }
 
-    D_actor_461800_80143894->field_4EA = 0;
-    D_actor_461800_80143894->field_4EC = 0;
-    task->msgTable                     = D_actor_461800_80139F5C;
+    D_actor_461800_80143894->st.travel  = 0;
+    D_actor_461800_80143894->turnFrames = 0;
+    task->msgTable                      = D_actor_461800_80139F5C;
     func_actor_461800_80132660(task);
     task->state++;
 }
 
 /// Per-frame update of the first variant: modes 1 and 2 run their one-shot
-/// setup and switch to mode 3; mode 3 walks the model while `field_4EA` counts
+/// setup and switch to mode 3; mode 3 walks the model while `st.travel` counts
 /// down (distance picked by `D_actor_461800_8014389C`), turns it while
-/// `field_4EC` counts down in animation 3, then ticks the animation.
+/// `turnFrames` counts down in animation 3, then ticks the animation.
 void func_actor_461800_80132660(Task* task)
 {
     GsCOORDINATE2*   coord = ((TmdObject*)task->extra)->coords;
     Actor461800Work* work  = (Actor461800Work*)task->work;
 
-    if (D_actor_461800_80143894->field_4B4 == 1) {
+    if (D_actor_461800_80143894->st.state == 1) {
         func_actor_461800_80132D04();
-        D_actor_461800_80143894->field_4B4 = 3;
-    } else if (D_actor_461800_80143894->field_4B4 == 2) {
+        D_actor_461800_80143894->st.state = 3;
+    } else if (D_actor_461800_80143894->st.state == 2) {
         func_actor_461800_80132C74();
-        D_actor_461800_80143894->field_4B4 = 3;
-    } else if (D_actor_461800_80143894->field_4B4 == 3) {
-        if (work->field_4B8 == 0xE || work->field_4B8 == 2 || work->field_4B8 == 0xF) {
-            if (work->field_4EA != 0) {
+        D_actor_461800_80143894->st.state = 3;
+    } else if (D_actor_461800_80143894->st.state == 3) {
+        if (work->st.animId == 0xE || work->st.animId == 2 || work->st.animId == 0xF) {
+            if (work->st.travel != 0) {
                 switch (D_actor_461800_8014389C) {
                     case 0:
                         actorMoveModelForward(task, 0x3C);
@@ -423,18 +394,18 @@ void func_actor_461800_80132660(Task* task)
                         actorMoveModelForward(task, 0x19);
                         break;
                 }
-                if (--work->field_4EA == 0) {
-                    work->field_4B4         = 1;
+                if (--work->st.travel == 0) {
+                    work->st.state          = 1;
                     D_actor_461800_80139F58 = 10;
-                    work->field_4B8         = 0xD;
+                    work->st.animId         = 0xD;
                 }
             }
         }
-        if (work->field_4B8 == 3 && work->field_4EC != 0) {
-            work->yaw += 0x33;
-            Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
+        if (work->st.animId == 3 && work->turnFrames != 0) {
+            work->st.yaw += 0x33;
+            Gfx_RotMatrixY(&coord->coord, work->st.yaw, 1);
             coord->flg = 0;
-            work->field_4EC--;
+            work->turnFrames--;
         }
         func_actor_461800_80132C28();
     }
@@ -483,8 +454,8 @@ void func_actor_461800_80132A90(Task* task)
     Actor461800Work* work = (Actor461800Work*)task->work;
 
     Gp_DestroyEnemy(task->spawnArg2, task);
-    taskKill(work->field_4F0);
-    taskKill(work->field_4F4);
+    taskKill(work->helper1);
+    taskKill(work->helper2);
 }
 
 /// Draws the ground shadow quad under the model root, unless the model is
@@ -544,7 +515,7 @@ void func_actor_461800_80132C28(void)
 
     i = 1;
     do {
-        Gp_AnimTickIndex(&D_actor_461800_80143894->anim, i);
+        Gp_AnimTickIndex(&D_actor_461800_80143894->rig.anim, i);
         i++;
     } while (i < 0x14);
 }
@@ -557,11 +528,11 @@ void func_actor_461800_80132C74(void)
 
     i = 1;
     do {
-        D_actor_461800_80143894->slots[i].rate = 1;
-        Gp_AnimResetSlot(&D_actor_461800_80143894->anim, i, D_actor_461800_80143894->field_4B8);
+        D_actor_461800_80143894->rig.slots[i].rate = 1;
+        Gp_AnimResetSlot(&D_actor_461800_80143894->rig.anim, i, D_actor_461800_80143894->st.animId);
         i++;
     } while (i < 0x14);
-    D_actor_461800_80143894->field_4B6 = D_actor_461800_80143894->field_4B8;
+    D_actor_461800_80143894->st.appliedAnimId = D_actor_461800_80143894->st.animId;
 }
 
 /// Reseeds animation slots 1..0x13 from the current animation id and records
@@ -572,11 +543,11 @@ void func_actor_461800_80132D04(void)
 
     i = 1;
     do {
-        func_800B4114(&D_actor_461800_80143894->anim, i, D_actor_461800_80143894->field_4B8, 0,
+        func_800B4114(&D_actor_461800_80143894->rig.anim, i, D_actor_461800_80143894->st.animId, 0,
                       D_actor_461800_80139F58);
         i++;
     } while (i < 0x14);
-    D_actor_461800_80143894->field_4B6 = D_actor_461800_80143894->field_4B8;
+    D_actor_461800_80143894->st.appliedAnimId = D_actor_461800_80143894->st.animId;
 }
 
 /// Applies an animation preset: the id is copied into the work block, the reset
@@ -587,14 +558,14 @@ void func_actor_461800_80132D04(void)
 s32 func_actor_461800_80132D84(Task* task, s32 arg1, GpAnimArg* preset, s32 arg3)
 {
     if (preset->field_4 < 6) {
-        D_actor_461800_80143894->field_4B8 = preset->field_4;
+        D_actor_461800_80143894->st.animId = preset->field_4;
         if (preset->field_8 != 0) {
-            D_actor_461800_80143894->field_4B4 = 1;
-            D_actor_461800_80139F58            = preset->field_C;
+            D_actor_461800_80143894->st.state = 1;
+            D_actor_461800_80139F58           = preset->field_C;
         } else {
-            D_actor_461800_80143894->field_4B4 = 2;
+            D_actor_461800_80143894->st.state = 2;
         }
-        D_actor_461800_80143894->field_4BA = 0;
+        D_actor_461800_80143894->st.field_6 = 0;
         func_actor_461800_80132660(D_actor_461800_80143898);
         return 0;
     }
@@ -608,8 +579,8 @@ s32 func_actor_461800_80132D84(Task* task, s32 arg1, GpAnimArg* preset, s32 arg3
 s32 func_actor_461800_80132E14(Task* arg0, s32 arg1, s32 arg2)
 {
     TmdObject* own    = D_actor_461800_80143898->extra;
-    TmdObject* first  = D_actor_461800_80143894->field_4F0->extra;
-    TmdObject* second = D_actor_461800_80143894->field_4F4->extra;
+    TmdObject* first  = D_actor_461800_80143894->helper1->extra;
+    TmdObject* second = D_actor_461800_80143894->helper2->extra;
 
     if (arg2 & 1) {
         own->flags    = 0;
@@ -636,8 +607,8 @@ s32 func_actor_461800_80132EA4(Task* task, s32 arg1, GpXformArg* placement)
     GsCOORDINATE2* coord;
     u16            yaw;
 
-    coord                        = ((TmdObject*)task->extra)->coords;
-    D_actor_461800_80143894->yaw = yaw = placement->rot.vy;
+    coord                           = ((TmdObject*)task->extra)->coords;
+    D_actor_461800_80143894->st.yaw = yaw = placement->rot.vy;
     Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;
@@ -649,7 +620,7 @@ s32 func_actor_461800_80132EA4(Task* task, s32 arg1, GpXformArg* placement)
 s32 func_actor_461800_80132F20(Task* arg0, s32 arg1, GpCmdArg* arg2, s32 arg3)
 {
     if (arg2->command == 0) {
-        D_actor_461800_80143894->field_4EC = 0x14;
+        D_actor_461800_80143894->turnFrames = 0x14;
     }
     return 0;
 }
@@ -673,11 +644,11 @@ s32 func_actor_461800_80132F44(Task* task, s32 arg1, VECTOR* target, s32 mode)
     dx                      = target->vx - coord->coord.t[0];
     dz                      = target->vz - coord->coord.t[2];
     angle                   = ratan2(dx, dz);
-    work->yaw               = angle;
+    work->st.yaw            = angle;
     if (D_actor_461800_8014389C == 1) {
-        work->yaw = angle + 0x800;
+        work->st.yaw = angle + 0x800;
     }
-    Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
+    Gfx_RotMatrixY(&coord->coord, work->st.yaw, 1);
     dist  = SquareRoot0(dx * dx + dz * dz);
     steps = 0x19;
     switch (D_actor_461800_8014389C) {
@@ -690,7 +661,7 @@ s32 func_actor_461800_80132F44(Task* task, s32 arg1, VECTOR* target, s32 mode)
         case 2:
             break;
     }
-    work->field_4EA = dist / steps;
+    work->st.travel = dist / steps;
     return 0;
 }
 
@@ -721,37 +692,37 @@ void func_actor_461800_8013307C(GpEnemy* enemy, Task* task)
     D_actor_461800_801438A4      = task;
     vec.vz                       = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&D_actor_461800_801438A0->anim, D_actor_461800_801437F8, obj,
-                  &D_actor_461800_801438A0->slots[0x13], D_actor_461800_801438A0->slots);
-    D_actor_461800_801438A0->field_480 = 1;
-    D_actor_461800_801438A0->field_47C = 2;
-    D_actor_461800_801438A0->field_4B2 = 0;
-    D_actor_461800_801438A0->field_4B4 = 0;
-    D_actor_461800_801438A0->field_4B8 = 0;
-    D_actor_461800_801438A0->field_4BC = 0;
-    task->msgTable                     = D_actor_461800_801437BC;
+    func_800B3F84(&D_actor_461800_801438A0->rig.anim, D_actor_461800_801437F8, obj,
+                  D_actor_461800_801438A0->rig.poses, D_actor_461800_801438A0->rig.slots);
+    D_actor_461800_801438A0->st.animId  = 1;
+    D_actor_461800_801438A0->st.state   = 2;
+    D_actor_461800_801438A0->st.travel  = 0;
+    D_actor_461800_801438A0->turnFrames = 0;
+    D_actor_461800_801438A0->stepRec    = 0;
+    D_actor_461800_801438A0->footsteps  = 0;
+    task->msgTable                      = D_actor_461800_801437BC;
     func_actor_461800_801331E4(task);
     task->state++;
 }
 
 /// Per-frame update of the second variant: modes 1 and 2 run their one-shot
-/// setup and switch to mode 3 for the next frame; mode 3 walks the model while `field_4B2` counts
+/// setup and switch to mode 3 for the next frame; mode 3 walks the model while `st.travel` counts
 /// down (distance picked by `D_actor_461800_801438A8`), turns it while
-/// `field_4B4` counts down in animation 3, then ticks the animation.
+/// `turnFrames` counts down in animation 3, then ticks the animation.
 void func_actor_461800_801331E4(Task* task)
 {
-    GsCOORDINATE2*    coord = ((TmdObject*)task->extra)->coords;
-    Actor461800Work2* work  = (Actor461800Work2*)task->work;
+    GsCOORDINATE2*   coord = ((TmdObject*)task->extra)->coords;
+    Actor151000Work* work  = (Actor151000Work*)task->work;
 
-    if (D_actor_461800_801438A0->field_47C == 1) {
+    if (D_actor_461800_801438A0->st.state == 1) {
         func_actor_461800_8013380C();
-        D_actor_461800_801438A0->field_47C = 3;
-    } else if (D_actor_461800_801438A0->field_47C == 2) {
+        D_actor_461800_801438A0->st.state = 3;
+    } else if (D_actor_461800_801438A0->st.state == 2) {
         func_actor_461800_80133770();
-        D_actor_461800_801438A0->field_47C = 3;
-    } else if (D_actor_461800_801438A0->field_47C == 3) {
-        if (work->field_480 == 0xE || work->field_480 == 2 || work->field_480 == 0xF) {
-            if (work->field_4B2 != 0) {
+        D_actor_461800_801438A0->st.state = 3;
+    } else if (D_actor_461800_801438A0->st.state == 3) {
+        if (work->st.animId == 0xE || work->st.animId == 2 || work->st.animId == 0xF) {
+            if (work->st.travel != 0) {
                 switch (D_actor_461800_801438A8) {
                     case 0:
                         actorMoveModelForward(task, 0x3C);
@@ -763,21 +734,21 @@ void func_actor_461800_801331E4(Task* task)
                         actorMoveModelForward(task, 0x19);
                         break;
                 }
-                if (--work->field_4B2 == 0) {
-                    work->field_47C         = 1;
+                if (--work->st.travel == 0) {
+                    work->st.state          = 1;
                     D_actor_461800_801437B8 = 10;
-                    work->field_480         = 0xD;
+                    work->st.animId         = 0xD;
                 }
             }
         }
-        if (work->field_480 == 3 && work->field_4B4 != 0) {
-            work->field_4AE += 0x33;
-            Gfx_RotMatrixY(&coord->coord, work->field_4AE, 1);
+        if (work->st.animId == 3 && work->turnFrames != 0) {
+            work->st.yaw += 0x33;
+            Gfx_RotMatrixY(&coord->coord, work->st.yaw, 1);
             coord->flg = 0;
-            work->field_4B4--;
+            work->turnFrames--;
         }
         func_actor_461800_80133724();
-        if (work->field_4BC != 0) {
+        if (work->footsteps != 0) {
             func_actor_461800_8013365C(task);
         }
     }
@@ -793,7 +764,7 @@ void func_actor_461800_80133554(Task* task)
         func_actor_461800_801335B0,
     };
 
-    D_actor_461800_801438A0 = (Actor461800Work2*)task->work;
+    D_actor_461800_801438A0 = (Actor151000Work*)task->work;
     fns[task->state](task->spawnArg2, task);
 }
 
@@ -828,24 +799,24 @@ void func_actor_461800_80133634(Task* task)
 /// Footstep sounds of the second variant: whenever animation slot 1 rolls onto
 /// a new record whose flags nibble is 0x10 or 0x20, plays the matching step
 /// sound, panned and attenuated from the model's second coordinate. The record
-/// is latched in `field_4B8` so each one fires once.
+/// is latched in `stepRec` so each one fires once.
 void func_actor_461800_8013365C(Task* task)
 {
-    Actor461800Work2* work;
-    GsCOORDINATE2*    obj;
-    GpAnimRec*        rec;
-    s32               kind;
-    s32               id;
-    s32               pan;
+    Actor151000Work* work;
+    GsCOORDINATE2*   obj;
+    GpAnimRec*       rec;
+    s32              kind;
+    s32              id;
+    s32              pan;
 
-    work = (Actor461800Work2*)task->work;
+    work = (Actor151000Work*)task->work;
     obj  = ((TmdObject*)task->extra)->coords + 1;
-    rec  = Gp_AnimGetRec(&work->anim, &work->slots[1]);
-    if (rec == NULL || rec == work->field_4B8) {
+    rec  = Gp_AnimGetRec(&work->rig.anim, &work->rig.slots[1]);
+    if (rec == NULL || rec == work->stepRec) {
         return;
     }
-    work->field_4B8 = rec;
-    kind            = rec->flags & 0x30;
+    work->stepRec = rec;
+    kind          = rec->flags & 0x30;
     if (kind != 0x10 && kind != 0x20) {
         return;
     }
@@ -865,42 +836,42 @@ void func_actor_461800_80133724(void)
 
     i = 1;
     do {
-        Gp_AnimTickIndex(&D_actor_461800_801438A0->anim, i);
+        Gp_AnimTickIndex(&D_actor_461800_801438A0->rig.anim, i);
         i++;
     } while (i < 0x13);
 }
 
-/// Restarts animation slots 1..0x12 from `field_480`, flagging each slot's
+/// Restarts animation slots 1..0x12 from `st.animId`, flagging each slot's
 /// `field_9` before the reset so it replays from the top, and latches that id
-/// into `field_47E` as the one now playing.
+/// into `st.appliedAnimId` as the one now playing.
 void func_actor_461800_80133770(void)
 {
     s32 i;
 
-    D_actor_461800_801438A0->field_4B8 = 0;
-    i                                  = 1;
+    D_actor_461800_801438A0->stepRec = 0;
+    i                                = 1;
     do {
-        D_actor_461800_801438A0->slots[i].rate = 1;
-        Gp_AnimResetSlot(&D_actor_461800_801438A0->anim, i, D_actor_461800_801438A0->field_480);
+        D_actor_461800_801438A0->rig.slots[i].rate = 1;
+        Gp_AnimResetSlot(&D_actor_461800_801438A0->rig.anim, i, D_actor_461800_801438A0->st.animId);
         i++;
     } while (i < 0x13);
-    D_actor_461800_801438A0->field_47E = D_actor_461800_801438A0->field_480;
+    D_actor_461800_801438A0->st.appliedAnimId = D_actor_461800_801438A0->st.animId;
 }
 
-/// Reseeds animation slots 1..0x12 from `field_480` and latches that id into
-/// `field_47E` as the one now playing.
+/// Reseeds animation slots 1..0x12 from `st.animId` and latches that id into
+/// `st.appliedAnimId` as the one now playing.
 void func_actor_461800_8013380C(void)
 {
     s32 i;
 
-    D_actor_461800_801438A0->field_4B8 = 0;
-    i                                  = 1;
+    D_actor_461800_801438A0->stepRec = 0;
+    i                                = 1;
     do {
-        func_800B4114(&D_actor_461800_801438A0->anim, i, (s16)D_actor_461800_801438A0->field_480, 0,
+        func_800B4114(&D_actor_461800_801438A0->rig.anim, i, D_actor_461800_801438A0->st.animId, 0,
                       D_actor_461800_801437B8);
         i++;
     } while (i < 0x13);
-    D_actor_461800_801438A0->field_47E = D_actor_461800_801438A0->field_480;
+    D_actor_461800_801438A0->st.appliedAnimId = D_actor_461800_801438A0->st.animId;
 }
 
 /// Applies an animation preset to the second variant's work block: the id is
@@ -912,14 +883,14 @@ void func_actor_461800_8013380C(void)
 s32 func_actor_461800_80133898(Task* task, s32 arg1, GpAnimArg* preset, s32 arg3)
 {
     if (preset->field_4 < 0x23) {
-        D_actor_461800_801438A0->field_480 = preset->field_4;
+        D_actor_461800_801438A0->st.animId = preset->field_4;
         if (preset->field_8 != 0) {
-            D_actor_461800_801438A0->field_47C = 1;
-            D_actor_461800_801437B8            = preset->field_C;
+            D_actor_461800_801438A0->st.state = 1;
+            D_actor_461800_801437B8           = preset->field_C;
         } else {
-            D_actor_461800_801438A0->field_47C = 2;
+            D_actor_461800_801438A0->st.state = 2;
         }
-        D_actor_461800_801438A0->field_482 = 0;
+        D_actor_461800_801438A0->st.field_6 = 0;
         func_actor_461800_801331E4(D_actor_461800_801438A4);
         return 0;
     }
@@ -953,8 +924,8 @@ s32 func_actor_461800_80133970(Task* task, s32 arg1, GpXformArg* placement)
     GsCOORDINATE2* coord;
     u16            yaw;
 
-    coord                              = ((TmdObject*)task->extra)->coords;
-    D_actor_461800_801438A0->field_4AE = yaw = placement->rot.vy;
+    coord                           = ((TmdObject*)task->extra)->coords;
+    D_actor_461800_801438A0->st.yaw = yaw = placement->rot.vy;
     Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;
@@ -973,10 +944,10 @@ s32 func_actor_461800_801339EC(Task* task, s32 arg1, GpCmdArg* msg, s32 arg3)
     id = msg->command;
     switch (id) {
         case 0:
-            D_actor_461800_801438A0->field_4B4 = 0x14;
+            D_actor_461800_801438A0->turnFrames = 0x14;
             break;
         case 1:
-            D_actor_461800_801438A0->field_4BC = id;
+            D_actor_461800_801438A0->footsteps = id;
             break;
     }
     return 0;
@@ -987,25 +958,25 @@ s32 func_actor_461800_801339EC(Task* task, s32 arg1, GpCmdArg* msg, s32 arg3)
 /// steps in mode 0, 15 in mode 1 and 25 in mode 2.
 s32 func_actor_461800_80133A3C(Task* task, s32 arg1, VECTOR* target, s32 mode)
 {
-    GsCOORDINATE2*    coord;
-    Actor461800Work2* work;
-    s32               dx;
-    s32               dz;
-    s32               steps;
-    s32               dist;
-    s32               angle;
+    GsCOORDINATE2*   coord;
+    Actor151000Work* work;
+    s32              dx;
+    s32              dz;
+    s32              steps;
+    s32              dist;
+    s32              angle;
 
     coord                   = ((TmdObject*)task->extra)->coords;
-    work                    = (Actor461800Work2*)task->work;
+    work                    = (Actor151000Work*)task->work;
     D_actor_461800_801438A8 = mode;
     dx                      = target->vx - coord->coord.t[0];
     dz                      = target->vz - coord->coord.t[2];
     angle                   = ratan2(dx, dz);
-    work->field_4AE         = angle;
+    work->st.yaw            = angle;
     if (D_actor_461800_801438A8 == 1) {
-        work->field_4AE = angle + 0x800;
+        work->st.yaw = angle + 0x800;
     }
-    Gfx_RotMatrixY(&coord->coord, work->field_4AE, 1);
+    Gfx_RotMatrixY(&coord->coord, work->st.yaw, 1);
     dist = SquareRoot0(dx * dx + dz * dz);
     switch (D_actor_461800_801438A8) {
         case 0:
@@ -1018,7 +989,7 @@ s32 func_actor_461800_80133A3C(Task* task, s32 arg1, VECTOR* target, s32 mode)
             steps = 0x19;
             break;
     }
-    work->field_4B2 = dist / steps;
+    work->st.travel = dist / steps;
     return 0;
 }
 

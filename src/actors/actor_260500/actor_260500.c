@@ -20,34 +20,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Work block the actor hangs off its task's `Task::work` slot. The spawn
-/// routine, `func_actor_260500_80149FB0`, allocates it with
-/// `memCalloc(0x4B8, 0)` and stores it both there and in
-/// `D_actor_260500_80159E4C`, so the size below is the allocation.
-///
-/// It opens with the light and colour matrices the actor's model is drawn
-/// under, then the animation context with nineteen slots and one 0x10-byte
-/// pose record per slot. The tail holds the animation state the update and the
-/// message handlers share, and the walk and turn counters.
-typedef struct Actor260500Work {
-    /* 0x000 */ MATRIX     light;
-    /* 0x020 */ MATRIX     color;
-    /* 0x040 */ GpAnimCtx  anim;
-    /* 0x054 */ GpAnimSlot slots[0x13];
-    /* 0x34C */ byte       poses[0x13][0x10];
-    /* 0x47C */ s16        field_47C; // animation reset mode `func_actor_260500_8014A110` dispatches on (1 reseeds via `func_actor_260500_8014A644`, 2 via `func_actor_260500_8014A5B4`, 3 after)
-    /* 0x47E */ s16        field_47E; // copy of `field_480` the plain reseed records as the animation now playing
-    /* 0x480 */ s16        field_480; // animation id the reset is seeded with, latched from the preset's `field_4`
-    /* 0x482 */ s16        field_482; // cleared before the reset is handed to `func_actor_260500_8014A110`
-    /* 0x484 */ byte       pad_484[0x2A];
-    /* 0x4AE */ s16        yaw;       // last yaw handed to `Gfx_RotMatrixY`
-    /* 0x4B0 */ byte       pad_4B0[0x2];
-    /* 0x4B2 */ s16        field_4B2; // steps left in the walk the approach handler sets up
-    /* 0x4B4 */ s16        field_4B4; // turn steps left while animation 3 plays; message 0x7DB arms it at 0x14
-    /* 0x4B6 */ byte       pad_4B6[0x2];
-} Actor260500Work;
-STATIC_ASSERT_SIZEOF(Actor260500Work, 0x4B8);
-
 /// The work block, published by the spawn routine and by the task handler
 /// `func_actor_260500_8014A460` on every frame, so the message handlers and
 /// the animation loops reach it without the task.
@@ -178,37 +150,37 @@ void func_actor_260500_80149FB0(GpEnemy* enemy, Task* task)
     D_actor_260500_80159E50      = task;
     vec.vz                       = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&D_actor_260500_80159E4C->anim, D_actor_260500_80159DBC, obj,
-                  D_actor_260500_80159E4C->poses, D_actor_260500_80159E4C->slots);
-    D_actor_260500_80159E4C->field_480 = 4;
-    D_actor_260500_80159E4C->field_47C = 2;
-    D_actor_260500_80159E4C->field_4B2 = 0;
-    D_actor_260500_80159E4C->field_4B4 = 0;
-    task->msgTable                     = D_actor_260500_80159D80;
+    func_800B3F84(&D_actor_260500_80159E4C->rig.anim, D_actor_260500_80159DBC, obj,
+                  D_actor_260500_80159E4C->rig.poses, D_actor_260500_80159E4C->rig.slots);
+    D_actor_260500_80159E4C->st.animId  = 4;
+    D_actor_260500_80159E4C->st.state   = 2;
+    D_actor_260500_80159E4C->st.travel  = 0;
+    D_actor_260500_80159E4C->turnFrames = 0;
+    task->msgTable                      = D_actor_260500_80159D80;
     func_actor_260500_8014A110(task);
     task->state++;
 }
 
 /// Per-frame update: reset modes 1 and 2 run their one-shot reseed (blended or
 /// plain) and switch to mode 3. In mode 3 the walking animations 2, 0xE and 0xF
-/// step the model forward while `field_4B2` counts down, by a distance the
+/// step the model forward while `st.travel` counts down, by a distance the
 /// approach mode in `D_actor_260500_80159E54` picks, and blend into animation
 /// 0xD with reset argument 10 when the walk ends; animation 3 turns the model
-/// while `field_4B4` counts down. Mode 3 then ticks the animation.
+/// while `turnFrames` counts down. Mode 3 then ticks the animation.
 void func_actor_260500_8014A110(Task* task)
 {
     GsCOORDINATE2*   coord = ((TmdObject*)task->extra)->coords;
     Actor260500Work* work  = (Actor260500Work*)task->work;
 
-    if (D_actor_260500_80159E4C->field_47C == 1) {
+    if (D_actor_260500_80159E4C->st.state == 1) {
         func_actor_260500_8014A644();
-        D_actor_260500_80159E4C->field_47C = 3;
-    } else if (D_actor_260500_80159E4C->field_47C == 2) {
+        D_actor_260500_80159E4C->st.state = 3;
+    } else if (D_actor_260500_80159E4C->st.state == 2) {
         func_actor_260500_8014A5B4();
-        D_actor_260500_80159E4C->field_47C = 3;
-    } else if (D_actor_260500_80159E4C->field_47C == 3) {
-        if (work->field_480 == 0xE || work->field_480 == 2 || work->field_480 == 0xF) {
-            if (work->field_4B2 != 0) {
+        D_actor_260500_80159E4C->st.state = 3;
+    } else if (D_actor_260500_80159E4C->st.state == 3) {
+        if (work->st.animId == 0xE || work->st.animId == 2 || work->st.animId == 0xF) {
+            if (work->st.travel != 0) {
                 switch (D_actor_260500_80159E54) {
                     case 0:
                         actorMoveModelForward(task, 0x3C);
@@ -220,18 +192,18 @@ void func_actor_260500_8014A110(Task* task)
                         actorMoveModelForward(task, 0x19);
                         break;
                 }
-                if (--work->field_4B2 == 0) {
-                    work->field_47C         = 1;
+                if (--work->st.travel == 0) {
+                    work->st.state          = 1;
                     D_actor_260500_80159D7C = 10;
-                    work->field_480         = 0xD;
+                    work->st.animId         = 0xD;
                 }
             }
         }
-        if (work->field_480 == 3 && work->field_4B4 != 0) {
-            work->yaw += 0x33;
-            Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
+        if (work->st.animId == 3 && work->turnFrames != 0) {
+            work->st.yaw += 0x33;
+            Gfx_RotMatrixY(&coord->coord, work->st.yaw, 1);
             coord->flg = 0;
-            work->field_4B4--;
+            work->turnFrames--;
         }
         func_actor_260500_8014A568();
     }
@@ -286,7 +258,7 @@ void func_actor_260500_8014A568(void)
 
     i = 1;
     do {
-        Gp_AnimTickIndex(&D_actor_260500_80159E4C->anim, i);
+        Gp_AnimTickIndex(&D_actor_260500_80159E4C->rig.anim, i);
         i++;
     } while (i < 0x13);
 }
@@ -300,11 +272,11 @@ void func_actor_260500_8014A5B4(void)
 
     i = 1;
     do {
-        D_actor_260500_80159E4C->slots[i].rate = 1;
-        Gp_AnimResetSlot(&D_actor_260500_80159E4C->anim, i, D_actor_260500_80159E4C->field_480);
+        D_actor_260500_80159E4C->rig.slots[i].rate = 1;
+        Gp_AnimResetSlot(&D_actor_260500_80159E4C->rig.anim, i, D_actor_260500_80159E4C->st.animId);
         i++;
     } while (i < 0x13);
-    D_actor_260500_80159E4C->field_47E = D_actor_260500_80159E4C->field_480;
+    D_actor_260500_80159E4C->st.appliedAnimId = D_actor_260500_80159E4C->st.animId;
 }
 
 /// Blended reseed: reseeds animation slots 1..0x12 of the work block from the
@@ -316,11 +288,11 @@ void func_actor_260500_8014A644(void)
 
     i = 1;
     do {
-        func_800B4114(&D_actor_260500_80159E4C->anim, i, D_actor_260500_80159E4C->field_480, 0,
+        func_800B4114(&D_actor_260500_80159E4C->rig.anim, i, D_actor_260500_80159E4C->st.animId, 0,
                       D_actor_260500_80159D7C);
         i++;
     } while (i < 0x13);
-    D_actor_260500_80159E4C->field_47E = D_actor_260500_80159E4C->field_480;
+    D_actor_260500_80159E4C->st.appliedAnimId = D_actor_260500_80159E4C->st.animId;
 }
 
 /// Play-animation message handler: adopts the preset's animation id when it is
@@ -331,14 +303,14 @@ void func_actor_260500_8014A644(void)
 s32 func_actor_260500_8014A6C4(Task* task, s32 arg1, GpAnimArg* preset)
 {
     if (preset->field_4 < 0x24) {
-        D_actor_260500_80159E4C->field_480 = preset->field_4;
+        D_actor_260500_80159E4C->st.animId = preset->field_4;
         if (preset->field_8 != 0) {
-            D_actor_260500_80159E4C->field_47C = 1;
-            D_actor_260500_80159D7C            = preset->field_C;
+            D_actor_260500_80159E4C->st.state = 1;
+            D_actor_260500_80159D7C           = preset->field_C;
         } else {
-            D_actor_260500_80159E4C->field_47C = 2;
+            D_actor_260500_80159E4C->st.state = 2;
         }
-        D_actor_260500_80159E4C->field_482 = 0;
+        D_actor_260500_80159E4C->st.field_6 = 0;
         func_actor_260500_8014A110(D_actor_260500_80159E50);
         return 0;
     }
@@ -371,8 +343,8 @@ s32 func_actor_260500_8014A79C(Task* task, s32 arg1, GpXformArg* placement)
     GsCOORDINATE2* coord;
     u16            yaw;
 
-    coord                        = ((TmdObject*)task->extra)->coords;
-    D_actor_260500_80159E4C->yaw = yaw = placement->rot.vy;
+    coord                           = ((TmdObject*)task->extra)->coords;
+    D_actor_260500_80159E4C->st.yaw = yaw = placement->rot.vy;
     Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;
@@ -382,11 +354,11 @@ s32 func_actor_260500_8014A79C(Task* task, s32 arg1, GpXformArg* placement)
 }
 
 /// Message 0x7DB: a zero payload halfword at 0x2 arms the work block's
-/// `field_4B4` at 0x14.
+/// `turnFrames` at 0x14.
 s32 func_actor_260500_8014A818(Task* task, s32 arg1, GpCmdArg* msg)
 {
     if (msg->command == 0) {
-        D_actor_260500_80159E4C->field_4B4 = 0x14;
+        D_actor_260500_80159E4C->turnFrames = 0x14;
     }
     return 0;
 }
@@ -413,11 +385,11 @@ s32 func_actor_260500_8014A83C(Task* task, s32 arg1, VECTOR* target, s32 mode)
     dx                      = target->vx - coord->coord.t[0];
     dz                      = target->vz - coord->coord.t[2];
     angle                   = ratan2(dx, dz);
-    work->yaw               = angle;
+    work->st.yaw            = angle;
     if (D_actor_260500_80159E54 == 1) {
-        work->yaw = angle + 0x800;
+        work->st.yaw = angle + 0x800;
     }
-    Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
+    Gfx_RotMatrixY(&coord->coord, work->st.yaw, 1);
     dist = SquareRoot0(dx * dx + dz * dz);
     switch (D_actor_260500_80159E54) {
         case 0:
@@ -430,7 +402,7 @@ s32 func_actor_260500_8014A83C(Task* task, s32 arg1, VECTOR* target, s32 mode)
             steps = 0x19;
             break;
     }
-    work->field_4B2 = dist / steps;
+    work->st.travel = dist / steps;
     return 0;
 }
 
