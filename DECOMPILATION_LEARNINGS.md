@@ -140421,3 +140421,25 @@ whole right operand, `msg.command |= (s16)((E % 3) * 0x10 | 1);`, restores the
 target order byte for byte; casting the field instead (`(s16)msg.command | …`)
 does not. The cast carries the original operand's signedness, which is the
 thing the unification removed.
+
+## A body pointer lands in the argument register only while `$v0`/`$v1` are busy (func_8010B3F8, 2026-09-25)
+
+A chain `lw a1, 0x2C(s3); lw a1, 8(a1)` (a task's body, then its `coords`,
+passed as the call's `$a1`) looks as if one local held both values, and it was
+matched that way: `coords = (GsCOORDINATE2*)slot->extra.tmd; coords =
+((TmdObject*)coords)->coords;`. Written naturally, the body pointer is its own
+short-lived pseudo that local-alloc gives the first free register, `$v0`. It
+takes `$a1` only when `$v0` and `$v1` are both live across it. Computing a
+value that is stored afterwards into a local *before* the loads keeps `$v0`
+busy (stores to an unknown base cannot move above loads from another unknown
+base, so the value would otherwise be computed next to its store), and an
+inline re-read of the halfword takes `$v1`:
+
+```c
+argLo              = (idx * 0x60) + 0xC0;
+coords             = &slot->extra.tmd->coords[((arg0->killCountdown & 0xF00) >> 8) + 1];
+params->spawnArgLo = argLo;
+```
+
+Before accepting a reused local of the wrong type, try moving the computation
+of later-stored values ahead of the pointer chain.

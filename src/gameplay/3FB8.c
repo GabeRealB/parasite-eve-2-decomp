@@ -9376,6 +9376,7 @@ void func_8010B3F8(Task* arg0)
     Task*          slot;
     GpEffArg*      params;
     GsCOORDINATE2* coords;
+    s32            argLo;
     s32            idx;
     u16            count;
     s16            next;
@@ -9398,12 +9399,10 @@ void func_8010B3F8(Task* arg0)
                 } else {
                     arg0->killCountdown = next | 6;
                 }
-                coords             = (GsCOORDINATE2*)slot->extra.tmd;
-                count              = arg0->killCountdown;
-                coords             = ((TmdObject*)coords)->coords;
-                params->spawnArgLo = (idx * 0x60) + 0xC0;
+                argLo              = (idx * 0x60) + 0xC0;
+                coords             = &slot->extra.tmd->coords[((arg0->killCountdown & 0xF00) >> 8) + 1];
+                params->spawnArgLo = argLo;
                 params->spawnArgHi = idx + 1;
-                coords             = &coords[((count & 0xF00) >> 8) + 1];
                 params->coord      = coords;
                 func_800FDB18(3, coords, 0, params);
             } else {
