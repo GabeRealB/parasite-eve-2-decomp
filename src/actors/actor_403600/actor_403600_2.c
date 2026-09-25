@@ -193,12 +193,6 @@ void func_actor_403600_80141F58(GpCoord* arg0, s32 arg1);
 
 #define actor_403600_d_x(out, hi) \
     __asm__("lh %0, %%lo(D_actor_403600_801605D4)(%1)" : "=r"(out) : "r"(hi))
-#define actor_403600_load_scratch_head(out) \
-    __asm__ volatile("lui %0, 0x1F80; lw %0, 0x3FC(%0)" : "=r"(out))
-#define actor_403600_store_scratch_head(value) \
-    __asm__ volatile("lui $1, 0x1F80; sw %0, 0x3FC($1)" : : "r"(value) : "$1", "memory")
-#define actor_403600_restore_scratch_head(value) \
-    __asm__("addiu %0, %0, 24; lui $1, 0x1F80; sw %0, 0x3FC($1)" : "+r"(value) : : "$1")
 #define actor_403600_rcos(angle)                                \
     ({                                                          \
         s32 result = rcos(angle);                               \
@@ -345,29 +339,19 @@ loop:
     return 0;
 }
 
-u8* func_actor_403600_80138DCC(Task* arg0)
+/// Projects the origin of coordinate 1 and passes its depth on.
+static __inline__ u8* _actor403600ProjectDepth(GpCoord* coord)
 {
-    u8*                  head;
-    u8*                  restore;
     ActorProjectScratch* block;
-    TmdObject*           object;
-    GpCoord*             coord;
-    SVECTOR*             vec;
 
-    object = arg0->extra.tmd;
-    actor_403600_load_scratch_head(head);
-    coord = object->coords;
-    SOFT_BARRIER();
-    block = (ActorProjectScratch*)(head - sizeof(ActorProjectScratch));
-    actor_403600_store_scratch_head(block);
+    block         = SCRATCH_PUSH(ActorProjectScratch);
     block->vec.vx = 0;
     block->vec.vy = 0;
     block->vec.vz = 0;
-    Gp_UpdateCoord(&coord[1]);
-    vec = &block->vec;
-    gte_SetRotMatrix(&coord[1].workm);
-    gte_SetTransMatrix(&coord[1].workm);
-    gte_ldv0(vec);
+    Gp_UpdateCoord(coord);
+    gte_SetRotMatrix(&coord->workm);
+    gte_SetTransMatrix(&coord->workm);
+    gte_ldv0(&block->vec);
     gte_rtps();
     gte_stsxy(&block->sxy);
     gte_stdp(&block->dp);
@@ -378,9 +362,12 @@ u8* func_actor_403600_80138DCC(Task* arg0)
     }
     block->otz = (block->otz >> 4) + 0x1E;
     func_actor_403600_801320F8(block->otz);
-    actor_403600_load_scratch_head(restore);
-    actor_403600_restore_scratch_head(restore);
-    return restore;
+    return (u8*)SCRATCH_POP(ActorProjectScratch);
+}
+
+u8* func_actor_403600_80138DCC(Task* arg0)
+{
+    return _actor403600ProjectDepth(&arg0->extra.tmd->coords[1]);
 }
 
 /// Spawns this actor: parks its work block in `task->work`, destroying the
