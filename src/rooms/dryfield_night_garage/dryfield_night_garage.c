@@ -6,6 +6,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/4CC.h"
@@ -36,32 +37,6 @@ typedef struct {
 } DryfieldNightGarageObj;
 
 STATIC_ASSERT_SIZEOF(DryfieldNightGarageObj, 0x98);
-
-/// One entry of the room's vector lists: three coordinates plus padding, eight
-/// bytes apart. Only the three coordinates are ever read or written.
-typedef struct DryfieldNightGarageVec {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 y;
-    /* 0x4 */ s16 z;
-    /* 0x6 */ s16 pad;
-} DryfieldNightGarageVec;
-STATIC_ASSERT_SIZEOF(DryfieldNightGarageVec, 0x8);
-
-/// A 12-byte record copied whole, never read field by field.
-typedef struct DryfieldNightGarageBlob {
-    /* 0x0 */ s8 b[12];
-} DryfieldNightGarageBlob;
-STATIC_ASSERT_SIZEOF(DryfieldNightGarageBlob, 0xC);
-
-/// A table of pointers into layout data: a four-entry vector list, an
-/// eight-entry vector list and four 12-byte records. The room keeps a template
-/// and a live copy. Nothing pins where the table ends.
-typedef struct DryfieldNightGarageLayout {
-    /* 0x0 */ s32                      field_0;
-    /* 0x4 */ DryfieldNightGarageVec*  field_4;
-    /* 0x8 */ DryfieldNightGarageVec*  field_8;
-    /* 0xC */ DryfieldNightGarageBlob* field_C;
-} DryfieldNightGarageLayout;
 
 extern void func_800E8634(s32 arg0, s32 arg1, s32 arg2);
 extern s32  func_80179954(RoomEventMsg* in, RoomEventMsg* out);
@@ -198,9 +173,9 @@ extern s32 D_dryfield_night_garage_80181C68;
 extern s32 D_dryfield_night_garage_80181C7C;
 
 /// Two layout templates and the live copy the resets restore from them.
-extern DryfieldNightGarageLayout D_dryfield_night_garage_80181D7C;
-extern DryfieldNightGarageLayout D_dryfield_night_garage_80181E40;
-extern DryfieldNightGarageLayout D_dryfield_night_garage_80183DD4;
+extern GpGridParams D_dryfield_night_garage_80181D7C;
+extern GpGridParams D_dryfield_night_garage_80181E40;
+extern GpGridParams D_dryfield_night_garage_80183DD4;
 
 extern TaskDesc               D_dryfield_night_garage_80182C98[];
 extern s32                    D_dryfield_night_garage_80182DE0;
@@ -1606,41 +1581,41 @@ void func_dryfield_night_garage_801803BC(Task* task)
 /// is 0x170C when `arg0` is zero and 0x2710 otherwise.
 void func_dryfield_night_garage_80180414(s32 arg0)
 {
-    DryfieldNightGarageLayout* dst;
-    DryfieldNightGarageLayout* src;
-    DryfieldNightGarageVec     d;
-    s32                        i;
+    GpGridParams* dst;
+    GpGridParams* src;
+    SVECTOR       d;
+    s32           i;
 
     dst = &D_dryfield_night_garage_80183DD4;
     src = &D_dryfield_night_garage_80181D7C;
 
     for (i = 0; i < 4; i++) {
-        dst->field_4[i].x         = src->field_4[i].x;
-        dst->field_4[i].y         = src->field_4[i].y;
-        dst->field_4[i].z         = src->field_4[i].z;
-        dst->field_8[i * 2].x     = src->field_8[i * 2].x;
-        dst->field_8[i * 2].y     = src->field_8[i * 2].y;
-        dst->field_8[i * 2].z     = src->field_8[i * 2].z;
-        dst->field_8[i * 2 + 1].x = src->field_8[i * 2 + 1].x;
-        dst->field_8[i * 2 + 1].y = src->field_8[i * 2 + 1].y;
-        dst->field_8[i * 2 + 1].z = src->field_8[i * 2 + 1].z;
-        dst->field_C[i]           = src->field_C[i];
+        dst->field_4[i].vx         = src->field_4[i].vx;
+        dst->field_4[i].vy         = src->field_4[i].vy;
+        dst->field_4[i].vz         = src->field_4[i].vz;
+        dst->field_8[i * 2].vx     = src->field_8[i * 2].vx;
+        dst->field_8[i * 2].vy     = src->field_8[i * 2].vy;
+        dst->field_8[i * 2].vz     = src->field_8[i * 2].vz;
+        dst->field_8[i * 2 + 1].vx = src->field_8[i * 2 + 1].vx;
+        dst->field_8[i * 2 + 1].vy = src->field_8[i * 2 + 1].vy;
+        dst->field_8[i * 2 + 1].vz = src->field_8[i * 2 + 1].vz;
+        dst->field_C[i]            = src->field_C[i];
     }
 
     if (arg0 == 0) {
-        d.x = 0x126B;
-        d.y = -0x84;
-        d.z = 0x170C;
+        d.vx = 0x126B;
+        d.vy = -0x84;
+        d.vz = 0x170C;
     } else {
-        d.x = 0x126B;
-        d.y = -0x84;
-        d.z = 0x2710;
+        d.vx = 0x126B;
+        d.vy = -0x84;
+        d.vz = 0x2710;
     }
 
     for (i = 0; i < 8; i++) {
-        dst->field_8[i].x += d.x;
-        dst->field_8[i].y += d.y;
-        dst->field_8[i].z += d.z;
+        dst->field_8[i].vx += d.vx;
+        dst->field_8[i].vy += d.vy;
+        dst->field_8[i].vz += d.vz;
     }
 }
 
@@ -1649,40 +1624,40 @@ void func_dryfield_night_garage_80180414(s32 arg0)
 /// eight-entry list is then raised by 0x7D0 on y when `arg0` is nonzero.
 void func_dryfield_night_garage_80180604(s32 arg0)
 {
-    DryfieldNightGarageLayout* dst;
-    DryfieldNightGarageLayout* src;
-    DryfieldNightGarageVec     d;
-    s32                        i;
+    GpGridParams* dst;
+    GpGridParams* src;
+    SVECTOR       d;
+    s32           i;
 
     dst = &D_dryfield_night_garage_80183DD4;
     src = &D_dryfield_night_garage_80181E40;
 
     for (i = 0; i < 4; i++) {
-        dst->field_4[i].x         = src->field_4[i].x;
-        dst->field_4[i].y         = src->field_4[i].y;
-        dst->field_4[i].z         = src->field_4[i].z;
-        dst->field_8[i * 2].x     = src->field_8[i * 2].x;
-        dst->field_8[i * 2].y     = src->field_8[i * 2].y;
-        dst->field_8[i * 2].z     = src->field_8[i * 2].z;
-        dst->field_8[i * 2 + 1].x = src->field_8[i * 2 + 1].x;
-        dst->field_8[i * 2 + 1].y = src->field_8[i * 2 + 1].y;
-        dst->field_8[i * 2 + 1].z = src->field_8[i * 2 + 1].z;
-        dst->field_C[i]           = src->field_C[i];
+        dst->field_4[i].vx         = src->field_4[i].vx;
+        dst->field_4[i].vy         = src->field_4[i].vy;
+        dst->field_4[i].vz         = src->field_4[i].vz;
+        dst->field_8[i * 2].vx     = src->field_8[i * 2].vx;
+        dst->field_8[i * 2].vy     = src->field_8[i * 2].vy;
+        dst->field_8[i * 2].vz     = src->field_8[i * 2].vz;
+        dst->field_8[i * 2 + 1].vx = src->field_8[i * 2 + 1].vx;
+        dst->field_8[i * 2 + 1].vy = src->field_8[i * 2 + 1].vy;
+        dst->field_8[i * 2 + 1].vz = src->field_8[i * 2 + 1].vz;
+        dst->field_C[i]            = src->field_C[i];
     }
 
     if (arg0 == 0) {
-        d.x = 0;
-        d.y = 0;
+        d.vx = 0;
+        d.vy = 0;
     } else {
-        d.x = 0;
-        d.y = 0x7D0;
+        d.vx = 0;
+        d.vy = 0x7D0;
     }
-    d.z = 0;
+    d.vz = 0;
 
     for (i = 0; i < 8; i++) {
-        dst->field_8[i].x += d.x;
-        dst->field_8[i].y += d.y;
-        dst->field_8[i].z += d.z;
+        dst->field_8[i].vx += d.vx;
+        dst->field_8[i].vy += d.vy;
+        dst->field_8[i].vz += d.vz;
     }
 }
 

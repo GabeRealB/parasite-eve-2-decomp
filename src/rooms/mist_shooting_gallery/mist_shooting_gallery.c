@@ -9,6 +9,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
@@ -33,7 +34,7 @@
 
 #include "rooms/mist_shooting_gallery.h"
 
-/// The four bonus-mode blurbs shown by the gallery's help panel, indexed by
+/// The four bonusGpGridParamsmode blurbs shown by the gallery's help panel, indexed by
 /// `D_80072177`. `func_mist_shooting_gallery_8017FAE8` copies the whole thing
 /// onto its stack before indexing it.
 typedef struct MistShootingGalleryModeTexts {
@@ -60,7 +61,7 @@ typedef struct MistShootingGalleryRatings {
 STATIC_ASSERT_SIZEOF(MistShootingGalleryRatings, 0x20);
 
 /// The six gauge strings the DATA panel draws through
-/// `MistShootingGalleryRating::gauge`; also stack-copied before use.
+/// `MistShootingGalleryRating::gauge`; also stackGpGridParamscopied before use.
 typedef struct MistShootingGalleryGauges {
     /* 0x00 */ u8* bars[6];
 } MistShootingGalleryGauges;
@@ -68,62 +69,14 @@ STATIC_ASSERT_SIZEOF(MistShootingGalleryGauges, 0x18);
 
 /// One row of the gallery's RESULT panel: the points one kill of that target
 /// is worth and the name printed beside it ("Red Target", "Crow", ...).
-/// `func_mist_shooting_gallery_8017E234` walks the 13-entry table
-/// `D_mist_shooting_gallery_80184F98` in step with the per-target kill counts
+/// `func_mist_shooting_gallery_8017E234` walks the 13GpGridParamsentry table
+/// `D_mist_shooting_gallery_80184F98` in step with the perGpGridParamstarget kill counts
 /// in `MistShootingGalleryWork::pad_0F`.
 typedef struct MistShootingGalleryTarget {
     /* 0x0 */ s32 points;
     /* 0x4 */ u8* name;
 } MistShootingGalleryTarget;
 STATIC_ASSERT_SIZEOF(MistShootingGalleryTarget, 0x8);
-
-/// One position in a gallery course table: three halfwords plus the padding
-/// halfword that rounds the record up to an 8-byte stride.
-/// `func_mist_shooting_gallery_801801E4` copies these component by component
-/// and never touches `pad`.
-typedef struct MistShootingGalleryPos {
-    /* 0x0 */ u16 x;
-    /* 0x2 */ u16 y;
-    /* 0x4 */ u16 z;
-    /* 0x6 */ u16 pad;
-} MistShootingGalleryPos;
-STATIC_ASSERT_SIZEOF(MistShootingGalleryPos, 0x8);
-
-/// The 0xC-byte record `MistShootingGalleryLayout::links` points at, one per
-/// entry of `MistShootingGalleryLayout::positions`.
-/// `func_mist_shooting_gallery_801801E4` copies it whole (as a 2-byte-aligned
-/// block move, hence the `lwl`/`lwr` pairs), while
-/// `func_mist_shooting_gallery_80180390` walks `field_00` as a four-entry
-/// array and then reads `field_08` and `field_0A` separately.
-typedef struct MistShootingGalleryLink {
-    /* 0x0 */ u16 field_00[4];
-    /* 0x8 */ u16 field_08;
-    /* 0xA */ u16 field_0A;
-} MistShootingGalleryLink;
-STATIC_ASSERT_SIZEOF(MistShootingGalleryLink, 0xC);
-
-/// The geometry of one shooting-gallery course. The overlay holds two
-/// templates (`D_mist_shooting_gallery_80185198` and
-/// `D_mist_shooting_gallery_801851F8`) plus the live copy
-/// `D_mist_shooting_gallery_80189968` that the room actually reads;
-/// `func_mist_shooting_gallery_801801E4` seeds the live copy from the first
-/// template, and `func_mist_shooting_gallery_80180390` fans the live copy out
-/// into the per-target work records. `positions` holds three entries,
-/// `targets` eight, and `links` three — one per position.
-typedef struct MistShootingGalleryLayout {
-    /* 0x00 */ s32                      field_00;
-    /* 0x04 */ MistShootingGalleryPos*  positions;
-    /* 0x08 */ MistShootingGalleryPos*  targets;
-    /* 0x0C */ MistShootingGalleryLink* links;
-    /* 0x10 */ void*                    field_10;
-    /* 0x14 */ s32                      field_14;
-    /* 0x18 */ s32                      field_18;
-    /* 0x1C */ s16                      field_1C;
-    /* 0x1E */ s16                      field_1E;
-    /* 0x20 */ s16                      field_20;
-    /* 0x22 */ s16                      field_22;
-} MistShootingGalleryLayout;
-STATIC_ASSERT_SIZEOF(MistShootingGalleryLayout, 0x24);
 
 extern UiObjectDesc D_mist_shooting_gallery_80185060;
 extern s32          D_mist_shooting_gallery_8018E0BC;
@@ -171,9 +124,9 @@ extern TaskDesc D_8014E13C;
 extern s32      D_80153274;
 extern s32      D_80153D6C;
 
-/// Screen-fade "overlay owns the display" flag, first byte of the flag block
+/// ScreenGpGridParamsfade "overlay owns the display" flag, first byte of the flag block
 /// at 0x80071068. Declared as an array on purpose: GCC 2.8.1 exempts a
-/// *fixed-address scalar* store from aliasing with a varying-address struct
+/// *fixedGpGridParamsaddress scalar* store from aliasing with a varyingGpGridParamsaddress struct
 /// load, so a plain `extern s8` here lets the scheduler hoist the following
 /// `arg0->state` load above the store. Indexing an array makes the store a
 /// struct reference and keeps the two in order.
@@ -200,9 +153,9 @@ extern MistShootingGalleryTarget D_mist_shooting_gallery_80184F98[];
 extern GpMsgEntry                D_mist_shooting_gallery_801850E8[];
 extern TaskDesc                  D_mist_shooting_gallery_801856B8;
 extern TaskDesc                  D_mist_shooting_gallery_801850DC;
-extern MistShootingGalleryLayout D_mist_shooting_gallery_80185198;
-extern MistShootingGalleryLayout D_mist_shooting_gallery_801851F8;
-extern MistShootingGalleryLayout D_mist_shooting_gallery_80189968;
+extern GpGridParams              D_mist_shooting_gallery_80185198;
+extern GpGridParams              D_mist_shooting_gallery_801851F8;
+extern GpGridParams              D_mist_shooting_gallery_80189968;
 
 /// The jukebox's track lists, one per game mode, each a run of track id and
 /// name pairs.
@@ -1337,9 +1290,9 @@ s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, GpMsg13EF* arg2)
     return 0;
 }
 
-/// The room task's three-state table, run from a stack copy by
+/// The room task's threeGpGridParamsstate table, run from a stack copy by
 /// `func_mist_shooting_gallery_8018018C`: the entry tick
-/// `func_mist_shooting_gallery_8017FC2C`, the per-frame state
+/// `func_mist_shooting_gallery_8017FC2C`, the perGpGridParamsframe state
 /// `func_mist_shooting_gallery_8017FD40`, then `taskKill`.
 const TaskFuncTable3 D_mist_shooting_gallery_8017D860 = {
     { func_mist_shooting_gallery_8017FC2C, func_mist_shooting_gallery_8017FD40, taskKill },
@@ -1349,10 +1302,10 @@ const TaskFuncTable3 D_mist_shooting_gallery_8017D860 = {
 /// track lists in `.data`.
 INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D86C);
 
-/// The room task: copies the three-state table
+/// The room task: copies the threeGpGridParamsstate table
 /// `D_mist_shooting_gallery_8017D860` onto the stack and runs the entry for the
 /// task's current state - the entry tick `func_mist_shooting_gallery_8017FC2C`,
-/// the per-frame state `func_mist_shooting_gallery_8017FD40`, then `taskKill`.
+/// the perGpGridParamsframe state `func_mist_shooting_gallery_8017FD40`, then `taskKill`.
 void func_mist_shooting_gallery_8018018C(Task* task)
 {
     TaskFuncTable3 sp;
@@ -1363,76 +1316,76 @@ void func_mist_shooting_gallery_8018018C(Task* task)
 
 void func_mist_shooting_gallery_801801E4(s32 arg0)
 {
-    MistShootingGalleryLayout* dst = &D_mist_shooting_gallery_80189968;
-    MistShootingGalleryLayout* src = &D_mist_shooting_gallery_80185198;
-    MistShootingGalleryPos     ofs;
-    s32                        i;
+    GpGridParams* dst = &D_mist_shooting_gallery_80189968;
+    GpGridParams* src = &D_mist_shooting_gallery_80185198;
+    SVECTOR       ofs;
+    s32           i;
 
     for (i = 0; i < 3; i++) {
-        dst->positions[i].x = src->positions[i].x;
-        dst->positions[i].y = src->positions[i].y;
-        dst->positions[i].z = src->positions[i].z;
-        dst->links[i]       = src->links[i];
+        dst->field_4[i].vx = src->field_4[i].vx;
+        dst->field_4[i].vy = src->field_4[i].vy;
+        dst->field_4[i].vz = src->field_4[i].vz;
+        dst->field_C[i]    = src->field_C[i];
     }
     for (i = 0; i < 8; i++) {
-        dst->targets[i].x = src->targets[i].x;
-        dst->targets[i].y = src->targets[i].y;
-        dst->targets[i].z = src->targets[i].z;
+        dst->field_8[i].vx = src->field_8[i].vx;
+        dst->field_8[i].vy = src->field_8[i].vy;
+        dst->field_8[i].vz = src->field_8[i].vz;
     }
     if (arg0 == 0) {
-        ofs.x = 0;
-        ofs.y = 0;
+        ofs.vx = 0;
+        ofs.vy = 0;
     } else {
-        ofs.x = 0;
-        ofs.y = 0xBB8;
+        ofs.vx = 0;
+        ofs.vy = 0xBB8;
     }
-    ofs.z = 0;
+    ofs.vz = 0;
     for (i = 0; i < 8; i++) {
-        dst->targets[i].x += ofs.x;
-        dst->targets[i].y += ofs.y;
-        dst->targets[i].z += ofs.z;
+        dst->field_8[i].vx += ofs.vx;
+        dst->field_8[i].vy += ofs.vy;
+        dst->field_8[i].vz += ofs.vz;
     }
 }
 
 void func_mist_shooting_gallery_80180390(s32 arg0)
 {
-    MistShootingGalleryLayout* dst    = &D_mist_shooting_gallery_80189968;
-    MistShootingGalleryLayout* src    = &D_mist_shooting_gallery_801851F8;
-    MistShootingGalleryLink*   dlinks = &D_mist_shooting_gallery_80189968.links[3];
-    MistShootingGalleryLink*   slinks = D_mist_shooting_gallery_801851F8.links;
-    MistShootingGalleryPos     ofs;
-    s32                        i;
-    s32                        j;
+    GpGridParams* dst    = &D_mist_shooting_gallery_80189968;
+    GpGridParams* src    = &D_mist_shooting_gallery_801851F8;
+    GpGridFace*   dlinks = &D_mist_shooting_gallery_80189968.field_C[3];
+    GpGridFace*   slinks = D_mist_shooting_gallery_801851F8.field_C;
+    SVECTOR       ofs;
+    s32           i;
+    s32           j;
 
     for (i = 0; i < 1; i++) {
-        dst->positions[i + 3].x = src->positions[i].x;
-        dst->positions[i + 3].y = src->positions[i].y;
-        dst->positions[i + 3].z = src->positions[i].z;
+        dst->field_4[i + 3].vx = src->field_4[i].vx;
+        dst->field_4[i + 3].vy = src->field_4[i].vy;
+        dst->field_4[i + 3].vz = src->field_4[i].vz;
         for (j = 0; j < 4; j++) {
-            dlinks->field_00[j] = slinks->field_00[j] + 8;
+            dlinks->verts[j] = slinks->verts[j] + 8;
         }
-        dlinks->field_08 = slinks->field_08 + 3;
-        dlinks->field_0A = slinks->field_0A;
+        dlinks->field_8 = slinks->field_8 + 3;
+        dlinks->field_A = slinks->field_A;
         dlinks++;
         slinks++;
     }
     for (i = 0; i < 4; i++) {
-        dst->targets[i + 8].x = src->targets[i].x;
-        dst->targets[i + 8].y = src->targets[i].y;
-        dst->targets[i + 8].z = src->targets[i].z;
+        dst->field_8[i + 8].vx = src->field_8[i].vx;
+        dst->field_8[i + 8].vy = src->field_8[i].vy;
+        dst->field_8[i + 8].vz = src->field_8[i].vz;
     }
     if (arg0 == 0) {
-        ofs.x = 0;
-        ofs.y = 0;
+        ofs.vx = 0;
+        ofs.vy = 0;
     } else {
-        ofs.x = 0;
-        ofs.y = 0xFA0;
+        ofs.vx = 0;
+        ofs.vy = 0xFA0;
     }
-    ofs.z = 0;
+    ofs.vz = 0;
     for (i = 0; i < 8; i++) {
-        dst->targets[i + 8].x += ofs.x;
-        dst->targets[i + 8].y += ofs.y;
-        dst->targets[i + 8].z += ofs.z;
+        dst->field_8[i + 8].vx += ofs.vx;
+        dst->field_8[i + 8].vy += ofs.vy;
+        dst->field_8[i + 8].vz += ofs.vz;
     }
 }
 
@@ -1970,10 +1923,10 @@ void func_mist_shooting_gallery_801811EC(void)
 
 /// Draws a glowing capsule between the points `arg0[0]` and `arg0[1]`,
 /// projected through `Gfx_ViewWorldMtx`; nothing is drawn unless both project.
-/// Each end is a half-disc of screen radius `arg1 * 64 / otz` and the two are
+/// Each end is a halfGpGridParamsdisc of screen radius `arg1 * 64 / otz` and the two are
 /// joined by a band, built from gouraud quads lit at the centre line and black
 /// at the rim, in two 0x400 steps around the angle between the projected
-/// points. `arg2` is the colour as three 4-bit channels (0xRGB), brightened
+/// points. `arg2` is the colour as three 4GpGridParamsbit channels (0xRGB), brightened
 /// slightly on odd frames.
 void func_mist_shooting_gallery_80181480(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
@@ -2122,7 +2075,7 @@ void func_mist_shooting_gallery_80181480(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// Draws a glowing disc around the point `arg0`, projected through
 /// `Gfx_ViewWorldMtx`, unless the projection flags an error: four gouraud
 /// wedges lit at the projected centre and black at the rim, of screen radius
-/// `arg1 * 64 / otz`. `arg2` is the colour as three 4-bit channels (0xRGB),
+/// `arg1 * 64 / otz`. `arg2` is the colour as three 4GpGridParamsbit channels (0xRGB),
 /// brightened slightly on odd frames.
 void func_mist_shooting_gallery_80181CC4(SVECTOR* arg0, s32 arg1, s32 arg2)
 {

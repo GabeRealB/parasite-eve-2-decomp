@@ -10,6 +10,7 @@
 #include "main/task.h"
 #include "gameplay/1BC.h"
 #include "gameplay/268.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "rooms/mist_parking.h"
 
@@ -37,67 +38,45 @@ extern MistParkingCapState D_mist_parking_80195334;
 extern u8                  D_801156F9;
 extern s32                 D_mist_parking_80190874;
 extern s8                  D_mist_parking_801908C8[];
-/// Position triple in a parking-lot layout table; 8 bytes with a trailing pad.
-typedef struct {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 y;
-    /* 0x4 */ s16 z;
-    /* 0x6 */ s16 pad;
-} MistParkingVec;
-/// 12-byte layout record copied verbatim by `func_mist_parking_80183BAC`.
-typedef struct {
-    /* 0x0 */ s8 b[12];
-} MistParkingBlob;
-/// Table of pointers into the room layout data: the two-entry vector list at
-/// `field_4`, the six-entry list at `field_8` and the two 12-byte records at
-/// `field_C`. `D_mist_parking_8018FCB8` is the template, `D_mist_parking_80192204`
-/// the live copy.
-typedef struct {
-    /* 0x00 */ s32              field_0;
-    /* 0x04 */ MistParkingVec*  field_4;
-    /* 0x08 */ MistParkingVec*  field_8;
-    /* 0x0C */ MistParkingBlob* field_C;
-    /* 0x10 */ void*            field_10;
-} MistParkingLayout;
-extern MistParkingLayout D_mist_parking_8018FCB8;
-extern MistParkingLayout D_mist_parking_80192204;
+extern GpGridParams        D_mist_parking_8018FCB8;
+extern GpGridParams        D_mist_parking_80192204;
 
 void func_mist_parking_80183BAC(s32 arg0)
 {
-    MistParkingLayout* dst;
-    MistParkingLayout* src;
-    MistParkingVec     d;
-    s32                i;
+    GpGridParams* dst;
+    GpGridParams* src;
+    SVECTOR       d;
+    s32           i;
 
     dst = &D_mist_parking_80192204;
     src = &D_mist_parking_8018FCB8;
 
     for (i = 0; i < 2; i++) {
-        dst->field_4[i].x = src->field_4[i].x;
-        dst->field_4[i].y = src->field_4[i].y;
-        dst->field_4[i].z = src->field_4[i].z;
-        dst->field_C[i]   = src->field_C[i];
+        dst->field_4[i].vx = src->field_4[i].vx;
+        dst->field_4[i].vy = src->field_4[i].vy;
+        dst->field_4[i].vz = src->field_4[i].vz;
+        dst->field_C[i]    = src->field_C[i];
     }
 
     for (i = 0; i < 6; i++) {
-        dst->field_8[i].x = src->field_8[i].x;
-        dst->field_8[i].y = src->field_8[i].y;
-        dst->field_8[i].z = src->field_8[i].z;
+        dst->field_8[i].vx = src->field_8[i].vx;
+        dst->field_8[i].vy = src->field_8[i].vy;
+        dst->field_8[i].vz = src->field_8[i].vz;
     }
 
     if (arg0 == 0) {
-        d.x = 0;
-        d.y = 0;
+        d.vx = 0;
+        d.vy = 0;
     } else {
-        d.x = 0;
-        d.y = 0x7D0;
+        d.vx = 0;
+        d.vy = 0x7D0;
     }
-    d.z = 0;
+    d.vz = 0;
 
     for (i = 0; i < 6; i++) {
-        dst->field_8[i].x += d.x;
-        dst->field_8[i].y += d.y;
-        dst->field_8[i].z += d.z;
+        dst->field_8[i].vx += d.vx;
+        dst->field_8[i].vy += d.vy;
+        dst->field_8[i].vz += d.vz;
     }
 }
 

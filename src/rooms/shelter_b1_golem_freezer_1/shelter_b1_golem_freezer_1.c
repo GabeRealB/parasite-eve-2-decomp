@@ -5,6 +5,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
@@ -15,17 +16,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
-
-typedef struct {
-    u8 data[12];
-} Blk12;
-
-typedef struct {
-    s32      field_0;
-    SVECTOR* field_4;
-    SVECTOR* field_8;
-    Blk12*   field_C;
-} GolemXfm;
 
 extern s32 D_80070F70;
 
@@ -38,12 +28,12 @@ extern s32  func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 /// The room's message table, installed on the room task.
 extern GpMsgEntry D_shelter_b1_golem_freezer_1_8017E6A8[];
 
-extern s16      D_shelter_b1_golem_freezer_1_8017E6D0;
-extern s16      D_shelter_b1_golem_freezer_1_8017E6D2;
-extern GolemXfm D_shelter_b1_golem_freezer_1_8017E714;
-extern GolemXfm D_shelter_b1_golem_freezer_1_8017E9C0;
-extern SVECTOR  D_shelter_b1_golem_freezer_1_8017E738[];
-extern SVECTOR  D_shelter_b1_golem_freezer_1_8017E740[];
+extern s16          D_shelter_b1_golem_freezer_1_8017E6D0;
+extern s16          D_shelter_b1_golem_freezer_1_8017E6D2;
+extern GpGridParams D_shelter_b1_golem_freezer_1_8017E714;
+extern GpGridParams D_shelter_b1_golem_freezer_1_8017E9C0;
+extern SVECTOR      D_shelter_b1_golem_freezer_1_8017E738[];
+extern SVECTOR      D_shelter_b1_golem_freezer_1_8017E740[];
 
 void func_shelter_b1_golem_freezer_1_8017D744(s32 arg0);
 void func_shelter_b1_golem_freezer_1_8017D7CC(GsCOORDINATE2* arg0, s16* arg1);
@@ -142,13 +132,13 @@ void func_shelter_b1_golem_freezer_1_8017D744(s32 arg0)
 
 void func_shelter_b1_golem_freezer_1_8017D7CC(GsCOORDINATE2* coord, s16* arg1)
 {
-    MATRIX    m;
-    long      flag;
-    s32       i;
-    SVECTOR*  d;
-    SVECTOR*  s;
-    GolemXfm* dst = &D_shelter_b1_golem_freezer_1_8017E9C0;
-    GolemXfm* src = &D_shelter_b1_golem_freezer_1_8017E714;
+    MATRIX        m;
+    long          flag;
+    s32           i;
+    SVECTOR*      d;
+    SVECTOR*      s;
+    GpGridParams* dst = &D_shelter_b1_golem_freezer_1_8017E9C0;
+    GpGridParams* src = &D_shelter_b1_golem_freezer_1_8017E714;
 
     i = 0;
     do {

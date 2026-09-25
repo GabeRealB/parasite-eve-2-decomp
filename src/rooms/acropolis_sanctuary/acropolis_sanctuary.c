@@ -94,47 +94,6 @@ typedef struct AcsTile {
 } AcsTile;
 STATIC_ASSERT_SIZEOF(AcsTile, 0xE);
 
-/// One quad of the sanctuary's blocker cage, from the four-entry table at
-/// `D_acropolis_sanctuary_801822AC` (the template) and its live copy hanging
-/// off `AcsBlockerSet::edges`. The quad is given as two index pairs into
-/// `AcsBlockerSet::corners` -- `bottom0` / `bottom1` are the low corners of the
-/// two posts it spans and `top0` / `top1` the high ones -- plus the index of
-/// its facing direction in `AcsBlockerSet::normals`.
-/// `func_acropolis_sanctuary_8017DD78` sets `field_A` to 1 on every quad it
-/// copies, which is what arms the cage.
-typedef struct AcsBlockerEdge {
-    /* 0x0 */ s16 bottom0;
-    /* 0x2 */ s16 bottom1;
-    /* 0x4 */ s16 top0;
-    /* 0x6 */ s16 top1;
-    /* 0x8 */ s16 normal;
-    /* 0xA */ s16 field_A;
-} AcsBlockerEdge;
-STATIC_ASSERT_SIZEOF(AcsBlockerEdge, 0xC);
-
-/// The sanctuary's blocker cage: four unit-length facing directions, eight
-/// corner points (four posts, low corner then high corner) and the four quads
-/// that join them. The overlay holds two of these -- the template at
-/// `D_acropolis_sanctuary_801822EC` and the live set at
-/// `D_acropolis_sanctuary_80183568`, whose arrays are longer because the live
-/// set is also used for the room's other geometry.
-/// `func_acropolis_sanctuary_8017DD78` copies the template's first four
-/// normals, eight corners and four quads into the live set.
-typedef struct AcsBlockerSet {
-    /* 0x00 */ s32             field_0;
-    /* 0x04 */ SVECTOR*        normals;
-    /* 0x08 */ SVECTOR*        corners;
-    /* 0x0C */ AcsBlockerEdge* edges;
-    /* 0x10 */ s16**           field_10;
-    /* 0x14 */ s32             field_14;
-    /* 0x18 */ s32             field_18;
-    /* 0x1C */ s16             field_1C;
-    /* 0x1E */ s16             field_1E;
-    /* 0x20 */ s16             field_20;
-    /* 0x22 */ s16             field_22;
-} AcsBlockerSet;
-STATIC_ASSERT_SIZEOF(AcsBlockerSet, 0x24);
-
 /// The offset `func_acropolis_sanctuary_8017DD78` adds to every corner of the
 /// blocker cage once it has been copied. Both variants are positive, and the
 /// components are read back unsigned because only the low 16 bits of the sum
@@ -206,7 +165,7 @@ extern s32            D_acropolis_sanctuary_80180B0C;
 extern s32            D_acropolis_sanctuary_80181664;
 extern u8             D_acropolis_sanctuary_80181814[];
 extern TaskDesc       D_acropolis_sanctuary_80182240;
-extern AcsBlockerSet  D_acropolis_sanctuary_801822EC;
+extern GpGridParams   D_acropolis_sanctuary_801822EC;
 extern GpMsgEntry     D_acropolis_sanctuary_80182310[];
 extern AcsTile        D_acropolis_sanctuary_80182320[];
 extern AcsQuad        D_acropolis_sanctuary_80182710[];
@@ -214,7 +173,7 @@ extern s16            D_acropolis_sanctuary_80182750[];
 extern s32            D_acropolis_sanctuary_80182770;
 extern SVECTOR        D_acropolis_sanctuary_80182774[];
 extern u16            D_acropolis_sanctuary_801827D4[];
-extern AcsBlockerSet  D_acropolis_sanctuary_80183568;
+extern GpGridParams   D_acropolis_sanctuary_80183568;
 extern GpObj4A        D_acropolis_sanctuary_80183CAC[];
 extern GpAreaApplyRec D_acropolis_sanctuary_80186418[];
 extern Task*          D_acropolis_sanctuary_80186C90;
@@ -547,23 +506,23 @@ void func_acropolis_sanctuary_8017DCE0(s32 arg0)
 /// doorway, afterwards it is pushed 3000 units aside and out of the way.
 void func_acropolis_sanctuary_8017DD78(void)
 {
-    AcsBlockerSet*  dst = &D_acropolis_sanctuary_80183568;
-    AcsBlockerSet*  src = &D_acropolis_sanctuary_801822EC;
+    GpGridParams*   dst = &D_acropolis_sanctuary_80183568;
+    GpGridParams*   src = &D_acropolis_sanctuary_801822EC;
     AcsBlockerShift shift;
     s32             i;
 
     for (i = 0; i < 4; i++) {
-        dst->normals[i].vx           = src->normals[i].vx;
-        dst->normals[i].vy           = src->normals[i].vy;
-        dst->normals[i].vz           = src->normals[i].vz;
-        dst->corners[i * 2].vx       = src->corners[i * 2].vx;
-        dst->corners[i * 2].vy       = src->corners[i * 2].vy;
-        dst->corners[i * 2].vz       = src->corners[i * 2].vz;
-        dst->corners[(i * 2) + 1].vx = src->corners[(i * 2) + 1].vx;
-        dst->corners[(i * 2) + 1].vy = src->corners[(i * 2) + 1].vy;
-        dst->corners[(i * 2) + 1].vz = src->corners[(i * 2) + 1].vz;
-        dst->edges[i]                = src->edges[i];
-        dst->edges[i].field_A        = 1;
+        dst->field_4[i].vx           = src->field_4[i].vx;
+        dst->field_4[i].vy           = src->field_4[i].vy;
+        dst->field_4[i].vz           = src->field_4[i].vz;
+        dst->field_8[i * 2].vx       = src->field_8[i * 2].vx;
+        dst->field_8[i * 2].vy       = src->field_8[i * 2].vy;
+        dst->field_8[i * 2].vz       = src->field_8[i * 2].vz;
+        dst->field_8[(i * 2) + 1].vx = src->field_8[(i * 2) + 1].vx;
+        dst->field_8[(i * 2) + 1].vy = src->field_8[(i * 2) + 1].vy;
+        dst->field_8[(i * 2) + 1].vz = src->field_8[(i * 2) + 1].vz;
+        dst->field_C[i]              = src->field_C[i];
+        dst->field_C[i].field_A      = 1;
     }
 
     if (GameFlag_GetNibble(6) == 0) {
@@ -577,9 +536,9 @@ void func_acropolis_sanctuary_8017DD78(void)
     }
 
     for (i = 0; i < 8; i++) {
-        dst->corners[i].vx += shift.vx;
-        dst->corners[i].vy += shift.vy;
-        dst->corners[i].vz += shift.vz;
+        dst->field_8[i].vx += shift.vx;
+        dst->field_8[i].vy += shift.vy;
+        dst->field_8[i].vz += shift.vz;
     }
 }
 

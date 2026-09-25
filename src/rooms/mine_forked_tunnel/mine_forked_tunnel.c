@@ -114,33 +114,8 @@ typedef struct MineForkedTunnelSprtRec {
 } MineForkedTunnelSprtRec;
 STATIC_ASSERT_SIZEOF(MineForkedTunnelSprtRec, 0x38);
 
-/// Coordinate triple in the room's layout lists, 8 bytes apart; the fourth
-/// halfword is never read.
-typedef struct MineForkedTunnelVec {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 y;
-    /* 0x4 */ s16 z;
-    /* 0x6 */ s16 pad;
-} MineForkedTunnelVec;
-
-/// 12-byte record copied whole, byte-aligned, alongside each `field_4` entry.
-typedef struct MineForkedTunnelBlob {
-    /* 0x0 */ s8 b[12];
-} MineForkedTunnelBlob;
-
-/// Pointers to the room's layout lists. `D_mine_forked_tunnel_80181C5C` is the
-/// template and `D_mine_forked_tunnel_80183D70` the working copy that
-/// `func_mine_forked_tunnel_8017DF34` refills from it: three `field_4` entries
-/// with their `field_C` records, and eight `field_8` entries which it then
-/// shifts. `field_0` is not read there.
-typedef struct MineForkedTunnelLayout {
-    /* 0x0 */ s32                   field_0;
-    /* 0x4 */ MineForkedTunnelVec*  field_4;
-    /* 0x8 */ MineForkedTunnelVec*  field_8;
-    /* 0xC */ MineForkedTunnelBlob* field_C;
-} MineForkedTunnelLayout;
-extern MineForkedTunnelLayout D_mine_forked_tunnel_80181C5C;
-extern MineForkedTunnelLayout D_mine_forked_tunnel_80183D70;
+extern GpGridParams D_mine_forked_tunnel_80181C5C;
+extern GpGridParams D_mine_forked_tunnel_80183D70;
 
 /// The tunnel's per-view effect anchors, projected by
 /// `func_mine_forked_tunnel_8017E78C` with `func_mine_forked_tunnel_8017E504`
@@ -520,41 +495,41 @@ void func_mine_forked_tunnel_8017DE54(Task* task)
 /// is non-zero. The callers pass game-flag nibble 0x75.
 void func_mine_forked_tunnel_8017DF34(s32 arg0)
 {
-    MineForkedTunnelLayout* dst;
-    MineForkedTunnelLayout* src;
-    MineForkedTunnelVec     d;
-    s32                     i;
+    GpGridParams* dst;
+    GpGridParams* src;
+    SVECTOR       d;
+    s32           i;
 
     dst = &D_mine_forked_tunnel_80183D70;
     src = &D_mine_forked_tunnel_80181C5C;
 
     for (i = 0; i < 3; i++) {
-        dst->field_4[i].x = src->field_4[i].x;
-        dst->field_4[i].y = src->field_4[i].y;
-        dst->field_4[i].z = src->field_4[i].z;
-        dst->field_C[i]   = src->field_C[i];
+        dst->field_4[i].vx = src->field_4[i].vx;
+        dst->field_4[i].vy = src->field_4[i].vy;
+        dst->field_4[i].vz = src->field_4[i].vz;
+        dst->field_C[i]    = src->field_C[i];
     }
 
     for (i = 0; i < 8; i++) {
-        dst->field_8[i].x = src->field_8[i].x;
-        dst->field_8[i].y = src->field_8[i].y;
-        dst->field_8[i].z = src->field_8[i].z;
+        dst->field_8[i].vx = src->field_8[i].vx;
+        dst->field_8[i].vy = src->field_8[i].vy;
+        dst->field_8[i].vz = src->field_8[i].vz;
     }
 
     if (arg0 == 0) {
-        d.x = 0;
-        d.y = 0;
-        d.z = -0xC8;
+        d.vx = 0;
+        d.vy = 0;
+        d.vz = -0xC8;
     } else {
-        d.y = -0xBB8;
-        d.x = 0;
-        d.z = -0xC8;
+        d.vy = -0xBB8;
+        d.vx = 0;
+        d.vz = -0xC8;
     }
 
     for (i = 0; i < 8; i++) {
-        dst->field_8[i].x += d.x;
-        dst->field_8[i].y += d.y;
-        dst->field_8[i].z += d.z;
+        dst->field_8[i].vx += d.vx;
+        dst->field_8[i].vy += d.vy;
+        dst->field_8[i].vz += d.vz;
     }
 }
 

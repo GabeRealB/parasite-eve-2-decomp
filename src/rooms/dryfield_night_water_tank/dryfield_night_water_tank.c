@@ -17,34 +17,8 @@
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 
-/// Coordinate triple in the room's layout lists, 8 bytes apart; the fourth
-/// halfword is never read.
-typedef struct {
-    s16 x;
-    s16 y;
-    s16 z;
-    s16 pad;
-} _DryfieldNightWaterTankVec;
-
-/// 12-byte record copied whole, byte-aligned, alongside each `field_4` entry.
-typedef struct {
-    s8 b[12];
-} _DryfieldNightWaterTankBlob;
-
-/// Pointers to the room's layout lists. `D_dryfield_night_water_tank_8017E08C`
-/// is the template and `D_dryfield_night_water_tank_8017F4B0` the working copy
-/// that `func_dryfield_night_water_tank_8017D9DC` refills from it: two
-/// `field_4` entries with their `field_C` records, and six `field_8` entries
-/// which it then shifts. `field_0` is not read there, and nothing pins where
-/// the table ends.
-typedef struct {
-    s32                          field_0;
-    _DryfieldNightWaterTankVec*  field_4;
-    _DryfieldNightWaterTankVec*  field_8;
-    _DryfieldNightWaterTankBlob* field_C;
-} _DryfieldNightWaterTankLayout;
-extern _DryfieldNightWaterTankLayout D_dryfield_night_water_tank_8017E08C;
-extern _DryfieldNightWaterTankLayout D_dryfield_night_water_tank_8017F4B0;
+extern GpGridParams D_dryfield_night_water_tank_8017E08C;
+extern GpGridParams D_dryfield_night_water_tank_8017F4B0;
 
 /// 0xFF-terminated `GpAreaApplyRec` list the room applies when the scripted end
 /// of the visit fires.
@@ -240,41 +214,41 @@ void func_dryfield_night_water_tank_8017D984(Task* task)
 /// `field_8` coordinates by (0, 0, -0xC8) when `arg0` is non-zero.
 void func_dryfield_night_water_tank_8017D9DC(s32 arg0)
 {
-    _DryfieldNightWaterTankLayout* dst;
-    _DryfieldNightWaterTankLayout* src;
-    _DryfieldNightWaterTankVec     d;
-    s32                            i;
+    GpGridParams* dst;
+    GpGridParams* src;
+    SVECTOR       d;
+    s32           i;
 
     dst = &D_dryfield_night_water_tank_8017F4B0;
     src = &D_dryfield_night_water_tank_8017E08C;
 
     for (i = 0; i < 2; i++) {
-        dst->field_4[i].x = src->field_4[i].x;
-        dst->field_4[i].y = src->field_4[i].y;
-        dst->field_4[i].z = src->field_4[i].z;
-        dst->field_C[i]   = src->field_C[i];
+        dst->field_4[i].vx = src->field_4[i].vx;
+        dst->field_4[i].vy = src->field_4[i].vy;
+        dst->field_4[i].vz = src->field_4[i].vz;
+        dst->field_C[i]    = src->field_C[i];
     }
 
     for (i = 0; i < 6; i++) {
-        dst->field_8[i].x = src->field_8[i].x;
-        dst->field_8[i].y = src->field_8[i].y;
-        dst->field_8[i].z = src->field_8[i].z;
+        dst->field_8[i].vx = src->field_8[i].vx;
+        dst->field_8[i].vy = src->field_8[i].vy;
+        dst->field_8[i].vz = src->field_8[i].vz;
     }
 
     if (arg0 == 0) {
-        d.x = 0;
-        d.y = 0;
-        d.z = 0;
+        d.vx = 0;
+        d.vy = 0;
+        d.vz = 0;
     } else {
-        d.x = 0;
-        d.y = 0;
-        d.z = -0xC8;
+        d.vx = 0;
+        d.vy = 0;
+        d.vz = -0xC8;
     }
 
     for (i = 0; i < 6; i++) {
-        dst->field_8[i].x += d.x;
-        dst->field_8[i].y += d.y;
-        dst->field_8[i].z += d.z;
+        dst->field_8[i].vx += d.vx;
+        dst->field_8[i].vy += d.vy;
+        dst->field_8[i].vz += d.vz;
     }
 }
 

@@ -9,6 +9,7 @@
 
 #include "gameplay/1A8.h"
 #include "gameplay/3688.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
@@ -71,21 +72,6 @@ typedef union _NeoArkObservatorySaveLoc {
     s32       head;
 } _NeoArkObservatorySaveLoc;
 
-/// Twelve opaque bytes the mesh copy carries across unchanged.
-typedef struct _NeoArkObservatoryBlk12 {
-    u8 data[12];
-} _NeoArkObservatoryBlk12;
-
-/// A small mesh as a pointer table: `field_4` is rotated without translation,
-/// `field_8` rotated and translated, and `field_C` copied through. The room
-/// keeps a pristine source and a working copy that is rebuilt from it.
-typedef struct _NeoArkObservatoryMesh {
-    s32                      field_0;
-    SVECTOR*                 field_4;
-    SVECTOR*                 field_8;
-    _NeoArkObservatoryBlk12* field_C;
-} _NeoArkObservatoryMesh;
-
 /// A destination resolver: reads the area from its first record and writes the
 /// room through the second.
 typedef s32 (*_MapMarkerResolve)(MapMarkerRec*, MapMarkerOut*);
@@ -128,18 +114,18 @@ extern GpMsgEntry D_neo_ark_observatory_801811B8[];
 /// `vy` is ever set.
 extern SVECTOR D_neo_ark_observatory_80181368;
 
-extern _NeoArkObservatoryMesh D_neo_ark_observatory_80181410;
-extern _NeoArkObservatoryMesh D_neo_ark_observatory_80181FA4;
-extern SVECTOR                D_neo_ark_observatory_80181434[];
-extern SVECTOR                D_neo_ark_observatory_801814E4[];
-extern SVECTOR                D_neo_ark_observatory_801814F4[];
-extern SVECTOR                D_neo_ark_observatory_801814FC[];
-extern SVECTOR                D_neo_ark_observatory_8018150C[];
-extern SVECTOR                D_neo_ark_observatory_8018151C[];
-extern SVECTOR                D_neo_ark_observatory_80181524[];
-extern SVECTOR                D_neo_ark_observatory_80181564[];
-extern SVECTOR                D_neo_ark_observatory_80181574[];
-extern SVECTOR                D_neo_ark_observatory_8018157C[];
+extern GpGridParams D_neo_ark_observatory_80181410;
+extern GpGridParams D_neo_ark_observatory_80181FA4;
+extern SVECTOR      D_neo_ark_observatory_80181434[];
+extern SVECTOR      D_neo_ark_observatory_801814E4[];
+extern SVECTOR      D_neo_ark_observatory_801814F4[];
+extern SVECTOR      D_neo_ark_observatory_801814FC[];
+extern SVECTOR      D_neo_ark_observatory_8018150C[];
+extern SVECTOR      D_neo_ark_observatory_8018151C[];
+extern SVECTOR      D_neo_ark_observatory_80181524[];
+extern SVECTOR      D_neo_ark_observatory_80181564[];
+extern SVECTOR      D_neo_ark_observatory_80181574[];
+extern SVECTOR      D_neo_ark_observatory_8018157C[];
 
 extern GpAreaApplyRec D_neo_ark_observatory_80187A28;
 extern RoomDeparture  D_neo_ark_observatory_80187A30;
@@ -1227,13 +1213,13 @@ void func_neo_ark_observatory_8017FDDC(Task* task)
 /// when `offset` is non-NULL, shifted by it afterwards.
 void func_neo_ark_observatory_8017FE34(GsCOORDINATE2* coord, SVECTOR* offset)
 {
-    MATRIX                  m;
-    long                    flag;
-    s32                     i;
-    SVECTOR*                d;
-    SVECTOR*                s;
-    _NeoArkObservatoryMesh* dst = &D_neo_ark_observatory_80181FA4;
-    _NeoArkObservatoryMesh* src = &D_neo_ark_observatory_80181410;
+    MATRIX        m;
+    long          flag;
+    s32           i;
+    SVECTOR*      d;
+    SVECTOR*      s;
+    GpGridParams* dst = &D_neo_ark_observatory_80181FA4;
+    GpGridParams* src = &D_neo_ark_observatory_80181410;
 
     for (i = 0; i < 4; i++) {
         dst->field_4[i].vx = src->field_4[i].vx;

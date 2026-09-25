@@ -31,21 +31,6 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-/// Twelve opaque bytes the mesh copy carries across unchanged.
-typedef struct _Shelter1fHeliportBlk12 {
-    u8 data[12];
-} _Shelter1fHeliportBlk12;
-
-/// A small mesh as a pointer table: `field_4` is rotated without translation,
-/// `field_8` rotated and translated, and `field_C` copied through. The room
-/// keeps a pristine source and a working copy that is rebuilt from it.
-typedef struct _Shelter1fHeliportMesh {
-    s32                      field_0;
-    SVECTOR*                 field_4;
-    SVECTOR*                 field_8;
-    _Shelter1fHeliportBlk12* field_C;
-} _Shelter1fHeliportMesh;
-
 extern void func_80131FBC(void);
 extern void func_80132038(void);
 extern void func_80132110(void);
@@ -186,8 +171,8 @@ extern u8 D_shelter_1f_heliport_801811D4[][4];
 extern SVECTOR D_shelter_1f_heliport_80181204;
 
 /// The mesh's pristine source and the working copy rebuilt from it.
-extern _Shelter1fHeliportMesh D_shelter_1f_heliport_801812AC;
-extern _Shelter1fHeliportMesh D_shelter_1f_heliport_80181974;
+extern GpGridParams D_shelter_1f_heliport_801812AC;
+extern GpGridParams D_shelter_1f_heliport_80181974;
 
 /// Work pair of the charge panel `func_shelter_1f_heliport_8017F2D4`: the
 /// animated quantity in 24.8 fixed point, and the item map of the slot being
@@ -1725,13 +1710,13 @@ void func_shelter_1f_heliport_801807C0(void)
 /// when `offset` is non-NULL, shifted by it afterwards.
 void func_shelter_1f_heliport_8018085C(GsCOORDINATE2* coord, SVECTOR* offset)
 {
-    MATRIX                  m;
-    long                    flag;
-    s32                     i;
-    SVECTOR*                d;
-    SVECTOR*                s;
-    _Shelter1fHeliportMesh* dst = &D_shelter_1f_heliport_80181974;
-    _Shelter1fHeliportMesh* src = &D_shelter_1f_heliport_801812AC;
+    MATRIX        m;
+    long          flag;
+    s32           i;
+    SVECTOR*      d;
+    SVECTOR*      s;
+    GpGridParams* dst = &D_shelter_1f_heliport_80181974;
+    GpGridParams* src = &D_shelter_1f_heliport_801812AC;
 
     for (i = 0; i < 4; i++) {
         dst->field_4[i].vx = src->field_4[i].vx;

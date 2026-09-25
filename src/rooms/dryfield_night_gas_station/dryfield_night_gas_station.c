@@ -108,8 +108,8 @@ extern s32      D_dryfield_night_gas_station_801841FC;
 
 /// The layout template and the live copy that
 /// `func_dryfield_night_gas_station_8017FBD4` restores from it.
-extern DryfieldNightGasStationLayout D_dryfield_night_gas_station_80184374;
-extern DryfieldNightGasStationLayout D_dryfield_night_gas_station_8018ABBC;
+extern GpGridParams D_dryfield_night_gas_station_80184374;
+extern GpGridParams D_dryfield_night_gas_station_8018ABBC;
 
 extern SVECTOR D_dryfield_night_gas_station_80188580[];
 extern s32     D_dryfield_night_gas_station_80188B0C;
@@ -1395,40 +1395,40 @@ void func_dryfield_night_gas_station_8017FB70(Task* arg0)
 /// raised by 0xBB8 on y when `arg0` is nonzero.
 void func_dryfield_night_gas_station_8017FBD4(s32 arg0)
 {
-    DryfieldNightGasStationLayout* dst;
-    DryfieldNightGasStationLayout* src;
-    DryfieldNightGasStationVec     d;
-    s32                            i;
+    GpGridParams* dst;
+    GpGridParams* src;
+    SVECTOR       d;
+    s32           i;
 
     dst = &D_dryfield_night_gas_station_8018ABBC;
     src = &D_dryfield_night_gas_station_80184374;
 
     for (i = 0; i < 4; i++) {
-        dst->field_4[i].x = src->field_4[i].x;
-        dst->field_4[i].y = src->field_4[i].y;
-        dst->field_4[i].z = src->field_4[i].z;
-        dst->field_C[i]   = src->field_C[i];
+        dst->field_4[i].vx = src->field_4[i].vx;
+        dst->field_4[i].vy = src->field_4[i].vy;
+        dst->field_4[i].vz = src->field_4[i].vz;
+        dst->field_C[i]    = src->field_C[i];
     }
 
     for (i = 0; i < 8; i++) {
-        dst->field_8[i].x = src->field_8[i].x;
-        dst->field_8[i].y = src->field_8[i].y;
-        dst->field_8[i].z = src->field_8[i].z;
+        dst->field_8[i].vx = src->field_8[i].vx;
+        dst->field_8[i].vy = src->field_8[i].vy;
+        dst->field_8[i].vz = src->field_8[i].vz;
     }
 
     if (arg0 == 0) {
-        d.x = 0;
-        d.y = 0;
+        d.vx = 0;
+        d.vy = 0;
     } else {
-        d.x = 0;
-        d.y = 0xBB8;
+        d.vx = 0;
+        d.vy = 0xBB8;
     }
-    d.z = 0;
+    d.vz = 0;
 
     for (i = 0; i < 8; i++) {
-        dst->field_8[i].x += d.x;
-        dst->field_8[i].y += d.y;
-        dst->field_8[i].z += d.z;
+        dst->field_8[i].vx += d.vx;
+        dst->field_8[i].vy += d.vy;
+        dst->field_8[i].vz += d.vz;
     }
 }
 

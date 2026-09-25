@@ -33,17 +33,6 @@
 #include "rooms/rooms_shared_80181228.h"
 #include "rooms/shelter_b1_sterilization_room.h"
 
-typedef struct {
-    u8 data[12];
-} Blk12;
-
-typedef struct {
-    s32      field_0;
-    SVECTOR* field_4;
-    SVECTOR* field_8;
-    Blk12*   field_C;
-} SterXfm;
-
 /// A 0x18-byte message argument block passed to `Gp_DispatchMsg`; only its
 /// stride is known.
 typedef struct {
@@ -106,7 +95,7 @@ extern TaskDesc                        D_shelter_b1_sterilization_room_80184E70;
 extern s32                             D_shelter_b1_sterilization_room_80184E7C;
 extern s16                             D_shelter_b1_sterilization_room_80184E80;
 extern s16                             D_shelter_b1_sterilization_room_80184E82;
-extern SterXfm                         D_shelter_b1_sterilization_room_80184F28;
+extern GpGridParams                    D_shelter_b1_sterilization_room_80184F28;
 extern s32                             D_shelter_b1_sterilization_room_80188590;
 extern s32                             D_shelter_b1_sterilization_room_80188624;
 extern _ShelterB1SterilizationRoomMsg  D_shelter_b1_sterilization_room_80188668[];
@@ -121,7 +110,7 @@ extern GpAreaApplyRec D_shelter_b1_sterilization_room_80188888;
 extern s32            D_shelter_b1_sterilization_room_80188AB4;
 extern s32            D_shelter_b1_sterilization_room_80188ED4;
 extern s32            D_shelter_b1_sterilization_room_80188FDC;
-extern SterXfm        D_shelter_b1_sterilization_room_80189E44;
+extern GpGridParams   D_shelter_b1_sterilization_room_80189E44;
 extern GpObj4A        D_shelter_b1_sterilization_room_8018BF30[];
 extern GpAreaApplyRec D_shelter_b1_sterilization_room_8018C334;
 
@@ -1628,13 +1617,13 @@ void func_shelter_b1_sterilization_room_80180518(Task* task)
 
 void func_shelter_b1_sterilization_room_80180570(GsCOORDINATE2* coord, s16* arg1)
 {
-    MATRIX   m;
-    long     flag;
-    s32      i;
-    SVECTOR* d;
-    SVECTOR* s;
-    SterXfm* dst = &D_shelter_b1_sterilization_room_80189E44;
-    SterXfm* src = &D_shelter_b1_sterilization_room_80184F28;
+    MATRIX        m;
+    long          flag;
+    s32           i;
+    SVECTOR*      d;
+    SVECTOR*      s;
+    GpGridParams* dst = &D_shelter_b1_sterilization_room_80189E44;
+    GpGridParams* src = &D_shelter_b1_sterilization_room_80184F28;
 
     i = 0;
     do {
