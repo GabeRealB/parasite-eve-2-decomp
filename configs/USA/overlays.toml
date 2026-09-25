@@ -3799,15 +3799,12 @@ objects = [
 ]
 
 [actors.overlays.actor_120500]
+label = "One code object: its jump tables at 0x4 and 0x1C are both 8-aligned from its rodata start at 0x4"
 slot = 1
 id = 94
 objects = [
   { kind = "packageId" },
   { unit = "actor_120500/actor_120500", rodata = "0x4", text = "0x38" },
-  { unit = "actor_120500/actor_120500_3", text = "0x8E8" },
-  { unit = "actor_120500/actor_120500_4", text = "0x9C4" },
-  { unit = "actor_120500/actor_120500_2", text = "0xAA0" },
-  { unit = "actor_120500/actor_120500_5", text = "0xC54" },
   { kind = "model", at = "0xCEC" },
   { kind = "data", at = "0x5830" },
 ]
