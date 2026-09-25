@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-#include "actors/actor_461800_move.h"
+#include "actors/actor.h"
 #include "actors/actors_shared_8013411c.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -266,13 +266,13 @@ void func_actor_143900_80131FD4(Task* task)
             if (work->field_4EA != 0) {
                 switch (D_actor_143900_801496C0) {
                     case 0:
-                        Actor461800_MoveForward(task, 0x3C);
+                        actorMoveModelForward(task, 0x3C);
                         break;
                     case 1:
-                        Actor461800_MoveForward(task, -0xF);
+                        actorMoveModelForward(task, -0xF);
                         break;
                     case 2:
-                        Actor461800_MoveForward(task, 0x19);
+                        actorMoveModelForward(task, 0x19);
                         break;
                 }
                 if (--work->field_4EA == 0) {
@@ -590,13 +590,13 @@ void func_actor_143900_80132A9C(Task* task)
             if (work->field_4EA != 0) {
                 switch (D_actor_143900_801496CC) {
                     case 0:
-                        Actor461800_MoveForward(task, 0x3C);
+                        actorMoveModelForward(task, 0x3C);
                         break;
                     case 1:
-                        Actor461800_MoveForward(task, -0xF);
+                        actorMoveModelForward(task, -0xF);
                         break;
                     case 2:
-                        Actor461800_MoveForward(task, 0x19);
+                        actorMoveModelForward(task, 0x19);
                         break;
                 }
                 if (--work->field_4EA == 0) {

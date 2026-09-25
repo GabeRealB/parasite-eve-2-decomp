@@ -183,40 +183,6 @@ void Actor04000_Fn06BC8(GpEnemy* arg0, Task* arg1);
 void Actor04000_Fn06C80(GpEnemy* arg0, Task* arg1);
 void Actor04000_Fn06D38(GpEnemy* arg0, Task* arg1);
 
-/// Bearing of `p` from `eye` in the XZ plane, staged in a scratch block of its
-/// own that is released before `ratan2` runs.
-static __inline__ s16 Actor204000_BearingXZ(SVECTOR3* p, SVECTOR3* eye)
-{
-    u8*              head;
-    ActorAvoidDelta* d;
-
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    d                     = (ActorAvoidDelta*)(head - 0x10);
-    d->vx                 = p->vx - eye->vx;
-    *(u8**)G_SCRATCH_HEAD = (u8*)d;
-    d->vy                 = p->vy - eye->vy;
-    d->vz                 = p->vz - eye->vz;
-    *(u8**)G_SCRATCH_HEAD = head;
-    return ratan2(d->vx, d->vz);
-}
-
-/// Bearing of `p` from `eye` in the XY plane; used when the facing column is
-/// close to vertical.
-static __inline__ s16 Actor204000_BearingXY(SVECTOR3* p, SVECTOR3* eye)
-{
-    u8*              head;
-    ActorAvoidDelta* d;
-
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    d                     = (ActorAvoidDelta*)(head - 0x10);
-    d->vx                 = p->vx - eye->vx;
-    *(u8**)G_SCRATCH_HEAD = (u8*)d;
-    d->vy                 = p->vy - eye->vy;
-    d->vz                 = p->vz - eye->vz;
-    *(u8**)G_SCRATCH_HEAD = head;
-    return ratan2(d->vx, d->vy);
-}
-
 /// Pushes `coord` away from the obstacles in `recs`. Records of kind 0x10000
 /// (which also raises the returned `blocked` flag) or 0x30000 each give a
 /// bearing, at most eight; bearings more than 0x400 apart cancel each other.
@@ -270,9 +236,9 @@ s32 Actor04000_Fn0024C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
         }
 
         if (ABS(s->dir.vz) < 0x818) {
-            s->angle[s->count] = Actor204000_BearingXZ((SVECTOR3*)&recs[s->i].point, &s->eye);
+            s->angle[s->count] = actorBearingXZ((SVECTOR3*)&recs[s->i].point, &s->eye);
         } else {
-            s->angle[s->count] = Actor204000_BearingXY((SVECTOR3*)&recs[s->i].point, &s->eye);
+            s->angle[s->count] = actorBearingXY((SVECTOR3*)&recs[s->i].point, &s->eye);
         }
         s->ok[s->count] = 1;
         s->count++;

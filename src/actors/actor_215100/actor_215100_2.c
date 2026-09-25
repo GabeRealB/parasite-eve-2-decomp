@@ -3,6 +3,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "actors/actor_215100.h"
 #include "actors/actors_shared_80132614.h"
 #include "actors/actors_shared_801326ac.h"
@@ -157,32 +158,6 @@ extern u8 D_80072729;
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-
-/// Steps `coord` `amount` units along its local Z axis, unless movement is
-/// frozen. The direction is staged on the scratchpad stack.
-static __inline__ void Actor215100_MoveForward(GsCOORDINATE2* coord, s16 amount)
-{
-    SVECTOR* head;
-    SVECTOR* vec;
-
-    if (D_80072729 == 1) {
-        return;
-    }
-    head                       = *(SVECTOR**)G_SCRATCH_HEAD;
-    vec                        = head - 1;
-    *(SVECTOR**)G_SCRATCH_HEAD = vec;
-    Gfx_MatrixCol2(&coord->coord, vec);
-    VectorNormalSS(vec, vec);
-    gte_lddp(amount);
-    gte_ldsv(vec);
-    gte_gpf12();
-    gte_stsv(vec);
-    coord->coord.t[0]          += head[-1].vx;
-    coord->coord.t[1]          += vec->vy;
-    coord->coord.t[2]          += vec->vz;
-    coord->flg                  = 0;
-    *(SVECTOR**)G_SCRATCH_HEAD += 1;
-}
 
 /// Arms the weapon pickup at this actor's spot while the event flag
 /// `D_actor_215100_8014D038` is up and the story step has reached 3. A session
@@ -1480,7 +1455,7 @@ void func_actor_215100_8014C874(Task* task)
         } while (0);
         animId = work->animId;
         if (animId == 4 && work->travel != 0) {
-            Actor215100_MoveForward(((TmdObject*)task->extra)->coords, 0xC);
+            actorMoveForward(((TmdObject*)task->extra)->coords, 0xC);
             work->travel = (u16)work->travel - 1;
             if (work->travel == 0) {
                 work->animArg = 0xA;

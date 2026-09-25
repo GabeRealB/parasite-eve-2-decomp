@@ -6,6 +6,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "actors/actors_shared_8013411c.h"
 #include "gameplay/1BC.h"
 #include "gameplay/268.h"
@@ -122,34 +123,6 @@ void func_actor_260400_8014A66C(Task* task);
 void func_actor_260400_8014A7AC(void);
 void func_actor_260400_8014A7F8(void);
 void func_actor_260400_8014A888(void);
-
-/// Steps the task's model `amount` units along its facing (the coordinate
-/// matrix's z column, normalised and scaled on the GTE), using a scratch-pad
-/// vector; skipped while `D_80072729` is 1.
-static __inline__ void Actor260400_MoveForward(Task* task, s16 amount)
-{
-    GsCOORDINATE2* coord;
-    SVECTOR*       head;
-    SVECTOR*       vec;
-
-    coord = ((TmdObject*)task->extra)->coords;
-    if (D_80072729 != 1) {
-        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
-        vec                        = head - 1;
-        *(SVECTOR**)G_SCRATCH_HEAD = vec;
-        Gfx_MatrixCol2(&coord->coord, vec);
-        VectorNormalSS(vec, vec);
-        gte_lddp(amount);
-        gte_ldsv(vec);
-        gte_gpf12();
-        gte_stsv(vec);
-        coord->coord.t[0]          += head[-1].vx;
-        coord->coord.t[1]          += vec->vy;
-        coord->coord.t[2]          += vec->vz;
-        coord->flg                  = 0;
-        *(SVECTOR**)G_SCRATCH_HEAD += 1;
-    }
-}
 
 void func_actor_260400_80149E38(void)
 {
@@ -304,13 +277,13 @@ void func_actor_260400_8014A200(Task* task)
             if (work->field_4EA != 0) {
                 switch (D_actor_260400_80154C78) {
                     case 0:
-                        Actor260400_MoveForward(task, 0x3C);
+                        actorMoveModelForward(task, 0x3C);
                         break;
                     case 1:
-                        Actor260400_MoveForward(task, -0xF);
+                        actorMoveModelForward(task, -0xF);
                         break;
                     case 2:
-                        Actor260400_MoveForward(task, 0x19);
+                        actorMoveModelForward(task, 0x19);
                         break;
                 }
                 if (--work->field_4EA == 0) {

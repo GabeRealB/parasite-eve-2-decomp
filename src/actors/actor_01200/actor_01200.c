@@ -175,26 +175,6 @@ void Actor01200_Fn03DC0(GpEnemy* arg0, Task* arg1);
 void Actor01200_Fn03E78(GpEnemy* arg0, Task* arg1);
 void Actor01200_Fn03F30(GpEnemy* arg0, Task* arg1);
 
-/// Yaw wrapped into [-0x800, 0x800].
-static __inline__ s16 Actor01200_NormalizeYaw(s16 input)
-{
-    s16 value = input;
-    if (input < 0) {
-        while (1) {
-            if (value >= -0x800)
-                break;
-            value += 0x1000;
-        }
-    } else {
-        while (1) {
-            if (value <= 0x800)
-                break;
-            value -= 0x1000;
-        }
-    }
-    return value;
-}
-
 /// Step `coord` `amount` units along its local Z unless movement is frozen.
 static __inline__ void Actor01200_StepForward(GsCOORDINATE2* coord, s16 amount)
 {
@@ -220,40 +200,6 @@ static __inline__ void Actor01200_StepForward(GsCOORDINATE2* coord, s16 amount)
         }
         *(SVECTOR**)G_SCRATCH_HEAD += 1;
     }
-}
-
-/// Bearing of `p` from `eye` in the XZ plane, staged in a scratch block of its
-/// own that is released before `ratan2` runs.
-static __inline__ s16 Actor01200_BearingXZ(SVECTOR3* p, SVECTOR3* eye)
-{
-    u8*              head;
-    ActorAvoidDelta* d;
-
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    d                     = (ActorAvoidDelta*)(head - 0x10);
-    d->vx                 = p->vx - eye->vx;
-    *(u8**)G_SCRATCH_HEAD = (u8*)d;
-    d->vy                 = p->vy - eye->vy;
-    d->vz                 = p->vz - eye->vz;
-    *(u8**)G_SCRATCH_HEAD = head;
-    return ratan2(d->vx, d->vz);
-}
-
-/// Bearing of `p` from `eye` in the XY plane; used when the facing column is
-/// close to vertical.
-static __inline__ s16 Actor01200_BearingXY(SVECTOR3* p, SVECTOR3* eye)
-{
-    u8*              head;
-    ActorAvoidDelta* d;
-
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    d                     = (ActorAvoidDelta*)(head - 0x10);
-    d->vx                 = p->vx - eye->vx;
-    *(u8**)G_SCRATCH_HEAD = (u8*)d;
-    d->vy                 = p->vy - eye->vy;
-    d->vz                 = p->vz - eye->vz;
-    *(u8**)G_SCRATCH_HEAD = head;
-    return ratan2(d->vx, d->vy);
 }
 
 /// Pushes `coord` away from the obstacles in `recs`. Records of kind 0x10000
@@ -309,9 +255,9 @@ s16 Actor01200_Fn00130(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
         }
 
         if (ABS(s->dir.vz) < 0x818) {
-            s->angle[s->count] = Actor01200_BearingXZ((SVECTOR3*)&recs[s->i].point, &s->eye);
+            s->angle[s->count] = actorBearingXZ((SVECTOR3*)&recs[s->i].point, &s->eye);
         } else {
-            s->angle[s->count] = Actor01200_BearingXY((SVECTOR3*)&recs[s->i].point, &s->eye);
+            s->angle[s->count] = actorBearingXY((SVECTOR3*)&recs[s->i].point, &s->eye);
         }
         s->ok[s->count] = 1;
         s->count++;
@@ -763,7 +709,7 @@ void Actor01200_Fn01234(GpEnemy* arg0, Task* arg1)
     s->d.vy       = Player_Status.coordMtx->t[1] - coord->coord.t[1];
     s->d.vz       = Player_Status.coordMtx->t[2] - coord->coord.t[2];
     facing        = ((TmdObject*)arg1->extra)->coords;
-    s->angle      = Actor01200_NormalizeYaw(ratan2(head[-1].d.vx, s->d.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]));
+    s->angle      = actorNormalizeYaw(ratan2(head[-1].d.vx, s->d.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]));
     if (s->angle > 0x10) {
         s->angle = 0x10;
     }
@@ -1278,7 +1224,7 @@ void Actor01200_Fn02BE8(GpEnemy* arg0, Task* arg1)
     sc->d.vz                                 = work->patrol[work->patrolIdx].vz - ((TmdObject*)arg1->extra)->coords->coord.t[2];
     coord                                    = ((TmdObject*)arg1->extra)->coords;
     angle                                    = ratan2(head[-1].d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    sc->angle                                = Actor01200_NormalizeYaw(angle);
+    sc->angle                                = actorNormalizeYaw(angle);
     if (sc->angle > 0x20) {
         sc->angle = 0x20;
     }
@@ -1309,7 +1255,7 @@ void Actor01200_Fn02BE8(GpEnemy* arg0, Task* arg1)
     if (!Actor01200_OutOfRange(&sc->d, 2000)) {
         coord = ((TmdObject*)arg1->extra)->coords;
         angle = ratan2(sc->d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-        if (Actor01200_NormalizeYaw(angle) < 0x400 || !Actor01200_OutOfRange(&sc->d, 1000)) {
+        if (actorNormalizeYaw(angle) < 0x400 || !Actor01200_OutOfRange(&sc->d, 1000)) {
             work->field_0 = 4;
         }
     }
@@ -1362,7 +1308,7 @@ void Actor01200_Fn03294(GpEnemy* arg0, Task* arg1)
     s->d.vy                                = 0;
     s->d.vz                                = work->origin.vz - ((TmdObject*)arg1->extra)->coords->coord.t[2];
     coord                                  = ((TmdObject*)arg1->extra)->coords;
-    s->angle                               = Actor01200_NormalizeYaw(ratan2(head[-1].d.vx, s->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    s->angle                               = actorNormalizeYaw(ratan2(head[-1].d.vx, s->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
     if (s->angle > 0x10) {
         s->angle = 0x10;
     }

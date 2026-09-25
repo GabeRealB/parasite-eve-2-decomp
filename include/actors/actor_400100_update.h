@@ -55,38 +55,6 @@ static __inline__ s16 Actor00100_InDirection(Task* actor, VECTOR* motion)
     }
     return 0;
 }
-static __inline__ void Actor00100_TransformToView(GsCOORDINATE2* p, SVECTOR* out)
-{
-    SVECTOR        sv;
-    VECTOR         vec;
-    s32            flag;
-    SVECTOR*       svp   = &sv;
-    GsCOORDINATE2* view  = &gGfxViewCoord;
-    VECTOR*        vecp  = &vec;
-    s32*           flagp = &flag;
-    sv.vx                = out->vx;
-    sv.vy                = out->vy;
-    sv.vz                = out->vz;
-loop:
-    if (p->sub != NULL) {
-        if (p != view) {
-            gte_SetTransMatrix(&p->coord);
-            gte_SetRotMatrix(&p->coord);
-            gte_ldv0(svp);
-            gte_rtv0tr();
-            gte_stlvnl(vecp);
-            gte_stflg(flagp);
-            sv.vx = vec.vx;
-            sv.vy = vec.vy;
-            sv.vz = vec.vz;
-            p     = p->sub;
-            goto loop;
-        }
-        out->vx = sv.vx;
-        out->vy = sv.vy;
-        out->vz = sv.vz;
-    }
-}
 static __inline__ SVECTOR* Actor00100_AllocVector(SVECTOR** head)
 {
     SVECTOR* p = *head - 1;

@@ -6,6 +6,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -132,34 +133,6 @@ void func_actor_151000_80132610(void);
 void func_actor_151000_801326AC(void);
 void func_actor_151000_80132A38(Task* task);
 
-/// Steps the task's model `amount` units along its facing (the coordinate
-/// matrix's z column, normalised and scaled on the GTE), using a scratch-pad
-/// vector; skipped while `D_80072729` is 1.
-static __inline__ void Actor151000_MoveForward(Task* task, s16 amount)
-{
-    GsCOORDINATE2* coord;
-    SVECTOR*       head;
-    SVECTOR*       vec;
-
-    coord = ((TmdObject*)task->extra)->coords;
-    if (D_80072729 != 1) {
-        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
-        vec                        = head - 1;
-        *(SVECTOR**)G_SCRATCH_HEAD = vec;
-        Gfx_MatrixCol2(&coord->coord, vec);
-        VectorNormalSS(vec, vec);
-        gte_lddp(amount);
-        gte_ldsv(vec);
-        gte_gpf12();
-        gte_stsv(vec);
-        coord->coord.t[0]          += head[-1].vx;
-        coord->coord.t[1]          += vec->vy;
-        coord->coord.t[2]          += vec->vz;
-        coord->flg                  = 0;
-        *(SVECTOR**)G_SCRATCH_HEAD += 1;
-    }
-}
-
 /// The fade task: while the countdown `D_actor_151000_8013D378` is non-zero,
 /// draws a full-screen black `TILE` into ordering table slot 0xA; once it is
 /// zero the task kills itself.
@@ -268,13 +241,13 @@ void func_actor_151000_80132084(Task* task)
             if (work->travel != 0) {
                 switch (D_actor_151000_8013D384) {
                     case 0:
-                        Actor151000_MoveForward(task, 0x3C);
+                        actorMoveModelForward(task, 0x3C);
                         break;
                     case 1:
-                        Actor151000_MoveForward(task, -0xF);
+                        actorMoveModelForward(task, -0xF);
                         break;
                     case 2:
-                        Actor151000_MoveForward(task, 0x19);
+                        actorMoveModelForward(task, 0x19);
                         break;
                 }
                 if (--work->travel == 0) {

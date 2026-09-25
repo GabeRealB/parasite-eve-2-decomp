@@ -19,7 +19,7 @@
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 
-#include "actors/actor_461800_move.h"
+#include "actors/actor.h"
 
 /// Work block this overlay hangs off the task's `Task::work` slot (0x1C),
 /// which is not a `TaskIdMap` here. `func_actor_450800_80132160` allocates it
@@ -484,13 +484,13 @@ void func_actor_450800_80132448(Task* task)
             if (work->field_4EA != 0) {
                 switch (work->field_4FE) {
                     case 0:
-                        Actor461800_MoveForward(task, 0x3C);
+                        actorMoveModelForward(task, 0x3C);
                         break;
                     case 1:
-                        Actor461800_MoveForward(task, -0xF);
+                        actorMoveModelForward(task, -0xF);
                         break;
                     case 2:
-                        Actor461800_MoveForward(task, 0x19);
+                        actorMoveModelForward(task, 0x19);
                         break;
                 }
                 if (--work->field_4EA == 0) {
@@ -947,7 +947,7 @@ void func_actor_450800_801330AC(Task* task)
         } while (0);
         animId = work->animId;
         if (animId == 4 && work->travel != 0) {
-            Actor461800_MoveForward(task, 0xC);
+            actorMoveModelForward(task, 0xC);
             work->travel = (u16)work->travel - 1;
             if (work->travel == 0) {
                 work->animArg = 0xA;

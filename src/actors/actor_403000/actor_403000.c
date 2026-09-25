@@ -3593,7 +3593,7 @@ void func_actor_403000_80139AE0(Task* arg0)
     scratch->angle += ratan2(-((TmdObject*)arg0->extra)->coords->coord.m[2][0], ((TmdObject*)arg0->extra)->coords->coord.m[2][2]);
     Gfx_RotMatrixY(&((TmdObject*)arg0->extra)->coords->coord, scratch->angle, 1);
     ((TmdObject*)arg0->extra)->coords->flg = 0;
-    Actor00100_MoveForward(((TmdObject*)arg0->extra)->coords, 0x12C);
+    actorMoveForward(((TmdObject*)arg0->extra)->coords, 0x12C);
     *(Actor403000SeekScratch**)G_SCRATCH_HEAD += 1;
 }
 
@@ -3713,7 +3713,7 @@ void func_actor_403000_8013A08C(Task* arg0)
     scratch->angle += ratan2(-((TmdObject*)arg0->extra)->coords->coord.m[2][0], ((TmdObject*)arg0->extra)->coords->coord.m[2][2]);
     Gfx_RotMatrixY(&((TmdObject*)arg0->extra)->coords->coord, scratch->angle, 1);
     ((TmdObject*)arg0->extra)->coords->flg = 0;
-    Actor00100_MoveForward(((TmdObject*)arg0->extra)->coords, 0x12C);
+    actorMoveForward(((TmdObject*)arg0->extra)->coords, 0x12C);
     *(Actor403000SeekScratch**)G_SCRATCH_HEAD += 1;
 }
 
@@ -3872,7 +3872,7 @@ void func_actor_403000_8013A678(Task* arg0)
     scratch->angle += ratan2(-((TmdObject*)arg0->extra)->coords->coord.m[2][0], ((TmdObject*)arg0->extra)->coords->coord.m[2][2]);
     Gfx_RotMatrixY(&((TmdObject*)arg0->extra)->coords->coord, scratch->angle, 1);
     ((TmdObject*)arg0->extra)->coords->flg = 0;
-    Actor00100_MoveForward(((TmdObject*)arg0->extra)->coords, 0x12C);
+    actorMoveForward(((TmdObject*)arg0->extra)->coords, 0x12C);
     *(Actor403000SeekScratch**)G_SCRATCH_HEAD += 1;
 }
 
@@ -4491,7 +4491,7 @@ void func_actor_403000_8013C2D4(Task* arg0)
     scratch->angle += ratan2(-((TmdObject*)arg0->extra)->coords->coord.m[2][0], ((TmdObject*)arg0->extra)->coords->coord.m[2][2]);
     Gfx_RotMatrixY(&((TmdObject*)arg0->extra)->coords->coord, scratch->angle, 1);
     ((TmdObject*)arg0->extra)->coords->flg = 0;
-    Actor00100_MoveForward(((TmdObject*)arg0->extra)->coords, 0x16);
+    actorMoveForward(((TmdObject*)arg0->extra)->coords, 0x16);
     *(Actor403000SeekScratch**)G_SCRATCH_HEAD += 1;
 }
 

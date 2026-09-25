@@ -145,88 +145,6 @@ MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
 void func_actor_123200_80134178(GpEnemy* arg0, Task* arg1);
 
-/// Builds `joint`'s absolute rotation in `out`: its own rotation, then each
-/// ancestor pre-multiplied in turn (renormalised after every step) up to but
-/// not including `stop`. Returns whether the walk reached `stop` rather than
-/// the end of the chain.
-static __inline__ s32 Actor123200_AccumulateRotation(GsCOORDINATE2* joint, MATRIX* out, GsCOORDINATE2* stop)
-{
-    MATRIX         matrix;
-    GsCOORDINATE2* coord;
-
-    coord = joint->sub;
-    *out  = joint->coord;
-    while (1) {
-        if (coord == NULL) {
-            return 0;
-        }
-        if (coord == stop) {
-            return 1;
-        }
-        gte_SetRotMatrix(&coord->coord);
-        MulRotMatrix(out);
-        MatrixNormal(out, &matrix);
-        *out  = matrix;
-        coord = coord->sub;
-    }
-}
-
-/// Turns the world-space rotation in `rotation` back into one relative to
-/// `joint`'s parent: accumulates the chain above the parent up to the view
-/// coordinate, transposes it and pre-multiplies. Nothing is done when the
-/// parent is the view coordinate itself. Returns `joint`; the caller stores
-/// through the returned pointer, which the matched code needs.
-static __inline__ GsCOORDINATE2* Actor123200_LocalizeRotation(GsCOORDINATE2* joint, MATRIX* rotation)
-{
-    MATRIX         matrix;
-    MATRIX         normal;
-    MATRIX         transposed;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* view;
-
-    coord = joint->sub;
-    if (coord != &gGfxViewCoord) {
-        view   = &gGfxViewCoord;
-        matrix = coord->coord;
-        while (1) {
-            coord = coord->sub;
-            if (coord == NULL) {
-                break;
-            }
-            if (coord == view) {
-                __asm__ volatile(
-                    "lhu $12, 0(%0);"
-                    "lhu $13, 6(%0);"
-                    "lhu $14, 12(%0);"
-                    "sh $12, 0(%1);"
-                    "sh $13, 2(%1);"
-                    "sh $14, 4(%1);"
-                    "lhu $12, 2(%0);"
-                    "lhu $13, 8(%0);"
-                    "lhu $14, 14(%0);"
-                    "sh $12, 6(%1);"
-                    "sh $13, 8(%1);"
-                    "sh $14, 10(%1);"
-                    "lhu $12, 4(%0);"
-                    "lhu $13, 10(%0);"
-                    "lhu $14, 16(%0);"
-                    "sh $12, 12(%1);"
-                    "sh $13, 14(%1);"
-                    "sh $14, 16(%1);"
-                    : : "r"(&matrix), "r"(&transposed) : "$12", "$13", "$14", "memory");
-                gte_SetRotMatrix(&transposed);
-                MulRotMatrix(rotation);
-                break;
-            }
-            gte_SetRotMatrix(&coord->coord);
-            MulRotMatrix(&matrix);
-            MatrixNormal(&matrix, &normal);
-            matrix = normal;
-        }
-    }
-    return joint;
-}
-
 /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
 /// rotation in a matrix carved off the scratchpad head, applies the turn,
 /// converts the result back into the parent's frame, writes the 3x3 into the
@@ -238,44 +156,13 @@ void func_actor_123200_80131E50(GsCOORDINATE2* coord, s16 yaw)
 
     *(MATRIX**)G_SCRATCH_HEAD -= 1;
     rotation                   = *(MATRIX**)G_SCRATCH_HEAD;
-    Actor123200_AccumulateRotation(coord, rotation, &gGfxViewCoord);
+    actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
     func_8004BFF8(yaw, rotation);
-    out = Actor123200_LocalizeRotation(coord, rotation);
+    out = actorLocalizeRotation(coord, rotation);
     __builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->flg = 0;
     Gp_UpdateCoord(out);
     *(MATRIX**)G_SCRATCH_HEAD += 1;
-}
-
-/// XZ push-out of `pos` from one obstacle record: the record's radius minus
-/// the horizontal distance to its point, floored at zero, applied along the
-/// direction from the point to `pos` taken into grid space.
-static __inline__ void Actor123200_CalcPush(SVECTOR* pos, GpRec18* rec, SVECTOR* out)
-{
-    VECTOR d;
-    VECTOR n;
-    s32    t;
-    s32    pen;
-
-    d.vx = pos->vx - rec->point.vx;
-    d.vy = 0;
-    d.vz = pos->vz - rec->point.vz;
-    pen  = SquareRoot0(d.vx * d.vx + d.vz * d.vz);
-    pen  = rec->depth - pen;
-    if (pen <= 0) {
-        t = 0;
-    } else {
-        t = pen;
-    }
-    pen  = t;
-    d.vx = pos->vx - rec->point.vx;
-    d.vy = pos->vy - rec->point.vy;
-    d.vz = pos->vz - rec->point.vz;
-    VectorNormal(&d, &n);
-    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &n, &d);
-    out->vx = (pen * d.vx) >> 12;
-    out->vy = 0;
-    out->vz = (pen * d.vz) >> 12;
 }
 
 /// Walks the first `count` records of `recs`, up to an empty key, and for
@@ -315,7 +202,7 @@ s32 func_actor_123200_8013215C(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
         s->kind = recs[s->i].key & 0xFFFF0000;
         if (s->kind == 0x10000 || s->kind == 0x30000) {
             s->hit = 1;
-            Actor123200_CalcPush(&s->pos, &recs[s->i], &s->offset);
+            actorCalcPush(&s->pos, &recs[s->i], &s->offset);
             s->last.vx = s->offset.vx;
             s->last.vz = s->offset.vz;
         }
@@ -333,39 +220,6 @@ s32 func_actor_123200_8013215C(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
     coord->flg                            = 0;
     *(ActorRepelScratch**)G_SCRATCH_HEAD += 1;
     return s->hit;
-}
-
-/// Bearing of `p` from `eye` in the XZ plane.
-static __inline__ s16 Actor123200_BearingXZ(SVECTOR3* p, SVECTOR3* eye)
-{
-    u8*              head;
-    ActorAvoidDelta* d;
-
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    d                     = (ActorAvoidDelta*)(head - 0x10);
-    d->vx                 = p->vx - eye->vx;
-    *(u8**)G_SCRATCH_HEAD = (u8*)d;
-    d->vy                 = p->vy - eye->vy;
-    d->vz                 = p->vz - eye->vz;
-    *(u8**)G_SCRATCH_HEAD = head;
-    return ratan2(d->vx, d->vz);
-}
-
-/// Bearing of `p` from `eye` in the XY plane, used when the coordinate's
-/// facing is close to vertical.
-static __inline__ s16 Actor123200_BearingXY(SVECTOR3* p, SVECTOR3* eye)
-{
-    u8*              head;
-    ActorAvoidDelta* d;
-
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    d                     = (ActorAvoidDelta*)(head - 0x10);
-    d->vx                 = p->vx - eye->vx;
-    *(u8**)G_SCRATCH_HEAD = (u8*)d;
-    d->vy                 = p->vy - eye->vy;
-    d->vz                 = p->vz - eye->vz;
-    *(u8**)G_SCRATCH_HEAD = head;
-    return ratan2(d->vx, d->vy);
 }
 
 /// Collects the bearings of up to eight kind 0x10000 / 0x30000 records among
@@ -422,9 +276,9 @@ s32 func_actor_123200_801324A4(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
         }
 
         if (ABS(s->dir.vz) < 0x818) {
-            s->angle[s->count] = Actor123200_BearingXZ((SVECTOR3*)&recs[s->i].point, &s->eye);
+            s->angle[s->count] = actorBearingXZ((SVECTOR3*)&recs[s->i].point, &s->eye);
         } else {
-            s->angle[s->count] = Actor123200_BearingXY((SVECTOR3*)&recs[s->i].point, &s->eye);
+            s->angle[s->count] = actorBearingXY((SVECTOR3*)&recs[s->i].point, &s->eye);
         }
         s->ok[s->count] = 1;
         s->count++;
@@ -536,78 +390,6 @@ s32 func_actor_123200_801329F0(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2
     return s->moved;
 }
 
-/// Carries `v` from the local frame `coord` up the `GsCOORDINATE2::sub` parent
-/// chain into world space, using a 0x20 scratch block from `G_SCRATCH_HEAD`.
-static __inline__ void Actor123200_ToWorld(GsCOORDINATE2* coord, SVECTOR* v)
-{
-    RoomsShared80182078Walk* blk;
-
-    {
-        register GsCOORDINATE2* parent asm("v0");
-        parent                                                                                              = coord;
-        ((RoomsShared80182078Walk*)((u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomsShared80182078Walk)))->coord = parent;
-    }
-    {
-        register u8* tmp asm("v0");
-        tmp = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomsShared80182078Walk);
-        blk = (RoomsShared80182078Walk*)tmp;
-    }
-    blk->vec.vx = v->vx;
-    blk->vec.vy = v->vy;
-    blk->vec.vz = v->vz;
-
-    *(void**)G_SCRATCH_HEAD = blk;
-    while (blk->coord != NULL) {
-        gte_SetTransMatrix(&blk->coord->coord);
-        gte_SetRotMatrix(&blk->coord->coord);
-        gte_ldv0(&blk->vec);
-        gte_rtv0tr();
-        gte_stlvnl(blk->out);
-        gte_stflg(&blk->flag);
-        blk->vec.vx = *(u16*)&blk->out[0];
-        blk->vec.vy = *(u16*)&blk->out[1];
-        blk->vec.vz = *(u16*)&blk->out[2];
-        blk->coord  = blk->coord->sub;
-    }
-    v->vx = blk->vec.vx;
-    v->vy = blk->vec.vy;
-    v->vz = blk->vec.vz;
-
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomsShared80182078Walk);
-}
-
-/// The same walk as `Actor123200_ToWorld`, spelled without its register
-/// bindings; each caller site needs its own form to match.
-static __inline__ void Actor123200_ToWorld2(GsCOORDINATE2* coord, SVECTOR* v)
-{
-    RoomsShared80182078Walk* blk;
-
-    blk         = (RoomsShared80182078Walk*)((u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomsShared80182078Walk));
-    blk->coord  = coord;
-    blk->vec.vx = v->vx;
-    blk->vec.vy = v->vy;
-    blk->vec.vz = v->vz;
-
-    *(void**)G_SCRATCH_HEAD = blk;
-    while (blk->coord != NULL) {
-        gte_SetTransMatrix(&blk->coord->coord);
-        gte_SetRotMatrix(&blk->coord->coord);
-        gte_ldv0(&blk->vec);
-        gte_rtv0tr();
-        gte_stlvnl(blk->out);
-        gte_stflg(&blk->flag);
-        blk->vec.vx = *(u16*)&blk->out[0];
-        blk->vec.vy = *(u16*)&blk->out[1];
-        blk->vec.vz = *(u16*)&blk->out[2];
-        blk->coord  = blk->coord->sub;
-    }
-    v->vx = blk->vec.vx;
-    v->vy = blk->vec.vy;
-    v->vz = blk->vec.vz;
-
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomsShared80182078Walk);
-}
-
 /// Pushes `coord` `push` units away from each obstacle among the first
 /// `count` contact records (kind 0x10000 or 0x30000) whose bearing lies within
 /// 0x400 of every other obstacle's. Bearings are taken in world space from the
@@ -643,13 +425,13 @@ s32 func_actor_123200_80132B94(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s
     *scratch   = st;
     st->eye.vz = vz;
 
-    Actor123200_ToWorld(coord->sub, &st->eye);
+    actorToWorld(coord->sub, &st->eye);
 
     st->aim.vx = 0;
     st->aim.vy = 0;
     st->aim.vz = 0x1000;
 
-    Actor123200_ToWorld2(coord, &st->aim);
+    actorToWorld2(coord, &st->aim);
 
     for (st->i = 0; st->i < count; st->i++) {
         if (recs[st->i].key == 0) {

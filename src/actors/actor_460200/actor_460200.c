@@ -3,6 +3,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -173,32 +174,6 @@ extern s32      D_actor_460200_80151538;
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-
-/// Steps `coord` `amount` units along its local Z axis, unless movement is
-/// frozen. The direction is staged on the scratchpad stack.
-static __inline__ void Actor460200_MoveForward(GsCOORDINATE2* coord, s16 amount)
-{
-    SVECTOR* head;
-    SVECTOR* vec;
-
-    if (D_80072729 == 1) {
-        return;
-    }
-    head                       = *(SVECTOR**)G_SCRATCH_HEAD;
-    vec                        = head - 1;
-    *(SVECTOR**)G_SCRATCH_HEAD = vec;
-    Gfx_MatrixCol2(&coord->coord, vec);
-    VectorNormalSS(vec, vec);
-    gte_lddp(amount);
-    gte_ldsv(vec);
-    gte_gpf12();
-    gte_stsv(vec);
-    coord->coord.t[0]          += head[-1].vx;
-    coord->coord.t[1]          += vec->vy;
-    coord->coord.t[2]          += vec->vz;
-    coord->flg                  = 0;
-    *(SVECTOR**)G_SCRATCH_HEAD += 1;
-}
 
 void func_actor_460200_80131FB0(void);
 void func_actor_460200_80132808(GpEnemy* enemy, Task* task);
@@ -585,7 +560,7 @@ void func_actor_460200_801325FC(Task* task)
         } while (0);
         animId = work->animId;
         if (animId == 4 && work->travel != 0) {
-            Actor460200_MoveForward(((TmdObject*)task->extra)->coords, 0xC);
+            actorMoveForward(((TmdObject*)task->extra)->coords, 0xC);
             work->travel = (u16)work->travel - 1;
             if (work->travel == 0) {
                 work->animArg = 0xA;
@@ -927,7 +902,7 @@ void func_actor_460200_80132F0C(Task* task)
         } while (0);
         animId = work->animId;
         if (animId == 4 && work->travel != 0) {
-            Actor460200_MoveForward(((TmdObject*)task->extra)->coords, 0x1E);
+            actorMoveForward(((TmdObject*)task->extra)->coords, 0x1E);
             work->travel = (u16)work->travel - 1;
             if (work->travel == 0) {
                 work->state   = 1;
@@ -1229,7 +1204,7 @@ void func_actor_460200_801336B4(Task* task)
         } while (0);
         animId = work->animId;
         if (animId == 4 && work->travel != 0) {
-            Actor460200_MoveForward(((TmdObject*)task->extra)->coords, 0xC);
+            actorMoveForward(((TmdObject*)task->extra)->coords, 0xC);
             work->travel = (u16)work->travel - 1;
             if (work->travel == 0) {
                 work->animArg = 0xA;

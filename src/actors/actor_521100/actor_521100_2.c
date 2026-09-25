@@ -97,42 +97,6 @@ typedef struct Actor521100DispatchCtx {
 } Actor521100DispatchCtx;
 STATIC_ASSERT_SIZEOF(Actor521100DispatchCtx, 0x14);
 
-/// Steps `coord` `amount` units along its local Z axis unless movement is
-/// frozen. The walk-to cache `Actor521100Work::field_48C.rot.yaw` / `travel` scales by 20,
-/// which is the step `func_actor_521100_80135F2C` hands this body. Same body
-/// as `Actor01900_MoveForward`, `Actor01900_StepForward` and
-/// `Actor00100_MoveForward`, which take the same 8-byte SVECTOR off
-/// `G_SCRATCH_HEAD`.
-///
-/// The inlining is load bearing: inside an inlined body the compiler folds the
-/// constant `G_SCRATCH_HEAD` address straight into each memory operand
-/// (`lui $s1,%hi` + `lw $s1,%lo($s1)`, `lui $at,%hi` + `sw ...%lo($at)`),
-/// where a plain call site materialises the address once with `lui`/`ori` into
-/// a register and reuses it across the calls. Same C, same compiler, different
-/// instructions - do not lift the body into the caller.
-static __inline__ void Actor521100_MoveForward(GsCOORDINATE2* coord, s16 amount)
-{
-    SVECTOR* head;
-    SVECTOR* vec;
-
-    if (D_80072729 != 1) {
-        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
-        vec                        = head - 1;
-        *(SVECTOR**)G_SCRATCH_HEAD = vec;
-        Gfx_MatrixCol2(&coord->coord, vec);
-        VectorNormalSS(vec, vec);
-        gte_lddp(amount);
-        gte_ldsv(vec);
-        gte_gpf12();
-        gte_stsv(vec);
-        coord->coord.t[0]          += head[-1].vx;
-        coord->coord.t[1]          += vec->vy;
-        coord->coord.t[2]          += vec->vz;
-        coord->flg                  = 0;
-        *(SVECTOR**)G_SCRATCH_HEAD += 1;
-    }
-}
-
 extern u8       D_actor_521100_8016A358;
 extern TaskDesc D_actor_521100_8016A388;
 extern u8       D_actor_521100_8016A3A0;
@@ -254,7 +218,7 @@ void func_actor_521100_80135DDC(GpEnemy* spawnArg2, Task* task)
 /// Step 3 while the walk-to cache is armed (`animId` is the walk clip and
 /// `travel` still has distance left) advances the attach coordinate one step:
 /// 20 units along its local Z axis, the scale `travel` is counted in, through
-/// `Actor521100_MoveForward`. The pause check the helper makes is why the step
+/// `actorMoveForward`. The pause check the helper makes is why the step
 /// is skipped while the game is frozen - `travel` still ticks down, so a
 /// paused actor finishes its walk.
 void func_actor_521100_80135F2C(Task* task)
@@ -276,7 +240,7 @@ void func_actor_521100_80135F2C(Task* task)
     if (work->field_47C == 3) {
         animId = work->animId;
         if (animId == 1 && work->field_48C.travel != 0) {
-            Actor521100_MoveForward(((TmdObject*)task->extra)->coords, 0x14);
+            actorMoveForward(((TmdObject*)task->extra)->coords, 0x14);
             D_actor_521100_8016A3D8->field_48C.travel = (u16)D_actor_521100_8016A3D8->field_48C.travel - 1;
         }
         func_actor_521100_80136724();

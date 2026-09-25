@@ -3,6 +3,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mc.h"
@@ -107,32 +108,6 @@ void func_actor_150400_801324E0(Task* task);
 void func_actor_150400_8013257C(Task* task);
 void func_actor_150400_801325C8(Task* task);
 void func_actor_150400_80132640(Task* task);
-
-/// Steps `coord` `amount` units along its local Z axis, unless movement is
-/// frozen. The direction is staged on the scratchpad stack.
-static __inline__ void Actor150400_MoveForward(GsCOORDINATE2* coord, s16 amount)
-{
-    SVECTOR* head;
-    SVECTOR* vec;
-
-    if (D_80072729 == 1) {
-        return;
-    }
-    head                       = *(SVECTOR**)G_SCRATCH_HEAD;
-    vec                        = head - 1;
-    *(SVECTOR**)G_SCRATCH_HEAD = vec;
-    Gfx_MatrixCol2(&coord->coord, vec);
-    VectorNormalSS(vec, vec);
-    gte_lddp(amount);
-    gte_ldsv(vec);
-    gte_gpf12();
-    gte_stsv(vec);
-    coord->coord.t[0]          += head[-1].vx;
-    coord->coord.t[1]          += vec->vy;
-    coord->coord.t[2]          += vec->vz;
-    coord->flg                  = 0;
-    *(SVECTOR**)G_SCRATCH_HEAD += 1;
-}
 
 /// Per-frame callback of the model task `D_actor_150400_80132CF0` describes,
 /// spawned twice by `func_actor_150400_80131FB8` with `spawnArg1` 1 and 2.
@@ -326,7 +301,7 @@ void func_actor_150400_80132228(Task* task)
         } while (0);
         animId = work->animId;
         if (animId == 4 && work->travel != 0) {
-            Actor150400_MoveForward(((TmdObject*)task->extra)->coords, 0x11);
+            actorMoveForward(((TmdObject*)task->extra)->coords, 0x11);
             work->travel = (u16)work->travel - 1;
             if (work->travel == 0) {
                 work->animArg = 0xA;

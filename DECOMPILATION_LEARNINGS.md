@@ -868,7 +868,7 @@ Check the prototype before believing an m2c `void`: the overlay's own header is
 ours, and changing it costs nothing when the callers ignore the value.
 ## A unit-scale scratch helper is not the scaled one with `1`: its pop re-loads, and that decides who gets a call-saved register
 
-`Actor401800_RescaleYaw(coord, 1)` and `Actor401800_ResetYaw(coord)` compute the
+`actorRescaleYaw(coord, 1)` and `Actor401800_ResetYaw(coord)` compute the
 same thing, but only the second compiles to the target's tail in
 `func_actor_401800_8013BF48`. Inlining the *scaled* body nine times gave
 98.166% (`regs=56 reorder=10 delete=8`); the unit-scale body gave 100.000%.
@@ -8895,7 +8895,7 @@ mismatch. On the match, delete **all** of that function's `INCLUDE_ASM` lines
 
 **A host `.c`'s `static __inline__` helpers are invisible to the scratch unit.**
 The scratch env compiles only the candidate file, so a helper defined above the
-`INCLUDE_ASM` in the host `.c` (here `Actor00100_BearingXZ` / `_BearingXY`) has
+`INCLUDE_ASM` in the host `.c` (here `actorBearingXZ` / `_BearingXY`) has
 no definition in scope: the call is emitted against an implicit declaration and
 the helper's body never appears, so the object comes out ~40 instructions short
 (310 vs 350, `delete=55`, `blocks=42/43`) and scores well below what the source
@@ -9047,7 +9047,7 @@ not mean equal declarations: the sibling's scratch struct must have the same
 field offsets (here `ActorRepelScratch` was already `0x88` with `offset` /
 `last` / `pos` / `kind` / `len` / `dist` / `i` / `hit` in the same places), and
 any inlined helper the sibling calls must be reproduced rather than called —
-the twin inlined `Actor01900_CalcPush`, so a local `Actor401800_CalcPush` had to
+the twin inlined `actorCalcPush`, so a local `actorCalcPush` had to
 be written out. A sibling in `src/<family>/lib/` is also *already promoted*;
 porting does not license a second promotion, and the retry brief can forbid one
 outright while the other carriers are leased.
@@ -86972,7 +86972,7 @@ once it is matched, the compiler emits the table, so remove the entries.
 scratch block whose head accesses are absolute (`lui $s2`/`lw 0x3FC($s2)`,
 `lui $at`/`sw`) between two `lui`/`ori` register-form bumps. Written out flat
 it stalled at 85% (goto loops, locals, `scratch_base`). The whole gap was
-source shape: the body is `Actor00100_PositionYaw` / `Actor00100_NormalizeYaw`
+source shape: the body is `actorPositionYaw` / `actorNormalizeYaw`
 (`include/actors/actor_400100_facing.h`) plus `ActorsShared80135a60(coord,
 0x1194)`, all as `static __inline__`. Inside the `s16`-returning inline the
 plain `while (1) { if (v >= -0x800) break; v += 0x1000; }` keeps the top test
@@ -87072,7 +87072,7 @@ What matches: store the normalized result to the field, test a reload of it,
 and read the field again for the stored value:
 
 ```c
-s->turn = Actor01900_NormalizeYaw(...);
+s->turn = actorNormalizeYaw(...);
 turn    = s->turn;               /* sign_extend(subreg) - a distinct pseudo to cse */
 if (turn >= 0) {
     diffPos = turn - 1000;
@@ -87169,7 +87169,7 @@ if (enemy->hp <= 0) {
 ```
 
 Same function: a hand-written yaw wrap loop left the loop variable in `$v1`
-instead of `$a1`; `s->yaw = Actor01900_NormalizeYaw(s->yaw)` (the overlay's
+instead of `$a1`; `s->yaw = actorNormalizeYaw(s->yaw)` (the overlay's
 existing inline) put it in `$a1`, because the inline's return pseudo, not the
 loop variable, is what gets stored and passed.
 
@@ -87399,7 +87399,7 @@ wrong again; plain `s->i < count` gave the target's `sra v0; blez v0; move s7,v0
 `Actor01900_Fn0892C` ends with nine back-to-back `RescaleYaw`-style inlines
 (`head = *G; blk = head - 0x34; ...; *G = *G + 0x34`). The target reads the
 first matrix word as `-0x34(head)` in the first copy and as `0(blk)` in every
-later one. The existing `Actor01900_RescaleYaw` spells that read
+later one. The existing `actorRescaleYaw` spells that read
 `((T*)(head - 0x34))->m.m[0][0]`, and that gave `-0x34(head)` in all nine copies,
 which kept the previous pop value alive in `$s2` (99.67%, `regs` only).
 Reading `blk->m.m[0][0]` matched. The mechanism is in cse.c `find_best_addr`:
@@ -101348,7 +101348,7 @@ first head write as dead, or lets CSE share one pseudo for the constant address
 so the writes go through a hard register instead of `$at` - 15+ builds of
 reordering never converged.
 
-**Fix.** Reuse the matched `Actor01900_OutOfRange` inline
+**Fix.** Reuse the matched `actorOutOfRange` inline
 (`src/actors/lib/actor_101900_text.c`) verbatim, including its mix of
 `((Scratch*)(head - 0xC))->dx` and `blk->dz` accesses, the head push placed
 between the `dx` and `dz` squares, and `ret = dx + dz >= r` returned; call it as
@@ -101516,7 +101516,7 @@ We got `addiu a3` before the `lui`. With a constant id (`0x60054`), the same hel
 **Fix.** `SpawnVar(s32* id, ...)` with `Gp_SpawnEff(*id, ...)` in the body, called as
 `SpawnVar(&D_8011574C, ...)`. The address's `lui` moves up with the argument
 setup and the `lw` stays with the call. 99.32% -> 99.97%. The same trick fixed the
-last swap in a hand-written `Actor401300_TransformToView`: create
+last swap in a hand-written `actorTransformToView`: create
 `outp = &out` right after `svp = &sv` instead of passing `&out` through a
 second level of inlining.
 
@@ -104780,7 +104780,7 @@ arg0->field_14 = 0;
 obj->field_C   = 0;
 ```
 
-The rest of the function is `Actor01900_OutOfRange`'s scratch-block radius
+The rest of the function is `actorOutOfRange`'s scratch-block radius
 test verbatim (see "A scratch push the pop overwrites is deleted by `flow`");
 porting that inline took it from 77% to 97% in one step.
 
@@ -106104,9 +106104,9 @@ pseudo (`li $r,0x1F800000` / `ori $r,$r,0x3FC`) and nothing later takes it out.
 
 So a move block whose scratch accesses are folded is an inlined helper, not a
 statement sequence: this one is the same body as `Actor01900_MoveForward` /
-`Actor00100_MoveForward`, which is why those live in headers and why
+`actorMoveForward`, which is why those live in headers and why
 `Actor01900_MoveForward` carries a `SOFT_TOUCH_REG`. Moving the body into
-`Actor521100_MoveForward(coord, 0x14)` took the score 84.892% -> 100.000%, every
+`actorMoveForward(coord, 0x14)` took the score 84.892% -> 100.000%, every
 penalty zero, with no other edit - and the helper's own `D_80072729 != 1` check
 is what puts the pause test after the caller's coordinate load, exactly as the
 target has it.
@@ -107113,7 +107113,7 @@ literal; a helper boundary, not the macro, is what buys the displacement form.
 
 So when a twin's scratch block matches but the function it was pasted into does not, check
 whether the block belongs in the inlined helper rather than the caller. `actor_401800` needed
-*two* step helpers for this: `Actor401800_MoveForwardNonzero` (its own `gteVec` name for `vec`,
+*two* step helpers for this: `actorMoveForwardNonzero` (its own `gteVec` name for `vec`,
 used where the step is a variable) and `Actor401800_StepForward` (step applied through `vec`
 itself, used by `8013945C` with the constant `-0x57`, and by the chase body
 `80137714` with `0x28` / `0x14`). Compiling `8013945C` against the
@@ -107430,11 +107430,11 @@ the 538 words at the function's file offset against the split `.s` is what
 localised it; the scratch score says nothing about it.
 
 The function calls two `static __inline__` helpers of its own TU. One of them,
-`Actor401800_MoveForwardNonzero`, is *defined later in the file* than the
+`actorMoveForwardNonzero`, is *defined later in the file* than the
 function that calls it — the scratch env had copied the definition in above the
 function, the host file has it below. GCC 2.8.1 sees an undeclared call, takes
 the implicit declaration, and never reconsiders, so the call is emitted as
-`jal Actor401800_MoveForwardNonzero` plus an out-of-line copy of the helper
+`jal actorMoveForwardNonzero` plus an out-of-line copy of the helper
 (`.ent`/`.end` in the generated `.s`). The caller's frame and allocation follow
 from that: one fewer live value across the call, one fewer saved register.
 
@@ -107576,7 +107576,7 @@ helper's two other call sites in the same TU (`func_actor_401800_8013A034`,
 
 Two consequences. Reordering statements *inside* an inlined helper is the lever
 — no spelling at the call site can move a store past a later one. And when a
-matched sibling's helper does not need the change (`Actor401300_OutOfRange`
+matched sibling's helper does not need the change (`actorOutOfRange`
 keeps the other order, and its twin's store still lands late), take the target's
 order as the retail order of *this* TU rather than treating it as a local hack:
 the helper is one function with one source order, and the siblings that matched
@@ -107650,7 +107650,7 @@ anything else.
 
 ### `s16` vs `s32` on an abs'd 12-bit angle: one instruction or four
 
-`ang = Actor401800_NormalizeYaw(...); if (ang < 0) ang = -ang; if (ang < 0x20)`
+`ang = actorNormalizeYaw(...); if (ang < 0) ang = -ang; if (ang < 0x20)`
 with `ang` declared `s16` re-truncates the negated value:
 
 ```
@@ -107924,8 +107924,8 @@ the head twice, once with a `-0xC` value.
 
 The fix is to write the helper back out as the twin has it, as its own
 `static __inline__` with the twin's statement order and its 3-field
-`...RangeScratch` struct (both `Actor01900_OutOfRange` and
-`Actor401300_OutOfRange` are the same body; ours is `Actor401000_OutOfRange`),
+`...RangeScratch` struct (both `actorOutOfRange` and
+`actorOutOfRange` are the same body; ours is `actorOutOfRange`),
 and to read the predicate straight from it — the seed's `(a + b) < c` is
 already the helper's `a + b >= c` negated by the `if (!...)`, not an m2c
 inversion to work around. Transporting the 401300 twin's source with this
@@ -108090,7 +108090,7 @@ sign-extension, but turns the store into `li v0,0xff88`; declaring it `s16` fixe
 
 ```c
 work->field_C0C                                        /* lh  */;
-Actor401000_MoveForwardNonzero(coord, (u16)work->field_C0C)  /* lhu */;
+actorMoveForwardNonzero(coord, (u16)work->field_C0C)  /* lhu */;
 work->field_C0C = (s16)(u16)work->field_C0C / 2;             /* lhu + sll/sra + /2 bias */;
 ```
 
@@ -108157,8 +108157,8 @@ Inputs: `base_3.c` `09994bd5ea83966bbc12bfc85b0b848128705e2f840d0791363d99cb209c
 catch is that the family carries **two** helpers with that body:
 
 ```c
-static __inline__ void Actor401000_MoveForward(GsCOORDINATE2* coord, s16 amount)   /* plain */
-static __inline__ void Actor401000_MoveForwardNonzero(GsCOORDINATE2* coord, s16 amount)
+static __inline__ void actorMoveForward(GsCOORDINATE2* coord, s16 amount)   /* plain */
+static __inline__ void actorMoveForwardNonzero(GsCOORDINATE2* coord, s16 amount)
 ```
 
 The `Nonzero` variant (the only one 401000 had, added when
@@ -108183,7 +108183,7 @@ destination are both `$s`. Two reads isolate it fast:
   not a copy of it.
 
 Replacing the call with the plain `MoveForward` (identical to
-`Actor401300_MoveForward` at `src/actors/actor_401300/actor_401300.c:1765`, and
+`actorMoveForward` at `src/actors/actor_401300/actor_401300.c:1765`, and
 already present in the 401300 twin's use at `:2197`) scored 100.000% with all six
 penalties zero. The general rule: when a family has `X` and `XNonzero` (or any
 pair of a plain helper and a guarded one), do not reach for the variant the
@@ -108259,7 +108259,7 @@ shape / 0.97 fields / 0.95 calls). The m2c seed scored 80.62 with `regs=41
 insert=17 delete=17 branch=6`, and `.diagnosis.json` showed the candidate at 17
 blocks against the ROM's 16 — the flattened-helper symptom again. Writing the
 body out of the twin's four `static __inline__` helpers unchanged
-(`Actor401000_PositionYaw`, `_ConfigPositionDelta`, `_NormalizeYaw`,
+(`actorPositionYaw`, `_ConfigPositionDelta`, `_NormalizeYaw`,
 `_RescaleYaw`) scored **100.000 with every penalty zero on the first
 restructured build**.
 
@@ -108294,9 +108294,9 @@ forward-declare the helper and leave the definition where it is — compiles
 without a warning and silently loses the inline:
 
 ```c
-static __inline__ s32 Actor401000_OutOfRange(SVECTOR* d, s16 r);         /* declaration only */
-void func_actor_401000_80138F50(Actor401000* arg0) { ... Actor401000_OutOfRange(d, r) ... }
-static __inline__ s32 Actor401000_OutOfRange(SVECTOR* d, s16 r) { ... }  /* below the caller */
+static __inline__ s32 actorOutOfRange(SVECTOR* d, s16 r);         /* declaration only */
+void func_actor_401000_80138F50(Actor401000* arg0) { ... actorOutOfRange(d, r) ... }
+static __inline__ s32 actorOutOfRange(SVECTOR* d, s16 r) { ... }  /* below the caller */
 ```
 
 The object then carries `jal .text+0x102` to an out-of-line copy of the helper
@@ -108552,7 +108552,7 @@ arithmetic rather than structural — the scratch `target.o` matches, the linked
 image does not:
 
 ```
-build/USA/src/.../actor_401000.c.s   jal   Actor401000_OutOfRange   <- should be the 31-insn inline
+build/USA/src/.../actor_401000.c.s   jal   actorOutOfRange   <- should be the 31-insn inline
 .map  pristine  func_actor_401000_801374D4  0x801374d4
 .map  rebuilt   func_actor_401000_801374D4  0x80137458   (-0x7C, the missing inline)
 ```
@@ -108693,7 +108693,7 @@ Three things made it one-shot:
    *is* the target's allocation, so its declarations are the cheapest oracle.
 
 2. **Use the *host* overlay's inline helpers, not the twin's.** The 401300 side
-   names them `Actor401300_ConfigPositionDelta` / `_NormalizeYaw` / `_RescaleYaw` /
+   names them `actorConfigPositionDelta` / `_NormalizeYaw` / `_RescaleYaw` /
    `_OutOfRange` / `_MoveForward`; `src/actors/actor_401000/actor_401000.c` already
    carries the 401000 copies of all five, and they expand to the same RTL. The one
    place the two differ is the helper *boundary*, not the body: this target inlines
@@ -108707,7 +108707,7 @@ Three things made it one-shot:
    one you have.
 
 Where the twin stops helping is where a helper got *inlined differently*: the
-target's inlined `Actor401000_OutOfRange` stores `blk->r` before `blk->dz` and
+target's inlined `actorOutOfRange` stores `blk->r` before `blk->dz` and
 issues both `*G_SCRATCH_HEAD` stores after the three `mult`s, where the helper's
 literal source order is dx, dz, r, square, store-head. That is the scheduler
 moving independent store/load pairs around a `static __inline__` body, not a
@@ -110341,7 +110341,7 @@ shared; `get_label_before` then reuses the if/else's own join label.
 
 The source that produces this is a `static __inline__` helper called from both
 arms — the same idiom this overlay family already uses for the uniform-scale
-twin (`Actor401300_RescaleYaw`, `ActorsShared80135a60`), with the per-axis
+twin (`actorRescaleYaw`, `ActorsShared80135a60`), with the per-axis
 factor as an `s16` parameter:
 
     if (t < 0x1000) {
@@ -111864,7 +111864,7 @@ constant in `$v1`. That block was the *only* difference in the whole function.
 **Cause.** Both helpers that produce this block inline to byte-identical assembly
 in the functions they were written for — `Actor00100_OutsideRadius`
 (`include/actors/actor_400100_motion.h`) in the 400100 shared bodies, and
-`Actor401300_OutOfRange` (local to `src/actors/actor_401300/actor_401300.c`) in
+`actorOutOfRange` (local to `src/actors/actor_401300/actor_401300.c`) in
 `func_actor_401300_80139520`. An inlined body cannot be recovered from its own
 output, so the two are interchangeable *as assembly* and not interchangeable *as
 RTL*: they differ in how many intermediate pseudos they create and in what order.
@@ -111878,7 +111878,7 @@ it, `G_SCRATCH_HEAD` armed after the first multiply) numbers the block pointer
 first.
 
 **Fix.** Give the overlay the 401300-shaped helper rather than reusing the 400100
-one. Naming it `Actor356100_OutOfRange` in the overlay's own
+one. Naming it `actorOutOfRange` in the overlay's own
 `include/actors/actor_356100.h` and calling it scored 100.00% with all penalties
 zero, first try; keeping `Actor00100_OutsideRadius` did not, across two attempts
 that fixed everything else. The two shared helpers are still untouched, so the
@@ -111946,7 +111946,7 @@ on a load is `lhu`.
 pos->vx = config->field_4->t[0] - coord->coord.t[0];
 ```
 
-`Actor401300_ConfigPositionDelta` / `Actor01900_ConfigPositionDelta` say the same
+`actorConfigPositionDelta` / `actorConfigPositionDelta` say the same
 thing and are matched bodies; `func_actor_401300_8013AE48` is the independent
 replication — same `lhu` pair, same offsets, same matched source line.
 
@@ -112811,7 +112811,7 @@ s32 range;                   /* second condition */
 ...
 diff  = aim->current - aim->target;
 if (ABS(diff) < 0x44 && ...) { ... }
-range = Actor356100_NormalizeYaw((u16)aim->current - (u16)aim->target);
+range = actorNormalizeYaw((u16)aim->current - (u16)aim->target);
 if (ABS(range) >= 0x201 && ...) { ... }
 ```
 
@@ -123884,7 +123884,7 @@ re-deriving it by hand is the obvious (wrong) move:
 
 It is `ActorsShared8014c874_MoveForward`, already a `static __inline__` in
 `include/actors/actors_shared_8014c874.h` (which names it as the same body as
-`Actor521100_MoveForward`), and the call reproduces the inline exactly - the
+`actorMoveForward`), and the call reproduces the inline exactly - the
 `gte_lddp(amount)` / `gte_ldsv(vec)` / `.word 0x4B98003D` / `gte_stsv(vec)`
 sequence, the two scratch-pad bumps around `Gfx_MatrixCol2` + `VectorNormalSS`,
 and the `coord->flg = 0` between the `t[1]` and `t[2]` adds. `gpf 1` is the
@@ -128953,7 +128953,7 @@ live_length`, 33 refs over 121 vs the enemy pointer's 20 over 178), so the work
 pointer takes `$s1` and the enemy pointer — dead by then — reuses `$s0`.
 
 **Fix.** Give the sequence its own `static __inline__` helper taking the pointer,
-the way the sibling `Actor123200_StepForward` / `Actor461800_MoveForward` are
+the way the sibling `Actor123200_StepForward` / `actorMoveModelForward` are
 written:
 
 ```c
@@ -134507,8 +134507,8 @@ An archived 93.071% seed used `while (p->sub != NULL && p != view)` followed
 by `if (p == view) copy_output();`. Its .loop dump rotated the parent check
 and hoisted address constants only past the initial null guard. The target
 instead exits immediately on a null parent and copies output only from the
-non-null view arm. Matched `Actor356100_TransformToView` and
-`Actor01900_TransformToView` supplied that nested-if/goto shape. Using it with
+non-null view arm. Matched `actorTransformToView` and
+`actorTransformToView` supplied that nested-if/goto shape. Using it with
 explicit output/vector address locals reached 98.878%; structural diagnostics
 changed from different to matching, the unconditional back edge reappeared,
 and the tail addresses became eligible for the switch delay slots. Equal block

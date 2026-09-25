@@ -20,25 +20,6 @@ typedef struct {
     s16 pad16;
 } Actor00100FacingScratch;
 
-static __inline__ s16 Actor00100_NormalizeYaw(s16 input)
-{
-    s16 value = input;
-    if (input < 0) {
-        while (1) {
-            if (value >= -0x800)
-                break;
-            value += 0x1000;
-        }
-    } else {
-        while (1) {
-            if (value <= 0x800)
-                break;
-            value -= 0x1000;
-        }
-    }
-    return value;
-}
-
 static __inline__ s16 Actor00100_FacingAway(GsCOORDINATE2* p)
 {
     s16 angle = ratan2(-p->coord.m[2][0], p->coord.m[2][2]);
@@ -54,23 +35,6 @@ static __inline__ s16 Actor00100_FacingAway(GsCOORDINATE2* p)
             return 1;
     }
     return 0;
-}
-
-static __inline__ void Actor00100_ConfigPositionDelta(PlayerStatus* config, GsCOORDINATE2* coord, SVECTOR* pos)
-{
-    pos->vx = config->coordMtx->t[0] - coord->coord.t[0];
-    pos->vy = config->coordMtx->t[1] - coord->coord.t[1];
-    pos->vz = config->coordMtx->t[2] - coord->coord.t[2];
-}
-
-static __inline__ s16 Actor00100_PositionYaw(Task* actor, SVECTOR* pos, PlayerStatus* config)
-{
-    GsCOORDINATE2* coord;
-    s32            angle;
-    Actor00100_ConfigPositionDelta(config, ((TmdObject*)actor->extra)->coords, pos);
-    coord = ((TmdObject*)actor->extra)->coords;
-    angle = ratan2(pos->vx, pos->vz);
-    return Actor00100_NormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
 }
 
 typedef struct {
