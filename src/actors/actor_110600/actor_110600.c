@@ -442,7 +442,7 @@ void func_actor_110600_80131FC0(GpCoord* coord, s16 yaw)
     actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
     func_8004BFF8(yaw, rotation);
     out = actorLocalizeRotation(coord, rotation);
-    __builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
+    memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->flg = 0;
     Gp_UpdateCoord(out);
     SCRATCH_POP(MATRIX);
@@ -947,7 +947,7 @@ void func_actor_110600_80133550(OverlayWalker* work, SVECTOR3* pos)
     if ((u16)work->field_5A == 0)
         s->angle = 0;
     s->angle += ratan2(-work->coord->coord.m[2][0], work->coord->coord.m[2][2]);
-    __builtin_memcpy(work->coord->coord.m, work->scaleMtx.m, sizeof(work->scaleMtx.m));
+    memcpy(work->coord->coord.m, work->scaleMtx.m, sizeof(work->scaleMtx.m));
     Gfx_RotMatrixY(&work->coord->coord, s->angle, 0);
     SCRATCH_POP_BYTES(0x1C);
 }

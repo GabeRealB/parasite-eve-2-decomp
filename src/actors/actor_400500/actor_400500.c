@@ -3541,7 +3541,7 @@ void func_actor_400500_8013771C(Task* arg0)
     }
     func_8004BFF8((s16)heading, mtx);
     func_actor_400500_8013B720(part, mtx);
-    __builtin_memcpy(&part->coord, mtx, 18);
+    memcpy(&part->coord, mtx, 18);
     part->flg = 0;
     Gp_UpdateCoord(part);
     SOFT_BARRIER();
@@ -3577,7 +3577,7 @@ void func_actor_400500_8013771C(Task* arg0)
     }
     func_8004BFF8((s16)heading2, mtx);
     func_actor_400500_8013B720(part, mtx);
-    __builtin_memcpy(&part->coord, mtx, 18);
+    memcpy(&part->coord, mtx, 18);
     part->flg = 0;
     Gp_UpdateCoord(part);
     scratch3                         = (SCRATCH_HEAD(MATRIX));
@@ -3728,7 +3728,7 @@ void func_actor_400500_80138088(Task* arg0)
     func_8004BFF8((s16)angle, matrix);
     func_actor_400500_8013B720(coord, matrix);
     dest = coord;
-    __builtin_memcpy(&dest->coord, matrix, 18);
+    memcpy(&dest->coord, matrix, 18);
     SOFT_TOUCH_REG_USE(dest, work);
     dest->flg = 0;
     Gp_UpdateCoord(dest);
@@ -3767,7 +3767,7 @@ void func_actor_400500_80138088(Task* arg0)
     func_8004BFF8((s16)angle, matrix);
     func_actor_400500_8013B720(coord, matrix);
     dest = coord;
-    __builtin_memcpy(&dest->coord, matrix, 18);
+    memcpy(&dest->coord, matrix, 18);
     SOFT_TOUCH_REG_USE(dest, work);
     dest->flg = 0;
     Gp_UpdateCoord(dest);

@@ -343,7 +343,7 @@ void Actor01900_Fn00260(GpCoord* coord, s16 yaw)
     actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
     func_8004BFF8(yaw, rotation);
     out = actorLocalizeRotation(coord, rotation);
-    __builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
+    memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->flg = 0;
     Gp_UpdateCoord(out);
     SCRATCH_POP(MATRIX);

@@ -845,7 +845,7 @@ void func_actor_323300_80163188(GpCoord* coord, s16 angle)
     func_8004BFF8(angle, rotation);
     RotMatrixX(angle / 2, rotation);
     out = actorLocalizeRotation(coord, rotation);
-    __builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
+    memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->flg = 0;
     Gp_UpdateCoord(out);
     SCRATCH_POP(MATRIX);
