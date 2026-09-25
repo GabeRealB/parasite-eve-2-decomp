@@ -717,10 +717,10 @@ void Gfx_NormalizeLightDir(VECTOR* light, SVECTOR* out)
     s32                        t_vz;
     s32                        t_sh2;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = (u8*)*scratch;
-    block    = (ScratchNormBlock*)(head - 0x18);
-    *scratch = block;
+    scratch                                    = SCRATCH_HEAD_ADDR;
+    head                                       = SCRATCH_HEAD_AT(scratch, u8);
+    block                                      = (ScratchNormBlock*)(head - 0x18);
+    SCRATCH_HEAD_AT(scratch, ScratchNormBlock) = block;
 
     *(VECTOR*)(head - 0x18) = *light;
 
@@ -784,22 +784,22 @@ void Gfx_OrthonormalBasis(MATRIX* out, SVECTOR* arg1, SVECTOR* arg2)
     register short    t5 asm("t5");
     register short    t6 asm("t6");
 
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = (u8*)*scratch;
+    scratch = SCRATCH_HEAD_ADDR;
+    head    = SCRATCH_HEAD_AT(scratch, u8);
     dest    = out;
 
     *(SVECTOR*)(head - 0x1A) = *arg2;
 
-    sv1      = (SVECTOR*)(head - 0x14);
-    tmp      = arg1->vx;
-    sv1->vx  = tmp;
-    mat      = (MATRIX*)(head - 0x20);
-    tmp      = arg1->vy;
-    sv1->vy  = tmp;
-    tmp      = arg1->vz;
-    head     = head - 0x1A;
-    *scratch = mat;
-    sv1->vz  = tmp;
+    sv1                              = (SVECTOR*)(head - 0x14);
+    tmp                              = arg1->vx;
+    sv1->vx                          = tmp;
+    mat                              = (MATRIX*)(head - 0x20);
+    tmp                              = arg1->vy;
+    sv1->vy                          = tmp;
+    tmp                              = arg1->vz;
+    head                             = head - 0x1A;
+    SCRATCH_HEAD_AT(scratch, MATRIX) = mat;
+    sv1->vz                          = tmp;
 
     gte_ldopv1SV(head);
     gte_ldopv2SV(sv1);

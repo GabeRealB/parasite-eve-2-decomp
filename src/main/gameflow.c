@@ -314,17 +314,17 @@ void Pad_TickEventBanks(PadState* arg0)
         void*          head;
         register void* alloc asm("v0");
 
-        scratch         = (void**)G_SCRATCH_HEAD;
-        p0              = &pad->events[0][0].field_0;
-        i               = 0;
-        one             = 1;
-        head            = *scratch;
-        p1              = &pad->events[0][0].field_1;
-        alloc           = (u8*)head - 4;
-        temp            = alloc;
-        *scratch        = alloc;
-        temp[1]         = 0;
-        ((u8*)head)[-4] = 0;
+        scratch                        = SCRATCH_HEAD_ADDR;
+        p0                             = &pad->events[0][0].field_0;
+        i                              = 0;
+        one                            = 1;
+        head                           = SCRATCH_HEAD_AT(scratch, void);
+        p1                             = &pad->events[0][0].field_1;
+        alloc                          = (u8*)head - 4;
+        temp                           = alloc;
+        SCRATCH_HEAD_AT(scratch, void) = alloc;
+        temp[1]                        = 0;
+        ((u8*)head)[-4]                = 0;
     }
 
     do {
@@ -525,15 +525,15 @@ void Pad_UpdatePort0(void)
     void**         head;
     register void* tmp asm("v0");
 
-    head    = (void**)G_SCRATCH_HEAD;
-    i       = 0;
-    ds      = &gDisplayState;
-    raw     = Pad_RawPorts;
-    offset  = i;
-    tmp     = *head;
-    tmp     = (u8*)tmp - 6;
-    scratch = tmp;
-    *head   = scratch;
+    head                              = SCRATCH_HEAD_ADDR;
+    i                                 = 0;
+    ds                                = &gDisplayState;
+    raw                               = Pad_RawPorts;
+    offset                            = i;
+    tmp                               = SCRATCH_HEAD_AT(head, void);
+    tmp                               = (u8*)tmp - 6;
+    scratch                           = tmp;
+    SCRATCH_HEAD_AT(head, PadScratch) = scratch;
 
     do {
         pad = (PadState*)((u8*)Pad_States + offset);
