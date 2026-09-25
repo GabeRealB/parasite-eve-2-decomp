@@ -651,10 +651,13 @@ extern u8 D_80063018[];
 extern u8 D_80063068[];
 extern u8 D_800630B0[];
 
-/// VLC / MDEC strip bases used by CdCmd_SetupMdecBuffers.
-extern u16*          D_8005C36C;
-extern u16*          D_8005C370;
-extern u16*          D_8005C374;
+/// Bases of three fixed 0x18000-byte work buffers. The movie player takes one
+/// as its VLC table and decode area, chunked file loads stream into them, and
+/// overlays borrow them for primitives and saved state, so the bytes have no
+/// single type and each user views them as its own.
+extern void*         D_8005C36C;
+extern void*         D_8005C370;
+extern void*         D_8005C374;
 extern u8*           Mdec_DecodeBase; // resolved decode base (Mdec_ResolveStreamBuffer)
 extern CdCmd58Entry* Stage_CdEntry;   // matched CdCmd_Queue.field_58 entry
 extern u16           D_8007A35C;

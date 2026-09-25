@@ -7,6 +7,7 @@
 #include "gte.h"
 
 #include "main/display.h"
+#include "main/fs.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
@@ -198,8 +199,6 @@ STATIC_ASSERT_SIZEOF(Actor361100RippleScratch, 0x4C);
 
 extern u8  D_801156F9;
 extern u8  D_801153F4;
-extern s32 D_8005C374;
-extern s32 D_8006D868;
 extern s32 D_8007107C;
 extern s32 D_8016069C;
 extern u8  D_80071090;
@@ -223,12 +222,6 @@ void func_801353D0(Actor361100EffectState* state, GsCOORDINATE2* coord);
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-
-/// Declared here rather than through `main/fs.h`, whose `u16*` view of
-/// `D_8005C374` conflicts with the byte offset this actor adds to it.
-void CdCmd_EnqueueOverlay81(void);
-void CdCmd_EnqueueReplaceOverlay82(void);
-void CdCmd_CancelReplaceAndActivate(void);
 
 void func_actor_361100_80161FF8(Task* arg0);
 void func_actor_361100_80162B18(Task* task);
@@ -289,7 +282,7 @@ void func_actor_361100_80161E3C(Task* arg0)
     if (D_8006D868 != -1) {
         streamLeft  = 0x18000 - D_8006D868;
         streamLeft &= ~7;
-        writePtr    = D_8005C374 + D_8006D868;
+        writePtr    = (s32)D_8005C374 + D_8006D868;
         if (arg0->state == 0) {
             state = memCalloc(sizeof(Actor361100EffectState), false);
             if (state == NULL) {
@@ -413,7 +406,7 @@ void func_actor_361100_80161FF8(Task* arg0)
     left    = 0x18000 - D_8006D868;
     left   &= -8;
     adj     = left - 0x18000;
-    ptr     = D_8005C374 - adj;
+    ptr     = (s32)D_8005C374 - adj;
     disp    = &gDisplayState;
     otBuf   = disp->otBuffer;
     mode    = 0;
