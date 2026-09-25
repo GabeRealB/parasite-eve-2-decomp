@@ -5,15 +5,18 @@
 
 #include "main/task.h"
 
-/// Overlay of `GsCOORDINATE2` at `TmdObject.coords`. `field_18` /
-/// `field_20` are the low 16 bits of `coord.t[0]` / `coord.t[2]` (world X/Z).
-typedef struct _GpCoordXZ {
+/// A `GsCOORDINATE2` seen through the low halves of its translation, so each
+/// world coordinate loads as an unsigned halfword.
+typedef struct _GpCoordPos {
     /* 0x00 */ byte pad_0[0x18];
-    /* 0x18 */ u16  field_18;
-    /* 0x1A */ byte pad_1A[6];
-    /* 0x20 */ u16  field_20;
-} GpCoordXZ;
-STATIC_ASSERT_SIZEOF(GpCoordXZ, 0x22);
+    /* 0x18 */ u16  x;
+    /* 0x1A */ byte pad_1A[2];
+    /* 0x1C */ u16  y;
+    /* 0x1E */ byte pad_1E[2];
+    /* 0x20 */ u16  z;
+    /* 0x22 */ byte pad_22[2];
+} GpCoordPos;
+STATIC_ASSERT_SIZEOF(GpCoordPos, 0x24);
 
 /// SVECTOR layout with unsigned X/Z so `Gp_YawToPosXZ` emits `lhu`.
 typedef struct _GpPosXZ {

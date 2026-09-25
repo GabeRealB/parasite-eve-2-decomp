@@ -3279,14 +3279,14 @@ void func_actor_400600_801387DC(Task* arg0, s32 arg1)
 /// actor's world XZ position, or 0 if none does.
 s32 func_actor_400600_8013886C(Task* arg0)
 {
-    GpCoordXZ*       coord;
+    GpCoordPos*      coord;
     Actor400600Zone* zone;
     s16              x;
     s16              z;
 
-    coord = (GpCoordXZ*)((TmdObject*)arg0->extra)->coords;
-    x     = coord->field_18;
-    z     = coord->field_20;
+    coord = (GpCoordPos*)((TmdObject*)arg0->extra)->coords;
+    x     = coord->x;
+    z     = coord->z;
     for (zone = D_actor_400600_80151B40; zone->id != -1; zone++) {
         if (zone->x <= x && x <= zone->x + zone->w && zone->z <= z && z <= zone->z + zone->h) {
             return zone->id;

@@ -145,13 +145,13 @@ void Gp_DirTaskState1(void)
 
 s32 Gp_YawToPosXZ(Task* arg0, GpPosXZ* arg1)
 {
-    SVECTOR    vec;
-    GpCoordXZ* coord;
+    SVECTOR     vec;
+    GpCoordPos* coord;
 
-    coord  = (GpCoordXZ*)((TmdObject*)arg0->extra)->coords;
-    vec.vx = arg1->vx - coord->field_18;
+    coord  = (GpCoordPos*)((TmdObject*)arg0->extra)->coords;
+    vec.vx = arg1->vx - coord->x;
     vec.vy = 0;
-    vec.vz = arg1->vz - coord->field_20;
+    vec.vz = arg1->vz - coord->z;
     VectorNormalSS(&vec, &vec);
     return ratan2(vec.vx, vec.vz) & 0xFFF;
 }

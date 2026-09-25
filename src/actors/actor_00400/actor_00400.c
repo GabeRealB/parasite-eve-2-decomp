@@ -14,6 +14,7 @@
 #include "main/task.h"
 
 #include "actors/actor.h"
+#include "gameplay/1A8.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/gameplay.h"
@@ -224,20 +225,6 @@ typedef struct Actor100400AreaConfig {
     /* 0x12 */ byte                pad_12[2];
 } Actor100400AreaConfig;
 STATIC_ASSERT_SIZEOF(Actor100400AreaConfig, 0x14);
-
-/// `GsCOORDINATE2.coord.t[]` seen as three unsigned halfwords, so the quad the
-/// spawn state builds around the actor loads each world coordinate with `lhu`.
-/// The same narrowing `GpCoordXZ` does for X and Z, extended to Y.
-typedef struct Actor100400CoordPos {
-    /* 0x00 */ byte pad_0[0x18];
-    /* 0x18 */ u16  x;
-    /* 0x1A */ byte pad_1A[2];
-    /* 0x1C */ u16  y;
-    /* 0x1E */ byte pad_1E[2];
-    /* 0x20 */ u16  z;
-    /* 0x22 */ byte pad_22[2];
-} Actor100400CoordPos;
-STATIC_ASSERT_SIZEOF(Actor100400CoordPos, 0x24);
 
 void       Actor00400_Fn005DC(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, s32 arg3);
 extern s32 D_80115738;
@@ -2001,7 +1988,7 @@ void Actor00400_Fn03920(Task* arg0)
     GpEnemy*             obj;
     Actor100400QuadWork* quad;
     GpEnemy*             quadOwner;
-    Actor100400CoordPos* pos;
+    GpCoordPos*          pos;
     GsCOORDINATE2*       coord;
     Task*                task;
     s32                  failed;
@@ -2066,7 +2053,7 @@ void Actor00400_Fn03920(Task* arg0)
             w->field_63A = 0;
             Gp_IncStateF0Ref(0);
             obj->hp   = (s16)obj->hpMax / 8;
-            pos       = (Actor100400CoordPos*)((TmdObject*)arg0->extra)->coords;
+            pos       = (GpCoordPos*)((TmdObject*)arg0->extra)->coords;
             quadOwner = arg0->spawnArg2;
             y         = pos->y;
             task      = Task_SpawnFromTable(&Actor00400_D16028, 2, 0, 0);

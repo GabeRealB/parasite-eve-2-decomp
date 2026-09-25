@@ -1278,9 +1278,9 @@ s32 func_actor_110600_801341A4(GsCOORDINATE2* coord, s16 range, s16 offset)
     s32      x;
 
     player = gameGetPtrSlot(3);
-    d.vx   = ((GpCoordXZ*)((TmdObject*)player->extra)->coords)->field_18 - ((GpCoordXZ*)coord)->field_18;
+    d.vx   = ((GpCoordPos*)((TmdObject*)player->extra)->coords)->x - ((GpCoordPos*)coord)->x;
     d.vy   = (u16)((TmdObject*)player->extra)->coords->coord.t[1] - (u16)coord->coord.t[1];
-    d.vz   = ((GpCoordXZ*)((TmdObject*)player->extra)->coords)->field_20 - ((GpCoordXZ*)coord)->field_20;
+    d.vz   = ((GpCoordPos*)((TmdObject*)player->extra)->coords)->z - ((GpCoordPos*)coord)->z;
     angle  = ratan2(d.vx, d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     if (angle < 0) {
     loop_neg:

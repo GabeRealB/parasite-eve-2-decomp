@@ -1903,9 +1903,9 @@ void func_actor_356100_801666B4(Task* arg0)
         /* Order matters: the vy store must follow the vx loads in RTL, or
            sched1 fills its anti-dependency chain from the earlier stores and
            hoists it above the D.z store. */
-        vec.vx = ((GpCoordXZ*)((TmdObject*)arg0->extra)->coords)->field_18 - ((GpCoordXZ*)((TmdObject*)player->extra)->coords)->field_18;
+        vec.vx = ((GpCoordPos*)((TmdObject*)arg0->extra)->coords)->x - ((GpCoordPos*)((TmdObject*)player->extra)->coords)->x;
         vec.vy = 0;
-        vec.vz = ((GpCoordXZ*)((TmdObject*)arg0->extra)->coords)->field_20 - ((GpCoordXZ*)((TmdObject*)player->extra)->coords)->field_20;
+        vec.vz = ((GpCoordPos*)((TmdObject*)arg0->extra)->coords)->z - ((GpCoordPos*)((TmdObject*)player->extra)->coords)->z;
         VectorNormalSS(vecp, vecp);
         gte_lddp(0x3E8);
         gte_ldsv(vecp);

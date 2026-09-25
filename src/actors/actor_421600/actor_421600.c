@@ -938,15 +938,15 @@ s32 func_actor_421600_80133334(GsCOORDINATE2* arg0)
         if (z < 0xC4E) {
             if (z >= -0xC4D) {
                 if ((0xD16 - x) > (x + 0xC4E)) {
-                    dx = -(((GpCoordXZ*)arg0)->field_18 + 0xCE4);
+                    dx = -(((GpCoordPos*)arg0)->x + 0xCE4);
                 } else {
-                    dx = 0xDAC - ((GpCoordXZ*)arg0)->field_18;
+                    dx = 0xDAC - ((GpCoordPos*)arg0)->x;
                 }
                 z2 = arg0->coord.t[2];
                 if ((0xC4E - z2) > (z2 + 0xC4E)) {
-                    dz = -(((GpCoordXZ*)arg0)->field_20 + 0xCE4);
+                    dz = -(((GpCoordPos*)arg0)->z + 0xCE4);
                 } else {
-                    dz = 0xCE4 - ((GpCoordXZ*)arg0)->field_20;
+                    dz = 0xCE4 - ((GpCoordPos*)arg0)->z;
                 }
                 adx = ABS(dx);
                 adz = ABS(dz);

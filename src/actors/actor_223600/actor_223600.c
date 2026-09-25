@@ -10,6 +10,7 @@
 #include "actors/actor.h"
 #include "actors/actors_shared_80135990.h"
 #include "actors/actors_shared_80135a60.h"
+#include "gameplay/1A8.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3FB8.h"
@@ -58,7 +59,7 @@ typedef struct Actor223600Work {
     /* 0x186 */ u16        field_186;
     /* 0x188 */ byte       pad_188[0xC];
     /// World X/Y/Z of the model's coordinate, narrowed to 16 bits as the spawn
-    /// handler samples them through `Actor223600CoordPos`.
+    /// handler samples them through `GpCoordPos`.
     /* 0x194 */ u16  field_194;
     /* 0x196 */ u16  field_196;
     /* 0x198 */ u16  field_198;
@@ -81,19 +82,6 @@ typedef struct Actor223600Work {
     /* 0x212 */ s16 field_212;
 } Actor223600Work;
 STATIC_ASSERT_SIZEOF(Actor223600Work, 0x214);
-
-/// `GsCOORDINATE2.coord.t[]` seen as three unsigned halfwords, so
-/// `func_actor_223600_8014B540` samples each world coordinate with `lhu`.
-typedef struct Actor223600CoordPos {
-    /* 0x00 */ byte pad_0[0x18];
-    /* 0x18 */ u16  x;
-    /* 0x1A */ byte pad_1A[2];
-    /* 0x1C */ u16  y;
-    /* 0x1E */ byte pad_1E[2];
-    /* 0x20 */ u16  z;
-    /* 0x22 */ byte pad_22[2];
-} Actor223600CoordPos;
-STATIC_ASSERT_SIZEOF(Actor223600CoordPos, 0x24);
 
 /// 0xC-byte scratch taken from `0x1F8003FC` by the approach state: the XZ
 /// offset from the model to its target, and the yaw step derived from it.
@@ -754,9 +742,9 @@ void func_actor_223600_8014B540(GpEnemy* enemy, Task* task)
         work->field_184 -= enemy->placeKey >> 13;
     }
 
-    work->field_194 = ((Actor223600CoordPos*)((TmdObject*)task->extra)->coords)->x;
-    work->field_196 = ((Actor223600CoordPos*)((TmdObject*)task->extra)->coords)->y;
-    work->field_198 = ((Actor223600CoordPos*)((TmdObject*)task->extra)->coords)->z;
+    work->field_194 = ((GpCoordPos*)((TmdObject*)task->extra)->coords)->x;
+    work->field_196 = ((GpCoordPos*)((TmdObject*)task->extra)->coords)->y;
+    work->field_198 = ((GpCoordPos*)((TmdObject*)task->extra)->coords)->z;
 
     Gfx_MatrixCol2(&((TmdObject*)task->extra)->coords->coord, &dir);
     dir.vy = 0;
@@ -822,11 +810,11 @@ void func_actor_223600_8014B840(GpEnemy* enemy, Task* task)
 
     work->field_6++;
     head                               = *(Actor223600Turn**)G_SCRATCH_HEAD;
-    head[-1].dx                        = work->field_19C - ((Actor223600CoordPos*)((TmdObject*)task->extra)->coords)->x;
+    head[-1].dx                        = work->field_19C - ((GpCoordPos*)((TmdObject*)task->extra)->coords)->x;
     *(Actor223600Turn**)G_SCRATCH_HEAD = head - 1;
     turn                               = head - 1;
     turn->dy                           = 0;
-    turn->dz                           = work->field_1A0 - ((Actor223600CoordPos*)((TmdObject*)task->extra)->coords)->z;
+    turn->dz                           = work->field_1A0 - ((GpCoordPos*)((TmdObject*)task->extra)->coords)->z;
 
     coord     = ((TmdObject*)task->extra)->coords;
     turn->yaw = actorNormalizeYaw(ratan2(head[-1].dx, turn->dz) -

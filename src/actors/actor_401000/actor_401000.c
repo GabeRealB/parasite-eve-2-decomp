@@ -454,9 +454,9 @@ s32 func_actor_401000_80132590(GsCOORDINATE2* coord, s16 range, s16 step)
     s32      x;
 
     player = gameGetPtrSlot(3);
-    d.vx   = ((GpCoordXZ*)((TmdObject*)player->extra)->coords)->field_18 - ((GpCoordXZ*)coord)->field_18;
+    d.vx   = ((GpCoordPos*)((TmdObject*)player->extra)->coords)->x - ((GpCoordPos*)coord)->x;
     d.vy   = (u16)((TmdObject*)player->extra)->coords->coord.t[1] - (u16)coord->coord.t[1];
-    d.vz   = ((GpCoordXZ*)((TmdObject*)player->extra)->coords)->field_20 - ((GpCoordXZ*)coord)->field_20;
+    d.vz   = ((GpCoordPos*)((TmdObject*)player->extra)->coords)->z - ((GpCoordPos*)coord)->z;
     angle  = ratan2(d.vx, d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     if (angle < 0) {
     loop_neg:
@@ -2452,9 +2452,9 @@ void func_actor_401000_801380B8(Task* arg0)
         msg->pos.vy = ((TmdObject*)player->extra)->coords->coord.t[1];
         msg->pos.vz = ((TmdObject*)player->extra)->coords->coord.t[2];
         pdir        = &dir;
-        dir.vx      = ((GpCoordXZ*)((TmdObject*)arg0->extra)->coords)->field_18 - ((GpCoordXZ*)((TmdObject*)player->extra)->coords)->field_18;
+        dir.vx      = ((GpCoordPos*)((TmdObject*)arg0->extra)->coords)->x - ((GpCoordPos*)((TmdObject*)player->extra)->coords)->x;
         dir.vy      = 0;
-        dir.vz      = ((GpCoordXZ*)((TmdObject*)arg0->extra)->coords)->field_20 - ((GpCoordXZ*)((TmdObject*)player->extra)->coords)->field_20;
+        dir.vz      = ((GpCoordPos*)((TmdObject*)arg0->extra)->coords)->z - ((GpCoordPos*)((TmdObject*)player->extra)->coords)->z;
         VectorNormalSS(pdir, pdir);
         gte_lddp(0x3E8);
         gte_ldsv(pdir);

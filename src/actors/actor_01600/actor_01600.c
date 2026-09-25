@@ -6,6 +6,7 @@
 #include "gte.h"
 
 #include "actors/actor.h"
+#include "gameplay/1A8.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
@@ -251,20 +252,6 @@ typedef struct Actor01600YawScratch {
     /* 0x10 */ MATRIX  mat;
 } Actor01600YawScratch;
 STATIC_ASSERT_SIZEOF(Actor01600YawScratch, 0x30);
-
-/// `GsCOORDINATE2.coord.t[]` seen as three unsigned halfwords, so
-/// `Actor01600_Fn052C4` loads each world coordinate with `lhu`. The same
-/// narrowing `GpCoordXZ` does for X and Z, extended to Y.
-typedef struct Actor01600CoordPos {
-    /* 0x00 */ byte pad_0[0x18];
-    /* 0x18 */ u16  x;
-    /* 0x1A */ byte pad_1A[2];
-    /* 0x1C */ u16  y;
-    /* 0x1E */ byte pad_1E[2];
-    /* 0x20 */ u16  z;
-    /* 0x22 */ byte pad_22[2];
-} Actor01600CoordPos;
-STATIC_ASSERT_SIZEOF(Actor01600CoordPos, 0x24);
 
 /// Index of the `Gp_ActorSlots` actor nearer to `arg0`, or 0 when slot 0 is
 /// empty (or slot 1 is at least as far). The distance is planar: the Y
@@ -3083,20 +3070,20 @@ u8 Actor01600_Fn04EB0(Task* arg0)
 
 s32 Actor01600_Fn052C4(Task* arg0)
 {
-    Actor01600CoordPos* coord;
-    Actor01600CoordPos* other;
-    SVECTOR             d;
-    s32                 dist;
+    GpCoordPos* coord;
+    GpCoordPos* other;
+    SVECTOR     d;
+    s32         dist;
 
-    coord = (Actor01600CoordPos*)((TmdObject*)arg0->extra)->coords;
+    coord = (GpCoordPos*)((TmdObject*)arg0->extra)->coords;
     if (Gp_ActorSlots[0] != NULL) {
-        other = (Actor01600CoordPos*)((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
+        other = (GpCoordPos*)((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
         d.vx  = other->x - coord->x;
         d.vy  = other->y - coord->y;
         d.vz  = other->z - coord->z;
         dist  = SquareRoot0((d.vx * d.vx) + (d.vz * d.vz));
         if (Gp_ActorSlots[1] != NULL) {
-            other = (Actor01600CoordPos*)((TmdObject*)Gp_ActorSlots[1]->extra)->coords;
+            other = (GpCoordPos*)((TmdObject*)Gp_ActorSlots[1]->extra)->coords;
             d.vx  = other->x - coord->x;
             d.vy  = other->y - coord->y;
             d.vz  = other->z - coord->z;

@@ -10,6 +10,7 @@
 #include "actors/actor.h"
 #include "actors/actors_shared_80135990.h"
 #include "actors/actors_shared_80135a60.h"
+#include "gameplay/1A8.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -62,7 +63,7 @@ typedef struct Actor123200Work {
     /* 0x19A */ u16        field_19A;
     /* 0x19C */ byte       pad_19C[0xC];
     /// World X/Y/Z of the model's coordinate, narrowed to 16 bits as the spawn
-    /// handler samples them through `Actor123200CoordPos`.
+    /// handler samples them through `GpCoordPos`.
     /* 0x1A8 */ u16    field_1A8;
     /* 0x1AA */ u16    field_1AA;
     /* 0x1AC */ u16    field_1AC;
@@ -83,20 +84,6 @@ typedef struct Actor123200Work {
     /* 0x222 */ byte pad_222[0xA];
 } Actor123200Work;
 STATIC_ASSERT_SIZEOF(Actor123200Work, 0x22C);
-
-/// `GsCOORDINATE2.coord.t[]` seen as three unsigned halfwords, so
-/// `func_actor_123200_8013352C` samples each world coordinate with `lhu`. The
-/// same narrowing `GpCoordXZ` does for X and Z, extended to Y.
-typedef struct Actor123200CoordPos {
-    /* 0x00 */ byte pad_0[0x18];
-    /* 0x18 */ u16  x;
-    /* 0x1A */ byte pad_1A[2];
-    /* 0x1C */ u16  y;
-    /* 0x1E */ byte pad_1E[2];
-    /* 0x20 */ u16  z;
-    /* 0x22 */ byte pad_22[2];
-} Actor123200CoordPos;
-STATIC_ASSERT_SIZEOF(Actor123200CoordPos, 0x24);
 
 /// Overlay-wide spawn record the spawn handler fills for the instance's own
 /// coordinate, with the 0x100 / 1 argument pair. Each overlay that spawns this
@@ -702,9 +689,9 @@ void func_actor_123200_8013352C(GpEnemy* enemy, Task* task)
         work->field_198 -= enemy->placeKey >> 13;
     }
 
-    work->field_1A8 = ((Actor123200CoordPos*)((TmdObject*)task->extra)->coords)->x;
-    work->field_1AA = ((Actor123200CoordPos*)((TmdObject*)task->extra)->coords)->y;
-    work->field_1AC = ((Actor123200CoordPos*)((TmdObject*)task->extra)->coords)->z;
+    work->field_1A8 = ((GpCoordPos*)((TmdObject*)task->extra)->coords)->x;
+    work->field_1AA = ((GpCoordPos*)((TmdObject*)task->extra)->coords)->y;
+    work->field_1AC = ((GpCoordPos*)((TmdObject*)task->extra)->coords)->z;
 
     Gfx_MatrixCol2(&((TmdObject*)task->extra)->coords->coord, &dir);
     dir.vy = 0;
