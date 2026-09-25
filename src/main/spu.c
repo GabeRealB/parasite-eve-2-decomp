@@ -612,6 +612,8 @@ u16 Spu_CalcVolume(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
             offset = hi << 1;
         }
     } while (0);
+    /* The table is indexed by a byte offset: shifting the index inside the
+     * branch is what the original does, and indexing `base` moves the shift. */
     lo = ((u32) * (u16*)((u8*)base + offset) * (u32)D_80068C78[lo]) >> 8;
     if ((lo & 0xFFFF) >= 0x4000) {
         lo = 0x3FFF;

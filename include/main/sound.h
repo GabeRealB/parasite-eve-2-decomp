@@ -461,8 +461,7 @@ typedef struct _MidiSong {
     /* 0x40 */ SndBank*        field_40;
     /* 0x44 */ SndBankGroup*   field_44;
     /* 0x48 */ SndNote*        field_48;
-    /* 0x4C */ MidiTrack       entries[1];
-    /* 0x88 */ u8              unknown_88[0x484 - 0x88];
+    /* 0x4C */ MidiTrack       entries[18];
     /* 0x484 */ MidiOpcodeSlot field_484[16];
     /* 0x504 */ MidiNoteSlot   voiceSlots[0x12];
 } MidiSong;
@@ -768,6 +767,7 @@ void* Midi_ResolveTrackData(MidiSong* arg0, s32 arg1, u8* arg2);
 void  Midi_ResetTrackFlags(MidiSong* arg0);
 void  Midi_KeyOffVoices(MidiSong* arg0);
 void  Midi_DriveTrack(MidiSong* arg0, MidiTrack* arg1);
+void  Midi_ClearVoiceEntry(MidiNoteSlot* slot);
 void  Midi_UpdateVoiceVolumes(MidiSong* arg0);
 u8*   Midi_Event1(s32 arg0, u8* arg1, MidiSong* arg2);
 void* SndLoad_AllocBuffer(s32 arg0, s32 arg1, u32 arg2);

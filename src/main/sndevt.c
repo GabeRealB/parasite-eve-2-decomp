@@ -273,7 +273,6 @@ s32 Midi_InitSequence(u8 arg0, u16 arg1)
     s32*       clearPtr;
     u8         sp10;
     u8*        trackPtr;
-    s32        offset;
     u8*        table;
     u8*        end;
     u8*        cur;
@@ -352,13 +351,11 @@ s32 Midi_InitSequence(u8 arg0, u16 arg1)
                     }
 
                     j             = 0;
-                    offset        = 0x504;
                     obj->field_C  = 0xFFFF;
                     obj->field_38 = 0;
                     do {
-                        Midi_ClearVoiceEntry((s32*)((u8*)obj + offset));
+                        Midi_ClearVoiceEntry(&obj->voiceSlots[j]);
                         j++;
-                        offset += 0xC;
                     } while ((s32)j < 0x12);
                 }
 
@@ -447,6 +444,9 @@ case_8:
 case_2:
     j = 0;
     if (obj->field_3 != 0) {
+        /* Walks the tracks with a byte offset and a separate byte cursor: indexing
+         * obj->entries builds the same three counters but allocates them in the
+         * other order. */
         off    = 0x4C;
         cursor = (u8*)obj;
         do {
@@ -722,20 +722,20 @@ void* Midi_GetFixedBuffer(s32 arg0, s32 arg1)
     return D_8007F8E0;
 }
 
-void Midi_ClearVoiceEntry(s32* arg0)
+void Midi_ClearVoiceEntry(MidiNoteSlot* slot)
 {
     u32  i;
     s32* ptr;
 
-    ptr = arg0;
+    ptr = (s32*)slot;
     i   = 0;
     do {
         *ptr = 0;
         i++;
         ptr++;
     } while (i < 3U);
-    ((s8*)arg0)[1] = -1;
-    ((s8*)arg0)[0] = -1;
+    slot->field_1 = -1;
+    slot->field_0 = -1;
 }
 
 void SndEvt_EnqueueType5Pending(void)
@@ -951,8 +951,8 @@ loop_inner:
         entry->field_2C = handler(status_arg, entry->field_2C, arg0, entry);
     } else {
         entry->field_2C =
-            (*(MidiHandler*)((u8*)table + 4))((entry->field_3 = 1, entry->field_2 | 0x90),
-                                              entry->field_2C - 1, arg0, entry);
+            (table[1])((entry->field_3 = 1, entry->field_2 | 0x90),
+                       entry->field_2C - 1, arg0, entry);
     }
     if (entry->field_5 != 0) {
         goto end;
@@ -1424,7 +1424,6 @@ u8* Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* arg2)
     SpuVoiceRef   sp10;
     register s32  channel asm("s4");
     s32           i;
-    s32           offset;
     s16           pitchBend;
     MidiNoteSlot* slot;
     SndNote*      note;
@@ -1436,11 +1435,10 @@ u8* Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* arg2)
 
     channel                          = arg0 & 0xF;
     i                                = 0;
-    offset                           = 0x504;
     pitchBend                        = (arg1[1] | (arg1[2] << 7)) - 0x2000;
     arg2->field_484[channel].field_6 = pitchBend;
     do {
-        slot = (MidiNoteSlot*)((u8*)arg2 + offset);
+        slot = &arg2->voiceSlots[i];
         if (slot->field_1 == channel) {
             Spu_GetVoiceRef(slot->field_0, &sp10);
             note = Snd_GetNote(arg2->field_40, slot->field_6, slot->field_7);
@@ -1459,8 +1457,7 @@ u8* Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* arg2)
                 Spu_CalcVolume(key, pitch, note->rootKey, note->rootFine);
             attr->mask |= SPU_VOICE_PITCH;
         }
-        i      += 1;
-        offset += 0xC;
+        i += 1;
     } while (i < 0x12);
     return arg1 + 3;
 }
@@ -1728,7 +1725,7 @@ s32 SndLoad_Complete(SndLoadState* arg0)
     s32          v0r;
     MidiSong*    state;
     s32          i;
-    s32*         ptr;
+    SndNote*     note;
     s32          base;
     s32          temp;
     s32          end;
@@ -1775,12 +1772,12 @@ block_success:
     temp            = (s32)((volatile SndBank*)s2)->notes;
     i               = i - 1;
     if (i != s1) {
-        end = -1;
-        ptr = (s32*)(temp + 0x10);
+        end  = -1;
+        note = (SndNote*)temp;
         do {
-            i    -= 1;
-            *ptr += base;
-            ptr   = (s32*)((u8*)ptr + 0x14);
+            i              -= 1;
+            note->waveAddr += base;
+            note++;
         } while (i != end);
     }
     Snd_BuildGroupIndex(state->field_40);
@@ -1898,7 +1895,7 @@ s32 SndBank_FinalizeLoad(SndLoadState* arg0)
     MidiSong* state;
     u16       index;
     s32       i;
-    s32*      ptr;
+    SndNote*  note;
     s32       base;
     s32       temp;
     s32       end;
@@ -1924,15 +1921,14 @@ success:
     state->field_3C = arg0->field_2C;
     i               = arg0->field_24;
     base            = ((volatile SndBank*)bank)->spuAddr;
-    ptr             = (s32*)((volatile SndBank*)bank)->notes;
+    note            = ((volatile SndBank*)bank)->notes;
     i               = i - 1;
     if (i != -1) {
         end = -1;
-        ptr = (s32*)((u8*)ptr + 0x10);
         do {
-            i    -= 1;
-            *ptr += base;
-            ptr   = (s32*)((u8*)ptr + 0x14);
+            i              -= 1;
+            note->waveAddr += base;
+            note++;
         } while (i != end);
     }
     Snd_BuildGroupIndex(state->field_40);
