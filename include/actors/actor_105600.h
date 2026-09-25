@@ -28,8 +28,10 @@ typedef struct Actor105600FxWork {
     /* 0xD0 */ GpRec18      recD0[1];
     /* 0xE8 */ s16          field_E8;
     /* 0xEA */ s16          field_EA;
-    /* 0xEC */ byte         pad_EC[2];
-    /* 0xEE */ s16          field_EE;
+    /// Teardown step: 0 unlinks the three bodies, 1 counts `field_E8` up to
+    /// the frame the task is destroyed on.
+    /* 0xEC */ s16 field_EC;
+    /* 0xEE */ s16 field_EE;
 } Actor105600FxWork;
 STATIC_ASSERT_SIZEOF(Actor105600FxWork, 0xF0);
 
@@ -128,7 +130,9 @@ typedef struct Actor105600Work {
     /* 0x6A4 */ s16  field_6A4; ///< yaw the actor wants to face
     /* 0x6A6 */ s16  field_6A6; ///< state-machine step, indexes the handler table
     /* 0x6A8 */ s16  field_6A8;
-    /* 0x6AA */ byte pad_6AA[2];
+    /// Picks the clip `Actor05600_Fn0485C` plays: 1 starts animation
+    /// 0x12, anything else 0x13.
+    /* 0x6AA */ s16 field_6AA;
     /// Awake variant the actor was placed in (bit 0 of the placement record's
     /// `mode`); non-zero starts it on the longer approach.
     /* 0x6AC */ s16  field_6AC;

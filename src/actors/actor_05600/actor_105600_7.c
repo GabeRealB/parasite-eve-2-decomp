@@ -1,8 +1,16 @@
 #include "common.h"
+
+#include <psyq/libgte.h>
+
 #include "gameplay/3A34.h"
 #include "main/mem.h"
 
-s32 Actor00300_Fn04B14(SVECTOR* arg0, SVECTOR* arg1)
+/// Tests the segment from `arg0` to `arg1` against the collision faces on the
+/// `D_80115550` list: the segment's direction is normalised in a 0x10-byte
+/// block carved off `G_SCRATCH_HEAD`, and every face with bit 0x40 of
+/// `field_3A` set is tested until one reports a hit. Returns 1 on a hit and
+/// the last test's result otherwise.
+s32 Actor05600_Fn045E4(SVECTOR* arg0, SVECTOR* arg1)
 {
     void**   scratch;
     u8*      head;

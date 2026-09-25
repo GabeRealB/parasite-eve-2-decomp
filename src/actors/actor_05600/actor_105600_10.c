@@ -1,15 +1,19 @@
 #include "common.h"
 
+#include "actors/actor_105600.h"
 #include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
+#include "main/task.h"
 
-#include "actors/actors_shared_80136a28.h"
-
-void ActorsShared80136a28(GpEnemy* arg0, Task* arg1)
+/// Teardown state of the effect child set up by `Actor05600_Fn031B0`: step 0
+/// unlinks its three collision bodies and restarts the frame counter, step 1
+/// destroys the child once 0x3D frames have passed.
+void Actor05600_Fn04C08(GpEnemy* arg0, Task* arg1)
 {
-    ActorsShared80136a28Work* work;
-    u16                       temp_v0;
+    Actor105600FxWork* work;
+    u16                temp_v0;
 
-    work = (ActorsShared80136a28Work*)arg1->work;
+    work = (Actor105600FxWork*)arg1->work;
     switch (work->field_EC) {
         case 0:
             Gp_UnlinkObj(&work->obj40);

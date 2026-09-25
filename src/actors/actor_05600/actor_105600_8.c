@@ -1,26 +1,19 @@
 #include "common.h"
-#include <psyq/inline_c.h>
-#include "actors/actor_105700.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
-#include "actors/actors_shared_80136c4c.h"
-#include "actors/actors_shared_8013587c.h"
-#include "actors/actors_shared_80136da0.h"
 
-void ActorsSharedFn03908(Actor105700* arg0)
+#include "actors/actor_105600.h"
+#include "gameplay/3A34.h"
+#include "main/task.h"
+
+/// Hit-reaction state, entry 8 of `Actor05600_D16540`: step 0 starts
+/// animation 0x11 and stops the actor; step 1 waits for frame 0x37, then parks
+/// on animation 2 (entry 2) or, with `field_6E0` set, on animation 0x14
+/// (entry 0xA).
+void Actor05600_Fn047D0(Task* task)
 {
-    Actor105700Work* work;
+    Actor105600Work* work;
     s16              state;
 
-    work  = arg0->field_1C;
+    work  = (Actor105600Work*)task->work;
     state = work->field_6A8;
     switch (state) {
         case 0:
@@ -45,13 +38,17 @@ void ActorsSharedFn03908(Actor105700* arg0)
     }
 }
 
-void ActorsShared80136c4c(Task* task)
+/// Entry 9 of `Actor05600_D16540`: step 0 starts animation 0x12 when
+/// `field_6AA` is 1 (step 1, waits for frame 0x50) and animation 0x13
+/// otherwise (step 2, waits for frame 0x3B); either way the actor stops, and
+/// it parks on animation 2 (entry 2) when done.
+void Actor05600_Fn0485C(Task* task)
 {
-    ActorsShared80136c4cWork* work;
-    s32                       state;
-    s32                       next;
+    Actor105600Work* work;
+    s32              state;
+    s32              next;
 
-    work  = (ActorsShared80136c4cWork*)task->work;
+    work  = (Actor105600Work*)task->work;
     state = work->field_6A8;
     switch (state) {
         case 0:
@@ -83,16 +80,16 @@ void ActorsShared80136c4c(Task* task)
     }
 }
 
-/// Per-frame tick. State 0 waits for `Gp_TickObjFlag2` on the spawn block to
-/// fire, then selects animation 0x13, clears `field_6E0` and advances to state
-/// 1. State 1 waits for `field_698` to reach 0x3B and drops back to state 0
-/// with animation 2.
-void ActorsShared8013587c(Task* task)
+/// Entry 0xA of `Actor05600_D16540`: step 0 waits for `Gp_TickObjFlag2` on
+/// the spawn context to fire, then starts animation 0x13 and clears
+/// `field_6E0`; step 1 waits for frame 0x3B and parks on animation 2
+/// (entry 2).
+void Actor05600_Fn04924(Task* task)
 {
-    ActorsShared8013587cWork* work;
-    s16                       state;
+    Actor105600Work* work;
+    s16              state;
 
-    work  = (ActorsShared8013587cWork*)task->work;
+    work  = (Actor105600Work*)task->work;
     state = work->field_6A8;
     switch (state) {
         case 0:
@@ -112,13 +109,17 @@ void ActorsShared8013587c(Task* task)
     }
 }
 
-void ActorsShared80136da0(Task* task)
+/// Entry 0xE of `Actor05600_D16540`: step 0 starts animation 0x17 when
+/// `field_6B8` is 1 (step 1, waits for frame 0x10) and animation 0x1B
+/// otherwise (step 2, waits for frame 0x16); when done the task advances to
+/// state 2.
+void Actor05600_Fn049B0(Task* task)
 {
-    ActorsShared80136da0Work* work;
-    s32                       sel;
-    s16                       state;
+    Actor105600Work* work;
+    s32              sel;
+    s16              state;
 
-    work  = (ActorsShared80136da0Work*)task->work;
+    work  = (Actor105600Work*)task->work;
     state = work->field_6A8;
     switch (state) {
         case 0:
