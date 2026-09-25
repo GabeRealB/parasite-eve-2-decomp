@@ -1,23 +1,26 @@
 #include "common.h"
 
-#include "actors/actors_shared_801344ac.h"
+#include "actors/actor_120500.h"
 #include "main/gameflow.h"
 #include "main/mem.h"
+#include "main/task.h"
 
-/// Fade-in task: on its first tick it allocates the 8-byte `r`/`g`/`b` block
-/// and seeds all three channels to 0xFF, then every frame it draws the fade
-/// overlay and steps each channel down by `Task::spawnArg1`.  With the channels
-/// starting saturated and `r` the one the end-of-fade test watches, the task
-/// kills itself once `r` has gone negative.
-void ActorsShared801344ac(Task* arg0)
+/// Fade from black, entry 1 of the actor's task table.
+///
+/// State 0 allocates the channel block and seeds all three channels at 0xFF;
+/// a failed allocation kills the task. State 1 runs every frame: it draws a
+/// subtractive `Fade_DrawOverlay` tinted `r`/`g`/`r` (`b` is stepped but never
+/// drawn), then lowers all three channels by `Task::spawnArg1`, the fade rate.
+/// Once `r` has gone negative the screen is clear and the task kills itself.
+void func_actor_120500_80132708(Task* arg0)
 {
-    ActorShared801344acWork* fade;
-    ActorShared801344acWork* alloc;
+    Actor120500FadeWork* fade;
+    Actor120500FadeWork* alloc;
 
-    fade = (ActorShared801344acWork*)arg0->work;
+    fade = (Actor120500FadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (ActorShared801344acWork*)Mem_Malloc(8, 0);
+            alloc      = (Actor120500FadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);

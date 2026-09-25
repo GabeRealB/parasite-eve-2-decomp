@@ -1,15 +1,15 @@
 #include "common.h"
 
-#include "actors/actors_shared_80133c6c.h"
-#include "gameplay/3CD8.h"
+#include "actors/actor_120500.h"
 #include "main/gfx.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// `ActorsShared8013411c` with the coordinate re-parented to the world frame
-/// first: `placement` becomes the task's `TmdObject` coordinate, with the three
-/// longs as the translation and the three shorts applied as yaw / pitch / roll.
-void ActorsShared80133c6c(Task* task, s32 arg1, ActorShared80133c6cPlacement* placement)
+/// Message 0x7D4 handler: places the task's model in the world. The model's
+/// coordinate is parented to the view coordinate, takes `placement`'s
+/// position as its translation and its rotation applied Y, then X, then Z.
+/// `arg1` is the message id.
+void func_actor_120500_80132A74(Task* task, s32 arg1, ActorShared8013411cPlacement* placement)
 {
     GsCOORDINATE2* coord;
     MATRIX*        mtx;

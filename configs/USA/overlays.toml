@@ -3804,10 +3804,10 @@ id = 94
 objects = [
   { kind = "packageId" },
   { unit = "actor_120500/actor_120500", rodata = "0x4", text = "0x38" },
-  { lib = true, unit = "actors_shared_801344ac", text = "0x8E8" },
-  { lib = true, unit = "actors_shared_80133b5c", text = "0x9C4" },
+  { unit = "actor_120500/actor_120500_3", text = "0x8E8" },
+  { unit = "actor_120500/actor_120500_4", text = "0x9C4" },
   { unit = "actor_120500/actor_120500_2", text = "0xAA0" },
-  { lib = true, unit = "actors_shared_80133c6c", text = "0xC54" },
+  { unit = "actor_120500/actor_120500_5", text = "0xC54" },
   { kind = "model", at = "0xCEC" },
   { kind = "data", at = "0x5830" },
 ]

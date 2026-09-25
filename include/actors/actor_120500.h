@@ -55,6 +55,17 @@ typedef struct Actor120500 {
 
 extern Actor120500* D_actor_120500_80138454;
 
+/// Channel block both fade tasks keep at `Task::work`, sized by their own
+/// `Mem_Malloc(8, 0)`: the three halfwords are the colour `Fade_DrawOverlay`
+/// draws. The leading halfword is never touched.
+typedef struct Actor120500FadeWork {
+    /* 0x0 */ byte pad_0[0x2];
+    /* 0x2 */ s16  r;
+    /* 0x4 */ s16  g;
+    /* 0x6 */ s16  b;
+} Actor120500FadeWork;
+STATIC_ASSERT_SIZEOF(Actor120500FadeWork, 0x8);
+
 /// Equipped-weapon id read by `func_actor_120500_8013241C`: `D_8007218A`
 /// selects the alternate weapon block, moving the animation index from `+1`
 /// to `+0x22`.
