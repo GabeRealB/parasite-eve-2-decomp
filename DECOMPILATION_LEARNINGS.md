@@ -140612,3 +140612,19 @@ use `coord` (combine then folds the copy into the argument), or uses the
 element pointer directly. The counter swaps (`i` in `$s1` where the target has
 the loop's pointer there) were a loop in its own inline helper, whose counter
 is a separate, lower-priority pseudo.
+
+## A value in `$a1` before `printf` is not an argument unless the format string asks for one (Title_MenuTask)
+
+The target computed `demoScene % 3 + 1` into `$a1` and stored it in the delay
+slot of `jal printf`, so the seed passed it as printf's second argument - and
+then needed `$a1`/`$v0` pins and a `+m` asm barrier, because a `u16` field read
+back as an argument is re-masked (`andi`) and a narrowed `%` result is widened
+before the `+1`. The format string was `"##########DEMO START\n"`, with no
+conversion: the call was `printf(msg)`, and the store is just
+`demoScene = demoScene % 3 + 1` whose temporary landed in the free `$a1`. Before
+matching a variadic call's extra arguments, read the format string's bytes in
+the rodata `.s`.
+
+Same function: a prim-pointer local shared by two sibling `if` blocks is one
+pseudo live in both, hence global, and loses the `$a0` that each block's
+block-scoped pointer gets from local-alloc; the seed had pinned it back.

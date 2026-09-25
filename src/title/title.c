@@ -102,230 +102,138 @@ void Title_DrawSpriteRow(s32 y, s32 v, s32 color)
     addPrim(gGpuCurrentOt, dr);
 }
 
-void Title_MenuTask(Task* arg0)
+void Title_MenuTask(Task* task)
 {
-    register Task*      s4 asm("s4");
-    register TitleWork* s3 asm("s3");
-    s32                 prev;
-    s32                 cur;
-    s32                 color;
-    s32                 fade;
-    DisplayState*       ds;
+    TitleWork* work = (TitleWork*)task->work;
+    s32        timer;
+    s32        i;
 
-    s4        = arg0;
-    s3        = (TitleWork*)s4->work;
-    prev      = s3->timer;
-    cur       = prev + 1;
-    s3->timer = cur;
+    timer       = work->timer + 1;
+    work->timer = timer;
+    if (timer >= 0x385) {
+        if (timer < 0x394) {
+            if (work->fadeTileEnable != 0) {
+                TILE*     tile;
+                DR_TPAGE* tpage;
 
-    if (cur < 0x385) {
-        goto normal;
-    }
-    if (cur >= 0x394) {
-        goto exit_path;
-    }
-    if (s3->fadeTileEnable != 0) {
-        /* 939C4-like free allocation for constant order; keep prev live as a1 */
-        register s32   a1 asm("a1");
-        register TILE* a0 asm("a0");
-        DR_TPAGE*      dr;
-        s32            c;
-        s32            h;
+                tile           = (TILE*)gGpuPrimCursor;
+                gGpuPrimCursor = tile + 1;
+                setlen(tile, 3);
+                setcode(tile, 0x60);
+                tile->r0 = tile->g0 = tile->b0 = (timer - 0x384) * 16 - 1;
+                tile->x0                       = -0xA0;
+                tile->y0                       = -0x78;
+                tile->w                        = 0x140;
+                tile->h                        = 0xF0;
+                setSemiTrans(tile, 1);
+                addPrim(gGpuCurrentOt, tile);
 
-        a1 = prev; /* pin after prologue so color uses $a1 */
-        h  = 0xF0;
-
-        a0             = (TILE*)gGpuPrimCursor;
-        gGpuPrimCursor = a0 + 1;
-        setlen(a0, 3);
-        setcode(a0, 0x60);
-        c      = a1 * 16;
-        c      = c - 0x3831;
-        a0->b0 = c;
-        a0->g0 = c;
-        a0->r0 = c;
-        a0->x0 = -0xA0;
-        a0->y0 = -0x78;
-        a0->w  = 0x140;
-        a0->h  = h;
-        setSemiTrans(a0, 1);
-        addPrim(gGpuCurrentOt, a0);
-
-        dr             = gGpuPrimCursor;
-        gGpuPrimCursor = dr + 1;
-        setlen(dr, 1);
-        /* Split like Title_DrawSpriteRow: lui 0xE100 / ori 0x240, after 0xFFFFFF */
-        dr->code[0] = 0xE1000000 | 0x240;
-        addPrim(gGpuCurrentOt, dr);
-    }
-    goto end;
-
-exit_path:
-    Wip_SysFlags.field_4 = 0;
-    if (Wip_SysFlags.field_0 == 1) {
-        CLOBBER_REG(a0);
-        Task_CallExit(s4);
-        {
-            register u32 v0 asm("v0");
-            v0 = GameMain_GetResetCount();
-            ds = &gDisplayState;
-            SOFT_TOUCH_REG2(v0, ds);
-            v0            = v0 + 2;
-            ds->demoScene = v0;
-            asm("" : "+r"(v0), "+m"(ds->demoScene));
-            {
-                register u32 a1 asm("a1");
-                a1            = v0 & 0xFFFF;
-                a1            = a1 % 3;
-                a1            = a1 + 1;
-                ds->demoScene = a1;
-                printf(Title_DemoStartMsg, a1);
+                tpage          = gGpuPrimCursor;
+                gGpuPrimCursor = tpage + 1;
+                setlen(tpage, 1);
+                tpage->code[0] = 0xE1000240;
+                addPrim(gGpuCurrentOt, tpage);
             }
-            Task_Spawn(0, 3, 2, 0);
-            ds->at100.flags.imageSource = 0;
+        } else {
+            Wip_SysFlags.field_4 = 0;
+            if (Wip_SysFlags.field_0 == 1) {
+                Task_CallExit(task);
+                gDisplayState.demoScene = GameMain_GetResetCount() + 2;
+                gDisplayState.demoScene = gDisplayState.demoScene % 3 + 1;
+                printf(Title_DemoStartMsg);
+                Task_Spawn(0, 3, 2, 0);
+                gDisplayState.at100.flags.imageSource = 0;
+            } else {
+                gDisplayState.gameMode = 1;
+            }
+        }
+        return;
+    }
+
+    if (work->fadeTileEnable != 0 && timer < 0) {
+        TILE*     tile;
+        DR_TPAGE* tpage;
+        s32       color;
+
+        tile           = (TILE*)gGpuPrimCursor;
+        gGpuPrimCursor = tile + 1;
+        setlen(tile, 3);
+        setcode(tile, 0x62);
+        color    = ~(work->timer << 4);
+        tile->x0 = -0xA0;
+        tile->y0 = -0x78;
+        tile->w  = 0x140;
+        tile->h  = 0xF0;
+        tile->b0 = color;
+        tile->g0 = color;
+        tile->r0 = color;
+        addPrim(gGpuCurrentOt, tile);
+
+        tpage          = gGpuPrimCursor;
+        gGpuPrimCursor = tpage + 1;
+        setlen(tpage, 1);
+        tpage->code[0] = 0xE1000240;
+        addPrim(gGpuCurrentOt, tpage);
+    }
+
+    if (task->state == 3) {
+        if (work->menuFade < 0x80) {
+            work->menuFade += 8;
+        }
+        for (i = 0; i < 3; i++) {
+            Title_DrawSpriteRow(i * 0xE + 0x38, i * 0x10 + 0x30, work->menuFade);
+        }
+        Title_DrawSpriteRow((work->selection - 2) * 0xE + 0x38, 0x20, work->menuFade);
+        Title_DrawSpriteRow(work->menuFade / 8 + 0x40, 0, 0x80 - work->menuFade);
+        Title_DrawSpriteRow(0x5C, 0x10, 0x80 - work->menuFade);
+        if (work->menuFade < 0x80) {
+            return;
+        }
+
+        if (Pad_CheckButtons(0, 1, 0x4000) != 0) {
+            work->timer = 0;
+            work->selection++;
+            SndEvt_EnqueueType6(2, 0, 0);
+            if (work->selection >= work->menuCount) {
+                work->selection -= work->menuCount;
+            }
+            if (work->selection == 0) {
+                work->selection = 1;
+            }
+            if (work->selection == 1) {
+                work->selection = 2;
+            }
+        } else if (Pad_CheckButtons(0, 1, 0x1000) != 0) {
+            work->timer = 0;
+            work->selection--;
+            SndEvt_EnqueueType6(2, 0, 0);
+            if (work->selection == 1) {
+                work->selection = 0;
+            }
+            if (work->selection == 0) {
+                work->selection = -1;
+            }
+            if (work->selection < 0) {
+                work->selection += work->menuCount;
+            }
+        } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | 0x800) != 0) {
+            SndEvt_EnqueueType6(3, 0, 0);
+            Task_Spawn(0, Title_MenuSpawnIds[work->selection], 0, 0);
+            gDisplayState.at100.flags.imageSource = 0;
+            Task_CallExit(task);
         }
     } else {
-        gDisplayState.gameMode = 1;
-    }
-    goto end;
-
-normal:
-    if (s3->fadeTileEnable != 0) {
-        if (cur < 0) {
-            TILE*     p;
-            DR_TPAGE* dr;
-            s32       tmp;
-
-            p              = (TILE*)gGpuPrimCursor;
-            gGpuPrimCursor = p + 1;
-            setlen(p, 3);
-            setcode(p, 0x62);
-            tmp   = s3->timer;
-            p->x0 = -0xA0;
-            p->y0 = -0x78;
-            p->w  = 0x140;
-            p->h  = 0xF0;
-            color = ~(tmp << 4);
-            p->b0 = color;
-            p->g0 = color;
-            p->r0 = color;
-            addPrim(gGpuCurrentOt, p);
-
-            dr             = gGpuPrimCursor;
-            gGpuPrimCursor = dr + 1;
-            setlen(dr, 1);
-            dr->code[0] = 0xE1000000 | 0x240;
-            addPrim(gGpuCurrentOt, dr);
+        if (work->logoFade < 0x80) {
+            work->logoFade += 8;
+        }
+        Title_DrawSpriteRow(0x40 - (0x80 - work->logoFade) / 8, 0, work->logoFade);
+        Title_DrawSpriteRow(0x5C, 0x10, 0x80);
+        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | 0x800) != 0) {
+            SndEvt_EnqueueType6(3, 0, 0);
+            work->timer = 0;
+            task->state++;
         }
     }
-
-    if (s4->state != 3) {
-        goto intro;
-    }
-
-    if (s3->menuFade < 0x80) {
-        s3->menuFade = s3->menuFade + 8;
-    }
-
-    {
-        register s32 s2 asm("s2");
-        register s32 s1 asm("s1");
-        register s32 s0 asm("s0");
-
-        s2 = 0;
-        s1 = 0x30;
-        s0 = 0x38;
-        do {
-            register s32 a0 asm("a0");
-            register s32 a1 asm("a1");
-            register s32 a2 asm("a2");
-            a0  = s0;
-            a1  = s1;
-            a2  = s3->menuFade;
-            s1 += 0x10;
-            s0 += 0xE;
-            SOFT_TOUCH_REG5(a0, a1, a2, s0, s1);
-            Title_DrawSpriteRow(a0, a1, a2);
-            s2 += 1;
-        } while (s2 < 3);
-    }
-
-    Title_DrawSpriteRow(((s3->selection - 2) * 0xE) + 0x38, 0x20, s3->menuFade);
-
-    {
-        s32 f = s3->menuFade;
-        s32 q = f;
-        if (q < 0) {
-            q += 7;
-        }
-        Title_DrawSpriteRow((q >> 3) + 0x40, 0, 0x80 - f);
-    }
-    Title_DrawSpriteRow(0x5C, 0x10, 0x80 - s3->menuFade);
-
-    if (s3->menuFade < 0x80) {
-        goto end;
-    }
-
-    if (Pad_CheckButtons(0, 1, 0x4000) != 0) {
-        s3->timer     = 0;
-        s3->selection = s3->selection + 1;
-        SndEvt_EnqueueType6(2, 0, 0);
-        if (s3->selection >= s3->menuCount) {
-            s3->selection = s3->selection - s3->menuCount;
-        }
-        if (s3->selection == 0) {
-            s3->selection = 1;
-        }
-        if (s3->selection == 1) {
-            s3->selection = 2;
-        }
-        goto end;
-    }
-
-    if (Pad_CheckButtons(0, 1, 0x1000) != 0) {
-        s3->timer     = 0;
-        s3->selection = s3->selection - 1;
-        SndEvt_EnqueueType6(2, 0, 0);
-        if (s3->selection == 1) {
-            s3->selection = 0;
-        }
-        if (s3->selection == 0) {
-            s3->selection = -1;
-        }
-        if (s3->selection < 0) {
-            s3->selection = s3->selection + s3->menuCount;
-        }
-        goto end;
-    }
-
-    if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | 0x800) != 0) {
-        SndEvt_EnqueueType6(3, 0, 0);
-        Task_Spawn(0, Title_MenuSpawnIds[s3->selection], 0, 0);
-        gDisplayState.at100.flags.imageSource = 0;
-        Task_CallExit(s4);
-    }
-    goto end;
-
-intro:
-    if (s3->logoFade < 0x80) {
-        s3->logoFade = s3->logoFade + 8;
-    }
-    fade = s3->logoFade;
-    {
-        s32 q = 0x80 - fade;
-        if (q < 0) {
-            q += 7;
-        }
-        Title_DrawSpriteRow(0x40 - (q >> 3), 0, fade);
-    }
-    Title_DrawSpriteRow(0x5C, 0x10, 0x80);
-    if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | 0x800) != 0) {
-        SndEvt_EnqueueType6(3, 0, 0);
-        s3->timer = 0;
-        s4->state = s4->state + 1;
-    }
-end:
-    return;
 }
 
 /// Restore demo card / save banks from D_8005C374 (or 0x80600100 when
