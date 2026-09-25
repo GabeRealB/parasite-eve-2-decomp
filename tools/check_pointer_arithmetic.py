@@ -151,6 +151,35 @@ def strip_asm(text):
         i = j
 
 
+def strip_stmt_expr(text):
+    """Replace GNU statement expressions `({ ... })` with `0`.
+
+    pycparser cannot parse them; what they compute is not a field access the
+    check looks for, and the surrounding code then parses. Newlines inside are
+    kept so line numbers stay right.
+    """
+    out, i = [], 0
+    while True:
+        j = text.find("({", i)
+        if j < 0:
+            out.append(text[i:])
+            return "".join(out)
+        out.append(text[i:j])
+        depth, k = 0, j
+        while k < len(text):
+            c = text[k]
+            if c in "({[":
+                depth += 1
+            elif c in ")}]":
+                depth -= 1
+                if depth == 0:
+                    k += 1
+                    break
+            k += 1
+        out.append("0" + "\n" * text.count("\n", j, k))
+        i = k
+
+
 def preprocess_file(filename, cpp_path="gcc", cpp_args=""):
     """
     Preprocess a C file for parsing.
@@ -198,7 +227,7 @@ def preprocess_file(filename, cpp_path="gcc", cpp_args=""):
         text = subprocess.run(
             [cpp_path, *cpp_args_list, filename], capture_output=True, text=True, check=True
         ).stdout
-        return c_parser.CParser().parse(strip_asm(text), filename)
+        return c_parser.CParser().parse(strip_stmt_expr(strip_asm(text)), filename)
     except subprocess.CalledProcessError as e:
         print(f"Warning: Could not preprocess {filename}: {e.stderr.strip()[:200]}", file=sys.stderr)
         return None
