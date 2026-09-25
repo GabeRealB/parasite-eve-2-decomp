@@ -8,12 +8,11 @@
 
 #include "actors/actor_150400.h"
 
-void ActorsShared8013242c(Task* task);
-
-/// Refreshes the model root's coordinate, feeds its world translation (raised
-/// by 800 on y) to `func_800D7A9C`, then ticks the animation state and draws
-/// the ground shadow.
-void ActorsShared80131e24Sub1(GpEnemy* enemy, Task* task)
+/// State-1 handler of the actor's task, run every frame: refreshes the model
+/// root's coordinate, feeds its world translation (raised by 800 on y) to
+/// `func_800D7A9C`, then runs the animation step body and draws the ground
+/// shadow.
+void func_actor_150400_80132434(GpEnemy* enemy, Task* task)
 {
     TmdObject*     obj;
     GsCOORDINATE2* coord;
@@ -26,6 +25,6 @@ void ActorsShared80131e24Sub1(GpEnemy* enemy, Task* task)
     pos.vy = coord->workm.t[1] - 800;
     pos.vz = coord->workm.t[2];
     func_800D7A9C(obj, &pos, 0, 3);
-    ActorsShared80132a1c(task);
-    ActorsShared8013242c(task);
+    func_actor_150400_80132228(task);
+    func_actor_150400_801324E0(task);
 }

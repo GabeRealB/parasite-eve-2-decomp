@@ -8,19 +8,24 @@
 #include "gameplay/1BC.h"
 #include "main/task.h"
 
-/// Work block this overlay hangs off its task's `Task::work` slot (0x1C),
-/// which is not a `TaskIdMap` here. `ActorsShared80131e24Sub0` allocates it
-/// with `memCalloc(0x4C0, 0)`, and the size below is that allocation.
+/// Work block the actor hangs off its task's `Task::work` slot, which is not a
+/// `TaskIdMap` here. The spawn handler `func_actor_150400_80132014` allocates it
+/// and fills it in.
 ///
-/// `state` drives `ActorsShared80132a1c`: 1 starts the animation through
-/// `ActorsShared80132640`, 2 through `ActorsShared801325c8`, and both then
-/// advance it to 3. `animId` is the clip to play and `animArg` the extra
-/// argument `ActorsShared80132640` forwards to `func_800B4114`; they are the
-/// same two fields `ActorsShared80132640Work` names `field_480` / `field_4B4`.
+/// `light` and `color` are the matrices the actor's model and its sub-model are
+/// drawn under; `anim`, `slots` and the buffer at `field_34C` are what
+/// `func_800B3F84` fills in.
 ///
-/// The leading matrices are the ones the actor renders through — the overlay's
-/// spawn handler hands `&light` and `&color` to the object's `field_1C` /
-/// `field_20` — and `anim` / `slots` are what `func_800B3F84` fills in.
+/// `state` drives the step body `func_actor_150400_80132228`: 1 reseeds the
+/// animation slots with `animId` and `animArg`, 2 resets them to `animId`
+/// without the argument, and both then advance it to 3, which walks off
+/// `travel` while clip 4 plays and ticks the slots. Either reseed records the
+/// clip it applied in `appliedAnimId`. `yaw` caches the heading the placement
+/// and walk-to opcodes last gave the root coordinate.
+///
+/// `field_4B8` is the sub-model task the spawn handler starts and parents under
+/// this one; the visibility opcode drives its model alongside the actor's own.
+/// `field_4BC` is the actor's `GpEnemy`.
 typedef struct Actor150400Work {
     /* 0x000 */ MATRIX     light;
     /* 0x020 */ MATRIX     color;
@@ -29,11 +34,14 @@ typedef struct Actor150400Work {
     /* 0x34C */ byte       field_34C;
     /* 0x34D */ byte       pad_34D[0x12F];
     /* 0x47C */ s16        state;
-    /* 0x47E */ byte       pad_47E[0x2];
-    /* 0x480 */ u16        animId;
+    /* 0x47E */ s16        appliedAnimId;
+    /* 0x480 */ s16        animId;
     /* 0x482 */ s16        field_482;
-    /* 0x484 */ byte       pad_484[0x30];
-    /* 0x4B4 */ u16        animArg;
+    /* 0x484 */ byte       pad_484[0x2A];
+    /* 0x4AE */ u16        yaw;
+    /* 0x4B0 */ byte       pad_4B0[0x2];
+    /* 0x4B2 */ s16        travel;
+    /* 0x4B4 */ s16        animArg;
     /* 0x4B6 */ byte       pad_4B6[0x2];
     /* 0x4B8 */ Task*      field_4B8;
     /* 0x4BC */ GpEnemy*   field_4BC;
@@ -49,7 +57,27 @@ typedef struct Actor150400AnimArgs {
     /* 0xC */ u16  animArg;
 } Actor150400AnimArgs;
 
-void ActorsShared80132a1c(Task* task);
+/// Argument block of the placement opcode: a world translation followed by
+/// Euler angles, of which only the yaw (`rot.vy`) is read.
+typedef struct Actor150400Placement {
+    /* 0x00 */ VECTOR  pos;
+    /* 0x10 */ SVECTOR rot;
+} Actor150400Placement;
+
+/// Argument block of the walk-to opcode: the world position to walk to. Only
+/// the horizontal components are read.
+typedef struct Actor150400WalkTarget {
+    /* 0x00 */ VECTOR pos;
+} Actor150400WalkTarget;
+
+void func_actor_150400_80132014(GpEnemy* enemy, Task* task);
+void func_actor_150400_80132228(Task* task);
+void func_actor_150400_80132434(GpEnemy* enemy, Task* task);
+void func_actor_150400_801324B8(Task* task);
+void func_actor_150400_801324E0(Task* task);
+void func_actor_150400_8013257C(Task* task);
+void func_actor_150400_801325C8(Task* task);
+void func_actor_150400_80132640(Task* task);
 
 s32 func_actor_150400_801326A4(Task* task, s32 arg1, Actor150400AnimArgs* args);
 

@@ -13,7 +13,6 @@
 #include "gameplay/D4.h"
 
 #include "actors/actor_150400.h"
-#include "actors/actors_shared_801366fc.h"
 
 extern TaskDesc D_actor_150400_80132CF0;
 extern TaskDesc D_80181BBC;
@@ -99,9 +98,10 @@ void func_actor_150400_80131FB8(void)
     D_actor_150400_8013C928 = Task_SpawnFromTable(&D_actor_150400_80132CF0, 0, 2, 0);
 }
 
-/// Spawn handler shared with the other `ActorsShared80131f9c` overlays: builds
-/// the actor's work block, starts the animation and hands the state machine to
-/// `ActorsShared80132a1c`.
+/// State-0 handler of the actor's task: allocates the work block, starts the
+/// sub-model task and parents it under this one, textures the sub-model from
+/// the placement record of the current area, then starts the animation in
+/// state 2 and runs the step body `func_actor_150400_80132228` once.
 ///
 /// Two codegen pins, both load-bearing. `key` lands at `vfp+0x10`, so `&key` is
 /// expensive enough that `expand_call` precomputes it; left alone CSE merges
@@ -113,7 +113,7 @@ void func_actor_150400_80131FB8(void)
 /// ROM keeps a short-lived copy for the `work` store, the NULL test and
 /// `field_4BC`, and a longer-lived one for everything after, which one variable
 /// cannot express.
-void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
+void func_actor_150400_80132014(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
     GpAreaKey        key;
@@ -133,14 +133,14 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
 
     obj        = task->extra;
     coord      = obj->coords;
-    mem        = (Actor150400Work*)memCalloc(0x4C0, false);
+    mem        = (Actor150400Work*)memCalloc(sizeof(Actor150400Work), false);
     work       = (Actor150400Work*)mem;
     task->work = (TaskIdMap*)mem;
     if (mem == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback   = ActorsShared801366fc;
+    task->exitCallback   = func_actor_150400_801324B8;
     coord->sub           = &gGfxViewCoord;
     enemy->field_4       = &coord->coord;
     enemy->field_48      = 0;
@@ -186,6 +186,6 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     work->animId   = 1;
     work->state    = 2;
     task->msgTable = D_actor_150400_8013C8C4;
-    ActorsShared80132a1c(task);
+    func_actor_150400_80132228(task);
     task->state++;
 }
