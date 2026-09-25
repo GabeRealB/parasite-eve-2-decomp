@@ -4061,6 +4061,87 @@ void Gp_AimYawToLock(Task* arg0, s32 arg1)
     SCRATCH_POP(GpYawScratch);
 }
 
+/// Places `block->coord` at the offset and rotation `rot` from `src`.
+static inline void _gpAimPitchPlace(GpPitchScratch* block, GpCoord* src, GpAimRot* rot)
+{
+    block->rot.vx = rot->vx;
+    block->rot.vy = rot->vy;
+    block->rot.vz = rot->vz;
+    Gp_PlaceCoordOffset(src, &block->coord, &block->rot);
+}
+
+/// Stores the lock target's position relative to `block->coord` in
+/// `block->delta` and returns the length of that offset in the ground plane.
+static inline s32 _gpAimPitchLockDelta(GameActor* actor, GpPitchScratch* block)
+{
+    VECTOR3* lock;
+    VECTOR3* delta;
+    s32      dx;
+    s32      dz;
+
+    lock = &block->lock;
+    Gp_GetLockPos(actor->field_90C, lock);
+    delta     = &block->delta;
+    delta->vx = lock->vx - block->coord.coord.t[0];
+    delta->vy = lock->vy - block->coord.coord.t[1];
+    delta->vz = lock->vz - block->coord.coord.t[2];
+    dx        = block->delta.vx;
+    dx        = ABS(dx);
+    dx        = dx * dx;
+    dz        = block->delta.vz;
+    dz        = ABS(dz);
+    dz        = dz * dz;
+    return SquareRoot0(dx + dz);
+}
+
+void Gp_AimPitchToLock(Task* arg0)
+{
+    u8*             head;
+    GameActor*      actor;
+    GpPitchScratch* block;
+    GpCoord*        src;
+
+    head             = SCRATCH_HEAD(u8);
+    actor            = arg0->work;
+    SCRATCH_HEAD(u8) = head - sizeof(GpPitchScratch);
+    block            = (GpPitchScratch*)(head - sizeof(GpPitchScratch));
+    if (actor->field_90C != NULL) {
+        src           = arg0->extra.tmd->coords;
+        block->rot.vx = 0;
+        block->rot.vy = -0x400;
+        block->rot.vz = 0;
+        Gp_PlaceCoordOffset(&src[2], &block->coord, &block->rot);
+        block->dist       = _gpAimPitchLockDelta(actor, block);
+        block->delta.vy >>= 1;
+        block->angle      = ratan2(-block->delta.vy, block->dist) / 7 * 4;
+        block->angle     -= actor->field_58;
+        if (block->angle > 0x30) {
+            block->angle = 0x30;
+        } else if (block->angle < -0x30) {
+            block->angle = -0x30;
+        }
+        if (ABS(actor->field_58 + block->angle) <= 0x120) {
+            actor->field_58 += block->angle;
+            actor->field_5C  = (actor->field_58 / 5) * 3;
+        }
+
+        _gpAimPitchPlace(block, actor->field_91C->extra.tmd->coords, &D_801131B4[Player_Status.weapon]);
+        block->dist   = _gpAimPitchLockDelta(actor, block);
+        block->angle  = ratan2(-block->delta.vy, block->dist) / 7 * 4;
+        block->angle -= actor->field_60;
+        if (block->angle > 0x30) {
+            block->angle = 0x30;
+        } else if (block->angle < -0x30) {
+            block->angle = -0x30;
+        }
+        if (ABS(actor->field_60 + block->angle) <= 0x100) {
+            actor->field_60 += block->angle;
+            actor->field_64  = (actor->field_60 / 5) * 2;
+        }
+    }
+    SCRATCH_POP(GpPitchScratch);
+}
+
 #define SCALE_PITCH(dst, src)        \
     do {                             \
         s32 _q;                      \
@@ -4079,118 +4160,6 @@ void Gp_AimYawToLock(Task* arg0, s32 arg1)
             : "=&r"(_q), "+r"(_x));  \
         (dst) = _q;                  \
     } while (0)
-
-void Gp_AimPitchToLock(Task* arg0)
-{
-    register void**   scratch asm("v0");
-    u8*               head;
-    register u8*      tmp asm("v1");
-    GameActor*        actor;
-    GpPitchScratch*   block;
-    register VECTOR3* lock asm("s0");
-    register VECTOR3* dest asm("a0");
-    GpCoord*          src;
-    GpAimRot*         tbl;
-    s32               item;
-    Task*             slot;
-    s32               val;
-    register s32      dz asm("a0");
-    s32               angle;
-    s32               dist;
-
-    scratch                      = SCRATCH_HEAD_ADDR;
-    head                         = SCRATCH_HEAD_AT(scratch, u8);
-    actor                        = arg0->work;
-    tmp                          = head - 0x84;
-    SCRATCH_HEAD_AT(scratch, u8) = tmp;
-    if (actor->field_90C != NULL) {
-        block = (GpPitchScratch*)tmp;
-        TOUCH_REG(block);
-        src           = arg0->extra.tmd->coords;
-        block->rot.vx = 0;
-        block->rot.vy = -0x400;
-        block->rot.vz = 0;
-        Gp_PlaceCoordOffset(&src[2], (GpCoord*)block, (SVECTOR*)(head - 0x14));
-        lock = (VECTOR3*)(head - 0x24);
-        Gp_GetLockPos(actor->field_90C, lock);
-        ((VECTOR3*)(head - 0x34))->vx =
-            ((VECTOR3*)(head - 0x24))->vx - ((GpCoord*)block)->coord.t[0];
-        dest            = (VECTOR3*)(head - 0x34);
-        dest->vy        = lock->vy - ((GpCoord*)block)->coord.t[1];
-        dest->vz        = lock->vz - ((GpCoord*)block)->coord.t[2];
-        val             = block->delta.vx;
-        val             = ABS(val);
-        val             = val * val;
-        dz              = block->delta.vz;
-        dz              = ABS(dz);
-        dz              = dz * dz;
-        val             = SquareRoot0(val + dz);
-        block->dist     = val;
-        val             = block->delta.vy >> 1;
-        block->delta.vy = val;
-        val             = ratan2(-val, block->dist);
-        SCALE_PITCH(block->angle, val);
-        angle        = block->angle - actor->field_58;
-        block->angle = angle;
-        if (angle >= 0x31) {
-            block->angle = 0x30;
-        } else if (angle < -0x30) {
-            block->angle = -0x30;
-        }
-        if (ABS(actor->field_58 + block->angle) < 0x121) {
-            actor->field_58 += block->angle;
-            actor->field_5C  = (s16)(actor->field_58 / 5) * 3;
-        }
-        item = Player_Status.weapon;
-        TOUCH_REG(item);
-        tbl = D_801131B4;
-        TOUCH_REG2(item, tbl);
-        slot = actor->field_91C;
-        TOUCH_REG_USE(item, slot);
-        item = (item << 3) + (s32)tbl;
-        {
-            register TmdObject* extra asm("a0");
-            u16                 vx;
-            extra = slot->extra.tmd;
-            TOUCH_REG(extra);
-            vx            = ((GpAimRot*)item)->vx;
-            src           = extra->coords;
-            block->rot.vx = vx;
-            block->rot.vy = ((GpAimRot*)item)->vy;
-            block->rot.vz = ((GpAimRot*)item)->vz;
-            Gp_PlaceCoordOffset(src, (GpCoord*)block, (SVECTOR*)&block->rot);
-        }
-        lock = &block->lock;
-        Gp_GetLockPos(actor->field_90C, lock);
-        block->delta.vx = block->lock.vx - ((GpCoord*)block)->coord.t[0];
-        dest            = &block->delta;
-        dest->vy        = lock->vy - ((GpCoord*)block)->coord.t[1];
-        dest->vz        = lock->vz - ((GpCoord*)block)->coord.t[2];
-        val             = block->delta.vx;
-        val             = ABS(val);
-        val             = val * val;
-        dz              = block->delta.vz;
-        dz              = ABS(dz);
-        dz              = dz * dz;
-        val             = SquareRoot0(val + dz);
-        dist            = val;
-        block->dist     = dist;
-        val             = ratan2(-block->delta.vy, dist);
-        SCALE_PITCH(block->angle, val);
-        angle        = block->angle - actor->field_60;
-        block->angle = angle;
-        if (angle >= 0x31) {
-            block->angle = 0x30;
-        } else if (angle < -0x30) {
-            block->angle = -0x30;
-        }
-        if (ABS(actor->field_60 + block->angle) < 0x101) {
-            actor->field_60 += block->angle;
-            actor->field_64  = (s16)(actor->field_60 / 5) * 2;
-        }
-    }
-    SCRATCH_POP_BYTES(0x84);
-}
 
 void Gp_AimPitchToLockAlt(Task* arg0)
 {

@@ -559,7 +559,7 @@ typedef struct _GpDashScratch {
 STATIC_ASSERT_SIZEOF(GpDashScratch, 0x2C);
 
 /// 0x84-byte scratch from `G_SCRATCH_HEAD` used by `Gp_AimPitchToLock`,
-/// `Gp_AimPitchToLockAlt`, `Gp_AimPitchRec`, and `Gp_AimPitchDirect`. The first 0x50 bytes are a
+/// `Gp_AimPitchToLockAlt`, `Gp_AimPitchRec`, and `Gp_AimPitchDirect`. `coord` is a
 /// temp `GpCoord`. `delta` is lock position minus that coord's
 /// translation; `lock` is `Gp_GetLockPos` output; `rot` is the
 /// `SVECTOR` passed to `Gp_PlaceCoordOffset` (zeros then table row in
@@ -570,16 +570,15 @@ STATIC_ASSERT_SIZEOF(GpDashScratch, 0x2C);
 /// `delta`. `Gp_AimPitchToLock` also derives `field_5C` / `field_64` from
 /// the updated `field_58` / `field_60` (`/ 5` scaled by 3 then 2).
 typedef struct _GpPitchScratch {
-    /* 0x00 */ byte     pad_0[0x50];
-    /* 0x50 */ VECTOR3  delta;
-    /* 0x5C */ s32      pad_5C;
-    /* 0x60 */ VECTOR3  lock;
-    /* 0x6C */ s32      pad_6C;
-    /* 0x70 */ SVECTOR3 rot;
-    /* 0x76 */ s16      pad_76;
-    /* 0x78 */ s32      angle;
-    /* 0x7C */ s32      dist;
-    /* 0x80 */ s32      pad_80;
+    /* 0x00 */ GpCoord coord;
+    /* 0x50 */ VECTOR3 delta;
+    /* 0x5C */ s32     pad_5C;
+    /* 0x60 */ VECTOR3 lock;
+    /* 0x6C */ s32     pad_6C;
+    /* 0x70 */ SVECTOR rot;
+    /* 0x78 */ s32     angle;
+    /* 0x7C */ s32     dist;
+    /* 0x80 */ s32     pad_80;
 } GpPitchScratch;
 STATIC_ASSERT_SIZEOF(GpPitchScratch, 0x84);
 
