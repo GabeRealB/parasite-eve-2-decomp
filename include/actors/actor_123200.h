@@ -34,7 +34,8 @@ typedef struct Actor123200Work {
     /* 0x174 */ s16        field_174;
     /* 0x176 */ u16        field_176;
     /* 0x178 */ s16        field_178;
-    /* 0x17A */ byte       pad_17A[0x4];
+    /* 0x17A */ s16        field_17A; // frames since the motion last restarted
+    /* 0x17C */ s16        field_17C; // frames since then with `field_58` bit 1 set
     /* 0x17E */ s16        field_17E;
     /* 0x180 */ byte       pad_180[0x14];
     /* 0x194 */ u8         field_194;
@@ -120,8 +121,8 @@ typedef union Actor123200Msg {
 } Actor123200Msg;
 STATIC_ASSERT_SIZEOF(Actor123200Msg, 0x4);
 
-/// Handler signature of the display table `D_actor_123200_80131E24`: the shared
-/// `ActorsShared80134178`, this overlay's per-frame step
+/// Handler signature of the display table `D_actor_123200_80131E24`: the idle
+/// state `func_actor_123200_80134178` and the per-frame steps
 /// `func_actor_123200_80133820` and `func_actor_123200_801339F0`.
 typedef void (*Actor123200StateFn)(Actor123200Ctx* arg0, Task* arg1);
 
@@ -132,6 +133,18 @@ typedef struct Actor123200StateTable {
 } Actor123200StateTable;
 
 extern Actor123200StateTable D_actor_123200_80131E24;
+
+/// The enemy's three task states -- spawn, per-frame tick and teardown -- which
+/// `func_actor_123200_801341A8` runs by `Task::state`.
+extern GpEnemyTaskFuncTable3 D_actor_123200_80131E30;
+
+/// Game mode word the tick switches on: 0 and 1 draw the ground quad while the
+/// display mode is non-zero, 2 hides the model.
+extern u8 D_801153F4;
+
+/// While this is 1, the push-out helpers return without moving anything and
+/// the forward step is skipped.
+extern u8 D_80072729;
 
 /// Per-frame tick: refreshes the model's coordinate and colour, scales the part
 /// matrix from `field_21C`, handles the render mode in `D_801153F4`, dispatches
@@ -153,14 +166,12 @@ s32 func_actor_123200_80133450(Actor123200Work* arg0);
 /// it otherwise.
 void func_actor_123200_8013352C(GpEnemy* enemy, Task* task);
 
-/// Display handler in the same message-table family as the shared
-/// `ActorsShared80164844` / `ActorsShared8013d268` bodies. `arg2` selects the
-/// mode: 0 hides the display object (`TmdObject.flags` bit 0x80), 1 clears
-/// `field_C` and so shows it, 2 sets bit 0x4, and 3 and 4 both clear `field_C`
-/// and then set bit 0x4. Modes 0 and 1 reinstate the object's buffers through
-/// `Tmd_AllocBuffers` and restart the work block's `field_0` at 1; modes 2, 3
-/// and 4 restart it at 0. `arg1` is unused; it exists because the dispatch
-/// passes three arguments.
+/// Message handler (id 0x7D5 in `D_actor_123200_80137214`). `arg2` selects the
+/// mode: 0 hides the model (`TmdObject.flags` bit 0x80), 1 clears its flags and
+/// so shows it, 2 sets bit 0x4, and 3 and 4 both clear the flags and then set
+/// bit 0x4. Modes 0 and 1 reinstate the model's buffers through
+/// `Tmd_AllocBuffers` and set the work block's display mode `field_0` to 1;
+/// modes 2, 3 and 4 set it to 0. `arg1` is unused. Always returns 0.
 s32 func_actor_123200_80133E30(Task* task, s32 arg1, s32 arg2);
 
 /// Copies the message's first three bytes and handles type 0xB02 commands:
@@ -177,5 +188,7 @@ void func_actor_123200_80133820(Actor123200Ctx* arg0, Task* task);
 /// Per-frame handler: re-arms a pending model restart, or counts the frame,
 /// steps the model along its facing unless frozen, and updates its animation.
 void func_actor_123200_801339F0(Actor123200Ctx* arg0, Task* task);
+
+void func_actor_123200_80134178(GpEnemy* arg0, Task* arg1);
 
 #endif
