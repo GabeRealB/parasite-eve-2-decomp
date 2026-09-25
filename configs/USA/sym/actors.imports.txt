@@ -5,7 +5,7 @@
 // Names follow the overlay that defines each symbol, so a call reads the
 // same here as it does in main/ or gameplay/.
 
-// --- from main (141 symbols)
+// --- from main (142 symbols)
 tmdDrawStreamGt3 = 0x80010F08; // absolute:True
 tmdDrawStreamGt4 = 0x800110A0; // absolute:True
 tmdXformStreamVerts = 0x800112DC; // absolute:True
@@ -19,6 +19,7 @@ SetDrawArea = 0x80018A24; // absolute:True
 SetDrawOffset = 0x80018AA4; // absolute:True
 LoadImage2 = 0x8001A3E4; // absolute:True
 StoreImage2 = 0x8001A4D0; // absolute:True
+memcpy = 0x8001AEFC; // absolute:True
 printf = 0x8001AF3C; // absolute:True
 CdCmd_ActivatePhase1 = 0x8001C970; // absolute:True
 CdCmd_Enqueue = 0x8001D2B0; // absolute:True
@@ -148,7 +149,7 @@ Pad_States = 0x80071620; // absolute:True
 Mc_SaveData = 0x80072168; // absolute:True
 Player_Status = 0x80073B88; // absolute:True
 
-// --- from gameplay (208 symbols)
+// --- from gameplay (213 symbols)
 Gp_UpdateCoord = 0x80098F58; // absolute:True
 func_8009EA50 = 0x8009EA50; // absolute:True
 Gp_SpendMp = 0x800A7F34; // absolute:True
@@ -326,6 +327,11 @@ func_80105ED4 = 0x80105ED4; // absolute:True
 func_80106238 = 0x80106238; // absolute:True
 func_80106350 = 0x80106350; // absolute:True
 Gp_PlayObjSfx = 0x801064A4; // absolute:True
+Gp_PlayerMode2State4 = 0x80107E1C; // absolute:True
+Gp_PlayerMode2State0 = 0x80108B80; // absolute:True
+Gp_PlayerMode2State1 = 0x80108BAC; // absolute:True
+Gp_PlayerMode2State2 = 0x80108BD8; // absolute:True
+Gp_PlayerMode2State6 = 0x80108D68; // absolute:True
 func_80109BB4 = 0x80109BB4; // absolute:True
 Gp_TriggerPeState = 0x8010A1B0; // absolute:True
 func_8010A9D0 = 0x8010A9D0; // absolute:True
@@ -358,7 +364,7 @@ Gp_CapFile = 0x8011568C; // absolute:True
 Gp_State1C = 0x80115740; // absolute:True
 Gp_ActorSlots = 0x80115760; // absolute:True
 
-// --- still unnamed in their own overlay (189)
+// --- still unnamed in their own overlay (190)
 func_8004BFF8 = 0x8004BFF8; // absolute:True
 D_8005C374 = 0x8005C374; // absolute:True
 D_800626EC = 0x800626EC; // absolute:True
@@ -418,6 +424,7 @@ D_8011505C = 0x8011505C; // absolute:True
 D_801153F1 = 0x801153F1; // absolute:True
 D_801153F2 = 0x801153F2; // absolute:True
 D_801153F4 = 0x801153F4; // absolute:True
+D_801153F6 = 0x801153F6; // absolute:True
 D_80115408 = 0x80115408; // absolute:True
 D_8011540A = 0x8011540A; // absolute:True
 D_8011540B = 0x8011540B; // absolute:True

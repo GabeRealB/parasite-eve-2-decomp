@@ -38,6 +38,9 @@ SYM_MAPS = [
 TOKEN = re.compile(r"\b(func|D)_([0-9A-F]{8})\b")
 NAME_TOKEN = re.compile(r"\b[A-Za-z_]\w*\b")
 SYM_LINE = re.compile(r"^\s*(\w+)\s*=\s*(0x[0-9A-Fa-f]+)\s*;(.*)$")
+# Comments and string literals: prose names symbols too ("main", "open"),
+# and a word there is not a reference.
+NON_CODE = re.compile(r'/\*.*?\*/|//[^\n]*|"(?:\\.|[^"\\\n])*"', re.S)
 
 
 def load_sym_maps() -> tuple[dict[int, tuple[str, str]], dict[str, int]]:
@@ -81,7 +84,7 @@ def referenced(family: str, by_name: dict[str, int]) -> dict[int, str]:
         if not root.is_dir():
             continue
         for path in list(root.rglob("*.c")) + list(root.rglob("*.s")):
-            text = path.read_text(encoding="utf-8", errors="replace")
+            text = NON_CODE.sub(" ", path.read_text(encoding="utf-8", errors="replace"))
             for prefix, hit in TOKEN.findall(text):
                 found[int(hit, 16)] = prefix
             for word in NAME_TOKEN.findall(text):

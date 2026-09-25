@@ -234,6 +234,10 @@ def main() -> None:
                 known = sorted({d.name for d in by_image.get(owner, []) if d.addr == addr and d.owner == owner})
                 if owner is None:
                     report('declared', [image], f'{image}: {name} = 0x{addr:08X} is referenced but lies in no image it can reach')
+                elif owner in EXTERNAL:
+                    # Kernel and devkit memory belong to no config of ours,
+                    # so nothing can be declared there.
+                    continue
                 elif known:
                     report('declared', [image, owner], f'{image}: references {name} = 0x{addr:08X}, which {owner} declares as {", ".join(known)}')
                 else:
