@@ -29,59 +29,11 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
-/// 0xBCC-byte work block `Actor01100_Fn0097C` allocates with
-/// `memCalloc` and parks in `Task::work`. The coordinate at the front is
-/// linked as `coords[1].sub`; the two `GpAnimCtx` runs are what
-/// `func_800B3F84` seeds. Same size as `ActorsShared80138efcWork` /
-/// `ActorShared801384acWork`, which are later views of this block.
-typedef struct Actor104900SpawnWork {
-    /* 0x000 */ GsCOORDINATE2 coord;
-    /* 0x050 */ GpAnimCtx     anim;
-    /* 0x064 */ GpAnimSlot    slots[21];
-    /* 0x3AC */ byte          poses[0x150];
-    /* 0x4FC */ GpAnimCtx     anim2;
-    /* 0x510 */ GpAnimSlot    slots2[21];
-    /* 0x858 */ byte          poses2[0x150];
-    /* 0x9A8 */ byte          pad_9A8[0x20];
-    /* 0x9C8 */ GpObj         objs[2];
-    /* 0xA08 */ byte          pad_A08[0x20];
-    /// Four three-entry contact tables. `Actor01100_Fn00F58` resolves the
-    /// first against the world and scans the last for a class-2 hit, then
-    /// clears all four with `Gp_ClearRec18Occupied`.
-    /* 0xA28 */ GpRec18 contacts[4][3];
-    /* 0xB48 */ MATRIX  lightMtx;
-    /* 0xB68 */ MATRIX  colorMtx;
-    /* 0xB88 */ u32     actorId;
-    /* 0xB8C */ byte    pad_B8C[6];
-    /* 0xB92 */ s16     field_B92;
-    /* 0xB94 */ byte    pad_B94[8];
-    /* 0xB9C */ s16     field_B9C;
-    /* 0xB9E */ byte    pad_B9E[5];
-    /* 0xBA3 */ s8      field_BA3;
-    /* 0xBA4 */ s8      field_BA4;
-    /* 0xBA5 */ s8      field_BA5;
-    /* 0xBA6 */ u8      field_BA6;
-    /* 0xBA7 */ s8      state;
-    /* 0xBA8 */ s8      field_BA8;
-    /* 0xBA9 */ byte    pad_BA9[2];
-    /* 0xBAB */ u8      field_BAB;
-    /* 0xBAC */ u8      field_BAC;
-    /* 0xBAD */ byte    pad_BAD;
-    /* 0xBAE */ u8      field_BAE;
-    /* 0xBAF */ u8      field_BAF;
-    /// Placement record for the hit sparks `func_800FDB18` spawns.
-    /* 0xBB0 */ GpEffArg effArg;
-    /* 0xBB8 */ u8       field_BB8;
-    /* 0xBB9 */ byte     pad_BB9[2];
-    /* 0xBBB */ u8       field_BBB;
-    /* 0xBBC */ byte     pad_BBC[2];
-    /* 0xBBE */ s16      field_BBE;
-    /* 0xBC0 */ s32      field_BC0;
-    /* 0xBC4 */ s32      field_BC4;
-    /* 0xBC8 */ u8       field_BC8;
-    /* 0xBC9 */ byte     pad_BC9[3];
-} Actor104900SpawnWork;
-STATIC_ASSERT_SIZEOF(Actor104900SpawnWork, 0xBCC);
+/* The loops that step the display nodes, the contact tables or the animation
+   slots of the work block walk a scalar byte offset from the block rather than
+   indexing the array: the ROM adds the base to the offset on every pass, which
+   loop.c produces for a scalar offset but strength-reduces away for an array
+   index. */
 
 extern GpPairSrcE Actor01100_D074E8;
 extern GpPairSrcE Actor01100_D07510;
@@ -171,8 +123,8 @@ extern Actor104900EffSlot D_80067330;
     ACTOR_COPY_SV_TO_MATRIX_COLUMN(sv, m, o0, o1, o2)
 
 void Actor01100_Fn0097C(GpEnemy* enemy, Task* task);
-void Actor01100_Fn00CF0(GpEnemy* enemy, Task* task, ActorShared801384acWork* work);
-s32  Actor01100_Fn00F58(GpEnemy* enemy, Task* task, Actor104900SpawnWork* work, ActorsShared80138efcArg* arg);
+void Actor01100_Fn00CF0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work);
+s32  Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
 void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
 void Actor01100_Fn035E4(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
 void Actor01100_Fn03740(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
@@ -397,7 +349,7 @@ s32 Actor01100_Fn00430(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
 /// scales the identity matrix by 0x1400.
 void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
 {
-    Actor104900SpawnWork*     work;
+    ActorsShared80138efcWork* work;
     TmdObject*                extra;
     GsCOORDINATE2*            parts;
     GpMtxWords*               mtx;
@@ -421,7 +373,7 @@ void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
     extra            = (TmdObject*)task->extra;
     parts            = extra->coords;
     task->spawnArg1 &= 0xFFFF0000;
-    work             = (Actor104900SpawnWork*)memCalloc(sizeof(Actor104900SpawnWork), 0);
+    work             = (ActorsShared80138efcWork*)memCalloc(sizeof(ActorsShared80138efcWork), 0);
     if (work == NULL) {
         Task_CallExit(task);
         return;
@@ -502,8 +454,8 @@ void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
         case 1:
             rate            = 0x7F;
             j               = 1;
-            offB            = 0x538;
-            offA            = 0x8C;
+            offB            = OFFSET_OF(ActorsShared80138efcWork, slots2[1]);
+            offA            = OFFSET_OF(ActorsShared80138efcWork, slots[1]);
             work->field_BAE = 0;
             work->state     = 0x18;
             do {
@@ -511,28 +463,28 @@ void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
                 slotA->rate = rate;
                 SOFT_BARRIER();
                 slotB = (GpAnimSlot*)((u8*)work + offB);
-                offB += 0x28;
+                offB += sizeof(GpAnimSlot);
                 j++;
                 slotB->rate = rate;
-                offA       += 0x28;
+                offA       += sizeof(GpAnimSlot);
             } while (j < 0x15);
             break;
         case 2:
             work->field_BAE = 1;
             rate            = 0x7F;
             j               = 1;
-            offB            = 0x538;
-            offA            = 0x8C;
+            offB            = OFFSET_OF(ActorsShared80138efcWork, slots2[1]);
+            offA            = OFFSET_OF(ActorsShared80138efcWork, slots[1]);
             work->state     = 0x18;
             do {
                 slotA       = (GpAnimSlot*)((u8*)work + offA);
                 slotA->rate = rate;
                 SOFT_BARRIER();
                 slotB = (GpAnimSlot*)((u8*)work + offB);
-                offB += 0x28;
+                offB += sizeof(GpAnimSlot);
                 j++;
                 slotB->rate = rate;
-                offA       += 0x28;
+                offA       += sizeof(GpAnimSlot);
             } while (j < 0x15);
             break;
     }
@@ -555,7 +507,7 @@ void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
 /// takes `Actor01100_Fn0668C` as its
 /// exit callback, the model's hidden bit is lifted, `msgTable` is pointed at
 /// this overlay's message table and the state advances.
-void Actor01100_Fn00CF0(GpEnemy* enemy, Task* task, ActorShared801384acWork* work)
+void Actor01100_Fn00CF0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work)
 {
     GpObj* obj;
     s32    reach;
@@ -565,9 +517,9 @@ void Actor01100_Fn00CF0(GpEnemy* enemy, Task* task, ActorShared801384acWork* wor
 
     if (CdCmd_IsIdle() & 0xFFFF) {
         Gp_LinkNode(&enemy->node);
-        obj           = &work->field_9A8[0];
+        obj           = &work->objs[0];
         obj->coord    = ((TmdObject*)task->extra)->coords;
-        obj->ctx.recs = &work->field_A28[0][0];
+        obj->ctx.recs = &work->contacts[0][0];
         obj->pos.vx   = 0;
         obj->pos.vy   = -0x1D8;
         obj->pos.vz   = 0;
@@ -578,9 +530,9 @@ void Actor01100_Fn00CF0(GpEnemy* enemy, Task* task, ActorShared801384acWork* wor
         obj->flags |= 0x4000;
         Gp_InitRec18Table(obj->ctx.recs, 3, 0);
 
-        obj           = &work->field_9A8[3];
+        obj           = &work->objs[3];
         obj->coord    = &((TmdObject*)task->extra)->coords[3];
-        obj->ctx.recs = &work->field_A28[3][0];
+        obj->ctx.recs = &work->contacts[3][0];
         obj->pos.vx   = 0;
         obj->pos.vy   = 0;
         obj->pos.vz   = 0;
@@ -596,8 +548,8 @@ void Actor01100_Fn00CF0(GpEnemy* enemy, Task* task, ActorShared801384acWork* wor
 
         i      = 0;
         reach  = 0x12C;
-        recOff = 0xA70;
-        obj    = &work->field_9A8[1];
+        recOff = OFFSET_OF(ActorsShared80138efcWork, contacts[1]);
+        obj    = &work->objs[1];
         do {
             idx = 8;
             if (i == 0) {
@@ -619,13 +571,13 @@ void Actor01100_Fn00CF0(GpEnemy* enemy, Task* task, ActorShared801384acWork* wor
                 Gp_LinkObj(3, obj);
                 obj->flags &= 0x3FFF;
                 Gp_InitRec18Table(obj->ctx.recs, 3, 0);
-                recOff += 0x48;
+                recOff += sizeof(work->contacts[0]);
                 i++;
-                obj = &work->field_9A8[i + 1];
+                obj = &work->objs[i + 1];
             } while (0);
         } while (i < 2);
 
-        enemy->recs                      = &work->field_A28[3][0];
+        enemy->recs                      = &work->contacts[3][0];
         task->exitCallback               = Actor01100_Fn0668C;
         ((TmdObject*)task->extra)->flags = (u16)(((TmdObject*)task->extra)->flags & 0xFF7F);
         task->msgTable                   = &Actor01100_D15660;
@@ -700,12 +652,12 @@ static __inline__ s32 _actor01100PushOut(GsCOORDINATE2* coord, GpRec18* contacts
 }
 
 /// Clears the 0xC000 pair from the `flags` of both collision objects.
-static __inline__ void _actor01100ClearObjPair(Actor104900SpawnWork* work)
+static __inline__ void _actor01100ClearObjPair(ActorsShared80138efcWork* work)
 {
     s32 i;
 
     for (i = 0; i < 2; i++) {
-        GpObj* obj  = &work->objs[i];
+        GpObj* obj  = &work->objs[i + 1];
         obj->flags &= 0x3FFF;
     }
 }
@@ -720,7 +672,7 @@ static __inline__ void _actor01100ClearObjPair(Actor104900SpawnWork* work)
 /// points (playing the death cue and releasing the placement at zero), and
 /// stages the reaction's state. Every frame it then pushes the model out of
 /// the first contact table and clears all four. Returns 1 when damage landed.
-s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, Actor104900SpawnWork* work, ActorsShared80138efcArg* arg)
+s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     s32            damaged;
     s32            fromBehind;
@@ -1100,7 +1052,7 @@ s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, Actor104900SpawnWork* work, A
 /// its nonzero answer also closes the actor in.
 ///
 /// Closing in while `field_B92` still counts masks the 0xC000 pair back out of
-/// the two `GpObj` nodes in the motion block and, the first time only, stages
+/// the two middle display nodes and, the first time only, stages
 /// the 0xA state through `field_BA6`: that is what hands the next frame to
 /// `Actor01100_Fn01D98`.
 ///
@@ -1160,16 +1112,16 @@ void Actor01100_Fn01B90(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     GP_NODE_ENEMY(lockNode)->bodyPos.vx = 0;
     GP_NODE_ENEMY(lockNode)->bodyPos.vy = -0xC8;
     GP_NODE_ENEMY(lockNode)->bodyPos.vz = 0xC8;
-    if (Actor01100_Fn00F58(enemy, task, (Actor104900SpawnWork*)work, arg) != 0) {
+    if (Actor01100_Fn00F58(enemy, task, work, arg) != 0) {
         flag = 1;
     }
     if (flag && (work->field_B92 > 0)) {
         work->field_BAA = 0;
         i               = 0;
-        off             = 0x9C8;
+        off             = OFFSET_OF(ActorsShared80138efcWork, objs[1]);
         do {
             ((GpObj*)((u8*)work + off))->flags &= 0x3FFF;
-            off                                += 0x20;
+            off                                += sizeof(GpObj);
             i++;
         } while (i < 2);
         if (work->field_BA6 == 0) {
@@ -1232,19 +1184,19 @@ void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         scale  = t + 0x1000;
         coords = ((TmdObject*)task->extra)->coords;
         __asm__ volatile("lui %0, 0x1F80" : "=r"(sv));
-        sv                 = *(SVECTOR**)((u8*)sv + 0x3FC);
-        ((VECTOR*)arg)->vz = scale;
-        ((VECTOR*)arg)->vy = scale;
-        ((VECTOR*)arg)->vx = scale;
-        node               = coords + 6;
-        m                  = (MATRIX*)node->sub;
+        sv          = *(SVECTOR**)((u8*)sv + 0x3FC);
+        arg->pos.vz = scale;
+        arg->pos.vy = scale;
+        arg->pos.vx = scale;
+        node        = coords + 6;
+        m           = (MATRIX*)node->sub;
         SCHED_BARRIER();
         sv--;
         __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv) : "memory");
         m = &((GsCOORDINATE2*)m)->coord;
-        SCALE_COL(m, sv, 0, 6, 12, ((VECTOR*)arg)->vx);
-        SCALE_COL(m, sv, 2, 8, 14, ((VECTOR*)arg)->vy);
-        SCALE_COL(m, sv, 4, 10, 16, ((VECTOR*)arg)->vz);
+        SCALE_COL(m, sv, 0, 6, 12, arg->pos.vx);
+        SCALE_COL(m, sv, 2, 8, 14, arg->pos.vy);
+        SCALE_COL(m, sv, 4, 10, 16, arg->pos.vz);
         inv    = 0x01000000 / scale;
         parent = &coords[6].coord;
         __asm__ volatile("lui %0, 0x1F80" : "=r"(sv));
@@ -1253,14 +1205,14 @@ void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv + 1) : "memory");
         sub->flg = 0;
         __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv) : "memory");
-        ((VECTOR*)arg)->vz = inv;
+        arg->pos.vz = inv;
         SCHED_BARRIER();
-        ((VECTOR*)arg)->vy = inv;
+        arg->pos.vy = inv;
         SCHED_BARRIER();
-        ((VECTOR*)arg)->vx = inv;
-        SCALE_COL(parent, sv, 0, 6, 12, ((VECTOR*)arg)->vx);
-        SCALE_COL(parent, sv, 2, 8, 14, ((VECTOR*)arg)->vy);
-        SCALE_COL(parent, sv, 4, 10, 16, ((VECTOR*)arg)->vz);
+        arg->pos.vx = inv;
+        SCALE_COL(parent, sv, 0, 6, 12, arg->pos.vx);
+        SCALE_COL(parent, sv, 2, 8, 14, arg->pos.vy);
+        SCALE_COL(parent, sv, 4, 10, 16, arg->pos.vz);
         __asm__ volatile("lui %0, 0x1F80" : "=r"(sv));
         sv = *(SVECTOR**)((u8*)sv + 0x3FC);
         __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv + 1) : "memory");
@@ -1279,19 +1231,19 @@ void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         scale  = t + 0x1000;
         coords = ((TmdObject*)task->extra)->coords;
         __asm__ volatile("lui %0, 0x1F80" : "=r"(sv));
-        sv                 = *(SVECTOR**)((u8*)sv + 0x3FC);
-        ((VECTOR*)arg)->vz = scale;
-        ((VECTOR*)arg)->vy = scale;
-        ((VECTOR*)arg)->vx = scale;
-        node               = coords + 10;
-        m                  = (MATRIX*)node->sub;
+        sv          = *(SVECTOR**)((u8*)sv + 0x3FC);
+        arg->pos.vz = scale;
+        arg->pos.vy = scale;
+        arg->pos.vx = scale;
+        node        = coords + 10;
+        m           = (MATRIX*)node->sub;
         SCHED_BARRIER();
         sv--;
         __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv) : "memory");
         m = &((GsCOORDINATE2*)m)->coord;
-        SCALE_COL(m, sv, 0, 6, 12, ((VECTOR*)arg)->vx);
-        SCALE_COL(m, sv, 2, 8, 14, ((VECTOR*)arg)->vy);
-        SCALE_COL(m, sv, 4, 10, 16, ((VECTOR*)arg)->vz);
+        SCALE_COL(m, sv, 0, 6, 12, arg->pos.vx);
+        SCALE_COL(m, sv, 2, 8, 14, arg->pos.vy);
+        SCALE_COL(m, sv, 4, 10, 16, arg->pos.vz);
         inv    = 0x01000000 / scale;
         parent = &coords[10].coord;
         __asm__ volatile("lui %0, 0x1F80" : "=r"(sv));
@@ -1300,14 +1252,14 @@ void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv + 1) : "memory");
         sub->flg = 0;
         __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv) : "memory");
-        ((VECTOR*)arg)->vz = inv;
+        arg->pos.vz = inv;
         SCHED_BARRIER();
-        ((VECTOR*)arg)->vy = inv;
+        arg->pos.vy = inv;
         SCHED_BARRIER();
-        ((VECTOR*)arg)->vx = inv;
-        SCALE_COL(parent, sv, 0, 6, 12, ((VECTOR*)arg)->vx);
-        SCALE_COL(parent, sv, 2, 8, 14, ((VECTOR*)arg)->vy);
-        SCALE_COL(parent, sv, 4, 10, 16, ((VECTOR*)arg)->vz);
+        arg->pos.vx = inv;
+        SCALE_COL(parent, sv, 0, 6, 12, arg->pos.vx);
+        SCALE_COL(parent, sv, 2, 8, 14, arg->pos.vy);
+        SCALE_COL(parent, sv, 4, 10, 16, arg->pos.vz);
         __asm__ volatile("lui %0, 0x1F80" : "=r"(sv));
         sv = *(SVECTOR**)((u8*)sv + 0x3FC);
         __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv + 1) : "memory");
@@ -1318,7 +1270,7 @@ void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         SVECTOR*       sv;
         GsCOORDINATE2* c;
 
-        sv = (SVECTOR*)((VECTOR*)arg + 1);
+        sv = &arg->vec;
         c  = ((TmdObject*)task->extra)->coords;
         m  = &c[6].coord;
         SCALE_COL(m, sv, 0, 6, 12, work->field_B96 + 0x1000);
@@ -1332,7 +1284,7 @@ void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         SVECTOR*       sv;
         GsCOORDINATE2* c;
 
-        sv = (SVECTOR*)((VECTOR*)arg + 1);
+        sv = &arg->vec;
         c  = ((TmdObject*)task->extra)->coords;
         m  = &c[10].coord;
         SCALE_COL(m, sv, 0, 6, 12, work->field_B94 + 0x1000);
@@ -1439,7 +1391,7 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
                 }
                 slot = 1;
                 do {
-                    func_800B4538(&work->motion.anim2, slot, (s32)&arg->poses[1], animId, 0, 0, 0);
+                    func_800B4538(&work->anim2, slot, (s32)&arg->poses[1], animId, 0, 0, 0);
                     slot++;
                 } while (slot < 0x15);
                 work->field_BA3++;
@@ -1448,7 +1400,7 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
                 if (work->field_BA2 < 0x40) {
                     work->field_BA2 += 4;
                 }
-                if (work->motion.slots2[1].flags & 1) {
+                if (work->slots2[1].flags & 1) {
                     work->field_BA3++;
                 }
                 break;
@@ -1492,13 +1444,13 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
             }
             if (pose != 0) {
                 blend = work->field_BA2 << 5;
-                func_800B3448(&work->motion.anim2, slot, (s32)&arg->poses[1], 0);
+                func_800B3448(&work->anim2, slot, (s32)&arg->poses[1], 0);
                 Gp_AnimWritePoseBlend(&work->anim, slot, &arg->poses[0],
                                       &arg->poses[1], 0x1000 - blend, blend);
             }
             slot++;
         } while (slot < 0x15);
-        if (work->motion.flags & 1) {
+        if (work->slots[1].flags & 1) {
             work->field_BA9 = 1;
         }
         part               = ((TmdObject*)task->extra)->coords;
@@ -1522,12 +1474,12 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
                 GP_NODE_ENEMY(lockNode)->bodyPos.vx = 0;
                 GP_NODE_ENEMY(lockNode)->bodyPos.vz = 0xC8;
                 GP_NODE_ENEMY(lockNode)->coord      = c + 3;
-                if (Actor01100_Fn00F58(enemy, task, (Actor104900SpawnWork*)work, arg) == 0 && task->spawnArg1 == 0 && work->field_BC9 == 1 && work->field_BA9 == 1 && Actor01100_Fn06AC8(((TmdObject*)task->extra)->coords) > 0xA62B10) {
+                if (Actor01100_Fn00F58(enemy, task, work, arg) == 0 && task->spawnArg1 == 0 && work->field_BC9 == 1 && work->field_BA9 == 1 && Actor01100_Fn06AC8(((TmdObject*)task->extra)->coords) > 0xA62B10) {
                     i   = 0;
-                    off = 0x9C8;
+                    off = OFFSET_OF(ActorsShared80138efcWork, objs[1]);
                     do {
                         ((GpObj*)((u8*)work + off))->flags &= 0x3FFF;
-                        off                                += 0x20;
+                        off                                += sizeof(GpObj);
                         i++;
                     } while (i < 2);
                     work->field_BA6 = 0;
@@ -1581,7 +1533,7 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
                 GP_NODE_ENEMY(lockNode)->bodyPos.vx = 0;
                 GP_NODE_ENEMY(lockNode)->bodyPos.vz = 0xC8;
                 GP_NODE_ENEMY(lockNode)->coord      = c + 3;
-                Actor01100_Fn00F58(enemy, task, (Actor104900SpawnWork*)work, arg);
+                Actor01100_Fn00F58(enemy, task, work, arg);
                 break;
             }
         }
@@ -1638,7 +1590,7 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
                         work->field_BBA = 0;
                     }
                     Gp_SpawnEff(D_80115738, &gGfxViewCoord, eff, &arg->vec);
-                    SndEvt_EnqueueType6((work->field_B88 << 8) | 0x404B000D, arg->pan, arg->depth);
+                    SndEvt_EnqueueType6(((u8)work->actorId << 8) | 0x404B000D, arg->pan, arg->depth);
                 }
             }
         }
@@ -1646,11 +1598,11 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         root   = ((TmdObject*)task->extra)->coords;
         savedY = root->coord.t[1];
         Gp_UpdateCoord(root);
-        if (_actor01100PushOut(root, work->motion.recs)) {
+        if (_actor01100PushOut(root, work->contacts[0])) {
             root->flg = 0;
         }
         root->coord.t[1] = savedY;
-        Gp_ClearRec18Occupied(work->motion.recs);
+        Gp_ClearRec18Occupied(work->contacts[0]);
     }
     root = ((TmdObject*)task->extra)->coords;
     Gp_UpdateCoord(root);
@@ -1669,10 +1621,10 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 /// Collision-arm handler: the first frame the latch at 0xBA8 is still clear it
 /// sets motion 2, zeroes the countdown at 0xB8C and steps the latch. Every
 /// later frame increments that countdown. On frame 0x1A it writes a
-/// `Gp_PackObjPair` payload into the first motion node's `key` and ORs the
+/// `Gp_PackObjPair` payload into display node 1's `key` and ORs the
 /// 0xC000 pair-pass bits into its `flags`. While the countdown sits in
 /// `[0x1B, 0x36]` and the latch is still 1, a hit on the recs table at 0xA70
-/// masks those bits back out of both motion nodes and steps the latch; frame
+/// masks those bits back out of both middle display nodes and steps the latch; frame
 /// 0x37 does the same mask unconditionally. The frame block's scratch byte at
 /// 0x64 takes 0xC either way, and the trigger at 0xBA9 ends the sub-state by
 /// clearing `state` and the latch.
@@ -1691,17 +1643,17 @@ void Actor01100_Fn035E4(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     time            = (u16)work->field_B8C + 1;
     work->field_B8C = time;
     if ((s16)time == 0x1A) {
-        obj         = &work->motion.objs[0];
+        obj         = &work->objs[1];
         obj->key    = Gp_PackObjPair(enemy, 1);
         obj->flags |= 0xC000;
     }
     if ((u32)((u16)work->field_B8C - 0x1B) < 0x1C) {
-        if ((work->field_BA8 == 1) && (Gp_FindRec18((GpRec18*)((u8*)work + 0xA70), 0) != 0)) {
+        if ((work->field_BA8 == 1) && (Gp_FindRec18(work->contacts[1], 0) != 0)) {
             i   = 0;
-            off = 0x9C8;
+            off = OFFSET_OF(ActorsShared80138efcWork, objs[1]);
             do {
                 ((GpObj*)((u8*)work + off))->flags &= 0x3FFF;
-                off                                += 0x20;
+                off                                += sizeof(GpObj);
                 i++;
             } while (i < 2);
             work->field_BA8 = (u8)work->field_BA8 + 1;
@@ -1710,10 +1662,10 @@ void Actor01100_Fn035E4(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     arg->field_64 = 0xC;
     if (work->field_B8C == 0x37) {
         i   = 0;
-        off = 0x9C8;
+        off = OFFSET_OF(ActorsShared80138efcWork, objs[1]);
         do {
             ((GpObj*)((u8*)work + off))->flags &= 0x3FFF;
-            off                                += 0x20;
+            off                                += sizeof(GpObj);
             i++;
         } while (i < 2);
     }
@@ -1723,13 +1675,13 @@ void Actor01100_Fn035E4(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     }
 }
 
-/// Collision-arm handler for the second motion node: the first frame the latch
+/// Collision-arm handler for display node 2: the first frame the latch
 /// at 0xBA8 is still clear it sets motion 3, zeroes the countdown at 0xB8C and
 /// steps the latch. Every later frame increments that countdown. On frame 0x1A
 /// it calls `Gp_PackObjPair` with pair 2 and ORs the 0xC000 pair-pass bits into
-/// the second motion node's `flags`. While the countdown sits in `[0x1B, 0x36]`
+/// display node 2's `flags`. While the countdown sits in `[0x1B, 0x36]`
 /// and the latch is still 1, a hit on the recs table at 0xAB8 masks those bits
-/// back out of both motion nodes and steps the latch; frame 0x37 does the same
+/// back out of both middle display nodes and steps the latch; frame 0x37 does the same
 /// mask unconditionally. The frame block's scratch byte at 0x64 takes 8 either
 /// way, and the trigger at 0xBA9 ends the sub-state by clearing `state` and
 /// the latch.
@@ -1748,17 +1700,17 @@ void Actor01100_Fn03740(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     time            = (u16)work->field_B8C + 1;
     work->field_B8C = time;
     if ((s16)time == 0x1A) {
-        obj = &work->motion.objs[1];
+        obj = &work->objs[2];
         Gp_PackObjPair(enemy, 2);
         obj->flags |= 0xC000;
     }
     if ((u32)((u16)work->field_B8C - 0x1B) < 0x1C) {
-        if ((work->field_BA8 == 1) && (Gp_FindRec18((GpRec18*)((u8*)work + 0xAB8), 0) != 0)) {
+        if ((work->field_BA8 == 1) && (Gp_FindRec18(work->contacts[2], 0) != 0)) {
             i   = 0;
-            off = 0x9C8;
+            off = OFFSET_OF(ActorsShared80138efcWork, objs[1]);
             do {
                 ((GpObj*)((u8*)work + off))->flags &= 0x3FFF;
-                off                                += 0x20;
+                off                                += sizeof(GpObj);
                 i++;
             } while (i < 2);
             work->field_BA8 = (u8)work->field_BA8 + 1;
@@ -1767,10 +1719,10 @@ void Actor01100_Fn03740(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     arg->field_64 = 8;
     if (work->field_B8C == 0x37) {
         i   = 0;
-        off = 0x9C8;
+        off = OFFSET_OF(ActorsShared80138efcWork, objs[1]);
         do {
             ((GpObj*)((u8*)work + off))->flags &= 0x3FFF;
-            off                                += 0x20;
+            off                                += sizeof(GpObj);
             i++;
         } while (i < 2);
     }
@@ -1836,20 +1788,20 @@ void Actor01100_Fn0389C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 
 void Actor01100_Fn039D0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    SVECTOR        local;
-    GsCOORDINATE2* self;
-    GsCOORDINATE2* other;
-    MATRIX*        selfWorkm;
-    s32            angle;
-    s32            target;
-    s16            cur;
-    void*          head;
-    void*          head2;
-    s8*            deltaX;
-    s32            otherY;
-    s32            selfY;
-    void*          vec;
-    void*          matrix;
+    SVECTOR              local;
+    GsCOORDINATE2*       self;
+    GsCOORDINATE2*       other;
+    MATRIX*              selfWorkm;
+    s32                  angle;
+    s32                  target;
+    s16                  cur;
+    ActorBearingScratch* head;
+    ActorBearingScratch* head2;
+    ActorBearingScratch* deltaX;
+    s32                  otherY;
+    s32                  selfY;
+    ActorBearingScratch* vec;
+    void*                matrix;
 
     self = ((TmdObject*)task->extra)->coords;
     if (Gp_ActorSlots[0] == NULL) {
@@ -1859,34 +1811,34 @@ void Actor01100_Fn039D0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         other     = ((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
         selfWorkm = &self->workm;
         __asm__("lui %0, 0x1F80" : "=r"(head) : "r"(other));
-        head   = *(void**)(head + 0x3FC);
-        deltaX = (s8*)head - 0x40;
-        vec    = head - 0x40;
+        head   = *(ActorBearingScratch**)((u8*)head + 0x3FC);
+        deltaX = head - 1;
+        vec    = head - 1;
 
-        *(s16*)deltaX = (s16)(other->workm.t[0] - self->workm.t[0]);
-        otherY        = (u16)other->workm.t[1];
-        selfY         = (u16)self->workm.t[1];
+        deltaX->delta.vx = (s16)(other->workm.t[0] - self->workm.t[0]);
+        otherY           = (u16)other->workm.t[1];
+        selfY            = (u16)self->workm.t[1];
         __asm__("addiu %0, %1, -0x20" : "=r"(matrix) : "r"(head), "r"(otherY), "r"(selfY));
         __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(vec) : "memory");
-        *(s16*)((s8*)vec + 2) = (s16)(otherY - selfY);
-        *(s16*)((s8*)vec + 4) = (s16)(other->workm.t[2] - self->workm.t[2]);
+        vec->delta.vy = (s16)(otherY - selfY);
+        vec->delta.vz = (s16)(other->workm.t[2] - self->workm.t[2]);
         TransposeMatrix(selfWorkm, matrix);
 
-        local = *(SVECTOR*)vec;
+        local = vec->delta;
         gte_SetRotMatrix(matrix);
         __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
         gte_rtv0();
-        gte_stsv(vec);
+        gte_stsv(&vec->delta);
 
-        angle = ratan2(*(s16*)deltaX, *(s16*)((s8*)vec + 4));
+        angle = ratan2(deltaX->delta.vx, vec->delta.vz);
         if (angle >= 0x801) {
             angle -= 0x1000;
         } else if (angle < -0x800) {
             angle += 0x1000;
         }
         __asm__("lui %0, 0x1F80" : "=r"(head2));
-        head2 = *(void**)(head2 + 0x3FC);
-        __asm__ volatile("sw %0, 0x1F8003FC" ::"r"((void*)((u8*)head2 + 0x40)) : "memory");
+        head2 = *(ActorBearingScratch**)((u8*)head2 + 0x3FC);
+        __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(head2 + 1) : "memory");
     }
 
     work->field_B90 = angle;
@@ -1910,43 +1862,43 @@ void Actor01100_Fn039D0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 
 void Actor01100_Fn03BAC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    SVECTOR        local;
-    GsCOORDINATE2* self0;
-    GsCOORDINATE2* self;
-    GsCOORDINATE2* other;
-    GsCOORDINATE2* self2;
-    TmdObject*     playerObj;
-    MATRIX*        selfWorkm;
-    Task*          player;
-    SVECTOR*       sv;
-    s32            angle;
-    s32            wrapped;
-    s32            angle3;
-    s32            target;
-    s32            yaw1;
-    s32            yaw;
-    s32            dist;
-    s32            otherY;
-    s32            selfY;
-    s32            state;
-    s16            cur;
-    s16            next;
-    s8             latch;
-    u16            timer;
-    s32            t;
-    s32            xSelf;
-    s32            xOther;
-    void*          head0;
-    void*          head3;
-    void*          pop0;
-    void*          pop3;
-    void*          pop8;
-    s8*            deltaX0;
-    s8*            deltaX3;
-    void*          vec0;
-    void*          vec3;
-    void*          matrix0;
-    void*          matrix3;
+    SVECTOR              local;
+    GsCOORDINATE2*       self0;
+    GsCOORDINATE2*       self;
+    GsCOORDINATE2*       other;
+    GsCOORDINATE2*       self2;
+    TmdObject*           playerObj;
+    MATRIX*              selfWorkm;
+    Task*                player;
+    SVECTOR*             sv;
+    s32                  angle;
+    s32                  wrapped;
+    s32                  angle3;
+    s32                  target;
+    s32                  yaw1;
+    s32                  yaw;
+    s32                  dist;
+    s32                  otherY;
+    s32                  selfY;
+    s32                  state;
+    s16                  cur;
+    s16                  next;
+    s8                   latch;
+    u16                  timer;
+    s32                  t;
+    s32                  xSelf;
+    s32                  xOther;
+    ActorBearingScratch* head0;
+    ActorBearingScratch* head3;
+    ActorBearingScratch* pop0;
+    ActorBearingScratch* pop3;
+    SVECTOR*             pop8;
+    ActorBearingScratch* deltaX0;
+    ActorBearingScratch* deltaX3;
+    ActorBearingScratch* vec0;
+    ActorBearingScratch* vec3;
+    void*                matrix0;
+    void*                matrix3;
 
     if (work->field_BA8 == 0) {
         work->field_BA4 = 1;
@@ -1958,35 +1910,35 @@ void Actor01100_Fn03BAC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
             other     = ((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
             selfWorkm = &self0->workm;
             __asm__("lui %0, 0x1F80" : "=r"(head0) : "r"(other));
-            head0   = *(void**)(head0 + 0x3FC);
-            deltaX0 = (s8*)head0 - 0x40;
-            vec0    = head0 - 0x40;
+            head0   = *(ActorBearingScratch**)((u8*)head0 + 0x3FC);
+            deltaX0 = head0 - 1;
+            vec0    = head0 - 1;
 
-            *(s16*)deltaX0 = (s16)(other->workm.t[0] - self0->workm.t[0]);
-            otherY         = (u16)other->workm.t[1];
-            selfY          = (u16)self0->workm.t[1];
+            deltaX0->delta.vx = (s16)(other->workm.t[0] - self0->workm.t[0]);
+            otherY            = (u16)other->workm.t[1];
+            selfY             = (u16)self0->workm.t[1];
             __asm__("addiu %0, %1, -0x20" : "=r"(matrix0) : "r"(head0), "r"(otherY), "r"(selfY));
             __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(vec0) : "memory");
-            *(s16*)((s8*)vec0 + 2) = (s16)(otherY - selfY);
-            *(s16*)((s8*)vec0 + 4) = (s16)(other->workm.t[2] - self0->workm.t[2]);
+            vec0->delta.vy = (s16)(otherY - selfY);
+            vec0->delta.vz = (s16)(other->workm.t[2] - self0->workm.t[2]);
             TransposeMatrix(selfWorkm, matrix0);
 
-            local = *(SVECTOR*)vec0;
+            local = vec0->delta;
             gte_SetRotMatrix(matrix0);
             __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
             gte_rtv0();
-            gte_stsv(vec0);
+            gte_stsv(&vec0->delta);
 
-            wrapped = ratan2(*(s16*)deltaX0, *(s16*)((s8*)vec0 + 4));
+            wrapped = ratan2(deltaX0->delta.vx, vec0->delta.vz);
             if (wrapped >= 0x801) {
                 wrapped -= 0x1000;
             } else if (wrapped < -0x800) {
                 wrapped += 0x1000;
             }
             __asm__("lui %0, 0x1F80" : "=r"(pop0));
-            pop0  = *(void**)(pop0 + 0x3FC);
+            pop0  = *(ActorBearingScratch**)((u8*)pop0 + 0x3FC);
             angle = wrapped;
-            __asm__ volatile("sw %0, 0x1F8003FC" ::"r"((void*)((u8*)pop0 + 0x40)) : "memory");
+            __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(pop0 + 1) : "memory");
         }
         work->field_B90 = angle;
         Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
@@ -2037,34 +1989,34 @@ void Actor01100_Fn03BAC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
             other     = ((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
             selfWorkm = &self->workm;
             __asm__("lui %0, 0x1F80" : "=r"(head3) : "r"(other));
-            head3   = *(void**)(head3 + 0x3FC);
-            deltaX3 = (s8*)head3 - 0x40;
-            vec3    = head3 - 0x40;
+            head3   = *(ActorBearingScratch**)((u8*)head3 + 0x3FC);
+            deltaX3 = head3 - 1;
+            vec3    = head3 - 1;
 
-            *(s16*)deltaX3 = (s16)(other->workm.t[0] - self->workm.t[0]);
-            otherY         = (u16)other->workm.t[1];
-            selfY          = (u16)self->workm.t[1];
+            deltaX3->delta.vx = (s16)(other->workm.t[0] - self->workm.t[0]);
+            otherY            = (u16)other->workm.t[1];
+            selfY             = (u16)self->workm.t[1];
             __asm__("addiu %0, %1, -0x20" : "=r"(matrix3) : "r"(head3), "r"(otherY), "r"(selfY));
             __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(vec3) : "memory");
-            *(s16*)((s8*)vec3 + 2) = (s16)(otherY - selfY);
-            *(s16*)((s8*)vec3 + 4) = (s16)(other->workm.t[2] - self->workm.t[2]);
+            vec3->delta.vy = (s16)(otherY - selfY);
+            vec3->delta.vz = (s16)(other->workm.t[2] - self->workm.t[2]);
             TransposeMatrix(selfWorkm, matrix3);
 
-            local = *(SVECTOR*)vec3;
+            local = vec3->delta;
             gte_SetRotMatrix(matrix3);
             __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
             gte_rtv0();
-            gte_stsv(vec3);
+            gte_stsv(&vec3->delta);
 
-            angle3 = ratan2(*(s16*)deltaX3, *(s16*)((s8*)vec3 + 4));
+            angle3 = ratan2(deltaX3->delta.vx, vec3->delta.vz);
             if (angle3 >= 0x801) {
                 angle3 -= 0x1000;
             } else if (angle3 < -0x800) {
                 angle3 += 0x1000;
             }
             __asm__("lui %0, 0x1F80" : "=r"(pop3));
-            pop3 = *(void**)(pop3 + 0x3FC);
-            __asm__ volatile("sw %0, 0x1F8003FC" ::"r"((void*)((u8*)pop3 + 0x40)) : "memory");
+            pop3 = *(ActorBearingScratch**)((u8*)pop3 + 0x3FC);
+            __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(pop3 + 1) : "memory");
         }
 
         yaw             = (s16)angle3;
@@ -2132,8 +2084,8 @@ void Actor01100_Fn03BAC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
                     sv->vz = (s16)((u16)other->workm.t[2] - (u16)self2->workm.t[2]);
                     dist   = Gfx_ApplyMatrixNoSf(sv, sv);
                     __asm__("lui %0, 0x1F80" : "=r"(pop8));
-                    pop8 = *(void**)(pop8 + 0x3FC);
-                    __asm__ volatile("sw %0, 0x1F8003FC" ::"r"((void*)((u8*)pop8 + 8)) : "memory");
+                    pop8 = *(SVECTOR**)((u8*)pop8 + 0x3FC);
+                    __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(pop8 + 1) : "memory");
                 }
                 if (dist <= 0xA62B0F) {
                     state = 0xD;
@@ -2174,7 +2126,7 @@ void Actor01100_Fn041BC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     u32            rng;
 
     wait = 0x3C;
-    if ((s8)((Actor104900SpawnWork*)work)->field_BBB == 0x31) {
+    if ((s8)work->field_BBB == 0x31) {
         wait = 0xA;
     }
     if (work->field_BA8 == 0) {
@@ -2242,7 +2194,7 @@ void Actor01100_Fn041BC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(tail) : "memory");
     }
 
-    kind = (s8)((Actor104900SpawnWork*)work)->field_BBB;
+    kind = (s8)work->field_BBB;
     if (((kind == 0xB) && (dist <= 0x89543F)) || ((kind == 0x31) && (dist <= 0x22550F))) {
         Gp_ArmStateF0(1);
         work->state         = 0xB;
@@ -2265,12 +2217,12 @@ const ActorsShared801385e0Scale Actor01100_D000CC = { 0x10, 0x10, 0x10, 0 };
 ///
 /// Every later frame increments the countdown, asks `Actor01100_Fn039D0` for
 /// the yaw at 0xB90 and turns the model's `field_46` toward it by at most 0x10,
-/// then rebuilds the Y rotation. Frame 0x16 packs pair 3 into the first motion
-/// node and ORs the 0xC000 bits; frame 0x20 posts `0x400B0008`. While the
+/// then rebuilds the Y rotation. Frame 0x16 packs pair 3 into display node
+/// 1 and ORs the 0xC000 bits; frame 0x20 posts `0x400B0008`. While the
 /// countdown sits in `[0x17, 0x2B]` and the latch is still 1, a high-bit hit on
 /// the recs at 0xA70 steps the latch to 3. `field_B98` / `field_B94` ramp with
 /// the countdown, the frame block's scratch byte at 0x64 takes 0xC, and frame
-/// 0x2C masks those bits back out of both motion nodes. The trigger at 0xBA9
+/// 0x2C masks those bits back out of both middle display nodes. The trigger at 0xBA9
 /// writes rate 0x10 onto slots `[1, 0x14]` of both animation runs and then
 /// either stages state 0xE, or, while the latch is 3, a 1-in-4 draw of that
 /// state versus restarting the motion through `field_BA5`.
@@ -2354,14 +2306,14 @@ void Actor01100_Fn04410(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     Gfx_RotMatrixY(&pose->coord, angle, 1);
     pose->flg = 0;
     if (work->field_B8C == 0x16) {
-        obj         = &work->motion.objs[0];
+        obj         = &work->objs[1];
         obj->key    = Gp_PackObjPair(enemy, 3);
         obj->flags |= 0xC000;
     } else if (work->field_B8C == 0x20) {
-        SndEvt_EnqueueType6((work->field_BB8 << 22) | ((work->field_B88 << 8) | 0x400B0008), arg->pan, arg->depth);
+        SndEvt_EnqueueType6((work->field_BB8 << 22) | (((u8)work->actorId << 8) | 0x400B0008), arg->pan, arg->depth);
     }
     if (((u32)((u16)work->field_B8C - 0x17) < 0x15U) && (work->field_BA8 == 1) &&
-        (Gp_CountRec18Hi((GpRec18*)((u8*)work + 0xA70), 0x10000) != 0)) {
+        (Gp_CountRec18Hi(work->contacts[1], 0x10000) != 0)) {
         work->field_BA8 = 3;
     }
     time = work->field_B8C;
@@ -2392,27 +2344,27 @@ void Actor01100_Fn04410(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     arg->field_64 = 0xC;
     if (work->field_B8C == 0x2C) {
         i   = 0;
-        off = 0x9C8;
+        off = OFFSET_OF(ActorsShared80138efcWork, objs[1]);
         do {
             ((GpObj*)((u8*)work + off))->flags &= 0x3FFF;
-            off                                += 0x20;
+            off                                += sizeof(GpObj);
             i++;
         } while (i < 2);
     }
     if (work->field_BA9 != 0) {
         rate = 0x10;
         i    = 1;
-        off  = 0x538;
-        off2 = 0x8C;
+        off  = OFFSET_OF(ActorsShared80138efcWork, slots2[1]);
+        off2 = OFFSET_OF(ActorsShared80138efcWork, slots[1]);
         do {
             slotA       = (GpAnimSlot*)((u8*)work + off2);
             slotA->rate = rate;
             SOFT_BARRIER();
             slotB = (GpAnimSlot*)((u8*)work + off);
-            off  += 0x28;
+            off  += sizeof(GpAnimSlot);
             i++;
             slotB->rate = rate;
-            off2       += 0x28;
+            off2       += sizeof(GpAnimSlot);
         } while (i < 0x15);
         if (work->field_BA8 != 3) {
             work->state     = 0xE;
@@ -2440,13 +2392,13 @@ void Actor01100_Fn04410(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 ///
 /// Every frame then asks `Actor01100_Fn039D0` for the yaw at 0xB90 and turns
 /// the model's `field_46` toward it by at most 0x10, rebuilds the Y rotation,
-/// increments the countdown and asks again. Frame 0x23 packs pair 4 into the
-/// second motion node and ORs the 0xC000 bits; frame 0x2D posts `0x400B0008`.
+/// increments the countdown and asks again. Frame 0x23 packs pair 4 into
+/// display node 2 and ORs the 0xC000 bits; frame 0x2D posts `0x400B0008`.
 /// While the countdown sits in `[0x24, 0x3B]` and the latch is still 1, a
 /// high-bit hit on the recs at 0xAB8 steps the latch to 3. `field_B9A` /
 /// `field_B96` ramp with the countdown, the frame block's scratch byte at 0x64
 /// takes 8 (with a same-value write on frame 0x2F), and frame 0x3C masks those
-/// bits back out of both motion nodes. The trigger at 0xBA9 writes rate 0x10
+/// bits back out of both middle display nodes. The trigger at 0xBA9 writes rate 0x10
 /// onto slots `[1, 0x14]` of both animation runs, zeroes `field_B96`, and then
 /// either stages state 0xE, or, while the latch is 3, a 1-in-4 draw of that
 /// state versus restarting the motion through `field_BA5`.
@@ -2531,14 +2483,14 @@ void Actor01100_Fn048C8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     work->field_B8C = (u16)work->field_B8C + 1;
     Actor01100_Fn039D0(enemy, task, work, arg);
     if (work->field_B8C == 0x23) {
-        obj         = &work->motion.objs[1];
+        obj         = &work->objs[2];
         obj->key    = Gp_PackObjPair(enemy, 4);
         obj->flags |= 0xC000;
     } else if (work->field_B8C == 0x2D) {
-        SndEvt_EnqueueType6((work->field_BB8 << 22) | ((work->field_B88 << 8) | 0x400B0008), arg->pan, arg->depth);
+        SndEvt_EnqueueType6((work->field_BB8 << 22) | (((u8)work->actorId << 8) | 0x400B0008), arg->pan, arg->depth);
     }
     if (((u32)((u16)work->field_B8C - 0x24) < 0x18U) && (work->field_BA8 == 1) &&
-        (Gp_CountRec18Hi((GpRec18*)((u8*)work + 0xAB8), 0x10000) != 0)) {
+        (Gp_CountRec18Hi(work->contacts[2], 0x10000) != 0)) {
         work->field_BA8 = 3;
     }
     time = work->field_B8C;
@@ -2572,27 +2524,27 @@ void Actor01100_Fn048C8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     arg->field_64 = 8;
     if (work->field_B8C == 0x3C) {
         i   = 0;
-        off = 0x9C8;
+        off = OFFSET_OF(ActorsShared80138efcWork, objs[1]);
         do {
             ((GpObj*)((u8*)work + off))->flags &= 0x3FFF;
-            off                                += 0x20;
+            off                                += sizeof(GpObj);
             i++;
         } while (i < 2);
     }
     if (work->field_BA9 != 0) {
         rate = 0x10;
         i    = 1;
-        off  = 0x538;
-        off2 = 0x8C;
+        off  = OFFSET_OF(ActorsShared80138efcWork, slots2[1]);
+        off2 = OFFSET_OF(ActorsShared80138efcWork, slots[1]);
         do {
             slotA       = (GpAnimSlot*)((u8*)work + off2);
             slotA->rate = rate;
             SOFT_BARRIER();
             slotB = (GpAnimSlot*)((u8*)work + off);
-            off  += 0x28;
+            off  += sizeof(GpAnimSlot);
             i++;
             slotB->rate = rate;
-            off2       += 0x28;
+            off2       += sizeof(GpAnimSlot);
         } while (i < 0x15);
         work->field_B96 = 0;
         if (work->field_BA8 != 3) {
@@ -2623,30 +2575,30 @@ void Actor01100_Fn048C8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 /// `0x400B000A`. A set `field_BA9` stages state 0xE.
 void Actor01100_Fn04DB4(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    SVECTOR        local;
-    GsCOORDINATE2* self;
-    GsCOORDINATE2* other;
-    GsCOORDINATE2* part;
-    MATRIX*        selfWorkm;
-    Task*          spawned;
-    s32            angle;
-    s32            nOuter;
-    s32            yaw;
-    s32            kind;
-    s32            nInner;
-    s32            i;
-    s32            j;
-    s32            dir;
-    u16            prev;
-    u16            time;
-    void*          head;
-    void*          head2;
-    s8*            deltaX;
-    s32            otherY;
-    s32            selfY;
-    void*          vec;
-    void*          matrix;
-    s32            bridge;
+    SVECTOR              local;
+    GsCOORDINATE2*       self;
+    GsCOORDINATE2*       other;
+    GsCOORDINATE2*       part;
+    MATRIX*              selfWorkm;
+    Task*                spawned;
+    s32                  angle;
+    s32                  nOuter;
+    s32                  yaw;
+    s32                  kind;
+    s32                  nInner;
+    s32                  i;
+    s32                  j;
+    s32                  dir;
+    u16                  prev;
+    u16                  time;
+    ActorBearingScratch* head;
+    ActorBearingScratch* head2;
+    ActorBearingScratch* deltaX;
+    s32                  otherY;
+    s32                  selfY;
+    ActorBearingScratch* vec;
+    void*                matrix;
+    s32                  bridge;
 
     if (work->field_BA8 == 0) {
         work->field_BA4 = 8;
@@ -2676,40 +2628,40 @@ void Actor01100_Fn04DB4(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
             other     = ((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
             selfWorkm = &self->workm;
             __asm__("lui %0, 0x1F80" : "=r"(head) : "r"(other));
-            head   = *(void**)(head + 0x3FC);
-            deltaX = (s8*)head - 0x40;
-            vec    = head - 0x40;
+            head   = *(ActorBearingScratch**)((u8*)head + 0x3FC);
+            deltaX = head - 1;
+            vec    = head - 1;
 
-            *(s16*)deltaX = (s16)(other->workm.t[0] - self->workm.t[0]);
-            otherY        = (u16)other->workm.t[1];
-            selfY         = (u16)self->workm.t[1];
+            deltaX->delta.vx = (s16)(other->workm.t[0] - self->workm.t[0]);
+            otherY           = (u16)other->workm.t[1];
+            selfY            = (u16)self->workm.t[1];
             __asm__("addiu %0, %2, -0x20" : "=r"(matrix), "+r"(otherY) : "r"(head), "r"(selfY));
             __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(vec) : "memory");
-            *(s16*)((s8*)vec + 2) = (s16)(otherY - selfY);
-            *(s16*)((s8*)vec + 4) = (s16)(other->workm.t[2] - self->workm.t[2]);
+            vec->delta.vy = (s16)(otherY - selfY);
+            vec->delta.vz = (s16)(other->workm.t[2] - self->workm.t[2]);
             TransposeMatrix(selfWorkm, matrix);
 
-            local = *(SVECTOR*)vec;
+            local = vec->delta;
             gte_SetRotMatrix(matrix);
             __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
             gte_rtv0();
-            gte_stsv(vec);
+            gte_stsv(&vec->delta);
 
-            angle = ratan2(*(s16*)deltaX, *(s16*)((s8*)vec + 4));
+            angle = ratan2(deltaX->delta.vx, vec->delta.vz);
             if (angle >= 0x801) {
                 angle -= 0x1000;
             } else if (angle < -0x800) {
                 angle += 0x1000;
             }
             __asm__("lui %0, 0x1F80" : "=r"(head2));
-            head2  = *(void**)(head2 + 0x3FC);
+            head2  = *(ActorBearingScratch**)((u8*)head2 + 0x3FC);
             bridge = angle;
-            __asm__ volatile("sw %0, 0x1F8003FC" ::"r"((void*)((u8*)head2 + 0x40)), "r"(angle) : "memory");
+            __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(head2 + 1), "r"(angle) : "memory");
         }
         yaw = bridge;
 
         kind = 1;
-        if ((s8)((Actor104900SpawnWork*)work)->field_BBB == 0x31) {
+        if ((s8)work->field_BBB == 0x31) {
             kind = 2;
         }
         if (kind == 1) {
@@ -2740,7 +2692,7 @@ void Actor01100_Fn04DB4(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
                         }
                         selfY = 0x400B000A;
                         j    += 1;
-                        SndEvt_EnqueueType6(((work->field_BB8 << 22) | selfY) | (work->field_B88 << 8), arg->pan, arg->depth);
+                        SndEvt_EnqueueType6(((work->field_BB8 << 22) | selfY) | ((u8)work->actorId << 8), arg->pan, arg->depth);
                     } while (j < nInner);
                 }
                 i += 1;
@@ -2843,22 +2795,22 @@ static __inline__ void Actor104900_MatrixCol2(MATRIX* arg0, volatile SVECTOR* ar
 /// 0xF beyond it.
 void Actor01100_Fn0516C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    GsCOORDINATE2*              actorCoords;
-    GsCOORDINATE2*              coords;
-    GpCoordExt*                 pose;
-    ActorsShared80138efcMotion* motion;
-    s32                         dist;
-    s32                         dist2;
-    s32                         turn;
-    s32                         yaw;
-    s32                         yaw2;
-    s32                         scale;
-    s32                         frame;
-    s32                         n;
-    s32                         snd;
-    s16                         count;
-    u16                         angle;
-    u32                         rng;
+    GsCOORDINATE2* actorCoords;
+    GsCOORDINATE2* coords;
+    GpCoordExt*    pose;
+    GpAnimSlot*    motion;
+    s32            dist;
+    s32            dist2;
+    s32            turn;
+    s32            yaw;
+    s32            yaw2;
+    s32            scale;
+    s32            frame;
+    s32            n;
+    s32            snd;
+    s16            count;
+    u16            angle;
+    u32            rng;
 
     if (work->field_BA8 == 0) {
         actorCoords = ((TmdObject*)task->extra)->coords;
@@ -2890,9 +2842,9 @@ void Actor01100_Fn0516C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         work->field_BAD = -1;
         work->field_BA8 = (u8)work->field_BA8 + 1;
     } else {
-        motion = &work->motion;
-        if ((work->motion.field_0 != work->field_BA4) ||
-            (work->field_BAD = (u8)work->field_BAD + 1, ((u16)motion->field_2 > (u16)motion->field_6))) {
+        motion = &work->slots[1];
+        if ((work->slots[1].curSet != work->field_BA4) ||
+            (work->field_BAD = (u8)work->field_BAD + 1, (motion->curRec > motion->nextRec))) {
             work->field_BAD = -1;
         }
     }
@@ -2929,7 +2881,7 @@ void Actor01100_Fn0516C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     if (work->field_BAD == 1) {
         snd = 0x400B0002;
     do_sound:
-        SndEvt_EnqueueType6((work->field_BB8 << 22) | snd | (work->field_B88 << 8), arg->pan, arg->depth);
+        SndEvt_EnqueueType6((work->field_BB8 << 22) | snd | ((u8)work->actorId << 8), arg->pan, arg->depth);
     }
     if (work->field_BAD == 0x2E) {
         actorCoords = ((TmdObject*)task->extra)->coords;
@@ -3009,12 +2961,12 @@ void Actor01100_Fn05678(
 
     if (work->field_BA8 == 0) {
         i               = 0;
-        off             = 0x9A8;
+        off             = OFFSET_OF(ActorsShared80138efcWork, objs[0]);
         work->field_B92 = 0;
         enemy->hp       = 0;
         do {
             ((GpObj*)((u8*)work + off))->flags &= 0x3FFF;
-            off                                += 0x20;
+            off                                += sizeof(GpObj);
             i++;
         } while (i < 4);
         if (enemy->spawnState == 0x10) {
@@ -3214,7 +3166,7 @@ void Actor01100_Fn05CFC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     time            = (u16)work->field_B8C + 1;
     work->field_B8C = time;
     if ((s16)time >= 5) {
-        SndEvt_EnqueueType6((work->field_BB8 << 22) | ((work->field_B88 << 8) | 0x400B0003), arg->pan, arg->depth);
+        SndEvt_EnqueueType6((work->field_BB8 << 22) | (((u8)work->actorId << 8) | 0x400B0003), arg->pan, arg->depth);
         work->field_B8C = -0x7FFF;
     }
     arg->field_64 = 3;
@@ -3538,15 +3490,15 @@ void Actor01100_Fn0663C(Task* task)
 /// under the model's root, then let gameplay tear the enemy down.
 void Actor01100_Fn0668C(Task* task)
 {
-    ActorShared801384acWork* work;
-    GpEnemy*                 enemy;
-    GsCOORDINATE2*           coord;
-    s32                      i;
+    ActorsShared80138efcWork* work;
+    GpEnemy*                  enemy;
+    GsCOORDINATE2*            coord;
+    s32                       i;
 
     enemy = task->spawnArg2;
-    work  = (ActorShared801384acWork*)task->work;
+    work  = (ActorsShared80138efcWork*)task->work;
     for (i = 0; i < 4; i++) {
-        Gp_UnlinkObj(&work->field_9A8[i]);
+        Gp_UnlinkObj(&work->objs[i]);
     }
     coord        = ((TmdObject*)task->extra)->coords;
     coord[1].sub = coord;
@@ -3567,15 +3519,15 @@ void Actor01100_Fn0668C(Task* task)
 /// address lands in `$v1` instead, as the original does.
 s32 Actor01100_Fn0670C(Task* task, s32 arg1, s32 flags)
 {
-    ActorShared8013852cWork* work;
-    GpEnemy*                 enemy;
-    TmdObject*               model;
-    GpObj*                   obj;
-    s32                      i;
-    s32                      mode;
+    ActorsShared80138efcWork* work;
+    GpEnemy*                  enemy;
+    TmdObject*                model;
+    GpObj*                    obj;
+    s32                       i;
+    s32                       mode;
 
     mode  = flags ^ 1;
-    work  = (ActorShared8013852cWork*)task->work;
+    work  = (ActorsShared80138efcWork*)task->work;
     model = (TmdObject*)task->extra;
     enemy = (GpEnemy*)task->spawnArg2;
     if (work->field_BA0 != mode) {
@@ -3583,9 +3535,9 @@ s32 Actor01100_Fn0670C(Task* task, s32 arg1, s32 flags)
         if ((mode << 0x18) == 0) {
             model->flags              = (u16)(model->flags & 0xFF7F);
             enemy->node.state.b.flags = work->field_BA1;
-            obj                       = &work->field_9A8[0];
+            obj                       = &work->objs[0];
             obj->flags                = (u16)(obj->flags | 0xC000);
-            obj                       = &work->field_9A8[3];
+            obj                       = &work->objs[3];
             obj->flags                = (u16)(obj->flags | 0xC000);
         } else {
             register s32 value asm("v0");
@@ -3594,7 +3546,7 @@ s32 Actor01100_Fn0670C(Task* task, s32 arg1, s32 flags)
             work->field_BA1           = enemy->node.state.b.flags;
             enemy->node.state.b.flags = 1;
             for (i = 0; i < 4; i++) {
-                obj        = (GpObj*)((u8*)work + (OFFSET_OF(ActorShared8013852cWork, field_9A8) + i * 0x20));
+                obj        = &work->objs[i];
                 value      = obj->flags;
                 value     &= 0x3FFF;
                 obj->flags = (u16)value;
@@ -3607,13 +3559,13 @@ s32 Actor01100_Fn0670C(Task* task, s32 arg1, s32 flags)
 void Actor01100_Fn067C0(MATRIX* arg0, ActorsShared801385e0Scale* arg1)
 {
     void**   scratch;
-    void*    head;
+    SVECTOR* head;
     SVECTOR* vec;
 
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    vec                            = (SVECTOR*)((u8*)head - 8);
-    SCRATCH_HEAD_AT(scratch, void) = vec;
+    scratch                           = SCRATCH_HEAD_ADDR;
+    head                              = SCRATCH_HEAD_AT(scratch, SVECTOR);
+    vec                               = head - 1;
+    SCRATCH_HEAD_AT(scratch, SVECTOR) = vec;
 
     ACTOR_COPY_MATRIX_COLUMN_TO_SV(arg0, vec, 0, 6, 12);
     gte_lddp(arg1->vx);
@@ -3636,8 +3588,8 @@ void Actor01100_Fn067C0(MATRIX* arg0, ActorsShared801385e0Scale* arg1)
     gte_stsv(vec);
     ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, arg0, 4, 10, 16);
 
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    SCRATCH_HEAD_AT(scratch, void) = (u8*)head + 8;
+    head                              = SCRATCH_HEAD_AT(scratch, SVECTOR);
+    SCRATCH_HEAD_AT(scratch, SVECTOR) = head + 1;
 }
 
 /// Angle from `arg0`'s coordinate to the coordinate at
@@ -3655,45 +3607,45 @@ void Actor01100_Fn067C0(MATRIX* arg0, ActorsShared801385e0Scale* arg1)
 /// later lets it take the call's delay slot instead of the third store.
 s32 Actor01100_Fn06954(GsCOORDINATE2* arg0, s32 arg1)
 {
-    SVECTOR        local;
-    Task*          actor;
-    GsCOORDINATE2* coord;
-    s32            angle;
-    s32            result;
-    void*          head;
-    void*          vec;
-    void*          matrix;
+    SVECTOR              local;
+    Task*                actor;
+    GsCOORDINATE2*       coord;
+    s32                  angle;
+    s32                  result;
+    ActorBearingScratch* head;
+    ActorBearingScratch* blk;
+    MATRIX*              matrix;
 
     actor = Gp_ActorSlots[arg1];
     if (actor == NULL) {
         return 0;
     }
     coord = ((TmdObject*)actor->extra)->coords;
-    head  = SCRATCH_HEAD(void);
-    vec   = head - 0x40;
+    head  = SCRATCH_HEAD(ActorBearingScratch);
+    blk   = head - 1;
 
-    *(s16*)((s8*)head - 0x40) = (s16)(coord->workm.t[0] - arg0->workm.t[0]);
-    *(s16*)((s8*)vec + 2)     = (s16)(coord->workm.t[1] - arg0->workm.t[1]);
-    SCRATCH_HEAD(void)        = vec;
-    *(s16*)((s8*)vec + 4)     = (s16)(coord->workm.t[2] - arg0->workm.t[2]);
+    (head - 1)->delta.vx              = (s16)(coord->workm.t[0] - arg0->workm.t[0]);
+    blk->delta.vy                     = (s16)(coord->workm.t[1] - arg0->workm.t[1]);
+    SCRATCH_HEAD(ActorBearingScratch) = blk;
+    blk->delta.vz                     = (s16)(coord->workm.t[2] - arg0->workm.t[2]);
 
-    matrix = head - 0x20;
+    matrix = &blk->frame;
     TransposeMatrix(&arg0->workm, matrix);
 
-    local = *(SVECTOR*)vec;
+    local = blk->delta;
     gte_SetRotMatrix(matrix);
     __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
     gte_rtv0();
-    gte_stsv(vec);
+    gte_stsv(&blk->delta);
 
-    angle  = ratan2(*(s16*)((s8*)head - 0x40), *(s16*)((s8*)vec + 4));
+    angle  = ratan2(blk->delta.vx, blk->delta.vz);
     result = angle;
     if (angle >= 0x801) {
         result = angle - 0x1000;
     } else if (angle < -0x800) {
         result = angle + 0x1000;
     }
-    SCRATCH_POP_BYTES(0x40);
+    SCRATCH_POP(ActorBearingScratch);
     return result;
 }
 
@@ -3775,15 +3727,15 @@ void Actor01100_Fn06C0C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     GP_NODE_ENEMY(lockNode)->bodyPos.vx = 0;
     GP_NODE_ENEMY(lockNode)->bodyPos.vy = -0xC8;
     GP_NODE_ENEMY(lockNode)->bodyPos.vz = 0xC8;
-    if ((Actor01100_Fn00F58(enemy, task, (Actor104900SpawnWork*)work, arg) == 0) && (task->spawnArg1 == 0)) {
+    if ((Actor01100_Fn00F58(enemy, task, work, arg) == 0) && (task->spawnArg1 == 0)) {
         trigger = work->field_BC9;
         if ((trigger == 1) && (work->field_BA9 == trigger)) {
             if (Actor01100_Fn06AC8(((TmdObject*)task->extra)->coords) > 0xA62B10) {
                 i   = 0;
-                off = 0x9C8;
+                off = OFFSET_OF(ActorsShared80138efcWork, objs[1]);
                 do {
                     ((GpObj*)((u8*)work + off))->flags &= 0x3FFF;
-                    off                                += 0x20;
+                    off                                += sizeof(GpObj);
                     i++;
                 } while (i < 2);
                 work->field_BA6 = 0;
@@ -3848,7 +3800,7 @@ void Actor01100_Fn06D3C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     GP_NODE_ENEMY(lockNode)->bodyPos.vx = 0;
     GP_NODE_ENEMY(lockNode)->bodyPos.vy = -0xC8;
     GP_NODE_ENEMY(lockNode)->bodyPos.vz = 0xC8;
-    Actor01100_Fn00F58(enemy, task, (Actor104900SpawnWork*)work, arg);
+    Actor01100_Fn00F58(enemy, task, work, arg);
 }
 
 void Actor01100_Fn06E4C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
@@ -3909,7 +3861,7 @@ void Actor01100_Fn06F38(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     if (work->field_B8C != 0) {
         work->field_B8C--;
         if (work->field_B8C == 0) {
-            SndEvt_EnqueueType6((work->field_BB8 << 22) | ((work->field_B88 << 8) | 0x400B0004), arg->pan, arg->depth);
+            SndEvt_EnqueueType6((work->field_BB8 << 22) | (((u8)work->actorId << 8) | 0x400B0004), arg->pan, arg->depth);
         }
     }
     if (D_80070F70 & 1) {
@@ -3930,7 +3882,7 @@ void Actor01100_Fn06F38(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 /// `Actor01100_Fn05678` on the 0x18 motion.
 void Actor01100_Fn07014(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    ActorsShared80138efcMotion* motion = &work->motion;
+    GpAnimSlot* motion = &work->slots[1];
 
     if (work->field_BA8 == 0) {
         if (work->field_BAE == 0) {
@@ -4015,7 +3967,7 @@ void Actor01100_Fn07148(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     time            = (u16)work->field_B8C + 1;
     work->field_B8C = time;
     if ((s16)time >= 0xD) {
-        SndEvt_EnqueueType6((work->field_BB8 << 22) | ((work->field_B88 << 8) | 0x400B0003), arg->pan, arg->depth);
+        SndEvt_EnqueueType6((work->field_BB8 << 22) | (((u8)work->actorId << 8) | 0x400B0003), arg->pan, arg->depth);
         work->field_B8C = -0x7FFF;
     }
     arg->field_64 = 3;

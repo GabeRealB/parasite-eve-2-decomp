@@ -353,6 +353,17 @@ typedef struct ActorHitTakenScratch {
 } ActorHitTakenScratch;
 STATIC_ASSERT_SIZEOF(ActorHitTakenScratch, 0x18);
 
+/// The scratch-pad block of a bearing measured in a coordinate's own frame:
+/// `delta` is the other point's offset from the coordinate, rotated in place
+/// into that frame through `frame`, the transpose of the coordinate's world
+/// matrix.
+typedef struct ActorBearingScratch {
+    SVECTOR delta;
+    byte    pad_8[0x18];
+    MATRIX  frame;
+} ActorBearingScratch;
+STATIC_ASSERT_SIZEOF(ActorBearingScratch, 0x40);
+
 /// The scratch-pad block of a head turned to aim at the player: `view` is the
 /// head coordinate in view space, `delta` the player's offset from it, and
 /// `local` that offset rotated into the body's frame and clamped.

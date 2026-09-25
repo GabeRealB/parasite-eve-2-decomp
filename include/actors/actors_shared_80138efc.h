@@ -7,70 +7,36 @@
 #include "gameplay/3FB8.h"
 #include "main/task.h"
 
-/// Motion sub-object at 0x8C of `ActorsShared80138efcWork`, ending at the id
-/// byte at 0xB88 that follows it. Fields at 0x02 / 0x06 are read as a pair by
-/// `func_actor_104900_80136F8C`, and the flag word at 0x10 is tested a bit at a
-/// time by the dispatcher and by the handlers.
-typedef struct ActorsShared80138efcMotion {
-    /* 0x000 */ u16  field_0;
-    /* 0x002 */ u16  field_2;
-    /* 0x004 */ u16  field_4;
-    /* 0x006 */ u16  field_6;
-    /* 0x008 */ byte pad_8[0x8];
-    /// Bit 0 arms `field_BA9` in `func_actor_104900_80134780`; bit 1 is the one
-    /// the body at 0x80138E34 tests before it arms its next state.
-    /* 0x010 */ u16        flags;
-    /* 0x012 */ byte       pad_12[0x45E];
-    /* 0x470 */ GpAnimCtx  anim2;
-    /* 0x484 */ GpAnimSlot slots2[2];
-    /* 0x4D4 */ byte       pad_4D4[0x468];
-    /// Two `GpObj` list nodes. The 0x80138A2C body masks the 0xC000 pair out of
-    /// both `flags`; `func_actor_104900_801366E8` ORs it back into the second on
-    /// the frame `field_B8C` reaches 0x23, next to a `Gp_PackObjPair` result in
-    /// `field_18`.
-    /* 0x93C */ GpObj   objs[2];
-    /* 0x97C */ byte    pad_97C[0x20];
-    /* 0x99C */ GpRec18 recs[3];
-    /* 0x9E4 */ byte    pad_9E4[0x118];
-} ActorsShared80138efcMotion;
-STATIC_ASSERT_SIZEOF(ActorsShared80138efcMotion, 0xAFC);
-
-/// Work block the body at 0x80138EFC is handed in `$a2`, as five actor slots
-/// lay it out.
-///
-/// The dispatcher `func_actor_104900_80134780` copies its 26-entry handler
-/// table onto the stack and then calls `table[work->state](enemy, task, work)`,
-/// reading the index with `lb` from 0xBA7 - which is why that field is named
-/// rather than numbered. The same slot allocates the block with
-/// `memCalloc(0xBCC, 0)` in `func_actor_104900_8013279C` and parks it in
-/// `Task::work` (0x1C), so the size below is that allocation rather than a
-/// guess; other slots carry the body with a differently sized block, and only
-/// the fields this handler touches are laid out here.
-///
-/// The siblings in the same unit reach into the same run: `func_actor_104900_80138B5C`
-/// reads 0xBA0 as a byte and 0xB94 / 0xB96 as halfwords, `func_actor_104900_80138E34`
-/// and `func_actor_104900_80138F68` use 0xB9C..0xBAE the way this one does, and
-/// `func_actor_104900_80138D58` stores a halfword at 0xB8C.
+/// The enemy's work block: allocated zeroed by the spawn handler and parked in
+/// `Task::work`, then handed to every state handler and message handler of the
+/// entry. It holds the model's root coordinate, two animation contexts each with
+/// a slot per model part and a pose buffer, the four display nodes with a
+/// three-entry contact table apiece, the model's light and colour matrices, and
+/// the per-state counters and latches the handlers share.
 typedef struct ActorsShared80138efcWork {
-    /// Root coordinate. The fade at the end of the 0x80137498 handler shrinks
-    /// `coord.m[1][1]` by 0x20 while it is at least 0x801, clears `flg`, and
-    /// lifts `coord.t[1]` by 2.
+    /// Root coordinate the model's second part is parented to.
     /* 0x000 */ GsCOORDINATE2 coord;
-    /* 0x050 */ GpAnimCtx     anim;
-    /* 0x064 */ byte          pad_64[0x28];
-    /// Motion sub-object embedded at 0x8C. Its halfwords at 0x00 / 0x02 / 0x06
-    /// are the ones `func_actor_104900_80136F8C` compares against the motion id
-    /// in `field_BA4` and walks, and its flag word at 0x10 (0x9C absolute) is
-    /// what the dispatcher reads bit 0 of to arm `field_BA9`. Only that much of
-    /// it is laid out; the body at 0x80138E34 tests bit 1 of the same word, and
-    /// keeps the base in a register rather than folding 0x9C into the access.
-    /* 0x08C */ ActorsShared80138efcMotion motion;
-    /// Actor id, `spawnArg->field_8 >> 12`, which the slot's setup body at
-    /// 0x8013279C stores as a word and mirrors into `D_actor_104900_80147490`.
-    /// The 0x80138D58 handler reads its low byte and shifts it into bits 8..15
-    /// of the `SndEvt_EnqueueType6` id.
-    /* 0xB88 */ u8   field_B88;
-    /* 0xB89 */ byte pad_B89[0x3];
+    /// Body animation. Slot 1's `flags` report the clip's end and its control
+    /// entries to the state handlers, and its `curSet` is the motion playing.
+    /* 0x050 */ GpAnimCtx  anim;
+    /* 0x064 */ GpAnimSlot slots[21];
+    /* 0x3AC */ byte       poses[0x150];
+    /// Second animation, blended into the first by `field_BA2`.
+    /* 0x4FC */ GpAnimCtx  anim2;
+    /* 0x510 */ GpAnimSlot slots2[21];
+    /* 0x858 */ byte       poses2[0x150];
+    /// Display nodes: the first on the model's root, the last on part 3, and
+    /// between them the pair on parts 12 and 8 that the handlers switch on and
+    /// off through the top two bits of `flags`.
+    /* 0x9A8 */ GpObj objs[4];
+    /// One three-entry contact table per display node. The first is resolved
+    /// against the world; the last is scanned for the hits the enemy takes.
+    /* 0xA28 */ GpRec18 contacts[4][3];
+    /* 0xB48 */ MATRIX  lightMtx;
+    /* 0xB68 */ MATRIX  colorMtx;
+    /// Actor id, `placeKey >> 12`. Stored as a word; the sound calls read its
+    /// low byte into bits 8-15 of their ids.
+    /* 0xB88 */ u32 actorId;
     /// Countdown a state arms and decrements per frame: `func_actor_104900_80138D58`
     /// posts 0x64 into it and acts when it reaches zero, and this unit's
     /// 0x80138E34 arms 0xA.
@@ -91,11 +57,15 @@ typedef struct ActorsShared80138efcWork {
     /// Distance-mapped pitch the 0x80136230 body writes on the first frame:
     /// 0 inside 0x384, 0x2000 past 0xA8C, otherwise `((dist - 0x384) << 9) / 100`.
     /// `field_B94` ramps toward it while the countdown sits in `[0x1E, 0x2B]`.
-    /* 0xB9E */ u16  field_B9E;
-    /* 0xBA0 */ s8   field_BA0;
-    /* 0xBA1 */ byte pad_BA1;
-    /* 0xBA2 */ s8   field_BA2;
-    /* 0xBA3 */ s8   field_BA3;
+    /* 0xB9E */ u16 field_B9E;
+    /// Visibility the 0x7D5 message last asked for; the handler acts only
+    /// when the request changes it.
+    /* 0xBA0 */ s8 field_BA0;
+    /// The enemy link node's `state.b.flags`, saved while the model is hidden
+    /// and put back when it is shown again.
+    /* 0xBA1 */ u8 field_BA1;
+    /* 0xBA2 */ s8 field_BA2;
+    /* 0xBA3 */ s8 field_BA3;
     /// Motion id armed for the frame; every sibling writes a different pair
     /// here (0xB/0xE here, 0x15/0x16 next door, 5 in the setup handler).
     /* 0xBA4 */ s8 field_BA4;
@@ -132,18 +102,26 @@ typedef struct ActorsShared80138efcWork {
     /// Armed alongside `state` by the 0x80138E34 body, which the dispatcher's
     /// trigger then compares against. The 0x80138B5C body gates the `field_B8E`
     /// step on it (`lbu`).
-    /* 0xBAF */ u8   field_BAF;
-    /* 0xBB0 */ byte pad_BB0[0x8];
+    /* 0xBAF */ u8 field_BAF;
+    /// Placement of the hit sparks, on the model's part 4.
+    /* 0xBB0 */ GpEffArg effArg;
     /// Sound variant bit the slot's setup body at 0x8013279C picks from the
     /// spawn record, 0 or 1. `func_actor_104900_80138D58` and the bodies at
     /// 0x80132D78 / 0x80136230 shift it into bit 22 of the id they hand
     /// `SndEvt_EnqueueType6`.
-    /* 0xBB8 */ u8   field_BB8;
-    /* 0xBB9 */ u8   field_BB9;
-    /* 0xBBA */ u8   field_BBA;
-    /* 0xBBB */ byte pad_BBB;
-    /* 0xBBC */ s16  field_BBC;
-    /* 0xBBE */ byte pad_BBE[0xA];
+    /* 0xBB8 */ u8 field_BB8;
+    /* 0xBB9 */ u8 field_BB9;
+    /* 0xBBA */ u8 field_BBA;
+    /// Entry id of the placement the enemy was spawned from; 0x31 selects the
+    /// second parameter set and a scaled model.
+    /* 0xBBB */ u8  field_BBB;
+    /* 0xBBC */ s16 field_BBC;
+    /// Frames the hit sparks keep being re-spawned for.
+    /* 0xBBE */ s16 field_BBE;
+    /// Spark effect id of the last hit, from the hit id's first parameter.
+    /* 0xBC0 */ s32 field_BC0;
+    /// Frames before another hit is taken, from the hit id's second parameter.
+    /* 0xBC4 */ s32 field_BC4;
     /// One-shot latch for the 0x13F4 dispatch. Stays clear until the area id
     /// is 0x0518, the player is alive, and that message has been sent.
     /* 0xBC8 */ u8 field_BC8;
