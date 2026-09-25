@@ -1,14 +1,83 @@
 #include "common.h"
 
-#include "actors/actor_420700.h"
-
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+/// Per-actor work block for the `actor_420700` overlay.
+///
+/// The state-0 handler `func_actor_420700_80131E24` allocates it with
+/// `memCalloc(0x5A0, 0)` and stores the pointer both in
+/// `D_actor_420700_8013EFE0` and in `Task::work`, so the size below is the
+/// allocation. The task dispatcher republishes it in the global every tick,
+/// and every other function in the overlay reaches the block through it.
+///
+/// `anim` is the animation context the tick and reseed loops walk; `slots` and
+/// `poses` are the buffers `func_800B3F84` binds to it.
+typedef struct Actor420700Work {
+    /* 0x000 */ MATRIX     light;
+    /* 0x020 */ MATRIX     color;
+    /* 0x040 */ GpAnimCtx  anim;
+    /* 0x054 */ GpAnimSlot slots[0x14];
+    /* 0x374 */ byte       poses[0x14][0x10];
+    /* 0x4B4 */ s16        field_4B4; // actor step: 1 and 2 select the body to run, which then advances it to 3
+    /* 0x4B6 */ s16        field_4B6; // copy of `field_4B8`, kept for change detection
+    /* 0x4B8 */ s16        field_4B8; // animation id the slots are seeded with
+    /* 0x4BA */ s16        field_4BA; // ramp mode message 0x7DB selected: 1 and 3 rise, 2 falls, 0 leaves it alone
+    /* 0x4BC */ s16        field_4BC; // ramp value `func_actor_420700_80132064` walks by 0x80, clamped to 0..0x1000
+    /* 0x4BE */ s16        field_4BE;
+    /* 0x4C0 */ byte       pad_4C0[0xE0];
+} Actor420700Work;
+STATIC_ASSERT_SIZEOF(Actor420700Work, 0x5A0);
+
+/// The work block above, published by the task dispatcher
+/// `func_actor_420700_80132340` and by the state-0 handler.
+extern Actor420700Work* D_actor_420700_8013EFE0;
+
+/// The actor's own task, the `task` the state-0 handler
+/// `func_actor_420700_80131E24` is entered with. Its `Task::extra` holds the
+/// `TmdObject` whose trailing coordinate array `func_actor_420700_801323D8`
+/// hangs the model task's own root off, at frame 4.
+extern Task* D_actor_420700_8013EFE4;
+
+/// The first task the state-0 handler spawns, the frame-4 model task
+/// `func_actor_420700_801323D8`; the actor's exit callback kills it.
+extern Task* D_actor_420700_8013EFE8;
+
+/// The second task the state-0 handler spawns, the frame-8 model task
+/// `func_actor_420700_801327EC`.
+extern Task* D_actor_420700_8013EFEC;
+
+/// Argument block of message 0x7DB, which arms the `field_4BC` ramp: the ramp
+/// starts at the end the mode walks away from, 0 for the rising modes 1 and 3
+/// and 0x1000 for the falling mode 2. Mode 0 is taken as a no-op, and a block
+/// whose leading id is not 0x1B02 is rejected.
+typedef struct Actor420700ModeArgs {
+    /* 0x0 */ u16 id;
+    /* 0x2 */ u16 mode;
+} Actor420700ModeArgs;
+
+/// Message 0x7D3 selects an animation bank, index and transition mode.
+typedef struct Actor420700Msg7D3 {
+    /* 0x0 */ s32 field_0;
+    /* 0x4 */ s32 field_4;
+    /* 0x8 */ s32 field_8;
+} Actor420700Msg7D3;
+
+void func_actor_420700_8013239C(Task* task);
+void func_actor_420700_80132478(Task* task);
+void func_actor_420700_801324EC(void);
+void func_actor_420700_80132538(void);
+void func_actor_420700_801325C8(void);
+
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// the note in `include/gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 extern u8       D_actor_420700_8013EF48[];
 extern TaskDesc D_actor_420700_8013EF68[];
@@ -176,5 +245,246 @@ void func_actor_420700_80132064(GpEnemy* enemy, Task* task)
     }
     for (i = 1; i < 0x14; i++) {
         D_actor_420700_8013EFE0->slots[i].rate = rate;
+    }
+}
+
+/// Task handler of the actor: republishes the task's work block in
+/// `D_actor_420700_8013EFE0`, so the rest of the overlay can reach it without
+/// the task, then runs the handler for the task's state from a two-entry table
+/// built on the stack -- the spawn step `func_actor_420700_80131E24` or the
+/// per-frame step `func_actor_420700_80132064`.
+void func_actor_420700_80132340(Task* task)
+{
+    void (*fns[2])(GpEnemy*, Task*) = {
+        func_actor_420700_80131E24,
+        func_actor_420700_80132064,
+    };
+
+    D_actor_420700_8013EFE0 = task->work;
+    fns[task->state](task->spawnArg2, task);
+}
+
+/// Exit callback of the actor's task: kills the frame-4 model task and
+/// destroys the enemy.
+void func_actor_420700_8013239C(Task* arg0)
+{
+    taskKill(D_actor_420700_8013EFE8);
+    Gp_DestroyEnemy(arg0->spawnArg2, arg0);
+}
+
+/// State handler of the frame-4 model task: the spawn tick clears its root
+/// coordinate's `flg` and the model's flags, which leaves it visible, and hangs
+/// the root off frame 4 of the actor's own model, stepping to state 1; every
+/// later tick hands the actor model's root translation, dropped by 0x320 in y,
+/// to `func_800D7A9C` for the model's colour matrix.
+void func_actor_420700_801323D8(Task* task)
+{
+    TmdObject*     extra = task->extra;
+    GsCOORDINATE2* coord = extra->coords;
+    GsCOORDINATE2* parts = ((TmdObject*)D_actor_420700_8013EFE4->extra)->coords;
+    GsCOORDINATE2* part  = parts + 4;
+    VECTOR         vec;
+
+    switch (task->state) {
+        case 0:
+            coord->flg   = 0;
+            extra->flags = 0;
+            coord->sub   = part;
+            task->state++;
+            break;
+        case 1:
+            vec.vx = parts->workm.t[0];
+            vec.vy = parts->workm.t[1] - 0x320;
+            vec.vz = parts->workm.t[2];
+            func_800D7A9C(extra, &vec, 0, 3);
+            break;
+    }
+}
+
+/// Runs the body the actor's step selects and then leaves it in step 3, the
+/// running state. Steps 1 and 2 each return through their own copy of the
+/// advance; the two are identical, so jump.c cross-jumps them and only the
+/// second survives.
+void func_actor_420700_80132478(Task* task)
+{
+    if (D_actor_420700_8013EFE0->field_4B4 == 1) {
+        func_actor_420700_801325C8();
+        D_actor_420700_8013EFE0->field_4B4 = 3;
+        return;
+    }
+    if (D_actor_420700_8013EFE0->field_4B4 == 2) {
+        func_actor_420700_80132538();
+        D_actor_420700_8013EFE0->field_4B4 = 3;
+        return;
+    }
+    if (D_actor_420700_8013EFE0->field_4B4 == 3) {
+        func_actor_420700_801324EC();
+    }
+}
+
+/// Advances animation slots 1..0x13 of the work block by one tick.
+void func_actor_420700_801324EC(void)
+{
+    s32 i;
+
+    i = 1;
+    do {
+        Gp_AnimTickIndex(&D_actor_420700_8013EFE0->anim, i);
+        i++;
+    } while (i < 0x14);
+}
+
+/// Sets the rate of animation slots 1..0x13 to 1 and resets each of them to
+/// the current animation id, then records that id as the one now playing.
+void func_actor_420700_80132538(void)
+{
+    s32 i;
+
+    i = 1;
+    do {
+        D_actor_420700_8013EFE0->slots[i].rate = 1;
+        Gp_AnimResetSlot(&D_actor_420700_8013EFE0->anim, i, D_actor_420700_8013EFE0->field_4B8);
+        i++;
+    } while (i < 0x14);
+    D_actor_420700_8013EFE0->field_4B6 = D_actor_420700_8013EFE0->field_4B8;
+}
+
+/// Reseeds animation slots 1..0x13 from the current animation id and records
+/// that id as the one now playing.
+void func_actor_420700_801325C8(void)
+{
+    s32 i;
+
+    i = 1;
+    do {
+        func_800B4114(&D_actor_420700_8013EFE0->anim, i, D_actor_420700_8013EFE0->field_4B8, 0, 8);
+        i++;
+    } while (i < 0x14);
+    D_actor_420700_8013EFE0->field_4B6 = D_actor_420700_8013EFE0->field_4B8;
+}
+
+/// Message 0x7D3 handler: selects animation `field_4` (below 0x15) of the bank
+/// `field_0` picks -- ids from 0 for bank 0, 0xA for bank 1, 0x11 for bank 2 --
+/// and sets the actor step to 1 (reseed through `func_800B4114`) when `field_8`
+/// is non-zero or 2 (plain slot reset) otherwise, then runs the step at once on
+/// the actor's own task. Returns 0, or -1 for an index out of range.
+s32 func_actor_420700_80132644(Task* task, s32 arg1, Actor420700Msg7D3* args)
+{
+    s32              offset;
+    Actor420700Work* work;
+
+    if (args->field_4 < 0x15) {
+        switch (args->field_0) {
+            case 1:
+                offset = 0xA;
+                break;
+            case 2:
+                offset = 0x11;
+                break;
+            default:
+                offset = 0;
+                break;
+        }
+        work            = D_actor_420700_8013EFE0;
+        work->field_4B8 = (u16)args->field_4 + offset;
+        if (args->field_8 != 0) {
+            work->field_4B4 = 1;
+        } else {
+            work->field_4B4 = 2;
+        }
+        D_actor_420700_8013EFE0->field_4BE = 0;
+        func_actor_420700_80132478(D_actor_420700_8013EFE4);
+        return 0;
+    }
+    return -1;
+}
+
+/// Message 0x7D5 handler: rewrites the flags of the actor's three models -- its
+/// own and those of the frame-4 and frame-8 model tasks. Bit 0 of the argument
+/// shows all three (flags 0) when set and hides them (0x80) when clear; bit 1
+/// then ORs 0x4 into all three. Always returns 0.
+///
+/// The argument is the handler table's third slot, not the second, so the three
+/// objects it loads land in `$a3` / `$a0` / `$v1` rather than shifted one down.
+s32 func_actor_420700_801326F4(Task* task, s32 arg1, s32 arg2)
+{
+    TmdObject* actor = D_actor_420700_8013EFE4->extra;
+    TmdObject* model = D_actor_420700_8013EFE8->extra;
+    TmdObject* twin  = D_actor_420700_8013EFEC->extra;
+
+    if (arg2 & 1) {
+        actor->flags = 0;
+        model->flags = 0;
+        twin->flags  = 0;
+    } else {
+        actor->flags = 0x80;
+        model->flags = 0x80;
+        twin->flags  = 0x80;
+    }
+    if (arg2 & 2) {
+        actor->flags |= 4;
+        model->flags |= 4;
+        twin->flags  |= 4;
+    }
+    return 0;
+}
+
+/// Message 0x7DB handler: records the `field_4BA` mode the ramp
+/// `func_actor_420700_80132064` runs and seeds `field_4BC` at the end that mode
+/// walks away from -- 0 for the rising modes 1 and 3, 0x1000 for the falling
+/// mode 2. Mode 0 is accepted as a no-op, and a block whose leading id is not
+/// 0x1B02 is rejected with -1 without touching the work block.
+///
+/// The empty `case 0` is what the decision tree is built from: with the three
+/// live cases alone GCC balances the list at the middle node and comes out one
+/// test short, and adding the fourth node is what makes it split at the first
+/// case instead. See DECOMPILATION_LEARNINGS.md, "An empty case node changes
+/// the switch decision tree".
+s32 func_actor_420700_80132784(Task* task, s32 arg1, Actor420700ModeArgs* args)
+{
+    if (args->id != 0x1B02) {
+        return -1;
+    }
+    D_actor_420700_8013EFE0->field_4BA = args->mode;
+    switch (args->mode) {
+        case 0:
+            break;
+        case 1:
+        case 3:
+            D_actor_420700_8013EFE0->field_4BC = 0;
+            break;
+        case 2:
+            D_actor_420700_8013EFE0->field_4BC = 0x1000;
+            break;
+    }
+    return 0;
+}
+
+/// State handler of the frame-8 model task: the same as the frame-4 one,
+/// `func_actor_420700_801323D8`, except that it hangs its root off frame 8 of
+/// the actor's own model and its spawn tick also sets the model's `otOffset` to
+/// -2.
+void func_actor_420700_801327EC(Task* task)
+{
+    TmdObject*     extra = task->extra;
+    GsCOORDINATE2* coord = extra->coords;
+    GsCOORDINATE2* parts = ((TmdObject*)D_actor_420700_8013EFE4->extra)->coords;
+    GsCOORDINATE2* part  = parts + 8;
+    VECTOR         vec;
+
+    switch (task->state) {
+        case 0:
+            coord->flg      = 0;
+            extra->flags    = 0;
+            extra->otOffset = -2;
+            coord->sub      = part;
+            task->state++;
+            break;
+        case 1:
+            vec.vx = parts->workm.t[0];
+            vec.vy = parts->workm.t[1] - 0x320;
+            vec.vz = parts->workm.t[2];
+            func_800D7A9C(extra, &vec, 0, 3);
+            break;
     }
 }
