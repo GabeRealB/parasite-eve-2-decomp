@@ -3,9 +3,6 @@
 #include "decomp/common.h"
 
 #include "actors/actor_135600.h"
-#include "actors/actors_shared_801327b4.h"
-#include "actors/actors_shared_801327f8.h"
-#include "actors/actors_shared_80132f24.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -29,11 +26,6 @@ extern TaskDesc D_actor_135600_8013B0C4;
 /// The actor's message table, stored in `Task::msgTable`: 0x7D3, 0x7D4 and
 /// 0x7D5 against the handlers below.
 extern GpMsgEntry D_actor_135600_8013B0F4[];
-
-/// Declared locally rather than taken from `actors_shared_8013231c.h`: the
-/// overlay calls it through its message dispatch, which passes a fourth,
-/// unused argument.
-s32 ActorsShared8013231c(Task* task, s32 msgId, Actor135600PlaceArgs* args, s32 arg3);
 
 /// The 0x7D3 entry of `D_actor_135600_8013B0F4`, applied to the work block at
 /// 0x50C in `actor_135600_4`.
@@ -262,7 +254,7 @@ void func_actor_135600_80132234(Task* task)
         work->field_504 = spawned;
     }
 
-    ActorsShared80132f24(task);
+    func_actor_135600_80132DDC(task);
 
     args.pos.vx = 0xA6E;
     args.pos.vz = 0x5F0;
@@ -270,7 +262,7 @@ void func_actor_135600_80132234(Task* task)
     args.rot.vx = 0;
     args.rot.vy = 0x400;
     args.rot.vz = 0;
-    ActorsShared8013231c(task, 0x7D4, &args, 0);
+    func_actor_135600_801331C4(task, 0x7D4, &args, 0);
 
     preset.field_0 = 0;
     preset.field_4 = 2;
@@ -280,7 +272,7 @@ void func_actor_135600_80132234(Task* task)
     func_actor_135600_80133240(task, 0x7D5, 1, 0);
 
     task->msgTable     = D_actor_135600_8013B0F4;
-    task->exitCallback = ActorsShared801327b4;
+    task->exitCallback = func_actor_135600_80132DBC;
     task->state       += 1;
 }
 
@@ -288,7 +280,7 @@ void func_actor_135600_801324D0(Task* arg0)
 {
     TmdObject*       ext      = arg0->extra;
     Actor135600Work* work     = (Actor135600Work*)arg0->work;
-    TaskFunc         funcs[2] = { func_actor_135600_80132DF8, ActorsShared801327f8 };
+    TaskFunc         funcs[2] = { func_actor_135600_80132DF8, func_actor_135600_80132E00 };
     VECTOR3          pos;
     GsCOORDINATE2*   coord;
     s32              i;
@@ -301,9 +293,9 @@ void func_actor_135600_801324D0(Task* arg0)
     if (D_801153F4 == 0) {
         funcs[work->field_4F8](arg0);
         coord              = ((TmdObject*)arg0->extra)->coords;
-        work->field_4D8   += work->field_4C8;
-        work->field_4DC   += work->field_4CC;
-        work->field_4E0   += work->field_4D0;
+        work->field_4D8   += work->step.vx;
+        work->field_4DC   += work->step.vy;
+        work->field_4E0   += work->step.vz;
         coord->coord.t[0] += (s16)(work->field_4D8 >> 16);
         coord->coord.t[1] += (s16)(work->field_4DC >> 16);
         coord->coord.t[2] += (s16)(work->field_4E0 >> 16);

@@ -13,31 +13,37 @@
 /// Work block of the `actor_135600` enemy task, the `memCalloc(0x50C, 0)`
 /// result `func_actor_135600_80132234` parks in `Task::work` -- that slot is
 /// not a `TaskIdMap` here. The setup handler seeds `field_475` / `field_476`
-/// with -1 (the animation and "no id" sentinels `func_actor_135600_801330A8`
-/// fills) and `field_508` with -1, zeroes the three `field_4D8` / `field_4DC` /
-/// `field_4E0` 16.16 accumulators, and parks the three children it spawns in
-/// `field_4FC` / `field_500` / `field_504`.
+/// and `field_508` with -1, zeroes the three 16.16 accumulators at
+/// `field_4D8..field_4E0`, and parks the three children it spawns in
+/// `field_4FC` / `field_500` / `field_504`. The light/colour pair is what
+/// `func_actor_135600_80132DDC` points the model at; `target`, `step`, `limit`
+/// and `field_4FA` belong to the motion sequence the step handlers of
+/// `D_actor_135600_80131E48` run.
 typedef struct Actor135600Work {
-    /* 0x000 */ byte  pad_000[0x474];
-    /* 0x474 */ s8    field_474; // non-zero while the animation slots tick
-    /* 0x475 */ s8    field_475;
-    /* 0x476 */ s8    field_476;
-    /* 0x477 */ byte  pad_477[0x4C8 - 0x477];
-    /* 0x4C8 */ s32   field_4C8; // per-frame deltas the accumulators take
-    /* 0x4CC */ s32   field_4CC;
-    /* 0x4D0 */ s32   field_4D0;
-    /* 0x4D4 */ byte  pad_4D4[0x4D8 - 0x4D4];
-    /* 0x4D8 */ s32   field_4D8;
-    /* 0x4DC */ s32   field_4DC;
-    /* 0x4E0 */ s32   field_4E0;
-    /* 0x4E4 */ byte  pad_4E4[0x4F8 - 0x4E4];
-    /* 0x4F8 */ s16   field_4F8; // selects which of the two handlers the tick runs
-    /* 0x4FA */ byte  pad_4FA[0x4FC - 0x4FA];
-    /* 0x4FC */ Task* field_4FC;
-    /* 0x500 */ Task* field_500;
-    /* 0x504 */ Task* field_504;
-    /* 0x508 */ s32   field_508;
-    /* 0x50C */ byte  pad_50C[0];
+    /* 0x000 */ byte    pad_000[0x474];
+    /* 0x474 */ s8      field_474; // non-zero while the animation slots tick
+    /* 0x475 */ s8      field_475;
+    /* 0x476 */ s8      field_476;
+    /* 0x477 */ byte    pad_477[0x478 - 0x477];
+    /* 0x478 */ MATRIX  light;
+    /* 0x498 */ MATRIX  color;
+    /* 0x4B8 */ VECTOR3 target;    // world position the turn-to-face step steers toward
+    /* 0x4C4 */ byte    pad_4C4[0x4C8 - 0x4C4];
+    /* 0x4C8 */ VECTOR3 step;      // per-frame deltas the accumulators take
+    /* 0x4D4 */ byte    pad_4D4[0x4D8 - 0x4D4];
+    /* 0x4D8 */ s32     field_4D8; // 16.16 accumulators; only the high half reaches the coordinate
+    /* 0x4DC */ s32     field_4DC;
+    /* 0x4E0 */ s32     field_4E0;
+    /* 0x4E4 */ byte    pad_4E4[0x4E8 - 0x4E4];
+    /* 0x4E8 */ SVECTOR limit;     // per-axis stop threshold; 0x7FFF on all three disables it
+    /* 0x4F0 */ byte    pad_4F0[0x4F8 - 0x4F0];
+    /* 0x4F8 */ s16     field_4F8; // selects which of the two handlers the tick runs
+    /* 0x4FA */ u16     field_4FA; // index into the step-handler table `D_actor_135600_80131E48`
+    /* 0x4FC */ Task*   field_4FC;
+    /* 0x500 */ Task*   field_500;
+    /* 0x504 */ Task*   field_504;
+    /* 0x508 */ s32     field_508;
+    /* 0x50C */ byte    pad_50C[0];
 } Actor135600Work;
 STATIC_ASSERT_SIZEOF(Actor135600Work, 0x50C);
 
@@ -58,27 +64,38 @@ typedef struct Actor135600AnimPreset {
 } Actor135600AnimPreset;
 STATIC_ASSERT_SIZEOF(Actor135600AnimPreset, 0x14);
 
-/// The world translation and Euler angles the actor's 0x7D4 handler places it
-/// at, the same block `ActorsShared8013231cArgs` is.
+/// The world translation and Euler angles the actor's 0x7D4 handler
+/// `func_actor_135600_801331C4` places its root part at.
 typedef struct Actor135600PlaceArgs {
     /* 0x00 */ VECTOR  pos;
     /* 0x10 */ SVECTOR rot;
 } Actor135600PlaceArgs;
 STATIC_ASSERT_SIZEOF(Actor135600PlaceArgs, 0x18);
 
+/// Overlay of the `GsCOORDINATE2` at `TmdObject::coords`, the actor's root
+/// part. Offset 0x44 (libgs `param`) holds the Euler angles the placement and
+/// turn-to-face handlers write and hand straight to `RotMatrix`.
+typedef struct Actor135600Coord {
+    /* 0x00 */ s32     flg;
+    /* 0x04 */ MATRIX  coord;
+    /* 0x24 */ MATRIX  workm;
+    /* 0x44 */ SVECTOR rot;
+} Actor135600Coord;
+STATIC_ASSERT_SIZEOF(Actor135600Coord, 0x4C);
+
 /// Setup handler (state 0) of `D_actor_135600_80131E24`. It allocates the
 /// 0x50C-byte work block, clears the "no id yet" sentinels and spawns the
 /// actor's three children from `D_actor_135600_8013B0C4` -- indices 1 and 2 are
 /// models that get the texture page and CLUT of the area record the actor's own
 /// location key resolves to, index 3 has no model and is only parked. It then
-/// hands the parent to `ActorsShared80132f24`, places it at (0xA6E, 0, 0x5F0)
+/// hands the parent to `func_actor_135600_80132DDC`, places it at (0xA6E, 0, 0x5F0)
 /// yawed 0x400, applies the 0x7D3 animation preset, publishes the message table
 /// `D_actor_135600_8013B0F4`, installs the exit callback and steps to state 1.
 void func_actor_135600_80132234(Task* task);
 
 /// Word-wise view of a `MATRIX` used to splat an identity rotation: five
 /// aligned stores instead of nine halfword ones, each word holding two adjacent
-/// `m[][]` entries.  The same shape `ActorsShared801639a8MatWords` has.
+/// `m[][]` entries.
 typedef struct Actor135600MatrixWords {
     /* 0x00 */ s32 m00_m01;
     /* 0x04 */ s32 m02_m10;
@@ -104,13 +121,26 @@ extern u8 D_801153F4;
 /// the caller selects and the current ground-shade row `Gp_State1C->groundShade`.
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
-/// The empty handler that fills entry 0 of the parent's per-frame handler pair
-/// `{func_actor_135600_80132DF8, ActorsShared801327f8}`, selected by
-/// `Actor135600Work::field_4F8`. Defined in `actor_135600_3.c`.
+/// The empty handler that fills entry 0 of the per-frame handler pair
+/// `{func_actor_135600_80132DF8, func_actor_135600_80132E00}`, selected by
+/// `Actor135600Work::field_4F8`.
 void func_actor_135600_80132DF8(Task* arg0);
 
-/// Per-frame tick handler (state 1) of `D_actor_135600_80131E24`, the body
-/// `func_actor_120400_80132050` and `func_actor_350700_80162D5C` also run.
+/// Entry 1 of that pair: runs the step handler of `D_actor_135600_80131E48`
+/// that `Actor135600Work::field_4FA` selects.
+void func_actor_135600_80132E00(Task* task);
+
+/// Exit callback the setup handler installs: the `Gp_EnemyTaskExit` teardown.
+void func_actor_135600_80132DBC(Task* task);
+
+/// Points the model's light and colour matrices at the work block's own pair.
+void func_actor_135600_80132DDC(Task* task);
+
+/// The 0x7D4 entry of `D_actor_135600_8013B0F4`: places the root part at
+/// `args`. Returns 0.
+s32 func_actor_135600_801331C4(Task* task, s32 msgId, Actor135600PlaceArgs* args, s32 arg3);
+
+/// Per-frame tick handler (state 1) of `D_actor_135600_80131E24`.
 /// Draws the actor's ground shadow unless the model suppresses it, then --
 /// only while `D_801153F4` says gameplay is running -- dispatches the handler
 /// pair `field_4F8` selects, advances the root coordinate by the high halves
