@@ -666,7 +666,7 @@ void func_800B8014(void)
     word  &= 0xFFFF0000;
     if (word == 0x01140000) {
         Gp_ResetInventory();
-        Gp_GiveItem((GpItemScan*)((u8*)header + 0x5B8), 0x81, 1);
+        Gp_GiveItem(&Mc_SaveData.carriedItems, 0x81, 1);
         Gp_EquipHeld(0x81);
     }
 }
@@ -2451,23 +2451,26 @@ void Gp_InitModeEquip(void)
 
 void Gp_ApplyBit2Bank(s32 arg0)
 {
-    GpBit2List*  table;
-    GpBit2Rec*   rec;
-    u32*         dest;
-    register u32 id asm("a0");
-    u32          word;
-    u32          val;
-    register s32 tmp asm("v0");
-    s32          three;
-    register u16 term asm("t3");
-    u16          inner;
-    GpBit2Bank*  bank;
+    GpBit2List*          table;
+    GpBit2Rec*           rec;
+    u32*                 dest;
+    register u32         id asm("a0");
+    u32                  word;
+    u32                  val;
+    register s32         tmp asm("v0");
+    s32                  three;
+    register u16         term asm("t3");
+    u16                  inner;
+    register GpBit2Bank* banks asm("v0");
+    GpBit2Bank*          bank;
 
-    tmp  = (s32)Gp_Bit2Banks;
-    bank = (GpBit2Bank*)tmp + arg0;
-    tmp  = 3;
-    val  = (u32)bank->field_0;
-    dest = bank->field_4;
+    /* The base shares v0 with the constant 3, which otherwise becomes the
+     * index shift's amount. */
+    banks = Gp_Bit2Banks;
+    bank  = &banks[arg0];
+    tmp   = 3;
+    val   = (u32)bank->field_0;
+    dest  = bank->field_4;
     if (arg0 == tmp) {
         return;
     }
