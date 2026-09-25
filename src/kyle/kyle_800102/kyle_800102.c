@@ -140,12 +140,12 @@ void func_kyle_800102_80167DE0(Task* arg0)
     s32                   sfxarg;
     s32                   sfxbase;
 
-    work               = (WeaponGrenadeWork*)arg0->work;
-    coord              = ((TmdObject*)arg0->extra)->coords;
-    head               = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(void) = head - sizeof(WeaponGrenadeScratch);
-    blk                = (WeaponGrenadeScratch*)(head - sizeof(WeaponGrenadeScratch));
-    coord->flg         = 0;
+    work             = (WeaponGrenadeWork*)arg0->work;
+    coord            = ((TmdObject*)arg0->extra)->coords;
+    head             = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(u8) = head - sizeof(WeaponGrenadeScratch);
+    blk              = (WeaponGrenadeScratch*)(head - sizeof(WeaponGrenadeScratch));
+    coord->flg       = 0;
     if (Gp_CountRec18Hi(work->rec0, 0x30000) != 0) {
     explode:
         blk->field_30 = arg0->spawnArg1 & 0xFF00;
