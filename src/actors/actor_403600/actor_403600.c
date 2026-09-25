@@ -1762,10 +1762,10 @@ void func_actor_403600_801353D0(ActorEffectState* arg0, GsCOORDINATE2* arg1)
     u16                       oldY;
     u8*                       head;
     u8*                       newHead;
-    u8*                       uv;
-    u8*                       previous;
-    u8*                       mirror;
-    POLY_FT4*                 poly;
+    Actor403600GridQuad*      after;
+    Actor403600GridQuad*      previous;
+    Actor403600GridQuad*      mirror;
+    Actor403600GridQuad*      poly;
     SVECTOR*                  vec;
     Actor403600EffectScratch* scratch;
 
@@ -1832,7 +1832,7 @@ void func_actor_403600_801353D0(ActorEffectState* arg0, GsCOORDINATE2* arg1)
         angle        = arg0->field_80;
         do {
             angle                   %= 32;
-            poly                     = (POLY_FT4*)D_actor_403600_8016069C;
+            poly                     = (Actor403600GridQuad*)D_actor_403600_8016069C;
             D_actor_403600_8016069C += sizeof(POLY_FT4);
             rotation                 = -rcos(arg0->field_0[angle]) >> 3;
             scratch->vec.vx          = rsin(rotation);
@@ -1842,6 +1842,8 @@ void func_actor_403600_801353D0(ActorEffectState* arg0, GsCOORDINATE2* arg1)
             gte_rtv0();
             scratch->projected.vx = scale;
             scratch->projected.vz = 0;
+            /* A byte offset stepped beside `i`: indexing `radii` by `i` frees
+             * that register and moves the allocation of the whole loop. */
             scratch->projected.vy = *(s32*)((u8*)radii + radiusOffset);
             gte_stsv(vec);
             gte_ldv0(&scratch->projected);
@@ -1874,16 +1876,18 @@ void func_actor_403600_801353D0(ActorEffectState* arg0, GsCOORDINATE2* arg1)
                 poly->x0 = (u16)poly->x0 - screenX;
                 screenX  = 0;
             }
-            ((u8*)poly)[0x1E] = 0;
+            poly->page0 = 0;
             if (screenX >= 0x100) {
-                ((u8*)poly)[0x1E] = 0x40;
+                poly->page0 = 0x40;
             }
             poly->v0 = screenY;
-            poly->u0 = screenX - ((u8*)poly)[0x1E];
+            poly->u0 = screenX - poly->page0;
+            /* The next height is read at a byte offset scaled apart from the
+             * base: indexing `heightBase[i + 1]` folds the +1 into the load. */
             if (scratch->flag >= 0 && i != 15 && (*height != 0 || (index = i + 1, index *= 4, *(s32*)((s32)heightBase + index) != 0))) {
-                ((u8*)poly)[3] = 9;
-                ((u8*)poly)[7] = 0x2D;
-                scratch->otz   = (scratch->otz << D_80071090 & 0x3FFF) >> 4;
+                setlen(poly, 9);
+                poly->code   = 0x2D;
+                scratch->otz = (scratch->otz << D_80071090 & 0x3FFF) >> 4;
                 if (scratch->maxOtz < scratch->otz) {
                     scratch->maxOtz = scratch->otz;
                 }
@@ -1894,29 +1898,29 @@ void func_actor_403600_801353D0(ActorEffectState* arg0, GsCOORDINATE2* arg1)
                 poly->tag        = (poly->tag & maskHi) | (ot[otz] & mask);
                 ot[scratch->otz] = (ot[scratch->otz] & maskHi) | ((u32)poly & mask);
             }
-            previous = (u8*)poly - sizeof(POLY_FT4);
+            previous = poly - 1;
             if (i != 0) {
-                *(s32*)(previous + 0x10) = *(s32*)&poly->x0;
-                previous[0x14]           = poly->u0;
+                *(s32*)&previous->x1 = *(s32*)&poly->x0;
+                previous->u1         = poly->u0;
                 do {
-                    previous[0x15] = poly->v0;
-                    previous[0x1F] = ((u8*)poly)[0x1E];
+                    previous->v1    = poly->v0;
+                    previous->page1 = poly->page0;
                     if (j != 0) {
-                        mirrorXY = *(s32*)(previous + 0x08);
-                        mirror   = (u8*)poly - 0x2A8;
+                        mirrorXY = *(s32*)&previous->x0;
+                        mirror   = poly - 17;
                     } else {
-                        mirrorXY = *(s32*)(previous + 0x08);
-                        mirror   = (u8*)poly + 0x1B58;
+                        mirrorXY = *(s32*)&previous->x0;
+                        mirror   = poly + 175;
                     }
-                    *(s32*)(mirror + 0x18) = mirrorXY;
-                    mirror[0x1C]           = previous[0x0C];
+                    *(s32*)&mirror->x2 = mirrorXY;
+                    mirror->u2         = previous->u0;
                 } while (0);
-                mirror[0x1D]           = previous[0x0D];
-                mirror[0x26]           = previous[0x1E];
-                *(s32*)(mirror + 0x20) = *(s32*)(previous + 0x10);
-                mirror[0x24]           = previous[0x14];
-                mirror[0x25]           = previous[0x15];
-                mirror[0x27]           = previous[0x1F];
+                mirror->v2         = previous->v0;
+                mirror->page2      = previous->page0;
+                *(s32*)&mirror->x3 = *(s32*)&previous->x1;
+                mirror->u3         = previous->u1;
+                mirror->v3         = previous->v1;
+                mirror->page3      = previous->page1;
             }
             height++;
             radiusOffset += 4;
@@ -1929,13 +1933,15 @@ void func_actor_403600_801353D0(ActorEffectState* arg0, GsCOORDINATE2* arg1)
 
     j = 0;
     do {
-        i  = 0;
-        uv = (u8*)poly + 0x28;
+        i = 0;
+        /* Walked one quad ahead of the quad it adjusts, so every field is
+         * reached at a negative displacement, as the build requires. */
+        after = poly + 1;
         do {
-            corner[0] = uv[-28] + uv[-10];
-            corner[1] = uv[-20] + uv[-9];
-            corner[2] = uv[-12] + uv[-2];
-            corner[3] = uv[-4] + uv[-1];
+            corner[0] = after[-1].u0 + after[-1].page0;
+            corner[1] = after[-1].u1 + after[-1].page1;
+            corner[2] = after[-1].u2 + after[-1].page2;
+            corner[3] = after[-1].u3 + after[-1].page3;
             min       = corner[0];
             max       = corner[0];
             for (scanCount = 1; scanCount < 4; scanCount++) {
@@ -1950,14 +1956,14 @@ void func_actor_403600_801353D0(ActorEffectState* arg0, GsCOORDINATE2* arg1)
             } else {
                 adjust = 0;
             }
-            *(u16*)(uv - 0x12) = ((u32)(adjust + 0x1C0) >> 6) | 0x110;
-            uv[-28]            = corner[0] - adjust;
-            uv[-20]            = corner[1] - adjust;
+            after[-1].tpage = ((u32)(adjust + 0x1C0) >> 6) | 0x110;
+            after[-1].u0    = corner[0] - adjust;
+            after[-1].u1    = corner[1] - adjust;
             poly--;
-            uv[-12] = corner[2] - adjust;
+            after[-1].u2 = corner[2] - adjust;
             i++;
-            uv[-4] = corner[3] - adjust;
-            uv    -= sizeof(POLY_FT4);
+            after[-1].u3 = corner[3] - adjust;
+            after--;
         } while (i < 16);
         j++;
     } while (j < 12);
