@@ -3990,8 +3990,6 @@ id = 122
 objects = [
   { kind = "packageId" },
   { unit = "actor_135400/actor_135400", rodata = "0x4", text = "0x94" },
-  { unit = "actor_135400/actor_135400_2", rodata = "0x5C", text = "0x830" },
-  { unit = "actor_135400/actor_135400_3", text = "0x814" },
   { kind = "model", at = "0x117C" },
   { kind = "model", at = "0x6C0C" },
   { kind = "data", at = "0x70E4" },
