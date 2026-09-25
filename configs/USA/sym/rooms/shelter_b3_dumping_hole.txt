@@ -1,1 +1,6 @@
 // Overlay-local symbols for shelter_b3_dumping_hole.
+D_shelter_b3_dumping_hole_8018B57A = 0x8018B57A; // type:s16 size:0x2
+D_shelter_b3_dumping_hole_8018F4C2 = 0x8018F4C2; // type:s16 size:0x2
+D_shelter_b3_dumping_hole_8018F4C6 = 0x8018F4C6; // type:s16 size:0x2
+D_shelter_b3_dumping_hole_8018F4CA = 0x8018F4CA; // type:s16 size:0x2
+D_shelter_b3_dumping_hole_8018F4CE = 0x8018F4CE; // type:u16 size:0x2
