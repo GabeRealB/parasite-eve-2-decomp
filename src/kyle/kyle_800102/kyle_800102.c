@@ -21,7 +21,6 @@
 /// muzzle coordinate and links its two `GpObj` nodes.
 void func_kyle_800102_80167A84(Task* arg0)
 {
-    void**             scratch;
     u8*                head;
     SVECTOR*           blk;
     SVECTOR*           vec;
@@ -34,16 +33,15 @@ void func_kyle_800102_80167A84(Task* arg0)
     s32                flags;
     s32                speed;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    blk      = (SVECTOR*)(head - 8);
-    *scratch = blk;
-    extra    = arg0->extra;
-    idx      = ((u32)arg0->spawnArg1 >> 16) & 0xF;
-    coord    = extra->coords;
-    muzzle   = coord->sub;
-    work     = memCalloc(sizeof(WeaponGrenadeWork), 0);
-    vec      = blk;
+    head                  = SCRATCH_HEAD(u8);
+    blk                   = (SVECTOR*)(head - 8);
+    SCRATCH_HEAD(SVECTOR) = blk;
+    extra                 = arg0->extra;
+    idx                   = ((u32)arg0->spawnArg1 >> 16) & 0xF;
+    coord                 = extra->coords;
+    muzzle                = coord->sub;
+    work                  = memCalloc(sizeof(WeaponGrenadeWork), 0);
+    vec                   = blk;
     if (work == NULL) {
         SCRATCH_POP_BYTES(8);
         taskKill(arg0);
