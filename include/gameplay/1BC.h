@@ -557,18 +557,22 @@ void  func_800B0928(Task* arg0, Task* arg1, s32 arg2, s32 arg3, s32 arg4);
 /// by `arg4 / 0x1000` of the remaining angle and clamps the result to `arg2`
 /// yaw and `arg3` pitch before writing the rotation with `RotMatrix`.
 void func_800B0CF4(Task* arg0, GsCOORDINATE2* arg1, s32 arg2, s32 arg3, s32 arg4);
-/// Persistent head-tracking state for `func_800B17D4`. `yawLimit` /
+/// Persistent head-tracking state for `func_800B17D4`, allocated by the task
+/// that drives the head turn and kept in its `Task::work`. `yawLimit` /
 /// `pitchLimit` are the base clamps (widened to the head's current pose each
 /// step), `rate` the per-step fraction of the remaining angle in `/ 0x1000`,
-/// `lastPitch` the previous unwrapped pitch and `inited` whether it is valid.
+/// which the owner ramps, `lastPitch` the previous unwrapped pitch and
+/// `inited` whether it is valid. Every owner allocates 12 bytes; nothing reads
+/// the bytes after `inited`.
 typedef struct _GpHeadAim {
-    /* 0x0 */ s16 yawLimit;
-    /* 0x2 */ s16 pitchLimit;
-    /* 0x4 */ s16 rate;
-    /* 0x6 */ s16 lastPitch;
-    /* 0x8 */ s8  inited;
+    s16  yawLimit;
+    s16  pitchLimit;
+    s16  rate;
+    s16  lastPitch;
+    s8   inited;
+    byte pad_9[0x3];
 } GpHeadAim;
-STATIC_ASSERT_SIZEOF(GpHeadAim, 0xA);
+STATIC_ASSERT_SIZEOF(GpHeadAim, 0xC);
 
 /// `func_800B0928` with the limits and step taken from `arg2` and the target
 /// being `arg1`'s head: composes the first five `GsCOORDINATE2` transforms of

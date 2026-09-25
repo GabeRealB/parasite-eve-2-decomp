@@ -147,36 +147,6 @@ typedef struct Actor361100EffectState {
 } Actor361100EffectState;
 STATIC_ASSERT_SIZEOF(Actor361100EffectState, 0xE8);
 
-/// Head-aim record `func_actor_361100_801627D4` allocates and parks in
-/// `Task::work`, handed straight to `func_800B17D4` as its `arg2`: the yaw and
-/// pitch clamps that function widens against the head's current pose, and the
-/// `rate` fraction of the remaining angle this overlay ramps one 0x100 step per
-/// frame.
-///
-/// The field roles are `GpHeadAim`'s, but the two readings of the record are
-/// not the same size. This overlay allocates 12 bytes where `GpHeadAim` is 10,
-/// and the two other `func_800B17D4` callers that build the record the same way
-/// -- `func_mine_mesa_8017E15C` and `func_actor_450200_80131FA8` -- also
-/// allocate 12, so 12 is the record's size and gameplay's 10 is the most
-/// `func_800B17D4` alone can see of it.
-///
-/// `rate` is `u16` here because this body reads it as an unsigned halfword and
-/// reinterprets the stored value as `s16` for the clamp, which is what the
-/// `lhu` / `sll` / `sra` sequence in the ROM says. That is a statement about the
-/// access, not about the field: declaring it `s16` here compiles to the same
-/// bytes, so the ROM cannot distinguish the two at this site, and the field
-/// never leaves [0, 0x1000], where both readings agree. See the
-/// `DECOMPILATION_LEARNINGS.md` entries on `lhu` and halfword signedness.
-typedef struct Actor361100HeadAim {
-    /* 0x0 */ s16  yawLimit;
-    /* 0x2 */ s16  pitchLimit;
-    /* 0x4 */ u16  rate;
-    /* 0x6 */ s16  lastPitch;
-    /* 0x8 */ s8   inited;
-    /* 0x9 */ byte pad_9[0x3];
-} Actor361100HeadAim;
-STATIC_ASSERT_SIZEOF(Actor361100HeadAim, 0xC);
-
 /// Scratch record `func_actor_361100_80161FF8` carves off `G_SCRATCH_HEAD` for
 /// the duration of one call and hands back before returning. `mtx` is the
 /// transpose of the view's world matrix, loaded as the GTE rotation for every
@@ -670,7 +640,7 @@ void func_actor_361100_80161FF8(Task* arg0)
 
 /// Head-aim state of the actor, run only while `D_801156F9` is clear: a looker
 /// task that is missing, or a target task that is, parks the state machine on
-/// -1. State 0 allocates the `Actor361100HeadAim` record into `Task::work` and
+/// -1. State 0 allocates the `GpHeadAim` record into `Task::work` and
 /// seeds its clamps to 0x300 yaw and 0x200 pitch; state 1 ramps its `rate` up
 /// toward 0x1000 while `Task::spawnArg1` is set and back down toward 0 while it
 /// is not, then hands the record to `func_800B17D4` between the slot-3 task
@@ -680,10 +650,10 @@ void func_actor_361100_80161FF8(Task* arg0)
 /// falls out of its own `if` into that kill, rather than into state 1.
 void func_actor_361100_801627D4(Task* task)
 {
-    Task*               looker;
-    Task*               target;
-    Actor361100HeadAim* aim;
-    u16                 rate;
+    Task*      looker;
+    Task*      target;
+    GpHeadAim* aim;
+    u16        rate;
 
     looker = gameGetPtrSlot(3);
     target = (Task*)Gp_LookupSlot4(2);
@@ -693,7 +663,7 @@ void func_actor_361100_801627D4(Task* task)
         }
         switch (task->state) {
             case 0:
-                aim = memCalloc(sizeof(Actor361100HeadAim), false);
+                aim = memCalloc(sizeof(GpHeadAim), false);
                 if (aim != NULL) {
                     task->work      = (TaskIdMap*)aim;
                     aim->yawLimit   = 0x300;
@@ -701,7 +671,7 @@ void func_actor_361100_801627D4(Task* task)
                     task->state++;
                         /* fallthrough */
                     case 1:
-                        aim = (Actor361100HeadAim*)task->work;
+                        aim = (GpHeadAim*)task->work;
                         if (task->spawnArg1 != 0) {
                             rate      = aim->rate + 0x100;
                             aim->rate = rate;
@@ -715,7 +685,7 @@ void func_actor_361100_801627D4(Task* task)
                                 aim->rate = 0;
                             }
                         }
-                        func_800B17D4(looker, target, (GpHeadAim*)aim);
+                        func_800B17D4(looker, target, aim);
                         return;
                 }
                 /* fallthrough */

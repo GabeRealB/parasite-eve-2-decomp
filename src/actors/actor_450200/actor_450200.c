@@ -34,23 +34,6 @@ extern u16      D_actor_450200_801403E8[256];
 extern u16      D_actor_450200_801405E8[256];
 extern u16      D_actor_450200_801407E8[256];
 
-/// Head-aim record `func_actor_450200_80131FA8` allocates and parks in
-/// `Task::work`, then hands to `func_800B17D4` each frame: the yaw and pitch
-/// clamps that function widens against the head's current pose, the `rate`
-/// fraction of the remaining angle this actor ramps up and down, and the
-/// previous pitch with its valid flag, which `func_800B17D4` keeps itself.
-/// The allocation is 12 bytes, two more than gameplay's `GpHeadAim` spans.
-/// `rate` is read unsigned and reinterpreted as signed for the clamp.
-typedef struct Actor450200HeadAim {
-    s16  yawLimit;
-    s16  pitchLimit;
-    u16  rate;
-    s16  lastPitch;
-    s8   inited;
-    byte pad_9[0x3];
-} Actor450200HeadAim;
-STATIC_ASSERT_SIZEOF(Actor450200HeadAim, 0xC);
-
 /// Effect state machine of this actor's first sub-task: state 0 arms the
 /// self-destruct countdown at 0x64 and state 2 re-arms it at 0x80, both then
 /// stepping the state on; state 1 throws effect 0x60080 on every other frame,
@@ -101,7 +84,7 @@ void func_actor_450200_80131E24(Task* task)
 }
 
 /// Head-aim state of this actor's second sub-task: state 0 allocates the
-/// `Actor450200HeadAim` record into `Task::work` and seeds both clamps to
+/// `GpHeadAim` record into `Task::work` and seeds both clamps to
 /// 0x100, state 1 ramps its `rate` up toward 0x1000 while `Task::spawnArg1` is
 /// set and back down toward 0 while it is not, then hands the record to
 /// `func_800B17D4` between the slot-3 task whose head turns and the
@@ -111,14 +94,14 @@ void func_actor_450200_80131E24(Task* task)
 /// distinct.
 void func_actor_450200_80131FA8(Task* arg0)
 {
-    Task*               looker;
-    Actor450200HeadAim* aim;
-    u16                 rate;
+    Task*      looker;
+    GpHeadAim* aim;
+    u16        rate;
 
     looker = gameGetPtrSlot(3);
     switch (arg0->state) {
         case 0:
-            aim = memCalloc(sizeof(Actor450200HeadAim), false);
+            aim = memCalloc(sizeof(GpHeadAim), false);
             if (aim == NULL) {
                 taskKill(arg0);
                 return;
@@ -129,7 +112,7 @@ void func_actor_450200_80131FA8(Task* arg0)
             arg0->state++;
             /* fallthrough */
         case 1:
-            aim = (Actor450200HeadAim*)arg0->work;
+            aim = (GpHeadAim*)arg0->work;
             if (arg0->spawnArg1 != 0) {
                 rate      = aim->rate + 0x200;
                 aim->rate = rate;
@@ -143,7 +126,7 @@ void func_actor_450200_80131FA8(Task* arg0)
                     aim->rate = 0;
                 }
             }
-            func_800B17D4(looker, gameGetPtrSlot(0xA), (GpHeadAim*)aim);
+            func_800B17D4(looker, gameGetPtrSlot(0xA), aim);
             return;
         default:
             taskKill(arg0);

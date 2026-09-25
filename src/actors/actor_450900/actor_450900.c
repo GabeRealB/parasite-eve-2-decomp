@@ -15,29 +15,6 @@
 #include "main/unknown_syms.h"
 #include "psyq/rand.h"
 
-/// Head-aim record `func_actor_450900_80132548` allocates and parks in
-/// `Task::work`, handed to `func_800B17D4` as its `GpHeadAim`: the yaw and
-/// pitch clamps, and the `rate` fraction of the remaining angle the capture
-/// task ramps one 0x200 step per frame. `lastPitch` and `inited` belong to
-/// `func_800B17D4`, which this body never reads them for.
-///
-/// The allocation is 12 bytes where `GpHeadAim` is 10, so the record carries
-/// two bytes `func_800B17D4` does not see; whether this and `GpHeadAim` are one
-/// type is open.
-///
-/// `rate` is read as an unsigned halfword and reinterpreted as `s16` for the
-/// clamp; declaring it `s16` compiles to the same bytes, and it never leaves
-/// [0, 0x1000], so its signedness is not pinned.
-typedef struct Actor450900HeadAim {
-    /* 0x0 */ s16  yawLimit;
-    /* 0x2 */ s16  pitchLimit;
-    /* 0x4 */ u16  rate;
-    /* 0x6 */ s16  lastPitch;
-    /* 0x8 */ s8   inited;
-    /* 0x9 */ byte pad_9[0x3];
-} Actor450900HeadAim;
-STATIC_ASSERT_SIZEOF(Actor450900HeadAim, 0xC);
-
 extern s16 D_80071076;
 extern u8  D_801153F4;
 extern s32 D_8017A99C;
@@ -292,14 +269,14 @@ void func_actor_450900_80132518(s32 arg0)
 /// kills the task and drops the overlay's handle to it.
 void func_actor_450900_80132548(Task* task)
 {
-    Actor450900HeadAim* aim;
-    void*               slot;
-    u16                 rate;
+    GpHeadAim* aim;
+    void*      slot;
+    u16        rate;
 
     slot = gameGetPtrSlot(3);
     switch (task->state) {
         case 0:
-            aim = memCalloc(sizeof(Actor450900HeadAim), false);
+            aim = memCalloc(sizeof(GpHeadAim), false);
             if (aim == NULL) {
                 taskKill(task);
                 return;
@@ -310,7 +287,7 @@ void func_actor_450900_80132548(Task* task)
             task->state++;
             /* fallthrough */
         case 1:
-            aim = (Actor450900HeadAim*)task->work;
+            aim = (GpHeadAim*)task->work;
             if (task->spawnArg1 != 0) {
                 rate      = aim->rate + 0x200;
                 aim->rate = rate;
@@ -324,7 +301,7 @@ void func_actor_450900_80132548(Task* task)
                     aim->rate = 0;
                 }
             }
-            func_800B17D4(slot, gameGetPtrSlot(0xA), (GpHeadAim*)aim);
+            func_800B17D4(slot, gameGetPtrSlot(0xA), aim);
             return;
         default:
             taskKill(task);

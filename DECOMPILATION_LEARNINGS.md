@@ -82544,12 +82544,12 @@ preference across both live ranges.
 **Fix.** Give both assignments the same variable:
 
 ```c
-aim = memCalloc(sizeof(Actor361100HeadAim), false);   /* was temp_v0 */
+aim = memCalloc(sizeof(GpHeadAim), false);   /* was temp_v0 */
 if (aim != NULL) {
     task->work = (TaskIdMap*)aim;
     …
 case 1:
-    aim = (Actor361100HeadAim*)task->work;            /* was temp_a2 */
+    aim = (GpHeadAim*)task->work;            /* was temp_a2 */
 ```
 
 The reload is still emitted at the switch label on both paths — merging the
@@ -117589,8 +117589,8 @@ and written swapped --
 ```c
     looker = gameGetPtrSlot(0xA);              /* s2 */
     ...
-    func_800B17D4(gameGetPtrSlot(3), target, (MineMesaHeadAim*)aim);  /* WRONG */
-    func_800B17D4(looker, gameGetPtrSlot(3), (MineMesaHeadAim*)aim);  /* matches */
+    func_800B17D4(gameGetPtrSlot(3), target, aim);  /* WRONG */
+    func_800B17D4(looker, gameGetPtrSlot(3), aim);  /* matches */
 ```
 
 -- which emits `move a0,v0; move a1,s2` instead. Same mnemonics, same count,
@@ -117613,10 +117613,10 @@ Two lessons, and the second is the general one:
 
 ## Splitting one variable into an m2c temp pair also splits its *preferences* (func_mine_mesa_8017E15C, 2026-09-17)
 
-`func_mine_mesa_8017E15C` keeps a `MineMesaHeadAim*` in `$a2` from the moment
+`func_mine_mesa_8017E15C` keeps a `GpHeadAim*` in `$a2` from the moment
 `memCalloc` returns it (`move a2,v0`), through the two clamp stores, until the
 record is handed to `func_800B17D4` as its `arg2`; the case-1 re-read
-`aim = (MineMesaHeadAim*)arg0->idMap;` is likewise `lw $a2,0x1C($s0)`. m2c wrote
+`aim = (GpHeadAim*)arg0->idMap;` is likewise `lw $a2,0x1C($s0)`. m2c wrote
 that one source variable as two -- `temp_v0` for the allocation, `temp_a2` for
 the re-read -- and the object came out `move v1,v0` / `sw v1,0x1C(s0)` /
 `sh v0,0(v1)`: 94.817%, `regs=5 insert=2 delete=2`, structure already matching
