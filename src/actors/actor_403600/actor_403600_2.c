@@ -4398,7 +4398,7 @@ void func_actor_403600_8013FC2C(GpEnemy* arg0, Task* arg1)
     goto default_body;
 
 case1:
-    color_actor1 = (GpEnemy*)arg0;
+    color_actor1 = arg0;
     actor_403600_load_scratch_head(temp_a1_2);
     temp_a1_2[-1].vx = temp_s4->field_4B8.workm.t[0];
     color_zero1      = 0;
@@ -4489,7 +4489,7 @@ default_body:
     temp_v0_6          = temp_s4->field_74C + 1;
     temp_s4->field_74C = temp_v0_6;
     if ((s16)temp_v0_6 >= 0xA) {
-        color_actor2       = (GpEnemy*)arg0;
+        color_actor2       = arg0;
         temp_s4->field_74C = 0U;
         color_work2        = arg1->work;
         actor_403600_load_scratch_head(temp_a1_7);
@@ -5259,7 +5259,7 @@ void func_actor_403600_801412D0(GpEnemy* arg0, Task* arg1)
     block->vy                 = work->field_4B8.workm.t[1];
     *(VECTOR**)G_SCRATCH_HEAD = block;
     block->vz                 = work->field_4B8.workm.t[2];
-    Gp_UpdateActorColor((GpEnemy*)arg0, block, 0, 0);
+    Gp_UpdateActorColor(arg0, block, 0, 0);
     *(VECTOR**)G_SCRATCH_HEAD = (VECTOR*)((u8*)*(VECTOR**)G_SCRATCH_HEAD + 0x10);
 }
 
