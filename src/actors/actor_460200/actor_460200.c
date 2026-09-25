@@ -101,15 +101,6 @@ s32 func_actor_460200_80133C64(Task* task, s32 arg1, GpAnimArg* args);
 
 s32 func_actor_460200_80133CD0(Task* task, s32 arg1, s32 flags);
 
-/// Spawn argument (`Task::spawnArg2`) of the screen-capture task
-/// `func_actor_460200_80131E24`: `duration` seeds the task's kill countdown,
-/// and `done` is cleared on start, set when the countdown runs out, and ends
-/// the task once non-zero.
-typedef struct Actor460200CaptureArgs {
-    /* 0x0 */ u16 duration;
-    /* 0x2 */ s16 done;
-} Actor460200CaptureArgs;
-
 extern u8 D_80072729;
 extern s8 D_8007272D;
 extern u8 D_801156F9;
@@ -171,9 +162,9 @@ void func_actor_460200_80133C00(Task* task);
 
 void func_actor_460200_80131E24(Task* task)
 {
-    Actor460200CaptureArgs* args;
-    s32                     i;
-    u32*                    strip;
+    OverlayCaptureArgs* args;
+    s32                 i;
+    u32*                strip;
 
     args = task->spawnArg2;
     if (D_801156F9 == 0) {

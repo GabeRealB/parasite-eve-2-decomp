@@ -108,19 +108,6 @@ typedef struct DdhEffWork {
 } DdhEffWork;
 STATIC_ASSERT_SIZEOF(DdhEffWork, 0x2A);
 
-/// Argument block `func_dryfield_dilapidated_house_8017E9A4` hands its task as
-/// `Task::spawnArg2`: the address of `D_dryfield_dilapidated_house_80189B80`,
-/// whose first halfword it has just set to that call's argument and whose second
-/// is the flag the same function's cancel path raises. So the task spawned from
-/// entry 0 of `D_dryfield_dilapidated_house_80183E64` runs for `duration` frames
-/// and ends early once `func_dryfield_dilapidated_house_8017E9A4` is called with
-/// 0. Same layout the actor family's `Actor460200CaptureArgs` describes.
-typedef struct DdhCaptureArgs {
-    /* 0x0 */ u16 duration;
-    /* 0x2 */ s16 done;
-} DdhCaptureArgs;
-STATIC_ASSERT_SIZEOF(DdhCaptureArgs, 0x4);
-
 /// One `gte_rtps` result kept on the stack: the screen position, and the slot
 /// the depth-cue value is written to. Only the first entry's slot is ever
 /// written.
@@ -393,7 +380,7 @@ void func_dryfield_dilapidated_house_8017D64C(Task* arg0)
 /// display buffer strip by strip and then desaturated in place.
 ///
 /// It is spawned from entry 0 of `D_dryfield_dilapidated_house_80183E64` with
-/// the `DdhCaptureArgs` block as its `spawnArg2`. State 0 seeds the countdown
+/// the `OverlayCaptureArgs` block as its `spawnArg2`. State 0 seeds the countdown
 /// from the block's duration, picks the strip origin's y out of `gDisplayState`
 /// (`field_1f` non-zero selects 0, clear selects 0x110) and hands the twenty
 /// 0x1E00-byte strips of `Fs_ImgBuffers` to `StoreImage` -- or, while the buffer
@@ -405,9 +392,9 @@ void func_dryfield_dilapidated_house_8017D64C(Task* arg0)
 /// `done` releases `field_104` and kills the task.
 void func_dryfield_dilapidated_house_8017DE88(Task* task)
 {
-    DdhCaptureArgs* args;
-    s32             i;
-    u32*            strip;
+    OverlayCaptureArgs* args;
+    s32                 i;
+    u32*                strip;
 
     args = task->spawnArg2;
     if (D_801156F9 == 0) {

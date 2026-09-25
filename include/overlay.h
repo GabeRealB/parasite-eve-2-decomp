@@ -660,4 +660,14 @@ typedef struct OverlayCapWindow {
 } OverlayCapWindow;
 STATIC_ASSERT_SIZEOF(OverlayCapWindow, 0x10);
 
+/// The spawn argument of a screen-capture task: `duration` seeds the task's
+/// kill countdown, and `done` is cleared when the task starts, set when the
+/// countdown runs out or the owner cancels the capture, and ends the task once
+/// it is nonzero.
+typedef struct OverlayCaptureArgs {
+    u16 duration;
+    s16 done;
+} OverlayCaptureArgs;
+STATIC_ASSERT_SIZEOF(OverlayCaptureArgs, 0x4);
+
 #endif /* OVERLAY_H */
