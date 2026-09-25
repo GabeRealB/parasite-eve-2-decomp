@@ -834,6 +834,10 @@ s32 func_actor_311500_801630A4(Task* arg0)
     return 0;
 }
 
+/// Per-frame update. `Task::state` is the actor's phase: 0 sets the actor up,
+/// 1 idles until it is hit, 2 plays the hit reaction and returns to 1 or, once
+/// the hit points are gone, goes on to 3, which runs the death sequence; 4
+/// does nothing.
 void func_actor_311500_80163334(Task* arg0)
 {
     Task*            actor = arg0;
