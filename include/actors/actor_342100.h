@@ -5,11 +5,6 @@
 
 #include "main/task.h"
 
-typedef struct Actor342100 {
-    /* 0x00 */ byte pad_0[0x30];
-    /* 0x30 */ s32  field_30;
-} Actor342100;
-
 /// Work block of the overlay's event/controller task -- the one
 /// `D_actor_342100_80164BB8` points at.
 ///
@@ -103,7 +98,7 @@ extern TaskDesc D_actor_342100_80164B78;
 /// there, and all this overlay does with it is take its address.
 extern u8 D_actor_342100_801648F8[];
 
-void func_actor_342100_80163344(Actor342100* arg0, s32 arg1, s32 arg2);
+void func_actor_342100_80163344(Task* arg0, s32 arg1, s32 arg2);
 void func_actor_342100_8016334C(s32 arg0);
 void func_actor_342100_801633D0(s32 arg0);
 void func_actor_342100_80163408(void);

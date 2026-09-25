@@ -782,9 +782,9 @@ void func_actor_342100_801630A4(Task* arg0)
     }
 }
 
-void func_actor_342100_80163344(Actor342100* arg0, s32 arg1, s32 arg2)
+void func_actor_342100_80163344(Task* arg0, s32 arg1, s32 arg2)
 {
-    arg0->field_30 = arg2;
+    arg0->state = arg2;
 }
 
 /// Point the overlay's slot-3 task at the animation set `arg0 + 0x2F` and hand
