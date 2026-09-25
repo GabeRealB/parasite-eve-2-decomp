@@ -15,7 +15,7 @@
 #include "main/tmd.h"
 
 /// Optional start animation the placement handler takes: the preset's
-/// `field_4` and the `field_43F` byte. Absent, the defaults are anim 3 (or 2
+/// `field_4` and the `walk.preset` byte. Absent, the defaults are anim 3 (or 2
 /// once `field_4C4` is set) and 1.
 typedef struct Actor350500SpawnAnim {
     /* 0x00 */ s32 field_0;
@@ -50,7 +50,7 @@ const TaskFuncTable3 D_actor_350500_80161E24 = { {
     func_actor_350500_8016245C,
 } };
 
-/// The walk steps, indexed by `Actor350500Work::field_4C2`: turn to face
+/// The walk steps, indexed by `Actor350500Work::walk.motionStep`: turn to face
 /// `target`, start moving, approach until arrival, then turn to the placement
 /// yaw.
 const TaskFuncTable4 D_actor_350500_80161E30 = { {
@@ -64,13 +64,13 @@ const TaskFuncTable4 D_actor_350500_80161E30 = { {
 /// the part's own +Z.
 const VECTOR D_actor_350500_80161E40 = { 0, 0, 0x200000, 0 };
 
-/// Per-frame tick: runs the idle or the walk handler `field_4C0` selects,
+/// Per-frame tick: runs the idle or the walk handler `walk.motion` selects,
 /// then integrates the world-space `step` into the 16.16 accumulators at
-/// `field_4A0`, adds their high halves to the root coordinate's translation
+/// `walk.acc.vx`, adds their high halves to the root coordinate's translation
 /// and truncates them back to 16 bits. Ticks the animation slots while
-/// `field_43C` is set, and -- unless the model is hidden -- draws the
+/// `walk.ticking` is set, and -- unless the model is hidden -- draws the
 /// ground-shadow quad under the second part, clears that part's `flg` and
-/// rebuilds its coordinate. The `field_4C5` countdown then runs while it is
+/// rebuilds its coordinate. The `freeCountdown` countdown then runs while it is
 /// non-negative, freeing the model buffers on the frame it reaches zero; the
 /// init's -1 disables it.
 void func_actor_350500_80161E50(Task* arg0)
@@ -82,21 +82,21 @@ void func_actor_350500_80161E50(Task* arg0)
     GsCOORDINATE2*   coord;
     s32              i;
 
-    funcs[(s16)work->field_4C0](arg0);
+    funcs[(s16)work->walk.motion](arg0);
     coord              = ((TmdObject*)arg0->extra)->coords;
-    work->field_4A0   += work->step.vx;
-    work->field_4A4   += work->step.vy;
-    work->field_4A8   += work->step.vz;
-    coord->coord.t[0] += (s16)(work->field_4A0 >> 16);
-    coord->coord.t[1] += (s16)(work->field_4A4 >> 16);
-    coord->coord.t[2] += (s16)(work->field_4A8 >> 16);
+    work->walk.acc.vx += work->walk.step.vx;
+    work->walk.acc.vy += work->walk.step.vy;
+    work->walk.acc.vz += work->walk.step.vz;
+    coord->coord.t[0] += (s16)(work->walk.acc.vx >> 16);
+    coord->coord.t[1] += (s16)(work->walk.acc.vy >> 16);
+    coord->coord.t[2] += (s16)(work->walk.acc.vz >> 16);
     coord->flg         = 0;
-    work->field_4A0    = (u16)work->field_4A0;
-    work->field_4A4    = (u16)work->field_4A4;
-    work->field_4A8    = (u16)work->field_4A8;
-    if (work->field_43C != 0) {
+    work->walk.acc.vx  = (u16)work->walk.acc.vx;
+    work->walk.acc.vy  = (u16)work->walk.acc.vy;
+    work->walk.acc.vz  = (u16)work->walk.acc.vz;
+    if (work->walk.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
     if (!(ext->flags & 0x80)) {
@@ -107,17 +107,17 @@ void func_actor_350500_80161E50(Task* arg0)
         Gp_UpdateCoord(&((TmdObject*)arg0->extra)->coords[1]);
         func_800D7A9C(ext, (VECTOR*)((TmdObject*)arg0->extra)->coords[1].workm.t, 0, 3);
     }
-    if (work->field_4C5 >= 0) {
-        if (work->field_4C5 == 0) {
+    if (work->freeCountdown >= 0) {
+        if (work->freeCountdown == 0) {
             Tmd_FreeBuffers(ext);
         }
-        work->field_4C5--;
+        work->freeCountdown--;
     }
 }
 
 /// Walk step 2, the approach test. Once the X/Z distances from the root
-/// coordinate to `target` stop shrinking below `limit`, plays the `field_43F`
-/// animation, clears `step` and advances `field_4C2`; otherwise records the
+/// coordinate to `target` stop shrinking below `limit`, plays the `walk.preset`
+/// animation, clears `step` and advances `walk.motionStep`; otherwise records the
 /// distances as the new `limit`.
 void func_actor_350500_80162038(Task* arg0)
 {
@@ -130,33 +130,33 @@ void func_actor_350500_80162038(Task* arg0)
 
     work  = (Actor350500Work*)arg0->work;
     coord = ((TmdObject*)arg0->extra)->coords;
-    if (work->target.vx - coord->coord.t[0] >= 0) {
-        dx = (u16)work->target.vx - (u16)coord->coord.t[0];
+    if (work->walk.target.vx - coord->coord.t[0] >= 0) {
+        dx = (u16)work->walk.target.vx - (u16)coord->coord.t[0];
     } else {
-        dx = (u16)coord->coord.t[0] - (u16)work->target.vx;
+        dx = (u16)coord->coord.t[0] - (u16)work->walk.target.vx;
     }
     d.vx = dx;
-    if (work->target.vz - coord->coord.t[2] >= 0) {
-        dz = (u16)work->target.vz - (u16)coord->coord.t[2];
+    if (work->walk.target.vz - coord->coord.t[2] >= 0) {
+        dz = (u16)work->walk.target.vz - (u16)coord->coord.t[2];
     } else {
-        dz = (u16)coord->coord.t[2] - (u16)work->target.vz;
+        dz = (u16)coord->coord.t[2] - (u16)work->walk.target.vz;
     }
     d.vz = dz;
-    if (d.vx >= work->limit.vx && d.vz >= work->limit.vz) {
+    if (d.vx >= work->walk.limit.vx && d.vz >= work->walk.limit.vz) {
         preset.animBlock.index = 0;
-        preset.field_4         = work->field_43F;
+        preset.field_4         = work->walk.preset;
         preset.field_8         = 1;
         preset.field_C         = 5;
         preset.field_10        = 0;
         func_actor_350500_80162828(arg0, 0x7D3, &preset, 0);
-        work->step.vx = 0;
-        work->step.vy = 0;
-        work->step.vz = 0;
-        work->field_4C2++;
+        work->walk.step.vx = 0;
+        work->walk.step.vy = 0;
+        work->walk.step.vz = 0;
+        work->walk.motionStep++;
         return;
     }
-    work->limit.vx = d.vx < 0 ? -d.vx : d.vx;
-    work->limit.vz = d.vz < 0 ? -d.vz : d.vz;
+    work->walk.limit.vx = d.vx < 0 ? -d.vx : d.vx;
+    work->walk.limit.vz = d.vz < 0 ? -d.vz : d.vz;
 }
 
 /// Placement message handler: seeds the work block's target and placement
@@ -174,25 +174,25 @@ s32 func_actor_350500_8016217C(Task* task, s32 arg1, GpXformArg* place, Actor350
     TmdObject*       ext;
 
     w                      = (Actor350500Work*)task->work;
-    w->field_4C0           = 1;
-    w->field_4C2           = 0;
-    w->target.vx           = place->pos.vx;
-    w->target.vy           = place->pos.vy;
-    w->target.vz           = place->pos.vz;
-    w->field_4B8           = place->rot.vx;
-    w->field_4BA           = place->rot.vy;
-    w->field_4BC           = place->rot.vz;
+    w->walk.motion         = 1;
+    w->walk.motionStep     = 0;
+    w->walk.target.vx      = place->pos.vx;
+    w->walk.target.vy      = place->pos.vy;
+    w->walk.target.vz      = place->pos.vz;
+    w->walk.rotX           = place->rot.vx;
+    w->walk.rotY           = place->rot.vy;
+    w->walk.rotZ           = place->rot.vz;
     preset.animBlock.index = 0;
     if (anim != NULL) {
         preset.field_4 = anim->field_0;
-        w->field_43F   = anim->field_4;
+        w->walk.preset = anim->field_4;
     } else {
         if (w->field_4C4 != 0) {
             preset.field_4 = 2;
         } else {
             preset.field_4 = 3;
         }
-        w->field_43F = 1;
+        w->walk.preset = 1;
     }
     preset.field_8  = 1;
     preset.field_C  = 5;
@@ -201,27 +201,27 @@ s32 func_actor_350500_8016217C(Task* task, s32 arg1, GpXformArg* place, Actor350
     msg  = &preset;
     work = (Actor350500Work*)task->work;
     ext  = task->extra;
-    if (msg->animBlock.index != work->field_43E) {
-        work->field_43E = msg->animBlock.index;
-        work->field_43D = -1;
-        func_800B3F84(&work->anim, D_actor_350500_80168EA0[work->field_43E], ext, work->poses,
-                      work->slots);
+    if (msg->animBlock.index != work->walk.bank) {
+        work->walk.bank   = msg->animBlock.index;
+        work->walk.animId = -1;
+        func_800B3F84(&work->rig.anim, D_actor_350500_80168EA0[work->walk.bank], ext, work->rig.poses,
+                      work->rig.slots);
     }
-    if (msg->field_4 != work->field_43D) {
-        work->field_43D = msg->field_4;
-        if (msg->field_8 != 0 && work->field_43C != 0) {
+    if (msg->field_4 != work->walk.animId) {
+        work->walk.animId = msg->field_4;
+        if (msg->field_8 != 0 && work->walk.ticking != 0) {
             for (i = 1; i < 0x13; i++) {
-                func_800B4114(&work->anim, i, work->field_43D, 0, msg->field_C);
+                func_800B4114(&work->rig.anim, i, work->walk.animId, 0, msg->field_C);
             }
         } else {
             for (i = 1; i < 0x13; i++) {
-                Gp_AnimResetSlot(&work->anim, i, work->field_43D);
+                Gp_AnimResetSlot(&work->rig.anim, i, work->walk.animId);
             }
         }
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
-        work->field_43C = 1;
+        work->walk.ticking = 1;
     }
     return 0;
 }
@@ -255,13 +255,13 @@ void func_actor_350500_801623CC(Task* arg0)
         return;
     }
 
-    arg0->work      = (TaskIdMap*)work;
-    work->field_43D = -1;
-    work->field_43E = -1;
-    work->field_4C5 = -1;
-    work->field_4A0 = 0;
-    work->field_4A4 = 0;
-    work->field_4A8 = 0;
+    arg0->work          = (TaskIdMap*)work;
+    work->walk.animId   = -1;
+    work->walk.bank     = -1;
+    work->freeCountdown = -1;
+    work->walk.acc.vx   = 0;
+    work->walk.acc.vy   = 0;
+    work->walk.acc.vz   = 0;
 
     func_actor_350500_8016247C(arg0);
 
@@ -285,17 +285,17 @@ void func_actor_350500_8016247C(Task* arg0)
 
     ext           = arg0->extra;
     work          = (Actor350500Work*)arg0->work;
-    ext->lightMtx = &work->light;
-    ext->colorMtx = &work->color;
+    ext->lightMtx = &work->walk.light;
+    ext->colorMtx = &work->walk.color;
 }
 
-/// Idle tick handler, selected while `field_4C0` is clear.
+/// Idle tick handler, selected while `walk.motion` is clear.
 void func_actor_350500_80162498(Task* arg0)
 {
 }
 
 /// Walk tick handler: runs the step of `D_actor_350500_80161E30` that
-/// `field_4C2` selects.
+/// `walk.motionStep` selects.
 void func_actor_350500_801624A0(Task* arg0)
 {
     TaskFuncTable4   sp;
@@ -303,14 +303,14 @@ void func_actor_350500_801624A0(Task* arg0)
 
     work = (Actor350500Work*)arg0->work;
     sp   = D_actor_350500_80161E30;
-    sp.funcs[(s16)work->field_4C2](arg0);
+    sp.funcs[(s16)work->walk.motionStep](arg0);
 }
 
 /// Walk step 0: turns the root part toward `work->target`, taking the yaw of
 /// the normalised offset from the part's own translation with `ratan2` --
 /// turned half a revolution away while `field_4C4` is clear -- and rebuilding
 /// the local matrix from that yaw alone. Clearing `flg` makes the coordinate
-/// tree recompute the world matrix, and bumping `field_4C2` moves on to the
+/// tree recompute the world matrix, and bumping `walk.motionStep` moves on to the
 /// next step.
 void func_actor_350500_80162508(Task* task)
 {
@@ -323,9 +323,9 @@ void func_actor_350500_80162508(Task* task)
     work  = (Actor350500Work*)task->work;
     coord = (GpCoordExt*)((TmdObject*)task->extra)->coords;
 
-    delta.vx = work->target.vx - coord->coord.t[0];
-    delta.vy = work->target.vy - coord->coord.t[1];
-    delta.vz = work->target.vz - coord->coord.t[2];
+    delta.vx = work->walk.target.vx - coord->coord.t[0];
+    delta.vy = work->walk.target.vy - coord->coord.t[1];
+    delta.vz = work->walk.target.vz - coord->coord.t[2];
     VectorNormalS(&delta, &dir);
 
     rot.vx = 0;
@@ -340,13 +340,13 @@ void func_actor_350500_80162508(Task* task)
     coord->param.rot.vz = rot.vz;
     RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg = 0;
-    work->field_4C2++;
+    work->walk.motionStep++;
 }
 
 /// Walk step 1: rotates `D_actor_350500_80161E40` -- shrunk to -0.4 of its
 /// length, a slower backward walk, while `field_4C4` is clear -- through the
 /// root part's matrix into `work->step`, opens the per-axis stop threshold to
-/// 0x7FFF, which disables it for the approach test, and advances `field_4C2`.
+/// 0x7FFF, which disables it for the approach test, and advances `walk.motionStep`.
 void func_actor_350500_801625E4(Task* arg0)
 {
     Actor350500Work* work;
@@ -362,17 +362,17 @@ void func_actor_350500_801625E4(Task* arg0)
         vec.vy = vec.vy * -0.4;
         vec.vz = vec.vz * -0.4;
     }
-    ApplyMatrixLV(&coord->coord, &vec, (VECTOR*)&work->step);
-    work->limit.vx = 0x7FFF;
-    work->limit.vy = 0x7FFF;
-    work->limit.vz = 0x7FFF;
-    work->field_4C2++;
+    ApplyMatrixLV(&coord->coord, &vec, (VECTOR*)&work->walk.step);
+    work->walk.limit.vx = 0x7FFF;
+    work->walk.limit.vy = 0x7FFF;
+    work->walk.limit.vz = 0x7FFF;
+    work->walk.motionStep++;
 }
 
 /// Walk step 3, the final turn. Euler-extracts the root coordinate into
-/// `vec`, and while the yaw gap to the placement yaw `field_4BA` is at least
+/// `vec`, and while the yaw gap to the placement yaw `walk.rotY` is at least
 /// 0x61 steps `vec.vy` toward it by 0x60; otherwise snaps the yaw to it,
-/// plays anim 1 and clears `field_4C0` and `field_4C2`, which returns the
+/// plays anim 1 and clears `walk.motion` and `walk.motionStep`, which returns the
 /// tick to idle. Either way the root coordinate is rebuilt as the identity
 /// rotated by `vec` and its `flg` cleared.
 void func_actor_350500_8016272C(Task* arg0)
@@ -389,7 +389,7 @@ void func_actor_350500_8016272C(Task* arg0)
     work  = (Actor350500Work*)arg0->work;
 
     Gp_ExtractEuler(&vec, &coord->coord);
-    diff = (u16)work->field_4BA - (u16)vec.vy;
+    diff = (u16)work->walk.rotY - (u16)vec.vy;
     if (ABS(diff) >= 0x61) {
         vy = vec.vy;
         if (diff < 0) {
@@ -398,15 +398,15 @@ void func_actor_350500_8016272C(Task* arg0)
             vec.vy = vy + 0x60;
         }
     } else {
-        vec.vy                 = work->field_4BA;
+        vec.vy                 = work->walk.rotY;
         preset.animBlock.index = 0;
         preset.field_4         = 1;
         preset.field_8         = 1;
         preset.field_C         = 4;
         preset.field_10        = 0;
         func_actor_350500_80162828(arg0, 0x7D3, &preset, 0);
-        work->field_4C0 = 0;
-        work->field_4C2 = 0;
+        work->walk.motion     = 0;
+        work->walk.motionStep = 0;
     }
 
     words          = (OverlayMatWords*)&coord->coord;
@@ -426,7 +426,7 @@ void func_actor_350500_8016272C(Task* arg0)
 /// installed on every slot - through `func_800B4114` when the preset's
 /// `field_8` is set and the slots have already been started, through
 /// `Gp_AnimResetSlot` otherwise - after which every slot is ticked once and
-/// `field_43C` latches. An unchanged id skips all of that. Returns 0.
+/// `walk.ticking` latches. An unchanged id skips all of that. Returns 0.
 s32 func_actor_350500_80162828(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 {
     Actor350500Work* work;
@@ -435,26 +435,26 @@ s32 func_actor_350500_80162828(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 
     work = (Actor350500Work*)task->work;
     ext  = task->extra;
-    if (msg->animBlock.index != work->field_43E) {
-        work->field_43E = msg->animBlock.index;
-        work->field_43D = -1;
-        func_800B3F84(&work->anim, D_actor_350500_80168EA0[work->field_43E], ext, work->poses, work->slots);
+    if (msg->animBlock.index != work->walk.bank) {
+        work->walk.bank   = msg->animBlock.index;
+        work->walk.animId = -1;
+        func_800B3F84(&work->rig.anim, D_actor_350500_80168EA0[work->walk.bank], ext, work->rig.poses, work->rig.slots);
     }
-    if (msg->field_4 != work->field_43D) {
-        work->field_43D = msg->field_4;
-        if (msg->field_8 != 0 && work->field_43C != 0) {
+    if (msg->field_4 != work->walk.animId) {
+        work->walk.animId = msg->field_4;
+        if (msg->field_8 != 0 && work->walk.ticking != 0) {
             for (i = 1; i < 0x13; i++) {
-                func_800B4114(&work->anim, i, work->field_43D, 0, msg->field_C);
+                func_800B4114(&work->rig.anim, i, work->walk.animId, 0, msg->field_C);
             }
         } else {
             for (i = 1; i < 0x13; i++) {
-                Gp_AnimResetSlot(&work->anim, i, work->field_43D);
+                Gp_AnimResetSlot(&work->rig.anim, i, work->walk.animId);
             }
         }
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
-        work->field_43C = 1;
+        work->walk.ticking = 1;
     }
     return 0;
 }
@@ -484,7 +484,7 @@ s32 func_actor_350500_80162960(Task* task, s32 msgId, GpXformArg* args)
 /// Mode 0 hides the model (flag 0x80, under which the tick also skips the
 /// shadow and the part update) and clears the 4 flag; 1 shows it, allocates
 /// the model buffers and clears 4; 2 hides it, sets 4 and latches the mode
-/// into the `field_4C5` countdown, which frees the buffers when it runs out;
+/// into the `freeCountdown` countdown, which frees the buffers when it runs out;
 /// 3 shows it and sets 4. Anything else returns 1 and leaves the object
 /// alone; the handled modes return 0.
 s32 func_actor_350500_801629DC(Task* task, s32 arg1, s32 mode)
@@ -505,9 +505,9 @@ s32 func_actor_350500_801629DC(Task* task, s32 arg1, s32 mode)
             obj->flags &= ~4;
             break;
         case 2:
-            obj->flags                               |= 0x80;
-            ((Actor350500Work*)task->work)->field_4C5 = mode;
-            obj->flags                               |= 4;
+            obj->flags                                   |= 0x80;
+            ((Actor350500Work*)task->work)->freeCountdown = mode;
+            obj->flags                                   |= 4;
             break;
         case 3:
             obj->flags &= ~0x80;

@@ -593,40 +593,70 @@ typedef struct Actor05300SndRow {
 } Actor05300SndRow;
 STATIC_ASSERT_SIZEOF(Actor05300SndRow, 0x4);
 
-/// Work block of the enemy whose code both actor_350500 and actor_350700
-/// carry, allocated zeroed at its full size and kept at `Task::work`. The two
-/// matrices are published as the model's light and colour matrices, so the
-/// actor draws with its own lighting.
+/// The state a scripted walker keeps right after its rig: an actor the room
+/// script places and walks from point to point. `ticking` enables the
+/// animation tick, `animId` and `bank` are the animation now playing and the
+/// bank it comes from, and `preset` is the preset byte the arrival and turn
+/// steps start their animation with. `light` and `color` are the matrices the
+/// model is lit with. A walk heads for `target`: each frame `step` is added
+/// into the 16.16 accumulators `acc`, whose high halves move the root
+/// coordinate and whose low halves carry over, until the remaining distance
+/// falls below `limit` on every axis, 0x7FFF disabling the check. `rotX`,
+/// `rotY` and `rotZ` are the placement rotation, and `rotY` the yaw the final
+/// turn steers toward. `motion` selects the handler the tick runs, and
+/// `motionStep` the step of the walk sequence that handler is on.
+typedef struct ActorWalkState {
+    s8      ticking;
+    s8      animId;
+    s8      bank;
+    s8      preset;
+    MATRIX  light;
+    MATRIX  color;
+    VECTOR3 target;
+    byte    pad_50[0x4];
+    VECTOR3 step;
+    byte    pad_60[0x4];
+    VECTOR3 acc;
+    byte    pad_70[0x4];
+    SVECTOR limit;
+    u16     rotX;
+    u16     rotY;
+    u16     rotZ;
+    byte    pad_82[0x2];
+    s16     motion;
+    s16     motionStep;
+} ActorWalkState;
+STATIC_ASSERT_SIZEOF(ActorWalkState, 0x88);
+
+/// Work block of the scripted walker whose code both actor_350500 and
+/// actor_350700 carry for a nineteen-part model, allocated zeroed at its full
+/// size and kept at `Task::work`. `field_4C4` is the variant the
+/// two-case message handler latches, and `freeCountdown` the frames until the
+/// model buffers are freed, -1 disabling the countdown.
 typedef struct Actor350500Work {
-    GpAnimCtx  anim;
-    GpAnimSlot slots[0x13];  // the slot array handed to `func_800B3F84`
-    byte       poses[0x130]; // pose buffer handed to `func_800B3F84`
-    s8         field_43C;    // animation-tick enable
-    s8         field_43D;    // current animation id
-    s8         field_43E;    // current bank index
-    s8         field_43F;    // animation id the approach step plays on arrival
-    MATRIX     light;
-    MATRIX     color;
-    VECTOR3    target;    // world position the actor walks to
-    byte       pad_48C[0x4];
-    VECTOR3    step;      // per-frame world-space delta the accumulators take
-    byte       pad_49C[0x4];
-    s32        field_4A0; // 16.16 accumulators; only the high half reaches the coordinate
-    s32        field_4A4;
-    s32        field_4A8;
-    byte       pad_4AC[0x4];
-    SVECTOR    limit;     // per-axis stop threshold; 0x7FFF on all three disables it
-    u16        field_4B8; // placement rotation
-    u16        field_4BA; // placement yaw the final turn steers toward
-    u16        field_4BC;
-    byte       pad_4BE[0x2];
-    u16        field_4C0; // selects the idle or the walk tick handler
-    u16        field_4C2; // index into the walk-step table
-    s8         field_4C4; // variant the two-case message handler latches
-    s8         field_4C5; // frames until the model buffers are freed; -1 disables
-    byte       pad_4C6[0x2];
+    ActorAnimRig19 rig;
+    ActorWalkState walk;
+    s8             field_4C4;
+    s8             freeCountdown;
+    byte           pad_4C6[0x2];
 } Actor350500Work;
 STATIC_ASSERT_SIZEOF(Actor350500Work, 0x4C8);
+
+/// Work block of the scripted walker whose code actor_135600 and the parent
+/// actor of actor_350700 carry, allocated zeroed at its full size and kept at
+/// `Task::work`: a twenty-part rig and the walk state, the three child tasks
+/// the spawn routine starts, whose models the visibility command drives
+/// alongside the walker's, and `freeCountdown`, the frames until the model
+/// buffers are freed, -1 disabling the countdown.
+typedef struct Actor135600Work {
+    ActorAnimRig20 rig;
+    ActorWalkState walk;
+    Task*          child0;
+    Task*          child1;
+    Task*          child2;
+    s32            freeCountdown;
+} Actor135600Work;
+STATIC_ASSERT_SIZEOF(Actor135600Work, 0x50C);
 
 /// Work block of the enemy whose code actor_160600, actor_160700,
 /// actor_215100 and the first variant of actor_460200 carry, allocated zeroed
