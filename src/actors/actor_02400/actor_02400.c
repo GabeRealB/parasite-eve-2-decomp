@@ -1071,33 +1071,33 @@ void Actor02400_Fn0208C(Task* task)
     GsCOORDINATE2*          coord;
     Actor02400Work*         work;
     Actor02400ScaleScratch* scratch;
-    MATRIX*                 head;
+    Actor02400ScaleScratch* head;
 
-    coord                      = ((TmdObject*)task->extra)->coords;
-    work                       = task->work;
-    work->field_100            = coord->coord;
-    head                       = SCRATCH_HEAD(MATRIX);
-    scratch                    = (Actor02400ScaleScratch*)((u8*)head - 0x40);
-    SCRATCH_HEAD(void)         = scratch;
-    work->obj40.pos.vy         = -0xC8000 / work->field_12A;
-    work->objC0.pos.vz         = (work->field_12C * 250) / 4096;
-    scratch->scale.vx          = work->field_128;
-    scratch->scale.vy          = work->field_12A;
-    scratch->scale.vz          = work->field_12C;
-    scratch->t.vx              = coord->coord.t[0];
-    scratch->t.vy              = coord->coord.t[1];
-    scratch->t.vz              = coord->coord.t[2];
-    coord->coord               = work->field_100;
-    scratch->mat.ident.m00_m01 = 0x1000;
-    scratch->mat.ident.m02_m10 = 0;
-    scratch->mat.ident.m11_m12 = 0x1000;
-    scratch->mat.ident.m20_m21 = 0;
-    scratch->mat.ident.m22     = 0x1000;
+    coord                                = ((TmdObject*)task->extra)->coords;
+    work                                 = task->work;
+    work->field_100                      = coord->coord;
+    head                                 = SCRATCH_HEAD(Actor02400ScaleScratch);
+    scratch                              = head - 1;
+    SCRATCH_HEAD(Actor02400ScaleScratch) = scratch;
+    work->obj40.pos.vy                   = -0xC8000 / work->field_12A;
+    work->objC0.pos.vz                   = (work->field_12C * 250) / 4096;
+    scratch->scale.vx                    = work->field_128;
+    scratch->scale.vy                    = work->field_12A;
+    scratch->scale.vz                    = work->field_12C;
+    scratch->t.vx                        = coord->coord.t[0];
+    scratch->t.vy                        = coord->coord.t[1];
+    scratch->t.vz                        = coord->coord.t[2];
+    coord->coord                         = work->field_100;
+    scratch->mat.ident.m00_m01           = 0x1000;
+    scratch->mat.ident.m02_m10           = 0;
+    scratch->mat.ident.m11_m12           = 0x1000;
+    scratch->mat.ident.m20_m21           = 0;
+    scratch->mat.ident.m22               = 0x1000;
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->coord.t[0] = scratch->t.vx;
     coord->coord.t[1] = scratch->t.vy;
-    SCRATCH_POP_BYTES(0x40);
+    SCRATCH_POP(Actor02400ScaleScratch);
     coord->coord.t[2] = scratch->t.vz;
     coord->flg        = 0;
 }
@@ -1301,7 +1301,7 @@ void Actor02400_Fn02790(GpEnemy* arg0, Task* arg1)
     Task*                parent;
     Actor02400ChildWork* work;
     ActorOffsetScratch*  scratch;
-    void*                head;
+    ActorOffsetScratch*  head;
     GsCOORDINATE2*       objCoord;
     GsCOORDINATE2*       objCoord2;
     GsCOORDINATE2*       objCoord3;
@@ -1309,15 +1309,15 @@ void Actor02400_Fn02790(GpEnemy* arg0, Task* arg1)
     GsCOORDINATE2*       coord;
     GsCOORDINATE2*       parentCoord;
 
-    head               = SCRATCH_HEAD(void);
-    scratch            = (ActorOffsetScratch*)((u8*)head - 0x18);
-    SCRATCH_HEAD(void) = scratch;
-    offset             = &scratch->offset;
-    parent             = arg1->parent;
-    coord              = ((TmdObject*)arg1->extra)->coords;
-    parentCoord        = ((TmdObject*)parent->extra)->coords;
-    parentWork         = parent->work;
-    work               = memCalloc(0xB4, 0);
+    head                             = SCRATCH_HEAD(ActorOffsetScratch);
+    scratch                          = head - 1;
+    SCRATCH_HEAD(ActorOffsetScratch) = scratch;
+    offset                           = &scratch->offset;
+    parent                           = arg1->parent;
+    coord                            = ((TmdObject*)arg1->extra)->coords;
+    parentCoord                      = ((TmdObject*)parent->extra)->coords;
+    parentWork                       = parent->work;
+    work                             = memCalloc(0xB4, 0);
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;
@@ -1392,7 +1392,7 @@ void Actor02400_Fn02790(GpEnemy* arg0, Task* arg1)
     work->obj_58.flags |= 0x4400;
     Task_DetachFromParent(arg1);
     arg1->state = 1;
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_POP(ActorOffsetScratch);
 }
 
 /// Flight handler of the projectile: moves it along `field_A8` / `field_AC`

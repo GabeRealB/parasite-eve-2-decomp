@@ -1550,14 +1550,14 @@ void Actor01500_Fn02B70(Task* arg0)
     Actor101500Work* work;
     GsCOORDINATE2*   coord;
     VECTOR3*         vec;
-    void*            head;
+    VECTOR*          head;
     s16              hit;
 
-    head               = SCRATCH_HEAD(void);
-    work               = arg0->work;
-    coord              = ((TmdObject*)arg0->extra)->coords;
-    SCRATCH_HEAD(void) = (u8*)head - 0x10;
-    vec                = (VECTOR3*)((u8*)head - 0x10);
+    head                 = SCRATCH_HEAD(VECTOR);
+    work                 = arg0->work;
+    coord                = ((TmdObject*)arg0->extra)->coords;
+    SCRATCH_HEAD(VECTOR) = head - 1;
+    vec                  = (VECTOR3*)(head - 1);
     if (work->field_35A != 5) {
         hit = func_800EA1A8((VECTOR3*)coord->workm.t, vec);
         if (hit != 0) {
@@ -1569,7 +1569,7 @@ void Actor01500_Fn02B70(Task* arg0)
         vec->vz = coord->workm.t[2];
         Gp_DrawEffGroundQuad(vec, 0x200, 0x80);
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_POP(VECTOR);
 }
 
 /// Death shrink: restores the root coordinate from the matrix `field_32C`

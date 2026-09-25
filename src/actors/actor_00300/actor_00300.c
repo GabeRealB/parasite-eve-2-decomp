@@ -2164,22 +2164,22 @@ void Actor00300_Fn040A4(GpEnemy* arg0, Task* arg1)
     Task*               parent;
     Actor00300InitWork* work;
     ActorOffsetScratch* scratch;
-    void*               head;
+    ActorOffsetScratch* head;
     SVECTOR*            offset;
     GsCOORDINATE2*      coord;
     GsCOORDINATE2*      parentCoord;
     GsCOORDINATE2*      objCoord;
     GsCOORDINATE2*      objCoord2;
 
-    head               = SCRATCH_HEAD(void);
-    scratch            = (ActorOffsetScratch*)((u8*)head - 0x18);
-    SCRATCH_HEAD(void) = scratch;
-    offset             = &scratch->offset;
-    parent             = arg1->parent;
-    coord              = ((TmdObject*)arg1->extra)->coords;
-    parentCoord        = ((TmdObject*)parent->extra)->coords;
-    parentWork         = (Actor100300Work*)parent->work;
-    work               = memCalloc(0x8C, 0);
+    head                             = SCRATCH_HEAD(ActorOffsetScratch);
+    scratch                          = head - 1;
+    SCRATCH_HEAD(ActorOffsetScratch) = scratch;
+    offset                           = &scratch->offset;
+    parent                           = arg1->parent;
+    coord                            = ((TmdObject*)arg1->extra)->coords;
+    parentCoord                      = ((TmdObject*)parent->extra)->coords;
+    parentWork                       = (Actor100300Work*)parent->work;
+    work                             = memCalloc(0x8C, 0);
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;
@@ -2234,7 +2234,7 @@ void Actor00300_Fn040A4(GpEnemy* arg0, Task* arg1)
     work->obj38.flags |= 0x4400;
     Task_DetachFromParent(arg1);
     arg1->state = 1;
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_POP(ActorOffsetScratch);
 }
 
 void Actor00300_Fn04370(GpEnemy* arg0, Task* arg1)
