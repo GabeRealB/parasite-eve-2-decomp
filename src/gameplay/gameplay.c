@@ -211,11 +211,6 @@ s32  func_800A7550(void);
                      : "r"(p)         \
                      : "$14")
 
-#define gte_ldsz0(r0)  __asm__ volatile("mtc2 %0, $16" : : "r"(r0))
-#define gte_ldsz1(r0)  __asm__ volatile("mtc2 %0, $17" : : "r"(r0))
-#define gte_ldsz2(r0)  __asm__ volatile("mtc2 %0, $18" : : "r"(r0))
-#define gte_ldsz3s(r0) __asm__ volatile("mtc2 %0, $19" : : "r"(r0))
-
 /* r1 = long vector in, r2 = long vector out: r2 = RT * r1 + TR at full
  * 32-bit precision, the input split into three 10/11-bit slices. */
 #define gte_RotTransLV(r1, r2) __asm__ volatile( \
@@ -734,19 +729,19 @@ u32* gpDrawStreamPrimF4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream
                 idx     = rec[0] & 0xFFFC;
                 sz      = *(s32*)(idx + (s32)szTable);
                 if ((sz & clipMask) == 0) {
-                    gte_ldsz0(sz);
+                    gte_ldSZ0(sz);
                     idx = rec[1] & 0xFFFC;
                     sz  = *(s32*)(idx + (s32)szTable);
                     if ((sz & clipMask) == 0) {
-                        gte_ldsz1(sz);
+                        gte_ldSZ1(sz);
                         idx = rec[2] & 0xFFFC;
                         sz  = *(s32*)(idx + (s32)szTable);
                         if ((sz & clipMask) == 0) {
-                            gte_ldsz2(sz);
+                            gte_ldSZ2(sz);
                             idx = rec[3] & 0xFFFC;
                             sz  = *(s32*)(idx + (s32)szTable);
                             if ((sz & clipMask) == 0) {
-                                gte_ldsz3s(sz);
+                                gte_ldSZ3(sz);
                                 gte_avsz4();
                                 gte_stotz(opz);
                                 gte_stotz(opz);
@@ -800,15 +795,15 @@ u32* gpDrawStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream
                 idx     = rec[0] & 0xFFFC;
                 sz      = *(s32*)(idx + (s32)szTable);
                 if ((sz & clipMask) == 0) {
-                    gte_ldsz0(sz);
+                    gte_ldSZ0(sz);
                     idx = rec[1] & 0xFFFC;
                     sz  = *(s32*)(idx + (s32)szTable);
                     if ((sz & clipMask) == 0) {
-                        gte_ldsz1(sz);
+                        gte_ldSZ1(sz);
                         idx = rec[2] & 0xFFFC;
                         sz  = *(s32*)(idx + (s32)szTable);
                         if ((sz & clipMask) == 0) {
-                            gte_ldsz2(sz);
+                            gte_ldSZ2(sz);
                             gte_avsz3();
                             gte_stotz(opz);
                             gte_stotz(opz);
@@ -869,15 +864,15 @@ u32* gpDrawStreamPrimGt3PreXformFixedLayer(TmdScratchModelBlock* ws, s32 flags, 
                 idx     = rec[0] & 0xFFFC;
                 sz      = *(s32*)(idx + (s32)szTable);
                 if ((sz & clipMask) == 0) {
-                    gte_ldsz1(sz);
+                    gte_ldSZ1(sz);
                     idx = rec[1] & 0xFFFC;
                     sz  = *(s32*)(idx + (s32)szTable);
                     if ((sz & clipMask) == 0) {
-                        gte_ldsz2(sz);
+                        gte_ldSZ2(sz);
                         idx = rec[2] & 0xFFFC;
                         sz  = *(s32*)(idx + (s32)szTable);
                         if ((sz & clipMask) == 0) {
-                            gte_ldsz3s(sz);
+                            gte_ldSZ3(sz);
                             gte_avsz3();
                             {
                                 s32          f0;
@@ -991,19 +986,19 @@ u32* gpDrawStreamPrimGt4PreXformLayer(TmdScratchModelBlock* ws, s32 flags, u32* 
             idx     = rec[0] & 0xFFFC;
             sz      = *(s32*)(idx + (s32)szTable);
             if ((sz & clipMask) == 0) {
-                gte_ldsz0(sz);
+                gte_ldSZ0(sz);
                 idx = rec[1] & 0xFFFC;
                 sz  = *(s32*)(idx + (s32)szTable);
                 if ((sz & clipMask) == 0) {
-                    gte_ldsz1(sz);
+                    gte_ldSZ1(sz);
                     idx = rec[2] & 0xFFFC;
                     sz  = *(s32*)(idx + (s32)szTable);
                     if ((sz & clipMask) == 0) {
-                        gte_ldsz2(sz);
+                        gte_ldSZ2(sz);
                         idx = rec[3] & 0xFFFC;
                         sz  = *(s32*)(idx + (s32)szTable);
                         if ((sz & clipMask) == 0) {
-                            gte_ldsz3s(sz);
+                            gte_ldSZ3(sz);
                             gte_avsz4();
                             {
                                 s32          f0;
@@ -1102,15 +1097,15 @@ u32* gpDrawStreamPrimGt3PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags,
                 idx     = rec[0] & 0xFFFC;
                 sz      = *(s32*)(idx + (s32)szTable);
                 if ((sz & clipMask) == 0) {
-                    gte_ldsz1(sz);
+                    gte_ldSZ1(sz);
                     idx = rec[1] & 0xFFFC;
                     sz  = *(s32*)(idx + (s32)szTable);
                     if ((sz & clipMask) == 0) {
-                        gte_ldsz2(sz);
+                        gte_ldSZ2(sz);
                         idx = rec[2] & 0xFFFC;
                         sz  = *(s32*)(idx + (s32)szTable);
                         if ((sz & clipMask) == 0) {
-                            gte_ldsz3s(sz);
+                            gte_ldSZ3(sz);
                             gte_avsz3();
                             setlen(&xy[-1], len);
                             setcode(&xy[-1], 0x36);
@@ -1182,19 +1177,19 @@ u32* gpDrawStreamPrimGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags,
                 idx     = rec[0] & 0xFFFC;
                 sz      = *(s32*)(idx + (s32)szTable);
                 if ((sz & clipMask) == 0) {
-                    gte_ldsz0(sz);
+                    gte_ldSZ0(sz);
                     idx = rec[1] & 0xFFFC;
                     sz  = *(s32*)(idx + (s32)szTable);
                     if ((sz & clipMask) == 0) {
-                        gte_ldsz1(sz);
+                        gte_ldSZ1(sz);
                         idx = rec[2] & 0xFFFC;
                         sz  = *(s32*)(idx + (s32)szTable);
                         if ((sz & clipMask) == 0) {
-                            gte_ldsz2(sz);
+                            gte_ldSZ2(sz);
                             idx = rec[3] & 0xFFFC;
                             sz  = *(s32*)(idx + (s32)szTable);
                             if ((sz & clipMask) == 0) {
-                                gte_ldsz3s(sz);
+                                gte_ldSZ3(sz);
                                 gte_avsz4();
                                 setlen(&xy[-1], len);
                                 setcode(&xy[-1], 0x3E);

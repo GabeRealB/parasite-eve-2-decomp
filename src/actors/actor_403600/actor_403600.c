@@ -152,10 +152,6 @@ void func_actor_403600_80134398(Task* arg0);
                      : : "r"(p) : "$22")
 #define actor_403600_ldsxy1_fifo_gt4(p) \
     __asm__ volatile("lw $22, 37(%0); nop; mtc2 $22, $15" : : "r"(p) : "$22")
-#define actor_403600_ldsz0(v) __asm__ volatile("mtc2 %0, $16" : : "r"(v))
-#define actor_403600_ldsz1(v) __asm__ volatile("mtc2 %0, $17" : : "r"(v))
-#define actor_403600_ldsz2(v) __asm__ volatile("mtc2 %0, $18" : : "r"(v))
-#define actor_403600_ldsz3(v) __asm__ volatile("mtc2 %0, $19" : : "r"(v))
 #define actor_403600_fade_rgb(p, scale, first) \
     __asm__ volatile(                          \
         "mult %0, %1\n\t"                      \
@@ -2388,15 +2384,15 @@ u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                 idx      = rec[0] & 0xFFFC;
                 sz       = *(s32*)(idx + (s32)sz_table);
                 if (!(sz & clip_mask)) {
-                    actor_403600_ldsz1(sz);
+                    gte_ldSZ1(sz);
                     idx = rec[1] & 0xFFFC;
                     sz  = *(s32*)(idx + (s32)sz_table);
                     if (!(sz & clip_mask)) {
-                        actor_403600_ldsz2(sz);
+                        gte_ldSZ2(sz);
                         idx = rec[2] & 0xFFFC;
                         sz  = *(s32*)(idx + (s32)sz_table);
                         if (!(sz & clip_mask)) {
-                            actor_403600_ldsz3(sz);
+                            gte_ldSZ3(sz);
                             gte_avsz3();
                             upper_delta = 0;
                             if (light != 0) {
@@ -2621,19 +2617,19 @@ u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                 idx      = rec[0] & 0xFFFC;
                 sz       = *(s32*)(idx + (s32)sz_table);
                 if (!(sz & clip_mask)) {
-                    actor_403600_ldsz0(sz);
+                    gte_ldSZ0(sz);
                     idx = rec[1] & 0xFFFC;
                     sz  = *(s32*)(idx + (s32)sz_table);
                     if (!(sz & clip_mask)) {
-                        actor_403600_ldsz1(sz);
+                        gte_ldSZ1(sz);
                         idx = rec[2] & 0xFFFC;
                         sz  = *(s32*)(idx + (s32)sz_table);
                         if (!(sz & clip_mask)) {
-                            actor_403600_ldsz2(sz);
+                            gte_ldSZ2(sz);
                             idx = rec[3] & 0xFFFC;
                             sz  = *(s32*)(idx + (s32)sz_table);
                             if (!(sz & clip_mask)) {
-                                actor_403600_ldsz3(sz);
+                                gte_ldSZ3(sz);
                                 gte_avsz4();
                                 upper_delta = 0;
                                 if (light != 0) {

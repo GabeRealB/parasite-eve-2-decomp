@@ -331,4 +331,12 @@
 /// and V0, V1 or V2, with no translation added.
 #define gte_rtv0_sf0() __asm__ volatile("nop; nop; .word 0x4A406012")
 
+/// Loads one register of the GTE's screen-Z FIFO (SZ0-SZ3). Psy-Q loads these
+/// only as a group (`gte_ldsz3`, `gte_ldsz4`); code that tests each depth
+/// before loading it uses the single loads.
+#define gte_ldSZ0(r0) __asm__ volatile("mtc2 %0, $16" : : "r"(r0))
+#define gte_ldSZ1(r0) __asm__ volatile("mtc2 %0, $17" : : "r"(r0))
+#define gte_ldSZ2(r0) __asm__ volatile("mtc2 %0, $18" : : "r"(r0))
+#define gte_ldSZ3(r0) __asm__ volatile("mtc2 %0, $19" : : "r"(r0))
+
 #endif
