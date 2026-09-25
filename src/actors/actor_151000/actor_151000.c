@@ -113,7 +113,7 @@ void func_actor_151000_80131F1C(GpEnemy* enemy, Task* task)
     VECTOR           vec;
     Actor151000Work* work;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
 
     obj                     = task->extra.tmd;
     coord                   = obj->coords;
@@ -159,7 +159,7 @@ void func_actor_151000_80131F1C(GpEnemy* enemy, Task* task)
 /// `footsteps` is set, plays the footsteps.
 void func_actor_151000_80132084(Task* task)
 {
-    GsCOORDINATE2*   coord = task->extra.tmd->coords;
+    GpCoord*         coord = task->extra.tmd->coords;
     Actor151000Work* work  = (Actor151000Work*)task->work;
 
     if (D_actor_151000_8013D37C->st.state == 1) {
@@ -222,9 +222,9 @@ void func_actor_151000_801323F4(Task* task)
 /// ground shadow.
 void func_actor_151000_80132450(GpEnemy* enemy, Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR         vec;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR     vec;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -251,7 +251,7 @@ void func_actor_151000_801324D4(Task* task)
 void func_actor_151000_801324FC(Task* task)
 {
     Actor151000Work* work;
-    GsCOORDINATE2*   obj;
+    GpCoord*         obj;
     GpAnimRec*       rec;
     s32              kind;
     s32              id;
@@ -369,8 +369,8 @@ s32 func_actor_151000_801327C8(Task* task, s32 arg1, s32 arg2)
 /// into the matrix and marks it dirty.
 s32 func_actor_151000_80132810(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2* coord;
-    u16            yaw;
+    GpCoord* coord;
+    u16      yaw;
 
     coord                           = task->extra.tmd->coords;
     D_actor_151000_8013D37C->st.yaw = yaw = placement->rot.vy;
@@ -406,7 +406,7 @@ s32 func_actor_151000_8013288C(Task* task, s32 arg1, GpCmdArg* msg)
 /// frame count: 0x3C in mode 0, 0xF in mode 1 and 0x19 in mode 2.
 s32 func_actor_151000_801328DC(Task* task, s32 arg1, VECTOR* target, s32 mode)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor151000Work* work;
     s32              dx;
     s32              dz;
@@ -447,9 +447,9 @@ s32 func_actor_151000_801328DC(Task* task, s32 arg1, VECTOR* target, s32 mode)
 /// the quad takes the room's current ground shade.
 void func_actor_151000_80132A38(Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR3*       vec;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR3*   vec;
 
     obj   = task->extra.tmd;
     coord = obj->coords;

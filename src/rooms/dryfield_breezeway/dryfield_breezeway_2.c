@@ -226,8 +226,8 @@ void func_dryfield_breezeway_8017FD9C(Task* task);
 void func_dryfield_breezeway_8017FE08(Task* task);
 void func_dryfield_breezeway_8017FE90(Task* arg0);
 void func_dryfield_breezeway_8017FF1C(Task* task);
-void func_dryfield_breezeway_8018034C(GsCOORDINATE2* coord, u8* data, s32 arg2, s32 arg3);
-void func_dryfield_breezeway_80180858(GsCOORDINATE2* coord, u8* data, s32 arg2, s32 arg3);
+void func_dryfield_breezeway_8018034C(GpCoord* coord, u8* data, s32 arg2, s32 arg3);
+void func_dryfield_breezeway_80180858(GpCoord* coord, u8* data, s32 arg2, s32 arg3);
 void func_dryfield_breezeway_80181938(Task* task, u8* color);
 
 /// State handlers of the room's key-item event task, indexed by its state
@@ -488,7 +488,7 @@ void func_dryfield_breezeway_8017E390(void)
 void func_dryfield_breezeway_8017E464(Task* arg0)
 {
     TmdObject*      ext;
-    GsCOORDINATE2*  coord;
+    GpCoord*        coord;
     DbwEventWork*   work;
     OverlayHotspot* hs;
 
@@ -617,7 +617,7 @@ void func_dryfield_breezeway_8017E65C(Task* task)
     DbwEventWork*     work;
     OverlayHotspot*   hs;
     RoomActionPrompt* prompt;
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     MATRIX*           m;
 
     coord  = task->extra.tmd->coords;
@@ -687,7 +687,7 @@ void func_dryfield_breezeway_8017E65C(Task* task)
 void func_dryfield_breezeway_8017E81C(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
-    GsCOORDINATE2*    coord  = task->extra.tmd->coords;
+    GpCoord*          coord  = task->extra.tmd->coords;
     DbwEventWork*     work   = (DbwEventWork*)task->work;
     OverlayHotspot*   hs     = D_dryfield_breezeway_80182DDC;
     MATRIX*           m;
@@ -1288,7 +1288,7 @@ s16 func_dryfield_breezeway_8017FAD0(DbwVec* target, DbwVec* pos)
 /// from the new translation. The scan calls this once, as it leaves its loop.
 void func_dryfield_breezeway_8017FB30(Task* task, s16 arg1, s16 arg2)
 {
-    GsCOORDINATE2* coord = task->extra.tmd->coords;
+    GpCoord* coord = task->extra.tmd->coords;
 
     coord->coord.t[2] = 0x5DC;
     coord->flg        = 0;
@@ -1469,12 +1469,12 @@ void func_dryfield_breezeway_8017FF1C(Task* task)
 
 void func_dryfield_breezeway_8017FF7C(Task* task)
 {
-    s32            mask;
-    GpEffWork*     eff;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* player;
-    s32            limit;
-    s32            pan;
+    s32        mask;
+    GpEffWork* eff;
+    GpCoord*   coord;
+    GpCoord*   player;
+    s32        limit;
+    s32        pan;
 
     mask   = 1 << gGameSession->at4.loc.view;
     eff    = task->spawnArg2;
@@ -1547,7 +1547,7 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
 /// `otz` is 0x10 or less. Two gouraud `POLY_G4` halves of half width
 /// `(s16)arg3 * 32 / otz` and two `LINE_G3` diagonals meet at the projected
 /// point, whose vertex pulses red as `rsin(animFrame * arg2) / 34 + 0x78`.
-void func_dryfield_breezeway_8018034C(GsCOORDINATE2* coord, u8* data, s32 arg2, s32 arg3)
+void func_dryfield_breezeway_8018034C(GpCoord* coord, u8* data, s32 arg2, s32 arg3)
 {
     void**            scratch;
     u8*               head;
@@ -1633,7 +1633,7 @@ void func_dryfield_breezeway_8018034C(GsCOORDINATE2* coord, u8* data, s32 arg2, 
     SCRATCH_POP_BYTES(0x14);
 }
 
-void func_dryfield_breezeway_80180858(GsCOORDINATE2* coord, u8* data, s32 arg2, s32 arg3)
+void func_dryfield_breezeway_80180858(GpCoord* coord, u8* data, s32 arg2, s32 arg3)
 {
     u8*              head;
     RoomGlowScratch* block;
@@ -1784,13 +1784,13 @@ void func_dryfield_breezeway_80180858(GsCOORDINATE2* coord, u8* data, s32 arg2, 
 /// is then released. The age does not advance while an event is running.
 void func_dryfield_breezeway_80181264(Task* task)
 {
-    GpEffWork*     work  = task->spawnArg2;
-    GsCOORDINATE2* coord = task->extra.tmd->coords;
-    MATRIX*        m;
-    SVECTOR        delta;
-    SVECTOR        dir;
-    SVECTOR        pos;
-    u8             color[3];
+    GpEffWork* work  = task->spawnArg2;
+    GpCoord*   coord = task->extra.tmd->coords;
+    MATRIX*    m;
+    SVECTOR    delta;
+    SVECTOR    dir;
+    SVECTOR    pos;
+    u8         color[3];
 
     if (Gp_State1C->eventState >= 2) {
         if (Gp_State1C->eventState < 4) {
@@ -1928,7 +1928,7 @@ void func_dryfield_breezeway_80181938(Task* task, u8* color)
     TmdObject*       extra = task->extra.tmd;
     GpEffWork*       work  = task->spawnArg2;
     void**           scratch;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     u8*              head;
     GpFxQuadScratch* block;
     GpFxQuadScratch* vecp;
@@ -1937,7 +1937,7 @@ void func_dryfield_breezeway_80181938(Task* task, u8* color)
 
     scratch                                   = (void**)G_SCRATCH_HEAD;
     head                                      = *scratch;
-    coord                                     = (GsCOORDINATE2*)extra->coords;
+    coord                                     = extra->coords;
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&coord->workm.t[0];
     vecp                                      = (GpFxQuadScratch*)(head - 0x1C);
     __asm__("move %0,%1" : "=r"(block) : "r"(vecp));

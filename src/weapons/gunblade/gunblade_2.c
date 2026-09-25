@@ -46,7 +46,7 @@ extern s8 D_8007218A;
 void func_gunblade_8011E040(Task* arg0)
 {
     GameActor*       actor;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     GunbladeScratch* blk;
     GpActorD4Rec*    rec;
     GpEffWork*       eff;

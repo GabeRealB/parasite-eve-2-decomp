@@ -5,6 +5,7 @@
 
 #include <psyq/libgte.h>
 #include <psyq/libgs.h>
+#include "main/coord.h"
 #include "main/mc.h"
 
 /// The caller's vector slot: the column copy fills the `SVECTOR` at 0x10, GPF
@@ -16,6 +17,6 @@ typedef struct ActorsShared8013898cVec {
     /* 0x10 */ SVECTOR vec;
 } ActorsShared8013898cVec;
 
-void ActorsShared8013898c(GsCOORDINATE2* arg0, ActorsShared8013898cVec* arg1, s32 arg2);
+void ActorsShared8013898c(GpCoord* arg0, ActorsShared8013898cVec* arg1, s32 arg2);
 
 #endif

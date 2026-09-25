@@ -65,10 +65,10 @@ struct Task* D_lifedrain_80130B0C     = NULL;
 /// until it drops below 0x11, then releases through state 4.
 void func_lifedrain_8012EF48(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s32            i;
-    u8             rgb[3];
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s32        i;
+    u8         rgb[3];
 
     mem   = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
@@ -298,12 +298,12 @@ void func_lifedrain_8012EF48(Task* arg0)
 /// additive quad on odd ticks until the animation runs out.
 void func_lifedrain_8012F9A8(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s32            y;
-    s32            state;
-    s16            step;
-    u16            spawn;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s32        y;
+    s32        state;
+    s16        step;
+    u16        spawn;
 
     mem      = arg0->spawnArg2;
     coord    = arg0->extra.tmd->coords;
@@ -365,13 +365,13 @@ void func_lifedrain_8012F9A8(Task* arg0)
 /// 0x1E.
 void func_lifedrain_8012FAF8(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* player;
-    GpEffWork*     spawned;
-    s16            val;
-    s32            cur;
-    VECTOR         vec;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    GpCoord*   player;
+    GpEffWork* spawned;
+    s16        val;
+    s32        cur;
+    VECTOR     vec;
 
     mem   = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
@@ -488,7 +488,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
 /// `arg2 * 23 / otz`. The outer sprite is the 0x38-wide cell on tpage 0x29 whose
 /// CLUT is `0x4310 + (arg1 & 1)`, sized `((arg2 * 2) / 3) * 55 / otz`. Same
 /// 0x18-byte scratch and axis-aligned corners as gameplay `Gp_EffSprTask8D`.
-void func_lifedrain_801301AC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
+void func_lifedrain_801301AC(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     u8*            head;
     GpRingScratch* block;
@@ -588,7 +588,7 @@ void func_lifedrain_801301AC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 /// screen units away at `arg2 - 0x20` and `arg2 + 0x20`, so the wedge is a
 /// 0x40-wide fan blade about `arg2`. Only the apex carries `rgb`, the rim
 /// fading to black. A negative `gte_stflg` drops the wedge.
-void func_lifedrain_801305C0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_lifedrain_801305C0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     u8*            head;
     GpRingScratch* block;
@@ -641,13 +641,13 @@ void func_lifedrain_801305C0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
 
 void func_lifedrain_801308C0(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s16            flag;
-    s16            kind;
-    u16            val;
-    u8             rgb[3];
-    s32            scale;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s16        flag;
+    s16        kind;
+    u16        val;
+    u8         rgb[3];
+    s32        scale;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->fadeState;

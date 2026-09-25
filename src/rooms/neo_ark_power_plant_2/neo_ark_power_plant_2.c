@@ -48,10 +48,10 @@ extern SVECTOR D_neo_ark_power_plant_2_80180688;
 void func_neo_ark_power_plant_2_8017D6F4(Task* task);
 void func_neo_ark_power_plant_2_8017D758(Task* task);
 void func_neo_ark_power_plant_2_8017DA54(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_neo_ark_power_plant_2_8017E098(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_neo_ark_power_plant_2_8017E4C4(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
-void func_neo_ark_power_plant_2_8017ED48(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
-void func_neo_ark_power_plant_2_8017F3C8(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
+void func_neo_ark_power_plant_2_8017E098(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_neo_ark_power_plant_2_8017E4C4(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_neo_ark_power_plant_2_8017ED48(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+void func_neo_ark_power_plant_2_8017F3C8(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// State table of the room's message-driven task, indexed by `Task::state`:
 /// install the message table, watch for the room's event trigger, then kill
@@ -301,9 +301,9 @@ void func_neo_ark_power_plant_2_8017DA54(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// reaches 4.
 void func_neo_ark_power_plant_2_8017DDF4(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    u8             rgb[3];
+    GpEffWork* work;
+    GpCoord*   coord;
+    u8         rgb[3];
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -366,7 +366,7 @@ void func_neo_ark_power_plant_2_8017DDF4(Task* task)
 /// form a ring between the radii `arg1` and `arg1 + arg2`, in world units
 /// scaled by depth. The edge at `arg1` is black and the edge at `arg1 + arg2`
 /// takes the colour `rgb`.
-void func_neo_ark_power_plant_2_8017E098(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_neo_ark_power_plant_2_8017E098(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -456,7 +456,7 @@ void func_neo_ark_power_plant_2_8017E098(GsCOORDINATE2* arg0, s32 arg1, s32 arg2
 /// the GTE flags the projection, queues eight gouraud `POLY_G4` wedges filling
 /// a disc around the projected point, `rgb` at the centre and black at the rim.
 /// `arg1` is the radius in world units, scaled by depth.
-void func_neo_ark_power_plant_2_8017E4C4(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_neo_ark_power_plant_2_8017E4C4(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     RoomDraw04Scratch* block;
     POLY_G4*           prim;
@@ -531,7 +531,7 @@ void func_neo_ark_power_plant_2_8017E4C4(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
     SCRATCH_POP_BYTES(0x18);
 }
 
-/// Twin smoke trail. State 0 allocates sixteen `GsCOORDINATE2`s, eight per
+/// Twin smoke trail. State 0 allocates sixteen `GpCoord`s, eight per
 /// trail, and seeds them all from the two spawn offsets so each trail starts
 /// collapsed on its origin. State 1 advances one slot of each trail per frame,
 /// re-derives all sixteen against the view and draws them. The task frees
@@ -539,15 +539,15 @@ void func_neo_ark_power_plant_2_8017E4C4(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
 /// event state is 2 or more.
 void func_neo_ark_power_plant_2_8017E858(Task* task)
 {
-    GsCOORDINATE2  coord;
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* objCoord;
-    GsCOORDINATE2* dst;
-    GpEffWork*     work;
-    SVECTOR*       vec;
-    s32            i;
+    GpCoord    coord;
+    GpCoord*   coords;
+    GpCoord*   objCoord;
+    GpCoord*   dst;
+    GpEffWork* work;
+    SVECTOR*   vec;
+    s32        i;
 
-    coords   = (GsCOORDINATE2*)task->work;
+    coords   = (GpCoord*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
     objCoord = task->extra.tmd->coords;
 
@@ -555,7 +555,7 @@ void func_neo_ark_power_plant_2_8017E858(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GsCOORDINATE2*)memCalloc(0x500, 0);
+                coords = (GpCoord*)memCalloc(0x500, 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
@@ -635,11 +635,11 @@ void func_neo_ark_power_plant_2_8017E858(Task* task)
 /// `0x40 - 9 * i` and the trailing edge by nine less. `arg3` is the beam
 /// colour, three 2-bit channels at bits 8, 4 and 0 that each multiply that
 /// fade. Dropped when `gte_stflg` is negative.
-void func_neo_ark_power_plant_2_8017ED48(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3)
+void func_neo_ark_power_plant_2_8017ED48(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GsCOORDINATE2*     a;
-    GsCOORDINATE2*     b;
+    GpCoord*           a;
+    GpCoord*           b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -747,9 +747,9 @@ void func_neo_ark_power_plant_2_8017ED48(GsCOORDINATE2* arg0, GsCOORDINATE2* arg
 /// work block, or earlier once the room's event state reaches 4.
 void func_neo_ark_power_plant_2_8017F140(Task* task)
 {
-    GsCOORDINATE2* objCoord;
-    GpEffWork*     work;
-    u8             rgb[4];
+    GpCoord*   objCoord;
+    GpEffWork* work;
+    u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
@@ -819,7 +819,7 @@ void func_neo_ark_power_plant_2_8017F140(Task* task)
 /// intensity and half radius at full intensity, then four spikes a quarter
 /// turn apart, two reaching the full radius and two twice it. `arg1` sizes it
 /// in world units scaled by depth; every wedge fades to black at its rim.
-void func_neo_ark_power_plant_2_8017F3C8(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_neo_ark_power_plant_2_8017F3C8(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");

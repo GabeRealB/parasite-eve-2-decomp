@@ -100,11 +100,11 @@ extern Task* D_dryfield_main_street_80185630;
 void func_dryfield_main_street_8017E0D8(Task* task);
 void func_dryfield_main_street_8017E158(Task* task);
 void func_dryfield_main_street_8017E4A4(s32 arg0);
-void func_dryfield_main_street_8017EA88(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_dryfield_main_street_8017F18C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_dryfield_main_street_8017F5B8(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
-void func_dryfield_main_street_8017FE3C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
-void func_dryfield_main_street_801804BC(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
+void func_dryfield_main_street_8017EA88(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_dryfield_main_street_8017F18C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_dryfield_main_street_8017F5B8(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_dryfield_main_street_8017FE3C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+void func_dryfield_main_street_801804BC(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// The room's own event task, spawned by its message handler. State 0 runs
 /// the latched event's CAP command; state 1 waits for it to finish and, when
@@ -523,7 +523,7 @@ void func_dryfield_main_street_8017E168(Task* task)
 /// id resolves to, then kills itself once it is close enough.
 ///
 /// The aim angle is `ratan2` of the translation of the *second*
-/// `GsCOORDINATE2` node of the target's model (`field_8[1]`) minus the
+/// `GpCoord` node of the target's model (`field_8[1]`) minus the
 /// player's own (`field_8[0]`); the delta against `GameActor::field_52` is
 /// unwrapped into `-0x800..0x800` and stepped by `0x80` per frame, so the
 /// player rotates at a fixed rate. Inside `0x80` of the target the facing
@@ -534,16 +534,16 @@ void func_dryfield_main_street_8017E168(Task* task)
 /// facing settles.
 void func_dryfield_main_street_8017E1C0(Task* task)
 {
-    Task*          player;
-    GameActor*     actor;
-    GpWorkObj*     work;
-    GsCOORDINATE2* self;
-    GsCOORDINATE2* target;
-    s32            angle;
-    s32            delta;
-    s32            magnitude;
-    s32            step;
-    s32            wrapped;
+    Task*      player;
+    GameActor* actor;
+    GpWorkObj* work;
+    GpCoord*   self;
+    GpCoord*   target;
+    s32        angle;
+    s32        delta;
+    s32        magnitude;
+    s32        step;
+    s32        wrapped;
 
     player = gameGetPtrSlot(3);
     actor  = (GameActor*)player->work;
@@ -695,12 +695,12 @@ void func_dryfield_main_street_8017E4B0(Task* task)
 /// advances; after tile 9 the spark releases itself.
 void func_dryfield_main_street_8017E830(Task* task)
 {
-    GpEffWork*     work  = task->spawnArg2;
-    GsCOORDINATE2* coord = task->extra.tmd->coords;
-    s32            vz;
-    s16            f2a;
-    u32            rng2;
-    u32            rng3;
+    GpEffWork* work  = task->spawnArg2;
+    GpCoord*   coord = task->extra.tmd->coords;
+    s32        vz;
+    s16        f2a;
+    u32        rng2;
+    u32        rng3;
 
     work->age++;
     if (task->state == 0) {
@@ -763,7 +763,7 @@ void func_dryfield_main_street_8017E830(Task* task)
 /// signed half-extent; the on-screen radius is `(s16)arg2 * 47 / otz`.
 /// `arg3` is the spin angle, applied at `arg3` and `arg3 + 0x400` through
 /// `rsin`/`rcos`.
-void func_dryfield_main_street_8017EA88(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
+void func_dryfield_main_street_8017EA88(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**             scratch;
     u8*                head;
@@ -852,9 +852,9 @@ void func_dryfield_main_street_8017EA88(GsCOORDINATE2* arg0, s32 arg1, s32 arg2,
 /// state reaches 4.
 void func_dryfield_main_street_8017EEE8(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    u8             rgb[3];
+    GpEffWork* work;
+    GpCoord*   coord;
+    u8         rgb[3];
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -918,7 +918,7 @@ void func_dryfield_main_street_8017EEE8(Task* task)
 /// width; on-screen radii are `(s16)arg1 * 64 / (otz + 1)` and
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`. The RGB triple tints the inner edge
 /// so each wedge fades to a black outer rim.
-void func_dryfield_main_street_8017F18C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_dryfield_main_street_8017F18C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -1009,7 +1009,7 @@ void func_dryfield_main_street_8017F18C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2,
 /// the projected centre. `arg1` is a signed half-extent; the on-screen radius
 /// is `(s16)arg1 * 64 / (otz + 1)`. The RGB triple in `rgb` lights only the
 /// inner vertex so each wedge fades to black.
-void func_dryfield_main_street_8017F5B8(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_dryfield_main_street_8017F5B8(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     RoomDraw04Scratch* block;
     POLY_G4*           prim;
@@ -1093,15 +1093,15 @@ void func_dryfield_main_street_8017F5B8(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
 /// reaches 2.
 void func_dryfield_main_street_8017F94C(Task* task)
 {
-    GsCOORDINATE2  coord;
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* objCoord;
-    GsCOORDINATE2* dst;
-    GpEffWork*     work;
-    SVECTOR*       vec;
-    s32            i;
+    GpCoord    coord;
+    GpCoord*   coords;
+    GpCoord*   objCoord;
+    GpCoord*   dst;
+    GpEffWork* work;
+    SVECTOR*   vec;
+    s32        i;
 
-    coords   = (GsCOORDINATE2*)task->work;
+    coords   = (GpCoord*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
     objCoord = task->extra.tmd->coords;
 
@@ -1109,7 +1109,7 @@ void func_dryfield_main_street_8017F94C(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GsCOORDINATE2*)memCalloc(0x500, 0);
+                coords = (GpCoord*)memCalloc(0x500, 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
@@ -1189,11 +1189,11 @@ void func_dryfield_main_street_8017F94C(Task* task)
 /// `0x40 - 9 * i` and the trailing edge by nine less. `arg3` is the beam
 /// colour, three 2-bit channels at bits 8, 4 and 0 that each multiply that
 /// fade. Dropped when `gte_stflg` is negative.
-void func_dryfield_main_street_8017FE3C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3)
+void func_dryfield_main_street_8017FE3C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GsCOORDINATE2*     a;
-    GsCOORDINATE2*     b;
+    GpCoord*           a;
+    GpCoord*           b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -1300,9 +1300,9 @@ void func_dryfield_main_street_8017FE3C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1
 /// room's event state reaches 4.
 void func_dryfield_main_street_80180234(Task* task)
 {
-    GsCOORDINATE2* objCoord;
-    GpEffWork*     work;
-    u8             rgb[4];
+    GpCoord*   objCoord;
+    GpEffWork* work;
+    u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
@@ -1372,7 +1372,7 @@ void func_dryfield_main_street_80180234(Task* task)
 /// are `(s16)arg1 * 64 / (otz + 1)` (outer) and `(s16)arg1 * 8 / (otz + 1)`
 /// (inner). The RGB triple tints the inner vertex of the inner ring at full
 /// brightness and the outer ring at half, so each wedge fades to a black rim.
-void func_dryfield_main_street_801804BC(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_dryfield_main_street_801804BC(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");

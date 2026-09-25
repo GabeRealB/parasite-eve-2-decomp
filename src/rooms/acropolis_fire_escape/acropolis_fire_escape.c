@@ -1582,8 +1582,8 @@ void func_acropolis_fire_escape_8017FF24(Task* task)
 /// parameters of the current view, for views 3, 6, 8 and 9.
 void func_acropolis_fire_escape_8017FF7C(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
+    GpEffWork* work;
+    GpCoord*   coord;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -1642,7 +1642,7 @@ void func_acropolis_fire_escape_8017FF7C(Task* task)
 void func_acropolis_fire_escape_80180154(Task* task)
 {
     GpEffWork*                      work;
-    GsCOORDINATE2*                  coord;
+    GpCoord*                        coord;
     void**                          scratch;
     u8*                             head;
     u8*                             tmp;
@@ -1788,7 +1788,7 @@ void func_acropolis_fire_escape_80180B20(Task* task)
     AcropolisFireEscapeGlowScratch* blk;
     POLY_G4*                        prim;
     LINE_G3*                        line;
-    GsCOORDINATE2*                  coord;
+    GpCoord*                        coord;
     void*                           mem;
     u16                             vz;
     s32                             i;

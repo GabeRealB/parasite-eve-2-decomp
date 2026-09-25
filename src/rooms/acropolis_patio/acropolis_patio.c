@@ -439,10 +439,10 @@ void func_acropolis_patio_8017E054(Task* task)
 /// all nine puffs share it.
 void func_acropolis_patio_8017E100(Task* task)
 {
-    GsCOORDINATE2* objCoord;
-    GpEffWork*     work;
-    s32            i;
-    s32            j;
+    GpCoord*   objCoord;
+    GpEffWork* work;
+    s32        i;
+    s32        j;
 
     work     = (GpEffWork*)task->spawnArg2;
     objCoord = task->extra.tmd->coords;
@@ -494,7 +494,7 @@ void func_acropolis_patio_8017E324(Task* task)
     void**            scratch;
     RoomShaftScratch* block;
     GpEffWork*        work;
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     POLY_FT4*         prim;
     DisplayState*     ds;
     s32               rgb;
@@ -597,7 +597,7 @@ void func_acropolis_patio_8017E324(Task* task)
 void func_acropolis_patio_8017E730(Task* task)
 {
     GpEffWork*       work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     RoomMoteScratch* sc;
     SVECTOR*         dir;
     SVECTOR*         anchors;

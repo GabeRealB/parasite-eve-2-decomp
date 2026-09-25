@@ -44,14 +44,14 @@ void func_m4a1_pyke_8011E4AC(Task* task);
 /// `age` back down instead of advancing.
 void func_m4a1_pyke_8011D1F8(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    GpCoord64*     base;
-    GpPointLight*  slot;
-    GsCOORDINATE2* light;
-    GpMtxWords*    rot;
-    GpEffWork*     eff;
-    u32            ang;
+    GpEffWork*    work;
+    GpCoord*      coord;
+    GpCoord64*    base;
+    GpPointLight* slot;
+    GpCoord*      light;
+    GpMtxWords*   rot;
+    GpEffWork*    eff;
+    u32           ang;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -243,17 +243,17 @@ void func_m4a1_pyke_8011D548(VECTOR3* pos, u16 frame, s32 brightness)
 ///   is 0x15 frames old.
 void func_m4a1_pyke_8011D7D4(Task* task)
 {
-    GsCOORDINATE2  ground;
-    SVECTOR        after;
-    SVECTOR        before;
-    GsCOORDINATE2* coord;
-    GpEffWork*     work;
-    M4a1PykeBeam*  beam;
-    s32            fade;
-    u32            ang0;
-    u32            ang1;
-    u32            ang2;
-    u32            ang3;
+    GpCoord       ground;
+    SVECTOR       after;
+    SVECTOR       before;
+    GpCoord*      coord;
+    GpEffWork*    work;
+    M4a1PykeBeam* beam;
+    s32           fade;
+    u32           ang0;
+    u32           ang1;
+    u32           ang2;
+    u32           ang3;
 
     beam  = (M4a1PykeBeam*)task->work;
     work  = task->spawnArg2;
@@ -548,18 +548,18 @@ void func_m4a1_pyke_8011E4AC(Task* task)
 /// firing pose once the aim check fails or the trigger has been released.
 void func_m4a1_pyke_8011E4F8(Task* arg0)
 {
-    GameActor*     actor;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* spot;
-    Task*          beam;
-    s32            anim;
-    s32            delay;
-    s32            spent;
+    GameActor* actor;
+    GpCoord*   coord;
+    GpCoord*   spot;
+    Task*      beam;
+    s32        anim;
+    s32        delay;
+    s32        spent;
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
     SCRATCH_PUSH_BYTES(0x50);
-    spot = SCRATCH_HEAD(GsCOORDINATE2);
+    spot = SCRATCH_HEAD(GpCoord);
     switch (actor->field_95E) {
         case 0:
             anim              = 1;

@@ -47,8 +47,8 @@ extern SVECTOR D_mine_cavern_80188FC4[];
 
 extern RoomHaloShade D_mine_cavern_80188FCC[];
 
-void func_mine_cavern_8017F50C(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3);
-void func_mine_cavern_801804CC(GsCOORDINATE2* coord, s16 size);
+void func_mine_cavern_8017F50C(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
+void func_mine_cavern_801804CC(GpCoord* coord, s16 size);
 void func_mine_cavern_80181864(void);
 void func_mine_cavern_80182184(void);
 void func_mine_cavern_80182454(void);
@@ -563,9 +563,9 @@ void func_mine_cavern_8017EFB8(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// soon as the room's event state reaches 4.
 void func_mine_cavern_8017F240(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    s32            lifetime;
+    GpEffWork* work;
+    GpCoord*   coord;
+    s32        lifetime;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -648,7 +648,7 @@ void func_mine_cavern_8017F240(Task* task)
 /// `extent * 23 / (otz + 1)`. The low byte of `arg3` is the grey level on all
 /// three channels and its top nibble picks the CLUT on row 0x10B: column
 /// `nibble * 16 + 0xF0`, or 0xB0 when the nibble is zero.
-void func_mine_cavern_8017F50C(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3)
+void func_mine_cavern_8017F50C(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -726,7 +726,7 @@ void func_mine_cavern_8017F50C(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3
 /// width; on-screen radii are `(s16)arg1 * 64 / (otz + 1)` and
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`. The RGB triple tints the inner edge
 /// so each wedge fades to a black outer rim.
-void func_mine_cavern_8017F7D0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_mine_cavern_8017F7D0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw09Scratch* block;
     POLY_G4*           prim;
@@ -819,7 +819,7 @@ void func_mine_cavern_8017F7D0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
 /// the projected centre. `arg1` is a signed half-extent; the on-screen radius
 /// is `(s16)arg1 * 64 / (otz + 1)`. The RGB triple in `rgb` lights only the
 /// inner vertex so each wedge fades to black.
-void func_mine_cavern_8017FBF4(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_mine_cavern_8017FBF4(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     RoomDraw04Scratch* block;
     POLY_G4*           prim;
@@ -903,12 +903,12 @@ void func_mine_cavern_8017FBF4(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
 /// `D_mine_cavern_80188FCC[index]` tints each channel.
 void func_mine_cavern_8017FF88(Task* arg0)
 {
-    u8             rgb[3];
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpMtxWords*    rot;
-    s16            flag;
-    s32            shift;
+    u8          rgb[3];
+    GpEffWork*  mem;
+    GpCoord*    coord;
+    GpMtxWords* rot;
+    s16         flag;
+    s32         shift;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -997,10 +997,10 @@ kill:
 /// work block is handed back with `Gp_ReleaseState1CMem`.
 void func_mine_cavern_80180320(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    u8             sp10[3];
-    u16            temp;
+    GpEffWork* work;
+    GpCoord*   coord;
+    u8         sp10[3];
+    u16        temp;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -1050,9 +1050,9 @@ void func_mine_cavern_80180320(Task* task)
 /// `func_mine_cavern_801809F8` mark on the ground under it. Also feeds the
 /// `Gp_RoomCoords[2]` light a flickering intensity at the coordinate's position.
 /// Draws nothing when the point fails to project.
-void func_mine_cavern_801804CC(GsCOORDINATE2* coord, s16 size)
+void func_mine_cavern_801804CC(GpCoord* coord, s16 size)
 {
-    GsCOORDINATE2  ground;
+    GpCoord        ground;
     POLY_FT4*      prim;
     s16            outerLeft;
     s16            outerRight;
@@ -1182,7 +1182,7 @@ void func_mine_cavern_801804CC(GsCOORDINATE2* coord, s16 size)
 /// 0x428C) coloured `(0x30, 0x20, 0x20)`. The frame counter picks between two
 /// 0x1F-wide UV columns: `u` is `(animFrame & 1) * 32` plus 0xC0 / 0xDF, at
 /// v = 0x38..0x57. Works in a `GpQuadScratch` block on the scratch stack.
-void func_mine_cavern_801809F8(GsCOORDINATE2* arg0, s32 arg1)
+void func_mine_cavern_801809F8(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;
@@ -1272,7 +1272,7 @@ void func_mine_cavern_801809F8(GsCOORDINATE2* arg0, s32 arg1)
 /// are `(s16)arg1 * 64 / (otz + 1)` (outer) and `(s16)arg1 * 8 / (otz + 1)`
 /// (inner). The RGB triple tints the inner vertex of the inner ring at full
 /// brightness and the outer ring at half, so each wedge fades to a black rim.
-void func_mine_cavern_80180D70(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_mine_cavern_80180D70(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");
@@ -1413,10 +1413,10 @@ void func_mine_cavern_80180D70(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
 /// the room's event state reaches 4.
 void func_mine_cavern_80181730(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s16            flag;
-    s16            ang;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s16        flag;
+    s16        ang;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -1670,15 +1670,15 @@ void func_mine_cavern_80181D80(s16 point)
 /// `Gp_StateF0.field_4` is set.
 void func_mine_cavern_80182184(void)
 {
-    VECTOR        unused;
-    GsCOORDINATE2 coord;
-    MATRIX*       m;
-    SVECTOR*      pos;
-    s32           view;
-    s32           flags;
-    s16           i;
-    s16           j;
-    s16           k;
+    VECTOR   unused;
+    GpCoord  coord;
+    MATRIX*  m;
+    SVECTOR* pos;
+    s32      view;
+    s32      flags;
+    s16      i;
+    s16      j;
+    s16      k;
 
     view  = Gp_GetViewIndex() & 0xFF;
     flags = GameFlag_GetNibble(0xE2);
@@ -1782,8 +1782,8 @@ const TaskFuncTable3 D_mine_cavern_8017D65C = {
 
 void func_mine_cavern_801825C8(s16 arg0)
 {
-    GsCOORDINATE2 coord;
-    s32           view;
+    GpCoord coord;
+    s32     view;
 
     view             = Gp_GetViewIndex() & 0xFF;
     coord.sub        = &gGfxViewCoord;
@@ -2123,7 +2123,7 @@ void func_mine_cavern_801830F0(GpEnemy* arg0, Task* arg1)
     Task*                  player;
     u8*                    head;
     _MineCavernHitScratch* blk;
-    GsCOORDINATE2*         coords;
+    GpCoord*               coords;
     GpRec18*               recs;
     SVECTOR*               d;
     SVECTOR*               dst;

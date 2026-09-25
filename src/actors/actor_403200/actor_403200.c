@@ -111,7 +111,7 @@ extern TaskDesc D_80174D58;
 /// Declared here with a signed `arg2`; see the note in `gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void func_8010C980(GsCOORDINATE2* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3, s32 arg4, s32 arg5);
+void func_8010C980(GpCoord* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3, s32 arg4, s32 arg5);
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
@@ -215,10 +215,10 @@ extern GpDelayArg D_actor_403200_8015F900;
 extern GpDelayArg D_actor_403200_8015FA00;
 
 /// The scratch coordinate the debris effect of `func_actor_403200_8013DC3C` is
-/// built on: `F920` is the whole `GsCOORDINATE2` and `F924` its `coord` matrix,
+/// built on: `F920` is the whole `GpCoord` and `F924` its `coord` matrix,
 /// which splat names separately because the code takes that address directly.
-extern GsCOORDINATE2 D_actor_403200_8015F920;
-extern MATRIX        D_actor_403200_8015F924;
+extern GpCoord D_actor_403200_8015F920;
+extern MATRIX  D_actor_403200_8015F924;
 
 extern Actor403200DropCoord D_actor_403200_8015F970;
 
@@ -234,7 +234,7 @@ void func_actor_403200_801408D8(Task* arg0, s16 arg1, s16 arg2, s16 arg3);
 /// its rotation, normalised and GPF-scaled) and flag it for rebuild. The
 /// direction vector lives in an `SVECTOR` carved off the scratch head and
 /// handed straight back.
-static __inline__ void Actor403200_StepForward(GsCOORDINATE2* coord)
+static __inline__ void Actor403200_StepForward(GpCoord* coord)
 {
     u8*      head;
     SVECTOR* dir;
@@ -274,7 +274,7 @@ void func_actor_403200_8014139C(GpEnemy* enemy, Task* arg1);
 /// and `y` on the vertical one. The working matrix lives in a frame carved off
 /// `G_SCRATCH_HEAD`, handed back once the rotation has been copied onto the
 /// coordinate; as an inline the scratch-head accesses stay absolute.
-static __inline__ void Actor403200_ScaleRotation(GsCOORDINATE2* coord, s16 xz, s32 y)
+static __inline__ void Actor403200_ScaleRotation(GpCoord* coord, s16 xz, s32 y)
 {
     ActorScaleRotScratch* sc;
     s16                   ang;
@@ -305,7 +305,7 @@ static __inline__ void Actor403200_ScaleRotation(GsCOORDINATE2* coord, s16 xz, s
 }
 
 /// The same rebuild at a uniform half scale.
-static __inline__ void Actor403200_ShrinkRotation(GsCOORDINATE2* coord)
+static __inline__ void Actor403200_ShrinkRotation(GpCoord* coord)
 {
     ActorScaleRotScratch* sc;
     s16                   ang;
@@ -336,7 +336,7 @@ static __inline__ void Actor403200_ShrinkRotation(GsCOORDINATE2* coord)
 }
 
 /// Gap from `coord` to the player's coordinate matrix `Player_Status.coordMtx`, into `out`.
-static __inline__ void Actor403200_GapToCamera(GsCOORDINATE2* coord, SVECTOR* out)
+static __inline__ void Actor403200_GapToCamera(GpCoord* coord, SVECTOR* out)
 {
     out->vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
     out->vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
@@ -347,7 +347,7 @@ void func_actor_403200_80141800(GpEnemy* arg0, Task* arg1);
 
 static __inline__ void Actor403200_SeedRootCoord(Task* task, Actor403200Work* work)
 {
-    GsCOORDINATE2*        coord = task->extra.tmd->coords;
+    GpCoord*              coord = task->extra.tmd->coords;
     ActorScaleRotScratch* sc;
     s16                   ang;
 
@@ -414,10 +414,10 @@ void func_actor_403200_8014123C(Task* arg0);
 /// Set `coord`'s rotation to its view-space orientation turned by `yaw`,
 /// expressed back in its parent's frame, and refresh the coordinate. The work
 /// matrix is borrowed from the scratchpad stack.
-void func_actor_403200_801321C4(GsCOORDINATE2* coord, s16 yaw)
+void func_actor_403200_801321C4(GpCoord* coord, s16 yaw)
 {
-    MATRIX*        rotation;
-    GsCOORDINATE2* out;
+    MATRIX*  rotation;
+    GpCoord* out;
 
     SCRATCH_PUSH(MATRIX);
     rotation = SCRATCH_HEAD(MATRIX);
@@ -435,7 +435,7 @@ void func_actor_403200_801321C4(GsCOORDINATE2* coord, s16 yaw)
 /// Returns whether it moved: set when the X or Z delta is nonzero, and also
 /// when only its fractional half is, in which case the coordinate and the
 /// latched step are nudged one unit further from zero.
-s32 func_actor_403200_801324D0(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2)
+s32 func_actor_403200_801324D0(GpCoord* coord, GpRec18* rec, s32 arg2)
 {
     void**            scratch;
     u8*               head;
@@ -1073,7 +1073,7 @@ void func_actor_403200_80133DD8(Task* arg0)
 /// one fixed rotation, every other kind draws one of three off `Gp_LcgState`.
 /// The rotation and the effect argument live in a frame borrowed from the
 /// scratchpad stack for the duration of the call.
-void func_actor_403200_80134044(GsCOORDINATE2* coord, s32 id)
+void func_actor_403200_80134044(GpCoord* coord, s32 id)
 {
     Actor403200EffScratch* sc = (Actor403200EffScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200EffScratch));
     sc->eff.spawnArgLo        = 0x500;
@@ -1126,13 +1126,13 @@ void func_actor_403200_80134044(GsCOORDINATE2* coord, s32 id)
 
 s32 func_actor_403200_801341E8(Task* arg0, s16 arg1)
 {
-    SVECTOR        vec;
-    SVECTOR*       vp;
-    GsCOORDINATE2* coords;
-    s32            dist;
-    s32            value;
-    s32            view;
-    s32            flag;
+    SVECTOR  vec;
+    SVECTOR* vp;
+    GpCoord* coords;
+    s32      dist;
+    s32      value;
+    s32      view;
+    s32      flag;
 
     view   = Gp_GetViewIndex() & 0xFF;
     vp     = &vec;
@@ -1192,13 +1192,13 @@ s32 func_actor_403200_801341E8(Task* arg0, s16 arg1)
 
 s32 func_actor_403200_80134374(Task* arg0, s16 arg1)
 {
-    SVECTOR        vec;
-    SVECTOR*       vp;
-    GsCOORDINATE2* coords;
-    s32            dist;
-    s32            value;
-    s32            view;
-    s32            flag;
+    SVECTOR  vec;
+    SVECTOR* vp;
+    GpCoord* coords;
+    s32      dist;
+    s32      value;
+    s32      view;
+    s32      flag;
 
     view   = Gp_GetViewIndex() & 0xFF;
     vp     = &vec;
@@ -1244,14 +1244,14 @@ s32 func_actor_403200_80134374(Task* arg0, s16 arg1)
 
 s32 func_actor_403200_801344C4(Task* arg0, s16 arg1)
 {
-    SVECTOR        vec;
-    SVECTOR*       vp;
-    GsCOORDINATE2* coords;
-    Task*          task;
-    s32            dist;
-    s32            value;
-    s32            view;
-    s32            flag;
+    SVECTOR  vec;
+    SVECTOR* vp;
+    GpCoord* coords;
+    Task*    task;
+    s32      dist;
+    s32      value;
+    s32      view;
+    s32      flag;
 
     view   = Gp_GetViewIndex() & 0xFF;
     task   = (Task*)gameGetPtrSlot(3);
@@ -1387,13 +1387,13 @@ done:
 
 s32 func_actor_403200_80134748(Task* arg0, s16 arg1)
 {
-    SVECTOR        vec;
-    SVECTOR*       vp;
-    GsCOORDINATE2* coords;
-    s32            dist;
-    s32            value;
-    s32            view;
-    s32            flag;
+    SVECTOR  vec;
+    SVECTOR* vp;
+    GpCoord* coords;
+    s32      dist;
+    s32      value;
+    s32      view;
+    s32      flag;
 
     view   = Gp_GetViewIndex() & 0xFF;
     vp     = &vec;
@@ -1463,13 +1463,13 @@ s32 func_actor_403200_80134748(Task* arg0, s16 arg1)
 
 s32 func_actor_403200_80134900(Task* arg0, s16 arg1)
 {
-    SVECTOR        pos;
-    SVECTOR*       p;
-    GsCOORDINATE2* coords;
-    s32            dist;
-    s32            flag;
-    s32            value;
-    s32            view;
+    SVECTOR  pos;
+    SVECTOR* p;
+    GpCoord* coords;
+    s32      dist;
+    s32      flag;
+    s32      value;
+    s32      view;
 
     view   = Gp_GetViewIndex() & 0xFF;
     p      = &pos;
@@ -1679,7 +1679,7 @@ void func_actor_403200_80134D40(Task* arg0)
 {
     Actor403200Work* work;
     GpEnemy*         enemy;
-    GsCOORDINATE2*   model;
+    GpCoord*         model;
     s16              frame;
 
     work  = (Actor403200Work*)arg0->work;
@@ -2025,7 +2025,7 @@ void func_actor_403200_80135854(GpEnemy* enemy, Task* task)
 void func_actor_403200_80135CB8(GpEnemy* enemy, Task* task)
 {
     Actor403200GrabWork* work = (Actor403200GrabWork*)task->work;
-    GsCOORDINATE2*       coord;
+    GpCoord*             coord;
     VECTOR               pos;
     s32                  sfx;
     s32                  pan;
@@ -2719,7 +2719,7 @@ void func_actor_403200_801379EC(GpEnemy* enemy, Task* task)
 {
     Actor403200DropWork*  work;
     TmdObject*            extra;
-    GsCOORDINATE2*        coord;
+    GpCoord*              coord;
     ActorScaleRotScratch* blk;
     u8*                   head;
     s16                   ang;
@@ -3318,8 +3318,8 @@ void func_actor_403200_80138AFC(GpEnemy* enemy, Task* task)
     Actor403200Work* escorts;
     OverlayMat*      mtx;
     TmdObject*       tmd;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   freeCoord;
+    GpCoord*         coord;
+    GpCoord*         freeCoord;
     GpEnemy*         esc;
     Task*            escTask;
     GpRec18*         recs2;
@@ -3802,7 +3802,7 @@ void func_actor_403200_80139E94(Task* arg0)
     Actor403200Work*       work;
     GpEnemy*               host;
     PlayerStatus*          cfg;
-    GsCOORDINATE2*         coord;
+    GpCoord*               coord;
     GpRec18*               recs;
     GpRec18*               recs2;
     SVECTOR*               pos;
@@ -4226,7 +4226,7 @@ void func_actor_403200_8013AB70(Task* arg0)
     Actor403200Work*       work;
     GpEnemy*               host;
     PlayerStatus*          cfg;
-    GsCOORDINATE2*         coord;
+    GpCoord*               coord;
     GpRec18*               recs;
     GpRec18*               recs2;
     GpRec18*               recs3;
@@ -4499,8 +4499,8 @@ void func_actor_403200_8013B3C8(Task* arg0)
     Actor403200Work*        work;
     Actor403200Work*        escorts;
     Actor403200Work*        dying;
-    GsCOORDINATE2*          model;
-    GsCOORDINATE2*          facing;
+    GpCoord*                model;
+    GpCoord*                facing;
     Actor403200TurnScratch* sc;
     s16                     i;
     s16                     j;
@@ -4713,11 +4713,11 @@ void func_actor_403200_8013B8C4(Task* arg0)
     func_actor_403200_80133DD8(arg0);
 
     {
-        GsCOORDINATE2* facing;
-        GsCOORDINATE2* yawCoord;
-        SVECTOR*       dirp;
-        s16            dz;
-        s16            ang;
+        GpCoord* facing;
+        GpCoord* yawCoord;
+        SVECTOR* dirp;
+        s16      dz;
+        s16      ang;
 
         facing     = arg0->extra.tmd->coords;
         dirp       = &sc->dir;
@@ -4871,10 +4871,10 @@ void func_actor_403200_8013B8C4(Task* arg0)
 
     if (((u32)((work->slots0[1].curRec & 0x3FF) - 0xB) < 5U) && (sc->dist < 0x4B0) && (enemy->hp > 0) &&
         (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&D_actor_403200_8015FA00, 0) == 0)) {
-        GsCOORDINATE2* yawCoord;
-        GsCOORDINATE2* facing;
-        SVECTOR*       dirp;
-        s16            ang;
+        GpCoord* yawCoord;
+        GpCoord* facing;
+        SVECTOR* dirp;
+        s16      ang;
 
         work->field_0   = 0xD;
         work->field_EC8 = 1;
@@ -5040,7 +5040,7 @@ void func_actor_403200_8013C84C(Task* arg0)
     PlayerStatus*    cfg;
     SVECTOR          view;
     SVECTOR*         posp;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s16              i;
     s16              j;
     s16              yaw;
@@ -5730,7 +5730,7 @@ void func_actor_403200_8013E2FC(Task* arg0)
     Actor403200Work* escorts;
     Actor403200Work* dying;
     OverlayMat*      mtx;
-    GsCOORDINATE2*   coords;
+    GpCoord*         coords;
     s32              state;
     s32              frame;
     s16              i;
@@ -6008,8 +6008,8 @@ void func_actor_403200_8013EB64(Task* arg0)
     Actor403200Work*            work;
     GpEnemy*                    enemy;
     Task*                       player;
-    GsCOORDINATE2*              coord;
-    GsCOORDINATE2*              facing;
+    GpCoord*                    coord;
+    GpCoord*                    facing;
     SVECTOR*                    view;
     s16                         angle;
 
@@ -6150,8 +6150,8 @@ void func_actor_403200_8013EF6C(Task* arg0)
     GpEnemy*                 host;
     GpEnemy*                 escort;
     PlayerStatus*            cfg;
-    GsCOORDINATE2*           coord;
-    GsCOORDINATE2*           facing;
+    GpCoord*                 coord;
+    GpCoord*                 facing;
     TmdObject*               model;
     GpAreaPlace*             entry;
     GpAreaKey                key;
@@ -6350,8 +6350,8 @@ void func_actor_403200_8013F700(Task* arg0)
     SVECTOR          vec;
     SVECTOR*         v;
     GpAreaKey        key;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   rot;
+    GpCoord*         coord;
+    GpCoord*         rot;
     GpAreaPlace*     entry;
     TmdObject*       model;
     s16              i;
@@ -7036,8 +7036,8 @@ void func_actor_403200_80140E6C(Task* arg0)
     GpEnemy*              enemy;
     s32                   diff;
     s32                   y;
-    GsCOORDINATE2*        playerCoord;
-    GsCOORDINATE2*        selfCoord;
+    GpCoord*              playerCoord;
+    GpCoord*              selfCoord;
 
     sp     = D_actor_403200_801321B8;
     player = gameGetPtrSlot(3);

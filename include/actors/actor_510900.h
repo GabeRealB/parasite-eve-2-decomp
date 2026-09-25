@@ -7,6 +7,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "main/task.h"
+#include "main/coord.h"
 
 typedef struct Actor510900Work {
     /* 0x000 */ GpObj  obj0;
@@ -133,6 +134,6 @@ void func_actor_510900_801355B4(GpEnemy* arg0, Task* arg1);
 void func_actor_510900_8013B424(s32 arg0);
 void func_actor_510900_8013B524(Task* arg0);
 void func_actor_510900_8013B608(Task* arg0);
-void func_actor_510900_8013BC38(Task* arg0, GsCOORDINATE2* arg1);
+void func_actor_510900_8013BC38(Task* arg0, GpCoord* arg1);
 
 #endif

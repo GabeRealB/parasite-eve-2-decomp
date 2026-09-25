@@ -56,9 +56,9 @@ void Actor02000_Fn00078(Task* arg0)
     GpDeltaScratch*        head;
     Actor105600HitScratch* scratch;
     GpEnemy*               enemy;
-    GsCOORDINATE2*         self;
-    GsCOORDINATE2*         other;
-    GsCOORDINATE2*         part;
+    GpCoord*               self;
+    GpCoord*               other;
+    GpCoord*               part;
     s32                    i;
     s32                    x, y, z;
     s32                    damage;
@@ -368,7 +368,7 @@ void Actor02000_Fn00AEC(Task* arg0)
 {
     Actor105600Work* work;
     GpEnemy*         spawn;
-    GsCOORDINATE2*   self;
+    GpCoord*         self;
     u8*              head;
     s16              state;
     s16              delta;
@@ -442,7 +442,7 @@ void Actor02000_Fn00AEC(Task* arg0)
 void Actor02000_Fn00CD0(Task* arg0)
 {
     Actor105600Work* work;
-    GsCOORDINATE2*   self;
+    GpCoord*         self;
     s32              dx;
     s32              distance;
     s32              dz;
@@ -499,7 +499,7 @@ void Actor02000_Fn00E0C(Task* arg0)
     u32              random;
     u32              random2;
     Actor105600Work* work;
-    GsCOORDINATE2*   self;
+    GpCoord*         self;
 
     work  = arg0->work;
     self  = arg0->extra.tmd->coords;
@@ -659,7 +659,7 @@ void Actor02000_Fn011E8(Task* arg0)
 void Actor02000_Fn012E0(Task* arg0)
 {
     Actor105600Work* work;
-    GsCOORDINATE2*   self;
+    GpCoord*         self;
     s32              snd;
     s16              state;
 
@@ -733,7 +733,7 @@ void Actor02000_Fn012E0(Task* arg0)
 void Actor02000_Fn0150C(Task* arg0)
 {
     Actor105600Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     SVECTOR*         rot;
     s32              ang;
     u16              want;
@@ -815,7 +815,7 @@ done:
 void Actor02000_Fn01698(Task* arg0)
 {
     Actor105600Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     MATRIX*          matrix;
     s32              angleX;
     s32              angleY;
@@ -882,7 +882,7 @@ void Actor02000_Fn018A4(Task* arg0)
     s32              pan;
     s32              pan2;
     Actor105600Work* work;
-    GsCOORDINATE2*   self;
+    GpCoord*         self;
     GpAnimRec*       rec;
 
     work = arg0->work;
@@ -915,13 +915,13 @@ void Actor02000_Fn01A20(GpEnemy* ctx, Task* actor)
     s16              duration;
     s16              state;
     s16              anim;
-    GsCOORDINATE2*   partA;
-    GsCOORDINATE2*   partB;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   rootA;
-    GsCOORDINATE2*   rootB;
-    GsCOORDINATE2*   rootC;
-    GsCOORDINATE2*   rootD;
+    GpCoord*         partA;
+    GpCoord*         partB;
+    GpCoord*         coord;
+    GpCoord*         rootA;
+    GpCoord*         rootB;
+    GpCoord*         rootC;
+    GpCoord*         rootD;
     s32              i;
     u32              random;
     Actor105600Work* work;
@@ -1047,7 +1047,7 @@ void Actor02000_Fn01DF0(Task* arg0)
     s32              pan;
     u8*              head;
     Actor105600Work* work;
-    GsCOORDINATE2*   self;
+    GpCoord*         self;
     VECTOR*          delta;
 
     head               = SCRATCH_HEAD(void);
@@ -1184,7 +1184,7 @@ void Actor02000_Fn02294(Task* arg0)
     s32              pan;
     u8*              head;
     Actor105600Work* work;
-    GsCOORDINATE2*   self;
+    GpCoord*         self;
     VECTOR*          delta;
 
     head               = SCRATCH_HEAD(void);
@@ -1254,12 +1254,12 @@ void Actor02000_Fn0251C(GpEnemy* ctx, Task* actor)
     Actor105600Work* work;
     TmdObject*       obj;
     TmdObject*       model;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   parts;
-    GsCOORDINATE2*   partsA;
-    GsCOORDINATE2*   partsB;
-    GsCOORDINATE2*   partsC;
-    GsCOORDINATE2*   effParts;
+    GpCoord*         coord;
+    GpCoord*         parts;
+    GpCoord*         partsA;
+    GpCoord*         partsB;
+    GpCoord*         partsC;
+    GpCoord*         effParts;
     GpAreaKey*       sessionKey;
     GpAreaKey*       keyPtr;
     u8               areaByte0;
@@ -1471,10 +1471,10 @@ void Actor02000_Fn02A34(GpEnemy* ctx, Task* actor)
     Actor105600Work* animWork;
     Actor105600Work* work;
     Actor105600Work* flagWork;
-    GsCOORDINATE2*   moveCoord;
-    GsCOORDINATE2*   part;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   root;
+    GpCoord*         moveCoord;
+    GpCoord*         part;
+    GpCoord*         coord;
+    GpCoord*         root;
     s16              duration;
     s32              i;
     u8               flags;
@@ -1581,7 +1581,7 @@ void Actor02000_Fn02D5C(Task* arg0)
     u8*              head;
     VECTOR*          delta;
     Actor105600Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
 
     head             = SCRATCH_HEAD(u8);
     delta            = (VECTOR*)(head - 0x10);
@@ -1940,8 +1940,8 @@ void Actor02000_Fn03644(void* arg0, Task* task)
     Task*            parent;
     TmdObject*       obj;
     Actor105600Work* work;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   parentCoords;
+    GpCoord*         coord;
+    GpCoord*         parentCoords;
 
     parent       = task->parent;
     obj          = task->extra.tmd;

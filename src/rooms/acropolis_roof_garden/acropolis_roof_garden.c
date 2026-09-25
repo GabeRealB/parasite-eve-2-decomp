@@ -62,7 +62,7 @@ extern SVECTOR D_acropolis_roof_garden_80186E98;
 
 void func_acropolis_roof_garden_8017DB74(Task* arg0);
 void func_acropolis_roof_garden_8017DBEC(Task* task);
-void func_acropolis_roof_garden_8017F560(GsCOORDINATE2* arg0, s32 arg1, s16 arg2);
+void func_acropolis_roof_garden_8017F560(GpCoord* arg0, s32 arg1, s16 arg2);
 
 /// State handlers of the room task: set-up, the per-frame tick and `taskKill`.
 const TaskFuncTable3 D_acropolis_roof_garden_8017D5C4 = {
@@ -305,10 +305,10 @@ void func_acropolis_roof_garden_8017DCCC(void)
 /// `0x30 >> view - 1` bit test) and one while it is 7.
 void func_acropolis_roof_garden_8017DCDC(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    SVECTOR*       vec;
-    s32            i;
+    GpEffWork* work;
+    GpCoord*   coord;
+    SVECTOR*   vec;
+    s32        i;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -359,7 +359,7 @@ void func_acropolis_roof_garden_8017DCDC(Task* task)
 void func_acropolis_roof_garden_8017DE90(Task* arg0)
 {
     GpEffWork*        mem;
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     void**            scratch;
     u8*               head;
     RoomShaftScratch* blk;
@@ -443,7 +443,7 @@ void func_acropolis_roof_garden_8017DE90(Task* arg0)
 /// Gouraud polygons and optional rays.
 void func_acropolis_roof_garden_8017E29C(Task* arg0)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     void*            mem;
     u8*              head;
     u8*              raw;
@@ -652,11 +652,11 @@ void func_acropolis_roof_garden_8017E29C(Task* arg0)
 /// fades back out and releases its work block.
 void func_acropolis_roof_garden_8017F10C(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    s32            vy;
-    s32            vx;
-    s32            vz;
+    GpEffWork* work;
+    GpCoord*   coord;
+    s32        vy;
+    s32        vx;
+    s32        vz;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -754,17 +754,17 @@ void func_acropolis_roof_garden_8017F10C(Task* task)
 /// `GsWSMATRIX` into a textured quad. A mote nearer than `otz` 0x11 is not
 /// drawn. `arg2` is the fade level: zero draws the texture unshaded, anything
 /// else modulates it to that grey and draws it semi-transparent.
-void func_acropolis_roof_garden_8017F560(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
+void func_acropolis_roof_garden_8017F560(GpCoord* arg0, s32 arg1, s16 arg2)
 {
-    register GsCOORDINATE2* coord asm("t7");
-    register void**         scratch asm("a0");
-    u8*                     head;
-    RoomQuadScratch*        blk;
-    POLY_FT4*               prim;
-    GpQuadCorner*           tbl;
-    SVECTOR*                sv;
-    MATRIX*                 wm;
-    s32                     i;
+    register GpCoord* coord asm("t7");
+    register void**   scratch asm("a0");
+    u8*               head;
+    RoomQuadScratch*  blk;
+    POLY_FT4*         prim;
+    GpQuadCorner*     tbl;
+    SVECTOR*          sv;
+    MATRIX*           wm;
+    s32               i;
 
     coord   = arg0;
     scratch = (void**)G_SCRATCH_HEAD;
@@ -829,7 +829,7 @@ void func_acropolis_roof_garden_8017F560(GsCOORDINATE2* arg0, s32 arg1, s16 arg2
 /// fractional part away from zero. The whole-unit displacement is also left in
 /// `D_acropolis_roof_garden_80186E98`. Returns non-zero when the X or Z
 /// displacement is non-zero.
-s32 func_acropolis_roof_garden_8017F870(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2)
+s32 func_acropolis_roof_garden_8017F870(GpCoord* coord, GpRec18* rec, s16 arg2)
 {
     void**            scratch;
     u8*               head;
@@ -883,7 +883,7 @@ s32 func_acropolis_roof_garden_8017F870(GsCOORDINATE2* coord, GpRec18* rec, s16 
 /// record within a quarter turn of it, moves the coordinate `push` units back
 /// along that record's bearing, in X and Z. Returns non-zero if it moved the
 /// coordinate; returns 0 at once while `gGameSession->viewReady` is 1.
-s32 func_acropolis_roof_garden_8017FA14(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push)
+s32 func_acropolis_roof_garden_8017FA14(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
 {
     void**                  scratch;
     void**                  tail;

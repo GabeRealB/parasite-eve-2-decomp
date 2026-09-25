@@ -51,23 +51,23 @@ typedef struct {
     u32     sxy3;
 } _ShelterB6TrainingRoomBandScratch;
 
-extern s32            D_80070F70;
-extern GsCOORDINATE2* D_shelter_b6_training_room_80185C90;
-extern GsCOORDINATE2* D_shelter_b6_training_room_80185C94;
-extern u16            D_shelter_b6_training_room_80185C98;
-extern SVECTOR        D_shelter_b6_training_room_80184334[];
-extern u16            D_shelter_b6_training_room_801843FC[];
-extern RoomRingShape  D_shelter_b6_training_room_80184404[];
-extern u8             D_shelter_b6_training_room_80185C60[][16];
+extern s32           D_80070F70;
+extern GpCoord*      D_shelter_b6_training_room_80185C90;
+extern GpCoord*      D_shelter_b6_training_room_80185C94;
+extern u16           D_shelter_b6_training_room_80185C98;
+extern SVECTOR       D_shelter_b6_training_room_80184334[];
+extern u16           D_shelter_b6_training_room_801843FC[];
+extern RoomRingShape D_shelter_b6_training_room_80184404[];
+extern u8            D_shelter_b6_training_room_80185C60[][16];
 
 void func_shelter_b6_training_room_8017E28C(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_shelter_b6_training_room_8017EAD0(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b6_training_room_8017F014(GsCOORDINATE2* coord, s16 size);
-void func_shelter_b6_training_room_8017F540(GsCOORDINATE2* arg0, s32 arg1);
-void func_shelter_b6_training_room_80180530(GsCOORDINATE2* from, GsCOORDINATE2* to, s16 size, u16 color);
-void func_shelter_b6_training_room_80181368(GpEffWork* mem, GsCOORDINATE2* coord, s32 band);
-void func_shelter_b6_training_room_80181BAC(GsCOORDINATE2* coord, s16 arg1, s16 arg2, s16 arg3);
-void func_shelter_b6_training_room_80181FDC(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s32 arg2, s16 arg3);
+void func_shelter_b6_training_room_8017F014(GpCoord* coord, s16 size);
+void func_shelter_b6_training_room_8017F540(GpCoord* arg0, s32 arg1);
+void func_shelter_b6_training_room_80180530(GpCoord* from, GpCoord* to, s16 size, u16 color);
+void func_shelter_b6_training_room_80181368(GpEffWork* mem, GpCoord* coord, s32 band);
+void func_shelter_b6_training_room_80181BAC(GpCoord* coord, s16 arg1, s16 arg2, s16 arg3);
+void func_shelter_b6_training_room_80181FDC(GpCoord* arg0, GpCoord* arg1, s32 arg2, s16 arg3);
 
 void func_shelter_b6_training_room_8017DDE8(Task* task)
 {
@@ -394,11 +394,11 @@ void func_shelter_b6_training_room_8017EAD0(SVECTOR* arg0, s32 arg1, s32 arg2)
 
 void func_shelter_b6_training_room_8017EE70(Task* arg0)
 {
-    u8             rgb[3];
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s16            flag;
-    s16            step;
+    u8         rgb[3];
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s16        flag;
+    s16        step;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -448,9 +448,9 @@ void func_shelter_b6_training_room_8017EE70(Task* arg0)
 /// `func_shelter_b6_training_room_8017F540` on the ground beneath it. It also
 /// points the `Gp_RoomCoords[2]` light at the coordinate with a randomly flickering
 /// intensity. Nothing is drawn when the GTE flags the projection.
-void func_shelter_b6_training_room_8017F014(GsCOORDINATE2* coord, s16 size)
+void func_shelter_b6_training_room_8017F014(GpCoord* coord, s16 size)
 {
-    GsCOORDINATE2  ground;
+    GpCoord        ground;
     POLY_FT4*      prim;
     s16            outerLeft;
     s16            outerRight;
@@ -578,7 +578,7 @@ void func_shelter_b6_training_room_8017F014(GsCOORDINATE2* coord, s16 size)
 /// offset by that translation and projected through `GsWSMATRIX`, then queued as one
 /// semi-transparent `POLY_FT4` whose texture column alternates with the frame
 /// counter.
-void func_shelter_b6_training_room_8017F540(GsCOORDINATE2* arg0, s32 arg1)
+void func_shelter_b6_training_room_8017F540(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;
@@ -664,9 +664,9 @@ void func_shelter_b6_training_room_8017F540(GsCOORDINATE2* arg0, s32 arg1)
 
 void func_shelter_b6_training_room_8017F8B8(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    u8             rgb[3];
+    GpEffWork* work;
+    GpCoord*   coord;
+    u8         rgb[3];
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -747,7 +747,7 @@ void func_shelter_b6_training_room_8017F8B8(Task* task)
 /// capsule from `func_shelter_b6_training_room_80180530`. The fill colour comes
 /// from the 4-bit-per-channel palette entry `color`, scaled by 16 and
 /// brightened on alternate fields; the outer vertices are black.
-void func_shelter_b6_training_room_8017FC40(GsCOORDINATE2* coord, s16 size, u16 color)
+void func_shelter_b6_training_room_8017FC40(GpCoord* coord, s16 size, u16 color)
 {
     void**           scratch;
     u8*              head;
@@ -884,10 +884,10 @@ void func_shelter_b6_training_room_8017FC40(GsCOORDINATE2* coord, s16 size, u16 
 /// fans, and one quad per half joins the two discs. The fill colour comes from
 /// the 4-bit-per-channel palette entry `color`, doubled and brightened on
 /// alternate fields; the outer vertices are black, so the glow fades outward.
-void func_shelter_b6_training_room_80180530(GsCOORDINATE2* from, GsCOORDINATE2* to, s16 size, u16 color)
+void func_shelter_b6_training_room_80180530(GpCoord* from, GpCoord* to, s16 size, u16 color)
 {
-    GsCOORDINATE2    c0;
-    GsCOORDINATE2    c1;
+    GpCoord          c0;
+    GpCoord          c1;
     void**           scratch;
     u8*              head;
     RoomBeamScratch* block;
@@ -1015,10 +1015,10 @@ void func_shelter_b6_training_room_80180530(GsCOORDINATE2* from, GsCOORDINATE2* 
 
 void func_shelter_b6_training_room_80180DB4(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    GpMtxWords*    rot;
-    u8             rgb[3];
+    GpEffWork*  work;
+    GpCoord*    coord;
+    GpMtxWords* rot;
+    u8          rgb[3];
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -1095,8 +1095,8 @@ void func_shelter_b6_training_room_80180DB4(Task* task)
 
 void func_shelter_b6_training_room_801811AC(Task* task)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
+    GpEffWork* mem;
+    GpCoord*   coord;
 
     mem   = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -1162,7 +1162,7 @@ void func_shelter_b6_training_room_801811AC(Task* task)
 /// through `GsWSMATRIX`. Quad `i` takes its texture column from
 /// `(D_shelter_b6_training_room_80185C60[band][i] + age) % 6`, so each quad
 /// animates on its own phase, and `scale` sets its brightness.
-void func_shelter_b6_training_room_80181368(GpEffWork* mem, GsCOORDINATE2* coord, s32 band)
+void func_shelter_b6_training_room_80181368(GpEffWork* mem, GpCoord* coord, s32 band)
 {
     void**                             scratch;
     u8*                                head;
@@ -1255,9 +1255,9 @@ void func_shelter_b6_training_room_80181368(GpEffWork* mem, GsCOORDINATE2* coord
 
 void func_shelter_b6_training_room_80181930(Task* task)
 {
-    GsCOORDINATE2* coord;
-    u8             rgb[3];
-    u32            shade;
+    GpCoord* coord;
+    u8       rgb[3];
+    u32      shade;
 
     coord = task->extra.tmd->coords + 1;
     if (Gp_State1C->eventState == 0) {
@@ -1278,8 +1278,8 @@ void func_shelter_b6_training_room_80181930(Task* task)
 
 void func_shelter_b6_training_room_80181A3C(Task* task)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
+    GpEffWork* mem;
+    GpCoord*   coord;
 
     mem   = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -1324,7 +1324,7 @@ void func_shelter_b6_training_room_80181A3C(Task* task)
 /// is `arg2 * 39 / otz`, and the four corners are that half-size swung to
 /// `arg3` and to `arg3 + 0x400`. `arg1` picks one of six 40-pixel-wide frames
 /// from the texture page. Nothing is drawn if the point fails the GTE flag test.
-void func_shelter_b6_training_room_80181BAC(GsCOORDINATE2* coord, s16 arg1, s16 arg2, s16 arg3)
+void func_shelter_b6_training_room_80181BAC(GpCoord* coord, s16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -1390,7 +1390,7 @@ void func_shelter_b6_training_room_80181BAC(GsCOORDINATE2* coord, s16 arg1, s16 
 /// perpendicular to the screen-space line between the ends, and `arg2`
 /// selects one of four 128x24 texture frames. The primitive is queued at the
 /// first end's depth.
-void func_shelter_b6_training_room_80181FDC(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s32 arg2, s16 arg3)
+void func_shelter_b6_training_room_80181FDC(GpCoord* arg0, GpCoord* arg1, s32 arg2, s16 arg3)
 {
     void**                               scratch;
     u8*                                  head;
@@ -1461,10 +1461,10 @@ void func_shelter_b6_training_room_80181FDC(GsCOORDINATE2* arg0, GsCOORDINATE2* 
 
 void func_shelter_b6_training_room_8018245C(Task* task)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s16            eventState;
-    u8             rgb[3];
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s16        eventState;
+    u8         rgb[3];
 
     mem        = task->spawnArg2;
     eventState = Gp_State1C->eventState;
@@ -1504,8 +1504,8 @@ void func_shelter_b6_training_room_8018245C(Task* task)
 
 void func_shelter_b6_training_room_801825C0(Task* task)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
+    GpEffWork* mem;
+    GpCoord*   coord;
 
     mem   = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -1536,8 +1536,8 @@ void func_shelter_b6_training_room_801825C0(Task* task)
 
 void func_shelter_b6_training_room_801826E0(Task* task)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
+    GpEffWork* mem;
+    GpCoord*   coord;
 
     mem   = task->spawnArg2;
     coord = task->extra.tmd->coords;

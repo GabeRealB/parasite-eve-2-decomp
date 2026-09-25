@@ -120,7 +120,7 @@ Two consequences:
   `aya_10200` is 19, the Kyle body 20, `actor_100300` 19. Parts with no
   geometry are joints.
 * **The rest pose ships in the `TmdSource`.** The runtime matrices live in
-  `TmdObject.coords`, a `GsCOORDINATE2` array — 0x50 bytes each, which is why
+  `TmdObject.coords`, a `GpCoord` array — 0x50 bytes each, which is why
   the stride is 0x50, with `workm` at `+0x24` and its translation at
   `+0x38`/`+0x3C`/`+0x40` exactly as the handler reads them. But the skeleton
   those are built from is on disc, in three `TmdSource` fields:
@@ -146,7 +146,7 @@ Two consequences:
   rather than a heap.
 
   Animation replaces the *local* matrix of each bone and leaves the parent
-  links alone: `Gp_BlendAnimRot` writes `GsCOORDINATE2.coord`, the same
+  links alone: `Gp_BlendAnimRot` writes `GpCoord.coord`, the same
   slot the rest pose initialises. So playback is this
   same composition with `coord` overwritten per frame, and an animation set
   carries exactly one track per bone (`ASSET_FORMATS.md` §9.3.1).

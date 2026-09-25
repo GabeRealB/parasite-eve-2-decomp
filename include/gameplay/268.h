@@ -102,7 +102,7 @@ STATIC_ASSERT_SIZEOF(GpBit2Bank, 0x8);
 /// Placement record for `Gp_SpawnAtPlace` / `Gp_SpawnPlaces` / `Gp_SpawnPlaceById`. `field_0` / `field_4` pack into
 /// `GpEnemy.placeKey` as `field_0 | (field_4 << 8)`; `field_2` is copied to
 /// `GpEnemy.workType`. `field_8` / `field_A` / `field_C` are world X/Y/Z
-/// (`GsCOORDINATE2.coord.t`); `field_E` is the yaw stored at coord +0x46
+/// (`GpCoord.coord.t`); `field_E` is the yaw stored at coord +0x46
 /// and passed to `Gfx_RotMatrixY` when non-zero.
 typedef struct _GpEnemyPlace {
     /* 0x0 */ u16  field_0;

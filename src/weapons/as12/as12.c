@@ -26,14 +26,14 @@
 /// back to `func_80106550`.
 void func_as12_8011D1DC(Task* arg0)
 {
-    GameActor*     actor;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* spot;
-    s32            anim;
-    s32            hit;
+    GameActor* actor;
+    GpCoord*   coord;
+    GpCoord*   spot;
+    s32        anim;
+    s32        hit;
 
     SCRATCH_PUSH_BYTES(0x50);
-    spot  = SCRATCH_HEAD(GsCOORDINATE2);
+    spot  = SCRATCH_HEAD(GpCoord);
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
     switch (actor->field_95E) {

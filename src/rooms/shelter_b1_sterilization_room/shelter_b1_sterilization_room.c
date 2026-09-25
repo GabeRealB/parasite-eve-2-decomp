@@ -147,7 +147,7 @@ void func_shelter_b1_sterilization_room_8017FABC(Task* task);
 void func_shelter_b1_sterilization_room_80180340(s32 arg0);
 void func_shelter_b1_sterilization_room_80180464(Task* task);
 void func_shelter_b1_sterilization_room_8018049C(void);
-void func_shelter_b1_sterilization_room_80180570(GsCOORDINATE2* coord, s16* arg1);
+void func_shelter_b1_sterilization_room_80180570(GpCoord* coord, s16* arg1);
 void func_shelter_b1_sterilization_room_80180828(Task* task);
 void func_shelter_b1_sterilization_room_80181244(Task* task);
 void func_shelter_b1_sterilization_room_801812A0(Task* task);
@@ -1614,7 +1614,7 @@ void func_shelter_b1_sterilization_room_80180518(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_shelter_b1_sterilization_room_80180570(GsCOORDINATE2* coord, s16* arg1)
+void func_shelter_b1_sterilization_room_80180570(GpCoord* coord, s16* arg1)
 {
     MATRIX        m;
     long          flag;
@@ -1860,10 +1860,10 @@ void func_shelter_b1_sterilization_room_80180D74(Task* task)
 
 void func_shelter_b1_sterilization_room_80180F74(Task* task)
 {
-    Task*          player;
-    GsCOORDINATE2* coord;
-    s32            pan;
-    GpStateC08*    st;
+    Task*       player;
+    GpCoord*    coord;
+    s32         pan;
+    GpStateC08* st;
 
     switch (task->state) {
         case 0:

@@ -91,10 +91,10 @@ extern MATRIX     D_acropolis_cafeteria_8018D660;
 extern MATRIX     D_acropolis_cafeteria_8018D680;
 extern SVECTOR    D_acropolis_cafeteria_8018D6AC;
 
-void func_acropolis_cafeteria_8017FBEC(GsCOORDINATE2* coord, s32 arg1, s32 arg2, u8* rgb);
-void func_acropolis_cafeteria_80180018(GsCOORDINATE2* coord, s32 arg1, u8* rgb);
-void func_acropolis_cafeteria_8018089C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
-void func_acropolis_cafeteria_80180F1C(GsCOORDINATE2* coord, s16 arg1, u8* rgb);
+void func_acropolis_cafeteria_8017FBEC(GpCoord* coord, s32 arg1, s32 arg2, u8* rgb);
+void func_acropolis_cafeteria_80180018(GpCoord* coord, s32 arg1, u8* rgb);
+void func_acropolis_cafeteria_8018089C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+void func_acropolis_cafeteria_80180F1C(GpCoord* coord, s16 arg1, u8* rgb);
 void func_acropolis_cafeteria_80181E3C(Task* arg0);
 
 void func_acropolis_cafeteria_8017E47C(Task* arg0)
@@ -204,9 +204,9 @@ void func_acropolis_cafeteria_8017E6B8(Task* arg0)
 
 void func_acropolis_cafeteria_8017E708(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    SVECTOR*       vec;
+    GpEffWork* work;
+    GpCoord*   coord;
+    SVECTOR*   vec;
 
     work  = (GpEffWork*)task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -246,14 +246,14 @@ void func_acropolis_cafeteria_8017E708(Task* task)
 /// remains active. Releases the work block when the room effect gate clears.
 void func_acropolis_cafeteria_8017E89C(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    s32            i;
-    u16            count;
-    s32            flags;
-    s32            spawnArg;
-    u8             mode;
-    u16            rnd;
+    GpEffWork* work;
+    GpCoord*   coord;
+    s32        i;
+    u16        count;
+    s32        flags;
+    s32        spawnArg;
+    u8         mode;
+    u16        rnd;
 
     work  = (GpEffWork*)task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -300,7 +300,7 @@ void func_acropolis_cafeteria_8017E89C(Task* task)
 void func_acropolis_cafeteria_8017EA90(Task* task)
 {
     GpEffWork*                     work;
-    GsCOORDINATE2*                 coord;
+    GpCoord*                       coord;
     u8*                            head;
     OverlaySpriteScratch*          block;
     register OverlaySpriteScratch* newHead asm("v0");
@@ -407,16 +407,16 @@ void func_acropolis_cafeteria_8017EA90(Task* task)
 
 void func_acropolis_cafeteria_8017F390(Task* task)
 {
-    TmdObject*     obj;
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    GpMtxWords*    rot;
-    s16            state;
-    s32            v;
-    s32            w;
-    s32            n;
-    s32            k; // one variable for both branches' LCG addend; literal constants allocate differently
-    s32            pan;
+    TmdObject*  obj;
+    GpEffWork*  work;
+    GpCoord*    coord;
+    GpMtxWords* rot;
+    s16         state;
+    s32         v;
+    s32         w;
+    s32         n;
+    s32         k; // one variable for both branches' LCG addend; literal constants allocate differently
+    s32         pan;
 
     obj   = task->extra.tmd;
     work  = (GpEffWork*)task->spawnArg2;
@@ -546,7 +546,7 @@ void func_acropolis_cafeteria_8017F390(Task* task)
 
 s32 func_acropolis_cafeteria_8017F908(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
-    GsCOORDINATE2* coord;
+    GpCoord* coord;
 
     coord                          = task->extra.tmd->coords;
     D_acropolis_cafeteria_80184CFC = arg2;
@@ -563,9 +563,9 @@ s32 func_acropolis_cafeteria_8017F908(Task* task, s32 msgId, s32 arg2, s32 arg3)
 /// Paused while the room event state is non-zero, released once it reaches 4.
 void func_acropolis_cafeteria_8017F948(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    u8             rgb[3];
+    GpEffWork* work;
+    GpCoord*   coord;
+    u8         rgb[3];
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -628,7 +628,7 @@ void func_acropolis_cafeteria_8017F948(Task* task)
 /// around the projected point. `arg1` is the ring's inner radius and
 /// `arg1 + arg2` its outer one, both in world units scaled by depth. The inner
 /// edge takes `rgb` and the outer edge is black.
-void func_acropolis_cafeteria_8017FBEC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_acropolis_cafeteria_8017FBEC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -718,7 +718,7 @@ void func_acropolis_cafeteria_8017FBEC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, 
 /// the GTE flags an error, queues eight gouraud `POLY_G4` wedges that fill a
 /// disc around the projected point. `arg1` is the radius in world units scaled
 /// by depth; each wedge is `rgb` at the centre and black at the rim.
-void func_acropolis_cafeteria_80180018(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_acropolis_cafeteria_80180018(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     RoomDraw04Scratch* block;
     POLY_G4*           prim;
@@ -795,15 +795,15 @@ void func_acropolis_cafeteria_80180018(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
 
 void func_acropolis_cafeteria_801803AC(Task* task)
 {
-    GsCOORDINATE2  coord;
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* objCoord;
-    GsCOORDINATE2* dst;
-    GpEffWork*     work;
-    SVECTOR*       vec;
-    s32            i;
+    GpCoord    coord;
+    GpCoord*   coords;
+    GpCoord*   objCoord;
+    GpCoord*   dst;
+    GpEffWork* work;
+    SVECTOR*   vec;
+    s32        i;
 
-    coords   = (GsCOORDINATE2*)task->work;
+    coords   = (GpCoord*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
     objCoord = task->extra.tmd->coords;
 
@@ -811,7 +811,7 @@ void func_acropolis_cafeteria_801803AC(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GsCOORDINATE2*)memCalloc(0x500, 0);
+                coords = (GpCoord*)memCalloc(0x500, 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
@@ -891,11 +891,11 @@ void func_acropolis_cafeteria_801803AC(Task* task)
 /// `0x40 - 9 * i` and the older one by nine less. `arg3` packs the beam colour
 /// as 2-bit multipliers for red, green and blue at bits 8, 4 and 0. A quad the
 /// GTE flags as invalid is skipped.
-void func_acropolis_cafeteria_8018089C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3)
+void func_acropolis_cafeteria_8018089C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GsCOORDINATE2*     a;
-    GsCOORDINATE2*     b;
+    GpCoord*           a;
+    GpCoord*           b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -997,9 +997,9 @@ void func_acropolis_cafeteria_8018089C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1,
 
 void func_acropolis_cafeteria_80180C94(Task* task)
 {
-    GsCOORDINATE2* objCoord;
-    GpEffWork*     work;
-    u8             rgb[4];
+    GpCoord*   objCoord;
+    GpEffWork* work;
+    u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
@@ -1070,7 +1070,7 @@ void func_acropolis_cafeteria_80180C94(Task* task)
 /// `rgb`, then four spikes a quarter turn apart, two reaching the full radius
 /// and two twice it. `arg1` sizes it in world units scaled by depth; every
 /// wedge fades to black at its rim.
-void func_acropolis_cafeteria_80180F1C(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_acropolis_cafeteria_80180F1C(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");
@@ -1207,9 +1207,9 @@ void func_acropolis_cafeteria_80180F1C(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
 void func_acropolis_cafeteria_801818DC(Task* task)
 {
     TmdObject*                obj;
-    GsCOORDINATE2*            coord;
+    GpCoord*                  coord;
     AcropolisCafeteriaDebris* work;
-    GsCOORDINATE2*            player;
+    GpCoord*                  player;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -1248,7 +1248,7 @@ void func_acropolis_cafeteria_80181A3C(Task* task)
 {
     MATRIX*                   head;
     AcropolisCafeteriaDebris* work;
-    GsCOORDINATE2*            coord;
+    GpCoord*                  coord;
     SVECTOR*                  direction;
     s32                       speed;
 
@@ -1357,7 +1357,7 @@ void func_acropolis_cafeteria_80181E70(Task* task)
 /// fractional part away from zero. The whole-unit displacement is also left in
 /// `D_acropolis_cafeteria_8018D6AC`. Returns non-zero when the X or Z
 /// displacement is non-zero.
-s32 func_acropolis_cafeteria_80181ED4(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2)
+s32 func_acropolis_cafeteria_80181ED4(GpCoord* coord, GpRec18* rec, s16 arg2)
 {
     void**            scratch;
     u8*               head;
@@ -1411,7 +1411,7 @@ s32 func_acropolis_cafeteria_80181ED4(GsCOORDINATE2* coord, GpRec18* rec, s16 ar
 /// record within a quarter turn of it, moves the coordinate `push` units back
 /// along that record's bearing, in X and Z. Returns non-zero if it moved the
 /// coordinate; returns 0 at once while `gGameSession->viewReady` is 1.
-s32 func_acropolis_cafeteria_80182078(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push)
+s32 func_acropolis_cafeteria_80182078(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
 {
     void**                  scratch;
     void**                  tail;

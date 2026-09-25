@@ -315,10 +315,10 @@ void func_dryfield_water_tank_8017DB48(void)
 /// before the record.
 s32 func_dryfield_water_tank_8017DB98(Task* arg0)
 {
-    DwtColorMtx*   work  = (DwtColorMtx*)arg0->work;
-    GsCOORDINATE2* coord = arg0->extra.tmd->coords;
-    GsCOORDINATE2* effCoord;
-    SVECTOR        pos;
+    DwtColorMtx* work  = (DwtColorMtx*)arg0->work;
+    GpCoord*     coord = arg0->extra.tmd->coords;
+    GpCoord*     effCoord;
+    SVECTOR      pos;
 
     switch (work->field_4C) {
         case 0:
@@ -366,11 +366,11 @@ s32 func_dryfield_water_tank_8017DB98(Task* arg0)
 /// it into the light/colour matrices.
 void func_dryfield_water_tank_8017DD20(Task* arg0)
 {
-    TmdObject*     extra;
-    GsCOORDINATE2* coord;
-    DwtColorMtx*   mtx;
-    TmdObject*     mdl;
-    VECTOR         pos;
+    TmdObject*   extra;
+    GpCoord*     coord;
+    DwtColorMtx* mtx;
+    TmdObject*   mdl;
+    VECTOR       pos;
 
     switch (arg0->state) {
         case 0:
@@ -508,8 +508,8 @@ void func_dryfield_water_tank_8017E0B4(Task* task, s32 arg1, s32 arg2)
 /// coordinate is marked dirty.
 void func_dryfield_water_tank_8017E0E8(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2* coord;
-    MATRIX*        mtx;
+    GpCoord* coord;
+    MATRIX*  mtx;
 
     coord             = task->extra.tmd->coords;
     coord->coord.t[0] = placement->pos.vx;

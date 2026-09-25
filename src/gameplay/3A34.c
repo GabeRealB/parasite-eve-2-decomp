@@ -670,7 +670,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
     Task*           task;
     GpRoomCoordSet* set;
     SVECTOR*        vec;
-    GsCOORDINATE2*  parent6C;
+    GpCoord*        parent6C;
     s32             i;
     s32             j;
     u16             tmp;
@@ -698,7 +698,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
             {
                 register GpPointLight* p asm("a0");
                 register GpPointLight* cur asm("s0");
-                GsCOORDINATE2*         parent;
+                GpCoord*               parent;
 
                 p = set->arr60;
                 if (set->n60 > 0) {
@@ -760,7 +760,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
             if (set->n58 > 0) {
                 register GpLight* p asm("a0");
                 register GpLight* cur asm("s0");
-                GsCOORDINATE2*    parent;
+                GpCoord*          parent;
 
                 p = set->arr58;
                 TOUCH_REG(j);
@@ -779,7 +779,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
             }
 
             {
-                GsCOORDINATE2* parent;
+                GpCoord*       parent;
                 GpCoord64View* view;
                 GpCoord64*     slot;
                 register void* base asm("v0");
@@ -1539,7 +1539,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     }
 
     {
-        GsCOORDINATE2*   world;
+        GpCoord*         world;
         register MATRIX* src;
 
         world           = &gGfxViewCoord;
@@ -1779,7 +1779,7 @@ void Gp_DebugPanTask(Task* arg0)
     Task*          work;
     PlayerStatus*  cfg;
     TmdObject*     extra;
-    GsCOORDINATE2* coord;
+    GpCoord*       coord;
     GameActor*     actor;
     GameActor*     actor2;
     MATRIX*        mtx;
@@ -1798,7 +1798,7 @@ void Gp_DebugPanTask(Task* arg0)
     }
 
     extra = slot->extra.tmd;
-    coord = &((GsCOORDINATE2*)extra->coords)[1];
+    coord = &(extra->coords)[1];
     Gp_UpdateCoord(coord);
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1] - 0x64;
@@ -1913,7 +1913,7 @@ void Gp_DebugPanTask(Task* arg0)
             SOFT_TOUCH_REG(e);
             extra = e;
         }
-        coord           = &((GsCOORDINATE2*)extra->coords)[1];
+        coord           = &(extra->coords)[1];
         extra->colorMtx = &D_80114EF8;
         extra->lightMtx = &D_80114ED8;
         Gp_UpdateCoord(coord);
@@ -2185,7 +2185,7 @@ void Gp_SetLightMode(GpEnemy* arg0, s32 arg1)
     }
 }
 
-s32 gpGetObjDepth(GsCOORDINATE2* coord)
+s32 gpGetObjDepth(GpCoord* coord)
 {
     s32 val;
 
@@ -2199,7 +2199,7 @@ s32 gpGetObjDepth(GsCOORDINATE2* coord)
     return val >> 8;
 }
 
-s32 Gp_GetObjPan(GsCOORDINATE2* coord)
+s32 Gp_GetObjPan(GpCoord* coord)
 {
     u8*            head;
     _GpPanScratch* block;
@@ -2347,7 +2347,7 @@ s32 Gp_GetObjLuma(GpLight* arg0)
     return ((arg0->r * 8 + arg0->g * 6 + arg0->b * 2) >> 8) + 0xF00;
 }
 
-s32 Gp_GetObjTransX(GsCOORDINATE2* coord)
+s32 Gp_GetObjTransX(GpCoord* coord)
 {
     return coord->workm.t[0];
 }
@@ -2749,8 +2749,8 @@ void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
     u8*                head;
     GpLockScanScratch* block;
     GameActor*         actor;
-    GsCOORDINATE2*     coord;
-    GsCOORDINATE2*     nodeCoord;
+    GpCoord*           coord;
+    GpCoord*           nodeCoord;
     GpLinkNode*        node;
     GpLinkNode*        best;
     s32                bestAngle;
@@ -3296,10 +3296,10 @@ const char Gp_StrGetLockPosNull[] = {
 
 void Gp_GetLockPos(GpLinkNode* arg0, VECTOR3* out)
 {
-    GsCOORDINATE2* world;
-    GsCOORDINATE2* coord;
-    u8*            head;
-    MATRIX*        mat;
+    GpCoord* world;
+    GpCoord* coord;
+    u8*      head;
+    MATRIX*  mat;
 
     if (arg0 == NULL) {
         printf(Gp_StrGetLockPosNull);
@@ -4024,9 +4024,9 @@ s32 Gp_PairHandler3(GpObj* arg0, GpObj* arg1)
         gte_ldv0((SVECTOR*)(head - 8));
         gte_rtv0();
         gte_stlvnl(ends);
-        block->end0.vx += ((GsCOORDINATE2*)arg1->coord)->workm.t[0];
-        block->end0.vy += ((GsCOORDINATE2*)arg1->coord)->workm.t[1];
-        block->end0.vz += ((GsCOORDINATE2*)arg1->coord)->workm.t[2];
+        block->end0.vx += (arg1->coord)->workm.t[0];
+        block->end0.vy += (arg1->coord)->workm.t[1];
+        block->end0.vz += (arg1->coord)->workm.t[2];
     }
 
     block->delta.vx = block->end0.vx - block->end1.vx;
@@ -4565,7 +4565,7 @@ void func_800DDC2C(GpObj* arg0)
     register void** scratch asm("a2");
     u8*             head;
     GpEdgeScratch*  block;
-    GsCOORDINATE2*  coord;
+    GpCoord*        coord;
     s32             prod;
     s32             x;
 
@@ -4592,7 +4592,7 @@ void func_800DDC2C(GpObj* arg0)
     block->src[1].vx                        = x;
     head                                   -= 0x20;
     block->src[1].vz                        = (u16)obj->pos.vz + ((-(dir->vz * (u16)obj->radius)) >> 12);
-    coord                                   = (GsCOORDINATE2*)obj->coord;
+    coord                                   = obj->coord;
     SCRATCH_HEAD_AT(scratch, GpEdgeScratch) = block;
     Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, (MATRIX*)head);
     gte_SetRotMatrix((MATRIX*)head);
@@ -4729,10 +4729,10 @@ void func_800DE150(GpObj* arg0)
     u8*            head;
     GpEdgeScratch* block;
     SVECTOR*       src;
-    GsCOORDINATE2* coord;
+    GpCoord*       coord;
     MATRIX*        mat;
 
-    coord              = (GsCOORDINATE2*)arg0->coord;
+    coord              = arg0->coord;
     head               = SCRATCH_HEAD(void);
     SCRATCH_HEAD(void) = head - 0x50;
     block              = (GpEdgeScratch*)(head - 0x50);
@@ -5042,9 +5042,9 @@ done_search:
             gte_ldv0(local);
             gte_rtv0();
             gte_stlvnl(&block->vec);
-            pos->vx = block->vec.vx + ((GsCOORDINATE2*)obj->coord)->workm.t[0];
-            pos->vy = block->vec.vy + ((GsCOORDINATE2*)obj->coord)->workm.t[1];
-            pos->vz = block->vec.vz + ((GsCOORDINATE2*)obj->coord)->workm.t[2];
+            pos->vx = block->vec.vx + (obj->coord)->workm.t[0];
+            pos->vy = block->vec.vy + (obj->coord)->workm.t[1];
+            pos->vz = block->vec.vz + (obj->coord)->workm.t[2];
             src++;
             found++;
             pos++;
@@ -5070,9 +5070,9 @@ static __inline__ void Gp_ObjWorldPosInline(GpObj* obj, VECTOR* pos)
     gte_ldv0(&obj->pos);
     gte_rtv0();
     gte_stlvnl(vec);
-    pos->vx = ((GsCOORDINATE2*)obj->coord)->workm.t[0] + ((VECTOR*)(h - 0x30))->vx;
-    pos->vy = ((GsCOORDINATE2*)obj->coord)->workm.t[1] + vec->vy;
-    pos->vz = ((GsCOORDINATE2*)obj->coord)->workm.t[2] + vec->vz;
+    pos->vx = (obj->coord)->workm.t[0] + ((VECTOR*)(h - 0x30))->vx;
+    pos->vy = (obj->coord)->workm.t[1] + vec->vy;
+    pos->vz = (obj->coord)->workm.t[2] + vec->vz;
     SCRATCH_POP_BYTES(0x30);
 }
 
@@ -5109,13 +5109,13 @@ void func_800DEF80(GpObj* arg0, GpObj4C* arg1)
     SCRATCH_HEAD_AT(scratch, void) = (void*)(head - 0x98);
     block                          = SCRATCH_HEAD_AT(scratch, GpQuadHitScratch);
     Gp_ObjWorldPosInline(node, (VECTOR*)(head - 0x18));
-    gte_SetRotMatrix(&((GsCOORDINATE2*)other->field_8)->workm);
+    gte_SetRotMatrix(&other->field_8->workm);
     gte_ldv0(&other->field_C);
     gte_rtv0();
     gte_stlvnl((VECTOR*)(head - 0x58));
-    block->world.vx += ((GsCOORDINATE2*)other->field_8)->workm.t[0];
-    block->world.vy += ((GsCOORDINATE2*)other->field_8)->workm.t[1];
-    block->world.vz += ((GsCOORDINATE2*)other->field_8)->workm.t[2];
+    block->world.vx += other->field_8->workm.t[0];
+    block->world.vy += other->field_8->workm.t[1];
+    block->world.vz += other->field_8->workm.t[2];
 
     block->delta.vx = block->world.vx - block->nodePos.vx;
     block->delta.vy = block->world.vy - block->nodePos.vy;
@@ -5136,9 +5136,9 @@ void func_800DEF80(GpObj* arg0, GpObj4C* arg1)
     kind = other->field_4A & 7;
     if (kind == 2) {
         {
-            GsCOORDINATE2* c;
-            s32            a;
-            c   = (GsCOORDINATE2*)node->coord;
+            GpCoord* c;
+            s32      a;
+            c   = node->coord;
             a   = other->field_3C.vx;
             m0  = a * c->coord.m[0][2];
             a   = other->field_3C.vy;
@@ -5168,23 +5168,23 @@ void func_800DEF80(GpObj* arg0, GpObj4C* arg1)
 case4_far:
     block->local.vx = *(u16*)&other->field_C.vx;
     block->local.vy =
-        *(u16*)&((GsCOORDINATE2*)node->coord)->coord.t[1] + (u16)node->pos.vy;
+        *(u16*)&(node->coord)->coord.t[1] + (u16)node->pos.vy;
     block->local.vz = *(u16*)&other->field_C.vz;
-    gte_SetRotMatrix(&((GsCOORDINATE2*)other->field_8)->workm);
+    gte_SetRotMatrix(&other->field_8->workm);
     gte_ldv0((SVECTOR*)(head - 8));
     gte_rtv0();
     gte_stlvnl((VECTOR*)(head - 0x38));
     block->delta.vx =
-        block->nodePos.vx - (block->delta.vx + ((GsCOORDINATE2*)other->field_8)->workm.t[0]);
+        block->nodePos.vx - (block->delta.vx + other->field_8->workm.t[0]);
     block->delta.vy =
-        block->nodePos.vy - (block->delta.vy + ((GsCOORDINATE2*)other->field_8)->workm.t[1]);
+        block->nodePos.vy - (block->delta.vy + other->field_8->workm.t[1]);
     block->delta.vz =
-        block->nodePos.vz - (block->delta.vz + ((GsCOORDINATE2*)other->field_8)->workm.t[2]);
+        block->nodePos.vz - (block->delta.vz + other->field_8->workm.t[2]);
     VectorNormal((VECTOR*)(head - 0x38), (VECTOR*)(head - 0x38));
     {
-        GsCOORDINATE2* c;
-        s32            n0, n1, n2;
-        c   = (GsCOORDINATE2*)node->coord;
+        GpCoord* c;
+        s32      n0, n1, n2;
+        c   = node->coord;
         n0  = block->delta.vx * c->workm.m[0][2];
         n1  = block->delta.vy * c->workm.m[1][2];
         n2  = block->delta.vz * c->workm.m[2][2];
@@ -5316,9 +5316,9 @@ void func_800DF6AC(GpObj* arg0, GpObj4C* arg1, VECTOR3* arg2)
     head                 = SCRATCH_HEAD(u8);
     SCRATCH_HEAD(VECTOR) = (VECTOR*)(head - 0xB0);
     block                = SCRATCH_HEAD(VECTOR);
-    block[10].vx         = ((GsCOORDINATE2*)obj->coord)->coord.t[0] - arg2->vx;
-    block[10].vy         = ((GsCOORDINATE2*)obj->coord)->coord.t[1] - arg2->vy;
-    block[10].vz         = ((GsCOORDINATE2*)obj->coord)->coord.t[2] - arg2->vz;
+    block[10].vx         = (obj->coord)->coord.t[0] - arg2->vx;
+    block[10].vy         = (obj->coord)->coord.t[1] - arg2->vy;
+    block[10].vz         = (obj->coord)->coord.t[2] - arg2->vz;
     SquareRoot0(block[10].vx * block[10].vx + block[10].vy * block[10].vy + block[10].vz * block[10].vz);
     VectorNormal((VECTOR*)(head - 0x10), (VECTOR*)(head - 0x10));
 
@@ -5328,13 +5328,13 @@ void func_800DF6AC(GpObj* arg0, GpObj4C* arg1, VECTOR3* arg2)
         return;
     }
     Gp_ObjWorldPosInline(obj, (VECTOR*)(head - 0x30));
-    gte_SetRotMatrix(&((GsCOORDINATE2*)arg1->field_8)->workm);
+    gte_SetRotMatrix(&arg1->field_8->workm);
     gte_ldv0(&arg1->field_C);
     gte_rtv0();
     gte_stlvnl((VECTOR*)(head - 0x70));
-    block[4].vx += ((GsCOORDINATE2*)arg1->field_8)->workm.t[0];
-    block[4].vy += ((GsCOORDINATE2*)arg1->field_8)->workm.t[1];
-    block[4].vz += ((GsCOORDINATE2*)arg1->field_8)->workm.t[2];
+    block[4].vx += arg1->field_8->workm.t[0];
+    block[4].vy += arg1->field_8->workm.t[1];
+    block[4].vz += arg1->field_8->workm.t[2];
     block[6].vx  = block[4].vx - block[8].vx;
     block[6].vy  = block[4].vy - block[8].vy;
     block[6].vz  = block[4].vz - block[8].vz;
@@ -5785,9 +5785,9 @@ void Gp_ObjWorldPos(GpObj* arg0, VECTOR3* arg1)
     gte_ldv0(&arg0->pos.vx);
     gte_rtv0();
     gte_stlvnl(vec);
-    arg1->vx = ((GsCOORDINATE2*)arg0->coord)->workm.t[0] + ((VECTOR3*)(head - 0x30))->vx;
-    arg1->vy = ((GsCOORDINATE2*)arg0->coord)->workm.t[1] + vec->vy;
-    arg1->vz = ((GsCOORDINATE2*)arg0->coord)->workm.t[2] + vec->vz;
+    arg1->vx = (arg0->coord)->workm.t[0] + ((VECTOR3*)(head - 0x30))->vx;
+    arg1->vy = (arg0->coord)->workm.t[1] + vec->vy;
+    arg1->vz = (arg0->coord)->workm.t[2] + vec->vz;
     SCRATCH_POP_BYTES(0x30);
 }
 
@@ -5815,9 +5815,9 @@ void func_800E0994(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2)
         gte_ldv0(&block->local[i]);
         gte_rtv0();
         gte_stlvnl(&block->vec);
-        arg1[i].vx = block->vec.vx + ((GsCOORDINATE2*)arg0->coord)->workm.t[0];
-        arg1[i].vy = block->vec.vy + ((GsCOORDINATE2*)arg0->coord)->workm.t[1];
-        arg1[i].vz = block->vec.vz + ((GsCOORDINATE2*)arg0->coord)->workm.t[2];
+        arg1[i].vx = block->vec.vx + (arg0->coord)->workm.t[0];
+        arg1[i].vy = block->vec.vy + (arg0->coord)->workm.t[1];
+        arg1[i].vz = block->vec.vz + (arg0->coord)->workm.t[2];
     }
     block->vec.vx = arg1[0].vx - arg1[1].vx;
     block->vec.vy = arg1[0].vy - arg1[1].vy;
@@ -6063,9 +6063,9 @@ s32 Gp_FindNearestSlot(GpObj* arg0, s32 arg1)
     gte_ldv0((SVECTOR*)(head - 8));
     gte_rtv0();
     gte_stlvnl(block);
-    block->world.vx = ((VECTOR3*)(head - 0x28))->vx + ((GsCOORDINATE2*)arg0->coord)->workm.t[0];
-    block->world.vy = block->vec.vy + ((GsCOORDINATE2*)arg0->coord)->workm.t[1];
-    block->world.vz = block->vec.vz + ((GsCOORDINATE2*)arg0->coord)->workm.t[2];
+    block->world.vx = ((VECTOR3*)(head - 0x28))->vx + (arg0->coord)->workm.t[0];
+    block->world.vy = block->vec.vy + (arg0->coord)->workm.t[1];
+    block->world.vz = block->vec.vz + (arg0->coord)->workm.t[2];
 
     for (;;) {
         if ((slot->flags & 1) && ((slot->key & 0xFFFF0000) == arg1)) {
@@ -6738,7 +6738,7 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
 s32 Gp_RollEnemyChance(GpEnemy* arg0, u32 arg1, s32 arg2)
 {
     Task*          slot;
-    GsCOORDINATE2* pcoord;
+    GpCoord*       pcoord;
     u8*            head;
     GpDistScratch* blk;
     s32            dist;

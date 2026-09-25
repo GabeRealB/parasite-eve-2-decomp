@@ -56,10 +56,10 @@ void func_actor_110800_801324AC(void);
 /// becomes the one holding the animation-start and visibility handlers.
 void func_actor_110800_80131E24(GpEnemy* enemy, Task* task)
 {
-    VECTOR         vec;
-    void*          work;
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
+    VECTOR     vec;
+    void*      work;
+    TmdObject* obj;
+    GpCoord*   coord;
 
     obj                     = task->extra.tmd;
     coord                   = obj->coords;
@@ -119,9 +119,9 @@ void func_actor_110800_80131E24(GpEnemy* enemy, Task* task)
 /// `lh`.
 void func_actor_110800_80131F9C(GpEnemy* enemy, Task* task)
 {
-    GsCOORDINATE2* coord;
-    TmdObject*     obj;
-    VECTOR         vec;
+    GpCoord*   coord;
+    TmdObject* obj;
+    VECTOR     vec;
 
     coord = task->extra.tmd->coords;
     obj   = task->extra.tmd;
@@ -199,8 +199,8 @@ void func_actor_110800_801322A0(Task* task)
 /// -50 on x.
 void func_actor_110800_801322FC(Task* arg0)
 {
-    GsCOORDINATE2* parent;
-    GsCOORDINATE2* coord;
+    GpCoord* parent;
+    GpCoord* coord;
 
     parent            = D_actor_110800_80139F14->extra.tmd->coords;
     coord             = arg0->extra.tmd->coords;

@@ -552,12 +552,12 @@ void func_mist_r18_8017E2C8(Task* task)
 /// past the set-up state.
 void func_mist_r18_8017E320(Task* task)
 {
-    Task*          parent;
-    s32            part;
-    TmdObject*     extra;
-    TmdObject*     parentExtra;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* dest;
+    Task*      parent;
+    s32        part;
+    TmdObject* extra;
+    TmdObject* parentExtra;
+    GpCoord*   coord;
+    GpCoord*   dest;
 
     parent          = (Task*)task->spawnArg2;
     part            = task->spawnArg1;
@@ -802,11 +802,11 @@ void func_mist_r18_8017EA60(void)
 
 void func_mist_r18_8017EA98(Task* task)
 {
-    GpCoordExt* coord;
-    TmdObject*  obj;
+    GpCoord*   coord;
+    TmdObject* obj;
 
     if (task->state == 0) {
-        coord               = (GpCoordExt*)task->extra.tmd->coords;
+        coord               = task->extra.tmd->coords;
         coord->coord.t[0]   = -0x1496;
         coord->coord.t[1]   = -0x2DA;
         coord->coord.t[2]   = 0xB90;

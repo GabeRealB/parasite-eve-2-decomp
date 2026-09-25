@@ -36,37 +36,37 @@
 /// expires. The parameters come from `param`, scaled by a grade the attack
 /// carries.
 typedef struct GpEnemy {
-    Task*          task;          // Owning task; the one whose `spawnArg2` is this object
-    MATRIX*        field_4;       // Role unproven: actors store a model part's matrix here, nothing reads it back
-    u16            placeKey;      // Key of the placement the enemy was spawned from: area, stage, and that placement's own number in the high nibble
-    u16            workType;      // Work type the enemy was spawned as, bank in the high byte and type in the low (0x900 is the plain enemy)
-    s32            waitTicks;     // Frames an enemy with no actor body waits before it is torn down
-    GpLinkNode     node;          // Lock-on link: the entry the aim scan, HP readout and damage reactions reach the enemy by
-    GsCOORDINATE2* coord;         // Coordinate the body sits at, usually one of the actor's model parts
-    VECTOR3        bodyPos;       // Body position in `coord`'s frame: the point distance and damage-chance rolls measure from
-    byte           pad_28[4];
-    VECTOR3        playerRelPos;  // `bodyPos` brought to world space and made relative to the player, refreshed each frame; the aim and lock-on scans take their angle and distance from it
-    byte           pad_38[4];
-    GpAreaPlace*   place;         // Placement record behind the enemy's spawn parameters (an actor may publish a table of its own here)
-    s16            hp;            // Hit points left; damage subtracts from it and the readout shows it against `hpMax`
-    u16            hpMax;         // Hit points the enemy is spawned with; a damage reaction is picked by fractions of it
-    byte           pad_44[4];
-    u8             field_48;      // Role unproven: every spawn handler clears it, nothing reads it back
-    byte           pad_49[2];
-    u8             spawnState;    // State the enemy is respawned in: saved with its pose and restored by the spawn handlers
-    u8             reactionFlags; // Reactions a landed hit asked for: bits 0-1 stagger the body, bits 2-3 the damage-over-time reaction, cleared as the body consumes them
-    u8             field_4D;      // Role unproven: cleared beside `reactionFlags` on spawn, nothing reads it back
-    u8             colorMode;     // Colour remap the body is drawn with: current mode in bits 0-1, previous in bits 2-3, bit 7 a pending hit flash
-    u8             colorBlend;    // Frames a colour remap change is blended over, in sixteenths; 0 switches at once
-    GpPairSrcE*    param;         // Parameter record the enemy's kind is defined by, shared with every enemy of that kind, `NULL` where the kind has none
-    GpRec18*       recs;          // The enemy's own contact records; its collision bodies point at the table and the Parasite Energy targeting claims entries in it
-    u8             flag2Steps;    // Flag-2 reaction: steps it has built up, each 0x1F frames long, up to the limit `param->flag2Ticks` and its grade allow
-    u8             flag4Delay;    // Flag-4 reaction: frames left until its next damage tick, reseeded at random on each tick
-    u8             flag4Ticks;    // Flag-4 reaction: damage ticks dealt so far, measured against `param->flag4Ticks`
-    u8             flag2Timer;    // Flag-2 reaction: frames into the current step; once the limit is reached, a random countdown to the reaction ending
-    u8             flag4Grade;    // Flag-4 reaction: 0-9 row of the scale tables its length and damage are taken from; 0 for an attack without one
-    u8             flag2Grade;    // Flag-2 reaction: 0-9 row of the scale table its length is taken from; 0 for an attack without one
-    byte           pad_5E[2];
+    Task*        task;          // Owning task; the one whose `spawnArg2` is this object
+    MATRIX*      field_4;       // Role unproven: actors store a model part's matrix here, nothing reads it back
+    u16          placeKey;      // Key of the placement the enemy was spawned from: area, stage, and that placement's own number in the high nibble
+    u16          workType;      // Work type the enemy was spawned as, bank in the high byte and type in the low (0x900 is the plain enemy)
+    s32          waitTicks;     // Frames an enemy with no actor body waits before it is torn down
+    GpLinkNode   node;          // Lock-on link: the entry the aim scan, HP readout and damage reactions reach the enemy by
+    GpCoord*     coord;         // Coordinate the body sits at, usually one of the actor's model parts
+    VECTOR3      bodyPos;       // Body position in `coord`'s frame: the point distance and damage-chance rolls measure from
+    byte         pad_28[4];
+    VECTOR3      playerRelPos;  // `bodyPos` brought to world space and made relative to the player, refreshed each frame; the aim and lock-on scans take their angle and distance from it
+    byte         pad_38[4];
+    GpAreaPlace* place;         // Placement record behind the enemy's spawn parameters (an actor may publish a table of its own here)
+    s16          hp;            // Hit points left; damage subtracts from it and the readout shows it against `hpMax`
+    u16          hpMax;         // Hit points the enemy is spawned with; a damage reaction is picked by fractions of it
+    byte         pad_44[4];
+    u8           field_48;      // Role unproven: every spawn handler clears it, nothing reads it back
+    byte         pad_49[2];
+    u8           spawnState;    // State the enemy is respawned in: saved with its pose and restored by the spawn handlers
+    u8           reactionFlags; // Reactions a landed hit asked for: bits 0-1 stagger the body, bits 2-3 the damage-over-time reaction, cleared as the body consumes them
+    u8           field_4D;      // Role unproven: cleared beside `reactionFlags` on spawn, nothing reads it back
+    u8           colorMode;     // Colour remap the body is drawn with: current mode in bits 0-1, previous in bits 2-3, bit 7 a pending hit flash
+    u8           colorBlend;    // Frames a colour remap change is blended over, in sixteenths; 0 switches at once
+    GpPairSrcE*  param;         // Parameter record the enemy's kind is defined by, shared with every enemy of that kind, `NULL` where the kind has none
+    GpRec18*     recs;          // The enemy's own contact records; its collision bodies point at the table and the Parasite Energy targeting claims entries in it
+    u8           flag2Steps;    // Flag-2 reaction: steps it has built up, each 0x1F frames long, up to the limit `param->flag2Ticks` and its grade allow
+    u8           flag4Delay;    // Flag-4 reaction: frames left until its next damage tick, reseeded at random on each tick
+    u8           flag4Ticks;    // Flag-4 reaction: damage ticks dealt so far, measured against `param->flag4Ticks`
+    u8           flag2Timer;    // Flag-2 reaction: frames into the current step; once the limit is reached, a random countdown to the reaction ending
+    u8           flag4Grade;    // Flag-4 reaction: 0-9 row of the scale tables its length and damage are taken from; 0 for an attack without one
+    u8           flag2Grade;    // Flag-2 reaction: 0-9 row of the scale table its length is taken from; 0 for an attack without one
+    byte         pad_5E[2];
 } GpEnemy;
 STATIC_ASSERT_SIZEOF(GpEnemy, 0x60);
 
@@ -102,7 +102,7 @@ void func_800B25B0(void);
 
 /// Pose pair used by `Gp_AnimWritePoseBlend` / `Gp_AnimWritePoseCopy`. Translation is
 /// GPF/GPL-blended (`Gp_AnimWritePoseBlend`) or copied (`Gp_AnimWritePoseCopy`) into
-/// `GsCOORDINATE2.coord.t` when `GpAnimSlot.poseKind == 1`; rotation is
+/// `GpCoord.coord.t` when `GpAnimSlot.poseKind == 1`; rotation is
 /// GPF/GPL-blended with the other pose and fed to `RotMatrix_gte`.
 typedef struct _GpAnimPose {
     /* 0x00 */ SVECTOR trans;
@@ -241,11 +241,11 @@ STATIC_ASSERT_SIZEOF(GpAnimScratch18, 0x18);
 /// part, and one pose record per slot, where a slot keeps a pose that no
 /// keyframe supplies.
 typedef struct _GpAnimCtx {
-    GpAnimSet**    sets;      // Set table the slots index by animation id
-    GsCOORDINATE2* coords;    // The model's per-part coordinate array: each slot writes the transform of the part it drives
-    GpPackedSvec*  poses;     // Pose buffer, one 0x10-byte record per slot, in the encoding that slot's `GpAnimSlot.poseKind` names
-    GpAnimSlot*    slots;     // Playback state, one slot per model part
-    s32            partCount; // Parts the model is divided into, mirrored from `TmdObject.partCount`
+    GpAnimSet**   sets;      // Set table the slots index by animation id
+    GpCoord*      coords;    // The model's per-part coordinate array: each slot writes the transform of the part it drives
+    GpPackedSvec* poses;     // Pose buffer, one 0x10-byte record per slot, in the encoding that slot's `GpAnimSlot.poseKind` names
+    GpAnimSlot*   slots;     // Playback state, one slot per model part
+    s32           partCount; // Parts the model is divided into, mirrored from `TmdObject.partCount`
 } GpAnimCtx;
 STATIC_ASSERT_SIZEOF(GpAnimCtx, 0x14);
 
@@ -349,7 +349,7 @@ void     Gp_EnemyTaskExit(Task* task);
 /// via `Gp_UpdateCoord`, transforms there, and converts to local with
 /// `Gp_WorldToLocal`. Always parents the dest to world and clears `flg`.
 /// Returns `arg0` (or NULL).
-Task*    Gp_CopyCoordOffset(Task* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2);
+Task*    Gp_CopyCoordOffset(Task* arg0, GpCoord* arg1, SVECTOR* arg2);
 GpEnemy* Gp_AllocEnemy(Task* task, GpEnemy* parent);
 void     Gp_EnemyWaitStart(GpEnemy* enemy, Task* task);
 void     Gp_EnemyWaitTick(GpEnemy* enemy, Task* task);
@@ -370,7 +370,7 @@ void Gp_LerpOrthonormal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2, s32 arg3);
 /// `coord` rotation into `arg1` and accumulating the rotated translation
 /// into `arg2`. The world parent initializes `arg1` to identity and
 /// `arg2` to zero.
-void Gp_ComposeParentWorld(GsCOORDINATE2* arg0, MATRIX* arg1, SVECTOR* arg2);
+void Gp_ComposeParentWorld(GpCoord* arg0, MATRIX* arg1, SVECTOR* arg2);
 /// 8-byte RGB555-unpacked vector. `Gp_BlendRgb555` allocates three of
 /// these (0x18 bytes) from `G_SCRATCH_HEAD`: src0, src1, then the GTE
 /// lerp result. Channels are 5-bit values shifted left 7.
@@ -394,10 +394,10 @@ void Gp_BlendRgb555ClutMasked(u16* arg0, u16* arg1, s32 arg2, u16* arg3, s32 arg
 /// of the current ordering table, backing up 0xA entries when the current
 /// OT is not one of the two `Gpu_OrderingTables` roots.
 void Gp_FadeWorkTask(Task* arg0);
-void Gp_BlendAnimRot(GpAnimBlendSrc* arg0, GsCOORDINATE2* arg1, GpAnimSlot* arg2,
+void Gp_BlendAnimRot(GpAnimBlendSrc* arg0, GpCoord* arg1, GpAnimSlot* arg2,
                      GpAnimScratch80* arg3);
-void Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GsCOORDINATE2* arg1, GpAnimSlot* arg2);
-void Gp_AnimBlendPacked(GpAnimBlendSrc* arg0, GsCOORDINATE2* arg1, GpAnimSlot* arg2);
+void Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GpCoord* arg1, GpAnimSlot* arg2);
+void Gp_AnimBlendPacked(GpAnimBlendSrc* arg0, GpCoord* arg1, GpAnimSlot* arg2);
 void Gp_AnimAdvanceSlot(GpAnimCtx* arg0, s32 arg1);
 void Gp_AnimSeekSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
@@ -441,7 +441,7 @@ void       Gp_AnimPlaySlot(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 ar
 void       Gp_SaveEnemyPose(GpEnemy* arg0);
 void       Gp_SpawnArea(GpAreaKey* arg0);
 void       Gp_ApplyAreaTmdFlags(void);
-void       Gp_ReparentCoord(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
+void       Gp_ReparentCoord(GpCoord* arg0, GpCoord* arg1);
 GpWorkObj* Gp_FindWorkById(u16 arg0);
 void       Gp_SetTmdBytes(TmdObject* arg0, s32 arg1, s32 arg2);
 void       Gp_SetCurAreaFlag2(s32 arg0);
@@ -500,7 +500,7 @@ STATIC_ASSERT_SIZEOF(GpFloorQuadScratch, 0x40);
 /// anchored at `arg2` (or at the coordinate's own origin when `arg2` is
 /// `NULL`), transformed by `arg0->workm` and linked into `gGpuCurrentOt`
 /// at the largest corner `otz`.
-void Gp_DrawFloorQuad(GsCOORDINATE2* arg0, u32 arg1, SVECTOR* arg2);
+void Gp_DrawFloorQuad(GpCoord* arg0, u32 arg1, SVECTOR* arg2);
 /// Builds a camera-space offset from `arg0` toward `arg1->pos`, scaled
 /// by `-abs(length - arg1->field_2)`, and writes it to `arg2`.
 void Gp_MakeDirOffset(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2);
@@ -536,12 +536,12 @@ void  Gp_SetStreamBuf(void* arg0);
 void  func_800B1EFC(Task* arg0);
 void  func_800B0928(Task* arg0, Task* arg1, s32 arg2, s32 arg3, s32 arg4);
 /// Turns the slot-3 skeleton's head toward the world point in `arg1`'s
-/// translation (`coord.t`). Sums the first five `GsCOORDINATE2` transforms of
+/// translation (`coord.t`). Sums the first five `GpCoord` transforms of
 /// `arg0->extra` to get the head's own position and orientation, takes the
 /// offset to the target through `ratan2` as a yaw/pitch pair, steps toward it
 /// by `arg4 / 0x1000` of the remaining angle and clamps the result to `arg2`
 /// yaw and `arg3` pitch before writing the rotation with `RotMatrix`.
-void func_800B0CF4(Task* arg0, GsCOORDINATE2* arg1, s32 arg2, s32 arg3, s32 arg4);
+void func_800B0CF4(Task* arg0, GpCoord* arg1, s32 arg2, s32 arg3, s32 arg4);
 /// Persistent head-tracking state for `func_800B17D4`, allocated by the task
 /// that drives the head turn and kept in its `Task::work`. `yawLimit` /
 /// `pitchLimit` are the base clamps (widened to the head's current pose each
@@ -560,7 +560,7 @@ typedef struct _GpHeadAim {
 STATIC_ASSERT_SIZEOF(GpHeadAim, 0xC);
 
 /// `func_800B0928` with the limits and step taken from `arg2` and the target
-/// being `arg1`'s head: composes the first five `GsCOORDINATE2` transforms of
+/// being `arg1`'s head: composes the first five `GpCoord` transforms of
 /// both tasks (plus the `D_80093A28` head offset) to get each head's world
 /// position, takes the offset in `arg0`'s head frame through `ratan2`, unwraps
 /// the pitch against `arg2->lastPitch` when it jumps by more than 0x800, steps

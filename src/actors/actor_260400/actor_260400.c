@@ -148,18 +148,18 @@ void func_actor_260400_80149FA4(void)
 /// first update with the reset mode 2 / id 1 it seeds.
 void func_actor_260400_80149FE0(GpEnemy* enemy, Task* task)
 {
-    VECTOR         vec;
-    GpAreaKey      key;
-    GsCOORDINATE2* coord;
-    TmdObject*     obj;
-    TmdObject*     model;
-    Task*          spawned;
-    GpAreaPlace*   place;
-    s32            idx;
-    u32            raw;
-    GpAreaKey*     sessionKey;
-    GpAreaKey*     keyPtr;
-    void*          work;
+    VECTOR       vec;
+    GpAreaKey    key;
+    GpCoord*     coord;
+    TmdObject*   obj;
+    TmdObject*   model;
+    Task*        spawned;
+    GpAreaPlace* place;
+    s32          idx;
+    u32          raw;
+    GpAreaKey*   sessionKey;
+    GpAreaKey*   keyPtr;
+    void*        work;
 
     obj                     = task->extra.tmd;
     coord                   = obj->coords;
@@ -227,7 +227,7 @@ void func_actor_260400_80149FE0(GpEnemy* enemy, Task* task)
 /// while `turnFrames` counts down. Mode 3 then ticks the animation.
 void func_actor_260400_8014A200(Task* task)
 {
-    GsCOORDINATE2*   coord = task->extra.tmd->coords;
+    GpCoord*         coord = task->extra.tmd->coords;
     Actor260400Work* work  = (Actor260400Work*)task->work;
 
     if (D_actor_260400_80154C70->st.state == 1) {
@@ -287,9 +287,9 @@ void func_actor_260400_8014A550(Task* task)
 /// translation, then runs the update and draws the ground shadow.
 void func_actor_260400_8014A5AC(GpEnemy* enemy, Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR         pos;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR     pos;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -318,9 +318,9 @@ void func_actor_260400_8014A630(Task* task)
 /// and the quad is drawn at a fixed brightness of 0xC0.
 void func_actor_260400_8014A66C(Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR3*       vec;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR3*   vec;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -340,11 +340,11 @@ void func_actor_260400_8014A66C(Task* task)
 /// point 0x320 above the actor's root translation.
 void func_actor_260400_8014A6F8(Task* task)
 {
-    TmdObject*     extra = task->extra.tmd;
-    GsCOORDINATE2* coord = extra->coords;
-    GsCOORDINATE2* parts = D_actor_260400_80154C74->extra.tmd->coords;
-    GsCOORDINATE2* part  = parts + task->spawnArg1;
-    VECTOR         vec;
+    TmdObject* extra = task->extra.tmd;
+    GpCoord*   coord = extra->coords;
+    GpCoord*   parts = D_actor_260400_80154C74->extra.tmd->coords;
+    GpCoord*   part  = parts + task->spawnArg1;
+    VECTOR     vec;
 
     switch (task->state) {
         case 0:
@@ -462,8 +462,8 @@ s32 func_actor_260400_8014A998(Task* task, s32 arg1, s32 arg2)
 /// the Y rotation is applied.
 s32 func_actor_260400_8014AA28(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2* coord;
-    u16            yaw;
+    GpCoord* coord;
+    u16      yaw;
 
     coord                           = task->extra.tmd->coords;
     D_actor_260400_80154C70->st.yaw = yaw = placement->rot.vy;
@@ -512,7 +512,7 @@ s32 func_actor_260400_8014AAA4(Task* task, s32 arg1, GpCmdArg* msg)
 /// and 25 otherwise.
 s32 func_actor_260400_8014AB50(Task* task, s32 arg1, VECTOR* target, s32 mode)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor260400Work* work;
     s32              dx;
     s32              dz;

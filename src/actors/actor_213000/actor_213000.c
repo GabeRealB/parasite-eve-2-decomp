@@ -180,12 +180,12 @@ void func_actor_213000_8014A084(Task* task)
 /// runs with the parent, and advances to the idle state.
 void func_actor_213000_8014A0DC(Task* task)
 {
-    Task*          parent;
-    s32            part;
-    TmdObject*     extra;
-    TmdObject*     parentExtra;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* dest;
+    Task*      parent;
+    s32        part;
+    TmdObject* extra;
+    TmdObject* parentExtra;
+    GpCoord*   coord;
+    GpCoord*   dest;
 
     parent          = (Task*)task->spawnArg2;
     part            = task->spawnArg1;
@@ -234,11 +234,11 @@ void func_actor_213000_8014A160(Task* task)
 /// steps to the tick state.
 void func_actor_213000_8014A1B8(Task* task)
 {
-    Task*          parent;
-    TmdObject*     obj;
-    TmdObject*     parentObj;
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* root;
+    Task*      parent;
+    TmdObject* obj;
+    TmdObject* parentObj;
+    GpCoord*   coords;
+    GpCoord*   root;
 
     parent      = task->spawnArg2;
     obj         = task->extra.tmd;
@@ -298,21 +298,21 @@ void func_actor_213000_8014A2C4(Task* task)
 /// the task under the parent and steps to the tick state.
 void func_actor_213000_8014A35C(Task* task)
 {
-    Task*       parent;
-    TmdObject*  obj;
-    TmdObject*  parentObj;
-    GpCoordExt* coords;
-    GpCoordExt* root;
-    s32         i;
-    u16         flags;
+    Task*      parent;
+    TmdObject* obj;
+    TmdObject* parentObj;
+    GpCoord*   coords;
+    GpCoord*   root;
+    s32        i;
+    u16        flags;
 
     parent    = task->spawnArg2;
     obj       = task->extra.tmd;
     parentObj = parent->extra.tmd;
     for (i = 0; i < 3; i++) {
-        coords             = &((GpCoordExt*)parent->extra.tmd->coords)[i + 9];
-        root               = &((GpCoordExt*)task->extra.tmd->coords)[i];
-        root->sub          = (GsCOORDINATE2*)coords;
+        coords             = &(parent->extra.tmd->coords)[i + 9];
+        root               = &(task->extra.tmd->coords)[i];
+        root->sub          = coords;
         root->coord.t[0]   = 0;
         root->coord.t[1]   = 0;
         root->coord.t[2]   = 0;
@@ -409,7 +409,7 @@ void func_actor_213000_8014A5D0(Task* task)
 {
     Actor213000Work* work;
     TmdObject*       extra;
-    GsCOORDINATE2*   coords;
+    GpCoord*         coords;
     s32              i;
 
     extra  = task->extra.tmd;
@@ -439,7 +439,7 @@ void func_actor_213000_8014A5D0(Task* task)
 void func_actor_213000_8014A6AC(Task* task)
 {
     Actor213000Work* work;
-    GsCOORDINATE2*   coords;
+    GpCoord*         coords;
     TmdObject*       extra;
 
     work            = (Actor213000Work*)task->work;
@@ -495,9 +495,9 @@ s32 func_actor_213000_8014A70C(Task* task, s32 arg1, GpAnimArg* msg)
 /// rebuilt. Clearing `flg` has the world matrix recomputed. Returns 0.
 s32 func_actor_213000_8014A828(Task* task, s32 arg1, GpXformArg* args)
 {
-    GpCoordExt* coord;
+    GpCoord* coord;
 
-    coord               = (GpCoordExt*)task->extra.tmd->coords;
+    coord               = task->extra.tmd->coords;
     coord->coord.t[0]   = args->pos.vx;
     coord->coord.t[1]   = args->pos.vy;
     coord->coord.t[2]   = args->pos.vz;

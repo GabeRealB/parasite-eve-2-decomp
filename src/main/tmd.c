@@ -459,18 +459,18 @@ done:
 
 TmdObject* Tmd_Create(TmdSource* src, s32 flags)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    TmdBone*       bone;
-    u32            i;
-    void*          mem = NULL;
+    TmdObject* obj;
+    GpCoord*   coord;
+    TmdBone*   bone;
+    u32        i;
+    void*      mem = NULL;
 
     Tmd_InitSourceStream(src);
-    obj = memCalloc((src->partCount * sizeof(GsCOORDINATE2)) + sizeof(TmdObject), 0);
+    obj = memCalloc((src->partCount * sizeof(GpCoord)) + sizeof(TmdObject), 0);
     if (obj != NULL) {
         obj->flags       = 0x80;
         obj->partCount   = src->partCount;
-        obj->coords      = (GsCOORDINATE2*)(obj + 1);
+        obj->coords      = (GpCoord*)(obj + 1);
         obj->bufferIndex = 0;
         coord            = obj->coords;
         obj->halfSize    = src->halfSize;

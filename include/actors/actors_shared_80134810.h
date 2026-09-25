@@ -5,6 +5,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-void ActorsShared80134810(Task* arg0, GsCOORDINATE2* arg1);
+void ActorsShared80134810(Task* arg0, GpCoord* arg1);
 
 #endif

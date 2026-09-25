@@ -26,8 +26,8 @@ void func_kyle_800102_80167A84(Task* arg0)
     SVECTOR*           vec;
     MATRIX*            mtx;
     TmdObject*         extra;
-    GsCOORDINATE2*     coord;
-    GsCOORDINATE2*     muzzle;
+    GpCoord*           coord;
+    GpCoord*           muzzle;
     WeaponGrenadeWork* work;
     s32                idx;
     s32                flags;
@@ -127,7 +127,7 @@ void func_kyle_800102_80167DE0(Task* arg0)
 {
     WeaponGrenadeScratch* blk;
     WeaponGrenadeWork*    work;
-    GsCOORDINATE2*        coord;
+    GpCoord*              coord;
     GpRec18*              rec;
     GpRoomParamRec*       param;
     u8*                   head;

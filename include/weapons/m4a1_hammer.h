@@ -5,6 +5,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
+#include "main/coord.h"
 
 #include "main/task.h"
 #include "gameplay/3CD8.h"
@@ -22,13 +23,13 @@ extern SVECTOR D_m4a1_hammer_8011EB60;
 extern s16 D_m4a1_hammer_8012D630[24];
 
 /// Handwritten GTE routine. Draws the charging flare around the world position
-/// `arg0` (a `GsCOORDINATE2::workm` translation); `arg1` is the animation
+/// `arg0` (a `GpCoord::workm` translation); `arg1` is the animation
 /// frame, `arg2` the radius and `arg3` the spin angle.
 void func_m4a1_hammer_8011D904(s32* arg0, u16 arg1, u16 arg2, s16 arg3);
 /// Handwritten GTE routine. Draws the hammer's expanding billboard at `arg0`'s
 /// projected position: `arg1` is the animation frame, `arg2` the radius and
 /// `arg3` the spin angle.
-void func_m4a1_hammer_8011DE60(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
+void func_m4a1_hammer_8011DE60(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 /// 0x20-byte scratch block `func_m4a1_hammer_8011E29C` carves off
 /// `G_SCRATCH_HEAD` for the hammer's shock trail.
 ///
@@ -61,6 +62,6 @@ STATIC_ASSERT_SIZEOF(M4a1HammerTrailScratch, 0x20);
 /// selects the strip out of the texture page: bit 0 picks the left or right
 /// half and bit 1 the upper or lower row. Nothing is drawn if either endpoint
 /// projects off-screen.
-void func_m4a1_hammer_8011E29C(GsCOORDINATE2* coord, SVECTOR* arg1, s32 arg2, s16 arg3);
+void func_m4a1_hammer_8011E29C(GpCoord* coord, SVECTOR* arg1, s32 arg2, s16 arg3);
 
 #endif

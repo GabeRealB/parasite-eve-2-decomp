@@ -71,8 +71,8 @@ extern u8* D_dryfield_water_hole_801828CC;
 extern s16 D_dryfield_water_hole_801828D0;
 
 void func_dryfield_water_hole_8017E000(Task* arg0);
-void func_dryfield_water_hole_8017E410(GsCOORDINATE2* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
-void func_dryfield_water_hole_8017EDE4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
+void func_dryfield_water_hole_8017E410(GpCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
+void func_dryfield_water_hole_8017EDE4(GpCoord* arg0, s32 arg1, s32 arg2);
 
 /// Handler for message 0x13F1 in the room's message table: the room takes no
 /// action and reports the message as not handled.
@@ -376,11 +376,11 @@ void func_dryfield_water_hole_8017E040(Task* arg0)
     Task*                     ctl;
     s32                       mask;
     _DryfieldWaterHoleSplash* splash;
-    GsCOORDINATE2*            coord;
-    GsCOORDINATE2*            ctlCoords;
-    GsCOORDINATE2*            part;
-    GsCOORDINATE2*            view;
-    GsCOORDINATE2             surface;
+    GpCoord*                  coord;
+    GpCoord*                  ctlCoords;
+    GpCoord*                  part;
+    GpCoord*                  view;
+    GpCoord                   surface;
     s32                       i;
     u32                       rnd;
 
@@ -458,7 +458,7 @@ void func_dryfield_water_hole_8017E040(Task* arg0)
 /// primitive takes a `Gp_AddTpageShift` tpage; the far disc sorts by the far
 /// end's `otz`, everything else by the near end's. The work block lives on the
 /// scratchpad stack.
-void func_dryfield_water_hole_8017E410(GsCOORDINATE2* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
+void func_dryfield_water_hole_8017E410(GpCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
     u8*                head;
     RoomDraw24Scratch* block;
@@ -599,8 +599,8 @@ void func_dryfield_water_hole_8017E410(GsCOORDINATE2* arg0, SVECTOR* arg1, SVECT
 /// 4 on.
 void func_dryfield_water_hole_8017EC90(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
+    GpEffWork* work;
+    GpCoord*   coord;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -635,7 +635,7 @@ void func_dryfield_water_hole_8017EC90(Task* task)
 /// If the projection is valid, one semi-transparent `POLY_FT4` (tpage 0x2B,
 /// clut 0x43D1, UV 0,0x38 to 0x37,0x6F) is queued with all three colour
 /// channels set to `arg2`. The work block lives on the scratchpad stack.
-void func_dryfield_water_hole_8017EDE4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
+void func_dryfield_water_hole_8017EDE4(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;

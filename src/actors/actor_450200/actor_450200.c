@@ -46,12 +46,12 @@ extern u16        D_actor_450200_801407E8[256];
 /// of the odd/even split the two effects see. The part the effects hang off is
 /// picked at random from the model's coordinate array: the 11-entry byte table
 /// holds indices into it, which is why the load is unsigned and the stride is
-/// `GsCOORDINATE2`.
+/// `GpCoord`.
 void func_actor_450200_80131E24(Task* task)
 {
-    Task*          slot;
-    GsCOORDINATE2* coord;
-    s16            countdown;
+    Task*    slot;
+    GpCoord* coord;
+    s16      countdown;
 
     slot  = gameGetPtrSlot(0xA);
     coord = &slot->extra.tmd->coords[D_actor_450200_8013885C[(rand() * 11) >> 15]];
@@ -172,8 +172,8 @@ void func_actor_450200_8013217C(s32 arg0)
 /// task's, refreshing both coordinates first so the X/Z offset is current.
 void func_actor_450200_8013219C(void)
 {
-    GsCOORDINATE2* target;
-    GsCOORDINATE2* looker;
+    GpCoord* target;
+    GpCoord* looker;
 
     target = (gameGetPtrSlot(0xA))->extra.tmd->coords;
     looker = (gameGetPtrSlot(3))->extra.tmd->coords;

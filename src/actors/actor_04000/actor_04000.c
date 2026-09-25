@@ -135,7 +135,7 @@ void Actor04000_Fn06D38(GpEnemy* arg0, Task* arg1);
 /// (which also raises the returned `blocked` flag) or 0x30000 each give a
 /// bearing, at most eight; bearings more than 0x400 apart cancel each other.
 /// Each survivor becomes a 10-unit step added to `push` and to the translation.
-s32 Actor04000_Fn0024C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* push)
+s32 Actor04000_Fn0024C(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* push)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
@@ -253,7 +253,7 @@ extern SVECTOR Actor04000_D0C708;
 /// `Actor04000_D0C708`. Returns 1 when the X or Z step is nonzero; a step with
 /// a fractional part moves the coordinate and the kept step one unit further
 /// from zero.
-s32 Actor04000_Fn00798(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2)
+s32 Actor04000_Fn00798(GpCoord* coord, GpRec18* movement, s16 arg2)
 {
     void**            scratch;
     u8*               head;
@@ -540,7 +540,7 @@ extern u8         Actor04000_D0C6B0[];
 void Actor04000_Fn010B8(GpEnemy* arg0, Task* arg1)
 {
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor104000Work* work;
     GpRec18*         hits;
     SVECTOR          sv;
@@ -713,8 +713,8 @@ void Actor04000_Fn0168C(GpEnemy* arg0, Task* arg1)
     TmdObject*             obj;
     Actor104000AimScratch* head;
     Actor104000AimScratch* sc;
-    GsCOORDINATE2*         coord;
-    GsCOORDINATE2*         pos;
+    GpCoord*               coord;
+    GpCoord*               pos;
     s16                    angle;
     s32                    mag;
 
@@ -815,7 +815,7 @@ void Actor04000_Fn0168C(GpEnemy* arg0, Task* arg1)
 
 /// Turns `coord` to face along its own Z axis in the XZ plane and scales the
 /// rotation uniformly by `s`, working on a scratch block.
-static __inline__ void Actor204000_FaceScale(GsCOORDINATE2* coord, s16 s)
+static __inline__ void Actor204000_FaceScale(GpCoord* coord, s16 s)
 {
     ActorScaleRotScratch* head;
     ActorScaleRotScratch* sc;
@@ -981,7 +981,7 @@ void Actor04000_Fn01E1C(GpEnemy* arg0, Task* arg1)
 void Actor04000_Fn026FC(GpEnemy* arg0, Task* arg1)
 {
     Actor104000Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     SVECTOR          delta;
     SVECTOR*         d;
     TmdObject*       obj;
@@ -1028,9 +1028,9 @@ void Actor04000_Fn028F0(GpEnemy* arg0, Task* arg1)
     Actor104000Work*  work;
     ActorTurnScratch* head;
     ActorTurnScratch* sc;
-    GsCOORDINATE2*    coord;
-    GsCOORDINATE2*    target;
-    GsCOORDINATE2*    pos;
+    GpCoord*          coord;
+    GpCoord*          target;
+    GpCoord*          pos;
     TmdObject*        obj;
     s16               angle;
     s32               mag;
@@ -1345,7 +1345,7 @@ void Actor04000_Fn03D30(Task* arg0, s16 arg1, u32 arg2)
     SVECTOR*         sc;
     Actor104000Work* work;
     s32              mag;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
 
     sc   = (SVECTOR*)SCRATCH_PUSH_BYTES(sizeof(SVECTOR));
     mag  = (arg1 >= 0) ? arg1 : -arg1;
@@ -1501,8 +1501,8 @@ void Actor04000_Fn0432C(GpEnemy* arg0, Task* arg1)
     Actor104000Work*  work;
     ActorTurnScratch* head;
     ActorTurnScratch* sc;
-    GsCOORDINATE2*    coord;
-    GsCOORDINATE2*    target;
+    GpCoord*          coord;
+    GpCoord*          target;
     TmdObject*        obj;
     s16               angle;
 
@@ -1584,8 +1584,8 @@ void Actor04000_Fn049C0(GpEnemy* arg0, Task* arg1)
     Actor104000Work*  work;
     ActorTurnScratch* head;
     ActorTurnScratch* sc;
-    GsCOORDINATE2*    coord;
-    GsCOORDINATE2*    target;
+    GpCoord*          coord;
+    GpCoord*          target;
     TmdObject*        obj;
     s16               angle;
 
@@ -1787,7 +1787,7 @@ void Actor04000_Fn0522C(GpEnemy* arg0, Task* arg1)
 void Actor04000_Fn055C8(GpEnemy* arg0, Task* arg1)
 {
     Actor104000Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     SVECTOR          sv;
     s32              y;
     u16              h;
@@ -1973,7 +1973,7 @@ void Actor04000_Fn05F0C(GpEnemy* arg0, Task* arg1)
     VECTOR                pos;
     SVECTOR               unused; // never written; retail's frame keeps 8 bytes here
     Actor104000StateTable table;
-    GsCOORDINATE2         coord;
+    GpCoord               coord;
     Actor104000Work*      work;
     GpMtxWords*           mw;
     s32                   snd;
@@ -2069,15 +2069,15 @@ void Actor04000_Fn05F0C(GpEnemy* arg0, Task* arg1)
 /// task moves on to its next state.
 void Actor04000_Fn06380(Task* arg0)
 {
-    s32            dist[8];
-    SVECTOR        d;
-    GsCOORDINATE2* coord;
-    MATRIX*        m;
-    PlayerStatus*  cfg;
-    s32            best;
-    s16            i;
-    s16            j;
-    s16            bi;
+    s32           dist[8];
+    SVECTOR       d;
+    GpCoord*      coord;
+    MATRIX*       m;
+    PlayerStatus* cfg;
+    s32           best;
+    s16           i;
+    s16           j;
+    s16           bi;
 
     bi = 0;
     for (i = 0; i < 2; i++) {
@@ -2205,7 +2205,7 @@ s32 Actor04000_Fn06728(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 /// Rebuilds `coord`'s rotation as a pure yaw - the angle its Z row already
 /// faces in the XZ plane - scaled uniformly by `scale`, working in a block
 /// borrowed from the scratchpad, and marks the coordinate dirty.
-void Actor04000_Fn06760(GsCOORDINATE2* coord, s16 scale)
+void Actor04000_Fn06760(GpCoord* coord, s16 scale)
 {
     void**                scratch;
     ActorScaleRotScratch* head;

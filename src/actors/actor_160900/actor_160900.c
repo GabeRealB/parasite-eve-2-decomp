@@ -429,7 +429,7 @@ void func_actor_160900_80132A14(Task* arg0)
     if (arg0->state == 0) {
         TmdObject*             tmd    = arg0->extra.tmd;
         Task*                  parent = arg0->spawnArg2;
-        GsCOORDINATE2*         coord  = tmd->coords;
+        GpCoord*               coord  = tmd->coords;
         Actor160900Child3Work* work;
         Actor160900Child3Work* block;
         GpAreaPlace*           place;
@@ -507,7 +507,7 @@ void func_actor_160900_80132C08(Task* task)
 {
     TmdObject*             obj;
     TmdObject*             obj2;
-    GsCOORDINATE2*         coord;
+    GpCoord*               coord;
     Actor160900Child3Work* work;
     GpAreaPlace*           place;
     VECTOR                 pos;
@@ -557,16 +557,16 @@ void func_actor_160900_80132C08(Task* task)
 
 void func_actor_160900_80132E80(Task* task)
 {
-    s16            xs[4];
-    s16            ys[4];
-    SVECTOR        origin;
-    s32            sxy;
-    s32            otz;
-    GsCOORDINATE2* coord;
-    SVECTOR*       verts;
-    POLY_G4*       poly;
-    DR_TPAGE*      tp;
-    s16            i;
+    s16       xs[4];
+    s16       ys[4];
+    SVECTOR   origin;
+    s32       sxy;
+    s32       otz;
+    GpCoord*  coord;
+    SVECTOR*  verts;
+    POLY_G4*  poly;
+    DR_TPAGE* tp;
+    s16       i;
 
     coord = task->extra.tmd->coords;
     verts = &((Actor160900ChildWork*)task->work)->field_0;
@@ -1383,8 +1383,8 @@ void func_actor_160900_801345D0(Task* task, s32 arg1, s32 arg2)
 /// `X` / `Z` and the coordinate is marked dirty.
 void func_actor_160900_80134624(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2* coord;
-    MATRIX*        mtx;
+    GpCoord* coord;
+    MATRIX*  mtx;
 
     coord             = task->extra.tmd->coords;
     coord->coord.t[0] = placement->pos.vx;

@@ -61,10 +61,10 @@ void      func_80182360(s32);
 /// rotation in a matrix carved off the scratchpad head, applies the turn,
 /// converts the result back into the parent's frame, writes the 3x3 into the
 /// joint and refreshes it.
-void func_actor_111800_80131E40(GsCOORDINATE2* coord, s16 yaw)
+void func_actor_111800_80131E40(GpCoord* coord, s16 yaw)
 {
-    MATRIX*        rotation;
-    GsCOORDINATE2* out;
+    MATRIX*  rotation;
+    GpCoord* out;
 
     SCRATCH_PUSH(MATRIX);
     rotation = SCRATCH_HEAD(MATRIX);
@@ -88,7 +88,7 @@ void func_actor_111800_8013214C(Task* task)
     Actor111800Work* work0;
     Actor111800Work* work4;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              i;
     s32              flag1;
     s32              flag2;
@@ -195,7 +195,7 @@ void func_actor_111800_80132390(Task* task)
     Actor111800Work* work;
     Actor111800Work* work2;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     GpAreaPlace*     place;
     s32              i;
 
@@ -238,11 +238,11 @@ void func_actor_111800_80132390(Task* task)
 /// after every step) up to but not including the view coordinate. Returns
 /// whether the walk reached the view coordinate. The caller passes the part's
 /// own rotation as `src`, addressed through the coordinate array.
-static __inline__ s32 Actor111800_Accumulate(GsCOORDINATE2* arg0, MATRIX* arg1, MATRIX* src)
+static __inline__ s32 Actor111800_Accumulate(GpCoord* arg0, MATRIX* arg1, MATRIX* src)
 {
-    MATRIX         matrix;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* view;
+    MATRIX   matrix;
+    GpCoord* coord;
+    GpCoord* view;
 
     coord = arg0->sub;
     view  = &gGfxViewCoord;
@@ -277,8 +277,8 @@ void func_actor_111800_8013251C(Task* task)
     Actor111800Work* work2;
     TmdObject*       extra;
     TmdObject*       obj;
-    GsCOORDINATE2*   coords;
-    GsCOORDINATE2*   part;
+    GpCoord*         coords;
+    GpCoord*         part;
     MATRIX*          viewMtx;
     s32              state;
     s32              i;

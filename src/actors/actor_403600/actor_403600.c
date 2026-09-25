@@ -295,7 +295,7 @@ extern s32           D_actor_403600_801606A0;
 extern const SVECTOR D_actor_403600_80131E2C;
 extern const CVECTOR D_actor_403600_80131E34;
 
-void func_actor_403600_801353D0(ActorEffectState* arg0, GsCOORDINATE2* arg1);
+void func_actor_403600_801353D0(ActorEffectState* arg0, GpCoord* arg1);
 void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor403600FxWork* arg2, Actor403600FxWork* arg3);
 void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600FxWork* arg2);
 
@@ -736,13 +736,13 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Fx
     SVECTOR*                 local4;
     SVECTOR*                 local0;
     Task*                    actor;
-    GsCOORDINATE2*           coords;
-    GsCOORDINATE2*           center;
+    GpCoord*                 coords;
+    GpCoord*                 center;
     u8*                      head;
     Actor403600ChainScratch* scratch;
-    GsCOORDINATE2*           coord0;
-    GsCOORDINATE2*           coord3;
-    GsCOORDINATE2*           coord4;
+    GpCoord*                 coord0;
+    GpCoord*                 coord3;
+    GpCoord*                 coord4;
     SVECTOR*                 saved3;
     SVECTOR*                 saved4;
     s16*                     column1;
@@ -765,10 +765,10 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Fx
     MATRIX*                  worldArg1;
     MATRIX*                  transposed0;
     MATRIX*                  transposed1;
-    GsCOORDINATE2*           viewWorld0;
-    GsCOORDINATE2*           viewWorld1;
-    GsCOORDINATE2*           viewCoord0;
-    GsCOORDINATE2*           viewCoord4;
+    GpCoord*                 viewWorld0;
+    GpCoord*                 viewWorld1;
+    GpCoord*                 viewCoord0;
+    GpCoord*                 viewCoord4;
     s32                      i;
     s32                      j;
     s32                      part0;
@@ -1192,71 +1192,71 @@ const SVECTOR D_actor_403600_80131E24 = { -100, 700, -280, 0 };
 
 void func_actor_403600_80134398(Task* arg0)
 {
-    MATRIX*        gteValue1;
-    SVECTOR*       gteValue2;
-    DVECTOR*       gteValue3;
-    s32*           gteValue4;
-    s32*           gteValue5;
-    s32*           gteValue6;
-    s32            gteValue7;
-    SVECTOR        sp10;
-    SVECTOR        sp18;
-    SVECTOR*       firstVector;
-    SVECTOR*       cameraVector;
-    Task*          player;
-    s32            sp24;
-    s32            sp28;
-    DisplayState*  sp30;
-    s32*           ot;
-    u32            otOffset;
-    s32            sp34;
-    DisplayState*  var_a1_3;
-    s16            temp_s0_6;
-    s16            temp_v1_10;
-    s16            temp_v1_11;
-    s16            temp_v1_8;
-    s16            temp_v1_9;
-    s32*           temp_v0_6;
-    s32            temp_a0_4;
-    s32            temp_v1_13;
-    s32            temp_v1_6;
-    s32            var_a0;
-    GsCOORDINATE2* var_a1_2;
-    s32            var_a2;
-    s32            var_fp;
-    s32            var_s4;
-    s32            temp_s0_3;
-    s32            temp_s0_5;
-    s8             temp_v1_12;
-    u16            temp_v1_3;
-    s32            var_v0;
-    s32            historyDst, historySrc;
-    SVECTOR*       historyOut;
-    s32            weightedX, weightedY, weightedZ;
-    s32            scratchX, scratchY, scratchZ;
-    s32            velocityX, velocityY, velocityZ;
-    u8             temp_v0_5;
-    u8             temp_v1_4;
-    u8             temp_v1_5;
-    u8             temp_v1_7;
-    GsCOORDINATE2* ownerCoord;
-    Task*          motionParent;
-    Task*          temp_a0_3;
-    GpObj*         obj;
-    GpRec18*       recs;
-    SVECTOR*       temp_s0_4;
-    SVECTOR*       temp_s1;
-    GpActorD4Rec*  newShape;
-    GsCOORDINATE2* target;
-    GsCOORDINATE2* view;
-    GpActorD4Rec*  shape;
+    MATRIX*       gteValue1;
+    SVECTOR*      gteValue2;
+    DVECTOR*      gteValue3;
+    s32*          gteValue4;
+    s32*          gteValue5;
+    s32*          gteValue6;
+    s32           gteValue7;
+    SVECTOR       sp10;
+    SVECTOR       sp18;
+    SVECTOR*      firstVector;
+    SVECTOR*      cameraVector;
+    Task*         player;
+    s32           sp24;
+    s32           sp28;
+    DisplayState* sp30;
+    s32*          ot;
+    u32           otOffset;
+    s32           sp34;
+    DisplayState* var_a1_3;
+    s16           temp_s0_6;
+    s16           temp_v1_10;
+    s16           temp_v1_11;
+    s16           temp_v1_8;
+    s16           temp_v1_9;
+    s32*          temp_v0_6;
+    s32           temp_a0_4;
+    s32           temp_v1_13;
+    s32           temp_v1_6;
+    s32           var_a0;
+    GpCoord*      var_a1_2;
+    s32           var_a2;
+    s32           var_fp;
+    s32           var_s4;
+    s32           temp_s0_3;
+    s32           temp_s0_5;
+    s8            temp_v1_12;
+    u16           temp_v1_3;
+    s32           var_v0;
+    s32           historyDst, historySrc;
+    SVECTOR*      historyOut;
+    s32           weightedX, weightedY, weightedZ;
+    s32           scratchX, scratchY, scratchZ;
+    s32           velocityX, velocityY, velocityZ;
+    u8            temp_v0_5;
+    u8            temp_v1_4;
+    u8            temp_v1_5;
+    u8            temp_v1_7;
+    GpCoord*      ownerCoord;
+    Task*         motionParent;
+    Task*         temp_a0_3;
+    GpObj*        obj;
+    GpRec18*      recs;
+    SVECTOR*      temp_s0_4;
+    SVECTOR*      temp_s1;
+    GpActorD4Rec* newShape;
+    GpCoord*      target;
+    GpCoord*      view;
+    GpActorD4Rec* shape;
     /* One local holds the owner's work block, then the steering pass count,
      * then the address of the primitive being written: all three share a
      * single register allocation. */
     s32                        shared;
     Task*                      owner;
     Actor403600ProjectileWork* work;
-    GsCOORDINATE2*             coord;
+    GpCoord*                   coord;
     /* Keep the raw scratch head separate until the branch-delay copy. */
     register void*                temp_v0 asm("v0");
     Actor403600ProjectileScratch* scratch;
@@ -1592,7 +1592,7 @@ block_22:
         if (var_s4 < 0x20) {
             var_a1_3 = &gDisplayState;
             SOFT_USE_REG(var_a1_3);
-            coord  = (GsCOORDINATE2*)0xFFFFFF;
+            coord  = (GpCoord*)0xFFFFFF;
             var_a2 = 0xFF000000;
             SOFT_USE_REG(var_a2);
             SOFT_USE_REG(var_a2);
@@ -1727,7 +1727,7 @@ block_22:
     SCRATCH_POP_BYTES(0x54);
 }
 
-void func_actor_403600_801353D0(ActorEffectState* arg0, GsCOORDINATE2* arg1)
+void func_actor_403600_801353D0(ActorEffectState* arg0, GpCoord* arg1)
 {
     s32                       radii[16];
     s32                       heights[16];
@@ -1987,7 +1987,7 @@ void func_actor_403600_80135C28(Task* arg0)
     s16*              temp_v1_5;
     s16*              temp_v1_8;
     s16*              var_a0_2;
-    GsCOORDINATE2*    temp_s4;
+    GpCoord*          temp_s4;
     s32               temp_a0_3;
     s32               temp_a0_4;
     s32               temp_a0_7;
@@ -2190,7 +2190,7 @@ void func_actor_403600_80135C28(Task* arg0)
                 temp_a0_6               = (s16*)&temp_s0->field_90;
                 D_actor_403600_801606A0 = temp_a0_6;
                 temp_a1->flags          = (u16)(temp_a1->flags & 0xFF7F);
-                Gp_UpdateCoord((GsCOORDINATE2*)temp_a0_6);
+                Gp_UpdateCoord((GpCoord*)temp_a0_6);
                 goto block_57;
             block_52:
                 if (temp_v1_10 < -7) {
@@ -3088,7 +3088,7 @@ u32* func_actor_403600_801379B4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         saved = (MATRIX*)(head - 0x40);
         gte_ReadRotMatrix(saved);
         transposed = (MATRIX*)(head - 0x20);
-        TransposeMatrix(&((GsCOORDINATE2*)D_actor_403600_801606A0)->workm, transposed);
+        TransposeMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm, transposed);
 
         coord = (u8*)D_actor_403600_801606A0;
         SOFT_BARRIER();
@@ -3156,8 +3156,8 @@ u32* func_actor_403600_801379B4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     index += 4;
                 } while (i < 3);
 
-                gte_SetRotMatrix(&((GsCOORDINATE2*)D_actor_403600_801606A0)->workm);
-                gte_SetTransMatrix(&((GsCOORDINATE2*)D_actor_403600_801606A0)->workm);
+                gte_SetRotMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm);
+                gte_SetTransMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm);
                 gte_ldv3(projected, scratch + 0x20, scratch + 0x28);
                 gte_rtpt();
                 gte_stflg(&arg0->gteFlag);
@@ -3240,7 +3240,7 @@ u32* func_actor_403600_80138004(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         saved = (MATRIX*)(head - 0x40);
         gte_ReadRotMatrix(saved);
         transposed = (MATRIX*)(head - 0x20);
-        TransposeMatrix(&((GsCOORDINATE2*)D_actor_403600_801606A0)->workm, transposed);
+        TransposeMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm, transposed);
 
         coord = (u8*)D_actor_403600_801606A0;
         SOFT_BARRIER();
@@ -3311,8 +3311,8 @@ u32* func_actor_403600_80138004(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     index += 4;
                 } while (i < 4);
 
-                gte_SetRotMatrix(&((GsCOORDINATE2*)D_actor_403600_801606A0)->workm);
-                gte_SetTransMatrix(&((GsCOORDINATE2*)D_actor_403600_801606A0)->workm);
+                gte_SetRotMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm);
+                gte_SetTransMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm);
                 index = scratch + 0x18;
                 gte_ldv3(index, scratch + 0x20, scratch + 0x28);
                 gte_rtpt();
@@ -3413,7 +3413,7 @@ u32* func_actor_403600_801386EC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         SOFT_USE_REG(saved);
         gte_ReadRotMatrix(saved);
         transposed = (MATRIX*)(head - 0x20);
-        TransposeMatrix(&((GsCOORDINATE2*)D_actor_403600_801606A0)->workm, transposed);
+        TransposeMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm, transposed);
 
         coord = (u8*)D_actor_403600_801606A0;
         SOFT_BARRIER();
@@ -3457,8 +3457,8 @@ u32* func_actor_403600_801386EC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     if (*(s16*)(scratch + 0x1A) > 0) {
                         *(s16*)(scratch + 0x1A) = 0;
                     }
-                    gte_SetRotMatrix(&((GsCOORDINATE2*)D_actor_403600_801606A0)->workm);
-                    gte_SetTransMatrix(&((GsCOORDINATE2*)D_actor_403600_801606A0)->workm);
+                    gte_SetRotMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm);
+                    gte_SetTransMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm);
                     gte_ldv0(saved);
                     gte_rtps();
                     gte_stsz(&arg0->gteResult);

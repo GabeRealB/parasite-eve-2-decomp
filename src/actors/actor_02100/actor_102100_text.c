@@ -230,7 +230,7 @@ void Actor02100_Fn00048(GpEnemy* arg0, Task* arg1)
     s32                       key;
     s32                       scale;
     TmdObject*                extra;
-    GsCOORDINATE2*            coord;
+    GpCoord*                  coord;
     Actor02100Work*           work;
     s16*                      column1;
     s16*                      column2;
@@ -368,8 +368,8 @@ void Actor02100_Fn004C4(Task* arg0)
     Actor02100Fn014E4Scratch* scratch;
     Actor02100Work*           work;
     GpEnemy*                  enemy;
-    GsCOORDINATE2*            coord;
-    GsCOORDINATE2*            src;
+    GpCoord*                  coord;
+    GpCoord*                  src;
     GpRoomParamRec*           param;
     u8*                       head;
     s32                       damage;
@@ -533,7 +533,7 @@ void Actor02100_Fn004C4(Task* arg0)
 void Actor02100_Fn00ADC(Task* arg0)
 {
     Actor02100Work* work;
-    GsCOORDINATE2*  coord;
+    GpCoord*        coord;
     s32             negX;
     s32             negY;
     s32             negZ;
@@ -651,8 +651,8 @@ void Actor02100_Fn00DCC(Task* arg0)
 {
     Actor02100Work*  work;
     Actor02100Sight* blk;
-    GsCOORDINATE2*   self;
-    GsCOORDINATE2*   target;
+    GpCoord*         self;
+    GpCoord*         target;
     u8*              head;
     u32              dist;
     s32              mode;
@@ -764,7 +764,7 @@ void Actor02100_Fn011C4(Task* arg0)
     Task*                     current;
     GpEnemy*                  enemy;
     Actor02100Work*           work;
-    GsCOORDINATE2*            coord;
+    GpCoord*                  coord;
     u8**                      scratchSlot;
     u8*                       scratchHead;
     s32                       index;
@@ -836,8 +836,8 @@ s32 Actor02100_Fn014E4(Task* arg0)
 {
     Actor02100Fn014E4Scratch* scratch;
     Actor02100Work*           work;
-    GsCOORDINATE2*            coord;
-    GsCOORDINATE2*            targetCoord;
+    GpCoord*                  coord;
+    GpCoord*                  targetCoord;
     VECTOR*                   vec;
     GpLinkNode*               lock;
     u8*                       head;
@@ -926,7 +926,7 @@ static __inline__ void Actor02100_AimAndBuildVectors(Task* arg0)
     Actor02100Work*           work;
     Actor02100Work*           nextWork;
     Actor02100Work*           nextWork2;
-    GsCOORDINATE2*            coord;
+    GpCoord*                  coord;
     SVECTOR*                  shortVec;
     u8*                       head0;
     u8*                       head1;
@@ -1066,7 +1066,7 @@ static __inline__ void Actor02100_BuildVectors(Task* arg0, Actor02100Work* curre
 void Actor02100_Fn016EC(Task* arg0)
 {
     Actor02100Work* work;
-    GsCOORDINATE2*  coord;
+    GpCoord*        coord;
     s32             sound;
     s32             soundId;
     s32             packed;
@@ -1205,7 +1205,7 @@ static __inline__ void Actor02100_OrientScratch(Task* arg0)
 {
     Actor02100Fn01FF0Scratch* scratch;
     Actor02100Work*           work;
-    GsCOORDINATE2*            coord;
+    GpCoord*                  coord;
     u8*                       head;
 
     coord            = arg0->extra.tmd->coords;
@@ -1332,7 +1332,7 @@ void Actor02100_Fn01FF0(Task* arg0)
 {
     Actor02100Fn01FF0Block* root;
     Actor02100Work*         work;
-    GsCOORDINATE2*          coord;
+    GpCoord*                coord;
     u8*                     rootHead;
     s32                     pan0;
     s32                     pan2;
@@ -1687,7 +1687,7 @@ void Actor02100_Fn031C4(GpEnemy* arg0, Task* arg1)
 {
     TmdObject*      obj;
     Actor02100Work* work;
-    GsCOORDINATE2*  coord;
+    GpCoord*        coord;
     s32             mode;
     s32             one;
 
@@ -1800,8 +1800,8 @@ s32 Actor02100_Fn0337C(SVECTOR* arg0, SVECTOR* arg1)
 
 void Actor02100_Fn03488(Task* arg0)
 {
-    GsCOORDINATE2* coord;
-    VECTOR         vec;
+    GpCoord* coord;
+    VECTOR   vec;
 
     coord  = arg0->extra.tmd->coords;
     vec.vx = coord->workm.t[0];
@@ -1815,7 +1815,7 @@ void Actor02100_Fn03488(Task* arg0)
 void Actor02100_Fn034E0(Task* arg0)
 {
     Actor02100Screen* scratch;
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     Actor02100Work*   work;
     s32               i;
     u8*               head;

@@ -141,18 +141,18 @@ void func_shelter_b4_reservoir_8017EE04(Task* task);
 void func_shelter_b4_reservoir_8017F23C(Task* task);
 void func_shelter_b4_reservoir_8017F674(Task* task);
 void func_shelter_b4_reservoir_8017FB44(Task* arg0);
-void func_shelter_b4_reservoir_80180530(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
-void func_shelter_b4_reservoir_80180D20(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_shelter_b4_reservoir_8018110C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
-void func_shelter_b4_reservoir_80181668(GsCOORDINATE2* coord, u16 frame, s16 size);
+void func_shelter_b4_reservoir_80180530(GpCoord* arg0, s32 arg1, s32 arg2);
+void func_shelter_b4_reservoir_80180D20(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_shelter_b4_reservoir_8018110C(GpCoord* arg0, s16 arg1, s16 arg2);
+void func_shelter_b4_reservoir_80181668(GpCoord* coord, u16 frame, s16 size);
 void func_shelter_b4_reservoir_801818F0(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_shelter_b4_reservoir_80182134(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_shelter_b4_reservoir_80182B04(s16 arg0, u16 arg1, s16 arg2);
-void func_shelter_b4_reservoir_80183298(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_shelter_b4_reservoir_8018351C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b4_reservoir_80183940(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
-void func_shelter_b4_reservoir_80183E80(GsCOORDINATE2* coord, s16 size);
-void func_shelter_b4_reservoir_801843AC(GsCOORDINATE2* arg0, s32 arg1);
+void func_shelter_b4_reservoir_80183298(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_shelter_b4_reservoir_8018351C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_shelter_b4_reservoir_80183940(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_shelter_b4_reservoir_80183E80(GpCoord* coord, s16 size);
+void func_shelter_b4_reservoir_801843AC(GpCoord* arg0, s32 arg1);
 
 /// State handlers of the room task `func_shelter_b4_reservoir_8017E88C` runs,
 /// which copies the table to the stack and calls the entry for the task's
@@ -515,8 +515,8 @@ void func_shelter_b4_reservoir_8017E4B0(Task* arg0)
 
 void func_shelter_b4_reservoir_8017E558(Task* arg0)
 {
-    TmdObject*     obj   = arg0->extra.tmd;
-    GsCOORDINATE2* coord = obj->coords;
+    TmdObject* obj   = arg0->extra.tmd;
+    GpCoord*   coord = obj->coords;
 
     if (arg0->state == 0) {
         coord->coord.t[0] = -1000;
@@ -996,11 +996,11 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
 {
     _ShelterB4ReservoirWork* work;
     Task*                    player;
-    GsCOORDINATE2*           root;
-    GsCOORDINATE2*           c;
-    GsCOORDINATE2            coord;
+    GpCoord*                 root;
+    GpCoord*                 c;
+    GpCoord                  coord;
     MATRIX*                  view;
-    GsCOORDINATE2*           parent;
+    GpCoord*                 parent;
     s32                      i;
     s32                      offset;
     s32                      roll;
@@ -1143,8 +1143,8 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
 /// non-zero it only redraws at the current values, releasing from state 4.
 void func_shelter_b4_reservoir_801803DC(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
+    GpEffWork* work;
+    GpCoord*   coord;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -1178,7 +1178,7 @@ void func_shelter_b4_reservoir_801803DC(Task* task)
 /// moved to its position, then projected through `GsWSMATRIX`. Unless the
 /// projection flags an error it queues one semi-transparent textured quad
 /// (tpage 0x2B, clut 0x43D1) shaded grey at `arg2`.
-void func_shelter_b4_reservoir_80180530(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
+void func_shelter_b4_reservoir_80180530(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -1273,13 +1273,13 @@ void func_shelter_b4_reservoir_80180530(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
 /// `Gp_State1C->eventState` is non-zero it only draws, releasing from state 4.
 void func_shelter_b4_reservoir_80180864(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    SVECTOR*       vec;
-    s32            kind;
-    s32            step;
-    s32            state;
-    s32            level;
+    GpEffWork* work;
+    GpCoord*   coord;
+    SVECTOR*   vec;
+    s32        kind;
+    s32        step;
+    s32        state;
+    s32        level;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -1396,7 +1396,7 @@ void func_shelter_b4_reservoir_80180864(Task* task)
 /// 32-texel-wide frame at U `arg1 * 32` in the strip at V 0xE0..0xFF, `arg2` is
 /// the size (a screen half-extent of `arg2 * 31 / otz`) and `arg3` the angle
 /// the corners are turned by.
-void func_shelter_b4_reservoir_80180D20(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
+void func_shelter_b4_reservoir_80180D20(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -1460,7 +1460,7 @@ void func_shelter_b4_reservoir_80180D20(GsCOORDINATE2* arg0, s32 arg1, s32 arg2,
 /// four across and two down from V 0x70. `arg2` is the size, a screen
 /// half-extent of `arg2 * 55 / otz`; the quad stands on the point, reaching one
 /// and a half extents above it and half an extent below.
-void func_shelter_b4_reservoir_8018110C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
+void func_shelter_b4_reservoir_8018110C(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -1546,10 +1546,10 @@ void func_shelter_b4_reservoir_8018110C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 
 void func_shelter_b4_reservoir_801813F0(Task* task)
 {
-    GpEffWork*     work  = task->spawnArg2;
-    GsCOORDINATE2* coord = task->extra.tmd->coords;
-    s16            f2a;
-    u32            rng;
+    GpEffWork* work  = task->spawnArg2;
+    GpCoord*   coord = task->extra.tmd->coords;
+    s16        f2a;
+    u32        rng;
 
     if (Gp_State1C->eventState != 0) {
         func_shelter_b4_reservoir_80181668(coord, work->index, work->scale);
@@ -1616,7 +1616,7 @@ void func_shelter_b4_reservoir_801813F0(Task* task)
 /// UV columns at u = `(frame % 6) * 32 + 0x40`, v = 0x40..0x5F. `size` is a
 /// half-extent; the on-screen radius is `size * 31 / otz`, and the quad is
 /// axis-aligned about the projected point.
-void func_shelter_b4_reservoir_80181668(GsCOORDINATE2* coord, u16 frame, s16 size)
+void func_shelter_b4_reservoir_80181668(GpCoord* coord, u16 frame, s16 size)
 {
     void**         scratch;
     u8*            head;
@@ -2004,11 +2004,11 @@ void func_shelter_b4_reservoir_80182B04(s16 arg0, u16 arg1, s16 arg2)
 /// `D_shelter_b4_reservoir_801850BC`.
 void func_shelter_b4_reservoir_80182B1C(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpEffWork*     spawned;
-    MATRIX*        mtx;
-    u8             col[4];
+    GpEffWork* mem;
+    GpCoord*   coord;
+    GpEffWork* spawned;
+    MATRIX*    mtx;
+    u8         col[4];
 
     mem   = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
@@ -2121,14 +2121,14 @@ void func_shelter_b4_reservoir_80182B1C(Task* arg0)
 /// 4.
 void func_shelter_b4_reservoir_80183074(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* target;
-    VECTOR         delta;
+    GpEffWork* work;
+    GpCoord*   coord;
+    GpCoord*   target;
+    VECTOR     delta;
 
     work   = task->spawnArg2;
     coord  = task->extra.tmd->coords;
-    target = (GsCOORDINATE2*)task->spawnArg1;
+    target = (GpCoord*)task->spawnArg1;
     if (Gp_State1C->eventState == 0) {
         work->age++;
         switch (task->state) {
@@ -2174,7 +2174,7 @@ void func_shelter_b4_reservoir_80183074(Task* task)
 /// unless the projection flags an error. `arg1` picks one of four 24-texel
 /// frames from U 0x60, `arg2` is the size (a screen half-extent of
 /// `arg2 * 23 / (otz + 1)`) and `arg3` the grey level it is shaded with.
-void func_shelter_b4_reservoir_80183298(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
+void func_shelter_b4_reservoir_80183298(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -2256,7 +2256,7 @@ void func_shelter_b4_reservoir_80183298(GsCOORDINATE2* arg0, s32 arg1, s32 arg2,
 /// projection flags an error: sixteen gouraud quads, black at screen radius
 /// `arg1 * 64 / (otz + 1)` and coloured `rgb` at
 /// `(arg1 + arg2) * 64 / (otz + 1)`.
-void func_shelter_b4_reservoir_8018351C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_shelter_b4_reservoir_8018351C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     GpArcScratch*   block;
     POLY_G4*        prim;
@@ -2348,7 +2348,7 @@ void func_shelter_b4_reservoir_8018351C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2,
 /// projection flags an error: eight gouraud wedges coloured `rgb` at the
 /// projected centre and black at the rim, of screen radius
 /// `arg1 * 64 / (otz + 1)`.
-void func_shelter_b4_reservoir_80183940(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_shelter_b4_reservoir_80183940(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     void**         scratch;
     u8*            head;
@@ -2422,11 +2422,11 @@ void func_shelter_b4_reservoir_80183940(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
 /// falls under 0x18.
 void func_shelter_b4_reservoir_80183CD4(Task* arg0)
 {
-    u8             rgb[3];
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s16            flag;
-    s16            step;
+    u8         rgb[3];
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s16        flag;
+    s16        step;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -2477,9 +2477,9 @@ void func_shelter_b4_reservoir_80183CD4(Task* arg0)
 /// `func_shelter_b4_reservoir_801843AC` on the ground beneath it. It also
 /// points the `Gp_RoomCoords[2]` light at the coordinate with a randomly flickering
 /// intensity. Nothing is drawn when the projection flags an error.
-void func_shelter_b4_reservoir_80183E80(GsCOORDINATE2* coord, s16 size)
+void func_shelter_b4_reservoir_80183E80(GpCoord* coord, s16 size)
 {
-    GsCOORDINATE2  ground;
+    GpCoord        ground;
     POLY_FT4*      prim;
     s16            outerLeft;
     s16            outerRight;
@@ -2609,7 +2609,7 @@ void func_shelter_b4_reservoir_80183E80(GsCOORDINATE2* coord, s16 size)
 /// semi-transparent textured quad (tpage 0x28, clut 0x428C) tinted
 /// (0x30, 0x20, 0x20), alternating between two 32-texel frames from U 0xC0 on
 /// odd and even frames.
-void func_shelter_b4_reservoir_801843AC(GsCOORDINATE2* arg0, s32 arg1)
+void func_shelter_b4_reservoir_801843AC(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;

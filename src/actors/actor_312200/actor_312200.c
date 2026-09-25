@@ -129,7 +129,7 @@ void func_actor_312200_801637CC(Task* task);
 /// `coord` out of the last record of kind 0x10000 or 0x30000, scaled down to
 /// 0x100 units when longer. Returns whether any such record was found; returns
 /// 0 at once when `gGameSession->viewReady` or `Mc_SaveData.field_5C1` is 1.
-s32 func_actor_312200_80161E30(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
+s32 func_actor_312200_80161E30(GpCoord* coord, GpRec18* recs, s16 count)
 {
     ActorRepelScratch* head;
     ActorRepelScratch* s;
@@ -188,7 +188,7 @@ s32 func_actor_312200_80161E30(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
 /// `*pos` accumulates the total nudge. Returns whether any record was of kind
 /// 0x10000; returns 0 at once when `gGameSession->viewReady` or `Mc_SaveData.field_5C1`
 /// is 1.
-s32 func_actor_312200_80162178(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos)
+s32 func_actor_312200_80162178(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
@@ -303,7 +303,7 @@ s32 func_actor_312200_80162178(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
 /// `D_actor_312200_80169F88`. Returns 1 when the X or Z step is nonzero; a
 /// step with a fractional part moves the coordinate and the kept step one
 /// unit further from zero.
-s32 func_actor_312200_801626C4(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2)
+s32 func_actor_312200_801626C4(GpCoord* coord, GpRec18* movement, s16 arg2)
 {
     void**            scratch;
     u8*               head;
@@ -357,7 +357,7 @@ s32 func_actor_312200_801626C4(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2
 /// frame's position, relative to the point one unit in front of it. Returns
 /// whether any push was applied; returns 0 at once when
 /// `gGameSession->viewReady` is 1.
-s32 func_actor_312200_80162868(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push)
+s32 func_actor_312200_80162868(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
 {
     void**                  scratch;
     void**                  tail;
@@ -573,7 +573,7 @@ void func_actor_312200_80162FB4(Task* task)
 void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     TmdObject*       obj;
     TmdObject*       tmd;
     Actor312200Work* mem;
@@ -738,7 +738,7 @@ s32 func_actor_312200_80163510(Task* task, s32 arg1, s32 arg2)
 /// `ratan2` and cached in `Actor312200Work::yaw`.
 s32 func_actor_312200_801635CC(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              mx;
     s32              mz;
     Actor312200Work* work;

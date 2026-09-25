@@ -581,16 +581,16 @@ void GameMain_Loop(void)
 
 void Gfx_InitCoordinateTrees(void)
 {
-    MATRIX*        m;
-    GsCOORDINATE2* c1;
-    GsCOORDINATE2* c2;
-    GsCOORDINATE2* c3;
-    s32            one;
+    MATRIX*  m;
+    GpCoord* c1;
+    GpCoord* c2;
+    GpCoord* c3;
+    s32      one;
 
     *(s32*)&D_80070E94 = ONE;
     one                = ONE;
     m                  = &D_80070E94;
-    c1                 = (GsCOORDINATE2*)((u8*)m - OFFSET_OF(GsCOORDINATE2, coord));
+    c1                 = PARENT_OF(m, GpCoord, coord);
     *(s32*)&m->m[0][2] = 0;
     *(s32*)&m->m[1][1] = one;
     *(s32*)&m->m[2][0] = 0;
@@ -603,7 +603,7 @@ void Gfx_InitCoordinateTrees(void)
 
     *(s32*)&Gfx_ViewRotMtx = one;
     m                      = &Gfx_ViewRotMtx;
-    c2                     = (GsCOORDINATE2*)((u8*)m - OFFSET_OF(GsCOORDINATE2, coord));
+    c2                     = PARENT_OF(m, GpCoord, coord);
     *(s32*)&m->m[0][2]     = 0;
     *(s32*)&m->m[1][1]     = one;
     *(s32*)&m->m[2][0]     = 0;
@@ -616,7 +616,7 @@ void Gfx_InitCoordinateTrees(void)
 
     *(s32*)&D_80070F14 = one;
     m                  = &D_80070F14;
-    c3                 = (GsCOORDINATE2*)((u8*)m - OFFSET_OF(GsCOORDINATE2, coord));
+    c3                 = PARENT_OF(m, GpCoord, coord);
     *(s32*)&m->m[0][2] = 0;
     *(s32*)&m->m[1][1] = one;
     *(s32*)&m->m[2][0] = 0;

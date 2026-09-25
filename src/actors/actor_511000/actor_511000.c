@@ -240,8 +240,8 @@ void func_actor_511000_80131E78(Task* arg0)
 {
     Actor511000Work2* work;
     TmdObject*        extra;
-    GsCOORDINATE2*    coord;
-    GsCOORDINATE2*    obj;
+    GpCoord*          coord;
+    GpCoord*          obj;
     VECTOR            pos;
     s32               i;
     s32               pan;
@@ -341,12 +341,12 @@ void func_actor_511000_80132150(Task* task)
 /// named by `spawnArg2` and advances to the next state.
 void func_actor_511000_801321A8(Task* task)
 {
-    Task*          parent;
-    s32            part;
-    TmdObject*     extra;
-    TmdObject*     parentExtra;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* dest;
+    Task*      parent;
+    s32        part;
+    TmdObject* extra;
+    TmdObject* parentExtra;
+    GpCoord*   coord;
+    GpCoord*   dest;
 
     parent          = (Task*)task->spawnArg2;
     part            = task->spawnArg1;
@@ -378,11 +378,11 @@ void func_actor_511000_8013222C(Task* task)
 
 void func_actor_511000_80132284(Task* task)
 {
-    Task*          parent;
-    TmdObject*     obj;
-    TmdObject*     parentObj;
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* root;
+    Task*      parent;
+    TmdObject* obj;
+    TmdObject* parentObj;
+    GpCoord*   coords;
+    GpCoord*   root;
 
     parent      = task->spawnArg2;
     obj         = task->extra.tmd;
@@ -485,7 +485,7 @@ void func_actor_511000_80132480(Task* task)
 void func_actor_511000_801325A4(Task* task)
 {
     Actor511000Work2* work;
-    GsCOORDINATE2*    coords;
+    GpCoord*          coords;
     TmdObject*        extra;
 
     work            = (Actor511000Work2*)task->work;
@@ -543,9 +543,9 @@ s32 func_actor_511000_80132604(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 /// recomputed.
 s32 func_actor_511000_80132724(Task* task, s32 arg1, GpXformArg* args)
 {
-    GpCoordExt* coord;
+    GpCoord* coord;
 
-    coord               = (GpCoordExt*)task->extra.tmd->coords;
+    coord               = task->extra.tmd->coords;
     coord->coord.t[0]   = args->pos.vx;
     coord->coord.t[1]   = args->pos.vy;
     coord->coord.t[2]   = args->pos.vz;
@@ -696,17 +696,17 @@ s32 func_actor_511000_80132904(Task* arg0, s32 arg1, s32 mode)
 /// symbol directly shifts `d` ahead of the `lui`/`addiu` pair.
 void func_actor_511000_801329C4(Task* task)
 {
-    Task*       parent;
-    TmdObject*  extra;
-    GpCoordExt* coord;
-    CVECTOR*    col;
-    CVECTOR*    tbl;
-    s32         d;
-    s8          rgb[3];
+    Task*      parent;
+    TmdObject* extra;
+    GpCoord*   coord;
+    CVECTOR*   col;
+    CVECTOR*   tbl;
+    s32        d;
+    s8         rgb[3];
 
     parent = (Task*)task->spawnArg2;
     extra  = task->extra.tmd;
-    coord  = (GpCoordExt*)extra->coords;
+    coord  = extra->coords;
 
     if (!(parent->extra.tmd->flags & 0x80)) {
         extra->flags &= 0xFF7F;
@@ -927,7 +927,7 @@ void func_actor_511000_801330F0(Task* task)
 {
     Actor511000Work* work;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              countdown;
     s16              frame;
 
@@ -970,11 +970,11 @@ void func_actor_511000_80133220(Task* task)
 /// translation, and reparents the task.
 void func_actor_511000_80133240(Task* task)
 {
-    Task*          parent;
-    TmdObject*     extra;
-    TmdObject*     parentExtra;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* dest;
+    Task*      parent;
+    TmdObject* extra;
+    TmdObject* parentExtra;
+    GpCoord*   coord;
+    GpCoord*   dest;
 
     parent          = (Task*)task->spawnArg2;
     parentExtra     = parent->extra.tmd;
@@ -1001,12 +1001,12 @@ void func_actor_511000_80133240(Task* task)
 /// visible the rotation is left alone and the visibility bit is set instead.
 void func_actor_511000_801332E4(Task* task)
 {
-    TmdObject*  extra;
-    TmdObject*  parentExtra;
-    GpCoordExt* coord;
+    TmdObject* extra;
+    TmdObject* parentExtra;
+    GpCoord*   coord;
 
     extra       = task->extra.tmd;
-    coord       = (GpCoordExt*)extra->coords;
+    coord       = extra->coords;
     parentExtra = ((Task*)task->spawnArg2)->extra.tmd;
 
     if (!(parentExtra->flags & 0x80)) {
@@ -1039,11 +1039,11 @@ void func_actor_511000_801333A4(Task* task)
 /// rebuilds the rotation matrix, and reparents the task.
 void func_actor_511000_801333C4(Task* task)
 {
-    Task*          parent;
-    TmdObject*     extra;
-    TmdObject*     parentExtra;
-    GpCoordExt*    coord;
-    GsCOORDINATE2* dest;
+    Task*      parent;
+    TmdObject* extra;
+    TmdObject* parentExtra;
+    GpCoord*   coord;
+    GpCoord*   dest;
 
     parent          = (Task*)task->spawnArg2;
     parentExtra     = parent->extra.tmd;
@@ -1052,12 +1052,12 @@ void func_actor_511000_801333C4(Task* task)
     extra->lightMtx = parentExtra->lightMtx;
     extra->colorMtx = parentExtra->colorMtx;
     extra->flags    = 0x80;
-    coord           = (GpCoordExt*)extra->coords;
+    coord           = extra->coords;
     if (!(parentExtra->flags & 0x80)) {
         extra->flags = 0;
     }
     func_actor_511000_80133760(task);
-    ((GsCOORDINATE2*)coord)->sub = dest;
+    (coord)->sub = dest;
     Task_Reparent(parent, task);
     coord->param.rot.vx = D_actor_511000_80147AC4[0].vx;
     coord->param.rot.vy = D_actor_511000_80147AC4[0].vy;
@@ -1084,11 +1084,11 @@ s32 func_actor_511000_801334B8(Task* arg0)
 /// model's hidden bit 0x80.
 s32 func_actor_511000_801334C4(Task* task, s32 arg1, GpXformArg* args, s32 arg3)
 {
-    GpCoordExt* coord;
-    TmdObject*  extra;
+    GpCoord*   coord;
+    TmdObject* extra;
 
     extra               = task->extra.tmd;
-    coord               = (GpCoordExt*)extra->coords;
+    coord               = extra->coords;
     coord->coord.t[0]   = args->pos.vx;
     coord->coord.t[1]   = args->pos.vy;
     coord->coord.t[2]   = args->pos.vz;
@@ -1153,14 +1153,14 @@ s32 func_actor_511000_80133554(Task* task, s32 arg1, s32 msg)
 /// coordinate dirty.
 void func_actor_511000_801336E0(Task* task, SVECTOR* rots, SVECTOR* trans, s32 index)
 {
-    GpCoordExt* coord;
-    SVECTOR*    rot;
-    SVECTOR*    pos;
-    s32         off;
+    GpCoord* coord;
+    SVECTOR* rot;
+    SVECTOR* pos;
+    s32      off;
 
     off                 = (index << 16) >> 13;
     rot                 = (SVECTOR*)(off + (s32)rots);
-    coord               = (GpCoordExt*)task->extra.tmd->coords;
+    coord               = task->extra.tmd->coords;
     coord->param.rot.vx = rot->vx;
     coord->param.rot.vy = rot->vy;
     pos                 = (SVECTOR*)(off + (s32)trans);
@@ -1178,9 +1178,9 @@ void func_actor_511000_801336E0(Task* task, SVECTOR* rots, SVECTOR* trans, s32 i
 /// marks the coordinate dirty.
 void func_actor_511000_80133760(Task* task)
 {
-    GpCoordExt* coord;
+    GpCoord* coord;
 
-    coord               = (GpCoordExt*)task->extra.tmd->coords;
+    coord               = task->extra.tmd->coords;
     coord->coord.t[0]   = D_actor_511000_80148FE4[task->spawnArg1].vx;
     coord->coord.t[1]   = D_actor_511000_80148FE4[task->spawnArg1].vy;
     coord->coord.t[2]   = D_actor_511000_80148FE4[task->spawnArg1].vz;
@@ -1195,7 +1195,7 @@ void func_actor_511000_80133760(Task* task)
 /// the root coordinate flag, and rebuilds lighting from the world translation.
 void func_actor_511000_801337F0(Task* task)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor511000Work* work;
     TmdObject*       extra;
 
@@ -1246,7 +1246,7 @@ void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     u8                     areaByte3;
     GpAreaRec*             rec;
     TmdObject*             model;
-    GsCOORDINATE2*         coord;
+    GpCoord*               coord;
     Actor511000ParentWork* work;
     TaskDesc*              table;
     u32                    idx;
@@ -1328,8 +1328,8 @@ void func_actor_511000_80133B80(GpEnemy* enemy, Task* task)
     VECTOR*                pos;
     VECTOR*                out;
     Actor511000ParentWork* work;
-    GsCOORDINATE2*         coords;
-    GsCOORDINATE2*         coord;
+    GpCoord*               coords;
+    GpCoord*               coord;
     s32                    i;
     s32                    j;
     s32                    flag;
@@ -1412,8 +1412,8 @@ s32 func_actor_511000_80133DEC(Task* task, s32 arg1, GpAnimArg* preset)
 /// world matrix is recomputed.
 s32 func_actor_511000_80133E48(Task* task, s32 arg1, GpXformArg* args)
 {
-    TmdObject*     ext   = task->extra.tmd;
-    GsCOORDINATE2* coord = ext->coords;
+    TmdObject* ext   = task->extra.tmd;
+    GpCoord*   coord = ext->coords;
 
     RotMatrix(&args->rot, &coord->coord);
     coord->coord.t[0] = args->pos.vx;
@@ -1457,8 +1457,8 @@ void func_actor_511000_80133F48(GpEnemy* enemy, Task* task)
     Task*                  parent;
     TmdObject*             obj;
     Actor511000ParentWork* work;
-    GsCOORDINATE2*         coord;
-    GsCOORDINATE2*         parentCoords;
+    GpCoord*               coord;
+    GpCoord*               parentCoords;
 
     parent       = task->parent;
     obj          = task->extra.tmd;
@@ -1491,8 +1491,8 @@ void func_actor_511000_8013401C(GpEnemy* enemy, Task* task)
     Task*                  parent;
     TmdObject*             obj;
     Actor511000ParentWork* work;
-    GsCOORDINATE2*         coord;
-    GsCOORDINATE2*         parentCoords;
+    GpCoord*               coord;
+    GpCoord*               parentCoords;
 
     parent       = task->parent;
     obj          = task->extra.tmd;
@@ -1525,8 +1525,8 @@ void func_actor_511000_801340F0(GpEnemy* enemy, Task* task)
     Task*                  parent;
     TmdObject*             obj;
     Actor511000ParentWork* work;
-    GsCOORDINATE2*         coord;
-    GsCOORDINATE2*         parentCoords;
+    GpCoord*               coord;
+    GpCoord*               parentCoords;
 
     parent       = task->parent;
     obj          = task->extra.tmd;

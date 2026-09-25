@@ -162,7 +162,7 @@ void func_actor_521100_80131E8C(GpEnemy* enemy, Task* task)
 {
     GpAreaKey        key;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor521100Work* work;
     GpEnemy*         spawned;
     TmdObject*       model;
@@ -327,7 +327,7 @@ void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
     ActorDeltaFrame48* scratch;
     Actor521100Work*   work;
     GpEnemy*           enemy;
-    GsCOORDINATE2*     coord;
+    GpCoord*           coord;
     u32                lastId;
     u32                sound;
     u32                kind;
@@ -527,7 +527,7 @@ void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
 void func_actor_521100_80132958(Task* arg0)
 {
     Actor521100Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     VECTOR*          scratchEnd;
     VECTOR*          vec;
     u16*             tbl;
@@ -682,7 +682,7 @@ s32 func_actor_521100_80132C70(Task* arg0)
 void func_actor_521100_80132DE8(Task* arg0)
 {
     Actor521100Work*        work;
-    GsCOORDINATE2*          coord;
+    GpCoord*                coord;
     VECTOR*                 head;
     VECTOR*                 vec;
     Actor521100StateChoice* pairNear;
@@ -788,7 +788,7 @@ void func_actor_521100_80132DE8(Task* arg0)
 /// `SCRATCH_HEAD`, which does not compile the same.
 void func_actor_521100_80133104(Task* arg0)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     SVECTOR*         vec;
     SVECTOR*         head;
     s16*             clipPtr;
@@ -799,7 +799,7 @@ void func_actor_521100_80133104(Task* arg0)
     s16              speed;
     s32              snd;
     s32              pan;
-    GsCOORDINATE2*   effectCoord;
+    GpCoord*         effectCoord;
     s32              effect;
     s32              kind;
     SVECTOR*         offset;
@@ -898,7 +898,7 @@ void func_actor_521100_80133104(Task* arg0)
 void func_actor_521100_8013334C(Task* arg0)
 {
     Actor521100Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     SVECTOR*         head;
     SVECTOR*         vec;
     u16*             tbl;
@@ -997,7 +997,7 @@ void func_actor_521100_8013334C(Task* arg0)
 void func_actor_521100_801335B4(Task* arg0)
 {
     Actor521100Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     u32              rng;
     u16              timer;
     s16              turn;
@@ -1102,8 +1102,8 @@ void func_actor_521100_801335B4(Task* arg0)
 void func_actor_521100_801339B0(Task* arg0)
 {
     Actor521100Work*        work;
-    GsCOORDINATE2*          coord;
-    GsCOORDINATE2*          pcoord;
+    GpCoord*                coord;
+    GpCoord*                pcoord;
     Task*                   player;
     Actor521100FireScratch* sc;
     s32                     flag;
@@ -1478,7 +1478,7 @@ void func_actor_521100_80134658(Task* arg0)
 void func_actor_521100_80134774(Task* arg0)
 {
     Actor521100Work*  work;
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     ActorFaceScratch* sc;
     ActorFaceScratch* sc2;
     u8*               head;
@@ -1603,7 +1603,7 @@ void func_actor_521100_80134774(Task* arg0)
 void func_actor_521100_80134C38(Task* arg0)
 {
     Actor521100Work*  work;
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     ActorFaceScratch* sc;
     s32               ang;
     u16               want;
@@ -1684,7 +1684,7 @@ void func_actor_521100_80134D88(Task* arg0)
     s32              pan;
     s32              pan2;
     Actor521100Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     GpAnimRec*       rec;
 
     work  = arg0->work;
@@ -1719,8 +1719,8 @@ void func_actor_521100_80134D88(Task* arg0)
 void func_actor_521100_80134EDC(Task* arg0)
 {
     ActorAimScratch* scratch;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   head;
+    GpCoord*         coord;
+    GpCoord*         head;
     s32              offsetY;
 
     coord = arg0->extra.tmd->coords;
@@ -1769,7 +1769,7 @@ void func_actor_521100_80134EDC(Task* arg0)
 void func_actor_521100_80135024(Task* arg0)
 {
     Actor521100Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     MATRIX*          matrix;
     s32              angleX;
     s32              angleY;
@@ -1924,7 +1924,7 @@ void func_actor_521100_80135414(GpEnemy* arg0, Task* arg1)
 
 void func_actor_521100_80135478(GpEnemy* arg0, Task* arg1)
 {
-    GsCOORDINATE2*   temp_s2;
+    GpCoord*         temp_s2;
     TmdObject*       temp_a1;
     Actor521100Work* temp_s1;
     s32              state;
@@ -2133,7 +2133,7 @@ void func_actor_521100_801357F0(Task* arg0)
 /// point.
 void func_actor_521100_801358D4(Task* arg0)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor521100Work* work;
 
     coord = arg0->extra.tmd->coords;
@@ -2185,8 +2185,8 @@ void func_actor_521100_80135964(Task* arg0)
 /// handing it to `Gp_UpdateActorColor` with no blend parameters.
 void func_actor_521100_80135A34(Task* arg0)
 {
-    GsCOORDINATE2* coord;
-    VECTOR         vec;
+    GpCoord* coord;
+    VECTOR   vec;
 
     coord  = &arg0->extra.tmd->coords[1];
     vec.vx = coord->workm.t[0];
@@ -2199,9 +2199,9 @@ void func_actor_521100_80135A34(Task* arg0)
 /// x/z and the first's y, so it lies on the ground under the actor.
 void func_actor_521100_80135A90(Task* arg0)
 {
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* sub;
-    VECTOR3        vec;
+    GpCoord* coord;
+    GpCoord* sub;
+    VECTOR3  vec;
 
     coord  = &arg0->extra.tmd->coords[0];
     sub    = &arg0->extra.tmd->coords[1];
@@ -2230,8 +2230,8 @@ void func_actor_521100_80135B40(GpEnemy* enemy, Task* task)
     Task*            parent;
     TmdObject*       obj;
     Actor521100Work* work;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   parentCoords;
+    GpCoord*         coord;
+    GpCoord*         parentCoords;
 
     parent       = task->parent;
     obj          = task->extra.tmd;
@@ -2305,8 +2305,8 @@ s32 func_actor_521100_80135C14(Task* arg0, s32 arg1, GpAnimArg* args)
 /// `flg` so the world matrix is recomputed.
 s32 func_actor_521100_80135CAC(Task* task, s32 arg1, GpXformArg* args)
 {
-    TmdObject*     ext   = task->extra.tmd;
-    GsCOORDINATE2* coord = ext->coords;
+    TmdObject* ext   = task->extra.tmd;
+    GpCoord*   coord = ext->coords;
 
     RotMatrix(&args->rot, &coord->coord);
     coord->coord.t[0] = args->pos.vx;

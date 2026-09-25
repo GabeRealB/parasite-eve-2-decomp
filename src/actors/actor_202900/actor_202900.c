@@ -58,19 +58,19 @@ s32  func_actor_202900_8014A394(void);
 /// the first step body.
 void func_actor_202900_80149E24(GpEnemy* enemy, Task* task)
 {
-    VECTOR         vec;
-    GpAreaKey      key;
-    GsCOORDINATE2* coord;
-    TmdObject*     obj;
-    TmdObject*     model;
-    Task*          spawned;
-    GpAreaRec*     rec;
-    GpAreaPlace*   place;
-    GpAreaKey*     sessionKey;
-    GpAreaKey*     keyPtr;
-    s32            idx;
-    u32            raw;
-    u8             areaByte0;
+    VECTOR       vec;
+    GpAreaKey    key;
+    GpCoord*     coord;
+    TmdObject*   obj;
+    TmdObject*   model;
+    Task*        spawned;
+    GpAreaRec*   rec;
+    GpAreaPlace* place;
+    GpAreaKey*   sessionKey;
+    GpAreaKey*   keyPtr;
+    s32          idx;
+    u32          raw;
+    u8           areaByte0;
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
@@ -148,9 +148,9 @@ void func_actor_202900_8014A02C(Task* task)
 /// actor's model, marks the coordinate for recomputation and shows the model.
 void func_actor_202900_8014A088(Task* arg0)
 {
-    GsCOORDINATE2* parent;
-    GsCOORDINATE2* coord;
-    TmdObject*     extra;
+    GpCoord*   parent;
+    GpCoord*   coord;
+    TmdObject* extra;
 
     extra        = arg0->extra.tmd;
     parent       = D_actor_202900_80156E58->extra.tmd->coords;
@@ -166,9 +166,9 @@ void func_actor_202900_8014A088(Task* arg0)
 /// animation slot reaches frame 0x15.
 void func_actor_202900_8014A0B4(GpEnemy* enemy, Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR         pos;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR     pos;
 
     obj    = task->extra.tmd;
     coord  = obj->coords;

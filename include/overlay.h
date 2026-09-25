@@ -6,6 +6,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
+#include "main/coord.h"
 #include <psyq/inline_c.h>
 #include "gte.h"
 
@@ -88,12 +89,12 @@ typedef struct OverlayWaveScratch {
 STATIC_ASSERT_SIZEOF(OverlayWaveScratch, 0x138);
 
 /// The scratch-pad block the world-space walk takes from `G_SCRATCH_HEAD`:
-/// `coord` is the frame the walk stands on, climbing the `GsCOORDINATE2::sub`
+/// `coord` is the frame the walk stands on, climbing the `GpCoord::sub`
 /// parent chain until it runs out, `vec` the vector being carried up, `out`
 /// the GTE result it is refreshed from after each frame, and `flag` the GTE
 /// flag word.
 typedef struct OverlayWalkScratch {
-    GsCOORDINATE2* coord;
+    GpCoord* coord;
     SVECTOR        vec;
     s32            out[3];
     s32            pad_18;
@@ -127,12 +128,12 @@ STATIC_ASSERT_SIZEOF(OverlayBisectorScratch, 0xE4);
 
 /// Carries `v` from the frame of `coord` up the parent chain into world
 /// space, walking in an `OverlayWalkScratch` taken from the scratch pad.
-static __inline__ void overlayToWorld(GsCOORDINATE2* coord, SVECTOR* v)
+static __inline__ void overlayToWorld(GpCoord* coord, SVECTOR* v)
 {
     OverlayWalkScratch* blk;
 
     {
-        register GsCOORDINATE2* parent asm("v0");
+        register GpCoord* parent asm("v0");
         parent                                                                               = coord;
         ((OverlayWalkScratch*)((u8*)SCRATCH_HEAD(void) - sizeof(OverlayWalkScratch)))->coord = parent;
     }
@@ -167,7 +168,7 @@ static __inline__ void overlayToWorld(GsCOORDINATE2* coord, SVECTOR* v)
 
 /// The walk of `overlayToWorld` without its register bindings. The callers
 /// were compiled from both spellings, and each site matches only its own.
-static __inline__ void overlayToWorld2(GsCOORDINATE2* coord, SVECTOR* v)
+static __inline__ void overlayToWorld2(GpCoord* coord, SVECTOR* v)
 {
     OverlayWalkScratch* blk;
 
@@ -485,7 +486,7 @@ STATIC_ASSERT_SIZEOF(OverlayWalkerRoute, 0x8);
 typedef struct OverlayWalker {
     OverlayWalkerNav*   nav;
     OverlayWalkerRoute* route;
-    GsCOORDINATE2*      coord;
+    GpCoord*      coord;
     GpRec18*            recs;
     GpRec18*            avoidRecs;
     byte                pad_14[0x8];
@@ -648,7 +649,7 @@ static __inline__ s32 overlayWalkerOutOfRange(OverlayWalkerArrivalDelta* d, s16 
 /// Bearing of `pos` from the full-width translation of `coord` on the XZ
 /// plane. The offset is staged on the scratch pad and released before
 /// `ratan2` runs.
-static __inline__ s32 overlayCoordBearingXZ(SVECTOR3* pos, GsCOORDINATE2* coord)
+static __inline__ s32 overlayCoordBearingXZ(SVECTOR3* pos, GpCoord* coord)
 {
     u8*                head;
     OverlayAvoidDelta* d;

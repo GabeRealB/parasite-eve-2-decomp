@@ -203,7 +203,7 @@ void Actor04600_Fn0272C(Task* task);
 void Actor04600_Fn027BC(Task* arg0);
 void Actor04600_Fn02870(GpEnemy* arg0, Task* task);
 void Actor04600_Fn028E0(Task* task);
-void Actor04600_Fn0294C(Task* arg0, GsCOORDINATE2* arg1);
+void Actor04600_Fn0294C(Task* arg0, GpCoord* arg1);
 void Actor04600_Fn02B14(Task* arg0);
 void Actor04600_Fn02C08(Task* task);
 void Actor04600_Fn02CD4(Task* task);
@@ -253,8 +253,8 @@ void Actor04600_Fn00048(GpEnemy* arg0, Task* arg1)
 {
     Actor104600Work* work;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   part;
+    GpCoord*         coord;
+    GpCoord*         part;
     u16              v;
     s32              i;
 
@@ -458,7 +458,7 @@ void Actor04600_Fn003D4(Task* arg0)
 void Actor04600_Fn005B0(Task* arg0)
 {
     Actor104600Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     u16              countdown;
     s32              soundId;
     u32              rng;
@@ -519,7 +519,7 @@ void Actor04600_Fn007B0(Task* arg0)
 {
     Actor104600Work* work;
     GpEnemy*         enemy;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     u16              countdown;
     s16              mode;
     s32              soundId;
@@ -603,7 +603,7 @@ void Actor04600_Fn00978(Task* arg0)
     u32                id;
     u32                damage;
     Actor104600Work*   work;
-    GsCOORDINATE2*     coord;
+    GpCoord*           coord;
     void*              scratchHead;
     ActorContactFrame* scratch;
     Actor104600Work*   contact;
@@ -770,7 +770,7 @@ void Actor04600_Fn00EC8(Task* arg0, s32 arg1)
     Actor104600Work* work;
     GpEnemy*         enemy;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              anim;
     s32              soundId;
 
@@ -809,7 +809,7 @@ void Actor04600_Fn00EC8(Task* arg0, s32 arg1)
 void Actor04600_Fn00FD8(Task* arg0)
 {
     Actor104600Work*  work;
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     ActorFaceScratch* sc;
     s16               cur;
     s32               want;
@@ -870,7 +870,7 @@ void Actor04600_Fn01110(GpEnemy* enemy, Task* task)
     TmdObject*       model;
     Actor104600Work* work;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              soundId;
 
     obj   = task->extra.tmd;
@@ -966,7 +966,7 @@ void Actor04600_Fn01604(Task* arg0, u8 arg1)
     Actor104600Work* work;
     GpEnemy*         enemy;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              soundId;
 
     obj         = arg0->extra.tmd;
@@ -1011,8 +1011,8 @@ void Actor04600_Fn01604(Task* arg0, u8 arg1)
 void Actor04600_Fn017CC(GpEnemy* arg0, Task* arg1)
 {
     Actor104600Work* work;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   part;
+    GpCoord*         coord;
+    GpCoord*         part;
     TmdObject*       obj;
     s32              one;
     s32              i;
@@ -1128,7 +1128,7 @@ void Actor04600_Fn017CC(GpEnemy* arg0, Task* arg1)
 void Actor04600_Fn01AFC(GpEnemy* arg0, Task* arg1)
 {
     Actor104600Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              soundId;
 
     work = (Actor104600Work*)arg1->work;
@@ -1186,7 +1186,7 @@ void Actor04600_Fn01E0C(Task* arg0)
 {
     ActorDeltaFrame48* scratch;
     Actor104600Work*   work;
-    GsCOORDINATE2*     coord;
+    GpCoord*           coord;
     s32                movement;
 
     work     = (Actor104600Work*)arg0->work;
@@ -1230,7 +1230,7 @@ s32 Actor04600_Fn01F54(Task* arg0, s32 arg1, GpCmdArg* arg2)
     Actor104600Work* work;
     GpEnemy*         enemy;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     SVECTOR          rot;
     u16              word;
     s16              heading;
@@ -1452,7 +1452,7 @@ void Actor04600_Fn02618(Task* arg0)
 /// column scaled by the step length `field_2BE`, and Y by a fixed 0x80.
 void Actor04600_Fn0272C(Task* task)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor104600Work* work;
 
     coord              = &task->extra.tmd->coords[0];
@@ -1499,10 +1499,10 @@ void Actor04600_Fn027BC(Task* arg0)
 /// coordinate, staged in a `VECTOR` taken off the scratch stack.
 void Actor04600_Fn02870(GpEnemy* arg0, Task* task)
 {
-    GsCOORDINATE2* coord;
-    void**         scratch;
-    u8*            head;
-    VECTOR*        block;
+    GpCoord* coord;
+    void**   scratch;
+    u8*      head;
+    VECTOR*  block;
 
     coord                          = &task->extra.tmd->coords[1];
     scratch                        = SCRATCH_HEAD_ADDR;
@@ -1520,8 +1520,8 @@ void Actor04600_Fn02870(GpEnemy* arg0, Task* task)
 /// translation of the root part staged in a `VECTOR3` on the scratch stack.
 void Actor04600_Fn028E0(Task* task)
 {
-    GsCOORDINATE2* coord;
-    VECTOR3*       vec;
+    GpCoord* coord;
+    VECTOR3* vec;
 
     coord   = task->extra.tmd->coords;
     vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
@@ -1536,7 +1536,7 @@ void Actor04600_Fn028E0(Task* task)
 /// `field_2AC`, clamped first to 0x1000..0x13E8: each of the matrix's three
 /// columns is copied into an `SVECTOR` on the scratch stack, multiplied by the
 /// factor on the GTE and written back.
-void Actor04600_Fn0294C(Task* arg0, GsCOORDINATE2* arg1)
+void Actor04600_Fn0294C(Task* arg0, GpCoord* arg1)
 {
     ActorScratchStack* scratch;
     SVECTOR*           vec;
@@ -1587,7 +1587,7 @@ void Actor04600_Fn0294C(Task* arg0, GsCOORDINATE2* arg1)
 /// `Gp_UpdateCoord` recomputes it.
 void Actor04600_Fn02B14(Task* arg0)
 {
-    GsCOORDINATE2*     coord;
+    GpCoord*           coord;
     ActorScaleScratch* head;
     ActorScaleScratch* scratch;
     Actor104600Work*   work;
@@ -1651,7 +1651,7 @@ void Actor04600_Fn02C6C(Task* arg0)
 /// scaled by the step length `field_2BE`, and Y by the fall speed `field_2DE`.
 void Actor04600_Fn02CD4(Task* task)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor104600Work* work;
 
     coord              = task->extra.tmd->coords;
@@ -1677,8 +1677,8 @@ void Actor04600_Fn02D68(GpEnemy* arg0, Task* arg1)
 {
     Actor104600Enemy2Work* work;
     TmdObject*             obj;
-    GsCOORDINATE2*         coord;
-    GsCOORDINATE2*         part;
+    GpCoord*               coord;
+    GpCoord*               part;
     u32                    seed;
     GpRec18*               records1;
     GpRec18*               records2;
@@ -1792,7 +1792,7 @@ void Actor04600_Fn02D68(GpEnemy* arg0, Task* arg1)
 void Actor04600_Fn030A8(Task* arg0)
 {
     Actor104600Enemy2Work* work;
-    GsCOORDINATE2*         obj;
+    GpCoord*               obj;
     s32                    snd;
     s16                    mode;
     s32                    id;
@@ -1900,7 +1900,7 @@ void Actor04600_Fn0346C(Task* arg0)
     ActorDeltaFrame38*     sc;
     ActorDeltaFrame38*     head;
     TmdObject*             obj;
-    GsCOORDINATE2*         coord;
+    GpCoord*               coord;
     GpEnemy*               enemy;
     s32                    i;
     s32                    sndHit;
@@ -2017,7 +2017,7 @@ void Actor04600_Fn03958(GpEnemy* arg0, Task* arg1)
 {
     Actor104600Enemy2Work* work;
     TmdObject*             obj;
-    GsCOORDINATE2*         coord;
+    GpCoord*               coord;
     s32                    i;
     Actor104600Enemy2Work* anim;
 
@@ -2235,10 +2235,10 @@ void Actor04600_Fn03E10(Task* arg0)
 /// coordinate, staged in a `VECTOR` taken off the scratch stack.
 void Actor04600_Fn03EC0(GpEnemy* arg0, Task* task)
 {
-    GsCOORDINATE2* coord;
-    void**         scratch;
-    u8*            head;
-    VECTOR*        block;
+    GpCoord* coord;
+    void**   scratch;
+    u8*      head;
+    VECTOR*  block;
 
     coord                          = &task->extra.tmd->coords[1];
     scratch                        = SCRATCH_HEAD_ADDR;
@@ -2303,7 +2303,7 @@ void Actor04600_Fn03F30(Task* task)
 /// `Gp_UpdateCoord` recomputes it.
 void Actor04600_Fn0400C(Task* arg0)
 {
-    GsCOORDINATE2*         coord;
+    GpCoord*               coord;
     ActorScaleScratch*     head;
     ActorScaleScratch*     scratch;
     Actor104600Enemy2Work* work;

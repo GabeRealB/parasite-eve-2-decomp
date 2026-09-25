@@ -45,8 +45,8 @@ extern SVECTOR D_dryfield_g_r_kitchen_8017EC08[];
 void func_dryfield_g_r_kitchen_8017D74C(Task* task);
 void func_dryfield_g_r_kitchen_8017D958(Task* task);
 void func_dryfield_g_r_kitchen_8017D99C(Task* task);
-void func_dryfield_g_r_kitchen_8017D9FC(GsCOORDINATE2* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
-void func_dryfield_g_r_kitchen_8017E27C(GsCOORDINATE2* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
+void func_dryfield_g_r_kitchen_8017D9FC(GpCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
+void func_dryfield_g_r_kitchen_8017E27C(GpCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
 
 /// Event gate for the room's exit. Returns 1 when game-flag nibble
 /// `req->flagId` already reads set (clear, for a negative id). Otherwise, when
@@ -246,7 +246,7 @@ void func_dryfield_g_r_kitchen_8017D9A4(Task* task)
 /// or 0x30 on the parity of `gDisplayState.animFrame`, rim vertices are black.
 /// Each primitive goes into the OT bucket of its own end's `otz` with a
 /// `Gp_AddTpageShift` tpage.
-void func_dryfield_g_r_kitchen_8017D9FC(GsCOORDINATE2* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
+void func_dryfield_g_r_kitchen_8017D9FC(GpCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
     u8*                head;
     RoomDraw24Scratch* block;
@@ -387,7 +387,7 @@ void func_dryfield_g_r_kitchen_8017D9FC(GsCOORDINATE2* arg0, SVECTOR* arg1, SVEC
 /// circles at -0x400 and 0x400. The centre colour is 0x10 or 0x20 on the
 /// parity of `gDisplayState.animFrame`, one step darker than
 /// `func_dryfield_g_r_kitchen_8017D9FC`'s.
-void func_dryfield_g_r_kitchen_8017E27C(GsCOORDINATE2* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
+void func_dryfield_g_r_kitchen_8017E27C(GpCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
     u8*                head;
     RoomDraw24Scratch* block;
@@ -522,7 +522,7 @@ void func_dryfield_g_r_kitchen_8017E27C(GsCOORDINATE2* arg0, SVECTOR* arg1, SVEC
 /// `func_dryfield_g_r_kitchen_8017E27C`. Any other view draws nothing.
 void func_dryfield_g_r_kitchen_8017EB04(Task* arg0)
 {
-    GsCOORDINATE2* coord;
+    GpCoord* coord;
 
     coord = arg0->extra.tmd->coords;
     if (gGameSession->at4.loc.view == 2) {

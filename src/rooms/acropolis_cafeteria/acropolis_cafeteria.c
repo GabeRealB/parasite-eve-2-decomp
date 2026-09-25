@@ -356,7 +356,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
 
 void func_acropolis_cafeteria_8017DF68(Task* task)
 {
-    GsCOORDINATE2* coord;
+    GpCoord* coord;
 
     coord = ((Task*)Gp_LookupSlot4(0))->extra.tmd->coords;
     switch (task->state) {

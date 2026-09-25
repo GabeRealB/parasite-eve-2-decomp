@@ -6,6 +6,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
+#include "main/coord.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -37,15 +38,15 @@
 /// into `TmdObject::lightMtx` / `field_20`, which is what `Tmd_SetupDraw` loads
 /// in place of `GsLIGHTWSMATRIX` and `D_80074080`.
 typedef struct MineCavernWork {
-    /* 0x000 */ MATRIX        light;
-    /* 0x020 */ MATRIX        color;
-    /* 0x040 */ GpObj         obj40;
-    /* 0x060 */ GpRec18       recs[4];
-    /* 0x0C0 */ GpObj         objC0;
-    /* 0x0E0 */ GpRec18       recE0;
-    /* 0x0F8 */ GsCOORDINATE2 coord;
-    /* 0x148 */ u16           field_148;
-    /* 0x14A */ byte          pad_14A[2];
+    /* 0x000 */ MATRIX  light;
+    /* 0x020 */ MATRIX  color;
+    /* 0x040 */ GpObj   obj40;
+    /* 0x060 */ GpRec18 recs[4];
+    /* 0x0C0 */ GpObj   objC0;
+    /* 0x0E0 */ GpRec18 recE0;
+    /* 0x0F8 */ GpCoord coord;
+    /* 0x148 */ u16     field_148;
+    /* 0x14A */ byte    pad_14A[2];
 } MineCavernWork;
 STATIC_ASSERT_SIZEOF(MineCavernWork, 0x14C);
 
@@ -77,8 +78,8 @@ void func_mine_cavern_8017E394(void);
 void func_mine_cavern_8017E3A0(s32 arg0);
 void func_mine_cavern_8017E774(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_mine_cavern_8017EFB8(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_mine_cavern_8017FBF4(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
-void func_mine_cavern_801809F8(GsCOORDINATE2* arg0, s32 arg1);
-void func_mine_cavern_80180D70(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
+void func_mine_cavern_8017FBF4(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_mine_cavern_801809F8(GpCoord* arg0, s32 arg1);
+void func_mine_cavern_80180D70(GpCoord* arg0, s16 arg1, u8* arg2);
 
 #endif

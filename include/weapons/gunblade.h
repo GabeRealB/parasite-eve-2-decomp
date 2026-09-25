@@ -6,6 +6,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
+#include "main/coord.h"
 
 #include "gameplay/3FB8.h"
 #include "main/task.h"
@@ -18,9 +19,9 @@
 /// per-axis camera shake added to the muzzle coordinate while the slash's
 /// recoil timer runs.
 typedef struct _GunbladeScratch {
-    /* 0x00 */ GsCOORDINATE2 coord;
-    /* 0x50 */ VECTOR        step;
-    /* 0x60 */ SVECTOR       dir;
+    /* 0x00 */ GpCoord coord;
+    /* 0x50 */ VECTOR  step;
+    /* 0x60 */ SVECTOR dir;
 } GunbladeScratch;
 STATIC_ASSERT_SIZEOF(GunbladeScratch, 0x68);
 
@@ -52,8 +53,8 @@ extern SVECTOR D_gunblade_8011E70C;
 
 /// The eight-segment beam trails, one array per end of the blade. Every entry
 /// is parented to `gGfxViewCoord`.
-extern GsCOORDINATE2 D_gunblade_8012E254[8];
-extern GsCOORDINATE2 D_gunblade_8012E4D4[8];
+extern GpCoord D_gunblade_8012E254[8];
+extern GpCoord D_gunblade_8012E4D4[8];
 
 /// The running beam task and its `GpEffWork`, cached on entry to state 0 so
 /// `func_gunblade_8011E008` can reach them from outside the task. The work

@@ -27,11 +27,11 @@ extern s32 D_80115730;
 /// and blue, selected by the spawn argument.
 extern RoomHaloShade D_shelter_b3_elevator_hall_80182B48[];
 
-void func_shelter_b3_elevator_hall_80181594(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_shelter_b3_elevator_hall_80181818(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b3_elevator_hall_80181C3C(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
-void func_shelter_b3_elevator_hall_8018217C(GsCOORDINATE2* coord, s16 size);
-void func_shelter_b3_elevator_hall_801826A8(GsCOORDINATE2* arg0, s32 arg1);
+void func_shelter_b3_elevator_hall_80181594(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_shelter_b3_elevator_hall_80181818(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_shelter_b3_elevator_hall_80181C3C(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_shelter_b3_elevator_hall_8018217C(GpCoord* coord, s16 size);
+void func_shelter_b3_elevator_hall_801826A8(GpCoord* arg0, s32 arg1);
 
 /// A glowing disc anchored to its parent at the work block's position. In
 /// state 1 it grows, and every fourth tick spawns the effect `D_80115730`
@@ -42,11 +42,11 @@ void func_shelter_b3_elevator_hall_801826A8(GsCOORDINATE2* arg0, s32 arg1);
 /// room's event state is set and releases its block when that reaches 4.
 void func_shelter_b3_elevator_hall_80180E18(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpEffWork*     spawned;
-    MATRIX*        mtx;
-    u8             col[4];
+    GpEffWork* mem;
+    GpCoord*   coord;
+    GpEffWork* spawned;
+    MATRIX*    mtx;
+    u8         col[4];
 
     mem   = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
@@ -157,14 +157,14 @@ void func_shelter_b3_elevator_hall_80180E18(Task* arg0)
 /// after 20 ticks, or when the room's event state reaches 4.
 void func_shelter_b3_elevator_hall_80181370(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* target;
-    VECTOR         delta;
+    GpEffWork* work;
+    GpCoord*   coord;
+    GpCoord*   target;
+    VECTOR     delta;
 
     work   = task->spawnArg2;
     coord  = task->extra.tmd->coords;
-    target = (GsCOORDINATE2*)task->spawnArg1;
+    target = (GpCoord*)task->spawnArg1;
     if (Gp_State1C->eventState == 0) {
         work->age++;
         switch (task->state) {
@@ -209,7 +209,7 @@ void func_shelter_b3_elevator_hall_80181370(Task* task)
 /// 0x42CB) centred on the projected origin of `arg0`'s world matrix, when it
 /// projects. `arg1 & 3` picks one of four 24-texel frames, `arg2` is the
 /// half-size scaled by depth and `arg3` the grey level on all three channels.
-void func_shelter_b3_elevator_hall_80181594(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
+void func_shelter_b3_elevator_hall_80181594(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -291,7 +291,7 @@ void func_shelter_b3_elevator_hall_80181594(GsCOORDINATE2* arg0, s32 arg1, s32 a
 /// origin of `arg0`'s world matrix, when it projects. The ring runs between
 /// the radii `arg1` and `arg1 + arg2`, both scaled by depth; its edge at
 /// `arg1 + arg2` takes the colour `rgb` and its edge at `arg1` is black.
-void func_shelter_b3_elevator_hall_80181818(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_shelter_b3_elevator_hall_80181818(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     GpArcScratch*   block;
     POLY_G4*        prim;
@@ -382,7 +382,7 @@ void func_shelter_b3_elevator_hall_80181818(GsCOORDINATE2* arg0, s32 arg1, s32 a
 /// Draws a gouraud disc of eight `POLY_G4` wedges around the projected origin
 /// of `arg0`'s world matrix, when it projects: radius `arg1` scaled by depth,
 /// the colour `rgb` at the centre fading to black at the rim.
-void func_shelter_b3_elevator_hall_80181C3C(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_shelter_b3_elevator_hall_80181C3C(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     void**         scratch;
     u8*            head;
@@ -455,11 +455,11 @@ void func_shelter_b3_elevator_hall_80181C3C(GsCOORDINATE2* arg0, s32 arg1, u8* r
 /// down, or when the room's event state reaches 4.
 void func_shelter_b3_elevator_hall_80181FD0(Task* arg0)
 {
-    u8             rgb[3];
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s16            flag;
-    s16            step;
+    u8         rgb[3];
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s16        flag;
+    s16        step;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -509,9 +509,9 @@ void func_shelter_b3_elevator_hall_80181FD0(Task* arg0)
 /// by depth, and a flat quad on the ground beneath it when there is ground.
 /// It also points the `Gp_RoomCoords[2]` light at the glow with a random
 /// intensity. Nothing is drawn when the glow does not project.
-void func_shelter_b3_elevator_hall_8018217C(GsCOORDINATE2* coord, s16 size)
+void func_shelter_b3_elevator_hall_8018217C(GpCoord* coord, s16 size)
 {
-    GsCOORDINATE2  ground;
+    GpCoord        ground;
     POLY_FT4*      prim;
     s16            outerLeft;
     s16            outerRight;
@@ -638,7 +638,7 @@ void func_shelter_b3_elevator_hall_8018217C(GsCOORDINATE2* coord, s16 size)
 /// position: the unit quad `D_80111E38` scaled by `arg1`, turned by the view
 /// matrix and projected. Its texture alternates between two 32-texel columns
 /// on successive frames.
-void func_shelter_b3_elevator_hall_801826A8(GsCOORDINATE2* arg0, s32 arg1)
+void func_shelter_b3_elevator_hall_801826A8(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;

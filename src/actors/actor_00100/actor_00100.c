@@ -155,10 +155,10 @@ extern const GpEnemyTaskFuncTable4 Actor00100_D001A0;
 /// rotation in a matrix carved off the scratchpad head, applies the turn,
 /// converts the result back into the parent's frame, writes the 3x3 into the
 /// joint and refreshes it.
-void Actor00100_Fn001FC(GsCOORDINATE2* coord, s16 yaw)
+void Actor00100_Fn001FC(GpCoord* coord, s16 yaw)
 {
-    MATRIX*        rotation;
-    GsCOORDINATE2* out;
+    MATRIX*  rotation;
+    GpCoord* out;
 
     SCRATCH_PUSH(MATRIX);
     rotation = SCRATCH_HEAD(MATRIX);
@@ -178,7 +178,7 @@ void Actor00100_Fn001FC(GsCOORDINATE2* coord, s16 yaw)
 /// against it, added to both `pos` and the coordinate's translation. Returns
 /// whether a kind 0x10000 record was among them. Does nothing, and returns 0,
 /// while the session's `viewReady` or `Mc_SaveData.field_5C1` is 1.
-s32 Actor00100_Fn00508(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos)
+s32 Actor00100_Fn00508(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
@@ -293,7 +293,7 @@ s32 Actor00100_Fn00508(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
 /// `Actor00100_D1BA90`. Returns the "moved" flag: set when the X or Z delta is
 /// nonzero, and also when its fractional half is, in which case the coordinate
 /// and the latched step are nudged one unit further away from zero.
-s32 Actor00100_Fn00A54(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2)
+s32 Actor00100_Fn00A54(GpCoord* coord, GpRec18* movement, s16 arg2)
 {
     void**            scratch;
     u8*               head;
@@ -554,7 +554,7 @@ s32 Actor00100_Fn00E58(Task* arg0, s32 arg1, GpCmdArg* arg2)
 /// steps `coord` along each survivor. Same walk as `Actor00100_Fn00508`, but
 /// `blocked` is raised only for a kind 0x10000 record whose `key` bit 0x80
 /// is clear. The scratch is carved before the early-out, so that path leaks it.
-s32 Actor00100_Fn01388(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos)
+s32 Actor00100_Fn01388(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                       head;
     Actor00100AvoidScratch16* s;
@@ -675,16 +675,16 @@ void Actor00100_Fn01900(Task* actor, s16 firstJoint, s16 secondJoint, s16 width,
 {
     ActorBeamScratch* s;
     s16               angle;
-    GsCOORDINATE2*    secondCoord;
-    GsCOORDINATE2*    firstCoord;
+    GpCoord*          secondCoord;
+    GpCoord*          firstCoord;
     s32               offset0;
     s32               offset1;
     s32               offset2;
     s32               offset3;
     s32               halfX;
     s32               halfZ;
-    GsCOORDINATE2*    coords;
-    GsCOORDINATE2*    view;
+    GpCoord*          coords;
+    GpCoord*          view;
     POLY_FT4*         poly;
 
     coords      = actor->extra.tmd->coords;
@@ -723,7 +723,7 @@ void Actor00100_Fn01900(Task* actor, s16 firstJoint, s16 secondJoint, s16 width,
         s->corner3.vz = (s->second.vz - ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
         /* `gGfxViewCoord`, reached back from its `workm`: the address is built
            from `Gfx_ViewWorldMtx`, whose high half the GTE loads below share. */
-        view      = (GsCOORDINATE2*)((u8*)&Gfx_ViewWorldMtx - OFFSET_OF(GsCOORDINATE2, workm));
+        view      = PARENT_OF(&Gfx_ViewWorldMtx, GpCoord, workm);
         view->flg = 0;
         Gp_UpdateCoord(view);
         gte_SetRotMatrix(&Gfx_ViewWorldMtx);
@@ -1314,7 +1314,7 @@ void Actor00100_Fn02C54(GpEnemy* arg0, Task* arg1)
     u8              cmd38[8];
     Actor00100Work* work;
     TmdObject*      tmd;
-    GsCOORDINATE2*  coord;
+    GpCoord*        coord;
     Actor00100Work* mapped;
     TmdObject*      model;
     Actor00100Obj*  primary;
@@ -1608,7 +1608,7 @@ void Actor00100_Fn0375C(Task* arg0)
 {
     PlayerStatus*            config = &Player_Status;
     GpEnemy*                 ctx;
-    GsCOORDINATE2*           coord;
+    GpCoord*                 coord;
     s16                      effect;
     s16                      delta;
     s16                      z;
@@ -1867,30 +1867,30 @@ void Actor00100_Fn0375C(Task* arg0)
 
 void Actor00100_Fn04270(Task* argx)
 {
-    register Task*          arg0 asm("s2");
-    Actor00100Work*         work;
-    TmdObject*              obj;
-    GpEnemy*                ctx;
-    ActorScaleRotScratch*   blk;
-    GsCOORDINATE2*          coords;
-    GsCOORDINATE2*          p;
-    GsCOORDINATE2*          view0;
-    register GsCOORDINATE2* view1 asm("s0");
-    SVECTOR*                out;
-    SVECTOR*                svp;
-    VECTOR*                 vecp;
-    s32*                    fp;
-    SVECTOR                 sv;
-    VECTOR                  vec;
-    s32                     flag0;
-    s32                     flag1;
-    s32                     state;
-    s32                     st;
-    s32                     d;
-    s32                     eff;
-    s32                     v;
-    s16                     ang;
-    u16                     next;
+    register Task*        arg0 asm("s2");
+    Actor00100Work*       work;
+    TmdObject*            obj;
+    GpEnemy*              ctx;
+    ActorScaleRotScratch* blk;
+    GpCoord*              coords;
+    GpCoord*              p;
+    GpCoord*              view0;
+    register GpCoord*     view1 asm("s0");
+    SVECTOR*              out;
+    SVECTOR*              svp;
+    VECTOR*               vecp;
+    s32*                  fp;
+    SVECTOR               sv;
+    VECTOR                vec;
+    s32                   flag0;
+    s32                   flag1;
+    s32                   state;
+    s32                   st;
+    s32                   d;
+    s32                   eff;
+    s32                   v;
+    s16                   ang;
+    u16                   next;
 
     arg0 = argx;
     work = arg0->work;
@@ -2091,9 +2091,9 @@ void Actor00100_Fn04864(Task* arg0)
     ActorTurnScratch*   head;
     ActorTurnScratch*   scratch;
     TmdObject*          obj;
-    GsCOORDINATE2*      coord;
-    GsCOORDINATE2*      playerCoord;
-    GsCOORDINATE2*      turnCoord;
+    GpCoord*            coord;
+    GpCoord*            playerCoord;
+    GpCoord*            turnCoord;
     GpRec18*            records;
     u16                 angle;
     s16                 delta;
@@ -2202,20 +2202,20 @@ void Actor00100_Fn0503C(Task* arg0)
 
     Actor00100Work* work;
     GpEnemy*        ctx;
-    GsCOORDINATE2*  temp_a1_2;
+    GpCoord*        temp_a1_2;
 
-    GsCOORDINATE2* temp_a2_2;
-    GsCOORDINATE2* temp_a2_3;
+    GpCoord* temp_a2_2;
+    GpCoord* temp_a2_3;
 
-    GsCOORDINATE2* temp_s0_14;
-    GsCOORDINATE2* temp_s0_17;
-    GsCOORDINATE2* temp_s0_20;
-    GsCOORDINATE2* temp_s0_4;
+    GpCoord* temp_s0_14;
+    GpCoord* temp_s0_17;
+    GpCoord* temp_s0_20;
+    GpCoord* temp_s0_4;
 
-    GsCOORDINATE2* temp_s0_8;
+    GpCoord* temp_s0_8;
 
-    GsCOORDINATE2* temp_v0_5;
-    GsCOORDINATE2* temp_v0_7;
+    GpCoord* temp_v0_5;
+    GpCoord* temp_v0_7;
 
     ActorFacingScratch* scratch;
     TmdObject*          obj;
@@ -2275,15 +2275,15 @@ void Actor00100_Fn0503C(Task* arg0)
     s32 var_v0_5;
     s32 var_v0_6;
 
-    s32            pan;
-    u16            temp_v0_6;
-    u16            temp_v1_2;
-    u16            var_a0;
-    u16            var_v1_3;
-    u32            distanceSquared;
-    GsCOORDINATE2* temp_s0_11;
-    Task*          player;
-    GameActor*     playerWork;
+    s32        pan;
+    u16        temp_v0_6;
+    u16        temp_v1_2;
+    u16        var_a0;
+    u16        var_v1_3;
+    u32        distanceSquared;
+    GpCoord*   temp_s0_11;
+    Task*      player;
+    GameActor* playerWork;
 
     work       = arg0->work;
     player     = gameGetPtrSlot(3);
@@ -2874,10 +2874,10 @@ void Actor00100_Fn06C10(Task* arg0)
 void Actor00100_Fn070DC(Task* arg0)
 {
     Actor00100Work*         work;
-    GsCOORDINATE2*          coord;
-    GsCOORDINATE2*          coord2;
-    GsCOORDINATE2*          facing;
-    GsCOORDINATE2*          facing2;
+    GpCoord*                coord;
+    GpCoord*                coord2;
+    GpCoord*                facing;
+    GpCoord*                facing2;
     TmdObject*              obj;
     s16                     delta;
     s32                     playerX;
@@ -3086,15 +3086,15 @@ void Actor00100_Fn0782C(Task* arg0)
     GpEnemy*          ctx;
     Actor00100Work*   work;
     GpRec18*          record;
-    GsCOORDINATE2*    coord;
-    GsCOORDINATE2*    coord2;
-    GsCOORDINATE2*    coord3;
-    GsCOORDINATE2*    facing3;
-    GsCOORDINATE2*    facing4;
-    GsCOORDINATE2*    facing5;
-    GsCOORDINATE2*    facing;
-    GsCOORDINATE2*    facing2;
-    GsCOORDINATE2*    turnCoord;
+    GpCoord*          coord;
+    GpCoord*          coord2;
+    GpCoord*          coord3;
+    GpCoord*          facing3;
+    GpCoord*          facing4;
+    GpCoord*          facing5;
+    GpCoord*          facing;
+    GpCoord*          facing2;
+    GpCoord*          turnCoord;
     MATRIX*           matrix;
     ActorMoveScratch* scratch;
     SVECTOR*          target;
@@ -3396,11 +3396,11 @@ void Actor00100_Fn08588(Task* arg0)
     TmdObject*            obj;
     GpEnemy*              ctx;
     Actor00100Work*       work;
-    GsCOORDINATE2*        coord;
-    GsCOORDINATE2*        coord2;
-    GsCOORDINATE2*        targetCoord;
-    GsCOORDINATE2*        facing;
-    GsCOORDINATE2*        facing2;
+    GpCoord*              coord;
+    GpCoord*              coord2;
+    GpCoord*              targetCoord;
+    GpCoord*              facing;
+    GpCoord*              facing2;
     ActorTurnStepScratch* head;
     ActorTurnStepScratch* scratch;
     s16                   yaw;
@@ -3498,11 +3498,11 @@ void Actor00100_Fn08A14(Task* arg0)
     TmdObject*            obj;
     GpEnemy*              ctx;
     Actor00100Work*       work;
-    GsCOORDINATE2*        coord;
-    GsCOORDINATE2*        coord2;
-    GsCOORDINATE2*        targetCoord;
-    GsCOORDINATE2*        facing;
-    GsCOORDINATE2*        facing2;
+    GpCoord*              coord;
+    GpCoord*              coord2;
+    GpCoord*              targetCoord;
+    GpCoord*              facing;
+    GpCoord*              facing2;
     ActorTurnStepScratch* head;
     ActorTurnStepScratch* scratch;
     s16                   yaw;
@@ -3595,10 +3595,10 @@ void Actor00100_Fn08A14(Task* arg0)
 void Actor00100_Fn08E7C(Task* arg0)
 {
     Actor00100Work*           work;
-    GsCOORDINATE2*            coord;
-    GsCOORDINATE2*            coord2;
-    GsCOORDINATE2*            facing;
-    GsCOORDINATE2*            facing2;
+    GpCoord*                  coord;
+    GpCoord*                  coord2;
+    GpCoord*                  facing;
+    GpCoord*                  facing2;
     TmdObject*                obj;
     s16                       delta;
     s32                       playerX;
@@ -3913,7 +3913,7 @@ void Actor00100_Fn09CCC(Task* arg0)
 {
     GpEnemy*        ctx;
     Actor00100Work* work;
-    GsCOORDINATE2*  coord;
+    GpCoord*        coord;
     TmdObject*      obj;
     TmdObject*      hiddenObj;
     TmdObject*      finishedObj;
@@ -4066,7 +4066,7 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
     s32                  excludedState;
     VECTOR               pos;
     Actor00100StateTable states;
-    GsCOORDINATE2*       actorcoord;
+    GpCoord*             actorcoord;
 
     SVECTOR**              scratchHead;
     SVECTOR*               scratch;
@@ -4077,7 +4077,7 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
     s16                    initialState;
     s16                    finalState;
     s16                    i;
-    GsCOORDINATE2*         playerCoord;
+    GpCoord*               playerCoord;
     s32                    sound;
     s32                    sound2;
     s32                    depth;
@@ -4093,7 +4093,7 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
     Task*                  player;
     Actor00100AnimCommand* command;
     Task*                  slot;
-    GsCOORDINATE2*         coord;
+    GpCoord*               coord;
     void*                  message;
     void*                  nextMessage;
 
@@ -4445,7 +4445,7 @@ s32 Actor00100_Fn0B264(Task* task)
 
 s32 Actor00100_Fn0B2B4(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2*            coord;
+    GpCoord*                  coord;
     s32                       mx;
     s32                       mz;
     ActorsShared80169f74Work* work;
@@ -4796,7 +4796,7 @@ void Actor00100_Fn0BC14(Task* task)
 
 void Actor00100_Fn0BC1C(Task* arg0)
 {
-    GsCOORDINATE2*  coord;
+    GpCoord*        coord;
     s32             y;
     s32             distance;
     register s32    slotY asm("v0");

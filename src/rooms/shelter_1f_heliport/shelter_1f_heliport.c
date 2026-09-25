@@ -190,7 +190,7 @@ extern RoomLatchedEvent D_shelter_1f_heliport_80182CB4;
 void func_shelter_1f_heliport_80180658(Task* task);
 void func_shelter_1f_heliport_80180748(Task* task);
 void func_shelter_1f_heliport_801807C0(void);
-void func_shelter_1f_heliport_8018085C(GsCOORDINATE2* coord, SVECTOR* offset);
+void func_shelter_1f_heliport_8018085C(GpCoord* coord, SVECTOR* offset);
 
 /// Returns the 0xFFFF-terminated item id list the shop list starts from. The
 /// low halfword of `mode` picks a group of lists (0x20, 0x21, 0x30-0x33, 0x40
@@ -1707,7 +1707,7 @@ void func_shelter_1f_heliport_801807C0(void)
 /// Rebuilds the working mesh from its source under `coord`: the first four
 /// vectors are rotated only, the eight after them rotated and translated and,
 /// when `offset` is non-NULL, shifted by it afterwards.
-void func_shelter_1f_heliport_8018085C(GsCOORDINATE2* coord, SVECTOR* offset)
+void func_shelter_1f_heliport_8018085C(GpCoord* coord, SVECTOR* offset)
 {
     MATRIX        m;
     long          flag;

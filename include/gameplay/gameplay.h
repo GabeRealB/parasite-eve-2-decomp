@@ -9,7 +9,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
-#include "gameplay/coord.h"
+#include "main/coord.h"
 #include "main/pad.h"
 #include "main/text.h"
 #include "main/tmd.h"
@@ -306,13 +306,13 @@ typedef struct _GpViewTbl {
 /// Per-stage pointer table. Index is `GameSession.at4.loc.stage - 1`.
 extern GpViewTbl* Gp_ViewTables[];
 
-/// View of `GsCOORDINATE2` starting at `workm.t`. `sub` is at +0x14 (coord
+/// View of `GpCoord` starting at `workm.t`. `sub` is at +0x14 (coord
 /// +0x4C). Size is the coord stride so `tail++` walks the coord array.
 typedef struct {
     /* 0x00 */ long           t[3];
     /* 0x0C */ GsCOORD2PARAM* param;
-    /* 0x10 */ GsCOORDINATE2* super;
-    /* 0x14 */ GsCOORDINATE2* sub;
+    /* 0x10 */ GpCoord*       super;
+    /* 0x14 */ GpCoord*       sub;
     /* 0x18 */ byte           pad[0x38];
 } GpCoordFromT;
 STATIC_ASSERT_SIZEOF(GpCoordFromT, 0x50);
@@ -329,9 +329,9 @@ STATIC_ASSERT_SIZEOF(GpCoordFromT, 0x50);
 /// at the node's own `coord` rather than at an array of them.
 typedef struct GpDisp2d {
     TmdListHead link;    // Its place on `gTmdDisp2dList`
-    GpCoordExt* coords;  // The body's coordinate, i.e. `&coord`
+    GpCoord*    coords;  // The body's coordinate, i.e. `&coord`
     s32         field_C; // Set to 1 when the body is attached; no reader found, so the role is unproven
-    GpCoordExt  coord;   // Coordinate the body occupies: its task places it, the passes compose `workm` from it
+    GpCoord     coord;   // Coordinate the body occupies: its task places it, the passes compose `workm` from it
 } GpDisp2d;
 STATIC_ASSERT_SIZEOF(GpDisp2d, 0x60);
 
@@ -358,8 +358,8 @@ extern GpPadReplay* Gp_ReplayCursor;
 /// sequence it left.
 extern u32 Gp_LcgState;
 
-void       Gp_UpdateCoord(GsCOORDINATE2* arg0);
-void       Gp_UpdateCoordEx(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
+void       Gp_UpdateCoord(GpCoord* arg0);
+void       Gp_UpdateCoordEx(GpCoord* arg0, GpCoord* arg1);
 TmdObject* Gp_AttachTmd(Task* task, TmdSource* src);
 /// Gives a task a 2D-display body and returns it, or `NULL` when there is no
 /// memory for one, in which case the task is left without a body.
@@ -396,7 +396,7 @@ void gpUnlinkDisp2d(TmdListHead* node);
 void       gpFreeDisp2d(GpDisp2d* node);
 void       Gp_StashTmdLists(void);
 void       Gp_RestoreTmdLists(void);
-Task*      Gp_FindTaskByCoord(GsCOORDINATE2* arg0);
+Task*      Gp_FindTaskByCoord(GpCoord* arg0);
 void       Gp_ApplyPadReplay(s32 arg0, PadScratch* arg1);
 void       Gp_InitPlayClock(Task* task);
 void       Gp_TickPlayClock(Task* task);

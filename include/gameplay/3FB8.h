@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#include "gameplay/coord.h"
+#include "main/coord.h"
 #include "gameplay/message.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -13,7 +13,7 @@
 #include <psyq/libgs.h>
 #include "gameplay/3CD8.h"
 
-struct _GsCOORDINATE2;
+struct GpCoord;
 struct _GpObjDirRec;
 
 /// One body an actor puts on the world's object lists: a sphere of `radius`
@@ -30,7 +30,7 @@ struct _GpObjDirRec;
 typedef struct _GpObj {
     struct _GpObj* next;            // next on the list
     struct _GpObj* prev;            // previous on the list
-    GsCOORDINATE2* coord;           // transform `pos` is an offset under
+    GpCoord*       coord;           // transform `pos` is an offset under
     union {
         GpRec18*             recs;  // kind 1: the body's own contact table
         struct _GpObj*       node;  // kind 2: the node whose table is used
@@ -84,26 +84,26 @@ STATIC_ASSERT_SIZEOF(GpActorFlags, 0x4);
 /// makes then, `repeatCount` / `actionCount` bound the burst of work it is in
 /// the middle of, and the last three walk it along its route.
 typedef struct GpActorD4 {
-    /* 0x00 */ byte          pad_0[0x18];
-    /* 0x18 */ GsCOORDINATE2 coord;         // the body's transform, a copy of the actor's model coordinate
-    /* 0x68 */ GpObj         obj;           // the body: a kind-3 node whose `ctx.d4rec` is `shape`
-    /* 0x88 */ GpActorD4Rec  shape;         // the capsule the body's collisions are tested with
-    /* 0xA0 */ GpRec18       contact;       // the one-entry table `shape` records its contacts in
-    /* 0xB8 */ byte          pad_B8[0xC];
-    /* 0xC4 */ s16           decisionTimer; // frames left before the companion picks its next action
-    /* 0xC6 */ s16           scanAngle;     // sweep angle: 0x80 a tick, and past 0x1000 the sweep is over
-    /* 0xC8 */ s16           targetHeading; // heading being turned to, in the 0..0xFFF angle unit
-    /* 0xCA */ s16           scanDist;      // the contact distance the sweep compares its candidates by
-    /* 0xCC */ u8            repeatCount;   // swings left in the attack burst, or the flinch interval of the companion that does not fight
-    /* 0xCD */ u8            actionCount;   // attacks left before the fighting companions stop, or flinches taken by the other one
-    /* 0xCE */ s8            pathStep;      // waypoint the companion is walking to
-    /* 0xCF */ s8            turnDir;       // +1 or -1: the way it turns to `targetHeading`
-    /* 0xD0 */ s8            pathDone;      // 1 once the last waypoint is reached
-    /* 0xD1 */ byte          pad_D1[3];
+    /* 0x00 */ byte         pad_0[0x18];
+    /* 0x18 */ GpCoord      coord;         // the body's transform, a copy of the actor's model coordinate
+    /* 0x68 */ GpObj        obj;           // the body: a kind-3 node whose `ctx.d4rec` is `shape`
+    /* 0x88 */ GpActorD4Rec shape;         // the capsule the body's collisions are tested with
+    /* 0xA0 */ GpRec18      contact;       // the one-entry table `shape` records its contacts in
+    /* 0xB8 */ byte         pad_B8[0xC];
+    /* 0xC4 */ s16          decisionTimer; // frames left before the companion picks its next action
+    /* 0xC6 */ s16          scanAngle;     // sweep angle: 0x80 a tick, and past 0x1000 the sweep is over
+    /* 0xC8 */ s16          targetHeading; // heading being turned to, in the 0..0xFFF angle unit
+    /* 0xCA */ s16          scanDist;      // the contact distance the sweep compares its candidates by
+    /* 0xCC */ u8           repeatCount;   // swings left in the attack burst, or the flinch interval of the companion that does not fight
+    /* 0xCD */ u8           actionCount;   // attacks left before the fighting companions stop, or flinches taken by the other one
+    /* 0xCE */ s8           pathStep;      // waypoint the companion is walking to
+    /* 0xCF */ s8           turnDir;       // +1 or -1: the way it turns to `targetHeading`
+    /* 0xD0 */ s8           pathDone;      // 1 once the last waypoint is reached
+    /* 0xD1 */ byte         pad_D1[3];
 } GpActorD4;
 STATIC_ASSERT_SIZEOF(GpActorD4, 0xD4);
 
-/// Overlay of `GameActor` for the three s16s at 0x418 (`GsCOORDINATE2.param`
+/// Overlay of `GameActor` for the three s16s at 0x418 (`GpCoord.param`
 /// as vx/vy/vz). `Gp_AttachActorObj` zeros them after `Gfx_RotMatrixX` of
 /// `field_3D4.workm`.
 typedef struct _GpActorSvec {
@@ -126,9 +126,9 @@ typedef struct _GpActorSvec {
 /// A record is either a global of the overlay that spawns the effects or a
 /// member of the work block the spawner keeps beside it.
 typedef struct {
-    GsCOORDINATE2* coord;      // coordinate the effects are placed under, filled in on first use
-    s16            spawnArgLo; // low half of the spawned effect's `Task::spawnArg1`
-    s16            spawnArgHi; // high half; also the repeat count of an effect spawned in a series
+    GpCoord* coord;      // coordinate the effects are placed under, filled in on first use
+    s16      spawnArgLo; // low half of the spawned effect's `Task::spawnArg1`
+    s16      spawnArgHi; // high half; also the repeat count of an effect spawned in a series
 } GpEffArg;
 STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 
@@ -150,18 +150,18 @@ extern s32      D_80112C7C[];
 /// compare, divide and shift them as signed values. A task that wants one of
 /// them unsigned converts it where it reads it.
 typedef struct GpEffWork {
-    struct Task*           task;    // the effect's own task, which carries this block as its `spawnArg2`
-    s32                    field_4; // role unproven: zeroed by the spawn path, never read
-    struct _GsCOORDINATE2* parent;  // coordinate the effect hangs off, copied onto `GsCOORDINATE2.sub`
-    SVECTOR*               field_C; // role unproven: the offset vector the spawn was called with, never read
-    SVECTOR                move;    // vector the owning task moves the effect by
-    SVECTOR                pos;     // where the effect sits under `parent`, seeded from the spawn's offset vector
-    s16                    index;   // the owning task's index into the table that picks the effect's frame or level
-    s16                    age;     // frames since the effect was spawned
-    s16                    scale;   // magnitude the task animates: a brightness for a ring or flash, a billboard size for a sprite
-    s16                    angle;   // rotation the task spins the effect by, or the radius a ring effect draws it at
-    s16                    period;  // frames the task's current phase lasts, or the size it holds while it lasts
-    s16                    step;    // per-frame step the task advances another slot by, or a packed draw parameter
+    struct Task*    task;    // the effect's own task, which carries this block as its `spawnArg2`
+    s32             field_4; // role unproven: zeroed by the spawn path, never read
+    struct GpCoord* parent;  // coordinate the effect hangs off, copied onto `GpCoord.sub`
+    SVECTOR*        field_C; // role unproven: the offset vector the spawn was called with, never read
+    SVECTOR         move;    // vector the owning task moves the effect by
+    SVECTOR         pos;     // where the effect sits under `parent`, seeded from the spawn's offset vector
+    s16             index;   // the owning task's index into the table that picks the effect's frame or level
+    s16             age;     // frames since the effect was spawned
+    s16             scale;   // magnitude the task animates: a brightness for a ring or flash, a billboard size for a sprite
+    s16             angle;   // rotation the task spins the effect by, or the radius a ring effect draws it at
+    s16             period;  // frames the task's current phase lasts, or the size it holds while it lasts
+    s16             step;    // per-frame step the task advances another slot by, or a packed draw parameter
 } GpEffWork;
 STATIC_ASSERT_SIZEOF(GpEffWork, 0x2C);
 
@@ -247,7 +247,7 @@ extern s32 D_80112A50[];
 /// `Task::spawnArg1` sound id.
 extern s32 D_80112B94[];
 
-/// `GsCOORDINATE2` index parallel to `D_80112978`. `Gp_EffTask07State1` adds
+/// `GpCoord` index parallel to `D_80112978`. `Gp_EffTask07State1` adds
 /// it onto `TmdObject.coords` when `field_3 == 1`.
 extern u16 D_80112B28[];
 
@@ -408,7 +408,7 @@ typedef union {
 /// 0x10-byte scratch from `G_SCRATCH_HEAD` used by `func_801011D0`.
 /// Words at 0/4/8 are the 16.16 deltas from `func_800E0FEC`; if the
 /// fractional half is nonzero they are stepped away from zero by 0x10000
-/// and the high half is added onto `GsCOORDINATE2.coord.t[]`.
+/// and the high half is added onto `GpCoord.coord.t[]`.
 typedef struct _GpDeltaScratch {
     /* 0x00 */ GpFixed16 vx;
     /* 0x04 */ GpFixed16 vy;
@@ -431,7 +431,7 @@ STATIC_ASSERT_SIZEOF(GpAngleScratch, 0xC);
 /// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `Gp_PlayerMode2State4`.
 /// `field_0` is the clamped `func_80103E7C` turn delta applied to
 /// `GameActor.field_52`. `vec` is the target-minus-current offset
-/// (`GameActor.field_20/24/28` minus `GsCOORDINATE2.coord.t`).
+/// (`GameActor.field_20/24/28` minus `GpCoord.coord.t`).
 typedef struct _GpApproachScratch {
     /* 0x00 */ s32     field_0;
     /* 0x04 */ VECTOR3 vec;
@@ -475,7 +475,7 @@ STATIC_ASSERT_SIZEOF(GpHitRec, 0x18);
 /// 0x40-byte scratch from `G_SCRATCH_HEAD` used by `Gp_StepPlayerMove`.
 /// `scale` is `D_80112E10[field_958]` (signed, stored as a word). `angle`
 /// holds `0x640000` then the yaw passed to `Gfx_RotMatrixY`. `saved` is a
-/// copy of `GsCOORDINATE2.coord` around that rotate. `vec` is the matrix
+/// copy of `GpCoord.coord` around that rotate. `vec` is the matrix
 /// column from `Gfx_MatrixCol2` / `VectorNormalSS`, later the Manhattan
 /// `|dx|+|dz|` to the lock point. `lock` is `Gp_GetLockPos` output.
 typedef struct _GpMoveScratch {
@@ -506,16 +506,16 @@ STATIC_ASSERT_SIZEOF(GpPushBackScratch, 0x40);
 /// offset from one of the actor's parts, the zero rotation it is placed with,
 /// and the vector from it to the target that the heading is taken from.
 typedef struct _GpAimScratch {
-    /* 0x00 */ VECTOR3       vec;
-    /* 0x0C */ s32           pad_C;
-    /* 0x10 */ SVECTOR       rot;
-    /* 0x18 */ GsCOORDINATE2 coord;
+    /* 0x00 */ VECTOR3 vec;
+    /* 0x0C */ s32     pad_C;
+    /* 0x10 */ SVECTOR rot;
+    /* 0x18 */ GpCoord coord;
 } GpAimScratch;
 STATIC_ASSERT_SIZEOF(GpAimScratch, 0x68);
 
 /// 0x68-byte scratch from `G_SCRATCH_HEAD` used by `Gp_PickNearestRec18`.
 /// The first 0x10 bytes are the `GpDeltaScratch` passed to `func_800E0FEC`.
-/// Offset 0x10 is a temp `GsCOORDINATE2` (`flg` at 0x10, `workm.t[]` at
+/// Offset 0x10 is a temp `GpCoord` (`flg` at 0x10, `workm.t[]` at
 /// 0x48, `sub` at 0x5C) passed to `Gp_SpawnEff`. `offset` is three
 /// `rand() & 7` halfwords passed as that call's last argument and added
 /// onto `arg2->workm.t[]` when `arg2` is non-NULL.
@@ -542,7 +542,7 @@ typedef struct _GpAimRot {
 STATIC_ASSERT_SIZEOF(GpAimRot, 8);
 
 /// 0x6C-byte scratch from `G_SCRATCH_HEAD` used by `Gp_AimYawToLock`.
-/// The first 0x50 bytes are a temp `GsCOORDINATE2`. `delta` is
+/// The first 0x50 bytes are a temp `GpCoord`. `delta` is
 /// `Gp_GetLockPos` output minus that coord's translation (computed in
 /// place). `rot` is the `SVECTOR` passed to `Gp_PlaceCoordOffset` (table row
 /// `D_801131B4[Player_Status.weapon]`). `angle` holds `ratan2` then
@@ -571,7 +571,7 @@ STATIC_ASSERT_SIZEOF(GpDashScratch, 0x2C);
 
 /// 0x84-byte scratch from `G_SCRATCH_HEAD` used by `Gp_AimPitchToLock`,
 /// `Gp_AimPitchToLockAlt`, `Gp_AimPitchRec`, and `Gp_AimPitchDirect`. The first 0x50 bytes are a
-/// temp `GsCOORDINATE2`. `delta` is lock position minus that coord's
+/// temp `GpCoord`. `delta` is lock position minus that coord's
 /// translation; `lock` is `Gp_GetLockPos` output; `rot` is the
 /// `SVECTOR` passed to `Gp_PlaceCoordOffset` (zeros then table row in
 /// `Gp_AimPitchToLockAlt`, table row in `Gp_AimPitchRec`, zeros in
@@ -677,7 +677,7 @@ extern s16 D_80112E10[];
 /// adds `D_80112E20[field_95A] * field_975` onto `field_52` (masked `0xFFF`).
 extern u16 D_80112E20[];
 
-/// 2-wide rows of `GsCOORDINATE2` indices. `func_8010403C` indexes
+/// 2-wide rows of `GpCoord` indices. `func_8010403C` indexes
 /// `D_80112E2C[Mc_SaveData.characterId - 1][arg0]`.
 extern u8 D_80112E2C[][2];
 
@@ -739,10 +739,10 @@ extern GpAimRot D_801131B4[];
 extern u8 D_80113388[];
 
 void Gp_EffPolyTask9C(Task* arg0);
-void Gp_DrawEffShard(struct _GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3);
+void Gp_DrawEffShard(struct GpCoord* arg0, s16 arg1, s16 arg2, u16 arg3);
 void Gp_EffSprTask46(Task* arg0);
 void Gp_DrawEffSprite81(Task* arg0);
-void Gp_DrawEffSprite46(struct _GsCOORDINATE2* arg0, s32 arg1, s16 arg2, u16 arg3);
+void Gp_DrawEffSprite46(struct GpCoord* arg0, s32 arg1, s16 arg2, u16 arg3);
 void Gp_EffSprTask81(Task* arg0);
 void Gp_EffSprTask55(Task* arg0);
 void Gp_EffSprTask42(Task* arg0);
@@ -750,7 +750,7 @@ void func_800F91AC(Task* arg0);
 void Gp_EffCtlTask9B(Task* arg0);
 void Gp_EffSprTask30(Task* arg0);
 void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2);
-void Gp_DrawEffQuadT29(struct _GsCOORDINATE2* arg0, s32 arg1, u16 arg2, u16 arg3);
+void Gp_DrawEffQuadT29(struct GpCoord* arg0, s32 arg1, u16 arg2, u16 arg3);
 void Gp_EffTask07State1(Task* arg0);
 void Gp_EffCtlTaskC1(Task* arg0);
 void Gp_EffCtlTaskF3(Task* arg0);
@@ -761,7 +761,7 @@ void Gp_PulseState1C80(void);
 void Gp_EffCtlTaskA5(Task* arg0);
 void Gp_EffCtlTaskA6(Task* arg0);
 void Gp_EffCtlTaskE3(Task* arg0);
-void func_800FDB18(s32 arg0, struct _GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3);
+void func_800FDB18(s32 arg0, struct GpCoord* arg1, SVECTOR* arg2, GpEffArg* arg3);
 void func_800FF710(Task* arg0);
 void Gp_EffSprTaskE0(Task* arg0);
 void Gp_EffSprTaskE2(Task* arg0);
@@ -769,8 +769,8 @@ void Gp_EffSprTaskE2(Task* arg0);
 /// the CLUT (palette column) and the low 12 bits are the billboard size, so it
 /// must not be declared `s16` (that makes callers emit a spurious `sll`/`sra`
 /// truncation). It is unsigned because the size is divided by `otz` with `divu`.
-void  Gp_DrawEffSpriteE2(struct _GsCOORDINATE2* arg0, u16 arg1, u32 arg2, s16 arg3);
-s32   func_801011D0(struct _GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32* arg3);
+void  Gp_DrawEffSpriteE2(struct GpCoord* arg0, u16 arg1, u32 arg2, s16 arg3);
+s32   func_801011D0(struct GpCoord* arg0, s32 arg1, s32 arg2, s32* arg3);
 void  Gp_InitPlayerWork(Task* arg0);
 void  Gp_AttachActorObj(Task* arg0, s32 arg1, s32 arg2);
 void  Gp_TeardownSlot0(Task* arg0);
@@ -798,7 +798,7 @@ s32   Gp_ApplyDirArg(Task* arg0, GpMoveArg* arg1);
 s32   func_80104E00(Task* arg0, s32 arg1, GpXformArg* arg2);
 s32   Gp_SetActorDest(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3);
 s32   Gp_MoveActorBy(Task* arg0, s32 arg1, GpMoveArg* arg2);
-s32   Gp_PickNearestRec18(GpRec18* arg0, struct _GsCOORDINATE2* arg1, struct _GsCOORDINATE2* arg2);
+s32   Gp_PickNearestRec18(GpRec18* arg0, struct GpCoord* arg1, struct GpCoord* arg2);
 void  Gp_MoveActorByKeep(Task* arg0, s32 arg1, GpMoveArg* arg2);
 void  func_8010B210(Task* arg0);
 void  Gp_BindActorD4(Task* arg0, SVECTOR3* arg1, s32 arg2);
@@ -824,7 +824,7 @@ void  Gp_StepPlayerMove(Task* arg0);
 s32   Gp_KillPlayerEffs(void);
 void  Gp_TurnPlayer(Task* arg0);
 s32   func_801060E0(Task* arg0);
-void  func_80103C74(GsCOORDINATE2* arg0, VECTOR3* arg1, VECTOR3* arg2);
+void  func_80103C74(GpCoord* arg0, VECTOR3* arg1, VECTOR3* arg2);
 s32   func_80103D8C(s32 arg0, s32 arg1);
 void  Gp_AnimPlayChildSlots(Task* arg0, s32 arg1, s32 arg2);
 void  Gp_TickActorAnimState(Task* arg0);

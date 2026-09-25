@@ -407,7 +407,7 @@ s32 func_dryfield_water_tower_8017DFAC(Task* arg0);
 void func_dryfield_water_tower_8017DE30(Task* arg0)
 {
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->work;
-    GsCOORDINATE2*           coord = arg0->extra.tmd->coords;
+    GpCoord*                 coord = arg0->extra.tmd->coords;
     GpCmdArg                 msg;
 
     if (arg0->spawnArg1 == 0) {
@@ -472,8 +472,8 @@ void func_dryfield_water_tower_8017DE30(Task* arg0)
 s32 func_dryfield_water_tower_8017DFAC(Task* arg0)
 {
     DryfieldWaterTowerState* state;
-    GsCOORDINATE2*           coord;
-    GsCOORDINATE2*           effCoord;
+    GpCoord*                 coord;
+    GpCoord*                 effCoord;
     SVECTOR                  pos;
     s32                      i;
 
@@ -570,7 +570,7 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
     DryfieldWaterTowerState* state;
     TmdObject*               obj;
     TmdObject*               model;
-    GsCOORDINATE2*           coord;
+    GpCoord*                 coord;
     OverlayVecSlot           pos;
     MATRIX*                  mem;
 
@@ -586,8 +586,8 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
     if (D_80114C11 == 0) {
         switch (arg0->state) {
             case 0: {
-                TmdObject*     model;
-                GsCOORDINATE2* modelCoord;
+                TmdObject* model;
+                GpCoord*   modelCoord;
 
                 model      = arg0->extra.tmd;
                 modelCoord = model->coords;
@@ -672,8 +672,8 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
 s32 func_dryfield_water_tower_8017E428(Task* arg0)
 {
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->work;
-    GsCOORDINATE2*           coord = arg0->extra.tmd->coords;
-    GsCOORDINATE2*           effCoord;
+    GpCoord*                 coord = arg0->extra.tmd->coords;
+    GpCoord*                 effCoord;
     SVECTOR                  pos;
 
     switch (state->field_58) {
@@ -742,8 +742,8 @@ s32 func_dryfield_water_tower_8017E428(Task* arg0)
 s32 func_dryfield_water_tower_8017E5B0(Task* arg0)
 {
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->work;
-    GsCOORDINATE2*           coord = arg0->extra.tmd->coords;
-    GsCOORDINATE2*           effCoord;
+    GpCoord*                 coord = arg0->extra.tmd->coords;
+    GpCoord*                 effCoord;
     SVECTOR                  pos;
 
     switch (state->field_58) {
@@ -812,7 +812,7 @@ void func_dryfield_water_tower_8017E764(Task* arg0)
     TmdObject*               obj;
     TmdObject*               tmp;
     TmdObject*               model;
-    GsCOORDINATE2*           coord;
+    GpCoord*                 coord;
     VECTOR                   vec;
 
     obj = arg0->extra.tmd;
@@ -1380,8 +1380,8 @@ void func_dryfield_water_tower_8017F700(s32 arg0)
 /// and marks the coordinate dirty.
 void func_dryfield_water_tower_8017F77C(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2* coord;
-    MATRIX*        mtx;
+    GpCoord* coord;
+    MATRIX*  mtx;
 
     coord             = task->extra.tmd->coords;
     coord->coord.t[0] = placement->pos.vx;

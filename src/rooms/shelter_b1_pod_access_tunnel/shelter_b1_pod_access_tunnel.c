@@ -83,10 +83,10 @@ void func_shelter_b1_pod_access_tunnel_8017E048(Task* task);
 void func_shelter_b1_pod_access_tunnel_8017E5B4(Task* task);
 void func_shelter_b1_pod_access_tunnel_8017E66C(s32 tpage, s16 arg1);
 void func_shelter_b1_pod_access_tunnel_8017E8F4(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b1_pod_access_tunnel_8017F3DC(GsCOORDINATE2* coord, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b1_pod_access_tunnel_8017F808(GsCOORDINATE2* coord, s32 arg1, u8* rgb);
-void func_shelter_b1_pod_access_tunnel_8018008C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
-void func_shelter_b1_pod_access_tunnel_8018070C(GsCOORDINATE2* coord, s16 arg1, u8* rgb);
+void func_shelter_b1_pod_access_tunnel_8017F3DC(GpCoord* coord, s32 arg1, s32 arg2, u8* rgb);
+void func_shelter_b1_pod_access_tunnel_8017F808(GpCoord* coord, s32 arg1, u8* rgb);
+void func_shelter_b1_pod_access_tunnel_8018008C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+void func_shelter_b1_pod_access_tunnel_8018070C(GpCoord* coord, s16 arg1, u8* rgb);
 
 /// The room's event task, spawned when the message handler latches an event.
 /// State 0 runs the latched event's CAP command; state 1 waits for it to
@@ -818,9 +818,9 @@ void func_shelter_b1_pod_access_tunnel_8017E8F4(SVECTOR* arg0, s32 arg1, s32 arg
 /// is set and releases the block when that state reaches 4.
 void func_shelter_b1_pod_access_tunnel_8017F138(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    u8             rgb[3];
+    GpEffWork* work;
+    GpCoord*   coord;
+    u8         rgb[3];
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -881,7 +881,7 @@ void func_shelter_b1_pod_access_tunnel_8017F138(Task* task)
 /// Queues a gouraud ring of sixteen quads around the projected world position
 /// of `arg0`: black at radius `arg1` and shaded `rgb` at radius `arg1 + arg2`,
 /// both scaled by depth. Nothing is drawn when the projection overflows.
-void func_shelter_b1_pod_access_tunnel_8017F3DC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_shelter_b1_pod_access_tunnel_8017F3DC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -970,7 +970,7 @@ void func_shelter_b1_pod_access_tunnel_8017F3DC(GsCOORDINATE2* arg0, s32 arg1, s
 /// Queues a gouraud disc of eight wedges around the projected world position
 /// of `arg0`, shaded `rgb` at the centre and black at the rim, of radius
 /// `arg1` scaled by depth. Nothing is drawn when the projection overflows.
-void func_shelter_b1_pod_access_tunnel_8017F808(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_shelter_b1_pod_access_tunnel_8017F808(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     RoomDraw04Scratch* block;
     POLY_G4*           prim;
@@ -1054,15 +1054,15 @@ void func_shelter_b1_pod_access_tunnel_8017F808(GsCOORDINATE2* arg0, s32 arg1, u
 /// more.
 void func_shelter_b1_pod_access_tunnel_8017FB9C(Task* task)
 {
-    GsCOORDINATE2  coord;
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* objCoord;
-    GsCOORDINATE2* dst;
-    GpEffWork*     work;
-    SVECTOR*       vec;
-    s32            i;
+    GpCoord    coord;
+    GpCoord*   coords;
+    GpCoord*   objCoord;
+    GpCoord*   dst;
+    GpEffWork* work;
+    SVECTOR*   vec;
+    s32        i;
 
-    coords   = (GsCOORDINATE2*)task->work;
+    coords   = (GpCoord*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
     objCoord = task->extra.tmd->coords;
 
@@ -1070,7 +1070,7 @@ void func_shelter_b1_pod_access_tunnel_8017FB9C(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GsCOORDINATE2*)memCalloc(0x500, 0);
+                coords = (GpCoord*)memCalloc(0x500, 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
@@ -1149,11 +1149,11 @@ void func_shelter_b1_pod_access_tunnel_8017FB9C(Task* task)
 /// slots of both rings and dimmer the older it is. `arg3` packs the colour as
 /// three multipliers, at bits 8, 4 and 0. A quad whose projection overflows is
 /// skipped.
-void func_shelter_b1_pod_access_tunnel_8018008C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3)
+void func_shelter_b1_pod_access_tunnel_8018008C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GsCOORDINATE2*     a;
-    GsCOORDINATE2*     b;
+    GpCoord*           a;
+    GpCoord*           b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -1261,9 +1261,9 @@ void func_shelter_b1_pod_access_tunnel_8018008C(GsCOORDINATE2* arg0, GsCOORDINAT
 /// reaches 4.
 void func_shelter_b1_pod_access_tunnel_80180484(Task* task)
 {
-    GsCOORDINATE2* objCoord;
-    GpEffWork*     work;
-    u8             rgb[4];
+    GpCoord*   objCoord;
+    GpEffWork* work;
+    u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
@@ -1332,7 +1332,7 @@ void func_shelter_b1_pod_access_tunnel_80180484(Task* task)
 /// inner disc of half that radius at full `arg2`, and four thin rays at right
 /// angles, alternately reaching the radius and twice it, all fading to black
 /// at the rim. Nothing is drawn when the projection overflows.
-void func_shelter_b1_pod_access_tunnel_8018070C(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_shelter_b1_pod_access_tunnel_8018070C(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");

@@ -1178,7 +1178,7 @@ void func_dryfield_motel_room_6_8017F47C(Task* task)
     Task*           owner;
     GameActor*      actor;
     TmdObject*      extra;
-    GsCOORDINATE2*  parts;
+    GpCoord*        parts;
     RoomMirrorWork* work;
     Task*           child;
     Task*           spawned;
@@ -1271,8 +1271,8 @@ void func_dryfield_motel_room_6_8017F630(Task* task)
     Task*                    spawned;
     RoomMirrorPlaneScratch*  plane;
     RoomMirrorExtentScratch* extent;
-    GsCOORDINATE2*           parts;
-    GsCOORDINATE2*           refPart;
+    GpCoord*                 parts;
+    GpCoord*                 refPart;
     DR_AREA*                 drArea;
     DR_STP*                  drStp;
     DR_OFFSET*               drOffset;
@@ -1318,7 +1318,7 @@ void func_dryfield_motel_room_6_8017F630(Task* task)
     extra->flags |= 0x10;
     viewFlg       = gGfxViewCoord.flg & 0x7FFFFFFF;
     if (work->viewFlg != viewFlg) {
-        GsCOORDINATE2* sub;
+        GpCoord* sub;
 
         work->viewFlg     = viewFlg;
         sub               = gGfxViewCoord.sub;
@@ -1645,14 +1645,14 @@ void func_dryfield_motel_room_6_8017F630(Task* task)
         owner   = gameGetPtrSlot(3);
         refPart = &parts[1];
         if (owner != NULL) {
-            TmdObject*     src       = owner->extra.tmd;
-            GsCOORDINATE2* srcCoords = src->coords;
+            TmdObject* src       = owner->extra.tmd;
+            GpCoord*   srcCoords = src->coords;
 
             parts->flg = 0;
             j          = 0;
             if (src->partCount != 0) {
-                GsCOORDINATE2* from = (GsCOORDINATE2*)&srcCoords->coord;
-                GsCOORDINATE2* to   = (GsCOORDINATE2*)&parts->coord;
+                GpCoord* from = (GpCoord*)&srcCoords->coord;
+                GpCoord* to   = (GpCoord*)&parts->coord;
 
                 do {
                     *(MATRIX*)to = *(MATRIX*)from;
@@ -1769,10 +1769,10 @@ void func_dryfield_motel_room_6_8017F630(Task* task)
     }
 
     {
-        GsCOORDINATE2* ownerParts;
-        TmdObject*     ownerBody;
-        GsCOORDINATE2* ownParts;
-        MATRIX         mtx;
+        GpCoord*   ownerParts;
+        TmdObject* ownerBody;
+        GpCoord*   ownParts;
+        MATRIX     mtx;
 
         ownerParts  = gameGetPtrSlot(3)->extra.tmd->coords;
         ownerBody   = gameGetPtrSlot(3)->extra.tmd;
@@ -1800,11 +1800,11 @@ void func_dryfield_motel_room_6_80180FB4(Task* task)
     Task*           mirror;
     TmdObject*      mirrorExtra;
     RoomMirrorWork* work;
-    GsCOORDINATE2*  mirrorPart;
+    GpCoord*        mirrorPart;
     TmdObject*      src;
-    GsCOORDINATE2*  srcParts;
+    GpCoord*        srcParts;
     TmdObject*      extra;
-    GsCOORDINATE2*  parts;
+    GpCoord*        parts;
     VECTOR          scale;
     u16             flags;
 

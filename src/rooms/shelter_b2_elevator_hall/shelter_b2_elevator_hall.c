@@ -678,9 +678,9 @@ void func_shelter_b2_elevator_hall_8017E7FC(SVECTOR* arg0, s32 arg1, s32 arg2)
 
 void func_shelter_b2_elevator_hall_8017F1D8(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    s32            lifetime;
+    GpEffWork* work;
+    GpCoord*   coord;
+    s32        lifetime;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -755,7 +755,7 @@ void func_shelter_b2_elevator_hall_8017F1D8(Task* task)
     }
 }
 
-void func_shelter_b2_elevator_hall_8017F4A4(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3)
+void func_shelter_b2_elevator_hall_8017F4A4(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -827,7 +827,7 @@ void func_shelter_b2_elevator_hall_8017F4A4(GsCOORDINATE2* arg0, u16 arg1, u16 a
     SCRATCH_POP_BYTES(0x18);
 }
 
-void func_shelter_b2_elevator_hall_8017F768(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_shelter_b2_elevator_hall_8017F768(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw09Scratch* block;
     POLY_G4*           prim;
@@ -915,7 +915,7 @@ void func_shelter_b2_elevator_hall_8017F768(GsCOORDINATE2* arg0, s32 arg1, s32 a
     SCRATCH_POP_BYTES(0x1C);
 }
 
-void func_shelter_b2_elevator_hall_8017FB8C(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_shelter_b2_elevator_hall_8017FB8C(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomDraw04Scratch* block asm("s2");
     register POLY_G4*           prim asm("s0");
@@ -990,12 +990,12 @@ void func_shelter_b2_elevator_hall_8017FB8C(GsCOORDINATE2* arg0, s16 arg1, u8* a
 
 void func_shelter_b2_elevator_hall_8017FF20(Task* arg0)
 {
-    u8             rgb[3];
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpMtxWords*    rot;
-    s16            flag;
-    s32            shift;
+    u8          rgb[3];
+    GpEffWork*  mem;
+    GpCoord*    coord;
+    GpMtxWords* rot;
+    s16         flag;
+    s32         shift;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -1073,11 +1073,11 @@ kill:
 
 void func_shelter_b2_elevator_hall_801802B8(Task* arg0)
 {
-    u8             rgb[3];
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s16            flag;
-    s16            step;
+    u8         rgb[3];
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s16        flag;
+    s16        step;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -1122,9 +1122,9 @@ void func_shelter_b2_elevator_hall_801802B8(Task* arg0)
     }
 }
 
-void func_shelter_b2_elevator_hall_80180464(GsCOORDINATE2* coord, s16 size)
+void func_shelter_b2_elevator_hall_80180464(GpCoord* coord, s16 size)
 {
-    GsCOORDINATE2  ground;
+    GpCoord        ground;
     POLY_FT4*      prim;
     s16            outerLeft;
     s16            outerRight;
@@ -1247,7 +1247,7 @@ void func_shelter_b2_elevator_hall_80180464(GsCOORDINATE2* coord, s16 size)
     SCRATCH_POP(GpRingScratch);
 }
 
-void func_shelter_b2_elevator_hall_80180990(GsCOORDINATE2* arg0, s32 arg1)
+void func_shelter_b2_elevator_hall_80180990(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;
@@ -1331,7 +1331,7 @@ void func_shelter_b2_elevator_hall_80180990(GsCOORDINATE2* arg0, s32 arg1)
     SCRATCH_POP_BYTES(0x38);
 }
 
-void func_shelter_b2_elevator_hall_80180D08(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_shelter_b2_elevator_hall_80180D08(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");
@@ -1467,10 +1467,10 @@ void func_shelter_b2_elevator_hall_80180D08(GsCOORDINATE2* arg0, s16 arg1, u8* a
 
 void func_shelter_b2_elevator_hall_801816C8(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s16            flag;
-    s16            ang;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s16        flag;
+    s16        ang;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -1500,10 +1500,10 @@ void func_shelter_b2_elevator_hall_801816C8(Task* arg0)
 
 void func_shelter_b2_elevator_hall_801817FC(Task* arg0)
 {
-    u8                      rgb[3];
-    GpEffWork*              mem;
-    register GsCOORDINATE2* coord asm("s2");
-    s16                     flag;
+    u8                rgb[3];
+    GpEffWork*        mem;
+    register GpCoord* coord asm("s2");
+    s16               flag;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -1567,7 +1567,7 @@ kill:
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void func_shelter_b2_elevator_hall_80181AA0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_shelter_b2_elevator_hall_80181AA0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -1653,7 +1653,7 @@ void func_shelter_b2_elevator_hall_80181AA0(GsCOORDINATE2* arg0, s32 arg1, s32 a
     SCRATCH_POP_BYTES(0x1C);
 }
 
-void func_shelter_b2_elevator_hall_80181ECC(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_shelter_b2_elevator_hall_80181ECC(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomDraw04Scratch* block asm("s2");
     register POLY_G4*           prim asm("s0");
@@ -1728,15 +1728,15 @@ void func_shelter_b2_elevator_hall_80181ECC(GsCOORDINATE2* arg0, s16 arg1, u8* a
 
 void func_shelter_b2_elevator_hall_80182260(Task* task)
 {
-    GsCOORDINATE2  coord;
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* objCoord;
-    GsCOORDINATE2* dst;
-    GpEffWork*     work;
-    SVECTOR*       vec;
-    s32            i;
+    GpCoord    coord;
+    GpCoord*   coords;
+    GpCoord*   objCoord;
+    GpCoord*   dst;
+    GpEffWork* work;
+    SVECTOR*   vec;
+    s32        i;
 
-    coords   = (GsCOORDINATE2*)task->work;
+    coords   = (GpCoord*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
     objCoord = task->extra.tmd->coords;
 
@@ -1744,7 +1744,7 @@ void func_shelter_b2_elevator_hall_80182260(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GsCOORDINATE2*)memCalloc(0x500, 0);
+                coords = (GpCoord*)memCalloc(0x500, 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
@@ -1818,11 +1818,11 @@ void func_shelter_b2_elevator_hall_80182260(Task* task)
     }
 }
 
-void func_shelter_b2_elevator_hall_80182750(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3)
+void func_shelter_b2_elevator_hall_80182750(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GsCOORDINATE2*     a;
-    GsCOORDINATE2*     b;
+    GpCoord*           a;
+    GpCoord*           b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -1924,9 +1924,9 @@ void func_shelter_b2_elevator_hall_80182750(GsCOORDINATE2* arg0, GsCOORDINATE2* 
 
 void func_shelter_b2_elevator_hall_80182B48(Task* task)
 {
-    GsCOORDINATE2* objCoord;
-    GpEffWork*     work;
-    u8             rgb[4];
+    GpCoord*   objCoord;
+    GpEffWork* work;
+    u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
@@ -1990,7 +1990,7 @@ void func_shelter_b2_elevator_hall_80182B48(Task* task)
     }
 }
 
-void func_shelter_b2_elevator_hall_80182DD0(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_shelter_b2_elevator_hall_80182DD0(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");

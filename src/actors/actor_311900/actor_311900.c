@@ -64,7 +64,7 @@ void func_actor_311900_8016228C(GpEnemy* enemy, Task* task);
 void func_actor_311900_801623B0(GpEnemy* enemy, Task* task);
 void func_actor_311900_801624F8(GpEnemy* enemy, Task* task);
 void func_actor_311900_801625F0(GpEnemy* enemy, Task* task);
-s32  func_actor_311900_80162658(GsCOORDINATE2* arg0, s16 arg1);
+s32  func_actor_311900_80162658(GpCoord* arg0, s16 arg1);
 void func_actor_311900_8016278C(Task* task);
 void func_actor_311900_8016281C(Task* task);
 
@@ -255,7 +255,7 @@ void func_actor_311900_8016222C(Task* task)
 void func_actor_311900_8016228C(GpEnemy* enemy, Task* task)
 {
     Actor311900Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     TmdObject*       obj;
 
     obj   = task->extra.tmd;
@@ -293,7 +293,7 @@ void func_actor_311900_8016228C(GpEnemy* enemy, Task* task)
 void func_actor_311900_801623B0(GpEnemy* enemy, Task* task)
 {
     Actor311900Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     TmdObject*       obj;
 
     obj   = task->extra.tmd;
@@ -349,7 +349,7 @@ void func_actor_311900_8016249C(Task* task)
 void func_actor_311900_801624F8(GpEnemy* enemy, Task* task)
 {
     Actor311900Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     TmdObject*       obj;
 
     obj   = task->extra.tmd;
@@ -391,14 +391,14 @@ void func_actor_311900_801625F0(GpEnemy* enemy, Task* task)
 /// `VectorNormalSS`, scales it by the step on the GTE, adds it to
 /// `arg0->coord.t` and clears `arg0->flg`. Returns the step, or 0 having
 /// touched nothing while the game is paused (`Mc_SaveData.field_5C1 == 1`) or when the
-/// step is zero. `arg0` is the per-part `GsCOORDINATE2` the caller takes from
+/// step is zero. `arg0` is the per-part `GpCoord` the caller takes from
 /// `TmdObject::coords`.
 ///
 /// The scratch-pad vector is carved out under two names: `vec`, which the
 /// frame update stores and the calls normalize, and `gte`, which the GTE round
 /// trip reads and writes back. The object keeps them apart, and that is what
 /// the copy ahead of the `if` is.
-s32 func_actor_311900_80162658(GsCOORDINATE2* arg0, s16 arg1)
+s32 func_actor_311900_80162658(GpCoord* arg0, s16 arg1)
 {
     SVECTOR* head;
     SVECTOR* vec;

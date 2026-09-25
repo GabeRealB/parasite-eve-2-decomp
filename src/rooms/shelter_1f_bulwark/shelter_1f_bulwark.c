@@ -52,10 +52,10 @@ extern RoomLatchedEvent D_shelter_1f_bulwark_80180ED0;
 
 void func_shelter_1f_bulwark_8017DBD4(Task* task);
 void func_shelter_1f_bulwark_8017DC18(Task* task);
-void func_shelter_1f_bulwark_8017E630(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_1f_bulwark_8017EA5C(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
-void func_shelter_1f_bulwark_8017F2E0(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
-void func_shelter_1f_bulwark_8017F960(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
+void func_shelter_1f_bulwark_8017E630(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_shelter_1f_bulwark_8017EA5C(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_shelter_1f_bulwark_8017F2E0(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+void func_shelter_1f_bulwark_8017F960(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// The room's event task, spawned by its message handler for a latched event.
 /// State 0 runs the event's CAP command; state 1 waits for it to finish and,
@@ -459,9 +459,9 @@ void func_shelter_1f_bulwark_8017E2A4(Task* arg0)
 
 void func_shelter_1f_bulwark_8017E38C(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    u8             rgb[3];
+    GpEffWork* work;
+    GpCoord*   coord;
+    u8         rgb[3];
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -523,7 +523,7 @@ void func_shelter_1f_bulwark_8017E38C(Task* task)
 /// position, skipped when the projection fails. The ring runs from radius
 /// `arg1`, black, out to `arg1 + arg2`, tinted with `rgb`; both radii shrink
 /// with depth.
-void func_shelter_1f_bulwark_8017E630(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_shelter_1f_bulwark_8017E630(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -612,7 +612,7 @@ void func_shelter_1f_bulwark_8017E630(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u
 /// Draws a glow disc of eight gouraud wedges around the coordinate's world
 /// position, skipped when the projection fails. The centre is tinted with
 /// `rgb` and the rim is black; `arg1` is the radius before depth scaling.
-void func_shelter_1f_bulwark_8017EA5C(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_shelter_1f_bulwark_8017EA5C(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     RoomDraw04Scratch* block;
     POLY_G4*           prim;
@@ -689,15 +689,15 @@ void func_shelter_1f_bulwark_8017EA5C(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
 
 void func_shelter_1f_bulwark_8017EDF0(Task* task)
 {
-    GsCOORDINATE2  coord;
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* objCoord;
-    GsCOORDINATE2* dst;
-    GpEffWork*     work;
-    SVECTOR*       vec;
-    s32            i;
+    GpCoord    coord;
+    GpCoord*   coords;
+    GpCoord*   objCoord;
+    GpCoord*   dst;
+    GpEffWork* work;
+    SVECTOR*   vec;
+    s32        i;
 
-    coords   = (GsCOORDINATE2*)task->work;
+    coords   = (GpCoord*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
     objCoord = task->extra.tmd->coords;
 
@@ -705,7 +705,7 @@ void func_shelter_1f_bulwark_8017EDF0(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GsCOORDINATE2*)memCalloc(0x500, 0);
+                coords = (GpCoord*)memCalloc(0x500, 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
@@ -784,11 +784,11 @@ void func_shelter_1f_bulwark_8017EDF0(Task* task)
 /// of `arg0` to the same slots of `arg1`, and fades as it gets older. `arg3`
 /// packs the colour as channel weights (bits 8 up, 4-5 and 0-1). A quad whose
 /// projection fails is skipped.
-void func_shelter_1f_bulwark_8017F2E0(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3)
+void func_shelter_1f_bulwark_8017F2E0(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GsCOORDINATE2*     a;
-    GsCOORDINATE2*     b;
+    GpCoord*           a;
+    GpCoord*           b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -890,9 +890,9 @@ void func_shelter_1f_bulwark_8017F2E0(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, 
 
 void func_shelter_1f_bulwark_8017F6D8(Task* task)
 {
-    GsCOORDINATE2* objCoord;
-    GpEffWork*     work;
-    u8             rgb[4];
+    GpCoord*   objCoord;
+    GpEffWork* work;
+    u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
@@ -961,7 +961,7 @@ void func_shelter_1f_bulwark_8017F6D8(Task* task)
 /// colour, a half-size disc in full colour, and four spikes, two of them twice
 /// as long. Every wedge fades from its tinted centre to a black rim, and all
 /// radii shrink with depth.
-void func_shelter_1f_bulwark_8017F960(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_shelter_1f_bulwark_8017F960(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");

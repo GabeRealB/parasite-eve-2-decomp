@@ -30,7 +30,7 @@ HealingScale D_healing_8012FC1C[] = {
 /// The `SndEvt_EnqueueType6` id for each `D_healing_8012FC1C` row.
 s32 D_healing_8012FC34[] = { 0xE0200001, 0xE0230001, 0xE0260001 };
 
-void func_healing_8012F7FC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
+void func_healing_8012F7FC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 
 /// Healing PE ring. Cancel (`Gp_StateC08.field_3 == -2` or
 /// `Gp_State1C->fadeState >= 4`) releases the work block, and if the effect has
@@ -42,17 +42,17 @@ void func_healing_8012F7FC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
 /// releases.
 void func_healing_8012EF34(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpStateC08*    state;
-    GpMtxWords*    rot;
-    GpEffWork*     spawned;
-    s32            pan;
-    s32            bright;
-    s16            ang;
-    s32            rng;
-    s32            temp_lo;
-    u8             rgb[3];
+    GpEffWork*  mem;
+    GpCoord*    coord;
+    GpStateC08* state;
+    GpMtxWords* rot;
+    GpEffWork*  spawned;
+    s32         pan;
+    s32         bright;
+    s16         ang;
+    s32         rng;
+    s32         temp_lo;
+    u8          rgb[3];
 
     state = &Gp_StateC08;
     mem   = arg0->spawnArg2;
@@ -133,11 +133,11 @@ void func_healing_8012EF34(Task* arg0)
             Gp_DrawRing(coord, (s32)((u16)mem->angle << 16) >> 17, rgb);
             Gp_DrawRing(coord, (s32)((u16)mem->angle << 16) >> 17, rgb);
             {
-                GsCOORDINATE2* c;
-                s32            span;
-                unsigned int   r;
-                unsigned int   g;
-                unsigned int   b;
+                GpCoord*     c;
+                s32          span;
+                unsigned int r;
+                unsigned int g;
+                unsigned int b;
 
                 c = coord;
                 COPY_REG_EC(c, coord);
@@ -156,11 +156,11 @@ void func_healing_8012EF34(Task* arg0)
                 Gp_DrawArc(coord, 0x80, mem->angle, rgb);
             }
             if (mem->index != 0) {
-                GsCOORDINATE2* c;
-                s32            span;
-                unsigned int   r;
-                unsigned int   g;
-                unsigned int   b;
+                GpCoord*     c;
+                s32          span;
+                unsigned int r;
+                unsigned int g;
+                unsigned int b;
 
                 c = coord;
                 COPY_REG_EC(c, coord);
@@ -197,12 +197,12 @@ void func_healing_8012EF34(Task* arg0)
 /// out. Life Drain carries an identical copy.
 void func_healing_8012F494(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s32            y;
-    s32            state;
-    s16            step;
-    u16            spawn;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s32        y;
+    s32        state;
+    s16        step;
+    u16        spawn;
 
     mem      = arg0->spawnArg2;
     coord    = arg0->extra.tmd->coords;
@@ -245,12 +245,12 @@ void func_healing_8012F494(Task* arg0)
 
 void func_healing_8012F5E4(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s32            y;
-    s16            step;
-    s16            kind;
-    GpEffWork*     spawned;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s32        y;
+    s16        step;
+    s16        kind;
+    GpEffWork* spawned;
 
     mem      = arg0->spawnArg2;
     coord    = arg0->extra.tmd->coords;
@@ -310,7 +310,7 @@ void func_healing_8012F5E4(Task* arg0)
 /// `(arg2 / 2) * 55 / otz` out. Both are axis-aligned and linked into
 /// `gGpuCurrentOt` at the shared `otz`. Same 0x18-byte scratch as gameplay
 /// `Gp_EffSprTask8D`.
-void func_healing_8012F7FC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
+void func_healing_8012F7FC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     u8*            head;
     GpRingScratch* block;

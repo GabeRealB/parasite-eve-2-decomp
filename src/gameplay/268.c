@@ -3316,12 +3316,12 @@ s32 Gp_GetBit2Flag(GpAreaKey* arg0, s32 arg1)
 
 void Gp_SavePlayerPos(void)
 {
-    GsCOORDINATE2* coord;
-    PlayerPos*     p;
-    s32            angle;
-    s32            temp;
-    PlayerStatus*  cfg;
-    McSaveData*    save;
+    GpCoord*      coord;
+    PlayerPos*    p;
+    s32           angle;
+    s32           temp;
+    PlayerStatus* cfg;
+    McSaveData*   save;
 
     coord  = (gameGetPtrSlot(3))->extra.tmd->coords;
     temp   = (u16)coord->coord.t[0];
@@ -3344,17 +3344,17 @@ void Gp_SavePlayerPos(void)
 
 GpEnemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpEnemyPlace* arg1)
 {
-    GpEnemy*    enemy;
-    Task*       task;
-    TmdObject*  extra;
-    GpCoordExt* coord;
+    GpEnemy*   enemy;
+    Task*      task;
+    TmdObject* extra;
+    GpCoord*   coord;
 
     enemy = Gp_SpawnEnemyFromTable(&arg0->field_4, 0, arg0->field_0, NULL);
     if (enemy != NULL) {
         task = enemy->task;
         if (task->spawnType != 0) {
             extra               = task->extra.tmd;
-            coord               = (GpCoordExt*)extra->coords;
+            coord               = extra->coords;
             enemy->placeKey     = arg1->field_0 | (arg1->field_4 << 8);
             enemy->workType     = arg1->field_2;
             coord->coord.t[0]   = arg1->field_8;

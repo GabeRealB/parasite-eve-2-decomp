@@ -571,9 +571,9 @@ void func_acropolis_sanctuary_8017DF88(s32 arg0, s32 arg1)
 /// 0xC, 0 otherwise.
 void func_acropolis_sanctuary_8017E00C(Task* task)
 {
-    GsCOORDINATE2* coord;
-    GpAreaKey*     sess;
-    s32            i;
+    GpCoord*   coord;
+    GpAreaKey* sess;
+    s32        i;
 
     coord = task->extra.tmd->coords;
     if (task->state == 0) {
@@ -606,12 +606,12 @@ void func_acropolis_sanctuary_8017E00C(Task* task)
 /// the size class in `quad`. Any state but 0 just releases the work block.
 void func_acropolis_sanctuary_8017E134(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    AcsTile*       tile;
-    s32            quad;
-    s32            i;
-    s32            idx;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    AcsTile*   tile;
+    s32        quad;
+    s32        i;
+    s32        idx;
 
     mem   = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
@@ -668,7 +668,7 @@ void func_acropolis_sanctuary_8017E134(Task* arg0)
 void func_acropolis_sanctuary_8017E338(Task* arg0)
 {
     GpEffWork*      mem;
-    GsCOORDINATE2*  coord;
+    GpCoord*        coord;
     void**          scratch;
     u8*             head;
     AcsTileScratch* blk;
@@ -849,7 +849,7 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
 void func_acropolis_sanctuary_8017EC90(Task* arg0)
 {
     GpEffWork*        mem;
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     void**            scratch;
     u8*               head;
     AcsMosaicScratch* blk;
@@ -1004,7 +1004,7 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
 void func_acropolis_sanctuary_8017F4E8(Task* arg0)
 {
     GpEffWork*        mem;
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     void**            scratch;
     u8*               head;
     RoomShaftScratch* blk;
@@ -1087,8 +1087,8 @@ void func_acropolis_sanctuary_8017F4E8(Task* arg0)
 /// (returns 0).
 s32 func_acropolis_sanctuary_8017F918(Task* task)
 {
-    GsCOORDINATE2* coord = task->extra.tmd->coords;
-    SVECTOR        vec   = D_acropolis_sanctuary_8017D5D0;
+    GpCoord* coord = task->extra.tmd->coords;
+    SVECTOR  vec   = D_acropolis_sanctuary_8017D5D0;
 
     Gp_SpawnEff(0x60078, coord, 0, &vec);
     return 0;
@@ -1099,7 +1099,7 @@ s32 func_acropolis_sanctuary_8017F918(Task* task)
 /// fractional part away from zero. The whole-unit displacement is also left in
 /// `D_acropolis_sanctuary_80186C94`. Returns non-zero when the X or Z
 /// displacement is non-zero.
-s32 func_acropolis_sanctuary_8017F974(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2)
+s32 func_acropolis_sanctuary_8017F974(GpCoord* coord, GpRec18* rec, s16 arg2)
 {
     void**            scratch;
     u8*               head;
@@ -1153,7 +1153,7 @@ s32 func_acropolis_sanctuary_8017F974(GsCOORDINATE2* coord, GpRec18* rec, s16 ar
 /// record within a quarter turn of it, moves the coordinate `push` units back
 /// along that record's bearing, in X and Z. Returns non-zero if it moved the
 /// coordinate; returns 0 at once while `gGameSession->viewReady` is 1.
-s32 func_acropolis_sanctuary_8017FB18(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push)
+s32 func_acropolis_sanctuary_8017FB18(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
 {
     void**                  scratch;
     void**                  tail;

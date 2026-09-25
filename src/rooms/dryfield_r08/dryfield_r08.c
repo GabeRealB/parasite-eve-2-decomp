@@ -29,8 +29,8 @@ extern void* D_dryfield_r08_8017F708;
 extern u32   D_dryfield_r08_801809C0[];
 extern u32   D_dryfield_r08_80180B58[];
 
-void func_dryfield_r08_8017DEFC(GsCOORDINATE2* arg0, u16 arg1, s32 arg2, s32 arg3);
-void func_dryfield_r08_8017E36C(GsCOORDINATE2* arg0, u16 arg1, s32 arg2, s32 arg3);
+void func_dryfield_r08_8017DEFC(GpCoord* arg0, u16 arg1, s32 arg2, s32 arg3);
+void func_dryfield_r08_8017E36C(GpCoord* arg0, u16 arg1, s32 arg2, s32 arg3);
 void func_dryfield_r08_8017E7C8(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2);
 
@@ -116,11 +116,11 @@ void func_dryfield_r08_8017D5F8(Task* task)
 /// aborts.
 void func_dryfield_r08_8017D8B4(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    SVECTOR*       vec;
-    s32            step;
-    s32            level;
+    GpEffWork* work;
+    GpCoord*   coord;
+    SVECTOR*   vec;
+    s32        step;
+    s32        level;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -253,7 +253,7 @@ void func_dryfield_r08_8017D8B4(Task* task)
 /// five-column grid (u = `cell % 5 * 48`, v = `cell / 5 * 48 + 0x68`), and the
 /// top four bits select the clut - row `0x10E + sel` at column `cell & 0x3F`
 /// for 0 and 1, the fixed clut 0x428F otherwise.
-void func_dryfield_r08_8017DEFC(GsCOORDINATE2* arg0, u16 arg1, s32 arg2, s32 arg3)
+void func_dryfield_r08_8017DEFC(GpCoord* arg0, u16 arg1, s32 arg2, s32 arg3)
 {
     void**             scratch;
     u8*                head;
@@ -340,7 +340,7 @@ void func_dryfield_r08_8017DEFC(GsCOORDINATE2* arg0, u16 arg1, s32 arg2, s32 arg
 /// its top four bits set selects clut 0x428F instead of 0x43D0. The quad's
 /// diagonals are `(s16)arg2 * 47 / otz` long, turned by `arg3` and
 /// `arg3 + 0x400`, so it shrinks with distance and spins with the angle.
-void func_dryfield_r08_8017E36C(GsCOORDINATE2* arg0, u16 arg1, s32 arg2, s32 arg3)
+void func_dryfield_r08_8017E36C(GpCoord* arg0, u16 arg1, s32 arg2, s32 arg3)
 {
     void**             scratch;
     u8*                head;

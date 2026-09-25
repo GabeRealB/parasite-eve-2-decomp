@@ -27,9 +27,9 @@ SVECTOR D_hypervelocity_8011FB74 = { 0, 0x240, 0x80, 0 };
 void func_hypervelocity_8011F11C(Task* task);
 void func_hypervelocity_8011F6A0(Task* task);
 
-void func_hypervelocity_8011DF34(GsCOORDINATE2* coord, s16 age, s16 spin, s32 side);
-void func_hypervelocity_8011E494(GsCOORDINATE2* coord, s16 age, s16 spin, s16 ang);
-void func_hypervelocity_8011E8A0(GsCOORDINATE2* ground, s32 spin);
+void func_hypervelocity_8011DF34(GpCoord* coord, s16 age, s16 spin, s32 side);
+void func_hypervelocity_8011E494(GpCoord* coord, s16 age, s16 spin, s16 ang);
+void func_hypervelocity_8011E8A0(GpCoord* ground, s32 spin);
 
 /// Per-frame task for the muzzle flare the hypervelocity round leaves behind.
 /// `Task::spawnArg2` is the `Gp_State1C` work block holding the flare's drift
@@ -61,16 +61,16 @@ void func_hypervelocity_8011E8A0(GsCOORDINATE2* ground, s32 spin);
 ///   flare is 0x6F frames old or the charge goes negative.
 void func_hypervelocity_8011D1E8(Task* task)
 {
-    u8             rgb[3];
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* light;
-    GsCOORDINATE2* player;
-    GpEffWork*     work;
-    GpEffWork*     eff;
-    GpCoord64*     base;
-    GpPointLight*  slot;
-    GpMtxWords*    dstm;
-    s32            pan;
+    u8            rgb[3];
+    GpCoord*      coord;
+    GpCoord*      light;
+    GpCoord*      player;
+    GpEffWork*    work;
+    GpEffWork*    eff;
+    GpCoord64*    base;
+    GpPointLight* slot;
+    GpMtxWords*   dstm;
+    s32           pan;
 
     work  = task->spawnArg2;
     base  = &Gp_RoomCoords[1];
@@ -240,22 +240,22 @@ void func_hypervelocity_8011D1E8(Task* task)
 ///   per frame until the ring falls under 0x80.
 void func_hypervelocity_8011D830(Task* task)
 {
-    GsCOORDINATE2  ground;
-    SVECTOR        after;
-    SVECTOR        before;
-    u8             rgb[3];
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* player;
-    GsCOORDINATE2* light;
-    GpCoord64*     base;
-    GpPointLight*  slot;
-    GpEffWork*     work;
-    GpEffWork*     eff;
-    HyperBeam*     beam;
-    GpMtxWords*    dstm;
-    GpMtxWords*    srcm;
-    u32            ang;
-    s32            i;
+    GpCoord       ground;
+    SVECTOR       after;
+    SVECTOR       before;
+    u8            rgb[3];
+    GpCoord*      coord;
+    GpCoord*      player;
+    GpCoord*      light;
+    GpCoord64*    base;
+    GpPointLight* slot;
+    GpEffWork*    work;
+    GpEffWork*    eff;
+    HyperBeam*    beam;
+    GpMtxWords*   dstm;
+    GpMtxWords*   srcm;
+    u32           ang;
+    s32           i;
 
     beam  = (HyperBeam*)task->work;
     work  = task->spawnArg2;
@@ -422,7 +422,7 @@ void func_hypervelocity_8011D830(Task* task)
 /// `D_hypervelocity_8012EF0C[i]` plus `age`, and is linked into the OT bucket
 /// its own projected depth names. Segments the GTE flags as behind the eye are
 /// dropped.
-void func_hypervelocity_8011DF34(GsCOORDINATE2* coord, s16 age, s16 spin, s32 side)
+void func_hypervelocity_8011DF34(GpCoord* coord, s16 age, s16 spin, s32 side)
 {
     HyperTrailScratch* sc;
     POLY_FT4*          prim;
@@ -521,7 +521,7 @@ void func_hypervelocity_8011DF34(GsCOORDINATE2* coord, s16 age, s16 spin, s32 si
 /// constant screen size) and `ang` is the roll: the corner pairs sit at `ang`
 /// and `ang + 0x400`, a quarter turn apart, so the quad stays square as it
 /// spins.
-void func_hypervelocity_8011E494(GsCOORDINATE2* coord, s16 age, s16 spin, s16 ang)
+void func_hypervelocity_8011E494(GpCoord* coord, s16 age, s16 spin, s16 ang)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -593,7 +593,7 @@ void func_hypervelocity_8011E494(GsCOORDINATE2* coord, s16 age, s16 spin, s16 an
 /// byte straight from the expression lets GCC fold the store's truncation back
 /// into the `gDisplayState.animFrame` load and the `+ 0xC0` / `+ 0xDF`, which the
 /// ROM does not do.
-void func_hypervelocity_8011E8A0(GsCOORDINATE2* ground, s32 spin)
+void func_hypervelocity_8011E8A0(GpCoord* ground, s32 spin)
 {
     register u8*          head asm("v1");
     OverlayGroundScratch* sc;
@@ -684,7 +684,7 @@ void func_hypervelocity_8011E8A0(GsCOORDINATE2* ground, s32 spin)
 /// trail uses, picked by the stored jitter `D_hypervelocity_8012EF0C[i]` plus
 /// `age`, tinted by `rgb` and linked into the OT bucket its own projected
 /// depth names. Walls the GTE flags as behind the eye are dropped.
-void func_hypervelocity_8011EC1C(GsCOORDINATE2* coord, s16 age, s32 radius, u8* rgb)
+void func_hypervelocity_8011EC1C(GpCoord* coord, s16 age, s32 radius, u8* rgb)
 {
     HyperConeScratch* sc;
     POLY_FT4*         prim;
@@ -795,11 +795,11 @@ void func_hypervelocity_8011F11C(Task* task)
 
 void func_hypervelocity_8011F168(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s16            flag;
-    s16            val;
-    u8             rgb[3];
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s16        flag;
+    s16        val;
+    u8         rgb[3];
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -833,11 +833,11 @@ void func_hypervelocity_8011F168(Task* arg0)
 
 void func_hypervelocity_8011F270(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s16            flag;
-    s16            val;
-    u8             rgb[3];
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s16        flag;
+    s16        val;
+    u8         rgb[3];
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -874,7 +874,7 @@ void func_hypervelocity_8011F374(Task* arg0)
     Task*       parent;
     TmdObject*  extra;
     TmdObject*  playerExtra;
-    GpCoordExt* coord;
+    GpCoord*    coord;
     Task*       work;
     GpMtxWords* mat;
     s16         count;
@@ -883,7 +883,7 @@ void func_hypervelocity_8011F374(Task* arg0)
     work        = gameGetPtrSlot(3);
     extra       = arg0->extra.tmd;
     playerExtra = work->extra.tmd;
-    coord       = (GpCoordExt*)extra->coords;
+    coord       = extra->coords;
 
     coord->flg      = 0;
     extra->flags    = playerExtra->flags;
@@ -939,13 +939,13 @@ void func_hypervelocity_8011F374(Task* arg0)
 
 void func_hypervelocity_8011F570(Task* arg0)
 {
-    Task*          child;
-    TmdObject*     childExtra;
-    TmdObject*     extra;
-    GsCOORDINATE2* coord;
+    Task*      child;
+    TmdObject* childExtra;
+    TmdObject* extra;
+    GpCoord*   coord;
 
     extra               = arg0->extra.tmd;
-    coord               = (GsCOORDINATE2*)extra->coords;
+    coord               = extra->coords;
     arg0->state        += 1;
     arg0->exitCallback  = func_hypervelocity_8011F6A0;
     arg0->killCountdown = 0;
@@ -1012,14 +1012,14 @@ void func_hypervelocity_8011F6C0(Task* arg0)
 /// coordinate's translation, kicking the gun back along its own barrel.
 void func_hypervelocity_8011F724(Task* arg0)
 {
-    u8*            head;
-    HyperRecoil*   rec;
-    GameActor*     actor;
-    GsCOORDINATE2* coord;
-    Task*          eff;
-    s32            div;
-    s32            count;
-    s32            step;
+    u8*          head;
+    HyperRecoil* rec;
+    GameActor*   actor;
+    GpCoord*     coord;
+    Task*        eff;
+    s32          div;
+    s32          count;
+    s32          step;
 
     head                      = SCRATCH_HEAD(u8);
     rec                       = (HyperRecoil*)(head - 0x18);

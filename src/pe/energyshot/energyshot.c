@@ -25,8 +25,8 @@ EnergyShotScale D_energyshot_801300E4[] = {
 /// The `SndEvt_EnqueueType6` id for each `D_energyshot_801300E4` row.
 s32 D_energyshot_801300FC[] = { 0xE02A0001, 0xE02D0001, 0xE0300001 };
 
-void func_energyshot_8012FA50(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u8* arg3);
-void func_energyshot_8012F750(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_energyshot_8012FA50(GpCoord* arg0, s16 arg1, s16 arg2, u8* arg3);
+void func_energyshot_8012F750(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 
 /// Two scratch rings the shot walks while in flight.
 s16 D_energyshot_80130108[16] = { 0 };
@@ -43,11 +43,11 @@ s16 D_energyshot_80130128[16] = { 0 };
 /// advances to state 2, which shrinks brightness until it drops below 0x11.
 void func_energyshot_8012EF34(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpStateC08*    state;
-    s32            i;
-    u8             rgb[3];
+    GpEffWork*  mem;
+    GpCoord*    coord;
+    GpStateC08* state;
+    s32         i;
+    u8          rgb[3];
 
     state = &Gp_StateC08;
     mem   = arg0->spawnArg2;
@@ -249,7 +249,7 @@ release:
 /// screen units away at `arg2 - 0x20` and `arg2 + 0x20`, so the wedge is a
 /// 0x40-wide fan blade about `arg2`. Only the apex carries `rgb`, the rim
 /// fading to black. A negative `gte_stflg` drops the wedge.
-void func_energyshot_8012F750(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_energyshot_8012F750(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     u8*            head;
     GpRingScratch* block;
@@ -308,7 +308,7 @@ void func_energyshot_8012F750(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
 /// is one of six 0x28-wide frames picked per vertex by `D_energyshot_80130108`
 /// plus the frame counter, the quad is tinted by the three bytes at `arg3`,
 /// and a negative `gte_stflg` drops the segment.
-void func_energyshot_8012FA50(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u8* arg3)
+void func_energyshot_8012FA50(GpCoord* arg0, s16 arg1, s16 arg2, u8* arg3)
 {
     u8*            head;
     GpBandScratch* block;
@@ -393,9 +393,9 @@ void func_energyshot_8012FA50(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u8* arg3)
 
 void func_energyshot_8012FFB8(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s32            y;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s32        y;
 
     mem      = arg0->spawnArg2;
     coord    = arg0->extra.tmd->coords;

@@ -27,10 +27,10 @@ AntibodyStep D_antibody_80130BD4[] = {
 /// The `SndEvt_EnqueueType6` id for each `D_antibody_80130BD4` row.
 s32 D_antibody_80130C00[] = { 0xE0290001, 0xE02C0001, 0xE02F0001 };
 
-void func_antibody_801308D4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_antibody_8012FBB0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
-void func_antibody_8012FFEC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
-void func_antibody_80130428(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
+void func_antibody_801308D4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_antibody_8012FBB0(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
+void func_antibody_8012FFEC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
+void func_antibody_80130428(GpCoord* arg0, s16 arg1, s16 arg2);
 
 /// Runs one frame of an antibody cast. `Task::spawnArg2` is the `GpEffWork`
 /// block and `Task::extra` reaches the effect coordinate. Cancel
@@ -53,11 +53,11 @@ s16 D_antibody_80130C0C[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 
 void func_antibody_8012EF34(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpStateC08*    state;
-    s32            i;
-    u8             rgb[3];
+    GpEffWork*  mem;
+    GpCoord*    coord;
+    GpStateC08* state;
+    s32         i;
+    u8          rgb[3];
 
     state = &Gp_StateC08;
     mem   = arg0->spawnArg2;
@@ -241,21 +241,21 @@ release:
 /// effect at tick 0x15.
 void func_antibody_8012F734(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpMtxWords*    rot;
-    s32            rng0;
-    s32            rng1a;
-    s32            rng1b;
-    s32            rng1c;
-    s32            rng1d;
-    s32            rng2a;
-    s32            rng2b;
-    s32            rng2c;
-    s32            rng3a;
-    s32            rng3b;
-    s32            rng3c;
-    s16            idx;
+    GpEffWork*  mem;
+    GpCoord*    coord;
+    GpMtxWords* rot;
+    s32         rng0;
+    s32         rng1a;
+    s32         rng1b;
+    s32         rng1c;
+    s32         rng1d;
+    s32         rng2a;
+    s32         rng2b;
+    s32         rng2c;
+    s32         rng3a;
+    s32         rng3b;
+    s32         rng3c;
+    s16         idx;
 
     mem        = arg0->spawnArg2;
     coord      = arg0->extra.tmd->coords;
@@ -363,7 +363,7 @@ void func_antibody_8012F734(Task* arg0)
 /// radius and `arg3` the spin angle. The quad's corners are that radius
 /// rotated by `arg3` and by `arg3 + 0x400`; nothing is drawn if the centre
 /// projects off-screen.
-void func_antibody_8012FBB0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
+void func_antibody_8012FBB0(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -433,7 +433,7 @@ void func_antibody_8012FBB0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 /// sprite sheet row at v = 0x38..0x5F. `arg2` is a signed half-extent, so the
 /// on-screen half-diagonal is `arg2 * 39 / otz`. Nothing is drawn if the
 /// projection sets a negative `gte_stflg`.
-void func_antibody_8012FFEC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
+void func_antibody_8012FFEC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -503,13 +503,13 @@ void func_antibody_8012FFEC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 /// `((arg1 & 3) >> 1) * 24 - 0x30`. `arg2` is a signed half-extent, so the
 /// on-screen half-width is `arg2 * 23 / otz`. Nothing is drawn if either
 /// projection sets a negative `gte_stflg`.
-void func_antibody_80130428(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
+void func_antibody_80130428(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     u8*                 head;
     AntibodyArcScratch* block;
     POLY_FT4*           prim;
     SVECTOR*            vec;
-    GsCOORDINATE2*      player;
+    GpCoord*            player;
     s32                 u0;
     s32                 u1;
     s32                 va;
@@ -583,7 +583,7 @@ void func_antibody_80130428(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 /// screen units away at `arg2 - 0x20` and `arg2 + 0x20`, so the wedge is a
 /// 0x40-wide fan blade about `arg2`. Only the apex carries `rgb`, the rim
 /// fading to black. A negative `gte_stflg` drops the wedge.
-void func_antibody_801308D4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_antibody_801308D4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     u8*            head;
     GpRingScratch* block;

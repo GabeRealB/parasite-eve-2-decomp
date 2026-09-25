@@ -136,8 +136,8 @@ void func_actor_141000_80132E24(Task* arg0);
 void func_actor_141000_80132EB0(Task* arg0);
 void func_actor_141000_80132EF4(Task* arg0);
 void func_actor_141000_80132FC8(Task* arg0);
-s32  func_actor_141000_80132FD0(GsCOORDINATE2* arg0, s32 arg1);
-void func_actor_141000_8013308C(GsCOORDINATE2* arg0, s32 arg1);
+s32  func_actor_141000_80132FD0(GpCoord* arg0, s32 arg1);
+void func_actor_141000_8013308C(GpCoord* arg0, s32 arg1);
 void func_actor_141000_80133204(Task* task);
 void func_actor_141000_80133260(Task* arg0);
 void func_actor_141000_801332A0(Task* task);
@@ -442,7 +442,7 @@ void func_actor_141000_80132C7C(Task* task)
 {
     Actor141000CtrlWork* work;
     TmdObject*           obj;
-    GsCOORDINATE2*       coord;
+    GpCoord*             coord;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -534,8 +534,8 @@ void func_actor_141000_80132EF4(Task* arg0)
     Actor141000CtrlWork* work;
     TmdObject*           obj;
     Task*                spawned;
-    GsCOORDINATE2*       src;
-    GsCOORDINATE2*       dst;
+    GpCoord*             src;
+    GpCoord*             dst;
     u16                  frames;
 
     work         = (Actor141000CtrlWork*)arg0->work;
@@ -571,7 +571,7 @@ void func_actor_141000_80132FC8(Task* arg0)
 /// position into the root's translation, drop X by 40 and clear `flg`.
 /// Returns non-zero on the frame that ran past the table, which is what the
 /// state-2 handler at 0x80132EF4 advances `state` on.
-s32 func_actor_141000_80132FD0(GsCOORDINATE2* arg0, s32 arg1)
+s32 func_actor_141000_80132FD0(GpCoord* arg0, s32 arg1)
 {
     GpMtxWords* words;
     SVECTOR*    pos;
@@ -601,7 +601,7 @@ s32 func_actor_141000_80132FD0(GsCOORDINATE2* arg0, s32 arg1)
     return ret;
 }
 
-void func_actor_141000_8013308C(GsCOORDINATE2* arg0, s32 arg1)
+void func_actor_141000_8013308C(GpCoord* arg0, s32 arg1)
 {
     VECTOR scale;
 
@@ -622,9 +622,9 @@ void func_actor_141000_8013308C(GsCOORDINATE2* arg0, s32 arg1)
 /// taking over kills the task outright.
 void func_actor_141000_801330C0(Task* arg0)
 {
-    GsCOORDINATE2* coord;
-    GpMtxWords*    words;
-    u16            count;
+    GpCoord*    coord;
+    GpMtxWords* words;
+    u16         count;
 
     coord = arg0->extra.tmd->coords;
     if (arg0->state == 0) {
@@ -689,7 +689,7 @@ void func_actor_141000_801332A0(Task* task)
     Actor141000Work* work     = (Actor141000Work*)task->work;
     TaskFunc         funcs[2] = { func_actor_141000_801339F8, func_actor_141000_80133A00 };
     VECTOR3          pos;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              i;
 
     funcs[(s16)work->walk.motion](task);
@@ -734,7 +734,7 @@ void func_actor_141000_801332A0(Task* task)
 void func_actor_141000_80133490(Task* arg0)
 {
     Actor141000Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     SVECTOR          d;
     s32              dx;
     s32              dz;
@@ -969,13 +969,13 @@ void func_actor_141000_80133A00(Task* arg0)
 void func_actor_141000_80133A68(Task* task)
 {
     Actor141000Work* work;
-    GpCoordExt*      coord;
+    GpCoord*         coord;
     VECTOR           delta;
     SVECTOR          dir;
     SVECTOR          rot;
 
     work  = (Actor141000Work*)task->work;
-    coord = (GpCoordExt*)task->extra.tmd->coords;
+    coord = task->extra.tmd->coords;
 
     delta.vx = work->walk.target.vx - coord->coord.t[0];
     delta.vy = work->walk.target.vy - coord->coord.t[1];
@@ -1004,7 +1004,7 @@ void func_actor_141000_80133A68(Task* task)
 void func_actor_141000_80133B28(Task* arg0)
 {
     Actor141000Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     VECTOR           vec;
 
     coord = arg0->extra.tmd->coords;
@@ -1035,7 +1035,7 @@ void func_actor_141000_80133BD8(Task* arg0)
 {
     Actor141000Work* work;
     GpMtxWords*      words;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     SVECTOR          vec;
     GpAnimArg        preset;
     s32              vy;
@@ -1121,9 +1121,9 @@ s32 func_actor_141000_80133CD8(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 /// `flg` so the world matrix is recomputed.
 s32 func_actor_141000_80133E10(Task* task, s32 arg1, GpXformArg* args)
 {
-    GpCoordExt* coord;
+    GpCoord* coord;
 
-    coord               = (GpCoordExt*)task->extra.tmd->coords;
+    coord               = task->extra.tmd->coords;
     coord->coord.t[0]   = args->pos.vx;
     coord->coord.t[1]   = args->pos.vy;
     coord->coord.t[2]   = args->pos.vz;

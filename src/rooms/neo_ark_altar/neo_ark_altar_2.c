@@ -340,7 +340,7 @@ void func_neo_ark_altar_8017DC40(s32 arg0)
 void func_neo_ark_altar_8017DF0C(Task* task)
 {
     NeoArkAltarWork* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Task*            actor;
     s32              prev;
     s16              cur;

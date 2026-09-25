@@ -27,8 +27,8 @@ s32 D_inferno_801304F0[] = { 0xE0100001, 0xE0130001, 0xE00D0001 };
 extern s8 D_80114C0B;
 
 void func_inferno_8012F3EC(s16 arg0);
-void func_inferno_8012F978(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, InfernoIdMap* map);
-void func_inferno_8012FF34(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, InfernoIdMap* map);
+void func_inferno_8012F978(GpEffWork* mem, GpCoord* coord, s32 kind, InfernoIdMap* map);
+void func_inferno_8012FF34(GpEffWork* mem, GpCoord* coord, s32 kind, InfernoIdMap* map);
 
 /// Runs one frame of the inferno cast: a state machine driven by
 /// `Task::state`, with the chain it takes chosen in state 0 from
@@ -42,10 +42,10 @@ void func_inferno_8012FF34(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, Infer
 /// the player is dying (`D_80114C0B`) or the room is fading (`Gp_State1C`).
 void func_inferno_8012EF88(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s32            i;
-    s32            pan;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s32        i;
+    s32        pan;
 
     mem   = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
@@ -192,13 +192,13 @@ const u32 D_inferno_8012EF68 = 0;
 /// hit. `Task::spawnArg1 + 1` selects the chain from state 0.
 void func_inferno_8012F530(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    InfernoIdMap*  map;
-    u8*            p;
-    s32            i;
-    s32            rng;
-    s32            tz;
+    GpEffWork*    mem;
+    GpCoord*      coord;
+    InfernoIdMap* map;
+    u8*           p;
+    s32           i;
+    s32           rng;
+    s32           tz;
 
     map   = (InfernoIdMap*)arg0->work;
     mem   = arg0->spawnArg2;
@@ -325,7 +325,7 @@ release:
 /// inner rim is lifted `GpEffWork::period + field_2` along local Y instead
 /// of `field_2` alone, so the ring rises as the caster's `period` winds up.
 /// `kind` picks the row of `D_inferno_801304E4` that sizes it.
-void func_inferno_8012F978(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, InfernoIdMap* map)
+void func_inferno_8012F978(GpEffWork* mem, GpCoord* coord, s32 kind, InfernoIdMap* map)
 {
     u8*                head;
     InfernoFanScratch* block;
@@ -424,7 +424,7 @@ void func_inferno_8012F978(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, Infer
 /// is then projected through `GsWSMATRIX` and linked as one semi-transparent
 /// `POLY_FT4`; `map` and `GpEffWork::age` pick which of the six 0x28-wide
 /// texture frames it uses, and a negative `gte_stflg` drops the segment.
-void func_inferno_8012FF34(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, InfernoIdMap* map)
+void func_inferno_8012FF34(GpEffWork* mem, GpCoord* coord, s32 kind, InfernoIdMap* map)
 {
     u8*                head;
     InfernoFanScratch* block;

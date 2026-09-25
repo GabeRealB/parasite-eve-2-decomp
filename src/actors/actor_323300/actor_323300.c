@@ -83,7 +83,7 @@ typedef struct Actor323300MtxWork {
     /* 0x444 */ s32            field_444; // animation id the slots were seeded with
     /* 0x448 */ byte           pad_448[0x4];
     /* 0x44C */ s32            field_44C;
-    /* 0x450 */ GsCOORDINATE2  shadow[3];   // unsquashed copies of parts 3..5, re-parented onto 4..6
+    /* 0x450 */ GpCoord        shadow[3];   // unsquashed copies of parts 3..5, re-parented onto 4..6
     /* 0x540 */ VECTOR         partPos[19]; // original part translations, before the squash
     /* 0x670 */ OverlayMat     light;
     /* 0x690 */ OverlayMat     color;
@@ -344,8 +344,8 @@ s32 func_actor_323300_80162360(Task* arg0, s32 arg1, GpCmdArg* msg, GpXformArg* 
     GpAnimArg*       preset;
     TmdObject*       extra;
     Task*            spawned;
-    GsCOORDINATE2*   src;
-    GsCOORDINATE2*   dst;
+    GpCoord*         src;
+    GpCoord*         dst;
     SVECTOR          vec;
     s32              i;
 
@@ -496,7 +496,7 @@ void func_actor_323300_801627B4(Task* arg0)
 {
     Actor323300Work* work;
     OverlayMat*      words;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     SVECTOR          vec;
     s16              diff;
     s32              vy;
@@ -581,9 +581,9 @@ s32 func_actor_323300_801628B8(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 /// clearing `flg` makes the world matrix be recomputed.
 s32 func_actor_323300_801629F0(Task* task, s32 msgId, GpXformArg* args, s32 arg3)
 {
-    GpCoordExt* coord;
+    GpCoord* coord;
 
-    coord               = (GpCoordExt*)(task->extra.tmd)->coords;
+    coord               = (task->extra.tmd)->coords;
     coord->coord.t[0]   = args->pos.vx;
     coord->coord.t[1]   = args->pos.vy;
     coord->coord.t[2]   = args->pos.vz;
@@ -673,7 +673,7 @@ void func_actor_323300_80162BE4(Task* arg0)
     TmdObject*          extra;
     TmdObject*          model;
     TmdSource*          src;
-    GsCOORDINATE2*      coords;
+    GpCoord*            coords;
     SVECTOR*            dst;
     SVECTOR*            from;
     GpMimeSrc*          ctl;
@@ -764,7 +764,7 @@ void func_actor_323300_80162DF0(Task* arg0)
 {
     Actor323300MtxWork* work;
     TmdObject*          extra;
-    GsCOORDINATE2*      coord;
+    GpCoord*            coord;
     VECTOR              vec;
     s32                 blend;
     s32                 i;
@@ -834,10 +834,10 @@ void func_actor_323300_80162DF0(Task* arg0)
 /// rotation in a matrix carved off the scratchpad head, applies both turns,
 /// converts the result back into the parent's frame, writes the 3x3 into the
 /// joint and refreshes it.
-void func_actor_323300_80163188(GsCOORDINATE2* coord, s16 angle)
+void func_actor_323300_80163188(GpCoord* coord, s16 angle)
 {
-    MATRIX*        rotation;
-    GsCOORDINATE2* out;
+    MATRIX*  rotation;
+    GpCoord* out;
 
     SCRATCH_PUSH(MATRIX);
     rotation = SCRATCH_HEAD(MATRIX);
@@ -853,9 +853,9 @@ void func_actor_323300_80163188(GsCOORDINATE2* coord, s16 angle)
 
 void func_actor_323300_801634B0(Task* arg0)
 {
-    GsCOORDINATE2* base;
-    GsCOORDINATE2* node;
-    GsCOORDINATE2* sub;
+    GpCoord* base;
+    GpCoord* node;
+    GpCoord* sub;
 
     do {
         base      = arg0->extra.tmd->coords;
@@ -879,7 +879,7 @@ void func_actor_323300_80163510(Task* arg0)
     Actor323300MtxWork* work;
     OverlayMat*         light;
     OverlayMat*         color;
-    GsCOORDINATE2*      coords;
+    GpCoord*            coords;
     TmdObject*          extra;
 
     extra  = arg0->extra.tmd;
@@ -942,9 +942,9 @@ void func_actor_323300_8016359C(Task* arg0, s16 arg1)
 /// rebuilds the rotation from them and clears `flg`.
 s32 func_actor_323300_8016369C(Task* task, s32 msgId, GpXformArg* args, s32 arg3)
 {
-    GpCoordExt* coord;
+    GpCoord* coord;
 
-    coord               = (GpCoordExt*)(task->extra.tmd)->coords;
+    coord               = (task->extra.tmd)->coords;
     coord->coord.t[0]   = args->pos.vx;
     coord->coord.t[1]   = args->pos.vy;
     coord->coord.t[2]   = args->pos.vz;

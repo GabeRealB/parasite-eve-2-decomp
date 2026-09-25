@@ -31,7 +31,7 @@ typedef struct AobSceneWork {
 STATIC_ASSERT_SIZEOF(AobSceneWork, 8);
 
 /// 0x18 block the observatory's lens-flare task takes off `G_SCRATCH_HEAD` for
-/// one frame. `pos` is the model's world position (`GsCOORDINATE2::workm`
+/// one frame. `pos` is the model's world position (`GpCoord::workm`
 /// translation) loaded into the GTE as V0; `sx`/`sy`, `otz` and `flag` are the
 /// `rtps` results read back with `gte_stsxy`, `gte_stszotz` and `gte_stflg`.
 /// `otz` doubles as the sprite's depth after being pulled 0x40 towards the
@@ -192,7 +192,7 @@ void func_acropolis_observatory_8017E424(Task* arg0)
     u8*              head;
     AobFlareScratch* blk;
     POLY_FT4*        prim;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     void*            mem;
     u16              vz;
     s16              x;
@@ -265,11 +265,11 @@ void func_acropolis_observatory_8017E424(Task* arg0)
 /// once `Gp_State1C->eventState` has reached 4, i.e. once the room has faded out.
 void func_acropolis_observatory_8017E6F8(Task* task)
 {
-    GsCOORDINATE2* coord;
-    s32            mask;
-    s32            i;
-    SVECTOR*       vec;
-    u16*           flags;
+    GpCoord* coord;
+    s32      mask;
+    s32      i;
+    SVECTOR* vec;
+    u16*     flags;
 
     coord = task->extra.tmd->coords;
     mask  = 1 << Gp_GetViewIndex();

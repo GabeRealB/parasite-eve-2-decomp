@@ -28,7 +28,7 @@ extern void Gp_DrawActorTmdFlagged(GpuOtBuf* arg0);
 extern void Gp_DrawActorTmdActive(GpuOtBuf* arg0);
 extern void Gp_SpawnCurView(s32 arg0);
 extern void Gp_ClearRec18Occupied(GpRec18* arg0);
-extern s32  func_801011D0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32* arg3);
+extern s32  func_801011D0(GpCoord* arg0, s32 arg1, s32 arg2, s32* arg3);
 extern void Gp_LinkViewSprts(void);
 extern void Gp_AllocSprtLists(void);
 extern s32  Gp_GetViewIndex(void);

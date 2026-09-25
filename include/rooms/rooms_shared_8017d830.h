@@ -8,6 +8,7 @@
 #include "overlay.h"
 
 #include <psyq/libgs.h>
+#include "main/coord.h"
 #include <psyq/libgte.h>
 
 /// The world delta the last call produced, kept for the room's own use. Every
@@ -19,6 +20,6 @@ extern SVECTOR RoomsShared8017d830Delta;
 /// `rec`, rounding the sub-pixel remainder of X and Z away from zero and
 /// publishing the whole delta. Returns 1 when the frame actually moved. Six
 /// acropolis rooms carry this body.
-s32 RoomsShared8017d830(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2);
+s32 RoomsShared8017d830(GpCoord* coord, GpRec18* rec, s16 arg2);
 
 #endif // ROOMS_SHARED_8017D830_H

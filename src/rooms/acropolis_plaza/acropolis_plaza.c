@@ -1060,7 +1060,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
     CdCmdQueue*             q    = &CdCmd_Queue;
     AcropolisPlazaWarpWork* work = (AcropolisPlazaWarpWork*)task->work;
     AcropolisPlazaWarpWork* newWork;
-    GsCOORDINATE2*          coord;
+    GpCoord*                coord;
     s32                     weaponId;
     s32                     id;
 
@@ -1881,8 +1881,8 @@ void func_acropolis_plaza_801802C0(Task* task)
     // Work spans both passes; s4 is reused for transient draw state.
     GpCoord64*                       entry;
     GpPointLight*                    light;
-    GsCOORDINATE2*                   coord;
-    GsCOORDINATE2*                   lightCoord;
+    GpCoord*                         coord;
+    GpCoord*                         lightCoord;
     register AcropolisPlazaBeamWork* work asm("s5");
     u8 *                             head, *raw;
     u16                              vz;
@@ -2141,7 +2141,7 @@ void func_acropolis_plaza_801802C0(Task* task)
 
 void func_acropolis_plaza_801811D0(Task* task)
 {
-    GsCOORDINATE2*              coord;
+    GpCoord*                    coord;
     AcropolisPlazaBeamWork*     work;
     u8*                         head;
     register u8*                raw asm("v0");
@@ -2323,7 +2323,7 @@ void func_acropolis_plaza_801811D0(Task* task)
 
 void func_acropolis_plaza_80182054(Task* task)
 {
-    GsCOORDINATE2*             coord;
+    GpCoord*                   coord;
     u8 *                       head, *raw;
     u16                        vz;
     AcropolisPlazaGlowScratch* blk;
@@ -2404,8 +2404,8 @@ void func_acropolis_plaza_80182054(Task* task)
 /// `D_acropolis_plaza_80198820`. Every later frame is a no-op.
 void func_acropolis_plaza_8018251C(Task* task)
 {
-    GsCOORDINATE2* coord;
-    s32            i;
+    GpCoord* coord;
+    s32      i;
 
     coord = task->extra.tmd->coords;
     if (task->state == 0) {

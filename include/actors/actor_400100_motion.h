@@ -58,7 +58,7 @@ static __inline__ s16 Actor00100_HasRecord10(Task* actor)
     return found;
 }
 
-static __inline__ void Actor00100_PositionDelta(GsCOORDINATE2* coord, SVECTOR* pos)
+static __inline__ void Actor00100_PositionDelta(GpCoord* coord, SVECTOR* pos)
 {
     pos->vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
     pos->vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];

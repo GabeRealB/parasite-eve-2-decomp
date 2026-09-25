@@ -82,7 +82,7 @@ extern s32   D_acropolis_bridge_801917A0;
 extern u16   D_acropolis_bridge_801917A4;
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3);
+void func_800FDB18(s32 arg0, GpCoord* arg1, SVECTOR* arg2, GpEffArg* arg3);
 
 void func_acropolis_bridge_8017D98C(Task* task);
 void func_acropolis_bridge_8017D9FC(Task* task);
@@ -112,9 +112,9 @@ void func_acropolis_bridge_8017F544(Task* task);
 void func_acropolis_bridge_8017F658(Task* task);
 s32  func_acropolis_bridge_8017F6D4(OverlayHotspot* table, s16 x, s16 y);
 void func_acropolis_bridge_8017F808(Task* task);
-void func_acropolis_bridge_801827EC(GsCOORDINATE2* arg0, s32 arg1, s16 arg2);
-void func_acropolis_bridge_80182F8C(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
-void func_acropolis_bridge_801833A0(GsCOORDINATE2* arg0, u16 arg1, s16 arg2);
+void func_acropolis_bridge_801827EC(GpCoord* arg0, s32 arg1, s16 arg2);
+void func_acropolis_bridge_80182F8C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+void func_acropolis_bridge_801833A0(GpCoord* arg0, u16 arg1, s16 arg2);
 void func_acropolis_bridge_80183654(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_acropolis_bridge_8018581C(Task* task);
 void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task);
@@ -335,7 +335,7 @@ void func_acropolis_bridge_8017DA0C(Task* task)
 void func_acropolis_bridge_8017DA64(Task* task)
 {
     TmdObject*                 extra;
-    GsCOORDINATE2*             coord;
+    GpCoord*                   coord;
     _AcropolisBridgeModelWork* work;
 
     extra = task->extra.tmd;
@@ -361,8 +361,8 @@ void func_acropolis_bridge_8017DA64(Task* task)
 /// coordinate's `flg` so its world matrix is rebuilt this frame.
 void func_acropolis_bridge_8017DB08(Task* task)
 {
-    TmdObject*     extra;
-    GsCOORDINATE2* coord;
+    TmdObject* extra;
+    GpCoord*   coord;
 
     extra = task->extra.tmd;
     coord = extra->coords;
@@ -1382,20 +1382,20 @@ void func_acropolis_bridge_8017F808(Task* task)
 /// is, so that the ambience thins out during a fight.
 void func_acropolis_bridge_8017F868(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* part;
-    Task*          owner;
-    SVECTOR        pos;
-    u8             view;
-    s32            bit;
-    s32            i;
-    s32            delta;
-    s32            axis;
-    s32            dist;
-    s32            prev;
-    s16            lastView;
-    u16            rnd;
+    GpEffWork* work;
+    GpCoord*   coord;
+    GpCoord*   part;
+    Task*      owner;
+    SVECTOR    pos;
+    u8         view;
+    s32        bit;
+    s32        i;
+    s32        delta;
+    s32        axis;
+    s32        dist;
+    s32        prev;
+    s16        lastView;
+    u16        rnd;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -1982,7 +1982,7 @@ void func_acropolis_bridge_80180FF0(Task* task)
 /// one frame.
 void func_acropolis_bridge_801812F4(Task* task)
 {
-    GsCOORDINATE2*        coord;
+    GpCoord*              coord;
     GpEffWork*            work;
     void**                scratch;
     u8*                   head;
@@ -2090,7 +2090,7 @@ void func_acropolis_bridge_801819C8(Task* task)
     AcropolisBridgeQuadScratch* block;
     AcropolisBridgeQuadCorner*  tbl;
     POLY_FT4*                   prim;
-    GsCOORDINATE2*              coord;
+    GpCoord*                    coord;
     GpEffWork*                  work;
     MATRIX*                     m;
     SVECTOR*                    v;
@@ -2168,7 +2168,7 @@ void func_acropolis_bridge_801819C8(Task* task)
 /// released once the quad is queued, so the task lives for one frame.
 void func_acropolis_bridge_80181D28(Task* task)
 {
-    GsCOORDINATE2*         coord;
+    GpCoord*               coord;
     GpEffWork*             work;
     void**                 scratch;
     u8*                    head;
@@ -2240,9 +2240,9 @@ void func_acropolis_bridge_80181D28(Task* task)
 
 s32 func_acropolis_bridge_801820A0(Task* task)
 {
-    GsCOORDINATE2* coord;
-    SVECTOR        pos;
-    s32            i;
+    GpCoord* coord;
+    SVECTOR  pos;
+    s32      i;
 
     coord = task->extra.tmd->coords;
 
@@ -2298,7 +2298,7 @@ void func_acropolis_bridge_80182394(Task* task)
     RoomMoteScratch* block;
     RoomMoteScratch* depth;
     TILE_1*          prim;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     GpEffWork*       work;
 
     scratch  = (void**)G_SCRATCH_HEAD;
@@ -2353,8 +2353,8 @@ void func_acropolis_bridge_80182394(Task* task)
 
 void func_acropolis_bridge_80182694(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
+    GpEffWork* work;
+    GpCoord*   coord;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -2389,15 +2389,15 @@ void func_acropolis_bridge_80182694(Task* task)
 
 /// Draws the flash the bridge collapse throws off as a screen-facing quad: the
 /// unit quad `D_80111E38` scaled to `arg1` half-size, rotated by the task's own
-/// `GsCOORDINATE2` (`workm`) and then projected through `GsWSMATRIX` into a
+/// `GpCoord` (`workm`) and then projected through `GsWSMATRIX` into a
 /// 0x28-byte `G_SCRATCH_HEAD` block. The first corner goes through `rtps` and
 /// the other three through `rtpt`; a GTE error (`gte_stflg` sign bit) drops the
 /// quad rather than drawing it. The `POLY_FT4` is the 0x38x0x38 cell at
 /// `(0, 0x38)` of tpage 0x2B, modulated by the grey `arg2` and drawn
 /// semi-transparent, and links into the OT at the projected depth.
-void func_acropolis_bridge_801827EC(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
+void func_acropolis_bridge_801827EC(GpCoord* arg0, s32 arg1, s16 arg2)
 {
-    register GsCOORDINATE2*    coord asm("t7");
+    register GpCoord*          coord asm("t7");
     void**                     scratch;
     u8*                        head;
     OverlayFlaggedQuadScratch* blk;
@@ -2488,13 +2488,13 @@ void func_acropolis_bridge_801827EC(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
 /// keeps drawing, and releases itself once the fade reaches 4.
 void func_acropolis_bridge_80182AF8(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    SVECTOR*       vec;
-    s32            kind;
-    s32            step;
-    s32            state;
-    s32            level;
+    GpEffWork* work;
+    GpCoord*   coord;
+    SVECTOR*   vec;
+    s32        kind;
+    s32        step;
+    s32        state;
+    s32        level;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -2609,7 +2609,7 @@ void func_acropolis_bridge_80182AF8(Task* task)
 /// 0x1F-wide column starting at `frame * 0x20` on rows 0xE0..0xFF of tpage
 /// 0x2B. The primitive is semi-transparent with texture blending off
 /// (`code |= 3`) and links into the OT at the projected depth.
-void func_acropolis_bridge_80182F8C(GsCOORDINATE2* coord, u16 frame, s16 size, s16 angle)
+void func_acropolis_bridge_80182F8C(GpCoord* coord, u16 frame, s16 size, s16 angle)
 {
     void**                        scratch;
     u8*                           head;
@@ -2685,7 +2685,7 @@ void func_acropolis_bridge_80182F8C(GsCOORDINATE2* coord, u16 frame, s16 size, s
 /// tpage 0x2B: bits 0-1 pick the column and bit 2 the row. The primitive is
 /// semi-transparent with texture blending off (`code |= 3`) and links into the
 /// OT at the projected depth.
-void func_acropolis_bridge_801833A0(GsCOORDINATE2* coord, u16 frame, s16 size)
+void func_acropolis_bridge_801833A0(GpCoord* coord, u16 frame, s16 size)
 {
     void**                        scratch;
     u8*                           head;
@@ -3334,7 +3334,7 @@ void func_acropolis_bridge_80184B94(OverlayWalker* work)
 void func_acropolis_bridge_80185104(OverlayWalker* work, SVECTOR3* pos)
 {
     OverlayWalkerTurnScratch* s;
-    GsCOORDINATE2*            coord;
+    GpCoord*                  coord;
     u8*                       head;
     s16                       diff, t;
     s32                       angle;
@@ -3404,19 +3404,19 @@ void func_acropolis_bridge_80185104(OverlayWalker* work, SVECTOR3* pos)
 static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
                                   OverlayWalkerTickScratch* block)
 {
-    u8*            head2;
-    SVECTOR3*      pos;
-    PlayerStatus*  cfg;
-    SVECTOR*       sv;
-    SVECTOR*       gsv;
-    SVECTOR*       step;
-    GsCOORDINATE2* coord;
-    s16            sdiff;
-    s32            diff;
-    s16            speed;
-    s32            cur;
-    s32            target;
-    s32            result;
+    u8*           head2;
+    SVECTOR3*     pos;
+    PlayerStatus* cfg;
+    SVECTOR*      sv;
+    SVECTOR*      gsv;
+    SVECTOR*      step;
+    GpCoord*      coord;
+    s16           sdiff;
+    s32           diff;
+    s16           speed;
+    s32           cur;
+    s32           target;
+    s32           result;
 
     switch (walker->state) {
         case 0:
@@ -3668,9 +3668,9 @@ void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
 {
     TmdObject*                obj;
     TmdObject*                obj2;
-    GsCOORDINATE2*            coord;
-    GsCOORDINATE2*            coord2;
-    GsCOORDINATE2*            coord3;
+    GpCoord*                  coord;
+    GpCoord*                  coord2;
+    GpCoord*                  coord3;
     AcropolisBridgeEnemyWork* work;
     OverlayWalker*            walker;
     GpObj*                    link;
@@ -4405,7 +4405,7 @@ void func_acropolis_bridge_80187078(Task* task)
 {
     AcropolisBridgeEnemyWork* work;
     GpEnemy*                  enemy;
-    GsCOORDINATE2*            coord;
+    GpCoord*                  coord;
     SVECTOR                   dir;
     SVECTOR*                  d;
 

@@ -31,13 +31,13 @@ void func_tonfa_baton_8011DB78(Task* task);
 
 void func_tonfa_baton_8011D1EC(Task* task)
 {
-    GsCOORDINATE2  local;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* dst;
-    GpEffWork*     work;
-    SVECTOR*       vec;
-    s32            i;
-    s32            flags;
+    GpCoord    local;
+    GpCoord*   coord;
+    GpCoord*   dst;
+    GpEffWork* work;
+    SVECTOR*   vec;
+    s32        i;
+    s32        flags;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -124,8 +124,8 @@ void func_tonfa_baton_8011D1EC(Task* task)
 void func_tonfa_baton_8011D6B0(s16 slot, s16 flags)
 {
     TonfaBeamScratch* blk;
-    GsCOORDINATE2*    a;
-    GsCOORDINATE2*    b;
+    GpCoord*          a;
+    GpCoord*          b;
     POLY_G4*          prim;
     s32               i;
     s32               j;
@@ -202,13 +202,13 @@ void func_tonfa_baton_8011DA48(Task* arg0)
 
 void func_tonfa_baton_8011DA74(Task* arg0)
 {
-    TmdObject*  extra;
-    GpCoordExt* coord;
-    GameActor*  actor;
-    s32         mode;
+    TmdObject* extra;
+    GpCoord*   coord;
+    GameActor* actor;
+    s32        mode;
 
     extra        = arg0->extra.tmd;
-    coord        = (GpCoordExt*)extra->coords;
+    coord        = extra->coords;
     actor        = gameGetPtrSlot(3)->work;
     coord->flg   = 0;
     extra->flags = (gameGetPtrSlot(3))->extra.tmd->flags;
@@ -277,14 +277,14 @@ void func_tonfa_baton_8011DB98(Task* arg0)
 /// `Gp_CountRec18Hi` reports a hit.
 void func_tonfa_baton_8011DBFC(Task* arg0)
 {
-    GameActor*     actor;
-    GsCOORDINATE2* coord;
-    TonfaSwing*    swing;
-    GpEffWork*     eff;
-    s32            delay;
-    s32            step;
-    s32            fade;
-    s32            swinging;
+    GameActor*  actor;
+    GpCoord*    coord;
+    TonfaSwing* swing;
+    GpEffWork*  eff;
+    s32         delay;
+    s32         step;
+    s32         fade;
+    s32         swinging;
 
     swinging = 0;
     actor    = arg0->work;

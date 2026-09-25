@@ -623,11 +623,11 @@ void Gp_EnemyTaskExit(Task* task)
     taskKill(task);
 }
 
-Task* Gp_CopyCoordOffset(Task* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2)
+Task* Gp_CopyCoordOffset(Task* arg0, GpCoord* arg1, SVECTOR* arg2)
 {
-    TmdObject*     extra;
-    GsCOORDINATE2* dest;
-    GsCOORDINATE2* world;
+    TmdObject* extra;
+    GpCoord*   dest;
+    GpCoord*   world;
 
     if (arg0 == NULL) {
         return NULL;
@@ -636,7 +636,7 @@ Task* Gp_CopyCoordOffset(Task* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2)
     SCRATCH_PUSH_BYTES(8);
     world = &gGfxViewCoord;
     extra = arg0->extra.tmd;
-    dest  = (GsCOORDINATE2*)extra->coords;
+    dest  = extra->coords;
     if (arg1->sub == world) {
         dest->coord = arg1->coord;
         gte_SetRotMatrix(&arg1->coord);
@@ -821,26 +821,26 @@ void Gp_StageLoadState2(Task* task)
 
 void func_800B0928(Task* arg0, Task* arg1, s32 arg2, s32 arg3, s32 arg4)
 {
-    VECTOR         tmp;
-    VECTOR         acc0;
-    VECTOR         acc1;
-    SVECTOR        delta;
-    SVECTOR        ang;
-    SVECTOR        euler;
-    MATRIX         mtx0;
-    MATRIX         mtx1;
-    MATRIX         tmtx;
-    s32            i;
-    GsCOORDINATE2* rec;
-    GsCOORDINATE2* rec1;
-    s32            pitchLimit;
-    s32            yawLimit;
-    s32            pitchMagnitude;
-    s32            yawMagnitude;
-    MATRIX*        m0;
-    MATRIX*        m1;
-    GsCOORDINATE2* base;
-    MATRIX*        m;
+    VECTOR   tmp;
+    VECTOR   acc0;
+    VECTOR   acc1;
+    SVECTOR  delta;
+    SVECTOR  ang;
+    SVECTOR  euler;
+    MATRIX   mtx0;
+    MATRIX   mtx1;
+    MATRIX   tmtx;
+    s32      i;
+    GpCoord* rec;
+    GpCoord* rec1;
+    s32      pitchLimit;
+    s32      yawLimit;
+    s32      pitchMagnitude;
+    s32      yawMagnitude;
+    MATRIX*  m0;
+    MATRIX*  m1;
+    GpCoord* base;
+    MATRIX*  m;
 
     i                    = 0;
     m0                   = &mtx0;
@@ -927,24 +927,24 @@ void func_800B0928(Task* arg0, Task* arg1, s32 arg2, s32 arg3, s32 arg4)
     rec->flg = 0;
 }
 
-void func_800B0CF4(Task* arg0, GsCOORDINATE2* arg1, s32 arg2, s32 arg3, s32 arg4)
+void func_800B0CF4(Task* arg0, GpCoord* arg1, s32 arg2, s32 arg3, s32 arg4)
 {
-    VECTOR         transformed;
-    VECTOR         position;
-    VECTOR         target;
-    SVECTOR        offset;
-    SVECTOR        angles;
-    SVECTOR        current;
-    MATRIX         world;
-    MATRIX         inverse;
-    MATRIX*        mtx;
-    MATRIX*        outMtx;
-    GsCOORDINATE2* part;
-    s32            i;
-    s32            pitchMagnitude;
-    s32            yawMagnitude;
-    s32            pitchLimit;
-    s32            yawLimit;
+    VECTOR   transformed;
+    VECTOR   position;
+    VECTOR   target;
+    SVECTOR  offset;
+    SVECTOR  angles;
+    SVECTOR  current;
+    MATRIX   world;
+    MATRIX   inverse;
+    MATRIX*  mtx;
+    MATRIX*  outMtx;
+    GpCoord* part;
+    s32      i;
+    s32      pitchMagnitude;
+    s32      yawMagnitude;
+    s32      pitchLimit;
+    s32      yawLimit;
 
     mtx                   = &world;
     *(s32*)&world.m[0][0] = 0x1000;
@@ -1221,31 +1221,31 @@ void Gp_LerpOrthonormal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2, s32 arg3)
 
 void func_800B17D4(Task* arg0, Task* arg1, GpHeadAim* arg2)
 {
-    VECTOR         tmp;
-    VECTOR         acc0;
-    VECTOR         acc1;
-    SVECTOR        delta;
-    SVECTOR        ang;
-    SVECTOR        euler;
-    MATRIX         mtx0;
-    MATRIX         mtx1;
-    MATRIX         tmtx;
-    VECTOR         probe;
-    s32            rate;
-    s32            inited;
-    s32            i;
-    GsCOORDINATE2* rec;
-    GsCOORDINATE2* rec1;
-    s32            pitchLimit;
-    s32            yawLimit;
-    s32            curPitch;
-    s32            curYaw;
-    s32            newPitch;
-    s32            newYaw;
-    MATRIX*        m0;
-    MATRIX*        m1;
-    GsCOORDINATE2* base;
-    MATRIX*        m;
+    VECTOR   tmp;
+    VECTOR   acc0;
+    VECTOR   acc1;
+    SVECTOR  delta;
+    SVECTOR  ang;
+    SVECTOR  euler;
+    MATRIX   mtx0;
+    MATRIX   mtx1;
+    MATRIX   tmtx;
+    VECTOR   probe;
+    s32      rate;
+    s32      inited;
+    s32      i;
+    GpCoord* rec;
+    GpCoord* rec1;
+    s32      pitchLimit;
+    s32      yawLimit;
+    s32      curPitch;
+    s32      curYaw;
+    s32      newPitch;
+    s32      newYaw;
+    MATRIX*  m0;
+    MATRIX*  m1;
+    GpCoord* base;
+    MATRIX*  m;
 
     i          = 0;
     m0         = &mtx0;
@@ -1364,7 +1364,7 @@ void func_800B17D4(Task* arg0, Task* arg1, GpHeadAim* arg2)
     rec->flg = 0;
 }
 
-void Gp_ComposeParentWorld(GsCOORDINATE2* arg0, MATRIX* arg1, SVECTOR* arg2)
+void Gp_ComposeParentWorld(GpCoord* arg0, MATRIX* arg1, SVECTOR* arg2)
 {
     SVECTOR tmp;
     MATRIX* m;
@@ -1701,7 +1701,7 @@ Task* func_800B2968(void)
     return Task_SpawnFromTable(D_80119218, 0, 0, 0);
 }
 
-void Gp_BlendAnimRot(GpAnimBlendSrc* arg0, GsCOORDINATE2* arg1, GpAnimSlot* arg2,
+void Gp_BlendAnimRot(GpAnimBlendSrc* arg0, GpCoord* arg1, GpAnimSlot* arg2,
                      GpAnimScratch80* s)
 {
     if (arg2->bufPose != 0) {
@@ -1745,7 +1745,7 @@ void Gp_BlendAnimRot(GpAnimBlendSrc* arg0, GsCOORDINATE2* arg1, GpAnimSlot* arg2
     }
 }
 
-void Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GsCOORDINATE2* arg1, GpAnimSlot* arg2)
+void Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GpCoord* arg1, GpAnimSlot* arg2)
 {
     register void**           scratch asm("v1");
     register GpAnimScratch80* tmp asm("v0");
@@ -1815,7 +1815,7 @@ void Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GsCOORDINATE2* arg1, GpAnimSlot* arg
     }
 }
 
-void Gp_AnimBlendPacked(GpAnimBlendSrc* arg0, GsCOORDINATE2* arg1, GpAnimSlot* arg2)
+void Gp_AnimBlendPacked(GpAnimBlendSrc* arg0, GpCoord* arg1, GpAnimSlot* arg2)
 {
     register void**           scratch asm("v1");
     register GpAnimScratch80* tmp asm("v0");
@@ -1913,7 +1913,7 @@ void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     GpAnimScratch18* s;
     GpAnimSlot*      slot;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     GpAnimSet*       set;
     GpAnimRec*       recs;
     GpAnimRec*       rec;
@@ -2187,7 +2187,7 @@ void func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 ar
 void Gp_AnimInitCtx(GpAnimCtx* arg0, void* arg1, TmdObject* arg2, void* arg3)
 {
     arg0->sets      = arg1;
-    arg0->coords    = (GsCOORDINATE2*)(arg2 + 1);
+    arg0->coords    = (GpCoord*)(arg2 + 1);
     arg0->poses     = arg3;
     arg0->partCount = arg2->partCount;
 }
@@ -2275,7 +2275,7 @@ void func_800B3EE8(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 ar
 void Gp_AnimInitCtxSlots(GpAnimCtx* arg0, void* arg1, TmdObject* arg2, void* arg3, GpAnimSlot* arg4)
 {
     arg0->sets      = arg1;
-    arg0->coords    = (GsCOORDINATE2*)(arg2 + 1);
+    arg0->coords    = (GpCoord*)(arg2 + 1);
     arg0->poses     = arg3;
     arg0->partCount = arg2->partCount;
     arg0->slots     = arg4;
@@ -2384,7 +2384,7 @@ void Gp_AnimWritePoseBlend(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPo
     void**            scratch;
     GpAnimPose*       head;
     GpAnimSlot*       slot;
-    GsCOORDINATE2*    dest;
+    GpCoord*          dest;
     register SVECTOR* st asm("a0");
     SVECTOR*          trans;
     SVECTOR*          rot;
@@ -2430,12 +2430,12 @@ void Gp_AnimWritePoseBlend(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPo
 void Gp_AnimWritePoseCopy(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
                           s32 arg5)
 {
-    void**         scratch;
-    GpAnimPose*    head;
-    GpAnimSlot*    slot;
-    GsCOORDINATE2* dest;
-    SVECTOR*       rot;
-    s32            idx;
+    void**      scratch;
+    GpAnimPose* head;
+    GpAnimSlot* slot;
+    GpCoord*    dest;
+    SVECTOR*    rot;
+    s32         idx;
 
     scratch                        = SCRATCH_HEAD_ADDR;
     slot                           = &arg0->slots[arg1];
@@ -2608,18 +2608,18 @@ void Gp_AnimPlaySlot(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s3
 
 void Gp_SaveEnemyPose(GpEnemy* arg0)
 {
-    McPosRec*      rec;
-    GpAreaKey*     loc;
-    TmdObject*     extra;
-    GsCOORDINATE2* coord;
-    SVECTOR*       euler;
-    u16            id;
-    s32            i;
+    McPosRec*  rec;
+    GpAreaKey* loc;
+    TmdObject* extra;
+    GpCoord*   coord;
+    SVECTOR*   euler;
+    u16        id;
+    s32        i;
 
     rec   = Mc_SaveData.enemyPoses;
     loc   = (GpAreaKey*)&Mc_SaveData.at4.loc.view;
     extra = arg0->task->extra.tmd;
-    coord = (GsCOORDINATE2*)extra->coords;
+    coord = extra->coords;
     if (arg0->spawnState == 0) {
         arg0->spawnState = 1;
     }
@@ -2691,7 +2691,7 @@ void Gp_SpawnArea(GpAreaKey* arg0)
     GpEnemy*      enemy;
     Task*         task;
     TmdObject*    extra;
-    GpCoordExt*   coord;
+    GpCoord*      coord;
     u16           id;
     s32           packed;
     s32           fp;
@@ -2768,7 +2768,7 @@ void Gp_SpawnArea(GpAreaKey* arg0)
                         enemy->placeKey = f2;
                         if (task->spawnType != 0) {
                             extra = task->extra.tmd;
-                            coord = (GpCoordExt*)extra->coords;
+                            coord = extra->coords;
                             if (task->spawnType == 1) {
                                 extra->tpage = place->tpage;
                                 extra->clut  = place->clut;
@@ -2821,7 +2821,7 @@ void Gp_SpawnArea(GpAreaKey* arg0)
     } while (place->entryId != 0xFF);
 }
 
-void Gp_DrawFloorQuad(GsCOORDINATE2* arg0, u32 arg1, SVECTOR* arg2)
+void Gp_DrawFloorQuad(GpCoord* arg0, u32 arg1, SVECTOR* arg2)
 {
     u8*                 head;
     GpFloorQuadScratch* block;
@@ -3111,9 +3111,9 @@ void Gp_ApplyAreaTmdFlags(void)
     }
 }
 
-void Gp_ReparentCoord(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1)
+void Gp_ReparentCoord(GpCoord* arg0, GpCoord* arg1)
 {
-    GsCOORDINATE2* dest;
+    GpCoord* dest;
 
     dest = arg1;
     if (dest->sub != arg0) {
@@ -3509,7 +3509,7 @@ void Gp_MakeDirOffset(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2)
     register SVECTOR* vec asm("s2");
     SVECTOR*          block;
     MATRIX*           mtx;
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     s32               scale;
     u16               srcx;
     u16               dstx;
@@ -3661,22 +3661,22 @@ s32 Gp_LookupBit2Item(s32 arg0)
 
 void func_800B65B0(Task* task)
 {
-    GpPickupWork*  work;
-    UiObjectDesc*  desc;
-    UiObject*      ui;
-    UiObject*      spawned;
-    Task*          child;
-    GsCOORDINATE2* coord;
-    PlayerPos*     p;
-    s32            temp;
-    s32            angle;
-    PlayerStatus*  cfg;
-    McSaveData*    save;
-    s32            id;
-    s32            shift;
-    u32            mask;
-    u32*           flags;
-    u32*           current;
+    GpPickupWork* work;
+    UiObjectDesc* desc;
+    UiObject*     ui;
+    UiObject*     spawned;
+    Task*         child;
+    GpCoord*      coord;
+    PlayerPos*    p;
+    s32           temp;
+    s32           angle;
+    PlayerStatus* cfg;
+    McSaveData*   save;
+    s32           id;
+    s32           shift;
+    u32           mask;
+    u32*          flags;
+    u32*          current;
 
     work = task->spawnArg2;
     if (task->state == 0) {
@@ -3795,7 +3795,7 @@ void Gp_SpawnPlaceById(u16 arg0)
     GpEnemy*             enemy;
     Task*                task;
     TmdObject*           extra;
-    GpCoordExt*          coord;
+    GpCoord*             coord;
     u16                  term;
     s32                  id;
     u16                  recId;
@@ -3848,7 +3848,7 @@ void Gp_SpawnPlaceById(u16 arg0)
                             task = enemy->task;
                             if (task->spawnType != 0) {
                                 extra               = task->extra.tmd;
-                                coord               = (GpCoordExt*)extra->coords;
+                                coord               = extra->coords;
                                 enemy->placeKey     = place->field_0 | (place->field_4 << 8);
                                 enemy->workType     = place->field_2;
                                 coord->coord.t[0]   = place->field_8;
@@ -3882,7 +3882,7 @@ void Gp_SpawnPlaces(GpAreaKey* arg0)
     GpEnemy*      enemy;
     Task*         task;
     TmdObject*    extra;
-    GpCoordExt*   coord;
+    GpCoord*      coord;
     u16           term;
     u16           id;
 
@@ -3909,7 +3909,7 @@ void Gp_SpawnPlaces(GpAreaKey* arg0)
                         task = enemy->task;
                         if (task->spawnType != 0) {
                             extra               = task->extra.tmd;
-                            coord               = (GpCoordExt*)extra->coords;
+                            coord               = extra->coords;
                             enemy->placeKey     = place->field_0 | (place->field_4 << 8);
                             enemy->workType     = place->field_2;
                             coord->coord.t[0]   = place->field_8;

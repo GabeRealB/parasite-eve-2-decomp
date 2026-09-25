@@ -33,17 +33,17 @@ s16 D_pepper_spray_8012FB9C[6] = { 0, 0, 0, 0, 0, 0 };
 
 void func_pepper_spray_8012EF34(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpCoord64*     base;
-    GpPointLight*  slot;
-    s32            i;
-    s32            age;
-    s32            tz;
-    s32            yaw;
-    s32            spread;
-    s32            pan;
-    u8             rgb[3];
+    GpEffWork*    mem;
+    GpCoord*      coord;
+    GpCoord64*    base;
+    GpPointLight* slot;
+    s32           i;
+    s32           age;
+    s32           tz;
+    s32           yaw;
+    s32           spread;
+    s32           pan;
+    u8            rgb[3];
 
     base  = Gp_RoomCoords;
     slot  = &base->data.light;
@@ -104,7 +104,7 @@ void func_pepper_spray_8012EF34(Task* arg0)
     }
 }
 
-void func_pepper_spray_8012F21C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
+void func_pepper_spray_8012F21C(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     u8*                head;
     GpEffFlareScratch* blk;
@@ -159,7 +159,7 @@ void func_pepper_spray_8012F21C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 /* Every scratch vector address is computed off `head`, not off `blk`, so the
    loads and stores keep spelling the block out from `head` rather than reusing
    the `blk` register the way CSE off `blk` would. */
-void func_pepper_spray_8012F634(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
+void func_pepper_spray_8012F634(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     u8*                        head;
     OverlayFlaggedQuadScratch* blk;

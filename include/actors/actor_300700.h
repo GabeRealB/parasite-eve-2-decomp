@@ -9,6 +9,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
+#include "main/coord.h"
 
 /// The first collision record of the work block, viewed both as a plain
 /// `GpRec18` and as the raw id pair the tick handler reads back out of it.
@@ -68,7 +69,7 @@ typedef struct Actor300700Work {
     /* 0x31A */ u16                       field_31A;
     /* 0x31C */ byte                      pad_31C[0x18];
     /* 0x334 */ GpEffArg                  field_334; // record the hit's effect is spawned with
-    /* 0x33C */ GsCOORDINATE2*            field_33C;
+    /* 0x33C */ GpCoord*                  field_33C;
     /* 0x340 */ MATRIX                    field_340;
     /* 0x360 */ s32                       field_360;
     /* 0x364 */ s32                       field_364;

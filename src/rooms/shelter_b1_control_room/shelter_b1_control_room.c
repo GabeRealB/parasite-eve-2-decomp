@@ -71,13 +71,13 @@ typedef struct {
 /// `light` and `color` the matrices the clone is drawn under, and `clip` the
 /// screen rectangle (left, right, top, bottom) the reflection may cover.
 typedef struct {
-    s32           viewFlg;
-    GsCOORDINATE2 coord;
-    MATRIX        light;
-    MATRIX        color;
-    s16           clip[4];
-    byte          unknown_9C[4];
-    _MirrorCfg    cfg;
+    s32        viewFlg;
+    GpCoord    coord;
+    MATRIX     light;
+    MATRIX     color;
+    s16        clip[4];
+    byte       unknown_9C[4];
+    _MirrorCfg cfg;
 } _MirrorWork;
 
 /// Scratchpad block the mirror takes for one frame. `refAxis` is the
@@ -233,10 +233,10 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
     TmdObject*      model;
     TmdObject*      src;
     TmdObject*      body;
-    GsCOORDINATE2*  parts;
-    GsCOORDINATE2*  refPart;
-    GsCOORDINATE2*  from;
-    GsCOORDINATE2*  to;
+    GpCoord*        parts;
+    GpCoord*        refPart;
+    GpCoord*        from;
+    GpCoord*        to;
     DR_AREA*        drArea;
     DR_STP*         drStp;
     DR_OFFSET*      drOffset;
@@ -248,7 +248,7 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
     s32             halfWidth;
     s32             texX;
     s32             texBase;
-    GsCOORDINATE2*  sub;
+    GpCoord*        sub;
     s32             layer;
     u16             ofs[2];
     RECT            rect;

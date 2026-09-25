@@ -7,6 +7,8 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "main/coord.h"
+
 // =============================================================================
 // Types — VRAM/heap image slots (src/main/boot.c)
 // =============================================================================
@@ -67,12 +69,12 @@ s32  Gfx_ApplyMatrixNoSf(SVECTOR* arg0, SVECTOR* arg1);
 extern GfxImageSlot* Gfx_ImageSlotTables[];
 /// Color/light matrix written by Gfx_SetDefaultFlatLight / Gfx_SetLightAmbient.
 extern MATRIX D_80074080;
-/// GsCOORDINATE2 whose `.coord` is `Gfx_ViewRotMtx`.
-extern GsCOORDINATE2 D_80070E40;
-/// Identity-matrix storage for GsCOORDINATE2.coord (parent at symbol - 4).
+/// GpCoord whose `.coord` is `Gfx_ViewRotMtx`.
+extern GpCoord D_80070E40;
+/// Identity-matrix storage for GpCoord.coord (parent at symbol - 4).
 extern MATRIX Gfx_ViewRotMtx;
-/// GsCOORDINATE2 whose `.coord` is `D_80070E94`.
-extern GsCOORDINATE2 Gfx_ViewOffsetCoord;
+/// GpCoord whose `.coord` is `D_80070E94`.
+extern GpCoord Gfx_ViewOffsetCoord;
 /// The view coordinate: every world-space object is parented to it, so a
 /// coordinate composed against it comes out in view space.
 ///
@@ -80,9 +82,9 @@ extern GsCOORDINATE2 Gfx_ViewOffsetCoord;
 /// world is drawn and projected through. The view rotation and the view offset
 /// are the two coordinates above it in the chain, which is why its own matrix
 /// holds a translation alone.
-extern GsCOORDINATE2 gGfxViewCoord;
-extern MATRIX        D_80070E94;
-extern MATRIX        D_80070F14;
+extern GpCoord gGfxViewCoord;
+extern MATRIX  D_80070E94;
+extern MATRIX  D_80070F14;
 /// Translation of `D_80070F14` / `gGfxViewCoord.coord.t`.
 extern VECTOR3 D_80070F28;
 extern MATRIX  Gfx_ViewWorldMtx;

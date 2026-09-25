@@ -60,10 +60,10 @@ extern RoomLatchedEvent D_shelter_1f_vehicular_airlock_80182AB4;
 void func_shelter_1f_vehicular_airlock_8017DC80(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_shelter_1f_vehicular_airlock_8017E468(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_shelter_1f_vehicular_airlock_8017E80C(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_shelter_1f_vehicular_airlock_8017EF60(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_1f_vehicular_airlock_8017F38C(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
-void func_shelter_1f_vehicular_airlock_8017FC10(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
-void func_shelter_1f_vehicular_airlock_80180290(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
+void func_shelter_1f_vehicular_airlock_8017EF60(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_shelter_1f_vehicular_airlock_8017F38C(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_shelter_1f_vehicular_airlock_8017FC10(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+void func_shelter_1f_vehicular_airlock_80180290(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// Sets bit 0x80 of the task's model flags while the 2-bit game flag its spawn
 /// argument names reads 2, and clears it otherwise.
@@ -608,9 +608,9 @@ void func_shelter_1f_vehicular_airlock_8017E80C(SVECTOR* arg0, s32 arg1, s32 arg
 /// event state is non-zero.
 void func_shelter_1f_vehicular_airlock_8017ECBC(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    u8             rgb[3];
+    GpEffWork* work;
+    GpCoord*   coord;
+    u8         rgb[3];
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -672,7 +672,7 @@ void func_shelter_1f_vehicular_airlock_8017ECBC(Task* task)
 /// coordinate's world translation, unless the projection flags an error. The
 /// vertices at radius `(s16)arg1 * 64` over the depth are black and those at
 /// `(s16)(arg1 + arg2) * 64` over the depth take `rgb`.
-void func_shelter_1f_vehicular_airlock_8017EF60(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_shelter_1f_vehicular_airlock_8017EF60(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -762,7 +762,7 @@ void func_shelter_1f_vehicular_airlock_8017EF60(GsCOORDINATE2* arg0, s32 arg1, s
 /// coordinate's world translation, unless the projection flags an error: the
 /// centre takes `rgb` and the rim, at radius `(s16)arg1 * 64` over the depth,
 /// is black.
-void func_shelter_1f_vehicular_airlock_8017F38C(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_shelter_1f_vehicular_airlock_8017F38C(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     RoomDraw04Scratch* block;
     POLY_G4*           prim;
@@ -844,15 +844,15 @@ void func_shelter_1f_vehicular_airlock_8017F38C(GsCOORDINATE2* arg0, s32 arg1, u
 /// while the room's event state is 2 or more.
 void func_shelter_1f_vehicular_airlock_8017F720(Task* task)
 {
-    GsCOORDINATE2  coord;
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* objCoord;
-    GsCOORDINATE2* dst;
-    GpEffWork*     work;
-    SVECTOR*       vec;
-    s32            i;
+    GpCoord    coord;
+    GpCoord*   coords;
+    GpCoord*   objCoord;
+    GpCoord*   dst;
+    GpEffWork* work;
+    SVECTOR*   vec;
+    s32        i;
 
-    coords   = (GsCOORDINATE2*)task->work;
+    coords   = (GpCoord*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
     objCoord = task->extra.tmd->coords;
 
@@ -860,7 +860,7 @@ void func_shelter_1f_vehicular_airlock_8017F720(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GsCOORDINATE2*)memCalloc(0x500, 0);
+                coords = (GpCoord*)memCalloc(0x500, 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
@@ -939,11 +939,11 @@ void func_shelter_1f_vehicular_airlock_8017F720(Task* task)
 /// of `arg0` and `arg1`. Brightness falls by 9 per quad from 0x40, and `arg3`
 /// scales it per channel: red by `arg3 >> 8`, green by bits 4-5 and blue by
 /// bits 0-1. A quad whose projection flags an error is skipped.
-void func_shelter_1f_vehicular_airlock_8017FC10(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3)
+void func_shelter_1f_vehicular_airlock_8017FC10(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GsCOORDINATE2*     a;
-    GsCOORDINATE2*     b;
+    GpCoord*           a;
+    GpCoord*           b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -1051,9 +1051,9 @@ void func_shelter_1f_vehicular_airlock_8017FC10(GsCOORDINATE2* arg0, GsCOORDINAT
 /// event state is non-zero.
 void func_shelter_1f_vehicular_airlock_80180008(Task* task)
 {
-    GsCOORDINATE2* objCoord;
-    GpEffWork*     work;
-    u8             rgb[4];
+    GpCoord*   objCoord;
+    GpEffWork* work;
+    u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
@@ -1122,7 +1122,7 @@ void func_shelter_1f_vehicular_airlock_80180008(Task* task)
 /// wedges at radius `arg1 * 64` over the depth in half of `arg2`'s colour, a
 /// second at half that radius in the full colour, and four cross wedges from
 /// an inner radius of `arg1 * 8` over the depth. Every rim is black.
-void func_shelter_1f_vehicular_airlock_80180290(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_shelter_1f_vehicular_airlock_80180290(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");

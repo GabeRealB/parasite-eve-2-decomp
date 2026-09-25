@@ -41,7 +41,7 @@ extern GpImgRec** D_actor_800300_80168950[];
 extern GpImgRec** D_actor_800300_80168960[];
 
 s32  func_80105ED4(Task* arg0);
-s32  func_8010BC70(GsCOORDINATE2* arg0);
+s32  func_8010BC70(GpCoord* arg0);
 s32  func_8010BCF4(Task* arg0, VECTOR3* arg1);
 void func_8010BD88(Task* arg0, VECTOR3* arg1);
 void func_8010BE5C(Task* arg0, VECTOR3* arg1);
@@ -66,17 +66,17 @@ void func_actor_800300_80163074(Task* arg0);
 
 void func_actor_800300_80161E80(Task* arg0)
 {
-    GameActor*      actor;
-    TmdObject*      extra;
-    GsCOORDINATE2*  coord;
-    GsCOORDINATE2*  next;
-    GsCOORDINATE2** addr;
-    GpActorD4*      d4;
-    GpObj*          obj;
-    GpRec18*        recs;
-    McSaveData*     save;
-    s32             packed;
-    s8              fcc;
+    GameActor*  actor;
+    TmdObject*  extra;
+    GpCoord*    coord;
+    GpCoord*    next;
+    GpCoord**   addr;
+    GpActorD4*  d4;
+    GpObj*      obj;
+    GpRec18*    recs;
+    McSaveData* save;
+    s32         packed;
+    s8          fcc;
 
     actor = arg0->work;
     extra = arg0->extra.tmd;
@@ -151,7 +151,7 @@ void func_actor_800300_80162064(Task* arg0)
     GameActor*             actor;
     TmdObject*             obj;
     TmdObject*             extra;
-    GsCOORDINATE2*         coord;
+    GpCoord*               coord;
     GpObj*                 objs[2];
     s32                    dy;
     s32                    i;
@@ -362,7 +362,7 @@ void func_actor_800300_80162658(Task* arg0)
     TaskFuncTable9 sp;
     GameActor*     actor;
     GpActorD4*     d4;
-    GsCOORDINATE2* obj;
+    GpCoord*       obj;
     s8             cc;
     s32            pan;
     s32            depth;
@@ -430,13 +430,13 @@ void func_actor_800300_80162658(Task* arg0)
 
 void func_actor_800300_801628D0(Task* arg0)
 {
-    GameActor*     actor;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* target;
-    VECTOR3*       vec;
-    s32            dist;
-    s32            angle;
-    s32            arg;
+    GameActor* actor;
+    GpCoord*   coord;
+    GpCoord*   target;
+    VECTOR3*   vec;
+    s32        dist;
+    s32        angle;
+    s32        arg;
 
     coord  = arg0->extra.tmd->coords;
     target = (gameGetPtrSlot(3))->extra.tmd->coords;
@@ -506,15 +506,15 @@ void func_actor_800300_801628D0(Task* arg0)
 
 void func_actor_800300_80162A98(Task* arg0)
 {
-    u8*            head;
-    VECTOR3*       vec;
-    GameActor*     actor;
-    GpLinkNode*    node;
-    TmdObject*     extra;
-    GsCOORDINATE2* src;
-    s32            val;
-    s32            arg;
-    s32            flag;
+    u8*         head;
+    VECTOR3*    vec;
+    GameActor*  actor;
+    GpLinkNode* node;
+    TmdObject*  extra;
+    GpCoord*    src;
+    s32         val;
+    s32         arg;
+    s32         flag;
 
     actor            = arg0->work;
     extra            = (gameGetPtrSlot(3))->extra.tmd;
@@ -578,10 +578,10 @@ void func_actor_800300_80162C2C(Task* arg0)
 
 void func_actor_800300_80162C98(Task* arg0)
 {
-    GameActor*     actor;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* target;
-    s32            val;
+    GameActor* actor;
+    GpCoord*   coord;
+    GpCoord*   target;
+    s32        val;
 
     actor  = arg0->work;
     coord  = arg0->extra.tmd->coords;
@@ -606,13 +606,13 @@ void func_actor_800300_80162C98(Task* arg0)
 
 void func_actor_800300_80162D74(Task* arg0)
 {
-    GameActor*     actor;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* target;
-    GpLinkNode*    lock;
-    u8*            head;
-    VECTOR3*       vec;
-    u16            state;
+    GameActor*  actor;
+    GpCoord*    coord;
+    GpCoord*    target;
+    GpLinkNode* lock;
+    u8*         head;
+    VECTOR3*    vec;
+    u16         state;
 
     coord            = arg0->extra.tmd->coords;
     target           = (gameGetPtrSlot(3))->extra.tmd->coords;
@@ -662,9 +662,9 @@ void func_actor_800300_80162EEC(Task* arg0)
 
 void func_actor_800300_80162F24(Task* arg0)
 {
-    GameActor*     actor;
-    GsCOORDINATE2* coord;
-    s32            flag;
+    GameActor* actor;
+    GpCoord*   coord;
+    s32        flag;
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;

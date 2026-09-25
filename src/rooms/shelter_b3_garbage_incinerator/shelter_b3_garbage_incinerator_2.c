@@ -257,10 +257,10 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
 /// the sequence is over.
 s16 func_shelter_b3_garbage_incinerator_8017DF24(Task* arg0)
 {
-    GpXformArg     msg;
-    _DescentWork*  work  = arg0->work;
-    GsCOORDINATE2* coord = arg0->extra.tmd->coords;
-    GsCOORDINATE2* ref   = work->target->extra.tmd->coords;
+    GpXformArg    msg;
+    _DescentWork* work  = arg0->work;
+    GpCoord*      coord = arg0->extra.tmd->coords;
+    GpCoord*      ref   = work->target->extra.tmd->coords;
 
     switch (work->state) {
         case 0:
@@ -317,19 +317,19 @@ s16 func_shelter_b3_garbage_incinerator_8017DF24(Task* arg0)
 /// while any of the four flags tested on entry is set.
 void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
 {
-    VECTOR         pos;
-    u16            id;
-    s8             kind;
-    u8             arg;
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    _DescentWork*  work;
-    s16            landed;
-    TmdObject*     tail;
-    GsCOORDINATE2* lift;
-    _DescentWork*  done_work;
-    s32            want;
-    s32            t;
+    VECTOR        pos;
+    u16           id;
+    s8            kind;
+    u8            arg;
+    TmdObject*    obj;
+    GpCoord*      coord;
+    _DescentWork* work;
+    s16           landed;
+    TmdObject*    tail;
+    GpCoord*      lift;
+    _DescentWork* done_work;
+    s32           want;
+    s32           t;
 
     if (gGameSession->field_65 != 0 || (s8)Gp_StateC08.field_9 != 0 || Gp_StateF0.field_4 != 0 || Gp_StateC08.field_A == 1) {
         return;
@@ -494,8 +494,8 @@ void func_shelter_b3_garbage_incinerator_8017E690(Task* task, s32 arg1, s32 arg2
 /// shorts as yaw, pitch and roll.
 void func_shelter_b3_garbage_incinerator_8017E70C(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2* coord;
-    MATRIX*        mtx;
+    GpCoord* coord;
+    MATRIX*  mtx;
 
     coord             = task->extra.tmd->coords;
     coord->sub        = &gGfxViewCoord;

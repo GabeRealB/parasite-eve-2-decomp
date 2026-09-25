@@ -126,7 +126,7 @@ MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
 void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1);
 void func_actor_207200_8014C870(Task* arg0, s32 arg1);
-s32  func_actor_207200_8014CE20(GsCOORDINATE2* arg0, u32* arg1);
+s32  func_actor_207200_8014CE20(GpCoord* arg0, u32* arg1);
 void func_actor_207200_8014CA84(GpEnemy* arg0, Task* arg1);
 void func_actor_207200_8014D2DC(GpEnemy* arg0, Task* arg1);
 void func_actor_207200_8014CFEC(Task* arg0);
@@ -139,7 +139,7 @@ void func_actor_207200_8014D70C(GpEnemy* arg0, Task* task);
 void func_actor_207200_8014D77C(Task* task);
 void func_actor_207200_8014D7E8(Task* arg0);
 void func_actor_207200_8014D8DC(Task* arg0);
-void func_actor_207200_8014D97C(Task* arg0, GsCOORDINATE2* arg1);
+void func_actor_207200_8014D97C(Task* arg0, GpCoord* arg1);
 void func_actor_207200_8014DAF8(Task* dst, Task* src);
 void func_actor_207200_8014DB4C(Task* arg0);
 
@@ -153,9 +153,9 @@ void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1)
 {
     Actor207200SpawnWork* work;
     TmdObject*            obj;
-    GsCOORDINATE2*        coord;
-    GsCOORDINATE2*        part6;
-    GsCOORDINATE2*        part3;
+    GpCoord*              coord;
+    GpCoord*              part6;
+    GpCoord*              part3;
     s32                   i;
 
     obj   = arg1->extra.tmd;
@@ -183,7 +183,7 @@ void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1)
     arg0->param              = &D_actor_207200_8014E7D4;
     arg0->recs               = work->rec3;
     arg0->hp                 = (u16)D_actor_207200_8014E7D4.hpMax;
-    work->field_44E          = ((GpCoordExt*)coord)->param.rot.vy;
+    work->field_44E          = (coord)->param.rot.vy;
     func_800B3F84((GpAnimCtx*)work, &D_actor_207200_80153ED4, obj,
                   work->field_12C, (GpAnimSlot*)work->field_14);
     for (i = 1; i < 7; i++) {
@@ -282,7 +282,7 @@ void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1)
 void func_actor_207200_8014B628(Task* arg0)
 {
     Actor207200Work* work;
-    GsCOORDINATE2*   obj;
+    GpCoord*         obj;
     s32              id;
     s32              pan;
     u32              rnd;
@@ -348,7 +348,7 @@ void func_actor_207200_8014B628(Task* arg0)
 void func_actor_207200_8014B87C(Task* arg0)
 {
     Actor207200Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              angle;
     u32              dist;
     s32              id;
@@ -555,7 +555,7 @@ void func_actor_207200_8014BEF4(Task* arg0)
     Actor207200Work*       work;
     Actor207200DmgScratch* sc;
     Actor207200DmgScratch* head;
-    GsCOORDINATE2*         coord;
+    GpCoord*               coord;
     u32                    dist;
     GpEnemy*               enemy;
     s32                    i;
@@ -768,7 +768,7 @@ void func_actor_207200_8014C870(Task* arg0, s32 arg1)
 {
     Actor207200Work* work;
     GpEnemy*         ctx;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     GpEffArg*        effArg;
     s32              snd;
 
@@ -840,10 +840,10 @@ static __inline__ void Actor207200_TickAnim(Task* arg0)
 /// world position onto `G_SCRATCH_HEAD` and hand it to `Gp_UpdateActorColor`.
 static __inline__ void Actor207200_UpdateColor(GpEnemy* enemy, Task* actor)
 {
-    GsCOORDINATE2* coord;
-    void**         scratch;
-    u8*            head;
-    VECTOR*        block;
+    GpCoord* coord;
+    void**   scratch;
+    u8*      head;
+    VECTOR*  block;
 
     coord                          = &actor->extra.tmd->coords[1];
     scratch                        = SCRATCH_HEAD_ADDR;
@@ -868,7 +868,7 @@ void func_actor_207200_8014CA84(GpEnemy* arg0, Task* arg1)
 {
     Actor207200Work* work;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s16              state;
 
     obj   = arg1->extra.tmd;
@@ -953,10 +953,10 @@ void func_actor_207200_8014CA84(GpEnemy* arg0, Task* arg1)
 /// `head - 1` for the vector copy, the matrix and the heading keeps the scratch
 /// pointer in `head`'s register. `COMPILER_BARRIER` stops cse from forwarding
 /// the reload of x from the store just above it.
-s32 func_actor_207200_8014CE20(GsCOORDINATE2* arg0, u32* arg1)
+s32 func_actor_207200_8014CE20(GpCoord* arg0, u32* arg1)
 {
     SVECTOR              local;
-    GsCOORDINATE2*       coord;
+    GpCoord*             coord;
     s32                  angle;
     s32                  x;
     s16                  z;
@@ -1222,7 +1222,7 @@ void func_actor_207200_8014D49C(Task* arg0)
 void func_actor_207200_8014D5C4(Task* arg0)
 {
     Actor207200Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -1270,10 +1270,10 @@ void func_actor_207200_8014D65C(Task* arg0)
 /// parameters. `arg0` is the colour target, passed straight through.
 void func_actor_207200_8014D70C(GpEnemy* arg0, Task* task)
 {
-    GsCOORDINATE2* coord;
-    void**         scratch;
-    u8*            head;
-    VECTOR*        block;
+    GpCoord* coord;
+    void**   scratch;
+    u8*      head;
+    VECTOR*  block;
 
     coord                          = &task->extra.tmd->coords[1];
     scratch                        = SCRATCH_HEAD_ADDR;
@@ -1291,8 +1291,8 @@ void func_actor_207200_8014D70C(GpEnemy* arg0, Task* task)
 /// the root part's `workm`, staged in a `VECTOR3` on the scratch stack.
 void func_actor_207200_8014D77C(Task* task)
 {
-    GsCOORDINATE2* coord;
-    VECTOR3*       vec;
+    GpCoord* coord;
+    VECTOR3* vec;
 
     coord   = task->extra.tmd->coords;
     vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
@@ -1311,7 +1311,7 @@ void func_actor_207200_8014D77C(Task* task)
 /// `Gp_UpdateCoord` recomputes it.
 void func_actor_207200_8014D7E8(Task* arg0)
 {
-    GsCOORDINATE2*     coord;
+    GpCoord*           coord;
     ActorScaleScratch* head;
     ActorScaleScratch* scratch;
     Actor207200Work*   work;
@@ -1347,7 +1347,7 @@ void func_actor_207200_8014D8DC(Task* arg0)
 {
     Actor207200Work* work;
     GpEnemy*         ctx;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              dist;
     s32              angle;
 
@@ -1400,7 +1400,7 @@ void func_actor_207200_8014D8DC(Task* arg0)
 /// While `work->field_4A6` is set, runs each column of the node's rotation
 /// matrix through GTE `gpf 12` with a zero interpolation factor, zeroing the
 /// 3x3 part, and clears `flg` so the node is recomputed.
-void func_actor_207200_8014D97C(Task* arg0, GsCOORDINATE2* arg1)
+void func_actor_207200_8014D97C(Task* arg0, GpCoord* arg1)
 {
     SVECTOR vec;
     MATRIX* m;

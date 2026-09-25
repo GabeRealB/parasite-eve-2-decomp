@@ -38,10 +38,10 @@ extern SVECTOR D_shelter_b1_control_room_access_tunnel_80181EAC[];
 extern SVECTOR D_shelter_b1_control_room_access_tunnel_80181EE4[];
 extern SVECTOR D_shelter_b1_control_room_access_tunnel_80181EEC;
 
-void func_shelter_b1_control_room_access_tunnel_8017E57C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b1_control_room_access_tunnel_8017E9A8(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
-void func_shelter_b1_control_room_access_tunnel_8017F22C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
-void func_shelter_b1_control_room_access_tunnel_8017F8AC(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
+void func_shelter_b1_control_room_access_tunnel_8017E57C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_shelter_b1_control_room_access_tunnel_8017E9A8(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_shelter_b1_control_room_access_tunnel_8017F22C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+void func_shelter_b1_control_room_access_tunnel_8017F8AC(GpCoord* arg0, s16 arg1, u8* arg2);
 
 s32 func_shelter_b1_control_room_access_tunnel_8017D5E4(void)
 {
@@ -341,9 +341,9 @@ void func_shelter_b1_control_room_access_tunnel_8017E1BC(Task* arg0)
 /// reaches 4.
 void func_shelter_b1_control_room_access_tunnel_8017E2D8(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    u8             rgb[3];
+    GpEffWork* work;
+    GpCoord*   coord;
+    u8         rgb[3];
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -405,7 +405,7 @@ void func_shelter_b1_control_room_access_tunnel_8017E2D8(Task* task)
 /// the GTE flags an error, queues a ring of sixteen gouraud `POLY_G4`
 /// segments: black at radius `arg1 * 64 / (otz + 1)`, shading to `rgb` at
 /// radius `(arg1 + arg2) * 64 / (otz + 1)`.
-void func_shelter_b1_control_room_access_tunnel_8017E57C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_shelter_b1_control_room_access_tunnel_8017E57C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -495,7 +495,7 @@ void func_shelter_b1_control_room_access_tunnel_8017E57C(GsCOORDINATE2* arg0, s3
 /// unless the GTE flags an error, queues eight gouraud `POLY_G4` wedges of
 /// radius `arg1 * 64 / (otz + 1)`, coloured `rgb` at the centre and black at
 /// the rim.
-void func_shelter_b1_control_room_access_tunnel_8017E9A8(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_shelter_b1_control_room_access_tunnel_8017E9A8(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     RoomDraw04Scratch* block;
     POLY_G4*           prim;
@@ -578,15 +578,15 @@ void func_shelter_b1_control_room_access_tunnel_8017E9A8(GsCOORDINATE2* arg0, s3
 /// while the room's event state is 2 or above.
 void func_shelter_b1_control_room_access_tunnel_8017ED3C(Task* task)
 {
-    GsCOORDINATE2  coord;
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* objCoord;
-    GsCOORDINATE2* dst;
-    GpEffWork*     work;
-    SVECTOR*       vec;
-    s32            i;
+    GpCoord    coord;
+    GpCoord*   coords;
+    GpCoord*   objCoord;
+    GpCoord*   dst;
+    GpEffWork* work;
+    SVECTOR*   vec;
+    s32        i;
 
-    coords   = (GsCOORDINATE2*)task->work;
+    coords   = (GpCoord*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
     objCoord = task->extra.tmd->coords;
 
@@ -594,7 +594,7 @@ void func_shelter_b1_control_room_access_tunnel_8017ED3C(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GsCOORDINATE2*)memCalloc(0x500, 0);
+                coords = (GpCoord*)memCalloc(0x500, 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
@@ -673,11 +673,11 @@ void func_shelter_b1_control_room_access_tunnel_8017ED3C(Task* task)
 /// neighbouring slots of `arg0` and `arg1`. The brightness falls by 9 per quad
 /// from 0x40, and `arg3` holds the colour as three 2-bit multipliers at bits
 /// 8, 4 and 0. A quad the GTE flags as bad is skipped.
-void func_shelter_b1_control_room_access_tunnel_8017F22C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3)
+void func_shelter_b1_control_room_access_tunnel_8017F22C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GsCOORDINATE2*     a;
-    GsCOORDINATE2*     b;
+    GpCoord*           a;
+    GpCoord*           b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -784,9 +784,9 @@ void func_shelter_b1_control_room_access_tunnel_8017F22C(GsCOORDINATE2* arg0, Gs
 /// ticks. The block is also released once the room's event state reaches 4.
 void func_shelter_b1_control_room_access_tunnel_8017F624(Task* task)
 {
-    GsCOORDINATE2* objCoord;
-    GpEffWork*     work;
-    u8             rgb[4];
+    GpCoord*   objCoord;
+    GpEffWork* work;
+    u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
@@ -855,7 +855,7 @@ void func_shelter_b1_control_room_access_tunnel_8017F624(Task* task)
 /// ring of radius `arg1 * 64 / (otz + 1)`, a full-bright one of half that
 /// radius, and two sets of half-bright spikes reaching the ring and twice its
 /// radius - each coloured from `arg2` at the centre and black at the tips.
-void func_shelter_b1_control_room_access_tunnel_8017F8AC(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_shelter_b1_control_room_access_tunnel_8017F8AC(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");

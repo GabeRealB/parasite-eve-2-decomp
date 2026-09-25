@@ -73,15 +73,15 @@ void func_shelter_b2_septic_tank_8017DB68(Task* task);
 void func_shelter_b2_septic_tank_8017E2DC(Task* task);
 void func_shelter_b2_septic_tank_8017EAB8(Task* arg0);
 void func_shelter_b2_septic_tank_8017EAF8(Task* task);
-void func_shelter_b2_septic_tank_8017F194(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
-void func_shelter_b2_septic_tank_8017F984(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_shelter_b2_septic_tank_8017FD70(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
+void func_shelter_b2_septic_tank_8017F194(GpCoord* arg0, s32 arg1, s32 arg2);
+void func_shelter_b2_septic_tank_8017F984(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_shelter_b2_septic_tank_8017FD70(GpCoord* arg0, s16 arg1, s16 arg2);
 void func_shelter_b2_septic_tank_80180054(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_shelter_b2_septic_tank_8018083C(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b2_septic_tank_80180E84(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b2_septic_tank_801812B0(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
-void func_shelter_b2_septic_tank_80181B34(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
-void func_shelter_b2_septic_tank_801821B4(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
+void func_shelter_b2_septic_tank_80180E84(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_shelter_b2_septic_tank_801812B0(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_shelter_b2_septic_tank_80181B34(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+void func_shelter_b2_septic_tank_801821B4(GpCoord* arg0, s16 arg1, u8* arg2);
 
 extern s32              func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 extern TaskDesc         D_shelter_b2_septic_tank_80182F40;
@@ -216,9 +216,9 @@ void func_shelter_b2_septic_tank_8017D97C(s32 arg0)
 
 void func_shelter_b2_septic_tank_8017D9A0(void)
 {
-    Task*          target;
-    GsCOORDINATE2* player;
-    GsCOORDINATE2* coords;
+    Task*    target;
+    GpCoord* player;
+    GpCoord* coords;
 
     target = (Task*)Gp_LookupSlot4(0);
     player = gameGetPtrSlot(3)->extra.tmd->coords;
@@ -651,8 +651,8 @@ void func_shelter_b2_septic_tank_8017EB7C(Task* arg0)
 /// is non-zero it only draws, releasing the block from event state 4 on.
 void func_shelter_b2_septic_tank_8017F040(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
+    GpEffWork* work;
+    GpCoord*   coord;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -687,7 +687,7 @@ void func_shelter_b2_septic_tank_8017F040(Task* task)
 /// If the projection is valid, one semi-transparent `POLY_FT4` (tpage 0x2B,
 /// clut 0x43D1, UV 0,0x38 to 0x37,0x6F) is queued with all three colour
 /// channels set to `arg2`. The work block lives on the scratchpad stack.
-void func_shelter_b2_septic_tank_8017F194(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
+void func_shelter_b2_septic_tank_8017F194(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -783,13 +783,13 @@ void func_shelter_b2_septic_tank_8017F194(GsCOORDINATE2* arg0, s32 arg1, s32 arg
 /// block from event state 4 on.
 void func_shelter_b2_septic_tank_8017F4C8(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    SVECTOR*       vec;
-    s32            kind;
-    s32            step;
-    s32            state;
-    s32            level;
+    GpEffWork* work;
+    GpCoord*   coord;
+    SVECTOR*   vec;
+    s32        kind;
+    s32        step;
+    s32        state;
+    s32        level;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -906,7 +906,7 @@ void func_shelter_b2_septic_tank_8017F4C8(Task* task)
 /// as a square rotated by angle `arg3` about the projected point, with
 /// on-screen half-diagonal `(s16)arg2 * 31 / otz`. `arg1` picks the 32-texel
 /// frame at u = `arg1 * 32`, v 0xE0 to 0xFF.
-void func_shelter_b2_septic_tank_8017F984(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
+void func_shelter_b2_septic_tank_8017F984(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -970,7 +970,7 @@ void func_shelter_b2_septic_tank_8017F984(GsCOORDINATE2* arg0, s32 arg1, s32 arg
 /// as an axis-aligned square of half-side `r = arg2 * 55 / otz`, raised so the
 /// projected point sits three quarters of the way down it. `arg1` picks one of
 /// eight 56-texel frames in a grid four wide, starting at v 0x70.
-void func_shelter_b2_septic_tank_8017FD70(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
+void func_shelter_b2_septic_tank_8017FD70(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -1290,9 +1290,9 @@ void func_shelter_b2_septic_tank_8018083C(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// burst is no longer advanced or drawn.
 void func_shelter_b2_septic_tank_80180BE0(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    u8             rgb[3];
+    GpEffWork* work;
+    GpCoord*   coord;
+    u8         rgb[3];
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -1355,7 +1355,7 @@ void func_shelter_b2_septic_tank_80180BE0(Task* task)
 /// `POLY_G4` segments are queued between on-screen radii `(s16)arg1 * 64 /
 /// (otz + 1)` and `(s16)(arg1 + arg2) * 64 / (otz + 1)`, black at the first
 /// and coloured `rgb` at the second.
-void func_shelter_b2_septic_tank_80180E84(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_shelter_b2_septic_tank_80180E84(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -1446,7 +1446,7 @@ void func_shelter_b2_septic_tank_80180E84(GsCOORDINATE2* arg0, s32 arg1, s32 arg
 /// `POLY_G4` wedges of on-screen radius `(s16)arg1 * 64 / (otz + 1)` are
 /// queued around the projected point, coloured `rgb` at the centre and black
 /// at the rim.
-void func_shelter_b2_septic_tank_801812B0(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_shelter_b2_septic_tank_801812B0(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     RoomDraw04Scratch* block;
     POLY_G4*           prim;
@@ -1531,15 +1531,15 @@ void func_shelter_b2_septic_tank_801812B0(GsCOORDINATE2* arg0, s32 arg1, u8* rgb
 /// state 2 on the effect is frozen.
 void func_shelter_b2_septic_tank_80181644(Task* task)
 {
-    GsCOORDINATE2  coord;
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* objCoord;
-    GsCOORDINATE2* dst;
-    GpEffWork*     work;
-    SVECTOR*       vec;
-    s32            i;
+    GpCoord    coord;
+    GpCoord*   coords;
+    GpCoord*   objCoord;
+    GpCoord*   dst;
+    GpEffWork* work;
+    SVECTOR*   vec;
+    s32        i;
 
-    coords   = (GsCOORDINATE2*)task->work;
+    coords   = (GpCoord*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
     objCoord = task->extra.tmd->coords;
 
@@ -1547,7 +1547,7 @@ void func_shelter_b2_septic_tank_80181644(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GsCOORDINATE2*)memCalloc(0x500, 0);
+                coords = (GpCoord*)memCalloc(0x500, 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
@@ -1628,11 +1628,11 @@ void func_shelter_b2_septic_tank_80181644(Task* task)
 /// from intensity 0x40 at the newest slot by 9 per slot. `arg3` packs the
 /// colour: the red factor in bits 8 up and the green and blue factors in bits
 /// 4-5 and 0-1, each multiplying that intensity.
-void func_shelter_b2_septic_tank_80181B34(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3)
+void func_shelter_b2_septic_tank_80181B34(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GsCOORDINATE2*     a;
-    GsCOORDINATE2*     b;
+    GpCoord*           a;
+    GpCoord*           b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -1742,9 +1742,9 @@ void func_shelter_b2_septic_tank_80181B34(GsCOORDINATE2* arg0, GsCOORDINATE2* ar
 /// drawn.
 void func_shelter_b2_septic_tank_80181F2C(Task* task)
 {
-    GsCOORDINATE2* objCoord;
-    GpEffWork*     work;
-    u8             rgb[4];
+    GpCoord*   objCoord;
+    GpEffWork* work;
+    u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
@@ -1815,7 +1815,7 @@ void func_shelter_b2_septic_tank_80181F2C(Task* task)
 /// radius `r / 2` at the full colour, and four spikes at half the colour,
 /// reaching alternately to `r` and `2 * r`. Every wedge fades from its colour
 /// at the centre to black.
-void func_shelter_b2_septic_tank_801821B4(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_shelter_b2_septic_tank_801821B4(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");

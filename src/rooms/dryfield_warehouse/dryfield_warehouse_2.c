@@ -435,7 +435,7 @@ void func_dryfield_warehouse_8017E3F4(s16 arg0)
 /// then a cap over the lit ring. Each corner is rotated by `coord`'s `workm` and
 /// moved by its translation before projection through `GsWSMATRIX`. The lit
 /// corners share a grey of 0x18 plus a small pulse; the far corners are black.
-void func_dryfield_warehouse_8017E414(GsCOORDINATE2* coord, s16 arg1)
+void func_dryfield_warehouse_8017E414(GpCoord* coord, s16 arg1)
 {
     RoomQuadScratch* blk;
     POLY_G4*         prim;
@@ -554,7 +554,7 @@ void func_dryfield_warehouse_8017E414(GsCOORDINATE2* coord, s16 arg1)
 /// turn, starting at a phase that advances with the frame counter. Each corner
 /// is placed in `coord`'s space through its `workm`, then projected through
 /// `GsWSMATRIX`; the lit edge glows at 0x14 plus a small pulse.
-void func_dryfield_warehouse_8017ED34(GsCOORDINATE2* coord, s16 arg1, s16 arg2)
+void func_dryfield_warehouse_8017ED34(GpCoord* coord, s16 arg1, s16 arg2)
 {
     RoomQuadScratch* blk;
     POLY_G4*         prim;
@@ -650,9 +650,9 @@ void func_dryfield_warehouse_8017ED34(GsCOORDINATE2* coord, s16 arg1, s16 arg2)
 /// and 6.
 void func_dryfield_warehouse_8017F494(Task* arg0)
 {
-    s32            mask;
-    s32            poseMask;
-    GsCOORDINATE2* coord;
+    s32      mask;
+    s32      poseMask;
+    GpCoord* coord;
 
     mask     = 1 << gGameSession->at4.loc.view;
     poseMask = mask & 0x24C;

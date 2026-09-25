@@ -46,19 +46,19 @@ extern s16           D_shelter_b1_storeroom_80184B44[][3];
 
 void func_shelter_b1_storeroom_8017DBC4(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_shelter_b1_storeroom_8017E408(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b1_storeroom_8017EA74(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3);
-void func_shelter_b1_storeroom_8017FA34(GsCOORDINATE2* coord, s16 size);
-void func_shelter_b1_storeroom_8017FF60(GsCOORDINATE2* arg0, s32 arg1);
-void func_shelter_b1_storeroom_801802D8(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
-void func_shelter_b1_storeroom_80181070(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b1_storeroom_8018149C(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
-void func_shelter_b1_storeroom_80181D20(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
-void func_shelter_b1_storeroom_801823A0(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
-void func_shelter_b1_storeroom_801834DC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_shelter_b1_storeroom_80183760(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b1_storeroom_80183B84(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
-void func_shelter_b1_storeroom_801840C4(GsCOORDINATE2* coord, s16 size);
-void func_shelter_b1_storeroom_801845F0(GsCOORDINATE2* arg0, s32 arg1);
+void func_shelter_b1_storeroom_8017EA74(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
+void func_shelter_b1_storeroom_8017FA34(GpCoord* coord, s16 size);
+void func_shelter_b1_storeroom_8017FF60(GpCoord* arg0, s32 arg1);
+void func_shelter_b1_storeroom_801802D8(GpCoord* arg0, s16 arg1, u8* arg2);
+void func_shelter_b1_storeroom_80181070(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_shelter_b1_storeroom_8018149C(GpCoord* arg0, s16 arg1, u8* arg2);
+void func_shelter_b1_storeroom_80181D20(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+void func_shelter_b1_storeroom_801823A0(GpCoord* arg0, s16 arg1, u8* arg2);
+void func_shelter_b1_storeroom_801834DC(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_shelter_b1_storeroom_80183760(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_shelter_b1_storeroom_80183B84(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_shelter_b1_storeroom_801840C4(GpCoord* coord, s16 size);
+void func_shelter_b1_storeroom_801845F0(GpCoord* arg0, s32 arg1);
 
 void func_shelter_b1_storeroom_8017D7EC(Task* arg0)
 {
@@ -361,9 +361,9 @@ void func_shelter_b1_storeroom_8017E408(SVECTOR* arg0, s32 arg1, s32 arg2)
 
 void func_shelter_b1_storeroom_8017E7A8(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    s32            lifetime;
+    GpEffWork* work;
+    GpCoord*   coord;
+    s32        lifetime;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -442,7 +442,7 @@ void func_shelter_b1_storeroom_8017E7A8(Task* task)
 /// position. `arg1` picks the animation frame, `arg2` packs the texture row in
 /// its top nibble over a half-extent, and `arg3` packs the palette in its top
 /// nibble over a grey level.
-void func_shelter_b1_storeroom_8017EA74(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3)
+void func_shelter_b1_storeroom_8017EA74(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -517,7 +517,7 @@ void func_shelter_b1_storeroom_8017EA74(GsCOORDINATE2* arg0, u16 arg1, u16 arg2,
 /// Draws a ring of sixteen `POLY_G4` wedges around the coordinate's world
 /// position: inner radius from `arg1`, width from `arg2`, both over depth,
 /// coloured `rgb` on the inner edge and fading to black outward.
-void func_shelter_b1_storeroom_8017ED38(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_shelter_b1_storeroom_8017ED38(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw09Scratch* block;
     POLY_G4*           prim;
@@ -608,7 +608,7 @@ void func_shelter_b1_storeroom_8017ED38(GsCOORDINATE2* arg0, s32 arg1, s32 arg2,
 /// Draws a disc of eight `POLY_G4` wedges at the coordinate's world position,
 /// sized by `arg1` over depth, coloured `arg2` at the centre and fading to
 /// black at the rim.
-void func_shelter_b1_storeroom_8017F15C(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_shelter_b1_storeroom_8017F15C(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomDraw04Scratch* block asm("s2");
     register POLY_G4*           prim asm("s0");
@@ -683,12 +683,12 @@ void func_shelter_b1_storeroom_8017F15C(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
 
 void func_shelter_b1_storeroom_8017F4F0(Task* arg0)
 {
-    u8             rgb[3];
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpMtxWords*    rot;
-    s16            flag;
-    s32            shift;
+    u8          rgb[3];
+    GpEffWork*  mem;
+    GpCoord*    coord;
+    GpMtxWords* rot;
+    s16         flag;
+    s32         shift;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -766,11 +766,11 @@ kill:
 
 void func_shelter_b1_storeroom_8017F888(Task* arg0)
 {
-    u8             rgb[3];
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s16            flag;
-    s16            step;
+    u8         rgb[3];
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s16        flag;
+    s16        step;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -819,9 +819,9 @@ void func_shelter_b1_storeroom_8017F888(Task* arg0)
 /// camera-facing textured quad, the outer half as large again, plus a mark on
 /// the ground beneath it, and points the `Gp_RoomCoords[2]` light at the glow with
 /// a random intensity.
-void func_shelter_b1_storeroom_8017FA34(GsCOORDINATE2* coord, s16 size)
+void func_shelter_b1_storeroom_8017FA34(GpCoord* coord, s16 size)
 {
-    GsCOORDINATE2  ground;
+    GpCoord        ground;
     POLY_FT4*      prim;
     s16            outerLeft;
     s16            outerRight;
@@ -946,7 +946,7 @@ void func_shelter_b1_storeroom_8017FA34(GsCOORDINATE2* coord, s16 size)
 
 /// Draws a flat textured quad of half-extent `arg1` lying on the ground plane
 /// at the coordinate, alternating between two frames with the frame counter.
-void func_shelter_b1_storeroom_8017FF60(GsCOORDINATE2* arg0, s32 arg1)
+void func_shelter_b1_storeroom_8017FF60(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;
@@ -1033,7 +1033,7 @@ void func_shelter_b1_storeroom_8017FF60(GsCOORDINATE2* arg0, s32 arg1)
 /// Draws a gouraud flare at the coordinate's world position: a two-layer disc
 /// of eight wedges and a ring of star points, sized by `arg1` over depth,
 /// coloured from `arg2` at the centre and fading to black outward.
-void func_shelter_b1_storeroom_801802D8(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_shelter_b1_storeroom_801802D8(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");
@@ -1169,10 +1169,10 @@ void func_shelter_b1_storeroom_801802D8(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
 
 void func_shelter_b1_storeroom_80180C98(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s16            flag;
-    s16            ang;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s16        flag;
+    s16        ang;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -1202,10 +1202,10 @@ void func_shelter_b1_storeroom_80180C98(Task* arg0)
 
 void func_shelter_b1_storeroom_80180DCC(Task* arg0)
 {
-    u8                      rgb[3];
-    GpEffWork*              mem;
-    register GsCOORDINATE2* coord asm("s2");
-    s16                     flag;
+    u8                rgb[3];
+    GpEffWork*        mem;
+    register GpCoord* coord asm("s2");
+    s16               flag;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -1272,7 +1272,7 @@ kill:
 /// Draws a ring of sixteen `POLY_G4` wedges around the coordinate's world
 /// position: inner radius from `arg1`, width from `arg2`, both over depth,
 /// coloured `rgb` on the inner edge and fading to black outward.
-void func_shelter_b1_storeroom_80181070(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_shelter_b1_storeroom_80181070(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -1361,7 +1361,7 @@ void func_shelter_b1_storeroom_80181070(GsCOORDINATE2* arg0, s32 arg1, s32 arg2,
 /// Draws a disc of eight `POLY_G4` wedges at the coordinate's world position,
 /// sized by `arg1` over depth, coloured `arg2` at the centre and fading to
 /// black at the rim.
-void func_shelter_b1_storeroom_8018149C(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_shelter_b1_storeroom_8018149C(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomDraw04Scratch* block asm("s2");
     register POLY_G4*           prim asm("s0");
@@ -1436,15 +1436,15 @@ void func_shelter_b1_storeroom_8018149C(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
 
 void func_shelter_b1_storeroom_80181830(Task* task)
 {
-    GsCOORDINATE2  coord;
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* objCoord;
-    GsCOORDINATE2* dst;
-    GpEffWork*     work;
-    SVECTOR*       vec;
-    s32            i;
+    GpCoord    coord;
+    GpCoord*   coords;
+    GpCoord*   objCoord;
+    GpCoord*   dst;
+    GpEffWork* work;
+    SVECTOR*   vec;
+    s32        i;
 
-    coords   = (GsCOORDINATE2*)task->work;
+    coords   = (GpCoord*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
     objCoord = task->extra.tmd->coords;
 
@@ -1452,7 +1452,7 @@ void func_shelter_b1_storeroom_80181830(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GsCOORDINATE2*)memCalloc(0x500, 0);
+                coords = (GpCoord*)memCalloc(0x500, 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
@@ -1529,11 +1529,11 @@ void func_shelter_b1_storeroom_80181830(Task* task)
 /// Draws a trail of seven gouraud quads between two eight-slot rings of
 /// coordinates, walking back from slot `arg2` and fading with age. `arg3`
 /// packs the colour as 2-bit channel multipliers at bits 8, 4 and 0.
-void func_shelter_b1_storeroom_80181D20(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3)
+void func_shelter_b1_storeroom_80181D20(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GsCOORDINATE2*     a;
-    GsCOORDINATE2*     b;
+    GpCoord*           a;
+    GpCoord*           b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -1635,9 +1635,9 @@ void func_shelter_b1_storeroom_80181D20(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1
 
 void func_shelter_b1_storeroom_80182118(Task* task)
 {
-    GsCOORDINATE2* objCoord;
-    GpEffWork*     work;
-    u8             rgb[4];
+    GpCoord*   objCoord;
+    GpEffWork* work;
+    u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
@@ -1704,7 +1704,7 @@ void func_shelter_b1_storeroom_80182118(Task* task)
 /// Draws a gouraud flare at the coordinate's world position: a two-layer disc
 /// of eight wedges and a ring of star points, sized by `arg1` over depth,
 /// coloured from `arg2` at the centre and fading to black outward.
-void func_shelter_b1_storeroom_801823A0(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_shelter_b1_storeroom_801823A0(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");
@@ -1846,11 +1846,11 @@ void func_shelter_b1_storeroom_801823A0(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
 /// shifts from `D_shelter_b1_storeroom_80184B44`.
 void func_shelter_b1_storeroom_80182D60(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpEffWork*     spawned;
-    MATRIX*        mtx;
-    u8             col[4];
+    GpEffWork* mem;
+    GpCoord*   coord;
+    GpEffWork* spawned;
+    MATRIX*    mtx;
+    u8         col[4];
 
     mem   = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
@@ -1956,14 +1956,14 @@ void func_shelter_b1_storeroom_80182D60(Task* arg0)
 
 void func_shelter_b1_storeroom_801832B8(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* target;
-    VECTOR         delta;
+    GpEffWork* work;
+    GpCoord*   coord;
+    GpCoord*   target;
+    VECTOR     delta;
 
     work   = task->spawnArg2;
     coord  = task->extra.tmd->coords;
-    target = (GsCOORDINATE2*)task->spawnArg1;
+    target = (GpCoord*)task->spawnArg1;
     if (Gp_State1C->eventState == 0) {
         work->age++;
         switch (task->state) {
@@ -2007,7 +2007,7 @@ void func_shelter_b1_storeroom_801832B8(Task* task)
 /// Draws one semi-transparent textured sprite at the coordinate's world
 /// position, picking one of four frames from `arg1`, sized by `arg2` over
 /// depth and shaded grey by `arg3`.
-void func_shelter_b1_storeroom_801834DC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
+void func_shelter_b1_storeroom_801834DC(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -2088,7 +2088,7 @@ void func_shelter_b1_storeroom_801834DC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2,
 /// Draws a ring of sixteen `POLY_G4` wedges around the coordinate's world
 /// position: inner radius from `arg1`, width from `arg2`, both over depth,
 /// coloured `rgb` on the inner edge and fading to black outward.
-void func_shelter_b1_storeroom_80183760(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_shelter_b1_storeroom_80183760(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     GpArcScratch*   block;
     POLY_G4*        prim;
@@ -2179,7 +2179,7 @@ void func_shelter_b1_storeroom_80183760(GsCOORDINATE2* arg0, s32 arg1, s32 arg2,
 /// Draws a disc of eight `POLY_G4` wedges at the coordinate's world position,
 /// sized by `arg1` over depth, coloured `rgb` at the centre and fading to black
 /// at the rim.
-void func_shelter_b1_storeroom_80183B84(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_shelter_b1_storeroom_80183B84(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     void**         scratch;
     u8*            head;
@@ -2252,10 +2252,10 @@ void func_shelter_b1_storeroom_80183B84(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
 /// task releases itself.
 void func_shelter_b1_storeroom_80183F18(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    u8             sp10[3];
-    u16            temp;
+    GpEffWork* work;
+    GpCoord*   coord;
+    u8         sp10[3];
+    u16        temp;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -2304,9 +2304,9 @@ void func_shelter_b1_storeroom_80183F18(Task* task)
 /// camera-facing textured quad, the outer half as large again, plus a mark on
 /// the ground beneath it, and points the `Gp_RoomCoords[2]` light at the glow with
 /// a random intensity.
-void func_shelter_b1_storeroom_801840C4(GsCOORDINATE2* coord, s16 size)
+void func_shelter_b1_storeroom_801840C4(GpCoord* coord, s16 size)
 {
-    GsCOORDINATE2  ground;
+    GpCoord        ground;
     POLY_FT4*      prim;
     s16            outerLeft;
     s16            outerRight;
@@ -2431,7 +2431,7 @@ void func_shelter_b1_storeroom_801840C4(GsCOORDINATE2* coord, s16 size)
 
 /// Draws a flat textured quad of half-extent `arg1` lying on the ground plane
 /// at the coordinate, alternating between two frames with the frame counter.
-void func_shelter_b1_storeroom_801845F0(GsCOORDINATE2* arg0, s32 arg1)
+void func_shelter_b1_storeroom_801845F0(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;

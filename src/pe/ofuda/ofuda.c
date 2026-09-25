@@ -28,11 +28,11 @@
 /// A cancelled or interrupted cast stops the cue and releases immediately.
 void ofudaEffectTask(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpStateC08*    state;
-    s32            pan;
-    u8             rgb[3];
+    GpEffWork*  mem;
+    GpCoord*    coord;
+    GpStateC08* state;
+    s32         pan;
+    u8          rgb[3];
 
     state = &Gp_StateC08;
     mem   = arg0->spawnArg2;
@@ -73,11 +73,11 @@ void ofudaEffectTask(Task* arg0)
             Gp_DrawRing(coord, (s16)((u16)mem->angle * 2), rgb);
             Gp_DrawArc(coord, (s16)(((u16)arg0->spawnArg1 << 4) + 0x800), 0x100, rgb);
             {
-                GsCOORDINATE2* c;
-                s32            span;
-                unsigned int   r;
-                unsigned int   g;
-                unsigned int   b;
+                GpCoord*     c;
+                s32          span;
+                unsigned int r;
+                unsigned int g;
+                unsigned int b;
 
                 c = coord;
                 COPY_REG_EC(c, coord);

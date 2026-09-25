@@ -71,8 +71,8 @@ typedef struct Actor107600Work {
     /// The spawn state stores the model root here as a word, while
     /// `func_actor_107600_80132D54` counts its sub-phase in the low halfword.
     /* 0x140 */ union {
-        GsCOORDINATE2* coord; // model root, stored by the spawn state
-        s16            step;  // sub-phase of func_actor_107600_80132D54
+        GpCoord* coord; // model root, stored by the spawn state
+        s16      step;  // sub-phase of func_actor_107600_80132D54
     } field_140;
     /* 0x144 */ s16  field_144;
     /* 0x146 */ s16  field_146; // written 2 beside field_144 by the spawn state
@@ -153,8 +153,8 @@ void func_actor_107600_801332D4(Task* arg0);
 void func_actor_107600_80133668(Task* arg0);
 void func_actor_107600_801337FC(Task* arg0);
 void func_actor_107600_801339A4(Task* arg0);
-void func_actor_107600_80133FA8(GsCOORDINATE2* arg0, SVECTOR* arg1);
-void func_actor_107600_80134248(GsCOORDINATE2* arg0, SVECTOR* arg1);
+void func_actor_107600_80133FA8(GpCoord* arg0, SVECTOR* arg1);
+void func_actor_107600_80134248(GpCoord* arg0, SVECTOR* arg1);
 void func_actor_107600_80134608(struct GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 void func_actor_107600_801348A0(Task* arg0);
 void func_actor_107600_80134904(Task* arg0);
@@ -171,7 +171,7 @@ void func_actor_107600_80134D30(Task* arg0);
 void func_actor_107600_80134D50(Task* arg0);
 void func_actor_107600_80134D70(Task* arg0);
 void func_actor_107600_80134D9C(Task* arg0);
-void func_actor_107600_80134E5C(GsCOORDINATE2* arg0);
+void func_actor_107600_80134E5C(GpCoord* arg0);
 void func_actor_107600_80134EF4(Task* arg0);
 
 /* Per-variant waypoint paths `func_actor_107600_80132160` walks, indexed by
@@ -233,8 +233,8 @@ void func_actor_107600_80131F10(Task* arg0)
 {
     TmdObject*       obj;
     GpEnemy*         enemy;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   target;
+    GpCoord*         coord;
+    GpCoord*         target;
     void**           scratch;
     u8*              head;
     VECTOR*          block;
@@ -303,7 +303,7 @@ void func_actor_107600_80132160(Task* arg0)
 {
     Actor107600Work*     work  = (Actor107600Work*)arg0->work;
     GpEnemy*             enemy = arg0->spawnArg2;
-    GsCOORDINATE2*       coord = arg0->extra.tmd->coords;
+    GpCoord*             coord = arg0->extra.tmd->coords;
     Actor107600Waypoint* wp;
     s32                  d;
     s16                  x;
@@ -411,7 +411,7 @@ void func_actor_107600_80132514(Task* arg0)
 {
     Actor107600Work*     work  = (Actor107600Work*)arg0->work;
     GpEnemy*             enemy = arg0->spawnArg2;
-    GsCOORDINATE2*       coord = arg0->extra.tmd->coords;
+    GpCoord*             coord = arg0->extra.tmd->coords;
     Actor107600Waypoint* wp;
     s32                  d;
     s16                  x;
@@ -553,7 +553,7 @@ void func_actor_107600_801328CC(Task* arg0)
 void func_actor_107600_80132930(Task* arg0)
 {
     TmdObject*       ext      = arg0->extra.tmd;
-    GpCoordExt*      coord    = (GpCoordExt*)ext->coords;
+    GpCoord*         coord    = ext->coords;
     Actor107600Work* work     = (Actor107600Work*)arg0->work;
     TaskFunc         funcs[2] = { (TaskFunc)func_actor_107600_80132CB8, func_actor_107600_80132CD4 };
     TmdObject*       obj;
@@ -611,11 +611,11 @@ void func_actor_107600_80132AC0(Task* arg0)
 /// parameters. Same shape as `func_actor_107600_801349E0`, a different callee.
 void func_actor_107600_80132B0C(Task* arg0)
 {
-    GsCOORDINATE2* coord;
-    void**         scratch;
-    u8*            head;
-    VECTOR*        block;
-    void*          obj;
+    GpCoord* coord;
+    void**   scratch;
+    u8*      head;
+    VECTOR*  block;
+    void*    obj;
 
     obj                            = arg0->spawnArg2;
     coord                          = arg0->extra.tmd->coords;
@@ -632,12 +632,12 @@ void func_actor_107600_80132B0C(Task* arg0)
 
 /// Rebuilds the model root's rotation from the work block's three angles: wrap
 /// each to 12 bits, build the rotation in a scratch matrix carved off
-/// `G_SCRATCH_HEAD`, then copy its 3x3 into the part's `GsCOORDINATE2::coord`.
+/// `G_SCRATCH_HEAD`, then copy its 3x3 into the part's `GpCoord::coord`.
 /// The copy is a call to `func_actor_107600_80132C4C`.
 void func_actor_107600_80132B7C(Task* arg0)
 {
     Actor107600Work* work  = (Actor107600Work*)arg0->work;
-    GsCOORDINATE2*   coord = arg0->extra.tmd->coords;
+    GpCoord*         coord = arg0->extra.tmd->coords;
     MATRIX*          m;
 
     work->pitch         &= 0xFFF;
@@ -658,7 +658,7 @@ void func_actor_107600_80132B7C(Task* arg0)
 }
 
 /// Copies the 3x3 rotation of the scratch matrix `func_actor_107600_80132B7C`
-/// just built into the part's `GsCOORDINATE2::coord`, leaving the translation
+/// just built into the part's `GpCoord::coord`, leaving the translation
 /// row of the destination alone.
 void func_actor_107600_80132C4C(MATRIX* src, MATRIX* dst)
 {
@@ -703,7 +703,7 @@ void func_actor_107600_80132CD4(Task* arg0)
 void func_actor_107600_80132D54(Task* arg0)
 {
     Actor107600Work* work  = (Actor107600Work*)arg0->work;
-    GsCOORDINATE2*   coord = arg0->extra.tmd->coords;
+    GpCoord*         coord = arg0->extra.tmd->coords;
     GpEnemy*         enemy = arg0->spawnArg2;
 
     switch (work->field_140.step) {
@@ -733,14 +733,14 @@ void func_actor_107600_80132D54(Task* arg0)
 /// (one half-buffer per call) and the enemy's light is set to 0x900.
 void func_actor_107600_80132DF0(GpEnemy* arg0, s32 arg1, s32 arg2)
 {
-    GpEnemy*    enemy;
-    GpCoordExt* coord;
-    TmdObject*  obj;
+    GpEnemy*   enemy;
+    GpCoord*   coord;
+    TmdObject* obj;
 
     enemy = Gp_SpawnEnemyFromTable(&D_actor_107600_80134F94, arg1 + 1, arg2, arg0);
     if (enemy != NULL) {
         Task_Reparent(arg0->task, enemy->task);
-        coord                  = (GpCoordExt*)enemy->task->extra.tmd->coords;
+        coord                  = enemy->task->extra.tmd->coords;
         coord->sub             = arg0->task->extra.tmd->coords;
         enemy->task->spawnArg1 = arg1 | (arg2 << 16);
         obj                    = enemy->task->extra.tmd;
@@ -768,7 +768,7 @@ void func_actor_107600_80132ED0(Task* arg0)
     Actor107600Work* work;
     GpEnemy*         enemy;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     u16              hp;
     u32              variant;
 
@@ -819,7 +819,7 @@ void func_actor_107600_80133024(Task* arg0)
     TmdObject*       ext;
     TmdObject*       obj;
     Actor107600Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     SVECTOR*         v;
     s32              i;
 
@@ -912,8 +912,8 @@ void func_actor_107600_801332D4(Task* arg0)
                 return;
             }
             {
-                GsCOORDINATE2* o = arg0->extra.tmd->coords;
-                s32            p;
+                GpCoord* o = arg0->extra.tmd->coords;
+                s32      p;
                 work->field_15A++;
                 p = (s8)Gp_GetObjPan(o);
                 SndEvt_EnqueueType6(0x51140007, p, (s8)gpGetObjDepth(o));
@@ -954,20 +954,20 @@ void func_actor_107600_801332D4(Task* arg0)
             }
             work->field_166++;
             if ((s16)work->field_166 == 120) {
-                GsCOORDINATE2* o = arg0->extra.tmd->coords;
-                s32            p;
+                GpCoord* o = arg0->extra.tmd->coords;
+                s32      p;
                 Gp_SetLightMode(enemy, 1);
                 p = (s8)Gp_GetObjPan(o);
                 SndEvt_EnqueueType6(0x51140013, p, (s8)gpGetObjDepth(o));
             } else if ((s16)work->field_166 == 210) {
-                GsCOORDINATE2* c;
-                s32            p;
+                GpCoord* c;
+                s32      p;
                 player          = gameGetPtrSlot(3);
                 c               = &player->extra.tmd->coords[4];
                 actor           = player->work;
                 work->field_166 = 0;
                 Gp_SetLightMode(enemy, 0);
-                Gp_SpawnEff(0x601BD, (GsCOORDINATE2*)c, 0, NULL);
+                Gp_SpawnEff(0x601BD, c, 0, NULL);
                 p = (s8)Gp_GetObjPan(c);
                 SndEvt_EnqueueType6(0x5114000E, p, (s8)gpGetObjDepth(c));
                 if (actor->field_954 != 1) {
@@ -1045,7 +1045,7 @@ void func_actor_107600_801337FC(Task* arg0)
 {
     Actor107600Work* work  = (Actor107600Work*)arg0->work;
     GpEnemy*         enemy = arg0->spawnArg2;
-    GsCOORDINATE2*   obj;
+    GpCoord*         obj;
     s32              pan;
 
     switch (work->field_15A) {
@@ -1102,7 +1102,7 @@ void func_actor_107600_801339A4(Task* arg0)
     Actor107600Work*         work  = (Actor107600Work*)arg0->work;
     GpEnemy*                 enemy = arg0->spawnArg2;
     TmdObject*               tmd   = arg0->extra.tmd;
-    GsCOORDINATE2*           obj   = tmd->coords;
+    GpCoord*                 obj   = tmd->coords;
     MistShootingGalleryWork* gal   = (MistShootingGalleryWork*)D_8018E0C4->work;
     Actor107600HitPos*       pos;
     s32                      id;
@@ -1132,8 +1132,8 @@ void func_actor_107600_801339A4(Task* arg0)
             }
             pan = (s8)Gp_GetObjPan(obj);
             SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(obj));
-            work->field_52 = ((GpCoordExt*)obj->sub)->param.rot.vy;
-            work->field_54 = ((GpCoordExt*)obj->sub)->param.rot.vz;
+            work->field_52 = (obj->sub)->param.rot.vy;
+            work->field_54 = (obj->sub)->param.rot.vz;
             Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
             x              = (Gp_LcgState >> 16) & 0x7F;
             work->field_58 = x;
@@ -1220,7 +1220,7 @@ void func_actor_107600_80133DC4(Task* arg0)
 {
     Actor107600Work* work;
     GpEnemy*         enemy;
-    GsCOORDINATE2*   obj;
+    GpCoord*         obj;
     s32              i;
     s16              damage;
     s32              pan;
@@ -1277,7 +1277,7 @@ const DVECTOR D_actor_107600_80131ED8[] = {
 
 /// Same as `func_actor_107600_80134248` with a 0x200-wide square, UVs
 /// 0x40..0x67 x 0..0x27 and a 0xA0 depth bias.
-void func_actor_107600_80133FA8(GsCOORDINATE2* coord, SVECTOR* pos)
+void func_actor_107600_80133FA8(GpCoord* coord, SVECTOR* pos)
 {
     Actor107600QuadScratch* s;
     POLY_FT4*               p;
@@ -1336,7 +1336,7 @@ const DVECTOR D_actor_107600_80131EE8[] = {
 /// Projects a 0xC0-wide square centred on `pos` (relative to `coord`'s
 /// translation) and links it as an unshaded `POLY_FT4` on tpage 0x99,
 /// dropping it when its OT depth lands too close.
-void func_actor_107600_80134248(GsCOORDINATE2* coord, SVECTOR* pos)
+void func_actor_107600_80134248(GpCoord* coord, SVECTOR* pos)
 {
     Actor107600QuadScratch* s;
     POLY_FT4*               p;
@@ -1530,7 +1530,7 @@ void func_actor_107600_80134920(Task* arg0)
 void func_actor_107600_80134958(Task* arg0)
 {
     Actor107600Work* work  = (Actor107600Work*)arg0->work;
-    GsCOORDINATE2*   coord = arg0->extra.tmd->coords;
+    GpCoord*         coord = arg0->extra.tmd->coords;
     GpRec18*         rec   = work->rec18;
 
     work->obj.coord    = coord;
@@ -1550,11 +1550,11 @@ void func_actor_107600_80134958(Task* arg0)
 /// `func_actor_107600_80134608` with no blend parameters.
 void func_actor_107600_801349E0(Task* arg0)
 {
-    GsCOORDINATE2* coord;
-    void**         scratch;
-    u8*            head;
-    VECTOR*        block;
-    void*          obj;
+    GpCoord* coord;
+    void**   scratch;
+    u8*      head;
+    VECTOR*  block;
+    void*    obj;
 
     obj                            = arg0->spawnArg2;
     coord                          = arg0->extra.tmd->coords;
@@ -1572,12 +1572,12 @@ void func_actor_107600_801349E0(Task* arg0)
 /// Builds a second rotation from the work block's angle trio at +0x50: wrap
 /// each to 12 bits, lay an unscaled `MATRIX` down at the scratchpad head, apply
 /// `Gfx_RotMatrixZ`/`X`/`Y` to it in that order, copy its 3x3 into the model's
-/// `GsCOORDINATE2::coord` through `func_actor_107600_80134B2C`, and hand the
+/// `GpCoord::coord` through `func_actor_107600_80134B2C`, and hand the
 /// scratch block back.
 void func_actor_107600_80134A50(Task* arg0)
 {
     Actor107600Work* work  = (Actor107600Work*)arg0->work;
-    GsCOORDINATE2*   coord = arg0->extra.tmd->coords;
+    GpCoord*         coord = arg0->extra.tmd->coords;
     MATRIX*          m;
 
     work->field_50      &= 0xFFF;
@@ -1737,8 +1737,8 @@ void func_actor_107600_80134D70(Task* arg0)
 void func_actor_107600_80134D9C(Task* arg0)
 {
     Actor107600Work* work;
-    GsCOORDINATE2*   self;
-    GsCOORDINATE2*   target;
+    GpCoord*         self;
+    GpCoord*         target;
     void**           scratch;
     u8*              head;
     VECTOR*          block;
@@ -1769,7 +1769,7 @@ void func_actor_107600_80134D9C(Task* arg0)
 /// is filled with (0, -0x180, 0) and rotated in place by `ApplyMatrixLV`, which
 /// also folds in the matrix's existing translation. `func_actor_107600_80132ED0`
 /// calls this on the coordinate it then hands to `Gp_UpdateCoord`.
-void func_actor_107600_80134E5C(GsCOORDINATE2* arg0)
+void func_actor_107600_80134E5C(GpCoord* arg0)
 {
     void**  scratch;
     u8*     head;
@@ -1796,7 +1796,7 @@ void func_actor_107600_80134E5C(GsCOORDINATE2* arg0)
 void func_actor_107600_80134EF4(Task* arg0)
 {
     Actor107600Work* work  = (Actor107600Work*)arg0->work;
-    GsCOORDINATE2*   coord = arg0->extra.tmd->coords;
+    GpCoord*         coord = arg0->extra.tmd->coords;
     u16              x     = coord->coord.m[0][0];
     u16              y     = coord->coord.m[2][1];
 

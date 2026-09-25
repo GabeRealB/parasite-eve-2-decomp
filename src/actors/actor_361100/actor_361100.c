@@ -81,7 +81,7 @@ extern void*      D_actor_361100_80171BA8[];
 extern u8         D_actor_361100_80171BB8[];
 
 void func_80138C9C(ActorEffectState* state);
-void func_801353D0(ActorEffectState* state, GsCOORDINATE2* coord);
+void func_801353D0(ActorEffectState* state, GpCoord* coord);
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
@@ -132,7 +132,7 @@ const TaskFuncTable3 D_actor_361100_80161E30 = {
 void func_actor_361100_80161E3C(Task* arg0)
 {
     ActorEffectState* state;
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     MATRIX*           mtx;
     s32               i;
     s32               writePtr;
@@ -688,7 +688,7 @@ void func_actor_361100_80162B18(Task* task)
 {
     TmdObject*       ext  = task->extra.tmd;
     Actor361100Work* work = (Actor361100Work*)task->work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     VECTOR           pos;
     s32              i;
 
@@ -754,11 +754,11 @@ void func_actor_361100_80162CBC(Task* task)
 void func_actor_361100_80162D28(Task* arg0)
 {
     Actor361100Work* work;
-    GpCoordExt*      coord;
+    GpCoord*         coord;
     GpEnemy*         enemy;
 
     enemy = arg0->spawnArg2;
-    coord = (GpCoordExt*)arg0->extra.tmd->coords;
+    coord = arg0->extra.tmd->coords;
 
     work = (Actor361100Work*)memCalloc(sizeof(Actor361100Work), false);
     if (work == NULL) {
@@ -855,11 +855,11 @@ s32 func_actor_361100_80162E20(Task* task, s32 arg1, GpAnimArg* msg)
 /// block's two vector accumulators.
 s32 func_actor_361100_80162F58(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GpCoordExt*      coord;
+    GpCoord*         coord;
     Actor361100Work* work;
 
     work                = (Actor361100Work*)task->work;
-    coord               = (GpCoordExt*)task->extra.tmd->coords;
+    coord               = task->extra.tmd->coords;
     coord->coord.t[0]   = placement->pos.vx;
     coord->coord.t[1]   = placement->pos.vy;
     coord->coord.t[2]   = placement->pos.vz;
@@ -966,7 +966,7 @@ void func_actor_361100_801631C4(Task* task)
 {
     TmdObject*       ext  = task->extra.tmd;
     Actor361100Work* work = (Actor361100Work*)task->work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     VECTOR3          pos;
     s32              i;
 
@@ -1104,9 +1104,9 @@ s32 func_actor_361100_801634D0(Task* task, s32 arg1, GpAnimArg* msg)
 /// is recomputed.
 s32 func_actor_361100_801635F4(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GpCoordExt* coord;
+    GpCoord* coord;
 
-    coord               = (GpCoordExt*)task->extra.tmd->coords;
+    coord               = task->extra.tmd->coords;
     coord->coord.t[0]   = placement->pos.vx;
     coord->coord.t[1]   = placement->pos.vy;
     coord->coord.t[2]   = placement->pos.vz;

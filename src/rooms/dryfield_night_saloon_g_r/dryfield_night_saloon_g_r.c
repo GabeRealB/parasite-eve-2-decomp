@@ -115,8 +115,8 @@ void func_dryfield_night_saloon_g_r_8017DF90(Task* task);
 void func_dryfield_night_saloon_g_r_8017E040(Task* task);
 s32  func_dryfield_night_saloon_g_r_8017E698(s32 arg0);
 void func_dryfield_night_saloon_g_r_8017E8B0(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_dryfield_night_saloon_g_r_8017EB38(GsCOORDINATE2* coord);
-void func_dryfield_night_saloon_g_r_8017F0A4(GsCOORDINATE2* coord, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
+void func_dryfield_night_saloon_g_r_8017EB38(GpCoord* coord);
+void func_dryfield_night_saloon_g_r_8017F0A4(GpCoord* coord, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
 
 /// Event gate for the room's exit. Returns 1 when game-flag nibble
 /// `req->flagId` already reads set (clear, for a negative id). Otherwise, when
@@ -653,9 +653,9 @@ s32 func_dryfield_night_saloon_g_r_8017E698(s32 arg0)
 /// with column 0 and 0x300; the two helpers in between take the model's coord.
 void func_dryfield_night_saloon_g_r_8017E6C8(Task* arg0)
 {
-    GsCOORDINATE2* coord;
-    s32            mask;
-    s32            i;
+    GpCoord* coord;
+    s32      mask;
+    s32      i;
 
     coord = arg0->extra.tmd->coords;
     mask  = 1 << gGameSession->at4.loc.view;
@@ -792,7 +792,7 @@ void func_dryfield_night_saloon_g_r_8017E8B0(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// parity of `gDisplayState.animFrame` and the tips are black, so the shaft
 /// fades outward. The quad is sorted by `tipB`'s `otz` and skipped when that
 /// is below 0x11.
-void func_dryfield_night_saloon_g_r_8017EB38(GsCOORDINATE2* coord)
+void func_dryfield_night_saloon_g_r_8017EB38(GpCoord* coord)
 {
     u8*                    head;
     RoomLightShaftScratch* block;
@@ -903,7 +903,7 @@ void func_dryfield_night_saloon_g_r_8017EB38(GsCOORDINATE2* coord)
 /// take a grey of 0x20 or 0x30 depending on the parity of
 /// `gDisplayState.animFrame`, the rim vertices are black. Each primitive goes
 /// into the OT bucket of its own end's `otz` with a `Gp_AddTpageShift` tpage.
-void func_dryfield_night_saloon_g_r_8017F0A4(GsCOORDINATE2* coord, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
+void func_dryfield_night_saloon_g_r_8017F0A4(GpCoord* coord, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
     u8*                head;
     RoomDraw24Scratch* block;

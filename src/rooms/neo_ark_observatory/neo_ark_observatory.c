@@ -125,7 +125,7 @@ extern s16            D_neo_ark_observatory_80187A3C;
 
 void func_neo_ark_observatory_8017D8A8(Task* task);
 s32  func_neo_ark_observatory_8017F44C(MapMarkerRec* arg0, MapMarkerOut* arg1);
-void func_neo_ark_observatory_8017FE34(GsCOORDINATE2* coord, SVECTOR* offset);
+void func_neo_ark_observatory_8017FE34(GpCoord* coord, SVECTOR* offset);
 void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3);
 void func_neo_ark_observatory_80180A0C(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_neo_ark_observatory_80180DAC(s16 arg0);
@@ -155,7 +155,7 @@ void func_neo_ark_observatory_8017D6F4(Task* task)
     Task*           owner;
     GameActor*      actor;
     TmdObject*      extra;
-    GsCOORDINATE2*  parts;
+    GpCoord*        parts;
     RoomMirrorWork* work;
     Task*           child;
     Task*           spawned;
@@ -235,8 +235,8 @@ void func_neo_ark_observatory_8017D8A8(Task* task)
     Task*                    spawned;
     RoomMirrorPlaneScratch*  plane;
     RoomMirrorExtentScratch* extent;
-    GsCOORDINATE2*           parts;
-    GsCOORDINATE2*           refPart;
+    GpCoord*                 parts;
+    GpCoord*                 refPart;
     DR_AREA*                 drArea;
     DR_STP*                  drStp;
     DR_OFFSET*               drOffset;
@@ -282,7 +282,7 @@ void func_neo_ark_observatory_8017D8A8(Task* task)
     extra->flags |= 0x10;
     viewFlg       = gGfxViewCoord.flg & 0x7FFFFFFF;
     if (work->viewFlg != viewFlg) {
-        GsCOORDINATE2* sub;
+        GpCoord* sub;
 
         work->viewFlg     = viewFlg;
         sub               = gGfxViewCoord.sub;
@@ -609,14 +609,14 @@ void func_neo_ark_observatory_8017D8A8(Task* task)
         owner   = gameGetPtrSlot(3);
         refPart = &parts[1];
         if (owner != NULL) {
-            TmdObject*     src       = owner->extra.tmd;
-            GsCOORDINATE2* srcCoords = src->coords;
+            TmdObject* src       = owner->extra.tmd;
+            GpCoord*   srcCoords = src->coords;
 
             parts->flg = 0;
             j          = 0;
             if (src->partCount != 0) {
-                GsCOORDINATE2* from = (GsCOORDINATE2*)&srcCoords->coord;
-                GsCOORDINATE2* to   = (GsCOORDINATE2*)&parts->coord;
+                GpCoord* from = (GpCoord*)&srcCoords->coord;
+                GpCoord* to   = (GpCoord*)&parts->coord;
 
                 do {
                     *(MATRIX*)to = *(MATRIX*)from;
@@ -733,10 +733,10 @@ void func_neo_ark_observatory_8017D8A8(Task* task)
     }
 
     {
-        GsCOORDINATE2* ownerParts;
-        TmdObject*     ownerBody;
-        GsCOORDINATE2* ownParts;
-        MATRIX         mtx;
+        GpCoord*   ownerParts;
+        TmdObject* ownerBody;
+        GpCoord*   ownParts;
+        MATRIX     mtx;
 
         ownerParts  = gameGetPtrSlot(3)->extra.tmd->coords;
         ownerBody   = gameGetPtrSlot(3)->extra.tmd;
@@ -765,11 +765,11 @@ void func_neo_ark_observatory_8017F22C(Task* task)
     Task*           mirror;
     TmdObject*      mirrorExtra;
     RoomMirrorWork* work;
-    GsCOORDINATE2*  mirrorPart;
+    GpCoord*        mirrorPart;
     TmdObject*      src;
-    GsCOORDINATE2*  srcParts;
+    GpCoord*        srcParts;
     TmdObject*      extra;
-    GsCOORDINATE2*  parts;
+    GpCoord*        parts;
     VECTOR          scale;
     u16             flags;
 
@@ -1203,7 +1203,7 @@ void func_neo_ark_observatory_8017FDDC(Task* task)
 /// Rebuilds the working mesh from its source under `coord`: the first four
 /// vectors are rotated only, the eight after them rotated and translated and,
 /// when `offset` is non-NULL, shifted by it afterwards.
-void func_neo_ark_observatory_8017FE34(GsCOORDINATE2* coord, SVECTOR* offset)
+void func_neo_ark_observatory_8017FE34(GpCoord* coord, SVECTOR* offset)
 {
     MATRIX        m;
     long          flag;

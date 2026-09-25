@@ -155,13 +155,13 @@ end:
 
 Task* Display_SpawnFromMode(void)
 {
-    Task*          ret;
-    u32            mode;
-    Task*          slot;
-    GameActor*     obj;
-    GsCOORDINATE2* ptr;
-    GpAreaKey*     ed;
-    s32            flag;
+    Task*      ret;
+    u32        mode;
+    Task*      slot;
+    GameActor* obj;
+    GpCoord*   ptr;
+    GpAreaKey* ed;
+    s32        flag;
 
     ret = Task_SpawnFromTable(Stage_Ctx->field_0, 0, Stage_Ctx->field_4, Stage_Ctx->field_8);
     if (ret != NULL) {

@@ -121,10 +121,10 @@ void func_actor_260500_80149EBC(void)
 /// the reset mode 2 / id 4 it seeds.
 void func_actor_260500_80149FB0(GpEnemy* enemy, Task* task)
 {
-    VECTOR         vec;
-    GsCOORDINATE2* coord;
-    TmdObject*     obj;
-    void*          work;
+    VECTOR     vec;
+    GpCoord*   coord;
+    TmdObject* obj;
+    void*      work;
 
     obj                     = task->extra.tmd;
     coord                   = obj->coords;
@@ -168,7 +168,7 @@ void func_actor_260500_80149FB0(GpEnemy* enemy, Task* task)
 /// while `turnFrames` counts down. Mode 3 then ticks the animation.
 void func_actor_260500_8014A110(Task* task)
 {
-    GsCOORDINATE2*   coord = task->extra.tmd->coords;
+    GpCoord*         coord = task->extra.tmd->coords;
     Actor260500Work* work  = (Actor260500Work*)task->work;
 
     if (D_actor_260500_80159E4C->st.state == 1) {
@@ -228,9 +228,9 @@ void func_actor_260500_8014A460(Task* task)
 /// translation, then runs the update and draws the ground shadow.
 void func_actor_260500_8014A4BC(GpEnemy* enemy, Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR         pos;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR     pos;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -339,8 +339,8 @@ s32 func_actor_260500_8014A754(Task* task, s32 arg1, s32 arg2)
 /// rotation is applied.
 s32 func_actor_260500_8014A79C(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2* coord;
-    u16            yaw;
+    GpCoord* coord;
+    u16      yaw;
 
     coord                           = task->extra.tmd->coords;
     D_actor_260500_80159E4C->st.yaw = yaw = placement->rot.vy;
@@ -369,7 +369,7 @@ s32 func_actor_260500_8014A818(Task* task, s32 arg1, GpCmdArg* msg)
 /// and 25 in mode 2.
 s32 func_actor_260500_8014A83C(Task* task, s32 arg1, VECTOR* target, s32 mode)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor260500Work* work;
     s32              steps;
     s32              dx;
@@ -411,9 +411,9 @@ s32 func_actor_260500_8014A83C(Task* task, s32 arg1, VECTOR* target, s32 mode)
 /// and the quad is drawn at a fixed brightness of 0xC0.
 void func_actor_260500_8014A99C(Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR3*       vec;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR3*   vec;
 
     obj   = task->extra.tmd;
     coord = obj->coords;

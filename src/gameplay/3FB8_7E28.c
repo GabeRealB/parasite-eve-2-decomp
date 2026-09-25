@@ -20,7 +20,7 @@ void Gp_DrawEffSprite81(Task* arg0)
     u8*                     head;
     register GpRingScratch* block asm("t1");
     TmdObject*              extra;
-    GsCOORDINATE2*          coord;
+    GpCoord*                coord;
     GpEffWork*              mem;
     POLY_FT4*               prim;
     s16                     x;
@@ -32,7 +32,7 @@ void Gp_DrawEffSprite81(Task* arg0)
 
     extra                                   = arg0->extra.tmd;
     head                                    = SCRATCH_HEAD(u8);
-    coord                                   = (GsCOORDINATE2*)extra->coords;
+    coord                                   = extra->coords;
     mem                                     = arg0->spawnArg2;
     ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&coord->workm.t[0];
     {
@@ -98,9 +98,9 @@ void Gp_DrawEffSprite81(Task* arg0)
     SCRATCH_POP_BYTES(0x18);
 }
 
-void Gp_DrawEffSprite46(GsCOORDINATE2* arg0, s32 arg1, s16 arg2, u16 arg3)
+void Gp_DrawEffSprite46(GpCoord* arg0, s32 arg1, s16 arg2, u16 arg3)
 {
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     register void**   scratch asm("a0");
     GpQuadScratch*    block;
     register SVECTOR* v asm("t0");
@@ -180,19 +180,19 @@ void Gp_DrawEffSprite46(GsCOORDINATE2* arg0, s32 arg1, s16 arg2, u16 arg3)
 
 void Gp_EffSprTask81(Task* arg0)
 {
-    GpEffWork*     mem;
-    TmdObject*     extra;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* parent;
-    MATRIX*        m;
-    MATRIX*        world;
-    s16            flag;
-    s32            one;
+    GpEffWork* mem;
+    TmdObject* extra;
+    GpCoord*   coord;
+    GpCoord*   parent;
+    MATRIX*    m;
+    MATRIX*    world;
+    s16        flag;
+    s32        one;
 
     extra  = arg0->extra.tmd;
     mem    = arg0->spawnArg2;
     flag   = Gp_State1C->eventState;
-    coord  = (GsCOORDINATE2*)extra->coords;
+    coord  = extra->coords;
     parent = mem->parent;
     if (flag >= 2) {
         Gp_ReleaseState1CMem(mem, arg0);

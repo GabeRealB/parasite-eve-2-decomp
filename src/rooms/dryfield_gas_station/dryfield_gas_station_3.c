@@ -352,7 +352,7 @@ void func_dryfield_gas_station_80180B2C(s16 arg0)
 /// half-extent, so the on-screen half width is `(s16)arg3 * 32 / otz`; two
 /// gouraud `POLY_G4` wedges and two `LINE_G3` diagonals cross the projected
 /// centre, whose green and blue pulse as `rsin(animFrame * arg2) / 34 + 0x78`.
-void func_dryfield_gas_station_80180B4C(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
+void func_dryfield_gas_station_80180B4C(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
 {
     void**            scratch;
     u8*               head;
@@ -445,7 +445,7 @@ void func_dryfield_gas_station_80180B4C(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 
 /// radius, then four quads reaching out from `rInner` towards `rOuter`.
 /// The centre vertex's intensity is `rsin(animFrame * arg2) / 34 + 0x78`,
 /// halved on the outer wedges and on the four quads.
-void func_dryfield_gas_station_80181058(GsCOORDINATE2* coord, SVECTOR* data, s32 arg2, s32 arg3)
+void func_dryfield_gas_station_80181058(GpCoord* coord, SVECTOR* data, s32 arg2, s32 arg3)
 {
     u8*              head;
     RoomGlowScratch* block;
@@ -592,8 +592,8 @@ void func_dryfield_gas_station_80181058(GsCOORDINATE2* coord, SVECTOR* data, s32
 /// with 0x40.
 void func_dryfield_gas_station_80181A78(Task* arg0)
 {
-    s32            mask;
-    GsCOORDINATE2* coord;
+    s32      mask;
+    GpCoord* coord;
 
     mask  = 1 << gGameSession->at4.loc.view;
     coord = arg0->extra.tmd->coords;

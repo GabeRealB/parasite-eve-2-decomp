@@ -77,10 +77,10 @@ const GpEnemyTaskFuncTable3 D_actor_323000_80161E34 = {
 /// rotation in a matrix carved off the scratchpad head, applies the turn,
 /// converts the result back into the parent's frame, writes the 3x3 into the
 /// joint and refreshes it. The tick uses it to turn the body and head parts.
-void func_actor_323000_80161E8C(GsCOORDINATE2* coord, s16 yaw)
+void func_actor_323000_80161E8C(GpCoord* coord, s16 yaw)
 {
-    MATRIX*        rotation;
-    GsCOORDINATE2* out;
+    MATRIX*  rotation;
+    GpCoord* out;
 
     SCRATCH_PUSH(MATRIX);
     rotation = SCRATCH_HEAD(MATRIX);
@@ -98,7 +98,7 @@ void func_actor_323000_80161E8C(GsCOORDINATE2* coord, s16 yaw)
 /// `coord` out of the last record of kind 0x10000 or 0x30000, scaled down to
 /// 0x100 units when longer. Returns whether any such record was found; returns
 /// 0 at once when `gGameSession->viewReady` or `Mc_SaveData.field_5C1` is 1.
-s32 func_actor_323000_80162198(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
+s32 func_actor_323000_80162198(GpCoord* coord, GpRec18* recs, s16 count)
 {
     ActorRepelScratch* head;
     ActorRepelScratch* s;
@@ -157,7 +157,7 @@ s32 func_actor_323000_80162198(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
 /// `*pos` accumulates the total nudge. Returns whether any record was of kind
 /// 0x10000; returns 0 at once when `gGameSession->viewReady` or `Mc_SaveData.field_5C1`
 /// is 1.
-s32 func_actor_323000_801624E0(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos)
+s32 func_actor_323000_801624E0(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
@@ -272,7 +272,7 @@ s32 func_actor_323000_801624E0(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
 /// `D_actor_323000_80173A14`. Returns 1 when the X or Z step is nonzero; a
 /// step with a fractional part moves the coordinate and the kept step one
 /// unit further from zero.
-s32 func_actor_323000_80162A2C(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2)
+s32 func_actor_323000_80162A2C(GpCoord* coord, GpRec18* movement, s16 arg2)
 {
     void**            scratch;
     u8*               head;
@@ -326,7 +326,7 @@ s32 func_actor_323000_80162A2C(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2
 /// frame's position, relative to the point one unit in front of it. Returns
 /// whether any push was applied; returns 0 at once when
 /// `gGameSession->viewReady` is 1.
-s32 func_actor_323000_80162BD0(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push)
+s32 func_actor_323000_80162BD0(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
 {
     void**                  scratch;
     void**                  tail;
@@ -932,7 +932,7 @@ void func_actor_323000_80163EA0(GpEnemy* enemy, Task* task)
     VECTOR           pos;
     TmdObject*       obj;
     TmdObject*       tmd;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor323000Work* work;
     Actor323000Work* work2;
     Actor323000Work* mem;
@@ -1139,7 +1139,7 @@ void func_actor_323000_801645A4(GpEnemy* enemy, Task* task)
     GpEnemyTaskFuncTable4   sp;
     Actor323000TickScratch* scratch;
     u8*                     head;
-    GsCOORDINATE2*          walker;
+    GpCoord*                walker;
     SVECTOR*                pos;
 
     work = (Actor323000Work*)task->work;

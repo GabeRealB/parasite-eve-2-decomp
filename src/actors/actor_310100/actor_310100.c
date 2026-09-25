@@ -121,7 +121,7 @@ s32 func_actor_310100_80161E24(Task* task)
 {
     Actor310100Work* work;
     GpAnimRec*       rec;
-    GsCOORDINATE2*   obj;
+    GpCoord*         obj;
     s32              i;
     u16              step;
 
@@ -218,7 +218,7 @@ void func_actor_310100_801620FC(Task* task)
     Actor310100Work* display;
     Task*            modelTask;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     GpAreaPlace*     place;
     u8               mode;
 
@@ -282,7 +282,7 @@ void func_actor_310100_80162284(Task* task)
     Actor310100Work* display;
     Task*            modelTask;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     GpAreaPlace*     place;
     u8               mode;
 
@@ -343,7 +343,7 @@ void func_actor_310100_80162414(Task* task, s32 arg1)
     Actor310100Work* work;
     Actor310100Work* work2;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     GpAreaPlace*     place;
     u16              mode;
     u16              active;
@@ -403,7 +403,7 @@ void func_actor_310100_801625E4(Task* task, s32 arg1)
     Actor310100Work* work;
     Actor310100Work* work2;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     GpAreaPlace*     place;
     u16              mode;
     u16              active;
@@ -465,7 +465,7 @@ void func_actor_310100_801627BC(Task* task)
     Actor310100Work* work;
     Actor310100Work* work2;
     GpAreaPlace*     place;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Task*            child;
     u16              st;
     u16              on;
@@ -536,7 +536,7 @@ void func_actor_310100_801629FC(Task* task)
 {
     Actor310100Work* work;
     GpAreaPlace*     place;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Task*            child;
     u16              st;
     u16              on;
@@ -708,7 +708,7 @@ void func_actor_310100_80162D50(Task* task, s32 msgId, GpXformArg* placement)
 void func_actor_310100_80162EC8(Task* task, s32 msgId, GpXformArg* placement)
 {
     Actor310100Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
 
     work              = (Actor310100Work*)task->work;
     coord             = work->field_4E4->extra.tmd->coords;

@@ -41,14 +41,14 @@ SVECTOR D_m4a1_hammer_8011EB60 = { 0, 0x280, 0x20, 0 };
 ///   winds `age` back down and redraws instead of advancing.
 void func_m4a1_hammer_8011D1E0(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* light;
-    GpCoord64*     base;
-    GpPointLight*  slot;
-    GpMtxWords*    dstm;
-    s32            i;
-    s32            j;
+    GpEffWork*    work;
+    GpCoord*      coord;
+    GpCoord*      light;
+    GpCoord64*    base;
+    GpPointLight* slot;
+    GpMtxWords*   dstm;
+    s32           i;
+    s32           j;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -252,9 +252,9 @@ void func_m4a1_hammer_8011D904(s32* arg0, u16 arg1, u16 arg2, s16 arg3)
 
 void func_m4a1_hammer_8011DD08(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* parent;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    GpCoord*   parent;
 
     mem   = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
@@ -297,7 +297,7 @@ void func_m4a1_hammer_8011DD08(Task* arg0)
 /// and by `arg3 + 0x400`, so the sprite spins in screen space; nothing is
 /// drawn if the centre projects off-screen. Same shape as
 /// `func_m4a1_hammer_8011D904` on a wider, brighter page.
-void func_m4a1_hammer_8011DE60(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
+void func_m4a1_hammer_8011DE60(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -355,7 +355,7 @@ void func_m4a1_hammer_8011DE60(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3
     SCRATCH_POP_BYTES(0x1C);
 }
 
-void func_m4a1_hammer_8011E29C(GsCOORDINATE2* coord, SVECTOR* arg1, s32 arg2, s16 arg3)
+void func_m4a1_hammer_8011E29C(GpCoord* coord, SVECTOR* arg1, s32 arg2, s16 arg3)
 {
     u8*                     head;
     M4a1HammerTrailScratch* block;

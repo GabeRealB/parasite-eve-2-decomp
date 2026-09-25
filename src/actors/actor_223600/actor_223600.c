@@ -132,10 +132,10 @@ void func_actor_223600_8014CF3C(GpEnemy* arg0, Task* arg1);
 /// rotation in a matrix carved off the scratchpad head, applies the turn,
 /// converts the result back into the parent's frame, writes the 3x3 into the
 /// joint and refreshes it.
-void func_actor_223600_80149E64(GsCOORDINATE2* coord, s16 yaw)
+void func_actor_223600_80149E64(GpCoord* coord, s16 yaw)
 {
-    MATRIX*        rotation;
-    GsCOORDINATE2* out;
+    MATRIX*  rotation;
+    GpCoord* out;
 
     SCRATCH_PUSH(MATRIX);
     rotation = SCRATCH_HEAD(MATRIX);
@@ -154,7 +154,7 @@ void func_actor_223600_80149E64(GsCOORDINATE2* coord, s16 yaw)
 /// scratch block, and its length is scaled down to 0x100 when longer. Returns
 /// whether any record of those kinds was met. Does nothing, returning 0, while
 /// `Mc_SaveData.field_5C1` or the session's `viewReady` is 1.
-s32 func_actor_223600_8014A170(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
+s32 func_actor_223600_8014A170(GpCoord* coord, GpRec18* recs, s16 count)
 {
     ActorRepelScratch* head;
     ActorRepelScratch* s;
@@ -210,7 +210,7 @@ s32 func_actor_223600_8014A170(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
 /// for each bearing left steps `coord` 10 units away from it, accumulating the
 /// total XZ step in `pos`. Returns whether any kind 0x10000 record was met;
 /// returns 0 at once when the session's `viewReady` or `Mc_SaveData.field_5C1` is 1.
-s32 func_actor_223600_8014A4B8(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos)
+s32 func_actor_223600_8014A4B8(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
@@ -325,7 +325,7 @@ s32 func_actor_223600_8014A4B8(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
 /// `D_actor_223600_80150B54`. Returns the "moved" flag: set when the X or Z
 /// delta is nonzero; where a delta also has a fractional part, the coordinate
 /// and the latched step are nudged one unit further away from zero.
-s32 func_actor_223600_8014AA04(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2)
+s32 func_actor_223600_8014AA04(GpCoord* coord, GpRec18* movement, s16 arg2)
 {
     void**            scratch;
     u8*               head;
@@ -379,7 +379,7 @@ s32 func_actor_223600_8014AA04(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2
 /// frame's position, relative to the point one unit in front of it. Returns
 /// whether any push was applied; returns 0 at once when
 /// `gGameSession->viewReady` is 1.
-s32 func_actor_223600_8014ABA8(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push)
+s32 func_actor_223600_8014ABA8(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
 {
     void**                  scratch;
     void**                  tail;
@@ -647,7 +647,7 @@ static __inline__ void Actor223600_ScaleForward(SVECTOR* dir, s16 amount)
 /// Steps the model `amount` units along its facing -- the coordinate matrix's z
 /// column, normalised and GTE-scaled in a scratch-pad vector -- and invalidates
 /// the coordinate. Skipped entirely while `Mc_SaveData.field_5C1` is 1.
-static __inline__ void Actor223600_MoveForward(GsCOORDINATE2* coord, s16 amount)
+static __inline__ void Actor223600_MoveForward(GpCoord* coord, s16 amount)
 {
     SVECTOR* head;
     SVECTOR* vec;
@@ -682,7 +682,7 @@ void func_actor_223600_8014B540(GpEnemy* enemy, Task* task)
     SVECTOR          dir;
     Actor223600Work* work;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     u32              scale;
     u32              flag;
     s32              hp;
@@ -772,7 +772,7 @@ void func_actor_223600_8014B840(GpEnemy* enemy, Task* task)
     Actor223600Work* work;
     Actor223600Turn* head;
     Actor223600Turn* turn;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     TmdObject*       obj;
     u32              mode;
 
@@ -1246,7 +1246,7 @@ s32 func_actor_223600_8014CD54(Task* task, s32 arg1, GpXformArg* placement)
 /// with `ratan2` of `-m[2][0], m[2][2]` -- uniformly scaled by `scale`, working
 /// in a 0x34-byte block borrowed from the scratchpad. Marks the coordinate
 /// dirty.
-void func_actor_223600_8014CE24(GsCOORDINATE2* coord, s16 scale)
+void func_actor_223600_8014CE24(GpCoord* coord, s16 scale)
 {
     void**                scratch;
     ActorScaleRotScratch* head;

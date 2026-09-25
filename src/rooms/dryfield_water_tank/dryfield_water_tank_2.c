@@ -507,9 +507,9 @@ void func_dryfield_water_tank_8017ED30(Task* arg0)
 /// DECOMPILATION_LEARNINGS.md, "A load the pointer variable must copy").
 void func_dryfield_water_tank_8017EDF4(Task* arg0)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR         vec;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR     vec;
 
     coord = arg0->extra.tmd->coords;
     obj   = arg0->extra.tmd;

@@ -59,21 +59,21 @@ u16 D_m4a1_javelin_8011FAAC[4] = { 0x12, 0x124, 0x248, 0x36C };
 ///   and releases the work block when the last step runs out.
 void func_m4a1_javelin_8011D1E4(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    GameActor*     actor;
-    GpCoord64*     base;
-    GsCOORDINATE2* light;
-    GpPointLight*  slot;
-    GpMtxWords*    dstm;
-    SVECTOR        pa;
-    SVECTOR        pb;
-    SVECTOR        qa;
-    SVECTOR        qb;
-    s32            i;
-    s32            lim;
-    s32            t;
-    u16            rnd;
+    GpEffWork*    work;
+    GpCoord*      coord;
+    GameActor*    actor;
+    GpCoord64*    base;
+    GpCoord*      light;
+    GpPointLight* slot;
+    GpMtxWords*   dstm;
+    SVECTOR       pa;
+    SVECTOR       pb;
+    SVECTOR       qa;
+    SVECTOR       qb;
+    s32           i;
+    s32           lim;
+    s32           t;
+    u16           rnd;
 
     actor = gameGetPtrSlot(3)->work;
     base  = &Gp_RoomCoords[1];
@@ -684,9 +684,9 @@ void func_m4a1_javelin_8011F4A4(M4a1JavelinVecLo* arg0)
 
 void func_m4a1_javelin_8011F4E8(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s16            flag;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s16        flag;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -734,19 +734,19 @@ void func_m4a1_javelin_8011F4E8(Task* arg0)
 /// the scheduler is free to move the load, and the block comes out reordered.
 void func_m4a1_javelin_8011F5D4(Task* arg0)
 {
-    GameActor*     actor;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* spot;
-    GpEffWork*     eff;
-    s32            anim;
-    s32            delay;
-    s32            tick;
-    u16            count;
+    GameActor* actor;
+    GpCoord*   coord;
+    GpCoord*   spot;
+    GpEffWork* eff;
+    s32        anim;
+    s32        delay;
+    s32        tick;
+    u16        count;
 
     SCRATCH_PUSH_BYTES(0x58);
     coord     = arg0->extra.tmd->coords;
     actor     = arg0->work;
-    spot      = SCRATCH_HEAD(GsCOORDINATE2);
+    spot      = SCRATCH_HEAD(GpCoord);
     spot->sub = NULL;
 
     switch (actor->field_95E) {

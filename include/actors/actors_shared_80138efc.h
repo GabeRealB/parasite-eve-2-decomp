@@ -6,6 +6,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3FB8.h"
 #include "main/task.h"
+#include "main/coord.h"
 
 /// The enemy's work block: allocated zeroed by the spawn handler and parked in
 /// `Task::work`, then handed to every state handler and message handler of the
@@ -15,7 +16,7 @@
 /// the per-state counters and latches the handlers share.
 typedef struct ActorsShared80138efcWork {
     /// Root coordinate the model's second part is parented to.
-    /* 0x000 */ GsCOORDINATE2 coord;
+    /* 0x000 */ GpCoord coord;
     /// Body animation. Slot 1's `flags` report the clip's end and its control
     /// entries to the state handlers, and its `curSet` is the motion playing.
     /* 0x050 */ GpAnimCtx  anim;
@@ -134,7 +135,7 @@ STATIC_ASSERT_SIZEOF(ActorsShared80138efcWork, 0xBCC);
 
 /// Block `func_actor_104900_80134780` hands every state handler in `$a3`, one
 /// frame of the actor's own stack. The dispatcher fills `pan` and `depth` from
-/// the model's second per-part `GsCOORDINATE2` (0x50 into
+/// the model's second per-part `GpCoord` (0x50 into
 /// `Task::field_2C->field_8`) right before the indirect call, storing each as a
 /// halfword; the handlers read the low byte,
 /// so the pair is laid out as bytes here. Which of them writes what is per

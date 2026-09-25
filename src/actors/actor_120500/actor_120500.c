@@ -286,7 +286,7 @@ void func_actor_120500_801322A0(Task* arg0)
     Actor120500Work* slotsWork;
     TaskIdMap*       map;
     TmdObject*       tmd;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     GpAreaPlace*     place;
     s32              i;
     u8               id;
@@ -623,8 +623,8 @@ void func_actor_120500_80132A04(Task* task, s32 arg1, s32 arg2)
 /// `arg1` is the message id.
 void func_actor_120500_80132A74(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2* coord;
-    MATRIX*        mtx;
+    GpCoord* coord;
+    MATRIX*  mtx;
 
     coord             = task->extra.tmd->coords;
     coord->sub        = &gGfxViewCoord;

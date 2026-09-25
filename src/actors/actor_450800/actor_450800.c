@@ -238,7 +238,7 @@ void func_actor_450800_80132160(GpEnemy* enemyArg, Task* task)
     VECTOR           vec;
     GpAreaKey        key;
     GpAreaKey*       keyp;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     TmdObject*       obj;
     Actor450800Work* work;
     u8               areaByte0;
@@ -359,7 +359,7 @@ void func_actor_450800_80132160(GpEnemy* enemyArg, Task* task)
 
 void func_actor_450800_80132448(Task* task)
 {
-    GsCOORDINATE2*   coord = task->extra.tmd->coords;
+    GpCoord*         coord = task->extra.tmd->coords;
     Actor450800Work* work  = (Actor450800Work*)task->work;
 
     if (work->st.state == 1) {
@@ -412,9 +412,9 @@ void func_actor_450800_80132790(Task* task)
 /// then runs the animation state machine and draws the ground shadow.
 void func_actor_450800_801327E4(GpEnemy* enemy, Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR         vec;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR     vec;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -444,9 +444,9 @@ void func_actor_450800_80132868(Task* task)
 /// room's current `Gp_State1C` level.
 void func_actor_450800_801328BC(Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR3*       vec;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR3*   vec;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -471,11 +471,11 @@ void func_actor_450800_801328BC(Task* task)
 /// parent's `spawnArg1`.
 void func_actor_450800_80132958(Task* task)
 {
-    TmdObject*     extra = task->extra.tmd;
-    GsCOORDINATE2* coord = extra->coords;
-    GsCOORDINATE2* parts = task->parent->extra.tmd->coords;
-    GsCOORDINATE2* part  = parts + task->spawnArg1;
-    VECTOR         vec;
+    TmdObject* extra = task->extra.tmd;
+    GpCoord*   coord = extra->coords;
+    GpCoord*   parts = task->parent->extra.tmd->coords;
+    GpCoord*   part  = parts + task->spawnArg1;
+    VECTOR     vec;
 
     switch (task->state) {
         case 0:
@@ -624,7 +624,7 @@ s32 func_actor_450800_80132BB0(Task* task, s32 arg1, s32 arg2)
 /// and marks it dirty.
 s32 func_actor_450800_80132C68(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor450800Work* work;
     u16              yaw;
 
@@ -652,7 +652,7 @@ s32 func_actor_450800_80132CE0(Task* task, s32 arg1, GpCmdArg* msg, s32 arg3)
 {
     Actor450800Work* work  = (Actor450800Work*)task->work;
     TmdObject*       obj   = work->field_4F8->extra.tmd;
-    GsCOORDINATE2*   coord = obj->coords;
+    GpCoord*         coord = obj->coords;
     TmdObject*       self  = task->extra.tmd;
     s32              mode  = msg->command;
 
@@ -686,7 +686,7 @@ s32 func_actor_450800_80132CE0(Task* task, s32 arg1, GpCmdArg* msg, s32 arg3)
 s32 func_actor_450800_80132D74(Task* task, s32 arg1, VECTOR* target, s32 mode)
 {
     Actor450800Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              dx;
     s32              dz;
     s32              steps;
@@ -741,7 +741,7 @@ void func_actor_450800_80132E9C(GpEnemy* enemyArg, Task* task)
     GpAreaKey        key;
     Actor150400Work* work;
     Actor150400Work* mem;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     TmdObject*       obj;
     GpEnemy*         spawned;
     TmdObject*       model;
@@ -864,9 +864,9 @@ void func_actor_450800_80133264(Task* task)
 /// ground shadow.
 void func_actor_450800_801332B8(GpEnemy* enemy, Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR         pos;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR     pos;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -894,9 +894,9 @@ void func_actor_450800_8013333C(Task* task)
 /// room's current `Gp_State1C` level.
 void func_actor_450800_80133364(Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR3*       vec;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR3*   vec;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -1021,7 +1021,7 @@ s32 func_actor_450800_80133594(Task* task, s32 arg1, s32 flags)
 /// the matrix and marks it dirty.
 s32 func_actor_450800_801335F8(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor150400Work* work;
     u16              yaw;
 
@@ -1048,7 +1048,7 @@ s32 func_actor_450800_80133670(void)
 /// twelfths, in `travel` for the walk state to count down.
 s32 func_actor_450800_80133678(Task* task, s32 arg1, VECTOR* target)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor150400Work* work;
     s32              dx;
     s32              dz;
@@ -1076,8 +1076,8 @@ void func_actor_450800_80133740(Task* task)
     char             pad[0x10];
     Task*            parent = task->parent;
     TmdObject*       obj    = task->extra.tmd;
-    GsCOORDINATE2*   coord  = obj->coords;
-    GsCOORDINATE2*   sub    = &parent->extra.tmd->coords[7];
+    GpCoord*         coord  = obj->coords;
+    GpCoord*         sub    = &parent->extra.tmd->coords[7];
     Actor150400Work* work   = (Actor150400Work*)parent->work;
 
     switch (task->state) {

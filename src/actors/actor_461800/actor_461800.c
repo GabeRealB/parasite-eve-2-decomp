@@ -260,23 +260,23 @@ void func_actor_461800_8013229C(void)
 /// buffer exists.
 void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
 {
-    VECTOR         vec;
-    GpAreaKey      key;
-    GpAreaKey*     keyp;
-    GsCOORDINATE2* coord;
-    TmdObject*     obj;
-    u8             areaByte0;
-    u8             areaByte1;
-    u32            raw1, index1;
-    Task*          spawned1;
-    TmdObject*     model1;
-    GpAreaPlace*   entry1;
-    GpAreaKey*     sessionKey1;
-    u32            raw2, index2;
-    Task*          spawned2;
-    TmdObject*     model2;
-    GpAreaPlace*   entry2;
-    GpAreaKey*     sessionKey2;
+    VECTOR       vec;
+    GpAreaKey    key;
+    GpAreaKey*   keyp;
+    GpCoord*     coord;
+    TmdObject*   obj;
+    u8           areaByte0;
+    u8           areaByte1;
+    u32          raw1, index1;
+    Task*        spawned1;
+    TmdObject*   model1;
+    GpAreaPlace* entry1;
+    GpAreaKey*   sessionKey1;
+    u32          raw2, index2;
+    Task*        spawned2;
+    TmdObject*   model2;
+    GpAreaPlace* entry2;
+    GpAreaKey*   sessionKey2;
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
@@ -370,7 +370,7 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
 /// `turnFrames` counts down in animation 3, then ticks the animation.
 void func_actor_461800_80132660(Task* task)
 {
-    GsCOORDINATE2*   coord = task->extra.tmd->coords;
+    GpCoord*         coord = task->extra.tmd->coords;
     Actor461800Work* work  = (Actor461800Work*)task->work;
 
     if (D_actor_461800_80143894->st.state == 1) {
@@ -429,9 +429,9 @@ void func_actor_461800_801329B0(Task* task)
 /// runs the per-frame update and draws the ground shadow.
 void func_actor_461800_80132A0C(GpEnemy* enemy, Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR         vec;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR     vec;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -463,9 +463,9 @@ void func_actor_461800_80132A90(Task* task)
 /// room's current ground shade.
 void func_actor_461800_80132AD8(Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR3*       vec;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR3*   vec;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -485,11 +485,11 @@ void func_actor_461800_80132AD8(Task* task)
 /// to `func_800D7A9C` for the part colour matrix.
 void func_actor_461800_80132B74(Task* task)
 {
-    TmdObject*     extra = task->extra.tmd;
-    GsCOORDINATE2* coord = extra->coords;
-    GsCOORDINATE2* parts = D_actor_461800_80143898->extra.tmd->coords;
-    GsCOORDINATE2* part  = parts + task->spawnArg1;
-    VECTOR         vec;
+    TmdObject* extra = task->extra.tmd;
+    GpCoord*   coord = extra->coords;
+    GpCoord*   parts = D_actor_461800_80143898->extra.tmd->coords;
+    GpCoord*   part  = parts + task->spawnArg1;
+    VECTOR     vec;
 
     switch (task->state) {
         case 0:
@@ -603,8 +603,8 @@ s32 func_actor_461800_80132E14(Task* arg0, s32 arg1, s32 arg2)
 /// then the three longs become the coordinate's translation.
 s32 func_actor_461800_80132EA4(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2* coord;
-    u16            yaw;
+    GpCoord* coord;
+    u16      yaw;
 
     coord                           = task->extra.tmd->coords;
     D_actor_461800_80143894->st.yaw = yaw = placement->rot.vy;
@@ -629,7 +629,7 @@ s32 func_actor_461800_80132F20(Task* arg0, s32 arg1, GpCmdArg* arg2, s32 arg3)
 /// mode 1 and 25 otherwise.
 s32 func_actor_461800_80132F44(Task* task, s32 arg1, VECTOR* target, s32 mode)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor461800Work* work;
     s32              dx;
     s32              dz;
@@ -666,9 +666,9 @@ s32 func_actor_461800_80132F44(Task* task, s32 arg1, VECTOR* target, s32 mode)
 
 void func_actor_461800_8013307C(GpEnemy* enemy, Task* task)
 {
-    VECTOR         vec;
-    GsCOORDINATE2* coord;
-    TmdObject*     obj;
+    VECTOR     vec;
+    GpCoord*   coord;
+    TmdObject* obj;
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
@@ -710,7 +710,7 @@ void func_actor_461800_8013307C(GpEnemy* enemy, Task* task)
 /// `turnFrames` counts down in animation 3, then ticks the animation.
 void func_actor_461800_801331E4(Task* task)
 {
-    GsCOORDINATE2*   coord = task->extra.tmd->coords;
+    GpCoord*         coord = task->extra.tmd->coords;
     Actor151000Work* work  = (Actor151000Work*)task->work;
 
     if (D_actor_461800_801438A0->st.state == 1) {
@@ -772,9 +772,9 @@ void func_actor_461800_80133554(Task* task)
 /// runs the per-frame update and draws the ground shadow.
 void func_actor_461800_801335B0(GpEnemy* enemy, Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR         vec;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR     vec;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -802,7 +802,7 @@ void func_actor_461800_80133634(Task* task)
 void func_actor_461800_8013365C(Task* task)
 {
     Actor151000Work* work;
-    GsCOORDINATE2*   obj;
+    GpCoord*         obj;
     GpAnimRec*       rec;
     s32              kind;
     s32              id;
@@ -920,8 +920,8 @@ s32 func_actor_461800_80133928(Task* task, s32 arg1, s32 arg2)
 /// then the three longs become the coordinate's translation.
 s32 func_actor_461800_80133970(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2* coord;
-    u16            yaw;
+    GpCoord* coord;
+    u16      yaw;
 
     coord                           = task->extra.tmd->coords;
     D_actor_461800_801438A0->st.yaw = yaw = placement->rot.vy;
@@ -957,7 +957,7 @@ s32 func_actor_461800_801339EC(Task* task, s32 arg1, GpCmdArg* msg, s32 arg3)
 /// steps in mode 0, 15 in mode 1 and 25 in mode 2.
 s32 func_actor_461800_80133A3C(Task* task, s32 arg1, VECTOR* target, s32 mode)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor151000Work* work;
     s32              dx;
     s32              dz;
@@ -998,9 +998,9 @@ s32 func_actor_461800_80133A3C(Task* task, s32 arg1, VECTOR* target, s32 mode)
 /// room's current ground shade.
 void func_actor_461800_80133B98(Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR3*       vec;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR3*   vec;
 
     obj   = task->extra.tmd;
     coord = obj->coords;

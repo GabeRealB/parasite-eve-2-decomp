@@ -46,11 +46,11 @@ s16 D_energyball_801311A0[16] = { 0 };
 
 void func_energyball_8012EF48(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s32            i;
-    s32            level;
-    s32            rng;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s32        i;
+    s32        level;
+    s32        rng;
 
     mem      = arg0->spawnArg2;
     coord    = arg0->extra.tmd->coords;
@@ -106,14 +106,14 @@ void func_energyball_8012EF48(Task* arg0)
 void func_energyball_8012F180(Task* arg0)
 {
     GpEffWork*      mem;
-    GsCOORDINATE2*  coord;
+    GpCoord*        coord;
     EnergyBallWork* work;
     GpCoord64*      slot;
-    GsCOORDINATE2*  sc;
+    GpCoord*        sc;
     GpPointLight*   tail;
-    GsCOORDINATE2   ground;
+    GpCoord         ground;
     VECTOR          vec;
-    GsCOORDINATE2*  player;
+    GpCoord*        player;
     GpEffWork*      spawned;
     SVECTOR*        dir;
     u16             r;
@@ -405,7 +405,7 @@ release:
 /// vertex of each `POLY_G4` is lit, `(arg2 / 2, arg2, arg2 / 2)`, so every
 /// wedge fades from green at the centre to black at the rim. Each wedge gets
 /// the semi-transparent tpage of `Gp_AddTpageShift` at its OTZ.
-void func_energyball_8012FFD0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
+void func_energyball_8012FFD0(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     u8*            head;
     GpRingScratch* block;
@@ -482,7 +482,7 @@ void func_energyball_8012FFD0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 /// tinted `(0x40, 0xC0, 0x60)`. `arg3` spins the quad and `arg2` sizes it: the
 /// corners sit `arg2 * 55 / otz` from the projected centre along `arg3` and
 /// `arg3 + 0x400`, so the sprite shrinks with depth.
-void func_energyball_8013035C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
+void func_energyball_8013035C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     u8*                       head;
     GpFxQuadScratch*          block;
@@ -554,7 +554,7 @@ void func_energyball_8013035C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 /// quad. The texture is the two-frame tpage-0x28 strip at rows 0x38..0x57,
 /// the frame picked by the low bit of `gDisplayState.animFrame`, tinted
 /// `(0x20, 0x30, 0x20)`.
-void func_energyball_801307D4(GsCOORDINATE2* arg0, s32 arg1)
+void func_energyball_801307D4(GpCoord* arg0, s32 arg1)
 {
     u8*                   head;
     OverlayGroundScratch* sc;
@@ -655,7 +655,7 @@ void func_energyball_801307D4(GsCOORDINATE2* arg0, s32 arg1)
 /// `D_energyball_801311A0` plus the frame counter, the quad is tinted
 /// `(arg2 >> 1, arg2, arg2 >> 1)`, and a negative `gte_stflg` drops the
 /// segment.
-void func_energyball_80130B54(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
+void func_energyball_80130B54(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     register u8*   head asm("v0");
     GpBandScratch* block;
@@ -736,12 +736,12 @@ void func_energyball_80130B54(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 
 void func_energyball_8013107C(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s16            flag;
-    u8             rgb[3];
-    s32            scale;
-    s32            angle;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s16        flag;
+    u8         rgb[3];
+    s32        scale;
+    s32        angle;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->fadeState;

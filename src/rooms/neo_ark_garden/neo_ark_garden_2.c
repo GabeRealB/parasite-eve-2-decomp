@@ -40,11 +40,11 @@ extern s16 D_neo_ark_garden_80181400[][3];
 
 void func_neo_ark_garden_8017EFB8(SVECTOR* arg0, s16 arg1, s32 arg2);
 void func_neo_ark_garden_8017F42C(SVECTOR* arg0);
-void func_neo_ark_garden_8017FF0C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_neo_ark_garden_80180190(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_neo_ark_garden_801805B4(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
-void func_neo_ark_garden_80180AF4(GsCOORDINATE2* coord, s16 size);
-void func_neo_ark_garden_80181020(GsCOORDINATE2* arg0, s32 arg1);
+void func_neo_ark_garden_8017FF0C(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_neo_ark_garden_80180190(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_neo_ark_garden_801805B4(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_neo_ark_garden_80180AF4(GpCoord* coord, s16 size);
+void func_neo_ark_garden_80181020(GpCoord* arg0, s32 arg1);
 
 /// Garden ambience task tick. On its first tick it installs three effect ids
 /// and moves `state` to 1. `spawnArg1` holds the view seen on the previous
@@ -367,11 +367,11 @@ void func_neo_ark_garden_8017F42C(SVECTOR* arg0)
 /// work block once it has faded. State 4 releases it at once.
 void func_neo_ark_garden_8017F790(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpEffWork*     spawned;
-    MATRIX*        mtx;
-    u8             col[4];
+    GpEffWork* mem;
+    GpCoord*   coord;
+    GpEffWork* spawned;
+    MATRIX*    mtx;
+    u8         col[4];
 
     mem   = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
@@ -484,14 +484,14 @@ void func_neo_ark_garden_8017F790(Task* arg0)
 /// event state reaches 4.
 void func_neo_ark_garden_8017FCE8(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* target;
-    VECTOR         delta;
+    GpEffWork* work;
+    GpCoord*   coord;
+    GpCoord*   target;
+    VECTOR     delta;
 
     work   = task->spawnArg2;
     coord  = task->extra.tmd->coords;
-    target = (GsCOORDINATE2*)task->spawnArg1;
+    target = (GpCoord*)task->spawnArg1;
     if (Gp_State1C->eventState == 0) {
         work->age++;
         switch (task->state) {
@@ -539,7 +539,7 @@ void func_neo_ark_garden_8017FCE8(Task* task)
 /// is a signed half-extent; the on-screen radius is
 /// `(s16)arg2 * 23 / (otz + 1)`. `arg3` is the grey level on all three
 /// channels.
-void func_neo_ark_garden_8017FF0C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
+void func_neo_ark_garden_8017FF0C(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -622,7 +622,7 @@ void func_neo_ark_garden_8017FF0C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 a
 /// `POLY_G4` segments. One edge of the ring lies at on-screen radius
 /// `(s16)arg1 * 64 / (otz + 1)` and is black; the other lies at
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)` and takes the RGB triple `rgb`.
-void func_neo_ark_garden_80180190(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_neo_ark_garden_80180190(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     GpArcScratch*   block;
     POLY_G4*        prim;
@@ -715,7 +715,7 @@ void func_neo_ark_garden_80180190(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* r
 /// `POLY_G4` wedges around the projected centre. `arg1` is a signed
 /// half-extent; the on-screen radius is `(s16)arg1 * 64 / (otz + 1)`. Only
 /// the centre vertex takes the RGB triple `rgb`, so each wedge fades to black.
-void func_neo_ark_garden_801805B4(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_neo_ark_garden_801805B4(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     void**         scratch;
     u8*            head;
@@ -792,11 +792,11 @@ void func_neo_ark_garden_801805B4(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
 /// reaches 4.
 void func_neo_ark_garden_80180948(Task* arg0)
 {
-    u8             rgb[3];
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s16            flag;
-    s16            step;
+    u8         rgb[3];
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s16        flag;
+    s16        step;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -847,9 +847,9 @@ void func_neo_ark_garden_80180948(Task* arg0)
 /// found, a flat quad on it through `func_neo_ark_garden_80181020`. It also
 /// points the `Gp_RoomCoords[2]` light at the coordinate with a randomly
 /// flickering intensity. Nothing is drawn when the GTE flags the projection.
-void func_neo_ark_garden_80180AF4(GsCOORDINATE2* coord, s16 size)
+void func_neo_ark_garden_80180AF4(GpCoord* coord, s16 size)
 {
-    GsCOORDINATE2  ground;
+    GpCoord        ground;
     POLY_FT4*      prim;
     s16            outerLeft;
     s16            outerRight;
@@ -980,7 +980,7 @@ void func_neo_ark_garden_80180AF4(GsCOORDINATE2* coord, s16 size)
 /// `(0x30, 0x20, 0x20)`. Odd and even frames of `gDisplayState.animFrame`
 /// alternate between two 32-texel columns (u 0xC0..0xDF or 0xE0..0xFF, v
 /// 0x38..0x57).
-void func_neo_ark_garden_80181020(GsCOORDINATE2* arg0, s32 arg1)
+void func_neo_ark_garden_80181020(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;

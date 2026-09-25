@@ -56,12 +56,12 @@ extern TaskDesc D_actor_450900_80135E78;
 /// The one-shot `D_actor_450900_80135E74` retires the handler after one pass.
 void func_actor_450900_80131E38(Task* task)
 {
-    GsCOORDINATE2* coord;
-    s32            state;
-    s32            t;
-    s8             pan;
-    s8             depth;
-    void*          slot;
+    GpCoord* coord;
+    s32      state;
+    s32      t;
+    s8       pan;
+    s8       depth;
+    void*    slot;
 
     slot  = gameGetPtrSlot(0xA);
     state = task->state;
@@ -111,14 +111,14 @@ void func_actor_450900_80131E38(Task* task)
 
 void func_actor_450900_8013207C(Task* task)
 {
-    GsCOORDINATE2* coord;
-    Task*          slot;
-    Task*          msgTask;
-    s32            msgId;
-    s32            msgArg;
-    s32            value;
-    s8             pan;
-    s8             depth;
+    GpCoord* coord;
+    Task*    slot;
+    Task*    msgTask;
+    s32      msgId;
+    s32      msgArg;
+    s32      value;
+    s8       pan;
+    s8       depth;
 
     slot  = gameGetPtrSlot(3);
     value = task->state;
@@ -318,9 +318,9 @@ void func_actor_450900_80132678(u8 arg0)
 /// non-random id, otherwise one of the two `0x55170005/6` takes is chosen.
 void func_actor_450900_80132684(s32 arg0)
 {
-    GsCOORDINATE2* coord;
-    s8             pan;
-    s8             depth;
+    GpCoord* coord;
+    s8       pan;
+    s8       depth;
 
     coord = (gameGetPtrSlot(0xA))->extra.tmd->coords;
     pan   = (s8)Gp_GetObjPan(coord);
@@ -341,8 +341,8 @@ void func_actor_450900_80132684(s32 arg0)
 /// with message `0x3EE`.
 void func_actor_450900_80132724(void)
 {
-    GsCOORDINATE2* target;
-    GsCOORDINATE2* origin;
+    GpCoord* target;
+    GpCoord* origin;
 
     target = (gameGetPtrSlot(0xA))->extra.tmd->coords;
     origin = (gameGetPtrSlot(3))->extra.tmd->coords;
@@ -383,7 +383,7 @@ void func_actor_450900_801327A8(void)
 /// `Gp_StartCapSlot`.
 void func_actor_450900_80132834(void)
 {
-    GsCOORDINATE2* coord;
+    GpCoord* coord;
 
     coord = (gameGetPtrSlot(0xA))->extra.tmd->coords;
     if (coord->coord.t[2] < -0x76C) {

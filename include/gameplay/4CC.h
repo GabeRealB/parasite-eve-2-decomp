@@ -185,7 +185,7 @@ void func_800BDF6C(Task* task);
 /// strip.
 void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1);
 /// Task callback. `extra` is a `TmdObject`; `spawnArg2` is a `GpItemObj8`.
-/// Tilts `field_8[2]` (a `GsCOORDINATE2`) while playing a location-specific
+/// Tilts `field_8[2]` (a `GpCoord`) while playing a location-specific
 /// type-6 sound, then signals `extraState` (`GpCmdReply.done = 1`) when
 /// the motion returns to 0.
 void Gp_ItemPickupTilt(Task* arg0);

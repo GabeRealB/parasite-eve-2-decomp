@@ -66,7 +66,7 @@ STATIC_ASSERT_SIZEOF(AcropolisBridgeQuadScratch, 0x2C);
 
 /// 0x1C-byte scratch block the bridge's debris billboard
 /// (`func_acropolis_bridge_80182F8C`) takes from `G_SCRATCH_HEAD`. `vec` is the
-/// piece's world position copied out of its `GsCOORDINATE2` (`workm.t`) and
+/// piece's world position copied out of its `GpCoord` (`workm.t`) and
 /// projected with a single `RTPS` through `GsWSMATRIX`: `sx` / `sy` are the
 /// projected centre, `flag` the `gte_stflg` result the draw is gated on and
 /// `otz` the `gte_stszotz` depth, biased by 1 so it can be divided by. `dx` /

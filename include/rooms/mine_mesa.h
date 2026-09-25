@@ -11,6 +11,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
+#include "main/coord.h"
 
 extern GpGridParams D_mine_mesa_801864A4;
 extern GpGridParams D_mine_mesa_8018700C;
@@ -38,15 +39,15 @@ void func_mine_mesa_8017EFA8(SVECTOR* pos, s32 column, s32 size);
 /// Draws a gouraud ring of sixteen wedges around the projection of `coord`,
 /// black at the half-extent `inner` and tinted by `rgb` at `inner + width`,
 /// both scaled by depth.
-void func_mine_mesa_8017F4D4(GsCOORDINATE2* coord, s32 inner, s32 width, u8* rgb);
+void func_mine_mesa_8017F4D4(GpCoord* coord, s32 inner, s32 width, u8* rgb);
 
 /// Draws a gouraud disc of eight wedges around the projection of `coord`, lit
 /// by `rgb` at the centre and fading to black; `radius` is a signed
 /// half-extent scaled by depth.
-void func_mine_mesa_8017F900(GsCOORDINATE2* coord, s32 radius, u8* rgb);
+void func_mine_mesa_8017F900(GpCoord* coord, s32 radius, u8* rgb);
 
 /// Draws a two-ring glow of gouraud wedges around the projection of `coord`,
 /// tinted by `rgb`; `radius` is a signed half-extent scaled by depth.
-void func_mine_mesa_80180804(GsCOORDINATE2* coord, s16 radius, u8* rgb);
+void func_mine_mesa_80180804(GpCoord* coord, s16 radius, u8* rgb);
 
 #endif // ROOMS_MINE_MESA_H

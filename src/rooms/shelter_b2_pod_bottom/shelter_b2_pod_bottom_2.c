@@ -31,11 +31,11 @@ typedef struct {
     DVECTOR sxy3;
 } _ShelterB2PodBottomRingScratch;
 
-void func_shelter_b2_pod_bottom_8017DECC(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
-void func_shelter_b2_pod_bottom_8017E334(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
-void func_shelter_b2_pod_bottom_8017E788(GsCOORDINATE2* coord, s16 arg1, s16 arg2);
-void func_shelter_b2_pod_bottom_8017EEAC(GpEffWork* work, GsCOORDINATE2* coord, s32 arg2);
-void func_shelter_b2_pod_bottom_8018101C(GsCOORDINATE2* coord, s16 size, u16 color, u16 scale);
+void func_shelter_b2_pod_bottom_8017DECC(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+void func_shelter_b2_pod_bottom_8017E334(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+void func_shelter_b2_pod_bottom_8017E788(GpCoord* coord, s16 arg1, s16 arg2);
+void func_shelter_b2_pod_bottom_8017EEAC(GpEffWork* work, GpCoord* coord, s32 arg2);
+void func_shelter_b2_pod_bottom_8018101C(GpCoord* coord, s16 size, u16 color, u16 scale);
 
 extern u16           D_shelter_b2_pod_bottom_80188790[3][16];
 extern RoomRingShape D_shelter_b2_pod_bottom_80181C94[];
@@ -44,8 +44,8 @@ extern RoomRingShape D_shelter_b2_pod_bottom_80181C94[];
 /// shifts (0-2) applied to its colour ramp, one row chosen at random.
 extern u16 D_shelter_b2_pod_bottom_80181CA8[][3];
 
-void func_shelter_b2_pod_bottom_8017F994(GsCOORDINATE2* coord, s32 arg1, u8* rgb);
-void func_shelter_b2_pod_bottom_801805A0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_shelter_b2_pod_bottom_8017F994(GpCoord* coord, s32 arg1, u8* rgb);
+void func_shelter_b2_pod_bottom_801805A0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 
 extern s16 D_shelter_b2_pod_bottom_801887F0[8];
 
@@ -90,11 +90,11 @@ void func_shelter_b2_pod_bottom_8017D760(Task* task)
 /// only draws, and frees once the event state reaches 4.
 void func_shelter_b2_pod_bottom_8017D850(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    SVECTOR*       vec;
-    s32            step;
-    s32            level;
+    GpEffWork* work;
+    GpCoord*   coord;
+    SVECTOR*   vec;
+    s32        step;
+    s32        level;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -232,7 +232,7 @@ void func_shelter_b2_pod_bottom_8017D850(Task* task)
 /// the low 12 choose the CLUT: 0 and 1 select CLUT row 0x10E or 0x10F, at a
 /// column taken from the low six bits of the cell index, and anything larger
 /// selects the fixed CLUT 0x428F.
-void func_shelter_b2_pod_bottom_8017DECC(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
+void func_shelter_b2_pod_bottom_8017DECC(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -307,7 +307,7 @@ void func_shelter_b2_pod_bottom_8017DECC(GsCOORDINATE2* arg0, u16 arg1, s16 arg2
 /// radii at angles `arg3` and `arg3 + 0x400`, of length `arg2 * 47` divided by
 /// the depth. The low 12 bits of `arg1` pick a 48x48 cell of a five-column
 /// texture grid, and the bits above them select the alternate CLUT.
-void func_shelter_b2_pod_bottom_8017E334(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
+void func_shelter_b2_pod_bottom_8017E334(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -376,7 +376,7 @@ void func_shelter_b2_pod_bottom_8017E334(GsCOORDINATE2* arg0, u16 arg1, s16 arg2
 /// `POLY_G4`. The inner edge carries the `(arg2 >> 1, arg2 >> 1, arg2)` colour
 /// and the outer edge fades to black; a negative `gte_stflg` drops the
 /// segment.
-void func_shelter_b2_pod_bottom_8017E788(GsCOORDINATE2* coord, s16 arg1, s16 arg2)
+void func_shelter_b2_pod_bottom_8017E788(GpCoord* coord, s16 arg1, s16 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -470,11 +470,11 @@ void func_shelter_b2_pod_bottom_8017E788(GsCOORDINATE2* coord, s16 arg1, s16 arg
 /// or an event of state 4 or above starts.
 void func_shelter_b2_pod_bottom_8017EC78(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    GpMtxWords*    rot;
-    u16            tick;
-    u8             rgb[3];
+    GpEffWork*  work;
+    GpCoord*    coord;
+    GpMtxWords* rot;
+    u16         tick;
+    u8          rgb[3];
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -532,7 +532,7 @@ void func_shelter_b2_pod_bottom_8017EC78(Task* task)
 /// through `coord`, then projects each segment between the rings and picks its
 /// texture cell from the row's `D_shelter_b2_pod_bottom_80188790` value and the
 /// work's tick.
-void func_shelter_b2_pod_bottom_8017EEAC(GpEffWork* work, GsCOORDINATE2* coord, s32 arg2)
+void func_shelter_b2_pod_bottom_8017EEAC(GpEffWork* work, GpCoord* coord, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -635,11 +635,11 @@ void func_shelter_b2_pod_bottom_8017EEAC(GpEffWork* work, GsCOORDINATE2* coord, 
 /// released once the fade reaches 0x10 or an event of state 4 or above starts.
 void func_shelter_b2_pod_bottom_8017F448(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    GpMtxWords*    rot;
-    s32            sum;
-    u8             rgb[3];
+    GpEffWork*  work;
+    GpCoord*    coord;
+    GpMtxWords* rot;
+    s32         sum;
+    u8          rgb[3];
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -720,7 +720,7 @@ void func_shelter_b2_pod_bottom_8017F448(Task* task)
 /// a full-bright one at half of it; four half-bright spikes follow, reaching
 /// twice the outer radius between two inner-radius corners. Only the apex at
 /// the projected point is coloured, from `rgb`; every rim corner is black.
-void func_shelter_b2_pod_bottom_8017F994(GsCOORDINATE2* coord, s32 arg1, u8* rgb)
+void func_shelter_b2_pod_bottom_8017F994(GpCoord* coord, s32 arg1, u8* rgb)
 {
     register GpArcScratch* block asm("s3");
     register POLY_G4*      prim asm("s2");
@@ -846,12 +846,12 @@ void func_shelter_b2_pod_bottom_8017F994(GsCOORDINATE2* coord, s32 arg1, u8* rgb
 /// above starts.
 void func_shelter_b2_pod_bottom_8018016C(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    GpMtxWords*    rot;
-    s32            i;
-    s32            sum;
-    u8             rgb[3];
+    GpEffWork*  work;
+    GpCoord*    coord;
+    GpMtxWords* rot;
+    s32         i;
+    s32         sum;
+    u8          rgb[3];
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -934,7 +934,7 @@ void func_shelter_b2_pod_bottom_8018016C(Task* task)
 /// `G_SCRATCH_HEAD`; the apex sits on that point in `rgb`, and the two black
 /// outer corners sit at angles `arg2 - 0x20` and `arg2 + 0x20`, `arg1` scaled
 /// down by the projected depth away. A negative GTE flag drops the triangle.
-void func_shelter_b2_pod_bottom_801805A0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_shelter_b2_pod_bottom_801805A0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     void**         scratch;
     u8*            head;
@@ -998,8 +998,8 @@ void func_shelter_b2_pod_bottom_801805A0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2
 /// releases it. Each draw picks one of six sprite CLUTs at random.
 void func_shelter_b2_pod_bottom_80180898(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
+    GpEffWork* work;
+    GpCoord*   coord;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -1045,7 +1045,7 @@ void func_shelter_b2_pod_bottom_80180898(Task* task)
 /// `workm`, and the disc is queued as 16 `POLY_F4` fans, each joining the
 /// centre to three consecutive rim points; any piece with a negative GTE flag
 /// is dropped.
-void func_shelter_b2_pod_bottom_80180A4C(GsCOORDINATE2* coord, s16 radius, SVECTOR* center)
+void func_shelter_b2_pod_bottom_80180A4C(GpCoord* coord, s16 radius, SVECTOR* center)
 {
     void**                          scratch;
     _ShelterB2PodBottomRingScratch* block;
@@ -1126,9 +1126,9 @@ void func_shelter_b2_pod_bottom_80180A4C(GsCOORDINATE2* coord, s16 radius, SVECT
 
 void func_shelter_b2_pod_bottom_80180F10(Task* arg0)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    u32            rnd;
+    GpEffWork* work;
+    GpCoord*   coord;
+    u32        rnd;
 
     work  = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
@@ -1161,7 +1161,7 @@ void func_shelter_b2_pod_bottom_80180F10(Task* arg0)
 /// `size * 128` over each end's depth) and draw a fan at each end plus a
 /// connecting quad. `color` packs `[r][g][b]` nibbles scaled by `scale`, with
 /// `gDisplayState.animFrame & 1` adding a 16-unit flicker to every channel.
-void func_shelter_b2_pod_bottom_8018101C(GsCOORDINATE2* coord, s16 size, u16 color, u16 scale)
+void func_shelter_b2_pod_bottom_8018101C(GpCoord* coord, s16 size, u16 color, u16 scale)
 {
     void**           scratch;
     u8*              head;
@@ -1291,8 +1291,8 @@ void func_shelter_b2_pod_bottom_8018101C(GsCOORDINATE2* coord, s16 size, u16 col
 
 void func_shelter_b2_pod_bottom_80181940(Task* arg0)
 {
-    GsCOORDINATE2* coord;
-    u32            rnd;
+    GpCoord* coord;
+    u32      rnd;
 
     if (Gp_State1C->eventState == 0) {
         rnd         = Gp_LcgState * 5 + 0x71357911;
@@ -1309,8 +1309,8 @@ void func_shelter_b2_pod_bottom_80181940(Task* arg0)
 
 void func_shelter_b2_pod_bottom_80181A48(Task* arg0)
 {
-    GsCOORDINATE2* coord;
-    u32            rnd;
+    GpCoord* coord;
+    u32      rnd;
 
     if (Gp_State1C->eventState == 0) {
         rnd         = Gp_LcgState * 5 + 0x71357911;
@@ -1327,9 +1327,9 @@ void func_shelter_b2_pod_bottom_80181A48(Task* arg0)
 
 void func_shelter_b2_pod_bottom_80181B48(Task* arg0)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    s16            y;
+    GpEffWork* work;
+    GpCoord*   coord;
+    s16        y;
 
     work  = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;

@@ -56,7 +56,7 @@ extern Task*        Gp_TmdStashTask;
 /// The entry points that refresh a coordinate record it before the ancestor
 /// chain is walked, and nothing ever reads it: what the recorded coordinate is
 /// kept for is not established.
-extern GsCOORDINATE2* _gGpCurCoord;
+extern GpCoord*       _gGpCurCoord;
 extern CVECTOR        D_80114BA4;
 extern u16            D_80114BB0[];
 extern RECT           D_80114BD0;
@@ -249,15 +249,15 @@ s32  func_800A7550(void);
     (d)->m[2][1] = t5;           \
     (d)->m[2][2] = t6;
 
-static void _gpUpdateCoordTree(GsCOORDINATE2* coord, s32 stamp, s32 parity,
-                               GsCOORDINATE2* root);
+static void _gpUpdateCoordTree(GpCoord* coord, s32 stamp, s32 parity,
+                               GpCoord* root);
 void        func_800A4904(s32 arg0);
 void        Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void        Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void        func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void        func_800A7824(s32 arg0, s32 arg1, s32 arg2);
 void        Gp_DrawHudNumbers(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-s32         Gp_SpawnViewCoordTask(GsCOORDINATE2* arg0, VECTOR* arg1);
+s32         Gp_SpawnViewCoordTask(GpCoord* arg0, VECTOR* arg1);
 void        Gp_FinishLoadWait(Task* task);
 void        func_807150F8(s32 arg0);
 void        func_80715198(void);
@@ -278,13 +278,13 @@ STATIC_ASSERT_SIZEOF(_GpRelMatScratch, 0x30);
 void Gp_DrawActorTmdFlagged(GpuOtBuf* arg0)
 {
     TmdObject*             node;
-    GsCOORDINATE2*         coord;
+    GpCoord*               coord;
     s32                    flag;
     s32                    bit;
     register s32           vy asm("t7");
     u32                    i;
     register GpCoordFromT* tail asm("s2");
-    GsCOORDINATE2*         parent;
+    GpCoord*               parent;
 
     {
         register s32 tmp asm("v0");
@@ -298,7 +298,7 @@ void Gp_DrawActorTmdFlagged(GpuOtBuf* arg0)
     }
     if (node != NULL) {
         do {
-            coord      = (GsCOORDINATE2*)node->coords;
+            coord      = node->coords;
             parent     = coord->sub;
             coord->flg = (coord->flg << 1) >> 1;
             if (parent == NULL) {
@@ -473,8 +473,8 @@ void Gp_DrawActorTmdFlagged(GpuOtBuf* arg0)
                     coord->flg = (coord->flg << 1) >> 1;
                     if (parent == NULL) {
                         if (coord->flg == 0) {
-                            GsCOORDINATE2* c;
-                            c          = (GsCOORDINATE2*)((u8*)tail - OFFSET_OF(GsCOORDINATE2, workm.t));
+                            GpCoord* c;
+                            c          = PARENT_OF(tail, GpCoord, workm.t);
                             c->workm   = c->coord;
                             coord->flg = flag;
                         }
@@ -642,13 +642,13 @@ void Gp_DrawActorTmdFlagged(GpuOtBuf* arg0)
 void Gp_DrawActorTmdActive(GpuOtBuf* arg0)
 {
     TmdObject*             node;
-    GsCOORDINATE2*         coord;
+    GpCoord*               coord;
     s32                    flag;
     s32                    bit;
     register s32           vy asm("t7");
     u32                    i;
     register GpCoordFromT* tail asm("s2");
-    GsCOORDINATE2*         parent;
+    GpCoord*               parent;
 
     {
         register s32 tmp asm("v0");
@@ -662,7 +662,7 @@ void Gp_DrawActorTmdActive(GpuOtBuf* arg0)
     }
     if (node != NULL) {
         do {
-            coord      = (GsCOORDINATE2*)node->coords;
+            coord      = node->coords;
             parent     = coord->sub;
             coord->flg = (coord->flg << 1) >> 1;
             if (parent == NULL) {
@@ -837,8 +837,8 @@ void Gp_DrawActorTmdActive(GpuOtBuf* arg0)
                     coord->flg = (coord->flg << 1) >> 1;
                     if (parent == NULL) {
                         if (coord->flg == 0) {
-                            GsCOORDINATE2* c;
-                            c          = (GsCOORDINATE2*)((u8*)tail - OFFSET_OF(GsCOORDINATE2, workm.t));
+                            GpCoord* c;
+                            c          = PARENT_OF(tail, GpCoord, workm.t);
                             c->workm   = c->coord;
                             coord->flg = flag;
                         }
@@ -1003,13 +1003,13 @@ void Gp_DrawActorTmdActive(GpuOtBuf* arg0)
     Tmd_DrawActiveNodes(PARENT_OF(gTmdList.next, TmdObject, link));
 }
 
-void Gp_UpdateCoord(GsCOORDINATE2* arg0)
+void Gp_UpdateCoord(GpCoord* arg0)
 {
     _gGpCurCoord = arg0;
     _gpUpdateCoordTree(arg0, D_80071210 & 0x7FFFFFFF, D_80071210 & 1, 0);
 }
 
-void Gp_UpdateCoordEx(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1)
+void Gp_UpdateCoordEx(GpCoord* arg0, GpCoord* arg1)
 {
     if (arg0->sub == NULL) {
         _gGpCurCoord = arg0;
@@ -1042,12 +1042,12 @@ TmdObject* Gp_AttachTmd(Task* task, TmdSource* src)
 
 GpDisp2d* gpAttachDisp2d(Task* task)
 {
-    GpDisp2d*            node;
-    TmdListHead*         last;
-    TmdListHead*         list;
-    MATRIX*              m;
-    s32                  one;
-    register GpCoordExt* coord asm("v1");
+    GpDisp2d*         node;
+    TmdListHead*      last;
+    TmdListHead*      list;
+    MATRIX*           m;
+    s32               one;
+    register GpCoord* coord asm("v1");
 
     node  = memCalloc(0x60, 0);
     coord = &node->coord;
@@ -1185,13 +1185,13 @@ void Gp_RestoreTmdLists(void)
 /// relative to it, and its own world matrix is neither updated nor folded in,
 /// because the caller that passes one applies that transformation itself.
 /// `NULL` stops at the top of the chain.
-static void _gpUpdateCoordTree(GsCOORDINATE2* coord, s32 stamp, s32 parity,
-                               GsCOORDINATE2* root)
+static void _gpUpdateCoordTree(GpCoord* coord, s32 stamp, s32 parity,
+                               GpCoord* root)
 {
-    register s32   s2 asm("s2");
-    s32            s3;
-    register s32   vy asm("t7");
-    GsCOORDINATE2* parent;
+    register s32 s2 asm("s2");
+    s32          s3;
+    register s32 vy asm("t7");
+    GpCoord*     parent;
 
     s2 = stamp;
     s3 = parity;
@@ -1358,14 +1358,14 @@ static void _gpUpdateCoordTree(GsCOORDINATE2* coord, s32 stamp, s32 parity,
     }
 }
 
-Task* Gp_FindTaskByCoord(GsCOORDINATE2* arg0)
+Task* Gp_FindTaskByCoord(GpCoord* arg0)
 {
-    Task*          task;
-    TmdObject*     extra;
-    GsCOORDINATE2* coord;
-    u32            i;
-    s32            found;
-    u32            count;
+    Task*      task;
+    TmdObject* extra;
+    GpCoord*   coord;
+    u32        i;
+    s32        found;
+    u32        count;
 
     task = Task_GetActiveList()->next;
     if (task != NULL) {
@@ -7335,8 +7335,8 @@ static __inline__ void Gp_LinkRingSeg(GpCircleScratch* sc)
 void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     Task*            slot;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   other;
+    GpCoord*         coord;
+    GpCoord*         other;
     GpCircleScratch* sc;
     u8*              head;
     s32              base;
@@ -8425,12 +8425,12 @@ void Gp_HudTrackEnemy(GpEnemy* arg0, GpHudTrack* arg1)
 
 void Gp_UpdateLinkXforms(void)
 {
-    GsCOORDINATE2*  player;
+    GpCoord*        player;
     u8*             head;
     GpXformScratch* block;
     SVECTOR         tmp;
     GpLinkNode*     node;
-    GsCOORDINATE2*  coord;
+    GpCoord*        coord;
 
     node = Gp_LinkList;
     {
@@ -8444,7 +8444,7 @@ void Gp_UpdateLinkXforms(void)
         }
         extra   = slot->extra.tmd;
         head    = SCRATCH_HEAD(u8);
-        player  = (GsCOORDINATE2*)extra->coords;
+        player  = extra->coords;
         newhead = head - 0x48;
         block   = (GpXformScratch*)newhead;
         TOUCH_REG(block);
@@ -8996,7 +8996,7 @@ s32 Gp_SpendMp(s32 arg0)
 /// rematerialised on every access: `out` receives `root->workm` transposed and
 /// multiplied by `arg0->workm`, with the translation delta rotated into
 /// `out->t`.
-static __inline__ void coordToRoot(GsCOORDINATE2* arg0, GsCOORDINATE2* root, MATRIX* out)
+static __inline__ void coordToRoot(GpCoord* arg0, GpCoord* root, MATRIX* out)
 {
     register short    t4 asm("t4");
     register short    t5 asm("t5");
@@ -9036,17 +9036,17 @@ static __inline__ void coordToRoot(GsCOORDINATE2* arg0, GsCOORDINATE2* root, MAT
 /// `arg1` (optional) stored as the world offset in `Gfx_ViewOffsetCoord.coord.t`.
 /// Coordinates that are not direct children of the root are first folded to
 /// root space with `coordToRoot`.
-void Gp_SetViewFromCoord(GsCOORDINATE2* arg0, VECTOR* arg1)
+void Gp_SetViewFromCoord(GpCoord* arg0, VECTOR* arg1)
 {
-    register short          t4 asm("t4");
-    register short          t5 asm("t5");
-    register short          t6 asm("t6");
-    register MATRIX*        rot asm("t0");
-    MATRIX*                 localMtx;
-    register MATRIX*        relMtx asm("s0");
-    register GsCOORDINATE2* parent asm("v1");
-    GsCOORDINATE2*          root;
-    GsCOORDINATE2           rel;
+    register short    t4 asm("t4");
+    register short    t5 asm("t5");
+    register short    t6 asm("t6");
+    register MATRIX*  rot asm("t0");
+    MATRIX*           localMtx;
+    register MATRIX*  relMtx asm("s0");
+    register GpCoord* parent asm("v1");
+    GpCoord*          root;
+    GpCoord           rel;
 
     if (arg1 != NULL) {
         Gfx_ViewOffsetCoord.coord.t[0] = arg1->vx;
@@ -9092,20 +9092,20 @@ void Gp_SetViewFromCoord(GsCOORDINATE2* arg0, VECTOR* arg1)
 /// Spawns the type-0xE view task and points its coordinate at the inverse of
 /// `arg0` (transposed rotation, negated translation). `arg1` is the optional
 /// world offset stored in the task's 0x10-byte payload.
-s32 Gp_SpawnViewCoordTask(GsCOORDINATE2* arg0, VECTOR* arg1)
+s32 Gp_SpawnViewCoordTask(GpCoord* arg0, VECTOR* arg1)
 {
-    register short          t4 asm("t4");
-    register short          t5 asm("t5");
-    register short          t6 asm("t6");
-    MATRIX*                 localMtx;
-    register MATRIX*        relMtx asm("s0");
-    register MATRIX*        dstMtx asm("v0");
-    GsCOORDINATE2*          coord;
-    Task*                   task;
-    VECTOR*                 pos;
-    GsCOORDINATE2*          root;
-    register GsCOORDINATE2* parent asm("v1");
-    GsCOORDINATE2           rel;
+    register short    t4 asm("t4");
+    register short    t5 asm("t5");
+    register short    t6 asm("t6");
+    MATRIX*           localMtx;
+    register MATRIX*  relMtx asm("s0");
+    register MATRIX*  dstMtx asm("v0");
+    GpCoord*          coord;
+    Task*             task;
+    VECTOR*           pos;
+    GpCoord*          root;
+    register GpCoord* parent asm("v1");
+    GpCoord           rel;
 
     task = Task_Spawn(0, 0xE, 0, 0);
     if (task == NULL) {
@@ -9159,14 +9159,14 @@ s32 Gp_SpawnViewCoordTask(GsCOORDINATE2* arg0, VECTOR* arg1)
 
 void func_800A8654(Task* task)
 {
-    VECTOR*        vec;
-    GsCOORDINATE2* src;
-    GsCOORDINATE2* c1;
-    GsCOORDINATE2* c2;
-    GsCOORDINATE2* c3;
-    TmdObject*     extra;
-    s32            i;
-    s32            j;
+    VECTOR*    vec;
+    GpCoord*   src;
+    GpCoord*   c1;
+    GpCoord*   c2;
+    GpCoord*   c3;
+    TmdObject* extra;
+    s32        i;
+    s32        j;
 
     i              = 0;
     c1             = &Gfx_ViewOffsetCoord;
@@ -9197,14 +9197,14 @@ void func_800A8654(Task* task)
 
 void Gp_LoadStageView(void)
 {
-    GpAreaKey*     sess;
-    GpViewTbl*     tbl;
-    GpViewRec*     recs;
-    GpViewRec*     rec;
-    GsCOORDINATE2* c1;
-    MATRIX*        rot;
-    VECTOR3*       trans;
-    u8             idx;
+    GpAreaKey* sess;
+    GpViewTbl* tbl;
+    GpViewRec* recs;
+    GpViewRec* rec;
+    GpCoord*   c1;
+    MATRIX*    rot;
+    VECTOR3*   trans;
+    u8         idx;
 
     sess = &gGameSession->at4.loc;
     tbl  = Gp_ViewTables[sess->stage - 1];
@@ -9229,9 +9229,9 @@ void Gp_LoadStageView(void)
     gte_SetGeomScreen(rec->field_20);
     gte_SetGeomOffset(0, 0);
 
-    Gfx_ViewOffsetCoord.flg                                                 = 0;
-    ((GsCOORDINATE2*)((u8*)rot - OFFSET_OF(GsCOORDINATE2, coord)))->flg     = 0;
-    ((GsCOORDINATE2*)((u8*)trans - OFFSET_OF(GsCOORDINATE2, coord.t)))->flg = 0;
+    Gfx_ViewOffsetCoord.flg                 = 0;
+    PARENT_OF(rot, GpCoord, coord)->flg     = 0;
+    PARENT_OF(trans, GpCoord, coord.t)->flg = 0;
 }
 
 void Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2)
@@ -9291,9 +9291,9 @@ s32 Gp_TrySpawnViewTask(s32 arg0)
 
 void Gp_ApplyView(GpViewRec* arg0)
 {
-    GsCOORDINATE2* c1;
-    MATRIX*        rot;
-    VECTOR3*       trans;
+    GpCoord* c1;
+    MATRIX*  rot;
+    VECTOR3* trans;
 
     rot   = &Gfx_ViewRotMtx;
     trans = &D_80070F28;
@@ -9310,18 +9310,18 @@ void Gp_ApplyView(GpViewRec* arg0)
     gte_SetGeomScreen(arg0->field_20);
     gte_SetGeomOffset(0, 0);
 
-    Gfx_ViewOffsetCoord.flg                                                 = 0;
-    ((GsCOORDINATE2*)((u8*)rot - OFFSET_OF(GsCOORDINATE2, coord)))->flg     = 0;
-    ((GsCOORDINATE2*)((u8*)trans - OFFSET_OF(GsCOORDINATE2, coord.t)))->flg = 0;
+    Gfx_ViewOffsetCoord.flg                 = 0;
+    PARENT_OF(rot, GpCoord, coord)->flg     = 0;
+    PARENT_OF(trans, GpCoord, coord.t)->flg = 0;
 }
 
 void Gp_ResetView(void)
 {
-    MATRIX*                 m;
-    volatile GsCOORDINATE2* c1;
-    GsCOORDINATE2*          c2;
-    GsCOORDINATE2*          c3;
-    s32                     one;
+    MATRIX*           m;
+    volatile GpCoord* c1;
+    GpCoord*          c2;
+    GpCoord*          c3;
+    s32               one;
 
     c1             = &Gfx_ViewOffsetCoord;
     one            = ONE;
@@ -9331,7 +9331,7 @@ void Gp_ResetView(void)
 
     *(volatile s32*)&Gfx_ViewRotMtx = one;
     m                               = &Gfx_ViewRotMtx;
-    c2                              = (GsCOORDINATE2*)((u8*)m - OFFSET_OF(GsCOORDINATE2, coord));
+    c2                              = PARENT_OF(m, GpCoord, coord);
     *(s32*)&m->m[1][1]              = one;
     m->m[2][2]                      = one;
 
@@ -9377,10 +9377,10 @@ GpViewRec* Gp_GetStageView(GpAreaKey* arg0)
 
 void Gp_ApplyViewTask(Task* task)
 {
-    GsCOORDINATE2* c1;
-    MATRIX*        rot;
-    VECTOR3*       trans;
-    GpViewRec*     rec;
+    GpCoord*   c1;
+    MATRIX*    rot;
+    VECTOR3*   trans;
+    GpViewRec* rec;
 
     rot   = &Gfx_ViewRotMtx;
     trans = &D_80070F28;
@@ -9398,18 +9398,18 @@ void Gp_ApplyViewTask(Task* task)
     gte_SetGeomScreen(rec->field_20);
     gte_SetGeomOffset(0, 0);
 
-    Gfx_ViewOffsetCoord.flg                                                 = 0;
-    ((GsCOORDINATE2*)((u8*)rot - OFFSET_OF(GsCOORDINATE2, coord)))->flg     = 0;
-    ((GsCOORDINATE2*)((u8*)trans - OFFSET_OF(GsCOORDINATE2, coord.t)))->flg = 0;
+    Gfx_ViewOffsetCoord.flg                 = 0;
+    PARENT_OF(rot, GpCoord, coord)->flg     = 0;
+    PARENT_OF(trans, GpCoord, coord.t)->flg = 0;
     taskKill(task);
 }
 
 void func_800A8D5C(void)
 {
-    VECTOR        vec;
-    GsCOORDINATE2 coord;
-    s32           one;
-    MATRIX*       m;
+    VECTOR  vec;
+    GpCoord coord;
+    s32     one;
+    MATRIX* m;
 
     vec.vx                      = 0;
     vec.vy                      = 0;

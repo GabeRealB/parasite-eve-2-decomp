@@ -181,7 +181,7 @@ check:
 void func_actor_120300_80132004(Task* arg0)
 {
     VECTOR           vec;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     TaskIdMap*       map;
     TmdObject*       tmd;
     GpAreaPlace*     place;
@@ -255,7 +255,7 @@ void func_actor_120300_80132004(Task* arg0)
 void func_actor_120300_801321C8(Task* arg0)
 {
     VECTOR           vec;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     TaskIdMap*       map;
     TmdObject*       tmd;
     s32              scale;
@@ -339,8 +339,8 @@ void func_actor_120300_80132338(Task* arg0)
     Task*            playerTask2;
     GameActor*       player;
     GameActor*       player2;
-    GsCOORDINATE2*   actorCoord;
-    GsCOORDINATE2*   playerCoord;
+    GpCoord*         actorCoord;
+    GpCoord*         playerCoord;
     s16*             nextp;
     s16              next;
     u16              nextu;
@@ -745,7 +745,7 @@ clear:
 void func_actor_120300_80132C60(Task* arg0)
 {
     TmdObject*       tmd;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor120300Work* work;
     Actor120300Work* animWork;
     s32              i;
@@ -1133,7 +1133,7 @@ void func_actor_120300_801335D8(Task* arg0)
     TaskIdMap*       map;
     Actor120300Work* animWork;
     TmdObject*       tmd;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     GpAreaPlace*     place;
     u8               id;
     s32              i;
@@ -1369,8 +1369,8 @@ void func_actor_120300_80133C38(Task* task, s32 arg1, s32 arg2)
 /// `arg1` is the message id.
 void func_actor_120300_80133C6C(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2* coord;
-    MATRIX*        mtx;
+    GpCoord* coord;
+    MATRIX*  mtx;
 
     coord             = task->extra.tmd->coords;
     coord->sub        = &gGfxViewCoord;

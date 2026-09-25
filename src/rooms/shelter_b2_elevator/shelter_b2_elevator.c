@@ -72,7 +72,7 @@ void func_shelter_b2_elevator_8017D5E8(Task* task)
 void func_shelter_b2_elevator_8017D70C(Task* task)
 {
     TmdObject*          obj;
-    GsCOORDINATE2*      coord;
+    GpCoord*            coord;
     ShelterElevatorCar* car;
     VECTOR              vec;
 

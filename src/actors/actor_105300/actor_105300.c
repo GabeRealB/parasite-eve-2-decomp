@@ -69,7 +69,7 @@ void func_actor_105300_80131E3C(Task* arg0)
     Actor05300Scratch* scr;
     Actor05300Work*    work;
     GpEnemy*           enemy;
-    GsCOORDINATE2*     coord;
+    GpCoord*           coord;
     s32                damage;
     s32                lastId;
     s32                val;
@@ -166,7 +166,7 @@ end:
 void func_actor_105300_8013222C(Task* arg0)
 {
     Actor05300Work* work;
-    GsCOORDINATE2*  coord;
+    GpCoord*        coord;
     u16             scale;
     s32             pan;
     s32             sndId;
@@ -238,8 +238,8 @@ void func_actor_105300_8013246C(GpEnemy* arg0, Task* arg1)
     TmdObject*      obj;
     Actor05300Work* work;
     Actor05300Work* anim;
-    GsCOORDINATE2*  coord;
-    GsCOORDINATE2*  tmp;
+    GpCoord*        coord;
+    GpCoord*        tmp;
     Actor05300Clip* clip;
     u16             scale;
     s32             r;
@@ -454,7 +454,7 @@ void func_actor_105300_80132BAC(GpEnemy* arg0, Task* arg1)
     TmdObject*      obj;
     Actor05300Work* work;
     Actor05300Part* part;
-    GsCOORDINATE2*  coord;
+    GpCoord*        coord;
     GpRec18*        rec18;
     s32             flag;
     u16             type;
@@ -515,7 +515,7 @@ void func_actor_105300_80132DAC(GpEnemy* arg0, Task* arg1)
 {
     VECTOR*         vec;
     Actor05300Part* part;
-    GsCOORDINATE2*  coord;
+    GpCoord*        coord;
     s32             damage;
     s32             snd;
     s32             hitTime;
@@ -591,7 +591,7 @@ void func_actor_105300_8013310C(GpEnemy* arg0, Task* arg1)
 {
     Actor05300Work* work;
     TmdObject*      obj;
-    GsCOORDINATE2*  coord;
+    GpCoord*        coord;
     GpAreaKey*      sessionKey;
     GpAreaRec*      rec;
     GpAreaPlace*    place;
@@ -693,10 +693,10 @@ void func_actor_105300_8013310C(GpEnemy* arg0, Task* arg1)
 /// regeneration step.
 void func_actor_105300_80133468(GpEnemy* arg0, Task* arg1)
 {
-    GsCOORDINATE2* temp_s1;
-    TmdObject*     temp_a1;
-    s32            state;
-    s32            one;
+    GpCoord*   temp_s1;
+    TmdObject* temp_a1;
+    s32        state;
+    s32        one;
 
     temp_a1 = arg1->extra.tmd;
     temp_s1 = temp_a1->coords;
@@ -765,8 +765,8 @@ void func_actor_105300_80133530(Task* arg0)
 /// `Gp_UpdateActorColor` for the enemy, with no blend parameters.
 void func_actor_105300_801335B8(Task* arg0)
 {
-    GsCOORDINATE2* coord;
-    VECTOR         vec;
+    GpCoord* coord;
+    VECTOR   vec;
 
     coord  = arg0->extra.tmd->coords;
     vec.vx = coord->workm.t[0];
@@ -821,7 +821,7 @@ void func_actor_105300_801336D4(Task* arg0, MATRIX* arg1, s16 arg2, s32 arg3)
 {
     ActorScaleScratch* head;
     ActorScaleScratch* blk;
-    GsCOORDINATE2*     coord;
+    GpCoord*           coord;
 
     head                            = SCRATCH_HEAD(ActorScaleScratch);
     SCRATCH_HEAD(ActorScaleScratch) = head - 1;

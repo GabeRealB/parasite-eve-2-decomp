@@ -29,8 +29,8 @@ s32 D_apobiosis_80130B74[] = { 0xE0170001, 0xE01A0001, 0xE01D0001 };
 
 extern s8 D_80114C0B;
 
-void func_apobiosis_8013017C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
-void func_apobiosis_80130630(GsCOORDINATE2* arg0, s16* arg1, s16 arg2, s16 arg3);
+void func_apobiosis_8013017C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
+void func_apobiosis_80130630(GpCoord* arg0, s16* arg1, s16 arg2, s16 arg3);
 
 /// The apobiosis cast. Six states drive one screen flash plus a growing ring
 /// of shards, scaled by `D_apobiosis_80130B5C[Gp_StateC08.field_0 % 10 - 1]`
@@ -54,13 +54,13 @@ Task* D_apobiosis_80130BA0     = NULL;
 
 void func_apobiosis_8012EF4C(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpMtxWords*    rot;
-    s32            i;
-    s32            n;
-    s32            pan;
-    u8             rgb[3];
+    GpEffWork*  mem;
+    GpCoord*    coord;
+    GpMtxWords* rot;
+    s32         i;
+    s32         n;
+    s32         pan;
+    u8          rgb[3];
 
     mem   = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
@@ -263,7 +263,7 @@ void func_apobiosis_8012F808(u32 bright)
 /// bucket its own depth names and then handed to `Gp_AddTpageShift`. Same
 /// shape as `func_plasma_8012FB10`, which grows its ring from `otz + 1`
 /// instead.
-void func_apobiosis_8012F9D0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_apobiosis_8012F9D0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     GpArcScratch*   block;
     POLY_G4*        prim;
@@ -364,8 +364,8 @@ void func_apobiosis_8012F9D0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
 /// pinned and at the plain radius once free.
 void func_apobiosis_8012FE10(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
+    GpEffWork* mem;
+    GpCoord*   coord;
 
     mem   = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
@@ -451,7 +451,7 @@ void func_apobiosis_8012FE10(Task* arg0)
 /// brighter 0x42C9 palette. Same shape as Combustion's and Pyrokinesis's flame
 /// quad (`func_combustion_8012FB14`), which uses a fixed CLUT and 0x20-wide
 /// frames.
-void func_apobiosis_8013017C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
+void func_apobiosis_8013017C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -538,7 +538,7 @@ void func_apobiosis_8013017C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 /// on-screen half-width is `arg3 * 23 / otz`. Clut is 0x4287, or 0x42C8 on
 /// one in four LCG rolls when the combo row is 2. Nothing is drawn if either
 /// projection sets a negative `gte_stflg`.
-void func_apobiosis_80130630(GsCOORDINATE2* arg0, s16* arg1, s16 arg2, s16 arg3)
+void func_apobiosis_80130630(GpCoord* arg0, s16* arg1, s16 arg2, s16 arg3)
 {
     u8*                    head;
     u8*                    tmp;

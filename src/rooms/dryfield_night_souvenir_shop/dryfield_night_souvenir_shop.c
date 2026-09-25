@@ -87,7 +87,7 @@ void func_dryfield_night_souvenir_shop_8017D65C(Task* task)
 /// `coord`'s `workm` and moved by its translation before projection through
 /// `GsWSMATRIX`. The lit corners share a pulsing colour whose red is three
 /// quarters of its green and blue; the far corners are black.
-void func_dryfield_night_souvenir_shop_8017D6B4(GsCOORDINATE2* coord, s16 arg1)
+void func_dryfield_night_souvenir_shop_8017D6B4(GpCoord* coord, s16 arg1)
 {
     RoomQuadScratch* blk;
     POLY_G4*         prim;
@@ -214,7 +214,7 @@ void func_dryfield_night_souvenir_shop_8017D6B4(GsCOORDINATE2* coord, s16 arg1)
 /// then both of the room's prisms are drawn under that coordinate.
 void func_dryfield_night_souvenir_shop_8017DFF4(Task* task)
 {
-    GsCOORDINATE2* coord;
+    GpCoord* coord;
 
     coord = task->extra.tmd->coords;
     Gp_UpdateCoord(coord);

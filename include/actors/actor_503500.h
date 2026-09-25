@@ -73,7 +73,7 @@ typedef struct Actor503500Step {
 } Actor503500Step;
 
 /// A 16.16 world position: `func_actor_503500_80144520` reads each
-/// component's high half (`lh` at +2) back into `GsCOORDINATE2.coord.t[]`.
+/// component's high half (`lh` at +2) back into `GpCoord.coord.t[]`.
 typedef struct Actor503500FixVec {
     /* 0x0 */ GpFixed16 vx;
     /* 0x4 */ GpFixed16 vy;
@@ -210,20 +210,20 @@ typedef struct Actor503500Work {
     /* 0x494 */ MATRIX colorMtx;
     /// Saved copy of model part 0's coordinate: `func_actor_503500_80135B74`
     /// stores it on message 4 and restores it on message 5.
-    /* 0x4B4 */ GsCOORDINATE2 coord4B4;
+    /* 0x4B4 */ GpCoord coord4B4;
     /// Private copies of two of the boss model's part coordinates (parts 4 and
     /// 10), refreshed by `func_actor_503500_80136DDC` when bits 0x20 / 0x800 of
     /// `field_7AC` are set and then scaled by `field_5A4` / `field_5B4`.
-    /* 0x504 */ GsCOORDINATE2 coord504;
-    /* 0x554 */ GsCOORDINATE2 coord554;
-    /* 0x5A4 */ VECTOR        field_5A4; // scale of coord504
-    /* 0x5B4 */ VECTOR        field_5B4; // scale of coord554
-    /* 0x5C4 */ VECTOR        field_5C4; // scale of model part 16, bit 0x10000
-                                         /// Display node + collision record of the boss's second body part:
-                                         /// `func_actor_503500_80132F64` links it and seeds `field_5F4`,
-                                         /// `func_actor_503500_80136A88` re-places the pair and
-                                         /// `func_actor_503500_80136228` hands `field_5D4` back to
-                                         /// `Gp_UnlinkObj` on teardown.
+    /* 0x504 */ GpCoord coord504;
+    /* 0x554 */ GpCoord coord554;
+    /* 0x5A4 */ VECTOR  field_5A4; // scale of coord504
+    /* 0x5B4 */ VECTOR  field_5B4; // scale of coord554
+    /* 0x5C4 */ VECTOR  field_5C4; // scale of model part 16, bit 0x10000
+                                   /// Display node + collision record of the boss's second body part:
+                                   /// `func_actor_503500_80132F64` links it and seeds `field_5F4`,
+                                   /// `func_actor_503500_80136A88` re-places the pair and
+                                   /// `func_actor_503500_80136228` hands `field_5D4` back to
+                                   /// `Gp_UnlinkObj` on teardown.
     /* 0x5D4 */ GpObj field_5D4;
     /// Record table of `field_5D4`'s node -- `func_actor_503500_80132F64`
     /// parks this address in that `GpObj` and `func_actor_503500_80136A88`
@@ -470,6 +470,6 @@ void func_actor_503500_8013A7B0(SVECTOR* pts, SVECTOR* p3, s32 len, s32 pos, s32
 void func_actor_503500_8013AB38(Task* arg0);
 void func_actor_503500_8013BD0C(Task* arg0);
 void func_actor_503500_8013EE5C(Task* arg0, Actor503500Work* work, GpRec18* rec, s32 count);
-void func_actor_503500_8014176C(SVECTOR* pts, GsCOORDINATE2* coords);
+void func_actor_503500_8014176C(SVECTOR* pts, GpCoord* coords);
 
 #endif

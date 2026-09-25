@@ -5,6 +5,7 @@
 
 #include <psyq/libgte.h>
 #include <psyq/libgs.h>
+#include "main/coord.h"
 #include "gameplay/3FB8.h"
 #include "overlay.h"
 
@@ -21,13 +22,13 @@ extern s16 D_pepper_spray_8012FB9C[6];
 /// along `arg2` and `arg2 + 0x400`, so the nozzle shrinks with depth. The
 /// texture is the fixed 0x37 x 0x37 patch at (0x70, 0xC8) on tpage 0x29, drawn
 /// semi-transparent and unshaded.
-void func_pepper_spray_8012F21C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
+void func_pepper_spray_8012F21C(GpCoord* arg0, s16 arg1, s16 arg2);
 
 /// Draws the pepper-spray cone as one Gouraud quad: three corners on a 0x100
 /// circle around `arg1` (at `-0xC0`, `0`, `+0xC0`) and one tip twice as far
 /// out and 0x200 towards the camera, all in `arg0`'s `workm` frame. `arg2` is
 /// the spray brightness; only the corner along `arg1` is lit, with half of
 /// `arg2` in red and green and all of it in blue.
-void func_pepper_spray_8012F634(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
+void func_pepper_spray_8012F634(GpCoord* arg0, s16 arg1, s16 arg2);
 
 #endif /* PE_PEPPER_SPRAY_H */

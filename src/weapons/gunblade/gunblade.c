@@ -22,14 +22,14 @@ SVECTOR D_gunblade_8011E70C = { 0, 0x0060, 0x0380, 0 };
 
 void func_gunblade_8011D1E4(Task* task)
 {
-    GsCOORDINATE2  local;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* dst;
-    GpEffWork*     work;
-    GpEffWork*     eff;
-    s32            keep;
-    SVECTOR*       vec;
-    s32            i;
+    GpCoord    local;
+    GpCoord*   coord;
+    GpCoord*   dst;
+    GpEffWork* work;
+    GpEffWork* eff;
+    s32        keep;
+    SVECTOR*   vec;
+    s32        i;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -126,8 +126,8 @@ void func_gunblade_8011D1E4(Task* task)
 void func_gunblade_8011D70C(s16 slot, s16 flags)
 {
     GunbladeBeamScratch* blk;
-    GsCOORDINATE2*       a;
-    GsCOORDINATE2*       b;
+    GpCoord*             a;
+    GpCoord*             b;
     POLY_G4*             prim;
     s32                  i;
     s32                  j;
@@ -201,10 +201,10 @@ void func_gunblade_8011D70C(s16 slot, s16 flags)
 /// compiler cross-jumps them.
 void func_gunblade_8011DAA4(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    u8             rgb[3];
-    s32            i;
+    GpEffWork* work;
+    GpCoord*   coord;
+    u8         rgb[3];
+    s32        i;
 
     coord = task->extra.tmd->coords;
     work  = task->spawnArg2;

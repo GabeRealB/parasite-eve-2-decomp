@@ -6,6 +6,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
+#include "main/coord.h"
 
 #include "gameplay/D4.h"
 #include "main/task.h"
@@ -89,27 +90,27 @@ void func_shelter_b2_elevator_hall_8017E7FC(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// on-screen half-size `(arg2 & 0xFFF) * 23 / (otz + 1)`. `arg2`'s top nibble
 /// and `arg1`'s low two bits pick the 24-texel cell; `arg3`'s low byte is the
 /// grey level and its top nibble picks the CLUT.
-void func_shelter_b2_elevator_hall_8017F4A4(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3);
+void func_shelter_b2_elevator_hall_8017F4A4(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
 
 /// Projects `arg0`'s world position through `GsWSMATRIX` and, when it
 /// projects, queues a ring of sixteen gouraud `POLY_G4` wedges between radii
 /// `(s16)arg1 * 64 / (otz + 1)` and `(s16)(arg1 + arg2) * 64 / (otz + 1)`,
 /// black on the first and `rgb` on the second. Callers truncate `arg1` to 16
 /// bits themselves.
-void func_shelter_b2_elevator_hall_8017F768(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_shelter_b2_elevator_hall_8017F768(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 
 /// Projects `arg0`'s world position through `GsWSMATRIX` and, when it
 /// projects, queues a disc of sixteen gouraud `POLY_G4` wedges of on-screen
 /// radius `arg1 * 64 / (otz + 1)`, coloured `arg2` at the centre and black at
 /// the rim.
-void func_shelter_b2_elevator_hall_8017FB8C(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
+void func_shelter_b2_elevator_hall_8017FB8C(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// Glow at a coordinate: two camera-facing textured quads, an inner one of
 /// half-extent `size` and an outer one of `size * 3 / 2`, plus the ground quad
 /// `func_shelter_b2_elevator_hall_80180990` draws under it. Also feeds the
 /// `Gp_RoomCoords[2]` light a flickering intensity at the coordinate's position.
 /// Draws nothing when the point fails to project.
-void func_shelter_b2_elevator_hall_80180464(GsCOORDINATE2* coord, s16 size);
+void func_shelter_b2_elevator_hall_80180464(GpCoord* coord, s16 size);
 
 /// Scales the unit quad `D_80111E38` by `arg1`, rotates it flat by
 /// `Gfx_ViewWorldMtx`, offsets it by `arg0->workm.t` and projects the corners
@@ -117,31 +118,31 @@ void func_shelter_b2_elevator_hall_80180464(GsCOORDINATE2* coord, s16 size);
 /// `POLY_FT4` (tpage 0x28, clut 0x428C, colour `(0x30, 0x20, 0x20)`) whose
 /// texture column alternates between two 32-texel frames with the frame
 /// counter.
-void func_shelter_b2_elevator_hall_80180990(GsCOORDINATE2* arg0, s32 arg1);
+void func_shelter_b2_elevator_hall_80180990(GpCoord* arg0, s32 arg1);
 
 /// Projects `arg0`'s world position through `GsWSMATRIX` and, when it
 /// projects, queues a gouraud starburst: a sixteen-wedge disc of radius
 /// `arg1 * 64 / (otz + 1)` at half the colour `arg2`, the same disc at half
 /// size and full colour, and a four-pointed cross at half colour, all fading
 /// to black at the rim.
-void func_shelter_b2_elevator_hall_80180D08(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
+void func_shelter_b2_elevator_hall_80180D08(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// The same ring as `func_shelter_b2_elevator_hall_8017F768`, built in a
 /// scratch block with its fields in a different order. Callers truncate `arg1`
 /// to 16 bits themselves.
-void func_shelter_b2_elevator_hall_80181AA0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_shelter_b2_elevator_hall_80181AA0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 
 /// A second, instruction-for-instruction copy of
 /// `func_shelter_b2_elevator_hall_8017FB8C`.
-void func_shelter_b2_elevator_hall_80181ECC(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
+void func_shelter_b2_elevator_hall_80181ECC(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// Draws a trail of seven gouraud quads between two eight-slot rings of
 /// coordinates, walking back from slot `arg2` and fading with age. `arg3`
 /// packs the colour as 2-bit channel multipliers at bits 8, 4 and 0.
-void func_shelter_b2_elevator_hall_80182750(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
+void func_shelter_b2_elevator_hall_80182750(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 
 /// A second, instruction-for-instruction copy of
 /// `func_shelter_b2_elevator_hall_80180D08`.
-void func_shelter_b2_elevator_hall_80182DD0(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
+void func_shelter_b2_elevator_hall_80182DD0(GpCoord* arg0, s16 arg1, u8* arg2);
 
 #endif // ROOMS_SHELTER_B2_ELEVATOR_HALL_H

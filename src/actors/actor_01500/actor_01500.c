@@ -151,7 +151,7 @@ void Actor01500_Fn00094(GpEnemy* arg0, Task* arg1)
 {
     Actor101500Work* work;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     GpAreaPlace*     place;
     GpRec18*         records;
     u32              draw;
@@ -283,8 +283,8 @@ void Actor01500_Fn004EC(Task* actor)
     ActorPushFrame*  frame;
     s32              push;
     VECTOR*          normal;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   sourceCoord;
+    GpCoord*         coord;
+    GpCoord*         sourceCoord;
     GpRec18*         effectRec;
     s16              cooldown;
     s32              result;
@@ -452,7 +452,7 @@ void Actor01500_Fn00AFC(Task* actor, s32 damage)
 {
     GpEnemy*         enemy;
     Actor101500Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              id;
 
     enemy      = actor->spawnArg2;
@@ -505,7 +505,7 @@ void Actor01500_Fn00AFC(Task* actor, s32 damage)
 void Actor01500_Fn00CA4(Task* actor)
 {
     Actor101500Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     VECTOR*          frame;
     s32              flag;
     s16              pose;
@@ -594,7 +594,7 @@ void Actor01500_Fn00CA4(Task* actor)
 void Actor01500_Fn00FC4(Task* actor)
 {
     Actor101500Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s16              angle;
     u32              rnd;
     u32              rnd2;
@@ -645,7 +645,7 @@ void Actor01500_Fn011B0(Task* actor)
 {
     VECTOR3*         vec;
     Actor101500Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     u32              seed;
     s32              off;
     u16              val;
@@ -759,7 +759,7 @@ void Actor01500_Fn011B0(Task* actor)
 void Actor01500_Fn015DC(Task* actor)
 {
     Actor101500Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     VECTOR*          head;
     VECTOR*          blk;
 
@@ -840,7 +840,7 @@ void Actor01500_Fn01708(Task* actor)
 void Actor01500_Fn01838(Task* arg0)
 {
     Actor101500Work*  work;
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     ActorFaceScratch* sc;
     s32               ang;
     u16               want;
@@ -909,7 +909,7 @@ done:
 void Actor01500_Fn01988(Task* arg0)
 {
     Actor101500Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s16              bob;
 
     work  = arg0->work;
@@ -1061,8 +1061,8 @@ void Actor01500_Fn01DF0(GpEnemy* arg0, Task* arg1)
     VECTOR           pos;
     Actor101500Work* work;
     TmdObject*       model;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   sub;
+    GpCoord*         coord;
+    GpCoord*         sub;
 
     model = arg1->extra.tmd;
     work  = arg1->work;
@@ -1157,7 +1157,7 @@ void Actor01500_Fn020D8(Task* arg0)
     VECTOR3*         stk;
     VECTOR3*         vec;
     Actor101500Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              dy;
     s32              ady;
     u16              val;
@@ -1254,7 +1254,7 @@ void Actor01500_Fn02428(Task* task)
 /// and voices the actor and rebuilds its root coordinate.
 void Actor01500_Fn02484(GpEnemy* arg0, Task* arg1)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     TmdObject*       obj;
     Actor101500Work* work;
     s32              state;
@@ -1503,7 +1503,7 @@ void Actor01500_Fn02A1C(Task* arg0)
     s32              soundId;
     s32              objectSoundId;
     s32              pan;
-    GsCOORDINATE2*   object;
+    GpCoord*         object;
     Actor101500Work* work;
 
     work          = arg0->work;
@@ -1530,8 +1530,8 @@ void Actor01500_Fn02A1C(Task* arg0)
 /// coordinate, with no blend parameters.
 void Actor01500_Fn02B14(Task* arg0)
 {
-    GsCOORDINATE2* coord;
-    VECTOR         vec;
+    GpCoord* coord;
+    VECTOR   vec;
 
     coord  = &arg0->extra.tmd->coords[1];
     vec.vx = coord->workm.t[0];
@@ -1548,7 +1548,7 @@ void Actor01500_Fn02B14(Task* arg0)
 void Actor01500_Fn02B70(Task* arg0)
 {
     Actor101500Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     VECTOR3*         vec;
     VECTOR*          head;
     s16              hit;
@@ -1580,7 +1580,7 @@ void Actor01500_Fn02B70(Task* arg0)
 /// matrix is rebuilt.
 void Actor01500_Fn02C34(Task* arg0)
 {
-    GsCOORDINATE2*     coord;
+    GpCoord*           coord;
     ActorScaleScratch* head;
     ActorScaleScratch* scratch;
     Actor101500Work*   work;

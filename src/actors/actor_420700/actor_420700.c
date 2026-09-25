@@ -67,18 +67,18 @@ extern s32      D_actor_420700_8013EFF4;
 /// context before running the first step body.
 void func_actor_420700_80131E24(GpEnemy* enemy, Task* task)
 {
-    VECTOR         vec;
-    GpAreaKey      key;
-    GsCOORDINATE2* coord;
-    TmdObject*     obj;
-    TmdObject*     model;
-    GpAreaPlace*   place;
-    s32            idx;
-    u32            raw;
-    GpAreaKey*     keyPtr;
-    u8             view;
-    GpAreaKey*     sessionKey;
-    void*          work;
+    VECTOR       vec;
+    GpAreaKey    key;
+    GpCoord*     coord;
+    TmdObject*   obj;
+    TmdObject*   model;
+    GpAreaPlace* place;
+    s32          idx;
+    u32          raw;
+    GpAreaKey*   keyPtr;
+    u8           view;
+    GpAreaKey*   sessionKey;
+    void*        work;
 
     obj                     = task->extra.tmd;
     coord                   = obj->coords;
@@ -151,17 +151,17 @@ void func_actor_420700_80131E24(GpEnemy* enemy, Task* task)
 /// tick.
 void func_actor_420700_80132064(GpEnemy* enemy, Task* task)
 {
-    VECTOR         pos;
-    GsCOORDINATE2  target[2];
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* player;
-    GsCOORDINATE2* part;
-    GameActor*     actor;
-    s32            dx;
-    s32            dz;
-    s32            c;
-    s32            i;
-    u8             rate;
+    VECTOR     pos;
+    GpCoord    target[2];
+    GpCoord*   coords;
+    GpCoord*   player;
+    GpCoord*   part;
+    GameActor* actor;
+    s32        dx;
+    s32        dz;
+    s32        c;
+    s32        i;
+    u8         rate;
 
     coords = task->extra.tmd->coords;
     part   = &coords[2];
@@ -255,11 +255,11 @@ void func_actor_420700_8013239C(Task* arg0)
 /// to `func_800D7A9C` for the model's colour matrix.
 void func_actor_420700_801323D8(Task* task)
 {
-    TmdObject*     extra = task->extra.tmd;
-    GsCOORDINATE2* coord = extra->coords;
-    GsCOORDINATE2* parts = D_actor_420700_8013EFE4->extra.tmd->coords;
-    GsCOORDINATE2* part  = parts + 4;
-    VECTOR         vec;
+    TmdObject* extra = task->extra.tmd;
+    GpCoord*   coord = extra->coords;
+    GpCoord*   parts = D_actor_420700_8013EFE4->extra.tmd->coords;
+    GpCoord*   part  = parts + 4;
+    VECTOR     vec;
 
     switch (task->state) {
         case 0:
@@ -442,11 +442,11 @@ s32 func_actor_420700_80132784(Task* task, s32 arg1, GpCmdArg* args)
 /// -2.
 void func_actor_420700_801327EC(Task* task)
 {
-    TmdObject*     extra = task->extra.tmd;
-    GsCOORDINATE2* coord = extra->coords;
-    GsCOORDINATE2* parts = D_actor_420700_8013EFE4->extra.tmd->coords;
-    GsCOORDINATE2* part  = parts + 8;
-    VECTOR         vec;
+    TmdObject* extra = task->extra.tmd;
+    GpCoord*   coord = extra->coords;
+    GpCoord*   parts = D_actor_420700_8013EFE4->extra.tmd->coords;
+    GpCoord*   part  = parts + 8;
+    VECTOR     vec;
 
     switch (task->state) {
         case 0:

@@ -56,10 +56,10 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 /// becomes the one holding the animation-start and visibility handlers.
 void func_actor_110300_80131E24(GpEnemy* enemy, Task* task)
 {
-    VECTOR         vec;
-    void*          work;
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
+    VECTOR     vec;
+    void*      work;
+    TmdObject* obj;
+    GpCoord*   coord;
 
     obj                     = task->extra.tmd;
     coord                   = obj->coords;
@@ -113,8 +113,8 @@ void func_actor_110300_80131F9C(Task* task)
 /// the actor's model.
 void func_actor_110300_80131FF8(Task* arg0)
 {
-    GsCOORDINATE2* parent;
-    GsCOORDINATE2* coord;
+    GpCoord* parent;
+    GpCoord* coord;
 
     parent     = D_actor_110300_8013A0A4->extra.tmd->coords;
     coord      = arg0->extra.tmd->coords;
@@ -133,9 +133,9 @@ void func_actor_110300_80131FF8(Task* arg0)
 /// both read off.
 void func_actor_110300_80132020(GpEnemy* enemy, Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR         vec;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR     vec;
 
     obj   = task->extra.tmd;
     coord = obj->coords;

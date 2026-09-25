@@ -16,19 +16,19 @@
 /// leading 0x20 bytes are the `GpObj` list node unlinked by `Gp_UnlinkObj`;
 /// `flags` is that node's flag halfword.
 typedef struct Actor00100Obj {
-    /* 0x00 */ byte           pad_0[8];
-    /* 0x08 */ GsCOORDINATE2* coord;
-    /* 0x0C */ GpRec18*       hits;
-    /* 0x10 */ s16            field_10;
-    /* 0x12 */ s16            field_12;
-    /* 0x14 */ s16            field_14;
-    /* 0x16 */ byte           pad_16[2];
-    /* 0x18 */ s32            field_18;
-    /* 0x1C */ u16            field_1C;
-    /* 0x1E */ u16            flags;
-    /* 0x20 */ GpRec18        field_20;
-    /* 0x38 */ GpRec18        field_38;
-    /* 0x50 */ byte           pad_50[0x48];
+    /* 0x00 */ byte     pad_0[8];
+    /* 0x08 */ GpCoord* coord;
+    /* 0x0C */ GpRec18* hits;
+    /* 0x10 */ s16      field_10;
+    /* 0x12 */ s16      field_12;
+    /* 0x14 */ s16      field_14;
+    /* 0x16 */ byte     pad_16[2];
+    /* 0x18 */ s32      field_18;
+    /* 0x1C */ u16      field_1C;
+    /* 0x1E */ u16      flags;
+    /* 0x20 */ GpRec18  field_20;
+    /* 0x38 */ GpRec18  field_38;
+    /* 0x50 */ byte     pad_50[0x48];
 } Actor00100Obj;
 STATIC_ASSERT_SIZEOF(Actor00100Obj, 0x98);
 
@@ -242,7 +242,7 @@ extern void* D_80114B78[1];
 void Actor00100_Fn09310(Task* arg0);
 
 void Actor00100_Fn04270(Task* argx);
-s32  Actor00100_Fn00A54(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2);
+s32  Actor00100_Fn00A54(GpCoord* coord, GpRec18* movement, s16 arg2);
 s32  Actor00100_Fn00BF8(Task* arg0);
 void Actor00100_Fn02788(Task* arg0);
 void Actor00100_Fn0B658(Task* arg0);
@@ -250,6 +250,6 @@ void Actor00100_Fn0B3B4(Task* task);
 s32  Actor00100_Fn0B264(Task* task);
 s32  Actor00100_Fn0B1A4(Task* arg0, s32 arg1, s32 arg2);
 
-s32 Actor00100_Fn00508(GsCOORDINATE2* coord, GpRec18* records, s16 count, SVECTOR* pos);
+s32 Actor00100_Fn00508(GpCoord* coord, GpRec18* records, s16 count, SVECTOR* pos);
 
 #endif

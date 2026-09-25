@@ -74,7 +74,7 @@ extern Task* D_actor_341900_80164208;
 
 /// 8-byte record of `D_actor_341900_80163A98`, indexed by `Task::spawnArg1`.
 /// `func_actor_341900_801625B4` copies the first three halves onto part 0's
-/// `GsCOORDINATE2::coord.t` and hangs that part off entry `field_6` of the
+/// `GpCoord::coord.t` and hangs that part off entry `field_6` of the
 /// spawner model's own coordinate array, so a record is a spawn offset plus the
 /// bone the actor is attached to. The first three records are all zero and only
 /// `field_6` is under 9 in the rest, which is what sizes a model's part array.
@@ -398,7 +398,7 @@ void func_actor_341900_801625B4(Task* arg0)
     Actor341900TaskWork* work = (Actor341900TaskWork*)arg0->work;
     TmdObject*           extra;
     TmdObject*           mdl;
-    GsCOORDINATE2*       coord;
+    GpCoord*             coord;
     VECTOR               pos;
 
     if (arg0->state == 0) {
@@ -804,8 +804,8 @@ void func_actor_341900_80163224(Task* arg0, s32 arg1, s32 arg2)
 /// marks the coordinate dirty.
 void func_actor_341900_801632A0(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2* coord;
-    MATRIX*        mtx;
+    GpCoord* coord;
+    MATRIX*  mtx;
 
     coord             = task->extra.tmd->coords;
     coord->coord.t[0] = placement->pos.vx;

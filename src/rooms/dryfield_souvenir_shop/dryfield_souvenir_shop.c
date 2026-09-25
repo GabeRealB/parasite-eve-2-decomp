@@ -86,7 +86,7 @@ void func_dryfield_souvenir_shop_8017D65C(Task* task)
 /// `workm` and moved by its translation before projection through
 /// `GsWSMATRIX`. The lit corners share a grey of 0x18 plus a small pulse; the
 /// far corners are black.
-void func_dryfield_souvenir_shop_8017D6B4(GsCOORDINATE2* coord, s16 arg1)
+void func_dryfield_souvenir_shop_8017D6B4(GpCoord* coord, s16 arg1)
 {
     RoomQuadScratch* blk;
     POLY_G4*         prim;
@@ -204,7 +204,7 @@ void func_dryfield_souvenir_shop_8017D6B4(GsCOORDINATE2* coord, s16 arg1)
 /// coordinate.
 void func_dryfield_souvenir_shop_8017DFD4(Task* task)
 {
-    GsCOORDINATE2* coord = task->extra.tmd->coords;
+    GpCoord* coord = task->extra.tmd->coords;
 
     func_dryfield_souvenir_shop_8017D6B4(coord, 0);
     func_dryfield_souvenir_shop_8017D6B4(coord, 8);

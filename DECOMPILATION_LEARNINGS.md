@@ -2615,18 +2615,15 @@ search can come back `PERMUTER_MISS` with the real cause three lines up in
 `PERMUTER.txt`. Retype the seed to real struct fields (usually wanted anyway,
 see the aliasing entry) before asking the router to search it.
 
-## A candidate needing `GsCOORDINATE2` must include a project header, not `<psyq/libgs.h>`
+## A candidate needing a coordinate includes `main/coord.h`, not `<psyq/libgs.h>`
 
-`include/psyq/libgs.h` is vendored without its own includes, so adding it
-directly dies on a wall of parse errors: `VECTOR` / `MATRIX` / `SVECTOR` (from
-`libgte.h`) and `POLY_*` / `CVECTOR` / `GsDRAWENV` (from `libgpu.h`) are all
-undefined, and `GsCOORDINATE2` ends up undeclared even though its typedef is
-right there in the file. Including the three in the order `libgte.h`,
-`libgpu.h`, `libgs.h` works - but any project header that mentions a coordinate
-already does exactly that, so include one of those instead: `main/tmd.h` pulls
-the trio in that order and is what a `TmdObject::coords` candidate wants
-anyway. Two builds, both ending in `parse error before 'VECTOR'`, is what it
-costs to find out the other way.
+The game's coordinate node is `GpCoord` (`include/main/coord.h`); libgs's
+`GsCOORDINATE2` is not used by game code. `include/psyq/libgs.h` is vendored
+without its own includes, so adding it directly dies on a wall of parse errors
+(`VECTOR` / `MATRIX` / `SVECTOR` from `libgte.h`, `POLY_*` / `CVECTOR` /
+`GsDRAWENV` from `libgpu.h`). `main/coord.h` pulls those in itself, and
+`main/tmd.h` includes it, which is what a `TmdObject::coords` candidate wants
+anyway.
 ## A temp local for a value re-read across stores collapses the reloads
 
 `func_actor_136100_80134588` steps three `s16` channels by the task's
@@ -17415,21 +17412,18 @@ if (inRange) {
 Assigning `img = arg0` only after the if/else often puts `move a1` in the
 *true-path* `j` delay instead, and duplicates it on the else path.
 
-## `GsCOORDINATE2` is in `libgs.h`, and its absence reads as `parse error before '*'`
+## An undeclared type name reads as `parse error before '*'`
 
-A new overlay header that prototypes a function taking a root coordinate
-(`include/actors/actor_135600.h`, `s32 func_...(GsCOORDINATE2* coord, s16 arg1)`)
-fails to compile with the error pointing at the prototype:
+A header that prototypes a function taking a coordinate
+(`s32 func_...(GpCoord* coord, s16 arg1)`) fails with the error pointing at the
+prototype when the type is not declared:
 
 ```
 actor_135600_2.i:622: parse error before `*'
 ```
 
-GCC 2.8.1 is C89, so an unknown `GsCOORDINATE2` is an undeclared *identifier*,
-not an unknown type name, and the message never mentions a header. `MATRIX` /
-`SVECTOR` / `VECTOR` come from `<psyq/libgte.h>`, but `GsCOORDINATE2` (and
-`GsOT`) live in `<psyq/libgs.h>`. Include the trio, as `main/tmd.h` and the
-`actor_141000` / `actor_107600` overlay headers already do.
+GCC 2.8.1 is C89, so an unknown type name is an undeclared *identifier*, and
+the message never mentions a header. `GpCoord` comes from `main/coord.h`.
 
 ## Do not include `libgs.h` for `GsF_LIGHT`
 
@@ -140443,3 +140437,14 @@ params->spawnArgLo = argLo;
 
 Before accepting a reused local of the wrong type, try moving the computation
 of later-stored values ahead of the pointer chain.
+
+## Coordinates are `GpCoord`; older entries say `GsCOORDINATE2` or `GpCoordExt` (2026-09-25)
+
+The game never uses libgs's `GsCOORDINATE2` as libgs defines it: no code reads
+its `param` or `super` pointer, no libgs coordinate function is called, and the
+8 bytes libgs gives those pointers always hold the game's Euler angles
+(`param.rot`) or the weapon-model flag. Game code therefore uses one type,
+`GpCoord` in `include/main/coord.h`, for every coordinate node; `GpCoordExt`
+was an earlier name for it. Entries above that spell `GsCOORDINATE2` or
+`GpCoordExt` describe the same type. A `(T*)((u8*)p - OFFSET_OF(T, m))` reach
+from a matrix back to its node is written `PARENT_OF(p, GpCoord, m)`.

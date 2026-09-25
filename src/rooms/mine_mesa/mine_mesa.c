@@ -119,7 +119,7 @@ extern GpEnemy*            D_mine_mesa_80189B74[2];
 
 void func_mine_mesa_8017DD44(void);
 void func_mine_mesa_8017EB38(void);
-void func_mine_mesa_80180184(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
+void func_mine_mesa_80180184(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 void func_mine_mesa_801817BC(void);
 
 /// Runs this room's pending event once the request for it has been accepted.
@@ -1083,9 +1083,9 @@ void func_mine_mesa_8017EFA8(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// non-zero.
 void func_mine_mesa_8017F230(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    u8             rgb[3];
+    GpEffWork* work;
+    GpCoord*   coord;
+    u8         rgb[3];
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -1149,7 +1149,7 @@ void func_mine_mesa_8017F230(Task* task)
 /// width; on-screen radii are `(s16)arg1 * 64 / (otz + 1)` and
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`. The RGB triple tints the edge at the
 /// second radius, and each wedge fades to black at the first.
-void func_mine_mesa_8017F4D4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_mine_mesa_8017F4D4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -1240,7 +1240,7 @@ void func_mine_mesa_8017F4D4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
 /// the projected centre. `arg1` is a signed half-extent; the on-screen radius
 /// is `(s16)arg1 * 64 / (otz + 1)`. The RGB triple in `rgb` lights only the
 /// inner vertex so each wedge fades to black.
-void func_mine_mesa_8017F900(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_mine_mesa_8017F900(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     RoomDraw04Scratch* block;
     POLY_G4*           prim;
@@ -1323,15 +1323,15 @@ void func_mine_mesa_8017F900(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
 /// more.
 void func_mine_mesa_8017FC94(Task* task)
 {
-    GsCOORDINATE2  coord;
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* objCoord;
-    GsCOORDINATE2* dst;
-    GpEffWork*     work;
-    SVECTOR*       vec;
-    s32            i;
+    GpCoord    coord;
+    GpCoord*   coords;
+    GpCoord*   objCoord;
+    GpCoord*   dst;
+    GpEffWork* work;
+    SVECTOR*   vec;
+    s32        i;
 
-    coords   = (GsCOORDINATE2*)task->work;
+    coords   = (GpCoord*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
     objCoord = task->extra.tmd->coords;
 
@@ -1339,7 +1339,7 @@ void func_mine_mesa_8017FC94(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GsCOORDINATE2*)memCalloc(0x500, 0);
+                coords = (GpCoord*)memCalloc(0x500, 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
@@ -1420,11 +1420,11 @@ void func_mine_mesa_8017FC94(Task* task)
 /// colour whose channels multiply that fade: red is `arg3 >> 8`, green and
 /// blue the 2-bit fields at bits 4 and 0. A quad is dropped when `gte_stflg`
 /// is negative.
-void func_mine_mesa_80180184(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3)
+void func_mine_mesa_80180184(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GsCOORDINATE2*     a;
-    GsCOORDINATE2*     b;
+    GpCoord*           a;
+    GpCoord*           b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -1526,9 +1526,9 @@ void func_mine_mesa_80180184(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2,
 
 void func_mine_mesa_8018057C(Task* task)
 {
-    GsCOORDINATE2* objCoord;
-    GpEffWork*     work;
-    u8             rgb[4];
+    GpCoord*   objCoord;
+    GpEffWork* work;
+    u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
@@ -1600,7 +1600,7 @@ void func_mine_mesa_8018057C(Task* task)
 /// `(s16)arg1 * 64 / (otz + 1)` (outer) and `(s16)arg1 * 8 / (otz + 1)`
 /// (inner). Only the centre vertex is tinted, so each wedge fades to a black
 /// rim.
-void func_mine_mesa_80180804(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_mine_mesa_80180804(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");
@@ -1793,7 +1793,7 @@ void func_mine_mesa_80181358(Task* arg0)
     TmdObject*           tmd;
     GpAreaKey*           loc;
     GpAreaPlace*         place;
-    GsCOORDINATE2*       coords;
+    GpCoord*             coords;
     GpEnemy*             enemy;
 
     for (i = 0; i < 2; i++) {

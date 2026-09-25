@@ -49,10 +49,10 @@ extern GpMsgEntry D_neo_ark_savanna_zone_8017F9AC[];
 extern SVECTOR D_neo_ark_savanna_zone_8017F9D4[];
 extern SVECTOR D_neo_ark_savanna_zone_8017F9DC;
 
-void func_neo_ark_savanna_zone_8017DCB0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_neo_ark_savanna_zone_8017E0DC(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
-void func_neo_ark_savanna_zone_8017E960(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
-void func_neo_ark_savanna_zone_8017EFE0(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
+void func_neo_ark_savanna_zone_8017DCB0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_neo_ark_savanna_zone_8017E0DC(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_neo_ark_savanna_zone_8017E960(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+void func_neo_ark_savanna_zone_8017EFE0(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// The room's event task, spawned when the room latches an event. State 0 runs
 /// the event's CAP command; state 1 waits for it to finish and, when the event
@@ -235,9 +235,9 @@ void func_neo_ark_savanna_zone_8017D9AC(Task* arg0)
 /// set it draws nothing, and releases the block once that reaches 4.
 void func_neo_ark_savanna_zone_8017DA0C(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    u8             rgb[3];
+    GpEffWork* work;
+    GpCoord*   coord;
+    u8         rgb[3];
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -300,7 +300,7 @@ void func_neo_ark_savanna_zone_8017DA0C(Task* task)
 /// forming a ring between two radii, `arg1` and `arg1 + arg2` in world units
 /// scaled by depth. The edge at `arg1` is black and the edge at `arg1 + arg2`
 /// carries `rgb`, so the ring fades out towards `arg1`.
-void func_neo_ark_savanna_zone_8017DCB0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_neo_ark_savanna_zone_8017DCB0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -390,7 +390,7 @@ void func_neo_ark_savanna_zone_8017DCB0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2,
 /// the GTE flag is non-negative, queues eight gouraud `POLY_G4` wedges filling
 /// a disc around the projected point, `rgb` at the centre and black at the rim.
 /// `arg1` is the radius in world units, scaled by depth.
-void func_neo_ark_savanna_zone_8017E0DC(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_neo_ark_savanna_zone_8017E0DC(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     RoomDraw04Scratch* block;
     POLY_G4*           prim;
@@ -465,7 +465,7 @@ void func_neo_ark_savanna_zone_8017E0DC(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
     SCRATCH_POP_BYTES(0x18);
 }
 
-/// Twin coordinate trail. State 0 allocates sixteen `GsCOORDINATE2`s, eight
+/// Twin coordinate trail. State 0 allocates sixteen `GpCoord`s, eight
 /// per trail, and seeds them all from the two spawn offsets so each trail
 /// starts collapsed on its origin. State 1 advances one slot of each trail per
 /// frame, re-derives all sixteen against the view and draws them. The task
@@ -473,15 +473,15 @@ void func_neo_ark_savanna_zone_8017E0DC(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
 /// room's event state is 2 or more.
 void func_neo_ark_savanna_zone_8017E470(Task* task)
 {
-    GsCOORDINATE2  coord;
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* objCoord;
-    GsCOORDINATE2* dst;
-    GpEffWork*     work;
-    SVECTOR*       vec;
-    s32            i;
+    GpCoord    coord;
+    GpCoord*   coords;
+    GpCoord*   objCoord;
+    GpCoord*   dst;
+    GpEffWork* work;
+    SVECTOR*   vec;
+    s32        i;
 
-    coords   = (GsCOORDINATE2*)task->work;
+    coords   = (GpCoord*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
     objCoord = task->extra.tmd->coords;
 
@@ -489,7 +489,7 @@ void func_neo_ark_savanna_zone_8017E470(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GsCOORDINATE2*)memCalloc(0x500, 0);
+                coords = (GpCoord*)memCalloc(0x500, 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
@@ -570,11 +570,11 @@ void func_neo_ark_savanna_zone_8017E470(Task* task)
 /// colour, packed as red from bit 8 up, green in bits 4-5 and blue in bits
 /// 0-1, each multiplying that fade. A quad is dropped when `gte_stflg` is
 /// negative.
-void func_neo_ark_savanna_zone_8017E960(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3)
+void func_neo_ark_savanna_zone_8017E960(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GsCOORDINATE2*     a;
-    GsCOORDINATE2*     b;
+    GpCoord*           a;
+    GpCoord*           b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -681,9 +681,9 @@ void func_neo_ark_savanna_zone_8017E960(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1
 /// work block, or earlier once the room's event state reaches 4.
 void func_neo_ark_savanna_zone_8017ED58(Task* task)
 {
-    GsCOORDINATE2* objCoord;
-    GpEffWork*     work;
-    u8             rgb[4];
+    GpCoord*   objCoord;
+    GpEffWork* work;
+    u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
@@ -753,7 +753,7 @@ void func_neo_ark_savanna_zone_8017ED58(Task* task)
 /// intensity and half radius at full intensity, then four spikes a quarter
 /// turn apart, two reaching the full radius and two twice it. `arg1` sizes it
 /// in world units scaled by depth; every wedge fades to black at its rim.
-void func_neo_ark_savanna_zone_8017EFE0(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_neo_ark_savanna_zone_8017EFE0(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");

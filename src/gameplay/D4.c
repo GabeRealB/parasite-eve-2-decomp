@@ -1645,18 +1645,18 @@ s32 Gp_DispatchMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 
 void Gp_LinkRoomObjectsSpawn(Task* task)
 {
-    GpAreaKey*     sess;
-    GpRoomObjRec*  recs;
-    GpRoomObjRec*  rec;
-    GpGridParams*  grid;
-    GpObj4A*       list1;
-    GpObj4A*       list2;
-    GpObj3A*       list3;
-    GpObj4A*       obj;
-    GpObj3A*       obj3;
-    GsCOORDINATE2* coord;
-    u8             flags;
-    Task*          spawned;
+    GpAreaKey*    sess;
+    GpRoomObjRec* recs;
+    GpRoomObjRec* rec;
+    GpGridParams* grid;
+    GpObj4A*      list1;
+    GpObj4A*      list2;
+    GpObj3A*      list3;
+    GpObj4A*      obj;
+    GpObj3A*      obj3;
+    GpCoord*      coord;
+    u8            flags;
+    Task*         spawned;
 
     sess = &gGameSession->at4.loc;
     recs = Gp_RoomObjTables[sess->stage - 1]->field_0[sess->area - 1];
@@ -1963,7 +1963,7 @@ void Gp_LinkRoomObjects(Task* task)
     GpObj3A*          list3;
     GpObj4A*          obj;
     GpObj3A*          obj3;
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     u8                flags;
 
     sess = &gGameSession->at4.loc;

@@ -4,6 +4,7 @@
 #include "common.h"
 #include <psyq/libgte.h>
 #include <psyq/libgs.h>
+#include "main/coord.h"
 
 /// The two translations the bayonet's coordinate frames sit at inside their
 /// parent (the muzzle): `[0]` `(0, 0x300, 0x40)` is the blade tip used while
@@ -22,8 +23,8 @@ extern SVECTOR D_m4a1_bayonet_8011DED0;
 /// parented to `gGfxViewCoord`. The sweep state overwrites slot
 /// `GpEffWork::age & 7` each frame and the ribbon is drawn between the
 /// two rings.
-extern GsCOORDINATE2 D_m4a1_bayonet_8012D398[8];
-extern GsCOORDINATE2 D_m4a1_bayonet_8012D618[8];
+extern GpCoord D_m4a1_bayonet_8012D398[8];
+extern GpCoord D_m4a1_bayonet_8012D618[8];
 
 /// 0x2C-byte scratch `func_m4a1_bayonet_8011D69C` carves off `G_SCRATCH_HEAD`
 /// for one ribbon segment: `v` is the quad's four corners, taken from the

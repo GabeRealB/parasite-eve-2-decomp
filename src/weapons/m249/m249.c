@@ -15,11 +15,11 @@
 
 void func_m249_8011D1DC(Task* arg0)
 {
-    GameActor*     actor;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* spot;
-    M249Scratch*   scratch;
-    s32            anim;
+    GameActor*   actor;
+    GpCoord*     coord;
+    GpCoord*     spot;
+    M249Scratch* scratch;
+    s32          anim;
 
     SCRATCH_PUSH_BYTES(0x68);
     scratch = SCRATCH_HEAD(M249Scratch);

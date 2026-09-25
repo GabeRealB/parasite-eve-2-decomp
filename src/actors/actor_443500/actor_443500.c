@@ -359,11 +359,11 @@ void func_actor_443500_8013253C(Task* task)
 /// steps to the next state.
 void func_actor_443500_80132594(Task* task)
 {
-    Task*          parent;
-    TmdObject*     obj;
-    TmdObject*     parentObj;
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* root;
+    Task*      parent;
+    TmdObject* obj;
+    TmdObject* parentObj;
+    GpCoord*   coords;
+    GpCoord*   root;
 
     parent      = task->spawnArg2;
     obj         = task->extra.tmd;
@@ -495,9 +495,9 @@ s32 func_actor_443500_801327E0(Task* task, s32 anim, GpAnimArg* params, s32 arg3
 /// has the world matrix recomputed. Returns 0.
 s32 func_actor_443500_80132900(Task* task, s32 arg1, GpXformArg* args)
 {
-    GpCoordExt* coord;
+    GpCoord* coord;
 
-    coord               = (GpCoordExt*)task->extra.tmd->coords;
+    coord               = task->extra.tmd->coords;
     coord->coord.t[0]   = args->pos.vx;
     coord->coord.t[1]   = args->pos.vy;
     coord->coord.t[2]   = args->pos.vz;

@@ -152,7 +152,7 @@ void func_dryfield_night_gas_station_8017FBD4(s32 arg0);
 void func_dryfield_night_gas_station_80180C20(void);
 void func_dryfield_night_gas_station_80180D1C(void);
 void func_dryfield_night_gas_station_80180DC8(s16 arg0);
-void func_dryfield_night_gas_station_80182CD4(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
+void func_dryfield_night_gas_station_80182CD4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 
 /// Draws one row of the "Play Data" statistics list: the label for row
 /// `arg0->field_8` and its value (play time, save count, battles won and
@@ -1558,24 +1558,24 @@ void func_dryfield_night_gas_station_8017FD80(s32 arg0)
 /// draw-mode `DR_TPAGE` are linked into OT slot 0xA.
 void func_dryfield_night_gas_station_801802EC(s32 arg0)
 {
-    MATRIX         mtx;
-    SVECTOR        pos;
-    SVECTOR        p0;
-    SVECTOR        p1;
-    SVECTOR        off;
-    s32            sxy;
-    s32            p;
-    s32            flag0;
-    s32            flag1;
-    u16            x0;
-    u16            y0;
-    u16            x1;
-    u16            y1;
-    s32            one;
-    MATRIX*        m;
-    GsCOORDINATE2* coord;
-    LINE_G2*       line;
-    DR_TPAGE*      dr;
+    MATRIX    mtx;
+    SVECTOR   pos;
+    SVECTOR   p0;
+    SVECTOR   p1;
+    SVECTOR   off;
+    s32       sxy;
+    s32       p;
+    s32       flag0;
+    s32       flag1;
+    u16       x0;
+    u16       y0;
+    u16       x1;
+    u16       y1;
+    s32       one;
+    MATRIX*   m;
+    GpCoord*  coord;
+    LINE_G2*  line;
+    DR_TPAGE* dr;
 
     off                = D_dryfield_night_gas_station_8017D658;
     one                = ONE;
@@ -1629,9 +1629,9 @@ void func_dryfield_night_gas_station_801802EC(s32 arg0)
 /// switches the lamp back to dark.
 void func_dryfield_night_gas_station_80180604(s32 arg0)
 {
-    GpWorkObj*     work;
-    GsCOORDINATE2* coord;
-    SVECTOR        offset;
+    GpWorkObj* work;
+    GpCoord*   coord;
+    SVECTOR    offset;
 
     work = Gp_FindWorkById(gGameSession->at4.loc.area | ((gGameSession->at4.loc.stage << 8) | 0x2000));
     if (work != NULL) {
@@ -2020,7 +2020,7 @@ void func_dryfield_night_gas_station_80180DC8(s16 arg0)
 void func_dryfield_night_gas_station_80180E9C(Task* task)
 {
     DryfieldNightGasStationEffWork* work;
-    GsCOORDINATE2*                  coord;
+    GpCoord*                        coord;
     s32                             mask;
     s32                             i;
 
@@ -2335,9 +2335,9 @@ void func_dryfield_night_gas_station_80181AF8(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// screen and fades a two-ring glow out before releasing itself.
 void func_dryfield_night_gas_station_80181D80(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    u8             rgb[3];
+    GpEffWork* work;
+    GpCoord*   coord;
+    u8         rgb[3];
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -2399,7 +2399,7 @@ void func_dryfield_night_gas_station_80181D80(Task* task)
 /// projects, queues sixteen gouraud `POLY_G4` wedges forming a ring: black at
 /// the half-extent `arg1` and tinted by `rgb` at `arg1 + arg2`, both scaled
 /// by depth.
-void func_dryfield_night_gas_station_80182024(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_dryfield_night_gas_station_80182024(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -2489,7 +2489,7 @@ void func_dryfield_night_gas_station_80182024(GsCOORDINATE2* arg0, s32 arg1, s32
 /// projects, queues eight gouraud `POLY_G4` wedges around it, lit by `rgb` at
 /// the centre and black at the rim; `arg1` is a signed half-extent scaled by
 /// depth.
-void func_dryfield_night_gas_station_80182450(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_dryfield_night_gas_station_80182450(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     RoomDraw04Scratch* block;
     POLY_G4*           prim;
@@ -2569,15 +2569,15 @@ void func_dryfield_night_gas_station_80182450(GsCOORDINATE2* arg0, s32 arg1, u8*
 /// draws the trail, releasing itself after `spawnArg1` ticks.
 void func_dryfield_night_gas_station_801827E4(Task* task)
 {
-    GsCOORDINATE2  coord;
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* objCoord;
-    GsCOORDINATE2* dst;
-    GpEffWork*     work;
-    SVECTOR*       vec;
-    s32            i;
+    GpCoord    coord;
+    GpCoord*   coords;
+    GpCoord*   objCoord;
+    GpCoord*   dst;
+    GpEffWork* work;
+    SVECTOR*   vec;
+    s32        i;
 
-    coords   = (GsCOORDINATE2*)task->work;
+    coords   = (GpCoord*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
     objCoord = task->extra.tmd->coords;
 
@@ -2585,7 +2585,7 @@ void func_dryfield_night_gas_station_801827E4(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GsCOORDINATE2*)memCalloc(0x500, 0);
+                coords = (GpCoord*)memCalloc(0x500, 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
@@ -2662,11 +2662,11 @@ void func_dryfield_night_gas_station_801827E4(Task* task)
 /// Draws the trail between the coordinate rings `arg0` and `arg1` as seven
 /// gouraud `POLY_G4` quads, walking back from slot `arg2` and fading with
 /// age; `arg3` packs three 2-bit colour channels at bits 8, 4 and 0.
-void func_dryfield_night_gas_station_80182CD4(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3)
+void func_dryfield_night_gas_station_80182CD4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GsCOORDINATE2*     a;
-    GsCOORDINATE2*     b;
+    GpCoord*           a;
+    GpCoord*           b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -2771,9 +2771,9 @@ void func_dryfield_night_gas_station_80182CD4(GsCOORDINATE2* arg0, GsCOORDINATE2
 /// releases itself.
 void func_dryfield_night_gas_station_801830CC(Task* task)
 {
-    GsCOORDINATE2* objCoord;
-    GpEffWork*     work;
-    u8             rgb[4];
+    GpCoord*   objCoord;
+    GpEffWork* work;
+    u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
@@ -2841,7 +2841,7 @@ void func_dryfield_night_gas_station_801830CC(Task* task)
 /// projects, queues two rings of gouraud `POLY_G4` wedges: an inner one
 /// lit by `arg2` at full strength and an outer one at half, both black at the
 /// rim. `arg1` is a signed half-extent scaled by depth.
-void func_dryfield_night_gas_station_80183354(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_dryfield_night_gas_station_80183354(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");

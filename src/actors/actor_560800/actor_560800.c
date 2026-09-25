@@ -319,7 +319,7 @@ s32 func_actor_560800_80132498(Task* arg0);
 /// Declared locally with a signed `arg2`; see the note in `gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void func_8017F450(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_8017F450(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 void func_actor_560800_801321A0(Task* arg0)
 {
@@ -549,7 +549,7 @@ void func_actor_560800_801326C4(Task* arg0)
             u16 failed;
             {
                 TmdObject*           tmd   = arg0->extra.tmd;
-                GsCOORDINATE2*       coord = tmd->coords;
+                GpCoord*             coord = tmd->coords;
                 Actor560800AnimWork* block = Mem_Malloc(0x4CC, 0);
                 GpAreaPlace*         place;
                 u8                   id;
@@ -651,7 +651,7 @@ void func_actor_560800_80132A14(Task* arg0)
     if (arg0->state == 0) {
         TmdObject*           tmd    = arg0->extra.tmd;
         Task*                parent = arg0->spawnArg2;
-        GsCOORDINATE2*       coord  = tmd->coords;
+        GpCoord*             coord  = tmd->coords;
         Actor560800AnimWork* block;
         GpAreaPlace*         place;
         u8                   id;
@@ -726,7 +726,7 @@ void func_actor_560800_80132C60(Task* arg0)
         u16 failed;
         {
             TmdObject*           tmd   = arg0->extra.tmd;
-            GsCOORDINATE2*       coord = tmd->coords;
+            GpCoord*             coord = tmd->coords;
             Actor560800AnimWork* block = Mem_Malloc(0x4CC, 0);
             GpAreaPlace*         place;
             u8                   id;
@@ -816,7 +816,7 @@ void func_actor_560800_80132F64(Task* arg0)
         u16 failed;
         {
             TmdObject*           tmd   = arg0->extra.tmd;
-            GsCOORDINATE2*       coord = tmd->coords;
+            GpCoord*             coord = tmd->coords;
             Actor560800AnimWork* block = Mem_Malloc(0x4CC, 0);
             GpAreaPlace*         place;
             u8                   id;
@@ -1557,7 +1557,7 @@ void func_actor_560800_80134BFC(Task* arg0)
     Actor560800AnimWork* ctx7;
     Actor560800AnimWork* blend;
     Actor560800AnimWork* anim;
-    GsCOORDINATE2*       coord;
+    GpCoord*             coord;
     u32                  first;
     u32                  count;
     u16                  step;
@@ -2032,8 +2032,8 @@ void func_actor_560800_801361A0(Task* task, s32 arg1, s32 arg2)
 /// recalculation.
 void func_actor_560800_801361F4(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2* coord;
-    MATRIX*        mtx;
+    GpCoord* coord;
+    MATRIX*  mtx;
 
     coord             = task->extra.tmd->coords;
     coord->coord.t[0] = placement->pos.vx;
@@ -2585,7 +2585,7 @@ void func_actor_560800_801376E0(Task* arg0)
     Actor560800ModelWork* mem;
     Actor560800ModelWork* work;
     TmdObject*            obj;
-    GsCOORDINATE2*        coord;
+    GpCoord*              coord;
     Task*                 child;
 
     obj        = arg0->extra.tmd;
@@ -2627,7 +2627,7 @@ void func_actor_560800_80137820(Task* arg0)
 {
     Actor560800ModelWork* work;
     TmdObject*            extra;
-    GsCOORDINATE2*        coord;
+    GpCoord*              coord;
     Actor560800ModelWork* anim;
     Task*                 child;
     s32                   i;
@@ -2746,7 +2746,7 @@ done:
 void func_actor_560800_80137BEC(Task* task)
 {
     Actor560800ModelWork* work;
-    GsCOORDINATE2*        coord;
+    GpCoord*              coord;
     TmdObject*            extra;
     VECTOR                vec;
     s32                   i;
@@ -2838,7 +2838,7 @@ void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg)
     u16                   flag;
     Actor560800PartPose*  pose;
     Actor560800ModelWork* part;
-    GsCOORDINATE2*        coord;
+    GpCoord*              coord;
     OverlayMat*           mat;
     s32                   i;
     s32                   j;
@@ -3059,10 +3059,10 @@ void func_actor_560800_801386D4(Task* task)
     Actor560800PartsWork* spawned;
     Actor560800PartsWork* grow;
     Actor560800ModelWork* model;
-    GsCOORDINATE2*        root;
-    GsCOORDINATE2*        partCoord;
-    GsCOORDINATE2*        effCoord;
-    GsCOORDINATE2*        c;
+    GpCoord*              root;
+    GpCoord*              partCoord;
+    GpCoord*              effCoord;
+    GpCoord*              c;
     Task*                 part;
     SVECTOR               pos;
     s32                   i;
@@ -3205,8 +3205,8 @@ void func_actor_560800_80138A4C(Task* task, s32 msgId, GpCmdArg* msg)
 void func_actor_560800_80138BCC(Task* task)
 {
     Actor560800ModelWork* work;
-    GsCOORDINATE2*        coord;
-    GsCOORDINATE2*        c;
+    GpCoord*              coord;
+    GpCoord*              c;
     Actor560800ModelWork* w;
     MATRIX*               m;
     VECTOR                scale;
@@ -3258,9 +3258,9 @@ void func_actor_560800_80138BCC(Task* task)
 void func_actor_560800_80138D04(Task* task)
 {
     Actor560800ModelWork* work;
-    GsCOORDINATE2*        coord;
-    GsCOORDINATE2*        c;
-    GsCOORDINATE2*        other;
+    GpCoord*              coord;
+    GpCoord*              c;
+    GpCoord*              other;
     Actor560800ModelWork* w;
     MATRIX*               m;
     MATRIX*               m2;
@@ -3371,14 +3371,14 @@ void func_actor_560800_80138FC8(Task* task)
     Actor560800ModelWork* w;
     Actor560800ModelWork* mem;
     TmdObject*            obj;
-    GsCOORDINATE2*        coord;
-    GsCOORDINATE2*        c;
+    GpCoord*              coord;
+    GpCoord*              c;
     MATRIX*               m0;
     MATRIX*               m2;
     MATRIX*               m3;
     MATRIX*               m5;
     VECTOR                scale;
-    GsCOORDINATE2*        root;
+    GpCoord*              root;
 
     switch (task->state) {
         case 0:
@@ -3575,8 +3575,8 @@ void func_actor_560800_801393EC(Task* task, s32 arg1, s32 arg2)
 /// recalculation.
 void func_actor_560800_80139440(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2* coord;
-    MATRIX*        mtx;
+    GpCoord* coord;
+    MATRIX*  mtx;
 
     coord             = task->extra.tmd->coords;
     coord->coord.t[0] = placement->pos.vx;

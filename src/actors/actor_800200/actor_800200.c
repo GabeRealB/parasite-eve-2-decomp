@@ -20,7 +20,7 @@
 
 /// 8-byte fixed-point X/Z entry of a path table (`D_actor_800200_8016A128`
 /// and its neighbours). `GpActorD4.pathStep` selects the entry; the Y
-/// component of a destination comes from the actor's own `GsCOORDINATE2`.
+/// component of a destination comes from the actor's own `GpCoord`.
 typedef struct {
     /* 0x0 */ s32 field_0;
     /* 0x4 */ s32 field_4;
@@ -64,7 +64,7 @@ extern GpActorPathStep D_actor_800200_8016A130[];
 extern s32  func_80103DD4(VECTOR3*, VECTOR3*);
 extern void func_80105ED4(Task*);
 extern void func_8010ABD4();
-extern s32  func_8010BC70(GsCOORDINATE2*);
+extern s32  func_8010BC70(GpCoord*);
 extern s32  func_8010BCF4(Task*, VECTOR3*);
 extern void func_8010BD88(Task*, VECTOR3*);
 extern void func_8010BE5C(Task*, VECTOR3*);
@@ -98,21 +98,21 @@ void func_actor_800200_80165F28(Task* arg0);
 void func_actor_800200_80165F48(Task* arg0);
 void func_actor_800200_80165F50(Task* arg0);
 void func_actor_800200_80165FF0(Task* arg0);
-s32  func_actor_800200_801660E8(GsCOORDINATE2* arg0, GpRec18* arg1, GpRec18* arg2);
+s32  func_actor_800200_801660E8(GpCoord* arg0, GpRec18* arg1, GpRec18* arg2);
 
 void func_actor_800200_80162088(Task* arg0)
 {
-    GameActor*      actor;
-    TmdObject*      extra;
-    GsCOORDINATE2*  coord;
-    GsCOORDINATE2*  next;
-    GsCOORDINATE2** addr;
-    GpObj*          obj;
-    GpRec18*        recs;
-    McSaveData*     save;
-    SVECTOR3*       scratch;
-    void*           head;
-    s32             packed;
+    GameActor*  actor;
+    TmdObject*  extra;
+    GpCoord*    coord;
+    GpCoord*    next;
+    GpCoord**   addr;
+    GpObj*      obj;
+    GpRec18*    recs;
+    McSaveData* save;
+    SVECTOR3*   scratch;
+    void*       head;
+    s32         packed;
 
     actor              = arg0->work;
     head               = SCRATCH_HEAD(void);
@@ -192,7 +192,7 @@ void func_actor_800200_801622B0(Task* arg0)
     GameActor*             actor;
     TmdObject*             obj;
     TmdObject*             extra;
-    GsCOORDINATE2*         coord;
+    GpCoord*               coord;
     GpActorD4*             d4;
     GpObj*                 objs[2];
     s32                    dy;
@@ -326,17 +326,17 @@ void func_actor_800200_801626EC(Task* task)
 
 void func_actor_800200_80162750(Task* arg0)
 {
-    GameActor*     actor;
-    GpActorD4*     d4;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* target;
-    u8*            head;
-    VECTOR3*       vec;
-    void*          lock;
-    u32            state;
-    u8*            tbl;
-    s32            dist;
-    s32            diff;
+    GameActor* actor;
+    GpActorD4* d4;
+    GpCoord*   coord;
+    GpCoord*   target;
+    u8*        head;
+    VECTOR3*   vec;
+    void*      lock;
+    u32        state;
+    u8*        tbl;
+    s32        dist;
+    s32        diff;
 
     coord             = arg0->extra.tmd->coords;
     target            = (gameGetPtrSlot(3))->extra.tmd->coords;
@@ -397,12 +397,12 @@ void func_actor_800200_80162750(Task* arg0)
 
 void func_actor_800200_80162990(Task* arg0)
 {
-    GameActor*     actor;
-    GpActorD4*     d4;
-    GsCOORDINATE2* coord;
-    u16            state;
-    s32            mode;
-    s32            delay;
+    GameActor* actor;
+    GpActorD4* d4;
+    GpCoord*   coord;
+    u16        state;
+    s32        mode;
+    s32        delay;
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -462,12 +462,12 @@ void func_actor_800200_80162990(Task* arg0)
 
 void func_actor_800200_80162BFC(Task* arg0)
 {
-    GameActor*     actor;
-    GpActorD4*     d4;
-    GsCOORDINATE2* coord;
-    u16            state;
-    s32            mode;
-    s32            delay;
+    GameActor* actor;
+    GpActorD4* d4;
+    GpCoord*   coord;
+    u16        state;
+    s32        mode;
+    s32        delay;
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -527,11 +527,11 @@ void func_actor_800200_80162BFC(Task* arg0)
 
 void func_actor_800200_80162E0C(Task* arg0)
 {
-    GameActor*     actor;
-    GpActorD4*     d4;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* target;
-    s32            delay;
+    GameActor* actor;
+    GpActorD4* d4;
+    GpCoord*   coord;
+    GpCoord*   target;
+    s32        delay;
 
     coord  = arg0->extra.tmd->coords;
     target = (gameGetPtrSlot(3))->extra.tmd->coords;
@@ -595,11 +595,11 @@ void func_actor_800200_80162E0C(Task* arg0)
 
 void func_actor_800200_80163044(Task* arg0)
 {
-    GameActor*     actor;
-    GpActorD4*     d4;
-    GsCOORDINATE2* coord;
-    u16            state;
-    s32            flag;
+    GameActor* actor;
+    GpActorD4* d4;
+    GpCoord*   coord;
+    u16        state;
+    s32        flag;
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -638,11 +638,11 @@ void func_actor_800200_80163044(Task* arg0)
 
 void func_actor_800200_80163180(Task* arg0)
 {
-    GameActor*     actor;
-    GpActorD4*     d4;
-    GsCOORDINATE2* coord;
-    u16            state;
-    s32            delay;
+    GameActor* actor;
+    GpActorD4* d4;
+    GpCoord*   coord;
+    u16        state;
+    s32        delay;
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -698,12 +698,12 @@ void func_actor_800200_80163180(Task* arg0)
 
 void func_actor_800200_8016337C(Task* arg0)
 {
-    GameActor*     actor;
-    GpActorD4*     d4;
-    GsCOORDINATE2* coord;
-    u16            state;
-    s32            mode;
-    s32            delay;
+    GameActor* actor;
+    GpActorD4* d4;
+    GpCoord*   coord;
+    u16        state;
+    s32        mode;
+    s32        delay;
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -763,12 +763,12 @@ void func_actor_800200_8016337C(Task* arg0)
 
 void func_actor_800200_80163584(Task* arg0)
 {
-    GameActor*     actor;
-    GpActorD4*     d4;
-    GsCOORDINATE2* coord;
-    u16            state;
-    s32            mode;
-    s32            delay;
+    GameActor* actor;
+    GpActorD4* d4;
+    GpCoord*   coord;
+    u16        state;
+    s32        mode;
+    s32        delay;
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -832,12 +832,12 @@ void func_actor_800200_80163584(Task* arg0)
 
 void func_actor_800200_801637B4(Task* arg0)
 {
-    GameActor*     actor;
-    GpActorD4*     d4;
-    GsCOORDINATE2* coord;
-    u16            state;
-    s32            flag;
-    s32            mode;
+    GameActor* actor;
+    GpActorD4* d4;
+    GpCoord*   coord;
+    u16        state;
+    s32        flag;
+    s32        mode;
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -881,11 +881,11 @@ void func_actor_800200_801637B4(Task* arg0)
 
 void func_actor_800200_8016390C(Task* arg0)
 {
-    GameActor*     actor;
-    GpActorD4*     d4;
-    GsCOORDINATE2* coord;
-    u16            state;
-    s32            flag;
+    GameActor* actor;
+    GpActorD4* d4;
+    GpCoord*   coord;
+    u16        state;
+    s32        flag;
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -925,10 +925,10 @@ void func_actor_800200_8016390C(Task* arg0)
 
 void func_actor_800200_80163A54(Task* arg0)
 {
-    GameActor*     actor;
-    GpActorD4*     d4;
-    GsCOORDINATE2* coord;
-    s32            flag;
+    GameActor* actor;
+    GpActorD4* d4;
+    GpCoord*   coord;
+    s32        flag;
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -967,11 +967,11 @@ void func_actor_800200_80163A54(Task* arg0)
 
 void func_actor_800200_80163B90(Task* arg0)
 {
-    GameActor*     actor;
-    GpActorD4*     d4;
-    GsCOORDINATE2* coord;
-    u16            state;
-    s32            flag;
+    GameActor* actor;
+    GpActorD4* d4;
+    GpCoord*   coord;
+    u16        state;
+    s32        flag;
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -1013,11 +1013,11 @@ void func_actor_800200_80163B90(Task* arg0)
 
 void func_actor_800200_80163CCC(Task* arg0)
 {
-    GameActor*     actor;
-    GpActorD4*     d4;
-    GsCOORDINATE2* coord;
-    u16            state;
-    s32            flag;
+    GameActor* actor;
+    GpActorD4* d4;
+    GpCoord*   coord;
+    u16        state;
+    s32        flag;
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -1057,12 +1057,12 @@ void func_actor_800200_80163CCC(Task* arg0)
 
 void func_actor_800200_80163E14(Task* arg0)
 {
-    GameActor*     actor;
-    GpActorD4*     d4;
-    GsCOORDINATE2* coord;
-    u16            state;
-    s32            flag;
-    s32            mode;
+    GameActor* actor;
+    GpActorD4* d4;
+    GpCoord*   coord;
+    u16        state;
+    s32        flag;
+    s32        mode;
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -1106,15 +1106,15 @@ void func_actor_800200_80163E14(Task* arg0)
 
 void func_actor_800200_80163F5C(Task* arg0)
 {
-    GameActor*     actor;
-    GpActorD4*     d4;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* target;
-    VECTOR3*       vec;
-    GameActor*     hit;
-    s32            mode;
-    s32            dist;
-    s32            angle;
+    GameActor* actor;
+    GpActorD4* d4;
+    GpCoord*   coord;
+    GpCoord*   target;
+    VECTOR3*   vec;
+    GameActor* hit;
+    s32        mode;
+    s32        dist;
+    s32        angle;
 
     coord  = arg0->extra.tmd->coords;
     target = (gameGetPtrSlot(3))->extra.tmd->coords;
@@ -1195,17 +1195,17 @@ void func_actor_800200_80163F5C(Task* arg0)
 
 void func_actor_800200_80164180(Task* arg0)
 {
-    GameActor*     actor;
-    GpActorD4*     d4;
-    GsCOORDINATE2* target;
-    GpLinkNode*    node;
-    u8*            head;
-    u8*            tmp;
-    VECTOR3*       vec;
-    GameActor*     actor2;
-    s32            dist;
-    s32            anim;
-    u16            flag;
+    GameActor*  actor;
+    GpActorD4*  d4;
+    GpCoord*    target;
+    GpLinkNode* node;
+    u8*         head;
+    u8*         tmp;
+    VECTOR3*    vec;
+    GameActor*  actor2;
+    s32         dist;
+    s32         anim;
+    u16         flag;
 
     actor            = arg0->work;
     d4               = actor->field_910;
@@ -1270,21 +1270,21 @@ void func_actor_800200_80164180(Task* arg0)
 
 void func_actor_800200_8016436C(Task* arg0)
 {
-    GameActor*     actor;
-    GpActorD4*     d4;
-    GsCOORDINATE2* target;
-    GpLinkNode*    node;
-    u8*            tmp;
-    GsCOORDINATE2* coord;
-    VECTOR3*       vec;
-    u8*            head;
-    void**         scratch;
-    s8             count;
-    s32            pan;
-    s32            dist;
-    u16            state;
-    s32            next = 1;
-    GameActor*     actor2;
+    GameActor*  actor;
+    GpActorD4*  d4;
+    GpCoord*    target;
+    GpLinkNode* node;
+    u8*         tmp;
+    GpCoord*    coord;
+    VECTOR3*    vec;
+    u8*         head;
+    void**      scratch;
+    s8          count;
+    s32         pan;
+    s32         dist;
+    u16         state;
+    s32         next = 1;
+    GameActor*  actor2;
 
     actor            = arg0->work;
     d4               = actor->field_910;
@@ -1350,7 +1350,7 @@ void func_actor_800200_8016436C(Task* arg0)
 void func_actor_800200_80164598(Task* arg0)
 {
     GpApproachScratch* block;
-    GsCOORDINATE2*     coord;
+    GpCoord*           coord;
     GameActor*         actor;
     TmdObject*         extra;
     void**             scratch;
@@ -1421,21 +1421,21 @@ void func_actor_800200_80164598(Task* arg0)
 
 void func_actor_800200_801647A8(Task* arg0)
 {
-    GameActor*     actor;
-    GameActor*     actor2;
-    GameActor*     actor3;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* target;
-    GpLinkNode*    node;
-    VECTOR3*       vec;
-    u8*            head;
-    u8*            tmp;
-    s32            dist;
-    s32            value;
-    u16            flag;
-    u16            state;
-    s32            next;
-    s32            initialState;
+    GameActor*  actor;
+    GameActor*  actor2;
+    GameActor*  actor3;
+    GpCoord*    coord;
+    GpCoord*    target;
+    GpLinkNode* node;
+    VECTOR3*    vec;
+    u8*         head;
+    u8*         tmp;
+    s32         dist;
+    s32         value;
+    u16         flag;
+    u16         state;
+    s32         next;
+    s32         initialState;
 
     target           = ((Task*)gameGetPtrSlot(3))->extra.tmd->coords;
     head             = SCRATCH_HEAD(u8);
@@ -1605,7 +1605,7 @@ void func_actor_800200_80164C54(Task* arg0)
     u8*                head;
     TmdObject*         extra;
     GpApproachScratch* block;
-    GsCOORDINATE2*     coord;
+    GpCoord*           coord;
     GameActor*         actor;
     s32                angle;
     s32                val;
@@ -1700,7 +1700,7 @@ void func_actor_800200_80164C54(Task* arg0)
 void func_actor_800200_80164EBC(Task* arg0)
 {
     GpApproachScratch* block;
-    GsCOORDINATE2*     coord;
+    GpCoord*           coord;
     GameActor*         actor;
     TmdObject*         extra;
     void**             scratch;
@@ -1847,7 +1847,7 @@ s32 func_actor_800200_80165104(Task* arg0)
 {
     GameActor*      actor;
     GpAnimRec*      rec;
-    GsCOORDINATE2*  obj;
+    GpCoord*        obj;
     GpRoomParamRec* param;
     s32*            sounds;
     s32             ret;
@@ -2125,10 +2125,10 @@ void func_actor_800200_80165708(Task* arg0)
 
 void func_actor_800200_80165814(Task* arg0)
 {
-    GameActor*     actor;
-    GpActorD4*     d4;
-    GsCOORDINATE2* coord;
-    s32            arg;
+    GameActor* actor;
+    GpActorD4* d4;
+    GpCoord*   coord;
+    s32        arg;
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -2152,9 +2152,9 @@ void func_actor_800200_80165814(Task* arg0)
 
 void func_actor_800200_801658E0(Task* arg0)
 {
-    GameActor*     actor;
-    GpActorD4*     d4;
-    GsCOORDINATE2* coord;
+    GameActor* actor;
+    GpActorD4* d4;
+    GpCoord*   coord;
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -2180,10 +2180,10 @@ void func_actor_800200_8016599C(Task* arg0)
 
 void func_actor_800200_801659CC(Task* arg0)
 {
-    GameActor*     actor;
-    GpActorD4*     d4;
-    GsCOORDINATE2* coord;
-    u32            state;
+    GameActor* actor;
+    GpActorD4* d4;
+    GpCoord*   coord;
+    u32        state;
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -2212,9 +2212,9 @@ void func_actor_800200_801659CC(Task* arg0)
 
 void func_actor_800200_80165ACC(Task* arg0)
 {
-    GameActor*     actor;
-    GpActorD4*     d4;
-    GsCOORDINATE2* coord;
+    GameActor* actor;
+    GpActorD4* d4;
+    GpCoord*   coord;
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -2236,7 +2236,7 @@ void func_actor_800200_80165B84(Task* arg0)
 {
     GameActor*      actor;
     GpActorD4*      d4;
-    GsCOORDINATE2*  coord;
+    GpCoord*        coord;
     TaskFuncTable12 sp;
     s32             pan;
 
@@ -2272,9 +2272,9 @@ void func_actor_800200_80165CB4(Task* arg0)
 
 void func_actor_800200_80165D44(Task* arg0)
 {
-    GameActor*     actor;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* target;
+    GameActor* actor;
+    GpCoord*   coord;
+    GpCoord*   target;
 
     coord  = arg0->extra.tmd->coords;
     target = (gameGetPtrSlot(3))->extra.tmd->coords;
@@ -2340,7 +2340,7 @@ void func_actor_800200_80165F50(Task* arg0)
 {
     TaskFuncTable9 sp;
     GameActor*     actor;
-    GsCOORDINATE2* coord;
+    GpCoord*       coord;
 
     sp    = D_actor_800200_80161EC8;
     actor = arg0->work;
@@ -2388,7 +2388,7 @@ void func_actor_800200_80165FF0(Task* arg0)
     Gp_AnimTickChildSlots(arg0);
 }
 
-s32 func_actor_800200_801660E8(GsCOORDINATE2* arg0, GpRec18* arg1, GpRec18* arg2)
+s32 func_actor_800200_801660E8(GpCoord* arg0, GpRec18* arg1, GpRec18* arg2)
 {
     s32 dist;
 

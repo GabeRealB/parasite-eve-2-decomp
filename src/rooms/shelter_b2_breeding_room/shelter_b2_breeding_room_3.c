@@ -24,11 +24,11 @@ extern s32 D_80115730;
 /// spawn argument selects.
 extern s16 D_shelter_b2_breeding_room_80180550[][3];
 
-void func_shelter_b2_breeding_room_8017EEF0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_shelter_b2_breeding_room_8017F174(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b2_breeding_room_8017F598(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
-void func_shelter_b2_breeding_room_8017FAD8(GsCOORDINATE2* coord, s16 size);
-void func_shelter_b2_breeding_room_80180004(GsCOORDINATE2* arg0, s32 arg1);
+void func_shelter_b2_breeding_room_8017EEF0(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_shelter_b2_breeding_room_8017F174(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_shelter_b2_breeding_room_8017F598(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_shelter_b2_breeding_room_8017FAD8(GpCoord* coord, s16 size);
+void func_shelter_b2_breeding_room_80180004(GpCoord* arg0, s32 arg1);
 
 /// Halo effect task attached to a parent coordinate. State 0 places it at the
 /// work block's position; states 1 and 2 grow a glowing disc tinted by the
@@ -40,11 +40,11 @@ void func_shelter_b2_breeding_room_80180004(GsCOORDINATE2* arg0, s32 arg1);
 /// does nothing but release once that reaches 4.
 void func_shelter_b2_breeding_room_8017E774(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpEffWork*     spawned;
-    MATRIX*        mtx;
-    u8             col[4];
+    GpEffWork* mem;
+    GpCoord*   coord;
+    GpEffWork* spawned;
+    MATRIX*    mtx;
+    u8         col[4];
 
     mem   = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
@@ -157,14 +157,14 @@ void func_shelter_b2_breeding_room_8017E774(Task* arg0)
 /// state 4.
 void func_shelter_b2_breeding_room_8017ECCC(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* target;
-    VECTOR         delta;
+    GpEffWork* work;
+    GpCoord*   coord;
+    GpCoord*   target;
+    VECTOR     delta;
 
     work   = task->spawnArg2;
     coord  = task->extra.tmd->coords;
-    target = (GsCOORDINATE2*)task->spawnArg1;
+    target = (GpCoord*)task->spawnArg1;
     if (Gp_State1C->eventState == 0) {
         work->age++;
         switch (task->state) {
@@ -210,7 +210,7 @@ void func_shelter_b2_breeding_room_8017ECCC(Task* task)
 /// unless the projection flags an error. `arg1` picks one of four 24-texel
 /// frames from U 0x60, `arg2` is the size (a screen half-extent of
 /// `arg2 * 23 / (otz + 1)`) and `arg3` the grey level it is shaded with.
-void func_shelter_b2_breeding_room_8017EEF0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
+void func_shelter_b2_breeding_room_8017EEF0(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -292,7 +292,7 @@ void func_shelter_b2_breeding_room_8017EEF0(GsCOORDINATE2* arg0, s32 arg1, s32 a
 /// projection flags an error: sixteen gouraud quads, black at screen radius
 /// `arg1 * 64 / (otz + 1)` and coloured `rgb` at
 /// `(arg1 + arg2) * 64 / (otz + 1)`.
-void func_shelter_b2_breeding_room_8017F174(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_shelter_b2_breeding_room_8017F174(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     GpArcScratch*   block;
     POLY_G4*        prim;
@@ -384,7 +384,7 @@ void func_shelter_b2_breeding_room_8017F174(GsCOORDINATE2* arg0, s32 arg1, s32 a
 /// projection flags an error: eight gouraud wedges coloured `rgb` at the
 /// projected centre and black at the rim, of screen radius
 /// `arg1 * 64 / (otz + 1)`.
-void func_shelter_b2_breeding_room_8017F598(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_shelter_b2_breeding_room_8017F598(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     void**         scratch;
     u8*            head;
@@ -459,11 +459,11 @@ void func_shelter_b2_breeding_room_8017F598(GsCOORDINATE2* arg0, s32 arg1, u8* r
 /// release once that reaches 4.
 void func_shelter_b2_breeding_room_8017F92C(Task* arg0)
 {
-    u8             rgb[3];
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s16            flag;
-    s16            step;
+    u8         rgb[3];
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s16        flag;
+    s16        step;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -514,9 +514,9 @@ void func_shelter_b2_breeding_room_8017F92C(Task* arg0)
 /// `func_shelter_b2_breeding_room_80180004` on the ground beneath it. It also
 /// points the `Gp_RoomCoords[2]` light at the coordinate with a randomly flickering
 /// intensity. Nothing is drawn when the GTE flags the projection.
-void func_shelter_b2_breeding_room_8017FAD8(GsCOORDINATE2* coord, s16 size)
+void func_shelter_b2_breeding_room_8017FAD8(GpCoord* coord, s16 size)
 {
-    GsCOORDINATE2  ground;
+    GpCoord        ground;
     POLY_FT4*      prim;
     s16            outerLeft;
     s16            outerRight;
@@ -646,7 +646,7 @@ void func_shelter_b2_breeding_room_8017FAD8(GsCOORDINATE2* coord, s16 size)
 /// semi-transparent textured quad (tpage 0x28, clut 0x428C) tinted
 /// (0x30, 0x20, 0x20), alternating between two 32-texel frames from U 0xC0 on
 /// odd and even frames.
-void func_shelter_b2_breeding_room_80180004(GsCOORDINATE2* arg0, s32 arg1)
+void func_shelter_b2_breeding_room_80180004(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;

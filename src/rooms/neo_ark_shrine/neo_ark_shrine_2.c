@@ -43,10 +43,10 @@ void func_neo_ark_shrine_8017E988(s32 x, s32 y, s32 variant);
 void func_neo_ark_shrine_8017F80C(Task* task);
 void func_neo_ark_shrine_8017F86C(Task* task);
 void func_neo_ark_shrine_8017FC14(SVECTOR* pos, s32 arg1, s32 arg2);
-void func_neo_ark_shrine_80180144(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_neo_ark_shrine_80180570(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
-void func_neo_ark_shrine_80180DF4(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
-void func_neo_ark_shrine_80181474(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
+void func_neo_ark_shrine_80180144(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_neo_ark_shrine_80180570(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_neo_ark_shrine_80180DF4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+void func_neo_ark_shrine_80181474(GpCoord* arg0, s16 arg1, u8* arg2);
 
 extern u8  D_8007216D;
 extern s16 D_80114D08;
@@ -655,7 +655,7 @@ void func_neo_ark_shrine_8017F448(void)
 void func_neo_ark_shrine_8017F4C8(Task* task)
 {
     TmdObject*        extra;
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     NeoArkShrineFall* st;
 
     extra      = task->extra.tmd;
@@ -680,7 +680,7 @@ void func_neo_ark_shrine_8017F4C8(Task* task)
 void func_neo_ark_shrine_8017F578(Task* task)
 {
     NeoArkShrineFall* st;
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     u16               ticks;
     u16               speed;
     u16               delta;
@@ -720,7 +720,7 @@ void func_neo_ark_shrine_8017F640(Task* task)
 void func_neo_ark_shrine_8017F688(Task* task)
 {
     TmdObject*        extra;
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     NeoArkShrineFall* st;
 
     extra      = task->extra.tmd;
@@ -745,7 +745,7 @@ void func_neo_ark_shrine_8017F688(Task* task)
 void func_neo_ark_shrine_8017F738(Task* task)
 {
     NeoArkShrineFall* st;
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     u16               ticks;
     u16               speed;
     u16               delta;
@@ -799,9 +799,9 @@ void func_neo_ark_shrine_8017F80C(Task* task)
 /// `func_800D7A9C`'s format, lowered by 0x320 so the prop draws on the floor.
 void func_neo_ark_shrine_8017F86C(Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR         vec;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR     vec;
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
@@ -995,9 +995,9 @@ void func_neo_ark_shrine_8017FC14(SVECTOR* pos, s32 arg1, s32 arg2)
 /// shrinks a two-ring billboard until it fades out and releases its work.
 void func_neo_ark_shrine_8017FEA0(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    u8             rgb[3];
+    GpEffWork* work;
+    GpCoord*   coord;
+    u8         rgb[3];
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -1061,7 +1061,7 @@ void func_neo_ark_shrine_8017FEA0(Task* task)
 /// width; on-screen radii are `(s16)arg1 * 64 / (otz + 1)` and
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`. The RGB triple tints the inner edge
 /// so each wedge fades to a black outer rim.
-void func_neo_ark_shrine_80180144(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_neo_ark_shrine_80180144(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -1152,7 +1152,7 @@ void func_neo_ark_shrine_80180144(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* r
 /// the projected centre. `arg1` is a signed half-extent; the on-screen radius
 /// is `(s16)arg1 * 64 / (otz + 1)`. The RGB triple in `rgb` lights only the
 /// inner vertex so each wedge fades to black.
-void func_neo_ark_shrine_80180570(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_neo_ark_shrine_80180570(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     RoomDraw04Scratch* block;
     POLY_G4*           prim;
@@ -1233,15 +1233,15 @@ void func_neo_ark_shrine_80180570(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
 /// releases the effect after `spawnArg1` frames.
 void func_neo_ark_shrine_80180904(Task* task)
 {
-    GsCOORDINATE2  coord;
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* objCoord;
-    GsCOORDINATE2* dst;
-    GpEffWork*     work;
-    SVECTOR*       vec;
-    s32            i;
+    GpCoord    coord;
+    GpCoord*   coords;
+    GpCoord*   objCoord;
+    GpCoord*   dst;
+    GpEffWork* work;
+    SVECTOR*   vec;
+    s32        i;
 
-    coords   = (GsCOORDINATE2*)task->work;
+    coords   = (GpCoord*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
     objCoord = task->extra.tmd->coords;
 
@@ -1249,7 +1249,7 @@ void func_neo_ark_shrine_80180904(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GsCOORDINATE2*)memCalloc(0x500, 0);
+                coords = (GpCoord*)memCalloc(0x500, 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
@@ -1329,11 +1329,11 @@ void func_neo_ark_shrine_80180904(Task* task)
 /// `0x40 - 9 * i` and the trailing edge by nine less. `arg3` is the beam
 /// colour, three 2-bit channels at bits 8, 4 and 0 that each multiply that
 /// fade. Dropped when `gte_stflg` is negative.
-void func_neo_ark_shrine_80180DF4(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3)
+void func_neo_ark_shrine_80180DF4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GsCOORDINATE2*     a;
-    GsCOORDINATE2*     b;
+    GpCoord*           a;
+    GpCoord*           b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -1438,9 +1438,9 @@ void func_neo_ark_shrine_80180DF4(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 
 /// two fading rings for seven frames, and releases its work.
 void func_neo_ark_shrine_801811EC(Task* task)
 {
-    GsCOORDINATE2* objCoord;
-    GpEffWork*     work;
-    u8             rgb[4];
+    GpCoord*   objCoord;
+    GpEffWork* work;
+    u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
@@ -1510,7 +1510,7 @@ void func_neo_ark_shrine_801811EC(Task* task)
 /// are `(s16)arg1 * 64 / (otz + 1)` (outer) and `(s16)arg1 * 8 / (otz + 1)`
 /// (inner). The RGB triple tints the inner vertex of the inner ring at full
 /// brightness and the outer ring at half, so each wedge fades to a black rim.
-void func_neo_ark_shrine_80181474(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_neo_ark_shrine_80181474(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");

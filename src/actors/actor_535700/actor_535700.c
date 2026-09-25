@@ -146,7 +146,7 @@ void func_actor_535700_80131FA0(GpEnemy* enemy, Task* task)
     VECTOR           vec;
     Actor151000Work* work;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
 
     obj                     = task->extra.tmd;
     coord                   = obj->coords;
@@ -191,7 +191,7 @@ void func_actor_535700_80131FA0(GpEnemy* enemy, Task* task)
 /// `footsteps` is set, plays the footsteps.
 void func_actor_535700_80132108(Task* task)
 {
-    GsCOORDINATE2*   coord = task->extra.tmd->coords;
+    GpCoord*         coord = task->extra.tmd->coords;
     Actor151000Work* work  = (Actor151000Work*)task->work;
 
     if (D_actor_535700_80146844->st.state == 1) {
@@ -254,9 +254,9 @@ void func_actor_535700_80132478(Task* task)
 /// draws the ground shadow.
 void func_actor_535700_801324D4(GpEnemy* enemy, Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR         pos;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR     pos;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -283,7 +283,7 @@ void func_actor_535700_80132558(Task* task)
 void func_actor_535700_80132580(Task* task)
 {
     Actor151000Work* work;
-    GsCOORDINATE2*   obj;
+    GpCoord*         obj;
     GpAnimRec*       rec;
     s32              kind;
     s32              id;
@@ -401,8 +401,8 @@ s32 func_actor_535700_8013284C(Task* task, s32 arg1, s32 arg2)
 /// drops the placement translation into the matrix and marks it dirty.
 s32 func_actor_535700_80132894(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2* coord;
-    u16            yaw;
+    GpCoord* coord;
+    u16      yaw;
 
     coord                           = task->extra.tmd->coords;
     D_actor_535700_80146844->st.yaw = yaw = placement->rot.vy;
@@ -440,7 +440,7 @@ s32 func_actor_535700_80132910(Task* task, s32 arg1, GpCmdArg* msg)
 /// runner's step.
 s32 func_actor_535700_80132960(Task* task, s32 arg1, VECTOR* target, s32 mode)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor151000Work* work;
     s32              dx;
     s32              dz;
@@ -481,9 +481,9 @@ s32 func_actor_535700_80132960(Task* task, s32 arg1, VECTOR* target, s32 mode)
 /// the room's current `Gp_State1C` level.
 void func_actor_535700_80132ABC(Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR3*       vec;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR3*   vec;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -516,7 +516,7 @@ void func_actor_535700_80132B58(GpEnemy* enemy, Task* task)
     GpAreaKey        key;
     Actor150400Work* work;
     Actor150400Work* mem;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     TmdObject*       obj;
     GpEnemy*         spawned;
     TmdObject*       model;
@@ -641,9 +641,9 @@ void func_actor_535700_80132F20(Task* task)
 /// and draws the ground shadow.
 void func_actor_535700_80132F74(GpEnemy* enemy, Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR         pos;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR     pos;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -669,9 +669,9 @@ void func_actor_535700_80132FF8(Task* task)
 /// the room's current `Gp_State1C` level.
 void func_actor_535700_80133020(Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR3*       vec;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR3*   vec;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -792,7 +792,7 @@ s32 func_actor_535700_80133250(Task* task, s32 arg1, s32 flags)
 /// drops the placement translation into the matrix and marks it dirty.
 s32 func_actor_535700_801332B4(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor150400Work* work;
     u16              yaw;
 
@@ -819,7 +819,7 @@ s32 func_actor_535700_8013332C(void)
 /// count down.
 s32 func_actor_535700_80133334(Task* task, s32 arg1, VECTOR* target)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor150400Work* work;
     s32              dx;
     s32              dz;
@@ -846,8 +846,8 @@ void func_actor_535700_801333FC(Task* task)
     char             pad[0x10];
     Task*            parent = task->parent;
     TmdObject*       obj    = task->extra.tmd;
-    GsCOORDINATE2*   coord  = obj->coords;
-    GsCOORDINATE2*   sub    = &parent->extra.tmd->coords[7];
+    GpCoord*         coord  = obj->coords;
+    GpCoord*         sub    = &parent->extra.tmd->coords[7];
     Actor150400Work* work   = (Actor150400Work*)parent->work;
 
     switch (task->state) {

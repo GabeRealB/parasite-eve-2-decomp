@@ -470,13 +470,13 @@ s32 func_actor_342100_801629B8(Task* arg0)
 /// and takes $a1, the constant falling to $a2 (100.00%).
 void func_actor_342100_80162AB0(Task* arg0)
 {
-    GpEffArg*      eff;
-    GsCOORDINATE2* coord;
-    SVECTOR        vec;
-    s32            rng;
-    s32            rng2;
-    s32            vx;
-    s32            vz;
+    GpEffArg* eff;
+    GpCoord*  coord;
+    SVECTOR   vec;
+    s32       rng;
+    s32       rng2;
+    s32       vx;
+    s32       vz;
 
     eff   = (GpEffArg*)arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -549,11 +549,11 @@ void func_actor_342100_80162AB0(Task* arg0)
 /// passes it no arguments, which is why the declaration is `(void)`.
 void func_actor_342100_80162C88(void)
 {
-    GsCOORDINATE2* coord;
-    GpMtxWords*    rot;
-    SVECTOR*       pos;
-    Task*          task;
-    u32            rng;
+    GpCoord*    coord;
+    GpMtxWords* rot;
+    SVECTOR*    pos;
+    Task*       task;
+    u32         rng;
 
     switch (gGameSession->at4.loc.view) {
         case 29:

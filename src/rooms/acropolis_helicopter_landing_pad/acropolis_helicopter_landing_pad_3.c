@@ -71,8 +71,8 @@ extern GpSaveLoc D_acropolis_helicopter_landing_pad_80187F90;
 void func_acropolis_helicopter_landing_pad_8017ED50(Task* arg0);
 void func_acropolis_helicopter_landing_pad_8017EE2C(Task* arg0);
 void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32 level);
-void func_acropolis_helicopter_landing_pad_80180664(GsCOORDINATE2* coord);
-void func_acropolis_helicopter_landing_pad_80180A64(GsCOORDINATE2* coord);
+void func_acropolis_helicopter_landing_pad_80180664(GpCoord* coord);
+void func_acropolis_helicopter_landing_pad_80180A64(GpCoord* coord);
 
 /// The whole-unit delta of the last step
 /// `func_acropolis_helicopter_landing_pad_801819C0` applied.
@@ -424,7 +424,7 @@ void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32
 void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
 {
     GpEffWork*        mem;
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     void**            scratch;
     u8*               head;
     AhlpFlareScratch* blk;
@@ -563,14 +563,14 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
 /// `Gp_State1C->eventState` is set.
 void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpCoord64*     base;
-    GpPointLight*  slot;
-    GpEffWork*     eff;
-    s32            i;
-    s32            n;
-    s32            pan;
+    GpEffWork*    mem;
+    GpCoord*      coord;
+    GpCoord64*    base;
+    GpPointLight* slot;
+    GpEffWork*    eff;
+    s32           i;
+    s32           n;
+    s32           pan;
 
     mem   = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
@@ -662,7 +662,7 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
 /// the coord's `workm`, offset by its translation and projected through
 /// `GsWSMATRIX` into a semi-transparent `LINE_F2` whose green is an LCG byte
 /// and red half of it. Nothing is queued when the GTE flag word is negative.
-void func_acropolis_helicopter_landing_pad_80180664(GsCOORDINATE2* coord)
+void func_acropolis_helicopter_landing_pad_80180664(GpCoord* coord)
 {
     void**            scratch;
     u8*               head;
@@ -737,7 +737,7 @@ void func_acropolis_helicopter_landing_pad_80180664(GsCOORDINATE2* coord)
 /// the coord's `workm` and offset by its translation, then projected through
 /// `GsWSMATRIX` into a semi-transparent `LINE_F2` whose green is an LCG byte
 /// and red half of it. Nothing is queued when the GTE flag word is negative.
-void func_acropolis_helicopter_landing_pad_80180A64(GsCOORDINATE2* coord)
+void func_acropolis_helicopter_landing_pad_80180A64(GpCoord* coord)
 {
     void**            scratch;
     u8*               head;
@@ -815,10 +815,10 @@ void func_acropolis_helicopter_landing_pad_80180A64(GsCOORDINATE2* coord)
 /// `Gp_State1C->eventState` is set.
 void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpCoord64*     base;
-    GpPointLight*  slot;
+    GpEffWork*    mem;
+    GpCoord*      coord;
+    GpCoord64*    base;
+    GpPointLight* slot;
 
     base  = &Gp_RoomCoords[4];
     slot  = &base->data.light;
@@ -884,7 +884,7 @@ void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
 void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
 {
     GpEffWork*        mem;
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     void**            scratch;
     u8*               head;
     AhlpFlareScratch* blk;
@@ -1043,7 +1043,7 @@ void func_acropolis_helicopter_landing_pad_801818F0(Task* arg0)
 /// X or Z one unit away from zero, and keeps the applied delta in
 /// `D_acropolis_helicopter_landing_pad_80187F88`. Returns 1 when the delta's
 /// X or Z is non-zero. Works in a 0x14 block from `G_SCRATCH_HEAD`.
-s32 func_acropolis_helicopter_landing_pad_801819C0(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2)
+s32 func_acropolis_helicopter_landing_pad_801819C0(GpCoord* coord, GpRec18* rec, s16 arg2)
 {
     void**            scratch;
     u8*               head;
@@ -1099,7 +1099,7 @@ s32 func_acropolis_helicopter_landing_pad_801819C0(GsCOORDINATE2* coord, GpRec18
 /// of every other counting record's, it moves X and Z `push` units away
 /// along that bearing. Returns 1 when a push was applied, and 0 at once
 /// while `gGameSession->viewReady` is 1.
-s32 func_acropolis_helicopter_landing_pad_80181B64(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push)
+s32 func_acropolis_helicopter_landing_pad_80181B64(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
 {
     void**                  scratch;
     void**                  tail;

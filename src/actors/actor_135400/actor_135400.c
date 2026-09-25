@@ -176,10 +176,10 @@ const Actor135400Places D_actor_135400_80131E48 = {
 /// world position (0x12FE, -0x1B3, 0x157C) and drops the phase back to 0.
 void func_actor_135400_80131EB4(Task* task)
 {
-    OverlayMat     rot;
-    OverlayMat*    src;
-    SVECTOR        sv;
-    GsCOORDINATE2* coord;
+    OverlayMat  rot;
+    OverlayMat* src;
+    SVECTOR     sv;
+    GpCoord*    coord;
 
     switch (task->spawnArg1) {
         case 1:
@@ -359,12 +359,12 @@ void func_actor_135400_801323F8(Task* task)
 /// the task onto the parent before advancing the state.
 void func_actor_135400_80132450(Task* task)
 {
-    Task*          parent;
-    s32            part;
-    TmdObject*     extra;
-    TmdObject*     parentExtra;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* dest;
+    Task*      parent;
+    s32        part;
+    TmdObject* extra;
+    TmdObject* parentExtra;
+    GpCoord*   coord;
+    GpCoord*   dest;
 
     parent          = (Task*)task->spawnArg2;
     part            = task->spawnArg1;
@@ -401,12 +401,12 @@ void func_actor_135400_801324D4(Task* task)
 /// the task onto the parent before advancing the state.
 void func_actor_135400_8013252C(Task* task)
 {
-    Task*          parent;
-    s32            part;
-    TmdObject*     extra;
-    TmdObject*     parentExtra;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* dest;
+    Task*      parent;
+    s32        part;
+    TmdObject* extra;
+    TmdObject* parentExtra;
+    GpCoord*   coord;
+    GpCoord*   dest;
 
     parent          = (Task*)task->spawnArg2;
     part            = task->spawnArg1;
@@ -496,9 +496,9 @@ s32 func_actor_135400_80132650(Task* task, s32 anim, GpAnimArg* params, s32 arg3
 /// is recomputed.
 s32 func_actor_135400_8013276C(Task* task, s32 anim, GpXformArg* args, s32 arg3)
 {
-    GpCoordExt* coord;
+    GpCoord* coord;
 
-    coord               = (GpCoordExt*)task->extra.tmd->coords;
+    coord               = task->extra.tmd->coords;
     coord->coord.t[0]   = args->pos.vx;
     coord->coord.t[1]   = args->pos.vy;
     coord->coord.t[2]   = args->pos.vz;
@@ -764,9 +764,9 @@ s32 func_actor_135400_80132D24(Task* task, s32 anim, GpAnimArg* params, s32 arg3
 /// `func_actor_135400_8013276C`, applied to this task's root coordinate.
 s32 func_actor_135400_80132E40(Task* task, s32 anim, GpXformArg* args, s32 arg3)
 {
-    GpCoordExt* coord;
+    GpCoord* coord;
 
-    coord               = (GpCoordExt*)task->extra.tmd->coords;
+    coord               = task->extra.tmd->coords;
     coord->coord.t[0]   = args->pos.vx;
     coord->coord.t[1]   = args->pos.vy;
     coord->coord.t[2]   = args->pos.vz;

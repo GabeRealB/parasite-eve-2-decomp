@@ -24,20 +24,20 @@ extern SVECTOR D_801126FC[];
 extern SVECTOR D_8011280C[];
 
 void Gp_DrawEffSprite6C();
-void Gp_DrawEffSprite3B(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
-void Gp_DrawEffSprite7C(GsCOORDINATE2* arg0, s32 arg1, u32 arg2);
+void Gp_DrawEffSprite3B(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+void Gp_DrawEffSprite7C(GpCoord* arg0, s32 arg1, u32 arg2);
 
 void Gp_EffCtlTask2B(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpCoord64*     base;
-    GpPointLight*  slot;
-    s32            temp;
-    s32            idx;
-    s32            t2;
-    s32            rng;
-    s32            count;
+    GpEffWork*    mem;
+    GpCoord*      coord;
+    GpCoord64*    base;
+    GpPointLight* slot;
+    s32           temp;
+    s32           idx;
+    s32           t2;
+    s32           rng;
+    s32           count;
 
     mem   = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
@@ -143,12 +143,12 @@ void Gp_EffCtlTask2B(Task* arg0)
 
 void Gp_EffCtlTask6A(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpCoord64*     base;
-    GpPointLight*  slot;
-    GpState1C*     st;
-    s32            t2;
+    GpEffWork*    mem;
+    GpCoord*      coord;
+    GpCoord64*    base;
+    GpPointLight* slot;
+    GpState1C*    st;
+    s32           t2;
 
     base  = Gp_RoomCoords;
     mem   = arg0->spawnArg2;
@@ -214,15 +214,15 @@ void Gp_EffCtlTask6A(Task* arg0)
 
 void Gp_EffCtlTask6B(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpCoord64*     base;
-    GpPointLight*  slot;
-    GpState1C*     st;
-    s32            temp;
-    s32            idx;
-    s32            t2;
-    s32            count;
+    GpEffWork*    mem;
+    GpCoord*      coord;
+    GpCoord64*    base;
+    GpPointLight* slot;
+    GpState1C*    st;
+    s32           temp;
+    s32           idx;
+    s32           t2;
+    s32           count;
 
     base  = Gp_RoomCoords;
     slot  = &base->data.light;
@@ -290,15 +290,15 @@ void Gp_EffCtlTask6B(Task* arg0)
 
 void func_800ED42C(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpCoord64*     base;
-    GpPointLight*  slot;
-    SVECTOR*       vec;
-    s32            temp;
-    s32            t2;
-    s32            count;
-    s32            i;
+    GpEffWork*    mem;
+    GpCoord*      coord;
+    GpCoord64*    base;
+    GpPointLight* slot;
+    SVECTOR*      vec;
+    s32           temp;
+    s32           t2;
+    s32           count;
+    s32           i;
 
     mem   = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
@@ -479,17 +479,17 @@ void func_800ED42C(Task* arg0)
 
 void Gp_EffCtlTask6C(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpCoord64*     base;
-    GpPointLight*  slot;
-    s32            temp;
-    s32            idx;
-    s32            t2;
-    s32            rng;
-    s32            rng2;
-    s32            count;
-    s32            i;
+    GpEffWork*    mem;
+    GpCoord*      coord;
+    GpCoord64*    base;
+    GpPointLight* slot;
+    s32           temp;
+    s32           idx;
+    s32           t2;
+    s32           rng;
+    s32           rng2;
+    s32           count;
+    s32           i;
 
     mem   = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
@@ -582,7 +582,7 @@ void Gp_EffCtlTask6C(Task* arg0)
 void Gp_EffSprTask34(Task* arg0)
 {
     GpEffWork*       mem;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     u8*              head;
     GpFxQuadScratch* block;
     GpFxQuadScratch* vecp;
@@ -665,7 +665,7 @@ void Gp_EffSprTask34(Task* arg0)
 void Gp_EffSprTask72(Task* arg0)
 {
     GpEffWork*       mem;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     u8*              head;
     GpFxQuadScratch* block;
     GpFxQuadScratch* vecp;
@@ -749,7 +749,7 @@ void Gp_EffSprTask72(Task* arg0)
 void Gp_EffLineTaskA3(Task* arg0)
 {
     GpEffWork*        mem;
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     u8*               head;
     GpEffLineScratch* block;
     GpEffLineScratch* vecp;
@@ -845,7 +845,7 @@ void Gp_EffLineTaskA3(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void Gp_DrawEffSprite6C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
+void Gp_DrawEffSprite6C(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -908,7 +908,7 @@ void Gp_DrawEffSprite6C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
 void Gp_EffSprTask35(Task* arg0)
 {
     GpEffWork*       mem;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     u8*              head;
     GpFxQuadScratch* block;
     GpFxQuadScratch* vecp;
@@ -1019,7 +1019,7 @@ void Gp_EffSprTask35(Task* arg0)
 void Gp_EffSprTask6F(Task* arg0)
 {
     GpEffWork*       mem;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     u8*              head;
     GpFxQuadScratch* block;
     GpFxQuadScratch* vecp;
@@ -1124,27 +1124,27 @@ void Gp_EffSprTask6F(Task* arg0)
 
 void Gp_EffModelTask(Task* arg0)
 {
-    SVECTOR        delta;
-    SVECTOR        dir;
-    SVECTOR        pos;
-    VECTOR         vec;
-    VECTOR         tmp;
-    TmdObject*     extra;
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    SVECTOR*       vel;
-    s16            flag;
-    s32            t2;
-    s32            scale;
-    u16            tx;
-    u16            ty;
-    u16            tz;
-    s32            dz;
+    SVECTOR    delta;
+    SVECTOR    dir;
+    SVECTOR    pos;
+    VECTOR     vec;
+    VECTOR     tmp;
+    TmdObject* extra;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    SVECTOR*   vel;
+    s16        flag;
+    s32        t2;
+    s32        scale;
+    u16        tx;
+    u16        ty;
+    u16        tz;
+    s32        dz;
 
     extra = arg0->extra.tmd;
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)extra->coords;
+    coord = extra->coords;
     if (flag != 0) {
         if (flag < 4) {
             return;
@@ -1451,9 +1451,9 @@ release:
 
 void Gp_EffCtlTask6E(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s32            rng;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s32        rng;
 
     coord = arg0->extra.tmd->coords;
     mem   = arg0->spawnArg2;
@@ -1493,11 +1493,11 @@ void Gp_EffCtlTask6E(Task* arg0)
 
 void Gp_EffCtlTask6D(Task* arg0)
 {
-    GsCOORDINATE2* coord;
-    MATRIX*        m;
-    void*          mem;
-    s32            i;
-    s32            one;
+    GpCoord* coord;
+    MATRIX*  m;
+    void*    mem;
+    s32      i;
+    s32      one;
 
     i                    = 0;
     one                  = ONE;
@@ -1522,7 +1522,7 @@ void Gp_EffCtlTask6D(Task* arg0)
 void Gp_EffTileTaskA4(Task* arg0)
 {
     GpEffWork*        mem;
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     GpEffTileScratch* block;
     TILE*             prim;
     s16               c;
@@ -1601,11 +1601,11 @@ void Gp_EffTileTaskA4(Task* arg0)
 
 void Gp_EffCtlTask3B(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s16            flag;
-    s32            i;
-    s32            rng;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s16        flag;
+    s32        i;
+    s32        rng;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -1640,7 +1640,7 @@ void Gp_EffCtlTask3B(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void Gp_DrawEffSprite3B(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
+void Gp_DrawEffSprite3B(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -1706,7 +1706,7 @@ void Gp_EffSprTask5C(Task* arg0)
     u8*              head;
     GpFxQuadScratch* block;
     GpFxQuadScratch* vecp;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     GpEffWork*       mem;
     POLY_FT4*        prim;
     GpEffUv8*        rec;
@@ -1858,7 +1858,7 @@ void func_800F289C(Task* arg0)
     GpFxQuadScratch*          block;
     register GpFxQuadScratch* vecp asm("v0");
     GpEffWork*                mem;
-    GsCOORDINATE2*            coord;
+    GpCoord*                  coord;
     POLY_FT4*                 prim;
     s16                       flag;
     s16                       scale;
@@ -2050,7 +2050,7 @@ void Gp_EffSprTask76(Task* arg0)
     u8*                       head;
     register GpFxQuadScratch* vecp asm("v0");
     GpFxQuadScratch*          block;
-    GsCOORDINATE2*            coord;
+    GpCoord*                  coord;
     GpEffWork*                mem;
     POLY_FT4*                 prim;
     u16                       size;
@@ -2128,9 +2128,9 @@ void Gp_EffSprTask76(Task* arg0)
 
 void Gp_EffSprTask7C(Task* arg0)
 {
-    GsCOORDINATE2             hit;
+    GpCoord                   hit;
     GpEffWork*                mem;
-    GsCOORDINATE2*            coord;
+    GpCoord*                  coord;
     u8*                       head;
     register GpFxQuadScratch* vecp asm("v0");
     GpFxQuadScratch*          block;
@@ -2269,26 +2269,26 @@ void Gp_EffSprTask7C(Task* arg0)
 
 void func_800F4308(Task* arg0)
 {
-    u8             rgb[3];
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* roomCoord;
-    GpCoord64*     room;
-    GpPointLight*  slot;
-    TmdObject*     extra;
-    SVECTOR*       vec;
-    s16            flag;
-    s32            scale11;
-    s32            scale12;
-    s32            count;
-    s32            cond;
-    s32            condInc;
-    s32            i;
-    s32            t2_10;
-    s32            t2_11;
-    s32            t2_12;
-    s32            rng;
-    s32            tmp;
+    u8            rgb[3];
+    GpEffWork*    mem;
+    GpCoord*      coord;
+    GpCoord*      roomCoord;
+    GpCoord64*    room;
+    GpPointLight* slot;
+    TmdObject*    extra;
+    SVECTOR*      vec;
+    s16           flag;
+    s32           scale11;
+    s32           scale12;
+    s32           count;
+    s32           cond;
+    s32           condInc;
+    s32           i;
+    s32           t2_10;
+    s32           t2_11;
+    s32           t2_12;
+    s32           rng;
+    s32           tmp;
 
     room      = &Gp_RoomCoords[1];
     slot      = &room->data.light;
@@ -2296,7 +2296,7 @@ void func_800F4308(Task* arg0)
     extra     = arg0->extra.tmd;
     mem       = arg0->spawnArg2;
     flag      = Gp_State1C->eventState;
-    coord     = (GsCOORDINATE2*)extra->coords;
+    coord     = extra->coords;
     if (flag != 0) {
         cond = flag < 4;
         goto release;
@@ -2519,7 +2519,7 @@ void Gp_EffLineTask92(Task* arg0)
 {
     GpEffLineScratch* block;
     GpEffWork*        mem;
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     MATRIX*           m;
     LINE_F2*          prim;
     s16               step;
@@ -2618,9 +2618,9 @@ void Gp_EffLineTask92(Task* arg0)
 
 void Gp_EffPolyTask9C(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s16            flag;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s16        flag;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -2649,7 +2649,7 @@ void Gp_EffPolyTask9C(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void Gp_DrawEffShard(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3)
+void Gp_DrawEffShard(GpCoord* arg0, s16 arg1, s16 arg2, u16 arg3)
 {
     register u8*              head asm("a2");
     GpFxQuadScratch*          block;
@@ -2771,7 +2771,7 @@ void Gp_EffSprTask9E(Task* arg0)
     register SVECTOR* v asm("a1");
     s32               i;
     GpEffWork*        mem;
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     GpQuadCorner*     tbl;
     MATRIX*           m;
     POLY_FT4*         prim;
@@ -2878,7 +2878,7 @@ void Gp_EffSprTask54(Task* arg0)
     s16              step;
     u16              vz;
     GpEffWork*       mem;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     POLY_FT4*        prim;
 
     mem   = arg0->spawnArg2;
@@ -2982,7 +2982,7 @@ void Gp_EffSprTask54(Task* arg0)
     }
 }
 
-void Gp_DrawEffSprite7C(GsCOORDINATE2* arg0, s32 arg1, u32 arg2)
+void Gp_DrawEffSprite7C(GpCoord* arg0, s32 arg1, u32 arg2)
 {
     register u8*      head asm("v1");
     GpQuadScratch*    block;
@@ -3139,10 +3139,10 @@ void Gp_DrawEffGroundQuad(VECTOR3* pos, s32 size, s16 shade)
 
 void Gp_EffSprTask53(Task* arg0)
 {
-    VECTOR3        vec;
-    Task*          slot;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* parent;
+    VECTOR3  vec;
+    Task*    slot;
+    GpCoord* coord;
+    GpCoord* parent;
 
     slot  = gameGetPtrSlot(3);
     coord = arg0->extra.tmd->coords;
@@ -3166,29 +3166,29 @@ void Gp_EffSprTask53(Task* arg0)
 
 void Gp_EffAttachTask37(Task* arg0)
 {
-    SVECTOR        delta;
-    SVECTOR        dir;
-    SVECTOR        pos;
-    VECTOR         scale2;
-    VECTOR         scale;
-    TmdObject*     extra;
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* player;
-    SVECTOR*       rot;
-    MATRIX*        mtx;
-    s32            state;
-    s16            flag;
-    s16            trans;
-    s32            temp;
-    u16            tx;
-    u16            ty;
-    u16            tz;
-    s32            dz;
+    SVECTOR    delta;
+    SVECTOR    dir;
+    SVECTOR    pos;
+    VECTOR     scale2;
+    VECTOR     scale;
+    TmdObject* extra;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    GpCoord*   player;
+    SVECTOR*   rot;
+    MATRIX*    mtx;
+    s32        state;
+    s16        flag;
+    s16        trans;
+    s32        temp;
+    u16        tx;
+    u16        ty;
+    u16        tz;
+    s32        dz;
 
     extra  = arg0->extra.tmd;
     mem    = arg0->spawnArg2;
-    coord  = (GsCOORDINATE2*)extra->coords;
+    coord  = extra->coords;
     player = (gameGetPtrSlot(3))->extra.tmd->coords;
     flag   = Gp_State1C->eventState;
     if (flag != 0) {

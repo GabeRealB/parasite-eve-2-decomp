@@ -28,13 +28,13 @@
 /// A cancelled or interrupted cast stops the cue and releases immediately.
 void flareEffectTask(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpStateC08*    state;
-    s32            pan;
-    s16            tick;
-    GpEffWork*     spawned;
-    s32            rng;
+    GpEffWork*  mem;
+    GpCoord*    coord;
+    GpStateC08* state;
+    s32         pan;
+    s16         tick;
+    GpEffWork*  spawned;
+    s32         rng;
 
     state = &Gp_StateC08;
     mem   = arg0->spawnArg2;
@@ -79,17 +79,17 @@ void flareEffectTask(Task* arg0)
 /// all eight frames have been drawn.
 void flareSparkTask(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* player;
-    GpMtxWords*    dstm;
-    GpMtxWords*    srcm;
-    s32            rng;
-    s32            temp_lo;
-    s32            hi;
-    s32            ang;
-    s32            pitch;
-    s32            rsin_arg;
+    GpEffWork*  mem;
+    GpCoord*    coord;
+    GpCoord*    player;
+    GpMtxWords* dstm;
+    GpMtxWords* srcm;
+    s32         rng;
+    s32         temp_lo;
+    s32         hi;
+    s32         ang;
+    s32         pitch;
+    s32         rsin_arg;
 
     mem      = arg0->spawnArg2;
     coord    = arg0->extra.tmd->coords;
@@ -148,7 +148,7 @@ void flareSparkTask(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void flareDrawSparkQuad(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
+void flareDrawSparkQuad(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;

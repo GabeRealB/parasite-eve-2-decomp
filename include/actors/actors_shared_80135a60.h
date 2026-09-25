@@ -6,8 +6,9 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
+#include "main/coord.h"
 #include "actors/actor.h"
 
-void ActorsShared80135a60(GsCOORDINATE2* coord, s16 scale);
+void ActorsShared80135a60(GpCoord* coord, s16 scale);
 
 #endif

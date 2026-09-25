@@ -53,10 +53,10 @@ extern SVECTOR D_neo_ark_pyramid_8017FC20;
 void func_neo_ark_pyramid_8017DAC0(s32 arg0);
 void func_neo_ark_pyramid_8017DB18(Task* task);
 void func_neo_ark_pyramid_8017DB5C(Task* task);
-void func_neo_ark_pyramid_8017DEF4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_neo_ark_pyramid_8017E320(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
-void func_neo_ark_pyramid_8017EBA4(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
-void func_neo_ark_pyramid_8017F224(GsCOORDINATE2* arg0, s16 arg1, u8* rgb);
+void func_neo_ark_pyramid_8017DEF4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_neo_ark_pyramid_8017E320(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_neo_ark_pyramid_8017EBA4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+void func_neo_ark_pyramid_8017F224(GpCoord* arg0, s16 arg1, u8* rgb);
 
 /// State handlers of the room's entry task, indexed by its state through
 /// `func_neo_ark_pyramid_8017DB98`: set-up, per-frame draw, then kill.
@@ -281,9 +281,9 @@ void func_neo_ark_pyramid_8017DBF0(Task* arg0)
 /// to release.
 void func_neo_ark_pyramid_8017DC50(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    u8             rgb[3];
+    GpEffWork* work;
+    GpCoord*   coord;
+    u8         rgb[3];
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -346,7 +346,7 @@ void func_neo_ark_pyramid_8017DC50(Task* task)
 /// segments forming a ring. The edge at `arg1` is black and the edge at
 /// `arg1 + arg2` takes the colour `rgb`, both signed half-extents scaled to
 /// the screen as `r * 64 / (otz + 1)`.
-void func_neo_ark_pyramid_8017DEF4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_neo_ark_pyramid_8017DEF4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -437,7 +437,7 @@ void func_neo_ark_pyramid_8017DEF4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* 
 /// the projected centre. `arg1` is a signed half-extent; the on-screen radius
 /// is `(s16)arg1 * 64 / (otz + 1)`. Only the centre vertex takes the colour
 /// `rgb`, so each wedge fades to black at the rim.
-void func_neo_ark_pyramid_8017E320(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_neo_ark_pyramid_8017E320(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     RoomDraw04Scratch* block;
     POLY_G4*           prim;
@@ -522,15 +522,15 @@ void func_neo_ark_pyramid_8017E320(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
 /// event state reaches 2.
 void func_neo_ark_pyramid_8017E6B4(Task* task)
 {
-    GsCOORDINATE2  coord;
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* objCoord;
-    GsCOORDINATE2* dst;
-    GpEffWork*     work;
-    SVECTOR*       vec;
-    s32            i;
+    GpCoord    coord;
+    GpCoord*   coords;
+    GpCoord*   objCoord;
+    GpCoord*   dst;
+    GpEffWork* work;
+    SVECTOR*   vec;
+    s32        i;
 
-    coords   = (GsCOORDINATE2*)task->work;
+    coords   = (GpCoord*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
     objCoord = task->extra.tmd->coords;
 
@@ -538,7 +538,7 @@ void func_neo_ark_pyramid_8017E6B4(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GsCOORDINATE2*)memCalloc(0x500, 0);
+                coords = (GpCoord*)memCalloc(0x500, 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
@@ -619,11 +619,11 @@ void func_neo_ark_pyramid_8017E6B4(Task* task)
 /// along its length. `arg3` holds the colour as per-channel multipliers of that
 /// weight: red from bits 8 up, green from bits 4-5, blue from bits 0-1. A quad
 /// the GTE flags as bad is skipped.
-void func_neo_ark_pyramid_8017EBA4(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3)
+void func_neo_ark_pyramid_8017EBA4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GsCOORDINATE2*     a;
-    GsCOORDINATE2*     b;
+    GpCoord*           a;
+    GpCoord*           b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -732,9 +732,9 @@ void func_neo_ark_pyramid_8017EBA4(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16
 /// release.
 void func_neo_ark_pyramid_8017EF9C(Task* task)
 {
-    GsCOORDINATE2* objCoord;
-    GpEffWork*     work;
-    u8             rgb[4];
+    GpCoord*   objCoord;
+    GpEffWork* work;
+    u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
@@ -806,7 +806,7 @@ void func_neo_ark_pyramid_8017EF9C(Task* task)
 /// wedges span the outer radius in half the colour `arg2`, eight more span
 /// half of it at full colour, and four long spikes reach twice the outer
 /// radius between points on the inner one.
-void func_neo_ark_pyramid_8017F224(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_neo_ark_pyramid_8017F224(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");

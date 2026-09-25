@@ -20,5 +20,5 @@ GpEffWork* D_gunblade_8012E248 = NULL;
 static s32 s_unused_8012E24C[2] = { 0, 0 };
 
 /// The eight-segment beam trails, one array per end of the blade.
-GsCOORDINATE2 D_gunblade_8012E254[8] = { 0 };
-GsCOORDINATE2 D_gunblade_8012E4D4[8] = { 0 };
+GpCoord D_gunblade_8012E254[8] = { 0 };
+GpCoord D_gunblade_8012E4D4[8] = { 0 };

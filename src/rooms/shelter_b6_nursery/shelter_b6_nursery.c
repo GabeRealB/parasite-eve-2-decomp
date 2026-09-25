@@ -165,7 +165,7 @@ extern s32 D_shelter_b6_nursery_8018797C;
 extern RoomCutsceneRec D_shelter_b6_nursery_80187980;
 
 /// Position the ambient sound is panned and attenuated from.
-extern GsCOORDINATE2 D_shelter_b6_nursery_801879A0;
+extern GpCoord D_shelter_b6_nursery_801879A0;
 
 extern ShelterB6NurseryPair D_shelter_b6_nursery_801879F0;
 
@@ -174,14 +174,14 @@ void func_shelter_b6_nursery_8017FEC4(Task* task);
 void func_shelter_b6_nursery_8017FF8C(Task* task);
 void func_shelter_b6_nursery_80180518(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_shelter_b6_nursery_8018098C(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b6_nursery_80181EDC(GsCOORDINATE2* coord, u16 arg1, s16 arg2, s16 arg3);
-void func_shelter_b6_nursery_80182330(GsCOORDINATE2* coord, u16 arg1, s16 arg2, s16 arg3);
-void func_shelter_b6_nursery_801829E4(GsCOORDINATE2* coord, s16 scale, s16 shade);
+void func_shelter_b6_nursery_80181EDC(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3);
+void func_shelter_b6_nursery_80182330(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3);
+void func_shelter_b6_nursery_801829E4(GpCoord* coord, s16 scale, s16 shade);
 void func_shelter_b6_nursery_80182D14(s16 arg0, s16 arg1);
-void func_shelter_b6_nursery_80182FCC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b6_nursery_801833F8(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
-void func_shelter_b6_nursery_80183C7C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
-void func_shelter_b6_nursery_801842FC(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
+void func_shelter_b6_nursery_80182FCC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_shelter_b6_nursery_801833F8(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_shelter_b6_nursery_80183C7C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+void func_shelter_b6_nursery_801842FC(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// Draws row `field_8` of the play-data statistics list: its label, then its
 /// value - a time, a count with its suffix, or a percentage with two decimals
@@ -1906,13 +1906,13 @@ void func_shelter_b6_nursery_8018098C(SVECTOR* arg0, s32 arg1, s32 arg2)
 
 void func_shelter_b6_nursery_80181314(Task* task)
 {
-    SVECTOR        step;
-    SVECTOR        pos;
-    SVECTOR        base;
-    TmdObject*     obj;
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    s16            eventState;
+    SVECTOR    step;
+    SVECTOR    pos;
+    SVECTOR    base;
+    TmdObject* obj;
+    GpEffWork* work;
+    GpCoord*   coord;
+    s16        eventState;
 
     obj   = task->extra.tmd;
     work  = task->spawnArg2;
@@ -2003,11 +2003,11 @@ void func_shelter_b6_nursery_80181314(Task* task)
 
 void func_shelter_b6_nursery_80181820(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    SVECTOR*       vec;
-    s32            step;
-    s32            level;
+    GpEffWork* work;
+    GpCoord*   coord;
+    SVECTOR*   vec;
+    s32        step;
+    s32        level;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -2138,7 +2138,7 @@ void func_shelter_b6_nursery_80181820(Task* task)
     }
 }
 
-void func_shelter_b6_nursery_80181EDC(GsCOORDINATE2* coord, u16 arg1, s16 arg2, s16 arg3)
+void func_shelter_b6_nursery_80181EDC(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -2205,7 +2205,7 @@ void func_shelter_b6_nursery_80181EDC(GsCOORDINATE2* coord, u16 arg1, s16 arg2, 
     SCRATCH_POP_BYTES(0x1C);
 }
 
-void func_shelter_b6_nursery_80182330(GsCOORDINATE2* coord, u16 arg1, s16 arg2, s16 arg3)
+void func_shelter_b6_nursery_80182330(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -2269,10 +2269,10 @@ void func_shelter_b6_nursery_80182330(GsCOORDINATE2* coord, u16 arg1, s16 arg2, 
 
 void func_shelter_b6_nursery_80182730(Task* task)
 {
-    SVECTOR        step;
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    s16            eventState;
+    SVECTOR    step;
+    GpEffWork* work;
+    GpCoord*   coord;
+    s16        eventState;
 
     work       = task->spawnArg2;
     eventState = Gp_State1C->eventState;
@@ -2328,7 +2328,7 @@ void func_shelter_b6_nursery_80182730(Task* task)
 /// on a circle of radius `scale` in the coordinate's YZ plane, transformed by
 /// its world matrix, projected with `GsWSMATRIX` and linked into the ordering
 /// table at the triangle's depth with shade `shade`.
-void func_shelter_b6_nursery_801829E4(GsCOORDINATE2* coord, s16 scale, s16 shade)
+void func_shelter_b6_nursery_801829E4(GpCoord* coord, s16 scale, s16 shade)
 {
     _ShelterB6NurseryTriScratch* blk;
     SVECTOR*                     p;
@@ -2388,9 +2388,9 @@ void func_shelter_b6_nursery_80182D14(s16 arg0, s16 arg1)
 /// event state is non-zero.
 void func_shelter_b6_nursery_80182D28(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    u8             rgb[3];
+    GpEffWork* work;
+    GpCoord*   coord;
+    u8         rgb[3];
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -2452,7 +2452,7 @@ void func_shelter_b6_nursery_80182D28(Task* task)
 /// coordinate's world translation, unless the projection flags an error. The
 /// vertices at radius `(s16)arg1 * 64` over the depth are black and those at
 /// `(s16)(arg1 + arg2) * 64` over the depth take `rgb`.
-void func_shelter_b6_nursery_80182FCC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_shelter_b6_nursery_80182FCC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -2542,7 +2542,7 @@ void func_shelter_b6_nursery_80182FCC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u
 /// coordinate's world translation, unless the projection flags an error: the
 /// centre takes `rgb` and the rim, at radius `(s16)arg1 * 64` over the depth,
 /// is black.
-void func_shelter_b6_nursery_801833F8(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_shelter_b6_nursery_801833F8(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     RoomDraw04Scratch* block;
     POLY_G4*           prim;
@@ -2624,15 +2624,15 @@ void func_shelter_b6_nursery_801833F8(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
 /// while the room's event state is 2 or more.
 void func_shelter_b6_nursery_8018378C(Task* task)
 {
-    GsCOORDINATE2  coord;
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* objCoord;
-    GsCOORDINATE2* dst;
-    GpEffWork*     work;
-    SVECTOR*       vec;
-    s32            i;
+    GpCoord    coord;
+    GpCoord*   coords;
+    GpCoord*   objCoord;
+    GpCoord*   dst;
+    GpEffWork* work;
+    SVECTOR*   vec;
+    s32        i;
 
-    coords   = (GsCOORDINATE2*)task->work;
+    coords   = (GpCoord*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
     objCoord = task->extra.tmd->coords;
 
@@ -2640,7 +2640,7 @@ void func_shelter_b6_nursery_8018378C(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GsCOORDINATE2*)memCalloc(0x500, 0);
+                coords = (GpCoord*)memCalloc(0x500, 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
@@ -2719,11 +2719,11 @@ void func_shelter_b6_nursery_8018378C(Task* task)
 /// of `arg0` and `arg1`. Brightness falls by 9 per quad from 0x40, and `arg3`
 /// scales it per channel: red by `arg3 >> 8`, green by bits 4-5 and blue by
 /// bits 0-1. A quad whose projection flags an error is skipped.
-void func_shelter_b6_nursery_80183C7C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3)
+void func_shelter_b6_nursery_80183C7C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GsCOORDINATE2*     a;
-    GsCOORDINATE2*     b;
+    GpCoord*           a;
+    GpCoord*           b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -2831,9 +2831,9 @@ void func_shelter_b6_nursery_80183C7C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, 
 /// event state is non-zero.
 void func_shelter_b6_nursery_80184074(Task* task)
 {
-    GsCOORDINATE2* objCoord;
-    GpEffWork*     work;
-    u8             rgb[4];
+    GpCoord*   objCoord;
+    GpEffWork* work;
+    u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
@@ -2902,7 +2902,7 @@ void func_shelter_b6_nursery_80184074(Task* task)
 /// wedges at radius `arg1 * 64` over the depth in half of `arg2`'s colour, a
 /// second at half that radius in the full colour, and four cross wedges from
 /// an inner radius of `arg1 * 8` over the depth. Every rim is black.
-void func_shelter_b6_nursery_801842FC(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_shelter_b6_nursery_801842FC(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");

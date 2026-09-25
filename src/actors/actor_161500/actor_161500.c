@@ -177,8 +177,8 @@ void func_actor_161500_801321B4(Task* arg0)
 
 void func_actor_161500_80132210(void)
 {
-    GsCOORDINATE2* target;
-    GsCOORDINATE2* player;
+    GpCoord* target;
+    GpCoord* player;
 
     target = (gameGetPtrSlot(0xA))->extra.tmd->coords;
     player = (gameGetPtrSlot(3))->extra.tmd->coords;
@@ -239,7 +239,7 @@ void func_actor_161500_80132394(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor161500Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     TmdObject*       obj;
     GpEnemy*         spawned;
 
@@ -343,7 +343,7 @@ void func_actor_161500_801326E8(Task* task)
 void func_actor_161500_8013273C(GpEnemy* enemy, Task* task)
 {
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor161500Work* work;
     VECTOR           pos;
 
@@ -384,9 +384,9 @@ void func_actor_161500_8013284C(Task* task)
 /// scratchpad VECTOR3 rather than on the stack.
 void func_actor_161500_80132874(Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR3*       vec;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR3*   vec;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -514,7 +514,7 @@ s32 func_actor_161500_80132A94(Task* task, s32 arg1, s32 flags)
 /// placement translation into the matrix and marks it dirty.
 s32 func_actor_161500_80132B10(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor161500Work* work;
     u16              yaw;
 
@@ -546,7 +546,7 @@ s32 func_actor_161500_80132B88(Task* task, s32 arg1, GpCmdArg* args)
 /// that follows.
 s32 func_actor_161500_80132BA0(Task* task, s32 arg1, GpXformArg* target)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor161500Work* work;
     s32              dx;
     s32              dz;
@@ -570,11 +570,11 @@ s32 func_actor_161500_80132BA0(Task* task, s32 arg1, GpXformArg* target)
 /// coordinate; every frame marks the coordinate dirty.
 void func_actor_161500_80132C6C(Task* task)
 {
-    Task*          parent = task->parent;
-    TmdObject*     obj    = task->extra.tmd;
-    GsCOORDINATE2* coord  = obj->coords;
-    GsCOORDINATE2* sub    = &parent->extra.tmd->coords[7];
-    MATRIX*        work   = (MATRIX*)parent->work;
+    Task*      parent = task->parent;
+    TmdObject* obj    = task->extra.tmd;
+    GpCoord*   coord  = obj->coords;
+    GpCoord*   sub    = &parent->extra.tmd->coords[7];
+    MATRIX*    work   = (MATRIX*)parent->work;
 
     switch (task->state) {
         case 0:

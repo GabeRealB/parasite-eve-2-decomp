@@ -146,12 +146,12 @@ void func_actor_213100_80149FE4(Task* task)
 /// the idle state.
 void func_actor_213100_8014A03C(Task* task)
 {
-    Task*          parent;
-    s32            part;
-    TmdObject*     extra;
-    TmdObject*     parentExtra;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* dest;
+    Task*      parent;
+    s32        part;
+    TmdObject* extra;
+    TmdObject* parentExtra;
+    GpCoord*   coord;
+    GpCoord*   dest;
 
     parent          = (Task*)task->spawnArg2;
     part            = task->spawnArg1;
@@ -302,9 +302,9 @@ s32 func_actor_213100_8014A258(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 /// rebuilt. Clearing `flg` has the world matrix recomputed. Returns 0.
 s32 func_actor_213100_8014A390(Task* task, s32 arg1, GpXformArg* args)
 {
-    GpCoordExt* coord;
+    GpCoord* coord;
 
-    coord               = (GpCoordExt*)task->extra.tmd->coords;
+    coord               = task->extra.tmd->coords;
     coord->coord.t[0]   = args->pos.vx;
     coord->coord.t[1]   = args->pos.vy;
     coord->coord.t[2]   = args->pos.vz;

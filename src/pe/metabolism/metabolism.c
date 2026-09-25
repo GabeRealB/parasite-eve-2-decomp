@@ -28,7 +28,7 @@ s32 D_metabolism_8012FB6C[] = { 0xE01F0001, 0xE0220001, 0xE0250001 };
 /// Scratch for the drain ring (was its own _work unit).
 s16 D_metabolism_8012FB78[16] = { 0 };
 
-void func_metabolism_8012F840(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_metabolism_8012F840(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 /// Runs one frame of the metabolism cast. Cancel (`Gp_StateC08.field_3 == -2`
 /// or `Gp_State1C->fadeState >= 4`) releases the work block. State 0 parents the
@@ -45,15 +45,15 @@ void func_metabolism_8012F840(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
 /// last.
 void func_metabolism_8012EF34(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpMtxWords*    rot;
-    GpEffWork*     spawned;
-    s32            pan;
-    s32            bright;
-    s32            i;
-    s32            temp_lo;
-    u8             rgb[3];
+    GpEffWork*  mem;
+    GpCoord*    coord;
+    GpMtxWords* rot;
+    GpEffWork*  spawned;
+    s32         pan;
+    s32         bright;
+    s32         i;
+    s32         temp_lo;
+    u8          rgb[3];
 
     mem   = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
@@ -155,11 +155,11 @@ void func_metabolism_8012EF34(Task* arg0)
             Gp_DrawRing(coord, (s32)((u16)mem->angle << 16) >> 17, rgb);
             Gp_DrawRing(coord, (s32)((u16)mem->angle << 16) >> 17, rgb);
             {
-                GsCOORDINATE2* c;
-                s32            span;
-                unsigned int   r;
-                unsigned int   g;
-                unsigned int   b;
+                GpCoord*     c;
+                s32          span;
+                unsigned int r;
+                unsigned int g;
+                unsigned int b;
 
                 c = coord;
                 COPY_REG_EC(c, coord);
@@ -185,11 +185,11 @@ void func_metabolism_8012EF34(Task* arg0)
                 Gp_DrawArc(coord, 0x80, mem->angle, rgb);
             }
             if (mem->index != 0) {
-                GsCOORDINATE2* c;
-                s32            span;
-                unsigned int   r;
-                unsigned int   g;
-                unsigned int   b;
+                GpCoord*     c;
+                s32          span;
+                unsigned int r;
+                unsigned int g;
+                unsigned int b;
 
                 c = coord;
                 COPY_REG_EC(c, coord);
@@ -218,12 +218,12 @@ void func_metabolism_8012EF34(Task* arg0)
 /// Both states lift the frame and draw on odd ticks until it runs out.
 void func_metabolism_8012F5A0(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s32            y;
-    s16            step;
-    u16            kind;
-    u16            roll;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s32        y;
+    s16        step;
+    u16        kind;
+    u16        roll;
 
     mem      = arg0->spawnArg2;
     coord    = arg0->extra.tmd->coords;
@@ -298,7 +298,7 @@ void func_metabolism_8012F5A0(Task* arg0)
 /// is a single channel: red is halved, green is `arg3`, blue is shifted by
 /// the low bit of `gDisplayState.animFrame`. The rim fades to black. A
 /// negative `gte_stflg` drops the wedge.
-void func_metabolism_8012F840(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
+void func_metabolism_8012F840(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     u8*            head;
     GpRingScratch* block;

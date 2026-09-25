@@ -48,16 +48,16 @@ extern SVECTOR D_shelter_b2_pod_access_tunnel_80183DDC[];
 extern SVECTOR D_shelter_b2_pod_access_tunnel_80183DE4;
 
 void func_shelter_b2_pod_access_tunnel_8017DF64(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b2_pod_access_tunnel_8017ED5C(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
-void func_shelter_b2_pod_access_tunnel_8017F1BC(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
-void func_shelter_b2_pod_access_tunnel_8017F8D4(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3);
-void func_shelter_b2_pod_access_tunnel_80180894(GsCOORDINATE2* coord, s16 size);
-void func_shelter_b2_pod_access_tunnel_80180DC0(GsCOORDINATE2* arg0, s32 arg1);
-void func_shelter_b2_pod_access_tunnel_80181138(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
-void func_shelter_b2_pod_access_tunnel_80181ED0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b2_pod_access_tunnel_801822FC(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
-void func_shelter_b2_pod_access_tunnel_80182B80(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
-void func_shelter_b2_pod_access_tunnel_80183200(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
+void func_shelter_b2_pod_access_tunnel_8017ED5C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+void func_shelter_b2_pod_access_tunnel_8017F1BC(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+void func_shelter_b2_pod_access_tunnel_8017F8D4(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
+void func_shelter_b2_pod_access_tunnel_80180894(GpCoord* coord, s16 size);
+void func_shelter_b2_pod_access_tunnel_80180DC0(GpCoord* arg0, s32 arg1);
+void func_shelter_b2_pod_access_tunnel_80181138(GpCoord* arg0, s16 arg1, u8* arg2);
+void func_shelter_b2_pod_access_tunnel_80181ED0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_shelter_b2_pod_access_tunnel_801822FC(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_shelter_b2_pod_access_tunnel_80182B80(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+void func_shelter_b2_pod_access_tunnel_80183200(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// On the task's first tick stores seven room-specific values into resident
 /// gameplay globals, then draws the beams
@@ -280,11 +280,11 @@ void func_shelter_b2_pod_access_tunnel_8017DF64(SVECTOR* arg0, s32 arg1, s32 arg
 /// only draws, and releases once the event state reaches 4.
 void func_shelter_b2_pod_access_tunnel_8017E6E0(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    SVECTOR*       vec;
-    s32            step;
-    s32            level;
+    GpEffWork* work;
+    GpCoord*   coord;
+    SVECTOR*   vec;
+    s32        step;
+    s32        level;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -421,7 +421,7 @@ void func_shelter_b2_pod_access_tunnel_8017E6E0(Task* task)
 /// `arg1`'s low 12 bits are the cell index and its top nibble the palette
 /// bank, `arg2` the half-extent (scaled by 47 over depth) and `arg3` the
 /// quad's rotation. Nothing is drawn when the projection fails.
-void func_shelter_b2_pod_access_tunnel_8017ED5C(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
+void func_shelter_b2_pod_access_tunnel_8017ED5C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -491,7 +491,7 @@ void func_shelter_b2_pod_access_tunnel_8017ED5C(GsCOORDINATE2* arg0, u16 arg1, s
 /// The same sprite drawer as `func_shelter_b2_pod_access_tunnel_8017ED5C` for
 /// the sheet on tpage 0x2C, with one of two fixed palettes chosen by the top
 /// nibble of `arg1`.
-void func_shelter_b2_pod_access_tunnel_8017F1BC(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
+void func_shelter_b2_pod_access_tunnel_8017F1BC(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -564,9 +564,9 @@ void func_shelter_b2_pod_access_tunnel_8017F1BC(GsCOORDINATE2* arg0, u16 arg1, s
 /// dark, or when the room's event state reaches 4.
 void func_shelter_b2_pod_access_tunnel_8017F608(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    s32            lifetime;
+    GpEffWork* work;
+    GpCoord*   coord;
+    s32        lifetime;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -647,7 +647,7 @@ void func_shelter_b2_pod_access_tunnel_8017F608(Task* task)
 /// the 24-texel texture cell, `arg2`'s low 12 bits are the half-extent (scaled
 /// by 23 over depth), `arg3`'s low byte is the grey level and its top nibble
 /// picks the palette.
-void func_shelter_b2_pod_access_tunnel_8017F8D4(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3)
+void func_shelter_b2_pod_access_tunnel_8017F8D4(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -723,7 +723,7 @@ void func_shelter_b2_pod_access_tunnel_8017F8D4(GsCOORDINATE2* arg0, u16 arg1, u
 /// projects, queues a ring of sixteen gouraud `POLY_G4` wedges between the
 /// radii `arg1` and `arg1 + arg2`, each scaled by 64 over `otz + 1`. The edge
 /// at `arg1` is black and the edge at `arg1 + arg2` takes the colour `rgb`.
-void func_shelter_b2_pod_access_tunnel_8017FB98(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_shelter_b2_pod_access_tunnel_8017FB98(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw09Scratch* block;
     POLY_G4*           prim;
@@ -815,7 +815,7 @@ void func_shelter_b2_pod_access_tunnel_8017FB98(GsCOORDINATE2* arg0, s32 arg1, s
 /// projects, queues eight gouraud `POLY_G4` wedges filling a disc around the
 /// point, `rgb` at the centre and black at the rim. `arg1` is the radius,
 /// scaled by 64 over `otz + 1`.
-void func_shelter_b2_pod_access_tunnel_8017FFBC(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_shelter_b2_pod_access_tunnel_8017FFBC(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     RoomDraw04Scratch* block;
     POLY_G4*           prim;
@@ -903,12 +903,12 @@ void func_shelter_b2_pod_access_tunnel_8017FFBC(GsCOORDINATE2* arg0, s32 arg1, u
 /// is the level shifted right by the tint row's entry.
 void func_shelter_b2_pod_access_tunnel_80180350(Task* arg0)
 {
-    u8             rgb[3];
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpMtxWords*    rot;
-    s16            flag;
-    s32            shift;
+    u8          rgb[3];
+    GpEffWork*  mem;
+    GpCoord*    coord;
+    GpMtxWords* rot;
+    s16         flag;
+    s32         shift;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -994,11 +994,11 @@ kill:
 /// below 0x18, or when the room's event state reaches 4.
 void func_shelter_b2_pod_access_tunnel_801806E8(Task* arg0)
 {
-    u8             rgb[3];
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s16            flag;
-    s16            step;
+    u8         rgb[3];
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s16        flag;
+    s16        step;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -1049,9 +1049,9 @@ void func_shelter_b2_pod_access_tunnel_801806E8(Task* arg0)
 /// `func_shelter_b2_pod_access_tunnel_80180DC0` under it. It also points the
 /// `Gp_RoomCoords[2]` light at the coordinate with a randomly flickering
 /// intensity. Nothing is drawn when the point fails to project.
-void func_shelter_b2_pod_access_tunnel_80180894(GsCOORDINATE2* coord, s16 size)
+void func_shelter_b2_pod_access_tunnel_80180894(GpCoord* coord, s16 size)
 {
-    GsCOORDINATE2  ground;
+    GpCoord        ground;
     POLY_FT4*      prim;
     s16            outerLeft;
     s16            outerRight;
@@ -1180,7 +1180,7 @@ void func_shelter_b2_pod_access_tunnel_80180894(GsCOORDINATE2* coord, s16 size)
 /// `POLY_FT4` (tpage 0x28, clut 0x428C, colour `(0x30, 0x20, 0x20)`) whose
 /// texture column alternates between two 32-texel frames with the frame
 /// counter.
-void func_shelter_b2_pod_access_tunnel_80180DC0(GsCOORDINATE2* arg0, s32 arg1)
+void func_shelter_b2_pod_access_tunnel_80180DC0(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;
@@ -1270,7 +1270,7 @@ void func_shelter_b2_pod_access_tunnel_80180DC0(GsCOORDINATE2* arg0, s32 arg1)
 /// spikes a quarter-turn apart, alternately reaching the full radius and twice
 /// it. `arg1` sizes it, scaled by 64 over depth; every wedge is black at its
 /// rim.
-void func_shelter_b2_pod_access_tunnel_80181138(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_shelter_b2_pod_access_tunnel_80181138(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");
@@ -1411,10 +1411,10 @@ void func_shelter_b2_pod_access_tunnel_80181138(GsCOORDINATE2* arg0, s16 arg1, u
 /// when the room's event state reaches 4.
 void func_shelter_b2_pod_access_tunnel_80181AF8(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s16            flag;
-    s16            ang;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s16        flag;
+    s16        ang;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -1455,10 +1455,10 @@ void func_shelter_b2_pod_access_tunnel_80181AF8(Task* arg0)
 /// red, quarter green and half blue.
 void func_shelter_b2_pod_access_tunnel_80181C2C(Task* arg0)
 {
-    u8                      rgb[3];
-    GpEffWork*              mem;
-    register GsCOORDINATE2* coord asm("s2");
-    s16                     flag;
+    u8                rgb[3];
+    GpEffWork*        mem;
+    register GpCoord* coord asm("s2");
+    s16               flag;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -1526,7 +1526,7 @@ kill:
 /// scratch block with its fields in a different order: sixteen gouraud
 /// `POLY_G4` wedges between the radii `arg1` and `arg1 + arg2`, each scaled by
 /// 64 over `otz + 1`, black at `arg1` and coloured `rgb` at `arg1 + arg2`.
-void func_shelter_b2_pod_access_tunnel_80181ED0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_shelter_b2_pod_access_tunnel_80181ED0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -1613,7 +1613,7 @@ void func_shelter_b2_pod_access_tunnel_80181ED0(GsCOORDINATE2* arg0, s32 arg1, s
 }
 
 /// The same disc as `func_shelter_b2_pod_access_tunnel_8017FFBC`.
-void func_shelter_b2_pod_access_tunnel_801822FC(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_shelter_b2_pod_access_tunnel_801822FC(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     RoomDraw04Scratch* block;
     POLY_G4*           prim;
@@ -1688,7 +1688,7 @@ void func_shelter_b2_pod_access_tunnel_801822FC(GsCOORDINATE2* arg0, s32 arg1, u
     SCRATCH_POP_BYTES(0x18);
 }
 
-/// A twin light trail. The first tick allocates sixteen `GsCOORDINATE2`s,
+/// A twin light trail. The first tick allocates sixteen `GpCoord`s,
 /// eight per trail, places the object's coordinate and a second one at the
 /// two offsets in `D_shelter_b2_pod_access_tunnel_80183DDC`, and seeds every
 /// trail slot from them in view space. Each later tick overwrites the oldest
@@ -1698,15 +1698,15 @@ void func_shelter_b2_pod_access_tunnel_801822FC(GsCOORDINATE2* arg0, s32 arg1, u
 /// task idles while the room's event state is 2 or more.
 void func_shelter_b2_pod_access_tunnel_80182690(Task* task)
 {
-    GsCOORDINATE2  coord;
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* objCoord;
-    GsCOORDINATE2* dst;
-    GpEffWork*     work;
-    SVECTOR*       vec;
-    s32            i;
+    GpCoord    coord;
+    GpCoord*   coords;
+    GpCoord*   objCoord;
+    GpCoord*   dst;
+    GpEffWork* work;
+    SVECTOR*   vec;
+    s32        i;
 
-    coords   = (GsCOORDINATE2*)task->work;
+    coords   = (GpCoord*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
     objCoord = task->extra.tmd->coords;
 
@@ -1714,7 +1714,7 @@ void func_shelter_b2_pod_access_tunnel_80182690(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GsCOORDINATE2*)memCalloc(0x500, 0);
+                coords = (GpCoord*)memCalloc(0x500, 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
@@ -1793,11 +1793,11 @@ void func_shelter_b2_pod_access_tunnel_80182690(Task* task)
 /// slots of both trails. `arg3` packs three 2-bit colour multipliers at bits 8,
 /// 4 and 0, applied to a brightness that falls by 9 per quad from 0x40, so the
 /// trail fades towards its tail. Quads that fail to project are dropped.
-void func_shelter_b2_pod_access_tunnel_80182B80(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3)
+void func_shelter_b2_pod_access_tunnel_80182B80(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GsCOORDINATE2*     a;
-    GsCOORDINATE2*     b;
+    GpCoord*           a;
+    GpCoord*           b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -1906,9 +1906,9 @@ void func_shelter_b2_pod_access_tunnel_80182B80(GsCOORDINATE2* arg0, GsCOORDINAT
 /// released after seven ticks, or when the room's event state reaches 4.
 void func_shelter_b2_pod_access_tunnel_80182F78(Task* task)
 {
-    GsCOORDINATE2* objCoord;
-    GpEffWork*     work;
-    u8             rgb[4];
+    GpCoord*   objCoord;
+    GpEffWork* work;
+    u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
@@ -1973,7 +1973,7 @@ void func_shelter_b2_pod_access_tunnel_80182F78(Task* task)
 }
 
 /// The same star-shaped glow as `func_shelter_b2_pod_access_tunnel_80181138`.
-void func_shelter_b2_pod_access_tunnel_80183200(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_shelter_b2_pod_access_tunnel_80183200(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");

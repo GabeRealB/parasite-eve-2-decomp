@@ -31,20 +31,20 @@
 /// released.
 void func_m4a1_hammer_8011E710(Task* arg0)
 {
-    GameActor*     actor;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* spot;
-    GpActorD4Rec*  rec;
-    Task*          hammer;
-    s32            anim;
-    s32            delay;
-    u16            flags;
+    GameActor*    actor;
+    GpCoord*      coord;
+    GpCoord*      spot;
+    GpActorD4Rec* rec;
+    Task*         hammer;
+    s32           anim;
+    s32           delay;
+    u16           flags;
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
     rec   = &actor->field_14C;
     SCRATCH_PUSH_BYTES(0x50);
-    spot = SCRATCH_HEAD(GsCOORDINATE2);
+    spot = SCRATCH_HEAD(GpCoord);
     switch (actor->field_95E) {
         case 0:
             anim              = 1;

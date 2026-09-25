@@ -137,7 +137,7 @@ void func_dryfield_cellar_8017D784(Task* task)
 /// the clut `(arg2 & 0x3F) | 0x4380`, `(s16)arg3` is the half-extent scaled by
 /// 39 / OTZ, and the grey level flickers between 0x20 and 0x30 with bit 0 of
 /// the display's animation frame. Works in a 0x14-byte scratchpad block.
-void func_dryfield_cellar_8017D7DC(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
+void func_dryfield_cellar_8017D7DC(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
 {
     void**             scratch;
     u8*                head;
@@ -225,7 +225,7 @@ void func_dryfield_cellar_8017D7DC(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 arg2,
 /// space. Every other view draws nothing.
 void func_dryfield_cellar_8017DAEC(Task* arg0)
 {
-    GsCOORDINATE2* coord;
+    GpCoord* coord;
 
     coord = arg0->extra.tmd->coords;
     if (GameFlag_GetNibble(0x52) == 1) {

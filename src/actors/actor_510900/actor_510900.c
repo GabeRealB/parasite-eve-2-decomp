@@ -45,9 +45,9 @@ typedef struct Actor510900SprClut {
 } Actor510900SprClut;
 STATIC_ASSERT_SIZEOF(Actor510900SprClut, 4);
 
-void Gp_DrawEffSprite7C(GsCOORDINATE2* arg0, s32 arg1, u32 arg2);
+void Gp_DrawEffSprite7C(GpCoord* arg0, s32 arg1, u32 arg2);
 
-void func_actor_510900_80134C90(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
+void func_actor_510900_80134C90(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 
 extern s32 D_80070F70;
 
@@ -56,15 +56,15 @@ extern Actor510900SprClut D_actor_510900_8013C48C[];
 
 void func_actor_510900_80131F24(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpPointLight*  slot;
-    GpCoord64*     base;
-    GpEffWork*     eff;
-    GpMtxWords*    mat;
-    s32            i;
-    s32            bits;
-    s32            z;
+    GpEffWork*    mem;
+    GpCoord*      coord;
+    GpPointLight* slot;
+    GpCoord64*    base;
+    GpEffWork*    eff;
+    GpMtxWords*   mat;
+    s32           i;
+    s32           bits;
+    s32           z;
 
     mem   = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
@@ -350,9 +350,9 @@ void func_actor_510900_80131F24(Task* arg0)
 
 void func_actor_510900_80132D4C(Task* arg0)
 {
-    GsCOORDINATE2    hit;
+    GpCoord          hit;
     GpEffWork*       mem;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     void**           scratch;
     u8*              head;
     GpFxQuadScratch* block;
@@ -474,7 +474,7 @@ void func_actor_510900_80132D4C(Task* arg0)
 void func_actor_510900_801332EC(Task* arg0)
 {
     GpEffWork*       mem;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     void**           scratch;
     u8*              head;
     GpFxQuadScratch* block;
@@ -581,7 +581,7 @@ void func_actor_510900_801332EC(Task* arg0)
 void func_actor_510900_8013371C(Task* arg0)
 {
     GpEffWork*       mem;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     void**           scratch;
     u8*              head;
     GpFxQuadScratch* block;
@@ -692,7 +692,7 @@ void func_actor_510900_8013371C(Task* arg0)
 void func_actor_510900_80133C84(Task* arg0)
 {
     GpEffWork*       mem;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     void**           scratch;
     u8*              head;
     GpFxQuadScratch* block;
@@ -795,13 +795,13 @@ void func_actor_510900_80133C84(Task* arg0)
 
 void func_actor_510900_801340E8(Task* arg0)
 {
-    GpCoord64*     base;
-    GsCOORDINATE2* cam;
-    GpPointLight*  ext;
-    GpEffWork*     eff;
-    GsCOORDINATE2* coord;
-    GpMtxWords*    mat;
-    s32            i;
+    GpCoord64*    base;
+    GpCoord*      cam;
+    GpPointLight* ext;
+    GpEffWork*    eff;
+    GpCoord*      coord;
+    GpMtxWords*   mat;
+    s32           i;
 
     base  = &Gp_RoomCoords[3];
     cam   = &base->data.coord;
@@ -850,7 +850,7 @@ void func_actor_510900_80134284(Task* arg0)
 {
     Actor510900TrailScratch* block;
     GpEffWork*               eff;
-    GsCOORDINATE2*           coord;
+    GpCoord*                 coord;
     LINE_F2*                 prim;
     s16                      mode;
     s16                      step;
@@ -942,9 +942,9 @@ void func_actor_510900_80134284(Task* arg0)
 
 void func_actor_510900_801346D4(Task* arg0)
 {
-    GpEffWork*     eff;
-    GsCOORDINATE2* coord;
-    s16            mode;
+    GpEffWork* eff;
+    GpCoord*   coord;
+    s16        mode;
 
     eff   = arg0->spawnArg2;
     mode  = Gp_State1C->eventState;
@@ -989,15 +989,15 @@ void func_actor_510900_801346D4(Task* arg0)
 
 void func_actor_510900_8013482C(Task* arg0)
 {
-    GpEffWork*     eff;
-    GpEffWork*     spawned;
-    GsCOORDINATE2* coord;
-    s16            mode;
-    s16            scale;
-    s16            step;
-    s32            tmp;
-    s32            i;
-    s32            n;
+    GpEffWork* eff;
+    GpEffWork* spawned;
+    GpCoord*   coord;
+    s16        mode;
+    s16        scale;
+    s16        step;
+    s32        tmp;
+    s32        i;
+    s32        n;
 
     eff   = arg0->spawnArg2;
     mode  = Gp_State1C->eventState;
@@ -1091,7 +1091,7 @@ void func_actor_510900_8013482C(Task* arg0)
 /// square rotated by `arg3` rather than an axis-aligned sprite. `otz` is
 /// biased by one before it is used as the divisor so a point on the near plane
 /// cannot divide by zero.
-void func_actor_510900_80134C90(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
+void func_actor_510900_80134C90(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -1179,7 +1179,7 @@ void func_actor_510900_80134C90(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg
 void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1)
 {
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor510900Work* work;
     GpEnemy*         spawned;
     GpEffWork*       eff;
@@ -1324,7 +1324,7 @@ void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1)
 
 void func_actor_510900_801355B4(GpEnemy* arg0, Task* arg1)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor510900Work* work;
     s32              snd;
     s32              pan;

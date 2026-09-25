@@ -30,7 +30,7 @@ s32 D_combustion_80130998[] = { 0xE00C0002, 0xE00F0002, 0xE0120002 };
 
 extern s8 D_80114C0B;
 
-void func_combustion_8012FB14(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
+void func_combustion_8012FB14(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 
 /// Live flame handle for the combustion effect.
 s32 D_combustion_801309A4 = 0;
@@ -44,12 +44,12 @@ s32 D_combustion_801309A4 = 0;
 /// row's `field_6` tick is reached.
 void func_combustion_8012EF34(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpMtxWords*    rot;
-    GpEffWork*     spawned;
-    s32            pan;
-    u8             rgb[3];
+    GpEffWork*  mem;
+    GpCoord*    coord;
+    GpMtxWords* rot;
+    GpEffWork*  spawned;
+    s32         pan;
+    u8          rgb[3];
 
     mem      = arg0->spawnArg2;
     coord    = arg0->extra.tmd->coords;
@@ -130,16 +130,16 @@ void func_combustion_8012EF34(Task* arg0)
 /// 0x21 frames.
 void func_combustion_8012F2BC(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpMtxWords*    rot;
-    GpEffWork*     spawned;
-    s32            rng;
-    s32            spawnRng1;
-    s32            spawnRng1b;
-    s32            spawnRng2;
-    s32            spawnRng2b;
-    s32            last;
+    GpEffWork*  mem;
+    GpCoord*    coord;
+    GpMtxWords* rot;
+    GpEffWork*  spawned;
+    s32         rng;
+    s32         spawnRng1;
+    s32         spawnRng1b;
+    s32         spawnRng2;
+    s32         spawnRng2b;
+    s32         last;
 
     mem      = arg0->spawnArg2;
     coord    = arg0->extra.tmd->coords;
@@ -225,7 +225,7 @@ void func_combustion_8012F2BC(Task* arg0)
 /// of the six 0x20-wide texture frames on tpage 0x29 (CLUT 0x4282), and `arg2`
 /// sizes it: the corners sit `arg2 * 31 / otz` from the projected centre.
 /// Same 0x18-byte scratch and axis-aligned quad as `func_combustion_8012FF0C`.
-void func_combustion_8012F5EC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
+void func_combustion_8012F5EC(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     u8*            head;
     GpRingScratch* block;
@@ -303,18 +303,18 @@ void func_combustion_8012F5EC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 /// for state 3) frames.
 void func_combustion_8012F888(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s32            rng;
-    s32            rng2;
-    s32            y;
-    s16            step;
-    s16            kind;
-    s16            frame;
-    s32            state;
-    s32            tmp;
-    s32            hi;
-    s32            tmp2;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s32        rng;
+    s32        rng2;
+    s32        y;
+    s16        step;
+    s16        kind;
+    s16        frame;
+    s32        state;
+    s32        tmp;
+    s32        hi;
+    s32        tmp2;
 
     mem      = arg0->spawnArg2;
     coord    = arg0->extra.tmd->coords;
@@ -402,7 +402,7 @@ void func_combustion_8012F888(Task* arg0)
 /// so the sprite shrinks with depth. Same shape as the gameplay
 /// `Gp_DrawFxQuad`, with the CLUT fixed at 0x42C2 instead of picked from
 /// `Gp_QuadClutX`.
-void func_combustion_8012FB14(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
+void func_combustion_8012FB14(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -467,7 +467,7 @@ void func_combustion_8012FB14(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 /// sizes it: the corners sit `arg2 * 23 / otz` from the projected centre, so
 /// the sprite shrinks with depth. Same 0x18-byte scratch and axis-aligned
 /// quad as gameplay `Gp_EffSprTask8D`.
-void func_combustion_8012FF0C(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
+void func_combustion_8012FF0C(GpCoord* arg0, s32 arg1, s16 arg2)
 {
     u8*            head;
     GpRingScratch* block;
@@ -545,7 +545,7 @@ void func_combustion_8012FF0C(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
 /// semi-transparent core at `0x428B` / u 0x70..0xA7, even the additive outer
 /// flame at `0x428C` / u 0xA8..0xDF. The quad is linked into `gGpuCurrentOt` at
 /// its own `otz` twice, once per diagonal pair.
-void func_combustion_80130184(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
+void func_combustion_80130184(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     GpFxQuadScratch* block;
     POLY_FT4*        prim;
@@ -632,7 +632,7 @@ void func_combustion_80130184(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 /// (`0x4300` plus the cell index), and `arg2` sizes it: the corners sit
 /// `arg2 * 39 / otz` from the projected centre, so the sprite shrinks with
 /// depth.
-void func_combustion_801305F8(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
+void func_combustion_801305F8(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     u8*            head;
     GpRingScratch* block;
@@ -705,7 +705,7 @@ void func_combustion_801305F8(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 
 void func_combustion_801308E0(Task* arg0)
 {
-    GsCOORDINATE2* coord;
+    GpCoord* coord;
 
     if (arg0->state != 0) {
         Gp_ReleaseState1CMem(arg0->spawnArg2, arg0);

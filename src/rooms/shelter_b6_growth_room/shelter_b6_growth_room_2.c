@@ -19,8 +19,8 @@
 
 void func_shelter_b6_growth_room_8017E0A8(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_shelter_b6_growth_room_8017E448(s16 arg0, s16 arg1);
-void func_shelter_b6_growth_room_8017E7F0(GsCOORDINATE2* coord, u16 arg1, s16 arg2, u16 arg3);
-void func_shelter_b6_growth_room_8017ED28(GsCOORDINATE2* coord, u16 arg1, s16 arg2, s16 arg3);
+void func_shelter_b6_growth_room_8017E7F0(GpCoord* coord, u16 arg1, s16 arg2, u16 arg3);
+void func_shelter_b6_growth_room_8017ED28(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3);
 
 extern TaskDesc D_80135E78;
 extern s32      D_80070F70;
@@ -276,13 +276,13 @@ void func_shelter_b6_growth_room_8017E448(s16 arg0, s16 arg1)
 
 void func_shelter_b6_growth_room_8017E564(Task* task)
 {
-    GpEffWork*     work  = task->spawnArg2;
-    GsCOORDINATE2* coord = task->extra.tmd->coords;
-    s32            vz;
-    s32            t;
-    s16            f2a;
-    u32            rng2;
-    u32            rng3;
+    GpEffWork* work  = task->spawnArg2;
+    GpCoord*   coord = task->extra.tmd->coords;
+    s32        vz;
+    s32        t;
+    s16        f2a;
+    u32        rng2;
+    u32        rng3;
 
     work->age++;
     if (task->state == 0) {
@@ -344,7 +344,7 @@ void func_shelter_b6_growth_room_8017E564(Task* task)
     }
 }
 
-void func_shelter_b6_growth_room_8017E7F0(GsCOORDINATE2* coord, u16 arg1, s16 arg2, u16 arg3)
+void func_shelter_b6_growth_room_8017E7F0(GpCoord* coord, u16 arg1, s16 arg2, u16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -413,12 +413,12 @@ void func_shelter_b6_growth_room_8017E7F0(GsCOORDINATE2* coord, u16 arg1, s16 ar
 
 void func_shelter_b6_growth_room_8017EAC8(Task* task)
 {
-    GpEffWork*     work  = task->spawnArg2;
-    GsCOORDINATE2* coord = task->extra.tmd->coords;
-    s32            vz;
-    s16            f2a;
-    u32            rng2;
-    u32            rng3;
+    GpEffWork* work  = task->spawnArg2;
+    GpCoord*   coord = task->extra.tmd->coords;
+    s32        vz;
+    s16        f2a;
+    u32        rng2;
+    u32        rng3;
 
     work->age++;
     if (task->state == 0) {
@@ -474,7 +474,7 @@ void func_shelter_b6_growth_room_8017EAC8(Task* task)
     }
 }
 
-void func_shelter_b6_growth_room_8017ED28(GsCOORDINATE2* coord, u16 arg1, s16 arg2, s16 arg3)
+void func_shelter_b6_growth_room_8017ED28(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;

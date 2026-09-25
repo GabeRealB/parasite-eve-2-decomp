@@ -267,7 +267,7 @@ void func_actor_146300_801324AC(GpEnemy* enemy, Task* task)
     Actor146300Work* work;
     TmdObject*       obj;
     TmdObject*       model;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     GpAreaKey*       sessionKey;
     GpAreaPlace*     entry;
     Task*            helper;
@@ -358,9 +358,9 @@ void func_actor_146300_801326CC(Task* task)
 /// translation, then runs the per-frame update.
 void func_actor_146300_80132728(GpEnemy* enemy, Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR         vec;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR     vec;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -497,8 +497,8 @@ s32 func_actor_146300_80132A2C(Task* task, s32 arg1, s32 flags)
 /// marks the coordinate for recomputation. Only the Y rotation is applied.
 s32 func_actor_146300_80132A98(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2* coord;
-    u16            yaw;
+    GpCoord* coord;
+    u16      yaw;
 
     coord                           = task->extra.tmd->coords;
     D_actor_146300_80142828->st.yaw = yaw = placement->rot.vy;
@@ -522,11 +522,11 @@ s32 func_actor_146300_80132B14(void)
 /// point 0x320 above the actor model's root translation.
 void func_actor_146300_80132B1C(Task* task)
 {
-    TmdObject*     extra = task->extra.tmd;
-    GsCOORDINATE2* coord = extra->coords;
-    GsCOORDINATE2* parts = D_actor_146300_8014282C->extra.tmd->coords;
-    GsCOORDINATE2* part  = parts + 4;
-    VECTOR         vec;
+    TmdObject* extra = task->extra.tmd;
+    GpCoord*   coord = extra->coords;
+    GpCoord*   parts = D_actor_146300_8014282C->extra.tmd->coords;
+    GpCoord*   part  = parts + 4;
+    VECTOR     vec;
 
     switch (task->state) {
         case 0:

@@ -5,6 +5,7 @@
 
 #include <psyq/libgte.h>
 #include <psyq/libgs.h>
+#include "main/coord.h"
 
 /// A light source: a coordinate that places it, and the colour it casts.
 ///
@@ -14,25 +15,25 @@
 /// around a model and loads the winners into its light matrices takes any of
 /// them through this type.
 ///
-/// The coordinate is an ordinary `GsCOORDINATE2`, parented to the view and
+/// The coordinate is an ordinary `GpCoord`, parented to the view and
 /// updated with it, whose `coord.t` is where the light sits and whose `workm` is
 /// where that is in the world. A light never uses the coordinate's `param` or
 /// its link upwards, so it keeps two values of its own in those words, which
 /// `at` names.
 typedef struct GpLight {
     union {
-        GsCOORDINATE2 coord; // the light's placement, parented to the view
+        GpCoord coord; // the light's placement, parented to the view
         struct {
-            u32            flg;
-            MATRIX         local;  // `coord.coord`: `t` is the light's position under its parent
-            MATRIX         world;  // `coord.workm`: `t` is the light's world position
-            s16            room;   // view the light belongs to; 0 lights every view
-            byte           pad_46[4];
-            s16            scale;  // attenuation last computed for the point being lit, 1.0 = 0x1000
-            GsCOORDINATE2* parent; // `coord.sub`, the coordinate the light hangs from
-        } at;                      // the same words as the lighting code reads them
+            u32      flg;
+            MATRIX   local;  // `coord.coord`: `t` is the light's position under its parent
+            MATRIX   world;  // `coord.workm`: `t` is the light's world position
+            s16      room;   // view the light belongs to; 0 lights every view
+            byte     pad_46[4];
+            s16      scale;  // attenuation last computed for the point being lit, 1.0 = 0x1000
+            GpCoord* parent; // `coord.sub`, the coordinate the light hangs from
+        } at;                // the same words as the lighting code reads them
     } u;
-    s16  r;                        // colour, fed to the colour matrix scaled by `u.at.scale`
+    s16  r;                  // colour, fed to the colour matrix scaled by `u.at.scale`
     s16  g;
     s16  b;
     byte pad_56[2];
@@ -71,10 +72,10 @@ STATIC_ASSERT_SIZEOF(GpSpotLight, 0x6C);
 /// point lights whenever a model is lit, reading it as `data.light`. Nothing
 /// allocates the slots: each kind of owner writes indices of its own.
 typedef struct _GpCoord64 {
-    s32 framesLeft;          // frames the light stays lit; 0 leaves the slot dark
+    s32 framesLeft;         // frames the light stays lit; 0 leaves the slot dark
     union {
-        GsCOORDINATE2 coord; // where the light is, parented to the view
-        GpPointLight  light; // the same object read as a light: colour and falloff radii
+        GpCoord      coord; // where the light is, parented to the view
+        GpPointLight light; // the same object read as a light: colour and falloff radii
     } data;
 } GpCoord64;
 STATIC_ASSERT_SIZEOF(GpCoord64, 0x64);

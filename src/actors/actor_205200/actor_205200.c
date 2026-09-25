@@ -25,20 +25,20 @@
 /// (`field_0`/`field_18`, indexed by the slot each part took) and drives the
 /// looping sound and the screen-wave timer.
 typedef struct Actor205200CtrlWork {
-    /* 0x00 */ GsCOORDINATE2* field_0[3];  // coords of the parts, measured by `func_actor_205200_8014ACD4`
-    /* 0x0C */ GsCOORDINATE2* field_C;     // nearest of `field_0` to the stage view
-    /* 0x10 */ u32            field_10;    // its distance
-    /* 0x14 */ s32            field_14;    // sound-event id `func_actor_205200_8014A958` plays
-    /* 0x18 */ s16            field_18[3]; // 1 marks the matching `field_0` slot live
-    /* 0x1E */ s16            field_1E;    // kind from the placement; selects the spawn tables
-    /* 0x20 */ s16            field_20;    // live part count, also the next part's slot and the timer reload index
-    /* 0x22 */ u16            field_22;    // countdown `func_actor_205200_8014AB98` ticks in both of its sub-states
-    /* 0x24 */ s16            field_24;    // state of `func_actor_205200_8014A958` (0 wait, 1 run, 2 stop, 3 done)
-    /* 0x26 */ s16            field_26;    // sub-state of `func_actor_205200_8014AB98`
-    /* 0x28 */ s16            field_28;    // set while the screen wave is running
-    /* 0x2A */ s16            field_2A;    // delay before the sound starts
-    /* 0x2C */ s16            field_2C;    // set when a part dies, forcing the nearest part to be re-measured
-    /* 0x2E */ s16            field_2E;    // raised by message 0x7DB; stops the sound and sends the parts to state 2
+    /* 0x00 */ GpCoord* field_0[3];  // coords of the parts, measured by `func_actor_205200_8014ACD4`
+    /* 0x0C */ GpCoord* field_C;     // nearest of `field_0` to the stage view
+    /* 0x10 */ u32      field_10;    // its distance
+    /* 0x14 */ s32      field_14;    // sound-event id `func_actor_205200_8014A958` plays
+    /* 0x18 */ s16      field_18[3]; // 1 marks the matching `field_0` slot live
+    /* 0x1E */ s16      field_1E;    // kind from the placement; selects the spawn tables
+    /* 0x20 */ s16      field_20;    // live part count, also the next part's slot and the timer reload index
+    /* 0x22 */ u16      field_22;    // countdown `func_actor_205200_8014AB98` ticks in both of its sub-states
+    /* 0x24 */ s16      field_24;    // state of `func_actor_205200_8014A958` (0 wait, 1 run, 2 stop, 3 done)
+    /* 0x26 */ s16      field_26;    // sub-state of `func_actor_205200_8014AB98`
+    /* 0x28 */ s16      field_28;    // set while the screen wave is running
+    /* 0x2A */ s16      field_2A;    // delay before the sound starts
+    /* 0x2C */ s16      field_2C;    // set when a part dies, forcing the nearest part to be re-measured
+    /* 0x2E */ s16      field_2E;    // raised by message 0x7DB; stops the sound and sends the parts to state 2
 } Actor205200CtrlWork;
 STATIC_ASSERT_SIZEOF(Actor205200CtrlWork, 0x30);
 
@@ -466,7 +466,7 @@ void func_actor_205200_8014ACD4(Task* arg0)
 
 void func_actor_205200_8014AE0C(GpEnemy* arg0, Task* arg1)
 {
-    GsCOORDINATE2*       coord;
+    GpCoord*             coord;
     Actor205200CtrlWork* pwork;
     Actor205200Part*     part;
     SVECTOR*             pos;
@@ -536,7 +536,7 @@ void func_actor_205200_8014B048(Task* arg0, s32 arg1)
     VECTOR*              vec;
     Actor205200Part*     part;
     GpEnemy*             enemy;
-    GsCOORDINATE2*       coord;
+    GpCoord*             coord;
     Actor205200CtrlWork* parentWork;
     s32                  damage;
     s32                  i;
@@ -619,7 +619,7 @@ void func_actor_205200_8014B048(Task* arg0, s32 arg1)
 void func_actor_205200_8014B484(GpEnemy* arg0, Task* arg1)
 {
     Actor205200Part*     part;
-    GsCOORDINATE2*       coord;
+    GpCoord*             coord;
     Actor205200CtrlWork* work;
     GpViewRec*           view;
     VECTOR               d;

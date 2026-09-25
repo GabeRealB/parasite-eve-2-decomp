@@ -53,7 +53,7 @@ extern u8 D_80073BA9;
 
 void func_actor_503500_80132778(Task* task)
 {
-    GsCOORDINATE2*      coord;
+    GpCoord*            coord;
     GpMtxWords*         rot;
     Actor503500EffWork* work;
     SVECTOR*            pos;
@@ -273,9 +273,9 @@ void func_actor_503500_80132DD4(void)
 
 void func_actor_503500_80132DEC(void)
 {
-    Task*          slot3;
-    GsCOORDINATE2* coord;
-    SVECTOR*       rot;
+    Task*    slot3;
+    GpCoord* coord;
+    SVECTOR* rot;
 
     slot3 = gameGetPtrSlot(3);
     coord = slot3->extra.tmd->coords;

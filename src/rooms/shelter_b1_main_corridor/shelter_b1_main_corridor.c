@@ -80,14 +80,14 @@ extern SVECTOR D_shelter_b1_main_corridor_801831F0;
 
 void func_shelter_b1_main_corridor_8017E070(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_shelter_b1_main_corridor_8017E858(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b1_main_corridor_8017EDA0(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3);
-void func_shelter_b1_main_corridor_8017FD60(GsCOORDINATE2* coord, s16 size);
-void func_shelter_b1_main_corridor_8018028C(GsCOORDINATE2* arg0, s32 arg1);
-void func_shelter_b1_main_corridor_80180604(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
-void func_shelter_b1_main_corridor_8018139C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b1_main_corridor_801817C8(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
-void func_shelter_b1_main_corridor_8018204C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
-void func_shelter_b1_main_corridor_801826CC(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
+void func_shelter_b1_main_corridor_8017EDA0(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
+void func_shelter_b1_main_corridor_8017FD60(GpCoord* coord, s16 size);
+void func_shelter_b1_main_corridor_8018028C(GpCoord* arg0, s32 arg1);
+void func_shelter_b1_main_corridor_80180604(GpCoord* arg0, s16 arg1, u8* arg2);
+void func_shelter_b1_main_corridor_8018139C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_shelter_b1_main_corridor_801817C8(GpCoord* arg0, s16 arg1, u8* arg2);
+void func_shelter_b1_main_corridor_8018204C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+void func_shelter_b1_main_corridor_801826CC(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// The corridor's event gate: given a request and the incoming message,
 /// answers whether the event fires. A nibble already in its fired state (set,
@@ -722,9 +722,9 @@ void func_shelter_b1_main_corridor_8017E858(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// reaches 4.
 void func_shelter_b1_main_corridor_8017EAD4(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    s32            lifetime;
+    GpEffWork* work;
+    GpCoord*   coord;
+    s32        lifetime;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -806,7 +806,7 @@ void func_shelter_b1_main_corridor_8017EAD4(Task* task)
 /// the half-size, `extent * 23` over the OTZ plus one. The low byte of `arg3`
 /// is the grey level and its top nibble the palette, a column of row 0x10B
 /// (0xB0 for nibble 0, `nibble * 16 + 0xF0` otherwise).
-void func_shelter_b1_main_corridor_8017EDA0(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3)
+void func_shelter_b1_main_corridor_8017EDA0(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -883,7 +883,7 @@ void func_shelter_b1_main_corridor_8017EDA0(GsCOORDINATE2* arg0, u16 arg1, u16 a
 /// vertices at radius `(s16)arg1 * 64` over the OTZ are black and those at
 /// `(s16)(arg1 + arg2) * 64` over the OTZ take `rgb`, so the ring shades from
 /// black at `arg1` to the colour at `arg1 + arg2`.
-void func_shelter_b1_main_corridor_8017F064(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_shelter_b1_main_corridor_8017F064(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw09Scratch* block;
     POLY_G4*           prim;
@@ -975,7 +975,7 @@ void func_shelter_b1_main_corridor_8017F064(GsCOORDINATE2* arg0, s32 arg1, s32 a
 /// translation, unless the projection flags an error: sixteen overlapping
 /// gouraud quads coloured `arg2` at the centre and black at the rim, radius
 /// `arg1 * 64` over the OTZ plus one.
-void func_shelter_b1_main_corridor_8017F488(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_shelter_b1_main_corridor_8017F488(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomDraw04Scratch* block asm("s2");
     register POLY_G4*           prim asm("s0");
@@ -1057,12 +1057,12 @@ void func_shelter_b1_main_corridor_8017F488(GsCOORDINATE2* arg0, s16 arg1, u8* a
 /// brightness shifted down per channel by the chosen row.
 void func_shelter_b1_main_corridor_8017F81C(Task* arg0)
 {
-    u8             rgb[3];
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpMtxWords*    rot;
-    s16            flag;
-    s32            shift;
+    u8          rgb[3];
+    GpEffWork*  mem;
+    GpCoord*    coord;
+    GpMtxWords* rot;
+    s16         flag;
+    s32         shift;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -1144,11 +1144,11 @@ kill:
 /// glow dims by 0x18 a tick and the work block is released when it is dark.
 void func_shelter_b1_main_corridor_8017FBB4(Task* arg0)
 {
-    u8             rgb[3];
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s16            flag;
-    s16            step;
+    u8         rgb[3];
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s16        flag;
+    s16        step;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -1197,9 +1197,9 @@ void func_shelter_b1_main_corridor_8017FBB4(Task* arg0)
 /// `size` and `size * 3 / 2`, and the ground mark under it when the ground can
 /// be traced. Also points the `Gp_RoomCoords[2]` light at the coordinate with a
 /// random intensity. Nothing is drawn when the point fails to project.
-void func_shelter_b1_main_corridor_8017FD60(GsCOORDINATE2* coord, s16 size)
+void func_shelter_b1_main_corridor_8017FD60(GpCoord* coord, s16 size)
 {
-    GsCOORDINATE2  ground;
+    GpCoord        ground;
     POLY_FT4*      prim;
     s16            outerLeft;
     s16            outerRight;
@@ -1326,7 +1326,7 @@ void func_shelter_b1_main_corridor_8017FD60(GsCOORDINATE2* coord, s16 size)
 /// unless the projection flags an error: the unit square in the XZ plane,
 /// scaled by `arg1` and turned by `Gfx_ViewWorldMtx`'s rotation. The square is tinted (0x30, 0x20, 0x20) and its
 /// texture alternates between two cells with the frame counter.
-void func_shelter_b1_main_corridor_8018028C(GsCOORDINATE2* arg0, s32 arg1)
+void func_shelter_b1_main_corridor_8018028C(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;
@@ -1415,7 +1415,7 @@ void func_shelter_b1_main_corridor_8018028C(GsCOORDINATE2* arg0, s32 arg1)
 /// `arg1 * 64` over the OTZ plus one at half of `arg2`, a brighter core of half
 /// that radius at full `arg2`, and pointed rays between them. Every quad is
 /// black at its rim.
-void func_shelter_b1_main_corridor_80180604(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_shelter_b1_main_corridor_80180604(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");
@@ -1555,10 +1555,10 @@ void func_shelter_b1_main_corridor_80180604(GsCOORDINATE2* arg0, s16 arg1, u8* a
 /// work block at the end, or when the room's event state reaches 4.
 void func_shelter_b1_main_corridor_80180FC4(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s16            flag;
-    s16            ang;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s16        flag;
+    s16        ang;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -1592,10 +1592,10 @@ void func_shelter_b1_main_corridor_80180FC4(Task* arg0)
 /// that shrinks as it dims by 0x10 a tick, releasing its work block once dark.
 void func_shelter_b1_main_corridor_801810F8(Task* arg0)
 {
-    u8                      rgb[3];
-    GpEffWork*              mem;
-    register GsCOORDINATE2* coord asm("s2");
-    s16                     flag;
+    u8                rgb[3];
+    GpEffWork*        mem;
+    register GpCoord* coord asm("s2");
+    s16               flag;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -1663,7 +1663,7 @@ kill:
 /// different scratch-block layout: sixteen gouraud quads around the screen
 /// position of `arg0`'s world translation, black at radius `(s16)arg1 * 64`
 /// over the OTZ and `rgb` at `(s16)(arg1 + arg2) * 64` over it.
-void func_shelter_b1_main_corridor_8018139C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_shelter_b1_main_corridor_8018139C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -1751,7 +1751,7 @@ void func_shelter_b1_main_corridor_8018139C(GsCOORDINATE2* arg0, s32 arg1, s32 a
 
 /// A second copy of `func_shelter_b1_main_corridor_8017F488`, drawing the same
 /// shape; the room links both.
-void func_shelter_b1_main_corridor_801817C8(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_shelter_b1_main_corridor_801817C8(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomDraw04Scratch* block asm("s2");
     register POLY_G4*           prim asm("s0");
@@ -1832,15 +1832,15 @@ void func_shelter_b1_main_corridor_801817C8(GsCOORDINATE2* arg0, s16 arg1, u8* a
 /// does nothing once the room's event state reaches 2.
 void func_shelter_b1_main_corridor_80181B5C(Task* task)
 {
-    GsCOORDINATE2  coord;
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* objCoord;
-    GsCOORDINATE2* dst;
-    GpEffWork*     work;
-    SVECTOR*       vec;
-    s32            i;
+    GpCoord    coord;
+    GpCoord*   coords;
+    GpCoord*   objCoord;
+    GpCoord*   dst;
+    GpEffWork* work;
+    SVECTOR*   vec;
+    s32        i;
 
-    coords   = (GsCOORDINATE2*)task->work;
+    coords   = (GpCoord*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
     objCoord = task->extra.tmd->coords;
 
@@ -1848,7 +1848,7 @@ void func_shelter_b1_main_corridor_80181B5C(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GsCOORDINATE2*)memCalloc(0x500, 0);
+                coords = (GpCoord*)memCalloc(0x500, 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
@@ -1928,11 +1928,11 @@ void func_shelter_b1_main_corridor_80181B5C(Task* task)
 /// 0x40 by 9 per slot, multiplied per channel by the colour code `arg3` (red
 /// from bits 8 up, green from bits 4-5, blue from bits 0-1). Quads the
 /// projection flags as erroneous are skipped.
-void func_shelter_b1_main_corridor_8018204C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3)
+void func_shelter_b1_main_corridor_8018204C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GsCOORDINATE2*     a;
-    GsCOORDINATE2*     b;
+    GpCoord*           a;
+    GpCoord*           b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -2039,9 +2039,9 @@ void func_shelter_b1_main_corridor_8018204C(GsCOORDINATE2* arg0, GsCOORDINATE2* 
 /// after seven ticks, or when the room's event state reaches 4.
 void func_shelter_b1_main_corridor_80182444(Task* task)
 {
-    GsCOORDINATE2* objCoord;
-    GpEffWork*     work;
-    u8             rgb[4];
+    GpCoord*   objCoord;
+    GpEffWork* work;
+    u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
@@ -2107,7 +2107,7 @@ void func_shelter_b1_main_corridor_80182444(Task* task)
 
 /// A second copy of `func_shelter_b1_main_corridor_80180604`, drawing the same
 /// shape; the room links both.
-void func_shelter_b1_main_corridor_801826CC(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_shelter_b1_main_corridor_801826CC(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");

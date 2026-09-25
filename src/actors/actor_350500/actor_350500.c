@@ -79,7 +79,7 @@ void func_actor_350500_80161E50(Task* arg0)
     Actor350500Work* work     = (Actor350500Work*)arg0->work;
     TaskFunc         funcs[2] = { func_actor_350500_80162498, func_actor_350500_801624A0 };
     VECTOR3          pos;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              i;
 
     funcs[(s16)work->walk.motion](arg0);
@@ -122,7 +122,7 @@ void func_actor_350500_80161E50(Task* arg0)
 void func_actor_350500_80162038(Task* arg0)
 {
     Actor350500Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     SVECTOR          d;
     s32              dx;
     s32              dz;
@@ -315,13 +315,13 @@ void func_actor_350500_801624A0(Task* arg0)
 void func_actor_350500_80162508(Task* task)
 {
     Actor350500Work* work;
-    GpCoordExt*      coord;
+    GpCoord*         coord;
     VECTOR           delta;
     SVECTOR          dir;
     SVECTOR          rot;
 
     work  = (Actor350500Work*)task->work;
-    coord = (GpCoordExt*)(task->extra.tmd)->coords;
+    coord = (task->extra.tmd)->coords;
 
     delta.vx = work->walk.target.vx - coord->coord.t[0];
     delta.vy = work->walk.target.vy - coord->coord.t[1];
@@ -350,7 +350,7 @@ void func_actor_350500_80162508(Task* task)
 void func_actor_350500_801625E4(Task* arg0)
 {
     Actor350500Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     VECTOR           vec;
 
     coord = arg0->extra.tmd->coords;
@@ -379,7 +379,7 @@ void func_actor_350500_8016272C(Task* arg0)
 {
     Actor350500Work* work;
     GpMtxWords*      words;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     SVECTOR          vec;
     GpAnimArg        preset;
     s32              vy;
@@ -465,9 +465,9 @@ s32 func_actor_350500_80162828(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 /// clearing `flg` makes the world matrix be recomputed. Returns 0.
 s32 func_actor_350500_80162960(Task* task, s32 msgId, GpXformArg* args)
 {
-    GpCoordExt* coord;
+    GpCoord* coord;
 
-    coord               = (GpCoordExt*)(task->extra.tmd)->coords;
+    coord               = (task->extra.tmd)->coords;
     coord->coord.t[0]   = args->pos.vx;
     coord->coord.t[1]   = args->pos.vy;
     coord->coord.t[2]   = args->pos.vz;

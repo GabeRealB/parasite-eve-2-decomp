@@ -55,8 +55,8 @@ void func_actor_160600_80131E24(void)
 void func_actor_160600_80131E68(GpEnemy* enemy, Task* task)
 {
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   part;
+    GpCoord*         coord;
+    GpCoord*         part;
     Actor160600Work* work;
     VECTOR           pos;
     u32              low;
@@ -147,7 +147,7 @@ void func_actor_160600_80132208(GpEnemy* enemy, Task* task)
     VECTOR           vec;
     Actor160600Work* work;
     Actor160600Work* mem;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     TmdObject*       obj;
 
     obj        = task->extra.tmd;
@@ -196,9 +196,9 @@ void func_actor_160600_80132350(Task* task)
 /// scratchpad VECTOR3 rather than on the stack.
 void func_actor_160600_80132378(Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR3*       vec;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR3*   vec;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -333,7 +333,7 @@ s32 func_actor_160600_80132598(Task* task, s32 arg1, s32 flags)
 /// placement translation into the matrix and marks it dirty.
 s32 func_actor_160600_80132614(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor160600Work* work;
     u16              yaw;
 
@@ -372,7 +372,7 @@ s32 func_actor_160600_8013268C(Task* task, s32 arg1, GpCmdArg* args)
 /// `travel` the step body's walk counts down.
 s32 func_actor_160600_801326AC(Task* task, s32 arg1, GpXformArg* target)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor160600Work* work;
     s32              dx;
     s32              dz;

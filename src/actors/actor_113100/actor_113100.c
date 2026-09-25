@@ -269,7 +269,7 @@ void func_actor_113100_80132104(Task* task)
     Actor113100Work* work     = (Actor113100Work*)task->work;
     TaskFunc         funcs[2] = { func_actor_113100_80132F40, func_actor_113100_80132FB4 };
     VECTOR3          pos;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     GpAnimRec*       rec;
     s32              i;
     s32              snd;
@@ -357,7 +357,7 @@ void func_actor_113100_80132104(Task* task)
 /// 3x3, within 0x41 it turns the root coordinate to `field_53A` and then
 /// rotates the local forward offset (0, 0, 0x200000) into `walk.step` with
 /// `ApplyMatrixLV`, raises the three halves at `walk.limit` to 0x7FFF and
-/// publishes preset 0x7D3. Both arms clear `GsCOORDINATE2::flg` -- the node's
+/// publishes preset 0x7D3. Both arms clear `GpCoord::flg` -- the node's
 /// recompute bit -- and end at the same epilogue.
 ///
 /// `yaw` carries two different values on purpose: it holds the work block's
@@ -371,7 +371,7 @@ void func_actor_113100_80132104(Task* task)
 void func_actor_113100_801324DC(Task* task)
 {
     Actor113100Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     GpMtxWords*      words;
     GpMtxWords*      turnWords;
     VECTOR           delta;
@@ -440,7 +440,7 @@ void func_actor_113100_801324DC(Task* task)
 void func_actor_113100_8013264C(Task* task)
 {
     Actor113100Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     SVECTOR          d;
     s32              dx;
     s32              dz;
@@ -633,11 +633,11 @@ void func_actor_113100_80132AD8(Task* task)
 
 void func_actor_113100_80132B30(Task* task)
 {
-    TmdObject*     model;
-    Task*          parent;
-    s32            index;
-    GsCOORDINATE2* node;
-    GsCOORDINATE2* part;
+    TmdObject* model;
+    Task*      parent;
+    s32        index;
+    GpCoord*   node;
+    GpCoord*   part;
 
     model = task->extra.tmd;
     SOFT_BARRIER();
@@ -668,13 +668,13 @@ void func_actor_113100_80132B30(Task* task)
 /// update flag is cleared so the GTE sees the new matrix.
 void func_actor_113100_80132BDC(Task* task)
 {
-    MATRIX         sp10;
-    SVECTOR        sp30;
-    MATRIX*        view;
-    MATRIX*        coord;
-    GsCOORDINATE2* part;
-    GsCOORDINATE2* node;
-    s32            index;
+    MATRIX   sp10;
+    SVECTOR  sp30;
+    MATRIX*  view;
+    MATRIX*  coord;
+    GpCoord* part;
+    GpCoord* node;
+    s32      index;
 
     index = task->spawnArg1;
     node  = task->extra.tmd->coords;
@@ -705,11 +705,11 @@ void func_actor_113100_80132C9C(Task* task)
 /// reparents the task under the parent and steps to the next state.
 void func_actor_113100_80132CF4(Task* task)
 {
-    Task*          parent;
-    TmdObject*     obj;
-    TmdObject*     parentObj;
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* root;
+    Task*      parent;
+    TmdObject* obj;
+    TmdObject* parentObj;
+    GpCoord*   coords;
+    GpCoord*   root;
 
     parent      = task->spawnArg2;
     obj         = task->extra.tmd;
@@ -829,7 +829,7 @@ void func_actor_113100_80132FB4(Task* arg0)
 void func_actor_113100_8013301C(Task* arg0)
 {
     Actor113100Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     GpAnimArg        preset;
     VECTOR           delta;
     SVECTOR          dir;
@@ -856,7 +856,7 @@ void func_actor_113100_801330E8(Task* arg0)
 {
     Actor113100Work* work;
     GpMtxWords*      words;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     SVECTOR          vec;
     GpAnimArg        preset;
     s32              vy;
@@ -947,9 +947,9 @@ s32 func_actor_113100_801331E8(Task* task, s32 msgId, GpAnimArg* preset, s32 arg
 /// the rotation; clearing `flg` makes the world matrix be recomputed.
 s32 func_actor_113100_8013333C(Task* task, s32 msgId, GpXformArg* args)
 {
-    GpCoordExt* coord;
+    GpCoord* coord;
 
-    coord               = (GpCoordExt*)task->extra.tmd->coords;
+    coord               = task->extra.tmd->coords;
     coord->coord.t[0]   = args->pos.vx;
     coord->coord.t[1]   = args->pos.vy;
     coord->coord.t[2]   = args->pos.vz;

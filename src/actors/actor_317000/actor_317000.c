@@ -102,7 +102,7 @@ void func_actor_317000_80161E68(Task* task)
     TmdObject*       ext                 = task->extra.tmd;
     Actor317000Work* work                = (Actor317000Work*)task->work;
     void             (*states[2])(Task*) = { func_actor_317000_80162760, func_actor_317000_80162768 };
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              i;
 
     states[(s16)work->walk.motion](task);
@@ -154,7 +154,7 @@ void func_actor_317000_80161E68(Task* task)
 /// Step handler at index 3 of `D_actor_317000_80161E30`. The actor's own coordinate and the `gameGetPtrSlot(3)` task's
 /// (the player) are normalised into `dir`, whose yaw `ratan2` takes over
 /// `dir.vz`, and the result is written as the roll/pitch-free facing
-/// `{ 0, yaw, 0 }` at `GpCoordExt::param.rot`. The same yaw is then compared
+/// `{ 0, yaw, 0 }` at `GpCoord::param.rot`. The same yaw is then compared
 /// against the yaw `Gp_ExtractEuler` reads back out of the node's own matrix:
 /// when the two are within 0x40 (64 of 4096 units) the actor is facing its
 /// target already, which clears the work's dispatch index and its companion
@@ -163,8 +163,8 @@ void func_actor_317000_80161E68(Task* task)
 void func_actor_317000_801620BC(Task* task)
 {
     Actor317000Work* work;
-    GpCoordExt*      coord;
-    GpCoordExt*      target;
+    GpCoord*         coord;
+    GpCoord*         target;
     VECTOR           delta;
     SVECTOR          dir;
     SVECTOR          rot;
@@ -173,8 +173,8 @@ void func_actor_317000_801620BC(Task* task)
     s32              absDiff;
     s32              y;
 
-    coord  = (GpCoordExt*)task->extra.tmd->coords;
-    target = (GpCoordExt*)((gameGetPtrSlot(3))->extra.tmd)->coords;
+    coord  = task->extra.tmd->coords;
+    target = ((gameGetPtrSlot(3))->extra.tmd)->coords;
     work   = (Actor317000Work*)task->work;
 
     delta.vx = target->coord.t[0] - coord->coord.t[0];
@@ -228,17 +228,17 @@ void func_actor_317000_801620BC(Task* task)
 /// calls and puts `&target[4]` in its own register.
 void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s32 arg3, s32 arg4)
 {
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* target;
-    GsCOORDINATE2* head;
-    GsCOORDINATE2* aim;
-    MATRIX*        arm;
-    GpMtxWords*    words;
-    VECTOR         delta;
-    VECTOR         dir;
-    SVECTOR        ang;
-    SVECTOR        vec;
-    SVECTOR        rot;
+    GpCoord*    coord;
+    GpCoord*    target;
+    GpCoord*    head;
+    GpCoord*    aim;
+    MATRIX*     arm;
+    GpMtxWords* words;
+    VECTOR      delta;
+    VECTOR      dir;
+    SVECTOR     ang;
+    SVECTOR     vec;
+    SVECTOR     rot;
 
     coord  = task->extra.tmd->coords;
     target = targetTask->extra.tmd->coords;
@@ -455,7 +455,7 @@ void func_actor_317000_801627D0(Task* arg0)
 {
     Actor317000Work* work;
     GpMtxWords*      words;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     SVECTOR          vec;
     GpAnimArg        preset;
     s32              vy;
@@ -502,7 +502,7 @@ void func_actor_317000_801627D0(Task* arg0)
 void func_actor_317000_801628D8(Task* task)
 {
     Actor317000Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     VECTOR           vec;
 
     coord = task->extra.tmd->coords;
@@ -524,7 +524,7 @@ void func_actor_317000_801628D8(Task* task)
 /// flag the previous body raised is cleared and the dispatcher advances again.
 void func_actor_317000_80162950(Task* arg0)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor317000Work* work;
     GpAnimArg        preset;
     s32              pan;
@@ -594,13 +594,13 @@ s32 func_actor_317000_80162A10(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 
 /// Message 0x7D4 handler of `D_actor_317000_8016CF50`: writes the payload's
 /// position into the root coordinate's translation and its Euler angles into
-/// `GpCoordExt::param.rot`, rebuilds the rotation from them with `RotMatrix`
+/// `GpCoord::param.rot`, rebuilds the rotation from them with `RotMatrix`
 /// and clears `flg` so the world matrix is recomputed. Returns 0.
 s32 func_actor_317000_80162B48(Task* task, s32 arg1, GpXformArg* args)
 {
-    GpCoordExt* coord;
+    GpCoord* coord;
 
-    coord               = (GpCoordExt*)task->extra.tmd->coords;
+    coord               = task->extra.tmd->coords;
     coord->coord.t[0]   = args->pos.vx;
     coord->coord.t[1]   = args->pos.vy;
     coord->coord.t[2]   = args->pos.vz;
@@ -669,7 +669,7 @@ s32 func_actor_317000_80162BC4(Task* task, s32 arg1, s32 mode, s32 arg3)
 s32 func_actor_317000_80162CA0(Task* task, s32 arg1, GpCmdArg* msg)
 {
     Actor317000Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     SVECTOR          rot;
     s32              mode;
 

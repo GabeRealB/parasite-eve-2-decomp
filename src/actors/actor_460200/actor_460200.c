@@ -387,8 +387,8 @@ void func_actor_460200_80132468(GpEnemy* enemy, Task* task)
 {
     Actor160600Work* work;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   sub;
+    GpCoord*         coord;
+    GpCoord*         sub;
     VECTOR           vec;
     u8               idx;
     s32              r;
@@ -480,7 +480,7 @@ void func_actor_460200_80132808(GpEnemy* enemy, Task* task)
     Actor160600Work* work;
     void*            workMem;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     MATRIX*          mtx;
     VECTOR           vec;
 
@@ -526,9 +526,9 @@ void func_actor_460200_80132950(Task* task)
 /// world translation, staged on the scratchpad stack.
 void func_actor_460200_80132978(Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR3*       vec;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR3*   vec;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -661,7 +661,7 @@ s32 func_actor_460200_80132B98(Task* task, s32 arg1, s32 flags)
 /// placement translation into the matrix and marks it dirty.
 s32 func_actor_460200_80132C14(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor160600Work* work;
     u16              yaw;
 
@@ -700,7 +700,7 @@ s32 func_actor_460200_80132C8C(Task* task, s32 arg1, GpCmdArg* args)
 /// body to walk off.
 s32 func_actor_460200_80132CAC(Task* task, s32 arg1, GpXformArg* target)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor160600Work* work;
     s32              dx;
     s32              dz;
@@ -721,7 +721,7 @@ void func_actor_460200_80132D74(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor161500Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     TmdObject*       obj;
     GpEnemy*         spawned;
 
@@ -818,7 +818,7 @@ void func_actor_460200_801330C8(Task* task)
 void func_actor_460200_8013311C(GpEnemy* enemy, Task* task)
 {
     Actor161500Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     TmdObject*       obj;
     VECTOR           vec;
 
@@ -856,9 +856,9 @@ void func_actor_460200_8013322C(Task* task)
 /// world translation, staged on the scratchpad stack.
 void func_actor_460200_80133254(Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR3*       vec;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR3*   vec;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -986,7 +986,7 @@ s32 func_actor_460200_80133474(Task* task, s32 arg1, s32 flags)
 /// placement translation into the matrix and marks it dirty.
 s32 func_actor_460200_801334F0(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor161500Work* work;
     u16              yaw;
 
@@ -1018,7 +1018,7 @@ s32 func_actor_460200_80133568(Task* task, s32 arg1, GpCmdArg* args)
 /// that follows.
 s32 func_actor_460200_80133580(Task* task, s32 arg1, GpXformArg* target)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor161500Work* work;
     s32              dx;
     s32              dz;
@@ -1042,11 +1042,11 @@ s32 func_actor_460200_80133580(Task* task, s32 arg1, GpXformArg* target)
 /// coordinate; every frame marks the coordinate dirty.
 void func_actor_460200_8013364C(Task* task)
 {
-    Task*          parent = task->parent;
-    TmdObject*     obj    = task->extra.tmd;
-    GsCOORDINATE2* coord  = obj->coords;
-    GsCOORDINATE2* sub    = &parent->extra.tmd->coords[7];
-    MATRIX*        work   = (MATRIX*)parent->work;
+    Task*      parent = task->parent;
+    TmdObject* obj    = task->extra.tmd;
+    GpCoord*   coord  = obj->coords;
+    GpCoord*   sub    = &parent->extra.tmd->coords[7];
+    MATRIX*    work   = (MATRIX*)parent->work;
 
     switch (task->state) {
         case 0:
@@ -1118,7 +1118,7 @@ void func_actor_460200_801338C0(GpEnemy* enemy, Task* task)
     Actor160600Work* work;
     void*            workMem;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     MATRIX*          mtx;
     VECTOR           vec;
 
@@ -1156,9 +1156,9 @@ void func_actor_460200_801338C0(GpEnemy* enemy, Task* task)
 
 void func_actor_460200_80133A04(GpEnemy* arg0, Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR         vec;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR     vec;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -1181,9 +1181,9 @@ void func_actor_460200_80133A88(Task* task)
 /// world translation, staged on the scratchpad stack.
 void func_actor_460200_80133AB0(Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR3*       vec;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR3*   vec;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -1306,7 +1306,7 @@ s32 func_actor_460200_80133CD0(Task* task, s32 arg1, s32 flags)
 /// placement translation into the matrix and marks it dirty.
 s32 func_actor_460200_80133D4C(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor160600Work* work;
     u16              yaw;
 
@@ -1334,7 +1334,7 @@ s32 func_actor_460200_80133DC4(void)
 /// body to walk off.
 s32 func_actor_460200_80133DCC(Task* task, s32 arg1, GpXformArg* target)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor160600Work* work;
     s32              dx;
     s32              dz;

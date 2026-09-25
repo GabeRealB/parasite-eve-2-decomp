@@ -50,7 +50,7 @@ void func_actor_110700_80131E24(Task* task)
 /// destroyed instead.
 void func_actor_110700_80131E78(GpEnemy* enemy, Task* task)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     TmdObject*       obj;
     Actor110700Work* work;
 
@@ -78,7 +78,7 @@ void func_actor_110700_80131E78(GpEnemy* enemy, Task* task)
 void func_actor_110700_80131F44(GpEnemy* enemy, Task* task)
 {
     Actor110700Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     VECTOR*          block;
     s32              i;
 
@@ -120,8 +120,8 @@ s32 func_actor_110700_8013201C(Task* task, s32 msgId, GpAnimArg* args)
 /// clears `flg` so the world matrix is recomputed from them.
 s32 func_actor_110700_80132074(Task* task, s32 msgId, GpXformArg* args)
 {
-    TmdObject*     ext   = task->extra.tmd;
-    GsCOORDINATE2* coord = ext->coords;
+    TmdObject* ext   = task->extra.tmd;
+    GpCoord*   coord = ext->coords;
 
     RotMatrix(&args->rot, &coord->coord);
     coord->coord.t[0] = args->pos.vx;

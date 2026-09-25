@@ -314,7 +314,7 @@ s32 func_actor_110600_8013839C(Task* arg0, s32 arg1, GpAnimArg* arg2);
 /// Rebuilds `coord`'s Y rotation from its current yaw (`ratan2` of
 /// `-m[2][0], m[2][2]`), scaled independently on each axis through a
 /// 0x34-byte block borrowed from the scratchpad. Marks the coordinate dirty.
-void func_actor_110600_80138680(GsCOORDINATE2* coord, s16 sx, s16 sy, s16 sz);
+void func_actor_110600_80138680(GpCoord* coord, s16 sx, s16 sy, s16 sz);
 
 s32  func_actor_110600_801387C0(Task* arg0);
 void func_actor_110600_801388A4(Task* arg0);
@@ -432,10 +432,10 @@ const char D_actor_110600_80131E24[] = "s->root_cnt == 0xff about \n";
 /// converts the result back into the parent's frame, writes the 3x3 into the
 /// joint and refreshes it. The actor's body update turns two joints of its
 /// model with it, the second by a quarter of the angle.
-void func_actor_110600_80131FC0(GsCOORDINATE2* coord, s16 yaw)
+void func_actor_110600_80131FC0(GpCoord* coord, s16 yaw)
 {
-    MATRIX*        rotation;
-    GsCOORDINATE2* out;
+    MATRIX*  rotation;
+    GpCoord* out;
 
     SCRATCH_PUSH(MATRIX);
     rotation = SCRATCH_HEAD(MATRIX);
@@ -455,7 +455,7 @@ extern SVECTOR D_actor_110600_80148690;
 /// resolve to through `func_800E0C10`, rounding a fractional part away from
 /// zero, and stores the whole-unit step taken in `D_actor_110600_80148690`.
 /// Returns 1 when the X or Z delta is nonzero. Nothing in the actor calls it.
-s32 func_actor_110600_801322CC(GsCOORDINATE2* coord, GpRec18* movement, s16 count)
+s32 func_actor_110600_801322CC(GpCoord* coord, GpRec18* movement, s16 count)
 {
     void**            scratch;
     u8*               head;
@@ -901,7 +901,7 @@ void func_actor_110600_80132FE0(OverlayWalker* work)
 void func_actor_110600_80133550(OverlayWalker* work, SVECTOR3* pos)
 {
     OverlayWalkerTurnScratch* s;
-    GsCOORDINATE2*            coord;
+    GpCoord*                  coord;
     u8*                       head;
     s16                       diff, t;
     s32                       angle;
@@ -1012,19 +1012,19 @@ void func_actor_110600_80133778(OverlayWalker* work, s16 scale, s16 angle)
 static __inline__ void Actor110600_WalkerStep(OverlayWalker* walker, u8* head,
                                               OverlayWalkerTickScratch* block)
 {
-    u8*            head2;
-    SVECTOR3*      pos;
-    PlayerStatus*  cfg;
-    SVECTOR*       sv;
-    SVECTOR*       gsv;
-    SVECTOR*       step;
-    GsCOORDINATE2* coord;
-    s16            sdiff;
-    s32            diff;
-    s16            speed;
-    s32            cur;
-    s32            target;
-    s32            result;
+    u8*           head2;
+    SVECTOR3*     pos;
+    PlayerStatus* cfg;
+    SVECTOR*      sv;
+    SVECTOR*      gsv;
+    SVECTOR*      step;
+    GpCoord*      coord;
+    s16           sdiff;
+    s32           diff;
+    s16           speed;
+    s32           cur;
+    s32           target;
+    s32           result;
 
     switch (walker->state) {
         case 0:
@@ -1139,7 +1139,7 @@ void func_actor_110600_80133A94(OverlayWalker* walker)
 static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale)
 {
     ActorScaleRotScratch* blk;
-    GsCOORDINATE2*        coord;
+    GpCoord*              coord;
     u8*                   head;
     s16                   ang;
     u16                   m22;
@@ -1267,7 +1267,7 @@ s32 func_actor_110600_80134040(Task* arg0, s32 arg1, Actor110600Event* arg2)
 /// `offset`, or inside it for a negative one, returns 1 outright. Otherwise
 /// returns whether the player stands at least `range + 0x96` from the point
 /// `offset` units ahead of `coord` along its facing.
-s32 func_actor_110600_801341A4(GsCOORDINATE2* coord, s16 range, s16 offset)
+s32 func_actor_110600_801341A4(GpCoord* coord, s16 range, s16 offset)
 {
     SVECTOR  v;
     SVECTOR  d;
@@ -1619,7 +1619,7 @@ extern GpPairSrcE D_actor_110600_80138F14;
 extern GpAnimSet* D_actor_110600_8014850C[];
 extern GpMsgEntry D_actor_110600_80148624[];
 
-static __inline__ void Actor110600_InitBodyObj(GpObj* obj, GsCOORDINATE2* coord, GpRec18* recs, SVECTOR* pos, s16 enabled)
+static __inline__ void Actor110600_InitBodyObj(GpObj* obj, GpCoord* coord, GpRec18* recs, SVECTOR* pos, s16 enabled)
 {
     obj->ctx.recs = recs;
     obj->coord    = coord;
@@ -1658,7 +1658,7 @@ void func_actor_110600_80134AB4(GpEnemy* enemy, Task* task)
     GpObj*           bodyObj;
     GpRec18*         contactRecs;
     GpRec18*         walkRecs;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     TmdObject*       model;
     s16              enabled;
     u32              placement;
@@ -1888,8 +1888,8 @@ void func_actor_110600_80135194(Task* arg0)
     Actor110600Work* work;
     TmdObject*       obj;
     GpEnemy*         enemy;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   facing;
+    GpCoord*         coord;
+    GpCoord*         facing;
     SVECTOR          delta;
     SVECTOR*         d;
     s16              angle;
@@ -1978,8 +1978,8 @@ void func_actor_110600_80135454(Task* arg0)
     Actor110600Work* work;
     TmdObject*       obj;
     GpEnemy*         enemy;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   facing;
+    GpCoord*         coord;
+    GpCoord*         facing;
     OverlayWalker*   walker;
     SVECTOR          delta;
     SVECTOR*         d;
@@ -2079,8 +2079,8 @@ void func_actor_110600_80135A18(Task* arg0)
     Actor110600Work* work;
     TmdObject*       obj;
     GpEnemy*         enemy;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   facing;
+    GpCoord*         coord;
+    GpCoord*         facing;
     SVECTOR          delta;
     SVECTOR*         d;
     s16              angle;
@@ -2310,7 +2310,7 @@ void func_actor_110600_80136210(Task* arg0)
 {
     Actor110600Work*       work;
     GpEnemy*               enemy;
-    GsCOORDINATE2*         facing;
+    GpCoord*               facing;
     s16                    angle;
     s16                    dz;
     s16                    state;
@@ -2571,7 +2571,7 @@ void func_actor_110600_801369D8(Task* arg0)
 static __inline__ void Actor110600_ApplyShrink(Task* arg0, Actor110600Work* work, s16 y)
 {
     TmdObject*            obj;
-    GsCOORDINATE2*        coord;
+    GpCoord*              coord;
     ActorScaleRotScratch* blk;
     ActorScaleRotScratch* head;
     s16                   page;
@@ -2843,7 +2843,7 @@ const SVECTOR D_actor_110600_80131F1C = { 0, 0, 100, 0 };
 static __inline__ void Actor110600_RescaleRoot(Task* arg0, s16 scale)
 {
     ActorScaleRotScratch* blk;
-    GsCOORDINATE2*        coord;
+    GpCoord*              coord;
     u8*                   head;
     s16                   ang;
     u16                   m22;
@@ -2880,9 +2880,9 @@ void func_actor_110600_801372CC(Task* arg0)
     SVECTOR          vec;
     GpEffArg*        d;
     GpEffArg*        tailEffect;
-    GsCOORDINATE2*   effectCoord;
-    GsCOORDINATE2*   effectCoord2;
-    GsCOORDINATE2*   effectCoord3;
+    GpCoord*         effectCoord;
+    GpCoord*         effectCoord2;
+    GpCoord*         effectCoord3;
     u32              rng;
 
     work = arg0->work;
@@ -3026,7 +3026,7 @@ void func_actor_110600_801377FC(Task* arg0)
     Actor110600Work* work;
     TmdObject*       obj;
     GpEnemy*         enemy;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     SVECTOR          delta;
     SVECTOR*         d;
 
@@ -3071,8 +3071,8 @@ void func_actor_110600_80137980(Task* arg0)
     Actor110600Work* work;
     TmdObject*       obj;
     GpEnemy*         enemy;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   facing;
+    GpCoord*         coord;
+    GpCoord*         facing;
     SVECTOR          delta;
     SVECTOR*         d;
     s16              angle;
@@ -3536,7 +3536,7 @@ s32 func_actor_110600_80138538(Task* arg0)
 /// matrix with `ratan2(-m[2][0], m[2][2])`) uniformly scaled by `scale`, using
 /// a 0x34-byte block taken from the scratchpad head, and marks the coordinate
 /// for refresh.
-void func_actor_110600_80138568(GsCOORDINATE2* coord, s16 scale)
+void func_actor_110600_80138568(GpCoord* coord, s16 scale)
 {
     void**                scratch;
     ActorScaleRotScratch* head;
@@ -3571,7 +3571,7 @@ void func_actor_110600_80138568(GsCOORDINATE2* coord, s16 scale)
     coord->coord.m[2][2] = m22;
 }
 
-void func_actor_110600_80138680(GsCOORDINATE2* coord, s16 sx, s16 sy, s16 sz)
+void func_actor_110600_80138680(GpCoord* coord, s16 sx, s16 sy, s16 sz)
 {
     void**                scratch;
     ActorScaleRotScratch* head;

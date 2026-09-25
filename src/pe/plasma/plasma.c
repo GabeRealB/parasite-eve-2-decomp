@@ -49,18 +49,18 @@ PlasmaJitter D_plasma_8012FF54 = { 0 };
 /// drops below 9.
 void func_plasma_8012EF34(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpStateC08*    state;
-    s32            pan;
-    s32            i;
-    s16*           row;
-    s32            st;
-    u16            prev;
-    u16            next;
-    u8             rgb[3];
-    u8             bright;
-    s16            span;
+    GpEffWork*  mem;
+    GpCoord*    coord;
+    GpStateC08* state;
+    s32         pan;
+    s32         i;
+    s16*        row;
+    s32         st;
+    u16         prev;
+    u16         next;
+    u8          rgb[3];
+    u8          bright;
+    s16         span;
 
     state = &Gp_StateC08;
     mem   = arg0->spawnArg2;
@@ -133,13 +133,13 @@ void func_plasma_8012EF34(Task* arg0)
                 func_plasma_8012FB10(coord, (s16)(a1tmp << 6), (s16)((a2tmp << 7) + 0x100), rgb);
             }
             {
-                GsCOORDINATE2* c;
-                unsigned int   r;
-                unsigned int   g;
-                unsigned int   b;
-                s32            a1tmp;
-                s32            a2tmp;
-                u8*            color;
+                GpCoord*     c;
+                unsigned int r;
+                unsigned int g;
+                unsigned int b;
+                s32          a1tmp;
+                s32          a2tmp;
+                u8*          color;
 
                 c = coord;
                 COPY_REG_EC(c, coord);
@@ -158,13 +158,13 @@ void func_plasma_8012EF34(Task* arg0)
                 func_plasma_8012FB10(c, (s16)(a1tmp << 7), (s16)((a2tmp << 7) + 0x100), color);
             }
             if (mem->index != 0) {
-                GsCOORDINATE2* c;
-                unsigned int   r;
-                unsigned int   g;
-                unsigned int   b;
-                s32            a1tmp;
-                s32            a2tmp;
-                u8*            color;
+                GpCoord*     c;
+                unsigned int r;
+                unsigned int g;
+                unsigned int b;
+                s32          a1tmp;
+                s32          a2tmp;
+                u8*          color;
 
                 c = coord;
                 COPY_REG_EC(c, coord);
@@ -214,11 +214,11 @@ void func_plasma_8012EF34(Task* arg0)
                 func_plasma_8012FB10(coord, span, span, rgb);
             }
             {
-                GsCOORDINATE2* c;
-                unsigned int   r;
-                unsigned int   g;
-                unsigned int   b;
-                s32            a1tmp;
+                GpCoord*     c;
+                unsigned int r;
+                unsigned int g;
+                unsigned int b;
+                s32          a1tmp;
 
                 c = coord;
                 COPY_REG_EC(c, coord);
@@ -235,11 +235,11 @@ void func_plasma_8012EF34(Task* arg0)
                 func_plasma_8012FB10(c, span, span, rgb);
             }
             if (mem->index != 0) {
-                GsCOORDINATE2* c;
-                unsigned int   r;
-                unsigned int   g;
-                unsigned int   b;
-                s32            a1tmp;
+                GpCoord*     c;
+                unsigned int r;
+                unsigned int g;
+                unsigned int b;
+                s32          a1tmp;
 
                 c = coord;
                 COPY_REG_EC(c, coord);
@@ -262,7 +262,7 @@ release:
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void func_plasma_8012F568(GpEffWork* arg0, GsCOORDINATE2* arg1, s32 arg2)
+void func_plasma_8012F568(GpEffWork* arg0, GpCoord* arg1, s32 arg2)
 {
     u8*              head;
     GpBandScratch*   block;
@@ -359,7 +359,7 @@ void func_plasma_8012F568(GpEffWork* arg0, GsCOORDINATE2* arg1, s32 arg2)
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`. The RGB triple tints the inner edge
 /// so each wedge fades to a black outer rim. Byte-identical to the rooms
 /// family's `Room_Draw07` (src/lib/room_draw07.c).
-void func_plasma_8012FB10(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_plasma_8012FB10(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     GpArcScratch*   block;
     POLY_G4*        prim;

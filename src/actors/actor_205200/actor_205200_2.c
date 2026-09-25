@@ -92,7 +92,7 @@ const GpEnemyTaskFuncTable3 D_actor_205200_80149E30 = {
 void func_actor_205200_8014BAE8(GpEnemy* enemy, Task* task)
 {
     TmdObject*       tmd;
-    GsCOORDINATE2*   coords;
+    GpCoord*         coords;
     Actor205200Work* work;
     s32              i;
 
@@ -280,9 +280,9 @@ void func_actor_205200_8014BF28(Task* arg0)
 void func_actor_205200_8014C0C0(Task* arg0)
 {
     Actor205200Work*    work;
-    GsCOORDINATE2*      coord;
+    GpCoord*            coord;
     Task*               player;
-    GsCOORDINATE2*      target;
+    GpCoord*            target;
     ActorAttackScratch* scratch;
     void*               head;
     s32                 sound;
@@ -392,7 +392,7 @@ void func_actor_205200_8014C540(Task* arg0)
 
 void func_actor_205200_8014C59C(GpEnemy* arg0, Task* arg1)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     TmdObject*       obj;
     Actor205200Work* work;
     s32              state;
@@ -536,8 +536,8 @@ void func_actor_205200_8014C7CC(Task* arg0)
 /// parameters.
 void func_actor_205200_8014C87C(Task* arg0)
 {
-    GsCOORDINATE2* coord;
-    VECTOR         vec;
+    GpCoord* coord;
+    VECTOR   vec;
 
     coord  = arg0->extra.tmd->coords;
     vec.vx = coord->workm.t[0];
@@ -550,8 +550,8 @@ void func_actor_205200_8014C87C(Task* arg0)
 /// position.
 void func_actor_205200_8014C8D4(Task* arg0)
 {
-    GsCOORDINATE2* coord;
-    VECTOR3        vec;
+    GpCoord* coord;
+    VECTOR3  vec;
 
     coord  = arg0->extra.tmd->coords;
     vec.vx = coord->workm.t[0];

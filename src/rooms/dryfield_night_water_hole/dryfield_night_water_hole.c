@@ -127,9 +127,9 @@ void func_dryfield_night_water_hole_8017DE20(Task* task);
 void func_dryfield_night_water_hole_8017DE88(DnwhParamOverride* list);
 void func_dryfield_night_water_hole_8017E690(Task* arg0);
 void func_dryfield_night_water_hole_8017EA6C(SVECTOR* arg0, s32 arg1);
-void func_dryfield_night_water_hole_8017F3A8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
-void func_dryfield_night_water_hole_8017FB98(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_dryfield_night_water_hole_8017FF84(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
+void func_dryfield_night_water_hole_8017F3A8(GpCoord* arg0, s32 arg1, s32 arg2);
+void func_dryfield_night_water_hole_8017FB98(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_dryfield_night_water_hole_8017FF84(GpCoord* arg0, s32 arg1, s32 arg2);
 
 /// Answers the code in `in->field_0` in `out->field_3`, unless `in->field_5`
 /// is set. Six codes have an answer, each from a progress nibble: 2 is 2 once
@@ -666,10 +666,10 @@ void func_dryfield_night_water_hole_8017E6D0(Task* arg0)
     Task*                          ctl;
     s32                            mask;
     _DryfieldNightWaterHoleSplash* splash;
-    GsCOORDINATE2*                 ctlCoords;
-    GsCOORDINATE2*                 part;
-    GsCOORDINATE2*                 view;
-    GsCOORDINATE2                  surface;
+    GpCoord*                       ctlCoords;
+    GpCoord*                       part;
+    GpCoord*                       view;
+    GpCoord                        surface;
     s32                            i;
     u32                            rnd;
 
@@ -887,8 +887,8 @@ void func_dryfield_night_water_hole_8017EA6C(SVECTOR* arg0, s32 arg1)
 /// 4 on.
 void func_dryfield_night_water_hole_8017F254(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
+    GpEffWork* work;
+    GpCoord*   coord;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -923,7 +923,7 @@ void func_dryfield_night_water_hole_8017F254(Task* task)
 /// If the projection is valid, one semi-transparent `POLY_FT4` (tpage 0x2B,
 /// clut 0x43D1, UV 0,0x38 to 0x37,0x6F) is queued with all three colour
 /// channels set to `arg2`. The work block lives on the scratchpad stack.
-void func_dryfield_night_water_hole_8017F3A8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
+void func_dryfield_night_water_hole_8017F3A8(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -1019,13 +1019,13 @@ void func_dryfield_night_water_hole_8017F3A8(GsCOORDINATE2* arg0, s32 arg1, s32 
 /// state is non-zero it only draws, releasing the block from event state 4 on.
 void func_dryfield_night_water_hole_8017F6DC(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    SVECTOR*       vec;
-    s32            kind;
-    s32            step;
-    s32            state;
-    s32            level;
+    GpEffWork* work;
+    GpCoord*   coord;
+    SVECTOR*   vec;
+    s32        kind;
+    s32        step;
+    s32        state;
+    s32        level;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -1142,7 +1142,7 @@ void func_dryfield_night_water_hole_8017F6DC(Task* task)
 /// column `arg1` of the strip at v 0xE0..0xFF. Its corners sit at
 /// `(s16)arg2 * 31 / otz` from the projected point, rotated by the angle
 /// `arg3`. The work block lives on the scratchpad stack.
-void func_dryfield_night_water_hole_8017FB98(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
+void func_dryfield_night_water_hole_8017FB98(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -1208,7 +1208,7 @@ void func_dryfield_night_water_hole_8017FB98(GsCOORDINATE2* arg0, s32 arg1, s32 
 /// is `2 * r` on a side with `r = (s16)arg2 * 55 / otz`, and the projected
 /// point sits a quarter of the way up from its bottom edge. The work block
 /// lives on the scratchpad stack.
-void func_dryfield_night_water_hole_8017FF84(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
+void func_dryfield_night_water_hole_8017FF84(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;

@@ -256,7 +256,7 @@ extern s16 D_80073BA0;
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void func_80180A64(GsCOORDINATE2* arg0);
+void func_80180A64(GpCoord* arg0);
 
 /// `field_59C` reload tables, indexed by four bits of `Gp_LcgState`.
 extern s16 D_actor_510900_80167990[];
@@ -275,7 +275,7 @@ void func_actor_510900_80135744(Task* arg0)
     VECTOR*          d;
     Actor510900Work* work;
     GpEnemy*         enemy;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              reaction;
     s32              param;
     s32              i;
@@ -383,8 +383,8 @@ void func_actor_510900_80135744(Task* arg0)
                     } else {
                         sound = ((enemy->placeKey >> 12) << 8) | 0x40780005;
                     }
-                    pan = (s8)Gp_GetObjPan((GsCOORDINATE2*)coord);
-                    SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth((GsCOORDINATE2*)coord));
+                    pan = (s8)Gp_GetObjPan(coord);
+                    SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
                 }
                 if (work->field_578 != 0) {
                     SndEvt_EnqueueType7(work->field_578, 0);
@@ -513,7 +513,7 @@ void func_actor_510900_80135744(Task* arg0)
 void func_actor_510900_80135E90(Task* arg0)
 {
     Actor510900Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              snd;
     s32              pair;
 
@@ -523,8 +523,8 @@ void func_actor_510900_80135E90(Task* arg0)
         case 0:
             if (work->field_58A == 0xA) {
                 snd = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x40780006;
-                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GsCOORDINATE2*)coord),
-                                    (s8)gpGetObjDepth((GsCOORDINATE2*)coord));
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
+                                    (s8)gpGetObjDepth(coord));
             }
             if (work->field_58A >= 0x64) {
                 work->field_590 = 1;
@@ -549,8 +549,8 @@ void func_actor_510900_80135E90(Task* arg0)
             }
             if (work->field_58A == 0xA) {
                 snd = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x4078000B;
-                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GsCOORDINATE2*)coord),
-                                    (s8)gpGetObjDepth((GsCOORDINATE2*)coord));
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
+                                    (s8)gpGetObjDepth(coord));
             }
             if (work->field_58A >= 0x1D) {
                 if (work->field_5B2 != 0) {
@@ -574,8 +574,8 @@ void func_actor_510900_80135E90(Task* arg0)
             }
             if (work->field_58A == 6) {
                 snd = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x4078000B;
-                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GsCOORDINATE2*)coord),
-                                    (s8)gpGetObjDepth((GsCOORDINATE2*)coord));
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
+                                    (s8)gpGetObjDepth(coord));
             }
             if (work->field_58A >= 0x27) {
                 if (work->field_5B2 != 0) {
@@ -609,7 +609,7 @@ void func_actor_510900_80135E90(Task* arg0)
 void func_actor_510900_80136184(Task* arg0)
 {
     Actor510900Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     GpEffWork*       eff;
     s32              snd;
     s32              rng;
@@ -789,7 +789,7 @@ void func_actor_510900_80136184(Task* arg0)
 s32 func_actor_510900_8013691C(Task* arg0)
 {
     Actor510900Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              diff;
     s32              ret;
     s16              dist;
@@ -909,7 +909,7 @@ done:
 void func_actor_510900_80136B70(Task* arg0)
 {
     Actor510900Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              snd;
     s32              pair;
 
@@ -1036,7 +1036,7 @@ void func_actor_510900_80136B70(Task* arg0)
 void func_actor_510900_80137008(Task* arg0)
 {
     Actor510900Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              snd;
     s32              pair;
     s32              val;
@@ -1128,7 +1128,7 @@ void func_actor_510900_801373B8(Task* arg0)
 {
     Actor510900Work* work;
     GpEnemy*         enemy;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     GpAreaKey*       sessionKey;
     TmdObject*       model;
     GpAreaRec*       rec;
@@ -1205,7 +1205,7 @@ void func_actor_510900_801373B8(Task* arg0)
 void func_actor_510900_801375D8(Task* arg0)
 {
     Actor510900Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              snd;
     s32              pair;
     s32              val;
@@ -1285,7 +1285,7 @@ void func_actor_510900_801375D8(Task* arg0)
 void func_actor_510900_80137868(Task* arg0)
 {
     Actor510900Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              snd;
     s32              pair;
     s32              blend;
@@ -1436,7 +1436,7 @@ void func_actor_510900_80137E20(Task* arg0)
 {
     Actor510900Work* work;
     GpEnemy*         enemy;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              snd;
     s32              pan;
     s32              rng;
@@ -1486,7 +1486,7 @@ void func_actor_510900_80137E20(Task* arg0)
 void func_actor_510900_80137FBC(Task* arg0)
 {
     Actor510900Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     GpEnemy*         enemy;
     SVECTOR*         rot;
     SVECTOR*         head;
@@ -1560,7 +1560,7 @@ void func_actor_510900_80137FBC(Task* arg0)
 void func_actor_510900_80138250(Task* arg0)
 {
     Actor510900Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     GpEnemy*         enemy;
     SVECTOR*         rot;
     SVECTOR*         head;
@@ -1630,7 +1630,7 @@ void func_actor_510900_80138250(Task* arg0)
 void func_actor_510900_801384C4(Task* arg0)
 {
     Actor510900Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              snd;
     s32              pan;
     u32              rng;
@@ -1679,7 +1679,7 @@ void func_actor_510900_801384C4(Task* arg0)
 void func_actor_510900_8013864C(Task* arg0)
 {
     Actor510900Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     VECTOR*          delta;
     VECTOR*          head;
     s32              i;
@@ -1717,7 +1717,7 @@ void func_actor_510900_8013864C(Task* arg0)
 void func_actor_510900_801387F4(Task* arg0)
 {
     Actor510900Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     SVECTOR*         rot;
     SVECTOR*         head;
     u16              target;
@@ -1782,7 +1782,7 @@ void func_actor_510900_801387F4(Task* arg0)
 void func_actor_510900_80138978(Task* arg0)
 {
     Actor510900Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s16              side;
     s16              along;
     u16              dist;
@@ -1819,7 +1819,7 @@ void func_actor_510900_80138A9C(Task* arg0)
     s32              pan;
     s32              pan2;
     Actor510900Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     GpAnimRec*       rec;
 
     work  = arg0->work;
@@ -1853,8 +1853,8 @@ void func_actor_510900_80138A9C(Task* arg0)
 void func_actor_510900_80138BF0(Task* arg0)
 {
     ActorAimScratch* scratch;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   head;
+    GpCoord*         coord;
+    GpCoord*         head;
     s32              offsetY;
 
     coord = arg0->extra.tmd->coords;
@@ -1896,7 +1896,7 @@ void func_actor_510900_80138BF0(Task* arg0)
 void func_actor_510900_80138D38(Task* arg0)
 {
     Actor510900Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     MATRIX*          matrix;
     s32              angleX;
     s32              angleY;
@@ -1969,7 +1969,7 @@ void func_actor_510900_80138D38(Task* arg0)
 void func_actor_510900_80138F44(Task* arg0)
 {
     Actor510900GridScratch* scratch;
-    GsCOORDINATE2*          coord;
+    GpCoord*                coord;
     SVECTOR*                normals;
     SVECTOR*                corners;
     s32                     i;
@@ -2048,7 +2048,7 @@ s32 func_actor_510900_801391B8(Task* arg0, s32 arg1, s32 arg2)
 {
     Actor510900Work* work;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     GpEnemy*         enemy;
     SVECTOR*         rot;
     void*            head;
@@ -2176,8 +2176,8 @@ void func_actor_510900_801395AC(void* enemy, Task* task)
 {
     TmdObject*       obj;
     Actor510900Work* work;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   parentCoord;
+    GpCoord*         coord;
+    GpCoord*         parentCoord;
     GpMtxWords*      mat;
     GpMtxWords*      mat2;
     s16              blend;
@@ -2260,9 +2260,9 @@ void func_actor_510900_801397F0(GpEnemy* arg0, Task* arg1)
     Actor510900ChildFx*      work;
     Actor105600PlaceScratch* scratch;
     TmdObject*               tmd;
-    GsCOORDINATE2*           coord;
-    GsCOORDINATE2*           parentCoords;
-    GsCOORDINATE2*           parentCoord;
+    GpCoord*                 coord;
+    GpCoord*                 parentCoords;
+    GpCoord*                 parentCoord;
     s32                      dx;
     s32                      dz;
     s32                      idx;
@@ -2374,7 +2374,7 @@ void func_actor_510900_80139C10(GpEnemy* enemy, Task* task)
 {
     VECTOR                         pos;
     GpEffWork*                     eff;
-    GsCOORDINATE2*                 coord;
+    GpCoord*                       coord;
     u8*                            head;
     Actor510900ChildFxTickScratch* scratch;
     TmdObject*                     tmd;
@@ -2566,7 +2566,7 @@ void func_actor_510900_8013A310(Task* task)
     Task*                  player;
     void*                  head;
     Actor510900HitScratch* scratch;
-    GsCOORDINATE2*         obj;
+    GpCoord*               obj;
     u16                    tick;
     s32                    snd;
     s32                    pan;
@@ -2637,9 +2637,9 @@ void func_actor_510900_8013A310(Task* task)
 void func_actor_510900_8013A5B8(GpEnemy* enemy, Task* task)
 {
     TmdObject*            tmd;
-    GsCOORDINATE2*        coords;
+    GpCoord*              coords;
     Actor510900ChildAnim* work;
-    GsCOORDINATE2*        coord;
+    GpCoord*              coord;
     SVECTOR*              rot;
     void*                 head;
     s32                   i;
@@ -2712,7 +2712,7 @@ void func_actor_510900_8013A5B8(GpEnemy* enemy, Task* task)
 
 void func_actor_510900_8013A9BC(Task* task);
 s32  func_actor_510900_8013C240(Task* task);
-void func_actor_510900_8013C338(Task* arg0, GsCOORDINATE2* arg1);
+void func_actor_510900_8013C338(Task* arg0, GpCoord* arg1);
 
 /// Frame handler (state 1) of the child task. Mode 1 of `Gp_StateF0.field_4` only
 /// redraws, mode 2 hides the model and flags the context, and mode 0 ticks the
@@ -2722,7 +2722,7 @@ void func_actor_510900_8013A85C(GpEnemy* arg0, Task* arg1)
 {
     TmdObject*            obj;
     Actor510900ChildAnim* work;
-    GsCOORDINATE2*        coord;
+    GpCoord*              coord;
     Actor510900Work*      parent;
     s32                   mode;
     s32                   i;
@@ -2799,7 +2799,7 @@ void func_actor_510900_8013A9BC(Task* task)
     GpEnemy*                ctx;
     Actor510900GrabScratch* scratch;
     Actor510900GrabScratch* head;
-    GsCOORDINATE2*          coord;
+    GpCoord*                coord;
     GpEffWork*              eff;
     Task*                   spawned;
     s16                     next;
@@ -2935,7 +2935,7 @@ end:
 
 void func_actor_510900_8013AD90(GpEnemy* enemy, Task* task)
 {
-    GsCOORDINATE2*        coord;
+    GpCoord*              coord;
     GpMtxWords*           mat;
     Actor510900ChildWork* work;
 
@@ -3072,7 +3072,7 @@ const GpEnemyTaskFuncTable3 D_actor_510900_80131ECC = {
 void func_actor_510900_8013B0D8(Task* arg0)
 {
     Actor510900ChildWork* work;
-    GsCOORDINATE2*        coord;
+    GpCoord*              coord;
     Actor510900Work*      parent;
     GpEnemy*              ctx;
     GpEffWork*            eff;
@@ -3126,8 +3126,8 @@ void func_actor_510900_8013B0D8(Task* arg0)
                         work->obj38.key = 0x50004;
                     }
                     snd = (((u16)ctx->placeKey >> 0xC) << 8) | 0x51100002;
-                    pan = (s8)Gp_GetObjPan((GsCOORDINATE2*)coord);
-                    SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth((GsCOORDINATE2*)coord));
+                    pan = (s8)Gp_GetObjPan(coord);
+                    SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
                 }
             }
             Gp_ClearRec18Occupied(&work->rec20);
@@ -3262,7 +3262,7 @@ void func_actor_510900_8013B658(GpEnemy* arg0, Task* arg1)
 
 void func_actor_510900_8013B6A0(GpEnemy* arg0, Task* arg1)
 {
-    GsCOORDINATE2*   temp_s1;
+    GpCoord*         temp_s1;
     TmdObject*       temp_a1;
     Actor510900Work* temp_s2;
     s32              one;
@@ -3495,9 +3495,9 @@ void func_actor_510900_8013BB20(Task* arg0)
 /// ground under the body even when the two coordinates are apart.
 void func_actor_510900_8013BBE4(Task* arg0)
 {
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* sub;
-    VECTOR3        vec;
+    GpCoord* coord;
+    GpCoord* sub;
+    VECTOR3  vec;
 
     coord  = arg0->extra.tmd->coords;
     sub    = &arg0->extra.tmd->coords[1];
@@ -3507,7 +3507,7 @@ void func_actor_510900_8013BBE4(Task* arg0)
     Gp_DrawEffGroundQuad(&vec, 0x300, 0x80);
 }
 
-void func_actor_510900_8013BC38(Task* arg0, GsCOORDINATE2* arg1)
+void func_actor_510900_8013BC38(Task* arg0, GpCoord* arg1)
 {
     VECTOR pos;
 
@@ -3573,8 +3573,8 @@ s32 func_actor_510900_8013BD84(Task* arg0, s32 arg1, GpAnimArg* arg2)
 /// `flg` so the world matrix is recomputed from it.
 s32 func_actor_510900_8013BE00(Task* task, s32 arg1, GpXformArg* args)
 {
-    TmdObject*     ext   = task->extra.tmd;
-    GsCOORDINATE2* coord = ext->coords;
+    TmdObject* ext   = task->extra.tmd;
+    GpCoord*   coord = ext->coords;
 
     RotMatrix(&args->rot, &coord->coord);
     coord->coord.t[0] = args->pos.vx;
@@ -3617,7 +3617,7 @@ void func_actor_510900_8013BEEC(void* enemy, Task* task)
 {
     TmdObject*       obj;
     Actor510900Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
 
     obj        = task->extra.tmd;
     work       = (Actor510900Work*)task->parent->work;
@@ -3760,7 +3760,7 @@ s32 func_actor_510900_8013C240(Task* task)
     return 0;
 }
 
-void func_actor_510900_8013C338(Task* arg0, GsCOORDINATE2* arg1)
+void func_actor_510900_8013C338(Task* arg0, GpCoord* arg1)
 {
     VECTOR pos;
 

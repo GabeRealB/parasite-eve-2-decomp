@@ -164,7 +164,7 @@ extern s32 D_shelter_b2_laboratory_801864B8;
 extern RoomCutsceneRec D_shelter_b2_laboratory_801864BC;
 
 /// World position the looping sound is panned and attenuated from.
-extern GsCOORDINATE2 D_shelter_b2_laboratory_801864DC;
+extern GpCoord D_shelter_b2_laboratory_801864DC;
 
 /// Non-zero makes the view glows of `func_shelter_b2_laboratory_80180548`
 /// pulse faster. Written through `func_shelter_b2_laboratory_801820F4`; the

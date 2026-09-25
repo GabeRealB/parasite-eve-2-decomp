@@ -119,7 +119,7 @@ void func_acropolis_hallway_8017D828(void)
 /// fractional part away from zero. The whole-unit displacement is also left in
 /// `D_acropolis_hallway_8017FA4C`. Returns non-zero when the X or Z
 /// displacement is non-zero.
-s32 func_acropolis_hallway_8017D830(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2)
+s32 func_acropolis_hallway_8017D830(GpCoord* coord, GpRec18* rec, s16 arg2)
 {
     void**            scratch;
     u8*               head;
@@ -173,7 +173,7 @@ s32 func_acropolis_hallway_8017D830(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2
 /// record within a quarter turn of it, moves the coordinate `push` units back
 /// along that record's bearing, in X and Z. Returns non-zero if it moved the
 /// coordinate; returns 0 at once while `gGameSession->viewReady` is 1.
-s32 func_acropolis_hallway_8017D9D4(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push)
+s32 func_acropolis_hallway_8017D9D4(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
 {
     void**                  scratch;
     void**                  tail;

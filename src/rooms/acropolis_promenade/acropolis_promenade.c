@@ -266,9 +266,9 @@ void func_acropolis_promenade_8017DA4C(Task* task)
 /// `gGfxViewCoord` and moves to the next state.
 void func_acropolis_promenade_8017DAA4(Task* task)
 {
-    TmdObject*     extra;
-    GsCOORDINATE2* coord;
-    ApmPropWork*   work;
+    TmdObject*   extra;
+    GpCoord*     coord;
+    ApmPropWork* work;
 
     extra = task->extra.tmd;
     coord = extra->coords;
@@ -290,8 +290,8 @@ void func_acropolis_promenade_8017DAA4(Task* task)
 
 void func_acropolis_promenade_8017DB48(Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
+    TmdObject* obj;
+    GpCoord*   coord;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -450,12 +450,12 @@ void func_acropolis_promenade_8017DFD4(Task* arg0)
 /// frame. View 7 spawns nothing.
 void func_acropolis_promenade_8017E03C(Task* task)
 {
-    GsCOORDINATE2* coord;
-    GpEffWork*     work;
-    u8             view;
-    s32            i;
-    s32            mask;
-    s16            prev;
+    GpCoord*   coord;
+    GpEffWork* work;
+    u8         view;
+    s32        i;
+    s32        mask;
+    s16        prev;
 
     coord = task->extra.tmd->coords;
     work  = task->spawnArg2;
@@ -590,7 +590,7 @@ void func_acropolis_promenade_8017E394(Task* task)
 /// every frame it wants the star.
 void func_acropolis_promenade_8017E634(Task* task)
 {
-    GsCOORDINATE2*        coord;
+    GpCoord*              coord;
     GpEffWork*            work;
     void**                scratch;
     u8*                   head;
@@ -702,7 +702,7 @@ void func_acropolis_promenade_8017E634(Task* task)
 /// been queued, so the room respawns it each frame it wants the glow.
 void func_acropolis_promenade_8017ED44(Task* task)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     GpEffWork*       work;
     void**           scratch;
     u8*              head;
@@ -790,7 +790,7 @@ void func_acropolis_promenade_8017ED44(Task* task)
 /// each spawn draws a single frame.
 void func_acropolis_promenade_8017F0BC(Task* task)
 {
-    GsCOORDINATE2*         coord;
+    GpCoord*               coord;
     GpEffWork*             work;
     void**                 scratch;
     u8*                    head;

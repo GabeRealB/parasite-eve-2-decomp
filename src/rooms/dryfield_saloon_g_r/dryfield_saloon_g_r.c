@@ -55,9 +55,9 @@ extern s16 D_dryfield_saloon_g_r_8017ED84[];
 
 void func_dryfield_saloon_g_r_8017D9CC(Task* task);
 void func_dryfield_saloon_g_r_8017DA10(Task* task);
-void func_dryfield_saloon_g_r_8017DBB4(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
-void func_dryfield_saloon_g_r_8017DEC4(GsCOORDINATE2* coord);
-void func_dryfield_saloon_g_r_8017E430(GsCOORDINATE2* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
+void func_dryfield_saloon_g_r_8017DBB4(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
+void func_dryfield_saloon_g_r_8017DEC4(GpCoord* coord);
+void func_dryfield_saloon_g_r_8017E430(GpCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
 
 /// Event gate for the room's exit. Returns 1 when game-flag nibble
 /// `req->flagId` already reads set (clear, for a negative id). Otherwise, when
@@ -258,9 +258,9 @@ void func_dryfield_saloon_g_r_8017DA18(Task* task)
 /// and the beam from position 13 to position 12.
 void func_dryfield_saloon_g_r_8017DA70(Task* arg0)
 {
-    GsCOORDINATE2* coord;
-    s32            mask;
-    s32            i;
+    GpCoord* coord;
+    s32      mask;
+    s32      i;
 
     coord = arg0->extra.tmd->coords;
     mask  = 1 << gGameSession->at4.loc.view;
@@ -294,7 +294,7 @@ void func_dryfield_saloon_g_r_8017DA70(Task* arg0)
 /// `(arg2 & 0x3F) | 0x4380`. `arg3` is a half-extent: the square reaches
 /// `(s16)arg3 * 39 / otz` from the projected centre in each direction. The
 /// flat colour is 0x20 or 0x30 on the parity of `gDisplayState.animFrame`.
-void func_dryfield_saloon_g_r_8017DBB4(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
+void func_dryfield_saloon_g_r_8017DBB4(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
 {
     void**             scratch;
     u8*                head;
@@ -385,7 +385,7 @@ void func_dryfield_saloon_g_r_8017DBB4(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 a
 /// `gDisplayState.animFrame` and the tips are black, so the shaft fades
 /// outward. The quad is sorted by `tipB`'s `otz` and skipped when that is
 /// below 0x11.
-void func_dryfield_saloon_g_r_8017DEC4(GsCOORDINATE2* coord)
+void func_dryfield_saloon_g_r_8017DEC4(GpCoord* coord)
 {
     u8*                    head;
     RoomLightShaftScratch* block;
@@ -498,7 +498,7 @@ void func_dryfield_saloon_g_r_8017DEC4(GsCOORDINATE2* coord)
 /// or 0x30 on the parity of `gDisplayState.animFrame`, rim vertices are black.
 /// Each primitive goes into the OT bucket of its own end's `otz` with a
 /// `Gp_AddTpageShift` tpage.
-void func_dryfield_saloon_g_r_8017E430(GsCOORDINATE2* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
+void func_dryfield_saloon_g_r_8017E430(GpCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
     u8*                head;
     RoomDraw24Scratch* block;

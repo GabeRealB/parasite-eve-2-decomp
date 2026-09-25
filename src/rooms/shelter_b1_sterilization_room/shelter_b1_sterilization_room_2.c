@@ -29,7 +29,7 @@ extern SVECTOR D_shelter_b1_sterilization_room_80189334[];
 
 extern void func_800E8634(s32 arg0, s32 arg1, s32 arg2);
 
-void func_shelter_b1_sterilization_room_801826F0(GsCOORDINATE2* coord, s16 frame, s16 arg2, s16 arg3);
+void func_shelter_b1_sterilization_room_801826F0(GpCoord* coord, s16 frame, s16 arg2, s16 arg3);
 
 void func_shelter_b1_sterilization_room_801813A0(Task* arg0)
 {
@@ -212,7 +212,7 @@ void func_shelter_b1_sterilization_room_801817EC(Task* task)
 /// cannot bound and the radius keeps its `s16` sign extension.
 void func_shelter_b1_sterilization_room_8018188C(Task* task)
 {
-    GsCOORDINATE2* coord;
+    GpCoord* coord;
 
     s32 angle;
     s32 i;
@@ -481,10 +481,10 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
 /// and the task is released once ten frames have passed.
 void func_shelter_b1_sterilization_room_801823D8(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    SVECTOR*       vec;
-    s32            base;
+    GpEffWork* work;
+    GpCoord*   coord;
+    SVECTOR*   vec;
+    s32        base;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -531,7 +531,7 @@ void func_shelter_b1_sterilization_room_801823D8(Task* task)
 /// `POLY_FT4` (tpage 0x2B, clut 0x43D0) rotated about the projected point.
 /// `frame` picks a 48x48 cell from a 5-column sheet; the half-extent is
 /// `arg2 * 47 / otz` and `arg3` is the spin angle.
-void func_shelter_b1_sterilization_room_801826F0(GsCOORDINATE2* coord, s16 frame, s16 arg2, s16 arg3)
+void func_shelter_b1_sterilization_room_801826F0(GpCoord* coord, s16 frame, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;

@@ -57,10 +57,10 @@ void func_shelter_1f_parking_garage_8017DE9C(Task* task);
 void func_shelter_1f_parking_garage_8017DF04(Task* task);
 void func_shelter_1f_parking_garage_8017E080(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_shelter_1f_parking_garage_8017E868(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_1f_parking_garage_8017EEB0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_1f_parking_garage_8017F2DC(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
-void func_shelter_1f_parking_garage_8017FB60(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
-void func_shelter_1f_parking_garage_801801E0(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
+void func_shelter_1f_parking_garage_8017EEB0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_shelter_1f_parking_garage_8017F2DC(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_shelter_1f_parking_garage_8017FB60(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+void func_shelter_1f_parking_garage_801801E0(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// Starts `event` for the outgoing message `dst` unless its flag says it has
 /// already happened (answering 1). Otherwise answers 2, and - unless
@@ -695,9 +695,9 @@ void func_shelter_1f_parking_garage_8017E868(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// is non-zero it draws nothing.
 void func_shelter_1f_parking_garage_8017EC0C(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    u8             rgb[3];
+    GpEffWork* work;
+    GpCoord*   coord;
+    u8         rgb[3];
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -760,7 +760,7 @@ void func_shelter_1f_parking_garage_8017EC0C(Task* task)
 /// error. The ring runs from half-extent `arg1`, where it is black, to
 /// `arg1 + arg2`, where it takes the colour `rgb`; each is scaled on screen
 /// as `(s16)extent * 64 / (otz + 1)`.
-void func_shelter_1f_parking_garage_8017EEB0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_shelter_1f_parking_garage_8017EEB0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -851,7 +851,7 @@ void func_shelter_1f_parking_garage_8017EEB0(GsCOORDINATE2* arg0, s32 arg1, s32 
 /// error. `arg1` is the half-extent (the on-screen radius is
 /// `(s16)arg1 * 64 / (otz + 1)`); the centre takes the colour `rgb` and the
 /// rim is black.
-void func_shelter_1f_parking_garage_8017F2DC(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_shelter_1f_parking_garage_8017F2DC(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     RoomDraw04Scratch* block;
     POLY_G4*           prim;
@@ -927,7 +927,7 @@ void func_shelter_1f_parking_garage_8017F2DC(GsCOORDINATE2* arg0, s32 arg1, u8* 
 }
 
 /// Task drawing a pair of trails behind two points of its object. State 0
-/// allocates sixteen `GsCOORDINATE2`s, eight per trail, and seeds them all
+/// allocates sixteen `GpCoord`s, eight per trail, and seeds them all
 /// with the two heads' positions so each trail starts collapsed. State 1
 /// overwrites one slot of each trail a frame, cycling through the eight,
 /// and draws the band between the trails; the task releases its
@@ -935,15 +935,15 @@ void func_shelter_1f_parking_garage_8017F2DC(GsCOORDINATE2* arg0, s32 arg1, u8* 
 /// `Gp_State1C->eventState` is 2 or more.
 void func_shelter_1f_parking_garage_8017F670(Task* task)
 {
-    GsCOORDINATE2  coord;
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* objCoord;
-    GsCOORDINATE2* dst;
-    GpEffWork*     work;
-    SVECTOR*       vec;
-    s32            i;
+    GpCoord    coord;
+    GpCoord*   coords;
+    GpCoord*   objCoord;
+    GpCoord*   dst;
+    GpEffWork* work;
+    SVECTOR*   vec;
+    s32        i;
 
-    coords   = (GsCOORDINATE2*)task->work;
+    coords   = (GpCoord*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
     objCoord = task->extra.tmd->coords;
 
@@ -951,7 +951,7 @@ void func_shelter_1f_parking_garage_8017F670(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GsCOORDINATE2*)memCalloc(0x500, 0);
+                coords = (GpCoord*)memCalloc(0x500, 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
@@ -1032,11 +1032,11 @@ void func_shelter_1f_parking_garage_8017F670(Task* task)
 /// its length. `arg3` is the colour, a multiplier at bits 8 and up and
 /// two-bit ones at bits 4 and 0. A quad is dropped when the GTE flags an
 /// error.
-void func_shelter_1f_parking_garage_8017FB60(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3)
+void func_shelter_1f_parking_garage_8017FB60(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GsCOORDINATE2*     a;
-    GsCOORDINATE2*     b;
+    GpCoord*           a;
+    GpCoord*           b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -1145,9 +1145,9 @@ void func_shelter_1f_parking_garage_8017FB60(GsCOORDINATE2* arg0, GsCOORDINATE2*
 /// state is non-zero it does nothing else.
 void func_shelter_1f_parking_garage_8017FF58(Task* task)
 {
-    GsCOORDINATE2* objCoord;
-    GpEffWork*     work;
-    u8             rgb[4];
+    GpCoord*   objCoord;
+    GpEffWork* work;
+    u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
@@ -1217,7 +1217,7 @@ void func_shelter_1f_parking_garage_8017FF58(Task* task)
 /// half the colour `arg2`, one at half that radius in the full colour - sit
 /// under four spikes reaching out to one and two times the radius. Every
 /// wedge is lit at the centre and black at its tips.
-void func_shelter_1f_parking_garage_801801E0(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_shelter_1f_parking_garage_801801E0(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");

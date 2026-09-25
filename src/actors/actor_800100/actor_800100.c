@@ -59,14 +59,14 @@ typedef struct _Actor800100Beam {
 STATIC_ASSERT_SIZEOF(Actor800100Beam, 0x38);
 
 /// 0x5C-byte block from `G_SCRATCH_HEAD` used by
-/// `func_actor_800100_80166514`: the `GsCOORDINATE2` it hands to
+/// `func_actor_800100_80166514`: the `GpCoord` it hands to
 /// `Gp_PlaceCoordOffset` / `func_actor_800100_801668C0`, the `rot` offset
 /// applied to it, and the angle `func_actor_800100_8016709C` returns.
 typedef struct _Actor800100PlaceScratch {
-    /* 0x00 */ GsCOORDINATE2 coord;
-    /* 0x50 */ SVECTOR       rot;
-    /* 0x58 */ u16           angle;
-    /* 0x5A */ byte          pad_5A[2];
+    /* 0x00 */ GpCoord coord;
+    /* 0x50 */ SVECTOR rot;
+    /* 0x58 */ u16     angle;
+    /* 0x5A */ byte    pad_5A[2];
 } Actor800100PlaceScratch;
 STATIC_ASSERT_SIZEOF(Actor800100PlaceScratch, 0x5C);
 
@@ -190,22 +190,22 @@ void func_actor_800100_80165C38(Task* arg0);
 void func_actor_800100_80165DE8(Task* arg0);
 void func_actor_800100_80165F50(Task* arg0);
 void func_actor_800100_80166190(Task* arg0);
-void func_actor_800100_8016666C(GsCOORDINATE2* arg0, s16 arg1);
-void func_actor_800100_801668C0(GsCOORDINATE2* arg0);
-s32  func_actor_800100_80166B40(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2);
+void func_actor_800100_8016666C(GpCoord* arg0, s16 arg1);
+void func_actor_800100_801668C0(GpCoord* arg0);
+s32  func_actor_800100_80166B40(GpRec18* arg0, GpCoord* arg1, GpCoord* arg2);
 void func_actor_800100_80166DD0(Task* arg0);
 void func_actor_800100_80166DF0(Task* arg0);
 void func_actor_800100_80166E14(Task* arg0);
 void func_actor_800100_80166E94(Task* arg0, s32 arg1);
 void func_actor_800100_80166EE8(Task* arg0);
-s32  func_actor_800100_8016709C(GsCOORDINATE2* arg0, GpRec18* arg1, GpRec18* arg2);
+s32  func_actor_800100_8016709C(GpCoord* arg0, GpRec18* arg1, GpRec18* arg2);
 
-s32  func_8010BC70(GsCOORDINATE2* arg0);
+s32  func_8010BC70(GpCoord* arg0);
 s32  func_8010BCF4(Task* arg0, VECTOR3* arg1);
 void func_8010BD88(Task* arg0, VECTOR3* arg1);
 void func_8010BE5C(Task* arg0, VECTOR3* arg1);
 s32  func_80105ED4(Task* arg0);
-void Gp_PlaceCoordOffset(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2);
+void Gp_PlaceCoordOffset(GpCoord* arg0, GpCoord* arg1, SVECTOR* arg2);
 s32  rand();
 
 void Gp_PlayerMode2State0(Task* arg0);
@@ -241,14 +241,14 @@ extern u8  D_actor_800100_80167310[];
 /// `age` back down instead of advancing.
 void func_actor_800100_80161F20(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    GpCoord64*     base;
-    GpPointLight*  slot;
-    GsCOORDINATE2* light;
-    GpMtxWords*    rot;
-    GpEffWork*     eff;
-    u32            ang;
+    GpEffWork*    work;
+    GpCoord*      coord;
+    GpCoord64*    base;
+    GpPointLight* slot;
+    GpCoord*      light;
+    GpMtxWords*   rot;
+    GpEffWork*    eff;
+    u32           ang;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -436,10 +436,10 @@ void func_actor_800100_80162264(VECTOR3* pos, u16 frame, s32 brightness)
 /// - State 2 keeps falling at four times the speed until the same 0x15.
 void func_actor_800100_801624F0(Task* task)
 {
-    GsCOORDINATE2    ground;
+    GpCoord          ground;
     SVECTOR          after;
     SVECTOR          before;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     GpEffWork*       work;
     Actor800100Beam* beam;
     s32              fade;
@@ -723,22 +723,22 @@ void func_actor_800100_801631C8(Task* arg0)
 
 void func_actor_800100_80163214(Task* arg0)
 {
-    GameActor*     actor;
-    TmdObject*     extra;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* next;
-    GsCOORDINATE2* third;
-    McSaveData*    save;
-    GpRec18*       recs;
-    GpObj*         obj;
-    GpActorD4*     d4;
-    GpEffWork*     eff;
-    Task*          task;
-    SVECTOR3*      scratch;
-    s32            idx;
-    s32            packed;
-    u8             saved;
-    void*          head;
+    GameActor*  actor;
+    TmdObject*  extra;
+    GpCoord*    coord;
+    GpCoord*    next;
+    GpCoord*    third;
+    McSaveData* save;
+    GpRec18*    recs;
+    GpObj*      obj;
+    GpActorD4*  d4;
+    GpEffWork*  eff;
+    Task*       task;
+    SVECTOR3*   scratch;
+    s32         idx;
+    s32         packed;
+    u8          saved;
+    void*       head;
 
     actor              = arg0->work;
     head               = SCRATCH_HEAD(void);
@@ -861,8 +861,8 @@ void func_actor_800100_801635F4(Task* arg0)
     GameActor*                actor;
     TmdObject*                work;
     TmdObject*                extra;
-    GsCOORDINATE2*            coord;
-    GsCOORDINATE2*            ground;
+    GpCoord*                  coord;
+    GpCoord*                  ground;
     GpActorD4*                d4;
     Task*                     task;
     GpObj*                    objs[2];
@@ -898,9 +898,9 @@ void func_actor_800100_801635F4(Task* arg0)
 
     task = actor->field_91C;
     if (task != NULL) {
-        *(GsCOORDINATE2*)actor->field_3D4 =
+        *(GpCoord*)actor->field_3D4 =
             *task->extra.tmd->coords;
-        Gfx_RotMatrixX(&((GsCOORDINATE2*)actor->field_3D4)->workm, -0x400, 0);
+        Gfx_RotMatrixX(&((GpCoord*)actor->field_3D4)->workm, -0x400, 0);
     }
 
     d4->coord = *arg0->extra.tmd->coords;
@@ -1103,13 +1103,13 @@ void func_actor_800100_80163CF0(Task* task)
 
 void func_actor_800100_80163D54(Task* arg0)
 {
-    GameActor*     actor;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* target;
-    s32            flag;
-    s32            dist;
-    s32            val;
-    s16            count;
+    GameActor* actor;
+    GpCoord*   coord;
+    GpCoord*   target;
+    s32        flag;
+    s32        dist;
+    s32        val;
+    s16        count;
 
     actor  = arg0->work;
     coord  = arg0->extra.tmd->coords;
@@ -1181,7 +1181,7 @@ void func_actor_800100_80163F04(Task* arg0)
     SVECTOR         sp48;
     GameActor*      actor;
     GpActorD4*      d4;
-    GsCOORDINATE2*  coord;
+    GpCoord*        coord;
     s16             temp;
     s16             rem;
     s32             pan;
@@ -1245,15 +1245,15 @@ void func_actor_800100_80163F04(Task* arg0)
 /// `func_8010BD88` and `func_8010BE5C`.
 void func_actor_800100_80164184(Task* arg0)
 {
-    GameActor*     actor;
-    GpActorD4*     d4;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* target;
-    s32            flag;
-    s32            dist;
-    s32            r;
-    s32            arg;
-    u16            timer;
+    GameActor* actor;
+    GpActorD4* d4;
+    GpCoord*   coord;
+    GpCoord*   target;
+    s32        flag;
+    s32        dist;
+    s32        r;
+    s32        arg;
+    u16        timer;
 
     coord  = arg0->extra.tmd->coords;
     target = (gameGetPtrSlot(3))->extra.tmd->coords;
@@ -1334,16 +1334,16 @@ done:
 /// resets the actor's move once the aim is close enough.
 void func_actor_800100_801643F4(Task* arg0)
 {
-    void**         scratch;
-    VECTOR*        head;
-    VECTOR3*       pos;
-    GameActor*     actor;
-    GpLinkNode*    node;
-    TmdObject*     extra;
-    GsCOORDINATE2* src;
-    s32            val;
-    s32            arg;
-    s32            flag;
+    void**      scratch;
+    VECTOR*     head;
+    VECTOR3*    pos;
+    GameActor*  actor;
+    GpLinkNode* node;
+    TmdObject*  extra;
+    GpCoord*    src;
+    s32         val;
+    s32         arg;
+    s32         flag;
 
     actor                            = arg0->work;
     extra                            = (gameGetPtrSlot(3))->extra.tmd;
@@ -1472,7 +1472,7 @@ void func_actor_800100_80164710(Task* arg0)
     GpActorD4*              d4;
     GpLinkNode*             node;
     GpLinkNode*             lock;
-    GsCOORDINATE2*          coord;
+    GpCoord*                coord;
     Actor800100LockScratch* scratch;
     Actor800100LockScratch* head;
     void**                  scratchHead;
@@ -1550,19 +1550,19 @@ void func_actor_800100_80164710(Task* arg0)
 /// counter resets the state to slot 9.
 void func_actor_800100_80164940(Task* arg0)
 {
-    void**         scratch;
-    VECTOR*        head;
-    VECTOR3*       pos;
-    GameActor*     actor;
-    GsCOORDINATE2* coord;
-    GpActorD4*     d4;
-    u16            old;
-    s16            angle;
-    s32            flag;
-    s32            arg;
-    s32            val;
-    s32            count;
-    s32            dist;
+    void**     scratch;
+    VECTOR*    head;
+    VECTOR3*   pos;
+    GameActor* actor;
+    GpCoord*   coord;
+    GpActorD4* d4;
+    u16        old;
+    s16        angle;
+    s32        flag;
+    s32        arg;
+    s32        val;
+    s32        count;
+    s32        dist;
 
     scratch                          = SCRATCH_HEAD_ADDR;
     head                             = SCRATCH_HEAD_AT(scratch, VECTOR);
@@ -1660,8 +1660,8 @@ void func_actor_800100_80164B9C(Task* arg0)
     GameActor*              actor2;
     GameActor*              actor3;
     GpActorD4*              d4;
-    GsCOORDINATE2*          coord;
-    GsCOORDINATE2*          target;
+    GpCoord*                coord;
+    GpCoord*                target;
     Actor800100LockScratch* block;
     GpLinkNode*             node;
     void**                  scratch;
@@ -1754,12 +1754,12 @@ tail:
 
 void func_actor_800100_80164E60(Task* arg0)
 {
-    GameActor*     actor;
-    GameActor*     target;
-    GpActorD4*     d4;
-    GpAnimRec*     rec;
-    GsCOORDINATE2* coord;
-    s16            sel;
+    GameActor* actor;
+    GameActor* target;
+    GpActorD4* d4;
+    GpAnimRec* rec;
+    GpCoord*   coord;
+    s16        sel;
 
     actor = arg0->work;
     d4    = actor->field_910;
@@ -1819,20 +1819,20 @@ void func_actor_800100_80164E60(Task* arg0)
 
 void func_actor_800100_80165010(Task* arg0)
 {
-    GameActor*     actor;
-    GpActorD4*     d4;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* target;
-    s32            dist;
-    u32            rng;
-    s32            arg;
-    s32            slot;
-    s32            diff;
-    s32            flag;
-    s32            turn;
-    s32            state;
-    s32            heading;
-    u16            angle;
+    GameActor* actor;
+    GpActorD4* d4;
+    GpCoord*   coord;
+    GpCoord*   target;
+    s32        dist;
+    u32        rng;
+    s32        arg;
+    s32        slot;
+    s32        diff;
+    s32        flag;
+    s32        turn;
+    s32        state;
+    s32        heading;
+    u16        angle;
 
     coord  = arg0->extra.tmd->coords;
     target = ((Task*)gameGetPtrSlot(3))->extra.tmd->coords;
@@ -2232,19 +2232,19 @@ void func_actor_800100_80165930(Task* arg0)
 
 void func_actor_800100_801659EC(Task* arg0)
 {
-    GameActor*     actor;
-    GpActorD4*     d4;
-    GpLinkNode*    node;
-    GsCOORDINATE2* coord;
-    VECTOR3*       lock;
-    VECTOR*        head;
-    s32            entry;
-    s32            offset;
-    s32            kind;
-    s32            angle;
-    s32            index;
-    s32            inRange;
-    s32            mode;
+    GameActor*  actor;
+    GpActorD4*  d4;
+    GpLinkNode* node;
+    GpCoord*    coord;
+    VECTOR3*    lock;
+    VECTOR*     head;
+    s32         entry;
+    s32         offset;
+    s32         kind;
+    s32         angle;
+    s32         index;
+    s32         inRange;
+    s32         mode;
 
     head                  = SCRATCH_HEAD(VECTOR);
     lock                  = (VECTOR3*)(head - 1);
@@ -2321,14 +2321,14 @@ void func_actor_800100_801659EC(Task* arg0)
 
 void func_actor_800100_80165C38(Task* arg0)
 {
-    GameActor*     actor;
-    GpActorD4*     d4;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* place;
-    u16            state;
+    GameActor* actor;
+    GpActorD4* d4;
+    GpCoord*   coord;
+    GpCoord*   place;
+    u16        state;
 
-    place                       = (GsCOORDINATE2*)((u8*)SCRATCH_HEAD(void) - 0x50);
-    SCRATCH_HEAD(GsCOORDINATE2) = place;
+    place                 = (GpCoord*)((u8*)SCRATCH_HEAD(void) - 0x50);
+    SCRATCH_HEAD(GpCoord) = place;
 
     actor = arg0->work;
     d4    = actor->field_910;
@@ -2371,10 +2371,10 @@ void func_actor_800100_80165C38(Task* arg0)
 
 void func_actor_800100_80165DE8(Task* arg0)
 {
-    GameActor*     actor;
-    GpActorD4*     d4;
-    u16            state;
-    GsCOORDINATE2* coord;
+    GameActor* actor;
+    GpActorD4* d4;
+    u16        state;
+    GpCoord*   coord;
 
     actor = arg0->work;
     d4    = actor->field_910;
@@ -2421,18 +2421,18 @@ const TaskFuncTable5 D_actor_800100_80161EC8 = { {
 
 void func_actor_800100_80165F50(Task* arg0)
 {
-    GameActor*     actor;
-    GpActorD4*     d4;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* place;
-    u16            state;
-    void**         scratch;
-    GsCOORDINATE2* head;
+    GameActor* actor;
+    GpActorD4* d4;
+    GpCoord*   coord;
+    GpCoord*   place;
+    u16        state;
+    void**     scratch;
+    GpCoord*   head;
 
-    scratch                                 = SCRATCH_HEAD_ADDR;
-    head                                    = SCRATCH_HEAD_AT(scratch, GsCOORDINATE2);
-    SCRATCH_HEAD_AT(scratch, GsCOORDINATE2) = head - 1;
-    place                                   = head - 1;
+    scratch                           = SCRATCH_HEAD_ADDR;
+    head                              = SCRATCH_HEAD_AT(scratch, GpCoord);
+    SCRATCH_HEAD_AT(scratch, GpCoord) = head - 1;
+    place                             = head - 1;
 
     actor = arg0->work;
     d4    = actor->field_910;
@@ -2489,23 +2489,23 @@ void func_actor_800100_80165F50(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP(GsCOORDINATE2);
+    SCRATCH_POP(GpCoord);
 }
 
 void func_actor_800100_80166190(Task* arg0)
 {
-    void**         scratch;
-    GsCOORDINATE2* head;
-    GameActor*     actor;
-    GpActorD4*     d4;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* place;
-    u16            state;
+    void**     scratch;
+    GpCoord*   head;
+    GameActor* actor;
+    GpActorD4* d4;
+    GpCoord*   coord;
+    GpCoord*   place;
+    u16        state;
 
-    scratch                                 = SCRATCH_HEAD_ADDR;
-    head                                    = SCRATCH_HEAD_AT(scratch, GsCOORDINATE2);
-    SCRATCH_HEAD_AT(scratch, GsCOORDINATE2) = head - 1;
-    place                                   = head - 1;
+    scratch                           = SCRATCH_HEAD_ADDR;
+    head                              = SCRATCH_HEAD_AT(scratch, GpCoord);
+    SCRATCH_HEAD_AT(scratch, GpCoord) = head - 1;
+    place                             = head - 1;
 
     actor = arg0->work;
     d4    = actor->field_910;
@@ -2608,7 +2608,7 @@ void func_actor_800100_80166190(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP(GsCOORDINATE2);
+    SCRATCH_POP(GpCoord);
 }
 
 void func_actor_800100_80166514(Task* arg0)
@@ -2616,8 +2616,8 @@ void func_actor_800100_80166514(Task* arg0)
     void**                   scratch;
     Actor800100PlaceScratch* head;
     GameActor*               actor;
-    GsCOORDINATE2            sp10;
-    GsCOORDINATE2*           src;
+    GpCoord                  sp10;
+    GpCoord*                 src;
     GpObj*                   obj;
     Actor800100PlaceScratch* blk;
     s16                      angle;
@@ -2657,7 +2657,7 @@ void func_actor_800100_80166514(Task* arg0)
    The post-`rcos` reads go through `newhead` for the same reason - naming `blk`
    there would keep the copy live across the call - and the two `sxy0` reads are
    spelled off `head`, whose folded address is the one the ROM uses. */
-void func_actor_800100_8016666C(GsCOORDINATE2* arg0, s16 arg1)
+void func_actor_800100_8016666C(GpCoord* arg0, s16 arg1)
 {
     void**                  scratch;
     u8*                     head;
@@ -2739,7 +2739,7 @@ const Actor800100QuadCorner D_actor_800100_80161F10[4] = {
    chained assignment: the ROM keeps the allocated pointer as a copy of the
    store's temporary in `$t1`, and splitting the two into separate statements
    drops that copy. */
-void func_actor_800100_801668C0(GsCOORDINATE2* arg0)
+void func_actor_800100_801668C0(GpCoord* arg0)
 {
     void**                  scratch;
     Actor800100QuadScratch* blk;
@@ -2804,7 +2804,7 @@ void func_actor_800100_801668C0(GsCOORDINATE2* arg0)
     SCRATCH_POP_BYTES(sizeof(Actor800100QuadScratch));
 }
 
-s32 func_actor_800100_80166B40(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2)
+s32 func_actor_800100_80166B40(GpRec18* arg0, GpCoord* arg1, GpCoord* arg2)
 {
     s32 minDist;
 
@@ -2893,7 +2893,7 @@ s32 func_actor_800100_80166B40(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2
                 arg2->workm.t[1] = block->t[1] + block->offset.vy;
                 arg2->workm.t[2] = block->t[2] + block->offset.vz;
             }
-            Gp_SpawnEff(0x6003B, (GsCOORDINATE2*)&block->flg, 0, &block->offset);
+            Gp_SpawnEff(0x6003B, (GpCoord*)&block->flg, 0, &block->offset);
         } else {
             i = 0;
         }
@@ -2968,21 +2968,21 @@ void func_actor_800100_80166EE8(Task* arg0)
 
 void func_actor_800100_80166F50(Task* arg0)
 {
-    GameActor*     actor;
-    GpObj*         obj;
-    GpActorD4Rec*  rec;
-    GsCOORDINATE2* src;
-    Task*          task;
+    GameActor*    actor;
+    GpObj*        obj;
+    GpActorD4Rec* rec;
+    GpCoord*      src;
+    Task*         task;
 
     actor = arg0->work;
     task  = actor->field_91C;
     if (task != NULL) {
-        obj                               = (GpObj*)actor->field_12C;
-        rec                               = (GpActorD4Rec*)actor->pad_164;
-        src                               = task->extra.tmd->coords;
-        *(GsCOORDINATE2*)actor->field_3D4 = *src;
-        Gfx_RotMatrixX(&((GsCOORDINATE2*)actor->field_3D4)->workm, 0x400, 0);
-        obj->coord      = (GsCOORDINATE2*)actor->field_3D4;
+        obj                         = (GpObj*)actor->field_12C;
+        rec                         = (GpActorD4Rec*)actor->pad_164;
+        src                         = task->extra.tmd->coords;
+        *(GpCoord*)actor->field_3D4 = *src;
+        Gfx_RotMatrixX(&((GpCoord*)actor->field_3D4)->workm, 0x400, 0);
+        obj->coord      = (GpCoord*)actor->field_3D4;
         obj->ctx.d4rec  = (GpActorD4Rec*)actor->pad_164;
         obj->key        = 0x60000;
         obj->flags      = 3;
@@ -3004,7 +3004,7 @@ void func_actor_800100_80166F50(Task* arg0)
     }
 }
 
-s32 func_actor_800100_8016709C(GsCOORDINATE2* arg0, GpRec18* arg1, GpRec18* arg2)
+s32 func_actor_800100_8016709C(GpCoord* arg0, GpRec18* arg1, GpRec18* arg2)
 {
     s32 ret;
 

@@ -33,14 +33,14 @@ void func_m4a1_grenade_8011DE24(Task* task);
 /// clip is done or the recoil timer has run out.
 void func_m4a1_grenade_8011D1EC(Task* arg0)
 {
-    GameActor*     actor;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* spot;
-    GpAnimRec*     rec;
-    GpItemSlot*    slot;
-    s32            anim;
-    s32            delay;
-    s32            sfx;
+    GameActor*  actor;
+    GpCoord*    coord;
+    GpCoord*    spot;
+    GpAnimRec*  rec;
+    GpItemSlot* slot;
+    s32         anim;
+    s32         delay;
+    s32         sfx;
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -50,7 +50,7 @@ void func_m4a1_grenade_8011D1EC(Task* arg0)
        `G_SCRATCH_HEAD` that CSE folds back onto it, which is what keeps the
        two uses in separate registers. */
     SCRATCH_PUSH_BYTES(0x50);
-    spot = SCRATCH_HEAD(GsCOORDINATE2);
+    spot = SCRATCH_HEAD(GpCoord);
     sfx  = slot->attachId - 0x9F;
     if (sfx < 0) {
         sfx = 0xA;
@@ -170,8 +170,8 @@ void func_m4a1_grenade_8011D654(Task* arg0)
     SVECTOR*           vec;
     MATRIX*            mtx;
     TmdObject*         extra;
-    GsCOORDINATE2*     coord;
-    GsCOORDINATE2*     muzzle;
+    GpCoord*           coord;
+    GpCoord*           muzzle;
     WeaponGrenadeWork* work;
 
     extra                 = arg0->extra.tmd;
@@ -260,7 +260,7 @@ void func_m4a1_grenade_8011D994(Task* arg0)
 {
     M4a1GrenadeScratch* blk;
     WeaponGrenadeWork*  work;
-    GsCOORDINATE2*      coord;
+    GpCoord*            coord;
     GpItemSlot*         slot;
     GpRec18*            rec;
     GpRoomParamRec*     param;

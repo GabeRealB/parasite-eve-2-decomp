@@ -26,11 +26,11 @@ extern s32 D_80115730;
 /// argument.
 extern RoomHaloShade D_shelter_b1_control_room_access_tunnel_80181EF4[];
 
-void func_shelter_b1_control_room_access_tunnel_801809E8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_shelter_b1_control_room_access_tunnel_80180C6C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b1_control_room_access_tunnel_80181090(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
-void func_shelter_b1_control_room_access_tunnel_801815D0(GsCOORDINATE2* coord, s16 size);
-void func_shelter_b1_control_room_access_tunnel_80181AFC(GsCOORDINATE2* arg0, s32 arg1);
+void func_shelter_b1_control_room_access_tunnel_801809E8(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_shelter_b1_control_room_access_tunnel_80180C6C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_shelter_b1_control_room_access_tunnel_80181090(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_shelter_b1_control_room_access_tunnel_801815D0(GpCoord* coord, s16 size);
+void func_shelter_b1_control_room_access_tunnel_80181AFC(GpCoord* arg0, s32 arg1);
 
 /// Glowing disc anchored to its parent at the work block's position. State 1
 /// grows the disc and, every fourth tick, spawns the effect `D_80115730` names
@@ -42,11 +42,11 @@ void func_shelter_b1_control_room_access_tunnel_80181AFC(GsCOORDINATE2* arg0, s3
 /// block is released once that state reaches 4.
 void func_shelter_b1_control_room_access_tunnel_8018026C(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpEffWork*     spawned;
-    MATRIX*        mtx;
-    u8             col[4];
+    GpEffWork* mem;
+    GpCoord*   coord;
+    GpEffWork* spawned;
+    MATRIX*    mtx;
+    u8         col[4];
 
     mem   = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
@@ -157,14 +157,14 @@ void func_shelter_b1_control_room_access_tunnel_8018026C(Task* arg0)
 /// is released at tick 20, or once the room's event state reaches 4.
 void func_shelter_b1_control_room_access_tunnel_801807C4(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* target;
-    VECTOR         delta;
+    GpEffWork* work;
+    GpCoord*   coord;
+    GpCoord*   target;
+    VECTOR     delta;
 
     work   = task->spawnArg2;
     coord  = task->extra.tmd->coords;
-    target = (GsCOORDINATE2*)task->spawnArg1;
+    target = (GpCoord*)task->spawnArg1;
     if (Gp_State1C->eventState == 0) {
         work->age++;
         switch (task->state) {
@@ -209,7 +209,7 @@ void func_shelter_b1_control_room_access_tunnel_801807C4(Task* task)
 /// the GTE flags an error, queues one semi-transparent textured square centred
 /// on it, of half-size `arg2 * 23 / (otz + 1)`. `arg1` picks one of four
 /// 24-texel animation cells and `arg3` is the grey level.
-void func_shelter_b1_control_room_access_tunnel_801809E8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
+void func_shelter_b1_control_room_access_tunnel_801809E8(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -291,7 +291,7 @@ void func_shelter_b1_control_room_access_tunnel_801809E8(GsCOORDINATE2* arg0, s3
 /// over a scratch block laid out differently: black at radius
 /// `arg1 * 64 / (otz + 1)`, shading to `rgb` at radius
 /// `(arg1 + arg2) * 64 / (otz + 1)`, drawn unless the GTE flags an error.
-void func_shelter_b1_control_room_access_tunnel_80180C6C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_shelter_b1_control_room_access_tunnel_80180C6C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     GpArcScratch*   block;
     POLY_G4*        prim;
@@ -383,7 +383,7 @@ void func_shelter_b1_control_room_access_tunnel_80180C6C(GsCOORDINATE2* arg0, s3
 /// over a scratch block laid out differently: unless the GTE flags an error,
 /// eight gouraud `POLY_G4` wedges of radius `arg1 * 64 / (otz + 1)`, coloured
 /// `rgb` at the centre and black at the rim.
-void func_shelter_b1_control_room_access_tunnel_80181090(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_shelter_b1_control_room_access_tunnel_80181090(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     void**         scratch;
     u8*            head;
@@ -457,10 +457,10 @@ void func_shelter_b1_control_room_access_tunnel_80181090(GsCOORDINATE2* arg0, s3
 /// 0x18, or once the room's event state reaches 4.
 void func_shelter_b1_control_room_access_tunnel_80181424(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    u8             sp10[3];
-    u16            temp;
+    GpEffWork* work;
+    GpCoord*   coord;
+    u8         sp10[3];
+    u16        temp;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -510,9 +510,9 @@ void func_shelter_b1_control_room_access_tunnel_80181424(Task* task)
 /// 0x37 / otz), plus the flat sprite on the ground beneath it when a floor is
 /// found. Also points the `Gp_RoomCoords[2]` light at the coordinate with a
 /// flickering intensity. Nothing is drawn when the GTE flags the projection.
-void func_shelter_b1_control_room_access_tunnel_801815D0(GsCOORDINATE2* coord, s16 size)
+void func_shelter_b1_control_room_access_tunnel_801815D0(GpCoord* coord, s16 size)
 {
-    GsCOORDINATE2  ground;
+    GpCoord        ground;
     POLY_FT4*      prim;
     s16            outerLeft;
     s16            outerRight;
@@ -641,7 +641,7 @@ void func_shelter_b1_control_room_access_tunnel_801815D0(GsCOORDINATE2* coord, s
 /// Unless the GTE flags an error, one semi-transparent `POLY_FT4` is queued,
 /// its texture alternating between two 32-texel frames on odd and even
 /// frames.
-void func_shelter_b1_control_room_access_tunnel_80181AFC(GsCOORDINATE2* arg0, s32 arg1)
+void func_shelter_b1_control_room_access_tunnel_80181AFC(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;

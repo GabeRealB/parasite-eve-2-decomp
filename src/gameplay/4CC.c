@@ -1152,26 +1152,26 @@ void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
 
 void Gp_ItemPickupTilt(Task* arg0)
 {
-    GameSession*   session;
-    TmdObject*     extra;
-    GpItemObj8*    obj;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* rot;
-    VECTOR         vec;
-    VECTOR         vec2;
-    MATRIX*        mem;
-    GpCmdReply*    done;
-    u32            mapId;
-    s32            room;
-    s32            check;
-    u16            item;
+    GameSession* session;
+    TmdObject*   extra;
+    GpItemObj8*  obj;
+    GpCoord*     coord;
+    GpCoord*     rot;
+    VECTOR       vec;
+    VECTOR       vec2;
+    MATRIX*      mem;
+    GpCmdReply*  done;
+    u32          mapId;
+    s32          room;
+    s32          check;
+    u16          item;
 
     extra   = arg0->extra.tmd;
     obj     = arg0->spawnArg2;
     session = gGameSession;
     mapId   = *(u32*)&session->at4.loc & 0xFFFF00FF;
     item    = obj->field_A;
-    coord   = (GsCOORDINATE2*)extra->coords;
+    coord   = extra->coords;
     rot     = coord + 2;
     room    = *(u8*)&session->at4.loc.view;
     if (Gp_StateF0.field_4 == 2) {

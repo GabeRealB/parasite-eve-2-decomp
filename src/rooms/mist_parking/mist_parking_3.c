@@ -224,9 +224,9 @@ void func_mist_parking_80183A28(Task* task)
 /// be recomputed.
 s32 func_mist_parking_80183AC4(Task* task, s32 arg1, GpXformArg* placement, s32 arg3)
 {
-    GpCoordExt* coord;
+    GpCoord* coord;
 
-    coord               = (GpCoordExt*)task->extra.tmd->coords;
+    coord               = task->extra.tmd->coords;
     coord->coord.t[0]   = placement->pos.vx;
     coord->coord.t[1]   = placement->pos.vy;
     coord->coord.t[2]   = placement->pos.vz;

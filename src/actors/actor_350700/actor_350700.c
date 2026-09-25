@@ -132,7 +132,7 @@ void func_actor_350700_80161E88(Task* arg0)
     Actor350500Work* work     = (Actor350500Work*)arg0->work;
     TaskFunc         funcs[2] = { func_actor_350700_801624D0, func_actor_350700_801624D8 };
     VECTOR3          pos;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              i;
 
     funcs[(s16)work->walk.motion](arg0);
@@ -176,7 +176,7 @@ void func_actor_350700_80161E88(Task* arg0)
 void func_actor_350700_80162070(Task* arg0)
 {
     Actor350500Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     SVECTOR          d;
     s32              dx;
     s32              dz;
@@ -369,13 +369,13 @@ void func_actor_350700_801624D8(Task* arg0)
 void func_actor_350700_80162540(Task* task)
 {
     Actor350500Work* work;
-    GpCoordExt*      coord;
+    GpCoord*         coord;
     VECTOR           delta;
     SVECTOR          dir;
     SVECTOR          rot;
 
     work  = (Actor350500Work*)task->work;
-    coord = (GpCoordExt*)task->extra.tmd->coords;
+    coord = task->extra.tmd->coords;
 
     delta.vx = work->walk.target.vx - coord->coord.t[0];
     delta.vy = work->walk.target.vy - coord->coord.t[1];
@@ -407,7 +407,7 @@ void func_actor_350700_80162540(Task* task)
 void func_actor_350700_8016261C(Task* arg0)
 {
     Actor350500Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     VECTOR           vec;
 
     coord = arg0->extra.tmd->coords;
@@ -438,7 +438,7 @@ void func_actor_350700_80162764(Task* arg0)
 {
     Actor350500Work* work;
     GpMtxWords*      words;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     SVECTOR          vec;
     GpAnimArg        preset;
     s32              vy;
@@ -525,9 +525,9 @@ s32 func_actor_350700_80162860(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 /// rotation; clearing `flg` makes the world matrix be recomputed. Returns 0.
 s32 func_actor_350700_80162998(Task* task, s32 msgId, GpXformArg* args)
 {
-    GpCoordExt* coord;
+    GpCoord* coord;
 
-    coord               = (GpCoordExt*)task->extra.tmd->coords;
+    coord               = task->extra.tmd->coords;
     coord->coord.t[0]   = args->pos.vx;
     coord->coord.t[1]   = args->pos.vy;
     coord->coord.t[2]   = args->pos.vz;
@@ -713,7 +713,7 @@ void func_actor_350700_80162D5C(Task* arg0)
     Actor135600Work* work     = (Actor135600Work*)arg0->work;
     TaskFunc         funcs[2] = { func_actor_350700_801633F8, func_actor_350700_80163400 };
     VECTOR3          pos;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              i;
 
     funcs[work->walk.motion](arg0);
@@ -759,7 +759,7 @@ void func_actor_350700_80162D5C(Task* arg0)
 void func_actor_350700_80162F7C(Task* arg0)
 {
     Actor135600Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     SVECTOR          d;
     s32              dx;
     s32              dz;
@@ -873,12 +873,12 @@ void func_actor_350700_80163274(Task* task)
 /// and advances to the next state.
 void func_actor_350700_801632CC(Task* task)
 {
-    Task*          parent;
-    s32            part;
-    TmdObject*     extra;
-    TmdObject*     parentExtra;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* dest;
+    Task*      parent;
+    s32        part;
+    TmdObject* extra;
+    TmdObject* parentExtra;
+    GpCoord*   coord;
+    GpCoord*   dest;
 
     parent          = (Task*)task->spawnArg2;
     part            = task->spawnArg1;
@@ -960,13 +960,13 @@ void func_actor_350700_80163400(Task* task)
 void func_actor_350700_80163468(Task* task)
 {
     Actor135600Work* work;
-    GpCoordExt*      coord;
+    GpCoord*         coord;
     VECTOR           delta;
     SVECTOR          dir;
     SVECTOR          rot;
 
     work  = (Actor135600Work*)task->work;
-    coord = (GpCoordExt*)task->extra.tmd->coords;
+    coord = task->extra.tmd->coords;
 
     delta.vx = work->walk.target.vx - coord->coord.t[0];
     delta.vy = work->walk.target.vy - coord->coord.t[1];
@@ -992,7 +992,7 @@ void func_actor_350700_80163468(Task* task)
 void func_actor_350700_80163528(Task* task)
 {
     Actor135600Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     VECTOR           vec;
 
     coord = task->extra.tmd->coords;
@@ -1017,7 +1017,7 @@ void func_actor_350700_801635A8(Task* arg0)
 {
     Actor135600Work* work;
     GpMtxWords*      words;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     SVECTOR          vec;
     GpAnimArg        preset;
     s32              vy;
@@ -1099,9 +1099,9 @@ s32 func_actor_350700_801636A8(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 /// Returns 0.
 s32 func_actor_350700_801637C4(Task* task, s32 msgId, GpXformArg* args)
 {
-    GpCoordExt* coord;
+    GpCoord* coord;
 
-    coord               = (GpCoordExt*)task->extra.tmd->coords;
+    coord               = task->extra.tmd->coords;
     coord->coord.t[0]   = args->pos.vx;
     coord->coord.t[1]   = args->pos.vy;
     coord->coord.t[2]   = args->pos.vz;

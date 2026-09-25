@@ -167,7 +167,7 @@ void func_acropolis_fountain_8017DD44(Task* task)
     u8*                        head;
     RoomShaftScratch*          blk;
     register RoomShaftScratch* p asm("a0");
-    GsCOORDINATE2*             coord;
+    GpCoord*                   coord;
     POLY_FT4*                  prim;
     s16                        x;
     s16                        y;
@@ -239,7 +239,7 @@ void func_acropolis_fountain_8017DD44(Task* task)
 void func_acropolis_fountain_8017E014(Task* task)
 {
     AcropolisFountainSplash* splash;
-    GsCOORDINATE2*           coord;
+    GpCoord*                 coord;
     s32                      view;
     s32                      one;
     s32                      mask;

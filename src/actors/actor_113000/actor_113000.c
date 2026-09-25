@@ -174,7 +174,7 @@ void func_actor_113000_80132070(Task* task)
 {
     Actor113000Work* work;
     TmdObject*       extra;
-    GsCOORDINATE2*   coords;
+    GpCoord*         coords;
     VECTOR3          pos;
     s32              i;
 
@@ -211,7 +211,7 @@ void func_actor_113000_80132070(Task* task)
 void func_actor_113000_801321A8(Task* task)
 {
     Actor113000Work* work;
-    GsCOORDINATE2*   coords;
+    GpCoord*         coords;
     TmdObject*       extra;
 
     work            = (Actor113000Work*)task->work;
@@ -268,9 +268,9 @@ s32 func_actor_113000_80132208(Task* task, s32 msgId, GpAnimArg* msg, s32 arg3)
 /// the world matrix is recomputed. Returns 0.
 s32 func_actor_113000_8013231C(Task* task, s32 arg1, GpXformArg* args)
 {
-    GpCoordExt* coord;
+    GpCoord* coord;
 
-    coord               = (GpCoordExt*)task->extra.tmd->coords;
+    coord               = task->extra.tmd->coords;
     coord->coord.t[0]   = args->pos.vx;
     coord->coord.t[1]   = args->pos.vy;
     coord->coord.t[2]   = args->pos.vz;

@@ -6,6 +6,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
+#include "main/coord.h"
 
 #include "gameplay/268.h"
 #include "gameplay/pairsrc.h"
@@ -229,16 +230,16 @@ STATIC_ASSERT_SIZEOF(Gp6CMatWalk, 0x6C);
 /// pointer to `Gp6CDirWalk.dir` minus `OFFSET_OF(Gp6CMid, dir)` is this
 /// object. `Gp_UpdateRoomCoords` writes `sub` as `gGfxViewCoord`.
 typedef struct _Gp6CMid {
-    /* 0x00 */ GsCOORDINATE2* sub;
-    /* 0x04 */ byte           pad[8];
-    /* 0x0C */ SVECTOR        dir;
+    /* 0x00 */ GpCoord* sub;
+    /* 0x04 */ byte     pad[8];
+    /* 0x0C */ SVECTOR  dir;
 } Gp6CMid;
 
 /// 0x64-byte walk overlay of `GpCoord64` starting at `data.coord`. `Gp_UpdateRoomCoords`
 /// writes `coord.sub` while a parallel `GpCoord64*` writes `framesLeft`.
 typedef struct _GpCoord64View {
-    /* 0x00 */ GsCOORDINATE2 coord;
-    /* 0x50 */ byte          pad[0x14];
+    /* 0x00 */ GpCoord coord;
+    /* 0x50 */ byte    pad[0x14];
 } GpCoord64View;
 STATIC_ASSERT_SIZEOF(GpCoord64View, 0x64);
 
@@ -282,7 +283,7 @@ STATIC_ASSERT_SIZEOF(GpSVec3x3, 0x12);
 typedef struct _GpObj4C {
     /* 0x00 */ struct _GpObj4C* next;
     /* 0x04 */ byte             pad_4[4];
-    /* 0x08 */ void*            field_8;
+    /* 0x08 */ GpCoord*         field_8;
     /* 0x0C */ SVECTOR          field_C;
     /* 0x14 */ SVECTOR          field_14[4];
     /* 0x34 */ SVECTOR          field_34;
@@ -304,7 +305,7 @@ typedef struct _GpObj4C {
 typedef struct _GpObj4A {
     /* 0x00 */ struct _GpObj4A* next;
     /* 0x04 */ struct _GpObj4A* prev;
-    /* 0x08 */ void*            field_8; // GsCOORDINATE2*; callers store &gGfxViewCoord
+    /* 0x08 */ GpCoord*         field_8; // Coordinate the node hangs off; callers store `&gGfxViewCoord`
     /* 0x0C */ byte             pad_C[0x3E];
     /* 0x4A */ u8               field_4A;
     /* 0x4B */ byte             pad_4B;
@@ -357,17 +358,17 @@ STATIC_ASSERT_SIZEOF(GpGridFace, 0xC);
 /// `field_1C` by `field_1E` cells of `s16*` face-id lists, each terminated by
 /// -1, indexed as `field_10[x * field_1E + z]`. `field_22` is the face count.
 typedef struct _GpGridParams {
-    /* 0x00 */ struct _GsCOORDINATE2* field_0;
-    /* 0x04 */ SVECTOR*               field_4;
-    /* 0x08 */ SVECTOR*               field_8;
-    /* 0x0C */ GpGridFace*            field_C;
-    /* 0x10 */ s16**                  field_10;
-    /* 0x14 */ s32                    field_14;
-    /* 0x18 */ s32                    field_18;
-    /* 0x1C */ u16                    field_1C;
-    /* 0x1E */ u16                    field_1E;
-    /* 0x20 */ u16                    field_20;
-    /* 0x22 */ u16                    field_22;
+    /* 0x00 */ struct GpCoord* field_0;
+    /* 0x04 */ SVECTOR*        field_4;
+    /* 0x08 */ SVECTOR*        field_8;
+    /* 0x0C */ GpGridFace*     field_C;
+    /* 0x10 */ s16**           field_10;
+    /* 0x14 */ s32             field_14;
+    /* 0x18 */ s32             field_18;
+    /* 0x1C */ u16             field_1C;
+    /* 0x1E */ u16             field_1E;
+    /* 0x20 */ u16             field_20;
+    /* 0x22 */ u16             field_22;
 } GpGridParams;
 STATIC_ASSERT_SIZEOF(GpGridParams, 0x24);
 
@@ -1136,17 +1137,17 @@ void Gp_SetLightMode(struct GpEnemy* arg0, s32 arg1);
 /// and scaled down by 256, which lands in the signed byte they read.
 ///
 /// `Gp_GetObjPan` is the pan that goes with it.
-s32 gpGetObjDepth(GsCOORDINATE2* coord);
+s32 gpGetObjDepth(GpCoord* coord);
 /// Pan of the object's world origin, for the sound events that carry one: the
 /// origin is projected through the coordinate's world matrix, and the screen X
 /// it lands on is clamped to the screen's half width and scaled down by ten.
 /// 0 when the projection reports an error.
-s32 Gp_GetObjPan(GsCOORDINATE2* coord);
+s32 Gp_GetObjPan(GpCoord* coord);
 /// Queues sound event `sfx` from the object's world position, panned and
 /// depth-attenuated by `Gp_GetObjPan` / `gpGetObjDepth`. A third argument of
 /// 1 raises the mid-action bit alongside it; the role of that argument at the
 /// call sites is not established.
-void Gp_PlayObjSfx(GsCOORDINATE2* coord, s32 sfx, s32 arg2);
+void Gp_PlayObjSfx(GpCoord* coord, s32 sfx, s32 arg2);
 void Gp_SetOverrideVec(SVECTOR* arg0);
 void Gp_SetOverrideVec2(SVECTOR* arg0);
 /// Sets the back colour a model is lit with: the translation of its colour
@@ -1158,7 +1159,7 @@ s32             Gp_GetRoomCoordSet(GpAreaKey* arg0);
 void            func_800D96C8(Task* arg0);
 s32             Gp_GetObjLuma(GpLight* arg0);
 /// World X of the object's position.
-s32             Gp_GetObjTransX(GsCOORDINATE2* coord);
+s32             Gp_GetObjTransX(GpCoord* coord);
 void            func_800D9794(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3);
 void            func_800D98C4(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3);
 void            func_800D9A30(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3);

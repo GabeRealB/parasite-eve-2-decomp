@@ -5,7 +5,7 @@
 
 #include "main/task.h"
 
-/// A `GsCOORDINATE2` seen through the low halves of its translation, so each
+/// A `GpCoord` seen through the low halves of its translation, so each
 /// world coordinate loads as an unsigned halfword.
 typedef struct _GpCoordPos {
     /* 0x00 */ byte pad_0[0x18];

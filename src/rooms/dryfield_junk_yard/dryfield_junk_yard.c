@@ -92,7 +92,7 @@ void func_dryfield_junk_yard_8017D5F4(Task* task)
 void func_dryfield_junk_yard_8017D658(Task* task)
 {
     DjyGroundQuadScratch* scratch;
-    GsCOORDINATE2*        coord;
+    GpCoord*              coord;
     TmdObject*            tmd;
 
     tmd   = task->extra.tmd;

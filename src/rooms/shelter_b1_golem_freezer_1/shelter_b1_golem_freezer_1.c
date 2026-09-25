@@ -36,9 +36,9 @@ extern SVECTOR      D_shelter_b1_golem_freezer_1_8017E738[];
 extern SVECTOR      D_shelter_b1_golem_freezer_1_8017E740[];
 
 void func_shelter_b1_golem_freezer_1_8017D744(s32 arg0);
-void func_shelter_b1_golem_freezer_1_8017D7CC(GsCOORDINATE2* arg0, s16* arg1);
+void func_shelter_b1_golem_freezer_1_8017D7CC(GpCoord* arg0, s16* arg1);
 void func_shelter_b1_golem_freezer_1_8017DC5C(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b1_golem_freezer_1_8017E254(GsCOORDINATE2* coord, u16 arg1, s16 arg2, s16 arg3);
+void func_shelter_b1_golem_freezer_1_8017E254(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3);
 
 /// Message-table handler for message 0x13F1: does nothing and answers 0.
 s32 func_shelter_b1_golem_freezer_1_8017D5D0(void)
@@ -130,7 +130,7 @@ void func_shelter_b1_golem_freezer_1_8017D744(s32 arg0)
     func_shelter_b1_golem_freezer_1_8017D7CC(task->extra.tmd->coords, &D_shelter_b1_golem_freezer_1_8017E6D0);
 }
 
-void func_shelter_b1_golem_freezer_1_8017D7CC(GsCOORDINATE2* coord, s16* arg1)
+void func_shelter_b1_golem_freezer_1_8017D7CC(GpCoord* coord, s16* arg1)
 {
     MATRIX        m;
     long          flag;
@@ -297,12 +297,12 @@ void func_shelter_b1_golem_freezer_1_8017DC5C(SVECTOR* arg0, s32 arg1, s32 arg2)
 
 void func_shelter_b1_golem_freezer_1_8017DFFC(Task* task)
 {
-    GpEffWork*     work  = task->spawnArg2;
-    GsCOORDINATE2* coord = task->extra.tmd->coords;
-    s32            vz;
-    s16            f2a;
-    u32            rng2;
-    u32            rng3;
+    GpEffWork* work  = task->spawnArg2;
+    GpCoord*   coord = task->extra.tmd->coords;
+    s32        vz;
+    s16        f2a;
+    u32        rng2;
+    u32        rng3;
 
     work->age++;
     if (task->state == 0) {
@@ -357,7 +357,7 @@ void func_shelter_b1_golem_freezer_1_8017DFFC(Task* task)
     }
 }
 
-void func_shelter_b1_golem_freezer_1_8017E254(GsCOORDINATE2* coord, u16 arg1, s16 arg2, s16 arg3)
+void func_shelter_b1_golem_freezer_1_8017E254(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;

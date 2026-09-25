@@ -131,16 +131,16 @@ void func_actor_341300_80161E84(void)
 /// facing settles.
 void func_actor_341300_80162278(Task* task)
 {
-    Task*          player;
-    GameActor*     actor;
-    GpWorkObj*     work;
-    GsCOORDINATE2* self;
-    VECTOR*        target;
-    s32            angle;
-    s32            delta;
-    s32            magnitude;
-    s32            step;
-    s32            wrapped;
+    Task*      player;
+    GameActor* actor;
+    GpWorkObj* work;
+    GpCoord*   self;
+    VECTOR*    target;
+    s32        angle;
+    s32        delta;
+    s32        magnitude;
+    s32        step;
+    s32        wrapped;
 
     player = gameGetPtrSlot(3);
     actor  = (GameActor*)player->work;
@@ -264,8 +264,8 @@ const SVECTOR D_actor_341300_80161E64 = { 100, -200, -100, 0 };
 
 void func_actor_341300_801625AC(void)
 {
-    SVECTOR        vec   = D_actor_341300_80161E64;
-    GsCOORDINATE2* coord = &(gameGetPtrSlot(3))->extra.tmd->coords[2];
+    SVECTOR  vec   = D_actor_341300_80161E64;
+    GpCoord* coord = &(gameGetPtrSlot(3))->extra.tmd->coords[2];
 
     Gp_SpawnEff(0x60055, coord, 0x10013300, &vec);
     Gp_SpawnEff(0x60055, coord, 0x10112280, &vec);
@@ -354,7 +354,7 @@ void func_actor_341300_80162698(Task* arg0)
 void func_actor_341300_80162878(Task* arg0)
 {
     Actor341300Shard* work;
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     POLY_G3*          prim;
     s16               x[3];
     s16               y[3];
@@ -512,7 +512,7 @@ void func_actor_341300_80163028(Task* arg0)
 void func_actor_341300_801631D4(Task* arg0)
 {
     Actor341300Shard* work;
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     POLY_G3*          prim;
     s16               x[3];
     s16               y[3];

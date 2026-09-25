@@ -42,8 +42,8 @@ void func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1)
 {
     ActorShared8014df20Work* work;
     TmdObject*               obj;
-    GsCOORDINATE2*           coord;
-    GsCOORDINATE2*           part;
+    GpCoord*                 coord;
+    GpCoord*                 part;
     u32                      seed;
     GpRec18*                 records1;
     GpRec18*                 records2;
@@ -157,7 +157,7 @@ void func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1)
 void func_actor_207200_8014A1C4(Task* arg0)
 {
     ActorShared8014df20Work* work;
-    GsCOORDINATE2*           obj;
+    GpCoord*                 obj;
     s32                      snd;
     s16                      mode;
     s32                      id;
@@ -265,7 +265,7 @@ void func_actor_207200_8014A588(Task* arg0)
     ActorDeltaFrame38*       sc;
     ActorDeltaFrame38*       head;
     TmdObject*               obj;
-    GsCOORDINATE2*           coord;
+    GpCoord*                 coord;
     GpEnemy*                 enemy;
     s32                      i;
     s32                      sndHit;
@@ -382,7 +382,7 @@ void func_actor_207200_8014AA74(GpEnemy* arg0, Task* arg1)
 {
     Actor207200Work* work;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              i;
     Actor207200Work* anim;
 
@@ -601,10 +601,10 @@ void func_actor_207200_8014AF2C(Task* arg0)
 /// parameters. `arg0` is the colour target, passed straight through.
 void func_actor_207200_8014AFDC(GpEnemy* arg0, Task* task)
 {
-    GsCOORDINATE2* coord;
-    void**         scratch;
-    u8*            head;
-    VECTOR*        block;
+    GpCoord* coord;
+    void**   scratch;
+    u8*      head;
+    VECTOR*  block;
 
     coord                          = &task->extra.tmd->coords[1];
     scratch                        = SCRATCH_HEAD_ADDR;
@@ -670,7 +670,7 @@ void func_actor_207200_8014B04C(Task* task)
 /// `Gp_UpdateCoord` recomputes it.
 void func_actor_207200_8014B128(Task* arg0)
 {
-    GsCOORDINATE2*     coord;
+    GpCoord*           coord;
     ActorScaleScratch* head;
     ActorScaleScratch* scratch;
     Actor207200Work*   work;

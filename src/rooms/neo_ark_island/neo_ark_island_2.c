@@ -17,13 +17,13 @@
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 
-void func_neo_ark_island_8017ECB4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
-void func_neo_ark_island_8017F4A4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_neo_ark_island_8017F890(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
-void func_neo_ark_island_8017FE40(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_neo_ark_island_8018026C(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
-void func_neo_ark_island_80180AF0(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
-void func_neo_ark_island_80181170(GsCOORDINATE2* arg0, s16 arg1, u8* rgb);
+void func_neo_ark_island_8017ECB4(GpCoord* arg0, s32 arg1, s32 arg2);
+void func_neo_ark_island_8017F4A4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_neo_ark_island_8017F890(GpCoord* arg0, s32 arg1, s32 arg2);
+void func_neo_ark_island_8017FE40(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_neo_ark_island_8018026C(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_neo_ark_island_80180AF0(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+void func_neo_ark_island_80181170(GpCoord* arg0, s16 arg1, u8* rgb);
 
 extern s32 D_8011572C;
 extern s32 D_80115738;
@@ -47,8 +47,8 @@ extern SVECTOR D_neo_ark_island_80181B8C;
 /// at state 4.
 void func_neo_ark_island_8017EB68(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
+    GpEffWork* work;
+    GpCoord*   coord;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -81,7 +81,7 @@ void func_neo_ark_island_8017EB68(Task* task)
 /// through `GsWSMATRIX`. When `gte_stflg` is non-negative, queues one
 /// semi-transparent `POLY_FT4` (tpage 0x2B, clut 0x43D1, UV 0,0x38..0x37,0x6F)
 /// coloured `(arg2, arg2, arg2)`.
-void func_neo_ark_island_8017ECB4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
+void func_neo_ark_island_8017ECB4(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -174,13 +174,13 @@ void func_neo_ark_island_8017ECB4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
 /// event state leaves zero it only draws, and releases at state 4.
 void func_neo_ark_island_8017EFE8(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    SVECTOR*       vec;
-    s32            kind;
-    s32            step;
-    s32            state;
-    s32            level;
+    GpEffWork* work;
+    GpCoord*   coord;
+    SVECTOR*   vec;
+    s32        kind;
+    s32        step;
+    s32        state;
+    s32        level;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -296,7 +296,7 @@ void func_neo_ark_island_8017EFE8(Task* task)
 /// `arg2` is a signed half-extent; the on-screen radius is
 /// `(s16)arg2 * 31 / otz`. `arg3` is the spin angle, applied at `arg3` and
 /// `arg3 + 0x400` through `rsin`/`rcos`.
-void func_neo_ark_island_8017F4A4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
+void func_neo_ark_island_8017F4A4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -363,7 +363,7 @@ void func_neo_ark_island_8017F4A4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 a
 /// on-screen radius is `(s16)arg2 * 55 / otz`. The quad is axis-aligned and
 /// 2*radius on a side, shifted up so the projected point sits at
 /// three-quarters height (`y0 = sy - r - r/2`, `y2 = sy + r/2`).
-void func_neo_ark_island_8017F890(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
+void func_neo_ark_island_8017F890(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -470,9 +470,9 @@ void func_neo_ark_island_8017FB2C(Task* arg0)
 /// to release.
 void func_neo_ark_island_8017FB9C(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    u8             rgb[3];
+    GpEffWork* work;
+    GpCoord*   coord;
+    u8         rgb[3];
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -535,7 +535,7 @@ void func_neo_ark_island_8017FB9C(Task* task)
 /// segments forming a ring. The edge at `arg1` is black and the edge at
 /// `arg1 + arg2` takes the colour `rgb`, both signed half-extents scaled to
 /// the screen as `r * 64 / (otz + 1)`.
-void func_neo_ark_island_8017FE40(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_neo_ark_island_8017FE40(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -626,7 +626,7 @@ void func_neo_ark_island_8017FE40(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* r
 /// the projected centre. `arg1` is a signed half-extent; the on-screen radius
 /// is `(s16)arg1 * 64 / (otz + 1)`. Only the centre vertex takes the colour
 /// `rgb`, so each wedge fades to black at the rim.
-void func_neo_ark_island_8018026C(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_neo_ark_island_8018026C(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     RoomDraw04Scratch* block;
     POLY_G4*           prim;
@@ -711,15 +711,15 @@ void func_neo_ark_island_8018026C(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
 /// event state reaches 2.
 void func_neo_ark_island_80180600(Task* task)
 {
-    GsCOORDINATE2  coord;
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* objCoord;
-    GsCOORDINATE2* dst;
-    GpEffWork*     work;
-    SVECTOR*       vec;
-    s32            i;
+    GpCoord    coord;
+    GpCoord*   coords;
+    GpCoord*   objCoord;
+    GpCoord*   dst;
+    GpEffWork* work;
+    SVECTOR*   vec;
+    s32        i;
 
-    coords   = (GsCOORDINATE2*)task->work;
+    coords   = (GpCoord*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
     objCoord = task->extra.tmd->coords;
 
@@ -727,7 +727,7 @@ void func_neo_ark_island_80180600(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GsCOORDINATE2*)memCalloc(0x500, 0);
+                coords = (GpCoord*)memCalloc(0x500, 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
@@ -808,11 +808,11 @@ void func_neo_ark_island_80180600(Task* task)
 /// along its length. `arg3` holds the colour as per-channel multipliers of that
 /// weight: red from bits 8 up, green from bits 4-5, blue from bits 0-1. A quad
 /// the GTE flags as bad is skipped.
-void func_neo_ark_island_80180AF0(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3)
+void func_neo_ark_island_80180AF0(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GsCOORDINATE2*     a;
-    GsCOORDINATE2*     b;
+    GpCoord*           a;
+    GpCoord*           b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -921,9 +921,9 @@ void func_neo_ark_island_80180AF0(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 
 /// release.
 void func_neo_ark_island_80180EE8(Task* task)
 {
-    GsCOORDINATE2* objCoord;
-    GpEffWork*     work;
-    u8             rgb[4];
+    GpCoord*   objCoord;
+    GpEffWork* work;
+    u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
@@ -995,7 +995,7 @@ void func_neo_ark_island_80180EE8(Task* task)
 /// wedges span the outer radius in half the colour `arg2`, eight more span
 /// half of it at full colour, and four long spikes reach twice the outer
 /// radius between points on the inner one.
-void func_neo_ark_island_80181170(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_neo_ark_island_80181170(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");

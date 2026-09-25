@@ -578,9 +578,9 @@ void func_shelter_b6_corridor_8017E360(SVECTOR* arg0, s32 arg1, s32 arg2)
 
 void func_shelter_b6_corridor_8017EBA4(Task* task)
 {
-    GsCOORDINATE2* coord;
-    u8             rgb[3];
-    u32            shade;
+    GpCoord* coord;
+    u8       rgb[3];
+    u32      shade;
 
     coord = task->extra.tmd->coords + 1;
     if (Gp_State1C->eventState == 0) {
@@ -600,10 +600,10 @@ void func_shelter_b6_corridor_8017EBA4(Task* task)
 
 void func_shelter_b6_corridor_8017ECA8(Task* task)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s16            eventState;
-    u8             rgb[3];
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s16        eventState;
+    u8         rgb[3];
 
     mem        = task->spawnArg2;
     eventState = Gp_State1C->eventState;

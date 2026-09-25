@@ -90,7 +90,7 @@ void func_actor_160700_80131F70(GpEnemy* enemy, Task* task)
     GpAreaKey        key;
     Actor160600Work* work;
     Actor160600Work* mem;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     TmdObject*       obj;
     GpEnemy*         spawned;
     TmdObject*       model;
@@ -216,9 +216,9 @@ void func_actor_160700_8013233C(Task* task)
 /// light/colour step, then runs the animation step and draws the shadow.
 void func_actor_160700_80132390(GpEnemy* enemy, Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR         vec;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR     vec;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -242,9 +242,9 @@ void func_actor_160700_80132414(Task* task)
 /// root part's world translation, staged on the scratchpad stack.
 void func_actor_160700_8013243C(Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR3*       vec;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR3*   vec;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -362,7 +362,7 @@ s32 func_actor_160700_8013265C(Task* task, s32 arg1, s32 flags)
 /// caching the yaw in the work block, and moves it to `placement->pos`.
 s32 func_actor_160700_801326C0(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor160600Work* work;
     u16              yaw;
 
@@ -389,7 +389,7 @@ s32 func_actor_160700_80132738(void)
 /// in steps of 12 as `travel` for the step body to walk off.
 s32 func_actor_160700_80132740(Task* task, s32 arg1, GpXformArg* target)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor160600Work* work;
     s32              dx;
     s32              dz;
@@ -416,8 +416,8 @@ void func_actor_160700_80132808(Task* task)
     char             pad[0x10];
     Task*            parent = task->parent;
     TmdObject*       obj    = task->extra.tmd;
-    GsCOORDINATE2*   coord  = obj->coords;
-    GsCOORDINATE2*   sub    = &parent->extra.tmd->coords[4];
+    GpCoord*         coord  = obj->coords;
+    GpCoord*         sub    = &parent->extra.tmd->coords[4];
     Actor160600Work* work   = (Actor160600Work*)parent->work;
 
     switch (task->state) {

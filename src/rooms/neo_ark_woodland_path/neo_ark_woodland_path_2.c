@@ -148,10 +148,10 @@ typedef struct NeoArkWoodlandPathTrailObj {
 /// the parts against these entries to measure how far they moved.
 extern SVECTOR D_neo_ark_woodland_path_80181684[2];
 
-void func_neo_ark_woodland_path_8017F154(GsCOORDINATE2* arg0, s32 arg1, s16 arg2);
-void func_neo_ark_woodland_path_8017F5F4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
-void func_neo_ark_woodland_path_8017FDE4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_neo_ark_woodland_path_801801D0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
+void func_neo_ark_woodland_path_8017F154(GpCoord* arg0, s32 arg1, s16 arg2);
+void func_neo_ark_woodland_path_8017F5F4(GpCoord* arg0, s32 arg1, s32 arg2);
+void func_neo_ark_woodland_path_8017FDE4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_neo_ark_woodland_path_801801D0(GpCoord* arg0, s32 arg1, s32 arg2);
 
 /// Scatters effects around the slot-3 task's model while its root coordinate
 /// is at a y of 0x12C or more (y grows downward) and no event is running.
@@ -165,9 +165,9 @@ void func_neo_ark_woodland_path_8017EA08(Task* task)
 {
     NeoArkWoodlandPathTrailObj* obj;
     Task*                       owner;
-    GsCOORDINATE2*              root;
-    GsCOORDINATE2*              part;
-    GsCOORDINATE2               coord;
+    GpCoord*                    root;
+    GpCoord*                    part;
+    GpCoord                     coord;
     s32                         i;
 
     obj   = task->spawnArg2;
@@ -223,11 +223,11 @@ void func_neo_ark_woodland_path_8017EA08(Task* task)
 /// and state 3 fades it out, releasing the work block when the fade runs out.
 void func_neo_ark_woodland_path_8017ED00(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    s32            vy;
-    s32            vx;
-    s32            vz;
+    GpEffWork* work;
+    GpCoord*   coord;
+    s32        vy;
+    s32        vx;
+    s32        vz;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -328,7 +328,7 @@ void func_neo_ark_woodland_path_8017ED00(Task* task)
 /// 0x2B, clut 0x4390, an 8x8 texel tile at 0,0x28). `arg2` is the fade level:
 /// zero draws the raw texture, otherwise the quad is semi-transparent and
 /// modulated by the grey `(arg2, arg2, arg2)`.
-void func_neo_ark_woodland_path_8017F154(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
+void func_neo_ark_woodland_path_8017F154(GpCoord* arg0, s32 arg1, s16 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -423,8 +423,8 @@ void func_neo_ark_woodland_path_8017F154(GsCOORDINATE2* arg0, s32 arg1, s16 arg2
 /// leaves zero it only draws, and releases at state 4.
 void func_neo_ark_woodland_path_8017F4A0(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
+    GpEffWork* work;
+    GpCoord*   coord;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -458,7 +458,7 @@ void func_neo_ark_woodland_path_8017F4A0(Task* task)
 /// through `GsWSMATRIX`. When `gte_stflg` is non-negative, queues one
 /// semi-transparent `POLY_FT4` (tpage 0x2B, clut 0x43D1, UV 0,0x38..0x37,0x6F)
 /// coloured `(arg2, arg2, arg2)`.
-void func_neo_ark_woodland_path_8017F5F4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
+void func_neo_ark_woodland_path_8017F5F4(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -552,13 +552,13 @@ void func_neo_ark_woodland_path_8017F5F4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2
 /// reaches 4.
 void func_neo_ark_woodland_path_8017F928(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    SVECTOR*       vec;
-    s32            kind;
-    s32            step;
-    s32            state;
-    s32            level;
+    GpEffWork* work;
+    GpCoord*   coord;
+    SVECTOR*   vec;
+    s32        kind;
+    s32        step;
+    s32        state;
+    s32        level;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -676,7 +676,7 @@ void func_neo_ark_woodland_path_8017F928(Task* task)
 /// `arg2` is a signed half-extent; the on-screen radius is
 /// `(s16)arg2 * 31 / otz`. `arg3` is the spin angle, applied at `arg3` and
 /// `arg3 + 0x400` through `rsin`/`rcos`.
-void func_neo_ark_woodland_path_8017FDE4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
+void func_neo_ark_woodland_path_8017FDE4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -743,7 +743,7 @@ void func_neo_ark_woodland_path_8017FDE4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2
 /// the on-screen radius is `(s16)arg2 * 55 / otz`. The quad is axis-aligned
 /// and 2*radius on a side, shifted up so the projected point sits at
 /// three-quarters height (`y0 = sy - r - r/2`, `y2 = sy + r/2`).
-void func_neo_ark_woodland_path_801801D0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
+void func_neo_ark_woodland_path_801801D0(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;

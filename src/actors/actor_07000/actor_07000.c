@@ -229,53 +229,53 @@ static __inline__ void Actor107000_TickAnim(Task* task)
 /// `field_370`/`field_372` are its animation id and the id the six helper slots
 /// last saw, which is why the reset loop walks slots 1..6 and not 1..2.
 typedef struct Actor107000Spawn2Work {
-    /* 0x000 */ GpAnimCtx      context;
-    /* 0x014 */ GpAnimSlot     slots[7];        // six helper slots + slot 0
-    /* 0x12C */ byte           field_12C[0x70]; // pose buffer, func_800B3F84 arg3
-    /* 0x19C */ MATRIX         field_19C;       // colour matrix, TmdObject::colorMtx
-    /* 0x1BC */ MATRIX         field_1BC;       // light matrix, TmdObject::lightMtx
-    /* 0x1DC */ GpObj          obj1;
-    /* 0x1FC */ GpActorD4Rec   field_1FC;
-    /* 0x214 */ GpRec18        field_214[1]; // the table `field_1FC` names
-    /* 0x22C */ GpObj          obj2;
-    /* 0x24C */ GpRec18        field_24C[4];
-    /* 0x2AC */ GpObj          obj3;
-    /* 0x2CC */ GpRec18        field_2CC[1];
-    /* 0x2E4 */ SVECTOR        rotation;  // reaction rotation applied to model coordinates 3 and 5
-    /* 0x2EC */ byte           pad_2EC[0x50];
-    /* 0x33C */ VECTOR3        field_33C; // saved position restored by collision response 2
-    /* 0x348 */ byte           pad_348[0x14];
-    /* 0x35C */ GsCOORDINATE2* field_35C; // the model's second coordinate
-    /* 0x360 */ u16            field_360;
-    /* 0x362 */ u16            field_362;
-    /* 0x364 */ s16            field_364; // spawn arg's high half
-    /* 0x366 */ u16            field_366; // spawn arg's low half
-    /* 0x368 */ byte           pad_368[0x2];
-    /* 0x36A */ s16            field_36A; // reaction sub-state, as Actor107000Work::field_36A
-    /* 0x36C */ s16            field_36C;
-    /* 0x36E */ u16            field_36E;
-    /* 0x370 */ s16            field_370; // animation id the work is playing
-    /* 0x372 */ u16            field_372; // id the six helper slots last saw
-    /* 0x374 */ u16            field_374;
-    /* 0x376 */ byte           pad_376[2];
-    /* 0x378 */ s16            field_378; // seeded to 0xC8 by the reveal arm
-    /* 0x37A */ s16            field_37A;
-    /* 0x37C */ byte           pad_37C[2];
-    /* 0x37E */ s16            field_37E;
-    /* 0x380 */ s16            field_380;
-    /* 0x382 */ s16            field_382;
-    /* 0x384 */ s16            field_384;
-    /* 0x386 */ s16            field_386;
-    /* 0x388 */ s16            field_388;
-    /* 0x38A */ s16            field_38A;
-    /* 0x38C */ s16            field_38C;
-    /* 0x38E */ s16            field_38E;
-    /* 0x390 */ u16            field_390; // frames until the next 0x60080 spawn
-    /* 0x392 */ u16            field_392; // spawns so far; the cue fires at 5
-    /* 0x394 */ u16            field_394; // non-zero: this frame has spent its reaction
-    /* 0x396 */ u16            field_396; // armed to 1 by the reveal arm, cleared by the hide
-    /* 0x398 */ s16            field_398; // seeded to 0x64 by the reveal arm
-    /* 0x39A */ s16            field_39A; // cleared by the reveal arm
+    /* 0x000 */ GpAnimCtx    context;
+    /* 0x014 */ GpAnimSlot   slots[7];        // six helper slots + slot 0
+    /* 0x12C */ byte         field_12C[0x70]; // pose buffer, func_800B3F84 arg3
+    /* 0x19C */ MATRIX       field_19C;       // colour matrix, TmdObject::colorMtx
+    /* 0x1BC */ MATRIX       field_1BC;       // light matrix, TmdObject::lightMtx
+    /* 0x1DC */ GpObj        obj1;
+    /* 0x1FC */ GpActorD4Rec field_1FC;
+    /* 0x214 */ GpRec18      field_214[1]; // the table `field_1FC` names
+    /* 0x22C */ GpObj        obj2;
+    /* 0x24C */ GpRec18      field_24C[4];
+    /* 0x2AC */ GpObj        obj3;
+    /* 0x2CC */ GpRec18      field_2CC[1];
+    /* 0x2E4 */ SVECTOR      rotation;  // reaction rotation applied to model coordinates 3 and 5
+    /* 0x2EC */ byte         pad_2EC[0x50];
+    /* 0x33C */ VECTOR3      field_33C; // saved position restored by collision response 2
+    /* 0x348 */ byte         pad_348[0x14];
+    /* 0x35C */ GpCoord*     field_35C; // the model's second coordinate
+    /* 0x360 */ u16          field_360;
+    /* 0x362 */ u16          field_362;
+    /* 0x364 */ s16          field_364; // spawn arg's high half
+    /* 0x366 */ u16          field_366; // spawn arg's low half
+    /* 0x368 */ byte         pad_368[0x2];
+    /* 0x36A */ s16          field_36A; // reaction sub-state, as Actor107000Work::field_36A
+    /* 0x36C */ s16          field_36C;
+    /* 0x36E */ u16          field_36E;
+    /* 0x370 */ s16          field_370; // animation id the work is playing
+    /* 0x372 */ u16          field_372; // id the six helper slots last saw
+    /* 0x374 */ u16          field_374;
+    /* 0x376 */ byte         pad_376[2];
+    /* 0x378 */ s16          field_378; // seeded to 0xC8 by the reveal arm
+    /* 0x37A */ s16          field_37A;
+    /* 0x37C */ byte         pad_37C[2];
+    /* 0x37E */ s16          field_37E;
+    /* 0x380 */ s16          field_380;
+    /* 0x382 */ s16          field_382;
+    /* 0x384 */ s16          field_384;
+    /* 0x386 */ s16          field_386;
+    /* 0x388 */ s16          field_388;
+    /* 0x38A */ s16          field_38A;
+    /* 0x38C */ s16          field_38C;
+    /* 0x38E */ s16          field_38E;
+    /* 0x390 */ u16          field_390; // frames until the next 0x60080 spawn
+    /* 0x392 */ u16          field_392; // spawns so far; the cue fires at 5
+    /* 0x394 */ u16          field_394; // non-zero: this frame has spent its reaction
+    /* 0x396 */ u16          field_396; // armed to 1 by the reveal arm, cleared by the hide
+    /* 0x398 */ s16          field_398; // seeded to 0x64 by the reveal arm
+    /* 0x39A */ s16          field_39A; // cleared by the reveal arm
 } Actor107000Spawn2Work;
 STATIC_ASSERT_SIZEOF(Actor107000Spawn2Work, 0x39C);
 
@@ -347,7 +347,7 @@ void Actor07000_Fn027D0(Task* task);
 void Actor07000_Fn02860(Task* arg0);
 void Actor07000_Fn02914(GpEnemy* arg0, Task* task);
 void Actor07000_Fn02984(Task* task);
-void Actor07000_Fn029F0(Task* arg0, GsCOORDINATE2* arg1);
+void Actor07000_Fn029F0(Task* arg0, GpCoord* arg1);
 void Actor07000_Fn02BB8(Task* arg0);
 void Actor07000_Fn02CAC(Task* task);
 void Actor07000_Fn02D78(Task* task);
@@ -367,7 +367,7 @@ void Actor07000_Fn04468(GpEnemy* arg0, Task* arg1);
 /// 1 when that draw folds to 11 or more, and the branch stays 2 when it does
 /// not. Either way `field_374`/`field_372` are reset, and the record is released.
 void Actor07000_Fn046B8(Task* arg0, s32 arg1);
-s32  Actor07000_Fn047F4(GsCOORDINATE2* arg0, u32* arg1);
+s32  Actor07000_Fn047F4(GpCoord* arg0, u32* arg1);
 void Actor07000_Fn049C0(Task* arg0);
 void Actor07000_Fn04B18(Task* arg0);
 void Actor07000_Fn04E60(Task* arg0);
@@ -400,8 +400,8 @@ void Actor07000_Fn000EC(GpEnemy* arg0, Task* arg1)
 {
     Actor107000SpawnWork* work;
     TmdObject*            obj;
-    GsCOORDINATE2*        coord;
-    GsCOORDINATE2*        part;
+    GpCoord*              coord;
+    GpCoord*              part;
     u16                   v;
     s32                   i;
 
@@ -620,7 +620,7 @@ void Actor07000_Fn00478(Task* arg0)
 void Actor07000_Fn00654(Task* arg0)
 {
     Actor107000Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     u16              countdown;
     s32              soundId;
     u32              rng;
@@ -694,7 +694,7 @@ void Actor07000_Fn00854(Task* arg0)
 {
     Actor107000Work* work;
     GpEnemy*         enemy;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     u16              countdown;
     s16              mode;
     s32              soundId;
@@ -767,7 +767,7 @@ void Actor07000_Fn00A1C(Task* arg0)
     u32                id;
     u32                damage;
     Actor107000Work*   work;
-    GsCOORDINATE2*     coord;
+    GpCoord*           coord;
     void*              scratchHead;
     ActorContactFrame* scratch;
     Actor107000Work*   contact;
@@ -943,7 +943,7 @@ void Actor07000_Fn00F6C(Task* arg0, s32 arg1)
     Actor107000Work* work;
     GpEnemy*         enemy;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              anim;
     s32              soundId;
 
@@ -983,7 +983,7 @@ void Actor07000_Fn00F6C(Task* arg0, s32 arg1)
 void Actor07000_Fn0107C(Task* arg0)
 {
     Actor107000Work*  work;
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     ActorFaceScratch* sc;
     s16               cur;
     s32               want;
@@ -1045,7 +1045,7 @@ void Actor07000_Fn011B4(GpEnemy* enemy, Task* task)
     TmdObject*       model;
     Actor107000Work* work;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              soundId;
 
     obj   = task->extra.tmd;
@@ -1135,7 +1135,7 @@ void Actor07000_Fn016A8(Task* arg0, u8 arg1)
     Actor107000Work* work;
     GpEnemy*         enemy;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              soundId;
 
     obj         = arg0->extra.tmd;
@@ -1188,8 +1188,8 @@ void Actor07000_Fn016A8(Task* arg0, u8 arg1)
 void Actor07000_Fn01870(GpEnemy* arg0, Task* arg1)
 {
     Actor107000SpawnWork* work;
-    GsCOORDINATE2*        coord;
-    GsCOORDINATE2*        part;
+    GpCoord*              coord;
+    GpCoord*              part;
     TmdObject*            obj;
     s32                   one;
     s32                   i;
@@ -1321,7 +1321,7 @@ const GpEnemyTaskFuncTable5 Actor07000_D0004C = {
 void Actor07000_Fn01BA0(GpEnemy* arg0, Task* arg1)
 {
     Actor107000Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              soundId;
 
     work = (Actor107000Work*)arg1->work;
@@ -1380,7 +1380,7 @@ void Actor07000_Fn01EB0(Task* arg0)
 {
     ActorDeltaFrame48* scratch;
     Actor107000Work*   work;
-    GsCOORDINATE2*     coord;
+    GpCoord*           coord;
     s32                movement;
 
     work     = (Actor107000Work*)arg0->work;
@@ -1415,7 +1415,7 @@ s32 Actor07000_Fn01FF8(Task* arg0, s32 arg1, GpCmdArg* arg2)
     Actor107000Work* work;
     GpEnemy*         enemy;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     SVECTOR          rot;
     u16              word;
     s16              heading;
@@ -1637,7 +1637,7 @@ void Actor07000_Fn026BC(Task* arg0)
 /// `field_2BE`, and Y by a fixed 0x80.
 void Actor07000_Fn027D0(Task* task)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor107000Work* work;
 
     coord              = &task->extra.tmd->coords[0];
@@ -1686,10 +1686,10 @@ void Actor07000_Fn02860(Task* arg0)
 /// colour target.
 void Actor07000_Fn02914(GpEnemy* arg0, Task* task)
 {
-    GsCOORDINATE2* coord;
-    void**         scratch;
-    u8*            head;
-    VECTOR*        block;
+    GpCoord* coord;
+    void**   scratch;
+    u8*      head;
+    VECTOR*  block;
 
     coord                          = &task->extra.tmd->coords[1];
     scratch                        = SCRATCH_HEAD_ADDR;
@@ -1708,8 +1708,8 @@ void Actor07000_Fn02914(GpEnemy* arg0, Task* task)
 /// stack.
 void Actor07000_Fn02984(Task* task)
 {
-    GsCOORDINATE2* coord;
-    VECTOR3*       vec;
+    GpCoord* coord;
+    VECTOR3* vec;
 
     coord   = task->extra.tmd->coords;
     vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
@@ -1724,7 +1724,7 @@ void Actor07000_Fn02984(Task* task)
 /// `field_2AC`, clamped first to 0x1000..0x13E8: each of the matrix's three
 /// columns is copied into an `SVECTOR` on the scratch stack, multiplied by the
 /// factor on the GTE and written back.
-void Actor07000_Fn029F0(Task* arg0, GsCOORDINATE2* arg1)
+void Actor07000_Fn029F0(Task* arg0, GpCoord* arg1)
 {
     ActorScratchStack* scratch;
     SVECTOR*           vec;
@@ -1775,7 +1775,7 @@ void Actor07000_Fn029F0(Task* arg0, GsCOORDINATE2* arg1)
 /// `Gp_UpdateCoord` recomputes it.
 void Actor07000_Fn02BB8(Task* arg0)
 {
-    GsCOORDINATE2*     coord;
+    GpCoord*           coord;
     ActorScaleScratch* head;
     ActorScaleScratch* scratch;
     Actor107000Work*   work;
@@ -1836,7 +1836,7 @@ void Actor07000_Fn02D10(Task* arg0)
 /// scaled by the step length `field_2BE`, and Y by the fall speed `field_2DE`.
 void Actor07000_Fn02D78(Task* task)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor107000Work* work;
 
     coord              = task->extra.tmd->coords;
@@ -1861,8 +1861,8 @@ void Actor07000_Fn02E0C(GpEnemy* arg0, Task* arg1)
     Actor107000Spawn2Work* work;
     GpRec18*               table;
     TmdObject*             obj;
-    GsCOORDINATE2*         coord;
-    GsCOORDINATE2*         coord6;
+    GpCoord*               coord;
+    GpCoord*               coord6;
     u32                    rng;
     u32                    rng2;
     s32                    i;
@@ -1972,7 +1972,7 @@ void Actor07000_Fn03164(GpEnemy* arg0, Task* arg1)
 {
     TmdObject*       obj;
     Actor107000Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              state;
     s32              one;
     s32              soundId;
@@ -2075,7 +2075,7 @@ case1:
 void Actor07000_Fn03460(Task* arg0, TmdObject* arg1, s32 arg2)
 {
     Actor107000Spawn2Work* work;
-    GsCOORDINATE2*         coord;
+    GpCoord*               coord;
     s32                    soundId;
     s16                    state;
 
@@ -2157,7 +2157,7 @@ void Actor07000_Fn037EC(Task* arg0, TmdObject* arg1, s32 arg2)
 {
     u32                    distance;
     Actor107000Spawn2Work* work;
-    GsCOORDINATE2*         coord;
+    GpCoord*               coord;
     GpEnemy*               enemy;
     s32                    soundId;
     s16                    amount;
@@ -2325,7 +2325,7 @@ void Actor07000_Fn03E08(Task* arg0)
     u32                    damage;
     s32                    i;
     Actor107000Spawn2Work* work;
-    GsCOORDINATE2*         coord;
+    GpCoord*               coord;
     GpEnemy*               enemy;
     void*                  head;
     ActorDeltaFrame38*     scratch;
@@ -2457,7 +2457,7 @@ void Actor07000_Fn04274(Task* arg0, s32 arg1)
     Actor107000Work* work;
     GpEnemy*         enemy;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              soundId;
     s16              state;
 
@@ -2531,8 +2531,8 @@ void Actor07000_Fn04468(GpEnemy* arg0, Task* arg1)
     ActorShared80136288Work* work;
     ActorShared80136288Work* work2;
     TmdObject*               obj;
-    GsCOORDINATE2*           coord;
-    GsCOORDINATE2*           part;
+    GpCoord*                 coord;
+    GpCoord*                 part;
     u16                      ticks;
     s32                      state;
     s32                      one;
@@ -2681,10 +2681,10 @@ void Actor07000_Fn046B8(Task* arg0, s32 arg1)
 /// `head - 1` for the vector copy, the matrix and the heading keeps the scratch
 /// pointer in `head`'s register. `COMPILER_BARRIER` stops cse from forwarding
 /// the reload of x from the store just above it.
-s32 Actor07000_Fn047F4(GsCOORDINATE2* arg0, u32* arg1)
+s32 Actor07000_Fn047F4(GpCoord* arg0, u32* arg1)
 {
     SVECTOR              local;
-    GsCOORDINATE2*       coord;
+    GpCoord*             coord;
     s32                  angle;
     s32                  x;
     s16                  z;
@@ -2777,7 +2777,7 @@ void Actor07000_Fn049C0(Task* arg0)
 void Actor07000_Fn04B18(Task* arg0)
 {
     ActorsShared80136938Work* work;
-    GsCOORDINATE2*            coord;
+    GpCoord*                  coord;
     GpEffWork*                eff;
     GpObj*                    obj;
     GpActorD4Rec*             rec;
@@ -2883,7 +2883,7 @@ void Actor07000_Fn04E60(Task* arg0)
     ActorsShared80136c80Work* work;
     TmdObject*                part;
     Task*                     child;
-    GsCOORDINATE2*            coord;
+    GpCoord*                  coord;
     GpRec18*                  rec;
     GpRec18*                  hit;
     GpRec18*                  recs;
@@ -2978,8 +2978,8 @@ void Actor07000_Fn05068(GpEnemy* arg0, Task* arg1)
 {
     Actor107000Spawn2Work* work;
     TmdObject*             obj;
-    GsCOORDINATE2*         coord;
-    GsCOORDINATE2*         part;
+    GpCoord*               coord;
+    GpCoord*               part;
     u32                    draw;
     s32                    one;
     s32                    i;
@@ -3080,7 +3080,7 @@ void Actor07000_Fn05068(GpEnemy* arg0, Task* arg1)
     arg1->state        = 4;
 }
 
-static __inline__ void update_color(GpEnemy* enemy, GsCOORDINATE2* coord)
+static __inline__ void update_color(GpEnemy* enemy, GpCoord* coord)
 {
     VECTOR* block;
     block                = (VECTOR*)((u8*)SCRATCH_HEAD(void) - 0x10);
@@ -3110,7 +3110,7 @@ static __inline__ void update_animation(Task* task)
 static __inline__ void rotate_parts(Task* arg0)
 {
     Actor107000Spawn2Work* work;
-    GsCOORDINATE2*         coord;
+    GpCoord*               coord;
     MATRIX*                scratch;
     u8*                    head;
     s16                    value;
@@ -3169,7 +3169,7 @@ static __inline__ void rotate_parts(Task* arg0)
 void Actor07000_Fn05400(GpEnemy* arg0, Task* arg1)
 {
     Actor107000Spawn2Work* work;
-    GsCOORDINATE2*         coord;
+    GpCoord*               coord;
     s32                    sound;
     s32                    pan;
     work = (Actor107000Spawn2Work*)arg1->work;
@@ -3227,7 +3227,7 @@ void Actor07000_Fn0595C(Task* arg0)
 {
     ActorDeltaFrame38*        scratch;
     ActorsShared8013777cWork* work;
-    GsCOORDINATE2*            coord;
+    GpCoord*                  coord;
     s32                       movement;
 
     work     = (ActorsShared8013777cWork*)arg0->work;
@@ -3282,7 +3282,7 @@ s32 Actor07000_Fn05AB8(Task* arg0, s32 arg1, GpCmdArg* arg2)
     Actor107000Spawn2Work* work;
     GpEnemy*               enemy;
     TmdObject*             obj;
-    GsCOORDINATE2*         coord;
+    GpCoord*               coord;
     SVECTOR                rot;
     u16                    word;
     s32                    mode;
@@ -3407,11 +3407,11 @@ void Actor07000_Fn05ED4(Task* arg0)
 /// colour target is the task's enemy.
 void Actor07000_Fn05F84(Task* task)
 {
-    GsCOORDINATE2* coord;
-    void**         scratch;
-    u8*            head;
-    VECTOR*        block;
-    void*          obj;
+    GpCoord* coord;
+    void**   scratch;
+    u8*      head;
+    VECTOR*  block;
+    void*    obj;
 
     obj                            = task->spawnArg2;
     coord                          = &task->extra.tmd->coords[1];
@@ -3432,8 +3432,8 @@ void Actor07000_Fn05F84(Task* task)
 /// sub-state `field_36A` is 5 the 0x600A5 effect is spawned on the root.
 void Actor07000_Fn05FF8(Task* arg0)
 {
-    GsCOORDINATE2*           parts;
-    GsCOORDINATE2*           coord;
+    GpCoord*                 parts;
+    GpCoord*                 coord;
     OverlayMat*              mat;
     ActorShared80137e18Work* work;
 
@@ -3465,7 +3465,7 @@ void Actor07000_Fn05FF8(Task* arg0)
 void Actor07000_Fn06088(Task* arg0)
 {
     u16                      scale;
-    GsCOORDINATE2*           coord;
+    GpCoord*                 coord;
     ActorShared80137ea8Work* work;
 
     work                 = arg0->work;
@@ -3487,7 +3487,7 @@ void Actor07000_Fn060FC(Task* arg0)
     SVECTOR                   vec;
     MATRIX*                   m;
     ActorsShared80137f1cWork* work;
-    GsCOORDINATE2*            coord;
+    GpCoord*                  coord;
 
     work  = (ActorsShared80137f1cWork*)arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -3520,12 +3520,12 @@ void Actor07000_Fn060FC(Task* arg0)
 
 void Actor07000_Fn062A8(Task* arg0)
 {
-    SVECTOR        offset;
-    u32            dist;
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* child;
-    Task*          task;
-    s32            angle;
+    SVECTOR  offset;
+    u32      dist;
+    GpCoord* coords;
+    GpCoord* child;
+    Task*    task;
+    s32      angle;
 
     coords    = arg0->extra.tmd->coords;
     child     = &coords[1];
@@ -3559,7 +3559,7 @@ void Actor07000_Fn06338(Task* task)
 void Actor07000_Fn06390(Task* arg0)
 {
     Actor107000Spawn2Work* work;
-    GsCOORDINATE2*         coord;
+    GpCoord*               coord;
     MATRIX*                scratch;
     u8*                    head;
     s16                    value;
@@ -3692,7 +3692,7 @@ void Actor07000_Fn067B4(Task* task)
 /// step length `field_378`, and Y by the fall speed `field_398`.
 void Actor07000_Fn06820(Task* arg0)
 {
-    GsCOORDINATE2*           coord;
+    GpCoord*                 coord;
     ActorShared80138640Work* work;
 
     coord = arg0->extra.tmd->coords;

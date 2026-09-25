@@ -342,12 +342,12 @@ void func_acropolis_helicopter_landing_pad_8017E0F8(Task* arg0)
 /// the constant stores survive in the binary.
 void func_acropolis_helicopter_landing_pad_8017E270(Task* task)
 {
-    GsCOORDINATE2* coord;
-    SVECTOR        unusedA;
-    VECTOR         unusedB;
-    VECTOR         dir;
-    MATRIX         unusedM;
-    SVECTOR        unusedC;
+    GpCoord* coord;
+    SVECTOR  unusedA;
+    VECTOR   unusedB;
+    VECTOR   dir;
+    MATRIX   unusedM;
+    SVECTOR  unusedC;
 
     coord  = &gameGetPtrSlot(3)->extra.tmd->coords[4];
     dir.vx = -0x249;

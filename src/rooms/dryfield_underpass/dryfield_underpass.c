@@ -273,7 +273,7 @@ void func_dryfield_underpass_8017DAC8(Task* task)
 /// `(arg2 & 0x3F) | 0x4380`, and `arg3` is a signed half-extent, so the quad
 /// reaches `(s16)arg3 * 39 / otz` from the projected centre. The grey level
 /// alternates between 0x20 and 0x30 with `animFrame`.
-void func_dryfield_underpass_8017DB20(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
+void func_dryfield_underpass_8017DB20(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
 {
     void**             scratch;
     u8*                head;
@@ -361,11 +361,11 @@ void func_dryfield_underpass_8017DB20(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 ar
 /// The whole effect is skipped unless nibble 0x53 is clear.
 void func_dryfield_underpass_8017DE30(Task* task)
 {
-    GsCOORDINATE2* coord;
-    s32            mask;
-    s32            i;
-    SVECTOR*       vec;
-    s16*           flags;
+    GpCoord* coord;
+    s32      mask;
+    s32      i;
+    SVECTOR* vec;
+    s16*     flags;
 
     coord = task->extra.tmd->coords;
     mask  = 1 << gGameSession->at4.loc.view;

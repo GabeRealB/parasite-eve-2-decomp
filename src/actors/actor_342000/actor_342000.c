@@ -66,25 +66,25 @@
 /// republishes onto the model's `TmdObject::lightMtx` / `field_20`, exactly as
 /// the neighbouring actor overlays lay out theirs.
 typedef struct Actor342000Work {
-    /* 0x000 */ GpAnimCtx      ctx;
-    /* 0x014 */ GpAnimSlot     slots[8];
-    /* 0x154 */ byte           pad_154[0x80];
-    /* 0x1D4 */ MATRIX         light;
-    /* 0x1F4 */ MATRIX         color;
-    /* 0x214 */ GsCOORDINATE2  coord;
-    /* 0x264 */ VECTOR         field_264;
-    /* 0x274 */ s32            field_274;
-    /* 0x278 */ s32            field_278;
-    /* 0x27C */ s32            field_27C;
-    /* 0x280 */ byte           pad_280[0x8];
-    /* 0x288 */ s32            field_288;
-    /* 0x28C */ byte           pad_28C[0xC];
-    /* 0x298 */ Task*          field_298;
-    /* 0x29C */ Task*          field_29C;
-    /* 0x2A0 */ Task*          field_2A0;
-    /* 0x2A4 */ GsCOORDINATE2* field_2A4;
-    /* 0x2A8 */ byte           pad_2A8[0x2];
-    /* 0x2AA */ u16            field_2AA;
+    /* 0x000 */ GpAnimCtx  ctx;
+    /* 0x014 */ GpAnimSlot slots[8];
+    /* 0x154 */ byte       pad_154[0x80];
+    /* 0x1D4 */ MATRIX     light;
+    /* 0x1F4 */ MATRIX     color;
+    /* 0x214 */ GpCoord    coord;
+    /* 0x264 */ VECTOR     field_264;
+    /* 0x274 */ s32        field_274;
+    /* 0x278 */ s32        field_278;
+    /* 0x27C */ s32        field_27C;
+    /* 0x280 */ byte       pad_280[0x8];
+    /* 0x288 */ s32        field_288;
+    /* 0x28C */ byte       pad_28C[0xC];
+    /* 0x298 */ Task*      field_298;
+    /* 0x29C */ Task*      field_29C;
+    /* 0x2A0 */ Task*      field_2A0;
+    /* 0x2A4 */ GpCoord*   field_2A4;
+    /* 0x2A8 */ byte       pad_2A8[0x2];
+    /* 0x2AA */ u16        field_2AA;
 } Actor342000Work;
 STATIC_ASSERT_SIZEOF(Actor342000Work, 0x2AC);
 
@@ -248,8 +248,8 @@ extern GpMsgEntry D_actor_342000_801648E8[];
 /// of being hoisted to the top of each case.
 static inline void Actor342000_InitCoord(Task* arg0, Actor342000Work* w)
 {
-    GsCOORDINATE2* coord;
-    OverlayMat*    mtx;
+    GpCoord*    coord;
+    OverlayMat* mtx;
 
     coord                        = &w->coord;
     coord->sub                   = ((Actor342000Work*)arg0->work)->field_2A4;
@@ -374,7 +374,7 @@ void func_actor_342000_801625D8(Task* arg0)
     OverlayMat*      mtx;
     Actor342000Work* data;
     s32              one;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     VECTOR*          sc;
     TmdObject*       extra;
     u8*              head;
@@ -1206,7 +1206,7 @@ void func_actor_342000_80163EAC(Task* arg0)
 void func_actor_342000_80163F88(Task* task)
 {
     Actor342000Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
 
     coord = task->extra.tmd->coords;
     work  = (Actor342000Work*)task->work;
@@ -1242,8 +1242,8 @@ void func_actor_342000_80163FB8(Task* arg0, s32 arg1, s32 arg2)
 /// marks the coordinate dirty.
 void func_actor_342000_80164034(Task* task, s32 arg1, GpXformArg* arg2)
 {
-    GsCOORDINATE2* coord;
-    MATRIX*        mtx;
+    GpCoord* coord;
+    MATRIX*  mtx;
 
     coord             = task->extra.tmd->coords;
     coord->coord.t[0] = arg2->pos.vx;
@@ -1259,7 +1259,7 @@ void func_actor_342000_80164034(Task* task, s32 arg1, GpXformArg* arg2)
 void func_actor_342000_801640C0(Task* arg0, s32 arg1, GpXformArg* arg2)
 {
     Actor342000Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
 
     work              = (Actor342000Work*)arg0->work;
     coord             = &work->coord;

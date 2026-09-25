@@ -190,11 +190,11 @@ typedef struct {
 /// Spawn record for a falling shard: where it starts relative to `parent`, its
 /// base velocity, its size, and the downward speed it gains each frame.
 typedef struct {
-    SVECTOR        pos;
-    SVECTOR        vel;
-    GsCOORDINATE2* parent;
-    u16            size;
-    u16            fall;
+    SVECTOR  pos;
+    SVECTOR  vel;
+    GpCoord* parent;
+    u16      size;
+    u16      fall;
 } DumpingHoleShardCfg;
 
 /// Work block of a falling shard: its current rotation and spin, its velocity,
@@ -208,28 +208,28 @@ typedef struct {
 } DumpingHoleShard;
 
 typedef struct {
-    MATRIX         lightMtx;
-    MATRIX         colorMtx;
-    GpXformArg     pose;     // Sent to the task itself with message 0x7D4
-    SVECTOR        field_58; // Spawn parameters handed by address to the table spawns
-    SVECTOR        field_60;
-    GsCOORDINATE2* field_68;
-    s16            field_6C;
-    s16            field_6E;
-    VECTOR         scale; // Per-axis scale applied to the rotation of model part 3
-    Task*          field_80;
-    Task*          field_84;
-    Task*          field_88;
-    u16            state; // One-shot command, cleared once handled
-    u16            step;  // Progress through the sequence the command started
-    u16            timer; // Frames spent in the current step
-    u8             pad_92[0x2];
-    s16            field_94;
-    s16            field_96;
-    s16            field_98; // X rotation of model part 1 once the sequence reaches step 2
-    s16            field_9A;
-    u16            field_9C; // Latch: set once the state-F0 release has been issued
-    u8             pad_9E[0x2];
+    MATRIX     lightMtx;
+    MATRIX     colorMtx;
+    GpXformArg pose;     // Sent to the task itself with message 0x7D4
+    SVECTOR    field_58; // Spawn parameters handed by address to the table spawns
+    SVECTOR    field_60;
+    GpCoord*   field_68;
+    s16        field_6C;
+    s16        field_6E;
+    VECTOR     scale; // Per-axis scale applied to the rotation of model part 3
+    Task*      field_80;
+    Task*      field_84;
+    Task*      field_88;
+    u16        state; // One-shot command, cleared once handled
+    u16        step;  // Progress through the sequence the command started
+    u16        timer; // Frames spent in the current step
+    u8         pad_92[0x2];
+    s16        field_94;
+    s16        field_96;
+    s16        field_98; // X rotation of model part 1 once the sequence reaches step 2
+    s16        field_9A;
+    u16        field_9C; // Latch: set once the state-F0 release has been issued
+    u8         pad_9E[0x2];
 } DumpingHoleEntity4;
 
 typedef struct {
@@ -356,8 +356,8 @@ void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0);
 s32  func_shelter_b3_dumping_hole_80181E70(s16 arg0, s16 arg1, s32 arg2);
 void func_shelter_b3_dumping_hole_80184638(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_shelter_b3_dumping_hole_80184E7C(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b3_dumping_hole_801866CC(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
-void func_shelter_b3_dumping_hole_80186AB8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
+void func_shelter_b3_dumping_hole_801866CC(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+void func_shelter_b3_dumping_hole_80186AB8(GpCoord* arg0, s32 arg1, s32 arg2);
 void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0);
 void func_shelter_b3_dumping_hole_80183218(u8 arg0);
 void func_shelter_b3_dumping_hole_8017FD9C(s32 arg0, s32 arg1);
@@ -389,8 +389,8 @@ void func_shelter_b3_dumping_hole_80183CA0(Task* arg0);
 void func_shelter_b3_dumping_hole_80183D34(Task* arg0);
 void func_shelter_b3_dumping_hole_80183E08(Task* arg0);
 void func_shelter_b3_dumping_hole_80183F04(Task* arg0);
-void func_shelter_b3_dumping_hole_8018596C(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
-void func_shelter_b3_dumping_hole_80185DCC(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
+void func_shelter_b3_dumping_hole_8018596C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+void func_shelter_b3_dumping_hole_80185DCC(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 
 /// Returns 1 when the screen position (`x`, `y`) lies outside the 320x240
 /// screen centred on the origin, 0 when it is on screen.
@@ -417,7 +417,7 @@ static inline u16 _shelterB3DumpingHoleIsOffscreen(s16 x, s16 y)
 /// Otherwise a semi-transparent `POLY_FT4` of `w` x `h` texels at (`u`, `v`),
 /// scaled by `scale` (4096 = 1.0), is linked into the ordering table at the
 /// projected depth, or at `otzOverride` when that is non-zero, and 0 is returned.
-u16 func_shelter_b3_dumping_hole_8017DA00(GsCOORDINATE2* coord, s16 w, s16 h, s16 u,
+u16 func_shelter_b3_dumping_hole_8017DA00(GpCoord* coord, s16 w, s16 h, s16 u,
                                           s16 v, s16 tpageX, s16 tpageY, s16 scale,
                                           s16 clut, s32 otzOverride)
 {
@@ -474,7 +474,7 @@ u16 func_shelter_b3_dumping_hole_8017DA00(GsCOORDINATE2* coord, s16 w, s16 h, s1
 void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
 {
     DumpingHoleAnimWork* W      = (DumpingHoleAnimWork*)arg0->work;
-    GsCOORDINATE2*       coord  = arg0->extra.tmd->coords;
+    GpCoord*             coord  = arg0->extra.tmd->coords;
     DumpingHoleEntity*   entity = D_shelter_b3_dumping_hole_8018F4A8->work;
 
     if (entity->field_42 == 1) {
@@ -546,7 +546,7 @@ void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
 void func_shelter_b3_dumping_hole_8017DF90(Task* arg0)
 {
     DumpingHoleAnimWork* W     = (DumpingHoleAnimWork*)arg0->work;
-    GsCOORDINATE2*       coord = arg0->extra.tmd->coords;
+    GpCoord*             coord = arg0->extra.tmd->coords;
     SVECTOR              vec;
     SVECTOR              pos;
     DVECTOR              sxy;
@@ -574,7 +574,7 @@ void func_shelter_b3_dumping_hole_8017DF90(Task* arg0)
     switch (arg0->state) {
         case 0:
             coord->sub = &gGfxViewCoord;
-            Gp_ComposeParentWorld((GsCOORDINATE2*)arg0->spawnArg2, &coord->coord, &vec);
+            Gp_ComposeParentWorld((GpCoord*)arg0->spawnArg2, &coord->coord, &vec);
             coord->coord.t[0] = vec.vx + W->field_C;
             coord->coord.t[1] = vec.vy + W->field_E;
             coord->coord.t[2] = vec.vz + W->field_10;
@@ -651,7 +651,7 @@ void func_shelter_b3_dumping_hole_8017DF90(Task* arg0)
 void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
 {
     DumpingHoleAnimWork* work  = (DumpingHoleAnimWork*)arg0->work;
-    GsCOORDINATE2*       coord = arg0->extra.tmd->coords;
+    GpCoord*             coord = arg0->extra.tmd->coords;
     SVECTOR              vec;
     s32                  sa1;
     u32                  roll1;
@@ -668,7 +668,7 @@ void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
     switch (arg0->state) {
         case 0:
             coord->sub = &gGfxViewCoord;
-            Gp_ComposeParentWorld((GsCOORDINATE2*)arg0->spawnArg2, &coord->coord, &vec);
+            Gp_ComposeParentWorld((GpCoord*)arg0->spawnArg2, &coord->coord, &vec);
             coord->coord.t[0] = vec.vx;
             coord->coord.t[1] = vec.vy;
             coord->coord.t[2] = vec.vz;
@@ -754,7 +754,7 @@ void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
 {
     DumpingHoleCoordWork*         work;
     register TmdObject*           extra asm("s2");
-    GsCOORDINATE2*                coord;
+    GpCoord*                      coord;
     register DumpingHoleCoordCfg* cfg asm("s3");
     VECTOR                        v;
     TmdObject*                    e2;
@@ -798,8 +798,8 @@ void func_shelter_b3_dumping_hole_8017E94C(Task* arg0)
 {
     DumpingHoleCoordWork* work  = (DumpingHoleCoordWork*)arg0->work;
     u16                   flag  = ((DumpingHoleEntity*)D_shelter_b3_dumping_hole_8018F4A8->work)->field_40;
-    GsCOORDINATE2*        coord = arg0->extra.tmd->coords;
-    GsCOORDINATE2*        c2;
+    GpCoord*              coord = arg0->extra.tmd->coords;
+    GpCoord*              c2;
     DumpingHoleProjection p;
     s32                   sx;
     s32                   sy;
@@ -1398,7 +1398,7 @@ void func_shelter_b3_dumping_hole_80180034(void)
 void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
 {
     DumpingHoleShard*    work;
-    GsCOORDINATE2*       coord;
+    GpCoord*             coord;
     DumpingHoleShardCfg* cfg;
     POLY_G3*             prim;
     SVECTOR              ofs;
@@ -1644,7 +1644,7 @@ void func_shelter_b3_dumping_hole_8018098C(Task* task)
     OverlayMat*         ident;
     OverlayMat*         ident2;
     VECTOR*             sc;
-    GsCOORDINATE2*      coords;
+    GpCoord*            coords;
     TmdObject*          obj;
     u8*                 head;
     u32                 scratch;
@@ -2083,8 +2083,8 @@ void func_shelter_b3_dumping_hole_801817D8(Task* task, s32 arg1, s32 arg2)
 /// coordinate is marked for recomputation.
 void func_shelter_b3_dumping_hole_80181854(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2* coord;
-    MATRIX*        mtx;
+    GpCoord* coord;
+    MATRIX*  mtx;
 
     coord             = task->extra.tmd->coords;
     coord->coord.t[0] = placement->pos.vx;
@@ -3773,11 +3773,11 @@ void func_shelter_b3_dumping_hole_80184E7C(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// reaches 4.
 void func_shelter_b3_dumping_hole_8018521C(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    SVECTOR*       vec;
-    s32            step;
-    s32            level;
+    GpEffWork* work;
+    GpCoord*   coord;
+    SVECTOR*   vec;
+    s32        step;
+    s32        level;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -3921,7 +3921,7 @@ void func_shelter_b3_dumping_hole_8018521C(Task* task)
     }
 }
 
-void func_shelter_b3_dumping_hole_8018596C(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
+void func_shelter_b3_dumping_hole_8018596C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -3995,7 +3995,7 @@ void func_shelter_b3_dumping_hole_8018596C(GsCOORDINATE2* arg0, u16 arg1, s16 ar
 /// frame, a 48x48 cell in a five-wide grid of the texture page; the top bits
 /// pick one of two palettes. Nothing is drawn when the projection flags an
 /// error.
-void func_shelter_b3_dumping_hole_80185DCC(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
+void func_shelter_b3_dumping_hole_80185DCC(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -4067,13 +4067,13 @@ void func_shelter_b3_dumping_hole_80185DCC(GsCOORDINATE2* arg0, u16 arg1, s16 ar
 /// draws, and is released once the event state reaches 4.
 void func_shelter_b3_dumping_hole_80186218(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    SVECTOR*       vec;
-    s32            kind;
-    s32            step;
-    s32            state;
-    s32            level;
+    GpEffWork* work;
+    GpCoord*   coord;
+    SVECTOR*   vec;
+    s32        kind;
+    s32        step;
+    s32        state;
+    s32        level;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -4189,7 +4189,7 @@ void func_shelter_b3_dumping_hole_80186218(Task* task)
 /// `arg3` and a quarter turn past it. `arg1` picks the frame, a 32x32 cell
 /// in a row of the texture page. Nothing is drawn when the projection flags
 /// an error.
-void func_shelter_b3_dumping_hole_801866CC(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
+void func_shelter_b3_dumping_hole_801866CC(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -4257,7 +4257,7 @@ void func_shelter_b3_dumping_hole_801866CC(GsCOORDINATE2* arg0, u16 arg1, s16 ar
 /// projected point sits three quarters of the way down it. `arg1` picks the
 /// frame, a 56x56 cell in a four-by-two grid of the texture page. Nothing is
 /// drawn when the projection flags an error.
-void func_shelter_b3_dumping_hole_80186AB8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
+void func_shelter_b3_dumping_hole_80186AB8(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -4335,10 +4335,10 @@ void func_shelter_b3_dumping_hole_80186AB8(GsCOORDINATE2* arg0, s32 arg1, s32 ar
 
 void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    MATRIX*        m;
-    s32            i;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    MATRIX*    m;
+    s32        i;
 
     mem   = (GpEffWork*)arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;

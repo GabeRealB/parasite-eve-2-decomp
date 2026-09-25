@@ -268,9 +268,9 @@ void func_dryfield_night_water_tank_8017D9DC(s32 arg0)
 /// register copy, or the overlay comes up an `addu` short.
 void func_dryfield_night_water_tank_8017DB8C(Task* arg0)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR         vec;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR     vec;
 
     coord = arg0->extra.tmd->coords;
     obj   = arg0->extra.tmd;

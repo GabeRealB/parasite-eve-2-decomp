@@ -88,7 +88,7 @@ void func_actor_300700_801637E4(Task* actor)
     GpDeltaScratch*  oldScratch;
     GpDeltaScratch*  scratch;
     GpDeltaScratch*  normal;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s16              cooldown;
     s16              health;
     s32              cooldownParam;
@@ -110,7 +110,7 @@ void func_actor_300700_801637E4(Task* actor)
     u32              hitId;
     u32              effect;
     u32              damage;
-    GsCOORDINATE2*   sourceCoord;
+    GpCoord*         sourceCoord;
 
     push       = 0;
     lastId     = 0;
@@ -286,7 +286,7 @@ void func_actor_300700_80163D64(Task* arg0)
 {
     Actor300700Work* work;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              state;
     s32              one;
     s32              rng0;
@@ -412,8 +412,8 @@ void func_actor_300700_80164070(Task* arg0)
     VECTOR*          vec;
     Actor300700Work* work;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   target;
+    GpCoord*         coord;
+    GpCoord*         target;
     s32              state;
     s32              one;
     s32              dist;
@@ -543,7 +543,7 @@ void func_actor_300700_801643D0(Task* arg0)
     VECTOR           vec;
     Actor300700Work* work;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              state;
     s32              one;
     s32              rng;
@@ -675,7 +675,7 @@ void func_actor_300700_801645F8(Task* arg0)
 void func_actor_300700_80164794(Task* arg0)
 {
     Actor300700Work*  work;
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     ActorFaceScratch* sc;
     s32               ang;
     u16               want;
@@ -745,9 +745,9 @@ void func_actor_300700_801648E4(GpEnemy* arg0, Task* arg1)
 {
     Actor300700Work* work;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor300700Work* work2;
-    GsCOORDINATE2*   c;
+    GpCoord*         c;
     VECTOR           vec;
     s32              state;
     s32              i;
@@ -890,7 +890,7 @@ void func_actor_300700_80164CE0(Task* arg0)
 
 void func_actor_300700_80164D3C(GpEnemy* arg0, Task* arg1)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     TmdObject*       obj;
     Actor300700Work* work;
     s32              state;
@@ -1017,7 +1017,7 @@ void func_actor_300700_80164F68(Task* arg0)
 void func_actor_300700_80165000(Task* arg0)
 {
     Actor300700Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              snd;
     s32              pan;
     u16              timer;
@@ -1044,7 +1044,7 @@ void func_actor_300700_801650C0(Task* arg0)
 {
     Actor300700Work* work;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              state;
     s32              snd;
     s32              pan;
@@ -1087,7 +1087,7 @@ case1:
 void func_actor_300700_801651A0(Task* arg0)
 {
     Actor300700Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
 
     coord              = arg0->extra.tmd->coords;
     work               = arg0->work;
@@ -1128,8 +1128,8 @@ void func_actor_300700_80165230(Task* arg0)
 /// root, with both extra arguments zero.
 void func_actor_300700_801652F4(Task* arg0)
 {
-    GsCOORDINATE2* coord;
-    VECTOR         vec;
+    GpCoord* coord;
+    VECTOR   vec;
 
     coord  = arg0->extra.tmd->coords;
     vec.vx = coord->workm.t[0];
@@ -1140,8 +1140,8 @@ void func_actor_300700_801652F4(Task* arg0)
 
 void func_actor_300700_8016534C(Task* arg0)
 {
-    GsCOORDINATE2* coord;
-    VECTOR3        vec;
+    GpCoord* coord;
+    VECTOR3  vec;
 
     coord  = arg0->extra.tmd->coords;
     vec.vx = coord->workm.t[0];
@@ -1152,7 +1152,7 @@ void func_actor_300700_8016534C(Task* arg0)
 
 void func_actor_300700_8016539C(Task* arg0)
 {
-    GsCOORDINATE2*     coord;
+    GpCoord*           coord;
     ActorScaleScratch* head;
     ActorScaleScratch* scratch;
     Actor300700Work*   work;

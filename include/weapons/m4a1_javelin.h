@@ -6,7 +6,7 @@
 #include "gameplay/3CD8.h"
 #include "overlay.h"
 
-/// Low halves of a `VECTOR3` (typically `GsCOORDINATE2.workm.t`).
+/// Low halves of a `VECTOR3` (typically `GpCoord.workm.t`).
 typedef struct M4a1JavelinVecLo {
     /* 0x0 */ u16  vx;
     /* 0x2 */ byte pad_2[2];

@@ -7,6 +7,8 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "main/coord.h"
+
 struct Task;
 
 // Types — TMD model lists (src/main/tmd.c; stage fade/MDEC lives in stage.c)
@@ -80,24 +82,24 @@ STATIC_ASSERT_SIZEOF(TmdListHead, 0x8);
 /// pass reads the half it writes: `bufferIndex` selects the half in use and
 /// each pass flips it.
 typedef struct {
-    TmdListHead    link;        // Its place on `gTmdList`
-    GsCOORDINATE2* coords;      // Per-part coordinate array, part of this object's own block
-    u16            flags;       // State bits (0x2 drawn semi-transparent, 0x4 buffer allocated by whoever created it, 0x8 drawn by the flagged pass, 0x10 drawn as a reflection, its faces winding the other way, 0x80 hidden)
-    s8             otOffset;    // Ordering-table offset the model's primitives are linked at
-    byte           unknown_F;
-    TmdSource*     source;      // The model as its package shipped it
-    u16            bufferIndex; // Which half of the buffer is in use (0/1); each pass flips it
-    u16            halfSize;    // Size of one buffer half, cached from the source
-    void*          buffer;      // Both buffer halves, allocated together; NULL while there are none
-    MATRIX*        lightMtx;    // Light matrix the model is drawn under
-    MATRIX*        colorMtx;    // Colour matrix the model is drawn under
-    s8             tpage;       // Texture page the model's primitives are offset by
-    s8             clut;        // CLUT the model's primitives are offset by, in 64-entry rows
-    u8             tpageOffset; // Further texture page offset the handlers that use one add to a primitive
-    u8             clutOffset;  // Further CLUT row offset the handlers that use one add, in 64-entry rows
-    byte           unknown_28[0x4];
-    s32            lightLevel;  // Lighting, 12.4 fixed point (0x1000 fully lit)
-    s32            partCount;   // Parts the model is divided into, cached from the source
+    TmdListHead link;        // Its place on `gTmdList`
+    GpCoord*    coords;      // Per-part coordinate array, part of this object's own block
+    u16         flags;       // State bits (0x2 drawn semi-transparent, 0x4 buffer allocated by whoever created it, 0x8 drawn by the flagged pass, 0x10 drawn as a reflection, its faces winding the other way, 0x80 hidden)
+    s8          otOffset;    // Ordering-table offset the model's primitives are linked at
+    byte        unknown_F;
+    TmdSource*  source;      // The model as its package shipped it
+    u16         bufferIndex; // Which half of the buffer is in use (0/1); each pass flips it
+    u16         halfSize;    // Size of one buffer half, cached from the source
+    void*       buffer;      // Both buffer halves, allocated together; NULL while there are none
+    MATRIX*     lightMtx;    // Light matrix the model is drawn under
+    MATRIX*     colorMtx;    // Colour matrix the model is drawn under
+    s8          tpage;       // Texture page the model's primitives are offset by
+    s8          clut;        // CLUT the model's primitives are offset by, in 64-entry rows
+    u8          tpageOffset; // Further texture page offset the handlers that use one add to a primitive
+    u8          clutOffset;  // Further CLUT row offset the handlers that use one add, in 64-entry rows
+    byte        unknown_28[0x4];
+    s32         lightLevel;  // Lighting, 12.4 fixed point (0x1000 fully lit)
+    s32         partCount;   // Parts the model is divided into, cached from the source
 } TmdObject;
 STATIC_ASSERT_SIZEOF(TmdObject, 0x34);
 

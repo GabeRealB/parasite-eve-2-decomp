@@ -451,8 +451,8 @@ void func_actor_303600_80162698(void)
 void func_actor_303600_801626C0(Task* task)
 {
     Actor303600RigWork* work;
-    GsCOORDINATE2*      coord;
-    GsCOORDINATE2*      childCoord;
+    GpCoord*            coord;
+    GpCoord*            childCoord;
     Task*               child;
     s32                 i;
 
@@ -492,7 +492,7 @@ void func_actor_303600_801626C0(Task* task)
 void func_actor_303600_801627B8(Task* task)
 {
     Actor303600RigWork* work  = (Actor303600RigWork*)task->work;
-    GsCOORDINATE2*      coord = task->extra.tmd->coords;
+    GpCoord*            coord = task->extra.tmd->coords;
     s32                 speed;
     s32                 angle;
     s32                 var;
@@ -590,9 +590,9 @@ void func_actor_303600_80162950(Task* task)
 {
     Task*                 parent      = task->spawnArg2;
     TmdObject*            obj         = task->extra.tmd;
-    GsCOORDINATE2*        coord       = obj->coords;
+    GpCoord*              coord       = obj->coords;
     TmdObject*            parentObj   = parent->extra.tmd;
-    GsCOORDINATE2*        parentCoord = parentObj->coords;
+    GpCoord*              parentCoord = parentObj->coords;
     Actor303600LightMats* mats;
 
     mats = memCalloc(0x44, 0);

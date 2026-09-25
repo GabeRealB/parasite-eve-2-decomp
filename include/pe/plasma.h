@@ -5,6 +5,7 @@
 
 #include <psyq/libgte.h>
 #include <psyq/libgs.h>
+#include "main/coord.h"
 #include "gameplay/3CD8.h"
 
 /// Three 16-entry LCG columns used as per-vertex jitter. `func_plasma_8012EF34`
@@ -47,13 +48,13 @@ extern PlasmaJitter D_plasma_8012FF54;
 /// from `(D_plasma_8012FF54[arg2][i] + field_22) % 6`, and `field_24` sets the
 /// brightness. A negative `gte_stflg` on the wedge's first vertex drops it.
 /// Works out of a `GpBandScratch` taken from `G_SCRATCH_HEAD`.
-void func_plasma_8012F568(GpEffWork* arg0, GsCOORDINATE2* arg1, s32 arg2);
+void func_plasma_8012F568(GpEffWork* arg0, GpCoord* arg1, s32 arg2);
 
 /// Projects `arg0`'s world position and queues sixteen gouraud `POLY_G4`
 /// wedges forming a ring around it. `arg1` is the inner half-extent and
 /// `arg2` the extra outer width; the on-screen radii are
 /// `(s16)arg1 * 64 / (otz + 1)` and `(s16)(arg1 + arg2) * 64 / (otz + 1)`.
 /// `rgb` tints the inner edge so each wedge fades to a black outer rim.
-void func_plasma_8012FB10(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_plasma_8012FB10(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 
 #endif /* PE_PLASMA_H */

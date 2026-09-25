@@ -54,7 +54,7 @@ extern GpGridParams D_dryfield_night_motel_loft_8017ED54;
 extern GpGridParams D_dryfield_night_motel_loft_8017F120;
 
 void func_dryfield_night_motel_loft_8017DE14(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_dryfield_night_motel_loft_8017E540(GsCOORDINATE2* coord, s16 scale, s16 shade);
+void func_dryfield_night_motel_loft_8017E540(GpCoord* coord, s16 scale, s16 shade);
 
 /// Restores the live grid's first face normal, its face record and its four
 /// face corners from the template, then raises the corners by 0xBB8 in Y when
@@ -284,7 +284,7 @@ void func_dryfield_night_motel_loft_8017E090(Task* task)
 {
     _DryfieldNightMotelLoftShard* w     = task->spawnArg2;
     s16                           ev    = Gp_State1C->eventState;
-    GsCOORDINATE2*                coord = task->extra.tmd->coords;
+    GpCoord*                      coord = task->extra.tmd->coords;
     SVECTOR                       step;
 
     if (ev < 4) {
@@ -376,7 +376,7 @@ void func_dryfield_night_motel_loft_8017E090(Task* task)
 /// rotated by `coord`'s `workm` and moved by its translation before projection
 /// through `GsWSMATRIX`. A triangle the GTE flags as failed is dropped. The
 /// triangle is made semi-transparent with a blend mode drawn from the LCG.
-void func_dryfield_night_motel_loft_8017E540(GsCOORDINATE2* coord, s16 scale, s16 shade)
+void func_dryfield_night_motel_loft_8017E540(GpCoord* coord, s16 scale, s16 shade)
 {
     _DryfieldNightMotelLoftTriScratch* blk;
     SVECTOR*                           p;

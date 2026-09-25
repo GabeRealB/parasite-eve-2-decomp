@@ -95,7 +95,7 @@ void func_acropolis_helicopter_landing_pad_8017D658(Task* task)
 void func_acropolis_helicopter_landing_pad_8017D6E0(Task* task)
 {
     AhlpEnemyWork* work  = (AhlpEnemyWork*)task->work;
-    GpCoordExt*    coord = (GpCoordExt*)task->extra.tmd->coords;
+    GpCoord*       coord = task->extra.tmd->coords;
     TmdObject*     obj   = task->extra.tmd;
     s16            n;
 
@@ -170,9 +170,9 @@ s32 func_acropolis_helicopter_landing_pad_8017D824(Task* task, s32 msgId, GpAnim
 /// matrix and marks the coordinate dirty.
 s32 func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, GpXformArg* placement, s32 arg3)
 {
-    GpCoordExt* coord;
+    GpCoord* coord;
 
-    coord               = (GpCoordExt*)task->extra.tmd->coords;
+    coord               = task->extra.tmd->coords;
     coord->coord.t[0]   = placement->pos.vx;
     coord->coord.t[1]   = placement->pos.vy;
     coord->coord.t[2]   = placement->pos.vz;

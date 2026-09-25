@@ -36,8 +36,8 @@
 /// `func_dryfield_dilapidated_house_80180FD8`, 0..0x1000) into all three of
 /// `field_0` / `field_4` / `field_8`; `func_dryfield_dilapidated_house_80181028`
 /// rebuilds `mtx` as the identity and then composes it against the parent's
-/// `GsCOORDINATE2` chain, and `func_dryfield_dilapidated_house_80180B84` copies
-/// `mtx` verbatim into a spawned child's `GsCOORDINATE2::coord`.
+/// `GpCoord` chain, and `func_dryfield_dilapidated_house_80180B84` copies
+/// `mtx` verbatim into a spawned child's `GpCoord::coord`.
 typedef struct DdhCoordWork {
     /* 0x00 */ s32    field_0;
     /* 0x04 */ s32    field_4;
@@ -69,7 +69,7 @@ STATIC_ASSERT_SIZEOF(DdhRoomRec, 0x18);
 /// whose state 0 is `func_dryfield_dilapidated_house_8018118C`: allocated with
 /// `Mem_Malloc(0x24, 0)` and parked in the `Task::work` slot. It holds a
 /// snapshot of the placed model coordinate's matrix (`mtx`, copied from
-/// `GpCoordExt::coord`) plus one 0x1000 word.
+/// `GpCoord::coord`) plus one 0x1000 word.
 typedef struct DdhModelWork {
     /* 0x00 */ MATRIX mtx;
     /* 0x20 */ s32    field_20;
@@ -215,11 +215,11 @@ void func_dryfield_dilapidated_house_8018142C(Task* task);
 void func_dryfield_dilapidated_house_801814B4(Task* arg0);
 void func_dryfield_dilapidated_house_80181584(Task* task);
 void func_dryfield_dilapidated_house_801815B8(Task* arg0);
-void func_dryfield_dilapidated_house_80182A18(GsCOORDINATE2* coord, s16 arg1, s16 arg2);
-void func_dryfield_dilapidated_house_801832A8(GsCOORDINATE2* coord, s16 arg1, s16 arg2, s16 arg3);
-void func_dryfield_dilapidated_house_80182F14(GsCOORDINATE2* coord, s32 arg1, s16 arg2);
-void func_dryfield_dilapidated_house_80183728(GsCOORDINATE2* coord, s16 arg1, s32 arg2, s16 arg3);
-void func_dryfield_dilapidated_house_801815E8(GsCOORDINATE2* coord, s16 arg1);
+void func_dryfield_dilapidated_house_80182A18(GpCoord* coord, s16 arg1, s16 arg2);
+void func_dryfield_dilapidated_house_801832A8(GpCoord* coord, s16 arg1, s16 arg2, s16 arg3);
+void func_dryfield_dilapidated_house_80182F14(GpCoord* coord, s32 arg1, s16 arg2);
+void func_dryfield_dilapidated_house_80183728(GpCoord* coord, s16 arg1, s32 arg2, s16 arg3);
+void func_dryfield_dilapidated_house_801815E8(GpCoord* coord, s16 arg1);
 void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts);
 void func_dryfield_dilapidated_house_801803A4(Task* task, SVECTOR* verts);
 void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags);
@@ -1632,23 +1632,23 @@ void func_dryfield_dilapidated_house_80180A0C(Task* task, DdhRoomRec* rec, s32 a
 
 void func_dryfield_dilapidated_house_80180B84(Task* task)
 {
-    Task*          parent;
-    TmdObject*     obj;
-    TmdObject*     parentObj;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* parentCoord;
-    DdhCoordWork*  work;
-    DdhRoomRec*    rec;
-    TmdSource*     source;
-    SVECTOR*       dst;
-    SVECTOR*       dst2;
-    SVECTOR*       src2;
-    SVECTOR*       verts;
-    TaskDesc*      table;
-    Task*          spawned;
-    GsCOORDINATE2* childCoord;
-    u16            flags;
-    s32            i;
+    Task*         parent;
+    TmdObject*    obj;
+    TmdObject*    parentObj;
+    GpCoord*      coord;
+    GpCoord*      parentCoord;
+    DdhCoordWork* work;
+    DdhRoomRec*   rec;
+    TmdSource*    source;
+    SVECTOR*      dst;
+    SVECTOR*      dst2;
+    SVECTOR*      src2;
+    SVECTOR*      verts;
+    TaskDesc*     table;
+    Task*         spawned;
+    GpCoord*      childCoord;
+    u16           flags;
+    s32           i;
 
     parent      = (Task*)task->spawnArg2;
     obj         = task->extra.tmd;
@@ -1774,17 +1774,17 @@ s32 func_dryfield_dilapidated_house_80180FD8(Task* task)
 }
 
 /// Rebuilds the work block's `mtx` as the identity, then composes it against
-/// the parent model's `GsCOORDINATE2` chain: each node's `coord` rotation is
+/// the parent model's `GpCoord` chain: each node's `coord` rotation is
 /// multiplied in, and its translation is rotated by the accumulated matrix and
 /// added to `mtx.t`. Steps one coordinate record at a time from the head of the
 /// parent's array up to the record this task's own `coord` links with `sub`.
 void func_dryfield_dilapidated_house_80181028(Task* task)
 {
-    VECTOR         vec;
-    GsCOORDINATE2* coord;
-    DdhCoordWork*  work;
-    GsCOORDINATE2* node;
-    MATRIX*        mtx;
+    VECTOR        vec;
+    GpCoord*      coord;
+    DdhCoordWork* work;
+    GpCoord*      node;
+    MATRIX*       mtx;
 
     coord                = task->extra.tmd->coords;
     work                 = (DdhCoordWork*)task->work;
@@ -1834,9 +1834,9 @@ void func_dryfield_dilapidated_house_80181134(Task* task)
 /// to state 1.
 void func_dryfield_dilapidated_house_8018118C(Task* arg0)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    DdhModelWork*  work;
+    TmdObject*    obj;
+    GpCoord*      coord;
+    DdhModelWork* work;
 
     obj   = arg0->extra.tmd;
     coord = obj->coords;
@@ -1882,8 +1882,8 @@ void func_dryfield_dilapidated_house_801812E8(Task* task)
 
 void func_dryfield_dilapidated_house_80181340(Task* arg0)
 {
-    GsCOORDINATE2* coord;
-    void*          work;
+    GpCoord* coord;
+    void*    work;
 
     coord = arg0->extra.tmd->coords;
     work  = Mem_Malloc(4, false);
@@ -1911,7 +1911,7 @@ void func_dryfield_dilapidated_house_801813DC(Task* task)
 
 void func_dryfield_dilapidated_house_8018142C(Task* arg0)
 {
-    GsCOORDINATE2* coord;
+    GpCoord* coord;
 
     coord      = arg0->extra.tmd->coords;
     coord->sub = &gGfxViewCoord;
@@ -1936,9 +1936,9 @@ void func_dryfield_dilapidated_house_8018145C(Task* task)
 /// task that spawned this one under it.
 void func_dryfield_dilapidated_house_801814B4(Task* arg0)
 {
-    DdhAngleStep*  work;
-    GsCOORDINATE2* coord;
-    s32            i;
+    DdhAngleStep* work;
+    GpCoord*      coord;
+    s32           i;
 
     coord = arg0->extra.tmd->coords;
     work  = (DdhAngleStep*)Mem_Malloc(0x40, false);
@@ -1965,7 +1965,7 @@ void func_dryfield_dilapidated_house_80181584(Task* task)
 
 void func_dryfield_dilapidated_house_801815B8(Task* arg0)
 {
-    GsCOORDINATE2* coord;
+    GpCoord* coord;
 
     coord      = arg0->extra.tmd->coords;
     coord->sub = &gGfxViewCoord;
@@ -1981,7 +1981,7 @@ extern SVECTOR D_dryfield_dilapidated_house_80186884[];
 /// cap over the lit ring. Each corner is rotated by `coord`'s `workm` and moved
 /// by its translation before projection through `GsWSMATRIX`. The lit corners
 /// share a grey that pulses with the display frame; the far corners are black.
-void func_dryfield_dilapidated_house_801815E8(GsCOORDINATE2* coord, s16 arg1)
+void func_dryfield_dilapidated_house_801815E8(GpCoord* coord, s16 arg1)
 {
     RoomQuadScratch* blk;
     POLY_G4*         prim;
@@ -2103,8 +2103,8 @@ extern SVECTOR D_dryfield_dilapidated_house_8018694C;
 
 /// Eight-slot trail coordinates, one array per end of the pair. Every entry is
 /// parented to `gGfxViewCoord`.
-extern GsCOORDINATE2 D_dryfield_dilapidated_house_80189DE0[8];
-extern GsCOORDINATE2 D_dryfield_dilapidated_house_8018A060[8];
+extern GpCoord D_dryfield_dilapidated_house_80189DE0[8];
+extern GpCoord D_dryfield_dilapidated_house_8018A060[8];
 
 /// Per-frame twin trail. State 0 places the object's coordinate at
 /// `D_dryfield_dilapidated_house_80186944[0]` and the second ring at `[1]`,
@@ -2116,12 +2116,12 @@ extern GsCOORDINATE2 D_dryfield_dilapidated_house_8018A060[8];
 /// is 2 or more.
 void func_dryfield_dilapidated_house_80181F08(Task* task)
 {
-    GsCOORDINATE2  coord;
-    GsCOORDINATE2* objCoord;
-    GsCOORDINATE2* dst;
-    GpEffWork*     work;
-    SVECTOR*       vec;
-    s32            i;
+    GpCoord    coord;
+    GpCoord*   objCoord;
+    GpCoord*   dst;
+    GpEffWork* work;
+    SVECTOR*   vec;
+    s32        i;
 
     work     = (GpEffWork*)task->spawnArg2;
     objCoord = task->extra.tmd->coords;
@@ -2207,8 +2207,8 @@ void func_dryfield_dilapidated_house_80181F08(Task* task)
 void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
 {
     OverlayFlaggedQuadScratch* blk;
-    GsCOORDINATE2*             a;
-    GsCOORDINATE2*             b;
+    GpCoord*                   a;
+    GpCoord*                   b;
     POLY_G4*                   prim;
     s32                        i;
     s32                        j;
@@ -2281,18 +2281,18 @@ void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
 /// 0x580.
 void func_dryfield_dilapidated_house_80182744(Task* task)
 {
-    DdhEffWork*    work;
-    GsCOORDINATE2* coord;
-    GpCoord64*     rc;
-    GpPointLight*  tail;
-    GpEffWork*     eff;
-    u16            tick;
-    u16            tick1;
-    s16            size;
-    s32            angle;
-    s32            keep;
-    s32            i;
-    u8             rgb[3];
+    DdhEffWork*   work;
+    GpCoord*      coord;
+    GpCoord64*    rc;
+    GpPointLight* tail;
+    GpEffWork*    eff;
+    u16           tick;
+    u16           tick1;
+    s16           size;
+    s32           angle;
+    s32           keep;
+    s32           i;
+    u8            rgb[3];
 
     work           = task->spawnArg2;
     coord          = task->extra.tmd->coords;
@@ -2378,7 +2378,7 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
 /// The inner edge carries the unsigned `arg2` ramp `(arg2, arg2 >> 1, arg2 >> 2)`
 /// and the outer edge fades to black; a negative `gte_stflg` drops the segment.
 /// Same body as `func_pyrokinesis_8012FC34`.
-void func_dryfield_dilapidated_house_80182A18(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
+void func_dryfield_dilapidated_house_80182A18(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     void**         scratch;
     register u8*   head asm("v0");
@@ -2476,7 +2476,7 @@ void func_dryfield_dilapidated_house_80182A18(GsCOORDINATE2* arg0, s16 arg1, s16
 /// `arg2` ramp `(arg2, arg2 >> 1, arg2 >> 2)` - a red-biased fire tint. A
 /// negative `gte_stflg` drops the whole ring. Same body as
 /// `func_pyrokinesis_80130130`.
-void func_dryfield_dilapidated_house_80182F14(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
+void func_dryfield_dilapidated_house_80182F14(GpCoord* arg0, s32 arg1, s16 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -2553,7 +2553,7 @@ void func_dryfield_dilapidated_house_80182F14(GsCOORDINATE2* arg0, s32 arg1, s16
 /// `(0xC0, 0x60, 0x40)`, even draws the 0x428C cell untinted. The corners sit
 /// `arg2 * 55 / otz` from the projected centre along `arg3` and
 /// `arg3 + 0x400`, so the sprite shrinks with depth.
-void func_dryfield_dilapidated_house_801832A8(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
+void func_dryfield_dilapidated_house_801832A8(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     void**                    scratch;
     u8*                       head;
@@ -2628,7 +2628,7 @@ void func_dryfield_dilapidated_house_801832A8(GsCOORDINATE2* arg0, s16 arg1, s16
 /// edge carries the `arg3` ramp `(arg3, arg3 >> 1, arg3 >> 2)` and the outer
 /// edge fades to black; a negative `gte_stflg` drops the segment. Same body
 /// as `func_pyrokinesis_801312B4`.
-void func_dryfield_dilapidated_house_80183728(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, s16 arg3)
+void func_dryfield_dilapidated_house_80183728(GpCoord* arg0, s16 arg1, s32 arg2, s16 arg3)
 {
     void**         scratch;
     register u8*   head asm("v0");
@@ -2711,8 +2711,8 @@ void func_dryfield_dilapidated_house_80183728(GsCOORDINATE2* arg0, s16 arg1, s32
 
 void func_dryfield_dilapidated_house_80183BF8(Task* arg0)
 {
-    GsCOORDINATE2* coord;
-    s32            mask;
+    GpCoord* coord;
+    s32      mask;
 
     mask  = 1 << (u8)gGameSession->at4.loc.view;
     coord = arg0->extra.tmd->coords;
@@ -2777,11 +2777,11 @@ void func_dryfield_dilapidated_house_80183C8C(Task* arg0)
 /// block through `Gp_ReleaseState1CMem`.
 void func_dryfield_dilapidated_house_80183D5C(Task* arg0)
 {
-    DdhEffWork*    mem;
-    GsCOORDINATE2* coord;
-    s16            flag;
-    s32            scale;
-    s32            angle;
+    DdhEffWork* mem;
+    GpCoord*    coord;
+    s16         flag;
+    s32         scale;
+    s32         angle;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;

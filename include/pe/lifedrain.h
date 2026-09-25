@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-struct _GsCOORDINATE2;
+struct GpCoord;
 struct Task;
 
 /// Per-level band row. `field_2` is the starting inner radius (also the per-frame
@@ -40,10 +40,10 @@ extern struct Task* D_lifedrain_80130B0C;
 /// `GsWSMATRIX` by one `RTPS`. A negative `gte_stflg` drops both. `arg1` picks
 /// the inner 0x18-wide frame on tpage 0x2A and the outer CLUT on tpage 0x29;
 /// `arg2` is the radius both sprites divide by `otz`.
-void func_lifedrain_801301AC(struct _GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
+void func_lifedrain_801301AC(struct GpCoord* arg0, s16 arg1, s16 arg2);
 
 /// One Gouraud wedge of the drain funnel: apex at `arg0`'s projected origin,
 /// rim `arg1` screen units out, centred on yaw `arg2`, apex tinted `rgb`.
-void func_lifedrain_801305C0(struct _GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_lifedrain_801305C0(struct GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 
 #endif /* PE_LIFEDRAIN_H */

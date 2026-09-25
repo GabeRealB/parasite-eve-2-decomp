@@ -282,7 +282,7 @@ void func_actor_356100_80163508(Task* arg0);
 extern s8 D_actor_356100_801728CC[][45];
 
 /// Player-to-`coord` vector, in the 16-bit `SVECTOR` view of both matrices.
-static __inline__ void Actor356100_PositionDelta(GsCOORDINATE2* coord, SVECTOR* pos)
+static __inline__ void Actor356100_PositionDelta(GpCoord* coord, SVECTOR* pos)
 {
     pos->vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
     pos->vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
@@ -313,9 +313,9 @@ STATIC_ASSERT_SIZEOF(Actor356100AimScratch, 0x10);
 /// function fills (`coord.sub` parented to `gGfxViewCoord`) plus the world
 /// position `v` its two parent walks leave there.
 typedef struct Actor356100GroundCoord {
-    /* 0x00 */ GsCOORDINATE2 coord;
-    /* 0x50 */ byte          pad_50[0x10];
-    /* 0x60 */ SVECTOR       v;
+    /* 0x00 */ GpCoord coord;
+    /* 0x50 */ byte    pad_50[0x10];
+    /* 0x60 */ SVECTOR v;
 } Actor356100GroundCoord;
 STATIC_ASSERT_SIZEOF(Actor356100GroundCoord, 0x68);
 
@@ -536,10 +536,10 @@ void func_actor_356100_80169854(GpEnemy* arg0, Task* arg1);
 /// rotation in a matrix carved off the scratchpad head, applies the turn,
 /// converts the result back into the parent's frame, writes the 3x3 into the
 /// joint and refreshes it.
-void func_actor_356100_80161F4C(GsCOORDINATE2* coord, s16 yaw)
+void func_actor_356100_80161F4C(GpCoord* coord, s16 yaw)
 {
-    MATRIX*        rotation;
-    GsCOORDINATE2* out;
+    MATRIX*  rotation;
+    GpCoord* out;
 
     SCRATCH_PUSH(MATRIX);
     rotation = SCRATCH_HEAD(MATRIX);
@@ -557,7 +557,7 @@ void func_actor_356100_80161F4C(GsCOORDINATE2* coord, s16 yaw)
 /// `coord` out of the last record of kind 0x10000 or 0x30000, scaled down to
 /// 0x100 units when longer. Returns whether any such record was found; returns
 /// 0 at once when `gGameSession->viewReady` or `Mc_SaveData.field_5C1` is 1.
-s32 func_actor_356100_80162258(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
+s32 func_actor_356100_80162258(GpCoord* coord, GpRec18* recs, s16 count)
 {
     ActorRepelScratch* head;
     ActorRepelScratch* s;
@@ -616,7 +616,7 @@ s32 func_actor_356100_80162258(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
 /// `*pos` accumulates the total nudge. Returns whether any record was of kind
 /// 0x10000; returns 0 at once when `gGameSession->viewReady` or `Mc_SaveData.field_5C1`
 /// is 1.
-s32 func_actor_356100_801625A0(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos)
+s32 func_actor_356100_801625A0(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
@@ -731,7 +731,7 @@ s32 func_actor_356100_801625A0(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
 /// `D_actor_356100_801732A0`. Returns 1 when the X or Z step is nonzero; a
 /// step with a fractional part moves the coordinate and the kept step one
 /// unit further from zero.
-s32 func_actor_356100_80162AEC(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2)
+s32 func_actor_356100_80162AEC(GpCoord* coord, GpRec18* movement, s16 arg2)
 {
     void**            scratch;
     u8*               head;
@@ -785,7 +785,7 @@ s32 func_actor_356100_80162AEC(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2
 /// frame's position, relative to the point one unit in front of it. Returns
 /// whether any push was applied; returns 0 at once when
 /// `gGameSession->viewReady` is 1.
-s32 func_actor_356100_80162C90(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push)
+s32 func_actor_356100_80162C90(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
 {
     void**                  scratch;
     void**                  tail;
@@ -1060,7 +1060,7 @@ void func_actor_356100_8016382C(GpEnemy* enemy, Task* actor)
     SVECTOR*         v;
     VECTOR           pos;
     TmdObject*       obj;
-    GsCOORDINATE2*   root;
+    GpCoord*         root;
     Actor356100Work* work;
     s32              kind;
 
@@ -1218,7 +1218,7 @@ void func_actor_356100_80163E2C(Task* arg0)
 {
     Actor356100Work*       work;
     TmdObject*             obj;
-    GsCOORDINATE2*         coord;
+    GpCoord*               coord;
     Actor356100AimScratch* aim;
 
     work = arg0->work;
@@ -1263,7 +1263,7 @@ void func_actor_356100_80163E2C(Task* arg0)
 /// 8-byte `G_SCRATCH_HEAD` block back afterwards. The guardless sibling of
 /// `actorMoveForwardNonzero`, reading the X component back through
 /// `vec`; same body as `Actor01900_StepForward` / `actorMoveForward`.
-static __inline__ void Actor356100_StepForward(GsCOORDINATE2* coord, s16 amount)
+static __inline__ void Actor356100_StepForward(GpCoord* coord, s16 amount)
 {
     SVECTOR* head;
     SVECTOR* vec;
@@ -1293,7 +1293,7 @@ static __inline__ void Actor356100_StepForward(GsCOORDINATE2* coord, s16 amount)
 /// original does — the negative offsets off `head` for the X component and the
 /// flag, `s` for the rest. Same body as `Actor01900_Fn00E00`'s push without
 /// its mask argument.
-static __inline__ void Actor356100_PushRecords(GsCOORDINATE2* coord, GpRec18* rec, s32 count, s16 height)
+static __inline__ void Actor356100_PushRecords(GpCoord* coord, GpRec18* rec, s32 count, s16 height)
 {
     void**            scratch;
     u8*               head;
@@ -1338,7 +1338,7 @@ static __inline__ void Actor356100_PushRecords(GsCOORDINATE2* coord, GpRec18* re
 /// `Actor356100_PushRecords` without the freeze guard, returning `field_10`
 /// after the scratch is given back. The caller names `Mc_SaveData.field_5C1` first so the
 /// compare interleaves with the coordinate load.
-static __inline__ s32 Actor356100_PushRecordsAlways(GsCOORDINATE2* coord, GpRec18* rec, s32 count, s16 height)
+static __inline__ s32 Actor356100_PushRecordsAlways(GpCoord* coord, GpRec18* rec, s32 count, s16 height)
 {
     void**            scratch;
     u8*               head;
@@ -1479,9 +1479,9 @@ void func_actor_356100_80164ACC(Task* arg0)
     Actor356100AimScratch* head;
     Actor356100AimScratch* s;
     TmdObject*             obj;
-    GsCOORDINATE2*         coord;
-    GsCOORDINATE2*         facing;
-    GsCOORDINATE2*         pushCoord;
+    GpCoord*               coord;
+    GpCoord*               facing;
+    GpCoord*               pushCoord;
     s32                    turn;
     s32                    diffPos;
     s32                    diffNeg;
@@ -1612,9 +1612,9 @@ void func_actor_356100_801653F4(Task* arg0)
 {
     Actor356100Work*       work;
     TmdObject*             obj;
-    GsCOORDINATE2*         coord;
-    GsCOORDINATE2*         cur;
-    GsCOORDINATE2*         facing;
+    GpCoord*               coord;
+    GpCoord*               cur;
+    GpCoord*               facing;
     Actor356100AimScratch* head;
     Actor356100AimScratch* s;
     s32                    value;
@@ -1705,7 +1705,7 @@ void func_actor_356100_80165B30(Task* arg0)
     Actor356100AimScratch* head;
     Actor356100AimScratch* aim;
     TmdObject*             obj;
-    GsCOORDINATE2*         coord;
+    GpCoord*               coord;
     SVECTOR*               dir;
     MATRIX                 mat;
     u16                    angle;
@@ -1811,7 +1811,7 @@ void func_actor_356100_80166018(Task* arg0)
     GpEnemy*         enemy;
     GameActor*       player;
     PlayerStatus*    config;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s16              angle;
 
     enemy  = arg0->spawnArg2;
@@ -1931,8 +1931,8 @@ void func_actor_356100_801668FC(Task* arg0)
     GpEnemy*          enemy;
     PlayerStatus*     cfg;
     McSaveData*       save;
-    GsCOORDINATE2*    coord;
-    GsCOORDINATE2*    root;
+    GpCoord*          coord;
+    GpCoord*          root;
     u8*               base;
     u8*               base2;
     u8*               slot;
@@ -2132,7 +2132,7 @@ void func_actor_356100_80167358(Task* arg0)
     Actor356100Work*      work;
     GpEnemy*              enemy;
     TmdObject*            obj;
-    GsCOORDINATE2*        coord;
+    GpCoord*              coord;
     ActorScaleRotScratch* blk;
     u8*                   head;
     u8*                   tail;
@@ -2225,7 +2225,7 @@ void func_actor_356100_80167584(Task* arg0)
     Actor356100Work* work;
     GpEnemy*         enemy;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     SVECTOR          delta;
     SVECTOR*         d;
 
@@ -2278,7 +2278,7 @@ void func_actor_356100_80167818(Task* arg0)
     Actor356100Work* work;
     GpEnemy*         enemy;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     SVECTOR          delta;
     SVECTOR*         d;
     s32              sound;
@@ -2323,7 +2323,7 @@ void func_actor_356100_80167818(Task* arg0)
     }
 }
 
-static __inline__ void Actor356100_MoveForward(GsCOORDINATE2* coord, s16 amount)
+static __inline__ void Actor356100_MoveForward(GpCoord* coord, s16 amount)
 {
     SVECTOR* head;
     SVECTOR* vec;
@@ -2352,7 +2352,7 @@ void func_actor_356100_80167A7C(Task* arg0)
 {
     Actor356100Work*  work;
     TmdObject*        obj;
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     u8*               head;
     ActorTurnScratch* turn;
     s16               angle;
@@ -2420,7 +2420,7 @@ void func_actor_356100_8016804C(Task* arg0)
     Actor356100Work*  work;
     GpEnemy*          enemy;
     TmdObject*        obj;
-    GsCOORDINATE2*    coord;
+    GpCoord*          coord;
     ActorTurnScratch* turn;
     u16               next;
 
@@ -2472,7 +2472,7 @@ void func_actor_356100_8016804C(Task* arg0)
 /// the `head[-1]` spelling gives the scratch release value a register of its
 /// own and costs three instructions here. Same body as
 /// `Actor401300_MoveForwardSave`.
-static __inline__ void Actor356100_StepForwardSave(McSaveData* save, GsCOORDINATE2* coord, s16 amount)
+static __inline__ void Actor356100_StepForwardSave(McSaveData* save, GpCoord* coord, s16 amount)
 {
     SVECTOR* head;
     SVECTOR* vec;
@@ -2499,7 +2499,7 @@ static __inline__ void Actor356100_StepForwardSave(McSaveData* save, GsCOORDINAT
 /// and giving the 0x14 bytes back through `G_SCRATCH_HEAD` itself rather than a
 /// saved `void**` — the saved pointer keeps the 0x1F8003FC constant live in a
 /// register across the release.
-static __inline__ void Actor356100_PushRecordsSave(McSaveData* save, GsCOORDINATE2* coord, GpRec18* rec, s32 count, s16 height)
+static __inline__ void Actor356100_PushRecordsSave(McSaveData* save, GpCoord* coord, GpRec18* rec, s32 count, s16 height)
 {
     u8*               head;
     OverlayDeltaFlag* s;
@@ -2554,9 +2554,9 @@ void func_actor_356100_801684F0(Task* arg0)
 {
     Actor356100Work*       work;
     TmdObject*             obj;
-    GsCOORDINATE2*         coord;
-    GsCOORDINATE2*         cur;
-    GsCOORDINATE2*         root;
+    GpCoord*               coord;
+    GpCoord*               cur;
+    GpCoord*               root;
     SVECTOR**              scratch;
     Actor356100AimScratch* head;
     Actor356100AimScratch* aim;
@@ -2641,7 +2641,7 @@ void func_actor_356100_80168AFC(Task* arg0)
 {
     Actor356100Work*       work;
     TmdObject*             obj;
-    GsCOORDINATE2*         coord;
+    GpCoord*               coord;
     Actor356100AimScratch* aim;
     int                    state;
 
@@ -2694,7 +2694,7 @@ void func_actor_356100_80168E44(Task* arg0)
 {
     Actor356100Work*       work;
     TmdObject*             obj;
-    GsCOORDINATE2*         coord;
+    GpCoord*               coord;
     Actor356100AimScratch* aim;
 
     work = arg0->work;
@@ -2758,7 +2758,7 @@ void func_actor_356100_80169180(Task* arg0)
 {
     Actor356100Work* work;
     GpEnemy*         ctx;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -3063,7 +3063,7 @@ s32 func_actor_356100_80169F24(Task* task)
 /// of the rotation's Z axis, in the work block's `yaw`.
 s32 func_actor_356100_80169F74(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              mx;
     s32              mz;
     Actor356100Work* work;

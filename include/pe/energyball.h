@@ -4,6 +4,7 @@
 #include "common.h"
 
 #include <psyq/libgs.h>
+#include "main/coord.h"
 #include <psyq/libgte.h>
 
 #include "gameplay/3A34.h"
@@ -53,13 +54,13 @@ extern s16 D_energyball_801311A0[];
 /// tinted `(0x40, 0xC0, 0x60)`. `arg3` spins the quad and `arg2` sizes it: the
 /// corners sit `arg2 * 55 / otz` from the projected centre along `arg3` and
 /// `arg3 + 0x400`, so the sprite shrinks with depth.
-void func_energyball_8013035C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
+void func_energyball_8013035C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 
 /// Overlay copy of `Gp_DrawRing` with a flat tint: an eight-segment gouraud
 /// ring at `arg0`'s world position, radius `arg1 * 64 / otz`, lit only at the
 /// centre with `(arg2 / 2, arg2, arg2 / 2)`, each wedge given the
 /// semi-transparent tpage of `Gp_AddTpageShift`.
-void func_energyball_8012FFD0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
+void func_energyball_8012FFD0(GpCoord* arg0, s16 arg1, s16 arg2);
 
 /// Draws a ground-plane quad at `arg0`'s `workm` translation: the unit quad
 /// `D_80111E38` is scaled to `arg1` half-size (Y stays 0), rotated flat by
@@ -68,13 +69,13 @@ void func_energyball_8012FFD0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
 /// quad. The texture is the two-frame tpage-0x28 strip at rows 0x38..0x57,
 /// the frame picked by the low bit of `gDisplayState.animFrame`, tinted
 /// `(0x20, 0x30, 0x20)`.
-void func_energyball_801307D4(GsCOORDINATE2* arg0, s32 arg1);
+void func_energyball_801307D4(GpCoord* arg0, s32 arg1);
 
 /// Draws the energy ball's surface: two 16-vertex rings of the same radius
 /// sit `arg1 * 2` apart in `arg0`'s local Y, are rotated by its `workm` and
 /// offset by its translation, then each of the 16 segments is projected
 /// through `GsWSMATRIX` as one semi-transparent `POLY_FT4`, tinted
 /// `(arg2 >> 1, arg2, arg2 >> 1)`.
-void func_energyball_80130B54(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
+void func_energyball_80130B54(GpCoord* arg0, s16 arg1, s16 arg2);
 
 #endif /* PE_ENERGYBALL_H */

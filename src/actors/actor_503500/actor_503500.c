@@ -49,7 +49,7 @@ void func_actor_503500_8013223C(Task* arg0)
     TmdObject*           ext;
     Actor503500ColorMtx* work;
     GpEnemy*             enemy;
-    GsCOORDINATE2*       coord;
+    GpCoord*             coord;
     DVECTOR_XZ*          p;
     VECTOR               pos;
 
@@ -158,9 +158,9 @@ void func_actor_503500_801324EC(Task* arg0)
 /// matrix recomputed. Returns 0.
 s32 func_actor_503500_80132508(Task* task, s32 arg1, GpXformArg* args)
 {
-    GpCoordExt* coord;
+    GpCoord* coord;
 
-    coord               = (GpCoordExt*)task->extra.tmd->coords;
+    coord               = task->extra.tmd->coords;
     coord->coord.t[0]   = args->pos.vx;
     coord->coord.t[1]   = args->pos.vy;
     coord->coord.t[2]   = args->pos.vz;

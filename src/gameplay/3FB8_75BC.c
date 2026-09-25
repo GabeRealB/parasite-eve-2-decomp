@@ -12,16 +12,16 @@
 
 void Gp_EffSprTask46(Task* arg0)
 {
-    GpEffWork*     mem;
-    TmdObject*     extra;
-    GsCOORDINATE2* coord;
-    s16            flag;
-    s32            param;
+    GpEffWork* mem;
+    TmdObject* extra;
+    GpCoord*   coord;
+    s16        flag;
+    s32        param;
 
     mem   = arg0->spawnArg2;
     extra = arg0->extra.tmd;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)extra->coords;
+    coord = extra->coords;
     if (flag != 0) {
         if (flag >= 4) {
             Gp_ReleaseState1CMem(mem, arg0);

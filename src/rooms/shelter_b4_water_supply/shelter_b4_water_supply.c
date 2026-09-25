@@ -120,15 +120,15 @@ void func_shelter_b4_water_supply_8017DE74(Task* task);
 void func_shelter_b4_water_supply_8017E5D8(Task* task);
 void func_shelter_b4_water_supply_8017ED90(Task* arg0);
 void func_shelter_b4_water_supply_8017EDD0(Task* task);
-void func_shelter_b4_water_supply_8017F3A0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
-void func_shelter_b4_water_supply_8017FB90(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_shelter_b4_water_supply_8017FF7C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
+void func_shelter_b4_water_supply_8017F3A0(GpCoord* arg0, s32 arg1, s32 arg2);
+void func_shelter_b4_water_supply_8017FB90(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_shelter_b4_water_supply_8017FF7C(GpCoord* arg0, s16 arg1, s16 arg2);
 void func_shelter_b4_water_supply_80180260(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b4_water_supply_80181158(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_shelter_b4_water_supply_801813DC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b4_water_supply_80181800(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
-void func_shelter_b4_water_supply_80181D40(GsCOORDINATE2* coord, s16 size);
-void func_shelter_b4_water_supply_8018226C(GsCOORDINATE2* arg0, s32 arg1);
+void func_shelter_b4_water_supply_80181158(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_shelter_b4_water_supply_801813DC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_shelter_b4_water_supply_80181800(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_shelter_b4_water_supply_80181D40(GpCoord* coord, s16 size);
+void func_shelter_b4_water_supply_8018226C(GpCoord* arg0, s32 arg1);
 
 /// The task the staged event block `D_shelter_b4_water_supply_80184E44`
 /// spawns. State 0 sends the block's `facing` to the slot-3 game pointer as
@@ -743,11 +743,11 @@ void func_shelter_b4_water_supply_8017EE54(Task* arg0)
 {
     Task*                        ctl;
     _ShelterB4WaterSupplySplash* splash;
-    GsCOORDINATE2*               ctlCoords;
-    GsCOORDINATE2*               part;
-    GsCOORDINATE2                surface;
+    GpCoord*                     ctlCoords;
+    GpCoord*                     part;
+    GpCoord                      surface;
     MATRIX*                      mtx;
-    GsCOORDINATE2*               view;
+    GpCoord*                     view;
     s32                          i;
     u32                          rnd;
 
@@ -835,8 +835,8 @@ void func_shelter_b4_water_supply_8017EE54(Task* arg0)
 /// is non-zero it only draws, releasing the block from event state 4 on.
 void func_shelter_b4_water_supply_8017F24C(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
+    GpEffWork* work;
+    GpCoord*   coord;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -871,7 +871,7 @@ void func_shelter_b4_water_supply_8017F24C(Task* task)
 /// If the projection is valid, one semi-transparent `POLY_FT4` (tpage 0x2B,
 /// clut 0x43D1, UV 0,0x38 to 0x37,0x6F) is queued with all three colour
 /// channels set to `arg2`. The work block lives on the scratchpad stack.
-void func_shelter_b4_water_supply_8017F3A0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
+void func_shelter_b4_water_supply_8017F3A0(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -967,13 +967,13 @@ void func_shelter_b4_water_supply_8017F3A0(GsCOORDINATE2* arg0, s32 arg1, s32 ar
 /// block from event state 4 on.
 void func_shelter_b4_water_supply_8017F6D4(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    SVECTOR*       vec;
-    s32            kind;
-    s32            step;
-    s32            state;
-    s32            level;
+    GpEffWork* work;
+    GpCoord*   coord;
+    SVECTOR*   vec;
+    s32        kind;
+    s32        step;
+    s32        state;
+    s32        level;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -1090,7 +1090,7 @@ void func_shelter_b4_water_supply_8017F6D4(Task* task)
 /// as a square rotated by angle `arg3` about the projected point, with
 /// on-screen half-diagonal `(s16)arg2 * 31 / otz`. `arg1` picks the 32-texel
 /// frame at u = `arg1 * 32`, v 0xE0 to 0xFF.
-void func_shelter_b4_water_supply_8017FB90(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
+void func_shelter_b4_water_supply_8017FB90(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -1154,7 +1154,7 @@ void func_shelter_b4_water_supply_8017FB90(GsCOORDINATE2* arg0, s32 arg1, s32 ar
 /// as an axis-aligned square of half-side `r = arg2 * 55 / otz`, raised so the
 /// projected point sits three quarters of the way down it. `arg1` picks one of
 /// eight 56-texel frames in a grid four wide, starting at v 0x70.
-void func_shelter_b4_water_supply_8017FF7C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
+void func_shelter_b4_water_supply_8017FF7C(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -1386,11 +1386,11 @@ void func_shelter_b4_water_supply_80180260(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// state is set, and the block is released once that state reaches 4.
 void func_shelter_b4_water_supply_801809DC(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpEffWork*     spawned;
-    MATRIX*        mtx;
-    u8             col[4];
+    GpEffWork* mem;
+    GpCoord*   coord;
+    GpEffWork* spawned;
+    MATRIX*    mtx;
+    u8         col[4];
 
     mem   = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
@@ -1504,14 +1504,14 @@ void func_shelter_b4_water_supply_801809DC(Task* arg0)
 /// 4; from event state 1 on the sprite is neither moved nor drawn.
 void func_shelter_b4_water_supply_80180F34(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* target;
-    VECTOR         delta;
+    GpEffWork* work;
+    GpCoord*   coord;
+    GpCoord*   target;
+    VECTOR     delta;
 
     work   = task->spawnArg2;
     coord  = task->extra.tmd->coords;
-    target = (GsCOORDINATE2*)task->spawnArg1;
+    target = (GpCoord*)task->spawnArg1;
     if (Gp_State1C->eventState == 0) {
         work->age++;
         switch (task->state) {
@@ -1558,7 +1558,7 @@ void func_shelter_b4_water_supply_80180F34(Task* task)
 /// axis-aligned square of half-side `(s16)arg2 * 23 / (otz + 1)`, shaded grey
 /// at `arg3`. `arg1` picks one of four 24-texel frames at u
 /// `(arg1 & 3) * 24 + 0x60`, v 0 to 0x17.
-void func_shelter_b4_water_supply_80181158(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
+void func_shelter_b4_water_supply_80181158(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -1641,7 +1641,7 @@ void func_shelter_b4_water_supply_80181158(GsCOORDINATE2* arg0, s32 arg1, s32 ar
 /// `POLY_G4` segments are queued between on-screen radii `(s16)arg1 * 64 /
 /// (otz + 1)` and `(s16)(arg1 + arg2) * 64 / (otz + 1)`, black at the first
 /// and coloured `rgb` at the second.
-void func_shelter_b4_water_supply_801813DC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_shelter_b4_water_supply_801813DC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     GpArcScratch*   block;
     POLY_G4*        prim;
@@ -1734,7 +1734,7 @@ void func_shelter_b4_water_supply_801813DC(GsCOORDINATE2* arg0, s32 arg1, s32 ar
 /// `POLY_G4` wedges of on-screen radius `(s16)arg1 * 64 / (otz + 1)` are
 /// queued around the projected point, coloured `rgb` at the centre and black
 /// at the rim.
-void func_shelter_b4_water_supply_80181800(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_shelter_b4_water_supply_80181800(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     void**         scratch;
     u8*            head;
@@ -1811,11 +1811,11 @@ void func_shelter_b4_water_supply_80181800(GsCOORDINATE2* arg0, s32 arg1, u8* rg
 /// released once that state reaches 4.
 void func_shelter_b4_water_supply_80181B94(Task* arg0)
 {
-    u8             rgb[3];
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s16            flag;
-    s16            step;
+    u8         rgb[3];
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s16        flag;
+    s16        step;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -1866,9 +1866,9 @@ void func_shelter_b4_water_supply_80181B94(Task* arg0)
 /// `func_shelter_b4_water_supply_8018226C` on the ground beneath it. It also
 /// points the `Gp_RoomCoords[2]` light at the coordinate with a randomly flickering
 /// intensity. Nothing is drawn when the GTE flags the projection.
-void func_shelter_b4_water_supply_80181D40(GsCOORDINATE2* coord, s16 size)
+void func_shelter_b4_water_supply_80181D40(GpCoord* coord, s16 size)
 {
-    GsCOORDINATE2  ground;
+    GpCoord        ground;
     POLY_FT4*      prim;
     s16            outerLeft;
     s16            outerRight;
@@ -1998,7 +1998,7 @@ void func_shelter_b4_water_supply_80181D40(GsCOORDINATE2* coord, s16 size)
 /// clut 0x428C) shaded (0x30, 0x20, 0x20) is queued; the display frame counter
 /// flips it between two 32-texel frames at u 0xC0 and 0xE0, v 0x38 to 0x57.
 /// The work block lives on the scratchpad stack.
-void func_shelter_b4_water_supply_8018226C(GsCOORDINATE2* arg0, s32 arg1)
+void func_shelter_b4_water_supply_8018226C(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;

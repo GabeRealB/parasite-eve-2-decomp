@@ -22,11 +22,11 @@ extern s32 D_80070F70;
 extern s32 D_80115730;
 extern s16 D_shelter_b1_control_room_80181C64[][3];
 
-void func_shelter_b1_control_room_801806FC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_shelter_b1_control_room_80180980(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b1_control_room_80180DA4(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
-void func_shelter_b1_control_room_801812E4(GsCOORDINATE2* coord, s16 size);
-void func_shelter_b1_control_room_80181810(GsCOORDINATE2* arg0, s32 arg1);
+void func_shelter_b1_control_room_801806FC(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_shelter_b1_control_room_80180980(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_shelter_b1_control_room_80180DA4(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_shelter_b1_control_room_801812E4(GpCoord* coord, s16 size);
+void func_shelter_b1_control_room_80181810(GpCoord* arg0, s32 arg1);
 
 /// Glow effect task on the task object's coordinate, frozen while the room's
 /// event state is non-zero and released once it reaches 4. State 0 links the
@@ -40,11 +40,11 @@ void func_shelter_b1_control_room_80181810(GsCOORDINATE2* arg0, s32 arg1);
 /// State 4 releases it at once.
 void func_shelter_b1_control_room_8017FF80(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpEffWork*     spawned;
-    MATRIX*        mtx;
-    u8             col[4];
+    GpEffWork* mem;
+    GpCoord*   coord;
+    GpEffWork* spawned;
+    MATRIX*    mtx;
+    u8         col[4];
 
     mem   = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
@@ -157,14 +157,14 @@ void func_shelter_b1_control_room_8017FF80(Task* arg0)
 /// is non-zero.
 void func_shelter_b1_control_room_801804D8(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* target;
-    VECTOR         delta;
+    GpEffWork* work;
+    GpCoord*   coord;
+    GpCoord*   target;
+    VECTOR     delta;
 
     work   = task->spawnArg2;
     coord  = task->extra.tmd->coords;
-    target = (GsCOORDINATE2*)task->spawnArg1;
+    target = (GpCoord*)task->spawnArg1;
     if (Gp_State1C->eventState == 0) {
         work->age++;
         switch (task->state) {
@@ -209,7 +209,7 @@ void func_shelter_b1_control_room_801804D8(Task* task)
 /// translation, unless the projection flags an error: one semi-transparent
 /// `POLY_FT4` (tpage 0x2A, clut 0x42CB) of radius `(s16)arg2 * 23` over the
 /// depth, grey level `arg3`. `arg1` picks one of four 24-texel texture frames.
-void func_shelter_b1_control_room_801806FC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
+void func_shelter_b1_control_room_801806FC(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -291,7 +291,7 @@ void func_shelter_b1_control_room_801806FC(GsCOORDINATE2* arg0, s32 arg1, s32 ar
 /// coordinate's world translation, unless the projection flags an error. The
 /// vertices at radius `(s16)arg1 * 64` over the depth are black and those at
 /// `(s16)(arg1 + arg2) * 64` over the depth take `rgb`.
-void func_shelter_b1_control_room_80180980(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_shelter_b1_control_room_80180980(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     GpArcScratch*   block;
     POLY_G4*        prim;
@@ -383,7 +383,7 @@ void func_shelter_b1_control_room_80180980(GsCOORDINATE2* arg0, s32 arg1, s32 ar
 /// coordinate's world translation, unless the projection flags an error: the
 /// centre takes `rgb` and the rim, at radius `(s16)arg1 * 64` over the depth,
 /// is black.
-void func_shelter_b1_control_room_80180DA4(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_shelter_b1_control_room_80180DA4(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     void**         scratch;
     u8*            head;
@@ -458,11 +458,11 @@ void func_shelter_b1_control_room_80180DA4(GsCOORDINATE2* arg0, s32 arg1, u8* rg
 /// fan dims, and the work block is released once it has gone dark.
 void func_shelter_b1_control_room_80181138(Task* arg0)
 {
-    u8             rgb[3];
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s16            flag;
-    s16            step;
+    u8         rgb[3];
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s16        flag;
+    s16        step;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -513,9 +513,9 @@ void func_shelter_b1_control_room_80181138(Task* arg0)
 /// `func_shelter_b1_control_room_80181810` on the ground beneath it. It also
 /// points the `Gp_RoomCoords[2]` light at the coordinate with a randomly flickering
 /// intensity. Nothing is drawn when the projection flags an error.
-void func_shelter_b1_control_room_801812E4(GsCOORDINATE2* coord, s16 size)
+void func_shelter_b1_control_room_801812E4(GpCoord* coord, s16 size)
 {
-    GsCOORDINATE2  ground;
+    GpCoord        ground;
     POLY_FT4*      prim;
     s16            outerLeft;
     s16            outerRight;
@@ -644,7 +644,7 @@ void func_shelter_b1_control_room_801812E4(GsCOORDINATE2* coord, s16 size)
 /// projection flags an error it queues one semi-transparent `POLY_FT4`
 /// (tpage 0x28, clut 0x428C, colour 0x30/0x20/0x20) whose texture alternates
 /// between two 32-texel columns with the animation frame.
-void func_shelter_b1_control_room_80181810(GsCOORDINATE2* arg0, s32 arg1)
+void func_shelter_b1_control_room_80181810(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;

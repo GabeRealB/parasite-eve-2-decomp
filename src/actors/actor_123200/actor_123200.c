@@ -113,10 +113,10 @@ void func_actor_123200_80134178(GpEnemy* arg0, Task* arg1);
 /// rotation in a matrix carved off the scratchpad head, applies the turn,
 /// converts the result back into the parent's frame, writes the 3x3 into the
 /// joint and refreshes it.
-void func_actor_123200_80131E50(GsCOORDINATE2* coord, s16 yaw)
+void func_actor_123200_80131E50(GpCoord* coord, s16 yaw)
 {
-    MATRIX*        rotation;
-    GsCOORDINATE2* out;
+    MATRIX*  rotation;
+    GpCoord* out;
 
     SCRATCH_PUSH(MATRIX);
     rotation = SCRATCH_HEAD(MATRIX);
@@ -135,7 +135,7 @@ void func_actor_123200_80131E50(GsCOORDINATE2* coord, s16 yaw)
 /// scratch block, and its length is scaled down to 0x100 when longer. Returns
 /// whether any record of those kinds was met. Does nothing, returning 0, while
 /// `Mc_SaveData.field_5C1` or the session's `viewReady` is 1.
-s32 func_actor_123200_8013215C(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
+s32 func_actor_123200_8013215C(GpCoord* coord, GpRec18* recs, s16 count)
 {
     ActorRepelScratch* head;
     ActorRepelScratch* s;
@@ -191,7 +191,7 @@ s32 func_actor_123200_8013215C(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
 /// for each bearing left steps `coord` 10 units away from it, accumulating the
 /// total XZ step in `pos`. Returns whether any kind 0x10000 record was met;
 /// returns 0 at once when the session's `viewReady` or `Mc_SaveData.field_5C1` is 1.
-s32 func_actor_123200_801324A4(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos)
+s32 func_actor_123200_801324A4(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
@@ -306,7 +306,7 @@ s32 func_actor_123200_801324A4(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
 /// `D_actor_123200_80137240`. Returns the "moved" flag: set when the X or Z
 /// delta is nonzero; where a delta also has a fractional part, the coordinate
 /// and the latched step are nudged one unit further away from zero.
-s32 func_actor_123200_801329F0(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2)
+s32 func_actor_123200_801329F0(GpCoord* coord, GpRec18* movement, s16 arg2)
 {
     void**            scratch;
     u8*               head;
@@ -360,7 +360,7 @@ s32 func_actor_123200_801329F0(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2
 /// frame's position, relative to the point one unit in front of it. Returns
 /// whether any push was applied; returns 0 at once when
 /// `gGameSession->viewReady` is 1.
-s32 func_actor_123200_80132B94(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push)
+s32 func_actor_123200_80132B94(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
 {
     void**                  scratch;
     void**                  tail;
@@ -632,7 +632,7 @@ void func_actor_123200_8013352C(GpEnemy* enemy, Task* task)
     SVECTOR          dir;
     Actor123200Work* work;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     u32              scale;
     u32              flag;
 
@@ -708,7 +708,7 @@ void func_actor_123200_8013352C(GpEnemy* enemy, Task* task)
 /// its rotation, normalised and GPF-scaled) and flags it for rebuild. The
 /// direction vector lives in an `SVECTOR` carved off the scratch head and
 /// handed straight back.
-static __inline__ void Actor123200_StepForward(GsCOORDINATE2* coord)
+static __inline__ void Actor123200_StepForward(GpCoord* coord)
 {
     u8*      head;
     SVECTOR* dir;
@@ -745,7 +745,7 @@ void func_actor_123200_80133820(GpEnemy* enemy, Task* task)
 {
     Actor123200Work* work;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
 
     work = (Actor123200Work*)task->work;
     if (work->field_4 != 0) {
@@ -777,7 +777,7 @@ void func_actor_123200_80133820(GpEnemy* enemy, Task* task)
 /// Unless the game is frozen, steps `coord` 5/0x1000 of the way along its own
 /// forward axis through an `SVECTOR` carved off the scratch head, and flags it
 /// for rebuild.
-static __inline__ void Actor123200_MoveForward(GsCOORDINATE2* coord)
+static __inline__ void Actor123200_MoveForward(GpCoord* coord)
 {
     SVECTOR* head;
     SVECTOR* vec;
@@ -809,7 +809,7 @@ void func_actor_123200_801339F0(GpEnemy* enemy, Task* task)
 {
     Actor123200Work* work;
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
 
     work = (Actor123200Work*)task->work;
     if (work->field_4 != 0) {
@@ -1017,7 +1017,7 @@ s32 func_actor_123200_80133F90(Task* task, s32 arg1, GpXformArg* placement)
 /// with `ratan2` of `-m[2][0], m[2][2]` -- uniformly scaled by `scale`, working
 /// in a 0x34-byte block borrowed from the scratchpad. Marks the coordinate
 /// dirty.
-void func_actor_123200_80134060(GsCOORDINATE2* coord, s16 scale)
+void func_actor_123200_80134060(GpCoord* coord, s16 scale)
 {
     void**                scratch;
     ActorScaleRotScratch* head;

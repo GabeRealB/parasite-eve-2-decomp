@@ -56,16 +56,16 @@ void func_shelter_b1_transfer_tunnel_8017D62C(Task* task);
 void func_shelter_b1_transfer_tunnel_8017D670(Task* task);
 void func_shelter_b1_transfer_tunnel_8017D830(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_shelter_b1_transfer_tunnel_8017DFAC(SVECTOR* arg0, s16 arg1);
-void func_shelter_b1_transfer_tunnel_8017E5D4(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3);
-void func_shelter_b1_transfer_tunnel_8017E898(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b1_transfer_tunnel_8017ECBC(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
-void func_shelter_b1_transfer_tunnel_8017F594(GsCOORDINATE2* coord, s16 size);
-void func_shelter_b1_transfer_tunnel_8017FAC0(GsCOORDINATE2* arg0, s32 arg1);
-void func_shelter_b1_transfer_tunnel_8017FE38(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
-void func_shelter_b1_transfer_tunnel_80180BD0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b1_transfer_tunnel_80180FFC(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
-void func_shelter_b1_transfer_tunnel_80181880(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
-void func_shelter_b1_transfer_tunnel_80181F00(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
+void func_shelter_b1_transfer_tunnel_8017E5D4(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
+void func_shelter_b1_transfer_tunnel_8017E898(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_shelter_b1_transfer_tunnel_8017ECBC(GpCoord* arg0, s16 arg1, u8* arg2);
+void func_shelter_b1_transfer_tunnel_8017F594(GpCoord* coord, s16 size);
+void func_shelter_b1_transfer_tunnel_8017FAC0(GpCoord* arg0, s32 arg1);
+void func_shelter_b1_transfer_tunnel_8017FE38(GpCoord* arg0, s16 arg1, u8* arg2);
+void func_shelter_b1_transfer_tunnel_80180BD0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_shelter_b1_transfer_tunnel_80180FFC(GpCoord* arg0, s16 arg1, u8* arg2);
+void func_shelter_b1_transfer_tunnel_80181880(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+void func_shelter_b1_transfer_tunnel_80181F00(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// State handlers of the task `func_shelter_b1_transfer_tunnel_8017D678`
 /// runs, which copies the table to the stack and calls the entry for the
@@ -368,9 +368,9 @@ void func_shelter_b1_transfer_tunnel_8017DFAC(SVECTOR* arg0, s16 arg1)
 /// state reaches 4.
 void func_shelter_b1_transfer_tunnel_8017E308(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    s32            lifetime;
+    GpEffWork* work;
+    GpCoord*   coord;
+    s32        lifetime;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -451,7 +451,7 @@ void func_shelter_b1_transfer_tunnel_8017E308(Task* task)
 /// animation cells in it; the low twelve bits are the size, scaled by depth.
 /// The low byte of `arg3` is the grey level and its top four bits pick the
 /// CLUT.
-void func_shelter_b1_transfer_tunnel_8017E5D4(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3)
+void func_shelter_b1_transfer_tunnel_8017E5D4(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -527,7 +527,7 @@ void func_shelter_b1_transfer_tunnel_8017E5D4(GsCOORDINATE2* arg0, u16 arg1, u16
 /// the GTE flags an error, queues a ring of sixteen gouraud `POLY_G4`
 /// segments: black at radius `arg1 * 64 / (otz + 1)`, shading to `rgb` at
 /// radius `(arg1 + arg2) * 64 / (otz + 1)`.
-void func_shelter_b1_transfer_tunnel_8017E898(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_shelter_b1_transfer_tunnel_8017E898(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw09Scratch* block;
     POLY_G4*           prim;
@@ -618,7 +618,7 @@ void func_shelter_b1_transfer_tunnel_8017E898(GsCOORDINATE2* arg0, s32 arg1, s32
 /// Halo: projects the coordinate's world position and, unless the GTE flags
 /// an error, queues sixteen gouraud `POLY_G4` wedges forming a disc of radius
 /// `arg1 * 64 / (otz + 1)`, coloured `arg2` at the centre and black at the rim.
-void func_shelter_b1_transfer_tunnel_8017ECBC(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_shelter_b1_transfer_tunnel_8017ECBC(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomDraw04Scratch* block asm("s2");
     register POLY_G4*           prim asm("s0");
@@ -698,12 +698,12 @@ void func_shelter_b1_transfer_tunnel_8017ECBC(GsCOORDINATE2* arg0, s16 arg1, u8*
 /// releases the work block.
 void func_shelter_b1_transfer_tunnel_8017F050(Task* arg0)
 {
-    u8             rgb[3];
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GpMtxWords*    rot;
-    s16            flag;
-    s32            shift;
+    u8          rgb[3];
+    GpEffWork*  mem;
+    GpCoord*    coord;
+    GpMtxWords* rot;
+    s16         flag;
+    s32         shift;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -785,11 +785,11 @@ kill:
 /// down (or the room's event state reaches 4).
 void func_shelter_b1_transfer_tunnel_8017F3E8(Task* arg0)
 {
-    u8             rgb[3];
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s16            flag;
-    s16            step;
+    u8         rgb[3];
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s16        flag;
+    s16        step;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -839,9 +839,9 @@ void func_shelter_b1_transfer_tunnel_8017F3E8(Task* arg0)
 /// under it when a floor is found. Also points the `Gp_RoomCoords[2]` light at the
 /// coordinate with a flickering intensity. Draws nothing when the point fails
 /// to project.
-void func_shelter_b1_transfer_tunnel_8017F594(GsCOORDINATE2* coord, s16 size)
+void func_shelter_b1_transfer_tunnel_8017F594(GpCoord* coord, s16 size)
 {
-    GsCOORDINATE2  ground;
+    GpCoord        ground;
     POLY_FT4*      prim;
     s16            outerLeft;
     s16            outerRight;
@@ -970,7 +970,7 @@ void func_shelter_b1_transfer_tunnel_8017F594(GsCOORDINATE2* coord, s16 size)
 /// Unless the GTE flags an error, one semi-transparent `POLY_FT4` is queued,
 /// its texture alternating between two 32-texel frames on odd and even
 /// frames.
-void func_shelter_b1_transfer_tunnel_8017FAC0(GsCOORDINATE2* arg0, s32 arg1)
+void func_shelter_b1_transfer_tunnel_8017FAC0(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;
@@ -1059,7 +1059,7 @@ void func_shelter_b1_transfer_tunnel_8017FAC0(GsCOORDINATE2* arg0, s32 arg1)
 /// a full and a half-bright ring of radius `arg1 * 64 / (otz + 1)` and a set
 /// of narrower spikes between them - each coloured from `arg2` at the centre
 /// and black at the tips.
-void func_shelter_b1_transfer_tunnel_8017FE38(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_shelter_b1_transfer_tunnel_8017FE38(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");
@@ -1200,10 +1200,10 @@ void func_shelter_b1_transfer_tunnel_8017FE38(GsCOORDINATE2* arg0, s16 arg1, u8*
 /// event state reaches 4.
 void func_shelter_b1_transfer_tunnel_801807F8(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s16            flag;
-    s16            ang;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s16        flag;
+    s16        ang;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -1237,10 +1237,10 @@ void func_shelter_b1_transfer_tunnel_801807F8(Task* arg0)
 /// afterglow out and then releases the work block.
 void func_shelter_b1_transfer_tunnel_8018092C(Task* arg0)
 {
-    u8                      rgb[3];
-    GpEffWork*              mem;
-    register GsCOORDINATE2* coord asm("s2");
-    s16                     flag;
+    u8                rgb[3];
+    GpEffWork*        mem;
+    register GpCoord* coord asm("s2");
+    s16               flag;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -1308,7 +1308,7 @@ kill:
 /// scratch block laid out differently: black at radius
 /// `arg1 * 64 / (otz + 1)`, shading to `rgb` at radius
 /// `(arg1 + arg2) * 64 / (otz + 1)`, drawn unless the GTE flags an error.
-void func_shelter_b1_transfer_tunnel_80180BD0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_shelter_b1_transfer_tunnel_80180BD0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -1397,7 +1397,7 @@ void func_shelter_b1_transfer_tunnel_80180BD0(GsCOORDINATE2* arg0, s32 arg1, s32
 /// Halo: projects the coordinate's world position and, unless the GTE flags
 /// an error, queues sixteen gouraud `POLY_G4` wedges forming a disc of radius
 /// `arg1 * 64 / (otz + 1)`, coloured `arg2` at the centre and black at the rim.
-void func_shelter_b1_transfer_tunnel_80180FFC(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_shelter_b1_transfer_tunnel_80180FFC(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomDraw04Scratch* block asm("s2");
     register POLY_G4*           prim asm("s0");
@@ -1477,15 +1477,15 @@ void func_shelter_b1_transfer_tunnel_80180FFC(GsCOORDINATE2* arg0, s16 arg1, u8*
 /// released once the tick count reaches the spawn argument.
 void func_shelter_b1_transfer_tunnel_80181390(Task* task)
 {
-    GsCOORDINATE2  coord;
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* objCoord;
-    GsCOORDINATE2* dst;
-    GpEffWork*     work;
-    SVECTOR*       vec;
-    s32            i;
+    GpCoord    coord;
+    GpCoord*   coords;
+    GpCoord*   objCoord;
+    GpCoord*   dst;
+    GpEffWork* work;
+    SVECTOR*   vec;
+    s32        i;
 
-    coords   = (GsCOORDINATE2*)task->work;
+    coords   = (GpCoord*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
     objCoord = task->extra.tmd->coords;
 
@@ -1493,7 +1493,7 @@ void func_shelter_b1_transfer_tunnel_80181390(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GsCOORDINATE2*)memCalloc(0x500, 0);
+                coords = (GpCoord*)memCalloc(0x500, 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
@@ -1572,11 +1572,11 @@ void func_shelter_b1_transfer_tunnel_80181390(Task* task)
 /// neighbouring slots of `arg0` and `arg1`. The brightness falls by 9 per quad
 /// from 0x40, and `arg3` holds the colour as three 2-bit multipliers at bits
 /// 8, 4 and 0. A quad the GTE flags as bad is skipped.
-void func_shelter_b1_transfer_tunnel_80181880(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3)
+void func_shelter_b1_transfer_tunnel_80181880(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GsCOORDINATE2*     a;
-    GsCOORDINATE2*     b;
+    GpCoord*           a;
+    GpCoord*           b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -1682,9 +1682,9 @@ void func_shelter_b1_transfer_tunnel_80181880(GsCOORDINATE2* arg0, GsCOORDINATE2
 /// releases the work block, as does the room's event state reaching 4.
 void func_shelter_b1_transfer_tunnel_80181C78(Task* task)
 {
-    GsCOORDINATE2* objCoord;
-    GpEffWork*     work;
-    u8             rgb[4];
+    GpCoord*   objCoord;
+    GpEffWork* work;
+    u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
@@ -1753,7 +1753,7 @@ void func_shelter_b1_transfer_tunnel_80181C78(Task* task)
 /// a full and a half-bright ring of radius `arg1 * 64 / (otz + 1)` and a set
 /// of narrower spikes between them - each coloured from `arg2` at the centre
 /// and black at the tips.
-void func_shelter_b1_transfer_tunnel_80181F00(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_shelter_b1_transfer_tunnel_80181F00(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");

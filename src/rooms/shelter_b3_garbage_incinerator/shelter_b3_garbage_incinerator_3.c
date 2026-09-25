@@ -39,10 +39,10 @@ extern SVECTOR D_shelter_b3_garbage_incinerator_80187614[];
 void func_shelter_b3_garbage_incinerator_80181FC4(SVECTOR* v, s32 arg1, s32 arg2);
 void func_shelter_b3_garbage_incinerator_80183E78(SVECTOR* v, s32 arg1, s32 arg2, s32 arg3);
 void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* v, u16 arg1, u16 arg2, u16 arg3);
-void func_shelter_b3_garbage_incinerator_80182AB8(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
-void func_shelter_b3_garbage_incinerator_80182F18(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
-void func_shelter_b3_garbage_incinerator_801837F8(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
-void func_shelter_b3_garbage_incinerator_80183BE4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
+void func_shelter_b3_garbage_incinerator_80182AB8(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+void func_shelter_b3_garbage_incinerator_80182F18(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+void func_shelter_b3_garbage_incinerator_801837F8(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+void func_shelter_b3_garbage_incinerator_80183BE4(GpCoord* arg0, s32 arg1, s32 arg2);
 
 extern s8       D_8007218A;
 extern u8       D_80073BA9;
@@ -396,11 +396,11 @@ void func_shelter_b3_garbage_incinerator_80181FC4(SVECTOR* v, s32 arg1, s32 arg2
 
 void func_shelter_b3_garbage_incinerator_80182368(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    SVECTOR*       vec;
-    s32            step;
-    s32            level;
+    GpEffWork* work;
+    GpCoord*   coord;
+    SVECTOR*   vec;
+    s32        step;
+    s32        level;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -544,7 +544,7 @@ void func_shelter_b3_garbage_incinerator_80182368(Task* task)
     }
 }
 
-void func_shelter_b3_garbage_incinerator_80182AB8(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
+void func_shelter_b3_garbage_incinerator_80182AB8(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -611,7 +611,7 @@ void func_shelter_b3_garbage_incinerator_80182AB8(GsCOORDINATE2* arg0, u16 arg1,
     SCRATCH_POP_BYTES(0x1C);
 }
 
-void func_shelter_b3_garbage_incinerator_80182F18(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
+void func_shelter_b3_garbage_incinerator_80182F18(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -675,13 +675,13 @@ void func_shelter_b3_garbage_incinerator_80182F18(GsCOORDINATE2* arg0, u16 arg1,
 
 void func_shelter_b3_garbage_incinerator_80183364(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    SVECTOR*       vec;
-    s32            kind;
-    s32            step;
-    s32            state;
-    s32            level;
+    GpEffWork* work;
+    GpCoord*   coord;
+    SVECTOR*   vec;
+    s32        kind;
+    s32        step;
+    s32        state;
+    s32        level;
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -792,7 +792,7 @@ void func_shelter_b3_garbage_incinerator_80183364(Task* task)
 /// `arg3` and a quarter turn past it. `arg1` picks the frame, a 32x32 cell
 /// in a row of the texture page. Nothing is drawn when the projection flags
 /// an error.
-void func_shelter_b3_garbage_incinerator_801837F8(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
+void func_shelter_b3_garbage_incinerator_801837F8(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -860,7 +860,7 @@ void func_shelter_b3_garbage_incinerator_801837F8(GsCOORDINATE2* arg0, u16 arg1,
 /// projected point sits three quarters of the way down it. `arg1` picks the
 /// frame, a 56x56 cell in a four-by-two grid of the texture page. Nothing is
 /// drawn when the projection flags an error.
-void func_shelter_b3_garbage_incinerator_80183BE4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
+void func_shelter_b3_garbage_incinerator_80183BE4(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;

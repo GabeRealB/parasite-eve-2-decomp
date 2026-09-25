@@ -27,13 +27,13 @@
 
 void func_p08_8011D1D8(Task* arg0)
 {
-    GameActor*     actor;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* spot;
-    s32            anim;
+    GameActor* actor;
+    GpCoord*   coord;
+    GpCoord*   spot;
+    s32        anim;
 
     SCRATCH_PUSH_BYTES(0x50);
-    spot  = SCRATCH_HEAD(GsCOORDINATE2);
+    spot  = SCRATCH_HEAD(GpCoord);
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
     switch (actor->field_95E) {

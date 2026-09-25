@@ -236,8 +236,8 @@ void func_actor_136100_801320E0(Task* arg0)
     u8               id;
 
     if (arg0->state == 0) {
-        TmdObject*     tmd   = arg0->extra.tmd;
-        GsCOORDINATE2* coord = tmd->coords;
+        TmdObject* tmd   = arg0->extra.tmd;
+        GpCoord*   coord = tmd->coords;
 
         work       = Mem_Malloc(0x4F0, 0);
         arg0->work = (TaskIdMap*)work;
@@ -245,7 +245,7 @@ void func_actor_136100_801320E0(Task* arg0)
             taskKill(arg0);
         } else {
             Mem_Set(work, 0, 0x4F0);
-            coord->sub             = (GsCOORDINATE2*)arg0->spawnArg2;
+            coord->sub             = (GpCoord*)arg0->spawnArg2;
             arg0->extra.tmd->flags = 0;
             Tmd_AllocBuffers(tmd);
             tmd->lightMtx  = &work->field_474;
@@ -282,8 +282,8 @@ void func_actor_136100_80132284(Task* arg0)
     VECTOR           vec;
 
     if (arg0->state == 0) {
-        TmdObject*     tmd   = arg0->extra.tmd;
-        GsCOORDINATE2* coord = tmd->coords;
+        TmdObject* tmd   = arg0->extra.tmd;
+        GpCoord*   coord = tmd->coords;
 
         work       = Mem_Malloc(0x4F0, 0);
         arg0->work = (TaskIdMap*)work;
@@ -291,7 +291,7 @@ void func_actor_136100_80132284(Task* arg0)
             taskKill(arg0);
         } else {
             Mem_Set(work, 0, 0x4F0);
-            coord->sub             = (GsCOORDINATE2*)arg0->spawnArg2;
+            coord->sub             = (GpCoord*)arg0->spawnArg2;
             arg0->extra.tmd->flags = 0;
             Tmd_AllocBuffers(tmd);
             tmd->lightMtx  = &work->field_474;
@@ -301,7 +301,7 @@ void func_actor_136100_80132284(Task* arg0)
         }
         arg0->state += 1;
         if (arg0->spawnArg1 != 0) {
-            GsCOORDINATE2* reset = arg0->extra.tmd->coords;
+            GpCoord* reset = arg0->extra.tmd->coords;
 
             Gfx_RotMatrixX(&reset->coord, 0x400, 1);
             reset->coord.t[1] = 0xC8;
@@ -655,7 +655,7 @@ void func_actor_136100_80133238(Task* arg0)
     Actor136100Work* work;
     Actor136100Work* animWork;
     s32              i;
-    GsCOORDINATE2*   coords;
+    GpCoord*         coords;
 
     work = (Actor136100Work*)arg0->work;
     func_actor_136100_80131FBC(arg0);
@@ -973,7 +973,7 @@ void func_actor_136100_80133A88(Task* arg0)
     Actor136100Work* work;
     TaskIdMap*       map;
     TmdObject*       tmd;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     GpAreaPlace*     place;
     u8               id;
 
@@ -1345,8 +1345,8 @@ void func_actor_136100_801346EC(Task* task, s32 arg1, s32 arg2)
 /// and its three shorts as yaw, pitch and roll.
 void func_actor_136100_80134720(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2* coord;
-    MATRIX*        mtx;
+    GpCoord* coord;
+    MATRIX*  mtx;
 
     coord             = task->extra.tmd->coords;
     coord->sub        = &gGfxViewCoord;

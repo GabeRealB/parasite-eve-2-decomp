@@ -5,6 +5,7 @@
 
 #include "main/task.h"
 #include "rooms/room.h"
+#include "main/coord.h"
 
 /// The halo's shade table, one row per palette selector.
 extern RoomHaloShade RoomsShared8017e4f8Shades[];
@@ -13,8 +14,8 @@ extern RoomHaloShade RoomsShared8017e4f8Shades[];
 /// fading afterglow. Each carrying room names its own pair at its own address,
 /// and they need not be the same routine in every room - the shared object only
 /// needs a name to relocate against.
-void RoomsShared8017e4f8Halo(GsCOORDINATE2* coord, s16 frame, u8* rgb);
-void RoomsShared8017e4f8Fade(GsCOORDINATE2* coord, s16 frame, u8* rgb);
+void RoomsShared8017e4f8Halo(GpCoord* coord, s16 frame, u8* rgb);
+void RoomsShared8017e4f8Fade(GpCoord* coord, s16 frame, u8* rgb);
 
 /// The rooms' expanding halo: state 0 parks the effect frame on its anchor and
 /// works the fade step out of the spawn argument, state 1 draws the halo (plus

@@ -28,9 +28,9 @@ s32 D_necrosis_801306C8[] = { 0xE0150001, 0xE0180001, 0xE01B0001 };
 
 extern s8 D_80114C0B;
 
-void func_necrosis_8012F6EC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
-void func_necrosis_8012FE64(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
-void func_necrosis_80130288(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
+void func_necrosis_8012F6EC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
+void func_necrosis_8012FE64(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
+void func_necrosis_80130288(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 
 /// Runs one frame of the necrosis cast. State 0 copies the player rotation onto
 /// the effect coordinate, rotates a (0, 0, 0x90) offset into that frame, and
@@ -42,18 +42,18 @@ void func_necrosis_80130288(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
 /// (`Gp_StateC08.field_3` / `D_80114C0B`) or the room is fading (`Gp_State1C`).
 void func_necrosis_8012EF34(Task* arg0)
 {
-    NecrosisWork*  work;
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* player;
-    GpMtxWords*    dstm;
-    GpMtxWords*    srcm;
-    GpRec18*       rec;
-    GpEffWork*     spawned;
-    s32            pan;
-    u16            old;
-    s32            tick;
-    s16            fade;
+    NecrosisWork* work;
+    GpEffWork*    mem;
+    GpCoord*      coord;
+    GpCoord*      player;
+    GpMtxWords*   dstm;
+    GpMtxWords*   srcm;
+    GpRec18*      rec;
+    GpEffWork*    spawned;
+    s32           pan;
+    u16           old;
+    s32           tick;
+    s16           fade;
 
     work     = (NecrosisWork*)arg0->work;
     mem      = arg0->spawnArg2;
@@ -180,12 +180,12 @@ void func_necrosis_8012EF34(Task* arg0)
 
 void func_necrosis_8012F52C(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s32            rng;
-    s32            val;
-    s32            step;
-    GpEffWork*     spawned;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s32        rng;
+    s32        val;
+    s32        step;
+    GpEffWork* spawned;
 
     mem   = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
@@ -229,7 +229,7 @@ void func_necrosis_8012F52C(Task* arg0)
 /// `arg2` sizes it: the corners sit `arg2 * 39 / otz` from the projected
 /// centre along `arg3` and `arg3 + 0x400`, so the sprite shrinks with depth.
 /// Same shape as `Gp_DrawFxQuad` with a wider texture cell and no CLUT table.
-void func_necrosis_8012F6EC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
+void func_necrosis_8012F6EC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -289,15 +289,15 @@ void func_necrosis_8012F6EC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 
 void func_necrosis_8012FAF8(Task* arg0)
 {
-    GpEffWork*     mem;
-    GsCOORDINATE2* coord;
-    s16            tick;
-    s32            rng1;
-    s32            rng2;
-    s32            rng3;
-    s32            temp_lo;
-    s32            var_v1;
-    u16            temp_v0;
+    GpEffWork* mem;
+    GpCoord*   coord;
+    s16        tick;
+    s32        rng1;
+    s32        rng2;
+    s32        rng3;
+    s32        temp_lo;
+    s32        var_v1;
+    u16        temp_v0;
 
     mem   = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
@@ -377,7 +377,7 @@ void func_necrosis_8012FAF8(Task* arg0)
 /// (0x4A / 0x42C2). `arg3` spins the quad and `arg2` sizes it: the corners sit
 /// `arg2 * 31 / otz` from the projected centre along `arg3` and `arg3 + 0x400`,
 /// so the puff shrinks with depth. Same shape as `func_necrosis_8012F6EC`.
-void func_necrosis_8012FE64(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
+void func_necrosis_8012FE64(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     GpFxQuadScratch* block;
     POLY_FT4*        prim;
@@ -467,7 +467,7 @@ void func_necrosis_8012FE64(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 /// `arg3` spins the quad and `arg2` sizes it: the corners sit `arg2 * 39 / otz`
 /// from the projected centre along `arg3` and `arg3 + 0x400`, so the cloud
 /// shrinks with depth.
-void func_necrosis_80130288(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
+void func_necrosis_80130288(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     GpFxQuadScratch* block;
     POLY_FT4*        prim;

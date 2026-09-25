@@ -171,7 +171,7 @@ void Actor03700_Fn0355C(Task* task);
 static inline void Actor03700_BobInline(Task* task, s32 arg1, s32 arg2)
 {
     Actor103700Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     u16              frame;
 
     work  = (Actor103700Work*)task->work;
@@ -189,7 +189,7 @@ static inline void Actor03700_BobInline(Task* task, s32 arg1, s32 arg2)
 static inline void Actor03700_SwayInline(Task* task, s32 arg1)
 {
     Actor103700Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     u16              frame;
     s32              amp;
 
@@ -224,7 +224,7 @@ const GpEnemyTaskFuncTable3 Actor03700_D00004 = {
 void Actor03700_Fn000A4(GpEnemy* arg0, Task* task)
 {
     TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor103700Work* work;
     s32              kind;
     s32              i;
@@ -332,8 +332,8 @@ void Actor03700_Fn000A4(GpEnemy* arg0, Task* task)
 void Actor03700_Fn0042C(Task* task, TmdObject* arg1, s32 arg2)
 {
     ActorPushFrame*  scratch;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   src;
+    GpCoord*         coord;
+    GpCoord*         src;
     Actor103700Work* work;
     s32              push;
     s32              reach;
@@ -459,7 +459,7 @@ move_done:
 s32 Actor03700_Fn008D0(Task* task)
 {
     s16              state;
-    GsCOORDINATE2*   object;
+    GpCoord*         object;
     s32              ret;
     u16              timer;
     Actor103700Work* soundWork;
@@ -650,7 +650,7 @@ s32 Actor03700_Fn008D0(Task* task)
 void Actor03700_Fn00ABC(Task* task)
 {
     Actor103700Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     SVECTOR*         head;
     SVECTOR*         vec;
     s16              angle;
@@ -702,7 +702,7 @@ void Actor03700_Fn00ABC(Task* task)
 void Actor03700_Fn00D5C(Task* task)
 {
     Actor103700Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              dist;
     s32              i;
 
@@ -748,7 +748,7 @@ void Actor03700_Fn00D5C(Task* task)
 void Actor03700_Fn00F88(Task* task)
 {
     Actor103700Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              dist;
     s32              i;
 
@@ -794,7 +794,7 @@ void Actor03700_Fn00F88(Task* task)
 void Actor03700_Fn011B4(Task* task)
 {
     Actor103700Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     void*            head;
     SVECTOR*         vec;
     s32              i;
@@ -868,7 +868,7 @@ void Actor03700_Fn011B4(Task* task)
 void Actor03700_Fn01550(Task* task)
 {
     Actor103700Work* work;
-    GsCOORDINATE2*   obj;
+    GpCoord*         obj;
     Task*            player;
     void*            head;
     GpAnimArg*       arg;
@@ -884,7 +884,7 @@ void Actor03700_Fn01550(Task* task)
     switch (work->field_250) {
         case 0:
             Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(&Actor03700_D07F08, 0), 0);
-            func_800FDB18(1, (GsCOORDINATE2*)obj, NULL, &work->field_224);
+            func_800FDB18(1, obj, NULL, &work->field_224);
             Gp_SpawnPadLerp(5, 0xC0, 8);
             sound = ((((GpEnemy*)task->spawnArg2)->placeKey >> 12) << 8) | 0x40250004;
             SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(obj), (s8)gpGetObjDepth(obj));
@@ -942,7 +942,7 @@ void Actor03700_Fn01550(Task* task)
 void Actor03700_Fn018C8(Task* task)
 {
     Actor103700Work* work;
-    GsCOORDINATE2*   obj;
+    GpCoord*         obj;
     s32              period;
     s32              i;
     s32              slot;
@@ -1024,7 +1024,7 @@ void Actor03700_Fn018C8(Task* task)
 void Actor03700_Fn01C94(Task* task)
 {
     Actor103700Work* work;
-    GsCOORDINATE2*   obj;
+    GpCoord*         obj;
     Task*            player;
     void*            head;
     GpAnimArg*       arg;
@@ -1070,15 +1070,15 @@ void Actor03700_Fn01C94(Task* task)
 /// plays the alert cue from the placement's sound bank. Returns 1 when noticed.
 s32 Actor03700_Fn01DFC(Task* task)
 {
-    void**         scratch;
-    u8*            head;
-    SVECTOR*       vec;
-    GsCOORDINATE2* coord;
-    s16            dx;
-    s16            dz;
-    s32            ret;
-    u32            soundId;
-    s32            pan;
+    void**   scratch;
+    u8*      head;
+    SVECTOR* vec;
+    GpCoord* coord;
+    s16      dx;
+    s16      dz;
+    s32      ret;
+    u32      soundId;
+    s32      pan;
 
     scratch                        = SCRATCH_HEAD_ADDR;
     head                           = SCRATCH_HEAD_AT(scratch, void);
@@ -1111,7 +1111,7 @@ s32 Actor03700_Fn01DFC(Task* task)
 void Actor03700_Fn01F48(Task* task)
 {
     Actor103700Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     SVECTOR*         rot;
     u16              want;
     s16              ang;
@@ -1192,7 +1192,7 @@ done:
 void Actor03700_Fn020D4(GpEnemy* enemy, Task* task)
 {
     TmdObject*       model;
-    GsCOORDINATE2*   obj;
+    GpCoord*         obj;
     Actor103700Work* work;
     Task*            player;
     GpAnimArg        arg;
@@ -1201,18 +1201,18 @@ void Actor03700_Fn020D4(GpEnemy* enemy, Task* task)
         VECTOR    color;
         GpAreaKey key;
     } buf;
-    GpAreaKey*     sessionKey;
-    GpAreaKey*     keyPtr;
-    u8             areaByte0;
-    GpAreaRec*     rec;
-    GpAreaPlace*   entry;
-    GpEffWork*     eff;
-    TmdObject*     effModel;
-    s32            sound;
-    s32            sound2;
-    s32            idx;
-    u32            raw;
-    GsCOORDINATE2* coord;
+    GpAreaKey*   sessionKey;
+    GpAreaKey*   keyPtr;
+    u8           areaByte0;
+    GpAreaRec*   rec;
+    GpAreaPlace* entry;
+    GpEffWork*   eff;
+    TmdObject*   effModel;
+    s32          sound;
+    s32          sound2;
+    s32          idx;
+    u32          raw;
+    GpCoord*     coord;
 
     work   = (Actor103700Work*)task->work;
     obj    = task->extra.tmd->coords;
@@ -1345,7 +1345,7 @@ void Actor03700_Fn025C8(Task* task)
     TmdObject*       ext;
     Actor103700Work* work;
     GpEnemy*         spawn;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              diff;
 
     ext                       = task->extra.tmd;
@@ -1404,7 +1404,7 @@ void Actor03700_Fn027DC(Task* task)
 {
     Actor103700SteerScratch* s;
     Actor103700Work*         work;
-    GsCOORDINATE2*           coord;
+    GpCoord*                 coord;
     s32                      d;
 
     s     = (Actor103700SteerScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor103700SteerScratch));
@@ -1446,7 +1446,7 @@ void Actor03700_Fn029C0(Task* task)
 {
     Actor103700Work*         work;
     TmdObject*               obj;
-    GsCOORDINATE2*           coord;
+    GpCoord*                 coord;
     Actor103700SteerScratch* scratch;
     s32                      mode;
     GpEnemy*                 ctx;
@@ -1540,7 +1540,7 @@ void Actor03700_Fn02FA8(Task* task)
 
 void Actor03700_Fn03004(GpEnemy* enemy, Task* task)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     TmdObject*       obj;
     Actor103700Work* work;
     s32              state;
@@ -1640,7 +1640,7 @@ s32 Actor03700_Fn03130(Task* task)
 /// toward the target's `field_23C.vy`.
 void Actor03700_Fn0321C(Task* task)
 {
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     Actor103700Work* work;
     s32              y;
 
@@ -1659,7 +1659,7 @@ void Actor03700_Fn0321C(Task* task)
 void Actor03700_Fn032BC(Task* task, s32 arg1, s32 arg2)
 {
     Actor103700Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     u16              frame;
 
     work  = (Actor103700Work*)task->work;
@@ -1676,7 +1676,7 @@ void Actor03700_Fn032BC(Task* task, s32 arg1, s32 arg2)
 void Actor03700_Fn03320(Task* task, s32 arg1)
 {
     Actor103700Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     u16              frame;
     s32              amp;
 
@@ -1727,8 +1727,8 @@ void Actor03700_Fn033F0(Task* task)
 /// coordinate, with no blend parameters.
 void Actor03700_Fn034A0(Task* task)
 {
-    GsCOORDINATE2* coord;
-    VECTOR         vec;
+    GpCoord* coord;
+    VECTOR   vec;
 
     coord  = task->extra.tmd->coords;
     vec.vx = coord->workm.t[0];

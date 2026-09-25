@@ -57,7 +57,7 @@ void func_actor_135600_80132A38(Task* task);
 void func_actor_135600_80132AB4(Task* task);
 void func_actor_135600_80132B14(Task* task);
 void func_actor_135600_80132C18(Task* task);
-void func_actor_135600_80132C80(GsCOORDINATE2* coord, MATRIX* mtx, SVECTOR* vec);
+void func_actor_135600_80132C80(GpCoord* coord, MATRIX* mtx, SVECTOR* vec);
 void func_actor_135600_80132DBC(Task* task);
 void func_actor_135600_80132DDC(Task* task);
 void func_actor_135600_80132DF8(Task* task);
@@ -121,7 +121,7 @@ const VECTOR D_actor_135600_80131E58 = { 0, 0, 0x200000, 0 };
 /// the ordering table at the far point's depth. Nothing is drawn when that
 /// depth is behind the camera. The marker's draw state passes the countdown it
 /// runs on as `arg1`.
-s32 func_actor_135600_80131E68(GsCOORDINATE2* coord, s32 arg1)
+s32 func_actor_135600_80131E68(GpCoord* coord, s32 arg1)
 {
     SVECTOR    v0;
     SVECTOR    v1;
@@ -362,7 +362,7 @@ void func_actor_135600_801324D0(Task* arg0)
     Actor135600Work* work     = (Actor135600Work*)arg0->work;
     TaskFunc         funcs[2] = { func_actor_135600_80132DF8, func_actor_135600_80132E00 };
     VECTOR3          pos;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     s32              i;
 
     if (!(ext->flags & 0x80)) {
@@ -409,7 +409,7 @@ void func_actor_135600_801324D0(Task* arg0)
 void func_actor_135600_801326E8(Task* arg0)
 {
     Actor135600Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     SVECTOR          d;
     s32              dx;
     s32              dz;
@@ -521,12 +521,12 @@ void func_actor_135600_801329E0(Task* task)
 /// is updated with the parent, and advances to the next state.
 void func_actor_135600_80132A38(Task* task)
 {
-    Task*          parent;
-    s32            part;
-    TmdObject*     extra;
-    TmdObject*     parentExtra;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* dest;
+    Task*      parent;
+    s32        part;
+    TmdObject* extra;
+    TmdObject* parentExtra;
+    GpCoord*   coord;
+    GpCoord*   dest;
 
     parent          = (Task*)task->spawnArg2;
     part            = task->spawnArg1;
@@ -565,14 +565,14 @@ void func_actor_135600_80132ABC(Task* task)
 /// set to 0x1000, the value the marker's draw state runs on.
 void func_actor_135600_80132B14(Task* task)
 {
-    OverlayMat     m;
-    MATRIX*        mtx;
-    Task*          parent;
-    s32            part;
-    TmdObject*     extra;
-    TmdObject*     parentExtra;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* dest;
+    OverlayMat m;
+    MATRIX*    mtx;
+    Task*      parent;
+    s32        part;
+    TmdObject* extra;
+    TmdObject* parentExtra;
+    GpCoord*   coord;
+    GpCoord*   dest;
 
     parent      = (Task*)task->spawnArg2;
     extra       = task->extra.tmd;
@@ -626,7 +626,7 @@ void func_actor_135600_80132C18(Task* task)
 /// `vec`. The world parent initializes `mtx` to identity and `vec` to zero.
 /// The same algorithm as gameplay's `Gp_ComposeParentWorld`, but through the
 /// library `ApplyMatrixSV` / `MulMatrix0` rather than the GTE macros.
-void func_actor_135600_80132C80(GsCOORDINATE2* coord, MATRIX* mtx, SVECTOR* vec)
+void func_actor_135600_80132C80(GpCoord* coord, MATRIX* mtx, SVECTOR* vec)
 {
     SVECTOR tmp;
     MATRIX* m;
@@ -707,13 +707,13 @@ void func_actor_135600_80132E00(Task* task)
 void func_actor_135600_80132E68(Task* task)
 {
     Actor135600Work* work;
-    GpCoordExt*      coord;
+    GpCoord*         coord;
     VECTOR           delta;
     SVECTOR          dir;
     SVECTOR          rot;
 
     work  = (Actor135600Work*)task->work;
-    coord = (GpCoordExt*)task->extra.tmd->coords;
+    coord = task->extra.tmd->coords;
 
     delta.vx = work->walk.target.vx - coord->coord.t[0];
     delta.vy = work->walk.target.vy - coord->coord.t[1];
@@ -738,7 +738,7 @@ void func_actor_135600_80132E68(Task* task)
 void func_actor_135600_80132F28(Task* task)
 {
     Actor135600Work* work;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     VECTOR           vec;
 
     coord = task->extra.tmd->coords;
@@ -763,7 +763,7 @@ void func_actor_135600_80132FA8(Task* arg0)
 {
     Actor135600Work* work;
     GpMtxWords*      words;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     SVECTOR          vec;
     GpAnimArg        preset;
     s32              vy;
@@ -844,9 +844,9 @@ s32 func_actor_135600_801330A8(Task* task, s32 msgId, GpAnimArg* msg, s32 arg3)
 /// Returns 0.
 s32 func_actor_135600_801331C4(Task* task, s32 msgId, GpXformArg* args, s32 arg3)
 {
-    GpCoordExt* coord;
+    GpCoord* coord;
 
-    coord               = (GpCoordExt*)task->extra.tmd->coords;
+    coord               = task->extra.tmd->coords;
     coord->coord.t[0]   = args->pos.vx;
     coord->coord.t[1]   = args->pos.vy;
     coord->coord.t[2]   = args->pos.vz;

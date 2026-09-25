@@ -2699,11 +2699,11 @@ void func_shelter_b1_underground_parking_80182154(Task* task)
 /// takes the weapon away and runs the handoff.
 void func_shelter_b1_underground_parking_801826C0(void)
 {
-    Task*          task;
-    GameActor*     actor;
-    GsCOORDINATE2* coord;
-    s32            z;
-    s32            facing;
+    Task*      task;
+    GameActor* actor;
+    GpCoord*   coord;
+    s32        z;
+    s32        facing;
 
     task  = gameGetPtrSlot(3);
     actor = (GameActor*)task->work;

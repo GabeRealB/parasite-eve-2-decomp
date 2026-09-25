@@ -27,10 +27,10 @@ extern SVECTOR D_dryfield_night_junk_yard_8018077C;
 
 void func_dryfield_night_junk_yard_8017DBD0(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_dryfield_night_junk_yard_8017E34C(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_dryfield_night_junk_yard_8017E86C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_dryfield_night_junk_yard_8017EC98(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
-void func_dryfield_night_junk_yard_8017F51C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
-void func_dryfield_night_junk_yard_8017FB9C(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
+void func_dryfield_night_junk_yard_8017E86C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_dryfield_night_junk_yard_8017EC98(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_dryfield_night_junk_yard_8017F51C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+void func_dryfield_night_junk_yard_8017FB9C(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// Junk yard room draw: on the task's first pass the room's three effect-id
 /// slots are pointed at the junk yard's own ids, `Gp_State1C->roomEffectMode` is set
@@ -325,9 +325,9 @@ void func_dryfield_night_junk_yard_8017E34C(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// it has faded and releases itself.
 void func_dryfield_night_junk_yard_8017E5C8(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    u8             rgb[3];
+    GpEffWork* work;
+    GpCoord*   coord;
+    u8         rgb[3];
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -390,7 +390,7 @@ void func_dryfield_night_junk_yard_8017E5C8(Task* task)
 /// between the radii `(s16)arg1 * 64 / (otz + 1)` and
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`. The first edge is black and the
 /// second takes the `rgb` tint.
-void func_dryfield_night_junk_yard_8017E86C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_dryfield_night_junk_yard_8017E86C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -480,7 +480,7 @@ void func_dryfield_night_junk_yard_8017E86C(GsCOORDINATE2* arg0, s32 arg1, s32 a
 /// GTE flag is non-negative, queues eight `POLY_G4` wedges fanned around the
 /// projected centre with radius `(s16)arg1 * 64 / (otz + 1)`. Only the centre
 /// vertex takes the `rgb` tint, so each wedge fades to black at the rim.
-void func_dryfield_night_junk_yard_8017EC98(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_dryfield_night_junk_yard_8017EC98(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     RoomDraw04Scratch* block;
     POLY_G4*           prim;
@@ -564,15 +564,15 @@ void func_dryfield_night_junk_yard_8017EC98(GsCOORDINATE2* arg0, s32 arg1, u8* r
 /// `eventState` is 2 or more.
 void func_dryfield_night_junk_yard_8017F02C(Task* task)
 {
-    GsCOORDINATE2  coord;
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* objCoord;
-    GsCOORDINATE2* dst;
-    GpEffWork*     work;
-    SVECTOR*       vec;
-    s32            i;
+    GpCoord    coord;
+    GpCoord*   coords;
+    GpCoord*   objCoord;
+    GpCoord*   dst;
+    GpEffWork* work;
+    SVECTOR*   vec;
+    s32        i;
 
-    coords   = (GsCOORDINATE2*)task->work;
+    coords   = (GpCoord*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
     objCoord = task->extra.tmd->coords;
 
@@ -580,7 +580,7 @@ void func_dryfield_night_junk_yard_8017F02C(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GsCOORDINATE2*)memCalloc(0x500, 0);
+                coords = (GpCoord*)memCalloc(0x500, 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
@@ -659,11 +659,11 @@ void func_dryfield_night_junk_yard_8017F02C(Task* task)
 /// `arg0` and `arg1`, with brightness falling from `0x40 - 9 * i` at its
 /// leading edge by nine more at its trailing one. `arg3` is the colour, three
 /// 2-bit channel weights at bits 8, 4 and 0. A quad the GTE flags is dropped.
-void func_dryfield_night_junk_yard_8017F51C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3)
+void func_dryfield_night_junk_yard_8017F51C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GsCOORDINATE2*     a;
-    GsCOORDINATE2*     b;
+    GpCoord*           a;
+    GpCoord*           b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -771,9 +771,9 @@ void func_dryfield_night_junk_yard_8017F51C(GsCOORDINATE2* arg0, GsCOORDINATE2* 
 /// expanding one in a fading orange tint. Either ends once its age reaches 7.
 void func_dryfield_night_junk_yard_8017F914(Task* task)
 {
-    GsCOORDINATE2* objCoord;
-    GpEffWork*     work;
-    u8             rgb[4];
+    GpCoord*   objCoord;
+    GpEffWork* work;
+    u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
@@ -844,7 +844,7 @@ void func_dryfield_night_junk_yard_8017F914(Task* task)
 /// followed by four spikes, two reaching `r` and two `2 * r`, whose bases sit on
 /// the radius `arg1 * 8 / (otz + 1)`. Only the centre vertex is tinted, so
 /// every wedge fades to black.
-void func_dryfield_night_junk_yard_8017FB9C(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_dryfield_night_junk_yard_8017FB9C(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");

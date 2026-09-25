@@ -143,8 +143,8 @@ void Actor01100_Fn06198(Task* task);
 void Actor01100_Fn0638C(Task* task);
 void Actor01100_Fn0668C(Task* task);
 void Actor01100_Fn067C0(MATRIX* arg0, ActorsShared801385e0Scale* arg1);
-s32  Actor01100_Fn06954(GsCOORDINATE2* arg0, s32 arg1);
-s32  Actor01100_Fn06AC8(GsCOORDINATE2* arg0);
+s32  Actor01100_Fn06954(GpCoord* arg0, s32 arg1);
+s32  Actor01100_Fn06AC8(GpCoord* arg0);
 void Actor01100_Fn06E4C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
 void Actor01100_Fn06F38(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
 void Actor01100_Fn07014(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
@@ -173,7 +173,7 @@ const ActorsShared801385e0Scale Actor01100_D00010 = { 0x1400, 0x1400, 0x1400, 0 
 /// scratch block, and its length is scaled down to 0x100 when longer. Returns
 /// whether any record of those kinds was met. Does nothing, returning 0, while
 /// `Mc_SaveData.field_5C1` or the session's `viewReady` is 1.
-s32 Actor01100_Fn000E8(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
+s32 Actor01100_Fn000E8(GpCoord* coord, GpRec18* recs, s16 count)
 {
     ActorRepelScratch* head;
     ActorRepelScratch* s;
@@ -231,7 +231,7 @@ s32 Actor01100_Fn000E8(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
 /// coordinate 10 units along it in the XZ plane. `pos` receives the total
 /// displacement. Returns whether a kind 0x10000 record was among them. Does
 /// nothing, returning 0, while the session's `viewReady` or `Mc_SaveData.field_5C1` is 1.
-s32 Actor01100_Fn00430(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos)
+s32 Actor01100_Fn00430(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
@@ -351,7 +351,7 @@ void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
 {
     ActorsShared80138efcWork* work;
     TmdObject*                extra;
-    GsCOORDINATE2*            parts;
+    GpCoord*                  parts;
     GpMtxWords*               mtx;
     GpStateF0*                st;
     u8                        param1[8];
@@ -368,7 +368,7 @@ void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
     u8                        rate;
     GpAnimSlot*               slotA;
     GpAnimSlot*               slotB;
-    GsCOORDINATE2*            endCoords;
+    GpCoord*                  endCoords;
 
     extra            = task->extra.tmd;
     parts            = extra->coords;
@@ -440,7 +440,7 @@ void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
     work->field_B92 = hp;
     enemy->hp       = hp;
     SOFT_USE_REG(enemy);
-    task->extra.tmd->coords[1].sub = (GsCOORDINATE2*)work;
+    task->extra.tmd->coords[1].sub = (GpCoord*)work;
     task->extra.tmd->coords[1].flg = 0;
 
     i = 1;
@@ -612,7 +612,7 @@ static __inline__ s32 _actor01100FindClass2Contact(SVECTOR* out, GpRec18* contac
 /// from zero, and raises the height by 0x80 for the caller to restore.
 /// Returns nonzero when the push moved the model on X or Z; always 0 while
 /// `Mc_SaveData.field_5C1` is 1.
-static __inline__ s32 _actor01100PushOut(GsCOORDINATE2* coord, GpRec18* contacts)
+static __inline__ s32 _actor01100PushOut(GpCoord* coord, GpRec18* contacts)
 {
     OverlayDeltaFlag* head;
     OverlayDeltaFlag* blk;
@@ -674,41 +674,41 @@ static __inline__ void _actor01100ClearObjPair(ActorsShared80138efcWork* work)
 /// the first contact table and clears all four. Returns 1 when damage landed.
 s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    s32            damaged;
-    s32            fromBehind;
-    s32            dotDamage;
-    s32            doubleDamage;
-    s32            rollParam;
-    s32            kind7;
-    s32            kind4or6;
-    s32            died;
-    s32            sndId;
-    s32            rate;
-    GpAnimSlot*    slot;
-    GpRec18*       world;
-    GsCOORDINATE2* coord;
-    s32            savedY;
-    s32            moved;
-    s16            timer;
-    s16            hp;
-    s32            dist;
-    s32            key;
-    s32            cooldown;
-    s32            kind;
-    s32            i;
-    s32            n;
-    s32            reaction;
-    s32            sparkLevel;
-    s32            sourceKey;
-    s32            yaw;
-    s32            level;
-    u32            idKind;
-    u32            hitDamage;
-    u32            damage;
-    u32            hitKey;
-    u8             flags;
-    u8             mode;
-    u8             staged;
+    s32         damaged;
+    s32         fromBehind;
+    s32         dotDamage;
+    s32         doubleDamage;
+    s32         rollParam;
+    s32         kind7;
+    s32         kind4or6;
+    s32         died;
+    s32         sndId;
+    s32         rate;
+    GpAnimSlot* slot;
+    GpRec18*    world;
+    GpCoord*    coord;
+    s32         savedY;
+    s32         moved;
+    s16         timer;
+    s16         hp;
+    s32         dist;
+    s32         key;
+    s32         cooldown;
+    s32         kind;
+    s32         i;
+    s32         n;
+    s32         reaction;
+    s32         sparkLevel;
+    s32         sourceKey;
+    s32         yaw;
+    s32         level;
+    u32         idKind;
+    u32         hitDamage;
+    u32         damage;
+    u32         hitKey;
+    u8          flags;
+    u8          mode;
+    u8          staged;
 
     damage       = 0;
     sparkLevel   = -1;
@@ -1139,11 +1139,11 @@ void Actor01100_Fn01B90(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 /// columns 1-2 at 1+delta/4).
 void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    GsCOORDINATE2* part;
-    GsCOORDINATE2* coords;
-    s32            walk;
-    s32            rest;
-    register s32   t asm("v1");
+    GpCoord*     part;
+    GpCoord*     coords;
+    s32          walk;
+    s32          rest;
+    register s32 t asm("v1");
 
     walk = work->field_B8E;
     part = task->extra.tmd->coords + 4;
@@ -1173,8 +1173,8 @@ void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 
     t = work->field_B9A;
     if (t != 0) {
-        GsCOORDINATE2*    node;
-        GsCOORDINATE2*    sub;
+        GpCoord*          node;
+        GpCoord*          sub;
         MATRIX*           m;
         MATRIX*           parent;
         register SVECTOR* sv asm("v0");
@@ -1193,7 +1193,7 @@ void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         SCHED_BARRIER();
         sv--;
         __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv) : "memory");
-        m = &((GsCOORDINATE2*)m)->coord;
+        m = &((GpCoord*)m)->coord;
         SCALE_COL(m, sv, 0, 6, 12, arg->pos.vx);
         SCALE_COL(m, sv, 2, 8, 14, arg->pos.vy);
         SCALE_COL(m, sv, 4, 10, 16, arg->pos.vz);
@@ -1220,8 +1220,8 @@ void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 
     t = work->field_B98;
     if (t != 0) {
-        GsCOORDINATE2*    node;
-        GsCOORDINATE2*    sub;
+        GpCoord*          node;
+        GpCoord*          sub;
         MATRIX*           m;
         MATRIX*           parent;
         register SVECTOR* sv asm("v0");
@@ -1240,7 +1240,7 @@ void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         SCHED_BARRIER();
         sv--;
         __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv) : "memory");
-        m = &((GsCOORDINATE2*)m)->coord;
+        m = &((GpCoord*)m)->coord;
         SCALE_COL(m, sv, 0, 6, 12, arg->pos.vx);
         SCALE_COL(m, sv, 2, 8, 14, arg->pos.vy);
         SCALE_COL(m, sv, 4, 10, 16, arg->pos.vz);
@@ -1266,9 +1266,9 @@ void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     }
 
     if (work->field_B96 != 0) {
-        MATRIX*        m;
-        SVECTOR*       sv;
-        GsCOORDINATE2* c;
+        MATRIX*  m;
+        SVECTOR* sv;
+        GpCoord* c;
 
         sv = &arg->vec;
         c  = task->extra.tmd->coords;
@@ -1280,9 +1280,9 @@ void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     }
 
     if (work->field_B94 != 0) {
-        MATRIX*        m;
-        SVECTOR*       sv;
-        GsCOORDINATE2* c;
+        MATRIX*  m;
+        SVECTOR* sv;
+        GpCoord* c;
 
         sv = &arg->vec;
         c  = task->extra.tmd->coords;
@@ -1351,8 +1351,8 @@ static __inline__ void _actor01100RotSv(MATRIX* m, SVECTOR* v)
 void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     ActorsShared80138efcStateTable table;
-    GsCOORDINATE2*                 part;
-    GsCOORDINATE2*                 root;
+    GpCoord*                       part;
+    GpCoord*                       root;
     s32                            restart;
     s32                            randBit;
     s32                            slot;
@@ -1464,8 +1464,8 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
                 Actor01100_Fn01B90(enemy, task, work, arg);
                 break;
             case 1: {
-                GsCOORDINATE2* c;
-                GpLinkNode*    lockNode;
+                GpCoord*    c;
+                GpLinkNode* lockNode;
 
                 enemy->node.state.b.flags           = 0;
                 c                                   = task->extra.tmd->coords;
@@ -1494,8 +1494,8 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
                 break;
             }
             case 2: {
-                GsCOORDINATE2* c;
-                GpLinkNode*    lockNode;
+                GpCoord*    c;
+                GpLinkNode* lockNode;
 
                 if (work->field_BAB != 1) {
                     if (work->field_B96 >= 0x400) {
@@ -1540,7 +1540,7 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         if (work->field_BB8 == 1) {
             TransposeMatrix(&Gfx_ViewWorldMtx, &arg->mtx);
             if (!(D_80070F70 & 0xF)) {
-                GsCOORDINATE2* c;
+                GpCoord* c;
 
                 c           = task->extra.tmd->coords;
                 arg->vec.vx = 0;
@@ -1741,12 +1741,12 @@ void Actor01100_Fn03740(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 /// 0xBA7 and the latch, ending the spin about.
 void Actor01100_Fn0389C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    GpCoordExt* pose;
-    s32         idx;
-    u32         rng;
-    u16         angle;
+    GpCoord* pose;
+    s32      idx;
+    u32      rng;
+    u16      angle;
 
-    pose = (GpCoordExt*)task->extra.tmd->coords;
+    pose = task->extra.tmd->coords;
     if (work->field_BA8 == 0) {
         rng         = Gp_LcgState * 5 + 0x71357911;
         Gp_LcgState = rng;
@@ -1789,8 +1789,8 @@ void Actor01100_Fn0389C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 void Actor01100_Fn039D0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     SVECTOR              local;
-    GsCOORDINATE2*       self;
-    GsCOORDINATE2*       other;
+    GpCoord*             self;
+    GpCoord*             other;
     MATRIX*              selfWorkm;
     s32                  angle;
     s32                  target;
@@ -1863,10 +1863,10 @@ void Actor01100_Fn039D0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 void Actor01100_Fn03BAC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     SVECTOR              local;
-    GsCOORDINATE2*       self0;
-    GsCOORDINATE2*       self;
-    GsCOORDINATE2*       other;
-    GsCOORDINATE2*       self2;
+    GpCoord*             self0;
+    GpCoord*             self;
+    GpCoord*             other;
+    GpCoord*             self2;
     TmdObject*           playerObj;
     MATRIX*              selfWorkm;
     Task*                player;
@@ -2038,14 +2038,14 @@ void Actor01100_Fn03BAC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 
         yaw = work->field_B90;
         if (yaw >= 0x11) {
-            ((GpCoordExt*)self)->param.rot.vy = (u16)((GpCoordExt*)self)->param.rot.vy + 0x10;
+            (self)->param.rot.vy = (u16)(self)->param.rot.vy + 0x10;
         } else if (yaw < -0x10) {
-            ((GpCoordExt*)self)->param.rot.vy = (u16)((GpCoordExt*)self)->param.rot.vy - 0x10;
+            (self)->param.rot.vy = (u16)(self)->param.rot.vy - 0x10;
         } else {
-            ((GpCoordExt*)self)->param.rot.vy = (u16)((GpCoordExt*)self)->param.rot.vy + yaw;
+            (self)->param.rot.vy = (u16)(self)->param.rot.vy + yaw;
         }
-        timer                             = (u16)((GpCoordExt*)self)->param.rot.vy & 0xFFF;
-        ((GpCoordExt*)self)->param.rot.vy = timer;
+        timer                = (u16)(self)->param.rot.vy & 0xFFF;
+        (self)->param.rot.vy = timer;
         Gfx_RotMatrixY(&self->coord, timer, 1);
         self->flg = 0;
 
@@ -2104,26 +2104,26 @@ void Actor01100_Fn03BAC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 
 void Actor01100_Fn041BC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* yaw;
-    s32            oy;
-    s32            sy;
-    GsCOORDINATE2* other;
-    Task*          player;
-    SVECTOR*       vec;
-    u8*            head;
-    u8*            tail;
-    s32            delta;
-    s32            lt;
-    u16            angle;
-    u16            time;
-    s32            dist;
-    s32            ret;
-    u16            selfT;
-    u16            otherT;
-    s8             kind;
-    u16            wait;
-    u32            rng;
+    GpCoord* coord;
+    GpCoord* yaw;
+    s32      oy;
+    s32      sy;
+    GpCoord* other;
+    Task*    player;
+    SVECTOR* vec;
+    u8*      head;
+    u8*      tail;
+    s32      delta;
+    s32      lt;
+    u16      angle;
+    u16      time;
+    s32      dist;
+    s32      ret;
+    u16      selfT;
+    u16      otherT;
+    s8       kind;
+    u16      wait;
+    u32      rng;
 
     wait = 0x3C;
     if ((s8)work->field_BBB == 0x31) {
@@ -2140,16 +2140,16 @@ void Actor01100_Fn041BC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     lt    = delta < 0x11;
     yaw   = task->extra.tmd->coords;
     if (lt == 0) {
-        angle = (u16)((GpCoordExt*)yaw)->param.rot.vy + 0x10;
+        angle = (u16)(yaw)->param.rot.vy + 0x10;
     } else if (delta < -0x10) {
-        angle = (u16)((GpCoordExt*)yaw)->param.rot.vy - 0x10;
+        angle = (u16)(yaw)->param.rot.vy - 0x10;
     } else {
-        angle = (u16)((GpCoordExt*)yaw)->param.rot.vy + delta;
+        angle = (u16)(yaw)->param.rot.vy + delta;
     }
-    ((GpCoordExt*)yaw)->param.rot.vy = angle;
+    (yaw)->param.rot.vy = angle;
     SCHED_BARRIER();
-    angle                            = *(volatile u16*)&((GpCoordExt*)yaw)->param.rot.vy & 0xFFF;
-    ((GpCoordExt*)yaw)->param.rot.vy = angle;
+    angle               = *(volatile u16*)&(yaw)->param.rot.vy & 0xFFF;
+    (yaw)->param.rot.vy = angle;
     Gfx_RotMatrixY(&yaw->coord, angle, 1);
     yaw->flg = 0;
 
@@ -2234,27 +2234,27 @@ const ActorsShared801385e0Scale Actor01100_D000CC = { 0x10, 0x10, 0x10, 0 };
 /// `Gfx_ApplyMatrixNoSf`.
 void Actor01100_Fn04410(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    SVECTOR        local;
-    SVECTOR*       vec;
-    GsCOORDINATE2* actorCoords;
-    GsCOORDINATE2* playerCoords;
-    GsCOORDINATE2* actorPart;
-    GsCOORDINATE2* playerPart;
-    GpCoordExt*    pose;
-    GpObj*         obj;
-    GpAnimSlot*    slotA;
-    GpAnimSlot*    slotB;
-    Task*          player;
-    s32            dist;
-    s32            i;
-    s32            off;
-    s32            off2;
-    s32            yaw;
-    s32            rate;
-    u16            angle;
-    u16            time;
-    u16            reach;
-    u32            rng;
+    SVECTOR     local;
+    SVECTOR*    vec;
+    GpCoord*    actorCoords;
+    GpCoord*    playerCoords;
+    GpCoord*    actorPart;
+    GpCoord*    playerPart;
+    GpCoord*    pose;
+    GpObj*      obj;
+    GpAnimSlot* slotA;
+    GpAnimSlot* slotB;
+    Task*       player;
+    s32         dist;
+    s32         i;
+    s32         off;
+    s32         off2;
+    s32         yaw;
+    s32         rate;
+    u16         angle;
+    u16         time;
+    u16         reach;
+    u32         rng;
 
     if (work->field_BA8 == 0) {
         work->field_BA4 = 6;
@@ -2293,7 +2293,7 @@ void Actor01100_Fn04410(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     work->field_B8C = (u16)work->field_B8C + 1;
     Actor01100_Fn039D0(enemy, task, work, arg);
     yaw  = work->field_B90;
-    pose = (GpCoordExt*)task->extra.tmd->coords;
+    pose = task->extra.tmd->coords;
     if (yaw >= 0x11) {
         pose->param.rot.vy = (u16)pose->param.rot.vy + 0x10;
     } else if (yaw < -0x10) {
@@ -2410,27 +2410,27 @@ void Actor01100_Fn04410(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 /// `Gfx_ApplyMatrixNoSf`.
 void Actor01100_Fn048C8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    SVECTOR        local;
-    SVECTOR*       vec;
-    GsCOORDINATE2* actorCoords;
-    GsCOORDINATE2* playerCoords;
-    GsCOORDINATE2* actorPart;
-    GsCOORDINATE2* playerPart;
-    GpCoordExt*    pose;
-    GpObj*         obj;
-    GpAnimSlot*    slotA;
-    GpAnimSlot*    slotB;
-    Task*          player;
-    s32            dist;
-    s32            i;
-    s32            off;
-    s32            off2;
-    s32            yaw;
-    s32            rate;
-    u16            angle;
-    u16            time;
-    u16            reach;
-    u32            rng;
+    SVECTOR     local;
+    SVECTOR*    vec;
+    GpCoord*    actorCoords;
+    GpCoord*    playerCoords;
+    GpCoord*    actorPart;
+    GpCoord*    playerPart;
+    GpCoord*    pose;
+    GpObj*      obj;
+    GpAnimSlot* slotA;
+    GpAnimSlot* slotB;
+    Task*       player;
+    s32         dist;
+    s32         i;
+    s32         off;
+    s32         off2;
+    s32         yaw;
+    s32         rate;
+    u16         angle;
+    u16         time;
+    u16         reach;
+    u32         rng;
 
     if (work->field_BA8 == 0) {
         work->field_BA4 = 7;
@@ -2468,7 +2468,7 @@ void Actor01100_Fn048C8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     }
     Actor01100_Fn039D0(enemy, task, work, arg);
     yaw  = work->field_B90;
-    pose = (GpCoordExt*)task->extra.tmd->coords;
+    pose = task->extra.tmd->coords;
     if (yaw >= 0x11) {
         pose->param.rot.vy = (u16)pose->param.rot.vy + 0x10;
     } else if (yaw < -0x10) {
@@ -2576,9 +2576,9 @@ void Actor01100_Fn048C8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 void Actor01100_Fn04DB4(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     SVECTOR              local;
-    GsCOORDINATE2*       self;
-    GsCOORDINATE2*       other;
-    GsCOORDINATE2*       part;
+    GpCoord*             self;
+    GpCoord*             other;
+    GpCoord*             part;
     MATRIX*              selfWorkm;
     Task*                spawned;
     s32                  angle;
@@ -2723,10 +2723,10 @@ static __inline__ void Actor104900_ScratchWrite(u8* p)
 
 #define Actor104900_DistToPlayer(arg0, out)                           \
     {                                                                 \
-        u8*            head;                                          \
-        SVECTOR*       vec;                                           \
-        GsCOORDINATE2* coord;                                         \
-        Task*          slot;                                          \
+        u8*      head;                                                \
+        SVECTOR* vec;                                                 \
+        GpCoord* coord;                                               \
+        Task*    slot;                                                \
                                                                       \
         slot = gameGetPtrSlot(3);                                     \
         if (slot == NULL) {                                           \
@@ -2795,22 +2795,22 @@ static __inline__ void Actor104900_MatrixCol2(MATRIX* arg0, volatile SVECTOR* ar
 /// 0xF beyond it.
 void Actor01100_Fn0516C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    GsCOORDINATE2* actorCoords;
-    GsCOORDINATE2* coords;
-    GpCoordExt*    pose;
-    GpAnimSlot*    motion;
-    s32            dist;
-    s32            dist2;
-    s32            turn;
-    s32            yaw;
-    s32            yaw2;
-    s32            scale;
-    s32            frame;
-    s32            n;
-    s32            snd;
-    s16            count;
-    u16            angle;
-    u32            rng;
+    GpCoord*    actorCoords;
+    GpCoord*    coords;
+    GpCoord*    pose;
+    GpAnimSlot* motion;
+    s32         dist;
+    s32         dist2;
+    s32         turn;
+    s32         yaw;
+    s32         yaw2;
+    s32         scale;
+    s32         frame;
+    s32         n;
+    s32         snd;
+    s16         count;
+    u16         angle;
+    u32         rng;
 
     if (work->field_BA8 == 0) {
         actorCoords = task->extra.tmd->coords;
@@ -2852,7 +2852,7 @@ void Actor01100_Fn0516C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     Actor01100_Fn039D0(enemy, task, work, arg);
     if ((u32)((u8)work->field_BAD - 1) < 0x2EU) {
         turn = work->field_B90;
-        pose = (GpCoordExt*)task->extra.tmd->coords;
+        pose = task->extra.tmd->coords;
         if (turn >= 0x11) {
             pose->param.rot.vy = (u16)pose->param.rot.vy + 0x10;
         } else if (turn < -0x10) {
@@ -2927,7 +2927,7 @@ void Actor01100_Fn05678(
     TmdObject*                 extra;
     TmdObject*                 spawned;
     TmdObject*                 tmd;
-    GsCOORDINATE2*             coords;
+    GpCoord*                   coords;
     GpEffWork*                 eff;
     PlayerStatus*              status;
     GameActor*                 actor;
@@ -3221,7 +3221,7 @@ void Actor01100_Fn05E68(Task* task)
 {
     ActorsShared80137fb8Work* work;
     GpActorD4Rec*             rec;
-    GsCOORDINATE2*            coord;
+    GpCoord*                  coord;
     GpEffWork*                eff;
     GpObj*                    obj;
     MATRIX*                   mtx;
@@ -3315,8 +3315,8 @@ void Actor01100_Fn06198(Task* task)
     ActorsShared80137fb8Work* work;
     GpActorD4Rec*             d4;
     GpRec18*                  rec;
-    GsCOORDINATE2*            coord;
-    GsCOORDINATE2*            soundCoord;
+    GpCoord*                  coord;
+    GpCoord*                  soundCoord;
     Task*                     child;
     u32                       map;
     u32                       mask;
@@ -3331,7 +3331,7 @@ void Actor01100_Fn06198(Task* task)
     map       &= mask;
     flag       = map == 0x03200000;
     coord      = task->extra.tmd->coords;
-    soundCoord = (GsCOORDINATE2*)coord;
+    soundCoord = coord;
     d4         = &work->rec;
     if (Gp_StateF0.field_4 == 0) {
         d4->end1.vx        = -(u16)work->vel.vx;
@@ -3386,7 +3386,7 @@ void Actor01100_Fn0638C(Task* task)
     s32                       sound;
     s32                       pan;
     GpObj*                    obj;
-    GsCOORDINATE2*            coord;
+    GpCoord*                  coord;
     GpMtxWords*               rotation;
 
     coord   = task->extra.tmd->coords;
@@ -3492,7 +3492,7 @@ void Actor01100_Fn0668C(Task* task)
 {
     ActorsShared80138efcWork* work;
     GpEnemy*                  enemy;
-    GsCOORDINATE2*            coord;
+    GpCoord*                  coord;
     s32                       i;
 
     enemy = task->spawnArg2;
@@ -3605,11 +3605,11 @@ void Actor01100_Fn067C0(MATRIX* arg0, ActorsShared801385e0Scale* arg1)
 /// stores rather than after all three: consecutive stores carry an output
 /// dependency, so their program order survives both schedulers, and moving it
 /// later lets it take the call's delay slot instead of the third store.
-s32 Actor01100_Fn06954(GsCOORDINATE2* arg0, s32 arg1)
+s32 Actor01100_Fn06954(GpCoord* arg0, s32 arg1)
 {
     SVECTOR              local;
     Task*                actor;
-    GsCOORDINATE2*       coord;
+    GpCoord*             coord;
     s32                  angle;
     s32                  result;
     ActorBearingScratch* head;
@@ -3652,14 +3652,14 @@ s32 Actor01100_Fn06954(GsCOORDINATE2* arg0, s32 arg1)
 /// Squared distance from `arg0` to the slot-3 (player) task's root part coord,
 /// or `0x7FFFFFFF` when that task is gone. The delta is staged in an `SVECTOR`
 /// carved off the scratchpad stack and squared with `Gfx_ApplyMatrixNoSf`.
-s32 Actor01100_Fn06AC8(GsCOORDINATE2* arg0)
+s32 Actor01100_Fn06AC8(GpCoord* arg0)
 {
-    void**         scratch;
-    u8*            head;
-    SVECTOR*       vec;
-    GsCOORDINATE2* coord;
-    Task*          task;
-    s32            ret;
+    void**   scratch;
+    u8*      head;
+    SVECTOR* vec;
+    GpCoord* coord;
+    Task*    task;
+    s32      ret;
 
     task = gameGetPtrSlot(3);
     if (task != NULL) {
@@ -3688,7 +3688,7 @@ s32 Actor01100_Fn06AC8(GsCOORDINATE2* arg0)
 ///
 /// Nothing in the entry calls it, so the argument types are the ones the body
 /// itself needs and no call site confirms them.
-void Actor01100_Fn06B6C(GsCOORDINATE2* arg0, ActorsShared8013898cVec* arg1, s32 arg2)
+void Actor01100_Fn06B6C(GpCoord* arg0, ActorsShared8013898cVec* arg1, s32 arg2)
 {
     if (Mc_SaveData.field_5C1 == 0) {
         ACTOR_COPY_MATRIX_COLUMN_TO_SV(&arg0->coord, &arg1->vec, 4, 10, 16);
@@ -4075,7 +4075,7 @@ void Actor01100_Fn073A8(Task* arg0)
 void Actor01100_Fn073DC(Task* task)
 {
     ActorsShared80137fb8Work* work;
-    GsCOORDINATE2*            coord;
+    GpCoord*                  coord;
     GpObj*                    obj;
     struct GpEffWork*         eff;
     s16                       countdown;

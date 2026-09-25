@@ -29,20 +29,20 @@
 /// trigger has been released.
 void func_m4a1_bayonet_8011DA34(Task* arg0)
 {
-    GameActor*     actor;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* spot;
-    GpActorD4Rec*  rec;
-    GpEffWork*     eff;
-    s32            anim;
-    s32            delay;
-    s16            frames;
+    GameActor*    actor;
+    GpCoord*      coord;
+    GpCoord*      spot;
+    GpActorD4Rec* rec;
+    GpEffWork*    eff;
+    s32           anim;
+    s32           delay;
+    s16           frames;
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
     rec   = &actor->field_14C;
     SCRATCH_PUSH_BYTES(0x50);
-    spot = SCRATCH_HEAD(GsCOORDINATE2);
+    spot = SCRATCH_HEAD(GpCoord);
     switch (actor->field_95E) {
         case 0:
             anim              = 1;

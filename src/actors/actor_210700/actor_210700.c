@@ -302,11 +302,11 @@ s32 func_actor_210700_8014A224(Task* task, s32 arg1, Actor210700Anim* msg, s32 a
 /// show the model. Always returns 0.
 s32 func_actor_210700_8014A344(Task* task, s32 arg1, GpXformArg* args, s32 arg3)
 {
-    GpCoordExt* coord;
-    TmdObject*  extra;
+    GpCoord*   coord;
+    TmdObject* extra;
 
     extra               = task->extra.tmd;
-    coord               = (GpCoordExt*)extra->coords;
+    coord               = extra->coords;
     coord->coord.t[0]   = args->pos.vx;
     coord->coord.t[1]   = args->pos.vy;
     coord->coord.t[2]   = args->pos.vz;

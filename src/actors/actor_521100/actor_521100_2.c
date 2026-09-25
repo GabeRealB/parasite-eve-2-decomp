@@ -78,10 +78,10 @@ extern u16      D_actor_521100_8016A3D4;
 
 /// The task `func_actor_521100_80136604` runs, stored by its create state
 /// `func_actor_521100_80135DDC`.
-extern Task*         D_actor_521100_8016A3DC;
-extern Task*         D_actor_521100_8016A3E0;
-extern Task*         D_actor_521100_8016A3E4;
-extern GsCOORDINATE2 D_actor_521100_8016A3E8;
+extern Task*   D_actor_521100_8016A3DC;
+extern Task*   D_actor_521100_8016A3E0;
+extern Task*   D_actor_521100_8016A3E4;
+extern GpCoord D_actor_521100_8016A3E8;
 
 void func_actor_521100_80135DDC(GpEnemy* spawnArg2, Task* task);
 void func_actor_521100_80135F2C(Task* task);
@@ -149,7 +149,7 @@ void func_actor_521100_80135DDC(GpEnemy* spawnArg2, Task* task)
     Actor521100Work4B4* mem;
     GpEnemy*            enemy;
     TmdObject*          obj;
-    GsCOORDINATE2*      coord;
+    GpCoord*            coord;
 
     enemy                   = spawnArg2;
     obj                     = task->extra.tmd;
@@ -220,7 +220,7 @@ void func_actor_521100_80135F2C(Task* task)
     }
 }
 /// State-2 body, the actor's last: it snapshots the attach coordinate onto a
-/// stack `GsCOORDINATE2` - the copy the shrink's effect is placed off - and
+/// stack `GpCoord` - the copy the shrink's effect is placed off - and
 /// runs the scale-in step `field_484`. Step 0 seeds the shrink (the step-1
 /// body `func_actor_521100_801368B0` scales by `field_488`, so the seed stores
 /// 0x1000 there and snapshots the coordinate's rotation into `field_48C`),
@@ -229,9 +229,9 @@ void func_actor_521100_80135F2C(Task* task)
 /// to the slot tick and the colour step.
 void func_actor_521100_801360C4(GpEnemy* spawnArg2, Task* task)
 {
-    GsCOORDINATE2       sp10;
+    GpCoord             sp10;
     TmdObject*          obj;
-    GsCOORDINATE2*      coord;
+    GpCoord*            coord;
     Actor521100Work4B4* work;
     s32                 i;
 
@@ -287,7 +287,7 @@ void func_actor_521100_801360C4(GpEnemy* spawnArg2, Task* task)
 void func_actor_521100_80136290(GpEnemy* arg0, Task* task)
 {
     Actor521100Work4B4* work;
-    GsCOORDINATE2*      coord;
+    GpCoord*            coord;
     void**              scratch;
     u8*                 head;
     VECTOR*             block;
@@ -389,9 +389,9 @@ void func_actor_521100_80136604(Task* arg0)
 
 void func_actor_521100_80136680(GpEnemy* arg0, Task* task)
 {
-    TmdObject*     obj;
-    GsCOORDINATE2* coord;
-    VECTOR         vec;
+    TmdObject* obj;
+    GpCoord*   coord;
+    VECTOR     vec;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -469,7 +469,7 @@ void func_actor_521100_801368B0(Task* task)
     MATRIX*             head;
     ActorScaleScratch*  scratch;
     Actor521100Work4B4* work;
-    GsCOORDINATE2*      coord;
+    GpCoord*            coord;
 
     head    = SCRATCH_HEAD(MATRIX);
     work    = task->work;
@@ -543,8 +543,8 @@ s32 func_actor_521100_80136A1C(Task* task, s32 arg1, s32 arg2)
 /// the root coordinate's translation and `flg` is cleared.
 s32 func_actor_521100_80136A64(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2* coord;
-    u16            yaw;
+    GpCoord* coord;
+    u16      yaw;
 
     coord                                  = task->extra.tmd->coords;
     D_actor_521100_8016A3D8->field_48C.yaw = yaw = placement->rot.vy;
@@ -600,10 +600,10 @@ s32 func_actor_521100_80136AE0(Task* task, s32 arg1, GpCmdArg* msg)
 }
 s32 func_actor_521100_80136BE8(Task* task, s32 arg1, GpXformArg* target)
 {
-    GsCOORDINATE2* coord;
-    s32            dx;
-    s32            dz;
-    u16            yaw;
+    GpCoord* coord;
+    s32      dx;
+    s32      dz;
+    u16      yaw;
 
     coord                                  = task->extra.tmd->coords;
     dx                                     = target->pos.vx - coord->coord.t[0];

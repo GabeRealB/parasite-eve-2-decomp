@@ -2932,7 +2932,7 @@ void func_dryfield_trailer_coach_80182950(Task* task)
 /// drawn when `otz` is 0x10 or less. Two gouraud `POLY_G4` halves of half width
 /// `(s16)arg3 * 32 / otz` and two `LINE_G3` diagonals meet at the projected
 /// point, whose vertex pulses cyan as `rsin(animFrame * arg2) / 34 + 0x78`.
-void func_dryfield_trailer_coach_801829A8(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
+void func_dryfield_trailer_coach_801829A8(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
 {
     void**            scratch;
     u8*               head;
@@ -3032,7 +3032,7 @@ extern SVECTOR D_dryfield_trailer_coach_801871C4;
 /// `work` carries the intensity and later the scratch-head address. Sharing
 /// one variable is what keeps the halving shift reading the intensity's own
 /// register rather than `color`'s.
-void func_dryfield_trailer_coach_80182EB4(GsCOORDINATE2* coord, SVECTOR* data, s32 arg2, s32 arg3)
+void func_dryfield_trailer_coach_80182EB4(GpCoord* coord, SVECTOR* data, s32 arg2, s32 arg3)
 {
     u8*              head;
     RoomGlowScratch* block;
@@ -3182,8 +3182,8 @@ void func_dryfield_trailer_coach_80182EB4(GsCOORDINATE2* coord, SVECTOR* data, s
 /// coordinate both draws share.
 void func_dryfield_trailer_coach_801838DC(Task* arg0)
 {
-    s32            mask;
-    GsCOORDINATE2* coord;
+    s32      mask;
+    GpCoord* coord;
 
     mask  = 1 << gGameSession->at4.loc.view;
     coord = arg0->extra.tmd->coords;

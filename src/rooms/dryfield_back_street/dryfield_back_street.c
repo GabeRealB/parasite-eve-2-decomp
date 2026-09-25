@@ -37,10 +37,10 @@ extern s32 D_dryfield_back_street_80181054;
 extern SVECTOR D_dryfield_back_street_8017F9A4[];
 extern SVECTOR D_dryfield_back_street_8017F9AC;
 
-void func_dryfield_back_street_8017DC74(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_dryfield_back_street_8017E0A0(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
-void func_dryfield_back_street_8017E924(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
-void func_dryfield_back_street_8017EFA4(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
+void func_dryfield_back_street_8017DC74(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_dryfield_back_street_8017E0A0(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_dryfield_back_street_8017E924(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+void func_dryfield_back_street_8017EFA4(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// Back street ambience: state 0 clears the recorded volume and advances, state
 /// 1 maps the current camera view to a target volume and stereo pan - 0x1E/+4,
@@ -211,9 +211,9 @@ void func_dryfield_back_street_8017D970(Task* task)
 /// reaches 4, and does nothing while it is between 1 and 3.
 void func_dryfield_back_street_8017D9D0(Task* task)
 {
-    GpEffWork*     work;
-    GsCOORDINATE2* coord;
-    u8             rgb[3];
+    GpEffWork* work;
+    GpCoord*   coord;
+    u8         rgb[3];
 
     work  = task->spawnArg2;
     coord = task->extra.tmd->coords;
@@ -275,7 +275,7 @@ void func_dryfield_back_street_8017D9D0(Task* task)
 /// position, when it projects. The ring runs from radius
 /// `(s16)arg1 * 64 / (otz + 1)`, which is black, to
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`, which takes the colour `rgb`.
-void func_dryfield_back_street_8017DC74(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void func_dryfield_back_street_8017DC74(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -364,7 +364,7 @@ void func_dryfield_back_street_8017DC74(GsCOORDINATE2* arg0, s32 arg1, s32 arg2,
 /// Draws a glow of eight gouraud wedges around the coordinate's projected
 /// position, when it projects. The radius is `(s16)arg1 * 64 / (otz + 1)`;
 /// only the centre vertex takes the colour `rgb`, so each wedge fades to black.
-void func_dryfield_back_street_8017E0A0(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_dryfield_back_street_8017E0A0(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     RoomDraw04Scratch* block;
     POLY_G4*           prim;
@@ -448,15 +448,15 @@ void func_dryfield_back_street_8017E0A0(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
 /// `spawnArg1` frames. Nothing runs once the room's event state reaches 2.
 void func_dryfield_back_street_8017E434(Task* task)
 {
-    GsCOORDINATE2  coord;
-    GsCOORDINATE2* coords;
-    GsCOORDINATE2* objCoord;
-    GsCOORDINATE2* dst;
-    GpEffWork*     work;
-    SVECTOR*       vec;
-    s32            i;
+    GpCoord    coord;
+    GpCoord*   coords;
+    GpCoord*   objCoord;
+    GpCoord*   dst;
+    GpEffWork* work;
+    SVECTOR*   vec;
+    s32        i;
 
-    coords   = (GsCOORDINATE2*)task->work;
+    coords   = (GpCoord*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
     objCoord = task->extra.tmd->coords;
 
@@ -464,7 +464,7 @@ void func_dryfield_back_street_8017E434(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GsCOORDINATE2*)memCalloc(0x500, 0);
+                coords = (GpCoord*)memCalloc(0x500, 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
@@ -544,11 +544,11 @@ void func_dryfield_back_street_8017E434(Task* task)
 /// `0x40 - 9 * i` and the trailing edge by nine less. `arg3` is the beam
 /// colour, three 2-bit channels at bits 8, 4 and 0 that each multiply that
 /// fade. Dropped when `gte_stflg` is negative.
-void func_dryfield_back_street_8017E924(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3)
+void func_dryfield_back_street_8017E924(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GsCOORDINATE2*     a;
-    GsCOORDINATE2*     b;
+    GpCoord*           a;
+    GpCoord*           b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -655,9 +655,9 @@ void func_dryfield_back_street_8017E924(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1
 /// room's event state reaches 4, and does nothing while it is between 1 and 3.
 void func_dryfield_back_street_8017ED1C(Task* task)
 {
-    GsCOORDINATE2* objCoord;
-    GpEffWork*     work;
-    u8             rgb[4];
+    GpCoord*   objCoord;
+    GpEffWork* work;
+    u8         rgb[4];
 
     objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
@@ -727,7 +727,7 @@ void func_dryfield_back_street_8017ED1C(Task* task)
 /// half that radius in the full colour, then four rays at quarter turns that
 /// alternate between the radius and twice it, their bases on the inner
 /// radius `(s16)arg1 * 8 / (otz + 1)`.
-void func_dryfield_back_street_8017EFA4(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+void func_dryfield_back_street_8017EFA4(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");

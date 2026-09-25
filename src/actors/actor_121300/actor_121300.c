@@ -425,7 +425,7 @@ void func_actor_121300_8013293C(Task* arg0)
 {
     Actor121300DebrisWork* work;
     TmdObject*             obj;
-    GsCOORDINATE2*         coord;
+    GpCoord*               coord;
     VECTOR                 pos;
     Actor121300DebrisWork* alloc;
     s16                    r;
@@ -1001,7 +1001,7 @@ void func_actor_121300_80133BFC(Task* arg0)
     Actor121300Work* slotsWork;
     TaskIdMap*       map;
     TmdObject*       tmd;
-    GsCOORDINATE2*   coord;
+    GpCoord*         coord;
     GpAreaPlace*     place;
     s32              i;
     u8               id;
@@ -1168,8 +1168,8 @@ void func_actor_121300_801340F0(void)
 /// are applied Y, then X, then Z, and the coordinate is marked dirty.
 void func_actor_121300_8013411C(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GsCOORDINATE2* coord;
-    MATRIX*        mtx;
+    GpCoord* coord;
+    MATRIX*  mtx;
 
     coord             = task->extra.tmd->coords;
     coord->coord.t[0] = placement->pos.vx;

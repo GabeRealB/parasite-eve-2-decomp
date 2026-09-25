@@ -4,6 +4,7 @@
 #include "common.h"
 
 #include <psyq/libgs.h>
+#include "main/coord.h"
 #include <psyq/libgte.h>
 #include "gameplay/3CD8.h"
 
@@ -36,7 +37,7 @@ extern s32 D_combustion_801309A4;
 /// of the six 0x20-wide texture frames on tpage 0x29 (CLUT 0x4282), and `arg2`
 /// sizes it: the corners sit `arg2 * 31 / otz` from the projected centre.
 /// Same 0x18-byte scratch and axis-aligned quad as `func_combustion_8012FF0C`.
-void func_combustion_8012F5EC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
+void func_combustion_8012F5EC(GpCoord* arg0, s16 arg1, s16 arg2);
 
 /// Links one frame of the combustion flame at `arg0`'s world position. The
 /// position is projected through `GsWSMATRIX` by a single `RTPS` and the quad
@@ -45,18 +46,18 @@ void func_combustion_8012F5EC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
 /// sizes it: the corners sit `arg2 * 23 / otz` from the projected centre, so
 /// the sprite shrinks with depth. Same 0x18-byte scratch and axis-aligned
 /// quad as gameplay `Gp_EffSprTask8D`.
-void func_combustion_8012FF0C(GsCOORDINATE2* arg0, s32 arg1, s16 arg2);
+void func_combustion_8012FF0C(GpCoord* arg0, s32 arg1, s16 arg2);
 
 /// Projects `arg0`'s world position and queues one textured `POLY_FT4` billboard
 /// quad around it: a square of half-diagonal `arg2 * 0x37 / (otz + 1)` rotated by
 /// `arg3`, with the two diagonals a quarter turn apart. `arg1`'s low bit picks
 /// the frame - odd draws the tinted semi-transparent flame core, even the
 /// additive outer flame.
-void func_combustion_80130184(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
+void func_combustion_80130184(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 
 /// Projects `arg0`'s world position and queues one textured `POLY_FT4` billboard
 /// quad around it: a square of half-size `arg2 * 39 / (otz + 1)`, textured with
 /// cell `arg1 % 12` of the 6x2 sheet of 0x28-pixel flame frames on tpage 0x2A.
-void func_combustion_801305F8(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
+void func_combustion_801305F8(GpCoord* arg0, s16 arg1, s16 arg2);
 
 #endif /* PE_COMBUSTION_H */
