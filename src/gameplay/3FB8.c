@@ -9807,9 +9807,9 @@ s32 func_8010C058(void)
 {
     s32 ret;
 
-    if (((s16)Mc_SaveData.companionHpMax >> 1) < (s16)Mc_SaveData.companionHp) {
+    if ((Mc_SaveData.companionHpMax >> 1) < Mc_SaveData.companionHp) {
         ret = 0;
-    } else if (((s16)Mc_SaveData.companionHpMax >> 2) >= (s16)Mc_SaveData.companionHp) {
+    } else if ((Mc_SaveData.companionHpMax >> 2) >= Mc_SaveData.companionHp) {
         ret = 2;
     } else {
         ret = 1;
@@ -10124,7 +10124,7 @@ s32 Gp_HurtAlly(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     ret = 0;
     if (Mc_SaveData.cheatMode == 0) {
         Mc_SaveData.companionHp -= Gp_ScaleDamage(arg2, 0, 0, 1);
-        if ((s16)Mc_SaveData.companionHp <= 0) {
+        if (Mc_SaveData.companionHp <= 0) {
             Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, 0, 0x7DE);
             ret = 1;
         }

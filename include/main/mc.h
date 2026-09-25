@@ -178,8 +178,8 @@ typedef struct {
     byte       unknown_5C6[0x1];
     s8         companionVariant;  // Which variant of `companionType` is spawned
     McItemSlot weaponItems[0x20]; // Per-weapon equipment, indexed by item id - 0x80: the ammunition loaded and the attachment fitted
-    u16        companionHp;       // Companion's current HP
-    u16        companionHpMax;    // Companion's maximum HP
+    s16        companionHp;       // Companion's current HP
+    s16        companionHpMax;    // Companion's maximum HP
     u16        field_6CC;
     u16        field_6CE;
     s32        itemSeenBits[0x60];    // One bit per item id (ids at or above 0x180 count as seen), set once the item was looked at

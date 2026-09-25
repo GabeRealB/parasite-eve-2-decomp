@@ -6704,7 +6704,7 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
         s32 col;
         s32 row;
 
-        hp    = (s16)Mc_SaveData.companionHp;
+        hp    = Mc_SaveData.companionHp;
         table = Gp_DmgRows;
         cols  = D_80113F54;
         addr  = (s32)&cols[hp / 10];

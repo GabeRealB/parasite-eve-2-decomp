@@ -4678,14 +4678,14 @@ void Gp_TickPlayClock(Task* task)
         if (cfg->hp > 0) {
             companion = save->companionType;
             if (companion == one) {
-                if ((s16)save->companionHp <= 0) {
+                if (save->companionHp <= 0) {
                     goto block_hp;
                 }
             }
             if (companion != 3) {
                 goto block_normal;
             }
-            if ((s16)save->companionHp > 0) {
+            if (save->companionHp > 0) {
                 goto block_normal;
             }
         block_hp:
@@ -4713,7 +4713,7 @@ void Gp_TickPlayClock(Task* task)
     block_companion: {
         McSaveData* p;
         p = &Mc_SaveData;
-        if ((s16)p->companionHp <= 0) {
+        if (p->companionHp <= 0) {
             if (gGameSession->eventState != 0) {
                 p->companionHp = 1;
                 return;
@@ -7991,7 +7991,7 @@ void func_800A57B0(GpIdMapC* arg0)
 
     if (Gp_ActorSlots[1] != NULL) {
         if (Mc_SaveData.companionType != 2) {
-            Gp_DrawHudNumbers(0x2D, -0x64, (s16)Mc_SaveData.companionHp, (s16)Mc_SaveData.companionHpMax, 0);
+            Gp_DrawHudNumbers(0x2D, -0x64, Mc_SaveData.companionHp, Mc_SaveData.companionHpMax, 0);
         }
     }
 }

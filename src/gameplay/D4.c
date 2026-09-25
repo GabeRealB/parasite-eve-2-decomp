@@ -745,7 +745,7 @@ void func_800AA548(s32 arg0)
     if (Player_Status.hp <= 0) {
         Player_Status.hp = 1;
     }
-    if ((Mc_SaveData.companionType != 0) && ((s16)Mc_SaveData.companionHp <= 0)) {
+    if ((Mc_SaveData.companionType != 0) && (Mc_SaveData.companionHp <= 0)) {
         Mc_SaveData.companionHp = 1;
     }
     Gp_LoadRoomParams();

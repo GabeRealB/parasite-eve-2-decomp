@@ -33,7 +33,6 @@ typedef struct {
     u8   field_973;
 } Actor800300DirByte;
 
-extern s16        D_80072830;
 extern s32        D_8017A99C;
 extern Task*      D_80115764;
 extern void       D_actor_800300_80168880;
@@ -423,7 +422,7 @@ void func_actor_800300_80162658(Task* arg0)
     Gp_AnimTickChildSlots(arg0);
     Gp_TurnPlayer(arg0);
     Gp_StepPlayerMove(arg0);
-    if (D_80072830 <= 0) {
+    if (Mc_SaveData.companionHp <= 0) {
         Gp_StopPlayerAnim(arg0, 0);
     }
 }
@@ -702,7 +701,7 @@ void func_actor_800300_80162F98(Task* arg0)
     actor = arg0->work;
     sp.funcs[(u16)actor->field_956](arg0);
     Gp_TurnPlayer(arg0);
-    if (D_80072830 <= 0) {
+    if (Mc_SaveData.companionHp <= 0) {
         Gp_StopPlayerAnim(arg0, 0);
     }
 }

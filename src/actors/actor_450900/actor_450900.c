@@ -84,7 +84,7 @@ void func_actor_450900_80131E38(Task* task)
                 D_8017A99C = D_8017A99C + 1;
             }
             t = D_8017A99C - 0x30C;
-            if (D_actor_450900_80135E74 == 0 && (s16)Mc_SaveData.companionHp > 0 && t >= 0) {
+            if (D_actor_450900_80135E74 == 0 && Mc_SaveData.companionHp > 0 && t >= 0) {
                 D_actor_450900_80135E70 = state;
                 if (t % 210 == 0) {
                     coord = (gameGetPtrSlot(0xA))->extra.tmd->coords;
