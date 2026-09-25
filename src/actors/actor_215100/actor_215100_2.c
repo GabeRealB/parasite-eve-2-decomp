@@ -67,17 +67,6 @@ typedef struct Actor215100CapWindow {
 } Actor215100CapWindow;
 STATIC_ASSERT_SIZEOF(Actor215100CapWindow, 0x10);
 
-/// `Task` as this overlay's caption actor reads it in
-/// `func_actor_215100_8014AFAC`: the dispatcher index, and the low half of
-/// `Task::spawnArg1` — the task's own line delay, handed to
-/// `func_actor_215100_8014B2B8` as its `arg2`. The rest of the overlay passes
-/// the whole `Task` around.
-typedef struct Actor215100 {
-    /* 0x00 */ byte pad_0[0x30];
-    /* 0x30 */ s32  state;
-    /* 0x34 */ s16  spawnArg1Lo;
-} Actor215100;
-
 void func_actor_215100_8014C874(Task* task);
 void func_actor_215100_8014CA80(GpEnemy* enemy, Task* task);
 void func_actor_215100_8014CB04(Task* task);
@@ -592,7 +581,7 @@ void func_actor_215100_8014AF0C(void)
 /// finds one, starts that entry's script at its own line key with the task's
 /// `spawnArg1` as the line delay. It then ticks the clock down one, unless the
 /// caption system is busy or `D_801153F4` is up.
-void func_actor_215100_8014AFAC(Actor215100* task, s32 arg1)
+void func_actor_215100_8014AFAC(Task* task, s32 arg1)
 {
     s32 i;
     s32 script;
@@ -616,7 +605,7 @@ void func_actor_215100_8014AFAC(Actor215100* task, s32 arg1)
                 }
             }
             if (script != 0) {
-                func_actor_215100_8014B2B8(script, key, task->spawnArg1Lo);
+                func_actor_215100_8014B2B8(script, key, (s16)task->spawnArg1);
                 func_actor_215100_8014B0D4();
             }
             if ((Gp_CapBusy() == 0) && (D_801153F4 == 0)) {
