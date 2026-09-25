@@ -106,7 +106,7 @@ void func_shelter_b2_elevator_hall_8017FB8C(GsCOORDINATE2* arg0, s16 arg1, u8* a
 /// Glow at a coordinate: two camera-facing textured quads, an inner one of
 /// half-extent `size` and an outer one of `size * 3 / 2`, plus the ground quad
 /// `func_shelter_b2_elevator_hall_80180990` draws under it. Also feeds the
-/// gameplay light slot a flickering intensity at the coordinate's position.
+/// `Gp_RoomCoords[2]` light a flickering intensity at the coordinate's position.
 /// Draws nothing when the point fails to project.
 void func_shelter_b2_elevator_hall_80180464(GsCOORDINATE2* coord, s16 size);
 
