@@ -334,28 +334,9 @@ typedef struct Actor356100GroundCoord {
 } Actor356100GroundCoord;
 STATIC_ASSERT_SIZEOF(Actor356100GroundCoord, 0x68);
 
-/// Payload of message 0x3E9 `func_actor_356100_801666B4` sends the player:
-/// the player's own position, then the heading away from this actor, so the
-/// player ends up moved one normalised unit along that direction. Same shape
-/// and roles as `Actor403000Msg3E9`, whose `field_10` / `field_12` are the
-/// flag and angle pair its sender writes there.
-typedef struct Actor356100Msg3E9 {
-    /* 0x00 */ s32  x;
-    /* 0x04 */ s32  y;
-    /* 0x08 */ s32  z;
-    /* 0x0C */ byte pad_C[0x4];
-    /* 0x10 */ s16  field_10;
-    /// Heading `ratan2` produces from the normalised player-to-actor vector,
-    /// where `Actor356100Work::field_5A` holds this actor's own facing.
-    /* 0x12 */ s16  field_12;
-    /* 0x14 */ s16  field_14;
-    /* 0x16 */ byte pad_16[0x2];
-} Actor356100Msg3E9;
-STATIC_ASSERT_SIZEOF(Actor356100Msg3E9, 0x18);
-
 /// The overlay's only message-0x3E9 instance; all eight words are zero in the
 /// image, so it is a work area rather than a table.
-extern Actor356100Msg3E9 D_actor_356100_801732B0;
+extern GpXformArg D_actor_356100_801732B0;
 
 /// Reply buffer for the message-0x3F8 query above; the six words after it are
 /// zero in the image.
@@ -1930,10 +1911,10 @@ void func_actor_356100_801666B4(Task* arg0)
         work->field_97E                          = 5;
         ((TmdObject*)player->extra)->coords->flg = 0;
         Gp_UpdateCoord(((TmdObject*)player->extra)->coords);
-        D_actor_356100_801732B0.x = ((TmdObject*)player->extra)->coords->coord.t[0];
-        D_actor_356100_801732B0.y = ((TmdObject*)player->extra)->coords->coord.t[1];
-        D_actor_356100_801732B0.z = ((TmdObject*)player->extra)->coords->coord.t[2];
-        vecp                      = &vec;
+        D_actor_356100_801732B0.pos.vx = ((TmdObject*)player->extra)->coords->coord.t[0];
+        D_actor_356100_801732B0.pos.vy = ((TmdObject*)player->extra)->coords->coord.t[1];
+        D_actor_356100_801732B0.pos.vz = ((TmdObject*)player->extra)->coords->coord.t[2];
+        vecp                           = &vec;
         /* Order matters: the vy store must follow the vx loads in RTL, or
            sched1 fills its anti-dependency chain from the earlier stores and
            hoists it above the D.z store. */
@@ -1948,9 +1929,9 @@ void func_actor_356100_801666B4(Task* arg0)
         ((TmdObject*)arg0->extra)->coords->coord.t[0] = ((TmdObject*)player->extra)->coords->coord.t[0] + vec.vx;
         ((TmdObject*)arg0->extra)->coords->coord.t[2] = ((TmdObject*)player->extra)->coords->coord.t[2] + vec.vz;
         ((TmdObject*)arg0->extra)->coords->flg        = 0;
-        D_actor_356100_801732B0.field_10              = 0;
-        D_actor_356100_801732B0.field_12              = ratan2(vec.vx, vec.vz);
-        D_actor_356100_801732B0.field_14              = 0;
+        D_actor_356100_801732B0.rot.vx                = 0;
+        D_actor_356100_801732B0.rot.vy                = ratan2(vec.vx, vec.vz);
+        D_actor_356100_801732B0.rot.vz                = 0;
         Gp_DispatchMsg(player, 0x3E9, (s32)&D_actor_356100_801732B0, 0);
     }
     func_actor_356100_80163508(arg0);

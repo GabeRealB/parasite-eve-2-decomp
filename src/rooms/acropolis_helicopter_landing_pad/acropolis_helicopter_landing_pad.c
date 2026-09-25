@@ -133,15 +133,15 @@ void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task)
     }
 }
 
-/// Msg 0x7D3 handler: repositions the model by `msg->phase`. Phases 0 and 1
+/// Msg 0x7D3 handler: repositions the model by `msg->field_4`. Phases 0 and 1
 /// take the first / second placement, arm the 0x78 countdown and reset the
 /// work block's first three words with the step set to -0x19 / +0x19; phase 2
 /// returns to the first placement and clears the countdown.
-s32 func_acropolis_helicopter_landing_pad_8017D824(Task* task, s32 msgId, AhlpMsg7D3* msg)
+s32 func_acropolis_helicopter_landing_pad_8017D824(Task* task, s32 msgId, GpAnimArg* msg)
 {
     AhlpEnemyWork* work = (AhlpEnemyWork*)task->work;
 
-    switch (msg->phase) {
+    switch (msg->field_4) {
         case 0:
             func_acropolis_helicopter_landing_pad_8017D8E8(task, 0, &D_acropolis_helicopter_landing_pad_80182394, 0);
             work->field_50 = 0x78;

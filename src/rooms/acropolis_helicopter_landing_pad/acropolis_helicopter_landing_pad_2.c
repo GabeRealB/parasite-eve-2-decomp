@@ -58,11 +58,11 @@ extern s32 D_acropolis_helicopter_landing_pad_80187D78;
 /// `..._80184CF4` the `func_800E8634` script pair started at the end,
 /// `..._80184E28` the 0x7D3 payload sent to the spawned enemy task and
 /// `..._80184E3C` the 0x14-byte msg 0x3E8 record.
-extern s32        D_acropolis_helicopter_landing_pad_801837B0;
-extern s32        D_acropolis_helicopter_landing_pad_8018467C;
-extern s32        D_acropolis_helicopter_landing_pad_80184CF4;
-extern AhlpMsg7D3 D_acropolis_helicopter_landing_pad_80184E28;
-extern GpAnimArg  D_acropolis_helicopter_landing_pad_80184E3C;
+extern s32       D_acropolis_helicopter_landing_pad_801837B0;
+extern s32       D_acropolis_helicopter_landing_pad_8018467C;
+extern s32       D_acropolis_helicopter_landing_pad_80184CF4;
+extern GpAnimArg D_acropolis_helicopter_landing_pad_80184E28;
+extern GpAnimArg D_acropolis_helicopter_landing_pad_80184E3C;
 
 extern GpMsgEntry D_acropolis_helicopter_landing_pad_80183710[];
 extern s32        D_acropolis_helicopter_landing_pad_801837E0[];

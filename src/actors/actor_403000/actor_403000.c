@@ -324,20 +324,6 @@ typedef struct Actor403000GrabScratch {
 } Actor403000GrabScratch;
 STATIC_ASSERT_SIZEOF(Actor403000GrabScratch, 0x28);
 
-/// Payload of message 0x3E9 `func_actor_403000_801386E8` sends the player:
-/// the player's position and a heading of the model's facing minus 0x400.
-typedef struct Actor403000Msg3E9 {
-    /* 0x00 */ s32  x;
-    /* 0x04 */ s32  y;
-    /* 0x08 */ s32  z;
-    /* 0x0C */ byte pad_C[0x4];
-    /* 0x10 */ s16  field_10;
-    /* 0x12 */ s16  field_12;
-    /* 0x14 */ s16  field_14;
-    /* 0x16 */ byte pad_16[0x2];
-} Actor403000Msg3E9;
-STATIC_ASSERT_SIZEOF(Actor403000Msg3E9, 0x18);
-
 /// 0x14-byte scratch from `G_SCRATCH_HEAD` used by
 /// `func_actor_403000_8013B238`: `vec` is the waypoint relative to the
 /// coordinate and later the scaled matrix columns, `index` the waypoint picked
@@ -473,7 +459,7 @@ extern u8 D_actor_403000_80158D48[];
 extern Actor403000Msg3FE D_actor_403000_80158DB0;
 
 /// The grab message `func_actor_403000_801386E8` sends as 0x3E9.
-extern Actor403000Msg3E9 D_actor_403000_80158D90;
+extern GpXformArg D_actor_403000_80158D90;
 
 /// Pairs of hit-effect vectors `func_actor_403000_80134910` picks from by
 /// turn magnitude; `pad` indexes the display object's coordinate parts.
@@ -2797,12 +2783,12 @@ void func_actor_403000_801377C8(Task* arg0)
                         ((TmdObject*)arg0->extra)->coords->coord.t[1] = ((TmdObject*)player->extra)->coords->coord.t[1] + scratch->target.vy;
                         ((TmdObject*)arg0->extra)->coords->coord.t[2] = ((TmdObject*)player->extra)->coords->coord.t[2] + scratch->target.vz;
                         ((TmdObject*)arg0->extra)->coords->flg        = 0;
-                        D_actor_403000_80158D90.x                     = ((TmdObject*)player->extra)->coords->coord.t[0];
-                        D_actor_403000_80158D90.y                     = ((TmdObject*)player->extra)->coords->coord.t[1];
-                        D_actor_403000_80158D90.z                     = ((TmdObject*)player->extra)->coords->coord.t[2];
-                        D_actor_403000_80158D90.field_10              = 0;
-                        D_actor_403000_80158D90.field_12              = ratan2(-((TmdObject*)arg0->extra)->coords->coord.m[2][0], ((TmdObject*)arg0->extra)->coords->coord.m[2][2]) - 0x500;
-                        D_actor_403000_80158D90.field_14              = 0;
+                        D_actor_403000_80158D90.pos.vx                = ((TmdObject*)player->extra)->coords->coord.t[0];
+                        D_actor_403000_80158D90.pos.vy                = ((TmdObject*)player->extra)->coords->coord.t[1];
+                        D_actor_403000_80158D90.pos.vz                = ((TmdObject*)player->extra)->coords->coord.t[2];
+                        D_actor_403000_80158D90.rot.vx                = 0;
+                        D_actor_403000_80158D90.rot.vy                = ratan2(-((TmdObject*)arg0->extra)->coords->coord.m[2][0], ((TmdObject*)arg0->extra)->coords->coord.m[2][2]) - 0x500;
+                        D_actor_403000_80158D90.rot.vz                = 0;
                         Gp_DispatchMsg(player, 0x3E9, (s32)&D_actor_403000_80158D90, 0);
                     } else {
                         work->field_F90 = &D_actor_403000_80158C28;
@@ -2822,12 +2808,12 @@ void func_actor_403000_801377C8(Task* arg0)
                         ((TmdObject*)arg0->extra)->coords->coord.t[1] = ((TmdObject*)player->extra)->coords->coord.t[1] + scratch->target.vy;
                         ((TmdObject*)arg0->extra)->coords->coord.t[2] = ((TmdObject*)player->extra)->coords->coord.t[2] + scratch->target.vz;
                         ((TmdObject*)arg0->extra)->coords->flg        = 0;
-                        D_actor_403000_80158D90.x                     = ((TmdObject*)player->extra)->coords->coord.t[0];
-                        D_actor_403000_80158D90.y                     = ((TmdObject*)player->extra)->coords->coord.t[1];
-                        D_actor_403000_80158D90.z                     = ((TmdObject*)player->extra)->coords->coord.t[2];
-                        D_actor_403000_80158D90.field_10              = 0;
-                        D_actor_403000_80158D90.field_12              = ratan2(-((TmdObject*)arg0->extra)->coords->coord.m[2][0], ((TmdObject*)arg0->extra)->coords->coord.m[2][2]) + 0x400;
-                        D_actor_403000_80158D90.field_14              = 0;
+                        D_actor_403000_80158D90.pos.vx                = ((TmdObject*)player->extra)->coords->coord.t[0];
+                        D_actor_403000_80158D90.pos.vy                = ((TmdObject*)player->extra)->coords->coord.t[1];
+                        D_actor_403000_80158D90.pos.vz                = ((TmdObject*)player->extra)->coords->coord.t[2];
+                        D_actor_403000_80158D90.rot.vx                = 0;
+                        D_actor_403000_80158D90.rot.vy                = ratan2(-((TmdObject*)arg0->extra)->coords->coord.m[2][0], ((TmdObject*)arg0->extra)->coords->coord.m[2][2]) + 0x400;
+                        D_actor_403000_80158D90.rot.vz                = 0;
                         Gp_DispatchMsg(player, 0x3E9, (s32)&D_actor_403000_80158D90, 0);
                     }
                     task         = gameGetPtrSlot(3);
@@ -3089,12 +3075,12 @@ void func_actor_403000_801386E8(Task* arg0)
         found = 0;
     done:
         if (found != 0 && enemy->hp > 0 && Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&D_actor_403000_80158DD0, 0) == 0) {
-            D_actor_403000_80158D90.x        = ((TmdObject*)player->extra)->coords->coord.t[0];
-            D_actor_403000_80158D90.y        = ((TmdObject*)player->extra)->coords->coord.t[1];
-            D_actor_403000_80158D90.z        = ((TmdObject*)player->extra)->coords->coord.t[2];
-            D_actor_403000_80158D90.field_10 = 0;
-            D_actor_403000_80158D90.field_12 = ratan2(-((TmdObject*)arg0->extra)->coords->coord.m[2][0], ((TmdObject*)arg0->extra)->coords->coord.m[2][2]) - 0x400;
-            D_actor_403000_80158D90.field_14 = 0;
+            D_actor_403000_80158D90.pos.vx = ((TmdObject*)player->extra)->coords->coord.t[0];
+            D_actor_403000_80158D90.pos.vy = ((TmdObject*)player->extra)->coords->coord.t[1];
+            D_actor_403000_80158D90.pos.vz = ((TmdObject*)player->extra)->coords->coord.t[2];
+            D_actor_403000_80158D90.rot.vx = 0;
+            D_actor_403000_80158D90.rot.vy = ratan2(-((TmdObject*)arg0->extra)->coords->coord.m[2][0], ((TmdObject*)arg0->extra)->coords->coord.m[2][2]) - 0x400;
+            D_actor_403000_80158D90.rot.vz = 0;
             Gp_DispatchMsg(player, 0x3E9, (s32)&D_actor_403000_80158D90, 0);
             task         = gameGetPtrSlot(3);
             scratch->ret = Gp_DispatchMsg(task, 0x3F9, Gp_PackObjPair(enemy, 0), 0);
