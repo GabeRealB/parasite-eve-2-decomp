@@ -586,7 +586,7 @@ void func_shelter_b3_elevator_hall_8017DFB0(SVECTOR* arg0, s32 arg1, s32 arg2)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// A drifting mote: moves the effect's coordinate vertically by the speed
@@ -749,7 +749,7 @@ void func_shelter_b3_elevator_hall_8017EAC0(GsCOORDINATE2* arg0, u16 arg1, u16 a
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(u8**)G_SCRATCH_HEAD += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Draws a gouraud ring of sixteen `POLY_G4` segments around the projected
@@ -841,7 +841,7 @@ void func_shelter_b3_elevator_hall_8017ED84(GsCOORDINATE2* arg0, s32 arg1, s32 a
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a gouraud disc of eight `POLY_G4` wedges around the projected origin
@@ -919,7 +919,7 @@ void func_shelter_b3_elevator_hall_8017F1A8(GsCOORDINATE2* arg0, s32 arg1, u8* r
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// An expanding halo. State 0 anchors the effect's frame to its parent at the
@@ -1192,8 +1192,7 @@ void func_shelter_b3_elevator_hall_8017FA80(GsCOORDINATE2* coord, s16 size)
             func_shelter_b3_elevator_hall_8017FFAC(&ground, outerSize);
         }
     }
-    *(void**)G_SCRATCH_HEAD =
-        (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpRingScratch);
+    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
 }
 
 /// Draws a semi-transparent textured quad lying flat at `arg0`'s world
@@ -1281,7 +1280,7 @@ void func_shelter_b3_elevator_hall_8017FFAC(GsCOORDINATE2* arg0, s32 arg1)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 /// Draws a flare around the projected origin of `arg0`'s world matrix, when
@@ -1420,7 +1419,7 @@ void func_shelter_b3_elevator_hall_80180324(GsCOORDINATE2* arg0, s16 arg1, u8* a
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Each tick advances the effect's angle by a random 0x200-0x3FF, sets its

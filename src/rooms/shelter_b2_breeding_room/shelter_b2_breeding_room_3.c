@@ -285,7 +285,7 @@ void func_shelter_b2_breeding_room_8017EEF0(GsCOORDINATE2* arg0, s32 arg1, s32 a
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
 /// Draws a glowing ring around the coordinate's projected position, unless the
@@ -377,7 +377,7 @@ void func_shelter_b2_breeding_room_8017F174(GsCOORDINATE2* arg0, s32 arg1, s32 a
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a glowing disc at the coordinate's world position, unless the
@@ -448,7 +448,7 @@ void func_shelter_b2_breeding_room_8017F598(GsCOORDINATE2* arg0, s32 arg1, u8* r
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Burst effect task. Every frame it draws a glowing disc and the glow of
@@ -636,8 +636,7 @@ void func_shelter_b2_breeding_room_8017FAD8(GsCOORDINATE2* coord, s16 size)
             func_shelter_b2_breeding_room_80180004(&ground, outerSize);
         }
     }
-    *(void**)G_SCRATCH_HEAD =
-        (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpRingScratch);
+    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
 }
 
 /// Draws a flat quad facing the camera around the coordinate's world
@@ -728,5 +727,5 @@ void func_shelter_b2_breeding_room_80180004(GsCOORDINATE2* arg0, s32 arg1)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }

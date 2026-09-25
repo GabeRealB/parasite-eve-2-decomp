@@ -1763,7 +1763,7 @@ void func_shelter_b6_nursery_80180518(SVECTOR* arg0, s32 arg1, s32 arg2)
             i = t2;
         } while (i < 2);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 /// Draws a star-shaped glow at the world point `arg0`, projected through
@@ -1901,7 +1901,7 @@ void func_shelter_b6_nursery_8018098C(SVECTOR* arg0, s32 arg1, s32 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
 }
 
 void func_shelter_b6_nursery_80181314(Task* task)
@@ -2202,7 +2202,7 @@ void func_shelter_b6_nursery_80181EDC(GsCOORDINATE2* coord, u16 arg1, s16 arg2, 
                     prim);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void func_shelter_b6_nursery_80182330(GsCOORDINATE2* coord, u16 arg1, s16 arg2, s16 arg3)
@@ -2264,7 +2264,7 @@ void func_shelter_b6_nursery_80182330(GsCOORDINATE2* coord, u16 arg1, s16 arg2, 
                     prim);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void func_shelter_b6_nursery_80182730(Task* task)
@@ -2335,8 +2335,8 @@ void func_shelter_b6_nursery_801829E4(GsCOORDINATE2* coord, s16 scale, s16 shade
     POLY_F3*                     prim;
     s32                          i;
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(_ShelterB6NurseryTriScratch);
-    blk                     = (_ShelterB6NurseryTriScratch*)*(void**)G_SCRATCH_HEAD;
+    SCRATCH_PUSH_BYTES(sizeof(_ShelterB6NurseryTriScratch));
+    blk = SCRATCH_HEAD(_ShelterB6NurseryTriScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < 3; i++) {
         p     = &blk->v[i];
@@ -2371,7 +2371,7 @@ void func_shelter_b6_nursery_801829E4(GsCOORDINATE2* coord, s16 scale, s16 shade
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         Gp_AddTpageShift((P_TAG*)prim, (Gp_LcgState >> 16) & 1, blk->otz);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(_ShelterB6NurseryTriScratch);
+    SCRATCH_POP_BYTES(sizeof(_ShelterB6NurseryTriScratch));
 }
 
 void func_shelter_b6_nursery_80182D14(s16 arg0, s16 arg1)
@@ -2535,7 +2535,7 @@ void func_shelter_b6_nursery_80182FCC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a fan of eight gouraud quads around the screen position of the
@@ -2614,7 +2614,7 @@ void func_shelter_b6_nursery_801833F8(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Trail effect task. On its first tick it allocates two eight-slot histories
@@ -2742,9 +2742,9 @@ void func_shelter_b6_nursery_80183C7C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, 
     {
         register u8* tmp asm("v0");
 
-        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomDraw03Scratch);
-        blk                     = (RoomDraw03Scratch*)tmp;
-        *(void**)G_SCRATCH_HEAD = tmp;
+        tmp                = SCRATCH_HEAD(u8) - sizeof(RoomDraw03Scratch);
+        blk                = (RoomDraw03Scratch*)tmp;
+        SCRATCH_HEAD(void) = tmp;
     }
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -2820,7 +2820,7 @@ void func_shelter_b6_nursery_80183C7C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, 
         }
         i += 1;
     } while (i < 7);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomDraw03Scratch);
+    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
 }
 
 /// Burst effect task on the object's coordinate. On its first tick it spawns
@@ -3033,5 +3033,5 @@ void func_shelter_b6_nursery_801842FC(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }

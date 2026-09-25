@@ -525,7 +525,7 @@ void func_shelter_b2_elevator_hall_8017DFB8(SVECTOR* arg0, s32 arg1, s32 arg2)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void func_shelter_b2_elevator_hall_8017E7FC(SVECTOR* arg0, s32 arg1, s32 arg2)
@@ -673,7 +673,7 @@ void func_shelter_b2_elevator_hall_8017E7FC(SVECTOR* arg0, s32 arg1, s32 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
 }
 
 void func_shelter_b2_elevator_hall_8017F1D8(Task* task)
@@ -824,7 +824,7 @@ void func_shelter_b2_elevator_hall_8017F4A4(GsCOORDINATE2* arg0, u16 arg1, u16 a
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(u8**)G_SCRATCH_HEAD += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 void func_shelter_b2_elevator_hall_8017F768(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
@@ -912,7 +912,7 @@ void func_shelter_b2_elevator_hall_8017F768(GsCOORDINATE2* arg0, s32 arg1, s32 a
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void func_shelter_b2_elevator_hall_8017FB8C(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
@@ -985,7 +985,7 @@ void func_shelter_b2_elevator_hall_8017FB8C(GsCOORDINATE2* arg0, s16 arg1, u8* a
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 void func_shelter_b2_elevator_hall_8017FF20(Task* arg0)
@@ -1244,8 +1244,7 @@ void func_shelter_b2_elevator_hall_80180464(GsCOORDINATE2* coord, s16 size)
             func_shelter_b2_elevator_hall_80180990(&ground, outerSize);
         }
     }
-    *(void**)G_SCRATCH_HEAD =
-        (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpRingScratch);
+    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
 }
 
 void func_shelter_b2_elevator_hall_80180990(GsCOORDINATE2* arg0, s32 arg1)
@@ -1329,7 +1328,7 @@ void func_shelter_b2_elevator_hall_80180990(GsCOORDINATE2* arg0, s32 arg1)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 void func_shelter_b2_elevator_hall_80180D08(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
@@ -1463,7 +1462,7 @@ void func_shelter_b2_elevator_hall_80180D08(GsCOORDINATE2* arg0, s16 arg1, u8* a
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void func_shelter_b2_elevator_hall_801816C8(Task* arg0)
@@ -1651,7 +1650,7 @@ void func_shelter_b2_elevator_hall_80181AA0(GsCOORDINATE2* arg0, s32 arg1, s32 a
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void func_shelter_b2_elevator_hall_80181ECC(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
@@ -1724,7 +1723,7 @@ void func_shelter_b2_elevator_hall_80181ECC(GsCOORDINATE2* arg0, s16 arg1, u8* a
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 void func_shelter_b2_elevator_hall_80182260(Task* task)
@@ -1842,9 +1841,9 @@ void func_shelter_b2_elevator_hall_80182750(GsCOORDINATE2* arg0, GsCOORDINATE2* 
     {
         register u8* tmp asm("v0");
 
-        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomDraw03Scratch);
-        blk                     = (RoomDraw03Scratch*)tmp;
-        *(void**)G_SCRATCH_HEAD = tmp;
+        tmp                = SCRATCH_HEAD(u8) - sizeof(RoomDraw03Scratch);
+        blk                = (RoomDraw03Scratch*)tmp;
+        SCRATCH_HEAD(void) = tmp;
     }
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -1920,7 +1919,7 @@ void func_shelter_b2_elevator_hall_80182750(GsCOORDINATE2* arg0, GsCOORDINATE2* 
         }
         i += 1;
     } while (i < 7);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomDraw03Scratch);
+    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
 }
 
 void func_shelter_b2_elevator_hall_80182B48(Task* task)
@@ -2122,5 +2121,5 @@ void func_shelter_b2_elevator_hall_80182DD0(GsCOORDINATE2* arg0, s16 arg1, u8* a
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }

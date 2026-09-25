@@ -345,9 +345,9 @@ void func_shelter_b3_garbage_incinerator_80181FC4(SVECTOR* v, s32 arg1, s32 arg2
     u8                 g;
     u8                 b;
 
-    head                    = *(void**)G_SCRATCH_HEAD;
-    *(void**)G_SCRATCH_HEAD = head - 0x10;
-    block                   = (RoomDraw13Scratch*)*(void**)G_SCRATCH_HEAD;
+    head               = SCRATCH_HEAD(void);
+    SCRATCH_HEAD(void) = head - 0x10;
+    block              = SCRATCH_HEAD(RoomDraw13Scratch);
 
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
@@ -391,7 +391,7 @@ void func_shelter_b3_garbage_incinerator_80181FC4(SVECTOR* v, s32 arg1, s32 arg2
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 void func_shelter_b3_garbage_incinerator_80182368(Task* task)
@@ -558,10 +558,10 @@ void func_shelter_b3_garbage_incinerator_80182AB8(GsCOORDINATE2* arg0, u16 arg1,
     u16              bank;
     u32              idx;
 
-    head                                      = *(u8**)G_SCRATCH_HEAD;
+    head                                      = SCRATCH_HEAD(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
-    *(void**)G_SCRATCH_HEAD                   = head - 0x1C;
-    block                                     = *(GpFxQuadScratch**)G_SCRATCH_HEAD;
+    SCRATCH_HEAD(void)                        = head - 0x1C;
+    block                                     = SCRATCH_HEAD(GpFxQuadScratch);
     block->vec.vy                             = arg0->workm.t[1];
     block->vec.vz                             = arg0->workm.t[2];
     idx                                       = arg1;
@@ -608,7 +608,7 @@ void func_shelter_b3_garbage_incinerator_80182AB8(GsCOORDINATE2* arg0, u16 arg1,
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(u8**)G_SCRATCH_HEAD += 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void func_shelter_b3_garbage_incinerator_80182F18(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
@@ -627,10 +627,10 @@ void func_shelter_b3_garbage_incinerator_80182F18(GsCOORDINATE2* arg0, u16 arg1,
 
     bank                                      = arg1 >> 12;
     arg1                                     &= 0xFFF;
-    head                                      = *(u8**)G_SCRATCH_HEAD;
+    head                                      = SCRATCH_HEAD(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
-    *(void**)G_SCRATCH_HEAD                   = head - 0x1C;
-    block                                     = *(GpFxQuadScratch**)G_SCRATCH_HEAD;
+    SCRATCH_HEAD(void)                        = head - 0x1C;
+    block                                     = SCRATCH_HEAD(GpFxQuadScratch);
     block->vec.vy                             = arg0->workm.t[1];
     block->vec.vz                             = arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -670,7 +670,7 @@ void func_shelter_b3_garbage_incinerator_80182F18(GsCOORDINATE2* arg0, u16 arg1,
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(u8**)G_SCRATCH_HEAD += 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void func_shelter_b3_garbage_incinerator_80183364(Task* task)
@@ -851,7 +851,7 @@ void func_shelter_b3_garbage_incinerator_801837F8(GsCOORDINATE2* arg0, u16 arg1,
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x1C;
+    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
 /// Draws a textured billboard at the world position of `arg0`, projected
@@ -933,7 +933,7 @@ void func_shelter_b3_garbage_incinerator_80183BE4(GsCOORDINATE2* arg0, s32 arg1,
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
 void func_shelter_b3_garbage_incinerator_80183E78(SVECTOR* v, s32 arg1, s32 arg2, s32 arg3)
@@ -949,9 +949,9 @@ void func_shelter_b3_garbage_incinerator_80183E78(SVECTOR* v, s32 arg1, s32 arg2
     u8                 g;
     u8                 b;
 
-    head                    = *(void**)G_SCRATCH_HEAD;
-    *(void**)G_SCRATCH_HEAD = head - 0x10;
-    block                   = (RoomDraw13Scratch*)*(void**)G_SCRATCH_HEAD;
+    head               = SCRATCH_HEAD(void);
+    SCRATCH_HEAD(void) = head - 0x10;
+    block              = SCRATCH_HEAD(RoomDraw13Scratch);
 
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
@@ -992,7 +992,7 @@ void func_shelter_b3_garbage_incinerator_80183E78(SVECTOR* v, s32 arg1, s32 arg2
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* arg0, u16 arg1, u16 arg2, u16 arg3)
@@ -1019,7 +1019,7 @@ void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* arg0, u16 arg1, u16 a
         u8*    tmp;
 
         scratch = (void**)G_SCRATCH_HEAD;
-        tmp     = (*scratch = (u8*)*scratch - 0x14);
+        tmp     = SCRATCH_PUSH_BYTES_AT(scratch, 0x14);
         block   = (RoomDraw05Scratch*)tmp;
     }
 
@@ -1141,7 +1141,7 @@ void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* arg0, u16 arg1, u16 a
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
 }
 
 void func_shelter_b3_garbage_incinerator_80184D7C(void)

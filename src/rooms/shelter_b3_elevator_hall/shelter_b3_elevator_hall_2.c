@@ -284,7 +284,7 @@ void func_shelter_b3_elevator_hall_80181594(GsCOORDINATE2* arg0, s32 arg1, s32 a
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
 /// Draws a gouraud ring of sixteen `POLY_G4` segments around the projected
@@ -376,7 +376,7 @@ void func_shelter_b3_elevator_hall_80181818(GsCOORDINATE2* arg0, s32 arg1, s32 a
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a gouraud disc of eight `POLY_G4` wedges around the projected origin
@@ -446,7 +446,7 @@ void func_shelter_b3_elevator_hall_80181C3C(GsCOORDINATE2* arg0, s32 arg1, u8* r
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// A burst: each tick it draws a disc growing with the effect's angle and the
@@ -631,8 +631,7 @@ void func_shelter_b3_elevator_hall_8018217C(GsCOORDINATE2* coord, s16 size)
             func_shelter_b3_elevator_hall_801826A8(&ground, outerSize);
         }
     }
-    *(void**)G_SCRATCH_HEAD =
-        (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpRingScratch);
+    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
 }
 
 /// Draws a semi-transparent textured quad lying flat at `arg0`'s world
@@ -720,5 +719,5 @@ void func_shelter_b3_elevator_hall_801826A8(GsCOORDINATE2* arg0, s32 arg1)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }

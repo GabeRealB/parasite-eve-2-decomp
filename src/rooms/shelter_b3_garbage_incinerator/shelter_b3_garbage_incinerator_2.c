@@ -554,11 +554,11 @@ void func_shelter_b3_garbage_incinerator_8017E7D0(Task* arg0)
     s32 tpage0;
     s32 tpage1;
 
-    head                                  = *(OverlayWaveScratch**)G_SCRATCH_HEAD;
-    D_800691CA                            = 2;
-    *(OverlayWaveScratch**)G_SCRATCH_HEAD = head - 1;
-    cols                                  = head[-1].cols;
-    scratch                               = head - 1;
+    head                             = SCRATCH_HEAD(OverlayWaveScratch);
+    D_800691CA                       = 2;
+    SCRATCH_HEAD(OverlayWaveScratch) = head - 1;
+    cols                             = head[-1].cols;
+    scratch                          = head - 1;
     switch (arg0->state) {
         case 0:
             for (i = 0; i < 9; i++) {
@@ -708,7 +708,7 @@ void func_shelter_b3_garbage_incinerator_8017E7D0(Task* arg0)
     gGpuPrimCursor = (u8*)(stp + 1);
     SetDrawStp(stp, 0);
     addPrim(&gGpuCurrentOt[0], stp);
-    *(OverlayWaveScratch**)G_SCRATCH_HEAD += 1;
+    SCRATCH_POP(OverlayWaveScratch);
 }
 
 /// Fade-to-white driver of the encounter, six states over the eight-byte

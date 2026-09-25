@@ -292,9 +292,9 @@ void func_shelter_b2_septic_tank_8017DB68(Task* task)
 
     e                 = D_shelter_b2_septic_tank_801832CC;
     gGfxViewCoord.flg = 0;
-    head              = *(u8**)0x1F8003FC;
+    head              = SCRATCH_HEAD(u8);
     phase             = -(gDisplayState.animFrame * 16);
-    *(u8**)0x1F8003FC = head - 0xC;
+    SCRATCH_HEAD(u8)  = head - 0xC;
     w                 = (RoomWaterScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
@@ -384,7 +384,7 @@ void func_shelter_b2_septic_tank_8017DB68(Task* task)
             }
         }
     }
-    *(u8**)0x1F8003FC += 0xC;
+    SCRATCH_POP_BYTES(0xC);
 }
 
 /// Draws each surface in `D_shelter_b2_septic_tank_801832F0` at height
@@ -413,9 +413,9 @@ void func_shelter_b2_septic_tank_8017E2DC(Task* task)
 
     e                 = D_shelter_b2_septic_tank_801832F0;
     gGfxViewCoord.flg = 0;
-    head              = *(u8**)0x1F8003FC;
+    head              = SCRATCH_HEAD(u8);
     phase             = -(gDisplayState.animFrame * 16);
-    *(u8**)0x1F8003FC = head - 0xC;
+    SCRATCH_HEAD(u8)  = head - 0xC;
     w                 = (RoomWaterScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
@@ -505,7 +505,7 @@ void func_shelter_b2_septic_tank_8017E2DC(Task* task)
             }
         }
     }
-    *(u8**)0x1F8003FC += 0xC;
+    SCRATCH_POP_BYTES(0xC);
 }
 
 /// The water task: runs its current state - `func_shelter_b2_septic_tank_8017EAB8`
@@ -766,7 +766,7 @@ void func_shelter_b2_septic_tank_8017F194(GsCOORDINATE2* arg0, s32 arg1, s32 arg
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 /// Per-frame driver of a particle, drawn as the spinning sprite of
@@ -961,7 +961,7 @@ void func_shelter_b2_septic_tank_8017F984(GsCOORDINATE2* arg0, s32 arg1, s32 arg
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x1C;
+    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
 /// Draws an upright sprite at the coordinate's world position. The position is
@@ -1051,7 +1051,7 @@ void func_shelter_b2_septic_tank_8017FD70(GsCOORDINATE2* arg0, s16 arg1, s16 arg
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Draws a flickering light beam from `arg0[0]` to `arg0[1]`. Both points are
@@ -1197,7 +1197,7 @@ void func_shelter_b2_septic_tank_80180054(SVECTOR* arg0, s32 arg1, s32 arg2, s32
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Draws a flickering glow at the world-space point `arg0`. The point is
@@ -1276,7 +1276,7 @@ void func_shelter_b2_septic_tank_8018083C(SVECTOR* arg0, s32 arg1, s32 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0xC;
+    SCRATCH_POP_BYTES(0xC);
 }
 
 /// Per-frame driver of a burst of light in red, half blue and quarter green.
@@ -1438,7 +1438,7 @@ void func_shelter_b2_septic_tank_80180E84(GsCOORDINATE2* arg0, s32 arg1, s32 arg
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a round glow at the coordinate's world position. The position is
@@ -1518,7 +1518,7 @@ void func_shelter_b2_septic_tank_801812B0(GsCOORDINATE2* arg0, s32 arg1, u8* rgb
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Per-frame driver of a ribbon trail swept by two points of a moving parent.
@@ -1651,9 +1651,9 @@ void func_shelter_b2_septic_tank_80181B34(GsCOORDINATE2* arg0, GsCOORDINATE2* ar
     {
         register u8* tmp asm("v0");
 
-        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomDraw03Scratch);
-        blk                     = (RoomDraw03Scratch*)tmp;
-        *(void**)G_SCRATCH_HEAD = tmp;
+        tmp                = SCRATCH_HEAD(u8) - sizeof(RoomDraw03Scratch);
+        blk                = (RoomDraw03Scratch*)tmp;
+        SCRATCH_HEAD(void) = tmp;
     }
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -1729,7 +1729,7 @@ void func_shelter_b2_septic_tank_80181B34(GsCOORDINATE2* arg0, GsCOORDINATE2* ar
         }
         i += 1;
     } while (i < 7);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomDraw03Scratch);
+    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
 }
 
 /// Per-frame driver of an explosion at the task's coordinate. The first frame
@@ -1946,5 +1946,5 @@ void func_shelter_b2_septic_tank_801821B4(GsCOORDINATE2* arg0, s16 arg1, u8* arg
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }

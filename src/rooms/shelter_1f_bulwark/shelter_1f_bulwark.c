@@ -427,7 +427,7 @@ void func_shelter_1f_bulwark_8017DF00(SVECTOR* arg0, s32 arg1, s32 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0xC;
+    SCRATCH_POP_BYTES(0xC);
 }
 
 void func_shelter_1f_bulwark_8017E2A4(Task* arg0)
@@ -606,7 +606,7 @@ void func_shelter_1f_bulwark_8017E630(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a glow disc of eight gouraud wedges around the coordinate's world
@@ -684,7 +684,7 @@ void func_shelter_1f_bulwark_8017EA5C(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 void func_shelter_1f_bulwark_8017EDF0(Task* task)
@@ -807,9 +807,9 @@ void func_shelter_1f_bulwark_8017F2E0(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, 
     {
         register u8* tmp asm("v0");
 
-        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomDraw03Scratch);
-        blk                     = (RoomDraw03Scratch*)tmp;
-        *(void**)G_SCRATCH_HEAD = tmp;
+        tmp                = SCRATCH_HEAD(u8) - sizeof(RoomDraw03Scratch);
+        blk                = (RoomDraw03Scratch*)tmp;
+        SCRATCH_HEAD(void) = tmp;
     }
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -885,7 +885,7 @@ void func_shelter_1f_bulwark_8017F2E0(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, 
         }
         i += 1;
     } while (i < 7);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomDraw03Scratch);
+    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
 }
 
 void func_shelter_1f_bulwark_8017F6D8(Task* task)
@@ -1092,5 +1092,5 @@ void func_shelter_1f_bulwark_8017F960(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }

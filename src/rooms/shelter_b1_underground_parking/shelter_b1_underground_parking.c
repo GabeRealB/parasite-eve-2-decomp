@@ -4051,7 +4051,7 @@ void func_shelter_b1_underground_parking_80184C54(SVECTOR* arg0, s32 arg1, s32 a
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, if
@@ -4130,7 +4130,7 @@ void func_shelter_b1_underground_parking_8018543C(SVECTOR* arg0, s32 arg1, s32 a
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0xC;
+    SCRATCH_POP_BYTES(0xC);
 }
 
 void func_shelter_b1_underground_parking_801857E0(s16 x, s16 y, s16 radius, s16 color)
@@ -4281,7 +4281,7 @@ void func_shelter_b1_underground_parking_80185A94(SVECTOR* arg0, s32 arg1, s32 a
             i = t2;
         } while (i < 2);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 /// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
@@ -4420,7 +4420,7 @@ void func_shelter_b1_underground_parking_80185F08(SVECTOR* arg0, s32 arg1, s32 a
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
 }
 
 void func_shelter_b1_underground_parking_80186890(s16 arg0)

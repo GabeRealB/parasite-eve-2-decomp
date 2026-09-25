@@ -272,7 +272,7 @@ void func_shelter_b1_elevator_hall_8017DEB0(SVECTOR* arg0, s32 arg1, s32 arg2)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Drifting mote task. The spawn argument packs the drawing flags, speed and
@@ -435,7 +435,7 @@ void func_shelter_b1_elevator_hall_8017E9C0(GsCOORDINATE2* arg0, u16 arg1, u16 a
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(u8**)G_SCRATCH_HEAD += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Projects `arg0`'s world position through `GsWSMATRIX` and, when it
@@ -528,7 +528,7 @@ void func_shelter_b1_elevator_hall_8017EC84(GsCOORDINATE2* arg0, s32 arg1, s32 a
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Projects `arg0`'s world position through `GsWSMATRIX` and, when it
@@ -605,7 +605,7 @@ void func_shelter_b1_elevator_hall_8017F0A8(GsCOORDINATE2* arg0, s16 arg1, u8* a
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Coloured flash task. On its first tick it places its coordinate at the
@@ -880,8 +880,7 @@ void func_shelter_b1_elevator_hall_8017F980(GsCOORDINATE2* coord, s16 size)
             func_shelter_b1_elevator_hall_8017FEAC(&ground, outerSize);
         }
     }
-    *(void**)G_SCRATCH_HEAD =
-        (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpRingScratch);
+    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
 }
 
 /// Scales the unit quad `D_80111E38` by `arg1`, rotates it flat by
@@ -971,7 +970,7 @@ void func_shelter_b1_elevator_hall_8017FEAC(GsCOORDINATE2* arg0, s32 arg1)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 /// Projects `arg0`'s world position through `GsWSMATRIX` and, when it
@@ -1110,7 +1109,7 @@ void func_shelter_b1_elevator_hall_80180224(GsCOORDINATE2* arg0, s16 arg1, u8* a
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Emitter task: for twenty frames spawns the effect whose id is in
@@ -1309,7 +1308,7 @@ void func_shelter_b1_elevator_hall_80180FBC(GsCOORDINATE2* arg0, s32 arg1, s32 a
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// An instruction-for-instruction copy of
@@ -1384,7 +1383,7 @@ void func_shelter_b1_elevator_hall_801813E8(GsCOORDINATE2* arg0, s16 arg1, u8* a
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Trail task. On its first tick it allocates two eight-slot rings of
@@ -1510,9 +1509,9 @@ void func_shelter_b1_elevator_hall_80181C6C(GsCOORDINATE2* arg0, GsCOORDINATE2* 
     {
         register u8* tmp asm("v0");
 
-        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomDraw03Scratch);
-        blk                     = (RoomDraw03Scratch*)tmp;
-        *(void**)G_SCRATCH_HEAD = tmp;
+        tmp                = SCRATCH_HEAD(u8) - sizeof(RoomDraw03Scratch);
+        blk                = (RoomDraw03Scratch*)tmp;
+        SCRATCH_HEAD(void) = tmp;
     }
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -1588,7 +1587,7 @@ void func_shelter_b1_elevator_hall_80181C6C(GsCOORDINATE2* arg0, GsCOORDINATE2* 
         }
         i += 1;
     } while (i < 7);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomDraw03Scratch);
+    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
 }
 
 /// Impact task. It spawns effect 0x60076 at its coordinate, then either (with
@@ -1796,5 +1795,5 @@ void func_shelter_b1_elevator_hall_801822EC(GsCOORDINATE2* arg0, s16 arg1, u8* a
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }

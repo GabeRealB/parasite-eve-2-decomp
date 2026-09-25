@@ -284,7 +284,7 @@ void func_shelter_b1_control_room_801806FC(GsCOORDINATE2* arg0, s32 arg1, s32 ar
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
 /// Draws a ring of sixteen gouraud quads around the screen position of the
@@ -376,7 +376,7 @@ void func_shelter_b1_control_room_80180980(GsCOORDINATE2* arg0, s32 arg1, s32 ar
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a fan of eight gouraud quads around the screen position of the
@@ -447,7 +447,7 @@ void func_shelter_b1_control_room_80180DA4(GsCOORDINATE2* arg0, s32 arg1, u8* rg
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Burst effect task on the task object's coordinate, frozen while the room's
@@ -635,8 +635,7 @@ void func_shelter_b1_control_room_801812E4(GsCOORDINATE2* coord, s16 size)
             func_shelter_b1_control_room_80181810(&ground, outerSize);
         }
     }
-    *(void**)G_SCRATCH_HEAD =
-        (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpRingScratch);
+    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
 }
 
 /// Draws a flat textured quad centred on the coordinate's world translation:
@@ -726,5 +725,5 @@ void func_shelter_b1_control_room_80181810(GsCOORDINATE2* arg0, s32 arg1)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }

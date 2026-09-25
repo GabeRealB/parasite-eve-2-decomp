@@ -682,9 +682,9 @@ void func_shelter_b4_reservoir_8017EA00(Task* task)
     s32               i;
 
     e                 = D_shelter_b4_reservoir_80184F90;
-    head              = *(u8**)0x1F8003FC;
+    head              = SCRATCH_HEAD(u8);
     gGfxViewCoord.flg = 0;
-    *(u8**)0x1F8003FC = head - 0xC;
+    SCRATCH_HEAD(u8)  = head - 0xC;
     s                 = (_SurfaceScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
@@ -736,7 +736,7 @@ void func_shelter_b4_reservoir_8017EA00(Task* task)
             }
         }
     }
-    *(u8**)0x1F8003FC += 0xC;
+    SCRATCH_POP_BYTES(0xC);
 }
 
 /// Same strip renderer as `func_shelter_b4_reservoir_8017EA00`, driven by
@@ -756,9 +756,9 @@ void func_shelter_b4_reservoir_8017EE04(Task* task)
     s32               i;
 
     e                 = D_shelter_b4_reservoir_80184FA8;
-    head              = *(u8**)0x1F8003FC;
+    head              = SCRATCH_HEAD(u8);
     gGfxViewCoord.flg = 0;
-    *(u8**)0x1F8003FC = head - 0xC;
+    SCRATCH_HEAD(u8)  = head - 0xC;
     s                 = (_SurfaceScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
@@ -810,7 +810,7 @@ void func_shelter_b4_reservoir_8017EE04(Task* task)
             }
         }
     }
-    *(u8**)0x1F8003FC += 0xC;
+    SCRATCH_POP_BYTES(0xC);
 }
 
 /// Strip renderer like `func_shelter_b4_reservoir_8017EE04`, driven by
@@ -832,9 +832,9 @@ void func_shelter_b4_reservoir_8017F23C(Task* task)
     s32               i;
 
     e                 = D_shelter_b4_reservoir_80184FCC;
-    head              = *(u8**)0x1F8003FC;
+    head              = SCRATCH_HEAD(u8);
     gGfxViewCoord.flg = 0;
-    *(u8**)0x1F8003FC = head - 0xC;
+    SCRATCH_HEAD(u8)  = head - 0xC;
     s                 = (_SurfaceScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
@@ -886,7 +886,7 @@ void func_shelter_b4_reservoir_8017F23C(Task* task)
             }
         }
     }
-    *(u8**)0x1F8003FC += 0xC;
+    SCRATCH_POP_BYTES(0xC);
 }
 
 /// Strip renderer like `func_shelter_b4_reservoir_8017EE04`, driven by
@@ -909,9 +909,9 @@ void func_shelter_b4_reservoir_8017F674(Task* task)
     u8                c;
 
     e                 = D_shelter_b4_reservoir_80184FE4;
-    head              = *(u8**)0x1F8003FC;
+    head              = SCRATCH_HEAD(u8);
     gGfxViewCoord.flg = 0;
-    *(u8**)0x1F8003FC = head - 0xC;
+    SCRATCH_HEAD(u8)  = head - 0xC;
     s                 = (_SurfaceScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
@@ -964,7 +964,7 @@ void func_shelter_b4_reservoir_8017F674(Task* task)
             }
         }
     }
-    *(u8**)0x1F8003FC += 0xC;
+    SCRATCH_POP_BYTES(0xC);
 }
 
 void func_shelter_b4_reservoir_8017FADC(Task* task)
@@ -1253,7 +1253,7 @@ void func_shelter_b4_reservoir_80180530(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 /// Particle effect task, drawn as the spinning sprite of
@@ -1447,7 +1447,7 @@ void func_shelter_b4_reservoir_80180D20(GsCOORDINATE2* arg0, s32 arg1, s32 arg2,
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x1C;
+    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
 /// Draws a sprite at the coordinate's world position: one semi-transparent
@@ -1537,7 +1537,7 @@ void func_shelter_b4_reservoir_8018110C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 void func_shelter_b4_reservoir_801813F0(Task* task)
@@ -1674,7 +1674,7 @@ void func_shelter_b4_reservoir_80181668(GsCOORDINATE2* coord, u16 frame, s16 siz
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
 /// Draws a glowing capsule between the points `arg0[0]` and `arg0[1]`,
@@ -1825,7 +1825,7 @@ void func_shelter_b4_reservoir_801818F0(SVECTOR* arg0, s32 arg1, s32 arg2)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a star-shaped glow at the world point `arg0`, projected through
@@ -1862,7 +1862,7 @@ void func_shelter_b4_reservoir_80182134(SVECTOR* arg0, s32 arg1, s32 arg2)
         u8*    tmp;
 
         scratch = (void**)G_SCRATCH_HEAD;
-        tmp     = (*scratch = (u8*)*scratch - 0x14);
+        tmp     = SCRATCH_PUSH_BYTES_AT(scratch, 0x14);
         block   = (RoomDraw05Scratch*)tmp;
     }
 
@@ -1981,7 +1981,7 @@ void func_shelter_b4_reservoir_80182134(SVECTOR* arg0, s32 arg1, s32 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
 }
 
 void func_shelter_b4_reservoir_80182B04(s16 arg0, u16 arg1, s16 arg2)
@@ -2245,7 +2245,7 @@ void func_shelter_b4_reservoir_80183298(GsCOORDINATE2* arg0, s32 arg1, s32 arg2,
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
 /// Draws a glowing ring around the coordinate's projected position, unless the
@@ -2337,7 +2337,7 @@ void func_shelter_b4_reservoir_8018351C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2,
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a glowing disc at the coordinate's world position, unless the
@@ -2408,7 +2408,7 @@ void func_shelter_b4_reservoir_80183940(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Burst effect task: each frame draws a disc and the glow of
@@ -2595,8 +2595,7 @@ void func_shelter_b4_reservoir_80183E80(GsCOORDINATE2* coord, s16 size)
             func_shelter_b4_reservoir_801843AC(&ground, outerSize);
         }
     }
-    *(void**)G_SCRATCH_HEAD =
-        (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpRingScratch);
+    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
 }
 
 /// Draws a flat quad facing the camera around the coordinate's world
@@ -2687,5 +2686,5 @@ void func_shelter_b4_reservoir_801843AC(GsCOORDINATE2* arg0, s32 arg1)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }

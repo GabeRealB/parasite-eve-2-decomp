@@ -1758,10 +1758,10 @@ void func_shelter_b3_dumping_hole_8018098C(Task* task)
                             // scratchpad SVECTOR and the GTE.
                             obj = task->extra;
                             __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
-                            scratch                = *(u32*)(head + 0x3FC);
-                            coords                 = obj->coords;
-                            sv                     = (SVECTOR*)(scratch - 8);
-                            *(SVECTOR**)0x1F8003FC = sv;
+                            scratch               = *(u32*)(head + 0x3FC);
+                            coords                = obj->coords;
+                            sv                    = (SVECTOR*)(scratch - 8);
+                            SCRATCH_HEAD(SVECTOR) = sv;
                             TOUCH_REG(sv);
                             mtx = (OverlayMat*)&coords[3].coord;
                             TOUCH_REG(mtx);
@@ -3680,7 +3680,7 @@ void func_shelter_b3_dumping_hole_80184638(SVECTOR* arg0, s32 arg1, s32 arg2)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a glowing disc at the world point `arg0`, projected through
@@ -3758,7 +3758,7 @@ void func_shelter_b3_dumping_hole_80184E7C(SVECTOR* arg0, s32 arg1, s32 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 /// Per-frame update of a spark or debris effect task. State 0 seeds the work
@@ -3935,10 +3935,10 @@ void func_shelter_b3_dumping_hole_8018596C(GsCOORDINATE2* arg0, u16 arg1, s16 ar
     u16              bank;
     u32              idx;
 
-    head                                      = *(u8**)G_SCRATCH_HEAD;
+    head                                      = SCRATCH_HEAD(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
-    *(void**)G_SCRATCH_HEAD                   = head - 0x1C;
-    block                                     = *(GpFxQuadScratch**)G_SCRATCH_HEAD;
+    SCRATCH_HEAD(void)                        = head - 0x1C;
+    block                                     = SCRATCH_HEAD(GpFxQuadScratch);
     block->vec.vy                             = arg0->workm.t[1];
     block->vec.vz                             = arg0->workm.t[2];
     idx                                       = arg1;
@@ -3985,7 +3985,7 @@ void func_shelter_b3_dumping_hole_8018596C(GsCOORDINATE2* arg0, u16 arg1, s16 ar
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(u8**)G_SCRATCH_HEAD += 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a spinning textured sprite at the world position of `arg0`,
@@ -4011,10 +4011,10 @@ void func_shelter_b3_dumping_hole_80185DCC(GsCOORDINATE2* arg0, u16 arg1, s16 ar
 
     bank                                      = arg1 >> 12;
     arg1                                     &= 0xFFF;
-    head                                      = *(u8**)G_SCRATCH_HEAD;
+    head                                      = SCRATCH_HEAD(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
-    *(void**)G_SCRATCH_HEAD                   = head - 0x1C;
-    block                                     = *(GpFxQuadScratch**)G_SCRATCH_HEAD;
+    SCRATCH_HEAD(void)                        = head - 0x1C;
+    block                                     = SCRATCH_HEAD(GpFxQuadScratch);
     block->vec.vy                             = arg0->workm.t[1];
     block->vec.vz                             = arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -4054,7 +4054,7 @@ void func_shelter_b3_dumping_hole_80185DCC(GsCOORDINATE2* arg0, u16 arg1, s16 ar
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(u8**)G_SCRATCH_HEAD += 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Per-frame update of an effect task drawn with
@@ -4248,7 +4248,7 @@ void func_shelter_b3_dumping_hole_801866CC(GsCOORDINATE2* arg0, u16 arg1, s16 ar
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x1C;
+    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
 /// Draws a textured billboard at the world position of `arg0`, projected
@@ -4330,7 +4330,7 @@ void func_shelter_b3_dumping_hole_80186AB8(GsCOORDINATE2* arg0, s32 arg1, s32 ar
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
 void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)

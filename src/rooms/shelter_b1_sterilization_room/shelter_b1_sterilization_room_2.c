@@ -586,7 +586,7 @@ void func_shelter_b1_sterilization_room_801826F0(GsCOORDINATE2* coord, s16 frame
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x1C;
+    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
 void func_shelter_b1_sterilization_room_80182B34(SVECTOR* arg0, s32 arg1, s32 arg2)
@@ -730,7 +730,7 @@ void func_shelter_b1_sterilization_room_80182B34(SVECTOR* arg0, s32 arg1, s32 ar
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void func_shelter_b1_sterilization_room_80183378(SVECTOR* arg0, s32 arg1, s32 arg2)
@@ -803,7 +803,7 @@ void func_shelter_b1_sterilization_room_80183378(SVECTOR* arg0, s32 arg1, s32 ar
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 void func_shelter_b1_sterilization_room_80183718(SVECTOR* arg0, s32 arg1, s32 arg2)
@@ -893,7 +893,7 @@ void func_shelter_b1_sterilization_room_80183718(SVECTOR* arg0, s32 arg1, s32 ar
             i = t2;
         } while (i < 2);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 /// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
@@ -1032,5 +1032,5 @@ void func_shelter_b1_sterilization_room_80183B8C(SVECTOR* arg0, s32 arg1, s32 ar
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
 }

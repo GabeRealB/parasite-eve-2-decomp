@@ -284,7 +284,7 @@ void func_shelter_b1_control_room_access_tunnel_801809E8(GsCOORDINATE2* arg0, s3
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
 /// The same ring as `func_shelter_b1_control_room_access_tunnel_8017E57C`,
@@ -376,7 +376,7 @@ void func_shelter_b1_control_room_access_tunnel_80180C6C(GsCOORDINATE2* arg0, s3
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// The same disc as `func_shelter_b1_control_room_access_tunnel_8017E9A8`,
@@ -447,7 +447,7 @@ void func_shelter_b1_control_room_access_tunnel_80181090(GsCOORDINATE2* arg0, s3
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Flare at the task's coordinate: each tick grows a size by 0x10 and draws a
@@ -632,8 +632,7 @@ void func_shelter_b1_control_room_access_tunnel_801815D0(GsCOORDINATE2* coord, s
             func_shelter_b1_control_room_access_tunnel_80181AFC(&ground, outerSize);
         }
     }
-    *(void**)G_SCRATCH_HEAD =
-        (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpRingScratch);
+    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
 }
 
 /// Draws a flat textured sprite at the coordinate's world position: the unit
@@ -723,5 +722,5 @@ void func_shelter_b1_control_room_access_tunnel_80181AFC(GsCOORDINATE2* arg0, s3
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }

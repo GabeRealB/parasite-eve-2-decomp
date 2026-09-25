@@ -446,9 +446,9 @@ void func_shelter_b4_water_supply_8017DE74(Task* task)
 
     e                 = D_shelter_b4_water_supply_80182648;
     gGfxViewCoord.flg = 0;
-    head              = *(u8**)0x1F8003FC;
+    head              = SCRATCH_HEAD(u8);
     phase             = -(gDisplayState.animFrame * 16);
-    *(u8**)0x1F8003FC = head - 0xC;
+    SCRATCH_HEAD(u8)  = head - 0xC;
     w                 = (RoomWaterScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
@@ -554,7 +554,7 @@ void func_shelter_b4_water_supply_8017DE74(Task* task)
             }
         }
     }
-    *(u8**)0x1F8003FC += 0xC;
+    SCRATCH_POP_BYTES(0xC);
 }
 
 /// Draws each surface in `D_shelter_b4_water_supply_8018265C` at height
@@ -583,9 +583,9 @@ void func_shelter_b4_water_supply_8017E5D8(Task* task)
 
     e                 = D_shelter_b4_water_supply_8018265C;
     gGfxViewCoord.flg = 0;
-    head              = *(u8**)0x1F8003FC;
+    head              = SCRATCH_HEAD(u8);
     phase             = -(gDisplayState.animFrame * 16);
-    *(u8**)0x1F8003FC = head - 0xC;
+    SCRATCH_HEAD(u8)  = head - 0xC;
     w                 = (RoomWaterScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
@@ -691,7 +691,7 @@ void func_shelter_b4_water_supply_8017E5D8(Task* task)
             }
         }
     }
-    *(u8**)0x1F8003FC += 0xC;
+    SCRATCH_POP_BYTES(0xC);
 }
 
 /// The water task: runs its current state - `func_shelter_b4_water_supply_8017ED90`
@@ -950,7 +950,7 @@ void func_shelter_b4_water_supply_8017F3A0(GsCOORDINATE2* arg0, s32 arg1, s32 ar
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 /// Per-frame driver of a particle, drawn as the spinning sprite of
@@ -1145,7 +1145,7 @@ void func_shelter_b4_water_supply_8017FB90(GsCOORDINATE2* arg0, s32 arg1, s32 ar
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x1C;
+    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
 /// Draws an upright sprite at the coordinate's world position. The position is
@@ -1235,7 +1235,7 @@ void func_shelter_b4_water_supply_8017FF7C(GsCOORDINATE2* arg0, s16 arg1, s16 ar
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Draws a flickering grey light beam from `arg0[0]` to `arg0[1]`. Both points
@@ -1372,7 +1372,7 @@ void func_shelter_b4_water_supply_80180260(SVECTOR* arg0, s32 arg1, s32 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Per-frame driver of a glowing disc anchored to its parent at the work
@@ -1633,7 +1633,7 @@ void func_shelter_b4_water_supply_80181158(GsCOORDINATE2* arg0, s32 arg1, s32 ar
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
 /// Draws a ring around the coordinate's world position. The position is
@@ -1726,7 +1726,7 @@ void func_shelter_b4_water_supply_801813DC(GsCOORDINATE2* arg0, s32 arg1, s32 ar
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a round glow at the coordinate's world position. The position is
@@ -1798,7 +1798,7 @@ void func_shelter_b4_water_supply_80181800(GsCOORDINATE2* arg0, s32 arg1, u8* rg
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Per-frame driver of a flare: every tick it draws an orange round glow
@@ -1988,8 +1988,7 @@ void func_shelter_b4_water_supply_80181D40(GsCOORDINATE2* coord, s16 size)
             func_shelter_b4_water_supply_8018226C(&ground, outerSize);
         }
     }
-    *(void**)G_SCRATCH_HEAD =
-        (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpRingScratch);
+    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
 }
 
 /// Draws a flat textured quad at `arg0`: the four corners of the unit quad
@@ -2080,5 +2079,5 @@ void func_shelter_b4_water_supply_8018226C(GsCOORDINATE2* arg0, s32 arg1)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }

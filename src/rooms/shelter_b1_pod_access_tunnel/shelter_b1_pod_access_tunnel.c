@@ -807,7 +807,7 @@ void func_shelter_b1_pod_access_tunnel_8017E8F4(SVECTOR* arg0, s32 arg1, s32 arg
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// A flash that swells and then fades. For as many ticks as the spawn argument
@@ -964,7 +964,7 @@ void func_shelter_b1_pod_access_tunnel_8017F3DC(GsCOORDINATE2* arg0, s32 arg1, s
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Queues a gouraud disc of eight wedges around the projected world position
@@ -1042,7 +1042,7 @@ void func_shelter_b1_pod_access_tunnel_8017F808(GsCOORDINATE2* arg0, s32 arg1, u
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// A twin trail. The first tick allocates sixteen coordinate frames, eight for
@@ -1172,9 +1172,9 @@ void func_shelter_b1_pod_access_tunnel_8018008C(GsCOORDINATE2* arg0, GsCOORDINAT
     {
         register u8* tmp asm("v0");
 
-        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomDraw03Scratch);
-        blk                     = (RoomDraw03Scratch*)tmp;
-        *(void**)G_SCRATCH_HEAD = tmp;
+        tmp                = SCRATCH_HEAD(u8) - sizeof(RoomDraw03Scratch);
+        blk                = (RoomDraw03Scratch*)tmp;
+        SCRATCH_HEAD(void) = tmp;
     }
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -1250,7 +1250,7 @@ void func_shelter_b1_pod_access_tunnel_8018008C(GsCOORDINATE2* arg0, GsCOORDINAT
         }
         i += 1;
     } while (i < 7);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomDraw03Scratch);
+    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
 }
 
 /// A spark burst. The first tick spawns its flash effect; then, for a non-zero
@@ -1463,5 +1463,5 @@ void func_shelter_b1_pod_access_tunnel_8018070C(GsCOORDINATE2* arg0, s16 arg1, u
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }

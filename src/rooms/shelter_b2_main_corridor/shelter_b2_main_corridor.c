@@ -612,9 +612,9 @@ void func_shelter_b2_main_corridor_8017E390(Task* arg0)
     } else {
         D_shelter_b2_main_corridor_80189660 = (u8*)D_8005C370 + D_8007107C * 0xC000;
     }
-    head              = *(u8**)0x1F8003FC;
+    head              = SCRATCH_HEAD(u8);
     gGfxViewCoord.flg = 0;
-    *(u8**)0x1F8003FC = head - 0xC;
+    SCRATCH_HEAD(u8)  = head - 0xC;
     w                 = (RoomWaterScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
@@ -720,7 +720,7 @@ void func_shelter_b2_main_corridor_8017E390(Task* arg0)
             }
         }
     }
-    *(u8**)0x1F8003FC += 0xC;
+    SCRATCH_POP_BYTES(0xC);
 }
 
 /// The water task: runs its state, first
@@ -948,7 +948,7 @@ void func_shelter_b2_main_corridor_8017F078(GsCOORDINATE2* arg0, s32 arg1, s32 a
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 void func_shelter_b2_main_corridor_8017F3AC(Task* task)
@@ -1131,7 +1131,7 @@ void func_shelter_b2_main_corridor_8017F860(GsCOORDINATE2* arg0, s32 arg1, s32 a
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x1C;
+    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
 /// Draws an upright sprite at the coordinate's world position. The position is
@@ -1223,7 +1223,7 @@ void func_shelter_b2_main_corridor_8017FC4C(GsCOORDINATE2* arg0, s32 arg1, s32 a
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
 /// Draws a flickering light beam from `arg0[0]` to `arg0[1]`. Both points are
@@ -1369,7 +1369,7 @@ void func_shelter_b2_main_corridor_8017FEE8(SVECTOR* arg0, s32 arg1, s32 arg2, s
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Draws a flickering glow sprite at the world-space point `arg0`. The point
@@ -1464,7 +1464,7 @@ void func_shelter_b2_main_corridor_801806D0(SVECTOR* arg0, s32 arg1, s32 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0xC;
+    SCRATCH_POP_BYTES_AT(scratch, 0xC);
 }
 
 /// Per-frame driver of a burst of light in red, half blue and quarter green.
@@ -1626,7 +1626,7 @@ void func_shelter_b2_main_corridor_80180BF0(GsCOORDINATE2* arg0, s32 arg1, s32 a
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a round glow at the coordinate's world position. The position is
@@ -1706,7 +1706,7 @@ void func_shelter_b2_main_corridor_8018101C(GsCOORDINATE2* arg0, s32 arg1, u8* r
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Per-frame driver of a ribbon trail swept by two points of a moving parent.
@@ -1839,9 +1839,9 @@ void func_shelter_b2_main_corridor_801818A0(GsCOORDINATE2* arg0, GsCOORDINATE2* 
     {
         register u8* tmp asm("v0");
 
-        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomDraw03Scratch);
-        blk                     = (RoomDraw03Scratch*)tmp;
-        *(void**)G_SCRATCH_HEAD = tmp;
+        tmp                = SCRATCH_HEAD(u8) - sizeof(RoomDraw03Scratch);
+        blk                = (RoomDraw03Scratch*)tmp;
+        SCRATCH_HEAD(void) = tmp;
     }
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -1917,7 +1917,7 @@ void func_shelter_b2_main_corridor_801818A0(GsCOORDINATE2* arg0, GsCOORDINATE2* 
         }
         i += 1;
     } while (i < 7);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomDraw03Scratch);
+    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
 }
 
 /// Per-frame driver of an explosion at the task's coordinate. The first frame
@@ -2134,5 +2134,5 @@ void func_shelter_b2_main_corridor_80181F20(GsCOORDINATE2* arg0, s16 arg1, u8* a
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }

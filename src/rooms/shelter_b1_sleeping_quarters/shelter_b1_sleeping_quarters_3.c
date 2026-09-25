@@ -282,7 +282,7 @@ void func_shelter_b1_sleeping_quarters_8017EE58(GsCOORDINATE2* arg0, s32 arg1, s
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
 /// Queues a gouraud ring of sixteen quads around the projected world position
@@ -373,7 +373,7 @@ void func_shelter_b1_sleeping_quarters_8017F0DC(GsCOORDINATE2* arg0, s32 arg1, s
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Queues a gouraud disc of eight wedges around the projected world position
@@ -443,7 +443,7 @@ void func_shelter_b1_sleeping_quarters_8017F500(GsCOORDINATE2* arg0, s32 arg1, u
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// An orange burst effect task. Each tick draws a disc and a glow at a
@@ -631,8 +631,7 @@ void func_shelter_b1_sleeping_quarters_8017FA40(GsCOORDINATE2* coord, s16 size)
             func_shelter_b1_sleeping_quarters_8017FF6C(&ground, outerSize);
         }
     }
-    *(void**)G_SCRATCH_HEAD =
-        (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpRingScratch);
+    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
 }
 
 /// Queues a flat, semi-transparent textured quad of half-size `arg1` lying
@@ -720,5 +719,5 @@ void func_shelter_b1_sleeping_quarters_8017FF6C(GsCOORDINATE2* arg0, s32 arg1)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }

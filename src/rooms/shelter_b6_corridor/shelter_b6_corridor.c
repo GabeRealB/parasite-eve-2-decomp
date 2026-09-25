@@ -102,11 +102,11 @@ void func_shelter_b6_corridor_8017D5D0(Task* arg0)
     s32 tpage0;
     s32 tpage1;
 
-    head                                  = *(OverlayWaveScratch**)G_SCRATCH_HEAD;
-    D_800691CA                            = 2;
-    *(OverlayWaveScratch**)G_SCRATCH_HEAD = head - 1;
-    cols                                  = head[-1].cols;
-    scratch                               = head - 1;
+    head                             = SCRATCH_HEAD(OverlayWaveScratch);
+    D_800691CA                       = 2;
+    SCRATCH_HEAD(OverlayWaveScratch) = head - 1;
+    cols                             = head[-1].cols;
+    scratch                          = head - 1;
     switch (arg0->state) {
         case 0:
             for (i = 0; i < 9; i++) {
@@ -256,7 +256,7 @@ void func_shelter_b6_corridor_8017D5D0(Task* arg0)
     gGpuPrimCursor = (u8*)(stp + 1);
     SetDrawStp(stp, 0);
     addPrim(&gGpuCurrentOt[0], stp);
-    *(OverlayWaveScratch**)G_SCRATCH_HEAD += 1;
+    SCRATCH_POP(OverlayWaveScratch);
 }
 
 s32 func_shelter_b6_corridor_8017DEA8(void)
@@ -573,7 +573,7 @@ void func_shelter_b6_corridor_8017E360(SVECTOR* arg0, s32 arg1, s32 arg2)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void func_shelter_b6_corridor_8017EBA4(Task* task)

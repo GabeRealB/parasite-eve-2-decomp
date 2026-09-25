@@ -246,10 +246,10 @@ void func_shelter_b2_pod_bottom_8017DECC(GsCOORDINATE2* arg0, u16 arg1, s16 arg2
     u16              bank;
     u32              idx;
 
-    head                                      = *(u8**)G_SCRATCH_HEAD;
+    head                                      = SCRATCH_HEAD(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
-    *(void**)G_SCRATCH_HEAD                   = head - 0x1C;
-    block                                     = *(GpFxQuadScratch**)G_SCRATCH_HEAD;
+    SCRATCH_HEAD(void)                        = head - 0x1C;
+    block                                     = SCRATCH_HEAD(GpFxQuadScratch);
     block->vec.vy                             = arg0->workm.t[1];
     block->vec.vz                             = arg0->workm.t[2];
     idx                                       = arg1;
@@ -297,7 +297,7 @@ void func_shelter_b2_pod_bottom_8017DECC(GsCOORDINATE2* arg0, u16 arg1, s16 arg2
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(u8**)G_SCRATCH_HEAD += 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a camera-facing sprite at `arg0`'s world position: the point is
@@ -322,10 +322,10 @@ void func_shelter_b2_pod_bottom_8017E334(GsCOORDINATE2* arg0, u16 arg1, s16 arg2
 
     bank                                      = arg1 >> 12;
     arg1                                     &= 0xFFF;
-    head                                      = *(u8**)G_SCRATCH_HEAD;
+    head                                      = SCRATCH_HEAD(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
-    *(void**)G_SCRATCH_HEAD                   = head - 0x1C;
-    block                                     = *(GpFxQuadScratch**)G_SCRATCH_HEAD;
+    SCRATCH_HEAD(void)                        = head - 0x1C;
+    block                                     = SCRATCH_HEAD(GpFxQuadScratch);
     block->vec.vy                             = arg0->workm.t[1];
     block->vec.vz                             = arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -366,7 +366,7 @@ void func_shelter_b2_pod_bottom_8017E334(GsCOORDINATE2* arg0, u16 arg1, s16 arg2
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(u8**)G_SCRATCH_HEAD += 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a glowing band: two 16-vertex rings in the XZ plane, the inner of
@@ -459,7 +459,7 @@ void func_shelter_b2_pod_bottom_8017E788(GsCOORDINATE2* coord, s16 arg1, s16 arg
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x118;
+    SCRATCH_POP_BYTES(0x118);
 }
 
 /// State 0 resets the coordinate frame's rotation to identity and starts the
@@ -620,7 +620,7 @@ void func_shelter_b2_pod_bottom_8017EEAC(GpEffWork* work, GsCOORDINATE2* coord, 
                     prim);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x118;
+    SCRATCH_POP_BYTES(0x118);
 }
 
 /// State 0 resets the coordinate frame's rotation to identity, starts the
@@ -829,7 +829,7 @@ void func_shelter_b2_pod_bottom_8017F994(GsCOORDINATE2* coord, s32 arg1, u8* rgb
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// State 0 resets the coordinate frame's rotation to identity, starts the
@@ -983,7 +983,7 @@ void func_shelter_b2_pod_bottom_801805A0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Per-frame driver of a rising sprite effect task.
@@ -1121,7 +1121,7 @@ void func_shelter_b2_pod_bottom_80180A4C(GsCOORDINATE2* coord, s16 radius, SVECT
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x120;
+    SCRATCH_POP_BYTES(0x120);
 }
 
 void func_shelter_b2_pod_bottom_80180F10(Task* arg0)
@@ -1286,7 +1286,7 @@ void func_shelter_b2_pod_bottom_8018101C(GsCOORDINATE2* coord, s16 size, u16 col
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x2C;
+    SCRATCH_POP_BYTES(0x2C);
 }
 
 void func_shelter_b2_pod_bottom_80181940(Task* arg0)

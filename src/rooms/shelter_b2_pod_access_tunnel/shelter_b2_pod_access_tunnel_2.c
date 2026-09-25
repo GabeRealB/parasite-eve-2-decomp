@@ -263,7 +263,7 @@ void func_shelter_b2_pod_access_tunnel_8017DF64(SVECTOR* arg0, s32 arg1, s32 arg
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// An animated sprite effect, drawn through
@@ -435,10 +435,10 @@ void func_shelter_b2_pod_access_tunnel_8017ED5C(GsCOORDINATE2* arg0, u16 arg1, s
     u16              bank;
     u32              idx;
 
-    head                                      = *(u8**)G_SCRATCH_HEAD;
+    head                                      = SCRATCH_HEAD(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
-    *(void**)G_SCRATCH_HEAD                   = head - 0x1C;
-    block                                     = *(GpFxQuadScratch**)G_SCRATCH_HEAD;
+    SCRATCH_HEAD(void)                        = head - 0x1C;
+    block                                     = SCRATCH_HEAD(GpFxQuadScratch);
     block->vec.vy                             = arg0->workm.t[1];
     block->vec.vz                             = arg0->workm.t[2];
     idx                                       = arg1;
@@ -485,7 +485,7 @@ void func_shelter_b2_pod_access_tunnel_8017ED5C(GsCOORDINATE2* arg0, u16 arg1, s
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(u8**)G_SCRATCH_HEAD += 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// The same sprite drawer as `func_shelter_b2_pod_access_tunnel_8017ED5C` for
@@ -507,10 +507,10 @@ void func_shelter_b2_pod_access_tunnel_8017F1BC(GsCOORDINATE2* arg0, u16 arg1, s
 
     bank                                      = arg1 >> 12;
     arg1                                     &= 0xFFF;
-    head                                      = *(u8**)G_SCRATCH_HEAD;
+    head                                      = SCRATCH_HEAD(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
-    *(void**)G_SCRATCH_HEAD                   = head - 0x1C;
-    block                                     = *(GpFxQuadScratch**)G_SCRATCH_HEAD;
+    SCRATCH_HEAD(void)                        = head - 0x1C;
+    block                                     = SCRATCH_HEAD(GpFxQuadScratch);
     block->vec.vy                             = arg0->workm.t[1];
     block->vec.vz                             = arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -550,7 +550,7 @@ void func_shelter_b2_pod_access_tunnel_8017F1BC(GsCOORDINATE2* arg0, u16 arg1, s
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(u8**)G_SCRATCH_HEAD += 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// A drifting mote. The first tick unpacks the spawn argument: with either of
@@ -716,7 +716,7 @@ void func_shelter_b2_pod_access_tunnel_8017F8D4(GsCOORDINATE2* arg0, u16 arg1, u
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(u8**)G_SCRATCH_HEAD += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when it
@@ -808,7 +808,7 @@ void func_shelter_b2_pod_access_tunnel_8017FB98(GsCOORDINATE2* arg0, s32 arg1, s
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when it
@@ -887,7 +887,7 @@ void func_shelter_b2_pod_access_tunnel_8017FFBC(GsCOORDINATE2* arg0, s32 arg1, u
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// An expanding halo. The first tick hangs the effect's coordinate off its
@@ -1171,8 +1171,7 @@ void func_shelter_b2_pod_access_tunnel_80180894(GsCOORDINATE2* coord, s16 size)
             func_shelter_b2_pod_access_tunnel_80180DC0(&ground, outerSize);
         }
     }
-    *(void**)G_SCRATCH_HEAD =
-        (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpRingScratch);
+    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
 }
 
 /// Scales the unit quad `D_80111E38` by `arg1`, rotates it flat by
@@ -1262,7 +1261,7 @@ void func_shelter_b2_pod_access_tunnel_80180DC0(GsCOORDINATE2* arg0, s32 arg1)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when it
@@ -1402,7 +1401,7 @@ void func_shelter_b2_pod_access_tunnel_80181138(GsCOORDINATE2* arg0, s16 arg1, u
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// A rising spark trail. Each tick turns the effect's angle on by a random
@@ -1610,7 +1609,7 @@ void func_shelter_b2_pod_access_tunnel_80181ED0(GsCOORDINATE2* arg0, s32 arg1, s
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// The same disc as `func_shelter_b2_pod_access_tunnel_8017FFBC`.
@@ -1686,7 +1685,7 @@ void func_shelter_b2_pod_access_tunnel_801822FC(GsCOORDINATE2* arg0, s32 arg1, u
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// A twin light trail. The first tick allocates sixteen `GsCOORDINATE2`s,
@@ -1817,9 +1816,9 @@ void func_shelter_b2_pod_access_tunnel_80182B80(GsCOORDINATE2* arg0, GsCOORDINAT
     {
         register u8* tmp asm("v0");
 
-        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomDraw03Scratch);
-        blk                     = (RoomDraw03Scratch*)tmp;
-        *(void**)G_SCRATCH_HEAD = tmp;
+        tmp                = SCRATCH_HEAD(u8) - sizeof(RoomDraw03Scratch);
+        blk                = (RoomDraw03Scratch*)tmp;
+        SCRATCH_HEAD(void) = tmp;
     }
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -1895,7 +1894,7 @@ void func_shelter_b2_pod_access_tunnel_80182B80(GsCOORDINATE2* arg0, GsCOORDINAT
         }
         i += 1;
     } while (i < 7);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomDraw03Scratch);
+    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
 }
 
 /// A spark burst. The first tick spawns effect 0x60076 at the task's
@@ -2105,5 +2104,5 @@ void func_shelter_b2_pod_access_tunnel_80183200(GsCOORDINATE2* arg0, s16 arg1, u
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }

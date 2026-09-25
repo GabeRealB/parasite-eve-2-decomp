@@ -584,7 +584,7 @@ void func_shelter_b2_operating_room_8017E118(SVECTOR* arg0, s32 arg1, s32 arg2)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a glowing disc around the point `arg0`, projected through
@@ -662,7 +662,7 @@ void func_shelter_b2_operating_room_8017E95C(SVECTOR* arg0, s32 arg1, s32 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 /// Halo effect task attached to a parent coordinate. State 0 places it at the
@@ -920,7 +920,7 @@ void func_shelter_b2_operating_room_8017F478(GsCOORDINATE2* arg0, s32 arg1, s32 
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
 /// Draws a glowing ring around the coordinate's projected position, unless the
@@ -1012,7 +1012,7 @@ void func_shelter_b2_operating_room_8017F6FC(GsCOORDINATE2* arg0, s32 arg1, s32 
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a glowing disc at the coordinate's world position, unless the
@@ -1083,7 +1083,7 @@ void func_shelter_b2_operating_room_8017FB20(GsCOORDINATE2* arg0, s32 arg1, u8* 
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Burst effect task. Every frame it draws a glowing disc and the glow of
@@ -1271,8 +1271,7 @@ void func_shelter_b2_operating_room_80180060(GsCOORDINATE2* coord, s16 size)
             func_shelter_b2_operating_room_8018058C(&ground, outerSize);
         }
     }
-    *(void**)G_SCRATCH_HEAD =
-        (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpRingScratch);
+    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
 }
 
 /// Draws a flat quad facing the camera around the coordinate's world
@@ -1363,5 +1362,5 @@ void func_shelter_b2_operating_room_8018058C(GsCOORDINATE2* arg0, s32 arg1)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }

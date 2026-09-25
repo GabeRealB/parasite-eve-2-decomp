@@ -616,7 +616,7 @@ void func_shelter_b1_main_corridor_8017E070(SVECTOR* arg0, s32 arg1, s32 arg2, s
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Draws one semi-transparent textured sprite centred on the view-space point
@@ -708,7 +708,7 @@ void func_shelter_b1_main_corridor_8017E858(SVECTOR* arg0, s32 arg1, s32 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0xC;
+    SCRATCH_POP_BYTES_AT(scratch, 0xC);
 }
 
 /// A drifting mote. On its first tick it unpacks `spawnArg1` (see
@@ -875,7 +875,7 @@ void func_shelter_b1_main_corridor_8017EDA0(GsCOORDINATE2* arg0, u16 arg1, u16 a
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(u8**)G_SCRATCH_HEAD += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Draws a flat ring of sixteen gouraud quads around the screen position of
@@ -968,7 +968,7 @@ void func_shelter_b1_main_corridor_8017F064(GsCOORDINATE2* arg0, s32 arg1, s32 a
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a radial glow around the screen position of `arg0`'s world
@@ -1045,7 +1045,7 @@ void func_shelter_b1_main_corridor_8017F488(GsCOORDINATE2* arg0, s16 arg1, u8* a
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// A coloured flash. Its first tick places it at the work block's position
@@ -1319,8 +1319,7 @@ void func_shelter_b1_main_corridor_8017FD60(GsCOORDINATE2* coord, s16 size)
             func_shelter_b1_main_corridor_8018028C(&ground, outerSize);
         }
     }
-    *(void**)G_SCRATCH_HEAD =
-        (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpRingScratch);
+    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
 }
 
 /// Draws a semi-transparent textured square at `arg0`'s world translation,
@@ -1408,7 +1407,7 @@ void func_shelter_b1_main_corridor_8018028C(GsCOORDINATE2* arg0, s32 arg1)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 /// Draws a starburst around the screen position of `arg0`'s world
@@ -1547,7 +1546,7 @@ void func_shelter_b1_main_corridor_80180604(GsCOORDINATE2* arg0, s16 arg1, u8* a
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Emitter that lives 20 ticks: each tick it turns its heading by a random
@@ -1747,7 +1746,7 @@ void func_shelter_b1_main_corridor_8018139C(GsCOORDINATE2* arg0, s32 arg1, s32 a
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// A second copy of `func_shelter_b1_main_corridor_8017F488`, drawing the same
@@ -1822,7 +1821,7 @@ void func_shelter_b1_main_corridor_801817C8(GsCOORDINATE2* arg0, s16 arg1, u8* a
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// A beam between two points under the work block's parent. Its first tick
@@ -1952,9 +1951,9 @@ void func_shelter_b1_main_corridor_8018204C(GsCOORDINATE2* arg0, GsCOORDINATE2* 
     {
         register u8* tmp asm("v0");
 
-        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomDraw03Scratch);
-        blk                     = (RoomDraw03Scratch*)tmp;
-        *(void**)G_SCRATCH_HEAD = tmp;
+        tmp                = SCRATCH_HEAD(u8) - sizeof(RoomDraw03Scratch);
+        blk                = (RoomDraw03Scratch*)tmp;
+        SCRATCH_HEAD(void) = tmp;
     }
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -2030,7 +2029,7 @@ void func_shelter_b1_main_corridor_8018204C(GsCOORDINATE2* arg0, GsCOORDINATE2* 
         }
         i += 1;
     } while (i < 7);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomDraw03Scratch);
+    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
 }
 
 /// A burst at the effect's coordinate: spawns effect 0x60076, then either
@@ -2239,5 +2238,5 @@ void func_shelter_b1_main_corridor_801826CC(GsCOORDINATE2* arg0, s16 arg1, u8* a
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }

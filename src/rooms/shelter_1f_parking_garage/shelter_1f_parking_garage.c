@@ -602,7 +602,7 @@ void func_shelter_1f_parking_garage_8017E080(SVECTOR* arg0, s32 arg1, s32 arg2, 
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Draws a round glow at the world point `arg0`: projected through
@@ -680,7 +680,7 @@ void func_shelter_1f_parking_garage_8017E868(SVECTOR* arg0, s32 arg1, s32 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0xC;
+    SCRATCH_POP_BYTES(0xC);
 }
 
 /// Task drawing one expanding flash around its object. State 0 starts the
@@ -843,7 +843,7 @@ void func_shelter_1f_parking_garage_8017EEB0(GsCOORDINATE2* arg0, s32 arg1, s32 
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a round glow of eight gouraud wedges around the world position of
@@ -923,7 +923,7 @@ void func_shelter_1f_parking_garage_8017F2DC(GsCOORDINATE2* arg0, s32 arg1, u8* 
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Task drawing a pair of trails behind two points of its object. State 0
@@ -1055,9 +1055,9 @@ void func_shelter_1f_parking_garage_8017FB60(GsCOORDINATE2* arg0, GsCOORDINATE2*
     {
         register u8* tmp asm("v0");
 
-        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomDraw03Scratch);
-        blk                     = (RoomDraw03Scratch*)tmp;
-        *(void**)G_SCRATCH_HEAD = tmp;
+        tmp                = SCRATCH_HEAD(u8) - sizeof(RoomDraw03Scratch);
+        blk                = (RoomDraw03Scratch*)tmp;
+        SCRATCH_HEAD(void) = tmp;
     }
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -1133,7 +1133,7 @@ void func_shelter_1f_parking_garage_8017FB60(GsCOORDINATE2* arg0, GsCOORDINATE2*
         }
         i += 1;
     } while (i < 7);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomDraw03Scratch);
+    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
 }
 
 /// Task drawing one spark burst on its object. State 0 spawns the burst
@@ -1348,5 +1348,5 @@ void func_shelter_1f_parking_garage_801801E0(GsCOORDINATE2* arg0, s16 arg1, u8* 
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }

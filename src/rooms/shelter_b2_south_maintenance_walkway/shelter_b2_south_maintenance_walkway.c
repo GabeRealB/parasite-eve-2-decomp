@@ -532,7 +532,7 @@ void func_shelter_b2_south_maintenance_walkway_8017DEC4(SVECTOR* arg0, s32 arg1,
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Queues a red gouraud disc of four quads at the projected point `arg0`, of
@@ -595,7 +595,7 @@ void func_shelter_b2_south_maintenance_walkway_8017E640(SVECTOR* arg0, s16 arg1)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0xC;
+    SCRATCH_POP_BYTES(0xC);
 }
 
 /// A flash. The first tick takes 0x100 / the spawn count as its step; while
@@ -754,7 +754,7 @@ void func_shelter_b2_south_maintenance_walkway_8017EC40(GsCOORDINATE2* arg0, s32
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Queues a gouraud disc of eight wedges around the projected world position
@@ -832,7 +832,7 @@ void func_shelter_b2_south_maintenance_walkway_8017F06C(GsCOORDINATE2* arg0, s32
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// A twin trail. The first tick allocates sixteen coordinate frames, eight for
@@ -962,9 +962,9 @@ void func_shelter_b2_south_maintenance_walkway_8017F8F0(GsCOORDINATE2* arg0, GsC
     {
         register u8* tmp asm("v0");
 
-        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomDraw03Scratch);
-        blk                     = (RoomDraw03Scratch*)tmp;
-        *(void**)G_SCRATCH_HEAD = tmp;
+        tmp                = SCRATCH_HEAD(u8) - sizeof(RoomDraw03Scratch);
+        blk                = (RoomDraw03Scratch*)tmp;
+        SCRATCH_HEAD(void) = tmp;
     }
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -1040,7 +1040,7 @@ void func_shelter_b2_south_maintenance_walkway_8017F8F0(GsCOORDINATE2* arg0, GsC
         }
         i += 1;
     } while (i < 7);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomDraw03Scratch);
+    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
 }
 
 /// A spark burst. The first tick spawns its flash effect; then, for a non-zero
@@ -1253,7 +1253,7 @@ void func_shelter_b2_south_maintenance_walkway_8017FF70(GsCOORDINATE2* arg0, s16
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// A glowing disc attached to its parent at the work block's position; the
@@ -1512,7 +1512,7 @@ void func_shelter_b2_south_maintenance_walkway_801810AC(GsCOORDINATE2* arg0, s32
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
 /// Queues a gouraud ring of sixteen quads around the projected world position
@@ -1605,7 +1605,7 @@ void func_shelter_b2_south_maintenance_walkway_80181330(GsCOORDINATE2* arg0, s32
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Queues a gouraud disc of eight wedges around the projected world position
@@ -1675,7 +1675,7 @@ void func_shelter_b2_south_maintenance_walkway_80181754(GsCOORDINATE2* arg0, s32
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// A twin-ring burst in orange. The first tick sets its levels; every tick
@@ -1864,8 +1864,7 @@ void func_shelter_b2_south_maintenance_walkway_80181C94(GsCOORDINATE2* coord, s1
             func_shelter_b2_south_maintenance_walkway_801821C0(&ground, outerSize);
         }
     }
-    *(void**)G_SCRATCH_HEAD =
-        (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpRingScratch);
+    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
 }
 
 /// Queues a flat, semi-transparent textured quad of half-size `arg1` lying
@@ -1953,5 +1952,5 @@ void func_shelter_b2_south_maintenance_walkway_801821C0(GsCOORDINATE2* arg0, s32
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }

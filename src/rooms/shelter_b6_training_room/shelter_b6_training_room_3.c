@@ -311,7 +311,7 @@ void func_shelter_b6_training_room_8017E28C(SVECTOR* arg0, s32 arg1, s32 arg2)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a glowing disc at the world point `arg0`: projected through
@@ -389,7 +389,7 @@ void func_shelter_b6_training_room_8017EAD0(SVECTOR* arg0, s32 arg1, s32 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 void func_shelter_b6_training_room_8017EE70(Task* arg0)
@@ -570,8 +570,7 @@ void func_shelter_b6_training_room_8017F014(GsCOORDINATE2* coord, s16 size)
             func_shelter_b6_training_room_8017F540(&ground, outerSize);
         }
     }
-    *(void**)G_SCRATCH_HEAD =
-        (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpRingScratch);
+    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
 }
 
 /// Draws a flat textured quad centred on `arg0`'s translation: the unit quad
@@ -660,7 +659,7 @@ void func_shelter_b6_training_room_8017F540(GsCOORDINATE2* arg0, s32 arg1)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 void func_shelter_b6_training_room_8017F8B8(Task* task)
@@ -875,7 +874,7 @@ void func_shelter_b6_training_room_8017FC40(GsCOORDINATE2* coord, s16 size, u16 
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x2C;
+    SCRATCH_POP_BYTES(0x2C);
 }
 
 /// Draws a glowing capsule between the ground points under `from` and `to`.
@@ -1011,7 +1010,7 @@ void func_shelter_b6_training_room_80180530(GsCOORDINATE2* from, GsCOORDINATE2* 
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x2C;
+    SCRATCH_POP_BYTES(0x2C);
 }
 
 void func_shelter_b6_training_room_80180DB4(Task* task)
@@ -1251,7 +1250,7 @@ void func_shelter_b6_training_room_80181368(GpEffWork* mem, GsCOORDINATE2* coord
                     prim);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x78;
+    SCRATCH_POP_BYTES(0x78);
 }
 
 void func_shelter_b6_training_room_80181930(Task* task)
@@ -1382,7 +1381,7 @@ void func_shelter_b6_training_room_80181BAC(GsCOORDINATE2* coord, s16 arg1, s16 
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a textured `POLY_FT4` strip between the world positions of two
@@ -1457,7 +1456,7 @@ void func_shelter_b6_training_room_80181FDC(GsCOORDINATE2* arg0, GsCOORDINATE2* 
                     prim);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x28;
+    SCRATCH_POP_BYTES(0x28);
 }
 
 void func_shelter_b6_training_room_8018245C(Task* task)

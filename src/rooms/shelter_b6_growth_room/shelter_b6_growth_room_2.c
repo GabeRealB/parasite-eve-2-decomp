@@ -255,7 +255,7 @@ void func_shelter_b6_growth_room_8017E0A8(SVECTOR* arg0, s32 arg1, s32 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 void func_shelter_b6_growth_room_8017E448(s16 arg0, s16 arg1)
@@ -408,7 +408,7 @@ void func_shelter_b6_growth_room_8017E7F0(GsCOORDINATE2* coord, u16 arg1, s16 ar
                     prim);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void func_shelter_b6_growth_room_8017EAC8(Task* task)
@@ -538,5 +538,5 @@ void func_shelter_b6_growth_room_8017ED28(GsCOORDINATE2* coord, u16 arg1, s16 ar
                     prim);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }

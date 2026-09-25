@@ -370,8 +370,8 @@ void func_shelter_b4_upper_sewer_8017DD98(Task* task, ShelterB4UpperSewerSurface
     s32               i;
 
     gGfxViewCoord.flg = 0;
-    head              = *(u8**)0x1F8003FC;
-    *(u8**)0x1F8003FC = head - 0xC;
+    head              = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(u8)  = head - 0xC;
     w                 = (RoomWaterScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
@@ -466,7 +466,7 @@ void func_shelter_b4_upper_sewer_8017DD98(Task* task, ShelterB4UpperSewerSurface
             }
         }
     }
-    *(u8**)0x1F8003FC += 0xC;
+    SCRATCH_POP_BYTES(0xC);
 }
 
 /// The room's water task: runs its state (`func_shelter_b4_upper_sewer_8017E55C`
@@ -706,7 +706,7 @@ void func_shelter_b4_upper_sewer_8017EA0C(GsCOORDINATE2* arg0, s32 arg1, s32 arg
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 /// Particle task drawn as the spinning sprite of
@@ -899,7 +899,7 @@ void func_shelter_b4_upper_sewer_8017F1FC(GsCOORDINATE2* arg0, s32 arg1, s32 arg
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x1C;
+    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
 /// Draws a sprite at the coordinate's world position: one semi-transparent
@@ -990,7 +990,7 @@ void func_shelter_b4_upper_sewer_8017F5E8(GsCOORDINATE2* arg0, s16 arg1, s16 arg
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Draws a glowing capsule between the points `arg0[0]` and `arg0[1]`,
@@ -1141,7 +1141,7 @@ void func_shelter_b4_upper_sewer_8017F8CC(SVECTOR* arg0, s32 arg1, s32 arg2)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void func_shelter_b4_upper_sewer_80180110(Task* task)
@@ -1299,7 +1299,7 @@ void func_shelter_b4_upper_sewer_801803DC(GsCOORDINATE2* arg0, u16 arg1, u16 arg
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(u8**)G_SCRATCH_HEAD += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Draws a ring around the coordinate's world position, projected through
@@ -1391,7 +1391,7 @@ void func_shelter_b4_upper_sewer_801806A0(GsCOORDINATE2* arg0, s32 arg1, s32 arg
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a glowing disc at the coordinate's world position, unless the
@@ -1468,7 +1468,7 @@ void func_shelter_b4_upper_sewer_80180AC4(GsCOORDINATE2* arg0, s16 arg1, u8* arg
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 void func_shelter_b4_upper_sewer_80180E58(Task* arg0)
@@ -1731,8 +1731,7 @@ void func_shelter_b4_upper_sewer_8018139C(GsCOORDINATE2* coord, s16 size)
             func_shelter_b4_upper_sewer_801818C8(&ground, outerSize);
         }
     }
-    *(void**)G_SCRATCH_HEAD =
-        (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpRingScratch);
+    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
 }
 
 /// Draws a flat mark: a quad of half-size `arg1` laid flat in view space
@@ -1821,7 +1820,7 @@ void func_shelter_b4_upper_sewer_801818C8(GsCOORDINATE2* arg0, s32 arg1)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 /// Draws a flash at the coordinate's world position, unless the projection
@@ -1961,7 +1960,7 @@ void func_shelter_b4_upper_sewer_80181C40(GsCOORDINATE2* arg0, s16 arg1, u8* arg
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void func_shelter_b4_upper_sewer_80182600(Task* arg0)
@@ -2153,7 +2152,7 @@ void func_shelter_b4_upper_sewer_801829D8(GsCOORDINATE2* arg0, s32 arg1, s32 arg
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a glowing disc at the coordinate's world position, unless the
@@ -2230,7 +2229,7 @@ void func_shelter_b4_upper_sewer_80182E04(GsCOORDINATE2* arg0, s16 arg1, u8* arg
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 void func_shelter_b4_upper_sewer_80183198(Task* task)
@@ -2354,9 +2353,9 @@ void func_shelter_b4_upper_sewer_80183688(GsCOORDINATE2* arg0, GsCOORDINATE2* ar
     {
         register u8* tmp asm("v0");
 
-        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomDraw03Scratch);
-        blk                     = (RoomDraw03Scratch*)tmp;
-        *(void**)G_SCRATCH_HEAD = tmp;
+        tmp                = SCRATCH_HEAD(u8) - sizeof(RoomDraw03Scratch);
+        blk                = (RoomDraw03Scratch*)tmp;
+        SCRATCH_HEAD(void) = tmp;
     }
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -2432,7 +2431,7 @@ void func_shelter_b4_upper_sewer_80183688(GsCOORDINATE2* arg0, GsCOORDINATE2* ar
         }
         i += 1;
     } while (i < 7);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomDraw03Scratch);
+    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
 }
 
 void func_shelter_b4_upper_sewer_80183A80(Task* task)
@@ -2640,7 +2639,7 @@ void func_shelter_b4_upper_sewer_80183D08(GsCOORDINATE2* arg0, s16 arg1, u8* arg
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Effect task of a glowing disc attached to its parent at the work's
@@ -2892,7 +2891,7 @@ void func_shelter_b4_upper_sewer_80184E44(GsCOORDINATE2* arg0, s32 arg1, s32 arg
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
 /// The ring `func_shelter_b4_upper_sewer_801806A0` draws, compiled with a
@@ -2984,7 +2983,7 @@ void func_shelter_b4_upper_sewer_801850C8(GsCOORDINATE2* arg0, s32 arg1, s32 arg
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a glowing disc at the coordinate's world position, unless the
@@ -3055,7 +3054,7 @@ void func_shelter_b4_upper_sewer_801854EC(GsCOORDINATE2* arg0, s32 arg1, u8* rgb
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Effect task of a burst of light: each frame it draws an orange disc and the
@@ -3240,8 +3239,7 @@ void func_shelter_b4_upper_sewer_80185A2C(GsCOORDINATE2* coord, s16 size)
             func_shelter_b4_upper_sewer_80185F58(&ground, outerSize);
         }
     }
-    *(void**)G_SCRATCH_HEAD =
-        (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpRingScratch);
+    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
 }
 
 /// Draws a flat mark: a quad of half-size `arg1` laid flat in view space
@@ -3330,5 +3328,5 @@ void func_shelter_b4_upper_sewer_80185F58(GsCOORDINATE2* arg0, s32 arg1)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }

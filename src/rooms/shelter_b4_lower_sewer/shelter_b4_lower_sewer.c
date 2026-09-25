@@ -147,9 +147,9 @@ void func_shelter_b4_lower_sewer_8017D72C(Task* task)
 
     e                 = D_shelter_b4_lower_sewer_80181E7C;
     gGfxViewCoord.flg = 0;
-    head              = *(u8**)0x1F8003FC;
+    head              = SCRATCH_HEAD(u8);
     phase             = -(gDisplayState.animFrame * 16);
-    *(u8**)0x1F8003FC = head - 0xC;
+    SCRATCH_HEAD(u8)  = head - 0xC;
     s                 = (_SurfaceScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
@@ -259,7 +259,7 @@ void func_shelter_b4_lower_sewer_8017D72C(Task* task)
             }
         }
     }
-    *(u8**)0x1F8003FC += 0xC;
+    SCRATCH_POP_BYTES(0xC);
 }
 
 /// Draws each surface in `D_shelter_b4_lower_sewer_80181E90` as a strip of 8
@@ -285,9 +285,9 @@ void func_shelter_b4_lower_sewer_8017DE8C(Task* task)
 
     e                 = D_shelter_b4_lower_sewer_80181E90;
     gGfxViewCoord.flg = 0;
-    head              = *(u8**)0x1F8003FC;
+    head              = SCRATCH_HEAD(u8);
     phase             = -(gDisplayState.animFrame * 16);
-    *(u8**)0x1F8003FC = head - 0xC;
+    SCRATCH_HEAD(u8)  = head - 0xC;
     s                 = (_SurfaceScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
@@ -348,7 +348,7 @@ void func_shelter_b4_lower_sewer_8017DE8C(Task* task)
             }
         }
     }
-    *(u8**)0x1F8003FC += 0xC;
+    SCRATCH_POP_BYTES(0xC);
 }
 
 /// The room's water task: runs its state (`func_shelter_b4_lower_sewer_8017E33C`

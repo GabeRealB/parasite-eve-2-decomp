@@ -279,7 +279,7 @@ void func_shelter_b1_storeroom_8017DBC4(SVECTOR* arg0, s32 arg1, s32 arg2)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a flickering gouraud disc of four `POLY_G4` wedges at `arg0`,
@@ -356,7 +356,7 @@ void func_shelter_b1_storeroom_8017E408(SVECTOR* arg0, s32 arg1, s32 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 void func_shelter_b1_storeroom_8017E7A8(Task* task)
@@ -511,7 +511,7 @@ void func_shelter_b1_storeroom_8017EA74(GsCOORDINATE2* arg0, u16 arg1, u16 arg2,
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(u8**)G_SCRATCH_HEAD += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Draws a ring of sixteen `POLY_G4` wedges around the coordinate's world
@@ -602,7 +602,7 @@ void func_shelter_b1_storeroom_8017ED38(GsCOORDINATE2* arg0, s32 arg1, s32 arg2,
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a disc of eight `POLY_G4` wedges at the coordinate's world position,
@@ -678,7 +678,7 @@ void func_shelter_b1_storeroom_8017F15C(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 void func_shelter_b1_storeroom_8017F4F0(Task* arg0)
@@ -941,8 +941,7 @@ void func_shelter_b1_storeroom_8017FA34(GsCOORDINATE2* coord, s16 size)
             func_shelter_b1_storeroom_8017FF60(&ground, outerSize);
         }
     }
-    *(void**)G_SCRATCH_HEAD =
-        (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpRingScratch);
+    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
 }
 
 /// Draws a flat textured quad of half-extent `arg1` lying on the ground plane
@@ -1028,7 +1027,7 @@ void func_shelter_b1_storeroom_8017FF60(GsCOORDINATE2* arg0, s32 arg1)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 /// Draws a gouraud flare at the coordinate's world position: a two-layer disc
@@ -1165,7 +1164,7 @@ void func_shelter_b1_storeroom_801802D8(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void func_shelter_b1_storeroom_80180C98(Task* arg0)
@@ -1356,7 +1355,7 @@ void func_shelter_b1_storeroom_80181070(GsCOORDINATE2* arg0, s32 arg1, s32 arg2,
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a disc of eight `POLY_G4` wedges at the coordinate's world position,
@@ -1432,7 +1431,7 @@ void func_shelter_b1_storeroom_8018149C(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 void func_shelter_b1_storeroom_80181830(Task* task)
@@ -1553,9 +1552,9 @@ void func_shelter_b1_storeroom_80181D20(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1
     {
         register u8* tmp asm("v0");
 
-        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomDraw03Scratch);
-        blk                     = (RoomDraw03Scratch*)tmp;
-        *(void**)G_SCRATCH_HEAD = tmp;
+        tmp                = SCRATCH_HEAD(u8) - sizeof(RoomDraw03Scratch);
+        blk                = (RoomDraw03Scratch*)tmp;
+        SCRATCH_HEAD(void) = tmp;
     }
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -1631,7 +1630,7 @@ void func_shelter_b1_storeroom_80181D20(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1
         }
         i += 1;
     } while (i < 7);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomDraw03Scratch);
+    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
 }
 
 void func_shelter_b1_storeroom_80182118(Task* task)
@@ -1836,7 +1835,7 @@ void func_shelter_b1_storeroom_801823A0(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Effect task of a glowing disc attached to its parent at the work's
@@ -2083,7 +2082,7 @@ void func_shelter_b1_storeroom_801834DC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2,
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
 /// Draws a ring of sixteen `POLY_G4` wedges around the coordinate's world
@@ -2174,7 +2173,7 @@ void func_shelter_b1_storeroom_80183760(GsCOORDINATE2* arg0, s32 arg1, s32 arg2,
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a disc of eight `POLY_G4` wedges at the coordinate's world position,
@@ -2244,7 +2243,7 @@ void func_shelter_b1_storeroom_80183B84(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Effect task of an expanding glow: each frame it draws a disc and a glow
@@ -2427,8 +2426,7 @@ void func_shelter_b1_storeroom_801840C4(GsCOORDINATE2* coord, s16 size)
             func_shelter_b1_storeroom_801845F0(&ground, outerSize);
         }
     }
-    *(void**)G_SCRATCH_HEAD =
-        (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpRingScratch);
+    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
 }
 
 /// Draws a flat textured quad of half-extent `arg1` lying on the ground plane
@@ -2514,5 +2512,5 @@ void func_shelter_b1_storeroom_801845F0(GsCOORDINATE2* arg0, s32 arg1)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }

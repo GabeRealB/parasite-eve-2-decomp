@@ -66,48 +66,47 @@ static inline void _shelterR48RotTrans(MATRIX* m, SVECTOR* v)
 
 void func_shelter_r48_8017D660(Task* arg0)
 {
-    DisplayState*          disp;
-    TmdObject*             tmd;
-    OverlayRippleScratch*  block;
-    OverlayRippleScratch** slot;
-    POLY_FT4*              prim;
-    u8*                    ptr;
-    s32                    otBuf;
-    s32                    view;
-    s32                    mode;
-    s32                    shift;
-    s32                    ang2;
-    s32                    ang;
-    s32                    y;
-    s32                    yTop;
-    s32                    x0;
-    s32                    x1;
-    s32                    nprims;
-    s32                    clip;
-    s32                    otOff;
-    s32                    fade;
-    s32                    scale;
-    s32                    xNeg;
-    s32                    wave;
-    s32                    wave1;
-    s32                    start;
-    s32                    end;
-    s32                    dist;
-    s32                    z;
-    s32                    otz;
-    s32                    i;
-    s32                    yOff;
-    s32                    fadeLen;
-    s32                    xMin;
-    s32                    xMax;
-    s32                    xLeft;
-    s32                    xRight;
-    s32                    xL;
-    s32                    xR;
-    s32                    v;
-    s32                    edge;
-    s32                    sine;
-    s32                    cosine;
+    DisplayState*         disp;
+    TmdObject*            tmd;
+    OverlayRippleScratch* block;
+    POLY_FT4*             prim;
+    u8*                   ptr;
+    s32                   otBuf;
+    s32                   view;
+    s32                   mode;
+    s32                   shift;
+    s32                   ang2;
+    s32                   ang;
+    s32                   y;
+    s32                   yTop;
+    s32                   x0;
+    s32                   x1;
+    s32                   nprims;
+    s32                   clip;
+    s32                   otOff;
+    s32                   fade;
+    s32                   scale;
+    s32                   xNeg;
+    s32                   wave;
+    s32                   wave1;
+    s32                   start;
+    s32                   end;
+    s32                   dist;
+    s32                   z;
+    s32                   otz;
+    s32                   i;
+    s32                   yOff;
+    s32                   fadeLen;
+    s32                   xMin;
+    s32                   xMax;
+    s32                   xLeft;
+    s32                   xRight;
+    s32                   xL;
+    s32                   xR;
+    s32                   v;
+    s32                   edge;
+    s32                   sine;
+    s32                   cosine;
 
     tmd   = (TmdObject*)arg0->extra;
     otBuf = D_8007107C;
@@ -180,11 +179,10 @@ void func_shelter_r48_8017D660(Task* arg0)
     if (Gp_StateF0.field_4 == 0) {
         arg0->killCountdown = (u16)arg0->killCountdown + 0x20;
     }
-    ang2  = arg0->killCountdown * 2;
-    ang   = arg0->killCountdown;
-    slot  = (OverlayRippleScratch**)G_SCRATCH_HEAD;
-    *slot = *slot - 1;
-    block = *slot;
+    ang2 = arg0->killCountdown * 2;
+    ang  = arg0->killCountdown;
+    SCRATCH_PUSH(OverlayRippleScratch);
+    block = SCRATCH_HEAD(OverlayRippleScratch);
     TransposeMatrix(&gGfxViewCoord.workm, &block->mtx);
     block->origin.vx = gGfxViewCoord.workm.t[0];
     block->origin.vy = gGfxViewCoord.workm.t[1];
@@ -412,7 +410,7 @@ void func_shelter_r48_8017D660(Task* arg0)
             ang += 0xC5;
         }
     }
-    *(u8**)G_SCRATCH_HEAD += sizeof(OverlayRippleScratch);
+    SCRATCH_POP_BYTES(sizeof(OverlayRippleScratch));
 }
 
 s32 func_shelter_r48_8017DF50(s32 arg0, s32 arg1, s32 arg2)
@@ -981,7 +979,7 @@ void func_shelter_r48_8017F124(GpEffWork* work, GsCOORDINATE2* coord, s32 part)
                     prim);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x118;
+    SCRATCH_POP_BYTES(0x118);
 }
 
 /// Per-frame update of an effect task drawn with `func_shelter_r48_8017FB7C`
@@ -1173,7 +1171,7 @@ void func_shelter_r48_8017FB7C(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x1C;
+    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
 void func_shelter_r48_8017FF74(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
@@ -1250,7 +1248,7 @@ void func_shelter_r48_8017FF74(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
 /// Per-frame handler for one animated sprite effect, drawn by
@@ -1409,10 +1407,10 @@ void func_shelter_r48_80180804(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3
     s32              bank;
     s32              idx;
 
-    head                                      = *(u8**)G_SCRATCH_HEAD;
+    head                                      = SCRATCH_HEAD(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
-    *(void**)G_SCRATCH_HEAD                   = head - 0x1C;
-    block                                     = *(GpFxQuadScratch**)G_SCRATCH_HEAD;
+    SCRATCH_HEAD(void)                        = head - 0x1C;
+    block                                     = SCRATCH_HEAD(GpFxQuadScratch);
     block->vec.vy                             = arg0->workm.t[1];
     block->vec.vz                             = arg0->workm.t[2];
     idx                                       = arg1 & 0xFFF;
@@ -1459,7 +1457,7 @@ void func_shelter_r48_80180804(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(u8**)G_SCRATCH_HEAD += 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void func_shelter_r48_80180C5C(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
@@ -1476,10 +1474,10 @@ void func_shelter_r48_80180C5C(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3
     s32              bank;
     u16              idx;
 
-    head                                      = *(u8**)G_SCRATCH_HEAD;
+    head                                      = SCRATCH_HEAD(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
-    *(void**)G_SCRATCH_HEAD                   = head - 0x1C;
-    block                                     = *(GpFxQuadScratch**)G_SCRATCH_HEAD;
+    SCRATCH_HEAD(void)                        = head - 0x1C;
+    block                                     = SCRATCH_HEAD(GpFxQuadScratch);
     block->vec.vy                             = arg0->workm.t[1];
     block->vec.vz                             = arg0->workm.t[2];
     idx                                       = arg1 & 0xFFF;
@@ -1526,7 +1524,7 @@ void func_shelter_r48_80180C5C(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(u8**)G_SCRATCH_HEAD += 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void func_shelter_r48_801810B0(Task* task)
@@ -1943,7 +1941,7 @@ void func_shelter_r48_80181C14(GsCOORDINATE2* coord, s16 size, s32 yaw, s32 colo
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x2C;
+    SCRATCH_POP_BYTES(0x2C);
 }
 
 /// Projects `arg0` through `Gfx_ViewWorldMtx` and, when the GTE flag is
@@ -1982,7 +1980,7 @@ void func_shelter_r48_8018258C(SVECTOR* arg0, s32 arg1, s32 arg2)
         u8*    tmp;
 
         scratch = (void**)G_SCRATCH_HEAD;
-        tmp     = (*scratch = (u8*)*scratch - 0x14);
+        tmp     = SCRATCH_PUSH_BYTES_AT(scratch, 0x14);
         block   = (RoomDraw05Scratch*)tmp;
     }
 
@@ -2105,5 +2103,5 @@ void func_shelter_r48_8018258C(SVECTOR* arg0, s32 arg1, s32 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
 }

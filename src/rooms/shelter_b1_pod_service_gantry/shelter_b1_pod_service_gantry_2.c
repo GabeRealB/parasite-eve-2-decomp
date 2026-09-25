@@ -270,7 +270,7 @@ void func_shelter_b1_pod_service_gantry_8017DF70(GsCOORDINATE2* arg0, u16 arg1, 
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(u8**)G_SCRATCH_HEAD += 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a camera-facing sprite at `arg0`'s world position: the point is
@@ -341,7 +341,7 @@ void func_shelter_b1_pod_service_gantry_8017E400(GsCOORDINATE2* arg0, u16 arg1, 
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(u8**)G_SCRATCH_HEAD += 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Per-frame driver of a particle effect, a `Gp_State1C` effect task drawn
@@ -540,7 +540,7 @@ void func_shelter_b1_pod_service_gantry_8017ED3C(GsCOORDINATE2* arg0, u16 arg1, 
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x1C;
+    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` into a
@@ -618,7 +618,7 @@ void func_shelter_b1_pod_service_gantry_8017F160(GsCOORDINATE2* arg0, u16 arg1, 
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
 /// Draws a glowing disc at the point (0, -0xC4, 0) in `arg0`'s local frame:
@@ -646,11 +646,11 @@ void func_shelter_b1_pod_service_gantry_8017F450(GsCOORDINATE2* arg0, s32 arg1, 
     s32            green;
     u8             red;
 
-    head                    = *(u8**)G_SCRATCH_HEAD;
-    *(void**)G_SCRATCH_HEAD = head - 0x18;
-    block                   = *(GpRingScratch**)G_SCRATCH_HEAD;
-    color                   = arg3;
-    color16                 = color;
+    head               = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(void) = head - 0x18;
+    block              = SCRATCH_HEAD(GpRingScratch);
+    color              = arg3;
+    color16            = color;
     Mem_Set(block, 0, 0x18);
     ((GpRingScratch*)(head - 0x18))->vec.vx = 0;
     block->vec.vy                           = -0xC4;
@@ -704,7 +704,7 @@ void func_shelter_b1_pod_service_gantry_8017F450(GsCOORDINATE2* arg0, s32 arg1, 
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Per-frame driver of a rising sprite effect, a `Gp_State1C` effect task.

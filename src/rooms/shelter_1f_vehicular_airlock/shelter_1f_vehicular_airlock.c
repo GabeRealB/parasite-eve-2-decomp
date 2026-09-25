@@ -417,7 +417,7 @@ void func_shelter_1f_vehicular_airlock_8017DC80(SVECTOR* arg0, s32 arg1, s32 arg
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
         } while (ang < 0x800);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Draws a fan of four gouraud quads around the view-space point `arg0` when
@@ -494,7 +494,7 @@ void func_shelter_1f_vehicular_airlock_8017E468(SVECTOR* arg0, s32 arg1, s32 arg
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0xC;
+    SCRATCH_POP_BYTES(0xC);
 }
 
 /// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, if
@@ -597,7 +597,7 @@ void func_shelter_1f_vehicular_airlock_8017E80C(SVECTOR* arg0, s32 arg1, s32 arg
             i = t2;
         } while (i < 2);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
 }
 
 /// Flash effect task on the object's coordinate. Over `spawnArg1` ticks it
@@ -755,7 +755,7 @@ void func_shelter_1f_vehicular_airlock_8017EF60(GsCOORDINATE2* arg0, s32 arg1, s
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a fan of eight gouraud quads around the screen position of the
@@ -834,7 +834,7 @@ void func_shelter_1f_vehicular_airlock_8017F38C(GsCOORDINATE2* arg0, s32 arg1, u
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Trail effect task. On its first tick it allocates two eight-slot histories
@@ -962,9 +962,9 @@ void func_shelter_1f_vehicular_airlock_8017FC10(GsCOORDINATE2* arg0, GsCOORDINAT
     {
         register u8* tmp asm("v0");
 
-        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomDraw03Scratch);
-        blk                     = (RoomDraw03Scratch*)tmp;
-        *(void**)G_SCRATCH_HEAD = tmp;
+        tmp                = SCRATCH_HEAD(u8) - sizeof(RoomDraw03Scratch);
+        blk                = (RoomDraw03Scratch*)tmp;
+        SCRATCH_HEAD(void) = tmp;
     }
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -1040,7 +1040,7 @@ void func_shelter_1f_vehicular_airlock_8017FC10(GsCOORDINATE2* arg0, GsCOORDINAT
         }
         i += 1;
     } while (i < 7);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomDraw03Scratch);
+    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
 }
 
 /// Burst effect task on the object's coordinate. On its first tick it spawns
@@ -1253,5 +1253,5 @@ void func_shelter_1f_vehicular_airlock_80180290(GsCOORDINATE2* arg0, s16 arg1, u
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }

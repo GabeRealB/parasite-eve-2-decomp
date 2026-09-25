@@ -282,7 +282,7 @@ void func_shelter_b4_lower_sewer_8017E6A0(SVECTOR* arg0, s32 arg1, s32 arg2)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Per-frame driver of an expanding, fading flash. While the room's event
@@ -410,7 +410,7 @@ void func_shelter_b4_lower_sewer_8017F038(GsCOORDINATE2* arg0, s32 arg1, s32 arg
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 /// Per-frame update of a sprite effect drawn with
@@ -605,7 +605,7 @@ void func_shelter_b4_lower_sewer_8017F828(GsCOORDINATE2* arg0, s32 arg1, s32 arg
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x1C;
+    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
 /// Draws an upright sprite at the coordinate's world position. The position is
@@ -697,7 +697,7 @@ void func_shelter_b4_lower_sewer_8017FC14(GsCOORDINATE2* arg0, s32 arg1, s32 arg
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
 /// Per-frame driver of a burst of light in red, half blue and quarter green.
@@ -859,7 +859,7 @@ void func_shelter_b4_lower_sewer_80180154(GsCOORDINATE2* arg0, s32 arg1, s32 arg
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a round glow at the coordinate's world position. The position is
@@ -939,7 +939,7 @@ void func_shelter_b4_lower_sewer_80180580(GsCOORDINATE2* arg0, s32 arg1, u8* rgb
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Per-frame driver of a ribbon trail swept by two points of a moving parent.
@@ -1072,9 +1072,9 @@ void func_shelter_b4_lower_sewer_80180E04(GsCOORDINATE2* arg0, GsCOORDINATE2* ar
     {
         register u8* tmp asm("v0");
 
-        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomDraw03Scratch);
-        blk                     = (RoomDraw03Scratch*)tmp;
-        *(void**)G_SCRATCH_HEAD = tmp;
+        tmp                = SCRATCH_HEAD(u8) - sizeof(RoomDraw03Scratch);
+        blk                = (RoomDraw03Scratch*)tmp;
+        SCRATCH_HEAD(void) = tmp;
     }
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -1150,7 +1150,7 @@ void func_shelter_b4_lower_sewer_80180E04(GsCOORDINATE2* arg0, GsCOORDINATE2* ar
         }
         i += 1;
     } while (i < 7);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomDraw03Scratch);
+    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
 }
 
 /// Per-frame driver of an explosion at the task's coordinate. The first frame
@@ -1367,5 +1367,5 @@ void func_shelter_b4_lower_sewer_80181484(GsCOORDINATE2* arg0, s16 arg1, u8* arg
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
