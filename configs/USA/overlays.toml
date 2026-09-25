@@ -3646,9 +3646,9 @@ id = 195
 objects = [
   { kind = "packageId" },
   { unit = "actor_311500/actor_311500_2", rodata = "0x4", text = "0xBB8" },
-  { lib = true, unit = "actors_shared_fn000e8", text = "0x18" },
-  { lib = true, unit = "actors_shared_fn00430", text = "0x360" },
-  { lib = true, unit = "actors_shared_80132808", text = "0x8AC" },
+  { unit = "actor_311500/actor_311500_3", text = "0x18" },
+  { unit = "actor_311500/actor_311500_4", text = "0x360" },
+  { unit = "actor_311500/actor_311500_5", text = "0x8AC" },
   { kind = "model", at = "0x1894" },
   { kind = "data", at = "0x6DFC" },
 ]
