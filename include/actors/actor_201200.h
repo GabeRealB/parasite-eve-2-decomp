@@ -175,6 +175,15 @@ typedef struct Actor201200TurnScratch {
 } Actor201200TurnScratch;
 STATIC_ASSERT_SIZEOF(Actor201200TurnScratch, 0xC);
 
+/// 0x14-byte scratch from `G_SCRATCH_HEAD` for the movement step: the
+/// 16.16 delta `func_800E0C10` resolves from the contact records, and the
+/// "moved" flag the step returns.
+typedef struct Actor201200DeltaFlag {
+    /* 0x00 */ GpDeltaScratch delta;
+    /* 0x10 */ s32            moved;
+} Actor201200DeltaFlag;
+STATIC_ASSERT_SIZEOF(Actor201200DeltaFlag, 0x14);
+
 s32 Actor01200_Fn03ABC(Actor201200* arg0, s32 arg1, Actor201200Msg* arg2);
 
 #endif

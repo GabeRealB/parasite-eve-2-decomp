@@ -1,5 +1,6 @@
 #include "common.h"
 #include "actors/actor_104000.h"
+#include "actors/actor_201200.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3FB8.h"
 #include "main/gfx.h"
@@ -10,6 +11,9 @@
 #include "gte.h"
 
 extern u8 D_80072729;
+
+/// Integer part of the last movement step `Actor01200_Fn0067C` applied.
+extern SVECTOR Actor01200_D07084;
 
 /// Bearing of `p` from `eye` in the XZ plane, staged in a scratch block of its
 /// own that is released before `ratan2` runs.
@@ -159,4 +163,55 @@ s32 Actor01200_Fn00130(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
     return s->blocked != 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_01200/actor_201200", Actor01200_Fn0067C);
+/// Steps `coord` by the push the first `count` contact records in `movement`
+/// resolve to, and latches the integer part of that push in
+/// `Actor01200_D07084`. When a component's fractional half is nonzero the
+/// coordinate and the latched step move one unit further from zero. Returns
+/// nonzero when the X or Z push is nonzero.
+s32 Actor01200_Fn0067C(GsCOORDINATE2* coord, GpRec18* movement, s16 count)
+{
+    void**                scratch;
+    u8*                   head;
+    Actor201200DeltaFlag* s;
+    register void*        p asm("v1");
+    s32                   val;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    p        = head - 0x14;
+    s        = p;
+    *scratch = p;
+    s->moved = 0;
+    if (func_800E0C10(movement, &s->delta, (s32)count, NULL) != 0) {
+        coord->coord.t[0]    = coord->coord.t[0] + ((Actor201200DeltaFlag*)(head - 0x14))->delta.vx.h.hi;
+        coord->coord.t[2]    = coord->coord.t[2] + s->delta.vz.h.hi;
+        Actor01200_D07084.vx = ((Actor201200DeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
+        Actor01200_D07084.vy = s->delta.vy.w >> 16;
+        Actor01200_D07084.vz = s->delta.vz.w >> 16;
+        val                  = ((Actor201200DeltaFlag*)(head - 0x14))->delta.vx.w;
+        if ((val & 0xFFFF) != 0) {
+            if (val > 0) {
+                coord->coord.t[0]++;
+                Actor01200_D07084.vx++;
+            } else {
+                coord->coord.t[0]--;
+                Actor01200_D07084.vx--;
+            }
+        }
+        val = s->delta.vz.w;
+        if ((val & 0xFFFF) != 0) {
+            if (val > 0) {
+                coord->coord.t[2]++;
+                Actor01200_D07084.vz++;
+            } else {
+                coord->coord.t[2]--;
+                Actor01200_D07084.vz--;
+            }
+        }
+    }
+    if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
+        s->moved = 1;
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    return s->moved;
+}
