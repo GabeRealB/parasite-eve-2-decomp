@@ -1,7 +1,5 @@
 #include "common.h"
 
-INCLUDE_RODATA("actors/nonmatchings/actor_535700/actor_535700", D_actor_535700_80131E24);
-
 #include "actors/actor_461800_move.h"
 #include "actors/actor_535700.h"
 #include "actors/actors_shared_801324fc.h"
@@ -19,12 +17,11 @@ extern s16        D_80071076;
 extern u8         D_actor_535700_8013DAE8[];
 extern GpMsgEntry D_actor_535700_8013DAAC[];
 
-void func_actor_535700_80131E2C(Task* task)
+void func_actor_535700_80131E24(Task* task)
 {
     TILE* tile;
-    s32   count;
 
-    if (count != 0) {
+    if (D_actor_535700_80146840 != 0) {
         tile           = (TILE*)gGpuPrimCursor;
         gGpuPrimCursor = tile + 1;
         SetTile(tile);
