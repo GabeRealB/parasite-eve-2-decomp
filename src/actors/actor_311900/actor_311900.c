@@ -453,15 +453,15 @@ s32 func_actor_311900_80162658(GsCOORDINATE2* arg0, s16 arg1)
 /// for `m[1][0]` and `m[2][2]`, the colour matrix fully pass-through.
 void func_actor_311900_8016278C(Task* task)
 {
-    ActorMat*        color;
-    ActorMat*        light;
+    OverlayMat*      color;
+    OverlayMat*      light;
     TmdObject*       ext;
     Actor311900Work* work;
 
     work  = (Actor311900Work*)task->work;
     ext   = task->extra;
-    light = (ActorMat*)&work->light;
-    color = (ActorMat*)&work->color;
+    light = (OverlayMat*)&work->light;
+    color = (OverlayMat*)&work->color;
 
     light->ident.m00_m01 = 0x1000;
     light->ident.m02_m10 = 0;
@@ -506,15 +506,15 @@ void func_actor_311900_8016278C(Task* task)
 /// matrix flat except for a negated `m[0][0]`.
 void func_actor_311900_8016281C(Task* task)
 {
-    ActorMat*        color;
-    ActorMat*        light;
+    OverlayMat*      color;
+    OverlayMat*      light;
     TmdObject*       ext;
     Actor311900Work* work;
 
     work  = (Actor311900Work*)task->work;
     ext   = task->extra;
-    light = (ActorMat*)&work->light;
-    color = (ActorMat*)&work->color;
+    light = (OverlayMat*)&work->light;
+    color = (OverlayMat*)&work->color;
 
     light->ident.m00_m01 = 0x1000;
     light->ident.m02_m10 = 0;

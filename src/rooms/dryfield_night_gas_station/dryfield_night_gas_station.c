@@ -1444,25 +1444,25 @@ void func_dryfield_night_gas_station_8017FBD4(s32 arg0)
 /// OT slot 0xA.
 void func_dryfield_night_gas_station_8017FD80(s32 arg0)
 {
-    SVECTOR                        off;
-    DryfieldNightGasStationMatrix  mtx;
-    SVECTOR                        pos;
-    s32                            sxy;
-    s32                            p;
-    s32                            flag;
-    u16                            x0;
-    u16                            y0;
-    u16                            x1;
-    u16                            y1;
-    u16                            x2;
-    SVECTOR*                       vec;
-    s32                            val;
-    s32                            one;
-    DryfieldNightGasStationMatrix* m;
-    TILE*                          tile;
-    TILE_1*                        tile1;
-    LINE_G2*                       line;
-    DR_TPAGE*                      dr;
+    SVECTOR     off;
+    OverlayMat  mtx;
+    SVECTOR     pos;
+    s32         sxy;
+    s32         p;
+    s32         flag;
+    u16         x0;
+    u16         y0;
+    u16         x1;
+    u16         y1;
+    u16         x2;
+    SVECTOR*    vec;
+    s32         val;
+    s32         one;
+    OverlayMat* m;
+    TILE*       tile;
+    TILE_1*     tile1;
+    LINE_G2*    line;
+    DR_TPAGE*   dr;
 
     off               = D_dryfield_night_gas_station_8017D650;
     one               = ONE;

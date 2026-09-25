@@ -274,17 +274,17 @@ void func_actor_317000_801620BC(Task* task)
 /// calls and puts `&target[4]` in its own register.
 void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s32 arg3, s32 arg4)
 {
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* target;
-    GsCOORDINATE2* head;
-    GsCOORDINATE2* aim;
-    MATRIX*        arm;
-    ActorMatWords* words;
-    VECTOR         delta;
-    VECTOR         dir;
-    SVECTOR        ang;
-    SVECTOR        vec;
-    SVECTOR        rot;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   target;
+    GsCOORDINATE2*   head;
+    GsCOORDINATE2*   aim;
+    MATRIX*          arm;
+    OverlayMatWords* words;
+    VECTOR           delta;
+    VECTOR           dir;
+    SVECTOR          ang;
+    SVECTOR          vec;
+    SVECTOR          rot;
 
     coord  = ((TmdObject*)task->extra)->coords;
     target = ((TmdObject*)targetTask->extra)->coords;
@@ -321,7 +321,7 @@ void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s32 arg3
     vec.vy = vec.vy * 5 / 8;
     vec.vz = vec.vz * 5 / 8;
 
-    words          = (ActorMatWords*)&coord[5].coord;
+    words          = (OverlayMatWords*)&coord[5].coord;
     words->m00_m01 = ONE;
     words->m02_m10 = 0;
     words->m11_m12 = ONE;
@@ -500,7 +500,7 @@ void func_actor_317000_80162768(Task* arg0)
 void func_actor_317000_801627D0(Task* arg0)
 {
     Actor317000Work* work;
-    ActorMatWords*   words;
+    OverlayMatWords* words;
     GsCOORDINATE2*   coord;
     SVECTOR          vec;
     GpAnimArg        preset;
@@ -531,7 +531,7 @@ void func_actor_317000_801627D0(Task* arg0)
         work->field_4C2++;
     }
 
-    words          = (ActorMatWords*)&coord->coord;
+    words          = (OverlayMatWords*)&coord->coord;
     words->m00_m01 = ONE;
     words->m02_m10 = 0;
     words->m11_m12 = ONE;

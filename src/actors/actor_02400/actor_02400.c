@@ -109,9 +109,9 @@ STATIC_ASSERT_SIZEOF(Actor02400ChildScratch, 0x18);
 /// scaled per axis by `scale`, and the coordinate's translation `t`, restored
 /// after the multiply.
 typedef struct Actor02400ScaleScratch {
-    /* 0x00 */ ActorMat mat;
-    /* 0x20 */ VECTOR   scale;
-    /* 0x30 */ VECTOR   t;
+    /* 0x00 */ OverlayMat mat;
+    /* 0x20 */ VECTOR     scale;
+    /* 0x30 */ VECTOR     t;
 } Actor02400ScaleScratch;
 STATIC_ASSERT_SIZEOF(Actor02400ScaleScratch, 0x40);
 

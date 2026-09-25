@@ -544,10 +544,10 @@ void func_dryfield_factory_8017E140(Task* task, s32 remapFaces, s32 useAltTempla
 
 s32 func_dryfield_factory_8017E33C(Task* task)
 {
-    NightFactoryWork*     work  = (NightFactoryWork*)task->work;
-    GsCOORDINATE2*        coord = ((TmdObject*)task->extra)->coords;
-    s32                   done  = 0;
-    NightFactoryMatWords* mat;
+    NightFactoryWork* work  = (NightFactoryWork*)task->work;
+    GsCOORDINATE2*    coord = ((TmdObject*)task->extra)->coords;
+    s32               done  = 0;
+    OverlayMat*       mat;
 
     switch (work->field_16) {
         case 0:
@@ -609,7 +609,7 @@ s32 func_dryfield_factory_8017E33C(Task* task)
         work->field_10.value = 0x4000000;
         work->field_16       = 4;
     }
-    mat                = (NightFactoryMatWords*)&coord->coord;
+    mat                = (OverlayMat*)&coord->coord;
     mat->ident.m00_m01 = 0x1000;
     mat->ident.m02_m10 = 0;
     mat->ident.m11_m12 = 0x1000;
@@ -622,10 +622,10 @@ s32 func_dryfield_factory_8017E33C(Task* task)
 
 s32 func_dryfield_factory_8017E6BC(Task* task)
 {
-    NightFactoryWork*     work  = (NightFactoryWork*)task->work;
-    GsCOORDINATE2*        coord = ((TmdObject*)task->extra)->coords;
-    s32                   done  = 0;
-    NightFactoryMatWords* mat;
+    NightFactoryWork* work  = (NightFactoryWork*)task->work;
+    GsCOORDINATE2*    coord = ((TmdObject*)task->extra)->coords;
+    s32               done  = 0;
+    OverlayMat*       mat;
 
     switch (work->field_16) {
         case 0:
@@ -687,7 +687,7 @@ s32 func_dryfield_factory_8017E6BC(Task* task)
         work->field_10.value = 0;
         work->field_16       = 4;
     }
-    mat                = (NightFactoryMatWords*)&coord->coord;
+    mat                = (OverlayMat*)&coord->coord;
     mat->ident.m00_m01 = 0x1000;
     mat->ident.m02_m10 = 0;
     mat->ident.m11_m12 = 0x1000;
@@ -840,10 +840,10 @@ s32 func_dryfield_factory_8017ED68(Task* task)
 
 s32 func_dryfield_factory_8017F08C(Task* task)
 {
-    NightFactoryWork*     work  = (NightFactoryWork*)task->work;
-    GsCOORDINATE2*        coord = ((TmdObject*)task->extra)->coords;
-    s32                   done  = 0;
-    NightFactoryMatWords* mat;
+    NightFactoryWork* work  = (NightFactoryWork*)task->work;
+    GsCOORDINATE2*    coord = ((TmdObject*)task->extra)->coords;
+    s32               done  = 0;
+    OverlayMat*       mat;
 
     switch (work->field_16) {
         case 0:
@@ -916,7 +916,7 @@ s32 func_dryfield_factory_8017F08C(Task* task)
         work->field_16 = 4;
         done           = 1;
     }
-    mat                = (NightFactoryMatWords*)&coord->coord;
+    mat                = (OverlayMat*)&coord->coord;
     mat->ident.m00_m01 = 0x1000;
     mat->ident.m02_m10 = 0;
     mat->ident.m11_m12 = 0x1000;
@@ -929,10 +929,10 @@ s32 func_dryfield_factory_8017F08C(Task* task)
 
 s32 func_dryfield_factory_8017F4BC(Task* task)
 {
-    NightFactoryWork*     work  = (NightFactoryWork*)task->work;
-    GsCOORDINATE2*        coord = ((TmdObject*)task->extra)->coords;
-    s32                   done  = 0;
-    NightFactoryMatWords* mat;
+    NightFactoryWork* work  = (NightFactoryWork*)task->work;
+    GsCOORDINATE2*    coord = ((TmdObject*)task->extra)->coords;
+    s32               done  = 0;
+    OverlayMat*       mat;
 
     switch (work->field_16) {
         case 0:
@@ -1005,7 +1005,7 @@ s32 func_dryfield_factory_8017F4BC(Task* task)
         work->field_16 = 4;
         done           = 1;
     }
-    mat                = (NightFactoryMatWords*)&coord->coord;
+    mat                = (OverlayMat*)&coord->coord;
     mat->ident.m00_m01 = 0x1000;
     mat->ident.m02_m10 = 0;
     mat->ident.m11_m12 = 0x1000;

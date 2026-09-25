@@ -118,8 +118,8 @@ typedef struct Actor323300MtxWork {
     /* 0x44C */ s32           field_44C;
     /* 0x450 */ GsCOORDINATE2 shadow[3];   // unsquashed copies of parts 3..5, re-parented onto 4..6
     /* 0x540 */ VECTOR        partPos[19]; // original part translations, before the squash
-    /* 0x670 */ ActorMat      light;
-    /* 0x690 */ ActorMat      color;
+    /* 0x670 */ OverlayMat    light;
+    /* 0x690 */ OverlayMat    color;
 } Actor323300MtxWork;
 STATIC_ASSERT_SIZEOF(Actor323300MtxWork, 0x6B0);
 
@@ -528,7 +528,7 @@ void func_actor_323300_80162748(Task* arg0)
 void func_actor_323300_801627B4(Task* arg0)
 {
     Actor323300Work* work;
-    ActorMat*        words;
+    OverlayMat*      words;
     GsCOORDINATE2*   coord;
     SVECTOR          vec;
     s16              diff;
@@ -557,7 +557,7 @@ void func_actor_323300_801627B4(Task* arg0)
         work->field_4FE = 0;
     }
 
-    words                = (ActorMat*)&coord->coord;
+    words                = (OverlayMat*)&coord->coord;
     words->ident.m00_m01 = 0x1000;
     words->ident.m02_m10 = 0;
     words->ident.m11_m12 = 0x1000;
@@ -910,8 +910,8 @@ void func_actor_323300_801634B0(Task* arg0)
 void func_actor_323300_80163510(Task* arg0)
 {
     Actor323300MtxWork* work;
-    ActorMat*           light;
-    ActorMat*           color;
+    OverlayMat*         light;
+    OverlayMat*         color;
     GsCOORDINATE2*      coords;
     TmdObject*          extra;
 

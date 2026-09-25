@@ -206,8 +206,8 @@ const Actor135400Places D_actor_135400_80131E48 = {
 /// world position (0x12FE, -0x1B3, 0x157C) and drops the phase back to 0.
 void func_actor_135400_80131EB4(Task* task)
 {
-    ActorMat       rot;
-    ActorMat*      src;
+    OverlayMat     rot;
+    OverlayMat*    src;
     SVECTOR        sv;
     GsCOORDINATE2* coord;
 

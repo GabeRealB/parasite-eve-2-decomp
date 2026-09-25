@@ -3449,7 +3449,7 @@ void Actor07000_Fn05FF8(Task* arg0)
 {
     GsCOORDINATE2*           parts;
     GsCOORDINATE2*           coord;
-    ActorMat*                mat;
+    OverlayMat*              mat;
     ActorShared80137e18Work* work;
 
     work               = arg0->work;
@@ -3457,7 +3457,7 @@ void Actor07000_Fn05FF8(Task* arg0)
     coord              = &work->coord;
     coord->sub         = parts;
     parts[1].sub       = coord;
-    mat                = (ActorMat*)&coord->coord;
+    mat                = (OverlayMat*)&coord->coord;
     mat->ident.m00_m01 = 0x1000;
     mat->ident.m02_m10 = 0;
     mat->ident.m11_m12 = 0x1000;

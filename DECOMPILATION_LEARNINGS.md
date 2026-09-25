@@ -71810,7 +71810,7 @@ takes `$v1` instead of `$v0`. Retail emits the block in source order with
 `li a2, 1` filling that slot.
 
 Writing the words as named union fields restores `MEM_IN_STRUCT_P`, the
-dependence, and the order. This is the shape `ActorMat` already uses;
+dependence, and the order. This is the shape `OverlayMat` already uses;
 widen it to the whole `GsCOORDINATE2` when the identity is built in a local
 coordinate:
 
@@ -72935,12 +72935,12 @@ A `*(s32*)&x` store is not a component reference, so its MEM lacks
 `MEM_IN_STRUCT_P` while the member stores around it carry it; GCC 2.8.1's
 alias check treats the two classes as independent and sched1 is free to move
 them past each other. Give the pointer a union type whose `ident` half names
-the word pairs - the project already has one per overlay (`ActorMat`,
-`ActorMat`, now `ActorMat`) - so every store is a real
+the word pairs - the project has one shared by rooms and actors,
+`OverlayMat` - so every store is a real
 component reference and source order survives:
 
 ```c
-mtx                = (ActorMat*)&D_x.c.coord;
+mtx                = (OverlayMat*)&D_x.c.coord;
 mtx->ident.m02_m10 = 0;
 mtx->ident.m11_m12 = 0x1000;
 mtx->ident.m20_m21 = 0;
@@ -76421,7 +76421,7 @@ because it modelled the identity splat as loose scalars (`sp18` / `sp1C` /
 `sp24` plus invented `unksp1A` … names), so the nine copy stores read the wrong
 slots. Structure match with insert/delete-only penalties on a rotation function
 is that signature. Write the block as the overlay's own word-view union — the
-`ActorMat` / `ActorMat` shape, five aligned stores for
+`OverlayMat` shape, five aligned stores for
 the identity — and copy with `dest->m[i][j] = matrix.mat.m[i][j];`. The
 project's `MATRIX` is `short m[3][3]; long t[3];`, so both sides are nine
 *consecutive* halfwords (`m[1][0]` at +6, `m[2][2]` at +0x10); a 4x4 reading
@@ -92875,7 +92875,7 @@ it decides which allocator places it.
 Three consequences showed up in one function (`Actor00400_Fn02648`):
 
 **A reused pointer variable loses its register to the block's temporaries.**
-Writing one `ActorMatWords* ip` and reassigning it for each matrix
+Writing one `OverlayMatWords* ip` and reassigning it for each matrix
 (`&ma.ident`, then `&mb.ident`, then `&rot.ident`) makes it global, so the
 block's own single-assignment temporaries take `$s1`-`$s3` first and `ip`
 lands in `$s4`. Declaring `ia`, `ib`, `ir` as separate single-assignment
@@ -95131,10 +95131,10 @@ through a word-wise `MATRIX` view in two mutually exclusive arms. Writing both
 arms through the same local
 
 ```c
-ActorMatWords* mat;
+OverlayMatWords* mat;
 ...
-if (r < 0xF) { mat = (ActorMatWords*)&coord->coord; ... }
-else if (blend == 0x52) { mat = (ActorMatWords*)&coord->coord; ... }
+if (r < 0xF) { mat = (OverlayMatWords*)&coord->coord; ... }
+else if (blend == 0x52) { mat = (OverlayMatWords*)&coord->coord; ... }
 ```
 
 matched the first arm exactly and left the second one 8 `regs` off:
@@ -100316,7 +100316,7 @@ halfwords stay on the outer pointer (`sh $v0,0x4A4($v1)`). That is one local
 word-view pointer for the splat plus direct member writes for the overwrite:
 
 ```c
-    light = (ActorMat*)&work->light;   /* union: MATRIX + the 5 word fields */
+    light = (OverlayMat*)&work->light;   /* union: MATRIX + the 5 word fields */
     light->ident.m00_m01 = 0x1000;                /* first store: 0x484($v1) */
     light->ident.m02_m10 = 0;
     light->ident.m11_m12 = 0x1000;
@@ -100365,7 +100365,7 @@ Evidence: scratch `nonmatchings/func_actor_311900_8016278C-vacuum/`. `base.c`
 (two store widths retyped, 100.000%), `base_2.c` `57f4a3af…` (typed port, same
 object `3bbd323f…` as `base_1.c`, `build.sh` reports it as a repeat). Compiler
 `60d886cd…` throughout. `include/actors/actor_311900.h` is new, holding
-`ActorMat` and `Actor311900Work`.
+`OverlayMat` and `Actor311900Work`.
 
 ## `regs` counts every operand field, so an immediate mismatch is a types bug, not allocation (func_actor_311900_801624F8, 2026-09-16)
 
@@ -104341,8 +104341,8 @@ statements were already right, so the whole difference was whether `&rot` was
 named:
 
 ```c
-    ActorMat   rot;
-    ActorMat*  src;
+    OverlayMat   rot;
+    OverlayMat*  src;
     src                = &rot;
     src->ident.m00_m01 = 0x1000;
 ```
@@ -116693,7 +116693,7 @@ exemption from the store side": the `.ident` stores are `mem/s:SI`, the
 
 The rule crosses families unchanged: `func_dryfield_breezeway_8017F1F4` (a room
 overlay) builds the same identity splat for its `RotMatrixZ` and shows the same
-3-frame + 2-`$s0` split, so its `DbwMatWords` union (the room's word-wise view,
+3-frame + 2-`$s0` split, so its `OverlayMat` union (the room's word-wise view,
 `dryfield_breezeway.h`) is named for the three words it can pair and the two
 diagonal ones go through a `MATRIX* mtx = &matw.mat` instead. Reading all five
 off the union gives all five frame-relative (98.756%); the split is the tell
@@ -119005,11 +119005,11 @@ Target splats an identity rotation as `sw v0,0x20(sp)` / `sw zero,0x24(sp)` / `s
 pointer are. Reproduce the mix field by field:
 
 ```c
-((ActorMatWords*)&rot)->m00_m01 = 0x1000;
-((ActorMatWords*)&rot)->m02_m10 = 0;
-words          = (ActorMatWords*)&rot;
+((OverlayMatWords*)&rot)->m00_m01 = 0x1000;
+((OverlayMatWords*)&rot)->m02_m10 = 0;
+words          = (OverlayMatWords*)&rot;
 words->m11_m12 = 0x1000;
-((ActorMatWords*)&rot)->m20_m21 = 0;
+((OverlayMatWords*)&rot)->m20_m21 = 0;
 words->m22     = 0x1000;
 RotMatrixZ(angle, &rot);
 ```
@@ -125126,16 +125126,16 @@ word-wise view of the `MATRIX` -- four `s32` over the first 0x10 bytes plus the
 `s16` at 0x10:
 
 ```c
-typedef struct ActorMatWords {
+typedef struct OverlayMatWords {
     /* 0x00 */ s32 m00_m01;
     /* 0x04 */ s32 m02_m10;
     /* 0x08 */ s32 m11_m12;
     /* 0x0C */ s32 m20_m21;
     /* 0x10 */ s16 m22;
-} ActorMatWords;
-STATIC_ASSERT_SIZEOF(ActorMatWords, 0x14);
+} OverlayMatWords;
+STATIC_ASSERT_SIZEOF(OverlayMatWords, 0x14);
 
-    words          = (ActorMatWords*)&coord->coord;
+    words          = (OverlayMatWords*)&coord->coord;
     words->m00_m01 = ONE;   /* ONE is libgte.h's 4096 */
     words->m02_m10 = 0;
     words->m11_m12 = ONE;
@@ -125146,8 +125146,8 @@ STATIC_ASSERT_SIZEOF(ActorMatWords, 0x14);
 Each `s32` write covers two halfwords, which is what makes the zero pairs
 (`m[0][2]+m[1][0]`, `m[2][0]+m[2][1]`) and the `ONE`-plus-zero pair
 (`m[1][1]+m[1][2]`) single instructions.  The same type recurs as
-`ActorMatWords` / `ActorMatWords` / `ActorMatWords`, whose
-headers assert the shape; `base_2.c` is the experiment behind it.  Reach for it
+`OverlayMatWords`, whose
+header asserts the shape; `base_2.c` is the experiment behind it.  Reach for it
 whenever a `MATRIX` (or any 3x3-plus-halfword region) is splatted with constants
 and the target shows fewer stores than elements.
 ## Whether a promotion renumbers units is decided by the span's *start*, and you can read that before running `promote` (func_actor_317000_80162BC4, 2026-09-17)
@@ -132588,7 +132588,7 @@ Compiler SHA256:
 
 ### A separate matrix-pointer local changes launch priority and stops an unwanted tail merge (func_actor_405800_801375C4, 2026-09-19)
 
-A shared identity-matrix pointer assigned in four arms held its address initialization at priority 1 in sched1. Both negative-angle arms then scheduled identically, so jump2 merged their child flags store and extra reload (14 blocks instead of 15). Splitting only the final arm to `ActorMat* m2` creates a set-once pseudo: `birthing_insn_p` in patched GCC 2.8.1 `sched.c:2499` checks `REG_N_SETS == 1`, and `adjust_priority` promotes its definition. This is a scheduler change even though both pointers ultimately occupy a1.
+A shared identity-matrix pointer assigned in four arms held its address initialization at priority 1 in sched1. Both negative-angle arms then scheduled identically, so jump2 merged their child flags store and extra reload (14 blocks instead of 15). Splitting only the final arm to `OverlayMat* m2` creates a set-once pseudo: `birthing_insn_p` in patched GCC 2.8.1 `sched.c:2499` checks `REG_N_SETS == 1`, and `adjust_priority` promotes its definition. This is a scheduler change even though both pointers ultimately occupy a1.
 
 Controlled base_1 -> base_2: at backward T-37, UID501 changes from priority 1 (UID495 selected) to `0x7f000001` (UID501 selected). Its address initialization therefore moves later in forward order, after the extra reload. Local allocation gives m2/r85 a1 and preserves raw angle/r189 in a0. sched2 interleaves negu/sll/sra in three pointer-load delays; jump2 keeps distinct predecessors. Score 94.459% -> 100.000%, all penalties zero. A plan before the controlled change predicted both late pointer initialization and preservation of angle/store placement.
 

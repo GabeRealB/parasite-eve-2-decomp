@@ -24,20 +24,6 @@ typedef struct DryfieldNightGasStationEffWork {
     s16     kind;
 } DryfieldNightGasStationEffWork;
 
-/// A `MATRIX` together with the word-wise view the room uses to reset it to an
-/// identity rotation with five aligned stores instead of nine halfword ones.
-typedef union DryfieldNightGasStationMatrix {
-    MATRIX mat;
-    struct {
-        s32 m00_m01;
-        s32 m02_m10;
-        s32 m11_m12;
-        s32 m20_m21;
-        s16 m22;
-    } ident;
-} DryfieldNightGasStationMatrix;
-STATIC_ASSERT_SIZEOF(DryfieldNightGasStationMatrix, 0x20);
-
 /// The room's task descriptor table; its spawners pick an entry by index.
 extern TaskDesc D_dryfield_night_gas_station_801888A0;
 

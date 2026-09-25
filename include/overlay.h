@@ -303,4 +303,22 @@ typedef struct OverlayRippleScratch {
 } OverlayRippleScratch;
 STATIC_ASSERT_SIZEOF(OverlayRippleScratch, 0x4C);
 
+/// The leading rotation entries of a `MATRIX`, paired into words, so a
+/// rotation can be reset to identity with five aligned word stores instead of
+/// nine halfword ones.
+typedef struct OverlayMatWords {
+    s32 m00_m01;
+    s32 m02_m10;
+    s32 m11_m12;
+    s32 m20_m21;
+    s16 m22;
+} OverlayMatWords;
+
+/// A `MATRIX` that can also be written through `OverlayMatWords`.
+typedef union OverlayMat {
+    MATRIX          mat;
+    OverlayMatWords ident;
+} OverlayMat;
+STATIC_ASSERT_SIZEOF(OverlayMat, 0x20);
+
 #endif /* OVERLAY_H */

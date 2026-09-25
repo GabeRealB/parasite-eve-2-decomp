@@ -577,9 +577,9 @@ const Actor403100VoidTable4 D_actor_403100_80131E24 = {
 void func_actor_403100_80132064(Task* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
     SVECTOR        end;
-    ActorMat       matrix;
+    OverlayMat     matrix;
     u16            mode;
-    ActorMat*      identity;
+    OverlayMat*    identity;
     GsCOORDINATE2* joint;
     s32            i;
     u32            random;
@@ -1151,9 +1151,9 @@ void func_actor_403100_801339EC(Task* arg0)
         (void (*)(Task*))func_actor_403100_8013E5FC,
         func_actor_403100_8013E624
     };
-    ActorMat         rotation;
+    OverlayMat       rotation;
     VECTOR           scale;
-    ActorMat         scaling;
+    OverlayMat       scaling;
     GsCOORDINATE2*   coords;
     GsCOORDINATE2*   center;
     GsCOORDINATE2*   coords2;
@@ -1708,9 +1708,9 @@ void func_actor_403100_80134D50(Task* arg0)
         func_actor_403100_8013ECD0,
         (void (*)(Task*))func_actor_403100_8013ED48
     };
-    ActorMat         rotation;
+    OverlayMat       rotation;
     VECTOR           scale;
-    ActorMat         scaling;
+    OverlayMat       scaling;
     GsCOORDINATE2*   coords;
     GsCOORDINATE2*   center;
     GsCOORDINATE2*   coords2;
@@ -2460,12 +2460,12 @@ void func_actor_403100_80136830(Task* arg0)
     union {
         Actor403100VoidTable4 handlers;
         struct {
-            VECTOR   scale;
-            ActorMat matrix;
+            VECTOR     scale;
+            OverlayMat matrix;
         } scaling;
         struct {
-            SVECTOR  angles;
-            ActorMat matrix;
+            SVECTOR    angles;
+            OverlayMat matrix;
         } rotation;
     } scratch;
     void *        scratcharg0, *scratcharg1, *scratcharg2, *scratcharg3, *scratcharg4, *scratcharg5, *scratcharg6;
@@ -5505,7 +5505,7 @@ void func_actor_403100_8013D74C(Task* arg0)
 void func_actor_403100_8013D770(Task* arg0)
 {
     SVECTOR        rotation;
-    ActorMat       matrix;
+    OverlayMat     matrix;
     MATRIX*        dest;
     MATRIX*        mtx;
     GsCOORDINATE2* coords;

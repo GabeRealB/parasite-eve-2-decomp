@@ -1768,9 +1768,9 @@ void func_actor_405800_80135780(Task* arg0)
     TmdObject*       dst;
     TmdObject*       src;
     MATRIX*          mdst;
-    ActorMat*        pm;
-    ActorMat*        pm2;
-    ActorMat         m;
+    OverlayMat*      pm;
+    OverlayMat*      pm2;
+    OverlayMat       m;
 
     root              = ((TmdObject*)arg0->extra)->coords;
     work              = (Actor405800Work*)arg0->work;
@@ -2541,14 +2541,14 @@ void func_actor_405800_8013706C(Task* arg0, s16 arg1)
     Actor405800Work* work = (Actor405800Work*)arg0->work;
     SVECTOR          v;
     SVECTOR          out;
-    ActorMat         rot;
+    OverlayMat       rot;
     s16              n;
 
     work->field_892 = arg1;
     switch (arg1) {
         case 0:
             if (work->field_890 == 0) {
-                ActorMat* m = &rot;
+                OverlayMat* m = &rot;
 
                 v.vx              = work->field_A8.vx - ((TmdObject*)arg0->extra)->coords->coord.t[0];
                 v.vy              = work->field_A8.vy - ((TmdObject*)arg0->extra)->coords->coord.t[1] - 0x384;
@@ -2564,7 +2564,7 @@ void func_actor_405800_8013706C(Task* arg0, s16 arg1)
                 func_8004BFF8(-(s16)work->field_82, &m->mat);
                 ApplyMatrixSV(&m->mat, &v, &out);
             } else {
-                ActorMat* m = &rot;
+                OverlayMat* m = &rot;
 
                 v.vx              = work->field_A8.vx - ((TmdObject*)arg0->extra)->coords->coord.t[0];
                 v.vy              = work->field_A8.vy - ((TmdObject*)arg0->extra)->coords->coord.t[1] - 0x640;
@@ -2755,9 +2755,9 @@ void func_actor_405800_801375C4(Task* arg0)
     Actor405800Work* work;
     Task*            child;
     TmdObject*       extra;
-    ActorMat         rot;
-    ActorMat*        m;
-    ActorMat*        m2;
+    OverlayMat       rot;
+    OverlayMat*      m;
+    OverlayMat*      m2;
     s16              angle;
     s16*             p;
 

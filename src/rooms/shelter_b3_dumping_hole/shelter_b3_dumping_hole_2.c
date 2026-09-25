@@ -206,19 +206,6 @@ typedef struct {
     u16     fall;
 } DumpingHoleShard;
 
-/// A `MATRIX` plus the word-wise view its rotation is reset to identity
-/// through: five aligned stores instead of nine halfword ones.
-typedef union {
-    MATRIX mat;
-    struct {
-        s32 m00_m01;
-        s32 m02_m10;
-        s32 m11_m12;
-        s32 m20_m21;
-        s16 m22;
-    } ident;
-} DumpingHoleMatWords;
-
 typedef struct {
     MATRIX         lightMtx;
     MATRIX         colorMtx;
@@ -1672,25 +1659,25 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
 /// The message buffers are unions because the cases share their stack slots.
 void func_shelter_b3_dumping_hole_8018098C(Task* task)
 {
-    register short       t4 asm("t4");
-    register short       t5 asm("t5");
-    register short       t6 asm("t6");
-    DumpingHoleEntity4*  work;
-    DumpingHoleMatWords* mtx;
-    DumpingHoleMatWords* ident;
-    DumpingHoleMatWords* ident2;
-    VECTOR*              sc;
-    GsCOORDINATE2*       coords;
-    TmdObject*           obj;
-    u8*                  head;
-    u32                  scratch;
-    SVECTOR*             sv;
-    u8*                  head2;
-    u32                  scratch2;
-    u16                  i;
-    GpCmdArg*            loc3;
-    GpCmdArg*            loc5;
-    s32*                 p;
+    register short      t4 asm("t4");
+    register short      t5 asm("t5");
+    register short      t6 asm("t6");
+    DumpingHoleEntity4* work;
+    OverlayMat*         mtx;
+    OverlayMat*         ident;
+    OverlayMat*         ident2;
+    VECTOR*             sc;
+    GsCOORDINATE2*      coords;
+    TmdObject*          obj;
+    u8*                 head;
+    u32                 scratch;
+    SVECTOR*            sv;
+    u8*                 head2;
+    u32                 scratch2;
+    u16                 i;
+    GpCmdArg*           loc3;
+    GpCmdArg*           loc5;
+    s32*                p;
     union {
         s32      words[5];
         GpCmdArg loc;
@@ -1781,7 +1768,7 @@ void func_shelter_b3_dumping_hole_8018098C(Task* task)
                             ((TmdObject*)task->extra)->coords[2].coord.t[1] += 8;
                             work->scale.vx                                  -= 10;
                             work->scale.vz                                  -= 10;
-                            ident                                            = (DumpingHoleMatWords*)&((TmdObject*)task->extra)->coords[3].coord;
+                            ident                                            = (OverlayMat*)&((TmdObject*)task->extra)->coords[3].coord;
                             sc                                               = &work->scale;
 
                             ident->ident.m00_m01 = 0x1000;
@@ -1799,7 +1786,7 @@ void func_shelter_b3_dumping_hole_8018098C(Task* task)
                             sv                     = (SVECTOR*)(scratch - 8);
                             *(SVECTOR**)0x1F8003FC = sv;
                             TOUCH_REG(sv);
-                            mtx = (DumpingHoleMatWords*)&coords[3].coord;
+                            mtx = (OverlayMat*)&coords[3].coord;
                             TOUCH_REG(mtx);
 
                             COMPILER_BARRIER();
@@ -1862,7 +1849,7 @@ void func_shelter_b3_dumping_hole_8018098C(Task* task)
                             __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(scratch2) : "memory");
                         } else if (work->timer < 0x20) {
                             ((TmdObject*)task->extra)->coords[2].coord.t[1] += 0x20;
-                            ident2                                           = (DumpingHoleMatWords*)&((TmdObject*)task->extra)->coords[3].coord;
+                            ident2                                           = (OverlayMat*)&((TmdObject*)task->extra)->coords[3].coord;
 
                             ident2->ident.m00_m01 = 0x1000;
                             ident2->ident.m02_m10 = 0;

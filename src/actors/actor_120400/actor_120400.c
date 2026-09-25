@@ -564,7 +564,7 @@ void func_actor_120400_80132920(Task* task)
 void func_actor_120400_801329A0(Task* arg0)
 {
     Actor120400MainWork* work;
-    ActorMatWords*       words;
+    OverlayMatWords*     words;
     GsCOORDINATE2*       coord;
     SVECTOR              vec;
     GpAnimArg            preset;
@@ -595,7 +595,7 @@ void func_actor_120400_801329A0(Task* arg0)
         work->field_4FA = 0;
     }
 
-    words          = (ActorMatWords*)&coord->coord;
+    words          = (OverlayMatWords*)&coord->coord;
     words->m00_m01 = ONE;
     words->m02_m10 = 0;
     words->m11_m12 = ONE;

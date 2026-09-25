@@ -105,24 +105,6 @@ typedef struct DbwEventWork {
 } DbwEventWork;
 STATIC_ASSERT_SIZEOF(DbwEventWork, 0x60);
 
-/// A `MATRIX` plus the word-wise view `func_dryfield_breezeway_8017E464` splats
-/// the light / colour pair through: five aligned stores rather than nine
-/// halfword ones (the same idiom as `Actor311900MatWords`). The pairs the
-/// compiler folds are the ones whose two halfwords are both 0x1000 or both
-/// zero -- the only two adjacent pairs of either splat that agree -- which is
-/// why `m02_m10` and `m22` sit between them.
-typedef union DbwMatWords {
-    MATRIX mat;
-    struct {
-        /* 0x00 */ s32 m00_m01;
-        /* 0x04 */ s32 m02_m10;
-        /* 0x08 */ s32 m11_m12;
-        /* 0x0C */ s32 m20_m21;
-        /* 0x10 */ s16 m22;
-    } ident;
-} DbwMatWords;
-STATIC_ASSERT_SIZEOF(DbwMatWords, 0x20);
-
 /// The `TaskDesc` `func_dryfield_breezeway_8017E464` spawns the room's prompt
 /// task (`func_dryfield_breezeway_8017FA80`) from, and the single-entry `GpMsgEntry[]` it parks in `Task::msgTable`
 /// so `Gp_DispatchMsg` routes the family's messages (the 0x13F1 "can this key
@@ -558,8 +540,8 @@ void func_dryfield_breezeway_8017E464(Task* arg0)
     {
         DbwEventWork* eventWork = (DbwEventWork*)arg0->work;
         TmdObject*    eventObj  = (TmdObject*)arg0->extra;
-        DbwMatWords*  light     = (DbwMatWords*)&eventWork->light;
-        DbwMatWords*  color     = (DbwMatWords*)&eventWork->color;
+        OverlayMat*   light     = (OverlayMat*)&eventWork->light;
+        OverlayMat*   color     = (OverlayMat*)&eventWork->color;
 
         light->ident.m00_m01 = 0x1000;
         light->ident.m02_m10 = 0;
@@ -989,20 +971,20 @@ void func_dryfield_breezeway_8017EB8C(Task* task, s16 arg1, s16 arg2)
 /// which is what makes the first segment of a beam run from the origin.
 void func_dryfield_breezeway_8017F1F4(s16 arg0, s16 arg1, DbwVec* arg2, DbwVec* arg3, DbwBeamEdge* arg4)
 {
-    SVECTOR     probe;
-    DbwVec      tip;
-    SVECTOR     near0;
-    SVECTOR     near1;
-    SVECTOR     far0;
-    SVECTOR     far1;
-    DbwVec      corner0;
-    DbwVec      corner1;
-    DbwVec      corner2;
-    DbwVec      corner3;
-    DbwMatWords matw;
-    MATRIX*     mtx;
-    long        flag;
-    POLY_FT4*   p;
+    SVECTOR    probe;
+    DbwVec     tip;
+    SVECTOR    near0;
+    SVECTOR    near1;
+    SVECTOR    far0;
+    SVECTOR    far1;
+    DbwVec     corner0;
+    DbwVec     corner1;
+    DbwVec     corner2;
+    DbwVec     corner3;
+    OverlayMat matw;
+    MATRIX*    mtx;
+    long       flag;
+    POLY_FT4*  p;
 
     mtx                  = &matw.mat;
     matw.ident.m00_m01   = 0x1000;

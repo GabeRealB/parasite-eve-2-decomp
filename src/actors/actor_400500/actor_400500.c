@@ -433,8 +433,8 @@ void func_actor_400500_80132000(Task* arg0)
 void func_actor_400500_8013226C(Task* arg0)
 {
     Actor400500Work* work;
-    ActorMat         rot;
-    ActorMat*        src;
+    OverlayMat       rot;
+    OverlayMat*      src;
     GsCOORDINATE2*   parts;
     GsCOORDINATE2*   part7;
     GsCOORDINATE2*   part10;
@@ -504,8 +504,8 @@ void func_actor_400500_80132438(Task* arg0)
     SVECTOR          dir;
     SVECTOR*         dirp;
     SVECTOR          delta;
-    ActorMat         rot;
-    ActorMat*        src;
+    OverlayMat       rot;
+    OverlayMat*      src;
     Actor400500Work* work;
     GsCOORDINATE2*   coord;
     GsCOORDINATE2*   other;
@@ -709,8 +709,8 @@ void func_actor_400500_80132AB0(Task* arg0, s16 arg1, s32 arg2)
 void func_actor_400500_80132C54(Task* arg0)
 {
     Actor400500Work* work;
-    ActorMat         rot;
-    ActorMat*        src;
+    OverlayMat       rot;
+    OverlayMat*      src;
     GsCOORDINATE2*   coord;
     s32              tx;
 
@@ -2227,12 +2227,12 @@ void func_actor_400500_80135770(Task* arg0)
     PlayerStatus*              cfg;
     GpAnimArg                  msg;
     Actor400500TaskFuncTable13 sp;
-    ActorMat                   rot;
+    OverlayMat                 rot;
     s8                         handshake;
     Actor400500Work*           work_pos;
     Actor400500Work*           work_dead;
     Actor400500Work*           work_rot;
-    ActorMat*                  src;
+    OverlayMat*                src;
     s32                        one;
     s16                        ang;
     s16                        ang_z;
@@ -2510,9 +2510,9 @@ void func_actor_400500_80135EBC(Task* arg0)
 
 void func_actor_400500_801361EC(Task* arg0)
 {
-    ActorMat               rot;
+    OverlayMat             rot;
     MATRIX                 local;
-    ActorMat*              src;
+    OverlayMat*            src;
     MATRIX*                dst;
     Actor400500Work*       work;
     Actor400500Work*       workA;
@@ -3409,10 +3409,10 @@ void func_actor_400500_801375B8(Task* arg0)
 
 void func_actor_400500_8013771C(Task* arg0)
 {
-    SVECTOR   in;
-    SVECTOR   out;
-    ActorMat  rot;
-    ActorMat* src;
+    SVECTOR     in;
+    SVECTOR     out;
+    OverlayMat  rot;
+    OverlayMat* src;
     union {
         MATRIX    mat;
         GpAnimArg msg;
@@ -3946,7 +3946,7 @@ void func_actor_400500_801387E8(Task* arg0)
     Actor400500Work*    work2;
     Actor400500Work*    work3;
     Actor400500HitView* hit;
-    ActorMat            rot;
+    OverlayMat          rot;
     s32                 soundId;
     s32                 pan;
     s32                 cond;
@@ -4070,7 +4070,7 @@ void func_actor_400500_80138B78(Task* arg0)
 {
     Actor400500Work*    work;
     Actor400500HitView* hit;
-    ActorMat            rot;
+    OverlayMat          rot;
     s32                 soundId;
     s32                 pan;
     s32                 cond;
@@ -4109,8 +4109,8 @@ void func_actor_400500_80138B78(Task* arg0)
 void func_actor_400500_80138CE8(Task* arg0)
 {
     Actor400500Work* work;
-    ActorMat         rot;
-    ActorMat*        src;
+    OverlayMat       rot;
+    OverlayMat*      src;
     Task*            child;
     GsCOORDINATE2*   coord;
     s32              angle;
@@ -4476,10 +4476,10 @@ void func_actor_400500_801395D0(Task* arg0)
 
 void func_actor_400500_8013973C(Task* arg0)
 {
-    ActorMat               rot;
+    OverlayMat             rot;
     MATRIX                 local0;
     MATRIX                 local3;
-    ActorMat*              src;
+    OverlayMat*            src;
     MATRIX*                view;
     Actor400500Work*       work;
     Actor400500Work*       workRot;
@@ -4819,9 +4819,9 @@ void func_actor_400500_80139F6C(Task* arg0)
 
 void func_actor_400500_8013A0B8(Task* arg0)
 {
-    ActorMat               rot;
+    OverlayMat             rot;
     MATRIX                 local2;
-    ActorMat*              src;
+    OverlayMat*            src;
     Actor400500Work*       work;
     Actor400500Work*       ang;
     Actor400500Work*       work3;
@@ -5979,8 +5979,8 @@ void func_actor_400500_8013BE50(Task* arg0)
 void func_actor_400500_8013BEC4(Task* arg0)
 {
     Actor400500Work* work;
-    ActorMat         rot;
-    ActorMat*        src;
+    OverlayMat       rot;
+    OverlayMat*      src;
     Task*            child;
     GsCOORDINATE2*   coord;
     Actor400500Work* work2;
@@ -6037,8 +6037,8 @@ void func_actor_400500_8013BFB0(Task* arg0)
 void func_actor_400500_8013C018(Task* arg0)
 {
     Actor400500Work* work;
-    ActorMat         rot;
-    ActorMat*        src;
+    OverlayMat       rot;
+    OverlayMat*      src;
     Task*            child;
     GsCOORDINATE2*   coord;
     Actor400500Work* work2;

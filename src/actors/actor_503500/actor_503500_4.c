@@ -2690,8 +2690,8 @@ void func_actor_503500_8013FA74(Task* arg0)
     Actor503500Work3D8* work;
     GpRec18*            rec;
     GpRec18*            rec2;
-    ActorMat            m;
-    ActorMatWords*      ident;
+    OverlayMat          m;
+    OverlayMatWords*    ident;
     s32                 idx;
     s32                 i;
 
@@ -3986,10 +3986,10 @@ void func_actor_503500_8014271C(Task* arg0)
 void func_actor_503500_80142980(Task* arg0)
 {
     SVECTOR             rot;
-    ActorMat            m;
+    OverlayMat          m;
     s8                  param1[8];
     s8                  param2[8];
-    ActorMatWords*      ident;
+    OverlayMatWords*    ident;
     Actor503500Work224* work;
     GpEnemy*            enemy;
     GsCOORDINATE2*      coord;

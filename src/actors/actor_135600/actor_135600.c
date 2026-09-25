@@ -165,25 +165,25 @@ const VECTOR D_actor_135600_80131E58 = { 0, 0, 0x200000, 0 };
 /// runs on as `arg1`.
 s32 func_actor_135600_80131E68(GsCOORDINATE2* coord, s32 arg1)
 {
-    SVECTOR   v0;
-    SVECTOR   v1;
-    SVECTOR   pos;
-    SVECTOR   quad[4];
-    ActorMat  m;
-    MATRIX*   mtx;
-    s32       sxy0;
-    s32       p;
-    s32       flag;
-    s32       sxy1;
-    s16       y0;
-    s16       y1;
-    s32       rot;
-    u16       x0;
-    u16       x1;
-    s32       depth;
-    POLY_F4*  poly;
-    DR_TPAGE* tpage;
-    s32       i;
+    SVECTOR    v0;
+    SVECTOR    v1;
+    SVECTOR    pos;
+    SVECTOR    quad[4];
+    OverlayMat m;
+    MATRIX*    mtx;
+    s32        sxy0;
+    s32        p;
+    s32        flag;
+    s32        sxy1;
+    s16        y0;
+    s16        y1;
+    s32        rot;
+    u16        x0;
+    u16        x1;
+    s32        depth;
+    POLY_F4*   poly;
+    DR_TPAGE*  tpage;
+    s32        i;
 
     Gp_UpdateCoord(coord);
     mtx = &m.mat;
@@ -607,7 +607,7 @@ void func_actor_135600_80132ABC(Task* task)
 /// set to 0x1000, the value the marker's draw state runs on.
 void func_actor_135600_80132B14(Task* task)
 {
-    ActorMat       m;
+    OverlayMat     m;
     MATRIX*        mtx;
     Task*          parent;
     s32            part;
@@ -804,7 +804,7 @@ void func_actor_135600_80132F28(Task* task)
 void func_actor_135600_80132FA8(Task* arg0)
 {
     Actor135600Work* work;
-    ActorMatWords*   words;
+    OverlayMatWords* words;
     GsCOORDINATE2*   coord;
     SVECTOR          vec;
     GpAnimArg        preset;
@@ -835,7 +835,7 @@ void func_actor_135600_80132FA8(Task* arg0)
         work->field_4FA = 0;
     }
 
-    words          = (ActorMatWords*)&coord->coord;
+    words          = (OverlayMatWords*)&coord->coord;
     words->m00_m01 = ONE;
     words->m02_m10 = 0;
     words->m11_m12 = ONE;

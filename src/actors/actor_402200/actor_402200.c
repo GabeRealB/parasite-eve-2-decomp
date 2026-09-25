@@ -1375,7 +1375,7 @@ void func_actor_402200_80134968(Task* arg0)
     Actor402200Work* work;
     TmdObject*       obj;
     GsCOORDINATE2*   coord;
-    ActorMatWords*   m;
+    OverlayMatWords* m;
     s32              snd;
     s32              pan;
     s32              v;
@@ -1521,7 +1521,7 @@ void func_actor_402200_80134968(Task* arg0)
                 if (obj->lightLevel <= 0) {
                     obj->lightLevel                  = 0;
                     work->field_6DA                  = 0;
-                    m                                = (ActorMatWords*)&((TmdObject*)arg0->extra)->coords[0].coord;
+                    m                                = (OverlayMatWords*)&((TmdObject*)arg0->extra)->coords[0].coord;
                     m->m00_m01                       = 0x1000;
                     m->m02_m10                       = 0;
                     m->m11_m12                       = 0x1000;
@@ -2786,13 +2786,13 @@ void func_actor_402200_80137CA4(Task* arg0)
 {
     void**           scratch;
     void*            head;
-    ActorMat*        m;
+    OverlayMat*      m;
     GsCOORDINATE2*   coord;
     Actor402200Work* work;
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
-    m        = (ActorMat*)((u8*)head - 0x20);
+    m        = (OverlayMat*)((u8*)head - 0x20);
     *scratch = m;
     coord    = &((TmdObject*)arg0->extra)->coords[0];
     work     = arg0->work;

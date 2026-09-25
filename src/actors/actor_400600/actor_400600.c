@@ -1796,9 +1796,9 @@ void func_actor_400600_801356E0(Task* arg0)
     TmdObject*       dst;
     TmdObject*       src;
     MATRIX*          mdst;
-    ActorMat*        pm;
-    ActorMat*        pm2;
-    ActorMat         m;
+    OverlayMat*      pm;
+    OverlayMat*      pm2;
+    OverlayMat       m;
 
     root            = ((TmdObject*)arg0->extra)->coords;
     work            = (Actor400600Work*)arg0->work;
@@ -2738,14 +2738,14 @@ void func_actor_400600_80137498(Task* arg0, s16 arg1)
     Actor400600Work* work = (Actor400600Work*)arg0->work;
     SVECTOR          v;
     SVECTOR          out;
-    ActorMat         rot;
+    OverlayMat       rot;
     s16              n;
 
     work->field_76A = arg1;
     switch (arg1) {
         case 0:
             if (work->field_768 == 0) {
-                ActorMat* m = &rot;
+                OverlayMat* m = &rot;
 
                 v.vx              = work->field_A8.x - ((TmdObject*)arg0->extra)->coords->coord.t[0];
                 v.vy              = work->field_A8.y - ((TmdObject*)arg0->extra)->coords->coord.t[1] - 0x384;
@@ -2761,7 +2761,7 @@ void func_actor_400600_80137498(Task* arg0, s16 arg1)
                 func_8004BFF8(-(s16)work->field_82, &m->mat);
                 ApplyMatrixSV(&m->mat, &v, &out);
             } else {
-                ActorMat* m = &rot;
+                OverlayMat* m = &rot;
 
                 v.vx              = work->field_A8.x - ((TmdObject*)arg0->extra)->coords->coord.t[0];
                 v.vy              = work->field_A8.y - ((TmdObject*)arg0->extra)->coords->coord.t[1] - 0x640;
@@ -2864,11 +2864,11 @@ void func_actor_400600_80137840(Task* arg0)
     GsCOORDINATE2*   coord2;
     GsCOORDINATE2*   coord3;
     GsCOORDINATE2*   coord4;
-    ActorMat         rot;
-    ActorMat*        m1;
-    ActorMat*        m2;
-    ActorMat*        m3;
-    ActorMat*        m4;
+    OverlayMat       rot;
+    OverlayMat*      m1;
+    OverlayMat*      m2;
+    OverlayMat*      m3;
+    OverlayMat*      m4;
     MATRIX*          dst;
     MATRIX*          dst2;
     MATRIX*          dst3;

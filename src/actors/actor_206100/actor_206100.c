@@ -36,7 +36,7 @@ typedef struct Actor206100GteView {
 } Actor206100GteView;
 
 typedef union Actor206100VecScratch {
-    ActorMat           matrix;
+    OverlayMat         matrix;
     Actor206100GteView gte;
 } Actor206100VecScratch;
 
@@ -1045,11 +1045,11 @@ void func_actor_206100_8014AF74(Task* task)
 void func_actor_206100_8014B0AC(Task* task, u8 arg1)
 {
     VECTOR           scale;
-    ActorMat         rot;
-    ActorMat         ma;
-    ActorMat         mb;
+    OverlayMat       rot;
+    OverlayMat       ma;
+    OverlayMat       mb;
     SVECTOR          euler;
-    ActorMat         mc;
+    OverlayMat       mc;
     Actor206100Work* work;
     GsCOORDINATE2*   base;
     GsCOORDINATE2*   c2;
@@ -1079,7 +1079,7 @@ void func_actor_206100_8014B0AC(Task* task, u8 arg1)
                     work->field_53C = 0x1000;
                     /* fallthrough */
                 case 1: {
-                    ActorMatWords* ir;
+                    OverlayMatWords* ir;
 
                     work->field_4D8.vx = (u16)work->field_4D8.vx + ((s32) - (work->field_4D8.vx * 0x10) >> 7);
                     work->field_4D8.vy = (u16)work->field_4D8.vy + ((s32) - (work->field_4D8.vy * 0x10) >> 7);
@@ -1113,10 +1113,10 @@ void func_actor_206100_8014B0AC(Task* task, u8 arg1)
                     break;
                 }
                 case 2: {
-                    ActorMatWords* ia;
-                    ActorMatWords* ib;
-                    ActorMatWords* ic;
-                    ActorMatWords* ir;
+                    OverlayMatWords* ia;
+                    OverlayMatWords* ib;
+                    OverlayMatWords* ic;
+                    OverlayMatWords* ir;
 
                     Gp_MtxToEuler(&c4->coord, &euler);
                     work->field_53C  = (u16)work->field_53C + ((0x2AA - work->field_53C) >> 3);
@@ -1178,10 +1178,10 @@ void func_actor_206100_8014B0AC(Task* task, u8 arg1)
             base[4].flg = 0;
             Gp_UpdateCoord(c4);
             if (work->field_53C < 0xF80) {
-                ActorMatWords* ia;
-                ActorMatWords* ib;
-                ActorMatWords* ic;
-                ActorMatWords* ir;
+                OverlayMatWords* ia;
+                OverlayMatWords* ib;
+                OverlayMatWords* ic;
+                OverlayMatWords* ir;
 
                 Gp_MtxToEuler(&c4->coord, &euler);
                 work->field_53C  = (u16)work->field_53C + ((0x1000 - work->field_53C) >> 2);
@@ -1837,7 +1837,7 @@ void func_actor_206100_8014C458(Task* task)
     TaskFuncTable9            states = D_actor_206100_80149E70;
     Actor206100VecScratch     scratch;
     VECTOR                    scale;
-    ActorMat                  scaling;
+    OverlayMat                scaling;
     Actor206100Work*          next;
     Actor206100Work*          dying;
     Actor206100Work*          sub;
@@ -2685,9 +2685,9 @@ void func_actor_206100_8014DA28(Task* task)
     MATRIX*          mtx;
     MATRIX*          mtx2;
     MATRIX*          dest;
-    ActorMat         matrix;
+    OverlayMat       matrix;
     VECTOR           scale;
-    ActorMat         scaling;
+    OverlayMat       scaling;
     s32              i;
     s16              state;
 
@@ -2975,9 +2975,9 @@ void func_actor_206100_8014E228(Task* task)
     MATRIX           t1;
     MATRIX           t2;
     MATRIX           t3;
-    ActorMat         ma;
-    ActorMat         mb;
-    ActorMat         mc;
+    OverlayMat       ma;
+    OverlayMat       mb;
+    OverlayMat       mc;
     MATRIX           view;
     VECTOR           delta;
     VECTOR           local;
@@ -2987,9 +2987,9 @@ void func_actor_206100_8014E228(Task* task)
     Actor206100Work* work;
     GsCOORDINATE2*   base;
     GsCOORDINATE2*   c2;
-    ActorMatWords*   ia;
-    ActorMatWords*   ib;
-    ActorMatWords*   ic;
+    OverlayMatWords* ia;
+    OverlayMatWords* ib;
+    OverlayMatWords* ic;
     MATRIX*          m2;
     MATRIX*          m3;
     MATRIX*          dest;
@@ -3238,7 +3238,7 @@ void func_actor_206100_8014EB60(Task* task)
     Actor206100Work* work;
     GsCOORDINATE2*   coords;
     SVECTOR          rot;
-    ActorMat         matrix;
+    OverlayMat       matrix;
     MATRIX*          dest;
     MATRIX*          mtx;
 

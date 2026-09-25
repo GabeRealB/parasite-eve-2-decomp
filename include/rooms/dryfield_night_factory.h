@@ -57,21 +57,6 @@ STATIC_ASSERT_SIZEOF(NightFactoryCutsceneTable3, 0xC);
 /// two movements it arms.
 extern const NightFactoryCutsceneTable3 D_dryfield_night_factory_8017D5DC;
 
-/// A `MATRIX` plus a word-wise view of its first 0x12 bytes, used to reset a
-/// rotation to identity with five aligned stores rather than nine halfword ones
-/// before the model's rotation is rebuilt from an angle.
-typedef union NightFactoryMatWords {
-    MATRIX mat;
-    struct {
-        /* 0x00 */ s32 m00_m01;
-        /* 0x04 */ s32 m02_m10;
-        /* 0x08 */ s32 m11_m12;
-        /* 0x0C */ s32 m20_m21;
-        /* 0x10 */ s16 m22;
-    } ident;
-} NightFactoryMatWords;
-STATIC_ASSERT_SIZEOF(NightFactoryMatWords, 0x20);
-
 /// Work block the room's factory task allocates as 0x58 zeroed bytes in its
 /// state 0 and parks at `Task::work`.
 ///

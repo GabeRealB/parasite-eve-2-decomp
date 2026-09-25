@@ -309,11 +309,11 @@ STATIC_ASSERT_SIZEOF(Actor01600GroundScratch, 0x18);
 /// `SVECTOR` `Gfx_MatrixCol2` reads that facing into, the rotation
 /// `func_8004BFF8` builds for the yaw and the yaw itself.
 typedef struct Actor01600StepScratch {
-    /* 0x00 */ VECTOR   move;
-    /* 0x10 */ SVECTOR  dir;
-    /* 0x18 */ ActorMat mat;
-    /* 0x38 */ s16      yaw;
-    /* 0x3A */ byte     pad_3A[2];
+    /* 0x00 */ VECTOR     move;
+    /* 0x10 */ SVECTOR    dir;
+    /* 0x18 */ OverlayMat mat;
+    /* 0x38 */ s16        yaw;
+    /* 0x3A */ byte       pad_3A[2];
 } Actor01600StepScratch;
 STATIC_ASSERT_SIZEOF(Actor01600StepScratch, 0x3C);
 
@@ -3800,7 +3800,7 @@ void Actor01600_Fn06880(Task* arg0)
 /// result is added to `coord.t`.
 void Actor01600_Fn06974(Task* actor, s32 distance)
 {
-    ActorMat*              mat;
+    OverlayMat*            mat;
     Actor01600StepScratch* work;
     GsCOORDINATE2*         coord;
     VECTOR*                head;
@@ -3815,7 +3815,7 @@ void Actor01600_Fn06974(Task* actor, s32 distance)
     work->move.vz = 0;
     *scratch      = work;
     Gfx_MatrixCol2(&((TmdObject*)actor->extra)->coords->coord, (SVECTOR*)((u8*)head - 0x2C));
-    mat                = (ActorMat*)((u8*)head - 0x24);
+    mat                = (OverlayMat*)((u8*)head - 0x24);
     work->yaw          = ratan2(work->dir.vx, work->dir.vz);
     mat->ident.m00_m01 = 0x1000;
     mat->ident.m02_m10 = 0;

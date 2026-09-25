@@ -92,8 +92,8 @@ typedef struct Actor100400Entry8 {
 } Actor100400Entry8;
 
 typedef union Actor100400Mat {
-    MATRIX        mat;
-    ActorMatWords ident;
+    MATRIX          mat;
+    OverlayMatWords ident;
     /// The same storage reused as the view-space position `Actor00400_Fn0A08C`
     /// fills in, once the rotation it held has been handed to the coordinate.
     SVECTOR vec;
@@ -949,9 +949,9 @@ void Actor00400_Fn016A4(Task* arg0, s32 arg1)
     Actor100400Mat   ma;
     Actor100400Mat   mb;
     Actor100400Mat   mc;
-    ActorMatWords*   ia;
-    ActorMatWords*   ib;
-    ActorMatWords*   ic;
+    OverlayMatWords* ia;
+    OverlayMatWords* ib;
+    OverlayMatWords* ic;
     GsCOORDINATE2*   base;
     GsCOORDINATE2*   c1;
     GsCOORDINATE2*   c2;
@@ -1486,7 +1486,7 @@ void Actor00400_Fn02648(Task* arg0, s32 arg1)
                 work->field_654 = 0x1000;
                 /* fallthrough */
             case 1: {
-                ActorMatWords* ir;
+                OverlayMatWords* ir;
 
                 ir                 = &rot.ident;
                 work->field_5EC.vx = (u16)work->field_5EC.vx + ((s32) - (work->field_5EC.vx * 0x10) >> 6);
@@ -1520,10 +1520,10 @@ void Actor00400_Fn02648(Task* arg0, s32 arg1)
                 break;
             }
             case 2: {
-                ActorMatWords* ia;
-                ActorMatWords* ib;
-                ActorMatWords* ic;
-                ActorMatWords* ir;
+                OverlayMatWords* ia;
+                OverlayMatWords* ib;
+                OverlayMatWords* ic;
+                OverlayMatWords* ir;
 
                 Gp_MtxToEuler(&c4->coord, &euler2);
                 work->field_654  = (u16)work->field_654 + ((0x2AA - work->field_654) >> 3);
@@ -1584,10 +1584,10 @@ void Actor00400_Fn02648(Task* arg0, s32 arg1)
         base[4].flg = 0;
         Gp_UpdateCoord(c4);
         if (work->field_654 < 0xF80) {
-            ActorMatWords* ia;
-            ActorMatWords* ib;
-            ActorMatWords* ic;
-            ActorMatWords* ir;
+            OverlayMatWords* ia;
+            OverlayMatWords* ib;
+            OverlayMatWords* ic;
+            OverlayMatWords* ir;
 
             Gp_MtxToEuler(&c4->coord, &euler2);
             work->field_654  = (u16)work->field_654 + ((0x1000 - work->field_654) >> 3);
@@ -1634,9 +1634,9 @@ void Actor00400_Fn02648(Task* arg0, s32 arg1)
             MulMatrix(&mc.mat, &rot.mat);
             Actor00400_Fn08A1C(&mc.mat, &c4->coord);
         } else {
-            ActorMatWords* ir;
-            MATRIX*        m2;
-            MATRIX*        m3;
+            OverlayMatWords* ir;
+            MATRIX*          m2;
+            MATRIX*          m3;
 
             m2 = &base[2].coord;
             Gp_MtxToEuler(m2, &euler0);
@@ -2446,7 +2446,7 @@ void Actor00400_Fn04580(Task* arg0)
     TmdObject*       ctx  = arg0->extra;
     TaskFuncTable10  fns;
     Actor100400Mat   m;
-    ActorMatWords*   ia;
+    OverlayMatWords* ia;
     Actor100400Work* w;
     Actor100400Work* w2;
     Actor100400Work* w3;
@@ -2715,7 +2715,7 @@ void Actor00400_Fn04E18(Task* arg0)
     TmdObject*       ctx    = arg0->extra;
     TaskFuncTable15  fns;
     Actor100400Mat   m;
-    ActorMatWords*   ia;
+    OverlayMatWords* ia;
     Actor100400Work* w;
     Actor100400Work* wA;
     Actor100400Work* w2;
@@ -3457,7 +3457,7 @@ void Actor00400_Fn06B7C(Task* arg0)
     TmdObject*       ctx              = arg0->extra;
     void             (*fns[2])(Task*) = { Actor00400_Fn08A88, Actor00400_Fn08B40 };
     Actor100400Mat   m;
-    ActorMatWords*   ia;
+    OverlayMatWords* ia;
     Actor100400Work* w;
     Actor100400Work* w2;
     Actor100400Work* w3;
@@ -3640,7 +3640,7 @@ void Actor00400_Fn070C0(Task* arg0)
     GsCOORDINATE2*   coord0           = ctx->coords;
     void             (*fns[2])(Task*) = { Actor00400_Fn0A468, Actor00400_Fn0A4BC };
     Actor100400Mat   m;
-    ActorMatWords*   ia;
+    OverlayMatWords* ia;
     Actor100400Work* w;
     Actor100400Work* w2;
     Actor100400Work* w3;

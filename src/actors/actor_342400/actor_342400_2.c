@@ -388,8 +388,8 @@ void func_actor_342400_801637DC(Task* arg0)
 void func_actor_342400_801639A8(Task* arg0)
 {
     SVECTOR          rot;
-    ActorMat         mtx;
-    ActorMatWords*   ident;
+    OverlayMat       mtx;
+    OverlayMatWords* ident;
     Actor341700Work* work;
     GsCOORDINATE2*   coords;
     MATRIX*          m5;
@@ -1104,8 +1104,8 @@ void func_actor_342400_8016513C(Task* arg0)
 {
     Actor341700Work* work;
     GsCOORDINATE2*   coord;
-    ActorMat         rot;
-    ActorMat*        src;
+    OverlayMat       rot;
+    OverlayMat*      src;
     MATRIX*          dst;
     Actor341700Work* anim;
 
@@ -1555,8 +1555,8 @@ void func_actor_342400_80166180(Task* arg0)
     TmdObject*       obj;
     GsCOORDINATE2*   coord;
     VECTOR           scale;
-    ActorMat         m;
-    ActorMatWords*   ident;
+    OverlayMat       m;
+    OverlayMatWords* ident;
     SVECTOR          ofs;
 
     work             = (Actor341700Work*)arg0->work;
@@ -3556,8 +3556,8 @@ void func_actor_342400_8016A538(Task* arg0)
 {
     Actor341700Work* work;
     GsCOORDINATE2*   coord;
-    ActorMat         rot;
-    ActorMat*        src;
+    OverlayMat       rot;
+    OverlayMat*      src;
     MATRIX*          dst;
     s16              pitch;
 
@@ -4474,8 +4474,8 @@ void func_actor_342400_8016BD98(Task* arg0)
     TmdObject*       obj;
     GsCOORDINATE2*   coord;
     VECTOR           scale;
-    ActorMat         m;
-    ActorMatWords*   ident;
+    OverlayMat       m;
+    OverlayMatWords* ident;
 
     work             = (Actor341700Work*)arg0->work;
     ident            = &m.ident;

@@ -274,10 +274,10 @@ void Actor03800_Fn003B8(Task* arg0)
     Actor103800Work* work;
     GpEnemy*         ctx;
     GsCOORDINATE2*   src;
-    ActorMat*        mtx;
-    ActorMat*        srcmtx;
-    ActorMat*        mtx2;
-    ActorMat*        srcmtx2;
+    OverlayMat*      mtx;
+    OverlayMat*      srcmtx;
+    OverlayMat*      mtx2;
+    OverlayMat*      srcmtx2;
     SVECTOR          rot;
     MATRIX           mat;
     s16              mode;
@@ -319,7 +319,7 @@ void Actor03800_Fn003B8(Task* arg0)
             work->field_37A = 0;
             work->field_2CC = src->coord;
 
-            mtx                = (ActorMat*)&work->coord.coord;
+            mtx                = (OverlayMat*)&work->coord.coord;
             mtx->ident.m00_m01 = 0x1000;
             mtx->ident.m02_m10 = 0;
             mtx->ident.m11_m12 = 0x1000;
@@ -332,7 +332,7 @@ void Actor03800_Fn003B8(Task* arg0)
             work->coord.coord.t[1] = src->coord.t[1];
             work->coord.coord.t[2] = src->coord.t[2];
 
-            srcmtx                = (ActorMat*)&src->coord;
+            srcmtx                = (OverlayMat*)&src->coord;
             srcmtx->ident.m00_m01 = 0x1000;
             srcmtx->ident.m02_m10 = 0;
             srcmtx->ident.m11_m12 = 0x1000;
@@ -369,7 +369,7 @@ void Actor03800_Fn003B8(Task* arg0)
             work->field_37A = 0;
             work->field_2CC = src->coord;
 
-            mtx2                = (ActorMat*)&work->coord.coord;
+            mtx2                = (OverlayMat*)&work->coord.coord;
             mtx2->ident.m00_m01 = 0x1000;
             mtx2->ident.m02_m10 = 0;
             mtx2->ident.m11_m12 = 0x1000;
@@ -382,7 +382,7 @@ void Actor03800_Fn003B8(Task* arg0)
             work->coord.coord.t[1] = src->coord.t[1];
             work->coord.coord.t[2] = src->coord.t[2];
 
-            srcmtx2                = (ActorMat*)&src->coord;
+            srcmtx2                = (OverlayMat*)&src->coord;
             srcmtx2->ident.m00_m01 = 0x1000;
             srcmtx2->ident.m02_m10 = 0;
             srcmtx2->ident.m11_m12 = 0x1000;

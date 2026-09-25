@@ -26,27 +26,6 @@
  * repeat field for field; one declaration serves all of them.
  */
 
-/* Matrix views. */
-
-/// The leading rotation entries of a `MATRIX`, paired into words. Actors
-/// reset a rotation to identity through it: five aligned word stores instead
-/// of nine halfword ones, where the pairs whose halves are both 0x1000 or
-/// both zero fold into one store.
-typedef struct ActorMatWords {
-    s32 m00_m01;
-    s32 m02_m10;
-    s32 m11_m12;
-    s32 m20_m21;
-    s16 m22;
-} ActorMatWords;
-
-/// A `MATRIX` that can also be written through `ActorMatWords`.
-typedef union ActorMat {
-    MATRIX        mat;
-    ActorMatWords ident;
-} ActorMat;
-STATIC_ASSERT_SIZEOF(ActorMat, 0x20);
-
 /* Scratch-pad blocks.
  *
  * These are carved off the top of the scratch pad through `G_SCRATCH_HEAD`
@@ -167,8 +146,8 @@ typedef struct ActorScratchStack {
 /// Scaling a coordinate's rotation: an identity matrix scaled by `scale`,
 /// then multiplied into the coordinate.
 typedef struct ActorScaleScratch {
-    ActorMat mat;
-    VECTOR   scale;
+    OverlayMat mat;
+    VECTOR     scale;
 } ActorScaleScratch;
 STATIC_ASSERT_SIZEOF(ActorScaleScratch, 0x30);
 

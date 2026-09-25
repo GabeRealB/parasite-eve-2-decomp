@@ -2859,7 +2859,7 @@ void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg)
     Actor560800PartPose*  pose;
     Actor560800ModelWork* part;
     GsCOORDINATE2*        coord;
-    ActorMat*             mat;
+    OverlayMat*           mat;
     s32                   i;
     s32                   j;
 
@@ -2882,7 +2882,7 @@ void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg)
             do {
                 if (work->parts[i & 0xFFFF] != NULL) {
                     coord              = ((TmdObject*)work->parts[i & 0xFFFF]->extra)->coords;
-                    mat                = (ActorMat*)&coord->coord;
+                    mat                = (OverlayMat*)&coord->coord;
                     mat->ident.m00_m01 = 0x1000;
                     mat->ident.m02_m10 = 0;
                     mat->ident.m11_m12 = 0x1000;

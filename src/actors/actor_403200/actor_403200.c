@@ -2757,7 +2757,7 @@ void func_actor_403200_8013709C(GpEnemy* enemy, Task* task)
     GpEnemy*             owner;
     Task*                parent;
     Task*                player;
-    ActorMat*            mtx;
+    OverlayMat*          mtx;
     SVECTOR              vec;
     s32                  dist;
     s32                  rnd;
@@ -2855,7 +2855,7 @@ void func_actor_403200_8013709C(GpEnemy* enemy, Task* task)
     vec.vz = 0;
 
     work->coord.sub    = &gGfxViewCoord;
-    mtx                = (ActorMat*)&work->coord.coord;
+    mtx                = (OverlayMat*)&work->coord.coord;
     mtx->ident.m00_m01 = 0x1000;
     mtx->ident.m02_m10 = 0;
     mtx->ident.m11_m12 = 0x1000;
@@ -3598,7 +3598,7 @@ void func_actor_403200_80138AFC(GpEnemy* enemy, Task* task)
     Actor403200Work* work;
     Actor403200Work* buffers;
     Actor403200Work* escorts;
-    ActorMat*        mtx;
+    OverlayMat*      mtx;
     TmdObject*       tmd;
     GsCOORDINATE2*   coord;
     GsCOORDINATE2*   freeCoord;
@@ -3821,7 +3821,7 @@ void func_actor_403200_80138AFC(GpEnemy* enemy, Task* task)
 
     work->field_E3C.c.sub         = ((TmdObject*)task->extra)->coords;
     work->field_E3C.ident.m00_m01 = 0x1000;
-    mtx                           = (ActorMat*)&work->field_E3C.c.coord;
+    mtx                           = (OverlayMat*)&work->field_E3C.c.coord;
     mtx->ident.m02_m10            = 0;
     mtx->ident.m11_m12            = 0x1000;
     mtx->ident.m20_m21            = 0;
@@ -6011,7 +6011,7 @@ void func_actor_403200_8013E2FC(Task* arg0)
     Actor403200Work* work;
     Actor403200Work* escorts;
     Actor403200Work* dying;
-    ActorMat*        mtx;
+    OverlayMat*      mtx;
     GsCOORDINATE2*   coords;
     s32              state;
     s32              frame;
@@ -6052,7 +6052,7 @@ void func_actor_403200_8013E2FC(Task* arg0)
     if (work->field_7B3 == 9 && work->field_6 == 0x2D) {
         coords                                = ((TmdObject*)arg0->extra)->coords;
         D_actor_403200_8015F970.ident.m00_m01 = 0x1000;
-        mtx                                   = (ActorMat*)&D_actor_403200_8015F970.c.coord;
+        mtx                                   = (OverlayMat*)&D_actor_403200_8015F970.c.coord;
         mtx->ident.m02_m10                    = 0;
         mtx->ident.m11_m12                    = 0x1000;
         mtx->ident.m20_m21                    = 0;

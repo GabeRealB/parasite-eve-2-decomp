@@ -2192,8 +2192,8 @@ void func_actor_510900_801395AC(void* enemy, Task* task)
     Actor510900Work* work;
     GsCOORDINATE2*   coord;
     GsCOORDINATE2*   parentCoord;
-    ActorMatWords*   mat;
-    ActorMatWords*   mat2;
+    OverlayMatWords* mat;
+    OverlayMatWords* mat2;
     s16              blend;
     s16              r;
     s32              dy;
@@ -2223,7 +2223,7 @@ void func_actor_510900_801395AC(void* enemy, Task* task)
             if (blend < 0x50) {
                 r = blend % 40;
                 if (r < 0xF) {
-                    mat               = (ActorMatWords*)&coord->coord;
+                    mat               = (OverlayMatWords*)&coord->coord;
                     mat->m00_m01      = 0x1000;
                     mat->m11_m12      = 0x1000;
                     mat->m22          = 0x1000;
@@ -2246,7 +2246,7 @@ void func_actor_510900_801395AC(void* enemy, Task* task)
                 coord->flg = 0;
                 Gp_UpdateCoord(coord);
             } else if (blend == 0x52) {
-                mat2              = (ActorMatWords*)&coord->coord;
+                mat2              = (OverlayMatWords*)&coord->coord;
                 mat2->m00_m01     = 0x1000;
                 mat2->m02_m10     = 0;
                 mat2->m11_m12     = 0x1000;
@@ -2950,7 +2950,7 @@ end:
 void func_actor_510900_8013AD90(GpEnemy* enemy, Task* task)
 {
     GsCOORDINATE2*        coord;
-    ActorMatWords*        mat;
+    OverlayMatWords*      mat;
     Actor510900ChildWork* work;
 
     coord = ((TmdObject*)task->extra)->coords;
@@ -2959,7 +2959,7 @@ void func_actor_510900_8013AD90(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    mat               = (ActorMatWords*)&coord->coord;
+    mat               = (OverlayMatWords*)&coord->coord;
     task->work        = (TaskIdMap*)work;
     mat->m00_m01      = 0x1000;
     mat->m11_m12      = 0x1000;

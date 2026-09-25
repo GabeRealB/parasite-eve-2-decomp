@@ -129,21 +129,6 @@ typedef struct DdhScreenPoint {
     s32     depthCue;
 } DdhScreenPoint;
 
-/// The first five words of a `MATRIX`, so an identity rotation can be written
-/// two halfwords at a time before `RotMatrixZ` fills it in.
-typedef struct DdhMatWords {
-    s32 m00_m01;
-    s32 m02_m10;
-    s32 m11_m12;
-    s32 m20_m21;
-    s16 m22;
-} DdhMatWords;
-
-typedef union DdhRotMatrix {
-    MATRIX      mat;
-    DdhMatWords words;
-} DdhRotMatrix;
-
 extern void func_80724608(void* owner, s32 arg1, s32 arg2, void* name);
 
 extern s16 D_800691CA;
@@ -1297,26 +1282,26 @@ void func_dryfield_dilapidated_house_8017F568(Task* task, SVECTOR* verts, s32 ar
 /// `killCountdown`.
 void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts, s32* arg2, s32* arg3)
 {
-    SVECTOR        a;
-    SVECTOR        b;
-    DdhRotMatrix   rot;
-    DdhScreenPoint proj[2];
-    DdhCoordWork*  work;
-    MATRIX*        mtx;
-    SVECTOR*       src;
-    s16            t;
-    s16            r;
-    s32            scale;
-    DdhMatWords*   words;
-    s32            i;
-    u16            f;
-    u16            x0;
-    s32            y0;
-    u16            x1;
-    s32            y1;
-    s32            dx;
-    s32            dy;
-    s32            side;
+    SVECTOR          a;
+    SVECTOR          b;
+    OverlayMat       rot;
+    DdhScreenPoint   proj[2];
+    DdhCoordWork*    work;
+    MATRIX*          mtx;
+    SVECTOR*         src;
+    s16              t;
+    s16              r;
+    s32              scale;
+    OverlayMatWords* words;
+    s32              i;
+    u16              f;
+    u16              x0;
+    s32              y0;
+    u16              x1;
+    s32              y1;
+    s32              dx;
+    s32              dy;
+    s32              side;
 
     side = task->spawnArg1;
     work = ((Task*)task->spawnArg2)->work;
@@ -1372,11 +1357,11 @@ void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts, s32* a
     y1                = proj[1].sxy.vy;
     i                 = ratan2(dx, dy);
     scale             = gDisplayState.screenDistance;
-    rot.words.m00_m01 = 0x1000;
-    rot.words.m02_m10 = 0;
-    words             = &rot.words;
+    rot.ident.m00_m01 = 0x1000;
+    rot.ident.m02_m10 = 0;
+    words             = &rot.ident;
     words->m11_m12    = 0x1000;
-    rot.words.m20_m21 = 0;
+    rot.ident.m20_m21 = 0;
     words->m22        = 0x1000;
     RotMatrixZ(i, &rot.mat);
     gte_SetRotMatrix(&rot.mat);

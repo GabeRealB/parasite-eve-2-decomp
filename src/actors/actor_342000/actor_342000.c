@@ -265,7 +265,7 @@ extern GpMsgEntry D_actor_342000_801648E8[];
 static inline void Actor342000_InitCoord(Task* arg0, Actor342000Work* w)
 {
     GsCOORDINATE2* coord;
-    ActorMat*      mtx;
+    OverlayMat*    mtx;
 
     coord                                  = &w->coord;
     coord->sub                             = ((Actor342000Work*)arg0->work)->field_2A4;
@@ -273,7 +273,7 @@ static inline void Actor342000_InitCoord(Task* arg0, Actor342000Work* w)
     coord->coord.t[0]                      = 0;
     coord->coord.t[1]                      = 0;
     coord->coord.t[2]                      = 0;
-    mtx                                    = (ActorMat*)&w->coord.coord;
+    mtx                                    = (OverlayMat*)&w->coord.coord;
     mtx->ident.m00_m01                     = 0x1000;
     mtx->ident.m02_m10                     = 0;
     mtx->ident.m11_m12                     = 0x1000;
@@ -387,7 +387,7 @@ void func_actor_342000_801625D8(Task* arg0)
     register short   t5 asm("t5");
     register short   t6 asm("t6");
     Actor342000Work* work;
-    ActorMat*        mtx;
+    OverlayMat*      mtx;
     Actor342000Work* data;
     s32              one;
     GsCOORDINATE2*   coord;
@@ -416,7 +416,7 @@ void func_actor_342000_801625D8(Task* arg0)
             data = (Actor342000Work*)work->field_298->work;
             __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
             scratch            = *(u32*)(head + 0x3FC);
-            mtx                = (ActorMat*)&work->coord.coord;
+            mtx                = (OverlayMat*)&work->coord.coord;
             mtx->ident.m00_m01 = one;
             mtx->ident.m02_m10 = 0;
             mtx->ident.m11_m12 = one;
@@ -498,7 +498,7 @@ void func_actor_342000_801625D8(Task* arg0)
 }
 
 /// Display state 1 rebuilds the actor coordinate: an identity rotation is
-/// splatted through `ActorMat`, the euler angles below it are
+/// splatted through `OverlayMat`, the euler angles below it are
 /// composed onto it (Y, then X, then Z) and every column is scaled by the
 /// matching component of `Actor342000Work::field_264` -- a scratchpad `SVECTOR`
 /// is gathered from the column, run through `GPF` and scattered back, with the
@@ -516,7 +516,7 @@ void func_actor_342000_801628C8(Task* arg0)
     register short   t6 asm("t6");
     Actor342000Work* work;
     Actor342000Work* data;
-    ActorMat*        mtx;
+    OverlayMat*      mtx;
     s32*             ang;
     VECTOR*          sc;
     TmdObject*       extra;
@@ -534,7 +534,7 @@ void func_actor_342000_801628C8(Task* arg0)
             arg0->state += 1;
             return;
         case 1:
-            mtx                = (ActorMat*)&work->coord.coord;
+            mtx                = (OverlayMat*)&work->coord.coord;
             mtx->ident.m00_m01 = 0x1000;
             mtx->ident.m02_m10 = 0;
             mtx->ident.m11_m12 = 0x1000;

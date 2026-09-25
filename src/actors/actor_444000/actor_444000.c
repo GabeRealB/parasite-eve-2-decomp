@@ -258,10 +258,10 @@ STATIC_ASSERT_SIZEOF(Actor444000EventWork, 0x34);
 /// turn adds to the coordinate; `m` is the working copy of the model's root
 /// coordinate and `angle` the yaw `Gfx_RotMatrixY` rebuilds it from.
 typedef struct Actor444000RunScratch {
-    /* 0x00 */ SVECTOR  dir;
-    /* 0x08 */ ActorMat m;
-    /* 0x28 */ s16      pad_28;
-    /* 0x2A */ s16      angle;
+    /* 0x00 */ SVECTOR    dir;
+    /* 0x08 */ OverlayMat m;
+    /* 0x28 */ s16        pad_28;
+    /* 0x2A */ s16        angle;
 } Actor444000RunScratch;
 STATIC_ASSERT_SIZEOF(Actor444000RunScratch, 0x2C);
 
@@ -1562,7 +1562,7 @@ static __inline__ void Actor444000_StepForward(GsCOORDINATE2* coord)
 void func_actor_444000_8013482C(Task* task)
 {
     Actor444000RunScratch* sc;
-    ActorMat*              mat;
+    OverlayMat*            mat;
     TmdObject*             tmd;
     Actor444000Work*       work;
     GpEnemy*               enemy;
@@ -3099,7 +3099,7 @@ void func_actor_444000_80139594(GpEnemy* enemy, Task* task)
     GpEnemy*             owner;
     Task*                parent;
     Task*                player;
-    ActorMat*            mtx;
+    OverlayMat*          mtx;
     SVECTOR              vec;
     s32                  dist;
     s32                  rnd;
@@ -3197,7 +3197,7 @@ void func_actor_444000_80139594(GpEnemy* enemy, Task* task)
     vec.vz = 0;
 
     work->coord.sub    = &gGfxViewCoord;
-    mtx                = (ActorMat*)&work->coord.coord;
+    mtx                = (OverlayMat*)&work->coord.coord;
     mtx->ident.m00_m01 = 0x1000;
     mtx->ident.m02_m10 = 0;
     mtx->ident.m11_m12 = 0x1000;
@@ -3995,7 +3995,7 @@ void func_actor_444000_8013AFF8(GpEnemy* enemy, Task* task)
     Actor444000Work* work;
     Actor444000Work* buffers;
     Actor444000Work* escorts;
-    ActorMat*        mtx;
+    OverlayMat*      mtx;
     TmdObject*       tmd;
     TmdObject*       model;
     TmdObject*       escortTmd;
@@ -4188,7 +4188,7 @@ void func_actor_444000_8013AFF8(GpEnemy* enemy, Task* task)
     freeCoord                     = &work->field_E3C.c;
     work->field_E3C.c.sub         = ((TmdObject*)task->extra)->coords;
     work->field_E3C.ident.m00_m01 = 0x1000;
-    mtx                           = (ActorMat*)&work->field_E3C.c.coord;
+    mtx                           = (OverlayMat*)&work->field_E3C.c.coord;
     mtx->ident.m02_m10            = 0;
     mtx->ident.m11_m12            = 0x1000;
     mtx->ident.m20_m21            = 0;
@@ -6170,7 +6170,7 @@ void func_actor_444000_80140BBC(Task* arg0)
     Actor444000Work* buffers;
     TmdObject*       tmd;
     TmdObject*       escortTmd;
-    ActorMat*        mtx;
+    OverlayMat*      mtx;
     GsCOORDINATE2*   coords;
     s16              i;
     s16              j;
@@ -6212,7 +6212,7 @@ void func_actor_444000_80140BBC(Task* arg0)
     if (work->field_7B3 == 9 && work->field_6 == 0x2D) {
         coords                                = ((TmdObject*)arg0->extra)->coords;
         D_actor_444000_801618B8.ident.m00_m01 = 0x1000;
-        mtx                                   = (ActorMat*)&D_actor_444000_801618B8.c.coord;
+        mtx                                   = (OverlayMat*)&D_actor_444000_801618B8.c.coord;
         mtx->ident.m02_m10                    = 0;
         mtx->ident.m11_m12                    = 0x1000;
         mtx->ident.m20_m21                    = 0;

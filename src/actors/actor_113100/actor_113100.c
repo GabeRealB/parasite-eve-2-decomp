@@ -429,8 +429,8 @@ void func_actor_113100_801324DC(Task* task)
 {
     Actor113100Work* work;
     GsCOORDINATE2*   coord;
-    ActorMatWords*   words;
-    ActorMatWords*   turnWords;
+    OverlayMatWords* words;
+    OverlayMatWords* turnWords;
     VECTOR           delta;
     GpAnimArg        preset;
     s32              angle;
@@ -450,7 +450,7 @@ void func_actor_113100_801324DC(Task* task)
         } else {
             yaw = angle16 + 0x40;
         }
-        turnWords          = (ActorMatWords*)&coord->coord;
+        turnWords          = (OverlayMatWords*)&coord->coord;
         turnWords->m00_m01 = ONE;
         turnWords->m02_m10 = 0;
         turnWords->m11_m12 = ONE;
@@ -459,7 +459,7 @@ void func_actor_113100_801324DC(Task* task)
         func_8004BFF8((s16)yaw, &coord->coord);
         coord->flg = 0;
     } else {
-        words          = (ActorMatWords*)&coord->coord;
+        words          = (OverlayMatWords*)&coord->coord;
         words->m00_m01 = ONE;
         words->m02_m10 = 0;
         words->m11_m12 = ONE;
@@ -912,7 +912,7 @@ void func_actor_113100_8013301C(Task* arg0)
 void func_actor_113100_801330E8(Task* arg0)
 {
     Actor113100Work* work;
-    ActorMatWords*   words;
+    OverlayMatWords* words;
     GsCOORDINATE2*   coord;
     SVECTOR          vec;
     GpAnimArg        preset;
@@ -943,7 +943,7 @@ void func_actor_113100_801330E8(Task* arg0)
         work->field_532 = 0;
     }
 
-    words          = (ActorMatWords*)&coord->coord;
+    words          = (OverlayMatWords*)&coord->coord;
     words->m00_m01 = ONE;
     words->m02_m10 = 0;
     words->m11_m12 = ONE;
