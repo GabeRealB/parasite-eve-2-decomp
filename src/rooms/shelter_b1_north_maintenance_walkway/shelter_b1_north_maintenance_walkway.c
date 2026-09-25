@@ -43,7 +43,7 @@ void func_shelter_b1_north_maintenance_walkway_8017DB54(u8 arg0);
 extern s32      func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 extern TaskDesc D_shelter_b1_north_maintenance_walkway_80184A78;
 /// Spawn payload of the task 0x31 the event task may start.
-extern GpStateBD8       D_shelter_b1_north_maintenance_walkway_80185B6C;
+extern GpFadeWork       D_shelter_b1_north_maintenance_walkway_80185B6C;
 extern RoomEventMsg     D_shelter_b1_north_maintenance_walkway_80185B74;
 extern s8               D_shelter_b1_north_maintenance_walkway_80185B7C;
 extern RoomLatchedEvent D_shelter_b1_north_maintenance_walkway_80185B80;

@@ -39,7 +39,7 @@ extern GpMsgEntry D_dryfield_night_general_store_8017E7BC[];
 extern u8 D_dryfield_night_general_store_801858B4;
 
 /// The record handed to helper task 0x31 when the cutscene asks for it.
-extern GpStateBD8 D_dryfield_night_general_store_801858B8;
+extern GpFadeWork D_dryfield_night_general_store_801858B8;
 
 /// The warp point and room the cutscene task commits to, latched from the
 /// message that spawned it.

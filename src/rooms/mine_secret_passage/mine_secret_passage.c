@@ -27,7 +27,7 @@ extern GpMsgEntry D_mine_secret_passage_80180E8C[];
 
 /// 0x1E pair this room hands `Task_Spawn` for the helper it raises in state 4,
 /// the same shape `D_mine_mesa_80189B38` has.
-extern GpStateBD8 D_mine_secret_passage_80183440;
+extern GpFadeWork D_mine_secret_passage_80183440;
 
 void func_mine_secret_passage_8017D8C8(Task* arg0);
 void func_mine_secret_passage_8017D914(Task* arg0);

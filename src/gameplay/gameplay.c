@@ -8657,7 +8657,7 @@ void Gp_StartPadReplay(void)
 void Gp_PlayClockState2(Task* arg0)
 {
     GameSession* session;
-    GpStateBD8*  p;
+    GpFadeWork*  p;
 
     arg0->killCountdown--;
     if (arg0->killCountdown <= 0) {

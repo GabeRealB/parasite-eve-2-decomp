@@ -387,18 +387,6 @@ STATIC_ASSERT_SIZEOF(GpRgbScratch, 8);
 void Gp_BlendRgb555(u16* arg0, u16* arg1, s32 arg2, u16* arg3);
 void Gp_BlendRgb555Clut(u16* arg0, u16* arg1, s32 arg2, u16* arg3);
 void Gp_BlendRgb555ClutMasked(u16* arg0, u16* arg1, s32 arg2, u16* arg3, s32 arg4);
-/// 4-byte work at `Task::spawnArg2` for `Gp_FadeWorkTask`. `field_0`
-/// selects the semi-transparency rate of the trailing `DR_TPAGE`
-/// (`0xE1000240` when 0, `0xE1000220` otherwise); `field_1` is the
-/// handshake flag the owner sets to 1 to start the fade-out and the task
-/// sets to 2 once it is done; `field_2` is the fade length in frames
-/// (defaulted to 0x20) and doubles as the ramp divisor.
-typedef struct _GpFadeWork {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ s16 field_2;
-} GpFadeWork;
-STATIC_ASSERT_SIZEOF(GpFadeWork, 4);
 /// Full-screen fade quad. Ramps a 0x140x0xF0 `TILE` from black to
 /// `field_2`-scaled white over `field_2` frames, holds until the owner
 /// raises `field_1`, then ramps back down and kills the task. Sorted into

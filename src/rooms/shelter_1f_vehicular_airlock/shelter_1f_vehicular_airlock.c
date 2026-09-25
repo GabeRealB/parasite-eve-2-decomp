@@ -49,7 +49,7 @@ extern SVECTOR D_shelter_1f_vehicular_airlock_801820EC[];
 extern SVECTOR D_shelter_1f_vehicular_airlock_801820F4;
 
 /// Spawn argument of the helper task 0x31 the room's event task starts.
-extern GpStateBD8 D_shelter_1f_vehicular_airlock_80182AA0;
+extern GpFadeWork D_shelter_1f_vehicular_airlock_80182AA0;
 
 /// The message and event the message handler latched for the room's event
 /// task.

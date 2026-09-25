@@ -47,7 +47,7 @@ extern s8               D_neo_ark_forest_zone_80182E40;
 extern RoomLatchedEvent D_neo_ark_forest_zone_80182E48;
 
 /// Payload handed to the helper task 0x31 the event may start.
-extern GpStateBD8 D_neo_ark_forest_zone_80182E30;
+extern GpFadeWork D_neo_ark_forest_zone_80182E30;
 
 /// The smoke trail's two spawn offsets: `[0]` places the object's own frame
 /// and `[1]` the second trail's frame. `D_neo_ark_forest_zone_8018209C` is

@@ -183,7 +183,7 @@ extern GpItemMap* D_shelter_1f_heliport_80182C9C;
 /// The event the message handler latched for the room's event task: the spawn
 /// argument of its helper task 0x31, the message, the flag saying one was
 /// latched, and the event's parameters.
-extern GpStateBD8       D_shelter_1f_heliport_80182CA0;
+extern GpFadeWork       D_shelter_1f_heliport_80182CA0;
 extern RoomEventMsg     D_shelter_1f_heliport_80182CA8;
 extern s8               D_shelter_1f_heliport_80182CB0;
 extern RoomLatchedEvent D_shelter_1f_heliport_80182CB4;

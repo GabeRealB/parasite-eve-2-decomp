@@ -108,7 +108,7 @@ extern s32 D_dryfield_night_main_street_80182230[];
 extern RoomHaloShade D_dryfield_night_main_street_80182270[];
 
 /// Spawn argument of the helper task 0x31 the room's event task starts.
-extern GpStateBD8 D_dryfield_night_main_street_80188BA4;
+extern GpFadeWork D_dryfield_night_main_street_80188BA4;
 
 /// The message and event the message handler latched for the room's event
 /// task, and the flag it raises once it has spawned that task.

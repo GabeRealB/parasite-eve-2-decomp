@@ -55,7 +55,7 @@ extern SVECTOR D_shelter_b2_operating_room_80180B6C[];
 extern s16 D_shelter_b2_operating_room_80180BBC[][3];
 
 /// Spawn argument of the helper task 0x31 the room's event task starts.
-extern GpStateBD8 D_shelter_b2_operating_room_80184214;
+extern GpFadeWork D_shelter_b2_operating_room_80184214;
 
 /// The message and request of the exit the gate last accepted, latched for
 /// the transition task, and the flag saying the gate spawned it.

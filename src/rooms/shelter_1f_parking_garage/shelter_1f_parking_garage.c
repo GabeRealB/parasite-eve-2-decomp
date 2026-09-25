@@ -45,8 +45,8 @@ extern SVECTOR    D_shelter_1f_parking_garage_80180C4C[];
 extern SVECTOR D_shelter_1f_parking_garage_80180C54[];
 extern SVECTOR D_shelter_1f_parking_garage_80180C5C;
 
-extern GpStateBD8       D_shelter_1f_parking_garage_80181974;
-extern GpStateBD8       D_shelter_1f_parking_garage_80181978;
+extern GpFadeWork       D_shelter_1f_parking_garage_80181974;
+extern GpFadeWork       D_shelter_1f_parking_garage_80181978;
 extern RoomEventMsg     D_shelter_1f_parking_garage_8018197C;
 extern u8               D_shelter_1f_parking_garage_80181984;
 extern RoomDeparture    D_shelter_1f_parking_garage_80181988;

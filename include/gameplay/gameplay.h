@@ -286,17 +286,20 @@ typedef struct _GpIdMap30 {
 } GpIdMap30;
 STATIC_ASSERT_SIZEOF(GpIdMap30, 0x30);
 
-/// 4-byte spawn arg at `D_80114BD8`. `Gp_PlayClockState2` zeros `field_0` / `field_1`,
-/// writes `GameSession.field_12E` as a signed halfword to `field_2`, then passes
-/// the record to `Task_Spawn(1, 0x31, 0, ...)`.
-typedef struct _GpStateBD8 {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ s16 field_2;
-} GpStateBD8;
-STATIC_ASSERT_SIZEOF(GpStateBD8, 0x4);
+/// The spawn argument and work record of `Gp_FadeWorkTask` (task 0x31), which
+/// fades the screen out through a semi-transparent full-screen quad. `field_0`
+/// selects the semi-transparency rate of the trailing `DR_TPAGE`; `field_1` is
+/// the handshake flag the owner sets to 1 to start the fade-out and the task
+/// sets to 2 once it is done; `field_2` is the fade length in frames
+/// (defaulted to 0x20), which also divides the ramp.
+typedef struct GpFadeWork {
+    u8  field_0;
+    u8  field_1;
+    s16 field_2;
+} GpFadeWork;
+STATIC_ASSERT_SIZEOF(GpFadeWork, 4);
 
-extern GpStateBD8 D_80114BD8;
+extern GpFadeWork D_80114BD8;
 
 /// 0x24-byte camera/view record in tables pointed to by `Gp_ViewTables`.
 /// Indexed 1-based by `Gp_GetViewIndex()`. `mtx` rotation is copied to

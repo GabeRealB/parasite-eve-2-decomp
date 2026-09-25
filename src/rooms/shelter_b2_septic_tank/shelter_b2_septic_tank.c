@@ -85,7 +85,7 @@ void func_shelter_b2_septic_tank_801821B4(GsCOORDINATE2* arg0, s16 arg1, u8* arg
 
 extern s32              func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 extern TaskDesc         D_shelter_b2_septic_tank_80182F40;
-extern GpStateBD8       D_shelter_b2_septic_tank_80187034;
+extern GpFadeWork       D_shelter_b2_septic_tank_80187034;
 extern RoomEventMsg     D_shelter_b2_septic_tank_8018703C;
 extern u8               D_shelter_b2_septic_tank_80187044;
 extern RoomLatchedEvent D_shelter_b2_septic_tank_80187048;

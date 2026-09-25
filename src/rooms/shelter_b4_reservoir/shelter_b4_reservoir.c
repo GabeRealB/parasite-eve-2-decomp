@@ -124,7 +124,7 @@ extern SVECTOR                  D_shelter_b4_reservoir_80185094;
 extern SVECTOR                  D_shelter_b4_reservoir_8018509C[];
 extern SVECTOR                  D_shelter_b4_reservoir_801850AC[];
 extern GpAreaApplyRec           D_shelter_b4_reservoir_801874A0;
-extern GpStateBD8               D_shelter_b4_reservoir_80187500;
+extern GpFadeWork               D_shelter_b4_reservoir_80187500;
 extern GpSaveLoc                D_shelter_b4_reservoir_80187508;
 extern s32                      D_shelter_b4_reservoir_80187510;
 extern u8*                      D_shelter_b4_reservoir_80187630;

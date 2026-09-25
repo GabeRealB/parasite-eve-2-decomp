@@ -16,7 +16,7 @@ extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 extern TaskDesc         D_shelter_b2_pod_access_tunnel_80183BC0;
 extern GpMsgEntry       D_shelter_b2_pod_access_tunnel_80183BCC[];
 extern TaskDesc         D_shelter_b2_pod_access_tunnel_80183BFC;
-extern GpStateBD8       D_shelter_b2_pod_access_tunnel_801856F8;
+extern GpFadeWork       D_shelter_b2_pod_access_tunnel_801856F8;
 extern RoomEventMsg     D_shelter_b2_pod_access_tunnel_80185700;
 extern u8               D_shelter_b2_pod_access_tunnel_80185708;
 extern RoomLatchedEvent D_shelter_b2_pod_access_tunnel_8018570C;

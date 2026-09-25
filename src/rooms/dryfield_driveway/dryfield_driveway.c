@@ -33,7 +33,7 @@ extern TaskDesc D_dryfield_driveway_8017E2FC[];
 
 extern GpMsgEntry D_dryfield_driveway_8017E754[];
 
-extern GpStateBD8       D_dryfield_driveway_80180680;
+extern GpFadeWork       D_dryfield_driveway_80180680;
 extern RoomEventMsg     D_dryfield_driveway_80180688;
 extern u8               D_dryfield_driveway_80180690;
 extern RoomLatchedEvent D_dryfield_driveway_80180694;

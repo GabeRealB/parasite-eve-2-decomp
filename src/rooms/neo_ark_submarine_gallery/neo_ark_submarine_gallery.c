@@ -38,7 +38,7 @@ extern s8  D_80115690;
 
 /// 0x1E pair the gallery hands `Task_Spawn` for the helper it raises in state 3,
 /// the same shape `D_mine_mesa_80189B38` has.
-extern GpStateBD8 D_neo_ark_submarine_gallery_8018591C;
+extern GpFadeWork D_neo_ark_submarine_gallery_8018591C;
 
 /// Staging save location the gallery commits: `field_2` / `field_4` / `field_1`
 /// hold what `func_neo_ark_submarine_gallery_8017EA0C` copies out of the

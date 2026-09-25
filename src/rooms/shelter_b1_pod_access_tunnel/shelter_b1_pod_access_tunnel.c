@@ -72,7 +72,7 @@ extern SVECTOR D_shelter_b1_pod_access_tunnel_801839E4[];
 extern SVECTOR D_shelter_b1_pod_access_tunnel_80183A04[];
 extern SVECTOR D_shelter_b1_pod_access_tunnel_80183A0C;
 
-extern GpStateBD8       D_shelter_b1_pod_access_tunnel_80184CFC;
+extern GpFadeWork       D_shelter_b1_pod_access_tunnel_80184CFC;
 extern RoomEventMsg     D_shelter_b1_pod_access_tunnel_80184D04;
 extern u8               D_shelter_b1_pod_access_tunnel_80184D0C;
 extern RoomLatchedEvent D_shelter_b1_pod_access_tunnel_80184D10;

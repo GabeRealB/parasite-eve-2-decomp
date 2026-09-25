@@ -100,7 +100,7 @@ extern RoomHaloShade D_shelter_b4_water_supply_801826F0[];
 
 /// Spawn argument for the task `func_shelter_b4_water_supply_8017D7C0` starts
 /// with `Task_Spawn(1, 0x31, ...)`.
-extern GpStateBD8 D_shelter_b4_water_supply_80184E34;
+extern GpFadeWork D_shelter_b4_water_supply_80184E34;
 
 /// Staging save location the spawned task reads: `field_2` / `field_4` /
 /// `field_1` receive the outgoing location's `field_0` / `field_2` / `field_3`.

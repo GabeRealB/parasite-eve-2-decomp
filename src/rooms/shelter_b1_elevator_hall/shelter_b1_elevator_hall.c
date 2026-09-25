@@ -17,7 +17,7 @@ extern GpMsgEntry D_shelter_b1_elevator_hall_80182CB8[];
 extern TaskDesc   D_shelter_b1_elevator_hall_80182CAC;
 extern TaskDesc   D_shelter_b1_elevator_hall_80182CE8;
 extern GpSaveLoc  D_shelter_b1_elevator_hall_801849F8;
-extern GpStateBD8 D_shelter_b1_elevator_hall_801849F0;
+extern GpFadeWork D_shelter_b1_elevator_hall_801849F0;
 
 extern s16 D_80071076;
 

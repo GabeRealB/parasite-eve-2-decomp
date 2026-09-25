@@ -35,7 +35,7 @@ extern GpMsgEntry D_shelter_b2_north_maintenance_walkway_80183B60[];
 extern GpAreaApplyRec D_shelter_b2_north_maintenance_walkway_80186380[];
 
 /// Spawn payload of the task 0x31 the event task may start.
-extern GpStateBD8 D_shelter_b2_north_maintenance_walkway_801863A0;
+extern GpFadeWork D_shelter_b2_north_maintenance_walkway_801863A0;
 
 /// The message and the event the walkway's handler latched for its event task,
 /// and the flag saying its last call did so.

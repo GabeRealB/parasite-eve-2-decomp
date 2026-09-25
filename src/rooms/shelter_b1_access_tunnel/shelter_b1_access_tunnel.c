@@ -42,7 +42,7 @@ extern SVECTOR D_shelter_b1_access_tunnel_8017E7B4[];
 extern SVECTOR D_shelter_b1_access_tunnel_8017E7D4[];
 
 extern GpAreaApplyRec D_shelter_b1_access_tunnel_8017FF44;
-extern GpStateBD8     D_shelter_b1_access_tunnel_8017FF4C;
+extern GpFadeWork     D_shelter_b1_access_tunnel_8017FF4C;
 
 /// Copy of the message that fired a gated event, kept for the task
 /// `func_shelter_b1_access_tunnel_8017D760` to warp from.

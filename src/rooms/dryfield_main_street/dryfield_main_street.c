@@ -74,7 +74,7 @@ extern SVECTOR D_dryfield_main_street_80181BAC[];
 extern SVECTOR D_dryfield_main_street_80181BB4;
 
 /// Spawn argument of the helper task 0x31 the room's event task starts.
-extern GpStateBD8 D_dryfield_main_street_8018560C;
+extern GpFadeWork D_dryfield_main_street_8018560C;
 
 /// The message and event the message handler latched for the room's event
 /// task.

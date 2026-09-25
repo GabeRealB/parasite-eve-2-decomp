@@ -57,7 +57,7 @@ extern u8               D_shelter_b1_main_corridor_80185D44;
 extern RoomLatchedEvent D_shelter_b1_main_corridor_80185D68;
 extern TaskDesc         D_shelter_b1_main_corridor_80183098;
 /// Spawn argument the event task hands to task 0x31.
-extern GpStateBD8 D_shelter_b1_main_corridor_80185D24;
+extern GpFadeWork D_shelter_b1_main_corridor_80185D24;
 
 /// The room's message table, which its tasks answer from.
 extern GpMsgEntry D_shelter_b1_main_corridor_801830A4[];

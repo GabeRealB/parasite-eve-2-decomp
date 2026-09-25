@@ -248,7 +248,7 @@ extern RoomCutsceneRec D_shelter_b1_underground_parking_8018D75C;
 extern TaskDesc        D_shelter_b1_underground_parking_80187200;
 extern TaskDesc        D_shelter_b1_underground_parking_80187260[];
 extern TaskDesc        D_shelter_b1_underground_parking_8018726C[];
-extern GpStateBD8      D_shelter_b1_underground_parking_8018D750;
+extern GpFadeWork      D_shelter_b1_underground_parking_8018D750;
 
 /// The room's ambience table, one entry per area.
 extern RoomAmbienceEntry D_shelter_b1_underground_parking_8018761C[];

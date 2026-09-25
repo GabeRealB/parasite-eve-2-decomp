@@ -105,7 +105,7 @@ extern _MineMesaWall       D_mine_mesa_80189A9C[4];
 extern _MineMesaSpawnPoint D_mine_mesa_80189AFC[];
 extern s32                 D_mine_mesa_80189B1C;
 extern TaskDesc            D_mine_mesa_80189B2C;
-extern GpStateBD8          D_mine_mesa_80189B38;
+extern GpFadeWork          D_mine_mesa_80189B38;
 extern Task*               D_mine_mesa_80189B4C;
 extern s32                 D_mine_mesa_80189B50;
 extern Task*               D_mine_mesa_80189B58;

@@ -54,7 +54,7 @@ extern SVECTOR D_dryfield_night_driveway_801805B0[];
 extern SVECTOR D_dryfield_night_driveway_801805D0;
 
 /// Spawn argument of the helper task 0x31 the event task starts.
-extern GpStateBD8 D_dryfield_night_driveway_80182110;
+extern GpFadeWork D_dryfield_night_driveway_80182110;
 
 /// The message and the event the event gate latched for the event task, and
 /// the flag it sets when it latches one.

@@ -38,7 +38,7 @@ extern s8               D_neo_ark_savanna_zone_80180998;
 extern RoomLatchedEvent D_neo_ark_savanna_zone_8018099C;
 
 /// Payload handed to the helper task 0x31 the event may start.
-extern GpStateBD8 D_neo_ark_savanna_zone_80180988;
+extern GpFadeWork D_neo_ark_savanna_zone_80180988;
 
 /// The room's message table, which the room setup task installs.
 extern GpMsgEntry D_neo_ark_savanna_zone_8017F9AC[];

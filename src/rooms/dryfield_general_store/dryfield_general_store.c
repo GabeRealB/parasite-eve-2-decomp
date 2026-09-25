@@ -45,7 +45,7 @@ extern u8 D_dryfield_general_store_8018570A;
 
 /// The 4-byte record `func_dryfield_general_store_8017DAC0` hands the helper
 /// task 0x31 when the script's CAP event key asks for it.
-extern GpStateBD8 D_dryfield_general_store_801856FC;
+extern GpFadeWork D_dryfield_general_store_801856FC;
 
 extern GpMsgEntry D_dryfield_general_store_8017E188[];
 extern s32        D_dryfield_general_store_8017E1B8;
@@ -254,7 +254,7 @@ s32 func_dryfield_general_store_8017D8D4(s32 arg0, s32 arg1, RoomEventMsg* in, R
 /// `D_80115690` with it.
 ///
 /// State 4 is the exit test. CAP event key 0xB means the script asked for the
-/// helper task 0x31, which it spawns with a zeroed `GpStateBD8` record whose
+/// helper task 0x31, which it spawns with a zeroed `GpFadeWork` record whose
 /// `field_2` selects variant 8; any other key cuts the cutscene short instead -
 /// captions off, stage sound 0x5203000E, the latched stage byte back into
 /// `D_8007216C` and the player's weapon messages re-enabled.

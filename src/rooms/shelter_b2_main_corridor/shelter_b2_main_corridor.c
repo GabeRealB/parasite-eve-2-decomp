@@ -41,7 +41,7 @@ extern s32 D_80115758;
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
 /// Spawn argument of the helper task 0x31 the room's exit task starts.
-extern GpStateBD8 D_shelter_b2_main_corridor_8018964C;
+extern GpFadeWork D_shelter_b2_main_corridor_8018964C;
 
 /// The outgoing message of the exit being taken; the exit task copies its
 /// destination into the save location.

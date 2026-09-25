@@ -63,7 +63,7 @@ extern SVECTOR D_neo_ark_pavilion_801838A0;
 extern RoomHaloShade D_neo_ark_pavilion_801838A8[];
 
 /// Spawn argument of the helper task 0x31 the room's event task starts.
-extern GpStateBD8 D_neo_ark_pavilion_80187A0C;
+extern GpFadeWork D_neo_ark_pavilion_80187A0C;
 
 /// The save-location record and event the message handler latched for the
 /// room's event task.

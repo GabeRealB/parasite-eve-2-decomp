@@ -63,7 +63,7 @@ extern TaskDesc   D_shelter_b4_upper_sewer_8018643C[];
 extern GpSaveLoc D_shelter_b4_upper_sewer_80188D24;
 /// Spawn argument for the task `func_shelter_b4_upper_sewer_8017D80C` starts
 /// with `Task_Spawn(1, 0x31, ...)`.
-extern GpStateBD8 D_shelter_b4_upper_sewer_80188D1C;
+extern GpFadeWork D_shelter_b4_upper_sewer_80188D1C;
 
 extern ShelterB4UpperSewerSurface D_shelter_b4_upper_sewer_80186448[];
 extern ShelterB4UpperSewerSurface D_shelter_b4_upper_sewer_80186454[];

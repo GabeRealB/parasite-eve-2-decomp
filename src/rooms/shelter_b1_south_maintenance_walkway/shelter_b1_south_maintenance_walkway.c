@@ -56,7 +56,7 @@ extern SVECTOR D_shelter_b1_south_maintenance_walkway_801823E0;
 extern RoomHaloShade D_shelter_b1_south_maintenance_walkway_801823E8[];
 
 /// Spawn payload of the task 0x31 the event task may start.
-extern GpStateBD8       D_shelter_b1_south_maintenance_walkway_80183634;
+extern GpFadeWork       D_shelter_b1_south_maintenance_walkway_80183634;
 extern RoomEventMsg     D_shelter_b1_south_maintenance_walkway_8018363C;
 extern s8               D_shelter_b1_south_maintenance_walkway_80183644;
 extern RoomLatchedEvent D_shelter_b1_south_maintenance_walkway_80183648;
