@@ -4,6 +4,7 @@
 #include "psyq/libgpu.h"
 #include "psyq/libgs.h"
 #include "psyq/inline_c.h"
+#include "psyq/abs.h"
 #include "gte.h"
 
 #include "actors/actor.h"
@@ -191,8 +192,6 @@ s32  func_actor_403600_801406A4(Task* arg0, s32 arg1, GpCmdArg* arg2);
 void func_actor_403600_80140B4C(struct GpEnemy* arg0, Task* arg1);
 void func_actor_403600_80141F58(GpCoord* arg0, s32 arg1);
 
-#define actor_403600_d_x(out, hi) \
-    __asm__("lh %0, %%lo(D_actor_403600_801605D4)(%1)" : "=r"(out) : "r"(hi))
 #define actor_403600_rcos(angle)                                \
     ({                                                          \
         s32 result = rcos(angle);                               \
@@ -2400,181 +2399,91 @@ void func_actor_403600_8013A444(Task* arg0)
     }
 }
 
+/// Starts the arc point: a vector 0x3A98 minus the anchor's depth along Z, and
+/// an identity turn matrix for `func_8004BFF8` to rotate.
+static inline void _actor403600ArcStart(Actor403600TargetScratch* s)
+{
+    Actor403600TurnMatrix* m;
+
+    s->vector.vx = 0;
+    s->vector.vy = 0;
+    m            = &s->matrix;
+    s->vector.vz = 0x3A98 - D_actor_403600_801605D4.vz;
+    m->field_0   = 0x1000;
+    m->field_4   = 0;
+    m->field_8   = 0x1000;
+    m->field_C   = 0;
+    m->field_10  = 0x1000;
+}
+
+/// Rotates the arc vector by the turn matrix on the GTE and places the actor's
+/// target at the result offset from the anchor, 0x3E8 above the player.
+static inline void _actor403600ArcFinish(Actor403600Work* work, Actor403600TargetScratch* s)
+{
+    gte_SetRotMatrix(&s->matrix);
+    gte_ldv0(s);
+    gte_rtv0();
+    gte_stsv(s);
+    work->field_4B8.coord.t[0] = s->vector.vx + D_actor_403600_801605D4.vx;
+    work->field_4B8.coord.t[1] = Player_Status.coordMtx->t[1] - 0x3E8;
+    work->field_4B8.coord.t[2] = s->vector.vz + D_actor_403600_801605D4.vz;
+}
+
 void func_actor_403600_8013C864(Task* arg0)
 {
-    SVECTOR*                  var_s2;
-    s16                       temp_a1;
-    s16                       temp_v1;
-    s32                       var_v0_3;
-    u16                       var_v0_4;
-    s32                       temp_a0;
-    s32                       temp_d_x;
-    s32                       temp_early_z;
-    s32                       temp_z0;
-    s32                       temp_z1;
-    s32                       temp_v0;
-    s32                       var_v0;
-    s32                       var_v0_2;
-    u16                       temp_s0_2;
-    Actor403600TurnMatrix*    temp_s0;
-    Actor403600TurnMatrix*    temp_s0_3;
-    Actor403600Work*          temp_s3;
-    Actor403600TargetScratch* temp_s4;
-    Actor403600TargetScratch* temp_s5;
-    Actor403600TargetScratch* temp_s6;
-    u8*                       temp_s1;
+    Actor403600Work*          work;
+    Actor403600TargetScratch* s;
 
-    temp_s3 = arg0->work;
-    if (temp_s3->field_734 == temp_s3->field_782) {
-        __asm__ volatile(
-            "lui %0, %%hi(D_actor_403600_801605D4);"
-            "lh $4, %%lo(D_actor_403600_801605D4)(%0);"
-            "li $2, -0x960;"
-            "sw $2, 0x4D4(%1);"
-            "sw $4, 0x4D0(%1);"
-            "addiu $4, %0, %%lo(D_actor_403600_801605D4);"
-            "lh $2, 4($4);"
-            "nop;"
-            "sw $2, 0x4D8(%1);"
-            "lh %0, %%lo(D_actor_403600_801605D4)(%0);"
-            "li $2, -0x1F40;"
-            "sw $2, 0x6F4(%1);"
-            "sw %0, 0x6F0(%1);"
-            "lh %0, 4($4);"
-            "li $2, 0xFF;"
-            "sh $2, 0x734(%1)"
-            : "=&r"(temp_early_z)
-            : "r"(temp_s3)
-            : "$2", "$4", "memory");
-        temp_s3->field_6F0.vz = temp_early_z;
+    work = arg0->work;
+    if (work->field_734 == work->field_782) {
+        work->field_4B8.coord.t[0] = D_actor_403600_801605D4.vx;
+        work->field_4B8.coord.t[1] = -0x960;
+        work->field_4B8.coord.t[2] = D_actor_403600_801605D4.vz;
+        work->field_6F0.vx         = D_actor_403600_801605D4.vx;
+        work->field_6F0.vy         = -0x1F40;
+        work->field_6F0.vz         = D_actor_403600_801605D4.vz;
+        work->field_734            = 0xFF;
         return;
     }
-    temp_s4 = SCRATCH_HEAD(Actor403600TargetScratch);
-    SOFT_USE_REG(temp_s4);
-    temp_s6                                = (temp_s4 - 1);
-    SCRATCH_HEAD(Actor403600TargetScratch) = temp_s6;
-    temp_s5                                = temp_s6;
-    if (!((u16)temp_s3->field_734 & 1)) {
-        (temp_s4 - 1)->vector.vx = (s16)(Player_Status.coordMtx->t[0] - (u16)D_actor_403600_801605D4.vx);
-        temp_a1                  = Player_Status.coordMtx->t[2] - (u16)D_actor_403600_801605D4.vz;
-        temp_s6->vector.vz       = temp_a1;
-        temp_v0                  = ratan2((temp_s4 - 1)->vector.vx, temp_a1);
-        SOFT_TOUCH_REG(temp_v0);
-        var_v0 = temp_v0;
-        if (temp_v0 < 0) {
-            SOFT_TOUCH_REG(var_v0);
-            var_v0 = -var_v0;
+    s = SCRATCH_PUSH(Actor403600TargetScratch);
+    if (!(work->field_734 & 1)) {
+        s->vector.vx = Player_Status.coordMtx->t[0] - (u16)D_actor_403600_801605D4.vx;
+        s->vector.vz = Player_Status.coordMtx->t[2] - (u16)D_actor_403600_801605D4.vz;
+        s->angle     = ratan2(s->vector.vx, s->vector.vz);
+        if (ABS(s->angle) > 0x800) {
+            s->angle = (s->angle > 0) ? s->angle - 0x1000 : 0x1000 - s->angle;
         }
-        temp_s6->angle = temp_v0;
-        if (var_v0 >= 0x801) {
-            var_v0_2 = temp_v0 - 0x1000;
-            if (temp_v0 <= 0) {
-                var_v0_2 = 0x1000 - temp_v0;
-            }
-            __asm__ volatile("sw %0, 40(%1)" : : "r"(var_v0_2), "r"(temp_s5) : "memory");
+        if ((u32)(Player_Status.coordMtx->t[0] - 0xDAC) < 0x2135 &&
+            (u32)(Player_Status.coordMtx->t[2] - 0x7D0) < 0x2711) {
+            s->angle = -s->angle;
         }
-        __asm__ volatile(
-            "lui $2, %%hi(Player_Status + 4)\n\t"
-            "lw $3, %%lo(Player_Status + 4)($2)\n\t"
-            "nop\n\t"
-            "lw $2, 20($3)\n\t"
-            "nop\n\t"
-            "addiu $2, $2, -3500\n\t"
-            "sltiu $2, $2, 8501\n\t"
-            ".word 0x1040000C\n\t"
-            "lui %0, %%hi(D_actor_403600_801605D4)\n\t"
-            "lw $2, 28($3)\n\t"
-            "nop\n\t"
-            "addiu $2, $2, -2000\n\t"
-            "sltiu $2, $2, 10001\n\t"
-            ".word 0x10400007\n\t"
-            "addiu %1, %0, %%lo(D_actor_403600_801605D4)\n\t"
-            "lw $2, 40(%2)\n\t"
-            "nop\n\t"
-            "subu $2, $0, $2\n\t"
-            "sw $2, 40(%2)\n\t"
-            "lui %0, %%hi(D_actor_403600_801605D4)\n\t"
-            "addiu %1, %0, %%lo(D_actor_403600_801605D4)"
-            : "=&r"(temp_s1), "=&r"(var_s2)
-            : "r"(temp_s5)
-            : "$2", "$3", "memory");
-        temp_s5->vector.vx      = 0;
-        temp_s5->vector.vy      = 0;
-        temp_s0                 = &temp_s5->matrix;
-        temp_s5->vector.vz      = (s16)(0x3A98 - var_s2->vz);
-        temp_s5->matrix.field_0 = 0x1000;
-        temp_s0->field_4        = 0;
-        temp_s0->field_8        = 0x1000;
-        temp_s0->field_C        = 0;
-        temp_s0->field_10       = 0x1000;
-        func_8004BFF8(temp_s5->angle, (MATRIX*)temp_s0);
-        gte_SetRotMatrix(temp_s0);
-        gte_ldv0(temp_s5);
-        SOFT_USE_REG(temp_s1);
-        gte_rtv0();
-        gte_stsv(temp_s5);
-        actor_403600_d_x(temp_d_x, temp_s1);
-        temp_s3->field_4B8.coord.t[0] = (s32)(temp_s5->vector.vx + temp_d_x);
-        temp_s3->field_4B8.coord.t[1] = (s32)(Player_Status.coordMtx->t[1] - 0x3E8);
-        temp_s3->field_4B8.coord.t[2] = (s32)(temp_s5->vector.vz + (s16)var_s2->vz);
-        temp_a0                       = (s32)Player_Status.coordMtx->t[0];
-        if ((u32)(temp_a0 - 0xDAC) < 0x2135U) {
-            if ((u32)((s32)Player_Status.coordMtx->t[2] - 0x7D0) < 0x2711U) {
-                temp_s3->field_6F0.vx = temp_a0;
-                temp_s3->field_6F0.vy = (s32)(Player_Status.coordMtx->t[1] - 0x3E8);
-                temp_s3->field_6F0.vz = (s32)Player_Status.coordMtx->t[2];
-            } else {
-                goto block_17;
-            }
+        _actor403600ArcStart(s);
+        func_8004BFF8(s->angle, (MATRIX*)&s->matrix);
+        _actor403600ArcFinish(work, s);
+        if ((u32)(Player_Status.coordMtx->t[0] - 0xDAC) < 0x2135 &&
+            (u32)(Player_Status.coordMtx->t[2] - 0x7D0) < 0x2711) {
+            work->field_6F0.vx = Player_Status.coordMtx->t[0];
+            work->field_6F0.vy = Player_Status.coordMtx->t[1] - 0x3E8;
+            work->field_6F0.vz = Player_Status.coordMtx->t[2];
         } else {
-        block_17:
-            temp_s3->field_6F0.vx = (s32)D_actor_403600_801605D4.vx;
-            temp_s3->field_6F0.vy = (s32)(Player_Status.coordMtx->t[1] - 0x3E8);
-            temp_s3->field_6F0.vz = (s32)D_actor_403600_801605D4.vz;
+            work->field_6F0.vx = D_actor_403600_801605D4.vx;
+            work->field_6F0.vy = Player_Status.coordMtx->t[1] - 0x3E8;
+            work->field_6F0.vz = D_actor_403600_801605D4.vz;
         }
-        temp_s0_2 = (u16)temp_s5->angle;
-        temp_v1   = temp_s0_2 + 0x800;
-        SOFT_TOUCH_REG(temp_v1);
-        SOFT_TOUCH_REG(temp_v1);
-        var_v0_3 = temp_v1;
-        if (temp_v1 < 0) {
-            SOFT_TOUCH_REG(var_v0_3);
-            var_v0_3 = -var_v0_3;
+        work->field_780 = s->angle + 0x800;
+        if (ABS(work->field_780) > 0x800) {
+            work->field_780 = (work->field_780 > 0) ? work->field_780 - 0x1000 : 0x1000 - work->field_780;
         }
-        temp_s3->field_780 = temp_v1;
-        if (var_v0_3 >= 0x801) {
-            var_v0_4 = temp_s0_2 - 0x800;
-            if (temp_v1 <= 0) {
-                var_v0_4 = 0x1000 - temp_v1;
-            }
-            temp_s3->field_780 = var_v0_4;
-        }
-        temp_s3->field_792 = 0xA;
-        temp_s3->field_734 = (s16)((u16)temp_s3->field_734 + 1);
+        work->field_792 = 0xA;
+        work->field_734++;
     } else {
-        (temp_s4 - 1)->vector.vx = 0;
-        temp_s6->vector.vy       = 0;
-        temp_s0_3                = &(temp_s4 - 1)->matrix;
-        temp_s6->vector.vz       = (s16)(0x3A98 - (u16)D_actor_403600_801605D4.vz);
-        temp_s0_3->field_0       = 0x1000;
-        temp_s0_3->field_4       = 0;
-        temp_s0_3->field_8       = 0x1000;
-        temp_s0_3->field_C       = 0;
-        temp_s0_3->field_10      = 0x1000;
-        func_8004BFF8((s32)temp_s3->field_780, (MATRIX*)temp_s0_3);
-        gte_SetRotMatrix(temp_s0_3);
-        gte_ldv0(temp_s5);
-        gte_rtv0();
-        gte_stsv(temp_s5);
-        temp_s3->field_4B8.coord.t[0] = (s32)((temp_s4 - 1)->vector.vx + D_actor_403600_801605D4.vx);
-        temp_s3->field_4B8.coord.t[1] = (s32)(Player_Status.coordMtx->t[1] - 0x3E8);
-        temp_z0                       = (s32)temp_s6->vector.vz;
-        temp_z1                       = (s32)D_actor_403600_801605D4.vz;
-        temp_s3->field_792            = 0x96;
-        temp_s3->field_734            = (s16)((u16)temp_s3->field_734 + 1);
-        temp_s3->field_4B8.coord.t[2] = temp_z0 + temp_z1;
+        _actor403600ArcStart(s);
+        func_8004BFF8(work->field_780, (MATRIX*)&s->matrix);
+        _actor403600ArcFinish(work, s);
+        work->field_792 = 0x96;
+        work->field_734++;
     }
-    SCRATCH_POP_BYTES(0x2C);
+    SCRATCH_POP(Actor403600TargetScratch);
 }
 
 void func_actor_403600_8013CCEC(Task* arg0, s32 arg1)
