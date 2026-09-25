@@ -288,7 +288,7 @@ extern GpFadeWork D_80114BD8;
 
 /// 0x24-byte camera/view record in tables pointed to by `Gp_ViewTables`.
 /// Indexed 1-based by `Gp_GetViewIndex()`. `mtx` rotation is copied to
-/// `Gfx_ViewRotMtx` and translation to `D_80070F28` by `Gp_LoadStageView` /
+/// `gGfxViewRotCoord.coord` and translation to `gGfxViewCoord.coord.t` by `Gp_LoadStageView` /
 /// `Gp_ApplyView` / `Gp_ApplyViewTask`; `field_20` is `lhu` into
 /// `gDisplayState.screenDistance` and `lw` into GTE H (`gte_SetGeomScreen`).
 typedef struct _GpViewRec {

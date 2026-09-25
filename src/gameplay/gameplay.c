@@ -9031,7 +9031,7 @@ static __inline__ void coordToRoot(GpCoord* arg0, GpCoord* root, MATRIX* out)
 }
 
 /// Points the active view at `arg0`: the transposed rotation goes to
-/// `Gfx_ViewRotMtx` and the negated translation to `gGfxViewCoord.coord.t`, with
+/// `gGfxViewRotCoord.coord` and the negated translation to `gGfxViewCoord.coord.t`, with
 /// `arg1` (optional) stored as the world offset in `Gfx_ViewOffsetCoord.coord.t`.
 /// Coordinates that are not direct children of the root are first folded to
 /// root space with `coordToRoot`.
@@ -9062,7 +9062,7 @@ void Gp_SetViewFromCoord(GpCoord* arg0, VECTOR* arg1)
     root = &gGfxViewCoord;
     if (parent == root) {
         localMtx = &arg0->coord;
-        rot      = &Gfx_ViewRotMtx;
+        rot      = &gGfxViewRotCoord.coord;
         TOUCH_REG2(localMtx, rot);
         TRANSPOSE_ROT_3X3(rot, localMtx)
 
@@ -9072,7 +9072,7 @@ void Gp_SetViewFromCoord(GpCoord* arg0, VECTOR* arg1)
     } else {
         coordToRoot(arg0, root, &rel.coord);
 
-        rot    = &Gfx_ViewRotMtx;
+        rot    = &gGfxViewRotCoord.coord;
         relMtx = &rel.coord;
         TOUCH_REG2(rot, relMtx);
         TRANSPOSE_ROT_3X3(rot, relMtx)
@@ -9084,7 +9084,7 @@ void Gp_SetViewFromCoord(GpCoord* arg0, VECTOR* arg1)
     arg0->flg = 0;
 
     Gfx_ViewOffsetCoord.flg = 0;
-    D_80070E40.flg          = 0;
+    gGfxViewRotCoord.flg    = 0;
     gGfxViewCoord.flg       = 0;
 }
 
@@ -9173,7 +9173,7 @@ void func_800A8654(Task* task)
     vec            = (VECTOR*)task->work;
     src            = extra->coords;
     c1->coord.t[0] = vec->vx;
-    c2             = &D_80070E40;
+    c2             = &gGfxViewRotCoord;
     c1->coord.t[1] = vec->vy;
     c1->coord.t[2] = vec->vz;
 
@@ -9189,7 +9189,7 @@ void func_800A8654(Task* task)
     c3->coord.t[2] = src->coord.t[2];
 
     Gfx_ViewOffsetCoord.flg = 0;
-    D_80070E40.flg          = 0;
+    gGfxViewRotCoord.flg    = 0;
     gGfxViewCoord.flg       = 0;
     taskKill(task);
 }
@@ -9210,8 +9210,8 @@ void Gp_LoadStageView(void)
     recs = tbl->field_0[sess->area - 1];
     idx  = Gp_GetViewIndex();
 
-    rot   = &Gfx_ViewRotMtx;
-    trans = &D_80070F28;
+    rot   = &gGfxViewRotCoord.coord;
+    trans = (VECTOR3*)gGfxViewCoord.coord.t;
     c1    = &Gfx_ViewOffsetCoord;
     rec   = (GpViewRec*)(idx * sizeof(GpViewRec) + (s32)recs);
 
@@ -9294,8 +9294,8 @@ void Gp_ApplyView(GpViewRec* arg0)
     MATRIX*  rot;
     VECTOR3* trans;
 
-    rot   = &Gfx_ViewRotMtx;
-    trans = &D_80070F28;
+    rot   = &gGfxViewRotCoord.coord;
+    trans = (VECTOR3*)gGfxViewCoord.coord.t;
     c1    = &Gfx_ViewOffsetCoord;
 
     *(GBytes18*)rot = *(GBytes18*)arg0;
@@ -9328,11 +9328,11 @@ void Gp_ResetView(void)
     c1->coord.t[1] = 0;
     c1->coord.t[2] = one;
 
-    *(volatile s32*)&Gfx_ViewRotMtx = one;
-    m                               = &Gfx_ViewRotMtx;
-    c2                              = PARENT_OF(m, GpCoord, coord);
-    *(s32*)&m->m[1][1]              = one;
-    m->m[2][2]                      = one;
+    *(volatile s32*)&gGfxViewRotCoord.coord = one;
+    m                                       = &gGfxViewRotCoord.coord;
+    c2                                      = PARENT_OF(m, GpCoord, coord);
+    *(s32*)&m->m[1][1]                      = one;
+    m->m[2][2]                              = one;
 
     c3                 = &gGfxViewCoord;
     *(s32*)&m->m[0][2] = 0;
@@ -9381,8 +9381,8 @@ void Gp_ApplyViewTask(Task* task)
     VECTOR3*   trans;
     GpViewRec* rec;
 
-    rot   = &Gfx_ViewRotMtx;
-    trans = &D_80070F28;
+    rot   = &gGfxViewRotCoord.coord;
+    trans = (VECTOR3*)gGfxViewCoord.coord.t;
     c1    = &Gfx_ViewOffsetCoord;
     rec   = task->spawnArg2;
 

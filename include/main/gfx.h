@@ -69,11 +69,10 @@ s32  Gfx_ApplyMatrixNoSf(SVECTOR* arg0, SVECTOR* arg1);
 extern GfxImageSlot* Gfx_ImageSlotTables[];
 /// Color/light matrix written by Gfx_SetDefaultFlatLight / Gfx_SetLightAmbient.
 extern MATRIX D_80074080;
-/// GpCoord whose `.coord` is `Gfx_ViewRotMtx`.
-extern GpCoord D_80070E40;
-/// Identity-matrix storage for GpCoord.coord (parent at symbol - 4).
-extern MATRIX Gfx_ViewRotMtx;
-/// GpCoord whose `.coord` is `D_80070E94`.
+/// The view rotation: the coordinate `gGfxViewCoord` hangs off, whose `coord`
+/// holds the view's rotation, parented in turn to `Gfx_ViewOffsetCoord`.
+extern GpCoord gGfxViewRotCoord;
+/// The root of the view chain, whose `coord` offsets the view along z.
 extern GpCoord Gfx_ViewOffsetCoord;
 /// The view coordinate: every world-space object is parented to it, so a
 /// coordinate composed against it comes out in view space.
@@ -83,10 +82,6 @@ extern GpCoord Gfx_ViewOffsetCoord;
 /// are the two coordinates above it in the chain, which is why its own matrix
 /// holds a translation alone.
 extern GpCoord gGfxViewCoord;
-extern MATRIX  D_80070E94;
-extern MATRIX  D_80070F14;
-/// Translation of `D_80070F14` / `gGfxViewCoord.coord.t`.
-extern VECTOR3 D_80070F28;
 extern MATRIX  Gfx_ViewWorldMtx;
 
 #endif // GFX_H
