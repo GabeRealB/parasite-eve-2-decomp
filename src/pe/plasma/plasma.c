@@ -378,9 +378,9 @@ void func_plasma_8012FB10(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
     u32             maskHi;
 
     saved   = arg1;
-    scratch = (void**)G_SCRATCH_HEAD;
+    scratch = SCRATCH_HEAD_ADDR;
     color   = rgb;
-    head    = *scratch;
+    head    = SCRATCH_HEAD_AT(scratch, u8);
     USE_REG(head);
     {
         register u16 vx asm("v0");
@@ -392,11 +392,11 @@ void func_plasma_8012FB10(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
         tmp   = head - 0x1C;
         block = (GpArcScratch*)tmp;
     }
-    block->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz            = *(u16*)&arg0->workm.t[2];
-    *scratch      = block;
-    sum           = saved + arg2;
-    block->vec.vz = vz;
+    block->vec.vy                          = *(u16*)&arg0->workm.t[1];
+    vz                                     = *(u16*)&arg0->workm.t[2];
+    SCRATCH_HEAD_AT(scratch, GpArcScratch) = block;
+    sum                                    = saved + arg2;
+    block->vec.vz                          = vz;
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);

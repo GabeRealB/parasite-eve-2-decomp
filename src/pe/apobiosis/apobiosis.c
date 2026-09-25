@@ -280,7 +280,7 @@ void func_apobiosis_8012F9D0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
     u32             maskHi;
 
     saved   = arg1;
-    scratch = (void**)G_SCRATCH_HEAD;
+    scratch = SCRATCH_HEAD_ADDR;
     color   = rgb;
     head    = *(u8* volatile*)scratch;
     {
@@ -293,11 +293,11 @@ void func_apobiosis_8012F9D0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
         tmp   = head - 0x1C;
         block = (GpArcScratch*)tmp;
     }
-    block->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz            = *(u16*)&arg0->workm.t[2];
-    outer         = saved + arg2;
-    *scratch      = block;
-    block->vec.vz = vz;
+    block->vec.vy                          = *(u16*)&arg0->workm.t[1];
+    vz                                     = *(u16*)&arg0->workm.t[2];
+    outer                                  = saved + arg2;
+    SCRATCH_HEAD_AT(scratch, GpArcScratch) = block;
+    block->vec.vz                          = vz;
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -463,7 +463,7 @@ void func_apobiosis_8013017C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
     s32              ang2;
     u16              vz;
 
-    scratch = (void**)G_SCRATCH_HEAD;
+    scratch = SCRATCH_HEAD_ADDR;
     head    = *(u8* volatile*)scratch;
     {
         register u16 vx asm("v0");
@@ -475,10 +475,10 @@ void func_apobiosis_8013017C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
         tmp   = head - 0x1C;
         block = (GpFxQuadScratch*)tmp;
     }
-    block->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz            = *(u16*)&arg0->workm.t[2];
-    *scratch      = block;
-    block->vec.vz = vz;
+    block->vec.vy                             = *(u16*)&arg0->workm.t[1];
+    vz                                        = *(u16*)&arg0->workm.t[2];
+    SCRATCH_HEAD_AT(scratch, GpFxQuadScratch) = block;
+    block->vec.vz                             = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
