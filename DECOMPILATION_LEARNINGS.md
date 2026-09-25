@@ -141115,3 +141115,25 @@ loop's head - and the outer loop then hoisted only their first steps. With
 both loops written as `for`, the `addPrim` masks were not hoisted either (the
 bigger loop is past the span cut), and the second `scratch->otz` load was
 just `addPrim(&ot[scratch->otz], p)` re-reading after the store to `p->tag`.
+## Unresolved: `move a0,v0; addu a0,a0,v1; addu v0,a1,v0` - a copy accumulated in place while its source is read later as the *second* operand (Gp_ArmorMenuTask, 2026-09-26)
+
+The target copies a loaded value, adds to the copy in place, and then reads the
+original as the right-hand operand of a later add (`end = top; end += count;
+sel = row + top`). The tree keeps two pins and a `TOUCH_REG` for it. Every plain
+spelling fails on one of four mechanisms, which is worth knowing before trying
+them again:
+
+- `end = top; end += count;` - cse rewrites `end` to `top` in the add and the
+  copy dies (class head is the older register, `make_regs_eqv`).
+- Making `end` long-lived (a function-scope local, or a `do { } while (0)` that
+  ends the cse block) makes it the class head, but cse then swaps the copy with
+  an *adjacent* setter, so the load goes into `end` instead of `top`; with a
+  statement between them, combine merges the copy into the add instead.
+- Updating `top` in place between the copy and the add (`end = top; top = row +
+  top; end += count;`) keeps the copy through both cse and combine - but
+  `expand_binop` swaps the operands because the target is `op1`, giving
+  `addu v0,v0,a1` rather than `addu v0,a1,v0`.
+- A separate `sel = row + top` keeps the operand order but loses the copy again.
+
+The remaining allocation (`t` in `a1`, not `a0`) only follows once the copy is
+live in `a0`. Nothing has been found that reproduces both at once.

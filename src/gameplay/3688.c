@@ -2997,16 +2997,11 @@ void Gp_ArmorMenuTask(Task* arg0)
             one = 1;
             if (((t >> 16) == one) || (t == one)) {
                 if (Gp_ItemOrderMode == 0) {
-                    register s32 name asm("a0");
-                    s32          a1v;
-                    a1v = 1;
                     if (item == 0) {
-                        name = (s32)Gp_StrEmpty;
+                        Ui_SetHolderParam((s32)Gp_StrEmpty, 0, 0);
                     } else {
-                        name = (s32)Gp_GetItemText(item, a1v, 0);
+                        Ui_SetHolderParam((s32)Gp_GetItemText(item, 1, 0), 0, 0);
                     }
-                    a1v = 0;
-                    Ui_SetHolderParam(name, a1v, a1v);
                     Gp_SetPreviewItem(item, 0);
                 } else {
                     Ui_SetHolderParam((s32)Gp_StrSelectDest, 0, 0);
@@ -3032,56 +3027,43 @@ void Gp_ArmorMenuTask(Task* arg0)
                 s32 flag;
                 flag = Gp_ItemOrderMode;
                 if (flag == 0) {
-                    register McItemScan* scan;
-                    register McItemRec*  table;
-                    register s32         i;
-                    register s32         idx;
-                    s32                  count;
+                    McItemScan* scan;
+                    McItemRec*  table;
+                    s32         i;
 
                     scan  = &Mc_SaveData.carriedItems;
                     table = Gp_GetItemTable(scan);
-                    i     = 0;
-                    idx   = scan->firstRow;
-                    count = scan->rowCount;
-                    idx <<= 2;
-                    table = (McItemRec*)((s32)table + idx);
-                    if (flag < count) {
-                        do {
-                            if (table->itemId == item) {
-                                locals.x      = obj->field_1C + 2;
-                                Gp_SelItemRec = (u8*)table;
-                                locals.y      = obj->field_18 + 0xF;
-                                if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+                    table = &table[scan->firstRow];
+                    for (i = 0; i < scan->rowCount; i++, table++) {
+                        if (table->itemId == item) {
+                            locals.x      = obj->field_1C + 2;
+                            Gp_SelItemRec = (u8*)table;
+                            locals.y      = obj->field_18 + 0xF;
+                            if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+                                SndEvt_EnqueueType6(3, 0, 0);
+                                func_800CF090(&D_8010E9F4, obj);
+                                if (D_8010E9F4.field_4 != 0) {
+                                    UiObject* spawned;
                                     SndEvt_EnqueueType6(3, 0, 0);
-                                    func_800CF090(&D_8010E9F4, obj);
-                                    if (D_8010E9F4.field_4 != 0) {
-                                        UiObject* spawned;
-                                        s32       t;
-                                        SndEvt_EnqueueType6(3, 0, 0);
-                                        spawned = Ui_SpawnFromDesc(&D_8010ECAC, 0, 1, 0x10, obj);
-                                        {
-                                            register UiObject* p asm("v1");
-                                            p = spawned;
-                                            if (p != NULL) {
-                                                t          = -0x5C;
-                                                p->field_E = t;
-                                                t          = -8;
-                                                p->field_C = t;
-                                            }
-                                        }
-                                        obj->status = 0;
-                                    } else {
-                                        Gp_SpawnItemPrompt(obj, 0x15, 0, 1);
-                                        obj->status = 0;
+                                    spawned = Ui_SpawnFromDesc(&D_8010ECAC, 0, 1, 0x10, obj);
+                                    if (spawned != NULL) {
+                                        s32 yOffset;
+                                        s32 xOffset;
+                                        yOffset          = -0x5C;
+                                        spawned->field_E = yOffset;
+                                        xOffset          = -8;
+                                        spawned->field_C = xOffset;
                                     }
+                                    obj->status = 0;
                                 } else {
-                                    Gp_CheckItemInfoButton(obj);
+                                    Gp_SpawnItemPrompt(obj, 0x15, 0, 1);
+                                    obj->status = 0;
                                 }
-                                break;
+                            } else {
+                                Gp_CheckItemInfoButton(obj);
                             }
-                            i++;
-                            table++;
-                        } while (i < scan->rowCount);
+                            break;
+                        }
                     }
                 } else if ((flag == status) && (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0)) {
                     if ((u32)(*Gp_SelItemRec - 0x60) < 0x20U) {
@@ -3145,21 +3127,9 @@ void Gp_ArmorMenuTask(Task* arg0)
 
     {
         s32 grey;
-        grey = 0x606060;
-        {
-            register s32 vx asm("v0");
-            s32          vy;
-            vx           = obj->baseX;
-            vy           = (u16)obj->field_1C;
-            vx           = vx + 2;
-            vy           = vy + vx;
-            locals.req.x = vy;
-            vx           = obj->baseY;
-            vy           = (u16)obj->field_18;
-            vx           = vx + 0x18;
-            vy           = vy + vx;
-            locals.req.y = vy;
-        }
+        grey                  = 0x606060;
+        locals.req.x          = obj->baseX + 2 + obj->field_1C;
+        locals.req.y          = obj->baseY + 0x18 + obj->field_18;
         locals.req.otIndex    = (s16)obj->drawOrder + 1;
         locals.req.field_8    = grey;
         locals.req.glyphTable = 5;
@@ -3225,26 +3195,17 @@ void Gp_ArmorMenuTask(Task* arg0)
     }
 
     if (obj->status == 0x17) {
-        s32          t;
-        register s32 by asm("v0");
-        s32          f18;
-        register s32 f2c asm("a0");
-        by  = (s16)obj->baseY;
-        f18 = (s16)obj->field_18;
-        f2c = obj->field_2C;
-        by += f18;
-        t   = f2c - by;
+        s32 t;
+
+        t = obj->field_2C - ((s16)obj->baseY + (s16)obj->field_18);
         if (t < 0xF) {
             arg0->state = 2;
         } else {
-            s32          h;
-            register s32 v asm("v1");
-            register s32 one asm("v0");
-            one         = 1;
-            arg0->state = one;
+            s32 h;
+
+            arg0->state = 1;
             h           = menu->field_7;
-            v           = t - 0xA;
-            t           = v - (h << one);
+            t          -= h * 2 + 0xA;
             if (t < 0) {
                 menu->field_10 = (s8)menu->field_9;
             } else {
