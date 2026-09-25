@@ -486,33 +486,33 @@ void func_energyball_8012FFD0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 /// `arg3 + 0x400`, so the sprite shrinks with depth.
 void func_energyball_8013035C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
-    void**                      scratch;
-    u8*                         head;
-    EnergyQuadScratch*          block;
-    register EnergyQuadScratch* p asm("v0");
-    register u16                vx asm("v0");
-    POLY_FT4*                   prim;
-    s32                         ang2;
-    u16                         vz;
+    void**                    scratch;
+    u8*                       head;
+    GpFxQuadScratch*          block;
+    register GpFxQuadScratch* p asm("v0");
+    register u16              vx asm("v0");
+    POLY_FT4*                 prim;
+    s32                       ang2;
+    u16                       vz;
 
-    scratch                                     = (void**)G_SCRATCH_HEAD;
-    head                                        = *scratch;
-    vx                                          = *(u16*)&arg0->workm.t[0];
-    ((EnergyQuadScratch*)(head - 0x1C))->vec.vx = vx;
-    p                                           = (EnergyQuadScratch*)(head - 0x1C);
-    block                                       = p;
-    block->vec.vy                               = *(u16*)&arg0->workm.t[1];
-    vz                                          = *(u16*)&arg0->workm.t[2];
-    block->vec.vz                               = vz;
-    *scratch                                    = block;
+    scratch                                   = (void**)G_SCRATCH_HEAD;
+    head                                      = *scratch;
+    vx                                        = *(u16*)&arg0->workm.t[0];
+    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = vx;
+    p                                         = (GpFxQuadScratch*)(head - 0x1C);
+    block                                     = p;
+    block->vec.vy                             = *(u16*)&arg0->workm.t[1];
+    vz                                        = *(u16*)&arg0->workm.t[2];
+    block->vec.vz                             = vz;
+    *scratch                                  = block;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((EnergyQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((EnergyQuadScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((EnergyQuadScratch*)(head - 0x1C))->otz);
+        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         block->otz++;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;

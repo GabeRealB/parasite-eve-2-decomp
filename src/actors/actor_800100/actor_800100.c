@@ -347,39 +347,39 @@ void func_actor_800100_80161F20(Task* task)
 /// the six 0x20-wide texture frames on tpage 0x29 (CLUT 0x430D) and
 /// `brightness` sizes it: the corners sit `brightness * 31 / otz` from the
 /// projected centre, so the sprite shrinks with distance. Same 0x18-byte
-/// `GpEffFt4Scratch` block and axis-aligned quad as the gameplay sprite
+/// `GpRingScratch` block and axis-aligned quad as the gameplay sprite
 /// drawers.
 void func_actor_800100_80162264(VECTOR3* pos, u16 frame, s32 brightness)
 {
-    void**           scratch;
-    u8*              head;
-    GpEffFt4Scratch* block;
-    POLY_FT4*        prim;
-    SVECTOR*         vec;
-    s16              x;
-    s16              y;
-    u16              uv;
-    s32              u0;
-    s32              u1;
-    u16              vz;
+    void**         scratch;
+    u8*            head;
+    GpRingScratch* block;
+    POLY_FT4*      prim;
+    SVECTOR*       vec;
+    s16            x;
+    s16            y;
+    u16            uv;
+    s32            u0;
+    s32            u1;
+    u16            vz;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
-    head                                      = *scratch;
-    ((GpEffFt4Scratch*)(head - 0x18))->vec.vx = *(u16*)&pos->vx;
-    block                                     = (GpEffFt4Scratch*)(head - 0x18);
-    block->vec.vy                             = *(u16*)&pos->vy;
-    vz                                        = *(u16*)&pos->vz;
-    *scratch                                  = block;
-    block->vec.vz                             = vz;
-    vec                                       = &block->vec;
+    scratch                                 = (void**)G_SCRATCH_HEAD;
+    head                                    = *scratch;
+    ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&pos->vx;
+    block                                   = (GpRingScratch*)(head - 0x18);
+    block->vec.vy                           = *(u16*)&pos->vy;
+    vz                                      = *(u16*)&pos->vz;
+    *scratch                                = block;
+    block->vec.vz                           = vz;
+    vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
     gte_rtps();
-    gte_stsxy(&((GpEffFt4Scratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpEffFt4Scratch*)(head - 0x18))->flag);
+    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
+    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((GpEffFt4Scratch*)(head - 0x18))->otz);
+        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
         block->otz++;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -398,17 +398,17 @@ void func_actor_800100_80162264(VECTOR3* pos, u16 frame, s32 brightness)
         prim->u1    = u1;
         prim->u2    = u0;
         prim->u3    = u1;
-        block->size = ((u16)brightness * 31) / block->otz;
-        x           = *(u16*)&block->sx - *(u16*)&block->size;
+        block->step = ((u16)brightness * 31) / block->otz;
+        x           = *(u16*)&block->sx - *(u16*)&block->step;
         prim->x2    = x;
         prim->x0    = x;
-        x           = *(u16*)&block->sx + *(u16*)&block->size;
+        x           = *(u16*)&block->sx + *(u16*)&block->step;
         prim->x3    = x;
         prim->x1    = x;
-        y           = *(u16*)&block->sy - *(u16*)&block->size;
+        y           = *(u16*)&block->sy - *(u16*)&block->step;
         prim->y1    = y;
         prim->y0    = y;
-        y           = *(u16*)&block->sy + *(u16*)&block->size;
+        y           = *(u16*)&block->sy + *(u16*)&block->step;
         prim->y3    = y;
         prim->y2    = y;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +

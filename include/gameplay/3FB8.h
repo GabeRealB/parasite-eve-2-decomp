@@ -11,6 +11,7 @@
 
 #include <psyq/libgte.h>
 #include <psyq/libgs.h>
+#include "gameplay/3CD8.h"
 
 struct _GsCOORDINATE2;
 struct _GpObjDirRec;
@@ -288,22 +289,6 @@ typedef struct _GpIdRec {
     /* 0x4 */ s32  field_4;
 } GpIdRec;
 
-/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `Gp_DrawEffSprite81` and
-/// `Gp_EffSprTask8D`.
-/// `vec` is `workm.t[]` truncated to s16 for `gte_ldv0`. `otz` is
-/// `gte_stszotz` then incremented; `flag` is `gte_stflg`; `size` is
-/// `(scale * 15 / otz) >> 1` (`Gp_DrawEffSprite81`) or `period * 23 / otz`
-/// (`Gp_EffSprTask8D`); `sx`/`sy` are `gte_stsxy`.
-typedef struct _GpEffFt4Scratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ s32     flag;
-    /* 0x10 */ s32     size;
-    /* 0x14 */ s16     sx;
-    /* 0x16 */ s16     sy;
-} GpEffFt4Scratch;
-STATIC_ASSERT_SIZEOF(GpEffFt4Scratch, 0x18);
-
 /// One corner of the unit quad in `D_80111E38`: a signed XZ pair scaled by
 /// the caller's half-size before being rotated into world space.
 typedef struct _GpQuadCorner {
@@ -332,31 +317,11 @@ typedef struct _GpQuadScratch {
 } GpQuadScratch;
 STATIC_ASSERT_SIZEOF(GpQuadScratch, 0x38);
 
-/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `Gp_DrawEffSprite6C`,
-/// `Gp_EffSprTask54`, `Gp_EffSprTask55`, `Gp_EffSprTask42`, `Gp_EffSprTask3F`,
-/// `Gp_EffSprTaskE0`, and `Gp_DrawEffSpriteE2`.
-/// `vec` is the coordinate's `workm.t[]` truncated to s16 and fed to
-/// `gte_ldv0`. `otz` is `gte_stszotz`, `flag` is `gte_stflg` and `sxy` is
-/// `gte_stsxy` of the single RTPS. `dx` / `dy` are the rotated half-extents
-/// `(size * 55 / otz) * rsin/rcos(angle) >> 12` that offset `sxy` into the
-/// four corners of the billboard `POLY_FT4`.
-typedef struct _GpEffBeamScratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ s32     flag;
-    /* 0x10 */ s32     dx;
-    /* 0x14 */ s32     dy;
-    /* 0x18 */ DVECTOR sxy;
-} GpEffBeamScratch;
-STATIC_ASSERT_SIZEOF(GpEffBeamScratch, 0x1C);
-
-/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `Gp_EffSprTaskA7`. Same
-/// contents as `GpEffBeamScratch` in a different field order: `vec` is the
-/// coordinate's `workm.t[]` truncated to s16 and fed to `gte_ldv0`, `otz` is
-/// `gte_stszotz` then incremented, `flag` is `gte_stflg` and `sxy` is
-/// `gte_stsxy` of the single RTPS. `dx` / `dy` are the rotated half-extents
-/// `(angle * 31 / otz) * rsin/rcos(angle) >> 12` that offset `sxy` into
-/// the four corners of the billboard `POLY_FT4`.
+/// The scratch-pad block of a billboard quad spun about one projected point,
+/// holding what `GpFxQuadScratch` holds in a different order: `vec` is the
+/// point, and one RTPS fills `sxy`, `flag` and `otz`. `dx` and `dy` are the
+/// rotated half extents scaled by the depth, added to and subtracted from
+/// `sxy` to place the corners of the quad.
 typedef struct _GpEffFlareScratch {
     /* 0x00 */ s32     otz;
     /* 0x04 */ s32     dx;

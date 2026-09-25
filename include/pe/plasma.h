@@ -5,23 +5,7 @@
 
 #include <psyq/libgte.h>
 #include <psyq/libgs.h>
-
-/// 0x1C-byte scratch block `func_plasma_8012FB10` takes from
-/// `G_SCRATCH_HEAD`. `vec` is the effect coordinate's `workm.t[]` at 0x10,
-/// projected through `GsWSMATRIX` with one `RTPS`: `flag` is the `gte_stflg`
-/// of that projection (a negative value drops the ring), `otz` is its
-/// `gte_stszotz` and `sx` / `sy` its `gte_stsxy`. `rOuter` and `rInner` are
-/// the two on-screen radii the ring is swept between.
-typedef struct PlasmaRingScratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ s32     flag;
-    /* 0x10 */ s32     rOuter;
-    /* 0x14 */ s32     rInner;
-    /* 0x18 */ s16     sx;
-    /* 0x1A */ s16     sy;
-} PlasmaRingScratch;
-STATIC_ASSERT_SIZEOF(PlasmaRingScratch, 0x1C);
+#include "gameplay/3CD8.h"
 
 /// Three 16-entry LCG columns used as per-vertex jitter. `func_plasma_8012EF34`
 /// refills them on state 0 by walking an `s16*` across the object so stores

@@ -365,32 +365,32 @@ void func_antibody_8012F734(Task* arg0)
 /// projects off-screen.
 void func_antibody_8012FBB0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
-    void**               scratch;
-    u8*                  head;
-    AntibodyMoteScratch* block;
-    AntibodyMoteScratch* vecp;
-    POLY_FT4*            prim;
-    u16                  vz;
-    s32                  u;
-    s32                  ang2;
+    void**           scratch;
+    u8*              head;
+    GpFxQuadScratch* block;
+    GpFxQuadScratch* vecp;
+    POLY_FT4*        prim;
+    u16              vz;
+    s32              u;
+    s32              ang2;
 
-    scratch                                      = (void**)G_SCRATCH_HEAD;
-    head                                         = *scratch;
-    ((AntibodyMoteScratch*)(head - 0x1C))->v0.vx = *(u16*)&arg0->workm.t[0];
-    block                                        = (AntibodyMoteScratch*)(head - 0x1C);
-    block->v0.vy                                 = *(u16*)&arg0->workm.t[1];
-    vz                                           = *(u16*)&arg0->workm.t[2];
-    *scratch                                     = block;
-    block->v0.vz                                 = vz;
-    vecp                                         = block;
+    scratch                                   = (void**)G_SCRATCH_HEAD;
+    head                                      = *scratch;
+    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&arg0->workm.t[0];
+    block                                     = (GpFxQuadScratch*)(head - 0x1C);
+    block->vec.vy                             = *(u16*)&arg0->workm.t[1];
+    vz                                        = *(u16*)&arg0->workm.t[2];
+    *scratch                                  = block;
+    block->vec.vz                             = vz;
+    vecp                                      = block;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&vecp->v0);
+    gte_ldv0(&vecp->vec);
     gte_rtps();
-    gte_stsxy(&((AntibodyMoteScratch*)(head - 0x1C))->sx0);
-    gte_stflg(&((AntibodyMoteScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((AntibodyMoteScratch*)(head - 0x1C))->otz);
+        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         block->otz++;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -409,17 +409,17 @@ void func_antibody_8012FBB0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
         prim->u3    = u + 0x27;
         block->dx   = (((arg2 * 39) / block->otz) * rsin(arg3)) >> 12;
         block->dy   = (((arg2 * 39) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0    = *(u16*)&block->sx0 + *(u16*)&block->dx;
-        prim->x3    = *(u16*)&block->sx0 - *(u16*)&block->dx;
-        prim->y0    = *(u16*)&block->sy0 - *(u16*)&block->dy;
+        prim->x0    = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x3    = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y0    = *(u16*)&block->sy - *(u16*)&block->dy;
         ang2        = arg3 + 0x400;
-        prim->y3    = *(u16*)&block->sy0 + *(u16*)&block->dy;
+        prim->y3    = *(u16*)&block->sy + *(u16*)&block->dy;
         block->dx   = (((arg2 * 39) / block->otz) * rsin(ang2)) >> 12;
         block->dy   = (((arg2 * 39) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1    = *(u16*)&block->sx0 + *(u16*)&block->dx;
-        prim->x2    = *(u16*)&block->sx0 - *(u16*)&block->dx;
-        prim->y1    = *(u16*)&block->sy0 - *(u16*)&block->dy;
-        prim->y2    = *(u16*)&block->sy0 + *(u16*)&block->dy;
+        prim->x1    = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x2    = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y1    = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y2    = *(u16*)&block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -437,35 +437,35 @@ void func_antibody_8012FBB0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 /// projection sets a negative `gte_stflg`.
 void func_antibody_8012FFEC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
-    void**               scratch;
-    u8*                  head;
-    AntibodyMoteScratch* block;
-    POLY_FT4*            prim;
-    SVECTOR*             vec;
-    u16                  vz;
-    s16                  tile;
-    s32                  u0;
-    s32                  u1;
-    s32                  ang2;
+    void**           scratch;
+    u8*              head;
+    GpFxQuadScratch* block;
+    POLY_FT4*        prim;
+    SVECTOR*         vec;
+    u16              vz;
+    s16              tile;
+    s32              u0;
+    s32              u1;
+    s32              ang2;
 
-    scratch                                      = (void**)G_SCRATCH_HEAD;
-    head                                         = *scratch;
-    ((AntibodyMoteScratch*)(head - 0x1C))->v0.vx = *(u16*)&arg0->workm.t[0];
-    block                                        = (AntibodyMoteScratch*)(head - 0x1C);
-    block->v0.vy                                 = *(u16*)&arg0->workm.t[1];
-    vz                                           = *(u16*)&arg0->workm.t[2];
-    *scratch                                     = block;
-    block->v0.vz                                 = vz;
-    vec                                          = &block->v0;
+    scratch                                   = (void**)G_SCRATCH_HEAD;
+    head                                      = *scratch;
+    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&arg0->workm.t[0];
+    block                                     = (GpFxQuadScratch*)(head - 0x1C);
+    block->vec.vy                             = *(u16*)&arg0->workm.t[1];
+    vz                                        = *(u16*)&arg0->workm.t[2];
+    *scratch                                  = block;
+    block->vec.vz                             = vz;
+    vec                                       = &block->vec;
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
     gte_rtps();
-    gte_stsxy(&((AntibodyMoteScratch*)(head - 0x1C))->sx0);
-    gte_stflg(&((AntibodyMoteScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((AntibodyMoteScratch*)(head - 0x1C))->otz);
+        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         block->otz     = block->otz + 1;
         gGpuPrimCursor = prim + 1;
@@ -479,22 +479,22 @@ void func_antibody_8012FFEC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
         setUV4(prim, u0, 0x38, u1, 0x38, u0, 0x5F, u1, 0x5F);
         block->dx = (((arg2 * 0x27) / block->otz) * rsin(arg3)) >> 12;
         block->dy = (((arg2 * 0x27) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0  = *(u16*)&block->sx0 + *(u16*)&block->dx;
-        prim->x3  = *(u16*)&block->sx0 - *(u16*)&block->dx;
-        prim->y0  = *(u16*)&block->sy0 - *(u16*)&block->dy;
+        prim->x0  = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x3  = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y0  = *(u16*)&block->sy - *(u16*)&block->dy;
         ang2      = arg3 + 0x400;
-        prim->y3  = *(u16*)&block->sy0 + *(u16*)&block->dy;
+        prim->y3  = *(u16*)&block->sy + *(u16*)&block->dy;
         block->dx = (((arg2 * 0x27) / block->otz) * rsin(ang2)) >> 12;
         block->dy = (((arg2 * 0x27) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = *(u16*)&block->sx0 + *(u16*)&block->dx;
-        prim->x2  = *(u16*)&block->sx0 - *(u16*)&block->dx;
-        prim->y1  = *(u16*)&block->sy0 - *(u16*)&block->dy;
-        prim->y2  = *(u16*)&block->sy0 + *(u16*)&block->dy;
+        prim->x1  = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(AntibodyMoteScratch);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpFxQuadScratch);
 }
 
 /// Draws the antibody arc between the effect and the player as one

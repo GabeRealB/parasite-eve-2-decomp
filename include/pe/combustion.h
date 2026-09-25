@@ -5,23 +5,7 @@
 
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
-
-/// 0x1C-byte scratch block `func_combustion_80130184` takes from
-/// `G_SCRATCH_HEAD`. `vec` is the flame coordinate's `workm.t[]`, projected
-/// through `GsWSMATRIX` with one `RTPS`: `flag` is that projection's
-/// `gte_stflg` (a negative value drops the quad), `otz` its `gte_stszotz` and
-/// `sx` / `sy` its `gte_stsxy`. `dx` / `dy` are the two rotated half-diagonals
-/// the quad's corners are offset by.
-typedef struct CombustionQuadScratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ s32     flag;
-    /* 0x10 */ s32     dx;
-    /* 0x14 */ s32     dy;
-    /* 0x18 */ s16     sx;
-    /* 0x1A */ s16     sy;
-} CombustionQuadScratch;
-STATIC_ASSERT_SIZEOF(CombustionQuadScratch, 0x1C);
+#include "gameplay/3CD8.h"
 
 /// One 8-byte row of `D_combustion_80130980`, indexed by `GpEffWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`, so the burn scales with the combo counter).

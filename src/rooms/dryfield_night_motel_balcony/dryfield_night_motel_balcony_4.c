@@ -653,21 +653,21 @@ void func_dryfield_night_motel_balcony_8017F84C(Task* task)
 /// in `func_dryfield_night_motel_balcony_8018221C`.
 void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s32 arg)
 {
-    GpEffWork*        work  = task->spawnArg2;
-    GsCOORDINATE2*    coord = ((TmdObject*)task->extra)->coords;
-    u8*               head;
-    GpEffBeamScratch* block;
-    GpEffBeamScratch* vecp;
-    POLY_FT4*         prim;
-    s16               size;
-    u16               vx;
+    GpEffWork*       work  = task->spawnArg2;
+    GsCOORDINATE2*   coord = ((TmdObject*)task->extra)->coords;
+    u8*              head;
+    GpFxQuadScratch* block;
+    GpFxQuadScratch* vecp;
+    POLY_FT4*        prim;
+    s16              size;
+    u16              vx;
 
-    size                                       = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1].w - 1;
-    head                                       = *(void**)G_SCRATCH_HEAD;
-    vx                                         = *(u16*)&coord->workm.t[0];
-    vecp                                       = (GpEffBeamScratch*)(head - 0x1C);
-    *(void**)G_SCRATCH_HEAD                    = vecp;
-    ((GpEffBeamScratch*)(head - 0x1C))->vec.vx = vx;
+    size                                      = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1].w - 1;
+    head                                      = *(void**)G_SCRATCH_HEAD;
+    vx                                        = *(u16*)&coord->workm.t[0];
+    vecp                                      = (GpFxQuadScratch*)(head - 0x1C);
+    *(void**)G_SCRATCH_HEAD                   = vecp;
+    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = vx;
     __asm__("move %0,%1" : "=r"(block) : "r"(vecp));
     block->vec.vy = *(u16*)&coord->workm.t[1];
     block->vec.vz = *(u16*)&coord->workm.t[2];
@@ -675,10 +675,10 @@ void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s32 arg)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
-    gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((GpEffBeamScratch*)(head - 0x1C))->otz);
+        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -703,16 +703,16 @@ void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s32 arg)
         prim->v3    = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1].v + size;
         block->dx   = (((size * work->pos.vx) / block->otz) * rsin(work->pos.vz)) >> 12;
         block->dy   = (((size * work->pos.vx) / block->otz) * rcos(work->pos.vz)) >> 12;
-        prim->x0    = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
-        prim->x3    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
-        prim->y0    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
-        prim->y3    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        prim->x0    = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x3    = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y0    = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y3    = *(u16*)&block->sy + *(u16*)&block->dy;
         block->dx   = (((size * work->pos.vx) / block->otz) * rsin(work->pos.vz + 0x400)) >> 12;
         block->dy   = (((size * work->pos.vx) / block->otz) * rcos(work->pos.vz + 0x400)) >> 12;
-        prim->x1    = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
-        prim->x2    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
-        prim->y1    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
-        prim->y2    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        prim->x1    = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x2    = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y1    = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y2    = *(u16*)&block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
@@ -898,22 +898,22 @@ void func_dryfield_night_motel_balcony_801809CC(Task* task)
 /// reason. The third argument is never read; every caller passes 0.
 void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s32 unused)
 {
-    GpEffWork*         work;
-    GsCOORDINATE2*     coord;
-    u8*                head;
-    RoomDraw14Scratch* block;
-    POLY_FT4*          prim;
-    DisplayState*      ds;
-    SVECTOR*           vec;
-    s16                xy;
-    u16                vz;
+    GpEffWork*     work;
+    GsCOORDINATE2* coord;
+    u8*            head;
+    GpRingScratch* block;
+    POLY_FT4*      prim;
+    DisplayState*  ds;
+    SVECTOR*       vec;
+    s16            xy;
+    u16            vz;
 
     coord = ((TmdObject*)task->extra)->coords;
     work  = task->spawnArg2;
 
-    head                                        = *(void**)G_SCRATCH_HEAD;
-    ((RoomDraw14Scratch*)(head - 0x18))->vec.vx = *(u16*)&coord->workm.t[0];
-    vec                                         = (SVECTOR*)(head - 0x18);
+    head                                    = *(void**)G_SCRATCH_HEAD;
+    ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&coord->workm.t[0];
+    vec                                     = (SVECTOR*)(head - 0x18);
     __asm__("move %0,%1" : "=r"(block) : "r"(vec));
     block->vec.vy           = *(u16*)&coord->workm.t[1];
     vz                      = *(u16*)&coord->workm.t[2];
@@ -923,10 +923,10 @@ void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s32 unuse
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((RoomDraw14Scratch*)(head - 0x18))->sx);
-    gte_stflg(&((RoomDraw14Scratch*)(head - 0x18))->flag);
+    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
+    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((RoomDraw14Scratch*)(head - 0x18))->otz);
+        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -939,30 +939,30 @@ void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s32 unuse
         } else {
             setcode(prim, 0x2D);
         }
-        prim->tpage   = 0x2C;
-        prim->clut    = 0x43C3;
-        prim->u0      = work->index % 6 * 40;
-        prim->v0      = 0x40;
-        prim->u1      = work->index % 6 * 40 + 0x27;
-        prim->v1      = 0x40;
-        prim->u2      = work->index % 6 * 40;
-        prim->v2      = 0x67;
-        prim->u3      = work->index % 6 * 40 + 0x27;
-        prim->v3      = 0x67;
-        block->radius = work->pos.vx * 39 / block->otz;
-        xy            = *(u16*)&block->sx - *(u16*)&block->radius;
-        prim->x2      = xy;
-        prim->x0      = xy;
-        xy            = *(u16*)&block->sx + *(u16*)&block->radius;
-        prim->x3      = xy;
-        prim->x1      = xy;
-        xy            = *(u16*)&block->sy - *(u16*)&block->radius;
-        prim->y1      = xy;
-        prim->y0      = xy;
-        xy            = *(u16*)&block->sy + *(u16*)&block->radius;
-        prim->y3      = xy;
-        prim->y2      = xy;
-        ds            = &gDisplayState;
+        prim->tpage = 0x2C;
+        prim->clut  = 0x43C3;
+        prim->u0    = work->index % 6 * 40;
+        prim->v0    = 0x40;
+        prim->u1    = work->index % 6 * 40 + 0x27;
+        prim->v1    = 0x40;
+        prim->u2    = work->index % 6 * 40;
+        prim->v2    = 0x67;
+        prim->u3    = work->index % 6 * 40 + 0x27;
+        prim->v3    = 0x67;
+        block->step = work->pos.vx * 39 / block->otz;
+        xy          = *(u16*)&block->sx - *(u16*)&block->step;
+        prim->x2    = xy;
+        prim->x0    = xy;
+        xy          = *(u16*)&block->sx + *(u16*)&block->step;
+        prim->x3    = xy;
+        prim->x1    = xy;
+        xy          = *(u16*)&block->sy - *(u16*)&block->step;
+        prim->y1    = xy;
+        prim->y0    = xy;
+        xy          = *(u16*)&block->sy + *(u16*)&block->step;
+        prim->y3    = xy;
+        prim->y2    = xy;
+        ds          = &gDisplayState;
         addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -1190,66 +1190,66 @@ void func_dryfield_night_motel_balcony_8018158C(Task* task)
 /// `pos.vx * 47 / (otz + 1)` on both axes.
 void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg)
 {
-    GpEffWork*         work;
-    GsCOORDINATE2*     coord;
-    u8*                head;
-    RoomDraw14Scratch* block;
-    POLY_FT4*          prim;
-    DisplayState*      ds;
-    _ClutOrigin*       clut;
-    SVECTOR*           vec;
-    s16                xy;
-    u16                vz;
+    GpEffWork*     work;
+    GsCOORDINATE2* coord;
+    u8*            head;
+    GpRingScratch* block;
+    POLY_FT4*      prim;
+    DisplayState*  ds;
+    _ClutOrigin*   clut;
+    SVECTOR*       vec;
+    s16            xy;
+    u16            vz;
 
     coord = ((TmdObject*)task->extra)->coords;
     work  = task->spawnArg2;
 
-    head                                        = *(void**)G_SCRATCH_HEAD;
-    ((RoomDraw14Scratch*)(head - 0x18))->vec.vx = *(u16*)&coord->workm.t[0];
-    block                                       = (RoomDraw14Scratch*)(head - 0x18);
-    block->vec.vy                               = *(u16*)&coord->workm.t[1];
-    vz                                          = *(u16*)&coord->workm.t[2];
-    *(void**)G_SCRATCH_HEAD                     = block;
-    block->vec.vz                               = vz;
-    vec                                         = &block->vec;
+    head                                    = *(void**)G_SCRATCH_HEAD;
+    ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&coord->workm.t[0];
+    block                                   = (GpRingScratch*)(head - 0x18);
+    block->vec.vy                           = *(u16*)&coord->workm.t[1];
+    vz                                      = *(u16*)&coord->workm.t[2];
+    *(void**)G_SCRATCH_HEAD                 = block;
+    block->vec.vz                           = vz;
+    vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
     gte_rtps();
-    gte_stsxy(&((RoomDraw14Scratch*)(head - 0x18))->sx);
-    gte_stflg(&((RoomDraw14Scratch*)(head - 0x18))->flag);
+    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
+    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((RoomDraw14Scratch*)(head - 0x18))->otz);
+        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
         block->otz++;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2F);
-        prim->tpage   = 0x2C;
-        clut          = &D_dryfield_night_motel_balcony_80182DF4[arg];
-        prim->clut    = (clut->y << 6) | (((clut->x + work->index * 16) >> 4) & 0x3F);
-        prim->u0      = work->index % 5 * 48;
-        prim->v0      = work->index / 5 * 48 + 0x68;
-        prim->u1      = work->index % 5 * 48 + 0x2F;
-        prim->v1      = work->index / 5 * 48 + 0x68;
-        prim->u2      = work->index % 5 * 48;
-        prim->v2      = work->index / 5 * 48 + 0x97;
-        prim->u3      = work->index % 5 * 48 + 0x2F;
-        prim->v3      = work->index / 5 * 48 + 0x97;
-        block->radius = work->pos.vx * 0x2F / block->otz;
-        xy            = *(u16*)&block->sx - *(u16*)&block->radius;
-        prim->x2      = xy;
-        prim->x0      = xy;
-        xy            = *(u16*)&block->sx + *(u16*)&block->radius;
-        prim->x3      = xy;
-        prim->x1      = xy;
-        xy            = *(u16*)&block->sy - *(u16*)&block->radius;
-        prim->y1      = xy;
-        prim->y0      = xy;
-        xy            = *(u16*)&block->sy + *(u16*)&block->radius;
-        prim->y3      = xy;
-        prim->y2      = xy;
-        ds            = &gDisplayState;
+        prim->tpage = 0x2C;
+        clut        = &D_dryfield_night_motel_balcony_80182DF4[arg];
+        prim->clut  = (clut->y << 6) | (((clut->x + work->index * 16) >> 4) & 0x3F);
+        prim->u0    = work->index % 5 * 48;
+        prim->v0    = work->index / 5 * 48 + 0x68;
+        prim->u1    = work->index % 5 * 48 + 0x2F;
+        prim->v1    = work->index / 5 * 48 + 0x68;
+        prim->u2    = work->index % 5 * 48;
+        prim->v2    = work->index / 5 * 48 + 0x97;
+        prim->u3    = work->index % 5 * 48 + 0x2F;
+        prim->v3    = work->index / 5 * 48 + 0x97;
+        block->step = work->pos.vx * 0x2F / block->otz;
+        xy          = *(u16*)&block->sx - *(u16*)&block->step;
+        prim->x2    = xy;
+        prim->x0    = xy;
+        xy          = *(u16*)&block->sx + *(u16*)&block->step;
+        prim->x3    = xy;
+        prim->x1    = xy;
+        xy          = *(u16*)&block->sy - *(u16*)&block->step;
+        prim->y1    = xy;
+        prim->y0    = xy;
+        xy          = *(u16*)&block->sy + *(u16*)&block->step;
+        prim->y3    = xy;
+        prim->y2    = xy;
+        ds          = &gDisplayState;
         addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -1367,27 +1367,27 @@ void func_dryfield_night_motel_balcony_80181E7C(Task* task)
 /// pointer's own register, a copy no C spelling found here survives combine with.
 void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s16 tick)
 {
-    GpEffWork*         work = task->spawnArg2;
-    GsCOORDINATE2*     coord;
-    u8*                head;
-    RoomDraw14Scratch* block;
-    POLY_FT4*          prim;
-    DisplayState*      ds;
-    SVECTOR*           vec;
-    s16                frame;
-    s32                u0;
-    s32                u1;
-    s32                vTop;
-    s32                vBottom;
-    s16                xy;
-    u16                vz;
+    GpEffWork*     work = task->spawnArg2;
+    GsCOORDINATE2* coord;
+    u8*            head;
+    GpRingScratch* block;
+    POLY_FT4*      prim;
+    DisplayState*  ds;
+    SVECTOR*       vec;
+    s16            frame;
+    s32            u0;
+    s32            u1;
+    s32            vTop;
+    s32            vBottom;
+    s16            xy;
+    u16            vz;
 
     frame = work->index % 10;
     coord = ((TmdObject*)task->extra)->coords;
 
-    head                                        = *(void**)G_SCRATCH_HEAD;
-    ((RoomDraw14Scratch*)(head - 0x18))->vec.vx = *(u16*)&coord->workm.t[0];
-    vec                                         = (SVECTOR*)(head - 0x18);
+    head                                    = *(void**)G_SCRATCH_HEAD;
+    ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&coord->workm.t[0];
+    vec                                     = (SVECTOR*)(head - 0x18);
     __asm__("move %0,%1" : "=r"(block) : "r"(vec));
     block->vec.vy           = *(u16*)&coord->workm.t[1];
     vz                      = *(u16*)&coord->workm.t[2];
@@ -1397,10 +1397,10 @@ void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s16 tick)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((RoomDraw14Scratch*)(head - 0x18))->sx);
-    gte_stflg(&((RoomDraw14Scratch*)(head - 0x18))->flag);
+    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
+    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((RoomDraw14Scratch*)(head - 0x18))->otz);
+        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -1415,34 +1415,34 @@ void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s16 tick)
         prim->tpage = 0x2B;
         prim->clut  = getClut(frame * 16 + 0x40, 0x10E);
         setSemiTrans(prim, 1);
-        u0              = frame % 5 * 48;
-        vTop            = frame / 5 * 48;
-        u1              = u0 + 0x2F;
-        vBottom         = vTop + 0x57;
-        vTop            = vTop + 0x28;
-        prim->u0        = u0;
-        prim->v0        = vTop;
-        prim->u1        = u1;
-        prim->v1        = vTop;
-        prim->u2        = u0;
-        prim->v2        = vBottom;
-        prim->u3        = u1;
-        prim->v3        = vBottom;
-        block->radius   = work->pos.vx * 47 / block->otz;
-        xy              = *(u16*)&block->sx - *(u16*)&block->radius;
-        prim->x2        = xy;
-        prim->x0        = xy;
-        xy              = *(u16*)&block->sx + *(u16*)&block->radius;
-        prim->x3        = xy;
-        prim->x1        = xy;
-        block->radius >>= 1;
-        xy              = *(u16*)&block->sy - block->radius * 3;
-        prim->y1        = xy;
-        prim->y0        = xy;
-        xy              = *(u16*)&block->sy + *(u16*)&block->radius;
-        prim->y3        = xy;
-        prim->y2        = xy;
-        ds              = &gDisplayState;
+        u0            = frame % 5 * 48;
+        vTop          = frame / 5 * 48;
+        u1            = u0 + 0x2F;
+        vBottom       = vTop + 0x57;
+        vTop          = vTop + 0x28;
+        prim->u0      = u0;
+        prim->v0      = vTop;
+        prim->u1      = u1;
+        prim->v1      = vTop;
+        prim->u2      = u0;
+        prim->v2      = vBottom;
+        prim->u3      = u1;
+        prim->v3      = vBottom;
+        block->step   = work->pos.vx * 47 / block->otz;
+        xy            = *(u16*)&block->sx - *(u16*)&block->step;
+        prim->x2      = xy;
+        prim->x0      = xy;
+        xy            = *(u16*)&block->sx + *(u16*)&block->step;
+        prim->x3      = xy;
+        prim->x1      = xy;
+        block->step >>= 1;
+        xy            = *(u16*)&block->sy - block->step * 3;
+        prim->y1      = xy;
+        prim->y0      = xy;
+        xy            = *(u16*)&block->sy + *(u16*)&block->step;
+        prim->y3      = xy;
+        prim->y2      = xy;
+        ds            = &gDisplayState;
         addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);

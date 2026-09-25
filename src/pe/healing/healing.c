@@ -312,34 +312,34 @@ void func_healing_8012F5E4(Task* arg0)
 /// `Gp_EffSprTask8D`.
 void func_healing_8012F7FC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
-    void**           scratch;
-    u8*              head;
-    GpEffFt4Scratch* block;
-    POLY_FT4*        prim;
-    SVECTOR*         vec;
-    s32              u0;
-    s32              u1;
-    s16              x;
-    s16              y;
-    u16              vz;
+    void**         scratch;
+    u8*            head;
+    GpRingScratch* block;
+    POLY_FT4*      prim;
+    SVECTOR*       vec;
+    s32            u0;
+    s32            u1;
+    s16            x;
+    s16            y;
+    u16            vz;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
-    head                                      = *scratch;
-    ((GpEffFt4Scratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
-    block                                     = (GpEffFt4Scratch*)(head - 0x18);
-    block->vec.vy                             = *(u16*)&arg0->workm.t[1];
-    vz                                        = *(u16*)&arg0->workm.t[2];
-    *scratch                                  = block;
-    block->vec.vz                             = vz;
-    vec                                       = &block->vec;
+    scratch                                 = (void**)G_SCRATCH_HEAD;
+    head                                    = *scratch;
+    ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
+    block                                   = (GpRingScratch*)(head - 0x18);
+    block->vec.vy                           = *(u16*)&arg0->workm.t[1];
+    vz                                      = *(u16*)&arg0->workm.t[2];
+    *scratch                                = block;
+    block->vec.vz                           = vz;
+    vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
     gte_rtps();
-    gte_stsxy(&((GpEffFt4Scratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpEffFt4Scratch*)(head - 0x18))->flag);
+    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
+    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((GpEffFt4Scratch*)(head - 0x18))->otz);
+        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
         block->otz++;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -358,17 +358,17 @@ void func_healing_8012F7FC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
         setRGB0(prim, arg3, arg3, arg3);
         prim->v0    = 0;
         prim->v1    = 0;
-        block->size = (arg2 * 0x17) / block->otz;
-        x           = *(u16*)&block->sx - *(u16*)&block->size;
+        block->step = (arg2 * 0x17) / block->otz;
+        x           = *(u16*)&block->sx - *(u16*)&block->step;
         prim->x2    = x;
         prim->x0    = x;
-        x           = *(u16*)&block->sx + *(u16*)&block->size;
+        x           = *(u16*)&block->sx + *(u16*)&block->step;
         prim->x3    = x;
         prim->x1    = x;
-        y           = *(u16*)&block->sy - *(u16*)&block->size;
+        y           = *(u16*)&block->sy - *(u16*)&block->step;
         prim->y1    = y;
         prim->y0    = y;
-        y           = *(u16*)&block->sy + *(u16*)&block->size;
+        y           = *(u16*)&block->sy + *(u16*)&block->step;
         prim->y3    = y;
         prim->y2    = y;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
@@ -384,17 +384,17 @@ void func_healing_8012F7FC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
         arg3 = arg3 >> 1;
         setRGB0(prim, arg3, arg3, arg3);
         setUV4(prim, 0x38, 0xC8, 0x6F, 0xC8, 0x38, 0xFF, 0x6F, 0xFF);
-        block->size = ((arg2 >> 1) * 0x37) / block->otz;
-        x           = *(u16*)&block->sx - *(u16*)&block->size;
+        block->step = ((arg2 >> 1) * 0x37) / block->otz;
+        x           = *(u16*)&block->sx - *(u16*)&block->step;
         prim->x2    = x;
         prim->x0    = x;
-        x           = *(u16*)&block->sx + *(u16*)&block->size;
+        x           = *(u16*)&block->sx + *(u16*)&block->step;
         prim->x3    = x;
         prim->x1    = x;
-        y           = *(u16*)&block->sy - *(u16*)&block->size;
+        y           = *(u16*)&block->sy - *(u16*)&block->step;
         prim->y1    = y;
         prim->y0    = y;
-        y           = *(u16*)&block->sy + *(u16*)&block->size;
+        y           = *(u16*)&block->sy + *(u16*)&block->step;
         prim->y3    = y;
         prim->y2    = y;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +

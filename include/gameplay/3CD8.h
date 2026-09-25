@@ -298,14 +298,10 @@ typedef struct _GpRayScratch {
 } GpRayScratch;
 STATIC_ASSERT_SIZEOF(GpRayScratch, 0x10);
 
-/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `Gp_DrawRing` and
-/// `func_800EB6E8`.
-/// `vec` is the coordinate's `workm.t[]` truncated to s16 and fed to
-/// `gte_ldv0`. `otz` is `gte_stszotz` (then incremented so it can also be
-/// used as the divisor), `flag` is `gte_stflg` and `sx` / `sy` are the
-/// `gte_stsxy` of the single RTPS. `step` is the per-vertex radius
-/// `(arg1 * 64) / otz` swept around the ring by `rsin` / `rcos`, or the
-/// billboard half-size `(radius * 23) / otz` in `func_800EB6E8`.
+/// The scratch-pad block of a shape drawn about one projected point: `vec` is
+/// the point, and one RTPS fills `sx`, `sy`, `flag` and `otz`. `step` is a
+/// length scaled by the depth, the radius a ring is swept at or the half size
+/// of a billboard sprite.
 typedef struct _GpRingScratch {
     /* 0x00 */ SVECTOR vec;
     /* 0x08 */ s32     otz;
@@ -316,13 +312,12 @@ typedef struct _GpRingScratch {
 } GpRingScratch;
 STATIC_ASSERT_SIZEOF(GpRingScratch, 0x18);
 
-/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `Gp_DrawFxQuad`. Same
-/// shape as `GpRingScratch` (the coordinate's `workm.t[]` truncated to s16,
-/// fed to `gte_ldv0`, then `gte_stszotz` / `gte_stflg` / `gte_stsxy` of the
-/// single RTPS), but the ring radius is not cached: instead `dx` / `dy` hold
-/// the current `(arg2 * 31 / otz) * rsin|rcos(angle) >> 12` offsets that are
-/// added to / subtracted from `sx` / `sy` to build the four quad corners.
-/// Only the low halves of `dx` / `dy` are read back.
+/// The scratch-pad block of a billboard quad spun about one projected point:
+/// `vec` is the point, taken from a coordinate's world translation, and one
+/// RTPS fills `sx`, `sy`, `flag` and `otz`. `dx` and `dy` are the rotated half
+/// extents scaled by the depth; they are added to and subtracted from the
+/// projected point to place the four corners of the quad, and only their low
+/// halves are read back.
 typedef struct _GpFxQuadScratch {
     /* 0x00 */ SVECTOR vec;
     /* 0x08 */ s32     otz;
@@ -334,12 +329,10 @@ typedef struct _GpFxQuadScratch {
 } GpFxQuadScratch;
 STATIC_ASSERT_SIZEOF(GpFxQuadScratch, 0x1C);
 
-/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `Gp_DrawArc`. Same
-/// projection preamble as `GpRingScratch` (the coordinate's `workm.t[]`
-/// truncated to s16, fed to `gte_ldv0`, then `gte_stszotz` / `gte_stflg` /
-/// `gte_stsxy` of the single RTPS), but two radii are cached instead of one:
-/// `inner` is `(arg1 * 64) / otz` and `outer` is `((arg1 + arg2) * 64) / otz`.
-/// Each of the 16 `POLY_G4` segments spans both radii over a 0x100 arc.
+/// The scratch-pad block of an annulus drawn about one projected point: `vec`
+/// is the point, and one RTPS fills `sx`, `sy`, `flag` and `otz`. `inner` and
+/// `outer` are the two radii the annulus is swept between, each scaled by the
+/// depth.
 typedef struct _GpArcScratch {
     /* 0x00 */ SVECTOR vec;
     /* 0x08 */ s32     otz;

@@ -1274,31 +1274,31 @@ void func_neo_ark_pavilion_8017F588(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32
 /// three-quarters height (`y0 = sy - r - r/2`, `y2 = sy + r/2`).
 void func_neo_ark_pavilion_8017F974(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
 {
-    void**             scratch;
-    u8*                head;
-    RoomDraw23Scratch* block;
-    POLY_FT4*          prim;
-    SVECTOR*           vec;
-    DisplayState*      ds;
-    s32                tex;
-    u32                cell;
-    s32                u1;
-    s32                vbase;
-    s32                v0;
-    s32                v1;
-    s32                sarg;
-    s32                t;
-    s16                xy;
-    u16                vz;
+    void**         scratch;
+    u8*            head;
+    GpRingScratch* block;
+    POLY_FT4*      prim;
+    SVECTOR*       vec;
+    DisplayState*  ds;
+    s32            tex;
+    u32            cell;
+    s32            u1;
+    s32            vbase;
+    s32            v0;
+    s32            v1;
+    s32            sarg;
+    s32            t;
+    s16            xy;
+    u16            vz;
 
     scratch = (void**)G_SCRATCH_HEAD;
     SOFT_TOUCH_REG_USE(arg2, scratch);
-    head                                        = *scratch;
-    ((RoomDraw23Scratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
-    block                                       = (RoomDraw23Scratch*)(head - 0x18);
-    block->vec.vy                               = *(u16*)&arg0->workm.t[1];
-    vz                                          = *(u16*)&arg0->workm.t[2];
-    tex                                         = arg1;
+    head                                    = *scratch;
+    ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
+    block                                   = (GpRingScratch*)(head - 0x18);
+    block->vec.vy                           = *(u16*)&arg0->workm.t[1];
+    vz                                      = *(u16*)&arg0->workm.t[2];
+    tex                                     = arg1;
     SOFT_TOUCH_REG(tex);
     *scratch      = block;
     block->vec.vz = vz;
@@ -1307,10 +1307,10 @@ void func_neo_ark_pavilion_8017F974(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
     gte_rtps();
-    gte_stsxy(&((RoomDraw23Scratch*)(head - 0x18))->sx);
-    gte_stflg(&((RoomDraw23Scratch*)(head - 0x18))->flag);
+    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
+    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((RoomDraw23Scratch*)(head - 0x18))->otz);
+        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -1328,29 +1328,29 @@ void func_neo_ark_pavilion_8017F974(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
         prim->v2 = v1;
         prim->v3 = v1;
         TOUCH_REG(u1);
-        sarg          = (s16)arg2;
-        prim->v0      = v0;
-        prim->v1      = v0;
-        t             = sarg * 0x38;
-        prim->u0      = tex;
-        prim->u1      = u1;
-        prim->u2      = tex;
-        prim->u3      = u1;
-        block->radius = (t - sarg) / block->otz;
-        xy            = *(u16*)&block->sx - *(u16*)&block->radius;
-        prim->x2      = xy;
-        prim->x0      = xy;
-        xy            = *(u16*)&block->sx + *(u16*)&block->radius;
-        prim->x3      = xy;
-        prim->x1      = xy;
-        v1            = (*(u16*)&block->sy - *(u16*)&block->radius) - (block->radius >> 1);
-        xy            = v1;
-        ds            = &gDisplayState;
-        prim->y1      = xy;
-        prim->y0      = xy;
-        xy            = *(u16*)&block->sy + (block->radius >> 1);
-        prim->y3      = xy;
-        prim->y2      = xy;
+        sarg        = (s16)arg2;
+        prim->v0    = v0;
+        prim->v1    = v0;
+        t           = sarg * 0x38;
+        prim->u0    = tex;
+        prim->u1    = u1;
+        prim->u2    = tex;
+        prim->u3    = u1;
+        block->step = (t - sarg) / block->otz;
+        xy          = *(u16*)&block->sx - *(u16*)&block->step;
+        prim->x2    = xy;
+        prim->x0    = xy;
+        xy          = *(u16*)&block->sx + *(u16*)&block->step;
+        prim->x3    = xy;
+        prim->x1    = xy;
+        v1          = (*(u16*)&block->sy - *(u16*)&block->step) - (block->step >> 1);
+        xy          = v1;
+        ds          = &gDisplayState;
+        prim->y1    = xy;
+        prim->y0    = xy;
+        xy          = *(u16*)&block->sy + (block->step >> 1);
+        prim->y3    = xy;
+        prim->y2    = xy;
         addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -2223,39 +2223,39 @@ void func_neo_ark_pavilion_8018219C(Task* task)
 /// the texture is modulated by.
 void func_neo_ark_pavilion_801823C0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    void**             scratch;
-    u8*                head;
-    RoomDraw14Scratch* block;
-    POLY_FT4*          prim;
-    SVECTOR*           vec;
-    DisplayState*      ds;
-    s32                tex;
-    s32                u0;
-    s32                u1;
-    s32                sarg;
-    s32                t;
-    s16                xy;
-    u16                vz;
+    void**         scratch;
+    u8*            head;
+    GpRingScratch* block;
+    POLY_FT4*      prim;
+    SVECTOR*       vec;
+    DisplayState*  ds;
+    s32            tex;
+    s32            u0;
+    s32            u1;
+    s32            sarg;
+    s32            t;
+    s16            xy;
+    u16            vz;
 
     tex = arg1;
     CLOBBER_REG(a1);
-    scratch                                     = (void**)G_SCRATCH_HEAD;
-    head                                        = *scratch;
-    ((RoomDraw14Scratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
-    block                                       = (RoomDraw14Scratch*)(head - 0x18);
-    block->vec.vy                               = *(u16*)&arg0->workm.t[1];
-    vz                                          = *(u16*)&arg0->workm.t[2];
-    *scratch                                    = block;
-    block->vec.vz                               = vz;
-    vec                                         = &block->vec;
+    scratch                                 = (void**)G_SCRATCH_HEAD;
+    head                                    = *scratch;
+    ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
+    block                                   = (GpRingScratch*)(head - 0x18);
+    block->vec.vy                           = *(u16*)&arg0->workm.t[1];
+    vz                                      = *(u16*)&arg0->workm.t[2];
+    *scratch                                = block;
+    block->vec.vz                           = vz;
+    vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
     gte_rtps();
-    gte_stsxy(&((RoomDraw14Scratch*)(head - 0x18))->sx);
-    gte_stflg(&((RoomDraw14Scratch*)(head - 0x18))->flag);
+    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
+    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((RoomDraw14Scratch*)(head - 0x18))->otz);
+        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
         block->otz++;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -2276,22 +2276,22 @@ void func_neo_ark_pavilion_801823C0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32
         prim->u3 = u1;
         t        = sarg * 24;
         setRGB0(prim, arg3, arg3, arg3);
-        prim->v0      = 0;
-        prim->v1      = 0;
-        block->radius = (t - sarg) / block->otz;
-        xy            = *(u16*)&block->sx - *(u16*)&block->radius;
-        prim->x2      = xy;
-        prim->x0      = xy;
-        xy            = *(u16*)&block->sx + *(u16*)&block->radius;
-        prim->x3      = xy;
-        prim->x1      = xy;
-        xy            = *(u16*)&block->sy - *(u16*)&block->radius;
-        prim->y1      = xy;
-        prim->y0      = xy;
-        xy            = *(u16*)&block->sy + *(u16*)&block->radius;
-        prim->y3      = xy;
-        prim->y2      = xy;
-        ds            = &gDisplayState;
+        prim->v0    = 0;
+        prim->v1    = 0;
+        block->step = (t - sarg) / block->otz;
+        xy          = *(u16*)&block->sx - *(u16*)&block->step;
+        prim->x2    = xy;
+        prim->x0    = xy;
+        xy          = *(u16*)&block->sx + *(u16*)&block->step;
+        prim->x3    = xy;
+        prim->x1    = xy;
+        xy          = *(u16*)&block->sy - *(u16*)&block->step;
+        prim->y1    = xy;
+        prim->y0    = xy;
+        xy          = *(u16*)&block->sy + *(u16*)&block->step;
+        prim->y3    = xy;
+        prim->y2    = xy;
+        ds          = &gDisplayState;
         addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -2306,21 +2306,21 @@ void func_neo_ark_pavilion_801823C0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32
 /// the screen as `r * 64 / (otz + 1)`.
 void func_neo_ark_pavilion_80182644(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
-    RoomDraw07Scratch* block;
-    POLY_G4*           prim;
-    s32                ang;
-    register void**    scratch asm("a1");
-    register s32       saved asm("t1");
-    register u8*       head asm("t0");
-    register s32       sum asm("a1");
-    register s32       otz asm("v0");
-    register s32       rOuter asm("a0");
-    register s32       rInner asm("v1");
-    register u8*       color asm("s4");
-    s32                t;
-    u16                vz;
-    u32                maskLo;
-    u32                maskHi;
+    GpArcScratch*   block;
+    POLY_G4*        prim;
+    s32             ang;
+    register void** scratch asm("a1");
+    register s32    saved asm("t1");
+    register u8*    head asm("t0");
+    register s32    sum asm("a1");
+    register s32    otz asm("v0");
+    register s32    rOuter asm("a0");
+    register s32    rInner asm("v1");
+    register u8*    color asm("s4");
+    s32             t;
+    u16             vz;
+    u32             maskLo;
+    u32             maskHi;
 
     saved   = arg1;
     scratch = (void**)G_SCRATCH_HEAD;
@@ -2329,13 +2329,13 @@ void func_neo_ark_pavilion_80182644(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8*
     USE_REG(head);
     {
         register u16 vx asm("v0");
-        vx                                          = *(u16*)&arg0->workm.t[0];
-        ((RoomDraw07Scratch*)(head - 0x1C))->vec.vx = vx;
+        vx                                     = *(u16*)&arg0->workm.t[0];
+        ((GpArcScratch*)(head - 0x1C))->vec.vx = vx;
     }
     {
         register u8* tmp asm("v0");
         tmp   = head - 0x1C;
-        block = (RoomDraw07Scratch*)tmp;
+        block = (GpArcScratch*)tmp;
     }
     block->vec.vy = *(u16*)&arg0->workm.t[1];
     vz            = *(u16*)&arg0->workm.t[2];
@@ -2347,20 +2347,20 @@ void func_neo_ark_pavilion_80182644(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8*
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((RoomDraw07Scratch*)(head - 0x1C))->sx);
-    gte_stflg(&((RoomDraw07Scratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((GpArcScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((GpArcScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((RoomDraw07Scratch*)(head - 0x1C))->otz);
+        gte_stszotz(&((GpArcScratch*)(head - 0x1C))->otz);
         USE_REG(head);
         otz        = block->otz + 1;
         rOuter     = ((s16)saved * 64) / otz;
         rInner     = (s16)sum * 64;
         block->otz = otz;
         SOFT_BARRIER();
-        rInner        = rInner / otz;
-        ang           = 0;
-        block->rOuter = rOuter;
-        block->rInner = rInner;
+        rInner       = rInner / otz;
+        ang          = 0;
+        block->inner = rOuter;
+        block->outer = rInner;
 
         do {
             prim           = (POLY_G4*)gGpuPrimCursor;
@@ -2370,15 +2370,15 @@ void func_neo_ark_pavilion_80182644(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8*
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, color[0], color[1], color[2]);
             setRGB3(prim, color[0], color[1], color[2]);
-            prim->x0 = *(u16*)&block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            prim->y0 = *(u16*)&block->sy + ((block->rOuter * rcos(ang)) >> 12);
+            prim->x0 = *(u16*)&block->sx + ((block->inner * rsin(ang)) >> 12);
+            prim->y0 = *(u16*)&block->sy + ((block->inner * rcos(ang)) >> 12);
             t        = ang + 0x100;
-            prim->x1 = *(u16*)&block->sx + ((block->rOuter * rsin(t)) >> 12);
-            prim->y1 = *(u16*)&block->sy + ((block->rOuter * rcos(t)) >> 12);
-            prim->x2 = *(u16*)&block->sx + ((block->rInner * rsin(ang)) >> 12);
-            prim->y2 = *(u16*)&block->sy + ((block->rInner * rcos(ang)) >> 12);
-            prim->x3 = *(u16*)&block->sx + ((block->rInner * rsin(t)) >> 12);
-            prim->y3 = *(u16*)&block->sy + ((block->rInner * rcos(t)) >> 12);
+            prim->x1 = *(u16*)&block->sx + ((block->inner * rsin(t)) >> 12);
+            prim->y1 = *(u16*)&block->sy + ((block->inner * rcos(t)) >> 12);
+            prim->x2 = *(u16*)&block->sx + ((block->outer * rsin(ang)) >> 12);
+            prim->y2 = *(u16*)&block->sy + ((block->outer * rcos(ang)) >> 12);
+            prim->x3 = *(u16*)&block->sx + ((block->outer * rsin(t)) >> 12);
+            prim->y3 = *(u16*)&block->sy + ((block->outer * rcos(t)) >> 12);
             ang      = t;
             maskLo   = 0xFFFFFF;
             maskHi   = 0xFF000000;
@@ -2399,26 +2399,26 @@ void func_neo_ark_pavilion_80182644(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8*
 /// `rgb`, so each wedge fades to black at the rim.
 void func_neo_ark_pavilion_80182A68(GsCOORDINATE2* arg0, s16 arg1, u8* rgb)
 {
-    void**             scratch;
-    u8*                head;
-    RoomDraw10Scratch* block;
-    POLY_G4*           prim;
-    s32                ang;
-    register s32       ang2 asm("s1");
-    u16                vz;
+    void**         scratch;
+    u8*            head;
+    GpRingScratch* block;
+    POLY_G4*       prim;
+    s32            ang;
+    register s32   ang2 asm("s1");
+    u16            vz;
 
     scratch = (void**)G_SCRATCH_HEAD;
     head    = *scratch;
     USE_REG(head);
     {
         register u16 vx asm("v0");
-        vx                                          = *(u16*)&arg0->workm.t[0];
-        ((RoomDraw10Scratch*)(head - 0x18))->vec.vx = vx;
+        vx                                      = *(u16*)&arg0->workm.t[0];
+        ((GpRingScratch*)(head - 0x18))->vec.vx = vx;
     }
     {
         register u8* tmp asm("v0");
         tmp   = head - 0x18;
-        block = (RoomDraw10Scratch*)tmp;
+        block = (GpRingScratch*)tmp;
     }
     block->vec.vy = *(u16*)&arg0->workm.t[1];
     vz            = *(u16*)&arg0->workm.t[2];
@@ -2428,10 +2428,10 @@ void func_neo_ark_pavilion_80182A68(GsCOORDINATE2* arg0, s16 arg1, u8* rgb)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((RoomDraw10Scratch*)(head - 0x18))->sx);
-    gte_stflg(&((RoomDraw10Scratch*)(head - 0x18))->flag);
+    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
+    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((RoomDraw10Scratch*)(head - 0x18))->otz);
+        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
         USE_REG(head);
         block->otz++;
         block->step = (arg1 * 64) / block->otz;

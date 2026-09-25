@@ -6,6 +6,7 @@
 
 #include "gameplay/3A34.h"
 #include "main/session.h"
+#include "gameplay/3CD8.h"
 
 /// 0x38 block the flying dart's spawn state allocates with `memCalloc` and
 /// parks in `Task::work`. It leads with the `GpObj` list node
@@ -18,42 +19,6 @@ typedef struct M4a1PykeBeam {
     /* 0x20 */ GpRec18 rec[1];
 } M4a1PykeBeam;
 STATIC_ASSERT_SIZEOF(M4a1PykeBeam, 0x38);
-
-/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `func_m4a1_pyke_8011DCEC`
-/// for one billboarded dart sprite. `vec` is the world point pushed through
-/// `GsWSMATRIX` by a single `RTPS`; `flag` is its `gte_stflg`, `otz` its
-/// `gte_stszotz` (biased by 1 so it can also be the divisor) and `sxy` its
-/// `gte_stsxy`. `dx` / `dy` hold the half-extents
-/// `(width * 0x27 / otz) * rsin|rcos(ang) >> 12` that are added to and
-/// subtracted from `sxy` to build the quad's four corners; only their low
-/// halves are read back. Same layout as the gameplay `GpEffBeamScratch`.
-typedef struct M4a1PykeQuadScratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ s32     flag;
-    /* 0x10 */ s32     dx;
-    /* 0x14 */ s32     dy;
-    /* 0x18 */ DVECTOR sxy;
-} M4a1PykeQuadScratch;
-STATIC_ASSERT_SIZEOF(M4a1PykeQuadScratch, 0x1C);
-
-/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `func_m4a1_pyke_8011D548`
-/// for one billboarded frame of the beam sprite. `vec` is the world point
-/// truncated to s16 and pushed through `GsWSMATRIX` by a single `RTPS`; `flag`
-/// is its `gte_stflg`, `otz` its `gte_stszotz` (biased by 1 so it can also be
-/// the divisor) and `sx` / `sy` its `gte_stsxy`. `size` is the half-extent
-/// `brightness * 31 / otz` added to and subtracted from `sx` / `sy` to build
-/// the quad's four corners; only its low half is read back. Same layout as the
-/// gameplay `GpEffFt4Scratch`.
-typedef struct M4a1PykeBeamScratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ s32     flag;
-    /* 0x10 */ s32     size;
-    /* 0x14 */ s16     sx;
-    /* 0x16 */ s16     sy;
-} M4a1PykeBeamScratch;
-STATIC_ASSERT_SIZEOF(M4a1PykeBeamScratch, 0x18);
 
 /// 0x30-byte scratch from `G_SCRATCH_HEAD` used by `func_m4a1_pyke_8011E168`
 /// for the dart's ground splash. `vec` holds the four corners of the unit quad

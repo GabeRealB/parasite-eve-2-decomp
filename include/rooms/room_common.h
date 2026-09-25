@@ -600,47 +600,6 @@ typedef struct _RoomDraw31Scratch {
 } RoomDraw31Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw31Scratch, 0x10);
 
-/// 0x18-byte scratch block `Room_Draw10` takes from `G_SCRATCH_HEAD`. `vec` is
-/// the coordinate's `workm.t[]` truncated to s16 and fed to `gte_ldv0`. `otz`
-/// is `gte_stszotz` (then incremented so it can also be used as the divisor),
-/// `flag` is `gte_stflg` and `sx` / `sy` are the `gte_stsxy` of the single
-/// RTPS. `step` is the per-vertex radius `(arg1 * 64) / otz` swept around the
-/// ring by `rsin` / `rcos`.
-typedef struct _RoomDraw10Scratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ s32     flag;
-    /* 0x10 */ s32     step;
-    /* 0x14 */ s16     sx;
-    /* 0x16 */ s16     sy;
-} RoomDraw10Scratch;
-STATIC_ASSERT_SIZEOF(RoomDraw10Scratch, 0x18);
-
-/// 0x18-byte scratch block `Room_Draw14` takes from `G_SCRATCH_HEAD`. Same
-/// projection preamble as `RoomDraw10Scratch` (`vec` through `GsWSMATRIX`,
-/// one `RTPS`) with `otz` incremented before it is used as the divisor.
-/// `radius` is `(s16)arg2 * 23 / otz`, the on-screen half-extent of the
-/// axis-aligned `POLY_FT4`.
-typedef struct _RoomDraw14Scratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ s32     flag;
-    /* 0x10 */ s32     radius;
-    /* 0x14 */ s16     sx;
-    /* 0x16 */ s16     sy;
-} RoomDraw14Scratch;
-STATIC_ASSERT_SIZEOF(RoomDraw14Scratch, 0x18);
-
-/// 0x18-byte scratch block `Room_Draw41` takes from `G_SCRATCH_HEAD`. Same
-/// layout as `RoomDraw14Scratch`. `radius` is `(s16)arg2 * 55 / otz` and
-/// `otz` is used as the divisor without being incremented.
-typedef RoomDraw14Scratch RoomDraw41Scratch;
-
-/// 0x18-byte scratch block `Room_Draw23` takes from `G_SCRATCH_HEAD`. Same
-/// layout as `RoomDraw14Scratch`. `radius` is `(s16)arg2 * 55 / otz` and
-/// `otz` is used as the divisor without being incremented.
-typedef RoomDraw14Scratch RoomDraw23Scratch;
-
 /// 0x18-byte scratch block `Room_Draw11`, `Room_Draw12`, `Room_Draw33` and `Room_Draw34` take
 /// from `G_SCRATCH_HEAD`. Two `SVECTOR`s (`arg0` and `arg0 + 1`) are projected
 /// through `Gfx_ViewWorldMtx`.
@@ -679,7 +638,7 @@ typedef struct _RoomDraw08Scratch {
 STATIC_ASSERT_SIZEOF(RoomDraw08Scratch, 0x1C);
 
 /// 0x18-byte scratch block `Room_Draw04` takes from `G_SCRATCH_HEAD`. Same
-/// projection as `RoomDraw10Scratch` (`vec` through `GsWSMATRIX`, one `RTPS`)
+/// projection as `GpRingScratch` (`vec` through `GsWSMATRIX`, one `RTPS`)
 /// but `radius` sits at 0xC and `flag` at 0x10. `radius` is
 /// `(s16)arg1 * 64 / (otz + 1)`, the on-screen half-extent of the eight
 /// `POLY_G4` wedges.
@@ -740,22 +699,6 @@ typedef struct _RoomDraw24Scratch {
     /* 0x26 */ u16     sy1;
 } RoomDraw24Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw24Scratch, 0x28);
-
-/// 0x1C-byte scratch block `Room_Draw07` takes from `G_SCRATCH_HEAD`. Same
-/// projection and two-radius ring as `RoomDraw09Scratch`, but `flag` sits at
-/// 0xC with `rOuter` at 0x10 and `rInner` at 0x14. `rOuter` is
-/// `(s16)arg1 * 64 / (otz + 1)` and `rInner` is
-/// `(s16)(arg1 + arg2) * 64 / (otz + 1)`.
-typedef struct _RoomDraw07Scratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ s32     flag;
-    /* 0x10 */ s32     rOuter;
-    /* 0x14 */ s32     rInner;
-    /* 0x18 */ s16     sx;
-    /* 0x1A */ s16     sy;
-} RoomDraw07Scratch;
-STATIC_ASSERT_SIZEOF(RoomDraw07Scratch, 0x1C);
 
 /// 0x1C-byte scratch block `Room_Draw02` takes from `G_SCRATCH_HEAD`. Same
 /// projection and two-radius ring as `RoomDraw09Scratch`, but `otz` sits at

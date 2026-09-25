@@ -363,21 +363,21 @@ void func_plasma_8012F568(GpEffWork* arg0, GsCOORDINATE2* arg1, s32 arg2)
 /// family's `Room_Draw07` (src/lib/room_draw07.c).
 void func_plasma_8012FB10(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
-    PlasmaRingScratch* block;
-    POLY_G4*           prim;
-    s32                ang;
-    register void**    scratch asm("a1");
-    register s32       saved asm("t1");
-    register u8*       head asm("t0");
-    register s32       sum asm("a1");
-    register s32       otz asm("v0");
-    register s32       rOuter asm("a0");
-    register s32       rInner asm("v1");
-    register u8*       color asm("s4");
-    s32                t;
-    u16                vz;
-    u32                maskLo;
-    u32                maskHi;
+    GpArcScratch*   block;
+    POLY_G4*        prim;
+    s32             ang;
+    register void** scratch asm("a1");
+    register s32    saved asm("t1");
+    register u8*    head asm("t0");
+    register s32    sum asm("a1");
+    register s32    otz asm("v0");
+    register s32    rOuter asm("a0");
+    register s32    rInner asm("v1");
+    register u8*    color asm("s4");
+    s32             t;
+    u16             vz;
+    u32             maskLo;
+    u32             maskHi;
 
     saved   = arg1;
     scratch = (void**)G_SCRATCH_HEAD;
@@ -386,13 +386,13 @@ void func_plasma_8012FB10(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
     USE_REG(head);
     {
         register u16 vx asm("v0");
-        vx                                          = *(u16*)&arg0->workm.t[0];
-        ((PlasmaRingScratch*)(head - 0x1C))->vec.vx = vx;
+        vx                                     = *(u16*)&arg0->workm.t[0];
+        ((GpArcScratch*)(head - 0x1C))->vec.vx = vx;
     }
     {
         register u8* tmp asm("v0");
         tmp   = head - 0x1C;
-        block = (PlasmaRingScratch*)tmp;
+        block = (GpArcScratch*)tmp;
     }
     block->vec.vy = *(u16*)&arg0->workm.t[1];
     vz            = *(u16*)&arg0->workm.t[2];
@@ -404,20 +404,20 @@ void func_plasma_8012FB10(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((PlasmaRingScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((PlasmaRingScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((GpArcScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((GpArcScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((PlasmaRingScratch*)(head - 0x1C))->otz);
+        gte_stszotz(&((GpArcScratch*)(head - 0x1C))->otz);
         USE_REG(head);
         otz        = block->otz + 1;
         rOuter     = ((s16)saved * 64) / otz;
         rInner     = (s16)sum * 64;
         block->otz = otz;
         SOFT_BARRIER();
-        rInner        = rInner / otz;
-        ang           = 0;
-        block->rOuter = rOuter;
-        block->rInner = rInner;
+        rInner       = rInner / otz;
+        ang          = 0;
+        block->inner = rOuter;
+        block->outer = rInner;
 
         do {
             prim           = (POLY_G4*)gGpuPrimCursor;
@@ -427,15 +427,15 @@ void func_plasma_8012FB10(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, color[0], color[1], color[2]);
             setRGB3(prim, color[0], color[1], color[2]);
-            prim->x0 = *(u16*)&block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            prim->y0 = *(u16*)&block->sy + ((block->rOuter * rcos(ang)) >> 12);
+            prim->x0 = *(u16*)&block->sx + ((block->inner * rsin(ang)) >> 12);
+            prim->y0 = *(u16*)&block->sy + ((block->inner * rcos(ang)) >> 12);
             t        = ang + 0x100;
-            prim->x1 = *(u16*)&block->sx + ((block->rOuter * rsin(t)) >> 12);
-            prim->y1 = *(u16*)&block->sy + ((block->rOuter * rcos(t)) >> 12);
-            prim->x2 = *(u16*)&block->sx + ((block->rInner * rsin(ang)) >> 12);
-            prim->y2 = *(u16*)&block->sy + ((block->rInner * rcos(ang)) >> 12);
-            prim->x3 = *(u16*)&block->sx + ((block->rInner * rsin(t)) >> 12);
-            prim->y3 = *(u16*)&block->sy + ((block->rInner * rcos(t)) >> 12);
+            prim->x1 = *(u16*)&block->sx + ((block->inner * rsin(t)) >> 12);
+            prim->y1 = *(u16*)&block->sy + ((block->inner * rcos(t)) >> 12);
+            prim->x2 = *(u16*)&block->sx + ((block->outer * rsin(ang)) >> 12);
+            prim->y2 = *(u16*)&block->sy + ((block->outer * rcos(ang)) >> 12);
+            prim->x3 = *(u16*)&block->sx + ((block->outer * rsin(t)) >> 12);
+            prim->y3 = *(u16*)&block->sy + ((block->outer * rcos(t)) >> 12);
             ang      = t;
             maskLo   = 0xFFFFFF;
             maskHi   = 0xFF000000;

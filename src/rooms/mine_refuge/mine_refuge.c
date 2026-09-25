@@ -1688,22 +1688,22 @@ void func_mine_refuge_80180014(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// gouraud `LINE_G3` diagonals around the projected centre, with an on-screen
 /// radius of `(s16)arg2 * 32 / otz`. The lit vertex pulses on green and blue at
 /// `rsin(animFrame * (s16)arg1) / 34 + 0x78`. A 0x18-byte scratch block in the
-/// `RoomDraw14Scratch` layout is taken from `G_SCRATCH_HEAD` and returned.
+/// `GpRingScratch` layout is taken from `G_SCRATCH_HEAD` and returned.
 void func_mine_refuge_8018029C(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
-    u8*                head;
-    RoomDraw14Scratch* block;
-    POLY_G4*           prim;
-    LINE_G3*           line;
-    s32                sine;
-    s32                pulse;
-    s32                radius;
-    s32                i;
-    s32                t1;
-    s32                t2;
-    s32                twice;
-    u16                sx;
-    u16                sy;
+    u8*            head;
+    GpRingScratch* block;
+    POLY_G4*       prim;
+    LINE_G3*       line;
+    s32            sine;
+    s32            pulse;
+    s32            radius;
+    s32            i;
+    s32            t1;
+    s32            t2;
+    s32            twice;
+    u16            sx;
+    u16            sy;
 
     {
         void** scratch;
@@ -1713,22 +1713,22 @@ void func_mine_refuge_8018029C(SVECTOR* arg0, s32 arg1, s32 arg2)
         head    = *scratch;
         tmp     = (*scratch = head - 0x18);
         SOFT_TOUCH_REG(tmp);
-        block = (RoomDraw14Scratch*)tmp;
+        block = (GpRingScratch*)tmp;
     }
 
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
     gte_rtps();
-    gte_stsxy(&((RoomDraw14Scratch*)(head - 0x18))->sx);
-    gte_stflg(&((RoomDraw14Scratch*)(head - 0x18))->flag);
+    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
+    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((RoomDraw14Scratch*)(head - 0x18))->otz);
-        sine          = rsin(gDisplayState.animFrame * (s16)arg1);
-        radius        = ((s16)arg2 * 32) / block->otz;
-        i             = 0;
-        pulse         = sine / 34 + 0x78;
-        block->radius = radius;
+        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
+        sine        = rsin(gDisplayState.animFrame * (s16)arg1);
+        radius      = ((s16)arg2 * 32) / block->otz;
+        i           = 0;
+        pulse       = sine / 34 + 0x78;
+        block->step = radius;
         do {
             prim           = (POLY_G4*)gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -1737,17 +1737,17 @@ void func_mine_refuge_8018029C(SVECTOR* arg0, s32 arg1, s32 arg2)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, 0, pulse, pulse);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx - (u16)block->radius;
+            prim->x0 = block->sx - (u16)block->step;
             sx       = block->sx;
             prim->x2 = sx;
             prim->x1 = sx;
-            prim->x3 = block->sx + (u16)block->radius;
+            prim->x3 = block->sx + (u16)block->step;
             sy       = block->sy;
             prim->y3 = sy;
             prim->y2 = sy;
             prim->y0 = sy;
             twice    = i * 2;
-            prim->y1 = (block->sy - (u16)block->radius) + (block->radius * twice);
+            prim->y1 = (block->sy - (u16)block->step) + (block->step * twice);
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
@@ -1764,12 +1764,12 @@ void func_mine_refuge_8018029C(SVECTOR* arg0, s32 arg1, s32 arg2)
             setRGB2(line, 0, 0, 0);
             t1       = i * 3 - 1;
             t2       = i + 1;
-            line->x0 = block->sx + (block->radius * t1);
-            line->y0 = block->sy - (block->radius * t2);
+            line->x0 = block->sx + (block->step * t1);
+            line->y0 = block->sy - (block->step * t2);
             line->x1 = block->sx;
             line->y1 = block->sy;
-            line->x2 = block->sx - (block->radius * t1);
-            line->y2 = block->sy + (block->radius * t2);
+            line->x2 = block->sx - (block->step * t1);
+            line->y2 = block->sy + (block->step * t2);
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     line);
             Gp_AddTpageShift((P_TAG*)line, 1, block->otz);

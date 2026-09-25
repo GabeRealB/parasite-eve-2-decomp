@@ -265,19 +265,19 @@ void func_apobiosis_8012F808(u32 bright)
 /// instead.
 void func_apobiosis_8012F9D0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
-    ApobiosisRingScratch* block;
-    POLY_G4*              prim;
-    s32                   ang;
-    register void**       scratch asm("a1");
-    register s32          saved asm("t1");
-    register u8*          head asm("t0");
-    register s32          inner asm("a0");
-    register s32          outer asm("v1");
-    register u8*          color asm("s4");
-    s32                   t;
-    u16                   vz;
-    u32                   maskLo;
-    u32                   maskHi;
+    GpArcScratch*   block;
+    POLY_G4*        prim;
+    s32             ang;
+    register void** scratch asm("a1");
+    register s32    saved asm("t1");
+    register u8*    head asm("t0");
+    register s32    inner asm("a0");
+    register s32    outer asm("v1");
+    register u8*    color asm("s4");
+    s32             t;
+    u16             vz;
+    u32             maskLo;
+    u32             maskHi;
 
     saved   = arg1;
     scratch = (void**)G_SCRATCH_HEAD;
@@ -285,13 +285,13 @@ void func_apobiosis_8012F9D0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
     head    = *(u8* volatile*)scratch;
     {
         register u16 vx asm("v0");
-        vx                                             = *(volatile u16*)&arg0->workm.t[0];
-        ((ApobiosisRingScratch*)(head - 0x1C))->vec.vx = vx;
+        vx                                     = *(volatile u16*)&arg0->workm.t[0];
+        ((GpArcScratch*)(head - 0x1C))->vec.vx = vx;
     }
     {
         register u8* tmp asm("v0");
         tmp   = head - 0x1C;
-        block = (ApobiosisRingScratch*)tmp;
+        block = (GpArcScratch*)tmp;
     }
     block->vec.vy = *(u16*)&arg0->workm.t[1];
     vz            = *(u16*)&arg0->workm.t[2];
@@ -303,10 +303,10 @@ void func_apobiosis_8012F9D0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((ApobiosisRingScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((ApobiosisRingScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((GpArcScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((GpArcScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((ApobiosisRingScratch*)(head - 0x1C))->otz);
+        gte_stszotz(&((GpArcScratch*)(head - 0x1C))->otz);
         USE_REG(head);
         block->otz -= 0x40;
         if (block->otz < 0x10) {

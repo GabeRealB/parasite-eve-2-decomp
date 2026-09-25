@@ -17,30 +17,30 @@
 
 void Gp_DrawEffSprite81(Task* arg0)
 {
-    void**                    scratch;
-    u8*                       head;
-    register GpEffFt4Scratch* block asm("t1");
-    TmdObject*                extra;
-    GsCOORDINATE2*            coord;
-    GpEffWork*                mem;
-    POLY_FT4*                 prim;
-    s16                       x;
-    s16                       y;
-    u16                       t;
-    u16                       vz;
-    s32                       len;
-    s32                       code;
+    void**                  scratch;
+    u8*                     head;
+    register GpRingScratch* block asm("t1");
+    TmdObject*              extra;
+    GsCOORDINATE2*          coord;
+    GpEffWork*              mem;
+    POLY_FT4*               prim;
+    s16                     x;
+    s16                     y;
+    u16                     t;
+    u16                     vz;
+    s32                     len;
+    s32                     code;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
-    extra                                     = arg0->extra;
-    head                                      = *scratch;
-    coord                                     = (GsCOORDINATE2*)extra->coords;
-    mem                                       = arg0->spawnArg2;
-    ((GpEffFt4Scratch*)(head - 0x18))->vec.vx = *(u16*)&coord->workm.t[0];
+    scratch                                 = (void**)G_SCRATCH_HEAD;
+    extra                                   = arg0->extra;
+    head                                    = *scratch;
+    coord                                   = (GsCOORDINATE2*)extra->coords;
+    mem                                     = arg0->spawnArg2;
+    ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&coord->workm.t[0];
     {
         register u8* tmp asm("v0");
         tmp   = head - 0x18;
-        block = (GpEffFt4Scratch*)tmp;
+        block = (GpRingScratch*)tmp;
     }
     block->vec.vy = *(u16*)&coord->workm.t[1];
     vz            = *(u16*)&coord->workm.t[2];
@@ -50,10 +50,10 @@ void Gp_DrawEffSprite81(Task* arg0)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((GpEffFt4Scratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpEffFt4Scratch*)(head - 0x18))->flag);
+    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
+    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((GpEffFt4Scratch*)(head - 0x18))->otz);
+        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
         USE_REG(head);
         block->otz++;
         prim           = (POLY_FT4*)gGpuPrimCursor;
@@ -81,17 +81,17 @@ void Gp_DrawEffSprite81(Task* arg0)
         t           = mem->age;
         prim->v3    = 0xC7;
         prim->u3    = ((t * 8) & 0x70) + 0xF;
-        block->size = ((mem->scale * 0xF) / block->otz) >> 1;
-        x           = *(u16*)&block->sx - *(u16*)&block->size;
+        block->step = ((mem->scale * 0xF) / block->otz) >> 1;
+        x           = *(u16*)&block->sx - *(u16*)&block->step;
         prim->x2    = x;
         prim->x0    = x;
-        x           = *(u16*)&block->sx + *(u16*)&block->size;
+        x           = *(u16*)&block->sx + *(u16*)&block->step;
         prim->x3    = x;
         prim->x1    = x;
-        y           = *(u16*)&block->sy - *(u16*)&block->size;
+        y           = *(u16*)&block->sy - *(u16*)&block->step;
         prim->y1    = y;
         prim->y0    = y;
-        y           = *(u16*)&block->sy + *(u16*)&block->size;
+        y           = *(u16*)&block->sy + *(u16*)&block->step;
         prim->y3    = y;
         prim->y2    = y;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),

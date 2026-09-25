@@ -7,6 +7,7 @@
 
 #include "gameplay/3A34.h"
 #include "main/session.h"
+#include "gameplay/3CD8.h"
 
 /// 0x18-byte scratchpad block `func_hypervelocity_8011F724` reserves for one
 /// frame of the barrel's recoil kick. `dir` receives the third column of the
@@ -62,22 +63,6 @@ typedef struct HyperConeScratch {
     /* 0x54 */ DVECTOR sxy3;
 } HyperConeScratch;
 STATIC_ASSERT_SIZEOF(HyperConeScratch, 0x58);
-
-/// 0x1C-byte scratchpad block `func_hypervelocity_8011E494` reserves for one
-/// billboarded charge quad. `vec` is the coordinate's `workm` translation
-/// truncated to s16 and fed to `gte_ldv0`; the single `RTPS` fills `sx`/`sy`,
-/// `otz` and `flag`. `dx`/`dy` then cache the rotated half-extent for one pair
-/// of corners at a time. Same layout as the gameplay `GpFxQuadScratch`.
-typedef struct HyperQuadScratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ s32     flag;
-    /* 0x10 */ s32     dx;
-    /* 0x14 */ s32     dy;
-    /* 0x18 */ s16     sx;
-    /* 0x1A */ s16     sy;
-} HyperQuadScratch;
-STATIC_ASSERT_SIZEOF(HyperQuadScratch, 0x1C);
 
 /// 0x30-byte scratchpad block `func_hypervelocity_8011E8A0` reserves for the
 /// scorch quad the round paints on the ground it is aimed at. `vec` holds the

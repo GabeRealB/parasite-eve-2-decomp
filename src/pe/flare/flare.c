@@ -150,33 +150,33 @@ void flareSparkTask(Task* arg0)
 
 void flareDrawSparkQuad(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
-    void**            scratch;
-    u8*               head;
-    FlareQuadScratch* block;
-    POLY_FT4*         prim;
-    SVECTOR*          vec;
-    s32               u0;
-    s32               u1;
-    s32               ang2;
-    u16               vz;
+    void**           scratch;
+    u8*              head;
+    GpFxQuadScratch* block;
+    POLY_FT4*        prim;
+    SVECTOR*         vec;
+    s32              u0;
+    s32              u1;
+    s32              ang2;
+    u16              vz;
 
-    scratch                                    = (void**)G_SCRATCH_HEAD;
-    head                                       = *scratch;
-    ((FlareQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&arg0->workm.t[0];
-    block                                      = (FlareQuadScratch*)(head - 0x1C);
-    block->vec.vy                              = *(u16*)&arg0->workm.t[1];
-    vz                                         = *(u16*)&arg0->workm.t[2];
-    block->vec.vz                              = vz;
-    *scratch                                   = block;
-    vec                                        = &block->vec;
+    scratch                                   = (void**)G_SCRATCH_HEAD;
+    head                                      = *scratch;
+    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&arg0->workm.t[0];
+    block                                     = (GpFxQuadScratch*)(head - 0x1C);
+    block->vec.vy                             = *(u16*)&arg0->workm.t[1];
+    vz                                        = *(u16*)&arg0->workm.t[2];
+    block->vec.vz                             = vz;
+    *scratch                                  = block;
+    vec                                       = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
     gte_rtps();
-    gte_stsxy(&((FlareQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((FlareQuadScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((FlareQuadScratch*)(head - 0x1C))->otz);
+        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         block->otz++;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;

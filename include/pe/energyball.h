@@ -7,6 +7,7 @@
 #include <psyq/libgte.h>
 
 #include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
 
 /// `SndEvt` ids for the energy ball, indexed by `GpEffWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`, so the sound scales with the combo
@@ -42,26 +43,6 @@ extern EnergyBallStep D_energyball_80131194[];
 /// `func_energyball_8012EF48` and consumed by the GTE pass in
 /// `func_energyball_80130B54` as the per-vertex jitter of the ball's surface.
 extern s16 D_energyball_801311A0[];
-
-/// 0x1C-byte scratch block `func_energyball_8013035C` takes from
-/// `G_SCRATCH_HEAD`. `vec` is the effect coordinate's `workm.t[]` truncated to
-/// s16 and projected through `GsWSMATRIX` with one `RTPS`: `flag` is the
-/// `gte_stflg` of that projection (a negative value drops the quad), `otz` its
-/// `gte_stszotz` and `sx` / `sy` its `gte_stsxy`. `dx` / `dy` hold the current
-/// `(arg2 * 55 / otz) * rsin|rcos(angle) >> 12` offsets that are added to and
-/// subtracted from `sx` / `sy` to build the four quad corners; only their low
-/// halves are read back. Same layout as `FlareQuadScratch` and the gameplay
-/// `GpFxQuadScratch`, which are built the same way.
-typedef struct EnergyQuadScratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ s32     flag;
-    /* 0x10 */ s32     dx;
-    /* 0x14 */ s32     dy;
-    /* 0x18 */ s16     sx;
-    /* 0x1A */ s16     sy;
-} EnergyQuadScratch;
-STATIC_ASSERT_SIZEOF(EnergyQuadScratch, 0x1C);
 
 /// Links one frame of the energy ball's core sprite at `arg0`'s world
 /// position. The position is projected through `GsWSMATRIX` by a single `RTPS`

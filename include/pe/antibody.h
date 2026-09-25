@@ -5,6 +5,7 @@
 
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
+#include "gameplay/3CD8.h"
 
 /// One 14-byte row of `D_antibody_80130BD4`, indexed by `GpEffWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`, so the effect scales with the combo
@@ -34,25 +35,6 @@ extern s32 D_antibody_80130C00[];
 /// Entry `i` is `i * (0x1000 / field_0)` plus a 9-bit `Gp_LcgState` draw;
 /// states 1 and 2 pass one yaw per frame to `func_antibody_801308D4`.
 extern s16 D_antibody_80130C0C[];
-
-/// 0x1C-byte scratch block `func_antibody_8012FFEC` takes from
-/// `G_SCRATCH_HEAD` to draw one antibody mote. `v0` is the effect
-/// coordinate's world position, projected through `GsWSMATRIX` with a single
-/// `RTPS` into `sx0`/`sy0`. `flag` is that projection's `gte_stflg` (negative
-/// drops the sprite) and `otz` its `gte_stszotz`, incremented by 1 before it
-/// becomes both the radius divisor and the OT bucket. `dx` / `dy` hold the
-/// current `(arg2 * 39 / otz) * rsin|rcos(angle) >> 12` half-extents; only
-/// their low halves are read back.
-typedef struct AntibodyMoteScratch {
-    /* 0x00 */ SVECTOR v0;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ s32     flag;
-    /* 0x10 */ s32     dx;
-    /* 0x14 */ s32     dy;
-    /* 0x18 */ s16     sx0;
-    /* 0x1A */ s16     sy0;
-} AntibodyMoteScratch;
-STATIC_ASSERT_SIZEOF(AntibodyMoteScratch, 0x1C);
 
 /// 0x28-byte scratch block `func_antibody_80130428` takes from
 /// `G_SCRATCH_HEAD` to draw one antibody arc. `v0` is the effect

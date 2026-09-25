@@ -156,35 +156,35 @@ void func_m4a1_pyke_8011D1F8(Task* task)
 /// shrinks with distance as `brightness * 31 / otz`.
 void func_m4a1_pyke_8011D548(VECTOR3* pos, u16 frame, s32 brightness)
 {
-    void**               scratch;
-    u8*                  head;
-    M4a1PykeBeamScratch* block;
-    POLY_FT4*            prim;
-    SVECTOR*             vec;
-    s16                  x;
-    s16                  y;
-    u16                  uv;
-    s32                  u0;
-    s32                  u1;
-    u16                  vz;
+    void**         scratch;
+    u8*            head;
+    GpRingScratch* block;
+    POLY_FT4*      prim;
+    SVECTOR*       vec;
+    s16            x;
+    s16            y;
+    u16            uv;
+    s32            u0;
+    s32            u1;
+    u16            vz;
 
-    scratch                                       = (void**)G_SCRATCH_HEAD;
-    head                                          = *scratch;
-    ((M4a1PykeBeamScratch*)(head - 0x18))->vec.vx = *(u16*)&pos->vx;
-    block                                         = (M4a1PykeBeamScratch*)(head - 0x18);
-    block->vec.vy                                 = *(u16*)&pos->vy;
-    vz                                            = *(u16*)&pos->vz;
-    *scratch                                      = block;
-    block->vec.vz                                 = vz;
-    vec                                           = &block->vec;
+    scratch                                 = (void**)G_SCRATCH_HEAD;
+    head                                    = *scratch;
+    ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&pos->vx;
+    block                                   = (GpRingScratch*)(head - 0x18);
+    block->vec.vy                           = *(u16*)&pos->vy;
+    vz                                      = *(u16*)&pos->vz;
+    *scratch                                = block;
+    block->vec.vz                           = vz;
+    vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
     gte_rtps();
-    gte_stsxy(&((M4a1PykeBeamScratch*)(head - 0x18))->sx);
-    gte_stflg(&((M4a1PykeBeamScratch*)(head - 0x18))->flag);
+    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
+    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((M4a1PykeBeamScratch*)(head - 0x18))->otz);
+        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
         block->otz++;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -207,17 +207,17 @@ void func_m4a1_pyke_8011D548(VECTOR3* pos, u16 frame, s32 brightness)
         prim->u1    = u1;
         prim->u2    = u0;
         prim->u3    = u1;
-        block->size = ((u16)brightness * 31) / block->otz;
-        x           = *(u16*)&block->sx - *(u16*)&block->size;
+        block->step = ((u16)brightness * 31) / block->otz;
+        x           = *(u16*)&block->sx - *(u16*)&block->step;
         prim->x2    = x;
         prim->x0    = x;
-        x           = *(u16*)&block->sx + *(u16*)&block->size;
+        x           = *(u16*)&block->sx + *(u16*)&block->step;
         prim->x3    = x;
         prim->x1    = x;
-        y           = *(u16*)&block->sy - *(u16*)&block->size;
+        y           = *(u16*)&block->sy - *(u16*)&block->step;
         prim->y1    = y;
         prim->y0    = y;
-        y           = *(u16*)&block->sy + *(u16*)&block->size;
+        y           = *(u16*)&block->sy + *(u16*)&block->step;
         prim->y3    = y;
         prim->y2    = y;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
@@ -381,34 +381,34 @@ void func_m4a1_pyke_8011D7D4(Task* task)
 /// by zero.
 void func_m4a1_pyke_8011DCEC(VECTOR3* pos, u16 frame, u16 width, s16 ang)
 {
-    void**               scratch;
-    u8*                  head;
-    M4a1PykeQuadScratch* block;
-    M4a1PykeQuadScratch* vecp;
-    POLY_FT4*            prim;
-    GpEffUv8*            rec;
-    u16                  idx;
-    s32                  a;
-    u16                  vz;
+    void**           scratch;
+    u8*              head;
+    GpFxQuadScratch* block;
+    GpFxQuadScratch* vecp;
+    POLY_FT4*        prim;
+    GpEffUv8*        rec;
+    u16              idx;
+    s32              a;
+    u16              vz;
 
-    scratch                                       = (void**)G_SCRATCH_HEAD;
-    head                                          = *scratch;
-    ((M4a1PykeQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&pos->vx;
-    block                                         = (M4a1PykeQuadScratch*)(head - 0x1C);
-    block->vec.vy                                 = *(u16*)&pos->vy;
-    vz                                            = *(u16*)&pos->vz;
-    *scratch                                      = block;
-    block->vec.vz                                 = vz;
-    vecp                                          = block;
+    scratch                                   = (void**)G_SCRATCH_HEAD;
+    head                                      = *scratch;
+    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&pos->vx;
+    block                                     = (GpFxQuadScratch*)(head - 0x1C);
+    block->vec.vy                             = *(u16*)&pos->vy;
+    vz                                        = *(u16*)&pos->vz;
+    *scratch                                  = block;
+    block->vec.vz                             = vz;
+    vecp                                      = block;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&vecp->vec);
     gte_rtps();
     idx = frame % 12;
-    gte_stsxy(&((M4a1PykeQuadScratch*)(head - 0x1C))->sxy);
-    gte_stflg(&((M4a1PykeQuadScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((M4a1PykeQuadScratch*)(head - 0x1C))->otz);
+        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         block->otz     = block->otz + 1;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -428,17 +428,17 @@ void func_m4a1_pyke_8011DCEC(VECTOR3* pos, u16 frame, u16 width, s16 ang)
         a           = ang;
         block->dx   = (((width * 0x27) / block->otz) * rsin(a)) >> 12;
         block->dy   = (((width * 0x27) / block->otz) * rcos(a)) >> 12;
-        prim->x0    = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
-        prim->x3    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
-        prim->y0    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
+        prim->x0    = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x3    = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y0    = *(u16*)&block->sy - *(u16*)&block->dy;
         a           = a + 0x400;
-        prim->y3    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        prim->y3    = *(u16*)&block->sy + *(u16*)&block->dy;
         block->dx   = (((width * 0x27) / block->otz) * rsin(a)) >> 12;
         block->dy   = (((width * 0x27) / block->otz) * rcos(a)) >> 12;
-        prim->x1    = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
-        prim->x2    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
-        prim->y1    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
-        prim->y2    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        prim->x1    = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x2    = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y1    = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y2    = *(u16*)&block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }

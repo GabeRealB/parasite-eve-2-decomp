@@ -616,33 +616,33 @@ void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness)
 /// `arg3 + 0x400`, a quarter turn apart, so the quad stays square as it spins.
 void func_m4a1_javelin_8011F0AC(M4a1JavelinVecLo* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
-    void**                  scratch;
-    u8*                     head;
-    M4a1JavelinQuadScratch* block;
-    POLY_FT4*               prim;
-    SVECTOR*                vec;
-    s32                     u0;
-    s32                     u1;
-    s32                     ang2;
-    u16                     vz;
+    void**           scratch;
+    u8*              head;
+    GpFxQuadScratch* block;
+    POLY_FT4*        prim;
+    SVECTOR*         vec;
+    s32              u0;
+    s32              u1;
+    s32              ang2;
+    u16              vz;
 
-    scratch                                                                    = (void**)G_SCRATCH_HEAD;
-    head                                                                       = *scratch;
-    ((M4a1JavelinQuadScratch*)(head - sizeof(M4a1JavelinQuadScratch)))->vec.vx = arg0->vx;
-    block                                                                      = (M4a1JavelinQuadScratch*)(head - sizeof(M4a1JavelinQuadScratch));
-    block->vec.vy                                                              = arg0->vy;
-    vz                                                                         = arg0->vz;
-    *scratch                                                                   = block;
-    block->vec.vz                                                              = vz;
-    vec                                                                        = &block->vec;
+    scratch                                                      = (void**)G_SCRATCH_HEAD;
+    head                                                         = *scratch;
+    ((GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch)))->vec.vx = arg0->vx;
+    block                                                        = (GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch));
+    block->vec.vy                                                = arg0->vy;
+    vz                                                           = arg0->vz;
+    *scratch                                                     = block;
+    block->vec.vz                                                = vz;
+    vec                                                          = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
     gte_rtps();
-    gte_stsxy(&((M4a1JavelinQuadScratch*)(head - sizeof(M4a1JavelinQuadScratch)))->sx);
-    gte_stflg(&((M4a1JavelinQuadScratch*)(head - sizeof(M4a1JavelinQuadScratch)))->flag);
+    gte_stsxy(&((GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch)))->sx);
+    gte_stflg(&((GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch)))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((M4a1JavelinQuadScratch*)(head - sizeof(M4a1JavelinQuadScratch)))->otz);
+        gte_stszotz(&((GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch)))->otz);
         block->otz++;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -669,7 +669,7 @@ void func_m4a1_javelin_8011F0AC(M4a1JavelinVecLo* arg0, s16 arg1, s16 arg2, s16 
         prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     }
-    *scratch = (u8*)*scratch + sizeof(M4a1JavelinQuadScratch);
+    *scratch = (u8*)*scratch + sizeof(GpFxQuadScratch);
 }
 
 void func_m4a1_javelin_8011F4A4(M4a1JavelinVecLo* arg0)

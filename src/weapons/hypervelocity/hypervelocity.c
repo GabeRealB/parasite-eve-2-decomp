@@ -526,34 +526,34 @@ void func_hypervelocity_8011DF34(GsCOORDINATE2* coord, s16 age, s16 spin, s32 si
 /// spins.
 void func_hypervelocity_8011E494(GsCOORDINATE2* coord, s16 age, s16 spin, s16 ang)
 {
-    void**            scratch;
-    u8*               head;
-    HyperQuadScratch* block;
-    POLY_FT4*         prim;
-    SVECTOR*          vec;
-    s32               u0;
-    s32               u1;
-    s32               col;
-    s32               ang2;
-    u16               vz;
+    void**           scratch;
+    u8*              head;
+    GpFxQuadScratch* block;
+    POLY_FT4*        prim;
+    SVECTOR*         vec;
+    s32              u0;
+    s32              u1;
+    s32              col;
+    s32              ang2;
+    u16              vz;
 
-    scratch                                                        = (void**)G_SCRATCH_HEAD;
-    head                                                           = *scratch;
-    ((HyperQuadScratch*)(head - sizeof(HyperQuadScratch)))->vec.vx = *(u16*)&coord->workm.t[0];
-    block                                                          = (HyperQuadScratch*)(head - sizeof(HyperQuadScratch));
-    block->vec.vy                                                  = *(u16*)&coord->workm.t[1];
-    vz                                                             = *(u16*)&coord->workm.t[2];
-    *scratch                                                       = block;
-    block->vec.vz                                                  = vz;
-    vec                                                            = &block->vec;
+    scratch                                                      = (void**)G_SCRATCH_HEAD;
+    head                                                         = *scratch;
+    ((GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch)))->vec.vx = *(u16*)&coord->workm.t[0];
+    block                                                        = (GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch));
+    block->vec.vy                                                = *(u16*)&coord->workm.t[1];
+    vz                                                           = *(u16*)&coord->workm.t[2];
+    *scratch                                                     = block;
+    block->vec.vz                                                = vz;
+    vec                                                          = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
     gte_rtps();
-    gte_stsxy(&((HyperQuadScratch*)(head - sizeof(HyperQuadScratch)))->sx);
-    gte_stflg(&((HyperQuadScratch*)(head - sizeof(HyperQuadScratch)))->flag);
+    gte_stsxy(&((GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch)))->sx);
+    gte_stflg(&((GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch)))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((HyperQuadScratch*)(head - sizeof(HyperQuadScratch)))->otz);
+        gte_stszotz(&((GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch)))->otz);
         block->otz++;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -581,7 +581,7 @@ void func_hypervelocity_8011E494(GsCOORDINATE2* coord, s16 age, s16 spin, s16 an
         prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     }
-    *scratch = (u8*)*scratch + sizeof(HyperQuadScratch);
+    *scratch = (u8*)*scratch + sizeof(GpFxQuadScratch);
 }
 
 /// Paints the round's scorch quad on the ground point `Gp_TraceGroundCoord`

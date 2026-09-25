@@ -362,20 +362,20 @@ void func_actor_510900_80131F24(Task* arg0)
 
 void func_actor_510900_80132D4C(Task* arg0)
 {
-    GsCOORDINATE2     hit;
-    GpEffWork*        mem;
-    GsCOORDINATE2*    coord;
-    void**            scratch;
-    u8*               head;
-    GpEffBeamScratch* block;
-    POLY_FT4*         prim;
-    s16               flag;
-    s16               x;
-    u8                col;
-    u16               vz;
-    u32               vy;
-    u8*               carve;
-    s32               x2;
+    GsCOORDINATE2    hit;
+    GpEffWork*       mem;
+    GsCOORDINATE2*   coord;
+    void**           scratch;
+    u8*              head;
+    GpFxQuadScratch* block;
+    POLY_FT4*        prim;
+    s16              flag;
+    s16              x;
+    u8               col;
+    u16              vz;
+    u32              vy;
+    u8*              carve;
+    s32              x2;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -386,13 +386,13 @@ void func_actor_510900_80132D4C(Task* arg0)
         }
     } else {
         Gp_UpdateCoord(coord);
-        scratch                                    = (void**)G_SCRATCH_HEAD;
-        head                                       = *scratch;
-        ((GpEffBeamScratch*)(head - 0x1C))->vec.vx = *(u16*)&coord->workm.t[0];
-        carve                                      = head - 0x1C;
-        vy                                         = *(u16*)&coord->workm.t[1];
+        scratch                                   = (void**)G_SCRATCH_HEAD;
+        head                                      = *scratch;
+        ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&coord->workm.t[0];
+        carve                                     = head - 0x1C;
+        vy                                        = *(u16*)&coord->workm.t[1];
         SOFT_TOUCH_REG_USE2(vy, carve, carve);
-        block         = (GpEffBeamScratch*)carve;
+        block         = (GpFxQuadScratch*)carve;
         block->vec.vy = vy;
         vz            = *(u16*)&coord->workm.t[2];
         *scratch      = block;
@@ -401,10 +401,10 @@ void func_actor_510900_80132D4C(Task* arg0)
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&block->vec);
         gte_rtps();
-        gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
-        gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
+        gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
+        gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
-            gte_stszotz(&((GpEffBeamScratch*)(head - 0x1C))->otz);
+            gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
             prim           = (POLY_FT4*)gGpuPrimCursor;
             gGpuPrimCursor = (DR_TPAGE*)(prim + 1);
             setlen(prim, 9);
@@ -442,16 +442,16 @@ void func_actor_510900_80132D4C(Task* arg0)
             prim->v3    = 0x27;
             block->dx   = (mem->scale * 31) / block->otz;
             block->dy   = (mem->scale * 39) / block->otz;
-            x           = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
+            x           = *(u16*)&block->sx - *(u16*)&block->dx;
             prim->x2    = x;
             prim->x0    = x;
-            x           = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
+            x           = *(u16*)&block->sx + *(u16*)&block->dx;
             prim->x3    = x;
             prim->x1    = x;
-            x           = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
+            x           = *(u16*)&block->sy - *(u16*)&block->dy;
             prim->y1    = x;
             prim->y0    = x;
-            x           = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+            x           = *(u16*)&block->sy + *(u16*)&block->dy;
             prim->y3    = x;
             prim->y2    = x;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
@@ -485,29 +485,29 @@ void func_actor_510900_80132D4C(Task* arg0)
 
 void func_actor_510900_801332EC(Task* arg0)
 {
-    GpEffWork*        mem;
-    GsCOORDINATE2*    coord;
-    void**            scratch;
-    u8*               head;
-    GpEffBeamScratch* block;
-    POLY_FT4*         prim;
-    s16               flag;
-    s16               x;
-    s32               amt;
-    u16               vz;
+    GpEffWork*       mem;
+    GsCOORDINATE2*   coord;
+    void**           scratch;
+    u8*              head;
+    GpFxQuadScratch* block;
+    POLY_FT4*        prim;
+    s16              flag;
+    s16              x;
+    s32              amt;
+    u16              vz;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (flag < 2) {
         Gp_UpdateCoord(coord);
-        scratch                                    = (void**)G_SCRATCH_HEAD;
-        head                                       = *scratch;
-        ((GpEffBeamScratch*)(head - 0x1C))->vec.vx = *(u16*)&coord->workm.t[0];
+        scratch                                   = (void**)G_SCRATCH_HEAD;
+        head                                      = *scratch;
+        ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&coord->workm.t[0];
         {
             register u8* tmp asm("v0");
             tmp   = head - 0x1C;
-            block = (GpEffBeamScratch*)tmp;
+            block = (GpFxQuadScratch*)tmp;
         }
         block->vec.vy = *(u16*)&coord->workm.t[1];
         vz            = *(u16*)&coord->workm.t[2];
@@ -517,10 +517,10 @@ void func_actor_510900_801332EC(Task* arg0)
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&block->vec);
         gte_rtps();
-        gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
-        gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
+        gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
+        gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
-            gte_stszotz(&((GpEffBeamScratch*)(head - 0x1C))->otz);
+            gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
             prim           = (POLY_FT4*)gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
@@ -556,16 +556,16 @@ void func_actor_510900_801332EC(Task* arg0)
             prim->u3    = amt * 32 + 0x1F;
             block->dx   = (mem->scale * 31) / block->otz;
             block->dy   = (mem->scale * 47) / block->otz;
-            x           = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
+            x           = *(u16*)&block->sx - *(u16*)&block->dx;
             prim->x2    = x;
             prim->x0    = x;
-            x           = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
+            x           = *(u16*)&block->sx + *(u16*)&block->dx;
             prim->x3    = x;
             prim->x1    = x;
-            x           = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
+            x           = *(u16*)&block->sy - *(u16*)&block->dy;
             prim->y1    = x;
             prim->y0    = x;
-            x           = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+            x           = *(u16*)&block->sy + *(u16*)&block->dy;
             prim->y3    = x;
             prim->y2    = x;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
@@ -592,29 +592,29 @@ void func_actor_510900_801332EC(Task* arg0)
 
 void func_actor_510900_8013371C(Task* arg0)
 {
-    GpEffWork*        mem;
-    GsCOORDINATE2*    coord;
-    void**            scratch;
-    u8*               head;
-    GpEffBeamScratch* block;
-    POLY_FT4*         prim;
-    s16               flag;
-    s16               x;
-    s32               amt;
-    u16               vz;
+    GpEffWork*       mem;
+    GsCOORDINATE2*   coord;
+    void**           scratch;
+    u8*              head;
+    GpFxQuadScratch* block;
+    POLY_FT4*        prim;
+    s16              flag;
+    s16              x;
+    s32              amt;
+    u16              vz;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (flag < 2) {
         Gp_UpdateCoord(coord);
-        scratch                                    = (void**)G_SCRATCH_HEAD;
-        head                                       = *scratch;
-        ((GpEffBeamScratch*)(head - 0x1C))->vec.vx = *(u16*)&coord->workm.t[0];
+        scratch                                   = (void**)G_SCRATCH_HEAD;
+        head                                      = *scratch;
+        ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&coord->workm.t[0];
         {
             register u8* tmp asm("v0");
             tmp   = head - 0x1C;
-            block = (GpEffBeamScratch*)tmp;
+            block = (GpFxQuadScratch*)tmp;
         }
         block->vec.vy = *(u16*)&coord->workm.t[1];
         vz            = *(u16*)&coord->workm.t[2];
@@ -624,10 +624,10 @@ void func_actor_510900_8013371C(Task* arg0)
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&block->vec);
         gte_rtps();
-        gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
-        gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
+        gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
+        gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
-            gte_stszotz(&((GpEffBeamScratch*)(head - 0x1C))->otz);
+            gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
             prim           = (POLY_FT4*)gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
@@ -668,16 +668,16 @@ void func_actor_510900_8013371C(Task* arg0)
             block->dx   = (mem->scale * 31) / block->otz;
             block->dy   = (mem->scale * 47) / block->otz;
             block->dx >>= mem->period;
-            x           = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
+            x           = *(u16*)&block->sx - *(u16*)&block->dx;
             prim->x2    = x;
             prim->x0    = x;
-            x           = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
+            x           = *(u16*)&block->sx + *(u16*)&block->dx;
             prim->x3    = x;
             prim->x1    = x;
-            x           = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
+            x           = *(u16*)&block->sy - *(u16*)&block->dy;
             prim->y1    = x;
             prim->y0    = x;
-            x           = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+            x           = *(u16*)&block->sy + *(u16*)&block->dy;
             prim->y3    = x;
             prim->y2    = x;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
@@ -703,29 +703,29 @@ void func_actor_510900_8013371C(Task* arg0)
 
 void func_actor_510900_80133C84(Task* arg0)
 {
-    GpEffWork*        mem;
-    GsCOORDINATE2*    coord;
-    void**            scratch;
-    u8*               head;
-    GpEffBeamScratch* block;
-    POLY_FT4*         prim;
-    s16               flag;
-    s16               x;
-    s32               amt;
-    u16               vz;
+    GpEffWork*       mem;
+    GsCOORDINATE2*   coord;
+    void**           scratch;
+    u8*              head;
+    GpFxQuadScratch* block;
+    POLY_FT4*        prim;
+    s16              flag;
+    s16              x;
+    s32              amt;
+    u16              vz;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (flag < 2) {
         Gp_UpdateCoord(coord);
-        scratch                                    = (void**)G_SCRATCH_HEAD;
-        head                                       = *scratch;
-        ((GpEffBeamScratch*)(head - 0x1C))->vec.vx = *(u16*)&coord->workm.t[0];
+        scratch                                   = (void**)G_SCRATCH_HEAD;
+        head                                      = *scratch;
+        ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&coord->workm.t[0];
         {
             register u8* tmp asm("v0");
             tmp   = head - 0x1C;
-            block = (GpEffBeamScratch*)tmp;
+            block = (GpFxQuadScratch*)tmp;
         }
         block->vec.vy = *(u16*)&coord->workm.t[1];
         vz            = *(u16*)&coord->workm.t[2];
@@ -735,10 +735,10 @@ void func_actor_510900_80133C84(Task* arg0)
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&block->vec);
         gte_rtps();
-        gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
-        gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
+        gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
+        gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
-            gte_stszotz(&((GpEffBeamScratch*)(head - 0x1C))->otz);
+            gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
             prim           = (POLY_FT4*)gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
@@ -771,16 +771,16 @@ void func_actor_510900_80133C84(Task* arg0)
             prim->u3    = (x / 2 + 4) * 32 + 0x1F;
             block->dx   = (mem->scale * 31) / block->otz;
             block->dy   = (mem->scale * 31) / block->otz;
-            x           = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
+            x           = *(u16*)&block->sx - *(u16*)&block->dx;
             prim->x2    = x;
             prim->x0    = x;
-            x           = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
+            x           = *(u16*)&block->sx + *(u16*)&block->dx;
             prim->x3    = x;
             prim->x1    = x;
-            x           = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
+            x           = *(u16*)&block->sy - *(u16*)&block->dy;
             prim->y1    = x;
             prim->y0    = x;
-            x           = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+            x           = *(u16*)&block->sy + *(u16*)&block->dy;
             prim->y3    = x;
             prim->y2    = x;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),

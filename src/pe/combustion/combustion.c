@@ -227,34 +227,34 @@ void func_combustion_8012F2BC(Task* arg0)
 /// Same 0x18-byte scratch and axis-aligned quad as `func_combustion_8012FF0C`.
 void func_combustion_8012F5EC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 {
-    void**           scratch;
-    u8*              head;
-    GpEffFt4Scratch* block;
-    POLY_FT4*        prim;
-    SVECTOR*         vec;
-    s32              u0;
-    s32              u1;
-    s16              x;
-    s16              y;
-    u16              vz;
+    void**         scratch;
+    u8*            head;
+    GpRingScratch* block;
+    POLY_FT4*      prim;
+    SVECTOR*       vec;
+    s32            u0;
+    s32            u1;
+    s16            x;
+    s16            y;
+    u16            vz;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
-    head                                      = *scratch;
-    ((GpEffFt4Scratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
-    block                                     = (GpEffFt4Scratch*)(head - 0x18);
-    block->vec.vy                             = *(u16*)&arg0->workm.t[1];
-    vz                                        = *(u16*)&arg0->workm.t[2];
-    *scratch                                  = block;
-    block->vec.vz                             = vz;
-    vec                                       = &block->vec;
+    scratch                                 = (void**)G_SCRATCH_HEAD;
+    head                                    = *scratch;
+    ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
+    block                                   = (GpRingScratch*)(head - 0x18);
+    block->vec.vy                           = *(u16*)&arg0->workm.t[1];
+    vz                                      = *(u16*)&arg0->workm.t[2];
+    *scratch                                = block;
+    block->vec.vz                           = vz;
+    vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
     gte_rtps();
-    gte_stsxy(&((GpEffFt4Scratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpEffFt4Scratch*)(head - 0x18))->flag);
+    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
+    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((GpEffFt4Scratch*)(head - 0x18))->otz);
+        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
         block->otz++;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -272,17 +272,17 @@ void func_combustion_8012F5EC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
         prim->u3    = u1;
         prim->u0    = u0;
         prim->u2    = u0;
-        block->size = (arg2 * 0x1F) / block->otz;
-        x           = *(u16*)&block->sx - *(u16*)&block->size;
+        block->step = (arg2 * 0x1F) / block->otz;
+        x           = *(u16*)&block->sx - *(u16*)&block->step;
         prim->x2    = x;
         prim->x0    = x;
-        x           = *(u16*)&block->sx + *(u16*)&block->size;
+        x           = *(u16*)&block->sx + *(u16*)&block->step;
         prim->x3    = x;
         prim->x1    = x;
-        y           = *(u16*)&block->sy - *(u16*)&block->size;
+        y           = *(u16*)&block->sy - *(u16*)&block->step;
         prim->y1    = y;
         prim->y0    = y;
-        y           = *(u16*)&block->sy + *(u16*)&block->size;
+        y           = *(u16*)&block->sy + *(u16*)&block->step;
         prim->y3    = y;
         prim->y2    = y;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
@@ -473,35 +473,35 @@ void func_combustion_8012FB14(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 /// quad as gameplay `Gp_EffSprTask8D`.
 void func_combustion_8012FF0C(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
 {
-    void**           scratch;
-    u8*              head;
-    GpEffFt4Scratch* block;
-    POLY_FT4*        prim;
-    SVECTOR*         vec;
-    s32              u0;
-    s32              u1;
-    s32              va;
-    s16              x;
-    s16              y;
-    u16              vz;
+    void**         scratch;
+    u8*            head;
+    GpRingScratch* block;
+    POLY_FT4*      prim;
+    SVECTOR*       vec;
+    s32            u0;
+    s32            u1;
+    s32            va;
+    s16            x;
+    s16            y;
+    u16            vz;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
-    head                                      = *scratch;
-    ((GpEffFt4Scratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
-    block                                     = (GpEffFt4Scratch*)(head - 0x18);
-    block->vec.vy                             = *(u16*)&arg0->workm.t[1];
-    vz                                        = *(u16*)&arg0->workm.t[2];
-    *scratch                                  = block;
-    block->vec.vz                             = vz;
-    vec                                       = &block->vec;
+    scratch                                 = (void**)G_SCRATCH_HEAD;
+    head                                    = *scratch;
+    ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
+    block                                   = (GpRingScratch*)(head - 0x18);
+    block->vec.vy                           = *(u16*)&arg0->workm.t[1];
+    vz                                      = *(u16*)&arg0->workm.t[2];
+    *scratch                                = block;
+    block->vec.vz                           = vz;
+    vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
     gte_rtps();
-    gte_stsxy(&((GpEffFt4Scratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpEffFt4Scratch*)(head - 0x18))->flag);
+    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
+    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((GpEffFt4Scratch*)(head - 0x18))->otz);
+        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
         block->otz++;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -522,17 +522,17 @@ void func_combustion_8012FF0C(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
         prim->v3    = 0xB7;
         prim->u1    = u1;
         prim->u3    = u1;
-        block->size = (arg2 * 0x17) / block->otz;
-        x           = *(u16*)&block->sx - *(u16*)&block->size;
+        block->step = (arg2 * 0x17) / block->otz;
+        x           = *(u16*)&block->sx - *(u16*)&block->step;
         prim->x2    = x;
         prim->x0    = x;
-        x           = *(u16*)&block->sx + *(u16*)&block->size;
+        x           = *(u16*)&block->sx + *(u16*)&block->step;
         prim->x3    = x;
         prim->x1    = x;
-        y           = *(u16*)&block->sy - *(u16*)&block->size;
+        y           = *(u16*)&block->sy - *(u16*)&block->step;
         prim->y1    = y;
         prim->y0    = y;
-        y           = *(u16*)&block->sy + *(u16*)&block->size;
+        y           = *(u16*)&block->sy + *(u16*)&block->step;
         prim->y3    = y;
         prim->y2    = y;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
@@ -553,14 +553,14 @@ void func_combustion_8012FF0C(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
 /// its own `otz` twice, once per diagonal pair.
 void func_combustion_80130184(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
-    CombustionQuadScratch* block;
-    POLY_FT4*              prim;
-    s32                    ang;
-    u16                    vz;
-    register void**        scratch asm("a1");
-    s16                    saved;
-    register s32           hi asm("a1");
-    u8*                    head;
+    GpFxQuadScratch* block;
+    POLY_FT4*        prim;
+    s32              ang;
+    u16              vz;
+    register void**  scratch asm("a1");
+    s16              saved;
+    register s32     hi asm("a1");
+    u8*              head;
 
     saved = arg1;
     /* `head` is a dummy output: it reserves its register from entry on, which
@@ -571,13 +571,13 @@ void func_combustion_80130184(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
     USE_REG(head);
     {
         register u16 vx asm("v0");
-        vx                                              = *(u16*)&arg0->workm.t[0];
-        ((CombustionQuadScratch*)(head - 0x1C))->vec.vx = vx;
+        vx                                        = *(u16*)&arg0->workm.t[0];
+        ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = vx;
     }
     {
         register u8* tmp asm("v0");
         tmp   = head - 0x1C;
-        block = (CombustionQuadScratch*)tmp;
+        block = (GpFxQuadScratch*)tmp;
     }
     block->vec.vy = *(u16*)&arg0->workm.t[1];
     vz            = *(u16*)&arg0->workm.t[2];
@@ -588,10 +588,10 @@ void func_combustion_80130184(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((CombustionQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((CombustionQuadScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((CombustionQuadScratch*)(head - 0x1C))->otz);
+        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         USE_REG(head);
         block->otz     = block->otz + 1;
         prim           = (POLY_FT4*)gGpuPrimCursor;
@@ -640,42 +640,42 @@ void func_combustion_80130184(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 /// depth.
 void func_combustion_801305F8(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 {
-    void**           scratch;
-    u8*              head;
-    GpEffFt4Scratch* block;
-    POLY_FT4*        prim;
-    SVECTOR*         vec;
-    s32              frame;
-    u32              cell;
-    u16              col;
-    u16              row;
-    s32              u0;
-    s32              u1;
-    s32              v0;
-    s32              v2;
-    s16              x;
-    s16              y;
-    u16              vz;
+    void**         scratch;
+    u8*            head;
+    GpRingScratch* block;
+    POLY_FT4*      prim;
+    SVECTOR*       vec;
+    s32            frame;
+    u32            cell;
+    u16            col;
+    u16            row;
+    s32            u0;
+    s32            u1;
+    s32            v0;
+    s32            v2;
+    s16            x;
+    s16            y;
+    u16            vz;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
-    head                                      = *scratch;
-    ((GpEffFt4Scratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
-    block                                     = (GpEffFt4Scratch*)(head - 0x18);
-    block->vec.vy                             = *(u16*)&arg0->workm.t[1];
-    vz                                        = *(u16*)&arg0->workm.t[2];
-    *scratch                                  = block;
-    block->vec.vz                             = vz;
-    vec                                       = &block->vec;
+    scratch                                 = (void**)G_SCRATCH_HEAD;
+    head                                    = *scratch;
+    ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
+    block                                   = (GpRingScratch*)(head - 0x18);
+    block->vec.vy                           = *(u16*)&arg0->workm.t[1];
+    vz                                      = *(u16*)&arg0->workm.t[2];
+    *scratch                                = block;
+    block->vec.vz                           = vz;
+    vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
     gte_rtps();
     frame = arg1;
     frame = frame % 12;
-    gte_stsxy(&((GpEffFt4Scratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpEffFt4Scratch*)(head - 0x18))->flag);
+    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
+    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((GpEffFt4Scratch*)(head - 0x18))->otz);
+        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
         block->otz++;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -691,17 +691,17 @@ void func_combustion_801305F8(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
         v0          = row * 0x28 - 0x78;
         v2          = row * 0x28 - 0x51;
         setUV4(prim, u0, v0, u1, v0, u0, v2, u1, v2);
-        block->size = (arg2 * 0x27) / block->otz;
-        x           = *(u16*)&block->sx - *(u16*)&block->size;
+        block->step = (arg2 * 0x27) / block->otz;
+        x           = *(u16*)&block->sx - *(u16*)&block->step;
         prim->x2    = x;
         prim->x0    = x;
-        x           = *(u16*)&block->sx + *(u16*)&block->size;
+        x           = *(u16*)&block->sx + *(u16*)&block->step;
         prim->x3    = x;
         prim->x1    = x;
-        y           = *(u16*)&block->sy - *(u16*)&block->size;
+        y           = *(u16*)&block->sy - *(u16*)&block->step;
         prim->y1    = y;
         prim->y0    = y;
-        y           = *(u16*)&block->sy + *(u16*)&block->size;
+        y           = *(u16*)&block->sy + *(u16*)&block->step;
         prim->y3    = y;
         prim->y2    = y;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
