@@ -1,3 +1,1 @@
 // Overlay-local symbols for actor_146300.
-func_actor_146300_80132840 = 0x80132840; // type:func
-func_actor_146300_80132A98 = 0x80132A98; // type:func

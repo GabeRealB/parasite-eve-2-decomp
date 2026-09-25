@@ -1,6 +1,6 @@
 #include "common.h"
 
-#include "actors/actor_146300.h"
+#include "actors/actors_shared_8013411c.h"
 #include "gameplay/1BC.h"
 #include "gameplay/268.h"
 #include "gameplay/3A34.h"
@@ -14,6 +14,78 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+/// Per-actor work block for the `actor_146300` overlay.
+///
+/// The spawn routine, `func_actor_146300_801324AC`, allocates it with
+/// `memCalloc(0x4EC, 0)` and stores the pointer both in
+/// `D_actor_146300_80142828` and in the task's `Task::work` slot, so the size
+/// below is the allocation and not a guess. Every other function in the
+/// overlay reaches the block through the global.
+///
+/// `light` and `color` are the matrices the spawn routine hands the model;
+/// `anim` is the animation context the tick and reseed loops walk, and `slots`
+/// and `pad_374` are what `func_800B3F84` fills in beside it.
+typedef struct Actor146300Work {
+    /* 0x000 */ MATRIX     light;
+    /* 0x020 */ MATRIX     color;
+    /* 0x040 */ GpAnimCtx  anim;
+    /* 0x054 */ GpAnimSlot slots[0x14];
+    /* 0x374 */ byte       pad_374[0x140];
+    /* 0x4B4 */ s16        field_4B4; // animation reset mode `func_actor_146300_8013299C` latches (1 or 2)
+    /* 0x4B6 */ s16        field_4B6; // copy of `field_4B8`, kept for change detection
+    /* 0x4B8 */ s16        field_4B8; // animation id the slots are seeded with
+    /* 0x4BA */ s16        field_4BA; // cleared by `func_actor_146300_8013299C` before the reseed
+    /* 0x4BC */ byte       pad_4BC[0x2A];
+    /* 0x4E6 */ u16        yaw;       // last yaw handed to `Gfx_RotMatrixY`
+    /* 0x4E8 */ byte       pad_4E8[0x4];
+} Actor146300Work;
+STATIC_ASSERT_SIZEOF(Actor146300Work, 0x4EC);
+
+/// The work block above, published by the task handler
+/// `func_actor_146300_801326CC` and by the spawn routine.
+extern Actor146300Work* D_actor_146300_80142828;
+
+/// Animation preset the overlay's 0x7D3 message handler applies to
+/// the work block: `field_4` is the animation id, `field_8` picks the reset
+/// path -- non-zero for the reseed through `func_800B4114` with a reset
+/// argument, zero for a plain one -- and `field_C` becomes that reset argument.
+/// `func_actor_146300_8013299C` accepts the first 0x11 ids.
+typedef struct Actor146300AnimPreset {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s32 field_C;
+} Actor146300AnimPreset;
+STATIC_ASSERT_SIZEOF(Actor146300AnimPreset, 0x10);
+
+/// The actor's own task, published by the spawn routine: the 0x7D3 handler
+/// runs the per-frame update on it, and the 0x7D5 handler and the companion's
+/// handler `func_actor_146300_80132B1C` reach the actor's model through its
+/// `extra`.
+extern Task* D_actor_146300_8014282C;
+
+/// Reset argument `func_actor_146300_8013291C` forwards: the 0x7D3 handler
+/// latches the preset's `field_C` here.
+extern s16 D_actor_146300_8014279C;
+
+/// The companion task the spawn routine starts from
+/// `D_actor_146300_801427C8`; its `extra` is the model whose texture page and
+/// CLUT row come out of the area record, and the actor's own task is reparented
+/// under it.
+extern Task* D_actor_146300_80142830;
+
+/// Spawn table of the actor's two tasks: index 0 runs
+/// `func_actor_146300_801326CC`, index 1 the companion's
+/// `func_actor_146300_80132B1C`, which the spawn routine starts.
+extern TaskDesc D_actor_146300_801427C8[];
+
+/// Animation stream the spawn routine binds into the work block's animation
+/// context with `func_800B3F84`.
+extern u8 D_actor_146300_801427E0[];
+
+/// Message handler table the spawn routine publishes as `Task::msgTable`.
+extern GpMsgEntry D_actor_146300_801427A0[];
+
 extern s32 D_actor_146300_80137AAC;
 extern s32 D_actor_146300_80137B10;
 extern s32 D_actor_146300_80137B38;
@@ -25,6 +97,17 @@ extern s32 D_actor_146300_801388D0;
 extern s32 D_actor_146300_80138A38;
 extern s32 D_actor_146300_80138AC8;
 extern s32 D_actor_146300_80142824;
+
+/// `func_800B4114` is declared locally with a signed `arg2`; see the note in
+/// `include/gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
+void func_actor_146300_80132728(GpEnemy* enemy, Task* task);
+void func_actor_146300_801327A4(Task* task);
+void func_actor_146300_801327CC(Task* task);
+void func_actor_146300_80132840(void);
+void func_actor_146300_8013288C(void);
+void func_actor_146300_8013291C(void);
 
 void func_actor_146300_80131ECC(Task* task)
 {
@@ -279,4 +362,210 @@ void func_actor_146300_801324AC(GpEnemy* enemy, Task* task)
     func_actor_146300_801327CC(task);
     SOFT_BARRIER();
     task->state++;
+}
+
+/// The actor's task handler: publishes the task's work block in
+/// `D_actor_146300_80142828` on the way through, then runs the handler its
+/// state selects from a table built on the stack - the spawn routine for state
+/// 0, the per-frame update after it.
+void func_actor_146300_801326CC(Task* task)
+{
+    void (*fns[2])(GpEnemy*, Task*) = {
+        func_actor_146300_801324AC,
+        func_actor_146300_80132728,
+    };
+
+    D_actor_146300_80142828 = task->work;
+    fns[task->state](task->spawnArg2, task);
+}
+
+/// State 1 of the task handler `func_actor_146300_801326CC`: refreshes the model
+/// root's world matrix, relights the model from a point 0x320 above its
+/// translation, then runs the per-frame update.
+void func_actor_146300_80132728(GpEnemy* enemy, Task* task)
+{
+    TmdObject*     obj;
+    GsCOORDINATE2* coord;
+    VECTOR         vec;
+
+    obj   = task->extra;
+    coord = obj->coords;
+    Gp_UpdateCoord(coord);
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1] - 0x320;
+    vec.vz = coord->workm.t[2];
+    func_800D7A9C(obj, &vec, 0, 3);
+    func_actor_146300_801327CC(task);
+}
+
+/// `Task::exitCallback` the spawn routine installs: hands the task's `GpEnemy`
+/// (parked in `Task::spawnArg2`) back to `Gp_DestroyEnemy`.
+void func_actor_146300_801327A4(Task* task)
+{
+    Gp_DestroyEnemy(task->spawnArg2, task);
+}
+
+/// Per-frame update: reset mode 1 runs the reseed with the latched reset
+/// argument and mode 2 the plain reseed, each then switching to mode 3; mode 3
+/// ticks the animation. Steps 1 and 2 each return through their own copy of the
+/// switch to mode 3; the two are identical, so jump.c cross-jumps them and only
+/// the second survives.
+void func_actor_146300_801327CC(Task* task)
+{
+    if (D_actor_146300_80142828->field_4B4 == 1) {
+        func_actor_146300_8013291C();
+        D_actor_146300_80142828->field_4B4 = 3;
+        return;
+    }
+    if (D_actor_146300_80142828->field_4B4 == 2) {
+        func_actor_146300_8013288C();
+        D_actor_146300_80142828->field_4B4 = 3;
+        return;
+    }
+    if (D_actor_146300_80142828->field_4B4 == 3) {
+        func_actor_146300_80132840();
+    }
+}
+
+/// Ticks animation slots 1..0x13 of the work block's animation context.
+void func_actor_146300_80132840(void)
+{
+    s32 i;
+
+    i = 1;
+    do {
+        Gp_AnimTickIndex(&D_actor_146300_80142828->anim, i);
+        i++;
+    } while (i < 0x14);
+}
+
+/// Marks animation slots 1..0x13 of the work block reset-pending and reseeds
+/// each of them from the current animation id, then records that id as the one
+/// now playing.
+void func_actor_146300_8013288C(void)
+{
+    s32 i;
+
+    i = 1;
+    do {
+        D_actor_146300_80142828->slots[i].rate = 1;
+        Gp_AnimResetSlot(&D_actor_146300_80142828->anim, i, D_actor_146300_80142828->field_4B8);
+        i++;
+    } while (i < 0x14);
+    D_actor_146300_80142828->field_4B6 = D_actor_146300_80142828->field_4B8;
+}
+
+/// Reseeds animation slots 1..0x13 of the work block from the current animation
+/// id with the latched reset argument `D_actor_146300_8014279C`, and records
+/// that id as the one now playing.
+void func_actor_146300_8013291C(void)
+{
+    s32 i;
+
+    i = 1;
+    do {
+        func_800B4114(&D_actor_146300_80142828->anim, i, D_actor_146300_80142828->field_4B8, 0,
+                      D_actor_146300_8014279C);
+        i++;
+    } while (i < 0x14);
+    D_actor_146300_80142828->field_4B6 = D_actor_146300_80142828->field_4B8;
+}
+
+/// Message 0x7D3 handler: adopts `preset`'s animation id when it is
+/// one of the first 0x11, latching the reset mode and the reset argument the
+/// reseed forwards, then hands the published task to the per-frame update. Ids
+/// past the range are rejected with -1 and leave the work block untouched.
+s32 func_actor_146300_8013299C(Task* task, s32 arg1, Actor146300AnimPreset* preset)
+{
+    if (preset->field_4 < 0x11) {
+        D_actor_146300_80142828->field_4B8 = preset->field_4;
+        if (preset->field_8 != 0) {
+            D_actor_146300_80142828->field_4B4 = 1;
+            D_actor_146300_8014279C            = preset->field_C;
+        } else {
+            D_actor_146300_80142828->field_4B4 = 2;
+        }
+        D_actor_146300_80142828->field_4BA = 0;
+        func_actor_146300_801327CC(D_actor_146300_8014282C);
+        return 0;
+    }
+    return -1;
+}
+
+/// Message 0x7D5 handler: shows or hides the actor's model and its companion's
+/// together. Bit 0 of `flags` clears both models' `TmdObject::flags` (shown);
+/// without it both get 0x80 (hidden). Bit 1 additionally ORs in 0x4 on both.
+s32 func_actor_146300_80132A2C(Task* task, s32 arg1, s32 flags)
+{
+    TmdObject* self;
+    TmdObject* other;
+
+    self  = D_actor_146300_8014282C->extra;
+    other = (TmdObject*)D_actor_146300_80142830->extra;
+
+    if (flags & 1) {
+        self->flags  = 0;
+        other->flags = 0;
+    } else {
+        self->flags  = 0x80;
+        other->flags = 0x80;
+    }
+
+    if (flags & 2) {
+        self->flags  |= 4;
+        other->flags |= 4;
+    }
+    return 0;
+}
+
+/// Message 0x7D4 handler: turns the model root to `placement`'s yaw
+/// (recorded in the work block's `yaw`), moves it to `placement`'s position and
+/// marks the coordinate for recomputation. Only the Y rotation is applied.
+s32 func_actor_146300_80132A98(Task* task, s32 arg1, ActorShared8013411cPlacement* placement)
+{
+    GsCOORDINATE2* coord;
+    u16            yaw;
+
+    coord                        = ((TmdObject*)task->extra)->coords;
+    D_actor_146300_80142828->yaw = yaw = placement->rot.vy;
+    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
+    coord->coord.t[0] = placement->pos.vx;
+    coord->coord.t[1] = placement->pos.vy;
+    coord->coord.t[2] = placement->pos.vz;
+    coord->flg        = 0;
+    return 0;
+}
+
+/// Message 0x7DB handler: accepts the message and does nothing.
+s32 func_actor_146300_80132B14(void)
+{
+    return 0;
+}
+
+/// Task handler of the companion task: the first tick hangs the companion
+/// model's coordinate frame under part 4 of the actor's model, shows the model
+/// and steps to state 1; every later tick relights the companion model from a
+/// point 0x320 above the actor model's root translation.
+void func_actor_146300_80132B1C(Task* task)
+{
+    TmdObject*     extra = task->extra;
+    GsCOORDINATE2* coord = extra->coords;
+    GsCOORDINATE2* parts = ((TmdObject*)D_actor_146300_8014282C->extra)->coords;
+    GsCOORDINATE2* part  = parts + 4;
+    VECTOR         vec;
+
+    switch (task->state) {
+        case 0:
+            coord->flg   = 0;
+            extra->flags = 0;
+            coord->sub   = part;
+            task->state++;
+            break;
+        case 1:
+            vec.vx = parts->workm.t[0];
+            vec.vy = parts->workm.t[1] - 0x320;
+            vec.vz = parts->workm.t[2];
+            func_800D7A9C(extra, &vec, 0, 3);
+            break;
+    }
 }
