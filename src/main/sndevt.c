@@ -609,7 +609,7 @@ s32 Midi_IsChannelFree(u8 arg0)
 {
     s32 i;
 
-    if (*(volatile s16*)&D_800689EC == 1) {
+    if ((s16)D_800689EC == 1) {
         return 0;
     }
     if (arg0 == 0xFF) {
