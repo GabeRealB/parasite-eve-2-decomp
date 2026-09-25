@@ -3594,7 +3594,7 @@ s32 func_actor_510900_8013BD84(Task* arg0, s32 arg1, GpAnimArg* arg2)
 /// Message 0x7D4 handler: places the actor. It builds the model's root coordinate
 /// from the argument block's Euler angles and translation, and clears its
 /// `flg` so the world matrix is recomputed from it.
-s32 func_actor_510900_8013BE00(Task* task, s32 arg1, GpPlaceArg* args)
+s32 func_actor_510900_8013BE00(Task* task, s32 arg1, GpXformArg* args)
 {
     TmdObject*     ext   = task->extra;
     GsCOORDINATE2* coord = ext->coords;

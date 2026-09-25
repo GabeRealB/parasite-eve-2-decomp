@@ -166,7 +166,7 @@ extern SVECTOR    D_actor_403600_801605EC;
 extern s16        D_actor_403600_801606F2;
 extern TaskDesc   D_actor_403600_80160514;
 extern Task*      D_actor_403600_801606B0;
-extern GpPlaceArg D_actor_403600_801606E0;
+extern GpXformArg D_actor_403600_801606E0;
 extern GpU16Pair  D_8016A408[];
 extern u16        D_8016AEF8[];
 extern u16        D_8016E450;
@@ -4747,7 +4747,7 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, Actor403600MsgArg* arg2)
     SVECTOR          angles;
     s32              messageZero;
     s32              messageId;
-    GpPlaceArg*      position;
+    GpXformArg*      position;
     Task*            actor;
     s16              nodeFlags;
     SVECTOR*         rotation;

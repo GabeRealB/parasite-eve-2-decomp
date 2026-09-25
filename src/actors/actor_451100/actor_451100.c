@@ -355,7 +355,7 @@ s32 func_actor_451100_801325C8(Task* task, s32 arg1, s32 arg2)
 /// yaws the task's root coordinate to `placement->rot.vy`, caching that yaw in
 /// the published work block, then drops the placement translation into the
 /// matrix and marks it dirty.
-s32 func_actor_451100_80132610(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 func_actor_451100_80132610(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2* coord;
     u16            yaw;
@@ -720,7 +720,7 @@ s32 func_actor_451100_80132F04(Task* task, s32 arg1, s32 flags)
 /// yaws the actor's root coordinate to `placement->rot.vy`, caching that yaw
 /// in the work block, then drops the placement translation into the matrix
 /// and marks it dirty.
-s32 func_actor_451100_80132F68(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 func_actor_451100_80132F68(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2*   coord;
     Actor451100Work* work;

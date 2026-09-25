@@ -505,7 +505,7 @@ s32 func_actor_443500_801327E0(Task* task, s32 anim, GpAnimArg* params, s32 arg3
 /// straight into the root coordinate's local matrix, the Euler angles into the
 /// coordinate's `rot` slot, from which the rotation is rebuilt. Clearing `flg`
 /// has the world matrix recomputed. Returns 0.
-s32 func_actor_443500_80132900(Task* task, s32 arg1, GpPlaceArg* args)
+s32 func_actor_443500_80132900(Task* task, s32 arg1, GpXformArg* args)
 {
     GpCoordExt* coord;
 

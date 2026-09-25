@@ -59,9 +59,9 @@ typedef struct {
 } _DescentWork;
 
 extern s8             D_8007216D;
-extern RoomPlacement  D_shelter_b3_garbage_incinerator_80185B58[2];
+extern GpXformArg     D_shelter_b3_garbage_incinerator_80185B58[2];
 extern GpMsgEntry     D_shelter_b3_garbage_incinerator_80185B40[];
-extern RoomPlacement  D_shelter_b3_garbage_incinerator_80185B88;
+extern GpXformArg     D_shelter_b3_garbage_incinerator_80185B88;
 extern GpAreaApplyRec D_shelter_b3_garbage_incinerator_8018FB6C;
 extern Task*          D_shelter_b3_garbage_incinerator_8018FC34;
 
@@ -266,7 +266,7 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
 /// the sequence is over.
 s16 func_shelter_b3_garbage_incinerator_8017DF24(Task* arg0)
 {
-    RoomPlacement  msg;
+    GpXformArg     msg;
     _DescentWork*  work  = arg0->work;
     GsCOORDINATE2* coord = ((TmdObject*)arg0->extra)->coords;
     GsCOORDINATE2* ref   = ((TmdObject*)work->target->extra)->coords;
@@ -501,7 +501,7 @@ void func_shelter_b3_garbage_incinerator_8017E690(Task* task, s32 arg1, s32 arg2
 /// Places the task's model: re-parents its coordinate to the world frame, takes
 /// the three longs of `placement` as the translation and applies the three
 /// shorts as yaw, pitch and roll.
-void func_shelter_b3_garbage_incinerator_8017E70C(Task* task, s32 arg1, ActorShared80133c6cPlacement* placement)
+void func_shelter_b3_garbage_incinerator_8017E70C(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2* coord;
     MATRIX*        mtx;

@@ -667,7 +667,7 @@ void func_actor_310600_80162B98(Task* task)
 /// part's local matrix, the Euler angles into the coordinate's `rot` slot, and
 /// the rotation is rebuilt from them. Clearing `flg` makes `_gpUpdateCoordTree`
 /// recompute the world matrix. `arg1` is unused.
-s32 func_actor_310600_80162C18(Task* task, s32 arg1, GpPlaceArg* args)
+s32 func_actor_310600_80162C18(Task* task, s32 arg1, GpXformArg* args)
 {
     GpCoordExt* coord;
 

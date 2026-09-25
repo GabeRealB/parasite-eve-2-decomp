@@ -71,7 +71,7 @@ extern TaskDesc   D_mine_mesa_801818F8;
 extern GpMsgEntry D_mine_mesa_80181904[];
 extern TaskDesc   D_mine_mesa_80181990;
 
-/// The mesa's run: one `SVECTOR` position per frame, sent as a `RoomPlacement`.
+/// The mesa's run: one `SVECTOR` position per frame, sent as a `GpXformArg`.
 extern SVECTOR D_mine_mesa_80184184[];
 
 extern s32 D_mine_mesa_80184664;
@@ -449,13 +449,13 @@ void func_mine_mesa_8017E024(Task* arg0)
 }
 
 /// Walks the mesa one step along `D_mine_mesa_80184184` per frame: sends slot 3
-/// that entry as a `RoomPlacement` -- the table position with x pulled back
+/// that entry as a `GpXformArg` -- the table position with x pulled back
 /// 0x64 and z pushed out 0xC8 -- and advances `killCountdown`. At 0x2E the mesa
 /// has finished its run, and the task kills itself; the session's overlay-wait
 /// gate cuts the run short the same way.
 void func_mine_mesa_8017E074(Task* arg0)
 {
-    RoomPlacement rec;
+    GpXformArg rec;
 
     if (arg0->killCountdown >= 0x2E || gGameSession->evtSkipped != 0) {
         taskKill(arg0);

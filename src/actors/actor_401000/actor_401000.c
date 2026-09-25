@@ -338,7 +338,7 @@ extern ActorHeightClamp D_actor_401000_80154FD0[];
 /// world position, then the yaw from the actor to it, handed straight to the
 /// slot-3 handler. The 401000 twin of the block `func_actor_401300_80138800`
 /// keeps inline at `Actor401300Work.field_CD4` / `.field_CE4`.
-extern GpPlaceArg D_actor_401000_80155018;
+extern GpXformArg D_actor_401000_80155018;
 
 /// Gameplay slot `Gp_SpawnEff` effects read their model data from; set before
 /// each spawn in `func_actor_401000_8013B1E4`.
@@ -2452,7 +2452,7 @@ void func_actor_401000_801380B8(Task* arg0)
     GpEnemy*         enemy;
     Task*            player;
     SVECTOR*         pdir;
-    GpPlaceArg*      msg;
+    GpXformArg*      msg;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2;
@@ -4068,7 +4068,7 @@ s32 func_actor_401000_8013D7C4(Task* task)
 /// root coordinate, then the X, Y and Z rotations are applied in that order.
 /// The heading of the rotated Z axis is stored as the work block's `yaw`.
 /// Returns 1.
-s32 func_actor_401000_8013D814(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 func_actor_401000_8013D814(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2*   coord;
     s32              mx;

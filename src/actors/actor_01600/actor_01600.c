@@ -293,7 +293,7 @@ STATIC_ASSERT_SIZEOF(Actor01600Msg7DB, 0x4);
 
 extern Task*            Gp_ActorSlots[];
 extern Actor01600Msg3F8 Actor01600_D12878;
-extern GpPlaceArg       Actor01600_D12890;
+extern GpXformArg       Actor01600_D12890;
 
 extern s32 Actor01600_D12874;
 extern s32 Actor01600_D127DC;

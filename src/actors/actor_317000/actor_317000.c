@@ -354,7 +354,7 @@ void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s32 arg3
 /// onto `func_800B4114`'s per-slot loop instead of the `Gp_AnimResetSlot`
 /// one, followed by a `Gp_AnimTickIndex` pass over the same 0x12 slots and
 /// `field_43C` raised. Returns 0 either way.
-s32 func_actor_317000_80162458(Task* task, s32 arg1, GpPlaceArg* place, Actor317000SpawnAnim* anim)
+s32 func_actor_317000_80162458(Task* task, s32 arg1, GpXformArg* place, Actor317000SpawnAnim* anim)
 {
     Actor317000Work* work;
     Actor317000Work* w;
@@ -650,7 +650,7 @@ s32 func_actor_317000_80162A10(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 /// position into the root coordinate's translation and its Euler angles into
 /// `GpCoordExt::param.rot`, rebuilds the rotation from them with `RotMatrix`
 /// and clears `flg` so the world matrix is recomputed. Returns 0.
-s32 func_actor_317000_80162B48(Task* task, s32 arg1, GpPlaceArg* args)
+s32 func_actor_317000_80162B48(Task* task, s32 arg1, GpXformArg* args)
 {
     GpCoordExt* coord;
 

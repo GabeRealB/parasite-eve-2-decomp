@@ -140,14 +140,14 @@ void func_shelter_b4_water_supply_8018226C(GsCOORDINATE2* arg0, s32 arg1);
 /// type 0x11 and kills itself.
 void func_shelter_b4_water_supply_8017D650(Task* arg0)
 {
-    GpMsg3EE msg;
-    void*    slot;
+    GpXformArg msg;
+    void*      slot;
 
     slot = gameGetPtrSlot(3);
     switch (arg0->state) {
         case 0:
-            msg.field_12 = D_shelter_b4_water_supply_80184E44.facing;
-            if (msg.field_12 == -1) {
+            msg.rot.vy = D_shelter_b4_water_supply_80184E44.facing;
+            if (msg.rot.vy == -1) {
                 arg0->state = 2;
                 break;
             }

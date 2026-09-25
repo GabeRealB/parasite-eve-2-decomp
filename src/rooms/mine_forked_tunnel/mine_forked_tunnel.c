@@ -25,7 +25,7 @@
 
 /// The enemy's position / rotation path, one `SVECTOR` per step: `pos` and
 /// `rot` are the halves `func_mine_forked_tunnel_8017D5E8` and
-/// `func_mine_forked_tunnel_8017D8EC` compose into the `RoomPlacement` they
+/// `func_mine_forked_tunnel_8017D8EC` compose into the `GpXformArg` they
 /// hand `func_mine_forked_tunnel_8017DC8C` (entry 0 of each) and that
 /// `func_mine_forked_tunnel_8017D724` walks one entry per step of
 /// `Task::killCountdown`, which it clamps at 0x6E. Both are 240 entries - the
@@ -35,16 +35,16 @@ extern SVECTOR D_mine_forked_tunnel_80181244[240];
 extern SVECTOR D_mine_forked_tunnel_80180AC4[240];
 
 /// The placement `func_mine_forked_tunnel_8017D5E8` uses instead when the
-/// `0x75` game flag is set: a complete `RoomPlacement` sitting in the room's
+/// `0x75` game flag is set: a complete `GpXformArg` sitting in the room's
 /// `.data`, offset (0x8CD, 0x3C4, 0x46B) with a half-turn about Y.
-extern RoomPlacement D_mine_forked_tunnel_80181BBC;
+extern GpXformArg D_mine_forked_tunnel_80181BBC;
 
-/// The `RoomPlacement` the tunnel's pitch-animated object adopts: state 0
+/// The `GpXformArg` the tunnel's pitch-animated object adopts: state 0
 /// (`func_mine_forked_tunnel_8017DE54`) copies it onto the task's coordinate
 /// whole, and state 1 (`func_mine_forked_tunnel_8017DAB8`) then keeps its `pos`
 /// while taking the `rot` from the pitch table below. Position
 /// (0xB4, -0xEB, -0x30C), rotation zero.
-extern RoomPlacement D_mine_forked_tunnel_80181BA4;
+extern GpXformArg D_mine_forked_tunnel_80181BA4;
 
 /// The pitch curve `func_mine_forked_tunnel_8017DAB8` walks that object
 /// through, one `SVECTOR` per step of the counter it runs while
@@ -106,7 +106,7 @@ void func_mine_forked_tunnel_8017D724(Task* arg0);
 void func_mine_forked_tunnel_8017DAB8(Task* arg0);
 void func_mine_forked_tunnel_8017DC50(Task* arg0);
 void func_mine_forked_tunnel_8017DC70(Task* arg0);
-s32  func_mine_forked_tunnel_8017DC8C(Task* task, s32 arg1, RoomPlacement* placement, s32 arg3);
+s32  func_mine_forked_tunnel_8017DC8C(Task* task, s32 arg1, GpXformArg* placement, s32 arg3);
 s32  func_mine_forked_tunnel_8017DD08(Task* task, s32 arg1, s32 mode, s32 arg3);
 void func_mine_forked_tunnel_8017DE54(Task* task);
 void func_mine_forked_tunnel_8017DF34(s32 arg0);
@@ -135,7 +135,7 @@ const TaskFuncTable3 D_mine_forked_tunnel_8017D5DC = {
 void func_mine_forked_tunnel_8017D5E8(Task* arg0)
 {
     MineForkedTunnelWork* work;
-    RoomPlacement         placement;
+    GpXformArg            placement;
 
     work = memCalloc(0x48, 0);
     if (work == NULL) {
@@ -169,9 +169,9 @@ void func_mine_forked_tunnel_8017D5E8(Task* arg0)
 
 void func_mine_forked_tunnel_8017D724(Task* arg0)
 {
-    TmdObject*    ext;
-    RoomPlacement placement;
-    VECTOR3       vec;
+    TmdObject* ext;
+    GpXformArg placement;
+    VECTOR3    vec;
 
     ext = arg0->extra;
 
@@ -222,9 +222,9 @@ void func_mine_forked_tunnel_8017D724(Task* arg0)
 /// pointer and gives `$v0` to the values instead of the address.
 s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, RoomActorMsg* msg)
 {
-    RoomPlacement         placement;
-    RoomPlacement*        place;
-    RoomPlacement*        src;
+    GpXformArg            placement;
+    GpXformArg*           place;
+    GpXformArg*           src;
     RoomCoord*            coord;
     MineForkedTunnelWork* work;
 
@@ -287,9 +287,9 @@ s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, RoomActorMsg* msg)
 
 void func_mine_forked_tunnel_8017DAB8(Task* arg0)
 {
-    RoomPlacement  placement;
-    RoomPlacement* place;
-    RoomCoord*     coord;
+    GpXformArg  placement;
+    GpXformArg* place;
+    RoomCoord*  coord;
 
     if (arg0->spawnArg1 == 1 && arg0->killCountdown < 0x36) {
         placement.pos.vx = D_mine_forked_tunnel_80181BA4.pos.vx;
@@ -347,7 +347,7 @@ void func_mine_forked_tunnel_8017DC70(Task* arg0)
 /// of the `TmdObject`'s coordinate frame and the angles its rotation, rebuilt
 /// with `RotMatrixZYX` and marked dirty. Shaped as a message handler; the room
 /// calls it directly with id 0x7D4 in `arg1`, which it does not read.
-s32 func_mine_forked_tunnel_8017DC8C(Task* task, s32 arg1, RoomPlacement* placement, s32 arg3)
+s32 func_mine_forked_tunnel_8017DC8C(Task* task, s32 arg1, GpXformArg* placement, s32 arg3)
 {
     RoomCoord* coord;
 
@@ -421,7 +421,7 @@ void func_mine_forked_tunnel_8017DDE8(Task* task)
 /// Spawn state 0: adopt the parent task's model lighting - the light and colour
 /// matrix pointers off the parent's `TmdObject` plus its coordinate as the
 /// frame's parent link - then reparent onto that task, drop `field_C` bit 7 and
-/// place the object at this room's `RoomPlacement`, rebuilding `coord` with
+/// place the object at this room's `GpXformArg`, rebuilding `coord` with
 /// `RotMatrixZYX`.
 void func_mine_forked_tunnel_8017DE54(Task* task)
 {

@@ -412,7 +412,7 @@ extern Actor401800TintRow D_actor_401800_8013E700[];
 extern void* D_actor_401800_80155A80;
 
 /// Payload `func_actor_401800_80138C28` fills and sends with message 0x3E9.
-extern GpPlaceArg D_actor_401800_80155AD8;
+extern GpXformArg D_actor_401800_80155AD8;
 
 /// Frame counter the chase body of `func_actor_80136EAC` accumulates its step
 /// `field_BFC` into and the init body clears; the aim-and-rescale body reads it
@@ -4266,7 +4266,7 @@ s32 func_actor_401800_8013DDEC(Task* task)
 /// coordinate for every field), then stores the resulting heading - `ratan2`
 /// of the rotation matrix's Z axis - in the work block's `field_16`. Always
 /// returns 1.
-s32 func_actor_401800_8013DE3C(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 func_actor_401800_8013DE3C(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2*   coord;
     s32              mx;

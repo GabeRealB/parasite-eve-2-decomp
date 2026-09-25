@@ -325,7 +325,7 @@ void func_actor_120400_80132254(Task* arg0)
 /// already ticking is pushed onto `func_800B4114`'s per-slot loop instead of
 /// the `Gp_AnimResetSlot` one, followed by a `Gp_AnimTickIndex` pass over the
 /// same 0x14 slots and `field_474` raised. Returns 0 either way.
-s32 func_actor_120400_80132398(Task* task, s32 arg1, GpPlaceArg* place, Actor120400SpawnAnim* anim)
+s32 func_actor_120400_80132398(Task* task, s32 arg1, GpXformArg* place, Actor120400SpawnAnim* anim)
 {
     Actor120400MainWork* work;
     Actor120400MainWork* w;
@@ -644,7 +644,7 @@ s32 func_actor_120400_80132AA0(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 /// Message 0x7D4 handler of the parent: places the root part at the message's
 /// position and Euler angles, rebuilding the rotation from them and clearing
 /// `flg` so the world matrix is recomputed. Returns 0.
-s32 func_actor_120400_80132BBC(Task* task, s32 arg1, GpPlaceArg* args)
+s32 func_actor_120400_80132BBC(Task* task, s32 arg1, GpXformArg* args)
 {
     GpCoordExt* coord;
 

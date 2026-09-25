@@ -692,7 +692,7 @@ void func_actor_110600_80138D7C(Task* arg0);
 
 /// Placement opcode: seeds the model's root coordinate from `placement`, then
 /// rebuilds and rescales it from the actor's own heading.
-s32 func_actor_110600_80133E48(Task* task, s32 arg1, GpPlaceArg* placement);
+s32 func_actor_110600_80133E48(Task* task, s32 arg1, GpXformArg* placement);
 
 /// Five-frame shake counter. Incremented each call, wraps at 5, and drives
 /// `Display_ClampField126` with the low bit (0 or 1). Returns 1 on wrap.
@@ -1534,7 +1534,7 @@ static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale)
 /// from the actor's own heading and caches the resulting yaw in the work
 /// block's `field_8`. The rescale `func_actor_110600_80138568` performs is
 /// inlined behind the placement.
-s32 func_actor_110600_80133E48(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 func_actor_110600_80133E48(Task* task, s32 arg1, GpXformArg* placement)
 {
     Actor110600Work* work;
 

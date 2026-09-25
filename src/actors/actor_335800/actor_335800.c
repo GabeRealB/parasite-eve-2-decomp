@@ -173,7 +173,7 @@ extern GpRec14  D_actor_335800_80164E7C;
 
 /// The warp-payload table the two dispatchers reach by entry:
 /// `func_actor_335800_801621B4` selects `n * 3` 8-byte units of it.
-extern GpPlaceArg D_actor_335800_80164EA4[];
+extern GpXformArg D_actor_335800_80164EA4[];
 extern s32        D_actor_335800_80164EBC;
 extern s32        D_actor_335800_80164ED4;
 extern s32        D_actor_335800_80165FC0;
@@ -738,7 +738,7 @@ void func_actor_335800_80162B3C(Task* arg0)
 /// Placement handler for the parent block: stores the spawn position and
 /// rotation, then applies a start preset exactly as `func_actor_335800_801632A4`
 /// does (inlined here).
-s32 func_actor_335800_80162C80(Task* task, s32 arg1, GpPlaceArg* place, Actor335800SpawnAnim* anim)
+s32 func_actor_335800_80162C80(Task* task, s32 arg1, GpXformArg* place, Actor335800SpawnAnim* anim)
 {
     Actor335800MainWork* work;
     Actor335800MainWork* w;
@@ -1016,7 +1016,7 @@ s32 func_actor_335800_801632A4(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 /// Message 0x7D4 handler of the parent block: places the root part at the
 /// message's position and Euler angles, rebuilding the rotation from them and
 /// clearing `flg` so the world matrix is recomputed. Returns 0.
-s32 func_actor_335800_801633C0(Task* task, s32 arg1, GpPlaceArg* args)
+s32 func_actor_335800_801633C0(Task* task, s32 arg1, GpXformArg* args)
 {
     GpCoordExt* coord;
 
@@ -1177,7 +1177,7 @@ void func_actor_335800_8016373C(Task* arg0)
 /// `func_actor_335800_80162C80`: stores the spawn position and rotation, then
 /// applies a start preset exactly as `func_actor_335800_80163E20` does
 /// (inlined here).
-s32 func_actor_335800_80163880(Task* task, s32 arg1, GpPlaceArg* place, Actor335800SpawnAnim* anim)
+s32 func_actor_335800_80163880(Task* task, s32 arg1, GpXformArg* place, Actor335800SpawnAnim* anim)
 {
     Actor335800Work* work;
     Actor335800Work* w;
@@ -1453,7 +1453,7 @@ s32 func_actor_335800_80163E20(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 /// Message 0x7D4 handler of the child block: places the root part at the
 /// message's position and Euler angles, rebuilding the rotation from them and
 /// clearing `flg` so the world matrix is recomputed. Returns 0.
-s32 func_actor_335800_80163F3C(Task* task, s32 arg1, GpPlaceArg* args)
+s32 func_actor_335800_80163F3C(Task* task, s32 arg1, GpXformArg* args)
 {
     GpCoordExt* coord;
 

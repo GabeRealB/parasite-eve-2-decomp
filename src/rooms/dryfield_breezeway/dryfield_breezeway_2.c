@@ -182,7 +182,7 @@ extern Task* D_dryfield_breezeway_801843C0;
 /// Placement this room hands on with message 0x7D4 from
 /// `func_dryfield_breezeway_8017E2D4`, `func_dryfield_breezeway_8017E390` and
 /// `func_dryfield_breezeway_8017DEC0`: world x 17000, y 0, z 3000, yaw 0xA00.
-extern RoomPlacement D_dryfield_breezeway_80181E28;
+extern GpXformArg D_dryfield_breezeway_80181E28;
 
 /// The two placements that follow it in the same three-record run, which
 /// `func_dryfield_breezeway_8017DEC0` sends to slot 3 as the second and third
@@ -190,7 +190,7 @@ extern RoomPlacement D_dryfield_breezeway_80181E28;
 /// player with, and `[1]` -- the run's third record -- the one message 0x3EE
 /// does. The label the decomp references is the start of this array, so the
 /// third record is reached as `[1]` rather than by a symbol of its own.
-extern RoomPlacement D_dryfield_breezeway_80181E40[];
+extern GpXformArg D_dryfield_breezeway_80181E40[];
 
 /// The key-item prompt's own hotspot table: the one-entry 0xFFFF-terminated
 /// `RoomHotspot` run `func_dryfield_breezeway_8017E65C` hit-tests at the

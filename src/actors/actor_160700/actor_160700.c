@@ -363,7 +363,7 @@ s32 func_actor_160700_8013265C(Task* task, s32 arg1, s32 flags)
 
 /// Script opcode: yaws the actor's root coordinate to `placement->rot.vy`,
 /// caching the yaw in the work block, and moves it to `placement->pos`.
-s32 func_actor_160700_801326C0(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 func_actor_160700_801326C0(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2*   coord;
     Actor160700Work* work;
@@ -390,7 +390,7 @@ s32 func_actor_160700_80132738(void)
 /// Script opcode "walk to": turns the actor's root coordinate to face
 /// `target` horizontally, caching the yaw, and stores the horizontal distance
 /// in steps of 12 as `travel` for the step body to walk off.
-s32 func_actor_160700_80132740(Task* task, s32 arg1, GpPlaceArg* target)
+s32 func_actor_160700_80132740(Task* task, s32 arg1, GpXformArg* target)
 {
     GsCOORDINATE2*   coord;
     Actor160700Work* work;

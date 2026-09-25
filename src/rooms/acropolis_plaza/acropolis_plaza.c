@@ -214,7 +214,7 @@ STATIC_ASSERT_SIZEOF(AcropolisPlazaWeaponMsg, 0x1C);
 typedef union AcropolisPlazaTailMsg {
     /* 0x0 */ u8                      slot[4];
     /* 0x0 */ AcropolisPlazaWeaponMsg weapon;
-    /* 0x0 */ RoomPlacement           place;
+    /* 0x0 */ GpXformArg              place;
 } AcropolisPlazaTailMsg;
 STATIC_ASSERT_SIZEOF(AcropolisPlazaTailMsg, 0x1C);
 
@@ -985,8 +985,8 @@ L_tail:
 /// once the session is out of its transition.
 void func_acropolis_plaza_8017E7E4(Task* task)
 {
-    GpMsg3EE                place;
-    GpMsg3EE                warp;
+    GpXformArg              place;
+    GpXformArg              warp;
     CdCmdQueue*             q    = &CdCmd_Queue;
     AcropolisPlazaWarpWork* work = (AcropolisPlazaWarpWork*)task->work;
     AcropolisPlazaWarpWork* newWork;
@@ -1001,9 +1001,9 @@ void func_acropolis_plaza_8017E7E4(Task* task)
             }
             Mem_Set(newWork, 0, 8);
             ((AcropolisPlazaWarpWork*)task->work)->slot3 = gameGetPtrSlot(3);
-            place.field_0                                = 0x3804;
-            place.field_4                                = 0;
-            place.field_8                                = 0xFC8;
+            place.pos.vx                                 = 0x3804;
+            place.pos.vy                                 = 0;
+            place.pos.vz                                 = 0xFC8;
             Gp_DispatchMsg(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3F2, (s32)&place, 0);
             task->state = task->state + 1;
             return;
@@ -1011,7 +1011,7 @@ void func_acropolis_plaza_8017E7E4(Task* task)
             if (Gp_DispatchMsg(work->slot3, 0x3F0, 0, 0) != 0) {
                 return;
             }
-            warp.field_12 = 0xD55;
+            warp.rot.vy = 0xD55;
             Gp_DispatchMsg(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3EE, (s32)&warp, 0);
             task->state = task->state + 1;
             return;
@@ -1054,8 +1054,8 @@ void func_acropolis_plaza_8017E7E4(Task* task)
 /// (`func_acropolis_plaza_8017DE24(4)`), which the earlier states skip.
 void func_acropolis_plaza_8017E9A8(Task* task)
 {
-    GpMsg3EE                place;
-    GpMsg3EE                warp;
+    GpXformArg              place;
+    GpXformArg              warp;
     GpRec14                 script;
     AcropolisPlazaTailMsg   buf;
     GpRec14*                rec;
@@ -1076,9 +1076,9 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             }
             Mem_Set(newWork, 0, 8);
             ((AcropolisPlazaWarpWork*)task->work)->slot3 = gameGetPtrSlot(3);
-            place.field_0                                = 0xF6E;
-            place.field_4                                = 0;
-            place.field_8                                = 0x2328;
+            place.pos.vx                                 = 0xF6E;
+            place.pos.vy                                 = 0;
+            place.pos.vz                                 = 0x2328;
             Gp_DispatchMsg(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3F2, (s32)&place, 0);
             task->state = task->state + 1;
             return;
@@ -1086,7 +1086,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             if (Gp_DispatchMsg(work->slot3, 0x3F0, 0, 0) != 0) {
                 return;
             }
-            warp.field_12 = 0xD55;
+            warp.rot.vy = 0xD55;
             Gp_DispatchMsg(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3EE, (s32)&warp, 0);
             task->state = task->state + 1;
             return;
@@ -1189,10 +1189,10 @@ void func_acropolis_plaza_8017E9A8(Task* task)
 /// task. Every state from 7 on also steps the room's per-frame work.
 void func_acropolis_plaza_8017ECF8(Task* task)
 {
-    GpMsg3EE                   place;
-    GpMsg3EE                   warp;
+    GpXformArg                 place;
+    GpXformArg                 warp;
     u8                         slot[4];
-    GpMsg3EE                   placeBack;
+    GpXformArg                 placeBack;
     GpRec14                    roomRec;
     AcropolisPlazaOpeningBuf   buf;
     CdCmdQueue*                q    = &CdCmd_Queue;
@@ -1212,9 +1212,9 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             }
             Mem_Set(newWork, 0, 8);
             ((AcropolisPlazaOpeningWork*)task->work)->slot3 = gameGetPtrSlot(3);
-            place.field_0                                   = 0x3DE;
-            place.field_4                                   = 0;
-            place.field_8                                   = 0x33FE;
+            place.pos.vx                                    = 0x3DE;
+            place.pos.vy                                    = 0;
+            place.pos.vz                                    = 0x33FE;
             Gp_DispatchMsg(((AcropolisPlazaOpeningWork*)task->work)->slot3, 0x3F2, (s32)&place, 0);
             task->state = task->state + 1;
             return;
@@ -1222,7 +1222,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             if (Gp_DispatchMsg(work->slot3, 0x3F0, 0, 0) != 0) {
                 return;
             }
-            warp.field_12 = 0x1000;
+            warp.rot.vy = 0x1000;
             Gp_DispatchMsg(((AcropolisPlazaOpeningWork*)task->work)->slot3, 0x3EE, (s32)&warp, 0);
             task->state = task->state + 1;
             return;
@@ -1279,9 +1279,9 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 return;
             }
             Gp_DispatchMsg(work->slot3, 0x3F1, 1, 0);
-            placeBack.field_0 = 0x3DE;
-            placeBack.field_4 = 0;
-            placeBack.field_8 = 0x439E;
+            placeBack.pos.vx = 0x3DE;
+            placeBack.pos.vy = 0;
+            placeBack.pos.vz = 0x439E;
             Gp_DispatchMsg(
                 ((AcropolisPlazaOpeningWork*)task->work)->slot3, 0x3F2, (s32)&placeBack, 0);
             roomRec.field_0  = 1;

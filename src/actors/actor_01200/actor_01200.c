@@ -1432,7 +1432,7 @@ s32 Actor01200_Fn03ABC(Task* arg0, s32 arg1, Actor01200Msg* arg2)
 /// Places the task's model from `placement`: the three longs become the
 /// coordinate's translation, then the X, Y and Z angles are applied in that
 /// order and the coordinate is marked dirty. Always returns 1.
-s32 Actor01200_Fn03B70(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 Actor01200_Fn03B70(Task* task, s32 arg1, GpXformArg* placement)
 {
     ((TmdObject*)task->extra)->coords->coord.t[0] = placement->pos.vx;
     ((TmdObject*)task->extra)->coords->coord.t[1] = placement->pos.vy;

@@ -966,7 +966,7 @@ void func_mist_shooting_gallery_801838FC(Task* arg0)
                     work->field_0A = 0x1E;
                     work->field_04++;
                     func_800E9BDC(5, 0xA);
-                    xform.field_12 = 0xC00;
+                    xform.rot.vy = 0xC00;
                     ((void (*)(Task*, s32, GpXformArg*, s32))func_80104E00)(
                         (Task*)gameGetPtrSlot(3), 0, &xform, 0);
                 }

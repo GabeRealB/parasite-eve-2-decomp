@@ -274,7 +274,7 @@ void func_actor_350700_80162070(Task* arg0)
 /// rotation from `place`, picks the start animation from `anim` (or anim 3,
 /// 2 once `field_4C4` is set) and installs it with the body of
 /// `func_actor_350700_80162860` written out inline. Returns 0.
-s32 func_actor_350700_801621B4(Task* task, s32 arg1, GpPlaceArg* place, Actor350700SpawnAnim* anim)
+s32 func_actor_350700_801621B4(Task* task, s32 arg1, GpXformArg* place, Actor350700SpawnAnim* anim)
 {
     Actor350500Work* work;
     Actor350500Work* w;
@@ -580,7 +580,7 @@ s32 func_actor_350700_80162860(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 /// `args`. The translation goes straight into the local matrix, the Euler
 /// angles into the coordinate's `rot` slot, from which `RotMatrix` rebuilds the
 /// rotation; clearing `flg` makes the world matrix be recomputed. Returns 0.
-s32 func_actor_350700_80162998(Task* task, s32 msgId, GpPlaceArg* args)
+s32 func_actor_350700_80162998(Task* task, s32 msgId, GpXformArg* args)
 {
     GpCoordExt* coord;
 
@@ -858,7 +858,7 @@ void func_actor_350700_80162F7C(Task* arg0)
 /// `field_4F0..field_4F4`, then applies a start preset -- `anim`'s, or anim 0xD
 /// with preset byte 1 when absent -- with the body of
 /// `func_actor_350700_801636A8` written out inline. Returns 0.
-s32 func_actor_350700_801630C0(Task* task, s32 arg1, GpPlaceArg* place, Actor350700SpawnAnim* anim)
+s32 func_actor_350700_801630C0(Task* task, s32 arg1, GpXformArg* place, Actor350700SpawnAnim* anim)
 {
     Actor350700MainWork* work;
     Actor350700MainWork* w;
@@ -1154,7 +1154,7 @@ s32 func_actor_350700_801636A8(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 /// translation straight into the local matrix and the Euler angles into the
 /// coordinate's `rot` slot, from which `RotMatrix` rebuilds the rotation.
 /// Returns 0.
-s32 func_actor_350700_801637C4(Task* task, s32 msgId, GpPlaceArg* args)
+s32 func_actor_350700_801637C4(Task* task, s32 msgId, GpXformArg* args)
 {
     GpCoordExt* coord;
 

@@ -403,7 +403,7 @@ s32 func_actor_143900_801326B4(Task* task, s32 arg1, s32 arg2)
 /// coordinate frame from `placement`. Only the yaw is used, remembered in the
 /// work block and applied with `Gfx_RotMatrixY`, then the three longs become
 /// the coordinate's translation.
-s32 func_actor_143900_801326FC(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 func_actor_143900_801326FC(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2* coord;
     u16            yaw;
@@ -769,7 +769,7 @@ s32 func_actor_143900_80133254(Task* task, s32 arg1, s32 arg2)
 /// coordinate frame from `placement`. Only the yaw is used, remembered in the
 /// work block and applied with `Gfx_RotMatrixY`, then the three longs become
 /// the coordinate's translation.
-s32 func_actor_143900_801332E4(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 func_actor_143900_801332E4(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2* coord;
     u16            yaw;

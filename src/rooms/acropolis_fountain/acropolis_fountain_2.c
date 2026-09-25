@@ -73,13 +73,13 @@ void func_acropolis_fountain_8017DA78(void)
 
 void func_acropolis_fountain_8017DAA4(Task* arg0)
 {
-    GpMsg3EE msg;
-    Task*    slot;
+    GpXformArg msg;
+    Task*      slot;
 
-    slot         = gameGetPtrSlot(3);
-    msg.field_10 = 0;
-    msg.field_12 = 0x800;
-    msg.field_14 = 0;
+    slot       = gameGetPtrSlot(3);
+    msg.rot.vx = 0;
+    msg.rot.vy = 0x800;
+    msg.rot.vz = 0;
     Gp_DispatchMsg(slot, 0x3EE, (s32)&msg, 0);
     arg0->state = arg0->state + 1;
 }
@@ -112,14 +112,14 @@ void func_acropolis_fountain_8017DBAC(Task* arg0)
 
 void func_acropolis_fountain_8017DC00(Task* arg0)
 {
-    GpMsg3EE msg;
-    Task*    slot;
+    GpXformArg msg;
+    Task*      slot;
 
     gameGetPtrSlot(3);
-    slot        = gameGetPtrSlot(3);
-    msg.field_0 = 0xA27;
-    msg.field_4 = -0xC8;
-    msg.field_8 = -0x17A6;
+    slot       = gameGetPtrSlot(3);
+    msg.pos.vx = 0xA27;
+    msg.pos.vy = -0xC8;
+    msg.pos.vz = -0x17A6;
     Gp_DispatchMsg(slot, 0x3F2, (s32)&msg, 0);
     arg0->state = arg0->state + 1;
 }

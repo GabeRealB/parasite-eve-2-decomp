@@ -919,7 +919,7 @@ s32 func_actor_361100_80162E20(Task* task, s32 arg1, GpAnimArg* msg)
 /// `RotMatrixZYX`. Clearing `flg` makes `_gpUpdateCoordTree` recompute the
 /// world matrix from it, and the six words the body then clears are the work
 /// block's two vector accumulators.
-s32 func_actor_361100_80162F58(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 func_actor_361100_80162F58(Task* task, s32 arg1, GpXformArg* placement)
 {
     GpCoordExt*      coord;
     Actor361100Work* work;
@@ -1168,7 +1168,7 @@ s32 func_actor_361100_801634D0(Task* task, s32 arg1, GpAnimArg* msg)
 /// keeps its Euler angles in the coordinate's `rot` slot and rebuilds the
 /// rotation from them with `RotMatrix`, then clears `flg` so the world matrix
 /// is recomputed.
-s32 func_actor_361100_801635F4(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 func_actor_361100_801635F4(Task* task, s32 arg1, GpXformArg* placement)
 {
     GpCoordExt* coord;
 

@@ -542,7 +542,7 @@ extern Actor403200DropCoord D_actor_403200_8015F970;
 
 /// Position and Euler rotation the launch tick sends the player as message
 /// 0x3E9. The yaw halfword at `rot.vy` is also `D_actor_403200_8015F9D2`.
-extern GpPlaceArg D_actor_403200_8015F9C0;
+extern GpXformArg D_actor_403200_8015F9C0;
 extern s16        D_actor_403200_8015F9D2;
 
 /// Handwritten overlay-local follow helper. `arg1`/`arg2` select the axis pair
@@ -7795,7 +7795,7 @@ s32 func_actor_403200_80141974(Task* task)
 /// Place the task's model from `placement`: the three longs become the root
 /// coordinate's translation, then the X, Y and Z rotations are applied in that
 /// order and the coordinate is marked dirty. Returns 1.
-s32 func_actor_403200_801419C4(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 func_actor_403200_801419C4(Task* task, s32 arg1, GpXformArg* placement)
 {
     ((TmdObject*)task->extra)->coords->coord.t[0] = placement->pos.vx;
     ((TmdObject*)task->extra)->coords->coord.t[1] = placement->pos.vy;

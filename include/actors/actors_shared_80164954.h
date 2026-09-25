@@ -8,6 +8,6 @@
 #include "gameplay/message.h"
 #include "main/task.h"
 
-s32 ActorsShared80164954(Task* task, s32 arg1, GpPlaceArg* placement);
+s32 ActorsShared80164954(Task* task, s32 arg1, GpXformArg* placement);
 
 #endif

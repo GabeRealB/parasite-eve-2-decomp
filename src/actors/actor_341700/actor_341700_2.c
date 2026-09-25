@@ -813,7 +813,7 @@ s32 func_actor_341700_8016CEB4(Task* task, s32 arg1, Actor341700Cmd* cmd)
 /// longs become the translation, then pitch / yaw / roll are applied with
 /// `Gfx_RotMatrixX` / `Y` / `Z`, re-fetching the coordinate for every field,
 /// and the coordinate is marked dirty. Always returns 1.
-s32 func_actor_341700_8016CF48(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 func_actor_341700_8016CF48(Task* task, s32 arg1, GpXformArg* placement)
 {
     ((TmdObject*)task->extra)->coords->coord.t[0] = placement->pos.vx;
     ((TmdObject*)task->extra)->coords->coord.t[1] = placement->pos.vy;

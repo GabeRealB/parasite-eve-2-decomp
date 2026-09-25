@@ -87,21 +87,6 @@ typedef struct _GpMsg13EF {
 } GpMsg13EF;
 STATIC_ASSERT_SIZEOF(GpMsg13EF, 4);
 
-/// The field-numbered spelling of `GpPlaceArg` that room code still declares
-/// its placement and warp payloads with. It is the same record; new code uses
-/// `GpPlaceArg`.
-typedef struct _GpMsg3EE {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-    /* 0x10 */ s16 field_10;
-    /* 0x12 */ s16 field_12;
-    /* 0x14 */ s16 field_14;
-    /* 0x16 */ s16 pad_16;
-} GpMsg3EE;
-STATIC_ASSERT_SIZEOF(GpMsg3EE, 0x18);
-
 /// Tables of no-arg callbacks copied onto the stack by the sibling
 /// dispatchers. `Gp_DirAction0` copies the 6-entry `Gp_WarpPhaseFns`;
 /// `Gp_DirAction1` copies the 5-entry `D_80093990`.

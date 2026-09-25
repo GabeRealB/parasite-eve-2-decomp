@@ -13,6 +13,6 @@
 /// `rot` slot, rebuilds the rotation from them, and clears `TmdObject::flags`
 /// bit 0x80. Clearing `flg` makes `_gpUpdateCoordTree` recompute the world
 /// matrix from it.
-s32 ActorsShared801334c4(Task* task, s32 arg1, GpPlaceArg* args, s32 arg3);
+s32 ActorsShared801334c4(Task* task, s32 arg1, GpXformArg* args, s32 arg3);
 
 #endif

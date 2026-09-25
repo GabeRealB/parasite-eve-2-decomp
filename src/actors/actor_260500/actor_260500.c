@@ -376,7 +376,7 @@ s32 func_actor_260500_8014A754(Task* task, s32 arg1, s32 arg2)
 /// Placement handler: turns the model to the placement's yaw, keeping that yaw
 /// in the work block, and moves it to the placement's position. Only the Y
 /// rotation is applied.
-s32 func_actor_260500_8014A79C(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 func_actor_260500_8014A79C(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2* coord;
     u16            yaw;

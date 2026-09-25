@@ -133,14 +133,14 @@ void func_shelter_b2_main_corridor_80181F20(GsCOORDINATE2* arg0, s16 arg1, u8* a
 /// room into the save location and spawns the room-load task 0x11.
 void func_shelter_b2_main_corridor_8017D6BC(Task* arg0)
 {
-    GpMsg3EE msg;
-    void*    slot;
+    GpXformArg msg;
+    void*      slot;
 
     slot = gameGetPtrSlot(3);
     switch (arg0->state) {
         case 0:
-            msg.field_12 = D_shelter_b2_main_corridor_80189664.facing;
-            if (msg.field_12 == -1) {
+            msg.rot.vy = D_shelter_b2_main_corridor_80189664.facing;
+            if (msg.rot.vy == -1) {
                 arg0->state = 2;
                 break;
             }

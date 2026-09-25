@@ -14,6 +14,6 @@ typedef struct ActorsShared80169f74Work {
     /* 0x16 */ s16  yaw;
 } ActorsShared80169f74Work;
 
-s32 ActorsShared80169f74(Task* task, s32 arg1, GpPlaceArg* placement);
+s32 ActorsShared80169f74(Task* task, s32 arg1, GpXformArg* placement);
 
 #endif

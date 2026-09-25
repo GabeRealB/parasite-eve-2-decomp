@@ -204,9 +204,9 @@ extern s32 D_80070F6C[];
 /// `DryfieldWaterTowerState::field_48`; splat splits it into three chunks, the
 /// other two (`80181AA4` / `80181AA8`) being the rest of its 0x18 bytes.
 /// `80181AB8` is the record case 0 sends.
-extern RoomPlacement D_dryfield_water_tower_80181AA0;
-extern s32           D_dryfield_water_tower_80181AA8;
-extern u8            D_dryfield_water_tower_80181AB8;
+extern GpXformArg D_dryfield_water_tower_80181AA0;
+extern s32        D_dryfield_water_tower_80181AA8;
+extern u8         D_dryfield_water_tower_80181AB8;
 
 /// The three effect-definition tables the cap-arrival test and
 /// `func_dryfield_water_tower_8017FA5C` install into the room's live copies --
@@ -230,7 +230,7 @@ extern u8 D_dryfield_water_tower_801829F4[];
 /// the two 0x18-byte records above them in the same run --
 /// `func_dryfield_water_tower_8017F908` sends `-0x20` and `8017F9AC` `-0x38` --
 /// so the split names only the first.
-extern RoomPlacement D_dryfield_water_tower_80181A70[];
+extern GpXformArg D_dryfield_water_tower_80181A70[];
 
 /// The first record of that same placement run, at 0x80181A40, and the one
 /// `func_dryfield_water_tower_8017E5B0` drives the cap from: its `pos.vz` is the
@@ -247,7 +247,7 @@ extern RoomPlacement D_dryfield_water_tower_80181A70[];
 ///
 /// `func_dryfield_water_tower_8017F9AC` also sends this record to the prop task
 /// at `DryfieldWaterTowerState::field_44` with message 0x7D4.
-extern RoomPlacement D_dryfield_water_tower_80181A40[1];
+extern GpXformArg D_dryfield_water_tower_80181A40[1];
 
 /// The run's second record, at 0x80181A58: the lowered position
 /// `func_dryfield_water_tower_8017E428` sinks the cap to (`pos.vy`), tests the
@@ -255,7 +255,7 @@ extern RoomPlacement D_dryfield_water_tower_80181A40[1];
 /// 0x7D4 placement that same function publishes to itself once its state 1
 /// counter runs out. `func_dryfield_water_tower_8017F908` sends it to the prop
 /// task at `DryfieldWaterTowerState::field_44` with the same message.
-extern RoomPlacement D_dryfield_water_tower_80181A58;
+extern GpXformArg D_dryfield_water_tower_80181A58;
 
 /// The effect offsets `func_dryfield_water_tower_8017E5B0` spawns 0x60054
 /// with, at 0x80181C60: twelve halfwords, indexed by the 0..9 `killCountdown`
@@ -275,8 +275,8 @@ extern GpObj4A D_dryfield_water_tower_80187074;
 /// 3, which sends `80181AD0` -- the 0x18-byte record one step below it in the
 /// same run -- with 0x3F2 straight after. `func_dryfield_water_tower_8017F9AC`
 /// and `8017FA5C` send `80181AD0` with the same message.
-extern RoomPlacement D_dryfield_water_tower_80181AD0;
-extern RoomPlacement D_dryfield_water_tower_80181AE8;
+extern GpXformArg D_dryfield_water_tower_80181AD0;
+extern GpXformArg D_dryfield_water_tower_80181AE8;
 
 /// The three `Gp_SpawnScript18` pairs the cap script's last three commands
 /// spawn into `field_50`, and the sound each one queues: `0x52140006` with the
@@ -360,7 +360,7 @@ extern TaskDesc D_dryfield_water_tower_8018277C[];
 /// The room's run of 4A objects; element 14 is `D_dryfield_water_tower_80187074`.
 extern GpObj4A D_dryfield_water_tower_80186C4C[];
 
-/// The `RoomPlacement` run the room's 0x7D4 messages step the props through:
+/// The `GpXformArg` run the room's 0x7D4 messages step the props through:
 /// the 0x18-byte records from 0x801823A8 up to 0x80182408. `D_..._801823C0`,
 /// the second of them, is case 1's pair -- `[0]` to `field_4` and `[3]`
 /// (0x80182408) to `field_8`; `D_..._801823F0`, the run's element 2, is case
@@ -368,9 +368,9 @@ extern GpObj4A D_dryfield_water_tower_80186C4C[];
 /// `func_dryfield_water_tower_80180220` sends as element 1 of the pair it
 /// declares `D_..._801823D8[]`; and `D_..._801823A8`, the first, is the player
 /// move both that opcode and case 4 send with 0x3E9.
-extern RoomPlacement D_dryfield_water_tower_801823C0[];
-extern RoomPlacement D_dryfield_water_tower_801823F0;
-extern RoomPlacement D_dryfield_water_tower_801823A8;
+extern GpXformArg D_dryfield_water_tower_801823C0[];
+extern GpXformArg D_dryfield_water_tower_801823F0;
+extern GpXformArg D_dryfield_water_tower_801823A8;
 
 /// The `GpAnimArg` (0x14-byte) run the 0x7D3 animation messages send: `field_4`
 /// carries the animation index -- 0x0D / 0x0E / 0x0F for the three records --
@@ -386,7 +386,7 @@ extern GpAnimArg D_dryfield_water_tower_80182448[];
 /// element at 0x18, so the run is declared as an array. Both are payloads of
 /// `func_dryfield_water_tower_8017F77C`, the handler the room's script table
 /// pairs with 0x7D4.
-extern RoomPlacement D_dryfield_water_tower_801823D8[];
+extern GpXformArg D_dryfield_water_tower_801823D8[];
 
 /// The pair of cutscene blocks `func_800E8634` hands to `Task_Spawn` (bank 9,
 /// type 7): the one the running scene starts and the one it parks in
@@ -1388,7 +1388,7 @@ void func_dryfield_water_tower_8017F700(s32 arg0)
 /// `TmdObject` coordinate frame -- the three longs become the translation,
 /// then yaw, pitch and roll are applied with `Gfx_RotMatrixY` / `X` / `Z` --
 /// and marks the coordinate dirty.
-void func_dryfield_water_tower_8017F77C(Task* task, s32 arg1, RoomPlacement* placement)
+void func_dryfield_water_tower_8017F77C(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2* coord;
     MATRIX*        mtx;

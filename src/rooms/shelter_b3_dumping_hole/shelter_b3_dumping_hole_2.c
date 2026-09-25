@@ -223,7 +223,7 @@ typedef union {
 typedef struct {
     MATRIX         lightMtx;
     MATRIX         colorMtx;
-    RoomPlacement  pose;     // Sent to the task itself with message 0x7D4
+    GpXformArg     pose;     // Sent to the task itself with message 0x7D4
     SVECTOR        field_58; // Spawn parameters handed by address to the table spawns
     SVECTOR        field_60;
     GsCOORDINATE2* field_68;
@@ -392,7 +392,7 @@ extern s32                    D_shelter_b3_dumping_hole_80188A78;
 extern DumpingHoleFlags       D_shelter_b3_dumping_hole_8018EF04;
 extern u16                    D_shelter_b3_dumping_hole_8018F4B0;
 extern Task*                  D_shelter_b3_dumping_hole_8018F4AC;
-extern RoomPlacement          D_shelter_b3_dumping_hole_8018966C;
+extern GpXformArg             D_shelter_b3_dumping_hole_8018966C;
 extern TaskDesc               D_shelter_b3_dumping_hole_80189ADC;
 extern s32                    D_shelter_b3_dumping_hole_8018F4D8;
 extern s32                    D_shelter_b3_dumping_hole_8018965C;
@@ -2163,7 +2163,7 @@ void func_shelter_b3_dumping_hole_801817D8(Task* task, s32 arg1, s32 arg2)
 /// Places the task's model at `placement`: the position becomes the
 /// coordinate's translation, the rotation is applied in Y, X, Z order, and the
 /// coordinate is marked for recomputation.
-void func_shelter_b3_dumping_hole_80181854(Task* task, s32 arg1, RoomPlacement* placement)
+void func_shelter_b3_dumping_hole_80181854(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2* coord;
     MATRIX*        mtx;

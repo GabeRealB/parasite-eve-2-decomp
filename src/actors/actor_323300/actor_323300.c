@@ -147,7 +147,7 @@ extern void* D_actor_323300_80172558[];
 extern TaskDesc D_actor_323300_8017255C[];
 
 /// Placement `func_actor_323300_80161E78` hands `func_actor_323300_801629F0`.
-extern GpPlaceArg D_actor_323300_8017259C;
+extern GpXformArg D_actor_323300_8017259C;
 
 /// Animation presets the spawn handler, the 0x7DB handler and the two states
 /// hand `func_actor_323300_801628B8`.
@@ -161,7 +161,7 @@ extern GpAnimArg D_actor_323300_801725DC;
 /// actor at `D_actor_323300_80174AB0`.
 extern void*      D_actor_323300_80174A70[];
 extern GpAnimArg  D_actor_323300_80174A74;
-extern GpPlaceArg D_actor_323300_80174AB0;
+extern GpXformArg D_actor_323300_80174AB0;
 
 /// Vertex-morph source `func_actor_323300_80162DF0` re-blends every frame off
 /// the 0x6B0 block's squash ramp. Absolute, so it lives outside the overlay.
@@ -184,11 +184,11 @@ void func_actor_323300_801626F4(Task* arg0);
 void func_actor_323300_80162748(Task* arg0);
 void func_actor_323300_801627B4(Task* arg0);
 s32  func_actor_323300_801628B8(Task* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3);
-s32  func_actor_323300_801629F0(Task* arg0, s32 arg1, GpPlaceArg* arg2, s32 arg3);
+s32  func_actor_323300_801629F0(Task* arg0, s32 arg1, GpXformArg* arg2, s32 arg3);
 void func_actor_323300_801634B0(Task* arg0);
 void func_actor_323300_80163510(Task* arg0);
 void func_actor_323300_8016359C(Task* arg0, s16 arg1);
-s32  func_actor_323300_8016369C(Task* arg0, s32 arg1, GpPlaceArg* arg2, s32 arg3);
+s32  func_actor_323300_8016369C(Task* arg0, s32 arg1, GpXformArg* arg2, s32 arg3);
 s32  func_actor_323300_80163718(Task* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3);
 
 /// State table `func_actor_323300_80162630` copies onto the stack and indexes
@@ -378,7 +378,7 @@ s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
 /// the child at `field_4B8`, 12 latches a placement and starts preset
 /// `D_actor_323300_801725C8` (inlining the 0x7D3 preset body of
 /// `func_actor_323300_801628B8`), 13 posts effect 0x600A2 on part 6.
-s32 func_actor_323300_80162360(Task* arg0, s32 arg1, Actor323300Msg7DB* msg, GpPlaceArg* place)
+s32 func_actor_323300_80162360(Task* arg0, s32 arg1, Actor323300Msg7DB* msg, GpXformArg* place)
 {
     Actor323300Work* w;
     Actor323300Work* work;
@@ -620,7 +620,7 @@ s32 func_actor_323300_801628B8(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 /// straight into the root part's local matrix, the Euler angles into the
 /// coordinate's `rot` slot, from which `RotMatrix` rebuilds the rotation;
 /// clearing `flg` makes the world matrix be recomputed.
-s32 func_actor_323300_801629F0(Task* task, s32 msgId, GpPlaceArg* args, s32 arg3)
+s32 func_actor_323300_801629F0(Task* task, s32 msgId, GpXformArg* args, s32 arg3)
 {
     GpCoordExt* coord;
 
@@ -981,7 +981,7 @@ void func_actor_323300_8016359C(Task* arg0, s16 arg1)
 /// `func_actor_323300_801629F0`: copies `args`' translation into the root
 /// part's local matrix and its Euler angles into the coordinate's `rot` slot,
 /// rebuilds the rotation from them and clears `flg`.
-s32 func_actor_323300_8016369C(Task* task, s32 msgId, GpPlaceArg* args, s32 arg3)
+s32 func_actor_323300_8016369C(Task* task, s32 msgId, GpXformArg* args, s32 arg3)
 {
     GpCoordExt* coord;
 

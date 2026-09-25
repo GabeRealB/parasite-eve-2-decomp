@@ -14,11 +14,11 @@
 /// a task somewhere. The player takes it to be placed or warped, and as the
 /// point to walk to; the actors take it to be placed, and as the point to walk
 /// to or turn towards, where some read only the position.
-typedef struct GpPlaceArg {
+typedef struct GpXformArg {
     VECTOR  pos;
     SVECTOR rot;
-} GpPlaceArg;
-STATIC_ASSERT_SIZEOF(GpPlaceArg, 0x18);
+} GpXformArg;
+STATIC_ASSERT_SIZEOF(GpXformArg, 0x18);
 
 /// The payload of the messages that start an animation. `animBlock` picks the
 /// animation block to play from: the player's and the actors' plain play

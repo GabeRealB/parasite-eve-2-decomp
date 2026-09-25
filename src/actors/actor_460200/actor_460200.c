@@ -749,7 +749,7 @@ s32 func_actor_460200_80132B98(Task* task, s32 arg1, s32 flags)
 /// Script opcode "place at": yaws the actor's root coordinate to
 /// `placement->rot.vy`, caching that yaw in the work block, then drops the
 /// placement translation into the matrix and marks it dirty.
-s32 func_actor_460200_80132C14(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 func_actor_460200_80132C14(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2*   coord;
     Actor460200Work* work;
@@ -788,7 +788,7 @@ s32 func_actor_460200_80132C8C(Task* task, s32 arg1, Actor460200FlagArgs* args)
 /// translation, caches that yaw in the work block and rebuilds the local
 /// matrix from it, then records the distance, in steps of 12, for the step
 /// body to walk off.
-s32 func_actor_460200_80132CAC(Task* task, s32 arg1, GpPlaceArg* target)
+s32 func_actor_460200_80132CAC(Task* task, s32 arg1, GpXformArg* target)
 {
     GsCOORDINATE2*   coord;
     Actor460200Work* work;
@@ -1077,7 +1077,7 @@ s32 func_actor_460200_80133474(Task* task, s32 arg1, s32 flags)
 /// Script opcode "place at": yaws the actor's root coordinate to
 /// `placement->rot.vy`, caching that yaw in the work block, then drops the
 /// placement translation into the matrix and marks it dirty.
-s32 func_actor_460200_801334F0(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 func_actor_460200_801334F0(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2*       coord;
     Actor460200PairWork* work;
@@ -1109,7 +1109,7 @@ s32 func_actor_460200_80133568(Task* task, s32 arg1, Actor460200FlagArgs* args)
 /// translation, caches that yaw in the work block and rebuilds the local
 /// matrix from it, then records the distance, in steps of 30, for the walk
 /// that follows.
-s32 func_actor_460200_80133580(Task* task, s32 arg1, GpPlaceArg* target)
+s32 func_actor_460200_80133580(Task* task, s32 arg1, GpXformArg* target)
 {
     GsCOORDINATE2*       coord;
     Actor460200PairWork* work;
@@ -1397,7 +1397,7 @@ s32 func_actor_460200_80133CD0(Task* task, s32 arg1, s32 flags)
 /// Script opcode "place at": yaws the actor's root coordinate to
 /// `placement->rot.vy`, caching that yaw in the work block, then drops the
 /// placement translation into the matrix and marks it dirty.
-s32 func_actor_460200_80133D4C(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 func_actor_460200_80133D4C(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2*   coord;
     Actor460200Work* work;
@@ -1425,7 +1425,7 @@ s32 func_actor_460200_80133DC4(void)
 /// translation, caches that yaw in the work block and rebuilds the local
 /// matrix from it, then records the distance, in steps of 12, for the step
 /// body to walk off.
-s32 func_actor_460200_80133DCC(Task* task, s32 arg1, GpPlaceArg* target)
+s32 func_actor_460200_80133DCC(Task* task, s32 arg1, GpXformArg* target)
 {
     GsCOORDINATE2*   coord;
     Actor460200Work* work;

@@ -2084,7 +2084,7 @@ void func_actor_206100_8014CB68(Task* task)
     Actor206100Work* work2;
     TmdObject*       tmd;
     GsCOORDINATE2*   coord;
-    GpPlaceArg       msg;
+    GpXformArg       msg;
 
     work  = (Actor206100Work*)task->work;
     tmd   = task->extra;
@@ -2136,7 +2136,7 @@ void func_actor_206100_8014CD08(Task* task)
     Actor206100Work* work2;
     TmdObject*       tmd;
     GsCOORDINATE2*   coord;
-    GpPlaceArg       msg;
+    GpXformArg       msg;
 
     work            = (Actor206100Work*)task->work;
     tmd             = task->extra;

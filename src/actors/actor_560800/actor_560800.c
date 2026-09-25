@@ -2060,7 +2060,7 @@ void func_actor_560800_801361A0(Task* task, s32 arg1, s32 arg2)
 /// position becomes the model coordinate's translation, the Y, X and Z
 /// rotations are applied in that order, and the coordinate is marked for
 /// recalculation.
-void func_actor_560800_801361F4(Task* task, s32 arg1, GpPlaceArg* placement)
+void func_actor_560800_801361F4(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2* coord;
     MATRIX*        mtx;
@@ -3603,7 +3603,7 @@ void func_actor_560800_801393EC(Task* task, s32 arg1, s32 arg2)
 /// position becomes the model coordinate's translation, the Y, X and Z
 /// rotations are applied in that order, and the coordinate is marked for
 /// recalculation.
-void func_actor_560800_80139440(Task* task, s32 arg1, GpPlaceArg* placement)
+void func_actor_560800_80139440(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2* coord;
     MATRIX*        mtx;

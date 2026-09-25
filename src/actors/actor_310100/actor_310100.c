@@ -97,7 +97,7 @@ void func_actor_310100_801632B0(Task* task);
 /// task from `D_actor_310100_801798E4`. The display task is handed `arg2` as its
 /// `spawnArg1` and this task as its parent (`spawnArg2`); it spawns the model
 /// task in turn, handing it `field_506` as its `spawnArg1`.
-void func_actor_310100_80162C64(Task* task, s32 msgId, s32 arg2, GpPlaceArg* placement);
+void func_actor_310100_80162C64(Task* task, s32 msgId, s32 arg2, GpXformArg* placement);
 
 /// Message 0x7D7 handler: parks the display task's work block at state 2 and
 /// returns when handed mode 3, otherwise tears the display task down and spawns
@@ -107,7 +107,7 @@ void func_actor_310100_80162CDC(Task* task, s32 msgId, s32 arg2);
 /// Message 0x7D4 handler: drops the payload's translation into the display
 /// task's root coordinate frame, yaws that frame to the payload's `rot.vy` and
 /// marks it dirty.
-void func_actor_310100_80162EC8(Task* task, s32 msgId, GpPlaceArg* placement);
+void func_actor_310100_80162EC8(Task* task, s32 msgId, GpXformArg* placement);
 
 /// Teardown handler: kills the display task hanging off the work block and
 /// parks this task in state 3.
@@ -619,7 +619,7 @@ void func_actor_310100_801629FC(Task* task)
     }
 }
 
-void func_actor_310100_80162C64(Task* task, s32 msgId, s32 arg2, GpPlaceArg* placement)
+void func_actor_310100_80162C64(Task* task, s32 msgId, s32 arg2, GpXformArg* placement)
 {
     Actor310100Work* work;
 
@@ -658,7 +658,7 @@ void func_actor_310100_80162CDC(Task* task, s32 msgId, s32 arg2)
 /// animation slots (`pos.vz` zero resets them through `Gp_AnimResetSlot`,
 /// otherwise `func_800B4114` blends them) and records the new base in
 /// `field_4F8` / `field_4FA`.
-void func_actor_310100_80162D50(Task* task, s32 msgId, GpPlaceArg* placement)
+void func_actor_310100_80162D50(Task* task, s32 msgId, GpXformArg* placement)
 {
     GpAnimArg        arg;
     Actor310100Work* work;
@@ -714,7 +714,7 @@ void func_actor_310100_80162D50(Task* task, s32 msgId, GpPlaceArg* placement)
 /// Message 0x7D4 handler: drops the payload's translation into the display
 /// task's root coordinate frame, yaws that frame to the payload's `rot.vy` and
 /// marks it dirty.
-void func_actor_310100_80162EC8(Task* task, s32 msgId, GpPlaceArg* placement)
+void func_actor_310100_80162EC8(Task* task, s32 msgId, GpXformArg* placement)
 {
     Actor310100Work* work;
     GsCOORDINATE2*   coord;

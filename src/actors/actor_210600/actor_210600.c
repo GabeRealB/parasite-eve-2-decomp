@@ -787,7 +787,7 @@ s32 func_actor_210600_8014B5F4(Task* task, s32 arg1, s32 arg2)
 /// translation, the X, Y and Z angles are then applied in that order through
 /// `Gfx_RotMatrixX` / `Y` / `Z`, and the coordinate is marked dirty. `msgId`
 /// is unused; the handler always reports the message handled.
-s32 func_actor_210600_8014B6A0(Task* task, s32 msgId, GpPlaceArg* placement)
+s32 func_actor_210600_8014B6A0(Task* task, s32 msgId, GpXformArg* placement)
 {
     ((TmdObject*)task->extra)->coords->coord.t[0] = placement->pos.vx;
     ((TmdObject*)task->extra)->coords->coord.t[1] = placement->pos.vy;

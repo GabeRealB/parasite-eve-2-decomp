@@ -66,7 +66,7 @@ extern s32 D_dryfield_water_tank_801804EC;
 
 /// The placement the room sends the slot-3 task, the cutscene's owner, with
 /// message 0x3E9.
-extern RoomPlacement D_dryfield_water_tank_801804F4;
+extern GpXformArg D_dryfield_water_tank_801804F4;
 
 /// The two blocks `func_800E8634` is handed as raw addresses.
 extern s32 D_dryfield_water_tank_8018050C;
@@ -248,8 +248,8 @@ void func_dryfield_water_tank_8017E78C(Task* task)
     DwtWork* work;
     DwtWork* cur;
     union {
-        GpRec14  rec;
-        GpMsg3EE warp;
+        GpRec14    rec;
+        GpXformArg warp;
     } msg;
     GpRec14  script;
     GpRec14* rec;
@@ -295,7 +295,7 @@ void func_dryfield_water_tank_8017E78C(Task* task)
             Task_SpawnFromTable(&D_dryfield_water_tank_80180764, 3, 8, 0);
             break;
         case 4:
-            msg.warp.field_12 = 0x800;
+            msg.warp.rot.vy = 0x800;
             Gp_DispatchMsg((Task*)work->owner, 0x3EE, (s32)&msg.warp, 0);
             break;
         case 5:
@@ -444,12 +444,12 @@ void func_dryfield_water_tank_8017EC38(u32 arg0)
 }
 
 /// Walks the water tank one step along `D_dryfield_water_tank_80184530` per
-/// frame: sends slot 3 that entry as a `RoomPlacement` -- the spline position
+/// frame: sends slot 3 that entry as a `GpXformArg` -- the spline position
 /// with the tank's fixed half-turn about `y` -- and advances `killCountdown`.
 /// At 0x34 the tank has finished its run, and the task kills itself.
 void func_dryfield_water_tank_8017EC6C(Task* arg0)
 {
-    RoomPlacement rec;
+    GpXformArg rec;
 
     if (arg0->killCountdown >= 0x34) {
         taskKill(arg0);
@@ -467,12 +467,12 @@ void func_dryfield_water_tank_8017EC6C(Task* arg0)
 
 /// The tank's second run leg, the continuation of `func_dryfield_water_tank_8017EC6C`:
 /// walks it one step along `D_dryfield_water_tank_801847C0` per frame and sends
-/// slot 3 that entry as a `RoomPlacement`, this time with a quarter-turn about
+/// slot 3 that entry as a `GpXformArg`, this time with a quarter-turn about
 /// `y` (0x400) instead of the first leg's half-turn. At 0x34 the tank has
 /// finished its run a second time and the task kills itself.
 void func_dryfield_water_tank_8017ED30(Task* arg0)
 {
-    RoomPlacement rec;
+    GpXformArg rec;
 
     if (arg0->killCountdown >= 0x34) {
         taskKill(arg0);

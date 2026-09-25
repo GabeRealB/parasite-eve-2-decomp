@@ -51,7 +51,7 @@ STATIC_ASSERT_SIZEOF(Actor342000Cmd, 0x4);
 /// `field_278`, then `X` of `field_274`, then `Z` of `field_27C`, word loads),
 /// scales each of its columns by the matching `field_264` component through
 /// `gpf 12` and clears `coord.flg`; `func_actor_342000_801640C0` writes all of
-/// it from a `GpPlaceArg`.
+/// it from a `GpXformArg`.
 ///
 /// `field_264` holds that per-axis scale, 1.12 fixed point like the matrix it
 /// multiplies: each column `j` is gathered into a scratchpad `SVECTOR`, run
@@ -112,8 +112,8 @@ STATIC_ASSERT_SIZEOF(Actor342000Work, 0x2AC);
 /// spawned child tasks the teardown helpers kill. `field_7A` and `field_7C`
 /// are once-only latches guarding a sound cue and the fade-out setup.
 typedef struct Actor342000EventWork {
-    /* 0x00 */ GpPlaceArg field_0[2];
-    /* 0x30 */ GpPlaceArg field_30;
+    /* 0x00 */ GpXformArg field_0[2];
+    /* 0x30 */ GpXformArg field_30;
     /* 0x48 */ Task*      field_48;
     /* 0x4C */ s32        field_4C;
     /* 0x50 */ Task*      field_50;
@@ -168,11 +168,11 @@ extern Task* D_actor_342000_80165070;
 
 /// Message 0x7D4's static payload, handed to `Gp_DispatchMsg` by the actor's
 /// spawn tick. The same record the handler takes.
-extern GpPlaceArg D_actor_342000_801648B8;
+extern GpXformArg D_actor_342000_801648B8;
 
 /// Fixed placement `func_actor_342000_8016439C` warps slot 3 to, sent as
 /// message 0x3E9 and again as 0x3F2 by `func_actor_342000_80162BBC`.
-extern GpPlaceArg D_actor_342000_80164948;
+extern GpXformArg D_actor_342000_80164948;
 
 extern GpMsgEntry D_actor_342000_801648A8[];
 
@@ -653,7 +653,7 @@ extern s8 D_8007218A;
 extern u8 D_actor_342000_801647E8[];
 
 /// Placement sent as message 0x3E9 by sequence step 1.
-extern GpPlaceArg D_actor_342000_80164930;
+extern GpXformArg D_actor_342000_80164930;
 
 /// Per-tick sequence driver of the event task: raises 0x3ED on `field_48`,
 /// then runs the one-shot step latched in `field_68` (warps, animation
@@ -774,10 +774,10 @@ void func_actor_342000_80162BBC(Task* arg0)
     work->field_68 = 0;
 }
 
-extern GpPlaceArg D_actor_342000_80164818[2];
-extern GpPlaceArg D_actor_342000_80164848[2];
-extern GpPlaceArg D_actor_342000_80164878[2];
-extern GpPlaceArg D_actor_342000_801648D0;
+extern GpXformArg D_actor_342000_80164818[2];
+extern GpXformArg D_actor_342000_80164848[2];
+extern GpXformArg D_actor_342000_80164878[2];
+extern GpXformArg D_actor_342000_801648D0;
 extern u8         D_8007216C;
 extern s32        D_80070F70;
 extern s32        D_80144A74;
@@ -785,7 +785,7 @@ extern s32        D_80144A7C;
 
 void func_80143490(s32 arg0);
 
-static inline void Actor342000_CopyMove(GpPlaceArg* dst, GpPlaceArg* src)
+static inline void Actor342000_CopyMove(GpXformArg* dst, GpXformArg* src)
 {
     dst->pos.vx = src->pos.vx;
     dst->pos.vy = src->pos.vy;
@@ -837,7 +837,7 @@ void func_actor_342000_80162F28(Task* arg0)
 {
     Actor342000EventWork* work;
     Actor342000Work*      actor;
-    GpPlaceArg*           src;
+    GpXformArg*           src;
     s32                   v;
 
     work  = (Actor342000EventWork*)arg0->work;
@@ -1058,8 +1058,8 @@ void func_actor_342000_8016382C(Task* arg0)
     Actor342000EventWork* ev;
     Actor342000EventWork* alloc;
     Actor342000EventWork* seq;
-    GpPlaceArg*           src;
-    GpPlaceArg*           dst;
+    GpXformArg*           src;
+    GpXformArg*           dst;
     Task*                 child;
     u16                   i;
     s16                   timer;
@@ -1276,7 +1276,7 @@ void func_actor_342000_80163FB8(Task* arg0, s32 arg1, s32 arg2)
 /// the payload onto the model's root coordinate, the three longs as its
 /// translation and the three angles as its rotation (Y, then X, then Z), and
 /// marks the coordinate dirty.
-void func_actor_342000_80164034(Task* task, s32 arg1, GpPlaceArg* arg2)
+void func_actor_342000_80164034(Task* task, s32 arg1, GpXformArg* arg2)
 {
     GsCOORDINATE2* coord;
     MATRIX*        mtx;
@@ -1292,7 +1292,7 @@ void func_actor_342000_80164034(Task* task, s32 arg1, GpPlaceArg* arg2)
     coord->flg = 0;
 }
 
-void func_actor_342000_801640C0(Task* arg0, s32 arg1, GpPlaceArg* arg2)
+void func_actor_342000_801640C0(Task* arg0, s32 arg1, GpXformArg* arg2)
 {
     Actor342000Work* work;
     GsCOORDINATE2*   coord;
@@ -1308,7 +1308,7 @@ void func_actor_342000_801640C0(Task* arg0, s32 arg1, GpPlaceArg* arg2)
     work->coord.flg   = 0;
 }
 
-void func_actor_342000_80164110(Task* arg0, s32 arg1, Actor342000Cmd* arg2, GpPlaceArg* arg3)
+void func_actor_342000_80164110(Task* arg0, s32 arg1, Actor342000Cmd* arg2, GpXformArg* arg3)
 {
     Actor342000Work* work;
 

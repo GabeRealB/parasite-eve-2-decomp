@@ -48,7 +48,7 @@ extern s32     D_acropolis_observatory_801834B8;
 void func_acropolis_observatory_8017D9A8(Task* task)
 {
     GpRec14         rec;
-    RoomPlacement   place;
+    GpXformArg      place;
     s32             killed;
     RoomStreamWork* work;
     RoomStreamWork* blk;
@@ -158,7 +158,7 @@ void func_acropolis_observatory_8017D9A8(Task* task)
 void func_acropolis_observatory_8017DD3C(Task* task)
 {
     GpRec14         rec;
-    RoomPlacement   place;
+    GpXformArg      place;
     s32             killed;
     RoomStreamWork* work;
     RoomStreamWork* blk;

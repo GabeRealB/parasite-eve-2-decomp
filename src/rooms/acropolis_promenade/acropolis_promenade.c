@@ -319,7 +319,7 @@ void func_acropolis_promenade_8017DB48(Task* task)
 void func_acropolis_promenade_8017DB9C(Task* task)
 {
     GpRec14         rec;
-    RoomPlacement   place;
+    GpXformArg      place;
     s32             killed;
     RoomStreamWork* work;
     RoomStreamWork* blk;

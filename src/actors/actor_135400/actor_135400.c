@@ -103,8 +103,8 @@ STATIC_ASSERT_SIZEOF(Actor135400Msg7DB, 0x4);
 /// spawn copies the pair in one go and then hands the branch picked by game
 /// flag 0x6C to the 0x7D4 handler `func_actor_135400_8013276C`.
 typedef struct Actor135400Places {
-    /* 0x00 */ GpPlaceArg field_0;
-    /* 0x18 */ GpPlaceArg field_18;
+    /* 0x00 */ GpXformArg field_0;
+    /* 0x18 */ GpXformArg field_18;
 } Actor135400Places;
 STATIC_ASSERT_SIZEOF(Actor135400Places, 0x30);
 
@@ -162,7 +162,7 @@ void func_actor_135400_8013252C(Task* task);
 void func_actor_135400_80132614(Task* arg0);
 void func_actor_135400_80132634(Task* task);
 s32  func_actor_135400_80132650(Task* task, s32 anim, GpAnimArg* params, s32 arg3);
-s32  func_actor_135400_8013276C(Task* task, s32 anim, GpPlaceArg* args, s32 arg3);
+s32  func_actor_135400_8013276C(Task* task, s32 anim, GpXformArg* args, s32 arg3);
 s32  func_actor_135400_801327E8(Task* task, s32 msgId, s32 mode, s32 arg3);
 void func_actor_135400_80132B60(Task* arg0);
 void func_actor_135400_80132C90(Task* arg0);
@@ -533,7 +533,7 @@ s32 func_actor_135400_80132650(Task* task, s32 anim, GpAnimArg* params, s32 arg3
 /// root part's local matrix and its Euler angles into the coordinate's `rot`
 /// slot, rebuilds the rotation from them and clears `flg` so the world matrix
 /// is recomputed.
-s32 func_actor_135400_8013276C(Task* task, s32 anim, GpPlaceArg* args, s32 arg3)
+s32 func_actor_135400_8013276C(Task* task, s32 anim, GpXformArg* args, s32 arg3)
 {
     GpCoordExt* coord;
 
@@ -801,7 +801,7 @@ s32 func_actor_135400_80132D24(Task* task, s32 anim, GpAnimArg* params, s32 arg3
 
 /// The 0x7D4 handler of the same task: the same placement as
 /// `func_actor_135400_8013276C`, applied to this task's root coordinate.
-s32 func_actor_135400_80132E40(Task* task, s32 anim, GpPlaceArg* args, s32 arg3)
+s32 func_actor_135400_80132E40(Task* task, s32 anim, GpXformArg* args, s32 arg3)
 {
     GpCoordExt* coord;
 

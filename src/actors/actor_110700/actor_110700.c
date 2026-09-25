@@ -119,7 +119,7 @@ s32 func_actor_110700_8013201C(Task* task, s32 msgId, GpAnimArg* args)
 /// Message 0x7D4 handler: places the actor. Builds the root coordinate's
 /// rotation from the message's Euler angles, writes its translation, and
 /// clears `flg` so the world matrix is recomputed from them.
-s32 func_actor_110700_80132074(Task* task, s32 msgId, GpPlaceArg* args)
+s32 func_actor_110700_80132074(Task* task, s32 msgId, GpXformArg* args)
 {
     TmdObject*     ext   = task->extra;
     GsCOORDINATE2* coord = ext->coords;

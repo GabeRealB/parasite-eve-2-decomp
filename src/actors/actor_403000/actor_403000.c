@@ -510,7 +510,7 @@ s32 func_actor_403000_80132348(GsCOORDINATE2* coord, GpRec18* recs, s16 count);
 
 /// Copy `placement` onto the actor's root coordinate (Y then X then Z) and
 /// cache the resulting heading in `Actor403000Work::yaw`.
-s32 func_actor_403000_8013D364(Task* task, s32 arg1, GpPlaceArg* placement);
+s32 func_actor_403000_8013D364(Task* task, s32 arg1, GpXformArg* placement);
 
 /// Latch the requested animation and restart the animation state machine.
 s32 func_actor_403000_8013D464(Task* task, s32 arg1, GpAnimArg* msg);
@@ -4735,7 +4735,7 @@ return_one:
 /// Handler for message 0x7D4: place the model's root coordinate at
 /// `placement` - translation, then rotation about Y, X and Z - and cache the
 /// resulting heading in `Actor403000Work::yaw`.
-s32 func_actor_403000_8013D364(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 func_actor_403000_8013D364(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2*   coord;
     Actor403000Work* work;

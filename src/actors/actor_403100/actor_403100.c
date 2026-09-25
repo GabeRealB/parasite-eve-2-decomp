@@ -5277,7 +5277,7 @@ void func_actor_403100_8013D06C(void)
 
 void func_actor_403100_8013D0B8(s16 arg0, s16 arg1, s16 arg2, s16 arg3)
 {
-    GpPlaceArg msg;
+    GpXformArg msg;
 
     msg.pos.vx = arg0;
     msg.pos.vy = arg1;

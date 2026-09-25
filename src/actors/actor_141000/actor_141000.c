@@ -858,7 +858,7 @@ void func_actor_141000_801335D4(Task* arg0)
 /// does (inlined here). The default anim id is chosen by the `field_4C8`
 /// variant; writing it as an if/else into the preset (not a ternary) is what
 /// keeps CSE from reusing the earlier constant 1 for the `field_43F` store.
-s32 func_actor_141000_801336DC(Task* task, s32 arg1, GpPlaceArg* place, Actor141000SpawnAnim* anim)
+s32 func_actor_141000_801336DC(Task* task, s32 arg1, GpXformArg* place, Actor141000SpawnAnim* anim)
 {
     Actor141000Work* work;
     Actor141000Work* w;
@@ -1155,7 +1155,7 @@ s32 func_actor_141000_80133CD8(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 /// translation into the root coordinate, keeps its Euler angles in the
 /// coordinate's `rot` slot and rebuilds the rotation from them, then clears
 /// `flg` so the world matrix is recomputed.
-s32 func_actor_141000_80133E10(Task* task, s32 arg1, GpPlaceArg* args)
+s32 func_actor_141000_80133E10(Task* task, s32 arg1, GpXformArg* args)
 {
     GpCoordExt* coord;
 

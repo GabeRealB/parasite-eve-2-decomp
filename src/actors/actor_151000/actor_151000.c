@@ -416,7 +416,7 @@ s32 func_actor_151000_801327C8(Task* task, s32 arg1, s32 arg2)
 /// Placement opcode: yaws the model's root coordinate to `placement->rot.vy`,
 /// caching that yaw in the work block, then drops the placement translation
 /// into the matrix and marks it dirty.
-s32 func_actor_151000_80132810(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 func_actor_151000_80132810(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2* coord;
     u16            yaw;

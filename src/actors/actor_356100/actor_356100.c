@@ -3104,7 +3104,7 @@ s32 func_actor_356100_80169F24(Task* task)
 /// Places the model's root coordinate from `placement` (translation, then the
 /// X, Y and Z rotations in turn) and stores the resulting heading, `ratan2`
 /// of the rotation's Z axis, in the work block's `yaw`.
-s32 func_actor_356100_80169F74(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 func_actor_356100_80169F74(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2*   coord;
     s32              mx;

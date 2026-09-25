@@ -637,7 +637,7 @@ s32 func_actor_461800_80132E14(Task* arg0, s32 arg1, s32 arg2)
 /// Seeds the task's `TmdObject` coordinate frame from `placement`: only the yaw
 /// is used, remembered in the work block and applied with `Gfx_RotMatrixY`,
 /// then the three longs become the coordinate's translation.
-s32 func_actor_461800_80132EA4(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 func_actor_461800_80132EA4(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2* coord;
     u16            yaw;
@@ -954,7 +954,7 @@ s32 func_actor_461800_80133928(Task* task, s32 arg1, s32 arg2)
 /// Seeds the task's `TmdObject` coordinate frame from `placement`: only the yaw
 /// is used, remembered in the work block and applied with `Gfx_RotMatrixY`,
 /// then the three longs become the coordinate's translation.
-s32 func_actor_461800_80133970(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 func_actor_461800_80133970(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2* coord;
     u16            yaw;

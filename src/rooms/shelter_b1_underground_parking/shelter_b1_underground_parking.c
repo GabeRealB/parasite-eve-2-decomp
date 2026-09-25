@@ -2451,15 +2451,15 @@ void func_shelter_b1_underground_parking_80181EB0(Task* task)
 /// kills itself.
 void func_shelter_b1_underground_parking_80181FE4(Task* arg0)
 {
-    GpMsg3EE msg;
-    void*    slot;
+    GpXformArg msg;
+    void*      slot;
 
     slot = gameGetPtrSlot(3);
     switch (arg0->state) {
         case 0:
             /* Read unsigned, though the staging code stores it signed. */
-            msg.field_12 = (u16)D_shelter_b1_underground_parking_8018D77C.facing;
-            if (msg.field_12 == -1) {
+            msg.rot.vy = (u16)D_shelter_b1_underground_parking_8018D77C.facing;
+            if (msg.rot.vy == -1) {
                 arg0->state = 2;
                 break;
             }

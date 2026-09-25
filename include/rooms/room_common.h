@@ -5,6 +5,7 @@
 
 #include <psyq/libgte.h>
 
+#include "gameplay/message.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/ui.h"
@@ -92,17 +93,6 @@ typedef struct RoomEffWork {
     /* 0x28 */ u16            field_28;
     /* 0x2A */ u16            field_2A;
 } RoomEffWork;
-
-/// Position + Euler rotation handed to `Room_Util08` / `Room_Util18`, which
-/// copy it onto a task's `TmdObject` coordinate frame (`Task::extra->field_8`):
-/// the three longs become the coordinate's translation and the three shorts
-/// are the Euler angles (`Room_Util08` applies Y then X then Z via
-/// `Gfx_RotMatrix*`; `Room_Util18` feeds them to `RotMatrixZYX`). Room overlays
-/// keep one of these per placed object in their own `.data`.
-typedef struct RoomPlacement {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR rot;
-} RoomPlacement;
 
 /// Screen rectangle outlined by `Room_Draw26`: the corners it draws are
 /// (`x`, `y`) and (`x + w`, `y + h`), so `w` and `h` are extents rather than a
@@ -284,8 +274,8 @@ void Room_Util04(Task* task);
 /// Steps the caller on one state and does nothing else; state tables use it as
 /// a one-frame filler.
 void Room_Util26(Task* task);
-void Room_Util08(Task* task, s32 arg1, RoomPlacement* placement);
-s32  Room_Util18(Task* task, s32 arg1, RoomPlacement* placement, s32 arg3);
+void Room_Util08(Task* task, s32 arg1, GpXformArg* placement);
+s32  Room_Util18(Task* task, s32 arg1, GpXformArg* placement, s32 arg3);
 void Room_Util19(Task* task, s32 arg1, s32 arg2);
 /// Latches the room script's argument into the byte `actor_101600_text` reads
 /// back with `lb`, so it is signed.

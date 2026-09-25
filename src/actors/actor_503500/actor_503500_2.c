@@ -47,7 +47,7 @@ extern u8 D_actor_503500_8014D098[];
 /// body.
 extern void func_8017E27C(s32 arg0);
 /// The pose this overlay sends the player as message 0x3E9.
-extern GpPlaceArg D_actor_503500_8017655C;
+extern GpXformArg D_actor_503500_8017655C;
 /// Player-facing flag byte in the main executable; no module header owns it yet.
 extern u8 D_80073BA9;
 /// Player-facing mode byte in the main executable, also written by the

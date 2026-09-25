@@ -290,7 +290,7 @@ void Gp_CommitSaveLoc(void)
 
 void Gp_MsgPlayer3EE(void)
 {
-    GpPlaceArg sp;
+    GpXformArg sp;
     void*      slot;
 
     slot = gameGetPtrSlot(3);

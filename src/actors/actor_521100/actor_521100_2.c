@@ -553,7 +553,7 @@ s32 func_actor_521100_80136A1C(Task* task, s32 arg1, s32 arg2)
 /// the yaw of the argument block's angles is used, cached in the work block's
 /// `field_48C.yaw` and applied with `Gfx_RotMatrixY`, then the position becomes
 /// the root coordinate's translation and `flg` is cleared.
-s32 func_actor_521100_80136A64(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 func_actor_521100_80136A64(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2* coord;
     u16            yaw;
@@ -610,7 +610,7 @@ s32 func_actor_521100_80136AE0(Task* task, s32 arg1, Actor521100Msg* msg)
     }
     return 0;
 }
-s32 func_actor_521100_80136BE8(Task* task, s32 arg1, GpPlaceArg* target)
+s32 func_actor_521100_80136BE8(Task* task, s32 arg1, GpXformArg* target)
 {
     GsCOORDINATE2* coord;
     s32            dx;

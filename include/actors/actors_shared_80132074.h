@@ -15,6 +15,6 @@
 /// Shared verbatim by `actor_110700`, `actor_510900`, `actor_511000` and
 /// `actor_521100`; `actor_100300` / `actor_200300` carry the same body inside
 /// their own `actor_100300_text` unit as `Actor00300_Fn05388`.
-s32 ActorsShared80132074(Task* task, s32 arg1, GpPlaceArg* args);
+s32 ActorsShared80132074(Task* task, s32 arg1, GpXformArg* args);
 
 #endif

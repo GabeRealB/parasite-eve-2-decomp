@@ -2372,7 +2372,7 @@ void Gp_SetupDirWarp(void)
     GameActor*    actor;
     GpAreaKey*    sess;
     GpWarpRec     rec;
-    GpPlaceArg    msg;
+    GpXformArg    msg;
     SVECTOR       pos;
     SVECTOR       pos2;
     s32           stage;

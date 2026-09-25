@@ -463,7 +463,7 @@ s32 func_actor_150400_80132710(Task* task, s32 arg1, s32 flags)
 /// Script opcode: place the actor. Yaws its root coordinate to
 /// `placement->rot.vy`, caching that yaw in `yaw`, then drops the placement
 /// translation into the matrix and marks it for recomputation.
-s32 func_actor_150400_80132774(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 func_actor_150400_80132774(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2*   coord;
     Actor150400Work* work;
@@ -490,7 +490,7 @@ s32 func_actor_150400_801327EC(void)
 /// the yaw of the horizontal offset from the coordinate's own translation,
 /// caches that yaw in `yaw` and rebuilds the local matrix from it, then sets
 /// `travel` to the distance divided by 17, the step body's per-frame stride.
-s32 func_actor_150400_801327F4(Task* task, s32 arg1, GpPlaceArg* target)
+s32 func_actor_150400_801327F4(Task* task, s32 arg1, GpXformArg* target)
 {
     GsCOORDINATE2*   coord;
     Actor150400Work* work;

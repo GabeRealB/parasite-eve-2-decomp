@@ -72,7 +72,7 @@ void func_mist_parking_801837A4(s32 arg0);
 void func_mist_parking_8018471C(s32 arg0);
 
 /// Copies a placement onto the task's model coordinate frame.
-s32 func_mist_parking_80183AC4(Task* task, s32 arg1, RoomPlacement* placement, s32 arg3);
+s32 func_mist_parking_80183AC4(Task* task, s32 arg1, GpXformArg* placement, s32 arg3);
 
 /// Glow markers the room's view handler draws at world-space points.
 void func_mist_parking_80184A18(SVECTOR* pos, s32 speed, s32 size);

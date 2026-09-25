@@ -51,8 +51,8 @@ STATIC_ASSERT_SIZEOF(AcsCutsceneWork, 0xC);
 /// flight, and the union is what makes the 0x18-byte frame slot the two share
 /// explicit.
 typedef union AcsMsgArg {
-    /* 0x0 */ GpRec14       rec;
-    /* 0x0 */ RoomPlacement place;
+    /* 0x0 */ GpRec14    rec;
+    /* 0x0 */ GpXformArg place;
 } AcsMsgArg;
 STATIC_ASSERT_SIZEOF(AcsMsgArg, 0x18);
 
@@ -157,7 +157,7 @@ extern s8  D_8007218A;
 extern s8  D_80114C12;
 
 extern GpMsgEntry     D_acropolis_sanctuary_8018081C[];
-extern RoomPlacement  D_acropolis_sanctuary_801808BC;
+extern GpXformArg     D_acropolis_sanctuary_801808BC;
 extern GpRec14        D_acropolis_sanctuary_801809F8;
 extern GpRec14        D_acropolis_sanctuary_80180A0C;
 extern s32            D_acropolis_sanctuary_80180AE8;

@@ -28,6 +28,6 @@ STATIC_ASSERT_SIZEOF(ActorsShared80132614Work, 0x4E8);
 
 /// Yaws the actor's root coordinate to `placement->rot.vy` and drops the
 /// placement translation into that matrix.
-s32 ActorsShared80132614(Task* task, s32 arg1, GpPlaceArg* placement);
+s32 ActorsShared80132614(Task* task, s32 arg1, GpXformArg* placement);
 
 #endif

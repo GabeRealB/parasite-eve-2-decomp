@@ -269,7 +269,7 @@ s32 func_actor_113000_80132208(Task* task, s32 msgId, GpAnimArg* msg, s32 arg3)
 /// coordinate's translation and its Euler angles into the coordinate's `rot`
 /// slot, rebuilds the rotation from them with `RotMatrix` and clears `flg` so
 /// the world matrix is recomputed. Returns 0.
-s32 func_actor_113000_8013231C(Task* task, s32 arg1, GpPlaceArg* args)
+s32 func_actor_113000_8013231C(Task* task, s32 arg1, GpXformArg* args)
 {
     GpCoordExt* coord;
 

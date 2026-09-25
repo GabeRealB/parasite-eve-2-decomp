@@ -87,7 +87,7 @@ void func_actor_210700_8014A0AC(Task* task);
 void func_actor_210700_8014A1E8(Task* task);
 void func_actor_210700_8014A208(Task* arg0);
 s32  func_actor_210700_8014A224(Task* task, s32 arg1, Actor210700Anim* msg, s32 arg3);
-s32  func_actor_210700_8014A344(Task* task, s32 arg1, GpPlaceArg* args, s32 arg3);
+s32  func_actor_210700_8014A344(Task* task, s32 arg1, GpXformArg* args, s32 arg3);
 
 /// The actor's three task states - spawn, tick and teardown - which
 /// `func_actor_210700_80149F38` runs by `Task::state`.
@@ -163,7 +163,7 @@ void func_actor_210700_80149F90(Task* task)
 {
     Actor210700Work* work;
     TmdObject*       extra;
-    GpPlaceArg       args;
+    GpXformArg       args;
     Actor210700Anim  anim;
     VECTOR3          pos;
 
@@ -301,7 +301,7 @@ s32 func_actor_210700_8014A224(Task* task, s32 arg1, Actor210700Anim* msg, s32 a
 /// coordinate's `rot` slot, rebuilds the rotation from them, clears `flg` so
 /// the world matrix is recomputed, and clears `TmdObject::flags` bit 0x80 to
 /// show the model. Always returns 0.
-s32 func_actor_210700_8014A344(Task* task, s32 arg1, GpPlaceArg* args, s32 arg3)
+s32 func_actor_210700_8014A344(Task* task, s32 arg1, GpXformArg* args, s32 arg3)
 {
     GpCoordExt* coord;
     TmdObject*  extra;

@@ -508,7 +508,7 @@ extern GpAnimSet* D_actor_444000_80161680[];
 /// 1 marks the plain re-placement, 0 the full grab.
 extern s8 D_actor_444000_80161868;
 /// Shared message 0x3E9 placement payload the escort-order tick sends slot 3.
-extern GpPlaceArg D_actor_444000_80161908;
+extern GpXformArg D_actor_444000_80161908;
 /// Reply buffer the fight hands message 0x3F8 before asking for the hold.
 extern Actor444000Msg3F8 D_actor_444000_80161928;
 
@@ -7836,7 +7836,7 @@ s32 func_actor_444000_80143D68(Task* arg0)
 /// longs become the translation, the Euler angles are applied X/Y/Z unless the
 /// work block's state index is 0x12 or 0x13, and the coordinate is marked
 /// dirty. Same body as `ActorsShared80135990` with that state gate added.
-s32 func_actor_444000_80143D7C(Task* arg0, s32 arg1, GpPlaceArg* placement)
+s32 func_actor_444000_80143D7C(Task* arg0, s32 arg1, GpXformArg* placement)
 {
     Actor444000Work* work = arg0->work;
 

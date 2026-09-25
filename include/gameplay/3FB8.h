@@ -721,18 +721,6 @@ typedef struct _GpCopyArg {
 } GpCopyArg;
 STATIC_ASSERT_SIZEOF(GpCopyArg, 8);
 
-/// A second field-numbered spelling of `GpPlaceArg`, still used by room code
-/// that calls the player's warp handler directly. New code uses `GpPlaceArg`.
-typedef struct _GpXformArg {
-    /* 0x00 */ s32  field_0;
-    /* 0x04 */ s32  field_4;
-    /* 0x08 */ s32  field_8;
-    /* 0x0C */ byte pad_C[4];
-    /* 0x10 */ s16  field_10;
-    /* 0x12 */ s16  field_12;
-    /* 0x14 */ s16  field_14;
-} GpXformArg;
-
 /// 4-byte pad-event template indexed by `func_801041FC`. `field_0` / `field_2`
 /// are passed to `Pad_PostEvent` (`lbu` / `lh`).
 typedef struct _GpPadEvt {
@@ -913,8 +901,8 @@ void  Gp_TriggerPeState(s32 arg0, s32 arg1);
 void  func_8010A42C(Task* arg0, s32 arg1);
 void  Gp_DetachLinkNode(Task* arg0);
 s32   Gp_ApplyDirArg(Task* arg0, GpDirArg* arg1);
-s32   func_80104E00(Task* arg0, s32 arg1, GpPlaceArg* arg2);
-s32   Gp_SetActorDest(Task* arg0, s32 arg1, GpPlaceArg* arg2, GpOverrideArg* arg3);
+s32   func_80104E00(Task* arg0, s32 arg1, GpXformArg* arg2);
+s32   Gp_SetActorDest(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3);
 s32   Gp_MoveActorBy(Task* arg0, s32 arg1, GpMoveArg* arg2);
 s32   Gp_PickNearestRec18(GpRec18* arg0, struct _GsCOORDINATE2* arg1, struct _GsCOORDINATE2* arg2);
 void  Gp_MoveActorByKeep(Task* arg0, s32 arg1, GpMoveArg* arg2);

@@ -84,12 +84,12 @@ extern Task* D_dryfield_motel_room_1_8018159C;
 
 /// The two objects the room task places, passed as `Gp_DispatchMsg`'s `arg2`
 /// for message 0x7D4 - `[0]` to `Dmr1Work::field_C`, `[1]` to `field_10`.
-extern RoomPlacement D_dryfield_motel_room_1_8017E130[2];
+extern GpXformArg D_dryfield_motel_room_1_8017E130[2];
 
 /// The placements the script driver's actions 1 and 2 send as message 0x7D4:
 /// `[0]` to `Dmr1Work::field_4`, `[1]` to `field_8`.
-extern RoomPlacement D_dryfield_motel_room_1_8017E0D0[2];
-extern RoomPlacement D_dryfield_motel_room_1_8017E100[2];
+extern GpXformArg D_dryfield_motel_room_1_8017E0D0[2];
+extern GpXformArg D_dryfield_motel_room_1_8017E100[2];
 
 /// Room entry point: allocate the `Dmr1Work` the room task hangs off
 /// `Task::work` (killing the task if the allocation fails), zero it, park the

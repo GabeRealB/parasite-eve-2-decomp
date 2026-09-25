@@ -714,7 +714,7 @@ s32 func_actor_450800_80132BB0(Task* task, s32 arg1, s32 arg2)
 /// yaws the actor's root coordinate to `placement->rot.vy`, caching that yaw in
 /// `Actor450800Work::yaw`, then drops the placement translation into the matrix
 /// and marks it dirty.
-s32 func_actor_450800_80132C68(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 func_actor_450800_80132C68(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2*   coord;
     Actor450800Work* work;
@@ -1111,7 +1111,7 @@ s32 func_actor_450800_80133594(Task* task, s32 arg1, s32 flags)
 /// opcode: yaws its root coordinate to `placement->rot.vy`, caching that yaw
 /// in `Actor450800SpawnWork::yaw`, then drops the placement translation into
 /// the matrix and marks it dirty.
-s32 func_actor_450800_801335F8(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 func_actor_450800_801335F8(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2*        coord;
     Actor450800SpawnWork* work;

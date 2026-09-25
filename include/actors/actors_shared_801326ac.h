@@ -28,6 +28,6 @@ STATIC_ASSERT_SIZEOF(ActorsShared801326acWork, 0x4EC);
 /// horizontal offset from the coordinate's own translation with `ratan2`,
 /// caches it and rebuilds the local matrix from it, then records the remaining
 /// distance in twelfths for the walk that follows.
-s32 ActorsShared801326ac(Task* task, s32 arg1, GpPlaceArg* target);
+s32 ActorsShared801326ac(Task* task, s32 arg1, GpXformArg* target);
 
 #endif

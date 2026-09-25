@@ -53,9 +53,9 @@ typedef struct Actor341900Work {
     /* 0x08 */ Task*      field_8;
     /* 0x0C */ Task*      field_C;
     /* 0x10 */ Task*      field_10;
-    /* 0x14 */ GpPlaceArg field_14;
-    /* 0x2C */ GpPlaceArg field_2C;
-    /* 0x44 */ GpPlaceArg field_44;
+    /* 0x14 */ GpXformArg field_14;
+    /* 0x2C */ GpXformArg field_2C;
+    /* 0x44 */ GpXformArg field_44;
     /* 0x5C */ s16        field_5C;
     /* 0x5E */ s16        field_5E;
     /* 0x60 */ byte       pad_60[0x4];
@@ -209,18 +209,18 @@ extern u8  D_actor_341900_801639C4[];
 extern s16 D_actor_341900_801639D0[];
 /// Placements sent to the two effect children (`field_C` / `field_10`) as
 /// message 0x7D4 (states 3 and 4), and to `field_8` (states 1 and 2).
-extern GpPlaceArg D_actor_341900_801639D8[2];
+extern GpXformArg D_actor_341900_801639D8[2];
 extern GpMsgEntry D_actor_341900_80163A38[];
-extern GpPlaceArg D_actor_341900_80163A48;
-extern GpPlaceArg D_actor_341900_80163A60;
+extern GpXformArg D_actor_341900_80163A48;
+extern GpXformArg D_actor_341900_80163A60;
 extern GpMsgEntry D_actor_341900_80163A78[];
 /// Slot-3 placements and payloads sent by `func_actor_341900_801628B8`;
 /// `func_actor_341900_801635A4` also warps slot 3 to the last one.
-extern GpPlaceArg D_actor_341900_80163AC8;
-extern GpPlaceArg D_actor_341900_80163AE0;
-extern GpPlaceArg D_actor_341900_80163AF8;
-extern GpPlaceArg D_actor_341900_80163B10;
-extern GpPlaceArg D_actor_341900_80163B28;
+extern GpXformArg D_actor_341900_80163AC8;
+extern GpXformArg D_actor_341900_80163AE0;
+extern GpXformArg D_actor_341900_80163AF8;
+extern GpXformArg D_actor_341900_80163B10;
+extern GpXformArg D_actor_341900_80163B28;
 /// Opaque script/table blobs in the overlay's `.data`, handed to
 /// `func_800E8634` (which forwards them to `Task_Spawn`) as raw addresses.
 extern u8       D_actor_341900_80163B48[];
@@ -830,7 +830,7 @@ void func_actor_341900_80163224(Task* arg0, s32 arg1, s32 arg2)
 /// placement onto the model's root coordinate, the three longs as its
 /// translation and the three angles as its rotation (Y, then X, then Z), and
 /// marks the coordinate dirty.
-void func_actor_341900_801632A0(Task* task, s32 arg1, GpPlaceArg* placement)
+void func_actor_341900_801632A0(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2* coord;
     MATRIX*        mtx;

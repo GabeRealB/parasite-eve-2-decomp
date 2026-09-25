@@ -51,7 +51,7 @@ STATIC_ASSERT_SIZEOF(Actor402200Msg3F8, 0x18);
 typedef struct Actor402200GrabScratch {
     /* 0x00 */ Actor402200Msg3F8 query;
     /* 0x18 */ GpAnimArg         anim;
-    /* 0x2C */ GpPlaceArg        place;
+    /* 0x2C */ GpXformArg        place;
     /* 0x44 */ VECTOR            out;
     /* 0x54 */ SVECTOR           in;
 } Actor402200GrabScratch;

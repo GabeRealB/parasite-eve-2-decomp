@@ -57,16 +57,16 @@ typedef struct DgsMsg3FE {
 } DgsMsg3FE;
 STATIC_ASSERT_SIZEOF(DgsMsg3FE, 0x14);
 
-extern u8            D_80071075;
-extern s8            D_80114C12;
-extern s32           D_dryfield_gas_station_80182E30;
-extern RoomPlacement D_dryfield_gas_station_80182E44[];
-extern RoomPlacement D_dryfield_gas_station_80182E5C;
-extern RoomPlacement D_dryfield_gas_station_80182E74;
-extern s32           D_dryfield_gas_station_80182E8C;
-extern s32           D_dryfield_gas_station_8018303C;
-extern TaskDesc      D_dryfield_gas_station_8018312C[];
-extern SVECTOR       D_dryfield_gas_station_80183144;
+extern u8         D_80071075;
+extern s8         D_80114C12;
+extern s32        D_dryfield_gas_station_80182E30;
+extern GpXformArg D_dryfield_gas_station_80182E44[];
+extern GpXformArg D_dryfield_gas_station_80182E5C;
+extern GpXformArg D_dryfield_gas_station_80182E74;
+extern s32        D_dryfield_gas_station_80182E8C;
+extern s32        D_dryfield_gas_station_8018303C;
+extern TaskDesc   D_dryfield_gas_station_8018312C[];
+extern SVECTOR    D_dryfield_gas_station_80183144;
 
 /// The cutscene task `func_dryfield_gas_station_801807E0` publishes once its
 /// `DgsWork` block is set up, so the room's script helpers can reach it.

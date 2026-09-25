@@ -2535,7 +2535,7 @@ void func_actor_503500_80137074(Task* arg0, s8 arg1, s16 arg2)
 /// block -- the yaw recovered from the matrix it just built, and the same
 /// translation in 16.16 fixed point. Clearing `flg` makes `_gpUpdateCoordTree`
 /// recompute the world matrix from the new local one.
-s32 func_actor_503500_80137088(Task* arg0, s32 arg1, GpPlaceArg* args)
+s32 func_actor_503500_80137088(Task* arg0, s32 arg1, GpXformArg* args)
 {
     Actor503500Work* work;
     GpCoordExt*      coord;

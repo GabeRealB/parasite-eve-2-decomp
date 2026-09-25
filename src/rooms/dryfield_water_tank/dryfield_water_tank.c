@@ -107,8 +107,8 @@ extern Task*          D_dryfield_water_tank_80188D4C;
 /// `pos.vy` and then `pos.vx`. The model task reaches that record both from
 /// this head and by its own symbol, so the head is declared one element long;
 /// the driver sends the head itself as the 0x7D4 placement.
-extern RoomPlacement D_dryfield_water_tank_8017FD60[1];
-extern RoomPlacement D_dryfield_water_tank_8017FD78;
+extern GpXformArg D_dryfield_water_tank_8017FD60[1];
+extern GpXformArg D_dryfield_water_tank_8017FD78;
 
 /// X offsets the model task spawns effect 0x60054 with, indexed by the 0..10
 /// `killCountdown` counter it wraps.
@@ -510,7 +510,7 @@ void func_dryfield_water_tank_8017E0B4(Task* task, s32 arg1, s32 arg2)
 /// `TmdObject` coordinate frame. The three longs become the translation, then
 /// yaw / pitch / roll are applied with `Gfx_RotMatrixY` / `X` / `Z` and the
 /// coordinate is marked dirty.
-void func_dryfield_water_tank_8017E0E8(Task* task, s32 arg1, RoomPlacement* placement)
+void func_dryfield_water_tank_8017E0E8(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2* coord;
     MATRIX*        mtx;

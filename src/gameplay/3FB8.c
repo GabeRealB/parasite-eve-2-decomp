@@ -50,8 +50,8 @@ s16  func_80103E7C(s16 arg0, s16 arg1);
 void Gp_TrackLockTarget(Task* arg0);
 void Gp_PlaceCoordOffset(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2);
 s32  func_80104B54(Task* arg0, s32 arg1, GpAnimArg* arg2);
-s32  func_80104E00(Task* arg0, s32 arg1, GpPlaceArg* arg2);
-s32  Gp_SetActorDest(Task* arg0, s32 arg1, GpPlaceArg* arg2, GpOverrideArg* arg3);
+s32  func_80104E00(Task* arg0, s32 arg1, GpXformArg* arg2);
+s32  Gp_SetActorDest(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3);
 s32  Gp_MoveActorBy(Task* arg0, s32 arg1, GpMoveArg* arg2);
 s32  func_801055D4(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 s32  func_80105690(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -5570,7 +5570,7 @@ s32 func_80104CAC(Task* arg0, s32 arg1, GpAnimArg* arg2)
     return 0;
 }
 
-s32 func_80104D68(Task* arg0, s32 arg1, GpPlaceArg* arg2)
+s32 func_80104D68(Task* arg0, s32 arg1, GpXformArg* arg2)
 {
     TmdObject*     extra;
     GameActor*     actor;
@@ -5594,7 +5594,7 @@ s32 func_80104D68(Task* arg0, s32 arg1, GpPlaceArg* arg2)
     return 0;
 }
 
-s32 func_80104E00(Task* arg0, s32 arg1, GpPlaceArg* arg2)
+s32 func_80104E00(Task* arg0, s32 arg1, GpXformArg* arg2)
 {
     GameActor*          actor;
     register GameActor* inner asm("s1");
@@ -5688,7 +5688,7 @@ s32 func_80104F5C(Task* arg0, s32 arg1, GpFacingArg* arg2)
     return 0;
 }
 
-s32 Gp_SetActorDest(Task* arg0, s32 arg1, GpPlaceArg* arg2, GpOverrideArg* arg3)
+s32 Gp_SetActorDest(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3)
 {
     GameActor*    actor;
     PlayerStatus* p;
@@ -5730,7 +5730,7 @@ s32 Gp_SetActorDest(Task* arg0, s32 arg1, GpPlaceArg* arg2, GpOverrideArg* arg3)
     return 0;
 }
 
-s32 func_80105190(Task* arg0, s32 arg1, GpPlaceArg* arg2, GpOverrideArg* arg3)
+s32 func_80105190(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3)
 {
     GameActor*    actor;
     PlayerStatus* p;
@@ -10074,7 +10074,7 @@ s32 func_8010C648(Task* arg0, s32 arg1, GpAnimArg* arg2)
     return 0;
 }
 
-s32 func_8010C688(Task* arg0, s32 arg1, GpPlaceArg* arg2)
+s32 func_8010C688(Task* arg0, s32 arg1, GpXformArg* arg2)
 {
     PlayerStatus* p;
     u8            saved;
@@ -10086,7 +10086,7 @@ s32 func_8010C688(Task* arg0, s32 arg1, GpPlaceArg* arg2)
     return 0;
 }
 
-s32 func_8010C6C8(Task* arg0, s32 arg1, GpPlaceArg* arg2, GpOverrideArg* arg3)
+s32 func_8010C6C8(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3)
 {
     PlayerStatus* p;
     u8            saved;
@@ -10098,7 +10098,7 @@ s32 func_8010C6C8(Task* arg0, s32 arg1, GpPlaceArg* arg2, GpOverrideArg* arg3)
     return 0;
 }
 
-s32 func_8010C708(Task* arg0, s32 arg1, GpPlaceArg* arg2, GpOverrideArg* arg3)
+s32 func_8010C708(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3)
 {
     PlayerStatus* p;
     u8            saved;

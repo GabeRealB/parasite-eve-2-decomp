@@ -6,9 +6,6 @@
 #include "gameplay/message.h"
 #include "main/task.h"
 
-/// The placement payload under the name room code still declares it with.
-typedef GpPlaceArg ActorShared80133c6cPlacement;
-
-void ActorsShared80133c6c(Task* task, s32 arg1, GpPlaceArg* placement);
+void ActorsShared80133c6c(Task* task, s32 arg1, GpXformArg* placement);
 
 #endif

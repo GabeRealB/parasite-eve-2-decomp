@@ -20,7 +20,7 @@
 
 extern s8 D_8007106B;
 
-extern RoomPlacement D_mist_parking_8018FC3C;
+extern GpXformArg D_mist_parking_8018FC3C;
 
 void func_mist_parking_80183634(s32 arg0)
 {
@@ -203,7 +203,7 @@ void func_mist_parking_801839CC(Task* task)
 
 void func_mist_parking_80183A28(Task* task)
 {
-    RoomPlacement placement;
+    GpXformArg placement;
 
     if (task->killCountdown > 0) {
         placement                      = D_mist_parking_8018FC3C;
@@ -222,7 +222,7 @@ void func_mist_parking_80183A28(Task* task)
 /// coordinate frame's translation, its angles the frame's rotation, from
 /// which `RotMatrixZYX` rebuilds the matrix; clearing `flg` makes the frame
 /// be recomputed.
-s32 func_mist_parking_80183AC4(Task* task, s32 arg1, RoomPlacement* placement, s32 arg3)
+s32 func_mist_parking_80183AC4(Task* task, s32 arg1, GpXformArg* placement, s32 arg3)
 {
     RoomCoord* coord;
 

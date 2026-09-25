@@ -929,7 +929,7 @@ s32 func_neo_ark_observatory_8017F44C(MapMarkerRec* arg0, MapMarkerOut* arg1)
     return 1;
 }
 
-/// Departure task. State 0 stages the descriptor's halfword into a `GpMsg3EE`
+/// Departure task. State 0 stages the descriptor's halfword into a `GpXformArg`
 /// record and sends it to the slot-3 game pointer as message 0x3EE - the
 /// all-ones halfword is the "nothing staged" marker, and the task skips to
 /// state 2 rather than sending it. State 1 polls that same pointer with 0x3F0,
@@ -939,14 +939,14 @@ s32 func_neo_ark_observatory_8017F44C(MapMarkerRec* arg0, MapMarkerOut* arg1)
 /// player task as type 0x11 and kills itself.
 void func_neo_ark_observatory_8017F588(Task* arg0)
 {
-    GpMsg3EE msg;
-    void*    slot;
+    GpXformArg msg;
+    void*      slot;
 
     slot = gameGetPtrSlot(3);
     switch (arg0->state) {
         case 0:
-            msg.field_12 = D_neo_ark_observatory_80187A30.facing;
-            if (msg.field_12 == -1) {
+            msg.rot.vy = D_neo_ark_observatory_80187A30.facing;
+            if (msg.rot.vy == -1) {
                 arg0->state = 2;
                 break;
             }

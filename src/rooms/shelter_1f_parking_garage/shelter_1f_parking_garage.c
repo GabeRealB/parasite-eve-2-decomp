@@ -191,14 +191,14 @@ s32 func_shelter_1f_parking_garage_8017D6AC(RoomEventMsg* in, RoomEventMsg* out)
 /// 0x11 and kills itself.
 void func_shelter_1f_parking_garage_8017D7E8(Task* arg0)
 {
-    GpMsg3EE msg;
-    void*    slot;
+    GpXformArg msg;
+    void*      slot;
 
     slot = gameGetPtrSlot(3);
     switch (arg0->state) {
         case 0:
-            msg.field_12 = D_shelter_1f_parking_garage_80181988.facing;
-            if (msg.field_12 == -1) {
+            msg.rot.vy = D_shelter_1f_parking_garage_80181988.facing;
+            if (msg.rot.vy == -1) {
                 arg0->state = 2;
                 break;
             }

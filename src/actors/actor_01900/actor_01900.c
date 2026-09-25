@@ -3538,7 +3538,7 @@ s32 Actor01900_Fn0A44C(Task* task)
     return ret;
 }
 
-s32 Actor01900_Fn0A49C(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 Actor01900_Fn0A49C(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2*            coord;
     s32                       mx;

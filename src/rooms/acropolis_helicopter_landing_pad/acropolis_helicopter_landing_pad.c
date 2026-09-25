@@ -58,11 +58,11 @@ extern GsF_LIGHT  D_acropolis_helicopter_landing_pad_80182340[3];
 /// a non-zero byte keeps the enemy model visible in that view.
 extern s8 D_acropolis_helicopter_landing_pad_80182370[];
 
-extern RoomPlacement D_acropolis_helicopter_landing_pad_80182394;
-extern RoomPlacement D_acropolis_helicopter_landing_pad_801823AC;
+extern GpXformArg D_acropolis_helicopter_landing_pad_80182394;
+extern GpXformArg D_acropolis_helicopter_landing_pad_801823AC;
 
 void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task);
-s32  func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, RoomPlacement* placement, s32 arg3);
+s32  func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, GpXformArg* placement, s32 arg3);
 
 /// State-0 entry of the room's enemy task: allocates the 0x54-byte work block
 /// into `Task::work`, marks the model (`field_E = 8`, clears bit 0x80 of
@@ -168,7 +168,7 @@ s32 func_acropolis_helicopter_landing_pad_8017D824(Task* task, s32 msgId, AhlpMs
 /// task's model at `placement`: copies the position onto the coordinate's
 /// translation, the Euler angles onto its rotation, rebuilds the rotation
 /// matrix and marks the coordinate dirty.
-s32 func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, RoomPlacement* placement, s32 arg3)
+s32 func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, GpXformArg* placement, s32 arg3)
 {
     RoomCoord* coord;
 

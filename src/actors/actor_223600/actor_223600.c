@@ -1247,7 +1247,7 @@ s32 func_actor_223600_8014CCD4(Task* task, s32 arg1, Actor223600Event* event)
 /// coordinate from `placement`: the three longs become the translation, the
 /// X, Y and Z angles are applied in that order with `Gfx_RotMatrixX` / `Y` /
 /// `Z`, and the coordinate is marked dirty. Always returns 1.
-s32 func_actor_223600_8014CD54(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 func_actor_223600_8014CD54(Task* task, s32 arg1, GpXformArg* placement)
 {
     ((TmdObject*)task->extra)->coords->coord.t[0] = placement->pos.vx;
     ((TmdObject*)task->extra)->coords->coord.t[1] = placement->pos.vy;

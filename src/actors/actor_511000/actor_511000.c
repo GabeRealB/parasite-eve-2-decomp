@@ -550,7 +550,7 @@ s32 func_actor_511000_80132604(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 /// coordinate, keeps its Euler angles in the coordinate's `rot` slot and
 /// rebuilds the rotation from them, then clears `flg` so the world matrix is
 /// recomputed.
-s32 func_actor_511000_80132724(Task* task, s32 arg1, GpPlaceArg* args)
+s32 func_actor_511000_80132724(Task* task, s32 arg1, GpXformArg* args)
 {
     GpCoordExt* coord;
 
@@ -1091,7 +1091,7 @@ s32 func_actor_511000_801334B8(Task* arg0)
 /// translation and Euler angles into the root coordinate, rebuilds its
 /// rotation, clears `flg` so the world matrix is recomputed and clears the
 /// model's hidden bit 0x80.
-s32 func_actor_511000_801334C4(Task* task, s32 arg1, GpPlaceArg* args, s32 arg3)
+s32 func_actor_511000_801334C4(Task* task, s32 arg1, GpXformArg* args, s32 arg3)
 {
     GpCoordExt* coord;
     TmdObject*  extra;
@@ -1419,7 +1419,7 @@ s32 func_actor_511000_80133DEC(Task* task, s32 arg1, GpAnimArg* preset)
 /// Placement message handler: builds the root coordinate's matrix from the
 /// payload's Euler angles, drops its translation in and clears `flg` so the
 /// world matrix is recomputed.
-s32 func_actor_511000_80133E48(Task* task, s32 arg1, GpPlaceArg* args)
+s32 func_actor_511000_80133E48(Task* task, s32 arg1, GpXformArg* args)
 {
     TmdObject*     ext   = task->extra;
     GsCOORDINATE2* coord = ext->coords;

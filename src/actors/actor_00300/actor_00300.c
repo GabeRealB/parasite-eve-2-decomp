@@ -2805,7 +2805,7 @@ s32 Actor00300_Fn05304(Task* arg0, s32 arg1, GpAnimArg* args)
     return 0;
 }
 
-s32 Actor00300_Fn05388(Task* arg0, s32 arg1, GpPlaceArg* args)
+s32 Actor00300_Fn05388(Task* arg0, s32 arg1, GpXformArg* args)
 {
     GsCOORDINATE2* coord = ((TmdObject*)arg0->extra)->coords;
 

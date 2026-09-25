@@ -93,8 +93,8 @@ void func_acropolis_forked_road_80180554(GsCOORDINATE2* arg0, s16 arg1, u8* arg2
 /// the save's room ids, arms the fade-out task and kills this task.
 void func_acropolis_forked_road_8017DA24(Task* task)
 {
-    RoomPlacement   place;
-    RoomPlacement   place2;
+    GpXformArg      place;
+    GpXformArg      place2;
     u8              slot;
     RoomStreamWork* work;
     RoomStreamWork* blk;
@@ -198,7 +198,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
 void func_acropolis_forked_road_8017DD60(Task* task)
 {
     GpRec14         rec;
-    RoomPlacement   place;
+    GpXformArg      place;
     s32             sp40;
     RoomStreamWork* work;
     RoomStreamWork* blk;

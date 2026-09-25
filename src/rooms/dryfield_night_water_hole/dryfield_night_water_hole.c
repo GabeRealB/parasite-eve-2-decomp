@@ -237,14 +237,14 @@ s32 func_dryfield_night_water_hole_8017D6AC(DnwhUtilParam* in, DnwhUtilParam* ou
 /// room), re-spawns the player task as type 0x11 and kills itself.
 void func_dryfield_night_water_hole_8017D7E8(Task* arg0)
 {
-    GpMsg3EE msg;
-    void*    slot;
+    GpXformArg msg;
+    void*      slot;
 
     slot = gameGetPtrSlot(3);
     switch (arg0->state) {
         case 0:
-            msg.field_12 = D_dryfield_night_water_hole_80183630.facing;
-            if (msg.field_12 == -1) {
+            msg.rot.vy = D_dryfield_night_water_hole_80183630.facing;
+            if (msg.rot.vy == -1) {
                 arg0->state = 2;
                 break;
             }

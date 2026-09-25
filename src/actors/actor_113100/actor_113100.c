@@ -630,7 +630,7 @@ s32 func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3)
 /// preset in place -- the body of the 0x7D3 handler
 /// `func_actor_113100_801331E8` written out inline against a preset built on
 /// this function's own stack, `anim` picking the preset's `field_4`.
-s32 func_actor_113100_801328EC(Task* task, s32 msgId, GpPlaceArg* place, Actor113100SpawnAnim* anim)
+s32 func_actor_113100_801328EC(Task* task, s32 msgId, GpXformArg* place, Actor113100SpawnAnim* anim)
 {
     Actor113100Work* work;
     Actor113100Work* w;
@@ -1011,7 +1011,7 @@ s32 func_actor_113100_801331E8(Task* task, s32 msgId, GpAnimArg* preset, s32 arg
 /// The translation goes straight into the root part's local matrix, the Euler
 /// angles into the coordinate's `rot` slot, from which `RotMatrix` rebuilds
 /// the rotation; clearing `flg` makes the world matrix be recomputed.
-s32 func_actor_113100_8013333C(Task* task, s32 msgId, GpPlaceArg* args)
+s32 func_actor_113100_8013333C(Task* task, s32 msgId, GpXformArg* args)
 {
     GpCoordExt* coord;
 

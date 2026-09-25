@@ -483,7 +483,7 @@ s32 func_actor_535700_8013284C(Task* task, s32 arg1, s32 arg2)
 /// Placement opcode of the first enemy: yaws the model's root coordinate to
 /// `placement->rot.vy`, caching that yaw in the work block's `field_4AE`, then
 /// drops the placement translation into the matrix and marks it dirty.
-s32 func_actor_535700_80132894(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 func_actor_535700_80132894(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2* coord;
     u16            yaw;
@@ -874,7 +874,7 @@ s32 func_actor_535700_80133250(Task* task, s32 arg1, s32 flags)
 /// Placement opcode of the second enemy: yaws its root coordinate to
 /// `placement->rot.vy`, caching that yaw in `Actor535700SpawnWork::yaw`, then
 /// drops the placement translation into the matrix and marks it dirty.
-s32 func_actor_535700_801332B4(Task* task, s32 arg1, GpPlaceArg* placement)
+s32 func_actor_535700_801332B4(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2*        coord;
     Actor535700SpawnWork* work;
