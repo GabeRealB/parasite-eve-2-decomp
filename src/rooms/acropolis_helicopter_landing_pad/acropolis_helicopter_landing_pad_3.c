@@ -402,7 +402,7 @@ void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
             }
         }
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+        SCRATCH_POP_BYTES(0x14);
     }
 }
 
@@ -534,7 +534,7 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
             prim->y2    = blk->sy + (u16)blk->dy;
             addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
         }
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+        SCRATCH_POP_BYTES(0x1C);
         if (Gp_State1C->eventState == 0) {
             coord->coord.t[0] += mem->move.vx;
             coord->coord.t[1] += mem->move.vy;
@@ -729,7 +729,7 @@ void func_acropolis_helicopter_landing_pad_80180664(GsCOORDINATE2* coord)
         prim->y1 = blk->y1;
         addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x20;
+    SCRATCH_POP_BYTES(0x20);
 }
 
 /// Draws one random spark line off the floodlight coord: two endpoints are
@@ -804,7 +804,7 @@ void func_acropolis_helicopter_landing_pad_80180A64(GsCOORDINATE2* coord)
         prim->y1 = blk->y1;
         addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x20;
+    SCRATCH_POP_BYTES(0x20);
 }
 
 /// Effect task for the helipad beacon anchored to `Gp_RoomCoords[4]`. State 0
@@ -989,7 +989,7 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
             prim->y2    = blk->sy + (u16)blk->dy;
             addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
         }
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+        SCRATCH_POP_BYTES(0x1C);
         if (Gp_State1C->eventState == 0) {
             coord->coord.t[0] += mem->move.vx;
             coord->coord.t[1] += mem->move.vy;
@@ -1087,7 +1087,7 @@ s32 func_acropolis_helicopter_landing_pad_801819C0(GsCOORDINATE2* coord, GpRec18
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
     return s->moved;
 }
 
@@ -1237,9 +1237,9 @@ s32 func_acropolis_helicopter_landing_pad_80181B64(GsCOORDINATE2* coord, GpRec18
         }
     }
 
-    tail  = (void**)G_SCRATCH_HEAD;
-    hit   = st->hit;
-    *tail = (u8*)*tail + sizeof(OverlayBisectorScratch);
+    tail = (void**)G_SCRATCH_HEAD;
+    hit  = st->hit;
+    SCRATCH_POP_BYTES_AT(tail, sizeof(OverlayBisectorScratch));
     return hit;
 }
 

@@ -1768,7 +1768,7 @@ void func_acropolis_fire_escape_80180154(Task* task)
                 Gp_AddTpageShift(prim, 1, block->otz);
             }
         }
-        *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x18;
+        SCRATCH_POP_BYTES(0x18);
     }
 }
 
@@ -1810,15 +1810,15 @@ void func_acropolis_fire_escape_80180B20(Task* task)
     coord = ((TmdObject*)task->extra)->coords;
     mem   = task->spawnArg2;
     Gp_UpdateCoord(coord);
-    head = *(void**)G_SCRATCH_HEAD;
+    head = SCRATCH_HEAD(void);
     raw  = head - 0x18;
     SOFT_TOUCH_REG(raw);
-    blk                     = (AcropolisFireEscapeGlowScratch*)raw;
-    blk->vec.vx             = *(u16*)&coord->workm.t[0];
-    blk->vec.vy             = *(u16*)&coord->workm.t[1];
-    vz                      = *(u16*)&coord->workm.t[2];
-    *(void**)G_SCRATCH_HEAD = blk;
-    blk->vec.vz             = vz;
+    blk                = (AcropolisFireEscapeGlowScratch*)raw;
+    blk->vec.vx        = *(u16*)&coord->workm.t[0];
+    blk->vec.vy        = *(u16*)&coord->workm.t[1];
+    vz                 = *(u16*)&coord->workm.t[2];
+    SCRATCH_HEAD(void) = blk;
+    blk->vec.vz        = vz;
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -1980,6 +1980,6 @@ void func_acropolis_fire_escape_80180B20(Task* task)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
     Gp_ReleaseState1CMem(mem, task);
 }

@@ -388,9 +388,9 @@ void func_acropolis_forked_road_8017E410(Task* task)
     if (Gp_State1C->eventState < 4 &&
         ((D_acropolis_forked_road_801821E8[task->spawnArg1 & 0xF] >> ((u8)gGameSession->at4.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
-        scratch  = (void**)G_SCRATCH_HEAD;
-        *scratch = (u8*)*scratch - 0x14;
-        block    = (RoomShaftScratch*)*scratch;
+        scratch = (void**)G_SCRATCH_HEAD;
+        SCRATCH_PUSH_BYTES_AT(scratch, 0x14);
+        block = (RoomShaftScratch*)*scratch;
         if (task->state == 0) {
             u8 levels[3] = { 0x50, 0x30, 0x10 };
 
@@ -453,7 +453,7 @@ void func_acropolis_forked_road_8017E410(Task* task)
             prim->y2         = xy;
             addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
         }
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+        SCRATCH_POP_BYTES(0x14);
     }
 }
 
@@ -637,7 +637,7 @@ void func_acropolis_forked_road_8017EC70(GsCOORDINATE2* arg0, s32 arg1, s16 arg2
         addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomQuadScratch);
+    SCRATCH_POP_BYTES(sizeof(RoomQuadScratch));
 }
 
 /// A flash that swells and then fades. For as many ticks as the spawn argument
@@ -794,7 +794,7 @@ void func_acropolis_forked_road_8017F224(GsCOORDINATE2* arg0, s32 arg1, s32 arg2
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Queues a gouraud disc of eight wedges around the projected world position
@@ -872,7 +872,7 @@ void func_acropolis_forked_road_8017F650(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// A twin trail. The first tick allocates sixteen coordinate frames, eight for
@@ -1002,9 +1002,9 @@ void func_acropolis_forked_road_8017FED4(GsCOORDINATE2* arg0, GsCOORDINATE2* arg
     {
         register u8* tmp asm("v0");
 
-        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomDraw03Scratch);
-        blk                     = (RoomDraw03Scratch*)tmp;
-        *(void**)G_SCRATCH_HEAD = tmp;
+        tmp                = SCRATCH_HEAD(u8) - sizeof(RoomDraw03Scratch);
+        blk                = (RoomDraw03Scratch*)tmp;
+        SCRATCH_HEAD(void) = tmp;
     }
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -1080,7 +1080,7 @@ void func_acropolis_forked_road_8017FED4(GsCOORDINATE2* arg0, GsCOORDINATE2* arg
         }
         i += 1;
     } while (i < 7);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomDraw03Scratch);
+    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
 }
 
 /// A spark burst. The first tick spawns its flash effect; then, for a non-zero
@@ -1293,5 +1293,5 @@ void func_acropolis_forked_road_80180554(GsCOORDINATE2* arg0, s16 arg1, u8* arg2
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }

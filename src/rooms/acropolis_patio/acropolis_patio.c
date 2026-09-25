@@ -26,8 +26,6 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
-#define SCRATCH_SP (*(u32*)G_SCRATCH_HEAD)
-
 typedef struct {
     /* 0x0 */ u16 field_0;
     /* 0x2 */ u8  field_2;
@@ -508,9 +506,9 @@ void func_acropolis_patio_8017E324(Task* task)
     if (Gp_State1C->eventState < 4 &&
         ((D_acropolis_patio_80182E4C[task->spawnArg1 & 0xF] >> ((u8)gGameSession->at4.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
-        scratch  = (void**)G_SCRATCH_HEAD;
-        *scratch = (u8*)*scratch - 0x14;
-        block    = (RoomShaftScratch*)*scratch;
+        scratch = (void**)G_SCRATCH_HEAD;
+        SCRATCH_PUSH_BYTES_AT(scratch, 0x14);
+        block = (RoomShaftScratch*)*scratch;
         if (task->state == 0) {
             ApGreyLevels levels = D_acropolis_patio_8017D5E8;
 
@@ -573,7 +571,7 @@ void func_acropolis_patio_8017E324(Task* task)
             prim->y2         = xy;
             addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
         }
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+        SCRATCH_POP_BYTES(0x14);
     }
 }
 
@@ -610,7 +608,7 @@ void func_acropolis_patio_8017E730(Task* task)
     coord = ((TmdObject*)task->extra)->coords;
     if (Gp_State1C->eventState < 4 &&
         ((D_acropolis_patio_80182E4C[task->spawnArg1] >> ((u8)gGameSession->at4.loc.view - 1)) & 1)) {
-        sc = (RoomMoteScratch*)(SCRATCH_SP -= 0xC);
+        sc = (RoomMoteScratch*)SCRATCH_PUSH_BYTES(0xC);
         Gp_UpdateCoord(coord);
         if (task->state == 0) {
             Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
@@ -688,6 +686,6 @@ void func_acropolis_patio_8017E730(Task* task)
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 0, sc->otz);
         }
-        SCRATCH_SP += 0xC;
+        SCRATCH_POP_BYTES(0xC);
     }
 }

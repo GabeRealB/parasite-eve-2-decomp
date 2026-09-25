@@ -316,14 +316,14 @@ void func_acropolis_cafeteria_8017EA90(Task* task)
         mode = gGameSession->at4.loc.view;
         if (mode == 9) {
             Gp_UpdateCoord(coord);
-            head                                    = *(u8**)G_SCRATCH_HEAD;
-            newHead                                 = (OverlaySpriteScratch*)(head - 0x18);
-            block                                   = newHead;
-            block->vec.vx                           = *(u16*)&coord->workm.t[0];
-            block->vec.vy                           = *(u16*)&coord->workm.t[1];
-            vz                                      = *(u16*)&coord->workm.t[2];
-            *(OverlaySpriteScratch**)G_SCRATCH_HEAD = block;
-            block->vec.vz                           = vz;
+            head                               = SCRATCH_HEAD(u8);
+            newHead                            = (OverlaySpriteScratch*)(head - 0x18);
+            block                              = newHead;
+            block->vec.vx                      = *(u16*)&coord->workm.t[0];
+            block->vec.vy                      = *(u16*)&coord->workm.t[1];
+            vz                                 = *(u16*)&coord->workm.t[2];
+            SCRATCH_HEAD(OverlaySpriteScratch) = block;
+            block->vec.vz                      = vz;
             gte_SetTransMatrix(&GsWSMATRIX);
             gte_SetRotMatrix(&GsWSMATRIX);
             gte_ldv0(&((OverlaySpriteScratch*)(head - 0x18))->vec);
@@ -389,7 +389,7 @@ void func_acropolis_cafeteria_8017EA90(Task* task)
             prim->y2  = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
-            *(u8**)G_SCRATCH_HEAD += 0x18;
+            SCRATCH_POP_BYTES(0x18);
             if (coord->coord.t[2] > 0xB00) {
                 coord->coord.t[2] += work->move.vz;
             } else {
@@ -711,7 +711,7 @@ void func_acropolis_cafeteria_8017FBEC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, 
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, unless
@@ -790,7 +790,7 @@ void func_acropolis_cafeteria_80180018(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 void func_acropolis_cafeteria_801803AC(Task* task)
@@ -914,9 +914,9 @@ void func_acropolis_cafeteria_8018089C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1,
     {
         register u8* tmp asm("v0");
 
-        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomDraw03Scratch);
-        blk                     = (RoomDraw03Scratch*)tmp;
-        *(void**)G_SCRATCH_HEAD = tmp;
+        tmp                = SCRATCH_HEAD(u8) - sizeof(RoomDraw03Scratch);
+        blk                = (RoomDraw03Scratch*)tmp;
+        SCRATCH_HEAD(void) = tmp;
     }
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -992,7 +992,7 @@ void func_acropolis_cafeteria_8018089C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1,
         }
         i += 1;
     } while (i < 7);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomDraw03Scratch);
+    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
 }
 
 void func_acropolis_cafeteria_80180C94(Task* task)
@@ -1201,7 +1201,7 @@ void func_acropolis_cafeteria_80180F1C(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void func_acropolis_cafeteria_801818DC(Task* task)
@@ -1252,10 +1252,10 @@ void func_acropolis_cafeteria_80181A3C(Task* task)
     SVECTOR*                  direction;
     s32                       speed;
 
-    head                      = *(MATRIX**)G_SCRATCH_HEAD;
-    *(MATRIX**)G_SCRATCH_HEAD = head - 1;
-    work                      = (AcropolisCafeteriaDebris*)task->work;
-    coord                     = ((TmdObject*)task->extra)->coords;
+    head                 = SCRATCH_HEAD(MATRIX);
+    SCRATCH_HEAD(MATRIX) = head - 1;
+    work                 = (AcropolisCafeteriaDebris*)task->work;
+    coord                = ((TmdObject*)task->extra)->coords;
     work->field_B0--;
     coord->flg         = 0;
     coord->coord.t[1] += 0x80;
@@ -1319,7 +1319,7 @@ void func_acropolis_cafeteria_80181A3C(Task* task)
     }
     RotMatrix(&work->field_C4, &coord->coord);
     Gp_ClearRec18Occupied(work->slots);
-    *(MATRIX**)G_SCRATCH_HEAD += 1;
+    SCRATCH_POP(MATRIX);
 }
 
 void func_acropolis_cafeteria_80181E30(Task* arg0)
@@ -1401,7 +1401,7 @@ s32 func_acropolis_cafeteria_80181ED4(GsCOORDINATE2* coord, GpRec18* rec, s16 ar
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
     return s->moved;
 }
 
@@ -1549,9 +1549,9 @@ s32 func_acropolis_cafeteria_80182078(GsCOORDINATE2* coord, GpRec18* recs, s16 c
         }
     }
 
-    tail  = (void**)G_SCRATCH_HEAD;
-    hit   = st->hit;
-    *tail = (u8*)*tail + sizeof(OverlayBisectorScratch);
+    tail = (void**)G_SCRATCH_HEAD;
+    hit  = st->hit;
+    SCRATCH_POP_BYTES_AT(tail, sizeof(OverlayBisectorScratch));
     return hit;
 }
 

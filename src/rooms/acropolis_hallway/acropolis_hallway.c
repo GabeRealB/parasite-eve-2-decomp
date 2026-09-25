@@ -163,7 +163,7 @@ s32 func_acropolis_hallway_8017D830(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
     return s->moved;
 }
 
@@ -311,9 +311,9 @@ s32 func_acropolis_hallway_8017D9D4(GsCOORDINATE2* coord, GpRec18* recs, s16 cou
         }
     }
 
-    tail  = (void**)G_SCRATCH_HEAD;
-    hit   = st->hit;
-    *tail = (u8*)*tail + sizeof(OverlayBisectorScratch);
+    tail = (void**)G_SCRATCH_HEAD;
+    hit  = st->hit;
+    SCRATCH_POP_BYTES_AT(tail, sizeof(OverlayBisectorScratch));
     return hit;
 }
 

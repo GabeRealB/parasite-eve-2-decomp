@@ -1911,15 +1911,15 @@ void func_acropolis_plaza_801802C0(Task* task)
     Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
     coord->flg = 0;
     Gp_UpdateCoord(coord);
-    head = *(void**)G_SCRATCH_HEAD;
+    head = SCRATCH_HEAD(void);
     raw  = head - 0x60;
     SOFT_TOUCH_REG(raw);
-    blk                     = (AcropolisPlazaBeamScratch*)raw;
-    blk->vec[0].vx          = *(u16*)&coord->workm.t[0];
-    blk->vec[0].vy          = *(u16*)&coord->workm.t[1];
-    vz                      = *(u16*)&coord->workm.t[2];
-    *(void**)G_SCRATCH_HEAD = blk;
-    blk->vec[0].vz          = vz;
+    blk                = (AcropolisPlazaBeamScratch*)raw;
+    blk->vec[0].vx     = *(u16*)&coord->workm.t[0];
+    blk->vec[0].vy     = *(u16*)&coord->workm.t[1];
+    vz                 = *(u16*)&coord->workm.t[2];
+    SCRATCH_HEAD(void) = blk;
+    blk->vec[0].vz     = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((AcropolisPlazaBeamScratch*)(head - 0x60))->vec[0]);
@@ -2135,8 +2135,8 @@ void func_acropolis_plaza_801802C0(Task* task)
             }
         }
     }
-    work->yaw               = (work->yaw - 0x80) & 0xFFF;
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x60;
+    work->yaw = (work->yaw - 0x80) & 0xFFF;
+    SCRATCH_POP_BYTES(0x60);
 }
 
 void func_acropolis_plaza_801811D0(Task* task)
@@ -2165,14 +2165,14 @@ void func_acropolis_plaza_801811D0(Task* task)
     Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
     coord->flg = 0;
     Gp_UpdateCoord(coord);
-    head                    = *(void**)G_SCRATCH_HEAD;
-    raw                     = head - 0x4C;
-    blk                     = (AcropolisPlazaFlareScratch*)raw;
-    blk->vec.vx             = *(u16*)&coord->workm.t[0];
-    blk->vec.vy             = *(u16*)&coord->workm.t[1];
-    vz                      = *(u16*)&coord->workm.t[2];
-    *(void**)G_SCRATCH_HEAD = blk;
-    blk->vec.vz             = vz;
+    head               = SCRATCH_HEAD(void);
+    raw                = head - 0x4C;
+    blk                = (AcropolisPlazaFlareScratch*)raw;
+    blk->vec.vx        = *(u16*)&coord->workm.t[0];
+    blk->vec.vy        = *(u16*)&coord->workm.t[1];
+    vz                 = *(u16*)&coord->workm.t[2];
+    SCRATCH_HEAD(void) = blk;
+    blk->vec.vz        = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((AcropolisPlazaFlareScratch*)(head - 0x4C))->vec);
@@ -2317,8 +2317,8 @@ void func_acropolis_plaza_801811D0(Task* task)
             }
         }
     }
-    work->yaw               = (work->yaw - 0x80) & 0xFFF;
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x4C;
+    work->yaw = (work->yaw - 0x80) & 0xFFF;
+    SCRATCH_POP_BYTES(0x4C);
 }
 
 void func_acropolis_plaza_80182054(Task* task)
@@ -2335,15 +2335,15 @@ void func_acropolis_plaza_80182054(Task* task)
 
     coord = ((TmdObject*)task->extra)->coords;
     Gp_UpdateCoord(coord);
-    head = *(void**)G_SCRATCH_HEAD;
+    head = SCRATCH_HEAD(void);
     raw  = head - 0x14;
     SOFT_TOUCH_REG(raw);
-    blk                     = (AcropolisPlazaGlowScratch*)raw;
-    blk->vec.vx             = *(u16*)&coord->workm.t[0];
-    blk->vec.vy             = *(u16*)&coord->workm.t[1];
-    vz                      = *(u16*)&coord->workm.t[2];
-    *(void**)G_SCRATCH_HEAD = blk;
-    blk->vec.vz             = vz;
+    blk                = (AcropolisPlazaGlowScratch*)raw;
+    blk->vec.vx        = *(u16*)&coord->workm.t[0];
+    blk->vec.vy        = *(u16*)&coord->workm.t[1];
+    vz                 = *(u16*)&coord->workm.t[2];
+    SCRATCH_HEAD(void) = blk;
+    blk->vec.vz        = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((AcropolisPlazaGlowScratch*)(head - 0x14))->vec);
@@ -2394,7 +2394,7 @@ void func_acropolis_plaza_80182054(Task* task)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
 }
 
 /// Plaza ambient-effect spawner. On its first frame only, it fires three bursts

@@ -434,7 +434,7 @@ void func_acropolis_roof_garden_8017DE90(Task* arg0)
                 addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                         prim);
             }
-            *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomShaftScratch);
+            SCRATCH_POP_BYTES(sizeof(RoomShaftScratch));
         }
     }
 }
@@ -467,15 +467,15 @@ void func_acropolis_roof_garden_8017E29C(Task* arg0)
     coord = ((TmdObject*)arg0->extra)->coords;
     mem   = arg0->spawnArg2;
     Gp_UpdateCoord(coord);
-    head = *(void**)G_SCRATCH_HEAD;
+    head = SCRATCH_HEAD(void);
     raw  = head - 0x18;
     SOFT_TOUCH_REG(raw);
-    blk                     = (RoomGlowScratch*)raw;
-    blk->vec.vx             = *(u16*)&coord->workm.t[0];
-    blk->vec.vy             = *(u16*)&coord->workm.t[1];
-    vz                      = *(u16*)&coord->workm.t[2];
-    *(void**)G_SCRATCH_HEAD = blk;
-    blk->vec.vz             = vz;
+    blk                = (RoomGlowScratch*)raw;
+    blk->vec.vx        = *(u16*)&coord->workm.t[0];
+    blk->vec.vy        = *(u16*)&coord->workm.t[1];
+    vz                 = *(u16*)&coord->workm.t[2];
+    SCRATCH_HEAD(void) = blk;
+    blk->vec.vz        = vz;
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -638,7 +638,7 @@ void func_acropolis_roof_garden_8017E29C(Task* arg0)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
@@ -822,7 +822,7 @@ void func_acropolis_roof_garden_8017F560(GsCOORDINATE2* arg0, s32 arg1, s16 arg2
         addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomQuadScratch);
+    SCRATCH_POP_BYTES(sizeof(RoomQuadScratch));
 }
 
 /// reports one, adds its X and Z to the coordinate's translation, rounding a
@@ -873,7 +873,7 @@ s32 func_acropolis_roof_garden_8017F870(GsCOORDINATE2* coord, GpRec18* rec, s16 
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
     return s->moved;
 }
 
@@ -1021,9 +1021,9 @@ s32 func_acropolis_roof_garden_8017FA14(GsCOORDINATE2* coord, GpRec18* recs, s16
         }
     }
 
-    tail  = (void**)G_SCRATCH_HEAD;
-    hit   = st->hit;
-    *tail = (u8*)*tail + sizeof(OverlayBisectorScratch);
+    tail = (void**)G_SCRATCH_HEAD;
+    hit  = st->hit;
+    SCRATCH_POP_BYTES_AT(tail, sizeof(OverlayBisectorScratch));
     return hit;
 }
 

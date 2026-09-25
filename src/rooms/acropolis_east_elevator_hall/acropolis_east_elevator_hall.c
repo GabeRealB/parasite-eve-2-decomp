@@ -245,7 +245,7 @@ void func_acropolis_east_elevator_hall_8017D7A4(Task* task)
         work->coord.flg   = 0;
         work->field_A0[2] = -0x78;
         work->field_A0[3] = 0x78;
-        plane             = (RoomMirrorPlaneScratch*)(*(u8**)G_SCRATCH_HEAD -= 0x70);
+        plane             = (RoomMirrorPlaneScratch*)SCRATCH_PUSH_BYTES(0x70);
         work->coord.sub   = sub;
         if (task->spawnArg1 == 0) {
             work->field_4     = 1;
@@ -458,8 +458,8 @@ void func_acropolis_east_elevator_hall_8017D7A4(Task* task)
                 work->field_8           = 1;
             }
         }
-        work->field_C          = extra->flags;
-        *(u8**)G_SCRATCH_HEAD += 0x70;
+        work->field_C = extra->flags;
+        SCRATCH_POP_BYTES(0x70);
     }
 
     copyPending = work->field_4;
@@ -580,7 +580,7 @@ void func_acropolis_east_elevator_hall_8017D7A4(Task* task)
             }
         }
         if (stage == 1 || stage == 5) {
-            extent = (RoomMirrorExtentScratch*)(*(u8**)G_SCRATCH_HEAD -= 0x34);
+            extent = (RoomMirrorExtentScratch*)SCRATCH_PUSH_BYTES(0x34);
             if (gGameSession->eventState != 0) {
                 Gp_UpdateCoord(refPart);
                 gte_SetTransMatrix(&refPart->workm);
@@ -682,7 +682,7 @@ void func_acropolis_east_elevator_hall_8017D7A4(Task* task)
             } else {
                 extra->flags |= 0x80;
             }
-            *(u8**)G_SCRATCH_HEAD += 0x34;
+            SCRATCH_POP_BYTES(0x34);
         }
     }
 
@@ -920,18 +920,18 @@ void func_acropolis_east_elevator_hall_8017F77C(Task* arg0)
     coord = ((TmdObject*)arg0->extra)->coords;
     mem   = arg0->spawnArg2;
     Gp_UpdateCoord(coord);
-    head = *(void**)G_SCRATCH_HEAD;
+    head = SCRATCH_HEAD(void);
     raw  = head - 0x14;
     /* `raw` and `block` have to stay separate registers: the ROM computes the
        block address into a scratch register and copies it into the callee-saved
        one the rest of the function uses. */
     SOFT_TOUCH_REG(raw);
-    block                   = (RoomShaftScratch*)raw;
-    block->vec.vx           = *(u16*)&coord->workm.t[0];
-    block->vec.vy           = *(u16*)&coord->workm.t[1];
-    vz                      = *(u16*)&coord->workm.t[2];
-    *(void**)G_SCRATCH_HEAD = block;
-    block->vec.vz           = vz;
+    block              = (RoomShaftScratch*)raw;
+    block->vec.vx      = *(u16*)&coord->workm.t[0];
+    block->vec.vy      = *(u16*)&coord->workm.t[1];
+    vz                 = *(u16*)&coord->workm.t[2];
+    SCRATCH_HEAD(void) = block;
+    block->vec.vz      = vz;
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -968,7 +968,7 @@ void func_acropolis_east_elevator_hall_8017F77C(Task* arg0)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
@@ -1009,6 +1009,6 @@ void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0)
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, ((RoomMoteScratch*)(head - 0xC))->otz);
     }
-    *scratch = (u8*)*scratch + 0xC;
+    SCRATCH_POP_BYTES_AT(scratch, 0xC);
     Gp_ReleaseState1CMem(mem, arg0);
 }

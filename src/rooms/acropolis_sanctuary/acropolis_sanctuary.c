@@ -768,7 +768,7 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
         addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x28;
+    SCRATCH_POP_BYTES(0x28);
     if (mem->angle + 0x3C < mem->age) {
         Gp_ReleaseState1CMem(mem, arg0);
         return;
@@ -950,10 +950,10 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
         addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    coord->coord.t[0]      += mem->move.vx;
-    coord->coord.t[1]      += mem->move.vy;
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x20;
-    coord->coord.t[2]      += mem->move.vz;
+    coord->coord.t[0] += mem->move.vx;
+    coord->coord.t[1] += mem->move.vy;
+    SCRATCH_POP_BYTES(0x20);
+    coord->coord.t[2] += mem->move.vz;
     Gfx_RotMatrixYXZ(&coord->coord, &mem->pos, 0);
     coord->flg   = 0;
     mem->move.vy = mem->move.vy + 3;
@@ -1078,7 +1078,7 @@ void func_acropolis_sanctuary_8017F4E8(Task* arg0)
             addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+        SCRATCH_POP_BYTES(0x14);
     }
 }
 
@@ -1143,7 +1143,7 @@ s32 func_acropolis_sanctuary_8017F974(GsCOORDINATE2* coord, GpRec18* rec, s16 ar
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
     return s->moved;
 }
 
@@ -1291,9 +1291,9 @@ s32 func_acropolis_sanctuary_8017FB18(GsCOORDINATE2* coord, GpRec18* recs, s16 c
         }
     }
 
-    tail  = (void**)G_SCRATCH_HEAD;
-    hit   = st->hit;
-    *tail = (u8*)*tail + sizeof(OverlayBisectorScratch);
+    tail = (void**)G_SCRATCH_HEAD;
+    hit  = st->hit;
+    SCRATCH_POP_BYTES_AT(tail, sizeof(OverlayBisectorScratch));
     return hit;
 }
 

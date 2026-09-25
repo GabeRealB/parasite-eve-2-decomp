@@ -2124,7 +2124,7 @@ void func_acropolis_security_room_80180A78(Task* task)
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 2, ((AsrBeamScratch*)(head - 0x14))->otz);
         }
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+        SCRATCH_POP_BYTES(0x14);
     }
 }
 
@@ -2195,10 +2195,10 @@ void func_acropolis_security_room_80181108(Task* arg0)
     s32              tx;
     s32              tz;
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomQuadScratch);
-    blk                     = (RoomQuadScratch*)*(void**)G_SCRATCH_HEAD;
-    coord                   = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
-    mem                     = arg0->spawnArg2;
+    SCRATCH_PUSH_BYTES(sizeof(RoomQuadScratch));
+    blk   = SCRATCH_HEAD(RoomQuadScratch);
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    mem   = arg0->spawnArg2;
     Gp_UpdateCoord(coord);
 
     if (mem->age == 0) {
@@ -2256,7 +2256,7 @@ void func_acropolis_security_room_80181108(Task* arg0)
         prim->code |= 1;
         addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomQuadScratch);
+    SCRATCH_POP_BYTES(sizeof(RoomQuadScratch));
 
     if (mem->index == 0) {
         coord->coord.t[0] += mem->move.vx;
@@ -2353,18 +2353,18 @@ void func_acropolis_security_room_801817A4(Task* taskArg)
     coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;
     mem   = task->spawnArg2;
     Gp_UpdateCoord(coord);
-    head = *(u8**)G_SCRATCH_HEAD;
+    head = SCRATCH_HEAD(u8);
     {
         u8* tmp;
         tmp = head - 0x14;
         SOFT_TOUCH_REG(tmp);
         scratch = (AsrFlashScratch*)tmp;
     }
-    scratch->v.vx           = *(u16*)&coord->workm.t[0];
-    scratch->v.vy           = *(u16*)&coord->workm.t[1];
-    vz                      = *(u16*)&coord->workm.t[2];
-    *(void**)G_SCRATCH_HEAD = scratch;
-    scratch->v.vz           = vz;
+    scratch->v.vx      = *(u16*)&coord->workm.t[0];
+    scratch->v.vy      = *(u16*)&coord->workm.t[1];
+    vz                 = *(u16*)&coord->workm.t[2];
+    SCRATCH_HEAD(void) = scratch;
+    scratch->v.vz      = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((AsrFlashScratch*)(head - 0x14))->v);
@@ -2450,7 +2450,7 @@ void func_acropolis_security_room_801817A4(Task* taskArg)
             USE_REG(scratch);
         } while (i < 2);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
     Gp_ReleaseState1CMem(mem, task);
 }
 
@@ -2503,7 +2503,7 @@ s32 func_acropolis_security_room_80181C84(GsCOORDINATE2* coord, GpRec18* rec, s1
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
     return s->moved;
 }
 
@@ -2651,9 +2651,9 @@ s32 func_acropolis_security_room_80181E28(GsCOORDINATE2* coord, GpRec18* recs, s
         }
     }
 
-    tail  = (void**)G_SCRATCH_HEAD;
-    hit   = st->hit;
-    *tail = (u8*)*tail + sizeof(OverlayBisectorScratch);
+    tail = (void**)G_SCRATCH_HEAD;
+    hit  = st->hit;
+    SCRATCH_POP_BYTES_AT(tail, sizeof(OverlayBisectorScratch));
     return hit;
 }
 

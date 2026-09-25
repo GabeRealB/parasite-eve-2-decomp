@@ -232,7 +232,7 @@ void func_acropolis_fountain_8017DD44(Task* task)
                               (s32)gGpuCurrentOt),
                     prim);
         }
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+        SCRATCH_POP_BYTES(0x14);
     }
 }
 
