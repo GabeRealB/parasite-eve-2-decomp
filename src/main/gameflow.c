@@ -311,20 +311,20 @@ void Pad_TickEventBanks(PadState* arg0)
     pad = arg0;
     {
         void**         scratch;
-        void*          head;
+        u8*            head;
         register void* alloc asm("v0");
 
         scratch                        = SCRATCH_HEAD_ADDR;
         p0                             = &pad->events[0][0].field_0;
         i                              = 0;
         one                            = 1;
-        head                           = SCRATCH_HEAD_AT(scratch, void);
+        head                           = SCRATCH_HEAD_AT(scratch, u8);
         p1                             = &pad->events[0][0].field_1;
-        alloc                          = (u8*)head - 4;
+        alloc                          = head - 4;
         temp                           = alloc;
         SCRATCH_HEAD_AT(scratch, void) = alloc;
         temp[1]                        = 0;
-        ((u8*)head)[-4]                = 0;
+        head[-4]                       = 0;
     }
 
     do {
@@ -514,29 +514,23 @@ void func_8002C1D8(void)
 
 void Pad_UpdatePort0(void)
 {
-    s32            i;
-    s32            offset;
-    PadRawPort*    raw;
-    DisplayState*  ds;
-    PadScratch*    scratch;
-    PadState*      pad;
-    u16            buttons;
-    u16            prev;
-    void**         head;
-    register void* tmp asm("v0");
+    s32           i;
+    PadRawPort*   raw;
+    DisplayState* ds;
+    PadScratch*   scratch;
+    PadState*     pad;
+    u16           buttons;
+    u16           prev;
+    void**        head;
 
-    head                              = SCRATCH_HEAD_ADDR;
-    i                                 = 0;
-    ds                                = &gDisplayState;
-    raw                               = Pad_RawPorts;
-    offset                            = i;
-    tmp                               = SCRATCH_HEAD_AT(head, void);
-    tmp                               = (u8*)tmp - 6;
-    scratch                           = tmp;
-    SCRATCH_HEAD_AT(head, PadScratch) = scratch;
+    head    = SCRATCH_HEAD_ADDR;
+    i       = 0;
+    ds      = &gDisplayState;
+    raw     = Pad_RawPorts;
+    scratch = SCRATCH_PUSH_AT(head, PadScratch);
 
     do {
-        pad = (PadState*)((u8*)Pad_States + offset);
+        pad = (PadState*)&Pad_States[i];
         if (pad->cooldown == 0) {
             scratch->rawHi = raw->field_2;
             scratch->rawLo = raw->field_3;
@@ -610,8 +604,7 @@ void Pad_UpdatePort0(void)
         }
         raw++;
         i++;
-        offset += 0x5C;
     } while (i <= 0);
 
-    SCRATCH_POP_BYTES(6);
+    SCRATCH_POP(PadScratch);
 }
