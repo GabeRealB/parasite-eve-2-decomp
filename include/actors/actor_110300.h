@@ -58,7 +58,6 @@ extern u8 D_actor_110300_8013A084[];
 /// and a terminator.
 extern GpMsgEntry D_actor_110300_8013A054[];
 
-void func_actor_110300_80131E24(GpEnemy* enemy, Task* task);
 void func_actor_110300_80132020(GpEnemy* enemy, Task* task);
 void func_actor_110300_80132088(Task* task);
 void func_actor_110300_801320C4(GpActorWork* arg0);
