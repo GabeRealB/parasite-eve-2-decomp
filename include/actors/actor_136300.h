@@ -3,12 +3,10 @@
 
 #include "common.h"
 
-#include "main/task.h"
-
 /// Ramp context of the screen-wave task. The message handler seeds the span
 /// and scale and spawns the task with the block as its argument; a later
-/// positive message is written into the ramp state, which ends the wave. The
-/// task advances the frame and reads the tint.
+/// positive message is written into the ramp state (1 ramps the wave back
+/// down and then ends it). The task advances the frame and reads the tint.
 typedef struct Actor136300WaveCtx {
     s16 field_0; // span: frames the ramp takes to reach full scale
     s16 field_2; // scale: amplitude at the end of the ramp
@@ -23,9 +21,5 @@ typedef struct Actor136300WaveCtx {
 /// Earlier name of the ramp context, still used by a room that carries the
 /// same message handler.
 typedef Actor136300WaveCtx Actor136300Spawn;
-
-extern Actor136300WaveCtx D_actor_136300_8013C99C;
-
-extern TaskDesc D_actor_136300_80132AC4;
 
 #endif // ACTOR_136300_H
