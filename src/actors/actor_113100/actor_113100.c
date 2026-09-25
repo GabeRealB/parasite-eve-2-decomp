@@ -18,6 +18,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3E9C.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 
 /// Work block of the actor's main task. The setup handler
 /// `func_actor_113100_80131E58` `memCalloc`s 0x540 bytes and parks the pointer
@@ -183,19 +184,9 @@ extern u8 D_actor_113100_801442E4[];
 
 extern u8 D_801153F4;
 
-/// Declared here rather than taken from `gameplay.h`: the overlays call this
-/// with the part index and the owning task as extra arguments that the body
-/// never reads, so the shared one-argument prototype does not describe this
-/// call site.
-extern MATRIX* Gp_GetStageView(u8*, s32, void*);
-
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-
-/// Declared as `gameplay/gameplay.h` does; that header cannot be included
-/// here because its `Gp_GetStageView` prototype conflicts with the one above.
-void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 
 /// Main-executable routine the turn handler `func_actor_113100_801324DC` calls
 /// with a yaw angle and the root coordinate's matrix, after resetting its 3x3
@@ -795,7 +786,7 @@ void func_actor_113100_80132BDC(Task* task)
     index = task->spawnArg1;
     node  = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;
     part  = &((TmdObject*)((Task*)task->spawnArg2)->extra)->coords[index];
-    view  = Gp_GetStageView(&gGameSession->at4.loc.view, index, task);
+    view  = &Gp_GetStageView(&gGameSession->at4.loc)->mtx;
     coord = &node->coord;
     TransposeMatrix(&part->workm, coord);
     TransposeMatrix(view, &sp10);
