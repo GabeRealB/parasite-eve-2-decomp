@@ -1,7 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_350500.h"
-#include "actors/actors_shared_801327b4.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/D4.h"
@@ -24,7 +23,7 @@ INCLUDE_ASM("actors/nonmatchings/actor_350500/actor_350500", func_actor_350500_8
 /// every later handler reads through `Task::work`, seeds the three -1 bytes
 /// and the three cleared words the work's own init expects, republishes the
 /// light and colour matrices onto the display object, then installs the
-/// message table and the shared exit handler. An allocation failure ends the
+/// message table and the exit handler. An allocation failure ends the
 /// task instead of leaving a half-built actor behind.
 void func_actor_350500_801623CC(Task* arg0)
 {
@@ -47,6 +46,6 @@ void func_actor_350500_801623CC(Task* arg0)
     func_actor_350500_8016247C(arg0);
 
     arg0->msgTable     = D_actor_350500_80168EB0;
-    arg0->exitCallback = ActorsShared801327b4;
+    arg0->exitCallback = func_actor_350500_8016245C;
     arg0->state        = arg0->state + 1;
 }
