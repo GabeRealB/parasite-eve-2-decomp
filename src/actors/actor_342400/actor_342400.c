@@ -17,7 +17,6 @@ typedef struct Actor342400Limit {
 } Actor342400Limit;
 STATIC_ASSERT_SIZEOF(Actor342400Limit, 0x4);
 
-extern u8               D_801153F4;                // absolute; nonzero skips the controller's state handler
 extern TaskDesc         D_801575F0;                // absolute, spawned by func_actor_342400_80162DA0
 extern u8               D_actor_342400_8016BF48[]; // stored into `Task::msgTable` by func_actor_342400_801628F0
 extern Actor342400Slot  D_actor_342400_8016BF58[];
@@ -240,7 +239,7 @@ void func_actor_342400_80162748(Task* arg0)
     TaskFuncTable4 sp;
 
     sp = D_actor_342400_80161E24;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         sp.funcs[arg0->state](arg0);
     }
 }

@@ -182,8 +182,6 @@ extern void* D_actor_113100_801442E0[];
 /// `Actor113100Work::field_53C` from `Actor113100AnimPreset::field_4`.
 extern u8 D_actor_113100_801442E4[];
 
-extern u8 D_801153F4;
-
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
@@ -360,7 +358,7 @@ void func_actor_113100_80131E58(Task* task)
 
 /// Per-frame tick of the actor's live state. While the model is not deferred
 /// (bit 0x80 of `TmdObject::flags`) it rebuilds part 1's world matrix and
-/// draws the ground shadow under that part. `D_801153F4` gates the rest: a
+/// draws the ground shadow under that part. `Gp_StateF0.field_4` gates the rest: a
 /// nonzero value skips it. The live path dispatches `func_actor_113100_80132F40`
 /// or `func_actor_113100_80132FB4` from a two-entry stack table indexed by
 /// `field_530`, integrates the 16.16 step at `field_500` into `field_510` /
@@ -390,7 +388,7 @@ void func_actor_113100_80132104(Task* task)
             Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->groundShade);
         }
     }
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         funcs[work->field_530](task);
         coord              = ((TmdObject*)task->extra)->coords;
         work->field_510   += work->field_500.vx;

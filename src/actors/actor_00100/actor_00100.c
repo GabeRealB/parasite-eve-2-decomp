@@ -4242,7 +4242,7 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
     pos.vz = ((TmdObject*)actor->extra)->coords->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
     ((TmdObject*)actor->extra)->coords->flg = 0;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             initialState = work->field_0;
             if (initialState != 21 && initialState != 0 && initialState != 6 && initialState != 3) {

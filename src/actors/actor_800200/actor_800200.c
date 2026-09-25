@@ -42,7 +42,6 @@ typedef struct {
 
 extern void            D_actor_800200_80169EF0;
 extern Task*           D_80115764;
-extern u8              D_801153F4;
 extern u8*             D_actor_800200_80169FD0[4];
 extern GpActorPathStep D_actor_800200_80169FE0[];
 extern GpActorPathStep D_actor_800200_80169FF8[];
@@ -243,7 +242,7 @@ void func_actor_800200_801622B0(Task* arg0)
         }
     }
     actor->field_983 = 0;
-    if (D_80115768 == 0 && D_801153F4 == 0) {
+    if (D_80115768 == 0 && Gp_StateF0.field_4 == 0) {
         func_actor_800200_801652EC(arg0);
     }
     Gp_ClearRec18Occupied(actor->field_17C);

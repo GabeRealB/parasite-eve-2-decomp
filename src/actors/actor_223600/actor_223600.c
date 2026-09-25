@@ -189,10 +189,6 @@ typedef struct Actor223600AvoidDelta {
 } Actor223600AvoidDelta;
 STATIC_ASSERT_SIZEOF(Actor223600AvoidDelta, 0x10);
 
-/// Game mode word the tick switches on: 0 and 1 drive the model's `field_C`
-/// from the work block, 2 forces 0x80.
-extern u8 D_801153F4;
-
 /// While this is 1, the push-out helpers return without moving anything and
 /// the forward step is skipped.
 extern u8 D_80072729;
@@ -1427,7 +1423,7 @@ void func_actor_223600_8014CA00(GpEnemy* enemy, Task* task)
     work = (Actor223600Work*)task->work;
     fns  = D_actor_223600_80149E4C;
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             if (work->field_0 != 0) {
                 ((TmdObject*)task->extra)->flags = 0;

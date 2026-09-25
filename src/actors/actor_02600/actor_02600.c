@@ -174,8 +174,6 @@ void func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-extern u8 D_801153F4;
-
 /* Animation id -> slot blend value table in this overlay's own data. */
 extern s16 Actor02600_D08A10[];
 
@@ -1269,7 +1267,7 @@ void Actor02600_Fn02364(GpEnemy* arg0, Task* arg1)
     obj   = arg1->extra;
     work  = arg1->work;
     coord = obj->coords;
-    switch ((s32)D_801153F4) {
+    switch ((s32)Gp_StateF0.field_4) {
         case 1:
             vec.vx = coord->workm.t[0];
             vec.vy = coord->workm.t[1];
@@ -1417,7 +1415,7 @@ void Actor02600_Fn02780(GpEnemy* arg0, Task* arg1)
 
     coord = ((TmdObject*)arg1->extra)->coords;
     work  = arg1->work;
-    switch ((s32)D_801153F4) {
+    switch ((s32)Gp_StateF0.field_4) {
         case 1:
             Actor02600_Fn02954(arg1, work->field_38);
             return;
@@ -1840,7 +1838,7 @@ void Actor02600_Fn02FFC(GpEnemy* ctx, Task* actor)
     actor->state           = 1;
 }
 
-/// Per-frame tick, selected by the global mode `D_801153F4`. Mode 1 only
+/// Per-frame tick, selected by the global mode `Gp_StateF0.field_4`. Mode 1 only
 /// updates the colour and the ground shadow; mode 2 sets the model's `field_C` to
 /// 0x80 and the context's `field_14` to 1 and stops there; mode 0 clears both
 /// and then runs the full tick like any other mode. The full tick applies the
@@ -1856,7 +1854,7 @@ void Actor02600_Fn03558(GpEnemy* arg0, Task* arg1)
     GsCOORDINATE2*   coord;
 
     obj   = arg1->extra;
-    state = D_801153F4;
+    state = Gp_StateF0.field_4;
     work  = arg1->work;
     coord = obj->coords;
     if (state == 1) {

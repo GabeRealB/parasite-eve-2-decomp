@@ -297,8 +297,6 @@ s16  func_actor_510900_8013BE84(Task* arg0);
 void func_actor_510900_8013C380(Task* arg0);
 void func_actor_510900_8013C430(Task* arg0);
 
-extern u8 D_801153F4;
-
 /// The script block pair `Gp_SpawnScript18` is handed at blend 0x58; both live
 /// in the room overlay, not here.
 extern s32 D_80187D34;
@@ -2424,7 +2422,7 @@ void func_actor_510900_801397F0(GpEnemy* arg0, Task* arg1)
 /// or either `GpRec18` table reports a hit, it fires the impact effects,
 /// reparents the task under the spawned one and hands the actor to state 2.
 /// A parent that has stopped (`field_592` == 0) tears the object down the same
-/// way. `D_801153F4` 1 only refreshes the colour and 2 only hides the model.
+/// way. `Gp_StateF0.field_4` 1 only refreshes the colour and 2 only hides the model.
 void func_actor_510900_80139C10(GpEnemy* enemy, Task* task)
 {
     VECTOR                         pos;
@@ -2445,7 +2443,7 @@ void func_actor_510900_80139C10(GpEnemy* enemy, Task* task)
     coord  = tmd->coords;
     parent = (Actor510900Work*)task->parent->work;
     done   = 0;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             tmd->flags = 0;
             break;
@@ -2548,7 +2546,7 @@ void func_actor_510900_8013A100(GpEnemy* enemy, Task* task)
 
     work   = (Actor510900ChildFx*)task->work;
     parent = (Actor510900Work*)task->parent->work;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         switch (work->field_CA) {
             case 0:
                 tick           = work->field_C8 + 1;
@@ -2769,7 +2767,7 @@ void func_actor_510900_8013A9BC(Task* task);
 s32  func_actor_510900_8013C240(Task* task);
 void func_actor_510900_8013C338(Task* arg0, GsCOORDINATE2* arg1);
 
-/// Frame handler (state 1) of the child task. Mode 1 of `D_801153F4` only
+/// Frame handler (state 1) of the child task. Mode 1 of `Gp_StateF0.field_4` only
 /// redraws, mode 2 hides the model and flags the context, and mode 0 ticks the
 /// animation until `func_actor_510900_8013C240` reports ready before falling
 /// into the normal body.
@@ -2787,7 +2785,7 @@ void func_actor_510900_8013A85C(GpEnemy* arg0, Task* arg1)
     work   = (Actor510900ChildAnim*)arg1->work;
     coord  = obj->coords;
     parent = (Actor510900Work*)arg1->parent->work;
-    mode   = D_801153F4;
+    mode   = Gp_StateF0.field_4;
     one    = 1;
     if (mode == one) {
         goto case1;
@@ -3065,7 +3063,7 @@ void func_actor_510900_8013AF38(GpEnemy* arg0, Task* arg1)
 
     work   = (Actor510900ChildWork*)arg1->work;
     parent = (Actor510900Work*)arg1->parent->work;
-    mode   = D_801153F4;
+    mode   = Gp_StateF0.field_4;
     one    = 1;
     if (mode == one) {
         return;
@@ -3327,7 +3325,7 @@ void func_actor_510900_8013B6A0(GpEnemy* arg0, Task* arg1)
     temp_a1 = arg1->extra;
     temp_s1 = temp_a1->coords;
     if (temp_s2->field_5A4 != 0) {
-        sp  = D_801153F4;
+        sp  = Gp_StateF0.field_4;
         one = 1;
         if (sp == one) {
             goto case1;

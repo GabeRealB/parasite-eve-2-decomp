@@ -81,7 +81,7 @@ typedef union Actor206100Flags {
 STATIC_ASSERT_SIZEOF(Actor206100Flags, 0x4);
 
 /// The four handlers `func_actor_206100_8014E7D4` picks between as the effect
-/// mode `D_801153F4` changes -- the retirement `func_actor_206100_8014FBE4`,
+/// mode `Gp_StateF0.field_4` changes -- the retirement `func_actor_206100_8014FBE4`,
 /// the idle tick `func_actor_206100_8014FCD4`, the teleport tick
 /// `func_actor_206100_8014E964` and `func_actor_206100_8014FDE8`.  Its copy
 /// onto the stack is the same three-word block move the two tables above get,
@@ -660,7 +660,7 @@ void func_actor_206100_8014D8E8(Task* task);
 
 /// Sub-state 1 of the state-2 dispatcher `func_actor_206100_8014DA28`'s
 /// two-entry local table, which picks it with `funcs[(s16)field_520]` and is
-/// entered from that dispatcher's `D_801153F4 == 0` arm -- entry 0 is the ring
+/// entered from that dispatcher's `Gp_StateF0.field_4 == 0` arm -- entry 0 is the ring
 /// stepper `func_actor_206100_8014FAE4`.  It maintains the actor's companions.
 ///
 /// `field_51E` is held at 0x1E -- the frame `func_actor_206100_8014D574` fires
@@ -709,11 +709,6 @@ extern s16 D_801818B8;
 extern u16 D_80181A48;
 
 extern s16 D_actor_206100_80158CD0;
-
-/// Effect mode `func_actor_206100_8014E7D4` reads the state handler out of
-/// `D_actor_206100_80149EC0` on: 1 and 2 are the frozen and retiring modes
-/// `actor_503500` documents, and 0 is the running mode.
-extern u8 D_801153F4;
 
 void func_actor_206100_8014B0AC(Task* task, u8 arg1);
 void func_actor_206100_8014E0C0(Task* task);
@@ -1387,7 +1382,7 @@ void func_actor_206100_8014B698(Task* task)
 }
 /// Tick handler of the beam child `func_actor_206100_8014EEC0` starts, the
 /// same shape the marker `Actor00400_Fn02D48` has: while the effect mode
-/// `D_801153F4` is 0 it advances the child's `field_5A` and folds `field_58` /
+/// `Gp_StateF0.field_4` is 0 it advances the child's `field_5A` and folds `field_58` /
 /// `field_5A` / `field_5C` into the root coordinate, raises `hit` when
 /// either collision slot reports one of the three kinds 1/3/5 or when
 /// `func_800E0C10`'s push-back says the beam is crowded, and retires the child
@@ -1411,7 +1406,7 @@ void func_actor_206100_8014B8B4(Task* task)
     child = (Actor206100ChildWork*)task->work;
     coord = ((TmdObject*)task->extra)->coords;
     mode  = 1;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         child->field_5A   += 2;
         *(u32*)&coord->flg = 0;
         coord->coord.t[0] += child->field_58;
@@ -1951,7 +1946,7 @@ void func_actor_206100_8014C458(Task* task)
     s32*                      flagp;
     u32                       viewhi;
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             obj->flags |= 0x80;
             break;
@@ -2707,7 +2702,7 @@ void func_actor_206100_8014D8E8(Task* task)
         work->field_522 = work->field_522 + 1;
     }
 }
-/// State-2 tick: the `D_801153F4` effect mode 0 arm bumps the actor's two frame
+/// State-2 tick: the `Gp_StateF0.field_4` effect mode 0 arm bumps the actor's two frame
 /// counters and runs the handler `funcs[(s16)field_520]` picks out of a
 /// two-entry local table, then drives the animation request and re-poses the
 /// actor; mode 1 is that tail alone and mode 2 is the deferred-kill bit of the
@@ -2765,7 +2760,7 @@ void func_actor_206100_8014DA28(Task* task)
     s32               i;
     s16               state;
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             obj->flags |= 0x80;
             return;
@@ -3200,7 +3195,7 @@ void func_actor_206100_8014E228(Task* task)
 }
 
 /// Effect-mode tick of the `field_520` state table `D_actor_206100_80149EC0`,
-/// keyed on `D_801153F4`.  Mode 2 only sets the model's deferred-kill bit and
+/// keyed on `Gp_StateF0.field_4`.  Mode 2 only sets the model's deferred-kill bit and
 /// leaves; mode 0 runs the handler `field_520` selects, latches the animation
 /// slot's flags into `flags_514` and eases the root coordinate -- x and z to a
 /// sixteenth of their distance to zero, y the same fraction of the way to the
@@ -3222,7 +3217,7 @@ void func_actor_206100_8014E7D4(Task* task)
     obj    = (TmdObject*)task->extra;
     coord  = obj->coords;
     states = D_actor_206100_80149EC0;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             obj->flags |= 0x80;
             return;

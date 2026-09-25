@@ -169,10 +169,6 @@ STATIC_ASSERT_SIZEOF(Actor350700MainWork, 0x50C);
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-/// Global freeze byte in the main executable; the state dispatchers run
-/// nothing while it is non-zero.
-extern u8 D_801153F4;
-
 /// Animation bank tables of the enemy actor and of the parent block.
 extern void* D_actor_350700_80169D0C[];
 extern void* D_actor_350700_801708D8[];
@@ -435,7 +431,7 @@ void func_actor_350700_80162398(Task* task)
     TaskFuncTable3 sp;
 
     sp = D_actor_350700_80161E24;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         sp.funcs[task->state](task);
     }
 }
@@ -1055,7 +1051,7 @@ void func_actor_350700_80163350(Task* task)
     TaskFuncTable3 sp;
 
     sp = D_actor_350700_80161E5C;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         sp.funcs[task->state](task);
     }
 }

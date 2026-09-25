@@ -61,7 +61,6 @@ STATIC_ASSERT_SIZEOF(Actor205200Part, 0x7C);
 extern s16           D_800691CA;
 extern u8            D_80070F87;
 extern u16           D_80071078;
-extern u8            D_801153F4;
 extern s32           D_actor_205200_8014CA5C;
 extern ActorWaveCtx* D_actor_205200_80156814;
 extern ActorWaveRec  D_actor_205200_80156818[9];
@@ -210,7 +209,7 @@ void func_actor_205200_80149E54(Task* arg0)
                     break;
                 case 1:
                     if (ctx->field_6 > 0) {
-                        if (D_801153F4 == 0) {
+                        if (Gp_StateF0.field_4 == 0) {
                             ctx->field_6--;
                         }
                     } else {
@@ -361,7 +360,7 @@ void func_actor_205200_8014A958(GpEnemy* enemy, Task* task)
                 }
             }
         }
-    } else if (D_801153F4 == 0) {
+    } else if (Gp_StateF0.field_4 == 0) {
         state = work->field_24;
         switch (state) {
             case 0:
@@ -766,7 +765,7 @@ void func_actor_205200_8014B978(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2, arg0);
 }
 
-/// Per-frame tick of a live part. `D_801153F4` gates the body: mode 1 runs
+/// Per-frame tick of a live part. `Gp_StateF0.field_4` gates the body: mode 1 runs
 /// none of it, mode 2 raises the node flag to 1 and returns, mode 0 raises it
 /// to 8 before falling in, and any other mode enters it directly. The body
 /// applies the part's hits, ticks its effect timer and, once the controller's
@@ -783,7 +782,7 @@ void func_actor_205200_8014B9D4(GpEnemy* arg0, Task* arg1)
 
     part       = (Actor205200Part*)arg1->work;
     parentWork = (Actor205200CtrlWork*)arg1->parent->work;
-    state      = D_801153F4;
+    state      = Gp_StateF0.field_4;
     one        = 1;
     if (state == one) {
         goto case1;

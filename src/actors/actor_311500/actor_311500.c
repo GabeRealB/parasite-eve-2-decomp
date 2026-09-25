@@ -65,16 +65,11 @@ typedef struct Actor311500Work {
     /* 0x4CC */ s32  field_4CC;
     /* 0x4D0 */ s32  field_4D0;
     /* 0x4D4 */ u16  field_4D4;
-    /// `D_801153F4` as the previous frame saw it, so a mode change can be
+    /// `Gp_StateF0.field_4` as the previous frame saw it, so a mode change can be
     /// detected.
     /* 0x4D6 */ u16 field_4D6;
 } Actor311500Work;
 STATIC_ASSERT_SIZEOF(Actor311500Work, 0x4D8);
-
-/// Global mode byte `func_actor_311500_80163334` dispatches on: 0 runs the
-/// actor, 2 keeps its model hidden, any other value only refreshes its
-/// coordinates.
-extern u8 D_801153F4;
 
 extern GpPairSrcE D_actor_311500_801692C0;
 extern u8         D_actor_311500_801692F4[];
@@ -852,7 +847,7 @@ void func_actor_311500_80163334(Task* arg0)
 
     work  = actor->work;
     obj   = actor->extra;
-    state = D_801153F4;
+    state = Gp_StateF0.field_4;
     if (state == 1) {
         goto case1;
     }
@@ -940,7 +935,7 @@ case2:
     goto case1;
 
 case1:
-    work->field_4D6 = D_801153F4;
+    work->field_4D6 = Gp_StateF0.field_4;
 tail:
     enemy = actor->spawnArg2;
     Gp_UpdateCoord(&((TmdObject*)actor->extra)->coords[1]);

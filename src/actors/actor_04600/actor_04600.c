@@ -191,7 +191,6 @@ typedef struct Actor104600Msg {
 } Actor104600Msg;
 
 extern u8 D_801153F2[2];
-extern u8 D_801153F4;
 
 /// The first enemy's pair table, packed into its third body's key, and the
 /// enemy record whose `pairTable` names it; `hpMax` seeds the enemy's HP.
@@ -909,7 +908,7 @@ void Actor04600_Fn00FD8(Task* arg0)
     *(u32*)0x1F8003FC += 0x18;
 }
 
-/// Death-state handler of the first enemy, under the `D_801153F4` mode byte:
+/// Death-state handler of the first enemy, under the `Gp_StateF0.field_4` mode byte:
 /// mode 2 hides the model and mode 1 does nothing. Otherwise `field_2B4` steps
 /// the death through three phases. Phase 0 shrinks the model and counts the
 /// kill countdown down; when it runs out the death sound plays, state 0xF0 is
@@ -931,7 +930,7 @@ void Actor04600_Fn01110(GpEnemy* enemy, Task* task)
     work  = (Actor104600Work*)task->work;
     coord = obj->coords;
     model = obj;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 1:
             break;
         case 2:
@@ -1171,7 +1170,7 @@ void Actor04600_Fn017CC(GpEnemy* arg0, Task* arg1)
 }
 
 /// Per-frame handler of the first enemy while it drops into place. Mode 1 of
-/// `D_801153F4` only re-colours it and mode 2 hides the model. Otherwise, once
+/// `Gp_StateF0.field_4` only re-colours it and mode 2 hides the model. Otherwise, once
 /// `field_2E2` has armed the drop, the root steps along its facing and by the
 /// fall speed `field_2DE`, the collision response is applied, the animation
 /// ticks and the root is recomputed, with the step length decaying by 2 a
@@ -1186,7 +1185,7 @@ void Actor04600_Fn01AFC(GpEnemy* arg0, Task* arg1)
     s32              soundId;
 
     work = (Actor104600Work*)arg1->work;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 1:
             Actor04600_UpdateColor(arg0, &((TmdObject*)arg1->extra)->coords[1]);
             break;
@@ -1402,7 +1401,7 @@ void Actor04600_Fn024A4(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2, arg0);
 }
 
-/// Per-frame handler of the first enemy under the `D_801153F4` mode byte: mode
+/// Per-frame handler of the first enemy under the `Gp_StateF0.field_4` mode byte: mode
 /// 1 runs only the tail, mode 2 hides the model and sets the node flag and
 /// returns, mode 0 clears both before falling into the update, and any other
 /// mode updates directly. The update runs the reaction dispatch, the flag
@@ -1415,7 +1414,7 @@ void Actor04600_Fn02500(GpEnemy* arg0, Task* arg1)
     s32 state;
     s32 one;
 
-    state = D_801153F4;
+    state = Gp_StateF0.field_4;
     one   = 1;
     if (state == one) {
         goto case1;
@@ -2060,7 +2059,7 @@ void Actor04600_Fn0346C(Task* arg0)
     *(Actor104600HitScratch**)G_SCRATCH_HEAD = *(Actor104600HitScratch**)G_SCRATCH_HEAD + 1;
 }
 
-/// Dying-state tick of the second enemy, under the `D_801153F4` mode byte: 1
+/// Dying-state tick of the second enemy, under the `Gp_StateF0.field_4` mode byte: 1
 /// does nothing and 2 hides the model. Otherwise the root's matrix is saved
 /// into `field_264` and refolded with the decaying Y scale. Once `field_288` is
 /// set the enemy is destroyed after 0x3D frames; before that, the kill
@@ -2078,7 +2077,7 @@ void Actor04600_Fn03958(GpEnemy* arg0, Task* arg1)
     work  = arg1->work;
     obj   = arg1->extra;
     coord = obj->coords;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             break;
         case 1:
@@ -2146,7 +2145,7 @@ void Actor04600_Fn03B80(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2, arg0);
 }
 
-/// Per-frame handler of the second enemy under the `D_801153F4` mode byte:
+/// Per-frame handler of the second enemy under the `Gp_StateF0.field_4` mode byte:
 /// mode 1 runs only the tail, mode 2 hides the model, sets the node flag and
 /// returns, mode 0 clears the node flag before falling into the update, and
 /// any other mode updates directly. The update raises the root's Y translation
@@ -2158,7 +2157,7 @@ void Actor04600_Fn03BDC(GpEnemy* arg0, Task* arg1)
     s32 state;
     s32 one;
 
-    state = D_801153F4;
+    state = Gp_StateF0.field_4;
     one   = 1;
     if (state == one) {
         goto case1;

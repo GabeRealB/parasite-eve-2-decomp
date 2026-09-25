@@ -152,10 +152,6 @@ extern u8  D_80071075;
 extern s16 D_80071076;
 extern s8  D_80114C12;
 
-/// Main-executable byte with no module header yet: while it is set, both
-/// state dispatchers below skip the frame.
-extern u8 D_801153F4;
-
 void func_actor_303600_80162850(Task* task);
 void func_actor_303600_80162950(Task* task);
 void func_actor_303600_80162A04(Task* task);
@@ -620,13 +616,13 @@ const TaskFuncTable3 D_actor_303600_80161E54 = { {
 
 /// Per-frame dispatcher of the rig's model tasks: runs their spawn, tick or
 /// exit state from `D_actor_303600_80161E54`, skipping the frame while
-/// `D_801153F4` is set.
+/// `Gp_StateF0.field_4` is set.
 void func_actor_303600_801628E4(Task* task)
 {
     TaskFuncTable3 sp;
 
     sp = D_actor_303600_80161E54;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         sp.funcs[task->state](task);
     }
 }
@@ -679,13 +675,13 @@ void func_actor_303600_80162A0C(Task* task)
 
 /// Per-frame dispatcher of the rig controller: runs its spawn, motion or exit
 /// state from `D_actor_303600_80161E48`, skipping the frame while
-/// `D_801153F4` is set.
+/// `Gp_StateF0.field_4` is set.
 void func_actor_303600_80162A7C(Task* task)
 {
     TaskFuncTable3 sp;
 
     sp = D_actor_303600_80161E48;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         sp.funcs[task->state](task);
     }
 }

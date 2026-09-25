@@ -254,10 +254,6 @@ extern Actor105700PlaceSrc Actor05700_D170F4;
 /// into its handover animation.
 extern s8 D_80115419;
 
-/// Nonzero skips the controller's state handler; the approach cycle's teardown
-/// switches on it to draw or park the body instead of running the states.
-extern u8 D_801153F4;
-
 /// Per-weapon-id weak-point flags (`id & 0x7F`) for the two hit families,
 /// picked by the id's 0x8000 bit.
 extern s16 Actor05700_D17118[];
@@ -1169,7 +1165,7 @@ void Actor05700_Fn018DC(Task* arg0)
 }
 
 /// Teardown / effect tail of the approach cycle, the same body as
-/// `Actor02000_Fn01A20` of `actor_102000`. `D_801153F4` overrides the state
+/// `Actor02000_Fn01A20` of `actor_102000`. `Gp_StateF0.field_4` overrides the state
 /// machine: 0 clears the body position, 1 draws the ground quad and returns,
 /// 2 parks the body behind the actor. Otherwise state 0 unlinks all five body
 /// objects (the fifth only for the 0x38 / 0x39 variants), hands the variant
@@ -1194,7 +1190,7 @@ void Actor05700_Fn01A58(GpEnemy* arg0, Task* arg1)
     work    = arg1->work;
     coord   = ((TmdObject*)arg1->extra)->coords;
     scratch = (SVECTOR*)(*(u8**)G_SCRATCH_HEAD -= 8);
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             ((TmdObject*)arg1->extra)->flags = 0;
             arg0->node.flags                 = 0;
@@ -1845,7 +1841,7 @@ extern s32 D_80115750;
 extern s32 Actor05700_D1722C;
 
 /// Per-frame tick of the placed effect body from `Actor05700_Fn031BC`.
-/// Mode 0 of `D_801153F4` drifts the root coordinate along its Y axis, puffs
+/// Mode 0 of `Gp_StateF0.field_4` drifts the root coordinate along its Y axis, puffs
 /// an effect every fourth frame and ends the cycle - burst, sound cue and
 /// state 2 - on a hit, an empty room-parameter slot, or after 0x5A frames.
 
@@ -1866,7 +1862,7 @@ void Actor05700_Fn035FC(GpEnemy* arg0, Task* arg1)
     coord = tmd->coords;
     work  = (Actor105700FxWork*)arg1->work;
     found = 0;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             tmd->flags = 0;
             break;
@@ -2351,7 +2347,7 @@ void Actor05700_Fn04338(GpEnemy* ctx, Task* actor)
     work  = actor->work;
     model = actor->extra;
     coord = model->coords;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             model->flags    = 0;
             ctx->node.flags = 0;

@@ -156,9 +156,6 @@ STATIC_ASSERT_SIZEOF(Actor02400PushScratch, 0x58);
 /// Global flags; bit 1 of the first byte, polled when the idle countdown runs
 /// out, wakes the body.
 extern u8 D_801153F2[2];
-/// Global mode the handlers switch on: 0 runs the full tick, 1 only refreshes
-/// the colour and ground marks, 2 hides the body.
-extern u8 D_801153F4;
 /// Set once a projectile has been spawned; wakes every other body.
 /// Declared as an array: a scalar extern lets sched1 hoist the `field_130`
 /// load above the store (`fixed_scalar_and_varying_struct_p`).
@@ -1284,7 +1281,7 @@ void Actor02400_Fn024F8(GpEnemy* arg0, Task* arg1)
     obj   = (TmdObject*)arg1->extra;
     work  = arg1->work;
     coord = obj->coords;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 1:
             pos.vx = coord->workm.t[0];
             pos.vy = coord->workm.t[1];
@@ -1468,7 +1465,7 @@ void Actor02400_Fn02AF0(GpEnemy* arg0, Task* arg1)
     coord = ((TmdObject*)arg1->extra)->coords;
     work  = arg1->work;
     spawn = 0;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 1:
             Actor02400_Fn00064(coord, 0x100);
             return;
@@ -1544,7 +1541,7 @@ void Actor02400_Fn02E0C(GpEnemy* enemy, Task* task)
 
     obj   = task->extra;
     coord = obj->coords;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 1:
             goto case1;
         case 0:

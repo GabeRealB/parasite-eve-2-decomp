@@ -302,10 +302,9 @@ extern MATRIX* D_80073B8C;
 extern u8 D_80072729;
 
 /// Two-byte mode pair read by the per-frame tick: `[1] == 1` re-maps the
-/// 0x18 state onto 6, and `D_801153F4` below picks the tick's three-arm switch
+/// 0x18 state onto 6, and `Gp_StateF0.field_4` below picks the tick's three-arm switch
 /// (0 leaves the model flag alone, 1 and 2 clear it outright).
 extern u8 D_801153F2[2];
-extern u8 D_801153F4;
 
 /// Player-to-`coord` vector, in the 16-bit `SVECTOR` view of both matrices.
 static __inline__ void Actor356100_PositionDelta(GsCOORDINATE2* coord, SVECTOR* pos)
@@ -3478,7 +3477,7 @@ void func_actor_356100_80169854(GpEnemy* arg0, Task* arg1)
     pos.vy = ((TmdObject*)arg1->extra)->coords[1].workm.t[1];
     pos.vz = ((TmdObject*)arg1->extra)->coords[1].workm.t[2];
     Gp_UpdateActorColor(arg0, &pos, 0, 0);
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             if (work->field_0 != 0 && work->field_0 != 0x15 && work->field_0 != 0x1E) {
                 ((TmdObject*)arg1->extra)->flags = 0;

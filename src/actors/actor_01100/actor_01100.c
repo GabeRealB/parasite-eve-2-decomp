@@ -32,9 +32,6 @@
 /// takes its `GameActor::field_958` shortcut instead of measuring distance.
 extern u8 D_801153F2;
 
-/// Absolute; nonzero skips the per-frame state handler entirely.
-extern u8 D_801153F4;
-
 /// 0xBCC-byte work block `Actor01100_Fn0097C` allocates with
 /// `memCalloc` and parks in `Task::work`. The coordinate at the front is
 /// linked as `coords[1].sub`; the two `GpAnimCtx` runs are what
@@ -1519,12 +1516,12 @@ static __inline__ void _actor01100RotSv(MATRIX* m, SVECTOR* v)
 }
 
 /// Per-frame update. Does nothing while `field_BA0` is set. Otherwise it
-/// refreshes model part 3 and, while `D_801153F4` is 0, steps both animation
+/// refreshes model part 3 and, while `Gp_StateF0.field_4` is 0, steps both animation
 /// contexts over parts 1-20 (restarting the motion in `field_BA4` when it
 /// changed, and blending the second context in by `field_BA2`), fills
 /// `pan`/`depth` from part 1, runs the handler for `state`, then the arm
 /// `field_BA6` selects, and while `field_BB8` is 1 spawns the splash effects
-/// and sound. While `D_801153F4` is 1 it only pushes the root out of its
+/// and sound. While `Gp_StateF0.field_4` is 1 it only pushes the root out of its
 /// world contacts. Whatever the mode, it then refreshes the root, updates
 /// the actor colour from the root position, draws the floor quad unless bit
 /// 1 of the model's flags is set, and exits the task once `field_BA6`
@@ -1553,7 +1550,7 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         return;
     }
     Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[3]);
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         randBit         = rand() & 1;
         work->field_BA9 = 0;
         work->field_BC9 = work->field_BA6;
@@ -1775,7 +1772,7 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
                 }
             }
         }
-    } else if (D_801153F4 == 1) {
+    } else if (Gp_StateF0.field_4 == 1) {
         root   = ((TmdObject*)task->extra)->coords;
         savedY = root->coord.t[1];
         Gp_UpdateCoord(root);
@@ -3514,7 +3511,7 @@ void Actor01100_Fn06198(Task* task)
     coord      = ((TmdObject*)task->extra)->coords;
     soundCoord = (GsCOORDINATE2*)coord;
     d4         = &work->rec;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         d4->end1.vx        = -(u16)work->vel.vx;
         d4->end1.vy        = -(u16)work->vel.vy;
         d4->end1.vz        = -(u16)work->vel.vz;
@@ -4246,7 +4243,7 @@ void Actor01100_Fn073A8(Task* arg0)
 }
 
 /// Per-frame state of the actor's two-state controller (state 1). While
-/// `D_801153F4` is zero the actor runs its self-destruct countdown: from
+/// `Gp_StateF0.field_4` is zero the actor runs its self-destruct countdown: from
 /// `killCountdown` 0x15 and above it throws an effect burst (0x60070) at the
 /// model's root coordinate on every other frame and reparents the spawned
 /// effect onto itself, and a collision hit on the work block's `GpRec18` table
@@ -4264,7 +4261,7 @@ void Actor01100_Fn073DC(Task* task)
     work  = (ActorsShared80137fb8Work*)task->work;
     coord = ((TmdObject*)task->extra)->coords;
 
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         if (task->killCountdown >= 0x15) {
             if (((u16)task->killCountdown & 1) == 0) {
                 eff = Gp_SpawnEff(0x60070, coord, 0xC0031FFF, NULL);

@@ -88,7 +88,6 @@ extern u8       D_80071075;
 extern s8       D_80114C11;
 extern s8       D_80114C12;
 extern u8       D_80114CF8;
-extern u8       D_801153F4;
 extern TaskDesc D_8018B57C;
 extern TaskDesc D_8018B83C;
 
@@ -232,7 +231,7 @@ void func_actor_342100_80161E70(Task* arg0)
                     break;
                 case 1:
                     if (ctx->field_6 > 0) {
-                        if (D_801153F4 == 0) {
+                        if (Gp_StateF0.field_4 == 0) {
                             ctx->field_6--;
                         }
                     } else {
@@ -714,7 +713,7 @@ void func_actor_342100_801630A4(Task* arg0)
     PlayerStatus*    cfg;
 
     work = (Actor342100Work*)arg0->work;
-    if (gGameSession->field_65 != 0 || D_80114C11 != 0 || D_801153F4 != 0 || D_80114CF8 != 0) {
+    if (gGameSession->field_65 != 0 || D_80114C11 != 0 || Gp_StateF0.field_4 != 0 || D_80114CF8 != 0) {
         return;
     }
     switch (arg0->state) {

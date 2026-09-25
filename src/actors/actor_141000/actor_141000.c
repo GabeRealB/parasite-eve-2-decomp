@@ -169,10 +169,6 @@ STATIC_ASSERT_SIZEOF(Actor141000MatWords, 0x14);
 
 extern s32 D_80070F70;
 
-/// Global "everything is frozen" mode byte in the main executable: 1 pauses the
-/// actor, 2 hides it, anything else runs the normal per-frame chain.
-extern u8 D_801153F4;
-
 /// The rotation table `func_actor_141000_80132FD0` feeds to `RotMatrix`: 0x5A
 /// `SVECTOR` axis triples, one per frame of the ramp the controller's state 2
 /// climbs, ending at the entry index 0x59 the function clamps to.
@@ -726,7 +722,7 @@ void func_actor_141000_801330C0(Task* arg0)
         coord->flg     = 0;
         arg0->state   += 1;
     }
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         count               = arg0->killCountdown + 1;
         arg0->killCountdown = count;
         if ((s16)count >= 5) {
@@ -981,7 +977,7 @@ void func_actor_141000_801338C0(Task* task)
     TaskFuncTable3 sp;
 
     sp = D_actor_141000_80131E4C;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         sp.funcs[task->state](task);
     }
 }

@@ -217,8 +217,6 @@ typedef struct Actor405800Work {
 } Actor405800Work;
 STATIC_ASSERT_SIZEOF(Actor405800Work, 0x89C);
 
-extern u8 D_801153F4;
-
 /* `D_800678F0` selects the model stream the next `Gp_SpawnEff` uses as the
  * source for the effect's own `TmdObject`.
  *
@@ -1188,7 +1186,7 @@ void func_actor_405800_80133800(Task* arg0)
     Actor405800Work* w;
     u8*              head;
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             model->flags |= 0x80;
             break;
@@ -3378,7 +3376,7 @@ void func_actor_405800_80138698(Task* arg0)
     Actor405800Work* work  = (Actor405800Work*)arg0->work;
     TaskFuncTable12  fns   = D_actor_405800_80131E24;
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             model->flags |= 0x80;
             break;

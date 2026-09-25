@@ -192,7 +192,6 @@ extern u16 D_actor_521100_8015F614[];
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
 extern s16 D_80073BA0;
-extern u8  D_801153F4;
 
 extern GpPairSrcE D_actor_521100_8015F560;
 extern TaskDesc   D_actor_521100_8015F6E4[];
@@ -2015,7 +2014,7 @@ void func_actor_521100_80135478(GpEnemy* arg0, Task* arg1)
     s32              one;
 
     temp_a1 = arg1->extra;
-    state   = D_801153F4;
+    state   = Gp_StateF0.field_4;
     temp_s1 = arg1->work;
     temp_s2 = temp_a1->coords;
     one     = 1;

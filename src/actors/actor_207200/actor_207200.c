@@ -17,7 +17,6 @@
 #include "actors/actor_207200.h"
 
 extern u8 D_801153F2[2];
-extern u8 D_801153F4;
 
 extern GpPairSrcE D_actor_207200_8014DBBC;
 extern u8         D_actor_207200_8014E7B0[];
@@ -384,7 +383,7 @@ void func_actor_207200_8014A588(Task* arg0)
     *(Actor207200HitScratch**)G_SCRATCH_HEAD = *(Actor207200HitScratch**)G_SCRATCH_HEAD + 1;
 }
 
-/// Dying-state tick of the small enemy, under the shared `D_801153F4` mode
+/// Dying-state tick of the small enemy, under the shared `Gp_StateF0.field_4` mode
 /// byte: 1 does nothing and 2 hides the model. Otherwise the root part's
 /// matrix is saved into `field_264` and refolded with the decaying Y scale.
 /// Once `field_288` is set the enemy is destroyed after 0x3D frames; before
@@ -402,7 +401,7 @@ void func_actor_207200_8014AA74(GpEnemy* arg0, Task* arg1)
     work  = arg1->work;
     obj   = arg1->extra;
     coord = obj->coords;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             break;
         case 1:
@@ -481,7 +480,7 @@ void func_actor_207200_8014ACF8(GpEnemy* arg0, Task* arg1)
     s32 state;
     s32 one;
 
-    state = D_801153F4;
+    state = Gp_StateF0.field_4;
     one   = 1;
     if (state == one) {
         goto case1;

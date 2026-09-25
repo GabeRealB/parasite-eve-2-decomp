@@ -467,7 +467,6 @@ extern GpAnimBlk*           Gp_PlayerAnimBlkTbl[];
 extern u16                  Gp_WeaponIdBase[];
 
 extern s16 D_80073BA0;
-extern u8  D_801153F4;
 extern u8  D_80165FC0;
 
 /* Resolved through `configs/USA/sym/actors.imports.txt`. */
@@ -1630,7 +1629,7 @@ void func_actor_403100_8013480C(Task* arg0, s32 arg1)
             } else {
                 walker->flags = (u16)((walker->flags & 0x7FFF) | 0x4000);
             }
-            if (D_801153F4 == 0) {
+            if (Gp_StateF0.field_4 == 0) {
                 if (Gp_FindRec18(entry->obj.ctx.recs, 0) != 0) {
                     j = 0;
                     do {
@@ -2518,7 +2517,7 @@ void func_actor_403100_80136830(Task* arg0)
         }
         D_actor_403100_80155808->field_5E6 = (s16)((u16)D_actor_403100_80155808->field_5E6 - 1);
     }
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             obj->flags |= 0x80;
             return;
@@ -5870,7 +5869,7 @@ void func_actor_403100_8013E6F0(Task* arg0)
     u16            countdown;
 
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         coord->flg = 0;
         if (!(arg0->killCountdown & 7)) {
             Gp_SpawnEff(0x60095, coord, 0x80020400, NULL);
@@ -5908,7 +5907,7 @@ void func_actor_403100_8013E7C8(Task* arg0)
     coord2->flg         = 0;
     arg0->state        += 1;
     coord               = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         coord->flg = 0;
         if (!(arg0->killCountdown & 7)) {
             Gp_SpawnEff(0x60095, coord, 0x80020400, NULL);
@@ -5929,7 +5928,7 @@ void func_actor_403100_8013E88C(Task* arg0)
     u16            countdown;
 
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         coord->flg = 0;
         if (!(arg0->killCountdown & 7)) {
             Gp_SpawnEff(0x60095, coord, 0x20400, NULL);

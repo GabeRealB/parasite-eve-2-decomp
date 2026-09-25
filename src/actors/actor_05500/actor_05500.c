@@ -135,7 +135,6 @@ typedef struct Actor105500Uv {
 extern void*   D_80067704[1];
 extern MATRIX* D_80073B8C[1];
 extern u8      D_801153F2[2];
-extern u8      D_801153F4;
 extern s8      D_8011540E;
 extern s8      D_80115412;
 
@@ -1267,7 +1266,7 @@ void Actor05500_Fn02364(GpEnemy* arg0, Task* arg1)
     obj   = arg1->extra;
     work  = arg1->work;
     coord = obj->coords;
-    switch ((s32)D_801153F4) {
+    switch ((s32)Gp_StateF0.field_4) {
         case 1:
             vec.vx = coord->workm.t[0];
             vec.vy = coord->workm.t[1];
@@ -1404,7 +1403,7 @@ void Actor05500_Fn02780(GpEnemy* arg0, Task* arg1)
 
     coord = ((TmdObject*)arg1->extra)->coords;
     work  = arg1->work;
-    switch ((s32)D_801153F4) {
+    switch ((s32)Gp_StateF0.field_4) {
         case 1:
             Actor05500_Fn02954(arg1, work->field_38);
             return;
@@ -1826,7 +1825,7 @@ void Actor05500_Fn03560(GpEnemy* arg0, Task* arg1)
     s32              one;
 
     obj   = arg1->extra;
-    state = D_801153F4;
+    state = Gp_StateF0.field_4;
     work  = arg1->work;
     coord = obj->coords;
     one   = 1;

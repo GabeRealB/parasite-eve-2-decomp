@@ -168,7 +168,6 @@ typedef struct Actor361100RippleScratch {
 STATIC_ASSERT_SIZEOF(Actor361100RippleScratch, 0x4C);
 
 extern u8  D_801156F9;
-extern u8  D_801153F4;
 extern s32 D_8007107C;
 extern s32 D_8016069C;
 extern u8  D_80071090;
@@ -316,7 +315,7 @@ static inline void _actor361100RotTrans(MATRIX* m, SVECTOR* v)
 /// depth, and the strip samples the other display buffer (`otBuffer` picks the
 /// texture page row and the v offset) displaced by a wave built from `rsin` /
 /// `rcos` of two phases seeded from `Task::killCountdown`, which the task
-/// advances by 0x20 per call while `D_801153F4` is clear.
+/// advances by 0x20 per call while `Gp_StateF0.field_4` is clear.
 ///
 /// The row window, fade, clip and mode locals are fixed values in this build,
 /// so only the default arm of each mode switch ever runs.
@@ -398,7 +397,7 @@ void func_actor_361100_80161FF8(Task* arg0)
             ptr += left >> 1;
         }
         prim = (POLY_FT4*)ptr - 1;
-        if (D_801153F4 == 0) {
+        if (Gp_StateF0.field_4 == 0) {
             arg0->killCountdown = (u16)arg0->killCountdown + 0x20;
         }
         ang2  = arg0->killCountdown * 2;
@@ -840,13 +839,13 @@ void func_actor_361100_80162B18(Task* task)
 
 /// State dispatcher: runs `Task::state` through `D_actor_361100_80161E24` --
 /// setup (`func_actor_361100_80162D28`), per-frame tick (`func_actor_361100_80162B18`)
-/// and exit (`func_actor_361100_80162DE4`) -- while `D_801153F4` is clear.
+/// and exit (`func_actor_361100_80162DE4`) -- while `Gp_StateF0.field_4` is clear.
 void func_actor_361100_80162CBC(Task* task)
 {
     TaskFuncTable3 sp;
 
     sp = D_actor_361100_80161E24;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         sp.funcs[task->state](task);
     }
 }
@@ -1118,13 +1117,13 @@ void func_actor_361100_801631C4(Task* task)
 
 /// State dispatcher: runs `Task::state` through `D_actor_361100_80161E30` --
 /// setup (`func_actor_361100_80163410`), per-frame tick (`func_actor_361100_801631C4`)
-/// and exit (`func_actor_361100_80163494`) -- while `D_801153F4` is clear.
+/// and exit (`func_actor_361100_80163494`) -- while `Gp_StateF0.field_4` is clear.
 void func_actor_361100_801633A4(Task* task)
 {
     TaskFuncTable3 sp;
 
     sp = D_actor_361100_80161E30;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         sp.funcs[task->state](task);
     }
 }

@@ -114,10 +114,6 @@ typedef struct Actor120400MatWords {
 } Actor120400MatWords;
 STATIC_ASSERT_SIZEOF(Actor120400MatWords, 0x14);
 
-/// Global freeze byte in the main executable; the parent's dispatcher runs
-/// nothing while it is non-zero.
-extern u8 D_801153F4;
-
 /// The task table the parent is spawned from and its two children are spawned
 /// from (entries 1 and 2), and the message table the parent points its
 /// `Task::msgTable` at; both live in this overlay's trailing data.
@@ -508,7 +504,7 @@ void func_actor_120400_80132748(Task* task)
     TaskFuncTable3 sp;
 
     sp = D_actor_120400_80131E30;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         sp.funcs[task->state](task);
     }
 }

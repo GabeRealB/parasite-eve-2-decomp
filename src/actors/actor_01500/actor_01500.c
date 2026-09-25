@@ -104,7 +104,6 @@ typedef struct Actor101500RotScratch {
 STATIC_ASSERT_SIZEOF(Actor101500RotScratch, 0x18);
 
 extern u8      D_801153F2[2];
-extern u8      D_801153F4;
 extern MATRIX* D_80073B8C;
 
 /* `D_80067704` selects the model stream the next `Gp_SpawnEff` builds its
@@ -1094,7 +1093,7 @@ void Actor01500_Fn01DF0(GpEnemy* arg0, Task* arg1)
     model = arg1->extra;
     work  = arg1->work;
     coord = model->coords;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             break;
         case 1:
@@ -1288,7 +1287,7 @@ void Actor01500_Fn02484(GpEnemy* arg0, Task* arg1)
     s32              one;
 
     obj   = arg1->extra;
-    state = D_801153F4;
+    state = Gp_StateF0.field_4;
     work  = arg1->work;
     coord = obj->coords;
     one   = 1;

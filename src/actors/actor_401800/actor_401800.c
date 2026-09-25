@@ -512,7 +512,6 @@ STATIC_ASSERT_SIZEOF(Actor401800StateTable, 0x88);
 
 extern const Actor401800StateTable D_actor_401800_80131FDC;
 extern u8                          D_801153F2[2];
-extern u8                          D_801153F4;
 
 /// Scratch for the view-space position published by the per-frame update.
 typedef struct Actor401800ViewScratch {
@@ -4687,7 +4686,7 @@ void func_actor_401800_8013D64C(GpEnemy* arg0, Task* arg1)
     pos.vz = ((TmdObject*)arg1->extra)->coords->workm.t[2];
     Gp_UpdateActorColor(arg0, &pos, 0, 0);
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             state = work->field_0;
             if ((state != 0) && (state != 0x15) && (state != 0x1D) && (state != 0x21)) {

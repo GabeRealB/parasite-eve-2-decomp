@@ -207,10 +207,6 @@ extern s32 D_actor_335800_80164F88;
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-/// Global freeze byte in the main executable; the state dispatchers run
-/// nothing while it is non-zero.
-extern u8 D_801153F4;
-
 extern s8       D_8007272D;
 extern u8       D_8007216C;
 extern u8       D_8007216D;
@@ -886,7 +882,7 @@ void func_actor_335800_80162F10(Task* task)
     TaskFuncTable3 sp;
 
     sp = D_actor_335800_80161E30;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         sp.funcs[task->state](task);
     }
 }
@@ -1288,7 +1284,7 @@ void func_actor_335800_80163A34(Task* task)
     TaskFuncTable3 sp;
 
     sp = D_actor_335800_80161E5C;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         sp.funcs[task->state](task);
     }
 }

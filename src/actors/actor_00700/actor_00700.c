@@ -222,7 +222,6 @@ STATIC_ASSERT_SIZEOF(Actor00700InitWork, 0x39C);
 void func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 extern MATRIX* D_80073B8C;
-extern u8      D_801153F4;
 extern s8      D_80115408;
 
 extern Actor00700TexEntry Actor00700_D075BC[];
@@ -1056,7 +1055,7 @@ void Actor00700_Fn01434(GpEnemy* arg0, Task* arg1)
 
     obj   = arg1->extra;
     work  = arg1->work;
-    state = D_801153F4;
+    state = Gp_StateF0.field_4;
     coord = obj->coords;
     if (state == 1) {
         goto case1;
@@ -1194,7 +1193,7 @@ void Actor00700_Fn0188C(GpEnemy* arg0, Task* arg1)
     s32             one;
 
     obj   = arg1->extra;
-    state = D_801153F4;
+    state = Gp_StateF0.field_4;
     work  = arg1->work;
     coord = obj->coords;
     one   = 1;
@@ -1573,7 +1572,7 @@ void Actor00700_Fn02290(GpEnemy* arg0, Task* arg1)
 
     work  = arg1->work;
     obj   = arg1->extra;
-    state = D_801153F4;
+    state = Gp_StateF0.field_4;
     coord = obj->coords;
     one   = 1;
     if (state == one) {
@@ -1913,7 +1912,7 @@ void Actor00700_Fn02D28(GpEnemy* arg0, Task* arg1)
 
     coord = ((TmdObject*)arg1->extra)->coords;
     work  = arg1->work;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 1:
             break;
         case 2:

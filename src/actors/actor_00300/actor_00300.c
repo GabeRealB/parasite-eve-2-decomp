@@ -178,7 +178,6 @@ s32 SndEvt_EnqueueType6(s32 sound, s32 pan, s32 depth);
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-extern u8        D_801153F4;
 extern s32       D_80115720;
 extern s32       D_80115728;
 extern s32       D_80115744;
@@ -2038,7 +2037,7 @@ void Actor00300_Fn03B70(GpEnemy* arg0, Task* arg1)
 
     obj   = arg1->extra;
     work  = arg1->work;
-    mode  = D_801153F4;
+    mode  = Gp_StateF0.field_4;
     coord = obj->coords;
     if (mode == 1)
         goto case1;
@@ -2144,7 +2143,7 @@ static __inline__ void Actor00300_UpdateTransform(GpEnemy* arg0, Task* arg1)
     GsCOORDINATE2*              coord;
 
     original = arg1->extra;
-    disabled = D_801153F4;
+    disabled = Gp_StateF0.field_4;
     USE_REG2(original, original);
     __asm__ volatile("" : "=r"(obj) : "0"(original));
     saved = obj->coords;
@@ -2278,7 +2277,7 @@ void Actor00300_Fn04370(GpEnemy* arg0, Task* arg1)
     coord   = ((TmdObject*)arg1->extra)->coords;
     work    = arg1->work;
     expired = 0;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 1:
             Actor00300_Fn00078(coord, 0x200);
             return;
@@ -2392,7 +2391,7 @@ void Actor00300_Fn047CC(GpEnemy* arg0, Task* arg1)
     Actor100300Work* work;
 
     work = arg1->work;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             ((TmdObject*)arg1->extra)->flags            = 0;
             ((TmdObject*)work->field_43C->extra)->flags = 0;

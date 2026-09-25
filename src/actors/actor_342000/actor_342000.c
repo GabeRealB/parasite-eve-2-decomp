@@ -1033,7 +1033,6 @@ extern u8             D_actor_342000_80164968;
 extern u8             D_actor_342000_80164E30;
 extern s8             D_8007216D;
 extern s8             D_80114C11;
-extern u8             D_801153F4;
 extern u16            D_801855DE;
 extern TaskDesc       D_80187150;
 extern GpAreaApplyRec D_8018FB6C[];
@@ -1108,7 +1107,7 @@ void func_actor_342000_8016382C(Task* arg0)
     s16                   timer;
 
     work = (Actor342000EventWork*)arg0->work;
-    if (D_801855DE != 0 || gGameSession->field_65 != 0 || D_80114C11 != 0 || D_801153F4 != 0) {
+    if (D_801855DE != 0 || gGameSession->field_65 != 0 || D_80114C11 != 0 || Gp_StateF0.field_4 != 0) {
         return;
     }
     if (gGameSession->enemyCullZone != 0) {

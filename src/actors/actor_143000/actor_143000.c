@@ -8,6 +8,7 @@
 #include "gameplay/3688.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "gameplay/3A34.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -72,7 +73,6 @@ STATIC_ASSERT_SIZEOF(Actor143000CaptureArgs, 0x10);
 extern s8              D_8007216C;
 extern s8              D_8007218B;
 extern s16             D_80114D08;
-extern u8              D_801153F4;
 extern TaskDesc        D_actor_143000_80134558;
 extern u8              D_actor_143000_80134570[];
 extern Actor143000Rect D_actor_143000_80134580[];
@@ -354,7 +354,7 @@ void func_actor_143000_801325F0(Task* arg0)
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
     p                        = D_actor_143000_80134580;
-    D_801153F4               = 2;
+    Gp_StateF0.field_4       = 2;
     prompt                   = &D_80114D28;
     if (Gp_CapBusy() != 0) {
         prompt->mode     = 0;
@@ -862,7 +862,7 @@ void func_actor_143000_80133800(Task* arg0)
         D_80114D08               = 0xA;
         gGameSession->eventState = 0;
         gGameSession->hideHud    = 0;
-        D_801153F4               = 0;
+        Gp_StateF0.field_4       = 0;
         D_8007216C               = D_actor_143000_80135C0C;
         Gp_MsgPlayer3F3(1);
     } else {

@@ -70,7 +70,6 @@ extern u32     D_actor_205200_801567E8;
 extern s16     D_actor_205200_801567B0[];
 extern SVECTOR D_actor_205200_801567B4[];
 extern u32     D_actor_205200_801567D0;
-extern u8      D_801153F4;
 extern u16     D_80071078;
 extern s16     D_80073BA0;
 
@@ -421,7 +420,7 @@ void func_actor_205200_8014C59C(GpEnemy* arg0, Task* arg1)
         arg1->state = 2;
         return;
     }
-    state = D_801153F4;
+    state = Gp_StateF0.field_4;
     if (state == 1) {
         goto case1;
     }

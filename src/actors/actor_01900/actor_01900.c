@@ -348,7 +348,6 @@ extern char    Actor01900_D10B68;
 extern s16     Actor01900_D172FC;
 extern void*   D_80114B78[1];
 extern u8      D_801153F2[2];
-extern u8      D_801153F4;
 
 s32  Actor01900_Fn00E00(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2);
 void Actor01900_Fn02A50(Task* arg0);
@@ -3946,7 +3945,7 @@ void Actor01900_Fn09D3C(GpEnemy* enemy, Task* actor)
     pos.vz = ((TmdObject*)actor->extra)->coords->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             state = work->field_0;
             if ((state != 0) && (state != 0x15) && (state != 0x1D) && (state != 0x1E)) {

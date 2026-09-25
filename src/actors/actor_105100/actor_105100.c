@@ -261,8 +261,6 @@ MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
 extern s32 D_80115728;
 
-extern u8 D_801153F4;
-
 /// Main-executable globals with no module header yet: a `D_80114C12` of 1 or a
 /// live `D_80071075` means a cutscene is already up, so the death handler skips
 /// message 0x13F4.
@@ -671,7 +669,7 @@ void func_actor_105100_80132AA0(GpEnemy* arg0, Task* arg1)
     s32              one;
 
     obj   = arg1->extra;
-    state = D_801153F4;
+    state = Gp_StateF0.field_4;
     work  = arg1->work;
     coord = obj->coords;
     one   = 1;
@@ -1508,7 +1506,7 @@ void func_actor_105100_80134130(Task* arg0)
     }
 }
 
-/// Teardown handler in `D_actor_105100_80131E24`. Mode 1 of `D_801153F4` only
+/// Teardown handler in `D_actor_105100_80131E24`. Mode 1 of `Gp_StateF0.field_4` only
 /// refreshes the actor colour; mode 2 hides the model and returns. Otherwise it
 /// walks `field_598`: unlink the collision bodies, play the death clip, fire
 /// the 0x13F4 cutscene, shrink the model, then destroy the enemy.
@@ -1533,7 +1531,7 @@ void func_actor_105100_80134284(GpEnemy* arg0, Task* arg1)
     work   = actor->work;
     coord  = obj->coords;
     player = gameGetPtrSlot(3);
-    state  = D_801153F4;
+    state  = Gp_StateF0.field_4;
     if (state == 1) {
         goto color_update;
     }
@@ -1792,7 +1790,7 @@ const GpEnemyTaskFuncTable3 D_actor_105100_80131E90 = {
 
 /// Per-frame handler of the glowing projectile this overlay spawns as its
 /// second enemy task, the middle entry of `D_actor_105100_80131E90`. Mode 1 of
-/// `D_801153F4` only redraws the billboard and mode 2 skips the frame.
+/// `Gp_StateF0.field_4` only redraws the billboard and mode 2 skips the frame.
 ///
 /// `field_7A` steps the projectile through its life. It first hovers, jittering
 /// its coordinate by a per-axis offset the gameplay LCG draws and taking each
@@ -1822,7 +1820,7 @@ void func_actor_105100_80134B00(GpEnemy* arg0, Task* arg1)
     work       = (Actor105100ProjWork*)((Actor105100Work*)arg1->work);
     coord      = ((TmdObject*)arg1->extra)->coords;
     parentWork = (arg1->parent)->work;
-    state      = D_801153F4;
+    state      = Gp_StateF0.field_4;
     if (state == 1) {
         func_actor_105100_80131EBC(coord, work->field_7E);
         return;
@@ -2046,7 +2044,7 @@ void func_actor_105100_801354E8(GpEnemy* arg0, Task* arg1)
 
     rec        = (Actor105100Rec*)((Actor105100Work*)arg1->work);
     parentWork = (arg1->parent)->work;
-    state      = D_801153F4;
+    state      = Gp_StateF0.field_4;
     coord      = ((TmdObject*)arg1->extra)->coords;
     one        = 1;
 

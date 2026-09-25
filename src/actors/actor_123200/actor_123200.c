@@ -129,10 +129,6 @@ typedef union Actor123200Msg {
 } Actor123200Msg;
 STATIC_ASSERT_SIZEOF(Actor123200Msg, 0x4);
 
-/// Game mode word the tick switches on: 0 and 1 draw the ground quad while the
-/// display mode is non-zero, 2 hides the model.
-extern u8 D_801153F4;
-
 /// While this is 1, the push-out helpers return without moving anything and
 /// the forward step is skipped.
 extern u8 D_80072729;
@@ -1164,7 +1160,7 @@ const GpEnemyTaskFuncTable3 D_actor_123200_80131E24 = {
 
 /// Per-frame tick: flags the model's coordinate for rebuild, refreshes its
 /// colour from the part matrix's translation, then scales that matrix from the
-/// work block's `field_21C`. The render mode in `D_801153F4` runs next -- modes
+/// work block's `field_21C`. The render mode in `Gp_StateF0.field_4` runs next -- modes
 /// 0 and 1 draw the ground quad while the display mode is non-zero, and 1 and 2
 /// return without ticking. The rest re-records the display mode in `field_2`
 /// (`field_4` restarting the model when it changed), dispatches the display
@@ -1192,7 +1188,7 @@ void func_actor_123200_80133BA0(GpEnemy* enemy, Task* arg1)
         pos.vx = pos.vy = pos.vz = work->field_21C;
         ScaleMatrix(&work->field_1BC, &pos);
     }
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             if (work->field_0 != 0) {
                 ((TmdObject*)arg1->extra)->flags = 0;

@@ -584,7 +584,6 @@ extern s8                D_actor_403000_80158364[];
 extern void*             Gp_PlayerAnimBlkTbl[];
 extern u16               Gp_WeaponIdBase[];
 extern u8                D_80073BA9;
-extern u8                D_801153F4;
 extern s32               D_80070F70;
 extern s16               D_80073BA0;
 extern Actor403000Msg7DA D_actor_403000_80158D8C;
@@ -4567,7 +4566,7 @@ void func_actor_403000_8013C864(GpEnemy* arg0, Task* arg1)
     pos.vz = ((TmdObject*)arg1->extra)->coords->workm.t[2];
     Gp_UpdateActorColor(arg0, (VECTOR*)&pos, 0, 0);
     ((TmdObject*)arg1->extra)->coords->flg = 0;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             if (work->field_0 != 0x16 && work->field_0 != 0x14 && work->field_0 != 0) {
                 ((TmdObject*)arg1->extra)->flags = 0;

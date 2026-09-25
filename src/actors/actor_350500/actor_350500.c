@@ -116,10 +116,6 @@ STATIC_ASSERT_SIZEOF(Actor350500Coord, 0x4C);
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-/// Global freeze byte in the main executable; the state dispatcher runs
-/// nothing while it is non-zero.
-extern u8 D_801153F4;
-
 /// Animation bank table the preset's bank index selects from.
 extern void* D_actor_350500_80168EA0[];
 
@@ -330,7 +326,7 @@ void func_actor_350500_80162360(Task* task)
     TaskFuncTable3 sp;
 
     sp = D_actor_350500_80161E24;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         sp.funcs[task->state](task);
     }
 }

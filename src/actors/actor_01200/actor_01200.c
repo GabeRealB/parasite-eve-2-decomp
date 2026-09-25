@@ -206,7 +206,6 @@ STATIC_ASSERT_SIZEOF(Actor01200AvoidDelta, 0x10);
 
 extern MATRIX* D_80073B8C;
 extern u8      D_80072729;
-extern u8      D_801153F4;
 
 extern GpPairSrcE Actor01200_D04034;
 extern s32        Actor01200_D04044;
@@ -1447,7 +1446,7 @@ const Actor01200StateTable Actor01200_D000E4 = {
 };
 
 /// Per-frame tick: refreshes the coordinate and color, handles the render
-/// mode in `D_801153F4`, dispatches the substate handler and plays its sound.
+/// mode in `Gp_StateF0.field_4`, dispatches the substate handler and plays its sound.
 void Actor01200_Fn036B0(GpEnemy* arg0, Task* arg1)
 {
     VECTOR               pos;
@@ -1465,7 +1464,7 @@ void Actor01200_Fn036B0(GpEnemy* arg0, Task* arg1)
     pos.vy = ((TmdObject*)arg1->extra)->coords->workm.t[1];
     pos.vz = ((TmdObject*)arg1->extra)->coords->workm.t[2];
     Gp_UpdateActorColor((struct GpEnemy*)arg0, &pos, 0, 0);
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             if (work->field_0 != 0 && work->field_0 != 6 && work->field_0 != 5) {
                 ((TmdObject*)arg1->extra)->flags = 0;

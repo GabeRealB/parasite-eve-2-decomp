@@ -435,17 +435,16 @@ STATIC_ASSERT_SIZEOF(GpGridParams, 0x24);
 /// `Gp_SetStateF0Byte3`). `field_4` holds the scene's actors: 0 lets them
 /// run, 1 freezes them so they only redraw, 2 hides them. Gameplay raises it
 /// around event views and copies it into `Gp_State1C->eventState` /
-/// `fadeState` every frame; most overlays reach it through the alias
-/// `D_801153F4`, and `field_6` through `D_801153F6`. `field_5` is a u8 count incremented by `Gp_ClaimSlot18`
+/// `fadeState` every frame. `field_5` is a u8 count incremented by `Gp_ClaimSlot18`
 /// when it claims a contact record. `field_6` is a u16
 /// refcount incremented by `Gp_IncStateF0Ref` and decremented by
 /// `Gp_ReleaseStateF0Add` / `Gp_ReleaseStateF0Clear` / `Gp_ReleaseStateF0`. Last-ref
 /// release in `Gp_ReleaseStateF0Clear` also clears words at 0x8 / 0xC / 0x10.
-/// `Gp_ReleaseStateF0Add` then adds the record's `exp` / `bp` / `mp` at
-/// `arg0->field_20->param` into those same words, which is how an enemy's
+/// `Gp_ReleaseStateF0Add` then adds the `exp` / `bp` / `mp` of the released
+/// task's enemy `param` into those same words, which is how an enemy's
 /// rewards reach the battle result.
-/// `func_800E2C78` adds into
-/// `field_14` when `(arg1 & 0x7F)` is 0x19..0x1B.
+/// `func_800E2C78` adds a hit's damage, capped at the enemy's remaining `hp`,
+/// into `field_14` when `(arg1 & 0x7F)` is 0x19..0x1B.
 /// `field_18`..`field_2A` are unknown bytes cleared by `Gp_InitStateF0`.
 /// Full object may still be larger than 0x2C (`Gp_PendingObj4CFlag` is a separate
 /// symbol at +0x34).

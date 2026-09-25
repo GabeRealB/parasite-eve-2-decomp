@@ -142,7 +142,6 @@ extern Actor215100CharRec D_actor_215100_8015E678;
 /// Caption schedule `func_actor_215100_8014AFAC` scans, terminated by a -1
 /// `field_0`.
 extern Actor215100CapWindow D_actor_215100_80154514[];
-extern u8                   D_801153F4;
 extern u8                   D_80115690;
 void                        func_actor_215100_8014B0D4(void);
 s32                         func_actor_215100_8014B1B0(GpCapFile* file);
@@ -233,7 +232,7 @@ void func_actor_215100_8014A398(void)
                         if (Pad_CheckButtons(0, 0, 0x1000) != 0) {
                             if ((u32)(facing - 0xA01) < 0x3FFU) {
                                 Gp_MsgPlayerWeapon(0);
-                                D_801153F4 = 1;
+                                Gp_StateF0.field_4 = 1;
                                 Gp_RunCapCmd(0x14, 0);
                                 D_80115690 = 1;
                                 Task_SpawnFromTable(&D_actor_215100_8014CF6C, 0, 0, 0);
@@ -241,7 +240,7 @@ void func_actor_215100_8014A398(void)
                         }
                         if ((Pad_CheckButtons(0, 0, 0x4000) != 0) && ((u32)(facing - 0x201) < 0x3FFU)) {
                             Gp_MsgPlayerWeapon(0);
-                            D_801153F4 = 1;
+                            Gp_StateF0.field_4 = 1;
                             Gp_RunCapCmd(0x14, 0);
                             D_80115690 = 1;
                             Task_SpawnFromTable(&D_actor_215100_8014CF6C, 0, 0, 0);
@@ -260,7 +259,7 @@ void func_actor_215100_8014A398(void)
 /// `spawnArg1 == 0` is the interactive case. Otherwise it waits for
 /// `Gp_CapBusy` to drop and switches on the key `Gp_GetCapEventKey` returns.
 /// Key 1 is the plain "talk to me" — it takes the player's weapon away and
-/// clears `D_801153F4`; every other key ends the encounter, and which ending
+/// clears `Gp_StateF0.field_4`; every other key ends the encounter, and which ending
 /// depends on `spawnArg1`: non-zero plays caption command 0x17 behind story
 /// flag 0xED and steps to state 1, while zero starts the full ending from here
 /// (the caption system is stopped, the scene task `D_8018E0C4` gets its exit,
@@ -283,7 +282,7 @@ void func_actor_215100_8014A5C0(Task* arg0)
             }
             if (Gp_GetCapEventKey() == 1) {
                 Gp_MsgPlayerWeapon(1);
-                D_801153F4 = 0;
+                Gp_StateF0.field_4 = 0;
                 taskKill(arg0);
                 break;
             }
@@ -306,7 +305,7 @@ void func_actor_215100_8014A5C0(Task* arg0)
             gGameSession->flowFlags |= 0x80;
             SndEvt_EnqueueType2(0, 0x1E);
             Gp_MsgPlayerWeapon(1);
-            D_801153F4 = 0;
+            Gp_StateF0.field_4 = 0;
             taskKill(arg0);
             break;
         case 1:
@@ -422,7 +421,7 @@ s32 func_actor_215100_8014AA54(Actor215100CharRec* arg0)
         }
         D_actor_215100_8015E678 = *arg0;
         Gp_MsgPlayerWeapon(0);
-        D_801153F4 = 1;
+        Gp_StateF0.field_4 = 1;
         Gp_RunCapCmd(0x14, 0);
         D_80115690 = 1;
         Task_SpawnFromTable(&D_actor_215100_8014CF6C, 0, 1, 0);
@@ -580,7 +579,7 @@ void func_actor_215100_8014AF0C(void)
 /// has not dropped below the clock and whose `field_4 * 30` has - and, when it
 /// finds one, starts that entry's script at its own line key with the task's
 /// `spawnArg1` as the line delay. It then ticks the clock down one, unless the
-/// caption system is busy or `D_801153F4` is up.
+/// caption system is busy or `Gp_StateF0.field_4` is up.
 void func_actor_215100_8014AFAC(Task* task, s32 arg1)
 {
     s32 i;
@@ -608,7 +607,7 @@ void func_actor_215100_8014AFAC(Task* task, s32 arg1)
                 func_actor_215100_8014B2B8(script, key, (s16)task->spawnArg1);
                 func_actor_215100_8014B0D4();
             }
-            if ((Gp_CapBusy() == 0) && (D_801153F4 == 0)) {
+            if ((Gp_CapBusy() == 0) && (Gp_StateF0.field_4 == 0)) {
                 gGameSession->sceneClock = (u16)gGameSession->sceneClock - 1;
             }
             break;

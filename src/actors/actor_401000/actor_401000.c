@@ -493,7 +493,6 @@ extern void* D_80114B78[1];
 /// 0 arm. `D_801153F2[1]` is the same pair's second byte, which forces state 6
 /// on a state-0x18 actor.
 extern u8 D_801153F2[2];
-extern u8 D_801153F4;
 
 /// Overlay effect model data `func_actor_401000_8013B1E4` points
 /// `D_80114B78` at before spawning, one per animation-latch key frame
@@ -4366,7 +4365,7 @@ static const Actor401000StateTable D_actor_401000_80131FF4 = { {
 
 /// The actor's per-frame tick, the 401000 twin of `func_actor_401300_801405DC`:
 /// copy the state table to the frame, advance the root coordinate and hand it
-/// to `Gp_UpdateActorColor`, then run the `D_801153F4` arm. Arms 1 and 2 only
+/// to `Gp_UpdateActorColor`, then run the `Gp_StateF0.field_4` arm. Arms 1 and 2 only
 /// drop the two obstacle records (2 also opening the `field_C` draw to 0x80)
 /// and return; arm 0 falls through into the common tail, which counts
 /// `field_BE8` down into `func_actor_401000_80133D50`, carries a new
@@ -4393,7 +4392,7 @@ void func_actor_401000_8013D044(GpEnemy* enemy, Task* actor)
     pos.vz = ((TmdObject*)actor->extra)->coords->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             state = work->field_0;
             if ((state != 0) && (state != 0x15) && (state != 0x1D) && (state != 0x21)) {

@@ -23,10 +23,6 @@
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-/// Global mode byte in the main executable shared by the enemy actors: 1 skips
-/// the actor's per-frame update, 2 switches its model to the hidden pose, and
-/// any other value runs the update normally.
-extern u8 D_801153F4;
 extern u8 D_801153F2[2];
 
 extern GpU16Pair  D_actor_207200_8014E7CC;
@@ -865,7 +861,7 @@ static __inline__ void Actor207200_UpdateColor(GpEnemy* enemy, Task* actor)
     *scratch = (u8*)*scratch + 0x10;
 }
 
-/// Teardown tick. Mode 2 of `D_801153F4` hides the model, mode 1 does nothing;
+/// Teardown tick. Mode 2 of `Gp_StateF0.field_4` hides the model, mode 1 does nothing;
 /// otherwise the teardown stage in `field_488` advances: 0 releases the actor's
 /// state reference, snapshots the model transform and unlinks its node and
 /// five display objects; 1 moves on once animation 5 has run 100 frames (or
@@ -882,7 +878,7 @@ void func_actor_207200_8014CA84(GpEnemy* arg0, Task* arg1)
     obj   = (TmdObject*)arg1->extra;
     work  = arg1->work;
     coord = obj->coords;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 1:
             break;
         case 2:
@@ -1080,7 +1076,7 @@ void func_actor_207200_8014D280(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2, arg0);
 }
 
-/// Per-frame tick of the actor's live state. `D_801153F4` gates it: mode 1
+/// Per-frame tick of the actor's live state. `Gp_StateF0.field_4` gates it: mode 1
 /// skips the update and runs only the tail, mode 2 puts the model in its
 /// hidden pose (part flag 0x80, node flag 1) and returns without updating,
 /// mode 0 clears both flags before falling into the update, and any other mode
@@ -1093,7 +1089,7 @@ void func_actor_207200_8014D2DC(GpEnemy* arg0, Task* arg1)
     s32 state;
     s32 one;
 
-    state = D_801153F4;
+    state = Gp_StateF0.field_4;
     one   = 1;
     if (state == one) {
         goto case1;

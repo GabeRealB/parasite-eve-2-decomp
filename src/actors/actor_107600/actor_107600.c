@@ -134,10 +134,6 @@ typedef struct Actor107600QuadScratch {
     /* 0x14 */ SVECTOR v[4];
 } Actor107600QuadScratch;
 
-/// Global scene mode the actor updates switch on: 0 runs the full update, 1 only
-/// refreshes the colour, 2 hides the model (`TmdObject.flags` bit 0x80).
-extern u8 D_801153F4;
-
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 void func_8004BFF8(s16 angle, MATRIX* matrix);
 
@@ -550,7 +546,7 @@ void func_actor_107600_801328CC(Task* arg0)
 }
 
 /// Update state of the `D_actor_107600_80131E24` table, switched on the scene
-/// mode `D_801153F4`. Mode 0 runs the `field_13E` sub-state, copies the yaw and
+/// mode `Gp_StateF0.field_4`. Mode 0 runs the `field_13E` sub-state, copies the yaw and
 /// roll onto the model root, rebuilds its rotation and scales `coord.m[1][1]`
 /// by the `field_14B` percent; modes 0 and 1 then refresh the colour and show
 /// the model, and mode 2 hides it.
@@ -563,7 +559,7 @@ void func_actor_107600_80132930(Task* arg0)
     TmdObject*       obj;
 
     obj = ext;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             funcs[(s16)work->field_13E](arg0);
             coord->field_46 = work->yaw;
@@ -811,7 +807,7 @@ void func_actor_107600_80132ED0(Task* arg0)
     arg0->state += 1;
 }
 
-/// Per-frame update switched on the scene mode `D_801153F4`, like
+/// Per-frame update switched on the scene mode `Gp_StateF0.field_4`, like
 /// `func_actor_107600_80132930`. Mode 0 runs the `field_158` state out of
 /// `D_actor_107600_80131E84`, then (below state 7) takes hits, clears the collision records and enters state 9 once the enemy's
 /// HP is gone. Afterwards publishes the enemy's slot mask to the gallery and
@@ -835,7 +831,7 @@ void func_actor_107600_80133024(Task* arg0)
     sp                     = D_actor_107600_80131E84;
     *(s32*)G_SCRATCH_HEAD -= 8;
     v                      = *(SVECTOR**)G_SCRATCH_HEAD;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             sp.funcs[work->field_158](arg0);
             if (work->field_158 < 7) {
@@ -1498,7 +1494,7 @@ void func_actor_107600_80134608(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
                 src->z = block->col0.vz;
                 src    = (GpMtxCol*)&src->_0;
             } while (i < 3);
-            if (D_801153F4 == 0) {
+            if (Gp_StateF0.field_4 == 0) {
                 arg0->colorBlend--;
             }
         }

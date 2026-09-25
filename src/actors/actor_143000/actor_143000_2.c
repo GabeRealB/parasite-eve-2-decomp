@@ -7,6 +7,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
+#include "gameplay/3A34.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/session.h"
@@ -15,7 +16,6 @@
 #include "psyq/strings.h"
 
 extern s32            D_80070F6C;
-extern u8             D_801153F4;
 extern GpAreaApplyRec D_80186488;
 extern GpAreaApplyRec D_8018649C;
 extern s32            D_actor_143000_80135124;
@@ -235,7 +235,7 @@ void func_actor_143000_8013450C(void)
 
 void func_actor_143000_8013452C(u8 arg0)
 {
-    D_801153F4 = arg0;
+    Gp_StateF0.field_4 = arg0;
 }
 
 void func_actor_143000_80134538(void)

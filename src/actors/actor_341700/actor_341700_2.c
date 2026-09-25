@@ -138,10 +138,6 @@ STATIC_ASSERT_SIZEOF(Actor341700DeltaFlag, 0x14);
 /// applied, rounded away from zero when the step had a fraction.
 extern SVECTOR D_actor_341700_80176360;
 
-/// Global render mode: 2 hides the model, 1 only colours it, 0 runs the
-/// state handler as well.
-extern u8 D_801153F4;
-
 /// Main-executable byte; while it is 1 the contact-record push and avoid
 /// helpers return at once without touching the coordinate.
 extern u8 D_80072729;
@@ -983,7 +979,7 @@ const GpEnemyTaskFuncTable3 D_actor_341700_80162058 = { {
 
 /// Per-frame callback of the `func_actor_341700_8016D130` task. It colours the
 /// model from the world position of its *second* attach coordinate and then,
-/// unless `D_801153F4` hides the model, runs the handler `Actor341700SubWork::
+/// unless `Gp_StateF0.field_4` hides the model, runs the handler `Actor341700SubWork::
 /// field_0` names.
 ///
 /// `case 0` is folded into `default` on purpose. The two bodies are the same,
@@ -1002,7 +998,7 @@ void func_actor_341700_8016CC9C(GpEnemy* arg0, Task* arg1)
     block.vy = ((TmdObject*)arg1->extra)->coords[1].workm.t[1];
     block.vz = ((TmdObject*)arg1->extra)->coords[1].workm.t[2];
     Gp_UpdateActorColor(arg0, &block, 0, 0);
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             ((TmdObject*)arg1->extra)->flags |= 0x80;
             return;

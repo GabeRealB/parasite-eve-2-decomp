@@ -199,8 +199,6 @@ extern u8 D_801153F2;
 /// Raised by the teardown state; the approach states drop out of their cycle
 /// while it is set.
 extern s8 D_80115419;
-/// Scene hold: 0 runs the enemy, 1 only redraws it, 2 hides it.
-extern u8 D_801153F4;
 
 /// Sound id of the part-11 child's cue, ORed with the enemy's id nibble.
 extern s32 Actor02300_D15B08;
@@ -1144,7 +1142,7 @@ void Actor02300_Fn018A4(Task* arg0)
 }
 
 /// Teardown state of the enemy (entry 2 of `Actor02300_D00078`).
-/// `D_801153F4` gates it: 1 only redraws and 2 hides the model and its lock-on
+/// `Gp_StateF0.field_4` gates it: 1 only redraws and 2 hides the model and its lock-on
 /// node, both returning; 0 shows them and runs the states. State 0 unlinks the enemy's lock-on
 /// node and collision bodies, releases its state-F0 slot, settles on the idle
 /// `field_6B8` selects, files the pose with `Gp_SaveEnemyPose` so the enemy is
@@ -1168,7 +1166,7 @@ void Actor02300_Fn01A20(GpEnemy* arg0, Task* arg1)
     work    = arg1->work;
     coord   = ((TmdObject*)arg1->extra)->coords;
     scratch = (SVECTOR*)(*(u8**)G_SCRATCH_HEAD -= 8);
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             ((TmdObject*)arg1->extra)->flags = 0;
             arg0->node.flags                 = 0;
@@ -1828,7 +1826,7 @@ case2:
 }
 
 /// Per-frame state of the enemy (entry 1 of `Actor02300_D00078`). Unless
-/// `D_801153F4` holds the scene (1 only redraws, 2 hides the model and its
+/// `Gp_StateF0.field_4` holds the scene (1 only redraws, 2 hides the model and its
 /// lock-on node), it turns a pending knock-back into entry 0xA, runs the hit
 /// tick and the `field_6A6` state handler, turns toward `field_6A4`, steps the
 /// root coordinate forward by `field_69C`, advances or reseeds the animation
@@ -1855,7 +1853,7 @@ void Actor02300_Fn02EA0(GpEnemy* ctx, Task* actor)
     work  = actor->work;
     model = actor->extra;
     coord = model->coords;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             model->flags    = 0;
             ctx->node.flags = 0;

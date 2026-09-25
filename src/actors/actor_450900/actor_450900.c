@@ -16,7 +16,6 @@
 #include "psyq/rand.h"
 
 extern s16 D_80071076;
-extern u8  D_801153F4;
 extern s32 D_8017A99C;
 extern s8  D_actor_450900_80135E70;
 extern s32 D_actor_450900_80135E74;
@@ -79,7 +78,7 @@ void func_actor_450900_80131E38(Task* task)
             if (gGameSession->eventState != 0) {
                 break;
             }
-            if (D_801153F4 != 0) {
+            if (Gp_StateF0.field_4 != 0) {
                 break;
             }
             if (Mc_SaveData.demoScene != 0xB) {
@@ -129,7 +128,7 @@ void func_actor_450900_8013207C(Task* task)
             task->state         = task->state + 1;
             return;
         case 1:
-            if ((Gp_CapBusy() == 0) && (gGameSession->eventState == 0) && (D_801153F4 == 0) && ((D_8017A99C - 0x456) >= 0)) {
+            if ((Gp_CapBusy() == 0) && (gGameSession->eventState == 0) && (Gp_StateF0.field_4 == 0) && ((D_8017A99C - 0x456) >= 0)) {
                 if ((D_8017A99C - 0x456) % 210 == 0) {
                     coord = ((TmdObject*)gameGetPtrSlot(3)->extra)->coords;
                     pan   = (s8)Gp_GetObjPan(coord);
@@ -167,7 +166,7 @@ void func_actor_450900_8013223C(Task* task)
 {
     switch (task->state) {
         case 0:
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_RunCapCmd(1, 0);
             task->state = task->state + 1;
             break;
@@ -181,7 +180,7 @@ void func_actor_450900_8013223C(Task* task)
                 goto kill;
             }
             GameFlag_SetNibble(0xD8, 1);
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_RunCapCmd(2, 0);
             func_800E8614((s32)&D_actor_450900_80136B00, 0);
             task->state = task->state + 1;
@@ -190,7 +189,7 @@ void func_actor_450900_8013223C(Task* task)
             if (gGameSession->eventState == 0) {
             kill:
                 Gp_MsgPlayerWeapon(1);
-                D_801153F4 = 0;
+                Gp_StateF0.field_4 = 0;
                 taskKill(task);
             }
             break;
@@ -312,7 +311,7 @@ void func_actor_450900_80132548(Task* task)
 
 void func_actor_450900_80132678(u8 arg0)
 {
-    D_801153F4 = arg0;
+    Gp_StateF0.field_4 = arg0;
 }
 
 /// Plays the ally's voice cue at its own pan and depth: `arg0` picks the

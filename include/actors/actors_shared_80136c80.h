@@ -27,12 +27,6 @@ typedef struct ActorsShared80136c80Work {
 } ActorsShared80136c80Work;
 STATIC_ASSERT_SIZEOF(ActorsShared80136c80Work, 0x58);
 
-/// Global mode the tick dispatches on: 0 runs the tick (zeroing the model
-/// part's flag word first), 1 is a plain return and 2 hides the part with
-/// `field_C = 0x80`. Published in the main executable; several overlays of the
-/// specimen - `actor_300700`, `actor_105100`, `actor_503500` - read it too.
-extern u8 D_801153F4;
-
 /// Per-frame tick of the specimen's movement cycle; carried by `actor_107000`
 /// and `actor_207000`, which both reach the work through `Task::work`.
 void ActorsShared80136c80(Task* arg0);

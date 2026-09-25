@@ -253,10 +253,6 @@ extern u8 D_801153F2;
 /// teardown raises it.
 extern s8 D_80115419;
 
-/// Nonzero parks the actor instead of running its state machine: 1 draws the
-/// body where it stands and 2 hides it.
-extern u8 D_801153F4;
-
 /// Frame counts of the actor's animations, indexed by `Actor105600Work.field_694`.
 extern s16 Actor05600_D04CFC[];
 
@@ -1171,7 +1167,7 @@ void Actor05600_Fn018D0(Task* arg0)
 }
 
 /// Teardown state of the actor, entry 2 of `Actor05600_D00098`.
-/// `D_801153F4` overrides it: 0 shows the body and lets the tick run, 1 only
+/// `Gp_StateF0.field_4` overrides it: 0 shows the body and lets the tick run, 1 only
 /// refreshes the colour and ground shadow, 2 hides the body. State 0 unlinks
 /// the body objects (the fifth only for the 0x38 / 0x39 variants), hands the
 /// variant to `Gp_ReleaseStateF0Add`, picks the collapse clip for the pose,
@@ -1195,7 +1191,7 @@ void Actor05600_Fn01A4C(GpEnemy* arg0, Task* arg1)
     work    = (Actor105600Work*)arg1->work;
     coord   = ((TmdObject*)arg1->extra)->coords;
     scratch = (SVECTOR*)(*(u8**)G_SCRATCH_HEAD -= 8);
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             ((TmdObject*)arg1->extra)->flags = 0;
             arg0->node.flags                 = 0;
@@ -1846,7 +1842,7 @@ extern s32 D_80115750;
 extern s32 Actor05600_D162F4;
 
 /// Per-frame state of the effect child set up by `Actor05600_Fn031B0`, entry
-/// 1 of `Actor05600_D0008C`. `D_801153F4` overrides it: 0 shows the child and
+/// 1 of `Actor05600_D0008C`. `Gp_StateF0.field_4` overrides it: 0 shows the child and
 /// runs the tick, 1 only refreshes its colour, 2 hides it. The tick moves the
 /// child along its own Y axis, spawns a puff every fourth frame and ends the
 /// flight on a body contact, a room face without the `field_1` flag, or after
@@ -1869,7 +1865,7 @@ void Actor05600_Fn035F0(GpEnemy* arg0, Task* arg1)
     coord = tmd->coords;
     work  = (Actor105600FxWork*)arg1->work;
     found = 0;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             tmd->flags = 0;
             break;
@@ -2166,7 +2162,7 @@ case2:
 /// Per-frame tick of the approach cycle: runs the collision and state handlers,
 /// drifts the root coordinate forward along its Z axis (and upward while
 /// `field_6DE` is below 2), reseeds or ticks the nineteen animation slots, then
-/// publishes the body's colour and its ground shadow. `D_801153F4` overrides
+/// publishes the body's colour and its ground shadow. `Gp_StateF0.field_4` overrides
 /// the whole state machine - 1 draws the body without advancing it and 2
 /// hides it. Entry 1 of `Actor05600_D00098`.
 void Actor05600_Fn03EBC(GpEnemy* ctx, Task* actor)
@@ -2189,7 +2185,7 @@ void Actor05600_Fn03EBC(GpEnemy* ctx, Task* actor)
     work  = (Actor105600Work*)actor->work;
     model = (TmdObject*)actor->extra;
     coord = model->coords;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             model->flags    = 0;
             ctx->node.flags = 0;

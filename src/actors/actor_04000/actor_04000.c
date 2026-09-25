@@ -218,7 +218,6 @@ STATIC_ASSERT_SIZEOF(Actor104000AvoidDelta, 0x10);
 extern u8      D_80072729;
 extern u8      D_8007216C;
 extern MATRIX* D_80073B8C;
-extern u8      D_801153F4;
 
 extern Task* Actor04000_D0C710[2];
 extern Task* Actor04000_D0C718[6];
@@ -2199,7 +2198,7 @@ void Actor04000_Fn05F0C(GpEnemy* arg0, Task* arg1)
     pos.vy = ((TmdObject*)arg1->extra)->coords->workm.t[1];
     pos.vz = ((TmdObject*)arg1->extra)->coords->workm.t[2];
     Gp_UpdateActorColor(arg0, &pos, 0, 0);
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             if (work->field_0 != 0 && work->field_0 != 6 && work->field_0 != 5 && work->field_0 != 0xD &&
                 work->field_0 != 0xF && work->field_0 != 0x10 && work->field_0 != 0x11) {

@@ -141,10 +141,6 @@ typedef union Actor135400Mat {
 } Actor135400Mat;
 STATIC_ASSERT_SIZEOF(Actor135400Mat, 0x20);
 
-/// Main-executable mode byte: while it is nonzero the two dispatchers skip the
-/// frame.
-extern u8 D_801153F4;
-
 /// The actor's two-entry `TaskDesc` table, indexed by `Task_SpawnFromTable`:
 /// entry 1 is the model-bearing part task `func_actor_135400_80132450`
 /// reparents, entry 2 the second part (`func_actor_135400_8013252C`).
@@ -499,14 +495,14 @@ void func_actor_135400_8013252C(Task* task)
 }
 
 /// Per-frame dispatcher of the main task: runs its spawn, tick or exit state
-/// from `D_actor_135400_80131E3C`, skipping the frame while `D_801153F4` is
+/// from `D_actor_135400_80131E3C`, skipping the frame while `Gp_StateF0.field_4` is
 /// set.
 void func_actor_135400_801325A8(Task* task)
 {
     TaskFuncTable3 sp;
 
     sp = D_actor_135400_80131E3C;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         sp.funcs[task->state](task);
     }
 }
@@ -733,13 +729,13 @@ const TaskFuncTable3 D_actor_135400_80131E94 = { {
 
 /// Per-frame dispatcher of the task `func_actor_135400_80132B60` sets up: runs
 /// its spawn, tick or exit state from `D_actor_135400_80131E94`, skipping the
-/// frame while `D_801153F4` is set.
+/// frame while `Gp_StateF0.field_4` is set.
 void func_actor_135400_80132AF4(Task* task)
 {
     TaskFuncTable3 sp;
 
     sp = D_actor_135400_80131E94;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         sp.funcs[task->state](task);
     }
 }

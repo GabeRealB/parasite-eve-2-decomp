@@ -3780,11 +3780,6 @@ void func_actor_110600_80137DB0(Task* arg0)
 /// over" global `func_actor_105100_80136318` gates on.
 extern s16 D_80073BA0;
 
-/// Mode switch the tick runs on: 0 zeroes the model part's `field_C`, 2 sets it
-/// to 0x80 for the hidden pose, and 1 leaves it alone. Same switch the sibling
-/// `Actor01900_Fn09D3C` runs.
-extern u8 D_801153F4;
-
 /// Per-frame step the tick hands off to once the `field_8AA` countdown reaches
 /// zero.
 void func_actor_110600_80136210(Task* arg0);
@@ -3825,7 +3820,7 @@ const Actor110600StateTable D_actor_110600_80131F3C = {
 /// triple `func_actor_110600_80134AB4` / this / `Gp_DestroyEnemy`: copies
 /// `D_actor_110600_80131F3C` onto its frame, rebuilds the model root's
 /// coordinate and hands its translation to `Gp_UpdateActorColor`, then switches
-/// on `D_801153F4`.
+/// on `Gp_StateF0.field_4`.
 ///
 /// Modes 1 and 2 skip the state handler entirely — each clears the three
 /// `GpRec18` tables and returns, mode 2 stamping `field_C` to 0x80 for the
@@ -3858,7 +3853,7 @@ void func_actor_110600_80137F2C(GpEnemy* arg0, Task* arg1)
     pos.vz = ((TmdObject*)arg1->extra)->coords->workm.t[2];
     Gp_UpdateActorColor(arg0, &pos, 0, 0);
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             if ((work->field_0 != 0) && (work->field_0 != 0xC)) {
                 ((TmdObject*)arg1->extra)->flags = 0;

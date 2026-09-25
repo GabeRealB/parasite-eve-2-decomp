@@ -27,7 +27,6 @@
 #include "actors/actors_shared_8016a538.h"
 #include "actors/actors_shared_8016bd98.h"
 
-extern u8         D_801153F4;                // absolute; the enemy callbacks' mode: 2 hides the model, 1 only recolours it
 extern GpPairSrcE D_actor_342400_80170588;   // the main enemy's `GpEnemy::param` record
 extern u8         D_actor_342400_801739E8[]; // animation bank handed to `func_800B3F84`
 extern u8         D_actor_342400_80173A3C[]; // stored into `Task::msgTable` by func_actor_342400_80163C58
@@ -741,7 +740,7 @@ void func_actor_342400_801640B0(Task* arg0)
     TaskFuncTable11  sp    = D_actor_342400_80161EA8;
     s32              cur;
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             obj->flags |= 0x80;
             return;
@@ -1053,7 +1052,7 @@ void func_actor_342400_80164DD4(Task* arg0)
 }
 
 /// Per-frame callback shaped like `func_actor_342400_80165FC0`, with a
-/// one-entry handler table. `D_801153F4` 2 hides the model; 0 runs the state
+/// one-entry handler table. `Gp_StateF0.field_4` 2 hides the model; 0 runs the state
 /// handler and the follow-up steps, then moves the task to state 4 when
 /// `field_448` requests it and the enemy is out of HP; 0 and 1 both colour
 /// it, run `func_actor_342400_80163354` for three part pairs and unhide it. The work block is reloaded through its own local
@@ -1066,7 +1065,7 @@ void func_actor_342400_80164F3C(Task* arg0)
     GsCOORDINATE2*   coord = obj->coords;
     TaskFunc         sp[1] = { func_actor_342400_8016A494 };
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             obj->flags |= 0x80;
             return;
@@ -1538,7 +1537,7 @@ const TaskFuncTable9 D_actor_342400_80161F50 = { {
     func_actor_342400_8016AA08,
 } };
 
-/// Per-frame callback of the main enemy. `D_801153F4` 2 hides the model,
+/// Per-frame callback of the main enemy. `Gp_StateF0.field_4` 2 hides the model,
 /// 0 runs the current state handler (then colours it), 1 only colours it.
 /// Unless `field_451` is set, it then runs `func_actor_342400_80163354` for
 /// three part pairs.
@@ -1549,7 +1548,7 @@ void func_actor_342400_80165FC0(Task* arg0)
     GsCOORDINATE2*   coord = obj->coords;
     TaskFuncTable9   sp    = D_actor_342400_80161F50;
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             obj->flags |= 0x80;
             return;
@@ -1768,7 +1767,7 @@ void func_actor_342400_8016666C(Task* arg0)
     GsCOORDINATE2*   coord = obj->coords;
     TaskFuncTable5   sp    = D_actor_342400_80161F8C;
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             obj->flags |= 0x80;
             return;
@@ -2067,7 +2066,7 @@ void func_actor_342400_801670C0(Task* arg0)
     GsCOORDINATE2*   coord = obj->coords;
     TaskFuncTable10  sp    = D_actor_342400_80161FE8;
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             obj->flags |= 0x80;
             return;
@@ -2831,7 +2830,7 @@ void func_actor_342400_80168F14(Task* arg0)
     GsCOORDINATE2*   coord = obj->coords;
     TaskFuncTable5   sp    = D_actor_342400_80162028;
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             obj->flags |= 0x80;
             return;
@@ -2864,7 +2863,7 @@ void func_actor_342400_801690FC(Task* arg0)
     GsCOORDINATE2*   coord = obj->coords;
     TaskFuncTable7   sp    = D_actor_342400_8016203C;
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             obj->flags |= 0x80;
             return;

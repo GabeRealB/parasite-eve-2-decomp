@@ -137,7 +137,6 @@ extern u8    Actor03800_D0492C[];
 
 extern s8         D_80115410;
 extern u8         D_801153F2;
-extern u8         D_801153F4;
 extern s16        Actor03800_D05F90[];
 extern s16        Actor03800_D05FA8[];
 extern u16        Actor03800_D05F40;
@@ -1525,7 +1524,7 @@ void Actor03800_Fn02998(GpEnemy* arg0, Task* arg1)
 
     obj   = arg1->extra;
     work  = arg1->work;
-    state = D_801153F4;
+    state = Gp_StateF0.field_4;
     coord = work->field_344;
     if (state == 1) {
         goto case1;
@@ -1810,7 +1809,7 @@ void Actor03800_Fn031B8(GpEnemy* arg0, Task* arg1)
     s32              state;
     s32              one;
 
-    state = D_801153F4;
+    state = Gp_StateF0.field_4;
     one   = 1;
     work  = arg1->work;
     if (state == one) {

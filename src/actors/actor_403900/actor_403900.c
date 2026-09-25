@@ -469,8 +469,6 @@ extern s16 D_80073BA0;
 /// Difficulty index into `D_actor_403900_80153C10`.
 extern u8 D_8011541B;
 
-extern u8 D_801153F4;
-
 /// 1BC.h keeps this out of scope on purpose: callers hand it a sign-extended
 /// animation id, which a `u16` prototype would zero-extend.
 void    func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
@@ -2591,7 +2589,7 @@ static inline void Actor403900_DrawShadow(Task* arg0)
     Gp_DrawEffGroundQuad(&vec, 0x300, work->field_6E2);
 }
 
-/// Frame handler for the scene's `D_801153F4` mode. Mode 1 only refreshes the
+/// Frame handler for the scene's `Gp_StateF0.field_4` mode. Mode 1 only refreshes the
 /// coordinates, tint and shadow and mode 2 hides the model, both returning
 /// without giving back the 8-byte `G_SCRATCH_HEAD` block. Otherwise the
 /// `field_6CE` sequence runs: state 0 unlinks the actor and saves its pose,
@@ -2612,7 +2610,7 @@ void func_actor_403900_801368E0(GpEnemy* arg0, Task* arg1)
     head                  = *(u8**)G_SCRATCH_HEAD;
     *(u8**)G_SCRATCH_HEAD = head - sizeof(SVECTOR);
     sc                    = (SVECTOR*)(head - sizeof(SVECTOR));
-    mode                  = D_801153F4;
+    mode                  = Gp_StateF0.field_4;
     switch (mode) {
         case 0:
             ((TmdObject*)arg1->extra)->flags = 0;
@@ -3006,7 +3004,7 @@ void func_actor_403900_80137444(GpEnemy* arg0, Task* arg1)
     }
 }
 
-/// Frame handler for the scene's `D_801153F4` mode. Mode 1 only refreshes the
+/// Frame handler for the scene's `Gp_StateF0.field_4` mode. Mode 1 only refreshes the
 /// tint and the ground shadow, and mode 2 hides the model; both return at once.
 /// Mode 0 shows the model again while the `field_6DA` timer runs and makes the
 /// enemy lockable only while a hit is pending (bit 0x8000 of `field_49A`).
@@ -3025,7 +3023,7 @@ void func_actor_403900_80137A20(GpEnemy* arg0, Task* arg1)
     temp_s1 = arg1->work;
     temp_a1 = arg1->extra;
     temp_s2 = temp_a1->coords;
-    state   = D_801153F4;
+    state   = Gp_StateF0.field_4;
     one     = 1;
     if (state == one) {
         goto case1;

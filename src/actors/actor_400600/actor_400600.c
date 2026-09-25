@@ -256,8 +256,6 @@ extern void* D_800678F0[1];
 extern s8    D_80115414[1];
 extern s8    D_80115417;
 
-extern u8 D_801153F4;
-
 extern s32 D_80115738;
 extern s32 D_8011574C;
 
@@ -1197,7 +1195,7 @@ void func_actor_400600_801337A8(Task* arg0)
     GpEnemy*         enemy = (GpEnemy*)arg0->spawnArg2;
     TaskFuncTable18  fns   = D_actor_400600_80131EEC;
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             model->flags |= 0x80;
             func_actor_400600_801387DC(arg0, -1);
@@ -3204,7 +3202,7 @@ void func_actor_400600_80137EF0(Task* arg0)
     Actor400600Work* work  = (Actor400600Work*)arg0->work;
     TaskFuncTable3   fns   = D_actor_400600_80132030;
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             model->flags |= 0x80;
             break;
@@ -3477,7 +3475,7 @@ void func_actor_400600_80138C34(Task* arg0)
     Actor400600Work* work  = (Actor400600Work*)arg0->work;
     TaskFuncTable8   fns   = D_actor_400600_80131E7C;
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             model->flags |= 0x80;
             break;
@@ -3503,7 +3501,7 @@ void func_actor_400600_80138D78(Task* arg0)
     Actor400600Work* work  = (Actor400600Work*)arg0->work;
     TaskFuncTable4   fns   = D_actor_400600_80131E9C;
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             model->flags |= 0x80;
             break;
@@ -3529,7 +3527,7 @@ void func_actor_400600_80138EA0(Task* arg0)
     Actor400600Work* work  = (Actor400600Work*)arg0->work;
     TaskFuncTable6   fns   = D_actor_400600_80131E54;
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             model->flags |= 0x80;
             break;
@@ -3555,7 +3553,7 @@ void func_actor_400600_80138FD4(Task* arg0)
     Actor400600Work* work  = (Actor400600Work*)arg0->work;
     TaskFuncTable4   fns   = D_actor_400600_80131E6C;
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             model->flags |= 0x80;
             break;
@@ -4031,7 +4029,7 @@ void func_actor_400600_8013A170(Task* arg0)
     Actor400600Work* work  = (Actor400600Work*)arg0->work;
     TaskFuncTable12  fns   = D_actor_400600_80131E24;
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             model->flags |= 0x80;
             func_actor_400600_801387DC(arg0, -1);

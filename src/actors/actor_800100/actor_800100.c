@@ -40,8 +40,6 @@ typedef struct {
     u8   field_973;
 } Actor800100DirByte;
 
-extern u8 D_801153F4;
-
 void func_actor_800100_801635F4(Task* arg0);
 void func_actor_800100_80163A58(Task* arg0);
 void func_actor_800100_80165528(Task* arg0);
@@ -940,7 +938,7 @@ void func_actor_800100_801635F4(Task* arg0)
     }
     actor->field_983 = 0;
 
-    if (D_80115768 == 0 && D_801153F4 == 0) {
+    if (D_80115768 == 0 && Gp_StateF0.field_4 == 0) {
         func_actor_800100_80165528(arg0);
     }
     func_actor_800100_80163A58(arg0);

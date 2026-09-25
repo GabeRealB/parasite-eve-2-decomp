@@ -829,11 +829,6 @@ extern Actor444000MsgPos D_actor_444000_80161908;
 /// Reply buffer the fight hands message 0x3F8 before asking for the hold.
 extern Actor444000Msg3F8 D_actor_444000_80161928;
 
-/// Non-zero while the controller task is suspended; the arena tick uses it to
-/// pick how much of the per-frame work still runs (see
-/// `func_actor_444000_801423C4`).
-extern u8 D_801153F4;
-
 /// Global game-mode byte; sits inside a small flag block, so it is declared as
 /// an array -- the load has to keep aliasing the scratch stores beside it (see
 /// DECOMPILATION_LEARNINGS.md, "Declare a fixed-address global as an array").
@@ -2794,14 +2789,14 @@ void func_actor_444000_80137594(GpEnemy* enemy, Task* task)
 /// flag) re-arms the step counter, the ground marker and the first display
 /// node on the frame the state starts.
 ///
-/// While the game is running (`D_801153F4` clear) the model falls 0xA a step,
+/// While the game is running (`Gp_StateF0.field_4` clear) the model falls 0xA a step,
 /// column 2 of its coordinate is normalised into a scratchpad `SVECTOR` and
 /// scaled by 0x89/0x1000 through the GTE's GPF, and that is the per-step
 /// translation added to the coordinate; past step 0x29 the height is pinned to
 /// -0x3E8 instead. The marker grows 0x60 a step and is drawn under the work
 /// block's own coordinate, which is parented to `gGfxViewCoord` and tracks the
 /// model. After 0x35 steps the display node is handed back and the task steps
-/// on. Paused (`D_801153F4` set) only the coordinate is refreshed, and the
+/// on. Paused (`Gp_StateF0.field_4` set) only the coordinate is refreshed, and the
 /// marker is skipped while the host actor sits in state 6.
 ///
 /// Bails out -- unlinking the display node and stepping the task on -- when the
@@ -2842,7 +2837,7 @@ void func_actor_444000_8013799C(GpEnemy* enemy, Task* task)
         work->obj0.flags |= 0x8000;
     }
 
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         work->field_1AC++;
         ((TmdObject*)task->extra)->coords->coord.t[1] += 0xA;
 
@@ -7395,7 +7390,7 @@ void func_actor_444000_80142254(void)
 /// escorts, then runs the state handler `Actor444000Work::field_0` selects and
 /// republishes every collision group.
 ///
-/// `D_801153F4` gates how much of that runs. While the controller task is
+/// `Gp_StateF0.field_4` gates how much of that runs. While the controller task is
 /// suspended (1 or 2) the tick only pushes the host's `TmdObject::flags`
 /// onto the escorts and clears the collision tables, and returns; only the
 /// running case (0) and anything else falls through to the state machine.
@@ -7490,7 +7485,7 @@ void func_actor_444000_801423C4(GpEnemy* enemy, Task* task)
         ((TmdObject*)work->field_ECC[4]->task->extra)->otOffset = 0;
     }
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             if ((s16)work->field_0 != 0) {
                 if (view == 9) {
@@ -8100,7 +8095,7 @@ void func_actor_444000_801438E4(Task* arg0)
     GpEnemyTaskFuncTable3 sp;
 
     sp = D_actor_444000_80131E9C;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         default:
         case 0:
         case 1:
@@ -8125,7 +8120,7 @@ void func_actor_444000_80143960(Task* arg0)
     sp   = D_actor_444000_80131EA8;
     work = arg0->work;
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             ((TmdObject*)arg0->extra)->flags = 0;
             break;
@@ -8160,7 +8155,7 @@ void func_actor_444000_80143A6C(Task* arg0)
 
     sp = D_actor_444000_80131F0C;
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             ((TmdObject*)arg0->extra)->flags = 2;
             break;
@@ -8191,7 +8186,7 @@ void func_actor_444000_80143B74(Task* arg0)
     GpEnemyTaskFuncTable5 sp;
 
     sp = D_actor_444000_80131F1C;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
         default:
             sp.funcs[arg0->state](arg0->spawnArg2, arg0);
@@ -8231,7 +8226,7 @@ void func_actor_444000_80143C64(Task* arg0)
 
     sp = D_actor_444000_80131F30;
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             ((TmdObject*)arg0->extra)->flags = 0;
             break;

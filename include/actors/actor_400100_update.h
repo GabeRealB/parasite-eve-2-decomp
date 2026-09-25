@@ -29,7 +29,7 @@ extern Actor00100PlayerAnim* Gp_PlayerAnimBlkTbl[];
 extern u16                   Gp_WeaponIdBase[];
 extern Actor00100AnimWord    Actor00100_D1B9BC, Actor00100_D1B9C0;
 extern s8                    D_8007218A;
-extern u8                    D_80073BA9, D_801153F4;
+extern u8                    D_80073BA9;
 void                         Actor00100_Fn01900(Task*, s16, s16, s16, s16, u8);
 void                         Actor00100_Fn0375C(Task*);
 

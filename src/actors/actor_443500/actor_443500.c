@@ -131,10 +131,6 @@ extern GpAreaApplyRec D_8018A638;
 
 extern s8 D_8007272D;
 
-/// Global mode byte in the main executable; while it is nonzero the main task
-/// skips its state handler.
-extern u8 D_801153F4;
-
 /// Default animation arguments, 0x14 bytes: `{ NULL, 0x1C, 1, 4, 0 }`.
 extern GpAnimArg D_actor_443500_80158728;
 
@@ -451,14 +447,14 @@ void func_actor_443500_801326A0(Task* task)
 }
 
 /// Per-frame dispatcher of the main task: runs its spawn, tick or exit state
-/// from `D_actor_443500_80131E30`, skipping the frame while `D_801153F4` is
+/// from `D_actor_443500_80131E30`, skipping the frame while `Gp_StateF0.field_4` is
 /// set.
 void func_actor_443500_80132738(Task* task)
 {
     TaskFuncTable3 sp;
 
     sp = D_actor_443500_80131E30;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         sp.funcs[task->state](task);
     }
 }

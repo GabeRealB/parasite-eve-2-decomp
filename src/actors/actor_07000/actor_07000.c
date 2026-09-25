@@ -179,8 +179,7 @@ typedef struct Actor107000SpawnWork {
 } Actor107000SpawnWork;
 STATIC_ASSERT_SIZEOF(Actor107000SpawnWork, 0x2E4);
 
-extern u8 D_801153F4;
-void      ActorsShared801349d8(Task*);
+void ActorsShared801349d8(Task*);
 
 static __inline__ void Actor107000_TickAnim(Task* task)
 {
@@ -1079,7 +1078,7 @@ void Actor07000_Fn0107C(Task* arg0)
 }
 
 /// Teardown handler of the caged specimen, run once the task has moved to its
-/// death state. `D_801153F4` mode 2 hides the model and mode 1 does nothing;
+/// death state. `Gp_StateF0.field_4` mode 2 hides the model and mode 1 does nothing;
 /// otherwise `field_2B4` steps the death through three phases. Phase 0 shrinks
 /// the model and counts the kill countdown down, cueing the death sound,
 /// releasing the global state and unlinking the enemy's node and the four
@@ -1101,7 +1100,7 @@ void Actor07000_Fn011B4(GpEnemy* enemy, Task* task)
     work  = (Actor107000Work*)task->work;
     coord = obj->coords;
     model = obj;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 1:
             break;
         case 2:
@@ -1357,7 +1356,7 @@ const GpEnemyTaskFuncTable5 Actor07000_D0004C = {
 };
 
 /// Per-frame handler of the specimen while it drops into place, before it
-/// lands (the task state that follows `Actor07000_Fn01870`). `D_801153F4`
+/// lands (the task state that follows `Actor07000_Fn01870`). `Gp_StateF0.field_4`
 /// mode 1 only re-colours the actor and mode 2 hides the model; otherwise,
 /// once `field_2E2` has armed the drop, the root part is stepped along its
 /// facing and by the fall speed `field_2DE`, the collision response is
@@ -1374,7 +1373,7 @@ void Actor07000_Fn01BA0(GpEnemy* arg0, Task* arg1)
     s32              soundId;
 
     work = (Actor107000Work*)arg1->work;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 1:
             Actor107000_UpdateColor(arg0, &((TmdObject*)arg1->extra)->coords[1]);
             break;
@@ -1583,7 +1582,7 @@ void Actor07000_Fn02548(Task* task)
 }
 
 /// Per-frame mode handler of the actor, shared with the other enemy actors that
-/// gate on `D_801153F4`: mode 1 runs only the tail, mode 2 puts the model in
+/// gate on `Gp_StateF0.field_4`: mode 1 runs only the tail, mode 2 puts the model in
 /// its hidden pose and returns, mode 0 clears both flags before falling into
 /// the update, and any other mode updates directly. The update drives the
 /// actor's four handlers, clears the display flags of the model's first two
@@ -1594,7 +1593,7 @@ void Actor07000_Fn025A4(GpEnemy* arg0, Task* arg1)
     s32 state;
     s32 one;
 
-    state = D_801153F4;
+    state = Gp_StateF0.field_4;
     one   = 1;
     if (state == one) {
         goto case1;
@@ -2005,7 +2004,7 @@ void Actor07000_Fn02E0C(GpEnemy* arg0, Task* arg1)
     arg1->state       += 1;
 }
 
-/// Per-frame mode handler of the specimen. The `D_801153F4` switch is the same
+/// Per-frame mode handler of the specimen. The `Gp_StateF0.field_4` switch is the same
 /// one `Actor07000_Fn025A4` runs: mode 1 skips to the tail, mode 2 puts
 /// the model in its hidden pose and returns, mode 0 clears both flags and falls
 /// into the body. The body first dispatches the reaction sub-state `field_36A` -
@@ -2027,7 +2026,7 @@ void Actor07000_Fn03164(GpEnemy* arg0, Task* arg1)
     s32              soundId;
 
     obj   = (TmdObject*)arg1->extra;
-    state = D_801153F4;
+    state = Gp_StateF0.field_4;
     work  = (Actor107000Work*)arg1->work;
     coord = obj->coords;
     one   = 1;
@@ -2564,7 +2563,7 @@ const TaskFuncTable3 Actor07000_D000E0 = {
 };
 
 /// Death handler of the specimen's second form, entry 2 of
-/// `Actor07000_D0003C`. `D_801153F4` mode 1 does nothing and mode 2 hides the
+/// `Actor07000_D0003C`. `Gp_StateF0.field_4` mode 1 does nothing and mode 2 hides the
 /// model. Otherwise `field_36C` steps the death: phase 0 (unless `field_394`
 /// has spent the frame's reaction) cues the death sound, sets the model's flag
 /// word to 2 and splices a scaling coordinate into the model through
@@ -2588,7 +2587,7 @@ void Actor07000_Fn04468(GpEnemy* arg0, Task* arg1)
     s32                      i;
 
     obj   = (TmdObject*)arg1->extra;
-    state = D_801153F4;
+    state = Gp_StateF0.field_4;
     work  = (ActorShared80136288Work*)arg1->work;
     coord = obj->coords;
     part  = &coord[1];
@@ -2913,7 +2912,7 @@ void Actor07000_Fn04B18(Task* arg0)
 }
 
 /// Per-frame handler of a specimen projectile, entry 1 of
-/// `Actor07000_D000E0`. `D_801153F4` mode 1 returns at once and mode 2 hides
+/// `Actor07000_D000E0`. `Gp_StateF0.field_4` mode 1 returns at once and mode 2 hides
 /// the model; mode 0 shows it again before the update. The update moves the
 /// coordinate by the velocity in the work (mirrored into the first collision
 /// record's position), lets the vertical speed grow by 0xA a frame, and tests
@@ -2941,7 +2940,7 @@ void Actor07000_Fn04E60(Task* arg0)
 
     work  = (ActorsShared80136c80Work*)arg0->work;
     part  = (TmdObject*)arg0->extra;
-    state = D_801153F4;
+    state = Gp_StateF0.field_4;
     child = arg0->firstChild;
     rec   = &work->recs[0];
     coord = part->coords;
@@ -3205,7 +3204,7 @@ static __inline__ void rotate_parts(Task* arg0)
 }
 
 /// Per-frame handler of the specimen's second form while it drops into place,
-/// entry 4 of `Actor07000_D0004C`. `D_801153F4` mode 1 only re-colours the
+/// entry 4 of `Actor07000_D0004C`. `Gp_StateF0.field_4` mode 1 only re-colours the
 /// actor and mode 2 hides the model; otherwise, once `field_396` has armed the
 /// drop, the root is stepped along its facing and by the fall speed
 /// `field_398`, the collision response is applied, the six helper animation
@@ -3222,7 +3221,7 @@ void Actor07000_Fn05400(GpEnemy* arg0, Task* arg1)
     s32                    sound;
     s32                    pan;
     work = (Actor107000Spawn2Work*)arg1->work;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 1:
             update_color(arg1->spawnArg2, &((TmdObject*)arg1->extra)->coords[1]);
             return;

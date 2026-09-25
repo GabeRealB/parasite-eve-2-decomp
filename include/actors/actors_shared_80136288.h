@@ -35,10 +35,6 @@ typedef struct ActorShared80136288Work {
     /* 0x394 */ u16   field_394; // non-zero: this frame has spent its reaction
 } ActorShared80136288Work;
 
-/// Which of the alternate modes the current frame runs, keyed on
-/// `gGameSession`'s scenario id.
-extern u8 D_801153F4;
-
 /// Per-frame mode handler of the specimen's first state machine, shared by
 /// `actor_107000` and `actor_207000`. Mode 1 skips to the tail, mode 2 ORs the
 /// hidden pose onto the model part's flag word and returns. The body dispatches

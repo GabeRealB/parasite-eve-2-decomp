@@ -154,7 +154,6 @@ STATIC_ASSERT_SIZEOF(Actor104400Mat, 0x20);
 
 extern u8                   Actor04400_D10814[]; // per animation id (1-based): the value to put in `field_44F`
 extern u8                   Actor04400_D10828[]; // per animation id (1-based): the animation to follow it
-extern u8                   D_801153F4;          // absolute; nonzero skips the controller's state handler
 extern GpPairSrcE           Actor04400_D0D318;   // the main enemy's `GpEnemy::param` record
 extern u8                   Actor04400_D10778[]; // animation bank handed to `func_800B3F84`
 extern u8                   Actor04400_D107CC[]; // stored into `Task::msgTable` by Actor04400_Fn00B24
@@ -998,7 +997,7 @@ void Actor04400_Fn00F7C(Task* arg0)
     TaskFuncTable11  sp    = Actor04400_D00044;
     s32              cur;
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             obj->flags |= 0x80;
             return;
@@ -1317,7 +1316,7 @@ void Actor04400_Fn01CA0(Task* arg0)
     }
 }
 
-/// Per-frame callback with a one-entry handler table. `D_801153F4` 2 hides the model; 0 runs the state
+/// Per-frame callback with a one-entry handler table. `Gp_StateF0.field_4` 2 hides the model; 0 runs the state
 /// handler and the follow-up steps, then moves the task to state 4 when
 /// `field_448` requests it and the enemy is out of HP; 0 and 1 both colour
 /// it, run `Actor04400_Fn00220` for three part pairs and unhide it. The work
@@ -1331,7 +1330,7 @@ void Actor04400_Fn01E08(Task* arg0)
     GsCOORDINATE2*   coord = obj->coords;
     TaskFunc         sp[1] = { Actor04400_Fn07360 };
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             obj->flags |= 0x80;
             return;
@@ -1740,7 +1739,7 @@ const TaskFuncTable9 Actor04400_D000EC = { {
     Actor04400_Fn078D4,
 } };
 
-/// Per-frame callback of the main enemy. `D_801153F4` 2 hides the model, 0 runs the current state handler
+/// Per-frame callback of the main enemy. `Gp_StateF0.field_4` 2 hides the model, 0 runs the current state handler
 /// (then colours it), 1 only colours it. Unless `field_451` is set, it then
 /// runs `Actor04400_Fn00220` for three part pairs.
 void Actor04400_Fn02E8C(Task* arg0)
@@ -1750,7 +1749,7 @@ void Actor04400_Fn02E8C(Task* arg0)
     GsCOORDINATE2*   coord = obj->coords;
     TaskFuncTable9   sp    = Actor04400_D000EC;
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             obj->flags |= 0x80;
             return;
@@ -1917,7 +1916,7 @@ void Actor04400_Fn03538(Task* arg0)
     GsCOORDINATE2*   coord = obj->coords;
     TaskFuncTable5   sp    = Actor04400_D00128;
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             obj->flags |= 0x80;
             return;
@@ -2197,7 +2196,7 @@ void Actor04400_Fn03E20(Task* arg0)
 /// `Actor04400_Fn022A8` applies the frame's motion before the root coordinate
 /// is marked dirty. Mode 1 re-pushes the model's second coordinate for
 /// `Gp_UpdateActorColor` and rebuilds the part-pair colour quads while
-/// `field_451` is clear. `D_801153F4` short-circuits both: 1 runs mode 1 only,
+/// `field_451` is clear. `Gp_StateF0.field_4` short-circuits both: 1 runs mode 1 only,
 /// 2 hides the model instead.
 void Actor04400_Fn03F8C(Task* arg0)
 {
@@ -2206,7 +2205,7 @@ void Actor04400_Fn03F8C(Task* arg0)
     GsCOORDINATE2*   coord = obj->coords;
     TaskFuncTable10  sp    = Actor04400_D00184;
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             obj->flags |= 0x80;
             return;
@@ -2990,7 +2989,7 @@ void Actor04400_Fn05A40(Task* arg0)
 /// `Actor04400_D001C4` and spawns effect 3 on the model's second coordinate
 /// part every 32 frames, then falls into state 1, which re-pushes that
 /// coordinate's world position for `Gp_UpdateActorColor` and rebuilds the
-/// part-pair colour quads while `field_451` is clear. `D_801153F4` short-
+/// part-pair colour quads while `field_451` is clear. `Gp_StateF0.field_4` short-
 /// circuits both: nonzero runs state 1 only, 2 hides the model instead.
 void Actor04400_Fn05DE0(Task* arg0)
 {
@@ -2999,7 +2998,7 @@ void Actor04400_Fn05DE0(Task* arg0)
     GsCOORDINATE2*   coord = obj->coords;
     TaskFuncTable5   sp    = Actor04400_D001C4;
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             obj->flags |= 0x80;
             return;
@@ -3033,7 +3032,7 @@ void Actor04400_Fn05FC8(Task* arg0)
     GsCOORDINATE2*   coord = obj->coords;
     TaskFuncTable7   sp    = Actor04400_D001D8;
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             obj->flags |= 0x80;
             return;

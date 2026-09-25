@@ -140,7 +140,6 @@ extern Actor05400SpawnPos D_actor_105400_80133A20[2];
 extern Actor05400Clip     D_actor_105400_8013CE84[];
 extern Actor05400SndRow   D_actor_105400_8013CE64[];
 extern u32                D_actor_105400_8013CE5C;
-extern u8                 D_801153F4;
 extern s32                D_actor_105400_8013CE50[];
 extern SVECTOR            D_actor_105400_80133A40[];
 extern s32                D_actor_105400_8013CE54;
@@ -373,7 +372,7 @@ void func_actor_105400_8013246C(GpEnemy* arg0, Task* arg1)
     work  = arg1->work;
     coord = obj->coords;
     scale = 0x1000;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 1:
             pos.vx = coord->workm.t[0];
             pos.vy = coord->workm.t[1];
@@ -630,7 +629,7 @@ void func_actor_105400_80132BAC(GpEnemy* arg0, Task* arg1)
 }
 
 /// Tick handler of the part task (its state 1). Gameplay modes
-/// (`D_801153F4`) 1 and 2 skip it, mode 2 setting the lock-on node's flags to
+/// (`Gp_StateF0.field_4`) 1 and 2 skip it, mode 2 setting the lock-on node's flags to
 /// 1; mode 0 sets them to 8 first. After the cooldown `field_40` has run out,
 /// a contact the player's attack claimed on the part's record deals damage by
 /// distance, quadrupled on a critical roll (a record flagged 0x8000 deals
@@ -649,7 +648,7 @@ void func_actor_105400_80132DAC(GpEnemy* arg0, Task* arg1)
 
     coord = ((TmdObject*)arg1->extra)->coords;
     part  = (Actor05400Part*)arg1->work;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 1:
             return;
         case 0:
@@ -829,7 +828,7 @@ void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1)
 }
 
 /// Tick handler of the main task (its state 1), switched on the gameplay mode
-/// `D_801153F4`. Mode 1 only updates the colour; mode 2 sets the model's
+/// `Gp_StateF0.field_4`. Mode 1 only updates the colour; mode 2 sets the model's
 /// `field_C` to 0x80 and the lock-on node's flags to 1 and stops there. Any
 /// other mode runs the frame - mode 0 first clearing the model's `field_C` and
 /// setting the node's flags to 8: the hit handler, the idle schedule, the pose
@@ -844,7 +843,7 @@ void func_actor_105400_80133468(GpEnemy* arg0, Task* arg1)
 
     temp_a1 = arg1->extra;
     temp_s1 = temp_a1->coords;
-    state   = D_801153F4;
+    state   = Gp_StateF0.field_4;
     one     = 1;
     if (state == one) {
         goto case1;
@@ -1017,7 +1016,7 @@ void func_actor_105400_801337DC(Task* arg0)
 }
 
 /// Teardown handler of the part task (its state 2), ticking only while the
-/// gameplay mode `D_801153F4` is 0. The first tick unlinks the enemy's lock-on
+/// gameplay mode `Gp_StateF0.field_4` is 0. The first tick unlinks the enemy's lock-on
 /// node and the part's collision object, drops the enemy's `recs`, sends the
 /// main task's sound id `field_31C` a type-7 event, and undoes what the spawn
 /// did for this sub-state (chosen by `field_46`): the same room call with 0
@@ -1031,7 +1030,7 @@ void func_actor_105400_80133838(GpEnemy* arg0, Task* arg1)
 
     part       = (Actor05400Part*)arg1->work;
     parentWork = (Actor05400Work*)arg1->parent->work;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         timer          = part->field_42 + 1;
         part->field_42 = timer;
         if ((s16)timer == 1) {

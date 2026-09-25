@@ -126,10 +126,6 @@ void func_8004BFF8(s16 angle, MATRIX* matrix);
 /// Declared locally with a signed animation id, as every caller passes one.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-/// Non-zero while a non-gameplay mode holds the actors; the tick skips its
-/// whole update while it is set.
-extern u8 D_801153F4;
-
 /// The marker quad's two vertex pairs, in the actor's local frame: `-4/+4`
 /// and `-3/+3` along X, all coplanar in Z.
 extern SVECTOR D_actor_135600_8013B060[4];
@@ -446,7 +442,7 @@ void func_actor_135600_80132234(Task* task)
 
 /// Per-frame tick of the actor (entry 1 of `D_actor_135600_80131E3C`).
 /// Draws the ground shadow under the second part unless the model is hidden,
-/// then -- only while `D_801153F4` is clear -- runs the handler `field_4F8`
+/// then -- only while `Gp_StateF0.field_4` is clear -- runs the handler `field_4F8`
 /// selects, advances the root coordinate by the high halves of the 16.16
 /// accumulators fed from `step` (re-zeroing each high half), ticks slots 1 to
 /// 19 while `field_474` is set, rebuilds the second part's coordinate and the
@@ -466,7 +462,7 @@ void func_actor_135600_801324D0(Task* arg0)
             Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShade);
         }
     }
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         funcs[work->field_4F8](arg0);
         coord              = ((TmdObject*)arg0->extra)->coords;
         work->field_4D8   += work->step.vx;

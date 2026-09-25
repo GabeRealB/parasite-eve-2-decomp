@@ -92,7 +92,6 @@ void func_actor_300700_801628C8(Task* arg0);
 void func_actor_300700_801633B8(Task* arg0);
 void func_actor_300700_80162EFC(Task* arg0);
 
-extern u8 D_801153F4;
 extern s8 D_80115408;
 /// `D_80073B8C` is the camera-target matrix positions are measured from.
 extern MATRIX* D_80073B8C;
@@ -213,7 +212,7 @@ void func_actor_300700_80162130(GpEnemy* arg0, Task* arg1)
 
     work  = arg1->work;
     obj   = arg1->extra;
-    state = D_801153F4;
+    state = Gp_StateF0.field_4;
     coord = obj->coords;
     one   = 1;
     if (state == one) {
@@ -568,7 +567,7 @@ void func_actor_300700_80162BC8(GpEnemy* arg0, Task* arg1)
 
     coord = ((TmdObject*)arg1->extra)->coords;
     work  = arg1->work;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 1:
             break;
         case 2:

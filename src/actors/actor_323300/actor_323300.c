@@ -218,9 +218,6 @@ extern Actor323300Placement  D_actor_323300_80174AB0;
 /// the 0x6B0 block's squash ramp. Absolute, so it lives outside the overlay.
 extern GpMimeSrc D_801865D0;
 
-/// Global freeze byte: while set, the two dispatchers skip their state.
-extern u8 D_801153F4;
-
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// `gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
@@ -603,7 +600,7 @@ void func_actor_323300_80162630(Task* task)
     TaskFuncTable3 sp;
 
     sp = D_actor_323300_80161E24;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         sp.funcs[task->state](task);
     }
 }
@@ -1190,7 +1187,7 @@ void func_actor_323300_80163840(Task* task)
     TaskFuncTable3 sp;
 
     sp = D_actor_323300_80161E6C;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         sp.funcs[task->state](task);
     }
 }

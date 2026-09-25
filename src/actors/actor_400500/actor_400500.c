@@ -234,7 +234,6 @@ typedef struct Actor400500Work {
 } Actor400500Work;
 STATIC_ASSERT_SIZEOF(Actor400500Work, 0xA50);
 
-extern u8              D_801153F4;
 extern u8              D_actor_400500_80153CB0[];
 extern Actor400500Zone D_actor_400500_80153D6C[];
 
@@ -2324,7 +2323,7 @@ void func_actor_400500_80135770(Task* arg0)
             break;
     }
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             obj->flags |= 0x80;
             return;
@@ -5128,7 +5127,7 @@ void func_actor_400500_8013A700(Task* arg0)
     extra = (TmdObject*)arg0->extra;
     work  = (Actor400500Work*)arg0->work;
     sp    = D_actor_400500_80131F7C;
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 2:
             extra->flags |= 0x80;
             return;

@@ -504,8 +504,6 @@ loop:
     }
 }
 
-extern u8 D_801153F4;
-
 /// Declared locally with a signed `arg2`; see the note in `gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
@@ -5202,7 +5200,7 @@ void func_actor_401300_801405DC(GpEnemy* enemy, Task* actor)
     pos.vz = ((TmdObject*)actor->extra)->coords->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             state = work->field_0;
             if ((state != 0) && (state != 0x24) && (state != 0x15) && (state != 0x1D) && (state != 0x28)) {

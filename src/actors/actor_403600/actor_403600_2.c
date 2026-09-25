@@ -287,7 +287,6 @@ extern Task*    D_actor_403600_801606B4;
 
 extern u8                   D_80071075;
 extern s8                   D_8007216C;
-extern u8                   D_801153F4;
 extern s8                   D_801153F1;
 extern TaskDesc             D_8016E468;
 extern MATRIX*              D_80073B8C;
@@ -654,7 +653,7 @@ void func_actor_403600_8013938C(GpEnemy* arg0, Task* arg1)
     Actor403600Work* work;
     GsCOORDINATE2*   var_a0;
 
-    state = D_801153F4;
+    state = Gp_StateF0.field_4;
     work  = arg1->work;
     if (state == 1) {
         goto case1;
@@ -4385,7 +4384,7 @@ void func_actor_403600_8013FC2C(GpEnemy* arg0, Task* arg1)
 
     temp_s7 = arg1->extra;
     temp_s4 = arg1->work;
-    state   = D_801153F4;
+    state   = Gp_StateF0.field_4;
     if (state == 1) {
         goto case1;
     }
@@ -4694,7 +4693,7 @@ void func_actor_403600_80140488(GpEnemy* arg0, Task* arg1)
     object      = arg1->extra;
     initialWork = arg1->work;
     globalWork  = D_actor_403600_801606A8->work;
-    state       = D_801153F4;
+    state       = Gp_StateF0.field_4;
     if (state == 1) {
         goto case1;
     }

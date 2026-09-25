@@ -28,9 +28,6 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 /// steering leave the coordinate alone.
 extern u8 D_80072729;
 
-/// Absolute; nonzero skips the per-frame state handler entirely.
-extern u8 D_801153F4;
-
 extern u8 D_actor_312200_80169F44[];
 extern u8 D_actor_312200_80169F5C[];
 
@@ -860,7 +857,7 @@ void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
 /// Per-tick handler and state dispatcher, called with the task second. The
 /// handler table is built in place - `func_actor_312200_80163778` at index 0,
 /// the tick handler at index 1 - and `field_0` selects from it, unless the global
-/// `D_801153F4` holds the actor. `field_4` records whether the state moved
+/// `Gp_StateF0.field_4` holds the actor. `field_4` records whether the state moved
 /// before it is re-latched into `field_2`. The tail clears the display node's
 /// `GpRec18` record while occupied, re-propagates the root coordinate's
 /// translation over the model's three part coordinates while `field_8AD` is
@@ -885,7 +882,7 @@ void func_actor_312200_80163370(GpEnemy* enemy, Task* task)
     SOFT_BARRIER();
     states[0] = func_actor_312200_80163778;
     states[1] = func_actor_312200_801637CC;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         if (work->field_2 != work->field_0) {
             work->field_4 = 1;
         } else {

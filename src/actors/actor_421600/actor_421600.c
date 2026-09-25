@@ -483,18 +483,6 @@ extern GpPairSrcE          D_actor_421600_8013EF38;
 extern u8                  D_actor_421600_80151028[];
 extern void*               D_actor_421600_80151118;
 
-/// Shared gameplay mode record. This overlay reads the unsigned halfword at
-/// +2 before releasing the actor's state; the leading byte is the mode other
-/// actors use to gate their updates.
-typedef struct Actor421600ModeState {
-    /* 0x00 */ u8   mode;
-    /* 0x01 */ byte pad_1;
-    /* 0x02 */ u16  field_2;
-} Actor421600ModeState;
-STATIC_ASSERT_SIZEOF(Actor421600ModeState, 0x4);
-
-extern Actor421600ModeState D_801153F4;
-
 /// The overlay's pose table: 8-byte records of three halfwords at 0x0/0x2/0x4
 /// plus padding, i.e. `SVECTOR`s. Indexed by the low signed halfword of the
 /// caller's id. `actor_403000` keeps a table of the same shape at 0x80158CE0
@@ -2159,7 +2147,7 @@ void func_actor_421600_80134AD4(GpEnemy* enemy, Task* actor)
             break;
     }
 
-    D_801153F4.field_2      = 8;
+    Gp_StateF0.field_6      = 8;
     D_actor_421600_80151268 = 8;
     actor->state++;
 }
@@ -2933,7 +2921,7 @@ void func_actor_421600_801369A0(Task* arg0)
         work->field_6 = 0;
         do {
         } while (0);
-        if (D_801153F4.field_2 >= 2U) {
+        if (Gp_StateF0.field_6 >= 2U) {
             Gp_ReleaseStateF0Add(arg0, 1);
         }
         if (D_actor_421600_80151268 <= 0) {
@@ -5807,7 +5795,7 @@ void                        func_actor_421600_8013D658(GpEnemy* enemy, Task* act
     pos.vy = ((TmdObject*)actor->extra)->coords->workm.t[1];
     pos.vz = ((TmdObject*)actor->extra)->coords->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
-    switch (D_801153F4.mode) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             if (work->field_0 != 0x15 && work->field_0 != 0 && work->field_0 != 0x16 && work->field_0 != 7 && work->field_0 != 8) {
                 height = ((TmdObject*)actor->extra)->coords->coord.t[1];

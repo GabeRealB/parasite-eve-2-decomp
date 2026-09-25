@@ -240,7 +240,6 @@ void func_actor_403600_80134398(Task* arg0);
         : "$2", "$7", "$8", "$9", "$10", "$11", "$12", "$13", "$14", "hi", "lo", "memory")
 
 extern u8            D_80071090;
-extern u8            D_801153F4;
 extern s32           D_8007107C;
 extern TaskDesc      D_actor_403600_801421A0;
 extern s32           D_actor_403600_80160698;
@@ -558,7 +557,7 @@ void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, TaskIdMap* ar
     head                = *(void**)0x1F8003FC - 0x1C;
     *(void**)0x1F8003FC = head;
     scratch             = (Actor403600ScreenScratch*)head;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         seed                    = rand();
         D_actor_403600_80160698 = seed;
         *(s32*)((s8*)arg2 + 4)  = seed;
@@ -747,7 +746,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Wo
     actor  = arg0->parent;
     coords = (u8*)((TmdObject*)actor->extra)->coords;
     center = coords + 0x280;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         head    = *(u8**)0x1F8003FC;
         scratch = (*(u8**)0x1F8003FC = head - 0x88);
         Gp_UpdateCoord((GsCOORDINATE2*)((u8*)((TmdObject*)actor->extra)->coords + 0x370));
@@ -1390,7 +1389,7 @@ block_22:
     ACTOR_FIELD(temp_v0_2, s32*, 0x0) = (s32)ACTOR_FIELD(temp_v0_2, s16*, 0x10);
     ACTOR_FIELD(temp_v0_2, s32*, 0x4) = (s32)ACTOR_FIELD(temp_v0_2, s16*, 0x12);
     ACTOR_FIELD(temp_v0_2, s32*, 0x8) = (s32)ACTOR_FIELD(temp_v0_2, s16*, 0x14);
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         if (ACTOR_FIELD(arg0, s32*, 0x34) < 0x1000) {
             ACTOR_FIELD(temp_s5, s32*, 0x158) = (s32)(ACTOR_FIELD(temp_s5, s32*, 0x158) - 1);
         } else {
@@ -2124,7 +2123,7 @@ void func_actor_403600_80135C28(Task* arg0)
         }
     }
     temp_s0 = (Actor403600EffectState*)arg0->work;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         temp_v1_9 = arg0->spawnArg1;
         switch (temp_v1_9) { /* switch 1; irregular */
             case 1:          /* switch 1 */
