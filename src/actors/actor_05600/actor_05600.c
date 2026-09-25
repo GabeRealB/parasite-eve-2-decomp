@@ -83,7 +83,7 @@ typedef struct Actor105600Work {
     /* 0x000 */ GpAnimCtx  ctx;
     /* 0x014 */ GpAnimSlot slots[19];
     /* 0x30C */ byte       field_30C[0x130];
-    /// Colour and light matrices the model object's `field_20` / `field_1C`
+    /// Colour and light matrices the model object's `colorMtx` / `lightMtx`
     /// are pointed at.
     /* 0x43C */ MATRIX field_43C;
     /* 0x45C */ MATRIX field_45C;
@@ -269,7 +269,7 @@ extern s16 Actor05600_D1623C[];
 extern s32 Actor05600_D162AC[];
 
 /// The approach cycle's per-state handlers, indexed by `Actor105600Work.field_6A6`.
-extern void (*Actor05600_D16540[])(Task*);
+extern TaskFunc Actor05600_D16540[];
 
 void Gp_AnimTickIndex(GpAnimCtx* arg0, s32 arg1);
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
