@@ -64,6 +64,25 @@ typedef struct Actor213000AnimPreset {
 } Actor213000AnimPreset;
 STATIC_ASSERT_SIZEOF(Actor213000AnimPreset, 0x10);
 
+/// Payload of the placement message 0x7D4: a world translation followed by
+/// the Euler angles the handler rebuilds the root rotation from.
+typedef struct Actor213000Placement {
+    /* 0x00 */ VECTOR  pos;
+    /* 0x10 */ SVECTOR rot;
+} Actor213000Placement;
+STATIC_ASSERT_SIZEOF(Actor213000Placement, 0x18);
+
+/// `GsCOORDINATE2` at `TmdObject::coords` as the placement handler uses it:
+/// the libgs `param` slot at 0x44 holds the Euler angles written there and
+/// then handed straight to `RotMatrix`.
+typedef struct Actor213000Coord {
+    /* 0x00 */ s32     flg;
+    /* 0x04 */ MATRIX  coord;
+    /* 0x24 */ MATRIX  workm;
+    /* 0x44 */ SVECTOR rot;
+} Actor213000Coord;
+STATIC_ASSERT_SIZEOF(Actor213000Coord, 0x4C);
+
 s32 func_actor_213000_8014A980(Task* task, s32 arg1, Actor213000Msg* msg);
 
 s32 func_actor_213000_8014A70C(Task* task, s32 arg1, Actor213000AnimPreset* msg);

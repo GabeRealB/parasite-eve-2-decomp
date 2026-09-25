@@ -3,11 +3,12 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Attaches this actor to the part of a parent actor's skeleton named by the
-/// spawn arguments: the actor's root coordinate is chained under the parent's
-/// part coordinate, the parent's model context is inherited, and the task is
-/// reparented so it is updated with the parent. Same body as `Room_Script13`.
-void ActorsShared80132450(Task* task)
+/// State 0 of the child tasks the spawn handler creates from table entries 1
+/// and 2: chains the child's root coordinate under the parent's skeleton part
+/// named by the spawn arguments (the parent task and the part index it was
+/// spawned with), inherits the parent's light and colour matrices, reparents
+/// the task so it runs with the parent, and advances to the idle state.
+void func_actor_213000_8014A0DC(Task* task)
 {
     Task*          parent;
     s32            part;
