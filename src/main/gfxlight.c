@@ -11,12 +11,9 @@ typedef struct {
 static __inline__ void setLightToMatrices(s32 id, GsF_LIGHT* light, MATRIX* dirMtx, MATRIX* colorMtx)
 {
     ScratchLightBlock* block;
-    void*              head;
 
-    head                            = SCRATCH_HEAD(void);
-    block                           = (ScratchLightBlock*)((u8*)head - 0x18);
-    SCRATCH_HEAD(ScratchLightBlock) = block;
-    Gfx_NormalizeLightDir((VECTOR*)light, (SVECTOR*)((u8*)head - 8));
+    block = SCRATCH_PUSH(ScratchLightBlock);
+    Gfx_NormalizeLightDir((VECTOR*)light, &block->dir);
 
     dirMtx->m[id][0] = -block->dir.vx;
     dirMtx->m[id][1] = -block->dir.vy;
@@ -26,7 +23,7 @@ static __inline__ void setLightToMatrices(s32 id, GsF_LIGHT* light, MATRIX* dirM
     colorMtx->m[1][id] = light->g << 4;
     colorMtx->m[2][id] = light->b << 4;
 
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_POP(ScratchLightBlock);
 }
 
 void Gpu_InitDefaultLights(void)
@@ -72,12 +69,9 @@ void Gpu_InitDefaultLights(void)
 void Gfx_SetFlatLight(s32 id, GsF_LIGHT* light, MATRIX* dirMtx, MATRIX* colorMtx)
 {
     ScratchLightBlock* block;
-    void*              head;
 
-    head                            = SCRATCH_HEAD(void);
-    block                           = (ScratchLightBlock*)((u8*)head - 0x18);
-    SCRATCH_HEAD(ScratchLightBlock) = block;
-    Gfx_NormalizeLightDir((VECTOR*)light, (SVECTOR*)((u8*)head - 8));
+    block = SCRATCH_PUSH(ScratchLightBlock);
+    Gfx_NormalizeLightDir((VECTOR*)light, &block->dir);
 
     dirMtx->m[id][0] = -block->dir.vx;
     dirMtx->m[id][1] = -block->dir.vy;
@@ -87,7 +81,7 @@ void Gfx_SetFlatLight(s32 id, GsF_LIGHT* light, MATRIX* dirMtx, MATRIX* colorMtx
     colorMtx->m[1][id] = light->g << 4;
     colorMtx->m[2][id] = light->b << 4;
 
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_POP(ScratchLightBlock);
 }
 
 void Gfx_SetDefaultFlatLight(s32 id, GsF_LIGHT* light)
