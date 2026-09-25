@@ -6,6 +6,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gfx.h"
@@ -43,33 +44,21 @@
 /// arms alongside the first group, next door to the byte
 /// `func_actor_361100_80163670` writes.
 ///
-/// The block is fronted by the animation context `func_actor_361100_801634D0`
-/// drives: the `GpAnimCtx` the
-/// block itself is handed to as (`func_800B3F84` takes the block address),
-/// the 0x13 0x28-byte slots immediately above it, and the 0x130-byte table
-/// `func_800B3F84` also takes at 0x30C. `field_43C` is the once-only latch
-/// the slots are started through.
+/// The block opens with the model's rig and model state.
 typedef struct Actor361100Work {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[0x13];
-    /* 0x30C */ byte       field_30C[0x130];
-    /* 0x43C */ s8         field_43C;
-    /* 0x43D */ s8         field_43D;
-    /* 0x43E */ s8         field_43E;
-    /* 0x43F */ byte       pad_43F[0x1];
-    /* 0x440 */ MATRIX     light;
-    /* 0x460 */ MATRIX     color;
-    /* 0x480 */ s32        field_480;
-    /* 0x484 */ s32        field_484;
-    /* 0x488 */ s32        field_488;
-    /* 0x48C */ byte       pad_48C[0x4];
-    /* 0x490 */ s32        field_490;
-    /* 0x494 */ s32        field_494;
-    /* 0x498 */ s32        field_498;
-    /* 0x49C */ byte       pad_49C[0x4];
-    /* 0x4A0 */ s16        field_4A0;
-    /* 0x4A2 */ s8         field_4A2;
-    /* 0x4A3 */ byte       pad_4A3[0x1];
+    ActorAnimRig19   rig;
+    ActorModelState  model;
+    /* 0x480 */ s32  field_480;
+    /* 0x484 */ s32  field_484;
+    /* 0x488 */ s32  field_488;
+    /* 0x48C */ byte pad_48C[0x4];
+    /* 0x490 */ s32  field_490;
+    /* 0x494 */ s32  field_494;
+    /* 0x498 */ s32  field_498;
+    /* 0x49C */ byte pad_49C[0x4];
+    /* 0x4A0 */ s16  field_4A0;
+    /* 0x4A2 */ s8   field_4A2;
+    /* 0x4A3 */ byte pad_4A3[0x1];
 } Actor361100Work;
 STATIC_ASSERT_SIZEOF(Actor361100Work, 0x4A4);
 
@@ -713,7 +702,7 @@ void func_actor_361100_80162B0C(void)
 /// 0x480 three words at a time into the root part's local translation -- whole
 /// part onto `coord.t`, then it is truncated back to its fraction -- runs the
 /// `field_4A0` countdown that zeroes the 0x490 step while it is at 0, ticks the
-/// animation slots once `field_43C` has latched, and while the part is visible
+/// animation slots once `model.ticking` has latched, and while the part is visible
 /// rebuilds its world matrix and hands the result to `Gp_UpdateActorColor`.
 /// `field_4A2` counts the root part's buffers down to the free.
 ///
@@ -748,9 +737,9 @@ void func_actor_361100_80162B18(Task* task)
         }
         work->field_4A0--;
     }
-    if (work->field_43C != 0) {
+    if (work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
     if (!(ext->flags & 0x80)) {
@@ -803,13 +792,13 @@ void func_actor_361100_80162D28(Task* arg0)
         return;
     }
 
-    arg0->work      = (TaskIdMap*)work;
-    work->field_43D = -1;
-    work->field_43E = -1;
-    work->field_4A2 = -1;
-    work->field_480 = 0;
-    work->field_484 = 0;
-    work->field_488 = 0;
+    arg0->work         = (TaskIdMap*)work;
+    work->model.animId = -1;
+    work->model.bank   = -1;
+    work->field_4A2    = -1;
+    work->field_480    = 0;
+    work->field_484    = 0;
+    work->field_488    = 0;
 
     enemy->field_4  = &coord->coord;
     enemy->field_48 = 0;
@@ -835,8 +824,8 @@ void func_actor_361100_80162E04(Task* arg0)
 
     work          = (Actor361100Work*)arg0->work;
     ext           = arg0->extra;
-    ext->lightMtx = &work->light;
-    ext->colorMtx = &work->color;
+    ext->lightMtx = &work->model.light;
+    ext->colorMtx = &work->model.color;
 }
 
 /// Message 0x7D3 handler, listed in `D_actor_361100_8016BAF0` -- the table
@@ -848,9 +837,9 @@ void func_actor_361100_80162E04(Task* arg0)
 ///
 /// Where its twin stores the preset's animation id unconditionally, this one
 /// gates on it: an unchanged `field_4` skips the slot re-seed, the tick pass
-/// and the `field_43C` latch alike. That gate is also the only reason this body
+/// and the `model.ticking` latch alike. That gate is also the only reason this body
 /// differs from `func_actor_361100_801634D0` at all; the loops and the
-/// short-circuit on `field_8` / `field_43C` are the same code.
+/// short-circuit on `field_8` / `model.ticking` are the same code.
 s32 func_actor_361100_80162E20(Task* task, s32 arg1, GpAnimArg* msg)
 {
     Actor361100Work* work;
@@ -859,27 +848,27 @@ s32 func_actor_361100_80162E20(Task* task, s32 arg1, GpAnimArg* msg)
 
     work = (Actor361100Work*)task->work;
     ext  = task->extra;
-    if (msg->animBlock.index != work->field_43E) {
-        work->field_43E = msg->animBlock.index;
-        work->field_43D = -1;
-        func_800B3F84(&work->anim, D_actor_361100_8016BAE0[work->field_43E], ext, work->field_30C,
-                      work->slots);
+    if (msg->animBlock.index != work->model.bank) {
+        work->model.bank   = msg->animBlock.index;
+        work->model.animId = -1;
+        func_800B3F84(&work->rig.anim, D_actor_361100_8016BAE0[work->model.bank], ext, work->rig.poses,
+                      work->rig.slots);
     }
-    if (msg->field_4 != work->field_43D) {
-        work->field_43D = msg->field_4;
-        if (msg->field_8 != 0 && work->field_43C != 0) {
+    if (msg->field_4 != work->model.animId) {
+        work->model.animId = msg->field_4;
+        if (msg->field_8 != 0 && work->model.ticking != 0) {
             for (i = 1; i < 0x13; i++) {
-                func_800B4114(&work->anim, i, work->field_43D, 0, msg->field_C);
+                func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->field_C);
             }
         } else {
             for (i = 1; i < 0x13; i++) {
-                Gp_AnimResetSlot(&work->anim, i, work->field_43D);
+                Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
             }
         }
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
-        work->field_43C = 1;
+        work->model.ticking = 1;
     }
     return 0;
 }
@@ -994,7 +983,7 @@ s32 func_actor_361100_801630D4(Task* task, s32 arg1, GpCmdArg* msg)
 /// three words at a time into the root part's local translation -- whole part
 /// onto `coord.t`, then it is truncated back to its fraction -- runs the
 /// `field_4A0` countdown that zeroes the 0x480 step while it is at 1, ticks the
-/// animation slots once `field_43C` has latched, and while the part is visible
+/// animation slots once `model.ticking` has latched, and while the part is visible
 /// draws its ground shadow, rebuilds the second part's world matrix from it and
 /// re-ranks it through `func_800D7A9C`. `field_4A2` counts the second part's
 /// buffers down to the free. Every use of the second part's coordinate
@@ -1026,9 +1015,9 @@ void func_actor_361100_801631C4(Task* task)
         }
         work->field_4A0--;
     }
-    if (work->field_43C != 0) {
+    if (work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
     if (!(ext->flags & 0x80)) {
@@ -1070,10 +1059,10 @@ void func_actor_361100_80163410(Task* arg0)
         return;
     }
 
-    arg0->work      = (TaskIdMap*)work;
-    work->field_43D = -1;
-    work->field_43E = -1;
-    work->field_4A2 = -1;
+    arg0->work         = (TaskIdMap*)work;
+    work->model.animId = -1;
+    work->model.bank   = -1;
+    work->field_4A2    = -1;
     func_actor_361100_801634B4(arg0);
     arg0->msgTable     = D_actor_361100_80171BB8;
     arg0->exitCallback = func_actor_361100_80163494;
@@ -1092,8 +1081,8 @@ void func_actor_361100_801634B4(Task* arg0)
 
     ext           = arg0->extra;
     work          = (Actor361100Work*)arg0->work;
-    ext->lightMtx = &work->light;
-    ext->colorMtx = &work->color;
+    ext->lightMtx = &work->model.light;
+    ext->colorMtx = &work->model.color;
 }
 
 /// Message 0x7D3 handler, listed in `D_actor_361100_80171BB8` next to the
@@ -1111,26 +1100,26 @@ s32 func_actor_361100_801634D0(Task* task, s32 arg1, GpAnimArg* msg)
 
     work = (Actor361100Work*)task->work;
     ext  = task->extra;
-    if (msg->animBlock.index != work->field_43E) {
-        work->field_43E = msg->animBlock.index;
-        work->field_43D = -1;
-        func_800B3F84(&work->anim, D_actor_361100_80171BA8[work->field_43E], ext, work->field_30C,
-                      work->slots);
+    if (msg->animBlock.index != work->model.bank) {
+        work->model.bank   = msg->animBlock.index;
+        work->model.animId = -1;
+        func_800B3F84(&work->rig.anim, D_actor_361100_80171BA8[work->model.bank], ext, work->rig.poses,
+                      work->rig.slots);
     }
-    work->field_43D = msg->field_4;
-    if (msg->field_8 != 0 && work->field_43C != 0) {
+    work->model.animId = msg->field_4;
+    if (msg->field_8 != 0 && work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
-            func_800B4114(&work->anim, i, work->field_43D, 0, msg->field_C);
+            func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->field_C);
         }
     } else {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimResetSlot(&work->anim, i, work->field_43D);
+            Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
         }
     }
     for (i = 1; i < 0x13; i++) {
-        Gp_AnimTickIndex(&work->anim, i);
+        Gp_AnimTickIndex(&work->rig.anim, i);
     }
-    work->field_43C = 1;
+    work->model.ticking = 1;
     return 0;
 }
 

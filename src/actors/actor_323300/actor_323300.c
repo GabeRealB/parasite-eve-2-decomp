@@ -21,54 +21,23 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Work block allocated by `func_actor_323300_80161E78` (`memCalloc(0x504)`)
-/// and parked in that task's `Task::work` slot -- that slot is not a
-/// `TaskIdMap` here. `func_actor_323300_801626D0` republishes the two matrices
-/// onto `TmdObject::lightMtx` / `field_20`, the light/colour pair
-/// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`.
-///
-/// The block opens with animation head `anim`: `func_actor_323300_801628B8`
-/// hands the block itself to `func_800B3F84` as its `GpAnimCtx`, the slot
-/// array inline at 0x14 as the `GpAnimSlot*`, and 0x30C as the pose buffer.
-/// The 19 0x28-byte slots run exactly up to that buffer, and every tick loop
-/// walks indices 1..0x13, leaving slot 0 alone.
-///
-/// The display node at +0x480 is the one the exit callback
-/// `func_actor_323300_8016269C` hands back to `Gp_UnlinkObj` before tearing
-/// the enemy task down. The size is the allocation, and the fields below are
-/// the ones the init seeds: the two `sb` bytes at 0x43D/0x43E and the `sh` at
-/// 0x502 are set to -1, and 0x500 is set to 1. `rec` is the one-entry `GpRec18`
-/// collision table `Gp_InitRec18Table` seeds at 0x4A0; `obj.ctx.recs` addresses
-/// it and `Gp_FindNearestSlot` walks it through that pointer.
+/// Work block of the overlay's walker, allocated zeroed by its spawn routine
+/// and kept at `Task::work`: a nineteen-part rig and the model state, the
+/// display node `obj` the exit callback hands back to `Gp_UnlinkObj`, the
+/// one-entry contact table `rec` that `obj.ctx.recs` addresses, the child
+/// task `field_4B8` spawned from `D_actor_323300_8017255C`, and the walk,
+/// which this actor runs without accumulators or an arrival threshold.
+/// `field_500` enables the cue the per-frame runner posts, and `field_502` is
+/// the frames until the model buffers are freed, -1 disabling the countdown.
 typedef struct Actor323300Work {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[19];
-    /* 0x30C */ byte       pad_30C[0x130];
-    /* 0x43C */ s8         field_43C; // set once the slots have been started
-    /* 0x43D */ s8         field_43D; // animation id the slots were seeded with
-    /* 0x43E */ s8         field_43E; // animation bank index
-    /* 0x43F */ s8         field_43F; // latched to 2 by the 0x7DB placement case
-    /* 0x440 */ MATRIX     light;
-    /* 0x460 */ MATRIX     color;
-    /* 0x480 */ GpObj      obj;
-    /* 0x4A0 */ GpRec18    rec;       // seed table `obj.ctx.recs` points at
-    /* 0x4B8 */ Task*      field_4B8; // child spawned from `D_actor_323300_8017255C` index 1
-    /* 0x4BC */ s32        field_4BC; // placement position, copied verbatim
-    /* 0x4C0 */ s32        field_4C0;
-    /* 0x4C4 */ s32        field_4C4;
-    /* 0x4C8 */ byte       pad_4C8[0x4];
-    /* 0x4CC */ s32        field_4CC;
-    /* 0x4D0 */ s32        field_4D0;
-    /* 0x4D4 */ s32        field_4D4;
-    /* 0x4D8 */ byte       pad_4D8[0x1C];
-    /* 0x4F4 */ u16        field_4F4; // placement rotation, copied verbatim
-    /* 0x4F6 */ u16        field_4F6; // target yaw the turn-to-face body steers toward
-    /* 0x4F8 */ u16        field_4F8;
-    /* 0x4FA */ byte       pad_4FA[0x2];
-    /* 0x4FC */ s16        field_4FC;
-    /* 0x4FE */ s16        field_4FE;
-    /* 0x500 */ s16        field_500;
-    /* 0x502 */ s16        field_502;
+    ActorAnimRig19  rig;
+    ActorModelState model;
+    GpObj           obj;
+    GpRec18         rec;
+    Task*           field_4B8;
+    ActorWalkState  walk;
+    s16             field_500;
+    s16             field_502;
 } Actor323300Work;
 STATIC_ASSERT_SIZEOF(Actor323300Work, 0x504);
 
@@ -108,18 +77,16 @@ typedef struct {
 /// `field_43C` the once-only flag its tick path sets. `field_44C` is the 0x3000
 /// that same initialiser stores.
 typedef struct Actor323300MtxWork {
-    /* 0x000 */ GpAnimCtx     anim;
-    /* 0x014 */ GpAnimSlot    slots[19];
-    /* 0x30C */ byte          pad_30C[0x130];
-    /* 0x43C */ s32           field_43C; // set once the slots have been started
-    /* 0x440 */ s32           field_440; // animation bank index the slots were seeded with
-    /* 0x444 */ s32           field_444; // animation id the slots were seeded with
-    /* 0x448 */ byte          pad_448[0x4];
-    /* 0x44C */ s32           field_44C;
-    /* 0x450 */ GsCOORDINATE2 shadow[3];   // unsquashed copies of parts 3..5, re-parented onto 4..6
-    /* 0x540 */ VECTOR        partPos[19]; // original part translations, before the squash
-    /* 0x670 */ OverlayMat    light;
-    /* 0x690 */ OverlayMat    color;
+    /* 0x000 */ ActorAnimRig19 rig;
+    /* 0x43C */ s32            field_43C; // set once the slots have been started
+    /* 0x440 */ s32            field_440; // animation bank index the slots were seeded with
+    /* 0x444 */ s32            field_444; // animation id the slots were seeded with
+    /* 0x448 */ byte           pad_448[0x4];
+    /* 0x44C */ s32            field_44C;
+    /* 0x450 */ GsCOORDINATE2  shadow[3];   // unsquashed copies of parts 3..5, re-parented onto 4..6
+    /* 0x540 */ VECTOR         partPos[19]; // original part translations, before the squash
+    /* 0x670 */ OverlayMat     light;
+    /* 0x690 */ OverlayMat     color;
 } Actor323300MtxWork;
 STATIC_ASSERT_SIZEOF(Actor323300MtxWork, 0x6B0);
 
@@ -206,11 +173,11 @@ void func_actor_323300_80161E78(Task* arg0)
         Gp_EnemyTaskExit(arg0);
         return;
     }
-    arg0->work      = (TaskIdMap*)work;
-    work->field_43D = -1;
-    work->field_43E = -1;
-    work->field_500 = 1;
-    work->field_502 = -1;
+    arg0->work         = (TaskIdMap*)work;
+    work->model.animId = -1;
+    work->model.bank   = -1;
+    work->field_500    = 1;
+    work->field_502    = -1;
     func_actor_323300_801626D0(arg0);
     extra         = arg0->extra;
     obj           = &work->obj;
@@ -235,7 +202,7 @@ void func_actor_323300_80161E78(Task* arg0)
 }
 
 /// Per-frame runner for the `Actor323300Work` block: dispatches on
-/// `field_4FC` through the two-entry handler table it builds on the stack,
+/// `walk.motion` through the two-entry handler table it builds on the stack,
 /// walks the 18 animation slots and, while `field_500` is set, posts one of the
 /// two sound cues -- the pan/depth pair the session's `at4.loc.view` picks between
 /// is built twice so the two calls cross-jump into a shared `jal`. Then, unless
@@ -253,13 +220,13 @@ void func_actor_323300_80161FE8(Task* arg0)
     VECTOR vec;
     s32    i;
 
-    states[(s16)work->field_4FC](arg0);
-    if (work->field_43C != 0) {
+    states[(s16)work->walk.motion](arg0);
+    if (work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
         if (work->field_500 != 0) {
-            if (work->slots[1].flags & 2) {
+            if (work->rig.slots[1].flags & 2) {
                 if (gGameSession->at4.loc.view == 2) {
                     SndEvt_EnqueueType6(0x52100006, 0, 0x28);
                 } else {
@@ -405,40 +372,40 @@ s32 func_actor_323300_80162360(Task* arg0, s32 arg1, GpCmdArg* msg, GpXformArg* 
             SndEvt_EnqueueType7(0x52100006, 1);
             break;
         case 12:
-            w->field_4FC = 1;
-            w->field_4FE = 0;
-            w->field_4BC = place->pos.vx;
-            w->field_4C0 = place->pos.vy;
-            w->field_4C4 = place->pos.vz;
-            w->field_4F4 = place->rot.vx;
-            w->field_4F6 = place->rot.vy;
-            w->field_4F8 = place->rot.vz;
-            w->field_43F = 2;
+            w->walk.motion      = 1;
+            w->walk.motionStep  = 0;
+            w->walk.target.vx   = place->pos.vx;
+            w->walk.target.vy   = place->pos.vy;
+            w->walk.target.vz   = place->pos.vz;
+            w->walk.rotX        = place->rot.vx;
+            w->walk.rotY        = place->rot.vy;
+            w->walk.rotZ        = place->rot.vz;
+            w->model.nextAnimId = 2;
 
             preset = &D_actor_323300_801725C8;
             work   = (Actor323300Work*)arg0->work;
             extra  = arg0->extra;
-            if (preset->animBlock.index != work->field_43E) {
-                work->field_43E = preset->animBlock.index;
-                work->field_43D = -1;
-                func_800B3F84(&work->anim, D_actor_323300_80172558[work->field_43E], extra,
-                              work->pad_30C, work->slots);
+            if (preset->animBlock.index != work->model.bank) {
+                work->model.bank   = preset->animBlock.index;
+                work->model.animId = -1;
+                func_800B3F84(&work->rig.anim, D_actor_323300_80172558[work->model.bank], extra,
+                              work->rig.poses, work->rig.slots);
             }
-            if (preset->field_4 != work->field_43D) {
-                work->field_43D = preset->field_4;
-                if (preset->field_8 != 0 && work->field_43C != 0) {
+            if (preset->field_4 != work->model.animId) {
+                work->model.animId = preset->field_4;
+                if (preset->field_8 != 0 && work->model.ticking != 0) {
                     for (i = 1; i < 0x13; i++) {
-                        func_800B4114(&work->anim, i, work->field_43D, 0, preset->field_C);
+                        func_800B4114(&work->rig.anim, i, work->model.animId, 0, preset->field_C);
                     }
                 } else {
                     for (i = 1; i < 0x13; i++) {
-                        Gp_AnimResetSlot(&work->anim, i, work->field_43D);
+                        Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
                     }
                 }
                 for (i = 1; i < 0x13; i++) {
-                    Gp_AnimTickIndex(&work->anim, i);
+                    Gp_AnimTickIndex(&work->rig.anim, i);
                 }
-                work->field_43C = 1;
+                work->model.ticking = 1;
             }
             break;
         case 13:
@@ -477,8 +444,8 @@ void func_actor_323300_801626D0(Task* arg0)
 
     ext           = arg0->extra;
     work          = (Actor323300Work*)arg0->work;
-    ext->lightMtx = &work->light;
-    ext->colorMtx = &work->color;
+    ext->lightMtx = &work->model.light;
+    ext->colorMtx = &work->model.color;
 }
 
 /// Index 0 of the two-entry table `func_actor_323300_80161FE8` builds on its
@@ -487,7 +454,7 @@ void func_actor_323300_801626EC(Task* arg0)
 {
 }
 
-/// Index 1 of that table: re-dispatches on `field_4FE` through a second
+/// Index 1 of that table: re-dispatches on `walk.motionStep` through a second
 /// two-entry table, the preset start and the turn-to-face step.
 void func_actor_323300_801626F4(Task* arg0)
 {
@@ -497,7 +464,7 @@ void func_actor_323300_801626F4(Task* arg0)
         func_actor_323300_801627B4,
     };
 
-    states[(s16)work->field_4FE](arg0);
+    states[(s16)work->walk.motionStep](arg0);
 }
 
 void func_actor_323300_80162748(Task* arg0)
@@ -508,20 +475,20 @@ void func_actor_323300_80162748(Task* arg0)
     work = (Actor323300Work*)arg0->work;
     func_actor_323300_801628B8(arg0, 0x7D3, &D_actor_323300_801725C8, 0);
     for (i = 1; i < 0x13; i++) {
-        work->slots[i].rate = 8;
+        work->rig.slots[i].rate = 8;
     }
-    work->field_4CC = 0;
-    work->field_4D0 = 0;
-    work->field_4D4 = 0;
-    work->field_4FE++;
+    work->walk.step.vx = 0;
+    work->walk.step.vy = 0;
+    work->walk.step.vz = 0;
+    work->walk.motionStep++;
 }
 
 /// State handler at index 1 of the two-entry table `func_actor_323300_801626F4`
 /// dispatches, the turn-to-face body. Euler-extracts the root coordinate into `vec`
-/// and, while the yaw gap to the target `work->field_4F6` stays under 0x41,
+/// and, while the yaw gap to the target `work->walk.rotY` stays under 0x41,
 /// snaps `vec.vy` to that target, plays anim 0x7D3 through
 /// `func_actor_323300_801628B8` and parks all 18 animation slots at 0x16 --
-/// `field_4FC` and `field_4FE` go back to zero, so the handler re-runs. A wider
+/// `walk.motion` and `walk.motionStep` go back to zero, so the handler re-runs. A wider
 /// gap steps `vec.vy` toward the target by 0x40 instead. Either way the root
 /// coordinate is rebuilt as the identity matrix rotated by `vec`, with `flg`
 /// cleared so the next `Gp_UpdateCoord` recomputes it.
@@ -539,7 +506,7 @@ void func_actor_323300_801627B4(Task* arg0)
     work  = (Actor323300Work*)arg0->work;
 
     Gp_ExtractEuler(&vec, &coord->coord);
-    diff = (u16)work->field_4F6 - (u16)vec.vy;
+    diff = (u16)work->walk.rotY - (u16)vec.vy;
     if (ABS(diff) >= 0x41) {
         vy = vec.vy;
         if (diff < 0) {
@@ -548,13 +515,13 @@ void func_actor_323300_801627B4(Task* arg0)
             vec.vy = vy + 0x40;
         }
     } else {
-        vec.vy = work->field_4F6;
+        vec.vy = work->walk.rotY;
         func_actor_323300_801628B8(arg0, 0x7D3, &D_actor_323300_801725DC, 0);
         for (i = 1; i < 0x13; i++) {
-            work->slots[i].rate = 0x16;
+            work->rig.slots[i].rate = 0x16;
         }
-        work->field_4FC = 0;
-        work->field_4FE = 0;
+        work->walk.motion     = 0;
+        work->walk.motionStep = 0;
     }
 
     words                = (OverlayMat*)&coord->coord;
@@ -574,7 +541,7 @@ void func_actor_323300_801627B4(Task* arg0)
 /// animation id. A changed animation id is then stored and installed on every
 /// slot 1..0x12 - through `func_800B4114` when the preset's `field_8` is set
 /// and the slots have already been started, through `Gp_AnimResetSlot`
-/// otherwise - after which every slot is ticked once and `field_43C` latches.
+/// otherwise - after which every slot is ticked once and `model.ticking` latches.
 /// An unchanged id skips all of that. Returns 0.
 s32 func_actor_323300_801628B8(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 {
@@ -584,26 +551,26 @@ s32 func_actor_323300_801628B8(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 
     work = (Actor323300Work*)task->work;
     ext  = task->extra;
-    if (msg->animBlock.index != work->field_43E) {
-        work->field_43E = msg->animBlock.index;
-        work->field_43D = -1;
-        func_800B3F84(&work->anim, D_actor_323300_80172558[work->field_43E], ext, work->pad_30C, work->slots);
+    if (msg->animBlock.index != work->model.bank) {
+        work->model.bank   = msg->animBlock.index;
+        work->model.animId = -1;
+        func_800B3F84(&work->rig.anim, D_actor_323300_80172558[work->model.bank], ext, work->rig.poses, work->rig.slots);
     }
-    if (msg->field_4 != work->field_43D) {
-        work->field_43D = msg->field_4;
-        if (msg->field_8 != 0 && work->field_43C != 0) {
+    if (msg->field_4 != work->model.animId) {
+        work->model.animId = msg->field_4;
+        if (msg->field_8 != 0 && work->model.ticking != 0) {
             for (i = 1; i < 0x13; i++) {
-                func_800B4114(&work->anim, i, work->field_43D, 0, msg->field_C);
+                func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->field_C);
             }
         } else {
             for (i = 1; i < 0x13; i++) {
-                Gp_AnimResetSlot(&work->anim, i, work->field_43D);
+                Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
             }
         }
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
-        work->field_43C = 1;
+        work->model.ticking = 1;
     }
     return 0;
 }
@@ -807,7 +774,7 @@ void func_actor_323300_80162DF0(Task* arg0)
 
     if (work->field_43C != 0) {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
 
@@ -1010,22 +977,22 @@ s32 func_actor_323300_80163718(Task* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3)
     if (arg2->animBlock.index != work->field_440) {
         work->field_440 = arg2->animBlock.index;
         work->field_444 = -1;
-        func_800B3F84(&work->anim, D_actor_323300_80174A70[work->field_440], ext,
-                      work->pad_30C, work->slots);
+        func_800B3F84(&work->rig.anim, D_actor_323300_80174A70[work->field_440], ext,
+                      work->rig.poses, work->rig.slots);
     }
     if (arg2->field_4 != work->field_444) {
         work->field_444 = arg2->field_4;
         if (arg2->field_8 != 0 && work->field_43C != 0) {
             for (i = 1; i < 0x13; i++) {
-                func_800B4114(&work->anim, i, work->field_444, 0, arg2->field_C);
+                func_800B4114(&work->rig.anim, i, work->field_444, 0, arg2->field_C);
             }
         } else {
             for (i = 1; i < 0x13; i++) {
-                Gp_AnimResetSlot(&work->anim, i, work->field_444);
+                Gp_AnimResetSlot(&work->rig.anim, i, work->field_444);
             }
         }
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
         work->field_43C = 1;
     }

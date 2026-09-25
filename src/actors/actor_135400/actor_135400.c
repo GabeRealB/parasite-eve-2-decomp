@@ -23,30 +23,15 @@
 /// is therefore not a `TaskIdMap` here. The main task's spawn carves a
 /// different, 0x4C8-byte `Actor135400MainWork`.
 ///
-/// `lightMtx` / `colorMtx` are the model's own flat-light matrices:
-/// `func_actor_135400_80132CB0` points the `TmdObject`'s `lightMtx` /
-/// `colorMtx` at them and fills them from the three `D_actor_135400_8013F904`
-/// lights.
-///
-/// `field_43C` is the flag the 0x7D3 handler `func_actor_135400_80132D24`
-/// raises once it has run the slots; `field_43D` / `field_43E` latch the
-/// `field_4` / `animBlock.index` of the `GpAnimArg` that call was handed (`-1` until
-/// then), and `params` holds the `D_actor_135400_80131EA0` defaults. The block
-/// opens with its own animation context, the nineteen 0x28-byte slots and the
-/// pose buffer the handler passes `func_800B3F84`; `func_actor_135400_801329B0`
-/// ticks slots 1..18 through `Gp_AnimTickIndex` once `field_43C` is set.
+/// `rig` and `model` are the model's animation rig and state; the spawn
+/// routine points the `TmdObject`'s `lightMtx` / `colorMtx` at the model
+/// state's matrices and fills them from the three `D_actor_135400_8013F904`
+/// lights. `params` holds the `D_actor_135400_80131EA0` defaults.
 typedef struct Actor135400Work {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[0x13];
-    /* 0x30C */ byte       poses[0x130];
-    /* 0x43C */ s8         field_43C;
-    /* 0x43D */ s8         field_43D;
-    /* 0x43E */ s8         field_43E;
-    /* 0x43F */ byte       pad_43F[0x1];
-    /* 0x440 */ MATRIX     lightMtx; // the model's `TmdObject::lightMtx`
-    /* 0x460 */ MATRIX     colorMtx; // the model's `TmdObject::colorMtx`
-    /* 0x480 */ GpAnimArg  params;
-    /* 0x494 */ s32        field_494;
+    ActorAnimRig19  rig;
+    ActorModelState model;
+    GpAnimArg       params;
+    s32             field_494;
 } Actor135400Work;
 STATIC_ASSERT_SIZEOF(Actor135400Work, 0x498);
 
@@ -54,16 +39,8 @@ STATIC_ASSERT_SIZEOF(Actor135400Work, 0x498);
 /// allocates it (`memCalloc(0x4C8, 0)`) and parks the 0x7D3 / 0x7D4 / 0x7D5 /
 /// 0x7DB handler table `D_actor_135400_8013A4D0` in that task's `msgTable`.
 ///
-/// The block opens with its own animation context, the twenty 0x28-byte slots
-/// and the pose buffer: `func_actor_135400_80132650`, the task's 0x7D3
-/// handler, hands `func_800B3F84` the context, the pose buffer and the slots.
-/// `field_474` is the live flag that handler raises once it has run the slots
-/// -- `func_actor_135400_801322A8` only ticks them while it is set -- and
-/// `field_475` / `field_476` are the two bytes it latches out of the animation
-/// request: `field_476` indexes `D_actor_135400_8013A4A8` for the load and
-/// `field_475` is passed on as the slot functions' third argument.
-/// `lightMtx` / `colorMtx` are the model's own light and colour matrices,
-/// which `func_actor_135400_80132634` points the `TmdObject` at.
+/// `rig` and `model` are the model's animation rig and state, whose
+/// matrices the model is lit with.
 ///
 /// `field_4B8` / `field_4BC` are the two part tasks the same spawn creates
 /// through `Task_SpawnFromTable` (part 1 and part 2); each reparents itself
@@ -74,19 +51,12 @@ STATIC_ASSERT_SIZEOF(Actor135400Work, 0x498);
 /// the slot-3 target and hands `func_800B0928`. Only the fields decompiled
 /// bodies reach are described.
 typedef struct Actor135400MainWork {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[0x14];
-    /* 0x334 */ byte       poses[0x140];
-    /* 0x474 */ s8         field_474;
-    /* 0x475 */ s8         field_475;
-    /* 0x476 */ s8         field_476;
-    /* 0x477 */ byte       pad_477[0x1];
-    /* 0x478 */ MATRIX     lightMtx; // the model's `TmdObject::lightMtx`
-    /* 0x498 */ MATRIX     colorMtx; // the model's `TmdObject::colorMtx`
-    /* 0x4B8 */ Task*      field_4B8;
-    /* 0x4BC */ Task*      field_4BC;
-    /* 0x4C0 */ s32        headAim;
-    /* 0x4C4 */ s32        headRate;
+    ActorAnimRig20    rig;
+    ActorModelState   model;
+    /* 0x4B8 */ Task* field_4B8;
+    /* 0x4BC */ Task* field_4BC;
+    /* 0x4C0 */ s32   headAim;
+    /* 0x4C4 */ s32   headRate;
 } Actor135400MainWork;
 STATIC_ASSERT_SIZEOF(Actor135400MainWork, 0x4C8);
 
@@ -283,10 +253,10 @@ void func_actor_135400_80132064(Task* arg0)
         Gp_EnemyTaskExit(arg0);
         return;
     }
-    arg0->work      = (TaskIdMap*)work;
-    work->field_475 = -1;
-    work->field_476 = -1;
-    spawned         = Task_SpawnFromTable(&D_actor_135400_8013A4AC, 1, 4, (s32)arg0);
+    arg0->work         = (TaskIdMap*)work;
+    work->model.animId = -1;
+    work->model.bank   = -1;
+    spawned            = Task_SpawnFromTable(&D_actor_135400_8013A4AC, 1, 4, (s32)arg0);
     if (spawned != NULL) {
         work->field_4B8 = spawned;
         model           = (TmdObject*)spawned->extra;
@@ -330,7 +300,7 @@ void func_actor_135400_80132064(Task* arg0)
 }
 
 /// Per-frame tick of the actor's main task: ticks the twenty animation slots
-/// once `field_474` has latched, and while the model is not hidden (flag 0x80
+/// once `model.ticking` has latched, and while the model is not hidden (flag 0x80
 /// of `TmdObject::flags`) draws its ground shadow from the second
 /// part's translation, recomputes that part's world matrix, re-ranks it
 /// through `func_800D7A9C`, ramps the head-tracking rate `headRate` and finally
@@ -345,9 +315,9 @@ void func_actor_135400_801322A8(Task* task)
 
     work = (Actor135400MainWork*)task->work;
     ext  = task->extra;
-    if (work->field_474 != 0) {
+    if (work->model.ticking != 0) {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
     if (!(ext->flags & 0x80)) {
@@ -481,12 +451,12 @@ void func_actor_135400_80132634(Task* task)
 
     ext           = task->extra;
     work          = (Actor135400MainWork*)task->work;
-    ext->lightMtx = &work->lightMtx;
-    ext->colorMtx = &work->colorMtx;
+    ext->lightMtx = &work->model.light;
+    ext->colorMtx = &work->model.color;
 }
 
 /// The main task's 0x7D3 handler: when the request names a different bank
-/// than the one latched in `field_476`, re-seeds the twenty slots from
+/// than the one latched in `model.bank`, re-seeds the twenty slots from
 /// `D_actor_135400_8013A4A8`; then, with `field_8` set and the slots already
 /// live, starts animation `field_4` on every slot through `func_800B4114`
 /// (passing `field_C`), otherwise resets every slot to it, and ticks them all
@@ -499,24 +469,24 @@ s32 func_actor_135400_80132650(Task* task, s32 anim, GpAnimArg* params, s32 arg3
 
     work = (Actor135400MainWork*)task->work;
     ext  = task->extra;
-    if (params->animBlock.index != work->field_476) {
-        work->field_476 = params->animBlock.index;
-        func_800B3F84(&work->anim, D_actor_135400_8013A4A8[work->field_476], ext, work->poses, work->slots);
+    if (params->animBlock.index != work->model.bank) {
+        work->model.bank = params->animBlock.index;
+        func_800B3F84(&work->rig.anim, D_actor_135400_8013A4A8[work->model.bank], ext, work->rig.poses, work->rig.slots);
     }
-    work->field_475 = params->field_4;
-    if (params->field_8 != 0 && work->field_474 != 0) {
+    work->model.animId = params->field_4;
+    if (params->field_8 != 0 && work->model.ticking != 0) {
         for (i = 1; i < 0x14; i++) {
-            func_800B4114(&work->anim, i, work->field_475, 0, params->field_C);
+            func_800B4114(&work->rig.anim, i, work->model.animId, 0, params->field_C);
         }
     } else {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimResetSlot(&work->anim, i, work->field_475);
+            Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
         }
     }
     for (i = 1; i < 0x14; i++) {
-        Gp_AnimTickIndex(&work->anim, i);
+        Gp_AnimTickIndex(&work->rig.anim, i);
     }
-    work->field_474 = 1;
+    work->model.ticking = 1;
     return 0;
 }
 
@@ -630,7 +600,7 @@ s32 func_actor_135400_801328DC(Task* task, s32 msgId, GpCmdArg* msg, s32 arg3)
 }
 
 /// Per-frame tick of the second task. Once `func_actor_135400_80132D24` has
-/// raised `field_43C` it ticks slots 1..18 of the work block through
+/// raised `model.ticking` it ticks slots 1..18 of the work block through
 /// `Gp_AnimTickIndex`; while the model is not hidden (flag 0x80 of
 /// `TmdObject::flags`) it draws the ground shadow under the model's
 /// root part, as `func_actor_135400_801322A8` does for the main task. It then
@@ -648,9 +618,9 @@ void func_actor_135400_801329B0(Task* task)
 
     work = (Actor135400Work*)task->work;
     ext  = task->extra;
-    if (work->field_43C != 0) {
+    if (work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
     if (!(ext->flags & 0x80) && (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[0].workm.t, &pos) != 0)) {
@@ -720,11 +690,11 @@ void func_actor_135400_80132B60(Task* arg0)
         Gp_EnemyTaskExit(arg0);
         return;
     }
-    arg0->work      = (TaskIdMap*)work;
-    work->field_43D = -1;
-    work->field_43E = -1;
-    work->field_494 = -1;
-    work->params    = spawn;
+    arg0->work         = (TaskIdMap*)work;
+    work->model.animId = -1;
+    work->model.bank   = -1;
+    work->field_494    = -1;
+    work->params       = spawn;
     func_actor_135400_80132D24(arg0, 0x7D3, &params, 0);
     func_actor_135400_80132EBC(arg0, 0x7D5, 1, 0);
     func_actor_135400_80132CB0(arg0);
@@ -748,15 +718,15 @@ void func_actor_135400_80132CB0(Task* task)
     GsF_LIGHT*       light;
     s32              i;
 
-    obj->lightMtx = &work->lightMtx;
-    obj->colorMtx = &work->colorMtx;
+    obj->lightMtx = &work->model.light;
+    obj->colorMtx = &work->model.color;
     for (i = 0, light = D_actor_135400_8013F904; i < 3; i++, light++) {
-        Gfx_SetFlatLight(i, light, &work->lightMtx, &work->colorMtx);
+        Gfx_SetFlatLight(i, light, &work->model.light, &work->model.color);
     }
 }
 
 /// The 0x7D3 handler of the task `func_actor_135400_80132B60` sets up: when
-/// the request names a different bank than the one latched in `field_43E`,
+/// the request names a different bank than the one latched in `model.bank`,
 /// re-seeds the nineteen slots from `D_actor_135400_8013F8D4`; then, with
 /// `field_8` set and the slots already live, starts animation `field_4` on
 /// every slot through `func_800B4114` (passing `field_C`), otherwise resets
@@ -769,24 +739,24 @@ s32 func_actor_135400_80132D24(Task* task, s32 anim, GpAnimArg* params, s32 arg3
 
     work = (Actor135400Work*)task->work;
     ext  = task->extra;
-    if (params->animBlock.index != work->field_43E) {
-        work->field_43E = params->animBlock.index;
-        func_800B3F84(&work->anim, D_actor_135400_8013F8D4[work->field_43E], ext, work->poses, work->slots);
+    if (params->animBlock.index != work->model.bank) {
+        work->model.bank = params->animBlock.index;
+        func_800B3F84(&work->rig.anim, D_actor_135400_8013F8D4[work->model.bank], ext, work->rig.poses, work->rig.slots);
     }
-    work->field_43D = params->field_4;
-    if (params->field_8 != 0 && work->field_43C != 0) {
+    work->model.animId = params->field_4;
+    if (params->field_8 != 0 && work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
-            func_800B4114(&work->anim, i, work->field_43D, 0, params->field_C);
+            func_800B4114(&work->rig.anim, i, work->model.animId, 0, params->field_C);
         }
     } else {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimResetSlot(&work->anim, i, work->field_43D);
+            Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
         }
     }
     for (i = 1; i < 0x13; i++) {
-        Gp_AnimTickIndex(&work->anim, i);
+        Gp_AnimTickIndex(&work->rig.anim, i);
     }
-    work->field_43C = 1;
+    work->model.ticking = 1;
     return 0;
 }
 

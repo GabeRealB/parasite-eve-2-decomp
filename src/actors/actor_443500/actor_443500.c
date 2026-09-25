@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "actors/actor.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/mem.h"
@@ -28,24 +29,11 @@
 /// The size is the allocation; the fields below are the ones this overlay's
 /// decompiled bodies touch.
 typedef struct Actor443500Work {
-    /* 0x000 */ GpAnimCtx anim;
-    /// The twenty slots `func_actor_443500_801327E0` walks 1..0x13, each
-    /// 0x28 bytes, filling the span up to the matrix table.
-    /* 0x014 */ GpAnimSlot slots[0x14];
-    /// The matrix table `func_800B3F84` fills, immediately after the slots.
-    /* 0x334 */ byte field_334[0x140];
-    /// Raised by `func_actor_443500_801327E0` after its last slot pass, and
-    /// the condition its start branch reads: the first pass, while it is still
-    /// clear, clears the slots instead.
-    /* 0x474 */ s8     field_474;
-    /* 0x475 */ s8     field_475;
-    /* 0x476 */ s8     field_476;
-    /* 0x477 */ byte   pad_477[0x1];
-    /* 0x478 */ MATRIX light;
-    /* 0x498 */ MATRIX color;
-    /* 0x4B8 */ byte   pad_4B8[0x2];
+    ActorAnimRig20   rig;
+    ActorModelState  model;
+    /* 0x4B8 */ byte pad_4B8[0x2];
     /// Cleared by `func_actor_443500_801327E0` after the slot passes, beside
-    /// the `field_474` latch it raises.
+    /// the `model.ticking` latch it raises.
     /* 0x4BA */ s16 field_4BA;
     /* 0x4BC */ s32 field_4BC;
     /* 0x4C0 */ s32 field_4C0;
@@ -227,12 +215,12 @@ void func_actor_443500_80132078(Task* task)
         Gp_EnemyTaskExit(task);
         return;
     }
-    task->work      = (TaskIdMap*)work;
-    work->field_475 = -1;
-    work->field_476 = -1;
-    work->field_4BC = -1;
-    work->field_4C0 = ((TmdObject*)task->extra)->flags;
-    spawned         = Task_SpawnFromTable(&D_actor_443500_8015873C, 1, 4, (s32)task);
+    task->work         = (TaskIdMap*)work;
+    work->model.animId = -1;
+    work->model.bank   = -1;
+    work->field_4BC    = -1;
+    work->field_4C0    = ((TmdObject*)task->extra)->flags;
+    spawned            = Task_SpawnFromTable(&D_actor_443500_8015873C, 1, 4, (s32)task);
     if (spawned != NULL) {
         sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
         raw        = ((GpEnemy*)task->spawnArg2)->placeKey;
@@ -266,8 +254,8 @@ void func_actor_443500_80132078(Task* task)
 /// Per-frame tick: while the view is live and idle, views 0..3 hide the model
 /// (saving `TmdObject::flags` into `field_4C0`) and views 4..5 restore that
 /// saved word, showing the model through message 0x7D5 when flag 0x83 is set.
-/// Ticks animation slots 1..0x13 once `field_474` is latched, restarting 0x7D3
-/// when slot 1 reports the clip ended. The `field_475 == 0x1C` path is the
+/// Ticks animation slots 1..0x13 once `model.ticking` is latched, restarting 0x7D3
+/// when slot 1 reports the clip ended. The `model.animId == 0x1C` path is the
 /// default clip's sound: `field_4BA` counts to 0xF for a Type6 (views 4/5) or
 /// Type7 (view 3) cue, TypeA otherwise while the view is ready, and resets on
 /// slot 1's control-entry bit. A visible model gets a ground shadow and a
@@ -296,15 +284,15 @@ void func_actor_443500_801321F0(Task* task)
             extra->flags = work->field_4C0;
         }
     }
-    if (work->field_474 != 0) {
+    if (work->model.ticking != 0) {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
-        if (gGameSession->eventState == 0 && (work->slots[1].flags & 1)) {
+        if (gGameSession->eventState == 0 && (work->rig.slots[1].flags & 1)) {
             func_actor_443500_801327E0(task, 0x7D3, &D_actor_443500_80158728, 0);
         }
     }
-    if (work->field_475 == 0x1C) {
+    if (work->model.animId == 0x1C) {
         work->field_4BA++;
         if (work->field_4BA == 0xF) {
             switch (gGameSession->at4.loc.view) {
@@ -331,7 +319,7 @@ void func_actor_443500_801321F0(Task* task)
                     break;
             }
         }
-        if (work->slots[1].flags & 2) {
+        if (work->rig.slots[1].flags & 2) {
             work->field_4BA = 0;
         }
     }
@@ -457,18 +445,18 @@ void func_actor_443500_801327C4(Task* task)
 
     ext           = task->extra;
     work          = (Actor443500Work*)task->work;
-    ext->lightMtx = &work->light;
-    ext->colorMtx = &work->color;
+    ext->lightMtx = &work->model.light;
+    ext->colorMtx = &work->model.color;
 }
 
 /// Animation preset handler of message 0x7D3: when the preset's bank index
 /// changes the slot array is re-seeded off bank table `D_actor_443500_80158724` through
-/// `func_800B3F84`, then the preset's `field_4` is latched into `field_475` and
+/// `func_800B3F84`, then the preset's `field_4` is latched into `model.animId` and
 /// every slot 1..0x13 is either started -- through `func_800B4114`, the path
 /// `field_8` selects and the only one that reads `field_C`, taken only once
-/// `field_474` has been raised -- or cleared through `Gp_AnimResetSlot`; either
+/// `model.ticking` has been raised -- or cleared through `Gp_AnimResetSlot`; either
 /// way all of them are advanced once by `Gp_AnimTickIndex`. The trailing store
-/// raises the `field_474` latch the start branch above reads and clears
+/// raises the `model.ticking` latch the start branch above reads and clears
 /// `field_4BA`.
 s32 func_actor_443500_801327E0(Task* task, s32 anim, GpAnimArg* params, s32 arg3)
 {
@@ -478,26 +466,26 @@ s32 func_actor_443500_801327E0(Task* task, s32 anim, GpAnimArg* params, s32 arg3
 
     work = (Actor443500Work*)task->work;
     ext  = task->extra;
-    if (params->animBlock.index != work->field_476) {
-        work->field_476 = params->animBlock.index;
-        func_800B3F84(&work->anim, D_actor_443500_80158724[work->field_476], ext, work->field_334,
-                      work->slots);
+    if (params->animBlock.index != work->model.bank) {
+        work->model.bank = params->animBlock.index;
+        func_800B3F84(&work->rig.anim, D_actor_443500_80158724[work->model.bank], ext, work->rig.poses,
+                      work->rig.slots);
     }
-    work->field_475 = params->field_4;
-    if (params->field_8 != 0 && work->field_474 != 0) {
+    work->model.animId = params->field_4;
+    if (params->field_8 != 0 && work->model.ticking != 0) {
         for (i = 1; i < 0x14; i++) {
-            func_800B4114(&work->anim, i, work->field_475, 0, params->field_C);
+            func_800B4114(&work->rig.anim, i, work->model.animId, 0, params->field_C);
         }
     } else {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimResetSlot(&work->anim, i, work->field_475);
+            Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
         }
     }
     for (i = 1; i < 0x14; i++) {
-        Gp_AnimTickIndex(&work->anim, i);
+        Gp_AnimTickIndex(&work->rig.anim, i);
     }
-    work->field_474 = 1;
-    work->field_4BA = 0;
+    work->model.ticking = 1;
+    work->field_4BA     = 0;
     return 0;
 }
 

@@ -96,32 +96,25 @@ STATIC_ASSERT_SIZEOF(Actor503500WorkAC, 0xAC);
 /// `Actor317000Work` and its siblings in the other actor overlays, except that
 /// those write 0x4C8 as a halfword.
 typedef struct Actor503500Effect4CC {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[0x13]; // the slot array `func_800B3F84` is handed
-    /* 0x30C */ byte       field_30C[0x130];
-    /* 0x43C */ s8         field_43C;   // set once the slots have been started
-    /* 0x43D */ s8         field_43D;   // animation id the slots were seeded with
-    /* 0x43E */ s8         field_43E;   // bank index into `D_actor_503500_80176520`
-    /* 0x43F */ byte       pad_43F[0x1];
-    /* 0x440 */ MATRIX     light;
-    /* 0x460 */ MATRIX     color;
-    /* 0x480 */ s32        field_480[4]; // saved `coord.m` words 0..3
-    /* 0x490 */ s16        field_490;    // saved `coord.m[2][2]`
-    /* 0x492 */ byte       pad_492[0xE];
-    /* 0x4A0 */ s32        field_4A0;
-    /* 0x4A4 */ s32        field_4A4;
-    /* 0x4A8 */ s32        field_4A8;
-    /* 0x4AC */ byte       pad_4AC[0x4];
-    /* 0x4B0 */ s32        field_4B0;
-    /* 0x4B4 */ s32        field_4B4;
-    /* 0x4B8 */ s32        field_4B8;
-    /* 0x4BC */ byte       pad_4BC[0x4];
-    /* 0x4C0 */ s16        field_4C0;
-    /* 0x4C2 */ s16        field_4C2;
-    /* 0x4C4 */ s16        field_4C4;
-    /* 0x4C6 */ s16        field_4C6;
-    /* 0x4C8 */ s8         field_4C8;
-    /* 0x4C9 */ byte       pad_4C9[0x3];
+    ActorAnimRig19   rig;
+    ActorModelState  model;
+    /* 0x480 */ s32  field_480[4]; // saved `coord.m` words 0..3
+    /* 0x490 */ s16  field_490;    // saved `coord.m[2][2]`
+    /* 0x492 */ byte pad_492[0xE];
+    /* 0x4A0 */ s32  field_4A0;
+    /* 0x4A4 */ s32  field_4A4;
+    /* 0x4A8 */ s32  field_4A8;
+    /* 0x4AC */ byte pad_4AC[0x4];
+    /* 0x4B0 */ s32  field_4B0;
+    /* 0x4B4 */ s32  field_4B4;
+    /* 0x4B8 */ s32  field_4B8;
+    /* 0x4BC */ byte pad_4BC[0x4];
+    /* 0x4C0 */ s16  field_4C0;
+    /* 0x4C2 */ s16  field_4C2;
+    /* 0x4C4 */ s16  field_4C4;
+    /* 0x4C6 */ s16  field_4C6;
+    /* 0x4C8 */ s8   field_4C8;
+    /* 0x4C9 */ byte pad_4C9[0x3];
 } Actor503500Effect4CC;
 STATIC_ASSERT_SIZEOF(Actor503500Effect4CC, 0x4CC);
 
@@ -793,9 +786,9 @@ void func_actor_503500_80145FDC(Task* task)
     work->field_4A0    = (u16)work->field_4A0;
     work->field_4A4    = (u16)work->field_4A4;
     work->field_4A8    = (u16)work->field_4A8;
-    if (work->field_43C != 0) {
+    if (work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
     if (!(ext->flags & 0x80)) {
@@ -916,13 +909,13 @@ void func_actor_503500_8014642C(Task* arg0)
         return;
     }
 
-    arg0->work      = (Actor503500Work*)work;
-    work->field_43D = -1;
-    work->field_43E = -1;
-    work->field_4C8 = -1;
-    work->field_4A0 = 0;
-    work->field_4A4 = 0;
-    work->field_4A8 = 0;
+    arg0->work         = (Actor503500Work*)work;
+    work->model.animId = -1;
+    work->model.bank   = -1;
+    work->field_4C8    = -1;
+    work->field_4A0    = 0;
+    work->field_4A4    = 0;
+    work->field_4A8    = 0;
 
     enemy->field_4  = &coord->coord;
     enemy->field_48 = 0;
@@ -950,8 +943,8 @@ void func_actor_503500_80146508(Task* arg0)
 
     work          = (Actor503500Effect4CC*)arg0->work;
     ext           = arg0->extra;
-    ext->lightMtx = &work->light;
-    ext->colorMtx = &work->color;
+    ext->lightMtx = &work->model.light;
+    ext->colorMtx = &work->model.color;
 }
 
 void func_actor_503500_80146524(Task* arg0)
@@ -966,27 +959,27 @@ s32 func_actor_503500_8014652C(Task* task, s32 arg1, GpAnimArg* msg)
 
     work = (Actor503500Effect4CC*)task->work;
     ext  = task->extra;
-    if (msg->animBlock.index != work->field_43E) {
-        work->field_43E = msg->animBlock.index;
-        work->field_43D = -1;
-        func_800B3F84(&work->anim, D_actor_503500_80176520[work->field_43E], ext, work->field_30C,
-                      work->slots);
+    if (msg->animBlock.index != work->model.bank) {
+        work->model.bank   = msg->animBlock.index;
+        work->model.animId = -1;
+        func_800B3F84(&work->rig.anim, D_actor_503500_80176520[work->model.bank], ext, work->rig.poses,
+                      work->rig.slots);
     }
-    if (msg->field_4 != work->field_43D) {
-        work->field_43D = msg->field_4;
-        if (msg->field_8 != 0 && work->field_43C != 0) {
+    if (msg->field_4 != work->model.animId) {
+        work->model.animId = msg->field_4;
+        if (msg->field_8 != 0 && work->model.ticking != 0) {
             for (i = 1; i < 0x13; i++) {
-                func_800B4114(&work->anim, i, work->field_43D, 0, msg->field_C);
+                func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->field_C);
             }
         } else {
             for (i = 1; i < 0x13; i++) {
-                Gp_AnimResetSlot(&work->anim, i, work->field_43D);
+                Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
             }
         }
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            Gp_AnimTickIndex(&work->rig.anim, i);
         }
-        work->field_43C = 1;
+        work->model.ticking = 1;
     }
     return 0;
 }
