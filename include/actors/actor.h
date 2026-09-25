@@ -17,7 +17,6 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 #include "overlay.h"
-#include "rooms/rooms_shared_80182078.h"
 
 /*
  * Types and helpers that the actor overlays each carry a copy of.
@@ -1726,78 +1725,6 @@ static __inline__ GsCOORDINATE2* actorLocalizeRotation(GsCOORDINATE2* joint, MAT
         }
     }
     return joint;
-}
-
-/// Carries `v` from the frame of `coord` up the parent chain into world
-/// space, walking in a block taken from the scratch pad.
-static __inline__ void actorToWorld(GsCOORDINATE2* coord, SVECTOR* v)
-{
-    RoomsShared80182078Walk* blk;
-
-    {
-        register GsCOORDINATE2* parent asm("v0");
-        parent                                                                                              = coord;
-        ((RoomsShared80182078Walk*)((u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomsShared80182078Walk)))->coord = parent;
-    }
-    {
-        register u8* tmp asm("v0");
-        tmp = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomsShared80182078Walk);
-        blk = (RoomsShared80182078Walk*)tmp;
-    }
-    blk->vec.vx = v->vx;
-    blk->vec.vy = v->vy;
-    blk->vec.vz = v->vz;
-
-    *(void**)G_SCRATCH_HEAD = blk;
-    while (blk->coord != NULL) {
-        gte_SetTransMatrix(&blk->coord->coord);
-        gte_SetRotMatrix(&blk->coord->coord);
-        gte_ldv0(&blk->vec);
-        gte_rtv0tr();
-        gte_stlvnl(blk->out);
-        gte_stflg(&blk->flag);
-        blk->vec.vx = *(u16*)&blk->out[0];
-        blk->vec.vy = *(u16*)&blk->out[1];
-        blk->vec.vz = *(u16*)&blk->out[2];
-        blk->coord  = blk->coord->sub;
-    }
-    v->vx = blk->vec.vx;
-    v->vy = blk->vec.vy;
-    v->vz = blk->vec.vz;
-
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomsShared80182078Walk);
-}
-
-/// The walk of `actorToWorld` without its register bindings. Callers use
-/// whichever of the two spellings their code was compiled from.
-static __inline__ void actorToWorld2(GsCOORDINATE2* coord, SVECTOR* v)
-{
-    RoomsShared80182078Walk* blk;
-
-    blk         = (RoomsShared80182078Walk*)((u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomsShared80182078Walk));
-    blk->coord  = coord;
-    blk->vec.vx = v->vx;
-    blk->vec.vy = v->vy;
-    blk->vec.vz = v->vz;
-
-    *(void**)G_SCRATCH_HEAD = blk;
-    while (blk->coord != NULL) {
-        gte_SetTransMatrix(&blk->coord->coord);
-        gte_SetRotMatrix(&blk->coord->coord);
-        gte_ldv0(&blk->vec);
-        gte_rtv0tr();
-        gte_stlvnl(blk->out);
-        gte_stflg(&blk->flag);
-        blk->vec.vx = *(u16*)&blk->out[0];
-        blk->vec.vy = *(u16*)&blk->out[1];
-        blk->vec.vz = *(u16*)&blk->out[2];
-        blk->coord  = blk->coord->sub;
-    }
-    v->vx = blk->vec.vx;
-    v->vy = blk->vec.vy;
-    v->vz = blk->vec.vz;
-
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomsShared80182078Walk);
 }
 
 /// Carries `out` from the frame of `p` up the parent chain to the view

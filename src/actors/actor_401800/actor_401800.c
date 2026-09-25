@@ -242,123 +242,6 @@ typedef struct Actor401800AnimWork {
     /* 0x8AC */ s16        field_8AC;
 } Actor401800AnimWork;
 
-/// 0x20 scratch block the bisector push's coordinate walk takes from
-/// `G_SCRATCH_HEAD`. `coord` is the frame the walk is currently standing on
-/// (it climbs the `GsCOORDINATE2::sub` parent chain until NULL), `vec` is the
-/// vector being carried up into world space, and `out` receives the `MVMVA`
-/// result (`MAC1..3`) that is fed back into `vec` each step. `flag` takes the
-/// GTE flag register so the block matches what the code stores. Same layout as
-/// `RoomsShared80182078Walk`.
-typedef struct Actor401800BisectorWalk {
-    /* 0x00 */ GsCOORDINATE2* coord;
-    /* 0x04 */ SVECTOR        vec;
-    /* 0x0C */ s32            out[3];
-    /* 0x18 */ s32            pad_18;
-    /* 0x1C */ s32            flag;
-} Actor401800BisectorWalk;
-STATIC_ASSERT_SIZEOF(Actor401800BisectorWalk, 0x20);
-
-/// 0xE4 scratch block `func_actor_401800_80132E0C` takes from
-/// `G_SCRATCH_HEAD` while it nudges a coordinate frame away from the
-/// obstacles recorded in a `GpRec18` table. `m` is the working matrix handed
-/// to `Gfx_RotMatrixY` / `Gfx_MatrixCol2`. `eye` is the frame's own world
-/// position and `aim` the world point one unit (0x1000) in front of it, both
-/// produced by walking the parent chain; `delta` is the scratch difference fed
-/// to `ratan2` and later the GPF-scaled push applied to `coord.t[0]` /
-/// `coord.t[2]`. `kind` is the record's `key` high halfword, `angle[]` the
-/// per-record bearing relative to the facing direction (0x7FFE marks "no more
-/// records", 0x7FFF "record does not count"), `i` / `j` the two loop counters,
-/// `diff` the wrapped bearing difference between a pair of records and `hit`
-/// the value the function returns. Same layout as
-/// `RoomsShared80182078Scratch`.
-typedef struct Actor401800BisectorScratch {
-    /* 0x00 */ MATRIX  m;
-    /* 0x20 */ byte    pad_20[0x80];
-    /* 0xA0 */ SVECTOR delta;
-    /* 0xA8 */ SVECTOR eye;
-    /* 0xB0 */ SVECTOR aim;
-    /* 0xB8 */ s32     kind;
-    /* 0xBC */ s16     angle[0x10];
-    /* 0xDC */ s16     i;
-    /* 0xDE */ s16     j;
-    /* 0xE0 */ s16     diff;
-    /* 0xE2 */ s16     hit;
-} Actor401800BisectorScratch;
-STATIC_ASSERT_SIZEOF(Actor401800BisectorScratch, 0xE4);
-
-/// Carries `v` from the local frame `coord` up the `GsCOORDINATE2::sub` parent
-/// chain into world space, using a 0x20 scratch block from `G_SCRATCH_HEAD`.
-static __inline__ void Actor401800_BisectorToWorld(GsCOORDINATE2* coord, SVECTOR* v)
-{
-    Actor401800BisectorWalk* blk;
-
-    {
-        register GsCOORDINATE2* parent asm("v0");
-        parent                                                                                              = coord;
-        ((Actor401800BisectorWalk*)((u8*)*(void**)G_SCRATCH_HEAD - sizeof(Actor401800BisectorWalk)))->coord = parent;
-    }
-    {
-        register u8* tmp asm("v0");
-        tmp = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(Actor401800BisectorWalk);
-        blk = (Actor401800BisectorWalk*)tmp;
-    }
-    blk->vec.vx = v->vx;
-    blk->vec.vy = v->vy;
-    blk->vec.vz = v->vz;
-
-    *(void**)G_SCRATCH_HEAD = blk;
-    while (blk->coord != NULL) {
-        gte_SetTransMatrix(&blk->coord->coord);
-        gte_SetRotMatrix(&blk->coord->coord);
-        gte_ldv0(&blk->vec);
-        gte_rtv0tr();
-        gte_stlvnl(blk->out);
-        gte_stflg(&blk->flag);
-        blk->vec.vx = *(u16*)&blk->out[0];
-        blk->vec.vy = *(u16*)&blk->out[1];
-        blk->vec.vz = *(u16*)&blk->out[2];
-        blk->coord  = blk->coord->sub;
-    }
-    v->vx = blk->vec.vx;
-    v->vy = blk->vec.vy;
-    v->vz = blk->vec.vz;
-
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(Actor401800BisectorWalk);
-}
-
-/// Same as `Actor401800_BisectorToWorld`, but the walk starts at `coord`
-/// itself rather than its parent, so the vector is not carried through a frame
-/// until the loop has run at least once.
-static __inline__ void Actor401800_BisectorToWorld2(GsCOORDINATE2* coord, SVECTOR* v)
-{
-    Actor401800BisectorWalk* blk;
-
-    blk         = (Actor401800BisectorWalk*)((u8*)*(void**)G_SCRATCH_HEAD - sizeof(Actor401800BisectorWalk));
-    blk->coord  = coord;
-    blk->vec.vx = v->vx;
-    blk->vec.vy = v->vy;
-    blk->vec.vz = v->vz;
-
-    *(void**)G_SCRATCH_HEAD = blk;
-    while (blk->coord != NULL) {
-        gte_SetTransMatrix(&blk->coord->coord);
-        gte_SetRotMatrix(&blk->coord->coord);
-        gte_ldv0(&blk->vec);
-        gte_rtv0tr();
-        gte_stlvnl(blk->out);
-        gte_stflg(&blk->flag);
-        blk->vec.vx = *(u16*)&blk->out[0];
-        blk->vec.vy = *(u16*)&blk->out[1];
-        blk->vec.vz = *(u16*)&blk->out[2];
-        blk->coord  = blk->coord->sub;
-    }
-    v->vx = blk->vec.vx;
-    v->vy = blk->vec.vy;
-    v->vz = blk->vec.vz;
-
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(Actor401800BisectorWalk);
-}
-
 /// The 34 state handlers copied to the frame before the per-frame dispatch.
 typedef struct Actor401800StateTable {
     TaskFunc fn[34];
@@ -732,15 +615,15 @@ s32 func_actor_401800_80132C68(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2
 /// while the view is not ready.
 s32 func_actor_401800_80132E0C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push)
 {
-    void**                      scratch;
-    void**                      tail;
-    u8*                         head;
-    Actor401800BisectorScratch* st;
-    u16                         vz;
-    s16                         d;
-    s16                         dz;
-    s32                         t;
-    s32                         hit;
+    void**                  scratch;
+    void**                  tail;
+    u8*                     head;
+    OverlayBisectorScratch* st;
+    u16                     vz;
+    s16                     d;
+    s16                     dz;
+    s32                     t;
+    s32                     hit;
 
     if (gGameSession->viewReady == 1) {
         return 0;
@@ -750,8 +633,8 @@ s32 func_actor_401800_80132E0C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s
     head    = *scratch;
     {
         register u8* tmp asm("v0");
-        tmp = head - sizeof(Actor401800BisectorScratch);
-        st  = (Actor401800BisectorScratch*)tmp;
+        tmp = head - sizeof(OverlayBisectorScratch);
+        st  = (OverlayBisectorScratch*)tmp;
     }
     st->eye.vx = *(u16*)&coord->coord.t[0];
     st->eye.vy = *(u16*)&coord->coord.t[1];
@@ -759,13 +642,13 @@ s32 func_actor_401800_80132E0C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s
     *scratch   = st;
     st->eye.vz = vz;
 
-    Actor401800_BisectorToWorld(coord->sub, &st->eye);
+    overlayToWorld(coord->sub, &st->eye);
 
     st->aim.vx = 0;
     st->aim.vy = 0;
     st->aim.vz = 0x1000;
 
-    Actor401800_BisectorToWorld2(coord, &st->aim);
+    overlayToWorld2(coord, &st->aim);
 
     for (st->i = 0; st->i < count; st->i++) {
         if (recs[st->i].key == 0) {
@@ -870,7 +753,7 @@ s32 func_actor_401800_80132E0C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s
 
     tail  = (void**)G_SCRATCH_HEAD;
     hit   = st->hit;
-    *tail = (u8*)*tail + sizeof(Actor401800BisectorScratch);
+    *tail = (u8*)*tail + sizeof(OverlayBisectorScratch);
     return hit;
 }
 

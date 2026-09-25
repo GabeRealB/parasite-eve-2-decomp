@@ -82,123 +82,12 @@ typedef struct Actor210600DispatchCtx {
 } Actor210600DispatchCtx;
 STATIC_ASSERT_SIZEOF(Actor210600DispatchCtx, 0x14);
 
-/// 0x20-byte block the world-space walk takes from `G_SCRATCH_HEAD`: `coord`
-/// is the frame the walk currently stands on (it climbs the
-/// `GsCOORDINATE2::sub` chain until NULL), `vec` the vector being carried up,
-/// `out` the GTE result fed back into `vec` each step, and `flag` the GTE flag
-/// register.
-typedef struct Actor210600Walk {
-    /* 0x00 */ GsCOORDINATE2* coord;
-    /* 0x04 */ SVECTOR        vec;
-    /* 0x0C */ s32            out[3];
-    /* 0x18 */ s32            pad_18;
-    /* 0x1C */ s32            flag;
-} Actor210600Walk;
-STATIC_ASSERT_SIZEOF(Actor210600Walk, 0x20);
-
-/// 0xE4-byte block the push helpers take from `G_SCRATCH_HEAD` while they
-/// nudge a coordinate away from the obstacles in a `GpRec18` table. `m` is
-/// the working matrix, `eye` the frame's world position and `aim` the world
-/// point one unit (0x1000) in front of it; `delta` is the difference fed to
-/// `ratan2` and later the scaled push. `kind` is a record's key high half,
-/// `angle[]` each record's bearing relative to the facing (0x7FFE marks the
-/// end of the records, 0x7FFF a record that does not count), `i` / `j` the
-/// loop counters, `diff` the wrapped difference between two bearings and
-/// `hit` the return value.
-typedef struct Actor210600PushScratch {
-    /* 0x00 */ MATRIX  m;
-    /* 0x20 */ byte    pad_20[0x80];
-    /* 0xA0 */ SVECTOR delta;
-    /* 0xA8 */ SVECTOR eye;
-    /* 0xB0 */ SVECTOR aim;
-    /* 0xB8 */ s32     kind;
-    /* 0xBC */ s16     angle[0x10];
-    /* 0xDC */ s16     i;
-    /* 0xDE */ s16     j;
-    /* 0xE0 */ s16     diff;
-    /* 0xE2 */ s16     hit;
-} Actor210600PushScratch;
-STATIC_ASSERT_SIZEOF(Actor210600PushScratch, 0xE4);
-
 /// While this is 1, the repel and avoid helpers return without moving
 /// anything.
 extern u8 D_80072729;
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 void func_8004BFF8(s16 angle, MATRIX* matrix);
-
-/// Carries `v` from the local frame `coord` up the `GsCOORDINATE2::sub` parent
-/// chain into world space, using an `Actor210600Walk` block from
-/// `G_SCRATCH_HEAD`.
-static __inline__ void Actor210600_ToWorld(GsCOORDINATE2* coord, SVECTOR* v)
-{
-    Actor210600Walk* blk;
-
-    {
-        register GsCOORDINATE2* parent asm("v0");
-        parent                                                                              = coord;
-        ((Actor210600Walk*)((u8*)*(void**)G_SCRATCH_HEAD - sizeof(Actor210600Walk)))->coord = parent;
-    }
-    {
-        register u8* tmp asm("v0");
-        tmp = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(Actor210600Walk);
-        blk = (Actor210600Walk*)tmp;
-    }
-    blk->vec.vx = v->vx;
-    blk->vec.vy = v->vy;
-    blk->vec.vz = v->vz;
-
-    *(void**)G_SCRATCH_HEAD = blk;
-    while (blk->coord != NULL) {
-        gte_SetTransMatrix(&blk->coord->coord);
-        gte_SetRotMatrix(&blk->coord->coord);
-        gte_ldv0(&blk->vec);
-        gte_rtv0tr();
-        gte_stlvnl(blk->out);
-        gte_stflg(&blk->flag);
-        blk->vec.vx = *(u16*)&blk->out[0];
-        blk->vec.vy = *(u16*)&blk->out[1];
-        blk->vec.vz = *(u16*)&blk->out[2];
-        blk->coord  = blk->coord->sub;
-    }
-    v->vx = blk->vec.vx;
-    v->vy = blk->vec.vy;
-    v->vz = blk->vec.vz;
-
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(Actor210600Walk);
-}
-
-/// The same walk as `Actor210600_ToWorld`, spelled without its register
-/// bindings; each caller site needs its own form to match.
-static __inline__ void Actor210600_ToWorld2(GsCOORDINATE2* coord, SVECTOR* v)
-{
-    Actor210600Walk* blk;
-
-    blk         = (Actor210600Walk*)((u8*)*(void**)G_SCRATCH_HEAD - sizeof(Actor210600Walk));
-    blk->coord  = coord;
-    blk->vec.vx = v->vx;
-    blk->vec.vy = v->vy;
-    blk->vec.vz = v->vz;
-
-    *(void**)G_SCRATCH_HEAD = blk;
-    while (blk->coord != NULL) {
-        gte_SetTransMatrix(&blk->coord->coord);
-        gte_SetRotMatrix(&blk->coord->coord);
-        gte_ldv0(&blk->vec);
-        gte_rtv0tr();
-        gte_stlvnl(blk->out);
-        gte_stflg(&blk->flag);
-        blk->vec.vx = *(u16*)&blk->out[0];
-        blk->vec.vy = *(u16*)&blk->out[1];
-        blk->vec.vz = *(u16*)&blk->out[2];
-        blk->coord  = blk->coord->sub;
-    }
-    v->vx = blk->vec.vx;
-    v->vy = blk->vec.vy;
-    v->vz = blk->vec.vz;
-
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(Actor210600Walk);
-}
 
 /// Animation source the spawn body starts the work block's animation context
 /// from.
@@ -481,7 +370,7 @@ s32 func_actor_210600_8014AB74(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s
     void**                  scratch;
     void**                  tail;
     u8*                     head;
-    Actor210600PushScratch* st;
+    OverlayBisectorScratch* st;
     u16                     vz;
     s16                     d;
     s16                     dz;
@@ -496,8 +385,8 @@ s32 func_actor_210600_8014AB74(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s
     head    = *scratch;
     {
         register u8* tmp asm("v0");
-        tmp = head - sizeof(Actor210600PushScratch);
-        st  = (Actor210600PushScratch*)tmp;
+        tmp = head - sizeof(OverlayBisectorScratch);
+        st  = (OverlayBisectorScratch*)tmp;
     }
     st->eye.vx = *(u16*)&coord->coord.t[0];
     st->eye.vy = *(u16*)&coord->coord.t[1];
@@ -505,13 +394,13 @@ s32 func_actor_210600_8014AB74(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s
     *scratch   = st;
     st->eye.vz = vz;
 
-    Actor210600_ToWorld(coord->sub, &st->eye);
+    overlayToWorld(coord->sub, &st->eye);
 
     st->aim.vx = 0;
     st->aim.vy = 0;
     st->aim.vz = 0x1000;
 
-    Actor210600_ToWorld2(coord, &st->aim);
+    overlayToWorld2(coord, &st->aim);
 
     for (st->i = 0; st->i < count; st->i++) {
         if (recs[st->i].key == 0) {
@@ -616,7 +505,7 @@ s32 func_actor_210600_8014AB74(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s
 
     tail  = (void**)G_SCRATCH_HEAD;
     hit   = st->hit;
-    *tail = (u8*)*tail + sizeof(Actor210600PushScratch);
+    *tail = (u8*)*tail + sizeof(OverlayBisectorScratch);
     return hit;
 }
 
@@ -1165,7 +1054,7 @@ s32 func_actor_210600_8014C7DC(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s
     void**                  scratch;
     void**                  tail;
     u8*                     head;
-    Actor210600PushScratch* st;
+    OverlayBisectorScratch* st;
     u16                     vz;
     s16                     d;
     s16                     dz;
@@ -1180,8 +1069,8 @@ s32 func_actor_210600_8014C7DC(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s
     head    = *scratch;
     {
         register u8* tmp asm("v0");
-        tmp = head - sizeof(Actor210600PushScratch);
-        st  = (Actor210600PushScratch*)tmp;
+        tmp = head - sizeof(OverlayBisectorScratch);
+        st  = (OverlayBisectorScratch*)tmp;
     }
     st->eye.vx = *(u16*)&coord->coord.t[0];
     st->eye.vy = *(u16*)&coord->coord.t[1];
@@ -1189,13 +1078,13 @@ s32 func_actor_210600_8014C7DC(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s
     *scratch   = st;
     st->eye.vz = vz;
 
-    Actor210600_ToWorld(coord->sub, &st->eye);
+    overlayToWorld(coord->sub, &st->eye);
 
     st->aim.vx = 0;
     st->aim.vy = 0;
     st->aim.vz = 0x1000;
 
-    Actor210600_ToWorld2(coord, &st->aim);
+    overlayToWorld2(coord, &st->aim);
 
     for (st->i = 0; st->i < count; st->i++) {
         if (recs[st->i].key == 0) {
@@ -1300,6 +1189,6 @@ s32 func_actor_210600_8014C7DC(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s
 
     tail  = (void**)G_SCRATCH_HEAD;
     hit   = st->hit;
-    *tail = (u8*)*tail + sizeof(Actor210600PushScratch);
+    *tail = (u8*)*tail + sizeof(OverlayBisectorScratch);
     return hit;
 }

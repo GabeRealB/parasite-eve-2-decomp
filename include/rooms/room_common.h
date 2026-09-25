@@ -10,6 +10,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/ui.h"
+#include "overlay.h"
 
 /// On-screen position of an action prompt's cursor. `Room_UtilCursor` compares
 /// the pair against a previously latched copy as a single word to decide whether

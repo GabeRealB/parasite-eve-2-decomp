@@ -22,7 +22,6 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
-#include "rooms/rooms_shared_80182078.h"
 
 /// Animation source `func_800B3F84` is handed for both of the work block's
 /// contexts.
@@ -334,15 +333,15 @@ s32 func_actor_323000_80162A2C(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2
 /// `gGameSession->viewReady` is 1.
 s32 func_actor_323000_80162BD0(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push)
 {
-    void**                      scratch;
-    void**                      tail;
-    u8*                         head;
-    RoomsShared80182078Scratch* st;
-    u16                         vz;
-    s16                         d;
-    s16                         dz;
-    s32                         t;
-    s32                         hit;
+    void**                  scratch;
+    void**                  tail;
+    u8*                     head;
+    OverlayBisectorScratch* st;
+    u16                     vz;
+    s16                     d;
+    s16                     dz;
+    s32                     t;
+    s32                     hit;
 
     if (gGameSession->viewReady == 1) {
         return 0;
@@ -352,8 +351,8 @@ s32 func_actor_323000_80162BD0(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s
     head    = *scratch;
     {
         register u8* tmp asm("v0");
-        tmp = head - sizeof(RoomsShared80182078Scratch);
-        st  = (RoomsShared80182078Scratch*)tmp;
+        tmp = head - sizeof(OverlayBisectorScratch);
+        st  = (OverlayBisectorScratch*)tmp;
     }
     st->eye.vx = *(u16*)&coord->coord.t[0];
     st->eye.vy = *(u16*)&coord->coord.t[1];
@@ -361,13 +360,13 @@ s32 func_actor_323000_80162BD0(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s
     *scratch   = st;
     st->eye.vz = vz;
 
-    actorToWorld(coord->sub, &st->eye);
+    overlayToWorld(coord->sub, &st->eye);
 
     st->aim.vx = 0;
     st->aim.vy = 0;
     st->aim.vz = 0x1000;
 
-    actorToWorld2(coord, &st->aim);
+    overlayToWorld2(coord, &st->aim);
 
     for (st->i = 0; st->i < count; st->i++) {
         if (recs[st->i].key == 0) {
@@ -472,7 +471,7 @@ s32 func_actor_323000_80162BD0(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s
 
     tail  = (void**)G_SCRATCH_HEAD;
     hit   = st->hit;
-    *tail = (u8*)*tail + sizeof(RoomsShared80182078Scratch);
+    *tail = (u8*)*tail + sizeof(OverlayBisectorScratch);
     return hit;
 }
 
