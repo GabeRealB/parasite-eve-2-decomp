@@ -131,8 +131,6 @@ void func_actor_503500_80146508(Task* arg0);
 /// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
 /// `func_actor_503500_8014642C`; terminator id 0x7FFFFFFF.
 extern GpMsgEntry D_actor_503500_80176530[];
-/// Declared in `gameplay/gameplay.h`, which conflicts with this TU's headers.
-void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 /// Main-executable counter the actor paces periodic effects by (its value
 /// modulo 6 or 12, its low bits).
 extern s32     D_80070F70;
@@ -149,17 +147,14 @@ extern Actor503500UVec D_actor_503500_801715C4;
 extern Actor503500UVec D_actor_503500_801715CC;
 /// Local offset of the display node `func_actor_503500_801455A4` links.
 extern Actor503500UVec D_actor_503500_801715D4;
-/// Global "everything is frozen" mode byte in the main executable: 1 pauses the
-/// actor, 2 hides it, anything else runs the normal per-frame chain.
-extern u8 D_801153F4;
-void      func_actor_503500_80145480(Task* arg0);
-void      func_actor_503500_801450A0(Task* arg0);
-void      func_actor_503500_801454E0(Task* arg0);
-void      func_actor_503500_80145754(Task* arg0);
-void      func_actor_503500_80145950(Task* arg0);
-void      func_actor_503500_801459B0(Task* arg0);
-void      func_actor_503500_80145C50(Task* arg0);
-void      func_actor_503500_80145F18(Task* arg0);
+void                   func_actor_503500_80145480(Task* arg0);
+void                   func_actor_503500_801450A0(Task* arg0);
+void                   func_actor_503500_801454E0(Task* arg0);
+void                   func_actor_503500_80145754(Task* arg0);
+void                   func_actor_503500_80145950(Task* arg0);
+void                   func_actor_503500_801459B0(Task* arg0);
+void                   func_actor_503500_80145C50(Task* arg0);
+void                   func_actor_503500_80145F18(Task* arg0);
 /// libgte routine right after `RotMatrixX` in the main executable (likely
 /// `RotMatrixY`); rotates `m` in place by `angle`.
 void func_8004BFF8(s32 angle, MATRIX* m);
@@ -388,7 +383,7 @@ void func_actor_503500_80145428(Task* arg0)
     GsCOORDINATE2* coord;
     s32            state;
 
-    state = D_801153F4;
+    state = Gp_StateF0.field_4;
     if (state < 3) {
         if (state != 0) {
             return;
@@ -544,7 +539,7 @@ void func_actor_503500_801458F8(Task* arg0)
     s32            state;
 
     coord = ((TmdObject*)arg0->extra)->coords;
-    state = D_801153F4;
+    state = Gp_StateF0.field_4;
     if (state < 3) {
         if (state != 0) {
             return;
@@ -713,7 +708,7 @@ void func_actor_503500_80145E1C(Task* arg0)
     s32            state;
 
     coord = ((TmdObject*)arg0->extra)->coords;
-    state = D_801153F4;
+    state = Gp_StateF0.field_4;
     if (state < 3) {
         if (state != 0) {
             return;
@@ -902,7 +897,7 @@ void func_actor_503500_801463C0(Task* task)
     TaskFuncTable3 sp;
 
     sp = D_actor_503500_80132230;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         sp.funcs[task->state](task);
     }
 }

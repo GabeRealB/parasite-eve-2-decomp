@@ -36,12 +36,6 @@ STATIC_ASSERT_SIZEOF(Actor503500ColorMtx, 0x48);
 extern GpMsgEntry D_actor_503500_80146888[];
 void              func_actor_503500_801324C4(Task* task);
 void              func_actor_503500_801324EC(Task* arg0);
-/// Global "everything is frozen" mode byte in the main executable: 1 pauses the
-/// actor, 2 hides it, anything else runs the normal per-frame chain.
-extern u8 D_801153F4;
-/// `gameplay/gameplay.h` owns this prototype but cannot be included next to
-/// the gameplay module headers (`Gp_StateC08` is declared differently).
-void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 /// Script pair handed to `Gp_SpawnScript18` on every odd pulse frame.
 extern u8 D_actor_503500_801468A8[];
 extern u8 D_actor_503500_801468B0[];
@@ -254,7 +248,7 @@ void func_actor_503500_8013270C(Task* task)
     TaskFuncTable3 sp;
 
     sp = D_actor_503500_80131E24;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         sp.funcs[task->state](task);
     }
 }

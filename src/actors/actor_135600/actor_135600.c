@@ -12,6 +12,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3E9C.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -124,8 +125,6 @@ void func_8004BFF8(s16 angle, MATRIX* matrix);
 
 /// Declared locally with a signed animation id, as every caller passes one.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-
-void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 
 /// Non-zero while a non-gameplay mode holds the actors; the tick skips its
 /// whole update while it is set.

@@ -1,5 +1,7 @@
 #include "common.h"
 #include "gameplay/1BC.h"
+#include "gameplay/gameplay.h"
+#include "gameplay/D4.h"
 
 #include "main/display.h"
 #include "main/fs.h"
@@ -745,8 +747,6 @@ void func_actor_310100_80162F34(Task* task)
     task->state = 3;
 }
 
-void Gp_UpdateCoord(GsCOORDINATE2* arg0);
-void func_800D7A9C(TmdObject* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 void func_actor_310100_801625E4(Task* task, s32 arg1);
 
 /// Second state handler of the display model spawned from

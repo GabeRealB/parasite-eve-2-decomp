@@ -271,7 +271,6 @@ extern s32 Actor05600_D162AC[];
 /// The approach cycle's per-state handlers, indexed by `Actor105600Work.field_6A6`.
 extern TaskFunc Actor05600_D16540[];
 
-void Gp_AnimTickIndex(GpAnimCtx* arg0, s32 arg1);
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
 void Actor05600_Fn00CFC(Task* arg0);

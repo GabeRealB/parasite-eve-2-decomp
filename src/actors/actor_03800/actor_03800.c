@@ -146,8 +146,6 @@ extern GpPairSrcE Actor03800_D05F44;
 extern u16        Actor03800_D05F48;
 extern u8         Actor03800_D05F60[];
 
-void Gp_ArmStateF0(s32 arg0);
-void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 s32  SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2);
 void func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 

@@ -221,7 +221,6 @@ void Actor00300_Fn05008(Task* arg0);
 void Actor00300_Fn0505C(Task* arg0, MATRIX* arg1, s16 arg2);
 void Actor00300_Fn05194(GpEnemy* arg0, Task* arg1);
 void Actor00300_Fn05278(GpEnemy* arg0, Task* arg1);
-void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 
 extern GpPairSrcE           Actor00300_D15FE8;
 extern Actor00300AreaConfig Actor00300_D16020[];

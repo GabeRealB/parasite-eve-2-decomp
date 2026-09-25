@@ -165,7 +165,6 @@ extern u8 Actor03700_D04600[];
 /// definition takes `arg2` as `u16`, which would add a zero-extension no
 /// caller has. See the note in that header.
 void func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 
 void Actor03700_Fn000A4(GpEnemy* arg0, Task* task);
 void Actor03700_Fn0042C(Task* task, TmdObject* arg1, s32 arg2);

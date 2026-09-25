@@ -163,24 +163,21 @@ void         func_actor_503500_80136A80(Task* arg0);
 void func_actor_503500_80136B64(Task* arg0, s32 arg1, s32 arg2);
 void func_actor_503500_80136EFC(Task* arg0, s32 arg1);
 void func_actor_503500_801374BC(Task* arg0);
-/// Global "everything is frozen" mode byte in the main executable: 1 pauses the
-/// actor, 2 hides it, anything else runs the normal per-frame chain.
-extern u8 D_801153F4;
-void      func_actor_503500_801398D0(Task* arg0);
-void      func_actor_503500_8013A0D0(Task* arg0);
-void      func_actor_503500_8013A96C(Task* arg0);
-void      func_actor_503500_8013AA44(Task* arg0);
-void      func_actor_503500_8013AAC0(Task* arg0);
-void      func_actor_503500_801334CC(Task* arg0);
-void      func_actor_503500_80135178(Task* arg0);
-void      func_actor_503500_801353F0(Task* arg0);
-void      func_actor_503500_80135644(Task* arg0);
-void      func_actor_503500_80136280(Task* arg0);
-void      func_actor_503500_80136304(Task* arg0);
-void      func_actor_503500_80136A88(Task* arg0);
-void      func_actor_503500_80136AEC(Task* arg0);
-void      func_actor_503500_80136D30(Task* arg0);
-void      func_actor_503500_80136DDC(Task* arg0);
+void func_actor_503500_801398D0(Task* arg0);
+void func_actor_503500_8013A0D0(Task* arg0);
+void func_actor_503500_8013A96C(Task* arg0);
+void func_actor_503500_8013AA44(Task* arg0);
+void func_actor_503500_8013AAC0(Task* arg0);
+void func_actor_503500_801334CC(Task* arg0);
+void func_actor_503500_80135178(Task* arg0);
+void func_actor_503500_801353F0(Task* arg0);
+void func_actor_503500_80135644(Task* arg0);
+void func_actor_503500_80136280(Task* arg0);
+void func_actor_503500_80136304(Task* arg0);
+void func_actor_503500_80136A88(Task* arg0);
+void func_actor_503500_80136AEC(Task* arg0);
+void func_actor_503500_80136D30(Task* arg0);
+void func_actor_503500_80136DDC(Task* arg0);
 /// `TaskDesc` table `func_actor_503500_80132F64` and
 /// `func_actor_503500_80135D00` spawn slot enemies from.
 extern TaskDesc D_actor_503500_8016E924;
@@ -223,8 +220,6 @@ void func_8004BFF8(s32 angle, MATRIX* m);
 /// Per-slot camera masks: bits 0x08/0x10/0x20/0x40 are yaw sectors around the
 /// boss, bits 1/2/4 camera height bands (see `func_actor_503500_80135644`).
 extern u8 D_actor_503500_8016E910[];
-/// Declared in `gameplay/gameplay.h`, which conflicts with this TU's headers.
-void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 /// Effect offsets `func_actor_503500_80137678` cycles through, three entries.
 extern SVECTOR D_actor_503500_8016F078[];
 /// Effect offsets `func_actor_503500_80139014` cycles through, three entries.
@@ -401,7 +396,7 @@ void func_actor_503500_80132F64(Task* arg0)
     arg0->state       += 1;
 }
 
-/// Per-frame update. `D_801153F4` 1 pauses the boss (buffers kept, only
+/// Per-frame update. `Gp_StateF0.field_4` 1 pauses the boss (buffers kept, only
 /// `func_actor_503500_80136AEC` runs), 2 hides it; anything else runs the
 /// normal chain. `field_7D9` counts down to the frame the TMD buffers are freed.
 void func_actor_503500_80133270(Task* arg0)
@@ -413,7 +408,7 @@ void func_actor_503500_80133270(Task* arg0)
 
     enemy = arg0->spawnArg2;
     tmd   = arg0->extra;
-    mode  = D_801153F4;
+    mode  = Gp_StateF0.field_4;
     work  = arg0->work;
 
     switch (mode) {
@@ -3018,7 +3013,7 @@ void func_actor_503500_8013815C(Task* arg0)
         func_actor_503500_80135828(arg0, &work->field_15E);
     }
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 1:
             if (!(tmd->flags & 0x80)) {
                 func_actor_503500_801382F4(arg0);
@@ -3283,7 +3278,7 @@ void func_actor_503500_80138898(Task* arg0)
         func_actor_503500_80135828(arg0, &work->field_2EB);
     }
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 1:
             if (!(tmd->flags & 0x80)) {
                 func_actor_503500_8013AAC0(arg0);

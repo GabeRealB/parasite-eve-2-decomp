@@ -30,7 +30,6 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
-void    Gp_UpdateCoord(GsCOORDINATE2* arg0);
 
 void func_actor_207200_8014ACF8(GpEnemy* arg0, Task* arg1);
 void func_actor_207200_8014A1C4(Task* arg0);

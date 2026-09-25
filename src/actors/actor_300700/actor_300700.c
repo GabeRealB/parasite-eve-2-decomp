@@ -67,7 +67,6 @@ STATIC_ASSERT_SIZEOF(Actor300700TexEntry, 4);
 
 extern Actor300700TexEntry D_actor_300700_80165B9C[];
 
-void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void func_actor_300700_80163410(Task* arg0);
 void func_actor_300700_801637E4(Task* arg0);
 void func_actor_300700_80164794(Task* arg0);

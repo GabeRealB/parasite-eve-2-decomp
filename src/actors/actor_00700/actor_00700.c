@@ -219,7 +219,6 @@ STATIC_ASSERT_SIZEOF(Actor00700InitWork, 0x39C);
 
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 extern MATRIX* D_80073B8C;

@@ -199,8 +199,6 @@ extern TaskDesc   D_actor_521100_8015F6E4[];
 extern u8         D_actor_521100_8015F6FC[];
 extern u8         D_actor_521100_8015F73C[];
 
-void Gp_UpdateCoord(GsCOORDINATE2* arg0);
-
 void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2);
 void func_actor_521100_80132958(Task* arg0);
 s32  func_actor_521100_80132C70(Task* arg0);

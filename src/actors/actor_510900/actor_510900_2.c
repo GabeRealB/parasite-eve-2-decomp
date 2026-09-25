@@ -3046,7 +3046,6 @@ void func_actor_510900_8013AD90(GpEnemy* enemy, Task* task)
     task->state        = 1;
 }
 
-s32  Gp_GetViewIndex(void);
 void func_actor_510900_8013B0D8(Task* arg0);
 
 /// View index the child keeps running in; any other view parks it.

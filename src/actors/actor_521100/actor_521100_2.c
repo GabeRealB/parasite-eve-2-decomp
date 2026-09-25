@@ -171,8 +171,6 @@ extern Task*         D_actor_521100_8016A3E0;
 extern Task*         D_actor_521100_8016A3E4;
 extern GsCOORDINATE2 D_actor_521100_8016A3E8;
 
-void func_800D7A9C(TmdObject* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
-
 void func_actor_521100_80135DDC(GpEnemy* spawnArg2, Task* task);
 void func_actor_521100_80135F2C(Task* task);
 void func_actor_521100_801360C4(GpEnemy* spawnArg2, Task* task);

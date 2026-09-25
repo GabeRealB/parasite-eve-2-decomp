@@ -62,7 +62,6 @@ extern GpActorPathStep D_actor_800200_8016A108[];
 extern GpActorPathStep D_actor_800200_8016A128[];
 extern GpActorPathStep D_actor_800200_8016A130[];
 
-extern void func_80103C74(GsCOORDINATE2*, VECTOR3*, VECTOR3*);
 extern s32  func_80103DD4(VECTOR3*, VECTOR3*);
 extern void func_80105ED4(Task*);
 extern void func_8010ABD4();

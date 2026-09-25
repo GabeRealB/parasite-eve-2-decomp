@@ -298,8 +298,6 @@ extern RECT                 D_actor_503500_8016F100;
 /// `func_actor_503500_8013B8D0`'s nine effect offsets, one per frame, and the
 /// per-side pair of rects it moves on frame 0x14, indexed by `field_EC`.
 extern SVECTOR D_actor_503500_8016F168[];
-/// Declared in `gameplay/gameplay.h`, which conflicts with this TU's headers.
-void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 /// The same three-entry cycle for `func_actor_503500_80140654`.
 extern SVECTOR D_actor_503500_8016F448[];
 /// Main-executable counter the actor paces periodic effects by (its value
@@ -372,42 +370,39 @@ void           func_actor_503500_8013EB60(Task* arg0);
 void           func_actor_503500_8013F778(Task* arg0);
 void           func_actor_503500_8013F7D8(Task* arg0);
 void           func_actor_503500_8013F830(Task* arg0);
-/// Global "everything is frozen" mode byte in the main executable: 1 pauses the
-/// actor, 2 hides it, anything else runs the normal per-frame chain.
-extern u8 D_801153F4;
-void      func_actor_503500_8013DBA8(Task* arg0, s32 arg1);
-void      func_actor_503500_8013F328(Task* arg0);
-void      func_actor_503500_8013F4A4(Task* arg0);
-void      func_actor_503500_8013F948(Task* arg0);
-void      func_actor_503500_8013F984(Task* arg0);
-void      func_actor_503500_8013F9D4(Task* arg0, s32 arg1);
-void      func_actor_503500_801400A4(Task* arg0);
-void      func_actor_503500_80140654(Task* arg0);
-void      func_actor_503500_80140BE8(Task* arg0);
-void      func_actor_503500_80141248(Task* arg0);
-void      func_actor_503500_80141448(Task* arg0);
-void      func_actor_503500_80141B94(Task* arg0);
-void      func_actor_503500_80141D7C(Task* arg0);
-void      func_actor_503500_80141E64(Task* arg0);
-void      func_actor_503500_80141F48(Task* arg0);
-void      func_actor_503500_80141FC8(Task* arg0);
-void      func_actor_503500_801420C4(Task* arg0);
-void      func_actor_503500_801421A8(Task* arg0);
-void      func_actor_503500_80142310(Task* arg0, s32 arg1);
-void      func_actor_503500_8014271C(Task* arg0);
-void      func_actor_503500_80142980(Task* arg0);
-void      func_actor_503500_80143FFC(Task* arg0);
-void      func_actor_503500_80144004(Task* arg0);
-void      func_actor_503500_80144098(Task* arg0, s32 arg1, GpEnemy* arg2);
-void      func_actor_503500_8014418C(Task* arg0);
-void      func_actor_503500_801441E8(Task* arg0);
-void      func_actor_503500_80144238(Task* arg0, s32 arg1);
-void      func_actor_503500_80144520(Task* arg0);
-void      func_actor_503500_80144778(Task* arg0);
-void      func_actor_503500_80144B40(Task* arg0);
-void      func_actor_503500_80144E10(Task* arg0);
-void      func_actor_503500_8013BE48(Task* arg0, s32 arg1);
-void      func_actor_503500_8013B60C(Task* arg0, s32 side, s32 arg2);
+void           func_actor_503500_8013DBA8(Task* arg0, s32 arg1);
+void           func_actor_503500_8013F328(Task* arg0);
+void           func_actor_503500_8013F4A4(Task* arg0);
+void           func_actor_503500_8013F948(Task* arg0);
+void           func_actor_503500_8013F984(Task* arg0);
+void           func_actor_503500_8013F9D4(Task* arg0, s32 arg1);
+void           func_actor_503500_801400A4(Task* arg0);
+void           func_actor_503500_80140654(Task* arg0);
+void           func_actor_503500_80140BE8(Task* arg0);
+void           func_actor_503500_80141248(Task* arg0);
+void           func_actor_503500_80141448(Task* arg0);
+void           func_actor_503500_80141B94(Task* arg0);
+void           func_actor_503500_80141D7C(Task* arg0);
+void           func_actor_503500_80141E64(Task* arg0);
+void           func_actor_503500_80141F48(Task* arg0);
+void           func_actor_503500_80141FC8(Task* arg0);
+void           func_actor_503500_801420C4(Task* arg0);
+void           func_actor_503500_801421A8(Task* arg0);
+void           func_actor_503500_80142310(Task* arg0, s32 arg1);
+void           func_actor_503500_8014271C(Task* arg0);
+void           func_actor_503500_80142980(Task* arg0);
+void           func_actor_503500_80143FFC(Task* arg0);
+void           func_actor_503500_80144004(Task* arg0);
+void           func_actor_503500_80144098(Task* arg0, s32 arg1, GpEnemy* arg2);
+void           func_actor_503500_8014418C(Task* arg0);
+void           func_actor_503500_801441E8(Task* arg0);
+void           func_actor_503500_80144238(Task* arg0, s32 arg1);
+void           func_actor_503500_80144520(Task* arg0);
+void           func_actor_503500_80144778(Task* arg0);
+void           func_actor_503500_80144B40(Task* arg0);
+void           func_actor_503500_80144E10(Task* arg0);
+void           func_actor_503500_8013BE48(Task* arg0, s32 arg1);
+void           func_actor_503500_8013B60C(Task* arg0, s32 side, s32 arg2);
 /// Per-slot local offset and Z-Y-X angles of the effects
 /// `func_actor_503500_8013B60C` spawns; `side` mirrors the offset's X and the
 /// angle's Y.
@@ -869,10 +864,10 @@ void func_actor_503500_8013BBCC(Task* arg0)
 
     enemy = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
-    if (D_801153F4 == 1) {
+    if (Gp_StateF0.field_4 == 1) {
         return;
     }
-    if (D_801153F4 == 2) {
+    if (Gp_StateF0.field_4 == 2) {
         enemy->node.flags |= 1;
         return;
     }
@@ -1228,10 +1223,10 @@ void func_actor_503500_8013C878(Task* arg0)
 
     enemy = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
-    if (D_801153F4 == 1) {
+    if (Gp_StateF0.field_4 == 1) {
         return;
     }
-    if (D_801153F4 == 2) {
+    if (Gp_StateF0.field_4 == 2) {
         enemy->node.flags |= 1;
         return;
     }
@@ -1653,10 +1648,10 @@ void func_actor_503500_8013D7D4(Task* arg0)
 
     enemy = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
-    if (D_801153F4 == 1) {
+    if (Gp_StateF0.field_4 == 1) {
         return;
     }
-    if (D_801153F4 == 2) {
+    if (Gp_StateF0.field_4 == 2) {
         enemy->node.flags |= 1;
         return;
     }
@@ -2164,10 +2159,10 @@ void func_actor_503500_8013E9A4(Task* arg0)
 
     enemy = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
-    if (D_801153F4 == 1) {
+    if (Gp_StateF0.field_4 == 1) {
         return;
     }
-    if (D_801153F4 == 2) {
+    if (Gp_StateF0.field_4 == 2) {
         enemy->node.flags |= 1;
         return;
     }
@@ -2563,10 +2558,10 @@ void func_actor_503500_8013F6F0(Task* arg0)
 
     enemy = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
-    if (D_801153F4 == 1) {
+    if (Gp_StateF0.field_4 == 1) {
         return;
     }
-    if (D_801153F4 == 2) {
+    if (Gp_StateF0.field_4 == 2) {
         enemy->node.flags |= 1;
         return;
     }
@@ -2843,7 +2838,7 @@ void func_actor_503500_8013FF0C(Task* arg0)
         func_actor_503500_80135828(arg0, &work->field_3D7);
     }
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 1:
             if (!(tmd->flags & 0x80)) {
                 func_actor_503500_801421A8(arg0);
@@ -4431,7 +4426,7 @@ void func_actor_503500_80143AC0(Task* arg0)
 
     work   = &D_actor_503500_80178F10;
     player = gameGetPtrSlot(3);
-    if (D_801153F4 != 0) {
+    if (Gp_StateF0.field_4 != 0) {
         return;
     }
     switch (arg0->state) {
@@ -4535,7 +4530,7 @@ void func_actor_503500_80143EB4(Task* arg0)
     s32        mode;
 
     enemy = arg0->spawnArg2;
-    mode  = D_801153F4;
+    mode  = Gp_StateF0.field_4;
     tmd   = arg0->extra;
     switch (mode) {
         case 1:
@@ -4815,7 +4810,7 @@ void func_actor_503500_801446E4(Task* arg0)
     s32            state;
 
     coord = ((TmdObject*)arg0->extra)->coords;
-    state = D_801153F4;
+    state = Gp_StateF0.field_4;
     if (state < 3) {
         if (state != 0) {
             return;
@@ -5018,7 +5013,7 @@ void func_actor_503500_80144D50(Task* arg0)
     s32            state;
 
     coord = ((TmdObject*)arg0->extra)->coords;
-    state = D_801153F4;
+    state = Gp_StateF0.field_4;
     if (state < 3) {
         if (state != 0) {
             return;

@@ -465,14 +465,14 @@ typedef struct _GpStateF0 {
     /* 0x19 */ u8  field_19;
     /* 0x1A */ u8  field_1A;
     /* 0x1B */ u8  field_1B;
-    /* 0x1C */ u8  field_1C;
+    /* 0x1C */ s8  field_1C;
     /* 0x1D */ u8  field_1D;
     /* 0x1E */ u8  field_1E;
     /* 0x1F */ u8  field_1F;
     /* 0x20 */ u8  field_20;
-    /* 0x21 */ u8  field_21;
+    /* 0x21 */ s8  field_21;
     /* 0x22 */ u8  field_22;
-    /* 0x23 */ u8  field_23;
+    /* 0x23 */ s8  field_23;
     /* 0x24 */ u8  field_24;
     /* 0x25 */ u8  field_25;
     /* 0x26 */ u8  field_26;

@@ -32,8 +32,6 @@ extern u8           D_80071072;
 extern McItemRec    D_80072314[];
 extern s32          D_replay_bonus_80119284;
 
-void func_800C5F70(Task* arg0);
-
 void func_replay_bonus_801158C0(void)
 {
     RECT rect;

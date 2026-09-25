@@ -68,9 +68,6 @@ extern void              func_8017E27C(s32 arg0);
 extern Actor503500MsgPos D_actor_503500_8017655C;
 /// Player-facing flag byte in the main executable; no module header owns it yet.
 extern u8 D_80073BA9;
-/// Global "everything is frozen" mode byte in the main executable: 1 pauses the
-/// actor, 2 hides it, anything else runs the normal per-frame chain.
-extern u8 D_801153F4;
 /// Player-facing mode byte in the main executable, also written by the
 /// acropolis helicopter landing pad room.
 extern s8 D_801153F1;
@@ -108,7 +105,7 @@ void func_actor_503500_80132778(Task* task)
         task->state++;
     }
     work = (Actor503500EffWork*)task->work;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         if (work->field_8.h.hi < ++task->killCountdown) {
             task->killCountdown = 0;
             Gp_SpawnEff(0x6018C, coord,
@@ -157,7 +154,7 @@ void func_actor_503500_80132990(Task* task)
     u8        r, g, b;
 
     r = g = b = task->killCountdown;
-    if (D_801153F4 == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         switch (task->state) {
             case 0:
                 task->killCountdown = 0xFF;

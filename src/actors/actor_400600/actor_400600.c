@@ -283,7 +283,6 @@ extern s16 D_actor_400600_80151B88[];
 
 void func_8004BFF8(s32 angle, MATRIX* matrix);
 void func_8017D9B8(s32);
-void Gp_SpawnPadLerp(s16 arg0, u8 arg1, u8 arg2);
 
 void func_actor_400600_8013203C(Task* arg0);
 void func_actor_400600_80132294(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade);

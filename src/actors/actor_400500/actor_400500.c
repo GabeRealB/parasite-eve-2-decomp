@@ -274,7 +274,6 @@ extern u8         D_actor_400500_80153DD4[];
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void func_8009EA50(s32 arg0);
 void func_actor_400500_80132438(Task* arg0);
 void func_actor_400500_80132AB0(Task* arg0, s16 arg1, s32 arg2);
 s32  func_actor_400500_80132D74(Task* arg0);

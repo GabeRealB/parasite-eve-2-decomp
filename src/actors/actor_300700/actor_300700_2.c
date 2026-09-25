@@ -20,7 +20,6 @@
 /// Per-state animation id handed to `func_800B4114`, indexed by `field_37E`.
 extern s16 D_actor_300700_801693E4[];
 
-void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void func_actor_300700_801637E4(Task* arg0);
 void func_actor_300700_80164794(Task* arg0);
 void func_actor_300700_80163D64(Task* arg0);

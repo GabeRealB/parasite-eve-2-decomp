@@ -77,7 +77,6 @@ extern s16     D_80073BA0;
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void func_8017EBA4(Task* arg0);
 void func_80181930(Task* arg0);
 

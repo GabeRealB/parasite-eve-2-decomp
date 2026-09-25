@@ -14,6 +14,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3FB8.h"
+#include "gameplay/gameplay.h"
 
 /// Payload `func_actor_503500_80132664` takes as `Gp_DispatchMsg`'s `arg2`;
 /// `mode` selects one of four colour-matrix settings.
@@ -455,19 +456,6 @@ typedef struct Actor503500Work224 {
     /* 0x223 */ s8  field_223;               // 0xC or 0x12, picked in sub-state 1's phase 0
 } Actor503500Work224;
 STATIC_ASSERT_SIZEOF(Actor503500Work224, 0x224);
-
-/// Overlay-local view of the gameplay `Gp_StateC08` block (`GpStateC08` in
-/// `include/gameplay/gameplay.h`). Only the byte this overlay touches is
-/// named: `field_6` is the HUD/attach flags byte, and
-/// `func_actor_503500_80132D60` sets its bit 0.
-typedef struct Actor503500StateC08 {
-    /* 0x00 */ byte pad_0[6];
-    /* 0x06 */ u8   field_6;
-    /* 0x07 */ byte pad_7[0x11];
-} Actor503500StateC08;
-STATIC_ASSERT_SIZEOF(Actor503500StateC08, 0x18);
-
-extern Actor503500StateC08 Gp_StateC08;
 
 /// Scratchpad frame (`0x90` bytes carved off the scratchpad stack) used by
 /// `func_actor_503500_8014176C` and `func_actor_503500_8013A470` while they

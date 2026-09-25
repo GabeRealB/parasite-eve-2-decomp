@@ -2,6 +2,7 @@
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
 #include "main/gfx.h"
 #include "main/gameflag.h"
 #include "main/mem.h"
@@ -17,17 +18,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-
-/// Overlay-local view of the spawn parameter block (`Task::spawnArg2`).
-/// `field_3C` points at the per-enemy parameter record whose byte 0xF holds
-/// the sight-range index (low 3 bits) into `Actor02100_D03E00`.
-typedef struct Actor02100Params {
-    /* 0x0 */ byte pad_0[1];
-    /* 0x1 */ u8   field_1;
-    /* 0x2 */ u16  field_2;
-    /* 0x4 */ byte pad_4[0xB];
-    /* 0xF */ u8   field_F;
-} Actor02100Params;
 
 typedef struct Actor02100Fn00048Scratch {
     /* 0x00 */ SVECTOR rotation;
@@ -254,8 +244,8 @@ void Actor02100_Fn00048(GpEnemy* arg0, Task* arg1)
         return;
     }
     arg1->work      = work;
-    work->field_176 = (s16)((((Actor02100Params*)arg0->place)->field_1 / 10) & 0xFF);
-    variant         = (((Actor02100Params*)arg0->place)->field_1 % 10) & 0xFF;
+    work->field_176 = (s16)((arg0->place->variant / 10) & 0xFF);
+    variant         = (arg0->place->variant % 10) & 0xFF;
     work->field_178 = variant;
     if ((work->field_176 >= 5) || (variant >= 5)) {
         Gp_DestroyEnemy(arg0, arg1);
@@ -270,7 +260,7 @@ void Actor02100_Fn00048(GpEnemy* arg0, Task* arg1)
     rotation->vx               = 0;
     rotation->vy               = 0;
     *(SVECTOR**)G_SCRATCH_HEAD = rotation;
-    rotation->vz               = ((Actor02100Params*)arg0->place)->field_2;
+    rotation->vz               = arg0->place->mode;
     RotMatrix(rotation, &head[-1].matrix);
     matrix = &coord->coord;
     gte_SetRotMatrix(matrix);
@@ -372,8 +362,6 @@ void Actor02100_Fn00048(GpEnemy* arg0, Task* arg1)
     arg1->state                                 = 1;
     *(Actor02100Fn00048Scratch**)G_SCRATCH_HEAD = *(Actor02100Fn00048Scratch**)G_SCRATCH_HEAD + 1;
 }
-
-GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3);
 
 void Actor02100_Fn004C4(Task* arg0)
 {
@@ -647,9 +635,6 @@ void Actor02100_Fn00ADC(Task* arg0)
 }
 
 #undef STOP_SOUND
-
-void Gp_UpdateCoord(GsCOORDINATE2* arg0);
-void Gp_ArmStateF0(s32 arg0);
 
 s32  Actor02100_Fn0337C(SVECTOR* arg0, SVECTOR* arg1);
 void Actor02100_Fn011C4(Task* arg0);
@@ -1691,10 +1676,9 @@ void Actor02100_Fn03168(Task* arg0)
 void Actor02100_Fn004C4(Task* arg0);
 void Actor02100_Fn03488(Task* arg0);
 
-extern u8 D_801153F4;
 extern s8 D_80115416;
 
-/// Per-frame tick, entry 1 of `Actor02100_D00004`. `D_801153F4` is the global
+/// Per-frame tick, entry 1 of `Actor02100_D00004`. `Gp_StateF0.field_4` is the global
 /// gameplay mode: mode 1 only refreshes the actor colour, mode 2 parks the
 /// actor (`field_C` 0x80, node flag 1) and returns, and mode 0 re-shows it
 /// (`field_C` 0, node flag 8) before falling into the normal body. The body
@@ -1710,7 +1694,7 @@ void Actor02100_Fn031C4(GpEnemy* arg0, Task* arg1)
     s32             one;
 
     obj   = arg1->extra;
-    mode  = D_801153F4;
+    mode  = Gp_StateF0.field_4;
     work  = arg1->work;
     coord = obj->coords;
     one   = 1;
