@@ -408,33 +408,19 @@ void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor403600Fx
     s32                       fade;
     s32                       x;
     s32                       y;
-    s32*                      ot_entry;
-    s32                       fade_step;
-    s32                       green;
-    s32                       red;
     s32                       seed;
-    s32                       fade_delta;
-    s32                       red_sum;
-    u32                       sign;
+    s32                       step;
+    u8*                       head;
     TILE*                     tile;
     DR_TPAGE*                 draw_mode;
     Actor403600GridQuad*      poly;
-    Actor403600ScreenScratch* scratch;
-    s8*                       head;
     Actor403600GridQuad*      previous;
-    Actor403600GridQuad*      previous_row;
-    Actor403600GridQuad*      previous_top;
-    u_long*                   mode_ot;
-    u32                       mask;
-    u32                       mask_hi;
-    u32                       tpage;
-    u32                       color;
-    s32*                      ot;
-    u32                       high, low, high2, low2;
+    Actor403600GridQuad*      above;
+    Actor403600ScreenScratch* scratch;
 
-    head               = SCRATCH_HEAD(void) - 0x1C;
-    SCRATCH_HEAD(void) = head;
-    scratch            = (Actor403600ScreenScratch*)head;
+    head             = SCRATCH_HEAD(u8) - 0x1C;
+    SCRATCH_HEAD(u8) = head;
+    scratch          = (Actor403600ScreenScratch*)head;
     if (Gp_StateF0.field_4 == 0) {
         seed                    = rand();
         D_actor_403600_80160698 = seed;
@@ -446,113 +432,82 @@ void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor403600Fx
     scratch->offset.vy = 0;
     scratch->offset.vz = 0;
     fade               = arg1->field_708;
-    y                  = -0x78;
-    fade_delta         = fade - 0xC00;
-    fade_step          = fade_delta >> 3;
-    sign               = (u32)fade_delta >> 0x1F;
-    SCHED_BARRIER();
-    x = -0xA0;
-    do {
-        green = ((((s32)(fade_step + sign) >> 1) + 0x80) & 0xFF) << 8;
-        __asm__("addiu %0, %1, 0x7F"
-                : "=r"(red_sum)
-                : "r"(fade_step), "r"(green));
-        __asm__("andi %0, %1, 0xFF" : "=r"(red) : "r"(red_sum));
-        SOFT_USE_REG(red);
-    next_quad:
-        poly                    = (Actor403600GridQuad*)D_actor_403600_8016069C;
-        D_actor_403600_8016069C = (s32)(poly + 1);
-        previous                = poly - 1;
-        if (x == -0xA0) {
-            poly->x2 = x;
-            poly->y2 = (s16)(y + 0x10);
-            func_actor_403600_8013289C((s32)poly, 2, (Actor403600GridVertex*)&scratch->offset, fade);
-        } else {
-            PRIM_XY_WORD(poly, 2) = PRIM_XY_WORD(previous, 3);
-            poly->u2              = previous->u3;
-            poly->v2              = previous->v3;
-            poly->page2           = previous->page3;
-        }
-        if (y == -0x78) {
-            previous_top = poly - 1;
+    for (y = -0x78; y < 0x78; y += 0x10) {
+        for (x = -0xA0; x < 0xA0; x += 0x10) {
+            poly                    = (Actor403600GridQuad*)D_actor_403600_8016069C;
+            D_actor_403600_8016069C = (s32)(poly + 1);
+
+            // Vertices shared with the quad to the left or above are copied
+            // from it; only the grid's outer edge is placed afresh.
             if (x == -0xA0) {
-                poly->x0 = x;
-                poly->y0 = y;
-                func_actor_403600_8013289C((s32)poly, 0, (Actor403600GridVertex*)&scratch->offset, fade);
+                poly->x2 = x;
+                poly->y2 = y + 0x10;
+                func_actor_403600_8013289C((s32)poly, 2, (Actor403600GridVertex*)&scratch->offset, fade);
             } else {
-                PRIM_XY_WORD(poly, 0) = PRIM_XY_WORD(previous_top, 1);
-                poly->u0              = previous_top->u1;
-                poly->v0              = previous_top->v1;
-                poly->page0           = previous_top->page1;
+                previous              = poly - 1;
+                PRIM_XY_WORD(poly, 2) = PRIM_XY_WORD(previous, 3);
+                poly->u2              = previous->u3;
+                poly->v2              = previous->v3;
+                poly->page2           = previous->page3;
             }
-            poly->x1 = (s16)(x + 0x10);
-            poly->y1 = y;
-            func_actor_403600_8013289C((s32)poly, 1, (Actor403600GridVertex*)&scratch->offset, fade);
-        } else {
-            previous_row          = poly - 20;
-            PRIM_XY_WORD(poly, 0) = PRIM_XY_WORD(previous_row, 2);
-            poly->u0              = previous_row->u2;
-            poly->v0              = previous_row->v2;
-            poly->page0           = previous_row->page2;
-            PRIM_XY_WORD(poly, 1) = PRIM_XY_WORD(previous_row, 3);
-            poly->u1              = previous_row->u3;
-            poly->v1              = previous_row->v3;
-            poly->page1           = previous_row->page3;
+            if (y == -0x78) {
+                if (x == -0xA0) {
+                    poly->x0 = x;
+                    poly->y0 = y;
+                    func_actor_403600_8013289C((s32)poly, 0, (Actor403600GridVertex*)&scratch->offset, fade);
+                } else {
+                    previous              = poly - 1;
+                    PRIM_XY_WORD(poly, 0) = PRIM_XY_WORD(previous, 1);
+                    poly->u0              = previous->u1;
+                    poly->v0              = previous->v1;
+                    poly->page0           = previous->page1;
+                }
+                poly->x1 = x + 0x10;
+                poly->y1 = y;
+                func_actor_403600_8013289C((s32)poly, 1, (Actor403600GridVertex*)&scratch->offset, fade);
+            } else {
+                above                 = poly - 20;
+                PRIM_XY_WORD(poly, 0) = PRIM_XY_WORD(above, 2);
+                poly->u0              = above->u2;
+                poly->v0              = above->v2;
+                poly->page0           = above->page2;
+                PRIM_XY_WORD(poly, 1) = PRIM_XY_WORD(above, 3);
+                poly->u1              = above->u3;
+                poly->v1              = above->v3;
+                poly->page1           = above->page3;
+            }
+            poly->x3 = x + 0x10;
+            poly->y3 = y + 0x10;
+            func_actor_403600_8013289C((s32)poly, 3, (Actor403600GridVertex*)&scratch->offset, fade);
+            func_actor_403600_801327A0(poly);
+            if (fade < 0xC00) {
+                setlen(poly, 9);
+                poly->code = 0x2D;
+            } else {
+                step                     = (fade - 0xC00) >> 3;
+                PRIM_COLOR_WORD(poly, 0) = (((step / 2 + 0x80) & 0xFF) << 8) | PRIM_RGBC(0, 0, 0x80, 0) | ((step + 0x7F) & 0xFF);
+                setlen(poly, 9);
+                poly->code = 0x2C;
+            }
+            scratch->otz = 0;
+            addPrim(&gGpuCurrentOt[scratch->otz], poly);
         }
-        poly->x3 = (s16)(x + 0x10);
-        poly->y3 = (s16)(y + 0x10);
-        func_actor_403600_8013289C((s32)poly, 3, (Actor403600GridVertex*)&scratch->offset, fade);
-        func_actor_403600_801327A0(poly);
-        if (fade < 0xC00) {
-            ((u8*)&poly->tag)[3] = 9;
-            poly->code           = 0x2D;
-        } else {
-            PRIM_COLOR_WORD(poly, 0) = (green | PRIM_RGBC(0, 0, 0x80, 0)) | red;
-            ((u8*)&poly->tag)[3]     = 9;
-            poly->code               = 0x2C;
-        }
-        __asm__ volatile("lui %0, 0xFF; ori %0, %0, 0xFFFF" : "=r"(mask));
-        ot = (s32*)gGpuCurrentOt;
-        __asm__ volatile("lui %0, 0xFF00" : "=r"(mask_hi));
-        scratch->otz = 0;
-        high         = poly->tag & mask_hi;
-        low          = *ot & mask;
-        SOFT_USE_REG2(high, mask);
-        poly->tag = high | low;
-        x        += 0x10;
-        ot_entry  = (s32*)((*(volatile s32*)&scratch->otz * 4) + (s32)ot);
-        high2     = *ot_entry & mask_hi;
-        low2      = (s32)poly & mask;
-        USE_REG3(high2, high2, low2);
-        *ot_entry = high2 | low2;
-        if (x < 0xA0) {
-            goto next_quad;
-        }
-        y += 0x10;
-        x  = -0xA0;
-    } while (y < 0x78);
-    TOUCH_REG(x);
+    }
     if (fade == 0x1000) {
-        color                                 = 0x2060C0;
-        tpage                                 = 0xE1000000;
-        tile                                  = (TILE*)D_actor_403600_8016069C;
-        D_actor_403600_8016069C               = (s32)(tile + 1);
-        tile->x0                              = -0xA0;
-        tile->y0                              = -0x78;
-        tile->w                               = 0x140;
-        tile->h                               = 0xF0;
-        ((u8*)&tile->tag)[3]                  = 3;
-        PRIM_COLOR_WORD(tile, 0)              = color;
-        tile->code                            = 0x62;
-        draw_mode                             = gGpuPrimCursor;
-        gGpuPrimCursor                        = draw_mode + 1;
-        tile->tag                             = (tile->tag & mask_hi) | (((POLY_FT4*)(gGpuCurrentOt - 1))->tag & mask);
-        ((POLY_FT4*)(gGpuCurrentOt - 1))->tag = (((POLY_FT4*)(gGpuCurrentOt - 1))->tag & mask_hi) | ((u32)tile & mask);
-        ((u8*)&draw_mode->tag)[3]             = 1;
-        mode_ot                               = gGpuCurrentOt - 1;
-        draw_mode->code[0]                    = tpage | 0x220;
-        draw_mode->tag                        = (draw_mode->tag & mask_hi) | (((POLY_FT4*)(gGpuCurrentOt - 1))->tag & mask);
-        ((POLY_FT4*)mode_ot)->tag             = (((POLY_FT4*)mode_ot)->tag & mask_hi) | ((u32)draw_mode & mask);
+        tile                    = (TILE*)D_actor_403600_8016069C;
+        D_actor_403600_8016069C = (s32)(tile + 1);
+        tile->x0                = -0xA0;
+        tile->y0                = -0x78;
+        tile->w                 = 0x140;
+        tile->h                 = 0xF0;
+        setlen(tile, 3);
+        PRIM_COLOR_WORD(tile, 0) = PRIM_RGBC(0xC0, 0x60, 0x20, 0);
+        tile->code               = 0x62;
+        draw_mode                = (DR_TPAGE*)gGpuPrimCursor;
+        gGpuPrimCursor           = (u8*)(draw_mode + 1);
+        addPrim(gGpuCurrentOt - 1, tile);
+        setDrawTPage(draw_mode, 0, 1, 0x20);
+        addPrim(gGpuCurrentOt - 1, draw_mode);
     }
     func_actor_403600_801320F8(0);
     SCRATCH_POP_BYTES(0x1C);

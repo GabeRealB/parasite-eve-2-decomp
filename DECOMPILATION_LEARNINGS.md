@@ -141100,3 +141100,18 @@ two helpers (blend vs. reset) put it back after the test. Which copy of the
 identical dispatch tails survives cross-jumping was set by case 9: written as
 `PlayAnim(7); work->field_4C0 = 0; return;`, not `break`, its copy is the one
 the other cases jump into, as in the target.
+
+## Values computed at the head of each outer iteration may be the inner loop's invariants, written at their use (func_actor_403600_80132A18, 2026-09-26)
+
+A nested grid loop computed a colour's channels once per row, between the
+outer loop's label and the inner loop's, in callee-saved registers. The seed
+read that as source order - channels assigned at the top of the outer body,
+the inner loop spelled as a `goto`, `asm` for the adds and barriers around
+them - because a natural `for` inside a `for` hoisted everything to the
+function's preheader. The channels were in fact written inside the inner
+body, in the one branch that stores the colour word. `loop.c` scans inner
+loops first, so it moved them into the *inner* loop's preheader - the outer
+loop's head - and the outer loop then hoisted only their first steps. With
+both loops written as `for`, the `addPrim` masks were not hoisted either (the
+bigger loop is past the span cut), and the second `scratch->otz` load was
+just `addPrim(&ot[scratch->otz], p)` re-reading after the store to `p->tag`.
