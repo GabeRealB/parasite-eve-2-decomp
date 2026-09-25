@@ -3516,10 +3516,7 @@ slot = 1
 id = 93
 objects = [
   { kind = "packageId" },
-  { unit = "actor_110700/actor_110700_2", text = "0x4" },
-  { unit = "actor_110700/actor_110700", text = "0x58" },
-  { unit = "actor_110700/actor_110700_3", text = "0x254" },
-  { unit = "actor_110700/actor_110700_4", text = "0x2B8" },
+  { unit = "actor_110700/actor_110700", text = "0x4" },
   { kind = "model", at = "0x300" },
   { kind = "data", at = "0x59CC" },
 ]
