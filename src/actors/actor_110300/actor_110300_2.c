@@ -5,6 +5,8 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+/// Entry of the helper task: parents the given task's model root to node 8 of
+/// the actor's model.
 void func_actor_110300_80131FF8(GpActorWork* arg0)
 {
     GsCOORDINATE2* parent;
@@ -16,19 +18,16 @@ void func_actor_110300_80131FF8(GpActorWork* arg0)
     coord->sub = parent + 8;
 }
 
-/// Step 1 of the `ActorsShared80131f9c` dispatcher: run the body the actor's
-/// step selects, then feed the model root's world translation to
-/// `func_800D7A9C` (the light solve) against the model object itself.
-///
-/// The `t[]` values go in unmodified, unlike `ActorsShared80131e24Sub1`, which
-/// refreshes the coordinate and lifts `t[1]` by 800 first: the step body does
-/// that here, so nothing between the two calls touches the coordinate.
+/// Step 1 of the `func_actor_110300_80131F9C` dispatcher: run the body the
+/// actor's step selects, then refresh the model root as step 0 did by feeding
+/// its world translation to `func_800D7A9C` (the light solve) against the
+/// model object itself.
 ///
 /// The body reaches the task through the second argument, so the incoming `$a1`
 /// is copied into `$a0` (the first, unused, is the `GpEnemy*`): that copy is
 /// what the first call's argument, and the `Task::extra` load feeding it, are
 /// both read off.
-void ActorsShared80131f9cSub1(GpEnemy* enemy, Task* task)
+void func_actor_110300_80132020(GpEnemy* enemy, Task* task)
 {
     TmdObject*     obj;
     GsCOORDINATE2* coord;
@@ -43,6 +42,8 @@ void ActorsShared80131f9cSub1(GpEnemy* enemy, Task* task)
     func_800D7A9C(obj, &vec, 0, 3);
 }
 
+/// Exit callback the step-0 handler installs: kills the helper task, then
+/// destroys the actor.
 void func_actor_110300_80132088(Task* arg0)
 {
     taskKill(D_actor_110300_8013A0A8);
