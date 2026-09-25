@@ -11,7 +11,12 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-void func_actor_317000_80162A10(Task* arg0, s32 arg1, Actor317000AnimPreset* arg2, s32 arg3);
+s32  func_actor_317000_80162A10(Task* task, s32 arg1, Actor317000AnimPreset* msg, s32 arg3);
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
+/// The four step handlers `func_actor_317000_80162768` runs by
+/// `Actor317000Work::field_4C2`.
+extern TaskFuncTable4 D_actor_317000_80161E30;
 
 void func_actor_317000_80162744(Task* arg0)
 {
@@ -28,7 +33,19 @@ void func_actor_317000_80162760(void)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_317000/actor_317000_3", func_actor_317000_80162768);
+/// Index 1 of the two-entry table `func_actor_317000_80161E68` dispatches on
+/// `Actor317000Work::field_4C0`: copies the four step handlers
+/// `D_actor_317000_80161E30` onto the stack and runs the one
+/// `Actor317000Work::field_4C2` selects, read sign-extended.
+void func_actor_317000_80162768(Task* arg0)
+{
+    TaskFuncTable4   sp;
+    Actor317000Work* work;
+
+    work = (Actor317000Work*)arg0->work;
+    sp   = D_actor_317000_80161E30;
+    sp.funcs[(s16)work->field_4C2](arg0);
+}
 
 /// State handler at index 1 of `D_actor_317000_80161E30`: Euler-extracts the
 /// root coordinate into `vec`, and while the yaw gap to the target
@@ -140,7 +157,47 @@ void func_actor_317000_80162950(Task* arg0)
     work->field_4C2++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_317000/actor_317000_3", func_actor_317000_80162A10);
+/// Message 0x7D3 handler of `D_actor_317000_8016CF50`, also called directly by
+/// the step handlers `func_actor_317000_801627D0` and
+/// `func_actor_317000_80162950` with presets of their own. A preset `field_0`
+/// that differs from `Actor317000Work::field_43E` latches it, forgets the
+/// current animation (`field_43D` = -1) and re-seeds the slots through
+/// `func_800B3F84` from `D_actor_317000_8016CF40[field_43E]`. A `field_4` that
+/// differs from `field_43D` latches it and installs it on slots 1..0x12 --
+/// through `func_800B4114` with `field_C` when the preset's `field_8` is set and
+/// `field_43C` says the slots are already ticking, through `Gp_AnimResetSlot`
+/// otherwise -- then ticks each slot once and raises `field_43C`. Returns 0.
+s32 func_actor_317000_80162A10(Task* task, s32 arg1, Actor317000AnimPreset* msg, s32 arg3)
+{
+    Actor317000Work* work;
+    TmdObject*       ext;
+    s32              i;
+
+    work = (Actor317000Work*)task->work;
+    ext  = task->extra;
+    if (msg->field_0 != work->field_43E) {
+        work->field_43E = msg->field_0;
+        work->field_43D = -1;
+        func_800B3F84(&work->ctx, D_actor_317000_8016CF40[work->field_43E], ext, work->poses, work->slots);
+    }
+    if (msg->field_4 != work->field_43D) {
+        work->field_43D = msg->field_4;
+        if (msg->field_8 != 0 && work->field_43C != 0) {
+            for (i = 1; i < 0x13; i++) {
+                func_800B4114(&work->ctx, i, work->field_43D, 0, msg->field_C);
+            }
+        } else {
+            for (i = 1; i < 0x13; i++) {
+                Gp_AnimResetSlot(&work->ctx, i, work->field_43D);
+            }
+        }
+        for (i = 1; i < 0x13; i++) {
+            Gp_AnimTickIndex(&work->ctx, i);
+        }
+        work->field_43C = 1;
+    }
+    return 0;
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_317000/actor_317000_3", D_actor_317000_80161E50);
 
