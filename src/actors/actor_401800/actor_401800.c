@@ -543,12 +543,12 @@ s32 func_actor_401800_80132C68(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2
     register void*    p asm("v1");
     s32               val;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    p        = head - 0x14;
-    s        = p;
-    *scratch = p;
-    s->moved = 0;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    p                              = head - 0x14;
+    s                              = p;
+    SCRATCH_HEAD_AT(scratch, void) = p;
+    s->moved                       = 0;
     if (func_800E0C10(movement, &s->delta, (s32)arg2, NULL) != 0) {
         coord->coord.t[0]          = coord->coord.t[0] + ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
         coord->coord.t[2]          = coord->coord.t[2] + s->delta.vz.h.hi;
@@ -605,18 +605,18 @@ s32 func_actor_401800_80132E0C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s
         return 0;
     }
 
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = *scratch;
+    scratch = SCRATCH_HEAD_ADDR;
+    head    = SCRATCH_HEAD_AT(scratch, void);
     {
         register u8* tmp asm("v0");
         tmp = head - sizeof(OverlayBisectorScratch);
         st  = (OverlayBisectorScratch*)tmp;
     }
-    st->eye.vx = *(u16*)&coord->coord.t[0];
-    st->eye.vy = *(u16*)&coord->coord.t[1];
-    vz         = *(u16*)&coord->coord.t[2];
-    *scratch   = st;
-    st->eye.vz = vz;
+    st->eye.vx                     = *(u16*)&coord->coord.t[0];
+    st->eye.vy                     = *(u16*)&coord->coord.t[1];
+    vz                             = *(u16*)&coord->coord.t[2];
+    SCRATCH_HEAD_AT(scratch, void) = st;
+    st->eye.vz                     = vz;
 
     overlayToWorld(coord->sub, &st->eye);
 
@@ -727,7 +727,7 @@ s32 func_actor_401800_80132E0C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s
         }
     }
 
-    tail = (void**)G_SCRATCH_HEAD;
+    tail = SCRATCH_HEAD_ADDR;
     hit  = st->hit;
     SCRATCH_POP_BYTES_AT(tail, sizeof(OverlayBisectorScratch));
     return hit;
@@ -2037,11 +2037,11 @@ void func_actor_401800_80136560(Task* arg0)
         return;
     }
     work->field_6++;
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    block    = head - 0x10;
-    *scratch = block;
-    s        = (ActorChaseScratch*)block;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    block                          = head - 0x10;
+    SCRATCH_HEAD_AT(scratch, void) = block;
+    s                              = (ActorChaseScratch*)block;
     if (func_actor_401800_80132C68(((TmdObject*)arg0->extra)->coords, &work->field_A28, 0xC) != 1) {
         func_actor_401800_8013629C(arg0, &work->field_8E8, 0xC);
     }

@@ -5704,11 +5704,11 @@ void func_actor_403600_80141F58(GsCOORDINATE2* arg0, s32 arg1)
     SVECTOR* vec;
     MATRIX*  matrix;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    vec      = (SVECTOR*)((u8*)head - 8);
-    *scratch = vec;
-    matrix   = &arg0->coord;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    vec                            = (SVECTOR*)((u8*)head - 8);
+    SCRATCH_HEAD_AT(scratch, void) = vec;
+    matrix                         = &arg0->coord;
 
     ACTOR_COPY_MATRIX_COLUMN_TO_SV(matrix, vec, 0, 6, 12);
     gte_lddp(arg1);
@@ -5731,7 +5731,7 @@ void func_actor_403600_80141F58(GsCOORDINATE2* arg0, s32 arg1)
     gte_stsv(vec);
     ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, matrix, 4, 10, 16);
 
-    head      = *scratch;
-    arg0->flg = 0;
-    *scratch  = (u8*)head + 8;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    arg0->flg                      = 0;
+    SCRATCH_HEAD_AT(scratch, void) = (u8*)head + 8;
 }

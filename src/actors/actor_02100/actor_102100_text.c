@@ -775,11 +775,11 @@ void Actor02100_Fn011C4(Task* arg0)
     head  = (Task*)list->firstChild;
     work  = arg0->work;
     if (head != NULL) {
-        scratchSlot  = (u8**)G_SCRATCH_HEAD;
-        current      = head;
-        scratchHead  = SCRATCH_HEAD(u8);
-        *scratchSlot = scratchHead - 0x40;
-        scratch      = (Actor02100Fn011C4Scratch*)*scratchSlot;
+        scratchSlot                      = (u8**)SCRATCH_HEAD_ADDR;
+        current                          = head;
+        scratchHead                      = SCRATCH_HEAD(u8);
+        SCRATCH_HEAD_AT(scratchSlot, u8) = scratchHead - 0x40;
+        scratch                          = (Actor02100Fn011C4Scratch*)SCRATCH_HEAD_AT(scratchSlot, u8);
         SOFT_TOUCH_REG(head);
         do {
             enemy = current->spawnArg2;
@@ -1775,16 +1775,16 @@ s32 Actor02100_Fn0337C(SVECTOR* arg0, SVECTOR* arg1)
     s32              ret;
 
     ret                          = 0;
-    scratch                      = (void**)G_SCRATCH_HEAD;
+    scratch                      = SCRATCH_HEAD_ADDR;
     node                         = D_80115550;
-    head                         = *scratch;
+    head                         = SCRATCH_HEAD_AT(scratch, void);
     ((VECTOR*)(head - 0x10))->vx = arg1->vx - arg0->vx;
     head                         = head - 0x10;
     vec                          = (VECTOR*)head;
     TOUCH_REG_USE(vec, head);
-    vec->vy  = arg1->vy - arg0->vy;
-    *scratch = vec;
-    vec->vz  = arg1->vz - arg0->vz;
+    vec->vy                        = arg1->vy - arg0->vy;
+    SCRATCH_HEAD_AT(scratch, void) = vec;
+    vec->vz                        = arg1->vz - arg0->vz;
     VectorNormal(vec, vec);
     for (; node != NULL; node = node->next) {
         if (node->field_3A & 0x40) {

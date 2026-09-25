@@ -3733,14 +3733,14 @@ void Actor01600_Fn06810(GpEnemy* arg0, Task* arg1)
     u8*            head;
     VECTOR*        block;
 
-    coord     = &((TmdObject*)arg1->extra)->coords[1];
-    scratch   = (void**)G_SCRATCH_HEAD;
-    head      = *scratch;
-    block     = (VECTOR*)(head - 0x10);
-    block->vx = coord->workm.t[0];
-    block->vy = coord->workm.t[1];
-    block->vz = coord->workm.t[2];
-    *scratch  = block;
+    coord                          = &((TmdObject*)arg1->extra)->coords[1];
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    block                          = (VECTOR*)(head - 0x10);
+    block->vx                      = coord->workm.t[0];
+    block->vy                      = coord->workm.t[1];
+    block->vz                      = coord->workm.t[2];
+    SCRATCH_HEAD_AT(scratch, void) = block;
     Gp_UpdateActorColor(arg0, block, 0, 0);
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
@@ -3793,14 +3793,14 @@ void Actor01600_Fn06974(Task* actor, s32 distance)
     VECTOR*                head;
     void**                 scratch;
 
-    scratch       = (void**)G_SCRATCH_HEAD;
-    head          = *scratch;
-    coord         = ((TmdObject*)actor->extra)->coords;
-    work          = (Actor01600StepScratch*)((u8*)head - 0x3C);
-    work->move.vx = (s16)distance;
-    work->move.vy = 0;
-    work->move.vz = 0;
-    *scratch      = work;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    coord                          = ((TmdObject*)actor->extra)->coords;
+    work                           = (Actor01600StepScratch*)((u8*)head - 0x3C);
+    work->move.vx                  = (s16)distance;
+    work->move.vy                  = 0;
+    work->move.vz                  = 0;
+    SCRATCH_HEAD_AT(scratch, void) = work;
     Gfx_MatrixCol2(&((TmdObject*)actor->extra)->coords->coord, (SVECTOR*)((u8*)head - 0x2C));
     mat                = (OverlayMat*)((u8*)head - 0x24);
     work->yaw          = ratan2(work->dir.vx, work->dir.vz);

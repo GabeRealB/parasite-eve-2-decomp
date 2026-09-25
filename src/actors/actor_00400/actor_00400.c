@@ -588,14 +588,14 @@ void Actor00400_Fn005DC(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, s32 arg3)
     u16                frame;
     s32                u;
 
-    scratch     = (void**)G_SCRATCH_HEAD;
-    head        = *scratch;
-    blk         = (GpEffFlareScratch*)(head - sizeof(GpEffFlareScratch));
-    copy        = blk;
-    blk->vec.vx = *(u16*)&arg0->workm.t[0];
-    blk->vec.vy = *(u16*)&arg0->workm.t[1];
-    blk->vec.vz = *(u16*)&arg0->workm.t[2];
-    *scratch    = blk;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    blk                            = (GpEffFlareScratch*)(head - sizeof(GpEffFlareScratch));
+    copy                           = blk;
+    blk->vec.vx                    = *(u16*)&arg0->workm.t[0];
+    blk->vec.vy                    = *(u16*)&arg0->workm.t[1];
+    blk->vec.vz                    = *(u16*)&arg0->workm.t[2];
+    SCRATCH_HEAD_AT(scratch, void) = blk;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((GpEffFlareScratch*)(head - 0x1C))->vec);

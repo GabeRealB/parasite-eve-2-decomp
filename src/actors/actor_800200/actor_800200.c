@@ -199,15 +199,15 @@ void func_actor_800200_801622B0(Task* arg0)
     s32                    i;
     s8                     bits;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    obj      = arg0->extra;
-    *scratch = head - 0x18;
-    extra    = obj;
-    sc       = (Actor800200VecScratch*)(head - 0x18);
-    coord    = extra->coords;
-    actor    = arg0->work;
-    d4       = actor->field_910;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    obj                            = arg0->extra;
+    SCRATCH_HEAD_AT(scratch, void) = head - 0x18;
+    extra                          = obj;
+    sc                             = (Actor800200VecScratch*)(head - 0x18);
+    coord                          = extra->coords;
+    actor                          = arg0->work;
+    d4                             = actor->field_910;
     if (actor->field_954 != 2 &&
         (dy = coord->coord.t[1], dy = dy - actor->field_14, dy = ABS(dy), dy >= 0x200)) {
         coord->coord.t[0] = actor->field_10;
@@ -1278,7 +1278,7 @@ void func_actor_800200_8016436C(Task* arg0)
     GsCOORDINATE2* coord;
     VECTOR3*       vec;
     u8*            head;
-    s32*           scratch;
+    void**         scratch;
     s8             count;
     s32            pan;
     s32            dist;
@@ -1310,7 +1310,7 @@ void func_actor_800200_8016436C(Task* arg0)
     state = actor->field_95E;
     if (state != 0) {
         if (state != 1) {
-            scratch = (s32*)G_SCRATCH_HEAD;
+            scratch = SCRATCH_HEAD_ADDR;
         } else {
             goto tick;
         }
@@ -1342,7 +1342,7 @@ void func_actor_800200_8016436C(Task* arg0)
                 }
             }
         }
-        scratch = (s32*)G_SCRATCH_HEAD;
+        scratch = SCRATCH_HEAD_ADDR;
     }
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
@@ -1361,15 +1361,15 @@ void func_actor_800200_80164598(Task* arg0)
     s32                mode;
     s32                flag;
 
-    scratch                                      = (void**)G_SCRATCH_HEAD;
-    head                                         = *scratch;
+    scratch                                      = SCRATCH_HEAD_ADDR;
+    head                                         = SCRATCH_HEAD_AT(scratch, void);
     extra                                        = arg0->extra;
     actor                                        = arg0->work;
     tmp                                          = head - 0x14;
     coord                                        = extra->coords;
     block                                        = (GpApproachScratch*)tmp;
     block->vec.vx                                = actor->field_20 - coord->coord.t[0];
-    *scratch                                     = block;
+    SCRATCH_HEAD_AT(scratch, void)               = block;
     block->vec.vy                                = actor->field_24 - coord->coord.t[1];
     block->vec.vz                                = actor->field_28 - coord->coord.t[2];
     angle                                        = ratan2(block->vec.vx, block->vec.vz);
@@ -1613,15 +1613,15 @@ void func_actor_800200_80164C54(Task* arg0)
     register s32       dx asm("v0");
     register u8*       tmp asm("a0");
 
-    scratch                                      = (void**)G_SCRATCH_HEAD;
-    head                                         = *scratch;
+    scratch                                      = SCRATCH_HEAD_ADDR;
+    head                                         = SCRATCH_HEAD_AT(scratch, void);
     extra                                        = arg0->extra;
     actor                                        = arg0->work;
     tmp                                          = head - 0x14;
     coord                                        = extra->coords;
     block                                        = (GpApproachScratch*)tmp;
     block->vec.vx                                = actor->field_20 - coord->coord.t[0];
-    *scratch                                     = block;
+    SCRATCH_HEAD_AT(scratch, void)               = block;
     block->vec.vy                                = actor->field_24 - coord->coord.t[1];
     block->vec.vz                                = actor->field_28 - coord->coord.t[2];
     angle                                        = ratan2(block->vec.vx, block->vec.vz);
@@ -1711,15 +1711,15 @@ void func_actor_800200_80164EBC(Task* arg0)
     s32                val;
     s32                mode;
 
-    scratch                                      = (void**)G_SCRATCH_HEAD;
-    head                                         = *scratch;
+    scratch                                      = SCRATCH_HEAD_ADDR;
+    head                                         = SCRATCH_HEAD_AT(scratch, void);
     extra                                        = arg0->extra;
     actor                                        = arg0->work;
     tmp                                          = head - 0x14;
     coord                                        = extra->coords;
     block                                        = (GpApproachScratch*)tmp;
     block->vec.vx                                = actor->field_20 - coord->coord.t[0];
-    *scratch                                     = block;
+    SCRATCH_HEAD_AT(scratch, void)               = block;
     block->vec.vy                                = actor->field_24 - coord->coord.t[1];
     block->vec.vz                                = actor->field_28 - coord->coord.t[2];
     angle                                        = ratan2(block->vec.vx, block->vec.vz);

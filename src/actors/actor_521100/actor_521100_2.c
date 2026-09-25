@@ -292,11 +292,11 @@ void func_actor_521100_80136290(GpEnemy* arg0, Task* task)
     u8*                 head;
     VECTOR*             block;
 
-    coord    = &((TmdObject*)task->extra)->coords[1];
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    block    = (VECTOR*)(head - 0x10);
-    *scratch = block;
+    coord                          = &((TmdObject*)task->extra)->coords[1];
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    block                          = (VECTOR*)(head - 0x10);
+    SCRATCH_HEAD_AT(scratch, void) = block;
     Gp_UpdateCoord(coord);
     block->vx = coord->workm.t[0];
     block->vy = coord->workm.t[1];

@@ -443,12 +443,12 @@ s32 func_actor_403200_801324D0(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2)
     register void*    p asm("v1");
     s32               val;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    p        = head - 0x14;
-    s        = p;
-    *scratch = p;
-    s->moved = 0;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    p                              = head - 0x14;
+    s                              = p;
+    SCRATCH_HEAD_AT(scratch, void) = p;
+    s->moved                       = 0;
     if (func_800E0C10(rec, &s->delta, (s16)arg2, NULL) != 0) {
         coord->coord.t[0]         += ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
         coord->coord.t[2]         += s->delta.vz.h.hi;

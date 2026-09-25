@@ -322,12 +322,12 @@ s32 func_actor_401300_801323B0(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
     register void*    p asm("v1");
     s32               val;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    p        = head - 0x14;
-    s        = p;
-    *scratch = p;
-    s->moved = 0;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    p                              = head - 0x14;
+    s                              = p;
+    SCRATCH_HEAD_AT(scratch, void) = p;
+    s->moved                       = 0;
     if (func_800E0C10(recs, &s->delta, (s32)count, NULL) != 0) {
         coord->coord.t[0]          = coord->coord.t[0] + ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
         coord->coord.t[2]          = coord->coord.t[2] + s->delta.vz.h.hi;
@@ -3839,13 +3839,13 @@ void func_actor_401300_8013DADC(Task* arg0)
         work->field_8BA = 0x40;
         return;
     }
-    scratch = (SVECTOR**)G_SCRATCH_HEAD;
+    scratch = (SVECTOR**)SCRATCH_HEAD_ADDR;
     config  = &Player_Status;
     work->field_6++;
     root              = ((TmdObject*)arg0->extra)->coords;
-    head              = (ActorChaseScratch*)*scratch;
+    head              = (ActorChaseScratch*)SCRATCH_HEAD_AT(scratch, SVECTOR);
     head[-1].delta.vx = config->coordMtx->t[0] - root->coord.t[0];
-    aim               = (ActorChaseScratch*)(*scratch = (SVECTOR*)(head - 1));
+    aim               = (ActorChaseScratch*)(SCRATCH_HEAD_AT(scratch, SVECTOR) = (SVECTOR*)(head - 1));
     aim->delta.vy     = config->coordMtx->t[1] - root->coord.t[1];
     aim->delta.vz     = config->coordMtx->t[2] - root->coord.t[2];
     save              = &Mc_SaveData;
@@ -4083,14 +4083,14 @@ void func_actor_401300_8013E930(Task* arg0)
         work->field_D08 = ((TmdObject*)arg0->extra)->coords->coord.t[2];
         return;
     }
-    scratch = (SVECTOR**)G_SCRATCH_HEAD;
+    scratch = (SVECTOR**)SCRATCH_HEAD_ADDR;
     work->field_6++;
     root              = ((TmdObject*)arg0->extra)->coords;
-    head              = (Actor401300LungeScratch*)*scratch;
+    head              = (Actor401300LungeScratch*)SCRATCH_HEAD_AT(scratch, SVECTOR);
     head[-1].delta.vx = config->coordMtx->t[0] - root->coord.t[0];
     delta             = &head[-1].delta;
     delta->vy         = config->coordMtx->t[1] - root->coord.t[1];
-    blk               = (Actor401300LungeScratch*)(*scratch = (SVECTOR*)(head - 1));
+    blk               = (Actor401300LungeScratch*)(SCRATCH_HEAD_AT(scratch, SVECTOR) = (SVECTOR*)(head - 1));
     delta->vz         = config->coordMtx->t[2] - root->coord.t[2];
     func_actor_401300_80133A3C(arg0);
     switch (work->field_8A2) {
@@ -4281,16 +4281,16 @@ void func_actor_401300_8013F628(Task* arg0)
         Actor401300_ScaleMatrix(&work->field_C48, 0);
         return;
     }
-    scratch = (SVECTOR**)G_SCRATCH_HEAD;
+    scratch = (SVECTOR**)SCRATCH_HEAD_ADDR;
     config  = &Player_Status;
     work->field_6++;
-    root        = ((TmdObject*)arg0->extra)->coords;
-    head        = *scratch;
-    head[-1].vx = config->coordMtx->t[0] - root->coord.t[0];
-    vec         = head - 1;
-    vec->vy     = config->coordMtx->t[1] - root->coord.t[1];
-    vec->vz     = config->coordMtx->t[2] - root->coord.t[2];
-    *scratch    = head - 3;
+    root                              = ((TmdObject*)arg0->extra)->coords;
+    head                              = SCRATCH_HEAD_AT(scratch, SVECTOR);
+    head[-1].vx                       = config->coordMtx->t[0] - root->coord.t[0];
+    vec                               = head - 1;
+    vec->vy                           = config->coordMtx->t[1] - root->coord.t[1];
+    vec->vz                           = config->coordMtx->t[2] - root->coord.t[2];
+    SCRATCH_HEAD_AT(scratch, SVECTOR) = head - 3;
     if (work->field_6 < 0x12) {
         Actor401300_ScaleMatrix(&work->field_C48, (work->field_6 << 12) / 30);
         if (gGameSession->at4.loc.area == 0xB) {

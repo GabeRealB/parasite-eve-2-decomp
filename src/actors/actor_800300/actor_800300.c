@@ -157,14 +157,14 @@ void func_actor_800300_80162064(Task* arg0)
     s32                    i;
     s8                     bits;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    obj      = arg0->extra;
-    *scratch = head - 0x18;
-    extra    = obj;
-    sc       = (Actor800300VecScratch*)(head - 0x18);
-    actor    = arg0->work;
-    coord    = extra->coords;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    obj                            = arg0->extra;
+    SCRATCH_HEAD_AT(scratch, void) = head - 0x18;
+    extra                          = obj;
+    sc                             = (Actor800300VecScratch*)(head - 0x18);
+    actor                          = arg0->work;
+    coord                          = extra->coords;
     if (actor->field_954 != 2 &&
         (dy = coord->coord.t[1], dy = dy - actor->field_14, dy = ABS(dy), dy >= 0x200)) {
         coord->coord.t[0] = actor->field_10;
@@ -246,12 +246,12 @@ void func_actor_800300_801623F8(Task* arg0)
     u32         row;
     GpImgRec*   img;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    actor    = arg0->work;
-    temp     = (s32)(head - 8);
-    *scratch = (void*)temp;
-    rect     = (RECT*)temp;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    actor                          = arg0->work;
+    temp                           = (s32)(head - 8);
+    SCRATCH_HEAD_AT(scratch, void) = (void*)temp;
+    rect                           = (RECT*)temp;
 
     if ((s8)actor->field_987 != 0) {
         actor->field_988--;

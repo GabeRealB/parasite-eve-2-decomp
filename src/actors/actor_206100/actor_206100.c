@@ -933,14 +933,14 @@ void func_actor_206100_8014AB3C(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, s32 arg
     u16                frame;
     s32                u;
 
-    scratch     = (void**)G_SCRATCH_HEAD;
-    head        = *scratch;
-    blk         = (GpEffFlareScratch*)(head - sizeof(GpEffFlareScratch));
-    copy        = blk;
-    blk->vec.vx = *(u16*)&arg0->workm.t[0];
-    blk->vec.vy = *(u16*)&arg0->workm.t[1];
-    blk->vec.vz = *(u16*)&arg0->workm.t[2];
-    *scratch    = blk;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    blk                            = (GpEffFlareScratch*)(head - sizeof(GpEffFlareScratch));
+    copy                           = blk;
+    blk->vec.vx                    = *(u16*)&arg0->workm.t[0];
+    blk->vec.vy                    = *(u16*)&arg0->workm.t[1];
+    blk->vec.vz                    = *(u16*)&arg0->workm.t[2];
+    SCRATCH_HEAD_AT(scratch, void) = blk;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((GpEffFlareScratch*)(head - sizeof(GpEffFlareScratch)))->vec);
@@ -1803,14 +1803,14 @@ static __inline__ void Actor206100_UpdateColor(Task* task)
     u8*            head;
     VECTOR*        block;
 
-    coord     = &((TmdObject*)task->extra)->coords[1];
-    scratch   = (void**)G_SCRATCH_HEAD;
-    head      = *scratch;
-    block     = (VECTOR*)(head - 0x10);
-    block->vx = coord->workm.t[0];
-    block->vy = coord->workm.t[1];
-    block->vz = coord->workm.t[2];
-    *scratch  = block;
+    coord                          = &((TmdObject*)task->extra)->coords[1];
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    block                          = (VECTOR*)(head - 0x10);
+    block->vx                      = coord->workm.t[0];
+    block->vy                      = coord->workm.t[1];
+    block->vz                      = coord->workm.t[2];
+    SCRATCH_HEAD_AT(scratch, void) = block;
     Gp_UpdateActorColor(task->spawnArg2, block, 0, 0);
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }

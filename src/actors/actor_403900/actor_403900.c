@@ -2762,12 +2762,12 @@ void func_actor_403900_80137CA8(Task* arg0)
     GsCOORDINATE2*   coord;
     Actor402200Work* work;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    m        = (OverlayMat*)((u8*)head - 0x20);
-    *scratch = m;
-    coord    = &((TmdObject*)arg0->extra)->coords[0];
-    work     = arg0->work;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    m                              = (OverlayMat*)((u8*)head - 0x20);
+    SCRATCH_HEAD_AT(scratch, void) = m;
+    coord                          = &((TmdObject*)arg0->extra)->coords[0];
+    work                           = arg0->work;
 
     coord->coord     = work->field_674;
     m->ident.m00_m01 = 0x1000;

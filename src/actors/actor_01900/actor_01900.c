@@ -266,10 +266,10 @@ static __inline__ void Actor01900_ResetYaw(GsCOORDINATE2* coord)
     ActorScaleRotScratch* blk;
     s16                   ang;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    blk      = (ActorScaleRotScratch*)((u8*)head - 0x34);
-    *scratch = blk;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    blk                            = (ActorScaleRotScratch*)((u8*)head - 0x34);
+    SCRATCH_HEAD_AT(scratch, void) = blk;
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle = ang;
@@ -531,12 +531,12 @@ s32 Actor01900_Fn00E00(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2)
     register void*    p asm("v1");
     s32               val;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    p        = head - 0x14;
-    s        = p;
-    *scratch = p;
-    s->moved = 0;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    p                              = head - 0x14;
+    s                              = p;
+    SCRATCH_HEAD_AT(scratch, void) = p;
+    s->moved                       = 0;
     if (func_800E0C10(rec, &s->delta, (s16)arg2, NULL) != 0) {
         coord->coord.t[0]   += ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
         coord->coord.t[2]   += s->delta.vz.h.hi;
@@ -593,18 +593,18 @@ s32 Actor01900_Fn00FA4(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push)
         return 0;
     }
 
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = *scratch;
+    scratch = SCRATCH_HEAD_ADDR;
+    head    = SCRATCH_HEAD_AT(scratch, void);
     {
         register u8* tmp asm("v0");
         tmp = head - sizeof(OverlayBisectorScratch);
         st  = (OverlayBisectorScratch*)tmp;
     }
-    st->eye.vx = *(u16*)&coord->coord.t[0];
-    st->eye.vy = *(u16*)&coord->coord.t[1];
-    vz         = *(u16*)&coord->coord.t[2];
-    *scratch   = st;
-    st->eye.vz = vz;
+    st->eye.vx                     = *(u16*)&coord->coord.t[0];
+    st->eye.vy                     = *(u16*)&coord->coord.t[1];
+    vz                             = *(u16*)&coord->coord.t[2];
+    SCRATCH_HEAD_AT(scratch, void) = st;
+    st->eye.vz                     = vz;
 
     overlayToWorld(coord->sub, &st->eye);
 
@@ -715,7 +715,7 @@ s32 Actor01900_Fn00FA4(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push)
         }
     }
 
-    tail = (void**)G_SCRATCH_HEAD;
+    tail = SCRATCH_HEAD_ADDR;
     hit  = st->hit;
     SCRATCH_POP_BYTES_AT(tail, sizeof(OverlayBisectorScratch));
     return hit;
@@ -2903,18 +2903,18 @@ void Actor01900_Fn083E8(Task* arg0)
     }
 
     cfg  = &Player_Status;
-    slot = (ActorChaseScratch**)G_SCRATCH_HEAD;
-    head = *slot;
+    slot = (ActorChaseScratch**)SCRATCH_HEAD_ADDR;
+    head = SCRATCH_HEAD_AT(slot, ActorChaseScratch);
 
     coord             = ((TmdObject*)arg0->extra)->coords;
     next              = head - 1;
     head[-1].delta.vx = *(u16*)&cfg->coordMtx->t[0] - *(u16*)&coord->coord.t[0];
     SOFT_USE_REG(next);
-    aim           = next;
-    aim->delta.vy = *(u16*)&cfg->coordMtx->t[1] - *(u16*)&coord->coord.t[1];
-    z             = *(u16*)&cfg->coordMtx->t[2] - *(u16*)&coord->coord.t[2];
-    *slot         = aim;
-    aim->delta.vz = z;
+    aim                                      = next;
+    aim->delta.vy                            = *(u16*)&cfg->coordMtx->t[1] - *(u16*)&coord->coord.t[1];
+    z                                        = *(u16*)&cfg->coordMtx->t[2] - *(u16*)&coord->coord.t[2];
+    SCRATCH_HEAD_AT(slot, ActorChaseScratch) = aim;
+    aim->delta.vz                            = z;
 
     facing  = ((TmdObject*)arg0->extra)->coords;
     angle   = ratan2((s32)head[-1].delta.vx, (s32)z);

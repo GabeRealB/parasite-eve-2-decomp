@@ -182,17 +182,17 @@ void Actor02400_Fn00064(GsCOORDINATE2* coord, s16 size)
     light->head.u.at.local.t[1] = (s32)coord->coord.t[1];
     light->head.u.at.local.t[2] = coord->coord.t[2];
     slot->data.coord.flg        = 0;
-    scratch                     = (void**)G_SCRATCH_HEAD;
-    block                       = (GpRingScratch*)*scratch - 1;
+    scratch                     = SCRATCH_HEAD_ADDR;
+    block                       = (GpRingScratch*)SCRATCH_HEAD_AT(scratch, void) - 1;
     block->vec.vx               = *(u16*)&coord->workm.t[0];
     alias                       = block;
     vy                          = *(u16*)&coord->workm.t[1];
     __asm__("move %0,%1" : "=r"(alias) : "r"(alias), "r"(vy), "r"(alias));
-    sc          = alias;
-    sc->vec.vy  = vy;
-    sc->vec.vz  = *(u16*)&coord->workm.t[2];
-    Gp_LcgState = random;
-    *scratch    = sc;
+    sc                             = alias;
+    sc->vec.vy                     = vy;
+    sc->vec.vz                     = *(u16*)&coord->workm.t[2];
+    Gp_LcgState                    = random;
+    SCRATCH_HEAD_AT(scratch, void) = sc;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&sc->vec);
@@ -292,12 +292,12 @@ void Actor02400_Fn005BC(GsCOORDINATE2* arg0, s32 arg1)
     s32                   u;
     s32                   prod;
 
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = (u8*)*scratch - sizeof(OverlayGroundScratch);
+    scratch = SCRATCH_HEAD_ADDR;
+    head    = (u8*)SCRATCH_HEAD_AT(scratch, void) - sizeof(OverlayGroundScratch);
 
     SOFT_TOUCH_REG(head);
-    *scratch = head;
-    sc       = (OverlayGroundScratch*)head;
+    SCRATCH_HEAD_AT(scratch, void) = head;
+    sc                             = (OverlayGroundScratch*)head;
     gte_SetTransMatrix(&GsWSMATRIX);
     i   = 0;
     v   = sc->vec;
@@ -1679,12 +1679,12 @@ void Actor02400_Fn03278(Task* task)
     Actor02400Work*    work;
     GsCOORDINATE2*     coord;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    blk      = (ActorScaleScratch*)((u8*)head - 0x30);
-    *scratch = blk;
-    coord    = ((TmdObject*)task->extra)->coords;
-    work     = task->work;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    blk                            = (ActorScaleScratch*)((u8*)head - 0x30);
+    SCRATCH_HEAD_AT(scratch, void) = blk;
+    coord                          = ((TmdObject*)task->extra)->coords;
+    work                           = task->work;
 
     blk->scale.vx          = 0x1000;
     blk->scale.vy          = work->field_12A;

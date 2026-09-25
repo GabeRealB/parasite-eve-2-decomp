@@ -301,12 +301,12 @@ s32 Actor00100_Fn00A54(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2)
     register void*    p asm("v1");
     s32               val;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    p        = head - 0x14;
-    s        = p;
-    *scratch = p;
-    s->moved = 0;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    p                              = head - 0x14;
+    s                              = p;
+    SCRATCH_HEAD_AT(scratch, void) = p;
+    s->moved                       = 0;
     if (func_800E0C10(movement, &s->delta, (s32)arg2, NULL) != 0) {
         coord->coord.t[0]    = coord->coord.t[0] + ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
         coord->coord.t[2]    = coord->coord.t[2] + s->delta.vz.h.hi;
@@ -2239,17 +2239,17 @@ void Actor00100_Fn0503C(Task* arg0)
     s32 var_v0_30;
     s32 var_v0_31;
 
-    s16  var_v1_2;
-    s16  var_v1_4;
-    s16  var_v1_5;
-    s16  var_v1_6;
-    s16  var_v1_7;
-    s16  var_v1_8;
-    s32* scratchHead;
-    s32  temp_s0_12;
-    s32  temp_s0_15;
-    s32  temp_s0_18;
-    s32  temp_s0_21;
+    s16    var_v1_2;
+    s16    var_v1_4;
+    s16    var_v1_5;
+    s16    var_v1_6;
+    s16    var_v1_7;
+    s16    var_v1_8;
+    void** scratchHead;
+    s32    temp_s0_12;
+    s32    temp_s0_15;
+    s32    temp_s0_18;
+    s32    temp_s0_21;
 
     s32 temp_s0_5;
     s32 temp_s0_9;
@@ -2608,7 +2608,7 @@ void Actor00100_Fn0503C(Task* arg0)
                 break;
         }
         if (Gp_State1C->roomEffectMode == 2) {
-            scratchHead = (s32*)G_SCRATCH_HEAD;
+            scratchHead = SCRATCH_HEAD_ADDR;
             if (spawnEffect == 1) {
                 Gp_SpawnEff(0x60054, &((TmdObject*)arg0->extra)->coords[effectJoint], effectFlags | 0x80000000, &work->field_898);
                 goto releaseScratch;
@@ -2618,7 +2618,7 @@ void Actor00100_Fn0503C(Task* arg0)
         }
     } else {
     releaseScratch:
-        scratchHead = (s32*)G_SCRATCH_HEAD;
+        scratchHead = SCRATCH_HEAD_ADDR;
     }
     SCRATCH_POP_BYTES_AT(scratchHead, 0x18);
 }
@@ -4131,7 +4131,7 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
             ((TmdObject*)actor->extra)->flags = 0x80;
             return;
     }
-    scratchHead = (SVECTOR**)G_SCRATCH_HEAD;
+    scratchHead = (SVECTOR**)SCRATCH_HEAD_ADDR;
     scratch     = Actor00100_AllocVector(scratchHead);
     if (work->field_BE0 > 0) {
         work->field_BE0 = (s16)((u16)work->field_BE0 - 1);

@@ -295,11 +295,11 @@ void func_actor_361100_80161FF8(Task* arg0)
         if (Gp_StateF0.field_4 == 0) {
             arg0->killCountdown = (u16)arg0->killCountdown + 0x20;
         }
-        ang2  = arg0->killCountdown * 2;
-        ang   = arg0->killCountdown;
-        slot  = (OverlayRippleScratch**)G_SCRATCH_HEAD;
-        *slot = *slot - 1;
-        block = *slot;
+        ang2                                        = arg0->killCountdown * 2;
+        ang                                         = arg0->killCountdown;
+        slot                                        = (OverlayRippleScratch**)SCRATCH_HEAD_ADDR;
+        SCRATCH_HEAD_AT(slot, OverlayRippleScratch) = SCRATCH_HEAD_AT(slot, OverlayRippleScratch) - 1;
+        block                                       = SCRATCH_HEAD_AT(slot, OverlayRippleScratch);
         TransposeMatrix(&gGfxViewCoord.workm, &block->mtx);
         block->origin.vx = gGfxViewCoord.workm.t[0];
         block->origin.vy = gGfxViewCoord.workm.t[1];

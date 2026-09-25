@@ -363,13 +363,13 @@ void func_actor_800100_80162264(VECTOR3* pos, u16 frame, s32 brightness)
     s32            u1;
     u16            vz;
 
-    scratch                                 = (void**)G_SCRATCH_HEAD;
-    head                                    = *scratch;
+    scratch                                 = SCRATCH_HEAD_ADDR;
+    head                                    = SCRATCH_HEAD_AT(scratch, void);
     ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&pos->vx;
     block                                   = (GpRingScratch*)(head - 0x18);
     block->vec.vy                           = *(u16*)&pos->vy;
     vz                                      = *(u16*)&pos->vz;
-    *scratch                                = block;
+    SCRATCH_HEAD_AT(scratch, void)          = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -581,13 +581,13 @@ void func_actor_800100_80162A14(VECTOR3* pos, u16 frame, u16 width, s16 ang)
     s32              a;
     u16              vz;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
-    head                                      = *scratch;
+    scratch                                   = SCRATCH_HEAD_ADDR;
+    head                                      = SCRATCH_HEAD_AT(scratch, void);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&pos->vx;
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
     block->vec.vy                             = *(u16*)&pos->vy;
     vz                                        = *(u16*)&pos->vz;
-    *scratch                                  = block;
+    SCRATCH_HEAD_AT(scratch, void)            = block;
     block->vec.vz                             = vz;
     vecp                                      = block;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -652,11 +652,11 @@ void func_actor_800100_80162E90(VECTOR3* pos, s32 width)
     s32                       flag;
     s32                       otz;
 
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = (u8*)*scratch - 0x30;
+    scratch = SCRATCH_HEAD_ADDR;
+    head    = (u8*)SCRATCH_HEAD_AT(scratch, void) - 0x30;
     SOFT_TOUCH_REG(head);
-    *scratch = head;
-    block    = (Actor800100SplashScratch*)head;
+    SCRATCH_HEAD_AT(scratch, void) = head;
+    block                          = (Actor800100SplashScratch*)head;
     gte_SetTransMatrix(&GsWSMATRIX);
     i   = 0;
     tbl = D_80111E38;
@@ -870,15 +870,15 @@ void func_actor_800100_801635F4(Task* arg0)
     s32                       i;
     s8                        bits;
 
-    scratchHead  = (void**)G_SCRATCH_HEAD;
-    head         = *scratchHead;
-    extra        = arg0->extra;
-    *scratchHead = head - 0x18;
-    work         = extra;
-    scratch      = (Actor800100ShadowScratch*)(head - 0x18);
-    coord        = work->coords;
-    actor        = arg0->work;
-    d4           = actor->field_910;
+    scratchHead                        = SCRATCH_HEAD_ADDR;
+    head                               = SCRATCH_HEAD_AT(scratchHead, void);
+    extra                              = arg0->extra;
+    SCRATCH_HEAD_AT(scratchHead, void) = head - 0x18;
+    work                               = extra;
+    scratch                            = (Actor800100ShadowScratch*)(head - 0x18);
+    coord                              = work->coords;
+    actor                              = arg0->work;
+    d4                                 = actor->field_910;
 
     if (actor->field_954 != 2 &&
         (dy = coord->coord.t[1], dy = dy - actor->field_14, dy = ABS(dy), dy >= 0x200)) {
@@ -988,12 +988,12 @@ void func_actor_800100_80163A58(Task* arg0)
     u32         row;
     GpImgRec*   img;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    actor    = arg0->work;
-    temp     = (s32)(head - 8);
-    *scratch = (void*)temp;
-    rect     = (RECT*)temp;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    actor                          = arg0->work;
+    temp                           = (s32)(head - 8);
+    SCRATCH_HEAD_AT(scratch, void) = (void*)temp;
+    rect                           = (RECT*)temp;
 
     if ((s8)actor->field_987 != 0) {
         actor->field_988--;
@@ -1345,14 +1345,14 @@ void func_actor_800100_801643F4(Task* arg0)
     s32            arg;
     s32            flag;
 
-    actor    = arg0->work;
-    extra    = (TmdObject*)(gameGetPtrSlot(3))->extra;
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    *scratch = (u8*)head - 0x10;
-    pos      = (VECTOR3*)((u8*)head - 0x10);
-    node     = actor->field_90C;
-    src      = extra->coords;
+    actor                          = arg0->work;
+    extra                          = (TmdObject*)(gameGetPtrSlot(3))->extra;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    SCRATCH_HEAD_AT(scratch, void) = (u8*)head - 0x10;
+    pos                            = (VECTOR3*)((u8*)head - 0x10);
+    node                           = actor->field_90C;
+    src                            = extra->coords;
     if (node != NULL) {
         if (!(node->state.b.flags & 1)) {
             Gp_GetLockPos(node, pos);
@@ -1412,12 +1412,12 @@ void func_actor_800100_80164580(Task* arg0)
     s32        arg;
     s32        val;
 
-    actor    = arg0->work;
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    *scratch = (u8*)head - 0x10;
-    pos      = (VECTOR3*)((u8*)head - 0x10);
-    flag     = 1;
+    actor                          = arg0->work;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    SCRATCH_HEAD_AT(scratch, void) = (u8*)head - 0x10;
+    pos                            = (VECTOR3*)((u8*)head - 0x10);
+    flag                           = 1;
 
     switch (actor->field_95E) {
         case 0:
@@ -1475,7 +1475,7 @@ void func_actor_800100_80164710(Task* arg0)
     GsCOORDINATE2*          coord;
     Actor800100LockScratch* scratch;
     VECTOR3*                head;
-    s32*                    scratchHead;
+    void**                  scratchHead;
     s32                     dist;
     u16                     state;
 
@@ -1488,7 +1488,7 @@ void func_actor_800100_80164710(Task* arg0)
     state = actor->field_95E;
     if (state != 0) {
         if (state != 1) {
-            scratchHead = (s32*)G_SCRATCH_HEAD;
+            scratchHead = SCRATCH_HEAD_ADDR;
         } else {
             goto block_10;
         }
@@ -1532,7 +1532,7 @@ void func_actor_800100_80164710(Task* arg0)
                 }
             }
         }
-        scratchHead = (s32*)G_SCRATCH_HEAD;
+        scratchHead = SCRATCH_HEAD_ADDR;
     }
     SCRATCH_POP_BYTES_AT(scratchHead, 0x20);
 }
@@ -1564,13 +1564,13 @@ void func_actor_800100_80164940(Task* arg0)
     s32            count;
     s32            dist;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    *scratch = (u8*)head - 0x10;
-    pos      = (VECTOR3*)((u8*)head - 0x10);
-    actor    = arg0->work;
-    coord    = ((TmdObject*)arg0->extra)->coords;
-    flag     = 1;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    SCRATCH_HEAD_AT(scratch, void) = (u8*)head - 0x10;
+    pos                            = (VECTOR3*)((u8*)head - 0x10);
+    actor                          = arg0->work;
+    coord                          = ((TmdObject*)arg0->extra)->coords;
+    flag                           = 1;
     switch (actor->field_95E) {
         case 0:
             actor->field_95E = flag;
@@ -1700,11 +1700,11 @@ void func_actor_800100_80164B9C(Task* arg0)
             return;
         }
     }
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    *scratch = head - 0x20;
-    block    = (Actor800100LockScratch*)(head - 0x20);
-    node     = actor->field_90C;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    SCRATCH_HEAD_AT(scratch, void) = head - 0x20;
+    block                          = (Actor800100LockScratch*)(head - 0x20);
+    node                           = actor->field_90C;
     if (node != NULL) {
         if ((node->state.b.flags & 1) == 0) {
             Gp_GetLockPos(node, &block->lock);
@@ -2429,10 +2429,10 @@ void func_actor_800100_80165F50(Task* arg0)
     void**         scratch;
     void*          head;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    *scratch = (u8*)head - 0x50;
-    place    = (GsCOORDINATE2*)((u8*)head - 0x50);
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    SCRATCH_HEAD_AT(scratch, void) = (u8*)head - 0x50;
+    place                          = (GsCOORDINATE2*)((u8*)head - 0x50);
 
     actor = arg0->work;
     d4    = actor->field_910;
@@ -2502,10 +2502,10 @@ void func_actor_800100_80166190(Task* arg0)
     GsCOORDINATE2* place;
     u16            state;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    *scratch = (u8*)head - 0x50;
-    place    = (GsCOORDINATE2*)((u8*)head - 0x50);
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    SCRATCH_HEAD_AT(scratch, void) = (u8*)head - 0x50;
+    place                          = (GsCOORDINATE2*)((u8*)head - 0x50);
 
     actor = arg0->work;
     d4    = actor->field_910;
@@ -2628,10 +2628,10 @@ void func_actor_800100_80166514(Task* arg0)
     sp10        = *src;
     obj->flags |= 0xC000;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    blk      = (Actor800100PlaceScratch*)((u8*)head - 0x5C);
-    *scratch = blk;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    blk                            = (Actor800100PlaceScratch*)((u8*)head - 0x5C);
+    SCRATCH_HEAD_AT(scratch, void) = blk;
 
     Gp_FindRec18(obj->ctx.d4rec->recs, 0);
     Gfx_RotMatrixX(&sp10.workm, 0x400, 0);
@@ -2668,11 +2668,11 @@ void func_actor_800100_8016666C(GsCOORDINATE2* arg0, s16 arg1)
     s32                     sy0;
     s32                     sy1;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    newhead  = head - sizeof(Actor800100LineScratch);
-    blk      = (Actor800100LineScratch*)newhead;
-    *scratch = newhead;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    newhead                        = head - sizeof(Actor800100LineScratch);
+    blk                            = (Actor800100LineScratch*)newhead;
+    SCRATCH_HEAD_AT(scratch, void) = newhead;
 
     angle = arg1;
     if (arg1 == 0) {
@@ -2749,8 +2749,8 @@ void func_actor_800100_801668C0(GsCOORDINATE2* arg0)
     s32                     az;
     s32                     sy;
 
-    scratch = (void**)G_SCRATCH_HEAD;
-    blk     = (*scratch = (Actor800100QuadScratch*)((u8*)*scratch - sizeof(Actor800100QuadScratch)));
+    scratch = SCRATCH_HEAD_ADDR;
+    blk     = (SCRATCH_HEAD_AT(scratch, void) = (Actor800100QuadScratch*)((u8*)SCRATCH_HEAD_AT(scratch, void) - sizeof(Actor800100QuadScratch)));
 
     for (i = 0; i < 4; i++) {
         ay           = D_actor_800100_80161F10[i].vy;
@@ -2820,17 +2820,17 @@ s32 func_actor_800100_80166B40(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2
         s32               dist;
         GpRec18*          picked;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_HEAD_ADDR;
         i       = 0;
         bestIdx = i;
         pidx    = &idx;
         rec     = arg0;
         {
             register void* p asm("v0");
-            p        = *scratch;
-            p        = (u8*)p - 0x68;
-            block    = p;
-            *scratch = p;
+            p                              = SCRATCH_HEAD_AT(scratch, void);
+            p                              = (u8*)p - 0x68;
+            block                          = p;
+            SCRATCH_HEAD_AT(scratch, void) = p;
         }
         do {
             if (rec->key & 0x100000) {

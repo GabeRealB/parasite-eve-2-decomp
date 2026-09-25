@@ -253,17 +253,17 @@ void Actor00300_Fn00078(GsCOORDINATE2* coord, s16 size)
     light->head.u.at.local.t[1] = (s32)coord->coord.t[1];
     light->head.u.at.local.t[2] = coord->coord.t[2];
     slot->data.coord.flg        = 0;
-    scratch                     = (void**)G_SCRATCH_HEAD;
-    block                       = (GpRingScratch*)*scratch - 1;
+    scratch                     = SCRATCH_HEAD_ADDR;
+    block                       = (GpRingScratch*)SCRATCH_HEAD_AT(scratch, void) - 1;
     block->vec.vx               = *(u16*)&coord->workm.t[0];
     alias                       = block;
     vy                          = *(u16*)&coord->workm.t[1];
     __asm__("move %0,%1" : "=r"(alias) : "r"(alias), "r"(vy), "r"(alias));
-    sc          = alias;
-    sc->vec.vy  = vy;
-    sc->vec.vz  = *(u16*)&coord->workm.t[2];
-    Gp_LcgState = random;
-    *scratch    = sc;
+    sc                             = alias;
+    sc->vec.vy                     = vy;
+    sc->vec.vz                     = *(u16*)&coord->workm.t[2];
+    Gp_LcgState                    = random;
+    SCRATCH_HEAD_AT(scratch, void) = sc;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&sc->vec);
@@ -360,12 +360,12 @@ void Actor00300_Fn005D0(GsCOORDINATE2* arg0, s32 arg1)
     s32                   u;
     s32                   prod;
 
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = (u8*)*scratch - sizeof(OverlayGroundScratch);
+    scratch = SCRATCH_HEAD_ADDR;
+    head    = (u8*)SCRATCH_HEAD_AT(scratch, void) - sizeof(OverlayGroundScratch);
 
     SOFT_TOUCH_REG(head);
-    *scratch = head;
-    sc       = (OverlayGroundScratch*)head;
+    SCRATCH_HEAD_AT(scratch, void) = head;
+    sc                             = (OverlayGroundScratch*)head;
     gte_SetTransMatrix(&GsWSMATRIX);
     i   = 0;
     v   = sc->vec;
@@ -640,17 +640,17 @@ void Actor00300_Fn00E54(Task* arg0)
     critical    = 0;
     lastId      = 0;
     work        = arg0->work;
-    tmp         = 0x1F8003FC;
-    scratchPrev = *(GpDeltaScratch**)tmp;
+    tmp         = (u32)SCRATCH_HEAD_ADDR;
+    scratchPrev = SCRATCH_HEAD_AT(tmp, GpDeltaScratch);
     srcCoord    = (GsCOORDINATE2*)work->rec558;
     clamped     = (s32)(scratchPrev - 4);
     SOFT_TOUCH_REG_USE(clamped, srcCoord);
-    scratch                = (GpDeltaScratch*)clamped;
-    obj                    = arg0->extra;
-    *(GpDeltaScratch**)tmp = scratch;
-    enemy                  = arg0->spawnArg2;
-    coord                  = obj->coords;
-    hitKind                = func_800E0C10((GpRec18*)srcCoord, scratch, 4, NULL);
+    scratch                              = (GpDeltaScratch*)clamped;
+    obj                                  = arg0->extra;
+    SCRATCH_HEAD_AT(tmp, GpDeltaScratch) = scratch;
+    enemy                                = arg0->spawnArg2;
+    coord                                = obj->coords;
+    hitKind                              = func_800E0C10((GpRec18*)srcCoord, scratch, 4, NULL);
     switch (hitKind) {
         case 1:
             coord->coord.t[0] += scratchPrev[-4].vx.h.hi;
@@ -2478,16 +2478,16 @@ s32 Actor00300_Fn04B14(SVECTOR* arg0, SVECTOR* arg1)
     s32      ret;
 
     ret                          = 0;
-    scratch                      = (void**)G_SCRATCH_HEAD;
+    scratch                      = SCRATCH_HEAD_ADDR;
     node                         = D_80115550;
-    head                         = *scratch;
+    head                         = SCRATCH_HEAD_AT(scratch, void);
     ((VECTOR*)(head - 0x10))->vx = arg1->vx - arg0->vx;
     head                         = head - 0x10;
     TOUCH_REG_USE(head, node);
-    vec      = (VECTOR*)head;
-    vec->vy  = arg1->vy - arg0->vy;
-    *scratch = vec;
-    vec->vz  = arg1->vz - arg0->vz;
+    vec                            = (VECTOR*)head;
+    vec->vy                        = arg1->vy - arg0->vy;
+    SCRATCH_HEAD_AT(scratch, void) = vec;
+    vec->vz                        = arg1->vz - arg0->vz;
     VectorNormal(vec, vec);
     for (; node != NULL; node = node->next) {
         if (node->field_3A & 0x40) {

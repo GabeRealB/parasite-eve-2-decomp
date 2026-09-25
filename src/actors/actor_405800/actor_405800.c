@@ -1090,13 +1090,13 @@ static __inline__ void Actor405800_ProjectPart(GsCOORDINATE2* part)
     SVECTOR*                 vec;
     MATRIX*                  wm;
 
-    scratch       = (void**)G_SCRATCH_HEAD;
-    head          = *scratch;
-    block         = (Actor405800PerspScratch*)(head - 0x18);
-    *scratch      = block;
-    block->vec.vx = 0;
-    block->vec.vy = 0;
-    block->vec.vz = 0;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    block                          = (Actor405800PerspScratch*)(head - 0x18);
+    SCRATCH_HEAD_AT(scratch, void) = block;
+    block->vec.vx                  = 0;
+    block->vec.vy                  = 0;
+    block->vec.vz                  = 0;
     Gp_UpdateCoord(part);
     vec = &block->vec;
     wm  = &part->workm;
@@ -3332,14 +3332,14 @@ void func_actor_405800_801387DC(Task* task)
     u8*            head;
     VECTOR*        block;
 
-    coord     = &((TmdObject*)task->extra)->coords[1];
-    scratch   = (void**)G_SCRATCH_HEAD;
-    head      = *scratch;
-    block     = (VECTOR*)(head - 0x10);
-    block->vx = coord->workm.t[0];
-    block->vy = coord->workm.t[1];
-    block->vz = coord->workm.t[2];
-    *scratch  = block;
+    coord                          = &((TmdObject*)task->extra)->coords[1];
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    block                          = (VECTOR*)(head - 0x10);
+    block->vx                      = coord->workm.t[0];
+    block->vy                      = coord->workm.t[1];
+    block->vz                      = coord->workm.t[2];
+    SCRATCH_HEAD_AT(scratch, void) = block;
     Gp_UpdateActorColor(task->spawnArg2, block, 0, 0);
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }

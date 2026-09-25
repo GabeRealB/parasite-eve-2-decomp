@@ -2036,11 +2036,11 @@ void Actor05500_Fn03D40(Task* actor)
     ActorScaleScratch* blk;
     GsCOORDINATE2*     coord;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    blk      = (ActorScaleScratch*)((u8*)head - 0x30);
-    *scratch = blk;
-    coord    = ((TmdObject*)actor->extra)->coords;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    blk                            = (ActorScaleScratch*)((u8*)head - 0x30);
+    SCRATCH_HEAD_AT(scratch, void) = blk;
+    coord                          = ((TmdObject*)actor->extra)->coords;
 
     blk->scale.vx          = 0x100;
     blk->scale.vy          = 0x100;

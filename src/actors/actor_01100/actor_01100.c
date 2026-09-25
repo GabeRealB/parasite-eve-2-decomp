@@ -3610,10 +3610,10 @@ void Actor01100_Fn067C0(MATRIX* arg0, ActorsShared801385e0Scale* arg1)
     void*    head;
     SVECTOR* vec;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    vec      = (SVECTOR*)((u8*)head - 8);
-    *scratch = vec;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    vec                            = (SVECTOR*)((u8*)head - 8);
+    SCRATCH_HEAD_AT(scratch, void) = vec;
 
     ACTOR_COPY_MATRIX_COLUMN_TO_SV(arg0, vec, 0, 6, 12);
     gte_lddp(arg1->vx);
@@ -3636,8 +3636,8 @@ void Actor01100_Fn067C0(MATRIX* arg0, ActorsShared801385e0Scale* arg1)
     gte_stsv(vec);
     ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, arg0, 4, 10, 16);
 
-    head     = *scratch;
-    *scratch = (u8*)head + 8;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    SCRATCH_HEAD_AT(scratch, void) = (u8*)head + 8;
 }
 
 /// Angle from `arg0`'s coordinate to the coordinate at
@@ -3711,15 +3711,15 @@ s32 Actor01100_Fn06AC8(GsCOORDINATE2* arg0)
 
     task = gameGetPtrSlot(3);
     if (task != NULL) {
-        coord    = ((TmdObject*)task->extra)->coords;
-        scratch  = (void**)G_SCRATCH_HEAD;
-        head     = *scratch;
-        vec      = (SVECTOR*)(head - 8);
-        vec->vx  = (u16)coord->workm.t[0] - (u16)arg0->workm.t[0];
-        vec->vy  = (u16)coord->workm.t[1] - (u16)arg0->workm.t[1];
-        *scratch = vec;
-        vec->vz  = (u16)coord->workm.t[2] - (u16)arg0->workm.t[2];
-        ret      = Gfx_ApplyMatrixNoSf(vec, vec);
+        coord                          = ((TmdObject*)task->extra)->coords;
+        scratch                        = SCRATCH_HEAD_ADDR;
+        head                           = SCRATCH_HEAD_AT(scratch, void);
+        vec                            = (SVECTOR*)(head - 8);
+        vec->vx                        = (u16)coord->workm.t[0] - (u16)arg0->workm.t[0];
+        vec->vy                        = (u16)coord->workm.t[1] - (u16)arg0->workm.t[1];
+        SCRATCH_HEAD_AT(scratch, void) = vec;
+        vec->vz                        = (u16)coord->workm.t[2] - (u16)arg0->workm.t[2];
+        ret                            = Gfx_ApplyMatrixNoSf(vec, vec);
         SCRATCH_POP_BYTES_AT(scratch, 8);
     } else {
         ret = 0x7FFFFFFF;

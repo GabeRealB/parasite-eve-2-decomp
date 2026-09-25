@@ -1080,16 +1080,16 @@ s32 Actor03700_Fn01DFC(Task* task)
     u32            soundId;
     s32            pan;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    vec      = (SVECTOR*)(head - 8);
-    coord    = ((TmdObject*)task->extra)->coords;
-    vec->vx  = (u16)Player_Status.coordMtx->t[0] - (u16)coord->coord.t[0];
-    dz       = (u16)Player_Status.coordMtx->t[2] - (u16)coord->coord.t[2];
-    *scratch = vec;
-    vec->vz  = dz;
-    dx       = ((SVECTOR*)(head - 8))->vx;
-    ret      = 0;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    vec                            = (SVECTOR*)(head - 8);
+    coord                          = ((TmdObject*)task->extra)->coords;
+    vec->vx                        = (u16)Player_Status.coordMtx->t[0] - (u16)coord->coord.t[0];
+    dz                             = (u16)Player_Status.coordMtx->t[2] - (u16)coord->coord.t[2];
+    SCRATCH_HEAD_AT(scratch, void) = vec;
+    vec->vz                        = dz;
+    dx                             = ((SVECTOR*)(head - 8))->vx;
+    ret                            = 0;
     if ((SquareRoot0((dx * dx) + (dz * dz)) < 0x708) || (Gp_StateF0.field_2 & 0xF) || (Gp_StateF0.field_19 & 1)) {
         ret = 1;
         Gp_ArmStateF0(ret);

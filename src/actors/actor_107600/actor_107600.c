@@ -240,16 +240,16 @@ void func_actor_107600_80131F10(Task* arg0)
     VECTOR*          block;
     Actor107600Work* work;
 
-    obj       = arg0->extra;
-    enemy     = arg0->spawnArg2;
-    coord     = obj->coords;
-    target    = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
-    scratch   = (void**)G_SCRATCH_HEAD;
-    head      = *scratch;
-    block     = (VECTOR*)(head - 0x10);
-    block->vx = target->coord.t[0] - coord->coord.t[0];
-    *scratch  = block;
-    block->vz = target->coord.t[2] - coord->coord.t[2];
+    obj                            = arg0->extra;
+    enemy                          = arg0->spawnArg2;
+    coord                          = obj->coords;
+    target                         = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    block                          = (VECTOR*)(head - 0x10);
+    block->vx                      = target->coord.t[0] - coord->coord.t[0];
+    SCRATCH_HEAD_AT(scratch, void) = block;
+    block->vz                      = target->coord.t[2] - coord->coord.t[2];
     if ((!(arg0->spawnArg1 & 0x40000000) && func_80103D8C(block->vx, block->vz) < 0x401) || (u8)arg0->spawnArg1 == 0xFF) {
     fail:
         if ((arg0->spawnArg1 & 0xF000) != 0x2000) {
@@ -617,15 +617,15 @@ void func_actor_107600_80132B0C(Task* arg0)
     VECTOR*        block;
     void*          obj;
 
-    obj       = arg0->spawnArg2;
-    coord     = ((TmdObject*)arg0->extra)->coords;
-    scratch   = (void**)G_SCRATCH_HEAD;
-    head      = *scratch;
-    block     = (VECTOR*)(head - 0x10);
-    block->vx = coord->workm.t[0];
-    block->vy = coord->workm.t[1];
-    block->vz = coord->workm.t[2];
-    *scratch  = block;
+    obj                            = arg0->spawnArg2;
+    coord                          = ((TmdObject*)arg0->extra)->coords;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    block                          = (VECTOR*)(head - 0x10);
+    block->vx                      = coord->workm.t[0];
+    block->vy                      = coord->workm.t[1];
+    block->vz                      = coord->workm.t[2];
+    SCRATCH_HEAD_AT(scratch, void) = block;
     Gp_UpdateActorColor(obj, block, 0, 0);
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
@@ -1441,11 +1441,11 @@ void func_actor_107600_80134608(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
             void**                   scratch;
             register GpColorScratch* tmp asm("v0");
 
-            scratch  = (void**)G_SCRATCH_HEAD;
-            head     = *scratch;
-            tmp      = (GpColorScratch*)(head - 0x30);
-            block    = tmp;
-            *scratch = tmp;
+            scratch                        = SCRATCH_HEAD_ADDR;
+            head                           = SCRATCH_HEAD_AT(scratch, void);
+            tmp                            = (GpColorScratch*)(head - 0x30);
+            block                          = tmp;
+            SCRATCH_HEAD_AT(scratch, void) = tmp;
         }
         func_800D7A9C(extra, arg1, 0, 3);
         if ((s8)arg0->colorBlend <= 0) {
@@ -1556,15 +1556,15 @@ void func_actor_107600_801349E0(Task* arg0)
     VECTOR*        block;
     void*          obj;
 
-    obj       = arg0->spawnArg2;
-    coord     = ((TmdObject*)arg0->extra)->coords;
-    scratch   = (void**)G_SCRATCH_HEAD;
-    head      = *scratch;
-    block     = (VECTOR*)(head - 0x10);
-    block->vx = coord->workm.t[0];
-    block->vy = coord->workm.t[1];
-    block->vz = coord->workm.t[2];
-    *scratch  = block;
+    obj                            = arg0->spawnArg2;
+    coord                          = ((TmdObject*)arg0->extra)->coords;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    block                          = (VECTOR*)(head - 0x10);
+    block->vx                      = coord->workm.t[0];
+    block->vy                      = coord->workm.t[1];
+    block->vz                      = coord->workm.t[2];
+    SCRATCH_HEAD_AT(scratch, void) = block;
     func_actor_107600_80134608(obj, block, 0, 0);
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
@@ -1744,14 +1744,14 @@ void func_actor_107600_80134D9C(Task* arg0)
     VECTOR*          block;
     s32              dist;
 
-    work     = (Actor107600Work*)arg0->work;
-    self     = ((TmdObject*)arg0->extra)->coords;
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    block    = (VECTOR*)(head - 0x10);
-    *scratch = block;
+    work                           = (Actor107600Work*)arg0->work;
+    self                           = ((TmdObject*)arg0->extra)->coords;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    block                          = (VECTOR*)(head - 0x10);
+    SCRATCH_HEAD_AT(scratch, void) = block;
     if (Gp_ActorSlots[0] == NULL) {
-        *scratch = head;
+        SCRATCH_HEAD_AT(scratch, void) = head;
         return;
     }
     target    = ((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
@@ -1775,13 +1775,13 @@ void func_actor_107600_80134E5C(GsCOORDINATE2* arg0)
     u8*     head;
     VECTOR* block;
 
-    scratch   = (void**)G_SCRATCH_HEAD;
-    head      = *scratch;
-    block     = (VECTOR*)(head - 0x10);
-    *scratch  = block;
-    block->vx = 0;
-    block->vy = -0x180;
-    block->vz = 0;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    block                          = (VECTOR*)(head - 0x10);
+    SCRATCH_HEAD_AT(scratch, void) = block;
+    block->vx                      = 0;
+    block->vy                      = -0x180;
+    block->vz                      = 0;
     ApplyMatrixLV(&arg0->coord, block, block);
     arg0->coord.t[0] = block->vx;
     arg0->coord.t[1] = block->vy;

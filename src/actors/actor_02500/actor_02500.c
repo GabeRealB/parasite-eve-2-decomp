@@ -318,8 +318,8 @@ void Actor02500_Fn00494(Task* actor)
     bestPush   = 0;
     lastId     = 0;
     work       = actor->work;
-    scratchSp  = (Actor02500MoveScratch**)G_SCRATCH_HEAD;
-    scratchEnd = *scratchSp;
+    scratchSp  = (Actor02500MoveScratch**)SCRATCH_HEAD_ADDR;
+    scratchEnd = SCRATCH_HEAD_AT(scratchSp, Actor02500MoveScratch);
     SOFT_TOUCH_REG2_USE(scratchEnd, scratchSp, work->field_22C);
     SOFT_TOUCH_REG(scratchSp);
     frameBase  = scratchEnd - 1;
@@ -331,10 +331,10 @@ void Actor02500_Fn00494(Task* actor)
     SOFT_TOUCH_REG_USE2(coord, frameBase, scratchSp);
     SOFT_TOUCH_REG2_USE(frame, scratchSp, coord);
     SOFT_TOUCH_REG(scratchSp);
-    *scratchSp      = frame;
-    work->field_340 = 0;
-    moveResult      = func_800E0C10(work->field_22C, &frame->delta, 5, 0);
-    one             = 1;
+    SCRATCH_HEAD_AT(scratchSp, Actor02500MoveScratch) = frame;
+    work->field_340                                   = 0;
+    moveResult                                        = func_800E0C10(work->field_22C, &frame->delta, 5, 0);
+    one                                               = 1;
     SOFT_TOUCH_REG(one);
     if (moveResult == one) {
         goto move_delta;

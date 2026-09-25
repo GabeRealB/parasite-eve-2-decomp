@@ -1138,7 +1138,7 @@ void Actor02300_Fn01DF0(Task* arg0)
     s16              state;
     s16              diff;
     s16              turn;
-    s32*             scratch;
+    void**           scratch;
     s32              dx;
     s32              dz;
     s32              dxAim;
@@ -1260,7 +1260,7 @@ void Actor02300_Fn01DF0(Task* arg0)
             }
             break;
     }
-    scratch = (s32*)G_SCRATCH_HEAD;
+    scratch = SCRATCH_HEAD_ADDR;
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
@@ -1278,7 +1278,7 @@ void Actor02300_Fn02290(Task* arg0)
     s16              startFrame;
     s16              state;
     s16              frame;
-    s32*             scratch;
+    void**           scratch;
     s32              dz;
     s32              sound;
     s32              dx;
@@ -1333,7 +1333,7 @@ void Actor02300_Fn02290(Task* arg0)
             }
             break;
     }
-    scratch = (s32*)G_SCRATCH_HEAD;
+    scratch = SCRATCH_HEAD_ADDR;
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
@@ -1972,16 +1972,16 @@ s32 Actor02300_Fn0371C(SVECTOR* arg0, SVECTOR* arg1)
     s32      ret;
 
     ret                          = 0;
-    scratch                      = (void**)G_SCRATCH_HEAD;
+    scratch                      = SCRATCH_HEAD_ADDR;
     node                         = D_80115550;
-    head                         = *scratch;
+    head                         = SCRATCH_HEAD_AT(scratch, void);
     ((VECTOR*)(head - 0x10))->vx = arg1->vx - arg0->vx;
     head                         = head - 0x10;
     TOUCH_REG_USE(head, node);
-    vec      = (VECTOR*)head;
-    vec->vy  = arg1->vy - arg0->vy;
-    *scratch = vec;
-    vec->vz  = arg1->vz - arg0->vz;
+    vec                            = (VECTOR*)head;
+    vec->vy                        = arg1->vy - arg0->vy;
+    SCRATCH_HEAD_AT(scratch, void) = vec;
+    vec->vz                        = arg1->vz - arg0->vz;
     VectorNormal(vec, vec);
     for (; node != NULL; node = node->next) {
         if (node->field_3A & 0x40) {

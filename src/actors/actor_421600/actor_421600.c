@@ -602,12 +602,12 @@ s32 func_actor_421600_8013285C(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2
     register void*    p asm("v1");
     s32               val;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    p        = head - 0x14;
-    s        = p;
-    *scratch = p;
-    s->moved = 0;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    p                              = head - 0x14;
+    s                              = p;
+    SCRATCH_HEAD_AT(scratch, void) = p;
+    s->moved                       = 0;
     if (func_800E0C10(movement, &s->delta, (s32)arg2, NULL) != 0) {
         coord->coord.t[0]          = coord->coord.t[0] + ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
         coord->coord.t[2]          = coord->coord.t[2] + s->delta.vz.h.hi;
@@ -2797,7 +2797,7 @@ void func_actor_421600_801373D4(Task* arg0)
     GsCOORDINATE2*      temp_s0_7;
     GsCOORDINATE2*      temp_v0_5;
     GsCOORDINATE2*      temp_v0_7;
-    s32*                scratchHead;
+    void**              scratchHead;
     s32                 temp_v0;
     s32                 spawnEffect;
     s32                 var_a1_4;
@@ -3154,7 +3154,7 @@ void func_actor_421600_801373D4(Task* arg0)
                 break;
         }
         if (Gp_State1C->roomEffectMode == 2) {
-            scratchHead = (s32*)G_SCRATCH_HEAD;
+            scratchHead = SCRATCH_HEAD_ADDR;
             if (spawnEffect == 1) {
                 Gp_SpawnEff(0x60054, &((TmdObject*)arg0->extra)->coords[effectJoint], effectFlags | 0x80000000, &effect);
                 goto releaseScratch;
@@ -3164,7 +3164,7 @@ void func_actor_421600_801373D4(Task* arg0)
         }
     } else {
     releaseScratch:
-        scratchHead = (s32*)G_SCRATCH_HEAD;
+        scratchHead = SCRATCH_HEAD_ADDR;
     }
     SCRATCH_POP_BYTES_AT(scratchHead, 0x18);
 }
@@ -5422,7 +5422,7 @@ void                        func_actor_421600_8013D658(GpEnemy* enemy, Task* act
             Gp_ClearRec18Occupied(work->field_CE4);
             return;
     }
-    scratchHead = (void**)G_SCRATCH_HEAD;
+    scratchHead = SCRATCH_HEAD_ADDR;
     scratch     = Actor421600_AllocUpdateScratch((Actor421600UpdateScratch**)scratchHead);
     if (work->field_E64 > 0) {
         work->field_E64 = (s16)((u16)work->field_E64 - 1);
