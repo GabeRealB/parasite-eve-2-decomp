@@ -1,9 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_210700.h"
-#include "actors/actors_shared_80132604.h"
-#include "actors/actors_shared_801327b4.h"
-#include "actors/actors_shared_801334c4.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
@@ -15,23 +12,21 @@
 
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
-/// Spawn handler: allocates the 0x540-byte work block and parks it in the
-/// task's `work` slot, seeds its head, shows the model by setting
-/// `TmdObject::flags` bit 0x80, sends the two script commands that place the
-/// actor (0x7D4 at the origin) and start its animation (0x7D3), draws the
-/// ground shadow under the model's second part, republishes the light/colour
-/// pair from the work block, installs the overlay's command table and the
-/// shared exit callback, then advances to the tick handler.
-///
-/// The engine hands the task to `Gp_EnemyTaskExit` and gives up when the
-/// allocation fails.
+/// Spawn state: allocates the zeroed work block into `Task::work` (handing
+/// the task to `Gp_EnemyTaskExit` if that fails), marks no animation loaded,
+/// hides the model with `TmdObject::flags` bit 0x80, then runs its own 0x7D4
+/// and 0x7D3 message handlers directly to place the actor at the origin -
+/// which shows it again - and start animation 1 of source 0. It draws the
+/// ground shadow under the model's second part, points the model at the work
+/// block's light / colour matrices, installs the message table and the exit
+/// callback, and advances to the tick state.
 void func_actor_210700_80149F90(Task* task)
 {
-    Actor210700Work*         work;
-    TmdObject*               extra;
-    ActorsShared801334c4Args args;
-    Actor210700Anim          anim;
-    VECTOR3                  pos;
+    Actor210700Work* work;
+    TmdObject*       extra;
+    Actor210700Place args;
+    Actor210700Anim  anim;
+    VECTOR3          pos;
 
     extra = (TmdObject*)task->extra;
     work  = (Actor210700Work*)memCalloc(0x540, 0);
@@ -50,29 +45,25 @@ void func_actor_210700_80149F90(Task* task)
     args.rot.vx     = 0;
     args.rot.vy     = 0;
     args.rot.vz     = 0;
-    ActorsShared801334c4(task, 0x7D4, &args, 0);
+    func_actor_210700_8014A344(task, 0x7D4, &args, 0);
     anim.field_0 = 0;
     anim.field_4 = 1;
     anim.field_8 = 0;
-    ActorsShared80132604(task, 0x7D3, (ActorsShared80132604Args*)&anim, 0);
+    func_actor_210700_8014A224(task, 0x7D3, &anim, 0);
     if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
         Gp_DrawEffGroundQuad(&pos, 0x400, Gp_State1C->groundShade);
     }
     func_actor_210700_8014A208(task);
     task->msgTable     = D_actor_210700_801585D8;
-    task->exitCallback = ActorsShared801327b4;
+    task->exitCallback = func_actor_210700_8014A1E8;
     task->state++;
 }
 
-/// Per-frame tick of the actor: while the work block's `field_474` is set,
-/// ticks animation slots 1..0x13 off the context at the head of the block, then
-/// draws the ground shadow under the model's second part. While the session's
-/// `field_4D` is set it republishes that second part's coordinate -- clearing
-/// its `flg` to invalidate the cached matrix, rebuilding it from its `workm`
-/// and handing it to `func_800D7A9C` -- which is the same block
-/// `func_actor_335800_80163568` and `func_actor_361100_801631A4` run against
-/// their own child part. The overlay's texture-upload handler runs next, and
-/// `field_53E` counts down to the frame its zero value frees the model buffers.
+/// Tick state: while an animation is running ticks slots 1..0x13 and draws
+/// the ground shadow under the model's second part. While the game session's
+/// view is ready it invalidates and rebuilds that part's coordinate and hands
+/// it to `func_800D7A9C`. It then runs the texture-upload step and counts
+/// `field_53E` down, freeing the model buffers on the frame it reaches 0.
 void func_actor_210700_8014A0AC(Task* task)
 {
     Actor210700Work* work;
@@ -85,7 +76,7 @@ void func_actor_210700_8014A0AC(Task* task)
     ext  = task->extra;
     if (work->field_474 != 0) {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            Gp_AnimTickIndex(&work->anim, i);
         }
     }
     if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {

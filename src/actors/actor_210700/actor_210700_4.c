@@ -9,19 +9,13 @@ extern GpImgRec D_actor_210700_80157F4C;
 extern GpImgRec D_actor_210700_8015826C;
 extern GpImgRec D_actor_210700_8015858C;
 
-/// Message-0x7D5 handler: the four-way visibility/mode switch on the message's
-/// mode word, run against the `TmdObject` parked in `Task::extra`. `field_C`
-/// bit 0x80 marks the model hidden -- its `Tmd_Create` initial value, and the
-/// bit `taskKill`'s type-1 path sets -- while bit 0x4 is the one modes 2 and 3
-/// raise. Mode 0 hides the model and drops 0x4, 1 shows it, reinstates the aux
-/// buffers through `Tmd_AllocBuffers` and drops 0x4, 2 hides it and latches the
-/// mode into the work block's `field_53E`, and 3 shows it while raising 0x4.
-/// Anything else returns 1 and leaves the object alone; the handled modes
-/// return 0.
-/// The handler reads the `Task::actor` pointer before the switch even though
-/// mode 2 is its only use, so retail's `lw $v1,0x1C($a0)` sits in the entry
-/// block. The same body shape as `ActorsShared80162bc4` and
-/// `func_actor_511000_801327A0`.
+/// Message-0x7D5 handler: sets the model's visibility and mode bit from the
+/// message's mode word. `TmdObject::flags` bit 0x80 hides the model and bit
+/// 0x4 is the one modes 2 and 3 raise. Mode 0 hides the model and drops 0x4,
+/// 1 shows it, reallocates its buffers through `Tmd_AllocBuffers` and drops
+/// 0x4, 2 hides it, raises 0x4 and starts the work block's `field_53E`
+/// countdown to freeing the buffers, and 3 shows it and raises 0x4. Handled
+/// modes return 0; anything else returns 1 and changes nothing.
 s32 func_actor_210700_8014A3D4(GpActorWork* arg0, s32 arg1, s32 mode)
 {
     TmdObject*       obj;
