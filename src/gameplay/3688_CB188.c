@@ -2752,29 +2752,29 @@ void Gp_DrawMapCursor(Task* arg0)
         return;
     }
 
-    temp          = (s32) * (void**)G_SCRATCH_HEAD - 0x1C;
+    temp          = (s32)SCRATCH_HEAD(void) - 0x1C;
     pos           = (GpMapCursorPos*)temp;
     pos->field_14 = 0;
     pos->field_12 = 0;
     pos->field_10 = 0;
 
-    mat                               = cfg->coordMtx;
-    origin                            = mat->t[0];
-    off                               = rec->field_0 - origin;
-    scale                             = rec->field_8;
-    off                               = off / scale;
-    base                              = rec->field_4;
-    off                               = base - off;
-    pos->x                            = off;
-    *(GpMapCursorPos**)G_SCRATCH_HEAD = pos;
-    mat                               = cfg->coordMtx;
-    origin                            = mat->t[2];
-    off                               = rec->field_2 - origin;
-    scale                             = rec->field_A;
-    off                               = off / scale;
-    base                              = rec->field_6;
-    temp                              = base + off;
-    pos->y                            = temp;
+    mat                          = cfg->coordMtx;
+    origin                       = mat->t[0];
+    off                          = rec->field_0 - origin;
+    scale                        = rec->field_8;
+    off                          = off / scale;
+    base                         = rec->field_4;
+    off                          = base - off;
+    pos->x                       = off;
+    SCRATCH_HEAD(GpMapCursorPos) = pos;
+    mat                          = cfg->coordMtx;
+    origin                       = mat->t[2];
+    off                          = rec->field_2 - origin;
+    scale                        = rec->field_A;
+    off                          = off / scale;
+    base                         = rec->field_6;
+    temp                         = base + off;
+    pos->y                       = temp;
 
     p              = (SPRT_16*)gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
@@ -2820,7 +2820,7 @@ noDir:
     gGpuPrimCursor = dr + 1;
     setDrawTPage(dr, 0, 0, 0xE);
     addPrim(&gGpuCurrentOt[(s16)obj->drawOrder - 0x1C], dr);
-    *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void func_800D0614(Task* arg0)
@@ -2833,16 +2833,16 @@ void func_800D0614(Task* arg0)
     s32             one;
     u16             tpage;
 
-    obj                               = arg0->spawnArg2;
-    p                                 = (POLY_FT4*)gGpuPrimCursor;
-    pos                               = (GpMapCursorPos*)((u8*)*(void**)G_SCRATCH_HEAD - 0x1C);
-    *(GpMapCursorPos**)G_SCRATCH_HEAD = pos;
-    gGpuPrimCursor                    = p + 1;
-    pos->field_14                     = 0;
-    pos->field_12                     = 0;
-    pos->field_10                     = 0;
-    pos->y                            = 0;
-    pos->x                            = 0;
+    obj                          = arg0->spawnArg2;
+    p                            = (POLY_FT4*)gGpuPrimCursor;
+    pos                          = (GpMapCursorPos*)(SCRATCH_HEAD(u8) - 0x1C);
+    SCRATCH_HEAD(GpMapCursorPos) = pos;
+    gGpuPrimCursor               = p + 1;
+    pos->field_14                = 0;
+    pos->field_12                = 0;
+    pos->field_10                = 0;
+    pos->y                       = 0;
+    pos->x                       = 0;
     setPolyFT4(p);
     setRGB0(p, 0x80, 0x80, 0x80);
     p->clut = 0x4000;
@@ -2861,7 +2861,7 @@ void func_800D0614(Task* arg0)
     p->x1 = p->x3 = pos->x + 0x7F;
     p->y2 = p->y3 = pos->y + 0x68;
     addPrim(&gGpuCurrentOt[(s16)obj->drawOrder + 2], p);
-    *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 
     sprt           = (SPRT*)gGpuPrimCursor;
     gGpuPrimCursor = sprt + 1;
@@ -3073,7 +3073,7 @@ void func_800D0C34(Task* arg0)
                 setlen(dr, one);
                 dr->code[0] = 0xE100000E;
                 addPrim(&gGpuCurrentOt[(s16)obj->drawOrder - 0x1B], dr);
-                *scratch = (u8*)*scratch + scratchSize;
+                SCRATCH_POP_BYTES_AT(scratch, scratchSize);
             }
         }
     next:
@@ -3190,7 +3190,7 @@ s32 Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2)
         gGpuPrimCursor = dr + 1;
         setDrawTPage(dr, 0, 0, 0xE);
         addPrim(&gGpuCurrentOt[(s16)obj->drawOrder - (otOff & 0xFF)], dr);
-        *scratch = (u8*)*scratch + 0xC;
+        SCRATCH_POP_BYTES_AT(scratch, 0xC);
         goto next;
     }
 end:
@@ -4827,7 +4827,7 @@ void func_800D4270(UiObject* obj, GpMapMarkMesh* mesh, s32 mode, s32 dp)
     tw.h           = 0x20;
     setTexWindow(dr, &tw);
     addPrim(&gGpuCurrentOt[otz], dr);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpMapMarkScratch);
+    SCRATCH_POP_BYTES(sizeof(GpMapMarkScratch));
 }
 
 s32 func_800D4D2C(s32 arg0)

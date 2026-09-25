@@ -224,7 +224,7 @@ void Gp_EffSprTask55(Task* arg0)
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+        SCRATCH_POP_BYTES(0x1C);
         if (Gp_State1C->eventState != 0) {
             return;
         }
@@ -374,7 +374,7 @@ void Gp_EffSprTask42(Task* arg0)
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+        SCRATCH_POP_BYTES(0x1C);
         if (Gp_State1C->eventState != 0) {
             return;
         }
@@ -832,7 +832,7 @@ void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2)
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void Gp_DrawEffQuadT29(GsCOORDINATE2* arg0, s32 arg1, u16 arg2, u16 arg3)
@@ -924,7 +924,7 @@ void Gp_DrawEffQuadT29(GsCOORDINATE2* arg0, s32 arg1, u16 arg2, u16 arg3)
                     prim);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 void Gp_EffTask07State1(Task* arg0)
@@ -1473,7 +1473,7 @@ void Gp_DrawEffTri(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* arg3)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 void Gp_EffCtlTaskF4(Task* arg0)
@@ -1909,13 +1909,13 @@ void func_800FCD00(Task* arg0)
     } else {
         bright += sum & 0xF;
     }
-    r                       = bright;
-    g                       = r >> 1;
-    b                       = r >> 2;
-    outer                   = rad;
-    head                    = (u8*)*(void**)G_SCRATCH_HEAD - 0x78;
-    *(void**)G_SCRATCH_HEAD = head;
-    block                   = (GpEffRingScratch*)head;
+    r                  = bright;
+    g                  = r >> 1;
+    b                  = r >> 2;
+    outer              = rad;
+    head               = SCRATCH_HEAD(u8) - 0x78;
+    SCRATCH_HEAD(void) = head;
+    block              = (GpEffRingScratch*)head;
     gte_SetTransMatrix(&GsWSMATRIX);
 
     i = 0;
@@ -2023,7 +2023,7 @@ void func_800FCD00(Task* arg0)
         }
     }
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x78;
+    SCRATCH_POP_BYTES(0x78);
 }
 
 void Gp_EffSprTaskA7(Task* arg0)
@@ -2140,7 +2140,7 @@ void Gp_EffSprTaskA7(Task* arg0)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x1C;
+    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
     if (Gp_State1C->eventState != 0) {
         return;
     }
@@ -2429,9 +2429,9 @@ void Gp_EffSprTask80(Task* arg0)
     mem   = arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (Gp_State1C->eventState < 4) {
-        head                    = (u8*)*(void**)G_SCRATCH_HEAD - 0x18;
-        *(void**)G_SCRATCH_HEAD = head;
-        block                   = (GpRingScratch*)head;
+        head               = SCRATCH_HEAD(u8) - 0x18;
+        SCRATCH_HEAD(void) = head;
+        block              = (GpRingScratch*)head;
         if (arg0->state == 0) {
             t   = (u16)arg0->spawnArg1 & 0xFFF;
             amt = 0x200;
@@ -2513,7 +2513,7 @@ void Gp_EffSprTask80(Task* arg0)
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+        SCRATCH_POP_BYTES(0x18);
         if (Gp_State1C->eventState != 0) {
             return;
         }
@@ -2633,7 +2633,7 @@ void Gp_EffSprTask8D(Task* arg0)
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+        SCRATCH_POP_BYTES(0x18);
         if (Gp_State1C->eventState != 0) {
             return;
         }
@@ -2747,7 +2747,7 @@ void Gp_EffSprTask3F(Task* arg0)
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+        SCRATCH_POP_BYTES(0x1C);
         if (Gp_State1C->eventState != 0) {
             return;
         }
@@ -2950,7 +2950,7 @@ void Gp_EffSprTaskE0(Task* arg0)
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+        SCRATCH_POP_BYTES(0x1C);
         if (Gp_State1C->eventState != 0) {
             return;
         }
@@ -3055,7 +3055,7 @@ void Gp_EffSprTaskE1(Task* arg0)
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+        SCRATCH_POP_BYTES(0x1C);
         if (Gp_State1C->eventState != 0) {
             return;
         }
@@ -3181,7 +3181,7 @@ void Gp_DrawEffSpriteE2(GsCOORDINATE2* arg0, u16 arg1, u32 arg2, s16 arg3)
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void Gp_InitPlayerWork(Task* arg0)
@@ -3434,7 +3434,7 @@ void Gp_AttachActorObj(Task* arg0, s32 arg1, s32 arg2)
         Gp_InitRec18Table(rec->recs, 6, 0);
         USE_REG(actor);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 s32 func_801011D0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32* arg3)
@@ -3475,7 +3475,7 @@ s32 func_801011D0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32* arg3)
             ret = 0;
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
     return ret;
 }
 
@@ -3505,7 +3505,7 @@ void func_8010133C(void)
         s->field_8 = 0x37A78;
         s->field_E = 8;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 void Gp_PlayerWorkState2(Task* arg0)
@@ -3662,7 +3662,7 @@ void Gp_UpdatePlayerMove(void)
             Gfx_RotMatrixY(mat, -0x20, 0);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+    SCRATCH_POP_BYTES(8);
 }
 
 void Gp_TickActorAnimState(Task* arg0)
@@ -3863,10 +3863,10 @@ void Gp_StepPlayerMove(Task* arg0)
     }
     coord->coord.t[0] += actor->field_0;
     COMPILER_BARRIER();
-    coord->coord.t[1]      += actor->field_4;
-    t2                      = coord->coord.t[2];
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x40;
-    coord->coord.t[2]       = t2 + actor->field_8;
+    coord->coord.t[1] += actor->field_4;
+    t2                 = coord->coord.t[2];
+    SCRATCH_POP_BYTES(0x40);
+    coord->coord.t[2] = t2 + actor->field_8;
 }
 
 void Gp_TurnPlayer(Task* arg0)
@@ -4085,7 +4085,7 @@ void Gp_AimYawToLock(Task* arg0, s32 arg1)
             val                                      += 0x1000;
             wrap->field_4                             = val;
             val                                       = ((GpAngleScratch*)(whead - 0xC))->field_0;
-            *(void**)G_SCRATCH_HEAD                   = wrap;
+            SCRATCH_HEAD(void)                        = wrap;
             delta                                     = val - 0x1000;
             wrap->field_8                             = delta;
             if (ABS(((GpAngleScratch*)(whead - 0xC))->field_0) < ABS(wrap->field_4) &&
@@ -4108,9 +4108,9 @@ void Gp_AimYawToLock(Task* arg0, s32 arg1)
             asm("lui %0, 0x1F80" : "=r"(val) : "r"(cmp));
             val = (s32) * (void**)((u8*)val + 0x3FC);
             USE_REG(val);
-            cmp                     = tbl[cmp];
-            val                    += 0xC;
-            *(void**)G_SCRATCH_HEAD = (void*)val;
+            cmp                = tbl[cmp];
+            val               += 0xC;
+            SCRATCH_HEAD(void) = (void*)val;
             USE_REG(val);
             packed = cmp << 16;
             limit  = packed >> 16;
@@ -4136,7 +4136,7 @@ void Gp_AimYawToLock(Task* arg0, s32 arg1)
             actor->field_52 = ((u16)actor->field_52 + (u16)block->angle) & 0xFFF;
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x6C;
+    SCRATCH_POP_BYTES(0x6C);
 }
 
 #define SCALE_PITCH(dst, src)        \
@@ -4267,7 +4267,7 @@ void Gp_AimPitchToLock(Task* arg0)
             actor->field_64  = (s16)(actor->field_60 / 5) * 2;
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x84;
+    SCRATCH_POP_BYTES(0x84);
 }
 
 void Gp_AimPitchToLockAlt(Task* arg0)
@@ -4377,7 +4377,7 @@ void Gp_AimPitchToLockAlt(Task* arg0)
             actor->field_64 += block->angle;
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x84;
+    SCRATCH_POP_BYTES(0x84);
 }
 
 #undef SCALE_PITCH
@@ -4448,7 +4448,7 @@ void Gp_AimPitchRec(Task* arg0, s32 arg1, s32 arg2)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x84;
+    SCRATCH_POP_BYTES(0x84);
 }
 
 void Gp_AimPitchDirect(Task* arg0)
@@ -4506,7 +4506,7 @@ void Gp_AimPitchDirect(Task* arg0)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x84;
+    SCRATCH_POP_BYTES(0x84);
 }
 
 void func_801030CC(Task* arg0)
@@ -4573,7 +4573,7 @@ void func_801030CC(Task* arg0)
         }
     }
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+    SCRATCH_POP_BYTES(8);
 }
 
 inline static Task* spawn_tmd_attach(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -4970,7 +4970,7 @@ void func_80103CB4(GsCOORDINATE2* arg0, s32 arg1, VECTOR3* arg2, VECTOR3* arg3)
     vec->vz                      = 0;
     ApplyMatrixLV(&arg0->coord, vec, vec);
     arg3->vx = arg2->vx - (arg0->coord.t[0] + ((VECTOR*)(head - 0x10))->vx);
-    *scratch = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
     arg3->vy = arg2->vy - (arg0->coord.t[1] + vec->vy);
     arg3->vz = arg2->vz - (arg0->coord.t[2] + vec->vz);
 }
@@ -5007,7 +5007,7 @@ s32 func_80103DD4(VECTOR3* arg0, VECTOR3* arg1)
     vx                            = vx * vx;
     *scratch                      = vec;
     vx                            = SquareRoot0(vx + absz);
-    *scratch                      = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
     return vx;
 }
 
@@ -5644,7 +5644,7 @@ s32 func_80104E00(Task* arg0, s32 arg1, GpXformArg* arg2)
         mode = 5;
     }
     Gp_AnimPlayChildSlots(arg0, mode, 0);
-    *scratch = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
     return 0;
 }
 
@@ -6245,7 +6245,7 @@ s32 Gp_PickNearestRec18(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2)
         } else {
             i = 0;
         }
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x68;
+        SCRATCH_POP_BYTES(0x68);
         return i;
     }
     return 0;
@@ -7337,7 +7337,7 @@ void Gp_PlayerMode2State3(Task* arg0)
             break;
     }
     Gp_AnimTickChildSlots(arg0);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x2C;
+    SCRATCH_POP_BYTES(0x2C);
 }
 
 void Gp_PlayerMode2State4(Task* arg0)
@@ -7435,7 +7435,7 @@ void Gp_PlayerMode2State4(Task* arg0)
             break;
     }
     Gp_AnimTickChildSlots(arg0);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
 }
 
 void Gp_PlayerMode2StateA(Task* arg0)
@@ -8472,7 +8472,7 @@ void func_80109844(Task* arg0)
             }
             break;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+    SCRATCH_POP_BYTES(8);
 }
 
 void func_80109A1C(Task* arg0)
@@ -8628,7 +8628,7 @@ void func_80109BB4(Task* arg0, GpRec18* arg1)
         coord->flg        = 0;
         Gp_UpdateCoord(coord);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x40;
+    SCRATCH_POP_BYTES(0x40);
 }
 
 void func_80109FC4(Task* arg0)
@@ -9178,7 +9178,7 @@ void func_8010AD64(Task* arg0)
             }
             break;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+    SCRATCH_POP_BYTES(8);
 }
 
 void func_8010AE98(Task* arg0)
@@ -9749,8 +9749,8 @@ s32 func_8010BC70(GsCOORDINATE2* arg0)
     vec      = (VECTOR3*)(head - 0x10);
     *scratch = vec;
     func_80103C74(arg0, (VECTOR3*)((GsCOORDINATE2*)extra->coords)->coord.t, vec);
-    ret      = func_80103D8C(((VECTOR3*)(head - 0x10))->vx, vec->vz);
-    *scratch = (u8*)*scratch + 0x10;
+    ret = func_80103D8C(((VECTOR3*)(head - 0x10))->vx, vec->vz);
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
     return ret;
 }
 
@@ -9770,8 +9770,8 @@ s16 func_8010BCF4(Task* arg0, VECTOR3* arg1)
     *scratch = vec;
     actor    = (GameActor*)arg0->work;
     func_80103C74((GsCOORDINATE2*)extra->coords, arg1, vec);
-    ret      = func_80103E7C(actor->field_52, ratan2(((VECTOR3*)(head - 0x10))->vx, vec->vz));
-    *scratch = (u8*)*scratch + 0x10;
+    ret = func_80103E7C(actor->field_52, ratan2(((VECTOR3*)(head - 0x10))->vx, vec->vz));
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
     return ret;
 }
 
@@ -9798,8 +9798,8 @@ void func_8010BD88(Task* arg0, VECTOR3* arg1)
     } else if (val < -0x40) {
         vec->angle = -0x40;
     }
-    actor->field_52         = (actor->field_52 + vec->angle) & 0xFFF;
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    actor->field_52 = (actor->field_52 + vec->angle) & 0xFFF;
+    SCRATCH_POP_BYTES(0x14);
 }
 
 void func_8010BE5C(Task* arg0, VECTOR3* arg1)
@@ -9837,7 +9837,7 @@ void func_8010BE5C(Task* arg0, VECTOR3* arg1)
     if (ABS(actor->field_6A + val) < 0x1A0) {
         actor->field_6A += val;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x68;
+    SCRATCH_POP_BYTES(0x68);
 }
 
 void func_8010BF7C(Task* arg0, s32 arg1, s32 arg2)

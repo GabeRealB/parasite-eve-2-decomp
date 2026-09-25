@@ -7460,7 +7460,7 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
         }
     }
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x60;
+    SCRATCH_POP_BYTES(0x60);
 }
 
 void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -7567,7 +7567,7 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
         } while (node != NULL);
     }
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+    SCRATCH_POP_BYTES(8);
 }
 
 void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -7580,7 +7580,6 @@ void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     s32         idx;
     s32         t;
     void*       work;
-    u8*         head;
 
     if (arg0 == 0) {
         if (arg3 == 0) {
@@ -7590,14 +7589,11 @@ void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
         }
     }
 
-    arg1         += 0x64;
-    arg2         += 0x64;
-    work          = G_SCRATCH_HEAD;
-    head          = *(void**)work;
-    node          = Gp_LinkList;
-    head         -= 8;
-    *(void**)work = head;
-    vec           = (SVECTOR*)head;
+    arg1 += 0x64;
+    arg2 += 0x64;
+    node  = Gp_LinkList;
+    SCRATCH_PUSH(SVECTOR);
+    vec = SCRATCH_HEAD(SVECTOR);
 
     if (node != NULL) {
         do {
@@ -7631,7 +7627,7 @@ void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
         } while (node != NULL);
     }
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+    SCRATCH_POP(SVECTOR);
 }
 
 void func_800A57B0(GpIdMapC* arg0)
@@ -8224,7 +8220,7 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
         LoadImage(&D_80114BD0, (u_long*)D_80114BB0);
         arg0->field_16 = -1;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x48;
+    SCRATCH_POP_BYTES(0x48);
 }
 
 void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
@@ -8433,9 +8429,9 @@ void Gp_HudTrackEnemy(GpEnemy* arg0, GpHudTrack* arg1)
         }
         Gp_DrawHudNumbers(block->field_14 - 8, block->field_16, arg0->hp, val, 1);
     }
-    arg1->field_4           = block->field_14;
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
-    arg1->field_6           = block->field_16;
+    arg1->field_4 = block->field_14;
+    SCRATCH_POP_BYTES(0x1C);
+    arg1->field_6 = block->field_16;
 }
 
 void Gp_UpdateLinkXforms(void)
@@ -8446,8 +8442,6 @@ void Gp_UpdateLinkXforms(void)
     SVECTOR         tmp;
     GpLinkNode*     node;
     GsCOORDINATE2*  coord;
-    void**          p;
-    u8*             h;
 
     node = Gp_LinkList;
     {
@@ -8504,9 +8498,7 @@ void Gp_UpdateLinkXforms(void)
             node = node->next;
         } while (node != NULL);
     }
-    p  = (void**)G_SCRATCH_HEAD;
-    h  = *p;
-    *p = h + 0x48;
+    SCRATCH_POP_BYTES(0x48);
 }
 
 void Gp_StartAreaBgm(s16* arg0)
@@ -9033,10 +9025,10 @@ static __inline__ void coordToRoot(GsCOORDINATE2* arg0, GsCOORDINATE2* root, MAT
 
     rootm = &root->workm;
     world = &arg0->workm;
-    head  = *(u8**)G_SCRATCH_HEAD;
+    head  = SCRATCH_HEAD(u8);
     tmp   = (_GpRelMatScratch*)(head - 0x30);
 
-    *(void**)G_SCRATCH_HEAD = tmp;
+    SCRATCH_HEAD(void) = tmp;
     TOUCH_REG3(tmp, rootm, head);
 
     TRANSPOSE_ROT_3X3(&tmp->rot, rootm)
@@ -9049,7 +9041,7 @@ static __inline__ void coordToRoot(GsCOORDINATE2* arg0, GsCOORDINATE2* root, MAT
     vec           = (VECTOR*)(head - 0x10);
     ApplyMatrixLV(&tmp->rot, vec, (VECTOR*)out->t);
 
-    *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x30;
+    SCRATCH_POP_BYTES(0x30);
 }
 
 /// Points the active view at `arg0`: the transposed rotation goes to
@@ -9304,7 +9296,7 @@ void Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2)
     out           = (VECTOR*)arg2->t;
     ApplyMatrixLV(&tmp->rot, vec, out);
 
-    *scratch = (u8*)*scratch + 0x30;
+    SCRATCH_POP_BYTES_AT(scratch, 0x30);
 }
 
 s32 Gp_TrySpawnViewTask(s32 arg0)

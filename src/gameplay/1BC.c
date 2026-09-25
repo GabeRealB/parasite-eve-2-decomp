@@ -633,10 +633,10 @@ Task* Gp_CopyCoordOffset(Task* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2)
         return NULL;
     }
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - 8;
-    world                   = &gGfxViewCoord;
-    extra                   = (TmdObject*)arg0->extra;
-    dest                    = (GsCOORDINATE2*)extra->coords;
+    SCRATCH_PUSH_BYTES(8);
+    world = &gGfxViewCoord;
+    extra = (TmdObject*)arg0->extra;
+    dest  = (GsCOORDINATE2*)extra->coords;
     if (arg1->sub == world) {
         dest->coord = arg1->coord;
         gte_SetRotMatrix(&arg1->coord);
@@ -654,9 +654,9 @@ Task* Gp_CopyCoordOffset(Task* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2)
         gte_stlvnl(dest->workm.t);
         Gp_WorldToLocal(&world->workm, &dest->workm, &dest->coord);
     }
-    dest->sub               = &gGfxViewCoord;
-    dest->flg               = 0;
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+    dest->sub = &gGfxViewCoord;
+    dest->flg = 0;
+    SCRATCH_POP_BYTES(8);
     return arg0;
 }
 
@@ -1507,7 +1507,7 @@ void Gp_BlendRgb555(u16* arg0, u16* arg1, s32 arg2, u16* arg3)
     if ((s16)*arg0 < 0 || (s16)*arg1 < 0) {
         *arg3 = packed | 0x8000;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 void Gp_FadeWorkTask(Task* arg0)
@@ -1813,7 +1813,7 @@ void Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GsCOORDINATE2* arg1, GpAnimSlot* arg
             dest->ry = s->vec1.vy;
             dest->rz = s->vec1.vz;
         }
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x80;
+        SCRATCH_POP_BYTES(0x80);
     }
 }
 
@@ -1860,7 +1860,7 @@ void Gp_AnimBlendPacked(GpAnimBlendSrc* arg0, GsCOORDINATE2* arg1, GpAnimSlot* a
             dest->ry = s->vec1.vy >> 3;
             dest->rz = s->vec1.vz >> 3;
         }
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x80;
+        SCRATCH_POP_BYTES(0x80);
     }
 }
 
@@ -1913,29 +1913,27 @@ void Gp_AnimAdvanceSlot(GpAnimCtx* arg0, s32 arg1)
 
 void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    GpAnimScratch18*  s;
-    GpAnimSlot*       slot;
-    GsCOORDINATE2*    coord;
-    GpAnimSet*        set;
-    GpAnimRec*        recs;
-    GpAnimRec*        rec;
-    GpPackedSvec*     poses;
-    u16               idx;
-    u16               idx2;
-    s32               setIdx;
-    s32               setIdx2;
-    u16               lim;
-    u16               val;
-    s16               rem;
-    s32               op;
-    u16               base;
-    GpAnimScratch18** head;
+    GpAnimScratch18* s;
+    GpAnimSlot*      slot;
+    GsCOORDINATE2*   coord;
+    GpAnimSet*       set;
+    GpAnimRec*       recs;
+    GpAnimRec*       rec;
+    GpPackedSvec*    poses;
+    u16              idx;
+    u16              idx2;
+    s32              setIdx;
+    s32              setIdx2;
+    u16              lim;
+    u16              val;
+    s16              rem;
+    s32              op;
+    u16              base;
 
-    head        = (GpAnimScratch18**)G_SCRATCH_HEAD;
-    slot        = &arg0->slots[arg1];
-    coord       = &arg0->coords[slot->mtxIndex];
-    *head       = *head - 1;
-    s           = *head;
+    slot  = &arg0->slots[arg1];
+    coord = &arg0->coords[slot->mtxIndex];
+    SCRATCH_PUSH(GpAnimScratch18);
+    s           = SCRATCH_HEAD(GpAnimScratch18);
     slot->flags = 0;
     if (slot->atEnd == 1) {
         if (*(s32*)&slot->nextSet == *(s32*)&slot->curSet) {
@@ -2051,7 +2049,7 @@ void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
             Gp_AnimBlendPacked(&s->src, coord, slot);
             break;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP(GpAnimScratch18);
 }
 
 void Gp_AnimSeekSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -2427,8 +2425,8 @@ void Gp_AnimWritePoseBlend(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPo
     rot = (SVECTOR*)((u8*)head - 8);
     gte_stsv(rot);
     RotMatrix_gte(rot, &dest->coord);
-    dest->flg               = 0;
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    dest->flg = 0;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 void Gp_AnimWritePoseCopy(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
@@ -2461,8 +2459,8 @@ void Gp_AnimWritePoseCopy(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPos
     rot = (SVECTOR*)((u8*)head - 8);
     gte_stsv(rot);
     RotMatrix_gte(rot, &dest->coord);
-    dest->flg               = 0;
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    dest->flg = 0;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 void Gp_AnimTickIndex(GpAnimCtx* arg0, s32 arg1)
@@ -2676,13 +2674,13 @@ void Gp_SaveEnemyPose(GpEnemy* arg0)
     rec->y          = coord->coord.t[1];
     rec->z          = coord->coord.t[2];
     Gfx_MatrixToEuler(&coord->coord, euler);
-    euler->vx               = (s16)euler->vx >> 8;
-    rec->pitch              = euler->vx;
-    euler->vy               = (s16)euler->vy >> 8;
-    rec->yaw                = euler->vy;
-    euler->vz               = (s16)euler->vz >> 8;
-    rec->roll               = euler->vz;
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+    euler->vx  = (s16)euler->vx >> 8;
+    rec->pitch = euler->vx;
+    euler->vy  = (s16)euler->vy >> 8;
+    rec->yaw   = euler->vy;
+    euler->vz  = (s16)euler->vz >> 8;
+    rec->roll  = euler->vz;
+    SCRATCH_POP_BYTES(8);
 }
 
 void Gp_SpawnArea(GpAreaKey* arg0)
@@ -2927,7 +2925,7 @@ void Gp_DrawFloorQuad(GsCOORDINATE2* arg0, u32 arg1, SVECTOR* arg2)
         prim->clut       = 0x4283;
         addPrim(&gGpuCurrentOt[block->maxotz >> 4], prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x40;
+    SCRATCH_POP_BYTES(0x40);
 }
 
 void func_800B51F4(Task* task)
@@ -3549,7 +3547,7 @@ void Gp_MakeDirOffset(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2)
     gte_ldsv(vec);
     gte_gpf12();
     gte_stsv(arg2);
-    *scratch = (u8*)*scratch + 0x28;
+    SCRATCH_POP_BYTES_AT(scratch, 0x28);
 }
 
 void Gp_FreeSlot4TmdBuffers(void)

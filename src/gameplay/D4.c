@@ -493,7 +493,7 @@ void Gp_EnqueueCompanionCd(s32 arg0, s32 arg1)
         }
     }
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+    SCRATCH_POP_BYTES(8);
 }
 
 void Gp_PumpTmdStream(Task* task)

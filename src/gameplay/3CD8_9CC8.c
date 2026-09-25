@@ -188,7 +188,7 @@ s32 Gp_TraceGroundCoord(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1)
         arg1->flg = 0;
         Gp_UpdateCoord(arg1);
     }
-    *scratch = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
     return ret;
 }
 
@@ -230,7 +230,7 @@ s32 func_800EA1A8(VECTOR3* arg0, VECTOR3* arg1)
             ret = 1;
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
     return ret;
 }
 
@@ -498,7 +498,7 @@ void Gp_DrawArc(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
             ang = ang2;
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void Gp_DrawRing(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
@@ -574,7 +574,7 @@ void Gp_DrawRing(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
             ang = ang2;
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 void Gp_DrawFxQuad(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, u16 arg3)
@@ -638,7 +638,7 @@ void Gp_DrawFxQuad(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, u16 arg3)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x1C;
+    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
 void func_800EB6E8(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3)
@@ -697,7 +697,7 @@ void func_800EB6E8(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
 void Gp_DrawBand(GsCOORDINATE2* arg0, s16 arg1, u8* rgb)
@@ -787,7 +787,7 @@ void Gp_DrawBand(GsCOORDINATE2* arg0, s16 arg1, u8* rgb)
                     dr);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x118;
+    SCRATCH_POP_BYTES(0x118);
 }
 
 void Gp_DrawBandEx(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* rgb)
@@ -877,7 +877,7 @@ void Gp_DrawBandEx(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* rgb)
                     dr);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x118;
+    SCRATCH_POP_BYTES(0x118);
 }
 
 void func_800EC47C(Task* arg0)

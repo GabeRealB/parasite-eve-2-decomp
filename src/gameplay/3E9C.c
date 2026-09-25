@@ -650,7 +650,7 @@ void Gp_EffSprTask34(Task* arg0)
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
-        *scratch = (u8*)*scratch + 0x1C;
+        SCRATCH_POP_BYTES_AT(scratch, 0x1C);
         if (Gp_State1C->eventState != 0) {
             return;
         }
@@ -736,7 +736,7 @@ void Gp_EffSprTask72(Task* arg0)
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
-        *scratch = (u8*)*scratch + 0x1C;
+        SCRATCH_POP_BYTES_AT(scratch, 0x1C);
         if (Gp_State1C->eventState != 0) {
             return;
         }
@@ -837,7 +837,7 @@ void Gp_EffLineTaskA3(Task* arg0)
                 Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
             }
         }
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x20;
+        SCRATCH_POP_BYTES(0x20);
         if (Gp_State1C->eventState != 0) {
             return;
         }
@@ -910,7 +910,7 @@ void Gp_DrawEffSprite6C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x1C;
+    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
 void Gp_EffSprTask35(Task* arg0)
@@ -1009,7 +1009,7 @@ void Gp_EffSprTask35(Task* arg0)
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
-        *scratch = (u8*)*scratch + 0x1C;
+        SCRATCH_POP_BYTES_AT(scratch, 0x1C);
         if (Gp_State1C->eventState != 0) {
             return;
         }
@@ -1117,7 +1117,7 @@ void Gp_EffSprTask6F(Task* arg0)
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
-        *scratch = (u8*)*scratch + 0x1C;
+        SCRATCH_POP_BYTES_AT(scratch, 0x1C);
         if (Gp_State1C->eventState != 0) {
             return;
         }
@@ -1539,10 +1539,10 @@ void Gp_EffTileTaskA4(Task* arg0)
     TILE*             prim;
     s16               c;
 
-    coord                  = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
-    *(u8**)G_SCRATCH_HEAD -= 0x14;
-    block                  = (GpEffTileScratch*)*(u8**)G_SCRATCH_HEAD;
-    mem                    = arg0->spawnArg2;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    SCRATCH_PUSH_BYTES(0x14);
+    block = SCRATCH_HEAD(GpEffTileScratch);
+    mem   = arg0->spawnArg2;
     Gp_UpdateCoord(coord);
     if (arg0->state == 0) {
         if (arg0->spawnArg1 != 0) {
@@ -1604,7 +1604,7 @@ void Gp_EffTileTaskA4(Task* arg0)
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
     }
-    *(u8**)G_SCRATCH_HEAD += 0x14;
+    SCRATCH_POP_BYTES(0x14);
     mem->age++;
     if (mem->age >= 8) {
         Gp_ReleaseState1CMem(mem, arg0);
@@ -1712,7 +1712,7 @@ void Gp_DrawEffSprite3B(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x1C;
+    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
 void Gp_EffSprTask5C(Task* arg0)
@@ -1850,7 +1850,7 @@ void Gp_EffSprTask5C(Task* arg0)
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
-        *scratch = (u8*)*scratch + 0x1C;
+        SCRATCH_POP_BYTES_AT(scratch, 0x1C);
         if (Gp_State1C->eventState != 0) {
             return;
         }
@@ -2047,7 +2047,7 @@ void func_800F289C(Task* arg0)
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+        SCRATCH_POP_BYTES(0x1C);
         if (Gp_State1C->eventState != 0) {
             return;
         }
@@ -2139,7 +2139,7 @@ void Gp_EffSprTask76(Task* arg0)
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
     mem->age++;
     if (mem->age >= 4) {
         Gp_ReleaseState1CMem(mem, arg0);
@@ -2262,7 +2262,7 @@ void Gp_EffSprTask7C(Task* arg0)
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
     if (Gp_State1C->eventState != 0) {
         return;
     }
@@ -2549,10 +2549,10 @@ void Gp_EffLineTask92(Task* arg0)
     s32               one;
     s16               val;
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - 0x20;
-    coord                   = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
-    block                   = (GpEffLineScratch*)*(void**)G_SCRATCH_HEAD;
-    mem                     = arg0->spawnArg2;
+    SCRATCH_PUSH_BYTES(0x20);
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    block = SCRATCH_HEAD(GpEffLineScratch);
+    mem   = arg0->spawnArg2;
     Gp_UpdateCoord(coord);
     if (mem->age == 0) {
         Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
@@ -2631,7 +2631,7 @@ void Gp_EffLineTask92(Task* arg0)
             mem->pos.vz = *(u16*)&coord->workm.t[2];
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x20;
+    SCRATCH_POP_BYTES(0x20);
     mem->age++;
     if (mem->age > mem->scale * 8 - 1) {
         Gp_ReleaseState1CMem(mem, arg0);
@@ -2784,7 +2784,7 @@ void Gp_DrawEffShard(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3)
             } while (ang < 0x1000);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void Gp_EffSprTask9E(Task* arg0)
@@ -2886,7 +2886,7 @@ void Gp_EffSprTask9E(Task* arg0)
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
     mem->age++;
     if (mem->angle < mem->age) {
         Gp_ReleaseState1CMem(mem, arg0);
@@ -2994,7 +2994,7 @@ void Gp_EffSprTask54(Task* arg0)
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x1C;
+    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
     if (Gp_State1C->eventState == 0) {
         coord->coord.t[0] += mem->move.vx;
         coord->coord.t[1] += mem->move.vy;
@@ -3082,7 +3082,7 @@ void Gp_DrawEffSprite7C(GsCOORDINATE2* arg0, s32 arg1, u32 arg2)
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 void Gp_DrawEffGroundQuad(VECTOR3* pos, s32 size, s16 shade)
@@ -3163,7 +3163,7 @@ void Gp_DrawEffGroundQuad(VECTOR3* pos, s32 size, s16 shade)
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+        SCRATCH_POP_BYTES(0x38);
     }
 }
 
