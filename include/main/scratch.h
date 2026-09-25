@@ -31,8 +31,16 @@
 /// Gives `n` bytes back to the stack.
 #define SCRATCH_POP_BYTES(n) (*(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + (n))
 
-/// `SCRATCH_PUSH_BYTES` / `SCRATCH_POP_BYTES` through a pointer to the stack
-/// pointer that the function keeps in a local (`head = (void**)G_SCRATCH_HEAD`).
+/// The address of the stack pointer, for a function that keeps it in a local
+/// (`head = SCRATCH_HEAD_ADDR;`) and works through that.
+#define SCRATCH_HEAD_ADDR ((void**)G_SCRATCH_HEAD)
+
+/// `SCRATCH_HEAD`, `SCRATCH_PUSH` and `SCRATCH_POP` through such a local.
+#define SCRATCH_HEAD_AT(head, type) (*(type**)(head))
+#define SCRATCH_PUSH_AT(head, type) (*(type**)(head) -= 1)
+#define SCRATCH_POP_AT(head, type)  (*(type**)(head) += 1)
+
+/// `SCRATCH_PUSH_BYTES` / `SCRATCH_POP_BYTES` through such a local.
 #define SCRATCH_PUSH_BYTES_AT(head, n) (*(void**)(head) = (u8*)*(void**)(head) - (n))
 #define SCRATCH_POP_BYTES_AT(head, n)  (*(void**)(head) = (u8*)*(void**)(head) + (n))
 

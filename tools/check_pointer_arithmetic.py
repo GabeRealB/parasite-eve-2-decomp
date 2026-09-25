@@ -208,9 +208,10 @@ def preprocess_file(filename, cpp_path="gcc", cpp_args=""):
 
 
 # Macros whose expansion is pointer arithmetic by design: the scratch-pad
-# stack (main/scratch.h) and the link-node-to-enemy step (gameplay/1BC.h).
+# stack and its fixed address (main/scratch.h, PSX_SCRATCH_ADDR) and the
+# link-node-to-enemy step (gameplay/1BC.h).
 # The check sees preprocessed code, so it tests the source line instead.
-SANCTIONED = re.compile(r"\b(?:SCRATCH_[A-Z_]+|GP_NODE_ENEMY)\s*\(")
+SANCTIONED = re.compile(r"\b(?:SCRATCH_[A-Z_]+|GP_NODE_ENEMY|PSX_SCRATCH_ADDR)\s*\(|\b(?:G_SCRATCH_HEAD|SCRATCH_HEAD_ADDR)\b")
 _LINES: dict = {}
 
 
