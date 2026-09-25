@@ -17,14 +17,14 @@ typedef struct Actor342400Limit {
 } Actor342400Limit;
 STATIC_ASSERT_SIZEOF(Actor342400Limit, 0x4);
 
-extern TaskDesc         D_801575F0;                // absolute, spawned by func_actor_342400_80162DA0
-extern u8               D_actor_342400_8016BF48[]; // stored into `Task::msgTable` by func_actor_342400_801628F0
-extern Actor342400Slot  D_actor_342400_8016BF58[];
-extern TaskDesc         D_actor_342400_8016BFE0;
-extern Actor342400Limit D_actor_342400_8016C010[];
-extern s16              D_actor_342400_8016C054[][4]; // spawn variant per player-position band, 4 random picks
-extern TaskDesc         D_actor_342400_80173A54;
-extern u16              D_actor_342400_80173AAC;      // spawn counter, `<< 12` into `GpEnemy::placeKey`
+extern TaskDesc             D_801575F0;                // absolute, spawned by func_actor_342400_80162DA0
+extern u8                   D_actor_342400_8016BF48[]; // stored into `Task::msgTable` by func_actor_342400_801628F0
+extern OverlayEncounterSlot D_actor_342400_8016BF58[];
+extern TaskDesc             D_actor_342400_8016BFE0;
+extern Actor342400Limit     D_actor_342400_8016C010[];
+extern s16                  D_actor_342400_8016C054[][4]; // spawn variant per player-position band, 4 random picks
+extern TaskDesc             D_actor_342400_80173A54;
+extern u16                  D_actor_342400_80173AAC;      // spawn counter, `<< 12` into `GpEnemy::placeKey`
 
 s16  func_actor_342400_801624A4(void);
 s16  func_actor_342400_801626CC(s16 arg0, s16 arg1, s16 arg2);
@@ -49,10 +49,10 @@ void func_actor_342400_801632D4(Task* arg0);
 
 void func_actor_342400_80162084(Task* arg0)
 {
-    Actor342400ChildWork* work;
-    GpEnemy*              enemy;
-    Task*                 task;
-    TmdObject*            obj;
+    OverlayEncounterPairWork* work;
+    GpEnemy*                  enemy;
+    Task*                     task;
+    TmdObject*                obj;
 
     work = memCalloc(0xC, 0);
     if (work == NULL) {
@@ -86,17 +86,17 @@ void func_actor_342400_80162084(Task* arg0)
         obj->clut  = 5;
         enemy->hp  = 1;
     }
-    D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].field_6 = 1;
+    D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].status = 1;
     arg0->state++;
 }
 
 void func_actor_342400_801621D8(Task* arg0)
 {
-    Actor342400ChildWork* work = (Actor342400ChildWork*)arg0->work;
-    GpEnemy*              enemy;
-    Task*                 task;
-    GsCOORDINATE2*        coord;
-    GpCmdArg              msg;
+    OverlayEncounterPairWork* work = (OverlayEncounterPairWork*)arg0->work;
+    GpEnemy*                  enemy;
+    Task*                     task;
+    GsCOORDINATE2*            coord;
+    GpCmdArg                  msg;
 
     if (work->enemy0 != NULL) {
         enemy = work->enemy0;
@@ -112,7 +112,7 @@ void func_actor_342400_801621D8(Task* arg0)
             work->enemy0 = NULL;
         }
     } else {
-        work->field_A |= 1;
+        work->goneMask |= 1;
     }
     if (work->enemy1 != NULL) {
         enemy = work->enemy1;
@@ -128,30 +128,30 @@ void func_actor_342400_801621D8(Task* arg0)
             work->enemy1 = NULL;
         }
     } else {
-        work->field_A |= 2;
+        work->goneMask |= 2;
     }
 }
 
 void func_actor_342400_80162324(Task* arg0)
 {
-    Actor342400CtrlWork* work = (Actor342400CtrlWork*)arg0->work;
-    s16                  count;
-    s16                  i;
-    s16                  idx;
-    s16                  type;
-    s16                  arg;
+    OverlayEncounterCtrlWork* work = (OverlayEncounterCtrlWork*)arg0->work;
+    s16                       count;
+    s16                       i;
+    s16                       idx;
+    s16                       type;
+    s16                       arg;
 
     count = 0;
     for (i = 0; i < 17; i++) {
-        if (D_actor_342400_8016BF58[i].field_6 == 1) {
+        if (D_actor_342400_8016BF58[i].status == 1) {
             count++;
         }
     }
     if (count < 3) {
-        idx = work->field_2;
+        idx = work->nextSlot;
         if (idx < 17 && gGameSession->sceneClock >= 0x3D) {
-            type = D_actor_342400_8016BF58[idx].field_0;
-            arg  = D_actor_342400_8016BF58[idx].field_2;
+            type = D_actor_342400_8016BF58[idx].kind;
+            arg  = D_actor_342400_8016BF58[idx].command;
             switch (type) {
                 case 0:
                     Task_SpawnFromTable(&D_actor_342400_8016BFE0, 1, (idx << 16) + arg + (func_actor_342400_801624A4() << 16 >> 8), 0);
@@ -163,7 +163,7 @@ void func_actor_342400_80162324(Task* arg0)
                     Task_SpawnFromTable(&D_actor_342400_8016BFE0, 3, (idx << 16) + arg + (func_actor_342400_801624A4() << 16 >> 8), 0);
                     break;
             }
-            work->field_2++;
+            work->nextSlot++;
         }
     }
 }
@@ -200,11 +200,11 @@ s16 func_actor_342400_801624A4(void)
 
 void func_actor_342400_801626AC(Task* arg0, s32 arg1, GpCmdArg* arg2)
 {
-    Actor342400CtrlWork* work = (Actor342400CtrlWork*)arg0->work;
-    u16                  id   = arg2->command;
+    OverlayEncounterCtrlWork* work = (OverlayEncounterCtrlWork*)arg0->work;
+    u16                       id   = arg2->command;
 
     if (id == 4) {
-        work->field_4 = id;
+        work->stop = id;
     }
 }
 
@@ -300,8 +300,8 @@ void func_actor_342400_80162888(Task* arg0)
 
 void func_actor_342400_801628F0(Task* arg0)
 {
-    Actor342400CtrlWork* work;
-    s32                  i;
+    OverlayEncounterCtrlWork* work;
+    s32                       i;
 
     if ((u8)gGameSession->spawnPhase[1] == 2 || (u8)gGameSession->spawnPhase[0] == 0 ||
         (work = memCalloc(6, 0)) == NULL) {
@@ -309,7 +309,7 @@ void func_actor_342400_801628F0(Task* arg0)
         return;
     }
     for (i = 16; i >= 0; i--) {
-        D_actor_342400_8016BF58[i].field_6 = 0;
+        D_actor_342400_8016BF58[i].status = 0;
     }
     D_actor_342400_80173AAC = 0;
     arg0->work              = (TaskIdMap*)work;
@@ -319,23 +319,23 @@ void func_actor_342400_801628F0(Task* arg0)
 
 void func_actor_342400_8016299C(Task* arg0)
 {
-    s32                  i;
-    Actor342400CtrlWork* work = (Actor342400CtrlWork*)arg0->work;
-    Actor342400Slot*     slot;
+    s32                       i;
+    OverlayEncounterCtrlWork* work = (OverlayEncounterCtrlWork*)arg0->work;
+    OverlayEncounterSlot*     slot;
 
     for (i = 0; i < 3; i++) {
-        slot = &D_actor_342400_8016BF58[work->field_2];
-        func_actor_342400_80163200(work->field_2, slot->field_0, slot->field_2);
-        work->field_2++;
+        slot = &D_actor_342400_8016BF58[work->nextSlot];
+        func_actor_342400_80163200(work->nextSlot, slot->kind, slot->command);
+        work->nextSlot++;
     }
     arg0->state++;
 }
 
 void func_actor_342400_80162A34(Task* arg0)
 {
-    Actor342400CtrlWork* work = (Actor342400CtrlWork*)arg0->work;
+    OverlayEncounterCtrlWork* work = (OverlayEncounterCtrlWork*)arg0->work;
 
-    if (++work->field_0 == 15) {
+    if (++work->frames == 15) {
         ((void (*)(s32))Gp_IncStateF0Ref)(0);
         gGameSession->spawnPhase[1] = 1;
         Gp_ArmStateF0(1);
@@ -345,15 +345,15 @@ void func_actor_342400_80162A34(Task* arg0)
 
 void func_actor_342400_80162AB0(Task* arg0)
 {
-    Actor342400CtrlWork* work = (Actor342400CtrlWork*)arg0->work;
-    s16                  count;
-    s32                  i;
+    OverlayEncounterCtrlWork* work = (OverlayEncounterCtrlWork*)arg0->work;
+    s16                       count;
+    s32                       i;
 
     count = 0;
-    if (work->field_4 != 4) {
+    if (work->stop != 4) {
         func_actor_342400_80162324(arg0);
         for (i = 0; i < 17; i++) {
-            if (D_actor_342400_8016BF58[i].field_6 == 2) {
+            if (D_actor_342400_8016BF58[i].status == 2) {
                 count++;
             }
         }
@@ -367,17 +367,17 @@ void func_actor_342400_80162AB0(Task* arg0)
 
 void func_actor_342400_80162B60(Task* arg0)
 {
-    Actor342400SpawnWork* work;
-    GpEnemy*              enemy;
+    OverlayEncounterSingleWork* work;
+    GpEnemy*                    enemy;
 
     work = memCalloc(8, 0);
     if (work != NULL) {
         arg0->work = (TaskIdMap*)work;
         enemy      = Gp_SpawnEnemyFromTable(&D_actor_342400_80173A54, 1, 0, 0);
         if (enemy != NULL) {
-            D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].field_6 = 1;
-            work->enemy                                                   = enemy;
-            enemy->placeKey                                               = D_actor_342400_80173AAC << 12;
+            D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].status = 1;
+            work->enemy                                                  = enemy;
+            enemy->placeKey                                              = D_actor_342400_80173AAC << 12;
             D_actor_342400_80173AAC++;
             arg0->state++;
             return;
@@ -388,15 +388,15 @@ void func_actor_342400_80162B60(Task* arg0)
 
 void func_actor_342400_80162C10(Task* arg0)
 {
-    Actor342400SpawnWork* work = (Actor342400SpawnWork*)arg0->work;
-    GpEnemy*              enemy;
-    Task*                 task;
-    TmdObject*            obj;
-    GpCmdArg              msg;
+    OverlayEncounterSingleWork* work = (OverlayEncounterSingleWork*)arg0->work;
+    GpEnemy*                    enemy;
+    Task*                       task;
+    TmdObject*                  obj;
+    GpCmdArg                    msg;
 
     enemy = work->enemy;
     task  = enemy->task;
-    if (++work->field_4 > 60) {
+    if (++work->frames > 60) {
         obj                = task->extra;
         obj->clut          = 2;
         obj->tpage         = 0;
@@ -416,17 +416,17 @@ void func_actor_342400_80162CA8(Task* arg0)
 
 void func_actor_342400_80162CBC(Task* arg0)
 {
-    Actor342400SpawnWork* work = (Actor342400SpawnWork*)arg0->work;
-    GpEnemy*              enemy;
-    Task*                 task;
-    GsCOORDINATE2*        coord;
-    GpCmdArg              msg;
+    OverlayEncounterSingleWork* work = (OverlayEncounterSingleWork*)arg0->work;
+    GpEnemy*                    enemy;
+    Task*                       task;
+    GsCOORDINATE2*              coord;
+    GpCmdArg                    msg;
 
     enemy = work->enemy;
     task  = enemy->task;
     coord = ((TmdObject*)task->extra)->coords;
     if (enemy->hp <= 0) {
-        D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].field_6 = 2;
+        D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].status = 2;
         taskKill(arg0);
         return;
     }
@@ -435,25 +435,25 @@ void func_actor_342400_80162CBC(Task* arg0)
         msg.from.loc.area  = 0x2C;
         msg.command        = 5;
         Gp_DispatchMsg(task, 0x7DB, (s32)&msg, 0);
-        D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].field_6 = 2;
+        D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].status = 2;
         taskKill(arg0);
     }
 }
 
 void func_actor_342400_80162DA0(Task* arg0)
 {
-    Actor342400SpawnWork* work;
-    GpEnemy*              enemy;
-    TmdObject*            obj;
+    OverlayEncounterSingleWork* work;
+    GpEnemy*                    enemy;
+    TmdObject*                  obj;
 
     work = memCalloc(8, 0);
     if (work != NULL) {
         arg0->work = (TaskIdMap*)work;
         enemy      = Gp_SpawnEnemyFromTable(&D_801575F0, 2, 0, 0);
         if (enemy != NULL) {
-            D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].field_6 = 1;
-            work->enemy                                                   = enemy;
-            enemy->placeKey                                               = D_actor_342400_80173AAC << 12;
+            D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].status = 1;
+            work->enemy                                                  = enemy;
+            enemy->placeKey                                              = D_actor_342400_80173AAC << 12;
             D_actor_342400_80173AAC++;
             obj        = enemy->task->extra;
             obj->tpage = 2;
@@ -467,15 +467,15 @@ void func_actor_342400_80162DA0(Task* arg0)
 
 void func_actor_342400_80162E6C(Task* arg0)
 {
-    Actor342400SpawnWork* work = (Actor342400SpawnWork*)arg0->work;
-    GpEnemy*              enemy;
-    Task*                 task;
-    TmdObject*            obj;
-    GpCmdArg              msg;
+    OverlayEncounterSingleWork* work = (OverlayEncounterSingleWork*)arg0->work;
+    GpEnemy*                    enemy;
+    Task*                       task;
+    TmdObject*                  obj;
+    GpCmdArg                    msg;
 
     enemy = work->enemy;
     task  = enemy->task;
-    if (++work->field_4 > 60) {
+    if (++work->frames > 60) {
         obj                = task->extra;
         obj->tpage         = 2;
         obj->clut          = 4;
@@ -495,17 +495,17 @@ void func_actor_342400_80162F08(Task* arg0)
 
 void func_actor_342400_80162F1C(Task* arg0)
 {
-    Actor342400SpawnWork* work = (Actor342400SpawnWork*)arg0->work;
-    GpEnemy*              enemy;
-    Task*                 task;
-    GsCOORDINATE2*        coord;
-    GpCmdArg              msg;
+    OverlayEncounterSingleWork* work = (OverlayEncounterSingleWork*)arg0->work;
+    GpEnemy*                    enemy;
+    Task*                       task;
+    GsCOORDINATE2*              coord;
+    GpCmdArg                    msg;
 
     enemy = work->enemy;
     task  = enemy->task;
     coord = ((TmdObject*)task->extra)->coords;
     if (enemy->hp <= 0) {
-        D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].field_6 = 2;
+        D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].status = 2;
         taskKill(arg0);
         return;
     }
@@ -514,7 +514,7 @@ void func_actor_342400_80162F1C(Task* arg0)
         msg.from.loc.area  = 0;
         msg.command        = 5;
         Gp_DispatchMsg(task, 0x7DB, (s32)&msg, 0);
-        D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].field_6 = 2;
+        D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].status = 2;
         taskKill(arg0);
     }
 }
@@ -526,11 +526,11 @@ void func_actor_342400_80162FFC(Task* arg0)
 
 void func_actor_342400_80163010(Task* arg0)
 {
-    Actor342400ChildWork* work = (Actor342400ChildWork*)arg0->work;
-    GpEnemy*              enemy;
-    Task*                 task;
-    TmdObject*            obj;
-    GpCmdArg              msg;
+    OverlayEncounterPairWork* work = (OverlayEncounterPairWork*)arg0->work;
+    GpEnemy*                  enemy;
+    Task*                     task;
+    TmdObject*                obj;
+    GpCmdArg                  msg;
 
     enemy = work->enemy0;
     if (enemy != NULL) {
@@ -544,22 +544,22 @@ void func_actor_342400_80163010(Task* arg0)
         msg.command        = arg0->spawnArg1;
         Gp_DispatchMsg(task, 0x7DB, (s32)&msg, 0);
     }
-    work->field_8 = 0;
+    work->frames = 0;
     arg0->state++;
 }
 
 void func_actor_342400_801630A4(Task* arg0)
 {
-    Actor342400ChildWork* work = (Actor342400ChildWork*)arg0->work;
-    GpEnemy*              enemy;
-    Task*                 task;
-    TmdObject*            obj;
-    GpCmdArg              msg;
+    OverlayEncounterPairWork* work = (OverlayEncounterPairWork*)arg0->work;
+    GpEnemy*                  enemy;
+    Task*                     task;
+    TmdObject*                obj;
+    GpCmdArg                  msg;
 
     enemy = work->enemy1;
     func_actor_342400_801632D4(arg0);
     if (work->enemy1 != NULL) {
-        if (++work->field_8 <= 0x3C) {
+        if (++work->frames <= 0x3C) {
             return;
         }
         task               = work->enemy1->task;
@@ -572,17 +572,17 @@ void func_actor_342400_801630A4(Task* arg0)
         msg.command        = arg0->spawnArg1;
         Gp_DispatchMsg(task, 0x7DB, (s32)&msg, 0);
     }
-    work->field_8 = 0;
+    work->frames = 0;
     arg0->state++;
 }
 
 void func_actor_342400_80163178(Task* arg0)
 {
-    Actor342400ChildWork* work = (Actor342400ChildWork*)arg0->work;
+    OverlayEncounterPairWork* work = (OverlayEncounterPairWork*)arg0->work;
 
     func_actor_342400_801621D8(arg0);
-    if (work->field_A == 3) {
-        D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].field_6 = 2;
+    if (work->goneMask == 3) {
+        D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].status = 2;
         taskKill(arg0);
     }
 }
@@ -615,20 +615,20 @@ void func_actor_342400_80163200(s16 arg0, s16 arg1, s16 arg2)
 
 void func_actor_342400_801632D4(Task* arg0)
 {
-    Actor342400ChildWork* work = (Actor342400ChildWork*)arg0->work;
+    OverlayEncounterPairWork* work = (OverlayEncounterPairWork*)arg0->work;
 
     if (work->enemy0 != NULL) {
         if (work->enemy0->hp <= 0) {
             work->enemy0 = NULL;
         }
     } else {
-        work->field_A |= 1;
+        work->goneMask |= 1;
     }
     if (work->enemy1 != NULL) {
         if (work->enemy1->hp <= 0) {
             work->enemy1 = NULL;
         }
     } else {
-        work->field_A |= 2;
+        work->goneMask |= 2;
     }
 }

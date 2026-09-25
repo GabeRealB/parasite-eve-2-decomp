@@ -6,7 +6,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-#include "actors/actors_shared_80132724.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -315,56 +314,11 @@ typedef struct {
     /* 0x03 */ u8 field_3;
 } GlyphEntry;
 
-/// One of the 16 enemy slots the room's encounter controller works through in
-/// order. `kind` selects the task that holds the slot's enemies (0 and 1 one
-/// enemy each, from two different tables; 2 a pair), and `command` is what
-/// that task sends them as message 0x7DB once they are released. `status` is
-/// 0 while the slot waits, 1 while its enemies are alive and 2 once they are
-/// gone.
-typedef struct {
-    s16  kind;
-    s16  command;
-    byte pad_4[0x2];
-    s16  status;
-} _ShelterB3DumpingHoleSlot;
-STATIC_ASSERT_SIZEOF(_ShelterB3DumpingHoleSlot, 0x8);
-
-/// Work block of the encounter controller: frames counted before the
-/// encounter is armed, the next slot to start, and a stop request that an
-/// actor's message 0x7DB with command 4 writes and that idles the controller.
-typedef struct {
-    s16 frames;
-    s16 nextSlot;
-    s16 stop;
-} _ShelterB3DumpingHoleCtrlWork;
-STATIC_ASSERT_SIZEOF(_ShelterB3DumpingHoleCtrlWork, 0x6);
-
-/// Work block of a slot task that holds one enemy: the enemy, and the frames
-/// counted before it is released.
-typedef struct {
-    GpEnemy* enemy;
-    s16      frames;
-    byte     pad_6[0x2];
-} _ShelterB3DumpingHoleSingleWork;
-STATIC_ASSERT_SIZEOF(_ShelterB3DumpingHoleSingleWork, 0x8);
-
-/// Work block of a slot task that holds a pair of enemies: the two enemies
-/// (cleared once each is dead), the frames counted before the second is
-/// released, and a mask with bit 0 set once the first is gone and bit 1 once
-/// the second is.
-typedef struct {
-    GpEnemy* enemy0;
-    GpEnemy* enemy1;
-    s16      frames;
-    s16      goneMask;
-} _ShelterB3DumpingHolePairWork;
-STATIC_ASSERT_SIZEOF(_ShelterB3DumpingHolePairWork, 0xC);
-
 /// Enemy table the pair slots spawn from; it lies outside the room's image.
 extern TaskDesc D_80151E60;
 
 /// The encounter's enemy slots, in the order the controller starts them.
-extern _ShelterB3DumpingHoleSlot D_shelter_b3_dumping_hole_8018B7BC[];
+extern OverlayEncounterSlot D_shelter_b3_dumping_hole_8018B7BC[];
 
 extern TaskDesc               D_shelter_b3_dumping_hole_80188C04;
 extern TaskDesc               D_shelter_b3_dumping_hole_80188BC8;
@@ -3043,10 +2997,10 @@ void func_shelter_b3_dumping_hole_80183218(u8 arg0)
 /// the same body.
 void func_shelter_b3_dumping_hole_80183298(Task* arg0)
 {
-    _ShelterB3DumpingHolePairWork* work;
-    GpEnemy*                       enemy;
-    Task*                          task;
-    TmdObject*                     obj;
+    OverlayEncounterPairWork* work;
+    GpEnemy*                  enemy;
+    Task*                     task;
+    TmdObject*                obj;
 
     work = memCalloc(0xC, 0);
     if (work == NULL) {
@@ -3086,12 +3040,12 @@ void func_shelter_b3_dumping_hole_80183298(Task* arg0)
 
 void func_shelter_b3_dumping_hole_801833EC(Task* arg0)
 {
-    _ShelterB3DumpingHoleCtrlWork* ent = (_ShelterB3DumpingHoleCtrlWork*)arg0->work;
-    s16                            count;
-    s16                            i;
-    s16                            idx;
-    s16                            type;
-    s16                            arg;
+    OverlayEncounterCtrlWork* ent = (OverlayEncounterCtrlWork*)arg0->work;
+    s16                       count;
+    s16                       i;
+    s16                       idx;
+    s16                       type;
+    s16                       arg;
 
     count = 0;
     for (i = 0; i < 16; i++) {
@@ -3122,7 +3076,7 @@ void func_shelter_b3_dumping_hole_801833EC(Task* arg0)
 
 void func_shelter_b3_dumping_hole_80183530(Task* arg0, s32 arg1, GpCmdArg* arg2)
 {
-    _ShelterB3DumpingHoleCtrlWork* ent = (_ShelterB3DumpingHoleCtrlWork*)arg0->work;
+    OverlayEncounterCtrlWork* ent = (OverlayEncounterCtrlWork*)arg0->work;
     if (arg2->command == 4) {
         ent->stop = arg2->command;
     }
@@ -3204,8 +3158,8 @@ void func_shelter_b3_dumping_hole_80183678(Task* task)
 
 void func_shelter_b3_dumping_hole_801836E0(Task* arg0)
 {
-    _ShelterB3DumpingHoleCtrlWork* work;
-    s32                            i;
+    OverlayEncounterCtrlWork* work;
+    s32                       i;
 
     if ((u8)gGameSession->spawnPhase[0] == 2) {
         taskKill(arg0);
@@ -3227,8 +3181,8 @@ void func_shelter_b3_dumping_hole_801836E0(Task* arg0)
 
 void func_shelter_b3_dumping_hole_8018378C(Task* arg0)
 {
-    _ShelterB3DumpingHoleCtrlWork* ent = (_ShelterB3DumpingHoleCtrlWork*)arg0->work;
-    s32                            i;
+    OverlayEncounterCtrlWork* ent = (OverlayEncounterCtrlWork*)arg0->work;
+    s32                       i;
 
     for (i = 0; i < 3; i++) {
         s16 idx = ent->nextSlot;
@@ -3241,7 +3195,7 @@ void func_shelter_b3_dumping_hole_8018378C(Task* arg0)
 
 void func_shelter_b3_dumping_hole_80183824(Task* arg0)
 {
-    _ShelterB3DumpingHoleCtrlWork* ent = (_ShelterB3DumpingHoleCtrlWork*)arg0->work;
+    OverlayEncounterCtrlWork* ent = (OverlayEncounterCtrlWork*)arg0->work;
     if ((s16)(ent->frames += 1) == 0xF) {
         ((void (*)(s32))Gp_IncStateF0Ref)(0);
         gGameSession->spawnPhase[0] = 1;
@@ -3256,7 +3210,7 @@ void func_shelter_b3_dumping_hole_801838A0(Task* arg0)
     s32 i;
 
     count = 0;
-    if (((_ShelterB3DumpingHoleCtrlWork*)arg0->work)->stop != 4) {
+    if (((OverlayEncounterCtrlWork*)arg0->work)->stop != 4) {
         func_shelter_b3_dumping_hole_801833EC(arg0);
         for (i = 0; i < 0x10; i++) {
             if (D_shelter_b3_dumping_hole_8018B7BC[i].status == 2) {
@@ -3273,7 +3227,7 @@ void func_shelter_b3_dumping_hole_801838A0(Task* arg0)
 
 void func_shelter_b3_dumping_hole_80183950(Task* arg0)
 {
-    _ShelterB3DumpingHoleSingleWork* work = memCalloc(8, 0);
+    OverlayEncounterSingleWork* work = memCalloc(8, 0);
     if (work != NULL) {
         GpEnemy* enemy;
         arg0->work = work;
@@ -3294,10 +3248,10 @@ void func_shelter_b3_dumping_hole_80183950(Task* arg0)
 
 void func_shelter_b3_dumping_hole_80183A00(Task* arg0)
 {
-    GpCmdArg                         desc;
-    _ShelterB3DumpingHoleSingleWork* ent = (_ShelterB3DumpingHoleSingleWork*)arg0->work;
-    GpEnemy*                         t0  = ent->enemy;
-    Task*                            t00 = t0->task;
+    GpCmdArg                    desc;
+    OverlayEncounterSingleWork* ent = (OverlayEncounterSingleWork*)arg0->work;
+    GpEnemy*                    t0  = ent->enemy;
+    Task*                       t00 = t0->task;
 
     if ((s16)(ent->frames += 1) >= 0x2E) {
         TmdObject* p        = t00->extra;
@@ -3314,7 +3268,7 @@ void func_shelter_b3_dumping_hole_80183A00(Task* arg0)
 
 void func_shelter_b3_dumping_hole_80183A98(Task* arg0)
 {
-    if (((_ShelterB3DumpingHoleSingleWork*)arg0->work)->enemy->hp <= 0) {
+    if (((OverlayEncounterSingleWork*)arg0->work)->enemy->hp <= 0) {
         D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1 >> 16)].status = 2;
         taskKill(arg0);
     }
@@ -3322,7 +3276,7 @@ void func_shelter_b3_dumping_hole_80183A98(Task* arg0)
 
 void func_shelter_b3_dumping_hole_80183AEC(Task* arg0)
 {
-    _ShelterB3DumpingHoleSingleWork* work = memCalloc(8, 0);
+    OverlayEncounterSingleWork* work = memCalloc(8, 0);
     if (work != NULL) {
         GpEnemy* enemy;
         arg0->work = work;
@@ -3343,10 +3297,10 @@ void func_shelter_b3_dumping_hole_80183AEC(Task* arg0)
 
 void func_shelter_b3_dumping_hole_80183B9C(Task* arg0)
 {
-    GpCmdArg                         desc;
-    _ShelterB3DumpingHoleSingleWork* ent = (_ShelterB3DumpingHoleSingleWork*)arg0->work;
-    GpEnemy*                         t0  = ent->enemy;
-    Task*                            t00 = t0->task;
+    GpCmdArg                    desc;
+    OverlayEncounterSingleWork* ent = (OverlayEncounterSingleWork*)arg0->work;
+    GpEnemy*                    t0  = ent->enemy;
+    Task*                       t00 = t0->task;
 
     if ((s16)(ent->frames += 1) >= 0x3D) {
         TmdObject* p        = t00->extra;
@@ -3363,7 +3317,7 @@ void func_shelter_b3_dumping_hole_80183B9C(Task* arg0)
 
 void func_shelter_b3_dumping_hole_80183C38(Task* arg0)
 {
-    if (((_ShelterB3DumpingHoleSingleWork*)arg0->work)->enemy->hp <= 0) {
+    if (((OverlayEncounterSingleWork*)arg0->work)->enemy->hp <= 0) {
         D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1 >> 16)].status = 2;
         taskKill(arg0);
     }
@@ -3377,9 +3331,9 @@ void func_shelter_b3_dumping_hole_80183C8C(Task* arg0)
 
 void func_shelter_b3_dumping_hole_80183CA0(Task* arg0)
 {
-    GpCmdArg                       desc;
-    _ShelterB3DumpingHolePairWork* ent = (_ShelterB3DumpingHolePairWork*)arg0->work;
-    GpEnemy*                       t0  = ent->enemy0;
+    GpCmdArg                  desc;
+    OverlayEncounterPairWork* ent = (OverlayEncounterPairWork*)arg0->work;
+    GpEnemy*                  t0  = ent->enemy0;
 
     if (t0 != NULL) {
         Task*      t00      = t0->task;
@@ -3398,8 +3352,8 @@ void func_shelter_b3_dumping_hole_80183CA0(Task* arg0)
 
 void func_shelter_b3_dumping_hole_80183D34(Task* arg0)
 {
-    _ShelterB3DumpingHolePairWork* ent = (_ShelterB3DumpingHolePairWork*)arg0->work;
-    GpEnemy*                       t   = ent->enemy1;
+    OverlayEncounterPairWork* ent = (OverlayEncounterPairWork*)arg0->work;
+    GpEnemy*                  t   = ent->enemy1;
 
     func_shelter_b3_dumping_hole_80183F04(arg0);
     if (ent->enemy1 != NULL) {
@@ -3425,7 +3379,7 @@ void func_shelter_b3_dumping_hole_80183D34(Task* arg0)
 
 void func_shelter_b3_dumping_hole_80183E08(Task* arg0)
 {
-    _ShelterB3DumpingHolePairWork* ent = (_ShelterB3DumpingHolePairWork*)arg0->work;
+    OverlayEncounterPairWork* ent = (OverlayEncounterPairWork*)arg0->work;
     func_shelter_b3_dumping_hole_80183F04(arg0);
     if (ent->goneMask == 3) {
         D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1 >> 16)].status = 2;
@@ -3450,7 +3404,7 @@ void func_shelter_b3_dumping_hole_80183E6C(s16 arg0, s16 arg1, s16 arg2)
 
 void func_shelter_b3_dumping_hole_80183F04(Task* arg0)
 {
-    _ShelterB3DumpingHolePairWork* p = (_ShelterB3DumpingHolePairWork*)arg0->work;
+    OverlayEncounterPairWork* p = (OverlayEncounterPairWork*)arg0->work;
 
     if (p->enemy0 != NULL) {
         if (p->enemy0->hp <= 0) {

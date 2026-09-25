@@ -8,6 +8,7 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
+#include "gameplay/1BC.h"
 #include "main/mem.h"
 
 /*
@@ -237,5 +238,51 @@ typedef struct OverlaySparkScratch {
     s16     sy;
 } OverlaySparkScratch;
 STATIC_ASSERT_SIZEOF(OverlaySparkScratch, 0x1C);
+
+/// One enemy slot of a scripted encounter, in the table its controller works
+/// through in order. `kind` selects the task that holds the slot's enemies
+/// (one enemy from either of two tables, or a pair), and `command` is what
+/// that task sends them as message 0x7DB once they are released. `status` is
+/// 0 while the slot waits, 1 while its enemies are alive and 2 once they are
+/// gone.
+typedef struct OverlayEncounterSlot {
+    s16  kind;
+    s16  command;
+    byte pad_4[0x2];
+    s16  status;
+} OverlayEncounterSlot;
+STATIC_ASSERT_SIZEOF(OverlayEncounterSlot, 0x8);
+
+/// Work block of a scripted encounter's controller: the frames counted before
+/// the encounter is armed, the next slot to start, and a stop request, which
+/// an actor's message 0x7DB with command 4 writes and which idles the
+/// controller.
+typedef struct OverlayEncounterCtrlWork {
+    s16 frames;
+    s16 nextSlot;
+    s16 stop;
+} OverlayEncounterCtrlWork;
+STATIC_ASSERT_SIZEOF(OverlayEncounterCtrlWork, 0x6);
+
+/// Work block of an encounter slot task that holds one enemy: the enemy, and
+/// the frames counted before it is released.
+typedef struct OverlayEncounterSingleWork {
+    GpEnemy* enemy;
+    s16      frames;
+    byte     pad_6[0x2];
+} OverlayEncounterSingleWork;
+STATIC_ASSERT_SIZEOF(OverlayEncounterSingleWork, 0x8);
+
+/// Work block of an encounter slot task that holds a pair of enemies: the two
+/// enemies, the frames counted before the second is released, and a mask with
+/// bit 0 set once the first is gone and bit 1 once the second is; the task
+/// ends when both are.
+typedef struct OverlayEncounterPairWork {
+    GpEnemy* enemy0;
+    GpEnemy* enemy1;
+    s16      frames;
+    s16      goneMask;
+} OverlayEncounterPairWork;
+STATIC_ASSERT_SIZEOF(OverlayEncounterPairWork, 0xC);
 
 #endif /* OVERLAY_H */
