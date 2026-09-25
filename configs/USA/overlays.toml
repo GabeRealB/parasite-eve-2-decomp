@@ -4171,15 +4171,15 @@ id = 244
 objects = [
   { kind = "packageId" },
   { unit = "actor_341900/actor_341900", rodata = "0x4", text = "0x38" },
-  { lib = true, unit = "actors_shared_80163148", text = "0x1328" },
-  { lib = true, unit = "actors_shared_80163224", text = "0x1404" },
-  { lib = true, unit = "actors_shared_8013411c", text = "0x1480" },
+  { unit = "actor_341900/actor_341900_4", text = "0x1328" },
+  { unit = "actor_341900/actor_341900_5", text = "0x1404" },
+  { unit = "actor_341900/actor_341900_6", text = "0x1480" },
   { unit = "actor_341900/actor_341900_2", text = "0x150C" },
-  { lib = true, unit = "actors_shared_80132724", text = "0x1514" },
+  { unit = "actor_341900/actor_341900_7", text = "0x1514" },
   { unit = "actor_341900/actor_341900_3", text = "0x1568" },
-  { lib = true, unit = "actors_shared_8016447c", text = "0x1818" },
-  { lib = true, unit = "actors_shared_8016449c", text = "0x1838" },
-  { lib = true, unit = "actors_shared_801343a4", text = "0x1858" },
+  { unit = "actor_341900/actor_341900_8", text = "0x1818" },
+  { unit = "actor_341900/actor_341900_9", text = "0x1838" },
+  { unit = "actor_341900/actor_341900_10", text = "0x1858" },
   { kind = "data", at = "0x1880" },
 ]
 

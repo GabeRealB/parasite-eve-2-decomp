@@ -3,9 +3,12 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-#include "actors/actors_shared_80163224.h"
+#include "actors/actor_341900.h"
 
-void ActorsShared80163224(Task* arg0, s32 arg1, s32 arg2)
+/// Message 0x7D5 handler of both of the overlay's message tables: sets the
+/// draw bits of the task's `TmdObject` from the mode in `arg2`. Mode 0 sets
+/// 0x80 and clears 0x4, mode 1 clears both, mode 2 sets both.
+void func_actor_341900_80163224(Task* arg0, s32 arg1, s32 arg2)
 {
     TmdObject* extra;
 

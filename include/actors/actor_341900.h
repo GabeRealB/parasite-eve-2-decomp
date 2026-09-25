@@ -9,7 +9,10 @@
 
 #include <psyq/libgte.h>
 
-/// Position and Euler rotation payload sent to slot 3 as message 0x3E9.
+/// Position and Euler rotation payload: sent to slot 3 as message 0x3E9, and
+/// to the child actors as message 0x7D4, whose handler
+/// `func_actor_341900_801632A0` copies the longs onto the model's root
+/// translation and applies the shorts as Y, X, Z rotations.
 typedef struct Actor341900MsgPos {
     /* 0x00 */ VECTOR  pos;
     /* 0x10 */ SVECTOR rot;
@@ -66,11 +69,12 @@ typedef struct Actor341900Work {
 } Actor341900Work;
 STATIC_ASSERT_SIZEOF(Actor341900Work, 0x70);
 
-/// Session id payload `func_actor_341900_80162EFC` sends to slot 4 as message
-/// 0x7DA, asking for the 0x7DB reply. `field_0` takes `GameSession.at4.loc.stage`
-/// and `field_1` takes `field_6`; the pair spells the id `Gp_FindWorkById`
-/// matches on (`field_6 | field_7 << 8`), which the same function uses to find
-/// the session's work object. `field_2` is zeroed.
+/// Session id payload sent to slot 4 as message 0x7DA, asking for the 0x7DB
+/// reply. `field_0` takes `GameSession.at4.loc.stage` and `field_1`
+/// `at4.loc.area`, the pair `func_actor_341900_80162EFC` also hands
+/// `Gp_FindWorkById` to find the session's work object. `field_2` is a
+/// selector: that function sends 0, the script callback
+/// `func_actor_341900_80163334` sends the script's argument.
 typedef struct Actor341900Msg7DA {
     /* 0x0 */ u8  field_0;
     /* 0x1 */ u8  field_1;
@@ -91,6 +95,18 @@ typedef struct Actor341900ColorMtx {
     /* 0x40 */ Task*  field_40;
 } Actor341900ColorMtx;
 STATIC_ASSERT_SIZEOF(Actor341900ColorMtx, 0x44);
+
+/// Channel block of the overlay's fade task `func_actor_341900_80163148`,
+/// sized by its own `memCalloc(8, 0)` and parked in that task's `Task::work`
+/// slot. The three channels start at 0xFF and fall by the task's `spawnArg1`
+/// each frame.
+typedef struct Actor341900Fade {
+    /* 0x0 */ byte pad_0[0x2];
+    /* 0x2 */ s16  r;
+    /* 0x4 */ s16  g;
+    /* 0x6 */ s16  b;
+} Actor341900Fade;
+STATIC_ASSERT_SIZEOF(Actor341900Fade, 0x8);
 
 /// Controller task of this overlay, published by `func_actor_341900_80162EFC`
 /// and read by the sequence helpers that hang their work off its `Task::work`.

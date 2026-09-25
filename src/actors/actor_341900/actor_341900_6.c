@@ -1,14 +1,16 @@
 #include "common.h"
 
-#include "actors/actors_shared_8013411c.h"
 #include "main/gfx.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Copies `placement` onto the task's `TmdObject` coordinate frame: the three
-/// longs become the translation, then yaw / pitch / roll are applied with
-/// `Gfx_RotMatrixY` / `X` / `Z` and the coordinate is marked dirty.
-void ActorsShared8013411c(Task* task, s32 arg1, ActorShared8013411cPlacement* placement)
+#include "actors/actor_341900.h"
+
+/// Message 0x7D4 handler of both of the overlay's message tables: copies the
+/// placement onto the model's root coordinate, the three longs as its
+/// translation and the three angles as its rotation (Y, then X, then Z), and
+/// marks the coordinate dirty.
+void func_actor_341900_801632A0(Task* task, s32 arg1, Actor341900MsgPos* placement)
 {
     GsCOORDINATE2* coord;
     MATRIX*        mtx;

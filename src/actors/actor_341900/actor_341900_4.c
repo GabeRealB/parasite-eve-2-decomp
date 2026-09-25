@@ -4,21 +4,21 @@
 #include "main/mem.h"
 #include "main/task.h"
 
-#include "actors/actors_shared_80163148.h"
+#include "actors/actor_341900.h"
 
-/// Two-state fade driver: on the first call it allocates the 8-byte channel
-/// block, seeds `r`/`g`/`b` at 0xFF and steps the task to state 1; on every call
-/// it draws the block as a full-screen overlay and decays the three channels by
-/// `Task::spawnArg1`, killing the task once red has gone negative.
-void ActorsShared80163148(Task* arg0)
+/// Fade task, entry 1 of the overlay's task table: its first tick allocates
+/// the channel block and seeds every channel at 0xFF; each tick then draws the
+/// full-screen fade overlay and steps the channels down by `spawnArg1`,
+/// killing the task once `r` has gone negative.
+void func_actor_341900_80163148(Task* arg0)
 {
-    ActorsShared80163148Fade* fade;
-    ActorsShared80163148Fade* alloc;
+    Actor341900Fade* fade;
+    Actor341900Fade* alloc;
 
-    fade = (ActorsShared80163148Fade*)arg0->work;
+    fade = (Actor341900Fade*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (ActorsShared80163148Fade*)memCalloc(8, 0);
+            alloc      = (Actor341900Fade*)memCalloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
