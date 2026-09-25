@@ -3,8 +3,6 @@
 #include <psyq/abs.h>
 
 #include "actors/actor_350700.h"
-#include "actors/actors_shared_801327f8.h"
-#include "actors/actors_shared_80132f24.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -31,7 +29,7 @@ extern GpMsgEntry D_actor_350700_8017090C[];
 /// the area key `&gGameSession->at4.loc.view` and indexed by the model id the child's
 /// own `spawnArg2` carries at `GpEnemy::placeKey >> 12`, and each then has its
 /// texture stream processed twice when it has an aux buffer. The body ends by
-/// handing the parent to `ActorsShared80132f24`, pointing `msgTable` at the
+/// handing the parent to `func_actor_350700_801633DC`, pointing `msgTable` at the
 /// message table and installing `func_actor_350700_801633BC` as its exit
 /// callback.
 void func_actor_350700_80162B30(Task* arg0)
@@ -112,7 +110,7 @@ void func_actor_350700_80162B30(Task* arg0)
     if (spawned != NULL) {
         work->field_504 = spawned;
     }
-    ActorsShared80132f24(arg0);
+    func_actor_350700_801633DC(arg0);
     arg0->msgTable     = D_actor_350700_8017090C;
     arg0->exitCallback = func_actor_350700_801633BC;
     arg0->state       += 1;
@@ -121,8 +119,8 @@ void func_actor_350700_80162B30(Task* arg0)
 /// Per-frame tick of the parent actor, the same body as
 /// `func_actor_335800_80162844`: dispatches through the local two-entry table
 /// `field_4F8` indexes -- the empty `func_actor_350700_801633F8` or the shared
-/// `ActorsShared801327f8` -- then integrates the per-frame deltas at
-/// `field_4C8..field_4D0` into the 16.16 accumulators at `field_4D8..field_4E0`,
+/// step dispatcher `func_actor_350700_80163400` -- then integrates the per-frame deltas at
+/// `step` into the 16.16 accumulators at `field_4D8..field_4E0`,
 /// adds their high halves to the root coordinate's translation, clears `flg`
 /// and truncates the accumulators back to 16 bits. Ticks the animation slots
 /// while `field_474` is set; and, unless the display object's `field_C` carries
@@ -136,16 +134,16 @@ void func_actor_350700_80162D5C(Task* arg0)
 {
     TmdObject*           ext      = arg0->extra;
     Actor350700MainWork* work     = (Actor350700MainWork*)arg0->work;
-    TaskFunc             funcs[2] = { func_actor_350700_801633F8, ActorsShared801327f8 };
+    TaskFunc             funcs[2] = { func_actor_350700_801633F8, func_actor_350700_80163400 };
     VECTOR3              pos;
     GsCOORDINATE2*       coord;
     s32                  i;
 
     funcs[work->field_4F8](arg0);
     coord              = ((TmdObject*)arg0->extra)->coords;
-    work->field_4D8   += work->field_4C8;
-    work->field_4DC   += work->field_4CC;
-    work->field_4E0   += work->field_4D0;
+    work->field_4D8   += work->step.vx;
+    work->field_4DC   += work->step.vy;
+    work->field_4E0   += work->step.vz;
     coord->coord.t[0] += (s16)(work->field_4D8 >> 16);
     coord->coord.t[1] += (s16)(work->field_4DC >> 16);
     coord->coord.t[2] += (s16)(work->field_4E0 >> 16);
@@ -181,6 +179,6 @@ INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700_6", func_actor_350700
 
 INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700_6", func_actor_350700_801630C0);
 
-INCLUDE_RODATA("actors/nonmatchings/actor_350700/actor_350700_6", ActorsShared801327f8Table);
+INCLUDE_RODATA("actors/nonmatchings/actor_350700/actor_350700_6", D_actor_350700_80161E68);
 
-INCLUDE_RODATA("actors/nonmatchings/actor_350700/actor_350700_6", ActorsShared80132920Offset);
+INCLUDE_RODATA("actors/nonmatchings/actor_350700/actor_350700_6", D_actor_350700_80161E78);

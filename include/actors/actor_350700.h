@@ -94,50 +94,84 @@ typedef struct Actor350700MatWords {
 } Actor350700MatWords;
 STATIC_ASSERT_SIZEOF(Actor350700MatWords, 0x14);
 
+/// Overlay of the `GsCOORDINATE2` at `TmdObject::coords`, the actor's root
+/// part. Offset 0x44 (libgs `param`) holds the Euler angles the two
+/// face-the-target steps write and hand straight to `RotMatrix`.
+typedef struct Actor350700Coord {
+    /* 0x00 */ s32     flg;
+    /* 0x04 */ MATRIX  coord;
+    /* 0x24 */ MATRIX  workm;
+    /* 0x44 */ SVECTOR rot;
+} Actor350700Coord;
+STATIC_ASSERT_SIZEOF(Actor350700Coord, 0x4C);
+
+/// Payload of the two-case message handler `func_actor_350700_80162AF4`:
+/// only the halfword at 0x2 is read, selecting the variant it latches into
+/// `Actor350700Work::field_4C4`.
+typedef struct Actor350700Msg {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
+} Actor350700Msg;
+STATIC_ASSERT_SIZEOF(Actor350700Msg, 0x4);
+
 /// Work block allocated by `func_actor_350700_80162B30` (`memCalloc(0x50C)`)
 /// and parked in that task's `Task::work` slot -- that slot is not a
 /// `TaskIdMap` here, just as with `Actor350700Work`. This is the parent
 /// actor's block, the same shape as `Actor335800MainWork`: the init seeds the
 /// two `sb` bytes at 0x475/0x476 and the word at 0x508 to -1, clears the
 /// three words at 0x4D8..0x4E0, and stores the three child tasks it spawns
-/// from `D_actor_350700_801708DC` at 0x4FC/0x500/0x504. `ActorsShared80132f24`
+/// from `D_actor_350700_801708DC` at 0x4FC/0x500/0x504. `func_actor_350700_801633DC`
 /// then republishes the light/colour matrix pair onto the parent's
 /// `TmdObject::lightMtx` / `field_20`, exactly as `func_actor_350700_801624B4`
 /// does for `Actor350700Work`.
 ///
 /// The size is the allocation; the fields below are the ones the init, the
 /// spawned-task bookkeeping and the per-frame tick touch. The tick keeps a
-/// 16.16 accumulator triple at 0x4D8..0x4E0, fed from the deltas at
-/// 0x4C8..0x4D0; only each accumulator's high half reaches the root
+/// 16.16 accumulator triple at 0x4D8..0x4E0, fed from the deltas in
+/// `step`; only each accumulator's high half reaches the root
 /// coordinate, and the low half is re-zeroed every frame.
 typedef struct Actor350700MainWork {
-    /* 0x000 */ byte  pad_0[0x474];
-    /* 0x474 */ s8    field_474; // non-zero while the animation slots tick
-    /* 0x475 */ s8    field_475;
-    /* 0x476 */ s8    field_476;
-    /* 0x477 */ byte  pad_477[0x51];
-    /* 0x4C8 */ s32   field_4C8; // per-frame local-space deltas the accumulators take
-    /* 0x4CC */ s32   field_4CC;
-    /* 0x4D0 */ s32   field_4D0;
-    /* 0x4D4 */ byte  pad_4D4[0x4];
-    /* 0x4D8 */ s32   field_4D8; // 16.16 accumulators; only the high half reaches the coordinate
-    /* 0x4DC */ s32   field_4DC;
-    /* 0x4E0 */ s32   field_4E0;
-    /* 0x4E4 */ byte  pad_4E4[0x14];
-    /* 0x4F8 */ s16   field_4F8; // selects which of the two handlers the tick runs
-    /* 0x4FA */ byte  pad_4FA[0x2];
-    /* 0x4FC */ Task* field_4FC;
-    /* 0x500 */ Task* field_500;
-    /* 0x504 */ Task* field_504;
-    /* 0x508 */ s32   field_508;
+    /* 0x000 */ byte    pad_0[0x474];
+    /* 0x474 */ s8      field_474; // non-zero while the animation slots tick
+    /* 0x475 */ s8      field_475;
+    /* 0x476 */ s8      field_476;
+    /* 0x477 */ byte    pad_477[0x1];
+    /* 0x478 */ MATRIX  light;
+    /* 0x498 */ MATRIX  color;
+    /* 0x4B8 */ VECTOR3 target;    // world position the turn-to-face step steers toward
+    /* 0x4C4 */ byte    pad_4C4[0x4];
+    /* 0x4C8 */ VECTOR3 step;      // per-frame local-space deltas the accumulators take
+    /* 0x4D4 */ byte    pad_4D4[0x4];
+    /* 0x4D8 */ s32     field_4D8; // 16.16 accumulators; only the high half reaches the coordinate
+    /* 0x4DC */ s32     field_4DC;
+    /* 0x4E0 */ s32     field_4E0;
+    /* 0x4E4 */ byte    pad_4E4[0x4];
+    /* 0x4E8 */ SVECTOR limit;     // per-axis stop threshold; 0x7FFF on all three disables it
+    /* 0x4F0 */ byte    pad_4F0[0x8];
+    /* 0x4F8 */ s16     field_4F8; // selects which of the two handlers the tick runs
+    /* 0x4FA */ u16     field_4FA; // index into the step-handler table `D_actor_350700_80161E68`
+    /* 0x4FC */ Task*   field_4FC;
+    /* 0x500 */ Task*   field_500;
+    /* 0x504 */ Task*   field_504;
+    /* 0x508 */ s32     field_508;
 } Actor350700MainWork;
 STATIC_ASSERT_SIZEOF(Actor350700MainWork, 0x50C);
 
 /// The constant local-space offset `func_actor_350700_8016261C` rotates,
-/// `{ 0, 0, 0x200000, 0 }` -- straight ahead along the part's own +Z, the same
-/// offset body `ActorsShared80132920` uses. The overlay keeps its own copy in
-/// `.rodata`, so the address comes from the per-overlay symbol map.
+/// `{ 0, 0, 0x200000, 0 }` -- straight ahead along the part's own +Z.
 extern VECTOR D_actor_350700_80161E40;
+
+/// The parent's copy of the same forward offset, rotated by
+/// `func_actor_350700_80163528`.
+extern VECTOR D_actor_350700_80161E78;
+
+/// Spawn, tick and teardown handlers of the child part tasks, dispatched by
+/// `func_actor_350700_80163274`.
+extern TaskFuncTable3 D_actor_350700_80161E50;
+
+/// Step handlers of the parent block's motion sequence, indexed by
+/// `Actor350700MainWork::field_4FA`.
+extern TaskFuncTable4 D_actor_350700_80161E68;
 
 /// Ground-shadow quad, the gameplay function `func_actor_350700_80161E88`
 /// feeds the second part's world translation to; declared here the way the
@@ -153,8 +187,10 @@ void func_actor_350700_80162494(Task* arg0);
 
 /// The empty first entry of the parent's two-handler table, selected by
 /// `Actor350700MainWork::field_4F8` -- the no-op half of the pair whose other
-/// entry is the shared `ActorsShared801327f8`.
+/// entry is the step dispatcher `func_actor_350700_80163400`.
 void func_actor_350700_801633F8(Task* arg0);
+void func_actor_350700_80163400(Task* task);
+void func_actor_350700_801633DC(Task* task);
 
 void func_actor_350700_801624B4(Task* arg0);
 

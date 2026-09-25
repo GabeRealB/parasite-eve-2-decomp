@@ -3,8 +3,6 @@
 #include <psyq/abs.h>
 
 #include "actors/actor_350700.h"
-#include "actors/actors_shared_801327f8.h"
-#include "actors/actors_shared_80132f24.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -23,11 +21,11 @@ extern TaskDesc   D_actor_350700_801708DC;
 extern GpMsgEntry D_actor_350700_8017090C[];
 
 /// State handler at index 1 of `D_actor_350700_80161E30`, the move body that
-/// mirrors `ActorsShared80132920`: rotates the constant local-space offset
+/// mirrors the parent's `func_actor_350700_80163528`: rotates the constant local-space offset
 /// `D_actor_350700_80161E40` through the root part's matrix into `work->step`,
 /// opens the per-axis stop threshold to 0x7FFF, which disables it for the
 /// update loop, and advances `field_4C2` so the dispatcher runs the next
-/// handler. Where the shared body rotates the offset unchanged, this one
+/// handler. Where the parent's step rotates its offset unchanged, this one
 /// shrinks it to -0.4 of its length whenever `field_4C4` is clear.
 void func_actor_350700_8016261C(Task* arg0)
 {
@@ -52,7 +50,7 @@ void func_actor_350700_8016261C(Task* arg0)
 }
 
 /// State handler at index 3 of `D_actor_350700_80161E30`, the turn-to-face body
-/// that mirrors `ActorsShared80162540`. Euler-extracts the root coordinate into
+/// that follows `func_actor_350700_80162540`. Euler-extracts the root coordinate into
 /// `vec`, and while the yaw gap to the target `work->field_4BA` is at least
 /// 0x61 it steps `vec.vy` toward it by 0x60 -- the step is taken on an `s32`
 /// widening of the extracted yaw -- and otherwise snaps the yaw to the target
