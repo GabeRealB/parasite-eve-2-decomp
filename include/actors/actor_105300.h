@@ -67,24 +67,6 @@ typedef struct Actor05300Work {
 } Actor05300Work;
 STATIC_ASSERT_SIZEOF(Actor05300Work, 0x340);
 
-/// 0x48-byte part object the spawn allocates with `memCalloc` and parks in
-/// `Task::work`. It leads with the `GpObj` list node linked into
-/// `Gp_ObjLists[2]` -- and the one the shared teardown hands back to
-/// `Gp_UnlinkObj` -- so `obj.ctx.recs` is the single-entry `GpRec18` collision
-/// table at 0x20. `field_38` holds the same coordinate `obj.coord` points at,
-/// and `field_46` is the sub-state the teardown reads back to pick its death
-/// flag.
-typedef struct Actor05300Part {
-    /* 0x00 */ GpObj    obj;
-    /* 0x20 */ GpRec18  rec18[1];
-    /* 0x38 */ GpEffArg field_38; // record this part's death effect is spawned with
-    /* 0x40 */ s16      field_40;
-    /* 0x42 */ u16      field_42;
-    /* 0x44 */ s16      field_44;
-    /* 0x46 */ s16      field_46;
-} Actor05300Part;
-STATIC_ASSERT_SIZEOF(Actor05300Part, 0x48);
-
 /// The task whose work block is `Actor05300Work`, reached as `task->field_1C`
 /// (the `Task::work` slot). `field_20` is the `Task::spawnArg2` slot holding
 /// the enemy: the sound events this enemy plays carry its actor id in the
@@ -99,24 +81,6 @@ typedef struct Actor05300 {
     /* 0x30 */ s32              field_30;
 } Actor05300;
 
-/// The 0x18-byte block the hit handler pushes on the scratchpad stack at
-/// `0x1F8003FC`: the player-to-enemy delta and the effect offset it hands
-/// `Gp_SpawnEff` / `func_800FDB18`.
-typedef struct Actor05300Scratch {
-    /* 0x00 */ VECTOR  delta;
-    /* 0x10 */ SVECTOR ofs;
-} Actor05300Scratch;
-STATIC_ASSERT_SIZEOF(Actor05300Scratch, 0x18);
-
-/// Spawn position copied into a coordinate's translation, one entry per
-/// `Actor05300Work::field_334` sub-state.
-typedef struct Actor05300SpawnPos {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 y;
-    /* 0x4 */ s16 z;
-} Actor05300SpawnPos;
-STATIC_ASSERT_SIZEOF(Actor05300SpawnPos, 0x6);
-
 /// One row of the two clip/scale tables (`D_actor_105300_8013D3E0` for sub-
 /// state 0, `D_actor_105300_8013D3EC` for 1) the animation schedule walks by
 /// `Actor05300Work::field_328`. A zero `field_0` advances the row; a non-zero
@@ -129,33 +93,10 @@ typedef struct Actor05300Clip {
 } Actor05300Clip;
 STATIC_ASSERT_SIZEOF(Actor05300Clip, 0x4);
 
-/// One row of the per-area sound table `D_actor_105300_8013D3C4`, indexed by
-/// `GameSession::at4.loc.view`. `field_0` and `field_2` are the two s8 parameters
-/// `SndEvt_EnqueueTypeA` is handed with the work block's sound id.
-typedef struct Actor05300SndRow {
-    /* 0x0 */ s8 field_0;
-    /* 0x1 */ s8 pad_1;
-    /* 0x2 */ s8 field_2;
-    /* 0x3 */ s8 pad_3;
-} Actor05300SndRow;
-STATIC_ASSERT_SIZEOF(Actor05300SndRow, 0x4);
-
 /// The gameplay LCG the clip schedules reseed their countdowns from,
 /// `state = state * 5 + 0x71357911`. Unsigned here for the same reason as
 /// `Gp_LcgState` elsewhere: the draws are logical shifts of the high half
 /// (`srl`), which a signed declaration would turn into an arithmetic one.
 extern u32 Gp_LcgState;
-
-extern Actor05300Clip D_actor_105300_8013D3EC[];
-extern s16            D_actor_105300_80133A18[];
-extern s16            D_actor_105300_80133A2C[];
-
-void func_actor_105300_80131E3C(Actor05300* arg0);
-void func_actor_105300_8013222C(Actor05300* arg0);
-void func_actor_105300_80133530(Actor05300* arg0);
-void func_actor_105300_801335B8(Actor05300* arg0);
-void func_actor_105300_80133610(Actor05300* arg0);
-void func_actor_105300_801336D4(Actor05300* arg0, MATRIX* arg1, s16 arg2, s32 arg3);
-s16  Actor05300_Fn01B70(Actor05300* arg0);
 
 #endif
