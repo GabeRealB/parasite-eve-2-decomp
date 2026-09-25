@@ -125,16 +125,19 @@ void func_actor_136300_801328E0(s32 arg0)
     Task_SpawnFromTable(&D_80183380, 0, arg0, 0);
 }
 
-/// Message handler for the start-countdown cue. A positive argument is latched
-/// and nothing else happens; otherwise the CD command queue is dropped into
-/// Mdec_DecodeToVram mode 2 and -- except for the -2 "already ran" message --
-/// the spawn block is filled and the `D_actor_136300_80132AC4` entry started.
+/// Message handler driving the screen wave. A positive argument is written
+/// into the wave's ramp state (1 ramps the wave back down, after which the
+/// task ends). Otherwise the CD command queue's `field_22A` is set to 2 and,
+/// except for the -2 message, the ramp context is seeded (span 0x64 for 0,
+/// 5 otherwise, scale 0x100) and the screen-wave task
+/// `D_actor_136300_80132AC4` is spawned with it.
 ///
-/// Both halves of the block are written in *each* arm of the countdown test so
+/// Both halves of the context are written in *each* arm of the span test so
 /// that each arm is a complete two-store address session: jump optimization
-/// then merges the identical tails and the countdown collapses to one `li` per
+/// then merges the identical tails and the span collapses to one `li` per
 /// arm, which is what puts the block's `lui` in the delay slot of the entry
-/// test. Hoisting `unk2` out of the arms compiles to a different allocation.
+/// test. Hoisting the scale store out of the arms compiles to a different
+/// allocation.
 void func_actor_136300_80132910(s32 arg0)
 {
     CdCmdQueue* queue;
@@ -153,7 +156,7 @@ void func_actor_136300_80132910(s32 arg0)
             Task_SpawnFromTable(&D_actor_136300_80132AC4, 0, 0, (s32)&D_actor_136300_8013C99C);
         }
     } else {
-        D_actor_136300_8013C9A0 = arg0;
+        D_actor_136300_8013C99C.field_4 = arg0;
     }
 }
 

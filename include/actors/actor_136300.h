@@ -5,22 +5,26 @@
 
 #include "main/task.h"
 
-/// Spawn-parameter block handed to the `D_actor_136300_80132AC4` entry as
-/// `Task_SpawnFromTable`'s fourth argument, so the child task picks it up as
-/// `Task::spawnArg2`. The overlay seeds both halves before spawning: `field_0`
-/// is the value the child acts on (0x64 or 5, selected by the message this
-/// actor received) and `field_2` is 0x100 in every call site.
-typedef struct Actor136300Spawn {
-    /* 0x0 */ s16 field_0;
-    /* 0x2 */ s16 field_2;
-} Actor136300Spawn;
-STATIC_ASSERT_SIZEOF(Actor136300Spawn, 0x4);
+/// Ramp context of the screen-wave task. The message handler seeds the span
+/// and scale and spawns the task with the block as its argument; a later
+/// positive message is written into the ramp state, which ends the wave. The
+/// task advances the frame and reads the tint.
+typedef struct Actor136300WaveCtx {
+    s16 field_0; // span: frames the ramp takes to reach full scale
+    s16 field_2; // scale: amplitude at the end of the ramp
+    s16 field_4; // ramp state: 0 up, 1 down, 2 finished
+    s16 field_6; // current ramp frame
+    u8  field_8; // nonzero: tint the mesh with field_9..field_B
+    u8  field_9;
+    u8  field_A;
+    u8  field_B;
+} Actor136300WaveCtx;
 
-extern Actor136300Spawn D_actor_136300_8013C99C;
+/// Earlier name of the ramp context, still used by a room that carries the
+/// same message handler.
+typedef Actor136300WaveCtx Actor136300Spawn;
 
-/// Latch for a positive message argument, written by
-/// `func_actor_136300_80132910` and referenced nowhere else in the overlay.
-extern s16 D_actor_136300_8013C9A0;
+extern Actor136300WaveCtx D_actor_136300_8013C99C;
 
 extern TaskDesc D_actor_136300_80132AC4;
 
