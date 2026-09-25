@@ -6,7 +6,6 @@
 #include <psyq/rand.h>
 #include <psyq/strings.h>
 
-#include "actors/actors_shared_80133c6c.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
