@@ -7,23 +7,6 @@
 #include "gameplay/3A34.h"
 #include "main/task.h"
 
-/// The actor's pair of `GsCOORDINATE2`s, 0x50 apart. The frame handler clears
-/// both `flg` words before `Gp_UpdateCoord`; the ground-quad helper draws at
-/// `field_50`'s x/z and `field_0`'s y.
-typedef struct Actor510900Coord {
-    /* 0x00 */ GsCOORDINATE2 field_0;
-    /* 0x50 */ GsCOORDINATE2 field_50;
-} Actor510900Coord;
-
-typedef struct Actor510900Obj2C {
-    /* 0x00 */ byte              pad_0[8];
-    /* 0x08 */ Actor510900Coord* field_8;
-    /* 0x0C */ s16               field_C;  // model flag word, as TmdObject::flags
-    /* 0x0E */ byte              pad_E[0xE];
-    /* 0x1C */ MATRIX*           field_1C; // light matrix, as TmdObject::lightMtx
-    /* 0x20 */ MATRIX*           field_20; // colour matrix, as TmdObject::colorMtx
-} Actor510900Obj2C;
-
 typedef struct Actor510900Work {
     /* 0x000 */ GpObj  obj0;
     /* 0x020 */ byte   pad_20[0x18];
@@ -36,15 +19,15 @@ typedef struct Actor510900Work {
     /* 0x43C */ MATRIX field_43C; ///< colour matrix, handed to TmdObject::colorMtx
     /* 0x45C */ MATRIX field_45C; ///< light matrix, handed to TmdObject::lightMtx
     /* 0x47C */ GpObj  obj47C;
-    /// `obj47C`'s collision table (`Gp_InitRec18Table` seeds 3 records) and the
-    /// byte address the context's `field_54` points at.
+    /// `obj47C`'s collision table (`Gp_InitRec18Table` seeds 3 records), and
+    /// the enemy's `GpEnemy::recs`.
     /* 0x49C */ GpRec18 rec49C[3];
     /* 0x4E4 */ GpObj   obj4E4;
     /* 0x504 */ GpObj   obj504;
     /// Shared collision table of `obj4E4` and `obj504`; only `obj4E4`'s
     /// `Gp_InitRec18Table` seeds it.
     /* 0x524 */ GpRec18  rec524[1];
-    /* 0x53C */ GpEffArg field_53C; // record the hit's effect is spawned with; `coord` is `&coord[3]`, as the context's `field_18`
+    /* 0x53C */ GpEffArg field_53C; // record the hit's effect is spawned with; `coord` is the model's `coords[3]`, as the enemy's `GpEnemy::coord`
     /* 0x544 */ MATRIX   field_544;
     /* 0x564 */ s32*     field_564; // 0x34 receives field_594 when it changes
                                     /// Task of the second enemy the spawn creates from `D_actor_510900_80167A18`;
@@ -141,38 +124,6 @@ typedef struct Actor510900MatrixWords {
     /* 0x10 */ s16 m22;
 } Actor510900MatrixWords;
 
-typedef struct Actor510900 {
-    /* 0x00 */ byte              pad_0[0x18];
-    /* 0x18 */ TaskFunc          exitCallback;
-    /* 0x1C */ Actor510900Work*  field_1C;
-    /* 0x20 */ GpEnemy*          field_20;
-    /* 0x24 */ void*             field_24;
-    /* 0x28 */ byte              pad_28[0x4];
-    /* 0x2C */ Actor510900Obj2C* field_2C;
-    /* 0x30 */ s32               state;
-} Actor510900;
-
-typedef struct Actor510900Ctx {
-    /* 0x00 */ byte           pad_0[0x4];
-    /* 0x04 */ MATRIX*        field_4;
-    /* 0x08 */ u16            field_8; // top nibble selects the sound bank
-    /* 0x0A */ byte           pad_A[0x6];
-    /* 0x10 */ GpLinkNode     node;
-    /* 0x18 */ GsCOORDINATE2* field_18;
-    /* 0x1C */ s32            field_1C;
-    /* 0x20 */ s32            field_20;
-    /* 0x24 */ s32            field_24;
-    /* 0x28 */ byte           pad_28[0x18];
-    /* 0x40 */ u16            field_40; ///< HP, seeded from the pair source's `hpMax`
-    /* 0x42 */ byte           pad_42[0x6];
-    /* 0x48 */ u8             field_48;
-    /* 0x49 */ byte           pad_49[0x3];
-    /* 0x4C */ u8             field_4C;
-    /* 0x4D */ byte           pad_4D[0x3];
-    /* 0x50 */ GpPairSrcE*    field_50;
-    /* 0x54 */ s32            field_54; ///< byte address of `Actor510900Work::rec49C`
-} Actor510900Ctx;
-
 /// `TaskDesc` table the state hands `Gp_SpawnEnemyFromTable` (entry 4).
 extern TaskDesc D_actor_510900_80167A18[];
 
@@ -187,11 +138,11 @@ extern u32 D_actor_510900_80167A6C;
 /// from; the spawn hands it over whole, so it is only ever a byte address here.
 extern u8 D_actor_510900_80167AA4[];
 
-void func_actor_510900_801350F8(Actor510900Ctx* arg0, Actor510900* arg1);
-void func_actor_510900_801355B4(Actor510900Ctx* arg0, Actor510900* arg1);
+void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1);
+void func_actor_510900_801355B4(GpEnemy* arg0, Task* arg1);
 void func_actor_510900_8013B424(s32 arg0);
-void func_actor_510900_8013B524(Actor510900* arg0);
-void func_actor_510900_8013B608(Actor510900* arg0);
-void func_actor_510900_8013BC38(Actor510900* arg0, Actor510900Coord* arg1);
+void func_actor_510900_8013B524(Task* arg0);
+void func_actor_510900_8013B608(Task* arg0);
+void func_actor_510900_8013BC38(Task* arg0, GsCOORDINATE2* arg1);
 
 #endif
