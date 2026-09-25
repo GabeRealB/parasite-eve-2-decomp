@@ -1335,7 +1335,7 @@ done:
 void func_actor_800100_801643F4(Task* arg0)
 {
     void**         scratch;
-    u8*            head;
+    VECTOR*        head;
     VECTOR3*       pos;
     GameActor*     actor;
     GpLinkNode*    node;
@@ -1345,14 +1345,14 @@ void func_actor_800100_801643F4(Task* arg0)
     s32            arg;
     s32            flag;
 
-    actor                          = arg0->work;
-    extra                          = (TmdObject*)(gameGetPtrSlot(3))->extra;
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    SCRATCH_HEAD_AT(scratch, void) = (u8*)head - 0x10;
-    pos                            = (VECTOR3*)((u8*)head - 0x10);
-    node                           = actor->field_90C;
-    src                            = extra->coords;
+    actor                            = arg0->work;
+    extra                            = (TmdObject*)(gameGetPtrSlot(3))->extra;
+    scratch                          = SCRATCH_HEAD_ADDR;
+    head                             = SCRATCH_HEAD_AT(scratch, VECTOR);
+    SCRATCH_HEAD_AT(scratch, VECTOR) = head - 1;
+    pos                              = (VECTOR3*)(head - 1);
+    node                             = actor->field_90C;
+    src                              = extra->coords;
     if (node != NULL) {
         if (!(node->state.b.flags & 1)) {
             Gp_GetLockPos(node, pos);
@@ -1389,7 +1389,7 @@ void func_actor_800100_801643F4(Task* arg0)
             break;
     }
     func_8010BE5C(arg0, (VECTOR3*)src->coord.t);
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_POP(VECTOR);
 }
 
 /// Second arm of the lock-on drive: builds the lock position at
@@ -1405,19 +1405,19 @@ void func_actor_800100_801643F4(Task* arg0)
 void func_actor_800100_80164580(Task* arg0)
 {
     void**     scratch;
-    u8*        head;
+    VECTOR*    head;
     VECTOR3*   pos;
     GameActor* actor;
     s32        flag;
     s32        arg;
     s32        val;
 
-    actor                          = arg0->work;
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    SCRATCH_HEAD_AT(scratch, void) = (u8*)head - 0x10;
-    pos                            = (VECTOR3*)((u8*)head - 0x10);
-    flag                           = 1;
+    actor                            = arg0->work;
+    scratch                          = SCRATCH_HEAD_ADDR;
+    head                             = SCRATCH_HEAD_AT(scratch, VECTOR);
+    SCRATCH_HEAD_AT(scratch, VECTOR) = head - 1;
+    pos                              = (VECTOR3*)(head - 1);
+    flag                             = 1;
 
     switch (actor->field_95E) {
         case 0:
@@ -1461,7 +1461,7 @@ void func_actor_800100_80164580(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_POP(VECTOR);
 }
 
 void func_actor_800100_80164710(Task* arg0)
@@ -1474,14 +1474,14 @@ void func_actor_800100_80164710(Task* arg0)
     GpLinkNode*             lock;
     GsCOORDINATE2*          coord;
     Actor800100LockScratch* scratch;
-    VECTOR3*                head;
+    Actor800100LockScratch* head;
     void**                  scratchHead;
     s32                     dist;
     u16                     state;
 
-    head               = SCRATCH_HEAD(VECTOR3);
+    head               = SCRATCH_HEAD(Actor800100LockScratch);
     actor              = arg0->work;
-    scratch            = (Actor800100LockScratch*)((u8*)head - 0x20);
+    scratch            = head - 1;
     SCRATCH_HEAD(void) = scratch;
     d4                 = actor->field_910;
     Gp_TrackAllyLockTarget(arg0, 3);
@@ -1494,7 +1494,7 @@ void func_actor_800100_80164710(Task* arg0)
         }
     } else {
         lock = actor->field_90C;
-        if ((lock == NULL) || (coord = ((TmdObject*)arg0->extra)->coords, Gp_GetLockPos(lock, &scratch->lock), func_80103C74(coord, &scratch->lock, (VECTOR3*)((u8*)head - 0x10)), ((func_80103D8C(scratch->rot.vx, scratch->rot.vz) < 0x301) != 0))) {
+        if ((lock == NULL) || (coord = ((TmdObject*)arg0->extra)->coords, Gp_GetLockPos(lock, &scratch->lock), func_80103C74(coord, &scratch->lock, &(head - 1)->rot), ((func_80103D8C(scratch->rot.vx, scratch->rot.vz) < 0x301) != 0))) {
             actor2            = arg0->work;
             actor2->field_954 = 0;
             actor2->field_956 = 4;
@@ -1534,7 +1534,7 @@ void func_actor_800100_80164710(Task* arg0)
         }
         scratchHead = SCRATCH_HEAD_ADDR;
     }
-    SCRATCH_POP_BYTES_AT(scratchHead, 0x20);
+    SCRATCH_POP_AT(scratchHead, Actor800100LockScratch);
 }
 
 /// Third arm of the lock-on drive, running the actor's `field_95E` state
@@ -1551,7 +1551,7 @@ void func_actor_800100_80164710(Task* arg0)
 void func_actor_800100_80164940(Task* arg0)
 {
     void**         scratch;
-    u8*            head;
+    VECTOR*        head;
     VECTOR3*       pos;
     GameActor*     actor;
     GsCOORDINATE2* coord;
@@ -1564,13 +1564,13 @@ void func_actor_800100_80164940(Task* arg0)
     s32            count;
     s32            dist;
 
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    SCRATCH_HEAD_AT(scratch, void) = (u8*)head - 0x10;
-    pos                            = (VECTOR3*)((u8*)head - 0x10);
-    actor                          = arg0->work;
-    coord                          = ((TmdObject*)arg0->extra)->coords;
-    flag                           = 1;
+    scratch                          = SCRATCH_HEAD_ADDR;
+    head                             = SCRATCH_HEAD_AT(scratch, VECTOR);
+    SCRATCH_HEAD_AT(scratch, VECTOR) = head - 1;
+    pos                              = (VECTOR3*)(head - 1);
+    actor                            = arg0->work;
+    coord                            = ((TmdObject*)arg0->extra)->coords;
+    flag                             = 1;
     switch (actor->field_95E) {
         case 0:
             actor->field_95E = flag;
@@ -1639,7 +1639,7 @@ void func_actor_800100_80164940(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_POP(VECTOR);
 }
 
 /// Aim/lock drive for the actor's `field_95E` phase machine. While the angle
@@ -2237,7 +2237,7 @@ void func_actor_800100_801659EC(Task* arg0)
     GpLinkNode*    node;
     GsCOORDINATE2* coord;
     VECTOR3*       lock;
-    VECTOR3*       head;
+    VECTOR*        head;
     s32            entry;
     s32            offset;
     s32            kind;
@@ -2246,8 +2246,8 @@ void func_actor_800100_801659EC(Task* arg0)
     s32            inRange;
     s32            mode;
 
-    head                  = SCRATCH_HEAD(VECTOR3);
-    lock                  = (VECTOR3*)((u8*)head - 0x10);
+    head                  = SCRATCH_HEAD(VECTOR);
+    lock                  = (VECTOR3*)(head - 1);
     SCRATCH_HEAD(VECTOR3) = lock;
     actor                 = arg0->work;
     d4                    = actor->field_910;
@@ -2316,7 +2316,7 @@ void func_actor_800100_801659EC(Task* arg0)
             func_actor_800100_80165664(arg0);
             break;
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_POP(VECTOR);
 }
 
 void func_actor_800100_80165C38(Task* arg0)
@@ -2427,12 +2427,12 @@ void func_actor_800100_80165F50(Task* arg0)
     GsCOORDINATE2* place;
     u16            state;
     void**         scratch;
-    void*          head;
+    GsCOORDINATE2* head;
 
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    SCRATCH_HEAD_AT(scratch, void) = (u8*)head - 0x50;
-    place                          = (GsCOORDINATE2*)((u8*)head - 0x50);
+    scratch                                 = SCRATCH_HEAD_ADDR;
+    head                                    = SCRATCH_HEAD_AT(scratch, GsCOORDINATE2);
+    SCRATCH_HEAD_AT(scratch, GsCOORDINATE2) = head - 1;
+    place                                   = head - 1;
 
     actor = arg0->work;
     d4    = actor->field_910;
@@ -2489,23 +2489,23 @@ void func_actor_800100_80165F50(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(0x50);
+    SCRATCH_POP(GsCOORDINATE2);
 }
 
 void func_actor_800100_80166190(Task* arg0)
 {
     void**         scratch;
-    void*          head;
+    GsCOORDINATE2* head;
     GameActor*     actor;
     GpActorD4*     d4;
     GsCOORDINATE2* coord;
     GsCOORDINATE2* place;
     u16            state;
 
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    SCRATCH_HEAD_AT(scratch, void) = (u8*)head - 0x50;
-    place                          = (GsCOORDINATE2*)((u8*)head - 0x50);
+    scratch                                 = SCRATCH_HEAD_ADDR;
+    head                                    = SCRATCH_HEAD_AT(scratch, GsCOORDINATE2);
+    SCRATCH_HEAD_AT(scratch, GsCOORDINATE2) = head - 1;
+    place                                   = head - 1;
 
     actor = arg0->work;
     d4    = actor->field_910;
@@ -2608,13 +2608,13 @@ void func_actor_800100_80166190(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP_BYTES(0x50);
+    SCRATCH_POP(GsCOORDINATE2);
 }
 
 void func_actor_800100_80166514(Task* arg0)
 {
     void**                   scratch;
-    void*                    head;
+    Actor800100PlaceScratch* head;
     GameActor*               actor;
     GsCOORDINATE2            sp10;
     GsCOORDINATE2*           src;
@@ -2628,27 +2628,27 @@ void func_actor_800100_80166514(Task* arg0)
     sp10        = *src;
     obj->flags |= 0xC000;
 
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    blk                            = (Actor800100PlaceScratch*)((u8*)head - 0x5C);
-    SCRATCH_HEAD_AT(scratch, void) = blk;
+    scratch                                           = SCRATCH_HEAD_ADDR;
+    head                                              = SCRATCH_HEAD_AT(scratch, Actor800100PlaceScratch);
+    blk                                               = head - 1;
+    SCRATCH_HEAD_AT(scratch, Actor800100PlaceScratch) = blk;
 
     Gp_FindRec18(obj->ctx.d4rec->recs, 0);
     Gfx_RotMatrixX(&sp10.workm, 0x400, 0);
     blk->rot.vx = 0;
     blk->rot.vy = 0x120;
     blk->rot.vz = 0x20;
-    Gp_PlaceCoordOffset(&sp10, &blk->coord, (SVECTOR*)((u8*)head - 0xC));
+    Gp_PlaceCoordOffset(&sp10, &blk->coord, &(head - 1)->rot);
     angle      = func_actor_800100_8016709C(&blk->coord, (GpRec18*)actor->pad_3BC, NULL);
     blk->angle = angle;
     func_actor_800100_8016666C(&blk->coord, angle);
     blk->rot.vx = 0;
     blk->rot.vz = 0;
     blk->rot.vy = blk->angle + 0x38;
-    Gp_PlaceCoordOffset(&blk->coord, &blk->coord, (SVECTOR*)((u8*)head - 0xC));
+    Gp_PlaceCoordOffset(&blk->coord, &blk->coord, &(head - 1)->rot);
     func_actor_800100_801668C0(&blk->coord);
     Gp_ClearRec18Occupied((GpRec18*)actor->pad_3BC);
-    SCRATCH_POP_BYTES_AT(scratch, 0x5C);
+    SCRATCH_POP_AT(scratch, Actor800100PlaceScratch);
 }
 
 /* The 0x1C bytes are carved off `head` into `newhead` and stored there, but the
@@ -2826,11 +2826,11 @@ s32 func_actor_800100_80166B40(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2
         pidx    = &idx;
         rec     = arg0;
         {
-            register void* p asm("v0");
-            p                              = SCRATCH_HEAD_AT(scratch, void);
-            p                              = (u8*)p - 0x68;
-            block                          = p;
-            SCRATCH_HEAD_AT(scratch, void) = p;
+            register GpPickScratch* p asm("v0");
+            p                                       = SCRATCH_HEAD_AT(scratch, GpPickScratch);
+            p                                       = p - 1;
+            block                                   = p;
+            SCRATCH_HEAD_AT(scratch, GpPickScratch) = p;
         }
         do {
             if (rec->key & 0x100000) {
@@ -2897,7 +2897,7 @@ s32 func_actor_800100_80166B40(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2
         } else {
             i = 0;
         }
-        SCRATCH_POP_BYTES(0x68);
+        SCRATCH_POP(GpPickScratch);
         return i;
     }
     return 0;
