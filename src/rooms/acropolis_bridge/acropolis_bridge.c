@@ -3043,12 +3043,12 @@ void func_acropolis_bridge_80183654(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// on a square root.
 static __inline__ s32 acropolisBridgeOutOfRange(AcropolisBridgeDeltaScratch* d, s16 r)
 {
-    RoomRangeScratch* b;
-    u8*               head;
+    OverlayRangeScratch* b;
+    u8*                  head;
 
     head                  = *(u8**)G_SCRATCH_HEAD;
     *(u8**)G_SCRATCH_HEAD = head - 0xC;
-    b                     = (RoomRangeScratch*)*(u8**)G_SCRATCH_HEAD;
+    b                     = (OverlayRangeScratch*)*(u8**)G_SCRATCH_HEAD;
 
     b->dx                 = (s16)d->x;
     b->dz                 = (s16)d->z;

@@ -1445,28 +1445,6 @@ void func_mine_cavern_80181730(Task* arg0)
     }
 }
 
-/// Non-zero when the XZ offset `d` lies outside radius `r`; squares in a
-/// scratch block.
-static __inline__ s32 _mineCavernOutOfRange(SVECTOR* d, s16 r)
-{
-    u8*               head;
-    RoomRangeScratch* blk;
-    s32               ret;
-
-    head                                   = *(u8**)G_SCRATCH_HEAD;
-    ((RoomRangeScratch*)(head - 0xC))->dx  = d->vx;
-    blk                                    = (RoomRangeScratch*)(head - 0xC);
-    blk->dz                                = d->vz;
-    blk->r                                 = r;
-    ((RoomRangeScratch*)(head - 0xC))->dx *= ((RoomRangeScratch*)(head - 0xC))->dx;
-    *(RoomRangeScratch**)G_SCRATCH_HEAD    = blk;
-    blk->dz                               *= blk->dz;
-    blk->r                                *= blk->r;
-    *(u8**)G_SCRATCH_HEAD                  = head;
-    ret                                    = ((RoomRangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
-    return ret;
-}
-
 /// Draws a glow at each of the six points of `D_mine_cavern_8018E36C`, the
 /// fourth skipped while view 4 is active: per point, a fan of eight
 /// semi-transparent Gouraud triangles around its projected position, each
@@ -2172,7 +2150,7 @@ void func_mine_cavern_801830F0(GpEnemy* arg0, Task* arg1)
     d->vz                                    = Player_Status.coordMtx->t[2] - coords->coord.t[2];
     blk                                      = (_MineCavernHitScratch*)(head - 0x28);
 
-    if (_mineCavernOutOfRange(d, 0x1770) || Gp_StateF0.field_0 != 1 ||
+    if (overlayOutOfRange(d, 0x1770) || Gp_StateF0.field_0 != 1 ||
         (gGameSession->at4.loc.place != Gp_StateF0.field_0 && gGameSession->at4.loc.place != 4)) {
         arg0->node.flags = 1;
     } else {

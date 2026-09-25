@@ -344,14 +344,6 @@ typedef struct Actor403000DropScratch {
 } Actor403000DropScratch;
 STATIC_ASSERT_SIZEOF(Actor403000DropScratch, 0x28);
 
-/// Squared horizontal components and radius used by `Actor403000_Outside`.
-typedef struct Actor403000RadiusScratch {
-    /* 0x00 */ s32 x;
-    /* 0x04 */ s32 y;
-    /* 0x08 */ s32 z;
-} Actor403000RadiusScratch;
-STATIC_ASSERT_SIZEOF(Actor403000RadiusScratch, 0xC);
-
 /// 0x14-byte scratch from `G_SCRATCH_HEAD` used by
 /// `func_actor_403000_8013C2D4`: `facing` and `base` are the player's and the
 /// actor's waypoint-grid cells, `index` the waypoint picked from `base` plus
@@ -4008,19 +4000,19 @@ void func_actor_403000_8013B238(Task* arg0)
 
 static __inline__ s32 Actor403000_Outside(SVECTOR* v, s32 r)
 {
-    Actor403000RadiusScratch* s;
-    Actor403000RadiusScratch* head;
-    head                                        = *(Actor403000RadiusScratch**)G_SCRATCH_HEAD;
-    s                                           = head - 1;
-    *(Actor403000RadiusScratch**)G_SCRATCH_HEAD = s;
-    s->x                                        = v->vx;
-    s->y                                        = v->vz;
-    s->z                                        = r;
-    s->x                                       *= s->x;
-    s->y                                       *= s->y;
-    s->z                                       *= s->z;
-    *(Actor403000RadiusScratch**)G_SCRATCH_HEAD = head;
-    return (s->x + s->y) >= s->z;
+    OverlayRangeScratch* s;
+    OverlayRangeScratch* head;
+    head                                   = *(OverlayRangeScratch**)G_SCRATCH_HEAD;
+    s                                      = head - 1;
+    *(OverlayRangeScratch**)G_SCRATCH_HEAD = s;
+    s->dx                                  = v->vx;
+    s->dz                                  = v->vz;
+    s->r                                   = r;
+    s->dx                                 *= s->dx;
+    s->dz                                 *= s->dz;
+    s->r                                  *= s->r;
+    *(OverlayRangeScratch**)G_SCRATCH_HEAD = head;
+    return (s->dx + s->dz) >= s->r;
 }
 
 void func_actor_403000_8013B74C(Task* arg0)

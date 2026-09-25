@@ -1925,7 +1925,7 @@ void func_actor_401000_80135AA4(Task* arg0)
                 angle = -angle;
             }
             if (angle < 0x80) {
-                if (actorOutOfRange(&chase->delta, 0x708) && func_actor_401000_80132824(arg0) != 1) {
+                if (overlayOutOfRange(&chase->delta, 0x708) && func_actor_401000_80132824(arg0) != 1) {
                     work->field_0 = 0xA;
                 }
             }
@@ -1937,7 +1937,7 @@ void func_actor_401000_80135AA4(Task* arg0)
         chase->turn     = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         work->field_8AE = chase->turn;
         if (chase->turn < 0x200) {
-            if (!actorOutOfRange(&chase->delta, 0x44C) && work->field_C1B == 0) {
+            if (!overlayOutOfRange(&chase->delta, 0x44C) && work->field_C1B == 0) {
                 work->field_0 = 0xB;
             }
         }
@@ -2186,7 +2186,7 @@ void func_actor_401000_80136E20(Task* arg0)
     func_actor_401000_80132EF0(arg0);
     actorConfigPositionDelta(&Player_Status, ((TmdObject*)arg0->extra)->coords, &aim->delta);
     if (work->field_C00 == work->field_C02) {
-        if (work->field_C24 < 2 || actorOutOfRange(&aim->delta, 0x384) || work->field_C1B != 0) {
+        if (work->field_C24 < 2 || overlayOutOfRange(&aim->delta, 0x384) || work->field_C1B != 0) {
             work->field_0 = 8;
         } else {
             work->field_0 = 0xB;
@@ -2390,7 +2390,7 @@ void func_actor_401000_801378DC(Task* arg0)
     func_actor_401000_80132EF0(arg0);
     if ((work->field_5A & 0x3FF) == 0x10 && player->field_954 != 2) {
         angle = actorMatrixPositionYaw(arg0, &delta, D_80073B8C);
-        if (abs(angle) < 0x10 && !actorOutOfRange(&delta, 0x44C)) {
+        if (abs(angle) < 0x10 && !overlayOutOfRange(&delta, 0x44C)) {
             if (D_8007218A == 1) {
                 D_actor_401000_80154F1C.animBlock.ptr = &D_actor_401000_80154F08;
             } else {
@@ -2413,7 +2413,7 @@ void func_actor_401000_801378DC(Task* arg0)
         delta.vx = ((TmdObject*)arg0->extra)->coords->coord.t[0] - config->coordMtx->t[0];
         delta.vy = 0;
         delta.vz = ((TmdObject*)arg0->extra)->coords->coord.t[2] - config->coordMtx->t[2];
-        if (!actorOutOfRange(p, 0x578)) {
+        if (!overlayOutOfRange(p, 0x578)) {
             VectorNormalSS(p, p);
             gte_lddp(10);
             gte_ldsv(p);
@@ -2834,7 +2834,7 @@ void func_actor_401000_80138F50(Task* arg0)
     delta.vx = D_80073B8C->t[0] - coord->coord.t[0];
     d->vy    = D_80073B8C->t[1] - coord->coord.t[1];
     d->vz    = D_80073B8C->t[2] - coord->coord.t[2];
-    if (!actorOutOfRange(d, work->field_C16)) {
+    if (!overlayOutOfRange(d, work->field_C16)) {
         work->field_0 = 6;
     }
     if (*(u32*)&Gp_StateF0 & 0x50000) {
@@ -2904,7 +2904,7 @@ void func_actor_401000_8013922C(Task* arg0)
     delta.vx        = D_80073B8C->t[0] - coord->coord.t[0];
     d->vy           = D_80073B8C->t[1] - coord->coord.t[1];
     d->vz           = D_80073B8C->t[2] - coord->coord.t[2];
-    if (!actorOutOfRange(d, work->field_C16)) {
+    if (!overlayOutOfRange(d, work->field_C16)) {
         SndEvt_EnqueueType7(0x51030008, 1);
         Gp_ArmStateF0(1);
         work->field_0 = 6;
@@ -2958,7 +2958,7 @@ void func_actor_401000_801394EC(Task* arg0)
         turn->delta.vx                       = work->field_C[work->field_14].x - ((TmdObject*)arg0->extra)->coords->coord.t[0];
         turn->delta.vy                       = 0;
         turn->delta.vz                       = work->field_C[work->field_14].z - ((TmdObject*)arg0->extra)->coords->coord.t[2];
-        if (!actorOutOfRange(&turn->delta, 0xA0) || work->field_6 >= 0x15) {
+        if (!overlayOutOfRange(&turn->delta, 0xA0) || work->field_6 >= 0x15) {
             if (work->field_14 == 0) {
                 work->field_14 = 1;
             } else {
@@ -3001,9 +3001,9 @@ void func_actor_401000_801394EC(Task* arg0)
         ((TmdObject*)arg0->extra)->coords->flg = 0;
         if (func_actor_401000_80132824(arg0) != 1) {
             actorConfigPositionDelta(&Player_Status, ((TmdObject*)arg0->extra)->coords, &turn->delta);
-            if (!actorOutOfRange(&turn->delta, work->field_C16)) {
+            if (!overlayOutOfRange(&turn->delta, work->field_C16)) {
                 work->field_0 = 6;
-            } else if (!actorOutOfRange(&turn->delta, 0xFA0)) {
+            } else if (!overlayOutOfRange(&turn->delta, 0xFA0)) {
                 coord       = ((TmdObject*)arg0->extra)->coords;
                 turn->angle = actorNormalizeYaw(ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
                 if (ABS(turn->angle) < 0x300) {
@@ -3631,7 +3631,7 @@ void func_actor_401000_8013C46C(Task* arg0)
         s->angle        = actorNormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         work->field_8AE = s->angle;
         if (s->angle < 0x200) {
-            if (!actorOutOfRange(&s->delta, 0x44C) && work->field_C1B == 0) {
+            if (!overlayOutOfRange(&s->delta, 0x44C) && work->field_C1B == 0) {
                 work->field_0 = 0xB;
             }
         }

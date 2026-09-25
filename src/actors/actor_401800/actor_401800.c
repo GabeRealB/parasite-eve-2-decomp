@@ -1982,41 +1982,41 @@ s32 func_actor_401800_8013629C(Task* arg0, GpRec18* recs, s16 count)
 /// Nonzero when the XZ offset `d` lies outside radius `r`; squares in a scratch block.
 static __inline__ s32 Actor401800_OutOfRange(SVECTOR* d, s16 r)
 {
-    u8*                head;
-    ActorRangeScratch* blk;
-    s32                ret;
+    u8*                  head;
+    OverlayRangeScratch* blk;
+    s32                  ret;
 
-    head                                    = *(u8**)G_SCRATCH_HEAD;
-    blk                                     = (ActorRangeScratch*)(head - 0xC);
-    ((ActorRangeScratch*)(head - 0xC))->dx  = d->vx;
-    *(ActorRangeScratch**)G_SCRATCH_HEAD    = blk;
-    blk->dz                                 = d->vz;
-    blk->r                                  = r;
-    ((ActorRangeScratch*)(head - 0xC))->dx *= ((ActorRangeScratch*)(head - 0xC))->dx;
-    blk->dz                                *= blk->dz;
-    blk->r                                 *= blk->r;
-    *(u8**)G_SCRATCH_HEAD                   = head;
-    ret                                     = ((ActorRangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
+    head                                      = *(u8**)G_SCRATCH_HEAD;
+    blk                                       = (OverlayRangeScratch*)(head - 0xC);
+    ((OverlayRangeScratch*)(head - 0xC))->dx  = d->vx;
+    *(OverlayRangeScratch**)G_SCRATCH_HEAD    = blk;
+    blk->dz                                   = d->vz;
+    blk->r                                    = r;
+    ((OverlayRangeScratch*)(head - 0xC))->dx *= ((OverlayRangeScratch*)(head - 0xC))->dx;
+    blk->dz                                  *= blk->dz;
+    blk->r                                   *= blk->r;
+    *(u8**)G_SCRATCH_HEAD                     = head;
+    ret                                       = ((OverlayRangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
     return ret;
 }
 
 static __inline__ s32 Actor401800_ChaseOutOfRange(SVECTOR* d, s16 r)
 {
-    u8*                head;
-    ActorRangeScratch* blk;
-    s32                ret;
+    u8*                  head;
+    OverlayRangeScratch* blk;
+    s32                  ret;
 
-    head                                    = *(u8**)G_SCRATCH_HEAD;
-    ((ActorRangeScratch*)(head - 0xC))->dx  = d->vx;
-    blk                                     = (ActorRangeScratch*)(head - 0xC);
-    blk->dz                                 = d->vz;
-    blk->r                                  = r;
-    ((ActorRangeScratch*)(head - 0xC))->dx *= ((ActorRangeScratch*)(head - 0xC))->dx;
-    *(ActorRangeScratch**)G_SCRATCH_HEAD    = blk;
-    blk->dz                                *= blk->dz;
-    blk->r                                 *= blk->r;
-    *(u8**)G_SCRATCH_HEAD                   = head;
-    ret                                     = ((ActorRangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
+    head                                      = *(u8**)G_SCRATCH_HEAD;
+    ((OverlayRangeScratch*)(head - 0xC))->dx  = d->vx;
+    blk                                       = (OverlayRangeScratch*)(head - 0xC);
+    blk->dz                                   = d->vz;
+    blk->r                                    = r;
+    ((OverlayRangeScratch*)(head - 0xC))->dx *= ((OverlayRangeScratch*)(head - 0xC))->dx;
+    *(OverlayRangeScratch**)G_SCRATCH_HEAD    = blk;
+    blk->dz                                  *= blk->dz;
+    blk->r                                   *= blk->r;
+    *(u8**)G_SCRATCH_HEAD                     = head;
+    ret                                       = ((OverlayRangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
     return ret;
 }
 

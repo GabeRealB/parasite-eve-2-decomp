@@ -1431,7 +1431,7 @@ void func_actor_356100_80164158(Task* arg0)
     work->field_98E = aim->angle;
     diff            = aim->current - aim->target;
     if (ABS(diff) < 0x44 && (((s16)work->field_B66 / 2) + 3) < work->field_6 && ABS(aim->angle) < 0x80) {
-        if (actorOutOfRange(&aim->delta, 0x708)) {
+        if (overlayOutOfRange(&aim->delta, 0x708)) {
             work->field_0 = 0xA;
         }
     }
@@ -1442,7 +1442,7 @@ void func_actor_356100_80164158(Task* arg0)
         work->field_978 = 1;
     }
     if (aim->angle < 0x200) {
-        if (!actorOutOfRange(&aim->delta, 0x44C)) {
+        if (!overlayOutOfRange(&aim->delta, 0x44C)) {
             work->field_0 = 0xB;
         }
     }
@@ -1666,7 +1666,7 @@ void func_actor_356100_801653F4(Task* arg0)
     s->delta.vy       = Player_Status.coordMtx->t[1] - cur->coord.t[1];
     s->delta.vz       = Player_Status.coordMtx->t[2] - cur->coord.t[2];
     if (work->field_B48 == work->field_B4A) {
-        if (work->field_B64 < 2 || actorOutOfRange(&s->delta, 0x384)) {
+        if (work->field_B64 < 2 || overlayOutOfRange(&s->delta, 0x384)) {
             value = 8;
         } else {
             value = 0xB;
@@ -1848,7 +1848,7 @@ void func_actor_356100_80166018(Task* arg0)
     func_actor_356100_80163508(arg0);
     if ((work->field_5A & 0x3FF) == 0x10 && player->field_954 != 2) {
         angle = actorMatrixPositionYaw(arg0, &pos, D_80073B8C);
-        if (abs(angle) < 0x10 && !actorOutOfRange(&pos, 0x44C)) {
+        if (abs(angle) < 0x10 && !overlayOutOfRange(&pos, 0x44C)) {
             if (D_8007218A == 1) {
                 D_actor_356100_80173244.animBlock.ptr = &D_actor_356100_80173230;
             } else {
@@ -1871,7 +1871,7 @@ void func_actor_356100_80166018(Task* arg0)
         pos.vx = ((TmdObject*)arg0->extra)->coords->coord.t[0] - config->coordMtx->t[0];
         pos.vy = 0;
         pos.vz = ((TmdObject*)arg0->extra)->coords->coord.t[2] - config->coordMtx->t[2];
-        if (!actorOutOfRange(p, 0x578)) {
+        if (!overlayOutOfRange(p, 0x578)) {
             VectorNormalSS(p, p);
             gte_lddp(10);
             gte_ldsv(p);
@@ -2105,7 +2105,7 @@ void func_actor_356100_80166CF0(Task* arg0)
     aim->angle      = ang;
     work->field_98E = ang;
     if (aim->angle < 0x200) {
-        if (!actorOutOfRange(&aim->delta, 0x384)) {
+        if (!overlayOutOfRange(&aim->delta, 0x384)) {
             work->field_0 = 0xB;
         }
     }
@@ -2263,7 +2263,7 @@ void func_actor_356100_80167584(Task* arg0)
     coord = ((TmdObject*)arg0->extra)->coords;
     d     = &delta;
     Actor356100_PositionDelta(coord, d);
-    if (!actorOutOfRange(d, 3000)) {
+    if (!overlayOutOfRange(d, 3000)) {
         work->field_0 = 6;
     }
     func_actor_356100_80163508(arg0);
@@ -2326,7 +2326,7 @@ void func_actor_356100_80167818(Task* arg0)
     coord           = ((TmdObject*)arg0->extra)->coords;
     d               = &delta;
     Actor356100_PositionDelta(coord, d);
-    if (!actorOutOfRange(d, 3000)) {
+    if (!overlayOutOfRange(d, 3000)) {
         SndEvt_EnqueueType7(0x51030008, 1);
         work->field_0 = 6;
     }
@@ -2385,7 +2385,7 @@ void func_actor_356100_80167A7C(Task* arg0)
     turn                                        = (ActorTurnScratch*)(*(u32*)G_SCRATCH_HEAD -= 0xC);
     turn->delta.vy                              = 0;
     turn->delta.vz                              = work->field_C[work->field_14].z - ((TmdObject*)arg0->extra)->coords->coord.t[2];
-    if (!actorOutOfRange(&turn->delta, 0xA0)) {
+    if (!overlayOutOfRange(&turn->delta, 0xA0)) {
         if (work->field_14 == 0) {
             work->field_14 = 1;
         } else {

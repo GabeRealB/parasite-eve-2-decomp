@@ -129,20 +129,20 @@ typedef struct Actor00100PatrolScratch {
 
 static __inline__ s32 Actor00100_PatrolOutsideRadius(SVECTOR* pos, s32 radius)
 {
-    ActorRangeScratch* head;
-    ActorRangeScratch* scratch;
-    s32                x;
-    head    = *(ActorRangeScratch**)G_SCRATCH_HEAD;
-    scratch = (*(ActorRangeScratch**)G_SCRATCH_HEAD = head - 1);
+    OverlayRangeScratch* head;
+    OverlayRangeScratch* scratch;
+    s32                  x;
+    head    = *(OverlayRangeScratch**)G_SCRATCH_HEAD;
+    scratch = (*(OverlayRangeScratch**)G_SCRATCH_HEAD = head - 1);
     x       = pos->vx;
     SOFT_TOUCH_REG_USE(x, scratch);
-    scratch->dx                           = x;
-    scratch->dz                           = pos->vz;
-    scratch->r                            = radius;
-    scratch->dx                          *= scratch->dx;
-    scratch->dz                          *= scratch->dz;
-    scratch->r                           *= scratch->r;
-    *(ActorRangeScratch**)G_SCRATCH_HEAD += 1;
+    scratch->dx                             = x;
+    scratch->dz                             = pos->vz;
+    scratch->r                              = radius;
+    scratch->dx                            *= scratch->dx;
+    scratch->dz                            *= scratch->dz;
+    scratch->r                             *= scratch->r;
+    *(OverlayRangeScratch**)G_SCRATCH_HEAD += 1;
     return scratch->dx + scratch->dz >= scratch->r;
 }
 

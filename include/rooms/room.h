@@ -304,15 +304,6 @@ typedef struct RoomLightShaftScratch {
 } RoomLightShaftScratch;
 STATIC_ASSERT_SIZEOF(RoomLightShaftScratch, 0x24);
 
-/// The scratch block a room's radius test squares its operands in: the X and Z
-/// distances and the radius.
-typedef struct RoomRangeScratch {
-    s32 dx;
-    s32 dz;
-    s32 r;
-} RoomRangeScratch;
-STATIC_ASSERT_SIZEOF(RoomRangeScratch, 0xC);
-
 /// One row of a halo effect's shade table, picked by the effect's palette
 /// selector: each field is the right shift applied to the effect's fade level
 /// to get that colour channel, so a row sets the tint of the halo.

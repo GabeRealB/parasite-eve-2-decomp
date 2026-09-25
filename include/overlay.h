@@ -191,4 +191,35 @@ static __inline__ void overlayToWorld2(GsCOORDINATE2* coord, SVECTOR* v)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(OverlayWalkScratch);
 }
 
+/// The scratch-pad block of an in-radius test on the XZ plane: the two
+/// offsets and the radius, each squared in place before `dx + dz` is compared
+/// with `r`.
+typedef struct OverlayRangeScratch {
+    s32 dx;
+    s32 dz;
+    s32 r;
+} OverlayRangeScratch;
+STATIC_ASSERT_SIZEOF(OverlayRangeScratch, 0xC);
+
+/// Whether the XZ offset `d` reaches at least `r` from its origin.
+static __inline__ s32 overlayOutOfRange(SVECTOR* d, s16 r)
+{
+    u8*                  head;
+    OverlayRangeScratch* blk;
+    s32                  ret;
+
+    head                                      = *(u8**)G_SCRATCH_HEAD;
+    ((OverlayRangeScratch*)(head - 0xC))->dx  = d->vx;
+    blk                                       = (OverlayRangeScratch*)(head - 0xC);
+    blk->dz                                   = d->vz;
+    blk->r                                    = r;
+    ((OverlayRangeScratch*)(head - 0xC))->dx *= ((OverlayRangeScratch*)(head - 0xC))->dx;
+    *(OverlayRangeScratch**)G_SCRATCH_HEAD    = blk;
+    blk->dz                                  *= blk->dz;
+    blk->r                                   *= blk->r;
+    *(u8**)G_SCRATCH_HEAD                     = head;
+    ret                                       = ((OverlayRangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
+    return ret;
+}
+
 #endif /* OVERLAY_H */

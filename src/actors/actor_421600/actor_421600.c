@@ -335,20 +335,6 @@ typedef struct Actor421600TurnScratch {
 } Actor421600TurnScratch;
 STATIC_ASSERT_SIZEOF(Actor421600TurnScratch, 0x10);
 
-/// 0xC-byte scratch from `G_SCRATCH_HEAD` used by `func_actor_421600_80133444`
-/// to hold the XZ offset of a `GsCOORDINATE2` from the centre of its circular
-/// arena (`field_0` / `field_4`) together with the radius `field_8` is tested
-/// against: the function squares all three and pulls the coordinate onto a
-/// 700-unit ring when `field_0 + field_4` reaches `field_8`. Same slot shape as
-/// the gameplay `GpAngleScratch` (3 words at `head - 0xC`); the fields there
-/// are wrap angles, so this overlay keeps its own name for it.
-typedef struct {
-    /* 0x0 */ s32 field_0;
-    /* 0x4 */ s32 field_4;
-    /* 0x8 */ s32 field_8;
-} Actor421600ArenaScratch;
-STATIC_ASSERT_SIZEOF(Actor421600ArenaScratch, 0xC);
-
 /// Waypoint steering scratch with a zone-table index at the tail.
 typedef struct Actor421600RouteScratch {
     /* 0x00 */ SVECTOR vec;
@@ -988,34 +974,34 @@ s32 func_actor_421600_80133334(GsCOORDINATE2* arg0)
 
 void func_actor_421600_80133444(GsCOORDINATE2* arg0)
 {
-    SVECTOR                  vec;
-    SVECTOR*                 dir;
-    Actor421600ArenaScratch* blk;
-    u8*                      head;
-    s32                      outside;
-    u32                      spad_a;
-    u32                      spad_b;
+    SVECTOR              vec;
+    SVECTOR*             dir;
+    OverlayRangeScratch* blk;
+    u8*                  head;
+    s32                  outside;
+    u32                  spad_a;
+    u32                  spad_b;
 
     if ((u32)(arg0->coord.t[0] - 0x1F5) < 0x3E7) {
         if (arg0->coord.t[2] < 0x1F4) {
             if (arg0->coord.t[2] < -0x1F4) {
                 head                           = *(void**)G_SCRATCH_HEAD;
-                blk                            = (Actor421600ArenaScratch*)(head - 0xC);
+                blk                            = (OverlayRangeScratch*)(head - 0xC);
                 spad_a                         = (u32)PSX_SCRATCH;
                 *(void**)((u8*)spad_a + 0x3FC) = blk;
                 vec.vx                         = (u16)arg0->coord.t[0] - 0x3E8;
                 vec.vy                         = 0;
                 vec.vz                         = (u16)arg0->coord.t[2] + 1;
-                blk->field_0                   = vec.vx;
+                blk->dx                        = vec.vx;
                 dir                            = &vec;
-                blk->field_4                   = dir->vz;
-                blk->field_8                   = 0x2D0;
-                blk->field_0                   = blk->field_0 * blk->field_0;
-                blk->field_4                   = blk->field_4 * blk->field_4;
-                blk->field_8                   = blk->field_8 * blk->field_8;
+                blk->dz                        = dir->vz;
+                blk->r                         = 0x2D0;
+                blk->dx                        = blk->dx * blk->dx;
+                blk->dz                        = blk->dz * blk->dz;
+                blk->r                         = blk->r * blk->r;
                 spad_b                         = (u32)PSX_SCRATCH + 0x3F8;
                 *(void**)((u8*)spad_b + 0x4)   = head;
-                outside                        = blk->field_0 + blk->field_4 >= blk->field_8;
+                outside                        = blk->dx + blk->dz >= blk->r;
                 if (outside != 0) {
                     return;
                 }
@@ -3553,18 +3539,18 @@ void func_actor_421600_8013903C(Task* arg0)
 /// camera target is close. Ends by clearing the model's `flg`.
 void func_actor_421600_801392A8(Task* arg0)
 {
-    Actor421600Work*         work;
-    GpEnemy*                 ctx;
-    TmdObject*               obj;
-    GsCOORDINATE2*           coord;
-    MATRIX*                  target;
-    void*                    head;
-    Actor421600ArenaScratch* blk;
-    SVECTOR                  vec;
-    SVECTOR*                 dir;
-    u32                      spad_a;
-    u32                      spad_b;
-    s32                      outside;
+    Actor421600Work*     work;
+    GpEnemy*             ctx;
+    TmdObject*           obj;
+    GsCOORDINATE2*       coord;
+    MATRIX*              target;
+    void*                head;
+    OverlayRangeScratch* blk;
+    SVECTOR              vec;
+    SVECTOR*             dir;
+    u32                  spad_a;
+    u32                  spad_b;
+    s32                  outside;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -3592,18 +3578,18 @@ void func_actor_421600_801392A8(Task* arg0)
     dir->vy                        = (u16)target->t[1] - (u16)coord->coord.t[1];
     dir->vz                        = (u16)target->t[2] - (u16)coord->coord.t[2];
     head                           = *(void**)G_SCRATCH_HEAD;
-    blk                            = (Actor421600ArenaScratch*)((u8*)head - 0xC);
+    blk                            = (OverlayRangeScratch*)((u8*)head - 0xC);
     spad_a                         = (u32)PSX_SCRATCH;
     *(void**)((u8*)spad_a + 0x3FC) = blk;
-    blk->field_0                   = vec.vx;
-    blk->field_4                   = dir->vz;
-    blk->field_8                   = 0x5DC;
-    blk->field_0                   = blk->field_0 * blk->field_0;
-    blk->field_4                   = blk->field_4 * blk->field_4;
-    blk->field_8                   = blk->field_8 * blk->field_8;
+    blk->dx                        = vec.vx;
+    blk->dz                        = dir->vz;
+    blk->r                         = 0x5DC;
+    blk->dx                        = blk->dx * blk->dx;
+    blk->dz                        = blk->dz * blk->dz;
+    blk->r                         = blk->r * blk->r;
     spad_b                         = (u32)PSX_SCRATCH + 0x3F8;
     *(void**)((u8*)spad_b + 0x4)   = head;
-    outside                        = blk->field_0 + blk->field_4 >= blk->field_8;
+    outside                        = blk->dx + blk->dz >= blk->r;
     if (outside == 0) {
         work->field_0 = 0x22;
     }

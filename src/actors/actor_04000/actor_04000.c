@@ -793,7 +793,7 @@ void Actor04000_Fn0168C(GpEnemy* arg0, Task* arg1)
     coord         = ((TmdObject*)arg1->extra)->coords;
     angle         = ratan2(head[-1].d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle     = actorWrapAngle(angle);
-    if (!actorOutOfRange(&sc->d, 600)) {
+    if (!overlayOutOfRange(&sc->d, 600)) {
         mag = (sc->angle >= 0) ? sc->angle : -sc->angle;
         if (mag < 0x200) {
             if (actor->field_954 != 2) {
@@ -1049,7 +1049,7 @@ void Actor04000_Fn026FC(GpEnemy* arg0, Task* arg1)
     delta.vx = D_80073B8C->t[0] - coord->coord.t[0];
     d->vy    = D_80073B8C->t[1] - coord->coord.t[1];
     d->vz    = D_80073B8C->t[2] - coord->coord.t[2];
-    if (!actorOutOfRange(d, 2000)) {
+    if (!overlayOutOfRange(d, 2000)) {
         Gp_ArmStateF0(1);
         work->field_0 = 3;
     }
@@ -1108,7 +1108,7 @@ void Actor04000_Fn028F0(GpEnemy* arg0, Task* arg1)
     Gfx_RotMatrixY(&((TmdObject*)arg1->extra)->coords->coord, sc->angle, 1);
     actorStepForward(((TmdObject*)arg1->extra)->coords, 0x14);
     Actor04000_Fn00798(((TmdObject*)arg1->extra)->coords, work->rec1B0, 8);
-    if (actorOutOfRange(&sc->d, 1000)) {
+    if (overlayOutOfRange(&sc->d, 1000)) {
         work->field_494++;
     } else {
         work->field_494 = 0;
@@ -1118,7 +1118,7 @@ void Actor04000_Fn028F0(GpEnemy* arg0, Task* arg1)
     sc->d.vx                               = work->origin.vx - ((TmdObject*)arg1->extra)->coords->coord.t[0];
     sc->d.vy                               = 0;
     sc->d.vz                               = work->origin.vz - ((TmdObject*)arg1->extra)->coords->coord.t[2];
-    actorOutOfRange(&sc->d, 3000);
+    overlayOutOfRange(&sc->d, 3000);
     if (work->field_494 > 0xF0) {
         work->field_0 = 8;
     }
@@ -1129,7 +1129,7 @@ void Actor04000_Fn028F0(GpEnemy* arg0, Task* arg1)
     coord     = ((TmdObject*)arg1->extra)->coords;
     angle     = ratan2(sc->d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle = actorWrapAngle(angle);
-    if (!actorOutOfRange(&sc->d, 600)) {
+    if (!overlayOutOfRange(&sc->d, 600)) {
         mag = (sc->angle >= 0) ? sc->angle : -sc->angle;
         if (mag < 0x200) {
             work->field_0 = 0xA;
@@ -1579,7 +1579,7 @@ void Actor04000_Fn0432C(GpEnemy* arg0, Task* arg1)
     if (Actor04000_Fn00798(((TmdObject*)arg1->extra)->coords, work->rec1B0, 8)) {
         work->field_6++;
     }
-    if (!actorOutOfRange(&sc->d, 400) || (s16)work->field_6 > 0x60) {
+    if (!overlayOutOfRange(&sc->d, 400) || (s16)work->field_6 > 0x60) {
         if (work->patrolIdx == 0) {
             work->patrolIdx = 1;
         } else {
@@ -1592,10 +1592,10 @@ void Actor04000_Fn0432C(GpEnemy* arg0, Task* arg1)
     sc->d.vx = Player_Status.coordMtx->t[0] - target->coord.t[0];
     sc->d.vy = Player_Status.coordMtx->t[1] - target->coord.t[1];
     sc->d.vz = Player_Status.coordMtx->t[2] - target->coord.t[2];
-    if (!actorOutOfRange(&sc->d, 2000)) {
+    if (!overlayOutOfRange(&sc->d, 2000)) {
         coord = ((TmdObject*)arg1->extra)->coords;
         angle = ratan2(sc->d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-        if (actorWrapAngle(angle) < 0x400 || !actorOutOfRange(&sc->d, 1000)) {
+        if (actorWrapAngle(angle) < 0x400 || !overlayOutOfRange(&sc->d, 1000)) {
             work->field_0 = 4;
         }
     }
@@ -1661,7 +1661,7 @@ void Actor04000_Fn049C0(GpEnemy* arg0, Task* arg1)
     Gfx_RotMatrixY(&((TmdObject*)arg1->extra)->coords->coord, sc->angle, 1);
     actorStepForward(((TmdObject*)arg1->extra)->coords, 8);
     Actor04000_Fn00798(((TmdObject*)arg1->extra)->coords, work->rec1B0, 8);
-    if (!actorOutOfRange(&sc->d, 80)) {
+    if (!overlayOutOfRange(&sc->d, 80)) {
         work->field_0 = 1;
     }
     Actor04000_Fn0024C(((TmdObject*)arg1->extra)->coords, work->hits, 8, &sc->d);
@@ -1669,10 +1669,10 @@ void Actor04000_Fn049C0(GpEnemy* arg0, Task* arg1)
     sc->d.vx = Player_Status.coordMtx->t[0] - target->coord.t[0];
     sc->d.vy = Player_Status.coordMtx->t[1] - target->coord.t[1];
     sc->d.vz = Player_Status.coordMtx->t[2] - target->coord.t[2];
-    if (!actorOutOfRange(&sc->d, 2000)) {
+    if (!overlayOutOfRange(&sc->d, 2000)) {
         coord = ((TmdObject*)arg1->extra)->coords;
         angle = ratan2(sc->d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-        if (actorWrapAngle(angle) < 0x400 || !actorOutOfRange(&sc->d, 1000)) {
+        if (actorWrapAngle(angle) < 0x400 || !overlayOutOfRange(&sc->d, 1000)) {
             work->field_0 = 4;
         }
     }

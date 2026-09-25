@@ -199,15 +199,6 @@ typedef struct ActorScaleRotScratch {
 } ActorScaleRotScratch;
 STATIC_ASSERT_SIZEOF(ActorScaleRotScratch, 0x34);
 
-/// An in-radius test on the XZ plane: the two offsets and the radius are each
-/// squared in place, then compared as `dx + dz < r`.
-typedef struct ActorRangeScratch {
-    s32 dx;
-    s32 dz;
-    s32 r;
-} ActorRangeScratch;
-STATIC_ASSERT_SIZEOF(ActorRangeScratch, 0xC);
-
 /// A turn toward the player: the offset to the player, then the clamped turn
 /// applied to the actor's root coordinate.
 typedef struct ActorTurnScratch {
@@ -1895,27 +1886,6 @@ static __inline__ void actorMoveForwardNonzero(GsCOORDINATE2* coord, s16 amount)
     }
 }
 
-/// Whether the XZ offset `d` reaches at least `r` from its origin.
-static __inline__ s32 actorOutOfRange(SVECTOR* d, s16 r)
-{
-    u8*                head;
-    ActorRangeScratch* blk;
-    s32                ret;
-
-    head                                    = *(u8**)G_SCRATCH_HEAD;
-    ((ActorRangeScratch*)(head - 0xC))->dx  = d->vx;
-    blk                                     = (ActorRangeScratch*)(head - 0xC);
-    blk->dz                                 = d->vz;
-    blk->r                                  = r;
-    ((ActorRangeScratch*)(head - 0xC))->dx *= ((ActorRangeScratch*)(head - 0xC))->dx;
-    *(ActorRangeScratch**)G_SCRATCH_HEAD    = blk;
-    blk->dz                                *= blk->dz;
-    blk->r                                 *= blk->r;
-    *(u8**)G_SCRATCH_HEAD                   = head;
-    ret                                     = ((ActorRangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
-    return ret;
-}
-
 /// `actorMoveForward` applied to the root coordinate of `task`'s model.
 static __inline__ void actorMoveModelForward(Task* task, s16 amount)
 {
@@ -2158,18 +2128,18 @@ static __inline__ s16 actorPickStep(s16 step, s16 push)
 /// scratch block pushed and popped around the test.
 static __inline__ s32 actorOutsideRadius(SVECTOR* pos, s16 radius)
 {
-    ActorRangeScratch* head;
-    ActorRangeScratch* scratch;
-    head                                  = *(ActorRangeScratch**)G_SCRATCH_HEAD;
-    scratch                               = head - 1;
-    *(ActorRangeScratch**)G_SCRATCH_HEAD  = scratch;
-    scratch->dx                           = pos->vx;
-    scratch->dz                           = pos->vz;
-    scratch->r                            = radius;
-    scratch->dx                          *= scratch->dx;
-    scratch->dz                          *= scratch->dz;
-    scratch->r                           *= scratch->r;
-    *(ActorRangeScratch**)G_SCRATCH_HEAD += 1;
+    OverlayRangeScratch* head;
+    OverlayRangeScratch* scratch;
+    head                                    = *(OverlayRangeScratch**)G_SCRATCH_HEAD;
+    scratch                                 = head - 1;
+    *(OverlayRangeScratch**)G_SCRATCH_HEAD  = scratch;
+    scratch->dx                             = pos->vx;
+    scratch->dz                             = pos->vz;
+    scratch->r                              = radius;
+    scratch->dx                            *= scratch->dx;
+    scratch->dz                            *= scratch->dz;
+    scratch->r                             *= scratch->r;
+    *(OverlayRangeScratch**)G_SCRATCH_HEAD += 1;
     return scratch->dx + scratch->dz >= scratch->r;
 }
 

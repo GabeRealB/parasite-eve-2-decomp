@@ -68,18 +68,18 @@ static __inline__ void Actor00100_PositionDelta(GsCOORDINATE2* coord, SVECTOR* p
 
 static __inline__ s32 Actor00100_OutsideRadius(SVECTOR* pos, s32 radius)
 {
-    ActorRangeScratch* head;
-    ActorRangeScratch* scratch;
-    head                                  = *(ActorRangeScratch**)G_SCRATCH_HEAD;
-    scratch                               = head - 1;
-    *(ActorRangeScratch**)G_SCRATCH_HEAD  = scratch;
-    scratch->dx                           = pos->vx;
-    scratch->dz                           = pos->vz;
-    scratch->r                            = radius;
-    scratch->dx                          *= scratch->dx;
-    scratch->dz                          *= scratch->dz;
-    scratch->r                           *= scratch->r;
-    *(ActorRangeScratch**)G_SCRATCH_HEAD += 1;
+    OverlayRangeScratch* head;
+    OverlayRangeScratch* scratch;
+    head                                    = *(OverlayRangeScratch**)G_SCRATCH_HEAD;
+    scratch                                 = head - 1;
+    *(OverlayRangeScratch**)G_SCRATCH_HEAD  = scratch;
+    scratch->dx                             = pos->vx;
+    scratch->dz                             = pos->vz;
+    scratch->r                              = radius;
+    scratch->dx                            *= scratch->dx;
+    scratch->dz                            *= scratch->dz;
+    scratch->r                             *= scratch->r;
+    *(OverlayRangeScratch**)G_SCRATCH_HEAD += 1;
     return scratch->dx + scratch->dz >= scratch->r;
 }
 

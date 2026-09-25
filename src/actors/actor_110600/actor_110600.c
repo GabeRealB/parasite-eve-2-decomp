@@ -3358,23 +3358,23 @@ void func_actor_110600_80137684(Task* arg0)
 
 static __inline__ s32 Actor110600_OutOfRange(SVECTOR* d)
 {
-    ActorRangeScratch* blk;
-    s32                dz2;
-    s32                dz;
-    u8*                head;
+    OverlayRangeScratch* blk;
+    s32                  dz2;
+    s32                  dz;
+    u8*                  head;
 
-    head                                 = *(u8**)G_SCRATCH_HEAD;
-    blk                                  = (ActorRangeScratch*)(head - 0xC);
-    *(ActorRangeScratch**)G_SCRATCH_HEAD = blk;
-    blk->dx                              = d->vx;
-    blk->dz                              = d->vz;
-    blk->r                               = 0xBB8;
-    blk->dx                             *= blk->dx;
-    dz                                   = blk->dz;
-    dz2                                  = dz * dz;
-    blk->dz                              = dz2;
-    blk->r                              *= blk->r;
-    *(u8**)G_SCRATCH_HEAD                = head;
+    head                                   = *(u8**)G_SCRATCH_HEAD;
+    blk                                    = (OverlayRangeScratch*)(head - 0xC);
+    *(OverlayRangeScratch**)G_SCRATCH_HEAD = blk;
+    blk->dx                                = d->vx;
+    blk->dz                                = d->vz;
+    blk->r                                 = 0xBB8;
+    blk->dx                               *= blk->dx;
+    dz                                     = blk->dz;
+    dz2                                    = dz * dz;
+    blk->dz                                = dz2;
+    blk->r                                *= blk->r;
+    *(u8**)G_SCRATCH_HEAD                  = head;
     __asm__("" : "=r"(dz), "+r"(dz2) : "m"(blk->r));
     return (blk->dx + dz2) >= blk->r;
 }

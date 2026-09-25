@@ -2385,7 +2385,7 @@ void func_actor_401300_801376E4(Task* arg0)
     func_actor_401300_80133A3C(arg0);
     actorConfigPositionDelta(&Player_Status, ((TmdObject*)arg0->extra)->coords, &s->delta);
     if (work->field_C94 == work->field_C96) {
-        if (work->field_D1C < 2 || actorOutOfRange(&s->delta, 0x384)) {
+        if (work->field_D1C < 2 || overlayOutOfRange(&s->delta, 0x384)) {
             work->field_0 = 8;
         } else {
             work->field_0 = 0xB;
@@ -2556,7 +2556,7 @@ void func_actor_401300_80138160(Task* arg0)
     func_actor_401300_80133A3C(arg0);
     if ((work->field_5E & 0x3FF) == 0x10 && player->field_954 != 2) {
         angle = actorMatrixPositionYaw(arg0, &pos, D_80073B8C);
-        if (abs(angle) < 0x10 && !actorOutOfRange(&pos, 0x44C)) {
+        if (abs(angle) < 0x10 && !overlayOutOfRange(&pos, 0x44C)) {
             work->field_CAC.animBlock.ptr = &D_actor_401300_801588F0;
             work->field_D00               = 8;
             if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&work->field_CEC, 0) == 0) {
@@ -2581,7 +2581,7 @@ void func_actor_401300_80138160(Task* arg0)
         pos.vx = ((TmdObject*)arg0->extra)->coords->coord.t[0] - config->coordMtx->t[0];
         pos.vy = 0;
         pos.vz = ((TmdObject*)arg0->extra)->coords->coord.t[2] - config->coordMtx->t[2];
-        if (!actorOutOfRange(p, 0x578)) {
+        if (!overlayOutOfRange(p, 0x578)) {
             VectorNormalSS(p, p);
             gte_lddp(10);
             gte_ldsv(p);
@@ -2919,7 +2919,7 @@ void func_actor_401300_80139520(Task* arg0)
     delta.vx = D_80073B8C->t[0] - coord->coord.t[0];
     d->vy    = D_80073B8C->t[1] - coord->coord.t[1];
     d->vz    = D_80073B8C->t[2] - coord->coord.t[2];
-    if (!actorOutOfRange(d, 3000)) {
+    if (!overlayOutOfRange(d, 3000)) {
         work->field_0 = 6;
     }
     if (Gp_StateF0.field_2 & 1) {
@@ -2989,7 +2989,7 @@ void func_actor_401300_801397F8(Task* arg0)
     delta.vx        = D_80073B8C->t[0] - coord->coord.t[0];
     d->vy           = D_80073B8C->t[1] - coord->coord.t[1];
     d->vz           = D_80073B8C->t[2] - coord->coord.t[2];
-    if (!actorOutOfRange(d, 3000)) {
+    if (!overlayOutOfRange(d, 3000)) {
         SndEvt_EnqueueType7(0x51030008, 1);
         Gp_ArmStateF0(1);
         work->field_0 = 6;
@@ -3038,7 +3038,7 @@ void func_actor_401300_80139AB0(Task* arg0)
     s->delta.vx                          = work->field_C[work->field_16].x - ((TmdObject*)arg0->extra)->coords->coord.t[0];
     s->delta.vy                          = 0;
     s->delta.vz                          = work->field_C[work->field_16].z - ((TmdObject*)arg0->extra)->coords->coord.t[2];
-    if (!actorOutOfRange(&s->delta, 0xA0)) {
+    if (!overlayOutOfRange(&s->delta, 0xA0)) {
         if (work->field_16 == 0) {
             work->field_16 = 1;
         } else {
@@ -3069,9 +3069,9 @@ void func_actor_401300_80139AB0(Task* arg0)
     }
     ((TmdObject*)arg0->extra)->coords->flg = 0;
     actorConfigPositionDelta(&Player_Status, ((TmdObject*)arg0->extra)->coords, &s->delta);
-    if (!actorOutOfRange(&s->delta, 0x7D0)) {
+    if (!overlayOutOfRange(&s->delta, 0x7D0)) {
         work->field_0 = 6;
-    } else if (!actorOutOfRange(&s->delta, 0xFA0)) {
+    } else if (!overlayOutOfRange(&s->delta, 0xFA0)) {
         coord    = ((TmdObject*)arg0->extra)->coords;
         s->angle = actorNormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         if (ABS(s->angle) < 0x300) {
@@ -3567,7 +3567,7 @@ void func_actor_401300_8013CBAC(Task* arg0)
     aim->angle        = actorNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
     work->field_8B2   = aim->angle;
     if (aim->angle < 0x200) {
-        if (!actorOutOfRange(&aim->delta, 0x44C)) {
+        if (!overlayOutOfRange(&aim->delta, 0x44C)) {
             work->field_0 = 0xB;
         }
     }
@@ -3889,7 +3889,7 @@ void func_actor_401300_8013DADC(Task* arg0)
             aim->angle      = actorYawTo(((TmdObject*)arg0->extra)->coords, aim->delta.vx, aim->delta.vz);
             if (work->field_6 >= 0xB) {
                 if (abs(aim->angle) < 0x200) {
-                    if (!actorOutOfRange(&aim->delta, 0x7D0)) {
+                    if (!overlayOutOfRange(&aim->delta, 0x7D0)) {
                         work->field_8A2 = 0x1C;
                         work->field_89C = 1;
                         work->field_6   = 0;

@@ -603,7 +603,7 @@ void Actor01200_Fn01040(GpEnemy* arg0, Task* arg1)
     delta.vx = D_80073B8C->t[0] - coord->coord.t[0];
     d->vy    = D_80073B8C->t[1] - coord->coord.t[1];
     d->vz    = D_80073B8C->t[2] - coord->coord.t[2];
-    if (!actorOutOfRange(d, 2000)) {
+    if (!overlayOutOfRange(d, 2000)) {
         Gp_ArmStateF0(1);
         work->field_0 = 3;
     }
@@ -657,12 +657,12 @@ void Actor01200_Fn01234(GpEnemy* arg0, Task* arg1)
     Gfx_RotMatrixY(&((TmdObject*)arg1->extra)->coords->coord, s->angle, 1);
     actorStepForward(((TmdObject*)arg1->extra)->coords, 0x14);
     Actor01200_Fn0067C(((TmdObject*)arg1->extra)->coords, &work->rec1B8, 5);
-    if (actorOutOfRange(&s->d, 1000)) {
+    if (overlayOutOfRange(&s->d, 1000)) {
         work->field_3DC++;
     } else {
         work->field_3DC = 0;
     }
-    if (!actorOutOfRange(&s->d, 1000)) {
+    if (!overlayOutOfRange(&s->d, 1000)) {
         work->field_8++;
     } else {
         work->field_8 = 0;
@@ -677,7 +677,7 @@ void Actor01200_Fn01234(GpEnemy* arg0, Task* arg1)
     s->d.vx                                = work->origin.vx - ((TmdObject*)arg1->extra)->coords->coord.t[0];
     s->d.vy                                = 0;
     s->d.vz                                = work->origin.vz - ((TmdObject*)arg1->extra)->coords->coord.t[2];
-    actorOutOfRange(&s->d, 3000);
+    overlayOutOfRange(&s->d, 3000);
     if (work->field_3DC >= 0xF1) {
         work->field_0 = 8;
     }
@@ -1155,7 +1155,7 @@ void Actor01200_Fn02BE8(GpEnemy* arg0, Task* arg1)
     if (Actor01200_Fn0067C(((TmdObject*)arg1->extra)->coords, &work->rec1B8, 5)) {
         work->field_6++;
     }
-    if (!actorOutOfRange(&sc->d, 400) || work->field_6 > 0x60) {
+    if (!overlayOutOfRange(&sc->d, 400) || work->field_6 > 0x60) {
         if (work->patrolIdx == 0) {
             work->patrolIdx = 1;
         } else {
@@ -1170,10 +1170,10 @@ void Actor01200_Fn02BE8(GpEnemy* arg0, Task* arg1)
     sc->d.vx = Player_Status.coordMtx->t[0] - target->coord.t[0];
     sc->d.vy = Player_Status.coordMtx->t[1] - target->coord.t[1];
     sc->d.vz = Player_Status.coordMtx->t[2] - target->coord.t[2];
-    if (!actorOutOfRange(&sc->d, 2000)) {
+    if (!overlayOutOfRange(&sc->d, 2000)) {
         coord = ((TmdObject*)arg1->extra)->coords;
         angle = ratan2(sc->d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-        if (actorNormalizeYaw(angle) < 0x400 || !actorOutOfRange(&sc->d, 1000)) {
+        if (actorNormalizeYaw(angle) < 0x400 || !overlayOutOfRange(&sc->d, 1000)) {
             work->field_0 = 4;
         }
     }
@@ -1239,7 +1239,7 @@ void Actor01200_Fn03294(GpEnemy* arg0, Task* arg1)
     actorStepForward(((TmdObject*)arg1->extra)->coords, 8);
     Actor01200_Fn0067C(((TmdObject*)arg1->extra)->coords, &work->rec1B8, 5);
     work->field_6++;
-    if (!actorOutOfRange(&s->d, 0x50) || work->field_6 >= 0xDD) {
+    if (!overlayOutOfRange(&s->d, 0x50) || work->field_6 >= 0xDD) {
         work->field_0 = 7;
     }
     if (Actor01200_Fn00130(((TmdObject*)arg1->extra)->coords, &work->rec250, 5, &s->d) == 1) {
