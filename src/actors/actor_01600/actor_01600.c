@@ -700,7 +700,7 @@ void Actor01600_Fn00BAC(Task* actor)
     ctx     = actor->spawnArg2;
     coord   = ((TmdObject*)actor->extra)->coords;
     mode    = func_800E0C10((GpRec18*)&work->collision.field_2EC[0x20], old - 0x2C, 8, old - 4);
-    world   = (void*)coord + 0x50;
+    world   = coord + 1;
     if (mode == 1)
         goto mode1;
     if (mode < 2)
@@ -725,6 +725,9 @@ mode_end:
         if (--work->field_51C <= 0)
             work->field_51C = 0;
     }
+    /* The record walk steps a work pointer one contact record at a time and
+       reads the record through it, keeping the record's offset in the
+       displacement as the ROM does. */
     rec = work;
 next_record: {
     switch (rec->collision.named.hit.parts.kind) {
@@ -740,11 +743,11 @@ next_record: {
                 damage              = Gp_ComputeDamage(rec->collision.named.hit.id, SquareRoot0(x * x + y * y + z * z), 0, 0);
                 if (Gp_RollEnemyChance(actor->spawnArg2, rec->collision.named.hit.id, 0)) {
                     damage *= 4;
-                    Gp_SpawnEff(0x6009C, (void*)((TmdObject*)actor->extra)->coords + 0x50, 0, 0);
+                    Gp_SpawnEff(0x6009C, ((TmdObject*)actor->extra)->coords + 1, 0, 0);
                 }
                 if (work->field_4FE == 1 && work->field_528 != 0 && work->field_51E < 0) {
                     damage *= 2;
-                    Gp_SpawnEff(0x6009C, (void*)((TmdObject*)actor->extra)->coords + 0x50, 3, 0);
+                    Gp_SpawnEff(0x6009C, ((TmdObject*)actor->extra)->coords + 1, 3, 0);
                 }
                 func_800E2C78(ctx, rec->collision.named.hit.id, damage, 0);
                 Actor01600_Fn0131C(actor, damage);
@@ -2380,7 +2383,9 @@ void Actor01600_Fn03EEC(Task* arg0)
         head                                  = SCRATCH_HEAD(Actor01600GroundScratch);
         allocated                             = head - 1;
         SCRATCH_HEAD(Actor01600GroundScratch) = allocated;
-        mode                                  = *(s16*)((u8*)work + OFFSET_OF(Actor01600Work, field_528));
+        /* Not `work->field_528`: spelled as a member access, the read is
+           scheduled above the scratch-head store, and the ROM reads it after. */
+        mode = *(s16*)((u8*)work + OFFSET_OF(Actor01600Work, field_528));
         do {
             scratch = allocated;
             if (mode != 0) {
@@ -2598,32 +2603,32 @@ s32 Actor01600_Fn045A8(Task* arg0, s32* distance)
     s32                   dx;
     s32                   x;
     s32                   z;
-    void*                 head;
-    void*                 allocated;
-    void*                 vec;
-    void*                 matrix;
+    Actor01600AimScratch* head;
+    Actor01600AimScratch* allocated;
+    SVECTOR*              vec;
+    MATRIX*               matrix;
     Actor01600AimScratch* scratch;
 
-    slots                     = Gp_ActorSlots;
-    slot                      = &slots[Actor01600_Fn052C4(arg0) & 0xFF];
-    head                      = SCRATCH_HEAD(void);
-    coord                     = ((TmdObject*)arg0->extra)->coords;
-    other                     = ((TmdObject*)(*slot)->extra)->coords;
-    dx                        = *(u16*)&other->workm.t[0] - *(u16*)&coord->workm.t[0];
-    allocated                 = (SCRATCH_HEAD(void) = head - 0x7C);
-    *(s16*)((s8*)head - 0x40) = (s16)dx;
-    vec                       = head - 0x40;
-    *(s16*)((s8*)vec + 2)     = (s16)(*(u16*)&other->workm.t[1] - *(u16*)&coord->workm.t[1]);
-    scratch                   = allocated;
-    *(s16*)((s8*)vec + 4)     = (s16)(*(u16*)&other->workm.t[2] - *(u16*)&coord->workm.t[2]);
-    matrix                    = head - 0x20;
+    slots              = Gp_ActorSlots;
+    slot               = &slots[Actor01600_Fn052C4(arg0) & 0xFF];
+    head               = SCRATCH_HEAD(Actor01600AimScratch);
+    coord              = ((TmdObject*)arg0->extra)->coords;
+    other              = ((TmdObject*)(*slot)->extra)->coords;
+    dx                 = *(u16*)&other->workm.t[0] - *(u16*)&coord->workm.t[0];
+    allocated          = (SCRATCH_HEAD(Actor01600AimScratch) = head - 1);
+    (head - 1)->dir.vx = (s16)dx;
+    vec                = &(head - 1)->dir;
+    vec->vy            = (s16)(*(u16*)&other->workm.t[1] - *(u16*)&coord->workm.t[1]);
+    scratch            = allocated;
+    vec->vz            = (s16)(*(u16*)&other->workm.t[2] - *(u16*)&coord->workm.t[2]);
+    matrix             = &(head - 1)->mat;
     TransposeMatrix(&coord->workm, matrix);
-    local = *(SVECTOR*)vec;
+    local = *vec;
     gte_SetRotMatrix(matrix);
     __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
     gte_rtv0();
     gte_stsv(vec);
-    angle = ratan2(*(s16*)((s8*)head - 0x40), *(s16*)((s8*)vec + 4));
+    angle = ratan2((head - 1)->dir.vx, vec->vz);
     if (angle >= 0x801) {
         angle -= 0x1000;
     } else if (angle < -0x800) {
@@ -2635,7 +2640,8 @@ s32 Actor01600_Fn045A8(Task* arg0, s32* distance)
     z                 = other->coord.t[2] - coord->coord.t[2];
     scratch->delta.vz = z;
     *distance         = SquareRoot0((x * x) + (z * z));
-    SCRATCH_POP_BYTES(0x7C);
+    SCRATCH_POP(Actor01600AimScratch);
+
     return angle;
 }
 
@@ -3790,19 +3796,19 @@ void Actor01600_Fn06974(Task* actor, s32 distance)
     OverlayMat*            mat;
     Actor01600StepScratch* work;
     GsCOORDINATE2*         coord;
-    VECTOR*                head;
+    Actor01600StepScratch* head;
     void**                 scratch;
 
     scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
+    head                           = SCRATCH_HEAD_AT(scratch, Actor01600StepScratch);
     coord                          = ((TmdObject*)actor->extra)->coords;
-    work                           = (Actor01600StepScratch*)((u8*)head - 0x3C);
+    work                           = head - 1;
     work->move.vx                  = (s16)distance;
     work->move.vy                  = 0;
     work->move.vz                  = 0;
     SCRATCH_HEAD_AT(scratch, void) = work;
-    Gfx_MatrixCol2(&((TmdObject*)actor->extra)->coords->coord, (SVECTOR*)((u8*)head - 0x2C));
-    mat                = (OverlayMat*)((u8*)head - 0x24);
+    Gfx_MatrixCol2(&((TmdObject*)actor->extra)->coords->coord, &(head - 1)->dir);
+    mat                = &(head - 1)->mat;
     work->yaw          = ratan2(work->dir.vx, work->dir.vz);
     mat->ident.m00_m01 = 0x1000;
     mat->ident.m02_m10 = 0;
@@ -3814,7 +3820,7 @@ void Actor01600_Fn06974(Task* actor, s32 distance)
     coord->coord.t[0] += work->move.vx;
     coord->coord.t[1] += work->move.vy;
     coord->coord.t[2] += work->move.vz;
-    SCRATCH_POP_BYTES_AT(scratch, 0x3C);
+    SCRATCH_POP_AT(scratch, Actor01600StepScratch);
 }
 
 void Actor01600_Fn06A84(Task* arg0)
