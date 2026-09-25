@@ -77,7 +77,6 @@ STATIC_ASSERT_SIZEOF(MistShootingGalleryBeamScratch, 0x20);
 extern TaskDesc D_mist_shooting_gallery_801856B8;
 extern TaskDesc D_mist_shooting_gallery_801856D0;
 extern TaskDesc D_80134F94;
-extern u8       D_80073BA9;
 /// The wave script the round loop walks: a run of records sharing
 /// `field_00` is spawned together, `0xFFF1` waits for the current wave to
 /// clear and `0xFFFF` ends the course.
@@ -100,11 +99,9 @@ extern MistShootingGallerySpawn* D_mist_shooting_gallery_80186908;
 extern MistShootingGallerySpawn* D_mist_shooting_gallery_80186900[];
 /// Main-executable flag gating the countdown steps: while it is set the
 /// gallery holds its current step instead of advancing the digit sprite.
-extern u8 D_80071075;
 /// Bonus-course variant selected before the round starts. It picks both the
 /// banner sprite (`variant + 0xB`) and the colour it is drawn in (variant 2
 /// uses 2 instead of 0x10).
-extern s8 D_80072310;
 /// Gameplay-side abort request. While it is 1 the bonus course tears itself
 /// down: the state machine remembers where it was in `field_06` / `field_21`
 /// and jumps to the state-9 shutdown banner.
@@ -381,7 +378,7 @@ void func_mist_shooting_gallery_80182B1C(Task* arg0)
     work->field_0C   = -0xDC;
 
     actor->field_14C.end0.vz =
-        (actor->field_14C.end1.vz + D_80112F60[D_80073BA9]) << 1;
+        (actor->field_14C.end1.vz + D_80112F60[Player_Status.weapon]) << 1;
     func_801066DC(slot, 1);
 
     if (work->difficulty < 3) {
@@ -424,7 +421,7 @@ void func_mist_shooting_gallery_80182C58(Task* arg0)
     u8                        step;
 
     work  = (MistShootingGalleryWork*)arg0->work;
-    bonus = D_80072310;
+    bonus = Mc_SaveData.buttonLayout;
     if (Pad_CheckButtons(0, 1, 0x100) != 0) {
         func_8014A9A0();
         return;
@@ -722,7 +719,7 @@ void func_mist_shooting_gallery_8018341C(Task* arg0)
     u8                        step;
 
     work  = (MistShootingGalleryWork*)arg0->work;
-    bonus = D_80072310;
+    bonus = Mc_SaveData.buttonLayout;
 
     switch (work->field_04) {
         case 0:
@@ -732,7 +729,7 @@ void func_mist_shooting_gallery_8018341C(Task* arg0)
             work->field_04++;
         case 1:
             if (work->field_0A <= 0) {
-                if (D_80071075 == 0) {
+                if (gDisplayState.pendingMode == 0) {
                     func_mist_shooting_gallery_80184BB8(0x13, work->field_20, 0x8E0);
                     step = work->field_20;
                     if (step == 3) {
@@ -750,7 +747,7 @@ void func_mist_shooting_gallery_8018341C(Task* arg0)
         case 2:
             if ((u8)gGameSession->at4.loc.view == 0x12) {
                 if (work->field_0A <= 0) {
-                    if (D_80071075 == 0) {
+                    if (gDisplayState.pendingMode == 0) {
                         work->field_0A = 1;
                         work->field_04++;
                         func_mist_shooting_gallery_80184BB8(0x13, bonus + 4, 0x8E0);
@@ -761,7 +758,7 @@ void func_mist_shooting_gallery_8018341C(Task* arg0)
             }
             break;
         case 3:
-            if (D_80071075 == 0) {
+            if (gDisplayState.pendingMode == 0) {
                 work->field_1F = 0;
                 work->field_20 = 8;
                 work->field_04++;
@@ -902,7 +899,7 @@ void func_mist_shooting_gallery_801838FC(Task* arg0)
     u8                        hold;
 
     work  = (MistShootingGalleryWork*)arg0->work;
-    bonus = D_80072310;
+    bonus = Mc_SaveData.buttonLayout;
 
     switch (work->field_04) {
         case 0:
@@ -912,7 +909,7 @@ void func_mist_shooting_gallery_801838FC(Task* arg0)
             work->field_04++;
         case 1:
             if (work->field_0A <= 0) {
-                if (D_80071075 == 0) {
+                if (gDisplayState.pendingMode == 0) {
                     func_mist_shooting_gallery_80184BB8(0x14, 0, 0x8E0);
                     work->field_0A = 0xF;
                     D_80115768     = 0;
@@ -925,7 +922,7 @@ void func_mist_shooting_gallery_801838FC(Task* arg0)
         case 2:
             if ((u8)gGameSession->at4.loc.view == 0x12) {
                 if (work->field_0A <= 0) {
-                    if (D_80071075 == 0) {
+                    if (gDisplayState.pendingMode == 0) {
                         work->field_0A = 1;
                         work->field_04++;
                         func_mist_shooting_gallery_80184BB8(0x14, 7, 0x8E0);
@@ -1095,7 +1092,7 @@ void func_mist_shooting_gallery_80183E78(Task* arg0)
             work->field_04++;
         case 1:
             if (work->field_0A <= 0) {
-                if (D_80071075 == 0) {
+                if (gDisplayState.pendingMode == 0) {
                     func_mist_shooting_gallery_80184BB8(0x15, 0, 0x8E0);
                     work->field_0A = 0xF;
                     D_80115768     = 0;
@@ -1110,7 +1107,7 @@ void func_mist_shooting_gallery_80183E78(Task* arg0)
                 break;
             }
             if (work->field_0A <= 0) {
-                if (D_80071075 == 0) {
+                if (gDisplayState.pendingMode == 0) {
                     work->field_0A = 1;
                     work->field_04++;
                     func_mist_shooting_gallery_80184BB8(0x15, 7, 0x8E0);

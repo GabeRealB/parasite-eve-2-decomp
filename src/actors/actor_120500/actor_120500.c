@@ -71,14 +71,12 @@ extern u32 D_actor_120500_80138408[];
 
 /// Equipped-weapon id and the flag that selects which block of animation sets
 /// it indexes (`+1` when set to 1, `+0x22` otherwise).
-extern u8 D_80073BA9;
 extern s8 D_8007218A;
 
 /// Flags the tick checks before bringing the actor up (`D_80114C12` /
 /// `D_80071075`), and the one it raises alongside the view tasks
 /// (`D_8007106B`).
 extern s8 D_80114C12;
-extern u8 D_80071075;
 extern s8 D_8007106B;
 
 /// Animation-set table handed to the task in pointer slot 3 as message 0x3F4's
@@ -253,7 +251,7 @@ void func_actor_120500_80132028(Task* arg0)
             Gp_DispatchMsg(arg0, 0x7D5, 2, 0);
             break;
         case 6:
-            base = D_80073BA9;
+            base = Player_Status.weapon;
             if (D_8007218A == 1) {
                 anim = base + 1;
             } else {
@@ -359,9 +357,9 @@ void func_actor_120500_8013241C(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if (D_80114C12 != 1 && D_80071075 == 0) {
+            if (D_80114C12 != 1 && gDisplayState.pendingMode == 0) {
                 func_actor_120500_801322A0(arg0);
-                anim = D_80073BA9;
+                anim = Player_Status.weapon;
                 if (D_8007218A == 1) {
                     anim = anim + 1;
                 } else {

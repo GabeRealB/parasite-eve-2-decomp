@@ -47,8 +47,6 @@
                      : "r"(src), "r"(dst) \
                      : "$12", "$13", "$14", "memory")
 
-extern s32 D_80070F70;
-
 extern void func_807245E4(void*);
 extern void func_80724608(void*, s32, s32, void*);
 
@@ -940,7 +938,7 @@ void func_acropolis_east_elevator_hall_8017F77C(Task* arg0)
     gte_stsxy(&((RoomShaftScratch*)(head - 0x14))->sx);
     gte_stszotz(&block->otz);
     if (((RoomShaftScratch*)(head - 0x14))->otz >= 0x11) {
-        pulse = D_80070F70 * ((RoomShaftArg*)&arg0->spawnArg1)->phase;
+        pulse = gDisplayState.animFrame * ((RoomShaftArg*)&arg0->spawnArg1)->phase;
         if (pulse & 0x80) {
             level = 0x80 - (pulse & 0x7F);
         } else {

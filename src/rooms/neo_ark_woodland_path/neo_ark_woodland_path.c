@@ -20,8 +20,7 @@ s32     rcos(s32);
 s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
-extern s32 D_8007107C;
-extern u8  D_80071090;
+extern u8 D_80071090;
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
@@ -115,7 +114,7 @@ void func_neo_ark_woodland_path_8017D694(Task* task)
     xLeftS  = -0xA0;
     split   = 0;
     splitX  = 0;
-    buf     = D_8007107C;
+    buf     = gDisplayState.otBuffer;
     area    = gGameSession->at4.loc.area;
     if (area == 27) {
         otzOff = 10;
@@ -558,7 +557,7 @@ void func_neo_ark_woodland_path_8017E2E8(Task* task)
 {
     s32        xLeft  = -0xA0;
     s32        xRight = 0xA0;
-    s32        buf    = D_8007107C;
+    s32        buf    = gDisplayState.otBuffer;
     s32        passes = 1;
     GpAreaKey* loc    = &gGameSession->at4.loc;
     s32        area   = loc->area;
@@ -648,13 +647,13 @@ void func_neo_ark_woodland_path_8017E2E8(Task* task)
         if (size < sizeof(POLY_FT4) * 976) {
             return;
         }
-        if (D_8007107C != 0) {
+        if (gDisplayState.otBuffer != 0) {
             base += size >> 1;
         }
         prim = (POLY_FT4*)base - 1;
     } else {
         prim = (POLY_FT4*)((u8*)D_8005C374 + 0x9880);
-        if (D_8007107C != 0) {
+        if (gDisplayState.otBuffer != 0) {
             prim += 488;
         }
         prim--;

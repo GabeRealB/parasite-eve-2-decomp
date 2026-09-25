@@ -33,8 +33,7 @@ extern s32      D_8014C540;
 extern s32      D_8014CAF8;
 extern s32      D_8014D158;
 
-extern s32 D_8007107C;
-extern u8  D_80071090;
+extern u8 D_80071090;
 
 /// The room's message table, installed on the room task.
 extern GpMsgEntry D_shelter_r48_80182FB8[];
@@ -109,7 +108,7 @@ void func_shelter_r48_8017D660(Task* arg0)
     s32                   cosine;
 
     tmd   = arg0->extra.tmd;
-    otBuf = D_8007107C;
+    otBuf = gDisplayState.otBuffer;
     view  = gGameSession->at4.loc.view;
     if (GameFlag_GetNibble(0x100) == 0) {
         return;

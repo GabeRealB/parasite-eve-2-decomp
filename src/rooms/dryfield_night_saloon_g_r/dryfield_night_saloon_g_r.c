@@ -34,8 +34,6 @@
 extern void func_8002E53C(TextDrawReq* req, u8* text);
 extern void func_800E8614(s32 arg0, s32 arg1);
 
-extern s16 D_80071076;
-extern u8  D_8007216D;
 extern s16 D_8007A396;
 extern s16 D_80114D08;
 
@@ -213,10 +211,10 @@ void func_dryfield_night_saloon_g_r_8017DA04(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            D_80071076               = 1;
-            Mc_SaveData.at4.loc.area = D_dryfield_night_saloon_g_r_80188FAC.msgId;
-            Mc_SaveData.at4.loc.warp = D_dryfield_night_saloon_g_r_80188FAC.field_2;
-            Mc_SaveData.at4.loc.room = (u8)D_dryfield_night_saloon_g_r_80188FAC.field_3;
+            gDisplayState.roomVariant = 1;
+            Mc_SaveData.at4.loc.area  = D_dryfield_night_saloon_g_r_80188FAC.msgId;
+            Mc_SaveData.at4.loc.warp  = D_dryfield_night_saloon_g_r_80188FAC.field_2;
+            Mc_SaveData.at4.loc.room  = (u8)D_dryfield_night_saloon_g_r_80188FAC.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -437,7 +435,7 @@ void func_dryfield_night_saloon_g_r_8017E050(Task* task)
 /// main-executable byte `D_8007216D`.
 void func_dryfield_night_saloon_g_r_8017E0A8(u8 arg0)
 {
-    D_8007216D                 = arg0;
+    Mc_SaveData.at4.loc.room   = arg0;
     gGameSession->at4.loc.room = arg0;
 }
 

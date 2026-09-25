@@ -36,9 +36,6 @@ typedef struct {
     s16 z;
 } _SurfaceScratch;
 
-extern s32 D_8007107C;
-extern s8  D_8007217B;
-
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
 extern GpMsgEntry D_shelter_b4_lower_sewer_80181E44[];
@@ -366,7 +363,7 @@ void func_shelter_b4_lower_sewer_8017E2D4(Task* task)
 /// `field_7E`, chosen by `D_8007217B`, and advances to the next state.
 void func_shelter_b4_lower_sewer_8017E33C(Task* arg0)
 {
-    if (D_8007217B == 0) {
+    if (Mc_SaveData.companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;
@@ -380,10 +377,10 @@ void func_shelter_b4_lower_sewer_8017E33C(Task* arg0)
 /// of water surfaces.
 void func_shelter_b4_lower_sewer_8017E37C(Task* task)
 {
-    if (D_8007217B == 0) {
-        D_shelter_b4_lower_sewer_80183E14 = (u8*)D_8005C374 + D_8007107C * 0xC000;
+    if (Mc_SaveData.companionType == 0) {
+        D_shelter_b4_lower_sewer_80183E14 = (u8*)D_8005C374 + gDisplayState.otBuffer * 0xC000;
     } else {
-        D_shelter_b4_lower_sewer_80183E14 = (u8*)D_8005C370 + D_8007107C * 0xC000;
+        D_shelter_b4_lower_sewer_80183E14 = (u8*)D_8005C370 + gDisplayState.otBuffer * 0xC000;
     }
     func_shelter_b4_lower_sewer_8017D72C(task);
     func_shelter_b4_lower_sewer_8017DE8C(task);

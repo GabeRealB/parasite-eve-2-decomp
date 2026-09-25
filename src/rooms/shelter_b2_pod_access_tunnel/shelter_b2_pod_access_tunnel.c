@@ -21,7 +21,6 @@ extern RoomEventMsg     D_shelter_b2_pod_access_tunnel_80185700;
 extern u8               D_shelter_b2_pod_access_tunnel_80185708;
 extern RoomLatchedEvent D_shelter_b2_pod_access_tunnel_8018570C;
 extern u8               D_80115690;
-extern s16              D_80071076;
 
 /// Runs the room's pending event once its request has been accepted. State 0
 /// runs the event's CAP command; state 1 waits for it and, when the event asks
@@ -66,10 +65,10 @@ void func_shelter_b2_pod_access_tunnel_8017D62C(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            D_80071076               = 1;
-            Mc_SaveData.at4.loc.area = D_shelter_b2_pod_access_tunnel_80185700.msgId;
-            Mc_SaveData.at4.loc.warp = D_shelter_b2_pod_access_tunnel_80185700.field_2;
-            Mc_SaveData.at4.loc.room = (u8)D_shelter_b2_pod_access_tunnel_80185700.field_3;
+            gDisplayState.roomVariant = 1;
+            Mc_SaveData.at4.loc.area  = D_shelter_b2_pod_access_tunnel_80185700.msgId;
+            Mc_SaveData.at4.loc.warp  = D_shelter_b2_pod_access_tunnel_80185700.field_2;
+            Mc_SaveData.at4.loc.room  = (u8)D_shelter_b2_pod_access_tunnel_80185700.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -170,10 +169,10 @@ void func_shelter_b2_pod_access_tunnel_8017D9A8(Task* task)
             return;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData.at4.loc.area = 0x11;
-            Mc_SaveData.at4.loc.warp = 3;
-            Mc_SaveData.at4.loc.room = 1;
-            D_80071076               = 1;
+            Mc_SaveData.at4.loc.area  = 0x11;
+            Mc_SaveData.at4.loc.warp  = 3;
+            Mc_SaveData.at4.loc.room  = 1;
+            gDisplayState.roomVariant = 1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;

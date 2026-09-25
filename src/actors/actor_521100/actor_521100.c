@@ -106,7 +106,6 @@ extern s16 D_actor_521100_8015F8BC[];
 extern u16 D_actor_521100_8015F614[];
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
-extern s16 D_80073BA0;
 
 extern GpPairSrcE D_actor_521100_8015F560;
 extern TaskDesc   D_actor_521100_8015F6E4[];
@@ -515,7 +514,7 @@ void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
         Gp_ClearRec18Occupied(work->rec62C);
     }
     if (enemy->hp <= 0) {
-        if (D_80073BA0 > 0) {
+        if (Player_Status.hp > 0) {
             work->field_6B2 = 0;
         } else {
             enemy->hp = 1;
@@ -662,7 +661,7 @@ s32 func_actor_521100_80132C70(Task* arg0)
     } else {
         wrap = diff + 0x1000;
     }
-    if ((wrap < 0x400) && (work->field_6AA < 0x4E2) && (work->field_6BE == 0) && (D_80073BA0 > 0) && (work->field_69C = 0x50, (wrap < 0x20)) && (((GameActor*)player->work)->field_954 != 2)) {
+    if ((wrap < 0x400) && (work->field_6AA < 0x4E2) && (work->field_6BE == 0) && (Player_Status.hp > 0) && (work->field_69C = 0x50, (wrap < 0x20)) && (((GameActor*)player->work)->field_954 != 2)) {
         msg->field_14 = 0x19;
         if (Gp_DispatchMsg(player, 0x3F8, (s32)msg, 0) == 0) {
             ret             = 1;
@@ -1212,7 +1211,7 @@ void func_actor_521100_801339B0(Task* arg0)
             timer           = work->field_68E - 1;
             work->field_68E = timer;
             if ((s16)timer <= 0) {
-                if (D_80073BA0 <= D_actor_521100_8015F570[Gp_StateF0.field_2B]) {
+                if (Player_Status.hp <= D_actor_521100_8015F570[Gp_StateF0.field_2B]) {
                     work->field_686       = 0x14;
                     work->field_6A0       = 5;
                     sc->msg.animBlock.ptr = (void*)&D_actor_521100_8015F7CC;
@@ -1229,7 +1228,7 @@ void func_actor_521100_801339B0(Task* arg0)
             }
             if (flag != 1) {
                 flag = 0;
-                if ((work->field_6A8 == 1) && (D_80073BA0 < 0x3D) && (((D_actor_521100_8015F564 / 3) & 0xFFFF) >= ((GpEnemy*)arg0->spawnArg2)->hp)) {
+                if ((work->field_6A8 == 1) && (Player_Status.hp < 0x3D) && (((D_actor_521100_8015F564 / 3) & 0xFFFF) >= ((GpEnemy*)arg0->spawnArg2)->hp)) {
                     flag = work->field_6A4 == 1;
                 }
                 if (flag != 0) {
@@ -1374,7 +1373,7 @@ void func_actor_521100_801339B0(Task* arg0)
                               &D_actor_521100_8015F804);
                 Gp_SpawnPadLerp(0xA, 0xFF, 8);
                 Gp_DispatchMsg(player, 0x400, 0, 0);
-                D_80073BA0 = 0;
+                Player_Status.hp = 0;
             }
             break;
         case 6:
@@ -2268,7 +2267,7 @@ void func_actor_521100_80135B80(GpEnemy* arg0, Task* task)
 
 s32 func_actor_521100_80135BEC(Task* arg0)
 {
-    if (D_80073BA0 > 0) {
+    if (Player_Status.hp > 0) {
         ((Actor521100Work*)arg0->work)->field_6A8 = 1;
     }
     return 0;

@@ -507,14 +507,10 @@ extern u32        D_actor_403000_80158C08;
 extern u32        D_actor_403000_80158C28;
 extern u32        D_actor_403000_80158CA8;
 extern u32        D_actor_403000_80158DD0;
-extern u8         D_80071075;
 extern s8         D_80114C12;
 extern s8         D_actor_403000_80158364[];
 extern void*      Gp_PlayerAnimBlkTbl[];
 extern u16        Gp_WeaponIdBase[];
-extern u8         D_80073BA9;
-extern s32        D_80070F70;
-extern s16        D_80073BA0;
 extern GpCmdArg   D_actor_403000_80158D8C;
 
 /// Integer part of the last movement step `func_actor_403000_80132348`
@@ -1885,7 +1881,7 @@ void func_actor_403000_80134F44(Task* arg0)
             func_800E2C78(enemy, scratch->id, scratch->damage, 0);
             func_800DA6E8(&enemy->node, scratch->damage, 0);
             enemy->hp -= scratch->damage;
-            if (enemy->hp <= 0 && D_80073BA0 <= 0) {
+            if (enemy->hp <= 0 && Player_Status.hp <= 0) {
                 enemy->hp = 1;
             }
             if ((work->field_0 == 0xC && arg0->extra.tmd->coords->coord.t[1] < player->extra.tmd->coords->coord.t[1]) || work->field_0 == 0xD || work->field_0 == 0xF || work->field_FC0 == 1) {
@@ -2149,7 +2145,7 @@ void func_actor_403000_8013603C(Task* arg0)
         work->field_6 = 0;
         Gp_SetLightMode(enemy, 0);
     }
-    if (work->field_F8C == 1 && D_80114C12 != work->field_F8C && D_80071075 == 0) {
+    if (work->field_F8C == 1 && D_80114C12 != work->field_F8C && gDisplayState.pendingMode == 0) {
         Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
         work->field_F8C = 0;
     }
@@ -4473,7 +4469,7 @@ void func_actor_403000_8013C864(GpEnemy* arg0, Task* arg1)
             Gp_ClearNodeSlots(&arg0->node);
         }
     }
-    if (!(D_80070F70 & 1)) {
+    if (!(gDisplayState.animFrame & 1)) {
         scratch->d.vx = player->extra.tmd->coords->coord.t[0] - arg1->extra.tmd->coords->coord.t[0];
         scratch->d.vy = player->extra.tmd->coords->coord.t[1] - arg1->extra.tmd->coords->coord.t[1];
         scratch->d.vz = player->extra.tmd->coords->coord.t[2] - arg1->extra.tmd->coords->coord.t[2];
@@ -4498,7 +4494,7 @@ void func_actor_403000_8013C864(GpEnemy* arg0, Task* arg1)
     }
     if (work->field_FC0 == 1) {
         work->field_FCC++;
-        if (work->field_F90 != Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + D_80073BA9]) {
+        if (work->field_F90 != Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon]) {
             switch (work->field_F94) {
                 case 1:
                     if (work->field_FCC == 42) {
@@ -4550,7 +4546,7 @@ void func_actor_403000_8013C864(GpEnemy* arg0, Task* arg1)
         }
         if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
             work->field_FCC = 0;
-            if (work->field_F90 != Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + D_80073BA9]) {
+            if (work->field_F90 != Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon]) {
                 switch (work->field_F94) {
                     case 1:
                         work->field_F94 = 2;
@@ -4576,7 +4572,7 @@ void func_actor_403000_8013C864(GpEnemy* arg0, Task* arg1)
                     case 2:
                     case 4:
                     case 6:
-                        work->field_F90 = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + D_80073BA9];
+                        work->field_F90 = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon];
                         work->field_F94 = 7;
                         work->field_F9C = 0x10;
                         work->field_F98 = 0;

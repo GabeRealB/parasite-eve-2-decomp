@@ -112,11 +112,9 @@ void func_mist_r18_8017E92C(Task* task);
 void func_mist_r18_8017E994(s32 tpage, s16 arg1);
 void func_mist_r18_8017ECF4(Task* arg0);
 
-extern u8  D_80071075;
-extern s16 D_80071076;
-extern s8  D_80071090;
-extern s8  D_80114C12;
-extern s8  D_801156F9;
+extern s8 D_80071090;
+extern s8 D_80114C12;
+extern s8 D_801156F9;
 
 /// The room's task-spawn table; its entries are started by index from the
 /// room's callbacks.
@@ -270,7 +268,7 @@ void func_mist_r18_8017D960(Task* task)
 {
     s32 state;
 
-    if ((gGameSession->eventState == 0) && (D_80114C12 != 1) && (D_80071075 == 0)) {
+    if ((gGameSession->eventState == 0) && (D_80114C12 != 1) && (gDisplayState.pendingMode == 0)) {
         state = D_mist_r18_80186E9C;
         if (state == 1) {
             func_800E8634((s32)&D_mist_r18_80185EBC, 0, (s32)&D_mist_r18_80186564);
@@ -829,7 +827,7 @@ void func_mist_r18_8017EB48(void)
     Mc_SaveData.at4.loc.area  = 0x13;
     Mc_SaveData.at4.loc.warp  = 3;
     Mc_SaveData.at4.loc.room  = 3;
-    D_80071076                = 1;
+    gDisplayState.roomVariant = 1;
     SndEvt_EnqueueType7(0x80000000, 0);
     Task_Spawn(0, 0x11, 0, 0);
 }

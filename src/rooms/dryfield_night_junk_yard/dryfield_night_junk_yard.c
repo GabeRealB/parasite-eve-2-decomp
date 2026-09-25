@@ -14,7 +14,6 @@ extern GpMsgEntry D_dryfield_night_junk_yard_8018055C[];
 /// Payload of the 0x7DA message the entry task sends to the slot-4 task.
 extern s32 D_dryfield_night_junk_yard_801805A0;
 extern s32 D_dryfield_night_junk_yard_801805A4;
-extern u8  D_8007216D;
 
 void func_dryfield_night_junk_yard_8017D9B8(u8 arg0);
 
@@ -136,7 +135,7 @@ s32 func_dryfield_night_junk_yard_8017D82C(s32 arg0, s32 arg1, RoomEventMsg* in)
 void func_dryfield_night_junk_yard_8017D894(u8 arg0)
 {
     gGameSession->at4.loc.room = arg0;
-    D_8007216D                 = arg0;
+    Mc_SaveData.at4.loc.room   = arg0;
 }
 
 /// Room entry task tick: publish the message table, claim game pointer slot 7,

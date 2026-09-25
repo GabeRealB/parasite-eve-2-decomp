@@ -16,7 +16,6 @@
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 
-extern s32 D_80070F70;
 extern s32 D_80115730;
 
 /// Per-palette channel shifts for the halo, indexed by the palette the spawn

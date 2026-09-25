@@ -27,7 +27,6 @@
 #include "rooms/rooms_shared_8017e4f8.h"
 #include "rooms/dryfield_motel_balcony.h"
 
-extern s16 D_80071076;
 extern s8  D_8007272D;
 extern s32 D_80115720;
 extern s32 D_80115728;
@@ -167,10 +166,10 @@ void func_dryfield_motel_balcony_8017D74C(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            D_80071076               = 1;
-            Mc_SaveData.at4.loc.area = D_dryfield_motel_balcony_80186724.msgId;
-            Mc_SaveData.at4.loc.warp = D_dryfield_motel_balcony_80186724.field_2;
-            Mc_SaveData.at4.loc.room = (u8)D_dryfield_motel_balcony_80186724.field_3;
+            gDisplayState.roomVariant = 1;
+            Mc_SaveData.at4.loc.area  = D_dryfield_motel_balcony_80186724.msgId;
+            Mc_SaveData.at4.loc.warp  = D_dryfield_motel_balcony_80186724.field_2;
+            Mc_SaveData.at4.loc.room  = (u8)D_dryfield_motel_balcony_80186724.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;

@@ -22,7 +22,6 @@
 #include "rooms/rooms_shared_8017e4f8.h"
 #include "rooms/shelter_b1_north_maintenance_walkway.h"
 
-extern s32 D_80070F70;
 extern s32 D_80115728;
 extern s32 D_80115730;
 

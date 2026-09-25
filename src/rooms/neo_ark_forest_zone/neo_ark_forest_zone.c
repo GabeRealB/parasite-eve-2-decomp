@@ -26,7 +26,6 @@
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
-extern s16 D_80071076;
 extern u8  D_80115690;
 extern s32 D_8011572C;
 extern s32 D_80115750;
@@ -104,10 +103,10 @@ void func_neo_ark_forest_zone_8017D644(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            D_80071076               = 1;
-            Mc_SaveData.at4.loc.area = D_neo_ark_forest_zone_80182E38.field_0;
-            Mc_SaveData.at4.loc.warp = D_neo_ark_forest_zone_80182E38.field_2;
-            Mc_SaveData.at4.loc.room = D_neo_ark_forest_zone_80182E38.field_3;
+            gDisplayState.roomVariant = 1;
+            Mc_SaveData.at4.loc.area  = D_neo_ark_forest_zone_80182E38.field_0;
+            Mc_SaveData.at4.loc.warp  = D_neo_ark_forest_zone_80182E38.field_2;
+            Mc_SaveData.at4.loc.room  = D_neo_ark_forest_zone_80182E38.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;

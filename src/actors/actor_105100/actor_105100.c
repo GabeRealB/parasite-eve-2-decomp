@@ -227,12 +227,10 @@ extern s32 D_80115728;
 /// Main-executable globals with no module header yet: a `D_80114C12` of 1 or a
 /// live `D_80071075` means a cutscene is already up, so the death handler skips
 /// message 0x13F4.
-extern u8 D_80071075;
 extern s8 D_80114C12;
 
 /// Main-executable global with no module header yet: the remaining-enemy count
 /// `func_actor_105100_80136318` tests to decide whether the fight is over.
-extern s16 D_80073BA0;
 
 /// The run of HP caps at 0x8014139C; `func_actor_105100_80135FCC` reads the
 /// first entry. Declared as an aggregate on purpose: a bare `extern u16` makes
@@ -860,7 +858,7 @@ void func_actor_105100_80132C2C(Task* arg0)
         work->field_5BE = 0;
     }
     if (work->field_53C[0].flags & 1) {
-        if ((work->field_53C[0].key & 0xFFFF0000) == 0x10000 && D_80073BA0 > 0) {
+        if ((work->field_53C[0].key & 0xFFFF0000) == 0x10000 && Player_Status.hp > 0) {
             work->field_5A2      = 1;
             Gp_StateC08.field_6 |= 1;
         }
@@ -1551,7 +1549,7 @@ void func_actor_105100_80134284(GpEnemy* arg0, Task* arg1)
         case 2:
             flag = work->field_5BA;
             if ((flag == 1) && (((GameActor*)player->work)->field_954 != 2) && (D_80114C12 != flag) &&
-                (D_80071075 == 0)) {
+                (gDisplayState.pendingMode == 0)) {
                 Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
                 work->field_5BA = 0;
             }
@@ -2514,7 +2512,7 @@ void func_actor_105100_80136318(Task* arg0)
     s32              snd;
 
     work = arg0->work;
-    if (D_80073BA0 <= 0) {
+    if (Player_Status.hp <= 0) {
         ((GpEnemy*)arg0->spawnArg2)->hp = 1;
         work->field_596                 = 6;
         work->field_598                 = 0;

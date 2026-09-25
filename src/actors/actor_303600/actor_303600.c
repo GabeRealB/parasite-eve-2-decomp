@@ -105,9 +105,7 @@ extern u8 D_actor_303600_80162DD8[];
 /// Main-executable globals with no module header yet: a `D_80114C12` of 1 or a
 /// live `D_80071075` both mean a cutscene is already up, and `D_80071076` is the
 /// latch state 2 below sets alongside `Mc_SaveData`.
-extern u8  D_80071075;
-extern s16 D_80071076;
-extern s8  D_80114C12;
+extern s8 D_80114C12;
 
 void func_actor_303600_80162850(Task* task);
 void func_actor_303600_80162950(Task* task);
@@ -238,7 +236,7 @@ void func_actor_303600_8016216C(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if (D_80114C12 == 1 || D_80071075 != 0) {
+            if (D_80114C12 == 1 || gDisplayState.pendingMode != 0) {
                 return;
             }
             work       = (Actor303600Work*)Mem_Malloc(0x10, 0);
@@ -263,7 +261,7 @@ void func_actor_303600_8016216C(Task* arg0)
                 Mc_SaveData.at4.loc.area  = 0x1F;
                 Mc_SaveData.at4.loc.warp  = 1;
                 Mc_SaveData.at4.loc.room  = 1;
-                D_80071076                = 1;
+                gDisplayState.roomVariant = 1;
                 Task_Spawn(0, 0x11, 0x10, 0);
                 taskKill(arg0);
                 break;

@@ -16,7 +16,6 @@
 /// `Player_Status.weaponSlotItem`, the attachment id of the held weapon, read under
 /// its own address wherever the value is wanted once rather than as one of a
 /// run of accesses to the config block.
-extern u8 D_80073BAA;
 
 /// `Mc_SaveData.characterId`, the 1-based difficulty/mode row of `D_80112E04`.
 extern s8 D_8007218A;
@@ -59,7 +58,7 @@ void func_gunblade_8011E040(Task* arg0)
 
     shake = 0;
     actor = arg0->work;
-    sfx   = (D_80073BAA - 0xD) << 24;
+    sfx   = (Player_Status.weaponSlotItem - 0xD) << 24;
     rec   = &actor->field_14C;
     SCRATCH_PUSH_BYTES(sizeof(GunbladeScratch));
     blk   = SCRATCH_HEAD(GunbladeScratch);
@@ -124,7 +123,7 @@ void func_gunblade_8011E040(Task* arg0)
             actor->field_12A |= 0xC000;
             Gp_PlayObjSfx(arg0->extra.tmd->coords, sfx | 0x20170005, 1);
             Gp_SpawnEff(0x600A1, actor->field_91C->extra.tmd->coords,
-                        (D_80073BAA << 16) | 0x17, NULL);
+                        (Player_Status.weaponSlotItem << 16) | 0x17, NULL);
             Gp_AnimPlayChildSlotsEx(arg0, 0xB, 0, 3);
             break;
         case 3:
@@ -158,7 +157,7 @@ void func_gunblade_8011E040(Task* arg0)
                     actor->field_124 = lvl | 0x21700;
                     Gp_ConsumeSlotQty(0x96, 1);
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, sfx | 0x20170008, 1);
-                    func_gunblade_8011E008(D_80073BAA);
+                    func_gunblade_8011E008(Player_Status.weaponSlotItem);
                 } else {
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, sfx | 0x20170001, 0);
                 }

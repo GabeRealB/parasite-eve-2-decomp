@@ -41,20 +41,8 @@ extern void func_80131E38(void);
 
 extern UiObjectDesc  D_800611E4;
 extern UiObject*     D_80067634;
-extern u8            D_80071072;
-extern u8            D_80071075;
-extern s16           D_80071076;
-extern u8            D_80071086;
-extern u16           D_80072174;
-extern s8            D_80072176;
-extern u8            D_8007216D;
 extern GpItemScan    D_80072724;
 extern s8            D_8007272D;
-extern u16           D_80072834;
-extern u16           D_80072836;
-extern u8            D_80072A93;
-extern s32           D_80072A94;
-extern s32           D_80072A98;
 extern UiObjectDesc  D_8010D80C;
 extern RoomShopStock D_8010E138[];
 extern UiObjectDesc  D_8010EFA0;
@@ -326,7 +314,7 @@ void func_shelter_b1_underground_parking_8017DA50(DialogPrompt* arg0, UiObject* 
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_shelter_b1_underground_parking_801868C4);
-            Text_FormatTime(p, D_80072174);
+            Text_FormatTime(p, Mc_SaveData.playTime);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
         }
@@ -343,7 +331,7 @@ void func_shelter_b1_underground_parking_8017DA50(DialogPrompt* arg0, UiObject* 
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_shelter_b1_underground_parking_801868F4);
-            Text_ItoaUnsigned(p, D_80072A93);
+            Text_ItoaUnsigned(p, Mc_SaveData.saveCount);
             Text_Strcat(p, D_shelter_b1_underground_parking_80186914);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -361,7 +349,7 @@ void func_shelter_b1_underground_parking_8017DA50(DialogPrompt* arg0, UiObject* 
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_shelter_b1_underground_parking_801868CC);
-            Text_ItoaUnsigned(p, D_80072834);
+            Text_ItoaUnsigned(p, Mc_SaveData.field_6CC);
             Text_Strcat(p, D_shelter_b1_underground_parking_80186914);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -379,7 +367,7 @@ void func_shelter_b1_underground_parking_8017DA50(DialogPrompt* arg0, UiObject* 
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_shelter_b1_underground_parking_801868D0);
-            Text_ItoaUnsigned(p, D_80072836);
+            Text_ItoaUnsigned(p, Mc_SaveData.field_6CE);
             Text_Strcat(p, D_shelter_b1_underground_parking_80186914);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -443,7 +431,7 @@ void func_shelter_b1_underground_parking_8017DA50(DialogPrompt* arg0, UiObject* 
             s32         i;
             u8*         q;
 
-            total          = D_80072834;
+            total          = Mc_SaveData.field_6CC;
             req.x          = arg1->baseX + (u16)arg0->field_18;
             y              = arg1->baseY - 6;
             req.y          = (u16)arg0->field_1A + y;
@@ -500,7 +488,7 @@ void func_shelter_b1_underground_parking_8017DA50(DialogPrompt* arg0, UiObject* 
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_shelter_b1_underground_parking_801868FC);
-            Text_ItoaUnsigned(p, D_80072176);
+            Text_ItoaUnsigned(p, Mc_SaveData.clearCount);
             Text_Strcat(p, D_shelter_b1_underground_parking_80186914);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -518,7 +506,7 @@ void func_shelter_b1_underground_parking_8017DA50(DialogPrompt* arg0, UiObject* 
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_shelter_b1_underground_parking_80186904);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, D_80072A94), arg0->field_1C, 3, 2);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData.field_92C), arg0->field_1C, 3, 2);
             break;
         }
         case 8: {
@@ -534,7 +522,7 @@ void func_shelter_b1_underground_parking_8017DA50(DialogPrompt* arg0, UiObject* 
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_shelter_b1_underground_parking_8018690C);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, D_80072A98), arg0->field_1C, 3, 2);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData.field_930), arg0->field_1C, 3, 2);
             break;
         }
     }
@@ -1193,7 +1181,7 @@ void func_shelter_b1_underground_parking_8017F494(DialogPrompt* prompt, UiObject
     sel = prompt->field_C;
     if (sel == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0 && CdCmd_IsIdle() != 0) {
         SndEvt_EnqueueType6(0x16, 0, 0);
-        D_80071086 = 0xFF;
+        gDisplayState.gameMode = 0xFF;
         Ui_SpawnFromDesc(&D_800611E4, 1, 0, 0, obj);
         obj->status       = 0;
         obj->field_2E     = 6;
@@ -2061,7 +2049,7 @@ void func_shelter_b1_underground_parking_80181230(Task* task)
         task->state        += 1;
     }
     Text_DrawMultiLine(obj, (s16)obj->field_1C + 2, (s16)obj->field_18 + 0xF, text, 0x606060, 1, 0);
-    task->killCountdown -= D_80071072;
+    task->killCountdown -= gDisplayState.frameTicks;
     if (obj->status == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             obj->field_2E = -1;
@@ -2485,7 +2473,7 @@ void func_shelter_b1_underground_parking_80181FE4(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
-            D_80071076                = 1;
+            gDisplayState.roomVariant = 1;
             Mc_SaveData.at4.loc.stage = D_shelter_b1_underground_parking_8018D77C.stage;
             Mc_SaveData.at4.loc.area  = D_shelter_b1_underground_parking_8018D77C.area;
             Mc_SaveData.at4.loc.warp  = D_shelter_b1_underground_parking_8018D77C.warp;
@@ -2712,7 +2700,7 @@ void func_shelter_b1_underground_parking_801826C0(void)
         (coord->coord.t[0] < -0x1266)) {
         z = coord->coord.t[2];
         if (z < 0x7D0) {
-            if ((z >= -0x7CF) && (D_80114C12 != 1) && (D_80071075 == 0)) {
+            if ((z >= -0x7CF) && (D_80114C12 != 1) && (gDisplayState.pendingMode == 0)) {
                 facing = (u16)actor->field_52 & 0xFFF;
                 if (Pad_CheckButtons(0, 0, 0x1000) != 0) {
                     if ((u32)(facing - 0xA01) < 0x3FFU) {
@@ -3233,7 +3221,7 @@ void func_shelter_b1_underground_parking_80183560(Task* arg0)
         case 1:
             if (Gp_GetCapEventKey() == 0xB) {
                 gGameSession->at4.loc.room  = 6;
-                D_8007216D                  = 6;
+                Mc_SaveData.at4.loc.room    = 6;
                 gGameSession->roomObjsDirty = state;
                 func_800E8614((s32)&D_shelter_b1_underground_parking_801872D8, 1);
                 GameFlag_SetNibble(0xF4, 1);
@@ -3295,7 +3283,7 @@ void func_shelter_b1_underground_parking_80183714(Task* task)
 void func_shelter_b1_underground_parking_801837D8(u8 arg0)
 {
     gGameSession->at4.loc.room  = arg0;
-    D_8007216D                  = arg0;
+    Mc_SaveData.at4.loc.room    = arg0;
     gGameSession->roomObjsDirty = 1;
     gGameSession->viewDirty     = 1;
 }
@@ -3822,7 +3810,7 @@ void func_shelter_b1_underground_parking_801848BC(Task* task)
 
 void func_shelter_b1_underground_parking_8018491C(void)
 {
-    D_8007216D                  = D_shelter_b1_underground_parking_801876C4[D_shelter_b1_underground_parking_8018D788 & 0xF];
+    Mc_SaveData.at4.loc.room    = D_shelter_b1_underground_parking_801876C4[D_shelter_b1_underground_parking_8018D788 & 0xF];
     gGameSession->at4.loc.room  = D_shelter_b1_underground_parking_801876C4[D_shelter_b1_underground_parking_8018D788 & 0xF];
     gGameSession->roomObjsDirty = 1;
 }

@@ -30,13 +30,8 @@ extern void Stage_RequestFromAreaTable(s32 arg0);
 extern void func_807245E4(void*);
 extern void func_80724608(void*, s32, s32, void*);
 
-extern u8  D_80071075;
-extern s16 D_80071076;
-extern s16 D_8007107A;
-extern s8  D_8007216D;
-extern s16 D_80073BA0;
-extern s8  D_80114C12;
-extern u8  D_801156A4;
+extern s8 D_80114C12;
+extern u8 D_801156A4;
 
 extern GpMsgEntry     D_acropolis_cafeteria_80182AA8[];
 extern TaskDesc       D_acropolis_cafeteria_80182AD8[];
@@ -169,9 +164,9 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             break;
         case 2:
             blackout                   = 1;
-            gGameSession->at4.loc.room = D_8007216D = 2;
-            gGameSession->roomObjsDirty             = 1;
-            task->state                            += 1;
+            gGameSession->at4.loc.room = Mc_SaveData.at4.loc.room = 2;
+            gGameSession->roomObjsDirty                           = 1;
+            task->state                                          += 1;
             break;
         case 3:
             blackout = 1;
@@ -211,7 +206,7 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             break;
         case 8:
             blackout = 1;
-            if (D_8007107A != -1) {
+            if (gDisplayState.field_112 != -1) {
                 Task_SpawnFromTable(&D_acropolis_cafeteria_80184178, 0, 0, 0);
             }
             task->state = 14;
@@ -233,8 +228,8 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             }
             break;
         case 18:
-            if (Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D6, 0, 0) == 0 && D_80073BA0 > 0 && D_80114C12 != 1 &&
-                D_80071075 == 0) {
+            if (Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D6, 0, 0) == 0 && Player_Status.hp > 0 && D_80114C12 != 1 &&
+                gDisplayState.pendingMode == 0) {
                 Gp_MsgPlayerWeapon(0);
                 task->state += 1;
             }
@@ -347,7 +342,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
             Mc_SaveData.at4.loc.area  = 3;
             Mc_SaveData.at4.loc.warp  = 3;
             Mc_SaveData.at4.loc.room  = 3;
-            D_80071076                = 1;
+            gDisplayState.roomVariant = 1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;

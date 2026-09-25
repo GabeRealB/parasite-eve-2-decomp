@@ -49,8 +49,6 @@ void Gp_DrawEffSprite7C(GpCoord* arg0, s32 arg1, u32 arg2);
 
 void func_actor_510900_80134C90(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 
-extern s32 D_80070F70;
-
 /// The twelve muzzle-flash CLUTs `func_actor_510900_80134C90` indexes by frame.
 extern Actor510900SprClut D_actor_510900_8013C48C[];
 
@@ -1046,7 +1044,7 @@ void func_actor_510900_8013482C(Task* arg0)
             gte_rtv0();
             gte_stsv(&eff->move);
         } else if (!(arg0->spawnArg1 & 0xF0000000)) {
-            n = D_80070F70 & 3;
+            n = gDisplayState.animFrame & 3;
             i = 0;
             if (n != 0) {
                 do {
@@ -1057,7 +1055,7 @@ void func_actor_510900_8013482C(Task* arg0)
                     i += 1;
                 } while (i < n);
             }
-            n = D_80070F70 & 1;
+            n = gDisplayState.animFrame & 1;
             i = 0;
             if (i < n) {
                 do {

@@ -83,11 +83,8 @@ extern TaskDesc D_actor_136100_80140744[];
 extern s32 D_actor_136100_8013F3C4;
 extern s32 D_actor_136100_8013F3DC;
 
-extern u8      D_80071075;
 extern s8      D_8007218A;
 extern s8      D_8007272D;
-extern u8      D_80073BAC;
-extern u8      D_80073BA9;
 extern s32     D_801833F4;
 extern s32     D_801834AC;
 extern s32     D_80183ACC;
@@ -164,7 +161,7 @@ s32 func_actor_136100_80131EC4(Task* arg0)
     idx = (u16)*sel + 0x2FU;
 
     msgWork             = (Actor136100Work*)arg0->work;
-    weaponId            = D_80073BA9;
+    weaponId            = Player_Status.weapon;
     id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.animBlock.index = id;
     msgWork->field_4DE  = idx;
@@ -332,7 +329,7 @@ void func_actor_136100_80132284(Task* arg0)
         s32              id;                                                      \
                                                                                   \
         msgWork             = (Actor136100Work*)(task)->work;                     \
-        weaponId            = D_80073BA9;                                         \
+        weaponId            = Player_Status.weapon;                               \
         id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22; \
         rec.animBlock.index = id;                                                 \
         msgWork->field_4DE  = anim;                                               \
@@ -838,7 +835,7 @@ void func_actor_136100_80133690(void)
     Gp_DispatchMsg(work->field_4B4, 0x3E9, (s32)&D_actor_136100_8013F31C, 0);
 
     msgWork             = (Actor136100Work*)task->work;
-    weaponId            = D_80073BA9;
+    weaponId            = Player_Status.weapon;
     id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.animBlock.index = id;
     msgWork->field_4DE  = 1;
@@ -892,7 +889,7 @@ void func_actor_136100_8013379C(s32 arg0)
     Gp_DispatchMsg(work->field_4B4, 0x3E9, (s32)D_actor_136100_8013F334, 0);
 
     msgWork             = (Actor136100Work*)task->work;
-    weaponId            = D_80073BA9;
+    weaponId            = Player_Status.weapon;
     id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.animBlock.index = id;
     msgWork->field_4DE  = 1;
@@ -927,14 +924,14 @@ s32 func_actor_136100_80133904(Task* task)
     if (Gp_TakePendingObj4C(&evtId, &evtKind, &evtSub) != 0) {
         if (!((s16)evtId & 0x8000)) {
             if ((evtId & 0x7FFF) == 5) {
-                ready = D_80073BAC != 0;
+                ready = Player_Status.field_24 != 0;
             }
         }
     }
     if (ready == 0 || D_80114C12 == 1) {
         return 0;
     }
-    if (D_80071075 != 0) {
+    if (gDisplayState.pendingMode != 0) {
         return 0;
     }
     if ((s8)evtKind == 0x12 && work->field_4E4 == 0) {
@@ -1172,7 +1169,7 @@ void func_actor_136100_80133BC8(Task* arg0)
                 if (D_80114C12 == 1) {
                     return;
                 }
-                if (D_80071075 != 0) {
+                if (gDisplayState.pendingMode != 0) {
                     return;
                 }
                 func_actor_136100_SendWeaponRec(arg0, 1, 1, 0xA);
@@ -1187,7 +1184,7 @@ void func_actor_136100_80133BC8(Task* arg0)
                 if (D_80114C12 == 1) {
                     return;
                 }
-                if (D_80071075 != 0) {
+                if (gDisplayState.pendingMode != 0) {
                     return;
                 }
                 func_actor_136100_SendWeaponRec(arg0, 1, 1, 0xA);
@@ -1316,7 +1313,7 @@ void func_actor_136100_8013467C(void)
     s32       weaponId;
     s32       id;
 
-    weaponId            = D_80073BA9;
+    weaponId            = Player_Status.weapon;
     id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.animBlock.index = id;
     rec.field_4         = 1;

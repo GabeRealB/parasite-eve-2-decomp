@@ -19,9 +19,7 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-extern s16 D_80071076;
-extern u8  D_8007216D;
-extern u8  D_80115690;
+extern u8 D_80115690;
 
 extern s32 D_dryfield_driveway_8017E384;
 extern s32 D_dryfield_driveway_8017E4FC;
@@ -78,10 +76,10 @@ void func_dryfield_driveway_8017D5E4(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            D_80071076               = 1;
-            Mc_SaveData.at4.loc.area = D_dryfield_driveway_80180688.msgId;
-            Mc_SaveData.at4.loc.warp = D_dryfield_driveway_80180688.field_2;
-            Mc_SaveData.at4.loc.room = D_dryfield_driveway_80180688.field_3;
+            gDisplayState.roomVariant = 1;
+            Mc_SaveData.at4.loc.area  = D_dryfield_driveway_80180688.msgId;
+            Mc_SaveData.at4.loc.warp  = D_dryfield_driveway_80180688.field_2;
+            Mc_SaveData.at4.loc.room  = D_dryfield_driveway_80180688.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -282,7 +280,7 @@ s32 func_dryfield_driveway_8017DCC0(Task* task, s32 msgId, s32 arg2, s32 arg3)
             if (found != 0) {
                 GameFlag_SetNibble(0x3A, 2);
                 Task_SpawnOnDefaultList(D_dryfield_driveway_8017E2FC, 0, 0, 0);
-                gGameSession->at4.loc.room = (D_8007216D = 2);
+                gGameSession->at4.loc.room = (Mc_SaveData.at4.loc.room = 2);
                 gGameSession->hideHud      = 1;
                 gGameSession->eventState   = 1;
                 return 1;

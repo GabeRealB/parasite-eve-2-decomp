@@ -32,8 +32,6 @@ MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
-extern s32 D_8007107C;
-extern s16 D_80071076;
 extern u8  D_80071090;
 extern u8  D_80115690;
 extern s32 D_8011572C;
@@ -167,7 +165,7 @@ void func_neo_ark_pavilion_8017D660(Task* task)
     xLeftS  = -0xA0;
     split   = 0;
     splitX  = 0;
-    buf     = D_8007107C;
+    buf     = gDisplayState.otBuffer;
     area    = gGameSession->at4.loc.area;
     if (area == 27) {
         otzOff = 10;
@@ -610,7 +608,7 @@ void func_neo_ark_pavilion_8017E2B4(Task* task)
 {
     s32        xLeft  = -0xA0;
     s32        xRight = 0xA0;
-    s32        buf    = D_8007107C;
+    s32        buf    = gDisplayState.otBuffer;
     s32        passes = 1;
     GpAreaKey* loc    = &gGameSession->at4.loc;
     s32        area   = loc->area;
@@ -700,13 +698,13 @@ void func_neo_ark_pavilion_8017E2B4(Task* task)
         if (size < sizeof(POLY_FT4) * 976) {
             return;
         }
-        if (D_8007107C != 0) {
+        if (gDisplayState.otBuffer != 0) {
             base += size >> 1;
         }
         prim = (POLY_FT4*)base - 1;
     } else {
         prim = (POLY_FT4*)((u8*)D_8005C374 + 0x9880);
-        if (D_8007107C != 0) {
+        if (gDisplayState.otBuffer != 0) {
             prim += 488;
         }
         prim--;
@@ -845,10 +843,10 @@ void func_neo_ark_pavilion_8017E854(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            D_80071076               = 1;
-            Mc_SaveData.at4.loc.area = D_neo_ark_pavilion_80187A14.field_0;
-            Mc_SaveData.at4.loc.warp = D_neo_ark_pavilion_80187A14.field_2;
-            Mc_SaveData.at4.loc.room = D_neo_ark_pavilion_80187A14.field_3;
+            gDisplayState.roomVariant = 1;
+            Mc_SaveData.at4.loc.area  = D_neo_ark_pavilion_80187A14.field_0;
+            Mc_SaveData.at4.loc.warp  = D_neo_ark_pavilion_80187A14.field_2;
+            Mc_SaveData.at4.loc.room  = D_neo_ark_pavilion_80187A14.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;

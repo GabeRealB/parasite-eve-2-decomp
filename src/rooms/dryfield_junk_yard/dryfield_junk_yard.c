@@ -30,7 +30,6 @@ void func_80724608(void* owner, s32 arg1, s32 arg2, void* name);
 
 /// Main-executable halfword the room task's second state waits on before it
 /// calls `func_80724608`.
-extern s16 D_8007107A;
 /// Signed byte of gameplay state the room's script callback stores into.
 extern s8 D_8007272D;
 
@@ -296,7 +295,7 @@ void func_dryfield_junk_yard_8017DC54(s8 arg0)
 /// state never advances, so it repeats every frame.
 void func_dryfield_junk_yard_8017DC60(Task* task)
 {
-    if ((D_8007107A != 0) && (gameGetPtrSlot(0xA) != 0)) {
+    if ((gDisplayState.field_112 != 0) && (gameGetPtrSlot(0xA) != 0)) {
         func_80724608(gameGetPtrSlot(0xA), -0x8C, 0xA, D_dryfield_junk_yard_8017D5D0);
     }
 }

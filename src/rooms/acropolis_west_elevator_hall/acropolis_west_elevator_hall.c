@@ -57,8 +57,7 @@ typedef struct {
     /* 0x0 */ s32 field_0;
 } AwehElevatorState;
 
-extern s32 D_80070F70;
-extern s8  D_8007272D;
+extern s8 D_8007272D;
 
 extern TaskDesc   D_acropolis_west_elevator_hall_80184568[];
 extern s32        D_acropolis_west_elevator_hall_80184620;
@@ -1094,7 +1093,7 @@ void func_acropolis_west_elevator_hall_8017FAE8(Task* arg0)
     gte_stsxy(&((RoomShaftScratch*)(head - 0x14))->sx);
     gte_stszotz(&block->otz);
     if (((RoomShaftScratch*)(head - 0x14))->otz >= 0x11) {
-        pulse = D_80070F70 * ((RoomShaftArg*)&arg0->spawnArg1)->phase;
+        pulse = gDisplayState.animFrame * ((RoomShaftArg*)&arg0->spawnArg1)->phase;
         if (pulse & 0x80) {
             level = 0x80 - (pulse & 0x7F);
         } else {

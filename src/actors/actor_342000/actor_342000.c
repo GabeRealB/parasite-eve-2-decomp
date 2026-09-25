@@ -611,7 +611,6 @@ void func_actor_342000_801628C8(Task* arg0)
 
 /// Main-executable globals with no module header yet: `D_80073BA9` is the
 /// base weapon id, `D_8007218A` selects the alternate animation block.
-extern u8 D_80073BA9;
 extern s8 D_8007218A;
 
 /// Animation payload of the 0x3F4 messages sent to the slot-3 task.
@@ -690,7 +689,7 @@ void func_actor_342000_80162BBC(Task* arg0)
             s32 weaponId;
             s32 anim;
 
-            weaponId            = D_80073BA9;
+            weaponId            = Player_Status.weapon;
             anim                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.animBlock.index = anim;
             msg.field_4         = 1;
@@ -712,7 +711,7 @@ void func_actor_342000_80162BBC(Task* arg0)
             s32 weaponId;
             s32 anim;
 
-            weaponId            = D_80073BA9;
+            weaponId            = Player_Status.weapon;
             anim                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.animBlock.index = anim;
             msg.field_4         = 1;
@@ -743,7 +742,6 @@ extern GpXformArg D_actor_342000_80164818[2];
 extern GpXformArg D_actor_342000_80164848[2];
 extern GpXformArg D_actor_342000_80164878[2];
 extern GpXformArg D_actor_342000_801648D0;
-extern s32        D_80070F70;
 extern s32        D_80144A74;
 extern s32        D_80144A7C;
 
@@ -781,7 +779,7 @@ static inline void Actor342000_SetAnim(Task* task, u16 anim, u16 blend, u16 n)
 
 static inline s32 Actor342000_Sway(s32 x, s32 d)
 {
-    if (D_80070F70 & 1) {
+    if (gDisplayState.animFrame & 1) {
         return x + d;
     }
     return x - d;
@@ -953,7 +951,6 @@ extern TaskDesc D_actor_342000_80164FF8;
 
 extern u8             D_actor_342000_80164968;
 extern u8             D_actor_342000_80164E30;
-extern s8             D_8007216D;
 extern s8             D_80114C11;
 extern u16            D_801855DE;
 extern TaskDesc       D_80187150;
@@ -1002,7 +999,7 @@ static inline void Actor342000_SetMode(s16 arg0)
 static inline void Actor342000_EnterArea(void)
 {
     gGameSession->at4.loc.room   = 7;
-    D_8007216D                   = 7;
+    Mc_SaveData.at4.loc.room     = 7;
     gGameSession->eventRoomIndex = 6;
     gGameSession->field_133      = 1;
     gGameSession->roomObjsDirty  = 1;
@@ -1288,7 +1285,7 @@ void func_actor_342000_80164110(Task* arg0, s32 arg1, GpCmdArg* arg2, GpXformArg
 void func_actor_342000_80164154(void)
 {
     gGameSession->at4.loc.room   = 7;
-    D_8007216D                   = 7;
+    Mc_SaveData.at4.loc.room     = 7;
     gGameSession->eventRoomIndex = 6;
     gGameSession->field_133      = 1;
     gGameSession->roomObjsDirty  = 1;
@@ -1392,7 +1389,7 @@ void func_actor_342000_8016439C(void)
     work = (Actor342000EventWork*)D_actor_342000_80165070->work;
     Gp_DispatchMsg(work->field_48, 0x3E9, (s32)&D_actor_342000_80164948, 0);
     func_8018507C();
-    weaponId            = D_80073BA9;
+    weaponId            = Player_Status.weapon;
     anim                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.animBlock.index = anim;
     msg.field_4         = 1;

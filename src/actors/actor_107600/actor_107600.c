@@ -197,7 +197,6 @@ extern u16        D_actor_107600_80135750[];
 
 /* Remaining-enemy count, and the gallery controller task the room overlay
  * publishes (its `Task::work` is the `MistShootingGalleryWork`). */
-extern s16   D_80073BA0;
 extern Task* D_8018E0C4;
 
 void func_actor_107600_80131F10(Task* arg0);
@@ -971,7 +970,7 @@ void func_actor_107600_801332D4(Task* arg0)
                 p = (s8)Gp_GetObjPan(c);
                 SndEvt_EnqueueType6(0x5114000E, p, (s8)gpGetObjDepth(c));
                 if (actor->field_954 != 1) {
-                    if (D_80073BA0 < 11) {
+                    if (Player_Status.hp < 11) {
                         ((MistShootingGalleryWork*)D_8018E0C4->work)->field_22 = 1;
                         actor->field_96E                                       = 0;
                     } else {

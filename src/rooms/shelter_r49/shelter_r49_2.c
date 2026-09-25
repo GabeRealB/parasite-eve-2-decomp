@@ -13,8 +13,7 @@
 
 extern TaskDesc D_shelter_r49_8017DA00;
 
-extern s8  D_8007106B;
-extern s16 D_80071076;
+extern s8 D_8007106B;
 
 void func_shelter_r49_8017D71C(Task* arg0)
 {
@@ -119,7 +118,7 @@ void func_shelter_r49_8017D8D8(Task* arg0)
             Mc_SaveData.at4.loc.area  = 7;
             Mc_SaveData.at4.loc.warp  = 1;
             Mc_SaveData.at4.loc.room  = 1;
-            D_80071076                = 1;
+            gDisplayState.roomVariant = 1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;

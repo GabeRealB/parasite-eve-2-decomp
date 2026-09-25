@@ -219,17 +219,14 @@ typedef union AcropolisPlazaTailMsg {
 } AcropolisPlazaTailMsg;
 STATIC_ASSERT_SIZEOF(AcropolisPlazaTailMsg, 0x1C);
 
-extern s32 D_80070F70;
 extern s16 D_acropolis_plaza_801987E0[];
 
 extern s8       D_8007106B;
-extern s16      D_80071076;
 extern TaskDesc D_acropolis_plaza_80183824[];
 
 /// Gate `func_acropolis_plaza_8017FB50` applies to a pending `GpObj4C` event
 /// whose id has the sign bit clear; a main-executable global with no module
 /// header yet.
-extern u8 D_80073BAC;
 
 /// The three scene `GpObj4A` nodes the plaza unlinks: `..._801991F0` when the
 /// opening stream hands over, and `..._801991A4` / `..._8019923C` depending on
@@ -244,7 +241,6 @@ extern void Stage_RequestMidiFromMap(s32 arg0);
 /// Main-executable globals with no module header yet: `D_80073BA9` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on, and
 /// `D_8007218A` picks which of the two weapon-id bases that record uses.
-extern u8 D_80073BA9;
 extern s8 D_8007218A;
 
 /// Script block the plaza hands to slot 3 as msg 0x3F4 entry 0xB; it lives in
@@ -1126,7 +1122,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
         case 5:
             if (q->field_1EA >= 0x60) {
                 rec                            = &buf.weapon.rec;
-                weaponId                       = D_80073BA9;
+                weaponId                       = Player_Status.weapon;
                 id                             = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
                 buf.weapon.rec.animBlock.index = id;
                 rec->field_4                   = 1;
@@ -1459,7 +1455,7 @@ void func_acropolis_plaza_8017F48C(Task* task)
     state = task->state;
     switch (state) {
         case 0:
-            weaponId            = D_80073BA9;
+            weaponId            = Player_Status.weapon;
             id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.animBlock.index = id;
             rec.field_4         = 1;
@@ -1509,7 +1505,7 @@ void func_acropolis_plaza_8017F620(Task* task)
 
     switch (task->state) {
         case 0:
-            weaponId            = D_80073BA9;
+            weaponId            = Player_Status.weapon;
             id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.animBlock.index = id;
             rec.field_4         = 1;
@@ -1644,7 +1640,7 @@ u16 func_acropolis_plaza_8017FB50(Task* task)
 
     ready = Gp_TakePendingObj4C(&evtId, &evtKind, &evtSub);
     if (!((s16)evtId & 0x8000) && (ready != 0)) {
-        ready = D_80073BAC != 0;
+        ready = Player_Status.field_24 != 0;
     }
 
     switch (work->step) {
@@ -1858,7 +1854,7 @@ void func_acropolis_plaza_80180054(Task* task)
             Mc_SaveData.at4.loc.warp  = 1;
             Mc_SaveData.at4.loc.area  = 0x11;
             Mc_SaveData.at4.loc.room  = 1;
-            D_80071076                = 1;
+            gDisplayState.roomVariant = 1;
             Gp_EnqueueHeldWeaponCd();
             SndEvt_EnqueueType7(0x80000000, 0);
             Task_Spawn(0, 0x11, 0, 0);
@@ -2181,7 +2177,7 @@ void func_acropolis_plaza_801811D0(Task* task)
     gte_stszotz(&((AcropolisPlazaFlareScratch*)(head - 0x4C))->otz);
     if (blk->otz >= 0x11) {
         if (__builtin_abs(blk->sx) < 0xC0 && __builtin_abs(blk->sy) < 0x98) {
-            pulse = D_80070F70 * 8 + task->spawnArg1 * 0xC0;
+            pulse = gDisplayState.animFrame * 8 + task->spawnArg1 * 0xC0;
             if (pulse & 0x80) {
                 level = 0x7F - (pulse & 0x7F);
             } else {
@@ -2361,7 +2357,7 @@ void func_acropolis_plaza_80182054(Task* task)
                 blue        = (u32)brightness >> 18;
                 blk->half   = 0xC000 / ((AcropolisPlazaGlowScratch*)(head - 0x14))->otz;
             } else {
-                pulse = D_80070F70 * 6;
+                pulse = gDisplayState.animFrame * 6;
                 if (pulse & 0x80) {
                     level = 0x7F - (pulse & 0x7F);
                 } else {

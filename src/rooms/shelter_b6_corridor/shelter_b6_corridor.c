@@ -24,9 +24,7 @@
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 
-extern s16 D_800691CA;
-extern u8  D_80070F87;
-extern s32 D_80070F70;
+extern u8 D_80070F87;
 
 extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -104,7 +102,7 @@ void func_shelter_b6_corridor_8017D5D0(Task* arg0)
     s32 tpage1;
 
     head                             = SCRATCH_HEAD(OverlayWaveScratch);
-    D_800691CA                       = 2;
+    CdCmd_Queue.field_22A            = 2;
     SCRATCH_HEAD(OverlayWaveScratch) = head - 1;
     cols                             = head[-1].cols;
     scratch                          = head - 1;
@@ -360,7 +358,7 @@ void func_shelter_b6_corridor_8017E12C(Task* task)
 {
     char pad[0x10];
 
-    D_800691CA = 2;
+    CdCmd_Queue.field_22A = 2;
 }
 
 /// The room task's three states: set the room up, the per-frame state, end.
@@ -585,7 +583,7 @@ void func_shelter_b6_corridor_8017EBA4(Task* task)
 
     coord = task->extra.tmd->coords + 1;
     if (Gp_State1C->eventState == 0) {
-        shade  = ((D_80070F70 & 1) << 4) + 0x40;
+        shade  = ((gDisplayState.animFrame & 1) << 4) + 0x40;
         rgb[0] = shade;
         rgb[1] = shade;
         rgb[2] = shade >> 1;

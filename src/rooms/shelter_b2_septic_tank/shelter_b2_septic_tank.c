@@ -24,10 +24,6 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-extern u8  D_80071075;
-extern s16 D_80071076;
-extern s32 D_8007107C;
-extern s8  D_8007217B;
 extern s8  D_80114C12;
 extern s32 D_8011572C;
 extern s32 D_80115738;
@@ -154,10 +150,10 @@ void func_shelter_b2_septic_tank_8017D614(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            D_80071076               = 1;
-            Mc_SaveData.at4.loc.area = D_shelter_b2_septic_tank_8018703C.msgId;
-            Mc_SaveData.at4.loc.warp = D_shelter_b2_septic_tank_8018703C.field_2;
-            Mc_SaveData.at4.loc.room = D_shelter_b2_septic_tank_8018703C.field_3;
+            gDisplayState.roomVariant = 1;
+            Mc_SaveData.at4.loc.area  = D_shelter_b2_septic_tank_8018703C.msgId;
+            Mc_SaveData.at4.loc.warp  = D_shelter_b2_septic_tank_8018703C.field_2;
+            Mc_SaveData.at4.loc.room  = D_shelter_b2_septic_tank_8018703C.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -243,7 +239,7 @@ void func_shelter_b2_septic_tank_8017DA74(Task* task)
 
     if (gGameSession->at4.loc.view == 4) {
         place = gGameSession->at4.loc.place;
-        if (place == 1 && D_80114C12 != place && D_80071075 == 0 && D_shelter_b2_septic_tank_80187045 == 0) {
+        if (place == 1 && D_80114C12 != place && gDisplayState.pendingMode == 0 && D_shelter_b2_septic_tank_80187045 == 0) {
             if (GameFlag_GetNibble(0xEB) == 0) {
                 func_800E8614((s32)&D_shelter_b2_septic_tank_80183004, 0);
             }
@@ -523,7 +519,7 @@ void func_shelter_b2_septic_tank_8017EA50(Task* task)
 /// advances the task to its next state.
 void func_shelter_b2_septic_tank_8017EAB8(Task* arg0)
 {
-    if (D_8007217B == 0) {
+    if (Mc_SaveData.companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;
@@ -537,10 +533,10 @@ void func_shelter_b2_septic_tank_8017EAB8(Task* arg0)
 /// lists of water surfaces.
 void func_shelter_b2_septic_tank_8017EAF8(Task* task)
 {
-    if (D_8007217B == 0) {
-        D_shelter_b2_septic_tank_80187054 = (u8*)D_8005C374 + D_8007107C * 0xC000;
+    if (Mc_SaveData.companionType == 0) {
+        D_shelter_b2_septic_tank_80187054 = (u8*)D_8005C374 + gDisplayState.otBuffer * 0xC000;
     } else {
-        D_shelter_b2_septic_tank_80187054 = (u8*)D_8005C370 + D_8007107C * 0xC000;
+        D_shelter_b2_septic_tank_80187054 = (u8*)D_8005C370 + gDisplayState.otBuffer * 0xC000;
     }
     func_shelter_b2_septic_tank_8017DB68(task);
     func_shelter_b2_septic_tank_8017E2DC(task);

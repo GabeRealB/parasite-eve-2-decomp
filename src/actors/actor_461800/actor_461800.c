@@ -52,7 +52,6 @@ extern u8       D_actor_461800_80139F5C[];
 extern TaskDesc D_actor_461800_80139F8C;
 extern u8       D_actor_461800_80139FB0[];
 
-extern s16 D_80071076;
 extern s8  D_8007218B;
 extern s32 D_8017DC54;
 extern s32 D_actor_461800_80143884;
@@ -246,7 +245,7 @@ void func_actor_461800_8013229C(void)
         Mc_SaveData.at4.loc.area  = 0x24;
         Mc_SaveData.at4.loc.warp  = 1;
         Mc_SaveData.at4.loc.room  = 1;
-        D_80071076                = 1;
+        gDisplayState.roomVariant = 1;
         Task_Spawn(0, 0x11, 0, 0);
         Fs_BeginBootLoad(&Mc_SaveData.at4.loc.view, 0);
         Gp_RestoreStreamRng();

@@ -140,9 +140,6 @@ extern Task* D_actor_444000_80161878;
 /// equipped-weapon index within it; together they pick the player animation the
 /// action-1 cue installs.
 extern s8 D_8007218A;
-extern u8 D_80073BA9;
-
-extern s8 D_8007216D;
 
 /// 0xFF-terminated area-record list this overlay applies on entry.
 extern GpAreaApplyRec D_8018FB6C[];
@@ -150,7 +147,6 @@ extern GpAreaApplyRec D_8018FB6C[];
 /// Main-executable globals with no module header yet: `D_80071075` gates the
 /// event on the "everything is dead" state, and `D_8007272D` is the ending
 /// selector the death sequence latches.
-extern u8 D_80071075;
 extern s8 D_8007272D;
 
 /// Gameplay-resident globals the state-3 hand-off touches: `D_80187150` is the
@@ -335,7 +331,7 @@ void func_actor_444000_80132054(Task* task)
             break;
         case 1:
             /* Install the weapon-specific player animation on the slot-3 task. */
-            anim = D_80073BA9;
+            anim = Player_Status.weapon;
             if (D_8007218A == 1) {
                 anim += 1;
             } else {
@@ -400,16 +396,16 @@ void func_actor_444000_801321FC(s32 arg0)
             switch (gGameSession->field_132) {
                 case 0:
                     gGameSession->at4.loc.room = 4;
-                    D_8007216D                 = 4;
+                    Mc_SaveData.at4.loc.room   = 4;
                     break;
                 case 1:
                     gGameSession->at4.loc.room = 5;
-                    D_8007216D                 = 5;
+                    Mc_SaveData.at4.loc.room   = 5;
                     break;
                 case 2:
                 case 3:
                     gGameSession->at4.loc.room = 6;
-                    D_8007216D                 = 6;
+                    Mc_SaveData.at4.loc.room   = 6;
                     break;
             }
             gGameSession->eventRoomIndex = gGameSession->at4.loc.room - 1;
@@ -461,7 +457,7 @@ void func_actor_444000_80132358(Task* task)
             if (Gp_StateC08.field_A == 1) {
                 return;
             }
-            if (D_80071075 != 0) {
+            if (gDisplayState.pendingMode != 0) {
                 return;
             }
             alloc      = (Actor444000EventWork*)memCalloc(sizeof(Actor444000EventWork), false);
@@ -2592,7 +2588,7 @@ void func_actor_444000_801389EC(GpEnemy* enemy, Task* task)
             return;
         }
         D_actor_444000_80161694[2] =
-            ((Actor403200AnimTable*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + D_80073BA9])->sets[9];
+            ((Actor403200AnimTable*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + Player_Status.weapon])->sets[9];
         work->anim.animBlock.ptr = D_actor_444000_80161694;
         work->anim.field_4       = 2;
         work->anim.field_8       = armed;

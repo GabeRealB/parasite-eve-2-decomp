@@ -32,7 +32,6 @@ typedef struct RgSpriteLevels {
     /* 0x0 */ u8 v[3];
 } RgSpriteLevels;
 
-extern s32          D_80070F70;
 extern GpQuadCorner D_80111E38[];
 
 /// Messages the room task answers, terminated by id 0x7FFFFFFF.
@@ -484,7 +483,7 @@ void func_acropolis_roof_garden_8017E29C(Task* arg0)
     gte_stsxy(&((RoomGlowScratch*)(head - 0x18))->sx);
     gte_stszotz(&blk->otz);
     if (((RoomGlowScratch*)(head - 0x18))->otz >= 0x11) {
-        pulse  = D_80070F70;
+        pulse  = gDisplayState.animFrame;
         pulse *= arg0->spawnArg1 & 0xFF;
         flip   = (arg0->spawnArg1 >> 16) & 1;
         if (pulse & 0x80) {

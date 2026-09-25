@@ -14,8 +14,7 @@
 #include "rooms/room_common.h"
 #include "rooms/dryfield_night_motel_balcony.h"
 
-extern s16 D_80071076;
-extern s8  D_8007272D;
+extern s8 D_8007272D;
 
 /// A gameplay state byte; the one-shot balcony event waits while it is 1.
 extern s8 D_80114C12;
@@ -139,10 +138,10 @@ void func_dryfield_night_motel_balcony_8017D7F8(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            D_80071076               = 1;
-            Mc_SaveData.at4.loc.area = D_dryfield_night_motel_balcony_8018F2D4.msgId;
-            Mc_SaveData.at4.loc.warp = D_dryfield_night_motel_balcony_8018F2D4.field_2;
-            Mc_SaveData.at4.loc.room = (u8)D_dryfield_night_motel_balcony_8018F2D4.field_3;
+            gDisplayState.roomVariant = 1;
+            Mc_SaveData.at4.loc.area  = D_dryfield_night_motel_balcony_8018F2D4.msgId;
+            Mc_SaveData.at4.loc.warp  = D_dryfield_night_motel_balcony_8018F2D4.field_2;
+            Mc_SaveData.at4.loc.room  = (u8)D_dryfield_night_motel_balcony_8018F2D4.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;

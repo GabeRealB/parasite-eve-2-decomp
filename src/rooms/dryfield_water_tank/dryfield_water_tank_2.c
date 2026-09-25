@@ -49,8 +49,6 @@ STATIC_ASSERT_SIZEOF(DwtWork, 0x10);
 /// record is keyed on, and `D_8007218A` picks which of the two weapon-id bases
 /// that record uses.
 extern s8 D_80114C12;
-extern u8 D_80071075;
-extern u8 D_80073BA9;
 extern s8 D_8007218A;
 
 /// Main-executable flag set to 1 before the view tasks are respawned.
@@ -316,7 +314,7 @@ void func_dryfield_water_tank_8017E78C(Task* task)
                     // Taken before the record is filled, the address sits in
                     // $a1 and `field_4` is stored through it.
                     rec                    = &script;
-                    weaponId               = D_80073BA9;
+                    weaponId               = Player_Status.weapon;
                     script.animBlock.index = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
                     rec->field_4           = 1;
                     script.field_8         = 0;
@@ -368,7 +366,7 @@ void func_dryfield_water_tank_8017E9F8(Task* task)
     return;
 
 L_case0:
-    if ((D_80114C12 != 1) && (D_80071075 == 0)) {
+    if ((D_80114C12 != 1) && (gDisplayState.pendingMode == 0)) {
         work       = Mem_Malloc(0xC, false);
         task->work = (TaskIdMap*)work;
         if (work == NULL) {
@@ -378,7 +376,7 @@ L_case0:
             work->owner                    = gameGetPtrSlot(3);
             D_dryfield_water_tank_80188D50 = task;
         }
-        weaponId               = D_80073BA9;
+        weaponId               = Player_Status.weapon;
         anim                   = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
         script.animBlock.index = anim;
         script.field_4         = 1;
@@ -427,7 +425,7 @@ void func_dryfield_water_tank_8017EBA0(void)
 
     Gp_DispatchMsg(((DwtWork*)D_dryfield_water_tank_80188D50->work)->owner, 0x3E9,
                    (s32)&D_dryfield_water_tank_801804F4, 0);
-    weaponId            = D_80073BA9;
+    weaponId            = Player_Status.weapon;
     anim                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.animBlock.index = anim;
     rec.field_4         = 1;

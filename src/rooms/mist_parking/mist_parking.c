@@ -30,18 +30,7 @@
 
 extern UiObjectDesc  D_800611E4;
 extern UiObject*     D_80067634;
-extern u8            D_80071072;
-extern u8            D_80071086;
-extern u8            D_8007216D;
-extern u8            D_80072170;
-extern u16           D_80072174;
-extern s8            D_80072176;
 extern GpItemScan    D_80072724;
-extern u16           D_80072834;
-extern u16           D_80072836;
-extern u8            D_80072A93;
-extern s32           D_80072A94;
-extern s32           D_80072A98;
 extern UiObjectDesc  D_8010D80C;
 extern RoomShopStock D_8010E138[];
 extern UiObjectDesc  D_8010EFA0;
@@ -968,7 +957,7 @@ void func_mist_parking_8017F31C(Task* task)
         task->state        += 1;
     }
     Text_DrawMultiLine(obj, (s16)obj->field_1C + 2, (s16)obj->field_18 + 0xF, text, 0x606060, 1, 0);
-    task->killCountdown -= D_80071072;
+    task->killCountdown -= gDisplayState.frameTicks;
     if (obj->status == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             obj->field_2E = -1;
@@ -1407,7 +1396,7 @@ void func_mist_parking_801800D0(DialogPrompt* arg0, UiObject* arg1)
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_mist_parking_801866C0);
-            Text_FormatTime(p, D_80072174);
+            Text_FormatTime(p, Mc_SaveData.playTime);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
         }
@@ -1424,7 +1413,7 @@ void func_mist_parking_801800D0(DialogPrompt* arg0, UiObject* arg1)
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_mist_parking_801866F0);
-            Text_ItoaUnsigned(p, D_80072A93);
+            Text_ItoaUnsigned(p, Mc_SaveData.saveCount);
             Text_Strcat(p, D_mist_parking_80186710);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -1442,7 +1431,7 @@ void func_mist_parking_801800D0(DialogPrompt* arg0, UiObject* arg1)
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_mist_parking_801866C8);
-            Text_ItoaUnsigned(p, D_80072834);
+            Text_ItoaUnsigned(p, Mc_SaveData.field_6CC);
             Text_Strcat(p, D_mist_parking_80186710);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -1460,7 +1449,7 @@ void func_mist_parking_801800D0(DialogPrompt* arg0, UiObject* arg1)
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_mist_parking_801866CC);
-            Text_ItoaUnsigned(p, D_80072836);
+            Text_ItoaUnsigned(p, Mc_SaveData.field_6CE);
             Text_Strcat(p, D_mist_parking_80186710);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -1524,7 +1513,7 @@ void func_mist_parking_801800D0(DialogPrompt* arg0, UiObject* arg1)
             s32         i;
             u8*         q;
 
-            total          = D_80072834;
+            total          = Mc_SaveData.field_6CC;
             req.x          = arg1->baseX + (u16)arg0->field_18;
             y              = arg1->baseY - 6;
             req.y          = (u16)arg0->field_1A + y;
@@ -1581,7 +1570,7 @@ void func_mist_parking_801800D0(DialogPrompt* arg0, UiObject* arg1)
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_mist_parking_801866F8);
-            Text_ItoaUnsigned(p, D_80072176);
+            Text_ItoaUnsigned(p, Mc_SaveData.clearCount);
             Text_Strcat(p, D_mist_parking_80186710);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -1599,7 +1588,7 @@ void func_mist_parking_801800D0(DialogPrompt* arg0, UiObject* arg1)
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_mist_parking_80186700);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, D_80072A94), arg0->field_1C, 3, 2);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData.field_92C), arg0->field_1C, 3, 2);
             break;
         }
         case 8: {
@@ -1615,7 +1604,7 @@ void func_mist_parking_801800D0(DialogPrompt* arg0, UiObject* arg1)
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_mist_parking_80186708);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, D_80072A98), arg0->field_1C, 3, 2);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData.field_930), arg0->field_1C, 3, 2);
             break;
         }
     }
@@ -2326,7 +2315,7 @@ void func_mist_parking_80181B14(DialogPrompt* prompt, UiObject* obj)
     sel = prompt->field_C;
     if (sel == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0 && CdCmd_IsIdle() != 0) {
         SndEvt_EnqueueType6(0x16, 0, 0);
-        D_80071086 = 0xFF;
+        gDisplayState.gameMode = 0xFF;
         Ui_SpawnFromDesc(&D_800611E4, 1, 0, 0, obj);
         obj->status       = 0;
         obj->field_2E     = 6;
@@ -2620,9 +2609,9 @@ s32 func_mist_parking_801823F8(s32 arg0, s32 arg1, s32 arg2)
             D_mist_parking_8019533C.field_10 = 0x5113000B;
             D_mist_parking_8019533C.field_C  = 0x51130012;
             Task_SpawnFromTable(&D_mist_parking_801869B8, 0, 4, (s32)&D_mist_parking_8019533C);
-            session               = gGameSession;
-            D_80072170            = 2;
-            session->at4.loc.warp = 2;
+            session                  = gGameSession;
+            Mc_SaveData.at4.loc.warp = 2;
+            session->at4.loc.warp    = 2;
             break;
         case 18:
             Gp_MsgPlayerWeapon(0);
@@ -2729,7 +2718,7 @@ void func_mist_parking_80182750(s32 arg0)
     if (GameFlag_GetNibble(0x7A) != 0) {
         arg0 += 2;
     }
-    D_8007216D                  = arg0;
+    Mc_SaveData.at4.loc.room    = arg0;
     gGameSession->at4.loc.room  = arg0;
     gGameSession->roomObjsDirty = 1;
 }
@@ -2744,7 +2733,7 @@ void func_mist_parking_801827C0(Task* arg0)
     arg0->msgTable = &D_mist_parking_80186BB8;
     Game_SetPtrSlot(arg0, 7);
     if ((gGameSession->at4.loc.place == 2) && (GameFlag_GetNibble(0xF1) == 0)) {
-        if (D_80072170 == 3) {
+        if (Mc_SaveData.at4.loc.warp == 3) {
             func_800E3FAC(0xA2, 0x3C);
             func_mist_parking_801837A4(0);
             func_800E8634((s32)&D_mist_parking_8018DF34, 0, (s32)&D_mist_parking_8018EDBC);

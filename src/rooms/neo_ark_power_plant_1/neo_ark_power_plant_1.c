@@ -14,7 +14,6 @@ extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
 /// Main-executable globals with no module header yet, which
 /// `func_neo_ark_power_plant_1_8017D5EC` tests and sets.
-extern u8 D_80071075;
 extern s8 D_8007272D;
 extern s8 D_80114C12;
 
@@ -64,7 +63,7 @@ void func_neo_ark_power_plant_1_8017D5EC(Task* task)
         if (slot != 0) {
             if (Gp_DispatchMsg(slot, 0x7D6, 0, 0) == 0) {
                 if (D_80114C12 != 1) {
-                    if (D_80071075 == 0) {
+                    if (gDisplayState.pendingMode == 0) {
                         GameFlag_SetNibble(0xDE, 1);
                         GameFlag_SetNibble(0xF6, 1);
                         GameFlag_SetNibble(0x1B2, 0);

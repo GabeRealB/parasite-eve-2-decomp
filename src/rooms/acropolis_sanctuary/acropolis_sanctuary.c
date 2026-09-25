@@ -148,12 +148,9 @@ typedef struct AcsSpriteLevels {
 /// weapon-id bases that record uses. `D_80071076` is set to 1 alongside the
 /// save writes when the task hands off to task 0x11, the same way the fountain
 /// and helicopter-pad rooms set it.
-extern s8  D_8007272D;
-extern u8  D_80073BA9;
-extern u8  D_80071075;
-extern s16 D_80071076;
-extern s8  D_8007218A;
-extern s8  D_80114C12;
+extern s8 D_8007272D;
+extern s8 D_8007218A;
+extern s8 D_80114C12;
 
 extern GpMsgEntry     D_acropolis_sanctuary_8018081C[];
 extern GpXformArg     D_acropolis_sanctuary_801808BC;
@@ -330,7 +327,7 @@ void func_acropolis_sanctuary_8017D8A0(u32 arg0)
 /// current weapon model id into its `field_0`, then sends it.
 void func_acropolis_sanctuary_8017D8CC(void)
 {
-    if (D_80073BA9 == 2) {
+    if (Player_Status.weapon == 2) {
         Gp_PlayerWeaponId(&D_acropolis_sanctuary_801809F8.animBlock.index);
         Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&D_acropolis_sanctuary_801809F8, 0);
     } else {
@@ -401,7 +398,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
     state = arg0->state;
     switch (state) {
         case 0:
-            if (D_80114C12 != 1 && D_80071075 == 0) {
+            if (D_80114C12 != 1 && gDisplayState.pendingMode == 0) {
                 work       = memCalloc(0xC, 0);
                 arg0->work = (TaskIdMap*)work;
                 if (work == NULL) {
@@ -412,7 +409,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                     D_acropolis_sanctuary_80186C90 = arg0;
                 }
                 slot     = (AcsCutsceneWork*)arg0->work;
-                weaponId = D_80073BA9;
+                weaponId = Player_Status.weapon;
                 idx      = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
 
                 weapon.rec.animBlock.index = idx;
@@ -434,7 +431,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                 Mc_SaveData.at4.loc.stage = 1;
                 Mc_SaveData.at4.loc.warp  = 2;
                 Mc_SaveData.at4.loc.room  = 1;
-                D_80071076                = 1;
+                gDisplayState.roomVariant = 1;
                 Task_Spawn(0, 0x11, 0, 0);
                 taskKill(arg0);
                 break;

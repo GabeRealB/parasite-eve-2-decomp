@@ -17,8 +17,6 @@
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 
-extern s32 D_80070F70;
-
 #define GOLEM_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
 
 extern void func_80131E70(void);
@@ -192,7 +190,7 @@ void func_shelter_b1_golem_freezer_1_8017DA7C(void)
     s32     ang;
     s32     r;
 
-    if (!(D_80070F70 & 3)) {
+    if (!(gDisplayState.animFrame & 3)) {
         for (i = 0; i < 9; i++) {
             ang    = GOLEM_RAND() & 0xFFF;
             r      = (GOLEM_RAND() & 0x3C0) + 0x40;

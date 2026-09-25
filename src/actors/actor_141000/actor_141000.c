@@ -82,8 +82,6 @@ typedef struct Actor141000SpawnAnim {
     /* 0x04 */ u8  field_4;
 } Actor141000SpawnAnim;
 
-extern s32 D_80070F70;
-
 /// The rotation table `func_actor_141000_80132FD0` feeds to `RotMatrix`: 0x5A
 /// `SVECTOR` axis triples, one per frame of the ramp the controller's state 2
 /// climbs, ending at the entry index 0x59 the function clamps to.
@@ -474,7 +472,7 @@ void func_actor_141000_80132D3C(Task* task)
     work = (Actor141000CtrlWork*)task->work;
     sp   = D_actor_141000_80131E3C;
     sp.funcs[(s16)work->state](task);
-    if (D_80070F70 & 1) {
+    if (gDisplayState.animFrame & 1) {
         Gp_SpawnEff(0x60070, task->extra.tmd->coords, 0x24200, NULL);
     }
     if (gGameSession->viewReady != 0) {

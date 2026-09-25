@@ -287,7 +287,6 @@ void func_actor_403600_80134398(Task* arg0);
         : "$2", "$7", "$8", "$9", "$10", "$11", "$12", "$13", "$14", "hi", "lo", "memory")
 
 extern u8            D_80071090;
-extern s32           D_8007107C;
 extern TaskDesc      D_actor_403600_801421A0;
 extern s32           D_actor_403600_80160698;
 extern s32           D_actor_403600_8016069C;
@@ -1178,7 +1177,7 @@ void func_actor_403600_80134288(Task* arg0)
     }
 block_6:
     temp_a3                 = arg0->work;
-    D_actor_403600_8016069C = (s32)D_8005C374 + (D_8007107C * 0xC000);
+    D_actor_403600_8016069C = (s32)D_8005C374 + (gDisplayState.otBuffer * 0xC000);
     {
         register s32 field_742 asm("v1");
 

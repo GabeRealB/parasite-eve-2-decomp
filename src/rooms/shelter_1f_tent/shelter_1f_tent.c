@@ -31,14 +31,6 @@ extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
 extern UiObjectDesc   D_800611E4;
 extern UiObject*      D_80067634;
-extern u8             D_80071086;
-extern u16            D_80072174;
-extern s8             D_80072176;
-extern u16            D_80072834;
-extern u16            D_80072836;
-extern u8             D_80072A93;
-extern s32            D_80072A94;
-extern s32            D_80072A98;
 extern UiObjectDesc   D_8010EFA0;
 extern s16            D_80114D08;
 extern s32            D_801362B8;
@@ -47,7 +39,6 @@ extern GpAreaApplyRec D_80188888[];
 
 /// The save's `companionType` byte under a symbol of its own; the cutscene's
 /// end reads it through this name rather than through `Mc_SaveData`.
-extern s8 D_8007217B;
 
 /// View saved when the cutscene starts and restored when it ends.
 extern s32 D_80115694;
@@ -165,7 +156,7 @@ void func_shelter_1f_tent_8017D6C8(DialogPrompt* arg0, UiObject* arg1)
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_shelter_1f_tent_801819C0);
-            Text_FormatTime(p, D_80072174);
+            Text_FormatTime(p, Mc_SaveData.playTime);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
         }
@@ -182,7 +173,7 @@ void func_shelter_1f_tent_8017D6C8(DialogPrompt* arg0, UiObject* arg1)
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_shelter_1f_tent_801819F0);
-            Text_ItoaUnsigned(p, D_80072A93);
+            Text_ItoaUnsigned(p, Mc_SaveData.saveCount);
             Text_Strcat(p, D_shelter_1f_tent_80181A10);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -200,7 +191,7 @@ void func_shelter_1f_tent_8017D6C8(DialogPrompt* arg0, UiObject* arg1)
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_shelter_1f_tent_801819C8);
-            Text_ItoaUnsigned(p, D_80072834);
+            Text_ItoaUnsigned(p, Mc_SaveData.field_6CC);
             Text_Strcat(p, D_shelter_1f_tent_80181A10);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -218,7 +209,7 @@ void func_shelter_1f_tent_8017D6C8(DialogPrompt* arg0, UiObject* arg1)
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_shelter_1f_tent_801819CC);
-            Text_ItoaUnsigned(p, D_80072836);
+            Text_ItoaUnsigned(p, Mc_SaveData.field_6CE);
             Text_Strcat(p, D_shelter_1f_tent_80181A10);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -282,7 +273,7 @@ void func_shelter_1f_tent_8017D6C8(DialogPrompt* arg0, UiObject* arg1)
             s32         i;
             u8*         q;
 
-            total          = D_80072834;
+            total          = Mc_SaveData.field_6CC;
             req.x          = arg1->baseX + (u16)arg0->field_18;
             y              = arg1->baseY - 6;
             req.y          = (u16)arg0->field_1A + y;
@@ -339,7 +330,7 @@ void func_shelter_1f_tent_8017D6C8(DialogPrompt* arg0, UiObject* arg1)
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_shelter_1f_tent_801819F8);
-            Text_ItoaUnsigned(p, D_80072176);
+            Text_ItoaUnsigned(p, Mc_SaveData.clearCount);
             Text_Strcat(p, D_shelter_1f_tent_80181A10);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -357,7 +348,7 @@ void func_shelter_1f_tent_8017D6C8(DialogPrompt* arg0, UiObject* arg1)
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_shelter_1f_tent_80181A00);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, D_80072A94), arg0->field_1C, 3, 2);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData.field_92C), arg0->field_1C, 3, 2);
             break;
         }
         case 8: {
@@ -373,7 +364,7 @@ void func_shelter_1f_tent_8017D6C8(DialogPrompt* arg0, UiObject* arg1)
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_shelter_1f_tent_80181A08);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, D_80072A98), arg0->field_1C, 3, 2);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData.field_930), arg0->field_1C, 3, 2);
             break;
         }
     }
@@ -1048,7 +1039,7 @@ void func_shelter_1f_tent_8017F10C(DialogPrompt* prompt, UiObject* obj)
     sel = prompt->field_C;
     if (sel == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0 && CdCmd_IsIdle() != 0) {
         SndEvt_EnqueueType6(0x16, 0, 0);
-        D_80071086 = 0xFF;
+        gDisplayState.gameMode = 0xFF;
         Ui_SpawnFromDesc(&D_800611E4, 1, 0, 0, obj);
         obj->status       = 0;
         obj->field_2E     = 6;
@@ -1268,7 +1259,7 @@ void func_shelter_1f_tent_8017F484(Task* task)
         case 14:
             SndEvt_EnqueueType6(script->field_8, 0, 0);
             Gp_MsgPlayerWeapon(1);
-            if (D_8007217B == 1) {
+            if (Mc_SaveData.companionType == 1) {
                 Gp_MsgAllyWeapon(1);
             }
             gGameSession->hideHud    = 0;

@@ -10,8 +10,6 @@
 
 extern s32 D_neo_ark_r31_8017DC54;
 extern u8  D_80071071[];
-extern s32 D_8007107C;
-extern s16 D_800691CA;
 
 /// Room message handler table installed into `Task::msgTable`.
 extern GpMsgEntry D_neo_ark_r31_8017D9F4[];
@@ -33,7 +31,7 @@ void func_neo_ark_r31_8017D5D0(Task* task)
     s32       px;
 
     otz = 6;
-    buf = D_8007107C;
+    buf = gDisplayState.otBuffer;
     if (task->state == 0) {
         D_neo_ark_r31_8017DC54 = 3;
         task->state++;
@@ -127,7 +125,7 @@ void func_neo_ark_r31_8017D90C(Task* arg0)
 /// Room task state 1: stores 2 into `D_800691CA` every tick.
 void func_neo_ark_r31_8017D980(Task* task)
 {
-    D_800691CA = 2;
+    CdCmd_Queue.field_22A = 2;
 }
 
 /// State handlers of the room task `func_neo_ark_r31_8017D990`, indexed by

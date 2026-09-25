@@ -264,13 +264,12 @@ STATIC_ASSERT_SIZEOF(Actor403100Work, 0x678);
 
 void func_actor_403100_8013480C(Task* arg0, s32 arg1);
 
-void       func_actor_403100_80133C94(void);
-void       func_actor_403100_80133D88(Task* arg0);
-void       func_actor_403100_80133E88(Task* arg0);
-void       func_actor_403100_8013E5FC(void);
-void       func_actor_403100_8013E624(Task* arg0);
-void       func_8004BFF8(s16 angle, MATRIX* matrix);
-extern s32 D_80070F70;
+void func_actor_403100_80133C94(void);
+void func_actor_403100_80133D88(Task* arg0);
+void func_actor_403100_80133E88(Task* arg0);
+void func_actor_403100_8013E5FC(void);
+void func_actor_403100_8013E624(Task* arg0);
+void func_8004BFF8(s16 angle, MATRIX* matrix);
 
 void func_actor_403100_80132C3C(Task* arg0, s16 arg1, s16 arg2, s16 arg3, s32 arg4);
 
@@ -438,13 +437,11 @@ extern u32                  D_actor_403100_8015572C[];
 extern Actor403100QuadEntry D_actor_403100_801557E0[2];
 
 extern s8                   D_8007218A;
-extern u8                   D_80073BA9;
 extern Actor403100AnimTable D_actor_403100_8015570C;
 extern GpAnimBlk*           Gp_PlayerAnimBlkTbl[];
 extern u16                  Gp_WeaponIdBase[];
 
-extern s16 D_80073BA0;
-extern u8  D_80165FC0;
+extern u8 D_80165FC0;
 
 /* Resolved through `configs/USA/sym/actors.imports.txt`. */
 void func_8017E128(s32 arg0);
@@ -1234,9 +1231,9 @@ void func_actor_403100_801339EC(Task* arg0)
     __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(head2) : "memory");
     if (flash != 0) {
         if (flash >= 16) {
-            brightness = rsin(D_80070F70 << 9) << 13;
+            brightness = rsin(gDisplayState.animFrame << 9) << 13;
         } else {
-            brightness = rsin(D_80070F70 << 9) << 12;
+            brightness = rsin(gDisplayState.animFrame << 9) << 12;
         }
         Display_ClampField126((s8)(brightness >> 24));
         D_actor_403100_80155808->field_5FE = (u16)D_actor_403100_80155808->field_5FE - 1;
@@ -1796,9 +1793,9 @@ void func_actor_403100_80134D50(Task* arg0)
     __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(head2) : "memory");
     if (flash != 0) {
         if (flash >= 16) {
-            brightness = rsin(D_80070F70 << 9) << 13;
+            brightness = rsin(gDisplayState.animFrame << 9) << 13;
         } else {
-            brightness = rsin(D_80070F70 << 9) << 12;
+            brightness = rsin(gDisplayState.animFrame << 9) << 12;
         }
         Display_ClampField126((s8)(brightness >> 24));
         D_actor_403100_80155808->field_5FE = (u16)D_actor_403100_80155808->field_5FE - 1;
@@ -2537,9 +2534,9 @@ void func_actor_403100_80136830(Task* arg0)
             D_actor_403100_80155808->flags_634.half = (u16)D_actor_403100_80155808->field_B8.legacy.flags_104.half;
             if (flashTimer != 0) {
                 if (flashTimer >= 0x10) {
-                    flash = rsin(D_80070F70 << 9) << 0xD;
+                    flash = rsin(gDisplayState.animFrame << 9) << 0xD;
                 } else {
-                    flash = rsin(D_80070F70 << 9) << 0xC;
+                    flash = rsin(gDisplayState.animFrame << 9) << 0xC;
                 }
                 Display_ClampField126(flash >> 0x18);
                 D_actor_403100_80155808->field_5FE = (s16)((u16)D_actor_403100_80155808->field_5FE - 1);
@@ -5716,7 +5713,7 @@ void func_actor_403100_8013E174(void)
 {
     s16 timer;
 
-    if (D_80073BA0 > 0) {
+    if (Player_Status.hp > 0) {
         timer                              = (u16)D_actor_403100_80155808->field_5F4 - 1;
         D_actor_403100_80155808->field_5F4 = timer;
         if (timer < 0) {
@@ -5732,7 +5729,7 @@ void func_actor_403100_8013E1E4(void)
     GpAnimArg sp;
 
     if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
-        D_actor_403100_8015570C.sets[4] = ((Actor403100AnimTable*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + D_80073BA9])->sets[7];
+        D_actor_403100_8015570C.sets[4] = ((Actor403100AnimTable*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + Player_Status.weapon])->sets[7];
         sp.animBlock.ptr                = &D_actor_403100_8015570C;
         sp.field_8                      = 1;
         sp.field_C                      = 3;

@@ -17,7 +17,6 @@ typedef struct {
     s16   state;
 } _GantryWork;
 
-extern s16            D_80071076;
 extern TaskDesc       D_8013FB50;
 extern TaskDesc       D_8016EA28;
 extern TaskDesc       D_801718F0;
@@ -83,7 +82,7 @@ void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
             Mc_SaveData.at4.loc.area  = 0x11;
             Mc_SaveData.at4.loc.warp  = 2;
             Mc_SaveData.at4.loc.room  = 1;
-            D_80071076                = 1;
+            gDisplayState.roomVariant = 1;
             Task_Spawn(0, 0x11, 0, 0);
         case 2:
         next:

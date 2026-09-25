@@ -46,8 +46,7 @@ typedef struct {
 } ApmPropWork;
 STATIC_ASSERT_SIZEOF(ApmPropWork, 0x4);
 
-extern s16 D_8007107A;
-extern s8  D_8007272D;
+extern s8 D_8007272D;
 
 extern s32          D_acropolis_promenade_80180F00;
 extern s32          D_acropolis_promenade_80181068;
@@ -144,7 +143,7 @@ s32 func_acropolis_promenade_8017D70C(s32 arg0, s32 arg1, RoomEventMsg* in, Room
 
     *out = *in;
     if (in->msgId == 0xA && in->field_5 == 0) {
-        if (D_8007107A < 0 || D_8006AC30.sector == 0) {
+        if (gDisplayState.field_112 < 0 || D_8006AC30.sector == 0) {
             out->field_2 = 1;
         }
         if (GameFlag_GetNibble(1) == 4) {

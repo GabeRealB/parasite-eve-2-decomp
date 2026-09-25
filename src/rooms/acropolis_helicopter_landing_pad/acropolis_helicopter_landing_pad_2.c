@@ -30,12 +30,10 @@
 /// spawned by index and closed by an entry whose `flags` is all ones.
 extern TaskDesc D_acropolis_helicopter_landing_pad_80184DA0[];
 
-extern s16 D_80071076;
 extern s32 D_801156A8;
 
 /// Main-executable byte with no module header yet; `+ 1` seeds the slot-3
 /// msg 0x3E8 record's `field_0` in `func_acropolis_helicopter_landing_pad_8017DA9C`.
-extern u8 D_80073BA9;
 
 /// Turn-to-heading task state: current unwrapped yaw and signed step.
 extern s32   D_acropolis_helicopter_landing_pad_80187F74;
@@ -142,7 +140,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             Gp_DispatchMsg(spawned, 0x7D3, (s32)&D_acropolis_helicopter_landing_pad_80184E28, 0);
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E9, (s32)&D_acropolis_helicopter_landing_pad_801837B0, 0);
             D_acropolis_helicopter_landing_pad_80184E3C.field_4         = 9;
-            D_acropolis_helicopter_landing_pad_80184E3C.animBlock.index = D_80073BA9 + 1;
+            D_acropolis_helicopter_landing_pad_80184E3C.animBlock.index = Player_Status.weapon + 1;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&D_acropolis_helicopter_landing_pad_80184E3C, 0);
             coord = spawned->extra.tmd->coords;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F5, (s32)coord, 0);
@@ -256,7 +254,7 @@ void func_acropolis_helicopter_landing_pad_8017DFCC(Task* arg0)
             Mc_SaveData.at4.loc.area  = 0x12;
             Mc_SaveData.at4.loc.warp  = 1;
             Mc_SaveData.at4.loc.room  = 1;
-            D_80071076                = 1;
+            gDisplayState.roomVariant = 1;
             Task_Spawn(0, 0x11, 0, 0);
             Display_ReleaseRef();
             taskKill(arg0);

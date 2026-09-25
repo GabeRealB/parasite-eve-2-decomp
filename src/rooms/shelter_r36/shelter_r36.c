@@ -14,8 +14,6 @@ extern s32 D_shelter_r36_8017E5A4;
 extern s32 D_shelter_r36_8017E664;
 extern s32 D_shelter_r36_8017E8BC;
 
-extern s16 D_80071076;
-
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
 /// The room's message table, installed on the room entry task.
@@ -83,7 +81,7 @@ void func_shelter_r36_8017D738(void)
         Mc_SaveData.at4.loc.area  = 0x24;
         Mc_SaveData.at4.loc.warp  = 2;
         Mc_SaveData.at4.loc.room  = 1;
-        D_80071076                = 1;
+        gDisplayState.roomVariant = 1;
         Task_Spawn(0, 0x11, 0, 0);
         Fs_BeginBootLoad(&Mc_SaveData.at4.loc.view, 1);
     }

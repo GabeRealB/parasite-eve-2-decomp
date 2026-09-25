@@ -67,12 +67,8 @@ void              func_801848B4(void);
 void              func_80184954(void);
 extern TaskDesc   D_80185384;
 extern TaskDesc   D_801856B8;
-extern u8         D_80071085;
-extern u8         D_80071075;
 extern Task*      D_8018E0C4;
 extern TaskDesc   D_actor_215100_8014CF6C;
-extern s16        D_80071076;
-extern s8         D_80073BAE;
 extern TaskDesc   D_actor_215100_8014E13C;
 extern s32        D_actor_215100_8014E370;
 extern s32        D_actor_215100_8014E8F8;
@@ -179,7 +175,7 @@ void func_actor_215100_8014A398(void)
                 (D_80115768 == 0) && (coord->coord.t[0] < -0x1806)) {
                 z = coord->coord.t[2];
                 if (z < 0x1644) {
-                    if ((z >= 0x10CD) && (Gp_StateC08.field_A != 1) && (D_80071075 == 0)) {
+                    if ((z >= 0x10CD) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == 0)) {
                         facing = (u16)actor->field_52 & 0xFFF;
                         if (Pad_CheckButtons(0, 0, 0x1000) != 0) {
                             if ((u32)(facing - 0xA01) < 0x3FFU) {
@@ -262,15 +258,15 @@ void func_actor_215100_8014A5C0(Task* arg0)
             break;
         case 1:
             if (Gp_CapBusy() == 0) {
-                D_80073BAE             = 3;
+                Player_Status.field_26 = 3;
                 Mc_SaveData.sceneEvent = 1;
                 Gp_ClearInventory();
                 gGameSession->hideHud = 1;
                 SndEvt_EnqueueType6(0x51140005, 0, 0);
-                D_80071076               = 1;
-                Mc_SaveData.at4.loc.area = D_actor_215100_8015E678.field_0;
-                Mc_SaveData.at4.loc.warp = D_actor_215100_8015E678.field_2;
-                Mc_SaveData.at4.loc.room = D_actor_215100_8015E678.field_3;
+                gDisplayState.roomVariant = 1;
+                Mc_SaveData.at4.loc.area  = D_actor_215100_8015E678.field_0;
+                Mc_SaveData.at4.loc.warp  = D_actor_215100_8015E678.field_2;
+                Mc_SaveData.at4.loc.room  = D_actor_215100_8015E678.field_3;
                 Task_Spawn(0, 0x11, 0, 0);
                 taskKill(arg0);
             }
@@ -316,7 +312,7 @@ void func_actor_215100_8014A7C4(Task* arg0)
             D_actor_215100_8014D038 = 0;
             Gp_MsgPlayerWeapon(1);
             Gp_StateC08.field_6 &= 0xFD;
-            if (D_80071085 != 0) {
+            if (gDisplayState.holdCount != 0) {
                 Display_ReleaseRef();
             }
             taskKill(arg0);

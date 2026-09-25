@@ -26,7 +26,6 @@ typedef struct NeoArkGardenAmbience {
     s16 soundDelay; // Frames left before the view's loops are re-enqueued; set to 4 on every view change
 } NeoArkGardenAmbience;
 
-extern s32 D_80070F70;
 extern s32 D_80115730;
 extern s32 D_80115734;
 extern s32 D_80115754;
@@ -288,7 +287,7 @@ void func_neo_ark_garden_8017F42C(SVECTOR* arg0)
     MATRIX*        wm;
     POLY_FT4*      prim;
 
-    Gfx_RotMatrixX(&m, D_80070F70 << 7, 1);
+    Gfx_RotMatrixX(&m, gDisplayState.animFrame << 7, 1);
     scratch = (void**)G_SCRATCH_HEAD;
     i       = 0;
     wm      = &m;

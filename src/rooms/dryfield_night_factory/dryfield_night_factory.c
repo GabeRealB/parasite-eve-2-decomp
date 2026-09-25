@@ -17,8 +17,6 @@
 #include "gte.h"
 #include <psyq/libgte.h>
 
-extern u8 D_8007216D;
-
 void func_8004BFF8(s32 angle, MATRIX* matrix);
 
 /// The factory model task's spawn tables for the two stage variants.
@@ -866,7 +864,7 @@ void func_dryfield_night_factory_8017F4F4(Task* task)
             Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
             goto advance;
         case 5:
-            D_8007216D                  = 2;
+            Mc_SaveData.at4.loc.room    = 2;
             gGameSession->at4.loc.room  = 2;
             gGameSession->roomObjsDirty = 1;
             Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);

@@ -49,7 +49,6 @@ extern void func_8017E27C(s32 arg0);
 /// The pose this overlay sends the player as message 0x3E9.
 extern GpXformArg D_actor_503500_8017655C;
 /// Player-facing flag byte in the main executable; no module header owns it yet.
-extern u8 D_80073BA9;
 
 void func_actor_503500_80132778(Task* task)
 {
@@ -312,7 +311,7 @@ void func_actor_503500_80132EE8(u8 arg0)
 
 void func_actor_503500_80132EF4(void)
 {
-    func_80106350((Task*)gameGetPtrSlot(3), D_80073BA9, 0);
+    func_80106350((Task*)gameGetPtrSlot(3), Player_Status.weapon, 0);
 }
 
 void func_actor_503500_80132F28(void)

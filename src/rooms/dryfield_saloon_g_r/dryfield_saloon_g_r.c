@@ -21,8 +21,6 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-extern s16 D_80071076;
-
 /// The event message and request the gate latched for the event task, and the
 /// flag saying one was latched this call.
 extern RoomEventMsg D_dryfield_saloon_g_r_80181BDC;
@@ -155,10 +153,10 @@ void func_dryfield_saloon_g_r_8017D74C(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            D_80071076               = 1;
-            Mc_SaveData.at4.loc.area = D_dryfield_saloon_g_r_80181BDC.msgId;
-            Mc_SaveData.at4.loc.warp = D_dryfield_saloon_g_r_80181BDC.field_2;
-            Mc_SaveData.at4.loc.room = (u8)D_dryfield_saloon_g_r_80181BDC.field_3;
+            gDisplayState.roomVariant = 1;
+            Mc_SaveData.at4.loc.area  = D_dryfield_saloon_g_r_80181BDC.msgId;
+            Mc_SaveData.at4.loc.warp  = D_dryfield_saloon_g_r_80181BDC.field_2;
+            Mc_SaveData.at4.loc.room  = (u8)D_dryfield_saloon_g_r_80181BDC.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;

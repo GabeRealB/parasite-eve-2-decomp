@@ -14,8 +14,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 
-extern s16 D_800691CA;
-extern u8  D_801156F9;
+extern u8 D_801156F9;
 
 extern GpMsgEntry D_shelter_b6_training_room_80182AF4[];
 extern s32        D_shelter_b6_training_room_80182B24;
@@ -124,8 +123,8 @@ void func_shelter_b6_training_room_8017D874(void)
 {
     u8 place;
 
-    D_800691CA = 2;
-    place      = gGameSession->at4.loc.place;
+    CdCmd_Queue.field_22A = 2;
+    place                 = gGameSession->at4.loc.place;
     if (place == 1 && gGameSession->eventState == 0 && D_shelter_b6_training_room_80185C58 == place) {
         func_800E8614((s32)&D_shelter_b6_training_room_80184274, 0);
         D_shelter_b6_training_room_80185C58 = 2;

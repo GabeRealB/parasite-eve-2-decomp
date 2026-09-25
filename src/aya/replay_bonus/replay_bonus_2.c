@@ -26,10 +26,8 @@ extern UiObjectDesc D_replay_bonus_801191A8;
 extern s32          D_replay_bonus_80119288;
 extern s32          D_replay_bonus_8011928C;
 extern GpItemDesc   D_8010DE38[];
-extern s32          D_80072A9C;
 
 extern UiObjectDesc D_800611E4;
-extern u8           D_80071086;
 extern UiObjectDesc D_replay_bonus_80119170;
 extern UiObjectDesc D_replay_bonus_8011918C;
 extern UiObjectDesc D_replay_bonus_801191C4;
@@ -74,8 +72,8 @@ void func_replay_bonus_80117194(Task* arg0)
             case 6:
                 GameMain_SetFrameTiming(0);
                 func_replay_bonus_80116EC0();
-                D_80071086      = 0xFF;
-                arg0->spawnArg2 = Ui_SpawnFromDesc(&D_800611E4, 0, 1, 1, NULL);
+                gDisplayState.gameMode = 0xFF;
+                arg0->spawnArg2        = Ui_SpawnFromDesc(&D_800611E4, 0, 1, 1, NULL);
                 break;
             case 7:
                 if (copied == 0x33) {
@@ -113,7 +111,7 @@ s32 func_replay_bonus_801173A8(void)
     spend = func_replay_bonus_80115CA4();
     p     = D_replay_bonus_80118F78;
     idx   = 0;
-    if (D_80072A9C == 0x1FFF) {
+    if (Mc_SaveData.shopTiers == 0x1FFF) {
         return -1;
     }
     i = 0;
@@ -165,7 +163,7 @@ s16 func_replay_bonus_80117484(s32 arg0, s32 arg1)
     spend = func_replay_bonus_80115CA4();
     p     = D_replay_bonus_80118F78;
     idx   = 0;
-    if (D_80072A9C == 0x1FFF) {
+    if (Mc_SaveData.shopTiers == 0x1FFF) {
         result = -1;
     } else {
         i = 0;

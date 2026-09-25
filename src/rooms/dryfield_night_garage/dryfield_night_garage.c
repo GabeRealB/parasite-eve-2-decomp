@@ -34,7 +34,6 @@ s32         func_800D4D2C(s32 arg0);
 
 extern char          Gp_StrEmpty[];
 extern UiObject*     D_80067634;
-extern u8            D_80071072;
 extern s8            D_8007272D;
 extern GpItemScan    D_80072724;
 extern RoomShopStock D_8010E138[];
@@ -1029,7 +1028,7 @@ void func_dryfield_night_garage_8017F178(Task* task)
         task->state        += 1;
     }
     Text_DrawMultiLine(obj, (s16)obj->field_1C + 2, (s16)obj->field_18 + 0xF, text, 0x606060, 1, 0);
-    task->killCountdown -= D_80071072;
+    task->killCountdown -= gDisplayState.frameTicks;
     if (obj->status == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             obj->field_2E = -1;

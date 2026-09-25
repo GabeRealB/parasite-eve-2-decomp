@@ -16,8 +16,6 @@
 #include "rooms/neo_ark_shrine.h"
 #include "rooms/room_common.h"
 
-extern u8 D_8007216D;
-
 extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
 
 /// Message table installed at `Task::msgTable` by the room task's state 0.
@@ -462,10 +460,10 @@ s16 func_neo_ark_shrine_8017E254(void)
     if (flag == 1) {
         D_neo_ark_shrine_8018686A = 0;
         if (GameFlag_GetNibble(0xE9) == 0) {
-            D_8007216D                 = flag;
+            Mc_SaveData.at4.loc.room   = flag;
             gGameSession->at4.loc.room = flag;
         } else {
-            D_8007216D                 = 4;
+            Mc_SaveData.at4.loc.room   = 4;
             gGameSession->at4.loc.room = 4;
         }
         gGameSession->roomObjsDirty = 1;

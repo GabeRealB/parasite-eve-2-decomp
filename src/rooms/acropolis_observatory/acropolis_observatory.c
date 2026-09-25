@@ -10,8 +10,6 @@
 
 #include "rooms/room_common.h"
 
-extern s16 D_8007107A;
-
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern GpMsgEntry D_acropolis_observatory_8017E7B8[];
 
@@ -42,7 +40,7 @@ s32 func_acropolis_observatory_8017D618(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
 
     *out = *in;
     if (in->msgId == 9 && in->field_5 == 0) {
-        if (D_8007107A < 0 || D_8006AC30.sector == 0) {
+        if (gDisplayState.field_112 < 0 || D_8006AC30.sector == 0) {
             out->field_2 = 5;
         }
         if (GameFlag_GetNibble(0x25) == 0) {
@@ -57,7 +55,7 @@ s32 func_acropolis_observatory_8017D618(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
         }
     }
     if (in->msgId == 0xB) {
-        if (D_8007107A < 0 || D_8006AC30.sector == 0) {
+        if (gDisplayState.field_112 < 0 || D_8006AC30.sector == 0) {
             if (in->field_5 == 0) {
                 out->field_2 = 1;
             }

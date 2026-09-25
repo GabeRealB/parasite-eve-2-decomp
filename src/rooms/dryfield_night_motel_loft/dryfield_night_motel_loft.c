@@ -13,7 +13,6 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-extern u8 D_8007216D;
 extern s8 D_8007272D;
 extern u8 D_80115680;
 
@@ -120,7 +119,7 @@ void func_dryfield_night_motel_loft_8017D6F8(Task* arg0)
 void func_dryfield_night_motel_loft_8017D7EC(u8 arg0)
 {
     gGameSession->at4.loc.room = arg0;
-    D_8007216D                 = arg0;
+    Mc_SaveData.at4.loc.room   = arg0;
 }
 
 /// First state of the room task: publishes the room's message table, claims

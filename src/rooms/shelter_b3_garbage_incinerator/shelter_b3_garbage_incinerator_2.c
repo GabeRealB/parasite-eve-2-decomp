@@ -29,7 +29,6 @@
 #include "rooms/room_common.h"
 #include "rooms/shelter_b3_garbage_incinerator.h"
 
-extern u8       D_80071075;
 extern s8       D_8007218A;
 extern s8       D_80114C12;
 extern TaskDesc D_80164FF8;
@@ -56,7 +55,6 @@ typedef struct {
     s16    room;
 } _DescentWork;
 
-extern s8             D_8007216D;
 extern GpXformArg     D_shelter_b3_garbage_incinerator_80185B58[2];
 extern GpMsgEntry     D_shelter_b3_garbage_incinerator_80185B40[];
 extern GpXformArg     D_shelter_b3_garbage_incinerator_80185B88;
@@ -64,9 +62,7 @@ extern GpAreaApplyRec D_shelter_b3_garbage_incinerator_8018FB6C;
 extern Task*          D_shelter_b3_garbage_incinerator_8018FC34;
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
-extern s16 D_80073BA0;
 
-extern s16             D_800691CA;
 extern u8              D_80070F87;
 extern s32             D_shelter_b3_garbage_incinerator_80185BC4;
 extern OverlayWaveCtx* D_shelter_b3_garbage_incinerator_8018FC38;
@@ -156,7 +152,6 @@ extern Task* D_shelter_b3_garbage_incinerator_8018FC3C;
 
 /// Main-executable global with no module header yet: the base animation-set
 /// id, whose alternate range `D_8007218A` selects when it is 1.
-extern u8 D_80073BA9;
 
 /// Caption schedule scanned by `func_shelter_b3_garbage_incinerator_8017FA58`.
 extern OverlayCapWindow D_shelter_b3_garbage_incinerator_801871A8[];
@@ -182,7 +177,7 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if (D_80114C12 == 1 || D_80071075 != 0) {
+            if (D_80114C12 == 1 || gDisplayState.pendingMode != 0) {
                 break;
             }
             SndEvt_EnqueueType6(0x5428000D, 0, 0);
@@ -393,14 +388,14 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
                 SndEvt_EnqueueType6(0x54280003, 0, 0);
                 if (gGameSession->at4.loc.room < 4) {
                     gGameSession->at4.loc.room   = 2;
-                    D_8007216D                   = 2;
+                    Mc_SaveData.at4.loc.room     = 2;
                     gGameSession->eventRoomIndex = 1;
                     gGameSession->roomObjsDirty  = 1;
                     gGameSession->eventRoomIndex = gGameSession->at4.loc.room - 1;
                     gGameSession->field_133      = 0;
                 } else {
                     gGameSession->at4.loc.room   = 5;
-                    D_8007216D                   = 5;
+                    Mc_SaveData.at4.loc.room     = 5;
                     gGameSession->eventRoomIndex = 4;
                     gGameSession->roomObjsDirty  = 1;
                     gGameSession->eventRoomIndex = gGameSession->at4.loc.room - 1;
@@ -435,12 +430,12 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
             if (((_DescentWork*)task->work)->view != gGameSession->at4.loc.view) {
                 if (gGameSession->at4.loc.room < 4) {
                     gGameSession->at4.loc.room   = 3;
-                    D_8007216D                   = 3;
+                    Mc_SaveData.at4.loc.room     = 3;
                     gGameSession->eventRoomIndex = 2;
                     gGameSession->roomObjsDirty  = 1;
                 } else {
                     gGameSession->at4.loc.room   = 6;
-                    D_8007216D                   = 6;
+                    Mc_SaveData.at4.loc.room     = 6;
                     gGameSession->eventRoomIndex = 5;
                     gGameSession->roomObjsDirty  = 1;
                 }
@@ -555,7 +550,7 @@ void func_shelter_b3_garbage_incinerator_8017E7D0(Task* arg0)
     s32 tpage1;
 
     head                             = SCRATCH_HEAD(OverlayWaveScratch);
-    D_800691CA                       = 2;
+    CdCmd_Queue.field_22A            = 2;
     SCRATCH_HEAD(OverlayWaveScratch) = head - 1;
     cols                             = head[-1].cols;
     scratch                          = head - 1;
@@ -831,7 +826,7 @@ s32 func_shelter_b3_garbage_incinerator_8017F318(Task* arg0)
     }
     anim                = (u16)D_shelter_b3_garbage_incinerator_80186F88[work->field_38 - 0x2F] + 0x2F;
     msgWork             = (GarbageIncineratorWork*)arg0->work;
-    weaponId            = D_80073BA9;
+    weaponId            = Player_Status.weapon;
     setId               = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.animBlock.index = setId;
     msgWork->field_38   = anim;
@@ -948,7 +943,7 @@ void func_shelter_b3_garbage_incinerator_8017F6D8(Task* arg0)
     }
     switch (arg0->state) {
         case 0:
-            if (Gp_StateC08.field_A == 1 || D_80071075 != 0) {
+            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != 0) {
                 return;
             }
             work       = Mem_Malloc(0x40, false);
@@ -1009,7 +1004,7 @@ void func_shelter_b3_garbage_incinerator_8017F8AC(s32 arg0)
 
     work                = D_shelter_b3_garbage_incinerator_8018FC3C->work;
     anim                = arg0 + 0x2F;
-    weaponId            = D_80073BA9;
+    weaponId            = Player_Status.weapon;
     setId               = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.animBlock.index = setId;
     work->field_38      = anim;
@@ -1054,7 +1049,7 @@ void func_shelter_b3_garbage_incinerator_8017F9B4(s32 arg0)
 
 void func_shelter_b3_garbage_incinerator_8017FA3C(void)
 {
-    D_80073BA0                = 0;
+    Player_Status.hp          = 0;
     gGameSession->restartMode = 3;
 }
 

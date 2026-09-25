@@ -293,7 +293,6 @@ extern s16                    D_shelter_b3_dumping_hole_80188154[];
 extern DumpingHoleAnimFrame   D_shelter_b3_dumping_hole_801880B8[];
 extern s16                    D_shelter_b3_dumping_hole_8018816C[];
 extern s16                    D_shelter_b3_dumping_hole_80188184[];
-extern u8                     D_80073BA9;
 extern s8                     D_8007218A;
 extern s32                    D_shelter_b3_dumping_hole_8018819C[];
 extern u8                     D_shelter_b3_dumping_hole_801881CC;
@@ -301,7 +300,6 @@ extern s32                    D_shelter_b3_dumping_hole_801881E4;
 extern DumpingHoleSpawnEntry  D_shelter_b3_dumping_hole_801881FC[];
 extern DumpingHoleSpawnEntry  D_shelter_b3_dumping_hole_80188304[];
 extern DumpingHoleDebrisEntry D_shelter_b3_dumping_hole_801884CC[];
-extern u8                     D_80071075;
 extern s8                     D_80114C12;
 extern s8                     D_8007272D[];
 extern s32                    D_shelter_b3_dumping_hole_801880A0[];
@@ -937,7 +935,7 @@ void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
                     }
                     {
                         DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
-                        s32                weaponId = D_80073BA9;
+                        s32                weaponId = Player_Status.weapon;
                         msg.anim.animBlock.index    = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
                         msg.anim.field_4            = 0x2F;
                         msg.anim.field_8            = 1;
@@ -952,7 +950,7 @@ void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
             break;
         case 2: {
             DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
-            s32                weaponId = D_80073BA9;
+            s32                weaponId = Player_Status.weapon;
             msg.anim.animBlock.index    = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.anim.field_4            = 0x32;
             msg.anim.field_8            = 0;
@@ -968,7 +966,7 @@ void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
             Gp_DispatchMsg(work->field_24, 0x3E9, (s32)&D_shelter_b3_dumping_hole_801881CC, 0);
             {
                 DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
-                s32                weaponId = D_80073BA9;
+                s32                weaponId = Player_Status.weapon;
                 msg.anim.animBlock.index    = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
                 msg.anim.field_4            = 9;
                 msg.anim.field_8            = 0;
@@ -994,7 +992,7 @@ void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
                     }
                     {
                         DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
-                        s32                weaponId = D_80073BA9;
+                        s32                weaponId = Player_Status.weapon;
                         msg.anim.animBlock.index    = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
                         msg.anim.field_4            = 0x30;
                         msg.anim.field_8            = 1;
@@ -1009,7 +1007,7 @@ void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
             break;
         case 6: {
             DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
-            s32                weaponId = D_80073BA9;
+            s32                weaponId = Player_Status.weapon;
             msg.anim.animBlock.index    = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.anim.field_4            = 0x33;
             msg.anim.field_8            = 1;
@@ -1021,7 +1019,7 @@ void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
             break;
         case 7: {
             DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
-            s32                weaponId = D_80073BA9;
+            s32                weaponId = Player_Status.weapon;
             msg.anim.animBlock.index    = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.anim.field_4            = 0x31;
             msg.anim.field_8            = 1;
@@ -1187,7 +1185,7 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
             if (Gp_CapBusy() != 0) {
                 break;
             }
-            if (D_80114C12 == 1 || D_80071075 != 0 || Player_Status.coordMtx->t[0] < 0x36B1) {
+            if (D_80114C12 == 1 || gDisplayState.pendingMode != 0 || Player_Status.coordMtx->t[0] < 0x36B1) {
                 break;
             }
             w2 = (DumpingHoleEntity*)arg0->work;
@@ -1198,7 +1196,7 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
             msg.words = &D_shelter_b3_dumping_hole_801880A0[0];
             msg.count = n & 0xFFFF;
             Gp_DispatchMsg(w2->field_24, 0x3F7, (s32)&msg, 0);
-            weaponId             = D_80073BA9;
+            weaponId             = Player_Status.weapon;
             p                    = &anim;
             anim.animBlock.index = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
             p->field_4           = 1;
@@ -1360,7 +1358,7 @@ void func_shelter_b3_dumping_hole_8017FF14(void)
     Gp_DispatchMsg(ent->field_24, 0x3F3, 1, 0);
     Gp_DispatchMsg(ent->field_24, 0x3E9, (s32)&D_shelter_b3_dumping_hole_801881CC, 0);
     ent2    = st->work;
-    desc[0] = D_80073BA9 + (D_8007218A == 1 ? 1 : 0x22);
+    desc[0] = Player_Status.weapon + (D_8007218A == 1 ? 1 : 0x22);
     desc[1] = 9;
     desc[2] = 0;
     desc[3] = 0;
@@ -1671,7 +1669,7 @@ void func_shelter_b3_dumping_hole_8018098C(Task* task)
         case 1:
             Gp_PulseState1C();
             Gp_StateC08.field_6 |= 1;
-            buf.words[0]         = D_80073BA9 + (D_8007218A == 1 ? 1 : 0x22);
+            buf.words[0]         = Player_Status.weapon + (D_8007218A == 1 ? 1 : 0x22);
             buf.words[1]         = 9;
             buf.words[2]         = 1;
             buf.words[3]         = 0xA;
@@ -1910,7 +1908,7 @@ void func_shelter_b3_dumping_hole_8018098C(Task* task)
             loc5->command           = 0xC;
             Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)loc5, 0x7DB);
             p        = words;
-            words[0] = D_80073BA9 + (Mc_SaveData.characterId == 1 ? 1 : 0x22);
+            words[0] = Player_Status.weapon + (Mc_SaveData.characterId == 1 ? 1 : 0x22);
             p[1]     = 1;
             p[2]     = 1;
             p[3]     = 0xA;
@@ -1988,7 +1986,7 @@ void func_shelter_b3_dumping_hole_80181430(void)
     Gp_DispatchMsg(ent->field_80, 0x3F3, 1, 0);
 
     p3       = desc3;
-    desc3[0] = D_80073BA9 + (D_8007218A == 1 ? 1 : 0x22);
+    desc3[0] = Player_Status.weapon + (D_8007218A == 1 ? 1 : 0x22);
     p3[1]    = 1;
     desc3[2] = 0;
     desc3[3] = 0;
@@ -2006,7 +2004,7 @@ void func_shelter_b3_dumping_hole_80181560(Task* task)
 
     switch (task->state) {
         case 0:
-            if (D_80114C12 == 1 || D_80071075 != 0) {
+            if (D_80114C12 == 1 || gDisplayState.pendingMode != 0) {
                 return;
             }
             obj        = task->extra.tmd;
@@ -2028,7 +2026,7 @@ void func_shelter_b3_dumping_hole_80181560(Task* task)
             D_shelter_b3_dumping_hole_8018F4D8          = 0;
             ((DumpingHoleEntity4*)task->work)->field_94 = gGameSession->at4.loc.view;
             Gp_MsgPlayerWeapon(0);
-            desc[0] = D_80073BA9 + (D_8007218A == 1 ? 1 : 0x22);
+            desc[0] = Player_Status.weapon + (D_8007218A == 1 ? 1 : 0x22);
             desc[1] = 9;
             desc[2] = 1;
             desc[3] = 0xA;

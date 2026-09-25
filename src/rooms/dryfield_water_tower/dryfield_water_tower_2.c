@@ -174,7 +174,6 @@ extern Task* D_dryfield_water_tower_801876A4;
 /// `D_8007218A` picks which of the two weapon-id bases that record uses; the
 /// alternate block is indexed by `D_80073BA9` plus 1 against the base block's
 /// plus 0x22.
-extern u8 D_80073BA9;
 extern s8 D_8007218A;
 
 /// The two scalars the cap-arrival test below reads out of the room's data.
@@ -293,9 +292,7 @@ extern u32 D_dryfield_water_tower_80181B00;
 /// Main-executable gates the cap script checks, with no module header yet:
 /// the script only runs while `D_80073BA0` is non-zero, and its state 8 holds
 /// back on `D_80114C12` == 1 or a non-zero `D_80071075`.
-extern s16 D_80073BA0;
-extern s8  D_80114C12;
-extern u8  D_80071075;
+extern s8 D_80114C12;
 
 /// The raised-cap sources the cap script restores the room's script-table
 /// blocks from, and the lowered-cap ones it uses when the cap is already down.
@@ -1075,7 +1072,7 @@ u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
             state->field_58++;
 
         case 3:
-            if (Gp_TakePendingObj4C(&objId, &objA, &objB) != 0 && D_80114C12 != 1 && D_80071075 == 0 &&
+            if (Gp_TakePendingObj4C(&objId, &objA, &objB) != 0 && D_80114C12 != 1 && gDisplayState.pendingMode == 0 &&
                 (objId & 0x7FFF) == 5 && (reason = (s8)objA) == 2) {
                 Gp_UnlinkObj4A(0, D_dryfield_water_tower_80186C4C);
                 state->field_68 = Gp_FindViewIndex(9);
@@ -1169,7 +1166,7 @@ static inline u16 _dryfieldWaterTowerState8Step(Task* arg0)
             if (D_80114C12 == 1) {
                 break;
             }
-            if (D_80071075 != 0) {
+            if (gDisplayState.pendingMode != 0) {
                 return 0;
             }
             func_800E8634((s32)&D_dryfield_water_tower_801820B0, 0, (s32)&D_dryfield_water_tower_80182248);
@@ -1224,7 +1221,7 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
     GpObj4A*                 p3;
     GpObj4A*                 p14;
 
-    if (gGameSession->field_65 != 0 || D_80114C11 != 0 || D_80073BA0 == 0) {
+    if (gGameSession->field_65 != 0 || D_80114C11 != 0 || Player_Status.hp == 0) {
         return;
     }
 
@@ -1363,7 +1360,7 @@ void func_dryfield_water_tower_8017F700(s32 arg0)
     s32       id;
     s32       value;
 
-    weaponId            = D_80073BA9;
+    weaponId            = Player_Status.weapon;
     id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
     value               = arg0 & 0xFFFF;
     rec.animBlock.index = id;
@@ -1644,10 +1641,10 @@ void func_dryfield_water_tower_8017FD64(Task* task)
     }
     switch (task->state) {
         case 0:
-            if (Gp_StateC08.field_A == 1 || D_80071075 != 0) {
+            if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != 0) {
                 return;
             }
-            weaponId            = D_80073BA9;
+            weaponId            = Player_Status.weapon;
             anim                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.animBlock.index = anim;
             msg.field_4         = 1;

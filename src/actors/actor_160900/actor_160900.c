@@ -108,13 +108,10 @@ extern TaskDesc D_actor_160900_8013FB50;
 extern ActorAnimStep D_actor_160900_8013F1CC[];
 extern u8            D_actor_160900_8013F198[];
 
-extern s32      D_80070F70;
 extern s8       D_8007218A;
-extern u8       D_80073BA9;
 extern u8       D_actor_160900_8013F210[];
 extern u8       D_actor_160900_8013F228[];
 extern TaskDesc D_actor_160900_8013F17C;
-extern u8       D_80071075;
 extern s8       D_8007272D;
 extern s8       D_80114C12;
 
@@ -129,8 +126,6 @@ extern SVECTOR D_actor_160900_8013F458[];
 /// Pair of blocks `func_actor_160900_8013418C` passes to `func_800E8634`.
 extern u8 D_actor_160900_8013F538[];
 extern u8 D_actor_160900_8013FAA8[];
-
-extern s16 D_800691CA;
 
 /// Distortion amplitude of the screen wave, `frame * scale / span` of the
 /// running context, recomputed every frame.
@@ -167,9 +162,9 @@ void func_actor_160900_80131EB0(Task* arg0)
     s32             waveX0, waveY0, waveX1, waveY1;
     s32             waveX2, waveY2, waveX3, waveY3;
 
-    D_800691CA = 2;
+    CdCmd_Queue.field_22A = 2;
     /* `Task::state` read as a scalar through a cast: that keeps the load
-       behind the `D_800691CA` store, which a member read lets GCC hoist
+       behind the `CdCmd_Queue.field_22A` store, which a member read lets GCC hoist
        above it. */
     switch (*(s32*)((u8*)arg0 + OFFSET_OF(Task, state))) {
         case 0:
@@ -784,7 +779,7 @@ void func_actor_160900_80133238(Task* arg0)
             break;
         case 3:
             if ((u16)work->field_4E == 0) {
-                x = D_80073BA9;
+                x = Player_Status.weapon;
                 if (D_8007218A == 1) {
                     v = x + 1;
                 } else {
@@ -889,7 +884,7 @@ void func_actor_160900_80133758(SVECTOR* pts)
     u32     seed;
     s32     flags;
 
-    if (!(D_80070F70 & 7) && pts->pad != -1) {
+    if (!(gDisplayState.animFrame & 7) && pts->pad != -1) {
         flags = 0x81203400;
         do {
             seed        = Gp_LcgState * 5 + 0x71357911;
@@ -1230,7 +1225,7 @@ void func_actor_160900_8013418C(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if (D_80114C12 == 1 || D_80071075 != 0) {
+            if (D_80114C12 == 1 || gDisplayState.pendingMode != 0) {
                 return;
             }
             work       = (Actor160900Work*)Mem_Malloc(0x68, 0);

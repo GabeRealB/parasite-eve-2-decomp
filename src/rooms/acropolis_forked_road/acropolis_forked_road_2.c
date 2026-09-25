@@ -29,7 +29,6 @@
 extern TaskDesc D_acropolis_forked_road_80180F44;
 
 /// Set to 1 by the fade-out task once the scene has finished.
-extern s16 D_80071076;
 
 /// Per-frame path the streamed scene walks `Player_Status.coordMtx` along, indexed by
 /// `CdCmd_Queue::field_1EA - 1` for the 0x78 frames the ride lasts.
@@ -161,7 +160,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             Mc_SaveData.at4.loc.area  = 0xA;
             Mc_SaveData.at4.loc.warp  = 4;
             Mc_SaveData.at4.loc.room  = 1;
-            D_80071076                = 1;
+            gDisplayState.roomVariant = 1;
             Task_Spawn(0, 0x11, 0, 0);
             gGameSession->padScriptFlags &= 0x7F;
             taskKill(task);

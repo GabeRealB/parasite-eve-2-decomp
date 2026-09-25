@@ -12,8 +12,6 @@
 #include "main/task.h"
 #include "rooms/room_common.h"
 
-extern s16 D_80071076;
-
 /// Descriptor of the event task the event gate spawns.
 extern TaskDesc D_dryfield_night_parking_lot_8017EC54;
 
@@ -133,10 +131,10 @@ void func_dryfield_night_parking_lot_8017D760(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            D_80071076               = 1;
-            Mc_SaveData.at4.loc.area = D_dryfield_night_parking_lot_80181564.msgId;
-            Mc_SaveData.at4.loc.warp = D_dryfield_night_parking_lot_80181564.field_2;
-            Mc_SaveData.at4.loc.room = (u8)D_dryfield_night_parking_lot_80181564.field_3;
+            gDisplayState.roomVariant = 1;
+            Mc_SaveData.at4.loc.area  = D_dryfield_night_parking_lot_80181564.msgId;
+            Mc_SaveData.at4.loc.warp  = D_dryfield_night_parking_lot_80181564.field_2;
+            Mc_SaveData.at4.loc.room  = (u8)D_dryfield_night_parking_lot_80181564.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;

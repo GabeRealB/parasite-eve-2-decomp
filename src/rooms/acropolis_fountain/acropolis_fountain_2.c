@@ -47,8 +47,6 @@ typedef struct AcropolisFountainSndWork {
     /* 0x2 */ u16 started;
 } AcropolisFountainSndWork;
 
-extern s32 D_80070F70;
-
 extern GpObj4A  D_acropolis_fountain_8017E7A4;
 extern SVECTOR  D_acropolis_fountain_8017E7F0;
 extern s16      D_acropolis_fountain_8017E7F8;
@@ -433,7 +431,7 @@ void func_acropolis_fountain_8017E3D4(Task* task)
 
                 case 2:
                 case 8:
-                    if (D_80070F70 & 1) {
+                    if (gDisplayState.animFrame & 1) {
                         queue2            = &CdCmd_Queue;
                         key2              = gGameSession->at4;
                         key2.loc.view     = Gp_FindViewIndex(4);

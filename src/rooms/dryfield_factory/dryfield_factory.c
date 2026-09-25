@@ -32,10 +32,8 @@ typedef struct RoomUtil20Work {
     /* 0x38 */ MATRIX color;
 } RoomUtil20Work;
 
-extern s16 D_80071076;
-extern u8  D_8007216D;
-extern u8  D_8018A7BC[];
-extern u8  D_8018A7C8[];
+extern u8 D_8018A7BC[];
+extern u8 D_8018A7C8[];
 
 void func_8004BFF8(s32 angle, MATRIX* matrix);
 
@@ -167,10 +165,10 @@ void func_dryfield_factory_8017D85C(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            D_80071076               = 1;
-            Mc_SaveData.at4.loc.area = D_dryfield_factory_8018A3B4.msgId;
-            Mc_SaveData.at4.loc.warp = D_dryfield_factory_8018A3B4.field_2;
-            Mc_SaveData.at4.loc.room = (u8)D_dryfield_factory_8018A3B4.field_3;
+            gDisplayState.roomVariant = 1;
+            Mc_SaveData.at4.loc.area  = D_dryfield_factory_8018A3B4.msgId;
+            Mc_SaveData.at4.loc.warp  = D_dryfield_factory_8018A3B4.field_2;
+            Mc_SaveData.at4.loc.room  = (u8)D_dryfield_factory_8018A3B4.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -1226,7 +1224,7 @@ void func_dryfield_factory_8017FDDC(Task* task)
             Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
             goto advance;
         case 5:
-            D_8007216D                  = 2;
+            Mc_SaveData.at4.loc.room    = 2;
             gGameSession->at4.loc.room  = 2;
             gGameSession->roomObjsDirty = 1;
             Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);

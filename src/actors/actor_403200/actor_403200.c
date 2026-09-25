@@ -96,12 +96,10 @@ void func_actor_403200_80141018(Task* arg0);
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 
 /// Player HP the per-frame tick reads before it latches the death cinematic.
-extern s16 D_80073BA0;
 /// Equipped character, read as an in-struct byte so the weapon-anim load stays
 /// ordered against the message-argument store.
 extern s8 D_8007218A[];
 /// Equipped weapon variant added to `Gp_WeaponIdBase[D_8007218A[0] - 1]`.
-extern u8         D_80073BA9;
 extern GpAnimBlk* Gp_PlayerAnimBlkTbl[];
 extern u16        Gp_WeaponIdBase[];
 
@@ -2187,7 +2185,7 @@ void func_actor_403200_801364F4(GpEnemy* enemy, Task* task)
             return;
         }
         D_actor_403200_8015E710[2] =
-            ((Actor403200AnimTable*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A[0] - 1] + D_80073BA9])->sets[9];
+            ((Actor403200AnimTable*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A[0] - 1] + Player_Status.weapon])->sets[9];
         work->anim.animBlock.ptr = D_actor_403200_8015E710;
         work->anim.field_4       = 2;
         work->anim.field_8       = armed;
@@ -6670,7 +6668,7 @@ after_mode:
         }
     }
     if (arg0->hp <= 0) {
-        if (D_80073BA0 <= 0) {
+        if (Player_Status.hp <= 0) {
             arg0->hp                = 1;
             D_actor_403200_80141C50 = 0;
         }
@@ -6901,7 +6899,7 @@ after_mode:
                         work->anim.animBlock.ptr = D_actor_403200_8015E6AC;
                         D_actor_403200_8015E6AC[4] =
                             ((Actor403200AnimTable*)Gp_PlayerAnimBlkTbl
-                                 [Gp_WeaponIdBase[D_8007218A[0] - 1] + D_80073BA9])
+                                 [Gp_WeaponIdBase[D_8007218A[0] - 1] + Player_Status.weapon])
                                 ->sets[7];
                         work->anim.field_4 = 4;
                         work->anim.field_8 = 1;

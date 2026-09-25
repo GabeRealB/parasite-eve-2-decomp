@@ -15,7 +15,6 @@
 #include "main/unknown_syms.h"
 #include "psyq/rand.h"
 
-extern s16 D_80071076;
 extern s32 D_8017A99C;
 extern s8  D_actor_450900_80135E70;
 extern s32 D_actor_450900_80135E74;
@@ -237,7 +236,7 @@ void func_actor_450900_8013235C(Task* task)
             Mc_SaveData.at4.loc.warp  = 3;
             Mc_SaveData.companionType = 0;
             Mc_SaveData.at4.loc.room  = 1;
-            D_80071076                = 1;
+            gDisplayState.roomVariant = 1;
             Task_Spawn(0, 0x11, 0, 0);
             Gp_RestoreStreamRng();
             taskKill(task);

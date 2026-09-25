@@ -126,7 +126,6 @@ void func_actor_503500_80146508(Task* arg0);
 extern GpMsgEntry D_actor_503500_80176530[];
 /// Main-executable counter the actor paces periodic effects by (its value
 /// modulo 6 or 12, its low bits).
-extern s32 D_80070F70;
 /// Row of `Gp_PackPair` arguments, one slot per effect task
 /// (`func_actor_503500_801448E8` takes the slot before this one). Declared as
 /// an array because the read has to alias the struct stores around it: GCC
@@ -658,7 +657,7 @@ void func_actor_503500_80145C50(Task* arg0)
     work = (Actor503500WorkAC*)arg0->work;
     switch (work->field_A8) {
         case 0:
-            if (D_80070F70 & 1) {
+            if (gDisplayState.animFrame & 1) {
                 Gp_SpawnPadLerp(1, 0x96, 0x96);
             }
             if (++work->field_A4 < 0x5B) {

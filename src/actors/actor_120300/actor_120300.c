@@ -70,11 +70,8 @@ extern TaskDesc D_actor_120300_80141B6C[];
 /// is what keeps the caller's zero-extension.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-extern u8             D_80071075;
 extern s8             D_8007218A;
 extern s8             D_8007272D;
-extern u8             D_80073BA9;
-extern u8             D_80073BAC;
 extern s8             D_80114C12;
 extern s32            D_8017DD6C;
 extern s32            D_8017DEA4;
@@ -560,7 +557,7 @@ void func_actor_120300_80132338(Task* arg0)
             s32 id;
 
             Gp_DispatchMsg(((Actor120300Work*)arg0->work)->field_4B4, 0x3E9, (s32)&D_actor_120300_80140ACC, 0);
-            weaponId                 = D_80073BA9;
+            weaponId                 = Player_Status.weapon;
             id                       = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
             var_a1                   = 0x3E8;
             msg.anim.animBlock.index = id;
@@ -644,7 +641,7 @@ void func_actor_120300_80132338(Task* arg0)
             s32 weaponId;
             s32 id;
 
-            weaponId                  = D_80073BA9;
+            weaponId                  = Player_Status.weapon;
             id                        = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
             var_a1                    = 0x3E8;
             msg2.anim.animBlock.index = id;
@@ -1047,7 +1044,7 @@ void func_actor_120300_80133330(s32 arg0)
     Gp_DispatchMsg(work->field_4BC, 0x7D5, 1, 0);
     Gp_DispatchMsg(work->field_4BC, 0x7D4, (s32)&D_actor_120300_80140B5C, 0);
     if (arg0 == 0) {
-        weaponId            = D_80073BA9;
+        weaponId            = Player_Status.weapon;
         id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
         rec.animBlock.index = id;
         rec.field_4         = 1;
@@ -1215,7 +1212,7 @@ void func_actor_120300_801337C4(Task* arg0)
     work  = (Actor120300Work*)arg0->work;
     switch (state) {
         case 0:
-            if ((D_80114C12 != 1) && (D_80071075 == 0)) {
+            if ((D_80114C12 != 1) && (gDisplayState.pendingMode == 0)) {
                 func_actor_120300_801335D8(arg0);
                 work = (Actor120300Work*)arg0->work;
                 if (GameFlag_GetNibble(0x2D) != 0) {
@@ -1225,7 +1222,7 @@ void func_actor_120300_801337C4(Task* arg0)
                     }
                     arg0->state = 4;
                 } else {
-                    weaponId = D_80073BA9;
+                    weaponId = Player_Status.weapon;
                     if (D_8007218A == 1) {
                         weaponId = weaponId + 1;
                     } else {
@@ -1263,7 +1260,7 @@ void func_actor_120300_801337C4(Task* arg0)
             if ((s16)Gp_TakePendingObj4C(&evtId, &evtKind, &evtSub) != 0) {
                 if (!((s16)evtId & 0x8000)) {
                     if ((evtId & 0x7FFF) == 5) {
-                        ready = D_80073BAC != 0;
+                        ready = Player_Status.field_24 != 0;
                     }
                 }
             }

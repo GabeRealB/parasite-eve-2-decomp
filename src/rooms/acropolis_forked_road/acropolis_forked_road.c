@@ -11,8 +11,6 @@
 #include "main/task.h"
 #include "rooms/room_common.h"
 
-extern s16 D_8007107A;
-
 /// The room's message table, installed on its entry task.
 extern GpMsgEntry D_acropolis_forked_road_80180F14[];
 
@@ -76,7 +74,7 @@ s32 func_acropolis_forked_road_8017D5EC(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
             }
             return 0;
         }
-        if ((D_8007107A < 0) || (D_8006AC30.sector == 0)) {
+        if ((gDisplayState.field_112 < 0) || (D_8006AC30.sector == 0)) {
             if (in->field_5 != 0) {
                 return 1;
             }

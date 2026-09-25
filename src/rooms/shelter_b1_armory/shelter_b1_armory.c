@@ -30,8 +30,6 @@ extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
 extern char          Gp_StrEmpty[];
 extern UiObject*     D_80067634;
-extern u8            D_80071072;
-extern s16           D_80071076;
 extern GpItemScan    D_80072724;
 extern UiObjectDesc  D_8010D80C;
 extern RoomShopStock D_8010E138[];
@@ -1011,7 +1009,7 @@ void func_shelter_b1_armory_8017F18C(Task* task)
         task->state        += 1;
     }
     Text_DrawMultiLine(obj, (s16)obj->field_1C + 2, (s16)obj->field_18 + 0xF, text, 0x606060, 1, 0);
-    task->killCountdown -= D_80071072;
+    task->killCountdown -= gDisplayState.frameTicks;
     if (obj->status == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             obj->field_2E = -1;
@@ -1492,10 +1490,10 @@ void func_shelter_b1_armory_801800A4(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            D_80071076               = 1;
-            Mc_SaveData.at4.loc.area = D_shelter_b1_armory_80185584.msgId;
-            Mc_SaveData.at4.loc.warp = D_shelter_b1_armory_80185584.field_2;
-            Mc_SaveData.at4.loc.room = (u8)D_shelter_b1_armory_80185584.field_3;
+            gDisplayState.roomVariant = 1;
+            Mc_SaveData.at4.loc.area  = D_shelter_b1_armory_80185584.msgId;
+            Mc_SaveData.at4.loc.warp  = D_shelter_b1_armory_80185584.field_2;
+            Mc_SaveData.at4.loc.room  = (u8)D_shelter_b1_armory_80185584.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;

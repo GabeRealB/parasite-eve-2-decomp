@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/fs.h"
 
 #include "psyq/libgte.h"
 #include "psyq/libgpu.h"
@@ -646,8 +647,6 @@ void func_actor_206100_8014FDE8(Task* task);
 void func_actor_206100_8014AB3C(GpCoord* coord, u16 arg1, u16 arg2, s32 arg3);
 void func_actor_206100_8014E228(Task* task);
 
-extern s16 D_800691CA;
-
 /// Distortion amplitude of the screen wave: `frame * scale / span` of the
 /// running spawn argument, recomputed every frame.
 extern s32 D_actor_206100_80158B08;
@@ -705,9 +704,9 @@ void func_actor_206100_80149ED0(Task* task)
     s32             waveX0, waveY0, waveX1, waveY1;
     s32             waveX2, waveY2, waveX3, waveY3;
 
-    D_800691CA = 2;
+    CdCmd_Queue.field_22A = 2;
     /* `Task::state` read as a scalar through a cast: that keeps the load
-       behind the `D_800691CA` store, which a member read lets GCC hoist
+       behind the `CdCmd_Queue.field_22A` store, which a member read lets GCC hoist
        above it. */
     switch (*(s32*)((u8*)task + OFFSET_OF(Task, state))) {
         case 0:

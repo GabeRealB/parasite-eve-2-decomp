@@ -63,10 +63,6 @@ typedef struct {
 extern s32 Gp_GetViewIndex(void);
 extern s32 func_80179A04(GpSaveLoc* in, GpSaveLoc* out);
 
-extern s16 D_800691CA;
-extern s16 D_80071076;
-extern u8  D_8007216D;
-extern s8  D_8007217B;
 extern s16 D_80114D08;
 extern u8  D_80115680;
 extern u8  D_80115690;
@@ -184,7 +180,7 @@ void func_shelter_b4_reservoir_8017D650(Task* arg0)
     s32             waveX2, waveY2, waveX3, waveY3;
     s32*            state;
 
-    D_800691CA = 2;
+    CdCmd_Queue.field_22A = 2;
     /* Through a pointer rather than as `arg0->state`: a member load is struct
        memory, which the scheduler lets rise above the store before it, and the
        original keeps the two in source order. */
@@ -354,7 +350,7 @@ void func_shelter_b4_reservoir_8017DE8C(Task* task)
             break;
         case 4:
             if (gGameSession->eventState == 0) {
-                D_8007216D                  = 2;
+                Mc_SaveData.at4.loc.room    = 2;
                 gGameSession->at4.loc.room  = 2;
                 gGameSession->roomObjsDirty = 1;
                 GameFlag_SetNibble(0xB7, 1);
@@ -417,10 +413,10 @@ void func_shelter_b4_reservoir_8017E0AC(Task* arg0)
             }
             break;
         case 5:
-            D_80071076               = 1;
-            Mc_SaveData.at4.loc.area = D_shelter_b4_reservoir_80187508.field_2;
-            Mc_SaveData.at4.loc.warp = D_shelter_b4_reservoir_80187508.field_4;
-            Mc_SaveData.at4.loc.room = D_shelter_b4_reservoir_80187508.field_1;
+            gDisplayState.roomVariant = 1;
+            Mc_SaveData.at4.loc.area  = D_shelter_b4_reservoir_80187508.field_2;
+            Mc_SaveData.at4.loc.warp  = D_shelter_b4_reservoir_80187508.field_4;
+            Mc_SaveData.at4.loc.room  = D_shelter_b4_reservoir_80187508.field_1;
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;
@@ -647,7 +643,7 @@ void func_shelter_b4_reservoir_8017E8EC(Task* task)
 {
     RoomWaterSurface* p = D_shelter_b4_reservoir_80184F90;
 
-    if (D_8007217B == 0) {
+    if (Mc_SaveData.companionType == 0) {
         D_shelter_b4_reservoir_80187630 = (u8*)D_8005C374 + gDisplayState.otBuffer * 0xC000;
     } else {
         D_shelter_b4_reservoir_80187630 = (u8*)D_8005C370 + gDisplayState.otBuffer * 0xC000;
@@ -983,7 +979,7 @@ void func_shelter_b4_reservoir_8017FADC(Task* task)
 /// otherwise) and moves on to the per-frame state.
 void func_shelter_b4_reservoir_8017FB44(Task* arg0)
 {
-    if (D_8007217B == 0) {
+    if (Mc_SaveData.companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;

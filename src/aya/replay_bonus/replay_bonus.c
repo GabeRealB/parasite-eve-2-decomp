@@ -27,8 +27,6 @@ extern s32          D_replay_bonus_80119288;
 extern s32          D_replay_bonus_8011928C;
 extern u8           D_replay_bonus_801192AC;
 extern GpItemDesc   D_8010DE38[];
-extern s32          D_80072A9C;
-extern u8           D_80071072;
 extern McItemRec    D_80072314[];
 extern s32          D_replay_bonus_80119284;
 
@@ -413,7 +411,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
         D_replay_bonus_80119274.unk0     = tmp;
         *(volatile s32*)&totals->field_8 = exp;
         SOFT_TOUCH_REG(exp);
-        switch (D_80072177) {
+        switch (Mc_SaveData.gameMode) {
             case 3:
                 totals->field_8 = exp * 10;
                 totals->field_C = totals->field_C * 10;
@@ -437,7 +435,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
         p     = D_replay_bonus_80118F78;
         spend = tmp;
         idx   = 0;
-        if (D_80072A9C == 0x1FFF) {
+        if (Mc_SaveData.shopTiers == 0x1FFF) {
             result = -1;
         } else {
             shop_i = 0;
@@ -817,7 +815,7 @@ void func_replay_bonus_80116AC0(Task* arg0)
         p     = D_replay_bonus_80118F78;
         spend = tmp;
         idx   = 0;
-        if (D_80072A9C == 0x1FFF) {
+        if (Mc_SaveData.shopTiers == 0x1FFF) {
             result = -1;
         } else {
             i = 0;
@@ -870,7 +868,7 @@ void func_replay_bonus_80116AC0(Task* arg0)
         p     = D_replay_bonus_80118F78;
         spend = tmp;
         idx   = 0;
-        if (D_80072A9C == 0x1FFF) {
+        if (Mc_SaveData.shopTiers == 0x1FFF) {
             result = -1;
         } else {
             i = 0;
@@ -919,7 +917,7 @@ void func_replay_bonus_80116AC0(Task* arg0)
         arg0->spawnArg1 = item2 + 0x20000;
     }
     func_800C5F70(arg0);
-    dt                  = D_80071072;
+    dt                  = gDisplayState.frameTicks;
     remaining           = (u16)arg0->killCountdown - dt;
     arg0->killCountdown = remaining;
     if ((remaining << 0x10) <= 0) {

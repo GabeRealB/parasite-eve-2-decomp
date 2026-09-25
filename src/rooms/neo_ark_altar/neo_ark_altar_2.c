@@ -54,7 +54,6 @@ typedef struct NeoArkAltarWork {
 STATIC_ASSERT_SIZEOF(NeoArkAltarWork, 0x10);
 
 extern s8 D_8007106B;
-extern u8 D_8007216D;
 
 extern NeoArkAltarTile D_neo_ark_altar_8017F014[];
 
@@ -830,11 +829,11 @@ void func_neo_ark_altar_8017EF00(Task* arg0)
     s16* viewDirty;
 
     /* Through a pointer rather than as a member: a member store is struct
-       memory, which the scheduler lets the store to `D_8007216D` pass, and the
+       memory, which the scheduler lets the store to `Mc_SaveData.at4.loc.room` pass, and the
        original keeps the two in source order. */
     viewDirty                  = &gGameSession->viewDirty;
     *viewDirty                 = 1;
-    D_8007216D                 = 2;
+    Mc_SaveData.at4.loc.room   = 2;
     gGameSession->at4.loc.room = 2;
     arg0->state                = (s32)(arg0->state + 1);
 }

@@ -47,9 +47,6 @@ typedef struct _ShelterB4WaterSupplySplash {
     s16  strength;
 } _ShelterB4WaterSupplySplash;
 
-extern s16 D_80071076;
-extern s32 D_8007107C;
-extern s8  D_8007217B;
 extern s16 D_80114D08;
 extern s32 D_80115730;
 extern s32 D_80115734;
@@ -173,7 +170,7 @@ void func_shelter_b4_water_supply_8017D650(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
-            D_80071076                = 1;
+            gDisplayState.roomVariant = 1;
             Mc_SaveData.at4.loc.stage = D_shelter_b4_water_supply_80184E44.stage;
             Mc_SaveData.at4.loc.area  = D_shelter_b4_water_supply_80184E44.area;
             Mc_SaveData.at4.loc.warp  = D_shelter_b4_water_supply_80184E44.warp;
@@ -240,10 +237,10 @@ void func_shelter_b4_water_supply_8017D7C0(Task* arg0)
             }
             break;
         case 5:
-            D_80071076               = 1;
-            Mc_SaveData.at4.loc.area = D_shelter_b4_water_supply_80184E3C.field_2;
-            Mc_SaveData.at4.loc.warp = D_shelter_b4_water_supply_80184E3C.field_4;
-            Mc_SaveData.at4.loc.room = D_shelter_b4_water_supply_80184E3C.field_1;
+            gDisplayState.roomVariant = 1;
+            Mc_SaveData.at4.loc.area  = D_shelter_b4_water_supply_80184E3C.field_2;
+            Mc_SaveData.at4.loc.warp  = D_shelter_b4_water_supply_80184E3C.field_4;
+            Mc_SaveData.at4.loc.room  = D_shelter_b4_water_supply_80184E3C.field_1;
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;
@@ -708,7 +705,7 @@ void func_shelter_b4_water_supply_8017ED28(Task* task)
 /// `field_7E`, chosen by `D_8007217B`, and advances the task to its next state.
 void func_shelter_b4_water_supply_8017ED90(Task* arg0)
 {
-    if (D_8007217B == 0) {
+    if (Mc_SaveData.companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;
@@ -722,10 +719,10 @@ void func_shelter_b4_water_supply_8017ED90(Task* arg0)
 /// lists of water surfaces.
 void func_shelter_b4_water_supply_8017EDD0(Task* task)
 {
-    if (D_8007217B == 0) {
-        D_shelter_b4_water_supply_80184E50 = (u8*)D_8005C374 + D_8007107C * 0xC000;
+    if (Mc_SaveData.companionType == 0) {
+        D_shelter_b4_water_supply_80184E50 = (u8*)D_8005C374 + gDisplayState.otBuffer * 0xC000;
     } else {
-        D_shelter_b4_water_supply_80184E50 = (u8*)D_8005C370 + D_8007107C * 0xC000;
+        D_shelter_b4_water_supply_80184E50 = (u8*)D_8005C370 + gDisplayState.otBuffer * 0xC000;
     }
     func_shelter_b4_water_supply_8017DE74(task);
     func_shelter_b4_water_supply_8017E5D8(task);

@@ -6,7 +6,6 @@
 extern TaskDesc       D_actor_142900_80137600;
 extern s32            D_actor_142900_801382A8;
 extern s32            D_actor_142900_801382AC;
-extern s16            D_80071076;
 extern GpAreaApplyRec D_8017E9F8;
 
 void func_actor_142900_80131E24(Task* arg0)
@@ -43,10 +42,10 @@ void func_actor_142900_80131F5C(void)
     if (Mc_SaveData.demoScene != 9) {
         Gp_ApplyAreaRecs(&D_8017E9F8);
         GameFlag_SetNibble(0x4C, 0);
-        Mc_SaveData.at4.loc.area = 0x1B;
-        Mc_SaveData.at4.loc.warp = 2;
-        Mc_SaveData.at4.loc.room = 1;
-        D_80071076               = 1;
+        Mc_SaveData.at4.loc.area  = 0x1B;
+        Mc_SaveData.at4.loc.warp  = 2;
+        Mc_SaveData.at4.loc.room  = 1;
+        gDisplayState.roomVariant = 1;
         Task_Spawn(0, 0x11, 0, 0);
     }
 }

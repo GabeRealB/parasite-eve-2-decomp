@@ -23,7 +23,6 @@ extern s32 D_80114A34;
 extern TaskDesc D_actor_136300_8013B134;
 extern TaskDesc D_80183380;
 extern s8       D_8007272D;
-extern s16      D_80071076;
 
 extern s32 D_actor_136300_8013B208;
 extern s32 D_actor_136300_8013B230;
@@ -32,8 +31,6 @@ extern s32 D_actor_136300_8013B230;
 /// armed, the second when the capture event is cancelled.
 extern s32 D_actor_136300_8013C5C8;
 extern s32 D_actor_136300_8013C6C0;
-
-extern s16 D_800691CA;
 
 /// Distortion amplitude of the screen wave, `frame * scale / span` of the
 /// running context, recomputed every frame.
@@ -77,9 +74,9 @@ void func_actor_136300_80131E40(Task* arg0)
     s32             waveX0, waveY0, waveX1, waveY1;
     s32             waveX2, waveY2, waveX3, waveY3;
 
-    D_800691CA = 2;
+    CdCmd_Queue.field_22A = 2;
     /* `Task::state` read as a scalar through a cast: that keeps the load
-       behind the `D_800691CA` store, which a member read lets GCC hoist
+       behind the `CdCmd_Queue.field_22A` store, which a member read lets GCC hoist
        above it. */
     switch (*(s32*)((u8*)arg0 + OFFSET_OF(Task, state))) {
         case 0:
@@ -265,7 +262,7 @@ void func_actor_136300_8013267C(Task* arg0)
             Mc_SaveData.at4.loc.room  = 1;
             Fs_BeginBootLoad(&Mc_SaveData.at4.loc.view, 0);
             Gp_ClearCollectedBit(0x116);
-            D_80071076 = 1;
+            gDisplayState.roomVariant = 1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             return;

@@ -57,8 +57,6 @@ extern u32     D_actor_205200_801567E8;
 extern s16     D_actor_205200_801567B0[];
 extern SVECTOR D_actor_205200_801567B4[];
 extern u32     D_actor_205200_801567D0;
-extern u16     D_80071078;
-extern s16     D_80073BA0;
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
@@ -203,7 +201,7 @@ void func_actor_205200_8014BD4C(Task* arg0)
 end:
     Gp_ClearRec18Occupied(work->field_49C);
     if (work->field_504.flags & 1) {
-        if ((work->field_504.key & 0xFFFF0000) == 0x10000 && D_80073BA0 > 0) {
+        if ((work->field_504.key & 0xFFFF0000) == 0x10000 && Player_Status.hp > 0) {
             work->field_588      = 1;
             Gp_StateC08.field_6 |= 1;
         }

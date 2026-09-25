@@ -59,16 +59,6 @@
 
 extern UiObjectDesc D_800611E4;
 extern UiObject*    D_80067634;
-extern s32          D_80070F70;
-extern u8           D_80071086;
-extern u16          D_80072174;
-extern s8           D_80072176;
-extern s8           D_80072310;
-extern u16          D_80072834;
-extern u16          D_80072836;
-extern u8           D_80072A93;
-extern s32          D_80072A94;
-extern s32          D_80072A98;
 extern UiObjectDesc D_8010EFA0;
 extern s16          D_80114D08;
 extern u32          D_80115694;
@@ -911,7 +901,7 @@ void func_acropolis_square_8017F46C(DialogPrompt* arg0, UiObject* arg1)
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_acropolis_square_801834A8);
-            Text_FormatTime(p, D_80072174);
+            Text_FormatTime(p, Mc_SaveData.playTime);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
         }
@@ -928,7 +918,7 @@ void func_acropolis_square_8017F46C(DialogPrompt* arg0, UiObject* arg1)
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_acropolis_square_801834D8);
-            Text_ItoaUnsigned(p, D_80072A93);
+            Text_ItoaUnsigned(p, Mc_SaveData.saveCount);
             Text_Strcat(p, D_acropolis_square_801834F8);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -946,7 +936,7 @@ void func_acropolis_square_8017F46C(DialogPrompt* arg0, UiObject* arg1)
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_acropolis_square_801834B0);
-            Text_ItoaUnsigned(p, D_80072834);
+            Text_ItoaUnsigned(p, Mc_SaveData.field_6CC);
             Text_Strcat(p, D_acropolis_square_801834F8);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -964,7 +954,7 @@ void func_acropolis_square_8017F46C(DialogPrompt* arg0, UiObject* arg1)
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_acropolis_square_801834B4);
-            Text_ItoaUnsigned(p, D_80072836);
+            Text_ItoaUnsigned(p, Mc_SaveData.field_6CE);
             Text_Strcat(p, D_acropolis_square_801834F8);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -1028,7 +1018,7 @@ void func_acropolis_square_8017F46C(DialogPrompt* arg0, UiObject* arg1)
             s32         i;
             u8*         q;
 
-            total          = D_80072834;
+            total          = Mc_SaveData.field_6CC;
             req.x          = arg1->baseX + (u16)arg0->field_18;
             y              = arg1->baseY - 6;
             req.y          = (u16)arg0->field_1A + y;
@@ -1085,7 +1075,7 @@ void func_acropolis_square_8017F46C(DialogPrompt* arg0, UiObject* arg1)
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_acropolis_square_801834E0);
-            Text_ItoaUnsigned(p, D_80072176);
+            Text_ItoaUnsigned(p, Mc_SaveData.clearCount);
             Text_Strcat(p, D_acropolis_square_801834F8);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -1103,7 +1093,7 @@ void func_acropolis_square_8017F46C(DialogPrompt* arg0, UiObject* arg1)
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_acropolis_square_801834E8);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, D_80072A94), arg0->field_1C, 3, 2);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData.field_92C), arg0->field_1C, 3, 2);
             break;
         }
         case 8: {
@@ -1119,7 +1109,7 @@ void func_acropolis_square_8017F46C(DialogPrompt* arg0, UiObject* arg1)
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_acropolis_square_801834F0);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, D_80072A98), arg0->field_1C, 3, 2);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData.field_930), arg0->field_1C, 3, 2);
             break;
         }
     }
@@ -1800,7 +1790,7 @@ void func_acropolis_square_80180EB0(DialogPrompt* prompt, UiObject* obj)
     sel = prompt->field_C;
     if (sel == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0 && CdCmd_IsIdle() != 0) {
         SndEvt_EnqueueType6(0x16, 0, 0);
-        D_80071086 = 0xFF;
+        gDisplayState.gameMode = 0xFF;
         Ui_SpawnFromDesc(&D_800611E4, 1, 0, 0, obj);
         obj->status       = 0;
         obj->field_2E     = 6;
@@ -2158,7 +2148,7 @@ s32 func_acropolis_square_801819BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
     if ((arg2 == 0x10) && (GameFlag_GetNibble(0x156) == 0)) {
         GameFlag_SetNibble(0x156, 1);
         var_a0 = 0x11;
-        if (D_80072310 != 1) {
+        if (Mc_SaveData.buttonLayout != 1) {
             var_a0 = 0x10;
         }
         Gp_SpawnIfCapIdle(var_a0, 1);
@@ -2561,7 +2551,7 @@ void func_acropolis_square_801825DC(Task* task)
     gte_stsxy(&((RoomGlowScratch*)(head - 0x18))->sx);
     gte_stszotz(&blk->otz);
     if (((RoomGlowScratch*)(head - 0x18))->otz >= 0x11) {
-        pulse  = D_80070F70;
+        pulse  = gDisplayState.animFrame;
         pulse *= task->spawnArg1 & 0xFF;
         flip   = (task->spawnArg1 >> 16) & 1;
         if (pulse & 0x80) {

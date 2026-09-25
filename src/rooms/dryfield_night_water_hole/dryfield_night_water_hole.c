@@ -75,8 +75,6 @@ typedef struct _DryfieldNightWaterHoleSplash {
     s16  strength;
 } _DryfieldNightWaterHoleSplash;
 
-extern s8  D_8007217B;
-extern s16 D_80071076;
 extern s32 D_80115738;
 extern s32 D_8011574C;
 /// Resident task table the ending task is spawned from, descriptor 1.
@@ -271,7 +269,7 @@ void func_dryfield_night_water_hole_8017D7E8(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
-            D_80071076                = 1;
+            gDisplayState.roomVariant = 1;
             Mc_SaveData.at4.loc.stage = D_dryfield_night_water_hole_80183630.stage;
             Mc_SaveData.at4.loc.area  = D_dryfield_night_water_hole_80183630.area;
             Mc_SaveData.at4.loc.warp  = D_dryfield_night_water_hole_80183630.warp;
@@ -515,7 +513,7 @@ void func_dryfield_night_water_hole_8017DF28(Task* task)
     s32          wave;
 
     e = D_dryfield_night_water_hole_80180970;
-    if (D_8007217B == 0) {
+    if (Mc_SaveData.companionType == 0) {
         D_dryfield_night_water_hole_80183628 = (u8*)D_8005C374 + gDisplayState.otBuffer * 0xC000;
     } else {
         D_dryfield_night_water_hole_80183628 = (u8*)D_8005C370 + gDisplayState.otBuffer * 0xC000;
@@ -644,7 +642,7 @@ void func_dryfield_night_water_hole_8017E630(Task* task)
 /// `field_7E` while `D_8007217B` is set, then advances to the drawing state.
 void func_dryfield_night_water_hole_8017E690(Task* arg0)
 {
-    if (D_8007217B == 0) {
+    if (Mc_SaveData.companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;

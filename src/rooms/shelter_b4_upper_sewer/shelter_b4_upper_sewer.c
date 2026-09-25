@@ -29,11 +29,8 @@
 #include "rooms/shelter_b4_upper_sewer.h"
 
 extern s16 D_80114D08;
-extern s16 D_80071076;
 extern u8  D_80115680;
 extern u8  D_80115690;
-extern s32 D_8007107C;
-extern s8  D_8007217B;
 extern s32 D_80115720;
 extern s32 D_80115728;
 extern s32 D_8011572C;
@@ -212,10 +209,10 @@ void func_shelter_b4_upper_sewer_8017D80C(Task* arg0)
             }
             break;
         case 5:
-            D_80071076               = 1;
-            Mc_SaveData.at4.loc.area = D_shelter_b4_upper_sewer_80188D24.field_2;
-            Mc_SaveData.at4.loc.warp = D_shelter_b4_upper_sewer_80188D24.field_4;
-            Mc_SaveData.at4.loc.room = D_shelter_b4_upper_sewer_80188D24.field_1;
+            gDisplayState.roomVariant = 1;
+            Mc_SaveData.at4.loc.area  = D_shelter_b4_upper_sewer_80188D24.field_2;
+            Mc_SaveData.at4.loc.warp  = D_shelter_b4_upper_sewer_80188D24.field_4;
+            Mc_SaveData.at4.loc.room  = D_shelter_b4_upper_sewer_80188D24.field_1;
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;
@@ -328,10 +325,10 @@ void func_shelter_b4_upper_sewer_8017DC88(Task* task)
     u8  c;
     s32 h;
 
-    if (D_8007217B == 0) {
-        D_shelter_b4_upper_sewer_80188D30 = (u8*)D_8005C374 + D_8007107C * 0xC000;
+    if (Mc_SaveData.companionType == 0) {
+        D_shelter_b4_upper_sewer_80188D30 = (u8*)D_8005C374 + gDisplayState.otBuffer * 0xC000;
     } else {
-        D_shelter_b4_upper_sewer_80188D30 = (u8*)D_8005C370 + D_8007107C * 0xC000;
+        D_shelter_b4_upper_sewer_80188D30 = (u8*)D_8005C370 + gDisplayState.otBuffer * 0xC000;
     }
     if (D_shelter_b4_upper_sewer_80186438 < -0x640) {
         D_shelter_b4_upper_sewer_80186438 = -0x640;
@@ -481,7 +478,7 @@ void func_shelter_b4_upper_sewer_8017E4F4(Task* task)
 
 void func_shelter_b4_upper_sewer_8017E55C(Task* arg0)
 {
-    if (D_8007217B == 0) {
+    if (Mc_SaveData.companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;

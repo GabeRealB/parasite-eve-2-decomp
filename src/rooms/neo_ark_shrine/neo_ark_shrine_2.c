@@ -48,7 +48,6 @@ void func_neo_ark_shrine_80180570(GpCoord* arg0, s32 arg1, u8* rgb);
 void func_neo_ark_shrine_80180DF4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 void func_neo_ark_shrine_80181474(GpCoord* arg0, s16 arg1, u8* arg2);
 
-extern u8  D_8007216D;
 extern s16 D_80114D08;
 extern s32 D_8011572C;
 extern s32 D_80115750;
@@ -469,10 +468,10 @@ void func_neo_ark_shrine_8017EFE4(Task* task)
     func_neo_ark_shrine_8017EAC0(task);
     if (st->timer >= 0x1E) {
         if (GameFlag_GetNibble(0xE9) == 0) {
-            D_8007216D                 = 2;
+            Mc_SaveData.at4.loc.room   = 2;
             gGameSession->at4.loc.room = 2;
         } else {
-            D_8007216D                 = 5;
+            Mc_SaveData.at4.loc.room   = 5;
             gGameSession->at4.loc.room = 5;
         }
         gGameSession->roomObjsDirty = 1;
@@ -597,10 +596,10 @@ void func_neo_ark_shrine_8017F398(Task* task)
     func_neo_ark_shrine_8017EAC0(task);
     if (st->timer >= 0x1E) {
         if (GameFlag_GetNibble(0xE9) == 0) {
-            D_8007216D                 = 1;
+            Mc_SaveData.at4.loc.room   = 1;
             gGameSession->at4.loc.room = 1;
         } else {
-            D_8007216D                 = 4;
+            Mc_SaveData.at4.loc.room   = 4;
             gGameSession->at4.loc.room = 4;
         }
         gGameSession->roomObjsDirty = 1;

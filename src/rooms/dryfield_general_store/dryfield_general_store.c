@@ -16,9 +16,8 @@
 /// the script owns the screen and `D_80115690` when CAP command 0xF showed the
 /// letterbox. `Mc_SaveData.at4.loc.view` is the area-record id the same task publishes, and
 /// `D_80071076` the "chapter advanced" halfword it sets on the way out.
-extern u8  D_80115690;
-extern s16 D_80071076;
-extern u8  D_80115598;
+extern u8 D_80115690;
+extern u8 D_80115598;
 
 /// The event message and request the gate latched for the event task, and the
 /// flag saying one was latched this call.
@@ -154,10 +153,10 @@ void func_dryfield_general_store_8017D764(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            D_80071076               = 1;
-            Mc_SaveData.at4.loc.area = D_dryfield_general_store_80185700.msgId;
-            Mc_SaveData.at4.loc.warp = D_dryfield_general_store_80185700.field_2;
-            Mc_SaveData.at4.loc.room = (u8)D_dryfield_general_store_80185700.field_3;
+            gDisplayState.roomVariant = 1;
+            Mc_SaveData.at4.loc.area  = D_dryfield_general_store_80185700.msgId;
+            Mc_SaveData.at4.loc.warp  = D_dryfield_general_store_80185700.field_2;
+            Mc_SaveData.at4.loc.room  = (u8)D_dryfield_general_store_80185700.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -302,10 +301,10 @@ void func_dryfield_general_store_8017DAC0(Task* arg0)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData.at4.loc.area = 0x26;
-            Mc_SaveData.at4.loc.warp = D_dryfield_general_store_80185709;
-            Mc_SaveData.at4.loc.room = D_dryfield_general_store_8018570A;
-            D_80071076               = 1;
+            Mc_SaveData.at4.loc.area  = 0x26;
+            Mc_SaveData.at4.loc.warp  = D_dryfield_general_store_80185709;
+            Mc_SaveData.at4.loc.room  = D_dryfield_general_store_8018570A;
+            gDisplayState.roomVariant = 1;
             Task_Spawn(0, 0x11, 0, 0);
             break;
         default:

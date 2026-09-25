@@ -212,7 +212,6 @@ extern s32               D_replay_bonus_8011927C;
 
 extern UiList D_replay_bonus_80119130;
 extern s32    D_80067634;
-extern s8     D_80072177;
 extern u8     D_replay_bonus_80115774[];
 extern u8     D_replay_bonus_80115784[];
 extern u8     D_replay_bonus_80115790[];

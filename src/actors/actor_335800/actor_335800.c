@@ -78,7 +78,6 @@ extern s32 D_actor_335800_80164F88;
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 extern s8       D_8007272D;
-extern u8       D_8007216D;
 extern TaskDesc D_80182834;
 
 extern TaskDesc  D_actor_335800_80164DE0;
@@ -270,8 +269,8 @@ void func_actor_335800_801620C0(void)
 
 void func_actor_335800_801620F0(u8 arg0)
 {
-    gGameSession->at4.loc.room = D_8007216D = arg0;
-    gGameSession->roomObjsDirty             = 1;
+    gGameSession->at4.loc.room = Mc_SaveData.at4.loc.room = arg0;
+    gGameSession->roomObjsDirty                           = 1;
 }
 
 void func_actor_335800_80162114(void)

@@ -26,7 +26,6 @@
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "rooms/rooms_shared_8017ff88.h"
 
-extern s16 D_80071076;
 extern s32 D_80115720;
 extern s32 D_80115728;
 extern s32 D_80115730;
@@ -161,10 +160,10 @@ void func_shelter_b3_elevator_hall_8017D790(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            D_80071076               = 1;
-            Mc_SaveData.at4.loc.area = D_shelter_b3_elevator_hall_80184A00.msgId;
-            Mc_SaveData.at4.loc.warp = D_shelter_b3_elevator_hall_80184A00.field_2;
-            Mc_SaveData.at4.loc.room = (u8)D_shelter_b3_elevator_hall_80184A00.field_3;
+            gDisplayState.roomVariant = 1;
+            Mc_SaveData.at4.loc.area  = D_shelter_b3_elevator_hall_80184A00.msgId;
+            Mc_SaveData.at4.loc.warp  = D_shelter_b3_elevator_hall_80184A00.field_2;
+            Mc_SaveData.at4.loc.room  = (u8)D_shelter_b3_elevator_hall_80184A00.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -229,9 +228,9 @@ void func_shelter_b3_elevator_hall_8017D900(Task* task)
             msg.field_2 = Mc_SaveData.at4.loc.warp;
             msg2        = msg;
             func_80179A04(&msg, &msg2);
-            D_80071076               = 1;
-            Mc_SaveData.at4.loc.warp = msg2.field_2;
-            Mc_SaveData.at4.loc.room = msg2.field_3;
+            gDisplayState.roomVariant = 1;
+            Mc_SaveData.at4.loc.warp  = msg2.field_2;
+            Mc_SaveData.at4.loc.room  = msg2.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -321,7 +320,7 @@ advance:
 
 L_case6:
     SndEvt_EnqueueType7(0x80000000, 0);
-    D_80071076 = 1;
+    gDisplayState.roomVariant = 1;
     Task_Spawn(0, 0x11, 0, 0);
     taskKill(task);
 }

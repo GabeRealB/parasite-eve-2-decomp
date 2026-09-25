@@ -47,7 +47,6 @@ extern s32 D_8011574C;
 
 /// Word whose low bits `Actor01100_Fn02960` (bits 0-3) and
 /// `Actor01100_Fn06F38` (bit 0) test; what sets it is outside this entry.
-extern s32 D_80070F70;
 
 /// Actor id the set-up `Actor01100_Fn0097C` stores for the secondary tasks,
 /// which shift it into bits 8-15 of their sound ids.
@@ -75,7 +74,6 @@ extern GpU16Pair Actor01100_D074D0[];
 extern TaskDesc  Actor01100_D155E0[];
 extern u8        Actor01100_D0D8F4;
 extern u8        Actor01100_D0E4DC;
-extern u8        D_80071075;
 extern s8        D_80114C12;
 
 typedef struct {
@@ -1539,7 +1537,7 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         }
         if (work->field_BB8 == 1) {
             TransposeMatrix(&Gfx_ViewWorldMtx, &arg->mtx);
-            if (!(D_80070F70 & 0xF)) {
+            if (!(gDisplayState.animFrame & 0xF)) {
                 GpCoord* c;
 
                 c           = task->extra.tmd->coords;
@@ -2953,7 +2951,7 @@ void Actor01100_Fn05678(
     if (((GP_LOC_WORD(Mc_SaveData.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(5, 24, 0, 0)) && (work->field_BC8 == 0)) {
         actor  = gameGetPtrSlot(3)->work;
         status = &Player_Status;
-        if ((actor->field_954 != 2) && (D_80114C12 != 1) && (D_80071075 == 0) && (status->hp > 0)) {
+        if ((actor->field_954 != 2) && (D_80114C12 != 1) && (gDisplayState.pendingMode == 0) && (status->hp > 0)) {
             Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
             work->field_BC8 = 1;
         }
@@ -3864,7 +3862,7 @@ void Actor01100_Fn06F38(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
             SndEvt_EnqueueType6((work->field_BB8 << 22) | (((u8)work->actorId << 8) | 0x400B0004), arg->pan, arg->depth);
         }
     }
-    if (D_80070F70 & 1) {
+    if (gDisplayState.animFrame & 1) {
         arg->field_64 = 0xC;
     } else {
         arg->field_64 = 8;

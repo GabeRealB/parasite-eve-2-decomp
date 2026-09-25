@@ -93,7 +93,6 @@ extern s16 D_actor_403900_801540D0[2][4];
 
 /// Main-executable global with no module header yet: the remaining-enemy
 /// count. A grab only starts while it is positive.
-extern s16 D_80073BA0;
 
 /// 1BC.h keeps this out of scope on purpose: callers hand it a sign-extended
 /// animation id, which a `u16` prototype would zero-extend.
@@ -692,7 +691,7 @@ void func_actor_403900_8013314C(Task* arg0)
     flag   = 0;
     switch (work->field_6CE) {
         case 0:
-            if (((GameActor*)player->work)->field_954 != 2 && D_80073BA0 > 0) {
+            if (((GameActor*)player->work)->field_954 != 2 && Player_Status.hp > 0) {
                 sc->query.field_14 = 0x19;
                 if (Gp_DispatchMsg(player, 0x3F8, (s32)sc, 0) == 0) {
                     work->field_6C0 = 1;
@@ -888,7 +887,7 @@ void func_actor_403900_8013314C(Task* arg0)
                 func_800FDB18(1, &gameGetPtrSlot(3)->extra.tmd->coords[4], &sc->in, &D_actor_403900_801540C8);
                 Gp_SpawnPadLerp(0xA, 0xFF, 8);
                 Gp_DispatchMsg(player, 0x400, 0, 0);
-                D_80073BA0 = 0;
+                Player_Status.hp = 0;
             }
             break;
         case 6:
@@ -2967,7 +2966,7 @@ void func_actor_403900_801380DC(Task* arg0)
 /// Raises the actor's phase `field_6F4` to 1 while enemies remain.
 s32 func_actor_403900_801381E4(Task* task)
 {
-    if (D_80073BA0 > 0) {
+    if (Player_Status.hp > 0) {
         ((Actor402200Work*)task->work)->field_6F4 = 1;
     }
     return 0;

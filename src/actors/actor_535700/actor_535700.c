@@ -60,8 +60,6 @@ extern GpMsgEntry D_actor_535700_801467E0[];
 extern TaskDesc   D_actor_535700_80146810[];
 extern u8         D_actor_535700_80146828[];
 
-extern s16 D_80071076;
-
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
@@ -122,10 +120,10 @@ void func_actor_535700_80131EF0(s32 frames)
 void func_actor_535700_80131F2C(void)
 {
     if (Mc_SaveData.demoScene != 9) {
-        Mc_SaveData.at4.loc.area = 0x1D;
-        Mc_SaveData.at4.loc.warp = 5;
-        Mc_SaveData.at4.loc.room = 2;
-        D_80071076               = 1;
+        Mc_SaveData.at4.loc.area  = 0x1D;
+        Mc_SaveData.at4.loc.warp  = 5;
+        Mc_SaveData.at4.loc.room  = 2;
+        gDisplayState.roomVariant = 1;
         Task_Spawn(0, 0x11, 0, 0);
         Mc_SaveData.sceneEvent = 6;
         Gp_RestoreStreamRng();

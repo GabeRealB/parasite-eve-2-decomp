@@ -118,12 +118,8 @@ typedef struct DdhScreenPoint {
 
 extern void func_80724608(void* owner, s32 arg1, s32 arg2, void* name);
 
-extern s16 D_800691CA;
-extern u8  D_80071075;
-extern s16 D_80071076;
-extern s16 D_8007107A;
-extern s8  D_80114C12;
-extern u8  D_801156F9;
+extern s8 D_80114C12;
+extern u8 D_801156F9;
 
 /// Script pair handed to `Gp_SpawnScript18`. Both live in gameplay's image, so
 /// the room overlay imports them by absolute address and passes them as `s32`.
@@ -248,7 +244,7 @@ void func_dryfield_dilapidated_house_8017D64C(Task* arg0)
     s32             waveX2, waveY2, waveX3, waveY3;
     s32*            state;
 
-    D_800691CA = 2;
+    CdCmd_Queue.field_22A = 2;
     /* Through a pointer rather than as `arg0->state`: a member load is struct
        memory, which the scheduler lets rise above the store before it, and the
        original keeps the two in source order. */
@@ -463,14 +459,14 @@ void func_dryfield_dilapidated_house_8017E014(Task* task)
         } else if ((D_dryfield_dilapidated_house_80183EFC == 2) &&
                    (Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7D6, 0, 0) == 0)) {
             if (D_80114C12 != 1) {
-                if (D_80071075 == 0) {
+                if (gDisplayState.pendingMode == 0) {
                     D_dryfield_dilapidated_house_80183EFC += 1;
                     Task_SpawnFromTable(D_dryfield_dilapidated_house_80183EB4, 3, 0, 0);
                 }
             }
         }
     }
-    if ((D_8007107A != 0) && (Gp_LookupSlot4(1) != 0)) {
+    if ((gDisplayState.field_112 != 0) && (Gp_LookupSlot4(1) != 0)) {
         func_80724608(Gp_LookupSlot4(1), -0x8C, 0xA, "AUNT");
         func_80724608(gameGetPtrSlot(3), -0x8C, 0x14, "Player");
     }
@@ -601,7 +597,7 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
                 Mc_SaveData.at4.loc.warp  = 1;
                 Mc_SaveData.at4.loc.room  = 1;
                 Mc_SaveData.at4.loc.area  = 8;
-                D_80071076                = 1;
+                gDisplayState.roomVariant = 1;
                 Task_Spawn(0, 0x11, 0, 0);
             }
             taskKill(task);

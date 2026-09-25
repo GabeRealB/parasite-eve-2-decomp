@@ -16,7 +16,6 @@
 /// Equipped-weapon index; `Gp_GetItemSlot(D_80073BA9 + 0x7F)` is the slot the
 /// player is holding, and its `attachId` is the attachment id the sound bank is
 /// keyed on. A main-executable global with no module header yet.
-extern u8 D_80073BA9;
 
 void func_m4a1_grenade_8011DE24(Task* task);
 
@@ -44,7 +43,7 @@ void func_m4a1_grenade_8011D1EC(Task* arg0)
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
-    slot  = Gp_GetItemSlot(D_80073BA9 + 0x7F);
+    slot  = Gp_GetItemSlot(Player_Status.weapon + 0x7F);
     /* Reloaded rather than reused: the store leaves the block address in a
        caller-saved register and the copy into `spot` is a second read of
        `G_SCRATCH_HEAD` that CSE folds back onto it, which is what keeps the
@@ -274,7 +273,7 @@ void func_m4a1_grenade_8011D994(Task* arg0)
 
     work  = (WeaponGrenadeWork*)arg0->work;
     coord = arg0->extra.tmd->coords;
-    slot  = Gp_GetItemSlot(D_80073BA9 + 0x7F);
+    slot  = Gp_GetItemSlot(Player_Status.weapon + 0x7F);
     head  = SCRATCH_HEAD(u8);
     /* Pushed and then re-derived rather than stored from `blk`: the scratch
        head has to stay live in its own register, because the `GpDeltaScratch`
@@ -290,7 +289,7 @@ void func_m4a1_grenade_8011D994(Task* arg0)
         }
         arg0->state = 2;
         Gp_SpawnEff(0x60071, coord, blk->sfx, NULL);
-        sfxbase = D_80073BA9 << 16;
+        sfxbase = Player_Status.weapon << 16;
         sfxarg  = ((blk->sfx - 0xA) << 24) | 0x20000007;
         Gp_PlayObjSfx(coord, sfxbase | sfxarg, 1);
         clip = 8;

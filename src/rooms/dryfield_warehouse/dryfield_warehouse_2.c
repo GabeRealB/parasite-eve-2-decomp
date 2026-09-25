@@ -53,10 +53,7 @@ extern Task* D_dryfield_warehouse_801821C0;
 /// `DwhWork` block.
 extern Task* D_dryfield_warehouse_801821BC;
 
-extern u8  D_80071075;
-extern u8  D_80073BA9;
 extern s8  D_8007218A;
-extern s8  D_8007216D;
 extern s8  D_80114C12;
 extern s32 D_dryfield_warehouse_8017F848;
 extern s32 D_dryfield_warehouse_8017F850;
@@ -103,7 +100,7 @@ void func_dryfield_warehouse_8017DA58(s32 arg0)
                 work->playerEffActive = 0;
                 Gp_MsgPlayerWeapon(0);
             }
-            weaponId            = D_80073BA9;
+            weaponId            = Player_Status.weapon;
             anim                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.animBlock.index = anim;
             rec.field_4         = 1;
@@ -190,7 +187,7 @@ void func_dryfield_warehouse_8017DBB0(Task* arg0)
                 shared->playerEffActive = 0;
                 Gp_MsgPlayerWeapon(0);
             }
-            weaponId                = D_80073BA9;
+            weaponId                = Player_Status.weapon;
             anim                    = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.rec.animBlock.index = anim;
             msg.rec.field_4         = 1;
@@ -241,7 +238,7 @@ void func_dryfield_warehouse_8017DBB0(Task* arg0)
             Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
             switch (work->field_6) {
                 case 0:
-                    D_8007216D                 = 2;
+                    Mc_SaveData.at4.loc.room   = 2;
                     gGameSession->at4.loc.room = 2;
                     work->field_8              = 0;
                     work->field_6++;
@@ -304,7 +301,7 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if ((D_80114C12 != 1) && (D_80071075 == 0)) {
+            if ((D_80114C12 != 1) && (gDisplayState.pendingMode == 0)) {
                 work       = Mem_Malloc(0x10, false);
                 arg0->work = (TaskIdMap*)work;
                 if (work == NULL) {
@@ -314,7 +311,7 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
                     work->owner                   = gameGetPtrSlot(3);
                     D_dryfield_warehouse_801821BC = arg0;
                 }
-                weaponId            = D_80073BA9;
+                weaponId            = Player_Status.weapon;
                 anim                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
                 rec.animBlock.index = anim;
                 rec.field_4         = 1;

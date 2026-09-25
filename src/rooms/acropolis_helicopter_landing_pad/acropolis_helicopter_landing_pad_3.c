@@ -63,7 +63,6 @@ typedef struct AhlpFlareScratch {
 STATIC_ASSERT_SIZEOF(AhlpFlareScratch, 0x1C);
 
 extern s8        D_8007106B;
-extern s32       D_80070F70;
 extern SVECTOR   D_acropolis_helicopter_landing_pad_80184E80[12];
 extern s32       D_acropolis_helicopter_landing_pad_80184EE0[12];
 extern GpSaveLoc D_acropolis_helicopter_landing_pad_80187F90;
@@ -617,7 +616,7 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
             base->data.coord.flg = 0;
             /* fallthrough */
         case 1:
-            if ((D_80070F70 & 7) == 0) {
+            if ((gDisplayState.animFrame & 7) == 0) {
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
                     mem->scale = 1;
@@ -853,7 +852,7 @@ void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
             Gp_SpawnEff(0x6005E, coord, 0, NULL);
             break;
         case 2:
-            if (D_80070F70 & 0x40) {
+            if (gDisplayState.animFrame & 0x40) {
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 if ((((u32)Gp_LcgState >> 16) & 0xF) == 0) {
                     Gp_SpawnEff(0x6005A, coord, 2, NULL);
@@ -1022,7 +1021,7 @@ void func_acropolis_helicopter_landing_pad_801818F0(Task* arg0)
         Gp_State1C->groundShade = 0;
     }
 
-    v           = D_80070F70 << 2;
+    v           = gDisplayState.animFrame << 2;
     work->scale = v;
     if (v & 0x80) {
         level = 0x7F - (v & 0x7F);

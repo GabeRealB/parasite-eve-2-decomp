@@ -14,9 +14,6 @@
 #include "gameplay/3CD8.h"
 #include "rooms/mist_parking.h"
 
-extern s16 D_80071076;
-extern s8  D_80073BAE;
-
 /// Scratch state of the parking-lot cap script driven by
 /// `func_mist_parking_80183EAC`, cleared with `Mem_Set` when the task starts.
 typedef struct {
@@ -348,7 +345,7 @@ void func_mist_parking_80184468(s32 arg0)
     Mc_SaveData.at4.loc.warp  = 1;
     Mc_SaveData.at4.loc.room  = 1;
     Mc_SaveData.at4.loc.area  = arg0;
-    D_80071076                = 1;
+    gDisplayState.roomVariant = 1;
     SndEvt_EnqueueType7(0x80000000, 0);
     Task_Spawn(0, 0x11, 0, 0);
     if (arg0 == 5) {
@@ -365,12 +362,12 @@ void func_mist_parking_801844EC(void)
 void func_mist_parking_8018451C(void)
 {
     func_800BC4BC();
-    D_80073BAE                = 1;
+    Player_Status.field_26    = 1;
     Mc_SaveData.at4.loc.area  = 5;
     Mc_SaveData.at4.loc.stage = 1;
     Mc_SaveData.at4.loc.warp  = 1;
     Mc_SaveData.at4.loc.room  = 1;
-    D_80071076                = 1;
+    gDisplayState.roomVariant = 1;
     SndEvt_EnqueueType7(0x80000000, 0);
     Task_Spawn(0, 0x11, 0, 0);
     Fs_BeginBootLoad(&Mc_SaveData.at4.loc.view, 0);

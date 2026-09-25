@@ -12,8 +12,6 @@
 
 #include <psyq/rand.h>
 
-extern u8 D_8007216D;
-
 extern void func_8017FA98(s32);
 extern void func_80180DAC(s32);
 
@@ -375,5 +373,5 @@ void func_actor_450200_80132880(s32 arg0)
 void func_actor_450200_801328A0(u8 arg0)
 {
     gGameSession->at4.loc.room = arg0;
-    D_8007216D                 = arg0;
+    Mc_SaveData.at4.loc.room   = arg0;
 }

@@ -28,7 +28,6 @@
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "rooms/rooms_shared_8017ff88.h"
 
-extern u8  D_8007216D;
 extern s32 D_80115720;
 extern s32 D_80115728;
 extern s32 D_8011573C;
@@ -154,7 +153,7 @@ typedef struct _MineCavernHitScratch {
 
 void func_mine_cavern_8017E330(void)
 {
-    D_8007216D                  = 2;
+    Mc_SaveData.at4.loc.room    = 2;
     gGameSession->at4.loc.room  = 2;
     gGameSession->roomObjsDirty = 1;
 }

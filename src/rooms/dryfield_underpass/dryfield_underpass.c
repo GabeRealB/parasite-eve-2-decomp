@@ -20,7 +20,6 @@
 
 #include "rooms/room_common.h"
 
-extern u8         D_8007216D;
 extern TaskDesc   D_dryfield_underpass_8017E818[];
 extern GpMsgEntry D_dryfield_underpass_8017E830[];
 extern s32        D_dryfield_underpass_8017E89C;
@@ -244,7 +243,7 @@ void func_dryfield_underpass_8017DA08(void)
     session                     = gGameSession;
     room                        = dst.field_3;
     session->at4.loc.room       = room;
-    D_8007216D                  = room;
+    Mc_SaveData.at4.loc.room    = room;
     gGameSession->roomObjsDirty = 1;
 }
 

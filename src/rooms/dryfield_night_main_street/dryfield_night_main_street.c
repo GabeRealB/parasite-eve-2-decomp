@@ -61,8 +61,6 @@
         }                                                               \
     }
 
-extern s32 D_80070F70;
-extern s16 D_80071076;
 extern u8  D_80115598;
 extern u8  D_80115690;
 extern s32 D_80115720;
@@ -176,10 +174,10 @@ void func_dryfield_night_main_street_8017D600(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            D_80071076               = 1;
-            Mc_SaveData.at4.loc.area = D_dryfield_night_main_street_80188BAC.msgId;
-            Mc_SaveData.at4.loc.warp = D_dryfield_night_main_street_80188BAC.field_2;
-            Mc_SaveData.at4.loc.room = D_dryfield_night_main_street_80188BAC.field_3;
+            gDisplayState.roomVariant = 1;
+            Mc_SaveData.at4.loc.area  = D_dryfield_night_main_street_80188BAC.msgId;
+            Mc_SaveData.at4.loc.warp  = D_dryfield_night_main_street_80188BAC.field_2;
+            Mc_SaveData.at4.loc.room  = D_dryfield_night_main_street_80188BAC.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -283,10 +281,10 @@ void func_dryfield_night_main_street_8017D8FC(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            D_80071076               = 1;
-            Mc_SaveData.at4.loc.area = D_dryfield_night_main_street_80188BBC.msgId;
-            Mc_SaveData.at4.loc.warp = D_dryfield_night_main_street_80188BBC.field_2;
-            Mc_SaveData.at4.loc.room = (u8)D_dryfield_night_main_street_80188BBC.field_3;
+            gDisplayState.roomVariant = 1;
+            Mc_SaveData.at4.loc.area  = D_dryfield_night_main_street_80188BBC.msgId;
+            Mc_SaveData.at4.loc.warp  = D_dryfield_night_main_street_80188BBC.field_2;
+            Mc_SaveData.at4.loc.room  = (u8)D_dryfield_night_main_street_80188BBC.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -596,7 +594,7 @@ void func_dryfield_night_main_street_8017E484(Task* task)
                 Gp_SpawnEff(0x601B2, NULL, (DRYFIELD_NIGHT_MAIN_STREET_RAND() & 0x10FF) + 0x103100,
                             &D_dryfield_night_main_street_801821A8[16]);
             }
-        } else if (D_80070F70 & 1) {
+        } else if (gDisplayState.animFrame & 1) {
             D_dryfield_night_main_street_801821A8[16].vx = DRYFIELD_NIGHT_MAIN_STREET_RAND() % 300 - 0x4A1;
             D_dryfield_night_main_street_801821A8[16].vy = DRYFIELD_NIGHT_MAIN_STREET_RAND() % 600 - 0x4E7;
             D_dryfield_night_main_street_801821A8[16].vz = 0x2927 - DRYFIELD_NIGHT_MAIN_STREET_RAND() % 700;

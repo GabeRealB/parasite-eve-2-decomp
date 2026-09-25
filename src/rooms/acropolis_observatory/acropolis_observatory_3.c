@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/wipsys.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -53,9 +54,6 @@ STATIC_ASSERT_SIZEOF(AobFlareScratch, 0x18);
 /// `D_80071075` / `D_80114C12` gate the scene's setup (the latter is the
 /// cutscene/among-us mode flag). `D_8007216D` is the field-actor mode byte the
 /// scene switches to 1 when it hands control back.
-extern u8 D_80073BA9;
-extern u8 D_80071075;
-extern u8 D_8007216D;
 extern s8 D_8007218A;
 extern s8 D_80114C12;
 
@@ -103,7 +101,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
     work = (AobSceneWork*)task->work;
     switch (task->state) {
         case 0:
-            if (D_80114C12 == 1 || D_80071075 != 0) {
+            if (D_80114C12 == 1 || gDisplayState.pendingMode != 0) {
                 return;
             }
             blk        = memCalloc(8, 0);
@@ -138,7 +136,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
             }
             break;
         case 5:
-            weaponId            = D_80073BA9;
+            weaponId            = Player_Status.weapon;
             id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.animBlock.index = id;
             rec.field_4         = 1;
@@ -146,7 +144,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
             rec.field_C         = 0;
             rec.field_10        = 0;
             Gp_DispatchMsg(work->target, 0x3E8, (s32)&rec, 0);
-            D_8007216D                  = 1;
+            Mc_SaveData.at4.loc.room    = 1;
             gGameSession->at4.loc.room  = 1;
             gGameSession->roomObjsDirty = 1;
             gGameSession->viewDirty     = 1;

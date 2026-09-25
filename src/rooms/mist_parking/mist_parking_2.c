@@ -19,8 +19,6 @@
 #include "rooms/room_common.h"
 #include "rooms/mist_parking.h"
 
-extern s16 D_80071076;
-
 extern s32 D_mist_parking_8018F374;
 extern s32 D_mist_parking_8018F4AC;
 extern s32 D_mist_parking_8018F5E4;
@@ -287,7 +285,7 @@ void func_mist_parking_8018316C(s32 arg0)
     Mc_SaveData.at4.loc.warp  = 1;
     Mc_SaveData.at4.loc.room  = 1;
     Mc_SaveData.at4.loc.area  = arg0;
-    D_80071076                = 1;
+    gDisplayState.roomVariant = 1;
     SndEvt_EnqueueType7(0x80000000, 0);
     Task_Spawn(0, 0x11, 0, 0);
     if (arg0 == 5) {
@@ -451,7 +449,7 @@ void func_mist_parking_8018357C(Task* arg0)
     Mc_SaveData.at4.loc.area  = 1;
     Mc_SaveData.at4.loc.warp  = 1;
     Mc_SaveData.at4.loc.room  = 1;
-    D_80071076                = 1;
+    gDisplayState.roomVariant = 1;
     Fs_BeginBootLoad(&Mc_SaveData.at4.loc.view, 1);
     SndEvt_EnqueueType7(0x80000000, 0);
     Task_Spawn(0, 0x11, 0, 0);

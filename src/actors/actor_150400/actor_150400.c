@@ -28,7 +28,6 @@ extern TaskDesc   D_actor_150400_8013C8F4[];
 extern u8         D_actor_150400_8013C90C[];
 extern GpMsgEntry D_actor_150400_8013C8C4[];
 
-extern s16            D_80071076;
 extern GpAreaApplyRec D_80183BE0;
 
 /// Scratchpad stack pointer the per-frame helpers carve temporary frames off.
@@ -94,7 +93,7 @@ void func_actor_150400_80131ECC(void)
         Mc_SaveData.at4.loc.area  = 0x21;
         Mc_SaveData.at4.loc.warp  = 4;
         Mc_SaveData.at4.loc.room  = 1;
-        D_80071076                = 1;
+        gDisplayState.roomVariant = 1;
         Task_Spawn(0, 0x11, 0, 0);
         Gp_RestoreStreamRng();
     }

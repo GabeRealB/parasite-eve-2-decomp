@@ -18,8 +18,6 @@
 
 extern GpMsgEntry D_shelter_b1_north_maintenance_walkway_80184A84[];
 extern TaskDesc   D_shelter_b1_north_maintenance_walkway_80184AAC[];
-extern u8         D_80071075;
-extern s16        D_80071076;
 extern u8         D_80115690;
 
 extern s32 D_80115720;
@@ -113,10 +111,10 @@ void func_shelter_b1_north_maintenance_walkway_8017D60C(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            D_80071076               = 1;
-            Mc_SaveData.at4.loc.area = D_shelter_b1_north_maintenance_walkway_80185B74.msgId;
-            Mc_SaveData.at4.loc.warp = D_shelter_b1_north_maintenance_walkway_80185B74.field_2;
-            Mc_SaveData.at4.loc.room = (u8)D_shelter_b1_north_maintenance_walkway_80185B74.field_3;
+            gDisplayState.roomVariant = 1;
+            Mc_SaveData.at4.loc.area  = D_shelter_b1_north_maintenance_walkway_80185B74.msgId;
+            Mc_SaveData.at4.loc.warp  = D_shelter_b1_north_maintenance_walkway_80185B74.field_2;
+            Mc_SaveData.at4.loc.room  = (u8)D_shelter_b1_north_maintenance_walkway_80185B74.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -179,7 +177,7 @@ void func_shelter_b1_north_maintenance_walkway_8017D918(Task* arg0)
             break;
         case 2:
             if (arg0->killCountdown == 0) {
-                if (D_80071075 == 0) {
+                if (gDisplayState.pendingMode == 0) {
                     Gp_SpawnIfCapIdle(1, 0);
                     taskKill(arg0);
                 }

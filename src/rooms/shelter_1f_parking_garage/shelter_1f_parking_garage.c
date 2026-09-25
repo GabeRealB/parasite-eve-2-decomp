@@ -25,7 +25,6 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-extern s16 D_80071076;
 extern u8  D_80115690;
 extern s32 D_8011572C;
 extern s32 D_80115750;
@@ -225,7 +224,7 @@ void func_shelter_1f_parking_garage_8017D7E8(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
-            D_80071076                = 1;
+            gDisplayState.roomVariant = 1;
             Mc_SaveData.at4.loc.stage = D_shelter_1f_parking_garage_80181988.stage;
             Mc_SaveData.at4.loc.area  = D_shelter_1f_parking_garage_80181988.area;
             Mc_SaveData.at4.loc.warp  = D_shelter_1f_parking_garage_80181988.warp;
@@ -280,10 +279,10 @@ void func_shelter_1f_parking_garage_8017D958(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            D_80071076               = 1;
-            Mc_SaveData.at4.loc.area = D_shelter_1f_parking_garage_8018197C.msgId;
-            Mc_SaveData.at4.loc.warp = D_shelter_1f_parking_garage_8018197C.field_2;
-            Mc_SaveData.at4.loc.room = D_shelter_1f_parking_garage_8018197C.field_3;
+            gDisplayState.roomVariant = 1;
+            Mc_SaveData.at4.loc.area  = D_shelter_1f_parking_garage_8018197C.msgId;
+            Mc_SaveData.at4.loc.warp  = D_shelter_1f_parking_garage_8018197C.field_2;
+            Mc_SaveData.at4.loc.room  = D_shelter_1f_parking_garage_8018197C.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;

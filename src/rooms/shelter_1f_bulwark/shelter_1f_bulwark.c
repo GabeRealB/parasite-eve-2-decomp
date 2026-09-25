@@ -28,7 +28,6 @@
 #include "rooms/room_common.h"
 
 extern s8  D_8007106B;
-extern s16 D_80071076;
 extern u8  D_80115690;
 extern s32 D_8011572C;
 extern s32 D_80115750;
@@ -99,10 +98,10 @@ void func_shelter_1f_bulwark_8017D61C(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            D_80071076               = 1;
-            Mc_SaveData.at4.loc.area = D_shelter_1f_bulwark_80180EC4.field_0;
-            Mc_SaveData.at4.loc.warp = D_shelter_1f_bulwark_80180EC4.field_2;
-            Mc_SaveData.at4.loc.room = D_shelter_1f_bulwark_80180EC4.field_3;
+            gDisplayState.roomVariant = 1;
+            Mc_SaveData.at4.loc.area  = D_shelter_1f_bulwark_80180EC4.field_0;
+            Mc_SaveData.at4.loc.warp  = D_shelter_1f_bulwark_80180EC4.field_2;
+            Mc_SaveData.at4.loc.room  = D_shelter_1f_bulwark_80180EC4.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -344,7 +343,7 @@ void func_shelter_1f_bulwark_8017DE04(Task* arg0)
             Mc_SaveData.at4.loc.area  = 0x1A;
             Mc_SaveData.at4.loc.warp  = 1;
             Mc_SaveData.at4.loc.room  = 1;
-            D_80071076                = 1;
+            gDisplayState.roomVariant = 1;
             Fs_BeginBootLoad(&Mc_SaveData.at4.loc.view, 0);
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);

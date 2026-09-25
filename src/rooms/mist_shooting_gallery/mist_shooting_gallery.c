@@ -84,8 +84,6 @@ extern s32          D_mist_shooting_gallery_8018E0C0;
 
 extern TaskDesc D_mist_shooting_gallery_80184F8C;
 extern TaskDesc D_mist_shooting_gallery_801850D0;
-extern s8       D_80072176;
-extern s8       D_80072177;
 
 extern u8 D_mist_shooting_gallery_8017D65C[]; // "TOTAL SCORE"
 
@@ -114,8 +112,6 @@ extern void     func_8014AF0C(void);
 extern void     func_8014C5E0(s32, s32, s32);
 extern s8       D_8007218B;
 extern s8       D_8007272D;
-extern s8       D_80072A92;
-extern s8       D_80073BAE;
 extern s16      D_8007A396;
 extern s16      D_80114D08;
 extern s32      D_8014D038;
@@ -135,7 +131,6 @@ extern s8 D_8007106B;
 extern GpItemScan D_80072724;
 extern u8         Gp_DebugAttachLevels[];
 
-extern u8           D_80073BA9;
 extern UiObjectDesc D_8010EFA0;
 
 /// The ten weapons the gallery's weapon picker offers, in row order. Rows whose
@@ -300,7 +295,7 @@ void func_mist_shooting_gallery_8017DE7C(DialogPrompt* arg0, UiObject* arg1)
     if (selected == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             scan       = &D_80072724;
-            weaponIdx  = &D_80073BA9;
+            weaponIdx  = &Player_Status.weapon;
             row        = &Gp_QtyById0[item];
             ammo       = row->field_1;
             *weaponIdx = item - 0x7F;
@@ -678,10 +673,10 @@ void func_mist_shooting_gallery_8017EAE0(Task* task)
     obj->field_2E = 0;
     Ui_DrawText((UiPanel*)obj, "SELECT");
     if (task->state == 0) {
-        if (D_80072A92 == 0) {
+        if (Mc_SaveData.replayRank == 0) {
             list->field_4 = 2;
             list->field_5 = 2;
-        } else if (D_80072A92 < 2) {
+        } else if (Mc_SaveData.replayRank < 2) {
             list->field_4 = 3;
             list->field_5 = 3;
         } else {
@@ -801,7 +796,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
 
     y    += 0xF;
     rawBp = D_mist_shooting_gallery_8018E0C0;
-    switch (D_80072177) {
+    switch (Mc_SaveData.gameMode) {
         case 3:
             val = 0;
             break;
@@ -997,7 +992,7 @@ void func_mist_shooting_gallery_8017F6C8(Task* task)
             Gp_RecalcMaxMp();
 
             savedBp = D_mist_shooting_gallery_8018E0BC;
-            switch (D_80072177) {
+            switch (Mc_SaveData.gameMode) {
                 case 3:
                     bp = 0;
                     goto store_bp;
@@ -1018,7 +1013,7 @@ void func_mist_shooting_gallery_8017F6C8(Task* task)
             cfg->exp = bp;
 
             savedExp = D_mist_shooting_gallery_8018E0C0;
-            switch (D_80072177) {
+            switch (Mc_SaveData.gameMode) {
                 case 3:
                     exp = 0;
                     goto store_exp;
@@ -1065,14 +1060,14 @@ void func_mist_shooting_gallery_8017F98C(DialogPrompt* arg0, UiObject* arg1)
     one   = 1;
     Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A - 1, texts.text[arg0->field_8], arg0->field_1C, one, 0);
     if (arg0->field_C == one) {
-        D_80072177 = (u8)arg0->field_8;
+        Mc_SaveData.gameMode = (u8)arg0->field_8;
     }
 }
 s32 func_mist_shooting_gallery_8017FA38(s32 score)
 {
     s32 value;
 
-    switch (D_80072177) {
+    switch (Mc_SaveData.gameMode) {
         case 3:
             return 0;
         case 2:
@@ -1101,11 +1096,11 @@ void func_mist_shooting_gallery_8017FAE8(Task* task)
         obj->field_E = 0x68 - obj->field_12;
         task->state  = task->state + 1;
     }
-    Text_DrawMultiLine(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, texts.text[D_80072177], 0x606060, 1, 0);
+    Text_DrawMultiLine(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, texts.text[Mc_SaveData.gameMode], 0x606060, 1, 0);
 }
 void func_mist_shooting_gallery_8017FBD8(void)
 {
-    if ((D_80072176 > 0) && (gGameSession->at4.loc.warp == 7)) {
+    if ((Mc_SaveData.clearCount > 0) && (gGameSession->at4.loc.warp == 7)) {
         Display_InitModeObj(&D_mist_shooting_gallery_801850D0, 0, 0, 0);
     }
 }
@@ -1234,15 +1229,15 @@ s32 func_mist_shooting_gallery_8017FEB8(Task* task, s32 msgId, GpSaveLoc* src, G
         }
         if (src->field_5 == 0) {
             if (dst->field_2 == 6) {
-                D_8007272D            = 2;
-                D_80073BAE            = 4;
-                gGameSession->hideHud = 1;
+                D_8007272D             = 2;
+                Player_Status.field_26 = 4;
+                gGameSession->hideHud  = 1;
                 Gp_ResetInventory();
             }
             if (dst->field_2 == 5) {
-                D_8007272D            = 1;
-                D_80073BAE            = 3;
-                gGameSession->hideHud = 1;
+                D_8007272D             = 1;
+                Player_Status.field_26 = 3;
+                gGameSession->hideHud  = 1;
                 Gp_ClearInventory();
             }
         }
@@ -1623,7 +1618,7 @@ void func_mist_shooting_gallery_80180B64(Task* arg0)
             param2[1] = 0;
             param2[2] = 0;
             param2[3] = 0;
-            switch (D_80072177) {
+            switch (Mc_SaveData.gameMode) {
                 case 0:
                     param1[0] = 0x29;
                     break;
@@ -1824,7 +1819,7 @@ void func_mist_shooting_gallery_801810D8(Task* task)
     switch (task->state) {
         case 0:
             SetDispMask(0);
-            if (D_80072176 == 0) {
+            if (Mc_SaveData.clearCount == 0) {
                 task->state = 2;
                 return;
             }

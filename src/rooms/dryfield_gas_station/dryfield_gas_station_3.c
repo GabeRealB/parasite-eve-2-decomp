@@ -43,7 +43,6 @@ typedef struct DgsWork {
 } DgsWork;
 STATIC_ASSERT_SIZEOF(DgsWork, 0x10);
 
-extern u8         D_80071075;
 extern s8         D_80114C12;
 extern s32        D_dryfield_gas_station_80182E30;
 extern GpXformArg D_dryfield_gas_station_80182E44[];
@@ -216,7 +215,7 @@ void func_dryfield_gas_station_801807E0(Task* task)
 
     switch (task->state) {
         case 0:
-            if ((D_80114C12 != 1) && (D_80071075 == 0)) {
+            if ((D_80114C12 != 1) && (gDisplayState.pendingMode == 0)) {
                 work       = Mem_Malloc(0x10, false);
                 task->work = (TaskIdMap*)work;
                 if (work == NULL) {

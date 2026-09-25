@@ -206,8 +206,6 @@ extern u8 D_dryfield_breezeway_80183164[];
 /// cutscene/among-us mode flag: the second arming state machine below waits for
 /// both to be clear.
 extern s8  D_8007218A;
-extern u8  D_80073BA9;
-extern u8  D_80071075;
 extern s8  D_80114C12;
 extern s16 D_80114D08;
 
@@ -296,7 +294,7 @@ void func_dryfield_breezeway_8017DEC0(Task* arg0)
             break;
         case 2:
             rec                     = &buf.rec;
-            id                      = D_80073BA9;
+            id                      = Player_Status.weapon;
             buf.rec.animBlock.index = (D_8007218A == 1) ? id + 1 : id + 0x22;
             rec->field_4            = 9;
             rec->field_8            = 1;
@@ -370,7 +368,7 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if (D_80114C12 == 1 || D_80071075 != 0) {
+            if (D_80114C12 == 1 || gDisplayState.pendingMode != 0) {
                 return;
             }
             work       = (DbwWork*)Mem_Malloc(0x14, 0);
@@ -386,7 +384,7 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
                 id                            = ((gGameSession->at4.loc.stage << 8) | 0x1000) | gGameSession->at4.loc.area;
                 work->field_8                 = (void*)Gp_FindWorkById(id)->field_0;
             }
-            id                  = D_80073BA9;
+            id                  = Player_Status.weapon;
             buf.animBlock.index = (D_8007218A == 1) ? id + 1 : id + 0x22;
             buf.field_4         = 1;
             buf.field_8         = 1;
@@ -439,7 +437,7 @@ void func_dryfield_breezeway_8017E390(void)
     DbwWork*  work;
     s32       id;
 
-    id                      = D_80073BA9;
+    id                      = Player_Status.weapon;
     buf.rec.animBlock.index = (D_8007218A == 1) ? id + 1 : id + 0x22;
     buf.rec.field_4         = 9;
     buf.rec.field_8         = 0;
@@ -586,8 +584,7 @@ void func_dryfield_breezeway_8017E464(Task* arg0)
 /// Its `angle` parameter is declared `s32` rather than the `s16` the actor
 /// headers use because the calls below feed it `rsin`'s `int` result, which
 /// the target passes through untruncated.
-extern s32 D_80070F70;
-void       func_8004BFF8(s32 angle, MATRIX* matrix);
+void func_8004BFF8(s32 angle, MATRIX* matrix);
 
 /// The two image records the key-item prompt's scan uploads the first time it
 /// runs, taken from the room's trailing data blob: the confirm and cancel
@@ -638,7 +635,7 @@ void func_dryfield_breezeway_8017E65C(Task* task)
     *(s32*)&m->m[0][2] = 0;
     *(s32*)&m->m[2][0] = 0;
 
-    func_8004BFF8(rsin(D_80070F70 * 0x10), m);
+    func_8004BFF8(rsin(gDisplayState.animFrame * 0x10), m);
     coord->flg = 0;
     func_dryfield_breezeway_8017EB8C(task, 0, 0x20);
     gGameSession->hideHud    = 1;
@@ -702,7 +699,7 @@ void func_dryfield_breezeway_8017E81C(Task* task)
     *(s32*)&m->m[0][2]           = 0;
     *(s32*)&m->m[2][0]           = 0;
 
-    func_8004BFF8(rsin(D_80070F70 * 0x10), m);
+    func_8004BFF8(rsin(gDisplayState.animFrame * 0x10), m);
     func_dryfield_breezeway_8017EB8C(task, prompt->screen.xy.x, prompt->screen.xy.y);
 
     if (func_dryfield_breezeway_8017FCB4(hs, work->cursorX, work->cursorY) != 0) {

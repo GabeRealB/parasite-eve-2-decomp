@@ -242,8 +242,6 @@ void func_actor_403600_80141F58(GpCoord* arg0, s32 arg1);
 #define actor_403600_coord_advance(head, work) \
     __asm__ volatile("sw $zero, 1208(%1); addiu %0, %0, 32" : "+r"(head) : "r"(work))
 
-extern s32      D_80070F70;
-extern s8       D_80073BAD;
 extern TaskDesc D_80162E98;
 /// Models effect 0x80005 spawns, set in `D_800626EC[5].arg.model`.
 extern TmdSource D_80187B10;
@@ -252,9 +250,7 @@ extern TmdSource D_80188264;
 extern TmdSource D_8018864C;
 extern Task*     D_actor_403600_801606B4;
 
-extern u8                   D_80071075;
 extern TaskDesc             D_8016E468;
-extern s16                  D_80073BA0;
 extern u8                   D_actor_403600_80150ED4;
 extern TaskDesc             D_actor_403600_801421A0;
 extern s32                  D_actor_403600_8016056C;
@@ -640,7 +636,7 @@ case2:
     arg0->node.state.b.flags = 9;
     return;
 default_body:
-    if (((D_80071075 & 0xF0) == 0x40) && (work->field_7AC == 0)) {
+    if (((gDisplayState.pendingMode & 0xF0) == 0x40) && (work->field_7AC == 0)) {
         work->field_7AC = 1;
         SndEvt_EnqueueType8(0x50000000);
     }
@@ -857,7 +853,7 @@ void func_actor_403600_801396F8(Task* arg0)
             temp_s1->field_790 = temp_v0_4;
             if ((temp_v0_4 << 0x10) != 0) {
                 *(volatile s16*)&temp_s1->field_778 = 0;
-                temp_s1->field_4B8.coord.t[1]       = (s32)(temp_s1->field_4B8.coord.t[1] + (rsin(*(volatile s32*)&D_80070F70 << 9) >> 8));
+                temp_s1->field_4B8.coord.t[1]       = (s32)(temp_s1->field_4B8.coord.t[1] + (rsin(*(volatile s32*)&gDisplayState.animFrame << 9) >> 8));
                 return;
             }
             goto block_31;
@@ -1213,8 +1209,8 @@ void func_actor_403600_801396F8(Task* arg0)
             switch (temp_v1_6) {
                 case 0:
                     func_800E9BDC(1, 0xF9FF);
-                    temp_s1->field_70A = 0;
-                    D_80073BAD         = 0;
+                    temp_s1->field_70A         = 0;
+                    Player_Status.peStateFlags = 0;
                     goto block_115;
                 case 1:
                     if ((s16)temp_s1->field_7A2 == 0xFF) {
@@ -3132,7 +3128,7 @@ void func_actor_403600_8013DAF4(Task* arg0, s32 arg1)
     temp_s0->hp = (u16)temp_s0->hp - arg1;
     func_800DA6E8(&temp_s0->node, arg1, 0);
     if (temp_s0->hp <= 0) {
-        if (D_80073BA0 <= 0) {
+        if (Player_Status.hp <= 0) {
             temp_s0->hp = 0xA;
             return;
         }
@@ -5301,9 +5297,9 @@ void func_actor_403600_801414FC(Task* arg0)
     value = work->field_766;
     if (value != 0) {
         if (value < work->field_764) {
-            brightness = rsin(D_80070F70 << 9) << 0xD;
+            brightness = rsin(gDisplayState.animFrame << 9) << 0xD;
         } else {
-            brightness = rsin(D_80070F70 << 9) << 0xC;
+            brightness = rsin(gDisplayState.animFrame << 9) << 0xC;
         }
         Display_ClampField126((s8)(brightness >> 0x18));
         countdown       = (u16)work->field_764 - 1;
@@ -5350,7 +5346,7 @@ void func_actor_403600_8014161C(Task* arg0)
          * makes the compiler read `D_80070F70` again after it. */
         ticks                       = &work->field_79E;
         *ticks                      = (u16)(work->field_79E + 1);
-        work->field_4B8.coord.t[1] += rsin(D_80070F70 << 8) >> 6;
+        work->field_4B8.coord.t[1] += rsin(gDisplayState.animFrame << 8) >> 6;
         if (((s16)work->field_78A / 10 < enemy->hp) &&
             (work->field_79E >= 0x385) && (work->field_73E == 0)) {
             work->field_730 = 6;
@@ -5463,7 +5459,7 @@ s32 func_actor_403600_80141840(Task* arg0)
          * lets the compiler read `D_80070F70` ahead of it. */
         rise                        = &work->field_74A;
         *rise                       = -0x12C;
-        work->field_4B8.coord.t[1] += rsin(D_80070F70 << 8) >> 6;
+        work->field_4B8.coord.t[1] += rsin(gDisplayState.animFrame << 8) >> 6;
     } else {
         work->field_74A = amount;
     }

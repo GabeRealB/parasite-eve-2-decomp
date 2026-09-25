@@ -291,9 +291,7 @@ extern Task* D_actor_560800_801757AC;
 /// index.
 extern TaskDesc D_actor_560800_801718F0;
 
-extern u8 D_80071075;
 extern s8 D_8007218A;
-extern u8 D_80073BA9;
 extern s8 D_80114C12;
 
 void func_actor_560800_80133970(Task* arg0);
@@ -1134,7 +1132,7 @@ static inline void Actor560800_PlaySe(s16 arg4)
     s32 msg[5];
     s32 val;
 
-    val    = D_80073BA9;
+    val    = Player_Status.weapon;
     msg[0] = (D_8007218A == 1) ? val + 1 : val + 0x22;
     msg[1] = arg4;
     msg[2] = 0;
@@ -1148,7 +1146,7 @@ static inline void Actor560800_PlaySeB(s32 arg4)
     s32 msg[5];
     s32 val;
 
-    val    = D_80073BA9;
+    val    = Player_Status.weapon;
     msg[0] = (D_8007218A == 1) ? val + 1 : val + 0x22;
     msg[1] = arg4;
     msg[2] = 1;
@@ -1878,7 +1876,7 @@ void func_actor_560800_80135D54(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if (D_80114C12 == 1 || D_80071075 != 0) {
+            if (D_80114C12 == 1 || gDisplayState.pendingMode != 0) {
                 return;
             }
             func_actor_560800_80135BD8(arg0);
@@ -1895,7 +1893,7 @@ void func_actor_560800_80135D54(Task* arg0)
             if (gGameSession->eventState == 0) {
                 Gp_LcgState = D_actor_560800_801757A8;
                 Gp_PulseState1C();
-                val    = D_80073BA9;
+                val    = Player_Status.weapon;
                 msg[0] = (D_8007218A == 1) ? val + 1 : val + 0x22;
                 msg[1] = 1;
                 msg[2] = 0;

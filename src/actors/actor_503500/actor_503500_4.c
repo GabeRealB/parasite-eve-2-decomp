@@ -275,7 +275,6 @@ extern SVECTOR D_actor_503500_8016F168[];
 extern SVECTOR D_actor_503500_8016F448[];
 /// Main-executable counter the actor paces periodic effects by (its value
 /// modulo 6 or 12, its low bits).
-extern s32  D_80070F70;
 extern RECT D_actor_503500_8016F148[][2];
 /// Offsets `func_actor_503500_8013F4A4` spawns its two effects at: rows 0-5
 /// for the per-frame effect, rows 3-5 for the odd-frame one.
@@ -303,7 +302,6 @@ void                        func_actor_503500_8013D85C(Task* arg0);
 /// spawns from: the first for spawn slot 7, the second for every other slot.
 extern SVECTOR D_actor_503500_8016F278[];
 extern SVECTOR D_actor_503500_8016F290[];
-extern s16     D_80073BA0;
 void           func_actor_503500_8013AF60(Task* arg0, Actor503500Work* work, GpRec18* rec, s32 count);
 void           func_actor_503500_8013CCBC(Task* arg0, Actor503500Work* work, GpRec18* rec, s32 count);
 void           func_actor_503500_8013C088(Task* arg0, Actor503500Work* work, GpRec18* rec, s32 count);
@@ -3102,7 +3100,7 @@ void func_actor_503500_80140654(Task* arg0)
             break;
     }
     if (func_actor_503500_801360BC(arg0->spawnArg1, 4) != 0 && work->field_3D0 < 3 &&
-        (u32)D_80070F70 % 12 == 0) {
+        (u32)gDisplayState.animFrame % 12 == 0) {
         for (i = 8, j = 0; i > 0; i--) {
             Gp_SpawnEff(0x60070, &arg0->extra.tmd->coords[i], 0xB0008600, &D_actor_503500_8016F448[j]);
             j++;
@@ -4164,7 +4162,7 @@ void func_actor_503500_80142980(Task* arg0)
     work->pos.vz.w     = (u16)work->pos.vz.w;
     coord->flg         = 0;
     if (func_actor_503500_801360BC(arg0->spawnArg1, 3) != 0) {
-        if (!(D_80070F70 & 3)) {
+        if (!(gDisplayState.animFrame & 3)) {
             for (i = 0, j = 0; i < 2; i++) {
                 Gp_SpawnEff(0x60070, &arg0->extra.tmd->coords[i], 0x81018A00, &D_actor_503500_80171564[j]);
                 j++;
@@ -4403,7 +4401,7 @@ void func_actor_503500_80143AC0(Task* arg0)
     }
     switch (arg0->state) {
         case 0:
-            if (D_80073BA0 <= 0) {
+            if (Player_Status.hp <= 0) {
                 taskKill(arg0);
                 return;
             }
@@ -4422,7 +4420,7 @@ void func_actor_503500_80143AC0(Task* arg0)
             work->field_36 = 8;
             // An s32 temp: passed straight to the s8 parameter, the masked
             // expression is shortened into a byte load of the frame counter.
-            shake = (D_80070F70 ^ 1) & 1;
+            shake = (gDisplayState.animFrame ^ 1) & 1;
             Display_ClampField126(shake);
             arg0->state++;
         case 1:
@@ -4450,7 +4448,7 @@ void func_actor_503500_80143AC0(Task* arg0)
                 if (++work->field_34 > 20) {
                     // The -1 arm first: reorg inverts the branch around it and
                     // leaves the `li` in the delay slot, sharing $v0 with the load.
-                    if (D_80073BA0 <= 0) {
+                    if (Player_Status.hp <= 0) {
                         next = -1;
                     } else {
                         next = arg0->state + 1;
@@ -4459,7 +4457,7 @@ void func_actor_503500_80143AC0(Task* arg0)
                 }
             }
             if (work->field_36 > 0) {
-                shake = (D_80070F70 ^ 1) & 1;
+                shake = (gDisplayState.animFrame ^ 1) & 1;
                 Display_ClampField126(shake);
                 work->field_36--;
             } else {

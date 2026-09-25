@@ -45,7 +45,6 @@ STATIC_ASSERT_SIZEOF(AhlpEnemyWork, 0x54);
 /// Main-executable globals with no module header yet, both of which hold the
 /// phase tick back from phase 2: `D_80114C12` while it equals 1, `D_80071075`
 /// while it is non-zero.
-extern u8 D_80071075;
 extern s8 D_80114C12;
 
 /// The `func_800E8634` script pair the phase tick starts on entering phase 2.
@@ -214,7 +213,7 @@ void func_acropolis_helicopter_landing_pad_8017D9BC(Task* task)
 
     if (phase == 1) {
         if (Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D6, 0, 0) == 0) {
-            if ((D_80114C12 != phase) && (D_80071075 == 0)) {
+            if ((D_80114C12 != phase) && (gDisplayState.pendingMode == 0)) {
                 D_acropolis_helicopter_landing_pad_80184D9C = 2;
                 func_800E8634((s32)&D_acropolis_helicopter_landing_pad_80184124, 0,
                               (s32)&D_acropolis_helicopter_landing_pad_801844B4);

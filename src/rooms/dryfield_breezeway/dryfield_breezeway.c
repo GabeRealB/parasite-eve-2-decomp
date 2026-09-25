@@ -20,8 +20,6 @@ struct _GpMsgEntry;
    whatever the caller had, so the declaration must stay unprototyped. */
 s32 Gp_DispatchMsg();
 
-extern s16 D_80071076;
-
 /// The message and request the event gate latched, and the descriptor of the
 /// event task it spawns to act on them.
 extern RoomEventMsg D_dryfield_breezeway_8018439C;
@@ -155,10 +153,10 @@ void func_dryfield_breezeway_8017D79C(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            D_80071076               = 1;
-            Mc_SaveData.at4.loc.area = D_dryfield_breezeway_8018439C.msgId;
-            Mc_SaveData.at4.loc.warp = D_dryfield_breezeway_8018439C.field_2;
-            Mc_SaveData.at4.loc.room = (u8)D_dryfield_breezeway_8018439C.field_3;
+            gDisplayState.roomVariant = 1;
+            Mc_SaveData.at4.loc.area  = D_dryfield_breezeway_8018439C.msgId;
+            Mc_SaveData.at4.loc.warp  = D_dryfield_breezeway_8018439C.field_2;
+            Mc_SaveData.at4.loc.room  = (u8)D_dryfield_breezeway_8018439C.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;

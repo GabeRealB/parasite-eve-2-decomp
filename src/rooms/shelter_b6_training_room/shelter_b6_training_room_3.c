@@ -51,7 +51,6 @@ typedef struct {
     u32     sxy3;
 } _ShelterB6TrainingRoomBandScratch;
 
-extern s32           D_80070F70;
 extern GpCoord*      D_shelter_b6_training_room_80185C90;
 extern GpCoord*      D_shelter_b6_training_room_80185C94;
 extern u16           D_shelter_b6_training_room_80185C98;
@@ -796,7 +795,7 @@ void func_shelter_b6_training_room_8017FC40(GpCoord* coord, s16 size, u16 color)
             color = D_shelter_b6_training_room_801843FC[color];
             tr    = ((color >> 8) & 0xF) << 4;
             tg    = ((color >> 4) & 0xF) << 4;
-            blend = ((u8)D_80070F70 & 1) << 4;
+            blend = ((u8)gDisplayState.animFrame & 1) << 4;
             r     = tr + blend;
             g     = tg + blend;
             b     = ((color & 0xF) << 4) + blend;
@@ -1262,7 +1261,7 @@ void func_shelter_b6_training_room_80181930(Task* task)
     coord = task->extra.tmd->coords + 1;
     if (Gp_State1C->eventState == 0) {
         D_shelter_b6_training_room_80185C94 = coord;
-        shade                               = ((D_80070F70 & 1) << 4) + 0x40;
+        shade                               = ((gDisplayState.animFrame & 1) << 4) + 0x40;
         rgb[0]                              = shade;
         rgb[1]                              = shade;
         rgb[2]                              = shade >> 1;

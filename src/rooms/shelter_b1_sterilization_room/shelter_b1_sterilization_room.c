@@ -122,15 +122,6 @@ extern RoomCutsceneRec D_shelter_b1_sterilization_room_8018C344;
 
 extern UiObjectDesc D_800611E4;
 extern UiObject*    D_80067634;
-extern u8           D_80071086;
-extern u16          D_80072174;
-extern s8           D_80072176;
-extern u16          D_80072834;
-extern u16          D_80072836;
-extern u8           D_80072A93;
-extern s32          D_80072A94;
-extern s32          D_80072A98;
-extern s16          D_80073BA0;
 extern UiObjectDesc D_8010EFA0;
 extern s16          D_80114D08;
 extern u32          D_80115694;
@@ -190,7 +181,7 @@ void func_shelter_b1_sterilization_room_8017D794(DialogPrompt* arg0, UiObject* a
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_shelter_b1_sterilization_room_8018453C);
-            Text_FormatTime(p, D_80072174);
+            Text_FormatTime(p, Mc_SaveData.playTime);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
         }
@@ -207,7 +198,7 @@ void func_shelter_b1_sterilization_room_8017D794(DialogPrompt* arg0, UiObject* a
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_shelter_b1_sterilization_room_8018456C);
-            Text_ItoaUnsigned(p, D_80072A93);
+            Text_ItoaUnsigned(p, Mc_SaveData.saveCount);
             Text_Strcat(p, D_shelter_b1_sterilization_room_8018458C);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -225,7 +216,7 @@ void func_shelter_b1_sterilization_room_8017D794(DialogPrompt* arg0, UiObject* a
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_shelter_b1_sterilization_room_80184544);
-            Text_ItoaUnsigned(p, D_80072834);
+            Text_ItoaUnsigned(p, Mc_SaveData.field_6CC);
             Text_Strcat(p, D_shelter_b1_sterilization_room_8018458C);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -243,7 +234,7 @@ void func_shelter_b1_sterilization_room_8017D794(DialogPrompt* arg0, UiObject* a
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_shelter_b1_sterilization_room_80184548);
-            Text_ItoaUnsigned(p, D_80072836);
+            Text_ItoaUnsigned(p, Mc_SaveData.field_6CE);
             Text_Strcat(p, D_shelter_b1_sterilization_room_8018458C);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -307,7 +298,7 @@ void func_shelter_b1_sterilization_room_8017D794(DialogPrompt* arg0, UiObject* a
             s32         i;
             u8*         q;
 
-            total          = D_80072834;
+            total          = Mc_SaveData.field_6CC;
             req.x          = arg1->baseX + (u16)arg0->field_18;
             y              = arg1->baseY - 6;
             req.y          = (u16)arg0->field_1A + y;
@@ -364,7 +355,7 @@ void func_shelter_b1_sterilization_room_8017D794(DialogPrompt* arg0, UiObject* a
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_shelter_b1_sterilization_room_80184574);
-            Text_ItoaUnsigned(p, D_80072176);
+            Text_ItoaUnsigned(p, Mc_SaveData.clearCount);
             Text_Strcat(p, D_shelter_b1_sterilization_room_8018458C);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -382,7 +373,7 @@ void func_shelter_b1_sterilization_room_8017D794(DialogPrompt* arg0, UiObject* a
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_shelter_b1_sterilization_room_8018457C);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, D_80072A94), arg0->field_1C, 3, 2);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData.field_92C), arg0->field_1C, 3, 2);
             break;
         }
         case 8: {
@@ -398,7 +389,7 @@ void func_shelter_b1_sterilization_room_8017D794(DialogPrompt* arg0, UiObject* a
             req.centerMode = 0;
             req.field_E    = 1;
             func_8002E53C(&req, D_shelter_b1_sterilization_room_80184584);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, D_80072A98), arg0->field_1C, 3, 2);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData.field_930), arg0->field_1C, 3, 2);
             break;
         }
     }
@@ -1034,7 +1025,7 @@ void func_shelter_b1_sterilization_room_8017F1D8(DialogPrompt* prompt, UiObject*
     sel = prompt->field_C;
     if (sel == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0 && CdCmd_IsIdle() != 0) {
         SndEvt_EnqueueType6(0x16, 0, 0);
-        D_80071086 = 0xFF;
+        gDisplayState.gameMode = 0xFF;
         Ui_SpawnFromDesc(&D_800611E4, 1, 0, 0, obj);
         obj->status       = 0;
         obj->field_2E     = 6;
@@ -1878,7 +1869,7 @@ void func_shelter_b1_sterilization_room_80180F74(Task* task)
                     if (task->killCountdown == 0x78) {
                         Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(&D_shelter_b1_sterilization_room_80188738, 0), 0);
                     } else if (task->killCountdown >= 0x79) {
-                        if (D_80073BA0 > 0) {
+                        if (Player_Status.hp > 0) {
                             coord = player->extra.tmd->coords;
                             Gp_DispatchMsg(player, 0x3F7, (s32)&D_shelter_b1_sterilization_room_80188590, 0);
                             Gp_PlayerWeaponId(&D_shelter_b1_sterilization_room_80188624);

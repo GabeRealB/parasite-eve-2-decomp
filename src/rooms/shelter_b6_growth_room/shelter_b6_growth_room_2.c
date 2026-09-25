@@ -23,7 +23,6 @@ void func_shelter_b6_growth_room_8017E7F0(GpCoord* coord, u16 arg1, s16 arg2, u1
 void func_shelter_b6_growth_room_8017ED28(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3);
 
 extern TaskDesc D_80135E78;
-extern s32      D_80070F70;
 extern SVECTOR  D_shelter_b6_growth_room_8017F258[];
 extern SVECTOR  D_shelter_b6_growth_room_8017F298[];
 extern SVECTOR  D_shelter_b6_growth_room_8017F2C8[];
@@ -83,14 +82,14 @@ void func_shelter_b6_growth_room_8017D9D8(Task* task)
     s32     z;
 
     if (Gp_State1C->eventState == 0) {
-        if (task->spawnArg1 < 0x130 && !(D_80070F70 & 7)) {
+        if (task->spawnArg1 < 0x130 && !(gDisplayState.animFrame & 7)) {
             task->spawnArg1++;
         }
     }
     if (task->state < 6) {
         task->state = (task->spawnArg1 >> 4) + 1;
     }
-    if ((u32)D_80070F70 % (task->state * 2 + 4) == 0) {
+    if ((u32)gDisplayState.animFrame % (task->state * 2 + 4) == 0) {
         for (i = 0; i < task->state; i++) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             angle       = ((Gp_LcgState >> 16) & 0x7FF) - 0x400;
@@ -101,7 +100,7 @@ void func_shelter_b6_growth_room_8017D9D8(Task* task)
             Gp_SpawnEff(0x601A1, NULL, 0x106500, &pos);
         }
     }
-    if (!(D_80070F70 & 1)) {
+    if (!(gDisplayState.animFrame & 1)) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         pos.vx      = -1000;
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;

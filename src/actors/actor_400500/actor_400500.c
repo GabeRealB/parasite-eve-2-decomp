@@ -203,7 +203,6 @@ s32  func_actor_400500_8013B720(GpCoord* coord, MATRIX* matrix);
  * (12 register and 8 reorder penalties); as a one-element array it is exact,
  * the same remedy `actor_400600` needed for the same global. */
 extern void* D_800678F0[1];
-extern u8    D_80072170;
 
 /* The records closing three of the overlay's model streams, selected through
    `D_800678F0`. */
@@ -699,7 +698,7 @@ void func_actor_400500_80132C54(Task* arg0)
 
     work  = (Actor400500Work*)arg0->work;
     coord = arg0->extra.tmd->coords;
-    switch (D_80072170) {
+    switch (Mc_SaveData.at4.loc.warp) {
         case 1:
             tx                = 0x800;
             work->field_94A   = tx;

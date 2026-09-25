@@ -24,8 +24,7 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-extern s16 D_80071076;
-extern u8  D_80115690;
+extern u8 D_80115690;
 
 /// Descriptor of the room's event task, which the event gate spawns.
 extern TaskDesc D_dryfield_night_driveway_8017E678;
@@ -106,10 +105,10 @@ void func_dryfield_night_driveway_8017D608(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            D_80071076               = 1;
-            Mc_SaveData.at4.loc.area = D_dryfield_night_driveway_80182118.msgId;
-            Mc_SaveData.at4.loc.warp = D_dryfield_night_driveway_80182118.field_2;
-            Mc_SaveData.at4.loc.room = D_dryfield_night_driveway_80182118.field_3;
+            gDisplayState.roomVariant = 1;
+            Mc_SaveData.at4.loc.area  = D_dryfield_night_driveway_80182118.msgId;
+            Mc_SaveData.at4.loc.warp  = D_dryfield_night_driveway_80182118.field_2;
+            Mc_SaveData.at4.loc.room  = D_dryfield_night_driveway_80182118.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;

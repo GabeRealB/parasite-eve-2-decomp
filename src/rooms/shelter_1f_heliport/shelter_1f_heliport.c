@@ -44,8 +44,6 @@ extern void func_80179B14(RoomEventMsg* src, RoomEventMsg* dst);
 
 extern char          Gp_StrEmpty[];
 extern UiObject*     D_80067634;
-extern u8            D_80071072;
-extern s16           D_80071076;
 extern GpItemScan    D_80072724;
 extern UiObjectDesc  D_8010D80C;
 extern RoomShopStock D_8010E138[];
@@ -1036,7 +1034,7 @@ void func_shelter_1f_heliport_8017F154(Task* task)
         task->state        += 1;
     }
     Text_DrawMultiLine(obj, (s16)obj->field_1C + 2, (s16)obj->field_18 + 0xF, text, 0x606060, 1, 0);
-    task->killCountdown -= D_80071072;
+    task->killCountdown -= gDisplayState.frameTicks;
     if (obj->status == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             obj->field_2E = -1;
@@ -1463,10 +1461,10 @@ void func_shelter_1f_heliport_8017FF08(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            D_80071076               = 1;
-            Mc_SaveData.at4.loc.area = D_shelter_1f_heliport_80182CA8.msgId;
-            Mc_SaveData.at4.loc.warp = D_shelter_1f_heliport_80182CA8.field_2;
-            Mc_SaveData.at4.loc.room = D_shelter_1f_heliport_80182CA8.field_3;
+            gDisplayState.roomVariant = 1;
+            Mc_SaveData.at4.loc.area  = D_shelter_1f_heliport_80182CA8.msgId;
+            Mc_SaveData.at4.loc.warp  = D_shelter_1f_heliport_80182CA8.field_2;
+            Mc_SaveData.at4.loc.room  = D_shelter_1f_heliport_80182CA8.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;

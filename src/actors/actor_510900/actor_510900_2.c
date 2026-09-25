@@ -251,7 +251,6 @@ void func_actor_510900_8013C430(Task* arg0);
 /// in the room overlay, not here.
 extern s32 D_80187D34;
 extern s32 D_80187D3C;
-extern s16 D_80073BA0;
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `gameplay/1BC.h`.
@@ -261,7 +260,6 @@ void func_80180A64(GpCoord* arg0);
 /// `field_59C` reload tables, indexed by four bits of `Gp_LcgState`.
 extern s16 D_actor_510900_80167990[];
 extern s16 D_actor_510900_801679B0[];
-extern u8  D_80073BAA;
 
 /// Applies this frame's hits from the three `rec49C` collision records. A
 /// type-2 id lands only while the `field_58C` cooldown is clear: its damage
@@ -633,7 +631,7 @@ void func_actor_510900_80136184(Task* arg0)
                         work->field_590 = 1;
                         work->field_586 = 2;
                         work->field_59C = 0;
-                    } else if (((GpEnemy*)arg0->spawnArg2)->node.state.b.targeted == 1 && (u32)(D_80073BAA - 0xA) < 3U) {
+                    } else if (((GpEnemy*)arg0->spawnArg2)->node.state.b.targeted == 1 && (u32)(Player_Status.weaponSlotItem - 0xA) < 3U) {
                         work->field_590 = 5;
                         work->field_586 = 0x15;
                         snd             = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x40780003;
@@ -689,7 +687,7 @@ void func_actor_510900_80136184(Task* arg0)
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
                                     (s8)gpGetObjDepth(coord));
             }
-            if (((GpEnemy*)arg0->spawnArg2)->node.state.b.targeted == 1 && (u32)(D_80073BAA - 0xA) < 3U) {
+            if (((GpEnemy*)arg0->spawnArg2)->node.state.b.targeted == 1 && (u32)(Player_Status.weaponSlotItem - 0xA) < 3U) {
                 work->field_590 = 6;
                 work->field_586 = 0x15;
                 snd             = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x40780003;
@@ -1371,10 +1369,10 @@ void func_actor_510900_80137868(Task* arg0)
             }
             if (work->field_58A >= 0x51) {
                 if (work->field_5B2 == 1) {
-                    work->field_590 = 3;
-                    work->field_5B2 = 0;
-                    work->field_5B6 = 1;
-                    D_80073BA0      = 0;
+                    work->field_590  = 3;
+                    work->field_5B2  = 0;
+                    work->field_5B6  = 1;
+                    Player_Status.hp = 0;
                     Gp_PulseState1C80();
                 }
             } else {
@@ -1637,7 +1635,7 @@ void func_actor_510900_801384C4(Task* arg0)
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
-    if (D_80073BA0 <= 0) {
+    if (Player_Status.hp <= 0) {
         ((GpEnemy*)arg0->spawnArg2)->hp = 1;
         work->field_58E                 = 1;
         work->field_586                 = 1;
@@ -3546,7 +3544,7 @@ void func_actor_510900_8013BC80(Task* arg0)
 
 s32 func_actor_510900_8013BD5C(Task* arg0)
 {
-    if (D_80073BA0 > 0) {
+    if (Player_Status.hp > 0) {
         ((Actor510900Work*)arg0->work)->field_5BC = 1;
     }
     return 0;

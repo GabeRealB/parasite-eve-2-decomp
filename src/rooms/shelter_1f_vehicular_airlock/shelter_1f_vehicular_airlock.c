@@ -26,7 +26,6 @@
 
 extern s32 func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
 
-extern s16 D_80071076;
 extern s32 D_8011572C;
 extern s32 D_80115750;
 extern s32 D_80115758;
@@ -119,10 +118,10 @@ void func_shelter_1f_vehicular_airlock_8017D644(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            D_80071076               = 1;
-            Mc_SaveData.at4.loc.area = D_shelter_1f_vehicular_airlock_80182AA8.msgId;
-            Mc_SaveData.at4.loc.warp = D_shelter_1f_vehicular_airlock_80182AA8.field_2;
-            Mc_SaveData.at4.loc.room = D_shelter_1f_vehicular_airlock_80182AA8.field_3;
+            gDisplayState.roomVariant = 1;
+            Mc_SaveData.at4.loc.area  = D_shelter_1f_vehicular_airlock_80182AA8.msgId;
+            Mc_SaveData.at4.loc.warp  = D_shelter_1f_vehicular_airlock_80182AA8.field_2;
+            Mc_SaveData.at4.loc.room  = D_shelter_1f_vehicular_airlock_80182AA8.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;

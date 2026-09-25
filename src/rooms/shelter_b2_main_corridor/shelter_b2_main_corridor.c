@@ -29,9 +29,6 @@
 /// store keeps the in-struct memory attribute a struct-member store has, which
 /// makes it alias the task's argument load and keeps the two in source order.
 extern u8  D_80115690;
-extern s16 D_80071076;
-extern s32 D_8007107C;
-extern s8  D_8007217B;
 extern s32 D_8011572C;
 extern s32 D_80115738;
 extern s32 D_8011574C;
@@ -167,7 +164,7 @@ void func_shelter_b2_main_corridor_8017D6BC(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
-            D_80071076                = 1;
+            gDisplayState.roomVariant = 1;
             Mc_SaveData.at4.loc.stage = D_shelter_b2_main_corridor_80189664.stage;
             Mc_SaveData.at4.loc.area  = D_shelter_b2_main_corridor_80189664.area;
             Mc_SaveData.at4.loc.warp  = D_shelter_b2_main_corridor_80189664.warp;
@@ -223,10 +220,10 @@ void func_shelter_b2_main_corridor_8017D82C(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            D_80071076               = 1;
-            Mc_SaveData.at4.loc.area = D_shelter_b2_main_corridor_80189654.msgId;
-            Mc_SaveData.at4.loc.warp = D_shelter_b2_main_corridor_80189654.field_2;
-            Mc_SaveData.at4.loc.room = D_shelter_b2_main_corridor_80189654.field_3;
+            gDisplayState.roomVariant = 1;
+            Mc_SaveData.at4.loc.area  = D_shelter_b2_main_corridor_80189654.msgId;
+            Mc_SaveData.at4.loc.warp  = D_shelter_b2_main_corridor_80189654.field_2;
+            Mc_SaveData.at4.loc.room  = D_shelter_b2_main_corridor_80189654.field_3;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -607,10 +604,10 @@ void func_shelter_b2_main_corridor_8017E390(Task* arg0)
             }
         }
     }
-    if (D_8007217B == 0) {
-        D_shelter_b2_main_corridor_80189660 = (u8*)D_8005C374 + D_8007107C * 0xC000;
+    if (Mc_SaveData.companionType == 0) {
+        D_shelter_b2_main_corridor_80189660 = (u8*)D_8005C374 + gDisplayState.otBuffer * 0xC000;
     } else {
-        D_shelter_b2_main_corridor_80189660 = (u8*)D_8005C370 + D_8007107C * 0xC000;
+        D_shelter_b2_main_corridor_80189660 = (u8*)D_8005C370 + gDisplayState.otBuffer * 0xC000;
     }
     head              = SCRATCH_HEAD(u8);
     gGfxViewCoord.flg = 0;
@@ -738,7 +735,7 @@ void func_shelter_b2_main_corridor_8017EB8C(Task* task)
 /// `field_7E`, chosen by `D_8007217B`, and advances to the next state.
 void func_shelter_b2_main_corridor_8017EBF4(Task* arg0)
 {
-    if (D_8007217B == 0) {
+    if (Mc_SaveData.companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;

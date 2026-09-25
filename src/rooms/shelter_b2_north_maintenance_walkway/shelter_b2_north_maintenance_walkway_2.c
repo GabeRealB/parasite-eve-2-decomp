@@ -22,7 +22,6 @@
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "rooms/rooms_shared_8017e4f8.h"
 
-extern s32 D_80070F70;
 extern s32 D_80115720;
 extern s32 D_80115728;
 extern s32 D_8011572C;

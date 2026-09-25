@@ -20,12 +20,10 @@
 #include "main/wipsys.h"
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
-extern s16 D_80073BA0;
 
 /// Main-executable globals with no module header yet: `D_80073BA9` is the base
 /// weapon id records are numbered from, and `D_8007218A` selects the alternate
 /// set -- 1 means the second block, anything else the `+0x22` one.
-extern u8 D_80073BA9;
 extern s8 D_8007218A;
 
 /// Single-entry spawn table of the screen-wave task
@@ -80,11 +78,8 @@ extern u16 D_actor_342100_801649A8[];
 /// Frame counter the narrow arm of `func_actor_342100_80162DDC`'s state 1 is
 /// gated on: it aims the effect only on the frames where the low nibble (or,
 /// for the other arm, the low three bits) of this global is clear.
-extern s32 D_80070F70;
 
-extern s16      D_800691CA;
 extern u8       D_80070F87;
-extern u8       D_80071075;
 extern s8       D_80114C11;
 extern s8       D_80114C12;
 extern u8       D_80114CF8;
@@ -150,7 +145,7 @@ void func_actor_342100_80161E70(Task* arg0)
     s32 tpage1;
 
     head                             = SCRATCH_HEAD(OverlayWaveScratch);
-    D_800691CA                       = 2;
+    CdCmd_Queue.field_22A            = 2;
     SCRATCH_HEAD(OverlayWaveScratch) = head - 1;
     cols                             = head[-1].cols;
     scratch                          = head - 1;
@@ -440,7 +435,7 @@ s32 func_actor_342100_801629B8(Task* arg0)
     }
     anim                = (u16)D_actor_342100_80164910[work->field_3C - 0x2F] + 0x2F;
     w                   = (Actor342100Work*)arg0->work;
-    weaponId            = D_80073BA9;
+    weaponId            = Player_Status.weapon;
     setId               = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.animBlock.index = setId;
     w->field_3C         = anim;
@@ -502,7 +497,7 @@ void func_actor_342100_80162AB0(Task* arg0)
             arg0->spawnArg1--;
             return;
         case 2:
-            if (D_80070F70 & 0xF) {
+            if (gDisplayState.animFrame & 0xF) {
                 return;
             }
             coord->flg = 0;
@@ -628,7 +623,7 @@ void func_actor_342100_80162DDC(Task* arg0)
             return;
         case 1:
             if (arg0->spawnArg1 == 0) {
-                if (D_80070F70 & 0xF) {
+                if (gDisplayState.animFrame & 0xF) {
                     return;
                 }
                 idx                               &= 3;
@@ -637,7 +632,7 @@ void func_actor_342100_80162DDC(Task* arg0)
                 func_800FDB18(3, slot->extra.tmd->coords, NULL, &D_actor_342100_801649A0);
                 return;
             }
-            if (D_80070F70 & 7) {
+            if (gDisplayState.animFrame & 7) {
                 return;
             }
             idx                               &= 0xF;
@@ -718,7 +713,7 @@ void func_actor_342100_801630A4(Task* arg0)
     }
     switch (arg0->state) {
         case 0:
-            if (D_80114C12 == 1 || D_80071075 != 0) {
+            if (D_80114C12 == 1 || gDisplayState.pendingMode != 0) {
                 break;
             }
             newWork    = Mem_Malloc(0x44, 0);
@@ -801,7 +796,7 @@ void func_actor_342100_8016334C(s32 arg0)
 
     work                = (Actor342100Work*)D_actor_342100_80164BB8->work;
     anim                = arg0 + 0x2F;
-    weaponId            = D_80073BA9;
+    weaponId            = Player_Status.weapon;
     setId               = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.animBlock.index = setId;
     work->field_3C      = anim;
@@ -858,6 +853,6 @@ void func_actor_342100_80163454(s32 arg0)
 
 void func_actor_342100_80163518(void)
 {
-    D_80073BA0                = 0;
+    Player_Status.hp          = 0;
     gGameSession->restartMode = 3;
 }

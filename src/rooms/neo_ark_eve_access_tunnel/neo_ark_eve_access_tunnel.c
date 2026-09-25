@@ -44,7 +44,6 @@ extern s8 D_8007272D;
 extern s16 D_80114D08;
 
 /// Set when the tunnel's save is written to the memory card.
-extern s16 D_80071076;
 
 /// Staging save location the room commits when the tunnel's save is taken:
 /// `field_2` / `field_4` / `field_1` hold what `func_neo_ark_eve_access_tunnel_8017DB18`
@@ -203,7 +202,7 @@ void func_neo_ark_eve_access_tunnel_8017D810(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
-            D_80071076                = 1;
+            gDisplayState.roomVariant = 1;
             Mc_SaveData.at4.loc.stage = D_neo_ark_eve_access_tunnel_801807A8.stage;
             Mc_SaveData.at4.loc.area  = D_neo_ark_eve_access_tunnel_801807A8.area;
             Mc_SaveData.at4.loc.warp  = D_neo_ark_eve_access_tunnel_801807A8.warp;
@@ -323,10 +322,10 @@ void func_neo_ark_eve_access_tunnel_8017DB18(Task* task)
             task->state++;
             return;
         case 4:
-            D_80071076               = 1;
-            Mc_SaveData.at4.loc.area = D_neo_ark_eve_access_tunnel_801807A0.field_2;
-            Mc_SaveData.at4.loc.warp = D_neo_ark_eve_access_tunnel_801807A0.field_4;
-            Mc_SaveData.at4.loc.room = D_neo_ark_eve_access_tunnel_801807A0.field_1;
+            gDisplayState.roomVariant = 1;
+            Mc_SaveData.at4.loc.area  = D_neo_ark_eve_access_tunnel_801807A0.field_2;
+            Mc_SaveData.at4.loc.warp  = D_neo_ark_eve_access_tunnel_801807A0.field_4;
+            Mc_SaveData.at4.loc.room  = D_neo_ark_eve_access_tunnel_801807A0.field_1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;

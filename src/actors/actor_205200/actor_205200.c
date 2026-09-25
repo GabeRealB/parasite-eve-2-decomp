@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/fs.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -58,9 +59,7 @@ typedef struct Actor205200Part {
 } Actor205200Part;
 STATIC_ASSERT_SIZEOF(Actor205200Part, 0x7C);
 
-extern s16             D_800691CA;
 extern u8              D_80070F87;
-extern u16             D_80071078;
 extern s32             D_actor_205200_8014CA5C;
 extern OverlayWaveCtx* D_actor_205200_80156814;
 extern OverlayWaveRec  D_actor_205200_80156818[9];
@@ -128,7 +127,7 @@ void func_actor_205200_80149E54(Task* arg0)
     s32 tpage1;
 
     head                             = SCRATCH_HEAD(OverlayWaveScratch);
-    D_800691CA                       = 2;
+    CdCmd_Queue.field_22A            = 2;
     SCRATCH_HEAD(OverlayWaveScratch) = head - 1;
     cols                             = head[-1].cols;
     scratch                          = head - 1;
@@ -680,7 +679,7 @@ void func_actor_205200_8014B484(GpEnemy* arg0, Task* arg1)
                 dist = SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz);
                 snd  = ((arg0->placeKey >> 12) << 8) | 0x40340005;
                 pan  = (s8)Gp_GetObjPan(coord);
-                vol  = dist - D_80071078;
+                vol  = dist - gDisplayState.screenDistance;
                 if (vol >= 0x7FFF) {
                     vol = 0x7FFF;
                 }
@@ -723,7 +722,7 @@ s32 func_actor_205200_8014B914(s32 arg0)
 {
     s32 delta;
 
-    delta = arg0 - D_80071078;
+    delta = arg0 - gDisplayState.screenDistance;
     if (delta >= 0x7FFF) {
         delta = 0x7FFF;
     }

@@ -42,7 +42,6 @@ typedef struct {
     s16  strength;
 } _DryfieldWaterHoleSplash;
 
-extern s8  D_8007217B;
 extern s32 D_80115738;
 extern s32 D_8011574C;
 
@@ -226,7 +225,7 @@ void func_dryfield_water_hole_8017D898(Task* task)
     s32                        wave;
 
     e = D_dryfield_water_hole_8017FC98;
-    if (D_8007217B == 0) {
+    if (Mc_SaveData.companionType == 0) {
         D_dryfield_water_hole_801828CC = (u8*)D_8005C374 + gDisplayState.otBuffer * 0xC000;
     } else {
         D_dryfield_water_hole_801828CC = (u8*)D_8005C370 + gDisplayState.otBuffer * 0xC000;
@@ -355,7 +354,7 @@ void func_dryfield_water_hole_8017DFA0(Task* task)
 /// `field_7E` while `D_8007217B` is set, then advances to the drawing state.
 void func_dryfield_water_hole_8017E000(Task* arg0)
 {
-    if (D_8007217B == 0) {
+    if (Mc_SaveData.companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;

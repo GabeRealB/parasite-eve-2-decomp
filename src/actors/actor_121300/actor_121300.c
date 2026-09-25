@@ -141,16 +141,12 @@ typedef struct Actor121300DebrisWork {
 } Actor121300DebrisWork;
 STATIC_ASSERT_SIZEOF(Actor121300DebrisWork, 0x5C);
 
-extern s16 D_800691CA;
 /// Main-executable globals with no module header yet: `D_80073BA9` is the
 /// equipped-weapon index the slot-3 message 0x3E8 record is keyed on,
 /// `D_8007218A` picks which of the two weapon-id bases that record uses, and
 /// `D_80071075` / `D_80114C12` (the cutscene mode flag) gate the actor's setup.
-extern u8  D_80073BA9;
-extern u8  D_80071075;
-extern s8  D_8007218A;
-extern s8  D_80114C12;
-extern s16 D_80071076;
+extern s8 D_8007218A;
+extern s8 D_80114C12;
 
 extern void func_8017F334(s32 arg0);
 extern void func_8017F340(u8 arg0, u8 arg1);
@@ -210,7 +206,7 @@ void func_actor_121300_80131EB0(Task* arg0)
     s32             waveX0, waveY0, waveX1, waveY1;
     s32             waveX2, waveY2, waveX3, waveY3;
 
-    D_800691CA = 2;
+    CdCmd_Queue.field_22A = 2;
     switch (*(s32*)((u8*)arg0 + OFFSET_OF(Task, state))) {
         case 0:
             for (i = 0; i < 11; i++) {
@@ -1073,8 +1069,8 @@ void func_actor_121300_80133D98(Task* arg0)
     state = arg0->state;
     switch (state) {
         case 0:
-            if ((D_80114C12 != 1) && (D_80071075 == 0)) {
-                weaponId                    = D_80073BA9;
+            if ((D_80114C12 != 1) && (gDisplayState.pendingMode == 0)) {
+                weaponId                    = Player_Status.weapon;
                 anim                        = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
                 scratch.msg.animBlock.index = anim;
                 scratch.msg.field_4         = 1;
@@ -1110,7 +1106,7 @@ void func_actor_121300_80133D98(Task* arg0)
             Mc_SaveData.at4.loc.stage = state;
             Mc_SaveData.at4.loc.area  = 9;
             Mc_SaveData.at4.loc.warp  = state;
-            D_80071076                = 1;
+            gDisplayState.roomVariant = 1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             return;

@@ -99,9 +99,7 @@ extern u16 D_actor_503500_80176D64[];
 /// Main-executable globals with no module header yet: `D_80071075` gates the
 /// "everything is dead" message, `D_80073BA0` is the remaining-enemy count and
 /// `D_80114C12` the cutscene/among-us mode flag.
-extern u8  D_80071075;
-extern s16 D_80073BA0;
-extern s8  D_80114C12;
+extern s8 D_80114C12;
 /// Main-executable flag byte cleared when the boss enters state 2; also written
 /// by `mist_r18`, which has no module header for it either. Declared as an
 /// array: `func_actor_503500_801345F4` needs the in-struct store, which keeps
@@ -202,7 +200,6 @@ extern SVECTOR D_actor_503500_8016F078[];
 extern SVECTOR D_actor_503500_8016F0D0[];
 /// Main-executable counter the actor paces periodic effects by (its value
 /// modulo 6 or 12, its low bits).
-extern s32 D_80070F70;
 /// The same pair for the 0x160 enemy at `D_actor_503500_80176D88`: a world
 /// translation seeded into the task's own coordinate and the local offset its
 /// `GpEnemy::bodyPos` and display node share.
@@ -420,7 +417,7 @@ void func_actor_503500_80133270(Task* arg0)
                 work->field_7E5 = 0;
                 work->field_7E7 = 0;
             }
-            if ((D_80071075 & 0xF0) == 0x40) {
+            if ((gDisplayState.pendingMode & 0xF0) == 0x40) {
                 SndEvt_EnqueueType8(0x40000000);
                 work->field_7E7 = 1;
             }
@@ -541,9 +538,9 @@ s32 func_actor_503500_80133684(Task* arg0)
          (slots[11] == NULL) || ((slots[9] == NULL) && (slot1 == NULL)) ||
          ((slots[4]->hp == 0) && (slots[5]->hp == 0)))) {
         if ((((GameActor*)(gameGetPtrSlot(3))->work)->field_954 != 2) &&
-            (D_80073BA0 > 0) && (D_80114C12 != 1)) {
+            (Player_Status.hp > 0) && (D_80114C12 != 1)) {
             ret = 1;
-            if (D_80071075 == 0) {
+            if (gDisplayState.pendingMode == 0) {
                 Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
                 work->field_774 |= 8;
                 /* `ret` has to be dead across the call for GCC to keep it in
@@ -997,7 +994,7 @@ void func_actor_503500_80134408(Task* arg0)
         case 1:
             if (++work->field_7BC >= 0x1F &&
                 ((GameActor*)(gameGetPtrSlot(3))->work)->field_954 != 2 &&
-                D_80073BA0 > 0 && D_80114C12 != 1 && D_80071075 == 0) {
+                Player_Status.hp > 0 && D_80114C12 != 1 && gDisplayState.pendingMode == 0) {
                 Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
                 SndEvt_EnqueueType7(0x40230010, 0x2D);
                 work->field_7DA = work->field_7DA + 1;
@@ -2847,7 +2844,7 @@ void func_actor_503500_80137678(Task* arg0)
     work->pos.vz.w     = (u16)work->pos.vz.w;
     coord->flg         = 0;
     if (func_actor_503500_801360BC(arg0->spawnArg1, 3) != 0) {
-        switch ((u32)D_80070F70 % 6) {
+        switch ((u32)gDisplayState.animFrame % 6) {
             case 0:
             case 2:
             case 4:
@@ -3545,7 +3542,7 @@ void func_actor_503500_80139014(Task* arg0)
             break;
     }
     if (func_actor_503500_801360BC(arg0->spawnArg1, 4) != 0 && work->field_2E4 < 3 &&
-        (u32)D_80070F70 % 12 == 0) {
+        (u32)gDisplayState.animFrame % 12 == 0) {
         for (i = 8, j = 0; i > 0; i--) {
             Gp_SpawnEff(0x60070, &arg0->extra.tmd->coords[i], 0xB0008600, &D_actor_503500_8016F0D0[j]);
             j++;

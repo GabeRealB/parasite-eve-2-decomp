@@ -17,8 +17,6 @@
 /// `D_80071075` and `D_80114C12` (the cutscene mode flag) gate the room task's
 /// setup, and `D_8007218A` picks which of the two weapon-id bases that record
 /// uses.
-extern u8 D_80073BA9;
-extern u8 D_80071075;
 extern s8 D_8007218A;
 extern s8 D_80114C12;
 
@@ -112,7 +110,7 @@ void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                     work->field_34 += 0x96;
                     work->field_26  = work->field_34 + 0x400;
                     if (work->field_34 > 0x1000) {
-                        anim = D_80073BA9;
+                        anim = Player_Status.weapon;
                         if (D_8007218A == 1) {
                             anim += 1;
                         } else {
@@ -134,7 +132,7 @@ void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                     work->field_34 -= 0x96;
                     work->field_26  = work->field_34 + 0x400;
                     if (work->field_34 < 0) {
-                        anim = D_80073BA9;
+                        anim = Player_Status.weapon;
                         if (D_8007218A == 1) {
                             anim += 1;
                         } else {
@@ -155,7 +153,7 @@ void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                 case 3:
                     work->field_30 += 1;
                     if (work->field_30 >= 4) {
-                        anim = D_80073BA9;
+                        anim = Player_Status.weapon;
                         if (D_8007218A == 1) {
                             anim += 1;
                         } else {
@@ -212,9 +210,9 @@ void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if ((D_80114C12 != 1) && (D_80071075 == 0)) {
+            if ((D_80114C12 != 1) && (gDisplayState.pendingMode == 0)) {
                 func_dryfield_motel_room_1_8017DC2C(arg0);
-                weaponId                = D_80073BA9;
+                weaponId                = Player_Status.weapon;
                 anim                    = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
                 buf.rec.animBlock.index = anim;
                 buf.rec.field_4         = 1;
@@ -283,7 +281,7 @@ void func_dryfield_motel_room_1_8017DFD0(void)
     s32           anim;
 
     work                = (Dmr1Work*)D_dryfield_motel_room_1_8018159C->work;
-    weaponId            = D_80073BA9;
+    weaponId            = Player_Status.weapon;
     anim                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.animBlock.index = anim;
     msg.field_4         = 9;
