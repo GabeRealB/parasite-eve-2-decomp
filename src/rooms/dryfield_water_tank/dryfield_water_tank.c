@@ -424,6 +424,7 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
 {
     DwtScriptWork* work;
     GpCmdArg       msg;
+    Task**         owner;
 
     work = (DwtScriptWork*)arg0->work;
     switch (arg0->state) {
@@ -469,11 +470,12 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
         case 2:
             Mc_SaveData.at4.loc.view = Gp_FindViewIndex(3);
             gGameSession->viewDirty  = 1;
-            /* The raw load is what makes this match: as `work->owner` it carries
-             * MEM_IN_STRUCT_P, and sched1's true_dependence then disregards it
-             * against Mc_SaveData.at4.loc.view's store, so the store sinks into the call's
-             * delay slot and the two request tails stop cross-jumping. */
-            Gp_DispatchMsg(*(Task**)((u8*)work + OFFSET_OF(DwtScriptWork, owner)), 0x3F3, 1, 0);
+            /* Through a pointer rather than as `work->owner`: a member load is
+             * struct memory, which lets the store to the view index sink into
+             * the call's delay slot; the two request tails then no longer
+             * cross-jump as the original's do. */
+            owner = &work->owner;
+            Gp_DispatchMsg(*owner, 0x3F3, 1, 0);
             break;
         case 3:
             SndEvt_EnqueueType6(0x52150002, 0, 0);
@@ -556,14 +558,15 @@ void func_dryfield_water_tank_8017E194(s16 request)
 void func_dryfield_water_tank_8017E1B4(void)
 {
     DwtScriptWork* work;
+    Task**         owner;
 
     work                     = (DwtScriptWork*)D_dryfield_water_tank_80188D4C->work;
     Mc_SaveData.at4.loc.view = Gp_FindViewIndex(3);
-    /* The cast is what makes this match: as `work->owner` the load carries
-     * MEM_IN_STRUCT_P, and sched1's true_dependence then disregards it against
-     * Mc_SaveData.at4.loc.view's store (`%lo` addresses do not vary), so the store sinks into
-     * Gp_DispatchMsg's delay slot. Dropping the flag keeps the edge. */
-    Gp_DispatchMsg(*(Task**)((u8*)work + OFFSET_OF(DwtScriptWork, owner)), 0x3F3, 1, 0);
+    /* Through a pointer rather than as `work->owner`: a member load is struct
+     * memory, which lets the store to the view index sink into the call's
+     * delay slot, and the original keeps it ahead of the load. */
+    owner = &work->owner;
+    Gp_DispatchMsg(*owner, 0x3F3, 1, 0);
     gGameSession->viewDirty = 1;
     SndEvt_EnqueueType7(0x52150002, 0xA);
 }

@@ -171,8 +171,7 @@ const TaskFuncTable3 D_shelter_b4_reservoir_8017D5C4 = {
 /// share of the context's peak. A non-zero tint flag shades the quads with the context's
 /// colour instead of drawing them unlit. The grid is bracketed by draw-mode
 /// packets that switch mask-bit setting on at the back of the order table and
-/// off again at the front. The state is read through a plain word load at its
-/// offset, which keeps it ordered after the store to `D_800691CA`.
+/// off again at the front.
 void func_shelter_b4_reservoir_8017D650(Task* arg0)
 {
     OverlayWaveCtx* ctx;
@@ -184,9 +183,14 @@ void func_shelter_b4_reservoir_8017D650(Task* arg0)
     s32             u0, u1, v0, v1;
     s32             waveX0, waveY0, waveX1, waveY1;
     s32             waveX2, waveY2, waveX3, waveY3;
+    s32*            state;
 
     D_800691CA = 2;
-    switch (*(s32*)((u8*)arg0 + 0x30)) {
+    /* Through a pointer rather than as `arg0->state`: a member load is struct
+       memory, which the scheduler lets rise above the store before it, and the
+       original keeps the two in source order. */
+    state = &arg0->state;
+    switch (*state) {
         case 0:
             for (i = 0; i < 11; i++) {
                 D_shelter_b4_reservoir_80187514[i].phase  = 0;

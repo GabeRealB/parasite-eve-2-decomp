@@ -2647,6 +2647,8 @@ const TaskFuncTable3 D_dryfield_night_trailer_coach_8017D7DC = {
 
 void func_dryfield_night_trailer_coach_8018231C(Task* task)
 {
+    s32* state;
+
     task->msgTable = &D_dryfield_night_trailer_coach_8018794C;
     Game_SetPtrSlot(task, 7);
     if (gameGetPtrSlot(0xA) != NULL) {
@@ -2663,8 +2665,12 @@ void func_dryfield_night_trailer_coach_8018231C(Task* task)
     if (func_800E3FCC(0xA2) == 0x25) {
         func_800E3FAC(0xA2, 0x26);
     }
-    D_80071090                 = 3;
-    *(s32*)((u8*)task + 0x30) += 1;
+    D_80071090 = 3;
+    /* Through a pointer rather than as `task->state`: a member access is
+       struct memory, which the scheduler lets pass the store above it, and the
+       original keeps the two in source order. */
+    state   = &task->state;
+    *state += 1;
 }
 
 void func_dryfield_night_trailer_coach_8018243C(Task* task)

@@ -827,10 +827,16 @@ void func_neo_ark_altar_8017EE90(Task* arg0)
 
 void func_neo_ark_altar_8017EF00(Task* arg0)
 {
-    *(s16*)((u8*)gGameSession + OFFSET_OF(GameSession, viewDirty)) = 1;
-    D_8007216D                                                     = 2;
-    gGameSession->at4.loc.room                                     = 2;
-    arg0->state                                                    = (s32)(arg0->state + 1);
+    s16* viewDirty;
+
+    /* Through a pointer rather than as a member: a member store is struct
+       memory, which the scheduler lets the store to `D_8007216D` pass, and the
+       original keeps the two in source order. */
+    viewDirty                  = &gGameSession->viewDirty;
+    *viewDirty                 = 1;
+    D_8007216D                 = 2;
+    gGameSession->at4.loc.room = 2;
+    arg0->state                = (s32)(arg0->state + 1);
 }
 
 void func_neo_ark_altar_8017EF34(Task* arg0)
