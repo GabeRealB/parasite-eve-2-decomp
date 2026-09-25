@@ -167,7 +167,15 @@ typedef struct Actor317000Msg {
 } Actor317000Msg;
 STATIC_ASSERT_SIZEOF(Actor317000Msg, 0x4);
 
+/// The actor's three state handlers - spawn `func_actor_317000_8016267C`,
+/// per-frame tick `func_actor_317000_80161E68` and exit
+/// `func_actor_317000_80162724` - which `func_actor_317000_80162624` runs by
+/// `Task::state`.
+extern TaskFuncTable3 D_actor_317000_80161E24;
+
+void func_actor_317000_80162724(Task* arg0);
 void func_actor_317000_80162744(Task* arg0);
+s32  func_actor_317000_80162BC4(Task* task, s32 arg1, s32 mode, s32 arg3);
 s32  func_actor_317000_80162458(Task* task, s32 arg1, Actor317000Placement* place, Actor317000SpawnAnim* anim);
 s32  func_actor_317000_80162CA0(Task* task, s32 arg1, Actor317000Msg* msg);
 
