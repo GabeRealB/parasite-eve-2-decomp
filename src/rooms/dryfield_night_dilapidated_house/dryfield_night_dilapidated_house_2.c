@@ -18,15 +18,9 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 #include "rooms/dryfield_night_dilapidated_house.h"
+#include "rooms/room_common.h"
 
 extern s8 D_8007106B;
-
-/// Scratch block one quad is built in: the GTE depth of its last three
-/// corners, then the four corners after they are placed in world space.
-typedef struct _DryfieldNightDilapidatedHouseBandScratch {
-    s32     otz;
-    SVECTOR v[4];
-} _DryfieldNightDilapidatedHouseBandScratch;
 
 /// The prism corners, eight per prism: a lit ring of four, then the far ring.
 extern SVECTOR D_dryfield_night_dilapidated_house_801872CC[];
@@ -149,20 +143,20 @@ void func_dryfield_night_dilapidated_house_8017DCE0(Task* arg0)
 /// quarters of its green and blue; the far corners are black.
 void func_dryfield_night_dilapidated_house_8017DD30(GsCOORDINATE2* coord, s16 arg1)
 {
-    _DryfieldNightDilapidatedHouseBandScratch* blk;
-    POLY_G4*                                   prim;
-    s32                                        i;
-    s32                                        next;
-    s32                                        far;
-    s32                                        farNext;
-    s16                                        pulse;
-    s16                                        red;
-    s16                                        blue;
-    s16                                        green;
+    RoomQuadScratch* blk;
+    POLY_G4*         prim;
+    s32              i;
+    s32              next;
+    s32              far;
+    s32              farNext;
+    s16              pulse;
+    s16              red;
+    s16              blue;
+    s16              green;
 
     pulse                  = (rsin(gDisplayState.animFrame << 10) >> 12) + 0x10;
-    *(u8**)G_SCRATCH_HEAD -= sizeof(_DryfieldNightDilapidatedHouseBandScratch);
-    blk                    = *(_DryfieldNightDilapidatedHouseBandScratch**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD -= sizeof(RoomQuadScratch);
+    blk                    = *(RoomQuadScratch**)G_SCRATCH_HEAD;
     gte_SetTransMatrix(&GsWSMATRIX);
     red   = pulse * 3 / 4;
     green = pulse;
@@ -266,7 +260,7 @@ void func_dryfield_night_dilapidated_house_8017DD30(GsCOORDINATE2* coord, s16 ar
                       (s32)gGpuCurrentOt),
             prim);
     Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
-    *(u8**)G_SCRATCH_HEAD += sizeof(_DryfieldNightDilapidatedHouseBandScratch);
+    *(u8**)G_SCRATCH_HEAD += sizeof(RoomQuadScratch);
 }
 
 /// Per-frame draw of the room's model task: recomputes the model's world

@@ -8,13 +8,13 @@
 #include "gameplay/1A8.h"
 #include "gameplay/3A34.h"
 #include "gameplay/D4.h"
-#include "rooms/room.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/room.h"
 
 s32     rcos(s32);
 s32     rsin(s32);

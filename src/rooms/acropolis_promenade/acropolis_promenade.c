@@ -39,18 +39,6 @@ typedef struct ApmGlowCorner {
 } ApmGlowCorner;
 STATIC_ASSERT_SIZEOF(ApmGlowCorner, 0x4);
 
-/// Per-frame scratch the promenade's ground-glow task builds at
-/// `G_SCRATCH_HEAD`: `v` holds the four corners of the glow quad, each rotated
-/// by the task's own `workm` and then offset by that matrix's translation, and
-/// `otz` is the depth (`SZ3 >> 2`, biased by 0x20) the ordering-table slot is
-/// taken from. The block is exactly the 0x24 bytes the task reserves off the
-/// scratch head.
-typedef struct ApmGlowScratch {
-    /* 0x00 */ s32     otz;
-    /* 0x04 */ SVECTOR v[4];
-} ApmGlowScratch;
-STATIC_ASSERT_SIZEOF(ApmGlowScratch, 0x24);
-
 /// Per-frame scratch the promenade's twinkle task
 /// (`func_acropolis_promenade_8017E634`) builds at `G_SCRATCH_HEAD`: `pos` is
 /// the task coordinate's translation, projected through `GsWSMATRIX` into
@@ -717,7 +705,7 @@ void func_acropolis_promenade_8017E634(Task* task)
 /// `D_acropolis_promenade_80181AE4` are scaled to +/-0x300 in `vx` / `vz` (with
 /// `vy` left at zero, so the quad is horizontal), rotated by the task's own
 /// `workm`, offset by that matrix's translation and then projected through
-/// `GsWSMATRIX` into an `ApmGlowScratch` block taken from `G_SCRATCH_HEAD`. The
+/// `GsWSMATRIX` into an `RoomQuadScratch` block taken from `G_SCRATCH_HEAD`. The
 /// first corner goes through `rtps` and the other three through `rtpt`, the
 /// same split the sanctuary's mosaic tiles use.
 ///
@@ -731,15 +719,15 @@ void func_acropolis_promenade_8017E634(Task* task)
 /// been queued, so the room respawns it each frame it wants the glow.
 void func_acropolis_promenade_8017ED44(Task* task)
 {
-    GsCOORDINATE2*  coord;
-    RoomEffWork*    work;
-    void**          scratch;
-    u8*             head;
-    ApmGlowScratch* blk;
-    POLY_FT4*       prim;
-    SVECTOR*        sv;
-    s32             i;
-    s32             grey;
+    GsCOORDINATE2*   coord;
+    RoomEffWork*     work;
+    void**           scratch;
+    u8*              head;
+    RoomQuadScratch* blk;
+    POLY_FT4*        prim;
+    SVECTOR*         sv;
+    s32              i;
+    s32              grey;
 
     coord = ((TmdObject*)task->extra)->coords;
     work  = task->spawnArg2;
@@ -748,13 +736,13 @@ void func_acropolis_promenade_8017ED44(Task* task)
     head           = *scratch;
     work->field_22 = task->spawnArg1;
     *scratch       = head - 0x24;
-    blk            = (ApmGlowScratch*)(head - 0x24);
+    blk            = (RoomQuadScratch*)(head - 0x24);
     for (i = 0; i < 4; i++) {
         blk->v[i].vx = D_acropolis_promenade_80181AE4[i].x * 0x300;
         // Spelled as an offset rather than `&blk->v[i]` so it stays a separate
         // pointer from the one the GTE macros below take; writing both the same
         // way lets CSE fold them into one register and the loop stops matching.
-        sv     = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(ApmGlowScratch, v));
+        sv     = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(RoomQuadScratch, v));
         sv->vy = 0;
         sv->vz = D_acropolis_promenade_80181AE4[i].y * 0x300;
         gte_SetRotMatrix(&coord->workm);

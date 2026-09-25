@@ -18,13 +18,6 @@
 
 #include "rooms/room_common.h"
 
-/// Scratch block one face is built in: the GTE depth of its last three
-/// corners, then the four corners after they are placed in world space.
-typedef struct _DryfieldNightSouvenirShopPrismScratch {
-    s32     otz;
-    SVECTOR v[4];
-} _DryfieldNightSouvenirShopPrismScratch;
-
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern GpMsgEntry D_dryfield_night_souvenir_shop_8017E03C[];
 
@@ -96,20 +89,20 @@ void func_dryfield_night_souvenir_shop_8017D65C(Task* task)
 /// quarters of its green and blue; the far corners are black.
 void func_dryfield_night_souvenir_shop_8017D6B4(GsCOORDINATE2* coord, s16 arg1)
 {
-    _DryfieldNightSouvenirShopPrismScratch* blk;
-    POLY_G4*                                prim;
-    s32                                     i;
-    s32                                     next;
-    s32                                     far;
-    s32                                     farNext;
-    s16                                     pulse;
-    s16                                     red;
-    s16                                     blue;
-    s16                                     green;
+    RoomQuadScratch* blk;
+    POLY_G4*         prim;
+    s32              i;
+    s32              next;
+    s32              far;
+    s32              farNext;
+    s16              pulse;
+    s16              red;
+    s16              blue;
+    s16              green;
 
     pulse                  = (rsin(gDisplayState.animFrame << 10) >> 12) + 0x10;
-    *(u8**)G_SCRATCH_HEAD -= sizeof(_DryfieldNightSouvenirShopPrismScratch);
-    blk                    = *(_DryfieldNightSouvenirShopPrismScratch**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD -= sizeof(RoomQuadScratch);
+    blk                    = *(RoomQuadScratch**)G_SCRATCH_HEAD;
     gte_SetTransMatrix(&GsWSMATRIX);
     red   = pulse * 3 / 4;
     green = pulse;
@@ -213,7 +206,7 @@ void func_dryfield_night_souvenir_shop_8017D6B4(GsCOORDINATE2* coord, s16 arg1)
                       (s32)gGpuCurrentOt),
             prim);
     Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
-    *(u8**)G_SCRATCH_HEAD += sizeof(_DryfieldNightSouvenirShopPrismScratch);
+    *(u8**)G_SCRATCH_HEAD += sizeof(RoomQuadScratch);
 }
 
 /// Per-frame effect on the room's model task: `Task::extra` is the task's

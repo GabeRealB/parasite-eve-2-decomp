@@ -17,13 +17,6 @@
 
 #include "rooms/room_common.h"
 
-/// Scratch block one face is built in: the GTE depth of its last three
-/// corners, then the four corners after they are placed in world space.
-typedef struct _DssPrismScratch {
-    s32     otz;
-    SVECTOR v[4];
-} _DssPrismScratch;
-
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern GpMsgEntry D_dryfield_souvenir_shop_8017E014[];
 
@@ -95,16 +88,16 @@ void func_dryfield_souvenir_shop_8017D65C(Task* task)
 /// far corners are black.
 void func_dryfield_souvenir_shop_8017D6B4(GsCOORDINATE2* coord, s16 arg1)
 {
-    _DssPrismScratch* blk;
-    POLY_G4*          prim;
-    s32               i;
-    s32               next;
-    s32               far;
-    s32               farNext;
-    u8                shade;
+    RoomQuadScratch* blk;
+    POLY_G4*         prim;
+    s32              i;
+    s32              next;
+    s32              far;
+    s32              farNext;
+    u8               shade;
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(_DssPrismScratch);
-    blk                     = (_DssPrismScratch*)*(void**)G_SCRATCH_HEAD;
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomQuadScratch);
+    blk                     = (RoomQuadScratch*)*(void**)G_SCRATCH_HEAD;
     gte_SetTransMatrix(&GsWSMATRIX);
     shade = (rsin(gDisplayState.animFrame << 10) >> 11) + 0x18;
     for (i = 0; i < 4; i++) {
@@ -203,7 +196,7 @@ void func_dryfield_souvenir_shop_8017D6B4(GsCOORDINATE2* coord, s16 arg1)
     setRGB3(prim, shade, shade, shade);
     addPrim((u_long*)((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(_DssPrismScratch);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomQuadScratch);
 }
 
 /// Per-frame effect on the room's model task: `Task::extra` is the task's

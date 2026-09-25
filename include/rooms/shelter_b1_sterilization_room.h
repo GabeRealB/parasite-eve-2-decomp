@@ -5,9 +5,9 @@
 
 #include <psyq/libgte.h>
 
-#include "rooms/room.h"
 #include "main/task.h"
 #include "main/ui.h"
+#include "rooms/room.h"
 
 /// 0x14-byte scratch block `func_shelter_b1_sterilization_room_80183B8C` takes
 /// from `G_SCRATCH_HEAD`. `otz`, `flag` and `sx`/`sy` receive the projection of

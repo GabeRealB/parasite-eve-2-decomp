@@ -583,12 +583,11 @@ typedef struct _RoomShaftArg {
 } RoomShaftArg;
 STATIC_ASSERT_SIZEOF(RoomShaftArg, 0x4);
 
-/// 0x24-byte scratch block a room's ambient-mote task takes from
-/// `G_SCRATCH_HEAD`. `v` holds the four corners of the unit quad `D_80111E38`,
-/// scaled to the mote's half-size, rotated by the mote's own `GsCOORDINATE2`
-/// and then projected through `GsWSMATRIX`; `otz` is the `gte_stszotz` of that
-/// projection, which both rejects motes closer than 0x11 and picks the OT
-/// bucket the `POLY_FT4` is linked into.
+/// The scratch block a room's quad drawer takes from `G_SCRATCH_HEAD` to
+/// build one quad in: `v` holds its four corners once they are placed in
+/// world space, and `otz` the ordering-table depth of their projection, which
+/// picks the bucket the primitive is linked into and lets the drawer reject a
+/// quad too close to the camera.
 typedef struct _RoomQuadScratch {
     /* 0x00 */ s32     otz;
     /* 0x04 */ SVECTOR v[4];

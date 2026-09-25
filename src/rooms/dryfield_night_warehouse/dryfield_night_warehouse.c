@@ -16,6 +16,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room_common.h"
 
 void func_dryfield_night_warehouse_8017D610(Task* task);
 void func_dryfield_night_warehouse_8017D654(Task* task);
@@ -25,13 +26,6 @@ void func_dryfield_night_warehouse_8017DFF4(GsCOORDINATE2* coord, s16 arg1, s16 
 /// The room's message table: handlers for messages 0x13EE, 0x13F1, 0x13EF and
 /// 0x13F0, closed by a 0x7FFFFFFF entry.
 extern GpMsgEntry D_dryfield_night_warehouse_8017E830[];
-
-/// Scratch block one quad is built in: the GTE depth of its last three
-/// corners, then the four corners after they are placed in world space.
-typedef struct _DryfieldNightWarehouseBandScratch {
-    s32     otz;
-    SVECTOR v[4];
-} _DryfieldNightWarehouseBandScratch;
 
 /// Ring centres in the space of the coordinate drawn under, one per circle.
 extern SVECTOR D_dryfield_night_warehouse_8017E858[];
@@ -104,20 +98,20 @@ void func_dryfield_night_warehouse_8017D65C(Task* task)
 /// quarters of its green and blue; the far corners are black.
 void func_dryfield_night_warehouse_8017D6B4(GsCOORDINATE2* coord, s16 arg1)
 {
-    _DryfieldNightWarehouseBandScratch* blk;
-    POLY_G4*                            prim;
-    s32                                 i;
-    s32                                 next;
-    s32                                 far;
-    s32                                 farNext;
-    s16                                 pulse;
-    s16                                 red;
-    s16                                 blue;
-    s16                                 green;
+    RoomQuadScratch* blk;
+    POLY_G4*         prim;
+    s32              i;
+    s32              next;
+    s32              far;
+    s32              farNext;
+    s16              pulse;
+    s16              red;
+    s16              blue;
+    s16              green;
 
     pulse                  = (rsin(gDisplayState.animFrame << 10) >> 12) + 0x10;
-    *(u8**)G_SCRATCH_HEAD -= sizeof(_DryfieldNightWarehouseBandScratch);
-    blk                    = *(_DryfieldNightWarehouseBandScratch**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD -= sizeof(RoomQuadScratch);
+    blk                    = *(RoomQuadScratch**)G_SCRATCH_HEAD;
     gte_SetTransMatrix(&GsWSMATRIX);
     red   = pulse * 3 / 4;
     green = pulse;
@@ -221,7 +215,7 @@ void func_dryfield_night_warehouse_8017D6B4(GsCOORDINATE2* coord, s16 arg1)
                       (s32)gGpuCurrentOt),
             prim);
     Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
-    *(u8**)G_SCRATCH_HEAD += sizeof(_DryfieldNightWarehouseBandScratch);
+    *(u8**)G_SCRATCH_HEAD += sizeof(RoomQuadScratch);
 }
 
 /// Draws the band joining ring `arg1` to ring `arg1 + 1` as `arg2` gouraud
@@ -232,20 +226,20 @@ void func_dryfield_night_warehouse_8017D6B4(GsCOORDINATE2* coord, s16 arg1)
 /// green and blue; the corners on ring `arg1 + 1` are black.
 void func_dryfield_night_warehouse_8017DFF4(GsCOORDINATE2* coord, s16 arg1, s16 arg2)
 {
-    _DryfieldNightWarehouseBandScratch* blk;
-    POLY_G4*                            prim;
-    s16                                 red;
-    s16                                 blue;
-    s16                                 green;
-    s16                                 step;
-    s16                                 start;
-    s16                                 pulse;
-    s32                                 angle;
-    s32                                 next;
+    RoomQuadScratch* blk;
+    POLY_G4*         prim;
+    s16              red;
+    s16              blue;
+    s16              green;
+    s16              step;
+    s16              start;
+    s16              pulse;
+    s32              angle;
+    s32              next;
 
     pulse                  = (rsin(gDisplayState.animFrame << 10) >> 12) + 0x10;
-    *(u8**)G_SCRATCH_HEAD -= sizeof(_DryfieldNightWarehouseBandScratch);
-    blk                    = *(_DryfieldNightWarehouseBandScratch**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD -= sizeof(RoomQuadScratch);
+    blk                    = *(RoomQuadScratch**)G_SCRATCH_HEAD;
     start                  = gDisplayState.animFrame & 0xFFF;
     step                   = 0x1000 / arg2;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -326,7 +320,7 @@ void func_dryfield_night_warehouse_8017DFF4(GsCOORDINATE2* coord, s16 arg1, s16 
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
     }
-    *(u8**)G_SCRATCH_HEAD += sizeof(_DryfieldNightWarehouseBandScratch);
+    *(u8**)G_SCRATCH_HEAD += sizeof(RoomQuadScratch);
 }
 
 /// Per-frame effect on the room's model task: recomputes the model's world

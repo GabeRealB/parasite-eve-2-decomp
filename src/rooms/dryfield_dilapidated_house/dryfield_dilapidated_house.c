@@ -120,15 +120,6 @@ typedef struct DdhBeamScratch {
 } DdhBeamScratch;
 STATIC_ASSERT_SIZEOF(DdhBeamScratch, 0x28);
 
-/// Scratch `func_dryfield_dilapidated_house_801815E8` carves off
-/// `G_SCRATCH_HEAD` for one quad of a prism. `v` holds the four corners,
-/// rotated by the model's `workm` and moved by its translation. `otz` is
-/// `gte_stszotz` of their projection and picks the OT bucket.
-typedef struct DdhPrismScratch {
-    s32     otz;
-    SVECTOR v[4];
-} DdhPrismScratch;
-
 /// Argument block `func_dryfield_dilapidated_house_8017E9A4` hands its task as
 /// `Task::spawnArg2`: the address of `D_dryfield_dilapidated_house_80189B80`,
 /// whose first halfword it has just set to that call's argument and whose second
@@ -2029,7 +2020,7 @@ extern SVECTOR D_dryfield_dilapidated_house_80186884[];
 /// share a grey that pulses with the display frame; the far corners are black.
 void func_dryfield_dilapidated_house_801815E8(GsCOORDINATE2* coord, s16 arg1)
 {
-    DdhPrismScratch* blk;
+    RoomQuadScratch* blk;
     POLY_G4*         prim;
     s32              i;
     s32              next;
@@ -2037,8 +2028,8 @@ void func_dryfield_dilapidated_house_801815E8(GsCOORDINATE2* coord, s16 arg1)
     s32              farNext;
     u8               shade;
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(DdhPrismScratch);
-    blk                     = (DdhPrismScratch*)*(void**)G_SCRATCH_HEAD;
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomQuadScratch);
+    blk                     = (RoomQuadScratch*)*(void**)G_SCRATCH_HEAD;
     gte_SetTransMatrix(&GsWSMATRIX);
     shade = (rsin(gDisplayState.animFrame << 10) >> 11) + 0x14;
     for (i = 0; i < 4; i++) {
@@ -2137,7 +2128,7 @@ void func_dryfield_dilapidated_house_801815E8(GsCOORDINATE2* coord, s16 arg1)
     setRGB3(prim, shade, shade, shade);
     addPrim((u_long*)((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(DdhPrismScratch);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomQuadScratch);
 }
 
 /// Near and far trail offsets. `[0]` seeds the object's coordinate on the first

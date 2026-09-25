@@ -7,7 +7,6 @@
 #include <psyq/rand.h>
 
 #include "gameplay/1A8.h"
-#include "rooms/room.h"
 #include "main/display.h"
 #include "gameplay/gameplay.h"
 #include "gameplay/D4.h"
@@ -21,6 +20,7 @@
 #include "main/task.h"
 #include "main/mc.h"
 #include "main/sound.h"
+#include "rooms/room.h"
 
 s32     rcos(s32);
 s32     rsin(s32);

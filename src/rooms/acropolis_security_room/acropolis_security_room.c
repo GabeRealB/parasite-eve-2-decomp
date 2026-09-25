@@ -125,13 +125,6 @@ typedef struct AsrFlashScratch {
 } AsrFlashScratch;
 STATIC_ASSERT_SIZEOF(AsrFlashScratch, 0x14);
 
-/// Four world-space vertices and their projected OT depth for the rotating quad.
-typedef struct AsrQuadScratch {
-    /* 0x00 */ s32     otz;
-    /* 0x04 */ SVECTOR v[4];
-} AsrQuadScratch;
-STATIC_ASSERT_SIZEOF(AsrQuadScratch, 0x24);
-
 /// Local X/Z corner coordinates, scaled by the effect's field_24.
 typedef struct AsrQuadCorner {
     /* 0x00 */ s16 x;
@@ -2194,18 +2187,18 @@ void func_acropolis_security_room_80180E34(Task* arg0)
 /// Draws a rotating textured quad and updates its drift until it settles.
 void func_acropolis_security_room_80181108(Task* arg0)
 {
-    AsrQuadScratch* blk;
-    GsCOORDINATE2*  coord;
-    GpEffWork*      mem;
-    POLY_FT4*       prim;
-    s32             i;
-    SVECTOR*        sv;
-    s32             ty;
-    s32             tx;
-    s32             tz;
+    RoomQuadScratch* blk;
+    GsCOORDINATE2*   coord;
+    GpEffWork*       mem;
+    POLY_FT4*        prim;
+    s32              i;
+    SVECTOR*         sv;
+    s32              ty;
+    s32              tx;
+    s32              tz;
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(AsrQuadScratch);
-    blk                     = (AsrQuadScratch*)*(void**)G_SCRATCH_HEAD;
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomQuadScratch);
+    blk                     = (RoomQuadScratch*)*(void**)G_SCRATCH_HEAD;
     coord                   = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     mem                     = arg0->spawnArg2;
     Gp_UpdateCoord(coord);
@@ -2225,7 +2218,7 @@ void func_acropolis_security_room_80181108(Task* arg0)
     }
 
     for (i = 0; i < 4; i++) {
-        sv           = ((AsrQuadScratch*)((SVECTOR*)blk + i))->v;
+        sv           = ((RoomQuadScratch*)((SVECTOR*)blk + i))->v;
         blk->v[i].vx = D_acropolis_security_room_801839C0[i].x * mem->scale;
         sv->vy       = 0;
         sv->vz       = D_acropolis_security_room_801839C0[i].z * mem->scale;
@@ -2265,7 +2258,7 @@ void func_acropolis_security_room_80181108(Task* arg0)
         prim->code |= 1;
         addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(AsrQuadScratch);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomQuadScratch);
 
     if (mem->index == 0) {
         coord->coord.t[0] += mem->move.vx;
