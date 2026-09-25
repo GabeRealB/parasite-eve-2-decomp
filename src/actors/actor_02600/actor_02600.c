@@ -24,97 +24,8 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
-/// Work block of the actor task. Its prefix - a linked `GpObj`, one 0x18-byte
-/// collision record, `field_38` and `field_3A` - is also how
-/// `Actor02600_Fn02780` reads the projectile task's 0x40-byte work.
-typedef struct Actor202600Work {
-    /* 0x000 */ GpObj     obj;
-    /* 0x020 */ GpRec18   rec;
-    /* 0x038 */ s16       field_38;
-    /* 0x03A */ s16       field_3A;
-    /* 0x03C */ byte      pad_3C[0x118];
-    /* 0x154 */ byte      field_154[0x80];
-    /* 0x1D4 */ MATRIX    field_1D4;
-    /* 0x1F4 */ MATRIX    field_1F4;
-    /* 0x214 */ GpObj     field_214;
-    /* 0x234 */ GpRec18   field_234[4];
-    /* 0x294 */ GpObj     field_294;
-    /* 0x2B4 */ GpRec18   field_2B4[2];
-    /* 0x2E4 */ GpObj     field_2E4;
-    /* 0x304 */ GpRec18   field_304[1];
-    /* 0x31C */ GpObj     field_31C;
-    /* 0x33C */ GpRec18   field_33C[1];
-    /* 0x354 */ GpEffArg  field_354;
-    /* 0x35C */ VECTOR3   field_35C;
-    /* 0x368 */ byte      pad_368[4];
-    /* 0x36C */ TaskDesc* field_36C;
-    /* 0x370 */ MATRIX    field_370;
-    /* 0x390 */ s16       field_390;
-    /* 0x392 */ s16       field_392;
-    /* 0x394 */ s16       field_394;
-    /* 0x396 */ u16       field_396;
-    /* 0x398 */ s16       field_398;
-    /* 0x39A */ s16       field_39A;
-    /* 0x39C */ s16       field_39C;
-    /* 0x39E */ s16       field_39E;
-    /* 0x3A0 */ s16       field_3A0;
-    /* 0x3A2 */ s16       field_3A2;
-    /* 0x3A4 */ s16       field_3A4;
-    /* 0x3A6 */ s16       field_3A6;
-    /* 0x3A8 */ s16       field_3A8;
-    /* 0x3AA */ s16       field_3AA;
-    /* 0x3AC */ u16       field_3AC;
-    /* 0x3AE */ byte      pad_3AE[2];
-    /* 0x3B0 */ s16       field_3B0;
-    /* 0x3B2 */ s16       field_3B2;
-    /* 0x3B4 */ s16       field_3B4;
-    /* 0x3B6 */ s16       field_3B6;
-    /* 0x3B8 */ byte      pad_3B8[2];
-    /* 0x3BA */ s16       field_3BA;
-    /* 0x3BC */ s16       field_3BC;
-    /* 0x3BE */ s16       field_3BE;
-    /* 0x3C0 */ s16       field_3C0;
-    /* 0x3C2 */ s16       field_3C2;
-    /* 0x3C4 */ s16       field_3C4;
-    /* 0x3C6 */ s16       field_3C6;
-    /* 0x3C8 */ s16       field_3C8;
-    /* 0x3CA */ s16       field_3CA;
-    /* 0x3CC */ s16       field_3CC;
-    /* 0x3CE */ s16       field_3CE;
-    /* 0x3D0 */ s16       field_3D0;
-    /* 0x3D2 */ s16       field_3D2;
-} Actor202600Work;
-STATIC_ASSERT_SIZEOF(Actor202600Work, 0x3D4);
-
-/// One frame's 0x20x0x20 texture window inside the sprite atlas.
-typedef struct Actor202600Uv {
-    /* 0x00 */ u8 u;
-    /* 0x01 */ u8 pad_1;
-    /* 0x02 */ u8 v;
-    /* 0x03 */ u8 pad_3;
-} Actor202600Uv;
-
-extern Actor202600Uv Actor02600_D08A78[];
+extern Actor105500Uv Actor02600_D08A78[];
 extern s16           Actor02600_D08A98[];
-
-/// The 0x38-byte scratch a push-back needs: `delta` is filled by the collision
-/// walk, `unit` is its normal and `local` the same vector in the grid's space;
-/// `rot` is the temporary `RotMatrix` source and `func_800FDB18` effect angle.
-typedef struct Actor202600HitScratch {
-    /* 0x00 */ GpDeltaScratch delta;
-    /* 0x10 */ VECTOR         unit;
-    /* 0x20 */ VECTOR         local;
-    /* 0x30 */ SVECTOR        rot;
-} Actor202600HitScratch;
-STATIC_ASSERT_SIZEOF(Actor202600HitScratch, 0x38);
-
-/// Animation view of the work prefix: the 0x14-byte context `func_800B3F84`
-/// fills in, followed by the eight slots it is handed and `Gp_AnimResetSlot`
-/// walks.
-typedef struct Actor202600Anim {
-    /* 0x000 */ GpAnimCtx  context;
-    /* 0x014 */ GpAnimSlot slots[8];
-} Actor202600Anim;
 
 extern GpPairSrcE Actor02600_D08968;
 extern SVECTOR    Actor02600_D089B0[];
@@ -138,17 +49,6 @@ extern s8         D_8011540E;
 extern s8         D_80115412;
 extern MATRIX*    D_80073B8C[1];
 extern GpU16Pair  Actor02600_D08950;
-
-/// Scratchpad block the line draw takes below the scratchpad top: `position`
-/// is the point handed to the GTE, `screen` and `depth` its projection. The
-/// first 0x10 bytes are reserved but never touched.
-typedef struct Actor202600LineScratch {
-    /* 0x00 */ s32     unused[4];
-    /* 0x10 */ SVECTOR position;
-    /* 0x18 */ s32     screen;
-    /* 0x1C */ s32     depth;
-} Actor202600LineScratch;
-STATIC_ASSERT_SIZEOF(Actor202600LineScratch, 0x20);
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
@@ -189,9 +89,9 @@ void Actor02600_Fn03E2C(GpEnemy* enemy, Task* task);
 
 void Actor02600_Fn0006C(Task* arg0)
 {
-    Actor202600Work*       work;
-    Actor202600HitScratch* head;
-    Actor202600HitScratch* s;
+    Actor105500Work*       work;
+    Actor105500HitScratch* head;
+    Actor105500HitScratch* s;
     GpEnemy*               enemy;
     GsCOORDINATE2*         coord;
     GsCOORDINATE2*         src;
@@ -219,8 +119,8 @@ void Actor02600_Fn0006C(Task* arg0)
     lastId = 0;
     work   = arg0->work;
     coord  = ((TmdObject*)arg0->extra)->coords;
-    head   = *(Actor202600HitScratch**)PSX_SCRATCH_ADDR(0x3FC);
-    s = *(Actor202600HitScratch**)PSX_SCRATCH_ADDR(0x3FC) = head - 1;
+    head   = *(Actor105500HitScratch**)PSX_SCRATCH_ADDR(0x3FC);
+    s = *(Actor105500HitScratch**)PSX_SCRATCH_ADDR(0x3FC) = head - 1;
     enemy                                                 = (GpEnemy*)arg0->spawnArg2;
     work->field_3CC                                       = 0;
     movement                                              = func_800E0C10(work->field_234, &s->delta, 4, NULL);
@@ -256,7 +156,7 @@ void Actor02600_Fn0006C(Task* arg0)
     TOUCH_REG_USE(movement, s);
     work->field_3D0 = 0;
     work->field_3BA = 0;
-    unit            = &s->unit;
+    unit            = &s->normal;
     for (i = 0; i < 2; i++) {
         kind = (u32)work->field_2B4[i].key >> 16;
         if (kind == one)
@@ -406,7 +306,7 @@ void Actor02600_Fn0006C(Task* arg0)
         work->field_2E4.flags &= 0x3FFF;
         Gp_ClearRec18Occupied(work->field_304);
     }
-    *(Actor202600HitScratch**)PSX_SCRATCH_ADDR(0x3FC) = *(Actor202600HitScratch**)PSX_SCRATCH_ADDR(0x3FC) + 1;
+    *(Actor105500HitScratch**)PSX_SCRATCH_ADDR(0x3FC) = *(Actor105500HitScratch**)PSX_SCRATCH_ADDR(0x3FC) + 1;
 }
 
 /// State handlers of the projectile task `Actor02600_Fn03DD0` dispatches,
@@ -431,7 +331,7 @@ const GpEnemyTaskFuncTable3 Actor02600_D00038 = {
 
 void Actor02600_Fn00754(Task* arg0)
 {
-    Actor202600Work* work;
+    Actor105500Work* work;
     GsCOORDINATE2*   coord;
     s32              state;
     s32              dx;
@@ -480,7 +380,7 @@ void Actor02600_Fn00754(Task* arg0)
 
 void Actor02600_Fn00914(Task* arg0)
 {
-    Actor202600Work* work;
+    Actor105500Work* work;
     GsCOORDINATE2*   coord;
     s16              angle;
     s32              magnitude;
@@ -528,7 +428,7 @@ void Actor02600_Fn00914(Task* arg0)
 void Actor02600_Fn00A94(Task* arg0)
 {
     register Task*   actor asm("s5") = arg0;
-    Actor202600Work* work;
+    Actor105500Work* work;
     GsCOORDINATE2*   coord;
     s32              state;
     s32              pan0;
@@ -656,7 +556,7 @@ void Actor02600_Fn00A94(Task* arg0)
 
 void Actor02600_Fn00FA0(Task* arg0)
 {
-    Actor202600Work*  work;
+    Actor105500Work*  work;
     GsCOORDINATE2*    coord;
     s32               state;
     s16               timer;
@@ -744,7 +644,7 @@ void Actor02600_Fn00FA0(Task* arg0)
 
 void Actor02600_Fn012E8(Task* arg0)
 {
-    Actor202600Work* work;
+    Actor105500Work* work;
     GsCOORDINATE2*   coord;
     s32              sound;
     s32              pan;
@@ -775,7 +675,7 @@ void Actor02600_Fn012E8(Task* arg0)
 
 void Actor02600_Fn0143C(Task* arg0)
 {
-    Actor202600Work*  work;
+    Actor105500Work*  work;
     GsCOORDINATE2*    coord;
     SVECTOR*          scratchEnd;
     register SVECTOR* allocated asm("v1");
@@ -917,7 +817,7 @@ void Actor02600_Fn0143C(Task* arg0)
 /// otherwise to state 3 with animation 1 and a random 0..15 in `field_39E`.
 void Actor02600_Fn01A0C(Task* arg0)
 {
-    Actor202600Work* work;
+    Actor105500Work* work;
     GsCOORDINATE2*   coord;
     s32              state;
     s32              sound;
@@ -961,7 +861,7 @@ void Actor02600_Fn01A0C(Task* arg0)
 void Actor02600_Fn01B30(Task* arg0)
 {
     TmdObject*       obj;
-    Actor202600Work* work;
+    Actor105500Work* work;
     GsCOORDINATE2*   coord;
     s16(*motion)[2];
     SVECTOR* scratchEnd;
@@ -1106,7 +1006,7 @@ void Actor02600_Fn01B30(Task* arg0)
 /// actor.
 void Actor02600_Fn020D4(Task* arg0)
 {
-    Actor202600Work* work;
+    Actor105500Work* work;
     GsCOORDINATE2*   coord;
     s32              sound;
     s32              pan;
@@ -1149,7 +1049,7 @@ void Actor02600_Fn020D4(Task* arg0)
 /// `field_3A2` and rebuilds the coordinate's rotation as that pure yaw.
 void Actor02600_Fn02214(Task* arg0)
 {
-    Actor202600Work*  work;
+    Actor105500Work*  work;
     GsCOORDINATE2*    coord;
     ActorFaceScratch* sc;
     s32               ang;
@@ -1231,9 +1131,9 @@ done:
 void Actor02600_Fn02364(GpEnemy* arg0, Task* arg1)
 {
     VECTOR           vec;
-    Actor202600Work* work;
-    Actor202600Work* initialWork;
-    Actor202600Work* dyingWork;
+    Actor105500Work* work;
+    Actor105500Work* initialWork;
+    Actor105500Work* dyingWork;
     GsCOORDINATE2*   coord;
     GsCOORDINATE2*   colorCoord;
     TmdObject*       obj;
@@ -1388,7 +1288,7 @@ void Actor02600_Fn02364(GpEnemy* arg0, Task* arg1)
 /// decays by an LCG-derived 0..0x1F and clamps at zero.
 void Actor02600_Fn02780(GpEnemy* arg0, Task* arg1)
 {
-    Actor202600Work* work;
+    Actor105500Work* work;
     GsCOORDINATE2*   coord;
     s16              age;
     s16              speed;
@@ -1469,7 +1369,7 @@ void Actor02600_Fn02954(Task* actor, s32 frame)
     ActorQuadScratch* scratchEnd;
     ActorQuadScratch* s;
     TmdObject*        texture;
-    Actor202600Uv*    uv;
+    Actor105500Uv*    uv;
     SVECTOR*          projection;
 
     scratchEnd                     = (ActorQuadScratch*)*(u8**)PSX_SCRATCH_ADDR(0x3FC);
@@ -1548,8 +1448,8 @@ void Actor02600_Fn02954(Task* actor, s32 frame)
 /// scaled by `field_3BC / 45`.
 void Actor02600_Fn02C94(Task* actor)
 {
-    Actor202600LineScratch* s;
-    Actor202600Work*        work;
+    Actor105500LineScratch* s;
+    Actor105500Work*        work;
     LINE_G2*                line;
     DR_TPAGE*               page;
     s32                     x;
@@ -1559,7 +1459,7 @@ void Actor02600_Fn02C94(Task* actor)
     s32                     shade;
     u8                      blue;
 
-    s              = (Actor202600LineScratch*)(*(u8**)PSX_SCRATCH_ADDR(0x3FC) -= sizeof(Actor202600LineScratch));
+    s              = (Actor105500LineScratch*)(*(u8**)PSX_SCRATCH_ADDR(0x3FC) -= sizeof(Actor105500LineScratch));
     work           = actor->work;
     s->position.vx = 0;
     s->position.vy = work->field_3A0 - 0x352;
@@ -1571,7 +1471,7 @@ void Actor02600_Fn02C94(Task* actor)
     gte_stsxy(&s->screen);
     gte_stszotz(&s->depth);
     if (s->depth < 30) {
-        *(u8**)PSX_SCRATCH_ADDR(0x3FC) += sizeof(Actor202600LineScratch);
+        *(u8**)PSX_SCRATCH_ADDR(0x3FC) += sizeof(Actor105500LineScratch);
         return;
     }
     screen         = s->screen;
@@ -1587,7 +1487,7 @@ void Actor02600_Fn02C94(Task* actor)
     gte_stsxy(&s->screen);
     gte_stszotz(&s->depth);
     if (s->depth < 30) {
-        *(u8**)PSX_SCRATCH_ADDR(0x3FC) += sizeof(Actor202600LineScratch);
+        *(u8**)PSX_SCRATCH_ADDR(0x3FC) += sizeof(Actor105500LineScratch);
         return;
     }
     line           = gGpuPrimCursor;
@@ -1627,7 +1527,7 @@ void Actor02600_Fn02C94(Task* actor)
     setlen(page, 1);
     page->code[0] = 0xE1000620;
     addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), page);
-    *(u8**)PSX_SCRATCH_ADDR(0x3FC) += sizeof(Actor202600LineScratch);
+    *(u8**)PSX_SCRATCH_ADDR(0x3FC) += sizeof(Actor105500LineScratch);
 }
 
 /// Spawn handler: allocates the actor's work block, links the four `GpObj`
@@ -1646,7 +1546,7 @@ void Actor02600_Fn02FFC(GpEnemy* ctx, Task* actor)
     GpRec18*         rec3;
     SVECTOR*         positions;
     MATRIX*          matrix;
-    Actor202600Work* work;
+    Actor105500Work* work;
     s32              variant;
     s32              quotient;
     s32              i;
@@ -1657,7 +1557,7 @@ void Actor02600_Fn02FFC(GpEnemy* ctx, Task* actor)
 
     obj   = actor->extra;
     coord = obj->coords;
-    work  = memCalloc(sizeof(Actor202600Work), 0);
+    work  = memCalloc(sizeof(Actor105500Work), 0);
     if (work == NULL) {
         Gp_DestroyEnemy(ctx, actor);
         return;
@@ -1765,7 +1665,7 @@ void Actor02600_Fn02FFC(GpEnemy* ctx, Task* actor)
                 coord->coord.t[1] += 0x3E8;
         }
     }
-    func_800B3F84((GpAnimCtx*)work, Actor02600_D08ACC, (TmdObject*)obj, work->field_154, ((Actor202600Anim*)work)->slots);
+    func_800B3F84((GpAnimCtx*)work, Actor02600_D08ACC, (TmdObject*)obj, work->field_154, ((Actor105500Anim*)work)->slots);
     for (i = 1; i < 8; i++) {
         Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
     }
@@ -1833,7 +1733,7 @@ void Actor02600_Fn03558(GpEnemy* arg0, Task* arg1)
 {
     s32              state;
     TmdObject*       obj;
-    Actor202600Work* work;
+    Actor105500Work* work;
     GsCOORDINATE2*   coord;
 
     obj   = arg1->extra;
@@ -1893,7 +1793,7 @@ case1:
 /// cleared once `Gp_ObjFlag4Expired` returns non-zero.
 void Actor02600_Fn0366C(Task* arg0)
 {
-    Actor202600Work* work;
+    Actor105500Work* work;
     s32              damage;
     s32              remaining;
     u8               flags;
@@ -1935,7 +1835,7 @@ void Actor02600_Fn0366C(Task* arg0)
 /// state 9, entered when the hit points run out, runs nothing.
 void Actor02600_Fn03784(Task* arg0)
 {
-    switch (((Actor202600Work*)arg0->work)->field_39A) {
+    switch (((Actor105500Work*)arg0->work)->field_39A) {
         case 0:
             Actor02600_Fn00754(arg0);
             break;
@@ -1974,7 +1874,7 @@ void Actor02600_Fn03784(Task* arg0)
 /// with animation 0xB, `field_3D2` cleared and a random 0..15 in `field_39E`.
 void Actor02600_Fn0385C(Task* arg0)
 {
-    Actor202600Work* work;
+    Actor105500Work* work;
     s16              state;
     u32              random;
 
@@ -2008,7 +1908,7 @@ void Actor02600_Fn0385C(Task* arg0)
 void Actor02600_Fn03910(Task* arg0)
 {
     GsCOORDINATE2*   coord;
-    Actor202600Work* work;
+    Actor105500Work* work;
 
     coord = ((TmdObject*)arg0->extra)->coords;
     work  = arg0->work;
@@ -2026,7 +1926,7 @@ void Actor02600_Fn03910(Task* arg0)
 /// table gives for the new id; otherwise ticks every slot one frame.
 void Actor02600_Fn039A4(Task* arg0)
 {
-    Actor202600Work* work;
+    Actor105500Work* work;
     s32              i;
     s32              value;
 
@@ -2069,7 +1969,7 @@ void Actor02600_Fn03A68(Task* arg0)
 /// used at full shade.
 void Actor02600_Fn03AC0(Task* arg0)
 {
-    Actor202600Work* work;
+    Actor105500Work* work;
     GsCOORDINATE2*   coord;
     VECTOR3          vec;
     s16              hit;
@@ -2098,7 +1998,7 @@ void Actor02600_Fn03B58(Task* arg0)
     GsCOORDINATE2*     coord;
     MATRIX*            head;
     ActorScaleScratch* scratch;
-    Actor202600Work*   work;
+    Actor105500Work*   work;
 
     head                = *(MATRIX**)0x1F8003FC;
     work                = arg0->work;
@@ -2210,7 +2110,7 @@ void Actor02600_Fn03E2C(GpEnemy* enemy, Task* task)
     Task*                        parent;
     TmdObject*                   parentObj;
     GsCOORDINATE2*               coord;
-    Actor202600Work*             parentWork;
+    Actor105500Work*             parentWork;
     GsCOORDINATE2*               parentCoord;
     ActorsShared80135c4cObjWork* work;
     u16                          pair;
@@ -2218,7 +2118,7 @@ void Actor02600_Fn03E2C(GpEnemy* enemy, Task* task)
     parent      = task->parent;
     parentObj   = parent->extra;
     coord       = ((TmdObject*)task->extra)->coords;
-    parentWork  = (Actor202600Work*)parent->work;
+    parentWork  = (Actor105500Work*)parent->work;
     parentCoord = &parentObj->coords[4];
     work        = memCalloc(sizeof(*work), false);
     if (work == NULL) {

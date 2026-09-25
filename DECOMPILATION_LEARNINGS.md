@@ -78367,7 +78367,7 @@ picks `lhu`, so copy the cast text verbatim. Retyping a field to a more
 
 ## Inserting an s16 field mid-struct silently moves every following s16
 
-**Problem.** `Actor202600Work` carried `field_39E` at `0x39E`, then a single
+**Problem.** `Actor105500Work` carried `field_39E` at `0x39E`, then a single
 `byte pad_3A0[6]` covering `0x3A0..0x3A6`, then `field_3A6`. A newly decompiled
 function needed the `u16` at `0x3A2`, so the pad was split the obvious way:
 

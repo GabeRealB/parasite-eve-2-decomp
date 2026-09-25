@@ -429,6 +429,104 @@ typedef struct Actor341700Work {
 } Actor341700Work;
 STATIC_ASSERT_SIZEOF(Actor341700Work, 0x454);
 
+/// Work block of the enemy whose code both actor_05500 and actor_02600 carry,
+/// kept at `Task::work`. Most of it is still unnamed.
+typedef struct Actor105500Work {
+    GpObj     obj;
+    GpRec18   rec;
+    s16       field_38;
+    s16       field_3A;
+    byte      pad_3C[0x118];
+    byte      field_154[0x80];
+    MATRIX    field_1D4;
+    MATRIX    field_1F4;
+    GpObj     field_214;
+    GpRec18   field_234[4];
+    GpObj     field_294;
+    GpRec18   field_2B4[2];
+    GpObj     field_2E4;
+    GpRec18   field_304[1];
+    GpObj     field_31C;
+    GpRec18   field_33C[1];
+    GpEffArg  field_354;
+    VECTOR3   field_35C;
+    byte      pad_368[4];
+    TaskDesc* field_36C;
+    MATRIX    field_370;
+    s16       field_390;
+    s16       field_392;
+    s16       field_394;
+    u16       field_396;
+    s16       field_398;
+    s16       field_39A;
+    s16       field_39C;
+    s16       field_39E;
+    s16       field_3A0;
+    s16       field_3A2;
+    s16       field_3A4;
+    s16       field_3A6;
+    s16       field_3A8;
+    s16       field_3AA;
+    u16       field_3AC;
+    byte      pad_3AE[2];
+    s16       field_3B0;
+    s16       field_3B2;
+    s16       field_3B4;
+    s16       field_3B6;
+    byte      pad_3B8[2];
+    s16       field_3BA;
+    s16       field_3BC;
+    s16       field_3BE;
+    s16       field_3C0;
+    s16       field_3C2;
+    s16       field_3C4;
+    s16       field_3C6;
+    s16       field_3C8;
+    s16       field_3CA;
+    s16       field_3CC;
+    s16       field_3CE;
+    s16       field_3D0;
+    s16       field_3D2;
+} Actor105500Work;
+STATIC_ASSERT_SIZEOF(Actor105500Work, 0x3D4);
+
+/// The animation context and eight slots at the front of the same work block,
+/// the view the animation setup is handed.
+typedef struct Actor105500Anim {
+    GpAnimCtx  context;
+    GpAnimSlot slots[8];
+} Actor105500Anim;
+STATIC_ASSERT_SIZEOF(Actor105500Anim, 0x154);
+
+/// One texture-page coordinate of the enemy's sprite table.
+typedef struct Actor105500Uv {
+    u8 u;
+    u8 pad_1;
+    u8 v;
+    u8 pad_3;
+} Actor105500Uv;
+
+/// Scratch-pad block for projecting one end of the enemy's line primitives:
+/// the point, its screen position and the depth the line is sorted at.
+typedef struct Actor105500LineScratch {
+    s32     unused[4];
+    SVECTOR position;
+    s32     screen;
+    s32     depth;
+} Actor105500LineScratch;
+STATIC_ASSERT_SIZEOF(Actor105500LineScratch, 0x20);
+
+/// Scratch-pad block of that enemy's push-back: the deltas the collision walk
+/// resolves, their normal and its image in grid space, and the rotation the
+/// actor is re-aimed with.
+typedef struct Actor105500HitScratch {
+    GpDeltaScratch delta;
+    VECTOR         normal;
+    VECTOR         local;
+    SVECTOR        rot;
+} Actor105500HitScratch;
+STATIC_ASSERT_SIZEOF(Actor105500HitScratch, 0x38);
+
 /* Contexts. */
 
 /// Ramp context of the screen-wave task. Whoever spawns the task seeds the
