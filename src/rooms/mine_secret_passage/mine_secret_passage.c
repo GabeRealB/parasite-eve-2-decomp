@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/stage.h"
 
 #include "gameplay/1A8.h"
 #include "gameplay/3A34.h"
@@ -19,7 +20,6 @@ extern GpSaveLoc D_mine_secret_passage_80183448;
 
 extern TaskDesc D_mine_secret_passage_80180EBC;
 
-extern u8  D_80062735;
 extern s16 D_80071076;
 
 /// The passage's message table, which the room task answers messages with.
@@ -160,14 +160,14 @@ s32 func_mine_secret_passage_8017D898(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 }
 
 /// Set-up state of the room task: points the task at the passage's message
-/// table, publishes it in pointer slot 7, sets the `D_80062735` mode byte and
+/// table, publishes it in pointer slot 7, selects scene music entry 1 and
 /// advances to the next state.
 void func_mine_secret_passage_8017D8C8(Task* arg0)
 {
     arg0->msgTable = &D_mine_secret_passage_80180E8C;
     Game_SetPtrSlot(arg0, 7);
-    arg0->state = (s32)(arg0->state + 1);
-    D_80062735  = 1;
+    arg0->state           = (s32)(arg0->state + 1);
+    gStageSceneMusicEntry = 1;
 }
 
 /// One-shot state of the room task: the first time through (game flag nibble

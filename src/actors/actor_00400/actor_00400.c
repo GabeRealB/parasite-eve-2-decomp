@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/stage.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -1979,10 +1980,10 @@ void Actor00400_Fn03920(Task* arg0)
     u16                  y;
     s32*                 spawnArg;
 
-    spawnArg   = &arg0->spawnArg1;
-    D_80062735 = 0xB;
-    obj        = arg0->spawnArg2;
-    coord      = arg0->extra.tmd->coords;
+    spawnArg              = &arg0->spawnArg1;
+    gStageSceneMusicEntry = 0xB;
+    obj                   = arg0->spawnArg2;
+    coord                 = arg0->extra.tmd->coords;
     if ((*spawnArg >> 16) & 1) {
         Gp_DestroyEnemy(obj, arg0);
         return;

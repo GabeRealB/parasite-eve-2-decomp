@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/stage.h"
 
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -65,7 +66,7 @@ void func_mine_tunnel_8017D6E0(s32 arg0)
 /// State 0 of the room's event task: installs the room's message table,
 /// publishes the task in pointer slot 7 and - when the session is at place 1
 /// and flag 0xA1 is 1 - calls `func_mine_tunnel_8017D6E0` with 2. Then sets
-/// `D_80062735` and advances to state 1.
+/// scene music entry 1 and advances to state 1.
 void func_mine_tunnel_8017D6EC(Task* arg0)
 {
     arg0->msgTable = D_mine_tunnel_8017DFC4;
@@ -73,8 +74,8 @@ void func_mine_tunnel_8017D6EC(Task* arg0)
     if ((gGameSession->at4.loc.place == 1) && (GameFlag_GetNibble(0xA1) == 1)) {
         func_mine_tunnel_8017D6E0(2);
     }
-    arg0->state = (s32)(arg0->state + 1);
-    D_80062735  = 1;
+    arg0->state           = (s32)(arg0->state + 1);
+    gStageSceneMusicEntry = 1;
 }
 
 /// State 1 of the room's event task: does nothing, so the task idles here.

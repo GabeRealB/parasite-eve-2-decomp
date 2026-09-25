@@ -47,7 +47,6 @@ extern TaskDesc     D_8010D1FC;
 extern TmdListHead  Gp_TmdListStash;
 extern s32          D_80114A24;
 extern s32          D_80114A34;
-extern u8           D_80062734;
 extern u16          D_8007A39C;
 extern TmdListHead  Gp_TmdListAltStash;
 extern Task*        Gp_TmdStashTask;
@@ -4840,7 +4839,7 @@ void Gp_EndingTask(Task* arg0)
                 Task_SpawnFromTable(&D_80062774, 0, 3, 0);
             }
         } else {
-            D_80062734 = 0xFF;
+            gStageMusicLoadState = 0xFF;
         }
     } else {
         goto countdown;
@@ -4849,7 +4848,7 @@ void Gp_EndingTask(Task* arg0)
 countdown:
     arg0->killCountdown--;
     if (arg0->killCountdown <= 0) {
-        if (D_80062734 == 0xFF) {
+        if (gStageMusicLoadState == 0xFF) {
             taskKill(arg0);
             Stage_SetEndingFlag();
         }
@@ -5209,14 +5208,14 @@ void Gp_AreaEnterTask(Task* arg0)
                 Task_SpawnFromTable(&D_80062774, 0, 3, 0);
             }
         } else {
-            D_80062734 = 0xFF;
+            gStageMusicLoadState = 0xFF;
         }
         arg0->state++;
     } else if (arg0->state == 2) {
         UiObject* obj;
 
         obj = arg0->spawnArg2;
-        if (D_80062734 == 0xFF) {
+        if (gStageMusicLoadState == 0xFF) {
             if (CdCmd_IsIdle() & 0xFFFF) {
                 if (obj->field_2E == 6) {
                     Ui_TeardownTree(obj, obj->owner);
@@ -5248,7 +5247,7 @@ void Gp_AreaEnterTask(Task* arg0)
     }
 
     if (arg0->state >= 0x11) {
-        if (D_80062734 == 0xFF) {
+        if (gStageMusicLoadState == 0xFF) {
             if (CdCmd_IsIdle() & 0xFFFF) {
                 GameMain_SetFrameTiming(1);
                 SndEvt_EnqueueType9(0xD);

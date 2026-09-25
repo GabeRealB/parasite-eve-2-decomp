@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/stage.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -97,7 +98,6 @@ extern TaskDesc   D_mine_forked_tunnel_80183104;
 extern GpMsgEntry D_mine_forked_tunnel_80181C80[];
 extern s32        D_mine_forked_tunnel_801831AC;
 extern s32        D_mine_forked_tunnel_801834F4;
-extern u8         D_80062735;
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -544,7 +544,7 @@ void func_mine_forked_tunnel_8017E1E8(Task* arg0)
 {
     arg0->msgTable = D_mine_forked_tunnel_80181C80;
     Game_SetPtrSlot(arg0, 7);
-    D_80062735 = 1;
+    gStageSceneMusicEntry = 1;
     func_mine_forked_tunnel_8017E48C(Gp_GetCurBit2Flag(1) == 2);
     arg0->state = (s32)(arg0->state + 1);
 }

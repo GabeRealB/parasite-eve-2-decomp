@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/stage.h"
 
 #include "main/unknown_syms.h"
 #include "main/fs.h"
@@ -18,15 +19,15 @@ void Task_AllocIdMap(Task* arg0)
     temp_v0 = memCalloc(8, 0);
     if (temp_v0 != NULL) {
         arg0->work = temp_v0;
-        if (D_80062737 != 0) {
+        if (gStageRoomSong != 0) {
             SndEvt_EnqueueType2(0, 1);
-            D_80062737 = 0;
+            gStageRoomSong = 0;
         }
-        temp_a0    = gGameSession->at4.loc.stage;
-        ret        = TaskIdMap_RemapIndex(temp_a0, Mc_SaveData.sceneEvent, D_8006276C[temp_a0 - 1]);
-        field34    = arg0->spawnArg1;
-        D_80062738 = ret;
-        D_8007A398 = 0;
+        temp_a0        = gGameSession->at4.loc.stage;
+        ret            = TaskIdMap_RemapIndex(temp_a0, Mc_SaveData.sceneEvent, D_8006276C[temp_a0 - 1]);
+        field34        = arg0->spawnArg1;
+        gStageMusicRow = ret;
+        D_8007A398     = 0;
         if (field34 == 2) {
             s32         f7;
             TaskIdPair* p;
@@ -34,47 +35,47 @@ void Task_AllocIdMap(Task* arg0)
             f7             = gGameSession->at4.loc.stage;
             D_8007A398     = 0xFF;
             p              = D_80062750[f7 - 1];
-            v              = D_80062735;
+            v              = gStageSceneMusicEntry;
             D_8007A39A     = 0x12C;
             temp_v0->index = v;
             temp_v0->table = p;
         } else {
             temp_v0->table = D_8006273C[gGameSession->at4.loc.stage - 1];
             temp_v0->index =
-                D_80062738 + (gGameSession->at4.loc.area * (temp_s4 & 0xFF));
+                gStageMusicRow + (gGameSession->at4.loc.area * (temp_s4 & 0xFF));
             if ((*((gGameSession->at4.loc.area * (temp_s4 & 0xFF) * 2) +
                    (u8*)temp_v0->table) != 0x80) &&
-                (D_80062736 != 0)) {
+                (gStageAmbientOn != 0)) {
                 SndEvt_EnqueueType7(0x60010001, 0x1E);
-                D_80062736 = 0;
+                gStageAmbientOn = 0;
             }
         }
         temp_s1 = *((temp_v0->index * 2) + (u8*)temp_v0->table);
         if (temp_s1 == 0xFF) {
-            SndEvt_EnqueueType2(D_80062739, D_8007A39C);
-            D_80062734 = temp_s1;
+            SndEvt_EnqueueType2(gStageCurrentSong, D_8007A39C);
+            gStageMusicLoadState = temp_s1;
             taskKill(arg0);
             return;
         }
-        D_80062734 = 0;
+        gStageMusicLoadState = 0;
         if (Midi_IsChannelFree(*((temp_v0->index * 2) + (u8*)temp_v0->table)) == 1) {
-            if ((D_80062739 != 0) && (Midi_IsBusy(D_80062739) != 0)) {
-                SndEvt_EnqueueType2(D_80062739, (D_8007A39C + 1) & 0xFFFF);
+            if ((gStageCurrentSong != 0) && (Midi_IsBusy(gStageCurrentSong) != 0)) {
+                SndEvt_EnqueueType2(gStageCurrentSong, (D_8007A39C + 1) & 0xFFFF);
             }
             arg0->state = arg0->state + 1;
             return;
         }
         if (((temp_v0->index * 2) + (u8*)temp_v0->table)[1] == 1) {
-            SndEvt_EnqueueType2(D_80062739, (D_8007A39C + 1) & 0xFFFF);
+            SndEvt_EnqueueType2(gStageCurrentSong, (D_8007A39C + 1) & 0xFFFF);
             goto block_20;
         }
-        if (Midi_IsBusy(D_80062739) == 0) {
+        if (Midi_IsBusy(gStageCurrentSong) == 0) {
             arg0->state = arg0->state + 2;
             return;
         }
     }
 block_20:
-    D_80062734 = 0xFF;
+    gStageMusicLoadState = 0xFF;
     taskKill(arg0);
 }
 
@@ -88,7 +89,7 @@ void Stage_LoadOrCountdownTask(Task* arg0)
     u8                   flag;
 
     temp = arg0->work;
-    if (Midi_IsBusy(D_80062739) == 0) {
+    if (Midi_IsBusy(gStageCurrentSong) == 0) {
         param1[3] = 0;
         param1[2] = 4;
         entry     = (TaskIdPair*)((temp->index << 1) + (u32)temp->table);
@@ -115,10 +116,10 @@ void Stage_LoadOrCountdownTask(Task* arg0)
     if (flag == 0xFF) {
         D_8007A39A = D_8007A39A - 1;
         if (D_8007A39A == 0x3C) {
-            SndEvt_EnqueueType2(D_80062739, 1);
+            SndEvt_EnqueueType2(gStageCurrentSong, 1);
         }
         if (D_8007A39A <= 0) {
-            D_80062734 = flag;
+            gStageMusicLoadState = flag;
             taskKill(arg0);
         }
     }
@@ -145,8 +146,8 @@ void Stage_ApplyTableEntryWhenIdle(Task* arg0)
             SndEvt_EnqueueType1(entry->id, 0);
             Snd_ApplyVolumeTable(0);
         }
-        D_80062734 = 0xFF;
-        D_80062739 = temp->table[temp->index].id;
+        gStageMusicLoadState = 0xFF;
+        gStageCurrentSong    = temp->table[temp->index].id;
         taskKill(arg0);
     }
 }
@@ -162,12 +163,12 @@ void Stage_RequestFromAreaTable(s32 arg0)
     g       = gGameSession;
     idx     = g->at4.loc.stage - 1;
     product = g->at4.loc.area * D_80062764[idx];
-    temp    = ((D_80062738 + product) & 0xFFFF) * 2;
+    temp    = ((gStageMusicRow + product) & 0xFFFF) * 2;
     entry   = (TaskIdPair*)(temp + (s32)D_8006273C[idx]);
     if (entry->id != 0xFF) {
         if (entry->type != 3) {
             SndEvt_EnqueueType1(entry->id, arg0 & 0xFFFF);
-            D_80062739 = entry->id;
+            gStageCurrentSong = entry->id;
             Snd_ApplyVolumeTable(0);
         }
     }
@@ -184,7 +185,7 @@ void Stage_RequestMidiFromMap(s32 arg0)
     g       = gGameSession;
     idx     = g->at4.loc.stage - 1;
     product = g->at4.loc.area * D_80062764[idx];
-    temp    = ((D_80062738 + product) & 0xFFFF) * 2;
+    temp    = ((gStageMusicRow + product) & 0xFFFF) * 2;
     entry   = (TaskIdPair*)(temp + (s32)D_8006273C[idx]);
     if (entry->id != 0xFF) {
         if (Midi_IsBusy(entry->id) != 0) {
@@ -204,7 +205,7 @@ void Stage_DispatchTaskTable(Task* arg0)
 void Stage_KillWhenIdle(Task* arg0)
 {
     if (CdCmd_IsIdle() != 0) {
-        D_80062734 = 0xFF;
+        gStageMusicLoadState = 0xFF;
         taskKill(arg0);
     }
 }
@@ -225,11 +226,11 @@ void Stage_RequestSpecialFlag(s32 arg0)
         if (GameFlag_GetNibble(0x108) == 1) {
             one = 1;
             SndEvt_EnqueueType7(0x60010000 | one, 0x1E);
-            D_80062736 = 0;
-        } else if (D_80062736 == 0) {
+            gStageAmbientOn = 0;
+        } else if (gStageAmbientOn == 0) {
             one = 1;
             SndEvt_EnqueueType6(0x60010001, 0, 0);
-            D_80062736 = one;
+            gStageAmbientOn = one;
         }
     }
 }

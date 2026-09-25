@@ -27,7 +27,6 @@ STATIC_ASSERT_SIZEOF(GpTaskDesc, 0xC);
 
 /// Per-stage task descriptor tables searched by `func_800E31E8`.
 extern GpTaskDesc* D_8010FABC[];
-extern u8          D_80062735;
 
 /// What a kind-4 `GpObj` holds in `ctx.dir` (`GameActor.field_88`, followed by
 /// `GameActor.field_90`). `dir` is the facing vector written there each frame;

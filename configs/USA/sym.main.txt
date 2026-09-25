@@ -2874,10 +2874,12 @@ D_80068B67                  = 0x80068B67; // size:0x1
 // Data the code references, declared so the split need not invent it
 D_8005EAEE                  = 0x8005EAEE; // type:u16 size:0x2
 D_8005ED8A                  = 0x8005ED8A; // type:u16 size:0x2
-D_80062735                  = 0x80062735; // type:u8 size:0x1
-D_80062736                  = 0x80062736; // type:u8 size:0x1
-D_80062737                  = 0x80062737; // type:u8 size:0x1
-D_80062739                  = 0x80062739; // type:u8 size:0x1
+gStageMusicLoadState        = 0x80062734; // type:u8 size:0x1
+gStageSceneMusicEntry       = 0x80062735; // type:u8 size:0x1
+gStageAmbientOn             = 0x80062736; // type:u8 size:0x1
+gStageRoomSong              = 0x80062737; // type:u8 size:0x1
+gStageMusicRow              = 0x80062738; // type:u8 size:0x1
+gStageCurrentSong           = 0x80062739; // type:u8 size:0x1
 D_80068B5F                  = 0x80068B5F; // type:u8 size:0x1
 D_80068B61                  = 0x80068B61; // type:u8 size:0x1
 D_80068B62                  = 0x80068B62; // type:u8 size:0x1

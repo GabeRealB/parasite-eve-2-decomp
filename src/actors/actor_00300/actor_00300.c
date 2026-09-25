@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/stage.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -591,10 +592,10 @@ void Actor00300_Fn00970(GpEnemy* enemy, Task* task)
     work->obj5B8.flags    = 1U;
     Gp_LinkObj(3, &work->obj5B8);
     Gp_InitRec18Table(rec5D8, 1, 0);
-    D_80062735         = 0xA;
-    work->obj5B8.flags = (u16)(work->obj5B8.flags & 0x7FFF);
-    task->msgTable     = &Actor00300_D16314;
-    task->state        = 1;
+    gStageSceneMusicEntry = 0xA;
+    work->obj5B8.flags    = (u16)(work->obj5B8.flags & 0x7FFF);
+    task->msgTable        = &Actor00300_D16314;
+    task->state           = 1;
 }
 
 void Actor00300_Fn00E54(Task* arg0)

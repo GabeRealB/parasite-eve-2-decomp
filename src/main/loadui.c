@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/stage.h"
 
 #include "main/unknown_syms.h"
 #include "main/fs.h"
@@ -228,8 +229,8 @@ void Snd_ApplyVolumeTable(s32 arg0)
     }
     if ((arg0 & 0xFFFF) != 0) {
         D_8007A396 = arg0;
-        if (D_80062737 != 0) {
-            SndEvt_EnqueueType5(D_80062737, (u8)D_8007A396);
+        if (gStageRoomSong != 0) {
+            SndEvt_EnqueueType5(gStageRoomSong, (u8)D_8007A396);
         } else {
             SndEvt_EnqueueType5(0, (u8)D_8007A396);
         }
@@ -241,8 +242,8 @@ void Snd_ApplyVolumeTable(s32 arg0)
         } else {
             SndEvt_FlushType5Pending();
         }
-        if (D_80062737 != 0) {
-            SndEvt_EnqueueType5(D_80062737, (u8)D_8007A396);
+        if (gStageRoomSong != 0) {
+            SndEvt_EnqueueType5(gStageRoomSong, (u8)D_8007A396);
         } else {
             SndEvt_EnqueueType5(0, sp10.data[Mc_SaveData.musicVolume]);
         }

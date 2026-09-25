@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/stage.h"
 
 #include "gameplay/1A8.h"
 #include "gameplay/1BC.h"
@@ -113,7 +114,7 @@ void func_shelter_b6_training_room_8017D7D4(Task* arg0)
         ptr += 1;
     } while (i <= 0x12BFF);
     GameFlag_SetNibble(0x4D, 1);
-    D_80062735 = 0xA;
+    gStageSceneMusicEntry = 0xA;
     func_shelter_b6_training_room_8017DBB0(0);
     arg0->state                         = (s32)(arg0->state + 1);
     D_shelter_b6_training_room_80185C58 = 0;

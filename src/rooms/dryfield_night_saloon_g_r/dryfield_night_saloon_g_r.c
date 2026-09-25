@@ -34,7 +34,6 @@
 extern void func_8002E53C(TextDrawReq* req, u8* text);
 extern void func_800E8614(s32 arg0, s32 arg1);
 
-extern u8  D_80062737;
 extern s16 D_80071076;
 extern u8  D_8007216D;
 extern s16 D_8007A396;
@@ -565,8 +564,8 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
             if (CdCmd_IsIdle() & 0xFFFF) {
                 SndEvt_EnqueueType1(flags, 0);
                 SndEvt_EnqueueType5(flags, (u8)D_8007A396);
-                ready      = 1;
-                D_80062737 = flags;
+                ready          = 1;
+                gStageRoomSong = flags;
             } else {
                 ready = 0;
             }

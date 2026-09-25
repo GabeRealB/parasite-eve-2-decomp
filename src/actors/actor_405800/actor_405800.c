@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/stage.h"
 
 #include "psyq/libgte.h"
 #include "psyq/libgpu.h"
@@ -896,17 +897,17 @@ void func_actor_405800_801334B8(Task* arg0)
         Gp_DestroyEnemy(enemy, arg0);
         return;
     }
-    D_80062735        = 2;
-    model->lightMtx   = &work->matrix_40;
-    model->colorMtx   = &work->matrix_20;
-    model->flags      = 0;
-    arg0->msgTable    = D_actor_405800_8015149C;
-    enemy->field_4    = &coord->coord;
-    enemy->field_48   = 0;
-    enemy->bodyPos.vx = 0;
-    enemy->bodyPos.vy = 0;
-    enemy->bodyPos.vz = 0;
-    enemy->coord      = &arg0->extra.tmd->coords[3];
+    gStageSceneMusicEntry = 2;
+    model->lightMtx       = &work->matrix_40;
+    model->colorMtx       = &work->matrix_20;
+    model->flags          = 0;
+    arg0->msgTable        = D_actor_405800_8015149C;
+    enemy->field_4        = &coord->coord;
+    enemy->field_48       = 0;
+    enemy->bodyPos.vx     = 0;
+    enemy->bodyPos.vy     = 0;
+    enemy->bodyPos.vz     = 0;
+    enemy->coord          = &arg0->extra.tmd->coords[3];
     Gp_LinkNode(&enemy->node);
     enemy->node.state.b.flags = 5;
     enemy->param              = &D_actor_405800_801418FC;

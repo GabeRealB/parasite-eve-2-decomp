@@ -43,6 +43,27 @@ STATIC_ASSERT_SIZEOF(StageCtx, 0x38);
 /// Active stage/flow context pointer.
 extern StageCtx* Stage_Ctx;
 
+// The stage's background-music state, kept by the task that loads an area's
+// music (`Task_AllocIdMap` and the states after it) and by the requests that
+// start it.
+
+/// 0 while a music-load task runs, 0xFF once it has finished or given up; code
+/// that must wait for the music checks it.
+extern u8 gStageMusicLoadState;
+/// The music-table entry a scene selects. A load task spawned with argument 2
+/// plays it instead of the area's own entry; rooms and actors set it.
+extern u8 gStageSceneMusicEntry;
+/// Nonzero while the 0x60010001 ambient sound, started by a table entry of
+/// 0x80, is playing.
+extern u8 gStageAmbientOn;
+/// A song a room started itself, outside the music table. Music-volume
+/// changes are applied to it too, and the next load stops it and clears this.
+extern u8 gStageRoomSong;
+/// Where the current scene's rows begin in the stage's music table.
+extern u8 gStageMusicRow;
+/// The song last started from the music table.
+extern u8 gStageCurrentSong;
+
 // --- APIs ---
 void Stage_InitOtAndSpawn(void);
 void Stage_WaitCdActivate(Task* task);

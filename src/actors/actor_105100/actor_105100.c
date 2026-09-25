@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/stage.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -945,8 +946,8 @@ extern u16 D_actor_105100_801413A8[16];
 ///
 /// The `field_59E` countdown at the top is the aim timer: it is stepped down
 /// whenever the battle is not paused (`Gp_StateF0::field_0`), and on the frame
-/// it runs out the arming state drops to 1 (aimed) and the 0xA-frame hold is
-/// armed through `D_80062735`. `field_5A8` is the pair of gate flags and is
+/// it runs out the arming state drops to 1 (aimed) and scene music entry 0xA
+/// is selected in `gStageSceneMusicEntry`. `field_5A8` is the pair of gate flags and is
 /// tested as one word -- see `Actor105100Gate`.
 ///
 /// The reroll itself is the LCG: the state advances, the pose is the table
@@ -968,7 +969,7 @@ void func_actor_105100_8013329C(Task* arg0, GpEnemy* arg1)
         work->field_59E = timer;
         if ((timer << 16) <= 0) {
             Gp_ArmStateF0(1);
-            D_80062735 = 0xA;
+            gStageSceneMusicEntry = 0xA;
         }
     }
     gate = (Actor105100Gate*)work;

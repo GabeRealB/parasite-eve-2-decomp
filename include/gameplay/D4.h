@@ -382,7 +382,7 @@ void Gp_LoadWaitStage(Task* task);
 /// When the CD queue is idle: `Gp_InitStageVisit` on the save location,
 /// `Mem_ConfigureAuxHeap(loc.stage, loc.area)`, `Mem_SetActiveAuxHeap(1)` when
 /// the save is in stage 5 / area 1, `Mem_InitAux`, `Gp_ApplyNpcRoomSnd`,
-/// `Snd_InitFromStage`. Sets `D_80062735` when in stage 3 with game flag
+/// `Snd_InitFromStage`. Sets `gStageSceneMusicEntry` when in stage 3 with game flag
 /// nibble 0x7A >= 4, primes `GameSession.areaBgmCountdown` / `field_12E` /
 /// `deathRestartDelay` (1 / -0x80 / 0x1E) and `D_8007A39C` (0x3C / 0), spawns table `D_80062774` entry 0,
 /// then advances `task->state`.

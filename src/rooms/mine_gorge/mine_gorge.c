@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/stage.h"
 
 #include "gameplay/1A8.h"
 #include "gameplay/268.h"
@@ -152,7 +153,7 @@ void func_mine_gorge_8017D8C8(s32 arg0)
 /// Room task setup state: installs the message table and pointer slot 7, sets
 /// `Gp_StateF0.field_1A` to `0x15` in place 1 once flag nibble `0xC5` is set, and on the
 /// first pass with flag nibble `0xBE == 2` arms nibble `0x166`, clears nibble
-/// `0xB5` and calls `Gp_SpawnIfCapIdle(8, 0)`. Then raises `D_80062735` and
+/// `0xB5` and calls `Gp_SpawnIfCapIdle(8, 0)`. Then selects scene music entry 1 and
 /// advances state.
 void func_mine_gorge_8017D8D4(Task* arg0)
 {
@@ -166,8 +167,8 @@ void func_mine_gorge_8017D8D4(Task* arg0)
         GameFlag_SetNibble(0xB5, 0);
         Gp_SpawnIfCapIdle(8, 0);
     }
-    arg0->state = arg0->state + 1;
-    D_80062735  = 1;
+    arg0->state           = arg0->state + 1;
+    gStageSceneMusicEntry = 1;
 }
 
 /// The room task's idle state.

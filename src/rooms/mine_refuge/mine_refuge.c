@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/stage.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -45,7 +46,6 @@ STATIC_ASSERT_SIZEOF(MineRefugeGlowScratch, 0x1C);
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
 extern UiObjectDesc   D_800611E4;
-extern u8             D_80062735;
 extern UiObject*      D_80067634;
 extern u8             D_80071086;
 extern u16            D_80072174;
@@ -1566,7 +1566,7 @@ void func_mine_refuge_8017FF4C(Task* arg0)
     arg0->msgTable = D_mine_refuge_80181884;
     Game_SetPtrSlot(arg0, 7);
     D_mine_refuge_80182AD8 = NULL;
-    D_80062735             = 1;
+    gStageSceneMusicEntry  = 1;
     arg0->state            = arg0->state + 1;
     D_80115598             = 1;
 }

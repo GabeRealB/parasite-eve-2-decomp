@@ -1168,16 +1168,16 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
                 work->field_48                     = 0;
                 work->field_46                     = 0;
             }
-            w             = (DumpingHoleEntity*)arg0->work;
-            w->field_0    = w->field_28->extra.tmd->coords->coord.t[0];
-            t             = w->field_28;
-            w->field_4    = t->extra.tmd->coords->coord.t[1];
-            w->field_8    = t->extra.tmd->coords->coord.t[2];
-            w->field_12   = 0x400;
-            w->field_10   = 0;
-            w->field_14   = 0;
-            D_8007272D[0] = 0xC;
-            D_80062735    = 3;
+            w                     = (DumpingHoleEntity*)arg0->work;
+            w->field_0            = w->field_28->extra.tmd->coords->coord.t[0];
+            t                     = w->field_28;
+            w->field_4            = t->extra.tmd->coords->coord.t[1];
+            w->field_8            = t->extra.tmd->coords->coord.t[2];
+            w->field_12           = 0x400;
+            w->field_10           = 0;
+            w->field_14           = 0;
+            D_8007272D[0]         = 0xC;
+            gStageSceneMusicEntry = 3;
             arg0->state++;
             break;
         case 1:

@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/stage.h"
 
 #include <psyq/libgte.h>
 
@@ -161,7 +162,7 @@ STATIC_ASSERT_SIZEOF(Actor341900AnimCmd, 0x14);
 extern u8 D_80073BA9;
 extern s8 D_8007218A;
 /// Byte the other actor overlays' one-argument setters write; set to 0xC here
-/// beside the stage-3 `D_80062735` mode byte.
+/// beside `gStageSceneMusicEntry`.
 extern s8 D_8007272D;
 
 extern void func_80143490(s32 arg0);
@@ -723,8 +724,8 @@ void func_actor_341900_80162EFC(Task* arg0)
             gGameSession->flowFlags |= 3;
             goto next;
         case 1:
-            D_80062735 = 4;
-            D_8007272D = 0xC;
+            gStageSceneMusicEntry = 4;
+            D_8007272D            = 0xC;
             func_800E8634((s32)D_actor_341900_80163B48, 0, (s32)D_actor_341900_80163FB0);
         next:
             arg0->state += 1;

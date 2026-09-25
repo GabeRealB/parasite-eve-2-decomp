@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/stage.h"
 
 #include "psyq/libgte.h"
 #include "psyq/libgpu.h"
@@ -2086,7 +2087,7 @@ void func_actor_400500_80135414(Task* arg0)
     work6->field_A06         = 6;
     work6->field_A08         = 0;
     work7                    = (Actor400500Work*)arg0->work;
-    D_80062735               = 2;
+    gStageSceneMusicEntry    = 2;
     if (((work7->field_A46 >= 0) || ((u8)work7->field_A46 & 0x7F)) && (work7->field_A30 == 0)) {
         flag             = 0x80;
         work7->field_A46 = flag;

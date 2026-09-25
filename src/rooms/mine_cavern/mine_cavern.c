@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/stage.h"
 
 #include "gameplay/1A8.h"
 #include "gameplay/3A34.h"
@@ -199,7 +200,7 @@ void func_mine_cavern_8017DDFC(Task* arg0)
         func_mine_cavern_8017E394();
         GameFlag_SetNibble(0x10F, 1);
     } else {
-        D_80062735 = 1;
+        gStageSceneMusicEntry = 1;
     }
     Task_SpawnFromTable(&D_mine_cavern_8018E3F4, 0, 0, 0);
     if (GameFlag_GetNibble(0xC7) != 0) {
@@ -287,10 +288,11 @@ void func_mine_cavern_8017E15C(void)
     Gp_ApplyAreaRecs(&D_mine_cavern_8018E32C);
 }
 
-/// Room script callback: stores its argument into `D_80062735`.
+/// Room script callback: selects its argument as the scene music entry
+/// (`gStageSceneMusicEntry`).
 void func_mine_cavern_8017E180(u8 arg0)
 {
-    D_80062735 = arg0;
+    gStageSceneMusicEntry = arg0;
 }
 
 void func_mine_cavern_8017E18C(Task* task)

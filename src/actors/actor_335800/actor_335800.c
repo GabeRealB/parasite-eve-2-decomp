@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/stage.h"
 
 #include <psyq/libgte.h>
 #include <psyq/abs.h>
@@ -405,7 +406,7 @@ void func_actor_335800_80162428(s8 arg0)
 
 void func_actor_335800_80162434(s32 arg0)
 {
-    SndEvt_EnqueueType2(D_80062735, arg0 & 0xFFFF);
+    SndEvt_EnqueueType2(gStageSceneMusicEntry, arg0 & 0xFFFF);
 }
 
 void func_actor_335800_80162460(void)

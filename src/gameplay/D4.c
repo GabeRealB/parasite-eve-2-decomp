@@ -1011,9 +1011,9 @@ void Gp_LoadState2(Task* task)
         Gp_ApplyNpcRoomSnd();
         Snd_InitFromStage(gGameSession->at4.loc.stage, gGameSession->at4.loc.area);
         if (gGameSession->at4.loc.stage == 3 && GameFlag_GetNibble(0x7A) >= 4) {
-            D_80062735 = 1;
+            gStageSceneMusicEntry = 1;
         } else {
-            D_80062735 = 0;
+            gStageSceneMusicEntry = 0;
         }
         gGameSession->areaBgmCountdown  = 1;
         *(s8*)&gGameSession->field_12E  = -0x80;

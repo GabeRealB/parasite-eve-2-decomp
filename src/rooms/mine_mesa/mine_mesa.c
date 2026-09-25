@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/stage.h"
 
 #include "gameplay/1A8.h"
 #include "gameplay/1BC.h"
@@ -318,7 +319,7 @@ void func_mine_mesa_8017DC80(Task* arg0)
     } else {
         func_mine_mesa_8017DD44();
     }
-    D_80062735 = 1;
+    gStageSceneMusicEntry = 1;
     func_mine_mesa_8017EB38();
     D_mine_mesa_80189B4C = NULL;
     func_mine_mesa_801817BC();
@@ -788,7 +789,7 @@ void func_mine_mesa_8017E91C(void)
 
 void func_mine_mesa_8017E93C(u8 arg0)
 {
-    D_80062735 = arg0;
+    gStageSceneMusicEntry = arg0;
 }
 
 void func_mine_mesa_8017E948(void)
@@ -1879,7 +1880,7 @@ end:
     result.param       = NULL;
     Gp_StateF0.field_6 = 1;
     Gp_ReleaseStateF0(arg0, 0);
-    D_80062735 = 1;
+    gStageSceneMusicEntry = 1;
     arg0->state++;
 }
 

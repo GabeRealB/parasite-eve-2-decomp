@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/stage.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/268.h"
@@ -7119,13 +7120,13 @@ void func_800E31E8(Task* arg0)
     switch (flag) {
         case 1:
             if (gGameSession->at4.loc.stage == 3) {
-                D_80062735 = 1;
+                gStageSceneMusicEntry = 1;
             } else {
                 gGameSession->flowFlags = 3;
             }
             break;
         case 2:
-            D_80062735 = 9;
+            gStageSceneMusicEntry = 9;
             break;
     }
     index = 0;

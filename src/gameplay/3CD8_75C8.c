@@ -25,7 +25,6 @@
 #include "main/text.h"
 #include "main/wipsys.h"
 
-extern u8             D_80062734;
 extern u16            D_8007A396;
 extern u16            D_8007A39C;
 extern u8             Gp_StrDemoWait[];
@@ -317,13 +316,13 @@ void Gp_ScriptTaskState1(Task* arg0)
                 Mc_SaveData.sceneEvent = (u8)st->pc->arg0;
                 D_801156C9             = 1;
                 pair->field_0          = (u16)st->pc->arg1;
-                D_80062734             = 0;
+                gStageMusicLoadState   = 0;
                 pair->field_2          = (u16)st->pc->arg2;
                 Task_SpawnFromTable(&D_80062774, 0, 0, 0);
                 break;
 
             case 21:
-                if (D_80062734 == 0) {
+                if (gStageMusicLoadState == 0) {
                     return;
                 }
                 break;

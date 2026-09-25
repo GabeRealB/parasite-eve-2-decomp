@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/stage.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -348,7 +349,7 @@ void func_shelter_b6_corridor_8017E064(Task* arg0)
     } while (i <= 0x12BFF);
     D_shelter_b6_corridor_801851B0 = 2;
     if (gGameSession->at4.loc.place == 1) {
-        D_80062735               = 2;
+        gStageSceneMusicEntry    = 2;
         gGameSession->flowFlags |= 1;
         gGameSession->flowFlags |= 2;
     }

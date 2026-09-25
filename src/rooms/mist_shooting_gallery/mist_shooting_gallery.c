@@ -112,7 +112,6 @@ extern s32      func_8014AA54(GpSaveLoc* loc);
 extern void     func_8014AB6C(void);
 extern void     func_8014AF0C(void);
 extern void     func_8014C5E0(s32, s32, s32);
-extern u8       D_80062737;
 extern s8       D_8007218B;
 extern s8       D_8007272D;
 extern s8       D_80072A92;
@@ -1533,8 +1532,8 @@ void func_mist_shooting_gallery_80180728(Task* task)
             if (CdCmd_IsIdle() & 0xFFFF) {
                 SndEvt_EnqueueType1(flags, 0);
                 SndEvt_EnqueueType5(flags, (u8)D_8007A396);
-                ready      = 1;
-                D_80062737 = flags;
+                ready          = 1;
+                gStageRoomSong = flags;
             } else {
                 ready = 0;
             }
