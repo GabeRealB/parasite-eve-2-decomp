@@ -46,24 +46,6 @@ typedef struct Actor151000Work {
 } Actor151000Work;
 STATIC_ASSERT_SIZEOF(Actor151000Work, 0x4C0);
 
-/// The enemy's work block, published by its spawn handler and by its task
-/// body.
-extern Actor151000Work* D_actor_151000_8013D37C;
-
-/// The enemy's task, published by its spawn handler so the visibility opcode
-/// can reach its model.
-extern Task* D_actor_151000_8013D380;
-
-/// Reset argument the "start animation" opcode leaves behind:
-/// `func_actor_151000_801326AC` forwards it to every reseeded slot, and the
-/// runner sets it to 10 when a walk ends.
-extern s16 D_actor_151000_8013D2AC;
-
-/// Picks the distance the runner walks the model each frame: 0 steps 0x3C
-/// forward, 1 steps 0xF back, 2 steps 0x19 forward. Set by the "walk to"
-/// opcode.
-extern s16 D_actor_151000_8013D384;
-
 /// Kept for `src/lib/actors_shared_8014a568.c` and
 /// `src/lib/actors_shared_8014a79c.c`, which still include this header for
 /// another carrier until the shared units are deleted.
@@ -78,37 +60,5 @@ typedef struct Actor151000Placement {
     /* 0x14 */ byte   pad_14[2];
 } Actor151000Placement;
 STATIC_ASSERT_SIZEOF(Actor151000Placement, 0x18);
-
-/// Message payload the message handler takes: only the halfword at 0x2 is
-/// read.
-typedef struct Actor151000Msg {
-    /* 0x0 */ byte pad_0[2];
-    /* 0x2 */ u16  field_2;
-} Actor151000Msg;
-
-/// Script args of the "start animation" opcode: the clip id, a flag choosing
-/// the start path, and the reset argument only that path carries.
-typedef struct Actor151000AnimArgs {
-    /* 0x0 */ byte pad_0[4];
-    /* 0x4 */ s32  animId;
-    /* 0x8 */ s32  withArg;
-    /* 0xC */ u16  animArg;
-} Actor151000AnimArgs;
-
-void func_actor_151000_80131F1C(GpEnemy* enemy, Task* task);
-void func_actor_151000_80132084(Task* task);
-void func_actor_151000_801323F4(Task* task);
-void func_actor_151000_80132450(GpEnemy* enemy, Task* task);
-void func_actor_151000_801324D4(Task* task);
-void func_actor_151000_801324FC(Task* task);
-void func_actor_151000_801325C4(void);
-void func_actor_151000_80132610(void);
-void func_actor_151000_801326AC(void);
-s32  func_actor_151000_80132738(Task* task, s32 arg1, Actor151000AnimArgs* args, s32 arg3);
-s32  func_actor_151000_801327C8(Task* task, s32 arg1, s32 arg2);
-s32  func_actor_151000_80132810(Task* task, s32 arg1, Actor151000Placement* placement);
-s32  func_actor_151000_8013288C(Task* task, s32 arg1, Actor151000Msg* msg);
-s32  func_actor_151000_801328DC(Task* task, s32 arg1, VECTOR* target, s32 mode);
-void func_actor_151000_80132A38(Task* task);
 
 #endif

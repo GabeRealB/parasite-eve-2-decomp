@@ -10,18 +10,81 @@
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
-extern TaskDesc   D_actor_151000_80133360;
-extern s32        D_actor_151000_8013D378;
-extern u8         D_actor_151000_8013D2EC[];
+/* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
+#define SCRATCH_SP (*(u32*)0x1F8003FC)
+
+/// Message payload the message handler takes: only the halfword at 0x2 is
+/// read.
+typedef struct Actor151000Msg {
+    /* 0x0 */ byte pad_0[2];
+    /* 0x2 */ u16  field_2;
+} Actor151000Msg;
+
+/// Script args of the "start animation" opcode: the clip id, a flag choosing
+/// the start path, and the reset argument only that path carries.
+typedef struct Actor151000AnimArgs {
+    /* 0x0 */ byte pad_0[4];
+    /* 0x4 */ s32  animId;
+    /* 0x8 */ s32  withArg;
+    /* 0xC */ u16  animArg;
+} Actor151000AnimArgs;
+
+/// The enemy's work block, published by its spawn handler and by its task
+/// body.
+extern Actor151000Work* D_actor_151000_8013D37C;
+
+/// The enemy's task, published by its spawn handler so the visibility opcode
+/// can reach its model.
+extern Task* D_actor_151000_8013D380;
+
+/// Reset argument the "start animation" opcode leaves behind:
+/// `func_actor_151000_801326AC` forwards it to every reseeded slot, and the
+/// runner sets it to 10 when a walk ends.
+extern s16 D_actor_151000_8013D2AC;
+
+/// Picks the distance the runner walks the model each frame: 0 steps 0x3C
+/// forward, 1 steps 0xF back, 2 steps 0x19 forward. Set by the "walk to"
+/// opcode.
+extern s16 D_actor_151000_8013D384;
+
+/// Fade countdown: `func_actor_151000_80131EE0` seeds it, and the fade task
+/// `func_actor_151000_80131E24` draws while it is non-zero.
+extern s32 D_actor_151000_8013D378;
+
+/// Descriptor of the fade task `func_actor_151000_80131E24`.
+extern TaskDesc D_actor_151000_80133360;
+
+/// The enemy's message table and the animation data its work block's slots
+/// are seeded from.
 extern GpMsgEntry D_actor_151000_8013D2B0[];
-extern u8         D_80072729;
+extern u8         D_actor_151000_8013D2EC[];
+
+extern u8 D_80072729;
+
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// the note in `include/gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
+void func_actor_151000_80132084(Task* task);
+void func_actor_151000_80132450(GpEnemy* enemy, Task* task);
+void func_actor_151000_801324D4(Task* task);
+void func_actor_151000_801324FC(Task* task);
+void func_actor_151000_801325C4(void);
+void func_actor_151000_80132610(void);
+void func_actor_151000_801326AC(void);
+void func_actor_151000_80132A38(Task* task);
 
 /// Steps the task's model `amount` units along its facing (the coordinate
 /// matrix's z column, normalised and scaled on the GTE), using a scratch-pad
@@ -185,5 +248,266 @@ void func_actor_151000_80132084(Task* task)
         if (work->footsteps != 0) {
             func_actor_151000_801324FC(task);
         }
+    }
+}
+
+/// The enemy's task body: publishes the task's work block in
+/// `D_actor_151000_8013D37C`, then runs the handler for the task's state from a
+/// table built on the stack - the spawn handler `func_actor_151000_80131F1C`,
+/// then the per-frame `func_actor_151000_80132450`.
+void func_actor_151000_801323F4(Task* task)
+{
+    void (*fns[2])(GpEnemy*, Task*) = {
+        func_actor_151000_80131F1C,
+        func_actor_151000_80132450,
+    };
+
+    D_actor_151000_8013D37C = task->work;
+    fns[task->state](task->spawnArg2, task);
+}
+
+/// State 1 of the enemy's task: refreshes the model root's coordinate, hands
+/// `func_800D7A9C` the point 0x320 above it, then runs the runner and draws the
+/// ground shadow.
+void func_actor_151000_80132450(GpEnemy* enemy, Task* task)
+{
+    TmdObject*     obj;
+    GsCOORDINATE2* coord;
+    VECTOR         vec;
+
+    obj   = task->extra;
+    coord = obj->coords;
+    Gp_UpdateCoord(coord);
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1] - 0x320;
+    vec.vz = coord->workm.t[2];
+    func_800D7A9C(obj, &vec, 0, 3);
+    func_actor_151000_80132084(task);
+    func_actor_151000_80132A38(task);
+}
+
+/// Exit callback the spawn handler installs on the enemy's task: tears down
+/// the enemy the task was spawned for.
+void func_actor_151000_801324D4(Task* task)
+{
+    Gp_DestroyEnemy(task->spawnArg2, task);
+}
+
+/// Plays a step sound whenever animation slot 1 rolls onto a new record whose
+/// flags nibble is 0x10 or 0x20 - the two feet - panned and attenuated from
+/// the second coordinate of the task's model. The record is latched in
+/// `stepRec` so each one fires once.
+void func_actor_151000_801324FC(Task* task)
+{
+    Actor151000Work* work;
+    GsCOORDINATE2*   obj;
+    GpAnimRec*       rec;
+    s32              kind;
+    s32              id;
+    s32              pan;
+
+    work = (Actor151000Work*)task->work;
+    obj  = ((TmdObject*)task->extra)->coords + 1;
+    rec  = Gp_AnimGetRec(&work->anim, &work->slots[1]);
+    if (rec == NULL || rec == work->stepRec) {
+        return;
+    }
+    work->stepRec = rec;
+    kind          = rec->flags & 0x30;
+    if (kind != 0x10 && kind != 0x20) {
+        return;
+    }
+    id = 0x1000000F;
+    if (kind == 0x10) {
+        id = 0x10000010;
+    }
+    id += 0x64;
+    pan = (s8)Gp_GetObjPan(obj);
+    SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(obj));
+}
+
+/// Ticks animation slots 1..0x12 of the enemy's animation context.
+void func_actor_151000_801325C4(void)
+{
+    s32 i;
+
+    i = 1;
+    do {
+        Gp_AnimTickIndex(&D_actor_151000_8013D37C->anim, i);
+        i++;
+    } while (i < 0x13);
+}
+
+/// Resets animation slots 1..0x12 to clip `animId` at rate 1, without a
+/// reset argument, and latches the clip into `field_47E`. Clears the footstep
+/// check's record first.
+void func_actor_151000_80132610(void)
+{
+    s32 i;
+
+    D_actor_151000_8013D37C->stepRec = NULL;
+    i                                = 1;
+    do {
+        D_actor_151000_8013D37C->slots[i].rate = 1;
+        Gp_AnimResetSlot(&D_actor_151000_8013D37C->anim, i, (s16)D_actor_151000_8013D37C->animId);
+        i++;
+    } while (i < 0x13);
+    D_actor_151000_8013D37C->field_47E = D_actor_151000_8013D37C->animId;
+}
+
+/// Starts animation slots 1..0x12 on clip `animId`, forwarding
+/// `D_actor_151000_8013D2AC` as the reset argument, and latches the clip into
+/// `field_47E`. Clears the footstep check's record first.
+void func_actor_151000_801326AC(void)
+{
+    s32 i;
+
+    D_actor_151000_8013D37C->stepRec = NULL;
+    i                                = 1;
+    do {
+        func_800B4114(&D_actor_151000_8013D37C->anim, i, (s16)D_actor_151000_8013D37C->animId, 0,
+                      D_actor_151000_8013D2AC);
+        i++;
+    } while (i < 0x13);
+    D_actor_151000_8013D37C->field_47E = D_actor_151000_8013D37C->animId;
+}
+
+/// "Start animation" opcode: `withArg` selects between the two start paths the
+/// runner `func_actor_151000_80132084` dispatches on, and only the first carries
+/// `animArg`, which it leaves in `D_actor_151000_8013D2AC`. The runner is then
+/// run once on the task published in `D_actor_151000_8013D380`. Returns -1,
+/// without touching the work block, when the clip id is 0x23 or more.
+s32 func_actor_151000_80132738(Task* task, s32 arg1, Actor151000AnimArgs* args, s32 arg3)
+{
+    if (args->animId < 0x23) {
+        D_actor_151000_8013D37C->animId = args->animId;
+        if (args->withArg != 0) {
+            D_actor_151000_8013D37C->state = 1;
+            D_actor_151000_8013D2AC        = args->animArg;
+        } else {
+            D_actor_151000_8013D37C->state = 2;
+        }
+        D_actor_151000_8013D37C->field_482 = 0;
+        func_actor_151000_80132084(D_actor_151000_8013D380);
+        return 0;
+    }
+    return -1;
+}
+
+/// Visibility opcode: applies `arg2` to the model of the task published in
+/// `D_actor_151000_8013D380` - bit 0 shows it (flags 0) rather than hiding it
+/// (0x80), and bit 1 ORs in 0x4.
+s32 func_actor_151000_801327C8(Task* task, s32 arg1, s32 arg2)
+{
+    TmdObject* obj;
+
+    obj = (TmdObject*)D_actor_151000_8013D380->extra;
+    if (arg2 & 1) {
+        obj->flags = 0;
+    } else {
+        obj->flags = 0x80;
+    }
+    if (arg2 & 2) {
+        obj->flags |= 4;
+    }
+    return 0;
+}
+
+/// Placement opcode: yaws the model's root coordinate to `placement->yaw`,
+/// caching that yaw in the work block, then drops the placement translation
+/// into the matrix and marks it dirty.
+s32 func_actor_151000_80132810(Task* task, s32 arg1, Actor151000Placement* placement)
+{
+    GsCOORDINATE2* coord;
+    u16            yaw;
+
+    coord                        = ((TmdObject*)task->extra)->coords;
+    D_actor_151000_8013D37C->yaw = yaw = placement->yaw;
+    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
+    coord->coord.t[0] = placement->pos.vx;
+    coord->coord.t[1] = placement->pos.vy;
+    coord->coord.t[2] = placement->pos.vz;
+    coord->flg        = 0;
+    return 0;
+}
+
+/// Message handler: message 0 arms the turn countdown `turnFrames` at 0x14
+/// frames, message 1 sets `footsteps`, which turns the footsteps on. Anything else does nothing.
+s32 func_actor_151000_8013288C(Task* task, s32 arg1, Actor151000Msg* msg)
+{
+    s32 kind;
+
+    kind = msg->field_2;
+    switch (kind) {
+        case 0:
+            D_actor_151000_8013D37C->turnFrames = 0x14;
+            break;
+        case 1:
+            D_actor_151000_8013D37C->footsteps = kind;
+            break;
+    }
+    return 0;
+}
+
+/// "Walk to" opcode: records `mode` in `D_actor_151000_8013D384`, turns the
+/// model to face `target` (away from it in mode 1) caching the yaw in the work
+/// block, and leaves in `travel` the planar distance divided by the walk's
+/// frame count: 0x3C in mode 0, 0xF in mode 1 and 0x19 in mode 2.
+s32 func_actor_151000_801328DC(Task* task, s32 arg1, VECTOR* target, s32 mode)
+{
+    GsCOORDINATE2*   coord;
+    Actor151000Work* work;
+    s32              dx;
+    s32              dz;
+    s32              steps;
+    s32              dist;
+    s32              angle;
+
+    coord                   = ((TmdObject*)task->extra)->coords;
+    work                    = (Actor151000Work*)task->work;
+    D_actor_151000_8013D384 = mode;
+    dx                      = target->vx - coord->coord.t[0];
+    dz                      = target->vz - coord->coord.t[2];
+    angle                   = ratan2(dx, dz);
+    work->yaw               = angle;
+    if (D_actor_151000_8013D384 == 1) {
+        work->yaw = angle + 0x800;
+    }
+    Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
+    dist = SquareRoot0(dx * dx + dz * dz);
+    switch (D_actor_151000_8013D384) {
+        case 0:
+            steps = 0x3C;
+            break;
+        case 1:
+            steps = 0xF;
+            break;
+        case 2:
+            steps = 0x19;
+            break;
+    }
+    work->travel = dist / steps;
+    return 0;
+}
+
+/// Draws the enemy's ground shadow quad under the model root, unless the model
+/// is hidden (`flags & 0x80`) or has no buffer yet. The root part's `workm`
+/// translation is staged in a scratchpad VECTOR3 rather than on the stack, and
+/// the quad takes the room's current ground shade.
+void func_actor_151000_80132A38(Task* task)
+{
+    TmdObject*     obj;
+    GsCOORDINATE2* coord;
+    VECTOR3*       vec;
+
+    obj   = (TmdObject*)task->extra;
+    coord = obj->coords;
+    if (!(obj->flags & 0x80) && obj->buffer != NULL) {
+        vec     = (VECTOR3*)(SCRATCH_SP -= 0x18);
+        vec->vx = coord->workm.t[0];
+        vec->vy = coord->workm.t[1];
+        vec->vz = coord->workm.t[2];
+        Gp_DrawEffGroundQuad(vec, 0x200, Gp_State1C->groundShade);
+        SCRATCH_SP += 0x18;
     }
 }
