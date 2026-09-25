@@ -5,6 +5,16 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+/// Message 0x7D5 handler of the parent: shows or hides its model. `mode`
+/// drives the `TmdObject` parked in `Task::extra` -- bit 0x80 hides it, bit
+/// 0x4 is the one the children copy alongside it:
+///
+///   mode 0  hide, drop 0x4
+///   mode 1  show, `Tmd_AllocBuffers`, drop 0x4
+///   mode 2  hide, start the `field_500` countdown to freeing the buffers, raise 0x4
+///   mode 3  show, raise 0x4
+///
+/// Returns 0 for the four known modes and 1 for any other.
 s32 func_actor_120400_80132C38(Task* task, s32 arg1, s32 mode, s32 arg3)
 {
     TmdObject*           obj;
@@ -40,6 +50,7 @@ s32 func_actor_120400_80132C38(Task* task, s32 arg1, s32 mode, s32 arg3)
     return ret;
 }
 
+/// Message 0x7DB handler of the parent: ignores the message and returns 0.
 s32 func_actor_120400_80132D14(void)
 {
     return 0;

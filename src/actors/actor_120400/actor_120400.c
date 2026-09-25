@@ -1,9 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_120400.h"
-#include "actors/actors_shared_801327b4.h"
-#include "actors/actors_shared_801327f8.h"
-#include "actors/actors_shared_80132f24.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -19,17 +16,16 @@
 extern TaskDesc   D_actor_120400_8013E748;
 extern GpMsgEntry D_actor_120400_8013E76C[];
 
-/// The parent's spawn handler, the same body `func_actor_335800_80162640` and
-/// `func_actor_350700_80162B30` run, with two children instead of two or three.
-/// Allocates the 0x504 `Actor120400MainWork` block, seeds it, and spawns the
+/// The parent's spawn handler. Allocates the 0x504 `Actor120400MainWork` block, seeds it, and spawns the
 /// two children `D_actor_120400_8013E748` holds -- table entries 1 and 2. Each
 /// has `TmdObject::tpage` / `field_25` loaded with the texture page and CLUT
 /// row of the `GpAreaPlace` that entry selects, reached through the area key
 /// `&gGameSession->at4.loc.view` and indexed by the model id the child's own
 /// `spawnArg2` carries at `GpEnemy::placeKey >> 12`, and each then has its
-/// texture stream processed twice when it has an aux buffer. The body ends by
-/// handing the parent to `ActorsShared80132f24`, pointing `msgTable` at the
-/// message table and installing `ActorsShared801327b4` as its exit callback.
+/// texture stream processed twice when it has a buffer. The body ends by
+/// pointing the parent's model at its light/colour matrices
+/// (`func_actor_120400_801327D4`), pointing `msgTable` at the message table and
+/// installing `func_actor_120400_801327B4` as its exit callback.
 void func_actor_120400_80131E5C(Task* arg0)
 {
     Actor120400MainWork* work;
@@ -102,16 +98,15 @@ void func_actor_120400_80131E5C(Task* arg0)
             tmdProcessStream(model);
         }
     }
-    ActorsShared80132f24(arg0);
+    func_actor_120400_801327D4(arg0);
     arg0->msgTable     = D_actor_120400_8013E76C;
-    arg0->exitCallback = ActorsShared801327b4;
+    arg0->exitCallback = func_actor_120400_801327B4;
     arg0->state       += 1;
 }
 
-/// The parent's per-frame update, the same body `func_actor_350700_80162D5C`
-/// and `func_actor_335800_80163568` run, without their duplicated
-/// `func_800D7A9C`: the model's own state handler -- entry `field_4F8` of the
-/// pair `{func_actor_120400_801327F0, ActorsShared801327f8}` -- runs first, then
+/// The parent's per-frame update: the motion handler -- entry `field_4F8` of
+/// the pair `{func_actor_120400_801327F0, func_actor_120400_801327F8}`, idle or
+/// the walk sequence -- runs first, then
 /// the three 16.16 step accumulators at 0x4D8..0x4E0 take this frame's `step`,
 /// their integer halves are added onto the root coordinate's translation and
 /// the fraction is dropped, and `flg` is cleared so the tree rebuilds. With
@@ -126,7 +121,7 @@ void func_actor_120400_80132050(Task* arg0)
 {
     TmdObject*           ext      = arg0->extra;
     Actor120400MainWork* work     = (Actor120400MainWork*)arg0->work;
-    TaskFunc             funcs[2] = { func_actor_120400_801327F0, ActorsShared801327f8 };
+    TaskFunc             funcs[2] = { func_actor_120400_801327F0, func_actor_120400_801327F8 };
     VECTOR3              pos;
     GsCOORDINATE2*       coord;
     s32                  i;
@@ -168,10 +163,10 @@ void func_actor_120400_80132050(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_120400/actor_120400", func_actor_120400_80132254);
 
-/// The parent's placement handler, the same body `func_actor_335800_80162C80`
-/// and `func_actor_317000_80162458` run: the spawn position and rotation are
-/// copied straight into `Actor120400MainWork` at 0x4B8..0x4C0 / 0x4F0..0x4F4,
-/// and a start preset is built on the stack -- bank id 0, the optional start
+/// Message 0x7DD handler of the parent: starts the walk sequence toward a
+/// placement. The position and rotation are copied into `target` and
+/// `field_4F0..field_4F4`, `field_4F8` selects the walk and `field_4FA` restarts
+/// it, and a start preset is built on the stack -- bank id 0, the optional start
 /// animation's id and companion byte (0x10 and 1 when absent), 1, 5 and 1 --
 /// and then applied in-line. A changed bank id latches `field_476` and reseeds
 /// the animation through `func_800B3F84` with the bank this overlay's
@@ -192,9 +187,9 @@ s32 func_actor_120400_80132398(Task* task, s32 arg1, Actor120400Placement* place
     w              = (Actor120400MainWork*)task->work;
     w->field_4F8   = 1;
     w->field_4FA   = 0;
-    w->field_4B8   = place->pos.vx;
-    w->field_4BC   = place->pos.vy;
-    w->field_4C0   = place->pos.vz;
+    w->target.vx   = place->pos.vx;
+    w->target.vy   = place->pos.vy;
+    w->target.vz   = place->pos.vz;
     w->field_4F0   = place->rot.vx;
     w->field_4F2   = place->rot.vy;
     w->field_4F4   = place->rot.vz;
@@ -234,6 +229,6 @@ s32 func_actor_120400_80132398(Task* task, s32 arg1, Actor120400Placement* place
     work->field_474 = 1;
     return 0;
 }
-INCLUDE_RODATA("actors/nonmatchings/actor_120400/actor_120400", ActorsShared80138404Table);
+INCLUDE_RODATA("actors/nonmatchings/actor_120400/actor_120400", D_actor_120400_80131E24);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_120400/actor_120400", D_actor_120400_80131E30);
