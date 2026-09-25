@@ -51,6 +51,21 @@ typedef struct Actor403600EffectScratch {
 } Actor403600EffectScratch;
 STATIC_ASSERT_SIZEOF(Actor403600EffectScratch, 0x78);
 
+/// Scratch block `func_actor_403600_80134398` works in while it steers and
+/// draws a projectile.
+typedef struct Actor403600ProjectileScratch {
+    VECTOR  target;  // world position of the part the projectile homes on
+    SVECTOR dir;     // that part relative to the view, then the steering direction
+    DVECTOR sxy;     // screen position of the trail point being drawn
+    s32     dp;      // depth cue of that point
+    s32     flag;    // GTE flag of the projection; negative when it failed
+    s32     otz;     // screen depth of that point
+    s32     pad_28;
+    SVECTOR spin;    // half-extents of the quad being drawn, turned by the point's angle
+    MATRIX  viewRot; // the view rotation, transposed to take view space back to world space
+} Actor403600ProjectileScratch;
+STATIC_ASSERT_SIZEOF(Actor403600ProjectileScratch, 0x54);
+
 extern const SVECTOR D_actor_403600_80131E24;
 extern GpU16Pair     D_actor_403600_801420F0;
 extern s32           D_actor_403600_80142120[];
@@ -234,9 +249,6 @@ extern s32           D_actor_403600_8016069C;
 extern s32           D_actor_403600_801606A0;
 extern const SVECTOR D_actor_403600_80131E2C;
 extern const CVECTOR D_actor_403600_80131E34;
-
-// Typed accesses change GCC 2.8.1's alias/CSE decisions in this initializer.
-#define ACTOR_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8*)(expr) + (offset)))
 
 void func_actor_403600_801353D0(ActorEffectState* arg0, GsCOORDINATE2* arg1);
 void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, TaskIdMap* arg2, TaskIdMap* arg3);
@@ -1137,162 +1149,156 @@ const SVECTOR D_actor_403600_80131E24 = { -100, 700, -280, 0 };
 
 void func_actor_403600_80134398(Task* arg0)
 {
-    void*    gteValue1;
-    void*    gteValue2;
-    void*    gteValue3;
-    void*    gteValue4;
-    void*    gteValue5;
-    void*    gteValue6;
-    s32      gteValue7;
-    SVECTOR  sp10;
-    SVECTOR  sp18;
-    SVECTOR* firstVector;
-    SVECTOR* cameraVector;
-    void*    sp20;
-    s32      sp24;
-    s32      sp28;
-    s32*     sp30;
-    s32*     ot;
-    u32      otOffset;
-    s32      sp34;
-    s32*     var_a1_3;
-    s16      temp_a2;
-    s16      temp_s0_6;
-    s16      temp_v1_10;
-    s16      temp_v1_11;
-    s16      temp_v1_8;
-    s16      temp_v1_9;
-    s16      var_v0_2;
-    s32*     temp_v0_6;
-    s32      temp_a0_4;
-    s32      temp_v1_13;
-    s32      temp_v1_6;
-    s32      var_a0;
-    s32      var_a1;
-    s32      var_a1_2;
-    s32      var_a2;
-    s32      var_fp;
-    s32      var_s4;
-    s32      var_v1_2;
-    s32      temp_s0_3;
-    s32      temp_s0_5;
-    s8       temp_v1_12;
-    s8       temp_v1_14;
-    u16      temp_v1_3;
-    s32      var_v0;
-    s32      flag;
-    s32      historyDst, historySrc;
-    SVECTOR* historyOut;
-    s32      weightedX, weightedY, weightedZ;
-    s32      scratchX, scratchY, scratchZ;
-    s32      velocityX, velocityY, velocityZ;
-    u8       temp_v0_5;
-    u8       temp_v1_4;
-    u8       temp_v1_5;
-    u8       temp_v1_7;
-    void*    temp_a0;
-    void*    temp_a0_2;
-    void*    temp_a0_3;
-    void*    motionParent;
-    void*    temp_s0;
-    void*    temp_s0_2;
-    void*    temp_s0_4;
-    void*    temp_s1;
-    void*    temp_s1_2;
-    void*    temp_s1_3;
-    void*    temp_s1_4;
-    s32      temp_s2;
-    void*    temp_s4;
-    void*    temp_s5;
-    void*    temp_s6;
+    MATRIX*        gteValue1;
+    SVECTOR*       gteValue2;
+    DVECTOR*       gteValue3;
+    s32*           gteValue4;
+    s32*           gteValue5;
+    s32*           gteValue6;
+    s32            gteValue7;
+    SVECTOR        sp10;
+    SVECTOR        sp18;
+    SVECTOR*       firstVector;
+    SVECTOR*       cameraVector;
+    Task*          player;
+    s32            sp24;
+    s32            sp28;
+    DisplayState*  sp30;
+    s32*           ot;
+    u32            otOffset;
+    s32            sp34;
+    DisplayState*  var_a1_3;
+    s16            temp_s0_6;
+    s16            temp_v1_10;
+    s16            temp_v1_11;
+    s16            temp_v1_8;
+    s16            temp_v1_9;
+    s32*           temp_v0_6;
+    s32            temp_a0_4;
+    s32            temp_v1_13;
+    s32            temp_v1_6;
+    s32            var_a0;
+    GsCOORDINATE2* var_a1_2;
+    s32            var_a2;
+    s32            var_fp;
+    s32            var_s4;
+    s32            temp_s0_3;
+    s32            temp_s0_5;
+    s8             temp_v1_12;
+    u16            temp_v1_3;
+    s32            var_v0;
+    s32            historyDst, historySrc;
+    SVECTOR*       historyOut;
+    s32            weightedX, weightedY, weightedZ;
+    s32            scratchX, scratchY, scratchZ;
+    s32            velocityX, velocityY, velocityZ;
+    u8             temp_v0_5;
+    u8             temp_v1_4;
+    u8             temp_v1_5;
+    u8             temp_v1_7;
+    GsCOORDINATE2* ownerCoord;
+    Task*          motionParent;
+    Task*          temp_a0_3;
+    GpObj*         obj;
+    GpRec18*       recs;
+    SVECTOR*       temp_s0_4;
+    SVECTOR*       temp_s1;
+    GpActorD4Rec*  newShape;
+    GsCOORDINATE2* target;
+    GsCOORDINATE2* view;
+    GpActorD4Rec*  shape;
+    /* One local holds the owner's work block, then the steering pass count,
+     * then the address of the primitive being written: all three share a
+     * single register allocation. */
+    s32                        shared;
+    Task*                      owner;
+    Actor403600ProjectileWork* work;
+    GsCOORDINATE2*             coord;
     /* Keep the raw scratch head separate until the branch-delay copy. */
-    register void* temp_v0 asm("v0");
-    void*          temp_v0_2;
-    void*          temp_v0_3;
-    void*          temp_v0_4;
-    void*          temp_v1;
-    void*          temp_v1_2;
-    void*          var_s1;
-    void*          var_v1;
-    void*          var_v1_3;
+    register void*                temp_v0 asm("v0");
+    Actor403600ProjectileScratch* scratch;
+    Actor403600ProjectileWork*    newWork;
+    SVECTOR*                      temp_v0_4;
+    SVECTOR*                      temp_v1;
+    SVECTOR*                      point;
 
-    temp_s6 = ACTOR_FIELD(ACTOR_FIELD(arg0, s32*, 0x2C), s32*, 0x8);
-    var_fp  = (s32)&sp10;
-    sp10    = D_actor_403600_80131E24;
+    coord  = ((TmdObject*)arg0->extra)->coords;
+    var_fp = (s32)&sp10;
+    sp10   = D_actor_403600_80131E24;
     /* Order the vector copy and actor load without fencing the stack address. */
     __asm__("" : "+m"(sp10) : : "memory");
-    sp20 = Gp_ActorSlots[0];
-    if (sp20 == NULL) {
+    player = Gp_ActorSlots[0];
+    if (player == NULL) {
         Task_CallExit(arg0);
         return;
     }
-    if (ACTOR_FIELD(ACTOR_FIELD(ACTOR_FIELD(arg0, s32*, 0x20), s32*, 0x1C), s16*, 0x742) == 1) {
+    if (((Actor403600Work*)((Task*)arg0->spawnArg2)->work)->field_742 == 1) {
         Task_CallExit(arg0);
         return;
     }
     temp_v0            = SCRATCH_HEAD(void);
     temp_v0           -= 0x54;
     SCRATCH_HEAD(void) = temp_v0;
-    temp_v0_2          = temp_v0;
-    if (ACTOR_FIELD(arg0, s32*, 0x30) == 0) {
-        temp_v0_3 = memCalloc(0x15C, 0);
-        if (temp_v0_3 == NULL) {
+    scratch            = temp_v0;
+    if (arg0->state == 0) {
+        newWork = memCalloc(0x15C, 0);
+        if (newWork == NULL) {
             Task_CallExit(arg0);
             SCRATCH_POP_BYTES(0x54);
             return;
         }
-        ACTOR_FIELD(arg0, s32*, 0x1C)    = temp_v0_3;
-        ACTOR_FIELD(temp_s6, s32*, 0x4C) = &gGfxViewCoord;
-        ACTOR_FIELD(temp_s6, s32*, 0x20) = 0;
-        ACTOR_FIELD(temp_s6, s32*, 0x1C) = 0;
-        ACTOR_FIELD(temp_s6, s32*, 0x18) = 0;
-        ACTOR_FIELD(temp_s6, s32*, 0x0)  = 0;
-        temp_s4                          = ACTOR_FIELD(arg0, s32*, 0x20);
-        SOFT_USE_REG(temp_s4);
-        SOFT_USE_REG(temp_s4);
-        SOFT_USE_REG(temp_s4);
-        SOFT_USE_REG(temp_s4);
-        SOFT_USE_REG(temp_s4);
-        SOFT_USE_REG(temp_s4);
-        SOFT_USE_REG(temp_s4);
-        SOFT_USE_REG(temp_s4);
-        SOFT_USE_REG(temp_s4);
-        SOFT_USE_REG(temp_s4);
-        SOFT_USE_REG(temp_s4);
-        SOFT_USE_REG(temp_s4);
-        SOFT_USE_REG(temp_s4);
-        SOFT_USE_REG(temp_s4);
-        SOFT_USE_REG(temp_s4);
-        ACTOR_FIELD(arg0, u16*, 0x2A) = 1U;
-        ACTOR_FIELD(arg0, u8*, 0x38)  = 1U;
-        ACTOR_FIELD(arg0, s32*, 0x3C) = 0;
-        if (temp_s4 == NULL) {
-            ACTOR_FIELD(temp_v0_3, s16*, 0x100) = 0;
-            ACTOR_FIELD(temp_v0_3, s16*, 0x102) = -0x1000;
-            ACTOR_FIELD(temp_v0_3, s16*, 0x104) = 0;
+        arg0->work        = newWork;
+        coord->sub        = &gGfxViewCoord;
+        coord->coord.t[2] = 0;
+        coord->coord.t[1] = 0;
+        coord->coord.t[0] = 0;
+        coord->flg        = 0;
+        owner             = arg0->spawnArg2;
+        SOFT_USE_REG(owner);
+        SOFT_USE_REG(owner);
+        SOFT_USE_REG(owner);
+        SOFT_USE_REG(owner);
+        SOFT_USE_REG(owner);
+        SOFT_USE_REG(owner);
+        SOFT_USE_REG(owner);
+        SOFT_USE_REG(owner);
+        SOFT_USE_REG(owner);
+        SOFT_USE_REG(owner);
+        SOFT_USE_REG(owner);
+        SOFT_USE_REG(owner);
+        SOFT_USE_REG(owner);
+        SOFT_USE_REG(owner);
+        SOFT_USE_REG(owner);
+        arg0->killCountdown = 1;
+        arg0->status        = 1;
+        arg0->extraState    = 0;
+        if (owner == NULL) {
+            newWork->velocity.vx = 0;
+            newWork->velocity.vy = -0x1000;
+            newWork->velocity.vz = 0;
         } else {
-            temp_s2                             = (void*)ACTOR_FIELD(temp_s4, s32*, 0x1C);
-            ACTOR_FIELD(temp_v0_3, s16*, 0x102) = -0x1B8;
-            firstVector                         = &sp18;
-            temp_s1                             = temp_v0_3 + 0x100;
+            shared               = (s32)owner->work;
+            newWork->velocity.vy = -0x1B8;
+            firstVector          = &sp18;
+            temp_s1              = &newWork->velocity;
 
-            ACTOR_FIELD(temp_v0_3, s16*, 0x100) = 0;
-            ACTOR_FIELD(temp_v0_3, s16*, 0x104) = 0x4B0;
-            sp18                                = *(SVECTOR*)(temp_v0_3 + 0x100);
-            temp_a0                             = temp_s2 + 0x4B8;
-            temp_s2                            += 0x4BC;
-            gte_SetRotMatrix(temp_s2);
+            newWork->velocity.vx = 0;
+            newWork->velocity.vz = 0x4B0;
+            sp18                 = newWork->velocity;
+            ownerCoord           = &((Actor403600Work*)shared)->field_4B8;
+            shared               = (s32) & ((Actor403600Work*)shared)->field_4B8.coord;
+            gte_SetRotMatrix(shared);
             gte_ldv0(firstVector);
             gte_rtv0();
             gte_stsv(temp_s1);
-            ACTOR_FIELD(temp_s6, s32*, 0x18)    = (s32)(ACTOR_FIELD(temp_a0, s32*, 0x18) + ACTOR_FIELD(temp_v0_3, s16*, 0x100));
-            ACTOR_FIELD(temp_s6, s32*, 0x1C)    = (s32)(ACTOR_FIELD(temp_a0, s32*, 0x1C) + ACTOR_FIELD(temp_v0_3, s16*, 0x102));
-            ACTOR_FIELD(temp_s6, s32*, 0x20)    = (s32)(ACTOR_FIELD(temp_a0, s32*, 0x20) + ACTOR_FIELD(temp_v0_3, s16*, 0x104));
-            ACTOR_FIELD(temp_v0_3, s16*, 0x100) = (s16)((rand() & 0x1FF) - 0x100);
-            ACTOR_FIELD(temp_v0_3, s16*, 0x102) = (s16)((rand() & 0x1FF) - 0x100);
-            ACTOR_FIELD(temp_v0_3, s16*, 0x104) = 0x1000;
-            sp18                                = *(SVECTOR*)(temp_v0_3 + 0x100);
-            gte_SetRotMatrix(temp_s2);
+            coord->coord.t[0]    = ownerCoord->coord.t[0] + newWork->velocity.vx;
+            coord->coord.t[1]    = ownerCoord->coord.t[1] + newWork->velocity.vy;
+            coord->coord.t[2]    = ownerCoord->coord.t[2] + newWork->velocity.vz;
+            newWork->velocity.vx = (s16)((rand() & 0x1FF) - 0x100);
+            newWork->velocity.vy = (s16)((rand() & 0x1FF) - 0x100);
+            newWork->velocity.vz = 0x1000;
+            sp18                 = newWork->velocity;
+            gte_SetRotMatrix(shared);
             gte_ldv0(firstVector);
             gte_rtv0();
             gte_stsv(temp_s1);
@@ -1301,225 +1307,222 @@ void func_actor_403600_80134398(Task* arg0)
             SOFT_USE_REG2(firstVector, temp_s1);
             SOFT_USE_REG(firstVector);
 
-            if (ACTOR_FIELD(arg0, s32*, 0x34) == 0x1100) {
-                Gp_CopyCoordOffset(arg0, ACTOR_FIELD(ACTOR_FIELD(temp_s4, s32*, 0x2C), s32*, 0x8) + 0x460, (void*)var_fp);
+            if (arg0->spawnArg1 == 0x1100) {
+                Gp_CopyCoordOffset(arg0, &((TmdObject*)owner->extra)->coords[14], (SVECTOR*)var_fp);
             } else {
-                Gp_CopyCoordOffset(arg0, ACTOR_FIELD(ACTOR_FIELD(temp_s4, s32*, 0x2C), s32*, 0x8) + 0x5A0, (void*)var_fp);
+                Gp_CopyCoordOffset(arg0, &((TmdObject*)owner->extra)->coords[18], (SVECTOR*)var_fp);
             }
-            if (ACTOR_FIELD(arg0, s32*, 0x34) < 0x1000) {
-                Gp_SpawnEff(0x601BB, temp_s6, 0x20, 0);
+            if (arg0->spawnArg1 < 0x1000) {
+                Gp_SpawnEff(0x601BB, coord, 0x20, 0);
             }
-            ACTOR_FIELD(arg0, u8*, 0x38)  = 3U;
-            ACTOR_FIELD(arg0, u16*, 0x2A) = 0x20U;
+            arg0->status        = 3;
+            arg0->killCountdown = 0x20;
         }
         var_s4 = 0;
-        if (ACTOR_FIELD(arg0, s32*, 0x34) >= 0x1000) {
-            ACTOR_FIELD(arg0, u8*, 0x38) = 4U;
+        if (arg0->spawnArg1 >= 0x1000) {
+            arg0->status = 4;
         }
         do {
-            ((SVECTOR*)temp_v0_3)[var_s4].vx = (u16)ACTOR_FIELD(temp_s6, s32*, 0x18);
-            ((SVECTOR*)temp_v0_3)[var_s4].vy = (u16)ACTOR_FIELD(temp_s6, s32*, 0x1C);
-            ((SVECTOR*)temp_v0_3)[var_s4].vz = (u16)ACTOR_FIELD(temp_s6, s32*, 0x20);
-            var_s4                          += 1;
+            newWork->trail[var_s4].vx = (u16)coord->coord.t[0];
+            newWork->trail[var_s4].vy = (u16)coord->coord.t[1];
+            newWork->trail[var_s4].vz = (u16)coord->coord.t[2];
+            var_s4                   += 1;
         } while (var_s4 < 0x20);
-        temp_s1_2 = temp_v0_3 + 0x128;
-        if (ACTOR_FIELD(arg0, s32*, 0x34) < 0x1000) {
-            temp_s0                             = temp_v0_3 + 0x108;
-            ACTOR_FIELD(temp_s0, s32*, 0x8)     = temp_s6;
-            ACTOR_FIELD(temp_s0, s32*, 0xC)     = temp_s1_2;
-            ACTOR_FIELD(temp_s0, s16*, 0x10)    = 0;
-            ACTOR_FIELD(temp_s0, s16*, 0x12)    = 0;
-            ACTOR_FIELD(temp_s0, s16*, 0x14)    = 0;
-            ACTOR_FIELD(temp_s0, s16*, 0x1C)    = 0;
-            temp_a0_2                           = temp_v0_3 + 0x140;
-            ACTOR_FIELD(temp_s0, s32*, 0x18)    = Gp_PackPair(&D_actor_403600_801420F0, ACTOR_FIELD(arg0, s32*, 0x34) & 0xF);
-            ACTOR_FIELD(temp_s0, u16*, 0x1E)    = 3U;
-            ACTOR_FIELD(temp_s1_2, s32*, 0x14)  = temp_a0_2;
-            ACTOR_FIELD(temp_s1_2, s16*, 0x8)   = 0;
-            ACTOR_FIELD(temp_s1_2, s16*, 0xA)   = 0;
-            ACTOR_FIELD(temp_s1_2, s16*, 0xC)   = 0;
-            ACTOR_FIELD(temp_v0_3, s16*, 0x128) = 0;
-            ACTOR_FIELD(temp_s1_2, s16*, 0x2)   = 0;
-            ACTOR_FIELD(temp_s1_2, s16*, 0x4)   = 0;
-            ACTOR_FIELD(temp_s1_2, s16*, 0x10)  = 0xC8;
-            ACTOR_FIELD(temp_s1_2, s16*, 0x12)  = 0xC8;
-            Gp_InitRec18Table(temp_a0_2, 1, 0);
-            Gp_LinkObj(3, temp_s0);
-            ACTOR_FIELD(temp_s0, u16*, 0x1E) = (u16)(ACTOR_FIELD(temp_s0, u16*, 0x1E) | 0xC000);
-            ACTOR_FIELD(arg0, s32*, 0x18)    = &func_actor_403600_80138C68;
+        newShape = &newWork->shape;
+        if (arg0->spawnArg1 < 0x1000) {
+            obj                    = &newWork->obj;
+            obj->coord             = coord;
+            obj->ctx.d4rec         = newShape;
+            obj->pos.vx            = 0;
+            obj->pos.vy            = 0;
+            obj->pos.vz            = 0;
+            obj->radius            = 0;
+            recs                   = newWork->recs;
+            obj->key               = Gp_PackPair(&D_actor_403600_801420F0, arg0->spawnArg1 & 0xF);
+            obj->flags             = 3;
+            newShape->recs         = recs;
+            newShape->end1.vx      = 0;
+            newShape->end1.vy      = 0;
+            newShape->end1.vz      = 0;
+            newWork->shape.end0.vx = 0;
+            newShape->end0.vy      = 0;
+            newShape->end0.vz      = 0;
+            newShape->end0Radius   = 0xC8;
+            newShape->end1Radius   = 0xC8;
+            Gp_InitRec18Table(recs, 1, 0);
+            Gp_LinkObj(3, obj);
+            obj->flags         = obj->flags | 0xC000;
+            arg0->exitCallback = func_actor_403600_80138C68;
         }
-        ACTOR_FIELD(temp_v0_3, s32*, 0x158) = 0x12C;
-        ACTOR_FIELD(arg0, s32*, 0x30)       = (s32)(ACTOR_FIELD(arg0, s32*, 0x30) + 1);
+        newWork->life = 0x12C;
+        arg0->state   = arg0->state + 1;
         goto block_22;
     }
 block_22:
-    temp_s5   = ACTOR_FIELD(arg0, s32*, 0x1C);
-    temp_s1_3 = ACTOR_FIELD(ACTOR_FIELD(sp20, s32*, 0x2C), s32*, 0x8) + 0x50;
-    Gp_UpdateCoord(temp_s1_3);
-    TransposeMatrix(&Gfx_ViewWorldMtx, temp_v0_2 + 0x34);
-    temp_s0_2                          = (u8*)&Gfx_ViewWorldMtx - 0x24;
-    var_s4                             = ACTOR_FIELD(temp_s1_3, s32*, 0x38) - ACTOR_FIELD(temp_s0_2, s32*, 0x38);
-    ACTOR_FIELD(temp_v0_2, s16*, 0x10) = (s16)var_s4;
-    var_s4                             = ACTOR_FIELD(temp_s1_3, s32*, 0x3C) - ACTOR_FIELD(temp_s0_2, s32*, 0x3C);
-    ACTOR_FIELD(temp_v0_2, s16*, 0x12) = (s16)var_s4;
-    temp_s1_4                          = temp_s5 + 0x128;
-    cameraVector                       = &sp18;
-    temp_v1                            = temp_v0_2 + 0x10;
-    var_s4                             = ACTOR_FIELD(temp_s1_3, s32*, 0x40) - ACTOR_FIELD(temp_s0_2, s32*, 0x40);
-    ACTOR_FIELD(temp_v0_2, s16*, 0x14) = (s16)var_s4;
-    *cameraVector                      = *(SVECTOR*)(temp_v0_2 + 0x10);
-    gteValue1                          = temp_v0_2 + 0x34;
+    work   = arg0->work;
+    target = &((TmdObject*)player->extra)->coords[1];
+    Gp_UpdateCoord(target);
+    TransposeMatrix(&gGfxViewCoord.workm, &scratch->viewRot);
+    view            = &gGfxViewCoord;
+    var_s4          = target->workm.t[0] - view->workm.t[0];
+    scratch->dir.vx = (s16)var_s4;
+    var_s4          = target->workm.t[1] - view->workm.t[1];
+    scratch->dir.vy = (s16)var_s4;
+    shape           = &work->shape;
+    cameraVector    = &sp18;
+    temp_v1         = &scratch->dir;
+    var_s4          = target->workm.t[2] - view->workm.t[2];
+    scratch->dir.vz = (s16)var_s4;
+    *cameraVector   = scratch->dir;
+    gteValue1       = &scratch->viewRot;
     gte_SetRotMatrix(gteValue1);
     gte_ldv0(cameraVector);
     gte_rtv0();
     gte_stsv(temp_v1);
-    ACTOR_FIELD(temp_v0_2, s32*, 0x0) = (s32)ACTOR_FIELD(temp_v0_2, s16*, 0x10);
-    ACTOR_FIELD(temp_v0_2, s32*, 0x4) = (s32)ACTOR_FIELD(temp_v0_2, s16*, 0x12);
-    ACTOR_FIELD(temp_v0_2, s32*, 0x8) = (s32)ACTOR_FIELD(temp_v0_2, s16*, 0x14);
+    scratch->target.vx = scratch->dir.vx;
+    scratch->target.vy = scratch->dir.vy;
+    scratch->target.vz = scratch->dir.vz;
     if (Gp_StateF0.field_4 == 0) {
-        if (ACTOR_FIELD(arg0, s32*, 0x34) < 0x1000) {
-            ACTOR_FIELD(temp_s5, s32*, 0x158) = (s32)(ACTOR_FIELD(temp_s5, s32*, 0x158) - 1);
+        if (arg0->spawnArg1 < 0x1000) {
+            work->life = work->life - 1;
         } else {
-            ACTOR_FIELD(arg0, u16*, 0x2A) = (u16)(ACTOR_FIELD(arg0, u16*, 0x2A) + 1);
+            arg0->killCountdown = (u16)arg0->killCountdown + 1;
         }
         var_s4 = 0;
         do {
-            historyDst  = (31 - var_s4) * 8;
-            historyOut  = (SVECTOR*)((s32)temp_s5 + historyDst);
-            historySrc  = (30 - var_s4) * 8;
-            *historyOut = *(SVECTOR*)((s32)temp_s5 + historySrc);
-            var_s4     += 1;
+            work->trail[31 - var_s4] = work->trail[30 - var_s4];
+            var_s4                  += 1;
         } while (var_s4 < 0x1F);
-        ACTOR_FIELD(arg0, s32*, 0x3C) ^= 1;
-        temp_v1_3                      = ACTOR_FIELD(arg0, u16*, 0x2A) - 1;
-        ACTOR_FIELD(arg0, u16*, 0x2A)  = temp_v1_3;
+        arg0->extraState   ^= 1;
+        temp_v1_3           = (u16)arg0->killCountdown - 1;
+        arg0->killCountdown = temp_v1_3;
         if ((temp_v1_3 << 0x10) <= 0) {
-            temp_v1_4 = ACTOR_FIELD(arg0, u8*, 0x38);
+            temp_v1_4 = arg0->status;
             if (temp_v1_4 == 2) {
                 Task_CallExit(arg0);
             } else {
                 if (temp_v1_4 == 3) {
-                    temp_s0_3 = (s8)Gp_GetObjPan(temp_s6);
-                    SndEvt_EnqueueType6(0x54160009, temp_s0_3, (s8)gpGetObjDepth(temp_s6));
+                    temp_s0_3 = (s8)Gp_GetObjPan(coord);
+                    SndEvt_EnqueueType6(0x54160009, temp_s0_3, (s8)gpGetObjDepth(coord));
                     var_v0 = (rand() & 0xF) + 0x10;
                     goto block_34;
                 }
                 var_v0 = 0x7FFF;
                 if (temp_v1_4 == 0) {
                 block_34:
-                    ACTOR_FIELD(arg0, u16*, 0x2A) = var_v0;
-                    ACTOR_FIELD(arg0, u8*, 0x38)  = 1U;
+                    arg0->killCountdown = var_v0;
+                    arg0->status        = 1;
                 } else {
-                    ACTOR_FIELD(arg0, u16*, 0x2A) = (u16)((rand() & 0xF) + 0x10);
-                    ACTOR_FIELD(arg0, u8*, 0x38)  = (u8)(ACTOR_FIELD(arg0, u8*, 0x38) ^ 1);
+                    arg0->killCountdown = (u16)((rand() & 0xF) + 0x10);
+                    arg0->status        = (u8)(arg0->status ^ 1);
                 }
                 goto block_36;
             }
         } else {
         block_36:
-            if (ACTOR_FIELD(arg0, u8*, 0x38) != 2) {
-                temp_s2   = 0;
-                temp_s0_4 = temp_v0_2 + 0x10;
+            if (arg0->status != 2) {
+                shared    = 0;
+                temp_s0_4 = &scratch->dir;
                 do {
-                    if (ACTOR_FIELD(arg0, u8*, 0x38) == 0) {
-                        ACTOR_FIELD(temp_v0_2, s16*, 0x10) = (s16)((ACTOR_FIELD(temp_v0_2, s32*, 0x0) - ACTOR_FIELD(temp_s6, s32*, 0x18)) >> 2);
-                        ACTOR_FIELD(temp_v0_2, s16*, 0x12) = (s16)((s32)(ACTOR_FIELD(temp_v0_2, s32*, 0x4) - ACTOR_FIELD(temp_s6, s32*, 0x1C)) >> 2);
-                        ACTOR_FIELD(temp_v0_2, s16*, 0x14) = (s16)((s32)(ACTOR_FIELD(temp_v0_2, s32*, 0x8) - ACTOR_FIELD(temp_s6, s32*, 0x20)) >> 2);
+                    if (arg0->status == 0) {
+                        scratch->dir.vx = (s16)((scratch->target.vx - coord->coord.t[0]) >> 2);
+                        scratch->dir.vy = (s16)((s32)(scratch->target.vy - coord->coord.t[1]) >> 2);
+                        scratch->dir.vz = (s16)((s32)(scratch->target.vz - coord->coord.t[2]) >> 2);
                         VectorNormalSS(temp_s0_4, temp_s0_4);
                         /* Keep scratch loads live across the weighted shifts. */
-                        velocityX = ACTOR_FIELD(temp_s5, s16*, 0x100);
+                        velocityX = work->velocity.vx;
                         weightedX = velocityX * 8;
-                        scratchX  = ACTOR_FIELD(temp_v0_2, s16*, 0x10);
+                        scratchX  = scratch->dir.vx;
                         SOFT_TOUCH_REG_USE(weightedX, scratchX);
-                        weightedX                         -= velocityX;
-                        ACTOR_FIELD(temp_v0_2, s16*, 0x10) = (scratchX + weightedX) >> 4;
-                        velocityY                          = ACTOR_FIELD(temp_s5, s16*, 0x102);
-                        weightedY                          = velocityY * 8;
-                        scratchY                           = ACTOR_FIELD(temp_v0_2, s16*, 0x12);
+                        weightedX      -= velocityX;
+                        scratch->dir.vx = (scratchX + weightedX) >> 4;
+                        velocityY       = work->velocity.vy;
+                        weightedY       = velocityY * 8;
+                        scratchY        = scratch->dir.vy;
                         SOFT_TOUCH_REG_USE(weightedY, scratchY);
-                        weightedY                         -= velocityY;
-                        ACTOR_FIELD(temp_v0_2, s16*, 0x12) = (scratchY + weightedY) >> 4;
-                        velocityZ                          = ACTOR_FIELD(temp_s5, s16*, 0x104);
-                        weightedZ                          = velocityZ * 8;
-                        scratchZ                           = ACTOR_FIELD(temp_v0_2, s16*, 0x14);
+                        weightedY      -= velocityY;
+                        scratch->dir.vy = (scratchY + weightedY) >> 4;
+                        velocityZ       = work->velocity.vz;
+                        weightedZ       = velocityZ * 8;
+                        scratchZ        = scratch->dir.vz;
                         SOFT_TOUCH_REG_USE(weightedZ, scratchZ);
-                        weightedZ                         -= velocityZ;
-                        ACTOR_FIELD(temp_v0_2, s16*, 0x14) = (scratchZ + weightedZ) >> 4;
+                        weightedZ      -= velocityZ;
+                        scratch->dir.vz = (scratchZ + weightedZ) >> 4;
                         VectorNormalSS(temp_s0_4, temp_s0_4);
-                        ACTOR_FIELD(temp_s5, s16*, 0x100) = (s16)(u16)ACTOR_FIELD(temp_v0_2, s16*, 0x10);
-                        ACTOR_FIELD(temp_s5, s16*, 0x102) = (s16)(u16)ACTOR_FIELD(temp_v0_2, s16*, 0x12);
-                        ACTOR_FIELD(temp_s5, s16*, 0x104) = (s16)(u16)ACTOR_FIELD(temp_v0_2, s16*, 0x14);
+                        work->velocity.vx = (s16)(u16)scratch->dir.vx;
+                        work->velocity.vy = (s16)(u16)scratch->dir.vy;
+                        work->velocity.vz = (s16)(u16)scratch->dir.vz;
                     }
-                    temp_v1_5 = ACTOR_FIELD(arg0, u8*, 0x38);
+                    temp_v1_5 = arg0->status;
                     if (temp_v1_5 < 3U) {
                         gte_lddp(100);
-                        gteValue2 = temp_s5 + 0x100;
+                        gteValue2 = &work->velocity;
                         gte_ldsv(gteValue2);
                         gte_gpf12();
                         gte_stsv(temp_s0_4);
-                        ACTOR_FIELD(temp_s1_4, s16*, 0x8) = (s16) - (s16)(u16)ACTOR_FIELD(temp_v0_2, s16*, 0x10);
-                        ACTOR_FIELD(temp_s1_4, s16*, 0xA) = (s16) - (s16)(u16)ACTOR_FIELD(temp_v0_2, s16*, 0x12);
-                        ACTOR_FIELD(temp_s1_4, s16*, 0xC) = (s16) - (s16)(u16)ACTOR_FIELD(temp_v0_2, s16*, 0x14);
-                        ACTOR_FIELD(temp_s6, s32*, 0x18)  = (s32)(ACTOR_FIELD(temp_s6, s32*, 0x18) + ACTOR_FIELD(temp_v0_2, s16*, 0x10));
-                        ACTOR_FIELD(temp_s6, s32*, 0x1C)  = (s32)(ACTOR_FIELD(temp_s6, s32*, 0x1C) + ACTOR_FIELD(temp_v0_2, s16*, 0x12));
-                        ACTOR_FIELD(temp_s6, s32*, 0x20)  = (s32)(ACTOR_FIELD(temp_s6, s32*, 0x20) + ACTOR_FIELD(temp_v0_2, s16*, 0x14));
+                        shape->end1.vx    = (s16) - (s16)(u16)scratch->dir.vx;
+                        shape->end1.vy    = (s16) - (s16)(u16)scratch->dir.vy;
+                        shape->end1.vz    = (s16) - (s16)(u16)scratch->dir.vz;
+                        coord->coord.t[0] = coord->coord.t[0] + scratch->dir.vx;
+                        coord->coord.t[1] = coord->coord.t[1] + scratch->dir.vy;
+                        coord->coord.t[2] = coord->coord.t[2] + scratch->dir.vz;
                         goto block_51;
                     }
                     if (temp_v1_5 == 3) {
-                        motionParent = ACTOR_FIELD(arg0, s32*, 0x20);
-                        if ((s16)ACTOR_FIELD(arg0, u16*, 0x2A) >= 7) {
-                            var_a1_2 = ACTOR_FIELD(ACTOR_FIELD(motionParent, s32*, 0x2C), s32*, 0x8) + 0x5A0;
+                        motionParent = arg0->spawnArg2;
+                        if ((s16)arg0->killCountdown >= 7) {
+                            var_a1_2 = &((TmdObject*)motionParent->extra)->coords[18];
                             Gp_CopyCoordOffset(arg0, var_a1_2, &sp10);
                             var_s4 = 0;
                             do {
-                                ((SVECTOR*)temp_s5)[var_s4].vx = (u16)ACTOR_FIELD(temp_s6, s32*, 0x18);
-                                ((SVECTOR*)temp_s5)[var_s4].vy = (u16)ACTOR_FIELD(temp_s6, s32*, 0x1C);
-                                ((SVECTOR*)temp_s5)[var_s4].vz = (u16)ACTOR_FIELD(temp_s6, s32*, 0x20);
-                                var_s4                        += 1;
+                                work->trail[var_s4].vx = (u16)coord->coord.t[0];
+                                work->trail[var_s4].vy = (u16)coord->coord.t[1];
+                                work->trail[var_s4].vz = (u16)coord->coord.t[2];
+                                var_s4                += 1;
                             } while (var_s4 < 0x20);
-                            temp_s2 += 1;
+                            shared += 1;
                         } else {
                             goto block_51;
                         }
                     } else {
-                        temp_a0_3 = ACTOR_FIELD(arg0, s32*, 0x20);
-                        if (ACTOR_FIELD(arg0, s32*, 0x34) == 0x1000) {
-                            Gp_CopyCoordOffset(arg0, ACTOR_FIELD(ACTOR_FIELD(temp_a0_3, s32*, 0x2C), s32*, 0x8) + 0x5A0, &sp10);
+                        temp_a0_3 = arg0->spawnArg2;
+                        if (arg0->spawnArg1 == 0x1000) {
+                            Gp_CopyCoordOffset(arg0, &((TmdObject*)temp_a0_3->extra)->coords[18], &sp10);
                         } else {
-                            Gp_CopyCoordOffset(arg0, ACTOR_FIELD(ACTOR_FIELD(temp_a0_3, s32*, 0x2C), s32*, 0x8) + 0x460, &sp10);
+                            Gp_CopyCoordOffset(arg0, &((TmdObject*)temp_a0_3->extra)->coords[14], &sp10);
                         }
                     block_51:
-                        temp_s2 += 1;
+                        shared += 1;
                     }
-                } while (temp_s2 < 2);
+                } while (shared < 2);
             }
-            ACTOR_FIELD(temp_s6, s32*, 0x0) = 0;
-            Gp_UpdateCoord(temp_s6);
-            ACTOR_FIELD(temp_s5, u16*, 0x0) = (u16)ACTOR_FIELD(temp_s6, s32*, 0x18);
-            ACTOR_FIELD(temp_s5, u16*, 0x2) = (u16)ACTOR_FIELD(temp_s6, s32*, 0x1C);
-            ACTOR_FIELD(temp_s5, u16*, 0x4) = (u16)ACTOR_FIELD(temp_s6, s32*, 0x20);
-            ACTOR_FIELD(temp_s5, u16*, 0x6) = rand();
+            coord->flg = 0;
+            Gp_UpdateCoord(coord);
+            work->trail[0].vx  = (u16)coord->coord.t[0];
+            work->trail[0].vy  = (u16)coord->coord.t[1];
+            work->trail[0].vz  = (u16)coord->coord.t[2];
+            work->trail[0].pad = rand();
             goto block_54;
         }
     } else {
     block_54:
-        if ((ACTOR_FIELD(arg0, s32*, 0x34) < 0x1000) && (Gp_FindRec18(temp_s5 + 0x140, 0) != 0)) {
-            temp_s0_5 = (s8)Gp_GetObjPan(temp_s6);
-            SndEvt_EnqueueType6(0x5416000A, temp_s0_5, (s8)gpGetObjDepth(temp_s6));
-            ACTOR_FIELD(temp_s5, s32*, 0x158) = -1;
+        if ((arg0->spawnArg1 < 0x1000) && (Gp_FindRec18(work->recs, 0) != 0)) {
+            temp_s0_5 = (s8)Gp_GetObjPan(coord);
+            SndEvt_EnqueueType6(0x5416000A, temp_s0_5, (s8)gpGetObjDepth(coord));
+            work->life = -1;
         }
-        if (ACTOR_FIELD(temp_s5, s32*, 0x158) < 0) {
-            if (ACTOR_FIELD(arg0, s32*, 0x34) < 0x1000) {
-                Gp_ClearRec18Occupied(temp_s5 + 0x140);
-                ACTOR_FIELD(temp_s5, u16*, 0x126) = (u16)(ACTOR_FIELD(temp_s5, u16*, 0x126) & 0x3FFF);
+        if (work->life < 0) {
+            if (arg0->spawnArg1 < 0x1000) {
+                Gp_ClearRec18Occupied(work->recs);
+                work->obj.flags = work->obj.flags & 0x3FFF;
             }
-            ACTOR_FIELD(temp_s5, s32*, 0x158) = 0x7FFFFFFF;
-            ACTOR_FIELD(arg0, u8*, 0x38)      = 2U;
-            ACTOR_FIELD(arg0, u16*, 0x2A)     = 0x20U;
+            work->life          = 0x7FFFFFFF;
+            arg0->status        = 2;
+            arg0->killCountdown = 0x20;
         }
         gte_SetRotMatrix(&Gfx_ViewWorldMtx);
         gte_SetTransMatrix(&Gfx_ViewWorldMtx);
-        temp_v1_6 = ACTOR_FIELD(arg0, s32*, 0x34) & 0xF;
+        temp_v1_6 = arg0->spawnArg1 & 0xF;
         switch (temp_v1_6) {
             case 0:
                 sp24 = 0x808000;
@@ -1535,144 +1538,145 @@ block_22:
                 break;
         }
         sp28      = 1;
-        temp_v1_7 = ACTOR_FIELD(arg0, u8*, 0x38);
+        temp_v1_7 = arg0->status;
         var_fp    = 0;
         if (temp_v1_7 == 2) {
-            var_fp = 0x20 - (s16)ACTOR_FIELD(arg0, u16*, 0x2A);
+            var_fp = 0x20 - (s16)arg0->killCountdown;
         } else if (temp_v1_7 == 3) {
             sp28 = 4;
         }
         var_s4 = var_fp;
         if (var_s4 < 0x20) {
-            var_a1_3 = (s32*)&gDisplayState;
+            var_a1_3 = &gDisplayState;
             SOFT_USE_REG(var_a1_3);
-            temp_s6 = (void*)0xFFFFFF;
-            var_a2  = 0xFF000000;
+            coord  = (GsCOORDINATE2*)0xFFFFFF;
+            var_a2 = 0xFF000000;
             SOFT_USE_REG(var_a2);
             SOFT_USE_REG(var_a2);
             SOFT_USE_REG(var_a2);
             SOFT_USE_REG(var_a2);
 
-            var_s1 = (void*)((var_s4 * 8) + (s32)temp_s5);
+            /* The byte offset is added to the base, not the base indexed:
+             * that puts the scaled index in the first operand of the addu. */
+            point = (SVECTOR*)(var_s4 * sizeof(SVECTOR) + (u32)work->trail);
             do {
-                temp_s2                 = D_actor_403600_8016069C;
-                D_actor_403600_8016069C = temp_s2 + 0x28;
-                gte_ldv0(var_s1);
+                shared                  = D_actor_403600_8016069C;
+                D_actor_403600_8016069C = shared + sizeof(POLY_FT4);
+                gte_ldv0(point);
                 gte_rtps();
-                gteValue3 = temp_v0_2 + 0x18;
+                gteValue3 = &scratch->sxy;
                 gte_stsxy(gteValue3);
-                gteValue4 = temp_v0_2 + 0x1C;
+                gteValue4 = &scratch->dp;
                 gte_stdp(gteValue4);
-                gteValue5 = temp_v0_2 + 0x20;
+                gteValue5 = &scratch->flag;
                 gte_stflg(gteValue5);
-                gteValue6 = temp_v0_2 + 0x24;
+                gteValue6 = &scratch->otz;
                 gte_stszotz(gteValue6);
-                if (ACTOR_FIELD(temp_v0_2, s32*, 0x20) >= 0) {
+                if (scratch->flag >= 0) {
                     if (var_s4 == 0) {
-                        if (ACTOR_FIELD(arg0, u8*, 0x38) != 2) {
-                            temp_a0_4 = ACTOR_FIELD(temp_v0_2, s32*, 0x24);
+                        if (arg0->status != 2) {
+                            temp_a0_4 = scratch->otz;
                             if (temp_a0_4 >= 0) {
-                                ACTOR_FIELD(temp_v0_2, u16*, 0x2C) = (u16)((s32)(ACTOR_FIELD(var_a1_3, u16*, 0x110) * 0x96) / temp_a0_4);
+                                scratch->spin.vx = (u16)((s32)(var_a1_3->screenDistance * 0x96) / temp_a0_4);
                             } else {
-                                ACTOR_FIELD(temp_v0_2, u16*, 0x2C) = 0x1000U;
+                                scratch->spin.vx = 0x1000U;
                             }
-                            temp_v1_8                        = ACTOR_FIELD(temp_v0_2, u16*, 0x18) - ACTOR_FIELD(temp_v0_2, u16*, 0x2C);
-                            ACTOR_FIELD(temp_s2, s16*, 0x18) = temp_v1_8;
-                            ACTOR_FIELD(temp_s2, s16*, 0x8)  = temp_v1_8;
-                            temp_v1_9                        = ACTOR_FIELD(temp_v0_2, u16*, 0x18) + ACTOR_FIELD(temp_v0_2, u16*, 0x2C);
-                            ACTOR_FIELD(temp_s2, s16*, 0x20) = temp_v1_9;
-                            ACTOR_FIELD(temp_s2, s16*, 0x10) = temp_v1_9;
-                            temp_v1_10                       = ACTOR_FIELD(temp_v0_2, u16*, 0x1A) - ACTOR_FIELD(temp_v0_2, u16*, 0x2C);
-                            ACTOR_FIELD(temp_s2, s16*, 0x12) = temp_v1_10;
-                            ACTOR_FIELD(temp_s2, s16*, 0xA)  = temp_v1_10;
-                            temp_v1_11                       = ACTOR_FIELD(temp_v0_2, u16*, 0x1A) + ACTOR_FIELD(temp_v0_2, u16*, 0x2C);
-                            ACTOR_FIELD(temp_s2, s16*, 0x16) = 0x29;
-                            ACTOR_FIELD(temp_s2, s16*, 0x22) = temp_v1_11;
-                            ACTOR_FIELD(temp_s2, s16*, 0x1A) = temp_v1_11;
-                            if (ACTOR_FIELD(arg0, s32*, 0x3C) != 0) {
-                                ACTOR_FIELD(temp_s2, u8*, 0x1C) = 0x70U;
-                                ACTOR_FIELD(temp_s2, u8*, 0xC)  = 0x70U;
-                                ACTOR_FIELD(temp_s2, s16*, 0xE) = 0x428B;
+                            temp_v1_8                  = (u16)scratch->sxy.vx - (u16)scratch->spin.vx;
+                            ((POLY_FT4*)shared)->x2    = temp_v1_8;
+                            ((POLY_FT4*)shared)->x0    = temp_v1_8;
+                            temp_v1_9                  = (u16)scratch->sxy.vx + (u16)scratch->spin.vx;
+                            ((POLY_FT4*)shared)->x3    = temp_v1_9;
+                            ((POLY_FT4*)shared)->x1    = temp_v1_9;
+                            temp_v1_10                 = (u16)scratch->sxy.vy - (u16)scratch->spin.vx;
+                            ((POLY_FT4*)shared)->y1    = temp_v1_10;
+                            ((POLY_FT4*)shared)->y0    = temp_v1_10;
+                            temp_v1_11                 = (u16)scratch->sxy.vy + (u16)scratch->spin.vx;
+                            ((POLY_FT4*)shared)->tpage = 0x29;
+                            ((POLY_FT4*)shared)->y3    = temp_v1_11;
+                            ((POLY_FT4*)shared)->y2    = temp_v1_11;
+                            if (arg0->extraState != 0) {
+                                ((POLY_FT4*)shared)->u2   = 0x70U;
+                                ((POLY_FT4*)shared)->u0   = 0x70U;
+                                ((POLY_FT4*)shared)->clut = 0x428B;
                             } else {
-                                ACTOR_FIELD(temp_s2, u8*, 0x1C) = 0xA8U;
-                                ACTOR_FIELD(temp_s2, u8*, 0xC)  = 0xA8U;
-                                ACTOR_FIELD(temp_s2, s16*, 0xE) = 0x428C;
+                                ((POLY_FT4*)shared)->u2   = 0xA8U;
+                                ((POLY_FT4*)shared)->u0   = 0xA8U;
+                                ((POLY_FT4*)shared)->clut = 0x428C;
                             }
-                            ACTOR_FIELD(temp_s2, u8*, 0x15) = 0xC9;
-                            ACTOR_FIELD(temp_s2, u8*, 0xD)  = 0xC9;
-                            ACTOR_FIELD(temp_s2, u8*, 0x25) = 0xFF;
-                            ACTOR_FIELD(temp_s2, u8*, 0x1D) = 0xFF;
-                            ACTOR_FIELD(temp_s2, s32*, 0x4) = sp24;
-                            temp_v1_12                      = ACTOR_FIELD(temp_s2, u8*, 0xC) + 0x37;
-                            ACTOR_FIELD(temp_s2, u8*, 0x3)  = 9;
-                            ACTOR_FIELD(temp_s2, u8*, 0x7)  = 0x2E;
-                            ACTOR_FIELD(temp_s2, u8*, 0x24) = temp_v1_12;
-                            ACTOR_FIELD(temp_s2, u8*, 0x14) = temp_v1_12;
+                            ((POLY_FT4*)shared)->v1         = 0xC9;
+                            ((POLY_FT4*)shared)->v0         = 0xC9;
+                            ((POLY_FT4*)shared)->v3         = 0xFF;
+                            ((POLY_FT4*)shared)->v2         = 0xFF;
+                            *(s32*)&((POLY_FT4*)shared)->r0 = sp24;
+                            temp_v1_12                      = ((POLY_FT4*)shared)->u0 + 0x37;
+                            setlen((POLY_FT4*)shared, 9);
+                            ((POLY_FT4*)shared)->code = 0x2E;
+                            ((POLY_FT4*)shared)->u3   = temp_v1_12;
+                            ((POLY_FT4*)shared)->u1   = temp_v1_12;
                             goto block_100;
                         }
                     } else if (var_s4 >= (var_fp - 4)) {
-                        temp_s0_6                          = ACTOR_FIELD(var_s1, u16*, 0x6);
-                        sp30                               = var_a1_3;
-                        sp34                               = var_a2;
-                        ACTOR_FIELD(temp_v0_2, u16*, 0x2C) = rsin(temp_s0_6);
-                        ACTOR_FIELD(temp_v0_2, u16*, 0x2E) = rcos(temp_s0_6);
-                        ACTOR_FIELD(temp_v0_2, u16*, 0x30) = 0;
-                        if (ACTOR_FIELD(temp_v0_2, s32*, 0x24) >= 0) {
+                        temp_s0_6        = (u16)point->pad;
+                        sp30             = var_a1_3;
+                        sp34             = var_a2;
+                        scratch->spin.vx = rsin(temp_s0_6);
+                        scratch->spin.vy = rcos(temp_s0_6);
+                        scratch->spin.vz = 0;
+                        if (scratch->otz >= 0) {
                             var_a0 = (var_s4 * 2) + 0x78;
-                            if ((var_fp >= var_s4) && (ACTOR_FIELD(arg0, u8*, 0x38) == 2)) {
+                            if ((var_fp >= var_s4) && (arg0->status == 2)) {
                                 var_a0 = (var_s4 * 20) + 0x78;
-                            } else if (ACTOR_FIELD(arg0, u8*, 0x38) == 4) {
+                            } else if (arg0->status == 4) {
                                 var_a0 *= 2;
                             }
-                            gteValue7 = (var_a0 * ACTOR_FIELD(var_a1_3, u16*, 0x110)) / ACTOR_FIELD(temp_v0_2, s32*, 0x24);
+                            gteValue7 = (var_a0 * var_a1_3->screenDistance) / scratch->otz;
                             gte_lddp(gteValue7);
-                            temp_v0_4 = temp_v0_2 + 0x2C;
+                            temp_v0_4 = &scratch->spin;
                             gte_ldsv(temp_v0_4);
                             gte_gpf12();
                             gte_stsv(temp_v0_4);
                         }
-                        ACTOR_FIELD(temp_s2, s16*, 0x8)  = (s16)(ACTOR_FIELD(temp_v0_2, u16*, 0x18) + ACTOR_FIELD(temp_v0_2, u16*, 0x2C));
-                        ACTOR_FIELD(temp_s2, s16*, 0xA)  = (s16)(ACTOR_FIELD(temp_v0_2, u16*, 0x1A) + ACTOR_FIELD(temp_v0_2, u16*, 0x2E));
-                        ACTOR_FIELD(temp_s2, s16*, 0x10) = (s16)(ACTOR_FIELD(temp_v0_2, u16*, 0x18) + ACTOR_FIELD(temp_v0_2, u16*, 0x2E));
-                        ACTOR_FIELD(temp_s2, s16*, 0x12) = (s16)(ACTOR_FIELD(temp_v0_2, u16*, 0x1A) - ACTOR_FIELD(temp_v0_2, u16*, 0x2C));
-                        ACTOR_FIELD(temp_s2, s16*, 0x18) = (s16)(ACTOR_FIELD(temp_v0_2, u16*, 0x18) - ACTOR_FIELD(temp_v0_2, u16*, 0x2E));
-                        ACTOR_FIELD(temp_s2, s16*, 0x1A) = (s16)(ACTOR_FIELD(temp_v0_2, u16*, 0x1A) + ACTOR_FIELD(temp_v0_2, u16*, 0x2C));
-                        ACTOR_FIELD(temp_s2, s16*, 0x20) = (s16)(ACTOR_FIELD(temp_v0_2, u16*, 0x18) - ACTOR_FIELD(temp_v0_2, u16*, 0x2C));
-                        ACTOR_FIELD(temp_s2, s16*, 0x22) = (s16)(ACTOR_FIELD(temp_v0_2, u16*, 0x1A) - ACTOR_FIELD(temp_v0_2, u16*, 0x2E));
-                        temp_v1_13                       = (u8)ACTOR_FIELD(var_s1, u16*, 0x6) & 0x20;
-                        ACTOR_FIELD(temp_s2, u8*, 0x15)  = 0x18;
-                        ACTOR_FIELD(temp_s2, u8*, 0xD)   = 0x18;
-                        ACTOR_FIELD(temp_s2, u8*, 0x25)  = 0x37;
-                        ACTOR_FIELD(temp_s2, u8*, 0x1D)  = 0x37;
-                        temp_v0_5                        = temp_v1_13 + 0x60;
-                        temp_v1_13                      += 0x7F;
-                        ACTOR_FIELD(temp_s2, u8*, 0x1C)  = temp_v0_5;
-                        ACTOR_FIELD(temp_s2, u8*, 0xC)   = temp_v0_5;
-                        ACTOR_FIELD(temp_s2, u8*, 0x24)  = temp_v1_13;
-                        ACTOR_FIELD(temp_s2, u8*, 0x14)  = temp_v1_13;
-                        ACTOR_FIELD(temp_s2, s16*, 0x16) = 0x2A;
-                        ACTOR_FIELD(temp_s2, s16*, 0xE)  = 0x42CC;
-                        var_a0                           = var_s4;
-                        if (ACTOR_FIELD(arg0, u8*, 0x38) == 2) {
+                        ((POLY_FT4*)shared)->x0    = (s16)((u16)scratch->sxy.vx + (u16)scratch->spin.vx);
+                        ((POLY_FT4*)shared)->y0    = (s16)((u16)scratch->sxy.vy + (u16)scratch->spin.vy);
+                        ((POLY_FT4*)shared)->x1    = (s16)((u16)scratch->sxy.vx + (u16)scratch->spin.vy);
+                        ((POLY_FT4*)shared)->y1    = (s16)((u16)scratch->sxy.vy - (u16)scratch->spin.vx);
+                        ((POLY_FT4*)shared)->x2    = (s16)((u16)scratch->sxy.vx - (u16)scratch->spin.vy);
+                        ((POLY_FT4*)shared)->y2    = (s16)((u16)scratch->sxy.vy + (u16)scratch->spin.vx);
+                        ((POLY_FT4*)shared)->x3    = (s16)((u16)scratch->sxy.vx - (u16)scratch->spin.vx);
+                        ((POLY_FT4*)shared)->y3    = (s16)((u16)scratch->sxy.vy - (u16)scratch->spin.vy);
+                        temp_v1_13                 = (u8)(u16)point->pad & 0x20;
+                        ((POLY_FT4*)shared)->v1    = 0x18;
+                        ((POLY_FT4*)shared)->v0    = 0x18;
+                        ((POLY_FT4*)shared)->v3    = 0x37;
+                        ((POLY_FT4*)shared)->v2    = 0x37;
+                        temp_v0_5                  = temp_v1_13 + 0x60;
+                        temp_v1_13                += 0x7F;
+                        ((POLY_FT4*)shared)->u2    = temp_v0_5;
+                        ((POLY_FT4*)shared)->u0    = temp_v0_5;
+                        ((POLY_FT4*)shared)->u3    = temp_v1_13;
+                        ((POLY_FT4*)shared)->u1    = temp_v1_13;
+                        ((POLY_FT4*)shared)->tpage = 0x2A;
+                        ((POLY_FT4*)shared)->clut  = 0x42CC;
+                        var_a0                     = var_s4;
+                        if (arg0->status == 2) {
                             if (var_fp >= var_s4) {
                                 var_a0 = var_fp;
                             }
                         }
-                        temp_v1_13                      = D_actor_403600_80142120[var_a0];
-                        ACTOR_FIELD(temp_s2, u8*, 0x3)  = 9;
-                        ACTOR_FIELD(temp_s2, s32*, 0x4) = temp_v1_13;
-                        ACTOR_FIELD(temp_s2, u8*, 0x7)  = 0x2E;
+                        temp_v1_13 = D_actor_403600_80142120[var_a0];
+                        setlen((POLY_FT4*)shared, 9);
+                        *(s32*)&((POLY_FT4*)shared)->r0 = temp_v1_13;
+                        ((POLY_FT4*)shared)->code       = 0x2E;
                     block_100:
-                        otOffset                        = (((u32)(ACTOR_FIELD(temp_v0_2, s32*, 0x24) << ACTOR_FIELD(var_a1_3, u8*, 0x128)) >> 2) & 0xFFC);
-                        ot                              = (s32*)gGpuCurrentOt;
-                        ACTOR_FIELD(temp_s2, s32*, 0x0) = (ACTOR_FIELD(temp_s2, s32*, 0x0) & var_a2) |
-                                                          (*(s32*)(otOffset + (s32)ot) & (s32)temp_s6);
-                        temp_v0_6  = (s32*)((((u32)(ACTOR_FIELD(temp_v0_2, s32*, 0x24) << ACTOR_FIELD(var_a1_3, u8*, 0x128)) >> 2) & 0xFFC) + (s32)ot);
-                        *temp_v0_6 = (*temp_v0_6 & var_a2) | ((s32)temp_s2 & (s32)temp_s6);
+                        otOffset                 = (((u32)(scratch->otz << var_a1_3->otDepthShift) >> 2) & 0xFFC);
+                        ot                       = (s32*)gGpuCurrentOt;
+                        ((POLY_FT4*)shared)->tag = (((POLY_FT4*)shared)->tag & var_a2) | (*(s32*)(otOffset + (s32)ot) & (s32)coord);
+                        temp_v0_6                = (s32*)((((u32)(scratch->otz << var_a1_3->otDepthShift) >> 2) & 0xFFC) + (s32)ot);
+                        *temp_v0_6               = (*temp_v0_6 & var_a2) | (shared & (s32)coord);
                     }
                 }
-                SOFT_USE_REG(temp_s5);
-                var_s1 += sp28 * 8;
+                SOFT_USE_REG(work);
+                point  += sp28;
                 var_s4 += sp28;
             } while (var_s4 < 0x20);
         }

@@ -11,13 +11,9 @@
 #include "gameplay/3A34.h"
 
 /// Work block of the `actor_403600` task, parked in the task's `Task::work`
-/// slot (that slot is not a `TaskIdMap` here). The display node at +0x108 is
-/// the one the exit callback `func_actor_403600_80138C68` hands back to
-/// `Gp_UnlinkObj`.
+/// slot (that slot is not a `TaskIdMap` here).
 typedef struct Actor403600Work {
-    /* 0x000 */ byte            pad_0[0x108];
-    /* 0x108 */ GpObj           obj;
-    /* 0x128 */ byte            pad_128[0x34C];
+    /* 0x000 */ byte            pad_0[0x474];
     /* 0x474 */ MATRIX          field_474;
     /* 0x494 */ MATRIX          field_494;
     /* 0x4B4 */ struct GpEnemy* field_4B4;
@@ -115,6 +111,19 @@ typedef struct Actor403600Work {
     /* 0x7B6 */ byte            pad_7B6[2];
 } Actor403600Work;
 STATIC_ASSERT_SIZEOF(Actor403600Work, 0x7B8);
+
+/// Work block of the projectile task `func_actor_403600_80134398` runs. The
+/// projectile leaves from one of its owner's model parts and is drawn as a
+/// trail of glowing quads, one per remembered position.
+typedef struct Actor403600ProjectileWork {
+    SVECTOR      trail[32]; // positions over the last 32 frames, newest first; each `pad` is a random angle its quad is turned by
+    SVECTOR      velocity;  // step added to the position each frame
+    GpObj        obj;       // collision body, linked only for the kinds that can hit
+    GpActorD4Rec shape;     // the capsule `obj` carries
+    GpRec18      recs[1];   // contact table of `shape`
+    s32          life;      // frames left before the projectile fades out; forced negative when it hits
+} Actor403600ProjectileWork;
+STATIC_ASSERT_SIZEOF(Actor403600ProjectileWork, 0x15C);
 
 void func_actor_403600_801320F8(s32 otz);
 void func_actor_403600_80138C68(Task* arg0);
