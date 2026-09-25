@@ -1,8 +1,28 @@
 #include "common.h"
 
 #include "actors/actor_535700.h"
+#include "gameplay/1BC.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700_4", func_actor_535700_80132730);
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// the note in `include/gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
+/// Starts animation slots 1..0x12 on clip `animId`, forwarding
+/// `D_actor_535700_8013DAA8` as the reset argument, and latches the clip into
+/// `field_47E`. Clears the footstep check's record first.
+void func_actor_535700_80132730(void)
+{
+    s32 i;
+
+    D_actor_535700_80146844->field_4B8 = 0;
+    i                                  = 1;
+    do {
+        func_800B4114(&D_actor_535700_80146844->anim, i, (s16)D_actor_535700_80146844->animId, 0,
+                      D_actor_535700_8013DAA8);
+        i++;
+    } while (i < 0x13);
+    D_actor_535700_80146844->field_47E = D_actor_535700_80146844->animId;
+}
 
 s32 func_actor_535700_801327BC(Task* task, s32 arg1, Actor535700AnimPreset* preset, s32 arg3)
 {

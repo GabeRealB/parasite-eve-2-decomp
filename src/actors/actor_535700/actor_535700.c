@@ -15,6 +15,9 @@ extern s16        D_80071076;
 extern u8         D_actor_535700_8013DAE8[];
 extern GpMsgEntry D_actor_535700_8013DAAC[];
 
+/// Descriptor of the fade task `func_actor_535700_80131E24`.
+extern TaskDesc D_actor_535700_8013346C;
+
 void func_actor_535700_80131E24(Task* task)
 {
     TILE* tile;
@@ -37,7 +40,15 @@ void func_actor_535700_80131E24(Task* task)
     D_actor_535700_80146840--;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700", func_actor_535700_80131EF0);
+/// Starts a fade to black lasting `frames` frames: seeds the countdown and,
+/// unless it is zero, spawns the fade task.
+void func_actor_535700_80131EF0(s32 frames)
+{
+    D_actor_535700_80146840 = frames;
+    if (frames != 0) {
+        Task_SpawnFromTable(&D_actor_535700_8013346C, 0, 0, 0);
+    }
+}
 
 void func_actor_535700_80131F2C(void)
 {

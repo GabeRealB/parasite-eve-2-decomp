@@ -17,9 +17,74 @@ extern GpMsgEntry D_actor_535700_801467E0[];
 extern TaskDesc   D_actor_535700_80146810[];
 extern u8         D_actor_535700_80146828[];
 
-INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700_6", func_actor_535700_80132960);
+/* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
+#define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-INCLUDE_ASM("actors/nonmatchings/actor_535700/actor_535700_6", func_actor_535700_80132ABC);
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+
+/// "Walk to" opcode of the first enemy: turns the model to face `target` --
+/// away from it in mode 1 -- and leaves in `field_4B2` the planar distance
+/// divided by the walk's frame count: 60 in mode 0, 15 in mode 1 and 25 in
+/// mode 2. The mode is kept in `D_actor_535700_8014684C`, which picks the
+/// runner's step.
+s32 func_actor_535700_80132960(Task* task, s32 arg1, VECTOR* target, s32 mode)
+{
+    GsCOORDINATE2*   coord;
+    Actor535700Work* work;
+    s32              dx;
+    s32              dz;
+    s32              steps;
+    s32              dist;
+    s32              angle;
+
+    coord                   = ((TmdObject*)task->extra)->coords;
+    work                    = (Actor535700Work*)task->work;
+    D_actor_535700_8014684C = mode;
+    dx                      = target->vx - coord->coord.t[0];
+    dz                      = target->vz - coord->coord.t[2];
+    angle                   = ratan2(dx, dz);
+    work->field_4AE         = angle;
+    if (D_actor_535700_8014684C == 1) {
+        work->field_4AE = angle + 0x800;
+    }
+    Gfx_RotMatrixY(&coord->coord, work->field_4AE, 1);
+    dist = SquareRoot0(dx * dx + dz * dz);
+    switch (D_actor_535700_8014684C) {
+        case 0:
+            steps = 0x3C;
+            break;
+        case 1:
+            steps = 0xF;
+            break;
+        case 2:
+            steps = 0x19;
+            break;
+    }
+    work->field_4B2 = dist / steps;
+    return 0;
+}
+
+/// Draws the first enemy's ground shadow quad under its model root, unless the
+/// model is hidden (`flags & 0x80`) or has no buffer yet. The root's world
+/// translation is staged in a scratchpad `VECTOR3`, and the quad's shade is
+/// the room's current `Gp_State1C` level.
+void func_actor_535700_80132ABC(Task* task)
+{
+    TmdObject*     obj;
+    GsCOORDINATE2* coord;
+    VECTOR3*       vec;
+
+    obj   = (TmdObject*)task->extra;
+    coord = obj->coords;
+    if (!(obj->flags & 0x80) && obj->buffer != NULL) {
+        vec     = (VECTOR3*)(SCRATCH_SP -= 0x18);
+        vec->vx = coord->workm.t[0];
+        vec->vy = coord->workm.t[1];
+        vec->vz = coord->workm.t[2];
+        Gp_DrawEffGroundQuad(vec, 0x200, Gp_State1C->groundShade);
+        SCRATCH_SP += 0x18;
+    }
+}
 
 /// State 0 of the second enemy's task. Allocates its `Actor535700SpawnWork`,
 /// spawns its sub-model task from `D_actor_535700_80146810`, takes the
