@@ -1,1 +1,2 @@
 // Overlay-local symbols for shelter_b2_operating_room.
+D_shelter_b2_operating_room_80184258 = 0x80184258; // size:0xC

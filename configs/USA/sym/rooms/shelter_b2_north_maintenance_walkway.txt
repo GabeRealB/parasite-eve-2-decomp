@@ -1,1 +1,2 @@
 // Overlay-local symbols for shelter_b2_north_maintenance_walkway.
+D_shelter_b2_north_maintenance_walkway_801863C4 = 0x801863C4; // size:0xC
