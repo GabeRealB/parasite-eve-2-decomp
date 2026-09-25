@@ -29,9 +29,69 @@ void func_actor_213000_8014A160(Task* task)
     sp.funcs[task->state](task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_213000/actor_213000_2", func_actor_213000_8014A1B8);
+/// Setup state of the child spawned from table entry 4: hides the child's
+/// model, then mirrors the parent's (`spawnArg2`) model flag bits 0x80 and 0x4
+/// as the tick state does. It draws the model at order-table offset -2, hangs
+/// the child's root coordinate off the parent's part `spawnArg1`, shares the
+/// parent's light and colour matrices, reparents the task under the parent and
+/// steps to the tick state.
+void func_actor_213000_8014A1B8(Task* task)
+{
+    Task*          parent;
+    TmdObject*     obj;
+    TmdObject*     parentObj;
+    GsCOORDINATE2* coords;
+    GsCOORDINATE2* root;
 
-INCLUDE_ASM("actors/nonmatchings/actor_213000/actor_213000_2", func_actor_213000_8014A2C4);
+    parent      = task->spawnArg2;
+    obj         = task->extra;
+    parentObj   = parent->extra;
+    coords      = parentObj->coords;
+    obj->flags |= 0x80;
+    root        = obj->coords;
+    if (!(parentObj->flags & 0x80)) {
+        obj->flags &= 0xFF7F;
+    }
+    if (!(parentObj->flags & 4)) {
+        obj->flags &= 0xFFFB;
+        Tmd_AllocBuffers(obj);
+    } else {
+        obj->flags |= 4;
+    }
+    obj->otOffset = -2;
+    coords       += task->spawnArg1;
+    root->flg     = 0;
+    root->sub     = coords;
+    obj->lightMtx = parentObj->lightMtx;
+    obj->colorMtx = parentObj->colorMtx;
+    Task_Reparent(parent, task);
+    task->state++;
+}
+
+/// Tick state of the child spawned from table entry 4: shows or hides the
+/// child's model with the parent's (`spawnArg2`), copying bit 0x80, and
+/// copies bit 0x4 too; when the parent's 0x4 is clear the child's buffers are
+/// reallocated through `Tmd_AllocBuffers`.
+void func_actor_213000_8014A2C4(Task* task)
+{
+    TmdObject* parentObject;
+    TmdObject* object;
+
+    parentObject = (TmdObject*)((Task*)task->spawnArg2)->extra;
+    object       = (TmdObject*)task->extra;
+
+    if (!(parentObject->flags & 0x80)) {
+        object->flags &= 0xFF7F;
+    } else {
+        object->flags |= 0x80;
+    }
+    if (!(parentObject->flags & 4)) {
+        object->flags &= 0xFFFB;
+        Tmd_AllocBuffers(object);
+        return;
+    }
+    object->flags |= 4;
+}
 
 void func_actor_213000_8014A35C(Task* task)
 {
@@ -77,7 +137,29 @@ void func_actor_213000_8014A35C(Task* task)
     task->state += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_213000/actor_213000_2", func_actor_213000_8014A488);
+/// Tick state of the child spawned from table entry 3: the same mirroring
+/// of the parent's model bits 0x80 (hidden) and 0x4 onto the child's model,
+/// reallocating the child's buffers when the parent's 0x4 is clear.
+void func_actor_213000_8014A488(Task* task)
+{
+    TmdObject* parentObject;
+    TmdObject* object;
+
+    parentObject = (TmdObject*)((Task*)task->spawnArg2)->extra;
+    object       = (TmdObject*)task->extra;
+
+    if (!(parentObject->flags & 0x80)) {
+        object->flags &= 0xFF7F;
+    } else {
+        object->flags |= 0x80;
+    }
+    if (!(parentObject->flags & 4)) {
+        object->flags &= 0xFFFB;
+        Tmd_AllocBuffers(object);
+        return;
+    }
+    object->flags |= 4;
+}
 
 void func_actor_213000_8014A520(Task* task)
 {
