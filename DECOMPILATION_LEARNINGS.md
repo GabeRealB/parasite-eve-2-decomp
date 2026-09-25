@@ -98044,7 +98044,7 @@ The same build settled the field accesses. The target computes
 ```c
 g    = gGameSession;
 sess = &g->at4.loc;
-rec  = (Actor335800SprtRec*)Gp_SprtTables[sess->stage - 1][g->field_74 - 1].field_0[sess->area - 1];
+rec  = Gp_SprtTables[sess->stage - 1][g->field_74 - 1].field_0[sess->area - 1];
 ```
 
 Keeping `g` for `g->field_74` matters as much as taking `sess` for the two
@@ -107925,8 +107925,8 @@ the head twice, once with a `-0xC` value.
 
 The fix is to write the helper back out as the twin has it, as its own
 `static __inline__` with the twin's statement order and its 3-field
-`...RangeScratch` struct (both `overlayOutOfRange` and
-`overlayOutOfRange` are the same body; ours is `actorOutOfRange`),
+`...RangeScratch` struct (the shared helper is now `overlayOutOfRange` in
+`include/overlay.h`),
 and to read the predicate straight from it — the seed's `(a + b) < c` is
 already the helper's `a + b >= c` negated by the `if (!...)`, not an m2c
 inversion to work around. Transporting the 401300 twin's source with this
