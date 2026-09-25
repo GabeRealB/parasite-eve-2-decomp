@@ -63,8 +63,8 @@ STATIC_ASSERT_SIZEOF(Actor310600Work, 0x538);
 
 /// Overlay of the `GsCOORDINATE2` at `TmdObject::coords`, the actor's root
 /// part. Offset 0x44 (libgs `param`, `super` at 0x48) holds the Euler angles
-/// `func_actor_310600_80162AD8` writes and then hands straight to `RotMatrix`,
-/// the same reuse `ActorsShared80132860Coord` documents for its own overlay.
+/// `func_actor_310600_80162AD8` and `func_actor_310600_80162C18` write and then
+/// hand straight to `RotMatrix`.
 typedef struct Actor310600Coord {
     /* 0x00 */ s32     flg;
     /* 0x04 */ MATRIX  coord;
@@ -85,11 +85,7 @@ typedef struct Actor310600Cmd {
 } Actor310600Cmd;
 
 /// The constant local-space offset `func_actor_310600_80162B98` rotates,
-/// `{ 0, 0, 0x200000, 0 }` -- straight ahead along the part's own +Z, the same
-/// offset body `ActorsShared80132920` / `func_actor_335800_80163CA0` use, which
-/// is why that handler's body appears again here. The overlay keeps its own copy
-/// in `.rodata` (`actor_310600.c` carries the `INCLUDE_RODATA`), so the address
-/// comes from the per-overlay symbol map.
+/// `{ 0, 0, 0x200000, 0 }` -- straight ahead along the part's own +Z.
 extern VECTOR D_actor_310600_80161E54;
 
 /// Spawn table entry 1 is this actor's `Task::state` dispatcher; the type-1

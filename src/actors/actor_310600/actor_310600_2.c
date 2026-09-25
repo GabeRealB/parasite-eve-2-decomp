@@ -49,8 +49,7 @@ void func_actor_310600_80162A74(void)
 /// the counter `func_actor_310600_80162AD8` and `func_actor_310600_80162B98`
 /// bump as they finish, so the table steps through the handlers in turn. Copies
 /// the table onto the stack first, the same dispatch `func_actor_310600_801629CC`
-/// performs over `state`, and the body `ActorsShared801327f8` repeats over the
-/// four-handler carriers.
+/// performs over `state`.
 void func_actor_310600_80162A7C(Task* task)
 {
     Actor310600Work* work;
@@ -99,8 +98,6 @@ void func_actor_310600_80162AD8(Task* task)
 /// `D_actor_310600_80161E54` through the root part's matrix into `work->step`,
 /// opens the per-axis stop threshold to 0x7FFF, which disables it for the update
 /// loop, and advances `field_47E` again so the dispatcher runs the next handler.
-/// The same body as `func_actor_335800_80163CA0` / `ActorsShared80132920`, which
-/// rotate their own overlay's copy of the offset.
 void func_actor_310600_80162B98(Task* task)
 {
     Actor310600Work* work;
