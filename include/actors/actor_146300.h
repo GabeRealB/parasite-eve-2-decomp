@@ -9,14 +9,15 @@
 
 /// Per-actor work block for the `actor_146300` overlay.
 ///
-/// The overlay's state-0 handler (`ActorsShared80131f9cSub0`, here at
-/// 0x801324AC) allocates it with `memCalloc(0x4EC, 0)` and stores the pointer
-/// both in `ActorsShared80131f9cWork` and in the task's 0x1C slot, so the size
+/// The spawn routine, `func_actor_146300_801324AC`, allocates it with
+/// `memCalloc(0x4EC, 0)` and stores the pointer both in
+/// `D_actor_146300_80142828` and in the task's `Task::work` slot, so the size
 /// below is the allocation and not a guess. Every other function in the
 /// overlay reaches the block through the global.
 ///
-/// The animation context the reseed walks starts at 0x40, the same place
-/// `Actor143900Work` keeps it; this overlay's block is 4 bytes shorter.
+/// `light` and `color` are the matrices the spawn routine hands the model;
+/// `anim` is the animation context the tick and reseed loops walk, and `slots`
+/// and `pad_374` are what `func_800B3F84` fills in beside it.
 typedef struct Actor146300Work {
     /* 0x000 */ MATRIX     light;
     /* 0x020 */ MATRIX     color;
@@ -33,18 +34,15 @@ typedef struct Actor146300Work {
 } Actor146300Work;
 STATIC_ASSERT_SIZEOF(Actor146300Work, 0x4EC);
 
-extern Actor146300Work* ActorsShared80131f9cWork;
-
-/// The block above, published by `ActorsShared80131f9c`; declared here with the
-/// type this overlay reads it through, the same way `include/actors/actor_143900.h`
-/// does. The shared header publishes the bare `void*`.
+/// The work block above, published by the task handler
+/// `func_actor_146300_801326CC` and by the spawn routine.
+extern Actor146300Work* D_actor_146300_80142828;
 
 /// Animation preset the overlay's play-animation message handler applies to
-/// the work block, the same record `Actor143900AnimPreset` is: `field_4` is the
-/// animation id, `field_8` picks the reset path -- non-zero for the blended
-/// reseed, zero for a plain one -- and `field_C` becomes the reset argument the
-/// reseed forwards. The id range is the handler's own:
-/// `func_actor_146300_8013299C` takes the first 0x11.
+/// the work block: `field_4` is the animation id, `field_8` picks the reset
+/// path -- non-zero for the reseed through `func_800B4114` with a reset
+/// argument, zero for a plain one -- and `field_C` becomes that reset argument.
+/// `func_actor_146300_8013299C` accepts the first 0x11 ids.
 typedef struct Actor146300AnimPreset {
     /* 0x00 */ s32 field_0;
     /* 0x04 */ s32 field_4;
@@ -63,7 +61,7 @@ extern Task* D_actor_146300_8014282C;
 /// `field_C` here.
 extern s16 D_actor_146300_8014279C;
 
-/// The companion task `ActorsShared80131f9cSub0` starts from
+/// The companion task the spawn routine starts from
 /// `D_actor_146300_801427C8`; its `extra` is the model whose texture page and
 /// CLUT row come out of the area record, and the actor's own task is reparented
 /// under it.
@@ -79,7 +77,12 @@ extern u8 D_actor_146300_801427E0[];
 /// Message handler table the state-0 handler publishes as `Task::msgTable`.
 extern GpMsgEntry D_actor_146300_801427A0[];
 
+void func_actor_146300_801324AC(GpEnemy* enemy, Task* task);
+void func_actor_146300_80132728(GpEnemy* enemy, Task* task);
+void func_actor_146300_801327A4(Task* task);
 void func_actor_146300_801327CC(Task* task);
+void func_actor_146300_80132840(void);
+void func_actor_146300_8013288C(void);
 
 s32 func_actor_146300_8013299C(Task* task, s32 arg1, Actor146300AnimPreset* preset);
 

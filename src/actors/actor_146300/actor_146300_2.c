@@ -6,10 +6,10 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Second state of `ActorsShared80131f9c`: refreshes the model root's world
-/// matrix, relights the model from a point 0x320 above its translation, then
-/// runs the overlay's own per-frame update.
-void ActorsShared80131f9cSub1(GpEnemy* enemy, Task* task)
+/// State 1 of the task handler `func_actor_146300_801326CC`: refreshes the model
+/// root's world matrix, relights the model from a point 0x320 above its
+/// translation, then runs the per-frame update.
+void func_actor_146300_80132728(GpEnemy* enemy, Task* task)
 {
     TmdObject*     obj;
     GsCOORDINATE2* coord;

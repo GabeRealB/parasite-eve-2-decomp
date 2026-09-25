@@ -1,7 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_146300.h"
-#include "actors/actors_shared_801366fc.h"
 #include "gameplay/1BC.h"
 #include "gameplay/268.h"
 #include "gameplay/3A34.h"
@@ -189,19 +188,22 @@ void func_actor_146300_80132418(s32 arg0)
     }
 }
 
-/// State-0 handler of the `ActorsShared80131f9c` dispatcher: allocates the
-/// 0x4EC work block, publishes it in `ActorsShared80131f9cWork` and the task's
-/// `work` slot, binds the model's coordinate frame to the view and hands the
-/// object the block's light and colour matrices, then points it at the part's
-/// world translation dropped by 0x320 in y.
+/// Spawn routine, state 0 of the task handler `func_actor_146300_801326CC`:
+/// allocates the 0x4EC work block and publishes it in `D_actor_146300_80142828`
+/// and the task's `work` slot (destroying the enemy if the allocation fails),
+/// installs the exit callback, binds the model's coordinate frame to the view
+/// and publishes the task in `D_actor_146300_8014282C`.
 ///
 /// The companion task from `D_actor_146300_801427C8` carries the model whose
 /// texture page and CLUT row come out of the current area record - the session
 /// location key is copied onto the stack, `Gp_SyncAreaKeyIndex` fills in its
-/// nested index and the actor's own `field_8 >> 12` selects the 0x10-byte
-/// record. The actor's task is then reparented under that companion before the
-/// animation state is reset to mode 2 / id 0xB and the shared tick runs.
-void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
+/// nested index and the enemy's `placeKey >> 12` selects the 0x10-byte record.
+/// The actor's task is then reparented under that companion, the model gets the
+/// block's light and colour matrices and is relit from a point 0x320 above its
+/// root translation, the animation stream is bound, the animation state is
+/// seeded with mode 2 / id 0xB, the message table is published and the
+/// per-frame update runs once before the state advances.
+void func_actor_146300_801324AC(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
     GpAreaKey        key;
@@ -216,16 +218,16 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     u8               areaByte0;
     u32              idx;
 
-    obj                      = task->extra;
-    coord                    = obj->coords;
-    work                     = memCalloc(0x4EC, 0);
-    ActorsShared80131f9cWork = work;
-    task->work               = (TaskIdMap*)work;
+    obj                     = task->extra;
+    coord                   = obj->coords;
+    work                    = memCalloc(0x4EC, 0);
+    D_actor_146300_80142828 = work;
+    task->work              = (TaskIdMap*)work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback      = ActorsShared801366fc;
+    task->exitCallback      = func_actor_146300_801327A4;
     coord->sub              = &gGfxViewCoord;
     enemy->field_4          = &coord->coord;
     enemy->field_48         = 0;
@@ -263,17 +265,17 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
         tmdProcessStream(model);
     }
     Task_Reparent(task, D_actor_146300_80142830);
-    obj->lightMtx = &ActorsShared80131f9cWork->light;
-    obj->colorMtx = &ActorsShared80131f9cWork->color;
+    obj->lightMtx = &D_actor_146300_80142828->light;
+    obj->colorMtx = &D_actor_146300_80142828->color;
     vec.vx        = coord->workm.t[0];
     vec.vy        = coord->workm.t[1] - 0x320;
     vec.vz        = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&ActorsShared80131f9cWork->anim, D_actor_146300_801427E0, obj,
-                  &ActorsShared80131f9cWork->pad_374[0], ActorsShared80131f9cWork->slots);
-    ActorsShared80131f9cWork->field_4B8 = 0xB;
-    ActorsShared80131f9cWork->field_4B4 = 2;
-    task->msgTable                      = D_actor_146300_801427A0;
+    func_800B3F84(&D_actor_146300_80142828->anim, D_actor_146300_801427E0, obj,
+                  &D_actor_146300_80142828->pad_374[0], D_actor_146300_80142828->slots);
+    D_actor_146300_80142828->field_4B8 = 0xB;
+    D_actor_146300_80142828->field_4B4 = 2;
+    task->msgTable                     = D_actor_146300_801427A0;
     func_actor_146300_801327CC(task);
     SOFT_BARRIER();
     task->state++;
