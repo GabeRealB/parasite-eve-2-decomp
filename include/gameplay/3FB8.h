@@ -431,11 +431,11 @@ typedef struct _GpScratch10 {
 } GpScratch10;
 STATIC_ASSERT_SIZEOF(GpScratch10, 0x10);
 
-/// Word + high-half overlay for a 16.16 component written by `func_800E0FEC`.
+/// A 16.16 fixed-point word, read whole or as its fraction and integer halves.
 typedef union {
     s32 w;
     struct {
-        s16 lo;
+        u16 lo;
         s16 hi;
     } h;
 } GpFixed16;

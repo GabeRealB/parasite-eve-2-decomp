@@ -593,40 +593,45 @@ typedef struct Actor05300SndRow {
 } Actor05300SndRow;
 STATIC_ASSERT_SIZEOF(Actor05300SndRow, 0x4);
 
-/// The state a scripted walker keeps right after its rig: an actor the room
-/// script places and walks from point to point. `ticking` enables the
-/// animation tick, `animId` and `bank` are the animation now playing and the
-/// bank it comes from, and `preset` is the preset byte the arrival and turn
-/// steps start their animation with. `light` and `color` are the matrices the
-/// model is lit with. A walk heads for `target`: each frame `step` is added
-/// into the 16.16 accumulators `acc`, whose high halves move the root
-/// coordinate and whose low halves carry over, until the remaining distance
-/// falls below `limit` on every axis, 0x7FFF disabling the check. `rotX`,
-/// `rotY` and `rotZ` are the placement rotation, and `rotY` the yaw the final
-/// turn steers toward. `motion` selects the handler the tick runs, and
-/// `motionStep` the step of the walk sequence that handler is on.
+/// The animation state and lighting a scripted actor keeps right after its
+/// rig. `ticking` enables the animation tick, `animId` and `bank` are the
+/// animation now playing and the bank it comes from, and `nextAnimId` is the
+/// animation a later step starts. `light` and `color` are the matrices the
+/// model is lit with.
+typedef struct ActorModelState {
+    s8     ticking;
+    s8     animId;
+    s8     bank;
+    s8     nextAnimId;
+    MATRIX light;
+    MATRIX color;
+} ActorModelState;
+STATIC_ASSERT_SIZEOF(ActorModelState, 0x44);
+
+/// The walk a scripted walker keeps after its model state: an actor the room
+/// script places and walks from point to point. A walk heads for `target`:
+/// each frame `step` is added into the 16.16 accumulators `acc`, whose high
+/// halves move the root coordinate and whose low halves carry over, until the
+/// remaining distance falls below `limit` on every axis, 0x7FFF disabling the
+/// check; an actor that walks without one leaves `limit` unused. `rotX`, `rotY` and `rotZ` are the placement rotation, and `rotY` the
+/// yaw the final turn steers toward. `motion` selects the handler the tick
+/// runs, and `motionStep` the step of the walk sequence that handler is on.
 typedef struct ActorWalkState {
-    s8      ticking;
-    s8      animId;
-    s8      bank;
-    s8      preset;
-    MATRIX  light;
-    MATRIX  color;
-    VECTOR3 target;
-    byte    pad_50[0x4];
-    VECTOR3 step;
-    byte    pad_60[0x4];
-    VECTOR3 acc;
-    byte    pad_70[0x4];
-    SVECTOR limit;
-    u16     rotX;
-    u16     rotY;
-    u16     rotZ;
-    byte    pad_82[0x2];
-    s16     motion;
-    s16     motionStep;
+    VECTOR3   target;
+    byte      pad_C[0x4];
+    VECTOR3   step;
+    byte      pad_1C[0x4];
+    GpFixed16 acc[3];
+    byte      pad_2C[0x4];
+    SVECTOR   limit;
+    u16       rotX;
+    u16       rotY;
+    u16       rotZ;
+    byte      pad_3E[0x2];
+    s16       motion;
+    s16       motionStep;
 } ActorWalkState;
-STATIC_ASSERT_SIZEOF(ActorWalkState, 0x88);
+STATIC_ASSERT_SIZEOF(ActorWalkState, 0x44);
 
 /// Work block of the scripted walker whose code both actor_350500 and
 /// actor_350700 carry for a nineteen-part model, allocated zeroed at its full
@@ -634,11 +639,12 @@ STATIC_ASSERT_SIZEOF(ActorWalkState, 0x88);
 /// two-case message handler latches, and `freeCountdown` the frames until the
 /// model buffers are freed, -1 disabling the countdown.
 typedef struct Actor350500Work {
-    ActorAnimRig19 rig;
-    ActorWalkState walk;
-    s8             field_4C4;
-    s8             freeCountdown;
-    byte           pad_4C6[0x2];
+    ActorAnimRig19  rig;
+    ActorModelState model;
+    ActorWalkState  walk;
+    s8              field_4C4;
+    s8              freeCountdown;
+    byte            pad_4C6[0x2];
 } Actor350500Work;
 STATIC_ASSERT_SIZEOF(Actor350500Work, 0x4C8);
 
@@ -649,12 +655,13 @@ STATIC_ASSERT_SIZEOF(Actor350500Work, 0x4C8);
 /// alongside the walker's, and `freeCountdown`, the frames until the model
 /// buffers are freed, -1 disabling the countdown.
 typedef struct Actor135600Work {
-    ActorAnimRig20 rig;
-    ActorWalkState walk;
-    Task*          child0;
-    Task*          child1;
-    Task*          child2;
-    s32            freeCountdown;
+    ActorAnimRig20  rig;
+    ActorModelState model;
+    ActorWalkState  walk;
+    Task*           child0;
+    Task*           child1;
+    Task*           child2;
+    s32             freeCountdown;
 } Actor135600Work;
 STATIC_ASSERT_SIZEOF(Actor135600Work, 0x50C);
 
