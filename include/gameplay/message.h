@@ -43,4 +43,23 @@ typedef struct GpAnimArg {
 } GpAnimArg;
 STATIC_ASSERT_SIZEOF(GpAnimArg, 0x14);
 
+/// The payload of the message that copies animation parameters onto a
+/// task's current animation block: `count` words from `words`, at most 0x20.
+typedef struct GpCopyArg {
+    s32* words;
+    s32  count;
+} GpCopyArg;
+STATIC_ASSERT_SIZEOF(GpCopyArg, 8);
+
+/// The payload of the message that holds the player or the companion in a
+/// timed state. The receivers read only `field_14`, a frame count they store as
+/// the state's countdown; senders also fill `field_4`.
+typedef struct GpDelayArg {
+    byte pad_0[4];
+    s32  field_4;
+    byte pad_8[0xC];
+    s32  field_14;
+} GpDelayArg;
+STATIC_ASSERT_SIZEOF(GpDelayArg, 0x18);
+
 #endif

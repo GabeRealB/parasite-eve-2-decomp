@@ -112,20 +112,11 @@ typedef struct Actor510900ChildFxTickScratch {
 } Actor510900ChildFxTickScratch;
 STATIC_ASSERT_SIZEOF(Actor510900ChildFxTickScratch, 0x28);
 
-/// Payload of the 0x3F8 query the hit handler asks the player before it takes
-/// the hold; `field_14` is the range it asks for. The same shape as
-/// `Actor400600Msg3F8`.
-typedef struct Actor510900Msg3F8 {
-    /* 0x00 */ byte pad_0[0x14];
-    /* 0x14 */ s32  field_14;
-} Actor510900Msg3F8;
-STATIC_ASSERT_SIZEOF(Actor510900Msg3F8, 0x18);
-
 /// 0x2C-byte scratch from `G_SCRATCH_HEAD` used by `func_actor_510900_8013A310`:
 /// the 0x3F8 query buffer followed by the `GpAnimArg` it sends as message 0x3FF.
 typedef struct Actor510900HitScratch {
-    /* 0x00 */ Actor510900Msg3F8 query;
-    /* 0x18 */ GpAnimArg         anim;
+    /* 0x00 */ GpDelayArg query;
+    /* 0x18 */ GpAnimArg  anim;
 } Actor510900HitScratch;
 STATIC_ASSERT_SIZEOF(Actor510900HitScratch, 0x2C);
 

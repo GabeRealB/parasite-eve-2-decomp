@@ -275,16 +275,6 @@ typedef union Actor444000Msg7DB {
 } Actor444000Msg7DB;
 STATIC_ASSERT_SIZEOF(Actor444000Msg7DB, 0x4);
 
-/// Reply buffer `func_actor_444000_80138490` passes with message 0x3F8, held
-/// at `D_actor_444000_80161898`; only `field_14` is seeded (to 0x28) before
-/// the query. The same shape as `Actor400600Msg3F8`.
-typedef struct Actor444000Msg3F8 {
-    /* 0x00 */ byte pad_0[0x14];
-    /* 0x14 */ s32  field_14;
-    /* 0x18 */ byte pad_18[0x8];
-} Actor444000Msg3F8;
-STATIC_ASSERT_SIZEOF(Actor444000Msg3F8, 0x20);
-
 /// Scratchpad frame `func_actor_444000_8013482C` carves off `G_SCRATCH_HEAD`
 /// for the run-out / turn / run-back pass. `dir` is first the offset from the
 /// model to the player, whose yaw against the model's own facing becomes
@@ -476,9 +466,9 @@ extern SVECTOR D_actor_444000_80161744[];
 /// `[group][spawnArg1]` index into `D_actor_444000_80161744`.
 extern u8 D_actor_444000_801617C4[][8];
 /// Reply buffer the hold state hands message 0x3F8.
-extern Actor444000Msg3F8 D_actor_444000_80161898;
-extern GpAnimBlk*        Gp_PlayerAnimBlkTbl[];
-extern u16               Gp_WeaponIdBase[];
+extern GpDelayArg D_actor_444000_80161898;
+extern GpAnimBlk* Gp_PlayerAnimBlkTbl[];
+extern u16        Gp_WeaponIdBase[];
 
 /// World point the spinner chases: written by `func_actor_444000_8013E058`,
 /// read by the spinner's tick as the target of its step.
@@ -510,7 +500,7 @@ extern s8 D_actor_444000_80161868;
 /// Shared message 0x3E9 placement payload the escort-order tick sends slot 3.
 extern GpXformArg D_actor_444000_80161908;
 /// Reply buffer the fight hands message 0x3F8 before asking for the hold.
-extern Actor444000Msg3F8 D_actor_444000_80161928;
+extern GpDelayArg D_actor_444000_80161928;
 
 /// Global game-mode byte; sits inside a small flag block, so it is declared as
 /// an array -- the load has to keep aliasing the scratch stores beside it (see

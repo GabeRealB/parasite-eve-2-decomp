@@ -70,16 +70,6 @@ typedef struct Actor136100Work {
 } Actor136100Work;
 STATIC_ASSERT_SIZEOF(Actor136100Work, 0x4F0);
 
-/// Payload `func_actor_136100_80134A18` passes as `Gp_DispatchMsg`'s `arg2`
-/// for message 0x3F7: the null-terminated pointer table at
-/// `D_actor_136100_8013F180` (seven live entries followed by a null word) and
-/// the number of live entries the sender counted in it.
-typedef struct Actor136100Msg3F7 {
-    /* 0x0 */ s32* table;
-    /* 0x4 */ s32  count;
-} Actor136100Msg3F7;
-STATIC_ASSERT_SIZEOF(Actor136100Msg3F7, 0x8);
-
 /// Set by `func_actor_136100_801348F8` when the cutscene wants the display
 /// back on; while it is non-zero the fade task kills itself instead of fading.
 extern u16 D_actor_136100_8013F17C;
@@ -1470,15 +1460,15 @@ void func_actor_136100_801349B4(s32 arg0)
 /// the table and that count to message 0x3F7.
 void func_actor_136100_80134A18(Task* arg0)
 {
-    Actor136100Work*  work = (Actor136100Work*)arg0->work;
-    Actor136100Msg3F7 msg;
-    s32               n;
+    Actor136100Work* work = (Actor136100Work*)arg0->work;
+    GpCopyArg        msg;
+    s32              n;
 
     n = 0;
     while (D_actor_136100_8013F180[n & 0xFFFF] != 0) {
         n += 1;
     }
-    msg.table = &D_actor_136100_8013F180[0];
+    msg.words = &D_actor_136100_8013F180[0];
     msg.count = n & 0xFFFF;
     Gp_DispatchMsg(work->field_4B4, 0x3F7, (s32)&msg, 0);
 }

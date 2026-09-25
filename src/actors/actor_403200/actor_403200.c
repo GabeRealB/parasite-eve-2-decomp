@@ -61,15 +61,6 @@ typedef union Actor403200Msg7DB {
 } Actor403200Msg7DB;
 STATIC_ASSERT_SIZEOF(Actor403200Msg7DB, 0x4);
 
-/// Payload of the 0x3F8 query the stand-up state's swipe tick sends the player
-/// before it asks for the hold; `field_14` is the range it asks for. The same
-/// shape as `Actor103700Msg3F8` and `Actor444000Msg3F8`.
-typedef struct Actor403200Msg3F8 {
-    /* 0x00 */ byte pad_0[0x14];
-    /* 0x14 */ s32  field_14;
-} Actor403200Msg3F8;
-STATIC_ASSERT_SIZEOF(Actor403200Msg3F8, 0x18);
-
 /// 0x20-byte scratchpad frame the state-selecting tick
 /// `func_actor_403200_8013EB64` carves off `SCRATCH_SP`. `delta` is the
 /// player-relative offset whose length is `dist`, the range the three
@@ -529,8 +520,8 @@ extern SVECTOR D_actor_403200_8015F8F8;
 
 /// Reply buffers the rise state and the stand-up tick pass with their message
 /// 0x3F8.
-extern Actor403200Msg3F8 D_actor_403200_8015F900;
-extern Actor403200Msg3F8 D_actor_403200_8015FA00;
+extern GpDelayArg D_actor_403200_8015F900;
+extern GpDelayArg D_actor_403200_8015FA00;
 
 /// The scratch coordinate the debris effect of `func_actor_403200_8013DC3C` is
 /// built on: `F920` is the whole `GsCOORDINATE2` and `F924` its `coord` matrix,

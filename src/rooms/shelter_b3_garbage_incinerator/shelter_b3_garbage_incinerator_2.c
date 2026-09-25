@@ -917,8 +917,8 @@ s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
             while (D_shelter_b3_garbage_incinerator_80186F78[n & 0xFFFF] != 0) {
                 n += 1;
             }
-            msg.field_0 = &D_shelter_b3_garbage_incinerator_80186F78[0];
-            msg.field_4 = n & 0xFFFF;
+            msg.words = &D_shelter_b3_garbage_incinerator_80186F78[0];
+            msg.count = n & 0xFFFF;
             Gp_DispatchMsg(msgWork->field_2C, 0x3F7, (s32)&msg, 0);
             Gp_MsgPlayerWeapon(0);
             Gp_StateC08.field_6 |= 1;

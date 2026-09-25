@@ -44,15 +44,6 @@ typedef struct Actor521100HitScratch {
 } Actor521100HitScratch;
 STATIC_ASSERT_SIZEOF(Actor521100HitScratch, 0x48);
 
-/// Payload of the 0x3F8 query `func_actor_521100_80132C70` sends the player
-/// before it takes the hold; `field_14` is the range it asks for. The same
-/// shape as `Actor103700Msg3F8`, `Actor510900Msg3F8` and `Actor400600Msg3F8`.
-typedef struct Actor521100Msg3F8 {
-    /* 0x00 */ byte pad_0[0x14];
-    /* 0x14 */ s32  field_14;
-} Actor521100Msg3F8;
-STATIC_ASSERT_SIZEOF(Actor521100Msg3F8, 0x18);
-
 typedef struct Actor521100FireRow {
     /* 0x0 */ s16 field_0;
     /* 0x2 */ u16 field_2;
@@ -673,17 +664,17 @@ void func_actor_521100_80132958(Task* arg0)
 /// query buffer is the 0x18 bytes `SCRATCH_SP` is pushed by.
 s32 func_actor_521100_80132C70(Task* arg0)
 {
-    Actor521100Work*   work;
-    Task*              player;
-    Actor521100Msg3F8* msg;
-    s16                diff;
-    s32                adiff;
-    s16                wrap;
-    s32                ret;
+    Actor521100Work* work;
+    Task*            player;
+    GpDelayArg*      msg;
+    s16              diff;
+    s32              adiff;
+    s16              wrap;
+    s32              ret;
 
     work   = arg0->work;
     player = gameGetPtrSlot(3);
-    msg    = (Actor521100Msg3F8*)(SCRATCH_SP -= 0x18);
+    msg    = (GpDelayArg*)(SCRATCH_SP -= 0x18);
 
     diff  = work->field_698 - work->field_696;
     adiff = diff >= 0 ? diff : -diff;

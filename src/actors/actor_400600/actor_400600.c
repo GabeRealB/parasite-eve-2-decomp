@@ -66,14 +66,6 @@ typedef union Actor400600State {
 } Actor400600State;
 STATIC_ASSERT_SIZEOF(Actor400600State, 0x4);
 
-/// Reply buffer `func_actor_400600_80133FC0` passes with message 0x3F8; only
-/// `field_14` is seeded (to 8) before the query.
-typedef struct Actor400600Msg3F8 {
-    /* 0x00 */ byte pad_0[0x14];
-    /* 0x14 */ s32  field_14;
-} Actor400600Msg3F8;
-STATIC_ASSERT_SIZEOF(Actor400600Msg3F8, 0x18);
-
 /// Per-actor state block for the `actor_400600` overlay.
 ///
 /// `func_actor_400600_80133434` allocates it with `memCalloc(0x770)` and
@@ -1288,14 +1280,14 @@ void func_actor_400600_80133E38(Task* arg0)
 
 void func_actor_400600_80133FC0(Task* arg0)
 {
-    GpAnimArg         msg;
-    Actor400600Msg3F8 query;
-    Actor400600Work*  work;
-    Actor400600Work*  work2;
-    Actor400600Work*  work3;
-    s32               base;
-    s32               sound;
-    s32               pan;
+    GpAnimArg        msg;
+    GpDelayArg       query;
+    Actor400600Work* work;
+    Actor400600Work* work2;
+    Actor400600Work* work3;
+    s32              base;
+    s32              sound;
+    s32              pan;
 
     work = (Actor400600Work*)arg0->work;
     if (((GameActor*)Gp_ActorSlots[0]->work)->field_954 == 2 || (func_actor_400600_801376EC(arg0) << 0x10) != 0 || work->field_728 >= 0x7D0 || (u32)(work->field_72C - 0x200) < 0xC01U) {

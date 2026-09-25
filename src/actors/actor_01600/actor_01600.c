@@ -271,15 +271,6 @@ STATIC_ASSERT_SIZEOF(Actor01600CoordPos, 0x24);
 /// difference is computed into the scratch vector but never enters the sum.
 s32 Actor01600_Fn052C4(Task* arg0);
 
-/// Payload for message 0x3F8.
-typedef struct Actor01600Msg3F8 {
-    /* 0x00 */ s32  field_0;
-    /* 0x04 */ s32  field_4;
-    /* 0x08 */ byte pad_8[0xC];
-    /* 0x14 */ s32  field_14;
-} Actor01600Msg3F8;
-STATIC_ASSERT_SIZEOF(Actor01600Msg3F8, 0x18);
-
 /// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
 /// the overlay's message table routes 0x7DB to `Actor01600_Fn05B08`, which
 /// reads only the halfword at 0x2 and treats it as a sub-command selecting one
@@ -291,9 +282,9 @@ typedef struct Actor01600Msg7DB {
 } Actor01600Msg7DB;
 STATIC_ASSERT_SIZEOF(Actor01600Msg7DB, 0x4);
 
-extern Task*            Gp_ActorSlots[];
-extern Actor01600Msg3F8 Actor01600_D12878;
-extern GpXformArg       Actor01600_D12890;
+extern Task*      Gp_ActorSlots[];
+extern GpDelayArg Actor01600_D12878;
+extern GpXformArg Actor01600_D12890;
 
 extern s32 Actor01600_D12874;
 extern s32 Actor01600_D127DC;

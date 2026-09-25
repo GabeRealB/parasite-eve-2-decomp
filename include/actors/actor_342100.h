@@ -64,16 +64,6 @@ typedef struct Actor342100FadeWork {
 } Actor342100FadeWork;
 STATIC_ASSERT_SIZEOF(Actor342100FadeWork, 0x8);
 
-/// Payload `func_actor_342100_80162F54` passes as `Gp_DispatchMsg`'s `arg2`
-/// for message 0x3F7: the null-terminated pointer table at
-/// `D_actor_342100_80164900` (three live entries followed by a null word) and
-/// the number of live entries the sender counted in it.
-typedef struct Actor342100Msg3F7 {
-    /* 0x0 */ s32* table;
-    /* 0x4 */ s32  count;
-} Actor342100Msg3F7;
-STATIC_ASSERT_SIZEOF(Actor342100Msg3F7, 0x8);
-
 /// Payload `func_actor_342100_80163454` passes as `Gp_DispatchMsg`'s `arg2`
 /// for message 0x7DA and then re-sends verbatim as the 0x7DB the slot-4 task
 /// forwards. Two zero/action bytes followed by the halfword the receiver

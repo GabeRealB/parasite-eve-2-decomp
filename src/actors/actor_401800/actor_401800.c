@@ -377,13 +377,7 @@ extern GpAnimSet* D_actor_401800_801559F8[];
 extern GpAnimSet* D_actor_401800_801559F0[];
 extern s8         D_8007218A;
 
-typedef struct Actor401800Msg3F8 {
-    /* 0x00 */ byte pad_0[0x14];
-    /* 0x14 */ s32  field_14;
-} Actor401800Msg3F8;
-STATIC_ASSERT_SIZEOF(Actor401800Msg3F8, 0x18);
-
-extern Actor401800Msg3F8 D_actor_401800_80155AF8;
+extern GpDelayArg D_actor_401800_80155AF8;
 
 /// Twelve `SVECTOR` hit positions `func_actor_401800_801348A8` picks from by
 /// damage magnitude: the low four when the hit is light, the high two when it

@@ -660,10 +660,10 @@ void func_actor_342100_80162DDC(Task* arg0)
 /// the task alive until `gGameSession->eventState` is set.
 s32 func_actor_342100_80162F54(Task* arg0)
 {
-    Actor342100Work*  work = (Actor342100Work*)arg0->work;
-    Actor342100Work*  msgWork;
-    Actor342100Msg3F7 msg;
-    s32               n;
+    Actor342100Work* work = (Actor342100Work*)arg0->work;
+    Actor342100Work* msgWork;
+    GpCopyArg        msg;
+    s32              n;
 
     switch (work->field_3E) {
         case 0:
@@ -672,7 +672,7 @@ s32 func_actor_342100_80162F54(Task* arg0)
             while (D_actor_342100_80164900[n & 0xFFFF] != 0) {
                 n += 1;
             }
-            msg.table = &D_actor_342100_80164900[0];
+            msg.words = &D_actor_342100_80164900[0];
             msg.count = n & 0xFFFF;
             Gp_DispatchMsg(msgWork->field_2C, 0x3F7, (s32)&msg, 0);
             Gp_MsgPlayerWeapon(0);

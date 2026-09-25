@@ -357,18 +357,9 @@ STATIC_ASSERT_SIZEOF(Actor356100Msg3E9, 0x18);
 /// image, so it is a work area rather than a table.
 extern Actor356100Msg3E9 D_actor_356100_801732B0;
 
-/// Reply buffer `func_actor_356100_80166018` passes with message 0x3F8; only
-/// `field_14` is seeded (to 8) before the query. Same shape as
-/// `Actor400600Msg3F8`.
-typedef struct Actor356100Msg3F8 {
-    /* 0x00 */ byte pad_0[0x14];
-    /* 0x14 */ s32  field_14;
-} Actor356100Msg3F8;
-STATIC_ASSERT_SIZEOF(Actor356100Msg3F8, 0x18);
-
 /// Reply buffer for the message-0x3F8 query above; the six words after it are
-/// zero in the image. Same shape as `Actor400600Msg3F8`.
-extern Actor356100Msg3F8 D_actor_356100_801732D0;
+/// zero in the image.
+extern GpDelayArg D_actor_356100_801732D0;
 
 /// Player-character flag selecting which animation block
 /// `func_actor_356100_80166018` points `D_actor_356100_80173244.field_0` at:

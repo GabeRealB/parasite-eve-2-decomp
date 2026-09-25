@@ -679,13 +679,6 @@ typedef struct _GpCountArg {
 } GpCountArg;
 STATIC_ASSERT_SIZEOF(GpCountArg, 8);
 
-/// Argument for `func_801054D8` / `func_8010C75C`. `field_14` is copied
-/// onto `GameActor.field_934` (frame delay); `field_93E` is cleared.
-typedef struct _GpDelayArg {
-    /* 0x00 */ byte pad_0[0x14];
-    /* 0x14 */ s32  field_14;
-} GpDelayArg;
-
 /// Animation data pointed to by `Gp_PlayerAnimBlkTbl` / `Gp_AnimBlkTbl` /
 /// `GameActor.field_928`. `Gp_CopyPlayerAnim` and `Gp_CopyAllyAnim` copy up to
 /// 0x20 words onto `field_BC`.
@@ -695,14 +688,6 @@ typedef struct _GpAnimBlk {
     /* 0x20 */ byte pad_20[0x9C];
     /* 0xBC */ s32  field_BC[0x20];
 } GpAnimBlk;
-
-/// Word-copy argument for `Gp_CopyPlayerAnim` / `Gp_CopyAllyAnim`. `field_0` is
-/// the source array; `field_4` is the count (must be < 0x21).
-typedef struct _GpCopyArg {
-    /* 0x0 */ s32* field_0;
-    /* 0x4 */ s32  field_4;
-} GpCopyArg;
-STATIC_ASSERT_SIZEOF(GpCopyArg, 8);
 
 /// 4-byte pad-event template indexed by `func_801041FC`. `field_0` / `field_2`
 /// are passed to `Pad_PostEvent` (`lbu` / `lh`).

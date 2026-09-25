@@ -1277,8 +1277,8 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
             while (D_shelter_b3_dumping_hole_801880A0[n & 0xFFFF] != 0) {
                 n += 1;
             }
-            msg.field_0 = &D_shelter_b3_dumping_hole_801880A0[0];
-            msg.field_4 = n & 0xFFFF;
+            msg.words = &D_shelter_b3_dumping_hole_801880A0[0];
+            msg.count = n & 0xFFFF;
             Gp_DispatchMsg(w2->field_24, 0x3F7, (s32)&msg, 0);
             weaponId             = D_80073BA9;
             p                    = &anim;

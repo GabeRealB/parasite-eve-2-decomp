@@ -50,14 +50,6 @@ typedef union Actor405800Flags83C {
 } Actor405800Flags83C;
 STATIC_ASSERT_SIZEOF(Actor405800Flags83C, 0x4);
 
-/// Reply buffer `func_actor_405800_801340E0` passes with message 0x3F8; only
-/// `field_14` is seeded (to 0x18) before the query.
-typedef struct Actor405800Msg3F8 {
-    /* 0x00 */ byte pad_0[0x14];
-    /* 0x14 */ s32  field_14;
-} Actor405800Msg3F8;
-STATIC_ASSERT_SIZEOF(Actor405800Msg3F8, 0x18);
-
 /// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `func_actor_405800_80133800`
 /// to project the third model part's origin. `vec` is the zero vector fed to
 /// RTPS through that part's `workm`; `sxy` is `gte_stsxy`, `p` is `gte_stdp`,
@@ -1282,14 +1274,14 @@ void func_actor_405800_80133F48(Task* arg0)
 
 void func_actor_405800_801340E0(Task* arg0)
 {
-    GpAnimArg         msg;
-    Actor405800Msg3F8 query;
-    Actor405800Work*  work;
-    Actor405800Work*  work2;
-    Actor405800Work*  work3;
-    s32               base;
-    s32               sound;
-    s32               pan;
+    GpAnimArg        msg;
+    GpDelayArg       query;
+    Actor405800Work* work;
+    Actor405800Work* work2;
+    Actor405800Work* work3;
+    s32              base;
+    s32              sound;
+    s32              pan;
 
     work = (Actor405800Work*)arg0->work;
     if (((GameActor*)Gp_ActorSlots[0]->work)->field_954 == 2 || (func_actor_405800_8013728C(arg0) << 0x10) != 0) {

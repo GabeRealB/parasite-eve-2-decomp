@@ -6041,13 +6041,13 @@ s32 Gp_CopyPlayerAnim(Task* arg0, s32 arg1, GpCopyArg* arg2)
     s32  count;
 
     dest  = (s32*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon];
-    src   = arg2->field_0;
-    count = arg2->field_4;
+    src   = arg2->words;
+    count = arg2->count;
     if (count >= 0x21) {
         return 1;
     }
     dest = ((GpAnimBlk*)dest)->field_BC;
-    for (i = 0; i < arg2->field_4; i++) {
+    for (i = 0; i < arg2->count; i++) {
         dest[i] = src[i];
     }
     return 0;
@@ -10160,13 +10160,13 @@ s32 Gp_CopyAllyAnim(Task* arg0, s32 arg1, GpCopyArg* arg2)
     s32  count;
 
     dest  = (s32*)Gp_AnimBlkTbl[Gp_AllyIdBase[Mc_SaveData.companionType - 1] + Mc_SaveData.companionVariant];
-    src   = arg2->field_0;
-    count = arg2->field_4;
+    src   = arg2->words;
+    count = arg2->count;
     if (count >= 0x21) {
         return 1;
     }
     dest = ((GpAnimBlk*)dest)->field_BC;
-    for (i = 0; i < arg2->field_4; i++) {
+    for (i = 0; i < arg2->count; i++) {
         dest[i] = src[i];
     }
     return 0;

@@ -62,20 +62,11 @@ typedef struct Actor103700Work {
     /* 0x26C */ u16        field_26C;
 } Actor103700Work;
 
-/// Payload of the 0x3F8 query `Actor03700_Fn03130` sends the player
-/// before it takes the hold; `field_14` is the range it asks for. The same
-/// shape as `Actor510900Msg3F8` and `Actor400600Msg3F8`.
-typedef struct Actor103700Msg3F8 {
-    /* 0x00 */ byte pad_0[0x14];
-    /* 0x14 */ s32  field_14;
-} Actor103700Msg3F8;
-STATIC_ASSERT_SIZEOF(Actor103700Msg3F8, 0x18);
-
 /// 0x2C-byte scratch from `G_SCRATCH_HEAD` used by `Actor03700_Fn03130`:
 /// the 0x3F8 query buffer followed by the `GpAnimArg` it sends as message 0x3FF.
 typedef struct Actor103700HoldScratch {
-    /* 0x00 */ Actor103700Msg3F8 query;
-    /* 0x18 */ GpAnimArg         anim;
+    /* 0x00 */ GpDelayArg query;
+    /* 0x18 */ GpAnimArg  anim;
 } Actor103700HoldScratch;
 STATIC_ASSERT_SIZEOF(Actor103700HoldScratch, 0x2C);
 
