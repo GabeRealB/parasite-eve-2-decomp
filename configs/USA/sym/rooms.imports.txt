@@ -380,7 +380,7 @@ Gp_MenuLockDelay = 0x80115716; // absolute:True
 Gp_State1C = 0x80115740; // absolute:True
 Gp_ActorSlots = 0x80115760; // absolute:True
 
-// --- still unnamed in their own overlay (243)
+// --- still unnamed in their own overlay (242)
 func_8004BFF8 = 0x8004BFF8; // absolute:True
 D_8005C36C = 0x8005C36C; // absolute:True
 D_8005C370 = 0x8005C370; // absolute:True
@@ -413,7 +413,6 @@ D_80071090 = 0x80071090; // absolute:True
 D_8007216C = 0x8007216C; // absolute:True
 D_8007216D = 0x8007216D; // absolute:True
 D_80072170 = 0x80072170; // absolute:True
-D_80072171 = 0x80072171; // absolute:True
 D_80072174 = 0x80072174; // absolute:True
 D_80072176 = 0x80072176; // absolute:True
 D_80072177 = 0x80072177; // absolute:True

@@ -364,7 +364,7 @@ Gp_CapFile = 0x8011568C; // absolute:True
 Gp_State1C = 0x80115740; // absolute:True
 Gp_ActorSlots = 0x80115760; // absolute:True
 
-// --- still unnamed in their own overlay (190)
+// --- still unnamed in their own overlay (189)
 func_8004BFF8 = 0x8004BFF8; // absolute:True
 D_8005C374 = 0x8005C374; // absolute:True
 D_800626EC = 0x800626EC; // absolute:True
@@ -431,7 +431,6 @@ D_8011540B = 0x8011540B; // absolute:True
 D_8011540C = 0x8011540C; // absolute:True
 D_8011540D = 0x8011540D; // absolute:True
 D_8011540E = 0x8011540E; // absolute:True
-D_8011540F = 0x8011540F; // absolute:True
 D_80115410 = 0x80115410; // absolute:True
 D_80115412 = 0x80115412; // absolute:True
 D_80115413 = 0x80115413; // absolute:True
