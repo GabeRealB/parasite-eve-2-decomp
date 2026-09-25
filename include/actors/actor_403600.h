@@ -38,7 +38,8 @@ typedef struct Actor403600Work {
     /* 0x702 */ byte            pad_702[6];
     /* 0x708 */ s16             field_708;
     /* 0x70A */ s16             field_70A;
-    /* 0x70C */ byte            pad_70C[4];
+    /* 0x70C */ s16             field_70C; // added to the chain's hang length; nothing in this package writes it
+    /* 0x70E */ s16             field_70E; // added to the limb segments' hang length; nothing in this package writes it
     /* 0x710 */ Task*           field_710;
     /* 0x714 */ byte            pad_714[0x1C];
     /* 0x730 */ s16             field_730;
