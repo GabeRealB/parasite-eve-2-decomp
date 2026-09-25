@@ -530,19 +530,19 @@ typedef struct _GpAimRot {
 } GpAimRot;
 STATIC_ASSERT_SIZEOF(GpAimRot, 8);
 
-/// 0x6C-byte scratch from `G_SCRATCH_HEAD` used by `Gp_AimYawToLock`.
-/// The first 0x50 bytes are a temp `GpCoord`. `delta` is
-/// `Gp_GetLockPos` output minus that coord's translation (computed in
-/// place). `rot` is the `SVECTOR` passed to `Gp_PlaceCoordOffset` (table row
-/// `D_801131B4[Player_Status.weapon]`). `angle` holds `ratan2` then
-/// the wrapped, clamped yaw delta applied to `GameActor.field_52`.
+/// Scratch-pad block for turning an actor's yaw toward its lock target.
+/// `coord` is the aiming origin, placed by `rot` (the equipped weapon's row of
+/// the aim-offset table) relative to the root coordinate of the model the
+/// actor has attached; `delta` receives the lock position and is then made
+/// relative to that origin. `angle` is the
+/// target heading, then the shortest turn toward it, then that turn clamped
+/// to the weapon's turn rate.
 typedef struct _GpYawScratch {
-    /* 0x00 */ byte     pad_0[0x50];
-    /* 0x50 */ VECTOR3  delta;
-    /* 0x5C */ s32      pad_5C;
-    /* 0x60 */ SVECTOR3 rot;
-    /* 0x66 */ s16      pad_66;
-    /* 0x68 */ s32      angle;
+    GpCoord coord;
+    VECTOR3 delta;
+    s32     pad_5C;
+    SVECTOR rot;
+    s32     angle;
 } GpYawScratch;
 STATIC_ASSERT_SIZEOF(GpYawScratch, 0x6C);
 

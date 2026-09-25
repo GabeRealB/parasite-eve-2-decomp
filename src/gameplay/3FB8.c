@@ -3980,127 +3980,85 @@ void Gp_TurnPlayer(Task* arg0)
     MatrixNormal((MATRIX*)coord, (MATRIX*)coord);
 }
 
-void Gp_AimYawToLock(Task* arg0, s32 arg1)
+/// The signed turn from `from` to `to` (4096 units per revolution), taking
+/// whichever of the direct difference and its one-revolution neighbours is
+/// shortest.
+static inline s16 _gpShortestTurn(s16 from, s16 to)
 {
-    void**       scratch;
-    s32          hi;
-    u8*          head;
-    register u8* tmp asm("v1");
-    GameActor*   actor;
-    s32          thresh;
+    GpAngleScratch* d;
 
-    thresh = arg1;
-    asm("lui %0, 0x1F80" : "=r"(hi) : "r"(thresh));
-    asm("ori %0, %1, 0x3FC" : "=r"(scratch) : "r"(hi));
-    head     = *scratch;
-    actor    = arg0->work;
-    tmp      = head - 0x6C;
-    *scratch = tmp;
+    SCRATCH_PUSH(GpAngleScratch);
+    d          = SCRATCH_HEAD(GpAngleScratch);
+    d->field_0 = to - from;
+    d->field_4 = d->field_0 + 0x1000;
+    d->field_8 = d->field_0 - 0x1000;
+    if (ABS(d->field_0) < ABS(d->field_4) && ABS(d->field_0) < ABS(d->field_8)) {
+        from = d->field_0;
+    } else if (ABS(d->field_4) < ABS(d->field_8)) {
+        from = d->field_4;
+    } else {
+        from = d->field_8;
+    }
+    SCRATCH_POP(GpAngleScratch);
+    return from;
+}
+
+/// Turns `actor` toward its lock target once the target is farther than
+/// `thresh` in the ground plane, by at most the equipped weapon's turn rate.
+static inline void _gpAimYawAt(GameActor* actor, GpYawScratch* block, s16 thresh)
+{
+    GpAimRot* rec;
+    GpCoord*  src;
+    VECTOR3*  lock;
+    s32       dx;
+    s32       dz;
+    s32       limit;
+
     if (actor->field_90C != NULL) {
-        GpYawScratch*   block;
-        GpAimRot*       rec;
-        GpCoord*        src;
-        VECTOR3*        lock;
-        register s32    val asm("v0");
-        s32             dz;
-        register s32    cmp asm("v1");
-        GpAngleScratch* wrap;
-        u8*             whead;
-        s32             delta;
-        s32             flag;
-        register s32    packed asm("s2");
-        s32             limit;
-        register u16*   tbl asm("a1");
-
-        block = (GpYawScratch*)tmp;
-        TOUCH_REG(block);
         rec           = &D_801131B4[Player_Status.weapon];
         src           = actor->field_91C->extra.tmd->coords;
         block->rot.vx = rec->vx;
         block->rot.vy = rec->vy;
         block->rot.vz = rec->vz;
-        Gp_PlaceCoordOffset(src, (GpCoord*)block, (SVECTOR*)(head - 0xC));
-        lock = (VECTOR3*)(head - 0x1C);
+        Gp_PlaceCoordOffset(src, &block->coord, &block->rot);
+        lock = &block->delta;
         Gp_GetLockPos(actor->field_90C, lock);
-        ((VECTOR3*)(head - 0x1C))->vx =
-            ((VECTOR3*)(head - 0x1C))->vx - ((GpCoord*)block)->coord.t[0];
-        lock->vy = lock->vy - ((GpCoord*)block)->coord.t[1];
-        lock->vz = lock->vz - ((GpCoord*)block)->coord.t[2];
-        val      = block->delta.vx;
-        val      = ABS(val);
-        val      = val * val;
-        dz       = block->delta.vz;
-        dz       = ABS(dz);
-        dz       = dz * dz;
-        val      = SquareRoot0(val + dz);
-        cmp      = (s16)thresh;
-        cmp      = cmp < val;
-        if (cmp) {
+        lock->vx -= block->coord.coord.t[0];
+        lock->vy -= block->coord.coord.t[1];
+        lock->vz -= block->coord.coord.t[2];
+        dx        = block->delta.vx;
+        dx        = ABS(dx);
+        dx        = dx * dx;
+        dz        = block->delta.vz;
+        dz        = ABS(dz);
+        dz        = dz * dz;
+        if (SquareRoot0(dx + dz) > thresh) {
             block->angle = ratan2(block->delta.vx, block->delta.vz);
-            val          = (u16)block->angle;
-            cmp          = (u16)actor->field_52;
-            asm("lui %0, 0x1F80" : "=r"(whead) : "r"(val), "r"(cmp));
-            whead = *(u8**)(whead + 0x3FC);
-            val   = (s16)val - (s16)cmp;
-            tmp   = (u8*)(whead - 0xC);
-            wrap  = (GpAngleScratch*)tmp;
-            TOUCH_REG_USE(wrap, tmp);
-            ((GpAngleScratch*)(whead - 0xC))->field_0 = val;
-            val                                      += 0x1000;
-            wrap->field_4                             = val;
-            val                                       = ((GpAngleScratch*)(whead - 0xC))->field_0;
-            SCRATCH_HEAD(void)                        = wrap;
-            delta                                     = val - 0x1000;
-            wrap->field_8                             = delta;
-            if (ABS(((GpAngleScratch*)(whead - 0xC))->field_0) < ABS(wrap->field_4) &&
-                ABS(((GpAngleScratch*)(whead - 0xC))->field_0) < ABS(delta)) {
-                cmp  = (u16)((GpAngleScratch*)(whead - 0xC))->field_0;
-                flag = 0x2000;
-            } else if (ABS(wrap->field_4) < ABS(wrap->field_8)) {
-                cmp  = (u16)wrap->field_4;
-                flag = 0x2000;
-            } else {
-                cmp  = (u16)wrap->field_8;
-                flag = 0x2000;
+            block->angle = _gpShortestTurn(actor->field_52, block->angle);
+            limit        = (s16)D_80112E30[Player_Status.weapon];
+            if (func_800B9D80(0x2000) != 0) {
+                limit += limit >> 1;
             }
-            val = (s16)cmp;
-            asm("lui %0, %%hi(D_80112E30)" : "=r"(tbl) : "r"(val));
-            block->angle = val;
-            asm("lui %0, %%hi(Player_Status)" : "=r"(val));
-            asm("addiu %0, %1, %%lo(D_80112E30)" : "=r"(tbl) : "r"(tbl));
-            asm("lbu %0, %%lo(Player_Status+0x21)(%1)" : "=r"(cmp) : "r"(val));
-            asm("lui %0, 0x1F80" : "=r"(val) : "r"(cmp));
-            /* The scratch-pad head, read through the pad base the asm above built. */
-            val = (s32) * (void**)((u8*)val + 0x3FC);
-            USE_REG(val);
-            cmp                = tbl[cmp];
-            val               += 0xC;
-            SCRATCH_HEAD(void) = (void*)val;
-            packed             = cmp << 16;
-            limit              = packed >> 16;
-            if (func_800B9D80(flag) != 0) {
-                val    = packed >> 17;
-                limit += val;
+            if (block->angle > limit) {
+                block->angle = limit;
+            } else if (block->angle < -limit) {
+                block->angle = -limit;
             }
-            {
-                s32          angle;
-                register s32 neg asm("v1");
-
-                angle = block->angle;
-                neg   = -limit;
-                if (limit < angle) {
-                    block->angle = limit;
-                } else {
-                    val = angle < neg;
-                    if (val) {
-                        block->angle = neg;
-                    }
-                }
-            }
-            actor->field_52 = ((u16)actor->field_52 + (u16)block->angle) & 0xFFF;
+            actor->field_52 = (actor->field_52 + block->angle) & 0xFFF;
         }
     }
-    SCRATCH_POP_BYTES(0x6C);
+}
+
+void Gp_AimYawToLock(Task* arg0, s32 arg1)
+{
+    GameActor* actor;
+    u8*        head;
+
+    head             = SCRATCH_HEAD(u8);
+    actor            = arg0->work;
+    SCRATCH_HEAD(u8) = head - sizeof(GpYawScratch);
+    _gpAimYawAt(actor, (GpYawScratch*)(head - sizeof(GpYawScratch)), arg1);
+    SCRATCH_POP(GpYawScratch);
 }
 
 #define SCALE_PITCH(dst, src)        \

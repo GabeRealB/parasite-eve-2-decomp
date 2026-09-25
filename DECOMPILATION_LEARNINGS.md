@@ -40876,6 +40876,18 @@ The same helper can need *both* forms at different call sites: where the
 caller's variable is free to take the parameter register the coalesced version
 matches, so compare each site rather than applying one shape everywhere.
 
+The reuse also moves a result that is *global* (set in several arms of an
+if/else chain). Reassigning the parameter makes the result the same pseudo as
+the parameter, so its allocno includes the parameter's first live range and
+conflicts with everything live there - typically the other parameter, already
+placed in `$v0` by local-alloc. `Gp_AimYawToLock`'s inlined shortest-turn
+helper takes `(s16 from, s16 to)`; the target loads `to` into `$v0`, `from`
+into `$v1`, and each arm's chosen candidate into `$v1` again. A separate `ret`
+local (or a ternary) got `$v0` in every arm - its only conflicts were
+callee-saved values, and its copy preferences were `$v0 $v1`, lowest first.
+`from = d->field_N; ... return from;` matched: the result inherits the
+parameter's conflict with `$v0`.
+
 ## Hoist the `= 1` above the last test to stop GCC folding a flag into `sltiu`
 
 The "spell out the CFG" entry above is not always enough. With a helper whose
