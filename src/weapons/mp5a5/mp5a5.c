@@ -138,7 +138,6 @@ void func_mp5a5_8011D1E0(Task* task)
 
 void func_mp5a5_8011D468(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 {
-    void**                scratch;
     u8*                   head;
     OverlaySpriteScratch* blk;
     OverlaySpriteScratch* otzp;
@@ -146,15 +145,14 @@ void func_mp5a5_8011D468(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     s32                   ang;
     u16                   vz;
 
-    scratch     = (void**)G_SCRATCH_HEAD;
-    head        = *scratch;
-    blk         = (OverlaySpriteScratch*)(head - sizeof(OverlaySpriteScratch));
-    blk->vec.vx = *(u16*)&arg0->workm.t[0];
-    blk->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz          = *(u16*)&arg0->workm.t[2];
-    otzp        = blk;
-    *scratch    = blk;
-    blk->vec.vz = vz;
+    head                               = SCRATCH_HEAD(u8);
+    blk                                = (OverlaySpriteScratch*)(head - sizeof(OverlaySpriteScratch));
+    blk->vec.vx                        = *(u16*)&arg0->workm.t[0];
+    blk->vec.vy                        = *(u16*)&arg0->workm.t[1];
+    vz                                 = *(u16*)&arg0->workm.t[2];
+    otzp                               = blk;
+    SCRATCH_HEAD(OverlaySpriteScratch) = blk;
+    blk->vec.vz                        = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((OverlaySpriteScratch*)(head - 0x18))->vec);
@@ -188,7 +186,7 @@ void func_mp5a5_8011D468(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES_AT(scratch, sizeof(OverlaySpriteScratch));
+    SCRATCH_POP_BYTES(sizeof(OverlaySpriteScratch));
 }
 
 /// Draws a gun's muzzle flash as one Gouraud quad: three corners on a 0x100
@@ -198,7 +196,6 @@ void func_mp5a5_8011D468(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 /// `arg2` in red and green and all of it in blue.
 void func_mp5a5_8011D864(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 {
-    void**             scratch;
     u8*                head;
     WeaponQuadScratch* blk;
     POLY_G4*           prim;
@@ -211,11 +208,10 @@ void func_mp5a5_8011D864(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     /* `len` and `depth` are locals rather than literals on purpose: as
        constants GCC turns the `* 0x600` into a shift-and-add and drops the
        `mult` the ROM keeps. */
-    depth    = -0x200;
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    blk      = (WeaponQuadScratch*)(head - sizeof(WeaponQuadScratch));
-    *scratch = blk;
+    depth                           = -0x200;
+    head                            = SCRATCH_HEAD(u8);
+    blk                             = (WeaponQuadScratch*)(head - sizeof(WeaponQuadScratch));
+    SCRATCH_HEAD(WeaponQuadScratch) = blk;
     gte_SetTransMatrix(&GsWSMATRIX);
     ang = arg1;
 
@@ -294,7 +290,7 @@ void func_mp5a5_8011D864(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, ((WeaponQuadScratch*)(head - 0x24))->otz);
     }
-    SCRATCH_POP_BYTES_AT(scratch, sizeof(WeaponQuadScratch));
+    SCRATCH_POP_BYTES(sizeof(WeaponQuadScratch));
 }
 
 /// Per-frame firing state machine for the MP5A5 and its upgrades. State 0 arms the shot and

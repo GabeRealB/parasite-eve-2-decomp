@@ -523,7 +523,6 @@ void func_hypervelocity_8011DF34(GsCOORDINATE2* coord, s16 age, s16 spin, s32 si
 /// spins.
 void func_hypervelocity_8011E494(GsCOORDINATE2* coord, s16 age, s16 spin, s16 ang)
 {
-    void**           scratch;
     u8*              head;
     GpFxQuadScratch* block;
     POLY_FT4*        prim;
@@ -534,13 +533,12 @@ void func_hypervelocity_8011E494(GsCOORDINATE2* coord, s16 age, s16 spin, s16 an
     s32              ang2;
     u16              vz;
 
-    scratch                                                      = (void**)G_SCRATCH_HEAD;
-    head                                                         = *scratch;
+    head                                                         = SCRATCH_HEAD(u8);
     ((GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch)))->vec.vx = *(u16*)&coord->workm.t[0];
     block                                                        = (GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch));
     block->vec.vy                                                = *(u16*)&coord->workm.t[1];
     vz                                                           = *(u16*)&coord->workm.t[2];
-    *scratch                                                     = block;
+    SCRATCH_HEAD(GpFxQuadScratch)                                = block;
     block->vec.vz                                                = vz;
     vec                                                          = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -578,7 +576,7 @@ void func_hypervelocity_8011E494(GsCOORDINATE2* coord, s16 age, s16 spin, s16 an
         prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     }
-    SCRATCH_POP_BYTES_AT(scratch, sizeof(GpFxQuadScratch));
+    SCRATCH_POP_BYTES(sizeof(GpFxQuadScratch));
 }
 
 /// Paints the round's scorch quad on the ground point `Gp_TraceGroundCoord`
@@ -597,7 +595,6 @@ void func_hypervelocity_8011E494(GsCOORDINATE2* coord, s16 age, s16 spin, s16 an
 /// ROM does not do.
 void func_hypervelocity_8011E8A0(GsCOORDINATE2* ground, s32 spin)
 {
-    void**                scratch;
     register u8*          head asm("v1");
     OverlayGroundScratch* sc;
     POLY_FT4*             prim;
@@ -608,10 +605,9 @@ void func_hypervelocity_8011E8A0(GsCOORDINATE2* ground, s32 spin)
     s32                   flag;
     s32                   u;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = (u8*)*scratch - sizeof(OverlayGroundScratch);
-    sc       = (OverlayGroundScratch*)head;
-    *scratch = head;
+    head             = SCRATCH_HEAD(u8) - sizeof(OverlayGroundScratch);
+    sc               = (OverlayGroundScratch*)head;
+    SCRATCH_HEAD(u8) = head;
     gte_SetTransMatrix(&GsWSMATRIX);
     i   = 0;
     v   = sc->vec;
@@ -1016,7 +1012,6 @@ void func_hypervelocity_8011F6C0(Task* arg0)
 /// coordinate's translation, kicking the gun back along its own barrel.
 void func_hypervelocity_8011F724(Task* arg0)
 {
-    void**         scratch;
     u8*            head;
     HyperRecoil*   rec;
     GameActor*     actor;
@@ -1026,12 +1021,11 @@ void func_hypervelocity_8011F724(Task* arg0)
     s32            count;
     s32            step;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    rec      = (HyperRecoil*)(head - 0x18);
-    *scratch = rec;
-    actor    = arg0->work;
-    eff      = actor->field_91C;
+    head                      = SCRATCH_HEAD(u8);
+    rec                       = (HyperRecoil*)(head - 0x18);
+    SCRATCH_HEAD(HyperRecoil) = rec;
+    actor                     = arg0->work;
+    eff                       = actor->field_91C;
     switch (actor->field_95E) {
         case 0:
             actor->field_954            = 0;

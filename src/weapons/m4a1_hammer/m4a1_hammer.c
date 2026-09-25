@@ -194,7 +194,6 @@ void func_m4a1_hammer_8011D1E0(Task* task)
 /// in screen space; nothing is drawn if the centre projects off-screen.
 void func_m4a1_hammer_8011D904(s32* arg0, u16 arg1, u16 arg2, s16 arg3)
 {
-    void**           scratch;
     u8*              head;
     GpFxQuadScratch* block;
     GpFxQuadScratch* vecp;
@@ -202,13 +201,12 @@ void func_m4a1_hammer_8011D904(s32* arg0, u16 arg1, u16 arg2, s16 arg3)
     u16              vz;
     s32              u;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
-    head                                      = *scratch;
+    head                                      = SCRATCH_HEAD(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&arg0[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
     block->vec.vy                             = *(u16*)&arg0[1];
     vz                                        = *(u16*)&arg0[2];
-    *scratch                                  = block;
+    SCRATCH_HEAD(GpFxQuadScratch)             = block;
     block->vec.vz                             = vz;
     vecp                                      = block;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -249,7 +247,7 @@ void func_m4a1_hammer_8011D904(s32* arg0, u16 arg1, u16 arg2, s16 arg3)
         prim->y2    = *(u16*)&block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     }
-    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void func_m4a1_hammer_8011DD08(Task* arg0)
@@ -301,7 +299,6 @@ void func_m4a1_hammer_8011DD08(Task* arg0)
 /// `func_m4a1_hammer_8011D904` on a wider, brighter page.
 void func_m4a1_hammer_8011DE60(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
-    void**           scratch;
     u8*              head;
     GpFxQuadScratch* block;
     GpFxQuadScratch* vecp;
@@ -309,13 +306,12 @@ void func_m4a1_hammer_8011DE60(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3
     u16              vz;
     s32              u;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
-    head                                      = *scratch;
+    head                                      = SCRATCH_HEAD(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&arg0->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
     block->vec.vy                             = *(u16*)&arg0->workm.t[1];
     vz                                        = *(u16*)&arg0->workm.t[2];
-    *scratch                                  = block;
+    SCRATCH_HEAD(GpFxQuadScratch)             = block;
     block->vec.vz                             = vz;
     vecp                                      = block;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -356,12 +352,11 @@ void func_m4a1_hammer_8011DE60(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3
         prim->y2    = *(u16*)&block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     }
-    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void func_m4a1_hammer_8011E29C(GsCOORDINATE2* coord, SVECTOR* arg1, s32 arg2, s16 arg3)
 {
-    void**                  scratch;
     u8*                     head;
     M4a1HammerTrailScratch* block;
     M4a1HammerTrailScratch* vecp;
@@ -369,13 +364,12 @@ void func_m4a1_hammer_8011E29C(GsCOORDINATE2* coord, SVECTOR* arg1, s32 arg2, s1
     s16                     ang;
     u16                     vz;
 
-    scratch                                          = (void**)G_SCRATCH_HEAD;
-    head                                             = *scratch;
+    head                                             = SCRATCH_HEAD(u8);
     ((M4a1HammerTrailScratch*)(head - 0x20))->vec.vx = *(u16*)&coord->workm.t[0];
     block                                            = (M4a1HammerTrailScratch*)(head - 0x20);
     block->vec.vy                                    = *(u16*)&coord->workm.t[1];
     vz                                               = *(u16*)&coord->workm.t[2];
-    *scratch                                         = block;
+    SCRATCH_HEAD(M4a1HammerTrailScratch)             = block;
     block->vec.vz                                    = vz;
     vecp                                             = block;
     gte_SetTransMatrix(&GsWSMATRIX);

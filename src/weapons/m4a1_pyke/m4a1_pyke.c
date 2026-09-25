@@ -156,7 +156,6 @@ void func_m4a1_pyke_8011D1F8(Task* task)
 /// shrinks with distance as `brightness * 31 / otz`.
 void func_m4a1_pyke_8011D548(VECTOR3* pos, u16 frame, s32 brightness)
 {
-    void**         scratch;
     u8*            head;
     GpRingScratch* block;
     POLY_FT4*      prim;
@@ -168,13 +167,12 @@ void func_m4a1_pyke_8011D548(VECTOR3* pos, u16 frame, s32 brightness)
     s32            u1;
     u16            vz;
 
-    scratch                                 = (void**)G_SCRATCH_HEAD;
-    head                                    = *scratch;
+    head                                    = SCRATCH_HEAD(u8);
     ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&pos->vx;
     block                                   = (GpRingScratch*)(head - 0x18);
     block->vec.vy                           = *(u16*)&pos->vy;
     vz                                      = *(u16*)&pos->vz;
-    *scratch                                = block;
+    SCRATCH_HEAD(GpRingScratch)             = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -224,7 +222,7 @@ void func_m4a1_pyke_8011D548(VECTOR3* pos, u16 frame, s32 brightness)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES_AT(scratch, 0x18);
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Per-frame task for one dart the Pyke throws. `Task::spawnArg2` is the
@@ -381,7 +379,6 @@ void func_m4a1_pyke_8011D7D4(Task* task)
 /// by zero.
 void func_m4a1_pyke_8011DCEC(VECTOR3* pos, u16 frame, u16 width, s16 ang)
 {
-    void**           scratch;
     u8*              head;
     GpFxQuadScratch* block;
     GpFxQuadScratch* vecp;
@@ -391,13 +388,12 @@ void func_m4a1_pyke_8011DCEC(VECTOR3* pos, u16 frame, u16 width, s16 ang)
     s32              a;
     u16              vz;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
-    head                                      = *scratch;
+    head                                      = SCRATCH_HEAD(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&pos->vx;
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
     block->vec.vy                             = *(u16*)&pos->vy;
     vz                                        = *(u16*)&pos->vz;
-    *scratch                                  = block;
+    SCRATCH_HEAD(GpFxQuadScratch)             = block;
     block->vec.vz                             = vz;
     vecp                                      = block;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -442,7 +438,7 @@ void func_m4a1_pyke_8011DCEC(VECTOR3* pos, u16 frame, u16 width, s16 ang)
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws the dart's ground splash: the unit quad `D_80111E38` scaled to
@@ -452,7 +448,6 @@ void func_m4a1_pyke_8011DCEC(VECTOR3* pos, u16 frame, u16 width, s16 ang)
 /// three through one `rtpt`; a negative `gte_stflg` drops the quad.
 void func_m4a1_pyke_8011E168(VECTOR3* pos, s32 width)
 {
-    void**                 scratch;
     u8*                    head;
     M4a1PykeSplashScratch* block;
     POLY_FT4*              prim;
@@ -461,14 +456,13 @@ void func_m4a1_pyke_8011E168(VECTOR3* pos, s32 width)
     s32                    flag;
     s32                    otz;
 
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = (u8*)*scratch - 0x30;
+    head = SCRATCH_HEAD(u8) - 0x30;
     /* The ROM stores the freshly computed head and keeps a *copy* of it in the
        register the rest of the function walks; without the barrier GCC folds
        the two together and stores the copy instead. */
     SOFT_TOUCH_REG(head);
-    *scratch = head;
-    block    = (M4a1PykeSplashScratch*)head;
+    SCRATCH_HEAD(u8) = head;
+    block            = (M4a1PykeSplashScratch*)head;
     gte_SetTransMatrix(&GsWSMATRIX);
     i   = 0;
     tbl = D_80111E38;

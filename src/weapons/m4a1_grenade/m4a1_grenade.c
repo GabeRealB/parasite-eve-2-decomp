@@ -165,7 +165,6 @@ void func_m4a1_grenade_8011D1EC(Task* arg0)
 /// and links its two collision nodes.
 void func_m4a1_grenade_8011D654(Task* arg0)
 {
-    void**             scratch;
     u8*                head;
     SVECTOR*           blk;
     SVECTOR*           vec;
@@ -175,15 +174,14 @@ void func_m4a1_grenade_8011D654(Task* arg0)
     GsCOORDINATE2*     muzzle;
     WeaponGrenadeWork* work;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    extra    = arg0->extra;
-    head     = *scratch;
-    coord    = extra->coords;
-    blk      = (SVECTOR*)(head - 0x28);
-    *scratch = blk;
-    muzzle   = coord->sub;
-    work     = memCalloc(sizeof(WeaponGrenadeWork), 0);
-    vec      = blk;
+    extra                 = arg0->extra;
+    head                  = SCRATCH_HEAD(u8);
+    coord                 = extra->coords;
+    blk                   = (SVECTOR*)(head - 0x28);
+    SCRATCH_HEAD(SVECTOR) = blk;
+    muzzle                = coord->sub;
+    work                  = memCalloc(sizeof(WeaponGrenadeWork), 0);
+    vec                   = blk;
     if (work == NULL) {
         SCRATCH_POP_BYTES(0x28);
         taskKill(arg0);
