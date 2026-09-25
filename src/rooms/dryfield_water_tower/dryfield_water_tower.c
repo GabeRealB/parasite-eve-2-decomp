@@ -185,7 +185,6 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
             if (Gp_CapBusy() == 0) {
                 Gp_StateF0.field_4 = 2;
                 /* keeps the `lw state` behind the `sb` instead of filling its load delay */
-                SOFT_BARRIER();
                 arg0->state = arg0->state + 1;
             }
             return;

@@ -1624,7 +1624,6 @@ s16 func_shelter_b3_garbage_incinerator_80180C28(u16* arg0, s32 arg1)
                 v0tmp = i + 1;
                 i     = v0tmp;
             after_inc:
-                TOUCH_REG(v0tmp);
                 code = arg0[(s16)v0tmp];
             }
         after_load:
@@ -1675,7 +1674,6 @@ s16 func_shelter_b3_garbage_incinerator_80180D44(u16* arg0)
                     glyph = (GlyphUvwh*)((code & 0x3FF) * sizeof(GlyphUvwh) + (s32)table);
                     if (lineH < glyph->h + 2) {
                         v0tmp = glyph->h;
-                        TOUCH_REG(v0tmp);
                         lineH = v0tmp + 2;
                     }
                 }

@@ -395,8 +395,7 @@ void func_8002E53C(TextDrawReq* arg0, u8* arg1)
                 if (ch != 0 && ch != 10 && ch != 13)
                     goto check_bs;
                 end_flag = 1;
-                SOFT_COMPILER_BARRIER();
-                ch = *ptr;
+                ch       = *ptr;
             check_bs:
                 if (ch != 0x5C)
                     break;
@@ -435,7 +434,6 @@ void func_8002E53C(TextDrawReq* arg0, u8* arg1)
     if (ctx->field_E != 16) {
         tpage = 0xE1000000;
         if (ctx->field_E == 4) {
-            SOFT_TOUCH_REG(tpage);
             tpage |= 0x25F;
         } else {
             SOFT_TOUCH_REG(tpage);
@@ -548,7 +546,6 @@ after_off:
             u32 mag;
             mag = 0xCCCCCCCD;
             i   = 0x30;
-            TOUCH_REG2(mag, i);
             do {
                 asm volatile(
                     "multu %0, %2\n\t"
@@ -820,7 +817,6 @@ u8* Text_ItoaHexSigned(u8* arg0, s32 arg1)
     }
     *dest = 0;
     ret   = arg0;
-    SOFT_TOUCH_REG(ret);
     return ret;
 }
 

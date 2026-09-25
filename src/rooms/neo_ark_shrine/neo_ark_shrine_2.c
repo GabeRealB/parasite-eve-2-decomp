@@ -425,7 +425,6 @@ void func_neo_ark_shrine_8017EED4(Task* task)
     Mc_SaveData.at4.loc.view   = 0xA;
     /* Without this the scheduler hoists the `spawnArg2` load above the
        `Mc_SaveData.at4.loc.view` byte store, which then fills `taskKill`'s delay slot. */
-    SOFT_BARRIER();
     taskKill((Task*)task->spawnArg2);
     Task_RequestKill(task, 0);
 }
@@ -505,7 +504,6 @@ void func_neo_ark_shrine_8017F0F0(Task* task)
         Mc_SaveData.at4.loc.view = 0xE;
         /* Without this the scheduler hoists the `task->state` reload above the
            `Mc_SaveData.at4.loc.view` byte store to fill its load-delay slot. */
-        SOFT_BARRIER();
         st->timer = 0;
         task->state++;
     }
@@ -932,11 +930,10 @@ void func_neo_ark_shrine_8017FC14(SVECTOR* pos, s32 arg1, s32 arg2)
     s32                blend;
     s16                xy;
 
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = *scratch;
-    tmp     = head - 0x10;
-    block   = (RoomDraw13Scratch*)tmp;
-    SOFT_TOUCH_REG(block);
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    tmp      = head - 0x10;
+    block    = (RoomDraw13Scratch*)tmp;
     *scratch = tmp;
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -1083,9 +1080,7 @@ void func_neo_ark_shrine_80180144(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
     scratch = (void**)G_SCRATCH_HEAD;
     color   = rgb;
     head    = *scratch;
-    USE_REG(head);
-    vx = (u16)arg0->workm.t[0];
-    USE_REG(vx);
+    vx      = (u16)arg0->workm.t[0];
     {
         register u8* tmp asm("v0");
         tmp   = head - 0x1C;
@@ -1106,7 +1101,6 @@ void func_neo_ark_shrine_80180144(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
     gte_stflg(&((RoomDraw02Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        USE_REG(head);
         otz                                      = ((RoomDraw02Scratch*)(head - 0x1C))->otz + 1;
         rOuter                                   = ((s16)saved * 64) / otz;
         ((RoomDraw02Scratch*)(head - 0x1C))->otz = otz;
@@ -1140,7 +1134,6 @@ void func_neo_ark_shrine_80180144(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
                               (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-            SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
     SCRATCH_POP_BYTES(0x1C);
@@ -1190,7 +1183,6 @@ void func_neo_ark_shrine_80180570(GpCoord* arg0, s32 arg1, u8* rgb)
     gte_stflg(&((RoomFanScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((RoomFanScratch*)(head - 0x18))->otz);
-        USE_REG(head);
         otz           = block->otz + 1;
         radius        = ((s16)arg1 * 64) / otz;
         block->otz    = otz;
@@ -1220,7 +1212,6 @@ void func_neo_ark_shrine_80180570(GpCoord* arg0, s32 arg1, u8* rgb)
                               (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-            SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
     SCRATCH_POP_BYTES(0x18);

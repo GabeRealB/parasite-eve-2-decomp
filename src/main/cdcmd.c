@@ -259,7 +259,6 @@ void CdCmd_HandleFileLoad(void)
 
             sync    = CdSync(1, NULL);
             diskErr = CdlDiskError;
-            SOFT_TOUCH_REG(diskErr);
             if (sync == diskErr) {
                 CdSyncCallback(NULL);
                 CdReadyCallback(NULL);
@@ -284,7 +283,6 @@ void CdCmd_HandleFileLoad(void)
                     }
                     sync    = CdSync(1, NULL);
                     diskErr = CdlDiskError;
-                    SOFT_TOUCH_REG(diskErr);
                     if (sync == diskErr) {
                     wait_reset_step1:
                         Fs_WaitDiskReset(1);
@@ -349,7 +347,6 @@ void CdCmd_HandleFileLoad(void)
 
             sync    = CdSync(1, NULL);
             diskErr = CdlDiskError;
-            SOFT_TOUCH_REG(diskErr);
             if (sync == diskErr) {
                 CdSyncCallback(NULL);
                 CdReadyCallback(NULL);
@@ -374,7 +371,6 @@ void CdCmd_HandleFileLoad(void)
                     }
                     sync    = CdSync(1, NULL);
                     diskErr = CdlDiskError;
-                    SOFT_TOUCH_REG(diskErr);
                     if (sync == diskErr) {
                     wait_reset_step4:
                         Fs_WaitDiskReset(1);

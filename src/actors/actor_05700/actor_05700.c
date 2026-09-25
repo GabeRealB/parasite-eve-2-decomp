@@ -1880,12 +1880,11 @@ void Actor05700_Fn03CC4(GpEnemy* ctx, Task* actor)
     idx        = ctx->placeKey;
     areaByte3  = sessionKey->stage;
     model      = ((Task*)spawned)->extra.tmd;
-    SOFT_USE_REG(spawned);
-    key.stage = areaByte3;
-    key.area  = sessionKey->area;
-    key.room  = sessionKey->room;
-    areaByte0 = session->at4.loc.view;
-    idx       = idx >> 12;
+    key.stage  = areaByte3;
+    key.area   = sessionKey->area;
+    key.room   = sessionKey->room;
+    areaByte0  = session->at4.loc.view;
+    idx        = idx >> 12;
     SOFT_BARRIER();
     keyPtr = &key;
     TOUCH_REG(keyPtr);
@@ -1916,7 +1915,6 @@ void Actor05700_Fn03CC4(GpEnemy* ctx, Task* actor)
     key.room  = sessionKey->room;
     areaByte0 = session->at4.loc.view;
     idx       = idx >> 12;
-    SOFT_BARRIER();
     DEF_REG(keyPtr);
     keyPtr = &key;
     TOUCH_REG(keyPtr);

@@ -757,10 +757,9 @@ void Gfx_NormalizeLightDir(VECTOR* light, SVECTOR* out)
         block->lzc_min = shift;
         block->v.vx  >>= shift;
         t_vy           = block->v.vy;
-        USE_REG(t_vy);
-        t_sh  = block->lzc_min;
-        t_vz  = block->v.vz;
-        t_sh2 = t_sh;
+        t_sh           = block->lzc_min;
+        t_vz           = block->v.vz;
+        t_sh2          = t_sh;
         TOUCH_REG(t_sh2);
         block->v.vy = t_vy >> t_sh;
         block->v.vz = t_vz >> t_sh2;

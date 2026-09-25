@@ -385,7 +385,6 @@ void Actor00700_Fn00334(Task* actor)
     coord                        = actor->extra.tmd->coords;
     ctx                          = actor->spawnArg2;
     result                       = func_800E0C10((GpRec18*)&work->field_27C[0x20], scratch, 4, NULL);
-    USE_REG(oldScratch);
     if (result == 1)
         goto move_delta;
     if (result < 2)
@@ -510,7 +509,6 @@ physical_contact:
     if (depth <= 0) {
         boundedDepth = 0;
     }
-    SOFT_TOUCH_REG_USE(boundedDepth, depth);
     depth = boundedDepth;
     if (push < depth) {
         push = depth;

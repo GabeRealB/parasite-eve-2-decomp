@@ -268,7 +268,6 @@ void GameMain_Loop(void)
         ds->otBuffer = v;
     }
     /* Force s4r/s5r as the only EC80/EC70 bases for the whole function */
-    USE_REG2(s4r, s5r);
 
     {
         DisplayState* nv = ds;

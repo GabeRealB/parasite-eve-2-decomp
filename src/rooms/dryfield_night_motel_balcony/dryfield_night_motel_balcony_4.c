@@ -258,8 +258,7 @@ void func_dryfield_night_motel_balcony_8017EC58(SVECTOR* arg0, s32 arg1)
             ds        = &gDisplayState;
             ang       = (s16)raw;
             blend     = (((u8)ds->animFrame & 1) * 0x10) | 0x20;
-            SOFT_BARRIER();
-            angEnd = ang + 0x800;
+            angEnd    = ang + 0x800;
             if (ang < angEnd) {
                 angStart = ang;
                 limit    = angEnd;
@@ -305,7 +304,6 @@ void func_dryfield_night_motel_balcony_8017EC58(SVECTOR* arg0, s32 arg1)
                                       (s32)gGpuCurrentOt),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
-                    SCHED_BARRIER();
 
                     prim           = (POLY_G4*)gGpuPrimCursor;
                     t3             = ang + 0x800;
@@ -362,13 +360,11 @@ void func_dryfield_night_motel_balcony_8017F440(SVECTOR* arg0, s32 arg1, s32 arg
     u8                 code;
     s16                xy;
 
-    tex = arg1;
-    CLOBBER_REG(a1);
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = *scratch;
-    tmp     = head - 0x10;
-    block   = (RoomDraw13Scratch*)tmp;
-    SOFT_TOUCH_REG(block);
+    tex      = arg1;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    tmp      = head - 0x10;
+    block    = (RoomDraw13Scratch*)tmp;
     *scratch = tmp;
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -400,7 +396,6 @@ void func_dryfield_night_motel_balcony_8017F440(SVECTOR* arg0, s32 arg1, s32 arg
         sarg     = arg2 << 16;
         prim->v2 = v;
         prim->v3 = v;
-        SCHED_BARRIER();
         code     = prim->code;
         sarg     = sarg >> 16;
         prim->v0 = 0;

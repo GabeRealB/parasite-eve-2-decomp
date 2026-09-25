@@ -911,7 +911,6 @@ void func_shelter_r47_80182E78(Task* task)
     Mc_SaveData.at4.loc.view   = state->field_4E;
     /* Keeps the `spawnArg2` load below the `Mc_SaveData.at4.loc.view` store, so that it
        does not fill `taskKill`'s delay slot. */
-    SOFT_BARRIER();
     taskKill((Task*)task->spawnArg2);
     Task_RequestKill(task, 0);
 }

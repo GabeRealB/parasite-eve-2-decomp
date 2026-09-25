@@ -546,7 +546,6 @@ s32 Gp_PollAreaCdLoads(void)
                     } else {
                         D_80114C68 = D_80114C64->field_4;
                         if (D_80114C68->field_0 != 0xFF) {
-                            SCHED_BARRIER();
                             match = place;
                             for (; D_80114C68->field_0 != 0xFF; D_80114C68++) {
                                 if (match->entryId == D_80114C68->field_0) {
@@ -1920,7 +1919,6 @@ void Gp_AllocSprtLists(void)
                         cursor = p;
                         TOUCH_REG(cursor);
                         mid = (GpSprtElemFromW*)&elem->w;
-                        TOUCH_REG(mid);
                         do {
                             dest                     = *cursor;
                             sprt                     = &dest->sprt;

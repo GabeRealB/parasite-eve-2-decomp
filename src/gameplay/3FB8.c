@@ -340,7 +340,6 @@ void Gp_EffSprTask42(Task* arg0)
                 arg0->state = 1;
             }
             prim->code |= 3;
-            COMPILER_BARRIER();
             {
                 s32 tp;
                 tp          = ((mem->step & 3) << 5) | 9;
@@ -798,8 +797,7 @@ void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2)
             green    = arg2[1];
         rgb:
             prim->g0 = green;
-            COMPILER_BARRIER();
-            blue = arg2[2];
+            blue     = arg2[2];
             setSemiTrans(prim, 1);
             prim->b0 = blue;
         } else {
@@ -2555,7 +2553,6 @@ void Gp_EffSprTask8D(Task* arg0)
         gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
         if (block->flag >= 0) {
             gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
-            USE_REG(head);
             block->otz++;
             prim           = (POLY_FT4*)gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -3409,7 +3406,6 @@ void Gp_AttachActorObj(Task* arg0, s32 arg1, s32 arg2)
         rec->recs = actor->field_32C;
         Gp_LinkObj(1, obj);
         Gp_InitRec18Table(rec->recs, 6, 0);
-        USE_REG(actor);
     }
     SCRATCH_POP_BYTES(0x10);
 }
@@ -3574,8 +3570,7 @@ void Gp_UpdatePlayerMove(void)
     p->field_976 = f975;
     p->field_974 = f973;
     session      = gGameSession;
-    TOUCH_REG_USE(session, f973);
-    f977 = ((volatile GameActor*)p)->field_977;
+    f977         = ((volatile GameActor*)p)->field_977;
     USE_REG(f977);
     p->field_964       = prev;
     buttons            = session->pad;
@@ -3740,8 +3735,7 @@ void Gp_StepPlayerMove(Task* arg0)
     {
         register u8* tmp asm("v0");
 
-        tmp = SCRATCH_HEAD(u8);
-        TOUCH_REG_MEM(tmp);
+        tmp              = SCRATCH_HEAD(u8);
         tmp              = tmp - 0x40;
         s                = (GpMoveScratch*)tmp;
         SCRATCH_HEAD(u8) = tmp;
@@ -3833,7 +3827,6 @@ void Gp_StepPlayerMove(Task* arg0)
             break;
     }
     coord->coord.t[0] += actor->field_0;
-    COMPILER_BARRIER();
     coord->coord.t[1] += actor->field_4;
     t2                 = coord->coord.t[2];
     SCRATCH_POP_BYTES(0x40);
@@ -4083,9 +4076,8 @@ void Gp_AimYawToLock(Task* arg0, s32 arg1)
             cmp                = tbl[cmp];
             val               += 0xC;
             SCRATCH_HEAD(void) = (void*)val;
-            USE_REG(val);
-            packed = cmp << 16;
-            limit  = packed >> 16;
+            packed             = cmp << 16;
+            limit              = packed >> 16;
             if (func_800B9D80(flag) != 0) {
                 val    = packed >> 17;
                 limit += val;
@@ -9094,8 +9086,7 @@ void func_8010AD64(Task* arg0)
     s32        val;
     s32        idx;
 
-    scratch = SCRATCH_HEAD_ADDR;
-    TOUCH_REG(scratch);
+    scratch                           = SCRATCH_HEAD_ADDR;
     head                              = SCRATCH_HEAD_AT(scratch, u8);
     params                            = &D_80113358;
     vec                               = (SVECTOR*)(head - 8);

@@ -84,7 +84,6 @@ s32 func_80059EE0(CdReadyEntry* arg0)
                     D_80082810            = D_80082808;
                     CdStream_State.flags |= 1;
                     /* Keep each disk-error path separate before the shared counter update. */
-                    SOFT_BARRIER();
                     (*((volatile u8*)&D_80068B5C + 1))++;
                     goto stream_error;
                 }
@@ -94,7 +93,6 @@ s32 func_80059EE0(CdReadyEntry* arg0)
                     }
                     D_80082810            = D_80082808;
                     CdStream_State.flags |= 1;
-                    SOFT_BARRIER();
                     (*((volatile u8*)&D_80068B5C + 1))++;
                     goto stream_error;
                 }
@@ -136,7 +134,6 @@ s32 func_80059EE0(CdReadyEntry* arg0)
                     }
                     D_80082810            = D_80082808;
                     CdStream_State.flags |= 1;
-                    SOFT_BARRIER();
                     (*((volatile u8*)&D_80068B5C + 1))++;
                     goto stream_error;
                 }
@@ -146,7 +143,6 @@ s32 func_80059EE0(CdReadyEntry* arg0)
                     }
                     D_80082810            = D_80082808;
                     CdStream_State.flags |= 1;
-                    SOFT_BARRIER();
                     (*((volatile u8*)&D_80068B5C + 1))++;
                     goto stream_error;
                 }
@@ -180,7 +176,6 @@ s32 func_80059EE0(CdReadyEntry* arg0)
                     }
                     D_80082810            = D_80082808;
                     CdStream_State.flags |= 1;
-                    SOFT_BARRIER();
                     (*((volatile u8*)&D_80068B5C + 1))++;
                     goto stream_error;
                 }
@@ -190,7 +185,6 @@ s32 func_80059EE0(CdReadyEntry* arg0)
                     }
                     D_80082810            = D_80082808;
                     CdStream_State.flags |= 1;
-                    SOFT_BARRIER();
                     (*((volatile u8*)&D_80068B5C + 1))++;
                     goto stream_error;
                 }
@@ -464,7 +458,6 @@ void CdStream_ReadyMts(s32 interrupt, u8* result)
                             channelState                             = (volatile CdStreamState*)channels - 1;
                             *(volatile s32*)&channels->ch[0].spuAddr = channelState->spuBase;
                             /* Keep the channel address stores in initialization order. */
-                            SOFT_BARRIER();
                             channelBase             = channelState->spuBase + 0x40;
                             channels->ch[1].spuAddr = channelBase + ((s32)((u16)channelState->ringHalf << 0x10) >> 0xF);
                             channelState->flags1    = (u8)(channelState->flags1 | 1);
@@ -504,7 +497,6 @@ void CdStream_ReadyMts(s32 interrupt, u8* result)
                     start_chunk:
                         channelCount = (u8)CdStream_State.sector->magic;
                         /* Preserve the signed comparison of the channel count. */
-                        TOUCH_REG(channelCount);
                         if ((channelCount >= 2) && (CdStream_State.sector->field_C == 0)) {
                             CdStream_State.mode      = (s8)(u8)CdStream_State.sector->magic;
                             CdStream_State.remaining = (s8)(u8)CdStream_State.mtsPeriod * (s8)(u8)CdStream_State.mode;
@@ -531,7 +523,6 @@ void CdStream_ReadyMts(s32 interrupt, u8* result)
                             }
                             if (!(CdStream_State.field_1C & 1)) {
                                 /* The two ring halves retain separate transfer paths. */
-                                SOFT_BARRIER();
                                 SpuWrite((u8*)CdStream_State.sector, (writeSize + 0x3F) & ~0x3F);
                                 *(void* volatile*)&D_80068B6C = CdStream_State.sector;
                                 CdStream_State.spuAddr       += writeSize;

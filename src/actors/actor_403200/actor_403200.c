@@ -6790,8 +6790,7 @@ after_mode:
             b  = work->hits[2].obj.flags;
             a &= 0x7FFF;
         }
-        b |= 0x8000;
-        SOFT_BARRIER();
+        b                      |= 0x8000;
         work->hits[1].obj.flags = a;
         work->hits[2].obj.flags = b;
     }
@@ -6804,7 +6803,6 @@ after_mode:
             b                       = work->hits[5].obj.flags;
             a                      |= 0x8000;
             work->hits[3].obj.flags = a;
-            SOFT_BARRIER();
             a                       = work->hits[4].obj.flags;
             b                      |= 0x8000;
             work->hits[5].obj.flags = b;
@@ -6815,7 +6813,6 @@ after_mode:
             b                       = work->hits[5].obj.flags;
             a                      &= 0x7FFF;
             work->hits[3].obj.flags = a;
-            SOFT_BARRIER();
             a                       = work->hits[4].obj.flags;
             b                      &= 0x7FFF;
             work->hits[5].obj.flags = b;
@@ -6823,7 +6820,6 @@ after_mode:
             work->hits[4].obj.flags = a;
         }
     }
-    SOFT_BARRIER();
     {
         u32 a;
         u32 b;
@@ -6832,7 +6828,6 @@ after_mode:
             b                       = work->hits[8].obj.flags;
             a                      |= 0x8000;
             work->hits[6].obj.flags = a;
-            SOFT_BARRIER();
             a                       = work->hits[7].obj.flags;
             b                      |= 0x8000;
             work->hits[8].obj.flags = b;
@@ -6843,7 +6838,6 @@ after_mode:
             b                       = work->hits[8].obj.flags;
             a                      &= 0x7FFF;
             work->hits[6].obj.flags = a;
-            SOFT_BARRIER();
             a                       = work->hits[7].obj.flags;
             b                      &= 0x7FFF;
             work->hits[8].obj.flags = b;

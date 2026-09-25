@@ -276,7 +276,6 @@ void Gp_RecalcMaxMp(void)
                     j++;
                 } while (j < limit);
             }
-            USE_REG(start);
         }
         levels++;
         i++;
@@ -598,10 +597,9 @@ void func_800B8014(void)
         slots++;
     }
     Gp_ApplyItemMap();
-    row  = 0;
-    p    = &Mc_SaveData;
-    save = p;
-    TOUCH_REG(p);
+    row                         = 0;
+    p                           = &Mc_SaveData;
+    save                        = p;
     off                         = row;
     save->carriedItems.firstRow = 0;
     save->carriedItems.rowCount = 0x14;
@@ -1150,8 +1148,7 @@ McItemRec* Gp_SetScanItem(McItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
     field0 = arg0->firstRow;
     idx    = field0 + arg1;
     field0 = idx << 2;
-    USE_REG(field0);
-    rec = (McItemRec*)(field0 + (s32)tmp);
+    rec    = (McItemRec*)(field0 + (s32)tmp);
     if (rec->itemId == 0) {
         dest         = rec;
         dest->itemId = arg2;
@@ -1242,7 +1239,6 @@ McItemRec* Gp_AddItem(McItemScan* arg0, s32 arg1, s32 arg2)
         if (arg0->rowCount == 0) {
             goto done;
         }
-        SOFT_TOUCH_REG(found);
         i     = 0;
         attrs = Gp_StackLimits;
         idx   = arg1 - 0xA0;
@@ -1682,8 +1678,7 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
         if (level < 0xA) {
             s32         idx;
             McSaveData* save;
-            save = &Mc_SaveData;
-            TOUCH_REG(save);
+            save                             = &Mc_SaveData;
             idx                              = item - 0x60;
             *(u8*)&save->itemLevelBonus[idx] = (u8)save->itemLevelBonus[idx] + 1;
         } else {
@@ -1723,8 +1718,7 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
     a0obj = obj;
     TOUCH_REG(a0obj);
     notice = Gp_StrNotice2;
-    TOUCH_REG(notice);
-    color = 0x606060;
+    color  = 0x606060;
     TOUCH_REG(color);
     x  = obj->field_1C;
     y0 = (s16)obj->field_18;
@@ -2144,7 +2138,6 @@ void Gp_ResetInventory(void)
     cfg = &Player_Status;
     val = cfg->weapon;
     if (val != 0) {
-        SCHED_BARRIER();
         asm("addiu %0, %1, 0x7F" : "=r"(item) : "r"(val));
         if ((u32)(val - 1) < 0x20U) {
             found = 0;
@@ -2165,7 +2158,6 @@ void Gp_ResetInventory(void)
                 }
                 slot->attachQty = 0;
             }
-            USE_REG(i);
         }
         cfg->weapon = 0;
     }
@@ -2202,7 +2194,6 @@ void Gp_ResetInventory(void)
     dest = &save->carriedItems;
     asm volatile("lui %0, %%hi(Gp_DefaultScan)" : "=r"(table));
     item = 0x6C;
-    USE_REG(item);
     asm volatile("addiu %0, %1, %%lo(Gp_DefaultScan)" : "=r"(src) : "r"(table));
     USE_REG(table);
     *dest = *src;
@@ -2267,7 +2258,6 @@ void Gp_ClearInventory(void)
     USE_REG(cfg);
     val = cfg->weapon;
     if (val != 0) {
-        SCHED_BARRIER();
         item = val + 0x7F;
         if ((u32)(val - 1) < 0x20U) {
             found = 0;
@@ -2288,7 +2278,6 @@ void Gp_ClearInventory(void)
                 }
                 slot->attachQty = 0;
             }
-            USE_REG(i);
         }
         cfg->weapon = 0;
     }
@@ -2573,7 +2562,6 @@ void Gp_ClearScanItems(McItemScan* arg0)
             table++;
         } while (i < arg0->rowCount);
     }
-    USE_REG(i);
 }
 
 McItemRec* Gp_GiveItem(McItemScan* arg0, s32 arg1, s32 arg2)
@@ -3742,7 +3730,6 @@ s32 Gp_GetModLevel(s32 arg0)
         p    = &Gp_ItemAttrs[arg0];
         ret  = p->field_5;
         ret += Mc_SaveData.itemLevelBonus[idx];
-        USE_REG(idx);
         if (ret >= 0xB) {
             ret = 0xA;
         }
@@ -3862,7 +3849,6 @@ s32 Gp_CanMoveItems(void)
             rec++;
         } while (i < src->rowCount);
     }
-    USE_REG(table);
     if (flag != 0) {
         return ret;
     }

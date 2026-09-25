@@ -505,9 +505,8 @@ void func_combustion_8012FF0C(GpCoord* arg0, s32 arg1, s16 arg2)
         va          = 0xA0;
         u1          = u0 + 0x17;
         SCHED_BARRIER();
-        prim->u0 = u0;
-        prim->u2 = u0;
-        SCHED_BARRIER();
+        prim->u0    = u0;
+        prim->u2    = u0;
         prim->v0    = va;
         prim->v1    = va;
         prim->v2    = 0xB7;
@@ -560,7 +559,6 @@ void func_combustion_80130184(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
     asm("lui %0, 0x1F80" : "=r"(hi), "=r"(head) : "r"(saved));
     asm("ori %0, %1, 0x3FC" : "=r"(scratch) : "r"(hi));
     head = *scratch;
-    USE_REG(head);
     {
         register u16 vx asm("v0");
         vx                                        = (u16)arg0->workm.t[0];
@@ -584,7 +582,6 @@ void func_combustion_80130184(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
     gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        USE_REG(head);
         block->otz     = block->otz + 1;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;

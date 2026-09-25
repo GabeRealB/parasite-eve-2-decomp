@@ -605,7 +605,6 @@ void func_dryfield_factory_80181A24(Task* arg0)
     gGameSession->cutsceneHold = 0;
     Mc_SaveData.at4.loc.view   = 3;
     /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
-    SOFT_BARRIER();
     taskKill((Task*)arg0->spawnArg2);
     Task_RequestKill(arg0, 0);
 }

@@ -473,8 +473,7 @@ void func_actor_548100_80132420(Task* task)
     task->msgTable           = D_actor_548100_801351C0;
     task->work               = work;
     Mc_SaveData.at4.loc.view = 4;
-    SOFT_BARRIER();
-    task->state += 1;
+    task->state             += 1;
     if (GameFlag_GetNibble(0xBE) == 0) {
         GameFlag_SetNibble(0xBE, 1);
         GameFlag_SetNibble(0xC2, 1);
@@ -1880,7 +1879,6 @@ void func_actor_548100_80134E0C(Task* arg0)
     gGameSession->cutsceneHold = 0;
     Mc_SaveData.at4.loc.view   = 3;
     /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
-    SOFT_BARRIER();
     taskKill((Task*)arg0->spawnArg2);
     Task_RequestKill(arg0, 0);
 }

@@ -295,7 +295,6 @@ void Actor05500_Fn0006C(Task* arg0)
         if (amount <= 0) {
             boundedDepth = 0;
         }
-        TOUCH_REG_USE(boundedDepth, amount);
         amount = boundedDepth;
         if (push < amount) {
             push = amount;
@@ -1368,7 +1367,6 @@ void Actor05500_Fn02954(Task* actor, s32 frame)
     *(u8**)PSX_SCRATCH_ADDR(0x3FC) = (u8*)s;
     s->v[0].vz                     = (u16)coord->workm.t[2];
     projection                     = &s->v[0];
-    SOFT_TOUCH_REG(projection);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_ldv0(projection);

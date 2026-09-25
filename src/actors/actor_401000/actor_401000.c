@@ -764,7 +764,6 @@ void func_actor_401000_80132EF0(Task* arg0)
     } else if (state == 2) {
         resetWork = work;
         // Preserve the separate work pointer for the reset loop.
-        TOUCH_REG(resetWork);
         resetIndex = 1;
         do {
             resetSlotIndex                                           = resetIndex;
@@ -1840,7 +1839,6 @@ void func_actor_401000_80135AA4(Task* arg0)
         Tmd_AllocBuffers(obj);
         work->field_8D0.radius = 0x1AE;
         work->field_898        = 1;
-        SOFT_BARRIER();
         work->field_89E        = 3;
         speed                  = work->field_8A4;
         work->field_B50.flags &= 0x7FFF;

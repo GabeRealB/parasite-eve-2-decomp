@@ -613,11 +613,10 @@ void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor403600Fx
     scratch->offset.vy = 0;
     scratch->offset.vz = 0;
     fade               = arg1->field_708;
-    SCHED_BARRIER();
-    y          = -0x78;
-    fade_delta = fade - 0xC00;
-    fade_step  = fade_delta >> 3;
-    sign       = (u32)fade_delta >> 0x1F;
+    y                  = -0x78;
+    fade_delta         = fade - 0xC00;
+    fade_step          = fade_delta >> 3;
+    sign               = (u32)fade_delta >> 0x1F;
     SCHED_BARRIER();
     x = -0xA0;
     do {
@@ -626,7 +625,6 @@ void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor403600Fx
                 : "=r"(red_sum)
                 : "r"(fade_step), "r"(green));
         __asm__("andi %0, %1, 0xFF" : "=r"(red) : "r"(red_sum));
-        SOFT_USE_REG(red);
         SOFT_USE_REG(red);
     next_quad:
         poly                    = (Actor403600GridQuad*)D_actor_403600_8016069C;
@@ -702,9 +700,8 @@ void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor403600Fx
     } while (y < 0x78);
     TOUCH_REG(x);
     if (fade == 0x1000) {
-        color = 0x2060C0;
-        tpage = 0xE1000000;
-        TOUCH_REG_USE(tpage, color);
+        color                                 = 0x2060C0;
+        tpage                                 = 0xE1000000;
         tile                                  = (TILE*)D_actor_403600_8016069C;
         D_actor_403600_8016069C               = (s32)(tile + 1);
         tile->x0                              = -0xA0;
@@ -902,15 +899,13 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Fx
             SOFT_TOUCH_REG_USE(stepOutput, stepHeight);
             scratch->b.vz = -(stepHeight + 0x200);
             secondOutput  = stepOutput;
-            SOFT_TOUCH_REG(secondOutput);
-            local = scratch->b;
+            local         = scratch->b;
             gte_SetRotMatrix(&center->workm);
             gte_ldv0(&local);
             gte_rtv0();
             gte_stsv(secondOutput);
             thirdOutput = stepOutput;
-            SOFT_TOUCH_REG(thirdOutput);
-            local = scratch->b;
+            local       = scratch->b;
             gte_SetRotMatrix(transposed1);
             gte_ldv0(&local);
             gte_rtv0();
@@ -925,8 +920,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Fx
 
             i = 0;
             do {
-                j = i + 1;
-                TOUCH_REG(j);
+                j               = i + 1;
                 scratch->a.vx   = arg2->chain[j].vx - arg2->chain[i].vx;
                 scratch->a.vy   = arg2->chain[j].vy - arg2->chain[i].vy;
                 scratch->a.vz   = arg2->chain[j].vz - arg2->chain[i].vz;
@@ -954,14 +948,12 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Fx
             basis3       = &scratch->basis;
             column1      = &scratch->rot.m[0][1];
             column2      = &scratch->rot.m[0][2];
-            SCHED_BARRIER();
             do {
                 /* The scaled index is added to the scratch base as an integer,
                  * and the direction slots reached from there: that operand
                  * order, and the base held without the slots' offset, are
                  * what the allocation of this loop depends on. */
-                saved3 = (SVECTOR*)(i * sizeof(SVECTOR) + (u32)scratch);
-                SOFT_TOUCH_REG_USE(saved3, actor);
+                saved3  = (SVECTOR*)(i * sizeof(SVECTOR) + (u32)scratch);
                 saved3 += 12;
                 coord3  = &actor->extra.tmd->coords[i + 9];
                 gte_SetRotMatrix(&gGfxViewCoord.workm);
@@ -1041,8 +1033,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Fx
             saved4 = &scratch->a;
             part4  = 15;
             do {
-                node4 = actor->extra.tmd;
-                SOFT_USE_REG(node4);
+                node4  = actor->extra.tmd;
                 coord4 = &node4->coords[part4];
                 TransposeMatrix(&gGfxViewCoord.workm, basis4);
                 Gp_UpdateCoord(coord4);
@@ -1288,28 +1279,13 @@ void func_actor_403600_80134398(Task* arg0)
             SCRATCH_POP_BYTES(0x54);
             return;
         }
-        arg0->work        = newWork;
-        coord->sub        = &gGfxViewCoord;
-        coord->coord.t[2] = 0;
-        coord->coord.t[1] = 0;
-        coord->coord.t[0] = 0;
-        coord->flg        = 0;
-        owner             = arg0->spawnArg2;
-        SOFT_USE_REG(owner);
-        SOFT_USE_REG(owner);
-        SOFT_USE_REG(owner);
-        SOFT_USE_REG(owner);
-        SOFT_USE_REG(owner);
-        SOFT_USE_REG(owner);
-        SOFT_USE_REG(owner);
-        SOFT_USE_REG(owner);
-        SOFT_USE_REG(owner);
-        SOFT_USE_REG(owner);
-        SOFT_USE_REG(owner);
-        SOFT_USE_REG(owner);
-        SOFT_USE_REG(owner);
-        SOFT_USE_REG(owner);
-        SOFT_USE_REG(owner);
+        arg0->work          = newWork;
+        coord->sub          = &gGfxViewCoord;
+        coord->coord.t[2]   = 0;
+        coord->coord.t[1]   = 0;
+        coord->coord.t[0]   = 0;
+        coord->flg          = 0;
+        owner               = arg0->spawnArg2;
         arg0->killCountdown = 1;
         arg0->status        = 1;
         arg0->extraState    = 0;
@@ -1343,10 +1319,6 @@ void func_actor_403600_80134398(Task* arg0)
             gte_ldv0(firstVector);
             gte_rtv0();
             gte_stsv(temp_s1);
-            SOFT_USE_REG2(firstVector, temp_s1);
-            SOFT_USE_REG2(firstVector, temp_s1);
-            SOFT_USE_REG2(firstVector, temp_s1);
-            SOFT_USE_REG(firstVector);
 
             if (arg0->spawnArg1 == 0x1100) {
                 Gp_CopyCoordOffset(arg0, &owner->extra.tmd->coords[14], (SVECTOR*)var_fp);
@@ -2320,8 +2292,7 @@ u32* func_actor_403600_80136224(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     if (light != 0) {
                         upper_y = poly->y0;
                         if (upper_limit < upper_y) {
-                            upper_calc = upper_y - 0x168;
-                            SOFT_TOUCH_REG(upper_calc);
+                            upper_calc  = upper_y - 0x168;
                             upper_delta = (upper_calc + light) * 2;
                         }
                     }
@@ -2431,8 +2402,7 @@ u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                             if (light != 0) {
                                 upper_y = poly->y0;
                                 if (upper_limit < upper_y) {
-                                    upper_calc = upper_y - 0x168;
-                                    SOFT_TOUCH_REG(upper_calc);
+                                    upper_calc  = upper_y - 0x168;
                                     upper_delta = (upper_calc + light) * 2;
                                 }
                                 if (upper_delta >= 0x81) {
@@ -2765,8 +2735,7 @@ u32* func_actor_403600_8013700C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     if (light != 0) {
                         upper_y = poly->y0;
                         if (upper_limit < upper_y) {
-                            upper_calc = upper_y - 0x168;
-                            SOFT_TOUCH_REG(upper_calc);
+                            upper_calc  = upper_y - 0x168;
                             upper_delta = (upper_calc + light) * 2;
                         }
                     }
@@ -2866,8 +2835,7 @@ u32* func_actor_403600_80137300(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     if (light != 0) {
                         upper_y = poly->y0;
                         if (upper_limit < upper_y) {
-                            upper_calc = upper_y - 0x168;
-                            SOFT_TOUCH_REG(upper_calc);
+                            upper_calc  = upper_y - 0x168;
                             upper_delta = (upper_calc + light) * 2;
                         }
                     }
@@ -3088,13 +3056,11 @@ u32* func_actor_403600_801379B4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         transposed = (MATRIX*)(head - 0x20);
         TransposeMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm, transposed);
 
-        coord = (u8*)D_actor_403600_801606A0;
-        SOFT_BARRIER();
+        coord                   = (u8*)D_actor_403600_801606A0;
         *(s16*)(scratch + 0x10) = *(u16*)(head - 0x7C) - *(u16*)(coord + 0x38);
         *(s16*)(scratch + 0x12) = *(u16*)(scratch + 0x04) - *(u16*)(coord + 0x3C);
         *(s16*)(scratch + 0x14) = *(u16*)(scratch + 0x08) - *(u16*)(coord + 0x40);
 
-        SOFT_BARRIER();
         local_stack = (u8*)&local;
         local_addr  = head - 0x6C;
         local       = *(SVECTOR*)local_addr;
@@ -3121,11 +3087,9 @@ u32* func_actor_403600_801379B4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         if (arg0->elemCount-- > 0) {
             __asm__("move %0,%1" : "=r"(active) : "r"(transposed));
             projected = (MATRIX*)(head - 0x64);
-            SOFT_TOUCH_REG(projected);
-            opz = &arg0->gteResult;
+            opz       = &arg0->gteResult;
             __asm__("lui %0,%%hi(gDisplayState)" : "=r"(ds_high));
             __asm__("addiu %0,%1,%%lo(gDisplayState)" : "=&r"(ds) : "r"(ds_high));
-            SOFT_TOUCH_REG(ds);
             mask    = 0xFFFFFF;
             mask_hi = 0xFF000000;
             do {
@@ -3147,7 +3111,6 @@ u32* func_actor_403600_801379B4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     if (*(s16*)(clamp + 0x1A) > 0) {
                         *(s16*)(clamp + 0x1A) = 0;
                     }
-                    SOFT_TOUCH_REG(clamp);
                     clamp  += 8;
                     offset += 8;
                     i++;
@@ -3240,13 +3203,11 @@ u32* func_actor_403600_80138004(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         transposed = (MATRIX*)(head - 0x20);
         TransposeMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm, transposed);
 
-        coord = (u8*)D_actor_403600_801606A0;
-        SOFT_BARRIER();
+        coord                   = (u8*)D_actor_403600_801606A0;
         *(s16*)(scratch + 0x10) = *(u16*)(head - 0x88) - *(u16*)(coord + 0x38);
         *(s16*)(scratch + 0x12) = *(u16*)(scratch + 0x04) - *(u16*)(coord + 0x3C);
         *(s16*)(scratch + 0x14) = *(u16*)(scratch + 0x08) - *(u16*)(coord + 0x40);
 
-        SOFT_BARRIER();
         local_stack = (u8*)&local;
         local_addr  = head - 0x78;
         local       = *(SVECTOR*)local_addr;
@@ -3302,7 +3263,6 @@ u32* func_actor_403600_80138004(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     if (*(s16*)(clamp + 0x1A) > 0) {
                         *(s16*)(clamp + 0x1A) = 0;
                     }
-                    SOFT_TOUCH_REG(clamp);
                     clamp  += 8;
                     offset += 8;
                     i++;
@@ -3400,7 +3360,6 @@ u32* func_actor_403600_801386EC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         scratch = (SCRATCH_HEAD(u8) = head - 0x7C);
         gte_sttr(scratch);
         saved = (MATRIX*)(head - 0x40);
-        TOUCH_REG(saved);
         SOFT_USE_REG(saved);
         SOFT_USE_REG(saved);
         SOFT_USE_REG(saved);
@@ -3413,8 +3372,7 @@ u32* func_actor_403600_801386EC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         transposed = (MATRIX*)(head - 0x20);
         TransposeMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm, transposed);
 
-        coord = (u8*)D_actor_403600_801606A0;
-        SOFT_BARRIER();
+        coord                   = (u8*)D_actor_403600_801606A0;
         *(s16*)(scratch + 0x10) = *(u16*)(head - 0x7C) - *(u16*)(coord + 0x38);
         *(s16*)(scratch + 0x12) = *(u16*)(scratch + 0x04) - *(u16*)(coord + 0x3C);
         *(s16*)(scratch + 0x14) = *(u16*)(scratch + 0x08) - *(u16*)(coord + 0x40);

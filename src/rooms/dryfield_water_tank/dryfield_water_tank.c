@@ -130,8 +130,7 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
         case 1:
             if (Gp_CapBusy() == 0) {
                 Gp_StateF0.field_4 = 2;
-                SOFT_BARRIER();
-                task->state = task->state + 1;
+                task->state        = task->state + 1;
             }
             return;
         case 2:

@@ -320,8 +320,7 @@ u8 Fs_ProcessChunkHeader(void)
             : "v0", "a0", "a3", "memory");
 
         /* lhu field_2; lbu type via absolute chunk.type; addu; sw via a1 */
-        f2 = sec->chunk.field_2;
-        TOUCH_REG(f2);
+        f2   = sec->chunk.field_2;
         type = Fs_CdSector.chunk.type;
         __asm__ volatile(
             ".set\tnoreorder\n\t"
@@ -489,7 +488,6 @@ u8 Fs_ProcessChunkHeader(void)
                 register u32  wp_hi asm("v1");
                 register s32* srcp;
                 s32*          dstp;
-                __asm__ volatile("" : "=r"(wp_hi));
                 srcp = (s32*)(Fs_CdSector.bytes + 0x10 + s2);
                 s2   = 0;
                 __asm__("lw %0, %%lo(Fs_ChunkWritePtr)(%1)" : "=r"(dstp) : "r"(wp_hi));

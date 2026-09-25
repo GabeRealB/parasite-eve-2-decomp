@@ -2262,7 +2262,6 @@ u32* gpXformStreamVertsOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* str
     s32     val;
     s32     inv;
 
-    TOUCH_REG(ws);
     col    = gGpColorWhite;
     col2   = gGpColorGrey;
     val    = ws->obj->lightLevel >> 5;
@@ -2402,10 +2401,9 @@ u32* func_8009B500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     gte_stsv(svBase);
                     combined = 0;
                     sxy      = (DVECTOR*)&poly[0].x0;
-                    TOUCH_REG(sxy);
-                    dest = (u8*)&poly[0].u0;
-                    flag = combined;
-                    sv   = svBase;
+                    dest     = (u8*)&poly[0].u0;
+                    flag     = combined;
+                    sv       = svBase;
                     gte_lddp(ws->obj->lightLevel >> 9);
                     gte_ldsv(sv);
                     gte_gpf12();
@@ -2759,8 +2757,7 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
     s32       len;
 
     poly = (POLY_GT4*)ws->primWrite;
-    TOUCH_REG(poly);
-    col = gGpColorGrey;
+    col  = gGpColorGrey;
     if (ws->elemCount-- > 0) {
         flg = &ws->gteFlag;
         opz = &ws->gteResult;
@@ -2830,7 +2827,6 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                         }
                     }
                     TOUCH_REG(sxy);
-                    TOUCH_REG(dest);
                     *dest = x;
                     dest++;
                     x  = sxy->vy + 0x78;
@@ -2867,7 +2863,6 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                         }
                     }
                     TOUCH_REG(sxy);
-                    TOUCH_REG(dest);
                     *dest = x;
                     dest++;
                     x  = sxy->vy + 0x78;
@@ -2904,7 +2899,6 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                         }
                     }
                     TOUCH_REG(sxy);
-                    TOUCH_REG(dest);
                     *dest = x;
                     dest++;
                     x  = sxy->vy + 0x78;
@@ -5544,14 +5538,12 @@ void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
             v               = 5;
             req2.glyphTable = v;
             v               = obj.baseX;
-            TOUCH_REG(v);
-            by           = 1;
-            req2.field_E = by;
-            by           = obj.baseY;
+            by              = 1;
+            req2.field_E    = by;
+            by              = obj.baseY;
             asm("addiu %0, %0, %%lo(D_80093890)" : "+r"(str) : "r"(by));
             req2.centerMode = 0;
-            TOUCH_REG_MEM(v);
-            v += 4;
+            v              += 4;
         } else {
             v = 0x506030;
             p = &req2;
@@ -5560,14 +5552,12 @@ void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
             v               = 5;
             req2.glyphTable = v;
             v               = obj.baseX;
-            TOUCH_REG(v);
-            by           = 1;
-            req2.field_E = by;
-            by           = obj.baseY;
+            by              = 1;
+            req2.field_E    = by;
+            by              = obj.baseY;
             asm("addiu %0, %0, %%lo(D_80093898)" : "+r"(str) : "r"(by));
             req2.centerMode = 0;
-            TOUCH_REG_MEM(v);
-            v += 6;
+            v              += 6;
         }
         v           += xBase;
         req2.x       = v;
@@ -5763,7 +5753,6 @@ void Gp_SetAttachState(s32 arg0)
     val = tmp + t;
     t   = (val << 2) + val;
     val = t << 1;
-    SCHED_BARRIER();
     ret = 1;
     if (n < 0xC) {
         cfg = &Player_Status;
@@ -5788,9 +5777,8 @@ void Gp_SetAttachState(s32 arg0)
             }
         }
     }
-    val = val + ret;
-    p   = &Gp_StateC08;
-    SCHED_BARRIER();
+    val        = val + ret;
+    p          = &Gp_StateC08;
     p->field_0 = val;
     neg        = -2;
     TOUCH_REG(neg);
@@ -5936,7 +5924,6 @@ static __inline__ u16 getAttachWheelParam(s32 n)
     off  = (n * 3 + lvl) * 16;
     TOUCH_REG(off);
     off += 4;
-    TOUCH_REG(off);
     off += (s32)recs;
     return *(u16*)off;
 }
@@ -5950,9 +5937,7 @@ static __inline__ u16 getAttachWheelTextParam(s32 n)
     lvl  = getAttachWheelLevel(n);
     recs = Gp_IdParamHi;
     off  = (n * 3 + lvl) * 16;
-    TOUCH_REG(off);
     off += 4;
-    TOUCH_REG(off);
     off += (s32)recs;
     return *(u16*)off;
 }
@@ -7243,9 +7228,8 @@ case_321: {
     result = min;
     goto add_hp;
 do_random:
-    t = rand() & 0xFF;
-    r = t + 1;
-    USE_REG2(t, r);
+    t       = rand() & 0xFF;
+    r       = t + 1;
     hi_part = max * r;
     r       = min * (0x100 - r);
     {
@@ -7514,8 +7498,7 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
                 if (t >= -arg2 && t < 0x65) {
                     tmp    = (u16)vec->vx;
                     packed = tmp << 16;
-                    USE_REG(tmp);
-                    t = packed >> 16;
+                    t      = packed >> 16;
                     if (t >= -arg1 && !(arg1 < t)) {
                         t = vec->vz;
                         if (t >= -arg1 && !(arg1 < t)) {
@@ -9058,8 +9041,7 @@ void Gp_SetViewFromCoord(GpCoord* arg0, VECTOR* arg1)
     }
 
     parent = arg0->sub;
-    TOUCH_REG(parent);
-    root = &gGfxViewCoord;
+    root   = &gGfxViewCoord;
     if (parent == root) {
         localMtx = &arg0->coord;
         rot      = &gGfxViewRotCoord.coord;
@@ -9128,8 +9110,7 @@ s32 Gp_SpawnViewCoordTask(GpCoord* arg0, VECTOR* arg1)
     }
 
     parent = arg0->sub;
-    TOUCH_REG(parent);
-    root = &gGfxViewCoord;
+    root   = &gGfxViewCoord;
     if (parent == root) {
         localMtx = &arg0->coord;
         dstMtx   = &coord->coord;

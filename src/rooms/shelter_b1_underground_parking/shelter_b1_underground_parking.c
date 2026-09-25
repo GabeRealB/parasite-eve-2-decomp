@@ -3738,7 +3738,6 @@ void func_shelter_b1_underground_parking_801846EC(Task* arg0)
     gGameSession->cutsceneHold = 0;
     Mc_SaveData.at4.loc.view   = 2;
     /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
-    SOFT_BARRIER();
     taskKill((Task*)arg0->spawnArg2);
     Task_RequestKill(arg0, 0);
 }
@@ -4010,7 +4009,6 @@ void func_shelter_b1_underground_parking_80184C54(SVECTOR* arg0, s32 arg1, s32 a
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-            SCHED_BARRIER();
             t3             = ang - 0x1000;
             prim           = (POLY_G4*)gGpuPrimCursor;
             t              = ang - 0x1000;
@@ -4072,8 +4070,7 @@ void func_shelter_b1_underground_parking_8018543C(SVECTOR* arg0, s32 arg1, s32 a
         scratch = (void**)G_SCRATCH_HEAD;
         head    = *scratch;
         tmp     = (*scratch = head - 0xC);
-        SOFT_TOUCH_REG(tmp);
-        block = (RoomDraw25Scratch*)tmp;
+        block   = (RoomDraw25Scratch*)tmp;
     }
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -4204,8 +4201,7 @@ void func_shelter_b1_underground_parking_80185A94(SVECTOR* arg0, s32 arg1, s32 a
         scratch = (void**)G_SCRATCH_HEAD;
         head    = *scratch;
         tmp     = (*scratch = head - 0x10);
-        SOFT_TOUCH_REG(tmp);
-        block = (RoomDraw13Scratch*)tmp;
+        block   = (RoomDraw13Scratch*)tmp;
     }
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -4299,8 +4295,7 @@ void func_shelter_b1_underground_parking_80185F08(SVECTOR* arg0, s32 arg1, s32 a
         scratch = (void**)G_SCRATCH_HEAD;
         head    = *scratch;
         tmp     = (*scratch = head - 0x14);
-        SOFT_TOUCH_REG(tmp);
-        block = (RoomDraw05Scratch*)tmp;
+        block   = (RoomDraw05Scratch*)tmp;
     }
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);

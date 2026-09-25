@@ -868,7 +868,6 @@ void Ui_DrawCursor(UiPanel* arg0, s32 arg1, s32 arg2)
         arg2  = n - row * 3;
         half  = row / 2;
         half  = row - half * 2;
-        SOFT_TOUCH_REG2(half, arg2);
         t     = arg2 * 8 - 0x18;
         p->u0 = t;
         t     = half * 8 + 0x30;
@@ -1220,9 +1219,8 @@ void Ui_DrawListHighlight(UiList* arg0, UiPanel* arg1, s32 arg2)
     UiPanelSignedLayout* a1;
     u16                  f14;
 
-    a1    = (UiPanelSignedLayout*)arg1;
-    color = 0x1741F;
-    SOFT_TOUCH_REG2(color, a1);
+    a1           = (UiPanelSignedLayout*)arg1;
+    color        = 0x1741F;
     f14          = a1->field_14;
     h            = arg0->field_7;
     x1           = a1->field_1C;
@@ -1514,9 +1512,8 @@ void func_80046EEC(UiListRender* arg0, UiPanelRender* arg1, s32 arg2)
                         temp_a1_2        = arg0->field_4;
                         pageRowsUnsigned = (u8)((volatile UiListRender*)arg0)->field_5;
                         arg0->field_10  += 1;
-                        SCHED_BARRIER();
-                        arg0->field_B = temp_s1;
-                        pageFits      = arg0->field_9 + pageRows < temp_a1_2;
+                        arg0->field_B    = temp_s1;
+                        pageFits         = arg0->field_9 + pageRows < temp_a1_2;
                         SCHED_BARRIER();
                         temp_v1_10 = (u8)arg0->field_9 + pageRowsUnsigned;
                         if (pageFits) {
@@ -1932,7 +1929,6 @@ UiObject* Ui_SpawnTextBlock(TextBlockDesc* arg0_, s32 arg1, s32 arg2, s32 arg3)
 
     arg0   = arg0_;
     result = NULL;
-    SOFT_TOUCH_REG(arg0);
     if (arg0->count > 0) {
         obj               = NULL;
         sp.desc.flags     = D_80067678.field_10;
@@ -2268,7 +2264,6 @@ void Ui_InitList(UiList* arg0, UiMiniObj* arg1)
         arg0->field_10 = 0;
         arg0->field_9  = 0;
     }
-    TOUCH_MEM(sp);
 }
 
 void Ui_ComputeVisibleRows(UiList* arg0, s32 arg1)
@@ -2311,7 +2306,6 @@ void Ui_ComputeVisibleRows(UiList* arg0, s32 arg1)
         arg0->field_9 = 0;
     }
     arg0->field_A = 0;
-    TOUCH_MEM(sp);
 }
 
 void Ui_UpdateListNoAnim(void* arg0, void* arg1)
@@ -2359,7 +2353,6 @@ void Ui_ComputeVisibleRowsEx(UiList* arg0, UiPanel* arg1, s32 arg2)
         arg0->field_9 = 0;
     }
     arg0->field_A = 0;
-    TOUCH_MEM(sp);
 }
 
 void Ui_SmoothCursor(UiMiniObj* arg0, s32 arg1, s32 arg2)

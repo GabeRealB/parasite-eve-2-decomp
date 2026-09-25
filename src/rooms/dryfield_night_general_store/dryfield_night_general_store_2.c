@@ -75,8 +75,7 @@ void func_dryfield_night_general_store_8017DEE0(SVECTOR* arg0, s32 arg1)
             ds        = &gDisplayState;
             ang       = (s16)raw;
             blend     = (((u8)ds->animFrame & 1) * 0x10) | 0x20;
-            SOFT_BARRIER();
-            angEnd = ang + 0x800;
+            angEnd    = ang + 0x800;
             if (ang < angEnd) {
                 angStart = ang;
                 limit    = angEnd;
@@ -122,7 +121,6 @@ void func_dryfield_night_general_store_8017DEE0(SVECTOR* arg0, s32 arg1)
                                       (s32)gGpuCurrentOt),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
-                    SCHED_BARRIER();
 
                     prim           = (POLY_G4*)gGpuPrimCursor;
                     t3             = ang + 0x800;

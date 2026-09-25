@@ -1216,7 +1216,6 @@ void Gp_PickupTitleTask(Task* arg0)
         func_8002E53C(&draw.req, Text_ItoaSigned(d->buf, count));
         Ui_LayoutWithMode0(obj, (y + 0x6B), (x + 7), 0x1B, 7, 0x102010);
     }
-    USE_REG(item);
 }
 
 void Gp_PickupAskTask(Task* arg0)
@@ -3025,7 +3024,6 @@ void func_800D0C34(Task* arg0)
                     bit   = one << (icons[(u8)i].flagId - 1);
                     which = 0;
                 }
-                SOFT_USE_REG(bit);
                 if (!(bit & flags[which])) {
                     goto next;
                 }
@@ -3839,14 +3837,12 @@ void Gp_DiscardWarnTask(Task* arg0)
                     PlayerStatus* cfg;
 
                     Mc_SaveData.itemLevelBonus[id - 0x60] = 0;
-                    SCHED_BARRIER();
-                    cfg = &Player_Status;
+                    cfg                                   = &Player_Status;
                     if (cfg->armor == (id - 0x5F)) {
                         cfg->armor = 0;
                     }
                 }
                 Gp_RemoveItem(&Mc_SaveData.carriedItems, (McItemRec*)rec, -1);
-                USE_REG(id);
             }
             parentObj->field_2E = 6;
         }

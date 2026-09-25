@@ -40,7 +40,6 @@ void func_replay_bonus_801158C0(void)
     rect.w = 0x10;
     row    = D_replay_bonus_8011926E;
     xoff   = row * 0x10;
-    SOFT_TOUCH_REG(row);
     rect.x = D_replay_bonus_80119268 + xoff;
     rect.h = D_replay_bonus_80119266;
     rect.y = D_replay_bonus_8011926A;
@@ -159,8 +158,7 @@ s32 func_replay_bonus_80115CA4(void)
 
     levels = Mc_SaveData.attachLevels;
     spend  = Player_Status.exp;
-    SOFT_USE_REG(spend);
-    i = 0;
+    i      = 0;
     do {
         idx = i * 3;
         if (*levels != 0) {
@@ -362,8 +360,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
         D_80067634 = 0;
         func_replay_bonus_80115D60(list, (ReplayBonusCtx*)obj);
         Ui_LayoutListPanel(list, (UiPanel*)obj);
-        iInit = 0;
-        USE_REG(iInit);
+        iInit          = 0;
         acc            = iInit;
         list->field_A  = 1;
         list->field_17 = 0xF;
@@ -384,7 +381,6 @@ void func_replay_bonus_80115ED0(Task* arg0)
                 itemInit = *ipInit;
                 idxInit  = itemInit;
                 if (itemInit < 0x100) {
-                    SOFT_TOUCH_REG(idxInit);
                     ptr = (itemInit * 8) + loInit;
                 } else {
                     ptr = ((idxInit - 0x100) * 8) + hiInit;
@@ -393,7 +389,6 @@ void func_replay_bonus_80115ED0(Task* arg0)
                 SOFT_TOUCH_REG(price);
                 acc += price >> 1;
                 iInit++;
-                SOFT_USE_REG(ipInit);
                 ipInit++;
             } while (iInit < limitInit);
         }
@@ -409,7 +404,6 @@ void func_replay_bonus_80115ED0(Task* arg0)
         exp                              = cfg->exp;
         D_replay_bonus_80119274.unk0     = tmp;
         *(volatile s32*)&totals->field_8 = exp;
-        SOFT_TOUCH_REG(exp);
         switch (Mc_SaveData.gameMode) {
             case 3:
                 totals->field_8 = exp * 10;
@@ -490,10 +484,9 @@ void func_replay_bonus_80115ED0(Task* arg0)
                 bonus_i++;
                 row++;
             } while (bonus_i < 0xD);
-            sum += 0x1869F;
-            sum  = sum / 100000;
-            sum *= 0x186A0;
-            SOFT_TOUCH_REG(sum);
+            sum                    += 0x1869F;
+            sum                     = sum / 100000;
+            sum                    *= 0x186A0;
             D_replay_bonus_80119288 = sum;
         } else {
             D_replay_bonus_80119274.field_14 = 0;
@@ -605,7 +598,6 @@ void func_replay_bonus_80115ED0(Task* arg0)
             item    = *ip;
             idxDraw = item;
             if (item < 0x100) {
-                SOFT_TOUCH_REG(idxDraw);
                 ptr = (item * 8) + lo;
             } else {
                 ptr = ((idxDraw - 0x100) * 8) + hi;
@@ -752,7 +744,6 @@ void func_replay_bonus_80116964(Task* arg0)
     if (arg0->state == 0) {
         obj->field_2C = 0x34;
         Ui_SizeFromText((UiPanel*)obj, D_replay_bonus_8011906C, 0, 0);
-        SOFT_BARRIER();
         Ui_UpdateLayoutSize((UiPanel*)obj, 0, Ui_Scale15(3) + 4);
         arg0->state = arg0->state + 1;
     } else if (arg0->state == 1) {
@@ -808,9 +799,8 @@ void func_replay_bonus_80116AC0(Task* arg0)
         temp                = arg0->spawnArg1;
         arg0->extraState    = temp;
         SCHED_BARRIER();
-        col = temp;
-        tmp = func_replay_bonus_80115CA4();
-        SCHED_BARRIER();
+        col   = temp;
+        tmp   = func_replay_bonus_80115CA4();
         p     = D_replay_bonus_80118F78;
         spend = tmp;
         idx   = 0;
@@ -861,9 +851,8 @@ void func_replay_bonus_80116AC0(Task* arg0)
         }
         Gp_SetPreviewItem(item, 0);
 
-        col2 = arg0->extraState;
-        tmp  = func_replay_bonus_80115CA4();
-        SCHED_BARRIER();
+        col2  = arg0->extraState;
+        tmp   = func_replay_bonus_80115CA4();
         p     = D_replay_bonus_80118F78;
         spend = tmp;
         idx   = 0;

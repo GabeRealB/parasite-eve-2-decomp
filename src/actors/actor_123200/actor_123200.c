@@ -786,7 +786,6 @@ static __inline__ void Actor123200_MoveForward(GpCoord* coord)
         head                  = SCRATCH_HEAD(SVECTOR);
         vec                   = head - 1;
         SCRATCH_HEAD(SVECTOR) = vec;
-        SOFT_TOUCH_REG(vec);
         Gfx_MatrixCol2(&coord->coord, vec);
         VectorNormalSS(vec, vec);
         gte_lddp(5);

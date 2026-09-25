@@ -191,7 +191,6 @@ static __inline__ void Actor01900_MoveForward(GpCoord* coord, s16 amount)
         SCRATCH_HEAD(SVECTOR) = vec;
         gteVec                = vec;
         if (amount != 0) {
-            SOFT_TOUCH_REG(vec);
             Gfx_MatrixCol2(&coord->coord, vec);
             VectorNormalSS(vec, vec);
             gte_lddp(amount);
@@ -934,7 +933,6 @@ void Actor01900_Fn01C94(Task* arg0)
             }
             /* Keeps this store from being merged with the identical one the
                `field_898 == 2` path makes just below. */
-            SCHED_BARRIER();
             w1->field_89C = (s16)(u16)w1->field_89E;
         }
         goto block_9;
@@ -1268,7 +1266,6 @@ void Actor01900_Fn02664(Task* arg0, s16 yaw, s32 id)
     } else if (yaw > 0) {
         rnd         = Gp_LcgState * 5 + 0x71357911;
         Gp_LcgState = rnd;
-        SOFT_BARRIER();
         if ((rnd >> 0x10) & 1) {
             head[-1] = Actor01900_D1722C[8];
         } else {
@@ -1277,7 +1274,6 @@ void Actor01900_Fn02664(Task* arg0, s16 yaw, s32 id)
     } else {
         rnd         = Gp_LcgState * 5 + 0x71357911;
         Gp_LcgState = rnd;
-        SOFT_BARRIER();
         if ((rnd >> 0x10) & 1) {
             head[-1] = Actor01900_D1722C[10];
         } else {

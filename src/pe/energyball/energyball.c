@@ -441,7 +441,6 @@ void func_energyball_8012FFD0(GpCoord* arg0, s16 arg1, s16 arg2)
     gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
-        USE_REG(head);
         block->otz++;
         block->step = (arg1 * 64) / block->otz;
         half        = arg2 >> 1;
@@ -571,7 +570,6 @@ void func_energyball_801307D4(GpCoord* arg0, s32 arg1)
     head = SCRATCH_HEAD(u8) - sizeof(OverlayGroundScratch);
     /* Store the freshly computed head and keep a copy for the rest of the
        function; without the barrier GCC folds the two together. */
-    SOFT_TOUCH_REG(head);
     SCRATCH_HEAD(u8) = head;
     sc               = (OverlayGroundScratch*)head;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -581,7 +579,6 @@ void func_energyball_801307D4(GpCoord* arg0, s32 arg1)
     do {
         prod  = tbl->x * arg1;
         v->vy = 0;
-        TOUCH_REG(v);
         v->vx = prod;
         TOUCH_REG(v);
         v->vz = tbl->y * arg1;

@@ -574,7 +574,6 @@ void func_pyrokinesis_80130130(GpCoord* arg0, s32 arg1, s16 arg2)
     gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
-        USE_REG(head);
         block->otz++;
         block->step = ((s16)arg1 * 64) / block->otz;
         ang         = 0;

@@ -1488,8 +1488,7 @@ void func_actor_421600_80134604(Task* arg0)
     state = (s16)work->field_828;
     if (state == 1) {
         if (work->field_82C != (s16)work->field_82E) {
-            seekWork = work;
-            TOUCH_REG(seekWork);
+            seekWork  = work;
             seekIndex = 1;
             table     = (u32)&D_actor_421600_80150DB4;
             seekSlot  = (s8*)&work->anim.slots;
@@ -1508,8 +1507,7 @@ void func_actor_421600_80134604(Task* arg0)
         work->field_830 = 0;
         Mem_Set(work->field_848, 0U, 0x48U);
     } else if (state == 2) {
-        resetWork = work;
-        TOUCH_REG(resetWork);
+        resetWork  = work;
         resetIndex = 1;
         resetSlot  = (s8*)&work->anim.slots;
         do {
@@ -2366,8 +2364,7 @@ void func_actor_421600_80136138(Task* arg0)
             case 6:
             case 7:
                 if (zone >= 6 && zone <= 9) {
-                    state = 0x26;
-                    SOFT_TOUCH_REG(state);
+                    state         = 0x26;
                     work->field_0 = state;
                     return;
                 }
@@ -3200,7 +3197,6 @@ void func_actor_421600_8013848C(Task* arg0)
     ctx                   = arg0->spawnArg2;
     gteVec                = vec;
     if (work->field_4 != 0) {
-        TOUCH_REG(gteVec);
         obj                     = arg0->extra.tmd;
         ctx->node.state.b.flags = 0;
         obj->flags              = 0;

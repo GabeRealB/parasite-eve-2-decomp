@@ -416,7 +416,6 @@ void func_acropolis_security_room_8017D9DC(Task* task)
         Mc_SaveData.at4.loc.view = 8;
         /* Without this the scheduler hoists the `task->state` load above the
            `Mc_SaveData.at4.loc.view` byte store to fill its load-delay slot. */
-        SOFT_BARRIER();
         state = task->state;
         state++;
     } else {
@@ -1531,7 +1530,6 @@ void func_acropolis_security_room_8017FA18(Task* task)
     task->msgTable           = D_acropolis_security_room_801826CC;
     task->work               = (TaskIdMap*)st;
     Mc_SaveData.at4.loc.view = 6;
-    SOFT_BARRIER();
     task->state++;
     st->field_0 = 0;
     st->frames  = 0;
@@ -1717,7 +1715,6 @@ void func_acropolis_security_room_8017FE6C(Task* task)
         Mc_SaveData.at4.loc.view = 0x10;
         /* Without the barrier GCC hoists the `lw` of `task->state` above the
          * byte store, dropping the load-delay `nop`. */
-        SOFT_BARRIER();
         task->state = task->state + 1;
     }
 }
@@ -1755,7 +1752,6 @@ void func_acropolis_security_room_80180010(Task* task)
     /* Without the barrier GCC hoists the `lw` of `task->state` above the byte
      * store, dropping the load-delay `nop` and making the body one instruction
      * short. */
-    SOFT_BARRIER();
     task->state = task->state + 1;
 }
 
@@ -1791,7 +1787,6 @@ void func_acropolis_security_room_801800A4(Task* task)
         /* Same load-delay shape as `func_acropolis_security_room_80180010`:
          * without the barrier GCC hoists the `lw` of `task->state` above the
          * byte store and drops the delay `nop`. */
-        SOFT_BARRIER();
         task->state = task->state + 1;
     }
 }
@@ -2382,10 +2377,9 @@ void func_acropolis_security_room_801817A4(Task* taskArg)
         greenBit = (u16)task->spawnArg1 & 1;
         rawLum   = ((rng >> 0x10) & 0x70) + 0x40;
         __asm__("move %0,%1" : "=r"(quadLum) : "r"(rawLum));
-        redProduct = quadLum * redBit;
-        i          = 0;
-        addrMask   = 0xFFFFFF;
-        SOFT_TOUCH_REG(addrMask);
+        redProduct  = quadLum * redBit;
+        i           = 0;
+        addrMask    = 0xFFFFFF;
         Gp_LcgState = rng;
         __asm__("move %0,%1" : "=r"(savedLum) : "r"(rawLum));
         scratch->step = 0xC00 / ((AsrFlashScratch*)(head - 0x14))->otz;
@@ -2447,10 +2441,6 @@ void func_acropolis_security_room_801817A4(Task* taskArg)
             addPrim((u_long*)(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), line);
             Gp_AddTpageShift((P_TAG*)line, 1, scratch->otz);
             i = nextIndex;
-            USE_REG(scratch);
-            USE_REG(scratch);
-            USE_REG(scratch);
-            USE_REG(scratch);
         } while (i < 2);
     }
     SCRATCH_POP_BYTES(0x14);

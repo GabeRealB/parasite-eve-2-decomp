@@ -103,13 +103,11 @@ void func_dryfield_night_parking_lot_8017DE10(SVECTOR* arg0, s32 arg1, s32 arg2)
     u8                 code;
     s16                xy;
 
-    tex = arg1;
-    CLOBBER_REG(a1);
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = *scratch;
-    tmp     = head - 0xC;
-    block   = (RoomDraw25Scratch*)tmp;
-    SOFT_TOUCH_REG(block);
+    tex      = arg1;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    tmp      = head - 0xC;
+    block    = (RoomDraw25Scratch*)tmp;
     *scratch = tmp;
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -140,7 +138,6 @@ void func_dryfield_night_parking_lot_8017DE10(SVECTOR* arg0, s32 arg1, s32 arg2)
         sarg     = arg2 << 16;
         prim->v2 = v;
         prim->v3 = v;
-        SCHED_BARRIER();
         code     = prim->code;
         sarg     = sarg >> 16;
         prim->v0 = 0;
@@ -271,7 +268,6 @@ void func_dryfield_night_parking_lot_8017E08C(SVECTOR* arg0, SVECTOR* arg1, s32 
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-            SCHED_BARRIER();
             t3             = 0x1000 - ang;
             prim           = (POLY_G4*)gGpuPrimCursor;
             t              = 0x1000 - ang;

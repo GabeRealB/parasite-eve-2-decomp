@@ -1064,7 +1064,6 @@ void Mdec_ProcessDecode(void)
                         }
                         var_s1_2 += 1;
                     } while ((u32)(var_s1_2 & 0xFFFF) < 3U);
-                    USE_REG4(h368b, hModeb, h234b, h364b);
                 }
 
                 p->field_21C = 1;

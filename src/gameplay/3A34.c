@@ -802,7 +802,6 @@ void Gp_UpdateRoomCoords(Task* arg0)
         }
     }
 
-    COMPILER_BARRIER();
     Gp_UpdateCoord(&gGfxViewCoord);
 
     {
@@ -1173,7 +1172,6 @@ s32 Gp_LightCone(GpSpotLight* arg0, VECTOR3* arg1)
 static __inline__ void solve_loadrot(MATRIX* m, SVECTOR* src)
 {
     SVECTOR tmp;
-    SOFT_USE_REG(src);
     tmp = *src;
     gte_SetRotMatrix(m);
     gte_ldv0(&tmp);
@@ -1450,7 +1448,6 @@ static __inline__ void solve_transpose(MATRIX* src, volatile MATRIX* dst)
         "sh $13,14(%1);"
         "sh $14,16(%1);"
         : : "r"(src), "r"(dst) : "$12", "$13", "$14", "memory");
-    SCHED_BARRIER();
 }
 
 void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
@@ -1499,9 +1496,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         return;
     }
 
-    SCHED_BARRIER();
     Gp_FillSVec3x3((GpSVec3x3*)colorMtx, 0, 0, 0);
-    SOFT_USE_REG(n);
 
     if ((u32)(sum - 1) >= (u32)n) {
         func_800D7A9C(extra, pos, startr, count - 1);
@@ -2073,12 +2068,10 @@ void Gp_UpdateActorColor(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
             w1   = 0x1000 - w0;
             do {
                 block->col0.vx = src->x;
-                TOUCH_REG(src);
                 block->col0.vy = src->y;
                 TOUCH_REG(src);
                 block->col0.vz = src->z;
                 block->col1.vx = dst->x;
-                TOUCH_REG(dst);
                 block->col1.vy = dst->y;
                 TOUCH_REG(dst);
                 block->col1.vz = dst->z;
@@ -4688,7 +4681,6 @@ void func_800DDDF8(GpObj* node)
                         head = SCRATCH_HEAD_ADDR;
                         for (;;) {
                             flags = slot->flags;
-                            TOUCH_REG(flags);
                             if (!(flags & 1)) {
                                 slot->flags       = flags | 1;
                                 slot->depth       = 0;
@@ -5139,15 +5131,14 @@ void func_800DEF80(GpObj* arg0, GpObj4C* arg1)
         {
             GpCoord* c;
             s32      a;
-            c   = node->coord;
-            a   = other->field_3C.vx;
-            m0  = a * c->coord.m[0][2];
-            a   = other->field_3C.vy;
-            m1  = a * c->coord.m[1][2];
-            a   = other->field_3C.vz;
-            m2  = a * c->coord.m[2][2];
-            dot = m0 + m1;
-            SOFT_TOUCH_REG(dot);
+            c    = node->coord;
+            a    = other->field_3C.vx;
+            m0   = a * c->coord.m[0][2];
+            a    = other->field_3C.vy;
+            m1   = a * c->coord.m[1][2];
+            a    = other->field_3C.vz;
+            m2   = a * c->coord.m[2][2];
+            dot  = m0 + m1;
             dot += m2;
         }
         if (dot <= -0xC00000) {
@@ -5185,12 +5176,11 @@ case4_far:
     {
         GpCoord* c;
         s32      n0, n1, n2;
-        c   = node->coord;
-        n0  = block->delta.vx * c->workm.m[0][2];
-        n1  = block->delta.vy * c->workm.m[1][2];
-        n2  = block->delta.vz * c->workm.m[2][2];
-        dot = n0 + n1;
-        SOFT_TOUCH_REG(dot);
+        c    = node->coord;
+        n0   = block->delta.vx * c->workm.m[0][2];
+        n1   = block->delta.vy * c->workm.m[1][2];
+        n2   = block->delta.vz * c->workm.m[2][2];
+        dot  = n0 + n1;
         dot += n2;
     }
     if (dot <= -0xC00000) {
@@ -5533,13 +5523,10 @@ s32 func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3)
     block->origin.vy = arg1->vy + ((arg3->vy * t) >> 12);
     hit_z = block->origin.vz = arg1->vz + ((arg3->vz * t) >> 12);
 
-    SOFT_USE_REG(arg0);
-
     if ((block->origin.vx - arg1->vx) * (block->origin.vx - arg2->vx) + (block->origin.vy - arg1->vy) * (block->origin.vy - arg2->vy) + (hit_z - arg1->vz) * (hit_z - arg2->vz) < 0) {
         goto do_poly;
     }
     sp = (void**)0x1F800000;
-    SOFT_TOUCH_REG(sp);
     sp = (void**)((s32)sp | 0x3FC);
     SCRATCH_POP_BYTES_AT(sp, 0x80);
     return 0;
@@ -6055,8 +6042,7 @@ s32 Gp_FindNearestSlot(GpObj* arg0, s32 arg1)
     head               = SCRATCH_HEAD(u8);
     slot               = rec->recs;
     SCRATCH_HEAD(void) = (void*)(head - 0x28);
-    COMPILER_BARRIER();
-    block = (GpNearScratch*)(head - 0x28);
+    block              = (GpNearScratch*)(head - 0x28);
     gte_SetRotMatrix(&arg0->coord->workm);
     block->local.vx = (u16)rec->end1.vx + (u16)arg0->pos.vx;
     block->local.vy = (u16)rec->end1.vy + (u16)arg0->pos.vy;

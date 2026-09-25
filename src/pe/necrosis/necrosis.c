@@ -59,7 +59,6 @@ void func_necrosis_8012EF34(Task* arg0)
     old      = mem->age;
     tick     = old + 1;
     mem->age = tick;
-    SOFT_USE_REG(tick);
     switch (arg0->state) {
         case 0:
             if (Gp_StateC08.field_3 == -2) {
@@ -414,7 +413,6 @@ void func_necrosis_8012FE64(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
     gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        USE_REG(head);
         block->otz++;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;

@@ -2075,7 +2075,6 @@ void func_actor_401300_801365F8(Task* arg0)
         Tmd_AllocBuffers(obj);
         work->field_970.radius = 0x280;
         work->field_89C        = 1;
-        SOFT_BARRIER();
         work->field_8A2        = 3;
         speed                  = work->field_8A8;
         work->field_BF0.flags &= 0x7FFF;
@@ -2216,7 +2215,6 @@ void func_actor_401300_80136CE8(Task* arg0)
         Tmd_AllocBuffers(obj);
         work->field_970.radius = 0x280;
         work->field_89C        = 1;
-        SOFT_BARRIER();
         work->field_8A2        = 3;
         speed                  = work->field_8A8;
         work->field_BF0.flags &= 0x7FFF;
@@ -4019,7 +4017,6 @@ static __inline__ void Actor401300_MoveForwardNonzeroSave(McSaveData* save, GpCo
         SCRATCH_HEAD(SVECTOR) = vec;
         gteVec                = vec;
         if (amount != 0) {
-            SOFT_TOUCH_REG(vec);
             Gfx_MatrixCol2(&coord->coord, vec);
             VectorNormalSS(vec, vec);
             gte_lddp(amount);

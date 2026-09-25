@@ -138,7 +138,6 @@ void func_options_801D404C(DialogPrompt* arg0, UiObject* arg1)
     labels[0] = D_options_801D5B68;
     labels[1] = D_options_801D5B70;
     Text_DrawPrompt((UiObject*)a0tmp, arg1->field_1C + 6, arg0->field_1A, title, arg0->field_1C, 1, 0);
-    SCHED_BARRIER();
     saved    = Mc_SaveData.soundMode;
     y        = i;
     selected = saved;
@@ -173,8 +172,7 @@ void func_options_801D404C(DialogPrompt* arg0, UiObject* arg1)
         }
     }
     Mc_SaveData.soundMode = selected;
-    SOFT_BARRIER();
-    tmp = selected << 24;
+    tmp                   = selected << 24;
     SOFT_TOUCH_REG(tmp);
     two = saved;
     SOFT_TOUCH_REG(two);
@@ -190,9 +188,6 @@ void func_options_801D404C(DialogPrompt* arg0, UiObject* arg1)
             CdVol_SetMixMode(1);
         }
     }
-    SOFT_BARRIER();
-    SOFT_BARRIER();
-    SOFT_BARRIER();
     SOFT_BARRIER();
     status = arg1->status;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->field_10 == arg0->field_8)) {
@@ -224,9 +219,7 @@ void func_options_801D42A8(DialogPrompt* arg0, UiObject* arg1)
 
     count = 4;
     a0tmp = (s32)arg1;
-    SOFT_TOUCH_REG(a0tmp);
     title = D_options_801D5B78;
-    SOFT_TOUCH_REG(title);
     Text_DrawPrompt((UiObject*)a0tmp, arg1->field_1C + 6, arg0->field_1A, title, arg0->field_1C, 1, 0);
     i        = 0;
     p        = labels;
@@ -266,7 +259,6 @@ void func_options_801D42A8(DialogPrompt* arg0, UiObject* arg1)
     if (saved != (s8)selected) {
         Snd_ApplyVolumeTable(0);
     }
-    SOFT_BARRIER();
     status = arg1->status;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->field_10 == arg0->field_8)) {
         Ui_SetHolderParam((s32)D_options_801D5CA8, 0, 0);
@@ -334,8 +326,7 @@ void func_options_801D4504(DialogPrompt* arg0, UiObject* arg1)
         }
     }
     Mc_SaveData.cursorMode = selected;
-    SOFT_BARRIER();
-    status = arg1->status;
+    status                 = arg1->status;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->field_10 == arg0->field_8)) {
         Ui_SetHolderParam((s32)D_options_801D5CE4, 0, 0);
     }
@@ -402,8 +393,7 @@ void func_options_801D4724(DialogPrompt* arg0, UiObject* arg1)
         }
     }
     Mc_SaveData.vibration = selected;
-    SOFT_BARRIER();
-    status = arg1->status;
+    status                = arg1->status;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->field_10 == arg0->field_8)) {
         Ui_SetHolderParam((s32)D_options_801D5D28, 0, 0);
     }
@@ -470,8 +460,7 @@ void func_options_801D4944(DialogPrompt* arg0, UiObject* arg1)
         }
     }
     Mc_SaveData.moveMode = selected;
-    SOFT_BARRIER();
-    status = arg1->status;
+    status               = arg1->status;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->field_10 == arg0->field_8)) {
         Ui_SetHolderParam((s32)D_options_801D5D68, 0, 0);
     }

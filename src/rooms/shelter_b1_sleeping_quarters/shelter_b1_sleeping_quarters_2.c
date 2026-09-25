@@ -206,7 +206,6 @@ void func_shelter_b1_sleeping_quarters_8017DB50(SVECTOR* arg0, s32 arg1, s32 arg
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-            SCHED_BARRIER();
             t3             = ang - 0x1000;
             prim           = (POLY_G4*)gGpuPrimCursor;
             t              = ang - 0x1000;
@@ -266,8 +265,7 @@ void func_shelter_b1_sleeping_quarters_8017E338(SVECTOR* arg0, s32 arg1, s32 arg
         scratch = (void**)G_SCRATCH_HEAD;
         head    = *scratch;
         tmp     = (*scratch = head - 0xC);
-        SOFT_TOUCH_REG(tmp);
-        block = (RoomDraw25Scratch*)tmp;
+        block   = (RoomDraw25Scratch*)tmp;
     }
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);

@@ -573,7 +573,6 @@ void func_shelter_1f_parking_garage_8017E080(SVECTOR* arg0, s32 arg1, s32 arg2, 
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-            SCHED_BARRIER();
             t3             = ang - 0x1000;
             prim           = (POLY_G4*)gGpuPrimCursor;
             t              = ang - 0x1000;
@@ -634,8 +633,7 @@ void func_shelter_1f_parking_garage_8017E868(SVECTOR* arg0, s32 arg1, s32 arg2)
         scratch = (void**)G_SCRATCH_HEAD;
         head    = *scratch;
         tmp     = (*scratch = head - 0xC);
-        SOFT_TOUCH_REG(tmp);
-        block = (RoomDraw25Scratch*)tmp;
+        block   = (RoomDraw25Scratch*)tmp;
     }
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -782,9 +780,7 @@ void func_shelter_1f_parking_garage_8017EEB0(GpCoord* arg0, s32 arg1, s32 arg2, 
     scratch = (void**)G_SCRATCH_HEAD;
     color   = rgb;
     head    = *scratch;
-    USE_REG(head);
-    vx = (u16)arg0->workm.t[0];
-    USE_REG(vx);
+    vx      = (u16)arg0->workm.t[0];
     {
         register u8* tmp asm("v0");
         tmp   = head - 0x1C;
@@ -805,7 +801,6 @@ void func_shelter_1f_parking_garage_8017EEB0(GpCoord* arg0, s32 arg1, s32 arg2, 
     gte_stflg(&((RoomDraw02Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        USE_REG(head);
         otz                                      = ((RoomDraw02Scratch*)(head - 0x1C))->otz + 1;
         rOuter                                   = ((s16)saved * 64) / otz;
         ((RoomDraw02Scratch*)(head - 0x1C))->otz = otz;
@@ -839,7 +834,6 @@ void func_shelter_1f_parking_garage_8017EEB0(GpCoord* arg0, s32 arg1, s32 arg2, 
                               (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-            SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
     SCRATCH_POP_BYTES(0x1C);
@@ -889,7 +883,6 @@ void func_shelter_1f_parking_garage_8017F2DC(GpCoord* arg0, s32 arg1, u8* rgb)
     gte_stflg(&((RoomFanScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((RoomFanScratch*)(head - 0x18))->otz);
-        USE_REG(head);
         otz           = block->otz + 1;
         radius        = ((s16)arg1 * 64) / otz;
         block->otz    = otz;
@@ -919,7 +912,6 @@ void func_shelter_1f_parking_garage_8017F2DC(GpCoord* arg0, s32 arg1, u8* rgb)
                               (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-            SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
     SCRATCH_POP_BYTES(0x18);

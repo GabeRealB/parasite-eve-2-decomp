@@ -313,7 +313,6 @@ void func_dryfield_night_garage_80180D9C(SVECTOR* arg0, s32 arg1, s32 arg2)
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-            SCHED_BARRIER();
             t3             = ang - 0x1000;
             prim           = (POLY_G4*)gGpuPrimCursor;
             t              = ang - 0x1000;

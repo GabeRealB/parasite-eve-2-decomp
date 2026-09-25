@@ -266,7 +266,6 @@ s32 func_replay_bonus_801175F0(UiList* list, ReplayBonusCtx* ctx)
             item = *p;
             idx  = item;
             if (item < 0x100) {
-                SOFT_TOUCH_REG(idx);
                 ptr = (item * 8) + lo;
             } else {
                 ptr = ((idx - 0x100) * 8) + hi;
@@ -295,14 +294,12 @@ void func_replay_bonus_801176A8(DialogPrompt* prompt, UiObject* obj)
     s32  off;
     s32  price;
 
-    p = ((ReplayBonusItemList*)obj->owner)->itemIds + prompt->field_8;
-    SOFT_BARRIER();
+    p    = ((ReplayBonusItemList*)obj->owner)->itemIds + prompt->field_8;
     item = *p;
     idx  = item;
     Gp_SetItemSeenBit(item, 1);
     Gp_DrawItemLabel(obj, prompt->field_18, prompt->field_1A, item, 0x606060, 0);
     if (item < 0x100) {
-        SOFT_TOUCH_REG(idx);
         table = (s32)Gp_ItemDescs;
         SOFT_TOUCH_REG(table);
         off = item * 8;

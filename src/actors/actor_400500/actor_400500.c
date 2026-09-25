@@ -2566,7 +2566,6 @@ void func_actor_400500_801361EC(Task* arg0)
                 case 1:
                     a1c = (s16)work->field_A1C;
                     if ((a1c == 1) || (a1c == 4) || (a1c == 5)) {
-                        SOFT_BARRIER();
                         work->field_A08 = 3;
                     } else if ((a1c == 3) && (heading == 0) && (coord->coord.t[0] >= 0x4074)) {
                         work->field_A08 = 6;
@@ -2637,10 +2636,9 @@ void func_actor_400500_801361EC(Task* arg0)
                     coords       = arg0->extra.tmd->coords;
                     Gp_UpdateCoord(&coords[11]);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &coords[11].workm, &local);
-                    pos    = pos2;
-                    pos->x = local.t[0];
-                    pos->z = local.t[2];
-                    SOFT_BARRIER();
+                    pos             = pos2;
+                    pos->x          = local.t[0];
+                    pos->z          = local.t[2];
                     coords[11].flg  = 0;
                     work->field_A08 = 1;
                     break;
@@ -3543,7 +3541,6 @@ void func_actor_400500_8013771C(Task* arg0)
     memcpy(&part->coord, mtx, 18);
     part->flg = 0;
     Gp_UpdateCoord(part);
-    SOFT_BARRIER();
     viewCoord2 = &gGfxViewCoord;
     SOFT_USE_REG(work);
     parentp = &parent;
@@ -3693,12 +3690,10 @@ void func_actor_400500_80138088(Task* arg0)
     head   = *(u8**)(head + 0x3FC);
     addend = addend + ((s32) - (delta * 0x10) >> 7);
     SOFT_TOUCH_REG(addend);
-    allocated = (MATRIX*)(head - sizeof(MATRIX));
-    SOFT_TOUCH_REG(allocated);
+    allocated       = (MATRIX*)(head - sizeof(MATRIX));
     work->field_9BC = (s16)addend;
     model           = arg0->extra.tmd;
     __asm__("move %0,%1" : "=r"(matrix) : "r"(allocated), "r"(model));
-    SOFT_TOUCH_REG_USE(model, matrix);
     coords = model->coords;
     SOFT_USE_REG(work);
     parentp                           = &parent;
@@ -3728,10 +3723,8 @@ void func_actor_400500_80138088(Task* arg0)
     func_actor_400500_8013B720(coord, matrix);
     dest = coord;
     memcpy(&dest->coord, matrix, 18);
-    SOFT_TOUCH_REG_USE(dest, work);
     dest->flg = 0;
     Gp_UpdateCoord(dest);
-    SOFT_BARRIER();
 
     view2 = &gGfxViewCoord;
     SOFT_USE_REG(work);
@@ -4465,7 +4458,6 @@ void func_actor_400500_8013973C(Task* arg0)
     posMain                = posMain2;
     dx                     = local3.t[0] - local0.t[0];
     coordsMain->coord.t[0] = posMain->x - dx;
-    SCHED_BARRIER();
     viewZ                  = posMain->z;
     dz                     = local3.t[2] - local0.t[2];
     coordsMain->coord.t[2] = viewZ - dz;

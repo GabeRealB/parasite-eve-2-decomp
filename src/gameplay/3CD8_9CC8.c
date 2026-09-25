@@ -456,7 +456,6 @@ void Gp_DrawArc(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
     gte_stflg(&((GpArcScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpArcScratch*)(head - 0x1C))->otz);
-        USE_REG(head);
         block->otz++;
         ang          = 0;
         block->inner = ((s16)arg1 * 64) / block->otz;
@@ -530,7 +529,6 @@ void Gp_DrawRing(GpCoord* arg0, s32 arg1, u8* rgb)
     gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
-        USE_REG(head);
         block->otz++;
         block->step = ((s16)arg1 * 64) / block->otz;
         ang         = 0;

@@ -156,7 +156,6 @@ void func_shelter_b1_north_maintenance_walkway_8017DDE0(SVECTOR* arg0, s32 arg1,
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-            SCHED_BARRIER();
             t3             = ang - 0x1000;
             prim           = (POLY_G4*)gGpuPrimCursor;
             t              = ang - 0x1000;
@@ -548,7 +547,6 @@ void func_shelter_b1_north_maintenance_walkway_8017F26C(GpCoord* arg0, s32 arg1,
     gte_stflg(&((RoomFanScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((RoomFanScratch*)(head - 0x18))->otz);
-        USE_REG(head);
         otz           = block->otz + 1;
         radius        = ((s16)arg1 * 64) / otz;
         block->otz    = otz;
@@ -578,7 +576,6 @@ void func_shelter_b1_north_maintenance_walkway_8017F26C(GpCoord* arg0, s32 arg1,
                               (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-            SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
     SCRATCH_POP_BYTES(0x18);
@@ -891,7 +888,6 @@ void func_shelter_b1_north_maintenance_walkway_80180070(GpCoord* arg0, s32 arg1)
     do {
         prod  = tbl->x * arg1;
         v->vy = 0;
-        TOUCH_REG(v);
         v->vx = prod;
         TOUCH_REG(v);
         v->vz = tbl->y * arg1;
@@ -1232,9 +1228,7 @@ void func_shelter_b1_north_maintenance_walkway_80181180(GpCoord* arg0, s32 arg1,
     scratch = (void**)G_SCRATCH_HEAD;
     color   = rgb;
     head    = *scratch;
-    USE_REG(head);
-    vx = (u16)arg0->workm.t[0];
-    USE_REG(vx);
+    vx      = (u16)arg0->workm.t[0];
     {
         register u8* tmp asm("v0");
         tmp   = head - 0x1C;
@@ -1255,7 +1249,6 @@ void func_shelter_b1_north_maintenance_walkway_80181180(GpCoord* arg0, s32 arg1,
     gte_stflg(&((RoomDraw02Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        USE_REG(head);
         otz                                      = ((RoomDraw02Scratch*)(head - 0x1C))->otz + 1;
         rOuter                                   = ((s16)saved * 64) / otz;
         ((RoomDraw02Scratch*)(head - 0x1C))->otz = otz;
@@ -1289,7 +1282,6 @@ void func_shelter_b1_north_maintenance_walkway_80181180(GpCoord* arg0, s32 arg1,
                               (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-            SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
     SCRATCH_POP_BYTES(0x1C);
@@ -1337,7 +1329,6 @@ void func_shelter_b1_north_maintenance_walkway_801815AC(GpCoord* arg0, s32 arg1,
     gte_stflg(&((RoomFanScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((RoomFanScratch*)(head - 0x18))->otz);
-        USE_REG(head);
         otz           = block->otz + 1;
         radius        = ((s16)arg1 * 64) / otz;
         block->otz    = otz;
@@ -1367,7 +1358,6 @@ void func_shelter_b1_north_maintenance_walkway_801815AC(GpCoord* arg0, s32 arg1,
                               (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-            SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
     SCRATCH_POP_BYTES(0x18);
@@ -1989,8 +1979,7 @@ void func_shelter_b1_north_maintenance_walkway_801835EC(GpCoord* arg0, s32 arg1,
     s16            xy;
     u16            vz;
 
-    tex = arg1;
-    CLOBBER_REG(a1);
+    tex                                     = arg1;
     scratch                                 = (void**)G_SCRATCH_HEAD;
     head                                    = *scratch;
     ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
@@ -2182,7 +2171,6 @@ void func_shelter_b1_north_maintenance_walkway_80183C94(GpCoord* arg0, s32 arg1,
     gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
-        USE_REG(head);
         block->otz++;
         block->step = ((s16)arg1 * 64) / block->otz;
         ang         = 0;
@@ -2432,7 +2420,6 @@ void func_shelter_b1_north_maintenance_walkway_80184700(GpCoord* arg0, s32 arg1)
     do {
         prod  = tbl->x * arg1;
         v->vy = 0;
-        TOUCH_REG(v);
         v->vx = prod;
         TOUCH_REG(v);
         v->vz = tbl->y * arg1;

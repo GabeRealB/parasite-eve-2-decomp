@@ -144,7 +144,6 @@ void Title_MenuTask(Task* arg0)
         a0->b0 = c;
         a0->g0 = c;
         a0->r0 = c;
-        SOFT_TOUCH_REG(a1);
         a0->x0 = -0xA0;
         a0->y0 = -0x78;
         a0->w  = 0x140;

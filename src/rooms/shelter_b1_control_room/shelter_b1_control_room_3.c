@@ -224,8 +224,7 @@ void func_shelter_b1_control_room_801806FC(GpCoord* arg0, s32 arg1, s32 arg2, s3
     s16            xy;
     u16            vz;
 
-    tex = arg1;
-    CLOBBER_REG(a1);
+    tex                                     = arg1;
     scratch                                 = (void**)G_SCRATCH_HEAD;
     head                                    = *scratch;
     ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
@@ -417,7 +416,6 @@ void func_shelter_b1_control_room_80180DA4(GpCoord* arg0, s32 arg1, u8* rgb)
     gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
-        USE_REG(head);
         block->otz++;
         block->step = ((s16)arg1 * 64) / block->otz;
         ang         = 0;
@@ -667,7 +665,6 @@ void func_shelter_b1_control_room_80181810(GpCoord* arg0, s32 arg1)
     do {
         prod  = tbl->x * arg1;
         v->vy = 0;
-        TOUCH_REG(v);
         v->vx = prod;
         TOUCH_REG(v);
         v->vz = tbl->y * arg1;

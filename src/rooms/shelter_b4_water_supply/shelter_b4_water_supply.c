@@ -888,7 +888,6 @@ void func_shelter_b4_water_supply_8017F3A0(GpCoord* arg0, s32 arg1, s32 arg2)
     do {
         prod  = tbl->x * arg1;
         v->vy = 0;
-        TOUCH_REG(v);
         v->vx = prod;
         TOUCH_REG(v);
         v->vz = tbl->y * arg1;
@@ -1336,7 +1335,6 @@ void func_shelter_b4_water_supply_80180260(SVECTOR* arg0, s32 arg1, s32 arg2)
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-            SCHED_BARRIER();
             t3             = ang - 0x1000;
             prim           = (POLY_G4*)gGpuPrimCursor;
             t              = ang - 0x1000;
@@ -1566,8 +1564,7 @@ void func_shelter_b4_water_supply_80181158(GpCoord* arg0, s32 arg1, s32 arg2, s3
     s16            xy;
     u16            vz;
 
-    tex = arg1;
-    CLOBBER_REG(a1);
+    tex                                     = arg1;
     scratch                                 = (void**)G_SCRATCH_HEAD;
     head                                    = *scratch;
     ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
@@ -1761,7 +1758,6 @@ void func_shelter_b4_water_supply_80181800(GpCoord* arg0, s32 arg1, u8* rgb)
     gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
-        USE_REG(head);
         block->otz++;
         block->step = ((s16)arg1 * 64) / block->otz;
         ang         = 0;
@@ -2014,7 +2010,6 @@ void func_shelter_b4_water_supply_8018226C(GpCoord* arg0, s32 arg1)
     do {
         prod  = tbl->x * arg1;
         v->vy = 0;
-        TOUCH_REG(v);
         v->vx = prod;
         TOUCH_REG(v);
         v->vz = tbl->y * arg1;

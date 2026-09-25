@@ -234,7 +234,6 @@ void func_shelter_b2_pod_access_tunnel_8017DF64(SVECTOR* arg0, s32 arg1, s32 arg
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-            SCHED_BARRIER();
             t3             = ang - 0x1000;
             prim           = (POLY_G4*)gGpuPrimCursor;
             t              = ang - 0x1000;
@@ -853,7 +852,6 @@ void func_shelter_b2_pod_access_tunnel_8017FFBC(GpCoord* arg0, s32 arg1, u8* rgb
     gte_stflg(&((RoomFanScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((RoomFanScratch*)(head - 0x18))->otz);
-        USE_REG(head);
         otz           = block->otz + 1;
         radius        = ((s16)arg1 * 64) / otz;
         block->otz    = otz;
@@ -883,7 +881,6 @@ void func_shelter_b2_pod_access_tunnel_8017FFBC(GpCoord* arg0, s32 arg1, u8* rgb
                               (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-            SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
     SCRATCH_POP_BYTES(0x18);
@@ -1203,7 +1200,6 @@ void func_shelter_b2_pod_access_tunnel_80180DC0(GpCoord* arg0, s32 arg1)
     do {
         prod  = tbl->x * arg1;
         v->vy = 0;
-        TOUCH_REG(v);
         v->vx = prod;
         TOUCH_REG(v);
         v->vz = tbl->y * arg1;
@@ -1548,9 +1544,7 @@ void func_shelter_b2_pod_access_tunnel_80181ED0(GpCoord* arg0, s32 arg1, s32 arg
     scratch = (void**)G_SCRATCH_HEAD;
     color   = rgb;
     head    = *scratch;
-    USE_REG(head);
-    vx = (u16)arg0->workm.t[0];
-    USE_REG(vx);
+    vx      = (u16)arg0->workm.t[0];
     {
         register u8* tmp asm("v0");
         tmp   = head - 0x1C;
@@ -1571,7 +1565,6 @@ void func_shelter_b2_pod_access_tunnel_80181ED0(GpCoord* arg0, s32 arg1, s32 arg
     gte_stflg(&((RoomDraw02Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        USE_REG(head);
         otz                                      = ((RoomDraw02Scratch*)(head - 0x1C))->otz + 1;
         rOuter                                   = ((s16)saved * 64) / otz;
         ((RoomDraw02Scratch*)(head - 0x1C))->otz = otz;
@@ -1605,7 +1598,6 @@ void func_shelter_b2_pod_access_tunnel_80181ED0(GpCoord* arg0, s32 arg1, s32 arg
                               (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-            SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
     SCRATCH_POP_BYTES(0x1C);
@@ -1651,7 +1643,6 @@ void func_shelter_b2_pod_access_tunnel_801822FC(GpCoord* arg0, s32 arg1, u8* rgb
     gte_stflg(&((RoomFanScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((RoomFanScratch*)(head - 0x18))->otz);
-        USE_REG(head);
         otz           = block->otz + 1;
         radius        = ((s16)arg1 * 64) / otz;
         block->otz    = otz;
@@ -1681,7 +1672,6 @@ void func_shelter_b2_pod_access_tunnel_801822FC(GpCoord* arg0, s32 arg1, u8* rgb
                               (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-            SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
     SCRATCH_POP_BYTES(0x18);

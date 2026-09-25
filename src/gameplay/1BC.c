@@ -4230,8 +4230,7 @@ s32 Gp_EquipRelatedItem(McItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
         off      = arg1 << 2;
         qtyTable = Gp_QtyById0;
         TOUCH_REG(qtyTable);
-        row = (GpItemQty*)(off + (s32)qtyTable);
-        TOUCH_REG(row);
+        row    = (GpItemQty*)(off + (s32)qtyTable);
         idx    = arg1 - 0x80;
         maxQty = 0;
         if ((u32)idx < 0x20U) {
@@ -4250,8 +4249,7 @@ s32 Gp_EquipRelatedItem(McItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
             useSecond = 1;
             qtyTable  = Gp_QtyById1;
             TOUCH_REG(qtyTable);
-            row = (GpItemQty*)(off + (s32)qtyTable);
-            TOUCH_REG(row);
+            row    = (GpItemQty*)(off + (s32)qtyTable);
             idx    = arg1 - 0x80;
             maxQty = 0;
             if ((u32)idx < 0x20U) {

@@ -1470,12 +1470,10 @@ void func_actor_107600_80134608(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
             w1   = 0x1000 - w0;
             do {
                 block->col0.vx = src->x;
-                TOUCH_REG(src);
                 block->col0.vy = src->y;
                 TOUCH_REG(src);
                 block->col0.vz = src->z;
                 block->col1.vx = dst->x;
-                TOUCH_REG(dst);
                 block->col1.vy = dst->y;
                 TOUCH_REG(dst);
                 block->col1.vz = dst->z;

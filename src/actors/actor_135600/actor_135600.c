@@ -279,7 +279,6 @@ void func_actor_135600_80132234(Task* task)
          * `model` and the index up a register each; the barrier plus the
          * touched pointer pin the block's shape, and each call recomputes the
          * address the way the target does. */
-        SOFT_BARRIER();
         keyp1    = &key;
         key.room = sessionKey1->room;
         TOUCH_REG(keyp1);
@@ -304,9 +303,8 @@ void func_actor_135600_80132234(Task* task)
         sessionKey2  = (GpAreaKey*)&gGameSession->at4.loc;
         key.stage    = sessionKey2->stage;
         key.area     = sessionKey2->area;
-        SOFT_BARRIER();
-        keyp2    = &key;
-        key.room = sessionKey2->room;
+        keyp2        = &key;
+        key.room     = sessionKey2->room;
         TOUCH_REG(keyp2);
         areaByte1 = gGameSession->at4.loc.view;
         index2    = raw2 >> 12;

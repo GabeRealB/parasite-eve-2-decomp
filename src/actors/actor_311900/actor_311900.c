@@ -412,7 +412,6 @@ s32 func_actor_311900_80162658(GpCoord* arg0, s16 arg1)
     gte                   = head - 1;
     SCRATCH_HEAD(SVECTOR) = vec;
     if (arg1 != 0) {
-        SOFT_TOUCH_REG(vec);
         Gfx_MatrixCol2(&arg0->coord, vec);
         VectorNormalSS(vec, vec);
         gte_lddp(arg1);

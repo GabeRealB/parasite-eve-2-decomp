@@ -156,7 +156,6 @@ void func_shelter_1f_airlock_8017D8A8(SVECTOR* arg0, s32 arg1, s32 arg2)
         u8* tmp;
         *scratch = (tmp = head - 0x1C);
         block    = (OverlayPointPairScratch*)tmp;
-        SOFT_TOUCH_REG(block);
     }
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -263,7 +262,6 @@ void func_shelter_1f_airlock_8017D8A8(SVECTOR* arg0, s32 arg1, s32 arg2)
             }
         }
     }
-    SOFT_BARRIER();
     SCRATCH_POP_BYTES(0x1C);
 }
 
@@ -298,8 +296,7 @@ void func_shelter_1f_airlock_8017E0F0(SVECTOR* arg0, s32 arg1, s32 arg2)
         scratch = (void**)G_SCRATCH_HEAD;
         head    = *scratch;
         tmp     = (*scratch = head - 0xC);
-        SOFT_TOUCH_REG(tmp);
-        block = (RoomDraw25Scratch*)tmp;
+        block   = (RoomDraw25Scratch*)tmp;
     }
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);

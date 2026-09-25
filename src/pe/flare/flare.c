@@ -107,14 +107,12 @@ void flareSparkTask(Task* arg0)
         Gp_UpdateCoord(coord);
         rng = Gp_LcgState * 5 + 0x71357911;
         do {
-            hi = (u32)rng >> 16;
-            SCHED_BARRIER();
+            hi  = (u32)rng >> 16;
             ang = (u16)arg0->spawnArg1;
             TOUCH_REG(ang);
             mem->scale = hi & 0xFFF;
             SOFT_COMPILER_BARRIER();
             rsin_arg = mem->scale;
-            SCHED_BARRIER();
         } while (0);
         Gp_LcgState = rng;
         ang         = ang & 0xFFF;

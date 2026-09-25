@@ -412,7 +412,6 @@ void func_actor_342000_801625D8(Task* arg0)
             __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv) : "memory");
             TOUCH_REG(sv);
 
-            COMPILER_BARRIER();
             t4     = mtx->mat.m[0][0];
             t5     = mtx->mat.m[1][0];
             t6     = mtx->mat.m[2][0];
@@ -536,7 +535,6 @@ void func_actor_342000_801628C8(Task* arg0)
             __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv) : "memory");
             TOUCH_REG(sv);
 
-            COMPILER_BARRIER();
             t4     = mtx->mat.m[0][0];
             t5     = mtx->mat.m[1][0];
             t6     = mtx->mat.m[2][0];
@@ -1117,8 +1115,7 @@ void func_actor_342000_8016382C(Task* arg0)
             break;
         case 7:
             Mc_SaveData.at4.loc.view = 0x21;
-            SOFT_BARRIER();
-            arg0->killCountdown = 0;
+            arg0->killCountdown      = 0;
             arg0->state++;
             break;
         case 8:

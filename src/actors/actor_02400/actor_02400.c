@@ -294,7 +294,6 @@ void Actor02400_Fn005BC(GpCoord* arg0, s32 arg1)
     scratch = SCRATCH_HEAD_ADDR;
     head    = (u8*)SCRATCH_HEAD_AT(scratch, void) - sizeof(OverlayGroundScratch);
 
-    SOFT_TOUCH_REG(head);
     SCRATCH_HEAD_AT(scratch, void) = head;
     sc                             = (OverlayGroundScratch*)head;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -304,7 +303,6 @@ void Actor02400_Fn005BC(GpCoord* arg0, s32 arg1)
     do {
         prod  = tbl->x * arg1;
         v->vy = 0;
-        TOUCH_REG(v);
         v->vx = prod;
         TOUCH_REG(v);
         v->vz = tbl->y * arg1;

@@ -2406,9 +2406,8 @@ void func_acropolis_bridge_801827EC(GpCoord* arg0, s32 arg1, s16 arg2)
 
     coord = arg0;
     SOFT_TOUCH_REG(coord);
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = SCRATCH_HEAD_AT(scratch, u8) - sizeof(OverlayFlaggedQuadScratch);
-    SOFT_TOUCH_REG(head);
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = SCRATCH_HEAD_AT(scratch, u8) - sizeof(OverlayFlaggedQuadScratch);
     *scratch = head;
     blk      = (OverlayFlaggedQuadScratch*)head;
     gte_SetTransMatrix(&GsWSMATRIX);

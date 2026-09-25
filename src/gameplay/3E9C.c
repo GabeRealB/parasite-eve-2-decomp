@@ -3264,7 +3264,6 @@ void Gp_EffAttachTask37(Task* arg0)
                 coord->coord.t[0] -= delta.vx;
                 coord->coord.t[1] -= delta.vy;
                 coord->coord.t[2] -= delta.vz;
-                COMPILER_BARRIER();
                 {
                     u16          t10;
                     u16          t11;
@@ -3278,7 +3277,6 @@ void Gp_EffAttachTask37(Task* arg0)
                     mem->move.vx = sum;
                     t12        <<= 16;
                     t12        >>= 17;
-                    COMPILER_BARRIER();
                     mem->move.vy = (u16)pos.vy + t12;
                 }
                 dz           = (s32)((u16)mem->move.vz << 16) >> 17;

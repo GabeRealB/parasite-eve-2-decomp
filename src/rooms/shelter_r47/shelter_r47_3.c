@@ -946,8 +946,7 @@ void func_shelter_r47_80185DEC(SVECTOR* arg0, s32 arg1, s32 arg2)
         scratch = (void**)G_SCRATCH_HEAD;
         head    = *scratch;
         tmp     = (*scratch = head - 0x10);
-        SOFT_TOUCH_REG(tmp);
-        block = (RoomDraw13Scratch*)tmp;
+        block   = (RoomDraw13Scratch*)tmp;
     }
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -1041,8 +1040,7 @@ void func_shelter_r47_80186260(SVECTOR* arg0, s32 arg1, s32 arg2)
         scratch = (void**)G_SCRATCH_HEAD;
         head    = *scratch;
         tmp     = (*scratch = head - 0x14);
-        SOFT_TOUCH_REG(tmp);
-        block = (RoomDraw05Scratch*)tmp;
+        block   = (RoomDraw05Scratch*)tmp;
     }
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);

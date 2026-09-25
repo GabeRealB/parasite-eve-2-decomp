@@ -1201,8 +1201,7 @@ void func_actor_403000_80133AF8(Task* arg0)
     state = work->field_AC0;
     if (state == 1) {
         if (work->field_AC4 != work->field_AC6) {
-            seekWork = work;
-            TOUCH_REG(seekWork);
+            seekWork  = work;
             seekIndex = 1;
             table     = (u32)D_actor_403000_80158364;
             seekSlot  = work->slots;
@@ -1221,8 +1220,7 @@ void func_actor_403000_80133AF8(Task* arg0)
         work->field_AC8 = 0;
         Mem_Set(work->pad_AEC, 0U, 0x60U);
     } else if (state == 2) {
-        resetWork = work;
-        TOUCH_REG(resetWork);
+        resetWork  = work;
         resetIndex = 1;
         resetSlot  = work->slots;
         do {

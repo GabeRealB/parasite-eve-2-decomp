@@ -1082,24 +1082,23 @@ u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u32 arg3)
                 setcode(ft, 0x2D);
                 ft->clut  = 0x3C00;
                 ft->tpage = 0x1E;
-                asm("" : "+m"(ft->tpage)::"memory");
-                t      = (y - gDisplayState.vramYOffset) + 1;
-                ft->x0 = x;
-                ft->y0 = t - icon->h;
-                ft->x1 = x + icon->w;
-                ft->y1 = t - icon->h;
-                ft->x2 = x;
-                ft->y2 = t;
-                ft->x3 = x + icon->w;
-                ft->y3 = t;
-                ft->u0 = icon->u;
-                ft->v0 = icon->v;
-                ft->u1 = icon->u + icon->w;
-                ft->v1 = icon->v;
-                ft->u2 = icon->u;
-                ft->v2 = icon->v + icon->h;
-                ft->u3 = icon->u + icon->w;
-                ft->v3 = icon->v + icon->h;
+                t         = (y - gDisplayState.vramYOffset) + 1;
+                ft->x0    = x;
+                ft->y0    = t - icon->h;
+                ft->x1    = x + icon->w;
+                ft->y1    = t - icon->h;
+                ft->x2    = x;
+                ft->y2    = t;
+                ft->x3    = x + icon->w;
+                ft->y3    = t;
+                ft->u0    = icon->u;
+                ft->v0    = icon->v;
+                ft->u1    = icon->u + icon->w;
+                ft->v1    = icon->v;
+                ft->u2    = icon->u;
+                ft->v2    = icon->v + icon->h;
+                ft->u3    = icon->u + icon->w;
+                ft->v3    = icon->v + icon->h;
                 addPrim(&gGpuCurrentOt[2], ft);
                 x += icon->w;
                 i++;
@@ -1455,7 +1454,6 @@ s16 Gp_CapCenterXLine(u16* arg0, s32 arg1)
                 v0tmp = i + 1;
                 i     = v0tmp;
             after_inc:
-                TOUCH_REG(v0tmp);
                 code = arg0[(s16)v0tmp];
             }
         after_load:
@@ -1503,7 +1501,6 @@ s16 Gp_CapTextHeight(u16* arg0)
                     glyph = (GlyphUvwh*)((code & 0x3FF) * sizeof(GlyphUvwh) + (s32)table);
                     if (lineH < glyph->h + 2) {
                         v0tmp = glyph->h;
-                        TOUCH_REG(v0tmp);
                         lineH = v0tmp + 2;
                     }
                 }
@@ -1557,7 +1554,6 @@ s16 Gp_CapTextTopY(u16* arg0)
                     glyph = (GlyphUvwh*)((code & 0x3FF) * sizeof(GlyphUvwh) + (s32)Gp_CapGlyphs);
                     if (lineH < glyph->h + 2) {
                         v0tmp = glyph->h;
-                        TOUCH_REG(v0tmp);
                         lineH = v0tmp + 2;
                     }
                 }

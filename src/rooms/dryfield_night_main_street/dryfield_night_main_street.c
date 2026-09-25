@@ -662,8 +662,7 @@ void func_dryfield_night_main_street_8017E940(SVECTOR* arg0, s32 arg1)
             ds        = &gDisplayState;
             ang       = (s16)raw;
             blend     = (((u8)ds->animFrame & 1) * 0x10) | 0x20;
-            SOFT_BARRIER();
-            angEnd = ang + 0x800;
+            angEnd    = ang + 0x800;
             if (ang < angEnd) {
                 angStart = ang;
                 limit    = angEnd;
@@ -709,7 +708,6 @@ void func_dryfield_night_main_street_8017E940(SVECTOR* arg0, s32 arg1)
                                       (s32)gGpuCurrentOt),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
-                    SCHED_BARRIER();
 
                     prim           = (POLY_G4*)gGpuPrimCursor;
                     t3             = ang + 0x800;
@@ -765,13 +763,11 @@ void func_dryfield_night_main_street_8017F128(SVECTOR* arg0, s32 arg1, s32 arg2)
     u8                 code;
     s16                xy;
 
-    tex = arg1;
-    CLOBBER_REG(a1);
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = *scratch;
-    tmp     = head - 0x10;
-    block   = (RoomDraw13Scratch*)tmp;
-    SOFT_TOUCH_REG(block);
+    tex      = arg1;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    tmp      = head - 0x10;
+    block    = (RoomDraw13Scratch*)tmp;
     *scratch = tmp;
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -803,7 +799,6 @@ void func_dryfield_night_main_street_8017F128(SVECTOR* arg0, s32 arg1, s32 arg2)
         sarg     = arg2 << 16;
         prim->v2 = v;
         prim->v3 = v;
-        SCHED_BARRIER();
         code     = prim->code;
         sarg     = sarg >> 16;
         prim->v0 = 0;
@@ -1281,7 +1276,6 @@ void func_dryfield_night_main_street_8018041C(GpCoord* arg0, s32 arg1, u8* rgb)
     gte_stflg(&((RoomFanScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((RoomFanScratch*)(head - 0x18))->otz);
-        USE_REG(head);
         otz           = block->otz + 1;
         radius        = ((s16)arg1 * 64) / otz;
         block->otz    = otz;
@@ -1311,7 +1305,6 @@ void func_dryfield_night_main_street_8018041C(GpCoord* arg0, s32 arg1, u8* rgb)
                               (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-            SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
     SCRATCH_POP_BYTES(0x18);
@@ -1621,7 +1614,6 @@ void func_dryfield_night_main_street_80181220(GpCoord* arg0, s32 arg1)
     do {
         prod  = tbl->x * arg1;
         v->vy = 0;
-        TOUCH_REG(v);
         v->vx = prod;
         TOUCH_REG(v);
         v->vz = tbl->y * arg1;

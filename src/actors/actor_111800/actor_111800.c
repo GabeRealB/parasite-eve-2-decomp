@@ -104,7 +104,6 @@ void func_actor_111800_8013214C(Task* task)
     SCHED_BARRIER();
     SCHED_BARRIER();
     SCHED_BARRIER();
-    SCHED_BARRIER();
     ctx->field_492 = ctx->rig.slots[1].curRec;
     switch (work->field_484) {
         case 0:

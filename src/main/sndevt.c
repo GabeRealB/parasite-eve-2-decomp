@@ -322,7 +322,6 @@ s32 Midi_InitSequence(u8 arg0, u16 arg1)
                             }
                             p[-1] = Midi_ReadVlq(trackPtr, &sp10);
                             j++;
-                            SOFT_COMPILER_BARRIER();
                             cur           = ((u8**)p)[-3] + sp10;
                             *p            = 0xE0F;
                             ((u8**)p)[-3] = cur;
@@ -1177,7 +1176,6 @@ u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* arg2)
         }
         arg1 += 3;
     }
-    SOFT_BARRIER();
     return arg1;
 }
 

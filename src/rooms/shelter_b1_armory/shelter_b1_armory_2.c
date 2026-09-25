@@ -174,7 +174,6 @@ void func_shelter_b1_armory_80180934(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-            SCHED_BARRIER();
             t3             = ang - 0x1000;
             prim           = (POLY_G4*)gGpuPrimCursor;
             t              = ang - 0x1000;
@@ -234,8 +233,7 @@ void func_shelter_b1_armory_8018111C(SVECTOR* arg0, s32 arg1, s32 arg2)
         scratch = (void**)G_SCRATCH_HEAD;
         head    = *scratch;
         tmp     = (*scratch = head - 0xC);
-        SOFT_TOUCH_REG(tmp);
-        block = (RoomDraw25Scratch*)tmp;
+        block   = (RoomDraw25Scratch*)tmp;
     }
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);

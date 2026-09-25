@@ -413,7 +413,6 @@ u8* func_actor_403600_80138DCC(Task* arg0)
     block->vec.vz = 0;
     Gp_UpdateCoord(&coord[1]);
     vec = &block->vec;
-    SOFT_TOUCH_REG(vec);
     gte_SetRotMatrix(&coord[1].workm);
     gte_SetTransMatrix(&coord[1].workm);
     gte_ldv0(vec);
@@ -1124,9 +1123,8 @@ void func_actor_403600_801396F8(Task* arg0)
                             SOFT_TOUCH_REG3(temp_a0_6, temp_a2_2, temp_a3_2);
                             patternIndex = var_s2 & 0xFF;
                             temp_s0_5    = sp20.values;
-                            SOFT_TOUCH_REG(temp_s0_5);
-                            temp_s0_5 += patternIndex;
-                            var_s2    += 1;
+                            temp_s0_5   += patternIndex;
+                            var_s2      += 1;
                             Gp_SpawnEff(temp_a0_6, &arg0->extra.tmd->coords[*temp_s0_5], temp_a2_2, temp_a3_2);
                             Gp_SpawnEff(0x601BF, &arg0->extra.tmd->coords[*temp_s0_5], 0xC00, NULL);
                         } while ((u32)(var_s2 & 0xFF) < 9U);
@@ -1151,9 +1149,8 @@ void func_actor_403600_801396F8(Task* arg0)
                             SOFT_TOUCH_REG3(temp_a0_6, temp_a2_2, temp_a3_2);
                             patternIndex = var_s2_2 & 0xFF;
                             temp_s0_6    = sp20.values;
-                            SOFT_TOUCH_REG(temp_s0_6);
-                            temp_s0_6 += patternIndex;
-                            var_s2_2  += 1;
+                            temp_s0_6   += patternIndex;
+                            var_s2_2    += 1;
                             Gp_SpawnEff(temp_a0_6, &arg0->extra.tmd->coords[*temp_s0_6], temp_a2_2, temp_a3_2);
                             Gp_SpawnEff(0x601BF, &arg0->extra.tmd->coords[*temp_s0_6], 0xC00, NULL);
                         } while ((u32)(var_s2_2 & 0xFF) < 9U);
@@ -1452,8 +1449,7 @@ void func_actor_403600_8013A444(Task* arg0)
                 func_80181940(arg0);
             }
             temp_s3->field_736 = 5U;
-            COMPILER_BARRIER();
-            temp_v0_3 = temp_s3->field_73A;
+            temp_v0_3          = temp_s3->field_73A;
             if (temp_v0_3 == 0xA) {
                 SndEvt_EnqueueType7(0x54160013, 0x14);
             }
@@ -1584,7 +1580,6 @@ void func_actor_403600_8013A444(Task* arg0)
                                         func_actor_403600_8013E7D4((s32)arg0, 1);
                                         temp_s3->field_762 = -0x64;
                                     }
-                                    COMPILER_BARRIER();
                                     Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F4, &D_actor_403600_80160568, 0);
                                     var_s2             = 2;
                                     temp_s3->field_760 = 0;
@@ -2526,7 +2521,6 @@ void func_actor_403600_8013C864(Task* arg0)
         temp_s6->vector.vz       = temp_a1;
         temp_v0                  = ratan2((temp_s4 - 1)->vector.vx, temp_a1);
         SOFT_TOUCH_REG(temp_v0);
-        SOFT_TOUCH_REG(temp_v0);
         var_v0 = temp_v0;
         if (temp_v0 < 0) {
             SOFT_TOUCH_REG(var_v0);
@@ -2597,7 +2591,6 @@ void func_actor_403600_8013C864(Task* arg0)
         block_17:
             temp_s3->field_6F0.vx = (s32)D_actor_403600_801605D4.vx;
             temp_s3->field_6F0.vy = (s32)(Player_Status.coordMtx->t[1] - 0x3E8);
-            SOFT_BARRIER();
             temp_s3->field_6F0.vz = (s32)D_actor_403600_801605D4.vz;
         }
         temp_s0_2 = (u16)temp_s5->angle;
@@ -2635,11 +2628,9 @@ void func_actor_403600_8013C864(Task* arg0)
         gte_rtv0();
         gte_stsv(temp_s5);
         temp_s3->field_4B8.coord.t[0] = (s32)((temp_s4 - 1)->vector.vx + D_actor_403600_801605D4.vx);
-        SOFT_BARRIER();
         temp_s3->field_4B8.coord.t[1] = (s32)(Player_Status.coordMtx->t[1] - 0x3E8);
         temp_z0                       = (s32)temp_s6->vector.vz;
         temp_z1                       = (s32)D_actor_403600_801605D4.vz;
-        SOFT_BARRIER();
         temp_s3->field_792            = 0x96;
         temp_s3->field_734            = (s16)((u16)temp_s3->field_734 + 1);
         temp_s3->field_4B8.coord.t[2] = temp_z0 + temp_z1;
@@ -2850,7 +2841,6 @@ block_after_collision:
     one           = 1;
     rng           = (u32*)0x80070000;
     SOFT_USE_REG(rng);
-    SOFT_USE_REG(rng);
     /* A byte cursor steps through the four `field_528` contact records from
      * the start of the work block, reaching each at the table's offset and
      * stopping at the table's size; indexing the table instead rebuilds the
@@ -2914,11 +2904,9 @@ loop_14:
                 temp_s0->field_7AE = 0;
                 Gp_SetObjFlag2(arg0->spawnArg2, ((GpRec18*)(var_s2 + 0x528))->key, 0);
                 if (((u32)((u16)temp_s0->field_736 - 0x10) < 2U) && ((u32)((u16)temp_s0->field_73A - 6) < 0x18U)) {
-                    SCHED_BARRIER();
                     temp_s0->field_790 = data_ec8->flag2Ticks;
                 }
                 if ((temp_s0->field_736 == one) && (temp_s0->field_73A < 0x1E)) {
-                    SCHED_BARRIER();
                     temp_s0->field_790 = data_ec8->flag2Ticks;
                 }
             }
@@ -2946,8 +2934,7 @@ loop_14:
         case 4:
             if (temp_s0->field_7AE != 0) {
                 Gp_SetObjFlag1(temp_s4);
-                var_a0 = 0x71350000;
-                SOFT_TOUCH_REG(var_a0);
+                var_a0                     = 0x71350000;
                 var_a0                    |= 0x7911;
                 random_value               = ACTOR403600_RNG_VALUE(rng);
                 temp_v1_5                  = random_value * 4;
@@ -4102,8 +4089,7 @@ void func_actor_403600_8013F608(Task* arg0)
         temp_v0_2       = (u16)work->field_768 + 1;
         work->field_768 = temp_v0_2;
         var_check       = (s16)temp_v0_2 < temp_v1;
-        SOFT_TOUCH_REG_USE(work, var_check);
-        temp_field = (u16)work->field_76C;
+        temp_field      = (u16)work->field_76C;
         if (!var_check) {
             temp_v0_3       = temp_field - 8;
             work->field_76C = temp_v0_3;
@@ -5241,8 +5227,7 @@ void func_actor_403600_80141338(Task* arg0)
     register Task*   actor asm("v1");
     register MATRIX* matrixArg asm("a1");
 
-    head = SCRATCH_HEAD(MATRIX);
-    SOFT_BARRIER();
+    head                 = SCRATCH_HEAD(MATRIX);
     block                = head - 1;
     SCRATCH_HEAD(MATRIX) = block;
     matrixArg            = block;

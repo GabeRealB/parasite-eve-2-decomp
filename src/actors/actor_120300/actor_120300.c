@@ -515,7 +515,6 @@ void func_actor_120300_80132338(Task* arg0)
             }
             var_a0 = work->field_4B4;
             var_a1 = 0x3FD;
-            SCHED_BARRIER();
             var_a2 = 8;
             goto dispatch;
         case 11:
@@ -758,9 +757,8 @@ void func_actor_120300_80132C60(Task* arg0)
             switch ((u16)work->field_4CA) {
                 case 0:
                     Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_actor_120300_80140AFC, 0);
-                    i = 1;
-                    n = 0x10;
-                    SCHED_BARRIER();
+                    i        = 1;
+                    n        = 0x10;
                     animWork = (Actor120300Work*)arg0->work;
                     TOUCH_REG(animWork);
                     t = i;
@@ -1237,8 +1235,7 @@ void func_actor_120300_801337C4(Task* arg0)
                     func_800E3FAC(0xA2, 0xB);
                     func_800E8634((s32)&D_actor_120300_80140B94, 0, (s32)&D_actor_120300_80141524);
                     Mc_SaveData.sceneEvent = 2;
-                    SCHED_BARRIER();
-                    arg0->state += 1;
+                    arg0->state           += 1;
                 }
                 Mem_CopyUnaligned(&D_actor_120300_801409A8, &D_8017DD6C, 0x18);
                 Mem_CopyUnaligned(&D_actor_120300_80140A20, &D_8017E1F4, 0x24);

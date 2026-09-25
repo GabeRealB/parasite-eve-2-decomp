@@ -546,16 +546,15 @@ void Tmd_SetupDraw(TmdObject* obj)
     ws->field_0       = (u8*)ws->field_0 + obj->source->firstRegionSize;
     obj->bufferIndex ^= 1;
     ws->field_8       = (s32)obj->source->verts;
-    COMPILER_BARRIER();
-    ot           = gGpuCurrentOt;
-    p            = obj->source;
-    field18      = (s32)p->normals;
-    ws->field_14 = ot;
-    ws->field_C  = field18;
-    e            = obj->otOffset;
-    b            = buf;
-    ws->field_10 = b;
-    ws->field_14 = ot + e;
+    ot                = gGpuCurrentOt;
+    p                 = obj->source;
+    field18           = (s32)p->normals;
+    ws->field_14      = ot;
+    ws->field_C       = field18;
+    e                 = obj->otOffset;
+    b                 = buf;
+    ws->field_10      = b;
+    ws->field_14      = ot + e;
 
     colorMtx = (MATRIX*)obj->colorMtx;
     gte_SetColorMatrix(colorMtx);

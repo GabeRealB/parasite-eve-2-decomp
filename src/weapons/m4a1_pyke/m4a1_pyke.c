@@ -460,7 +460,6 @@ void func_m4a1_pyke_8011E168(VECTOR3* pos, s32 width)
     /* The ROM stores the freshly computed head and keeps a *copy* of it in the
        register the rest of the function walks; without the barrier GCC folds
        the two together and stores the copy instead. */
-    SOFT_TOUCH_REG(head);
     SCRATCH_HEAD(u8) = head;
     block            = (M4a1PykeSplashScratch*)head;
     gte_SetTransMatrix(&GsWSMATRIX);

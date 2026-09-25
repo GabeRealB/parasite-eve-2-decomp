@@ -1436,7 +1436,6 @@ void func_dryfield_breezeway_8017FE90(Task* arg0)
     gGameSession->cutsceneHold = 0;
     Mc_SaveData.at4.loc.view   = 4;
     /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
-    SOFT_BARRIER();
     taskKill((Task*)arg0->spawnArg2);
     Task_RequestKill(arg0, 0);
 }

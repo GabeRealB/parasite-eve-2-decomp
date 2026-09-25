@@ -97,8 +97,7 @@ void func_dryfield_night_trailer_coach_80182AB8(SVECTOR* arg0, s32 arg1, s32 arg
         scratch = (void**)G_SCRATCH_HEAD;
         head    = *scratch;
         tmp     = (*scratch = head - 0x10);
-        SOFT_TOUCH_REG(tmp);
-        block = (RoomDraw13Scratch*)tmp;
+        block   = (RoomDraw13Scratch*)tmp;
     }
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -192,8 +191,7 @@ void func_dryfield_night_trailer_coach_80182F2C(SVECTOR* arg0, s32 arg1, s32 arg
         scratch = (void**)G_SCRATCH_HEAD;
         head    = *scratch;
         tmp     = (*scratch = head - 0x14);
-        SOFT_TOUCH_REG(tmp);
-        block = (RoomDraw05Scratch*)tmp;
+        block   = (RoomDraw05Scratch*)tmp;
     }
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -363,8 +361,7 @@ void func_dryfield_night_trailer_coach_801838B4(SVECTOR* arg0, s32 arg1)
             ds        = &gDisplayState;
             ang       = (s16)raw;
             blend     = (((u8)ds->animFrame & 1) * 8) | 0x10;
-            SOFT_BARRIER();
-            angEnd = ang + 0x800;
+            angEnd    = ang + 0x800;
             if (ang < angEnd) {
                 angStart = ang;
                 limit    = angEnd;
@@ -410,7 +407,6 @@ void func_dryfield_night_trailer_coach_801838B4(SVECTOR* arg0, s32 arg1)
                                       (s32)gGpuCurrentOt),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
-                    SCHED_BARRIER();
 
                     prim           = (POLY_G4*)gGpuPrimCursor;
                     t3             = ang + 0x800;

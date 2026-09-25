@@ -676,7 +676,6 @@ physical_contact:
     if (depth <= 0) {
         boundedDepth = 0;
     }
-    SOFT_TOUCH_REG_USE(boundedDepth, depth);
     depth = boundedDepth;
     if (push < depth) {
         push = depth;

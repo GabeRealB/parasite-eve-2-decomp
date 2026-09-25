@@ -364,10 +364,9 @@ void Gp_MenuRootTask(Task* arg0)
                 register s32 ca1 asm("a1");
                 register s32 ca2 asm("a2");
 
-                ca0 = 1;
-                ca1 = 0;
-                ca2 = ca1;
-                SOFT_TOUCH_REG3(ca0, ca1, ca2);
+                ca0          = 1;
+                ca1          = 0;
+                ca2          = ca1;
                 Wip_UiHolder = NULL;
                 CdCmd_EnqueueLoadFile(ca0, ca1, ca2);
             }
@@ -1259,15 +1258,13 @@ void Gp_HpMpBarTask(Task* arg0)
     poly->x2       = x;
     poly->x0       = x;
     gGpuPrimCursor = poly + 1;
-    COMPILER_BARRIER();
     {
         s32 vl;
         s32 fy;
         s32 ur;
         s32 y0;
 
-        vl = 0x80;
-        TOUCH_REG(vl);
+        vl       = 0x80;
         poly->x3 = right;
         poly->x1 = right;
         fy       = obj->field_E;
@@ -1424,7 +1421,6 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
                 col = i / 5;
                 asm("lui $8, %%hi(Mc_SaveData+0x5BC)\n\taddiu %0, $8, %%lo(Mc_SaveData+0x5BC)"
                     : "=r"(scan));
-                SOFT_TOUCH_REG(col);
                 temp = col;
                 prod = temp * 5;
                 col  = i - prod;
@@ -1809,7 +1805,6 @@ void Gp_DrawItemOrderRow(DialogPrompt* arg0, UiObject* arg1)
                     t = (s32)Gp_GetItemText(item, a1v, 0);
                 }
                 a1v = 0;
-                SOFT_TOUCH_REG(a1v);
                 Ui_SetHolderParam(t, a1v, a1v);
                 Gp_SetPreviewItem(item, 0);
             } else {
@@ -2249,7 +2244,6 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* arg0, UiObject* arg1)
                     name = (s32)Gp_GetItemText(item, a1v, 0);
                 }
                 a1v = 0;
-                SOFT_TOUCH_REG(a1v);
                 Ui_SetHolderParam(name, a1v, a1v);
                 Gp_SetPreviewItem(item, 0);
             } else {
@@ -2315,8 +2309,7 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* arg0, UiObject* arg1)
                     PlayerStatus* p;
                     s32           a0item;
                     a0item = item;
-                    TOUCH_REG(a0item);
-                    p = &Player_Status;
+                    p      = &Player_Status;
                     Gp_ClearEquipSlotSel(a0item, 0);
                     ptr       = Gp_SelItemRec;
                     p->weapon = *ptr - 0x7F;
@@ -2555,8 +2548,7 @@ void Gp_WeaponMenuTask(Task* arg0)
 
         id   = Player_Status.weapon + 0x7F;
         slot = Gp_GetItemSlot(id);
-        TOUCH_REG(slot);
-        n = id < 0x80;
+        n    = id < 0x80;
         if (n) {
             n = 1;
             goto store1;
@@ -2585,8 +2577,7 @@ void Gp_WeaponMenuTask(Task* arg0)
 
         id   = Player_Status.weapon + 0x7F;
         slot = Gp_GetItemSlot(id);
-        TOUCH_REG(slot);
-        n = id < 0x80;
+        n    = id < 0x80;
         if (n) {
             n = 1;
             goto store2;
@@ -3016,7 +3007,6 @@ void Gp_ArmorMenuTask(Task* arg0)
                         name = (s32)Gp_GetItemText(item, a1v, 0);
                     }
                     a1v = 0;
-                    TOUCH_REG(a1v);
                     Ui_SetHolderParam(name, a1v, a1v);
                     Gp_SetPreviewItem(item, 0);
                 } else {
@@ -3107,9 +3097,8 @@ void Gp_ArmorMenuTask(Task* arg0)
                             UiObject* po;
                             po               = parent->spawnArg2;
                             Gp_ItemOrderMode = 0;
-                            TOUCH_REG(flag);
-                            po->status  = flag;
-                            obj->status = 0;
+                            po->status       = flag;
+                            obj->status      = 0;
                         }
                     }
                 }
@@ -3350,7 +3339,6 @@ McItemRec* Gp_NthEquippableRec(McItemScan* arg0, s32 arg1, s32 arg2)
             continue;
         }
         wrap = id + 0x80;
-        USE_REG(wrap);
         if ((u8)wrap < 0x20) {
             p        = &Player_Status;
             equipped = 0;
@@ -3403,7 +3391,6 @@ void Gp_DrawRemoveArmorRow(DialogPrompt* arg0, UiObject* arg1)
     asm("addiu %0, %1, %%lo(Mc_SaveData+0x5BC)" : "=r"(scan) : "r"(hi));
     rec = Gp_NthEquippableRec(scan, prompt->field_8, 0);
     if (rec != NULL) {
-        TOUCH_REG(rec);
         item = rec->itemId;
         {
             s32 color;
@@ -3500,7 +3487,6 @@ void Gp_DrawRemoveArmorRow(DialogPrompt* arg0, UiObject* arg1)
                         t = (s32)Gp_GetItemText(item, a1v, 0);
                     }
                     a1v = 0;
-                    TOUCH_REG(a1v);
                     Ui_SetHolderParam(t, a1v, a1v);
                 }
             }
@@ -3547,7 +3533,6 @@ void Gp_DrawRemoveArmorRow(DialogPrompt* arg0, UiObject* arg1)
                 TOUCH_REG(rec);
                 t   = (s32)Gp_StrDetachArmorHelp;
                 a1v = 0;
-                TOUCH_REG2(t, a1v);
                 Ui_SetHolderParam(t, a1v, a1v);
             }
         }
@@ -3613,7 +3598,6 @@ void Gp_CountEquippableRows(UiList* arg0, UiObject* arg1)
             continue;
         }
         wrap = id + 0x80;
-        USE_REG(wrap);
         if ((u8)wrap < 0x20) {
             p        = &Player_Status;
             equipped = 0;
@@ -5076,7 +5060,6 @@ void Gp_EquipSummaryTask(Task* arg0)
             TOUCH_REG(sel);
             minusOne = -1;
             p        = table;
-            TOUCH_REG2(table, p);
             for (; i < 3; i++, p++) {
                 if (i == slot) {
                     *p = item;
@@ -5175,7 +5158,6 @@ void Gp_DrawAmmoRow(DialogPrompt* arg0, UiObject* arg1)
                     t = (s32)Gp_GetItemText(item, a1v, 0);
                 }
                 a1v = 0;
-                TOUCH_REG(a1v);
                 Ui_SetHolderParam(t, a1v, a1v);
             }
             if (spawnArg != 0) {

@@ -2999,7 +2999,6 @@ void func_actor_402200_80138208(GpCoord* arg0, s32 arg1)
     block->vec.vz                     = 0;
     Gp_UpdateCoord(arg0);
     vec = &block->vec;
-    SOFT_TOUCH_REG(vec);
     gte_SetRotMatrix(&arg0->workm);
     gte_SetTransMatrix(&arg0->workm);
     gte_ldv0(vec);

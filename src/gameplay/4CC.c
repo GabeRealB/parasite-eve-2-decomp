@@ -286,8 +286,7 @@ void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1)
     PlayerStatus*  cfg;
     s32            one2;
 
-    rec = Gp_GetScanSlot(&Gp_MoveScanSrc + arg1->owner->spawnArg1, arg0->field_8, 0);
-    TOUCH_REG(rec);
+    rec  = Gp_GetScanSlot(&Gp_MoveScanSrc + arg1->owner->spawnArg1, arg0->field_8, 0);
     one  = 1;
     item = rec->itemId;
     if (arg0->field_C != one) {

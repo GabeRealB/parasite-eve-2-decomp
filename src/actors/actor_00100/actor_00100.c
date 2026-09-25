@@ -1152,8 +1152,7 @@ void Actor00100_Fn02788(Task* arg0)
     state = (s16)work->field_828;
     if (state == 1) {
         if (work->field_82C != (s16)work->field_82E) {
-            seekWork = work;
-            TOUCH_REG(seekWork);
+            seekWork  = work;
             seekIndex = 1;
             table     = (u32)&Actor00100_D1B6D0;
             seekSlot  = (s8*)&work->anim0.slots;
@@ -1172,8 +1171,7 @@ void Actor00100_Fn02788(Task* arg0)
         work->field_830 = 0;
         Mem_Set(&work->pad_846[2], 0U, 0x48U);
     } else if (state == 2) {
-        resetWork = work;
-        TOUCH_REG(resetWork);
+        resetWork  = work;
         resetIndex = 1;
         resetSlot  = (s8*)&work->anim0.slots;
         do {
@@ -2167,7 +2165,6 @@ void Actor00100_Fn04864(Task* arg0)
         scratch->delta.vx = Player_Status.coordMtx->t[0] - playerCoord->coord.t[0];
         scratch->delta.vy = Player_Status.coordMtx->t[1] - playerCoord->coord.t[1];
         scratch->delta.vz = Player_Status.coordMtx->t[2] - playerCoord->coord.t[2];
-        SCHED_BARRIER();
         if ((ctx->placeKey >> 12) == gDisplayState.animFrame % 15) {
             if (!Actor00100_PatrolOutsideRadius(&scratch->delta, 2000)) {
                 Gp_ArmStateF0(1);
@@ -2677,7 +2674,6 @@ void Actor00100_Fn06398(Task* arg0)
     ctx                   = arg0->spawnArg2;
     gteVec                = vec;
     if (work->field_4 != 0) {
-        TOUCH_REG(gteVec);
         obj                     = arg0->extra.tmd;
         ctx->node.state.b.flags = 0;
         work->field_BE4         = 0;

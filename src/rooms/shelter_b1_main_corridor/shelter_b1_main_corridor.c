@@ -586,7 +586,6 @@ void func_shelter_b1_main_corridor_8017E070(SVECTOR* arg0, s32 arg1, s32 arg2, s
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-            SCHED_BARRIER();
             t3             = ang - 0x1000;
             prim           = (POLY_G4*)gGpuPrimCursor;
             t              = ang - 0x1000;
@@ -641,13 +640,11 @@ void func_shelter_b1_main_corridor_8017E858(SVECTOR* arg0, s32 arg1, s32 arg2)
     u8                 code;
     s16                xy;
 
-    tex = arg1;
-    CLOBBER_REG(a1);
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = *scratch;
-    tmp     = head - 0xC;
-    block   = (RoomDraw25Scratch*)tmp;
-    SOFT_TOUCH_REG(block);
+    tex      = arg1;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    tmp      = head - 0xC;
+    block    = (RoomDraw25Scratch*)tmp;
     *scratch = tmp;
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -678,7 +675,6 @@ void func_shelter_b1_main_corridor_8017E858(SVECTOR* arg0, s32 arg1, s32 arg2)
         sarg     = arg2 << 16;
         prim->v2 = v;
         prim->v3 = v;
-        SCHED_BARRIER();
         code     = prim->code;
         sarg     = sarg >> 16;
         prim->v0 = 0;
@@ -1348,7 +1344,6 @@ void func_shelter_b1_main_corridor_8018028C(GpCoord* arg0, s32 arg1)
     do {
         prod  = tbl->x * arg1;
         v->vy = 0;
-        TOUCH_REG(v);
         v->vx = prod;
         TOUCH_REG(v);
         v->vz = tbl->y * arg1;
@@ -1684,9 +1679,7 @@ void func_shelter_b1_main_corridor_8018139C(GpCoord* arg0, s32 arg1, s32 arg2, u
     scratch = (void**)G_SCRATCH_HEAD;
     color   = rgb;
     head    = *scratch;
-    USE_REG(head);
-    vx = (u16)arg0->workm.t[0];
-    USE_REG(vx);
+    vx      = (u16)arg0->workm.t[0];
     {
         register u8* tmp asm("v0");
         tmp   = head - 0x1C;
@@ -1707,7 +1700,6 @@ void func_shelter_b1_main_corridor_8018139C(GpCoord* arg0, s32 arg1, s32 arg2, u
     gte_stflg(&((RoomDraw02Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        USE_REG(head);
         otz                                      = ((RoomDraw02Scratch*)(head - 0x1C))->otz + 1;
         rOuter                                   = ((s16)saved * 64) / otz;
         ((RoomDraw02Scratch*)(head - 0x1C))->otz = otz;
@@ -1741,7 +1733,6 @@ void func_shelter_b1_main_corridor_8018139C(GpCoord* arg0, s32 arg1, s32 arg2, u
                               (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-            SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
     SCRATCH_POP_BYTES(0x1C);

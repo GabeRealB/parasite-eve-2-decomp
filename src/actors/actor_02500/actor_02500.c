@@ -328,14 +328,11 @@ void Actor02500_Fn00494(Task* actor)
     frame = frameAlias;
     ctx   = actor->spawnArg2;
     coord = actor->extra.tmd->coords;
-    SOFT_TOUCH_REG_USE2(coord, frameBase, scratchSp);
     SOFT_TOUCH_REG2_USE(frame, scratchSp, coord);
-    SOFT_TOUCH_REG(scratchSp);
     SCRATCH_HEAD_AT(scratchSp, Actor02500MoveScratch) = frame;
     work->field_340                                   = 0;
     moveResult                                        = func_800E0C10(work->field_22C, &frame->delta, 5, 0);
     one                                               = 1;
-    SOFT_TOUCH_REG(one);
     if (moveResult == one) {
         goto move_delta;
     }
@@ -376,7 +373,6 @@ move_done:
     walk = work;
     do {
         SOFT_TOUCH_REG2(walk, frame);
-        SOFT_TOUCH_REG(frame);
         recId   = walk->field_1C4[0].key;
         recKind = recId >> 0x10;
         switch (recKind) {
@@ -485,8 +481,6 @@ move_done:
                     pushClamped = 0;
                 }
                 push = pushClamped;
-                SOFT_TOUCH_REG(push);
-                USE_REG(pushClamped);
                 if (bestPush < push) {
                     bestPush = push;
                     VectorNormal((VECTOR*)frame, normal);

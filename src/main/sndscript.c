@@ -1254,7 +1254,6 @@ s32 SndScript_Exec(SndScript* script)
                     }
                     reverbEnabled = reverbGate;
                 }
-                TOUCH_REG(reverbEnabled);
                 USE_REG(reverbGate);
                 if (reverbEnabled == 0) {
                     Spu_DisableReverbVoice(voice->field_0);

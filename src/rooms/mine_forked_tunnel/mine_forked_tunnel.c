@@ -677,13 +677,11 @@ void func_mine_forked_tunnel_8017E504(SVECTOR* arg0, s32 arg1, s32 arg2)
     u8                 code;
     s16                xy;
 
-    tex = arg1;
-    CLOBBER_REG(a1);
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = *scratch;
-    tmp     = head - 0x10;
-    block   = (RoomDraw13Scratch*)tmp;
-    SOFT_TOUCH_REG(block);
+    tex      = arg1;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    tmp      = head - 0x10;
+    block    = (RoomDraw13Scratch*)tmp;
     *scratch = tmp;
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -715,7 +713,6 @@ void func_mine_forked_tunnel_8017E504(SVECTOR* arg0, s32 arg1, s32 arg2)
         sarg     = arg2 << 16;
         prim->v2 = v;
         prim->v3 = v;
-        SCHED_BARRIER();
         code     = prim->code;
         sarg     = sarg >> 16;
         prim->v0 = 0;

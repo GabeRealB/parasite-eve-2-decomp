@@ -545,7 +545,6 @@ void func_dryfield_night_motel_lobby_801810AC(Task* arg0)
     gGameSession->cutsceneHold = 0;
     Mc_SaveData.at4.loc.view   = 4;
     /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
-    SOFT_BARRIER();
     taskKill((Task*)arg0->spawnArg2);
     Task_RequestKill(arg0, 0);
 }
@@ -660,8 +659,7 @@ void func_dryfield_night_motel_lobby_80181404(SVECTOR* arg0, s32 arg1, s32 arg2)
         scratch = (void**)G_SCRATCH_HEAD;
         head    = *scratch;
         tmp     = (*scratch = head - 0x10);
-        SOFT_TOUCH_REG(tmp);
-        block = (RoomDraw13Scratch*)tmp;
+        block   = (RoomDraw13Scratch*)tmp;
     }
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -756,8 +754,7 @@ void func_dryfield_night_motel_lobby_80181878(SVECTOR* arg0, s32 arg1, s32 arg2)
         scratch = (void**)G_SCRATCH_HEAD;
         head    = *scratch;
         tmp     = (*scratch = head - 0x14);
-        SOFT_TOUCH_REG(tmp);
-        block = (RoomDraw05Scratch*)tmp;
+        block   = (RoomDraw05Scratch*)tmp;
     }
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -892,13 +889,11 @@ void func_dryfield_night_motel_lobby_80182200(SVECTOR* arg0, s32 arg1, s32 arg2)
     u8                 code;
     s16                xy;
 
-    tex = arg1;
-    CLOBBER_REG(a1);
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = *scratch;
-    tmp     = head - 0x20;
-    block   = (RoomDraw13Scratch*)tmp;
-    SOFT_TOUCH_REG(block);
+    tex      = arg1;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    tmp      = head - 0x20;
+    block    = (RoomDraw13Scratch*)tmp;
     *scratch = tmp;
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -930,7 +925,6 @@ void func_dryfield_night_motel_lobby_80182200(SVECTOR* arg0, s32 arg1, s32 arg2)
         sarg     = arg2 << 16;
         prim->v2 = v;
         prim->v3 = v;
-        SCHED_BARRIER();
         code     = prim->code;
         sarg     = sarg >> 16;
         prim->v0 = 0;

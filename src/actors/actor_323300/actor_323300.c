@@ -705,9 +705,8 @@ void func_actor_323300_80162BE4(Task* arg0)
     func_actor_323300_8016369C(arg0, 0x7D3, &D_actor_323300_80174AB0, 0);
     model = arg0->extra.tmd;
     ctl   = &D_801865D0;
-    SCHED_BARRIER();
-    dst = ctl->field_8;
-    nrm = ctl->field_C;
+    dst   = ctl->field_8;
+    nrm   = ctl->field_C;
     SCHED_BARRIER();
     src  = model->source;
     from = (SVECTOR*)src->verts;

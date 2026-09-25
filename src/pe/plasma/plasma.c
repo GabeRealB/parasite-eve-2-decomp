@@ -168,8 +168,7 @@ void func_plasma_8012EF34(Task* arg0)
 
                 c = coord;
                 COPY_REG_EC(c, coord);
-                color = rgb;
-                SOFT_TOUCH_REG(color);
+                color  = rgb;
                 r      = rgb[0];
                 b      = rgb[2];
                 rgb[0] = r >> 1;

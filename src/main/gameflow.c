@@ -502,9 +502,8 @@ void Pad_UpdatePort0(void)
     do {
         pad = (PadState*)&Pad_States[i];
         if (pad->cooldown == 0) {
-            scratch->rawHi = raw->field_2;
-            scratch->rawLo = raw->field_3;
-            TOUCH_REG(raw);
+            scratch->rawHi   = raw->field_2;
+            scratch->rawLo   = raw->field_3;
             buttons          = ~*(u16*)&scratch->rawLo;
             scratch->buttons = buttons;
 

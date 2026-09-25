@@ -1082,7 +1082,6 @@ void func_actor_401800_80133EB8(Task* arg0)
     } else if (state == 2) {
         resetWork = work;
         // Preserve the separate work pointer for the reset loop.
-        TOUCH_REG(resetWork);
         resetIndex = 1;
         do {
             resetSlotIndex                   = resetIndex;
@@ -3947,11 +3946,9 @@ void func_actor_401800_8013D64C(GpEnemy* arg0, Task* arg1)
         work->field_4 = 0;
     }
     work->field_2 = (u16)work->field_0;
-    SCHED_BARRIER();
-    index = work->field_0;
+    index         = work->field_0;
     SCHED_BARRIER();
     stop = 0x15;
-    TOUCH_REG(stop);
     states.fn[index](arg1);
     state = work->field_0;
     if ((state == 0x1C) || (state == stop) || (state == 0) || (state == 0x1D) || (state == 0x21)) {

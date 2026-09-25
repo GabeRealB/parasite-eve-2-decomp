@@ -649,9 +649,8 @@ void func_actor_800100_80162E90(VECTOR3* pos, s32 width)
     s32                       flag;
     s32                       otz;
 
-    scratch = SCRATCH_HEAD_ADDR;
-    head    = (u8*)SCRATCH_HEAD_AT(scratch, void) - 0x30;
-    SOFT_TOUCH_REG(head);
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = (u8*)SCRATCH_HEAD_AT(scratch, void) - 0x30;
     SCRATCH_HEAD_AT(scratch, void) = head;
     block                          = (Actor800100SplashScratch*)head;
     gte_SetTransMatrix(&GsWSMATRIX);

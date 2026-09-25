@@ -494,15 +494,14 @@ void func_shelter_b2_operating_room_8017E118(SVECTOR* arg0, s32 arg1, s32 arg2)
             block->r1 = scaled / block->otz1;
             ang       = ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
             ds        = &gDisplayState;
-            SCHED_BARRIER();
-            ang    = (s16)ang;
-            blend  = ((u8)ds->animFrame & 1) * 8;
-            packed = arg2 << 16;
-            tr     = (packed >> 20) & 0xF0;
-            tg     = (packed >> 16) & 0xF0;
-            r      = blend | tr;
-            g      = blend | tg;
-            b      = blend | ((arg2 & 0xF) << 4);
+            ang       = (s16)ang;
+            blend     = ((u8)ds->animFrame & 1) * 8;
+            packed    = arg2 << 16;
+            tr        = (packed >> 20) & 0xF0;
+            tg        = (packed >> 16) & 0xF0;
+            r         = blend | tr;
+            g         = blend | tg;
+            b         = blend | ((arg2 & 0xF) << 4);
             if (ang < ang + 0x800) {
                 angStart = ang;
                 limit    = ang + 0x800;
@@ -553,10 +552,8 @@ void func_shelter_b2_operating_room_8017E118(SVECTOR* arg0, s32 arg1, s32 arg2)
                                       (s32)gGpuCurrentOt),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
-                    SCHED_BARRIER();
-                    t3   = ang + 0x800;
-                    prim = (POLY_G4*)gGpuPrimCursor;
-                    SOFT_BARRIER();
+                    t3             = ang + 0x800;
+                    prim           = (POLY_G4*)gGpuPrimCursor;
                     t              = t3;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
@@ -859,8 +856,7 @@ void func_shelter_b2_operating_room_8017F478(GpCoord* arg0, s32 arg1, s32 arg2, 
     s16            xy;
     u16            vz;
 
-    tex = arg1;
-    CLOBBER_REG(a1);
+    tex                                     = arg1;
     scratch                                 = (void**)G_SCRATCH_HEAD;
     head                                    = *scratch;
     ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
@@ -1052,7 +1048,6 @@ void func_shelter_b2_operating_room_8017FB20(GpCoord* arg0, s32 arg1, u8* rgb)
     gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
-        USE_REG(head);
         block->otz++;
         block->step = ((s16)arg1 * 64) / block->otz;
         ang         = 0;
@@ -1303,7 +1298,6 @@ void func_shelter_b2_operating_room_8018058C(GpCoord* arg0, s32 arg1)
     do {
         prod  = tbl->x * arg1;
         v->vy = 0;
-        TOUCH_REG(v);
         v->vx = prod;
         TOUCH_REG(v);
         v->vz = tbl->y * arg1;

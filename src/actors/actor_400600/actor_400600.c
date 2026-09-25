@@ -4265,8 +4265,7 @@ void func_actor_400600_8013AAD8(Task* arg0)
 
     work                = (Actor400600Work*)arg0->work;
     Gp_StateF0.field_27 = 1;
-    SOFT_BARRIER();
-    child = work->field_704;
+    child               = work->field_704;
     if (child != NULL) {
         taskKill(child);
     }

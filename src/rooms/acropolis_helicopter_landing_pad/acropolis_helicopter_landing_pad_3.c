@@ -682,7 +682,6 @@ void func_acropolis_helicopter_landing_pad_80180664(GpCoord* coord)
     blk->a.vy   = (((u32)Gp_LcgState >> 16) & 0x7F) - 0xC0;
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     blk->a.vz   = (((u32)Gp_LcgState >> 16) & 0x3F) - 0x20;
-    __asm__("" : "+r"(vec));
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(vec);
     gte_rtv0();
@@ -757,7 +756,6 @@ void func_acropolis_helicopter_landing_pad_80180A64(GpCoord* coord)
     blk->a.vy   = ((u32)Gp_LcgState >> 16) & 0x7F;
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     blk->a.vz   = (((u32)Gp_LcgState >> 16) & 0x3F) - 0x20;
-    __asm__("" : "+r"(vec));
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(vec);
     gte_rtv0();

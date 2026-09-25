@@ -310,8 +310,7 @@ u32 func_8001F180(u32 arg0)
         rect->h = 0xF0;
         ClearImage(firstImage, 0U, 0U, 0U);
         secondImage = &clearRect;
-        TOUCH_REG(secondImage);
-        rect->y = 0x110;
+        rect->y     = 0x110;
         ClearImage(secondImage, 0U, 0U, 0U);
         if (D_8006AC14 == 1) {
             Display_SetMode(0xF010);
@@ -669,7 +668,6 @@ s32 func_8001FAE0(u16 arg0, s32 arg1)
             state->field_24E = 1;
             CdIntToPos(sector, (CdlLOC*)&rect);
             ready = Stream_SeekPosition((u8*)&rect);
-            TOUCH_REG(ready);
             if (ready & 0xFFFF) {
                 CdVol_ApplyFromTable((u8)D_8006AC58);
                 mode = D_8006AC58 != 0 ? 0x1E0 : 0x1A0;
@@ -763,7 +761,6 @@ s32 func_8001FAE0(u16 arg0, s32 arg1)
         case 8:
             CdIntToPos(D_8006AC08 + (state->field_1EA - 1) * 10, (CdlLOC*)&rect);
             ready = Stream_SeekPosition((u8*)&rect);
-            TOUCH_REG(ready);
             if (ready & 0xFFFF) {
                 mode = D_8006AC58 != 0 ? 0x1E0 : 0x1A0;
                 if (!(CdRead2(mode) & 0xFFFF)) {

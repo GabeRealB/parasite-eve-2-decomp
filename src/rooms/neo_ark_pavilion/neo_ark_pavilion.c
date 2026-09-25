@@ -1011,7 +1011,6 @@ void func_neo_ark_pavilion_8017ED98(GpCoord* arg0, s32 arg1, s32 arg2)
     do {
         prod  = tbl->x * arg1;
         v->vy = 0;
-        TOUCH_REG(v);
         v->vx = prod;
         TOUCH_REG(v);
         v->vz = tbl->y * arg1;
@@ -1287,8 +1286,7 @@ void func_neo_ark_pavilion_8017F974(GpCoord* arg0, s32 arg1, s32 arg2)
     s16            xy;
     u16            vz;
 
-    scratch = (void**)G_SCRATCH_HEAD;
-    SOFT_TOUCH_REG_USE(arg2, scratch);
+    scratch                                 = (void**)G_SCRATCH_HEAD;
     head                                    = *scratch;
     ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
@@ -1313,11 +1311,10 @@ void func_neo_ark_pavilion_8017F974(GpCoord* arg0, s32 arg1, s32 arg2)
         setcode(prim, 0x2F);
         prim->tpage = 0x2B;
         prim->clut  = 0x43D2;
-        SOFT_BARRIER();
-        cell  = (u16)tex;
-        tex   = (cell & 3) * 0x38;
-        vbase = ((cell & 7) >> 2) * 0x38;
-        v0    = vbase + 0x70;
+        cell        = (u16)tex;
+        tex         = (cell & 3) * 0x38;
+        vbase       = ((cell & 7) >> 2) * 0x38;
+        v0          = vbase + 0x70;
         SOFT_USE_REG(v0);
         u1       = tex + 0x37;
         v1       = vbase - 0x59;
@@ -1466,9 +1463,7 @@ void func_neo_ark_pavilion_8017FF54(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
     scratch = (void**)G_SCRATCH_HEAD;
     color   = rgb;
     head    = *scratch;
-    USE_REG(head);
-    vx = (u16)arg0->workm.t[0];
-    USE_REG(vx);
+    vx      = (u16)arg0->workm.t[0];
     {
         register u8* tmp asm("v0");
         tmp   = head - 0x1C;
@@ -1489,7 +1484,6 @@ void func_neo_ark_pavilion_8017FF54(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
     gte_stflg(&((RoomDraw02Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        USE_REG(head);
         otz                                      = ((RoomDraw02Scratch*)(head - 0x1C))->otz + 1;
         rOuter                                   = ((s16)saved * 64) / otz;
         ((RoomDraw02Scratch*)(head - 0x1C))->otz = otz;
@@ -1523,7 +1517,6 @@ void func_neo_ark_pavilion_8017FF54(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
                               (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-            SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
     SCRATCH_POP_BYTES(0x1C);
@@ -1573,7 +1566,6 @@ void func_neo_ark_pavilion_80180380(GpCoord* arg0, s32 arg1, u8* rgb)
     gte_stflg(&((RoomFanScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((RoomFanScratch*)(head - 0x18))->otz);
-        USE_REG(head);
         otz           = block->otz + 1;
         radius        = ((s16)arg1 * 64) / otz;
         block->otz    = otz;
@@ -1603,7 +1595,6 @@ void func_neo_ark_pavilion_80180380(GpCoord* arg0, s32 arg1, u8* rgb)
                               (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-            SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
     SCRATCH_POP_BYTES(0x18);
@@ -2233,8 +2224,7 @@ void func_neo_ark_pavilion_801823C0(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
     s16            xy;
     u16            vz;
 
-    tex = arg1;
-    CLOBBER_REG(a1);
+    tex                                     = arg1;
     scratch                                 = (void**)G_SCRATCH_HEAD;
     head                                    = *scratch;
     ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
@@ -2428,7 +2418,6 @@ void func_neo_ark_pavilion_80182A68(GpCoord* arg0, s16 arg1, u8* rgb)
     gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
-        USE_REG(head);
         block->otz++;
         block->step = (arg1 * 64) / block->otz;
         ang         = 0;
@@ -2680,7 +2669,6 @@ void func_neo_ark_pavilion_801834D4(GpCoord* arg0, s32 arg1)
     do {
         prod  = tbl->x * arg1;
         v->vy = 0;
-        TOUCH_REG(v);
         v->vx = prod;
         TOUCH_REG(v);
         v->vz = tbl->y * arg1;

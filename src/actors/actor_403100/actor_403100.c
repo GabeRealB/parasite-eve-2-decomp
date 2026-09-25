@@ -1161,7 +1161,6 @@ void func_actor_403100_801339EC(Task* arg0)
 
     handlers[(s16)D_actor_403100_80155808->field_5F8](arg0);
     func_actor_403100_801327CC(arg0);
-    SOFT_USE_REG(arg0);
     coords                            = arg0->extra.tmd->coords;
     D_actor_403100_80155808->field_82 = (s32)((u16)D_actor_403100_80155808->field_82 << 20) >> 20;
     mtx                               = &rotation.mat;
@@ -1209,7 +1208,6 @@ void func_actor_403100_801339EC(Task* arg0)
     center         = &coords2[3];
 
     Gp_UpdateCoord(&coords2[8]);
-    USE_REG(center);
     Gp_UpdateCoord(side);
     __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
     head                               = *(u8**)(head + 0x3FC);
@@ -1658,8 +1656,7 @@ void func_actor_403100_8013480C(Task* arg0, s32 arg1)
         __asm__ volatile("lui %0,%%hi(D_actor_403100_80155808)" : "=r"(workHigh));
         __asm__ volatile("lw %0,%%lo(D_actor_403100_80155808)(%1)" : "=r"(work) : "r"(workHigh) : "memory");
         count = work->flags_634.h.high;
-        TOUCH_REG_USE(i, count);
-        i += 1;
+        i    += 1;
         entry++;
         if (i < count)
             goto next_entry;
@@ -1771,7 +1768,6 @@ void func_actor_403100_80134D50(Task* arg0)
     center         = &coords2[3];
 
     Gp_UpdateCoord(&coords2[8]);
-    USE_REG(center);
     Gp_UpdateCoord(side);
     __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
     head                               = *(u8**)(head + 0x3FC);
@@ -2541,7 +2537,6 @@ void func_actor_403100_80136830(Task* arg0)
                 Display_ClampField126(0);
             }
             func_actor_403100_8013B5E0(arg0, D_actor_403100_80155808->field_61C);
-            SOFT_USE_REG(arg0);
             identity = 0x1000;
             USE_REG(identity);
             {
@@ -2709,7 +2704,6 @@ void func_actor_403100_80136830(Task* arg0)
             side               = coordinates + 4;
             center             = coordinates + 3;
             Gp_UpdateCoord(coordinates + 8);
-            USE_REG(center);
             Gp_UpdateCoord(side);
             __asm__ volatile("lui %0, 0x1F80" : "=r"(scratchHead));
             scratchHead        = *(VECTOR**)((u8*)scratchHead + 0x3FC);
@@ -4491,7 +4485,6 @@ void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
     middle     = &coords[2];
     lower      = &coords[1];
     mode3      = 3;
-    SOFT_TOUCH_REG(mode3);
     if (arg1 == 0) {
         func_actor_403100_8013CEAC((u16*)angles, 8, 0x280, -0x2C0);
         func_actor_403100_8013CF60(angles, 8, 2, 1, 4);
@@ -4542,8 +4535,7 @@ void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
     head->coord.m[0][0] = (u16)transpose->m[0][0];
     copyValue           = (u16)transpose->m[0][1];
     SOFT_USE_REG(copyValue);
-    dest = &head->coord;
-    SOFT_TOUCH_REG(dest);
+    dest          = &head->coord;
     dest->m[0][1] = copyValue;
     dest->m[0][2] = (u16)transpose->m[0][2];
     dest->m[1][0] = (u16)transpose->m[1][0];
@@ -4809,8 +4801,7 @@ void func_actor_403100_8013C008(s16 arg0, s16 arg1)
         gGpuPrimCursor = poly + 1;
         setPolyFT4(poly);
         poly->tpage = entry->tpage;
-        SOFT_TOUCH_REG(poly);
-        clut = entry->clut;
+        clut        = entry->clut;
         setShadeTex(poly, 1);
         poly->clut = clut;
         poly->u0   = entry->u;
@@ -5127,12 +5118,10 @@ void func_actor_403100_8013CBE0(Task* arg0)
                 random      = (Gp_LcgState * 5) + 0x71357911;
                 Gp_LcgState = random;
                 if ((random >> 16) & 1) {
-                    soundId = 0x401F0000;
-                    TOUCH_REG(soundId);
+                    soundId  = 0x401F0000;
                     soundId |= 2;
                 } else {
-                    soundId = 0x401F0000;
-                    TOUCH_REG(soundId);
+                    soundId  = 0x401F0000;
                     soundId |= 5;
                 }
             play_sound:

@@ -433,10 +433,9 @@ void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
     work->coord.sub        = parts;
     work->coord.flg        = 0;
 
-    hp              = enemy->param->hpMax;
-    work->field_B92 = hp;
-    enemy->hp       = hp;
-    SOFT_USE_REG(enemy);
+    hp                             = enemy->param->hpMax;
+    work->field_B92                = hp;
+    enemy->hp                      = hp;
     task->extra.tmd->coords[1].sub = (GpCoord*)work;
     task->extra.tmd->coords[1].flg = 0;
 
@@ -1205,7 +1204,6 @@ void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         arg->pos.vz = inv;
         SCHED_BARRIER();
         arg->pos.vy = inv;
-        SCHED_BARRIER();
         arg->pos.vx = inv;
         SCALE_COL(parent, sv, 0, 6, 12, arg->pos.vx);
         SCALE_COL(parent, sv, 2, 8, 14, arg->pos.vy);
@@ -1252,7 +1250,6 @@ void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         arg->pos.vz = inv;
         SCHED_BARRIER();
         arg->pos.vy = inv;
-        SCHED_BARRIER();
         arg->pos.vx = inv;
         SCALE_COL(parent, sv, 0, 6, 12, arg->pos.vx);
         SCALE_COL(parent, sv, 2, 8, 14, arg->pos.vy);
@@ -1802,7 +1799,6 @@ void Actor01100_Fn039D0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 
     self = task->extra.tmd->coords;
     if (Gp_ActorSlots[0] == NULL) {
-        SCHED_BARRIER();
         angle = 0;
     } else {
         other     = Gp_ActorSlots[0]->extra.tmd->coords;
@@ -1901,7 +1897,6 @@ void Actor01100_Fn03BAC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         work->field_BA4 = 1;
         self0           = task->extra.tmd->coords;
         if (Gp_ActorSlots[0] == NULL) {
-            SCHED_BARRIER();
             angle = 0;
         } else {
             other     = Gp_ActorSlots[0]->extra.tmd->coords;
@@ -1980,7 +1975,6 @@ void Actor01100_Fn03BAC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     if (work->field_BA8 == 3) {
         self = task->extra.tmd->coords;
         if (Gp_ActorSlots[0] == NULL) {
-            SCHED_BARRIER();
             angle3 = 0;
         } else {
             other     = Gp_ActorSlots[0]->extra.tmd->coords;
@@ -2066,10 +2060,9 @@ void Actor01100_Fn03BAC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
                     dist = 0x7FFFFFFF;
                 } else {
                     playerObj = player->extra.tmd;
-                    TOUCH_REG(playerObj);
-                    other  = playerObj->coords;
-                    xSelf  = (u16)self2->workm.t[0];
-                    xOther = (u16)other->workm.t[0];
+                    other     = playerObj->coords;
+                    xSelf     = (u16)self2->workm.t[0];
+                    xOther    = (u16)other->workm.t[0];
                     __asm__("lui %0, 0x1F80" : "=r"(sv) : "r"(xSelf), "r"(xOther));
                     sv        = *(SVECTOR**)((u8*)sv + 0x3FC);
                     sv[-1].vx = (s16)(xOther - xSelf);
@@ -3038,8 +3031,7 @@ void Actor01100_Fn05678(
         } else if (time <= 0) {
             extra->flags |= 2;
             Gp_SetLightMode(enemy, 2);
-            latch = (u8)work->field_BA8;
-            TOUCH_REG(latch);
+            latch    = (u8)work->field_BA8;
             nextTime = 0x20;
             goto bump;
         }
@@ -3083,9 +3075,7 @@ void Actor01100_Fn05678(
         sv      = (SVECTOR*)(scratch - 8);
         mtx     = &coords[3].coord;
         __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv) : "memory");
-        TOUCH_REG(sv);
 
-        COMPILER_BARRIER();
         ACTOR_COPY_MATRIX_COLUMN_TO_SV(mtx, sv, 0, 6, 12);
         gte_lddp(sc->vx);
         gte_ldsv(sv);
@@ -3093,7 +3083,6 @@ void Actor01100_Fn05678(
         gte_stsv(sv);
         ACTOR_COPY_SV_TO_MATRIX_COLUMN(sv, mtx, 0, 6, 12);
 
-        COMPILER_BARRIER();
         ACTOR_COPY_MATRIX_COLUMN_TO_SV(mtx, sv, 2, 8, 14);
         gte_lddp(sc->vy);
         gte_ldsv(sv);
@@ -3101,7 +3090,6 @@ void Actor01100_Fn05678(
         gte_stsv(sv);
         ACTOR_COPY_SV_TO_MATRIX_COLUMN(sv, mtx, 2, 8, 14);
 
-        COMPILER_BARRIER();
         ACTOR_COPY_MATRIX_COLUMN_TO_SV(mtx, sv, 4, 10, 16);
         gte_lddp(sc->vz);
         gte_ldsv(sv);

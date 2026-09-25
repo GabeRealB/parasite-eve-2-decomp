@@ -167,7 +167,6 @@ void func_neo_ark_submarine_gallery_8017F3DC(GpCoord* arg0, s32 arg1, s32 arg2)
     do {
         prod  = tbl->x * arg1;
         v->vy = 0;
-        TOUCH_REG(v);
         v->vx = prod;
         TOUCH_REG(v);
         v->vz = tbl->y * arg1;
@@ -448,8 +447,7 @@ void func_neo_ark_submarine_gallery_8017FFB8(GpCoord* arg0, s32 arg1, s32 arg2)
     s16            xy;
     u16            vz;
 
-    scratch = (void**)G_SCRATCH_HEAD;
-    SOFT_TOUCH_REG_USE(arg2, scratch);
+    scratch                                 = (void**)G_SCRATCH_HEAD;
     head                                    = *scratch;
     ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
@@ -474,11 +472,10 @@ void func_neo_ark_submarine_gallery_8017FFB8(GpCoord* arg0, s32 arg1, s32 arg2)
         setcode(prim, 0x2F);
         prim->tpage = 0x2B;
         prim->clut  = 0x43D2;
-        SOFT_BARRIER();
-        cell  = (u16)tex;
-        tex   = (cell & 3) * 0x38;
-        vbase = ((cell & 7) >> 2) * 0x38;
-        v0    = vbase + 0x70;
+        cell        = (u16)tex;
+        tex         = (cell & 3) * 0x38;
+        vbase       = ((cell & 7) >> 2) * 0x38;
+        v0          = vbase + 0x70;
         SOFT_USE_REG(v0);
         u1       = tex + 0x37;
         v1       = vbase - 0x59;
@@ -581,15 +578,14 @@ void func_neo_ark_submarine_gallery_80180254(SVECTOR* arg0, s32 arg1, s32 arg2)
             block->r1 = scaled / block->otz1;
             ang       = ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
             ds        = &gDisplayState;
-            SCHED_BARRIER();
-            ang    = (s16)ang;
-            blend  = ((u8)ds->animFrame & 1) * 8;
-            packed = arg2 << 16;
-            tr     = (packed >> 20) & 0xF0;
-            tg     = (packed >> 16) & 0xF0;
-            r      = blend | tr;
-            g      = blend | tg;
-            b      = blend | ((arg2 & 0xF) << 4);
+            ang       = (s16)ang;
+            blend     = ((u8)ds->animFrame & 1) * 8;
+            packed    = arg2 << 16;
+            tr        = (packed >> 20) & 0xF0;
+            tg        = (packed >> 16) & 0xF0;
+            r         = blend | tr;
+            g         = blend | tg;
+            b         = blend | ((arg2 & 0xF) << 4);
             if (ang < ang + 0x800) {
                 angStart = ang;
                 limit    = ang + 0x800;
@@ -640,10 +636,8 @@ void func_neo_ark_submarine_gallery_80180254(SVECTOR* arg0, s32 arg1, s32 arg2)
                                       (s32)gGpuCurrentOt),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
-                    SCHED_BARRIER();
-                    t3   = ang + 0x800;
-                    prim = (POLY_G4*)gGpuPrimCursor;
-                    SOFT_BARRIER();
+                    t3             = ang + 0x800;
+                    prim           = (POLY_G4*)gGpuPrimCursor;
                     t              = t3;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);

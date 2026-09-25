@@ -239,8 +239,7 @@ void func_dryfield_water_hole_8017F9C0(GpCoord* arg0, s32 arg1, s32 arg2)
     s16            xy;
     u16            vz;
 
-    scratch = (void**)G_SCRATCH_HEAD;
-    SOFT_TOUCH_REG_USE(arg2, scratch);
+    scratch                                 = (void**)G_SCRATCH_HEAD;
     head                                    = *scratch;
     ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
@@ -265,11 +264,10 @@ void func_dryfield_water_hole_8017F9C0(GpCoord* arg0, s32 arg1, s32 arg2)
         setcode(prim, 0x2F);
         prim->tpage = 0x2B;
         prim->clut  = 0x43D2;
-        SOFT_BARRIER();
-        cell  = (u16)tex;
-        tex   = (cell & 3) * 0x38;
-        vbase = ((cell & 7) >> 2) * 0x38;
-        v0    = vbase + 0x70;
+        cell        = (u16)tex;
+        tex         = (cell & 3) * 0x38;
+        vbase       = ((cell & 7) >> 2) * 0x38;
+        v0          = vbase + 0x70;
         SOFT_USE_REG(v0);
         u1       = tex + 0x37;
         v1       = vbase - 0x59;

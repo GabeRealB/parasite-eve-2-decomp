@@ -136,15 +136,14 @@ void func_shelter_1f_tent_8017FFAC(SVECTOR* arg0, s32 arg1, s32 arg2)
             block->r1 = scaled / block->otz1;
             ang       = ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
             ds        = &gDisplayState;
-            SCHED_BARRIER();
-            ang    = (s16)ang;
-            blend  = ((u8)ds->animFrame & 1) * 8;
-            packed = arg2 << 16;
-            tr     = (packed >> 20) & 0xF0;
-            tg     = (packed >> 16) & 0xF0;
-            r      = blend | tr;
-            g      = blend | tg;
-            b      = blend | ((arg2 & 0xF) << 4);
+            ang       = (s16)ang;
+            blend     = ((u8)ds->animFrame & 1) * 8;
+            packed    = arg2 << 16;
+            tr        = (packed >> 20) & 0xF0;
+            tg        = (packed >> 16) & 0xF0;
+            r         = blend | tr;
+            g         = blend | tg;
+            b         = blend | ((arg2 & 0xF) << 4);
             if (ang < ang + 0x800) {
                 angStart = ang;
                 limit    = ang + 0x800;
@@ -195,10 +194,8 @@ void func_shelter_1f_tent_8017FFAC(SVECTOR* arg0, s32 arg1, s32 arg2)
                                       (s32)gGpuCurrentOt),
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
-                    SCHED_BARRIER();
-                    t3   = ang + 0x800;
-                    prim = (POLY_G4*)gGpuPrimCursor;
-                    SOFT_BARRIER();
+                    t3             = ang + 0x800;
+                    prim           = (POLY_G4*)gGpuPrimCursor;
                     t              = t3;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
@@ -334,8 +331,7 @@ void func_shelter_1f_tent_80180B90(SVECTOR* arg0, s32 arg1, s32 arg2)
         scratch = (void**)G_SCRATCH_HEAD;
         head    = *scratch;
         tmp     = (*scratch = head - 0x10);
-        SOFT_TOUCH_REG(tmp);
-        block = (RoomDraw13Scratch*)tmp;
+        block   = (RoomDraw13Scratch*)tmp;
     }
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -429,8 +425,7 @@ void func_shelter_1f_tent_80181010(SVECTOR* arg0, s32 arg1, s32 arg2)
         scratch = (void**)G_SCRATCH_HEAD;
         head    = *scratch;
         tmp     = (*scratch = head - 0x14);
-        SOFT_TOUCH_REG(tmp);
-        block = (RoomDraw05Scratch*)tmp;
+        block   = (RoomDraw05Scratch*)tmp;
     }
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);

@@ -4251,14 +4251,12 @@ void Actor00400_Fn08354(Task* arg0, s32 arg1, s32 arg2)
     switch (arg2) {
         case 0:
             Gp_StateF0.field_23 = 1;
-            SOFT_BARRIER();
-            ctx->flags     |= 0x80;
-            work->field_663 = 1;
+            ctx->flags         |= 0x80;
+            work->field_663     = 1;
             break;
         case 1:
             Gp_StateF0.field_23 = 0;
-            SOFT_BARRIER();
-            state = arg0->state;
+            state               = arg0->state;
             if (((state == 2) || (state == 4)) && (work->field_644 == 4)) {
                 ctx->flags |= 0x80;
             } else if ((arg0->state == 2) && ((work->field_638 == 4) || (work->field_638 == 5))) {
