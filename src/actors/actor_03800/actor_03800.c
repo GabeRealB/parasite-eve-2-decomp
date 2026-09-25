@@ -467,7 +467,6 @@ void Actor03800_Fn00A98(Task* arg0)
     GpEnemy*         ctx;
     Actor103800Work* work;
     Actor103800Work* contactWork;
-    Actor103800Work* wallWork;
     GpDeltaScratch*  scratch;
     GpDeltaScratch*  normal;
     GsCOORDINATE2*   coord;
@@ -504,9 +503,8 @@ void Actor03800_Fn00A98(Task* arg0)
     i        = 0;
     if (result != 0) {
         for (i = 0; i < 4; i++) {
-            wallWork = (Actor103800Work*)((u8*)work + i * 0x18);
-            if ((wallWork->field_22C[0].key & 0xFFFF0000) == 0x100000) {
-                if (wallWork->field_22C[0].at10.normal.vy >= -0xDDA) {
+            if ((work->field_22C[i].key & 0xFFFF0000) == 0x100000) {
+                if (work->field_22C[i].at10.normal.vy >= -0xDDA) {
                     if (work->field_36E == 0) {
                         work->field_370 = 1;
                         break;
