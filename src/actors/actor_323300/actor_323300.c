@@ -87,17 +87,6 @@ typedef struct {
 } Actor323300AnimPreset;
 STATIC_ASSERT_SIZEOF(Actor323300AnimPreset, 0x14);
 
-/// View of the `GsCOORDINATE2` at `TmdObject::coords` the placement handlers
-/// write through: the libgs `param` slot at 0x44 holds the Euler angles they
-/// store and then hand straight to `RotMatrix`.
-typedef struct Actor323300Coord {
-    /* 0x00 */ s32     flg;
-    /* 0x04 */ MATRIX  coord;
-    /* 0x24 */ MATRIX  workm;
-    /* 0x44 */ SVECTOR rot;
-} Actor323300Coord;
-STATIC_ASSERT_SIZEOF(Actor323300Coord, 0x4C);
-
 /// Vertex-morph source `func_actor_323300_80162A6C` blends the model with.
 /// `field_8` and `field_C` are the key vertex and key normal arrays -- 8-byte
 /// `SVECTOR`s, the stride `gteMIMefunc` itself takes -- which that function
@@ -648,16 +637,16 @@ s32 func_actor_323300_801628B8(Task* task, s32 arg1, Actor323300AnimPreset* msg,
 /// clearing `flg` makes the world matrix be recomputed.
 s32 func_actor_323300_801629F0(Task* task, s32 msgId, GpPlaceArg* args, s32 arg3)
 {
-    Actor323300Coord* coord;
+    GpCoordExt* coord;
 
-    coord             = (Actor323300Coord*)((TmdObject*)task->extra)->coords;
-    coord->coord.t[0] = args->pos.vx;
-    coord->coord.t[1] = args->pos.vy;
-    coord->coord.t[2] = args->pos.vz;
-    coord->rot.vx     = args->rot.vx;
-    coord->rot.vy     = args->rot.vy;
-    coord->rot.vz     = args->rot.vz;
-    RotMatrix(&coord->rot, &coord->coord);
+    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0]   = args->pos.vx;
+    coord->coord.t[1]   = args->pos.vy;
+    coord->coord.t[2]   = args->pos.vz;
+    coord->param.rot.vx = args->rot.vx;
+    coord->param.rot.vy = args->rot.vy;
+    coord->param.rot.vz = args->rot.vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg = 0;
     return 0;
 }
@@ -1009,16 +998,16 @@ void func_actor_323300_8016359C(Task* arg0, s16 arg1)
 /// rebuilds the rotation from them and clears `flg`.
 s32 func_actor_323300_8016369C(Task* task, s32 msgId, GpPlaceArg* args, s32 arg3)
 {
-    Actor323300Coord* coord;
+    GpCoordExt* coord;
 
-    coord             = (Actor323300Coord*)((TmdObject*)task->extra)->coords;
-    coord->coord.t[0] = args->pos.vx;
-    coord->coord.t[1] = args->pos.vy;
-    coord->coord.t[2] = args->pos.vz;
-    coord->rot.vx     = args->rot.vx;
-    coord->rot.vy     = args->rot.vy;
-    coord->rot.vz     = args->rot.vz;
-    RotMatrix(&coord->rot, &coord->coord);
+    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0]   = args->pos.vx;
+    coord->coord.t[1]   = args->pos.vy;
+    coord->coord.t[2]   = args->pos.vz;
+    coord->param.rot.vx = args->rot.vx;
+    coord->param.rot.vy = args->rot.vy;
+    coord->param.rot.vz = args->rot.vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg = 0;
     return 0;
 }

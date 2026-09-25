@@ -62,18 +62,6 @@ typedef struct Actor310600Work {
 } Actor310600Work;
 STATIC_ASSERT_SIZEOF(Actor310600Work, 0x538);
 
-/// Overlay of the `GsCOORDINATE2` at `TmdObject::coords`, the actor's root
-/// part. Offset 0x44 (libgs `param`, `super` at 0x48) holds the Euler angles
-/// `func_actor_310600_80162AD8` and `func_actor_310600_80162C18` write and then
-/// hand straight to `RotMatrix`.
-typedef struct Actor310600Coord {
-    /* 0x00 */ s32     flg;
-    /* 0x04 */ MATRIX  coord;
-    /* 0x24 */ MATRIX  workm;
-    /* 0x44 */ SVECTOR rot;
-} Actor310600Coord;
-STATIC_ASSERT_SIZEOF(Actor310600Coord, 0x4C);
-
 /// The 0x14-byte command block the actor's state handlers build on the stack
 /// and hand to `func_actor_310600_8016246C`, which reads it as
 /// `{animId, state, path, param}`.
@@ -310,15 +298,15 @@ void func_actor_310600_80161FA0(Task* task)
 /// fails to shrink it is the one that fires.
 void func_actor_310600_8016231C(Task* arg0)
 {
-    Actor310600Work*  work;
-    Actor310600Coord* coord;
-    SVECTOR           d;
-    s32               dx;
-    s32               dz;
-    Actor310600Cmd    cmd;
+    Actor310600Work* work;
+    GpCoordExt*      coord;
+    SVECTOR          d;
+    s32              dx;
+    s32              dz;
+    Actor310600Cmd   cmd;
 
     work  = (Actor310600Work*)arg0->work;
-    coord = (Actor310600Coord*)((TmdObject*)arg0->extra)->coords;
+    coord = (GpCoordExt*)((TmdObject*)arg0->extra)->coords;
     if (work->field_4F8 - coord->coord.t[0] >= 0) {
         dx = (u16)work->field_4F8 - (u16)coord->coord.t[0];
     } else {
@@ -638,14 +626,14 @@ void func_actor_310600_80162A7C(Task* task)
 /// `field_47E` moves the actor on to the next handler of its state table.
 void func_actor_310600_80162AD8(Task* task)
 {
-    Actor310600Work*  work;
-    Actor310600Coord* coord;
-    VECTOR            delta;
-    SVECTOR           dir;
-    SVECTOR           rot;
+    Actor310600Work* work;
+    GpCoordExt*      coord;
+    VECTOR           delta;
+    SVECTOR          dir;
+    SVECTOR          rot;
 
     work  = (Actor310600Work*)task->work;
-    coord = (Actor310600Coord*)((TmdObject*)task->extra)->coords;
+    coord = (GpCoordExt*)((TmdObject*)task->extra)->coords;
 
     delta.vx = work->field_4F8 - coord->coord.t[0];
     delta.vy = work->field_4FC - coord->coord.t[1];
@@ -656,10 +644,10 @@ void func_actor_310600_80162AD8(Task* task)
     rot.vy = ratan2(dir.vx, dir.vz);
     rot.vz = 0;
 
-    coord->rot.vx = rot.vx;
-    coord->rot.vy = rot.vy;
-    coord->rot.vz = rot.vz;
-    RotMatrix(&coord->rot, &coord->coord);
+    coord->param.rot.vx = rot.vx;
+    coord->param.rot.vy = rot.vy;
+    coord->param.rot.vz = rot.vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg = 0;
     work->field_47E++;
 }
@@ -692,16 +680,16 @@ void func_actor_310600_80162B98(Task* task)
 /// recompute the world matrix. `arg1` is unused.
 s32 func_actor_310600_80162C18(Task* task, s32 arg1, GpPlaceArg* args)
 {
-    Actor310600Coord* coord;
+    GpCoordExt* coord;
 
-    coord             = (Actor310600Coord*)((TmdObject*)task->extra)->coords;
-    coord->coord.t[0] = args->pos.vx;
-    coord->coord.t[1] = args->pos.vy;
-    coord->coord.t[2] = args->pos.vz;
-    coord->rot.vx     = args->rot.vx;
-    coord->rot.vy     = args->rot.vy;
-    coord->rot.vz     = args->rot.vz;
-    RotMatrix(&coord->rot, &coord->coord);
+    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0]   = args->pos.vx;
+    coord->coord.t[1]   = args->pos.vy;
+    coord->coord.t[2]   = args->pos.vz;
+    coord->param.rot.vx = args->rot.vx;
+    coord->param.rot.vy = args->rot.vy;
+    coord->param.rot.vz = args->rot.vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg = 0;
     return 0;
 }

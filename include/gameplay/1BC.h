@@ -258,20 +258,8 @@ typedef struct _GpAreaObj {
     /* 0x01 */ u8 field_1;
 } GpAreaObj;
 
-/// Overlay of `GsCOORDINATE2` at `Task::extra->field_8` used by
-/// `Gp_SpawnArea`. `coord` is `GsCOORDINATE2.coord`; `field_44` /
-/// `field_46` / `field_48` overlay `param` as packed euler (restore
-/// from `McPosRec`) or yaw (`field_46` + `Gfx_RotMatrixY`).
-typedef struct _GpCoordPose {
-    /* 0x00 */ s32    flg;
-    /* 0x04 */ MATRIX coord;
-    /* 0x24 */ byte   pad_24[0x20];
-    /* 0x44 */ s16    field_44;
-    /* 0x46 */ s16    field_46;
-    /* 0x48 */ s16    field_48;
-    /* 0x4A */ byte   pad_4A[2];
-} GpCoordPose;
-STATIC_ASSERT_SIZEOF(GpCoordPose, 0x4C);
+/// `GpCoordExt` under the name room code still uses for it.
+typedef GpCoordExt GpCoordPose;
 
 /// 0xC-byte record in the 0xFF-terminated table at nested `GpAreaRec.field_4`
 /// (`Gp_ApplyAreaTmdFlags` / `Gp_SpawnArea`). `field_0` is compared with the byte at

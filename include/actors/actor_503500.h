@@ -25,18 +25,6 @@ typedef struct Actor503500ModeMsg {
 } Actor503500ModeMsg;
 STATIC_ASSERT_SIZEOF(Actor503500ModeMsg, 0x4);
 
-/// Overlay of `GsCOORDINATE2` at `TmdObject::coords`, as this overlay places
-/// its parts: offset 0x44 (libgs's `param`, with `super` at 0x48) holds the
-/// Euler angles the code writes and hands straight to `RotMatrix`, the same
-/// reuse `ActorsShared8013231cCoord` and `RoomCoord` document.
-typedef struct Actor503500Coord {
-    /* 0x00 */ s32     flg;
-    /* 0x04 */ MATRIX  coord;
-    /* 0x24 */ MATRIX  workm;
-    /* 0x44 */ SVECTOR rot;
-} Actor503500Coord;
-STATIC_ASSERT_SIZEOF(Actor503500Coord, 0x4C);
-
 /// Bytes 0x40..0x60 of an `actor_503500` work block, which the two enemies
 /// that reach them disagree about. The 0x160 block parks its display node
 /// there -- `func_actor_503500_801372C8` links `obj` and

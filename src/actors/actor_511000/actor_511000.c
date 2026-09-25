@@ -63,17 +63,6 @@ typedef struct Actor511000Work {
 } Actor511000Work;
 STATIC_ASSERT_SIZEOF(Actor511000Work, 0x70);
 
-/// `GsCOORDINATE2` at `TmdObject::coords` as the placement code uses it: the
-/// libgs `param` slot at 0x44 holds the Euler angles written there and then
-/// handed straight to `RotMatrix`.
-typedef struct Actor511000Coord {
-    /* 0x00 */ s32     flg;
-    /* 0x04 */ MATRIX  coord;
-    /* 0x24 */ MATRIX  workm;
-    /* 0x44 */ SVECTOR rot;
-} Actor511000Coord;
-STATIC_ASSERT_SIZEOF(Actor511000Coord, 0x4C);
-
 /// Work block `func_actor_511000_80132480` allocates (`memCalloc(0x4D4, 0)`)
 /// and parks in that task's `Task::work`. Its front is the animation state the
 /// animation message handler drives: the context, 20 slots and the pose
@@ -570,16 +559,16 @@ s32 func_actor_511000_80132604(Task* task, s32 arg1, ActorsShared80132604Args* m
 /// recomputed.
 s32 func_actor_511000_80132724(Task* task, s32 arg1, GpPlaceArg* args)
 {
-    Actor511000Coord* coord;
+    GpCoordExt* coord;
 
-    coord             = (Actor511000Coord*)((TmdObject*)task->extra)->coords;
-    coord->coord.t[0] = args->pos.vx;
-    coord->coord.t[1] = args->pos.vy;
-    coord->coord.t[2] = args->pos.vz;
-    coord->rot.vx     = args->rot.vx;
-    coord->rot.vy     = args->rot.vy;
-    coord->rot.vz     = args->rot.vz;
-    RotMatrix(&coord->rot, &coord->coord);
+    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0]   = args->pos.vx;
+    coord->coord.t[1]   = args->pos.vy;
+    coord->coord.t[2]   = args->pos.vz;
+    coord->param.rot.vx = args->rot.vx;
+    coord->param.rot.vy = args->rot.vy;
+    coord->param.rot.vz = args->rot.vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg = 0;
     return 0;
 }
@@ -723,17 +712,17 @@ s32 func_actor_511000_80132904(Task* arg0, s32 arg1, s32 mode)
 /// symbol directly shifts `d` ahead of the `lui`/`addiu` pair.
 void func_actor_511000_801329C4(Task* task)
 {
-    Task*             parent;
-    TmdObject*        extra;
-    Actor511000Coord* coord;
-    CVECTOR*          col;
-    CVECTOR*          tbl;
-    s32               d;
-    s8                rgb[3];
+    Task*       parent;
+    TmdObject*  extra;
+    GpCoordExt* coord;
+    CVECTOR*    col;
+    CVECTOR*    tbl;
+    s32         d;
+    s8          rgb[3];
 
     parent = (Task*)task->spawnArg2;
     extra  = (TmdObject*)task->extra;
-    coord  = (Actor511000Coord*)extra->coords;
+    coord  = (GpCoordExt*)extra->coords;
 
     if (!(((TmdObject*)parent->extra)->flags & 0x80)) {
         extra->flags &= 0xFF7F;
@@ -742,10 +731,10 @@ void func_actor_511000_801329C4(Task* task)
     }
 
     if (gGameSession->at4.loc.view == 0x18) {
-        coord->rot.vx = D_actor_511000_80147AC4[parent->killCountdown].vx;
-        coord->rot.vy = D_actor_511000_80147AC4[parent->killCountdown].vy;
-        coord->rot.vz = D_actor_511000_80147AC4[parent->killCountdown].vz;
-        RotMatrix(&coord->rot, &coord->coord);
+        coord->param.rot.vx = D_actor_511000_80147AC4[parent->killCountdown].vx;
+        coord->param.rot.vy = D_actor_511000_80147AC4[parent->killCountdown].vy;
+        coord->param.rot.vz = D_actor_511000_80147AC4[parent->killCountdown].vz;
+        RotMatrix(&coord->param.rot, &coord->coord);
         coord->flg = 0;
 
         d = parent->killCountdown - 0x59;
@@ -1028,12 +1017,12 @@ void func_actor_511000_80133240(Task* task)
 /// visible the rotation is left alone and the visibility bit is set instead.
 void func_actor_511000_801332E4(Task* task)
 {
-    TmdObject*        extra;
-    TmdObject*        parentExtra;
-    Actor511000Coord* coord;
+    TmdObject*  extra;
+    TmdObject*  parentExtra;
+    GpCoordExt* coord;
 
     extra       = (TmdObject*)task->extra;
-    coord       = (Actor511000Coord*)extra->coords;
+    coord       = (GpCoordExt*)extra->coords;
     parentExtra = (TmdObject*)((Task*)task->spawnArg2)->extra;
 
     if (!(parentExtra->flags & 0x80)) {
@@ -1041,14 +1030,14 @@ void func_actor_511000_801332E4(Task* task)
 
         switch (task->spawnArg1) {
             case 1:
-                coord->rot.vy = ((u16)coord->rot.vy + 0x294) & 0xFFF;
+                coord->param.rot.vy = ((u16)coord->param.rot.vy + 0x294) & 0xFFF;
                 break;
             case 2:
-                coord->rot.vx = ((u16)coord->rot.vx + 0x3E8) & 0xFFF;
+                coord->param.rot.vx = ((u16)coord->param.rot.vx + 0x3E8) & 0xFFF;
                 break;
         }
 
-        RotMatrix(&coord->rot, &coord->coord);
+        RotMatrix(&coord->param.rot, &coord->coord);
         coord->flg = 0;
         return;
     }
@@ -1066,11 +1055,11 @@ void func_actor_511000_801333A4(Task* task)
 /// rebuilds the rotation matrix, and reparents the task.
 void func_actor_511000_801333C4(Task* task)
 {
-    Task*             parent;
-    TmdObject*        extra;
-    TmdObject*        parentExtra;
-    Actor511000Coord* coord;
-    GsCOORDINATE2*    dest;
+    Task*          parent;
+    TmdObject*     extra;
+    TmdObject*     parentExtra;
+    GpCoordExt*    coord;
+    GsCOORDINATE2* dest;
 
     parent          = (Task*)task->spawnArg2;
     parentExtra     = (TmdObject*)parent->extra;
@@ -1079,17 +1068,17 @@ void func_actor_511000_801333C4(Task* task)
     extra->lightMtx = parentExtra->lightMtx;
     extra->colorMtx = parentExtra->colorMtx;
     extra->flags    = 0x80;
-    coord           = (Actor511000Coord*)extra->coords;
+    coord           = (GpCoordExt*)extra->coords;
     if (!(parentExtra->flags & 0x80)) {
         extra->flags = 0;
     }
     func_actor_511000_80133760(task);
     ((GsCOORDINATE2*)coord)->sub = dest;
     Task_Reparent(parent, task);
-    coord->rot.vx = D_actor_511000_80147AC4[0].vx;
-    coord->rot.vy = D_actor_511000_80147AC4[0].vy;
-    coord->rot.vz = D_actor_511000_80147AC4[0].vz;
-    RotMatrix(&coord->rot, &coord->coord);
+    coord->param.rot.vx = D_actor_511000_80147AC4[0].vx;
+    coord->param.rot.vy = D_actor_511000_80147AC4[0].vy;
+    coord->param.rot.vz = D_actor_511000_80147AC4[0].vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg   = 0;
     task->state += 1;
 }
@@ -1111,18 +1100,18 @@ s32 func_actor_511000_801334B8(Task* arg0)
 /// model's hidden bit 0x80.
 s32 func_actor_511000_801334C4(Task* task, s32 arg1, GpPlaceArg* args, s32 arg3)
 {
-    Actor511000Coord* coord;
-    TmdObject*        extra;
+    GpCoordExt* coord;
+    TmdObject*  extra;
 
-    extra             = (TmdObject*)task->extra;
-    coord             = (Actor511000Coord*)extra->coords;
-    coord->coord.t[0] = args->pos.vx;
-    coord->coord.t[1] = args->pos.vy;
-    coord->coord.t[2] = args->pos.vz;
-    coord->rot.vx     = args->rot.vx;
-    coord->rot.vy     = args->rot.vy;
-    coord->rot.vz     = args->rot.vz;
-    RotMatrix(&coord->rot, &coord->coord);
+    extra               = (TmdObject*)task->extra;
+    coord               = (GpCoordExt*)extra->coords;
+    coord->coord.t[0]   = args->pos.vx;
+    coord->coord.t[1]   = args->pos.vy;
+    coord->coord.t[2]   = args->pos.vz;
+    coord->param.rot.vx = args->rot.vx;
+    coord->param.rot.vy = args->rot.vy;
+    coord->param.rot.vz = args->rot.vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg    = 0;
     extra->flags &= 0xFF7F;
     return 0;
@@ -1180,22 +1169,22 @@ s32 func_actor_511000_80133554(Task* task, s32 arg1, s32 msg)
 /// coordinate dirty.
 void func_actor_511000_801336E0(Task* task, SVECTOR* rots, SVECTOR* trans, s32 index)
 {
-    Actor511000Coord* coord;
-    SVECTOR*          rot;
-    SVECTOR*          pos;
-    s32               off;
+    GpCoordExt* coord;
+    SVECTOR*    rot;
+    SVECTOR*    pos;
+    s32         off;
 
-    off               = (index << 16) >> 13;
-    rot               = (SVECTOR*)(off + (s32)rots);
-    coord             = (Actor511000Coord*)((TmdObject*)task->extra)->coords;
-    coord->rot.vx     = rot->vx;
-    coord->rot.vy     = rot->vy;
-    pos               = (SVECTOR*)(off + (s32)trans);
-    coord->rot.vz     = rot->vz;
-    coord->coord.t[0] = pos->vx;
-    coord->coord.t[1] = pos->vy;
-    coord->coord.t[2] = pos->vz;
-    RotMatrix(&coord->rot, &coord->coord);
+    off                 = (index << 16) >> 13;
+    rot                 = (SVECTOR*)(off + (s32)rots);
+    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord->param.rot.vx = rot->vx;
+    coord->param.rot.vy = rot->vy;
+    pos                 = (SVECTOR*)(off + (s32)trans);
+    coord->param.rot.vz = rot->vz;
+    coord->coord.t[0]   = pos->vx;
+    coord->coord.t[1]   = pos->vy;
+    coord->coord.t[2]   = pos->vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg = 0;
 }
 
@@ -1205,16 +1194,16 @@ void func_actor_511000_801336E0(Task* task, SVECTOR* rots, SVECTOR* trans, s32 i
 /// marks the coordinate dirty.
 void func_actor_511000_80133760(Task* task)
 {
-    Actor511000Coord* coord;
+    GpCoordExt* coord;
 
-    coord             = (Actor511000Coord*)((TmdObject*)task->extra)->coords;
-    coord->coord.t[0] = D_actor_511000_80148FE4[task->spawnArg1].vx;
-    coord->coord.t[1] = D_actor_511000_80148FE4[task->spawnArg1].vy;
-    coord->coord.t[2] = D_actor_511000_80148FE4[task->spawnArg1].vz;
-    coord->rot.vx     = 0;
-    coord->rot.vy     = 0;
-    coord->rot.vz     = 0;
-    RotMatrix(&coord->rot, &coord->coord);
+    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0]   = D_actor_511000_80148FE4[task->spawnArg1].vx;
+    coord->coord.t[1]   = D_actor_511000_80148FE4[task->spawnArg1].vy;
+    coord->coord.t[2]   = D_actor_511000_80148FE4[task->spawnArg1].vz;
+    coord->param.rot.vx = 0;
+    coord->param.rot.vy = 0;
+    coord->param.rot.vz = 0;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg = 0;
 }
 

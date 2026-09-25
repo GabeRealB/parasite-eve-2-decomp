@@ -125,17 +125,6 @@ typedef struct Actor141000AnimPreset {
 } Actor141000AnimPreset;
 STATIC_ASSERT_SIZEOF(Actor141000AnimPreset, 0x14);
 
-/// `GsCOORDINATE2` at `TmdObject::coords` as the placement code uses it: the
-/// libgs `param` slot at 0x44 holds the Euler angles written there and then
-/// handed straight to `RotMatrix`.
-typedef struct Actor141000Coord {
-    /* 0x00 */ s32     flg;
-    /* 0x04 */ MATRIX  coord;
-    /* 0x24 */ MATRIX  workm;
-    /* 0x44 */ SVECTOR rot;
-} Actor141000Coord;
-STATIC_ASSERT_SIZEOF(Actor141000Coord, 0x4C);
-
 /// Optional start animation for the 0x7DD placement handler: the preset's
 /// `field_4` and the `field_43F` byte. Absent, the defaults are anim 10 (or 2
 /// once `field_4C8` is latched) and 1.
@@ -1030,14 +1019,14 @@ void func_actor_141000_80133A00(Task* arg0)
 /// `flg` so the world matrix is recomputed and advances the state.
 void func_actor_141000_80133A68(Task* task)
 {
-    Actor141000Work*  work;
-    Actor141000Coord* coord;
-    VECTOR            delta;
-    SVECTOR           dir;
-    SVECTOR           rot;
+    Actor141000Work* work;
+    GpCoordExt*      coord;
+    VECTOR           delta;
+    SVECTOR          dir;
+    SVECTOR          rot;
 
     work  = (Actor141000Work*)task->work;
-    coord = (Actor141000Coord*)((TmdObject*)task->extra)->coords;
+    coord = (GpCoordExt*)((TmdObject*)task->extra)->coords;
 
     delta.vx = work->target.vx - coord->coord.t[0];
     delta.vy = work->target.vy - coord->coord.t[1];
@@ -1048,10 +1037,10 @@ void func_actor_141000_80133A68(Task* task)
     rot.vy = ratan2(dir.vx, dir.vz);
     rot.vz = 0;
 
-    coord->rot.vx = rot.vx;
-    coord->rot.vy = rot.vy;
-    coord->rot.vz = rot.vz;
-    RotMatrix(&coord->rot, &coord->coord);
+    coord->param.rot.vx = rot.vx;
+    coord->param.rot.vy = rot.vy;
+    coord->param.rot.vz = rot.vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg = 0;
     work->field_4C2++;
 }
@@ -1183,16 +1172,16 @@ s32 func_actor_141000_80133CD8(Task* task, s32 arg1, Actor141000AnimPreset* msg,
 /// `flg` so the world matrix is recomputed.
 s32 func_actor_141000_80133E10(Task* task, s32 arg1, GpPlaceArg* args)
 {
-    Actor141000Coord* coord;
+    GpCoordExt* coord;
 
-    coord             = (Actor141000Coord*)((TmdObject*)task->extra)->coords;
-    coord->coord.t[0] = args->pos.vx;
-    coord->coord.t[1] = args->pos.vy;
-    coord->coord.t[2] = args->pos.vz;
-    coord->rot.vx     = args->rot.vx;
-    coord->rot.vy     = args->rot.vy;
-    coord->rot.vz     = args->rot.vz;
-    RotMatrix(&coord->rot, &coord->coord);
+    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0]   = args->pos.vx;
+    coord->coord.t[1]   = args->pos.vy;
+    coord->coord.t[2]   = args->pos.vz;
+    coord->param.rot.vx = args->rot.vx;
+    coord->param.rot.vy = args->rot.vy;
+    coord->param.rot.vz = args->rot.vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg = 0;
     return 0;
 }

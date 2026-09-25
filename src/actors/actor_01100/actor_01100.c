@@ -1806,12 +1806,12 @@ void Actor01100_Fn03740(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 /// 0xBA7 and the latch, ending the spin about.
 void Actor01100_Fn0389C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    GpCoordPose* pose;
-    s32          idx;
-    u32          rng;
-    u16          angle;
+    GpCoordExt* pose;
+    s32         idx;
+    u32         rng;
+    u16         angle;
 
-    pose = (GpCoordPose*)((TmdObject*)task->extra)->coords;
+    pose = (GpCoordExt*)((TmdObject*)task->extra)->coords;
     if (work->field_BA8 == 0) {
         rng         = Gp_LcgState * 5 + 0x71357911;
         Gp_LcgState = rng;
@@ -1833,14 +1833,14 @@ void Actor01100_Fn0389C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         work->field_BA8 = (u8)work->field_BA8 + 1;
     }
     if (work->field_B8C > 0) {
-        angle          = ((u16)pose->field_46 - 0x10) & 0xFFF;
-        pose->field_46 = angle;
+        angle              = ((u16)pose->param.rot.vy - 0x10) & 0xFFF;
+        pose->param.rot.vy = angle;
         Gfx_RotMatrixY(&pose->coord, angle, 1);
         pose->flg       = 0;
         work->field_B8C = (u16)work->field_B8C - 0x10;
     } else {
-        angle          = ((u16)pose->field_46 + 0x10) & 0xFFF;
-        pose->field_46 = angle;
+        angle              = ((u16)pose->param.rot.vy + 0x10) & 0xFFF;
+        pose->param.rot.vy = angle;
         Gfx_RotMatrixY(&pose->coord, angle, 1);
         pose->flg       = 0;
         work->field_B8C = (u16)work->field_B8C + 0x10;
@@ -2103,14 +2103,14 @@ void Actor01100_Fn03BAC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 
         yaw = work->field_B90;
         if (yaw >= 0x11) {
-            ((GpCoordPose*)self)->field_46 = (u16)((GpCoordPose*)self)->field_46 + 0x10;
+            ((GpCoordExt*)self)->param.rot.vy = (u16)((GpCoordExt*)self)->param.rot.vy + 0x10;
         } else if (yaw < -0x10) {
-            ((GpCoordPose*)self)->field_46 = (u16)((GpCoordPose*)self)->field_46 - 0x10;
+            ((GpCoordExt*)self)->param.rot.vy = (u16)((GpCoordExt*)self)->param.rot.vy - 0x10;
         } else {
-            ((GpCoordPose*)self)->field_46 = (u16)((GpCoordPose*)self)->field_46 + yaw;
+            ((GpCoordExt*)self)->param.rot.vy = (u16)((GpCoordExt*)self)->param.rot.vy + yaw;
         }
-        timer                          = (u16)((GpCoordPose*)self)->field_46 & 0xFFF;
-        ((GpCoordPose*)self)->field_46 = timer;
+        timer                             = (u16)((GpCoordExt*)self)->param.rot.vy & 0xFFF;
+        ((GpCoordExt*)self)->param.rot.vy = timer;
         Gfx_RotMatrixY(&self->coord, timer, 1);
         self->flg = 0;
 
@@ -2205,16 +2205,16 @@ void Actor01100_Fn041BC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     lt    = delta < 0x11;
     yaw   = ((TmdObject*)task->extra)->coords;
     if (lt == 0) {
-        angle = (u16)((GpCoordPose*)yaw)->field_46 + 0x10;
+        angle = (u16)((GpCoordExt*)yaw)->param.rot.vy + 0x10;
     } else if (delta < -0x10) {
-        angle = (u16)((GpCoordPose*)yaw)->field_46 - 0x10;
+        angle = (u16)((GpCoordExt*)yaw)->param.rot.vy - 0x10;
     } else {
-        angle = (u16)((GpCoordPose*)yaw)->field_46 + delta;
+        angle = (u16)((GpCoordExt*)yaw)->param.rot.vy + delta;
     }
-    ((GpCoordPose*)yaw)->field_46 = angle;
+    ((GpCoordExt*)yaw)->param.rot.vy = angle;
     SCHED_BARRIER();
-    angle                         = *(volatile u16*)&((GpCoordPose*)yaw)->field_46 & 0xFFF;
-    ((GpCoordPose*)yaw)->field_46 = angle;
+    angle                            = *(volatile u16*)&((GpCoordExt*)yaw)->param.rot.vy & 0xFFF;
+    ((GpCoordExt*)yaw)->param.rot.vy = angle;
     Gfx_RotMatrixY(&yaw->coord, angle, 1);
     yaw->flg = 0;
 
@@ -2305,7 +2305,7 @@ void Actor01100_Fn04410(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     GsCOORDINATE2* playerCoords;
     GsCOORDINATE2* actorPart;
     GsCOORDINATE2* playerPart;
-    GpCoordPose*   pose;
+    GpCoordExt*    pose;
     GpObj*         obj;
     GpAnimSlot*    slotA;
     GpAnimSlot*    slotB;
@@ -2358,16 +2358,16 @@ void Actor01100_Fn04410(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     work->field_B8C = (u16)work->field_B8C + 1;
     Actor01100_Fn039D0(enemy, task, work, arg);
     yaw  = work->field_B90;
-    pose = (GpCoordPose*)((TmdObject*)task->extra)->coords;
+    pose = (GpCoordExt*)((TmdObject*)task->extra)->coords;
     if (yaw >= 0x11) {
-        pose->field_46 = (u16)pose->field_46 + 0x10;
+        pose->param.rot.vy = (u16)pose->param.rot.vy + 0x10;
     } else if (yaw < -0x10) {
-        pose->field_46 = (u16)pose->field_46 - 0x10;
+        pose->param.rot.vy = (u16)pose->param.rot.vy - 0x10;
     } else {
-        pose->field_46 = (u16)pose->field_46 + yaw;
+        pose->param.rot.vy = (u16)pose->param.rot.vy + yaw;
     }
-    angle          = (u16)pose->field_46 & 0xFFF;
-    pose->field_46 = angle;
+    angle              = (u16)pose->param.rot.vy & 0xFFF;
+    pose->param.rot.vy = angle;
     Gfx_RotMatrixY(&pose->coord, angle, 1);
     pose->flg = 0;
     if (work->field_B8C == 0x16) {
@@ -2481,7 +2481,7 @@ void Actor01100_Fn048C8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     GsCOORDINATE2* playerCoords;
     GsCOORDINATE2* actorPart;
     GsCOORDINATE2* playerPart;
-    GpCoordPose*   pose;
+    GpCoordExt*    pose;
     GpObj*         obj;
     GpAnimSlot*    slotA;
     GpAnimSlot*    slotB;
@@ -2533,16 +2533,16 @@ void Actor01100_Fn048C8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     }
     Actor01100_Fn039D0(enemy, task, work, arg);
     yaw  = work->field_B90;
-    pose = (GpCoordPose*)((TmdObject*)task->extra)->coords;
+    pose = (GpCoordExt*)((TmdObject*)task->extra)->coords;
     if (yaw >= 0x11) {
-        pose->field_46 = (u16)pose->field_46 + 0x10;
+        pose->param.rot.vy = (u16)pose->param.rot.vy + 0x10;
     } else if (yaw < -0x10) {
-        pose->field_46 = (u16)pose->field_46 - 0x10;
+        pose->param.rot.vy = (u16)pose->param.rot.vy - 0x10;
     } else {
-        pose->field_46 = (u16)pose->field_46 + yaw;
+        pose->param.rot.vy = (u16)pose->param.rot.vy + yaw;
     }
-    angle          = (u16)pose->field_46 & 0xFFF;
-    pose->field_46 = angle;
+    angle              = (u16)pose->param.rot.vy & 0xFFF;
+    pose->param.rot.vy = angle;
     Gfx_RotMatrixY(&pose->coord, angle, 1);
     pose->flg       = 0;
     work->field_B8C = (u16)work->field_B8C + 1;
@@ -2862,7 +2862,7 @@ void Actor01100_Fn0516C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 {
     GsCOORDINATE2*              actorCoords;
     GsCOORDINATE2*              coords;
-    GpCoordPose*                pose;
+    GpCoordExt*                 pose;
     ActorsShared80138efcMotion* motion;
     s32                         dist;
     s32                         dist2;
@@ -2917,16 +2917,16 @@ void Actor01100_Fn0516C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     Actor01100_Fn039D0(enemy, task, work, arg);
     if ((u32)((u8)work->field_BAD - 1) < 0x2EU) {
         turn = work->field_B90;
-        pose = (GpCoordPose*)((TmdObject*)task->extra)->coords;
+        pose = (GpCoordExt*)((TmdObject*)task->extra)->coords;
         if (turn >= 0x11) {
-            pose->field_46 = (u16)pose->field_46 + 0x10;
+            pose->param.rot.vy = (u16)pose->param.rot.vy + 0x10;
         } else if (turn < -0x10) {
-            pose->field_46 = (u16)pose->field_46 - 0x10;
+            pose->param.rot.vy = (u16)pose->param.rot.vy - 0x10;
         } else {
-            pose->field_46 = (u16)pose->field_46 + turn;
+            pose->param.rot.vy = (u16)pose->param.rot.vy + turn;
         }
-        angle          = (u16)pose->field_46 & 0xFFF;
-        pose->field_46 = angle;
+        angle              = (u16)pose->param.rot.vy & 0xFFF;
+        pose->param.rot.vy = angle;
         Gfx_RotMatrixY(&pose->coord, angle, 1);
         pose->flg = 0;
         frame     = work->field_BAD;
@@ -3753,7 +3753,7 @@ s32 Actor01100_Fn06AC8(GsCOORDINATE2* arg0)
 ///
 /// Nothing in the entry calls it, so the argument types are the ones the body
 /// itself needs and no call site confirms them.
-void Actor01100_Fn06B6C(ActorsShared8013898cCoord* arg0, ActorsShared8013898cVec* arg1, s32 arg2)
+void Actor01100_Fn06B6C(GsCOORDINATE2* arg0, ActorsShared8013898cVec* arg1, s32 arg2)
 {
     if (D_80072729 == 0) {
         ACTOR_COPY_MATRIX_COLUMN_TO_SV(&arg0->coord, &arg1->vec, 4, 10, 16);

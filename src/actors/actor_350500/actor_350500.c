@@ -45,17 +45,6 @@ typedef struct Actor350500SpawnAnim {
     /* 0x04 */ u8  field_4;
 } Actor350500SpawnAnim;
 
-/// Overlay of the `GsCOORDINATE2` at `TmdObject::coords`, the actor's root
-/// part. Offset 0x44 (libgs `param`) holds the Euler angles the placement
-/// and face-the-target steps write and hand straight to `RotMatrix`.
-typedef struct Actor350500Coord {
-    /* 0x00 */ s32     flg;
-    /* 0x04 */ MATRIX  coord;
-    /* 0x24 */ MATRIX  workm;
-    /* 0x44 */ SVECTOR rot;
-} Actor350500Coord;
-STATIC_ASSERT_SIZEOF(Actor350500Coord, 0x4C);
-
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 /// Animation bank table the preset's bank index selects from.
@@ -348,14 +337,14 @@ void func_actor_350500_801624A0(Task* arg0)
 /// next step.
 void func_actor_350500_80162508(Task* task)
 {
-    Actor350500Work*  work;
-    Actor350500Coord* coord;
-    VECTOR            delta;
-    SVECTOR           dir;
-    SVECTOR           rot;
+    Actor350500Work* work;
+    GpCoordExt*      coord;
+    VECTOR           delta;
+    SVECTOR          dir;
+    SVECTOR          rot;
 
     work  = (Actor350500Work*)task->work;
-    coord = (Actor350500Coord*)((TmdObject*)task->extra)->coords;
+    coord = (GpCoordExt*)((TmdObject*)task->extra)->coords;
 
     delta.vx = work->target.vx - coord->coord.t[0];
     delta.vy = work->target.vy - coord->coord.t[1];
@@ -369,10 +358,10 @@ void func_actor_350500_80162508(Task* task)
         rot.vy += 0x7FF;
     }
 
-    coord->rot.vx = rot.vx;
-    coord->rot.vy = rot.vy;
-    coord->rot.vz = rot.vz;
-    RotMatrix(&coord->rot, &coord->coord);
+    coord->param.rot.vx = rot.vx;
+    coord->param.rot.vy = rot.vy;
+    coord->param.rot.vz = rot.vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg = 0;
     work->field_4C2++;
 }
@@ -499,16 +488,16 @@ s32 func_actor_350500_80162828(Task* task, s32 arg1, Actor350500AnimPreset* msg,
 /// clearing `flg` makes the world matrix be recomputed. Returns 0.
 s32 func_actor_350500_80162960(Task* task, s32 msgId, GpPlaceArg* args)
 {
-    Actor350500Coord* coord;
+    GpCoordExt* coord;
 
-    coord             = (Actor350500Coord*)((TmdObject*)task->extra)->coords;
-    coord->coord.t[0] = args->pos.vx;
-    coord->coord.t[1] = args->pos.vy;
-    coord->coord.t[2] = args->pos.vz;
-    coord->rot.vx     = args->rot.vx;
-    coord->rot.vy     = args->rot.vy;
-    coord->rot.vz     = args->rot.vz;
-    RotMatrix(&coord->rot, &coord->coord);
+    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0]   = args->pos.vx;
+    coord->coord.t[1]   = args->pos.vy;
+    coord->coord.t[2]   = args->pos.vz;
+    coord->param.rot.vx = args->rot.vx;
+    coord->param.rot.vy = args->rot.vy;
+    coord->param.rot.vz = args->rot.vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg = 0;
     return 0;
 }

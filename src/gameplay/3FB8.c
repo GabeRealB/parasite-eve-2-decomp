@@ -4596,11 +4596,11 @@ inline static Task* spawn_tmd_attach(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     if (task == NULL) {
         return NULL;
     }
-    task->parent    = (Task*)arg0;
-    coord           = (GpCoordExt*)((TmdObject*)task->extra)->coords;
-    coord->sub      = saved;
-    coord->field_44 = 0;
-    obj             = (TmdObject*)task->extra;
+    task->parent            = (Task*)arg0;
+    coord                   = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord->sub              = saved;
+    coord->param.clearFlags = 0;
+    obj                     = (TmdObject*)task->extra;
     if (actor->field_910 != NULL) {
         obj->tpage = 4;
         obj->clut  = 6;
@@ -4646,11 +4646,11 @@ inline static Task* spawn_attach(Task* parent, s32 row, s32 item)
     if (task == NULL) {
         return NULL;
     }
-    extra           = (TmdObject*)task->extra;
-    task->parent    = parent;
-    coord           = (GpCoordExt*)extra->coords;
-    coord->sub      = saved;
-    coord->field_44 = 1;
+    extra                   = (TmdObject*)task->extra;
+    task->parent            = parent;
+    coord                   = (GpCoordExt*)extra->coords;
+    coord->sub              = saved;
+    coord->param.clearFlags = 1;
     return task;
 }
 
@@ -5162,11 +5162,11 @@ Task* func_80104258(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     if (task == NULL) {
         return NULL;
     }
-    task->parent    = (Task*)arg0;
-    coord           = (GpCoordExt*)((TmdObject*)task->extra)->coords;
-    coord->sub      = saved;
-    coord->field_44 = 0;
-    obj             = (TmdObject*)task->extra;
+    task->parent            = (Task*)arg0;
+    coord                   = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord->sub              = saved;
+    coord->param.clearFlags = 0;
+    obj                     = (TmdObject*)task->extra;
     if (actor->field_910 != NULL) {
         obj->tpage = 4;
         obj->clut  = 6;
@@ -5196,11 +5196,11 @@ Task* func_80104364(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     if (task == NULL) {
         return NULL;
     }
-    extra           = (TmdObject*)task->extra;
-    task->parent    = (Task*)arg0;
-    coord           = (GpCoordExt*)extra->coords;
-    coord->sub      = saved;
-    coord->field_44 = 1;
+    extra                   = (TmdObject*)task->extra;
+    task->parent            = (Task*)arg0;
+    coord                   = (GpCoordExt*)extra->coords;
+    coord->sub              = saved;
+    coord->param.clearFlags = 1;
     return task;
 }
 
@@ -9488,7 +9488,7 @@ void func_8010B590(Task* arg0)
     coord = (GpCoordExt*)extra->coords;
     arg0->state++;
     coord->flg = 0;
-    if (coord->field_44 != 0) {
+    if (coord->param.clearFlags != 0) {
         extra->flags = 0;
     }
 }

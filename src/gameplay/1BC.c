@@ -2695,7 +2695,7 @@ void Gp_SpawnArea(GpAreaKey* arg0)
     GpEnemy*      enemy;
     Task*         task;
     TmdObject*    extra;
-    GpCoordPose*  coord;
+    GpCoordExt*   coord;
     u16           id;
     s32           packed;
     s32           fp;
@@ -2772,7 +2772,7 @@ void Gp_SpawnArea(GpAreaKey* arg0)
                         enemy->placeKey = f2;
                         if (task->spawnType != 0) {
                             extra = (TmdObject*)task->extra;
-                            coord = (GpCoordPose*)extra->coords;
+                            coord = (GpCoordExt*)extra->coords;
                             if (task->spawnType == 1) {
                                 extra->tpage = place->tpage;
                                 extra->clut  = place->clut;
@@ -2782,10 +2782,10 @@ void Gp_SpawnArea(GpAreaKey* arg0)
                                 }
                             }
                             if (!(obj->field_1 & 2)) {
-                                coord->coord.t[0] = place->x;
-                                coord->coord.t[1] = place->y;
-                                coord->coord.t[2] = place->z;
-                                coord->field_46   = place->yaw;
+                                coord->coord.t[0]   = place->x;
+                                coord->coord.t[1]   = place->y;
+                                coord->coord.t[2]   = place->z;
+                                coord->param.rot.vy = place->yaw;
                                 Gfx_RotMatrixY(&coord->coord, place->yaw, 1);
                             } else {
                                 McPosRec* rec;
@@ -2794,13 +2794,13 @@ void Gp_SpawnArea(GpAreaKey* arg0)
                                 i   = 0;
                                 do {
                                     if (rec->placeKey == enemy->placeKey) {
-                                        coord->coord.t[0] = rec->x;
-                                        coord->coord.t[1] = rec->y;
-                                        coord->coord.t[2] = rec->z;
-                                        coord->field_44   = rec->pitch << 8;
-                                        coord->field_46   = rec->yaw << 8;
-                                        coord->field_48   = rec->roll << 8;
-                                        RotMatrix_gte((SVECTOR*)&coord->field_44,
+                                        coord->coord.t[0]   = rec->x;
+                                        coord->coord.t[1]   = rec->y;
+                                        coord->coord.t[2]   = rec->z;
+                                        coord->param.rot.vx = rec->pitch << 8;
+                                        coord->param.rot.vy = rec->yaw << 8;
+                                        coord->param.rot.vz = rec->roll << 8;
+                                        RotMatrix_gte(&coord->param.rot,
                                                       &coord->coord);
                                         enemy->spawnState = rec->spawnState;
                                         break;
@@ -3669,22 +3669,22 @@ s32 Gp_LookupBit2Item(s32 arg0)
 
 void func_800B65B0(Task* task)
 {
-    GpPickupWork* work;
-    UiObjectDesc* desc;
-    UiObject*     ui;
-    UiObject*     spawned;
-    Task*         child;
-    GpCoordYaw*   coord;
-    PlayerPos*    p;
-    s32           temp;
-    s32           angle;
-    PlayerStatus* cfg;
-    McSaveData*   save;
-    s32           id;
-    s32           shift;
-    u32           mask;
-    u32*          flags;
-    u32*          current;
+    GpPickupWork*  work;
+    UiObjectDesc*  desc;
+    UiObject*      ui;
+    UiObject*      spawned;
+    Task*          child;
+    GsCOORDINATE2* coord;
+    PlayerPos*     p;
+    s32            temp;
+    s32            angle;
+    PlayerStatus*  cfg;
+    McSaveData*    save;
+    s32            id;
+    s32            shift;
+    u32            mask;
+    u32*           flags;
+    u32*           current;
 
     work = task->spawnArg2;
     if (task->state == 0) {
@@ -3701,13 +3701,13 @@ void func_800B65B0(Task* task)
                 desc = &D_8010F010;
                 break;
             case 8:
-                coord  = (GpCoordYaw*)((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
-                temp   = coord->field_18;
+                coord  = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
+                temp   = (u16)coord->coord.t[0];
                 p      = &Player_Status.pos;
                 p->x   = temp;
-                p->y   = coord->field_1C;
-                p->z   = coord->field_20;
-                angle  = ratan2(coord->field_8, coord->field_14);
+                p->y   = (u16)coord->coord.t[1];
+                p->z   = (u16)coord->coord.t[2];
+                angle  = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]);
                 p->yaw = angle;
                 if ((s16)angle >= 0x801) {
                     p->yaw = angle - 0x1000;
@@ -3803,7 +3803,7 @@ void Gp_SpawnPlaceById(u16 arg0)
     GpEnemy*             enemy;
     Task*                task;
     TmdObject*           extra;
-    GpCoordPlace*        coord;
+    GpCoordExt*          coord;
     u16                  term;
     s32                  id;
     u16                  recId;
@@ -3855,15 +3855,15 @@ void Gp_SpawnPlaceById(u16 arg0)
                         if (enemy != NULL) {
                             task = enemy->task;
                             if (task->spawnType != 0) {
-                                extra             = (TmdObject*)task->extra;
-                                coord             = (GpCoordPlace*)extra->coords;
-                                enemy->placeKey   = place->field_0 | (place->field_4 << 8);
-                                enemy->workType   = place->field_2;
-                                coord->coord.t[0] = place->field_8;
-                                coord->coord.t[1] = place->field_A;
-                                coord->coord.t[2] = place->field_C;
-                                coord->field_46   = place->field_E;
-                                if (coord->field_46 != 0) {
+                                extra               = (TmdObject*)task->extra;
+                                coord               = (GpCoordExt*)extra->coords;
+                                enemy->placeKey     = place->field_0 | (place->field_4 << 8);
+                                enemy->workType     = place->field_2;
+                                coord->coord.t[0]   = place->field_8;
+                                coord->coord.t[1]   = place->field_A;
+                                coord->coord.t[2]   = place->field_C;
+                                coord->param.rot.vy = place->field_E;
+                                if (coord->param.rot.vy != 0) {
                                     Gfx_RotMatrixY(&coord->coord, (s16)place->field_E, 1);
                                 }
                                 coord->flg = 0;
@@ -3890,7 +3890,7 @@ void Gp_SpawnPlaces(GpAreaKey* arg0)
     GpEnemy*      enemy;
     Task*         task;
     TmdObject*    extra;
-    GpCoordPlace* coord;
+    GpCoordExt*   coord;
     u16           term;
     u16           id;
 
@@ -3916,15 +3916,15 @@ void Gp_SpawnPlaces(GpAreaKey* arg0)
                     if (enemy != NULL) {
                         task = enemy->task;
                         if (task->spawnType != 0) {
-                            extra             = (TmdObject*)task->extra;
-                            coord             = (GpCoordPlace*)extra->coords;
-                            enemy->placeKey   = place->field_0 | (place->field_4 << 8);
-                            enemy->workType   = place->field_2;
-                            coord->coord.t[0] = place->field_8;
-                            coord->coord.t[1] = place->field_A;
-                            coord->coord.t[2] = place->field_C;
-                            coord->field_46   = place->field_E;
-                            if (coord->field_46 != 0) {
+                            extra               = (TmdObject*)task->extra;
+                            coord               = (GpCoordExt*)extra->coords;
+                            enemy->placeKey     = place->field_0 | (place->field_4 << 8);
+                            enemy->workType     = place->field_2;
+                            coord->coord.t[0]   = place->field_8;
+                            coord->coord.t[1]   = place->field_A;
+                            coord->coord.t[2]   = place->field_C;
+                            coord->param.rot.vy = place->field_E;
+                            if (coord->param.rot.vy != 0) {
                                 Gfx_RotMatrixY(&coord->coord, (s16)place->field_E, 1);
                             }
                             coord->flg = 0;

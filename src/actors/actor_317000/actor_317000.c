@@ -114,18 +114,6 @@ typedef struct Actor317000SpawnAnim {
 /// `func_actor_317000_80162624`) suggest a larger record, not a bank array.
 extern void* D_actor_317000_8016CF40[];
 
-/// Overlay of `GsCOORDINATE2` at `TmdObject::coords`. Offset 0x44 (libgs
-/// `param`) holds the facing `func_actor_317000_801620BC` derives from the
-/// actor's own and the slot 3 task's translation, the rotation `RotMatrix` is
-/// later rebuilt from, and where `func_actor_317000_80162B48` stores the
-/// placement's Euler angles before rebuilding the rotation from them.
-typedef struct Actor317000Coord {
-    /* 0x00 */ s32     flg;
-    /* 0x04 */ MATRIX  coord;
-    /* 0x24 */ MATRIX  workm;
-    /* 0x44 */ SVECTOR rot;
-} Actor317000Coord;
-
 /// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
 /// its halfword at 0x2 selects the mode the handler latches.
 typedef struct Actor317000Msg {
@@ -242,7 +230,7 @@ void func_actor_317000_80161E68(Task* task)
 /// Step handler at index 3 of `D_actor_317000_80161E30`. The actor's own coordinate and the `gameGetPtrSlot(3)` task's
 /// (the player) are normalised into `dir`, whose yaw `ratan2` takes over
 /// `dir.vz`, and the result is written as the roll/pitch-free facing
-/// `{ 0, yaw, 0 }` at `Actor317000Coord::rot`. The same yaw is then compared
+/// `{ 0, yaw, 0 }` at `GpCoordExt::param.rot`. The same yaw is then compared
 /// against the yaw `Gp_ExtractEuler` reads back out of the node's own matrix:
 /// when the two are within 0x40 (64 of 4096 units) the actor is facing its
 /// target already, which clears the work's dispatch index and its companion
@@ -250,19 +238,19 @@ void func_actor_317000_80161E68(Task* task)
 /// same 0x40 and `RotMatrix` rebuilds the node from the adjusted angles.
 void func_actor_317000_801620BC(Task* task)
 {
-    Actor317000Work*  work;
-    Actor317000Coord* coord;
-    Actor317000Coord* target;
-    VECTOR            delta;
-    SVECTOR           dir;
-    SVECTOR           rot;
-    SVECTOR           ang;
-    s16               diff;
-    s32               absDiff;
-    s32               y;
+    Actor317000Work* work;
+    GpCoordExt*      coord;
+    GpCoordExt*      target;
+    VECTOR           delta;
+    SVECTOR          dir;
+    SVECTOR          rot;
+    SVECTOR          ang;
+    s16              diff;
+    s32              absDiff;
+    s32              y;
 
-    coord  = (Actor317000Coord*)((TmdObject*)task->extra)->coords;
-    target = (Actor317000Coord*)((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
+    coord  = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    target = (GpCoordExt*)((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
     work   = (Actor317000Work*)task->work;
 
     delta.vx = target->coord.t[0] - coord->coord.t[0];
@@ -274,9 +262,9 @@ void func_actor_317000_801620BC(Task* task)
     rot.vy = ratan2(dir.vx, dir.vz);
     rot.vz = 0;
 
-    coord->rot.vx = rot.vx;
-    coord->rot.vy = rot.vy;
-    coord->rot.vz = rot.vz;
+    coord->param.rot.vx = rot.vx;
+    coord->param.rot.vy = rot.vy;
+    coord->param.rot.vz = rot.vz;
 
     Gp_ExtractEuler(&ang, &coord->coord);
     diff    = ratan2(dir.vx, dir.vz) - ang.vy;
@@ -682,20 +670,20 @@ s32 func_actor_317000_80162A10(Task* task, s32 arg1, Actor317000AnimPreset* msg,
 
 /// Message 0x7D4 handler of `D_actor_317000_8016CF50`: writes the payload's
 /// position into the root coordinate's translation and its Euler angles into
-/// `Actor317000Coord::rot`, rebuilds the rotation from them with `RotMatrix`
+/// `GpCoordExt::param.rot`, rebuilds the rotation from them with `RotMatrix`
 /// and clears `flg` so the world matrix is recomputed. Returns 0.
 s32 func_actor_317000_80162B48(Task* task, s32 arg1, GpPlaceArg* args)
 {
-    Actor317000Coord* coord;
+    GpCoordExt* coord;
 
-    coord             = (Actor317000Coord*)((TmdObject*)task->extra)->coords;
-    coord->coord.t[0] = args->pos.vx;
-    coord->coord.t[1] = args->pos.vy;
-    coord->coord.t[2] = args->pos.vz;
-    coord->rot.vx     = args->rot.vx;
-    coord->rot.vy     = args->rot.vy;
-    coord->rot.vz     = args->rot.vz;
-    RotMatrix(&coord->rot, &coord->coord);
+    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0]   = args->pos.vx;
+    coord->coord.t[1]   = args->pos.vy;
+    coord->coord.t[2]   = args->pos.vz;
+    coord->param.rot.vx = args->rot.vx;
+    coord->param.rot.vy = args->rot.vy;
+    coord->param.rot.vz = args->rot.vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg = 0;
     return 0;
 }

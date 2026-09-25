@@ -84,17 +84,6 @@ typedef struct Actor135600SpawnAnim {
     /* 0x04 */ u8  field_4;
 } Actor135600SpawnAnim;
 
-/// Overlay of the `GsCOORDINATE2` at `TmdObject::coords`, the actor's root
-/// part. Offset 0x44 (libgs `param`) holds the Euler angles the placement and
-/// turn-to-face handlers write and hand straight to `RotMatrix`.
-typedef struct Actor135600Coord {
-    /* 0x00 */ s32     flg;
-    /* 0x04 */ MATRIX  coord;
-    /* 0x24 */ MATRIX  workm;
-    /* 0x44 */ SVECTOR rot;
-} Actor135600Coord;
-STATIC_ASSERT_SIZEOF(Actor135600Coord, 0x4C);
-
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 void func_8004BFF8(s16 angle, MATRIX* matrix);
 
@@ -773,14 +762,14 @@ void func_actor_135600_80132E00(Task* task)
 /// rebuilding the local matrix from that yaw alone, then advances the step.
 void func_actor_135600_80132E68(Task* task)
 {
-    Actor135600Work*  work;
-    Actor135600Coord* coord;
-    VECTOR            delta;
-    SVECTOR           dir;
-    SVECTOR           rot;
+    Actor135600Work* work;
+    GpCoordExt*      coord;
+    VECTOR           delta;
+    SVECTOR          dir;
+    SVECTOR          rot;
 
     work  = (Actor135600Work*)task->work;
-    coord = (Actor135600Coord*)((TmdObject*)task->extra)->coords;
+    coord = (GpCoordExt*)((TmdObject*)task->extra)->coords;
 
     delta.vx = work->target.vx - coord->coord.t[0];
     delta.vy = work->target.vy - coord->coord.t[1];
@@ -791,10 +780,10 @@ void func_actor_135600_80132E68(Task* task)
     rot.vy = ratan2(dir.vx, dir.vz);
     rot.vz = 0;
 
-    coord->rot.vx = rot.vx;
-    coord->rot.vy = rot.vy;
-    coord->rot.vz = rot.vz;
-    RotMatrix(&coord->rot, &coord->coord);
+    coord->param.rot.vx = rot.vx;
+    coord->param.rot.vy = rot.vy;
+    coord->param.rot.vz = rot.vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg = 0;
     work->field_4FA++;
 }
@@ -911,16 +900,16 @@ s32 func_actor_135600_801330A8(Task* task, s32 msgId, Actor135600AnimPreset* msg
 /// Returns 0.
 s32 func_actor_135600_801331C4(Task* task, s32 msgId, GpPlaceArg* args, s32 arg3)
 {
-    Actor135600Coord* coord;
+    GpCoordExt* coord;
 
-    coord             = (Actor135600Coord*)((TmdObject*)task->extra)->coords;
-    coord->coord.t[0] = args->pos.vx;
-    coord->coord.t[1] = args->pos.vy;
-    coord->coord.t[2] = args->pos.vz;
-    coord->rot.vx     = args->rot.vx;
-    coord->rot.vy     = args->rot.vy;
-    coord->rot.vz     = args->rot.vz;
-    RotMatrix(&coord->rot, &coord->coord);
+    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0]   = args->pos.vx;
+    coord->coord.t[1]   = args->pos.vy;
+    coord->coord.t[2]   = args->pos.vz;
+    coord->param.rot.vx = args->rot.vx;
+    coord->param.rot.vy = args->rot.vy;
+    coord->param.rot.vz = args->rot.vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg = 0;
     return 0;
 }

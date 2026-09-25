@@ -116,35 +116,6 @@ typedef struct _GpEnemyPlace {
 } GpEnemyPlace;
 STATIC_ASSERT_SIZEOF(GpEnemyPlace, 0x10);
 
-/// Overlay of `GsCOORDINATE2` at `TmdObject.coords` used by `Gp_SpawnAtPlace`.
-/// `coord` is `GsCOORDINATE2.coord` (`Gfx_RotMatrixY` / `t[0..2]`); `field_46`
-/// is the yaw halfword next to `param`.
-typedef struct _GpCoordPlace {
-    /* 0x00 */ s32    flg;
-    /* 0x04 */ MATRIX coord;
-    /* 0x24 */ byte   pad_24[0x22];
-    /* 0x46 */ s16    field_46;
-} GpCoordPlace;
-STATIC_ASSERT_SIZEOF(GpCoordPlace, 0x48);
-
-/// Overlay of `GsCOORDINATE2` at `TmdObject.coords` used by `Gp_SavePlayerPos`.
-/// field_8 / field_14 are `coord.m[0][2]` / `coord.m[2][2]` (`lh` into
-/// `ratan2`); field_18 / field_1C / field_20 are the low 16 bits of
-/// `coord.t[0..2]` (`lhu`).
-typedef struct _GpCoordYaw {
-    /* 0x00 */ byte pad_0[8];
-    /* 0x08 */ s16  field_8;
-    /* 0x0A */ byte pad_A[0xA];
-    /* 0x14 */ s16  field_14;
-    /* 0x16 */ byte pad_16[2];
-    /* 0x18 */ u16  field_18;
-    /* 0x1A */ byte pad_1A[2];
-    /* 0x1C */ u16  field_1C;
-    /* 0x1E */ byte pad_1E[2];
-    /* 0x20 */ u16  field_20;
-} GpCoordYaw;
-STATIC_ASSERT_SIZEOF(GpCoordYaw, 0x22);
-
 /// 8-byte item attribute row. `Gp_ItemAttrs` is indexed by raw item id
 /// (`Gp_GetModLevel`); ids 0x60–0x7F land in the `Gp_ModStatAttrs` slice.
 /// field_4 is the unsigned bonus added to `Player_Status.hpMax` by

@@ -208,12 +208,12 @@ void func_tonfa_baton_8011DA48(Task* arg0)
 void func_tonfa_baton_8011DA74(Task* arg0)
 {
     TmdObject*  extra;
-    TonfaCoord* coord;
+    GpCoordExt* coord;
     GameActor*  actor;
     s32         mode;
 
     extra        = (TmdObject*)arg0->extra;
-    coord        = (TonfaCoord*)extra->coords;
+    coord        = (GpCoordExt*)extra->coords;
     actor        = gameGetPtrSlot(3)->work;
     coord->flg   = 0;
     extra->flags = ((TmdObject*)(gameGetPtrSlot(3))->extra)->flags;
@@ -229,17 +229,17 @@ void func_tonfa_baton_8011DA74(Task* arg0)
     mode = arg0->spawnArg1 & 0xF;
     switch (mode) {
         case 0:
-            if (coord->angle > 0) {
-                coord->angle = coord->angle - 0x100;
+            if (coord->param.rot.vz > 0) {
+                coord->param.rot.vz = coord->param.rot.vz - 0x100;
             }
             break;
         case 1:
-            if (coord->angle < 0x800) {
-                coord->angle = coord->angle + 0x1C0;
+            if (coord->param.rot.vz < 0x800) {
+                coord->param.rot.vz = coord->param.rot.vz + 0x1C0;
             }
             break;
     }
-    Gfx_RotMatrixZ(&coord->coord, coord->angle, 1);
+    Gfx_RotMatrixZ(&coord->coord, coord->param.rot.vz, 1);
 }
 
 void func_tonfa_baton_8011DB6C(Task* arg0)

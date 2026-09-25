@@ -58,16 +58,6 @@ typedef struct Actor120400MainWork {
 } Actor120400MainWork;
 STATIC_ASSERT_SIZEOF(Actor120400MainWork, 0x504);
 
-/// The `GsCOORDINATE2` at `TmdObject::coords` seen with the Euler angles libgs
-/// keeps in `param` at 0x44: the actor hands those straight to `RotMatrix`.
-typedef struct Actor120400Coord {
-    /* 0x00 */ s32     flg;
-    /* 0x04 */ MATRIX  coord;
-    /* 0x24 */ MATRIX  workm;
-    /* 0x44 */ SVECTOR rot;
-} Actor120400Coord;
-STATIC_ASSERT_SIZEOF(Actor120400Coord, 0x4C);
-
 /// Animation source indexed by the bank id the presets latch:
 /// `D_actor_120400_8013E744[work->field_476]` is the bank handed to
 /// `func_800B3F84`.
@@ -531,13 +521,13 @@ void func_actor_120400_801327F8(Task* task)
 void func_actor_120400_80132860(Task* task)
 {
     Actor120400MainWork* work;
-    Actor120400Coord*    coord;
+    GpCoordExt*          coord;
     VECTOR               delta;
     SVECTOR              dir;
     SVECTOR              rot;
 
     work  = (Actor120400MainWork*)task->work;
-    coord = (Actor120400Coord*)((TmdObject*)task->extra)->coords;
+    coord = (GpCoordExt*)((TmdObject*)task->extra)->coords;
 
     delta.vx = work->target.vx - coord->coord.t[0];
     delta.vy = work->target.vy - coord->coord.t[1];
@@ -548,10 +538,10 @@ void func_actor_120400_80132860(Task* task)
     rot.vy = ratan2(dir.vx, dir.vz);
     rot.vz = 0;
 
-    coord->rot.vx = rot.vx;
-    coord->rot.vy = rot.vy;
-    coord->rot.vz = rot.vz;
-    RotMatrix(&coord->rot, &coord->coord);
+    coord->param.rot.vx = rot.vx;
+    coord->param.rot.vy = rot.vy;
+    coord->param.rot.vz = rot.vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg = 0;
     work->field_4FA++;
 }
@@ -668,16 +658,16 @@ s32 func_actor_120400_80132AA0(Task* task, s32 arg1, Actor120400AnimPreset* msg,
 /// `flg` so the world matrix is recomputed. Returns 0.
 s32 func_actor_120400_80132BBC(Task* task, s32 arg1, GpPlaceArg* args)
 {
-    Actor120400Coord* coord;
+    GpCoordExt* coord;
 
-    coord             = (Actor120400Coord*)((TmdObject*)task->extra)->coords;
-    coord->coord.t[0] = args->pos.vx;
-    coord->coord.t[1] = args->pos.vy;
-    coord->coord.t[2] = args->pos.vz;
-    coord->rot.vx     = args->rot.vx;
-    coord->rot.vy     = args->rot.vy;
-    coord->rot.vz     = args->rot.vz;
-    RotMatrix(&coord->rot, &coord->coord);
+    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0]   = args->pos.vx;
+    coord->coord.t[1]   = args->pos.vy;
+    coord->coord.t[2]   = args->pos.vz;
+    coord->param.rot.vx = args->rot.vx;
+    coord->param.rot.vy = args->rot.vy;
+    coord->param.rot.vz = args->rot.vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg = 0;
     return 0;
 }

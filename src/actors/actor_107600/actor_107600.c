@@ -553,7 +553,7 @@ void func_actor_107600_801328CC(Task* arg0)
 void func_actor_107600_80132930(Task* arg0)
 {
     TmdObject*       ext      = arg0->extra;
-    GpCoordPose*     coord    = (GpCoordPose*)ext->coords;
+    GpCoordExt*      coord    = (GpCoordExt*)ext->coords;
     Actor107600Work* work     = (Actor107600Work*)arg0->work;
     TaskFunc         funcs[2] = { (TaskFunc)func_actor_107600_80132CB8, func_actor_107600_80132CD4 };
     TmdObject*       obj;
@@ -562,9 +562,9 @@ void func_actor_107600_80132930(Task* arg0)
     switch (Gp_StateF0.field_4) {
         case 0:
             funcs[(s16)work->field_13E](arg0);
-            coord->field_46 = work->yaw;
-            coord->field_48 = work->roll;
-            coord->flg      = 0;
+            coord->param.rot.vy = work->yaw;
+            coord->param.rot.vz = work->roll;
+            coord->flg          = 0;
             func_actor_107600_80132B7C(arg0);
             coord->coord.m[1][1] = work->field_14B * (coord->coord.m[1][1] / 100);
         case 1:
@@ -1132,8 +1132,8 @@ void func_actor_107600_801339A4(Task* arg0)
             }
             pan = (s8)Gp_GetObjPan(obj);
             SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(obj));
-            work->field_52 = ((GpCoordExt*)obj->sub)->field_46;
-            work->field_54 = ((GpCoordExt*)obj->sub)->field_48;
+            work->field_52 = ((GpCoordExt*)obj->sub)->param.rot.vy;
+            work->field_54 = ((GpCoordExt*)obj->sub)->param.rot.vz;
             Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
             x              = (Gp_LcgState >> 16) & 0x7F;
             work->field_58 = x;

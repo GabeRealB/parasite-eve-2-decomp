@@ -284,16 +284,16 @@ s32 func_actor_113000_80132208(Task* task, s32 msgId, Actor113000AnimPreset* msg
 /// the world matrix is recomputed. Returns 0.
 s32 func_actor_113000_8013231C(Task* task, s32 arg1, GpPlaceArg* args)
 {
-    ActorsShared8013231cCoord* coord;
+    GpCoordExt* coord;
 
-    coord             = (ActorsShared8013231cCoord*)((TmdObject*)task->extra)->coords;
-    coord->coord.t[0] = args->pos.vx;
-    coord->coord.t[1] = args->pos.vy;
-    coord->coord.t[2] = args->pos.vz;
-    coord->rot.vx     = args->rot.vx;
-    coord->rot.vy     = args->rot.vy;
-    coord->rot.vz     = args->rot.vz;
-    RotMatrix(&coord->rot, &coord->coord);
+    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0]   = args->pos.vx;
+    coord->coord.t[1]   = args->pos.vy;
+    coord->coord.t[2]   = args->pos.vz;
+    coord->param.rot.vx = args->rot.vx;
+    coord->param.rot.vy = args->rot.vy;
+    coord->param.rot.vz = args->rot.vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg = 0;
     return 0;
 }

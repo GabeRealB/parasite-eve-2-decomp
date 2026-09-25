@@ -65,17 +65,6 @@ typedef struct _Actor210700Anim {
 } Actor210700Anim;
 STATIC_ASSERT_SIZEOF(Actor210700Anim, 0x18);
 
-/// The model's root `GsCOORDINATE2` as the placement handler uses it: the
-/// Euler angles are kept in the libgs `param` slot and handed straight to
-/// `RotMatrix`.
-typedef struct Actor210700Coord {
-    /* 0x00 */ s32     flg;
-    /* 0x04 */ MATRIX  coord;
-    /* 0x24 */ MATRIX  workm;
-    /* 0x44 */ SVECTOR rot;
-} Actor210700Coord;
-STATIC_ASSERT_SIZEOF(Actor210700Coord, 0x4C);
-
 /// Animation sources the 0x7D3 handler loads, indexed by its payload's
 /// `field_0`.
 extern void* D_actor_210700_801585C8[];
@@ -314,18 +303,18 @@ s32 func_actor_210700_8014A224(Task* task, s32 arg1, Actor210700Anim* msg, s32 a
 /// show the model. Always returns 0.
 s32 func_actor_210700_8014A344(Task* task, s32 arg1, GpPlaceArg* args, s32 arg3)
 {
-    Actor210700Coord* coord;
-    TmdObject*        extra;
+    GpCoordExt* coord;
+    TmdObject*  extra;
 
-    extra             = (TmdObject*)task->extra;
-    coord             = (Actor210700Coord*)extra->coords;
-    coord->coord.t[0] = args->pos.vx;
-    coord->coord.t[1] = args->pos.vy;
-    coord->coord.t[2] = args->pos.vz;
-    coord->rot.vx     = args->rot.vx;
-    coord->rot.vy     = args->rot.vy;
-    coord->rot.vz     = args->rot.vz;
-    RotMatrix(&coord->rot, &coord->coord);
+    extra               = (TmdObject*)task->extra;
+    coord               = (GpCoordExt*)extra->coords;
+    coord->coord.t[0]   = args->pos.vx;
+    coord->coord.t[1]   = args->pos.vy;
+    coord->coord.t[2]   = args->pos.vz;
+    coord->param.rot.vx = args->rot.vx;
+    coord->param.rot.vy = args->rot.vy;
+    coord->param.rot.vz = args->rot.vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg    = 0;
     extra->flags &= 0xFF7F;
     return 0;

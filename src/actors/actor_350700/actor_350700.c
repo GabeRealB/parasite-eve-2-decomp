@@ -38,17 +38,6 @@ typedef struct Actor350700SpawnAnim {
     /* 0x04 */ u8  field_4;
 } Actor350700SpawnAnim;
 
-/// Overlay of the `GsCOORDINATE2` at `TmdObject::coords`, the actor's root
-/// part. Offset 0x44 (libgs `param`) holds the Euler angles the two
-/// face-the-target steps write and hand straight to `RotMatrix`.
-typedef struct Actor350700Coord {
-    /* 0x00 */ s32     flg;
-    /* 0x04 */ MATRIX  coord;
-    /* 0x24 */ MATRIX  workm;
-    /* 0x44 */ SVECTOR rot;
-} Actor350700Coord;
-STATIC_ASSERT_SIZEOF(Actor350700Coord, 0x4C);
-
 /// Payload of the two-case message handler `func_actor_350700_80162AF4`:
 /// only the halfword at 0x2 is read, selecting the variant it latches into
 /// `Actor350500Work::field_4C4`.
@@ -451,14 +440,14 @@ void func_actor_350700_801624D8(Task* arg0)
 /// bumping `field_4C2` moves on to the next handler.
 void func_actor_350700_80162540(Task* task)
 {
-    Actor350500Work*  work;
-    Actor350700Coord* coord;
-    VECTOR            delta;
-    SVECTOR           dir;
-    SVECTOR           rot;
+    Actor350500Work* work;
+    GpCoordExt*      coord;
+    VECTOR           delta;
+    SVECTOR          dir;
+    SVECTOR          rot;
 
     work  = (Actor350500Work*)task->work;
-    coord = (Actor350700Coord*)((TmdObject*)task->extra)->coords;
+    coord = (GpCoordExt*)((TmdObject*)task->extra)->coords;
 
     delta.vx = work->target.vx - coord->coord.t[0];
     delta.vy = work->target.vy - coord->coord.t[1];
@@ -472,10 +461,10 @@ void func_actor_350700_80162540(Task* task)
         rot.vy += 0x7FF;
     }
 
-    coord->rot.vx = rot.vx;
-    coord->rot.vy = rot.vy;
-    coord->rot.vz = rot.vz;
-    RotMatrix(&coord->rot, &coord->coord);
+    coord->param.rot.vx = rot.vx;
+    coord->param.rot.vy = rot.vy;
+    coord->param.rot.vz = rot.vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg = 0;
     work->field_4C2++;
 }
@@ -608,16 +597,16 @@ s32 func_actor_350700_80162860(Task* task, s32 arg1, Actor350700AnimPreset* msg,
 /// rotation; clearing `flg` makes the world matrix be recomputed. Returns 0.
 s32 func_actor_350700_80162998(Task* task, s32 msgId, GpPlaceArg* args)
 {
-    Actor350700Coord* coord;
+    GpCoordExt* coord;
 
-    coord             = (Actor350700Coord*)((TmdObject*)task->extra)->coords;
-    coord->coord.t[0] = args->pos.vx;
-    coord->coord.t[1] = args->pos.vy;
-    coord->coord.t[2] = args->pos.vz;
-    coord->rot.vx     = args->rot.vx;
-    coord->rot.vy     = args->rot.vy;
-    coord->rot.vz     = args->rot.vz;
-    RotMatrix(&coord->rot, &coord->coord);
+    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0]   = args->pos.vx;
+    coord->coord.t[1]   = args->pos.vy;
+    coord->coord.t[2]   = args->pos.vz;
+    coord->param.rot.vx = args->rot.vx;
+    coord->param.rot.vy = args->rot.vy;
+    coord->param.rot.vz = args->rot.vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg = 0;
     return 0;
 }
@@ -1043,13 +1032,13 @@ void func_actor_350700_80163400(Task* task)
 void func_actor_350700_80163468(Task* task)
 {
     Actor350700MainWork* work;
-    Actor350700Coord*    coord;
+    GpCoordExt*          coord;
     VECTOR               delta;
     SVECTOR              dir;
     SVECTOR              rot;
 
     work  = (Actor350700MainWork*)task->work;
-    coord = (Actor350700Coord*)((TmdObject*)task->extra)->coords;
+    coord = (GpCoordExt*)((TmdObject*)task->extra)->coords;
 
     delta.vx = work->target.vx - coord->coord.t[0];
     delta.vy = work->target.vy - coord->coord.t[1];
@@ -1060,10 +1049,10 @@ void func_actor_350700_80163468(Task* task)
     rot.vy = ratan2(dir.vx, dir.vz);
     rot.vz = 0;
 
-    coord->rot.vx = rot.vx;
-    coord->rot.vy = rot.vy;
-    coord->rot.vz = rot.vz;
-    RotMatrix(&coord->rot, &coord->coord);
+    coord->param.rot.vx = rot.vx;
+    coord->param.rot.vy = rot.vy;
+    coord->param.rot.vz = rot.vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg = 0;
     work->field_4FA++;
 }
@@ -1182,16 +1171,16 @@ s32 func_actor_350700_801636A8(Task* task, s32 arg1, Actor350700AnimPreset* msg,
 /// Returns 0.
 s32 func_actor_350700_801637C4(Task* task, s32 msgId, GpPlaceArg* args)
 {
-    Actor350700Coord* coord;
+    GpCoordExt* coord;
 
-    coord             = (Actor350700Coord*)((TmdObject*)task->extra)->coords;
-    coord->coord.t[0] = args->pos.vx;
-    coord->coord.t[1] = args->pos.vy;
-    coord->coord.t[2] = args->pos.vz;
-    coord->rot.vx     = args->rot.vx;
-    coord->rot.vy     = args->rot.vy;
-    coord->rot.vz     = args->rot.vz;
-    RotMatrix(&coord->rot, &coord->coord);
+    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0]   = args->pos.vx;
+    coord->coord.t[1]   = args->pos.vy;
+    coord->coord.t[2]   = args->pos.vz;
+    coord->param.rot.vx = args->rot.vx;
+    coord->param.rot.vy = args->rot.vy;
+    coord->param.rot.vz = args->rot.vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg = 0;
     return 0;
 }

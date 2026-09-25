@@ -99,18 +99,6 @@ typedef struct Actor361100AnimPreset {
 } Actor361100AnimPreset;
 STATIC_ASSERT_SIZEOF(Actor361100AnimPreset, 0x10);
 
-/// Overlay of `GsCOORDINATE2` at `TmdObject::coords`. Offset 0x44 (libgs's
-/// `param`, with `super` at 0x48) holds the Euler angles the code writes and
-/// then hands straight to the rotation builder, so the angles live in the
-/// coordinate itself.
-typedef struct Actor361100Coord {
-    /* 0x00 */ s32     flg;
-    /* 0x04 */ MATRIX  coord;
-    /* 0x24 */ MATRIX  workm;
-    /* 0x44 */ SVECTOR rot;
-} Actor361100Coord;
-STATIC_ASSERT_SIZEOF(Actor361100Coord, 0x4C);
-
 /// State block `func_actor_361100_80161E3C` allocates with `memCalloc(0xE8)`
 /// and parks in `Task::work` -- that slot is not a `TaskIdMap` here. The body
 /// seeds the two halfwords at `field_8E` / `field_E0` and then hands the block
@@ -848,12 +836,12 @@ void func_actor_361100_80162CBC(Task* task)
 /// `func_actor_361100_80162DE4` if the allocation fails.
 void func_actor_361100_80162D28(Task* arg0)
 {
-    Actor361100Work*  work;
-    Actor361100Coord* coord;
-    GpEnemy*          enemy;
+    Actor361100Work* work;
+    GpCoordExt*      coord;
+    GpEnemy*         enemy;
 
     enemy = arg0->spawnArg2;
-    coord = (Actor361100Coord*)((TmdObject*)arg0->extra)->coords;
+    coord = (GpCoordExt*)((TmdObject*)arg0->extra)->coords;
 
     work = (Actor361100Work*)memCalloc(sizeof(Actor361100Work), false);
     if (work == NULL) {
@@ -950,18 +938,18 @@ s32 func_actor_361100_80162E20(Task* task, s32 arg1, Actor361100AnimPreset* msg)
 /// block's two vector accumulators.
 s32 func_actor_361100_80162F58(Task* task, s32 arg1, GpPlaceArg* placement)
 {
-    Actor361100Coord* coord;
-    Actor361100Work*  work;
+    GpCoordExt*      coord;
+    Actor361100Work* work;
 
-    work              = (Actor361100Work*)task->work;
-    coord             = (Actor361100Coord*)((TmdObject*)task->extra)->coords;
-    coord->coord.t[0] = placement->pos.vx;
-    coord->coord.t[1] = placement->pos.vy;
-    coord->coord.t[2] = placement->pos.vz;
-    coord->rot.vx     = placement->rot.vx;
-    coord->rot.vy     = placement->rot.vy;
-    coord->rot.vz     = placement->rot.vz;
-    RotMatrixZYX(&coord->rot, &coord->coord);
+    work                = (Actor361100Work*)task->work;
+    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0]   = placement->pos.vx;
+    coord->coord.t[1]   = placement->pos.vy;
+    coord->coord.t[2]   = placement->pos.vz;
+    coord->param.rot.vx = placement->rot.vx;
+    coord->param.rot.vy = placement->rot.vy;
+    coord->param.rot.vz = placement->rot.vz;
+    RotMatrixZYX(&coord->param.rot, &coord->coord);
     coord->flg      = 0;
     work->field_480 = 0;
     work->field_484 = 0;
@@ -1199,16 +1187,16 @@ s32 func_actor_361100_801634D0(Task* task, s32 arg1, Actor361100AnimPreset* msg)
 /// is recomputed.
 s32 func_actor_361100_801635F4(Task* task, s32 arg1, GpPlaceArg* placement)
 {
-    Actor361100Coord* coord;
+    GpCoordExt* coord;
 
-    coord             = (Actor361100Coord*)((TmdObject*)task->extra)->coords;
-    coord->coord.t[0] = placement->pos.vx;
-    coord->coord.t[1] = placement->pos.vy;
-    coord->coord.t[2] = placement->pos.vz;
-    coord->rot.vx     = placement->rot.vx;
-    coord->rot.vy     = placement->rot.vy;
-    coord->rot.vz     = placement->rot.vz;
-    RotMatrix(&coord->rot, &coord->coord);
+    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0]   = placement->pos.vx;
+    coord->coord.t[1]   = placement->pos.vy;
+    coord->coord.t[2]   = placement->pos.vz;
+    coord->param.rot.vx = placement->rot.vx;
+    coord->param.rot.vy = placement->rot.vy;
+    coord->param.rot.vz = placement->rot.vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg = 0;
     return 0;
 }

@@ -63,18 +63,6 @@ typedef struct Actor213000AnimPreset {
 } Actor213000AnimPreset;
 STATIC_ASSERT_SIZEOF(Actor213000AnimPreset, 0x10);
 
-/// `GsCOORDINATE2` as this actor uses it: the libgs `param` slot at 0x44 holds
-/// the Euler angles the placement handler writes there and then hands straight
-/// to `RotMatrix`.
-typedef struct Actor213000Coord {
-    /* 0x00 */ s32            flg;
-    /* 0x04 */ MATRIX         coord;
-    /* 0x24 */ MATRIX         workm;
-    /* 0x44 */ SVECTOR        rot;
-    /* 0x4C */ GsCOORDINATE2* sub;
-} Actor213000Coord;
-STATIC_ASSERT_SIZEOF(Actor213000Coord, 0x50);
-
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
@@ -332,28 +320,28 @@ void func_actor_213000_8014A2C4(Task* task)
 /// the task under the parent and steps to the tick state.
 void func_actor_213000_8014A35C(Task* task)
 {
-    Task*             parent;
-    TmdObject*        obj;
-    TmdObject*        parentObj;
-    Actor213000Coord* coords;
-    Actor213000Coord* root;
-    s32               i;
-    u16               flags;
+    Task*       parent;
+    TmdObject*  obj;
+    TmdObject*  parentObj;
+    GpCoordExt* coords;
+    GpCoordExt* root;
+    s32         i;
+    u16         flags;
 
     parent    = task->spawnArg2;
     obj       = task->extra;
     parentObj = parent->extra;
     for (i = 0; i < 3; i++) {
-        coords           = &((Actor213000Coord*)((TmdObject*)parent->extra)->coords)[i + 9];
-        root             = &((Actor213000Coord*)((TmdObject*)task->extra)->coords)[i];
-        root->sub        = (GsCOORDINATE2*)coords;
-        root->coord.t[0] = 0;
-        root->coord.t[1] = 0;
-        root->coord.t[2] = 0;
-        root->rot.vx     = 0;
-        root->rot.vy     = 0;
-        root->rot.vz     = 0;
-        root->flg        = 0;
+        coords             = &((GpCoordExt*)((TmdObject*)parent->extra)->coords)[i + 9];
+        root               = &((GpCoordExt*)((TmdObject*)task->extra)->coords)[i];
+        root->sub          = (GsCOORDINATE2*)coords;
+        root->coord.t[0]   = 0;
+        root->coord.t[1]   = 0;
+        root->coord.t[2]   = 0;
+        root->param.rot.vx = 0;
+        root->param.rot.vy = 0;
+        root->param.rot.vz = 0;
+        root->flg          = 0;
     }
     obj->lightMtx = parentObj->lightMtx;
     obj->colorMtx = parentObj->colorMtx;
@@ -529,16 +517,16 @@ s32 func_actor_213000_8014A70C(Task* task, s32 arg1, Actor213000AnimPreset* msg)
 /// rebuilt. Clearing `flg` has the world matrix recomputed. Returns 0.
 s32 func_actor_213000_8014A828(Task* task, s32 arg1, GpPlaceArg* args)
 {
-    Actor213000Coord* coord;
+    GpCoordExt* coord;
 
-    coord             = (Actor213000Coord*)((TmdObject*)task->extra)->coords;
-    coord->coord.t[0] = args->pos.vx;
-    coord->coord.t[1] = args->pos.vy;
-    coord->coord.t[2] = args->pos.vz;
-    coord->rot.vx     = args->rot.vx;
-    coord->rot.vy     = args->rot.vy;
-    coord->rot.vz     = args->rot.vz;
-    RotMatrix(&coord->rot, &coord->coord);
+    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0]   = args->pos.vx;
+    coord->coord.t[1]   = args->pos.vy;
+    coord->coord.t[2]   = args->pos.vz;
+    coord->param.rot.vx = args->rot.vx;
+    coord->param.rot.vy = args->rot.vy;
+    coord->param.rot.vz = args->rot.vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg = 0;
     return 0;
 }

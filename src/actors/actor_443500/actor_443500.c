@@ -52,16 +52,6 @@ typedef struct Actor443500Work {
 } Actor443500Work;
 STATIC_ASSERT_SIZEOF(Actor443500Work, 0x4C4);
 
-/// `GsCOORDINATE2` at `TmdObject::coords`, with the Euler angles kept in the
-/// slot libgs names `param` (0x44), from which the rotation is rebuilt.
-typedef struct Actor443500Coord {
-    /* 0x00 */ s32     flg;
-    /* 0x04 */ MATRIX  coord;
-    /* 0x24 */ MATRIX  workm;
-    /* 0x44 */ SVECTOR rot;
-} Actor443500Coord;
-STATIC_ASSERT_SIZEOF(Actor443500Coord, 0x4C);
-
 /// Position triple in this actor's layout table; 8 bytes with a trailing pad.
 typedef struct {
     s16 x;
@@ -517,16 +507,16 @@ s32 func_actor_443500_801327E0(Task* task, s32 anim, GpAnimArg* params, s32 arg3
 /// has the world matrix recomputed. Returns 0.
 s32 func_actor_443500_80132900(Task* task, s32 arg1, GpPlaceArg* args)
 {
-    Actor443500Coord* coord;
+    GpCoordExt* coord;
 
-    coord             = (Actor443500Coord*)((TmdObject*)task->extra)->coords;
-    coord->coord.t[0] = args->pos.vx;
-    coord->coord.t[1] = args->pos.vy;
-    coord->coord.t[2] = args->pos.vz;
-    coord->rot.vx     = args->rot.vx;
-    coord->rot.vy     = args->rot.vy;
-    coord->rot.vz     = args->rot.vz;
-    RotMatrix(&coord->rot, &coord->coord);
+    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0]   = args->pos.vx;
+    coord->coord.t[1]   = args->pos.vy;
+    coord->coord.t[2]   = args->pos.vz;
+    coord->param.rot.vx = args->rot.vx;
+    coord->param.rot.vy = args->rot.vy;
+    coord->param.rot.vz = args->rot.vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg = 0;
     return 0;
 }

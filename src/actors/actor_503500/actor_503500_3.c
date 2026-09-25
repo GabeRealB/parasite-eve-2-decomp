@@ -2537,18 +2537,18 @@ void func_actor_503500_80137074(Task* arg0, s8 arg1, s16 arg2)
 /// recompute the world matrix from the new local one.
 s32 func_actor_503500_80137088(Task* arg0, s32 arg1, GpPlaceArg* args)
 {
-    Actor503500Work*  work;
-    Actor503500Coord* coord;
+    Actor503500Work* work;
+    GpCoordExt*      coord;
 
-    work              = arg0->work;
-    coord             = (Actor503500Coord*)((TmdObject*)arg0->extra)->coords;
-    coord->coord.t[0] = args->pos.vx;
-    coord->coord.t[1] = args->pos.vy;
-    coord->coord.t[2] = args->pos.vz;
-    coord->rot.vx     = args->rot.vx;
-    coord->rot.vy     = args->rot.vy;
-    coord->rot.vz     = args->rot.vz;
-    RotMatrix(&coord->rot, &coord->coord);
+    work                = arg0->work;
+    coord               = (GpCoordExt*)((TmdObject*)arg0->extra)->coords;
+    coord->coord.t[0]   = args->pos.vx;
+    coord->coord.t[1]   = args->pos.vy;
+    coord->coord.t[2]   = args->pos.vz;
+    coord->param.rot.vx = args->rot.vx;
+    coord->param.rot.vy = args->rot.vy;
+    coord->param.rot.vz = args->rot.vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg         = 0;
     work->field_7B6    = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]);
     work->field_6C4.vx = args->pos.vx << 16;

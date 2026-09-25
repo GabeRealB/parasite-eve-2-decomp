@@ -101,18 +101,21 @@ typedef struct GpActorD4 {
 } GpActorD4;
 STATIC_ASSERT_SIZEOF(GpActorD4, 0xD4);
 
-/// Overlay of `GsCOORDINATE2` at `TmdObject.coords`. `flg` is the same
-/// word cleared by `field_8->flg = 0`. Offset 0x44 (`param` in libgs) is an s16
-/// flag (`lh`/`sh`) in `func_8010B590` / `func_80104364`. `sub` is the parent
-/// coordinate pointer (`GsCOORDINATE2.sub` at 0x4C).
-typedef struct _GpCoordExt {
-    /* 0x00 */ s32            flg;
-    /* 0x04 */ byte           pad_4[0x40];
-    /* 0x44 */ s16            field_44;
-    /* 0x46 */ s16            field_46;
-    /* 0x48 */ s16            field_48;
-    /* 0x4A */ byte           pad_4A[2];
-    /* 0x4C */ GsCOORDINATE2* sub;
+/// A model node's `GsCOORDINATE2` as the game fills it. libgs leaves the words
+/// after the two matrices to the application, and the game keeps per-node
+/// state there instead of a parameter block. Most nodes hold the Euler angles
+/// their local matrix is rebuilt from. The player's attached weapon models use
+/// the first halfword as a flag instead, which when set makes the node's first
+/// update clear the model's display flags.
+typedef struct GpCoordExt {
+    s32    flg;
+    MATRIX coord;
+    MATRIX workm;
+    union {
+        SVECTOR rot;
+        s16     clearFlags;
+    } param;
+    GsCOORDINATE2* sub;
 } GpCoordExt;
 STATIC_ASSERT_SIZEOF(GpCoordExt, 0x50);
 

@@ -3313,20 +3313,20 @@ s32 Gp_GetBit2Flag(GpAreaKey* arg0, s32 arg1)
 
 void Gp_SavePlayerPos(void)
 {
-    GpCoordYaw*   coord;
-    PlayerPos*    p;
-    s32           angle;
-    s32           temp;
-    PlayerStatus* cfg;
-    McSaveData*   save;
+    GsCOORDINATE2* coord;
+    PlayerPos*     p;
+    s32            angle;
+    s32            temp;
+    PlayerStatus*  cfg;
+    McSaveData*    save;
 
-    coord  = (GpCoordYaw*)((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
-    temp   = coord->field_18;
+    coord  = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
+    temp   = (u16)coord->coord.t[0];
     p      = &Player_Status.pos;
     p->x   = temp;
-    p->y   = coord->field_1C;
-    p->z   = coord->field_20;
-    angle  = ratan2(coord->field_8, coord->field_14);
+    p->y   = (u16)coord->coord.t[1];
+    p->z   = (u16)coord->coord.t[2];
+    angle  = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]);
     p->yaw = angle;
     if ((s16)angle >= 0x801) {
         p->yaw = angle - 0x1000;
@@ -3341,24 +3341,24 @@ void Gp_SavePlayerPos(void)
 
 GpEnemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpEnemyPlace* arg1)
 {
-    GpEnemy*      enemy;
-    Task*         task;
-    TmdObject*    extra;
-    GpCoordPlace* coord;
+    GpEnemy*    enemy;
+    Task*       task;
+    TmdObject*  extra;
+    GpCoordExt* coord;
 
     enemy = Gp_SpawnEnemyFromTable(&arg0->field_4, 0, arg0->field_0, NULL);
     if (enemy != NULL) {
         task = enemy->task;
         if (task->spawnType != 0) {
-            extra             = (TmdObject*)task->extra;
-            coord             = (GpCoordPlace*)extra->coords;
-            enemy->placeKey   = arg1->field_0 | (arg1->field_4 << 8);
-            enemy->workType   = arg1->field_2;
-            coord->coord.t[0] = arg1->field_8;
-            coord->coord.t[1] = arg1->field_A;
-            coord->coord.t[2] = arg1->field_C;
-            coord->field_46   = arg1->field_E;
-            if (coord->field_46 != 0) {
+            extra               = (TmdObject*)task->extra;
+            coord               = (GpCoordExt*)extra->coords;
+            enemy->placeKey     = arg1->field_0 | (arg1->field_4 << 8);
+            enemy->workType     = arg1->field_2;
+            coord->coord.t[0]   = arg1->field_8;
+            coord->coord.t[1]   = arg1->field_A;
+            coord->coord.t[2]   = arg1->field_C;
+            coord->param.rot.vy = arg1->field_E;
+            if (coord->param.rot.vy != 0) {
                 Gfx_RotMatrixY(&coord->coord, (s16)arg1->field_E, 1);
             }
             coord->flg = 0;

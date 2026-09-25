@@ -1029,16 +1029,16 @@ s32 func_actor_113100_801331E8(Task* task, s32 msgId, Actor113100AnimPreset* pre
 /// the rotation; clearing `flg` makes the world matrix be recomputed.
 s32 func_actor_113100_8013333C(Task* task, s32 msgId, GpPlaceArg* args)
 {
-    ActorsShared8013231cCoord* coord;
+    GpCoordExt* coord;
 
-    coord             = (ActorsShared8013231cCoord*)((TmdObject*)task->extra)->coords;
-    coord->coord.t[0] = args->pos.vx;
-    coord->coord.t[1] = args->pos.vy;
-    coord->coord.t[2] = args->pos.vz;
-    coord->rot.vx     = args->rot.vx;
-    coord->rot.vy     = args->rot.vy;
-    coord->rot.vz     = args->rot.vz;
-    RotMatrix(&coord->rot, &coord->coord);
+    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0]   = args->pos.vx;
+    coord->coord.t[1]   = args->pos.vy;
+    coord->coord.t[2]   = args->pos.vz;
+    coord->param.rot.vx = args->rot.vx;
+    coord->param.rot.vy = args->rot.vy;
+    coord->param.rot.vz = args->rot.vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
     coord->flg = 0;
     return 0;
 }
