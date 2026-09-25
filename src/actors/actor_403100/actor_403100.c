@@ -1290,69 +1290,57 @@ void func_actor_403100_80133D88(Task* arg0)
     }
 }
 
+/* Puts a newly spawned task's coordinate at point `i` of the spawn point
+   table, on the ground plane. */
+static __inline__ void _actor403100PlaceSpawned(GpCoord* coord, s32 i)
+{
+    coord->coord.t[0] = D_actor_403100_80155794[i][0];
+    coord->coord.t[1] = 0;
+    coord->coord.t[2] = D_actor_403100_80155794[i][1];
+}
+
 void func_actor_403100_80133E88(Task* arg0)
 {
     SVECTOR  pos;
     Task*    task;
     GpCoord* coord;
-    s32      x;
-    u16      frame;
+    s16      frame;
     GpCoord* rootCoord;
 
-    rootCoord                          = arg0->extra.tmd->coords;
-    D_actor_403100_80155808->field_604 = (u16)(D_actor_403100_80155808->field_604 - 2);
-    rootCoord->flg                     = 0;
-    rootCoord->coord.t[1]              = (s32)(rootCoord->coord.t[1] + 0xC);
+    rootCoord                           = arg0->extra.tmd->coords;
+    D_actor_403100_80155808->field_604 -= 2;
+    rootCoord->flg                      = 0;
+    rootCoord->coord.t[1]              += 0xC;
     if ((D_actor_403100_80155808->field_5EC & 0x7F) == 0x28) {
         task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
-            USE_REG(coord);
-            x                 = (s32)D_actor_403100_80155794[0][0];
-            coord->coord.t[0] = x;
-            USE_REG(x);
-            coord->coord.t[1] = 0;
-            coord->coord.t[2] = (s32)D_actor_403100_80155794[0][1];
+            _actor403100PlaceSpawned(coord, 0);
         }
     }
     if ((D_actor_403100_80155808->field_5EC & 0x3F) == 0x20) {
         task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
-            USE_REG(coord);
-            x                 = (s32)D_actor_403100_80155794[1][0];
-            coord->coord.t[0] = x;
-            USE_REG(x);
-            coord->coord.t[1] = 0;
-            coord->coord.t[2] = (s32)D_actor_403100_80155794[1][1];
+            _actor403100PlaceSpawned(coord, 1);
         }
     }
     if ((D_actor_403100_80155808->field_5EC & 0x7F) == 8) {
         task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
-            USE_REG(coord);
-            x                 = (s32)D_actor_403100_80155794[2][0];
-            coord->coord.t[0] = x;
-            USE_REG(x);
-            coord->coord.t[1] = 0;
-            coord->coord.t[2] = (s32)D_actor_403100_80155794[2][1];
+            _actor403100PlaceSpawned(coord, 2);
         }
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 2) {
         task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
-            USE_REG(coord);
-            x                 = (s32)D_actor_403100_80155794[1][0];
-            coord->coord.t[0] = x;
-            USE_REG(x);
-            coord->coord.t[1] = 0;
-            coord->coord.t[2] = (s32)D_actor_403100_80155794[1][1];
-            pos.vx            = 0x578;
-            pos.vy            = -0xFA0;
-            pos.vz            = -0xAF0;
-            coord->flg        = 0;
+            _actor403100PlaceSpawned(coord, 1);
+            pos.vx     = 0x578;
+            pos.vy     = -0xFA0;
+            pos.vz     = -0xAF0;
+            coord->flg = 0;
             Gp_UpdateCoord(coord);
             Gp_SpawnEff(0x600A5, coord, 3, &pos);
         }
@@ -1361,16 +1349,11 @@ void func_actor_403100_80133E88(Task* arg0)
         task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
-            USE_REG(coord);
-            x                 = (s32)D_actor_403100_80155794[1][0];
-            coord->coord.t[0] = x;
-            USE_REG(x);
-            coord->coord.t[1] = 0;
-            coord->coord.t[2] = (s32)D_actor_403100_80155794[1][1];
-            pos.vx            = 0x3E8;
-            pos.vy            = -0xFA0;
-            pos.vz            = -0x1130;
-            coord->flg        = 0;
+            _actor403100PlaceSpawned(coord, 1);
+            pos.vx     = 0x3E8;
+            pos.vy     = -0xFA0;
+            pos.vz     = -0x1130;
+            coord->flg = 0;
             Gp_UpdateCoord(coord);
             Gp_SpawnEff(0x600A5, coord, 4, &pos);
         }
@@ -1379,16 +1362,11 @@ void func_actor_403100_80133E88(Task* arg0)
         task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
-            USE_REG(coord);
-            x                 = (s32)D_actor_403100_80155794[1][0];
-            coord->coord.t[0] = x;
-            USE_REG(x);
-            coord->coord.t[1] = 0;
-            coord->coord.t[2] = (s32)D_actor_403100_80155794[1][1];
-            pos.vx            = 0;
-            pos.vy            = -0xFA0;
-            pos.vz            = -0xFA0;
-            coord->flg        = 0;
+            _actor403100PlaceSpawned(coord, 1);
+            pos.vx     = 0;
+            pos.vy     = -0xFA0;
+            pos.vz     = -0xFA0;
+            coord->flg = 0;
             Gp_UpdateCoord(coord);
             Gp_SpawnEff(0x600A5, coord, 5, &pos);
         }
@@ -1397,19 +1375,14 @@ void func_actor_403100_80133E88(Task* arg0)
         task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
-            USE_REG(coord);
-            x                 = (s32)D_actor_403100_80155794[4][0];
-            coord->coord.t[0] = x;
-            USE_REG(x);
-            coord->coord.t[1] = 0;
-            coord->coord.t[2] = (s32)D_actor_403100_80155794[4][1];
+            _actor403100PlaceSpawned(coord, 4);
         }
     }
     frame                              = D_actor_403100_80155808->field_5EC + 1;
     D_actor_403100_80155808->field_5EC = frame;
-    if ((s16)frame == 0xBE) {
+    if (frame == 0xBE) {
         GameFlag_SetNibble(0x73, 1);
-        D_actor_403100_80155808->field_5F8 = (u16)(D_actor_403100_80155808->field_5F8 + 1);
+        D_actor_403100_80155808->field_5F8++;
     }
 }
 void func_actor_403100_801342B4(Task* arg0)
