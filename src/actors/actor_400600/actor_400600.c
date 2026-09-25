@@ -410,30 +410,30 @@ static __inline__ void Actor400600_RebuildRotation(Task* arg0)
     MATRIX*          m;
     MATRIX*          dst;
 
-    work->field_80           &= 0xFFF;
-    work->field_82           &= 0xFFF;
-    work->field_84           &= 0xFFF;
-    m                         = (MATRIX*)(*(u8**)G_SCRATCH_HEAD - 0x20);
-    *(s32*)&m->m[0][0]        = 0x1000;
-    *(s32*)&m->m[0][2]        = 0;
-    *(s32*)&m->m[1][1]        = 0x1000;
-    *(s32*)&m->m[2][0]        = 0;
-    m->m[2][2]                = 0x1000;
-    *(MATRIX**)G_SCRATCH_HEAD = m;
+    work->field_80      &= 0xFFF;
+    work->field_82      &= 0xFFF;
+    work->field_84      &= 0xFFF;
+    m                    = (MATRIX*)(SCRATCH_HEAD(u8) - 0x20);
+    *(s32*)&m->m[0][0]   = 0x1000;
+    *(s32*)&m->m[0][2]   = 0;
+    *(s32*)&m->m[1][1]   = 0x1000;
+    *(s32*)&m->m[2][0]   = 0;
+    m->m[2][2]           = 0x1000;
+    SCRATCH_HEAD(MATRIX) = m;
     RotMatrixZ((s16)work->field_84, m);
     RotMatrixX((s16)work->field_80, m);
     func_8004BFF8((s16)work->field_82, m);
-    dst                   = &coord->coord;
-    dst->m[0][0]          = m->m[0][0];
-    dst->m[0][1]          = m->m[0][1];
-    dst->m[0][2]          = m->m[0][2];
-    dst->m[1][0]          = m->m[1][0];
-    dst->m[1][1]          = m->m[1][1];
-    dst->m[1][2]          = m->m[1][2];
-    dst->m[2][0]          = m->m[2][0];
-    dst->m[2][1]          = m->m[2][1];
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x20;
-    dst->m[2][2]          = m->m[2][2];
+    dst          = &coord->coord;
+    dst->m[0][0] = m->m[0][0];
+    dst->m[0][1] = m->m[0][1];
+    dst->m[0][2] = m->m[0][2];
+    dst->m[1][0] = m->m[1][0];
+    dst->m[1][1] = m->m[1][1];
+    dst->m[1][2] = m->m[1][2];
+    dst->m[2][0] = m->m[2][0];
+    dst->m[2][1] = m->m[2][1];
+    SCRATCH_POP_BYTES(0x20);
+    dst->m[2][2] = m->m[2][2];
 }
 
 /// `func_actor_400600_80139CAC`'s body, inlined: advance the pending animation
@@ -547,7 +547,7 @@ void func_actor_400600_80132294(Task* task, s16 firstJoint, s16 secondJoint, s16
     firstCoord  = coords + firstJoint;
     secondCoord = coords + secondJoint;
     if (firstJoint != secondJoint) {
-        s = (ActorBeamScratch*)(*(u8**)G_SCRATCH_HEAD -= sizeof(ActorBeamScratch));
+        s = (ActorBeamScratch*)SCRATCH_PUSH_BYTES(sizeof(ActorBeamScratch));
         Gp_UpdateCoord(firstCoord);
         Gp_UpdateCoord(secondCoord);
         Gp_WorldToLocal(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
@@ -598,7 +598,7 @@ void func_actor_400600_80132294(Task* task, s16 firstJoint, s16 secondJoint, s16
             setRGB0(poly, shade, shade, shade);
             addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), poly);
         }
-        *(u8**)G_SCRATCH_HEAD += sizeof(ActorBeamScratch);
+        SCRATCH_POP_BYTES(sizeof(ActorBeamScratch));
     }
 }
 
@@ -3198,7 +3198,7 @@ void func_actor_400600_801383E4(SVECTOR* arg0, SVECTOR* arg1, s16 width, u8 shad
     POLY_FT4*               poly;
 
     gGfxViewCoord.flg = 0;
-    s                 = (Actor400600QuadScratch*)(*(u8**)G_SCRATCH_HEAD -= sizeof(Actor400600QuadScratch));
+    s                 = (Actor400600QuadScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor400600QuadScratch));
     Gp_UpdateCoord(&gGfxViewCoord);
     angle         = ratan2(arg1->vx - arg0->vx, arg1->vz - arg0->vz);
     halfX         = (arg0->vx - arg1->vx) / 2;
@@ -3234,7 +3234,7 @@ void func_actor_400600_801383E4(SVECTOR* arg0, SVECTOR* arg1, s16 width, u8 shad
         setRGB0(poly, shade, shade, shade);
         addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), poly);
     }
-    *(u8**)G_SCRATCH_HEAD += sizeof(Actor400600QuadScratch);
+    SCRATCH_POP_BYTES(sizeof(Actor400600QuadScratch));
 }
 
 /// Copies this actor's model flags onto both child tasks' models and, for a
@@ -3694,30 +3694,30 @@ void func_actor_400600_80139948(Task* arg0)
     MATRIX*          m;
     MATRIX*          dst;
 
-    work->field_80           &= 0xFFF;
-    work->field_82           &= 0xFFF;
-    work->field_84           &= 0xFFF;
-    m                         = (MATRIX*)(*(u8**)G_SCRATCH_HEAD - 0x20);
-    *(s32*)&m->m[0][0]        = 0x1000;
-    *(s32*)&m->m[0][2]        = 0;
-    *(s32*)&m->m[1][1]        = 0x1000;
-    *(s32*)&m->m[2][0]        = 0;
-    m->m[2][2]                = 0x1000;
-    *(MATRIX**)G_SCRATCH_HEAD = m;
+    work->field_80      &= 0xFFF;
+    work->field_82      &= 0xFFF;
+    work->field_84      &= 0xFFF;
+    m                    = (MATRIX*)(SCRATCH_HEAD(u8) - 0x20);
+    *(s32*)&m->m[0][0]   = 0x1000;
+    *(s32*)&m->m[0][2]   = 0;
+    *(s32*)&m->m[1][1]   = 0x1000;
+    *(s32*)&m->m[2][0]   = 0;
+    m->m[2][2]           = 0x1000;
+    SCRATCH_HEAD(MATRIX) = m;
     RotMatrixZ((s16)work->field_84, m);
     RotMatrixX((s16)work->field_80, m);
     func_8004BFF8((s16)work->field_82, m);
-    dst                   = &coord->coord;
-    dst->m[0][0]          = m->m[0][0];
-    dst->m[0][1]          = m->m[0][1];
-    dst->m[0][2]          = m->m[0][2];
-    dst->m[1][0]          = m->m[1][0];
-    dst->m[1][1]          = m->m[1][1];
-    dst->m[1][2]          = m->m[1][2];
-    dst->m[2][0]          = m->m[2][0];
-    dst->m[2][1]          = m->m[2][1];
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x20;
-    dst->m[2][2]          = m->m[2][2];
+    dst          = &coord->coord;
+    dst->m[0][0] = m->m[0][0];
+    dst->m[0][1] = m->m[0][1];
+    dst->m[0][2] = m->m[0][2];
+    dst->m[1][0] = m->m[1][0];
+    dst->m[1][1] = m->m[1][1];
+    dst->m[1][2] = m->m[1][2];
+    dst->m[2][0] = m->m[2][0];
+    dst->m[2][1] = m->m[2][1];
+    SCRATCH_POP_BYTES(0x20);
+    dst->m[2][2] = m->m[2][2];
 }
 
 void func_actor_400600_80139A78(Task* arg0)
@@ -4002,7 +4002,7 @@ void func_actor_400600_8013A2C0(Task* task)
     block->vz = coord->workm.t[2];
     *scratch  = block;
     Gp_UpdateActorColor(task->spawnArg2, block, 0, 0);
-    *scratch = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
 void func_actor_400600_8013A338(Task* arg0, s32 arg1, u16* arg2)

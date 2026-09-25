@@ -15,8 +15,6 @@
 #include "main/wipsys.h"
 #include "psyq/inline_c.h"
 
-#define SCRATCH_SP (*(u32*)0x1F8003FC)
-
 /// Per-state animation id handed to `func_800B4114`, indexed by `field_37E`.
 extern s16 D_actor_300700_801693E4[];
 
@@ -116,15 +114,15 @@ void func_actor_300700_801637E4(Task* actor)
 
     push       = 0;
     lastId     = 0;
-    oldScratch = *(GpDeltaScratch**)0x1F8003FC;
+    oldScratch = SCRATCH_HEAD(GpDeltaScratch);
     work       = actor->work;
     allocated  = oldScratch - 3;
     SOFT_TOUCH_REG(allocated);
-    scratch                       = allocated;
-    *(GpDeltaScratch**)0x1F8003FC = scratch;
-    coord                         = ((TmdObject*)actor->extra)->coords;
-    ctx                           = actor->spawnArg2;
-    result                        = func_800E0C10((GpRec18*)&work->field_27C[0x20], scratch, 4, NULL);
+    scratch                      = allocated;
+    SCRATCH_HEAD(GpDeltaScratch) = scratch;
+    coord                        = ((TmdObject*)actor->extra)->coords;
+    ctx                          = actor->spawnArg2;
+    result                       = func_800E0C10((GpRec18*)&work->field_27C[0x20], scratch, 4, NULL);
     USE_REG(oldScratch);
     if (result == 1)
         goto move_delta;
@@ -278,7 +276,7 @@ contact_test:
         work->field_33C  = sourceCoord;
     }
     Gp_ClearRec18Occupied(contactRec);
-    *(GpDeltaScratch**)0x1F8003FC += 3;
+    SCRATCH_HEAD(GpDeltaScratch) += 3;
 }
 
 void func_actor_300700_80163D64(Task* arg0)
@@ -425,7 +423,7 @@ void func_actor_300700_80164070(Task* arg0)
     s32              snd;
 
     one   = 1;
-    vec   = (VECTOR*)(SCRATCH_SP -= 0x10);
+    vec   = (VECTOR*)SCRATCH_PUSH_BYTES(0x10);
     work  = arg0->work;
     obj   = arg0->extra;
     state = work->field_37C;
@@ -528,7 +526,7 @@ case2:
     work->field_38E = 0;
     work->field_394 = 0;
 pop:
-    SCRATCH_SP += 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 /// Three-state launcher. State 0 arms the timer from `Gp_LcgState` and stores
@@ -685,7 +683,7 @@ void func_actor_300700_80164794(Task* arg0)
     s32               next;
     s32               wrapStep;
 
-    sc    = (ActorFaceScratch*)(SCRATCH_SP -= 0x18);
+    sc    = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
     coord = ((TmdObject*)arg0->extra)->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
@@ -737,7 +735,7 @@ done:
     sc->rot.vy = work->field_388;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    SCRATCH_SP += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 void func_actor_300700_801648E4(GpEnemy* arg0, Task* arg1)
@@ -1156,11 +1154,11 @@ void func_actor_300700_8016539C(Task* arg0)
     ActorScaleScratch* scratch;
     Actor300700Work*   work;
 
-    head                = *(MATRIX**)0x1F8003FC;
-    work                = arg0->work;
-    scratch             = (ActorScaleScratch*)((u8*)head - 0x30);
-    *(void**)0x1F8003FC = scratch;
-    coord               = ((TmdObject*)arg0->extra)->coords;
+    head               = SCRATCH_HEAD(MATRIX);
+    work               = arg0->work;
+    scratch            = (ActorScaleScratch*)((u8*)head - 0x30);
+    SCRATCH_HEAD(void) = scratch;
+    coord              = ((TmdObject*)arg0->extra)->coords;
     if (work->field_390 >= 0x201) {
         work->field_390 = (u16)work->field_390 - 0x50;
     }
@@ -1175,6 +1173,6 @@ void func_actor_300700_8016539C(Task* arg0)
     scratch->mat.ident.m22     = 0x1000;
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
-    coord->flg         = 0;
-    *(u8**)0x1F8003FC += 0x30;
+    coord->flg = 0;
+    SCRATCH_POP_BYTES(0x30);
 }

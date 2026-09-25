@@ -300,14 +300,14 @@ static __inline__ void Actor04400_SetWorkState(Task* task, s16 state)
 /// taken off `G_SCRATCH_HEAD`.
 static __inline__ void Actor04400_UpdateColor(void* enemy, GsCOORDINATE2* coord)
 {
-    VECTOR* block = (VECTOR*)(*(u8**)G_SCRATCH_HEAD - 0x10);
+    VECTOR* block = (VECTOR*)(SCRATCH_HEAD(u8) - 0x10);
 
-    block->vx                 = coord->workm.t[0];
-    block->vy                 = coord->workm.t[1];
-    *(VECTOR**)G_SCRATCH_HEAD = block;
-    block->vz                 = coord->workm.t[2];
+    block->vx            = coord->workm.t[0];
+    block->vy            = coord->workm.t[1];
+    SCRATCH_HEAD(VECTOR) = block;
+    block->vz            = coord->workm.t[2];
     Gp_UpdateActorColor(enemy, block, 0, 0);
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 /// Message 0x2C00 (see `field_44C`) consumes the message and restarts the
@@ -411,33 +411,33 @@ static __inline__ s32 Actor04400_IsHit(Task* arg0)
 static __inline__ void Actor04400_UpdateRotation(Task* arg0)
 {
     Actor104400Work* work  = (Actor104400Work*)arg0->work;
-    MATRIX*          m     = (MATRIX*)(*(u8**)G_SCRATCH_HEAD - 0x20);
+    MATRIX*          m     = (MATRIX*)(SCRATCH_HEAD(u8) - 0x20);
     GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->coords;
     MATRIX*          dst;
 
-    work->field_78           &= 0xFFF;
-    work->field_7A           &= 0xFFF;
-    work->field_7C           &= 0xFFF;
-    *(s32*)&m->m[0][0]        = 0x1000;
-    *(s32*)&m->m[0][2]        = 0;
-    *(s32*)&m->m[1][1]        = 0x1000;
-    *(s32*)&m->m[2][0]        = 0;
-    m->m[2][2]                = 0x1000;
-    *(MATRIX**)G_SCRATCH_HEAD = m;
+    work->field_78      &= 0xFFF;
+    work->field_7A      &= 0xFFF;
+    work->field_7C      &= 0xFFF;
+    *(s32*)&m->m[0][0]   = 0x1000;
+    *(s32*)&m->m[0][2]   = 0;
+    *(s32*)&m->m[1][1]   = 0x1000;
+    *(s32*)&m->m[2][0]   = 0;
+    m->m[2][2]           = 0x1000;
+    SCRATCH_HEAD(MATRIX) = m;
     RotMatrixZ(work->field_7C, m);
     RotMatrixX(work->field_78, m);
     func_8004BFF8(work->field_7A, m);
-    dst                   = &coord->coord;
-    dst->m[0][0]          = m->m[0][0];
-    dst->m[0][1]          = m->m[0][1];
-    dst->m[0][2]          = m->m[0][2];
-    dst->m[1][0]          = m->m[1][0];
-    dst->m[1][1]          = m->m[1][1];
-    dst->m[1][2]          = m->m[1][2];
-    dst->m[2][0]          = m->m[2][0];
-    dst->m[2][1]          = m->m[2][1];
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x20;
-    dst->m[2][2]          = m->m[2][2];
+    dst          = &coord->coord;
+    dst->m[0][0] = m->m[0][0];
+    dst->m[0][1] = m->m[0][1];
+    dst->m[0][2] = m->m[0][2];
+    dst->m[1][0] = m->m[1][0];
+    dst->m[1][1] = m->m[1][1];
+    dst->m[1][2] = m->m[1][2];
+    dst->m[2][0] = m->m[2][0];
+    dst->m[2][1] = m->m[2][1];
+    SCRATCH_POP_BYTES(0x20);
+    dst->m[2][2] = m->m[2][2];
 }
 
 /// Picks the per-axis step: the collision `step` when there is one and the
@@ -604,7 +604,7 @@ void Actor04400_Fn00220(Task* task, s16 firstJoint, s16 secondJoint, s16 width, 
     firstCoord  = coords + firstJoint;
     secondCoord = coords + secondJoint;
     if (firstJoint != secondJoint) {
-        s = (ActorsShared80163354Scratch*)(*(u8**)G_SCRATCH_HEAD -= sizeof(ActorsShared80163354Scratch));
+        s = (ActorsShared80163354Scratch*)SCRATCH_PUSH_BYTES(sizeof(ActorsShared80163354Scratch));
         Gp_UpdateCoord(firstCoord);
         Gp_UpdateCoord(secondCoord);
         Gp_WorldToLocal(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
@@ -655,7 +655,7 @@ void Actor04400_Fn00220(Task* task, s16 firstJoint, s16 secondJoint, s16 width, 
             setRGB0(poly, shade, shade, shade);
             addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), poly);
         }
-        *(u8**)G_SCRATCH_HEAD += sizeof(ActorsShared80163354Scratch);
+        SCRATCH_POP_BYTES(sizeof(ActorsShared80163354Scratch));
     }
 }
 
@@ -1447,16 +1447,16 @@ void Actor04400_Fn022A8(Task* arg0, s16 arg1)
     s16              tick;
     s32              i;
 
-    stepZ                  = 0;
-    maxX                   = 0;
-    maxZ                   = 0;
-    stepX                  = 0;
-    blocked                = 0;
-    work                   = (Actor104400Work*)arg0->work;
-    coord                  = ((TmdObject*)arg0->extra)->coords;
-    enemy                  = arg0->spawnArg2;
-    *(u8**)G_SCRATCH_HEAD -= 8;
-    work->field_41E        = 0;
+    stepZ   = 0;
+    maxX    = 0;
+    maxZ    = 0;
+    stepX   = 0;
+    blocked = 0;
+    work    = (Actor104400Work*)arg0->work;
+    coord   = ((TmdObject*)arg0->extra)->coords;
+    enemy   = arg0->spawnArg2;
+    SCRATCH_PUSH_BYTES(8);
+    work->field_41E = 0;
     for (i = 0; i < 8; i++) {
         switch (work->rec_2EC[i].key & 0xFFFF0000) {
             case 0x10000:
@@ -1602,7 +1602,7 @@ void Actor04400_Fn022A8(Task* arg0, s16 arg1)
         coord->coord.t[2] += Actor04400_PickStep(stepZ, maxZ >> 3);
         coord->flg         = 0;
     }
-    *(u8**)G_SCRATCH_HEAD += 8;
+    SCRATCH_POP_BYTES(8);
 }
 
 /// Applies the pending animation request and ticks the animation. Kind 1

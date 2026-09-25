@@ -335,30 +335,30 @@ static __inline__ void Actor405800_RebuildRotation(Task* arg0)
     MATRIX*          m;
     MATRIX*          dst;
 
-    work->field_80           &= 0xFFF;
-    work->field_82           &= 0xFFF;
-    work->field_84           &= 0xFFF;
-    m                         = (MATRIX*)(*(u8**)G_SCRATCH_HEAD - 0x20);
-    *(s32*)&m->m[0][0]        = 0x1000;
-    *(s32*)&m->m[0][2]        = 0;
-    *(s32*)&m->m[1][1]        = 0x1000;
-    *(s32*)&m->m[2][0]        = 0;
-    m->m[2][2]                = 0x1000;
-    *(MATRIX**)G_SCRATCH_HEAD = m;
+    work->field_80      &= 0xFFF;
+    work->field_82      &= 0xFFF;
+    work->field_84      &= 0xFFF;
+    m                    = (MATRIX*)(SCRATCH_HEAD(u8) - 0x20);
+    *(s32*)&m->m[0][0]   = 0x1000;
+    *(s32*)&m->m[0][2]   = 0;
+    *(s32*)&m->m[1][1]   = 0x1000;
+    *(s32*)&m->m[2][0]   = 0;
+    m->m[2][2]           = 0x1000;
+    SCRATCH_HEAD(MATRIX) = m;
     RotMatrixZ((s16)work->field_84, m);
     RotMatrixX((s16)work->field_80, m);
     func_8004BFF8((s16)work->field_82, m);
-    dst                   = &coord->coord;
-    dst->m[0][0]          = m->m[0][0];
-    dst->m[0][1]          = m->m[0][1];
-    dst->m[0][2]          = m->m[0][2];
-    dst->m[1][0]          = m->m[1][0];
-    dst->m[1][1]          = m->m[1][1];
-    dst->m[1][2]          = m->m[1][2];
-    dst->m[2][0]          = m->m[2][0];
-    dst->m[2][1]          = m->m[2][1];
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x20;
-    dst->m[2][2]          = m->m[2][2];
+    dst          = &coord->coord;
+    dst->m[0][0] = m->m[0][0];
+    dst->m[0][1] = m->m[0][1];
+    dst->m[0][2] = m->m[0][2];
+    dst->m[1][0] = m->m[1][0];
+    dst->m[1][1] = m->m[1][1];
+    dst->m[1][2] = m->m[1][2];
+    dst->m[2][0] = m->m[2][0];
+    dst->m[2][1] = m->m[2][1];
+    SCRATCH_POP_BYTES(0x20);
+    dst->m[2][2] = m->m[2][2];
 }
 
 /// `func_actor_405800_8013A0F4`'s body, inlined: advance the pending animation
@@ -417,12 +417,12 @@ void func_actor_405800_80131FC8(s32 otz)
     s32                val;
     s32                z;
 
-    extra                   = Gp_GetViewSprtExtra();
-    head                    = *(u8**)G_SCRATCH_HEAD;
-    area                    = (DR_AREA*)gGpuPrimCursor;
-    allocated               = head - 0x14;
-    *(void**)G_SCRATCH_HEAD = allocated;
-    gGpuPrimCursor          = (DR_TPAGE*)(area + 1);
+    extra              = Gp_GetViewSprtExtra();
+    head               = SCRATCH_HEAD(u8);
+    area               = (DR_AREA*)gGpuPrimCursor;
+    allocated          = head - 0x14;
+    SCRATCH_HEAD(void) = allocated;
+    gGpuPrimCursor     = (DR_TPAGE*)(area + 1);
     USE_REG(allocated);
     scratch      = (ActorsDrawScratch*)allocated;
     scratch->otz = otz;
@@ -528,7 +528,7 @@ void func_actor_405800_80131FC8(s32 otz)
     SetDrawArea(area, clip);
     addPrim(&gGpuCurrentOt[scratch->otz], area);
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
 }
 
 void func_actor_405800_80132670(Task* arg0)
@@ -641,7 +641,7 @@ void func_actor_405800_801329C8(Task* task, s16 firstJoint, s16 secondJoint, s16
     firstCoord  = coords + firstJoint;
     secondCoord = coords + secondJoint;
     if (firstJoint != secondJoint) {
-        s = (ActorBeamScratch*)(*(u8**)G_SCRATCH_HEAD -= sizeof(ActorBeamScratch));
+        s = (ActorBeamScratch*)SCRATCH_PUSH_BYTES(sizeof(ActorBeamScratch));
         Gp_UpdateCoord(firstCoord);
         Gp_UpdateCoord(secondCoord);
         Gp_WorldToLocal(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
@@ -692,7 +692,7 @@ void func_actor_405800_801329C8(Task* task, s16 firstJoint, s16 secondJoint, s16
             setRGB0(poly, shade, shade, shade);
             addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), poly);
         }
-        *(u8**)G_SCRATCH_HEAD += sizeof(ActorBeamScratch);
+        SCRATCH_POP_BYTES(sizeof(ActorBeamScratch));
     }
 }
 
@@ -1154,10 +1154,10 @@ void func_actor_405800_80133800(Task* arg0)
             func_actor_405800_80132E3C(arg0, work->field_86A, work->field_866);
             Actor405800_ProjectPart(part);
             __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
-            head                  = *(u8**)(head + 0x3FC);
-            head                 += 0x18;
-            *(u8**)G_SCRATCH_HEAD = head;
-            model->flags         &= 0xFF7F;
+            head             = *(u8**)(head + 0x3FC);
+            head            += 0x18;
+            SCRATCH_HEAD(u8) = head;
+            model->flags    &= 0xFF7F;
             break;
     }
 }
@@ -3341,7 +3341,7 @@ void func_actor_405800_801387DC(Task* task)
     block->vz = coord->workm.t[2];
     *scratch  = block;
     Gp_UpdateActorColor(task->spawnArg2, block, 0, 0);
-    *scratch = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
 void func_actor_405800_80138854(Task* arg0, s32 arg1, u16* arg2)
@@ -4275,30 +4275,30 @@ void func_actor_405800_80139FC4(Task* arg0)
     MATRIX*          m;
     MATRIX*          dst;
 
-    work->field_80           &= 0xFFF;
-    work->field_82           &= 0xFFF;
-    work->field_84           &= 0xFFF;
-    m                         = (MATRIX*)(*(u8**)G_SCRATCH_HEAD - 0x20);
-    *(s32*)&m->m[0][0]        = 0x1000;
-    *(s32*)&m->m[0][2]        = 0;
-    *(s32*)&m->m[1][1]        = 0x1000;
-    *(s32*)&m->m[2][0]        = 0;
-    m->m[2][2]                = 0x1000;
-    *(MATRIX**)G_SCRATCH_HEAD = m;
+    work->field_80      &= 0xFFF;
+    work->field_82      &= 0xFFF;
+    work->field_84      &= 0xFFF;
+    m                    = (MATRIX*)(SCRATCH_HEAD(u8) - 0x20);
+    *(s32*)&m->m[0][0]   = 0x1000;
+    *(s32*)&m->m[0][2]   = 0;
+    *(s32*)&m->m[1][1]   = 0x1000;
+    *(s32*)&m->m[2][0]   = 0;
+    m->m[2][2]           = 0x1000;
+    SCRATCH_HEAD(MATRIX) = m;
     RotMatrixZ((s16)work->field_84, m);
     RotMatrixX((s16)work->field_80, m);
     func_8004BFF8((s16)work->field_82, m);
-    dst                   = &coord->coord;
-    dst->m[0][0]          = m->m[0][0];
-    dst->m[0][1]          = m->m[0][1];
-    dst->m[0][2]          = m->m[0][2];
-    dst->m[1][0]          = m->m[1][0];
-    dst->m[1][1]          = m->m[1][1];
-    dst->m[1][2]          = m->m[1][2];
-    dst->m[2][0]          = m->m[2][0];
-    dst->m[2][1]          = m->m[2][1];
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x20;
-    dst->m[2][2]          = m->m[2][2];
+    dst          = &coord->coord;
+    dst->m[0][0] = m->m[0][0];
+    dst->m[0][1] = m->m[0][1];
+    dst->m[0][2] = m->m[0][2];
+    dst->m[1][0] = m->m[1][0];
+    dst->m[1][1] = m->m[1][1];
+    dst->m[1][2] = m->m[1][2];
+    dst->m[2][0] = m->m[2][0];
+    dst->m[2][1] = m->m[2][1];
+    SCRATCH_POP_BYTES(0x20);
+    dst->m[2][2] = m->m[2][2];
 }
 
 void func_actor_405800_8013A0F4(Task* arg0)

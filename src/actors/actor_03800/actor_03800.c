@@ -132,7 +132,6 @@ s32  SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2);
 void func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-#define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 void Actor03800_Fn000B8(GpEnemy* arg0, Task* arg1);
 void Actor03800_Fn003B8(Task* arg0);
@@ -498,7 +497,7 @@ void Actor03800_Fn00A98(Task* arg0)
     reaction = 0;
     lastId   = 0;
     work     = arg0->work;
-    scratch  = (*(GpDeltaScratch**)0x1F8003FC -= 3);
+    scratch  = (SCRATCH_HEAD(GpDeltaScratch) -= 3);
     coord    = work->field_344;
     ctx      = arg0->spawnArg2;
     result   = func_800E0C10(work->field_22C, scratch, 4, NULL);
@@ -706,7 +705,7 @@ contact_test:
         }
     }
     Gp_ClearRec18Occupied(work->field_2AC);
-    *(GpDeltaScratch**)0x1F8003FC += 3;
+    SCRATCH_HEAD(GpDeltaScratch) += 3;
 }
 
 void Actor03800_Fn01150(Task* arg0)
@@ -900,7 +899,7 @@ void Actor03800_Fn0166C(Task* arg0)
     s32                    pan;
     s32                    pan2;
 
-    scratch = (Actor03800MoveScratch*)(SCRATCH_SP -= 0x18);
+    scratch = (Actor03800MoveScratch*)SCRATCH_PUSH_BYTES(0x18);
     work    = arg0->work;
     ctx     = arg0->spawnArg2;
     state   = work->field_354;
@@ -946,7 +945,7 @@ void Actor03800_Fn0166C(Task* arg0)
             }
             break;
     }
-    SCRATCH_SP += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 void Actor03800_Fn01948(Task* arg0)
@@ -1253,7 +1252,7 @@ void Actor03800_Fn021E4(Task* arg0)
     s32                    sound;
     s32                    pan;
 
-    scratch = (Actor03800TurnScratch*)(*(u32*)0x1F8003FC -= sizeof(*scratch));
+    scratch = (Actor03800TurnScratch*)SCRATCH_PUSH_BYTES(sizeof(*scratch));
     SCHED_BARRIER();
     work  = arg0->work;
     ctx   = arg0->spawnArg2;
@@ -1318,7 +1317,7 @@ void Actor03800_Fn021E4(Task* arg0)
             }
             break;
     }
-    *(u32*)0x1F8003FC += 0x28;
+    SCRATCH_POP_BYTES(0x28);
 }
 
 /// State 12 of `Actor03800_Fn032D8`: pick and hold a turn direction while the
@@ -1397,7 +1396,7 @@ void Actor03800_Fn026F8(Task* arg0)
     s32              next;
     s32              wrapStep;
 
-    rot   = (SVECTOR*)(SCRATCH_SP -= 8);
+    rot   = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
     coord = ((TmdObject*)arg0->extra)->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
@@ -1449,7 +1448,7 @@ done:
     rot->vy = work->field_362;
     rot->vz = 0;
     RotMatrix(rot, &coord->coord);
-    SCRATCH_SP += 8;
+    SCRATCH_POP_BYTES(8);
 }
 
 void Actor03800_Fn02848(Task* arg0)
@@ -2043,11 +2042,11 @@ void Actor03800_Fn037E0(Task* arg0)
     MATRIX*            head;
     ActorScaleScratch* scratch;
 
-    work                = arg0->work;
-    head                = *(MATRIX**)0x1F8003FC;
-    scratch             = (ActorScaleScratch*)((u8*)head - 0x30);
-    *(void**)0x1F8003FC = scratch;
-    coord               = work->field_344;
+    work               = arg0->work;
+    head               = SCRATCH_HEAD(MATRIX);
+    scratch            = (ActorScaleScratch*)((u8*)head - 0x30);
+    SCRATCH_HEAD(void) = scratch;
+    coord              = work->field_344;
     if (work->field_35A >= 0x201) {
         work->field_35A = (u16)work->field_35A - 0x50;
     }
@@ -2062,6 +2061,6 @@ void Actor03800_Fn037E0(Task* arg0)
     scratch->mat.ident.m22     = 0x1000;
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
-    coord->flg         = 0;
-    *(u8**)0x1F8003FC += 0x30;
+    coord->flg = 0;
+    SCRATCH_POP_BYTES(0x30);
 }

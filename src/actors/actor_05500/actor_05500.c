@@ -121,15 +121,15 @@ void Actor05500_Fn0006C(Task* arg0)
     push      = 0;
     lastId    = 0;
     work      = arg0->work;
-    damage    = *(u32*)0x1F8003FC;
+    damage    = (u32)SCRATCH_HEAD(void);
     allocated = (Actor105500HitScratch*)(damage - 0x38);
     SOFT_TOUCH_REG(allocated);
-    scratch                       = allocated;
-    coord                         = ((TmdObject*)arg0->extra)->coords;
-    ctx                           = arg0->spawnArg2;
-    *(GpDeltaScratch**)0x1F8003FC = (GpDeltaScratch*)scratch;
-    work->field_3CC               = 0;
-    result                        = func_800E0C10(work->field_234, &scratch->delta, 4, NULL);
+    scratch                      = allocated;
+    coord                        = ((TmdObject*)arg0->extra)->coords;
+    ctx                          = arg0->spawnArg2;
+    SCRATCH_HEAD(GpDeltaScratch) = (GpDeltaScratch*)scratch;
+    work->field_3CC              = 0;
+    result                       = func_800E0C10(work->field_234, &scratch->delta, 4, NULL);
     if (result != 0) {
         if (work->field_39A == 2) {
             work->field_3CC = 1;
@@ -322,7 +322,7 @@ void Actor05500_Fn0006C(Task* arg0)
         work->field_2E4.flags &= 0x3FFF;
         Gp_ClearRec18Occupied(work->field_304);
     }
-    *(u8**)0x1F8003FC += 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 /// State handlers of the task `Actor05500_Fn03DD8` dispatches, indexed by the
@@ -1015,8 +1015,6 @@ void Actor05500_Fn01B30(Task* arg0)
     *(SVECTOR**)PSX_SCRATCH_ADDR(0x3FC) = *(SVECTOR**)PSX_SCRATCH_ADDR(0x3FC) + 1;
 }
 
-#define SCRATCH_SP (*(u32*)0x1F8003FC)
-
 /// Runs the actor's ambient timers: `field_3B2` wraps every 0x50 calls, every
 /// 12th call spawns effect 3 at coordinate node 3 or 5 in turn, and every 0x24th
 /// call plays sound event 5 of its sound bank at its position.
@@ -1076,7 +1074,7 @@ void Actor05500_Fn02214(Task* arg0)
     s32               next;
     s32               wrapStep;
 
-    sc    = (ActorFaceScratch*)(SCRATCH_SP -= 0x18);
+    sc    = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
     coord = ((TmdObject*)arg0->extra)->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
@@ -1128,10 +1126,8 @@ done:
     sc->rot.vy = work->field_3A2;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    SCRATCH_SP += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
-
-#undef SCRATCH_SP
 
 void Actor05500_Fn02364(GpEnemy* arg0, Task* arg1)
 {
@@ -1969,11 +1965,11 @@ void Actor05500_Fn03B60(Task* arg0)
     ActorScaleScratch* scratch;
     Actor105500Work*   work;
 
-    head                = *(MATRIX**)0x1F8003FC;
-    work                = arg0->work;
-    scratch             = (ActorScaleScratch*)((u8*)head - 0x30);
-    *(void**)0x1F8003FC = scratch;
-    coord               = ((TmdObject*)arg0->extra)->coords;
+    head               = SCRATCH_HEAD(MATRIX);
+    work               = arg0->work;
+    scratch            = (ActorScaleScratch*)((u8*)head - 0x30);
+    SCRATCH_HEAD(void) = scratch;
+    coord              = ((TmdObject*)arg0->extra)->coords;
     if (work->field_3A0 >= 0x201) {
         work->field_3A0 = (u16)work->field_3A0 - 0x50;
     }
@@ -1988,8 +1984,8 @@ void Actor05500_Fn03B60(Task* arg0)
     scratch->mat.ident.m22     = 0x1000;
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
-    coord->flg         = 0;
-    *(u8**)0x1F8003FC += 0x30;
+    coord->flg = 0;
+    SCRATCH_POP_BYTES(0x30);
 }
 
 void Actor05500_Fn03C54(Task* actor)
@@ -2056,7 +2052,7 @@ void Actor05500_Fn03D40(Task* actor)
     blk->mat.ident.m22     = 0x1000;
     ScaleMatrix(&blk->mat.mat, &blk->scale);
     MulMatrix(&coord[2].coord, &blk->mat.mat);
-    *scratch = (u8*)*scratch + 0x30;
+    SCRATCH_POP_BYTES_AT(scratch, 0x30);
 }
 
 void Actor05500_Fn03DD8(Task* arg0)

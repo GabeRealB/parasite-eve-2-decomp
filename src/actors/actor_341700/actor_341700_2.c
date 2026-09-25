@@ -82,15 +82,15 @@ void func_actor_341700_8016AC64(GsCOORDINATE2* coord, s16 yaw)
     MATRIX*        rotation;
     GsCOORDINATE2* out;
 
-    *(MATRIX**)G_SCRATCH_HEAD -= 1;
-    rotation                   = *(MATRIX**)G_SCRATCH_HEAD;
+    SCRATCH_PUSH(MATRIX);
+    rotation = SCRATCH_HEAD(MATRIX);
     actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
     func_8004BFF8(yaw, rotation);
     out = actorLocalizeRotation(coord, rotation);
     __builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->flg = 0;
     Gp_UpdateCoord(out);
-    *(MATRIX**)G_SCRATCH_HEAD += 1;
+    SCRATCH_POP(MATRIX);
 }
 
 /// Walks the first `count` contact records (stopping at a zero key) and keeps,
@@ -108,11 +108,11 @@ s32 func_actor_341700_8016AF70(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
     if (Mc_SaveData.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
-    coord->flg                           = 0;
-    head                                 = *(ActorRepelScratch**)G_SCRATCH_HEAD;
-    blk                                  = head - 1;
-    *(ActorRepelScratch**)G_SCRATCH_HEAD = blk;
-    s                                    = blk;
+    coord->flg                      = 0;
+    head                            = SCRATCH_HEAD(ActorRepelScratch);
+    blk                             = head - 1;
+    SCRATCH_HEAD(ActorRepelScratch) = blk;
+    s                               = blk;
     Gp_UpdateCoord(coord);
     s->pos.vx  = coord->workm.t[0];
     s->pos.vy  = coord->workm.t[1];
@@ -144,8 +144,8 @@ s32 func_actor_341700_8016AF70(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
         gte_gpf12();
         gte_stsv(offset);
     }
-    coord->flg                            = 0;
-    *(ActorRepelScratch**)G_SCRATCH_HEAD += 1;
+    coord->flg = 0;
+    SCRATCH_POP(ActorRepelScratch);
     return s->hit;
 }
 
@@ -169,13 +169,13 @@ s32 func_actor_341700_8016B2B8(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
         return 0;
     }
 
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - sizeof(OverlayAvoidScratch);
-    s                     = (OverlayAvoidScratch*)*(u8**)G_SCRATCH_HEAD;
-    s->blocked            = 0;
-    pos->vz               = 0;
-    pos->vy               = 0;
-    pos->vx               = 0;
+    head             = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(u8) = head - sizeof(OverlayAvoidScratch);
+    s                = (OverlayAvoidScratch*)SCRATCH_HEAD(u8);
+    s->blocked       = 0;
+    pos->vz          = 0;
+    pos->vy          = 0;
+    pos->vx          = 0;
 
     Gfx_MatrixCol1(&coord->workm, (SVECTOR*)(head - 0x34));
     VectorNormalSS((SVECTOR*)(head - 0x34), (SVECTOR*)(head - 0x34));
@@ -263,7 +263,7 @@ s32 func_actor_341700_8016B2B8(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
         }
     }
 
-    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(OverlayAvoidScratch);
+    SCRATCH_POP_BYTES(sizeof(OverlayAvoidScratch));
     return s->blocked != 0;
 }
 
@@ -316,7 +316,7 @@ s32 func_actor_341700_8016B804(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
     return s->moved;
 }
 
@@ -464,9 +464,9 @@ s32 func_actor_341700_8016B9A8(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s
         }
     }
 
-    tail  = (void**)G_SCRATCH_HEAD;
-    hit   = st->hit;
-    *tail = (u8*)*tail + sizeof(OverlayBisectorScratch);
+    tail = (void**)G_SCRATCH_HEAD;
+    hit  = st->hit;
+    SCRATCH_POP_BYTES_AT(tail, sizeof(OverlayBisectorScratch));
     return hit;
 }
 
@@ -834,7 +834,7 @@ void func_actor_341700_8016D018(GsCOORDINATE2* coord, s16 scale)
     coord->coord.m[2][0] = *(u16*)&blk->m.m[2][0];
     coord->coord.m[2][1] = *(u16*)&blk->m.m[2][1];
     m22                  = *(u16*)&blk->m.m[2][2];
-    *scratch             = (u8*)*scratch + 0x34;
+    SCRATCH_POP_BYTES_AT(scratch, 0x34);
     coord->flg           = 0;
     coord->coord.m[2][2] = m22;
 }
