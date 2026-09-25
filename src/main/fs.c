@@ -1687,7 +1687,7 @@ loop:
         s16* px;
         px = &Fs_ImageRect.x;
         __asm__("lhu %0, %%lo(Fs_WorkEntries)(%1)" : "=r"(t) : "r"(ace_hi));
-        c   = (s8)D5B498_8006C233 * 64;
+        c   = D5B498_8006C233 * 64;
         *px = t + c;
     } else {
         register s32 t asm("v1");
@@ -1807,7 +1807,7 @@ s32 Fs_LoadImageStrip(s32 mode)
             D5B498_8006D4E0[D5B498_8006ADF4]++;
             entry = &Fs_WorkEntries[D5B498_8006ADE0];
             if (entry->field_2 >= 0x100U || Fs_ChunkMode == 2) {
-                Fs_ImageRect.x = entry->field_0 + (s8)D5B498_8006C233 * 64;
+                Fs_ImageRect.x = entry->field_0 + D5B498_8006C233 * 64;
             } else {
                 Fs_ImageRect.x = entry->field_0;
             }

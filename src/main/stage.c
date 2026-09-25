@@ -847,7 +847,7 @@ static __inline__ void mdecFinishDecode(void)
 {
     CdCmdQueue* q = &CdCmd_Queue;
 
-    if ((s8)gDisplayState.keepGraphics == 0) {
+    if (gDisplayState.keepGraphics == 0) {
         Tmd_AllocMissingBuffers();
     }
     q->field_1FE = 0xFF;
@@ -1006,7 +1006,7 @@ void Mdec_DecodeToVram(void)
                 }
                 p->field_21C = 0;
                 q            = &CdCmd_Queue;
-                if ((s8)gDisplayState.keepGraphics == 0) {
+                if (gDisplayState.keepGraphics == 0) {
                     Tmd_AllocMissingBuffers();
                 }
                 q->field_1FE = 0xFF;

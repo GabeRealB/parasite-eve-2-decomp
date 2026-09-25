@@ -2641,7 +2641,7 @@ void Gp_MapTaskState2(Task* arg0)
     func_800D0614(arg0);
     Gp_DrawMapMarks(arg0);
     func_800D15D0(arg0);
-    if ((s8)gDisplayState.keepGraphics != 0) {
+    if (gDisplayState.keepGraphics != 0) {
         Display_SetDrawMode(1);
     } else {
         Display_SetDrawMode(0);
@@ -3468,7 +3468,7 @@ void Gp_MapPanelInit(Task* arg0)
     GpMapRec*    recs;
     u8           val;
 
-    if ((s8)gDisplayState.keepGraphics == 0) {
+    if (gDisplayState.keepGraphics == 0) {
         rect.x = 0x380;
         rect.w = 0x80;
         rect.y = 0;
@@ -3517,7 +3517,7 @@ void Gp_MapDrawTask(Task* arg0)
 
     arg0->killCountdown--;
     if (arg0->killCountdown == 0) {
-        if ((s8)gDisplayState.keepGraphics == 0) {
+        if (gDisplayState.keepGraphics == 0) {
             rect.x = 0x380;
             rect.w = 0x80;
             rect.y = 0;
@@ -3572,7 +3572,7 @@ void func_800D2020(u8 arg0)
 {
     RECT rect;
 
-    if ((s8)gDisplayState.keepGraphics != 0) {
+    if (gDisplayState.keepGraphics != 0) {
         return;
     }
 

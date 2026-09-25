@@ -324,7 +324,7 @@ void Gp_SetupSprtDisplay(Task* task)
     s32           flag;
 
     ds                       = &gDisplayState;
-    flag                     = (s8)ds->keepGraphics;
+    flag                     = ds->keepGraphics;
     ds->at100.flags.flipMode = 2;
     if (flag == 0) {
         Gpu_ResetGraphAndOt();

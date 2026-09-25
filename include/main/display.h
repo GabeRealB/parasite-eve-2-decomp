@@ -66,7 +66,7 @@ typedef struct {
     u8          gameMode;       // (0 running, 1 start or restart requested, 0xFF a menu owns the display)
     byte        unknown_11f;
     s16         field_120;      // Set once at display init; no reader in this tree, role unproven
-    u8          keepGraphics;   // Nonzero stops a display reset from reallocating the room's model and sprite buffers
+    s8          keepGraphics;   // Nonzero stops a display reset from reallocating the room's model and sprite buffers
     s8          skipTeardown;   // Nonzero: skip the per-type teardown when a task is freed
     u16         region;         // Video standard the sound and CD code is timed for (0 NTSC 60 Hz, 1 PAL 50 Hz)
     s8          shakeY;         // Vertical screen offset for the next frame, clamped to ±8 and copied into `vramYOffset`
