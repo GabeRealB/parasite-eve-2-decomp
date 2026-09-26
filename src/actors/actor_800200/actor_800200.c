@@ -27,7 +27,7 @@ typedef struct {
 } GpActorPathStep;
 
 /// 0x18-byte `G_SCRATCH_HEAD` block `func_actor_800200_801622B0` takes for the
-/// ground-quad heading it copies into `GameActor.field_88` / `_94` / `_A0`.
+/// ground-quad heading it copies into the three `GameActor.field_88` records.
 typedef struct {
     /* 0x00 */ byte    pad_0[0x10];
     /* 0x10 */ SVECTOR vec;
@@ -133,18 +133,18 @@ static void func_actor_800200_80162088(Task* arg0)
     actor->field_985 = 0x10;
     Gp_AnimResetChildSlots(arg0, actor->field_93C);
     Gp_AnimTickChildSlots(arg0);
-    recs            = actor->field_17C;
-    obj             = (GpObj*)actor->field_AC;
-    actor->field_10 = coord->coord.t[0];
-    actor->field_14 = coord->coord.t[1];
-    actor->field_18 = coord->coord.t[2];
-    obj->ctx.dir    = (GpObjDirRec*)actor->field_88;
-    obj->coord      = coord;
-    actor->field_90 = (s32)recs;
-    save            = &Mc_SaveData[0];
-    obj->pos.vx     = 0;
-    obj->pos.vy     = -0xFA;
-    obj->pos.vz     = 0;
+    recs                       = actor->field_17C;
+    obj                        = (GpObj*)actor->field_AC;
+    actor->field_10            = coord->coord.t[0];
+    actor->field_14            = coord->coord.t[1];
+    actor->field_18            = coord->coord.t[2];
+    obj->ctx.dir               = &actor->field_88[0];
+    obj->coord                 = coord;
+    actor->field_88[0].field_8 = recs;
+    save                       = &Mc_SaveData[0];
+    obj->pos.vx                = 0;
+    obj->pos.vy                = -0xFA;
+    obj->pos.vz                = 0;
     {
         s32 temp;
 
@@ -155,16 +155,16 @@ static void func_actor_800200_80162088(Task* arg0)
         obj->key    = temp | packed;
         Gp_LinkObj(0, obj);
     }
-    Gp_InitRec18Table((GpRec18*)actor->field_90, 0x12, 0);
-    obj->flags     |= 0xC200;
-    obj             = (GpObj*)actor->field_CC;
-    next            = arg0->extra.tmd->coords;
-    obj->ctx.dir    = (GpObjDirRec*)actor->field_94;
-    obj->coord      = next + 4;
-    actor->field_9C = (s32)recs;
-    obj->pos.vx     = 0;
-    obj->pos.vy     = 0;
-    obj->pos.vz     = 0;
+    Gp_InitRec18Table(actor->field_88[0].field_8, 0x12, 0);
+    obj->flags                |= 0xC200;
+    obj                        = (GpObj*)actor->field_CC;
+    next                       = arg0->extra.tmd->coords;
+    obj->ctx.dir               = &actor->field_88[1];
+    obj->coord                 = next + 4;
+    actor->field_88[1].field_8 = recs;
+    obj->pos.vx                = 0;
+    obj->pos.vy                = 0;
+    obj->pos.vz                = 0;
     {
         s32 temp;
 
@@ -214,7 +214,7 @@ static void func_actor_800200_801622B0(Task* arg0)
         coord->coord.t[2] = actor->field_18;
     } else {
         if (actor->field_984 & 1) {
-            actor->field_992 = func_801011D0(coord, actor->field_90, 0x12, &actor->field_930);
+            actor->field_992 = func_801011D0(coord, actor->field_88[0].field_8, 0x12, &actor->field_930);
             if ((s8)actor->field_992 == 2) {
                 coord->coord.t[0] = actor->field_10;
                 coord->coord.t[1] = actor->field_14;
@@ -260,15 +260,15 @@ static void func_actor_800200_801622B0(Task* arg0)
         sc->vec.vy = (u16)coord->workm.m[1][2] * (s8)((volatile ActorDirByte*)actor)->field_973;
         sc->vec.vz = (u16)coord->workm.m[2][2] * (s8)((volatile ActorDirByte*)actor)->field_973;
     }
-    ((SVECTOR*)actor->field_88)->vx = sc->vec.vx;
-    ((SVECTOR*)actor->field_88)->vy = sc->vec.vy;
-    ((SVECTOR*)actor->field_88)->vz = sc->vec.vz;
-    ((SVECTOR*)actor->field_94)->vx = sc->vec.vx;
-    ((SVECTOR*)actor->field_94)->vy = sc->vec.vy;
-    ((SVECTOR*)actor->field_94)->vz = sc->vec.vz;
-    ((SVECTOR*)actor->field_A0)->vx = sc->vec.vx;
-    ((SVECTOR*)actor->field_A0)->vy = sc->vec.vy;
-    ((SVECTOR*)actor->field_A0)->vz = sc->vec.vz;
+    actor->field_88[0].dir.vx = sc->vec.vx;
+    actor->field_88[0].dir.vy = sc->vec.vy;
+    actor->field_88[0].dir.vz = sc->vec.vz;
+    actor->field_88[1].dir.vx = sc->vec.vx;
+    actor->field_88[1].dir.vy = sc->vec.vy;
+    actor->field_88[1].dir.vz = sc->vec.vz;
+    actor->field_88[2].dir.vx = sc->vec.vx;
+    actor->field_88[2].dir.vy = sc->vec.vy;
+    actor->field_88[2].dir.vz = sc->vec.vz;
     if (!(extra->flags & 0x80)) {
         Gp_DrawEffGroundQuad(MATRIX_TRANS(&coord->workm), 0x200, Gp_State1C->groundShade);
     }

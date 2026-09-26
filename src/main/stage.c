@@ -232,7 +232,7 @@ static Task* Display_SpawnFromMode(void)
         flag                = obj->field_984 & 1;
         ptr                 = slot->extra.tmd->coords;
         if (flag) {
-            func_801011D0(ptr, obj->field_90, 6, &obj->field_930);
+            func_801011D0(ptr, obj->field_88[0].field_8, 6, &obj->field_930);
         }
         Gp_ClearRec18Occupied(&obj->field_17C);
         ptr->flg = 0;
@@ -265,7 +265,7 @@ block_default:
     flag                                  = obj->field_984 & 1;
     ptr                                   = slot->extra.tmd->coords;
     if (flag) {
-        func_801011D0(ptr, obj->field_90, 6, &obj->field_930);
+        func_801011D0(ptr, obj->field_88[0].field_8, 6, &obj->field_930);
     }
     Gp_ClearRec18Occupied(&obj->field_17C);
     ptr->flg = 0;

@@ -3348,25 +3348,36 @@ static void Gp_DrawEffSpriteE2(GpCoord* arg0, u16 arg1, u32 arg2, s16 arg3)
     SCRATCH_POP_BYTES(0x1C);
 }
 
+/// Puts `obj`, one of the player's bodies, on the object list: a sphere of
+/// `radius` at `(x, y, z)` under `coord`, taking its direction from the actor's
+/// `i`th direction record, whose contacts go to `recs`, and keyed by the saved
+/// game's character.
+static inline void _gpLinkPlayerObj(GameActor* actor, s32 i, GpObj* obj, GpCoord* coord, GpRec18* recs, s16 x, s16 y,
+                                    s16 z, u16 radius, u16 flags)
+{
+    obj->ctx.dir               = &actor->field_88[i];
+    obj->coord                 = coord;
+    actor->field_88[i].field_8 = recs;
+    obj->pos.vx                = x;
+    obj->pos.vy                = y;
+    obj->pos.vz                = z;
+    obj->key                   = Mc_SaveData[0].characterId | 0x10000;
+    obj->radius                = radius;
+    obj->flags                 = flags;
+    Gp_LinkObj(0, obj);
+}
+
 static void Gp_InitPlayerWork(Task* arg0)
 {
-    GameActor*   actor;
-    TmdObject*   extra;
-    GpCoord*     coord;
-    GpObj*       obj;
-    GpRec18*     recs;
-    GpObjDirRec* link;
-    McSaveData*  save;
-    s32          packed;
-    s32          size;
-    s32          kind;
-    s32          anim;
-    s32          idx;
-    GpAnimArg    sp;
-    Task*        task;
-    s32          zero;
-    s32          temp;
-    GpCoord*     next;
+    GameActor* actor;
+    TmdObject* extra;
+    GpCoord*   coord;
+    GpObj*     obj;
+    GpRec18*   recs;
+    s32        kind;
+    s32        anim;
+    GpAnimArg  sp;
+    Task*      task;
 
     actor = arg0->work;
     extra = arg0->extra.tmd;
@@ -3388,67 +3399,18 @@ static void Gp_InitPlayerWork(Task* arg0)
     actor->field_14  = coord->coord.t[1];
     actor->field_18  = coord->coord.t[2];
 
-    recs            = actor->field_17C;
-    obj             = (GpObj*)actor->field_AC;
-    obj->ctx.dir    = (GpObjDirRec*)actor->field_88;
-    obj->coord      = coord;
-    actor->field_90 = (s32)recs;
-    obj->pos.vy     = -0x12C;
-    save            = &Mc_SaveData[0];
-    obj->pos.vx     = 0;
-    obj->pos.vz     = 0;
-    {
-        s32 temp;
-        temp        = save->characterId;
-        obj->radius = 0x12C;
-        obj->flags  = 4;
-        packed      = 0x10000;
-        obj->key    = temp | packed;
-        Gp_LinkObj(0, obj);
-    }
-    Gp_InitRec18Table((GpRec18*)actor->field_90, 0x12, 0);
+    recs = actor->field_17C;
+    obj  = (GpObj*)actor->field_AC;
+    _gpLinkPlayerObj(actor, 0, obj, coord, recs, 0, -0x12C, 0, 0x12C, 4);
+    Gp_InitRec18Table(actor->field_88[0].field_8, 0x12, 0);
+    obj->flags |= 0xF200;
 
-    {
-        s32      zero;
-        s32      temp;
-        GpCoord* next;
-        zero = 0;
-        TOUCH_REG(zero);
-        link            = (GpObjDirRec*)actor->field_94;
-        size            = 0xDC;
-        obj->flags     |= 0xF200;
-        obj             = (GpObj*)actor->field_CC;
-        next            = arg0->extra.tmd->coords;
-        obj->ctx.dir    = link;
-        obj->coord      = next + 4;
-        actor->field_9C = (s32)recs;
-        obj->pos.vy     = 0x64;
-        obj->pos.vx     = 0;
-        obj->pos.vz     = 0x28;
-        temp            = save->characterId;
-        obj->radius     = size;
-        obj->flags      = 0x14;
-        obj->key        = temp | packed;
-        Gp_LinkObj(zero, obj);
-    }
+    obj = (GpObj*)actor->field_CC;
+    _gpLinkPlayerObj(actor, 1, obj, arg0->extra.tmd->coords + 4, recs, 0, 0x64, 0x28, 0xDC, 0x14);
+    obj->flags |= 0x8000;
 
-    zero = 0;
-    TOUCH_REG(zero);
-    obj->flags     |= 0x8000;
-    link            = (GpObjDirRec*)actor->field_A0;
-    obj             = (GpObj*)actor->field_EC;
-    next            = arg0->extra.tmd->coords;
-    obj->ctx.dir    = link;
-    obj->coord      = next + 1;
-    actor->field_A8 = (s32)recs;
-    obj->pos.vx     = 0;
-    obj->pos.vy     = 0x52;
-    obj->pos.vz     = 0;
-    temp            = save->characterId;
-    obj->radius     = size;
-    obj->flags      = 0x24;
-    obj->key        = temp | packed;
-    Gp_LinkObj(zero, obj);
+    obj = (GpObj*)actor->field_EC;
+    _gpLinkPlayerObj(actor, 2, obj, arg0->extra.tmd->coords + 1, recs, 0, 0x52, 0, 0xDC, 0x24);
     obj->flags |= 0xC000;
 
     kind             = actor->field_954;
@@ -3462,15 +3424,14 @@ static void Gp_InitPlayerWork(Task* arg0)
     }
     if (kind == 2) {
         sp.field_C         = 0;
-        idx                = actor->field_93A;
+        sp.animBlock.index = actor->field_93A;
         sp.field_8         = 0;
         sp.field_4         = anim;
         sp.field_10        = 0;
-        sp.animBlock.index = idx;
         func_80104508(arg0, 0, &sp, 0);
         actor->field_984 = 0x38;
     }
-    if ((GP_LOC_WORD(save->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 5, 0, 0)) {
+    if ((GP_LOC_WORD(Mc_SaveData[0].at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 5, 0, 0)) {
         actor->field_991 = 1;
     }
 }
@@ -3496,7 +3457,7 @@ static void Gp_PlayerWorkState1(Task* arg0)
         actor->field_14 = coord->coord.t[1];
         actor->field_18 = coord->coord.t[2];
         if (actor->field_984 & 1) {
-            actor->field_992 = func_801011D0(coord, actor->field_90, 0x12, &actor->field_930);
+            actor->field_992 = func_801011D0(coord, actor->field_88[0].field_8, 0x12, &actor->field_930);
         } else {
             actor->field_992 = 0;
         }
@@ -3571,7 +3532,7 @@ void Gp_AttachActorObj(Task* arg0, s32 id, s32 kind)
     SCRATCH_POP(VECTOR);
 }
 
-s32 func_801011D0(GpCoord* arg0, s32 arg1, s32 arg2, s32* arg3)
+s32 func_801011D0(GpCoord* arg0, GpRec18* arg1, s32 arg2, s32* arg3)
 {
     u8*             head;
     register void*  p asm("v0");
@@ -3583,7 +3544,7 @@ s32 func_801011D0(GpCoord* arg0, s32 arg1, s32 arg2, s32* arg3)
     p                  = head - 0x10;
     s                  = p;
     SCRATCH_HEAD(void) = p;
-    ret                = func_800E0FEC((GpRec18*)arg1, s, arg2, arg3);
+    ret                = func_800E0FEC(arg1, s, arg2, arg3);
     if (ret != 0) {
         val = ((GpDeltaScratch*)(head - 0x10))->vx.w;
         if ((val & 0xFFFF) != 0) {
@@ -3758,16 +3719,16 @@ void Gp_UpdatePlayerMove(void)
         vec->vy = coord->workm.m[1][2] * actor->field_973;
         vec->vz = coord->workm.m[2][2] * actor->field_973;
     }
-    task                            = actor->field_91C;
-    ((SVECTOR*)actor->field_88)->vx = vec->vx;
-    ((SVECTOR*)actor->field_88)->vy = vec->vy;
-    ((SVECTOR*)actor->field_88)->vz = vec->vz;
-    ((SVECTOR*)actor->field_94)->vx = vec->vx;
-    ((SVECTOR*)actor->field_94)->vy = vec->vy;
-    ((SVECTOR*)actor->field_94)->vz = vec->vz;
-    ((SVECTOR*)actor->field_A0)->vx = vec->vx;
-    ((SVECTOR*)actor->field_A0)->vy = vec->vy;
-    ((SVECTOR*)actor->field_A0)->vz = vec->vz;
+    task                      = actor->field_91C;
+    actor->field_88[0].dir.vx = vec->vx;
+    actor->field_88[0].dir.vy = vec->vy;
+    actor->field_88[0].dir.vz = vec->vz;
+    actor->field_88[1].dir.vx = vec->vx;
+    actor->field_88[1].dir.vy = vec->vy;
+    actor->field_88[1].dir.vz = vec->vz;
+    actor->field_88[2].dir.vx = vec->vx;
+    actor->field_88[2].dir.vy = vec->vy;
+    actor->field_88[2].dir.vz = vec->vz;
     if (task != NULL) {
         actor->field_3D4 = *task->extra.tmd->coords;
         mat              = &actor->field_3D4.workm;

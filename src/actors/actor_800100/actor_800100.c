@@ -755,19 +755,19 @@ static void func_actor_800100_80163214(Task* arg0)
     actor->field_985 = 0x10;
     Gp_AnimResetChildSlots(arg0, actor->field_93C);
     Gp_AnimTickChildSlots(arg0);
-    recs            = actor->field_17C;
-    obj             = (GpObj*)actor->field_AC;
-    actor->field_10 = coord->coord.t[0];
-    actor->field_14 = coord->coord.t[1];
-    actor->field_18 = coord->coord.t[2];
-    obj->ctx.dir    = (GpObjDirRec*)actor->field_88;
-    obj->coord      = coord;
-    actor->field_90 = (s32)recs;
-    save            = &Mc_SaveData[0];
-    obj->pos.vy     = -0x12C;
-    obj->pos.vx     = 0;
-    obj->pos.vz     = 0;
-    packed          = 0x10000;
+    recs                       = actor->field_17C;
+    obj                        = (GpObj*)actor->field_AC;
+    actor->field_10            = coord->coord.t[0];
+    actor->field_14            = coord->coord.t[1];
+    actor->field_18            = coord->coord.t[2];
+    obj->ctx.dir               = &actor->field_88[0];
+    obj->coord                 = coord;
+    actor->field_88[0].field_8 = recs;
+    save                       = &Mc_SaveData[0];
+    obj->pos.vy                = -0x12C;
+    obj->pos.vx                = 0;
+    obj->pos.vz                = 0;
+    packed                     = 0x10000;
     {
         s32 temp;
 
@@ -777,16 +777,16 @@ static void func_actor_800100_80163214(Task* arg0)
         obj->key    = temp | packed | 0x80;
         Gp_LinkObj(0, obj);
     }
-    Gp_InitRec18Table((GpRec18*)actor->field_90, 0x12, 0);
-    obj->flags     |= 0xC200;
-    next            = arg0->extra.tmd->coords + 4;
-    obj             = (GpObj*)actor->field_CC;
-    obj->ctx.dir    = (GpObjDirRec*)actor->field_94;
-    obj->coord      = next;
-    actor->field_9C = (s32)recs;
-    obj->pos.vx     = 0;
-    obj->pos.vy     = 0x64;
-    obj->pos.vz     = 0;
+    Gp_InitRec18Table(actor->field_88[0].field_8, 0x12, 0);
+    obj->flags                |= 0xC200;
+    next                       = arg0->extra.tmd->coords + 4;
+    obj                        = (GpObj*)actor->field_CC;
+    obj->ctx.dir               = &actor->field_88[1];
+    obj->coord                 = next;
+    actor->field_88[1].field_8 = recs;
+    obj->pos.vx                = 0;
+    obj->pos.vy                = 0x64;
+    obj->pos.vz                = 0;
     {
         s32 f = 0x14;
         s32 temp;
@@ -797,15 +797,15 @@ static void func_actor_800100_80163214(Task* arg0)
         obj->key    = temp | packed | 0x80;
         Gp_LinkObj(0, obj);
     }
-    obj->flags     |= 0x8000;
-    obj             = (GpObj*)actor->field_EC;
-    third           = arg0->extra.tmd->coords;
-    obj->ctx.dir    = (GpObjDirRec*)actor->field_A0;
-    obj->coord      = third + 1;
-    actor->field_A8 = (s32)recs;
-    obj->pos.vx     = 0;
-    obj->pos.vy     = 0x52;
-    obj->pos.vz     = 0;
+    obj->flags                |= 0x8000;
+    obj                        = (GpObj*)actor->field_EC;
+    third                      = arg0->extra.tmd->coords;
+    obj->ctx.dir               = &actor->field_88[2];
+    obj->coord                 = third + 1;
+    actor->field_88[2].field_8 = recs;
+    obj->pos.vx                = 0;
+    obj->pos.vy                = 0x52;
+    obj->pos.vz                = 0;
     {
         s32 temp;
 
@@ -886,7 +886,7 @@ static void func_actor_800100_801635F4(Task* arg0)
         actor->field_14 = coord->coord.t[1];
         actor->field_18 = coord->coord.t[2];
         if (actor->field_984 & 1) {
-            actor->field_992 = func_801011D0(coord, actor->field_90, 0x12, &actor->field_930);
+            actor->field_992 = func_801011D0(coord, actor->field_88[0].field_8, 0x12, &actor->field_930);
         } else {
             actor->field_992 = 0;
         }
@@ -943,15 +943,15 @@ static void func_actor_800100_801635F4(Task* arg0)
         scratch->vz = (u16)coord->workm.m[2][2] *
                       (s8)((volatile Actor800100DirByte*)actor)->field_973;
     }
-    ((SVECTOR*)actor->field_88)->vx = scratch->vx;
-    ((SVECTOR*)actor->field_88)->vy = scratch->vy;
-    ((SVECTOR*)actor->field_88)->vz = scratch->vz;
-    ((SVECTOR*)actor->field_94)->vx = scratch->vx;
-    ((SVECTOR*)actor->field_94)->vy = scratch->vy;
-    ((SVECTOR*)actor->field_94)->vz = scratch->vz;
-    ((SVECTOR*)actor->field_A0)->vx = scratch->vx;
-    ((SVECTOR*)actor->field_A0)->vy = scratch->vy;
-    ((SVECTOR*)actor->field_A0)->vz = scratch->vz;
+    actor->field_88[0].dir.vx = scratch->vx;
+    actor->field_88[0].dir.vy = scratch->vy;
+    actor->field_88[0].dir.vz = scratch->vz;
+    actor->field_88[1].dir.vx = scratch->vx;
+    actor->field_88[1].dir.vy = scratch->vy;
+    actor->field_88[1].dir.vz = scratch->vz;
+    actor->field_88[2].dir.vx = scratch->vx;
+    actor->field_88[2].dir.vy = scratch->vy;
+    actor->field_88[2].dir.vz = scratch->vz;
 
     if (!(work->flags & 0x80)) {
         ground      = arg0->extra.tmd->coords + 1;

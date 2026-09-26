@@ -212,6 +212,17 @@ typedef struct {
 } GpRec18;
 STATIC_ASSERT_SIZEOF(GpRec18, 0x18);
 
+/// What a kind-4 `GpObj` holds in `ctx.dir`. `dir` is the facing vector written
+/// there each frame; `field_8` is the `GpRec18` table the object's contacts are
+/// recorded in.
+///
+/// Declared main-side because `GameActor` embeds them by value.
+typedef struct _GpObjDirRec {
+    /* 0x0 */ SVECTOR  dir;
+    /* 0x8 */ GpRec18* field_8;
+} GpObjDirRec;
+STATIC_ASSERT_SIZEOF(GpObjDirRec, 0xC);
+
 /// The collision shape a body carries: the segment between two local
 /// endpoints, the radius at each, and the table the contacts it makes are
 /// recorded in. A body whose kind bits name this shape reaches it through its
@@ -329,12 +340,7 @@ typedef struct _GameActor {
     /* 0x080 */ s16                field_80;        // copied from func_80104F5C arg2
     /* 0x082 */ s16                field_82;        // target facing angle; func_80104E00 / Gp_PlayerMode2State2
     /* 0x084 */ byte               pad_84[4];
-    /* 0x088 */ byte               field_88[8];     // address taken as `GpObj.ctx.dir`
-    /* 0x090 */ s32                field_90;
-    /* 0x094 */ byte               field_94[8];     // address taken as `GpObj.ctx.dir`
-    /* 0x09C */ s32                field_9C;
-    /* 0x0A0 */ byte               field_A0[8];     // address taken as `GpObj.ctx.dir`
-    /* 0x0A8 */ s32                field_A8;
+    /* 0x088 */ GpObjDirRec        field_88[3];     // `ctx.dir` of the `GpObj` nodes at `field_AC`, `field_CC` and `field_EC`
     /* 0x0AC */ byte               field_AC[0x20];  // first of the five `GpObj` nodes at 0xAC..0x14C
     /* 0x0CC */ byte               field_CC[0x20];  // `GpObj` node
     /* 0x0EC */ byte               field_EC[0x20];  // `GpObj` node

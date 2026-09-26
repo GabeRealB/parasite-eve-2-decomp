@@ -698,7 +698,7 @@ void  func_800FDB18(s32 arg0, struct GpCoord* arg1, SVECTOR* arg2, GpEffArg* arg
 void  func_800FF710(Task* arg0);
 void  Gp_EffSprTaskE0(Task* arg0);
 void  Gp_EffSprTaskE2(Task* arg0);
-s32   func_801011D0(struct GpCoord* arg0, s32 arg1, s32 arg2, s32* arg3);
+s32   func_801011D0(struct GpCoord* arg0, GpRec18* arg1, s32 arg2, s32* arg3);
 void  Gp_AttachActorObj(Task* arg0, s32 arg1, s32 arg2);
 void  Gp_AnimPlayChildSlotsEx(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 Task* func_80104258(Task* arg0, s32 arg1, s32 arg2, s32 arg3);

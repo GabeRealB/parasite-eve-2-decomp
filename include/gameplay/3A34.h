@@ -28,15 +28,6 @@ STATIC_ASSERT_SIZEOF(GpTaskDesc, 0xC);
 /// Per-stage task descriptor tables searched by `func_800E31E8`.
 extern GpTaskDesc* D_8010FABC[];
 
-/// What a kind-4 `GpObj` holds in `ctx.dir` (`GameActor.field_88`, followed by
-/// `GameActor.field_90`). `dir` is the facing vector written there each frame;
-/// `field_8` is the `GpRec18` table the object's contacts are recorded in.
-typedef struct _GpObjDirRec {
-    /* 0x0 */ SVECTOR  dir;
-    /* 0x8 */ GpRec18* field_8;
-} GpObjDirRec;
-STATIC_ASSERT_SIZEOF(GpObjDirRec, 0xC);
-
 /// One 4-byte entry of the tables that name a collision body: the two halves
 /// `Gp_PackPair` / `Gp_PackObjPair` pack into that body's `GpObj.key`, taking
 /// the low 12 bits of `field_0` and the low 4 bits of `field_2`. An actor's

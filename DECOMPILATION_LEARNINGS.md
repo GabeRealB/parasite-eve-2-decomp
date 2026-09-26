@@ -143801,3 +143801,20 @@ single-set `s32` result is sunk and the values fit, try the narrow type the
 operands already have before manufacturing a second set. `s16` did not work
 here: the shift then sets a fresh `SImode` temporary before the narrowing copy,
 and that single-set temporary is birthing and sinks just the same.
+
+## A byte-array member cast to a struct pointer is a pseudo CSE reuses; a typed member array is not (Gp_InitPlayerWork, 2026-09-26)
+
+`GameActor` held three 12-byte records at 0x88 as `byte field_88[8]; s32
+field_90;` repeated, and the player setup passed `(GpObjDirRec*)actor->field_94`
+to `GpObj.ctx.dir` while storing the contact table through `actor->field_9C`.
+Folding the three setups into one inline helper that took the record and stored
+`rec->field_8` addressed that store as `sw s1,8(v1)`; the target has
+`sw s1,0x9C(s4)`. Indexing the byte array through a cast
+(`((GpObjDirRec*)actor->field_88)[i].field_8`) gave the same: the decayed array
+address is forced into a pseudo, and CSE addresses the neighbouring field
+through it. Declaring the member as `GpObjDirRec field_88[3]` and writing
+`&actor->field_88[i]` / `actor->field_88[i].field_8` in the helper matched: a
+`COMPONENT_REF` of a constant-index `ARRAY_REF` expands straight to
+`(plus actor 0x9C)`. When a store the target addresses from the struct base
+comes out relative to a sibling pointer, the layout usually wants a real member
+array rather than a pointer cast.
