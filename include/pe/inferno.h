@@ -3,12 +3,6 @@
 
 #include "common.h"
 
-/// The `SndEvt_EnqueueType6` id the inferno cast plays, indexed by
-/// `Gp_StateC08.field_0 % 10 - 1` so the roar scales with the combo counter.
-/// The same index also picks the state `func_inferno_8012EF88` advances to,
-/// which is why the three ids and the three state chains run in step.
-extern s32 D_inferno_801304F0[];
-
 /// 0xC jitter block `func_inferno_8012F530` hangs off `Task::work` via
 /// `memCalloc(0xC)`. It is two parallel 6-byte columns, one per ring drawn
 /// by the pair of fan routines: `field_0[0][i]` seeds the inner ring's

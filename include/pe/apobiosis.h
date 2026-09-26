@@ -49,17 +49,4 @@ typedef struct ApobiosisStep {
 } ApobiosisStep;
 STATIC_ASSERT_SIZEOF(ApobiosisStep, 0x8);
 
-/// Three apobiosis intensities, weakest first.
-extern ApobiosisStep D_apobiosis_80130B5C[];
-
-/// The `SndEvt_EnqueueType6` id the cast plays, one per `D_apobiosis_80130B5C`
-/// row, so the boom scales with the combo counter like the burst does.
-extern s32 D_apobiosis_80130B74[];
-
-/// Ring azimuths, two rows of up to eight. `func_apobiosis_8012EF4C` lays out
-/// `ApobiosisStep::field_0 * 2` of them at `(i << 10) + rand()` in state 0 and
-/// then jitters each by +-0x80 a frame; the first row is the shard's own angle
-/// and the row `ApobiosisStep::field_4` entries later is its elevation.
-extern s16 D_apobiosis_80130B80[];
-
 #endif /* PE_APOBIOSIS_H */

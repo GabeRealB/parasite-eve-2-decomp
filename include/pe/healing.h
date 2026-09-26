@@ -17,7 +17,4 @@ typedef struct HealingScale {
 } HealingScale;
 STATIC_ASSERT_SIZEOF(HealingScale, 8);
 
-/// The `SndEvt_EnqueueType6` id for each `D_healing_8012FC1C` row.
-extern s32 D_healing_8012FC34[];
-
 #endif /* PE_HEALING_H */

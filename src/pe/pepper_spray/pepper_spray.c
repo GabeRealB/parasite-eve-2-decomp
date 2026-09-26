@@ -20,6 +20,12 @@
 static void func_pepper_spray_8012F21C(GpCoord* arg0, s16 arg1, s16 arg2);
 static void func_pepper_spray_8012F634(GpCoord* arg0, s16 arg1, s16 arg2);
 
+/// The six spray-cone yaws, refilled once per cast by
+/// `func_pepper_spray_8012EF34` from `Gp_LcgState`: entry `i` is a 0x400-wide
+/// draw offset into the quadrant `i & 3`, so the six quads fan around the
+/// nozzle. `func_pepper_spray_8012F634` draws one quad per entry every frame.
+static s16 D_pepper_spray_8012FB9C[6] = { 0, 0, 0, 0, 0, 0 };
+
 /// Runs one frame of the pepper spray. State 0 parks the room light slot on
 /// the nozzle coordinate, seeds the spray yaw / spread / brightness from
 /// `Gp_LcgState`, refills the six cone yaws and plays the spray sound; state 1
@@ -28,9 +34,6 @@ static void func_pepper_spray_8012F634(GpCoord* arg0, s16 arg1, s16 arg2);
 /// screen at the current brightness and draws the six cone quads. The effect
 /// ends after nine frames, or immediately if the player is dying
 /// (`Gp_StateC08.field_3`) or the room is fading (`Gp_State1C`).
-/// Scratch the nozzle spray walks while the cloud is alive.
-/// lists an object in the linker script at its first subsegment, and this has
-s16 D_pepper_spray_8012FB9C[6] = { 0, 0, 0, 0, 0, 0 };
 
 static void func_pepper_spray_8012EF34(Task* arg0)
 {

@@ -28,7 +28,7 @@ static HealingScale D_healing_8012FC1C[] = {
 };
 
 /// The `SndEvt_EnqueueType6` id for each `D_healing_8012FC1C` row.
-s32 D_healing_8012FC34[] = { 0xE0200001, 0xE0230001, 0xE0260001 };
+static s32 D_healing_8012FC34[] = { 0xE0200001, 0xE0230001, 0xE0260001 };
 
 static void func_healing_8012F7FC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 

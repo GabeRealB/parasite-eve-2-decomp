@@ -24,18 +24,6 @@ typedef struct AntibodyStep {
 } AntibodyStep;
 STATIC_ASSERT_SIZEOF(AntibodyStep, 0xE);
 
-/// Three antibody intensities, weakest first.
-extern AntibodyStep D_antibody_80130BD4[];
-
-/// The `SndEvt_EnqueueType6` id for each `D_antibody_80130BD4` row, played
-/// once when `func_antibody_8012EF34` seeds the cast.
-extern s32 D_antibody_80130C00[];
-
-/// Sixteen wedge yaws, refilled once per cast by `func_antibody_8012EF34`.
-/// Entry `i` is `i * (0x1000 / field_0)` plus a 9-bit `Gp_LcgState` draw;
-/// states 1 and 2 pass one yaw per frame to `func_antibody_801308D4`.
-extern s16 D_antibody_80130C0C[];
-
 /// 0x28-byte scratch block `func_antibody_80130428` takes from
 /// `G_SCRATCH_HEAD` to draw one antibody arc. `v0` is the effect
 /// coordinate's world position and `v1` the player's second part coordinate;

@@ -18,20 +18,26 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
-/// Per-level tuning for the combustion flame: rows are PE levels 1-3.
-CombustionStep D_combustion_80130980[] = {
+static void func_combustion_8012F5EC(GpCoord* arg0, s16 arg1, s16 arg2);
+static void func_combustion_8012FB14(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
+static void func_combustion_8012FF0C(GpCoord* arg0, s32 arg1, s16 arg2);
+static void func_combustion_80130184(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
+static void func_combustion_801305F8(GpCoord* arg0, s16 arg1, s16 arg2);
+
+/// Per-level tuning for the combustion flame, one row per PE level 1-3,
+/// weakest first.
+static CombustionStep D_combustion_80130980[] = {
     { 0x0060, 0x0120, 0x0007, 0x0015 },
     { 0x0055, 0x0187, 0x0008, 0x0017 },
     { 0x004C, 0x01F3, 0x0009, 0x0019 },
 };
 
 /// The `SndEvt_EnqueueType6` id for each `D_combustion_80130980` row.
-s32 D_combustion_80130998[] = { 0xE00C0002, 0xE00F0002, 0xE0120002 };
+static s32 D_combustion_80130998[] = { 0xE00C0002, 0xE00F0002, 0xE0120002 };
 
-static void func_combustion_8012FB14(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
-
-/// Live flame handle for the combustion effect.
-s32 D_combustion_801309A4 = 0;
+/// The effect coordinate's world Y at ignition, saved by
+/// `func_combustion_8012EF34` before it re-bases the coordinate on the player.
+static s32 D_combustion_801309A4 = 0;
 
 /// Burns the player: parents an effect coordinate to the player model, plays
 /// the ignition sound and fades the screen, then spawns a flame every frame
@@ -223,7 +229,7 @@ static void func_combustion_8012F2BC(Task* arg0)
 /// of the six 0x20-wide texture frames on tpage 0x29 (CLUT 0x4282), and `arg2`
 /// sizes it: the corners sit `arg2 * 31 / otz` from the projected centre.
 /// Same 0x18-byte scratch and axis-aligned quad as `func_combustion_8012FF0C`.
-void func_combustion_8012F5EC(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_combustion_8012F5EC(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     u8*            head;
     GpRingScratch* block;
@@ -465,7 +471,7 @@ static void func_combustion_8012FB14(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3
 /// sizes it: the corners sit `arg2 * 23 / otz` from the projected centre, so
 /// the sprite shrinks with depth. Same 0x18-byte scratch and axis-aligned
 /// quad as gameplay `Gp_EffSprTask8D`.
-void func_combustion_8012FF0C(GpCoord* arg0, s32 arg1, s16 arg2)
+static void func_combustion_8012FF0C(GpCoord* arg0, s32 arg1, s16 arg2)
 {
     u8*            head;
     GpRingScratch* block;
@@ -542,7 +548,7 @@ void func_combustion_8012FF0C(GpCoord* arg0, s32 arg1, s16 arg2)
 /// semi-transparent core at `0x428B` / u 0x70..0xA7, even the additive outer
 /// flame at `0x428C` / u 0xA8..0xDF. The quad is linked into `gGpuCurrentOt` at
 /// its own `otz` twice, once per diagonal pair.
-void func_combustion_80130184(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
+static void func_combustion_80130184(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     GpFxQuadScratch* block;
     POLY_FT4*        prim;
@@ -606,7 +612,7 @@ void func_combustion_80130184(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 /// (`0x4300` plus the cell index), and `arg2` sizes it: the corners sit
 /// `arg2 * 39 / otz` from the projected centre, so the sprite shrinks with
 /// depth.
-void func_combustion_801305F8(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_combustion_801305F8(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     u8*            head;
     GpRingScratch* block;

@@ -16,8 +16,15 @@
 #include "main/tmd.h"
 #include "pe/energyball.h"
 
-/// The `SndEvt_EnqueueType6` ids: three charge cues then three release cues.
-s32 D_energyball_8013117C[] = {
+static void func_energyball_8012FFD0(GpCoord* arg0, s16 arg1, s16 arg2);
+static void func_energyball_8013035C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
+static void func_energyball_801307D4(GpCoord* arg0, s32 arg1);
+static void func_energyball_80130B54(GpCoord* arg0, s16 arg1, s16 arg2);
+
+/// The energy ball's `SndEvt` ids. Only the first three are read, indexed by
+/// the cast's level: the cast starts its entry with `SndEvt_EnqueueType6` and
+/// later passes the same id to `SndEvt_EnqueueType7`.
+static s32 D_energyball_8013117C[] = {
     0xE02B0002,
     0xE02E0002,
     0xE0310002,
@@ -26,8 +33,9 @@ s32 D_energyball_8013117C[] = {
     0xE0310001,
 };
 
-/// Per-level radius/step pairs for the ball: rows are PE levels 1-3.
-EnergyBallStep D_energyball_80131194[] = {
+/// Per-level radius/step pairs for the ball, one row per PE level 1-3,
+/// weakest first.
+static EnergyBallStep D_energyball_80131194[] = {
     { 0x0400, 0x0040 },
     { 0x0480, 0x0048 },
     { 0x0500, 0x0050 },
@@ -35,14 +43,16 @@ EnergyBallStep D_energyball_80131194[] = {
 
 extern s32 D_80115724;
 
+/// Sixteen 8-bit draws from `Gp_LcgState`, refilled once per cast by
+/// `func_energyball_8012EF48` and consumed by the GTE pass in
+/// `func_energyball_80130B54` as the per-vertex jitter of the ball's surface.
+static s16 D_energyball_801311A0[16] = { 0 };
+
 /// Fires the energy ball: on the first frame it picks the charge level from the
 /// combo counter, plays the matching loop sound, refills the surface-jitter
 /// table and spawns one ball per charge level, fanning them out by 0x555 of
 /// yaw each while `D_80115724` (the number of balls already in flight) allows
 /// it. Every later frame just releases the work block.
-/// Scratch for the ball's per-frame vertex work.
-/// lists an object in the linker script at its first subsegment, and this has
-s16 D_energyball_801311A0[16] = { 0 };
 
 static void func_energyball_8012EF48(Task* arg0)
 {
@@ -405,7 +415,7 @@ release:
 /// vertex of each `POLY_G4` is lit, `(arg2 / 2, arg2, arg2 / 2)`, so every
 /// wedge fades from green at the centre to black at the rim. Each wedge gets
 /// the semi-transparent tpage of `Gp_AddTpageShift` at its OTZ.
-void func_energyball_8012FFD0(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_energyball_8012FFD0(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     GpRingScratch* block;
     POLY_G4*       prim;
@@ -458,7 +468,7 @@ void func_energyball_8012FFD0(GpCoord* arg0, s16 arg1, s16 arg2)
 /// tinted `(0x40, 0xC0, 0x60)`. `arg3` spins the quad and `arg2` sizes it: the
 /// corners sit `arg2 * 55 / otz` from the projected centre along `arg3` and
 /// `arg3 + 0x400`, so the sprite shrinks with depth.
-void func_energyball_8013035C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
+static void func_energyball_8013035C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     u8*                       head;
     GpFxQuadScratch*          block;
@@ -530,7 +540,7 @@ void func_energyball_8013035C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 /// quad. The texture is the two-frame tpage-0x28 strip at rows 0x38..0x57,
 /// the frame picked by the low bit of `gDisplayState.animFrame`, tinted
 /// `(0x20, 0x30, 0x20)`.
-void func_energyball_801307D4(GpCoord* arg0, s32 arg1)
+static void func_energyball_801307D4(GpCoord* arg0, s32 arg1)
 {
     u8*                   head;
     OverlayGroundScratch* sc;
@@ -629,7 +639,7 @@ void func_energyball_801307D4(GpCoord* arg0, s32 arg1)
 /// `D_energyball_801311A0` plus the frame counter, the quad is tinted
 /// `(arg2 >> 1, arg2, arg2 >> 1)`, and a negative `gte_stflg` drops the
 /// segment.
-void func_energyball_80130B54(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_energyball_80130B54(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     register u8*   head asm("v0");
     GpBandScratch* block;

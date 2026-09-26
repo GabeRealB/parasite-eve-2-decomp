@@ -25,13 +25,17 @@ static EnergyShotScale D_energyshot_801300E4[] = {
 };
 
 /// The `SndEvt_EnqueueType6` id for each `D_energyshot_801300E4` row.
-s32 D_energyshot_801300FC[] = { 0xE02A0001, 0xE02D0001, 0xE0300001 };
+static s32 D_energyshot_801300FC[] = { 0xE02A0001, 0xE02D0001, 0xE0300001 };
 
 static void func_energyshot_8012FA50(GpCoord* arg0, s16 arg1, s16 arg2, u8* arg3);
 static void func_energyshot_8012F750(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 
-/// Two scratch rings the shot walks while in flight.
-s16 D_energyshot_80130108[16] = { 0 };
+/// Sixteen per-vertex texture-frame offsets, refilled once per cast by
+/// `func_energyshot_8012EF34` and consumed by the GTE pass in
+/// `func_energyshot_8012FA50`, where each is added to `gDisplayState.animFrame`
+/// and reduced mod 6 to pick one of the six 0x28-wide frames of the beam
+/// texture.
+static s16 D_energyshot_80130108[16] = { 0 };
 /// Sixteen wedge yaws, refilled once per cast by `func_energyshot_8012EF34`
 /// from `Gp_LcgState`. Entry `i` is `i * (0x1000 / field_0)` plus a 9-bit LCG
 /// draw. States 1 and 2 pass one yaw per frame to `func_energyshot_8012F750`.

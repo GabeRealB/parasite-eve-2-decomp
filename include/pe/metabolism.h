@@ -20,14 +20,4 @@ typedef struct MetabolismStep {
 } MetabolismStep;
 STATIC_ASSERT_SIZEOF(MetabolismStep, 8);
 
-/// Three metabolism intensities, weakest first.
-extern MetabolismStep D_metabolism_8012FB54[];
-
-/// The `SndEvt_EnqueueType6` id for each `D_metabolism_8012FB54` row.
-extern s32 D_metabolism_8012FB6C[];
-
-/// Scratch angles for the fan, one per wedge: `(i << 10)` plus a 10-bit
-/// random offset, seeded by state 0 and swept by `func_metabolism_8012F840`.
-extern s16 D_metabolism_8012FB78[];
-
 #endif /* PE_METABOLISM_H */

@@ -17,20 +17,27 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
-/// Per-level tuning for the antibody motes: rows are PE levels 1-3.
-AntibodyStep D_antibody_80130BD4[] = {
+/// Per-level tuning for the antibody motes, one row per PE level 1-3,
+/// weakest first.
+static AntibodyStep D_antibody_80130BD4[] = {
     { 0x0008, 0x0090, 0x0005, 0x0200, 0x0080, 0x0600, 0x0008 },
     { 0x000C, 0x00C0, 0x0006, 0x0300, 0x0100, 0x0700, 0x0006 },
     { 0x0010, 0x00F0, 0x0007, 0x0400, 0x0180, 0x0800, 0x0004 },
 };
 
-/// The `SndEvt_EnqueueType6` id for each `D_antibody_80130BD4` row.
-s32 D_antibody_80130C00[] = { 0xE0290001, 0xE02C0001, 0xE02F0001 };
+/// The `SndEvt_EnqueueType6` id for each `D_antibody_80130BD4` row, played
+/// once when `func_antibody_8012EF34` seeds the cast.
+static s32 D_antibody_80130C00[] = { 0xE0290001, 0xE02C0001, 0xE02F0001 };
 
 static void func_antibody_801308D4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 static void func_antibody_8012FBB0(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 static void func_antibody_8012FFEC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 static void func_antibody_80130428(GpCoord* arg0, s16 arg1, s16 arg2);
+
+/// Sixteen wedge yaws, refilled once per cast by `func_antibody_8012EF34`.
+/// Entry `i` is `i * (0x1000 / field_0)` plus a 9-bit `Gp_LcgState` draw;
+/// states 1 and 2 pass one yaw per frame to `func_antibody_801308D4`.
+static s16 D_antibody_80130C0C[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 /// Runs one frame of an antibody cast. `Task::spawnArg2` is the `GpEffWork`
 /// block and `Task::extra` reaches the effect coordinate. Cancel
@@ -47,9 +54,6 @@ static void func_antibody_80130428(GpCoord* arg0, s16 arg1, s16 arg2);
 /// the row's `field_2` cap it spawns the `0x800600AC` burst, latches
 /// `period` and moves to state 2, which shrinks `scale` by 0x10 a frame
 /// and redraws at the capped radius until it drops below 0x11.
-/// Scratch for the mote ring's per-frame vertex work.
-/// lists an object in the linker script at its first subsegment, and this has
-s16 D_antibody_80130C0C[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 static void func_antibody_8012EF34(Task* arg0)
 {

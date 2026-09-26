@@ -15,18 +15,20 @@
 #include "main/tmd.h"
 #include "pe/metabolism.h"
 
-/// Per-level tuning for the metabolism drain: rows are PE levels 1-3.
-MetabolismStep D_metabolism_8012FB54[] = {
+/// Per-level tuning for the metabolism drain, one row per PE level 1-3,
+/// weakest first.
+static MetabolismStep D_metabolism_8012FB54[] = {
     { 0x0008, 0x0080, 0x0020, 0x0400 },
     { 0x000C, 0x00B0, 0x0030, 0x0500 },
     { 0x0010, 0x00E0, 0x0040, 0x0600 },
 };
 
 /// The `SndEvt_EnqueueType6` id for each `D_metabolism_8012FB54` row.
-s32 D_metabolism_8012FB6C[] = { 0xE01F0001, 0xE0220001, 0xE0250001 };
+static s32 D_metabolism_8012FB6C[] = { 0xE01F0001, 0xE0220001, 0xE0250001 };
 
-/// Scratch for the drain ring (was its own _work unit).
-s16 D_metabolism_8012FB78[16] = { 0 };
+/// Scratch angles for the fan, one per wedge: `(i << 10)` plus a 10-bit
+/// random offset, seeded by state 0 and swept by `func_metabolism_8012F840`.
+static s16 D_metabolism_8012FB78[16] = { 0 };
 
 static void func_metabolism_8012F840(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 

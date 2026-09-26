@@ -21,8 +21,11 @@ static InfernoFanParam D_inferno_801304E4[] = {
     { 0x0200, 0x0600, 0x0300 },
 };
 
-/// The `SndEvt_EnqueueType6` id for each inferno stage.
-s32 D_inferno_801304F0[] = { 0xE0100001, 0xE0130001, 0xE00D0001 };
+/// The `SndEvt_EnqueueType6` id the inferno cast plays, indexed by
+/// the cast's level, `Gp_StateC08.field_0 % 10 - 1`.
+/// The same index also picks the state `func_inferno_8012EF88` advances to,
+/// which is why the three ids and the three state chains run in step.
+static s32 D_inferno_801304F0[] = { 0xE0100001, 0xE0130001, 0xE00D0001 };
 
 static void func_inferno_8012F3EC(s16 arg0);
 static void func_inferno_8012F978(GpEffWork* mem, GpCoord* coord, s32 kind, InfernoIdMap* map);

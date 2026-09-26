@@ -22,18 +22,30 @@ static void  func_apobiosis_8012EF4C(Task* arg0);
 static void  func_apobiosis_8012F808(u32 bright);
 static void  func_apobiosis_8012F9D0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 
-/// Per-level tuning for the apobiosis pulse: rows are PE levels 1-3.
-ApobiosisStep D_apobiosis_80130B5C[] = {
+/// Per-level tuning for the apobiosis pulse, one row per PE level 1-3,
+/// weakest first.
+static ApobiosisStep D_apobiosis_80130B5C[] = {
     { 0x0004, 0x0400, 0x00C0, 0x0280 },
     { 0x0006, 0x0500, 0x0100, 0x0300 },
     { 0x0008, 0x0600, 0x0140, 0x0400 },
 };
 
-/// The `SndEvt_EnqueueType6` id for each `D_apobiosis_80130B5C` row.
-s32 D_apobiosis_80130B74[] = { 0xE0170001, 0xE01A0001, 0xE01D0001 };
+/// The `SndEvt_EnqueueType6` id the cast plays, one per `D_apobiosis_80130B5C`
+/// row, so the sound follows the cast's level like the burst does.
+static s32 D_apobiosis_80130B74[] = { 0xE0170001, 0xE01A0001, 0xE01D0001 };
 
 static void func_apobiosis_8013017C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 static void func_apobiosis_80130630(GpCoord* arg0, s16* arg1, s16 arg2, s16 arg3);
+
+/// Ring azimuths, two rows of up to eight. `func_apobiosis_8012EF4C` lays out
+/// `ApobiosisStep::field_0 * 2` of them at `(i << 10) + rand()` in state 0 and
+/// then jitters each by +-0x80 a frame; the first row is the shard's own angle
+/// and the row `ApobiosisStep::field_4` entries later is its elevation.
+static s16 D_apobiosis_80130B80[16] = { 0 };
+
+/// The running cast task, cached by `func_apobiosis_8012EF4C` so each shard
+/// can reparent itself onto the cast when it starts.
+static Task* D_apobiosis_80130BA0 = NULL;
 
 /// The apobiosis cast. Six states drive one screen flash plus a growing ring
 /// of shards, scaled by `D_apobiosis_80130B5C[Gp_StateC08.field_0 % 10 - 1]`
@@ -50,13 +62,6 @@ static void func_apobiosis_80130630(GpCoord* arg0, s16* arg1, s16 arg2, s16 arg3
 /// a frame in state 3, two a frame in state 4 - and state 5 fades the last of
 /// the flash before releasing the work block. `Gp_SpawnPadLerp` rumbles at each
 /// state change, hardest on the widest row.
-/// Scratch for the pulse ring, plus the task handle it spawns.
-/// lists an object in the linker script at its first subsegment, and this has
-s16 D_apobiosis_80130B80[16] = { 0 };
-/// The running cast task, cached by `func_apobiosis_8012EF4C` so each shard
-/// can reparent itself onto the cast when it starts.
-static Task* D_apobiosis_80130BA0 = NULL;
-
 static void func_apobiosis_8012EF4C(Task* arg0)
 {
     GpEffWork*  mem;
