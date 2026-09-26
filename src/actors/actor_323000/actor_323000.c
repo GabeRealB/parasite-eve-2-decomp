@@ -1168,29 +1168,18 @@ s32 func_actor_323000_80164844(Task* task, s32 arg1, s32 arg2)
 /// and otherwise 1 only when the model has neither flag 0x80 nor flag 2 set.
 s32 func_actor_323000_80164904(Task* task)
 {
-    s32 ret;
     u16 flags;
-    s32 mask2;
-    s32 mask80;
 
-    if (((GpEnemy*)task->spawnArg2)->hp > 0) {
-        return 1;
+    if (((GpEnemy*)task->spawnArg2)->hp <= 0) {
+        flags = task->extra.tmd->flags;
+        if (flags & 0x80) {
+            return 0;
+        }
+        if (flags & 2) {
+            return 0;
+        }
     }
-
-    flags   = task->extra.tmd->flags;
-    mask80  = flags;
-    mask80 &= 0x80;
-    mask2   = flags & 2;
-    if (mask80 != 0) {
-        return 0;
-    }
-
-    ret = 0;
-    if (mask2 == 0) {
-        ret = 1;
-        SOFT_BARRIER();
-    }
-    return ret;
+    return 1;
 }
 
 /// Handler for message 0x7D4: writes `placement` onto the actor's root
