@@ -20,7 +20,7 @@ extern u16          Gp_PlayTimeMark;
 extern McItemRec*   Gp_SelItemRec;
 extern UiObjectDesc Gp_BoostPanelDesc;
 extern u8           Gp_DebugAttachLevels[];
-extern const char   Gp_StrNotice2[];
+static const char   Gp_StrNotice2[];
 extern u8           Gp_StrMore[];
 extern u8           Gp_StrAttachAvail[];
 extern u8           D_8010D318[];
@@ -59,6 +59,10 @@ void Gp_NoticePanelTask(Task* arg0);
 
 /* Total quantity of item `id` held, via a fresh scan covering every row. */
 #define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = 0xFF, Gp_SumScanQty(&(scan), (id)))
+
+static void Gp_ApplyBit2List(GpBit2List* table, u32* dest);
+static void Gp_ClearCollectedBits(void);
+static void Gp_SetPlayerScan(s32 arg0);
 
 s32 func_800B7420(s32 arg0)
 {
@@ -792,7 +796,12 @@ void Gp_SortItems(McItemScan* arg0, s32 arg1)
     }
 }
 
-s32 Gp_CanAddItemQty(McItemScan* arg0, s32 arg1, s32 arg2)
+/// True if `arg2` of item `arg1` can be added to the item table selected
+/// by `arg0`. Ids `>= 0x100` always succeed. Ids `0xA0..0xFF` stack onto
+/// an existing row when `qty + arg2` fits `Gp_StackLimits[id-0xA0].field_2`;
+/// `arg2 < 0` uses that row's `field_0` as the addend. Other ids need a
+/// free slot.
+static s32 Gp_CanAddItemQty(McItemScan* arg0, s32 arg1, s32 arg2)
 {
     McItemRec* tmp;
     McItemRec* table;
@@ -1064,7 +1073,13 @@ McItemRec* Gp_SetScanItem(McItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
     return dest;
 }
 
-McItemRec* Gp_AddItem(McItemScan* arg0, s32 arg1, s32 arg2)
+/// Adds `arg2` of item `arg1` to the item table selected by `arg0`.
+/// Ids `0xA0..0xBF` stack onto an existing row, clamped to
+/// `Gp_StackLimits[id-0xA0].field_2`. `arg2 < 0` uses that row's `field_0`
+/// as the count, or `field_2` when `arg2 == -2`; out-of-range ids use 1.
+/// Other ids take the first free slot with quantity 1. Returns the
+/// written row, or NULL if none was free.
+static McItemRec* Gp_AddItem(McItemScan* arg0, s32 arg1, s32 arg2)
 {
     McItemRec* table;
     McItemRec* dest;
@@ -2020,7 +2035,7 @@ void Gp_ClearInventory(void)
     Gp_ApplyItemMap();
 }
 
-void Gp_InitModeEquip(void)
+static void Gp_InitModeEquip(void)
 {
     PlayerStatus* cfg;
     McItemScan*   scan;
@@ -2230,7 +2245,7 @@ s32 Gp_RemoveItem(McItemScan* arg0, McItemRec* arg1, s32 arg2)
     return 0;
 }
 
-void Gp_ClearCollectedBits(void)
+static void Gp_ClearCollectedBits(void)
 {
     s32  i;
     s32* p;
@@ -2623,7 +2638,7 @@ McItemRec* Gp_GetScanSlot(McItemScan* arg0, s32 arg1, s32 arg2)
     return &table[arg0->firstRow + arg1];
 }
 
-s32 Gp_GetScanItemId(McItemScan* arg0, s32 arg1)
+static s32 Gp_GetScanItemId(McItemScan* arg0, s32 arg1)
 {
     McItemRec* table;
     McItemRec* rec;
@@ -2724,7 +2739,7 @@ s32 Gp_SumScanQty(McItemScan* arg0, s32 arg1)
     return acc;
 }
 
-void func_800BB7B4(Task* arg0)
+static void func_800BB7B4(Task* arg0)
 {
     arg0->extra.tmd->flags = 0;
 }
@@ -2749,7 +2764,7 @@ void Gp_SetItemSeenBit(s32 arg0, s32 arg1)
     p->itemSeenBits[word] |= bit;
 }
 
-void Gp_ApplyBit2List(GpBit2List* table, u32* dest)
+static void Gp_ApplyBit2List(GpBit2List* table, u32* dest)
 {
     _gpApplyBit2List(table, dest);
 }
@@ -2790,7 +2805,7 @@ s32 Gp_GetRelatedQty(s32 arg0, s32 arg1)
     return ret;
 }
 
-s32 Gp_GetBit2Flag(GpAreaKey* arg0, s32 arg1)
+static s32 Gp_GetBit2Flag(GpAreaKey* arg0, s32 arg1)
 {
     register u32* p asm("v1");
     u32           word;
@@ -2832,7 +2847,7 @@ void Gp_SavePlayerPos(void)
     save->playerBp  = cfg->bp;
 }
 
-GpEnemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpEnemyPlace* arg1)
+static GpEnemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpEnemyPlace* arg1)
 {
     GpEnemy*   enemy;
     Task*      task;
@@ -2860,7 +2875,7 @@ GpEnemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpEnemyPlace* arg1)
     return enemy;
 }
 
-void func_800BBB54(Task* arg0)
+static void func_800BBB54(Task* arg0)
 {
     TmdObject* extra;
 
@@ -2892,7 +2907,7 @@ void func_800BBB54(Task* arg0)
     }
 }
 
-void Gp_WaitItemFlag2(Task* arg0)
+static void Gp_WaitItemFlag2(Task* arg0)
 {
     TmdObject* extra;
 
@@ -2990,7 +3005,7 @@ s32 Gp_HasMappedItem(void)
     return found;
 }
 
-void Gp_ResetAuxSlots(void)
+static void Gp_ResetAuxSlots(void)
 {
     McItemSlot* p;
     s32         i;
@@ -3011,7 +3026,7 @@ void Gp_ResetAuxSlots(void)
     Gp_ApplyItemMap();
 }
 
-s32 Gp_SumItemQty(s32 arg0)
+static s32 Gp_SumItemQty(s32 arg0)
 {
     McItemScan query;
 
@@ -3020,7 +3035,7 @@ s32 Gp_SumItemQty(s32 arg0)
     return Gp_SumScanQty(&query, arg0);
 }
 
-void Gp_SetPlayerScan(s32 arg0)
+static void Gp_SetPlayerScan(s32 arg0)
 {
     McSaveData* p;
 
@@ -3053,7 +3068,7 @@ void Gp_SyncHeldRelated(void)
     func_801061F0();
 }
 
-void Gp_InitItemSeenBits(void)
+static void Gp_InitItemSeenBits(void)
 {
     McSaveData* p;
     GpItemDesc* desc;
@@ -3182,7 +3197,7 @@ void Gp_MarkPlayTime(void)
     Gp_PlayTimeMark = Mc_SaveData.playTime;
 }
 
-s16 Gp_PlayTimeDelta(void)
+static s16 Gp_PlayTimeDelta(void)
 {
     u16* p;
 
@@ -3333,4 +3348,4 @@ s32 Gp_CanMoveItems(void)
 
 /// "Notice". The byte after the terminator is not zero: the original toolchain
 /// left it in the alignment gap.
-const char Gp_StrNotice2[8] = "Notice\0F";
+static const char Gp_StrNotice2[8] = "Notice\0F";

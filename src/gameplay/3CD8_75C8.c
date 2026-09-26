@@ -27,9 +27,9 @@
 
 extern u16                  D_8007A396;
 extern u16                  D_8007A39C;
-extern const TaskFuncTable3 Gp_Script18States;
-extern const TaskFuncTable5 Gp_ScriptAStates;
-extern const TaskFuncTable5 Gp_ScriptBStates;
+static const TaskFuncTable3 Gp_Script18States;
+static const TaskFuncTable5 Gp_ScriptAStates;
+static const TaskFuncTable5 Gp_ScriptBStates;
 extern Task*                D_8010FBE0;
 extern Task*                D_8010FBE4;
 extern Task*                D_8010FBE8;
@@ -76,26 +76,28 @@ extern u8                   Gp_MenuLockHold;
 extern s16                  Gp_MenuLockDelay;
 extern s16                  Gp_PadSuppressTimer;
 
-s32  Gp_AbortCap(void);
-s32  Gp_LookupSlot4(s32 arg0);
-void Gp_StepScriptA(Task* task);
-void Gp_StepScriptB(Task* task);
-void Gp_SpawnPadHold(s16 arg0);
-void Gp_SpawnPadLerpScaled(s16 arg0, u8 arg1, u8 arg2, s16 arg3);
+s32         Gp_AbortCap(void);
+s32         Gp_LookupSlot4(s32 arg0);
+static void Gp_StepScriptA(Task* task);
+static void Gp_StepScriptB(Task* task);
+static void Gp_SpawnPadHold(s16 arg0);
+static void Gp_SpawnPadLerpScaled(s16 arg0, u8 arg1, u8 arg2, s16 arg3);
 
-void Gp_ScriptInit(Task* arg0);
-void Gp_ScriptTaskState1(Task* arg0);
+static void Gp_ScriptInit(Task* arg0);
+static void Gp_ScriptTaskState1(Task* arg0);
 
-const TaskFuncTable3 Gp_ScriptTaskStates = { {
+static const TaskFuncTable3 Gp_ScriptTaskStates = { {
     Gp_ScriptInit,
     Gp_ScriptTaskState1,
     taskKill,
 } };
 
-const char Gp_StrDemoWait[]  = "Demo Wait";
-const char Gp_StrDemoPause[] = "Demo Pause";
+static const char Gp_StrDemoWait[]  = "Demo Wait";
+static const char Gp_StrDemoPause[] = "Demo Pause";
 
-void Gp_ScriptTaskState1(Task* arg0)
+static u16 Gp_RemapButtons(GameActor* actor, u16 mask);
+
+static void Gp_ScriptTaskState1(Task* arg0)
 {
     GpEvsState* st;
     GpEvsState* st2;
@@ -543,7 +545,7 @@ void Gp_ScriptTaskState1(Task* arg0)
     }
 }
 
-void Gp_VolFadeTask(Task* arg0)
+static void Gp_VolFadeTask(Task* arg0)
 {
     GpVolFade* fade;
     s32        volume;
@@ -573,7 +575,7 @@ void Gp_VolFadeTask(Task* arg0)
     }
 }
 
-void Gp_SndFadeTask(Task* arg0)
+static void Gp_SndFadeTask(Task* arg0)
 {
     GpSndFade* fade;
     s32        volume;
@@ -637,7 +639,7 @@ s32 Gp_LookupSlot4(s32 arg0)
     return out;
 }
 
-void Gp_ScriptInit(Task* arg0)
+static void Gp_ScriptInit(Task* arg0)
 {
     GpState34*   mem;
     GpScriptCmd* script;
@@ -668,7 +670,7 @@ void Gp_ScriptInit(Task* arg0)
     arg0->state++;
 }
 
-void func_800E8830(Task* arg0)
+static void func_800E8830(Task* arg0)
 {
     TaskFuncTable3 sp;
 
@@ -676,7 +678,7 @@ void func_800E8830(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-void func_800E8888(Task* arg0)
+static void func_800E8888(Task* arg0)
 {
     s16 tmp;
 
@@ -702,7 +704,11 @@ void func_800E8888(Task* arg0)
     }
 }
 
-void Gp_ShakeTask(Task* arg0)
+/// Screen-shake task. `spawnArg2` is a packed s32: low byte is the
+/// duration bound (counter runs `-lo` .. `+lo`); `>> 8` is amplitude.
+/// Each frame an LCG (`Gp_LcgState`) scales the remaining count into
+/// `Display_ClampField126`, flipping sign on `spawnArg1` parity.
+static void Gp_ShakeTask(Task* arg0)
 {
     register s32 tmp asm("v0");
     register s32 hi asm("v1");
@@ -747,7 +753,7 @@ void Gp_ShakeTask(Task* arg0)
     }
 }
 
-void Gp_StepScriptA(Task* task)
+static void Gp_StepScriptA(Task* task)
 {
     GpState34*   state;
     GpScriptCmd* table;
@@ -794,7 +800,7 @@ void Gp_StepScriptA(Task* task)
     }
 }
 
-void Gp_StepScriptB(Task* task)
+static void Gp_StepScriptB(Task* task)
 {
     GpState34*   state;
     GpScriptCmd* table;
@@ -841,7 +847,7 @@ void Gp_StepScriptB(Task* task)
     }
 }
 
-void Gp_SpawnPadHold(s16 arg0)
+static void Gp_SpawnPadHold(s16 arg0)
 {
     if (arg0 != 0) {
         Task_Spawn(2, 0xB, arg0, 0);
@@ -873,7 +879,7 @@ void Gp_SpawnPadLerp(s16 arg0, u8 arg1, u8 arg2)
     }
 }
 
-void Gp_SpawnPadLerpScaled(s16 arg0, u8 arg1, u8 arg2, s16 arg3)
+static void Gp_SpawnPadLerpScaled(s16 arg0, u8 arg1, u8 arg2, s16 arg3)
 {
     Task*      task;
     GpState0C* mem;
@@ -937,14 +943,14 @@ Task* Gp_SpawnScript18(s32 arg0, s32 arg1)
     return NULL;
 }
 
-void Gp_KickScriptAB(Task* task)
+static void Gp_KickScriptAB(Task* task)
 {
     Gp_StepScriptA(task);
     Gp_StepScriptB(task);
     task->state++;
 }
 
-void Gp_DispatchScript18(Task* task)
+static void Gp_DispatchScript18(Task* task)
 {
     TaskFuncTable5 tableA;
     TaskFuncTable5 tableB;
@@ -960,7 +966,7 @@ void Gp_DispatchScript18(Task* task)
     }
 }
 
-void Gp_ClearPadHalt(void)
+static void Gp_ClearPadHalt(void)
 {
     Gp_PadScriptHalt = 0;
     Gp_PadHoldHalt   = 0;
@@ -987,7 +993,7 @@ Task* Gp_SpawnScript18Ex(s32 arg0, s32 arg1, s32 arg2)
     return NULL;
 }
 
-void Gp_Script18Task(Task* arg0)
+static void Gp_Script18Task(Task* arg0)
 {
     TaskFuncTable3 sp;
 
@@ -1000,11 +1006,11 @@ void Gp_Script18Task(Task* arg0)
     }
 }
 
-void Gp_ScriptAState0(void)
+static void Gp_ScriptAState0(void)
 {
 }
 
-void Gp_TickScriptADelay(Task* task)
+static void Gp_TickScriptADelay(Task* task)
 {
     GpState34* state;
 
@@ -1014,21 +1020,21 @@ void Gp_TickScriptADelay(Task* task)
     }
 }
 
-void Gp_ScriptAState3(Task* task)
+static void Gp_ScriptAState3(Task* task)
 {
     Gp_StepScriptA(task);
 }
 
-void Gp_ScriptAState4(Task* task)
+static void Gp_ScriptAState4(Task* task)
 {
     Gp_StepScriptA(task);
 }
 
-void Gp_ScriptBState0(void)
+static void Gp_ScriptBState0(void)
 {
 }
 
-void Gp_TickScriptBDelay(Task* task)
+static void Gp_TickScriptBDelay(Task* task)
 {
     GpState34* state;
 
@@ -1038,17 +1044,17 @@ void Gp_TickScriptBDelay(Task* task)
     }
 }
 
-void Gp_ScriptBState3(Task* task)
+static void Gp_ScriptBState3(Task* task)
 {
     Gp_StepScriptB(task);
 }
 
-void Gp_ScriptBState4(Task* task)
+static void Gp_ScriptBState4(Task* task)
 {
     Gp_StepScriptB(task);
 }
 
-void Gp_PadHoldTask(Task* task)
+static void Gp_PadHoldTask(Task* task)
 {
     if (Gp_StateF0.field_4 == 0 || (gGameSession->padScriptFlags & 0x80)) {
         if (task->spawnArg1 != 0 && Gp_PadHoldHalt == 0) {
@@ -1062,7 +1068,7 @@ void Gp_PadHoldTask(Task* task)
     }
 }
 
-void Gp_PadLerpTask(Task* task)
+static void Gp_PadLerpTask(Task* task)
 {
     GpState0C* state;
 
@@ -1208,7 +1214,7 @@ void Gp_UpdatePadInput(void)
     }
 }
 
-u16 Gp_RemapButtons(GameActor* actor, u16 mask)
+static u16 Gp_RemapButtons(GameActor* actor, u16 mask)
 {
     u16 result;
     s32 i;
@@ -1248,13 +1254,13 @@ u16 Gp_RemapButtons(GameActor* actor, u16 mask)
     return result;
 }
 
-const TaskFuncTable3 Gp_Script18States = { {
+static const TaskFuncTable3 Gp_Script18States = { {
     Gp_KickScriptAB,
     Gp_DispatchScript18,
     taskKill,
 } };
 
-const TaskFuncTable5 Gp_ScriptAStates = { {
+static const TaskFuncTable5 Gp_ScriptAStates = { {
     Gp_ScriptAState0,
     Gp_TickScriptADelay,
     Gp_TickScriptADelay,
@@ -1262,7 +1268,7 @@ const TaskFuncTable5 Gp_ScriptAStates = { {
     Gp_ScriptAState4,
 } };
 
-const TaskFuncTable5 Gp_ScriptBStates = { {
+static const TaskFuncTable5 Gp_ScriptBStates = { {
     Gp_ScriptBState0,
     Gp_TickScriptBDelay,
     Gp_TickScriptBDelay,

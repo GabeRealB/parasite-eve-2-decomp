@@ -29,7 +29,15 @@ extern UiObjectDesc D_8010EFA0;
 
 void Gp_ClearPreviewItems(void);
 
-void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
+static void       Gp_CloseItemPane(UiObject* arg0, Task* arg1);
+static void       Gp_FadeTileTask(Task* arg0);
+static void       Gp_ItemMoveChild(UiObject* arg0, Task* arg1);
+static void       Gp_ItemPickupTilt(Task* arg0);
+static const char Gp_StrBullet[];
+
+/// Per-child item-move handler. Walked by `Gp_ItemMoveTask` over
+/// `obj->owner`'s children as `Gp_ItemMoveChild(child->spawnArg2, child)`.
+static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
 {
     GpItemMoveState* mem;
     UiObject*        obj;
@@ -183,9 +191,9 @@ void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
 
 /* Kept next to Gp_ItemMoveChild's jump table so the overlay .rodata stays packed;
    Gp_StrBullet follows before func_800BDF6C. */
-const char Gp_StrBattleField[] = "Battle Field";
-const char Gp_StrItemBox[]     = "Item Box";
-const char Gp_StrPlayerItem[]  = "Player Item";
+static const char Gp_StrBattleField[] = "Battle Field";
+static const char Gp_StrItemBox[]     = "Item Box";
+static const char Gp_StrPlayerItem[]  = "Player Item";
 
 void Gp_ItemMoveTask(Task* arg0)
 {
@@ -652,7 +660,9 @@ void Gp_ItemActionConfirm(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-void Gp_FillItemActions(UiList* arg0, UiObject* arg1)
+/// Fills `Gp_ItemActionFns` and `arg0->field_4` / `field_5` from the selected
+/// inventory row (`Gp_MoveScanSrc[spawnArg1]` / `Gp_InvLists[spawnArg1].field_10`).
+static void Gp_FillItemActions(UiList* arg0, UiObject* arg1)
 {
     McItemRec*      rec;
     s32             item;
@@ -746,7 +756,7 @@ void Gp_ItemActionListTask(Task* arg0)
     }
 }
 
-const char Gp_StrBullet[] = "Bullet";
+static const char Gp_StrBullet[] = "Bullet";
 
 void func_800BDF6C(Task* task)
 {
@@ -1034,8 +1044,9 @@ void func_800BDF6C(Task* task)
 }
 
 /* After Gp_StrBullet from func_800BDF6C so the overlay .rodata stays packed. */
-const GpPromptTexts Gp_ItemPromptTexts = { Gp_StrAll, Gp_StrSelect, Gp_StrDiscard, Gp_StrEnd };
-const VECTOR        D_80093DB0         = { 0, -100, 0, 0 };
+static const GpPromptTexts Gp_ItemPromptTexts = { Gp_StrAll, Gp_StrSelect, Gp_StrDiscard, Gp_StrEnd };
+/// Fullscreen-fade vector template used by `Gp_FadeTileTask` / `Gp_ItemPickupTilt`.
+static const VECTOR D_80093DB0 = { 0, -100, 0, 0 };
 
 void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
 {
@@ -1149,7 +1160,11 @@ void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-void Gp_ItemPickupTilt(Task* arg0)
+/// Task callback. `extra` is a `TmdObject`; `spawnArg2` is a `GpItemObj8`.
+/// Tilts `field_8[2]` (a `GpCoord`) while playing a location-specific
+/// type-6 sound, then signals `extraState` (`GpCmdReply.done = 1`) when
+/// the motion returns to 0.
+static void Gp_ItemPickupTilt(Task* arg0)
 {
     GameSession* session;
     TmdObject*   extra;
@@ -1344,7 +1359,7 @@ void Gp_ItemPickupTilt(Task* arg0)
     USE_REG(item);
 }
 
-void Gp_ForEachUiChild(UiObject* arg0, void (*arg1)(UiObject*, Task*))
+static void Gp_ForEachUiChild(UiObject* arg0, void (*arg1)(UiObject*, Task*))
 {
     Task* owner;
     Task* child;
@@ -1366,7 +1381,7 @@ void Gp_ForEachUiChild(UiObject* arg0, void (*arg1)(UiObject*, Task*))
     }
 }
 
-s32 Gp_ItemUseRestricted(s32 arg0, s32 arg1)
+static s32 Gp_ItemUseRestricted(s32 arg0, s32 arg1)
 {
     s32 ret;
 
@@ -1380,7 +1395,11 @@ s32 Gp_ItemUseRestricted(s32 arg0, s32 arg1)
     return ret;
 }
 
-void Gp_CloseItemPane(UiObject* arg0, Task* arg1)
+/// Child closer for the `Gp_InvLists` inventory panes. `-1` tears down and
+/// either restores parent status or sets parent `field_2E = -1` when the
+/// parent owner has no flags; `6` / `0x23` / `38` / `39` copy those codes
+/// onto the parent (`6` also restores status).
+static void Gp_CloseItemPane(UiObject* arg0, Task* arg1)
 {
     UiObject* parent;
 
@@ -1510,7 +1529,10 @@ void Gp_PublishItemObj(Task* arg0)
     arg0->state         = arg0->state + 1;
 }
 
-void Gp_FadeTileTask(Task* arg0)
+/// Fullscreen semi-trans TILE fade. `spawnArg1` 0/2 count down from 7/8;
+/// 4 also counts down once `gDisplayState.at100.flags.imageSource == 2`; 5 and other
+/// values count up and write `field_100` / `field_103` on completion.
+static void Gp_FadeTileTask(Task* arg0)
 {
     s32       flag;
     s32       yoff;

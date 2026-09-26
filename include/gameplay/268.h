@@ -240,32 +240,17 @@ void Gp_MoveItemSlot(McItemScan* arg0, s32 arg1, s32 arg2);
 /// sort-key remap as `Gp_ItemSortKey` (`Gp_ItemSortKey0` / `Gp_ItemSortKey60` /
 /// `Gp_ItemSortKey80` / `Gp_ItemSortKeyA0`). `arg1` is unused.
 void Gp_SortItems(McItemScan* arg0, s32 arg1);
-void Gp_InitModeEquip(void);
 void Gp_ApplyBit2Bank(s32 arg0);
 void Gp_SetCurBit2Flag(s32 arg0, u8 arg1);
 void Gp_ClearScanItems(McItemScan* arg0);
-void Gp_ClearCollectedBits(void);
 s32  Gp_CountCollectedBits(void);
 s32  Gp_CountScanItems(McItemScan* arg0);
-/// True if `arg2` of item `arg1` can be added to the item table selected
-/// by `arg0`. Ids `>= 0x100` always succeed. Ids `0xA0..0xFF` stack onto
-/// an existing row when `qty + arg2` fits `Gp_StackLimits[id-0xA0].field_2`;
-/// `arg2 < 0` uses that row's `field_0` as the addend. Other ids need a
-/// free slot.
-s32 Gp_CanAddItemQty(McItemScan* arg0, s32 arg1, s32 arg2);
 /// True if `arg1` can be added to the item table selected by `arg0`.
 s32 Gp_CanAddItem(McItemScan* arg0, s32 arg1);
 /// Writes item `arg2` into scan slot `arg1`. Ids `0xA0..0xBF` are added with
 /// `Gp_GiveItem` first, then an existing stack is moved onto the slot when
 /// it is empty. Other ids overwrite the slot (re-adding the previous item).
 McItemRec* Gp_SetScanItem(McItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
-/// Adds `arg2` of item `arg1` to the item table selected by `arg0`.
-/// Ids `0xA0..0xBF` stack onto an existing row, clamped to
-/// `Gp_StackLimits[id-0xA0].field_2`. `arg2 < 0` uses that row's `field_0`
-/// as the count, or `field_2` when `arg2 == -2`; out-of-range ids use 1.
-/// Other ids take the first free slot with quantity 1. Returns the
-/// written row, or NULL if none was free.
-McItemRec* Gp_AddItem(McItemScan* arg0, s32 arg1, s32 arg2);
 /// Returns the `arg1`-th text field of item `arg0` (NUL / `\\n` / `\\N`
 /// delimiters). `arg2 == 0` reads `Mc_SaveData.itemSeenBits` and adds 3 to
 /// `arg1` when the bit is clear. Ids `>= 0x500` index `Gp_ItemTextHi`;
@@ -292,27 +277,18 @@ McItemRec*  Gp_GetItemTable(McItemScan* arg0);
 s32         Gp_ScanIndexOf(McItemScan* arg0, McItemRec* arg1);
 /// `arg2` is unused; some callers pass 0 so the `jal` delay slot is `move a2, zero`.
 McItemRec* Gp_GetScanSlot(McItemScan* arg0, s32 arg1, s32 arg2);
-s32        Gp_GetScanItemId(McItemScan* arg0, s32 arg1);
 /// `arg1` is unused; some callers pass 0 so the `jal` delay slot is `move a1, zero`.
-s32             Gp_NthCollectedId(s32 arg0, s32 arg1);
-s32             Gp_SumScanQty(McItemScan* arg0, s32 arg1);
-void            Gp_SetItemSeenBit(s32 arg0, s32 arg1);
-void            Gp_ApplyBit2List(GpBit2List* arg0, u32* arg1);
-void            Gp_SetBit2Flag(s32 arg0, u8 arg1, s32 arg2);
-s32             Gp_GetBit2Flag(GpAreaKey* arg0, s32 arg1);
-void            Gp_SavePlayerPos(void);
-struct GpEnemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpEnemyPlace* arg1);
-void            func_800BBB54(Task* arg0);
-void            Gp_WaitItemFlag2(Task* arg0);
-s32             Gp_NextMappedSlot(s32 arg0);
-GpItemMap*      Gp_GetItemMap(s32 arg0);
-s32             Gp_HasMappedItem(void);
-void            Gp_ResetAuxSlots(void);
-s32             Gp_SumItemQty(s32 arg0);
-void            Gp_SyncHeldRelated(void);
-void            Gp_InitItemSeenBits(void);
-s32             Gp_HasItemSeenBit(s32 arg0);
-void            Gp_RecalcMaxHp(void);
+s32        Gp_NthCollectedId(s32 arg0, s32 arg1);
+s32        Gp_SumScanQty(McItemScan* arg0, s32 arg1);
+void       Gp_SetItemSeenBit(s32 arg0, s32 arg1);
+void       Gp_SetBit2Flag(s32 arg0, u8 arg1, s32 arg2);
+void       Gp_SavePlayerPos(void);
+s32        Gp_NextMappedSlot(s32 arg0);
+GpItemMap* Gp_GetItemMap(s32 arg0);
+s32        Gp_HasMappedItem(void);
+void       Gp_SyncHeldRelated(void);
+s32        Gp_HasItemSeenBit(s32 arg0);
+void       Gp_RecalcMaxHp(void);
 /// Number of rows `scan` covers, i.e. how many items the window can hold.
 s32  Gp_GetScanCount(McItemScan* scan);
 s32  Gp_ItemSortKey(s32 arg0);

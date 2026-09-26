@@ -702,7 +702,6 @@ extern GpAimRot D_801131B4[];
 extern u8 D_80113388[];
 
 void Gp_EffPolyTask9C(Task* arg0);
-void Gp_DrawEffShard(struct GpCoord* arg0, s16 arg1, s16 arg2, u16 arg3);
 void Gp_EffSprTask46(Task* arg0);
 void Gp_DrawEffSprite81(Task* arg0);
 void Gp_DrawEffSprite46(struct GpCoord* arg0, s32 arg1, s16 arg2, u16 arg3);

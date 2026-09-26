@@ -429,24 +429,14 @@ void Gp_AllyAnimId(s32* arg0);
 void Gp_FillAllyHp(void);
 void Gp_FillPlayerHpMp(void);
 
-/// Screen-shake task. `spawnArg2` is a packed s32: low byte is the
-/// duration bound (counter runs `-lo` .. `+lo`); `>> 8` is amplitude.
-/// Each frame an LCG (`Gp_LcgState`) scales the remaining count into
-/// `Display_ClampField126`, flipping sign on `spawnArg1` parity.
-void Gp_ShakeTask(Task* arg0);
 void Gp_UpdatePadInput(void);
-u16  Gp_RemapButtons(GameActor* actor, u16 mask);
 
 void func_800E9BDC(u8 arg0, s32 arg1);
 void Gp_ResetMenuLock(void);
-void Gp_InitState1C(Task* arg0);
-void Gp_TickState1C(void);
 s32  Gp_TraceGroundCoord(GpCoord* arg0, GpCoord* arg1);
 s32  func_800EA1A8(VECTOR3* arg0, VECTOR3* arg1);
 s32  func_800EA318(s16 arg0, s16 arg1, s16 arg2);
 void func_800EA3A0(s32 arg0);
-void Gp_DecRoomCoordRefs(void);
-void Gp_InitRoomCoords(void);
 /// Spawns a `GpState1C` effect task and its `GpEffWork` (`memCalloc(0x2C)`).
 /// `arg0` packs the `Task_Spawn` bank in bits 16..30 and the type in the low
 /// 16 bits; a negative `arg0` bypasses the 0x80 live-effect cap in
@@ -486,9 +476,7 @@ void Gp_DrawBandEx(GpCoord* arg0, s16 arg1, s32 arg2, u8* arg3);
 /// its `GpEffWork` when the flag stays clear.
 void func_800EC47C(Task* arg0);
 void Gp_ReleaseState1CMem(void* arg0, Task* arg1);
-void Gp_KillState1CTask(Task* arg0);
 void Gp_PulseState1C(void);
-void Gp_AddTpage(P_TAG* arg0, s32 arg1, s32 arg2);
 void Gp_AddTpageShift(P_TAG* arg0, s32 arg1, s32 arg2);
 void func_800EC9C8(void);
 void Gp_SetState1CPe(s32 arg0);
@@ -506,14 +494,9 @@ void  Gp_EnqueueStageSnd7(s32 arg0, s32 arg1);
 void  Gp_PlayerWeaponId(s32* arg0);
 Task* Gp_SpawnScript18Ex(s32 arg0, s32 arg1, s32 arg2);
 s32   Gp_FindCapEvt(s32 arg0);
-void  Gp_StepScriptA(Task* task);
-void  Gp_StepScriptB(Task* task);
 void  func_800E704C(void);
 void  Gp_CapExit(Task* arg0);
 void  Gp_ApplyCapEvtFlags(void);
-void  Gp_ClearPadHalt(void);
-void  Gp_SpawnPadLerpScaled(s16 arg0, u8 arg1, u8 arg2, s16 arg3);
-void  Gp_SpawnPadHold(s16 arg0);
 
 void func_800E4020(void);
 

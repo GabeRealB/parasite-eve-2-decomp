@@ -23,9 +23,11 @@ extern SVECTOR D_801125EC[];
 extern SVECTOR D_801126FC[];
 extern SVECTOR D_8011280C[];
 
-void Gp_DrawEffSprite6C();
-void Gp_DrawEffSprite3B(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-void Gp_DrawEffSprite7C(GpCoord* arg0, s32 arg1, u32 arg2);
+static void Gp_DrawEffSprite6C();
+static void Gp_DrawEffSprite3B(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+void        Gp_DrawEffSprite7C(GpCoord* arg0, s32 arg1, u32 arg2);
+
+static void Gp_DrawEffShard(GpCoord* arg0, s16 arg1, s16 arg2, u16 arg3);
 
 void Gp_EffCtlTask2B(Task* arg0)
 {
@@ -845,7 +847,7 @@ void Gp_EffLineTaskA3(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void Gp_DrawEffSprite6C(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void Gp_DrawEffSprite6C(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -1606,7 +1608,7 @@ void Gp_EffCtlTask3B(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void Gp_DrawEffSprite3B(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+static void Gp_DrawEffSprite3B(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -2603,7 +2605,7 @@ void Gp_EffPolyTask9C(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void Gp_DrawEffShard(GpCoord* arg0, s16 arg1, s16 arg2, u16 arg3)
+static void Gp_DrawEffShard(GpCoord* arg0, s16 arg1, s16 arg2, u16 arg3)
 {
     GpFxQuadScratch* block;
     POLY_G4*         quad;

@@ -16,10 +16,10 @@
 #include "main/task.h"
 #include "main/wipsys.h"
 
-void Gp_InitState1C(Task* arg0);
-void Gp_TickState1C(void);
+static void Gp_InitState1C(Task* arg0);
+static void Gp_TickState1C(void);
 
-const TaskFuncTable3 D_80097678 = { {
+static const TaskFuncTable3 D_80097678 = { {
     Gp_InitState1C,
     (TaskFunc)Gp_TickState1C,
     taskKill,
@@ -44,7 +44,11 @@ extern s32 D_80111C58[];
 extern s32 D_80111CF0[];
 extern s32 D_80111DB4[];
 
-void Gp_InitState1C(Task* arg0)
+static void Gp_DecRoomCoordRefs(void);
+static void Gp_InitRoomCoords(void);
+static void Gp_KillState1CTask(Task* arg0);
+
+static void Gp_InitState1C(Task* arg0)
 {
     GpState1C* p;
     s32        val;
@@ -115,7 +119,7 @@ void Gp_InitState1C(Task* arg0)
     Task_Spawn(6, 0x80000007, 0, 0);
 }
 
-void Gp_TickState1C(void)
+static void Gp_TickState1C(void)
 {
     GpState1C*  p;
     GpStateF0*  q;
@@ -259,7 +263,7 @@ void func_800EA3A0(s32 arg0)
     Gp_State1C->field_C = arg0 + 1;
 }
 
-void Gp_DecRoomCoordRefs(void)
+static void Gp_DecRoomCoordRefs(void)
 {
     s32        i;
     GpCoord64* p;
@@ -273,7 +277,7 @@ void Gp_DecRoomCoordRefs(void)
     }
 }
 
-void Gp_InitRoomCoords(void)
+static void Gp_InitRoomCoords(void)
 {
     s32        i;
     GpCoord64* p;
@@ -940,7 +944,7 @@ void Gp_ReleaseState1CMem(void* arg0, Task* arg1)
     taskKill(arg1);
 }
 
-void Gp_KillState1CTask(Task* arg0)
+static void Gp_KillState1CTask(Task* arg0)
 {
     void* mem;
 
@@ -955,7 +959,7 @@ void Gp_PulseState1C(void)
     Gp_State1C->pendingPulses |= 0x100;
 }
 
-void Gp_AddTpage(P_TAG* arg0, s32 arg1, s32 arg2)
+static void Gp_AddTpage(P_TAG* arg0, s32 arg1, s32 arg2)
 {
     DR_TPAGE* p;
 
