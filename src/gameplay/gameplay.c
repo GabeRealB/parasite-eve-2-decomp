@@ -7171,69 +7171,50 @@ void Gp_HudTrackEnemy(GpEnemy* arg0, GpHudTrack* arg1)
     arg1->field_6 = block->field_16;
 }
 
+/// Rotates `v` in place by `m` on the GTE, reading it through a copy.
+static inline void _gpRotateVector(MATRIX* m, SVECTOR* v)
+{
+    SVECTOR tmp;
+
+    tmp = *v;
+    gte_ApplyMatrixSV(m, &tmp, v);
+}
+
 void Gp_UpdateLinkXforms(void)
 {
-    GpCoord*        player;
-    u8*             head;
-    GpXformScratch* block;
-    SVECTOR         tmp;
     GpLinkNode*     node;
-    GpCoord*        coord;
+    Task*           slot;
+    GpCoord*        player;
+    GpXformScratch* block;
 
     node = Gp_LinkList;
-    {
-        Task*               slot;
-        register TmdObject* extra asm("v1");
-        register u8*        newhead asm("v1");
-
-        slot = gameGetPtrSlot(3);
-        if (slot == NULL) {
-            return;
+    slot = gameGetPtrSlot(3);
+    if (slot == NULL) {
+        return;
+    }
+    player = slot->extra.tmd->coords;
+    block  = SCRATCH_PUSH(GpXformScratch);
+    TransposeMatrix(&player->workm, &block->mat);
+    for (; node != NULL; node = node->next) {
+        if ((node->state.word & 5) == 1) {
+            continue;
         }
-        extra   = slot->extra.tmd;
-        head    = SCRATCH_HEAD(u8);
-        player  = extra->coords;
-        newhead = head - 0x48;
-        block   = (GpXformScratch*)newhead;
-        TOUCH_REG(block);
-        SCRATCH_HEAD(u8) = newhead;
-        TransposeMatrix(&player->workm, &block->mat);
+        block->vec.vx = GP_NODE_ENEMY(node)->bodyPos.vx;
+        block->vec.vy = GP_NODE_ENEMY(node)->bodyPos.vy;
+        block->vec.vz = GP_NODE_ENEMY(node)->bodyPos.vz;
+        _gpRotateVector(&GP_NODE_ENEMY(node)->coord->workm, &block->vec);
+        block->vec.vx += GP_NODE_ENEMY(node)->coord->workm.t[0];
+        block->vec.vy += GP_NODE_ENEMY(node)->coord->workm.t[1];
+        block->vec.vz += GP_NODE_ENEMY(node)->coord->workm.t[2];
+        block->vec.vx -= player->workm.t[0];
+        block->vec.vy -= player->workm.t[1];
+        block->vec.vz -= player->workm.t[2];
+        _gpRotateVector(&block->mat, &block->vec);
+        GP_NODE_ENEMY(node)->playerRelPos.vx = block->vec.vx;
+        GP_NODE_ENEMY(node)->playerRelPos.vy = block->vec.vy;
+        GP_NODE_ENEMY(node)->playerRelPos.vz = block->vec.vz;
     }
-    if (node != NULL) {
-        register SVECTOR* out asm("a1");
-        SVECTOR*          tmpp;
-        out  = (SVECTOR*)(head - 8);
-        tmpp = &tmp;
-        do {
-            if ((node->state.word & 5) != 1) {
-                block->vec.vx = (u16)GP_NODE_ENEMY(node)->bodyPos.vx;
-                block->vec.vy = (u16)GP_NODE_ENEMY(node)->bodyPos.vy;
-                block->vec.vz = (u16)GP_NODE_ENEMY(node)->bodyPos.vz;
-                coord         = GP_NODE_ENEMY(node)->coord;
-                tmp           = block->vec;
-                gte_SetRotMatrix(&coord->workm);
-                gte_ldv0(tmpp);
-                gte_rtv0();
-                gte_stsv(out);
-                block->vec.vx += (u16)GP_NODE_ENEMY(node)->coord->workm.t[0];
-                block->vec.vy += (u16)GP_NODE_ENEMY(node)->coord->workm.t[1];
-                block->vec.vz += (u16)GP_NODE_ENEMY(node)->coord->workm.t[2];
-                block->vec.vx -= (u16)player->workm.t[0];
-                block->vec.vy -= (u16)player->workm.t[1];
-                block->vec.vz -= (u16)player->workm.t[2];
-                tmp            = block->vec;
-                gte_SetRotMatrix(&block->mat);
-                gte_ldv0(tmpp);
-                gte_rtv0();
-                gte_stsv(out);
-                GP_NODE_ENEMY(node)->playerRelPos.vx = block->vec.vx;
-                GP_NODE_ENEMY(node)->playerRelPos.vy = block->vec.vy;
-                GP_NODE_ENEMY(node)->playerRelPos.vz = block->vec.vz;
-            }
-            node = node->next;
-        } while (node != NULL);
-    }
-    SCRATCH_POP_BYTES(0x48);
+    SCRATCH_POP(GpXformScratch);
 }
 
 void Gp_StartAreaBgm(s16* arg0)

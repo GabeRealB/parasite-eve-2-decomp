@@ -142434,3 +142434,19 @@ keeps one more insn in the loop through sched1 (gone by final), making it 26 vs
 26, and the lower-numbered list pointer wins the tie - the `register asm("s1")`
 pin it replaced. Where a hoisted constant address and a loop-spanning local swap
 callee-saved registers, try the other exit spelling before anything else.
+
+## Two hoisted GTE pointers swapping `a0`/`a1` are a copy-and-rotate helper inlined twice (Gp_UpdateLinkXforms, 2026-09-26)
+
+A loop rotates one scratch `SVECTOR` twice, each time as `tmp = *v;
+gte_SetRotMatrix(m); gte_ldv0(&tmp); gte_rtv0(); gte_stsv(v);`. Written out
+inline, loop.c hoists `&tmp` and `v` as invariants in that order, `&tmp` lives
+one insn longer, and global-alloc hands `v` the first free register: retail has
+`a0 = &tmp`, `a1 = v`, ours the reverse. The old source pinned `v` to `a1`.
+
+A `static inline` helper taking `(MATRIX *m, SVECTOR *v)` with `tmp` as its own
+local (body `tmp = *v; gte_ApplyMatrixSV(m, &tmp, v);`) matches: the inlined
+parameter gives `v` a pseudo before the loop, `&tmp` becomes the later, shorter
+invariant and wins `a0`. A block-scoped macro with the same body does not help,
+and passing the vector by value changes the frame. When two loop invariants of
+equal use count swap registers, look for the sequence being repeated and make it
+a helper.
