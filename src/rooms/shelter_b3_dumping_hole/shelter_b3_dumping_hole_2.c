@@ -748,12 +748,12 @@ void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
 
 static void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
 {
-    DumpingHoleCoordWork*         work;
-    register TmdObject*           extra asm("s2");
-    GpCoord*                      coord;
-    register DumpingHoleCoordCfg* cfg asm("s3");
-    VECTOR                        v;
-    TmdObject*                    e2;
+    DumpingHoleCoordWork* work;
+    TmdObject*            extra;
+    GpCoord*              coord;
+    DumpingHoleCoordCfg*  cfg;
+    VECTOR                v;
+    TmdObject*            e2;
 
     extra      = arg0->extra.tmd;
     cfg        = (DumpingHoleCoordCfg*)arg0->spawnArg2;
