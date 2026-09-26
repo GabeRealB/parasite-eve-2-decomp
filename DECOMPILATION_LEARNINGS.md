@@ -141554,3 +141554,19 @@ names `svp`/`view`/`vecp` locals, so the stack-address setups issue before
 the `extra.tmd` load; `actorLocalToView` takes `&acc`/`&v` directly and puts
 `view`, `svp` first and `vecp` after that load. When only those three
 `addiu`s are out of place, swap to the other helper.
+
+## An inlined helper's early `return` lets its value land in the caller's variable; one `return` keeps a separate pseudo (Actor01100_Fn04DB4, 2026-09-26)
+
+Symptom: `yaw = helper(...)` where the target computes the bearing in one
+register, copies it (or 0 on the no-player path) into a second, and only then
+stores that into `yaw`'s spill slot. The tree faked the middle pseudo with a
+`bridge` local and pinned scratch-head asm around it. With the helper written
+`if (!p) return 0; ...; return angle;`, integrate uses `yaw` itself as the
+return location, the zero path stores straight to the slot, and the copy
+disappears.
+
+Fix: give the helper one exit - `if (!p) angle = 0; else { ... angle = ...; }
+return angle;`. The helper's `angle` is then the pseudo both arms set, and
+the return copies it into `yaw` at the join. The helper's return type must
+also be the caller's width (`s32`); an `s16` return adds a `sll`/`sra` at the
+join that the target does not have.

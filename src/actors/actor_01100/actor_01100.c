@@ -1689,19 +1689,20 @@ void Actor01100_Fn0389C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 
 /// Bearing of the player (actor slot 0) from `self`, measured in `self`'s own
 /// frame and folded into -0x800..0x800; 0 when there is no player.
-static __inline__ s16 _actor01100BearingToPlayer(GpCoord* self)
+static __inline__ s32 _actor01100BearingToPlayer(GpCoord* self)
 {
     GpCoord*             other;
     ActorBearingScratch* blk;
     s32                  angle;
 
     if (Gp_ActorSlots[0] == NULL) {
-        return 0;
+        angle = 0;
+    } else {
+        other = Gp_ActorSlots[0]->extra.tmd->coords;
+        blk   = SCRATCH_PUSH(ActorBearingScratch);
+        angle = actorBearingInFrame(blk, self, other);
+        SCRATCH_POP(ActorBearingScratch);
     }
-    other = Gp_ActorSlots[0]->extra.tmd->coords;
-    blk   = SCRATCH_PUSH(ActorBearingScratch);
-    angle = actorBearingInFrame(blk, self, other);
-    SCRATCH_POP(ActorBearingScratch);
     return angle;
 }
 
@@ -2291,90 +2292,40 @@ void Actor01100_Fn048C8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 /// `0x400B000A`. A set `field_BA9` stages state 0xE.
 void Actor01100_Fn04DB4(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    SVECTOR              local;
-    GpCoord*             self;
-    GpCoord*             other;
-    GpCoord*             part;
-    MATRIX*              selfWorkm;
-    Task*                spawned;
-    s32                  angle;
-    s32                  nOuter;
-    s32                  yaw;
-    s32                  kind;
-    s32                  nInner;
-    s32                  i;
-    s32                  j;
-    s32                  dir;
-    u16                  prev;
-    u16                  time;
-    ActorBearingScratch* head;
-    ActorBearingScratch* head2;
-    ActorBearingScratch* deltaX;
-    s32                  otherY;
-    s32                  selfY;
-    ActorBearingScratch* vec;
-    void*                matrix;
-    s32                  bridge;
+    GpCoord* part;
+    Task*    spawned;
+    s32      nOuter;
+    s32      yaw;
+    s32      kind;
+    s32      nInner;
+    s32      i;
+    s32      j;
+    s32      dir;
+    u16      prev;
+    u16      time;
 
     if (work->field_BA8 == 0) {
         work->field_BA4 = 8;
         work->field_B8C = 0;
-        work->field_BA8 = (u8)work->field_BA8 + 1;
+        work->field_BA8++;
     }
     prev            = work->field_B8C;
     time            = prev + 1;
     work->field_B8C = time;
-    if ((u32)(prev & 0xFFFF) < 0x1F) {
+    if (prev < 0x1F) {
         if (work->field_B98 < 0x800) {
-            work->field_B98 = (u16)work->field_B98 + 0x40;
+            work->field_B98 += 0x40;
         }
     } else if ((s16)time >= 0x20) {
         if (work->field_B98 >= 0x80) {
-            work->field_B98 = (u16)work->field_B98 - 0x80;
+            work->field_B98 -= 0x80;
         } else {
             work->field_B98 = 0;
         }
     }
     work->field_B9A = work->field_B98;
     if (work->field_B8C == 0x20) {
-        self = task->extra.tmd->coords;
-        if (Gp_ActorSlots[0] == NULL) {
-            bridge = 0;
-        } else {
-            other     = Gp_ActorSlots[0]->extra.tmd->coords;
-            selfWorkm = &self->workm;
-            __asm__("lui %0, 0x1F80" : "=r"(head) : "r"(other));
-            head   = *(ActorBearingScratch**)((u8*)head + 0x3FC);
-            deltaX = head - 1;
-            vec    = head - 1;
-
-            deltaX->delta.vx = (s16)(other->workm.t[0] - self->workm.t[0]);
-            otherY           = (u16)other->workm.t[1];
-            selfY            = (u16)self->workm.t[1];
-            __asm__("addiu %0, %2, -0x20" : "=r"(matrix), "+r"(otherY) : "r"(head), "r"(selfY));
-            __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(vec) : "memory");
-            vec->delta.vy = (s16)(otherY - selfY);
-            vec->delta.vz = (s16)(other->workm.t[2] - self->workm.t[2]);
-            TransposeMatrix(selfWorkm, matrix);
-
-            local = vec->delta;
-            gte_SetRotMatrix(matrix);
-            __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
-            gte_rtv0();
-            gte_stsv(&vec->delta);
-
-            angle = ratan2(deltaX->delta.vx, vec->delta.vz);
-            if (angle >= 0x801) {
-                angle -= 0x1000;
-            } else if (angle < -0x800) {
-                angle += 0x1000;
-            }
-            __asm__("lui %0, 0x1F80" : "=r"(head2));
-            head2  = *(ActorBearingScratch**)((u8*)head2 + 0x3FC);
-            bridge = angle;
-            __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(head2 + 1), "r"(angle) : "memory");
-        }
-        yaw = bridge;
+        yaw = _actor01100BearingToPlayer(task->extra.tmd->coords);
 
         kind = 1;
         if ((s8)work->field_BBB == 0x31) {
@@ -2387,32 +2338,23 @@ void Actor01100_Fn04DB4(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
             nOuter = 2;
             nInner = 1;
         }
-        i = 0;
-        if (nOuter != 0) {
-            do {
-                dir = i;
-                if (kind == 1) {
-                    dir = (u32)~yaw >> 31;
+        for (i = 0; i < nOuter; i++) {
+            dir = i;
+            if (kind == 1) {
+                dir = yaw >= 0;
+            }
+            part = &task->extra.tmd->coords[4];
+            for (j = 0; j < nInner; j++) {
+                arg->vec.vx = (dir != 0) ? 0x12C : -0x12C;
+                arg->vec.vy = 0;
+                arg->vec.vz = 0;
+                spawned     = Task_SpawnFromTable(&Actor01100_D155E0, kind, yaw, 0);
+                if (spawned != NULL) {
+                    Gp_CopyCoordOffset(spawned, part, &arg->vec);
+                    Task_Reparent(task, spawned);
                 }
-                j    = 0;
-                part = &task->extra.tmd->coords[4];
-                if (nInner != 0) {
-                    do {
-                        arg->vec.vx = (dir != 0) ? 0x12C : -0x12C;
-                        arg->vec.vy = 0;
-                        arg->vec.vz = 0;
-                        spawned     = Task_SpawnFromTable(&Actor01100_D155E0, kind, yaw, 0);
-                        if (spawned != NULL) {
-                            Gp_CopyCoordOffset(spawned, part, &arg->vec);
-                            Task_Reparent(task, spawned);
-                        }
-                        selfY = 0x400B000A;
-                        j    += 1;
-                        SndEvt_EnqueueType6(((work->field_BB8 << 22) | selfY) | ((u8)work->actorId << 8), arg->pan, arg->depth);
-                    } while (j < nInner);
-                }
-                i += 1;
-            } while (i < nOuter);
+                SndEvt_EnqueueType6((work->field_BB8 << 22) | (((u8)work->actorId << 8) | 0x400B000A), arg->pan, arg->depth);
+            }
         }
     }
     Actor01100_Fn039D0(enemy, task, work, arg);
