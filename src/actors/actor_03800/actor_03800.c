@@ -1939,28 +1939,7 @@ static void Actor03800_Fn03594(Task* arg0)
 
 static void Actor03800_Fn03628(Task* arg0)
 {
-    Actor103800Work* work2;
-    s32              i;
-    s32              val;
-
-    work2 = arg0->work;
-    i     = 1;
-    if ((s16)work2->field_348 != work2->field_34A) {
-        work2->field_34A = work2->field_348;
-        work2->field_34C = 0;
-        val              = Actor03800_D05F90[(s16)work2->field_348];
-        do {
-            func_800B4114(work2, i, (s16)work2->field_348, 0, val);
-            i++;
-        } while (i < 6);
-    } else {
-        TOUCH_REG(i);
-        work2->field_34C += i;
-        do {
-            Gp_AnimTickIndex((GpAnimCtx*)work2, i);
-            i++;
-        } while (i < 6);
-    }
+    _actor03800TickAnim(arg0);
 }
 
 static void Actor03800_Fn036EC(Task* arg0)
