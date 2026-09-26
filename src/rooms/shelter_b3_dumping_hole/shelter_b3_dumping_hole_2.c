@@ -1347,10 +1347,10 @@ void func_shelter_b3_dumping_hole_8017FEF4(s16 arg0)
 
 void func_shelter_b3_dumping_hole_8017FF14(void)
 {
-    register Task*              st asm("s0")  = D_shelter_b3_dumping_hole_8018F4A8;
-    register DumpingHoleEntity* ent asm("s1") = st->work;
-    DumpingHoleEntity*          ent2;
-    s32                         desc[5];
+    Task*              st  = D_shelter_b3_dumping_hole_8018F4A8;
+    DumpingHoleEntity* ent = st->work;
+    DumpingHoleEntity* ent2;
+    s32                desc[5];
 
     Gp_DispatchMsg(ent->field_2C, 0x7D5, 2, 0);
     Gp_DispatchMsg(ent->field_24, 0x3F3, 1, 0);
