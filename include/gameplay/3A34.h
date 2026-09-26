@@ -466,20 +466,6 @@ typedef struct _GpColorScratch {
 } GpColorScratch;
 STATIC_ASSERT_SIZEOF(GpColorScratch, 0x30);
 
-/// Column overlay of a packed 3x3 (`MATRIX.m`). `x` / `y` / `z` are
-/// `m[0][i]` / `m[1][i]` / `m[2][i]`. Advancing to `&col->_0` walks to
-/// column `i+1`.
-typedef struct _GpMtxCol {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 _0;
-    /* 0x4 */ s16 _1;
-    /* 0x6 */ s16 y;
-    /* 0x8 */ s16 _2;
-    /* 0xA */ s16 _3;
-    /* 0xC */ s16 z;
-} GpMtxCol;
-STATIC_ASSERT_SIZEOF(GpMtxCol, 0xE);
-
 /// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `Gp_LightFalloff` /
 /// `Gp_LightPoint` / `Gp_LightPointRoom`.
 /// `vec` is the halved local position (`Gp_LightFalloff`) or the halved
