@@ -445,7 +445,6 @@ void func_acropolis_roof_garden_8017E29C(Task* arg0)
     GpCoord*         coord;
     void*            mem;
     u8*              head;
-    u8*              raw;
     RoomGlowScratch* blk;
     POLY_G4*         prim;
     LINE_G3*         line;
@@ -455,7 +454,6 @@ void func_acropolis_roof_garden_8017E29C(Task* arg0)
     s32              h;
     s16              lvl;
     s16              flip;
-    u16              vz;
     s32              z;
     u32              tag;
     u_long*          ot;
@@ -466,15 +464,11 @@ void func_acropolis_roof_garden_8017E29C(Task* arg0)
     coord = arg0->extra.tmd->coords;
     mem   = arg0->spawnArg2;
     Gp_UpdateCoord(coord);
-    head = SCRATCH_HEAD(void);
-    raw  = head - 0x18;
-    SOFT_TOUCH_REG(raw);
-    blk                = (RoomGlowScratch*)raw;
-    blk->vec.vx        = (u16)coord->workm.t[0];
-    blk->vec.vy        = (u16)coord->workm.t[1];
-    vz                 = (u16)coord->workm.t[2];
-    SCRATCH_HEAD(void) = blk;
-    blk->vec.vz        = vz;
+    head        = SCRATCH_HEAD(void);
+    blk         = (RoomGlowScratch*)(SCRATCH_HEAD(void) = head - 0x18);
+    blk->vec.vx = coord->workm.t[0];
+    blk->vec.vy = coord->workm.t[1];
+    blk->vec.vz = coord->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
