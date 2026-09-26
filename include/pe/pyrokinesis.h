@@ -32,12 +32,4 @@ STATIC_ASSERT_SIZEOF(PyroLevel, 8);
 
 extern PyroLevel D_80113D40[];
 
-/// The `SndEvt_EnqueueType6` id of the ignition roar, indexed by
-/// `GpEffWork.index * 3 + Task::spawnArg1` (combo level by cast variant).
-extern s32 D_pyrokinesis_80131DD8[];
-
-/// Per-flame jitter of the cone, one 8-bit LCG roll each, re-rolled as a block
-/// when the cast starts.
-extern s16 D_pyrokinesis_80131DFC[16];
-
 #endif /* PE_PYROKINESIS_H */

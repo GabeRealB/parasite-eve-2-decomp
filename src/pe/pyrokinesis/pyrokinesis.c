@@ -19,8 +19,9 @@ static void func_pyrokinesis_80130130(GpCoord* arg0, s16 arg1, s16 arg2);
 static void func_pyrokinesis_801304C4(GpCoord* arg0, s32 arg1);
 static void func_pyrokinesis_80130848(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 
-/// The `SndEvt_EnqueueType6` id for each pyrokinesis stage, three per PE level.
-s32 D_pyrokinesis_80131DD8[] = {
+/// The `SndEvt_EnqueueType6` id of the ignition roar, three per PE level,
+/// indexed by `GpEffWork.index * 3 + Task::spawnArg1` (level by cast variant).
+static s32 D_pyrokinesis_80131DD8[] = {
     0xE00B0002,
     0xE00B0002,
     0xE00B0002,
@@ -36,8 +37,9 @@ static void func_pyrokinesis_80130DC0(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg
 static void func_pyrokinesis_801312B4(GpCoord* arg0, s16 arg1, s32 arg2, s16 arg3);
 static void func_pyrokinesis_80131784(GpCoord* arg0, s16 arg1, s32 arg2, s32 arg3);
 
-/// Scratch for the flame column's vertex work.
-s16 D_pyrokinesis_80131DFC[16] = { 0 };
+/// Per-flame jitter of the cone, one 8-bit LCG roll each, re-rolled as a block
+/// when the cast starts.
+static s16 D_pyrokinesis_80131DFC[16] = { 0 };
 
 /// Runs one frame of the pyrokinesis cast: a five-state machine driven by
 /// `Task::state`. State 0 copies the player rotation onto the effect

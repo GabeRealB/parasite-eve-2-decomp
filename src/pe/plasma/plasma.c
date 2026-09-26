@@ -22,6 +22,8 @@
 
 static void func_plasma_8012F568(GpEffWork* arg0, GpCoord* arg1, s32 arg2);
 
+static void func_plasma_8012FB10(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+
 /// Per-level geometry for the plasma ring: rows are PE levels 1-3. `rInner` is
 /// the inner radius, `yOff` the height above the caster, `rExtra` how far the
 /// ring grows before it breaks up.
@@ -32,10 +34,12 @@ static PlasmaRingScale D_plasma_8012FF34[] = {
 };
 
 /// The `SndEvt_EnqueueType6` id for each `D_plasma_8012FF34` row.
-s32 D_plasma_8012FF48[] = { 0xE0160001, 0xE0190001, 0xE01C0001 };
+static s32 D_plasma_8012FF48[] = { 0xE0160001, 0xE0190001, 0xE01C0001 };
 
-/// Per-vertex jitter the ring walks each frame; three banks of 16.
-s16 D_plasma_8012FF54[3][16] = { 0 };
+/// Three 16-entry columns of per-wedge jitter. `func_plasma_8012EF34` fills
+/// them with LCG bytes when the ring spawns; `func_plasma_8012F568` reads
+/// column `arg2` to pick each wedge's texture.
+static s16 D_plasma_8012FF54[3][16] = { 0 };
 
 /// Plasma PE ring. `Task::spawnArg2` is the `GpEffWork` block (`scale`
 /// brightness, `index` combo index, `age` tick / inner radius);
@@ -285,7 +289,7 @@ static void func_plasma_8012F568(GpEffWork* arg0, GpCoord* arg1, s32 arg2)
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`. The RGB triple tints the inner edge
 /// so each wedge fades to a black outer rim. Byte-identical to the rooms
 /// family's `Room_Draw07` (src/lib/room_draw07.c).
-void func_plasma_8012FB10(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_plasma_8012FB10(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     GpArcScratch* block;
     POLY_G4*      prim;

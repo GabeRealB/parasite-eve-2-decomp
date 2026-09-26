@@ -21,6 +21,9 @@
 
 static void func_lifedrain_8012EF48(Task* arg0);
 
+static void func_lifedrain_801301AC(GpCoord* arg0, s16 arg1, s16 arg2);
+static void func_lifedrain_801305C0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+
 /// Per-level tuning for the life drain: rows are PE levels 1-3.
 static LifeDrainScale D_lifedrain_80130AB4[] = {
     { 0x0008, 0x0080, 0x0100, 0x0400, 0x0040 },
@@ -28,8 +31,10 @@ static LifeDrainScale D_lifedrain_80130AB4[] = {
     { 0x0010, 0x00E0, 0x0300, 0x0600, 0x0050 },
 };
 
-/// The `SndEvt_EnqueueType6` ids: three drain cues then three release cues.
-s32 D_lifedrain_80130AD4[] = {
+/// `SndEvt` id of the drain's opening cue, indexed by `GpEffWork.index`
+/// when the cast has drained nothing yet and by `field_20 + 3` once there is
+/// health banked in `Gp_StateF0.field_14`.
+static s32 D_lifedrain_80130AD4[] = {
     0xE0210001,
     0xE0240001,
     0xE0270001,
@@ -38,8 +43,10 @@ s32 D_lifedrain_80130AD4[] = {
     0xE0270002,
 };
 
-/// Scratch for the drain ribbon, plus the task handle it spawns.
-s16 D_lifedrain_80130AEC[16] = { 0 };
+/// One yaw per funnel wedge, `LifeDrainScale.unk0` of them, re-rolled as a
+/// block when the cast starts and replayed every frame by
+/// `func_lifedrain_801305C0`.
+static s16 D_lifedrain_80130AEC[16] = { 0 };
 /// The cast's collector task, published by `func_lifedrain_8012EF48`. Every
 /// drain mote reparents itself onto it and adds its own `spawnArg1` to the
 /// running total there.
@@ -491,7 +498,7 @@ static void func_lifedrain_8012FAF8(Task* arg0)
 /// `arg2 * 23 / otz`. The outer sprite is the 0x38-wide cell on tpage 0x29 whose
 /// CLUT is `0x4310 + (arg1 & 1)`, sized `((arg2 * 2) / 3) * 55 / otz`. Same
 /// 0x18-byte scratch and axis-aligned corners as gameplay `Gp_EffSprTask8D`.
-void func_lifedrain_801301AC(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_lifedrain_801301AC(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     u8*            head;
     GpRingScratch* block;
@@ -591,7 +598,7 @@ void func_lifedrain_801301AC(GpCoord* arg0, s16 arg1, s16 arg2)
 /// screen units away at `arg2 - 0x20` and `arg2 + 0x20`, so the wedge is a
 /// 0x40-wide fan blade about `arg2`. Only the apex carries `rgb`, the rim
 /// fading to black. A negative `gte_stflg` drops the wedge.
-void func_lifedrain_801305C0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_lifedrain_801305C0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     u8*            head;
     GpRingScratch* block;

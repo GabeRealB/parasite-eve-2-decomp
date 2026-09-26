@@ -28,9 +28,4 @@ typedef struct NecrosisWork {
 } NecrosisWork;
 STATIC_ASSERT_SIZEOF(NecrosisWork, 0x58);
 
-/// Three necrosis intensities, weakest first.
-extern NecrosisStep D_necrosis_801306BC[];
-/// The `SndEvt_EnqueueType6` id for each `D_necrosis_801306BC` row.
-extern s32 D_necrosis_801306C8[];
-
 #endif /* PE_NECROSIS_H */
