@@ -1555,59 +1555,38 @@ void Ui_DrawVBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
     }
 }
 
-static void Ui_DrawTextUnderline(UiPanel* arg0, s32 arg1, s32 arg2, char* arg3, s32 arg4)
+static void Ui_DrawTextUnderline(UiPanel* arg0, s32 x, s32 y, char* arg3, s32 arg4)
 {
-    TextDrawReq       sp10;
-    POLY_F4*          p;
-    s32               x;
-    s32               y;
-    s32               textX;
-    s32               color;
-    s32               t20;
-    s32               tmp0;
-    s32               tmp1;
-    s32               f22;
-    s32               fourth;
-    register s32      otIdx asm("s0");
-    register UiPanel* self asm("s3");
+    TextDrawReq req;
+    POLY_F4*    p;
+    s16         textX;
+    s32         otIdx;
 
-    self            = arg0;
-    color           = arg4;
-    otIdx           = (s16)self->field_14;
-    tmp0            = (s16)self->field_20;
-    tmp1            = (s16)self->field_22;
-    sp10.glyphTable = 5;
-    sp10.centerMode = 0;
-    sp10.field_E    = 0;
-    x               = arg1 + tmp0;
-    y               = arg2 + tmp1;
-    sp10.x          = x + 2;
-    sp10.y          = y + 5;
-    otIdx           = otIdx + 1;
-    sp10.otIndex    = otIdx;
-    sp10.field_8    = color;
-    func_8002E53C(&sp10, (u8*)arg3);
+    otIdx          = (s16)arg0->field_14 + 1;
+    x             += (s16)arg0->field_20;
+    y             += (s16)arg0->field_22;
+    req.x          = x + 2;
+    req.y          = y + 5;
+    req.otIndex    = otIdx;
+    req.field_8    = arg4;
+    req.glyphTable = 5;
+    req.centerMode = 0;
+    req.field_E    = 0;
+    func_8002E53C(&req, (u8*)arg3);
 
-    p                     = (POLY_F4*)gGpuPrimCursor;
-    p->x2                 = x;
-    p->x0                 = x;
-    textX                 = (u16)sp10.x;
-    gGpuPrimCursor        = (POLY_FT4*)p + 1;
+    p     = (POLY_F4*)gGpuPrimCursor;
+    p->x0 = p->x2         = x;
+    textX                 = req.x;
+    gGpuPrimCursor        = (u8*)((POLY_FT4*)p + 1);
     PRIM_COLOR_WORD(p, 0) = PRIM_RGBC(0x02, 0x10, 0x02, 0);
-    p->y3                 = y + 7;
-    p->y2                 = y + 7;
-    setcode(p, 0x28);
-    setlen(p, 5);
-    p->y1 = y;
-    p->y0 = y;
-    p->x3 = textX;
-    p->x1 = textX + 3;
+    p->y2 = p->y3 = y + 7;
+    setPolyF4(p);
+    p->y0 = p->y1 = y;
+    p->x3         = textX;
+    p->x1         = textX + 3;
     addPrim(gGpuCurrentOt + otIdx, p);
 
-    t20    = (s16)self->field_20;
-    f22    = (s16)self->field_22;
-    fourth = f22 - 7;
-    Ui_DrawHBar(self, x - t20, (s16)sp10.x - t20, y - fourth);
+    Ui_DrawHBar(arg0, x - (s16)arg0->field_20, req.x - (s16)arg0->field_20, y + 7 - (s16)arg0->field_22);
 }
 
 void Ui_DrawTextColored(UiPanel* arg0, char* arg1)

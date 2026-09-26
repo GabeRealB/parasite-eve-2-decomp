@@ -144181,3 +144181,16 @@ for (i = 0; i < 4; i++) { block->vec[i].vx = D_80111E38[i].x * s; ... }` with
 `+=` on the translation - loop strength reduction produces exactly that walker
 and copy with no hack. The same body sits in energyball, hypervelocity and
 m4a1_pyke with pins or barriers.
+
+## Pins holding a panel pointer above its coordinates: convert the coordinate parameters in place (Ui_DrawTextUnderline, 2026-09-26)
+
+The seed pinned the panel parameter to `$s3` and the OT index to `$s0`, and
+computed `x = arg1 + panel->baseX` into new locals. Unpinned, the pointer and `x`
+were one priority point apart in local-alloc (6 refs over a doubled parameter
+span against 5 refs), and the pointer won `$s2`. Writing the conversion as
+`x += panel->baseX` on the parameter itself adds the arrival copy and the second
+set to `x`'s references (7 and 8 for `y`), which puts both coordinates clearly
+above the pointer without passing the OT index. The OT index then came out right
+only as one statement, `otIdx = panel->depth + 1`: split into a load and `+= 1`
+it is set twice and its load loses the birthing boost, pushing the stack-argument
+load behind it. The remaining `sb` order was the request fields in struct order.
