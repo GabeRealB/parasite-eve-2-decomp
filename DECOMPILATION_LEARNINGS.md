@@ -144113,3 +144113,14 @@ the temp the later last use in both, and the copies come out identical. The
 seed had pinned that local to `$v0`; the pin was unnecessary once the rest of
 the function was plain. `level /= 4` and a shared `vol = level / 4` did not
 work.
+
+### An unfilled `move v0,aN; jr ra; nop` after early `jr ra; move v0,aN` exits is one `if/else` chain with a single `return` (Text_ItoaUnsigned, 2026-09-26)
+
+Target: the two special cases each end `jr ra; move v0,a0`, but the main path
+ends `sb zero,0(a3); move v0,a0; jr ra; nop` with the slot left empty. Early
+`return arg0;` in each case lets dbr fill the final slot too; the seed held it
+off with `ret = arg0; SOFT_TOUCH_REG(ret);` plus a register pin. Writing the
+cases as `if (...) {...} else if (...) {...} else {...}` followed by one
+`return arg0;` reproduces both shapes with no temporary: the early exits get
+their copy of the return move by dbr, the shared exit keeps it outside the slot.
+The same body inlined into a sibling in the file already had that if/else shape.

@@ -792,45 +792,28 @@ u8* Text_ItoaUnsigned(u8* arg0, u32 arg1)
         u8 data[2];
     } Bytes2;
 
-    u8*          dest;
-    u32          place;
-    register u32 digit asm("v1");
-    u32          temp;
-    u8*          ret;
-    u32          cmp;
+    u8* dest;
+    u32 place;
 
     place = 0x5F5E100;
     if (arg1 > 0x3B9AC9FEU) {
         *(Bytes10*)arg0 = *(Bytes10*)D_800138CC;
-        return arg0;
-    }
-    cmp = arg1 < place;
-    if (arg1 == 0) {
+    } else if (arg1 == 0) {
         *(Bytes2*)arg0 = *(Bytes2*)D_800138C8;
-        return arg0;
-    }
-    dest = arg0;
-    if (cmp) {
-        do {
+    } else {
+        dest = arg0;
+        while (arg1 < place) {
             place /= 10;
-        } while (arg1 < place);
+        }
+        while (place != 0) {
+            *dest    = arg1 / place;
+            arg1    -= *dest * place;
+            place   /= 10;
+            *dest++ += '0';
+        }
+        *dest = 0;
     }
-    if (place != 0) {
-        do {
-            digit  = arg1 / place;
-            *dest  = digit;
-            temp   = *dest & 0xFF;
-            digit  = temp * place;
-            place /= 10;
-            *dest  = temp + 0x30;
-            dest++;
-            arg1 -= digit;
-        } while (place != 0);
-    }
-    *dest = 0;
-    ret   = arg0;
-    SOFT_TOUCH_REG(ret);
-    return ret;
+    return arg0;
 }
 
 static u8* Text_ItoaHexSigned(u8* arg0, s32 arg1)
