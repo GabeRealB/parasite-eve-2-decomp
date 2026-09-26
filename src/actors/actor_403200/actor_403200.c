@@ -4570,7 +4570,6 @@ void func_actor_403200_8013B8C4(Task* arg0)
     Task*                   task;
     PlayerStatus*           cfg;
     Actor403200DragScratch* sc;
-    SVECTOR*                posp;
     s16                     i;
     s16                     j;
 
@@ -4600,21 +4599,15 @@ void func_actor_403200_8013B8C4(Task* arg0)
                 Tmd_AllocBuffers(dying->field_ECC[j]->task->extra.tmd);
             }
         }
-        {
-            SVECTOR* p = &D_actor_403200_8015F8F8;
-            SOFT_USE_REG(p);
-            posp = p;
-            SOFT_USE_REG(posp);
-        }
-        work->field_EFE = 0;
-        work->field_EF4 = 1;
-        work->field_EF6 = 1;
-        work->field_F04 = 0;
-        work->field_EFA = 0;
-        posp->vz        = 0;
-        posp->vy        = 0;
-        posp->vx        = 0;
-        actorLocalToView(&arg0->extra.tmd->coords[3], posp);
+        work->field_EFE            = 0;
+        work->field_EF4            = 1;
+        work->field_EF6            = 1;
+        work->field_F04            = 0;
+        work->field_EFA            = 0;
+        D_actor_403200_8015F8F8.vz = 0;
+        D_actor_403200_8015F8F8.vy = 0;
+        D_actor_403200_8015F8F8.vx = 0;
+        actorLocalToView(&arg0->extra.tmd->coords[3], &D_actor_403200_8015F8F8);
         D_actor_403200_8015F8F4.from.loc.stage = 0;
         D_actor_403200_8015F8F4.from.loc.area  = 0x2C;
         D_actor_403200_8015F8F4.command        = 2;
@@ -4628,36 +4621,7 @@ void func_actor_403200_8013B8C4(Task* arg0)
 
     func_actor_403200_80133DD8(arg0);
 
-    {
-        GpCoord* facing;
-        GpCoord* yawCoord;
-        SVECTOR* dirp;
-        s16      dz;
-        s16      ang;
-
-        facing     = arg0->extra.tmd->coords;
-        dirp       = &sc->dir;
-        sc->dir.vx = (u16)Player_Status.coordMtx->t[0] - (u16)facing->coord.t[0];
-        dirp->vy   = (u16)Player_Status.coordMtx->t[1] - (u16)facing->coord.t[1];
-        dz         = (u16)Player_Status.coordMtx->t[2] - (u16)facing->coord.t[2];
-        dirp->vz   = dz;
-        yawCoord   = arg0->extra.tmd->coords;
-        ang        = ratan2(sc->dir.vx, dz) - ratan2(-yawCoord->coord.m[2][0], yawCoord->coord.m[2][2]);
-        if (ang < 0) {
-        wrapUp:
-            if (ang < -0x800) {
-                ang += 0x1000;
-                goto wrapUp;
-            }
-        } else {
-        wrapDown:
-            if (ang > 0x800) {
-                ang -= 0x1000;
-                goto wrapDown;
-            }
-        }
-        work->field_7C4 = ang;
-    }
+    work->field_7C4 = actorPositionYaw(arg0, &sc->dir, &Player_Status);
 
     sc->dir.vz = 0;
     sc->dir.vy = 0;
@@ -4787,8 +4751,6 @@ void func_actor_403200_8013B8C4(Task* arg0)
 
     if (((u32)((work->slots0[1].curRec & 0x3FF) - 0xB) < 5U) && (sc->dist < 0x4B0) && (enemy->hp > 0) &&
         (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&D_actor_403200_8015FA00, 0) == 0)) {
-        GpCoord* yawCoord;
-        GpCoord* facing;
         SVECTOR* dirp;
         s16      ang;
 
@@ -4799,26 +4761,10 @@ void func_actor_403200_8013B8C4(Task* arg0)
         sc->pos.vx      = 0;
         actorLocalToView(&arg0->extra.tmd->coords[4], &sc->pos);
 
-        sc->dir.vx = (u16)task->extra.tmd->coords->coord.t[0] - (u16)sc->pos.vx;
-        sc->dir.vy = 0;
-        sc->dir.vz = (u16)task->extra.tmd->coords->coord.t[2] - (u16)sc->pos.vz;
-        __asm__("" : "+m"(sc->dir.vz));
-        yawCoord = arg0->extra.tmd->coords;
-        ang      = ratan2(sc->dir.vx, sc->dir.vz) -
-              ratan2(-yawCoord->coord.m[2][0], yawCoord->coord.m[2][2]);
-        if (ang < 0) {
-        wrapUp2:
-            if (ang < -0x800) {
-                ang += 0x1000;
-                goto wrapUp2;
-            }
-        } else {
-        wrapDown2:
-            if (ang > 0x800) {
-                ang -= 0x1000;
-                goto wrapDown2;
-            }
-        }
+        sc->dir.vx      = (u16)task->extra.tmd->coords->coord.t[0] - (u16)sc->pos.vx;
+        sc->dir.vy      = 0;
+        sc->dir.vz      = (u16)task->extra.tmd->coords->coord.t[2] - (u16)sc->pos.vz;
+        ang             = actorViewYaw(arg0->extra.tmd->coords, &sc->dir);
         dirp            = &sc->dir;
         work->field_7C4 = ang;
         VectorNormalSS(dirp, dirp);
@@ -4845,22 +4791,7 @@ void func_actor_403200_8013B8C4(Task* arg0)
             sc->dir.vx = px - mx;
         }
         sc->dir.vz = (u16)sc->pos.vz - (u16)D_actor_403200_8015F9C0.pos.vz;
-        facing     = task->extra.tmd->coords;
-        ang        = ratan2(sc->dir.vx, dirp->vz) -
-              ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-        if (ang < 0) {
-        wrapUp3:
-            if (ang < -0x800) {
-                ang += 0x1000;
-                goto wrapUp3;
-            }
-        } else {
-        wrapDown3:
-            if (ang > 0x800) {
-                ang -= 0x1000;
-                goto wrapDown3;
-            }
-        }
+        ang        = actorViewYaw(task->extra.tmd->coords, dirp);
         {
             s32 ext = ang;
 

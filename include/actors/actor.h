@@ -2636,6 +2636,16 @@ static __inline__ s16 actorYawTo(GpCoord* coord, s16 x, s16 z)
     return actorNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
 }
 
+/// The turn from `coord`'s heading to the bearing of the offset `dir`,
+/// wrapped.
+static __inline__ s16 actorViewYaw(GpCoord* coord, SVECTOR* dir)
+{
+    s32 angle;
+
+    angle = ratan2(dir->vx, dir->vz);
+    return actorNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+}
+
 /// Combines a movement step with a push along the same axis: the push when
 /// there is no step, the step when the two disagree in sign, otherwise the
 /// larger in magnitude.

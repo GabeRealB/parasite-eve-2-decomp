@@ -2482,14 +2482,6 @@ loop:
     SCRATCH_POP_BYTES(8);
 }
 
-static __inline__ s16 Actor401800_ViewYaw(GpCoord* coord, SVECTOR* dir)
-{
-    s32 angle;
-
-    angle = ratan2(dir->vx, dir->vz);
-    return actorNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-}
-
 static __inline__ void Actor401800_SetGrabAnim(void)
 {
     if (Mc_SaveData.characterId == 1) {
@@ -2543,7 +2535,7 @@ void func_actor_401800_801381E4(Task* arg0)
         work->field_BF2 = arg0->extra.tmd->coords->coord.t[1];
         work->field_BF4 = arg0->extra.tmd->coords->coord.t[2];
         Actor401800_ViewWalk(arg0->extra.tmd->coords, &sv, &dir);
-        ang = Actor401800_ViewYaw(arg0->extra.tmd->coords, &dir);
+        ang = actorViewYaw(arg0->extra.tmd->coords, &dir);
         Gfx_RotMatrixY(&arg0->extra.tmd->coords[0].coord, ang, 0);
         actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
         dir.vx                       = arg0->extra.tmd->coords->coord.t[0] - config->coordMtx->t[0];
@@ -2559,7 +2551,7 @@ void func_actor_401800_801381E4(Task* arg0)
     func_actor_401800_80133EB8(arg0);
     if ((work->field_5A & 0x3FF) == 0x10 && gactor->field_954 != 2) {
         Actor401800_ViewWalk(arg0->extra.tmd->coords, &sv, &dir);
-        ang = Actor401800_ViewYaw(arg0->extra.tmd->coords, &dir);
+        ang = actorViewYaw(arg0->extra.tmd->coords, &dir);
         if (ang < 0) {
             ang = -ang;
         }
