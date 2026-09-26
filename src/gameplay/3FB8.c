@@ -3951,151 +3951,76 @@ void Gp_StepPlayerMove(Task* arg0)
     SCRATCH_POP(GpMoveScratch);
 }
 
+/// Eases `angle` back toward zero by an eighth of itself, at least 0x20 per
+/// call, and snaps it to zero once it is within 0x20; an angle that was not
+/// yet zero sets `moving`. `step` receives the amount taken off.
+#define GP_DECAY_ANGLE(angle, step, moving)           \
+    do {                                              \
+        if ((angle) != 0) {                           \
+            (moving) = 1;                             \
+            (step)   = (angle) >> 3;                  \
+            if (ABS(step) < 0x20) {                   \
+                (step) = ((step) < 0) ? -0x20 : 0x20; \
+            }                                         \
+            (angle) -= (step);                        \
+            if (ABS(angle) < 0x21) {                  \
+                (angle) = 0;                          \
+            }                                         \
+        }                                             \
+    } while (0)
+
+/// Clears the frame stamp of node `i` of the task's model, so it is composed
+/// again, and returns that node's local matrix for the caller to rebuild.
+static inline MATRIX* _gpRebuildCoordMatrix(Task* task, s32 i)
+{
+    GpCoord* coord = &task->extra.tmd->coords[i];
+
+    coord->flg = 0;
+    return &coord->coord;
+}
+
 void Gp_TurnPlayer(Task* arg0)
 {
-    TmdObject* extra;
     GameActor* actor;
     GpCoord*   coord;
-    s32        flag;
-    SVECTOR*   rot;
+    MATRIX*    m;
+    s32        moving;
+    s16        step;
 
-    actor = arg0->work;
-    extra = arg0->extra.tmd;
-    {
-        register u16* tbl asm("a0");
-        s32           idx;
-        s32           yaw;
+    actor  = arg0->work;
+    coord  = arg0->extra.tmd->coords;
+    moving = 0;
+    if (actor->field_95A != 0) {
+        s32 dir = *(volatile u8*)&actor->field_975;
 
-        idx   = actor->field_95A;
-        coord = extra->coords;
-        flag  = 0;
-        if (idx != 0) {
-            yaw             = *(volatile u8*)&actor->field_975;
-            tbl             = D_80112E20;
-            actor->field_52 = ((u16)actor->field_52 + tbl[idx] * (s8)yaw) & 0xFFF;
-        }
+        actor->field_52 = (actor->field_52 + D_80112E20[actor->field_95A] * (s8)dir) & 0xFFF;
     }
-    rot = (SVECTOR*)&actor->field_50;
-    TOUCH_REG2(rot, coord);
-    coord = (GpCoord*)&coord->coord;
-    RotMatrix(rot, (MATRIX*)coord);
-    MatrixNormal((MATRIX*)coord, (MATRIX*)coord);
-    if ((s8)actor->field_97E == 1) {
-        s32          temp;
-        register s16 delta asm("v1");
-        s32          val;
-
-        if (actor->field_58 != 0) {
-            val   = actor->field_58 >> 3;
-            delta = val;
-            temp  = val;
-            flag  = 1;
-            if (ABS(temp) < 0x20) {
-                val = 0x20;
-                if (temp < 0) {
-                    val = -0x20;
-                }
-                delta = val;
-            }
-            actor->field_58 -= delta;
-            if (ABS(actor->field_58) < 0x21) {
-                actor->field_58 = 0;
-            }
-        }
-        if (actor->field_5C != 0) {
-            val   = actor->field_5C >> 3;
-            delta = val;
-            temp  = val;
-            flag  = 1;
-            if (ABS(temp) < 0x20) {
-                val = 0x20;
-                if (temp < 0) {
-                    val = -0x20;
-                }
-                delta = val;
-            }
-            actor->field_5C -= delta;
-            if (ABS(actor->field_5C) < 0x21) {
-                actor->field_5C = 0;
-            }
-        }
-        if (actor->field_60 != 0) {
-            val   = actor->field_60 >> 3;
-            delta = val;
-            temp  = val;
-            flag  = 1;
-            if (ABS(temp) < 0x20) {
-                val = 0x20;
-                if (temp < 0) {
-                    val = -0x20;
-                }
-                delta = val;
-            }
-            actor->field_60 -= delta;
-            if (ABS(actor->field_60) < 0x21) {
-                actor->field_60 = 0;
-            }
-        }
-        if (actor->field_64 != 0) {
-            val   = actor->field_64 >> 3;
-            delta = val;
-            temp  = val;
-            flag  = 1;
-            if (ABS(temp) < 0x20) {
-                val = 0x20;
-                if (temp < 0) {
-                    val = -0x20;
-                }
-                delta = val;
-            }
-            actor->field_64 -= delta;
-            if (ABS(actor->field_64) < 0x21) {
-                actor->field_64 = 0;
-            }
-        }
-        if (actor->field_70 != 0) {
-            val   = actor->field_70 >> 3;
-            delta = val;
-            temp  = val;
-            flag  = 1;
-            if (ABS(temp) < 0x20) {
-                val = 0x20;
-                if (temp < 0) {
-                    val = -0x20;
-                }
-                delta = val;
-            }
-            actor->field_70 -= delta;
-            if (ABS(actor->field_70) < 0x21) {
-                actor->field_70 = 0;
-            }
-        }
-        if (flag == 0) {
+    RotMatrix((SVECTOR*)&actor->field_50, &coord->coord);
+    MatrixNormal(&coord->coord, &coord->coord);
+    if (actor->field_97E == 1) {
+        GP_DECAY_ANGLE(actor->field_58, step, moving);
+        GP_DECAY_ANGLE(actor->field_5C, step, moving);
+        GP_DECAY_ANGLE(actor->field_60, step, moving);
+        GP_DECAY_ANGLE(actor->field_64, step, moving);
+        GP_DECAY_ANGLE(actor->field_70, step, moving);
+        if (moving == 0) {
             actor->field_97E = 0;
         }
     }
-    coord        = arg0->extra.tmd->coords;
-    coord[2].flg = 0;
-    coord        = (GpCoord*)&coord[2].coord;
-    RotMatrixX(actor->field_58, (MATRIX*)coord);
-    RotMatrixZ(actor->field_5C, (MATRIX*)coord);
-    MatrixNormal((MATRIX*)coord, (MATRIX*)coord);
-    coord        = arg0->extra.tmd->coords;
-    coord[3].flg = 0;
-    coord        = (GpCoord*)&coord[3].coord;
-    RotMatrixX(actor->field_60, (MATRIX*)coord);
-    RotMatrixZ(actor->field_64, (MATRIX*)coord);
-    MatrixNormal((MATRIX*)coord, (MATRIX*)coord);
-    coord        = arg0->extra.tmd->coords;
-    coord[4].flg = 0;
-    coord        = (GpCoord*)&coord[4].coord;
-    Gfx_RotMatrixY((MATRIX*)coord, actor->field_6A, 0);
-    MatrixNormal((MATRIX*)coord, (MATRIX*)coord);
-    coord        = arg0->extra.tmd->coords;
-    coord[6].flg = 0;
-    coord        = (GpCoord*)&coord[6].coord;
-    Gfx_RotMatrixX((MATRIX*)coord, actor->field_70, 0);
-    MatrixNormal((MATRIX*)coord, (MATRIX*)coord);
+    m = _gpRebuildCoordMatrix(arg0, 2);
+    RotMatrixX(actor->field_58, m);
+    RotMatrixZ(actor->field_5C, m);
+    MatrixNormal(m, m);
+    m = _gpRebuildCoordMatrix(arg0, 3);
+    RotMatrixX(actor->field_60, m);
+    RotMatrixZ(actor->field_64, m);
+    MatrixNormal(m, m);
+    m = _gpRebuildCoordMatrix(arg0, 4);
+    Gfx_RotMatrixY(m, actor->field_6A, 0);
+    MatrixNormal(m, m);
+    m = _gpRebuildCoordMatrix(arg0, 6);
+    Gfx_RotMatrixX(m, actor->field_70, 0);
+    MatrixNormal(m, m);
 }
 
 /// The signed turn from `from` to `to` (4096 units per revolution), taking

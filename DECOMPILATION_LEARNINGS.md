@@ -143163,3 +143163,20 @@ third pin (`block asm("s0")`) fixed. The typed scratch macros fixed it without
 a pin: `SCRATCH_PUSH(T); block = SCRATCH_HEAD(T); ... SCRATCH_POP(T);`, with
 `&block->dir` in place of a separate `dir` pointer. When a scratch-block
 function pins the block pointer, try the typed push/read/pop form first.
+## Repeated decay blocks share one function-scope step; a per-node helper returns the member pointer (Gp_TurnPlayer, 2026-09-26)
+
+Five copies of `if (a) { step = a >> 3; clamp step to ±0x20; a -= step; snap }`
+had been pinned (`register s16 delta asm("v1")`) because a block-scoped `s16`
+step loses global allocation to the SImode copy `ABS()` makes of it: both have
+3 refs and the step lives longer, so the copy takes `$v1`. Declaring the `s16`
+step once at function scope and reusing it in each expansion (a macro taking
+the step as an argument) gives it 15 refs and it wins `$v1` in every block.
+The same function rebuilt four model nodes with `lw s0,8(v0); sw zero,off(s0);
+addiu s0,s0,off+4` - one register for the node base and its matrix - which had
+been reproduced by reusing a `GpCoord*` variable as a `MATRIX*`. A
+`static inline MATRIX* f(Task*, i)` that clears `coords[i].flg` and returns
+`&coords[i].coord` gives the same tie, since the helper's base pseudo dies at
+the return. Separate `coord`/`m` locals in the caller do not.
+The `lbu; sll 24; sra 24` on an `s8` field there stayed a volatile read: combine
+folds the load into `lb` unless the load sits in another basic block or a store
+separates it from the extension, and the target has neither.

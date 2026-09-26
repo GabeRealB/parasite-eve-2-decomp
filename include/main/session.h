@@ -407,7 +407,7 @@ typedef struct _GameActor {
     /* 0x97B */ s8                 field_97B;
     /* 0x97C */ s8                 field_97C;
     /* 0x97D */ u8                 field_97D;
-    /* 0x97E */ u8                 field_97E;
+    /* 0x97E */ s8                 field_97E;
     /* 0x97F */ s8                 field_97F;
     /* 0x980 */ byte               pad_980;
     /* 0x981 */ u8                 field_981;
