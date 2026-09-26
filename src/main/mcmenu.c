@@ -6,6 +6,13 @@
 #include "main/pad.h"
 #include "main/text.h"
 #include "main/ui.h"
+#include "main/mc.h"
+
+static void McMenu_ConfirmDialog(DialogPrompt* arg0, UiObject* arg1);
+static void McMenu_ConfirmNo(DialogPrompt* arg0, UiObject* arg1);
+static void McMenu_ConfirmDialogAlt(DialogPrompt* arg0, UiObject* arg1);
+static void McMenu_ConfirmYes(DialogPrompt* arg0, UiObject* arg1);
+static void McMenu_InitByMode(Task* arg0);
 
 static const char D_80013B64[] = "Select";
 const char        D_80013B6C[] = "TIME";
@@ -18,6 +25,16 @@ const char        D_80013BA4[] = " (";
 const char        D_80013BA8[] = "EXP";
 const char        D_80013BAC[] = "---";
 const char        D_80013BB0[] = "BP";
+
+static UiListItemFunc D_80061254[] = { McMenu_ConfirmDialog, McMenu_ConfirmNo };
+static UiList         D_8006125C   = { D_80061254, 2, 2, 0, 0x0F };
+static UiListItemFunc D_80061280[] = { McMenu_ConfirmDialogAlt };
+static UiList         D_80061284   = { D_80061280, 1, 1, 0, 0x0F };
+static UiListItemFunc D_800612A8[] = { McMenu_ConfirmYes };
+static UiList         D_800612AC   = { D_800612A8, 1, 1, 0, 0x0F };
+UiObjectDesc          D_800612D0[] = {
+    { 0, 0, 0, 0x4B, 0x20, 0x10, 0, 0, 0xC0, (s32)McMenu_InitByMode, 0 },
+};
 
 void func_80036A1C(void)
 {
@@ -136,7 +153,7 @@ void McMenu_FileInformation(Task* arg0)
     func_800330D8(obj, data, val, 0, 0);
 }
 
-void McMenu_ConfirmDialog(DialogPrompt* arg0, UiObject* arg1)
+static void McMenu_ConfirmDialog(DialogPrompt* arg0, UiObject* arg1)
 {
     s32 temp;
 
@@ -155,7 +172,7 @@ void McMenu_ConfirmDialog(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-void McMenu_ConfirmDialogAlt(DialogPrompt* arg0, UiObject* arg1)
+static void McMenu_ConfirmDialogAlt(DialogPrompt* arg0, UiObject* arg1)
 {
     s32 temp;
 
@@ -170,7 +187,7 @@ void McMenu_ConfirmDialogAlt(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-void McMenu_ConfirmYes(DialogPrompt* arg0, UiObject* arg1)
+static void McMenu_ConfirmYes(DialogPrompt* arg0, UiObject* arg1)
 {
     s32 temp;
 
@@ -185,7 +202,7 @@ void McMenu_ConfirmYes(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-void McMenu_ConfirmNo(DialogPrompt* arg0, UiObject* arg1)
+static void McMenu_ConfirmNo(DialogPrompt* arg0, UiObject* arg1)
 {
     Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, D_80060A58, arg0->field_1C, 1, 0);
     if (arg0->field_C == 1) {
@@ -197,7 +214,7 @@ void McMenu_ConfirmNo(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-void McMenu_InitByMode(Task* arg0)
+static void McMenu_InitByMode(Task* arg0)
 {
     UiPanel* obj;
     UiList*  menu;

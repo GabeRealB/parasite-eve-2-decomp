@@ -258,14 +258,7 @@ void Mc_BuildFileName(u8* buf, s32 modeCharIdx);
 // Globals
 // =============================================================================
 
-extern u8           Mc_FileName[0x18];
-extern u8           Mc_FileNameBuf[0x18];
-extern u16          Mc_GlyphsUpper[];
-extern u16          Mc_GlyphsLower[];
-extern u16          Mc_GlyphsSymbol[];
 extern McBufferSlot Mc_BufferSlots[9];
-extern u8           Mc_DefaultChecksumSrc[];
-extern McPromptPair Mc_PromptTable[];
 extern McSaveData   Mc_SaveData;
 /// "Memory Card" string passed to Ui_DrawTitle by Mc_DrawPrompt.
 /// "*" wildcard passed to MemCardGetDirentry by Mc_StateScanDirFlags.
@@ -292,18 +285,19 @@ extern s32 D_80073C08;
 
 // Save-slot detail labels and indexed descriptions.
 extern u8*        D_800675F0[];
-extern u16        Mc_SaveHeaderBody[];
 extern const char D_80013B6C[];
 extern const char D_80013B74[];
 extern const char D_80013BA4[];
 extern const char D_80013BA8[];
 extern const char D_80013BAC[];
 extern const char D_80013BB0[];
-extern u8         D_80060A48[];
-extern u8         D_80060CCC[];
-extern u8*        D_800611B8[];
 extern u8*        D_80067418[];
 
 void func_80036A1C(void);
+
+extern const char D_80013B7C[];
+extern const char D_80013B88[];
+extern const char D_80013B94[];
+extern const char D_80013B9C[];
 
 #endif // MC_H

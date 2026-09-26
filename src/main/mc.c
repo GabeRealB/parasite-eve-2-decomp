@@ -9,6 +9,7 @@
 #include "main/pad.h"
 #include "main/text.h"
 #include "main/ui.h"
+#include "main/wipsys.h"
 #include "psyq/kernel.h"
 #include "psyq/libmcrd.h"
 #include "psyq/strings.h"
@@ -28,8 +29,209 @@ static void Mc_StateOpenRead(Task* arg0, McWork* arg1);
 static void Mc_StateOpenSelected(Task* arg0, McWork* arg1);
 static void Mc_StatePadFileName(Task* arg0, McWork* arg1);
 static s32  Mc_VerifySaveHdrChecksum(McSaveData* arg0);
+static void Mc_StateSaveSlotUi(DialogPrompt* arg0, UiObject* arg1);
 
 static const char Mc_StrMemoryCard[] = "Memory Card";
+
+static u8 D_80060A48[] = "New Block";
+u8        D_80060A54[] = "Yes";
+u8        D_80060A58[] = "No";
+u8        D_80060A5C[] = "Cancel";
+u8        D_80060A64[] = "OK";
+static u8 D_80060A68[] = "";
+static u8 D_80060A6C[] = "Failed to access MEMORY CARD.";
+static u8 D_80060A8C[] = "Checking MEMORY CARD in slot 1.";
+static u8 D_80060AAC[] = "MEMORY CARD has been changed.";
+static u8 D_80060ACC[] = "Insert MEMORY CARD in slot 1.";
+static u8 D_80060AEC[] = "No MEMORY CARD inserted.";
+static u8 D_80060B08[] = "Saving...";
+static u8 D_80060B14[] = "Loading...";
+static u8 D_80060B20[] = "Formatting...";
+static u8 D_80060B30[] = "Save game data?";
+static u8 D_80060B40[] = "Load game data?";
+static u8 D_80060B50[] = "Format MEMORY CARD?";
+static u8 D_80060B64[] = "No game data available. Insert";
+static u8 D_80060B84[] = "Create save data?";
+static u8 D_80060B98[] = "Creating save data...";
+static u8 D_80060BB0[] = "Overwrite data?";
+static u8 D_80060BC0[] = "Please try again.";
+static u8 D_80060BD4[] = "MEMORY CARD full. Insert";
+static u8 D_80060BF0[] = "Do not remove MEMORY CARD.";
+static u8 D_80060C0C[] = "another MEMORY CARD in slot 1.";
+static u8 D_80060C2C[] = "Need not to save now.";
+static u8 D_80060C44[] = "Select data.";
+static u8 D_80060C54[] = "Save Failed!";
+static u8 D_80060C64[] = "Load Failed!";
+static u8 D_80060C74[] = "Format Failed!";
+static u8 D_80060C84[] = "MEMORY CARD not formatted.";
+static u8 D_80060CA0[] = "Save data corrupted.";
+static u8 D_80060CB8[] = "Cannot load data.";
+static u8 D_80060CCC[] = "Save data corrupted.\nLoad aborted";
+/// Unreferenced.
+static u8 D_80060CF0[] = "Save data corrupted.";
+
+static McPromptPair Mc_PromptTable[] = {
+    { D_80060A6C, D_80060BC0 },
+    { D_80060A8C, D_80060BF0 },
+    { D_80060AAC, D_80060A68 },
+    { D_80060AEC, D_80060ACC },
+    { D_80060B08, D_80060BF0 },
+    { D_80060B14, D_80060BF0 },
+    { D_80060B20, D_80060BF0 },
+    { D_80060B30, D_80060A68 },
+    { D_80060B40, D_80060A68 },
+    { D_80060C84, D_80060B50 },
+    { D_80060B64, D_80060C0C },
+    { D_80060B84, D_80060A68 },
+    { D_80060B98, D_80060BF0 },
+    { D_80060C74, D_80060BC0 },
+    { D_80060C54, D_80060BC0 },
+    { D_80060C64, D_80060BC0 },
+    { D_80060A6C, D_80060BC0 },
+    { D_80060BB0, D_80060A68 },
+    { D_80060BC0, D_80060A68 },
+    { D_80060BD4, D_80060C0C },
+    { D_80060C2C, D_80060A68 },
+    { D_80060A68, D_80060A68 },
+    { D_80060C44, D_80060A68 },
+    { D_80060CA0, D_80060CB8 },
+};
+
+u8         D_80060DC8[]         = "BASLUS-01042*";
+static u8  Mc_FileName[0x18]    = "BASLUS-01042________";
+static u8  Mc_FileNameBuf[0x18] = "BASLUS-01042________";
+u8         D_80060E08[64]       = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789;:";
+static u16 Mc_GlyphsUpper[]     = {
+    0x6082,
+    0x6182,
+    0x6282,
+    0x6382,
+    0x6482,
+    0x6582,
+    0x6682,
+    0x6782,
+    0x6882,
+    0x6982,
+    0x6A82,
+    0x6B82,
+    0x6C82,
+    0x6D82,
+    0x6E82,
+    0x6F82,
+    0x7082,
+    0x7182,
+    0x7282,
+    0x7382,
+    0x7482,
+    0x7582,
+    0x7682,
+    0x7782,
+    0x7882,
+    0x7982,
+    0x0000,
+    0x0000,
+};
+static u16 Mc_GlyphsLower[] = {
+    0x8182,
+    0x8282,
+    0x8382,
+    0x8482,
+    0x8582,
+    0x8682,
+    0x8782,
+    0x8882,
+    0x8982,
+    0x8A82,
+    0x8B82,
+    0x8C82,
+    0x8D82,
+    0x8E82,
+    0x8F82,
+    0x9082,
+    0x9182,
+    0x9282,
+    0x9382,
+    0x9482,
+    0x9582,
+    0x9682,
+    0x9782,
+    0x9882,
+    0x9982,
+    0x9A82,
+    0x0000,
+    0x0000,
+};
+static u16 Mc_GlyphsSymbol[] = {
+    0x4081,
+    0x4981,
+    0x6881,
+    0x9481,
+    0x9081,
+    0x9381,
+    0x9581,
+    0x6681,
+    0x6981,
+    0x6A81,
+    0x9681,
+    0x7B81,
+    0x4381,
+    0x7C81,
+    0x4481,
+    0x5E81,
+    0x4F82,
+    0x5082,
+    0x5182,
+    0x5282,
+    0x5382,
+    0x5482,
+    0x5582,
+    0x5682,
+    0x5782,
+    0x5882,
+    0x4681,
+    0x4781,
+    0x8381,
+    0x8181,
+    0x8481,
+    0x4881,
+    0x9781,
+    0x0000,
+};
+
+static u8 Mc_DefaultChecksumSrc[] = {
+#include "assets/mc_save_header.inc"
+};
+
+McBufferSlot Mc_BufferSlots[9] = {
+    { (McChecksumBlock*)Mc_DefaultChecksumSrc, 0x100, 4 },
+    { (McChecksumBlock*)&Mc_SaveData, 0x944, 0x26 },
+    { (McChecksumBlock*)&Player_Status, 0x40, 1 },
+    { (McChecksumBlock*)D_800733F0, 0x6C, 2 },
+    { (McChecksumBlock*)D_800734C8, 0xB0, 3 },
+    { (McChecksumBlock*)D_80073628, 0x24, 1 },
+    { (McChecksumBlock*)D_80073670, 0xE4, 4 },
+    { (McChecksumBlock*)D_80073838, 0xA4, 3 },
+    { (McChecksumBlock*)D_80073980, 0x100, 4 },
+};
+
+static UiListItemFunc D_80061168[] = { Mc_StateSaveSlotUi };
+UiList                D_8006116C   = { D_80061168, 0x0F, 0x0F, 0, 0x2E };
+static UiListItemFunc D_80061190[] = { McMenu_ConfirmWithRender };
+UiList                D_80061194   = { D_80061190, 0x0F, 0x0F, 0, 0x2E };
+
+static u8* D_800611B8[] = { (u8*)D_80013B9C, (u8*)D_80013B94, (u8*)D_80013B88, (u8*)D_80013B7C };
+
+UiObjectDesc D_800611C8[] = {
+    { 2, 0xFF70, 0xFFE7, 0x120, 0x32, 0x14, 0, 0, 0xC0, (s32)Mc_DispatchStateTable26, 0 },
+    { 2, 0xFF70, 0xFFE7, 0x120, 0x32, 0x14, 0, 0, 0xC0, (s32)Mc_DispatchStateTable, 0 },
+};
+static UiObjectDesc D_80061200[] = {
+    { 0x80002, 0xFF78, 0x0A, 0x120, 0x3C, 0x0C, 0, 0, 0xC0, (s32)McMenu_SelectList, 0 },
+};
+static UiObjectDesc D_8006121C[] = {
+    { 0x80002, 0xFF78, 0x0A, 0x120, 0x3C, 0x0C, 0, 0, 0xC0, (s32)McMenu_SelectListAlt, 0 },
+    { 2, 0xFFC4, 0x1E, 0xC8, 0x3C, 0x1C, 0, 0, 0xC0, (s32)McMenu_FileInformation, 0 },
+};
 
 /// Prompt + optional choice dialog (Mc_PromptTable[mode]).
 static s32 Mc_PromptDialog(Task* arg0, s32 arg1, s32 arg2)
@@ -331,7 +533,7 @@ static void func_80030AB0(McWork* work)
     s32         available;
     McSaveData* slot;
 
-    title  = Mc_SaveHeaderBody;
+    title  = (u16*)(Mc_DefaultChecksumSrc + 4);
     number = 1;
     if (work->field_288 > 0) {
         for (i = 0; i < work->field_288; i++) {
@@ -1654,7 +1856,7 @@ static inline s32 _mcVerifySaveHdrChecksum(McSaveData* save)
     return save->hdrChecksum == sum;
 }
 
-void Mc_StateSaveSlotUi(DialogPrompt* arg0, UiObject* arg1)
+static void Mc_StateSaveSlotUi(DialogPrompt* arg0, UiObject* arg1)
 {
     s32 base;
     s32 off;

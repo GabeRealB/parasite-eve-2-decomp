@@ -456,12 +456,8 @@ segments:
       - [0x4f590, o, libapi/i_heap3, .data] # _freep
       - [0x4f5a0, .data, textdraw]
       - [0x51110, .data, textutil]
-      - [0x51248, data, "51248"]
-      # PS1 save-header block: "SC" magic + Shift-JIS title + CLUT + 3 icon
-      # frames. Real content, so it rides as a databin: bytes land in assets/
-      # (gitignored) and come back via .incbin.
-      - [0x51700, databin, mc_save_header]
-      - [0x518fc, data, task_2]
+      - [0x51248, .data, mc]
+      - [0x51a54, .data, mcmenu]
       - [0x51aec, o, libmcrd/init, .data]
       - [0x51afc, o, libcard/init, .data]
       - [0x51b0c, o, libapi/pad, .data]

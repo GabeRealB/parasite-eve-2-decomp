@@ -199,13 +199,8 @@ typedef struct _WipUiHolder {
 extern WipUiHolder* Wip_UiHolder;
 extern UiList       D_8006116C;
 extern UiList       D_80061194;
-extern UiList       D_8006125C;
-extern UiList       D_80061284;
-extern UiList       D_800612AC;
 extern UiList       D_80067654;
 extern UiObjectDesc D_800611C8[];
-extern UiObjectDesc D_80061200[];
-extern UiObjectDesc D_8006121C[];
 extern UiObjectDesc D_800612D0[];
 extern UiObjectDesc D_80067678;
 
@@ -341,5 +336,10 @@ void      Ui_WaitCdThenOverlay(Task* arg0);
 // largest cause of unusable seeds in the bulk m2c pass.
 
 void Ui_DrawFlatCaret(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
+void McMenu_ConfirmWithRender(DialogPrompt* arg0, UiObject* arg1);
+void McMenu_SelectList(Task* arg0);
+void McMenu_SelectListAlt(Task* arg0);
+void McMenu_FileInformation(Task* arg0);
 
 #endif // UI_H
