@@ -686,17 +686,15 @@ static void Actor00100_Fn01D74(Task* arg0)
     GpAnimCtx* anim;
     s16        part;
     s16        index;
-    s16        next;
     s32        blend;
     s32        invBlend;
     s32        offset;
     u8*        work;
     u8*        slotBase;
 
-    index = 1;
-    work  = (u8*)((Actor00100Work*)arg0->work);
-    anim  = (GpAnimCtx*)(work + 0x1C);
-    do {
+    work = (u8*)((Actor00100Work*)arg0->work);
+    anim = (GpAnimCtx*)(work + 0x1C);
+    for (index = 1; index < 0x12; index++) {
         part = index - 1;
         switch (part) {
             case 0:
@@ -726,17 +724,12 @@ static void Actor00100_Fn01D74(Task* arg0)
             func_800B3448(anim, (s32)index, (s32)&pose, 0);
             func_800B3448((GpAnimCtx*)(work + 0x420), (s32)index, (s32)&otherPose, 0);
             Gp_AnimWritePoseCopy(anim, (s32)index, &pose, &otherPose, blend, invBlend);
-            next = index + 1;
         } else {
             offset                       = index * 0x28;
             *(s8*)(work + offset + 0x39) = (s8)(((Actor00100Work*)work)->field_832 - 3);
             Gp_AnimTickIndex((GpAnimCtx*)(work + 0x1C), (s32)index);
-            next = index + 1;
         }
-        index = next;
-        /* Keep the next-index value separate from the copied loop index. */
-        SOFT_TOUCH_REG(next);
-    } while (next < 0x12);
+    }
 }
 
 static s32 Actor00100_Fn01EEC(Task* arg0, Actor00100Work* arg1)
