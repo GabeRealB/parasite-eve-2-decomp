@@ -1943,21 +1943,7 @@ static void Mc_InitFileName(void)
 
 static void Mc_CopyFileName(s32 arg0)
 {
-    u8* src;
-    u8* dst;
-    s32 i;
-
-    if (arg0 == 0) {
-        src = Mc_FileName;
-        dst = Mc_FileNameBuf;
-    } else {
-        src = Mc_FileNameBuf;
-        dst = Mc_FileName;
-    }
-
-    for (i = 0; i < 0x15; i++) {
-        *dst++ = *src++;
-    }
+    _mcCopyFileName(arg0);
 }
 
 static void Mc_WriteSaveHdrChecksum(void)
@@ -1988,26 +1974,7 @@ static void Mc_WriteSaveHdrChecksum(void)
 
 static s32 Mc_VerifySaveHdrChecksum(McSaveData* arg0)
 {
-    register s16 sum asm("v1");
-    volatile u8* ptr;
-    s32          limit;
-    s32          i;
-    s32          tmp;
-
-    if ((u32)(arg0->savePoint - 1) >= 0x10U) {
-        return 0;
-    }
-    sum   = 0;
-    ptr   = &arg0->at4.loc.view;
-    limit = 0x38;
-    i     = 0;
-    do {
-        i   += 1;
-        tmp  = (s8)*ptr;
-        sum  = sum + tmp;
-        ptr += 1;
-    } while (i < limit);
-    return ((u16)arg0->hdrChecksum ^ (sum & 0xFFFF)) == 0;
+    return _mcVerifySaveHdrChecksum(arg0);
 }
 
 static void Mc_WriteBlockChecksum(McChecksumBlock* arg0, s32 arg1)
@@ -2180,84 +2147,17 @@ static void Mc_WriteSlotChecksums(void)
 
 static void Mc_WriteFirstByteChecksum(void)
 {
-    McChecksumBlock* temp;
-    McBufferSlot*    p;
-    McBufferSlot*    base;
-    s16              next;
-    s16              sum;
-    u32              i;
-
-    sum  = 0;
-    i    = 1;
-    base = Mc_BufferSlots;
-    p    = base + 1;
-    do {
-        temp = p->field_0;
-        p   += 1;
-        i   += 1;
-        next = sum + *(u8*)temp;
-        sum  = next;
-    } while (i < 9U);
-    Mc_SaveData.bufferChecksum    = next;
-    Mc_SaveData.bufferChecksumInv = ~next;
+    _mcWriteFirstByteChecksum();
 }
 
 static s32 Mc_VerifyFirstByteChecksum(void)
 {
-    s32           sum;
-    u32           i;
-    McBufferSlot* p;
-    McBufferSlot* base;
-
-    sum  = 0;
-    i    = 1;
-    base = Mc_BufferSlots;
-    p    = base + 1;
-    do {
-        sum += *(u8*)p->field_0;
-        p   += 1;
-        i   += 1;
-    } while (i < 9);
-    return ((u16)Mc_SaveData.bufferChecksum ^ (sum & 0xFFFF)) == 0;
+    return _mcVerifyFirstByteChecksum();
 }
 
 static s32 Mc_VerifySlotChecksums(void)
 {
-    McChecksumBlock* temp;
-    McBufferSlot*    p;
-    McBufferSlot*    base;
-    s16              sum;
-    u32              count;
-    u32              i;
-    register u32     j asm("a0");
-    u8*              ptr;
-    s32              flag;
-
-    flag = 1;
-    i    = 1;
-    base = Mc_BufferSlots;
-    p    = base + 1;
-    do {
-        sum   = 0;
-        j     = 0;
-        temp  = p->field_0;
-        count = p->field_4;
-        ptr   = temp->field_4;
-        count = count - 4;
-        if (count != 0) {
-            do {
-                j   += 1;
-                sum += (s8)*ptr;
-                ptr += 1;
-            } while (j < count);
-        }
-        if ((u16)temp->field_0 != (sum & 0xFFFF)) {
-            flag = 0;
-        }
-        i += 1;
-        p += 1;
-    } while (i < 9U);
-    return flag;
+    return _mcVerifySlotChecksums();
 }
 
 static void Mc_DuplicateBuffers(void)
@@ -2291,19 +2191,7 @@ static void Mc_DuplicateBuffers(void)
 
 static void Mc_DrawPrompt(Task* arg0, s32 arg1)
 {
-    s32           ret;
-    UiObject*     obj;
-    McPromptPair* entry;
-    McPromptPair* base;
-
-    obj           = arg0->spawnArg2;
-    ret           = Ui_LookupTable(obj, 1);
-    obj->field_2E = 0;
-    Ui_DrawTitle(obj, Mc_StrMemoryCard);
-    base  = Mc_PromptTable;
-    entry = &base[arg1];
-    Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
-    Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
+    _mcDrawPrompt(arg0, arg1);
 }
 
 static void Mc_HideChildUi(Task* arg0)
