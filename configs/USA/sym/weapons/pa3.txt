@@ -1,1 +1,2 @@
 // Overlay-local symbols for PA3 (file 10313).
+D_pa3_8011DA04 = 0x8011DA04; // model named by a task descriptor

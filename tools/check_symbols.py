@@ -280,6 +280,7 @@ def main() -> None:
     # entry count as one image, and an import into a shared slot means the
     # same thing as a declaration by any of the slot's images at that address.
     meaning = defaultdict(set)
+    absolute = defaultdict(set)
     where = defaultdict(list)
     for d in decls:
         if d.owner:
@@ -287,10 +288,13 @@ def main() -> None:
             # are file offsets, the same in every copy.
             where_in = d.addr - ranges[d.owner][0] if d.owner in groups else d.addr
             meaning[d.name].add((canon(d.owner), where_in))
+            absolute[d.name].add((canon(d.owner), d.addr))
             where[d.name].append(d)
     for name, ms in sorted(meaning.items()):
+        # A slot import is an absolute address, so it matches a declaration by
+        # the address that declaration has, not by an entry's file offset.
         ms = {(o, ad) for o, ad in ms
-              if not (o in slot_members and any(x in slot_members[o] and y == ad for x, y in ms))}
+              if not (o in slot_members and any(x in slot_members[o] and y == ad for x, y in absolute[name]))}
         # Two importers may see a slot through different resident sets, but an
         # import into a slot at one address names the same place either way.
         ms = {('slot' if o in slot_members else o, ad) for o, ad in ms}

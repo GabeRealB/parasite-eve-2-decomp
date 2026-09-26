@@ -1,1 +1,2 @@
 // Overlay-local symbols for unused slot 0x85 (file 10306).
+D_unused_85_8011D53C = 0x8011D53C; // model named by a task descriptor

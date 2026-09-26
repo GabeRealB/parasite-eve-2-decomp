@@ -2,3 +2,6 @@
 D_kyle_800101_8016DC60 = 0x8016DC60; // model named by a task descriptor
 D_kyle_800101_8016CED8 = 0x8016CED8; // model named by a task descriptor
 D_kyle_800101_8016D81C = 0x8016D81C; // model named by a task descriptor
+D_kyle_800101_8016C594 = 0x8016C594; // model named by a task descriptor
+D_kyle_800101_8016C9E8 = 0x8016C9E8; // model named by a task descriptor
+D_kyle_800101_8016D32C = 0x8016D32C; // model named by a task descriptor

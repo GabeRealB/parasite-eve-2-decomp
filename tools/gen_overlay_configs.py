@@ -292,6 +292,48 @@ def write_package_id(family: str, package: str) -> None:
         src.write_text(text, encoding="utf-8")
 
 
+def model_records(data: bytes, load: int) -> set[int]:
+    """File offsets of the package's `TmdSource` records.
+
+    A model on disc is its arrays and display list followed by the record that
+    points into them, and the task descriptors that place a model point at the
+    record. The record is program data and the arrays are the asset, so the two
+    are separate objects.
+    """
+    sys.path.insert(0, str(Path(__file__).resolve().parent / "peassets"))
+    import pkg_model
+
+    return {int(src["source_offset"], 16) for src in pkg_model.find_sources_direct(data, load).values()}
+
+
+def check_model_records(name: str, objects: list[dict], data: bytes, load: int) -> None:
+    """Every `model` object is followed by a `modelSource` holding its record.
+
+    The declared offsets are checked against the package, so a record cannot be
+    left inside its model or placed where no record is.
+    """
+    kinds = [(obj.get("kind"), int(str(obj["at"]), 16) if "at" in obj else None) for obj in objects]
+    if not any(k in ("model", "modelSource") for k, _ in kinds):
+        return
+    records = model_records(data, load)
+    for i, (kind, at) in enumerate(kinds):
+        if kind == "model":
+            nxt = kinds[i + 1] if i + 1 < len(kinds) else (None, None)
+            if nxt[0] != "modelSource":
+                raise SystemExit(f"{name}: model at 0x{at:X} is not followed by its modelSource")
+            inside = sorted(r for r in records if at <= r < nxt[1])
+            if inside:
+                raise SystemExit(f"{name}: model at 0x{at:X} holds a record at 0x{inside[0]:X}")
+        elif kind == "modelSource":
+            if at not in records:
+                raise SystemExit(f"{name}: no TmdSource record at modelSource 0x{at:X}")
+            if i == 0 or kinds[i - 1][0] != "model":
+                raise SystemExit(f"{name}: modelSource at 0x{at:X} does not follow a model")
+            end = next((a for _, a in kinds[i + 1:] if a is not None), len(data))
+            if end != at + 0x24:
+                raise SystemExit(f"{name}: modelSource at 0x{at:X} runs to 0x{end:X}, not its record's end")
+
+
 def object_subsegments(
     name: str, family: str, objects: list[dict], data: bytes, load: int, pkg_id: int,
     entry_name: str | None = None, defines: dict | None = None,
@@ -308,6 +350,7 @@ def object_subsegments(
     position in the walk meant inserting one renamed every later run, which is
     the defect the object list exists to remove.
     """
+    check_model_records(name, objects, data, load)
     lines: list[str] = []
     for obj in objects:
         kind = obj.get("kind")
@@ -318,9 +361,9 @@ def object_subsegments(
             write_package_id(family, name)
             lines.append((0x0, f"      - [0x0, .rodata, {package_id_unit(family, name)}]"))
             continue
-        if kind in ("data", "model", "rodata"):
+        if kind in ("data", "model", "modelSource", "rodata"):
             at = int(str(obj["at"]), 16)
-            typ = {"model": "databin", "data": "data", "rodata": "rodata"}[kind]
+            typ = {"model": "databin", "modelSource": "data", "data": "data", "rodata": "rodata"}[kind]
             lines.append((at, f"      - [0x{at:X}, {typ}, {name}_{kind}_{at:05X}]"))
             continue
         unit = str(obj["unit"])

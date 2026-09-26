@@ -1,1 +1,5 @@
 // Overlay-local symbols for aya_10400 (file 10400).
+D_aya_10400_8011B078 = 0x8011B078; // model named by a task descriptor
+D_aya_10400_8011B4CC = 0x8011B4CC; // model named by a task descriptor
+D_aya_10400_8011B9BC = 0x8011B9BC; // model named by a task descriptor
+D_aya_10400_8011BE10 = 0x8011BE10; // model named by a task descriptor
