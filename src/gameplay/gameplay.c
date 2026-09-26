@@ -7900,12 +7900,9 @@ static __inline__ void coordToRoot(GpCoord* arg0, GpCoord* root, MATRIX* out)
 /// root space with `coordToRoot`.
 void Gp_SetViewFromCoord(GpCoord* arg0, VECTOR* arg1)
 {
-    register MATRIX*  rot asm("t0");
-    MATRIX*           localMtx;
-    register MATRIX*  relMtx asm("s0");
-    register GpCoord* parent asm("v1");
-    GpCoord*          root;
-    GpCoord           rel;
+    GpCoord* root;
+    GpCoord* parent;
+    GpCoord  rel;
 
     if (arg1 != NULL) {
         Gfx_ViewOffsetCoord.coord.t[0] = arg1->vx;
@@ -7920,22 +7917,13 @@ void Gp_SetViewFromCoord(GpCoord* arg0, VECTOR* arg1)
     parent = arg0->sub;
     root   = &gGfxViewCoord;
     if (parent == root) {
-        localMtx = &arg0->coord;
-        rot      = &gGfxViewRotCoord.coord;
-        TOUCH_REG2(localMtx, rot);
-        gte_TransposeMatrix(localMtx, rot);
-
+        gte_TransposeMatrix(&arg0->coord, &gGfxViewRotCoord.coord);
         root->coord.t[0] = -arg0->coord.t[0];
         root->coord.t[1] = -arg0->coord.t[1];
         root->coord.t[2] = -arg0->coord.t[2];
     } else {
         coordToRoot(arg0, root, &rel.coord);
-
-        rot    = &gGfxViewRotCoord.coord;
-        relMtx = &rel.coord;
-        TOUCH_REG2(rot, relMtx);
-        gte_TransposeMatrix(relMtx, rot);
-
+        gte_TransposeMatrix(&rel.coord, &gGfxViewRotCoord.coord);
         root->coord.t[0] = -rel.coord.t[0];
         root->coord.t[1] = -rel.coord.t[1];
         root->coord.t[2] = -rel.coord.t[2];
