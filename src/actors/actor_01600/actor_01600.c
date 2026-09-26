@@ -1400,16 +1400,13 @@ void Actor01600_Fn020F8(Task* actor)
     s16             temp_v0_3;
     s16             temp_v0_4;
     s16             temp_v0_7;
-    s16             temp_v0_8;
     s16             temp_v1;
-    s16             temp_v1_10;
     s16             temp_v1_5;
     s16             temp_v1_6;
     s16             temp_v1_7;
     s32             id;
     s32             flags;
     s32             angle;
-    s32             angle2;
     s32             var_v1;
     s32             pan10;
     s32             pan11;
@@ -1491,7 +1488,6 @@ void Actor01600_Fn020F8(Task* actor)
             } else {
             block_8:
                 angle = Actor01600_Fn045A8(actor, &distance);
-                SOFT_USE_REG(angle);
                 if (!(Actor01600_Fn06C94(actor, angle, distance) & 0xFF)) {
                     if (Actor01600_Fn04974(actor, angle, distance, flags) & 0xFF) {
                         if (work->field_50A >= 0xA) {
@@ -1555,10 +1551,9 @@ void Actor01600_Fn020F8(Task* actor)
                     return;
                 }
             }
-            angle2 = Actor01600_Fn045A8(actor, &distance);
-            SOFT_USE_REG(angle2);
-            if (!(Actor01600_Fn06C94(actor, angle2, distance) & 0xFF)) {
-                if (Actor01600_Fn04974(actor, angle2, distance, flags) & 0xFF) {
+            angle = Actor01600_Fn045A8(actor, &distance);
+            if (!(Actor01600_Fn06C94(actor, angle, distance) & 0xFF)) {
+                if (Actor01600_Fn04974(actor, angle, distance, flags) & 0xFF) {
                     if (work->field_50A >= 8) {
                         id   = (((u16)((GpEnemy*)actor->spawnArg2)->placeKey >> 0xC) << 8) | 0x40100003;
                         pan9 = (s8)Gp_GetObjPan(coord);
@@ -1569,7 +1564,7 @@ void Actor01600_Fn020F8(Task* actor)
                         work->field_50A = 0;
                         return;
                     }
-                } else if ((Actor01600_Fn06D74(actor, angle2, distance) & 0xFF) && (work->field_50A >= 8)) {
+                } else if ((Actor01600_Fn06D74(actor, angle, distance) & 0xFF) && (work->field_50A >= 8)) {
                     id    = (((u16)((GpEnemy*)actor->spawnArg2)->placeKey >> 0xC) << 8) | 0x40100003;
                     pan11 = (s8)Gp_GetObjPan(coord);
                     SndEvt_EnqueueType6(id, (s32)pan11, (s8)gpGetObjDepth(coord));
@@ -2115,12 +2110,9 @@ void Actor01600_Fn020F8(Task* actor)
                         work->field_50E = neg_velocity;
                     }
                     if (work->field_528 != 0) {
-                        temp_v0_8 = (u16)work->field_51E + 0xF;
-                        SOFT_TOUCH_REG(temp_v0_8);
-                        temp_v1_10      = (u16)work->field_520 + temp_v0_8;
-                        work->field_520 = temp_v1_10;
-                        work->field_51E = temp_v0_8;
-                        if (temp_v1_10 >= 0) {
+                        work->field_51E += 0xF;
+                        work->field_520 += work->field_51E;
+                        if (work->field_520 >= 0) {
                             id    = (((u16)((GpEnemy*)actor->spawnArg2)->placeKey >> 0xC) << 8) | 0x40100005;
                             pan36 = (s8)Gp_GetObjPan(coord);
                             SndEvt_EnqueueType6(id, (s32)pan36, (s8)gpGetObjDepth(coord));
