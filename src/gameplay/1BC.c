@@ -2485,34 +2485,19 @@ void Gp_SaveEnemyPose(GpEnemy* arg0)
         }
     }
 
-    {
-        void**            scratch;
-        register SVECTOR* tmp asm("v0");
-
-        scratch                           = SCRATCH_HEAD_ADDR;
-        rec                               = Mc_SaveData[0].enemyPoses;
-        tmp                               = SCRATCH_HEAD_AT(scratch, SVECTOR);
-        i                                 = 0;
-        tmp                               = tmp - 1;
-        euler                             = tmp;
-        SCRATCH_HEAD_AT(scratch, SVECTOR) = euler;
-    }
-    for (; i < 0x20; i++, rec++) {
+    euler = SCRATCH_PUSH(SVECTOR);
+    rec   = Mc_SaveData[0].enemyPoses;
+    for (i = 0; i < 0x20; i++, rec++) {
         if (rec->spawnState == 0) {
             break;
         }
     }
     if (i == 0x20) {
-        u32          hi;
-        register u32 key asm("v1");
+        u32 key;
 
-        rec  = Mc_SaveData[0].enemyPoses;
-        i    = 0;
-        hi   = loc->stage;
-        key  = loc->area;
-        hi <<= 8;
-        key  = hi | key;
-        for (; i < 0x1F; i++, rec++) {
+        rec = Mc_SaveData[0].enemyPoses;
+        key = (loc->stage << 8) | loc->area;
+        for (i = 0; i < 0x1F; i++, rec++) {
             if ((rec->placeKey & 0xFFF) != key) {
                 break;
             }
@@ -2527,11 +2512,11 @@ void Gp_SaveEnemyPose(GpEnemy* arg0)
     rec->y          = coord->coord.t[1];
     rec->z          = coord->coord.t[2];
     Gfx_MatrixToEuler(&coord->coord, euler);
-    euler->vx  = (s16)euler->vx >> 8;
+    euler->vx  = euler->vx >> 8;
     rec->pitch = euler->vx;
-    euler->vy  = (s16)euler->vy >> 8;
+    euler->vy  = euler->vy >> 8;
     rec->yaw   = euler->vy;
-    euler->vz  = (s16)euler->vz >> 8;
+    euler->vz  = euler->vz >> 8;
     rec->roll  = euler->vz;
     SCRATCH_POP(SVECTOR);
 }
