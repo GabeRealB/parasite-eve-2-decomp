@@ -77141,10 +77141,11 @@ already shows `(reg:SI 16 s0)`. Write the hoist the other way round (`i = 1;`
 before the `if`, its constant landing in the `beq` delay slot) and the same
 plain `s16[]` index yields the `sllv`.
 
-Note the sibling source form is what makes the rest of the shape fall out:
-`for (; i < 7; i++)` for the call loop plus `TOUCH_REG(i); work->field_382 += i;`
-before the `do { Gp_AnimTickIndex(...); i++; } while (i < 7);` reproduces a
-byte-identical frame, delay slots and loop layout in one transplant.
+No hoist or barrier is needed at all: two plain `for (i = 1; i < 7; i++)`
+loops, one per arm, with `work->field_382++;` before the second, reproduce the
+whole body (`Actor00700_Fn01D80`). Each arm's own `i = 1` is what makes the
+`1` live for reload CSE, and dbr then merges the two sets into the `beq` delay
+slot; see the next entry for the `addu` in the else arm.
 
 ## The BRIEF's 1.00-similar sibling is the answer; `overlay_dup_index.py find` will not say so
 
@@ -78281,13 +78282,15 @@ for free when the body is written the way its already-matched siblings in
 `actor_102500_tail.c`); m2c's transcription instead scales a `s64` `M2C_UNK`
 pointer and emits `sll v0,v0,0x3`, which no register can satisfy.
 
-The other half of the same body is independent. `field_592 += i;` must stay
-`addu v0,v0,s0` and not fold to `addiu v0,v0,1`, which needs `TOUCH_REG(i)` in
-front of it -- the `"+r"` asm leaves `i`'s value unknown past it, so the
-constant 1 is no longer available. Controlled isolation: `base_2.c` is
-`base_1.c` with only the `TOUCH_REG(i);` line deleted -- 95.918% with
-`insert=1 delete=1`, `addiu v0,v0,1` -- and the `sllv` above it survives
-untouched, so the `reload_cse` substitution does not depend on the touch.
+The else arm's `addu v0,v0,s0` for the counter increment is the same
+mechanism and needs no `TOUCH_REG(i)`. That barrier was only needed while `i = 1`
+was hoisted above the `if`: the else arm starts at a `CODE_LABEL`, which clears
+reload CSE's table, so the hoisted `1` is not known there and the increment
+stays `addiu`. Write each arm as its own `for (i = 1; ...)` loop and the arm's
+`s0 = 1` precedes the increment in RTL order. Reload CSE rewrites the `+1` into
+`+s0`, and dbr moves the identical `s0 = 1` from both arms into the `beq` delay
+slot (`Actor00700_Fn01D80`, `.sched2`: `(set s0 (const_int 1))` right after
+the else label, then `addsi3 ... (reg:SI 16 s0)`).
 
 This is a different face of the `reload_cse` entries above: those rewrite a
 constant *set* into a copy of a register (adding an instruction); this one
