@@ -410,7 +410,7 @@ objects = [
   { kind = "modelSource", at = "0x62E8" },
   { kind = "model", at = "0x630C" },
   { kind = "modelSource", at = "0x6728" },
-  { kind = "data", at = "0x674C" },
+  { unit = "aya_10300/aya_10300", data = "0x674C" },
 ]
 
 [aya.overlays.aya_10400]
@@ -426,7 +426,7 @@ objects = [
   { kind = "modelSource", at = "0x624C" },
   { kind = "model", at = "0x6270" },
   { kind = "modelSource", at = "0x66A0" },
-  { kind = "data", at = "0x66C4" },
+  { unit = "aya_10400/aya_10400", data = "0x66C4" },
 ]
 
 [aya.overlays.aya_10500]
@@ -444,7 +444,7 @@ objects = [
   { kind = "modelSource", at = "0x1190" },
   { kind = "model", at = "0x11B4" },
   { kind = "modelSource", at = "0x6B74" },
-  { kind = "data", at = "0x6B98" },
+  { unit = "aya_10500/aya_10500", data = "0x6B98" },
 ]
 
 [aya.overlays.aya_20900]
