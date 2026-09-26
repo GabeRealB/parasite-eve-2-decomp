@@ -1685,34 +1685,22 @@ void Gp_BlendAnimRot(GpAnimBlendSrc* arg0, GpCoord* arg1, GpAnimSlot* arg2,
 
 void Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GpCoord* arg1, GpAnimSlot* arg2)
 {
-    register void**           scratch asm("v1");
-    register GpAnimScratch80* tmp asm("v0");
-    s32                       blend;
-    register GpPackedPose*    dest asm("v1");
-    GpPackedPose*             p;
-    GpAnimScratch80*          s;
-    s32                       inv;
-    s32                       z;
+    GpAnimScratch80* s;
+    GpPackedPose*    pose;
+    s32              blend;
 
     if (arg2->timeSpan != 0) {
-        scratch                                   = SCRATCH_HEAD_ADDR;
-        tmp                                       = SCRATCH_HEAD_AT(scratch, GpAnimScratch80);
-        tmp                                      -= 1;
-        SCRATCH_HEAD_AT(scratch, GpAnimScratch80) = tmp;
+        s = SCRATCH_PUSH(GpAnimScratch80);
         if (arg0->field_0 != arg0->field_4) {
-            s        = tmp;
-            blend    = arg2->timeLeft << 12;
-            s->blend = blend;
-            blend    = blend / (s32)arg2->timeSpan;
-            inv      = 0x1000 - blend;
-            s->blend = blend;
+            blend       = arg2->timeLeft << 12;
+            s->blend    = blend;
+            blend       = blend / arg2->timeSpan;
+            s->blend    = blend;
+            s->invBlend = 0x1000 - blend;
         } else {
-            s        = tmp;
-            inv      = 0x1000;
-            s->blend = 0;
+            s->blend    = 0;
+            s->invBlend = 0x1000;
         }
-        s->invBlend = inv;
-        COMPILER_BARRIER();
         gte_lddp(s->blend);
         gte_ldsv(arg0->field_0);
         gte_gpf12();
@@ -1723,33 +1711,32 @@ void Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GpCoord* arg1, GpAnimSlot* arg2)
         if (arg0->field_C == NULL) {
             arg1->coord.t[0] = s->trans.vx;
             arg1->coord.t[1] = s->trans.vy;
-            z                = s->trans.vz;
+            arg1->coord.t[2] = s->trans.vz;
             arg1->flg        = 0;
-            arg1->coord.t[2] = z;
         } else {
             arg0->field_C->trans.vx = s->trans.vx;
             arg0->field_C->trans.vy = s->trans.vy;
             arg0->field_C->trans.vz = s->trans.vz;
         }
-        p          = (GpPackedPose*)arg0->field_0;
-        s->vec0.vx = p->rx;
-        s->vec0.vy = p->ry;
-        s->vec0.vz = p->rz;
-        p          = (GpPackedPose*)arg0->field_4;
-        s->vec1.vx = p->rx;
-        s->vec1.vy = p->ry;
-        s->vec1.vz = p->rz;
+        pose       = (GpPackedPose*)arg0->field_0;
+        s->vec0.vx = pose->rx;
+        s->vec0.vy = pose->ry;
+        s->vec0.vz = pose->rz;
+        pose       = (GpPackedPose*)arg0->field_4;
+        s->vec1.vx = pose->rx;
+        s->vec1.vy = pose->ry;
+        s->vec1.vz = pose->rz;
         Gp_BlendAnimRot(arg0, arg1, arg2, s);
-        dest = (GpPackedPose*)arg0->field_8;
-        if (dest != NULL) {
-            dest->vx = s->trans.vx;
-            dest->vy = s->trans.vy;
-            dest->vz = s->trans.vz;
-            dest->rx = s->vec1.vx;
-            dest->ry = s->vec1.vy;
-            dest->rz = s->vec1.vz;
+        pose = (GpPackedPose*)arg0->field_8;
+        if (pose != NULL) {
+            pose->vx = s->trans.vx;
+            pose->vy = s->trans.vy;
+            pose->vz = s->trans.vz;
+            pose->rx = s->vec1.vx;
+            pose->ry = s->vec1.vy;
+            pose->rz = s->vec1.vz;
         }
-        SCRATCH_POP_BYTES(0x80);
+        SCRATCH_POP(GpAnimScratch80);
     }
 }
 

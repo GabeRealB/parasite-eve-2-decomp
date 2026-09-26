@@ -66624,6 +66624,16 @@ Generally: when a post-call value is one register off and the `.greg` dump shows
 a `preferences:` line naming an argument register, look for a pseudo that dies
 into it. Shorten the recipient to a single block rather than pinning.
 
+The opposite shape has a second fix: `expand_preferences` only merges across a
+dying copy when the two allocnos do **not** conflict. `Gp_AnimBlendPose` reads
+three packed-pose pointers off `arg0` (`field_0`, `field_4`, then `field_8`
+after the call). With a separate `dest` for the last one, `dest` inherited
+`$a0` from the dying `arg0` and landed in `$a0`, not the target's `$v1`. Using
+one `pose` variable for all three reads makes it live while `arg0` is too, so
+the two conflict, nothing is inherited, and `pose` gets `$v1` at every read (the
+`.greg` header loses its `preferences:` line). If the target keeps successive
+reads in the same register, try a single variable before splitting.
+
 ## An empty `asm` at the head of the then-arm moves the branch delay slot to the else arm
 
 For a two-armed `if`/`else` whose arms both store a constant to the same field,
