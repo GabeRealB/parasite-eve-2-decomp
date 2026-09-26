@@ -502,19 +502,16 @@ static void func_8001F430(void)
 
 static void Mdec_UploadSlice(void)
 {
-    RECT              rect;
-    s32               index;
-    s32               w;
-    u16               y;
-    s32               new_val;
-    register u_long** base asm("s1");
-    s32               mask;
-    u_long**          p;
-    s32               size;
-    s32               t;
-    s32               flipped;
-    s32               x;
-    u16               ac0e;
+    RECT     rect;
+    s32      nextStrip;
+    s32      index;
+    s32      imageX;
+    u16      imageY;
+    u16      originX;
+    s32      width;
+    u16      height;
+    s32      size;
+    u_long** out;
 
     if (D_8006AC14 != 0) {
         if ((D_8006AC14 == 1) && (StCdIntrFlag != 0)) {
@@ -522,42 +519,37 @@ static void Mdec_UploadSlice(void)
             StCdIntrFlag = 0;
         }
         if (D_8006AC1C != ((D_8006AC5A >> 4) - 1)) {
-            new_val    = D_8006AC1C + 1;
-            D_8006AC1C = new_val;
-            mask       = 0xFFFF;
-            index      = (new_val & mask) - 1;
-            ac0e       = D_8006AC0E;
+            nextStrip  = D_8006AC1C + 1;
+            D_8006AC1C = nextStrip;
+            index      = (nextStrip & 0xFFFF) - 1;
+            originX    = D_8006AC0E;
             if (D_8006AC14 == 1) {
-                x = ac0e + (index * 0x18);
+                imageX = originX + index * 0x18;
             } else {
-                x = ac0e + (index * 0x10);
+                imageX = originX + index * 0x10;
             }
-            y      = D_8006AC10;
-            rect.x = x;
+            imageY = D_8006AC10;
+            rect.x = imageX;
             if (gDisplayState.frameBuffer != 0) {
-                y += 0x110;
+                imageY += 0x110;
             }
-            w      = 0x10;
-            rect.y = y;
+            width  = 0x10;
+            rect.y = imageY;
             if (D_8006AC14 == 1) {
-                w = 0x18;
+                width = 0x18;
             }
-            base   = D_8006AC48;
             rect.h = D_8006AC6C;
-            rect.w = w;
-            LoadImage(&rect, base[D_8005EAEE ^ 1]);
-            t       = D_8005EAEE;
-            size    = D_8006AC6C;
-            flipped = t ^ 1;
-            p       = &base[t & mask];
-            SOFT_TOUCH_REG2(p, flipped);
-            D_8005EAEE = flipped;
+            rect.w = width;
+            LoadImage(&rect, D_8006AC48[D_8005EAEE ^ 1]);
+            D_8005EAEE ^= 1;
+            out         = &D_8006AC48[D_8005EAEE ^ 1];
+            height      = D_8006AC6C;
             if (D_8006AC14 == 1) {
-                size *= 0xC;
+                size = height * 12;
             } else {
-                size *= 8;
+                size = height * 8;
             }
-            DecDCTout(*p, size);
+            DecDCTout(*out, size);
             return;
         }
     }

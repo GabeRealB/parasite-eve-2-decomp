@@ -144124,3 +144124,20 @@ cases as `if (...) {...} else if (...) {...} else {...}` followed by one
 `return arg0;` reproduces both shapes with no temporary: the early exits get
 their copy of the return move by dbr, the shared exit keeps it outside the slot.
 The same body inlined into a sibling in the file already had that if/else shape.
+
+## A flipped double-buffer index read back after its store leaves an `andi 0xffff`, and a `u16` copy of a halfword load moves a store into a delay slot (Mdec_UploadSlice, 2026-09-26)
+
+The target flipped a `u16` buffer index and took the other buffer's slot as
+`lhu v0,idx; xori v1,v0,1; andi v0,v0,0xffff; sll; addu a0,v0,base` with the
+`sh v1,idx` last, in the `bne`'s delay slot. The seed built this with a
+`t & mask` pseudo and a `SOFT_TOUCH_REG2`. The natural source is
+`idx ^= 1; p = &buf[idx ^ 1];`: CSE reads the store's HImode value back, and
+combine folds `zero_extend(old ^ 1) ^ 1` into `old & 0xffff`, which is the
+redundant-looking `andi`. Taking `&buf[idx]` before the flip has no `andi`.
+
+The store's position was then a `sched1` tie. With `size = halfword;` (an
+`s32`) the pointer's `addu` was the only single-set pseudo ready beside the
+branch's load, took `LAUNCH_PRIORITY` and landed in the delay slot. Loading the
+halfword into a `u16 height` local first, then `size = height * 12`, adds one
+more birthing insn that takes that slot instead, so the `addu` precedes the
+condition's load, that load reuses `$v0`, and the store fills the delay slot.
