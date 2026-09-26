@@ -144076,3 +144076,26 @@ with `break` falls to the function's single `return arg0;` block: fill_eager
 delay slot filled. The tell is the whole function: if every "return" path is
 `jr ra; move v0,a0` but the shared exit block has `move v0,a0; jr ra; nop`, the
 arms were `break`s to one return.
+## A `move` copy whose source is then rewritten in place is a narrower copy taken before the variable is reassigned (SndVoice_SetVolumeRamp, 2026-09-26)
+
+**Symptom.** `andi a1,a1,0x7f; move a0,a1; ...; subu a1,a1,v0; sll a1,a1,16; sra a1,a1,16`:
+the value is copied to `a0` (used only by later `sb` stores), then the original
+register becomes the `s16` difference in place. Separate `vol`/`diff` locals, an
+inline helper, or reusing the parameter as `diff` all lost the copy (CSE made the
+stores read the original) or put the `subu`/`sll` in `$v0`. The old source pinned
+both registers.
+
+**Cause.** The in-place chain needs the source pseudo to be local and die at the
+`subu`, so local-alloc ties the intermediates to it; the copy survives CSE only
+if it is in a different mode (a `u8` copy of an `SImode`/`HImode` value is not in
+the same equivalence class) or the original is killed before the stores.
+
+**Fix.** One `s16` variable that holds the value and is then updated, with a
+`u8` copy taken in between:
+
+```c
+diff = ~arg1 & 0x7F;
+vol  = diff;               /* u8: what the stores write */
+diff -= (s8)p->field_13;   /* s16: in place, lbu + sll/sra for the byte */
+if (ABS(diff) > 0x20) {
+```
