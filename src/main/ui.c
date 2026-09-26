@@ -2480,46 +2480,32 @@ s32 Ui_GetCursorFixed(void)
 
 void Ui_DrawFlatCaret(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
 {
-    POLY_F3*      p;
-    u16           temp_v0;
-    register u32* ot asm("a2");
+    POLY_F3* p;
+    u16      t;
+    u32*     ot;
 
     p              = (POLY_F3*)gGpuPrimCursor;
-    temp_v0        = arg0->field_20 + arg1;
-    p->x2          = temp_v0;
-    p->x1          = temp_v0;
-    p->x0          = temp_v0;
+    t              = arg0->field_20 + arg1;
+    p->x2          = t;
+    p->x1          = t;
+    p->x0          = t;
     gGpuPrimCursor = (POLY_G3*)p + 1;
-    temp_v0        = arg0->field_22 + arg2;
-    p->y2          = temp_v0;
-    p->y1          = temp_v0;
-    p->y0          = temp_v0;
+    t              = arg0->field_22 + arg2;
+    p->y2          = t;
+    p->y1          = t;
+    p->y0          = t;
     if (arg4 == 0) {
-        register u16 tv0 asm("v0");
-        u16          tv1;
-
-        tv0   = p->x1;
-        tv1   = ((volatile POLY_F3*)p)->y0;
-        tv0   = tv0 - 4;
-        p->x1 = tv0;
-        tv0   = p->x2;
-        tv1   = tv1 + 5;
-        p->y2 = tv1;
-        p->y1 = tv1;
-        p->x2 = tv0 + 5;
+        p->x1 = p->x1 - 4;
+        t     = p->y0 + 5;
+        p->x2 = p->x2 + 5;
+        p->y2 = t;
+        p->y1 = t;
     } else {
-        register u16 tv0 asm("v0");
-        u16          tv1;
-
-        tv0   = p->x1;
-        tv1   = ((volatile POLY_F3*)p)->y0;
-        tv0   = tv0 - 3;
-        p->x1 = tv0;
-        tv0   = p->x2;
-        tv1   = tv1 - 4;
-        p->y2 = tv1;
-        p->y1 = tv1;
-        p->x2 = tv0 + 4;
+        p->x1 = p->x1 - 3;
+        t     = p->y0 - 4;
+        p->x2 = p->x2 + 4;
+        p->y2 = t;
+        p->y1 = t;
     }
     PRIM_COLOR_WORD(p, 0) = arg3 * 2;
     setlen(p, 4);
