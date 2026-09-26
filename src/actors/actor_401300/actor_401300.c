@@ -4922,32 +4922,21 @@ s32 func_actor_401300_80141504(Task* task, s32 arg1, s32 arg2)
 }
 
 /// Returns 1 while the actor's enemy still has HP. Once it is down, returns 0
-/// if the model carries bit 0x80 or lacks bit 2, and 1 otherwise.
+/// if the model carries bit 0x80 or bit 2, and 1 otherwise.
 s32 func_actor_401300_801415C4(Task* task)
 {
-    s32 ret;
     u16 flags;
-    s32 mask2;
-    s32 mask80;
 
-    if (((GpEnemy*)task->spawnArg2)->hp > 0) {
-        return 1;
+    if (((GpEnemy*)task->spawnArg2)->hp <= 0) {
+        flags = task->extra.tmd->flags;
+        if (flags & 0x80) {
+            return 0;
+        }
+        if (flags & 2) {
+            return 0;
+        }
     }
-
-    flags   = task->extra.tmd->flags;
-    mask80  = flags;
-    mask80 &= 0x80;
-    mask2   = flags & 2;
-    if (mask80 != 0) {
-        return 0;
-    }
-
-    ret = 0;
-    if (mask2 == 0) {
-        ret = 1;
-        SOFT_BARRIER();
-    }
-    return ret;
+    return 1;
 }
 
 /// Places the model's root coordinate from `placement`: sets its translation,
