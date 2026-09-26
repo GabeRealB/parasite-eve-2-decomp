@@ -748,14 +748,11 @@ static void Ui_DrawCursor(UiPanel* arg0, s32 arg1, s32 arg2)
 
 static void Ui_DrawCaret(UiList* arg0, UiPanel* arg1, s32 arg2)
 {
-    POLY_G3*         p;
-    s16              x;
-    s32              y;
-    register u_long* ot asm("a2");
-    s32              y0;
-    u16              t;
-    s32              f1a;
-    s32              tmp;
+    POLY_G3* p;
+    s16      x;
+    s32      y;
+    s32      y0;
+    u16      t;
 
     p              = (POLY_G3*)gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
@@ -772,50 +769,28 @@ static void Ui_DrawCaret(UiList* arg0, UiPanel* arg1, s32 arg2)
     p->y0 = y;
 
     if (arg2 == 0) {
-        y     = y + arg1->field_18;
+        y    += arg1->field_18;
         p->y0 = y;
         if (arg1->field_0 == 1) {
-            s32 tmp;
-
-            tmp   = (((u32)gDisplayState.vsyncCount >> 3) & 3) - 3;
-            tmp   = y - tmp;
-            p->y0 = tmp;
+            p->y0 -= (((u32)gDisplayState.vsyncCount >> 3) & 3) - 3;
         }
-        p->y0 = p->y0 + arg0->field_17;
-        p->x1 = p->x1 - 4;
-        t     = p->y0 + 5;
-        p->x2 = p->x2 + 5;
-        p->y2 = t;
-        p->y1 = t;
+        p->y0 += arg0->field_17;
+        p->x1 -= 4;
+        t      = p->y0 + 5;
+        p->x2 += 5;
+        p->y2  = t;
+        p->y1  = t;
     } else {
-        f1a   = arg1->field_1A;
-        tmp   = y + 2;
-        y0    = f1a + tmp;
-        p->y0 = y0;
+        y0    = y + 2;
+        p->y0 = arg1->field_1A + y0;
         if (arg1->field_0 == 1) {
-            register s32 tmp asm("v0");
-            s32          c;
-
-            c     = 0xFFFD;
-            tmp   = ((u32)gDisplayState.vsyncCount >> 3) & 3;
-            tmp   = tmp + c;
-            tmp   = y0 + tmp;
-            p->y0 = tmp;
+            p->y0 += (((u32)gDisplayState.vsyncCount >> 3) & 3) - 3;
         }
-        {
-            register u16 tv0 asm("v0");
-            u16          tv1;
-
-            tv0   = p->x1;
-            tv1   = ((volatile POLY_G3*)p)->y0;
-            tv0   = tv0 - 3;
-            p->x1 = tv0;
-            tv0   = p->x2;
-            tv1   = tv1 - 4;
-            p->y2 = tv1;
-            p->y1 = tv1;
-            p->x2 = tv0 + 4;
-        }
+        p->x1 -= 3;
+        t      = p->y0 - 4;
+        p->x2 += 4;
+        p->y2  = t;
+        p->y1  = t;
     }
 
     p->r0 = 0x9F;
@@ -827,8 +802,7 @@ static void Ui_DrawCaret(UiList* arg0, UiPanel* arg1, s32 arg2)
     p->g1 = 0xCF;
     p->b2 = 0xFF;
     p->b1 = 0xFF;
-    ot    = gGpuCurrentOt;
-    addPrim(&ot[(s16)arg1->field_14 + 1], p);
+    addPrim(gGpuCurrentOt + (s16)arg1->field_14 + 1, p);
 }
 
 void Ui_UpdateLayoutSize(UiPanel* arg0, s32 arg1, s32 arg2)
