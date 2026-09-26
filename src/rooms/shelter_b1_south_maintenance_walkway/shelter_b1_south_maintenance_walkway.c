@@ -40,9 +40,9 @@ extern TaskDesc D_shelter_b1_south_maintenance_walkway_801822FC;
 /// The room's message table.
 extern GpMsgEntry D_shelter_b1_south_maintenance_walkway_80182308[];
 
-/// Points the room task draws its glows and discs at, depending on the view.
+/// Points the room task draws its glows and discs at, depending on the view:
+/// ten pairs of glow end points followed by the centre of the red disc.
 extern SVECTOR D_shelter_b1_south_maintenance_walkway_80182330[];
-extern SVECTOR D_shelter_b1_south_maintenance_walkway_801823D0[];
 
 /// The two points of the twin trail, as offsets from its anchor frame. The
 /// second is also reached under its own name.
@@ -218,8 +218,6 @@ void func_shelter_b1_south_maintenance_walkway_8017DA34(Task* task)
 
 void func_shelter_b1_south_maintenance_walkway_8017DA8C(Task* task)
 {
-    SVECTOR* p;
-
     if (task->state == 0) {
         D_80115758  = 0x601C9;
         D_8011572C  = 0x601E5;
@@ -232,36 +230,28 @@ void func_shelter_b1_south_maintenance_walkway_8017DA8C(Task* task)
 
     switch (gGameSession->at4.loc.view) {
         case 2:
-            p = D_shelter_b1_south_maintenance_walkway_80182330;
-            SOFT_TOUCH_REG(p);
-            func_shelter_b1_south_maintenance_walkway_8017DC88(&p[0], 0x200, 0);
-            func_shelter_b1_south_maintenance_walkway_8017DC88(&p[6], 0x200, 0x400);
+            func_shelter_b1_south_maintenance_walkway_8017DC88(&D_shelter_b1_south_maintenance_walkway_80182330[0], 0x200, 0);
+            func_shelter_b1_south_maintenance_walkway_8017DC88(&D_shelter_b1_south_maintenance_walkway_80182330[6], 0x200, 0x400);
             break;
         case 3:
-            p = D_shelter_b1_south_maintenance_walkway_80182330;
-            SOFT_TOUCH_REG(p);
-            func_shelter_b1_south_maintenance_walkway_8017DC88(&p[0], 0x200, 0);
-            func_shelter_b1_south_maintenance_walkway_8017DC88(&p[2], 0x200, 0);
-            func_shelter_b1_south_maintenance_walkway_8017DC88(&p[6], 0x200, 0x400);
-            func_shelter_b1_south_maintenance_walkway_8017DC88(&p[8], 0x200, 0x400);
+            func_shelter_b1_south_maintenance_walkway_8017DC88(&D_shelter_b1_south_maintenance_walkway_80182330[0], 0x200, 0);
+            func_shelter_b1_south_maintenance_walkway_8017DC88(&D_shelter_b1_south_maintenance_walkway_80182330[2], 0x200, 0);
+            func_shelter_b1_south_maintenance_walkway_8017DC88(&D_shelter_b1_south_maintenance_walkway_80182330[6], 0x200, 0x400);
+            func_shelter_b1_south_maintenance_walkway_8017DC88(&D_shelter_b1_south_maintenance_walkway_80182330[8], 0x200, 0x400);
             break;
         case 4:
-            p = D_shelter_b1_south_maintenance_walkway_801823D0;
-            SOFT_TOUCH_REG(p);
-            func_shelter_b1_south_maintenance_walkway_8017E404(&p[0], 0x200);
-            func_shelter_b1_south_maintenance_walkway_8017DC88(&p[-16], 0x200, 0);
-            func_shelter_b1_south_maintenance_walkway_8017DC88(&p[-10], 0x200, -0x400);
-            func_shelter_b1_south_maintenance_walkway_8017DC88(&p[-6], 0x200, 0x800);
+            func_shelter_b1_south_maintenance_walkway_8017E404(&D_shelter_b1_south_maintenance_walkway_80182330[20], 0x200);
+            func_shelter_b1_south_maintenance_walkway_8017DC88(&D_shelter_b1_south_maintenance_walkway_80182330[4], 0x200, 0);
+            func_shelter_b1_south_maintenance_walkway_8017DC88(&D_shelter_b1_south_maintenance_walkway_80182330[10], 0x200, -0x400);
+            func_shelter_b1_south_maintenance_walkway_8017DC88(&D_shelter_b1_south_maintenance_walkway_80182330[14], 0x200, 0x800);
             break;
         case 5:
-            p = D_shelter_b1_south_maintenance_walkway_801823D0;
-            SOFT_TOUCH_REG(p);
-            func_shelter_b1_south_maintenance_walkway_8017E404(&p[0], 0x200);
-            func_shelter_b1_south_maintenance_walkway_8017DC88(&p[-16], 0x200, 0);
-            func_shelter_b1_south_maintenance_walkway_8017DC88(&p[-8], 0x200, 0);
-            func_shelter_b1_south_maintenance_walkway_8017DC88(&p[-6], 0x200, -0x400);
-            func_shelter_b1_south_maintenance_walkway_8017DC88(&p[-4], 0x200, 0);
-            func_shelter_b1_south_maintenance_walkway_8017DC88(&p[-2], 0x200, -0x400);
+            func_shelter_b1_south_maintenance_walkway_8017E404(&D_shelter_b1_south_maintenance_walkway_80182330[20], 0x200);
+            func_shelter_b1_south_maintenance_walkway_8017DC88(&D_shelter_b1_south_maintenance_walkway_80182330[4], 0x200, 0);
+            func_shelter_b1_south_maintenance_walkway_8017DC88(&D_shelter_b1_south_maintenance_walkway_80182330[12], 0x200, 0);
+            func_shelter_b1_south_maintenance_walkway_8017DC88(&D_shelter_b1_south_maintenance_walkway_80182330[14], 0x200, -0x400);
+            func_shelter_b1_south_maintenance_walkway_8017DC88(&D_shelter_b1_south_maintenance_walkway_80182330[16], 0x200, 0);
+            func_shelter_b1_south_maintenance_walkway_8017DC88(&D_shelter_b1_south_maintenance_walkway_80182330[18], 0x200, -0x400);
             break;
     }
 }
