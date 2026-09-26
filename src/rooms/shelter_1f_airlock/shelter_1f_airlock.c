@@ -149,14 +149,11 @@ static void func_shelter_1f_airlock_8017D8A8(SVECTOR* arg0, s32 arg1, s32 arg2)
     u8                       g;
     u8                       b;
 
-    p1      = arg0 + 1;
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = *scratch;
-    {
-        u8* tmp;
-        *scratch = (tmp = head - 0x1C);
-        block    = (OverlayPointPairScratch*)tmp;
-    }
+    p1       = arg0 + 1;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    *scratch = head - 0x1C;
+    block    = (OverlayPointPairScratch*)(head - 0x1C);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
@@ -177,15 +174,16 @@ static void func_shelter_1f_airlock_8017D8A8(SVECTOR* arg0, s32 arg1, s32 arg2)
             block->r1 = scaled / block->otz1;
             ang       = ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
             ds        = &gDisplayState;
-            SOFT_BARRIER();
-            ang    = (s16)ang;
-            packed = arg2 << 16;
-            blend  = (ds->animFrame & 1) << (packed >> 28);
-            tr     = (packed >> 20) & 0xF0;
-            tg     = (packed >> 16) & 0xF0;
-            r      = blend + tr;
-            g      = blend + tg;
-            b      = blend + ((arg2 & 0xF) << 4);
+            blend     = ds->animFrame;
+            packed    = arg2 << 16;
+            blend     = blend & 1;
+            ang       = (s16)ang;
+            blend     = blend << (packed >> 28);
+            tr        = (packed >> 20) & 0xF0;
+            tg        = (packed >> 16) & 0xF0;
+            r         = blend + tr;
+            g         = blend + tg;
+            b         = blend + ((arg2 & 0xF) << 4);
             if (ang < ang + 0x800) {
                 angStart = ang;
                 limit    = ang + 0x800;
@@ -211,12 +209,8 @@ static void func_shelter_1f_airlock_8017D8A8(SVECTOR* arg0, s32 arg1, s32 arg2)
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-                    prim = (POLY_G4*)gGpuPrimCursor;
-                    USE_REG(prim);
-                    t    = ang - angStart;
-                    t  <<= 1;
-                    conn = angStart + t;
-                    TOUCH_REG(conn);
+                    conn           = angStart + ((ang - angStart) * 2);
+                    prim           = (POLY_G4*)gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
