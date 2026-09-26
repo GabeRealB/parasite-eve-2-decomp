@@ -7,6 +7,17 @@ static void Spu_ApplyReverbConfig(void);
 static void Spu_KeyOnClearOff(u32 voiceIdx);
 
 /// The SPU ADPCM block uploaded to SPU address 0x7B440 at start-up.
+static AsyncCbQueue  AsyncCb_Queue;
+static SpuVoiceState Spu_VoiceState;
+/// Unreferenced.
+static u8              D_8007E510[8];
+static SpuLVoiceTable  Spu_LVoiceTable;
+static SpuVoiceRange   Spu_VoiceRanges[4];
+static u32             Spu_KeyOnMask;
+static u32             Spu_KeyOnMaskExtra;
+static u32             Spu_KeyOffMask;
+static SpuReverbConfig Spu_ReverbCfg;
+
 static u8 D_80068184[] = {
 #include "assets/spu_voice_block.inc"
 };

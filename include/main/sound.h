@@ -786,25 +786,14 @@ void         Spu_ResetCommonAttr(void);
 typedef u8* (*MidiHandler)(s32, u8*, MidiSong*, MidiTrack*);
 extern void (*SndEvt_Handlers[])(SndEvt*);
 
-extern HeapBlockHeader* SndHeap_Start;
-extern u8               SndHeap_Buffer[SNDHEAP_SIZE];
-extern AudioTickNode    AudioTick_List;
-extern u32              AudioTick_Enabled;
-extern long             D648E0_SpuTimerED;
-extern AsyncCbQueue     AsyncCb_Queue;
-extern SpuVoiceState    Spu_VoiceState;
-extern SpuLVoiceTable   Spu_LVoiceTable;
-extern SpuVoiceRange    Spu_VoiceRanges[];
-extern u32              Spu_KeyOnMask;
-extern u32              Spu_KeyOnMaskExtra;
-extern u32              Spu_KeyOffMask;
-extern SpuReverbConfig  Spu_ReverbCfg;
-extern MidiSong         Midi_Song;
-extern SndBank          Snd_Banks[];
-extern SndScript        SndScript_Slots[8];
-extern SndLoadState     SndLoad_State;
-extern LinInterp        LinInterp_CdStream;
-extern volatile u8      D_80082120;
+extern MidiSong Midi_Song;
+#ifndef SNDBANK_C
+extern SndBank Snd_Banks[];
+#endif
+extern SndScript    SndScript_Slots[8];
+extern SndLoadState SndLoad_State;
+extern LinInterp    LinInterp_CdStream;
+extern volatile u8  D_80082120;
 
 extern s8 D_800680AC[];
 

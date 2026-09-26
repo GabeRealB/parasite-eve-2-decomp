@@ -1,5 +1,7 @@
 #include "common.h"
 
+#define SNDBANK_C
+
 #include <psyq/libapi.h>
 
 #include "main/unknown_syms.h"
@@ -23,6 +25,19 @@ static void           SndHeap_Reset(void);
 static void           Snd_ClearBanks(void);
 static long           Spu_TimerCallback(void);
 static s32            Spu_TimerReentryWork(void);
+
+static HeapBlockHeader* SndHeap_Start;
+/// Unreferenced.
+static u8            D_8007A3A8[8];
+static u8            SndHeap_Buffer[SNDHEAP_SIZE];
+static AudioTickNode AudioTick_List;
+static u32           AudioTick_Enabled;
+static u8            D_8007E0CC;
+static long          D648E0_SpuTimerED;
+s32                  D_8007E0D4;
+SndBank              Snd_Banks[16];
+/// Unreferenced.
+static u8 D_8007E2D8[8];
 
 TaskDesc D_80067828[] = {
     { 0x0, 0xC0, taskKill },

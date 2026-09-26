@@ -100,8 +100,9 @@ extern s16 D_8007A396;
 #ifndef FONT_C
 extern u16 D_8007A39C;
 #endif
-extern u8  D_8007E0CC;
+#ifndef SNDBANK_C
 extern s32 D_8007E0D4;
+#endif
 
 extern u8 D_80725C54[];
 
