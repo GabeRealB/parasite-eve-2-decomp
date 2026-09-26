@@ -2994,114 +2994,100 @@ static void func_800D0C34(Task* arg0)
 
 static s32 Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2)
 {
-    UiObject*              obj;
-    GpMapIcon*             icons;
-    GpMapIconPos*          block;
-    register GpMapIconPos* pos asm("v0");
-    void**                 scratch;
-    u8*                    head;
-    SPRT_16*               p;
-    DR_TPAGE*              dr;
-    register s32           i asm("s2");
-    s32                    ret;
-    s32                    otOff;
-    s32                    lum;
-    s32                    u0;
-    u16                    clut;
+    UiObject*  obj;
+    GpMapIcon* icons;
+    u8         i;
+    s32        ret;
+    u8         otOff;
+    s32        lum;
 
-    otOff   = 0;
-    i       = 0;
-    scratch = SCRATCH_HEAD_ADDR;
-    ret     = 0;
-    obj     = arg0->spawnArg2;
-    icons   = D_8010F0CC[gGameSession->at4.loc.stage - 1];
-    lum     = (rsin(gDisplayState.loopCount << 6) + 0x1000) >> 5;
+    otOff = 0;
+    i     = 0;
+    ret   = 0;
+    obj   = arg0->spawnArg2;
+    icons = D_8010F0CC[gGameSession->at4.loc.stage - 1];
+    lum   = (rsin(gDisplayState.loopCount << 6) + 0x1000) >> 5;
 
     for (;;) {
-        if (icons[(u8)i].field_0 == 0) {
-            goto end;
+        GpMapIconPos* pos;
+        SPRT_16*      p;
+        DR_TPAGE*     dr;
+        u16           clut;
+
+        if (icons[i].field_0 == 0) {
+            break;
         }
-        if (icons[(u8)i].field_2 == 2) {
-            if (icons[(u8)i].field_3 == func_800E3FCC(0xA2)) {
-                goto draw;
+        if (icons[i].field_2 == 2) {
+            if (icons[i].field_3 != func_800E3FCC(0xA2)) {
+                i++;
+                continue;
             }
-        next:
+        } else if (icons[i].field_3 != 0) {
+            if (GameFlag_GetNibble(icons[i].field_3) == 0) {
+                i++;
+                continue;
+            }
+        }
+        if ((arg2 != 0) && (icons[i].field_2 < 2)) {
             i++;
             continue;
         }
-        if (icons[(u8)i].field_3 != 0) {
-            if (GameFlag_GetNibble(icons[(u8)i].field_3) == 0) {
-                goto next;
+        if ((icons[i].field_0 == (s8)Gp_MapRoomId) && (icons[i].field_1 == arg1)) {
+            pos            = SCRATCH_PUSH(GpMapIconPos);
+            pos->field_8   = 0;
+            pos->field_6   = 0;
+            pos->field_4   = 0;
+            pos->x         = icons[i].x;
+            p              = (SPRT_16*)gGpuPrimCursor;
+            gGpuPrimCursor = p + 1;
+            pos->y         = icons[i].y;
+            if (icons[i].field_2 == 2) {
+                if (lum == 0x100) {
+                    lum = 0xFF;
+                }
+                PRIM_COLOR_WORD(p, 0) = ((lum & 0xFF) << 0x10) | ((lum & 0xFF) << 8) | (lum & 0xFF);
             }
-        }
-    draw:
-        if ((arg2 != 0) && (icons[(u8)i].field_2 < 2)) {
-            goto next;
-        }
-        if ((icons[(u8)i].field_0 != (s8)Gp_MapRoomId) || (icons[(u8)i].field_1 != arg1)) {
-            goto next;
-        }
-
-        head                                   = SCRATCH_HEAD_AT(scratch, u8);
-        pos                                    = (GpMapIconPos*)(head - 0xC);
-        block                                  = pos;
-        pos->field_8                           = 0;
-        block->field_6                         = 0;
-        block->field_4                         = 0;
-        SCRATCH_HEAD_AT(scratch, GpMapIconPos) = block;
-        ((GpMapIconPos*)(head - 0xC))->x       = icons[(u8)i].x;
-        p                                      = (SPRT_16*)gGpuPrimCursor;
-        gGpuPrimCursor                         = p + 1;
-        block->y                               = icons[(u8)i].y;
-        if (icons[(u8)i].field_2 == 2) {
-            if (lum == 0x100) {
-                lum = 0xFF;
+            setlen(p, 3);
+            setcode(p, 0x7C);
+            if (icons[i].field_2 != 2) {
+                setcode(p, 0x7D);
             }
-            PRIM_COLOR_WORD(p, 0) = ((lum & 0xFF) << 0x10) | ((lum & 0xFF) << 8) | (lum & 0xFF);
+            setSemiTrans(p, 1);
+            switch (icons[i].field_2) {
+                case 0:
+                    clut    = GetClut(0x20, 0x101);
+                    otOff   = 0x1B;
+                    p->clut = clut;
+                    p->u0   = 0x50;
+                    p->v0   = 0;
+                    break;
+                case 1:
+                    clut    = GetClut(0x10, 0x101);
+                    otOff   = 0x1C;
+                    p->clut = clut;
+                    p->u0   = 0x40;
+                    p->v0   = 0;
+                    break;
+                case 2:
+                    clut    = GetClut(0x40, 0x101);
+                    otOff   = 0x1C;
+                    ret     = 1;
+                    p->clut = clut;
+                    p->u0   = 0x70;
+                    p->v0   = 0;
+                    break;
+            }
+            p->x0 = pos->x - 8;
+            p->y0 = pos->y - 8;
+            addPrim(&gGpuCurrentOt[obj->drawOrder - otOff], p);
+            dr             = gGpuPrimCursor;
+            gGpuPrimCursor = dr + 1;
+            setDrawTPage(dr, 0, 0, 0xE);
+            addPrim(&gGpuCurrentOt[obj->drawOrder - otOff], dr);
+            SCRATCH_POP(GpMapIconPos);
         }
-        setlen(p, 3);
-        setcode(p, 0x7C);
-        if (icons[(u8)i].field_2 != 2) {
-            setcode(p, 0x7D);
-        }
-        setSemiTrans(p, 1);
-        switch (icons[(u8)i].field_2) {
-            case 0:
-                clut    = GetClut(0x20, 0x101);
-                otOff   = 0x1B;
-                p->clut = clut;
-                u0      = 0x50;
-                break;
-            case 1:
-                clut    = GetClut(0x10, 0x101);
-                otOff   = 0x1C;
-                p->clut = clut;
-                u0      = 0x40;
-                break;
-            case 2:
-                clut    = GetClut(0x40, 0x101);
-                otOff   = 0x1C;
-                ret     = 1;
-                p->clut = clut;
-                u0      = 0x70;
-                break;
-            default:
-                goto linkPrims;
-        }
-        p->u0 = u0;
-        p->v0 = 0;
-    linkPrims:
-        p->x0 = block->x - 8;
-        p->y0 = block->y - 8;
-        addPrim(&gGpuCurrentOt[obj->drawOrder - (otOff & 0xFF)], p);
-        dr             = gGpuPrimCursor;
-        gGpuPrimCursor = dr + 1;
-        setDrawTPage(dr, 0, 0, 0xE);
-        addPrim(&gGpuCurrentOt[obj->drawOrder - (otOff & 0xFF)], dr);
-        SCRATCH_POP_BYTES_AT(scratch, 0xC);
-        goto next;
+        i++;
     }
-end:
     return ret;
 }
 

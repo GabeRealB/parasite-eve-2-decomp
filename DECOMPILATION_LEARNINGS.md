@@ -143699,3 +143699,17 @@ hid the values behind a `TOUCH_REG4`. What the target did is compute the
 quotient into `col` and copy it: `row = col = i / 3; col = i - row * 3;`.
 With `col` set twice and `row` a copy, CSE does not share the second
 `row*3`, combine has nothing to cancel, and the `move` is the copy.
+
+## A loop whose body opens with declarations keeps its top-of-loop `break` test in place (Gp_DrawMapIcons, 2026-09-26)
+
+`expand_end_loop` only rotates a loop (guard test before `LOOP_BEG`, exit test
+at the bottom) when its scan from the loop start reaches a jump to the loop's
+end label; the scan stops at a `NOTE_INSN_BLOCK_BEG`. A loop body that is a
+scope with its own declarations emits that note before the first statement,
+so `if (done) break;` stays at the top and the body ends in `j <top>`, with
+the code after the loop in its own block. The seed used `goto end` for this
+(see "`break` rotates a loop"); moving the per-iteration locals into the loop
+body matched with `break`. The same function's `goto next` / `goto linkPrims`
+were cross-jumping: an `i++; continue;` at each skip site plus a trailing
+`i++` after an `if (visible) { draw }` all merge into the first site's block,
+and per-case `p->u0 = K; p->v0 = 0;` merge into one tail with `K` in `$v0`.
