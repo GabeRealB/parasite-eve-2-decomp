@@ -20,7 +20,7 @@ typedef struct _TextDrawReq {
     /* 0x0C */ s8  glyphTable;
     /* 0x0D */ s8  centerMode;
     /* 0x0E */ s8  field_E;
-    /* 0x0F */ u8  vBias;
+    /* 0x0F */ s8  vBias;
 } TextDrawReq;
 STATIC_ASSERT_SIZEOF(TextDrawReq, 0x10);
 

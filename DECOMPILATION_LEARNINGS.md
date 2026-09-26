@@ -143291,3 +143291,20 @@ Jump threading still gives the short arm its own filled `jr`, but the fall-throu
 return keeps its move out of the delay slot. In the same body, a digit stored and
 then masked (`sb v0; andi v1,v0,0xFF`) is `*dest = q; digit = *dest;` with a
 `u32 digit` - no barrier between the store and the mask is needed.
+## Three matching hacks that were a parameter copy, a narrowed shift and a stolen else-arm (func_8002E53C, 2026-09-26)
+
+- **Prologue moves pushed ahead of the first load** (`SOFT_TOUCH_REG3` after
+  `ctx = arg0; ptr = arg1; prev = 0;`, the pattern "Force prologue moves before
+  the first load" recommends pinning): the target left the `lb` delay slot as a
+  `nop`. Dropping the `ctx = arg0` copy and using the parameter directly makes
+  the copy an entry insn instead of a schedulable one in block 0, and sched1
+  then keeps the moves first on its own. Try this before any pin.
+- **A digit reloaded instead of reused** (`SOFT_COMPILER_BARRIER` before
+  `req->x = (*p - '0') * 8;`): a store to an `s16` field narrows `<< 3` to a
+  `HImode` computation that cse cannot match with the `SImode` `*p - '0'` of the
+  range check, while `* 8` stays `SImode` and is reused. Write the shift.
+- **`lui` in the delay slot, one `ori` per arm** (`SOFT_TOUCH_REG(tpage)` in the
+  else arm): with a single `tpage = 0xE100023F` in the else arm, jump.c hoists
+  it above the branch and lets the then arm overwrite it. Emitting the whole
+  primitive (cursor bump, word store, `setlen`, `addPrim`) in each arm keeps the
+  arms apart and cross-jumping merges the common tail.
