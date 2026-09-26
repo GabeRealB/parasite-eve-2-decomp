@@ -1005,30 +1005,51 @@ static void Mc_StatePadFileName(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-static void Mc_StateNameEntry(Task* arg0, McWork* arg1)
+/// Inline form of Mc_DrawPrompt.
+static inline void _mcDrawPrompt(Task* task, s32 mode)
 {
-    register Task*     task asm("s3");
-    McWork*            work;
-    register UiObject* flag asm("s0");
-    register s32       syncResult asm("s1");
-    s32                status;
-    s32                idx;
-    s32                ret;
-    Task*              child;
-    UiObject*          obj;
-    u8*                src;
-    u8*                dst;
-    s32                i;
-    McPromptPair*      entry;
-    McPromptPair*      base;
+    s32           ret;
+    UiObject*     obj;
+    McPromptPair* entry;
+    McPromptPair* base;
 
-    task = arg0;
-    work = arg1;
-    arg1 = 0;
+    obj           = task->spawnArg2;
+    ret           = Ui_LookupTable(obj, 1);
+    obj->field_2E = 0;
+    Ui_DrawTitle(obj, Mc_StrMemoryCard);
+    base  = Mc_PromptTable;
+    entry = &base[mode];
+    Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
+    Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
+}
+
+/// Tear down the task's child UI and report status on the task's own object.
+static inline void _mcCloseChild(Task* task, s32 status)
+{
+    Task*     child;
+    UiObject* obj;
+    UiObject* flag;
+
+    child = task->firstChild;
+    if (child != NULL) {
+        obj         = child->spawnArg2;
+        flag        = task->spawnArg2;
+        obj->status = 0;
+        Ui_TeardownTree(obj, obj->owner);
+        flag->status = status;
+    }
+}
+
+static void Mc_StateNameEntry(Task* task, McWork* work)
+{
+    s32 syncResult;
+    u8* src;
+    u8* dst;
+    s32 i;
+
     if (work->field_2C == 1) {
         work->field_8 = 0x11;
-        status        = Mc_PromptDialogSpawn(arg0, 0x11, work->field_0);
-        switch (status) {
+        switch (Mc_PromptDialogSpawn(task, 0x11, work->field_0)) {
             case 0:
                 break;
             case 1:
@@ -1048,18 +1069,9 @@ static void Mc_StateNameEntry(Task* arg0, McWork* arg1)
         }
         syncResult = MemCardSync(1, (long*)&work->field_10, (long*)&work->field_14);
         if (syncResult != -1) {
-            if (syncResult == 1) {
-                if (work->field_14 != 0) {
-                    child       = task->firstChild;
-                    task->state = 2;
-                    if (child != NULL) {
-                        obj         = child->spawnArg2;
-                        flag        = task->spawnArg2;
-                        obj->status = 0;
-                        Ui_TeardownTree(obj, obj->owner);
-                        flag->status = syncResult;
-                    }
-                }
+            if (syncResult == 1 && work->field_14 != 0) {
+                task->state = 2;
+                _mcCloseChild(task, syncResult);
             }
         } else {
             MemCardExist(work->field_C);
@@ -1067,16 +1079,8 @@ static void Mc_StateNameEntry(Task* arg0, McWork* arg1)
     } else {
         work->field_1C = 0;
         work->field_8  = 4;
-        flag           = task->spawnArg2;
         task->state    = 0xF;
-        idx            = work->field_8;
-        ret            = Ui_LookupTable(flag, 1);
-        flag->field_2E = 0;
-        Ui_DrawTitle(flag, Mc_StrMemoryCard);
-        base  = Mc_PromptTable;
-        entry = &base[idx];
-        Text_DrawPrompt(flag, flag->field_1C + 2, -2, entry->field_0, ret, 1, 0);
-        Text_DrawPrompt(flag, flag->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
+        _mcDrawPrompt(task, work->field_8);
     }
 }
 
@@ -1156,22 +1160,6 @@ static inline void _mcWriteFirstByteChecksum(void)
     } while (i < 9U);
     Mc_SaveData.bufferChecksum    = next;
     Mc_SaveData.bufferChecksumInv = ~next;
-}
-
-/// Inline form of Mc_DrawPrompt.
-static inline void _mcDrawPrompt(Task* task, s32 mode)
-{
-    s32           ret;
-    UiObject*     obj;
-    McPromptPair* entry;
-
-    obj           = task->spawnArg2;
-    ret           = Ui_LookupTable(obj, 1);
-    obj->field_2E = 0;
-    Ui_DrawTitle(obj, Mc_StrMemoryCard);
-    entry = &Mc_PromptTable[mode];
-    Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
-    Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
 static void Mc_StateBackupBuffers(Task* arg0, McWork* arg1)
@@ -1319,23 +1307,6 @@ static void Mc_StateFormat(Task* arg0, McWork* arg1)
     entry = &base[idx];
     Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
-}
-
-/// Tear down the task's child UI and report status on the task's own object.
-static inline void _mcCloseChild(Task* task, s32 status)
-{
-    Task*     child;
-    UiObject* obj;
-    UiObject* flag;
-
-    child = task->firstChild;
-    if (child != NULL) {
-        obj         = child->spawnArg2;
-        flag        = task->spawnArg2;
-        obj->status = 0;
-        Ui_TeardownTree(obj, obj->owner);
-        flag->status = status;
-    }
 }
 
 static void Mc_StateSyncFileSelect(Task* task, McWork* work)
