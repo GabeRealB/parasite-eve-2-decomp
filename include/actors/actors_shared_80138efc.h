@@ -115,7 +115,7 @@ typedef struct ActorsShared80138efcWork {
     /* 0xBBA */ u8 field_BBA;
     /// Entry id of the placement the enemy was spawned from; 0x31 selects the
     /// second parameter set and a scaled model.
-    /* 0xBBB */ u8  field_BBB;
+    /* 0xBBB */ s8  field_BBB;
     /* 0xBBC */ s16 field_BBC;
     /// Frames the hit sparks keep being re-spawned for.
     /* 0xBBE */ s16 field_BBE;
