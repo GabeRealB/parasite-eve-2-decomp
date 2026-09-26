@@ -116239,6 +116239,15 @@ the constant-using instruction is in. `func_actor_206100_8014E964` reached
 shape - struct fields, `for (i = 1; i < 0xF; i++)`, the init after the chain -
 matched on the first build with no other change.
 
+**The mirror case:** where the target *does* have `addu v0,v0,$s0` for a `+ 1`
+at the top of an `else` arm, the source is a `for (i = 1; ...)` in each arm
+with the increment written plainly before it (`func_actor_105300_80133610`).
+sched1 lifts the arm's own `li $s0,1` above the add, so `reload_cse` sees it
+in the same label-free stretch and substitutes the register; reorg then copies
+the two identical initialisers into the branch's delay slot. A seed that hoists
+`i = 1` above the `if` loses that (CSE follows the jump and folds `+= i` to
+`+1`), and pinning `TOUCH_REG(i); x += i;` is the hack that compensates.
+
 ## A constant the target materialises in a branch's block wants a source assignment, not a loop invariant
 
 `func_actor_206100_8014D574` spawns a 32-particle ring when its frame counter
