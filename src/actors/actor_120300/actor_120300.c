@@ -249,38 +249,13 @@ void func_actor_120300_80132004(Task* arg0)
 /// broadcast over all three axes and folds it in with `ScaleMatrix`.
 void func_actor_120300_801321C8(Task* arg0)
 {
-    VECTOR           vec;
-    GpCoord*         coord;
-    TaskIdMap*       map;
-    TmdObject*       tmd;
-    s32              scale;
-    s32              kill;
-    s32              killCopy;
-    u16              scaleRaw;
-    TmdObject*       tmd2;
-    Actor120300Work* work;
+    VECTOR     vec;
+    s32        scale;
+    u16        scaleRaw;
+    TmdObject* tmd2;
 
     if (arg0->state == 0) {
-        tmd        = arg0->extra.tmd;
-        coord      = tmd->coords;
-        map        = Mem_Malloc(0x4E4, 0);
-        arg0->work = map;
-        if (map == NULL) {
-            kill = 1;
-        } else {
-            work = (Actor120300Work*)map;
-            Mem_Set(map, 0, 0x4E4);
-            coord->sub             = ((Task*)arg0->spawnArg2)->extra.tmd->coords + 8;
-            arg0->extra.tmd->flags = 0;
-            Tmd_AllocBuffers(tmd);
-            kill           = 0;
-            tmd->lightMtx  = &work->field_474;
-            tmd->colorMtx  = &work->field_494;
-            arg0->msgTable = &D_actor_120300_80140A44;
-        }
-        killCopy = kill;
-        TOUCH_REG(killCopy);
-        if (killCopy != 0) {
+        if (_actor120300InitChild(arg0, 8) != 0) {
             taskKill(arg0);
             return;
         }
