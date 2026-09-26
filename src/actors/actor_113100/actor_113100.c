@@ -640,15 +640,14 @@ static void func_actor_113100_80132B30(Task* task)
     GpCoord*   node;
     GpCoord*   part;
 
-    model = task->extra.tmd;
-    SOFT_BARRIER();
-    parent = (Task*)task->spawnArg2;
+    model  = task->extra.tmd;
+    parent = task->spawnArg2;
     index  = task->spawnArg1;
     node   = model->coords;
     part   = parent->extra.tmd->coords;
 
-    node->coord.t[1] = 0x64;
     node->coord.t[0] = 0;
+    node->coord.t[1] = 0x64;
     node->coord.t[2] = 0;
     node->flg        = 0;
     node->sub        = &part[index];
