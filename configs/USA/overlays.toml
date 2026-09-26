@@ -352,40 +352,16 @@ objects = [
 ]
 
 [weapons.overlays.unused_86]
-label = "unused weapon slot 0x86"
-id = 14
-objects = [
-  { kind = "packageId" },
-  { kind = "data", at = "0x4" },
+# One image issued under five ids: the packages are byte-identical apart from
+# the id. They hold no code and no program data: everything after the id is
+# one animation bank, which is an asset and stays in assembly.
+slots = [
+  { package = "unused_86", id = 14, label = "unused weapon slot 0x86" },
+  { package = "unused_87", id = 15, label = "unused weapon slot 0x87" },
+  { package = "unused_89", id = 17, label = "unused weapon slot 0x89" },
+  { package = "unused_91", id = 25, label = "unused weapon slot 0x91" },
+  { package = "unused_97", id = 31, label = "unused weapon slot 0x97" },
 ]
-
-[weapons.overlays.unused_87]
-label = "unused weapon slot 0x87"
-id = 15
-objects = [
-  { kind = "packageId" },
-  { kind = "data", at = "0x4" },
-]
-
-[weapons.overlays.unused_89]
-label = "unused weapon slot 0x89"
-id = 17
-objects = [
-  { kind = "packageId" },
-  { kind = "data", at = "0x4" },
-]
-
-[weapons.overlays.unused_91]
-label = "unused weapon slot 0x91"
-id = 25
-objects = [
-  { kind = "packageId" },
-  { kind = "data", at = "0x4" },
-]
-
-[weapons.overlays.unused_97]
-label = "unused weapon slot 0x97"
-id = 31
 objects = [
   { kind = "packageId" },
   { kind = "data", at = "0x4" },
