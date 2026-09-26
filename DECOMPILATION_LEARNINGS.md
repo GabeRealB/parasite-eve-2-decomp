@@ -143584,3 +143584,17 @@ stays at its source position. Each case therefore constrains a different
 store, and the helper order that satisfies both is the answer: here
 `742, 756=8, 778, …, 73A, 776=0xA, 76E, …`, not the order the rest of the TU
 spells the same reset in.
+
+## `v0`/`v1` pins on a chain temp: one reused local that dies several times (func_actor_460200_80132124, 2026-09-26)
+
+A packed-pixel loop built three colour-channel words, each in `$v1`
+(`and v1; sll v1; or v1,v1,v0`), with the side operands in `$v0`; the seed
+pinned two locals to `v0`/`v1`. Unpinned, one expression per channel gave
+each channel its own single-death pseudo, which local-alloc ranks above the
+side temps, so the channel landed in `$v0`. The original reuses one local `t`
+for all three and builds it a step per statement (`t = hi & M; t <<= 8;
+t |= lo & M;`): dying three times makes `t` a global allocno, so the local
+side temps take `$v0` first and `t` gets `$v1`. Each separate statement
+matters - `t = (hi & M) << 8` computes the AND into a local temp instead.
+Likewise `x = (x >> 3) & M; x = M - x;` as two statements adds refs to `x`
+and changes its global rank relative to its neighbours.
