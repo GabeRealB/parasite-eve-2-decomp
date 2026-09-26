@@ -141740,3 +141740,28 @@ In the same function a `j`/`dest` swap in a byte-copy loop, pinned with
 `register u32 j asm("v1")`, was the loop's form: `while (j < count) { j += 1;
 *dest++ = *src++; }` matches where `if (count != 0) do { ... } while (j < count)`
 with separate `+= 1` statements does not.
+
+## A `for` loop's pretest decides which of two zero-inits is copied from the other (Gp_DrawItemOrderRow, 2026-09-26)
+
+A search loop that returns a pointer starts with two zeros: `found = NULL`
+and the counter `i = 0`. The target of `Gp_DrawItemOrderRow` reads
+`move a1,zero; move t0,a1` (found first, counter copied from it); its
+out-of-line twin `func_800CECC0` reads the reverse.
+
+The copy is `reload_cse` turning the *later* of the two `li 0`s into a move,
+so the question is which init comes last. In a `for (i = 0; i < n; ...)`
+loop, jump.c duplicates the exit test in front of the loop; cse puts both
+zero regs in one quantity and rewrites that pretest to use the canonical one,
+which `make_regs_eqv` (cse.c) picks as the reg whose last reference is
+latest - always `found`, which is read after the loop. combine then folds
+`found = 0` into the pretest and re-emits it at the compare, after `i = 0`.
+Declaration order, init order, `while` vs `for`, the init inside the `for`
+header and a `return table` exit all give the same result.
+
+A `do { } while (i < n)` under an explicit `if (count != 0)` has no pretest on
+`i`, so source order stands (`found` first), but loop.c will not hoist the
+bottom test's `rowCount` load past the loop's branches (`maybe_never` and a
+register address that may trap), so the target's `move t2,a0` copy of the
+count has to be written as `n = count`. The `li t3,1` in front of it then also
+needs an explicit `one = 1` before the copy, the form the seed had. The
+`for` loop gets both for free but the inits in the wrong order.

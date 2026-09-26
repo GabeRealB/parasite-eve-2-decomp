@@ -1630,67 +1630,107 @@ void func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     func_8002E53C(&req, Text_ItoaSigned(buf, arg3));
 }
 
+/// Draws `item`'s name, its `func_800C22D8` marker in `mode`, the variant
+/// marker for items 0x0F-0x32 and its icon at (`x`, `y`) in `obj`. Nothing is
+/// drawn while `obj` is in mode 5.
+static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32 item, s32 mode)
+{
+    TextDrawReq req;
+    s32         temp;
+
+    if (obj->mode != 5) {
+        req.x          = obj->baseX + 0x11 + x;
+        req.y          = obj->baseY + (y - 6);
+        req.otIndex    = (s16)obj->drawOrder + 1;
+        req.field_8    = color;
+        req.glyphTable = 0;
+        req.centerMode = 0;
+        req.field_E    = 1;
+        func_8002E53C(&req, Gp_GetItemText(item, 0, 0));
+        func_800C22D8(obj, x, y, item, mode);
+        temp = item - 0xF;
+        if ((u32)temp < 0x24U) {
+            func_800C2538(obj, x, y, temp % 3 + 1, color);
+        }
+        Gp_DrawItemIcon(obj, x, y, item, 0);
+    }
+}
+
+/// Draws `item` as `_gpDrawItemNameAt` does, at the prompt row's position and
+/// in its colour.
+static inline void _gpDrawItemName(DialogPrompt* prompt, UiObject* obj, s32 item, s32 mode)
+{
+    _gpDrawItemNameAt(obj, prompt->field_18, prompt->field_1A, prompt->field_1C, item, mode);
+}
+
+/// Returns the `index`-th row (from 0) of `scan` that is free to reorder -
+/// not attached to a weapon and not the equipped armour or weapon - or NULL
+/// when there are fewer. The out-of-line copy is `func_800CECC0`.
+static inline McItemRec* _gpNthLooseRec(McItemScan* scan, s32 index)
+{
+    PlayerStatus* p;
+    McItemRec*    table;
+    McItemRec*    found;
+    s32           i;
+    s32           ok;
+    s32           id;
+    s32           one;
+    s32           count;
+    s32           n;
+
+    table = Gp_GetItemTable(scan);
+    found = NULL;
+    i     = 0;
+    count = scan->rowCount;
+    table = &table[scan->firstRow];
+    if (count != 0) {
+        p   = &Player_Status;
+        one = 1;
+        n   = count;
+        do {
+            id = table->itemId;
+            ok = 1;
+            if ((table->attachSlot != 0) ||
+                (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) ||
+                (((u32)(id - 0x80) < 0x20U) && (p->weapon == id - 0x7F))) {
+                ok = 0;
+            }
+            if (ok == one) {
+                index--;
+            }
+            if (index < 0) {
+                found = table;
+                break;
+            }
+            i++;
+            table++;
+        } while (i < n);
+    }
+    return found;
+}
+
+/// Shows `item`'s name in the holder (the empty-slot text for item 0) and
+/// makes it the preview in slot 0.
+#define GP_SHOW_ITEM_IN_HOLDER(item)                                    \
+    do {                                                                \
+        if ((item) == 0) {                                              \
+            Ui_SetHolderParam((s32)Gp_StrEmpty, 0, 0);                  \
+        } else {                                                        \
+            Ui_SetHolderParam((s32)Gp_GetItemText((item), 1, 0), 0, 0); \
+        }                                                               \
+        Gp_SetPreviewItem((item), 0);                                   \
+    } while (0)
+
 void Gp_DrawItemOrderRow(DialogPrompt* arg0, UiObject* arg1)
 {
-    McItemScan*  scan;
-    register s32 remaining asm("s2");
-    McItemRec*   sel;
-    register s32 item asm("s0");
-    s32          status;
-    s32          one;
-    s32          temp;
-    s32          idx1;
-    s32          idx2;
-    UiObject*    obj;
+    McItemRec* sel;
+    s32        item;
+    s32        status;
+    s32        idx1;
+    s32        idx2;
+    UiObject*  obj;
 
-    scan      = &Mc_SaveData.carriedItems;
-    remaining = arg0->field_8;
-    {
-        register McItemRec* found asm("a1");
-        McItemRec*          table;
-        register s32        ok asm("a3");
-        s32                 loopOne;
-        s32                 i;
-        register s32        idx asm("v1");
-        PlayerStatus*       p;
-        McItemRec*          rec;
-        s32                 count;
-        s32                 n;
-        s32                 id;
-
-        rec   = Gp_GetItemTable(scan);
-        found = NULL;
-        i     = (s32)found;
-        idx   = scan->firstRow;
-        count = scan->rowCount;
-        table = &rec[idx];
-        if (count != 0) {
-            p       = &Player_Status;
-            loopOne = 1;
-            n       = count;
-            do {
-                ok = 1;
-                id = table->itemId;
-                if (table->attachSlot != 0) {
-                    ok = 0;
-                } else if (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) {
-                    ok = 0;
-                } else if (((u32)(id - 0x80) < 0x20U) && (p->weapon == id - 0x7F)) {
-                    ok = 0;
-                }
-                if (ok == loopOne) {
-                    remaining--;
-                }
-                if (remaining < 0) {
-                    found = table;
-                    break;
-                }
-                i++;
-                table++;
-            } while (i < n);
-        }
-        sel = found;
-    }
+    sel = _gpNthLooseRec(&Mc_SaveData.carriedItems, arg0->field_8);
     if (sel == NULL) {
         Gp_DrawSortCmd(arg0, arg1);
         return;
@@ -1701,17 +1741,7 @@ void Gp_DrawItemOrderRow(DialogPrompt* arg0, UiObject* arg1)
     if (((status >> 16) == 1) || (status == 1)) {
         if (arg0->field_10 == arg0->field_8) {
             if (Gp_ItemOrderMode == 0) {
-                register s32 t asm("a0");
-                s32          a1v;
-                a1v = 1;
-                if (item == 0) {
-                    t = (s32)Gp_StrEmpty;
-                } else {
-                    t = (s32)Gp_GetItemText(item, a1v, 0);
-                }
-                a1v = 0;
-                Ui_SetHolderParam(t, a1v, a1v);
-                Gp_SetPreviewItem(item, 0);
+                GP_SHOW_ITEM_IN_HOLDER(item);
             } else {
                 Ui_SetHolderParam((s32)Gp_StrSelectDest, 0, 0);
             }
@@ -1756,35 +1786,7 @@ void Gp_DrawItemOrderRow(DialogPrompt* arg0, UiObject* arg1)
         }
     }
 
-    {
-        s32         x;
-        s32         y;
-        s32         color;
-        TextDrawReq req;
-        s32         baseY;
-
-        x     = arg0->field_18;
-        y     = arg0->field_1A;
-        color = arg0->field_1C;
-        one   = 1;
-        if (arg1->mode != 5) {
-            req.x          = arg1->baseX + 0x11 + x;
-            baseY          = arg1->baseY - 6;
-            req.y          = baseY + y;
-            req.otIndex    = (s16)arg1->drawOrder + 1;
-            req.field_8    = color;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            func_8002E53C(&req, Gp_GetItemText(item, 0, 0));
-            func_800C22D8(arg1, x, y, item, one);
-            temp = item - 0xF;
-            if ((u32)temp < 0x24U) {
-                func_800C2538(arg1, x, y, temp % 3 + 1, color);
-            }
-            Gp_DrawItemIcon(arg1, x, y, item, 0);
-        }
-    }
+    _gpDrawItemName(arg0, arg1, item, 1);
 
     if (arg0->field_C == 1) {
         if (Gp_ItemOrderMode == 0) {
@@ -3193,39 +3195,6 @@ McItemRec* Gp_NthEquippableRec(McItemScan* arg0, s32 arg1, s32 arg2)
         }
     }
     return rec;
-}
-
-/// Draws `item`'s name, its `func_800C22D8` marker in `mode`, the variant
-/// marker for items 0x0F-0x32 and its icon at (`x`, `y`) in `obj`. Nothing is
-/// drawn while `obj` is in mode 5.
-static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32 item, s32 mode)
-{
-    TextDrawReq req;
-    s32         temp;
-
-    if (obj->mode != 5) {
-        req.x          = obj->baseX + 0x11 + x;
-        req.y          = obj->baseY + (y - 6);
-        req.otIndex    = (s16)obj->drawOrder + 1;
-        req.field_8    = color;
-        req.glyphTable = 0;
-        req.centerMode = 0;
-        req.field_E    = 1;
-        func_8002E53C(&req, Gp_GetItemText(item, 0, 0));
-        func_800C22D8(obj, x, y, item, mode);
-        temp = item - 0xF;
-        if ((u32)temp < 0x24U) {
-            func_800C2538(obj, x, y, temp % 3 + 1, color);
-        }
-        Gp_DrawItemIcon(obj, x, y, item, 0);
-    }
-}
-
-/// Draws `item` as `_gpDrawItemNameAt` does, at the prompt row's position and
-/// in its colour.
-static inline void _gpDrawItemName(DialogPrompt* prompt, UiObject* obj, s32 item, s32 mode)
-{
-    _gpDrawItemNameAt(obj, prompt->field_18, prompt->field_1A, prompt->field_1C, item, mode);
 }
 
 void Gp_DrawRemoveArmorRow(DialogPrompt* prompt, UiObject* obj)
