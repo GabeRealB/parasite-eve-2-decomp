@@ -2395,25 +2395,18 @@ static void func_acropolis_security_room_801817A4(Task* task)
 /// displacement is non-zero.
 static s32 func_acropolis_security_room_80181C84(GpCoord* coord, GpRec18* rec, s16 arg2)
 {
-    void**            scratch;
-    u8*               head;
     OverlayDeltaFlag* s;
-    register void*    p asm("v1");
     s32               val;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    p        = head - 0x14;
-    s        = p;
-    *scratch = p;
+    s        = SCRATCH_PUSH(OverlayDeltaFlag);
     s->moved = 0;
     if (func_800E0C10(rec, &s->delta, arg2, NULL) != 0) {
-        coord->coord.t[0]                    += ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
-        coord->coord.t[2]                    += s->delta.vz.h.hi;
-        D_acropolis_security_room_801855B0.vx = ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
+        coord->coord.t[0]                    += s->delta.vx.w >> 16;
+        coord->coord.t[2]                    += s->delta.vz.w >> 16;
+        D_acropolis_security_room_801855B0.vx = s->delta.vx.w >> 16;
         D_acropolis_security_room_801855B0.vy = s->delta.vy.w >> 16;
         D_acropolis_security_room_801855B0.vz = s->delta.vz.w >> 16;
-        val                                   = ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.w;
+        val                                   = s->delta.vx.w;
         if ((val & 0xFFFF) != 0) {
             if (val > 0) {
                 coord->coord.t[0]++;
@@ -2437,7 +2430,7 @@ static s32 func_acropolis_security_room_80181C84(GpCoord* coord, GpRec18* rec, s
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    SCRATCH_POP_BYTES(0x14);
+    SCRATCH_POP(OverlayDeltaFlag);
     return s->moved;
 }
 
