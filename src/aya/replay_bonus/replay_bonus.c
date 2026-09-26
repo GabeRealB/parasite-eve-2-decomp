@@ -288,6 +288,36 @@ __asm__(".section .rodata\n"
         ".section .text\n");
 #endif
 
+static inline s32 _replayBonusItemPrice(s32 id)
+{
+    s32 price;
+
+    if (id < 0x100) {
+        price = Gp_ItemDescs[id].price;
+    } else {
+        price = D_8010DE38[id - 0x100].price;
+    }
+    return price;
+}
+
+static inline s32 _replayBonusTotalBp(UiList* list, ReplayBonusCtx* ctx)
+{
+    s32           i;
+    s32           sum;
+    PlayerStatus* cfg;
+
+    cfg = &Player_Status;
+    sum = 0;
+    for (i = (s8)list->field_9; i < list->field_4; i++) {
+        sum += _replayBonusItemPrice(ctx->itemList->itemIds[i]) >> 1;
+    }
+    sum += cfg->bp;
+    if (sum > 99999999) {
+        sum = 99999999;
+    }
+    return sum;
+}
+
 void func_replay_bonus_80115ED0(Task* arg0)
 {
     u8                   buf[0x20];
@@ -297,20 +327,15 @@ void func_replay_bonus_80115ED0(Task* arg0)
     UiObject*            obj;
     UiList*              list;
     PlayerStatus*        cfg;
-    PlayerStatus*        cfg2;
-    PlayerStatus*        cfgDraw;
     ReplayBonusTotals*   totals;
     ReplayBonusShopTier* p;
     ReplayBonusShopTier* row;
     McSaveData*          save;
-    s16*                 ip;
     void*                mem;
     s32                  status;
     s32                  state;
-    s32                  i;
     s32                  n;
     s32                  sum;
-    s32                  item;
     s32                  idx;
     s32                  result;
     u32                  spend;
@@ -324,24 +349,12 @@ void func_replay_bonus_80115ED0(Task* arg0)
     s32                  ot2;
     s32                  ot3;
     s32                  color;
-    s32                  lo;
-    s32                  hi;
-    s32                  ptr;
-    s32                  price;
     s32                  exp;
     s32                  tmp;
-    s32                  off;
     s32                  t;
-    s32                  ids32;
     s32                  acc;
     s32                  shop_i;
     s32                  bonus_i;
-    s16*                 ipInit;
-    s32                  itemInit;
-    s32                  idxInit;
-    s32                  limitInit;
-    s16*                 ipBonus;
-    s32                  iInit, loInit, hiInit, nDraw, idxDraw;
     u8                   nxt;
 
     list          = &D_replay_bonus_80119130;
@@ -360,50 +373,21 @@ void func_replay_bonus_80115ED0(Task* arg0)
         D_80067634 = 0;
         func_replay_bonus_80115D60(list, (ReplayBonusCtx*)obj);
         Ui_LayoutListPanel(list, (UiPanel*)obj);
-        iInit          = 0;
-        acc            = iInit;
-        list->field_A  = 1;
-        list->field_17 = 0xF;
-        obj->field_12  = obj->field_12 + 0x22;
-        SOFT_USE_REG(acc);
-        arg0->killCountdown = 0x3C;
-        arg0->state         = arg0->state + 1;
-        n                   = list->field_4;
-        cfg2                = cfg;
-        list->field_9       = 0;
-        if (n != 0) {
-            loInit    = (s32)Gp_ItemDescs;
-            hiInit    = (s32)D_8010DE38;
-            limitInit = n;
-            ids32     = (s32)((ReplayBonusCtx*)obj)->itemList->itemIds;
-            ipInit    = (s16*)ids32;
-            do {
-                itemInit = *ipInit;
-                idxInit  = itemInit;
-                if (itemInit < 0x100) {
-                    ptr = (itemInit * 8) + loInit;
-                } else {
-                    ptr = ((idxInit - 0x100) * 8) + hiInit;
-                }
-                price = ((GpItemDesc*)ptr)->price;
-                SOFT_TOUCH_REG(price);
-                acc += price >> 1;
-                iInit++;
-                ipInit++;
-            } while (iInit < limitInit);
-        }
-        acc = acc + cfg2->bp;
-        if (acc > 0x05F5E0FF) {
-            acc = 0x05F5E0FF;
-        }
-        totals                           = &D_replay_bonus_80119274;
-        totals->field_4                  = acc;
-        totals->field_C                  = acc;
-        list->field_9                    = list->field_4 - list->field_5;
-        tmp                              = func_replay_bonus_80115CA4();
-        exp                              = cfg->exp;
-        D_replay_bonus_80119274.unk0     = tmp;
-        *(volatile s32*)&totals->field_8 = exp;
+        list->field_A                = 1;
+        list->field_17               = 0xF;
+        obj->field_12                = obj->field_12 + 0x22;
+        arg0->killCountdown          = 0x3C;
+        arg0->state                  = arg0->state + 1;
+        list->field_9                = 0;
+        acc                          = _replayBonusTotalBp(list, (ReplayBonusCtx*)obj);
+        totals                       = &D_replay_bonus_80119274;
+        totals->field_4              = acc;
+        totals->field_C              = acc;
+        list->field_9                = list->field_4 - list->field_5;
+        tmp                          = func_replay_bonus_80115CA4();
+        exp                          = cfg->exp;
+        D_replay_bonus_80119274.unk0 = tmp;
+        totals->field_8              = exp;
         switch (Mc_SaveData.gameMode) {
             case 3:
                 totals->field_8 = exp * 10;
@@ -431,19 +415,12 @@ void func_replay_bonus_80115ED0(Task* arg0)
         if (Mc_SaveData.shopTiers == 0x1FFF) {
             result = -1;
         } else {
-            shop_i = 0;
-            do {
-            loop:
-                if (!(p->spendThreshold < spend)) {
+            for (shop_i = 0; shop_i < 0xD; shop_i++, p++) {
+                if (p->spendThreshold >= spend) {
                     idx = shop_i;
                     break;
                 }
-                shop_i++;
-                p++;
-                if (shop_i < 0xD) {
-                    goto loop;
-                }
-            } while (0);
+            }
             save   = &Mc_SaveData;
             idx   += save->gameMode;
             shop_i = 0;
@@ -452,8 +429,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
             }
             one  = 1;
             mask = save->shopTiers;
-            do {
-            loop2:
+            for (; shop_i < 0xD; shop_i++) {
                 if ((mask & (one << idx)) == 0) {
                     break;
                 }
@@ -461,11 +437,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
                 if (idx >= 0xD) {
                     idx -= 0xD;
                 }
-                shop_i += 1;
-                if (shop_i < 0xD) {
-                    goto loop2;
-                }
-            } while (0);
+            }
             result = idx;
         }
         D_replay_bonus_80119274.field_10 = result;
@@ -474,11 +446,9 @@ void func_replay_bonus_80115ED0(Task* arg0)
             row     = D_replay_bonus_80118F78;
             bonus_i = sum;
             do {
-                j       = 0;
-                ipBonus = (s16*)row;
+                j = 0;
                 do {
-                    sum += Gp_ItemDescs[ipBonus[2]].price;
-                    ipBonus++;
+                    sum += Gp_ItemDescs[row->items[j]].price;
                     j++;
                 } while (j < 3);
                 bonus_i++;
@@ -506,10 +476,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
         arg0->killCountdown = remaining;
         if ((remaining << 0x10) <= 0) {
             arg0->killCountdown = 0;
-            tmp                 = state;
-            SOFT_TOUCH_REG(tmp);
-            tmp         = tmp + 1;
-            arg0->state = tmp;
+            arg0->state         = arg0->state + 1;
         }
     } else if (state == 2) {
         n = list->field_4;
@@ -583,36 +550,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
     req3.otIndex    = ot3 + 1;
     func_8002E53C(&req3, D_replay_bonus_8011579C);
 
-    cfgDraw = &Player_Status;
-    i       = (s8)list->field_9;
-    nDraw   = list->field_4;
-    sum     = 0;
-    if (i < nDraw) {
-        lo = (s32)Gp_ItemDescs;
-        hi = (s32)D_8010DE38;
-        SOFT_BARRIER();
-        ids32 = (s32)((ReplayBonusCtx*)obj)->itemList->itemIds;
-        off   = i * 2;
-        ip    = (s16*)(off + ids32);
-        do {
-            item    = *ip;
-            idxDraw = item;
-            if (item < 0x100) {
-                ptr = (item * 8) + lo;
-            } else {
-                ptr = ((idxDraw - 0x100) * 8) + hi;
-            }
-            price = ((GpItemDesc*)ptr)->price;
-            SOFT_TOUCH_REG(price);
-            sum += price >> 1;
-            i++;
-            ip++;
-        } while (i < nDraw);
-    }
-    sum += cfgDraw->bp;
-    if (sum > 0x05F5E0FF) {
-        sum = 0x05F5E0FF;
-    }
+    sum = _replayBonusTotalBp(list, (ReplayBonusCtx*)obj);
     Text_DrawPrompt(obj, -xOff, yOff, Text_ItoaUnsigned(buf, (u32)sum), 0x606060, 3, 2);
     if ((obj->status == 1) && (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
         obj->field_2E = 6;

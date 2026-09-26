@@ -141615,3 +141615,25 @@ because its `lbu` of the width is scheduled into it. That gave 100% with no pins
 `&table[...]` pointer local, which swapped the `addu` operands. If the target
 shows one surviving duplicate of a loop tail next to constants that stay
 unhoisted, write the tail into each arm.
+
+## `lhu` then `sra`, and a `move` copy used only in the `else` arm: an inlined lookup helper called with an expression (func_replay_bonus_80115ED0, 2026-09-26)
+
+The replay-bonus BP total sums `price >> 1` over item ids, taking the price
+from `Gp_ItemDescs[id]` below 0x100 and from the high table otherwise. The
+target has two details the seed held with `SOFT_TOUCH_REG(price)` and an
+`idx = item` copy: `lhu` followed by `sra` (not `srl`), and `move a0,v1` in the
+branch's delay slot, with only the `else` arm reading `a0`.
+
+- `sra` after a zero-extending load means the load and the shift sat in
+  different blocks when combine ran: each arm loaded the price itself, the
+  shift came after the join, and jump2 cross-jumped the two loads afterwards.
+  One `sum += tbl[i].price >> 1` per arm gives `srl`.
+- The copy is an inline helper's parameter. Pass it an *expression*
+  (`_price(ctx->itemList->itemIds[i])`), not a named local: the load goes to a
+  temp, the parameter is a second pseudo, and cse replaces it by the temp in
+  the test and the fall-through arm but not in the jumped-to `else` block.
+  Passing an already-loaded local gives the parameter no copy at all.
+
+The whole sum, `+ Player_Status.bp` through a `cfg` local and the 99999999
+clamp, is also the out-of-line `func_replay_bonus_801175F0`; inlined twice
+here, it needed no pins.
