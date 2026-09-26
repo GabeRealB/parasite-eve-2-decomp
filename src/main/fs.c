@@ -1021,109 +1021,72 @@ static const char D_800132FC[] = ".STR";
 static const char D_80013304[] = "STAGE0.HED";
 static const char D_80013310[] = "INIT.BS";
 
-void Fs_ScanIsoDirectory(s32 mode)
+/// Starts a ReadN of `sector` onwards into `dest`, reusing the position of a
+/// preceding seek when it targeted the same sector.
+static inline void _fsStartRead(s32 sector, s32 endSector, u8* dest, u8 phase)
 {
-    CdlLOC       loc[2];
-    register u8* entry asm("s0");
-    u8*          dest;
-    s32          initBsSector;
-    s32          initBsCount;
-    s32          sector;
-    s32          done;
-    s32          i;
-    s32          hasDot;
-    u8*          namePtr;
-    u8           idx;
-    s32          c;
-    s32          phase;
-    s32          endSec;
-    u8*          p;
-    u8**         slot;
+    CdlLOC loc[2];
 
-    initBsSector = 0;
-    initBsCount  = initBsSector;
-
-    SetMem(2);
-
-restart:
-    dest = (u8*)&Fs_CdSector;
-    {
-        s32 sync;
-        sync   = CdSync(1, NULL);
-        sector = 0x16;
-        if (sync == CdlDiskError) {
-            Fs_WaitDiskReset(true);
-        }
+    if (CdSync(1, NULL) == CdlDiskError) {
+        Fs_WaitDiskReset(true);
     }
 
     Fs_CdOpStatus     = 0;
-    Fs_ChunkEndFlag   = 0xFF;
-    Fs_LoadPhase      = 0;
+    Fs_ChunkEndFlag   = -1;
+    Fs_LoadPhase      = phase;
     Fs_ReqSector      = sector;
-    Fs_ChunkEndSector = sector;
+    Fs_ChunkEndSector = endSector;
     Fs_ChunkWritePtr  = dest;
     Fs_VBlank         = VSync(-1);
-
     if (Fs_SeekSector == sector) {
         CdControlF(CdlReadN, NULL);
         CdReadyCallback(Fs_ReadNReadyCb);
         Fs_SeekSector = 0;
     } else {
         CdIntToPos(sector, loc);
-        CdControlF(CdlReadN, (u8*)loc);
+        CdControlF(CdlReadN, &loc[0].minute);
         CdSyncCallback(Fs_ReadNReadyCb);
         Fs_SeekSector = 0;
     }
+}
 
-    if (Fs_CdOpStatus != 0xFF) {
-        do {
-            if (Fs_CdOpStatus == 0x80) {
-                Fs_ClearDiskError();
-                goto restart;
-            }
-            VSync(0);
-        } while (Fs_CdOpStatus != 0xFF);
+void Fs_ScanIsoDirectory(s32 mode)
+{
+    u8* entry;
+    s32 initBsSector;
+    s32 initBsCount;
+    s32 done;
+    s32 i;
+    s32 hasDot;
+    u8  idx;
+    s32 c;
+
+    initBsSector = 0;
+    initBsCount  = 0;
+
+    SetMem(2);
+
+restart:
+    _fsStartRead(0x16, 0x16, Fs_CdSector.bytes, 0);
+    while (Fs_CdOpStatus != 0xFF) {
+        if (Fs_CdOpStatus == 0x80) {
+            Fs_ClearDiskError();
+            goto restart;
+        }
+        VSync(0);
     }
 
-    entry = (u8*)&Fs_CdSector;
-    if (entry[0] != 0x30 || entry[1] != 0) {
-        {
-            s32 sync;
-            sync   = CdSync(1, NULL);
-            sector = 0x14;
-            if (sync == CdlDiskError) {
-                Fs_WaitDiskReset(true);
-            }
-        }
+    {
+        u8* sec = Fs_CdSector.bytes;
 
-        Fs_CdOpStatus     = 0;
-        Fs_ChunkEndFlag   = 0xFF;
-        Fs_LoadPhase      = 0;
-        Fs_ReqSector      = sector;
-        Fs_ChunkEndSector = sector;
-        Fs_ChunkWritePtr  = entry;
-        Fs_VBlank         = VSync(-1);
-
-        if (Fs_SeekSector == sector) {
-            CdControlF(CdlReadN, NULL);
-            CdReadyCallback(Fs_ReadNReadyCb);
-            Fs_SeekSector = 0;
-        } else {
-            CdIntToPos(sector, loc);
-            CdControlF(CdlReadN, (u8*)loc);
-            CdSyncCallback(Fs_ReadNReadyCb);
-            Fs_SeekSector = 0;
-        }
-
-        if (Fs_CdOpStatus != 0xFF) {
-            if (1) {
-                do {
-                    if (Fs_CdOpStatus == 0x80) {
-                        Fs_ClearDiskError();
-                        goto restart;
-                    }
-                    VSync(0);
-                } while (Fs_CdOpStatus != 0xFF);
+        if (sec[0] != 0x30 || sec[1] != 0) {
+            _fsStartRead(0x14, 0x14, sec, 0);
+            while (Fs_CdOpStatus != 0xFF) {
+                if (Fs_CdOpStatus == 0x80) {
+                    Fs_ClearDiskError();
+                    goto restart;
+                }
+                VSync(0);
             }
         }
     }
@@ -1134,13 +1097,7 @@ restart:
         idx++;
     } while (idx < 6);
 
-    {
-        s32 hi;
-        __asm__ volatile(
-            "lui %0, %%hi(Fs_CdSector)\n\t"
-            "addiu %1, %0, %%lo(Fs_CdSector)"
-            : "=&r"(hi), "=r"(entry));
-    }
+    entry                = Fs_CdSector.bytes;
     done                 = 0;
     D_8006AC30.field_4   = 0;
     Wip_SysFlags.field_0 = 0;
@@ -1167,29 +1124,25 @@ restart:
                     i++;
                 }
                 if ((hasDot & 0xFF) != 0) {
-                    {
-                        s32   nameIdx;
-                        char* s;
-                        s       = D_800132F4;
-                        nameIdx = i & 0xFF;
-                        TOUCH_REG2(s, nameIdx);
-                        namePtr = (entry + 0x21) + nameIdx;
-                        if (strncmp(s, (char*)namePtr, 4) == 0) {
-                            u8 stageNum;
-                            stageNum = entry[0x20 + nameIdx] - 0x30;
-                            Fs_StageCdfSectors[stageNum & 0xFF] =
-                                *(u16*)(entry + 2) + (*(u16*)(entry + 4) << 16);
-                        } else if (strncmp(D_800132FC, (char*)namePtr, 4) == 0) {
-                            D_8006AC30.sector =
-                                *(u16*)(entry + 2) + (*(u16*)(entry + 4) << 16);
-                        } else if (strncmp(D_80013304, (char*)(entry + 0x21), 0xA) == 0) {
-                            Fs_Stage0HedSector =
-                                *(u16*)(entry + 2) + (*(u16*)(entry + 4) << 16);
-                        } else if (strncmp(D_80013310, (char*)(entry + 0x21), 7) == 0) {
-                            initBsCount = 0x10;
-                            initBsSector =
-                                *(u16*)(entry + 2) + (*(u16*)(entry + 4) << initBsCount);
-                        }
+                    s32 nameIdx = i & 0xFF;
+                    u8* name    = &entry[0x21 + nameIdx];
+
+                    if (strncmp(D_800132F4, (char*)name, 4) == 0) {
+                        u8 stageNum;
+
+                        stageNum = entry[0x20 + nameIdx] - 0x30;
+                        Fs_StageCdfSectors[stageNum] =
+                            *(u16*)(entry + 2) + (*(u16*)(entry + 4) << 16);
+                    } else if (strncmp(D_800132FC, (char*)name, 4) == 0) {
+                        D_8006AC30.sector =
+                            *(u16*)(entry + 2) + (*(u16*)(entry + 4) << 16);
+                    } else if (strncmp(D_80013304, (char*)(entry + 0x21), 0xA) == 0) {
+                        Fs_Stage0HedSector =
+                            *(u16*)(entry + 2) + (*(u16*)(entry + 4) << 16);
+                    } else if (strncmp(D_80013310, (char*)(entry + 0x21), 7) == 0) {
+                        initBsCount = 0x10;
+                        initBsSector =
+                            *(u16*)(entry + 2) + (*(u16*)(entry + 4) << 16);
                     }
                 }
             case 0x30:
@@ -1222,61 +1175,27 @@ restart:
             D5B498_8006D850 = NULL;
             D5B498_8006D748 = 0;
             D5B498_8006D858 = 1;
-            slot            = &D_8006C4D4;
-            p               = (u8*)&Fs_CdSector;
-            *slot           = p + 0x800;
+            D_8006C4D4      = Fs_CdSector.bytes;
+            D_8006C4D4     += FS_SECTOR_BYTE_SIZE;
             CdCmd_RequestVlcRebuild();
 
-            {
-                s32          sync2;
-                register s32 endSecR asm("s1");
-                phase   = 5;
-                sync2   = CdSync(1, NULL);
-                endSecR = initBsSector + initBsCount;
-                if (sync2 == phase) {
-                    Fs_WaitDiskReset(true);
+            _fsStartRead(initBsSector, initBsSector + initBsCount, NULL, 5);
+            while (Fs_CdOpStatus != 0xFF) {
+                if (Fs_CdOpStatus == 0x80) {
+                    if (CdSync(1, NULL) == CdlDiskError) {
+                        Fs_WaitDiskReset(true);
+                    }
+                    goto restart;
                 }
-
-                Fs_CdOpStatus     = 0;
-                Fs_ChunkEndFlag   = 0xFF;
-                Fs_LoadPhase      = phase;
-                Fs_ReqSector      = initBsSector;
-                Fs_ChunkEndSector = endSecR;
-                Fs_ChunkWritePtr  = 0;
-                Fs_VBlank         = VSync(-1);
-            }
-
-            if (Fs_SeekSector == initBsSector) {
-                CdControlF(CdlReadN, NULL);
-                CdReadyCallback(Fs_ReadNReadyCb);
-                Fs_SeekSector = 0;
-            } else {
-                CdIntToPos(initBsSector, loc);
-                CdControlF(CdlReadN, (u8*)loc);
-                CdSyncCallback(Fs_ReadNReadyCb);
-                Fs_SeekSector = 0;
-            }
-
-            if (Fs_CdOpStatus != 0xFF) {
-                do {
-                    do {
-                        if (Fs_CdOpStatus != 0x80) {
-                            VSync(0);
-                        } else {
-                            if (CdSync(1, NULL) != 5) {
-                                goto restart;
-                            }
-                            Fs_WaitDiskReset(true);
-                            goto restart;
-                        }
-                    } while (0);
-                } while (Fs_CdOpStatus != 0xFF);
+                VSync(0);
             }
             Fs_ClearDiskError();
         }
     }
 
     if (Fs_Stage0HedSector != 0) {
+        CdlLOC loc[2];
+
         Fs_CdOpStatus       = 0;
         Fs_FileTableLen     = 0;
         Fs_FileTableCat2Len = 0;
@@ -1688,29 +1607,7 @@ u8 Fs_WaitDiskSwap(void)
 
 void Fs_ReadSectorEx(s32 sector, s32 arg1, u8* arg2, u8 arg3)
 {
-    CdlLOC loc[2];
-
-    if (CdSync(1, NULL) == CdlDiskError) {
-        Fs_WaitDiskReset(true);
-    }
-
-    Fs_CdOpStatus     = 0;
-    Fs_ChunkEndFlag   = -1;
-    Fs_LoadPhase      = arg3;
-    Fs_ReqSector      = sector;
-    Fs_ChunkEndSector = arg1;
-    Fs_ChunkWritePtr  = arg2;
-    Fs_VBlank         = VSync(-1);
-    if (Fs_SeekSector == sector) {
-        CdControlF(CdlReadN, NULL);
-        CdReadyCallback(Fs_ReadNReadyCb);
-        Fs_SeekSector = 0;
-    } else {
-        CdIntToPos(sector, loc);
-        CdControlF(CdlReadN, &loc[0].minute);
-        CdSyncCallback(Fs_ReadNReadyCb);
-        Fs_SeekSector = 0;
-    }
+    _fsStartRead(sector, arg1, arg2, arg3);
 }
 
 static void Fs_ReadSector(s32 sector)

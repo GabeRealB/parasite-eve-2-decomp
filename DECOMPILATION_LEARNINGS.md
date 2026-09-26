@@ -143211,3 +143211,16 @@ live range shortens enough that global allocation ranks the two pseudos the
 target's way, so the end-of-function keep-alive was never needed. When a pin
 keeps a pseudo alive past its last use, sweep the position of a *neighbouring*
 local's definition before looking at the pinned one.
+## A function's inlined twin of a later exported function, and a pinned pointer reused across two jobs (Fs_ScanIsoDirectory, 2026-09-26)
+
+The directory scan carried three hand-inlined copies of `Fs_ReadSectorEx`'s
+body, pinned with `entry asm("s0")`, `endSec asm("s1")`, a `TOUCH_REG2` and a
+hand-written `lui/addiu` of the sector buffer. Moving that body into a
+`static inline` helper above the scan (and making the exported function a
+one-line wrapper, which still matches) removed the `s1` pin and the barrier.
+The `s0` pin stood for two pointers that had been folded into one variable:
+the sector-header check and the directory walk each get their own local
+(the check's in a block scope), and the walk's name pointer is a block-scope
+local initialised with its index. A `lui; addiu %lo(SYM); addiu +0x800` pair
+stored to a global came from `g = SYM.bytes; g += 0x800;` - the first store is
+dead and dropped, and the add is not folded back into the `%lo`.
