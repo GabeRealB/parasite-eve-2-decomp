@@ -1205,87 +1205,38 @@ char* Gp_GetItemText(s32 arg0, s32 arg1, s32 arg2)
 
 s32 Gp_NthRelatedId(McItemScan* arg0, s32 arg1, s32 arg2)
 {
-    McItemRec*          tmp;
-    McItemRec*          table;
-    register McItemRec* rec asm("t1");
-    McItemRec*          rec2;
-    PlayerStatus*       cfg;
-    GpItemQty*          table0;
-    GpItemQty*          table1;
-    s32                 idx;
-    register s32        i asm("a3");
-    s32                 item;
-    s32                 off;
-    s32                 temp;
+    McItemRec*    table;
+    s32           idx;
+    s32           i;
+    PlayerStatus* cfg;
 
-    switch (arg0->table) {
-        case 2:
-            tmp = Gp_ItemTable2;
-            break;
-        case 1:
-            tmp = Gp_ItemTable1;
-            break;
-        default:
-            tmp = Mc_SaveData.itemRows;
-            break;
-    }
-    table = tmp;
+    table = _gpScanTable(arg0);
     idx   = arg0->firstRow;
     cfg   = &Player_Status;
-    if (arg1 >= 0) {
-        table0 = Gp_RelatedQty0;
-        table1 = Gp_RelatedQty1;
-        temp   = idx << 2;
-        rec    = (McItemRec*)(temp + (s32)table);
-        do {
-            if ((u8)(rec->itemId + 0x80) < 0x20) {
-                rec2 = rec;
-                if (arg2 == 0) {
-                    goto decrement;
-                }
-                i = 0;
-                USE_REG(i);
-                item = rec->itemId;
-                off  = (item - 0x80) * 4;
-                item = item - 0x7F;
-                do {
-                    temp = i + off;
-                    if (((GpItemQty*)(temp + (s32)table0))->related[0] == arg2) {
-                        if (rec2->attachSlot > 0) {
-                            arg1--;
-                        } else if (cfg->weapon == item) {
+    while (arg1 >= 0) {
+        if ((u8)(table[idx].itemId + 0x80) < 0x20) {
+            if (arg2 == 0) {
+                arg1--;
+            } else {
+                for (i = 0; i < 3; i++) {
+                    if (Gp_RelatedQty0[table[idx].itemId - 0x80].related[i] == arg2) {
+                        if (table[idx].attachSlot > 0 || cfg->weapon == table[idx].itemId - 0x7F) {
                             arg1--;
                         }
                         break;
                     }
-                    i++;
-                } while (i < 3);
-
-                i    = 0;
-                item = rec->itemId;
-                rec2 = rec;
-                off  = (item - 0x80) * 4;
-                item = item - 0x7F;
-                do {
-                    temp = i + off;
-                    if (((GpItemQty*)(temp + (s32)table1))->related[0] == arg2) {
-                        if (rec2->attachSlot > 0) {
-                            goto decrement;
+                }
+                for (i = 0; i < 3; i++) {
+                    if (Gp_RelatedQty1[table[idx].itemId - 0x80].related[i] == arg2) {
+                        if (table[idx].attachSlot > 0 || cfg->weapon == table[idx].itemId - 0x7F) {
+                            arg1--;
                         }
-                        if (cfg->weapon != item) {
-                            goto next;
-                        }
-                    decrement:
-                        arg1--;
-                        goto next;
+                        break;
                     }
-                    i++;
-                } while (i < 3);
+                }
             }
-        next:
-            rec++;
-            idx++;
-        } while (arg1 >= 0);
+        }
+        idx++;
     }
     idx--;
     return table[idx].itemId;

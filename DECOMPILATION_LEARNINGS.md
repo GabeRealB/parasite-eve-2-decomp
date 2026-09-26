@@ -143044,3 +143044,21 @@ first field store.
 **Fix.** `slot = _getter(id);` before the `if`, and each arm calling the shared
 inline helper for the second field. A bare `&T[id - 0x80]` loses the copy, and
 the schedule of the `bnez` block changes with it.
+
+## A `move t2,t1` copy of the row pointer before an inner loop is `table[idx]` indexed in place (Gp_NthRelatedId, 2026-09-26)
+
+An outer loop walks item rows (`t1 += 4`, with the index `a0` also kept live
+for use after the loop), and before each inner search loop the target copies
+the row pointer: `move t2,t1`, then reads `lb 1(t2)` inside the inner loop. The
+seed held that shape with a hand-walked `rec` pointer, a second `rec2 = rec`,
+byte-offset casts and pins on `rec` and the inner counter.
+
+It is what loop.c does to `table[idx].field` written everywhere. The inner
+loop is scanned first and hoists the invariant `table + idx*4` into a new
+pseudo; the outer loop then strength-reduces `table + idx*4` into the walked
+giv, and the hoisted computation becomes a copy of it. Writing every access as
+`table[idx].itemId` / `table[idx].attachSlot`, and `Q[table[idx].itemId -
+0x80].related[i]` for the lookup (which keeps the `(i + off) + base` address
+split), matched with no pins. A `cfg = &Player_Status` local set before the
+`while` is what put its `lui` ahead of the loop-entry test; referenced directly,
+loop.c hoisted it into the preheader after the test.
