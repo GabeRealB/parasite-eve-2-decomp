@@ -75,6 +75,38 @@ void func_actor_111800_80131E40(GpCoord* coord, s16 yaw)
     SCRATCH_POP(MATRIX);
 }
 
+/// Advances animation slots 1..0x12 by one frame and latches slot 1's current
+/// record into `field_492`.
+static inline void _actor111800TickAnim(Task* task)
+{
+    Actor111800Work* work = (Actor111800Work*)task->work;
+    u16              i;
+
+    for (i = 1; i < 0x13; i++) {
+        Gp_AnimTickIndex(&work->rig.anim, i);
+    }
+    work->field_492 = work->rig.slots[1].curRec;
+}
+
+/// Cross-fades body slots 1..0x12 of `work`'s animation context to animation
+/// `id` over `frames` frames.
+#define _ACTOR111800_BLEND_SLOTS(work, id, frames)                   \
+    do {                                                             \
+        u16 _i;                                                      \
+        for (_i = 1; _i < 0x13; _i++) {                              \
+            func_800B4114(&(work)->rig.anim, _i, (id), 0, (frames)); \
+        }                                                            \
+    } while (0)
+
+/// Clears the latched record and cross-fades every body slot to `id`.
+static inline void _actor111800Reseed(Task* task, u16 id, u16 frames)
+{
+    Actor111800Work* work = (Actor111800Work*)task->work;
+
+    work->field_492 = 0;
+    _ACTOR111800_BLEND_SLOTS(work, id, frames);
+}
+
 /// Per-frame handler: ticks animation slots 1..0x12, latches `slots[1].curRec`
 /// into `field_492`, then runs the seven-step sequence in `field_484` (reseed,
 /// ramp the two angles, wait, reverse the first angle, reseed again, wait,
@@ -82,40 +114,19 @@ void func_actor_111800_80131E40(GpCoord* coord, s16 yaw)
 void func_actor_111800_8013214C(Task* task)
 {
     Actor111800Work* work;
-    Actor111800Work* ctx;
-    Actor111800Work* work0;
-    Actor111800Work* work4;
-    TmdObject*       obj;
     GpCoord*         coord;
-    s32              i;
     s32              flag1;
     s32              flag2;
-    s32              z;
 
-    i     = 1;
     work  = (Actor111800Work*)task->work;
-    obj   = task->extra.tmd;
-    ctx   = work;
-    coord = obj->coords;
-    do {
-        Gp_AnimTickIndex(&ctx->rig.anim, i & 0xFFFF);
-        i += 1;
-    } while ((u32)(i & 0xFFFF) < 0x13U);
-    SCHED_BARRIER();
-    SCHED_BARRIER();
-    SCHED_BARRIER();
-    ctx->field_492 = ctx->rig.slots[1].curRec;
+    coord = task->extra.tmd->coords;
+    _actor111800TickAnim(task);
     switch (work->field_484) {
         case 0:
-            work0            = (Actor111800Work*)task->work;
-            work0->field_492 = 0;
-            SCHED_BARRIER();
-            i = 1;
-            do {
-                func_800B4114(&work0->rig.anim, i & 0xFFFF, 0, 0, 0xF);
-                i += 1;
-            } while ((u32)(i & 0xFFFF) < 0x13U);
-            goto advance;
+            _actor111800Reseed(task, 0, 0xF);
+            work->field_488 = 0;
+            work->field_484++;
+            break;
         case 1:
             flag1 = 0;
             flag2 = 0;
@@ -130,49 +141,42 @@ void func_actor_111800_8013214C(Task* task)
                 flag2 = 1;
             }
             if (flag2 & flag1) {
-                goto advance;
+                work->field_488 = 0;
+                work->field_484++;
             }
             break;
         case 2:
-            work->field_488 += 1;
-            if ((u32)work->field_488 < 0x1FU) {
-                break;
+            work->field_488++;
+            if (work->field_488 >= 0x1F) {
+                work->field_484++;
             }
-            work->field_484 += 1;
             break;
         case 3:
             if (work->field_48C < 0x2AA) {
                 work->field_48C += 0x80;
-                break;
+            } else {
+                work->field_488 = 0;
+                work->field_484++;
             }
-            goto advance;
+            break;
         case 4:
-            work->field_488 += 1;
-            if ((u32)work->field_488 < 0x10U) {
-                break;
+            work->field_488++;
+            if (work->field_488 >= 0x10) {
+                _actor111800Reseed(task, 2, 0xA);
+                work->field_488 = 0;
+                work->field_484++;
             }
-            i                = 1;
-            work4            = (Actor111800Work*)task->work;
-            work4->field_492 = 0;
-            SCHED_BARRIER();
-            do {
-                func_800B4114(&work4->rig.anim, i & 0xFFFF, 2, 0, 0xA);
-                i += 1;
-            } while ((u32)(i & 0xFFFF) < 0x13U);
-            goto advance;
+            break;
         case 5:
-            work->field_488 += 1;
-            if ((u32)work->field_488 < 2U) {
-                break;
+            work->field_488++;
+            if (work->field_488 >= 2) {
+                work->field_488 = 0;
+                work->field_484++;
             }
-        advance:
-            work->field_488  = 0;
-            work->field_484 += 1;
             break;
         case 6:
-            z                 = coord->coord.t[2];
-            coord->flg        = 0;
-            coord->coord.t[2] = z - 0x96;
+            coord->flg         = 0;
+            coord->coord.t[2] -= 0x96;
             break;
     }
 }
