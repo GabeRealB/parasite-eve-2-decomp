@@ -143281,3 +143281,13 @@ jump2; reorg then steals the join's first insn into that jump's slot and
 retargets it one insn on. Without a default, or with an empty one, the arm
 falls through. Removing the preset instead (setting -1 only in the arms that
 need it) changes allocation throughout.
+### `move v0,aN; jr ra; nop` after a filled early return is one `return` after an if/else (Text_ItoaHex, 2026-09-26)
+
+Target: the early path ends `jr ra` / `addu v0,a0,zero` in the slot, while the
+final path ends `move v0,a0; jr ra; nop`. Writing `return arg0;` in both places
+fills both slots; `ret = arg0; SOFT_TOUCH_REG(ret)` was the carrier. The
+original has a single exit: `if (x == 0) { ...; } else { ...; } return arg0;`.
+Jump threading still gives the short arm its own filled `jr`, but the fall-through
+return keeps its move out of the delay slot. In the same body, a digit stored and
+then masked (`sb v0; andi v1,v0,0xFF`) is `*dest = q; digit = *dest;` with a
+`u32 digit` - no barrier between the store and the mask is needed.

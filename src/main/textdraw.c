@@ -809,45 +809,37 @@ static u8* Text_ItoaHex(u8* arg0, u32 arg1)
         u8 data[2];
     } Bytes2;
 
-    u8*          dest;
-    register u32 place asm("a2");
-    u32          digit;
-    u32          temp;
-    s32          prod;
-    u8*          ret;
+    u8* dest;
+    u32 place;
+    u32 digit;
 
     place = 0x10000000;
     if (arg1 == 0) {
         *(Bytes2*)arg0 = *(Bytes2*)D_800138C8;
-        return arg0;
+    } else {
+        dest = arg0;
+        if (arg1 < place) {
+            do {
+                place >>= 4;
+            } while (arg1 < place);
+        }
+        if (place != 0) {
+            do {
+                *dest   = arg1 / place;
+                digit   = *dest;
+                arg1   -= digit * place;
+                place >>= 4;
+                if (digit >= 10) {
+                    *dest = digit + 0x37;
+                } else {
+                    *dest = digit + 0x30;
+                }
+                dest++;
+            } while (place != 0);
+        }
+        *dest = 0;
     }
-    dest = arg0;
-    if (arg1 < place) {
-        do {
-            place >>= 4;
-        } while (arg1 < place);
-    }
-    if (place != 0) {
-        do {
-            digit = arg1 / place;
-            *dest = digit;
-            SOFT_BARRIER();
-            temp    = digit & 0xFF;
-            prod    = temp * place;
-            place >>= 4;
-            arg1   -= prod;
-            if (temp >= 10U) {
-                *dest = temp + 0x37;
-            } else {
-                *dest = temp + 0x30;
-            }
-            dest++;
-        } while (place != 0);
-    }
-    *dest = 0;
-    ret   = arg0;
-    SOFT_TOUCH_REG(ret);
-    return ret;
+    return arg0;
 }
 
 u8* func_8002F44C(u8* arg0, s32 arg1, s32 arg2)
