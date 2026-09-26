@@ -57,6 +57,9 @@ void Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1);
 void func_801061F0(void);
 void Gp_NoticePanelTask(Task* arg0);
 
+/* Total quantity of item `id` held, via a fresh scan covering every row. */
+#define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = 0xFF, Gp_SumScanQty(&(scan), (id)))
+
 s32 func_800B7420(s32 arg0)
 {
     McItemScan scan;
@@ -74,9 +77,7 @@ s32 func_800B7420(s32 arg0)
         case 0x9C:
             for (i = 0; i < 8; i++) {
                 id = D_8010D318[i];
-                memset(&scan, 0, sizeof(scan));
-                scan.rowCount = 0xFF;
-                if (Gp_SumScanQty(&scan, id)) {
+                if (GP_TOTAL_QTY(scan, id)) {
                     return 1;
                 }
             }
@@ -86,9 +87,7 @@ s32 func_800B7420(s32 arg0)
         case 0x83:
             for (i = 0; i < 2; i++) {
                 id = D_8010D320[i];
-                memset(&scan, 0, sizeof(scan));
-                scan.rowCount = 0xFF;
-                if (Gp_SumScanQty(&scan, id)) {
+                if (GP_TOTAL_QTY(scan, id)) {
                     return 1;
                 }
             }
@@ -99,142 +98,73 @@ s32 func_800B7420(s32 arg0)
         case 0x9F:
             for (i = 0; i < 3; i++) {
                 id = D_8010D324[i];
-                memset(&scan, 0, sizeof(scan));
-                scan.rowCount = 0xFF;
-                if (Gp_SumScanQty(&scan, id)) {
+                if (GP_TOTAL_QTY(scan, id)) {
                     return 1;
                 }
             }
             return 0;
 
         case 0x9:
-            memset(&scan, 0, sizeof(scan));
-            scan.rowCount = 0xFF;
-            if (Gp_SumScanQty(&scan, 0x9F)) {
+            if (GP_TOTAL_QTY(scan, 0x9F)) {
                 return 1;
             }
-            memset(&scan, 0, sizeof(scan));
-            scan.rowCount = 0xFF;
-            if (Gp_SumScanQty(&scan, 0x9E)) {
-                memset(&scan, 0, sizeof(scan));
-                scan.rowCount = 0xFF;
-                if (Gp_SumScanQty(&scan, 0x9)) {
+            if (GP_TOTAL_QTY(scan, 0x9E)) {
+                if (GP_TOTAL_QTY(scan, 0x9)) {
                     return 1;
                 }
             }
-            memset(&scan, 0, sizeof(scan));
-            scan.rowCount = 0xFF;
-            return Gp_SumScanQty(&scan, 0x9) >= 2;
+            return GP_TOTAL_QTY(scan, 0x9) >= 2;
 
         case 0xA:
-            memset(&scan, 0, sizeof(scan));
-            scan.rowCount = 0xFF;
-            if (Gp_SumScanQty(&scan, 0x94)) {
+            if (GP_TOTAL_QTY(scan, 0x94)) {
                 return 1;
             }
-            memset(&scan, 0, sizeof(scan));
-            scan.rowCount = 0xFF;
-            if (Gp_SumScanQty(&scan, 0x93)) {
-                memset(&scan, 0, sizeof(scan));
-                scan.rowCount = 0xFF;
-                if (Gp_SumScanQty(&scan, 0xA)) {
+            if (GP_TOTAL_QTY(scan, 0x93)) {
+                if (GP_TOTAL_QTY(scan, 0xA)) {
                     return 1;
                 }
             }
-            memset(&scan, 0, sizeof(scan));
-            scan.rowCount = 0xFF;
-            return Gp_SumScanQty(&scan, 0xA) >= 2;
+            return GP_TOTAL_QTY(scan, 0xA) >= 2;
 
         case 0xC:
-            memset(&scan, 0, sizeof(scan));
-            scan.rowCount = 0xFF;
-            if (Gp_SumScanQty(&scan, 0x80)) {
+            if (GP_TOTAL_QTY(scan, 0x80) || GP_TOTAL_QTY(scan, 0xC)) {
                 return 1;
             }
-            memset(&scan, 0, sizeof(scan));
-            scan.rowCount = 0xFF;
-            if (Gp_SumScanQty(&scan, 0xC)) {
-                return 1;
-            }
-            /* Keeps GCC from cross-jumping the identical two-probe case tails. */
-            SOFT_COMPILER_BARRIER();
             return 0;
 
         case 0x42:
-            memset(&scan, 0, sizeof(scan));
-            scan.rowCount = 0xFF;
-            if (Gp_SumScanQty(&scan, 0x98)) {
+            if (GP_TOTAL_QTY(scan, 0x98) || GP_TOTAL_QTY(scan, 0x42)) {
                 return 1;
             }
-            memset(&scan, 0, sizeof(scan));
-            scan.rowCount = 0xFF;
-            if (Gp_SumScanQty(&scan, 0x42)) {
-                return 1;
-            }
-            SOFT_COMPILER_BARRIER();
             return 0;
 
         case 0x43:
-            memset(&scan, 0, sizeof(scan));
-            scan.rowCount = 0xFF;
-            if (Gp_SumScanQty(&scan, 0x9B)) {
+            if (GP_TOTAL_QTY(scan, 0x9B) || GP_TOTAL_QTY(scan, 0x43)) {
                 return 1;
             }
-            memset(&scan, 0, sizeof(scan));
-            scan.rowCount = 0xFF;
-            if (Gp_SumScanQty(&scan, 0x43)) {
-                return 1;
-            }
-            SOFT_COMPILER_BARRIER();
             return 0;
 
         case 0x44:
-            memset(&scan, 0, sizeof(scan));
-            scan.rowCount = 0xFF;
-            if (Gp_SumScanQty(&scan, 0x9C)) {
+            if (GP_TOTAL_QTY(scan, 0x9C) || GP_TOTAL_QTY(scan, 0x44)) {
                 return 1;
             }
-            memset(&scan, 0, sizeof(scan));
-            scan.rowCount = 0xFF;
-            if (Gp_SumScanQty(&scan, 0x44)) {
-                return 1;
-            }
-            SOFT_COMPILER_BARRIER();
             return 0;
 
         case 0x45:
-            memset(&scan, 0, sizeof(scan));
-            scan.rowCount = 0xFF;
-            if (Gp_SumScanQty(&scan, 0x9A)) {
+            if (GP_TOTAL_QTY(scan, 0x9A) || GP_TOTAL_QTY(scan, 0x45)) {
                 return 1;
             }
-            memset(&scan, 0, sizeof(scan));
-            scan.rowCount = 0xFF;
-            if (Gp_SumScanQty(&scan, 0x45)) {
-                return 1;
-            }
-            SOFT_COMPILER_BARRIER();
             return 0;
 
         case 0x46:
-            memset(&scan, 0, sizeof(scan));
-            scan.rowCount = 0xFF;
-            if (Gp_SumScanQty(&scan, 0x99)) {
+            if (GP_TOTAL_QTY(scan, 0x99) || GP_TOTAL_QTY(scan, 0x46)) {
                 return 1;
             }
-            memset(&scan, 0, sizeof(scan));
-            scan.rowCount = 0xFF;
-            if (Gp_SumScanQty(&scan, 0x46)) {
-                return 1;
-            }
-            SOFT_COMPILER_BARRIER();
             return 0;
 
         default:
             if ((u32)(arg0 - 0x60) < 0x40) {
-                memset(&scan, 0, sizeof(scan));
-                scan.rowCount = 0xFF;
-                return Gp_SumScanQty(&scan, arg0);
+                return GP_TOTAL_QTY(scan, arg0);
             }
             return 0;
     }
