@@ -591,49 +591,43 @@ void func_actor_121300_8013293C(Task* arg0)
 /// Spawns the fifteen debris variants for one waypoint, then releases this task.
 void func_actor_121300_80133064(Task* task)
 {
-    Task* dispatch = task;
     void* alloc;
 
-    u32 active = D_actor_121300_8013D41C;
-
-    /* Keep the disabled path in a0. The ra dependency orders the entry
-     * copy without fencing the s0 save out of the branch delay slot. */
-    __asm__("" : "+r"(dispatch) : : "$31");
-    if (active != 0) {
-        switch (dispatch->state) {
-            case 0:
-                alloc          = Mem_Malloc(8, 0);
-                dispatch->work = alloc;
-                if (alloc != NULL) {
-                    Mem_Set(alloc, 0, 8);
-                    dispatch->state += 1;
-                    return;
-                }
-                break;
-            case 1:
-                Task_SpawnFromTable(&D_actor_121300_8013D390, 4, dispatch->spawnArg1, 0);
-                Task_SpawnFromTable(&D_actor_121300_8013D390, 5, dispatch->spawnArg1, 1);
-                Task_SpawnFromTable(&D_actor_121300_8013D390, 6, dispatch->spawnArg1, 2);
-                Task_SpawnFromTable(&D_actor_121300_8013D390, 7, dispatch->spawnArg1, 3);
-                Task_SpawnFromTable(&D_actor_121300_8013D390, 8, dispatch->spawnArg1, 4);
-                Task_SpawnFromTable(&D_actor_121300_8013D390, 4, dispatch->spawnArg1, 5);
-                Task_SpawnFromTable(&D_actor_121300_8013D390, 5, dispatch->spawnArg1, 6);
-                Task_SpawnFromTable(&D_actor_121300_8013D390, 6, dispatch->spawnArg1, 7);
-                Task_SpawnFromTable(&D_actor_121300_8013D390, 7, dispatch->spawnArg1, 8);
-                Task_SpawnFromTable(&D_actor_121300_8013D390, 8, dispatch->spawnArg1, 9);
-                Task_SpawnFromTable(&D_actor_121300_8013D390, 4, dispatch->spawnArg1, 0xA);
-                Task_SpawnFromTable(&D_actor_121300_8013D390, 5, dispatch->spawnArg1, 0xB);
-                Task_SpawnFromTable(&D_actor_121300_8013D390, 6, dispatch->spawnArg1, 0xC);
-                Task_SpawnFromTable(&D_actor_121300_8013D390, 7, dispatch->spawnArg1, 0xD);
-                Task_SpawnFromTable(&D_actor_121300_8013D390, 8, dispatch->spawnArg1, 0xE);
-                break;
-            default:
-                return;
-        }
-        taskKill(dispatch);
-    } else {
+    if (D_actor_121300_8013D41C == 0) {
         taskKill(task);
+        return;
     }
+    switch (task->state) {
+        case 0:
+            alloc      = Mem_Malloc(8, 0);
+            task->work = alloc;
+            if (alloc != NULL) {
+                Mem_Set(alloc, 0, 8);
+                task->state += 1;
+                return;
+            }
+            break;
+        case 1:
+            Task_SpawnFromTable(&D_actor_121300_8013D390, 4, task->spawnArg1, 0);
+            Task_SpawnFromTable(&D_actor_121300_8013D390, 5, task->spawnArg1, 1);
+            Task_SpawnFromTable(&D_actor_121300_8013D390, 6, task->spawnArg1, 2);
+            Task_SpawnFromTable(&D_actor_121300_8013D390, 7, task->spawnArg1, 3);
+            Task_SpawnFromTable(&D_actor_121300_8013D390, 8, task->spawnArg1, 4);
+            Task_SpawnFromTable(&D_actor_121300_8013D390, 4, task->spawnArg1, 5);
+            Task_SpawnFromTable(&D_actor_121300_8013D390, 5, task->spawnArg1, 6);
+            Task_SpawnFromTable(&D_actor_121300_8013D390, 6, task->spawnArg1, 7);
+            Task_SpawnFromTable(&D_actor_121300_8013D390, 7, task->spawnArg1, 8);
+            Task_SpawnFromTable(&D_actor_121300_8013D390, 8, task->spawnArg1, 9);
+            Task_SpawnFromTable(&D_actor_121300_8013D390, 4, task->spawnArg1, 0xA);
+            Task_SpawnFromTable(&D_actor_121300_8013D390, 5, task->spawnArg1, 0xB);
+            Task_SpawnFromTable(&D_actor_121300_8013D390, 6, task->spawnArg1, 0xC);
+            Task_SpawnFromTable(&D_actor_121300_8013D390, 7, task->spawnArg1, 0xD);
+            Task_SpawnFromTable(&D_actor_121300_8013D390, 8, task->spawnArg1, 0xE);
+            break;
+        default:
+            return;
+    }
+    taskKill(task);
 }
 
 /// Texture loader: uploads CLUT/texel blocks into the texture page
