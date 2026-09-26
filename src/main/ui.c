@@ -1554,48 +1554,21 @@ static void func_80046EEC(UiListRender* arg0, UiPanelRender* arg1, s32 arg2)
 void Ui_DrawHBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     POLY_FT4* p;
-    s16       temp;
     s32       y;
 
     if (arg1 < arg2) {
         p     = (POLY_FT4*)gGpuPrimCursor;
-        temp  = arg0->field_20 + arg1;
-        p->x2 = temp;
-        p->x0 = temp;
-        {
-            u16          f20;
-            register s32 next asm("v1");
-            register s32 ur asm("a1");
-
-            f20            = arg0->field_20;
-            next           = (s32)(p + 1);
-            gGpuPrimCursor = (u8*)next;
-            ur             = 0x6F;
-            temp           = f20 + arg2;
-            arg2           = 0x68;
-            p->x3          = temp;
-            p->x1          = temp;
-            y              = arg0->field_22;
-            p->v0          = 0x50;
-            p->v1          = 0x50;
-            p->v2          = 0x57;
-            p->v3          = 0x57;
-            p->tpage       = 0x1E;
-            p->clut        = 0x3C03;
-            setlen(p, 9);
-            p->u1 = ur;
-            p->u3 = ur;
-            p->u0 = arg2;
-            p->u2 = arg2;
-            setcode(p, 0x2D);
-        }
-        y     = y + arg3;
-        temp  = y - 4;
-        y     = y + 3;
-        p->y3 = y;
-        p->y2 = y;
-        p->y1 = temp;
-        p->y0 = temp;
+        p->x0 = p->x2  = arg0->field_20 + arg1;
+        gGpuPrimCursor = (u8*)(p + 1);
+        p->x1 = p->x3 = arg0->field_20 + arg2;
+        y             = arg0->field_22 + arg3;
+        p->y0 = p->y1 = y - 4;
+        p->y2 = p->y3 = y + 3;
+        setUV4(p, 0x68, 0x50, 0x6F, 0x50, 0x68, 0x57, 0x6F, 0x57);
+        p->tpage = 0x1E;
+        p->clut  = 0x3C03;
+        setPolyFT4(p);
+        setShadeTex(p, 1);
         addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 2, p);
     }
 }
