@@ -143135,3 +143135,14 @@ load wins 8 refs over 86 against the block's 12 over 140, and neither span can
 move past the calls and volatile asm that bound them. Wrapping any single
 statement range in `do { } while (0)` doubles the refs inside it, but loop
 notes are also scheduling barriers, and no range matched.
+## A constant loaded into a callee-saved register and never read is a case compare that jump2 deleted (Gp_LoadImages, 2026-09-26)
+
+The target set `li $s4,0xFF` in the prologue of a record-walking loop and never
+used `$s4` again; the seed kept it with a pinned `max` local and
+`SOFT_USE_REG`. The loop was a `switch` with `case 0:` doing the work and both
+`case 0xFF:` and `default:` writing the same `done = 1`. loop.c hoists the
+`0xFF` for the `beq` into a pseudo live across the call, so global allocation
+gives it `$s4`. After reload, jump2 cross-jumps the two identical arms, the
+`beq` then targets its own fall-through and is deleted, and the hoisted load
+is all that is left. Grouping `case 0xFF: default:` or writing `if/else`
+removes the compare before allocation and the `li` goes with it.

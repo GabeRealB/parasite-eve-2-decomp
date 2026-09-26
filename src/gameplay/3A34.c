@@ -3009,36 +3009,32 @@ s32 Gp_LoadActorImage(Task* arg0, GpImgRec* arg1, RECT* arg2)
 
 void Gp_LoadImages(GpImgRec* arg0)
 {
-    void**         scratch;
-    RECT*          head;
-    register RECT* temp asm("v0");
-    RECT*          dest;
-    s32            done;
-    register s32   max asm("s4");
+    RECT* dest;
+    s32   done;
 
-    done                           = 0;
-    scratch                        = SCRATCH_HEAD_ADDR;
-    max                            = 0xFF;
-    head                           = SCRATCH_HEAD_AT(scratch, RECT);
-    temp                           = head - 1;
-    dest                           = temp;
-    SCRATCH_HEAD_AT(scratch, RECT) = dest;
+    done = 0;
+    dest = SCRATCH_PUSH(RECT);
 
     do {
-        if (arg0->field_0 == 0) {
-            dest->x = arg0->rect.x;
-            dest->y = arg0->rect.y;
-            dest->w = arg0->rect.w;
-            dest->h = arg0->rect.h;
-            LoadImage(dest, arg0->data);
-        } else {
-            done = 1;
+        switch (arg0->field_0) {
+            case 0:
+                dest->x = arg0->rect.x;
+                dest->y = arg0->rect.y;
+                dest->w = arg0->rect.w;
+                dest->h = arg0->rect.h;
+                LoadImage(dest, arg0->data);
+                break;
+            case 0xFF:
+                done = 1;
+                break;
+            default:
+                done = 1;
+                break;
         }
         arg0++;
     } while (done == 0);
 
     SCRATCH_POP(RECT);
-    SOFT_USE_REG(max);
 }
 
 void Gp_InitStateF0(void)
