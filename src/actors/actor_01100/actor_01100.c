@@ -2343,7 +2343,6 @@ static void Actor01100_Fn0516C(GpEnemy* enemy, Task* task, ActorsShared80138efcW
     s32         frame;
     s32         n;
     s32         snd;
-    s16         count;
     u16         angle;
     u32         rng;
 
@@ -2366,14 +2365,12 @@ static void Actor01100_Fn0516C(GpEnemy* enemy, Task* task, ActorsShared80138efcW
         work->field_BA4 = 9;
         n               = (rng >> 16) & 0xF;
         if (n < 5) {
-            count = 1;
+            work->field_B8C = 1;
         } else if (n < 0xC) {
-            count = 2;
+            work->field_B8C = 2;
         } else {
-            asm("");
-            count = 3;
+            work->field_B8C = 3;
         }
-        work->field_B8C = count;
         work->field_BAD = -1;
         work->field_BA8 = (u8)work->field_BA8 + 1;
     } else {
