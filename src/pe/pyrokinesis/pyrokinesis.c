@@ -600,36 +600,25 @@ static void func_pyrokinesis_80130130(GpCoord* arg0, s16 arg1, s16 arg2)
 /// Same 0x38 scratch block and body as `Gp_DrawEffSprite7C`.
 static void func_pyrokinesis_801304C4(GpCoord* arg0, s32 arg1)
 {
-    register u8*      head asm("v1");
-    GpQuadScratch*    block;
-    register SVECTOR* v asm("a2");
-    s32               i;
-    GpQuadCorner*     tbl;
-    POLY_FT4*         prim;
-    s32               u;
+    GpQuadScratch* block;
+    s32            i;
+    POLY_FT4*      prim;
+    s32            u;
 
-    head             = SCRATCH_HEAD(u8) - 0x38;
-    block            = (GpQuadScratch*)head;
-    SCRATCH_HEAD(u8) = head;
+    block = SCRATCH_PUSH(GpQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
-    i   = 0;
-    v   = block->vec;
-    tbl = D_80111E38;
-    do {
-        v->vx = tbl->x * arg1;
-        v->vy = 0;
-        v->vz = tbl->y * arg1;
+    for (i = 0; i < 4; i++) {
+        block->vec[i].vx = D_80111E38[i].x * arg1;
+        block->vec[i].vy = 0;
+        block->vec[i].vz = D_80111E38[i].y * arg1;
         gte_SetRotMatrix(&gGfxViewCoord.workm);
-        gte_ldv0(v);
+        gte_ldv0(&block->vec[i]);
         gte_rtv0();
-        gte_stsv(v);
-        (u16) v->vx = (u16)v->vx + (u16)arg0->workm.t[0];
-        tbl++;
-        (u16) v->vy = (u16)v->vy + (u16)arg0->workm.t[1];
-        i++;
-        (u16) v->vz = (u16)v->vz + (u16)arg0->workm.t[2];
-        v++;
-    } while (i < 4);
+        gte_stsv(&block->vec[i]);
+        block->vec[i].vx += arg0->workm.t[0];
+        block->vec[i].vy += arg0->workm.t[1];
+        block->vec[i].vz += arg0->workm.t[2];
+    }
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec[0]);
@@ -661,19 +650,19 @@ static void func_pyrokinesis_801304C4(GpCoord* arg0, s32 arg1)
         u           = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
         prim->v3    = 0x57;
         prim->u3    = u;
-        prim->x0    = (u16)block->sxy0.vx;
-        prim->y0    = (u16)block->sxy0.vy;
-        prim->x1    = (u16)block->sxy1.vx;
-        prim->y1    = (u16)block->sxy1.vy;
-        prim->x2    = (u16)block->sxy2.vx;
-        prim->y2    = (u16)block->sxy2.vy;
-        prim->x3    = (u16)block->sxy3.vx;
-        prim->y3    = (u16)block->sxy3.vy;
+        prim->x0    = block->sxy0.vx;
+        prim->y0    = block->sxy0.vy;
+        prim->x1    = block->sxy1.vx;
+        prim->y1    = block->sxy1.vy;
+        prim->x2    = block->sxy2.vx;
+        prim->y2    = block->sxy2.vy;
+        prim->x3    = block->sxy3.vx;
+        prim->y3    = block->sxy3.vy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x38);
+    SCRATCH_POP(GpQuadScratch);
 }
 
 /// Draws one billboard flame quad: `arg0`'s origin is projected once through

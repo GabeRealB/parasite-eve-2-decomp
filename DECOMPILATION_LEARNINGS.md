@@ -144168,3 +144168,16 @@ changes the block's insn list enough that sched1 picks the target's order with
 no dependence at all. When a hack steers a primitive-building body, look for
 another function in the file that emits the same primitive with the same
 arithmetic; the shared part is likely a helper both called.
+
+## The `D_80111E38` ground-quad loop is an indexed `for` over `SCRATCH_PUSH`, not a pointer walk (func_pyrokinesis_801304C4, 2026-09-26)
+
+Target: `addiu v1,v1,-0x38; move t1,v1; sw v1,0(v0)`, then `move a2,t1` as the
+loop's vector pointer with `sh zero,2(a2)` / `sh t2,0(a2)` - no strength-reduced
+`&v->vy` giv. Seeds written as `head = SCRATCH_HEAD - 0x38; ... do { v->vx = tbl->x
+* s; ...; v++; tbl++; } while (++i < 4)` needed `asm("v1")`/`asm("a2")` pins
+(or a `TOUCH_REG`) to get both the head copy and the plain walker. Written the
+way gameplay's `Gp_DrawEffSprite7C` is - `block = SCRATCH_PUSH(GpQuadScratch);
+for (i = 0; i < 4; i++) { block->vec[i].vx = D_80111E38[i].x * s; ... }` with
+`+=` on the translation - loop strength reduction produces exactly that walker
+and copy with no hack. The same body sits in energyball, hypervelocity and
+m4a1_pyke with pins or barriers.
