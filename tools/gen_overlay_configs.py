@@ -137,6 +137,8 @@ def check_model_records(name: str, objects: list[dict], data: bytes, load: int) 
     import pkg_model
 
     kinds = [(obj.get("kind"), int(str(obj["at"]), 16) if "at" in obj else None) for obj in objects]
+    # Where each object's runs begin: a run's `at`, and every section a unit owns.
+    starts = sorted(int(str(obj[k]), 16) for obj in objects for k in ("at", "rodata", "text", "data") if k in obj)
     for i, (kind, at) in enumerate(kinds):
         if kind == "model":
             nxt = kinds[i + 1] if i + 1 < len(kinds) else (None, None)
@@ -154,7 +156,7 @@ def check_model_records(name: str, objects: list[dict], data: bytes, load: int) 
                 raise SystemExit(
                     f"{name}: the record at 0x{at:X} describes a model at "
                     f"0x{src['head']:X}..0x{src['end']:X}, not the declared 0x{model_at:X}..0x{at:X}")
-            end = next((a for _, a in kinds[i + 1:] if a is not None), len(data))
+            end = next((a for a in starts if a > at), len(data))
             if end != at + pkg_model.TMD_SOURCE_SIZE:
                 raise SystemExit(f"{name}: modelSource at 0x{at:X} runs to 0x{end:X}, not its record's end")
 

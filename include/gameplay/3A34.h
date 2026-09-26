@@ -143,6 +143,9 @@ typedef struct _GpImgRec {
 } GpImgRec;
 STATIC_ASSERT_SIZEOF(GpImgRec, 0x10);
 
+/// `GpImgRec.field_0` of the record that ends a list.
+#define GP_IMG_REC_END 0xFF
+
 /// 16-byte table entry at `Gp_IdParamHi`. Selected when the id's 0x8000 bit
 /// is set. `Gp_GetIdParam0` / `Gp_GetIdParam1` / `Gp_GetIdParam2` return
 /// `field[5]` / `field[6]` / `field[7]` for index `id & 0x7F`.

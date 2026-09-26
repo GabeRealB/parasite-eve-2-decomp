@@ -3056,7 +3056,7 @@ void Gp_LoadImages(GpImgRec* arg0)
                 dest->h = arg0->rect.h;
                 LoadImage(dest, arg0->data);
                 break;
-            case 0xFF:
+            case GP_IMG_REC_END:
                 done = 1;
                 break;
             default:

@@ -392,7 +392,7 @@ objects = [
   { kind = "modelSource", at = "0x1190" },
   { kind = "model", at = "0x11B4" },
   { kind = "modelSource", at = "0x6AA0" },
-  { kind = "data", at = "0x6AC4" },
+  { unit = "aya_10200/aya_10200", data = "0x6AC4" },
 ]
 
 [aya.overlays.aya_10300]
