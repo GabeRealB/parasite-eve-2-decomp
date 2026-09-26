@@ -1429,6 +1429,32 @@ static void func_actor_105100_80134130(Task* arg0)
     }
 }
 
+/// Advances the work block's animation by a frame. A new animation id in
+/// `field_58E` reseeds slots 1..18 from it, with the `D_actor_105100_801414C8`
+/// entry that id selects, and restarts the frame count in `field_592`;
+/// otherwise the count steps on and every slot is ticked.
+static inline void _actor105100AnimUpdate(Task* task)
+{
+    Actor105100Work* work;
+    s32              i;
+    s32              val;
+
+    work = task->work;
+    if ((s16)work->field_58E != work->field_590) {
+        work->field_590 = work->field_58E;
+        work->field_592 = 0;
+        val             = D_actor_105100_801414C8[(s16)work->field_58E];
+        for (i = 1; i < 0x13; i++) {
+            func_800B4114(work, i, (s16)work->field_58E, 0, val);
+        }
+    } else {
+        work->field_592++;
+        for (i = 1; i < 0x13; i++) {
+            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+        }
+    }
+}
+
 /// Teardown handler in `D_actor_105100_80131E24`. Mode 1 of `Gp_StateF0.field_4` only
 /// refreshes the actor colour; mode 2 hides the model and returns. Otherwise it
 /// walks `field_598`: unlink the collision bodies, play the death clip, fire
@@ -1443,8 +1469,6 @@ static void func_actor_105100_80134284(GpEnemy* arg0, Task* arg1)
     GpCoord*         coord;
     Task*            player;
     s32              state;
-    s32              i;
-    s32              val;
     s32              snd;
     s16              flag;
     GpCoord*         colorCoord;
@@ -1491,24 +1515,7 @@ static void func_actor_105100_80134284(GpEnemy* arg0, Task* arg1)
                 Gp_ReleaseStateF0Add(actor, 0x33);
                 work->field_5BA = 1;
             }
-            work = actor->work;
-            i    = 1;
-            if ((s16)work->field_58E != work->field_590) {
-                work->field_590 = work->field_58E;
-                work->field_592 = 0;
-                val             = D_actor_105100_801414C8[(s16)work->field_58E];
-                do {
-                    func_800B4114(work, i, (s16)work->field_58E, 0, val);
-                    i++;
-                } while (i < 0x13);
-            } else {
-                TOUCH_REG(i);
-                work->field_592 += i;
-                do {
-                    Gp_AnimTickIndex((GpAnimCtx*)work, i);
-                    i++;
-                } while (i < 0x13);
-            }
+            _actor105100AnimUpdate(actor);
             goto color_update;
         case 2:
             flag = work->field_5BA;
@@ -1537,24 +1544,7 @@ static void func_actor_105100_80134284(GpEnemy* arg0, Task* arg1)
             if (((s16)work->field_592 >= 0x36) && (work->field_5BA == 0)) {
                 work->field_598 = 3;
             }
-            work = actor->work;
-            i    = 1;
-            if ((s16)work->field_58E != work->field_590) {
-                work->field_590 = work->field_58E;
-                work->field_592 = 0;
-                val             = D_actor_105100_801414C8[(s16)work->field_58E];
-                do {
-                    func_800B4114(work, i, (s16)work->field_58E, 0, val);
-                    i++;
-                } while (i < 0x13);
-            } else {
-                TOUCH_REG(i);
-                work->field_592 += i;
-                do {
-                    Gp_AnimTickIndex((GpAnimCtx*)work, i);
-                    i++;
-                } while (i < 0x13);
-            }
+            _actor105100AnimUpdate(actor);
             goto color_update;
         case 3:
             if (work->field_594 >= 0x201) {
@@ -2516,28 +2506,7 @@ static void func_actor_105100_80136318(Task* arg0)
 
 static void func_actor_105100_80136408(Task* arg0)
 {
-    Actor105100Work* work;
-    s32              i;
-    s32              val;
-
-    work = arg0->work;
-    i    = 1;
-    if ((s16)work->field_58E != work->field_590) {
-        work->field_590 = work->field_58E;
-        work->field_592 = 0;
-        val             = D_actor_105100_801414C8[(s16)work->field_58E];
-        do {
-            func_800B4114(work, i, (s16)work->field_58E, 0, val);
-            i++;
-        } while (i < 0x13);
-    } else {
-        TOUCH_REG(i);
-        work->field_592 += i;
-        do {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
-            i++;
-        } while (i < 0x13);
-    }
+    _actor105100AnimUpdate(arg0);
 }
 
 /// Relights the actor at its model's world position: copies the model
