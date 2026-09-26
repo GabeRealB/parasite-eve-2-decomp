@@ -222,27 +222,12 @@ static void func_actor_135400_80131EB4(Task* task)
 /// area record's texture page / CLUT onto part 1's model. It then installs the
 /// handler table, the 0x7D5 model mode and the exit callback, and finally hands
 /// the 0x7D4 placement and the 0x7D3 animation the game flag 0x6C selects.
-///
-/// `keyPtr` / `TOUCH_REG` are load-bearing: the `&key` argument comes out of
-/// `expand_call` in a fresh pseudo, and left alone `cse` folds the second call
-/// site into it, so the address lives across the first call and costs a
-/// callee-saved register. The touch makes the second call materialise it afresh
-/// -- the ROM's two `addiu $a0,$sp,0x68`.
 static void func_actor_135400_80132064(Task* arg0)
 {
     Actor135400MainWork* work;
     Actor135400Places    places;
     GpAnimArg            anim[2];
-    GpAreaKey            key;
-    GpAreaKey*           sessionKey;
-    GpAreaKey*           keyPtr;
-    u8                   areaByte0;
-    GpAreaRec*           rec;
-    GpAreaPlace*         place;
-    TmdObject*           model;
     Task*                spawned;
-    u32                  raw;
-    s32                  idx;
 
     places = D_actor_135400_80131E48;
     memset(anim, 0, sizeof(anim));
@@ -259,26 +244,7 @@ static void func_actor_135400_80132064(Task* arg0)
     spawned            = Task_SpawnFromTable(&D_actor_135400_8013A4AC, 1, 4, (s32)arg0);
     if (spawned != NULL) {
         work->field_4B8 = spawned;
-        model           = spawned->extra.tmd;
-        sessionKey      = (GpAreaKey*)&gGameSession->at4.loc;
-        raw             = ((GpEnemy*)arg0->spawnArg2)->placeKey;
-        key.stage       = sessionKey->stage;
-        key.area        = sessionKey->area;
-        key.room        = sessionKey->room;
-        areaByte0       = sessionKey->view;
-        keyPtr          = &key;
-        TOUCH_REG(keyPtr);
-        key.view = areaByte0;
-        idx      = raw >> 12;
-        Gp_SyncAreaKeyIndex(keyPtr);
-        rec          = Gp_GetNestedAreaRec(&key);
-        place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
-        model->tpage = place->tpage;
-        model->clut  = place->clut;
-        if (model->buffer != NULL) {
-            tmdProcessStream(model);
-            tmdProcessStream(model);
-        }
+        actorTintTask(spawned, (GpEnemy*)arg0->spawnArg2);
     }
     spawned = Task_SpawnFromTable(&D_actor_135400_8013A4AC, 2, 8, (s32)arg0);
     if (spawned != NULL) {
