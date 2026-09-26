@@ -144318,3 +144318,14 @@ return 1;
 The inner `return 0`s jump to the return label and the trailing `return 1` is
 reached from the guard as well, so there is no lone `x = 0 / x = 1` diamond for
 store-flag to fold.
+
+## A scratch matrix taken with `SCRATCH_PUSH(MATRIX)`, not load-then-store, before `gte_MulMatrix0` (Actor00300_Fn0340C, 2026-09-27)
+
+`RotMatrix(angles, m)` into a scratch-pad `MATRIX` followed by the nine-macro
+`SetRotMatrix / ldclmv / rtir / stclmv` column sequence had its `m` and the
+destination coordinate swapped between `$s0` and `$s1`, and the seed held them
+with `USE_REG(m)`. The block was taken as `m = head - 1; head = m;` - two
+statements. Writing it as one, `m = SCRATCH_PUSH(MATRIX);`, and the column
+sequence as `gte_MulMatrix0(dst, m, dst)` (gtemac.h) matched with no pin; the
+pop pairs as `SCRATCH_POP(MATRIX)`. Look for this spelling wherever a GTE
+column sequence follows a hand-split scratch push.
