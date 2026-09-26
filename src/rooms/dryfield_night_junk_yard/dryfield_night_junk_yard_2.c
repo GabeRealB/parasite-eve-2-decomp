@@ -28,7 +28,7 @@ extern SVECTOR D_dryfield_night_junk_yard_8018077C;
 void func_dryfield_night_junk_yard_8017DBD0(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_dryfield_night_junk_yard_8017E34C(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_dryfield_night_junk_yard_8017E86C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_dryfield_night_junk_yard_8017EC98(GpCoord* arg0, s32 arg1, u8* rgb);
+void func_dryfield_night_junk_yard_8017EC98(GpCoord* arg0, s16 arg1, u8* rgb);
 void func_dryfield_night_junk_yard_8017F51C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 void func_dryfield_night_junk_yard_8017FB9C(GpCoord* arg0, s16 arg1, u8* arg2);
 
@@ -442,54 +442,33 @@ void func_dryfield_night_junk_yard_8017E86C(GpCoord* arg0, s32 arg1, s32 arg2, u
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when the
 /// GTE flag is non-negative, queues eight `POLY_G4` wedges fanned around the
-/// projected centre with radius `(s16)arg1 * 64 / (otz + 1)`. Only the centre
+/// projected centre with radius `arg1 * 64 / (otz + 1)`. Only the centre
 /// vertex takes the `rgb` tint, so each wedge fades to black at the rim.
-void func_dryfield_night_junk_yard_8017EC98(GpCoord* arg0, s32 arg1, u8* rgb)
+void func_dryfield_night_junk_yard_8017EC98(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
     s32             ang;
-    register void** scratch asm("a1");
-    u8*             head;
     s32             otz;
-    s32             radius;
-    s32             t;
-    s32             t2;
-    u16             vz;
 
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = *scratch;
-    USE_REG(head);
-    {
-        register u16 vx asm("v0");
-        vx                                       = (u16)arg0->workm.t[0];
-        ((RoomFanScratch*)(head - 0x18))->vec.vx = vx;
-    }
-    {
-        register u8* tmp asm("v0");
-        tmp   = head - 0x18;
-        block = (RoomFanScratch*)tmp;
-    }
-    block->vec.vy = (u16)arg0->workm.t[1];
-    vz            = (u16)arg0->workm.t[2];
-    *scratch      = block;
-    block->vec.vz = vz;
+    block         = SCRATCH_PUSH(RoomFanScratch);
+    block->vec.vx = arg0->workm.t[0];
+    block->vec.vy = arg0->workm.t[1];
+    block->vec.vz = arg0->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((RoomFanScratch*)(head - 0x18))->sx);
-    gte_stflg(&((RoomFanScratch*)(head - 0x18))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((RoomFanScratch*)(head - 0x18))->otz);
+        gte_stszotz(&block->otz);
         otz           = block->otz + 1;
-        radius        = ((s16)arg1 * 64) / otz;
         block->otz    = otz;
-        block->radius = radius;
+        block->radius = (arg1 * 64) / otz;
 
-        ang = 0;
-        do {
+        for (ang = 0; ang < 0x1000; ang += 0x200) {
             prim           = (POLY_G4*)gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG4(prim);
@@ -498,21 +477,17 @@ void func_dryfield_night_junk_yard_8017EC98(GpCoord* arg0, s32 arg1, u8* rgb)
             setRGB2(prim, rgb[0], rgb[1], rgb[2]);
             setRGB3(prim, 0, 0, 0);
             prim->x0 = block->sx + ((block->radius * rsin(ang)) >> 12);
-            t        = ang + 0x100;
             prim->y0 = block->sy + ((block->radius * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->radius * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->radius * rcos(t)) >> 12);
-            t2       = ang + 0x200;
+            prim->x1 = block->sx + ((block->radius * rsin(ang + 0x100)) >> 12);
+            prim->y1 = block->sy + ((block->radius * rcos(ang + 0x100)) >> 12);
             prim->x2 = block->sx;
             prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->radius * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->radius * rcos(t2)) >> 12);
-            ang      = t2;
-            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                              (s32)gGpuCurrentOt),
+            prim->x3 = block->sx + ((block->radius * rsin(ang + 0x200)) >> 12);
+            prim->y3 = block->sy + ((block->radius * rcos(ang + 0x200)) >> 12);
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        } while (ang < 0x1000);
+        }
     }
     SCRATCH_POP_BYTES(0x18);
 }
