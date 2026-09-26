@@ -53630,6 +53630,15 @@ The reverse edit — splitting a reused counter — is the same lever pulled the
 other way, and the existing "Merge a dead local into a later counter to claim
 its callee-saved register" entry is the neighbouring case.
 
+The same lever explains a `SOFT_USE_REG(x)` that only lifts `x` above a loop
+pointer. In `func_800D7A9C` a per-iteration `light = &p->data.light` lost
+`$s0` to its loop pointer `p` (6 refs over 16 insns against 9 over 33) until
+an empty-asm use added two weighted refs. The real source used one
+`GpPointLight* light` for that loop *and* the next loop over another light
+array of the same type; the merged pseudo outranks `p` with no asm at all.
+When a use-hack's only job is priority, look for a later loop whose pointer
+has the same type and lands in the same register.
+
 ## Two loops in mutually exclusive branches need their *own* counter and pointer
 
 The sharper version of the entry above, when the two loops are the arms of one

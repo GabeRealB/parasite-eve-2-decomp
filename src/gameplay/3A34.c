@@ -1173,14 +1173,14 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     register MATRIX*              colorMtx;
     register GpLightSolveScratch* block;
 
-    s32        n;
-    s32        nOcc;
-    u32        idx;
-    s32        i;
-    s32        sum;
-    s32        val;
-    s32*       cutoffPtr;
-    GpCoord64* coord;
+    s32           n;
+    s32           nOcc;
+    s32           idx;
+    s32           i;
+    s32           sum;
+    s32           val;
+    s32*          cutoffPtr;
+    GpPointLight* light;
 
     startr   = start;
     set      = (GpRoomCoordSet*)Gp_GetRoomCoordSet(&gGameSession->at4.loc);
@@ -1190,17 +1190,12 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         return;
     }
 
-    idx = nOcc;
-    TOUCH_REG(idx);
-    coord = Gp_RoomCoords;
-    n     = set->n58 + set->n60 + set->n6C;
-    do {
-        if (coord->framesLeft != 0) {
+    n = set->n58 + set->n60 + set->n6C;
+    for (idx = 0; idx < 8; idx++) {
+        if (Gp_RoomCoords[idx].framesLeft != 0) {
             nOcc++;
         }
-        idx++;
-        coord++;
-    } while ((s32)idx < 8);
+    }
 
     sum = startr + count;
     n  += nOcc;
@@ -1249,22 +1244,13 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         } while (i < 4);
     }
 
-    {
-        GpCoord*         world;
-        register MATRIX* src;
-
-        world           = &gGfxViewCoord;
-        block->pos.vx   = pos->vx;
-        block->pos.vy   = pos->vy;
-        block->pos.vz   = pos->vz;
-        block->local.vx = (u16)pos->vx - (u16)world->workm.t[0];
-        TOUCH_REG(world);
-        src             = &gGfxViewCoord.workm;
-        block->local.vy = (u16)pos->vy - (u16)world->workm.t[1];
-        block->local.vz = (u16)pos->vz - (u16)world->workm.t[2];
-
-        gte_TransposeMatrix(src, &block->mtx);
-    }
+    block->pos.vx   = pos->vx;
+    block->pos.vy   = pos->vy;
+    block->pos.vz   = pos->vz;
+    block->local.vx = pos->vx - gGfxViewCoord.workm.t[0];
+    block->local.vy = pos->vy - gGfxViewCoord.workm.t[1];
+    block->local.vz = pos->vz - gGfxViewCoord.workm.t[2];
+    gte_TransposeMatrix(&gGfxViewCoord.workm, &block->mtx);
 
     gfxLoadRotSv(&block->mtx, &block->local);
     gte_rtv0();
@@ -1275,7 +1261,6 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         register GpCoord64* p;
 
         register GpRec12* last;
-        GpPointLight*     obj;
 
         p          = Gp_RoomCoords;
         pointIndex = 0;
@@ -1286,11 +1271,10 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         block->pos.vz = block->local.vz;
         do {
             if (p->framesLeft != 0) {
-                obj = &p->data.light;
-                val = Gp_LightPoint(obj, (VECTOR3*)&block->pos);
-                SOFT_USE_REG(obj);
+                light            = &p->data.light;
+                val              = Gp_LightPoint(light, (VECTOR3*)&block->pos);
                 block->intensity = val;
-                solve_rank(block->slots, val, 3, (s32)obj, last);
+                solve_rank(block->slots, val, 3, (s32)light, last);
             }
             pointIndex++;
             p++;
@@ -1298,17 +1282,11 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     }
 
     if (set->n60 > 0) {
-        register GpPointLight* obj60;
-
-        obj60 = set->arr60;
-        i     = 0;
-
-        for (; i < set->n60;) {
-            val              = Gp_LightPointRoom(obj60, (VECTOR3*)&block->pos);
+        light = set->arr60;
+        for (i = 0; i < set->n60; i++, light++) {
+            val              = Gp_LightPointRoom(light, (VECTOR3*)&block->pos);
             block->intensity = val;
-            solve_rank(block->slots, val, 1, (s32)obj60, &block->slots[3]);
-            i++;
-            obj60++;
+            solve_rank(block->slots, val, 1, (s32)light, &block->slots[3]);
         }
     }
 
