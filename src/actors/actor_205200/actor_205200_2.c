@@ -511,22 +511,18 @@ static void func_actor_205200_8014C7CC(Task* arg0)
     s32              i;
 
     work = arg0->work;
-    i    = 1;
     if (work->field_57E != (s16)work->field_580) {
         work->field_580 = work->field_57E;
         work->field_582 = 0;
-        do {
+        for (i = 1; i < 0x13; i++) {
             func_800B4114(&work->rig.anim, i, work->field_57E, 0, 8);
-            i++;
-        } while (i < 0x13);
-        return;
+        }
+    } else {
+        work->field_582++;
+        for (i = 1; i < 0x13; i++) {
+            Gp_AnimTickIndex(&work->rig.anim, i);
+        }
     }
-    TOUCH_REG(i);
-    work->field_582 = (u16)(work->field_582 + i);
-    do {
-        Gp_AnimTickIndex(&work->rig.anim, i);
-        i++;
-    } while (i < 0x13);
 }
 
 /// Feeds the actor's world position - the translation of its attach
