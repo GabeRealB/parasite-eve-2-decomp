@@ -1041,21 +1041,13 @@ SVECTOR* Gp_ExtractEuler(SVECTOR* arg0, MATRIX* arg1)
 {
     SVECTOR ang0;
     SVECTOR ang1;
-    s32     cos0;
     s32     sin0;
-    s32     cos1;
+    s32     cos0;
     s32     sin1;
-    s16     vx0;
-    s16     vx1;
+    s32     cos1;
 
-    vx0     = -ratan2(arg1->m[1][2], arg1->m[2][2]);
-    ang0.vx = vx0;
-    if (vx0 <= 0) {
-        vx1 = vx0 + 0x800;
-    } else {
-        vx1 = vx0 - 0x800;
-    }
-    ang1.vx = vx1;
+    ang0.vx = -ratan2(arg1->m[1][2], arg1->m[2][2]);
+    ang1.vx = (ang0.vx <= 0) ? ang0.vx + 0x800 : ang0.vx - 0x800;
 
     sin0 = rsin(ang0.vx);
     cos0 = rcos(ang0.vx);
@@ -1065,72 +1057,17 @@ SVECTOR* Gp_ExtractEuler(SVECTOR* arg0, MATRIX* arg1)
     ang0.vy = ratan2(arg1->m[0][2], (arg1->m[2][2] * cos0) / 4096 - (arg1->m[1][2] * sin0) / 4096);
     ang1.vy = ratan2(arg1->m[0][2], (arg1->m[2][2] * cos1) / 4096 - (arg1->m[1][2] * sin1) / 4096);
 
-    {
-        register s32 t1 asm("v1");
-        register s32 m asm("v0");
-        m  = arg1->m[1][0];
-        t1 = (m * cos0) / 4096;
-        {
-            register s32 prod asm("a2");
-            register s32 y asm("a1");
-            m    = arg1->m[2][0];
-            prod = m * sin0;
-            if (prod < 0) {
-                prod += 0xFFF;
-            }
-            m       = prod >> 12;
-            y       = t1 + m;
-            ang0.vz = ratan2(y, (arg1->m[1][1] * cos0) / 4096 + (arg1->m[2][1] * sin0) / 4096);
-        }
-    }
+    ang0.vz = ratan2((arg1->m[1][0] * cos0) / 4096 + (arg1->m[2][0] * sin0) / 4096,
+                     (arg1->m[1][1] * cos0) / 4096 + (arg1->m[2][1] * sin0) / 4096);
+    ang1.vz = ratan2((arg1->m[1][0] * cos1) / 4096 + (arg1->m[2][0] * sin1) / 4096,
+                     (arg1->m[1][1] * cos1) / 4096 + (arg1->m[2][1] * sin1) / 4096);
 
-    {
-        s32          tmp;
-        register s32 ax asm("a1");
-        register s32 ay asm("a0");
-        s32          az;
-
-        tmp     = ratan2((arg1->m[1][0] * cos1) / 4096 + (arg1->m[2][0] * sin1) / 4096,
-                         (arg1->m[1][1] * cos1) / 4096 + (arg1->m[2][1] * sin1) / 4096);
-        ang1.vz = tmp;
-        tmp     = (s16)tmp;
-        if (tmp < 0) {
-            tmp = -tmp;
-        }
-
-        ax = ang0.vx;
-        ay = ang0.vy;
-        az = ang0.vz;
-        if (ax < 0) {
-            ax = -ax;
-        }
-        if (ay < 0) {
-            ay = -ay;
-        }
-        ax += ay;
-        TOUCH_REG(ax);
-        if (az < 0) {
-            az = -az;
-        }
-        TOUCH_REG2(az, ax);
-        sin0 = ax + az;
-
-        ay = ang1.vx;
-        az = ang1.vy;
-        if (ay < 0) {
-            ay = -ay;
-        }
-        if (az < 0) {
-            az = -az;
-        }
-        ay  += az;
-        cos0 = ay + tmp;
-
-        if (sin0 < cos0) {
-            *arg0 = ang0;
-        } else {
-            *arg0 = ang1;
-        }
+    sin0 = ABS(ang0.vx) + ABS(ang0.vy) + ABS(ang0.vz);
+    cos0 = ABS(ang1.vx) + ABS(ang1.vy) + ABS(ang1.vz);
+    if (sin0 < cos0) {
+        *arg0 = ang0;
+    } else {
+        *arg0 = ang1;
     }
     return arg0;
 }
