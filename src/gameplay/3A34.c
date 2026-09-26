@@ -2157,14 +2157,11 @@ void Gp_CopyDefaultBound(GpRoomBoundVec* bound)
 
 void Gp_BindDefaultMtx(Task* arg0)
 {
-    Task*        slot;
-    TmdObject*   extra;
-    GameActor*   actor;
-    s32          result;
-    s32          i;
-    MATRIX*      mtxA;
-    MATRIX*      mtxB;
-    register s32 addr asm("v0");
+    Task*      slot;
+    TmdObject* extra;
+    GameActor* actor;
+    s32        result;
+    s32        i;
 
     slot  = gameGetPtrSlot(3);
     extra = slot->extra.tmd;
@@ -2175,23 +2172,17 @@ void Gp_BindDefaultMtx(Task* arg0)
             taskKill(arg0);
             return;
         }
-        addr = (s32)&Gp_DefaultMtx;
-        TOUCH_REG(addr);
-        mtxA = (MATRIX*)addr;
-        addr = (s32)&Gp_DefaultMtx2;
-        TOUCH_REG(addr);
-        mtxB                = (MATRIX*)addr;
         arg0->spawnArg2     = (void*)result;
-        extra->lightMtx     = mtxA;
-        extra->colorMtx     = mtxB;
+        extra->lightMtx     = &Gp_DefaultMtx;
+        extra->colorMtx     = &Gp_DefaultMtx2;
         actor               = slot->work;
         Gp_OverrideVecFlag  = 0;
         Gp_OverrideVec2Flag = 0;
         D_80114F28          = 0;
         do {
             extra           = (&actor->field_920)[i]->extra.tmd;
-            extra->lightMtx = mtxA;
-            extra->colorMtx = mtxB;
+            extra->lightMtx = &Gp_DefaultMtx;
+            extra->colorMtx = &Gp_DefaultMtx2;
             i++;
         } while (i < 2);
         arg0->state++;
