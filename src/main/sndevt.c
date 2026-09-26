@@ -31,6 +31,26 @@ extern SndEvt* _gSndEvtHead;
 /// list; a pass that consumes the last event clears it with the head.
 extern SndEvt* _gSndEvtTail;
 
+static void  Midi_ClearVoiceEntry(MidiNoteSlot* slot);
+static void  Midi_DriveTrack(MidiSong* arg0, MidiTrack* arg1);
+static void  Midi_FadeVolume(u8 arg0, s32 arg1);
+static u8*   Midi_GetSlot(s32 arg0);
+static void  Midi_InitChannelTable(s32* arg0);
+static s32   Midi_InitSequence(u8 arg0, u16 arg1);
+static void  Midi_InitSlot(s32 arg0);
+static void  Midi_KeyOffVoices(MidiSong* arg0);
+static s32   Midi_ReadVlq(u8* arg0, u8* arg1);
+static void  Midi_ResetTrackFlags(MidiSong* arg0);
+static void* Midi_ResolveTrackData(MidiSong* arg0, s32 arg1, u8* arg2);
+static void  Midi_SetVolumeScale(u8 arg0, u8 arg1);
+static void  Midi_StartFadeOut(u8 arg0, u16 arg1);
+static void  Midi_UpdateVoiceVolumes(MidiSong* arg0);
+static s32   SndBank_FreeById(u16 arg0, s32 arg1);
+static void  SndEvt_Free(SndEvt* arg0);
+static void* SndLoad_AllocBuffer(s32 arg0, s32 arg1, u32 arg2);
+static void  SndLoad_Init(s32 arg0, void* arg1);
+static s32   SndLoad_LookupMode(s32 arg0, s32 arg1, s32 arg2);
+
 void SndEvt_Process(void)
 {
     SndEvt* next;
@@ -129,7 +149,7 @@ void sndEvtEnqueue(SndEvt* event)
     }
 }
 
-void SndEvt_Free(SndEvt* arg0)
+static void SndEvt_Free(SndEvt* arg0)
 {
     if (arg0 != NULL) {
         arg0->allocated = 0;
@@ -264,7 +284,7 @@ s32 Midi_InitSystem(u32 arg0)
     return -1;
 }
 
-s32 Midi_InitSequence(u8 arg0, u16 arg1)
+static s32 Midi_InitSequence(u8 arg0, u16 arg1)
 {
     s32        i;
     MidiSong*  obj;
@@ -527,7 +547,7 @@ s32 SndEvt_EnqueueType2(s32 arg0, s32 arg1)
     return 0;
 }
 
-s32 SndEvt_EnqueueType3(s32 arg0)
+static s32 SndEvt_EnqueueType3(s32 arg0)
 {
     SndEvt* temp;
 
@@ -544,7 +564,7 @@ s32 SndEvt_EnqueueType3(s32 arg0)
     return 0;
 }
 
-s32 SndEvt_EnqueueType4(s32 arg0)
+static s32 SndEvt_EnqueueType4(s32 arg0)
 {
     SndEvt* temp;
 
@@ -622,7 +642,7 @@ s32 Midi_IsChannelFree(u8 arg0)
     return 1;
 }
 
-void Midi_StartFadeOut(u8 arg0, u16 arg1)
+static void Midi_StartFadeOut(u8 arg0, u16 arg1)
 {
     s32       i;
     MidiSong* ptr;
@@ -640,7 +660,7 @@ void Midi_StartFadeOut(u8 arg0, u16 arg1)
     }
 }
 
-void Midi_FadeVolume(u8 arg0, s32 arg1)
+static void Midi_FadeVolume(u8 arg0, s32 arg1)
 {
     s32       i;
     MidiSong* ptr;
@@ -663,7 +683,7 @@ void Midi_FadeVolume(u8 arg0, s32 arg1)
     }
 }
 
-void Midi_SetVolumeScale(u8 arg0, u8 arg1)
+static void Midi_SetVolumeScale(u8 arg0, u8 arg1)
 {
     s32       i;
     u8*       table;
@@ -707,7 +727,7 @@ s32 Midi_GetMasterVolume(void)
     return D_8007F2F0;
 }
 
-u8* Midi_GetSlot(s32 arg0)
+static u8* Midi_GetSlot(s32 arg0)
 {
     if (Midi_Song.field_0 != 0) {
         Midi_ResetTrackFlags(&Midi_Song);
@@ -716,12 +736,12 @@ u8* Midi_GetSlot(s32 arg0)
     return (u8*)&Midi_Song;
 }
 
-void* Midi_GetFixedBuffer(s32 arg0, s32 arg1)
+static void* Midi_GetFixedBuffer(s32 arg0, s32 arg1)
 {
     return D_8007F8E0;
 }
 
-void Midi_ClearVoiceEntry(MidiNoteSlot* slot)
+static void Midi_ClearVoiceEntry(MidiNoteSlot* slot)
 {
     u32  i;
     s32* ptr;
@@ -779,7 +799,7 @@ void SndEvt_FlushType5Pending(void)
     }
 }
 
-void Midi_InitSlot(s32 arg0)
+static void Midi_InitSlot(s32 arg0)
 {
     MidiSong*     obj;
     s32*          p;
@@ -824,7 +844,7 @@ void Midi_InitSlot(s32 arg0)
     } while ((s32)i < 0x12);
 }
 
-void* Midi_ResolveTrackData(MidiSong* arg0, s32 arg1, u8* arg2)
+static void* Midi_ResolveTrackData(MidiSong* arg0, s32 arg1, u8* arg2)
 {
     register s32 idx asm("v1");
     u32          offset;
@@ -842,7 +862,7 @@ void* Midi_ResolveTrackData(MidiSong* arg0, s32 arg1, u8* arg2)
     return (void*)(offset + 0x10);
 }
 
-void Midi_ResetTrackFlags(MidiSong* arg0)
+static void Midi_ResetTrackFlags(MidiSong* arg0)
 {
     s32 i;
 
@@ -851,7 +871,7 @@ void Midi_ResetTrackFlags(MidiSong* arg0)
     }
 }
 
-void Midi_KeyOffVoices(MidiSong* arg0)
+static void Midi_KeyOffVoices(MidiSong* arg0)
 {
     s32           i;
     MidiNoteSlot* slot;
@@ -880,7 +900,7 @@ void Midi_KeyOffVoices(MidiSong* arg0)
     } while (i < 0x12);
 }
 
-void Midi_DriveTrack(MidiSong* arg0, MidiTrack* arg1)
+static void Midi_DriveTrack(MidiSong* arg0, MidiTrack* arg1)
 {
     u8           sp10;
     MidiTrack*   entry;
@@ -982,7 +1002,7 @@ end:
     entry->field_34 -= ticks;
 }
 
-void Midi_UpdateVoiceVolumes(MidiSong* arg0)
+static void Midi_UpdateVoiceVolumes(MidiSong* arg0)
 {
     SpuVoiceRef     sp10;
     s16             sp18[2];
@@ -1342,7 +1362,7 @@ u8* Midi_HandleMetaSysex(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* arg3)
     return var_t0;
 }
 
-s32 Midi_ReadVlq(u8* arg0, u8* arg1)
+static s32 Midi_ReadVlq(u8* arg0, u8* arg1)
 {
     s32 result;
 
@@ -1356,7 +1376,7 @@ s32 Midi_ReadVlq(u8* arg0, u8* arg1)
     return result;
 }
 
-void Midi_InitChannelTable(s32* arg0)
+static void Midi_InitChannelTable(s32* arg0)
 {
     s32 i;
 
@@ -1608,7 +1628,7 @@ s32 SndLoad_ProcessSector(s32* arg0)
     return state->field_2;
 }
 
-s32 SndBank_SetupFromLoad(SndLoadState* arg0)
+static s32 SndBank_SetupFromLoad(SndLoadState* arg0)
 {
     SndBank*     bank;
     SndBankSlot* obj;
@@ -1682,7 +1702,7 @@ success:
     return 0;
 }
 
-s32 SndLoad_Complete(SndLoadState* arg0)
+static s32 SndLoad_Complete(SndLoadState* arg0)
 {
     SndBank*     s2;
     register s32 s1 asm("s1");
@@ -1903,7 +1923,7 @@ success:
     return 0;
 }
 
-void* SndLoad_AllocBuffer(s32 arg0, s32 arg1, u32 arg2)
+static void* SndLoad_AllocBuffer(s32 arg0, s32 arg1, u32 arg2)
 {
     u16 x;
 
@@ -1929,7 +1949,7 @@ void* SndLoad_AllocBuffer(s32 arg0, s32 arg1, u32 arg2)
     return SndHeap_Malloc(arg2);
 }
 
-s32 SndLoad_LookupMode(s32 arg0, s32 arg1, s32 arg2)
+static s32 SndLoad_LookupMode(s32 arg0, s32 arg1, s32 arg2)
 {
     s32 result;
 
@@ -1946,7 +1966,7 @@ s32 SndLoad_LookupMode(s32 arg0, s32 arg1, s32 arg2)
     return result;
 }
 
-void SndLoad_Init(s32 arg0, void* arg1)
+static void SndLoad_Init(s32 arg0, void* arg1)
 {
     SndLoadState* temp;
     s32           size;
@@ -1970,7 +1990,7 @@ void SndLoad_Init(s32 arg0, void* arg1)
     temp->field_C  = 0;
 }
 
-s32 SndBank_FreeById(s16 arg0, s32 arg1)
+static s32 SndBank_FreeById(u16 arg0, s32 arg1)
 {
     u16      x;
     u8       slot;

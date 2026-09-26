@@ -5,6 +5,19 @@
 #include "main/cdstream.h"
 #include "main/fs.h"
 
+static void CdAudio_JumpWithPitch(s32 arg0, s32 arg1);
+static s32  CdAudio_LoadSectorEntry(s32 arg0);
+static s32  CdAudio_RequestStop(void);
+static s32  CdAudio_ResetKeepBuffer(s32 arg0);
+static s32  CdAudio_SeekAbs(s32 arg0);
+static void CdAudio_SetLocFlag(void);
+static s32  CdAudio_StoreIfNonNull(s32 arg0);
+static void CdStream_CleanupIrq(void);
+static void CdStream_Continue(void);
+static void CdStream_Drive(void);
+static void CdStream_Start(CdStreamParams* arg0);
+static void CdStream_Stop(void);
+
 s32 CdAudio_DriveStream(void)
 {
     volatile CdAudioPhase* p;
@@ -146,8 +159,8 @@ typedef struct {
     /* 0x3 */ u8 field_3;
 } SectorHdr;
 
-void CdAudio_ReadyCallback(s32 arg0);
-void CdAudio_FeedSector(s32 arg0);
+static void CdAudio_ReadyCallback(s32 arg0);
+static void CdAudio_FeedSector(s32 arg0);
 
 s32 CdAudio_DriveSeek(void)
 {
@@ -447,7 +460,7 @@ s32 CdAudio_DriveRead(void)
     return 6;
 }
 
-void CdAudio_FeedSector(s32 arg0)
+static void CdAudio_FeedSector(s32 arg0)
 {
     s32                  arg;
     s32                  pos;
@@ -540,7 +553,7 @@ void CdAudio_Init(void)
     CdVol_SetMixMode(1);
 }
 
-u8 CdAudio_GetState(void)
+static u8 CdAudio_GetState(void)
 {
     return CdAudio_Loc.field_0;
 }
@@ -553,7 +566,7 @@ void CdAudio_Tick(void)
     }
 }
 
-s32 CdAudio_Reset(s32 arg0)
+static s32 CdAudio_Reset(s32 arg0)
 {
     volatile CdAudioCtl* p;
 
@@ -568,7 +581,7 @@ s32 CdAudio_Reset(s32 arg0)
     return 0;
 }
 
-s32 CdAudio_SetupStream(void)
+static s32 CdAudio_SetupStream(void)
 {
     u8                     mode;
     s32                    mem;
@@ -591,7 +604,7 @@ s32 CdAudio_SetupStream(void)
     return 0;
 }
 
-s32 CdAudio_SeekRelative(s32 arg0)
+static s32 CdAudio_SeekRelative(s32 arg0)
 {
     s32 temp_s0;
 
@@ -602,12 +615,12 @@ s32 CdAudio_SeekRelative(s32 arg0)
     return temp_s0;
 }
 
-s32 CdAudio_RequestStopA(void)
+static s32 CdAudio_RequestStopA(void)
 {
     return CdAudio_RequestStop();
 }
 
-s32 CdAudio_PrepareNextEntry(void)
+static s32 CdAudio_PrepareNextEntry(void)
 {
     CdAudioTblEntry* temp;
     s32              ret;
@@ -637,7 +650,7 @@ s32 CdAudio_StartTrack(s32 arg0, s32 arg1)
     return CdAudio_StoreIfNonNull(arg0);
 }
 
-s32 CdAudio_ResetKeepBuffer(s32 arg0)
+static s32 CdAudio_ResetKeepBuffer(s32 arg0)
 {
     volatile CdAudioCtl*   p;
     volatile CdAudioLoc*   r;
@@ -666,7 +679,7 @@ s32 CdAudio_ResetKeepBuffer(s32 arg0)
     return 0;
 }
 
-s32 CdAudio_StoreIfNonNull(s32 arg0)
+static s32 CdAudio_StoreIfNonNull(s32 arg0)
 {
     if (arg0 != 0) {
         CdAudio_SeekAbs(arg0);
@@ -688,12 +701,12 @@ s32 CdAudio_JumpToSector(s32 arg0)
     return 0;
 }
 
-void CdAudio_SetLocBase(s32 arg0)
+static void CdAudio_SetLocBase(s32 arg0)
 {
     CdAudio_Loc.field_4 = arg0;
 }
 
-void CdAudio_CopyVoiceData(s8 arg0, s32* arg1)
+static void CdAudio_CopyVoiceData(s8 arg0, s32* arg1)
 {
     SpuVoiceRef sp10;
     s32*        dest;
@@ -711,7 +724,7 @@ void CdAudio_CopyVoiceData(s8 arg0, s32* arg1)
     } while (i < 0x10U);
 }
 
-void CdAudio_AllocVoices(s8* arg0, s8* arg1)
+static void CdAudio_AllocVoices(s8* arg0, s8* arg1)
 {
     *arg0 = Spu_AllocVoice(D_80068B28, 3, 0xFFFF);
     *arg1 = Spu_AllocVoice(D_80068B28, 3, 0xFFFF);
@@ -719,7 +732,7 @@ void CdAudio_AllocVoices(s8* arg0, s8* arg1)
     Spu_DisableReverbVoice(*arg1);
 }
 
-s32 CdAudio_LoadSectorEntry(s32 arg0)
+static s32 CdAudio_LoadSectorEntry(s32 arg0)
 {
     u32  temp_v0;
     u16* table;
@@ -732,7 +745,7 @@ s32 CdAudio_LoadSectorEntry(s32 arg0)
     return temp_v0 & 0xFFFF;
 }
 
-s32 CdAudio_SeekAbs(s32 arg0)
+static s32 CdAudio_SeekAbs(s32 arg0)
 {
     s32 temp_v0;
 
@@ -745,7 +758,7 @@ s32 CdAudio_SeekAbs(s32 arg0)
     return 0;
 }
 
-s32 CdAudio_RequestStop(void)
+static s32 CdAudio_RequestStop(void)
 {
     volatile CdAudioPhase* p;
     s32                    ret;
@@ -778,7 +791,7 @@ void CdAudio_StartVolumeRamp(s32 arg0)
     parent->field_0       = 3;
 }
 
-void CdAudio_JumpWithPitch(s32 arg0, s32 arg1)
+static void CdAudio_JumpWithPitch(s32 arg0, s32 arg1)
 {
     CdAudio_Loc.field_4   = arg0;
     CdAudio_Tbl.field_10  = arg1;
@@ -817,7 +830,7 @@ s32 CdAudio_DrivePhase1(void)
     return ret;
 }
 
-void CdAudio_ReadyCallback(s32 arg0)
+static void CdAudio_ReadyCallback(s32 arg0)
 {
     s32                  temp;
     s32                  pos;
@@ -844,12 +857,12 @@ void CdAudio_ReadyCallback(s32 arg0)
     }
 }
 
-void CdAudio_SetLocFlag(void)
+static void CdAudio_SetLocFlag(void)
 {
     CdAudio_Loc.field_1 = 1;
 }
 
-s32 CdReady_Enqueue(CdReadyEntry* arg0)
+static s32 CdReady_Enqueue(CdReadyEntry* arg0)
 {
     u8                     saved;
     s32                    field2;
@@ -896,7 +909,7 @@ s32 CdReady_Enqueue(CdReadyEntry* arg0)
     return field2 + 1;
 }
 
-void CdReady_Poll(void)
+static void CdReady_Poll(void)
 {
     volatile CdReadyQueue* p;
     CdReadyEntry*          entry;
@@ -936,7 +949,7 @@ void CdReady_Poll(void)
     }
 }
 
-void CdStream_Start(CdStreamParams* arg0)
+static void CdStream_Start(CdStreamParams* arg0)
 {
     CdReadyEntry            entry;
     volatile CdStreamState* p;
@@ -1099,7 +1112,7 @@ void CdStream_Start(CdStreamParams* arg0)
     D_80068B74               = -1;
 }
 
-void CdStream_Continue(void)
+static void CdStream_Continue(void)
 {
     CdReadyEntry            entry;
     volatile CdStreamState* p;
@@ -1129,7 +1142,7 @@ void CdStream_Continue(void)
     p->readySlot    = CdReady_Enqueue(&entry);
 }
 
-void CdStream_Stop(void)
+static void CdStream_Stop(void)
 {
     u8                      saved;
     u8                      temp;
@@ -1172,9 +1185,9 @@ void CdStream_Stop(void)
     CdReady_Queue.locked = saved;
 }
 
-void func_80058748(void);
+static void func_80058748(void);
 
-void CdStream_TeardownVoices(void)
+static void CdStream_TeardownVoices(void)
 {
     CdReadyEntry            entry;
     volatile CdStreamState* p;
@@ -1242,7 +1255,7 @@ void CdStream_TeardownVoices(void)
     }
 }
 
-void func_80058748(void)
+static void func_80058748(void)
 {
     CdReadyEntry            entry;
     volatile CdStreamState* p;
@@ -1294,7 +1307,7 @@ void func_80058748(void)
     }
 }
 
-void CdStream_CleanupIrq(void)
+static void CdStream_CleanupIrq(void)
 {
     volatile CdStreamState* p;
     u8                      temp;
@@ -1314,7 +1327,7 @@ void CdStream_CleanupIrq(void)
     CdStream_State.flags0 = CdStream_State.flags0 | 1;
 }
 
-void func_8005896C(void)
+static void func_8005896C(void)
 {
     CdReadyEntry     entry;
     s32              stateOrPosition;
@@ -1431,7 +1444,7 @@ void func_8005896C(void)
     }
 }
 
-void func_80058ED4(void)
+static void func_80058ED4(void)
 {
     CdReadyEntry  entry;
     s32           position;
@@ -1526,7 +1539,7 @@ void func_80058ED4(void)
     }
 }
 
-void CdStream_Drive(void)
+static void CdStream_Drive(void)
 {
     CdReadyEntry*    restartEntry;
     CdReadyEntry*    stopEntry;

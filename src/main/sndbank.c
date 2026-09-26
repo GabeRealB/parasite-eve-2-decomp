@@ -6,7 +6,15 @@
 #include "main/cdaudio.h"
 #include "main/fs.h"
 
-void Spu_InitSystem(s32 arg0)
+static void           AudioTick_Process(void);
+static AudioTickNode* AudioTick_Remove(AudioTickNode* arg0);
+static void           AudioTick_Reset(void);
+static void           SndHeap_Reset(void);
+static void           Snd_ClearBanks(void);
+static long           Spu_TimerCallback(void);
+static s32            Spu_TimerReentryWork(void);
+
+static void Spu_InitSystem(s32 arg0)
 {
     s32* temp_v0;
 
@@ -206,7 +214,7 @@ void Audio_IrqFrameWork(void)
     }
 }
 
-void Snd_ClearBanks(void)
+static void Snd_ClearBanks(void)
 {
     s32      i;
     s32*     p;
@@ -455,7 +463,7 @@ s32 AudioTick_Insert(void* poll, u32 onRemove, u16 id, s32* arg)
     }
 }
 
-void SndHeap_Reset(void)
+static void SndHeap_Reset(void)
 {
     SndHeap_Start              = (HeapBlockHeader*)SndHeap_Buffer;
     SndHeap_Start->size        = SNDHEAP_SIZE;
@@ -631,7 +639,7 @@ void SndHeap_Free(void* ptr)
     header->isAllocated = false;
 }
 
-long Spu_TimerCallback(void)
+static long Spu_TimerCallback(void)
 {
     if (D_800680A4 != 0) {
         D_8007E0CC--;
@@ -643,7 +651,7 @@ long Spu_TimerCallback(void)
     return 0;
 }
 
-s32 Spu_TimerReentryWork(void)
+static s32 Spu_TimerReentryWork(void)
 {
     if (D_800680C0 == 0) {
         return 0;
@@ -657,7 +665,7 @@ s32 Spu_TimerReentryWork(void)
     return 0;
 }
 
-void AudioTick_Reset(void)
+static void AudioTick_Reset(void)
 {
     AudioTick_List.poll     = 0;
     AudioTick_List.onRemove = 0;
@@ -668,7 +676,7 @@ void AudioTick_Reset(void)
     AudioTick_Enabled       = 1;
 }
 
-void AudioTick_Process(void)
+static void AudioTick_Process(void)
 {
     AudioTickNode* head;
     AudioTickNode* node;
@@ -695,7 +703,7 @@ void AudioTick_Process(void)
     }
 }
 
-AudioTickNode* AudioTick_Remove(AudioTickNode* arg0)
+static AudioTickNode* AudioTick_Remove(AudioTickNode* arg0)
 {
     void           (*callback)(void);
     AudioTickNode* head;

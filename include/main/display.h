@@ -178,6 +178,8 @@ void Display_LoadImageStrips(s32 arg0);
 void Display_ResetHeapWrapper(void);
 void Display_AcquireRef(void);
 void Display_ReleaseRef(void);
+void Display_SetPrimBufLarge(void);
+void Display_SetPrimBufSmall(void);
 
 /// Makes buffer `buf`'s ordering table the current one: clears it, terminates
 /// it, and leaves the current-table pointer past the entries reserved at its

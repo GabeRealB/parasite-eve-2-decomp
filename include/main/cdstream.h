@@ -127,34 +127,17 @@ typedef struct _CdStreamParams {
 STATIC_ASSERT_SIZEOF(CdStreamParams, 0x20);
 
 // CD ready work queue
-void CdReady_InstallCallback(CdlCB arg0);
-void CdReady_ClearCallback(void);
-s32  CdReady_Enqueue(CdReadyEntry* arg0);
-void CdReady_Poll(void);
-void CdReady_Cancel(s16 slot /* 1-based */);
 
 // CD → SPU MTS stream
 s32  func_80059EE0(CdReadyEntry* entry);
-s32  CdStream_InitDisc(u32* phaseFlags);
 void CdStream_Reset(void);
-void CdStream_Start(CdStreamParams* params);
-void CdStream_Continue(void);
-void CdStream_Stop(void);
-void CdStream_TeardownVoices(void);
 void CdStream_ArmSpuIrq(void);
-void CdStream_SpuIrqHandler(void);
 void CdStream_SetPitch(s16 pitch);
 void CdStream_AbortPhase(u32* phaseFlags);
 void CdStream_FinishQueueEntry(u32* phaseFlags);
 s32  CdStream_IsBusy(void);
 void CdStream_ClearReadySlot(void);
 void CdStream_SetLinkedPitch(s32 enabled);
-void CdStream_MarkEnding(void);
-s32  CdStream_Flush(void);
-void CdStream_ConfigureSpuIrq(s32 enable, u32 irqAddr);
-
-void CdStream_Drive(void);
-void CdStream_ReadyMts(s32 interrupt, u8* result);
 
 // Gameplay callback imported by the resident CD stream handler.
 s32 func_800AF590(void);

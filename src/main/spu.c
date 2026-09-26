@@ -3,6 +3,9 @@
 #include "main/unknown_syms.h"
 #include "main/cdaudio.h"
 
+static void Spu_ApplyReverbConfig(void);
+static void Spu_KeyOnClearOff(u32 voiceIdx);
+
 void AsyncCb_Poll(void)
 {
     AsyncCbEntry* entry;
@@ -499,7 +502,7 @@ void Spu_KeyOff(u32 voiceIdx)
     Spu_KeyOnMaskExtra &= ~channel;
 }
 
-void Spu_QueryReverbVoices(void)
+static void Spu_QueryReverbVoices(void)
 {
     Spu_VoiceState.reverbVoiceStatus = SpuGetReverbVoice();
 }
@@ -530,7 +533,7 @@ void Spu_SetReverbDepth(s16 depth)
     Spu_ReverbCfg.attr.mask       |= SPU_REV_DEPTHR | SPU_REV_DEPTHL;
 }
 
-void Spu_SetReverbMode(u32 mode)
+static void Spu_SetReverbMode(u32 mode)
 {
     if (Spu_ReverbCfg.reverbMode != mode && Spu_ReverbCfg.reverbMode != SPU_REV_MODE_OFF) {
         SpuClearReverbWorkArea(Spu_ReverbCfg.reverbMode);
@@ -563,12 +566,12 @@ void Spu_DisableReverbVoice(u32 voiceIdx)
     Spu_ReverbCfg.enableVoices  &= ~channel;
 }
 
-bool Spu_ReverbVoiceIsEnabled(u32 voiceIdx)
+static bool Spu_ReverbVoiceIsEnabled(u32 voiceIdx)
 {
     return ((s32)Spu_VoiceState.reverbVoiceStatus >> voiceIdx) & 1;
 }
 
-void Spu_ApplyReverbConfig(void)
+static void Spu_ApplyReverbConfig(void)
 {
     if (Spu_ReverbCfg.disableVoices != 0) {
         SpuSetReverbVoice(SPU_OFF, Spu_ReverbCfg.disableVoices);
@@ -629,7 +632,7 @@ SndNote* Snd_GetNote(SndBank* bank, u8 group, u8 layer)
     return NULL;
 }
 
-void Spu_KeyOnClearOff(u32 voiceIdx)
+static void Spu_KeyOnClearOff(u32 voiceIdx)
 {
     SpuVoiceState* p;
     u32*           pKeyOn;

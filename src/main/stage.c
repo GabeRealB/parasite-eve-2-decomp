@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/display.h"
 #include "main/mem.h"
 
 #include "main/unknown_syms.h"

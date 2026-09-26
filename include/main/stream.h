@@ -34,6 +34,7 @@ extern StreamSlot Stream_Slots[15];
 
 // --- APIs ---
 void        Mdec_ResolveStreamBuffer(u8* arg0);
+void        Mdec_BeginDecode(void* arg0);
 u32         func_8001F180(u32 arg0);
 u16         Stream_RestoreAfterLoad(s32 arg0, s32 arg1);
 void        Stream_ResetRestoreState(void);

@@ -13,6 +13,26 @@
 /// record free.
 extern SndBankSlot _gSndBankSlots[16];
 
+static void         SndEvt_EnqueueTypeF(void);
+static s32          SndScript_Exec(SndScript* script);
+static s32          SndScript_FindOneA(u8* arg0, s16 arg1, SndOneAOut* arg2);
+static void         SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndBankSlot* arg4, SndVoiceParams* arg5);
+static s32          SndScript_TickVoices(SndScript* arg0);
+static SndVoice*    SndVoice_Alloc(s32 arg0);
+static void         SndVoice_Attach(SndVoiceOwner* arg0, SndVoice* arg1);
+static void         SndVoice_ClearActive(void);
+static s32          SndVoice_DriveSlots(void);
+static void         SndVoice_Init(void);
+static void         SndVoice_ScaleVolume(s8 arg0, s8 arg1, SndVoice* arg2, LinInterp* arg3, s16* arg4);
+static void         SndVoice_SetPriority(s8 arg0);
+static void         SndVoice_SetPriorityLevel(s8 arg0);
+static void         SndVoice_SetupEnvelope(SndVoice* voice, s16 envelopeOffset, u32 pitch, SndNote* note);
+static s32          SndVoice_Tick(SndVoice* arg0);
+static void         SndVoice_TickEnvelope(SndVoice* arg0);
+static void         Snd_SetBusyFlag(s32 arg0);
+static s8           func_80055EF8(SndVoicePick* arg0, s32 arg1);
+static SndBankSlot* sndBankSlotFind(u16 bankId, s32 byType);
+
 void Snd_InitFromStage(s32 arg0, s32 arg1)
 {
     u8* var_s0;
@@ -190,7 +210,7 @@ s32 SndLoad_ResolveSpuAddr(s32 arg0, s32 arg1)
 
 /* Per-type arg1 limits for TaskIdMap_RemapIndex; sits between this TU's first
  * jtbl (SndLoad_ResolveSpuAddr) and TaskIdMap's jtbl at 0x80014130. */
-const GBytes6 D_80014124 = { { 0x00, 0x08, 0x07, 0x0B, 0x0C, 0x0A } };
+static const GBytes6 D_80014124 = { { 0x00, 0x08, 0x07, 0x0B, 0x0C, 0x0A } };
 
 s32 TaskIdMap_RemapIndex(s32 arg0, s32 arg1, s32 arg2)
 {
@@ -274,12 +294,12 @@ s32 TaskIdMap_RemapIndex(s32 arg0, s32 arg1, s32 arg2)
     return arg1 & 0xFF;
 }
 
-void Snd_ClearBusy(void)
+static void Snd_ClearBusy(void)
 {
     Snd_SetBusyFlag(0);
 }
 
-void Snd_SetBusyFlag(s32 arg0)
+static void Snd_SetBusyFlag(s32 arg0)
 {
     if (arg0 == 0) {
         Snd_FreeBank(&Snd_Banks[12]);
@@ -325,8 +345,8 @@ void Snd_RegisterTickCallbacks(void)
 }
 
 // K&R definition so a missing argument stays legal (indeterminate a0).
-s32 SndBank_RemapId(arg0)
-s32 arg0;
+static s32 SndBank_RemapId(arg0)
+s32        arg0;
 {
     s32          var_s0;
     SndBankSlot* temp_v0;
@@ -599,7 +619,7 @@ void SndBank_SetEnableFlags(s32 arg0, s32 arg1)
     }
 }
 
-void SndVoice_SetPriority(s8 arg0)
+static void SndVoice_SetPriority(s8 arg0)
 {
     SndVoice_SetPriorityLevel(arg0);
 }
@@ -631,7 +651,7 @@ void SndEvt_EnqueueTypeE(void)
     }
 }
 
-void SndEvt_EnqueueTypeF(void)
+static void SndEvt_EnqueueTypeF(void)
 {
     SndEvt* temp;
 
@@ -716,7 +736,7 @@ s32 SndScript_StopMatching(s32 arg0, s32 arg1)
     }
 }
 
-void SndVoice_StepMasterLevel(void)
+static void SndVoice_StepMasterLevel(void)
 {
     s16 var_a0;
     s8  bound;
@@ -742,7 +762,7 @@ void SndVoice_StepMasterLevel(void)
     SndVoice_ApplyMasterVolume(var_a0);
 }
 
-s32 SndVoice_DriveSlots(void)
+static s32 SndVoice_DriveSlots(void)
 {
     SpuVoiceRef   sp18;
     s16           sp20[2];
@@ -991,7 +1011,7 @@ s32 SndVoice_DriveSlots(void)
     return 0;
 }
 
-void SndVoice_ScanCandidates(SndVoicePick* arg0, u16 arg1, s32 arg2, u16 arg3)
+static void SndVoice_ScanCandidates(SndVoicePick* arg0, u16 arg1, s32 arg2, u16 arg3)
 {
     s8         i;
     SndScript* p;
@@ -1114,7 +1134,7 @@ static inline u8 _sndScriptUseReverb(SndOneV* oneV)
     return on;
 }
 
-s32 SndScript_Exec(SndScript* script)
+static s32 SndScript_Exec(SndScript* script)
 {
     SpuVoiceRef   voiceRef;
     s16           volume[2];
@@ -1301,7 +1321,7 @@ done:
     return result;
 }
 
-void SndVoice_TickEnvelope(SndVoice* arg0)
+static void SndVoice_TickEnvelope(SndVoice* arg0)
 {
     SpuVoiceRef   sp10;
     SndVoiceFx*   fx;
@@ -1555,7 +1575,7 @@ void SndVoice_TickRefCount(void)
     }
 }
 
-void SndVoice_Init(void)
+static void SndVoice_Init(void)
 {
     u32  i;
     s32* ptr;
@@ -1590,7 +1610,7 @@ void SndVoice_Init(void)
     SndVoice_SetPriorityLevel(1);
 }
 
-void SndVoice_SetPriorityLevel(s8 arg0)
+static void SndVoice_SetPriorityLevel(s8 arg0)
 {
     if (arg0 < 0) {
         D_8008274B = -1;
@@ -1654,7 +1674,7 @@ s8 SndVoice_GetMasterVolume(void)
     return D_80082748;
 }
 
-s8 func_80055EF8(SndVoicePick* arg0, s32 arg1)
+static s8 func_80055EF8(SndVoicePick* arg0, s32 arg1)
 {
     s32 v;
     u8  u;
@@ -1692,7 +1712,7 @@ ret_m6:
     return -6;
 }
 
-void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndBankSlot* arg4, SndVoiceParams* arg5)
+static void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndBankSlot* arg4, SndVoiceParams* arg5)
 {
     SndScript*      p;
     SndVoice*       node;
@@ -1725,7 +1745,7 @@ void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndBankSlot* arg4, Snd
     p->field_F  = (flags >> 1) & 1;
 }
 
-void SndVoice_Detach(SndVoice* arg0)
+static void SndVoice_Detach(SndVoice* arg0)
 {
     SndVoice* temp_v0;
     SndVoice* temp_v1;
@@ -1765,7 +1785,13 @@ void SndVoice_Detach(SndVoice* arg0)
     }
 }
 
-SndBankSlot* sndBankSlotFind(u16 bankId, s32 byType)
+/// Finds the slot holding the loaded bank that `bankId` names.
+///
+/// A bank id carries the bank's type in its high nibble, and `byType` selects
+/// how it is compared with the id each loaded bank carries: 0 matches the whole
+/// id, 1 only the `0xF000` type band. A search that matches nothing returns
+/// `NULL`.
+static SndBankSlot* sndBankSlotFind(u16 bankId, s32 byType)
 {
     s32          i;
     SndBankSlot* slot;
@@ -1829,7 +1855,7 @@ void SndBankSlot_Free(s32 arg0)
     }
 }
 
-SndVoice* SndVoice_Alloc(s32 arg0)
+static SndVoice* SndVoice_Alloc(s32 arg0)
 {
     s32       voiceIdx;
     SndVoice* ptr;
@@ -1847,7 +1873,7 @@ SndVoice* SndVoice_Alloc(s32 arg0)
     return ptr;
 }
 
-void SndVoice_Attach(SndVoiceOwner* arg0, SndVoice* arg1)
+static void SndVoice_Attach(SndVoiceOwner* arg0, SndVoice* arg1)
 {
     SndVoice* temp_v0;
 
@@ -1872,7 +1898,7 @@ void SndVoice_Attach(SndVoiceOwner* arg0, SndVoice* arg1)
     arg1->field_34 = NULL;
 }
 
-s32 SndVoice_Tick(SndVoice* arg0)
+static s32 SndVoice_Tick(SndVoice* arg0)
 {
     s32 temp;
 
@@ -1902,7 +1928,7 @@ s32 SndVoice_Tick(SndVoice* arg0)
     return 0;
 }
 
-s32 SndScript_TickVoices(SndScript* arg0)
+static s32 SndScript_TickVoices(SndScript* arg0)
 {
     SpuVoiceRef sp10;
     SndVoice*   node;
@@ -1943,7 +1969,7 @@ s32 SndScript_TickVoices(SndScript* arg0)
     return count;
 }
 
-void SndVoice_ScaleVolume(s8 arg0, s8 arg1, SndVoice* arg2, LinInterp* arg3, s16* arg4)
+static void SndVoice_ScaleVolume(s8 arg0, s8 arg1, SndVoice* arg2, LinInterp* arg3, s16* arg4)
 {
     register s32 temp_v0 asm("v0");
     s32          temp_v1;
@@ -1975,7 +2001,7 @@ void SndVoice_ScaleVolume(s8 arg0, s8 arg1, SndVoice* arg2, LinInterp* arg3, s16
     }
 }
 
-void SndVoice_SetupEnvelope(SndVoice* voice, s16 envelopeOffset, u32 pitch, SndNote* note)
+static void SndVoice_SetupEnvelope(SndVoice* voice, s16 envelopeOffset, u32 pitch, SndNote* note)
 {
     SndVoiceFx* p;
     u8*         base;
@@ -2011,7 +2037,7 @@ void SndVoice_SetupEnvelope(SndVoice* voice, s16 envelopeOffset, u32 pitch, SndN
     }
 }
 
-s32 SndScript_FindOneA(u8* arg0, s16 arg1, SndOneAOut* arg2)
+static s32 SndScript_FindOneA(u8* arg0, s16 arg1, SndOneAOut* arg2)
 {
     SndOneA* chunk;
 
@@ -2027,7 +2053,7 @@ s32 SndScript_FindOneA(u8* arg0, s16 arg1, SndOneAOut* arg2)
     return -1;
 }
 
-void SndVoice_ClearActive(void)
+static void SndVoice_ClearActive(void)
 {
     s32        i;
     s32        mask;

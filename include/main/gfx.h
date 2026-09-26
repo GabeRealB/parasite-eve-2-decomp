@@ -39,8 +39,6 @@ void Gfx_InitCoordinateTrees(void);
 
 void Gpu_InitDefaultLights(void);
 void Gfx_SetFlatLight(s32 id, GsF_LIGHT* light, MATRIX* dirMtx, MATRIX* colorMtx);
-void Gfx_SetDefaultFlatLight(s32 id, GsF_LIGHT* light);
-void Gfx_SetLightAmbient(long arg0, long arg1, long arg2);
 
 // =============================================================================
 // Functions — rotation matrices (src/main/gfxmtx.c)
@@ -48,12 +46,10 @@ void Gfx_SetLightAmbient(long arg0, long arg1, long arg2);
 
 void Gfx_RotMatrixXYZ(MATRIX* out, SVECTOR* angles, s32 flag);
 void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag);
-void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag);
 void Gfx_RotMatrixX(MATRIX* arg0, s32 angle, s32 flag);
 void Gfx_RotMatrixY(MATRIX* arg0, s32 angle, s32 flag);
 void Gfx_RotMatrixZ(MATRIX* arg0, s32 angle, s32 flag);
 void Gfx_MatrixToEuler(MATRIX* arg0, SVECTOR* arg1);
-void Gfx_TransposeRot(MATRIX* arg0, MATRIX* arg1);
 void Gfx_MatrixCol0(MATRIX* arg0, SVECTOR* arg1);
 void Gfx_MatrixCol1(MATRIX* arg0, SVECTOR* arg1);
 void Gfx_MatrixCol2(MATRIX* arg0, SVECTOR* arg1);

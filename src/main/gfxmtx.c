@@ -184,7 +184,7 @@ void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag)
     SCRATCH_POP(ScratchRotXYZ);
 }
 
-void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag)
+static void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag)
 {
     ScratchRotZYX* block;
 
@@ -298,7 +298,7 @@ void Gfx_MatrixToEuler(MATRIX* arg0, SVECTOR* arg1)
     SCRATCH_POP_BYTES(0x30);
 }
 
-void Gfx_TransposeRot(MATRIX* arg0, MATRIX* arg1)
+static void Gfx_TransposeRot(MATRIX* arg0, MATRIX* arg1)
 {
     gte_TransposeMatrix(arg0, arg1);
 }

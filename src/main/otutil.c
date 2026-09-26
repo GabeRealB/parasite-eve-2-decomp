@@ -1,11 +1,14 @@
 #include "common.h"
 
+#include <psyq/libapi.h>
 #include <psyq/libetc.h>
 
 #include "main/unknown_syms.h"
 #include "main/boot.h"
 #include "main/gamemain.h"
 #include "main/stage.h"
+
+static void Display_ResetHeapFromSession(void);
 
 s32 Display_FrameFlipDraw(GpuOtBuf* otBufs, s32 arg1, s32 arg2)
 {
@@ -160,7 +163,7 @@ void Display_ResetHeapWrapper(void)
     Display_ResetHeapFromSession();
 }
 
-void Display_FlipOt(void)
+static void Display_FlipOt(void)
 {
     DisplayState* temp;
     u_long*       saved;
@@ -208,7 +211,7 @@ void Display_ReleaseRef(void)
     }
 }
 
-s32 func_8003E698(void)
+static s32 func_8003E698(void)
 {
     s32 temp;
 
@@ -273,7 +276,7 @@ s32 Display_DispatchModeId(s32 arg0)
     return 0;
 }
 
-void Display_ResetHeapFromSession(void)
+static void Display_ResetHeapFromSession(void)
 {
     GameSession* temp;
 
@@ -283,7 +286,7 @@ void Display_ResetHeapFromSession(void)
     gDisplayState.pendingMode  = 0;
 }
 
-void Display_FlipOtAlt(void)
+static void Display_FlipOtAlt(void)
 {
     DisplayState* temp;
     u_long*       saved;

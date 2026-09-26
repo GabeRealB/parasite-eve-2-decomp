@@ -84,12 +84,12 @@ void Gfx_SetFlatLight(s32 id, GsF_LIGHT* light, MATRIX* dirMtx, MATRIX* colorMtx
     SCRATCH_POP(ScratchLightBlock);
 }
 
-void Gfx_SetDefaultFlatLight(s32 id, GsF_LIGHT* light)
+static void Gfx_SetDefaultFlatLight(s32 id, GsF_LIGHT* light)
 {
     setLightToMatrices(id, light, &GsLIGHTWSMATRIX, &D_80074080);
 }
 
-void Gfx_SetLightAmbient(long arg0, long arg1, long arg2)
+static void Gfx_SetLightAmbient(long arg0, long arg1, long arg2)
 {
     D_80074080.t[0] = arg0;
     D_80074080.t[1] = arg1;

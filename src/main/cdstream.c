@@ -11,6 +11,14 @@
  * compiles the byte as an offset from a base register, where the original
  * folds the whole address into the load and store. */
 
+static void CdReady_ClearCallback(void);
+static void CdReady_InstallCallback(CdlCB arg0);
+static s32  CdStream_Flush(void);
+static s32  CdStream_InitDisc(u32* arg0);
+static void CdStream_MarkEnding(void);
+static void CdStream_ReadyMts(s32 interrupt, u8* result);
+static void CdStream_SpuIrqHandler(void);
+
 s32 func_80059EE0(CdReadyEntry* arg0)
 {
     struct {
@@ -313,7 +321,7 @@ stream_error:
     return 1;
 }
 
-void CdStream_ReadyMts(s32 interrupt, u8* result)
+static void CdStream_ReadyMts(s32 interrupt, u8* result)
 {
     volatile CdStreamState* state;
     s16                     chunkSectors;
@@ -585,7 +593,7 @@ unlock:
     D_80068B6A = 0;
 }
 
-s32 CdStream_InitDisc(u32* arg0)
+static s32 CdStream_InitDisc(u32* arg0)
 {
     struct {
         u8     result[8];
@@ -663,7 +671,7 @@ s32 CdStream_InitDisc(u32* arg0)
     return 0;
 }
 
-void CdReady_InstallCallback(CdlCB arg0)
+static void CdReady_InstallCallback(CdlCB arg0)
 {
     volatile CdReadyQueue* p;
 
@@ -676,7 +684,7 @@ void CdReady_InstallCallback(CdlCB arg0)
     CdReady_Queue.callbackInstalled = 1;
 }
 
-void CdReady_ClearCallback(void)
+static void CdReady_ClearCallback(void)
 {
     volatile CdReadyQueue* p;
 
@@ -719,7 +727,7 @@ void CdStream_ArmSpuIrq(void)
     CdStream_State.flags0 = CdStream_State.flags0 | 1;
 }
 
-void CdStream_SpuIrqHandler(void)
+static void CdStream_SpuIrqHandler(void)
 {
     CdStream_State.flags0 = CdStream_State.flags0 | 8;
 }
@@ -768,7 +776,7 @@ void CdStream_SetPitch(s16 arg0)
     p->ch[0].pitchAlt = 0;
 }
 
-void CdStream_SetFlag14(s32 arg0)
+static void CdStream_SetFlag14(s32 arg0)
 {
     volatile CdStreamState* p;
     u8                      temp;
@@ -836,7 +844,7 @@ void CdStream_FinishQueueEntry(u32* arg0)
     }
 }
 
-void CdReady_Cancel(s16 arg0)
+static void CdReady_Cancel(s16 arg0)
 {
     u8            temp;
     s16           idx;
@@ -877,20 +885,20 @@ void CdStream_SetLinkedPitch(s32 arg0)
     }
 }
 
-void CdStream_MarkEnding(void)
+static void CdStream_MarkEnding(void)
 {
     CdStream_State.flags   = CdStream_State.flags & 0xFE;
     CdStream_State.flags1  = CdStream_State.flags1 | 2;
     CdStream_State.pending = 0;
 }
 
-s32 CdStream_Flush(void)
+static s32 CdStream_Flush(void)
 {
     CdFlush();
     return 0;
 }
 
-void CdStream_ConfigureSpuIrq(s32 arg0, u32 arg1)
+static void CdStream_ConfigureSpuIrq(s32 arg0, u32 arg1)
 {
     if (arg0 == 1) {
         if (D_80068B5C != 0) {
@@ -908,6 +916,6 @@ void CdStream_ConfigureSpuIrq(s32 arg0, u32 arg1)
     }
 }
 
-void func_8005BCF8(void)
+static void func_8005BCF8(void)
 {
 }

@@ -426,7 +426,7 @@ s16 CdSync_IsShellOpenBitSet(void)
     return tmp != 0;
 }
 
-bool CdSync_CanIssueCommand(void)
+static bool CdSync_CanIssueCommand(void)
 {
     return CdDiskReady(1) == CdlComplete;
 }
