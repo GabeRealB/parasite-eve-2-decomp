@@ -368,3 +368,4 @@ func_8011E710 = 0x8011E710; // absolute:True
 func_8011F5D4 = 0x8011F5D4; // absolute:True
 func_8011F724 = 0x8011F724; // absolute:True
 D_shelter_b6_nursery_801852D0 = 0x801852D0; // absolute:True
+D_acropolis_cafeteria_80184E5C = 0x80184E5C; // absolute:True

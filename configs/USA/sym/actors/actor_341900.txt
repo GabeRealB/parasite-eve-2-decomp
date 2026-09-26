@@ -10,3 +10,5 @@ D_actor_444000_80148E94 = 0x80148E94; // absolute:True
 D_actor_444000_8014A650 = 0x8014A650; // absolute:True
 D_actor_444000_8014BE0C = 0x8014BE0C; // absolute:True
 D_actor_444000_8014D5FC = 0x8014D5FC; // absolute:True
+D_actor_444000_8014FE00 = 0x8014FE00; // absolute:True
+D_actor_444000_80150170 = 0x80150170; // absolute:True

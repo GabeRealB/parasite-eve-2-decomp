@@ -3,3 +3,4 @@ D_map_neo_ark_80179DB8 = 0x80179DB8; // table main indexes by map
 D_map_neo_ark_80179EC8 = 0x80179EC8; // table main indexes by map
 D_map_neo_ark_8017CB54 = 0x8017CB54; // table main indexes by map
 D_map_neo_ark_8017CDFC = 0x8017CDFC; // table main indexes by map
+D_shelter_1f_vehicular_airlock_80182004 = 0x80182004; // absolute:True

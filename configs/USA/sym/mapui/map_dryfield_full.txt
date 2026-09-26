@@ -3,3 +3,6 @@ D_map_dryfield_full_801799A4 = 0x801799A4; // table main indexes by map
 D_map_dryfield_full_8017D238 = 0x8017D238; // table main indexes by map
 D_map_dryfield_full_8017D594 = 0x8017D594; // table main indexes by map
 D_dryfield_night_trailer_coach_80184CA0 = 0x80184CA0; // absolute:True
+D_mappic_s3_02_8012FBB4 = 0x8012FBB4; // absolute:True
+D_mappic_s3_02_8012FC7C = 0x8012FC7C; // absolute:True
+D_mappic_s3_02_8012FE08 = 0x8012FE08; // absolute:True

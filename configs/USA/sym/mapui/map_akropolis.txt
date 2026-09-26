@@ -14,3 +14,4 @@ D_acropolis_roof_garden_80186E70 = 0x80186E70; // absolute:True
 D_acropolis_sanctuary_80186A08 = 0x80186A08; // absolute:True
 D_acropolis_sanctuary_80186C68 = 0x80186C68; // absolute:True
 D_acropolis_security_room_80185584 = 0x80185584; // absolute:True
+D_mappic_s1_00_8012F224 = 0x8012F224; // absolute:True

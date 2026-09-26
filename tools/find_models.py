@@ -128,6 +128,19 @@ def package_loads(manifest: dict) -> dict[str, int]:
     return out
 
 
+_functions: dict[str, dict[int, str]] = {}
+
+
+def functions(image: str) -> dict[int, str]:
+    """address -> name of every function an image defines."""
+    if image not in _functions:
+        res = subprocess.run(["mips-linux-gnu-nm", "--defined-only", str(OUT / f"{image}.elf")],
+                             capture_output=True, text=True).stdout
+        _functions[image] = {int(p[0], 16): p[2] for p in (l.split() for l in res.splitlines())
+                             if len(p) == 3 and p[1] in "Tt"}
+    return _functions[image]
+
+
 class Images:
     """Word reads from the linked images, and the address range each package loads at."""
 
@@ -236,7 +249,7 @@ def main() -> int:
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--family", help="only this manifest family")
     ap.add_argument("--json", help="write every row to this file")
-    ap.add_argument("--list", choices=("unnamed", "unreferenced", "unresolved"),
+    ap.add_argument("--list", choices=("unnamed", "unreferenced", "unresolved"),  # unresolved: not placed as a model reference
                     help="print the models with only bare pointers, or with no reference")
     args = ap.parse_args()
 
@@ -265,6 +278,9 @@ def main() -> int:
     # Pointers left as plain numbers, in every image, resolved to one package.
     images_io = Images()
     map_rooms = map_room_models(images_io)
+    maps = stage_maps()
+    stage_pkgs = {st: {p for p in loads if p.startswith(f"mappic_s{st}_")}
+                  for st, rooms in stage_rooms().items()}
     bare: dict[tuple[str, int], list[dict]] = defaultdict(list)
     for image in [*loads, *RESIDENT]:
         lo = loads.get(image)
@@ -278,11 +294,32 @@ def main() -> int:
                     target, why = image, "own"
                 elif image.startswith("map_"):
                     room = map_rooms.get((image, loc))
-                    ok = room in at_addr[v]
-                    target, why = (room, "room table") if ok else (None, "not a room descriptor")
+                    if room in at_addr[v]:
+                        target, why = room, "room table"
+                    else:
+                        # Outside the room tables a map reaches its own
+                        # stage's map pictures (`{pointer, 0xFFnn}` pairs) and
+                        # actors (descriptor lists whose callback is in the
+                        # actor slot). A room is named only through the room
+                        # tables, which say which room an entry belongs to.
+                        stage = next(s for s, mp in maps.items() if mp == image)
+                        ok = [p for p in at_addr[v] if p in stage_pkgs[stage] or p.startswith("actor_")]
+                        target, why = (ok[0], "stage") if len(ok) == 1 else (None, f"{len(ok)} in its stage")
                 else:
                     cands = [p for p in at_addr[v] if p != image]
                     target, why = (cands[0], "unique") if len(cands) == 1 else (None, f"{len(cands)} candidates")
+                    # In a task descriptor the model is the argument of a
+                    # type-1 entry, and a callback in the target's slot has to
+                    # be one of the target's functions.
+                    flags, cb = images_io.word(image, loc - 8), images_io.word(image, loc - 4)
+                    if target and cb is not None and (cb >> 16) in (0x60, 0x62, 0x70, 0xC0) and cb & 0xFF00 == 0:
+                        target, why = None, "a descriptor's callback, not a model"
+                    elif target and flags is not None and (flags >> 16) in (0x60, 0x62, 0x70, 0xC0) and flags & 0xFF00 == 0:
+                        lo_t = loads.get(target)
+                        if flags & 0xFF != 1:
+                            target, why = None, "not a model argument"
+                        elif lo_t is not None and lo_t <= (cb or 0) < lo_t + size[target] and not functions(target).get(cb):
+                            target, why = None, "callback is not the target's"
                 bare[(target, v)].append({"from": image, "at": f"0x{loc:08X}", "why": why})
 
     rows = []
@@ -322,7 +359,9 @@ def main() -> int:
     print(f"  referenced by name     {named:>5}", file=sys.stderr)
     print(f"  only by a bare pointer {len(unnamed):>5}  (should be named)", file=sys.stderr)
     print(f"  no static reference    {len(none):>5}", file=sys.stderr)
-    print(f"  unresolved pointers    {len(unresolved):>5}  (values equal to a record that no rule places)", file=sys.stderr)
+    ambiguous = [u for u in unresolved if u["why"].endswith("candidates") and not u["why"].startswith(("0 ", "1 "))]
+    print(f"  not model references   {len(unresolved) - len(ambiguous):>5}  (equal to a record, but no co-loaded package's model is there)", file=sys.stderr)
+    print(f"  ambiguous pointers     {len(ambiguous):>5}", file=sys.stderr)
 
     if args.list == "unresolved":
         for u in unresolved:
