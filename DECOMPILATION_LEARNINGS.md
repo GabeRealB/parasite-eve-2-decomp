@@ -87406,6 +87406,14 @@ so CSE loses the `carve == head - K` equivalence and every offset-0 access comes
 back as `0(sN)` instead of the target's `-K(head)` (95.34%). `Actor01900_Fn083E8`
 in the same TU is the same shape.
 
+Try the compound push anyway before reaching for the asm: a late store off the
+copy is not always out of its reach. The `OverlayBisectorScratch` push
+(`func_actor_123200_80132B94` and its room/actor copies) has
+`addiu v0,a0,-0xE4` / `move s0,v0`, two field stores, then `sw s0,0(a1)`, and
+had been matched with a `$v0` pin plus a `vz` local holding the store late.
+`SCRATCH_PUSH(T); st = SCRATCH_HEAD(T);` followed by the three field stores in
+source order matches it outright - sched1 sinks the head store past the fields.
+
 The asm is also a scheduling barrier, so anything the target issues *before* the
 `addiu` carve must be written before the `SOFT_USE_REG` too. In
 `func_dryfield_toilet_8017DEF4` the target loads the first `workm.t` half
