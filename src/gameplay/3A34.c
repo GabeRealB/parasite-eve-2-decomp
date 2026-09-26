@@ -3604,80 +3604,42 @@ s32 Gp_PairHandler1(GpObj* arg0, GpObj* arg1)
 {
     u8*              head;
     GpSphereScratch* block;
-    register s32     dx asm("v0");
-    register s32     a asm("a0");
-    register s32     b asm("v1");
-    register s32     c asm("a1");
     s32              ret;
-    register s32     t0 asm("a2");
-    s32              dz;
-    s32              rsum;
 
     head                          = SCRATCH_HEAD(u8);
     block                         = (GpSphereScratch*)(head - 0x48);
     SCRATCH_HEAD(GpSphereScratch) = block;
-    Gp_ObjWorldPos(arg0, (VECTOR3*)(head - 0x34));
-    Gp_ObjWorldPos(arg1, (VECTOR3*)(head - 0x24));
+    Gp_ObjWorldPos(arg0, (VECTOR3*)&block->pos0);
+    Gp_ObjWorldPos(arg1, (VECTOR3*)&block->pos1);
 
-    dx              = block->pos0.vx;
-    a               = block->pos1.vx;
-    b               = block->pos0.vy;
-    c               = block->pos1.vy;
-    dx             -= a;
-    a               = block->pos0.vz;
-    b              -= c;
-    block->delta.vy = b;
-    b               = block->pos1.vz;
     ret             = 0;
-    block->delta.vx = dx;
-    COMPILER_BARRIER();
-    if (dx < 0) {
-        dx = -dx;
-    }
-    dz              = a - b;
-    block->delta.vz = dz;
-    if ((dx > 0x7FFF) || (ABS(dz) > 0x7FFF)) {
+    block->delta.vx = block->pos0.vx - block->pos1.vx;
+    block->delta.vy = block->pos0.vy - block->pos1.vy;
+    block->delta.vz = block->pos0.vz - block->pos1.vz;
+    if ((ABS(block->delta.vx) > 0x7FFF) || (ABS(block->delta.vz) > 0x7FFF)) {
         SCRATCH_POP_BYTES(0x48);
         return 0;
     }
 
-    COMPILER_BARRIER();
-    dx            = block->delta.vx;
-    t0            = dx * dx;
-    dx            = block->delta.vy;
-    c             = dx * dx;
-    dx            = block->delta.vz;
-    a             = dx * dx;
-    rsum          = (u16)arg0->radius + (u16)arg1->radius;
-    block->rsum32 = rsum;
-    dx            = t0 + c + a;
-    if (dx < (b = rsum * rsum)) {
-        s32 rad;
+    block->rsum32 = arg0->radius + arg1->radius;
+    if (block->delta.vx * block->delta.vx + block->delta.vy * block->delta.vy + block->delta.vz * block->delta.vz < block->rsum32 * block->rsum32) {
+        block->src.vx   = block->pos1.vx;
+        block->src.vy   = block->pos1.vy;
+        block->src.vz   = block->pos1.vz;
+        block->extra.vx = 0;
+        block->extra.vy = 0;
+        block->extra.vz = 0;
+        block->rsum     = block->rsum32;
+        func_800DBA20(arg0, arg1, block);
+        ret = 1;
 
-        a                             = (s32)arg0;
-        c                             = (s32)arg1;
-        dx                            = (u16)block->pos1.vx;
-        t0                            = (s32)block;
-        ((SVECTOR*)(head - 0x48))->vx = dx;
-        dx                            = (u16)block->pos1.vy;
-        b                             = (u16)block->pos1.vz;
-        rad                           = (u16)block->rsum32;
-        ret                           = 1;
-        block->extra.vx               = 0;
-        block->extra.vy               = 0;
-        block->extra.vz               = 0;
-        block->src.vy                 = dx;
-        block->src.vz                 = b;
-        block->rsum                   = rad;
-        func_800DBA20((GpObj*)a, (GpObj*)c, (GpSphereScratch*)t0);
-
-        ((SVECTOR*)(head - 0x48))->vx = (s16)block->pos0.vx;
-        block->src.vy                 = (s16)block->pos0.vy;
-        block->src.vz                 = (s16)block->pos0.vz;
-        block->extra.vx               = 0;
-        block->extra.vy               = 0;
-        block->extra.vz               = 0;
-        block->rsum                   = (s16)block->rsum32;
+        block->src.vx   = block->pos0.vx;
+        block->src.vy   = block->pos0.vy;
+        block->src.vz   = block->pos0.vz;
+        block->extra.vx = 0;
+        block->extra.vy = 0;
+        block->extra.vz = 0;
+        block->rsum     = block->rsum32;
         func_800DBA20(arg1, arg0, block);
     }
 

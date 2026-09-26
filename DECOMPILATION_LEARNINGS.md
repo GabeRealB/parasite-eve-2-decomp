@@ -141480,3 +141480,28 @@ sees the register already holding `task->work` and deletes the re-read - the
 `.greg` dump still has it, `.jump2` does not. So when a target
 reloads a pointer and the only store in sight is *above* the first load, try
 moving that store after the load in the source before reaching for a barrier.
+
+## A result flag written *after* a call is hoisted above it when the flag already crosses a call (Gp_PairHandler1, 2026-09-26)
+
+Symptom: `li s5,1` for `ret = 1` sits in the argument-setup block of the first
+of two calls, but between the loads and the stores rather than at its head,
+and the argument moves `move a1` / `move a2` come earlier than a natural
+`ret = 1` written before the call produces (97.7%; the tree had pinned the
+argument registers to fake it).
+
+Mechanism: the converse of the entry above. `sched_analyze_1` only makes a
+pseudo set depend on `last_function_call` when `REG_N_CALLS_CROSSED == 0`;
+`ret` is live across the second call, so a set written after the first call
+has no dependence on it and sched1 (whose block spans both calls) hoists it.
+Its later LUID then wins the priority-1 tie against the argument moves, which
+puts it after them.
+
+Fix: write the flag where the code means it - once the first record is filed:
+
+```c
+        func_800DBA20(arg0, arg1, block);
+        ret = 1;
+```
+
+Moving `ret = 1` among the statements *before* the call changed nothing; only
+the post-call position does.
