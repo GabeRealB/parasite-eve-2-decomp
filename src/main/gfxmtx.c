@@ -566,40 +566,31 @@ void Gfx_NormalizeLightDir(VECTOR* light, SVECTOR* out)
     SCRATCH_POP_AT(scratch, ScratchNormBlock);
 }
 
+/// Builds a rotation from two axes: `arg2` and `arg1` become rows 1 and 2 of a
+/// scratch matrix, their cross product row 0, and the transposed, normalized
+/// result is written to `out`.
 void Gfx_OrthonormalBasis(MATRIX* out, SVECTOR* arg1, SVECTOR* arg2)
 {
-    register void**   scratch asm("s1");
-    register u8*      head asm("v1");
-    register SVECTOR* sv1 asm("a0");
-    MATRIX*           mat;
-    u16               tmp;
+    MATRIX*  mat;
+    SVECTOR* row;
 
-    scratch = SCRATCH_HEAD_ADDR;
-    head    = SCRATCH_HEAD_AT(scratch, u8);
+    mat                  = SCRATCH_PUSH(MATRIX);
+    *(SVECTOR*)mat->m[1] = *arg2;
+    row                  = (SVECTOR*)mat->m[2];
+    row->vx              = arg1->vx;
+    row->vy              = arg1->vy;
+    row->vz              = arg1->vz;
 
-    *(SVECTOR*)(head - 0x1A) = *arg2;
-
-    sv1                              = (SVECTOR*)(head - 0x14);
-    tmp                              = arg1->vx;
-    sv1->vx                          = tmp;
-    mat                              = (MATRIX*)(head - 0x20);
-    tmp                              = arg1->vy;
-    sv1->vy                          = tmp;
-    tmp                              = arg1->vz;
-    head                             = head - 0x1A;
-    SCRATCH_HEAD_AT(scratch, MATRIX) = mat;
-    sv1->vz                          = tmp;
-
-    gte_ldopv1SV(head);
-    gte_ldopv2SV(sv1);
+    gte_ldopv1SV(mat->m[1]);
+    gte_ldopv2SV(row);
     gte_op12();
-    gte_stsv(mat);
+    gte_stsv(mat->m[0]);
 
     MatrixNormal_2(mat, mat);
 
     gte_TransposeMatrix(mat, out);
 
-    SCRATCH_POP_BYTES_AT(scratch, 0x20);
+    SCRATCH_POP(MATRIX);
 }
 
 s32 Gfx_ApplyMatrixNoSf(SVECTOR* arg0, SVECTOR* arg1)

@@ -141706,3 +141706,19 @@ extra->flags = (gDisplayState.animFrame & 1) ? extra->flags & 0xFF7F
 ```
 
 Check it in `.flow` by counting `(set (mem … (reg/v N)))` at the field's offset.
+
+## `SCRATCH_PUSH(T)` versus `SCRATCH_HEAD(T) - 1` then a store: the push's copy lengthens the head's quantity by one insn (Gfx_OrthonormalBasis, 2026-09-26)
+
+Both forms load the scratch head once and emit the same `lw / addiu / sw`, but
+`mat = SCRATCH_PUSH(MATRIX)` assigns through the compound assignment's own
+temporary and then copies it to `mat`. That copy survives to `.lreg` inside the
+loaded head's range. In `Gfx_OrthonormalBasis` the head quantity (8 refs, tied
+to the `head - 0x1A` pointer it dies into) and the first `lhu` temp tied at
+exactly 10000 (`3*8/24` against `1*2/2`); the head was born first, so it took
+`$v0`. The push's extra insn gives `3*8/26` = 9230, the temp takes `$v0` and the
+head `$v1`, which is what three register pins had been forcing.
+
+**Fix.** A `$v0`/`$v1` swap between a scratch head and short temps inside its
+range: try `SCRATCH_PUSH(T)` in place of `SCRATCH_HEAD(T) - 1` plus a separate
+`SCRATCH_HEAD(T) = block;` (and the reverse). Statement order will not do it -
+sched1 re-sorts the stores and all orders compile identically.
