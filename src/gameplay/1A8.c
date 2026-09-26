@@ -15,6 +15,21 @@
 
 void func_800AD6BC(void);
 
+static void Gp_InitDirState(Task* arg0);
+static void Gp_DirTaskState1(void);
+static void Gp_DirAction0(void);
+static void Gp_DirAction1(void);
+static void Gp_ClearDirCursor(void);
+static void Gp_PostMsg13EF(void);
+static void Gp_SpawnEvt1IfCapIdle(void);
+static void Gp_FadeDirAdvance(void);
+static void Gp_CommitSaveLoc(void);
+static void Gp_MsgPlayer3EE(void);
+static void Gp_MsgPlayer3F0(void);
+static void Gp_MsgPlayer3EF(void);
+static u8   Gp_GetViewCountLo(void);
+static void Gp_ApplyAreaFlag4List(s16 arg0, GpAreaFlagRec* arg1);
+
 extern u16 D_80114CD0;
 extern u16 Gp_DirFlags;
 extern u16 D_80114CD4;
@@ -54,7 +69,7 @@ const GpDirActionTable Gp_DirActionFns = { {
     Gp_SpawnEvt1IfCapIdle,
 } };
 
-const GpVoidFuncTable6 Gp_WarpPhaseFns = { {
+static const GpVoidFuncTable6 Gp_WarpPhaseFns = { {
     Gp_SetupDirWarp,
     Gp_FadeDirWaitMsg,
     Gp_FadeDirAdvance,
@@ -63,7 +78,7 @@ const GpVoidFuncTable6 Gp_WarpPhaseFns = { {
     Gp_CommitSaveLoc,
 } };
 
-const GpVoidFuncTable5 D_80093990 = { {
+static const GpVoidFuncTable5 D_80093990 = { {
     Gp_MsgPlayer3EE,
     Gp_MsgPlayer3F0,
     Gp_MsgPlayer3EF,
@@ -131,7 +146,7 @@ void Gp_ClearAreaFlag4(GpAreaKey* arg0)
     }
 }
 
-void Gp_InitDirState(Task* arg0)
+static void Gp_InitDirState(Task* arg0)
 {
     D_80114CDE       = 0;
     D_80114CDD       = 0;
@@ -149,7 +164,7 @@ void Gp_InitDirState(Task* arg0)
     arg0->state++;
 }
 
-void Gp_DirTaskState1(void)
+static void Gp_DirTaskState1(void)
 {
     Gp_CommitObj4CSave();
     func_800AD6BC();
@@ -180,7 +195,7 @@ void func_800AEE8C(Task* arg0)
     }
 }
 
-u8 Gp_GetViewCountLo(void)
+static u8 Gp_GetViewCountLo(void)
 {
     GameSession*    session;
     GpViewCountTbl* tbl;
@@ -190,7 +205,7 @@ u8 Gp_GetViewCountLo(void)
     return tbl->field_0[session->at4.loc.area - 1][session->at4.loc.room - 1].field_0;
 }
 
-void Gp_DirAction0(void)
+static void Gp_DirAction0(void)
 {
     GpVoidFuncTable6 sp;
 
@@ -198,7 +213,7 @@ void Gp_DirAction0(void)
     sp.funcs[(s16)Gp_DirPhase]();
 }
 
-void Gp_DirAction1(void)
+static void Gp_DirAction1(void)
 {
     GpVoidFuncTable5 sp;
 
@@ -214,7 +229,7 @@ void Gp_DirAction1(void)
     sp.funcs[(s16)Gp_DirPhase]();
 }
 
-void Gp_ClearDirCursor(void)
+static void Gp_ClearDirCursor(void)
 {
     Gp_DirNibble    = 0;
     Gp_DirByte      = 0;
@@ -225,7 +240,7 @@ void Gp_ClearDirCursor(void)
     D_80114CF8      = 0;
 }
 
-void Gp_PostMsg13EF(void)
+static void Gp_PostMsg13EF(void)
 {
     GpMsg13EF sp;
     void*     slot;
@@ -251,7 +266,7 @@ void Gp_PostMsg13EF(void)
     }
 }
 
-void Gp_SpawnEvt1IfCapIdle(void)
+static void Gp_SpawnEvt1IfCapIdle(void)
 {
     if (gGameSession->eventState == 0) {
         if (Gp_CapBusy() == 0) {
@@ -267,7 +282,7 @@ void Gp_SpawnEvt1IfCapIdle(void)
     D_80114CD4      = 0;
 }
 
-void Gp_FadeDirAdvance(void)
+static void Gp_FadeDirAdvance(void)
 {
     u8 fade;
 
@@ -282,7 +297,7 @@ void Gp_FadeDirAdvance(void)
     Gp_DirPhase++;
 }
 
-void Gp_CommitSaveLoc(void)
+static void Gp_CommitSaveLoc(void)
 {
     u8 fade;
 
@@ -300,7 +315,7 @@ void Gp_CommitSaveLoc(void)
     Gp_DirFlags  = 0;
 }
 
-void Gp_MsgPlayer3EE(void)
+static void Gp_MsgPlayer3EE(void)
 {
     GpXformArg sp;
     void*      slot;
@@ -324,14 +339,14 @@ void Gp_MsgPlayer3EE(void)
     }
 }
 
-void Gp_MsgPlayer3F0(void)
+static void Gp_MsgPlayer3F0(void)
 {
     if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F0, 0, 0) == 0) {
         Gp_DirPhase++;
     }
 }
 
-void Gp_MsgPlayer3EF(void)
+static void Gp_MsgPlayer3EF(void)
 {
     GpFacingArg sp;
     void*       slot;
@@ -362,7 +377,7 @@ void Gp_SetCurAreaFlag4(void)
     }
 }
 
-void Gp_ApplyAreaFlag4List(s16 arg0, GpAreaFlagRec* arg1)
+static void Gp_ApplyAreaFlag4List(s16 arg0, GpAreaFlagRec* arg1)
 {
     GpAreaRec* rec;
     GpAreaObj* obj;

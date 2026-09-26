@@ -103,26 +103,12 @@ typedef struct {
     GpVoidFunc funcs[6];
 } GpVoidFuncTable6;
 
-void Gp_InitDirState(Task* arg0);
-void Gp_DirTaskState1(void);
-void Gp_DirAction0(void);
-void Gp_DirAction1(void);
-void Gp_ClearDirCursor(void);
-void Gp_PostMsg13EF(void);
-void Gp_SpawnEvt1IfCapIdle(void);
-void Gp_FadeDirAdvance(void);
-void Gp_CommitSaveLoc(void);
-void Gp_MsgPlayer3EE(void);
-void Gp_MsgPlayer3F0(void);
-void Gp_MsgPlayer3EF(void);
-
 /// Per-stage flag-nibble lookup. `idx` indexes a u16 table selected by
 /// `gGameSession->at4.loc.stage` (1..5). Low 11 bits are the `GameFlag_GetNibble`
 /// index; bit `0x800` is added onto the result. Unknown stage or out-of-range
 /// index returns -1.
 s16 Gp_LookupStageFlag(s16 idx);
 s32 Gp_YawToPosXZ(Task* arg0, GpPosXZ* arg1);
-u8  Gp_GetViewCountLo(void);
 
 struct GpAreaKey;
 
@@ -132,6 +118,5 @@ struct GpAreaKey;
 void Gp_ClearAreaFlag4(struct GpAreaKey* arg0);
 
 void Gp_SetCurAreaFlag4(void);
-void Gp_ApplyAreaFlag4List(s16 arg0, GpAreaFlagRec* arg1);
 
 #endif // GAMEPLAY_1A8_H
