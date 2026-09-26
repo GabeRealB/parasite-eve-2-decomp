@@ -144436,3 +144436,22 @@ tails into the shared `sw` / `lhu` / `sh` the target shows.
 (`param = &A; hp = A.max;` / `param = &B; hp = B.max;`). A `nop` in a load
 delay slot at the head of a join, with a movable instruction just below it, is
 the tell for a duplicated tail.
+
+## A lone load/store serialisation mid-block can be sched1's 32-reference flush: re-read the field instead of caching it (Actor02100_Fn02924, 2026-09-27)
+
+`sched_analyze_1` flushes the pending memory lists at the first store that
+finds **more than 32** loads and stores pending in its block: that store then
+depends on every earlier reference, and every later load depends on it - a
+barrier with no instruction. A target where one pair is serialised
+(`lhu; addu; sh 0x30; lhu 0x2e; ...`) while identical pairs around it
+interleave had its flush exactly there; ours landed one store later.
+
+The missing references were duplicate loads that never reach the object. The
+source read `scratch->stepX` in two statements with a store between, so CSE
+(which drops every same-base memory value on a store) kept both loads; sched1
+counted both and then hoisted the second above the store; reload_cse deleted
+it as a no-op set, since it went into the register already holding the value.
+Caching the field in a local (`stepX = scratch->stepX;`) gives the same
+instructions with one fewer reference, which moved the flush and needed an
+empty-asm barrier to fake it. Count the block's references in `.i.combine` to
+check where the flush falls before adding or removing a read.

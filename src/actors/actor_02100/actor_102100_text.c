@@ -1434,8 +1434,6 @@ static void Actor02100_Fn02924(Task* arg0, s32 arg1)
     Actor02100Fn02924Scratch* scratch;
     u8*                       head;
     u8*                       newHead;
-    s32                       stepX;
-    s32                       stepY;
     s32*                      quadSlot;
     s32*                      modeSlot;
     s32*                      lineSlot;
@@ -1489,9 +1487,8 @@ static void Actor02100_Fn02924(Task* arg0, s32 arg1)
         depth          = (scratch->depthStep * next) + work->field_194[0];
         scratch->depth = depth;
         if (depth >= 0x1E) {
-            stepX         = scratch->stepX;
-            scratch->x[0] = (u16)((u16)work->field_18C[0] + (stepX * segment));
-            scratch->x[1] = (u16)((u16)work->field_18C[0] + (stepX * next));
+            scratch->x[0] = (u16)((u16)work->field_18C[0] + (scratch->stepX * segment));
+            scratch->x[1] = (u16)((u16)work->field_18C[0] + (scratch->stepX * next));
             corner        = 0;
             offsetX0 =
                 (s32)((s32)(scratch->normal.vy * Actor02100_D03DD8[work->field_178].styles[arg1].first * 0x300) >>
@@ -1503,17 +1500,15 @@ static void Actor02100_Fn02924(Task* arg0, s32 arg1)
                 (s32)((s32)(scratch->normal.vy * Actor02100_D03DD8[work->field_178].styles[arg1].second * 0x300) >>
                       0xC) /
                 (s32)scratch->depth;
-            stepY         = scratch->stepY;
             scratch->x[4] = (s16)(scratch->x[0] + offsetX1);
             scratch->x[5] = (s16)(scratch->x[1] + offsetX1);
-            scratch->y[0] = (u16)((u16)work->field_190[0] + (stepY * segment));
-            scratch->y[1] = (u16)((u16)work->field_190[0] + (stepY * next));
+            scratch->y[0] = (u16)((u16)work->field_190[0] + (scratch->stepY * segment));
+            scratch->y[1] = (u16)((u16)work->field_190[0] + (scratch->stepY * next));
             offsetY0 =
                 (s32)((s32)(scratch->normal.vx * Actor02100_D03DD8[work->field_178].styles[arg1].first * 0x300) >>
                       0xC) /
                 (s32)scratch->depth;
             scratch->y[2] = (s16)(scratch->y[0] + offsetY0);
-            COMPILER_BARRIER();
             scratch->y[3] = (s16)(scratch->y[1] + offsetY0);
             offsetY1 =
                 (s32)((s32)(scratch->normal.vx * Actor02100_D03DD8[work->field_178].styles[arg1].second * 0x300) >>
