@@ -878,7 +878,6 @@ static void Mc_StateListDirectory(Task* arg0, McWork* arg1)
     s32           var_s0;
     s32           temp_v0;
     s32           temp_v0_2;
-    s32           temp_v0_3;
     s32           var_v0;
     UiObject*     obj;
     McPromptPair* entry;
@@ -922,23 +921,15 @@ static void Mc_StateListDirectory(Task* arg0, McWork* arg1)
     }
     arg0->state = var_v0;
 
-    temp_v0_3 = arg1->field_288;
-    if (temp_v0_3 > 0) {
-        {
-            register s32 var_v1 asm("v1");
-            register s32 sh asm("v0");
-            s32          var_a0;
-            s32          temp_v0_4;
+    /* Map each file's first block back to its directory entry. */
+    if (arg1->field_288 > 0) {
+        s32 i;
 
-            for (var_a0 = 0; var_a0 < arg1->field_288; var_a0++) {
-                temp_v0_4 = arg1->field_30[var_a0].head;
-                var_v1    = temp_v0_4;
-                if (temp_v0_4 < 0) {
-                    var_v1 = temp_v0_4 + 0x3F;
-                }
-                sh                      = var_v1 >> 6;
-                ((u8*)arg1)[sh + 0xA23] = var_a0;
-            }
+        for (i = 0; i < arg1->field_288; i++) {
+            s32 head              = arg1->field_30[i].head;
+            head                 /= 64;
+            head                 -= 1;
+            arg1->field_A24[head] = i;
         }
     }
 
