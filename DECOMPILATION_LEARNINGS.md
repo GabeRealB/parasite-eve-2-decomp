@@ -142450,3 +142450,25 @@ invariant and wins `a0`. A block-scoped macro with the same body does not help,
 and passing the vector by value changes the frame. When two loop invariants of
 equal use count swap registers, look for the sequence being repeated and make it
 a helper.
+## A hand-reduced goto loop over a global array is usually a plain `for` over `arr[i]`; `arr[i].m.f` and a `GpObj*` taken from `&arr[i].m` are different addresses (func_actor_403100_8013480C, 2026-09-26)
+
+**Shape.** Target: after the loop's top test, `addiu s5,D; addiu s1,s5,0x70; move s7,s1;
+move s2,s4; move s0,s5`, a `%hi` of the count pointer held in `v1` across the loop head,
+and fields reached as `s0` (entry), `s1` (member), `s2+s5` and `s2+s7`. The tree
+rebuilt that by hand - a `goto` loop with `entry`, `walker`, `objects` and `offset`
+locals, which keeps `loop.c` out, plus `lui`/`lw` asm for the shared `%hi`. A plain
+`for (i = 0; i < work->count; i++)` with `entry = &D[i]` and `D[i]` accesses gives all
+of it: those are `loop.c`'s giv inits and hoisted invariant, and the shared `%hi` is
+`duplicate_loop_exit_test` keeping the exit test's `high` pseudo.
+
+**Member address.** `D[i].obj.flags` folds the member offset into the displacement
+(`addu v1,s2,s5; lhu 0x8e(v1)`). Passing `&D[i].obj` to a helper taking `GpObj*`
+computes the member's address first - `(D+0x70) + i*0xF0` - so the invariant `D+0x70`
+is hoisted and the access is `addu v1,s2,s7; lhu 0x1e(v1)`. A single `obj = &D[i].obj`
+local at the top of the body makes one reduced giv instead, which changes how many
+movables `loop.c` hoists (and here let `0xFFFF0000` escape to an `$s` register).
+Writing each use through the helper matched; `(&D[i].obj)->f` does too but is a `*&`.
+
+**Arm tails.** `size = base + (age*K + 0x90)` in each arm lets `fold` pull `0x90` out
+next to `base`; a `growth` temp per arm keeps `addiu 0x90; addu size,base,growth`,
+and jump2 cross-jumps the identical tails into the join the target shows.
