@@ -515,4 +515,8 @@ void  Gp_ClearPadHalt(void);
 void  Gp_SpawnPadLerpScaled(s16 arg0, u8 arg1, u8 arg2, s16 arg3);
 void  Gp_SpawnPadHold(s16 arg0);
 
+void func_800E4020(void);
+void Gp_ScriptInit(Task* arg0);
+void Gp_ScriptTaskState1(Task* arg0);
+
 #endif // GAMEPLAY_3CD8_H

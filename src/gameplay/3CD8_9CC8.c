@@ -16,25 +16,33 @@
 #include "main/task.h"
 #include "main/wipsys.h"
 
-extern TaskFuncTable3 D_80097678;
-extern s32            D_80115720;
-extern s32            D_80115724;
-extern s32            D_80115728;
-extern s32            D_8011572C;
-extern s32            D_80115730;
-extern s32            D_80115734;
-extern s32            D_80115738;
-extern s32            D_8011573C;
-extern s32            D_80115744;
-extern s32            D_8011574C;
-extern s32            D_80115750;
-extern s32            D_80115754;
-extern s32            D_80115758;
-extern s32            D_80111B70[];
-extern s32            D_80111BC0[];
-extern s32            D_80111C58[];
-extern s32            D_80111CF0[];
-extern s32            D_80111DB4[];
+void Gp_InitState1C(Task* arg0);
+void Gp_TickState1C(void);
+
+const TaskFuncTable3 D_80097678 = { {
+    Gp_InitState1C,
+    (TaskFunc)Gp_TickState1C,
+    taskKill,
+} };
+
+extern s32 D_80115720;
+extern s32 D_80115724;
+extern s32 D_80115728;
+extern s32 D_8011572C;
+extern s32 D_80115730;
+extern s32 D_80115734;
+extern s32 D_80115738;
+extern s32 D_8011573C;
+extern s32 D_80115744;
+extern s32 D_8011574C;
+extern s32 D_80115750;
+extern s32 D_80115754;
+extern s32 D_80115758;
+extern s32 D_80111B70[];
+extern s32 D_80111BC0[];
+extern s32 D_80111C58[];
+extern s32 D_80111CF0[];
+extern s32 D_80111DB4[];
 
 void Gp_InitState1C(Task* arg0)
 {

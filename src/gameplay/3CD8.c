@@ -31,83 +31,103 @@ typedef struct {
     u8 vertical;
 } _GpCapLayout;
 
-extern const _GpCapLayout D_80097518;
+extern const TaskFuncTable3 D_800974C8;
 
-extern TaskFuncTable3 D_800974C8;
-extern char           Gp_StrCapMagic[];
-extern char           Gp_StrEvsFmt[];
-extern TaskFuncTable3 Gp_CapTaskStates;
-extern TaskDesc       Gp_EvtSpawnTable[];
-extern TaskDesc       D_8010FB4C[];
-extern GpAnimArg      Gp_WeaponMsgRec;
-extern s32            D_8010FB80;
-extern s32            D_8010FB84;
-extern s32            Gp_CapCaretGrey;
-extern s32            Gp_CapCaretDir;
-extern s32            D_8010FB90[];
-extern u16            Gp_WeaponIdBase[];
-extern u16            Gp_AllyIdBase[];
-extern GpEvt12*       Gp_CapTable;
-extern GpCmdReply     D_801155A0;
-extern s16            D_801155AC;
-extern u16            D_801155AE;
-extern s16            D_801155B0;
-extern s16            D_801155B2;
-extern s16            D_801155B4;
-extern s16            D_801155B6;
-extern u8             D_801155B8;
-extern s8             D_801155B9;
-extern u8             D_801155BA;
-extern u8             D_801155BB;
-extern s16            D_801155BC;
-extern s16            D_801155BE;
-extern s16            D_801155C0;
-extern GpCapChoice    D_801155D0[];
-extern GlyphUvwh      D_8010FB70[];
-extern u8             D_80115670;
-extern Task*          Gp_CapTask;
-extern s16            D_80115678;
-extern s16            D_8011567A;
-extern GlyphUvwh*     Gp_CapGlyphs;
-extern u8             D_80115680;
-extern u8             D_80115688;
-extern u8             D_80115648;
-extern s16            D_8011564A;
-extern s16            D_80115650;
-extern s16            D_80115652;
-extern u16            Gp_CapCaretX;
-extern u16            Gp_CapCaretY;
-extern s16            D_80115654;
-extern s16            D_80115656;
-extern u8             Gp_CapCaretDelay;
-extern u8             D_80115659;
-extern u8             D_8011565A;
-extern u16            D_8011565C;
-extern s32            D_80115660;
-extern s16            D_80115664;
-extern s16            D_80115666;
-extern s16            Gp_CapEventKey;
-extern s16            D_8011566A;
-extern u8             D_8011566C;
-extern u8             D_8011566D;
-extern u8             D_8011566E;
-extern u8             D_8011566F;
-extern s32            Gp_CapFile;
-extern u8             D_80115690;
-extern u8             D_80115694;
-extern s16            D_80115698;
-extern s16            D_8011569A;
-extern u8             D_8011569C;
-extern s32*           Gp_CapCmds;
-extern u8             D_801156A4;
-extern s32            D_801156A8;
-extern s8             D_801156B0;
-extern s8             D_801156B1;
-extern s32            D_801156B4;
-extern Task*          D_801156B8;
-extern s16            D_801156BC;
-extern GpOverlayIds*  D_801156F4;
-extern u8             D_801156F9;
+void Gp_InitCapTask(Task* task);
+void Gp_CapTaskState1(void);
+
+const char         Gp_StrCapMagic[] = "CAP";
+const _GpCapLayout D_80097518       = { 0 };
+const char         Gp_StrEvsFmt[]   = "evs%d_%d_%d.txt";
+
+const TaskFuncTable3 Gp_CapTaskStates = { {
+    Gp_InitCapTask,
+    (TaskFunc)Gp_CapTaskState1,
+    taskKill,
+} };
+
+const TaskFuncTable3 Gp_ScriptTaskStates = { {
+    Gp_ScriptInit,
+    Gp_ScriptTaskState1,
+    taskKill,
+} };
+
+const char Gp_StrDemoWait[]  = "Demo Wait";
+const char Gp_StrDemoPause[] = "Demo Pause";
+/// An empty string after the demo labels. Nothing refers to it.
+const char D_8009755C[] = "";
+
+extern TaskDesc      Gp_EvtSpawnTable[];
+extern TaskDesc      D_8010FB4C[];
+extern GpAnimArg     Gp_WeaponMsgRec;
+extern s32           D_8010FB80;
+extern s32           D_8010FB84;
+extern s32           Gp_CapCaretGrey;
+extern s32           Gp_CapCaretDir;
+extern s32           D_8010FB90[];
+extern u16           Gp_WeaponIdBase[];
+extern u16           Gp_AllyIdBase[];
+extern GpEvt12*      Gp_CapTable;
+extern GpCmdReply    D_801155A0;
+extern s16           D_801155AC;
+extern u16           D_801155AE;
+extern s16           D_801155B0;
+extern s16           D_801155B2;
+extern s16           D_801155B4;
+extern s16           D_801155B6;
+extern u8            D_801155B8;
+extern s8            D_801155B9;
+extern u8            D_801155BA;
+extern u8            D_801155BB;
+extern s16           D_801155BC;
+extern s16           D_801155BE;
+extern s16           D_801155C0;
+extern GpCapChoice   D_801155D0[];
+extern GlyphUvwh     D_8010FB70[];
+extern u8            D_80115670;
+extern Task*         Gp_CapTask;
+extern s16           D_80115678;
+extern s16           D_8011567A;
+extern GlyphUvwh*    Gp_CapGlyphs;
+extern u8            D_80115680;
+extern u8            D_80115688;
+extern u8            D_80115648;
+extern s16           D_8011564A;
+extern s16           D_80115650;
+extern s16           D_80115652;
+extern u16           Gp_CapCaretX;
+extern u16           Gp_CapCaretY;
+extern s16           D_80115654;
+extern s16           D_80115656;
+extern u8            Gp_CapCaretDelay;
+extern u8            D_80115659;
+extern u8            D_8011565A;
+extern u16           D_8011565C;
+extern s32           D_80115660;
+extern s16           D_80115664;
+extern s16           D_80115666;
+extern s16           Gp_CapEventKey;
+extern s16           D_8011566A;
+extern u8            D_8011566C;
+extern u8            D_8011566D;
+extern u8            D_8011566E;
+extern u8            D_8011566F;
+extern s32           Gp_CapFile;
+extern u8            D_80115690;
+extern u8            D_80115694;
+extern s16           D_80115698;
+extern s16           D_8011569A;
+extern u8            D_8011569C;
+extern s32*          Gp_CapCmds;
+extern u8            D_801156A4;
+extern s32           D_801156A8;
+extern s8            D_801156B0;
+extern s8            D_801156B1;
+extern s32           D_801156B4;
+extern Task*         D_801156B8;
+extern s16           D_801156BC;
+extern GpOverlayIds* D_801156F4;
+extern u8            D_801156F9;
 
 s32  Stage_HasTransitionFlags(void);
 s32  Stage_RequestImageCapture(void);

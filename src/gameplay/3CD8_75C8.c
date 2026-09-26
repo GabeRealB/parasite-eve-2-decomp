@@ -27,9 +27,9 @@
 
 extern u16                  D_8007A396;
 extern u16                  D_8007A39C;
-extern u8                   Gp_StrDemoWait[];
-extern u8                   Gp_StrDemoPause[];
-extern TaskFuncTable3       Gp_ScriptTaskStates;
+extern const char           Gp_StrDemoWait[];
+extern const char           Gp_StrDemoPause[];
+extern const TaskFuncTable3 Gp_ScriptTaskStates;
 extern const TaskFuncTable3 Gp_Script18States;
 extern const TaskFuncTable5 Gp_ScriptAStates;
 extern const TaskFuncTable5 Gp_ScriptBStates;
