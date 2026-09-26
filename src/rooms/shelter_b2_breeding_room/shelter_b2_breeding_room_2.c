@@ -112,37 +112,33 @@ static void func_shelter_b2_breeding_room_8017DB90(SVECTOR* arg0, s32 arg1, s32 
     s32                      tr;
     s32                      tg;
     s32                      scaled;
-    s32                      sum;
+    s32                      conn;
     u8                       r;
     u8                       g;
     u8                       b;
 
-    p1      = arg0 + 1;
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = *scratch;
-    {
-        register u8* tmp asm("v0");
-        tmp      = head - 0x1C;
-        block    = (OverlayPointPairScratch*)tmp;
-        *scratch = tmp;
-    }
+    p1       = arg0 + 1;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    *scratch = head - 0x1C;
+    block    = (OverlayPointPairScratch*)(head - 0x1C);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
-    gte_stsxy(&((OverlayPointPairScratch*)(head - 0x1C))->sx0);
-    gte_stflg(&((OverlayPointPairScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&block->sx0);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz0);
         gte_ldv0(p1);
         gte_rtps();
-        gte_stsxy(&((OverlayPointPairScratch*)(head - 0x1C))->sx1);
-        gte_stflg(&((OverlayPointPairScratch*)(head - 0x1C))->flag);
+        gte_stsxy(&block->sx1);
+        gte_stflg(&block->flag);
         if (block->flag >= 0) {
-            gte_stszotz(&((OverlayPointPairScratch*)(head - 0x1C))->otz1);
+            gte_stszotz(&block->otz1);
             scaled    = (s16)arg1 * 64;
-            block->r0 = scaled / ((OverlayPointPairScratch*)(head - 0x1C))->otz0;
+            block->r0 = scaled / block->otz0;
             block->r1 = scaled / block->otz1;
             ang       = ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
             ds        = &gDisplayState;
@@ -179,23 +175,18 @@ static void func_shelter_b2_breeding_room_8017DB90(SVECTOR* arg0, s32 arg1, s32 
                             prim);
                     Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
 
-                    prim = (POLY_G4*)gGpuPrimCursor;
-                    USE_REG(prim);
-                    t   = ang - angStart;
-                    t <<= 1;
-                    TOUCH_REG(t);
-                    sum            = angStart + t;
-                    t              = sum;
+                    conn           = angStart + ((ang - angStart) * 2);
+                    prim           = (POLY_G4*)gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
                     setPolyG4(prim);
                     setRGB0(prim, 0, 0, 0);
                     setRGB1(prim, 0, 0, 0);
                     setRGB2(prim, r, g, b);
                     setRGB3(prim, r, g, b);
-                    prim->x0 = block->sx0 + ((block->r0 * rsin(t)) >> 12);
-                    prim->y0 = block->sy0 + ((block->r0 * rcos(t)) >> 12);
-                    prim->x1 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
-                    prim->y1 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
+                    prim->x0 = block->sx0 + ((block->r0 * rsin(conn)) >> 12);
+                    prim->y0 = block->sy0 + ((block->r0 * rcos(conn)) >> 12);
+                    prim->x1 = block->sx1 + ((block->r1 * rsin(conn)) >> 12);
+                    prim->y1 = block->sy1 + ((block->r1 * rcos(conn)) >> 12);
                     prim->x2 = block->sx0;
                     prim->y2 = block->sy0;
                     prim->x3 = block->sx1;
