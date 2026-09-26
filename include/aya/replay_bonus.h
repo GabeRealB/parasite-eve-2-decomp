@@ -5,6 +5,7 @@
 
 #include <psyq/libgte.h>
 
+#include "gameplay/4CC.h"
 #include "main/ui.h"
 
 /// Replay-bonus item-id table (`0x4E` ids, then a `0xFFFF` terminator).
@@ -191,6 +192,24 @@ typedef struct ReplayBonusCtx {
     /* 0x00 */ byte                 pad_0[0x28];
     /* 0x28 */ ReplayBonusItemList* itemList;
 } ReplayBonusCtx;
+
+/// Item descriptors for ids from 0x100 up, indexed by `id - 0x100`.
+extern GpItemDesc D_8010DE38[];
+
+/// The BP an item is worth on the replay-bonus screen: half its descriptor
+/// price, looked up in `Gp_ItemDescs` below id 0x100 and in `D_8010DE38` above.
+static inline s32 replayBonusItemBp(s32 id)
+{
+    s32 price;
+
+    if (id < 0x100) {
+        price = Gp_ItemDescs[id].price;
+    } else {
+        price = D_8010DE38[id - 0x100].price;
+    }
+    price >>= 1;
+    return price;
+}
 
 /// Totals block at `D_replay_bonus_80119274`. `field_4` is the BP drawn on the
 /// Balance screen; `field_C` is the BP drawn for NEXT REPLAY BONUS. Offset 8 is

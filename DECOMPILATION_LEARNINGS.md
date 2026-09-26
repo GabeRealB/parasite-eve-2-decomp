@@ -142918,3 +142918,23 @@ the value and reloads with `lhu`.
 at 100.000% against a target storing b, g, r from the same register; the full
 build failed on those two bytes. Byte-compare the overlay against its package
 when the build fails on a function the scratch calls matched.
+## `lhu`, then `sra` in the call's delay slot with no loop around it: `x >>= 1` on the variable both arms set (func_replay_bonus_801176A8, 2026-09-26)
+
+An if/else sets `price` from a `u16` field in each arm and the halved value is
+passed straight to a call. `f(price >> 1)` gives `srl`: combine folds the shift
+into the argument move and, since every set of `price` is a zero-extend, turns
+it into a logical shift. The seed held `sra` with `SOFT_TOUCH_REG(price)`.
+
+- Write the halving as its own statement on the same variable, `price >>= 1;`
+  after the join. A self-referencing set is not substituted into the argument
+  move, so the shift is never re-simplified and stays `sra`, in the call's block
+  (sched then fills the load delay with the `a0` setup and dbr puts `sra` in the
+  delay slot). Copying into a fresh `bp` and shifting that does not work: the
+  copy is coalesced away first.
+- Shifting inside each arm also gives `sra`, but it is cross-jumped only after
+  sched, so the load-use `nop` stays.
+- The `(u16*)` table-address split with `SOFT_TOUCH_REG(table)` needed no
+  replacement: `Gp_ItemDescs[id].price` / `hi[id - 0x100].price` in the arms
+  produce it. The `idx = item` copy for the else arm was an inline helper's
+  parameter passed as an expression (`helper(prompt, obj, *p)`), and the
+  `addu base,idx` operand order came from a `p = &list->itemIds[i]` local.

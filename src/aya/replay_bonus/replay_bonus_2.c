@@ -25,7 +25,6 @@ extern UiObjectDesc D_replay_bonus_80119154;
 extern UiObjectDesc D_replay_bonus_801191A8;
 extern s32          D_replay_bonus_80119288;
 extern s32          D_replay_bonus_8011928C;
-extern GpItemDesc   D_8010DE38[];
 
 extern UiObjectDesc D_800611E4;
 extern UiObjectDesc D_replay_bonus_80119170;
@@ -284,33 +283,23 @@ s32 func_replay_bonus_801175F0(UiList* list, ReplayBonusCtx* ctx)
     return sum;
 }
 
+/// Draws one row of the replay-bonus item list: marks the item as seen, then
+/// draws its label at the prompt's position and its BP value at the mirrored x.
+static inline void _replayBonusDrawItemRow(DialogPrompt* prompt, UiObject* obj, s32 id)
+{
+    u8 buf[0x20];
+
+    Gp_SetItemSeenBit(id, 1);
+    Gp_DrawItemLabel(obj, prompt->field_18, prompt->field_1A, id, 0x606060, 0);
+    Text_DrawPrompt(obj, -prompt->field_18, prompt->field_1A, Text_ItoaSigned(buf, replayBonusItemBp(id)), 0x606060, 3, 2);
+}
+
 void func_replay_bonus_801176A8(DialogPrompt* prompt, UiObject* obj)
 {
-    u8   buf[0x20];
-    s32  item;
-    s32  idx;
     s16* p;
-    s32  table;
-    s32  off;
-    s32  price;
 
-    p    = ((ReplayBonusItemList*)obj->owner)->itemIds + prompt->field_8;
-    item = *p;
-    idx  = item;
-    Gp_SetItemSeenBit(item, 1);
-    Gp_DrawItemLabel(obj, prompt->field_18, prompt->field_1A, item, 0x606060, 0);
-    if (item < 0x100) {
-        table = (s32)Gp_ItemDescs;
-        SOFT_TOUCH_REG(table);
-        off = item * 8;
-    } else {
-        table = (s32)D_8010DE38;
-        SOFT_TOUCH_REG(table);
-        off = (idx - 0x100) * 8;
-    }
-    price = *(u16*)(off + table);
-    SOFT_TOUCH_REG(price);
-    Text_DrawPrompt(obj, -prompt->field_18, prompt->field_1A, Text_ItoaSigned(buf, price >> 1), 0x606060, 3, 2);
+    p = &((ReplayBonusItemList*)obj->owner)->itemIds[prompt->field_8];
+    _replayBonusDrawItemRow(prompt, obj, *p);
 }
 
 s32 func_replay_bonus_801177A0(void)

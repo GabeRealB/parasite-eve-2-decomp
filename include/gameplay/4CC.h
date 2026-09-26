@@ -5,6 +5,7 @@
 
 #include <psyq/libgte.h>
 
+#include "gameplay/message.h"
 #include "main/mc.h"
 #include "main/task.h"
 #include "main/ui.h"

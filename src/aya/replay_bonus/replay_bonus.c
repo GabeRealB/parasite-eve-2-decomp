@@ -26,7 +26,6 @@ extern UiObjectDesc D_replay_bonus_801191A8;
 extern s32          D_replay_bonus_80119288;
 extern s32          D_replay_bonus_8011928C;
 extern u8           D_replay_bonus_801192AC;
-extern GpItemDesc   D_8010DE38[];
 extern s32          D_replay_bonus_80119284;
 
 void func_replay_bonus_801158C0(void)
@@ -271,18 +270,6 @@ const char D_replay_bonus_80115784[] = "GET ITEM";
 const char D_replay_bonus_80115790[] = "BONUS BP";
 const char D_replay_bonus_8011579C[] = "TOTAL BP";
 
-static inline s32 _replayBonusItemPrice(s32 id)
-{
-    s32 price;
-
-    if (id < 0x100) {
-        price = Gp_ItemDescs[id].price;
-    } else {
-        price = D_8010DE38[id - 0x100].price;
-    }
-    return price;
-}
-
 static inline s32 _replayBonusTotalBp(UiList* list, ReplayBonusCtx* ctx)
 {
     s32           i;
@@ -292,7 +279,7 @@ static inline s32 _replayBonusTotalBp(UiList* list, ReplayBonusCtx* ctx)
     cfg = &Player_Status;
     sum = 0;
     for (i = (s8)list->field_9; i < list->field_4; i++) {
-        sum += _replayBonusItemPrice(ctx->itemList->itemIds[i]) >> 1;
+        sum += replayBonusItemBp(ctx->itemList->itemIds[i]);
     }
     sum += cfg->bp;
     if (sum > 99999999) {
