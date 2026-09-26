@@ -1926,35 +1926,22 @@ static const VECTOR Actor01100_D000CC = { 0x10, 0x10, 0x10, 0 };
 /// writes rate 0x10 onto slots `[1, 0x14]` of both animation runs and then
 /// either stages state 0xE, or, while the latch is 3, a 1-in-4 draw of that
 /// state versus restarting the motion through `field_BA5`.
-///
-/// The stack copy of the offset is what the first `lwc2` pair reads, and it is
-/// written with the sibling bodies' raw asm: `gte_ldv0` of a stack local leaves
-/// its `addiu` free for sched2 to hoist. `vec` is assigned only inside the
-/// player-present arm so it is a local quantity and keeps `$a0` for
-/// `Gfx_ApplyMatrixNoSf`.
 static void Actor01100_Fn04410(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    SVECTOR     local;
-    SVECTOR*    vec;
-    GpCoord*    actorCoords;
-    GpCoord*    playerCoords;
-    GpCoord*    actorPart;
-    GpCoord*    playerPart;
-    GpCoord*    pose;
-    GpObj*      obj;
-    GpAnimSlot* slotA;
-    GpAnimSlot* slotB;
-    Task*       player;
-    s32         dist;
-    s32         i;
-    s32         off;
-    s32         off2;
-    s32         yaw;
-    s32         rate;
-    u16         angle;
-    u16         time;
-    u16         reach;
-    u32         rng;
+    SVECTOR* vec;
+    GpCoord* actorCoords;
+    GpCoord* playerCoords;
+    GpCoord* actorPart;
+    GpCoord* playerPart;
+    GpCoord* pose;
+    GpObj*   obj;
+    Task*    player;
+    s32      dist;
+    s32      yaw;
+    u16      angle;
+    u16      time;
+    u16      reach;
+    u32      rng;
 
     if (work->field_BA8 == 0) {
         work->field_BA4 = 6;
@@ -1970,11 +1957,9 @@ static void Actor01100_Fn04410(GpEnemy* enemy, Task* task, ActorsShared80138efcW
             arg->vec.vx  = 0x12C;
             arg->vec.vy  = 0;
             arg->vec.vz  = 0;
-            local        = arg->vec;
             actorPart    = &actorCoords[10];
             playerPart   = &playerCoords[1];
-            gte_SetRotMatrix(&actorPart->workm);
-            __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
+            gfxLoadRotSv(&actorPart->workm, &arg->vec);
             gte_rtv0();
             gte_stsv(vec);
             arg->vec.vx += (u16)playerPart->workm.t[0] - (u16)actorPart->workm.t[0];
@@ -2043,29 +2028,10 @@ static void Actor01100_Fn04410(GpEnemy* enemy, Task* task, ActorsShared80138efcW
     }
     arg->field_64 = 0xC;
     if (work->field_B8C == 0x2C) {
-        i   = 0;
-        off = OFFSET_OF(ActorsShared80138efcWork, objs[1]);
-        do {
-            ((GpObj*)((u8*)work + off))->flags &= 0x3FFF;
-            off                                += sizeof(GpObj);
-            i++;
-        } while (i < 2);
+        _actor01100ClearObjPair(work);
     }
     if (work->field_BA9 != 0) {
-        rate = 0x10;
-        i    = 1;
-        off  = OFFSET_OF(ActorsShared80138efcWork, slots2[1]);
-        off2 = OFFSET_OF(ActorsShared80138efcWork, slots[1]);
-        do {
-            slotA       = (GpAnimSlot*)((u8*)work + off2);
-            slotA->rate = rate;
-            SOFT_BARRIER();
-            slotB = (GpAnimSlot*)((u8*)work + off);
-            off  += sizeof(GpAnimSlot);
-            i++;
-            slotB->rate = rate;
-            off2       += sizeof(GpAnimSlot);
-        } while (i < 0x15);
+        _actor01100SetSlotRates(work, 0x10);
         if (work->field_BA8 != 3) {
             work->state     = 0xE;
             work->field_BA8 = 0;
