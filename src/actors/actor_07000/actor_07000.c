@@ -3238,22 +3238,18 @@ static void Actor07000_Fn05ED4(Task* arg0)
     s32                       i;
 
     work = arg0->work;
-    i    = 1;
     if (work->field_370 != (s16)work->field_372) {
         work->field_372 = work->field_370;
         work->field_374 = 0;
-        do {
+        for (i = 1; i < 7; i++) {
             func_800B4114((GpAnimCtx*)work, i, work->field_370, 0, 8);
-            i++;
-        } while (i < 7);
-        return;
+        }
+    } else {
+        work->field_374++;
+        for (i = 1; i < 7; i++) {
+            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+        }
     }
-    TOUCH_REG(i);
-    work->field_374 = (u16)(work->field_374 + i);
-    do {
-        Gp_AnimTickIndex((GpAnimCtx*)work, i);
-        i++;
-    } while (i < 7);
 }
 
 /// Colours the specimen's second form from the world position of the model's
