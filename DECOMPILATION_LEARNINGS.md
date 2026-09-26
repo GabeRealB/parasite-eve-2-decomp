@@ -48452,6 +48452,17 @@ already emits `lh`, because the add needs the sign extension; only the
 halfword-to-halfword store shows the difference. Symptom: an otherwise perfect
 function with three `lhu`/`lh` mismatches in a row.
 
+The two spellings also differ in the *base register* after a
+`SCRATCH_PUSH`. `.w >> 16` is an SImode load of `(mem (reg s))`, and CSE
+replaces the bare `s` with its equivalent `head - K`, so combine emits
+`lh -K+2(head)`; `.h.hi` is `(mem (plus s 2))`, which CSE leaves alone, giving
+`lh 2(s)`. Only offset 0 is reached through `head` this way. When the target
+reads `-0x12(head)` in the add too (`Actor00100_Fn00A54`), write
+`coord->coord.t[0] += s->delta.vx.w >> 16`. The extra reference to `head` also
+changes its ref count, which is enough to swap its `$sN` home with a neighbour
+such as `coord`. That is what the old `register ... asm("v1")` pin plus
+`(head - 0x14)` casts were imitating.
+
 ## A constant store scheduled too early: move the assignment last
 
 Filling a `GsCOORDINATE2` before `Gp_UpdateCoord` as
