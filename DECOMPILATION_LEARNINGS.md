@@ -143342,3 +143342,22 @@ GCC 2.8 keeps an unreferenced `static` variable, so an unreferenced word in a
 run can be a private placeholder. An explicit `= 0` keeps a global in `.data`.
 In splat, a `.bss` subsegment for a C unit takes no `bss_size`, because splat
 infers it from the next subsegment.
+### A parameter copy scheduled mid-block, not at entry, is a narrower local taken from it (func_dryfield_night_water_hole_8017FF84, 2026-09-26)
+
+**Symptom.** The target moves an argument into another register in the middle
+of the first block (`lhu v0,0x40(a0); move a0,a1`), after the last read of the
+register it lands in, and a later argument's copy is scheduled too. Plain C
+emits both copies first and allocates around the still-live `a0`.
+
+**Mechanism.** sched1 never moves the run of hard-register parameter copies at
+the top of the function (`sched.c`, "don't delay getting parameters"): the run
+ends at the first insn that is not one. A copy to a same-mode local does not
+break it - cse makes the parameter canonical and rewrites the local away, since
+the local dies inside cse's block. A `u16` local does: the `HImode` copy
+survives, combine folds the parameter's entry copy into it (leaving a deleted
+note that ends the pinned run), and the copy and every later argument copy are
+scheduled freely.
+
+**Fix.** `u16 idx = arg1;` at the top, then `u32 cell = idx;` where it is
+used, so one zero-extension feeds both `cell & 3` and `cell & 7` (keeping the
+`andi 0xFFFF`). An earlier `SOFT_TOUCH_REG` on an `s32` copy stood for this.
