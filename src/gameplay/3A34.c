@@ -2471,27 +2471,24 @@ done:
 
 static __inline__ void project_slot(s32* sxy, GpSlot70* slot)
 {
-    u8*                      head;
-    GpLinkNode*              src;
-    register GpPerspScratch* block asm("v1");
+    GpLinkNode*     src;
+    GpPerspScratch* block;
 
-    src           = slot->field_0;
-    head          = SCRATCH_HEAD(u8);
-    block         = (GpPerspScratch*)(head - 0x14);
+    src = slot->field_0;
+    SCRATCH_PUSH(GpPerspScratch);
+    block         = SCRATCH_HEAD(GpPerspScratch);
     block->vec.vx = GP_NODE_ENEMY(src)->bodyPos.vx;
     block->vec.vy = GP_NODE_ENEMY(src)->bodyPos.vy;
     block->vec.vz = GP_NODE_ENEMY(src)->bodyPos.vz;
-    COMPILER_BARRIER();
-    SCRATCH_HEAD(void) = block;
     gte_SetRotMatrix(&GP_NODE_ENEMY(src)->coord->workm);
     gte_SetTransMatrix(&GP_NODE_ENEMY(src)->coord->workm);
     gte_ldv0(&block->vec);
     gte_rtps();
     gte_stsxy(sxy);
-    gte_stdp(&((GpPerspScratch*)(head - 0x14))->p);
-    gte_stflg(&((GpPerspScratch*)(head - 0x14))->flag);
-    gte_stszotz(&((GpPerspScratch*)(head - 0x14))->otz);
-    SCRATCH_POP_BYTES(0x14);
+    gte_stdp(&block->p);
+    gte_stflg(&block->flag);
+    gte_stszotz(&block->otz);
+    SCRATCH_POP(GpPerspScratch);
 }
 
 static void Gp_UpdateLockSlots(void)
