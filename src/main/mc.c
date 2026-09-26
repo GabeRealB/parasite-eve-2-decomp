@@ -1796,6 +1796,42 @@ static inline s32 _mcVerifySlotChecksums(void)
     return ok;
 }
 
+/// Inline form of Mc_WriteSlotChecksums: store the signed byte sum of each
+/// buffer slot 1..8's payload, and its complement, in the buffer's header.
+static inline void _mcWriteSlotChecksums(void)
+{
+    McChecksumBlock* block;
+    McBufferSlot*    p;
+    McBufferSlot*    base;
+    s16              sum;
+    s32              inv;
+    u32              count;
+    u32              i;
+    u32              j;
+    u8*              ptr;
+
+    i    = 1;
+    inv  = 0xFFFF;
+    base = Mc_BufferSlots;
+    p    = base + 1;
+    do {
+        sum   = 0;
+        j     = 0;
+        block = p->field_0;
+        count = p->field_4;
+        ptr   = block->field_4;
+        count = count - 4;
+        while (j < count) {
+            j   += 1;
+            sum += (s8)*ptr++;
+        }
+        p             += 1;
+        i             += 1;
+        block->field_2 = inv - sum;
+        block->field_0 = sum;
+    } while (i < 9U);
+}
+
 /// Inline form of Mc_VerifyFirstByteChecksum.
 static inline s32 _mcVerifyFirstByteChecksum(void)
 {
@@ -2575,44 +2611,10 @@ static void Mc_ResetWork(Task* arg0, McWork* arg1)
 
 static void Mc_WriteSlotChecksumsEx(Task* arg0, McWork* arg1)
 {
-    McChecksumBlock* temp;
-    McBufferSlot*    p;
-    McBufferSlot*    base;
-    s16              sum;
-    s32              inv;
-    u32              count;
-    u32              i;
-    register u32     j asm("a1");
-    u8*              ptr;
-    register s32     val asm("v0");
-
-    i              = 1;
-    inv            = 0xFFFF;
-    base           = Mc_BufferSlots;
-    p              = base + 1;
     arg1->field_24 = 9;
     arg1->field_28 = -1;
-    val            = i;
-    arg1->field_2C = val;
-    do {
-        sum   = 0;
-        j     = 0;
-        temp  = p->field_0;
-        count = p->field_4;
-        ptr   = temp->field_4;
-        count = count - 4;
-        if (count != 0) {
-            do {
-                j   += 1;
-                sum += (s8)*ptr;
-                ptr += 1;
-            } while (j < count);
-        }
-        p            += 1;
-        i            += 1;
-        temp->field_2 = inv - sum;
-        temp->field_0 = sum;
-    } while (i < 9U);
+    arg1->field_2C = 1;
+    _mcWriteSlotChecksums();
 
     if (arg0->spawnArg1 != 0) {
         arg0->killCountdown = 2;
