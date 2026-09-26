@@ -65,7 +65,7 @@ void Gp_DrawEffSprite81(Task* arg0)
             setcode(prim, 0x2F);
         }
         prim->tpage = 0x29;
-        prim->clut  = ((((GpEffClutOff*)&D_80112964[mem->step])->field_4 >> 4) & 0x3F) | 0x4280;
+        prim->clut  = ((D_80112964[1][mem->step] >> 4) & 0x3F) | 0x4280;
         t           = mem->age;
         prim->v0    = 0xB8;
         prim->u0    = (t * 8) & 0x70;

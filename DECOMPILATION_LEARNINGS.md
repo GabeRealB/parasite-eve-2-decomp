@@ -141522,3 +141522,21 @@ the code after the walks. Two natural rewrites lose that shape:
 **Fix.** Write each walk as `for (;;) { ...; slot++; }` and `goto` one label
 after all of them on both hit and miss. jump2 then cross-jumps the identical
 hit tails exactly as the target does.
+## A cast overlay reading `field_N` from `&tbl[idx]` is a row of a 2-D array (Gp_DrawEffQuadT29, 2026-09-26)
+
+Symptom: a table load is `lhu 8(base + idx * 2)`, and the tree reached it with
+a struct cast over `&tbl[idx]` (`((Overlay*)&tbl[idx])->field_8`). The natural
+`tbl[idx + 4]` scores lower: it emits a separate `addiu idx,4` before the
+shift, because 2.8.1 does not distribute the scale over the constant.
+
+Fix: the table is two-dimensional, and the constant is the row. With
+`extern u16 tbl[5][2];`, `tbl[2][idx]` expands to `&tbl[2] + idx * 2`, and the
+row's byte offset folds into the load's displacement. A sibling that used the
+same overlay at `field_4` became `tbl[1][idx]`. The row length follows from
+the displacements (every row offset must be a multiple of it) and the table's
+size.
+
+Same function: a scratch-block fill written as a pointer walk (`v++`) with
+pins on `v`, `i` and the head matched as a plain indexed loop over
+`block->vec[i]`. Loop strength reduction makes the one address giv the pins
+were imitating; the walk form gave an extra giv for `&v->vz` instead.

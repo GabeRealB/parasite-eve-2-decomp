@@ -829,45 +829,25 @@ void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2)
 
 void Gp_DrawEffQuadT29(GpCoord* arg0, s32 arg1, u16 arg2, u16 arg3)
 {
-    GpCoord*          coord;
-    register void**   scratch asm("a0");
-    GpQuadScratch*    block;
-    register SVECTOR* v asm("t0");
-    register s32      i asm("t3");
-    GpQuadCorner*     tbl;
-    register u8*      head asm("v0");
-    MATRIX*           wm;
-    POLY_FT4*         prim;
-    register s32      u0 asm("a2");
-    register s32      u1 asm("v1");
-    s32               texV;
-    s32               vTop;
-    u16*              clutTbl;
+    GpQuadScratch* block;
+    s32            i;
+    POLY_FT4*      prim;
+    s32            u0;
+    s32            u1;
 
-    coord                                   = arg0;
-    scratch                                 = SCRATCH_HEAD_ADDR;
-    i                                       = 0;
-    wm                                      = &coord->workm;
-    tbl                                     = D_80111E38;
-    head                                    = SCRATCH_HEAD_AT(scratch, u8) - 0x38;
-    block                                   = (GpQuadScratch*)head;
-    v                                       = block->vec;
-    SCRATCH_HEAD_AT(scratch, GpQuadScratch) = block;
-    do {
-        v->vx = tbl->x * arg1;
-        v->vy = 0;
-        v->vz = tbl->y * arg1;
-        gte_SetRotMatrix(wm);
-        gte_ldv0(v);
+    block = SCRATCH_PUSH(GpQuadScratch);
+    for (i = 0; i < 4; i++) {
+        block->vec[i].vx = D_80111E38[i].x * arg1;
+        block->vec[i].vy = 0;
+        block->vec[i].vz = D_80111E38[i].y * arg1;
+        gte_SetRotMatrix(&arg0->workm);
+        gte_ldv0(&block->vec[i]);
         gte_rtv0();
-        gte_stsv(v);
-        (u16) v->vx = (u16)v->vx + (u16)coord->workm.t[0];
-        tbl++;
-        (u16) v->vy = (u16)v->vy + (u16)coord->workm.t[1];
-        i++;
-        (u16) v->vz = (u16)v->vz + (u16)coord->workm.t[2];
-        v++;
-    } while (i < 4);
+        gte_stsv(&block->vec[i]);
+        block->vec[i].vx += arg0->workm.t[0];
+        block->vec[i].vy += arg0->workm.t[1];
+        block->vec[i].vz += arg0->workm.t[2];
+    }
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -882,41 +862,29 @@ void Gp_DrawEffQuadT29(GpCoord* arg0, s32 arg1, u16 arg2, u16 arg3)
         gte_stflg(&block->flag);
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
-            vTop = 0xB8;
             block->otz++;
             prim           = (POLY_FT4*)gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
-            COMPILER_BARRIER();
             setlen(prim, 9);
             setcode(prim, 0x2F);
-            clutTbl     = D_80112964;
             prim->tpage = 0x29;
-            prim->clut  = ((((GpEffClutOff*)&clutTbl[arg3])->field_8 >> 4) & 0x3F) | 0x4280;
+            prim->clut  = ((D_80112964[2][arg3] >> 4) & 0x3F) | 0x4280;
             u0          = (arg2 & 7) * 0x10 - 0x80;
             u1          = (arg2 & 7) * 0x10 - 0x71;
-            texV        = vTop;
-            prim->v0    = texV;
-            prim->v1    = texV;
-            prim->u0    = u0;
-            prim->u1    = u1;
-            prim->u2    = u0;
-            texV        = 0xC7;
-            prim->v2    = texV;
-            prim->u3    = u1;
-            prim->v3    = texV;
-            prim->x0    = block->sxy0.vx;
-            prim->y0    = block->sxy0.vy;
-            prim->x1    = block->sxy1.vx;
-            prim->y1    = block->sxy1.vy;
-            prim->x2    = block->sxy2.vx;
-            prim->y2    = block->sxy2.vy;
-            prim->x3    = block->sxy3.vx;
-            prim->y3    = block->sxy3.vy;
+            setUV4(prim, u0, 0xB8, u1, 0xB8, u0, 0xC7, u1, 0xC7);
+            prim->x0 = block->sxy0.vx;
+            prim->y0 = block->sxy0.vy;
+            prim->x1 = block->sxy1.vx;
+            prim->y1 = block->sxy1.vy;
+            prim->x2 = block->sxy2.vx;
+            prim->y2 = block->sxy2.vy;
+            prim->x3 = block->sxy3.vx;
+            prim->y3 = block->sxy3.vy;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
     }
-    SCRATCH_POP_BYTES(0x38);
+    SCRATCH_POP(GpQuadScratch);
 }
 
 void Gp_EffTask07State1(Task* arg0)

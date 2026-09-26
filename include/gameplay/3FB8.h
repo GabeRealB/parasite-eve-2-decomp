@@ -200,20 +200,10 @@ STATIC_ASSERT_SIZEOF(GpEffUv8, 8);
 
 extern GpEffUv8 D_80111E48[];
 
-/// Overlay of `D_80112964` at `u16` index `GpEffWork.step`.
-/// `Gp_DrawEffSprite81` loads `field_4`, shifts it into a CLUT X nibble, and
-/// ORs `0x4280`. `Gp_DrawEffQuadT29` uses the same table at byte offset 8.
-typedef struct _GpEffClutOff {
-    /* 0x0 */ u16 pad_0;
-    /* 0x2 */ u16 pad_2;
-    /* 0x4 */ u16 field_4;
-    /* 0x6 */ u16 pad_6;
-    /* 0x8 */ u16 field_8;
-} GpEffClutOff;
-
-/// u16 CLUT-source table. Indexed as `&D_80112964[step]` then overlaid
-/// with `GpEffClutOff` so the load is `lhu 4(base + step * 2)`.
-extern u16 D_80112964[];
+/// CLUT X positions, in pixels, for effect sprites drawn from texture page
+/// 0x29, in five rows of two. Each entry places a CLUT on VRAM row 0x10A; the
+/// drawing function fixes the row and its caller picks the column.
+extern u16 D_80112964[5][2];
 
 /// Spawn-id words indexed by the 3-digit packing of `Gp_StateC08.field_0`
 /// `(hundreds-1)*9 + (tens-1)*3 + ones - 1`. `Gp_EffTask07State1` uses this
