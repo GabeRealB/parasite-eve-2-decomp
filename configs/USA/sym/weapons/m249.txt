@@ -1,1 +1,2 @@
 // Overlay-local symbols for M249 (file 10317).
+D_m249_8011DE74 = 0x8011DE74; // model named by a task descriptor

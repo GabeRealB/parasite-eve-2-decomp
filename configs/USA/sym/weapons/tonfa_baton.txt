@@ -1,2 +1,4 @@
 // Overlay-local symbols for tonfa_baton.
 D_tonfa_baton_8012C0EC = 0x8012C0EC; // type:s16 size:0x2
+D_tonfa_baton_8011E460 = 0x8011E460; // model named by a task descriptor
+D_tonfa_baton_8011E5EC = 0x8011E5EC; // model named by a task descriptor

@@ -987,7 +987,7 @@ static void func_hypervelocity_8011F6A0(Task* task)
 
 /// Per-frame entry point: runs the weapon task's current state. The table is a
 /// local, so GCC copies it from `.rodata` onto the stack every frame.
-static void func_hypervelocity_8011F6C0(Task* arg0)
+void func_hypervelocity_8011F6C0(Task* arg0)
 {
     TaskFunc states[4] = {
         func_hypervelocity_8011F570,

@@ -5,6 +5,7 @@
 
 #include "main/unknown_syms.h"
 #include "main/cdstream.h"
+#include "main/devkit.h"
 
 /* The second byte of D_80068B5C and of D_80068B64 is written as the first
  * symbol's address plus one. Declaring either pair as a struct or an array
@@ -36,7 +37,7 @@ TaskDesc            D_80068B7C[] = {
     { 0, 0xC0, taskKill },
     { 0, 0xC0, taskKill },
     { 0, 0xC0, taskKill },
-    { 0, 0xC0, (TaskFunc)0x80725BB8 },
+    { 0, 0xC0, func_80725BB8 },
 };
 u16 D_80068BB8[] = {
     0x0010,

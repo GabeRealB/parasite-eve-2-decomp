@@ -135,7 +135,7 @@ static void func_acropolis_fountain_8017DC6C(Task* arg0)
 
 /// Six-state dispatcher of the fountain cutscene task; the handler table is
 /// built on the stack from the overlay's rodata block.
-static void func_acropolis_fountain_8017DCD4(Task* arg0)
+void func_acropolis_fountain_8017DCD4(Task* arg0)
 {
     TaskFunc states[6] = {
         func_acropolis_fountain_8017DAA4,

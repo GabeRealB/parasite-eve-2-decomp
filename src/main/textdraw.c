@@ -10,6 +10,7 @@
 #include "main/mc.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/devkit.h"
 #include "gameplay/gameplay.h"
 #include "gameplay/1A8.h"
 #include "gameplay/D4.h"
@@ -51,7 +52,7 @@ static TaskDesc D_8005EDA0[] = {
     { 0x0, 0x30, Gp_ViewGateTask },
     { 0x0, 0x2F, Gp_AllocSprtListsTask },
     { 0x0, 0xC0, Stage_TaskExit },
-    { 0x0, 0xC0, (TaskFunc)0x807011D8 },
+    { 0x0, 0xC0, func_807011D8 },
     { 0x0, 0xE0, Gp_DrawDisp2dOt },
     { 0x0, 0xD0, func_800AD5B8 },
     { 0x0, 0x2F, Gp_LoadStateTask },
@@ -61,7 +62,7 @@ static TaskDesc D_8005EDA0[] = {
     { 0x0, 0x10, Boot_LoadTask },
     { 0x0, 0x2F, Gp_FlashWhiteTask },
     { 0x0, 0xF8, NULL },
-    { 0x0, 0xC0, (TaskFunc)0x80701400 },
+    { 0x0, 0xC0, func_80701400 },
     { 0x0, 0x2F, NULL },
     { 0x0, 0xF8, Gp_CommitSpawnLoc },
     { 0x0, 0xF8, Gp_SetupSprtDisplay },

@@ -260,7 +260,7 @@ static void func_tonfa_baton_8011DB78(Task* task)
 
 /// Per-frame entry point: runs the weapon task's current state. The table is a
 /// local, so GCC copies it from `.rodata` onto the stack every frame.
-static void func_tonfa_baton_8011DB98(Task* arg0)
+void func_tonfa_baton_8011DB98(Task* arg0)
 {
     TaskFunc states[4] = {
         func_tonfa_baton_8011DA48,

@@ -8,15 +8,16 @@
 #include "main/task.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3E9C.h"
+#include "main/devkit.h"
 
 TaskDesc D_800676A8[] = {
     { 0x0, 0xC0, taskKill },
     { 0x0, 0xC0, taskKill },
     { 0x0, 0xC0, taskKill },
     { 0x0, 0xC0, taskKill },
-    { 0x0, 0xC0, (TaskFunc)0x80722624 },
+    { 0x0, 0xC0, func_80722624 },
     { 0x0, 0xF0, Gp_TickWorldCollision },
-    { 0x0, 0xF0, (TaskFunc)0x8071E24C },
+    { 0x0, 0xF0, func_8071E24C },
     { 0x1, 0x70, Gp_EffAttachTask37 },
-    { 0x0, 0xC0, (TaskFunc)0x80723944 },
+    { 0x0, 0xC0, func_80723944 },
 };

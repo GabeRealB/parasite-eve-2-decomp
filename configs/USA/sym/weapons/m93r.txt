@@ -1,1 +1,2 @@
 // Overlay-local symbols for M93R (file 10302).
+D_m93r_8011DA74 = 0x8011DA74; // model named by a task descriptor

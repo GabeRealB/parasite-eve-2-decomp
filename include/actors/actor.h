@@ -2842,4 +2842,15 @@ static __inline__ s16 actorWrapAngle(s16 angle)
     return overlayWrapAngle(angle);
 }
 
+/// Task entries the resident task descriptor tables name. A table in main or
+/// gameplay reaches each of these by name, so they are the family's interface
+/// to the resident code.
+void func_actor_800300_801625F4(Task* task);
+void func_actor_800200_801626EC(Task* task);
+void func_actor_800100_80163CF0(Task* task);
+
+/// Models those descriptors attach.
+extern TmdSource D_actor_800300_8016885C;
+extern TmdSource D_actor_800200_80169ECC;
+
 #endif /* ACTORS_ACTOR_H */

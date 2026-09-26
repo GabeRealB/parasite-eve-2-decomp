@@ -271,4 +271,20 @@ typedef struct RoomRingShape {
 } RoomRingShape;
 STATIC_ASSERT_SIZEOF(RoomRingShape, 0x6);
 
+/// Task entries the resident task descriptor tables name. A table in main or
+/// gameplay reaches each of these by name, so they are the family's interface
+/// to the resident code.
+void func_acropolis_fountain_8017DCD4(Task* arg0);
+void func_acropolis_security_room_8017ED68(Task* task);
+void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0);
+void func_acropolis_bridge_8017F788(Task* task);
+void func_acropolis_security_room_80180294(Task* task);
+void func_acropolis_cafeteria_80181E70(Task* task);
+
+/// Models those descriptors attach.
+extern TmdSource D_acropolis_cafeteria_801858C4;
+extern TmdSource D_acropolis_cafeteria_8018625C;
+extern TmdSource D_acropolis_cafeteria_80186CAC;
+extern TmdSource D_acropolis_cafeteria_80187518;
+
 #endif /* ROOMS_ROOM_H */

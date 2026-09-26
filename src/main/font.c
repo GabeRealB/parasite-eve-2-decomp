@@ -6,6 +6,7 @@
 #include "main/gameflag.h"
 #include "main/text.h"
 #include "main/task.h"
+#include "main/devkit.h"
 
 static void Task_AllocIdMap(Task* arg0);
 static void Stage_LoadOrCountdownTask(Task* arg0);
@@ -47,10 +48,10 @@ TaskDesc  D_80062780[] = {
     { 0, 0xC0, taskKill },
     { 0, 0xC0, taskKill },
     { 0, 0xC0, taskKill },
-    { 0, 0xC0, (TaskFunc)0x80704BC8 },
-    { 0, 0xC0, (TaskFunc)0x80703FE8 },
-    { 0, 0xC0, (TaskFunc)0x80704A78 },
-    { 1, 0xC0, (TaskFunc)0x80704AD0, { (TmdSource*)0x80725F44 } },
+    { 0, 0xC0, func_80704BC8 },
+    { 0, 0xC0, func_80703FE8 },
+    { 0, 0xC0, func_80704A78 },
+    { 1, 0xC0, func_80704AD0, { &D_80725F44 } },
 };
 static u8 D_800627E0[] = {
 #include "assets/caption_glyphs.inc"

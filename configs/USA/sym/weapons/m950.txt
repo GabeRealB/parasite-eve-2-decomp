@@ -1,1 +1,2 @@
 // Overlay-local symbols for M950 (file 10303).
+D_m950_8011DA9C = 0x8011DA9C; // model named by a task descriptor

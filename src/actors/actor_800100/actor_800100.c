@@ -1088,7 +1088,7 @@ static const TaskFuncTable4 D_actor_800100_80161E3C = { {
 /// step that only advances to the last state, and the teardown that kills the
 /// actor's child tasks and unlinks its objects. The table is a local, so it is
 /// copied from `.rodata` onto the stack on every call.
-static void func_actor_800100_80163CF0(Task* task)
+void func_actor_800100_80163CF0(Task* task)
 {
     TaskFuncTable4 states;
 

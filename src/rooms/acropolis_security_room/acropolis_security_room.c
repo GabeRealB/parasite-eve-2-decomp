@@ -1088,7 +1088,7 @@ static const TaskFuncTable16 D_acropolis_security_room_8017D63C = { {
 /// Runs the security-monitor task's current state. The seven handlers are
 /// copied onto the stack first, so the call goes through a local table rather
 /// than through `.rodata`.
-static void func_acropolis_security_room_8017ED68(Task* task)
+void func_acropolis_security_room_8017ED68(Task* task)
 {
     TaskFuncTable7 sp;
 
@@ -1828,7 +1828,7 @@ static void func_acropolis_security_room_80180218(Task* task)
 /// Runs the cap script's current state. The sixteen handlers are copied onto
 /// the stack first, so the call goes through a local table rather than through
 /// `.rodata`.
-static void func_acropolis_security_room_80180294(Task* task)
+void func_acropolis_security_room_80180294(Task* task)
 {
     TaskFuncTable16 sp;
 

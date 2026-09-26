@@ -1256,7 +1256,7 @@ static const TaskFuncTable4 D_acropolis_cafeteria_8017D69C = { {
 
 /// Runs the task's current state through a stack copy of the room's
 /// four-entry state table.
-static void func_acropolis_cafeteria_80181E70(Task* task)
+void func_acropolis_cafeteria_80181E70(Task* task)
 {
     TaskFuncTable4 states;
 

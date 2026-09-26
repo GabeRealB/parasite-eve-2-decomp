@@ -232,7 +232,7 @@ static void func_acropolis_helicopter_landing_pad_8017EF60(void)
 
 /// Five-state dispatcher of the room's intro task; the handler table is built
 /// on the stack. Marks the player actor's `field_930` as 2 before every step.
-static void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0)
+void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0)
 {
     GameActor* actor     = (GameActor*)(gameGetPtrSlot(3))->work;
     TaskFunc   states[5] = {

@@ -327,7 +327,7 @@ static const TaskFuncTable4 D_actor_800300_80161E24 = { {
 /// Per-frame entry point of the actor's main task: runs the handler its state
 /// selects. The table is a local, so it is copied from `.rodata` onto the
 /// stack on every call.
-static void func_actor_800300_801625F4(Task* task)
+void func_actor_800300_801625F4(Task* task)
 {
     TaskFuncTable4 states;
 

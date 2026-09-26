@@ -1327,7 +1327,7 @@ static s32 func_acropolis_bridge_8017F6D4(OverlayHotspot* table, s16 x, s16 y)
 /// Nine-state dispatcher of this room's script task: copies the handler table
 /// out of the overlay's rodata onto the stack and tails into the entry named by
 /// `Task::state`.
-static void func_acropolis_bridge_8017F788(Task* task)
+void func_acropolis_bridge_8017F788(Task* task)
 {
     TaskFuncTable9 states;
 

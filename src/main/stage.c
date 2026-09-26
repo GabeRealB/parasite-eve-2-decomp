@@ -12,6 +12,7 @@
 #include "main/task.h"
 
 #include "psyq/libpress.h"
+#include "main/devkit.h"
 
 static void Display_FlipOtAndDispatch(s32 arg0);
 static void Display_InvertFramebufferGray(void);
@@ -32,7 +33,7 @@ TaskDesc         D_800626AC[]   = {
     { 0, 0xC0, Task_KillMaybeSpawn },
     { 0, 0xC0, taskKill },
     { 0, 0xC0, taskKill },
-    { 0, 0xC0, (TaskFunc)0x80701470 },
+    { 0, 0xC0, func_80701470 },
 };
 
 static const TaskFuncTable6 Display_TaskStates = { {

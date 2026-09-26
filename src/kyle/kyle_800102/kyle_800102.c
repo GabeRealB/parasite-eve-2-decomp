@@ -245,7 +245,7 @@ static void func_kyle_800102_80168270(Task* arg0)
 }
 /// Per-frame entry point: runs the task's current state. The table is a local,
 /// so GCC copies it from `.rodata` onto the stack every frame.
-static void func_kyle_800102_801682B4(Task* arg0)
+void func_kyle_800102_801682B4(Task* arg0)
 {
     Kyle800102StateFn states[4] = {
         func_kyle_800102_80167A84,

@@ -1,1 +1,5 @@
 // Overlay-local symbols for acropolis_cafeteria.
+D_acropolis_cafeteria_801858C4 = 0x801858C4; // model named by a task descriptor
+D_acropolis_cafeteria_8018625C = 0x8018625C; // model named by a task descriptor
+D_acropolis_cafeteria_80186CAC = 0x80186CAC; // model named by a task descriptor
+D_acropolis_cafeteria_80187518 = 0x80187518; // model named by a task descriptor
