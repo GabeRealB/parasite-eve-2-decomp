@@ -10,6 +10,7 @@
 #include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mc.h"
+#include "main/pad.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/text.h"
@@ -26,9 +27,6 @@ extern u8           Gp_StrAttachAvail[];
 extern u8           D_8010D318[];
 extern u8           D_8010D320[];
 extern u8           D_8010D324[];
-extern s32          Pad_MaskConfirm;
-extern s32          Pad_MaskCancel;
-extern s32          Pad_MaskMenu;
 
 void func_80180804(void);
 void func_8017EA68(void);

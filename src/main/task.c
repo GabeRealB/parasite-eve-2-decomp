@@ -7,6 +7,8 @@
 static void Task_Free(Task* state);
 static void Task_Unlink(Task* state);
 
+s32 D_8005ED8C = 0;
+
 static Task* Task_SpawnFromDesc(TaskDesc* desc, s32 arg1, s32 arg2, TaskNode* list)
 {
     Task*          task;

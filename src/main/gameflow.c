@@ -24,6 +24,20 @@ static void GameFlow_SpawnMenu(Task* arg0);
 static void GameFlow_SpawnWhenIdle(Task* arg0);
 static void GameFlow_WaitMenuDone(Task* arg0);
 
+GameSession* gGameSession = &D61CC0_800714C0;
+s32          D_8005ED68   = 0;
+/// Unreferenced.
+static s32 D_8005ED6C      = 0x40;
+s32        Pad_MaskConfirm = 0x40;
+s32        Pad_MaskCancel  = 0xA0;
+s32        Pad_MaskMenu    = 0x900;
+/// Unreferenced.
+static s32 D_8005ED7C = 0x10;
+/// Unreferenced.
+static s32 D_8005ED80   = 0x80;
+static u8  D_8005ED84[] = { 0x00, 0x01, 0xFF, 0xFF, 0xFF, 0xFF };
+u16        D_8005ED8A   = 0;
+
 static const TaskFuncTable5 GameFlow_States5 = { {
     Game_ResetSessionAndBuffers,
     GameFlow_SpawnMenu,

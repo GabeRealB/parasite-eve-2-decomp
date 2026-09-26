@@ -125,7 +125,6 @@ STATIC_ASSERT_SIZEOF(PadRemapState, 0x1C);
 extern PadState       Pad_States[2];
 extern PadRawPort     Pad_RawPorts[2];
 extern PadRemapState* Pad_RemapState;
-extern u8             D_8005ED84[];
 
 // Button masks checked with Pad_CheckButtons: confirm (0x40), cancel
 // (0xA0) and menu-open (0x900). Gp_PadSuppressMask masks out 0x900

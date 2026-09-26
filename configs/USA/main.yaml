@@ -451,7 +451,8 @@ segments:
       - [0x4f4a4, o, libpad/padmain, .data] # _padFuncNextPort, _padFuncClrInfo, _padFuncGetTxd, _padFuncCurrLimit, _padFuncPtr2Port, _padFuncPort2Info, _padFuncSendAuto, _padFuncChkEng, _padFuncRecvAuto, _padFuncClrCmdNo, _padFuncIntGun, _padFuncSetGunPort, _padFuncGetGunPos, _padInfoDir, _padIntExec, _padGunExec, _padSioChan, _padSioState, _padTotalCurr, _padModeMtap, _padChanStart, _padChanStop, _padFixResult
       - [0x4f524, o, libpad/padif, .data] # padIntFunc
       - [0x4f554, o, libpad/padportd, .data]
-      - [0x4f564, data, "4F564"] # D4F564 game-state pointer block
+      - [0x4f564, .data, gameflow]
+      - [0x4f58c, .data, task]
       - [0x4f590, o, libapi/i_heap3, .data] # _freep
       - [0x4f5a0, data, task] # TaskDesc bank tables (D_8005EDA0, gTaskDescBanks, …)
       # PS1 save-header block: "SC" magic + Shift-JIS title + CLUT + 3 icon
