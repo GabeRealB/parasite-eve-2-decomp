@@ -265,35 +265,24 @@ static void func_actor_160600_801324C8(Task* task)
 /// `func_actor_160600_80131FFC` dispatches on, and only the first carries
 /// `animArg`. Returns -1, without touching the work block, when the clip id is
 /// out of range.
-///
-/// Both halves of the shape are load-bearing, not stylistic. The two bare
-/// `return`s put the constants straight into `$v0`, where the ROM has them; an
-/// m2c-style `var_v0` accumulator instead colours them into the free `$a1` and
-/// costs a tail `move $v0,$a1` (84.59%). The `SOFT_BARRIER()` moves the second
-/// `beqz`'s delay slot from the fall-through arm (`state = 1`) to the else arm
-/// (`state = 2`), which is what the ROM has; without it the function is 92.37%.
-/// See DECOMPILATION_LEARNINGS.md, "An empty `asm` at the head of the then-arm
-/// moves the branch delay slot to the else arm".
 s32 func_actor_160600_8013252C(Task* task, s32 arg1, GpAnimArg* args)
 {
     Actor160600Work* work;
 
     work = (Actor160600Work*)task->work;
-    if (args->field_4 >= 0x10) {
-        return -1;
+    if (args->field_4 < 0x10) {
+        work->st.animId = args->field_4;
+        if (args->field_8 != 0) {
+            work->st.state = 1;
+            work->animArg  = args->field_C;
+        } else {
+            work->st.state = 2;
+        }
+        work->st.field_6 = 0;
+        func_actor_160600_80131FFC(task);
+        return 0;
     }
-
-    work->st.animId = args->field_4;
-    if (args->field_8 != 0) {
-        SOFT_BARRIER();
-        work->st.state = 1;
-        work->animArg  = args->field_C;
-    } else {
-        work->st.state = 2;
-    }
-    work->st.field_6 = 0;
-    func_actor_160600_80131FFC(task);
-    return 0;
+    return -1;
 }
 
 /// Script opcode: shows or hides this actor's model and the model of the task
