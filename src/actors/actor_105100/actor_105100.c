@@ -590,51 +590,37 @@ static void func_actor_105100_80132AA0(GpEnemy* arg0, Task* arg1)
     TmdObject*       obj;
     Actor105100Work* work;
     s32              state;
-    s32              one;
 
     obj   = arg1->extra.tmd;
     state = Gp_StateF0.field_4;
     work  = arg1->work;
     coord = obj->coords;
-    one   = 1;
-    if (state == one) {
-        goto case1;
+    switch (state) {
+        case 0:
+            obj->flags               = 0;
+            arg0->node.state.b.flags = 8;
+            if (work->field_5BC != 0) {
+                SndEvt_EnqueueType9(0x40000000);
+                work->field_5BC = 0;
+            }
+            break;
+        case 1:
+            func_actor_105100_801364CC(arg1);
+            func_actor_105100_80136524(arg1);
+            if (work->field_5BC == 0) {
+                SndEvt_EnqueueType8(0x40000000);
+            }
+            work->field_5BC = state;
+            return;
+        case 2:
+            obj->flags               = 0x80;
+            arg0->node.state.b.flags = 1;
+            if (work->field_5BC == 0) {
+                SndEvt_EnqueueType8(0x40000000);
+            }
+            work->field_5BC = state;
+            return;
     }
-    if (state >= 2) {
-        goto ge2;
-    }
-    if (state == 0) {
-        goto case0;
-    }
-    goto default_body;
-ge2:
-    if (state == 2) {
-        goto case2;
-    }
-    goto default_body;
-case0:
-    obj->flags               = 0;
-    arg0->node.state.b.flags = 8;
-    if (work->field_5BC != 0) {
-        SndEvt_EnqueueType9(0x40000000);
-        work->field_5BC = 0;
-    }
-    goto default_body;
-case1:
-    func_actor_105100_801364CC(arg1);
-    func_actor_105100_80136524(arg1);
-    goto join_12;
-case2:
-    obj->flags               = 0x80;
-    arg0->node.state.b.flags = one;
-join_12:
-    SOFT_USE_REG(work);
-    if (work->field_5BC == 0) {
-        SndEvt_EnqueueType8(0x40000000);
-    }
-    work->field_5BC = state;
-    return;
-default_body:
     if (arg0->reactionFlags != 0) {
         func_actor_105100_80135E54(arg1);
     }
