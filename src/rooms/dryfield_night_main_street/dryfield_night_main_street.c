@@ -522,7 +522,7 @@ static void func_dryfield_night_main_street_8017E0B8(Task* task)
 
 /// Runs the room task's current state from its three-entry table, which it
 /// copies onto the stack before the call.
-static void func_dryfield_night_main_street_8017E0C0(Task* task)
+void func_dryfield_night_main_street_8017E0C0(Task* task)
 {
     TaskFuncTable3 sp;
 

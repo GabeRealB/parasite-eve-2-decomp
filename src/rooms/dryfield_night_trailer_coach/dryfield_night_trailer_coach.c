@@ -2841,7 +2841,7 @@ static void func_dryfield_night_trailer_coach_80182898(Task* task)
 
 /// Runs the handler for the task's state from a stack copy of
 /// `D_dryfield_night_trailer_coach_8017D7DC`.
-static void func_dryfield_night_trailer_coach_801828CC(Task* task)
+void func_dryfield_night_trailer_coach_801828CC(Task* task)
 {
     TaskFuncTable3 sp;
 

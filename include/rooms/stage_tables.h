@@ -897,5 +897,324 @@ extern GpWarpRec       D_neo_ark_substation_8017E410[];
 extern GpViewRec       D_neo_ark_substation_8017E8C8[];
 extern GpSprtRec       D_neo_ark_substation_8017F584[];
 extern GpRoomParamRec* D_neo_ark_substation_80180328[];
+// dryfield_night_gas_station
+extern GpRoomCoordRec  D_dryfield_night_gas_station_80189DB0[];
+extern GpRoomObjRec    D_dryfield_night_gas_station_80189DD0[];
+extern u8*             D_dryfield_night_gas_station_80189E70[];
+extern GpViewCountRec  D_dryfield_night_gas_station_80189E80[];
+extern GpWarpRec       D_dryfield_night_gas_station_80189E88[];
+extern GpViewRec       D_dryfield_night_gas_station_8018B780[];
+extern GpSprtRec       D_dryfield_night_gas_station_8018F6C4[];
+extern GpRoomParamRec* D_dryfield_night_gas_station_80190780[];
+
+// dryfield_night_main_street
+extern GpRoomObjRec    D_dryfield_night_main_street_80182284[];
+extern GpRoomCoordRec  D_dryfield_night_main_street_801822B4[];
+extern u8*             D_dryfield_night_main_street_801822FC[];
+extern GpViewCountRec  D_dryfield_night_main_street_80182308[];
+extern GpWarpRec       D_dryfield_night_main_street_80182310[];
+extern GpViewRec       D_dryfield_night_main_street_80184564[];
+extern GpSprtRec       D_dryfield_night_main_street_801875E4[];
+extern GpRoomParamRec* D_dryfield_night_main_street_80188B84[];
+
+// dryfield_night_general_store
+extern GpRoomCoordRec  D_dryfield_night_general_store_8017E82C[];
+extern GpRoomObjRec    D_dryfield_night_general_store_8017E834[];
+extern u8*             D_dryfield_night_general_store_8017E844[];
+extern GpViewCountRec  D_dryfield_night_general_store_8017E848[];
+extern GpWarpRec       D_dryfield_night_general_store_8017E84C[];
+extern GpViewRec       D_dryfield_night_general_store_8017F4A8[];
+extern GpSprtRec       D_dryfield_night_general_store_80184278[];
+extern GpRoomParamRec* D_dryfield_night_general_store_80185894[];
+
+// dryfield_night_back_street
+extern GpRoomObjRec    D_dryfield_night_back_street_801803AC[];
+extern GpRoomCoordRec  D_dryfield_night_back_street_801803BC[];
+extern u8*             D_dryfield_night_back_street_801803C4[];
+extern GpViewCountRec  D_dryfield_night_back_street_801803C8[];
+extern GpWarpRec       D_dryfield_night_back_street_801803CC[];
+extern GpViewRec       D_dryfield_night_back_street_80180B58[];
+extern GpSprtRec       D_dryfield_night_back_street_80180D34[];
+extern GpRoomParamRec* D_dryfield_night_back_street_8018161C[];
+
+// dryfield_night_souvenir_shop
+extern GpRoomCoordRec  D_dryfield_night_souvenir_shop_8017E0E4[];
+extern GpRoomObjRec    D_dryfield_night_souvenir_shop_8017E0EC[];
+extern u8*             D_dryfield_night_souvenir_shop_8017E0FC[];
+extern GpViewCountRec  D_dryfield_night_souvenir_shop_8017E100[];
+extern GpWarpRec       D_dryfield_night_souvenir_shop_8017E104[];
+extern GpViewRec       D_dryfield_night_souvenir_shop_8017E628[];
+extern GpSprtRec       D_dryfield_night_souvenir_shop_8017EF08[];
+extern GpRoomParamRec* D_dryfield_night_souvenir_shop_8017F6CC[];
+
+// dryfield_night_warehouse
+extern GpRoomCoordRec  D_dryfield_night_warehouse_8017E8E8[];
+extern GpRoomObjRec    D_dryfield_night_warehouse_8017E900[];
+extern u8*             D_dryfield_night_warehouse_8017E930[];
+extern GpViewCountRec  D_dryfield_night_warehouse_8017E93C[];
+extern GpWarpRec       D_dryfield_night_warehouse_8017E944[];
+extern GpViewRec       D_dryfield_night_warehouse_8017EF2C[];
+extern GpSprtRec       D_dryfield_night_warehouse_8017F46C[];
+extern GpRoomParamRec* D_dryfield_night_warehouse_8017FC24[];
+
+// dryfield_night_r08
+extern GpRoomCoordRec  D_dryfield_night_r08_8018067C[];
+extern GpRoomObjRec    D_dryfield_night_r08_80180684[];
+extern u8*             D_dryfield_night_r08_80180694[];
+extern GpViewCountRec  D_dryfield_night_r08_80180698[];
+extern GpWarpRec       D_dryfield_night_r08_8018069C[];
+extern GpViewRec       D_dryfield_night_r08_80181498[];
+extern GpSprtRec       D_dryfield_night_r08_80181728[];
+extern GpRoomParamRec* D_dryfield_night_r08_8018195C[];
+
+// dryfield_night_dilapidated_house
+extern GpRoomCoordRec  D_dryfield_night_dilapidated_house_8018738C[];
+extern GpRoomObjRec    D_dryfield_night_dilapidated_house_80187394[];
+extern u8*             D_dryfield_night_dilapidated_house_801873A4[];
+extern GpViewCountRec  D_dryfield_night_dilapidated_house_801873A8[];
+extern GpWarpRec       D_dryfield_night_dilapidated_house_801873AC[];
+extern GpViewRec       D_dryfield_night_dilapidated_house_80187D68[];
+extern GpSprtRec       D_dryfield_night_dilapidated_house_8018921C[];
+extern GpRoomParamRec* D_dryfield_night_dilapidated_house_8018A0E4[];
+
+// dryfield_night_motel_room_1
+extern GpRoomCoordRec  D_dryfield_night_motel_room_1_8017DA64[];
+extern GpRoomObjRec    D_dryfield_night_motel_room_1_8017DA74[];
+extern u8*             D_dryfield_night_motel_room_1_8017DAA0[];
+extern GpViewCountRec  D_dryfield_night_motel_room_1_8017DAA4[];
+extern GpWarpRec       D_dryfield_night_motel_room_1_8017DAA8[];
+extern GpViewRec       D_dryfield_night_motel_room_1_8017E0BC[];
+extern GpSprtRec       D_dryfield_night_motel_room_1_8017FE98[];
+extern GpRoomParamRec* D_dryfield_night_motel_room_1_80180844[];
+
+// dryfield_night_motel_room_2
+extern GpRoomCoordRec  D_dryfield_night_motel_room_2_8017DA5C[];
+extern GpRoomObjRec    D_dryfield_night_motel_room_2_8017DA64[];
+extern u8*             D_dryfield_night_motel_room_2_8017DA74[];
+extern GpViewCountRec  D_dryfield_night_motel_room_2_8017DA78[];
+extern GpWarpRec       D_dryfield_night_motel_room_2_8017DA7C[];
+extern GpViewRec       D_dryfield_night_motel_room_2_8017E1A8[];
+extern GpSprtRec       D_dryfield_night_motel_room_2_80180110[];
+extern GpRoomParamRec* D_dryfield_night_motel_room_2_80180A90[];
+
+// dryfield_night_motel_room_3
+extern GpRoomCoordRec  D_dryfield_night_motel_room_3_8017DA9C[];
+extern GpRoomObjRec    D_dryfield_night_motel_room_3_8017DAA4[];
+extern u8*             D_dryfield_night_motel_room_3_8017DAB4[];
+extern GpViewCountRec  D_dryfield_night_motel_room_3_8017DAB8[];
+extern GpWarpRec       D_dryfield_night_motel_room_3_8017DABC[];
+extern GpViewRec       D_dryfield_night_motel_room_3_8017E1A4[];
+extern GpSprtRec       D_dryfield_night_motel_room_3_80180118[];
+extern GpRoomParamRec* D_dryfield_night_motel_room_3_80180DC4[];
+
+// dryfield_night_motel_room_4
+extern GpRoomCoordRec  D_dryfield_night_motel_room_4_8017DA90[];
+extern GpRoomObjRec    D_dryfield_night_motel_room_4_8017DA98[];
+extern u8*             D_dryfield_night_motel_room_4_8017DAA8[];
+extern GpViewCountRec  D_dryfield_night_motel_room_4_8017DAAC[];
+extern GpWarpRec       D_dryfield_night_motel_room_4_8017DAB0[];
+extern GpViewRec       D_dryfield_night_motel_room_4_8017E1F4[];
+extern GpSprtRec       D_dryfield_night_motel_room_4_8017FB88[];
+extern GpRoomParamRec* D_dryfield_night_motel_room_4_8018039C[];
+
+// dryfield_night_parking_lot
+extern GpRoomCoordRec  D_dryfield_night_parking_lot_8017EE14[];
+extern GpRoomObjRec    D_dryfield_night_parking_lot_8017EE24[];
+extern u8*             D_dryfield_night_parking_lot_8017EE4C[];
+extern GpViewCountRec  D_dryfield_night_parking_lot_8017EE54[];
+extern GpWarpRec       D_dryfield_night_parking_lot_8017EE58[];
+extern GpViewRec       D_dryfield_night_parking_lot_8017FAF4[];
+extern GpSprtRec       D_dryfield_night_parking_lot_801805AC[];
+extern GpRoomParamRec* D_dryfield_night_parking_lot_8018153C[];
+
+// dryfield_night_toilet
+extern GpRoomCoordRec  D_dryfield_night_toilet_8017DAB0[];
+extern GpRoomObjRec    D_dryfield_night_toilet_8017DAB8[];
+extern u8*             D_dryfield_night_toilet_8017DAC8[];
+extern GpViewCountRec  D_dryfield_night_toilet_8017DACC[];
+extern GpWarpRec       D_dryfield_night_toilet_8017DAD0[];
+extern GpViewRec       D_dryfield_night_toilet_8017DDAC[];
+extern GpSprtRec       D_dryfield_night_toilet_8017EC40[];
+extern GpRoomParamRec* D_dryfield_night_toilet_8017F3D8[];
+
+// dryfield_night_motel_lobby
+extern GpRoomObjRec    D_dryfield_night_motel_lobby_80182908[];
+extern GpRoomCoordRec  D_dryfield_night_motel_lobby_80182918[];
+extern u8*             D_dryfield_night_motel_lobby_80182920[];
+extern GpViewCountRec  D_dryfield_night_motel_lobby_80182924[];
+extern GpWarpRec       D_dryfield_night_motel_lobby_80182928[];
+extern GpViewRec       D_dryfield_night_motel_lobby_80182DD8[];
+extern GpSprtRec       D_dryfield_night_motel_lobby_80183D1C[];
+extern GpRoomParamRec* D_dryfield_night_motel_lobby_8018448C[];
+
+// dryfield_night_saloon_g_r
+extern GpRoomCoordRec  D_dryfield_night_saloon_g_r_80185180[];
+extern GpRoomObjRec    D_dryfield_night_saloon_g_r_80185190[];
+extern u8*             D_dryfield_night_saloon_g_r_801851B0[];
+extern GpViewCountRec  D_dryfield_night_saloon_g_r_801851B8[];
+extern GpWarpRec       D_dryfield_night_saloon_g_r_801851BC[];
+extern GpViewRec       D_dryfield_night_saloon_g_r_80185B74[];
+extern GpSprtRec       D_dryfield_night_saloon_g_r_80187FC8[];
+extern GpRoomParamRec* D_dryfield_night_saloon_g_r_80188F84[];
+
+// dryfield_night_g_r_kitchen
+extern GpRoomCoordRec  D_dryfield_night_g_r_kitchen_8017E2BC[];
+extern GpRoomObjRec    D_dryfield_night_g_r_kitchen_8017E2C4[];
+extern u8*             D_dryfield_night_g_r_kitchen_8017E2D4[];
+extern GpViewCountRec  D_dryfield_night_g_r_kitchen_8017E2D8[];
+extern GpWarpRec       D_dryfield_night_g_r_kitchen_8017E2DC[];
+extern GpViewRec       D_dryfield_night_g_r_kitchen_8017E578[];
+extern GpSprtRec       D_dryfield_night_g_r_kitchen_8017E6A8[];
+extern GpRoomParamRec* D_dryfield_night_g_r_kitchen_8017EC04[];
+
+// dryfield_night_water_tower
+extern GpRoomCoordRec  D_dryfield_night_water_tower_8017E74C[];
+extern GpRoomObjRec    D_dryfield_night_water_tower_8017E754[];
+extern u8*             D_dryfield_night_water_tower_8017E764[];
+extern GpViewCountRec  D_dryfield_night_water_tower_8017E768[];
+extern GpWarpRec       D_dryfield_night_water_tower_8017E76C[];
+extern GpViewRec       D_dryfield_night_water_tower_8017F418[];
+extern GpSprtRec       D_dryfield_night_water_tower_80182040[];
+extern GpRoomParamRec* D_dryfield_night_water_tower_80182C30[];
+
+// dryfield_night_water_tank
+extern GpRoomCoordRec  D_dryfield_night_water_tank_8017EE50[];
+extern GpRoomObjRec    D_dryfield_night_water_tank_8017EE58[];
+extern u8*             D_dryfield_night_water_tank_8017EE74[];
+extern GpViewCountRec  D_dryfield_night_water_tank_8017EE78[];
+extern GpWarpRec       D_dryfield_night_water_tank_8017EE7C[];
+extern GpViewRec       D_dryfield_night_water_tank_8017F4D4[];
+extern GpSprtRec       D_dryfield_night_water_tank_801801CC[];
+extern GpRoomParamRec* D_dryfield_night_water_tank_80180890[];
+
+// dryfield_night_breezeway
+extern GpRoomCoordRec  D_dryfield_night_breezeway_8017E6E4[];
+extern GpRoomObjRec    D_dryfield_night_breezeway_8017E6EC[];
+extern u8*             D_dryfield_night_breezeway_8017E6FC[];
+extern GpViewCountRec  D_dryfield_night_breezeway_8017E700[];
+extern GpWarpRec       D_dryfield_night_breezeway_8017E704[];
+extern GpViewRec       D_dryfield_night_breezeway_8017EBE8[];
+extern GpSprtRec       D_dryfield_night_breezeway_8017FD10[];
+extern GpRoomParamRec* D_dryfield_night_breezeway_801804B8[];
+
+// dryfield_night_factory
+extern u8*             D_dryfield_night_factory_80186F1C[];
+extern GpRoomCoordRec  D_dryfield_night_factory_80186F24[];
+extern GpRoomObjRec    D_dryfield_night_factory_80186F34[];
+extern GpViewCountRec  D_dryfield_night_factory_80186F54[];
+extern GpWarpRec       D_dryfield_night_factory_80186F58[];
+extern GpViewRec       D_dryfield_night_factory_80187C14[];
+extern GpSprtRec       D_dryfield_night_factory_80189A24[];
+extern GpRoomParamRec* D_dryfield_night_factory_8018A79C[];
+
+// dryfield_night_garage
+extern GpRoomCoordRec  D_dryfield_night_garage_801833F4[];
+extern GpRoomObjRec    D_dryfield_night_garage_80183404[];
+extern u8*             D_dryfield_night_garage_80183434[];
+extern GpViewCountRec  D_dryfield_night_garage_8018343C[];
+extern GpWarpRec       D_dryfield_night_garage_80183440[];
+extern GpViewRec       D_dryfield_night_garage_801843F8[];
+extern GpSprtRec       D_dryfield_night_garage_80186258[];
+extern GpRoomParamRec* D_dryfield_night_garage_801875B8[];
+
+// dryfield_night_driveway
+extern GpRoomCoordRec  D_dryfield_night_driveway_801805E0[];
+extern GpRoomObjRec    D_dryfield_night_driveway_801805F0[];
+extern u8*             D_dryfield_night_driveway_8018061C[];
+extern GpViewCountRec  D_dryfield_night_driveway_80180624[];
+extern GpWarpRec       D_dryfield_night_driveway_80180628[];
+extern GpViewRec       D_dryfield_night_driveway_80180C30[];
+extern GpSprtRec       D_dryfield_night_driveway_80181870[];
+extern GpRoomParamRec* D_dryfield_night_driveway_801820F0[];
+
+// dryfield_night_junk_yard
+extern GpRoomCoordRec  D_dryfield_night_junk_yard_80180784[];
+extern GpRoomObjRec    D_dryfield_night_junk_yard_80180794[];
+extern u8*             D_dryfield_night_junk_yard_801807C0[];
+extern GpViewCountRec  D_dryfield_night_junk_yard_801807C8[];
+extern GpWarpRec       D_dryfield_night_junk_yard_801807CC[];
+extern GpViewRec       D_dryfield_night_junk_yard_801811DC[];
+extern GpSprtRec       D_dryfield_night_junk_yard_80183700[];
+extern GpRoomParamRec* D_dryfield_night_junk_yard_801844C4[];
+
+// dryfield_night_trailer_coach
+extern GpRoomCoordRec  D_dryfield_night_trailer_coach_80189500[];
+extern GpRoomObjRec    D_dryfield_night_trailer_coach_80189508[];
+extern u8*             D_dryfield_night_trailer_coach_80189518[];
+extern GpViewCountRec  D_dryfield_night_trailer_coach_8018951C[];
+extern GpWarpRec       D_dryfield_night_trailer_coach_80189520[];
+extern GpViewRec       D_dryfield_night_trailer_coach_80189A44[];
+extern GpSprtRec       D_dryfield_night_trailer_coach_8018B64C[];
+extern GpRoomParamRec* D_dryfield_night_trailer_coach_8018C1E8[];
+
+// dryfield_night_motel_room_5
+extern GpRoomCoordRec  D_dryfield_night_motel_room_5_8017DA70[];
+extern GpRoomObjRec    D_dryfield_night_motel_room_5_8017DA80[];
+extern u8*             D_dryfield_night_motel_room_5_8017DAAC[];
+extern GpViewCountRec  D_dryfield_night_motel_room_5_8017DAB4[];
+extern GpWarpRec       D_dryfield_night_motel_room_5_8017DAB8[];
+extern GpViewRec       D_dryfield_night_motel_room_5_8017E060[];
+extern GpSprtRec       D_dryfield_night_motel_room_5_80180994[];
+extern GpRoomParamRec* D_dryfield_night_motel_room_5_80181230[];
+
+// dryfield_night_motel_balcony
+extern GpRoomCoordRec  D_dryfield_night_motel_balcony_80182E00[];
+extern GpRoomObjRec    D_dryfield_night_motel_balcony_80182E18[];
+extern u8*             D_dryfield_night_motel_balcony_80182E98[];
+extern GpViewCountRec  D_dryfield_night_motel_balcony_80182EA4[];
+extern GpWarpRec       D_dryfield_night_motel_balcony_80182EAC[];
+extern GpViewRec       D_dryfield_night_motel_balcony_80184004[];
+extern GpSprtRec       D_dryfield_night_motel_balcony_8018D078[];
+extern GpRoomParamRec* D_dryfield_night_motel_balcony_8018F2AC[];
+
+// dryfield_night_motel_room_6
+extern GpRoomCoordRec  D_dryfield_night_motel_room_6_80182F00[];
+extern GpRoomObjRec    D_dryfield_night_motel_room_6_80182F08[];
+extern u8*             D_dryfield_night_motel_room_6_80182F18[];
+extern GpViewCountRec  D_dryfield_night_motel_room_6_80182F1C[];
+extern GpWarpRec       D_dryfield_night_motel_room_6_80182F20[];
+extern GpViewRec       D_dryfield_night_motel_room_6_801839A8[];
+extern GpSprtRec       D_dryfield_night_motel_room_6_801857C0[];
+extern GpRoomParamRec* D_dryfield_night_motel_room_6_80186250[];
+
+// dryfield_night_motel_loft
+extern GpRoomCoordRec  D_dryfield_night_motel_loft_8017EDB0[];
+extern GpRoomObjRec    D_dryfield_night_motel_loft_8017EDC0[];
+extern u8*             D_dryfield_night_motel_loft_8017EDF0[];
+extern GpViewCountRec  D_dryfield_night_motel_loft_8017EDF8[];
+extern GpWarpRec       D_dryfield_night_motel_loft_8017EDFC[];
+extern GpViewRec       D_dryfield_night_motel_loft_8017F144[];
+extern GpSprtRec       D_dryfield_night_motel_loft_8017FBE4[];
+extern GpRoomParamRec* D_dryfield_night_motel_loft_8018090C[];
+
+// dryfield_night_water_hole
+extern GpRoomObjRec    D_dryfield_night_water_hole_80180A04[];
+extern GpRoomCoordRec  D_dryfield_night_water_hole_80180A44[];
+extern u8*             D_dryfield_night_water_hole_80180A94[];
+extern GpViewCountRec  D_dryfield_night_water_hole_80180AA4[];
+extern GpWarpRec       D_dryfield_night_water_hole_80180AAC[];
+extern GpViewRec       D_dryfield_night_water_hole_80180F74[];
+extern GpSprtRec       D_dryfield_night_water_hole_80182384[];
+extern GpRoomParamRec* D_dryfield_night_water_hole_801835F8[];
+
+// dryfield_night_cellar
+extern GpRoomCoordRec  D_dryfield_night_cellar_8017DAF0[];
+extern GpRoomObjRec    D_dryfield_night_cellar_8017DB00[];
+extern u8*             D_dryfield_night_cellar_8017DB28[];
+extern GpViewCountRec  D_dryfield_night_cellar_8017DB30[];
+extern GpWarpRec       D_dryfield_night_cellar_8017DB34[];
+extern GpViewRec       D_dryfield_night_cellar_8017DE84[];
+extern GpSprtRec       D_dryfield_night_cellar_8017FAB8[];
+extern GpRoomParamRec* D_dryfield_night_cellar_801807F4[];
+
+// dryfield_night_underpass
+extern GpRoomObjRec    D_dryfield_night_underpass_8017DD70[];
+extern GpRoomCoordRec  D_dryfield_night_underpass_8017DDD0[];
+extern u8*             D_dryfield_night_underpass_8017DE3C[];
+extern GpViewCountRec  D_dryfield_night_underpass_8017DE54[];
+extern GpWarpRec       D_dryfield_night_underpass_8017DE60[];
+extern GpViewRec       D_dryfield_night_underpass_8017E6F8[];
+extern GpSprtRec       D_dryfield_night_underpass_8017F420[];
+extern GpRoomParamRec* D_dryfield_night_underpass_80180374[];
 
 #endif /* ROOMS_STAGE_TABLES_H */

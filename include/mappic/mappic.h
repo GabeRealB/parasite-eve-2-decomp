@@ -100,5 +100,41 @@ extern TmdSource D_mappic_s5_03_8012F110;
 extern TmdSource D_mappic_s5_03_8012F1F0;
 extern TmdSource D_mappic_s5_03_8012F2B8;
 extern TmdSource D_mappic_s5_03_8012F348;
+// mappic_s3_00
+extern TmdSource D_mappic_s3_00_8012EFF4;
+extern TmdSource D_mappic_s3_00_8012F084;
+extern TmdSource D_mappic_s3_00_8012F19C;
+extern TmdSource D_mappic_s3_00_8012F22C;
+extern TmdSource D_mappic_s3_00_8012F2BC;
+
+// mappic_s3_02
+extern TmdSource D_mappic_s3_02_8012EFBC;
+extern TmdSource D_mappic_s3_02_8012F04C;
+extern TmdSource D_mappic_s3_02_8012F0DC;
+extern TmdSource D_mappic_s3_02_8012F188;
+extern TmdSource D_mappic_s3_02_8012F218;
+extern TmdSource D_mappic_s3_02_8012F2A8;
+extern TmdSource D_mappic_s3_02_8012F36C;
+extern TmdSource D_mappic_s3_02_8012F3FC;
+extern TmdSource D_mappic_s3_02_8012F48C;
+extern TmdSource D_mappic_s3_02_8012F51C;
+extern TmdSource D_mappic_s3_02_8012F5AC;
+extern TmdSource D_mappic_s3_02_8012F6AC;
+extern TmdSource D_mappic_s3_02_8012F73C;
+extern TmdSource D_mappic_s3_02_8012F7CC;
+extern TmdSource D_mappic_s3_02_8012F8AC;
+extern TmdSource D_mappic_s3_02_8012F93C;
+extern TmdSource D_mappic_s3_02_8012F9E8;
+extern TmdSource D_mappic_s3_02_8012FA94;
+extern TmdSource D_mappic_s3_02_8012FB24;
+extern TmdSource D_mappic_s3_02_8012FBB4;
+extern TmdSource D_mappic_s3_02_8012FC7C;
+extern TmdSource D_mappic_s3_02_8012FD78;
+extern TmdSource D_mappic_s3_02_8012FE08;
+
+// mappic_s3_03
+extern TmdSource D_mappic_s3_03_8012EFD8;
+extern TmdSource D_mappic_s3_03_8012F084;
+extern TmdSource D_mappic_s3_03_8012F180;
 
 #endif /* MAPPIC_MAPPIC_H */

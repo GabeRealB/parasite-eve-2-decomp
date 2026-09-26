@@ -23,6 +23,7 @@
 #include "main/tmd.h"
 #include "main/ui.h"
 #include "rooms/dryfield_night_gas_station.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 #include <psyq/inline_c.h>
@@ -1383,7 +1384,7 @@ static const SVECTOR D_dryfield_night_gas_station_8017D658 = { -0x1E, 0x122, 0x2
 
 /// Gates the room's two sprite records on nibble 0x8D, then dispatches the task
 /// through the room's own three-state table, copied onto the stack first.
-static void func_dryfield_night_gas_station_8017FB70(Task* arg0)
+void func_dryfield_night_gas_station_8017FB70(Task* arg0)
 {
     TaskFuncTable3 sp;
 

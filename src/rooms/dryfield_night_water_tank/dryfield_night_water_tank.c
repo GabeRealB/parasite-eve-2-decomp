@@ -15,6 +15,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 extern GpGridParams D_dryfield_night_water_tank_8017E08C;
@@ -202,7 +203,7 @@ static const TaskFuncTable3 D_dryfield_night_water_tank_8017D5C4 = {
 
 /// The room task: copies its three-state table onto the stack and runs the
 /// entry for the task's current state.
-static void func_dryfield_night_water_tank_8017D984(Task* task)
+void func_dryfield_night_water_tank_8017D984(Task* task)
 {
     TaskFuncTable3 sp;
 

@@ -17,6 +17,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 extern s32 D_8011572C;
@@ -122,7 +123,7 @@ static const TaskFuncTable3 D_dryfield_night_back_street_8017D5C4 = {
 
 /// Runs the room entry task's current state from its three-entry table, which
 /// it copies onto the stack before the call.
-static void func_dryfield_night_back_street_8017D788(Task* task)
+void func_dryfield_night_back_street_8017D788(Task* task)
 {
     TaskFuncTable3 sp;
 

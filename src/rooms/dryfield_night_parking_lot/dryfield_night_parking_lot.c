@@ -10,6 +10,7 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// Descriptor of the event task the event gate spawns.
@@ -297,7 +298,7 @@ static const TaskFuncTable3 D_dryfield_night_parking_lot_8017D5DC = {
 
 /// The room entry task: copies the three-state table to the stack and runs the
 /// entry the task's state selects.
-static void func_dryfield_night_parking_lot_8017DC30(Task* task)
+void func_dryfield_night_parking_lot_8017DC30(Task* task)
 {
     TaskFuncTable3 sp;
 

@@ -6,6 +6,7 @@
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// The room's message table, published in `Task::msgTable` for
@@ -169,7 +170,7 @@ static const TaskFuncTable3 D_dryfield_night_junk_yard_8017D5C4 = {
 
 /// The room entry task: copies the three-state table to the stack and runs the
 /// entry the task's state selects.
-static void func_dryfield_night_junk_yard_8017D960(Task* task)
+void func_dryfield_night_junk_yard_8017D960(Task* task)
 {
     TaskFuncTable3 sp;
 

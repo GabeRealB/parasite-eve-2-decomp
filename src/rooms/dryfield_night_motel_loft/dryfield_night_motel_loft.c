@@ -162,7 +162,7 @@ static const TaskFuncTable3 D_dryfield_night_motel_loft_8017D5C4 = {
 
 /// The room task's callback: runs the state `Task::state` selects from a
 /// stack copy of `D_dryfield_night_motel_loft_8017D5C4`.
-static void func_dryfield_night_motel_loft_8017D964(Task* task)
+void func_dryfield_night_motel_loft_8017D964(Task* task)
 {
     TaskFuncTable3 sp;
 

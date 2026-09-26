@@ -7,6 +7,7 @@
 #include "main/fs.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/room.h"
 
 extern s32 D_80133898;
 extern s32 D_801341E0;
@@ -72,7 +73,7 @@ static const TaskFuncTable3 D_dryfield_night_r08_8017D5C4 = {
 
 /// The room task: copies its three-state table onto the stack and runs the
 /// entry for the task's current state.
-static void func_dryfield_night_r08_8017D6C0(Task* task)
+void func_dryfield_night_r08_8017D6C0(Task* task)
 {
     TaskFuncTable3 sp;
 

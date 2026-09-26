@@ -327,4 +327,7 @@ void func_800BC4E4(void);
 void Gp_ResetScanDefault(void);
 void Gp_AgeFlag119Void(void);
 
+/// Named as a task entry by the enemy descriptor tables in the map UI overlays.
+void Gp_WaitItemFlag2(Task* arg0);
+
 #endif // GAMEPLAY_268_H

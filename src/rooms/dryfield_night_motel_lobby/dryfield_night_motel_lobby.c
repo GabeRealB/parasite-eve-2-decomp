@@ -1426,7 +1426,7 @@ static const TaskFuncTable3 D_dryfield_night_motel_lobby_8017D6A4 = {
     },
 };
 
-static void func_dryfield_night_motel_lobby_8017FE38(Task* task)
+void func_dryfield_night_motel_lobby_8017FE38(Task* task)
 {
     TaskFuncTable3 sp;
 

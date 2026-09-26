@@ -11,6 +11,7 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/dryfield_night_dilapidated_house.h"
 
@@ -218,7 +219,7 @@ static const TaskFuncTable3 D_dryfield_night_dilapidated_house_8017D5DC = {
 
 /// Runs the room task's current state, through a copy of its state table
 /// taken onto the stack.
-static void func_dryfield_night_dilapidated_house_8017DA18(Task* task)
+void func_dryfield_night_dilapidated_house_8017DA18(Task* task)
 {
     TaskFuncTable3 sp;
 

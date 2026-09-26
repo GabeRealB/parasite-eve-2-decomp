@@ -16,6 +16,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 static void func_dryfield_night_warehouse_8017D610(Task* task);
@@ -82,7 +83,7 @@ static const TaskFuncTable3 D_dryfield_night_warehouse_8017D5C4 = {
 
 /// The room task: copies its three-state table onto the stack and runs the
 /// entry for the task's current state.
-static void func_dryfield_night_warehouse_8017D65C(Task* task)
+void func_dryfield_night_warehouse_8017D65C(Task* task)
 {
     TaskFuncTable3 sp;
 

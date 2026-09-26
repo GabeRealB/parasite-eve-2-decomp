@@ -12,6 +12,7 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/dryfield_night_motel_balcony.h"
 
@@ -291,7 +292,7 @@ static const TaskFuncTable3 D_dryfield_night_motel_balcony_8017D5DC = {
 
 /// Runs the room task's current state from its state table, dispatching
 /// through a copy of the table taken onto the stack.
-static void func_dryfield_night_motel_balcony_8017DD78(Task* task)
+void func_dryfield_night_motel_balcony_8017DD78(Task* task)
 {
     TaskFuncTable3 sp;
 

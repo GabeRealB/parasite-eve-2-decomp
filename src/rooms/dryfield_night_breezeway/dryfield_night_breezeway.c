@@ -13,6 +13,7 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 static void func_dryfield_night_breezeway_8017D634(Task* task);
@@ -85,7 +86,7 @@ static void func_dryfield_night_breezeway_8017D678(Task* task)
 
 /// The room's event task: copies the three-state table onto the stack and
 /// calls the entry for the task's current state.
-static void func_dryfield_night_breezeway_8017D680(Task* task)
+void func_dryfield_night_breezeway_8017D680(Task* task)
 {
     TaskFuncTable3 sp;
 

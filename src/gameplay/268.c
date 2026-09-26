@@ -2766,7 +2766,7 @@ static void func_800BBB54(Task* arg0)
     }
 }
 
-static void Gp_WaitItemFlag2(Task* arg0)
+void Gp_WaitItemFlag2(Task* arg0)
 {
     TmdObject* extra;
 

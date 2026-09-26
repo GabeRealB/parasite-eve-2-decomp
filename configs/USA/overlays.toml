@@ -594,12 +594,11 @@ objects = [
 ]
 
 [mapui.overlays.map_dryfield_full]
-label = "31 names; adds the later motel rooms"
+label = "the Dryfield-at-night stage's map and stage tables, after the hook its rooms call at 0x4"
 id = 282
 objects = [
   { kind = "packageId" },
-  { unit = "map_dryfield_full/map_dryfield_full", rodata = "0x4", text = "0x4" },
-  { kind = "data", at = "0x54" },
+  { unit = "map_dryfield_full/map_dryfield_full", rodata = "0x4", text = "0x4", data = "0x54" },
 ]
 
 [mapui.overlays.map_neo_ark]

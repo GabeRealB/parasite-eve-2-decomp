@@ -331,7 +331,7 @@ static void func_dryfield_night_driveway_8017DD7C(Task* task)
 
 /// Room task: copies the state table onto the stack and runs the entry for the
 /// task's current state.
-static void func_dryfield_night_driveway_8017DD8C(Task* task)
+void func_dryfield_night_driveway_8017DD8C(Task* task)
 {
     TaskFuncTable3 sp;
 

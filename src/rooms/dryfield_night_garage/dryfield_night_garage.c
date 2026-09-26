@@ -1559,7 +1559,7 @@ static const TaskFuncTable3 D_dryfield_night_garage_8017D6FC = {
 
 /// The room's message task: runs the handler for its state from a stack copy
 /// of `D_dryfield_night_garage_8017D6FC`.
-static void func_dryfield_night_garage_801803BC(Task* task)
+void func_dryfield_night_garage_801803BC(Task* task)
 {
     TaskFuncTable3 sp;
 

@@ -12,6 +12,7 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// The room's message table, which the event task installs in state 0.
@@ -90,7 +91,7 @@ static const TaskFuncTable3 D_dryfield_night_motel_room_2_8017D5C4 = {
 
 /// Runs the room's event task through its three-state table, which it copies
 /// onto the stack before the call.
-static void func_dryfield_night_motel_room_2_8017D6BC(Task* task)
+void func_dryfield_night_motel_room_2_8017D6BC(Task* task)
 {
     TaskFuncTable3 sp;
 

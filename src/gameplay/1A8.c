@@ -46,7 +46,6 @@ extern s16 D_80114CE0;
 extern u16 Gp_DirFadeLevel;
 extern u8  D_80114CF8;
 extern s16 D_80114D08;
-extern u16 D_8017A738[];
 extern u16 D_8017AD88[];
 
 /// The flag entry `table[idx]`: its low 11 bits select a flag nibble, and its
@@ -112,7 +111,7 @@ s16 Gp_LookupStageFlag(s16 idx)
                 }
                 return 0x802;
             }
-            return _gpStageFlagNibble(D_8017A738, idx);
+            return _gpStageFlagNibble(D_map_dryfield_full_8017A738, idx);
         case 4:
             if (idx >= 0x1E) {
                 break;

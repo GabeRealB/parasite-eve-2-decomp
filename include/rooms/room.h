@@ -406,5 +406,43 @@ void func_neo_ark_substation_8017D81C(Task* task);
 
 /// Models the Neo Ark map UI overlay's enemy descriptors attach.
 extern TmdSource D_shelter_1f_vehicular_airlock_80182004;
+/// Task entries the Dryfield-at-night map UI overlay's stage tables name, each
+/// room's entry task started for its location, and the models its enemy
+/// descriptors attach.
+void func_dryfield_night_gas_station_8017FB70(Task* task);
+void func_dryfield_night_main_street_8017E0C0(Task* task);
+void func_dryfield_night_general_store_8017DE88(Task* task);
+void func_dryfield_night_back_street_8017D788(Task* task);
+void func_dryfield_night_souvenir_shop_8017D65C(Task* task);
+void func_dryfield_night_warehouse_8017D65C(Task* task);
+void func_dryfield_night_r08_8017D6C0(Task* task);
+void func_dryfield_night_dilapidated_house_8017DA18(Task* task);
+void func_dryfield_night_motel_room_1_8017D6DC(Task* task);
+void func_dryfield_night_motel_room_2_8017D6BC(Task* task);
+void func_dryfield_night_motel_room_3_8017D6E0(Task* task);
+void func_dryfield_night_motel_room_4_8017D6BC(Task* task);
+void func_dryfield_night_parking_lot_8017DC30(Task* task);
+void func_dryfield_night_toilet_8017D724(Task* task);
+void func_dryfield_night_motel_lobby_8017FE38(Task* task);
+void func_dryfield_night_saloon_g_r_8017E050(Task* task);
+void func_dryfield_night_g_r_kitchen_8017D9A4(Task* task);
+void func_dryfield_night_water_tower_8017DB28(Task* task);
+void func_dryfield_night_water_tank_8017D984(Task* task);
+void func_dryfield_night_breezeway_8017D680(Task* task);
+void func_dryfield_night_factory_801809F4(Task* task);
+void func_dryfield_night_garage_801803BC(Task* task);
+void func_dryfield_night_driveway_8017DD8C(Task* task);
+void func_dryfield_night_junk_yard_8017D960(Task* task);
+void func_dryfield_night_trailer_coach_801828CC(Task* task);
+void func_dryfield_night_motel_room_5_8017D6D0(Task* task);
+void func_dryfield_night_motel_balcony_8017DD78(Task* task);
+void func_dryfield_night_motel_room_6_80181C80(Task* task);
+void func_dryfield_night_motel_loft_8017D964(Task* task);
+void func_dryfield_night_water_hole_8017DE30(Task* task);
+void func_dryfield_night_cellar_8017D748(Task* task);
+void func_dryfield_night_underpass_8017D95C(Task* task);
+
+extern TmdSource D_dryfield_night_trailer_coach_80184CA0;
+extern TmdSource D_dryfield_night_motel_loft_8017EAF8;
 
 #endif /* ROOMS_ROOM_H */

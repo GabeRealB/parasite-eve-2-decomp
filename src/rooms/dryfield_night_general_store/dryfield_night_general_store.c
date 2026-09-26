@@ -10,6 +10,7 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 extern u8 D_80115598;
@@ -397,7 +398,7 @@ static void func_dryfield_night_general_store_8017DE80(Task* task)
 
 /// The room task: runs the state `D_dryfield_night_general_store_8017D5F4`
 /// names for `task->state`, through a stack copy of the table.
-static void func_dryfield_night_general_store_8017DE88(Task* task)
+void func_dryfield_night_general_store_8017DE88(Task* task)
 {
     TaskFuncTable3 sp;
 

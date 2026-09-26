@@ -457,7 +457,7 @@ static void func_dryfield_night_saloon_g_r_8017E040(Task* task)
 /// `D_dryfield_night_saloon_g_r_8017D5DC` onto the stack and runs the entry
 /// for the task's current state - the entry tick, the idle state, then
 /// `taskKill`.
-static void func_dryfield_night_saloon_g_r_8017E050(Task* task)
+void func_dryfield_night_saloon_g_r_8017E050(Task* task)
 {
     TaskFuncTable3 sp;
 

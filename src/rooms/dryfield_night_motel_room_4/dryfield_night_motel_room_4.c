@@ -14,6 +14,7 @@
 #include "main/session.h"
 #include "main/task.h"
 
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
@@ -89,7 +90,7 @@ static const TaskFuncTable3 D_dryfield_night_motel_room_4_8017D5C4 = {
 
 /// The room task's callback: runs the state `Task::state` selects from a
 /// stack copy of `D_dryfield_night_motel_room_4_8017D5C4`.
-static void func_dryfield_night_motel_room_4_8017D6BC(Task* task)
+void func_dryfield_night_motel_room_4_8017D6BC(Task* task)
 {
     TaskFuncTable3 sp;
 
