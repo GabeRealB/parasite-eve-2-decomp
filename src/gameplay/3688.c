@@ -4891,108 +4891,61 @@ void Gp_EquipSummaryTask(Task* arg0)
     }
 }
 
-void Gp_DrawAmmoRow(DialogPrompt* arg0, UiObject* arg1)
+/// Draws `item` as `_gpDrawItemNameAt` does, but without the
+/// `func_800C22D8` marker.
+static inline void _gpDrawItemNameUnmarkedAt(UiObject* obj, s32 x, s32 y, s32 color, s32 item)
 {
-    TextDrawReq            req;
+    TextDrawReq req;
+    s32         temp;
+
+    if (obj->mode != 5) {
+        req.x          = obj->baseX + 0x11 + x;
+        req.y          = obj->baseY + (y - 6);
+        req.otIndex    = (s16)obj->drawOrder + 1;
+        req.field_8    = color;
+        req.glyphTable = 0;
+        req.centerMode = 0;
+        req.field_E    = 1;
+        func_8002E53C(&req, Gp_GetItemText(item, 0, 0));
+        temp = item - 0xF;
+        if ((u32)temp < 0x24U) {
+            func_800C2538(obj, x, y, temp % 3 + 1, color);
+        }
+        Gp_DrawItemIcon(obj, x, y, item, 0);
+    }
+}
+
+void Gp_DrawAmmoRow(DialogPrompt* arg0, UiObject* obj)
+{
+    register DialogPrompt* prompt asm("s5");
     register s32           spawnArg asm("s4");
     s32                    item;
     s32                    status;
-    s32                    x;
-    s32                    y;
-    s32                    color;
-    s32                    one;
-    s32                    temp;
-    s32                    i;
-    s32                    minusOne;
-    s32                    baseY;
-    register UiObject*     obj asm("s1");
-    register DialogPrompt* prompt asm("s5");
     UiObject*              spawned;
 
-    obj      = arg1;
     spawnArg = obj->owner->spawnArg1;
-    TOUCH_REG_USE(obj, spawnArg);
+    USE_REG(spawnArg);
     prompt = arg0;
     USE_REG(arg0);
     item   = Gp_NthRelatedId(&Mc_SaveData.carriedItems, prompt->field_8, spawnArg);
     status = obj->status;
     if (((status >> 16) == 1) || (status == 1)) {
         if (prompt->field_10 == prompt->field_8) {
-            {
-                register s32 t asm("a0");
-                s32          a1v;
-                a1v = 1;
-                if (item == 0) {
-                    t = (s32)Gp_StrEmpty;
-                } else {
-                    t = (s32)Gp_GetItemText(item, a1v, 0);
-                }
-                a1v = 0;
-                Ui_SetHolderParam(t, a1v, a1v);
+            if (item == 0) {
+                Ui_SetHolderParam((s32)Gp_StrEmpty, 0, 0);
+            } else {
+                Ui_SetHolderParam((s32)Gp_GetItemText(item, 1, 0), 0, 0);
             }
             if (spawnArg != 0) {
-                if (item != Gp_PreviewItems[0]) {
-                    i        = 0;
-                    minusOne = -1;
-                    for (; i < 3; i++) {
-                        if (i == 0) {
-                            Gp_PreviewItems[0] = item;
-                        } else {
-                            Gp_PreviewItems[i] = minusOne;
-                        }
-                    }
-                    Gp_EnqueueItemPreviewCd(item, 0);
-                }
+                _gpSetPreviewItem(item, 0);
             }
         }
     }
 
     if (spawnArg == 0) {
-        register s32 five asm("v1");
-        x     = prompt->field_18;
-        y     = prompt->field_1A;
-        color = prompt->field_1C;
-        one   = 1;
-        five  = 5;
-        if (obj->mode != five) {
-            req.x          = obj->baseX + 0x11 + x;
-            baseY          = obj->baseY - 6;
-            req.y          = baseY + y;
-            req.otIndex    = (s16)obj->drawOrder + one;
-            req.field_8    = color;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = one;
-            func_8002E53C(&req, Gp_GetItemText(item, 0, 0));
-            func_800C22D8(obj, x, y, item, one);
-            temp = item - 0xF;
-            if ((u32)temp < 0x24U) {
-                func_800C2538(obj, x, y, temp % 3 + one, color);
-            }
-            Gp_DrawItemIcon(obj, x, y, item, 0);
-        }
+        _gpDrawItemNameAt(obj, prompt->field_18, prompt->field_1A, prompt->field_1C, item, 1);
     } else {
-        register s32 five asm("v1");
-        x     = prompt->field_18;
-        y     = prompt->field_1A;
-        color = prompt->field_1C;
-        five  = 5;
-        if (obj->mode != five) {
-            req.x          = obj->baseX + 0x11 + x;
-            baseY          = obj->baseY - 6;
-            req.y          = baseY + y;
-            req.otIndex    = (s16)obj->drawOrder + 1;
-            req.field_8    = color;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            func_8002E53C(&req, Gp_GetItemText(item, 0, 0));
-            temp = item - 0xF;
-            if ((u32)temp < 0x24U) {
-                func_800C2538(obj, x, y, temp % 3 + 1, color);
-            }
-            Gp_DrawItemIcon(obj, x, y, item, 0);
-        }
+        _gpDrawItemNameUnmarkedAt(obj, prompt->field_18, prompt->field_1A, prompt->field_1C, item);
     }
 
     if (prompt->field_C == 1) {

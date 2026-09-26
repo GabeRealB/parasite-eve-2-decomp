@@ -141223,3 +141223,19 @@ case) get the separate per-case registers the target shows, where
 function-scope locals became one global pseudo; and `u16_field % 10` needs no
 `(u16)` cast to keep its `andi 0xffff` - the front end shortens the modulo to
 `unsigned short` and widens the result back.
+
+### A pinned local passed to an inline helper is copied into a fresh pseudo (Gp_DrawAmmoRow, 2026-09-26)
+
+**Symptom.** Replacing a hand-expanded draw block with the TU's existing
+`static inline` helper added `move v0,s5` before each field read of the
+argument, where the target reads `lh s2,0x18(s5)` directly.
+
+**Cause.** `expand_inline_function` (integrate.c) substitutes an argument
+register for the parameter only when it is a pseudo; a hard register - which is
+what `register T x asm("s5")` becomes - is always copied through
+`copy_to_mode_reg`, and the copy then lives in its own register. An unpinned
+variable is substituted and costs nothing.
+
+**Fix.** While a variable has to stay pinned, call the helper's variant that
+takes the loaded fields (`_gpDrawItemNameAt(obj, p->field_18, ...)`) rather than
+the pointer, so the reads happen in the caller against the pinned register.
