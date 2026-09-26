@@ -684,8 +684,7 @@ default_body:
     func_actor_105100_80136524(arg1);
 }
 
-/// Per-frame hit handler: walks the three `field_49C` contact records as
-/// 0x18-byte slots of the work block itself. A type-2 id lands only while the
+/// Per-frame hit handler: walks the three `field_49C` contact records. A type-2 id lands only while the
 /// `field_58C` cooldown is clear. Damage is the player distance through
 /// `Gp_ComputeDamage`, quadrupled on a successful `Gp_RollEnemyChance`, and
 /// halved (or zeroed for 0x8000 ids) while `field_5A8` is 1. The id parameter
@@ -702,91 +701,67 @@ void func_actor_105100_80132C2C(Task* arg0)
     Actor105100Work*       work;
     GpEnemy*               ctx;
     GpCoord*               coord;
-    Actor105100Work*       rec;
-    u16                    timer;
-    s32                    dx;
-    s32                    dy;
-    s32                    dz;
-    register u32           orig asm("s0");
-    u32                    damage;
+    s32                    i;
+    s16                    damage;
     s32                    snd;
-    s32                    pan;
-    s16                    amount;
-    u32                    param;
-    u16                    hp;
-    GpEffWork*             eff;
-    s32                    key;
     s32                    wait;
 
-    flag = 0;
-    SCRATCH_PUSH(Actor105100HitScratch);
-    sc = SCRATCH_HEAD(Actor105100HitScratch);
-    SOFT_TOUCH_REG(sc);
+    flag   = 0;
+    sc     = SCRATCH_PUSH(Actor105100HitScratch);
     lastId = 0;
     coord  = arg0->extra.tmd->coords;
     work   = arg0->work;
     ctx    = arg0->spawnArg2;
     if (work->field_58C != 0) {
-        timer           = (u16)work->field_58C - 1;
-        work->field_58C = timer;
-        if ((timer << 16) <= 0) {
+        work->field_58C--;
+        if (work->field_58C <= 0) {
             work->field_58C = 0;
         }
     }
-    /* The contact walk steps a work pointer one table record at a time and
-       reads the record through it, keeping the record's offset in the
-       displacement as the ROM does. */
-    rec = work;
-    do {
-        if ((u16)(rec->field_49C[0].key >> 16) == 2 && work->field_58C == 0) {
-            dx           = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-            sc->delta.vx = dx;
-            dy           = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-            sc->delta.vy = dy;
-            dz           = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-            sc->delta.vz = dz;
-            orig         = Gp_ComputeDamage((u32)rec->field_49C[0].key,
-                                            SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
-            damage       = orig;
-            if (Gp_RollEnemyChance((GpEnemy*)ctx, (u32)rec->field_49C[0].key, 0) != 0) {
-                damage = (orig << 16) >> 14;
+    for (i = 0; i < 3; i++) {
+        if ((u16)(work->field_49C[i].key >> 16) == 2 && work->field_58C == 0) {
+            sc->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+            sc->delta.vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+            sc->delta.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            damage       = Gp_ComputeDamage(work->field_49C[i].key,
+                                            SquareRoot0(sc->delta.vx * sc->delta.vx + sc->delta.vy * sc->delta.vy +
+                                                        sc->delta.vz * sc->delta.vz),
+                                            0, 0);
+            if (Gp_RollEnemyChance(ctx, work->field_49C[i].key, 0) != 0) {
+                damage *= 4;
                 Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[3], 0, NULL);
             }
-            SOFT_TOUCH_REG2(orig, damage);
             if (work->field_5A8 == 1) {
-                if (rec->field_49C[0].key & 0x8000) {
+                if (work->field_49C[i].key & 0x8000) {
                     damage = 0;
                 } else {
-                    damage = ((s16)damage + ((u32)(damage << 16) >> 31)) >> 1;
+                    damage /= 2;
                 }
                 sc->ofs.vx = 0;
                 sc->ofs.vy = 0;
                 sc->ofs.vz = 0xC8;
                 Gp_SpawnEff(0x601AC, &arg0->extra.tmd->coords[3], 0, &sc->ofs);
                 snd = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8) | 0x4033000D;
-                pan = (s8)Gp_GetObjPan(coord);
-                SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             }
-            amount = damage;
-            func_800DA6E8(&ctx->node, amount, 0);
-            if (amount != 0) {
-                param = Gp_GetIdParam0(rec->field_49C[0].key) & 0xFFFF;
-                switch (param) {
+            func_800DA6E8(&ctx->node, damage, 0);
+            if (damage != 0) {
+                switch (Gp_GetIdParam0(work->field_49C[i].key) & 0xFFFF) {
                     case 0:
                         break;
                     case 1:
-                        if ((rec->field_49C[0].key & 0x3F) != 0x1C) {
+                        if ((work->field_49C[i].key & 0x3F) != 0x1C) {
                             flag = 1;
                         }
                         break;
                     case 2:
                         if (work->field_5A8 == 0) {
-                            Gp_SetObjFlag2(ctx, rec->field_49C[0].key, 0);
+                            Gp_SetObjFlag2(ctx, work->field_49C[i].key, 0);
                         }
                         break;
                     case 3:
                         if (work->field_5A8 == 0) {
-                            Gp_SetObjFlag4(ctx, rec->field_49C[0].key, 0);
+                            Gp_SetObjFlag4(ctx, work->field_49C[i].key, 0);
                         }
                         break;
                     case 4:
@@ -799,16 +774,14 @@ void func_actor_105100_80132C2C(Task* arg0)
                     case 9:
                         break;
                 }
-                func_800E2C78(ctx, rec->field_49C[0].key, (s16)damage, 0);
-                hp      = ctx->hp - damage;
-                ctx->hp = hp;
-                if ((hp << 16) <= 0) {
+                func_800E2C78(ctx, work->field_49C[i].key, damage, 0);
+                ctx->hp -= damage;
+                if (ctx->hp <= 0) {
                     work->field_596 = 7;
                     work->field_598 = 0;
-                    eff             = work->field_55C;
-                    if (eff != NULL) {
-                        eff->task->state = 4;
-                        work->field_55C  = NULL;
+                    if (work->field_55C != NULL) {
+                        work->field_55C->task->state = 4;
+                        work->field_55C              = NULL;
                     }
                 } else {
                     work->field_5BE += damage;
@@ -818,10 +791,9 @@ void func_actor_105100_80132C2C(Task* arg0)
                         work->field_5BE = 0;
                         work->field_596 = 6;
                         work->field_598 = 0;
-                        eff             = work->field_55C;
-                        if (eff != NULL) {
-                            eff->task->state = 4;
-                            work->field_55C  = NULL;
+                        if (work->field_55C != NULL) {
+                            work->field_55C->task->state = 4;
+                            work->field_55C              = NULL;
                         }
                         if (work->field_5B4 != 0) {
                             work->field_5B4 = 0;
@@ -832,26 +804,21 @@ void func_actor_105100_80132C2C(Task* arg0)
                     }
                 }
                 work->obj4E4.flags &= 0x7FFF;
-                key                 = rec->field_49C[0].key;
-                if (lastId != key) {
-                    lastId = key;
-                    SCHED_BARRIER();
-                    func_800FDB18(Gp_GetIdParam1(key) & 0xFFFF, &arg0->extra.tmd->coords[3], NULL,
+                if (lastId != work->field_49C[i].key) {
+                    lastId = work->field_49C[i].key;
+                    func_800FDB18(Gp_GetIdParam1(lastId) & 0xFFFF, &arg0->extra.tmd->coords[3], NULL,
                                   &work->field_554);
                 }
-                wait = Gp_GetIdParam2(rec->field_49C[0].key);
+                wait = Gp_GetIdParam2(work->field_49C[i].key);
                 if (wait > 0) {
                     work->field_58C = wait;
                 }
             }
         }
-        rec = (Actor105100Work*)((u8*)rec + 0x18);
-        SOFT_TOUCH_REG(rec);
-    } while ((s32)rec < (s32)&work->obj38.pos);
+    }
     Gp_ClearRec18Occupied(work->field_49C);
-    timer           = work->field_5C0 - 1;
-    work->field_5C0 = timer;
-    if ((timer << 16) <= 0) {
+    work->field_5C0--;
+    if ((s16)work->field_5C0 <= 0) {
         work->field_5BE = 0;
     }
     if (work->field_53C[0].flags & 1) {
