@@ -822,21 +822,18 @@ static void func_actor_105400_80133610(Task* arg0)
     s32             value;
 
     work = arg0->work;
-    i    = 1;
     if ((s16)work->field_320 != work->field_322) {
         work->field_322 = work->field_320;
         work->field_324 = 0;
         value           = D_actor_105400_80133A18[(s16)work->field_320];
-        for (; i < 10; i++) {
+        for (i = 1; i < 10; i++) {
             func_800B4114(work, i, (s16)work->field_320, 0, value);
         }
     } else {
-        TOUCH_REG(i);
-        work->field_324 += i;
-        do {
+        work->field_324++;
+        for (i = 1; i < 10; i++) {
             Gp_AnimTickIndex(&work->anim, i);
-            i++;
-        } while (i < 10);
+        }
     }
 }
 
