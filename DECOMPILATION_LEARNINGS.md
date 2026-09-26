@@ -74035,6 +74035,26 @@ manufacture a copy with an extra local. `func_actor_444000_8013EC84` is the
 worked example: the yaw is stored to `sc->angle`, and both the magnitude test
 and the sign test read it back while the `+/-0x800` arithmetic uses the local.
 
+## Grey from the red channel: `g = r; b = r` re-reads the stored byte, and the copy feeds a cross-jumped tail (Actor02600_Fn02C94, 2026-09-26)
+
+**Target.** A computed grey is stored as `sb v1,4; move v0,v1; sb v1,5; sb v0,6`,
+and the blue store `sb v0` is shared with the constant arm (`li v0,0xC0`) by
+jump2's cross-jumping. `setRGB0(p, c, c, c)`, chains in either direction, a
+`u8`, `u16` or `s16` copy local and inline helpers all store from one register,
+so the tail does not merge; the seed held the copy apart with two empty asms.
+
+**Fix.** Compute into the red channel and copy the other two from it:
+
+```c
+line->r0 = (work->field_3BC * 0x80) / 45;
+line->g0 = line->r0;
+line->b0 = line->r0;
+```
+
+cse turns each re-read into a copy of the stored register rather than a load,
+the same effect as the `abs` case above. A copy local is folded back into one
+quantity. `line->b0 = line->g0 = line->r0` does not produce the copy.
+
 ## One chained assignment shares a pointer chain; separate statements reload it
 
 A store *through* a multi-load pointer chain invalidates `cse`'s record of every
