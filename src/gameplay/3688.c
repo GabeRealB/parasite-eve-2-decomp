@@ -3241,19 +3241,13 @@ McItemRec* Gp_NthEquippableRec(McItemScan* arg0, s32 arg1, s32 arg2)
 }
 
 /// Draws `item`'s name, its `func_800C22D8` marker in `mode`, the variant
-/// marker for items 0x0F-0x32 and its icon at the prompt row's position.
-/// Nothing is drawn while `obj` is in mode 5.
-static inline void _gpDrawItemName(DialogPrompt* prompt, UiObject* obj, s32 item, s32 mode)
+/// marker for items 0x0F-0x32 and its icon at (`x`, `y`) in `obj`. Nothing is
+/// drawn while `obj` is in mode 5.
+static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32 item, s32 mode)
 {
     TextDrawReq req;
-    s32         x;
-    s32         y;
-    s32         color;
     s32         temp;
 
-    x     = prompt->field_18;
-    y     = prompt->field_1A;
-    color = prompt->field_1C;
     if (obj->mode != 5) {
         req.x          = obj->baseX + 0x11 + x;
         req.y          = obj->baseY + (y - 6);
@@ -3270,6 +3264,13 @@ static inline void _gpDrawItemName(DialogPrompt* prompt, UiObject* obj, s32 item
         }
         Gp_DrawItemIcon(obj, x, y, item, 0);
     }
+}
+
+/// Draws `item` as `_gpDrawItemNameAt` does, at the prompt row's position and
+/// in its colour.
+static inline void _gpDrawItemName(DialogPrompt* prompt, UiObject* obj, s32 item, s32 mode)
+{
+    _gpDrawItemNameAt(obj, prompt->field_18, prompt->field_1A, prompt->field_1C, item, mode);
 }
 
 void Gp_DrawRemoveArmorRow(DialogPrompt* prompt, UiObject* obj)
@@ -4788,39 +4789,47 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
     }
 }
 
+/// Makes `item` the preview in slot `slot` of `Gp_PreviewItems`, setting the
+/// other two slots to -1, and queues its load. Nothing happens when the slot
+/// already shows `item`.
+static inline void _gpSetPreviewItem(s32 item, u8 slot)
+{
+    s32 i;
+
+    if (item != Gp_PreviewItems[slot]) {
+        for (i = 0; i < 3; i++) {
+            if (i == slot) {
+                Gp_PreviewItems[i] = item;
+            } else {
+                Gp_PreviewItems[i] = -1;
+            }
+        }
+        Gp_EnqueueItemPreviewCd(item, slot);
+    }
+}
+
 void Gp_EquipSummaryTask(Task* arg0)
 {
-    TextDrawReq        req;
-    register s32       item asm("s2");
-    s32                skip;
-    PlayerStatus*      cfg;
-    s32                idx;
-    s32*               stored;
-    s32                mode;
-    register UiObject* obj asm("s3");
-    McItemSlot*        slotp;
-    s32                x;
-    s32                y;
-    s32                color;
-    s32                one;
-    s32                temp;
-    s32                flags;
-    s32                baseY;
+    PlayerStatus* cfg;
+    UiObject*     obj;
+    McItemSlot*   slotp;
+    s32*          stored;
+    s32           mode;
+    s32           item;
+    s32           skip;
+    s32           slot;
+    s32           flags;
 
     item   = 0;
-    skip   = item;
+    skip   = 0;
     cfg    = &Player_Status;
     stored = (s32*)arg0->work;
     mode   = arg0->spawnArg1;
     obj    = arg0->spawnArg2;
-    idx    = item;
+    slot   = 0;
     if (mode == 0) {
         Ui_DrawText((UiPanel*)obj, Gp_StrWeaponTitle);
-        {
-            register s32 t asm("v0");
-            t    = cfg->weapon;
-            item = t + 0x7F;
-        }
+        item = cfg->weapon + 0x7F;
         if (item < 0x80) {
             item = 0;
         }
@@ -4833,11 +4842,7 @@ void Gp_EquipSummaryTask(Task* arg0)
         }
     } else if (mode == 2) {
         Ui_DrawText((UiPanel*)obj, Gp_StrArmor);
-        {
-            register s32 t asm("v0");
-            t    = cfg->armor;
-            item = t + 0x5F;
-        }
+        item = cfg->armor + 0x5F;
     } else {
         Ui_DrawText((UiPanel*)obj, Gp_StrAttachments);
         skip = 1;
@@ -4855,75 +4860,28 @@ void Gp_EquipSummaryTask(Task* arg0)
     }
 
     if (*stored != item) {
-        s32*         table;
-        s32          i;
-        register s32 minusOne asm("t0");
-        s32*         p;
-        register s32 slot asm("a1");
-
-        flags = idx;
-        table = Gp_PreviewItems;
-        TOUCH_REG2(flags, table);
-        if (item != table[0]) {
-            register s32 sel asm("v1");
-            sel  = flags & 0xFF;
-            i    = 0;
-            slot = sel;
-            TOUCH_REG(sel);
-            minusOne = -1;
-            p        = table;
-            for (; i < 3; i++, p++) {
-                if (i == slot) {
-                    *p = item;
-                } else {
-                    *p = minusOne;
-                }
-            }
-            Gp_EnqueueItemPreviewCd(item, 0);
-        }
+        _gpSetPreviewItem(item, slot);
         *stored     = item;
         arg0->state = 2;
     }
 
     if (item != 0) {
-        x     = (s16)obj->field_1C;
-        y     = (s16)obj->field_18;
-        color = Ui_LookupTable(obj, 1);
-        one   = 1;
-        x    += 2;
-        y    += 0xF;
-        if (obj->mode != 5) {
-            req.x          = obj->baseX + 0x11 + x;
-            baseY          = obj->baseY - 6;
-            req.y          = baseY + y;
-            req.otIndex    = (s16)obj->drawOrder + 1;
-            req.field_8    = color;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            func_8002E53C(&req, Gp_GetItemText(item, 0, 0));
-            func_800C22D8(obj, x, y, item, one);
-            temp = item - 0xF;
-            if ((u32)temp < 0x24U) {
-                func_800C2538(obj, x, y, temp % 3 + one, color);
-            }
-            Gp_DrawItemIcon(obj, x, y, item, 0);
-        }
+        _gpDrawItemNameAt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, Ui_LookupTable(obj, 1), item, 1);
     }
 
-    Ui_DrawHBar((UiPanel*)obj, (s16)obj->field_1C, (s16)obj->field_1E, (s16)obj->field_18 + 0x11);
+    Ui_DrawHBar((UiPanel*)obj, obj->field_1C, (s16)obj->field_1E, (s16)obj->field_18 + 0x11);
     if (skip == 0) {
         func_800C7DA8(obj, item, 0, 0);
     }
 
-    flags = idx + 0x10;
+    flags = slot + 0x10;
     if ((arg0->state != 1) || (item == 0)) {
         flags |= 0x100;
     }
-    func_800C7AE8(obj, (s16)obj->field_1C + 2, (s16)obj->field_18 + 0x16, flags);
+    func_800C7AE8(obj, obj->field_1C + 2, (s16)obj->field_18 + 0x16, flags);
 
     if (arg0->state == 2) {
-        if (CdCmd_IsIdle() & 0xFFFF) {
+        if (CdCmd_IsIdle()) {
             arg0->state = 1;
         }
     }

@@ -141185,3 +141185,22 @@ SCRATCH_POP_BYTES(0x18);
 ```
 
 Try the plain spelling on the other copies before porting their pins.
+## A pinned `slot = sel & 0xFF` copy plus `TOUCH_REG` on a table pointer is an inlined helper with a `u8` parameter (Gp_EquipSummaryTask, 2026-09-26)
+
+**Symptom.** A "fill three slots, mark one" loop matched only with pins: the
+slot variable copied (`move a3,fp`), narrowed into a second register
+(`andi v1,a3,0xff`), then copied a third time in the loop preheader
+(`move a1,v1`); the table address held in a register for `lw 0(a2)` instead
+of `lw %lo(T)(v0)`; and the compare and the queued call using a literal slot 0.
+
+**Cause.** The body is a real function (`Gp_SetPreviewItem(item, slot)`)
+inlined with a `u8 slot` parameter and a *variable* argument. The argument copy
+and the parameter's narrowing are the first two pseudos; `table[slot]` with the
+narrowed pseudo folds only after CSE, which is why the load goes through the
+register; the loop's `i == slot` is hoisted by loop.c and cse2 turns it into the
+third copy.
+
+**Fix.** Write the helper as `static inline void f(s32 item, u8 slot)` indexing
+the global directly (`T[slot]`, `T[i] = ...`) and call it with the variable. A
+macro, an `s32` parameter with `(u8)` casts, or a pointer walk each lose one of
+the three copies.
