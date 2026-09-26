@@ -2496,7 +2496,7 @@ void func_shelter_b6_nursery_80182FCC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb
 
 /// Draws a fan of eight gouraud quads around the screen position of the
 /// coordinate's world translation, unless the projection flags an error: the
-/// centre takes `rgb` and the rim, at radius `(s16)arg1 * 64` over the depth,
+/// centre takes `rgb` and the rim, at radius `arg1 * 64` over the depth,
 /// is black.
 void func_shelter_b6_nursery_801833F8(GpCoord* arg0, s16 arg1, u8* rgb)
 {
