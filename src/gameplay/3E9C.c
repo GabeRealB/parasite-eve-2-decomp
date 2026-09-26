@@ -2617,40 +2617,29 @@ void Gp_EffPolyTask9C(Task* arg0)
 
 void Gp_DrawEffShard(GpCoord* arg0, s16 arg1, s16 arg2, u16 arg3)
 {
-    register u8*              head asm("a2");
-    GpFxQuadScratch*          block;
-    register u16              vx asm("v0");
-    register GpFxQuadScratch* vecp asm("v0");
-    register s32*             otzp asm("v0");
-    POLY_G4*                  quad;
-    POLY_G3*                  tri;
-    s32                       ang;
-    s32                       ang2;
-    s32                       rng;
-    s32                       base;
-    u8                        r;
-    u8                        g;
-    u8                        b;
-    u16                       vz;
+    GpFxQuadScratch* block;
+    POLY_G4*         quad;
+    POLY_G3*         tri;
+    s32              ang;
+    s32              ang2;
+    s32              rng;
+    s32              base;
+    u8               r;
+    u8               g;
+    u8               b;
 
-    head                                      = SCRATCH_HEAD(u8);
-    vx                                        = (u16)arg0->workm.t[0];
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = vx;
-    vecp                                      = (GpFxQuadScratch*)(head - 0x1C);
-    block                                     = vecp;
-    block->vec.vy                             = (u16)arg0->workm.t[1];
-    vz                                        = (u16)arg0->workm.t[2];
-    SCRATCH_HEAD(GpFxQuadScratch)             = block;
-    block->vec.vz                             = vz;
+    block         = SCRATCH_PUSH(GpFxQuadScratch);
+    block->vec.vx = arg0->workm.t[0];
+    block->vec.vy = arg0->workm.t[1];
+    block->vec.vz = arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
-        otzp = &((GpFxQuadScratch*)(head - 0x1C))->otz;
-        gte_stszotz(otzp);
+        gte_stszotz(&block->otz);
         block->otz++;
         block->dx = (arg1 << 8) / block->otz;
         block->dy = (arg1 << 7) / block->otz;
@@ -2726,7 +2715,7 @@ void Gp_DrawEffShard(GpCoord* arg0, s16 arg1, s16 arg2, u16 arg3)
             } while (ang < 0x1000);
         }
     }
-    SCRATCH_POP_BYTES(0x1C);
+    SCRATCH_POP(GpFxQuadScratch);
 }
 
 void Gp_EffSprTask9E(Task* arg0)
