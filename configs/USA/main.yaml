@@ -525,7 +525,8 @@ segments:
       - [0x61a38, o, libpad/padcmd, .bss]
       - [0x61a48, o, libpad/padportd, .bss]
       - [0x61cb8, o, libpad/waitrc2, .bss]
-      - { start: 0x61cc0, type: bss, name: "61CC0", vram: 0x800714C0, bss_size: 0x230 }
+      - { start: 0x61cc0, type: .bss, name: gameflow, vram: 0x800714C0 }
+      - { start: 0x61ed8, type: .bss, name: task, vram: 0x800716D8, bss_size: 0x18 }
       - [0x61ef0, o, libapi/free3, .bss]
       - { start: 0x61f10, type: bss, name: "61F10", vram: 0x80071710, bss_size: 0x2500 }
       - [0x64410, o, libc2/rand, .bss]

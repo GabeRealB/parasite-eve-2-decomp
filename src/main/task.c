@@ -1,5 +1,7 @@
 #include "common.h"
 
+#define TASK_C
+
 #include "gameplay/gameplay.h"
 #include "main/unknown_syms.h"
 #include "main/text.h"
@@ -8,6 +10,19 @@ static void Task_Free(Task* state);
 static void Task_Unlink(Task* state);
 
 s32 D_8005ED8C = 0;
+
+/// The task list the running code is working on: the list a spawned task joins
+/// and the list an unlinked node is taken out of.
+///
+/// It points at `gTaskDefaultList` unless something has switched it, and the
+/// default frame walk switches it back. A walk over another list points this
+/// at that list, so a task spawned from inside a callback joins the list its
+/// callback is running on rather than the main one; callers that must leave
+/// the value as they found it save it first and put it back afterwards.
+static TaskNode* gTaskActiveList;
+TaskNode         gTaskDefaultList;
+/// Unreferenced.
+static u8 D_800716E8[8];
 
 static Task* Task_SpawnFromDesc(TaskDesc* desc, s32 arg1, s32 arg2, TaskNode* list)
 {

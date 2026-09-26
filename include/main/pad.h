@@ -122,7 +122,9 @@ STATIC_ASSERT_SIZEOF(PadRemapState, 0x1C);
 // Globals
 // =============================================================================
 
+#ifndef GAMEFLOW_C
 extern PadState Pad_States[2];
+#endif
 #ifndef PAD_C
 extern PadRawPort Pad_RawPorts[2];
 #endif

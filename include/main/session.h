@@ -442,7 +442,6 @@ STATIC_ASSERT_SIZEOF(GameActor, 0x994);
 
 /// Pointer to the live `GameSession`.
 extern GameSession* gGameSession;
-extern GameSession  D61CC0_800714C0;
 
 /// Stores a task in the session's pointer-slot table.
 void Game_SetPtrSlot(void* ptr, s32 index);

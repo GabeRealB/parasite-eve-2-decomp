@@ -241,16 +241,7 @@ s32  TaskIdMap_RemapIndex(s32 arg0, s32 arg1, s32 arg2);
 /// `TaskDesc` run it points at. Several banks share one table.
 extern TaskDesc* gTaskDescBanks[15];
 
-/// The task list the running code is working on: the list a spawned task joins
-/// and the list an unlinked node is taken out of.
-///
-/// It points at `gTaskDefaultList` unless something has switched it, and the
-/// default frame walk switches it back. A walk over another list points this
-/// at that list, so a task spawned from inside a callback joins the list its
-/// callback is running on rather than the main one; callers that must leave
-/// the value as they found it save it first and put it back afterwards.
-extern TaskNode* gTaskActiveList;
-
+#ifndef TASK_C
 /// Head of the main task list: the list the frame walk runs and the list a
 /// spawned task joins unless something has switched the active list away from
 /// it.
@@ -261,6 +252,7 @@ extern TaskNode* gTaskActiveList;
 /// because the tasks still on it are reclaimed by reinitializing the heaps
 /// they came from.
 extern TaskNode gTaskDefaultList;
+#endif
 
 /// Head of the side list the display code runs on. A display mode makes it the
 /// active list, so the tasks spawned for that mode land here rather than on the

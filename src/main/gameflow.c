@@ -1,5 +1,7 @@
 #include "common.h"
 
+#define GAMEFLOW_C
+
 #include <psyq/libpad.h>
 
 #include "main/unknown_syms.h"
@@ -24,6 +26,8 @@ static void GameFlow_SpawnMenu(Task* arg0);
 static void GameFlow_SpawnWhenIdle(Task* arg0);
 static void GameFlow_WaitMenuDone(Task* arg0);
 
+static GameSession D61CC0_800714C0;
+
 GameSession* gGameSession = &D61CC0_800714C0;
 s32          D_8005ED68   = 0;
 /// Unreferenced.
@@ -37,6 +41,11 @@ static s32 D_8005ED7C = 0x10;
 static s32 D_8005ED80   = 0x80;
 static u8  D_8005ED84[] = { 0x00, 0x01, 0xFF, 0xFF, 0xFF, 0xFF };
 u16        D_8005ED8A   = 0;
+
+static GameSession D61CC0_800714C0;
+/// Unreferenced.
+static u8 D_80071600[0x20];
+PadState  Pad_States[2];
 
 static const TaskFuncTable5 GameFlow_States5 = { {
     Game_ResetSessionAndBuffers,
