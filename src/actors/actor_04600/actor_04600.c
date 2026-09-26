@@ -1391,34 +1391,11 @@ static void Actor04600_Fn0272C(Task* task)
     coord->coord.t[1] += 0x80;
 }
 
-/// Rebinds the first enemy's animation id `field_2B8` to its two helper slots
-/// unless `field_2D2` suppresses the rebind. A changed id is remembered in
-/// `field_2BA`, the frame count `field_2BC` restarts and both slots switch to
-/// it; otherwise the count ticks and the slots advance by one frame.
+/// The first enemy's animation rebind, `Actor04600_TickAnim`, as an
+/// out-of-line function.
 static void Actor04600_Fn027BC(Task* arg0)
 {
-    Actor104600Work* work;
-    s32              i;
-
-    work = (Actor104600Work*)arg0->work;
-    if (work->field_2D2 == 0) {
-        i = 1;
-        if (work->field_2B8 != work->field_2BA) {
-            work->field_2BA = work->field_2B8;
-            work->field_2BC = 0;
-            do {
-                func_800B4114((GpAnimCtx*)work, i, work->field_2B8, 0, 0);
-                i++;
-            } while (i < 3);
-            return;
-        }
-        TOUCH_REG(i);
-        work->field_2BC = (u16)(work->field_2BC + i);
-        do {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
-            i++;
-        } while (i < 3);
-    }
+    Actor04600_TickAnim(arg0);
 }
 
 /// Colours the first enemy from the world position of its model's second
