@@ -2455,39 +2455,7 @@ static s32 Mc_CompareBufferHalves(void)
 
 static void Mc_WriteSlotChecksums(void)
 {
-    McChecksumBlock* temp;
-    McBufferSlot*    p;
-    McBufferSlot*    base;
-    s16              sum;
-    s32              inv;
-    u32              count;
-    u32              i;
-    register u32     j asm("a0");
-    u8*              ptr;
-
-    i    = 1;
-    inv  = 0xFFFF;
-    base = Mc_BufferSlots;
-    p    = base + 1;
-    do {
-        sum   = 0;
-        j     = 0;
-        temp  = p->field_0;
-        count = p->field_4;
-        ptr   = temp->field_4;
-        count = count - 4;
-        if (count != 0) {
-            do {
-                j   += 1;
-                sum += (s8)*ptr;
-                ptr += 1;
-            } while (j < count);
-        }
-        p            += 1;
-        i            += 1;
-        temp->field_2 = inv - sum;
-        temp->field_0 = sum;
-    } while (i < 9U);
+    _mcWriteSlotChecksums();
 }
 
 static void Mc_WriteFirstByteChecksum(void)
