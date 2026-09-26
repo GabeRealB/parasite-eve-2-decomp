@@ -33,7 +33,7 @@ static ApobiosisStep D_apobiosis_80130B5C[] = {
 static s32 D_apobiosis_80130B74[] = { 0xE0170001, 0xE01A0001, 0xE01D0001 };
 
 static void func_apobiosis_8013017C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
-static void func_apobiosis_80130630(GpCoord* arg0, s16* arg1, s16 arg2, s16 arg3);
+static void func_apobiosis_80130630(GpCoord* arg0, SVECTOR* arg1, s16 arg2, s16 arg3);
 
 /// Ring azimuths, two rows of up to eight. `func_apobiosis_8012EF4C` lays out
 /// `ApobiosisStep::field_0 * 2` of them at `(i << 10) + rand()` in state 0 and
@@ -487,10 +487,8 @@ static void func_apobiosis_8013017C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 /// on-screen half-width is `arg3 * 23 / otz`. Clut is 0x4287, or 0x42C8 on
 /// one in four LCG rolls when the combo row is 2. Nothing is drawn if either
 /// projection sets a negative `gte_stflg`.
-static void func_apobiosis_80130630(GpCoord* arg0, s16* arg1, s16 arg2, s16 arg3)
+static void func_apobiosis_80130630(GpCoord* arg0, SVECTOR* arg1, s16 arg2, s16 arg3)
 {
-    u8*                    head;
-    u8*                    tmp;
     ApobiosisShardScratch* block;
     POLY_FT4*              prim;
     s32                    u0;
@@ -498,65 +496,37 @@ static void func_apobiosis_80130630(GpCoord* arg0, s16* arg1, s16 arg2, s16 arg3
     s32                    va;
     s32                    vb;
     s16                    ang;
-    s32                    ang2;
-    s32                    vx;
-    u16                    vy;
-    u16                    vz;
-    s32                    rng;
-    s32                    kind;
-    s32                    t;
-    s16                    extent;
 
-    head = SCRATCH_HEAD(u8);
-    tmp  = head - 0x28;
-    SOFT_TOUCH_REG(tmp);
-    vx                                             = (u16)arg0->workm.t[0];
-    block                                          = (ApobiosisShardScratch*)tmp;
-    ((ApobiosisShardScratch*)(head - 0x28))->v0.vx = vx;
-    block->v1.vx                                   = vx;
-    vy                                             = (u16)arg0->workm.t[1];
-    block->v0.vy                                   = vy;
-    block->v1.vy                                   = vy;
-    vz                                             = (u16)arg0->workm.t[2];
-    block->v0.vz                                   = vz;
-    block->v1.vz                                   = vz;
-    t                                              = vx;
-    TOUCH_REG(t);
-    extent                              = arg3;
-    t                                  += (u16)arg1[0];
-    block->v1.vx                        = t;
-    block->v1.vy                        = (u16)block->v1.vy + (u16)arg1[1];
-    block->v1.vz                        = (u16)block->v1.vz + (u16)arg1[2];
-    SCRATCH_HEAD(ApobiosisShardScratch) = block;
+    block        = SCRATCH_PUSH(ApobiosisShardScratch);
+    block->v1.vx = block->v0.vx = arg0->workm.t[0];
+    block->v1.vy = block->v0.vy = arg0->workm.t[1];
+    block->v1.vz = block->v0.vz = arg0->workm.t[2];
+    block->v1.vx               += arg1->vx;
+    block->v1.vy               += arg1->vy;
+    block->v1.vz               += arg1->vz;
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(block);
+    gte_ldv0(&block->v0);
     gte_rtps();
-    gte_stsxy(&((ApobiosisShardScratch*)(head - 0x28))->sx0);
-    gte_stflg(&((ApobiosisShardScratch*)(head - 0x28))->flag);
+    gte_stsxy(&block->sx0);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((ApobiosisShardScratch*)(head - 0x28))->otz);
-        block->otz = block->otz + 1;
-        gte_ldv0(&((ApobiosisShardScratch*)(head - 0x28))->v1);
+        gte_stszotz(&block->otz);
+        block->otz++;
+        gte_ldv0(&block->v1);
         gte_rtps();
-        gte_stsxy(&((ApobiosisShardScratch*)(head - 0x28))->sx1);
-        gte_stflg(&((ApobiosisShardScratch*)(head - 0x28))->flag);
+        gte_stsxy(&block->sx1);
+        gte_stflg(&block->flag);
         if (block->flag >= 0) {
             prim           = (POLY_FT4*)gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
             setcode(prim, 0x2F);
             prim->tpage = 0x28;
-            kind        = (u16)(Gp_StateC08.field_0 % 10U) - 1;
-            if (kind == 2) {
-                rng         = Gp_LcgState * 5 + 0x71357911;
-                Gp_LcgState = rng;
-                if ((((u32)rng >> 16) & 3) == 0) {
-                    prim->clut = 0x42C8;
-                } else {
-                    prim->clut = 0x4287;
-                }
+            if ((u16)(Gp_StateC08.field_0 % 10U) - 1 == 2 &&
+                (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3) == 0) {
+                prim->clut = 0x42C8;
             } else {
                 prim->clut = 0x4287;
             }
@@ -566,19 +536,18 @@ static void func_apobiosis_80130630(GpCoord* arg0, s16* arg1, s16 arg2, s16 arg3
             vb = ((arg2 & 3) >> 1) * 24 - 0x19;
             setUV4(prim, u0, va, u1, va, u0, vb, u1, vb);
             ang       = ratan2(block->sy1 - block->sy0, block->sx1 - block->sx0);
-            block->dx = (((extent * 0x17) / block->otz) * rsin(ang)) >> 12;
-            block->dy = (((extent * 0x17) / block->otz) * rcos(ang)) >> 12;
-            prim->x0  = (u16)block->sx0 + (u16)block->dx;
-            prim->x3  = (u16)block->sx1 - (u16)block->dx;
-            prim->y0  = (u16)block->sy0 - (u16)block->dy;
-            ang2      = ang + 0x400;
-            prim->y3  = (u16)block->sy1 + (u16)block->dy;
-            block->dx = (((extent * 0x17) / block->otz) * rsin(ang2)) >> 12;
-            block->dy = (((extent * 0x17) / block->otz) * rcos(ang2)) >> 12;
-            prim->x1  = (u16)block->sx1 + (u16)block->dx;
-            prim->x2  = (u16)block->sx0 - (u16)block->dx;
-            prim->y1  = (u16)block->sy1 - (u16)block->dy;
-            prim->y2  = (u16)block->sy0 + (u16)block->dy;
+            block->dx = (((arg3 * 0x17) / block->otz) * rsin(ang)) >> 12;
+            block->dy = (((arg3 * 0x17) / block->otz) * rcos(ang)) >> 12;
+            prim->x0  = block->sx0 + block->dx;
+            prim->x3  = block->sx1 - block->dx;
+            prim->y0  = block->sy0 - block->dy;
+            prim->y3  = block->sy1 + block->dy;
+            block->dx = (((arg3 * 0x17) / block->otz) * rsin(ang + 0x400)) >> 12;
+            block->dy = (((arg3 * 0x17) / block->otz) * rcos(ang + 0x400)) >> 12;
+            prim->x1  = block->sx1 + block->dx;
+            prim->x2  = block->sx0 - block->dx;
+            prim->y1  = block->sy1 - block->dy;
+            prim->y2  = block->sy0 + block->dy;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
                     prim);
