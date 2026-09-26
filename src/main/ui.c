@@ -309,29 +309,12 @@ void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
     p->y3          = t;
     p->y2          = t;
     if (p->x0 < p->x1) {
-        u32 mask;
-        s32 u;
-        s32 u1;
-        u8  v;
-        mask = 0xFFFFFF;
-        u    = 0x8;
-        v    = 0x50;
-        u1   = 0x10;
-        SOFT_TOUCH_REG3(u, v, u1);
-        p->v0    = v;
-        p->v1    = v;
-        p->v2    = 0x58;
-        p->v3    = 0x58;
+        setUV4(p, 0x8, 0x50, 0x10, 0x50, 0x8, 0x58, 0x10, 0x58);
         p->tpage = 0x1E;
         p->clut  = 0x3C03;
-        setlen(p, 9);
-        p->u1 = u1;
-        p->u3 = u1;
-        p->u0 = u;
-        p->u2 = u;
-        setcode(p, 0x2D);
-        setaddr(p, getaddr(gGpuCurrentOt + (s16)arg0->field_14 + 3) & mask);
-        setaddr(gGpuCurrentOt + (s16)arg0->field_14 + 3, (u32)p & mask);
+        setPolyFT4(p);
+        setShadeTex(p, 1);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 3, p);
     }
 
     p              = (POLY_FT4*)gGpuPrimCursor;
@@ -349,29 +332,12 @@ void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
     p->y3          = t;
     p->y2          = t;
     if (p->x0 < p->x1 && p->y0 > arg1->y) {
-        u32 mask;
-        s32 u;
-        s32 u1;
-        u8  v;
-        mask = 0xFFFFFF;
-        u    = 0x30;
-        v    = 0x50;
-        u1   = 0x38;
-        SOFT_TOUCH_REG3(u, v, u1);
-        p->v0    = v;
-        p->v1    = v;
-        p->v2    = 0x58;
-        p->v3    = 0x58;
+        setUV4(p, 0x30, 0x50, 0x38, 0x50, 0x30, 0x58, 0x38, 0x58);
         p->tpage = 0x1E;
         p->clut  = 0x3C03;
-        setlen(p, 9);
-        p->u1 = u1;
-        p->u3 = u1;
-        p->u0 = u;
-        p->u2 = u;
-        setcode(p, 0x2D);
-        setaddr(p, getaddr(gGpuCurrentOt + (s16)arg0->field_14 + 3) & mask);
-        setaddr(gGpuCurrentOt + (s16)arg0->field_14 + 3, (u32)p & mask);
+        setPolyFT4(p);
+        setShadeTex(p, 1);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 3, p);
     }
 
     p              = (POLY_FT4*)gGpuPrimCursor;
@@ -389,29 +355,12 @@ void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
     p->y3          = t;
     p->y2          = t;
     if (p->y0 < p->y2) {
-        u32 mask;
-        s32 u;
-        s32 u1;
-        u8  v;
-        mask = 0xFFFFFF;
-        u    = 0x18;
-        v    = 0x50;
-        u1   = 0x20;
-        SOFT_TOUCH_REG3(u, v, u1);
-        p->v0    = v;
-        p->v1    = v;
-        p->v2    = 0x57;
-        p->v3    = 0x57;
+        setUV4(p, 0x18, 0x50, 0x20, 0x50, 0x18, 0x57, 0x20, 0x57);
         p->tpage = 0x1E;
         p->clut  = 0x3C03;
-        setlen(p, 9);
-        p->u1 = u1;
-        p->u3 = u1;
-        p->u0 = u;
-        p->u2 = u;
-        setcode(p, 0x2D);
-        setaddr(p, getaddr(gGpuCurrentOt + (s16)arg0->field_14 + 3) & mask);
-        setaddr(gGpuCurrentOt + (s16)arg0->field_14 + 3, (u32)p & mask);
+        setPolyFT4(p);
+        setShadeTex(p, 1);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 3, p);
     }
 
     p              = (POLY_FT4*)gGpuPrimCursor;
@@ -429,29 +378,12 @@ void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
     p->y3          = t;
     p->y2          = t;
     if (p->x0 > arg1->x && p->y0 < p->y2) {
-        u32 mask;
-        s32 u;
-        s32 u1;
-        u8  v;
-        mask = 0xFFFFFF;
-        u    = 0x20;
-        v    = 0x50;
-        u1   = 0x28;
-        SOFT_TOUCH_REG3(u, v, u1);
-        p->v0    = v;
-        p->v1    = v;
-        p->v2    = 0x57;
-        p->v3    = 0x57;
+        setUV4(p, 0x20, 0x50, 0x28, 0x50, 0x20, 0x57, 0x28, 0x57);
         p->tpage = 0x1E;
         p->clut  = 0x3C03;
-        setlen(p, 9);
-        p->u1 = u1;
-        p->u3 = u1;
-        p->u0 = u;
-        p->u2 = u;
-        setcode(p, 0x2D);
-        setaddr(p, getaddr(gGpuCurrentOt + (s16)arg0->field_14 + 3) & mask);
-        setaddr(gGpuCurrentOt + (s16)arg0->field_14 + 3, (u32)p & mask);
+        setPolyFT4(p);
+        setShadeTex(p, 1);
+        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 3, p);
     }
     Ui_DrawWindowBorder(arg2, arg0->field_4, (s16)arg0->field_14 + 3);
     if (arg0->field_4 & 0x20000) {
