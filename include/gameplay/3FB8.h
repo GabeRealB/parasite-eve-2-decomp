@@ -607,7 +607,7 @@ extern const TaskFuncTable4 D_80097AB0;
 
 /// `Player_Status.weapon` dispatcher copied by `func_8010615C`. Unused
 /// slots are `func_801065A0`; others are weapon-overlay entry points.
-extern TaskFuncTable33 D_800978BC;
+extern const TaskFuncTable33 D_800978BC;
 
 /// `field_954` dispatcher: `Gp_TickPlayerNormal`, `Gp_TickPlayerMode1`, `Gp_TickPlayerMode2`.
 extern const TaskFuncTable3 Gp_PlayerModeFns;
