@@ -143146,3 +143146,20 @@ gives it `$s4`. After reload, jump2 cross-jumps the two identical arms, the
 `beq` then targets its own fall-through and is deleted, and the hoisted load
 is all that is left. Grouping `case 0xFF: default:` or writing `if/else`
 removes the compare before allocation and the `li` goes with it.
+## A `move aN,v0` into a GTE load in the first never-used register is a reloaded field, not a local (func_800D9794, 2026-09-26)
+
+Target: `lh v0,0x4A(s4); nop; move a2,v0; sw v0,0x18(s0); mtc2 a2,$8`, with
+`a2` otherwise unused by the function (a sibling with `arg2` live used `t0`).
+That register is reload's first spill choice, which identifies the copy as a
+reload, not as an allocated local. It had been pinned as `val asm("v0")` and
+`scale asm("a2")`. The source stores the field and hands the macro the field:
+`block->scale = light->scale; gte_lddp(block->scale);`. The asm input stays a
+MEM until reload, reload loads it into its spill register, and post-reload CSE
+turns the load into a copy of the value just stored.
+
+With `head - 0x1C` / `head - 0xC` pointers computed by hand, the scratch block
+also lost `s0` to a matrix pointer at an allocation-priority tie, which a
+third pin (`block asm("s0")`) fixed. The typed scratch macros fixed it without
+a pin: `SCRATCH_PUSH(T); block = SCRATCH_HEAD(T); ... SCRATCH_POP(T);`, with
+`&block->dir` in place of a separate `dir` pointer. When a scratch-block
+function pins the block pointer, try the typed push/read/pop form first.
