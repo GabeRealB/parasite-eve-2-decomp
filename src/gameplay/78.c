@@ -2846,8 +2846,6 @@ static void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
     POLY_FT4*       poly;
     s32             span;
     s32             right;
-    register s32    yb asm("t3");
-    register s32    clut asm("t5");
     s32             w;
     s32             order;
 
@@ -2937,16 +2935,13 @@ static void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
             addPrim(gGpuCurrentOt - 2, tile);
         }
 
-        yb   = y + 0xB;
-        clut = 0x3C0B;
-
         sp             = (SPRT*)gGpuPrimCursor;
         gGpuPrimCursor = sp + 1;
         sp->x0         = x + 4;
-        sp->y0         = yb;
         sp->u0         = 0x98;
+        sp->y0         = y + 0xB;
         sp->v0         = 0x68;
-        sp->clut       = clut;
+        sp->clut       = 0x3C0B;
         setlen(sp, 3);
         setcode(sp, 0x75);
         addPrim(gGpuCurrentOt - 2, sp);
@@ -2955,8 +2950,8 @@ static void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
         gGpuPrimCursor = sp + 1;
         right          = (span + x) - 2;
         sp->x0         = right;
-        sp->y0         = yb;
-        sp->clut       = clut;
+        sp->y0         = y + 0xB;
+        sp->clut       = 0x3C0B;
         sp->u0         = 0xA8;
         sp->v0         = 0x68;
         setlen(sp, 3);
@@ -2965,25 +2960,19 @@ static void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
 
         poly           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = poly + 1;
-        poly->x2       = x + 0xC;
-        poly->x0       = x + 0xC;
-        poly->x3       = right;
-        poly->x1       = right;
-        poly->y3       = y + 0x13;
-        poly->y2       = y + 0x13;
-        poly->u0       = 0xA0;
-        poly->u2       = 0xA0;
-        poly->v2       = 0x70;
-        poly->v3       = 0x70;
-        poly->tpage    = 0x3E;
+        poly->x0 = poly->x2 = x + 0xC;
+        poly->x1 = poly->x3 = right;
+        poly->y2 = poly->y3 = y + 0x13;
+        poly->u2 = poly->u0 = 0xA0;
+        poly->v3 = poly->v2 = 0x70;
+        poly->tpage         = 0x3E;
+        poly->y0 = poly->y1 = y + 0xB;
+        poly->v0            = 0x68;
+        poly->u1            = 0xA8;
+        poly->v1            = 0x68;
+        poly->clut          = 0x3C0B;
+        poly->u3            = 0xA8;
         setlen(poly, 9);
-        poly->y1   = yb;
-        poly->y0   = yb;
-        poly->v0   = 0x68;
-        poly->u1   = 0xA8;
-        poly->v1   = 0x68;
-        poly->u3   = 0xA8;
-        poly->clut = clut;
         setcode(poly, 0x2D);
         addPrim(gGpuCurrentOt - 2, poly);
     } else {
