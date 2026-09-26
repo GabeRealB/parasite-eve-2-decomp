@@ -144384,3 +144384,17 @@ The tail also moved the scratch pop *before* the join, so CSE, which restarts
 at the join label, no longer forwarded the popped head into the next
 `SCRATCH_PUSH`'s reload. The tree had faked that with a memory barrier after a
 single post-join pop.
+## A `SOFT_TOUCH_REG` on a sibling-ring head buys one `REG_N_REFS`; the only natural source found, a reload of `firstChild`, also keeps the parent live (Actor02100_Fn011C4, 2026-09-27)
+The body walks `list->firstChild` as a ring (`current = head; do {...} while
+(current != head)`) with a scratch block pushed before the loop. Unpinned, the
+head and the loop-hoisted `&scratch->from` swap `$s5`/`$s6`: both have 5 refs
+(set, NULL test, copy, loop compare x2 against set, `gte_ldv0` x2, call x2), and
+the hoisted address is born later, so `2*5/104` beats `2*5/119`. Anything that
+gives the head a sixth ref flips it (`2*6/119`). `SOFT_TOUCH_REG(head)` after the
+push does that; `head = list->firstChild;` again after the push also does
+(cse1 keeps the reload across the scratch-head store and reload_cse deletes it),
+but it keeps `list` alive into the next block, costing a `move a1,v0`. Helpers
+(the param coalesces into the caller's pseudo), `for(;;)`/`break` loop shapes,
+extra `first`/`start` copies and statement orders did not change the count, and
+the permuter found nothing. When the swapped pair is a ring head against a
+hoisted address, count refs before trying scheduling changes.

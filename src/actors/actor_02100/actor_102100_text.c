@@ -772,26 +772,21 @@ static void Actor02100_Fn011C4(Task* arg0)
     GpEnemy*                  enemy;
     Actor02100Work*           work;
     GpCoord*                  coord;
-    u8**                      scratchSlot;
-    u8*                       scratchHead;
-    s32                       index;
-    s32                       dist;
+    u32                       index;
+    u32                       dist;
 
     list  = gameGetPtrSlot(4);
     coord = arg0->extra.tmd->coords;
-    head  = (Task*)list->firstChild;
+    head  = list->firstChild;
     work  = arg0->work;
     if (head != NULL) {
-        scratchSlot                      = (u8**)SCRATCH_HEAD_ADDR;
-        current                          = head;
-        scratchHead                      = SCRATCH_HEAD(u8);
-        SCRATCH_HEAD_AT(scratchSlot, u8) = scratchHead - 0x40;
-        scratch                          = (Actor02100Fn011C4Scratch*)SCRATCH_HEAD_AT(scratchSlot, u8);
+        scratch = SCRATCH_PUSH(Actor02100Fn011C4Scratch);
+        current = head;
         SOFT_TOUCH_REG(head);
         do {
             enemy = current->spawnArg2;
-            index = *(u8*)enemy->place;
-            if (index >= 0x50U) {
+            index = enemy->place->entryId;
+            if (index >= 0x50) {
                 index = 0;
             }
             if (Actor02100_D03E2C[index] == 0 && enemy->hp > 0) {
@@ -806,12 +801,11 @@ static void Actor02100_Fn011C4(Task* arg0)
                     dist = SquareRoot0((scratch->delta.vx * scratch->delta.vx) +
                                        (scratch->delta.vy * scratch->delta.vy) +
                                        (scratch->delta.vz * scratch->delta.vz));
-                    if ((work->field_164 == 0 || (u32)dist < (u32)work->field_164) &&
-                        (u32)dist <
-                            (u32)Actor02100_D03E00[((GpEnemy*)arg0->spawnArg2)->place->rowIndex & 7]) {
-                        scratch->from.vx = (u16)scratch->lock.vx;
-                        scratch->from.vy = (u16)scratch->lock.vy;
-                        scratch->from.vz = (u16)scratch->lock.vz;
+                    if ((work->field_164 == 0 || dist < work->field_164) &&
+                        dist < Actor02100_D03E00[((GpEnemy*)arg0->spawnArg2)->place->rowIndex & 7]) {
+                        scratch->from.vx = scratch->lock.vx;
+                        scratch->from.vy = scratch->lock.vy;
+                        scratch->from.vz = scratch->lock.vz;
                         gte_SetRotMatrix(&gGfxViewCoord.workm);
                         gte_ldv0(&scratch->from);
                         gte_rtv0();
@@ -819,12 +813,12 @@ static void Actor02100_Fn011C4(Task* arg0)
                         scratch->transformed.vx += gGfxViewCoord.workm.t[0];
                         scratch->transformed.vy += gGfxViewCoord.workm.t[1];
                         scratch->transformed.vz += gGfxViewCoord.workm.t[2];
-                        scratch->from.vx         = (u16)scratch->transformed.vx;
-                        scratch->from.vy         = (u16)scratch->transformed.vy;
-                        scratch->from.vz         = (u16)scratch->transformed.vz;
-                        scratch->to.vx           = (u16)coord->workm.t[0];
-                        scratch->to.vy           = (u16)coord->workm.t[1];
-                        scratch->to.vz           = (u16)coord->workm.t[2];
+                        scratch->from.vx         = scratch->transformed.vx;
+                        scratch->from.vy         = scratch->transformed.vy;
+                        scratch->from.vz         = scratch->transformed.vz;
+                        scratch->to.vx           = coord->workm.t[0];
+                        scratch->to.vy           = coord->workm.t[1];
+                        scratch->to.vz           = coord->workm.t[2];
                         if (Actor02100_Fn0337C(&scratch->from, &scratch->to) == 0) {
                             work->field_140 = current;
                             work->field_164 = dist;
@@ -833,9 +827,9 @@ static void Actor02100_Fn011C4(Task* arg0)
                     }
                 }
             }
-            current = (Task*)((Task*)current)->nextSibling;
+            current = current->nextSibling;
         } while (current != head);
-        SCRATCH_POP_BYTES(0x40);
+        SCRATCH_POP(Actor02100Fn011C4Scratch);
     }
 }
 
