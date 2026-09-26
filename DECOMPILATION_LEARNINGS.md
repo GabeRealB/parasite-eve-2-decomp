@@ -142118,3 +142118,22 @@ sets the return pseudo twice, so combine cannot fold it into the caller's
 variable, and jump2 cross-jumps the two identical tails back into one (the
 branch's delay slot gets the duplicate). Same mechanism as the `angle` entry
 above: the result pseudo survives only when two paths set it.
+## Which copy of a repeated case tail survives cross-jumping depends on how each case leaves the switch (SndScript_Exec, 2026-09-26)
+
+Three switch cases each advanced a tick clock and left. The target kept all
+three region tests but only the *first* case's `addu/sw` tail, which the other
+two jump into. The tree faked this with a shared `goto advance_tick` label and
+a `SOFT_BARRIER()` in each copy: the empty asm is what stopped jump2 merging
+the region tests into one.
+
+Written as one inline helper called in each case, jump2 merges the tails, but
+if every case ends in `break` the survivor is the *last* case. `jump_optimize`
+walks forward and tries the other jumps to a label from the most recently
+added, so the first case's jump is redirected into the last case's copy. The
+match needed the first case to `break` and the later two to leave with
+`result = 0; goto done;`. Their tail then first merges with the `result = 0`
+block before `done`, is retargeted to the break label, and is re-examined at
+once, finding the first case's copy.
+
+When a merged tail sits in the wrong copy, change how the other copies exit
+rather than adding a barrier.

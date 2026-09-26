@@ -1086,6 +1086,34 @@ void SndVoice_KeyOffMatching(void)
     }
 }
 
+/// Advances a script's 16.16 tick clock by one step: a whole tick, or 0.6 of
+/// one when the display region is 1.
+static inline void _sndScriptAdvanceClock(SndScript* script)
+{
+    script->field_8 += (gDisplayState.region == 1 ? 0x9999 : 0x10000);
+}
+
+/// Decides whether a note plays with reverb, from its own level against a
+/// global one. A note at level 3 gets reverb whenever the global level is at
+/// least 2; a global level of 3 turns it off for every other note; otherwise a
+/// note with a non-negative level gets reverb once the global level reaches it.
+static inline u8 _sndScriptUseReverb(SndOneV* oneV)
+{
+    s32 on;
+
+    if (oneV->field_E == 3 && D_8008274B >= 2) {
+        on = 1;
+    } else if (oneV->field_E != 3 && D_8008274B == 3) {
+        on = 0;
+    } else {
+        on = 0;
+        if (oneV->field_E >= 0) {
+            on = D_8008274B >= oneV->field_E;
+        }
+    }
+    return on;
+}
+
 s32 SndScript_Exec(SndScript* script)
 {
     SpuVoiceRef   voiceRef;
@@ -1100,7 +1128,6 @@ s32 SndScript_Exec(SndScript* script)
     SndBankHdr*   header;
     s32           result;
     s32           ticks;
-    s32           step;
     s32           wait;
     s32           index;
     s32           masterVolume;
@@ -1110,9 +1137,6 @@ s32 SndScript_Exec(SndScript* script)
     s16           voicePan;
     s32           pitchValue;
     u16           pitch;
-    s32           reverbEnabled;
-    s32           reverbGate;
-    s8            reverbLevel;
     s32           countdown;
     s16           envelopeOffset;
 
@@ -1138,14 +1162,7 @@ s32 SndScript_Exec(SndScript* script)
                 result           = 1;
                 goto done;
             } else {
-                if (gDisplayState.region == 1) {
-                    SOFT_BARRIER();
-                    step = 0x9999;
-                } else {
-                    step = 0x10000;
-                }
-            advance_tick:
-                script->field_8 = ticks + step;
+                _sndScriptAdvanceClock(script);
             }
             break;
         case 0x4C646E65:
@@ -1174,13 +1191,9 @@ s32 SndScript_Exec(SndScript* script)
             oneV  = (SndOneV*)script->field_48;
             ticks = script->field_8;
             if ((ticks >> 16) < oneV->field_8) {
-                if (gDisplayState.region == 1) {
-                    SOFT_BARRIER();
-                    step = 0x9999;
-                } else {
-                    step = 0x10000;
-                }
-                goto advance_tick;
+                _sndScriptAdvanceClock(script);
+                result = 0;
+                goto done;
             }
             voice  = SndVoice_Alloc(oneV->field_10);
             result = 1;
@@ -1235,33 +1248,13 @@ s32 SndScript_Exec(SndScript* script)
                 }
                 pitchValue = pitch = oneV->field_14 + (note->keyMin << 7);
                 attr->pitch        = Spu_CalcVolume((u32)(pitch & 0xFFFF) >> 7, (pitchValue & 0x7F) * 2, note->rootKey, note->rootFine);
-                if (oneV->field_E == 3) {
-                    if (D_8008274B >= 2) {
-                        reverbGate    = 1;
-                        reverbEnabled = reverbGate;
-                    } else {
-                        goto check_reverb;
-                    }
-                } else {
-                    reverbGate = 0;
-                    if (D_8008274B != 3) {
-                    check_reverb:
-                        reverbLevel = oneV->field_E;
-                        reverbGate  = 0;
-                        if (reverbLevel >= 0) {
-                            reverbGate = D_8008274B >= reverbLevel;
-                        }
-                    }
-                    reverbEnabled = reverbGate;
-                }
-                USE_REG(reverbGate);
-                if (reverbEnabled == 0) {
+                if (_sndScriptUseReverb(oneV) == 0) {
                     Spu_DisableReverbVoice(voice->field_0);
+                    voice->field_1 = 1;
                 } else {
                     Spu_EnableReverbVoice(voice->field_0);
+                    voice->field_1 = 1;
                 }
-                voice->field_1 = 1;
-                USE_REG(script);
                 SndVoice_ScaleVolume(script->field_10, script->field_13, voice, &script->field_50, volume);
                 attr->volume.left   = volume[0];
                 attr->volume.right  = volume[1];
@@ -1290,13 +1283,9 @@ s32 SndScript_Exec(SndScript* script)
             ticks = script->field_8;
             wait  = ((SndWaitCmd*)cmd)->duration;
             if ((ticks >> 16) < wait) {
-                if (gDisplayState.region == 1) {
-                    SOFT_BARRIER();
-                    step = 0x9999;
-                } else {
-                    step = 0x10000;
-                }
-                goto advance_tick;
+                _sndScriptAdvanceClock(script);
+                result = 0;
+                goto done;
             }
             script->field_8  = ticks - (wait << 16);
             script->field_48 = (SndScriptCmd*)((u8*)script->field_48 + 8);
