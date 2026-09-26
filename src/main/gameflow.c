@@ -14,6 +14,22 @@
 #include "main/wipsys.h"
 #include "main/mc.h"
 
+void Game_ResetSessionAndBuffers(Task* arg0);
+
+const TaskFuncTable5 GameFlow_States5 = { {
+    Game_ResetSessionAndBuffers,
+    GameFlow_SpawnMenu,
+    GameFlow_WaitMenuDone,
+    GameFlow_CountdownAdvance,
+    GameFlow_SpawnMainWhenReady,
+} };
+
+const TaskFuncTable3 GameFlow_States3 = { {
+    GameFlow_CopySaveIds,
+    GameFlow_EnqueueDefaultLoad,
+    GameFlow_SpawnWhenIdle,
+} };
+
 void GameFlow_StateByField34(Task* arg0)
 {
     CdCmdQueue*   p;

@@ -8,6 +8,8 @@
 #include "main/wipsys.h"
 #include "psyq/libetc.h"
 
+extern const GBytes4 D_80013F18;
+
 void CdCmd_EnqueueLoadFile(s32 arg0, s32 arg1, s32 arg2)
 {
     s8             param2[4];
@@ -249,3 +251,6 @@ void Snd_ApplyVolumeTable(s32 arg0)
         }
     }
 }
+
+/// Music volume for each of the four volume settings, loudest first.
+const GBytes4 D_80013F18 = { { 100, 64, 32, 0 } };

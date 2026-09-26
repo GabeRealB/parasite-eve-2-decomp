@@ -50,7 +50,6 @@ extern s32  CdAudio_DriveNull(void);
 extern s32  func_8001FAE0(u16 arg0, s32 arg1);
 extern s32  func_800B0118(s32 arg0, s32 arg1);
 
-extern GBytes4       D_80013F18;
 extern const GBytes6 D_80014124;
 extern s8            D_800138BC[]; // "99999999"
 extern s8            D_800138C8[]; // "0"
