@@ -2259,7 +2259,6 @@ static void func_dryfield_dilapidated_house_80182744(Task* task)
     u16           tick1;
     s16           size;
     s32           angle;
-    s32           keep;
     s32           i;
     u8            rgb[3];
 
@@ -2274,13 +2273,11 @@ static void func_dryfield_dilapidated_house_80182744(Task* task)
     switch (task->state) {
         case 0:
             if (Gp_State1C->eventState != 0) {
-                s32 fade;
-
                 work->field_22 = tick;
-                fade           = Gp_State1C->eventState;
-                SOFT_USE_REG(fade);
-                keep = fade < 4;
-                break;
+                if (Gp_State1C->eventState >= 4) {
+                    Gp_ReleaseState1CMem(work, task);
+                }
+                return;
             }
             work->field_24 = 0xC0;
             work->field_26 = 0x500;
@@ -2320,8 +2317,10 @@ static void func_dryfield_dilapidated_house_80182744(Task* task)
         case 1:
             if (Gp_State1C->eventState != 0) {
                 work->field_22 = tick;
-                keep           = Gp_State1C->eventState < 4;
-                break;
+                if (Gp_State1C->eventState >= 4) {
+                    Gp_ReleaseState1CMem(work, task);
+                }
+                return;
             }
             func_dryfield_dilapidated_house_801832A8(coord, (s16)tick1, work->field_26, work->field_28);
             func_dryfield_dilapidated_house_80182F14(coord, work->field_26, (s16)(u16)work->field_24 >> 1);
@@ -2329,14 +2328,10 @@ static void func_dryfield_dilapidated_house_80182744(Task* task)
             angle          = (u16)work->field_26;
             angle         += 0x40;
             work->field_26 = angle;
-            SOFT_USE_REG(angle);
-            keep = (s16)angle < 0x581;
+            if ((s16)angle >= 0x581) {
+                Gp_ReleaseState1CMem(work, task);
+            }
             break;
-        default:
-            return;
-    }
-    if (!keep) {
-        Gp_ReleaseState1CMem(work, task);
     }
 }
 
