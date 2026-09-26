@@ -1095,64 +1095,45 @@ void func_acropolis_west_elevator_hall_8017FAE8(Task* arg0)
 /// displacement. The packets share OT slot 0x72, then the task retires.
 void func_acropolis_west_elevator_hall_8017FE18(Task* task)
 {
-    RECT         rect;
-    DR_MOVE*     mv;
-    void*        mem;
-    unsigned int tagMask;
-    s32          otOfs;
-    s32          byteOfs;
-    s32          i;
-    s32          base;
-    s32          y;
-    s32          t;
-    s32          v;
-    s32          rng;
-    s32          phase;
-    s32          frame;
+    RECT     rect;
+    DR_MOVE* mv;
+    void*    mem;
+    s32      otz;
+    s32      ofs;
+    s32      i;
+    s32      base;
+    s32      x;
+    s32      y;
+    s32      t;
 
     mem  = task->spawnArg2;
     base = gDisplayState.drawBuffer * 0x110 + 0x50;
+    otz  = 0x72;
 
-    otOfs = 0x72;
     for (i = 0; i < 0x52; i++) {
-        phase = i * 2;
-        frame = gDisplayState.animFrame;
-        USE_REG2(frame, phase);
-        y = i + base;
         SOFT_TOUCH_REG(y);
-        t = 0x800 - rcos((frame + phase) * 16);
+        y = i + base;
+        t = 0x800 - rcos((gDisplayState.animFrame + i * 2) * 16);
         if (gDisplayState.animFrame & 0x80) {
-            rng = Gp_LcgState * 5 + 0x71357911;
-            {
-                s32 quotient = t / (s32)((((u32)rng >> 16) & 0x3F) + 0xC0);
-                SOFT_USE_REG(quotient);
-                v           = quotient;
-                Gp_LcgState = rng;
-            }
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            x           = t / (s32)(((Gp_LcgState >> 16) & 0x3F) + 0xC0) + 0x50;
         } else {
-            v = t / 0x100;
+            x = t / 0x100 + 0x50;
         }
 
-        byteOfs        = otOfs << 2;
-        v             += 0x50;
-        rect.x         = v;
+        rect.x         = x;
         rect.y         = y;
         rect.w         = 0x78;
         rect.h         = 1;
-        tagMask        = 0xFF000000;
         mv             = (DR_MOVE*)gGpuPrimCursor;
         gGpuPrimCursor = mv + 1;
         SetDrawMove(mv, &rect, 0x50, i + base);
+
+        ofs = otz << 2;
         {
-            u_long* ot;
-            u_long  mask;
-            u_long  addrMask = 0xFFFFFF;
-            SOFT_USE_REG(addrMask);
-            ot   = (u_long*)(byteOfs + (s32)gGpuCurrentOt);
-            mask = tagMask;
-            SOFT_TOUCH_REG_USE(mask, mv);
-            mv->tag = (mv->tag & mask) | getaddr(ot);
-            *ot     = (*ot & mask) | ((u_long)mv & addrMask);
+            u_long* ot = (u_long*)(ofs + (s32)gGpuCurrentOt);
+            setaddr(mv, getaddr(ot));
+            *ot = (*ot & 0xFF000000) | ((u_long)mv & 0xFFFFFF);
         }
     }
 

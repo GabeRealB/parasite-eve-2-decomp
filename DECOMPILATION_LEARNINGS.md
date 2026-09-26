@@ -53947,10 +53947,36 @@ inside it — an explicit local is not const-equivalent and ranks *higher*),
 `and`s into separate variables (cse1 merges equal `const_int`s in a basic
 block unconditionally; there is no `volatile` or barrier that stops it).
 
-`func_acropolis_west_elevator_hall_8017FE18` is the unsolved example: a
-0x52-iteration `SetDrawMove` loop whose 70-insn body sits just under the cut,
-so the mask is hoisted, the `Task*` is spilled, and every callee-saved register
-from `$s5` up shifts by one. It stalls at 85% with the correct shape.
+`func_acropolis_west_elevator_hall_8017FE18` is the worked example: a
+0x52-iteration `SetDrawMove` loop whose body sits right at the cut. The
+threshold there is exactly 14 after five earlier moves (`14 * 5 = 70`), so the
+span-5 mask is hoisted at 70 loop insns and left in the loop at 71. What it
+took, measured from the `.loop` dump:
+
+- the second link written by hand (`setaddr(p, getaddr(ot))` then
+  `*ot = (*ot & 0xFF000000) | ((u_long)p & 0xFFFFFF)`), for span 5;
+- the OT pointer as a block-scoped local, `u_long* ot = (u_long*)(ofs +
+  (s32)gGpuCurrentOt)`, with `ofs = otz << 2` a separate statement and `otz`
+  set before the loop. cse1 does not carry `otz` into the loop, so the shift is
+  a movable of its own; hoisting it is the fifth move that lowers the
+  threshold, and it is also where the target's `li $s7, 0x1C8` comes from.
+  Folding the shift into the pointer expression, or declaring `ot` at function
+  scope, loses both (89%);
+- `x = t / d + 0x50` in *each* arm of the `if`, instead of adding `0x50` after
+  the join, which is what put the quotient in `$v0`.
+
+One hack is left, and it is not about the mask. The target computes the row
+`y = i + base` before the `rcos` call and recomputes `i + base` for
+`SetDrawMove`'s argument; the two are givs with the same `mult`/`add`, and
+`combine_givs` sums their benefits, so loop.c strength-reduces them into a
+second induction register. The target reduces neither, which needs `y` to be
+*not replaceable* (a replaceable user-variable giv costs nothing to combine;
+a non-replaceable one pays `copy_cost` and the sum falls to zero). An empty
+`asm("" : "+r"(y))` *before* `y` is set does that - a read of `y` above its
+set makes the value live around the back edge, which `check_final_value`
+rejects - and the asm is also the 71st loop insn. Without it, `y` declared
+`s16` supplies the 71st insn but not the non-replaceability; initialising `y`
+before the loop or using it after the loop is undone by `check_final_value`.
 
 ## Naming an inline-asm pointer operand as its own local unblocks the delay-slot steal
 
