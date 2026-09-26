@@ -1461,20 +1461,47 @@ void func_800B92CC(void)
     }
 }
 
+/// Takes `n` of item `item` from the table window `scan`, or all of it when `n`
+/// is negative, emptying the row once none is left. Inline form of
+/// `Gp_ConsumeScanQty`.
+static inline void _gpConsumeScanQty(McItemScan* scan, s32 item, s32 n)
+{
+    McItemRec* table;
+    s32        qty;
+    s32        i;
+    s32        left;
+
+    table = _gpScanTable(scan);
+    qty   = 0;
+    for (i = scan->firstRow; i < scan->firstRow + scan->rowCount; i++) {
+        if (table[i].itemId == item) {
+            qty = table[i].qty;
+            break;
+        }
+    }
+    if (i != scan->firstRow + scan->rowCount) {
+        if (n < 0) {
+            n = qty;
+        }
+        left = qty - n;
+        if (left < 0) {
+            left = 0;
+        }
+        if (left == 0) {
+            table[i].itemId     = 0;
+            table[i].qty        = 0;
+            table[i].attachSlot = 0;
+        } else {
+            table[i].qty = left;
+        }
+    }
+}
+
+/// Inline form of `Gp_RemoveItem`: clears the record `arg1` outright when it
+/// holds an item below 0xA0, otherwise takes `arg2` of its item from `arg0`.
 static __inline void func_800B996C_RemoveItem(McItemScan* arg0, McItemRec* arg1, s32 arg2)
 {
-    McItemRec*          tmp;
-    register McItemRec* table asm("v1");
-    s32                 qty;
-    register McItemRec* base asm("t0");
-    register s32        item asm("t1");
-    McItemRec*          rec;
-    s32                 i;
-    s32                 count;
-    register s32        end asm("v1");
-    register s32        loop_end asm("a1");
-    register s32        newQty asm("v1");
-    s32                 n;
+    s32 item;
 
     item = arg1->itemId;
     if (item < 0xA0) {
@@ -1482,59 +1509,7 @@ static __inline void func_800B996C_RemoveItem(McItemScan* arg0, McItemRec* arg1,
         arg1->qty        = 0;
         arg1->attachSlot = 0;
     } else {
-        n = arg2;
-        switch (arg0->table) {
-            case 2:
-                tmp = Gp_ItemTable2;
-                break;
-            case 1:
-                tmp = Gp_ItemTable1;
-                break;
-            found:
-                qty = rec->qty;
-                goto after_loop;
-            default:
-                tmp = Mc_SaveData.itemRows;
-                break;
-        }
-        table = tmp;
-        qty   = 0;
-        USE_REG(qty);
-        i     = arg0->firstRow;
-        count = arg0->rowCount;
-        base  = table;
-        end   = i + count;
-        if (i < end) {
-            loop_end = end;
-            rec      = (McItemRec*)((i << 2) + (s32)base);
-        loop:
-            if (rec->itemId != item) {
-                i++;
-                rec++;
-                if (i < loop_end) {
-                    goto loop;
-                }
-            } else {
-                goto found;
-            }
-        }
-    after_loop:
-        if (i != arg0->firstRow + arg0->rowCount) {
-            if (n < 0) {
-                n = qty;
-            }
-            newQty = qty - n;
-            if (newQty < 0) {
-                newQty = 0;
-            }
-            if (newQty == 0) {
-                base[i].itemId     = 0;
-                base[i].qty        = 0;
-                base[i].attachSlot = 0;
-            } else {
-                base[i].qty = newQty;
-            }
-        }
+        _gpConsumeScanQty(arg0, item, arg2);
     }
 }
 

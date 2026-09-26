@@ -36009,11 +36009,19 @@ example.
 
 `(-w) >> 1` is `negu` / `sra ..., 1`. A nearby `func(..., 1)` (or any
 live `1` in a temp) CSEs with the shift amount and turns it into
-`li t1, 1` / `srav`. Keep that `1` unborn until after the shifts (a
-register barrier after the `>> 1`, or compute the `1` only at the call)
-so the shift keeps the immediate form. `Gp_UiBoostAttach` is the example;
-`Gp_InvokePeItemPanel` wants the `srav` form because its `1` is a live `jal`
-arg (`a2`) set up *before* the shift.
+`li t1, 1` / `srav`. Keep that `1` unborn until after the shifts so the
+shift keeps the immediate form. `Gp_InvokePeItemPanel` wants the `srav`
+form because its `1` is a live `jal` arg (`a2`) set up *before* the shift.
+
+An inlined helper's parameter is a common source: its `arg = 1` copy sits
+at the head of the inlined body, sched1 hoists it above the shifts in the
+same block, and after reload the shift reuses the register. Where the
+parameter is only used inside a branch, the original usually passed it
+on to a second inline helper called in that branch. That puts the copy
+in the branch's own block, where sched1 cannot move it, and delay-slot
+filling then drops it into the `beqz` delay slot. `Gp_UiBoostAttach` is
+the example: `func_800B996C_RemoveItem` hands its else branch to
+`_gpConsumeScanQty`, which removed a `USE_REG` and five register pins.
 
 ## Hold the previous `$s0` dest live so `addiu s0, v0, N` fills the `jal` delay
 
