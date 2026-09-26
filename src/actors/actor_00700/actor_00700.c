@@ -222,7 +222,7 @@ extern u32              Actor00700_D075B4;
 static void Actor00700_Fn00060(GpEnemy* ctx, Task* actor);
 static void Actor00700_Fn01434(GpEnemy* arg0, Task* arg1);
 static void Actor00700_Fn0188C(GpEnemy* arg0, Task* arg1);
-static void Actor00700_Fn01988(Task* arg0, TmdObject* arg1, s32 arg2);
+static void Actor00700_Fn01988(Task* arg0);
 static void Actor00700_Fn01AB8(Task* arg0);
 static void Actor00700_Fn01B50(Task* arg0);
 static void Actor00700_Fn01C10(Task* arg0);
@@ -1123,44 +1123,29 @@ static void Actor00700_Fn0188C(GpEnemy* arg0, Task* arg1)
     GpCoord*        coord;
     TmdObject*      obj;
     Actor00700Work* work;
-    s32             state;
-    s32             one;
 
     obj   = arg1->extra.tmd;
-    state = Gp_StateF0.field_4;
-    work  = arg1->work;
     coord = obj->coords;
-    one   = 1;
-    if (state == one) {
-        goto case1;
+    work  = arg1->work;
+    switch (Gp_StateF0.field_4) {
+        case 0:
+            obj->flags               = 0;
+            arg0->node.state.b.flags = 0;
+            break;
+        case 1:
+            Actor00700_Fn01E44(arg1);
+            Actor00700_Fn01E9C(arg1);
+            return;
+        case 2:
+            obj->flags               = 0x80;
+            arg0->node.state.b.flags = 1;
+            return;
     }
-    if (state >= 2) {
-        goto ge2;
-    }
-    if (state == 0) {
-        goto case0;
-    }
-    goto default_body;
-ge2:
-    if (state == 2) {
-        goto case2;
-    }
-    goto default_body;
-case0:
-    obj->flags               = 0;
-    arg0->node.state.b.flags = 0;
-    goto default_body;
-case2:
-    obj->flags               = 0x80;
-    arg0->node.state.b.flags = one;
-    return;
-default_body:
     if (arg0->reactionFlags != 0) {
-        Actor00700_Fn01988(arg1, obj, one);
+        Actor00700_Fn01988(arg1);
     }
     Actor00700_Fn00334(arg1);
     Actor00700_Fn01AB8(arg1);
-    SOFT_USE_REG(work);
     if (work->field_386 != 0) {
         Actor00700_Fn012E4(arg1);
     }
@@ -1168,12 +1153,11 @@ default_body:
     Actor00700_Fn01D80(arg1);
     coord->flg = 0;
     Gp_UpdateCoord(coord);
-case1:
     Actor00700_Fn01E44(arg1);
     Actor00700_Fn01E9C(arg1);
 }
 
-static void Actor00700_Fn01988(Task* arg0, TmdObject* arg1, s32 arg2)
+static void Actor00700_Fn01988(Task* arg0)
 {
     GpEnemy*        ctx;
     Actor00700Work* work;

@@ -144332,3 +144332,14 @@ statements. Writing it as one, `m = SCRATCH_PUSH(MATRIX);`, and the column
 sequence as `gte_MulMatrix0(dst, m, dst)` (gtemac.h) matched with no pin; the
 pop pairs as `SCRATCH_POP(MATRIX)`. Look for this spelling wherever a GTE
 column sequence follows a hand-split scratch push.
+
+## Parameters a callee never reads may be leftover registers, not arguments - a `one` local feeding them is the tell (Actor00700_Fn0188C, 2026-09-27)
+The seed called `Fn01988(arg1, obj, one)` with a local `one = 1` shared by a
+`state == one` test and a store, plus `SOFT_USE_REG(work)`, all to keep `$a1`/`$a2`
+holding `obj` and `1` at the `jal`. The callee read neither parameter: m2c had
+turned the values still live in `$a1`/`$a2` into arguments. Declaring the callee
+`(Task*)` and calling it with one argument removed both the local and the
+barrier; the goto ladder became a plain `switch` (case 1 duplicating the shared
+tail, which cross-jumping merges). When a callee ignores trailing parameters,
+check whether the caller only "passes" them because they are already in the
+registers.
