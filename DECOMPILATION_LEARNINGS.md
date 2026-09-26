@@ -141843,3 +141843,26 @@ That single reference is enough to swap two spill candidates: with it, `step`
 `state`. When a spill swap follows a small edit, compare the two pseudos'
 `n_refs` in `.lreg` before reaching for a pin: the missing reference is usually
 a constant that cse routed to a different register.
+
+## The 0x43D2 room sprite (`v+0x70` / `v-0x59` rows) is one `setUVWH`, not pinned UV locals (func_shelter_b4_reservoir_8018110C, 2026-09-26)
+
+The eight-frame sprite drawer copied across several rooms (`neo_ark_bridge`,
+`shelter_b2_septic_tank`, `shelter_b4_upper_sewer`, `shelter_b4_water_supply`, ...)
+was matched with `SOFT_TOUCH_REG` on a second block pointer, a
+`SOFT_USE_REG` on the `% 8` value, three `SOFT_BARRIER`s ordering the UV byte
+stores and a hand-written `vbase - 0x59`. All six go away together once the UVs
+are one macro call with the arithmetic inline:
+
+```c
+setUVWH(prim, (arg1 % 4) * 0x38, (arg1 % 8) / 4 * 0x38 + 0x70, 0x37, 0x37);
+```
+
+The macro repeats the `_v0` expression rather than naming it, so `v0 + 0x37`
+narrows to QImode and prints as `-0x59` (see "`addiu reg, 0xA7` vs `addiu reg,
+-0x59`"); the `% 4` / `% 8` of the `s16` argument supply the `sll 16; sra 16`
+the old `s16 cell` locals imitated; and `u0` is stored before the `% 8` is
+computed because the macro stores it first. With the UVs right, the scratch
+head's `move v1,t1` copy and the rest of the prologue came out of a plain
+`block = SCRATCH_PUSH(GpRingScratch)` with no further help: the prologue hacks
+were compensating for allocation pressure the wrong UV code created. Try the
+macro before steering a quad's setup piecemeal.
