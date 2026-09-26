@@ -142224,3 +142224,18 @@ caller's now-unused `key` declaration, or it keeps its own 8 bytes. The
 operand order `(idx << 4) + (s32)rec->field_0` still matters (`&field_0[idx]`
 is 95.6%). `actorTintEffect` became a wrapper over the same helper and all its
 users still match.
+
+## A `(plus K+off-reg)` `addu` operand swap after inlining: combine's complex-first rule, fixed by the helper temp's width (Gp_PickupTitleTask, 2026-09-26)
+Inlining `Gp_DrawQty` (`y = obj->baseY - 3; req.y = y + arg2;`) with
+`arg2 = (s16)obj->field_18 + 0xF` matched everything but
+`addu v0,s0,v0` for target `addu v0,v0,s0` (baseY first). The inline's
+argument pseudo is set *before* the body, so combine sees it as i1 and the
+`y` temp as i2: substituting i2 gives `(plus (plus baseY f18') -3)`, then
+substituting i1 turns the inner `(plus baseY (plus f18 15))` round, because
+combine puts the complex operand first, and the sum comes out f18-first. With
+`y` declared `u16` (the type of `baseY`, which the halfword store makes free)
+the `-3` stays in HImode and combine never reassociates across the temp, so
+the operands keep source order. The out-of-line `Gp_DrawQty` matches with the
+same body, so it became a wrapper over the helper. When an inlined sum has
+its operands swapped, look at how many insns combine merged before changing
+the expression's order - reordering `y + arg2` / `arg2 + y` did nothing here.

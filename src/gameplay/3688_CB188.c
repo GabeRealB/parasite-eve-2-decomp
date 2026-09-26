@@ -1138,45 +1138,54 @@ void func_800CCDC8(Task* arg0)
     func_800C7AE8(obj, obj->field_1C + 2, (s16)obj->field_18 + 2, flags);
 }
 
-typedef struct {
+/// Body of `Gp_DrawQty`: prints the count `arg3` in colour `arg4` at row
+/// position (`arg1`, `arg2`) of `arg0`, then lays out the box beside it.
+/// Inlined where a caller draws a count without the call.
+static inline void _gpDrawQty(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+{
     u8          buf[0x20];
     TextDrawReq req;
-} ItemCountDraw;
+    u16         y;
+
+    req.x          = arg0->baseX + 0x84 + arg1;
+    y              = arg0->baseY - 3;
+    req.y          = y + arg2;
+    req.otIndex    = (s16)arg0->drawOrder + 1;
+    req.field_8    = arg4;
+    req.glyphTable = 5;
+    req.centerMode = 2;
+    req.field_E    = 0;
+    func_8002E53C(&req, Text_ItoaSigned(buf, arg3));
+    Ui_LayoutWithMode0(arg0, (arg1 + 0x69), (arg2 - 8), 0x1B, 7, 0x102010);
+}
 
 void Gp_PickupTitleTask(Task* arg0)
 {
-    TextDrawReq        req;
-    ItemCountDraw      draw;
-    UiObject*          spawned;
-    s32                color;
-    s32                x;
-    s32                y;
-    s32                temp;
-    s32                textY;
-    s32                item;
-    Task*              task;
-    register UiObject* obj asm("s2");
-    s32                color2;
-    register s32       count asm("a1");
-    s32                ot;
-    ItemCountDraw*     d;
+    TextDrawReq req;
+    UiObject*   spawned;
+    UiObject*   obj;
+    s32         color;
+    s32         x;
+    s32         y;
+    s32         temp;
+    s32         textY;
+    s32         item;
 
     item          = Gp_PubItemLoc;
-    task          = arg0;
-    obj           = task->spawnArg2;
+    obj           = arg0->spawnArg2;
     obj->field_2E = 0;
     if (item < 0x100) {
         Ui_DrawTitle((UiPanel*)obj, Gp_StrItemHdr);
     } else {
         Ui_DrawTitle((UiPanel*)obj, Gp_StrKeyItem);
     }
-    if (task->state == 0) {
+    if (arg0->state == 0) {
         spawned = Ui_SpawnFromDesc(&D_8010F09C, 0, 0, 1, obj);
         Ui_UpdateLayoutSize((UiPanel*)obj, 0, Ui_Scale15(1) + 1);
         if (spawned != NULL) {
             spawned->field_E = obj->field_E + obj->field_12;
         }
-        task->state = task->state + 1;
+        arg0->state++;
     }
     color = 0x606060;
     x     = obj->field_1C + 2;
@@ -1198,23 +1207,7 @@ void Gp_PickupTitleTask(Task* arg0)
         Gp_DrawItemIcon(obj, x, y, item, 0);
     }
     if ((u32)(item - 0xA0) < 0x20U) {
-        color2     = 0x606060;
-        y          = obj->field_1C;
-        x          = (s16)obj->field_18;
-        draw.req.x = obj->baseX + y + 0x86;
-        draw.req.y = obj->baseY + x + 0xC;
-        SCHED_BARRIER();
-        count = Gp_PubItemQty;
-        ot    = (s16)obj->drawOrder;
-        TOUCH_REG(ot);
-        d                 = &draw;
-        draw.req.otIndex  = ot + 1;
-        d->req.glyphTable = 5;
-        d->req.field_8    = color2;
-        d->req.centerMode = 2;
-        draw.req.field_E  = 0;
-        func_8002E53C(&draw.req, Text_ItoaSigned(d->buf, count));
-        Ui_LayoutWithMode0(obj, (y + 0x6B), (x + 7), 0x1B, 7, 0x102010);
+        _gpDrawQty(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, Gp_PubItemQty, 0x606060);
     }
 }
 
@@ -1475,20 +1468,7 @@ void Gp_DrawItemNameRow(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, 
 
 void Gp_DrawQty(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
 {
-    u8          buf[0x20];
-    TextDrawReq req;
-    s32         y;
-
-    req.x          = arg0->baseX + 0x84 + arg1;
-    y              = arg0->baseY - 3;
-    req.y          = y + arg2;
-    req.otIndex    = (s16)arg0->drawOrder + 1;
-    req.field_8    = arg4;
-    req.glyphTable = 5;
-    req.centerMode = 2;
-    req.field_E    = 0;
-    func_8002E53C(&req, Text_ItoaSigned(buf, arg3));
-    Ui_LayoutWithMode0(arg0, (arg1 + 0x69), (arg2 - 8), 0x1B, 7, 0x102010);
+    _gpDrawQty(arg0, arg1, arg2, arg3, arg4);
 }
 
 void Gp_DrawStackLeft(UiObject* arg0, s32 arg1, s32 arg2, McItemRec* arg3, s32 arg4, s32 arg5)
