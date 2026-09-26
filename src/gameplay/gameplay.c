@@ -768,23 +768,20 @@ u32* gpDrawStreamPrimGt3PreXformFixedLayer(TmdScratchModelBlock* ws, s32 flags, 
 
 u32* gpDrawStreamPrimGt4PreXformLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
-    POLY_GT4*          poly;
-    register POLY_GT4* xy asm("t0");
-    s32*               opz;
-    u32                clipMask;
-    s32                len;
-    s32                code;
-    DisplayState*      ds;
-    u32                mask;
-    u32                maskHi;
-    u16*               rec;
-    register s32       sz asm("a0");
-    s32                idx;
-    u8*                szTable;
-    u8*                flagp;
-    u8*                up;
-    s32                i;
-    s32                tpage;
+    POLY_GT4*     poly;
+    s32*          opz;
+    u32           clipMask;
+    s32           len;
+    s32           code;
+    DisplayState* ds;
+    u16*          rec;
+    s32           sz;
+    s32           idx;
+    u8*           szTable;
+    u8*           flagp;
+    u8*           up;
+    s32           i;
+    s32           tpage;
 
     poly = (POLY_GT4*)ws->preXformWrite;
     if (ws->elemCount-- > 0) {
@@ -793,21 +790,18 @@ u32* gpDrawStreamPrimGt4PreXformLayer(TmdScratchModelBlock* ws, s32 flags, u32* 
         len      = 12;
         code     = 0x3C;
         ds       = &gDisplayState;
-        mask     = 0xFFFFFF;
-        maskHi   = 0xFF000000;
-        xy       = poly + 1;
         do {
             rec = (u16*)stream;
-            gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 0));
-            gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 1));
-            gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 2));
+            gte_ldSXYP(PRIM_XY_WORD(poly, 0));
+            gte_ldSXYP(PRIM_XY_WORD(poly, 1));
+            gte_ldSXYP(PRIM_XY_WORD(poly, 2));
             gte_nclip();
             gte_stopz(opz);
-            gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 3));
+            gte_ldSXYP(PRIM_XY_WORD(poly, 3));
             gte_nclip();
             if (ws->gteResult <= 0) {
-                *(u32*)&xy[-1].x0   = *(u32*)&xy[-1].x1;
-                PRIM_XY_WORD(xy, 0) = PRIM_XY_WORD(xy, 1);
+                PRIM_XY_WORD(poly, 0)     = PRIM_XY_WORD(poly, 1);
+                PRIM_XY_WORD(&poly[1], 0) = PRIM_XY_WORD(&poly[1], 1);
                 gte_stopz(opz);
                 if (ws->gteResult >= 0) {
                     goto next;
@@ -815,8 +809,8 @@ u32* gpDrawStreamPrimGt4PreXformLayer(TmdScratchModelBlock* ws, s32 flags, u32* 
             } else {
                 gte_stopz(opz);
                 if (ws->gteResult >= 0) {
-                    *(u32*)&xy[-1].x3   = *(u32*)&xy[-1].x2;
-                    PRIM_XY_WORD(xy, 3) = PRIM_XY_WORD(xy, 2);
+                    PRIM_XY_WORD(poly, 3)     = PRIM_XY_WORD(poly, 2);
+                    PRIM_XY_WORD(&poly[1], 3) = PRIM_XY_WORD(&poly[1], 2);
                 }
             }
             szTable = (u8*)ws->szTable;
@@ -837,59 +831,41 @@ u32* gpDrawStreamPrimGt4PreXformLayer(TmdScratchModelBlock* ws, s32 flags, u32* 
                         if ((sz & clipMask) == 0) {
                             gte_ldSZ3(sz);
                             gte_avsz4();
-                            {
-                                s32          f0;
-                                register s32 f1 asm("v0");
-                                register s32 f2 asm("a0");
-
-                                f0  = xy[-1].code;
-                                f1  = xy[-1].p1;
-                                f0 |= f1;
-                                f1  = xy[-1].p2;
-                                f2  = xy[-1].p3;
-                                f1 |= f0;
-                                f2 |= f1;
-                                if (f2 == 0) {
-                                    tpage = 0x137;
-                                } else {
-                                    flagp = &poly->code;
-                                    i     = 0;
-                                    up    = &poly->u0;
-                                    do {
-                                        if (*flagp == 0) {
-                                            if ((s8)*up < 0) {
-                                                *up += 0x80;
-                                            } else {
-                                                *up = 0;
-                                            }
+                            // code, p1, p2 and p3 each follow a vertex colour and hold that vertex's flag.
+                            sz = poly->code | poly->p1 | poly->p2 | poly->p3;
+                            if (sz == 0) {
+                                tpage = 0x137;
+                            } else {
+                                flagp = &poly->code;
+                                i     = 0;
+                                up    = &poly->u0;
+                                do {
+                                    if (*flagp == 0) {
+                                        if ((s8)*up < 0) {
+                                            *up += 0x80;
+                                        } else {
+                                            *up = 0;
                                         }
-                                        up += 0xC;
-                                        i++;
-                                        flagp += 0xC;
-                                    } while (i < 4);
-                                    tpage = 0x139;
-                                }
+                                    }
+                                    up += 0xC;
+                                    i++;
+                                    flagp += 0xC;
+                                } while (i < 4);
+                                tpage = 0x139;
                             }
-                            xy[-1].tpage = tpage;
-                            setlen(&xy[-1], len);
-                            setcode(&xy[-1], 0x3E);
+                            poly->tpage = tpage;
+                            setlen(poly, len);
+                            setcode(poly, 0x3E);
                             gte_stotz(opz);
-                            setlen(xy, len);
-                            setcode(xy, code);
-                            poly->tag =
-                                (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
-                            *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
-                                (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
-                            xy->tag =
-                                (xy->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
-                            *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
-                                (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)xy & mask);
+                            setlen(&poly[1], len);
+                            setcode(&poly[1], code);
+                            addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
+                            addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], &poly[1]);
                         }
                     }
                 }
             }
         next:
-            xy     += 2;
             poly   += 2;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
