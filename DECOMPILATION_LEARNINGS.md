@@ -141637,3 +141637,29 @@ branch's delay slot, with only the `else` arm reading `a0`.
 The whole sum, `+ Player_Status.bp` through a `cfg` local and the 99999999
 clamp, is also the out-of-line `func_replay_bonus_801175F0`; inlined twice
 here, it needed no pins.
+## Pins on a scratch frame stood for references that only exist until reload (Actor00700_Fn00334, 2026-09-26)
+
+Symptom: a contact walk (`func_800E0C10` push, then a loop over three
+contact records) matched with `SOFT_TOUCH_REG` on the new scratch head, a
+read through `oldHead[-3]`, and ten `USE_REG`s on the frame pointer. Written
+as a plain `for` loop over `recs[i]` with a `switch`, the frame lost the
+callee-saved register it has in the ROM (`s2`) to `work`.
+
+- The first delta read at `-0x2E(oldHead)` is `frame->delta.vx.w >> 16`, a
+  16.16 integer part. The word load's address is the bare frame register,
+  `find_best_addr` prefers the dearer `(plus old -48)` on the tie, and combine
+  narrows word-plus-shift to `lh +2`. `.vx.h.hi` addresses offset 2 and never
+  folds, which is why the tree needed the explicit old-head read.
+- The pumps imitated references that global-alloc counts and later passes
+  delete. Reading the offsets back from the frame in the `SquareRoot0`
+  argument leaves loads until `reload_cse` turns them into the stored
+  registers (CSE keeps only the last struct store, so all but one survive).
+  Writing kinds 1 and 3 as two identical case bodies counts every mention
+  twice, loop-weighted, until jump2 cross-jumps them after reload. A shared
+  `case 1: case 3:` body cannot give the frame that priority.
+- One allocation is still steered. The ROM computes `Gp_ActorSlots` in the
+  damage block, so local-alloc gives it `v1` and the loop-top key lands in
+  `a0`. The natural loop lets `loop.c` hoist it (savings 2 x life 5). In this
+  function a 273-insn loop hoisted and a padded 281-insn one did not, so the
+  hoist stopped between those sizes. No natural source for the missing insns
+  was found, so a `TOUCH_REG` on a `slots` local keeps the address in the block.

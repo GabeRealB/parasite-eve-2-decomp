@@ -321,6 +321,17 @@ typedef struct ActorPushFrame {
 } ActorPushFrame;
 STATIC_ASSERT_SIZEOF(ActorPushFrame, 0x58);
 
+/// The scratch-pad frame of a contact walk: `delta` receives the move
+/// `func_800E0C10` resolves and is then reused for each contact's offset,
+/// `normal` is that offset normalised, and `dir` the normal carried into the
+/// collision grid's frame, along which the deepest contact pushes.
+typedef struct ActorWallPushFrame {
+    GpDeltaScratch delta;
+    VECTOR         normal;
+    VECTOR         dir;
+} ActorWallPushFrame;
+STATIC_ASSERT_SIZEOF(ActorWallPushFrame, 0x30);
+
 /// The scratch-pad block of an attack that pulls the player in: the
 /// animation argument sent with message 0x3F4, the placement sent with
 /// message 0x3E9, and the offset to the player with its normalised direction.

@@ -342,188 +342,159 @@ void Actor00700_Fn00060(GpEnemy* ctx, Task* actor)
 
 void Actor00700_Fn00334(Task* actor)
 {
-    GpEnemy*        ctx;
-    u32             lastId;
-    Actor00700Work* work;
-    Actor00700Work* contactWork;
-    GpDeltaScratch* allocated;
-    GpDeltaScratch* oldScratch;
-    GpDeltaScratch* scratch;
-    GpDeltaScratch* normal;
-    GpCoord*        coord;
-    s16             cooldown;
-    s16             health;
-    s32             cooldownParam;
-    s32             wallDx;
-    s32             wallDy;
-    s32             wallDz;
-    s32             result;
-    s32             dx;
-    s32             dy;
-    s32             dz;
-    s32             depth;
-    s32             push;
-    s32             z;
-    s32             boundedDepth;
-    s8*             effectRec;
-    s8*             contactRec;
-    u32             id;
-    u32             kind;
-    u32             hitId;
-    u32             effect;
-    u32             damage;
-    GpCoord*        sourceCoord;
+    Actor00700Work*     work;
+    ActorWallPushFrame* frame;
+    GpEnemy*            ctx;
+    GpCoord*            coord;
+    GpCoord*            sourceCoord;
+    s8*                 effectRec;
+    s8*                 contactRec;
+    s32                 push;
+    s32                 result;
+    s32                 i;
+    s32                 depth;
+    s32                 x;
+    s32                 y;
+    s32                 z;
+    s32                 boundedDepth;
+    s32                 cooldownParam;
+    u32                 lastId;
+    u32                 id;
+    Task**              slots;
+    u32                 hitId;
+    u32                 damage;
 
-    push       = 0;
-    lastId     = 0;
-    oldScratch = SCRATCH_HEAD(GpDeltaScratch);
-    work       = actor->work;
-    allocated  = oldScratch - 3;
-    SOFT_TOUCH_REG(allocated);
-    scratch                      = allocated;
-    SCRATCH_HEAD(GpDeltaScratch) = scratch;
-    coord                        = actor->extra.tmd->coords;
-    ctx                          = actor->spawnArg2;
-    result                       = func_800E0C10((GpRec18*)&work->field_27C[0x20], scratch, 4, NULL);
-    if (result == 1)
-        goto move_delta;
-    if (result < 2)
-        goto move_done;
-    if (result == 2)
-        goto move_absolute;
-    goto move_done;
-move_delta:
-    coord->coord.t[0] += oldScratch[-3].vx.h.hi;
-    coord->coord.t[1] += scratch->vy.h.hi;
-    z                  = coord->coord.t[2] + scratch->vz.h.hi;
-    goto move_z;
-move_absolute:
-    coord->coord.t[0] = work->field_360;
-    coord->coord.t[1] = work->field_364;
-    z                 = work->field_368;
-move_z:
-    coord->coord.t[2] = z;
-move_done:
+    push   = 0;
+    lastId = 0;
+    work   = actor->work;
+    SCRATCH_PUSH(ActorWallPushFrame);
+    frame  = SCRATCH_HEAD(ActorWallPushFrame);
+    coord  = actor->extra.tmd->coords;
+    ctx    = actor->spawnArg2;
+    result = func_800E0C10((GpRec18*)&work->field_27C[0x20], &frame->delta, 4, NULL);
+    switch (result) {
+        case 0:
+            break;
+        case 1:
+            coord->coord.t[0] += frame->delta.vx.w >> 16;
+            coord->coord.t[1] += frame->delta.vy.w >> 16;
+            coord->coord.t[2] += frame->delta.vz.w >> 16;
+            break;
+        case 2:
+            coord->coord.t[0] = work->field_360;
+            coord->coord.t[1] = work->field_364;
+            coord->coord.t[2] = work->field_368;
+            break;
+    }
     Gp_ClearRec18Occupied(&work->field_27C[0x20]);
     if (work->field_378 != 0) {
-        cooldown        = (u16)work->field_378 - 1;
-        work->field_378 = cooldown;
-        normal          = scratch + 1;
-        if ((cooldown << 0x10) <= 0) {
+        if (--work->field_378 <= 0) {
             work->field_378 = 0;
-            goto cooldown_done;
         }
-    } else {
-    cooldown_done:
-        normal = scratch + 1;
     }
-    USE_REG4(scratch, scratch, scratch, scratch);
-    USE_REG4(scratch, scratch, scratch, scratch);
-    USE_REG2(scratch, scratch);
-    /* The contact walk steps a work pointer one table record at a time and
-       reads the record through it, keeping the record's offset in the
-       displacement as the ROM does. */
-    contactWork = work;
-contact_loop: {
-    USE_REG2(contactWork, contactWork);
-    id   = contactWork->field_22C.contacts.recs[0].key;
-    kind = id >> 0x10;
-    if (kind == 1)
-        goto physical_contact;
-    if (kind == 0)
-        goto next_contact;
-    if (kind == 2)
-        goto damage_contact;
-    if (kind == 3)
-        goto physical_contact;
-    contactWork = (Actor00700Work*)((u8*)contactWork + 0x18);
-    goto contact_test;
-damage_contact:
-    if (work->field_378 == 0) {
-        sourceCoord   = Gp_ActorSlots[(id >> 7) & 1]->extra.tmd->coords;
-        dx            = sourceCoord->coord.t[0] - coord->coord.t[0];
-        scratch->vx.w = dx;
-        dy            = sourceCoord->coord.t[1] - coord->coord.t[1];
-        scratch->vy.w = dy;
-        dz            = sourceCoord->coord.t[2] - coord->coord.t[2];
-        scratch->vz.w = dz;
-        damage        = Gp_ComputeDamage(contactWork->field_22C.contacts.recs[0].key, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
-        USE_REG(damage);
-        if (Gp_RollEnemyChance(actor->spawnArg2, contactWork->field_22C.contacts.recs[0].key, 0) != 0) {
-            damage *= 4;
-            Gp_SpawnEff(0x6009C, actor->extra.tmd->coords, 0, NULL);
-        }
-        func_800DA6E8(&((GpEnemy*)actor->spawnArg2)->node, (s32)damage, 0);
-        func_800E2C78(actor->spawnArg2, (s32)contactWork->field_22C.contacts.recs[0].key, (s32)damage, 0);
-        health  = (u16)ctx->hp - damage;
-        ctx->hp = health;
-        if ((health << 0x10) <= 0) {
-            work->field_37A = 5;
-            work->field_37C = 0;
-            actor->state    = (s32)kind;
-        } else if (work->field_398 == 0) {
-            work->field_37A = 4;
-            work->field_37C = 0;
-        }
-        work->field_31A &= 0x7FFF;
-        effect           = Gp_GetIdParam0(contactWork->field_22C.contacts.recs[0].key) & 0xFFFF;
-        switch (effect) {
+    for (i = 0; i < 3; i++) {
+        id = work->field_22C.contacts.recs[i].key;
+        switch (id >> 0x10) {
             case 0:
-            case 4:
-            case 5:
-            case 6:
-            case 7:
-            case 8:
                 break;
             case 2:
-                Gp_SetObjFlag2(actor->spawnArg2, contactWork->field_22C.contacts.recs[0].key, 0);
-                break;
-            case 3:
-                Gp_SetObjFlag4(actor->spawnArg2, contactWork->field_22C.contacts.recs[0].key, 0);
+                if (work->field_378 == 0) {
+                    slots = Gp_ActorSlots;
+                    TOUCH_REG(slots);
+                    sourceCoord       = slots[(id >> 7) & 1]->extra.tmd->coords;
+                    frame->delta.vx.w = sourceCoord->coord.t[0] - coord->coord.t[0];
+                    frame->delta.vy.w = sourceCoord->coord.t[1] - coord->coord.t[1];
+                    frame->delta.vz.w = sourceCoord->coord.t[2] - coord->coord.t[2];
+                    damage            = Gp_ComputeDamage(work->field_22C.contacts.recs[i].key, SquareRoot0((frame->delta.vx.w * frame->delta.vx.w) + (frame->delta.vy.w * frame->delta.vy.w) + (frame->delta.vz.w * frame->delta.vz.w)), 0, 0);
+                    if (Gp_RollEnemyChance(actor->spawnArg2, work->field_22C.contacts.recs[i].key, 0) != 0) {
+                        damage *= 4;
+                        Gp_SpawnEff(0x6009C, actor->extra.tmd->coords, 0, NULL);
+                    }
+                    func_800DA6E8(&((GpEnemy*)actor->spawnArg2)->node, damage, 0);
+                    func_800E2C78(actor->spawnArg2, work->field_22C.contacts.recs[i].key, damage, 0);
+                    ctx->hp -= damage;
+                    if (ctx->hp <= 0) {
+                        work->field_37A = 5;
+                        work->field_37C = 0;
+                        actor->state    = 2;
+                    } else if (work->field_398 == 0) {
+                        work->field_37A = 4;
+                        work->field_37C = 0;
+                    }
+                    work->field_31A &= 0x7FFF;
+                    switch (Gp_GetIdParam0(work->field_22C.contacts.recs[i].key) & 0xFFFF) {
+                        case 0:
+                        case 4:
+                        case 5:
+                        case 6:
+                        case 7:
+                        case 8:
+                            break;
+                        case 2:
+                            Gp_SetObjFlag2(actor->spawnArg2, work->field_22C.contacts.recs[i].key, 0);
+                            break;
+                        case 3:
+                            Gp_SetObjFlag4(actor->spawnArg2, work->field_22C.contacts.recs[i].key, 0);
+                            break;
+                        case 1:
+                        case 9:
+                            Gp_SetObjFlag1(actor->spawnArg2);
+                            break;
+                    }
+                    hitId = work->field_22C.contacts.recs[i].key;
+                    if (lastId != hitId) {
+                        lastId = hitId;
+                        func_800FDB18(Gp_GetIdParam1(hitId) & 0xFFFF, coord, NULL, &work->field_334);
+                    }
+                    cooldownParam = Gp_GetIdParam2(work->field_22C.contacts.recs[i].key);
+                    if (cooldownParam > 0) {
+                        work->field_378 = cooldownParam;
+                    }
+                }
                 break;
             case 1:
-            case 9:
-                Gp_SetObjFlag1(actor->spawnArg2);
+                x                 = coord->workm.t[0] - work->field_22C.contacts.recs[i].point.vx;
+                frame->delta.vx.w = x;
+                y                 = coord->workm.t[1] - work->field_22C.contacts.recs[i].point.vy;
+                frame->delta.vy.w = y;
+                z                 = coord->workm.t[2] - work->field_22C.contacts.recs[i].point.vz;
+                frame->delta.vz.w = z;
+                depth             = work->field_22C.contacts.recs[i].depth - SquareRoot0((x * x) + (y * y) + (z * z));
+                boundedDepth      = depth;
+                if (depth <= 0) {
+                    boundedDepth = 0;
+                }
+                depth = boundedDepth;
+                if (push < depth) {
+                    push = depth;
+                    VectorNormal((VECTOR*)&frame->delta, &frame->normal);
+                    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &frame->normal, &frame->dir);
+                }
+                break;
+            case 3:
+                x                 = coord->workm.t[0] - work->field_22C.contacts.recs[i].point.vx;
+                frame->delta.vx.w = x;
+                y                 = coord->workm.t[1] - work->field_22C.contacts.recs[i].point.vy;
+                frame->delta.vy.w = y;
+                z                 = coord->workm.t[2] - work->field_22C.contacts.recs[i].point.vz;
+                frame->delta.vz.w = z;
+                depth             = work->field_22C.contacts.recs[i].depth - SquareRoot0((x * x) + (y * y) + (z * z));
+                boundedDepth      = depth;
+                if (depth <= 0) {
+                    boundedDepth = 0;
+                }
+                depth = boundedDepth;
+                if (push < depth) {
+                    push = depth;
+                    VectorNormal((VECTOR*)&frame->delta, &frame->normal);
+                    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &frame->normal, &frame->dir);
+                }
                 break;
         }
-        hitId = contactWork->field_22C.contacts.recs[0].key;
-        if (lastId != hitId) {
-            lastId = hitId;
-            func_800FDB18(Gp_GetIdParam1((s32)hitId) & 0xFFFF, coord, NULL, &work->field_334);
-        }
-        cooldownParam = Gp_GetIdParam2(contactWork->field_22C.contacts.recs[0].key);
-        if (cooldownParam > 0) {
-            work->field_378 = cooldownParam;
-        }
     }
-    goto next_contact;
-physical_contact:
-    wallDx        = coord->workm.t[0] - contactWork->field_22C.contacts.recs[0].point.vx;
-    scratch->vx.w = wallDx;
-    wallDy        = coord->workm.t[1] - contactWork->field_22C.contacts.recs[0].point.vy;
-    scratch->vy.w = wallDy;
-    wallDz        = coord->workm.t[2] - contactWork->field_22C.contacts.recs[0].point.vz;
-    scratch->vz.w = wallDz;
-    depth         = contactWork->field_22C.contacts.recs[0].depth - SquareRoot0((wallDx * wallDx) + (wallDy * wallDy) + (wallDz * wallDz));
-    boundedDepth  = depth;
-    if (depth <= 0) {
-        boundedDepth = 0;
-    }
-    depth = boundedDepth;
-    if (push < depth) {
-        push = depth;
-        VectorNormal((VECTOR*)scratch, (VECTOR*)normal);
-        ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, (VECTOR*)normal, (VECTOR*)(scratch + 2));
-    }
-next_contact:
-    contactWork = (Actor00700Work*)((u8*)contactWork + 0x18);
-}
-contact_test:
-    if ((s32)contactWork < (s32)&work->pad_0[0x48])
-        goto contact_loop;
     if (push > 0) {
-        coord->coord.t[0] += (s32)(push * scratch[2].vx.w) >> 0xC;
-        coord->coord.t[2] += (s32)(push * scratch[2].vz.w) >> 0xC;
+        coord->coord.t[0] += (push * frame->dir.vx) >> 0xC;
+        coord->coord.t[2] += (push * frame->dir.vz) >> 0xC;
     }
     Gp_ClearRec18Occupied((s8*)work->field_22C.contacts.recs);
     effectRec = work->pad_31C;
@@ -539,7 +510,7 @@ contact_test:
         work->field_33C  = sourceCoord;
     }
     Gp_ClearRec18Occupied(contactRec);
-    SCRATCH_HEAD(GpDeltaScratch) += 3;
+    SCRATCH_POP(ActorWallPushFrame);
 }
 
 void Actor00700_Fn008B4(Task* arg0)
