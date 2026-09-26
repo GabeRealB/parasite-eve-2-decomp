@@ -8,6 +8,8 @@ typedef struct {
     SVECTOR dir;
 } ScratchLightBlock;
 
+MATRIX D_80074080;
+
 static __inline__ void setLightToMatrices(s32 id, GsF_LIGHT* light, MATRIX* dirMtx, MATRIX* colorMtx)
 {
     ScratchLightBlock* block;
