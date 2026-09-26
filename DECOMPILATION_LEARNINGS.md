@@ -36130,60 +36130,28 @@ A dummy `$v0` temp plus `menu = p` coalesced back to `lui s4`.
 
 `Gp_ArmorMenuTask` is the example.
 
-## Hardcode `$8` for a second `Mc_SaveData+off` `lui` so `$t0` stays a first-half scratch
+## A search over a scan window at a fixed global needs no hand-built `%hi/%lo`
 
-`register s32 hi asm("t0")` (even nested inside a later loop) reserves `$t0`
-for the whole function, so an early `lh t0, field_1C` / `sw t0, savedX`
-becomes `$t1`. The first `&Mc_SaveData.carriedItems` can still be
-`lui $8, %hi(Mc_SaveData+0x5BC)` / `addiu scan, $8, %lo(...)` without that
-reservation. After `Gp_GetItemTable` clobbers `$t0`, reload with a dummy-input
-asm so `%%hi` is expanded and `$t0` is not an output the allocator owns:
+A loop that re-reads `lui t0, %hi(Mc_SaveData+0x5BC)` after `Gp_GetItemTable`
+and indexes by `lbu %lo(...)(t0)` looks like a hand-placed address pair, and an
+earlier body pinned `$8`, faked the `lui` in asm and moved the `found = rec`
+assignment behind gotos to reproduce it. It is the ordinary scan idiom:
 
 ```c
-j = 0;
-asm volatile("lui $8, %%hi(Mc_SaveData+0x5BC)" : : "r"(j));
-found = (GpItemRec*)j;
-asm volatile("lbu %0, %%lo(Mc_SaveData+0x5BC)($8)" : "=r"(idx));
-```
-
-The dummy `"r"(j)` keeps the `lui` between `move a1, zero` and `move a2, a1`.
-
-## Place `found = table` after the outer loop so the inner `beq` is out-of-line
-
-A search `if (match) { found = table; break; }` inlined after the inner loop
-sits on the fall-through of `j < count`, turning `bnez loop` into
-`beqz skip; table++; j loop`. Put the assignment at a label *after* the
-outer `for`, then jump back:
-
-```c
-for (; i < n; i++) {
-    /* ... */
-    if ((s8)table->field_1 == slot) {
-        goto found_assign;
-    }
-    /* ... */
-done_search:
-    /* draw using found */
+col   = i % 5;
+row   = i / 5;
+scan  = &Mc_SaveData.carriedItems;
+rec   = Gp_GetItemTable(scan);
+found = NULL;
+rec   = &rec[scan->firstRow];
+for (j = 0; j < scan->rowCount; j++, rec++) {
+    if (rec->attachSlot == i + 1) { found = rec; break; }
 }
-goto skip_found;
-found_assign:
-found = table;
-goto done_search;
-skip_found:;
 ```
 
-GCC emits `beq match, found_assign` / `j done_search` in the delay of
-`move a2, v1` after the outer loop's `j` / `i++`.
-
-## Unpin the `/5` dest so signed division scratches `$v1`
-
-`register s32 col asm("s1"); col = i / 5` expands in-place
-(`sra s1, t0, 1` / `subu s1, s1, sign`). An unpinned `s32 col` uses `$v1`
-as the `mfhi >> 1` scratch then `subu s1, v1, sign`. Keep that first
-quotient live with a non-volatile `asm("" : "+r"(col))` so copy-prop does
-not retarget the dest into the later `* 5` temp; then `temp = col` is
-`move v1, s1`.
-
+CSE folds `scan->firstRow` into a `%lo` load off the symbol while `rowCount`
+stays on the `scan` register. Writing the remainder before the quotient gives
+the `move v1, s1` copy the division pins were building.
 `Gp_ArmorStatsPanelTask` is the example.
 
 ## One extra `asm volatile("" :: "r"(long_lived))` to sit between two t-reg priorities

@@ -1314,7 +1314,6 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
     s32           base;
     s32           i;
     GpItemAttr*   attr;
-    s32           vx;
 
     obj           = arg0->spawnArg2;
     cfg           = &Player_Status;
@@ -1335,43 +1334,26 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
         attr  = &Gp_ItemAttrs[item];
         Gp_DrawItemLabel(obj, x, y, item, color, 0);
 
-        {
-            s32 vx;
-            vx              = obj->baseX + 0x20;
-            vx              = vx + x;
-            req1.x          = vx;
-            y               = base + 0x1D;
-            req1.y          = obj->baseY + y;
-            req1.otIndex    = (s16)obj->drawOrder + 1;
-            req1.field_8    = color;
-            req1.glyphTable = 0;
-            req1.centerMode = 0;
-            req1.field_E    = 3;
-        }
+        y               = base + 0x1D;
+        req1.x          = obj->baseX + 0x20 + x;
+        req1.y          = obj->baseY + y;
+        req1.otIndex    = (s16)obj->drawOrder + 1;
+        req1.field_8    = color;
+        req1.glyphTable = 0;
+        req1.centerMode = 0;
+        req1.field_E    = 3;
         func_8002E53C(&req1, Text_ItoaSignedPlus(buf, attr->field_4));
 
-        {
-            register s32 t asm("v0");
-            s32          bx;
-            t               = mid + 0x1E;
-            t               = x + t;
-            bx              = obj->baseX;
-            bx              = bx + t;
-            req2.x          = bx;
-            req2.y          = obj->baseY + y;
-            req2.otIndex    = (s16)obj->drawOrder + 1;
-            req2.field_8    = color;
-            req2.glyphTable = 0;
-            req2.centerMode = 0;
-            req2.field_E    = 3;
-            i               = 0;
-            TOUCH_REG(i);
-        }
+        req2.x          = obj->baseX + (x + (mid + 0x1E));
+        req2.y          = obj->baseY + y;
+        req2.otIndex    = (s16)obj->drawOrder + 1;
+        req2.field_8    = color;
+        req2.glyphTable = 0;
+        req2.centerMode = 0;
+        req2.field_E    = 3;
         func_8002E53C(&req2, Text_ItoaSignedPlus(buf, attr->field_6));
 
-        vx              = obj->baseX + 2;
-        vx              = vx + x;
-        req3.x          = vx;
+        req3.x          = obj->baseX + 2 + x;
         req3.y          = obj->baseY + (y - 2);
         req3.otIndex    = (s16)obj->drawOrder + 1;
         req3.field_8    = color;
@@ -1400,66 +1382,35 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
         req5.field_E    = 1;
         func_8002E53C(&req5, Gp_StrAttachments);
 
-        {
-            McItemRec* found;
-            McItemRec* table;
+        for (i = 0; i < Gp_GetModLevel(item); i++) {
+            McItemScan* scan;
+            McItemRec*  rec;
+            McItemRec*  found;
+            s32         col;
+            s32         row;
+            s32         j;
+            s32         id;
 
-            for (; i < Gp_GetModLevel(item); i++) {
-                s32          col;
-                register s32 temp asm("v1");
-                s32          row;
-                s32          prod;
-                McItemScan*  scan;
-                McItemRec*   rec;
-                s32          idx;
-                s32          j;
-                register s32 count asm("a0");
-                register s32 slot asm("a3");
-                s32          id;
-
-                col = i / 5;
-                asm("lui $8, %%hi(Mc_SaveData+0x5BC)\n\taddiu %0, $8, %%lo(Mc_SaveData+0x5BC)"
-                    : "=r"(scan));
-                temp = col;
-                prod = temp * 5;
-                col  = i - prod;
-                row  = temp;
-                rec  = Gp_GetItemTable(scan);
-                j    = 0;
-                asm volatile("lui $8, %%hi(Mc_SaveData+0x5BC)" : : "r"(j));
-                found = (McItemRec*)j;
-                asm volatile("lbu %0, %%lo(Mc_SaveData+0x5BC)($8)" : "=r"(idx));
-                count = scan->rowCount;
-                asm volatile("sll %0, %0, 2" : "+r"(idx));
-                table = (McItemRec*)((s32)rec + idx);
-                if (count != 0) {
-                    slot = i + 1;
-                loop_search:
-                    if (table->attachSlot == slot) {
-                        goto found_assign;
-                    }
-                    j++;
-                    if (j < count) {
-                        table++;
-                        goto loop_search;
-                    }
+            col   = i % 5;
+            row   = i / 5;
+            scan  = &Mc_SaveData.carriedItems;
+            rec   = Gp_GetItemTable(scan);
+            found = NULL;
+            rec   = &rec[scan->firstRow];
+            for (j = 0; j < scan->rowCount; j++, rec++) {
+                if (rec->attachSlot == i + 1) {
+                    found = rec;
+                    break;
                 }
-            done_search:
-                id = 0;
-                if (found != NULL) {
-                    id = found->itemId;
-                }
-                if (id != 0) {
-                    Gp_DrawItemIcon(obj, x + col * 16, y + row * 16, id, 0);
-                }
-                Ui_LayoutWithMode0(obj, (x + col * 16), (y + row * 16 - 0xE),
-                                   0xE, 0xE, 0x102010);
             }
-            goto skip_found;
-        found_assign:
-            found = table;
-            goto done_search;
-        skip_found:;
+            id = 0;
+            if (found != NULL) {
+                id = found->itemId;
+            }
+            if (id != 0) {
+                Gp_DrawItemIcon(obj, x + col * 16, y + row * 16, id, 0);
+            }
+            Ui_LayoutWithMode0(obj, x + col * 16, y + row * 16 - 0xE, 0xE, 0xE, 0x102010);
         }
     }
 }
