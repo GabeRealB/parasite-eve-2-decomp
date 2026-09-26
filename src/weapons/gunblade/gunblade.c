@@ -13,8 +13,10 @@
 
 static void func_gunblade_8011D70C(s16 slot, s16 flags);
 
-/// Muzzle vector for the gunblade's blade sweep.
-SVECTOR D_gunblade_8011E704[1] = { { 0, 0x0060, 0x0080, 0 } };
+/// The near end of the gunblade beam inside the muzzle frame, `(0, 0x60, 0x80)`;
+/// the task's own coordinate starts there. The far end follows it directly, and
+/// state 0 reaches that as element 1 of this array.
+static SVECTOR D_gunblade_8011E704[1] = { { 0, 0x0060, 0x0080, 0 } };
 
 /// The far end of that pair, immediately after it. Both forms appear in
 /// the original: one path reaches it as `D_gunblade_8011E704[1]`, which compiles to the

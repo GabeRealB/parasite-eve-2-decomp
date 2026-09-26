@@ -38,18 +38,6 @@ typedef struct _GunbladeBeamScratch {
 } GunbladeBeamScratch;
 STATIC_ASSERT_SIZEOF(GunbladeBeamScratch, 0x2C);
 
-/// Translation of the gunblade beam's two coordinate frames inside the muzzle
-/// frame: `[0]` is the near end (`0, 0x60, 0x80`) and `[1]` the far end
-/// (`0, 0x60, 0x380`). `func_gunblade_8011D1E4` seeds the task's own coord
-/// from `[0]` and the stack coord from `[1]`.
-///
-/// `D_gunblade_8011E70C` is that same far-end vector under its own name. State
-/// 0 reaches it as `D_gunblade_8011E704[1]`, so the address is derived from the
-/// array base already in a register; state 1 loads the symbol on its own. Both
-/// spellings are needed to match, and one object cannot carry two C names, so
-/// the pair stays in the split data.
-extern SVECTOR D_gunblade_8011E704[1];
-
 /// The eight-segment beam trails, one array per end of the blade. Every entry
 /// is parented to `gGfxViewCoord`.
 extern GpCoord D_gunblade_8012E254[8];

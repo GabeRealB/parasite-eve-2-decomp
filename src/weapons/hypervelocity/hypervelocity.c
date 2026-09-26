@@ -24,7 +24,7 @@ static void func_hypervelocity_8011F270(Task* arg0);
 
 /// Translation of the round's own coordinate frame inside its parent frame
 /// (the muzzle), `(0, 0x240, 0x80)`.
-SVECTOR D_hypervelocity_8011FB74 = { 0, 0x240, 0x80, 0 };
+static SVECTOR D_hypervelocity_8011FB74 = { 0, 0x240, 0x80, 0 };
 
 static void func_hypervelocity_8011F11C(Task* task);
 static void func_hypervelocity_8011F6A0(Task* task);

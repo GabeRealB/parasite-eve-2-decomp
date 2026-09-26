@@ -19,8 +19,11 @@
 
 static void func_m4a1_hammer_8011E29C(GpCoord* coord, SVECTOR* arg1, s32 arg2, s16 arg3);
 
+static void func_m4a1_hammer_8011D904(s32* arg0, u16 arg1, u16 arg2, s16 arg3);
+static void func_m4a1_hammer_8011DE60(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
+
 /// Fixed offset from the parent coordinate that the hammer effect starts at.
-SVECTOR D_m4a1_hammer_8011EB60 = { 0, 0x280, 0x20, 0 };
+static SVECTOR D_m4a1_hammer_8011EB60 = { 0, 0x280, 0x20, 0 };
 
 /// Per-frame task for the hammer's charge flare. `Task::spawnArg2` is the
 /// `Gp_State1C` work block, `Task::extra` reaches the coordinate the flare
@@ -194,7 +197,7 @@ static void func_m4a1_hammer_8011D1E0(Task* task)
 /// columns, `arg2` is the radius and `arg3` the spin angle. The quad's corners
 /// are the radius rotated by `arg3` and by `arg3 + 0x400`, so the sprite spins
 /// in screen space; nothing is drawn if the centre projects off-screen.
-void func_m4a1_hammer_8011D904(s32* arg0, u16 arg1, u16 arg2, s16 arg3)
+static void func_m4a1_hammer_8011D904(s32* arg0, u16 arg1, u16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -299,7 +302,7 @@ static void func_m4a1_hammer_8011DD08(Task* arg0)
 /// and by `arg3 + 0x400`, so the sprite spins in screen space; nothing is
 /// drawn if the centre projects off-screen. Same shape as
 /// `func_m4a1_hammer_8011D904` on a wider, brighter page.
-void func_m4a1_hammer_8011DE60(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
+static void func_m4a1_hammer_8011DE60(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;

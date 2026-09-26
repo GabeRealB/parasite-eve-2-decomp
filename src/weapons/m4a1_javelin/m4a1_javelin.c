@@ -25,19 +25,19 @@ static void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
 static void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness);
 
 /// Fixed local offset the guide beam's coordinate hangs at.
-SVECTOR D_m4a1_javelin_8011FA90 = { 0, 0x200, 0x20, 0 };
+static SVECTOR D_m4a1_javelin_8011FA90 = { 0, 0x200, 0x20, 0 };
 
 /// `(0, 0x800, 0)`: the probe offset `func_800DE7CC` traces each beam segment
 /// against, rotated into world space by `gGfxViewCoord.workm` first.
-SVECTOR D_m4a1_javelin_8011FA98 = { 0, 0x800, 0, 0 };
+static SVECTOR D_m4a1_javelin_8011FA98 = { 0, 0x800, 0, 0 };
 
 /// Per-segment `flags` for `func_m4a1_javelin_8011DAB0`, walked from the far
 /// end (`[5]`, bit 1: retake the beam angle) to the muzzle (`[0]`, bit 0: cap
 /// the near end).
-u16 D_m4a1_javelin_8011FAA0[6] = { 1, 0, 0, 0, 0, 2 };
+static u16 D_m4a1_javelin_8011FAA0[6] = { 1, 0, 0, 0, 0, 2 };
 
 /// The four RGB444 beam colours `GpEffWork::step` fades through.
-u16 D_m4a1_javelin_8011FAAC[4] = { 0x12, 0x124, 0x248, 0x36C };
+static u16 D_m4a1_javelin_8011FAAC[4] = { 0x12, 0x124, 0x248, 0x36C };
 
 /// Per-frame task for the javelin's guide beam. `Task::spawnArg2` is the
 /// `Gp_State1C` work block and `Task::extra` reaches the coordinate the beam

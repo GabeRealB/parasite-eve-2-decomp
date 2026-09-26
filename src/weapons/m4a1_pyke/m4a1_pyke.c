@@ -20,9 +20,13 @@
 #include "main/tmd.h"
 #include "weapons/m4a1_pyke.h"
 
+static void func_m4a1_pyke_8011D548(VECTOR3* pos, u16 frame, s32 brightness);
+static void func_m4a1_pyke_8011DCEC(VECTOR3* pos, u16 frame, u16 width, s16 ang);
+static void func_m4a1_pyke_8011E168(VECTOR3* pos, s32 width);
+
 /// Translation of the Pyke's effect coordinate frame inside its parent frame
 /// (the muzzle), `(0, 0x200, 0x40)`.
-SVECTOR D_m4a1_pyke_8011E90C = { 0, 0x200, 0x40, 0 };
+static SVECTOR D_m4a1_pyke_8011E90C = { 0, 0x200, 0x40, 0 };
 
 static void func_m4a1_pyke_8011E4AC(Task* task);
 
@@ -154,7 +158,7 @@ static void func_m4a1_pyke_8011D1F8(Task* task)
 /// `FLAG`. `frame` walks the six 0x20-wide sprite cells of the strip at
 /// `(v = 0x98..0xB7)`, and `brightness` scales the on-screen half-extent, which
 /// shrinks with distance as `brightness * 31 / otz`.
-void func_m4a1_pyke_8011D548(VECTOR3* pos, u16 frame, s32 brightness)
+static void func_m4a1_pyke_8011D548(VECTOR3* pos, u16 frame, s32 brightness)
 {
     u8*            head;
     GpRingScratch* block;
@@ -377,7 +381,7 @@ static void func_m4a1_pyke_8011D7D4(Task* task)
 /// rotated by `ang` rather than an axis-aligned sprite. `otz` is biased by one
 /// before it is used as the divisor so a point on the near plane cannot divide
 /// by zero.
-void func_m4a1_pyke_8011DCEC(VECTOR3* pos, u16 frame, u16 width, s16 ang)
+static void func_m4a1_pyke_8011DCEC(VECTOR3* pos, u16 frame, u16 width, s16 ang)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -446,7 +450,7 @@ void func_m4a1_pyke_8011DCEC(VECTOR3* pos, u16 frame, u16 width, s16 ang)
 /// ground point `pos`, then projected through `GsWSMATRIX` into a 0x30-byte
 /// `G_SCRATCH_HEAD` block. The first corner goes through `rtps` and the other
 /// three through one `rtpt`; a negative `gte_stflg` drops the quad.
-void func_m4a1_pyke_8011E168(VECTOR3* pos, s32 width)
+static void func_m4a1_pyke_8011E168(VECTOR3* pos, s32 width)
 {
     u8*                    head;
     M4a1PykeSplashScratch* block;

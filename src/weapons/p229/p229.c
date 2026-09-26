@@ -26,7 +26,7 @@ static void func_p229_8011D464(GpCoord* arg0, s16 arg1, s16 arg2);
 static void func_p229_8011D860(GpCoord* arg0, s16 arg1, s16 arg2);
 
 /// Muzzle offset of the P229, in the firing hand's coordinate frame.
-SVECTOR D_p229_8011E0F0 = { 0, 0x140, 0x20, 0 };
+static SVECTOR D_p229_8011E0F0 = { 0, 0x140, 0x20, 0 };
 
 /// Per-frame muzzle-flash task for the P229. Frame 0 claims room-coord slot 0
 /// as a white 0x1000 light at the weapon's world position, parks the task's own

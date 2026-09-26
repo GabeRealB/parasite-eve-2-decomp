@@ -18,14 +18,16 @@
 
 static void func_m4a1_bayonet_8011D69C(s16 slot, s16 flags);
 
-/// Muzzle vector for the bayonet's thrust.
-SVECTOR D_m4a1_bayonet_8011DEC8[1] = { { 0, 0x0300, 0x0040, 0 } };
+/// The blade tip's translation inside the muzzle frame, `(0, 0x300, 0x40)`. The
+/// hilt's translation follows it directly, and state 0 reaches that as element 1
+/// of this array.
+static SVECTOR D_m4a1_bayonet_8011DEC8[1] = { { 0, 0x0300, 0x0040, 0 } };
 
-/// The far end of that pair, immediately after it. Both forms appear in
-/// the original: one path reaches it as `D_m4a1_bayonet_8011DEC8[1]`, which compiles to the
-/// array's address plus 8, and another names it directly, which compiles
-/// to its own address - so it has to be a separate object, not element 1.
-SVECTOR D_m4a1_bayonet_8011DED0 = { 0, 0x0180, 0x0040, 0 };
+/// The hilt's translation inside the muzzle frame, `(0, 0x180, 0x40)`, directly
+/// after the tip. State 0 reaches it as `D_m4a1_bayonet_8011DEC8[1]` and the
+/// sweep state names it directly; the two compile to different address
+/// arithmetic, so it is an object of its own rather than element 1.
+static SVECTOR D_m4a1_bayonet_8011DED0 = { 0, 0x0180, 0x0040, 0 };
 
 /// Per-frame task for the M4A1 bayonet's blade trail. Nothing runs once the
 /// room is fading (`Gp_State1C->eventState` non-zero); the task is then released

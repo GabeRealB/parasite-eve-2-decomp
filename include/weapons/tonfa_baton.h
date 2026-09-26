@@ -22,18 +22,6 @@ typedef struct TonfaSwing {
 } TonfaSwing;
 STATIC_ASSERT_SIZEOF(TonfaSwing, 0x18);
 
-/// Translation of the baton trail's two coordinate frames inside the weapon
-/// frame: `[0]` is the near end and `[1]` the far end. State 0 of
-/// `func_tonfa_baton_8011D1EC` seeds the task's own coord from `[0]` and the
-/// stack coord from `[1]`.
-///
-/// `D_tonfa_baton_8011E0F8` is that same far-end vector under its own name.
-/// State 0 reaches it as `D_tonfa_baton_8011E0F0[1]`, so the address is derived
-/// from the array base already in a register; state 1 loads the symbol on its
-/// own. Both spellings are needed to match, and one object cannot carry two C
-/// names, so the pair stays in the split data.
-extern SVECTOR D_tonfa_baton_8011E0F0[1];
-
 /// The eight-segment swing trails, one array per end of the baton. Every entry
 /// is parented to `gGfxViewCoord`.
 extern GpCoord D_tonfa_baton_8012BBEC[8];

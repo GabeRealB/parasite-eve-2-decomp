@@ -34,7 +34,7 @@ static void func_mp5a5_8011D864(GpCoord* arg0, s16 arg1, s16 arg2);
 #endif
 
 /// Muzzle offset of the weapon, in the firing hand's coordinate frame.
-SVECTOR D_mp5a5_8011E128 = { 0, 0x240, 0x40, 0 };
+static SVECTOR D_mp5a5_8011E128 = { 0, 0x240, 0x40, 0 };
 
 /// Per-frame muzzle-flash task for the MP5A5 and its upgrades. Frame 0 claims room-coord slot 0
 /// as a white 0x1000 light at the weapon's world position, parks the task's own

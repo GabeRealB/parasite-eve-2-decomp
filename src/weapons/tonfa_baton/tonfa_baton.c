@@ -20,8 +20,10 @@
 
 static void func_tonfa_baton_8011D6B0(s16 slot, s16 flags);
 
-/// Near vector for the baton's swing arc.
-SVECTOR D_tonfa_baton_8011E0F0[1] = { { 0, 0x0080, 0, 0 } };
+/// The near end of the baton trail inside the weapon frame; the task's own
+/// coordinate starts there. The far end follows it directly, and state 0 reaches
+/// that as element 1 of this array.
+static SVECTOR D_tonfa_baton_8011E0F0[1] = { { 0, 0x0080, 0, 0 } };
 
 /// The far end of that pair, immediately after it. Both forms appear in
 /// the original: one path reaches it as `D_tonfa_baton_8011E0F0[1]`, which compiles to the

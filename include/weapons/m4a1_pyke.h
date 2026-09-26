@@ -33,20 +33,4 @@ typedef struct M4a1PykeSplashScratch {
 } M4a1PykeSplashScratch;
 STATIC_ASSERT_SIZEOF(M4a1PykeSplashScratch, 0x30);
 
-/// Translation of the Pyke's effect coordinate frame inside its parent frame
-/// (the muzzle), `(0, 0x200, 0x40)`.
-extern SVECTOR D_m4a1_pyke_8011E90C;
-
-/// Handwritten GTE routine. Projects the world-space point `pos` through
-/// `GsWSMATRIX` and links one frame of the beam sprite there; `frame` picks the
-/// sprite and `brightness` scales its colour.
-void func_m4a1_pyke_8011D548(VECTOR3* pos, u16 frame, s32 brightness);
-
-/// Draws one frame of the flying dart at `pos`. `frame` walks the sprite,
-/// `width` comes from the dart's flare width and `ang` from its spin angle.
-void func_m4a1_pyke_8011DCEC(VECTOR3* pos, u16 frame, u16 width, s16 ang);
-
-/// Spawns the dart's ground splash at `pos`, scaled by `width`.
-void func_m4a1_pyke_8011E168(VECTOR3* pos, s32 width);
-
 #endif

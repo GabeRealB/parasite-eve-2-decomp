@@ -6,19 +6,6 @@
 #include <psyq/libgs.h>
 #include "main/coord.h"
 
-/// The two translations the bayonet's coordinate frames sit at inside their
-/// parent (the muzzle): `[0]` `(0, 0x300, 0x40)` is the blade tip used while
-/// the thrust is winding up and `[1]` `(0, 0x180, 0x40)` the hilt. The second
-/// element is also labelled `D_m4a1_bayonet_8011DED0` because the sweep state
-/// addresses it as a symbol of its own.
-extern SVECTOR D_m4a1_bayonet_8011DEC8[1];
-
-/// `D_m4a1_bayonet_8011DEC8[1]` under its own label. State 0 reaches the hilt
-/// through the array base already in a register, the sweep state loads this
-/// symbol on its own, and both spellings are needed to match - so the pair
-/// stays in the split data, where one address can carry two names.
-extern SVECTOR D_m4a1_bayonet_8011DED0;
-
 /// The blade's motion trail: eight tip and eight hilt coordinate frames,
 /// parented to `gGfxViewCoord`. The sweep state overwrites slot
 /// `GpEffWork::age & 7` each frame and the ribbon is drawn between the

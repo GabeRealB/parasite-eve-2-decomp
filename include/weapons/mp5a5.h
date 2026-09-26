@@ -5,9 +5,6 @@
 
 #include <psyq/libgte.h>
 
-/// Muzzle offset of the MP5A5, in the firing hand's coordinate frame.
-extern SVECTOR D_mp5a5_8011E128;
-
 /// The four flash angles rolled on the frame the shot goes off, one per
 /// `func_mp5a5_8011D864` quad. Each is a fixed quadrant (`i << 10`) plus a
 /// 10-bit LCG jitter, so the four quads always fan out around the muzzle.
