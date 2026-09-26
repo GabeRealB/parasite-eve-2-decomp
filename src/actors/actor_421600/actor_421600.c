@@ -1651,13 +1651,9 @@ void func_actor_421600_80134AD4(GpEnemy* enemy, Task* actor)
     VECTOR           pos;
     TmdObject*       obj;
     GpCoord*         root;
-    Actor421600Work* mapped;
     Actor421600Work* work;
     GpObj*           body;
     GpObj*           head;
-    s16              extent;
-    s32              linkKind;
-    GpObj*           linkObj;
     root        = actor->extra.tmd->coords;
     obj         = actor->extra.tmd;
     work        = memCalloc(0xEB0, 0);
@@ -1700,38 +1696,31 @@ void func_actor_421600_80134AD4(GpEnemy* enemy, Task* actor)
     work->field_B6C.radius   = 0x12C;
     work->field_B6C.flags    = 1;
     Gp_LinkObj(2, &work->field_B6C);
-    work->field_CCC.end0.vy = -0x180;
-    work->field_CCC.end1.vy = -0x180;
-    extent                  = 0x2BC;
-    linkKind                = 2;
-    linkObj                 = &work->field_CAC;
-    __asm__("" : "+r"(linkKind), "+r"(linkObj) : "m"(work->field_CCC.end0.vy), "m"(work->field_CCC.end1.vy));
-    __asm__("" : "+r"(extent) : "m"(work->field_CCC.end0.vy), "m"(work->field_CCC.end1.vy));
-    work->field_CCC.end0Radius   = 0x12C;
-    mapped                       = work;
-    mapped->field_CCC.end1Radius = 0x12C;
-    __asm__("" : "+r"(extent), "+m"(mapped->field_CCC.end1Radius) : "r"(work->field_CE4));
-    mapped->field_CCC.end1.vz   = extent;
-    mapped->field_CAC.ctx.d4rec = &mapped->field_CCC;
-    mapped->field_CCC.end0.vx   = 0;
-    mapped->field_CCC.end0.vz   = 0;
-    mapped->field_CCC.end1.vx   = 0;
-    mapped->field_CCC.recs      = work->field_CE4;
-    (&mapped->field_CAC)->coord = root;
-    mapped->field_CAC.pos.vx    = 0;
-    mapped->field_CAC.pos.vy    = 0;
-    mapped->field_CAC.pos.vz    = 0;
-    mapped->field_CAC.key       = 0x30001;
-    mapped->field_CAC.radius    = 0;
-    mapped->field_CAC.flags     = 3;
-    mapped->field_B6C.flags     = mapped->field_B6C.flags | 0x4000;
-    Gp_LinkObj(linkKind, linkObj);
-    mapped->field_CAC.flags = mapped->field_CAC.flags | 0x4000;
-    Gp_InitRec18Table(mapped->field_CE4, 0xC, 0);
-    Gp_InitRec18Table(mapped->field_B6C.ctx.recs, 0xC, 0);
-    body           = &mapped->field_8EC;
+    work->field_CCC.end0.vx    = 0;
+    work->field_CCC.end0.vy    = -0x180;
+    work->field_CCC.end0.vz    = 0;
+    work->field_CCC.end1.vx    = 0;
+    work->field_CCC.end1.vy    = -0x180;
+    work->field_CCC.end1.vz    = 0x2BC;
+    work->field_CCC.end0Radius = 0x12C;
+    work->field_CCC.end1Radius = 0x12C;
+    work->field_CCC.recs       = work->field_CE4;
+    work->field_CAC.ctx.d4rec  = &work->field_CCC;
+    work->field_CAC.coord      = root;
+    work->field_CAC.pos.vx     = 0;
+    work->field_CAC.pos.vy     = 0;
+    work->field_CAC.pos.vz     = 0;
+    work->field_CAC.key        = 0x30001;
+    work->field_CAC.radius     = 0;
+    work->field_CAC.flags      = 3;
+    work->field_B6C.flags     |= 0x4000;
+    Gp_LinkObj(2, &work->field_CAC);
+    work->field_CAC.flags |= 0x4000;
+    Gp_InitRec18Table(work->field_CE4, 0xC, 0);
+    Gp_InitRec18Table(work->field_B6C.ctx.recs, 0xC, 0);
+    body           = &work->field_8EC;
     body->coord    = &actor->extra.tmd->coords[2];
-    body->ctx.recs = &mapped->field_90C;
+    body->ctx.recs = &work->field_90C;
     body->pos.vx   = 0;
     body->pos.vy   = 0;
     body->pos.vz   = 0;
@@ -1741,9 +1730,9 @@ void func_actor_421600_80134AD4(GpEnemy* enemy, Task* actor)
     Gp_LinkObj(2, body);
     body->flags |= 0x8000;
     Gp_InitRec18Table(body->ctx.recs, 0xC, 0);
-    head           = &mapped->field_A2C;
+    head           = &work->field_A2C;
     head->coord    = &actor->extra.tmd->coords[10];
-    head->ctx.recs = &mapped->field_A4C;
+    head->ctx.recs = &work->field_A4C;
     head->pos.vx   = 0;
     head->pos.vy   = 0;
     head->pos.vz   = 0;
@@ -1753,12 +1742,12 @@ void func_actor_421600_80134AD4(GpEnemy* enemy, Task* actor)
     Gp_LinkObj(2, head);
     head->flags |= 0x8000;
     Gp_InitRec18Table(head->ctx.recs, 0xC, 0);
-    mapped->field_A2C.pos.vx = 0;
-    mapped->field_A2C.pos.vy = 0;
-    mapped->field_A2C.pos.vz = -0x100;
-    mapped->field_14         = 0;
-    mapped->field_C[0].x     = actor->extra.tmd->coords->coord.t[0];
-    mapped->field_C[0].z     = actor->extra.tmd->coords->coord.t[2];
+    work->field_A2C.pos.vx = 0;
+    work->field_A2C.pos.vy = 0;
+    work->field_A2C.pos.vz = -0x100;
+    work->field_14         = 0;
+    work->field_C[0].x     = actor->extra.tmd->coords->coord.t[0];
+    work->field_C[0].z     = actor->extra.tmd->coords->coord.t[2];
     Gfx_MatrixCol2(&actor->extra.tmd->coords->coord, &dir);
     dir.vy = 0;
     v      = &dir;
@@ -1767,16 +1756,16 @@ void func_actor_421600_80134AD4(GpEnemy* enemy, Task* actor)
     gte_ldsv(v);
     gte_gpf12();
     gte_stsv(v);
-    mapped->field_C[1].x = actor->extra.tmd->coords->coord.t[0] + dir.vx;
-    mapped->field_C[1].z = actor->extra.tmd->coords->coord.t[2] + dir.vz;
-    mapped->field_E88    = 3;
-    mapped->field_E7C    = 0;
-    mapped->field_E80    = 1;
-    mapped->field_E84    = 0;
-    mapped->field_E8C    = 1;
-    actor->msgTable      = &D_actor_421600_80151118;
-    root->sub            = &gGfxViewCoord;
-    root->flg            = 0;
+    work->field_C[1].x = actor->extra.tmd->coords->coord.t[0] + dir.vx;
+    work->field_C[1].z = actor->extra.tmd->coords->coord.t[2] + dir.vz;
+    work->field_E88    = 3;
+    work->field_E7C    = 0;
+    work->field_E80    = 1;
+    work->field_E84    = 0;
+    work->field_E8C    = 1;
+    actor->msgTable    = &D_actor_421600_80151118;
+    root->sub          = &gGfxViewCoord;
+    root->flg          = 0;
     Gp_UpdateCoord(root);
     pos.vx = root->workm.t[0];
     pos.vy = root->workm.t[1];
@@ -1785,46 +1774,46 @@ void func_actor_421600_80134AD4(GpEnemy* enemy, Task* actor)
     kind = actor->spawnArg1 >> 16;
     switch (kind & 0xF) {
         case 1:
-            mapped->field_2 = -1;
-            mapped->field_0 = 0;
+            work->field_2 = -1;
+            work->field_0 = 0;
             break;
 
         case 2:
-            mapped->field_2 = -1;
-            mapped->field_0 = 0x21;
+            work->field_2 = -1;
+            work->field_0 = 0x21;
             break;
 
         case 0:
 
         default:
-            mapped->field_2 = -1;
-            mapped->field_0 = 0x18;
+            work->field_2 = -1;
+            work->field_0 = 0x18;
             Tmd_AllocBuffers(obj);
             break;
     }
 
     switch (actor->spawnArg1 & 0xF) {
         case 2:
-            mapped->field_EA2 = D_actor_421600_8013EF48[0].field_2;
-            mapped->field_EA4 = D_actor_421600_8013EF48[0].field_0;
-            mapped->field_EA6 = D_actor_421600_8013EF48[0].field_4;
-            mapped->field_EA8 = D_actor_421600_8013EF48[0].field_6;
+            work->field_EA2 = D_actor_421600_8013EF48[0].field_2;
+            work->field_EA4 = D_actor_421600_8013EF48[0].field_0;
+            work->field_EA6 = D_actor_421600_8013EF48[0].field_4;
+            work->field_EA8 = D_actor_421600_8013EF48[0].field_6;
             break;
 
         case 1:
-            mapped->field_EA2 = D_actor_421600_8013EF48[2].field_2;
-            mapped->field_EA4 = D_actor_421600_8013EF48[2].field_0;
-            mapped->field_EA6 = D_actor_421600_8013EF48[2].field_4;
-            mapped->field_EA8 = D_actor_421600_8013EF48[2].field_6;
+            work->field_EA2 = D_actor_421600_8013EF48[2].field_2;
+            work->field_EA4 = D_actor_421600_8013EF48[2].field_0;
+            work->field_EA6 = D_actor_421600_8013EF48[2].field_4;
+            work->field_EA8 = D_actor_421600_8013EF48[2].field_6;
             break;
 
         case 0:
 
         default:
-            mapped->field_EA2 = D_actor_421600_8013EF48[1].field_2;
-            mapped->field_EA4 = D_actor_421600_8013EF48[1].field_0;
-            mapped->field_EA6 = D_actor_421600_8013EF48[1].field_4;
-            mapped->field_EA8 = D_actor_421600_8013EF48[1].field_6;
+            work->field_EA2 = D_actor_421600_8013EF48[1].field_2;
+            work->field_EA4 = D_actor_421600_8013EF48[1].field_0;
+            work->field_EA6 = D_actor_421600_8013EF48[1].field_4;
+            work->field_EA8 = D_actor_421600_8013EF48[1].field_6;
             break;
     }
 
