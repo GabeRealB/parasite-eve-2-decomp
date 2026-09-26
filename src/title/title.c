@@ -19,9 +19,8 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-extern WipUiHolder* Wip_UiHolder;
-extern u8           D_80073980[0x208];
-extern s32          Pad_MaskConfirm;
+extern u8  D_80073980[0x208];
+extern s32 Pad_MaskConfirm;
 
 void func_807246B4(void);
 

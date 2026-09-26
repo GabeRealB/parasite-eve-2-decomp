@@ -5,6 +5,14 @@
 #include "main/pad.h"
 #include "main/text.h"
 #include "main/ui.h"
+#include "main/task.h"
+#include "main/tmd.h"
+#include "main/wipsys.h"
+#include "gameplay/1BC.h"
+#include "gameplay/3688.h"
+#include "gameplay/3A34.h"
+#include "gameplay/3E9C.h"
+#include "gameplay/4CC.h"
 
 static void Ui_DispatchObjectState(Task* arg0);
 static void Ui_InsetRect2(void* arg0, RECT* arg1, RECT* arg2);
@@ -18,6 +26,170 @@ static void Ui_DrawAndCallback(UiPanel* arg0, void* arg1);
 static void Ui_DrawListHighlight(UiList* arg0, UiPanel* arg1, s32 arg2, s32 arg3);
 static void Ui_LayoutDrawAndCallback(UiPanel* arg0, void* arg1);
 static void Ui_TickAnimCounter(UiPanel* arg0, void* arg1);
+static void func_80044698(void);
+static void Ui_DrawDialogLine(DialogPrompt* arg0, UiObject* arg1);
+static void Ui_ListTaskCallback(Task* arg0);
+
+TaskDesc D_800670D0[] = {
+    { 0x0, 0xC0, taskKill },
+    { 0x0, 0xC0, taskKill },
+    { 0x0, 0xC0, taskKill },
+    { 0x0, 0xC0, taskKill },
+    { 0x0, 0xC0, (TaskFunc)0x80714A48 },
+    { 0x1, 0xC0, (TaskFunc)0x80707534, { (TmdSource*)0x8075BED4 } },
+    { 0x2, 0xC0, (TaskFunc)0x807075A0 },
+    { 0x1, 0xC0, (TaskFunc)0x807077C0, { (TmdSource*)0x8075BED4 } },
+    { 0x2, 0xC0, (TaskFunc)0x807080C8 },
+    { 0x2, 0xC0, (TaskFunc)0x80707870 },
+    { 0x0, 0xC0, (TaskFunc)0x80707980 },
+    { 0x0, 0x60, Gp_EnemyDispatch },
+    { 0x1, 0x40, (TaskFunc)0x807077C0, { (TmdSource*)0x8075BED4 } },
+    { 0x0, 0xC0, taskKill },
+    { 0x0, 0xC0, taskKill },
+    { 0x0, 0x41, Gp_UpdateRoomCoords },
+    { 0x0, 0x51, func_800D96C8 },
+    { 0x2, 0xC0, taskKill },
+    { 0x0, 0xC0, (TaskFunc)0x807146AC },
+    { 0x1, 0xC0, (TaskFunc)0x8071473C, { (TmdSource*)0x8075BED4 } },
+    { 0x2, 0xC0, (TaskFunc)0x8071489C, { (TmdSource*)0x8072C8F0 } },
+    { 0x0, 0x0, NULL },
+    { 0x0, 0x0, NULL },
+    { 0x1, 0xC0, (TaskFunc)0x807149F0, { (TmdSource*)0x8075BED4 } },
+    { 0x0, 0xC0, (TaskFunc)0x80707B14 },
+    { 0x0, 0x2F, func_800B2910 },
+    { 0x2, 0x60, taskKill },
+    { 0x0, 0xC0, (TaskFunc)0x80707C38 },
+    { 0x1, 0xC0, (TaskFunc)0x80707F84, { (TmdSource*)0x8075BED4 } },
+    { 0x2, 0xC0, (TaskFunc)0x80708070 },
+    { 0x0, 0xC0, taskKill },
+    { 0x0, 0x0, NULL },
+    { 0x0, 0x0, NULL },
+    { 0x0, 0xC0, Tmd_DispatchTask },
+    { 0x0, 0xC0, Tmd_AllocNodeBuffers },
+    { 0x0, 0x60, func_800B5DB8 },
+    { 0x0, 0xC0, func_80044698 },
+    { 0x0, 0x70, func_800CFD78 },
+    { 0x0, 0xC0, func_800CE22C },
+    { 0x0, 0xC2, Gp_FadeTileTask },
+    { 0x0, 0xC0, taskKill },
+    { 0x0, 0xC0, (TaskFunc)0x807127A8 },
+    { 0x0, 0x0, NULL },
+    { 0x0, 0x70, taskKill },
+    { 0x0, 0xC0, func_800B65B0 },
+    { 0x0, 0xC0, func_800B60C0 },
+    { 0x0, 0xC0, func_800D9CC8 },
+    { 0x0, 0xC0, (TaskFunc)0x8070A6E8 },
+    { 0x0, 0xC0, (TaskFunc)0x80708778 },
+    { 0x0, 0x2F, Gp_FadeWorkTask },
+    { 0x1, 0x70, Gp_EffAttachTask37 },
+};
+
+static u8 D_80067334[] = "Where am I?";
+static u8 D_80067340[] = "Square";
+static u8 D_80067348[] = "Fire Escape";
+static u8 D_80067354[] = "MIST Parking";
+static u8 D_80067364[] = "Gas Station";
+static u8 D_80067370[] = "Trailer Coach";
+static u8 D_80067380[] = "Motel Lobby";
+static u8 D_8006738C[] = "Refuge";
+static u8 D_80067394[] = "Sterilization Room";
+static u8 D_800673A8[] = "Underground Parking";
+static u8 D_800673BC[] = "Laboratory";
+static u8 D_800673C8[] = "Incinerator Control Room";
+static u8 D_800673E4[] = "Pod Deck";
+static u8 D_800673F0[] = "Nursery";
+static u8 D_800673F8[] = "Tent";
+static u8 D_80067400[] = "Opening";
+static u8 D_80067408[] = "Motel Room 6";
+
+u8* D_80067418[] = {
+    D_80067334,
+    D_80067340,
+    D_80067348,
+    D_80067354,
+    D_80067364,
+    D_80067370,
+    D_80067380,
+    D_8006738C,
+    D_80067394,
+    D_800673A8,
+    D_800673BC,
+    D_800673C8,
+    D_800673E4,
+    D_800673F0,
+    D_800673F8,
+    D_80067400,
+    D_80067408,
+};
+
+/* Ｓｑｕａｒｅ */
+static u8 D_8006745C[] = "\x82\x72\x82\x91\x82\x95\x82\x81\x82\x92\x82\x85";
+/* Ｆｉｒｅ　Ｅｓｃａｐｅ */
+static u8 D_8006746C[] = "\x82\x65\x82\x89\x82\x92\x82\x85\x81\x40\x82\x64\x82\x93\x82\x83\x82\x81\x82\x90\x82\x85";
+/* ＭＩＳＴ　Ｐａｒｋｉｎｇ */
+static u8 D_80067484[] = "\x82\x6C\x82\x68\x82\x72\x82\x73\x81\x40\x82\x6F\x82\x81\x82\x92\x82\x8B\x82\x89\x82\x8E\x82\x87";
+/* Ｇａｓ　Ｓｔａｔｉｏｎ */
+static u8 D_800674A0[] = "\x82\x66\x82\x81\x82\x93\x81\x40\x82\x72\x82\x94\x82\x81\x82\x94\x82\x89\x82\x8F\x82\x8E";
+/* Ｔｒａｉｌｅｒ　Ｃｏａｃｈ */
+static u8 D_800674B8[] = "\x82\x73\x82\x92\x82\x81\x82\x89\x82\x8C\x82\x85\x82\x92\x81\x40\x82\x62\x82\x8F\x82\x81\x82\x83\x82\x88";
+/* Ｍｏｔｅｌ　Ｌｏｂｂｙ */
+static u8 D_800674D4[] = "\x82\x6C\x82\x8F\x82\x94\x82\x85\x82\x8C\x81\x40\x82\x6B\x82\x8F\x82\x82\x82\x82\x82\x99";
+/* Ｒｅｆｕｇｅ */
+static u8 D_800674EC[] = "\x82\x71\x82\x85\x82\x86\x82\x95\x82\x87\x82\x85";
+/* Ｓｔｅｒｉｌｉｚａｔｉｏｎ　Ｒｍ． */
+static u8 D_800674FC[] = "\x82\x72\x82\x94\x82\x85\x82\x92\x82\x89\x82\x8C\x82\x89\x82\x9A\x82\x81\x82\x94\x82\x89\x82\x8F\x82\x8E\x81\x40\x82\x71\x82\x8D\x81\x44";
+/* Ｕｎｄｅｒｇｒｏｕｎｄ　Ｐａｒｋ． */
+static u8 D_80067520[] = "\x82\x74\x82\x8E\x82\x84\x82\x85\x82\x92\x82\x87\x82\x92\x82\x8F\x82\x95\x82\x8E\x82\x84\x81\x40\x82\x6F\x82\x81\x82\x92\x82\x8B\x81\x44";
+/* Ｌａｂｏｒａｔｏｒｙ */
+static u8 D_80067544[] = "\x82\x6B\x82\x81\x82\x82\x82\x8F\x82\x92\x82\x81\x82\x94\x82\x8F\x82\x92\x82\x99";
+/* Ｉｎｃｉｎ．　Ｃｏｎｔｒｏｌ */
+static u8 D_8006755C[] = "\x82\x68\x82\x8E\x82\x83\x82\x89\x82\x8E\x81\x44\x81\x40\x82\x62\x82\x8F\x82\x8E\x82\x94\x82\x92\x82\x8F\x82\x8C";
+/* Ｐｏｄ　Ｄｅｃｋ */
+static u8 D_8006757C[] = "\x82\x6F\x82\x8F\x82\x84\x81\x40\x82\x63\x82\x85\x82\x83\x82\x8B";
+/* Ｎｕｒｓｅｒｙ */
+static u8 D_80067590[] = "\x82\x6D\x82\x95\x82\x92\x82\x93\x82\x85\x82\x92\x82\x99";
+/* Ｔｅｎｔ */
+static u8 D_800675A0[] = "\x82\x73\x82\x85\x82\x8E\x82\x94";
+/* Ｏｐｅｎｉｎｇ */
+static u8 D_800675AC[] = "\x82\x6E\x82\x90\x82\x85\x82\x8E\x82\x89\x82\x8E\x82\x87";
+/* Ｍｏｔｅｌ　Ｒｏｏｍ　６ */
+static u8 D_800675BC[] = "\x82\x6C\x82\x8F\x82\x94\x82\x85\x82\x8C\x81\x40\x82\x71\x82\x8F\x82\x8F\x82\x8D\x81\x40\x82\x55";
+/* Ｗｈｅｒｅ　ａｍ　Ｉ？ */
+static u8 D_800675D8[] = "\x82\x76\x82\x88\x82\x85\x82\x92\x82\x85\x81\x40\x82\x81\x82\x8D\x81\x40\x82\x68\x81\x48";
+
+u8* D_800675F0[] = {
+    D_800675D8,
+    D_8006745C,
+    D_8006746C,
+    D_80067484,
+    D_800674A0,
+    D_800674B8,
+    D_800674D4,
+    D_800674EC,
+    D_800674FC,
+    D_80067520,
+    D_80067544,
+    D_8006755C,
+    D_8006757C,
+    D_80067590,
+    D_800675A0,
+    D_800675AC,
+    D_800675BC,
+    NULL,
+};
+/// Unreferenced.
+static s32 D_80067638    = 0x001C2824;
+static s32 D_8006763C[1] = { 0x000D287F };
+static s32 D_80067640    = 0x00606060;
+/// Unreferenced.
+static s32 D_80067644 = 0x0038443C;
+static s32 D_80067648 = 0xFFFFFF56;
+static s32 D_8006764C = 0xFFFFFF7E;
+
+static UiListItemFunc D_80067650[] = { Ui_DrawDialogLine };
+static UiList         D_80067654   = { D_80067650, 1, 1, 0, 0x0F };
+static UiObjectDesc   D_80067678   = { 2, 0xFFD0, 0xFFE0, 0x60, 0x40, 0x20, 0, 0, 0xC0, (s32)Ui_ListTaskCallback, 0 };
+WipUiHolder*          Wip_UiHolder = NULL;
 
 static const UiPanelFuncTable6 Ui_ObjectStates = { {
     Ui_AnimOpenStep,
@@ -28,7 +200,7 @@ static const UiPanelFuncTable6 Ui_ObjectStates = { {
     Ui_ClipAndCallback,
 } };
 
-void func_80044698(void)
+static void func_80044698(void)
 {
 }
 
@@ -2500,7 +2672,7 @@ void Ui_WaitCdThenOverlay(Task* arg0)
     temp_s0->field_16 += gDisplayState.frameTicks;
 }
 
-void Ui_DrawDialogLine(DialogPrompt* arg0, UiObject* arg1)
+static void Ui_DrawDialogLine(DialogPrompt* arg0, UiObject* arg1)
 {
     DialogListCtx* temp_s3;
     DialogOption*  var_a3;
@@ -2531,7 +2703,7 @@ void Ui_DrawDialogLine(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-void Ui_ListTaskCallback(Task* arg0)
+static void Ui_ListTaskCallback(Task* arg0)
 {
     UiObject*      obj;
     SelectMenuCtx* ctx;

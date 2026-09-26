@@ -175,8 +175,6 @@ typedef struct {
 } UiPanelRender;
 STATIC_ASSERT_SIZEOF(UiPanelRender, 0x24);
 
-extern s32 D_80067640;
-
 /// WIP: Task::spawnArg1 context for D_8006121C select-menu (McMenu_SelectListAlt).
 /// Only field_290 is used so far (seeds UiList cursor).
 typedef struct _WipSelectMenuExt {
@@ -199,10 +197,8 @@ typedef struct _WipUiHolder {
 extern WipUiHolder* Wip_UiHolder;
 extern UiList       D_8006116C;
 extern UiList       D_80061194;
-extern UiList       D_80067654;
 extern UiObjectDesc D_800611C8[];
 extern UiObjectDesc D_800612D0[];
-extern UiObjectDesc D_80067678;
 
 /// Object used by 34E98.c handlers (e.g. Ui_AnimOpenStep / Ui_ObjectStates table).
 /// field_4 low nibble selects layout padding (Ui_InsetLayout); high nibble of the
