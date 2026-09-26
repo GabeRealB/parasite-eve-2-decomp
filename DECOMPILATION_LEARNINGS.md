@@ -143361,3 +143361,26 @@ scheduled freely.
 **Fix.** `u16 idx = arg1;` at the top, then `u32 cell = idx;` where it is
 used, so one zero-extension feeds both `cell & 3` and `cell & 7` (keeping the
 `andi 0xFFFF`). An earlier `SOFT_TOUCH_REG` on an `s32` copy stood for this.
+
+### An expression hoisted above a call into a reused local wants its own local (func_shelter_b1_control_room_8017F39C, 2026-09-26)
+
+Symptom: `subu s0,s4,t0` / `sll s0,s0,1` / `addu s0,t0,s0` computes an angle
+right after a call in the target; written into the angle local `t` that the
+same loop body reuses for other angles, sched1 hoists the three insns above
+the call, and written as one expression into `t` the intermediate lands in
+`$v0` instead of `$s0`. The tree had an empty-asm barrier on the prim load
+plus a `TOUCH_REG` on the intermediate.
+
+Mechanism: the reused `t` is live across calls, so its sets carry no
+dependence on `last_function_call` (see "A result flag written *after* a
+call"). A fresh local assigned once from the whole expression
+(`side = start + (ang - start) * 2;`) makes the intermediate a pseudo that
+crosses no call, which sched1 keeps after the call, and since both are local
+to the loop block, local-alloc ties it into `side`'s callee-saved register.
+The same body's `t3 = ang + 0x800; ... t = t3;` copy is the same shape and
+cannot be folded back into `t` either. Read one local per angle as the
+original's style, not as a hack.
+
+The scratch push in the same function needed no pin at all: plain
+`block = SCRATCH_PUSH(T)` gives the `addiu v0` / `move s3,v0` pair, and every
+`((T*)(head - K))->field` cast access became `block->field`.
