@@ -141951,3 +141951,20 @@ a hand-written `lui`/`addiu` was the `while (1) { if (!sub) break; ... continue;
 form actor_323400 uses, with the two stack-address locals assigned vector
 first: their order is what decides which one dbr steals into the switch's
 delay slots.
+
+## `li 1; sll 4` left unfolded is an inlined helper's constant argument (Gp_AnimSeekSlotEx)
+
+**Symptom.** `addiu $v0,$zero,1; sll $v0,$v0,4` where plain C `1 << 4` folds to
+`li 16`; the seed pinned a `one` local with `TOUCH_REG` to keep the shift, plus
+three `asm` register pins for the setup.
+
+**Cause.** The function's first part was a copy of a sibling in the same TU
+(`func_800B4114(ctx, slot, set, start, span)`, which stores `span << 4`). The
+original inlined that body with `span = 1`; the constant parameter reaches the
+shift only after CSE, too late to fold, and the helper's own locals fix the
+allocation the pins were imitating.
+
+**Fix.** Lift the sibling into a `static inline` helper, make the sibling call
+it, and call it with `1` from the other function. Before pinning an odd
+constant sequence, run `overlay_dup_index.py similar` and look for a sibling
+whose body is a prefix of yours.

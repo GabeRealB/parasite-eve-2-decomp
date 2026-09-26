@@ -1988,62 +1988,55 @@ void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
     SCRATCH_POP(GpAnimScratch18);
 }
 
-void Gp_AnimSeekSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
+static inline void _gpAnimSeekSlot(GpAnimCtx* arg0, s32 arg1, u16 arg2, s32 arg3, s32 arg4)
 {
-    register GpAnimSlot* p asm("s0");
-    s32                  one;
-    register s32         raw asm("a2");
-    register s32         scaled asm("v1");
-    s32                  off;
-    s32                  f8;
-    GpAnimSlot*          slot;
-    GpAnimSet*           set;
-    GpAnimRec*           recs;
-    GpAnimRec*           recs2;
-    GpAnimRec*           rec;
-    u16                  idx;
-    u16                  val;
-    s32                  extra;
-    s32                  saved2;
+    GpAnimSlot* slot;
+    GpAnimSet*  set;
+    GpAnimRec*  recs;
+    GpAnimRec*  rec;
+    u16         idx;
+    u16         val;
+    s32         off;
 
-    extra  = arg3;
-    slot   = &arg0->slots[arg1];
-    raw    = arg2;
-    saved2 = raw;
-    off    = arg1 << 4;
-    f8     = (s32)arg0->poses;
-    TOUCH_REG(raw);
-    scaled = raw << 2;
-    recs2  = (*(GpAnimSet**)(scaled + (s32)slot->sets))->recs;
-    func_800B3448(arg0, arg1, 0, f8 + off);
+    off  = arg1 << 4;
+    slot = &arg0->slots[arg1];
+    func_800B3448(arg0, arg1, 0, (s32)arg0->poses + off);
     slot->curSet = 0x7FFF;
-    set          = slot->sets[(u16)saved2];
+    set          = slot->sets[arg2];
     recs         = set->recs;
-    idx          = set->trackStart[slot->trackIndex] + extra;
-    p            = slot;
+    idx          = set->trackStart[slot->trackIndex] + arg3;
     while ((s8)recs[idx].flags < 0) {
         rec = (GpAnimRec*)((idx << 2) + (s32)recs);
         if (rec->flags < 0xC0) {
             idx = rec->pose;
-            if (idx == p->nextRec) {
-                p->flags |= 1;
+            if (idx == slot->nextRec) {
+                slot->flags |= 1;
             }
-            p->flags |= 2;
+            slot->flags |= 2;
         } else {
-            idx       = p->nextRec;
-            p->flags |= 1;
+            idx          = slot->nextRec;
+            slot->flags |= 1;
             break;
         }
     }
-    one = 1;
-    TOUCH_REG(one);
-    val            = one << 4;
-    p->nextRec     = idx;
-    p->nextSet     = saved2;
-    p->timeSpan    = val;
-    p->timeLeft    = val;
-    p->bufPose     = 0;
-    val            = recs2[slot->nextRec].duration << 4;
+    slot->nextRec  = idx;
+    slot->nextSet  = arg2;
+    val            = arg4 << 4;
+    slot->timeSpan = val;
+    slot->timeLeft = val;
+    slot->bufPose  = 0;
+}
+
+void Gp_AnimSeekSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    GpAnimSlot* slot;
+    GpAnimRec*  recs;
+    u16         val;
+
+    slot = &arg0->slots[arg1];
+    recs = slot->sets[arg2]->recs;
+    _gpAnimSeekSlot(arg0, arg1, arg2, arg3, 1);
+    val            = recs[slot->nextRec].duration << 4;
     slot->timeSpan = val;
     slot->timeLeft = val;
 }
@@ -2279,41 +2272,7 @@ void Gp_AnimSeekSlot(GpAnimCtx* arg0, s32 arg1, s32 arg2)
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, u16 arg2, s32 arg3, s32 arg4)
 {
-    GpAnimSlot* slot;
-    GpAnimSet*  set;
-    GpAnimRec*  recs;
-    GpAnimRec*  rec;
-    u16         idx;
-    u16         val;
-    s32         off;
-
-    off  = arg1 << 4;
-    slot = &arg0->slots[arg1];
-    func_800B3448(arg0, arg1, 0, (s32)arg0->poses + off);
-    slot->curSet = 0x7FFF;
-    set          = slot->sets[arg2];
-    recs         = set->recs;
-    idx          = set->trackStart[slot->trackIndex] + arg3;
-    while ((s8)recs[idx].flags < 0) {
-        rec = (GpAnimRec*)((idx << 2) + (s32)recs);
-        if (rec->flags < 0xC0) {
-            idx = rec->pose;
-            if (idx == slot->nextRec) {
-                slot->flags |= 1;
-            }
-            slot->flags |= 2;
-        } else {
-            idx          = slot->nextRec;
-            slot->flags |= 1;
-            break;
-        }
-    }
-    slot->nextRec  = idx;
-    slot->nextSet  = arg2;
-    val            = arg4 << 4;
-    slot->timeSpan = val;
-    slot->timeLeft = val;
-    slot->bufPose  = 0;
+    _gpAnimSeekSlot(arg0, arg1, arg2, arg3, arg4);
 }
 
 void Gp_AnimWritePoseBlend(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
