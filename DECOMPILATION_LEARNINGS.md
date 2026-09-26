@@ -141148,3 +141148,18 @@ both arms start with into the branch's delay slot. Selecting a table pointer fir
 indexing it afterwards cannot reproduce this: local-alloc always gives the arm's `%hi`
 temp `$v0`, so the shift loses `$v0`. Only the relocation spelling differs
 (`%lo(Gp_RelatedQty0-0x200)` vs `%lo(Gp_QtyById0)`), and the linked bytes are the same.
+## A statement written in both arms adds a reference that cross-jumping later removes (Gp_DrawWeaponSlotRow, 2026-09-26)
+
+`REG_N_REFS` is fixed by flow, long before jump2 merges identical tails. So
+`obj->status = 0;` written at the end of *both* arms of an if/else emits one
+`sw` in the object but counts two references to `obj`. Where two long-lived
+pseudos sit a hair apart in global priority (`floor_log2(refs) * refs / length`,
+here 21 refs over a doubled parameter length of 466 against 13 over 209), that
+one reference swaps their callee-saved registers. The tree had pinned both; the
+duplicated tail made the pins unnecessary.
+
+Retyping `UiObject`'s layout halfwords to `s16` so a negative constant stores as
+`addiu` does not work: ten matched `field_C = (baseX + field_1E + k) - field_10`
+stores lose a load-delay `nop` and the image shrinks. An inline helper taking the
+offsets as `s32` parameters stores them the same way the staging local in the
+entry above does.

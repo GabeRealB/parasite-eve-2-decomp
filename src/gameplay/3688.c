@@ -2150,78 +2150,63 @@ void Gp_ItemDestCursorTask(Task* arg0)
     }
 }
 
-void Gp_DrawWeaponSlotRow(DialogPrompt* arg0, UiObject* arg1)
+/// Replaces the layout position a spawned child copied from its descriptor
+/// with `x`, `y`.
+static inline void _gpSetSpawnOffset(UiObject* obj, s32 x, s32 y)
 {
-    TextDrawReq            req;
-    PlayerStatus*          cfg;
-    register DialogPrompt* prompt asm("s5");
-    register UiObject*     obj asm("s2");
-    s32                    item;
-    s32                    flag;
-    s32                    status;
-    s32                    count;
-    s32                    x;
-    s32                    y;
-    s32                    color;
-    s32                    temp;
-    s32                    off;
-    UiList*                menu;
-    Task*                  parent;
-    u8*                    ptr;
-    s32                    t;
+    obj->field_E = y;
+    obj->field_C = x;
+}
 
-    prompt = arg0;
-    SOFT_TOUCH_REG(prompt);
-    cfg  = &Player_Status;
-    t    = cfg->weapon;
-    item = t + 0x7F;
+void Gp_DrawWeaponSlotRow(DialogPrompt* prompt, UiObject* obj)
+{
+    TextDrawReq   req;
+    PlayerStatus* player;
+    s32           item;
+    s32           status;
+    s32           mode;
+    s32           x;
+    s32           y;
+    s32           color;
+    s32           temp;
+
+    player = &Player_Status;
+    item   = player->weapon + 0x7F;
     if (item < 0x80) {
         item = 0;
     }
-    obj = arg1;
-    SOFT_TOUCH_REG(obj);
 
     status = obj->status;
-    if (((status >> 16) == 1) || (status == 1)) {
-        if (prompt->field_10 == prompt->field_8) {
-            if (Gp_ItemOrderMode == 0) {
-                register s32 name asm("a0");
-                s32          a1v;
-                a1v = 1;
-                if (item == 0) {
-                    name = (s32)Gp_StrEmpty;
-                } else {
-                    name = (s32)Gp_GetItemText(item, a1v, 0);
-                }
-                a1v = 0;
-                Ui_SetHolderParam(name, a1v, a1v);
-                Gp_SetPreviewItem(item, 0);
+    if (((status >> 16) == 1 || status == 1) && prompt->field_10 == prompt->field_8) {
+        if (Gp_ItemOrderMode == 0) {
+            if (item == 0) {
+                Ui_SetHolderParam((s32)Gp_StrEmpty, 0, 0);
             } else {
-                Ui_SetHolderParam((s32)Gp_StrSelectDest, 0, 0);
+                Ui_SetHolderParam((s32)Gp_GetItemText(item, 1, 0), 0, 0);
             }
+            Gp_SetPreviewItem(item, 0);
+        } else {
+            Ui_SetHolderParam((s32)Gp_StrSelectDest, 0, 0);
         }
     }
 
     status = prompt->field_C;
     if (status == 1) {
-        flag = Gp_ItemOrderMode;
-        if (flag == 0) {
-            register McItemScan* scan asm("s4");
-            McItemRec*           table;
-            register s32         i asm("a1");
-            s32                  idx;
+        mode = Gp_ItemOrderMode;
+        if (mode == 0) {
+            McItemScan* scan;
+            McItemRec*  table;
+            s32         i;
+            s32         count;
 
             scan  = &Mc_SaveData.carriedItems;
             table = Gp_GetItemTable(scan);
             if (item != 0) {
-                idx    = ((volatile McItemScan*)&Mc_SaveData.carriedItems)->firstRow;
-                count  = scan->rowCount;
-                table += idx;
-                if (flag < count) {
-                    for (i = 0; i < count; i++, table++) {
-                        if (table->itemId == item) {
-                            break;
-                        }
+                table = &table[scan->firstRow];
+                count = scan->rowCount;
+                for (i = 0; i < count; i++, table++) {
+                    if (table->itemId == item) {
+                        break;
                     }
                 }
                 Gp_SelItemRec = (u8*)table;
@@ -2229,48 +2214,41 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* arg0, UiObject* arg1)
                 Gp_SelItemRec = NULL;
             }
             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-                menu = &D_8010E9A4;
-                Gp_CountAmmoRows(menu, 0);
-                {
-                    s32       n;
+                Gp_CountAmmoRows(&D_8010E9A4, 0);
+                if (D_8010E9A4.field_4 >= 2U || (D_8010E9A4.field_4 == 1 && player->weapon == 0)) {
                     UiObject* spawned;
-                    n = menu->field_4;
-                    if (((u32)n >= 2U) || ((n == 1) && (cfg->weapon == 0))) {
-                        SndEvt_EnqueueType6(3, 0, 0);
-                        spawned = Ui_SpawnFromDesc(&D_8010ECE4, 0, 1, 0x10, obj);
-                        if (spawned != NULL) {
-                            register s32 t asm("v0");
-                            t                = -0x5C;
-                            spawned->field_E = t;
-                            t                = -8;
-                            spawned->field_C = t;
-                        }
-                    } else {
-                        Gp_SpawnItemPrompt(obj, 0x14, 0, 1);
+                    SndEvt_EnqueueType6(3, 0, 0);
+                    spawned = Ui_SpawnFromDesc(&D_8010ECE4, 0, 1, 0x10, obj);
+                    if (spawned != NULL) {
+                        _gpSetSpawnOffset(spawned, -8, -0x5C);
                     }
+                    obj->status = 0;
+                } else {
+                    Gp_SpawnItemPrompt(obj, 0x14, 0, 1);
+                    obj->status = 0;
                 }
-                obj->status = 0;
             } else {
                 Gp_CheckItemInfoButton(obj);
             }
-        } else if (flag == status) {
+        } else if (mode == status) {
             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
                 if ((u8)(*Gp_SelItemRec + 0x80) < 0x20) {
                     PlayerStatus* p;
-                    s32           a0item;
-                    a0item = item;
-                    p      = &Player_Status;
-                    Gp_ClearEquipSlotSel(a0item, 0);
-                    ptr       = Gp_SelItemRec;
-                    p->weapon = *ptr - 0x7F;
-                    Gp_SetItemSeenBit(*ptr, 1);
+                    u8*           rec;
+
+                    p = &Player_Status;
+                    Gp_ClearEquipSlotSel(item, 0);
+                    rec       = Gp_SelItemRec;
+                    p->weapon = *rec - 0x7F;
+                    Gp_SetItemSeenBit(*rec, 1);
                     Gp_ItemOrderMode = 0;
                     SndEvt_EnqueueType6(3, 0, 0);
                 } else {
+                    Task* parent;
                     parent = obj->owner->parent;
                     if (parent != NULL) {
                         Gp_ItemOrderMode                       = 0;
-                        ((UiObject*)parent->spawnArg2)->status = flag;
+                        ((UiObject*)parent->spawnArg2)->status = mode;
                         obj->status                            = 0;
                         SndEvt_EnqueueType6(3, 0, 0);
                     }
@@ -2284,8 +2262,7 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* arg0, UiObject* arg1)
     color = prompt->field_1C;
     if (obj->mode != 5) {
         req.x          = obj->baseX + 0x11 + x;
-        off            = obj->baseY - 6;
-        req.y          = off + y;
+        req.y          = obj->baseY + (y - 6);
         req.otIndex    = (s16)obj->drawOrder + 1;
         req.field_8    = color;
         req.glyphTable = 0;
@@ -2301,27 +2278,15 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* arg0, UiObject* arg1)
 
     Ui_DrawHBar((UiPanel*)obj, (s16)obj->field_1C, (s16)obj->field_1E, (s16)obj->field_18 + 0x11);
 
-    {
-        register s32 vx asm("v0");
-        s32          vy;
-        s32          grey;
-        grey           = 0x606060;
-        vx             = obj->baseX;
-        vy             = (u16)prompt->field_18;
-        req.x          = vx + vy;
-        vx             = obj->baseY;
-        vy             = (u16)prompt->field_1A;
-        vx             = vx + 9;
-        vy             = vy + vx;
-        req.y          = vy;
-        req.otIndex    = (s16)obj->drawOrder + 1;
-        req.field_8    = grey;
-        req.glyphTable = 5;
-        req.centerMode = 0;
-        req.field_E    = 1;
-        func_8002E53C(&req, Gp_StrAmmoCaps);
-    }
-    prompt->field_1A = (u16)prompt->field_1A + 0xA;
+    req.x          = obj->baseX + prompt->field_18;
+    req.y          = prompt->field_1A + (obj->baseY + 9);
+    req.otIndex    = (s16)obj->drawOrder + 1;
+    req.field_8    = 0x606060;
+    req.glyphTable = 5;
+    req.centerMode = 0;
+    req.field_E    = 1;
+    func_8002E53C(&req, Gp_StrAmmoCaps);
+    prompt->field_1A += 0xA;
 }
 
 void Gp_DrawWeaponSlotRow2(DialogPrompt* prompt, UiObject* obj)
