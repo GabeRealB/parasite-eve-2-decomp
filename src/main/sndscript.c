@@ -1,4 +1,5 @@
 #include "common.h"
+#include <psyq/abs.h>
 
 #include "main/unknown_syms.h"
 #include "main/cdaudio.h"
@@ -1971,33 +1972,14 @@ static s32 SndScript_TickVoices(SndScript* arg0)
 
 static void SndVoice_ScaleVolume(s8 arg0, s8 arg1, SndVoice* arg2, LinInterp* arg3, s16* arg4)
 {
-    register s32 temp_v0 asm("v0");
-    s32          temp_v1;
+    s32 vol;
 
     if (arg2->field_0 >= 0) {
-        temp_v0 = arg1;
-        if (temp_v0 < 0) {
-            temp_v0 = -temp_v0;
-        }
-        SCHED_BARRIER();
-        temp_v1 = 0x7F - temp_v0;
-        temp_v0 = arg2->field_2;
-        if (temp_v1 < 0) {
-            temp_v1 = -temp_v1;
-        }
-        SCHED_BARRIER();
-        temp_v0 *= temp_v1;
-        temp_v1  = temp_v0 / 127;
-        if (temp_v1 < 0x80) {
-            temp_v0 = temp_v1;
-            if (temp_v1 < 0) {
-                temp_v0 = 0;
-            }
-        } else {
-            temp_v0 = 0x7F;
-        }
-        Spu_ApplyPanVolume(arg4, (s16)((s8)arg2->field_3 + (arg0 * 3)),
-                           LinInterp_Apply(arg3, D_80068E78[temp_v0]));
+        vol = 0x7F - abs(arg1);
+        vol = arg2->field_2 * abs(vol) / 127;
+        vol = (vol < 0x80) ? ((vol < 0) ? 0 : vol) : 0x7F;
+        Spu_ApplyPanVolume(arg4, (s8)arg2->field_3 + arg0 * 3,
+                           LinInterp_Apply(arg3, D_80068E78[vol]));
     }
 }
 
