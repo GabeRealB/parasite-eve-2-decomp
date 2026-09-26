@@ -903,7 +903,6 @@ static void Actor02000_Fn01A20(GpEnemy* ctx, Task* actor)
     VECTOR3          pos;
     SVECTOR*         scratch;
     s16              duration;
-    s16              state;
     s16              anim;
     GpCoord*         partA;
     GpCoord*         partB;
@@ -917,10 +916,9 @@ static void Actor02000_Fn01A20(GpEnemy* ctx, Task* actor)
     Actor105600Work* work;
     Actor105600Work* animWork;
 
-    SCRATCH_PUSH_BYTES(8);
-    scratch = SCRATCH_HEAD(SVECTOR);
     work    = actor->work;
-    coord   = ((void*)((volatile Task*)actor)->extra.tmd->coords);
+    coord   = actor->extra.tmd->coords;
+    scratch = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
     switch (Gp_StateF0.field_4) {
         case 0:
             actor->extra.tmd->flags = 0;
@@ -947,8 +945,7 @@ static void Actor02000_Fn01A20(GpEnemy* ctx, Task* actor)
             ctx->node.state.b.flags = 1;
             return;
     }
-    state = work->field_6A8;
-    switch (state) {
+    switch (work->field_6A8) {
         case 0:
             ctx->recs = 0;
             Gp_UnlinkNode(&ctx->node);
@@ -959,7 +956,7 @@ static void Actor02000_Fn01A20(GpEnemy* ctx, Task* actor)
             if ((u32)((u16)work->field_6CA - 0x38) < 2U) {
                 Gp_UnlinkObj(&work->field_61C);
             }
-            Gp_ReleaseStateF0Add(actor, (s16)work->field_6CA);
+            Gp_ReleaseStateF0Add(actor, work->field_6CA);
             anim = 0x1D;
             if (work->field_6B8 == 1) {
                 anim = 0x19;
@@ -976,29 +973,25 @@ static void Actor02000_Fn01A20(GpEnemy* ctx, Task* actor)
                 scratch->vz = 0;
                 random      = (Gp_LcgState * 5) + 0x71357911;
                 scratch->vy = -((random >> 0x10) & 0x1FF);
-                Gp_LcgState = (s32)random;
+                Gp_LcgState = random;
                 Gp_SpawnEff(0x600E0, &actor->extra.tmd->coords[3], 0x400, scratch);
             }
             break;
     }
     animWork = actor->work;
-    i        = 1;
     if (animWork->field_694 != animWork->field_696) {
         animWork->field_696 = (s16)(u16)animWork->field_694;
         animWork->field_698 = 0U;
         duration            = Actor02000_D03784[animWork->field_694];
-        do {
-            func_800B4114(&animWork->rig.anim, i, animWork->field_694, 0, (s32)duration);
-            i++;
-        } while (i < 0x13);
+        for (i = 1; i < 0x13; i++) {
+            func_800B4114(&animWork->rig.anim, i, animWork->field_694, 0, duration);
+        }
         coord->flg = 0;
     } else {
-        TOUCH_REG(i);
-        animWork->field_698 = (u16)(animWork->field_698 + i);
-        do {
+        animWork->field_698++;
+        for (i = 1; i < 0x13; i++) {
             Gp_AnimTickIndex(&animWork->rig.anim, i);
-            i += 1;
-        } while (i < 0x13);
+        }
         coord->flg = 0;
     }
     actor->extra.tmd->coords[3].flg = 0;
