@@ -2708,19 +2708,14 @@ void Gp_DrawEffShard(GpCoord* arg0, s16 arg1, s16 arg2, u16 arg3)
 
 void Gp_EffSprTask9E(Task* arg0)
 {
-    register void**   scratch asm("a0");
-    register u8*      head asm("v0");
-    GpQuadScratch*    block;
-    register SVECTOR* v asm("a1");
-    s32               i;
-    GpEffWork*        mem;
-    GpCoord*          coord;
-    GpQuadCorner*     tbl;
-    MATRIX*           m;
-    POLY_FT4*         prim;
-    s32               scale;
-    s32               shade;
-    u8                col;
+    GpQuadScratch* block;
+    s32            i;
+    GpEffWork*     mem;
+    GpCoord*       coord;
+    POLY_FT4*      prim;
+    s32            scale;
+    s32            shade;
+    u8             col;
 
     mem   = arg0->spawnArg2;
     coord = arg0->extra.tmd->coords;
@@ -2739,29 +2734,19 @@ void Gp_EffSprTask9E(Task* arg0)
     }
     Gp_UpdateCoord(coord);
 
-    scratch                                 = SCRATCH_HEAD_ADDR;
-    head                                    = SCRATCH_HEAD_AT(scratch, u8) - 0x38;
-    block                                   = (GpQuadScratch*)head;
-    SCRATCH_HEAD_AT(scratch, GpQuadScratch) = block;
-    i                                       = 0;
-    m                                       = &coord->workm;
-    v                                       = block->vec;
-    tbl                                     = D_80111E38;
-    do {
-        v->vx = tbl->x * (u16)mem->scale;
-        v->vy = 0;
-        v->vz = tbl->y * (u16)mem->scale;
-        gte_SetRotMatrix(m);
-        gte_ldv0(v);
+    block = SCRATCH_PUSH(GpQuadScratch);
+    for (i = 0; i < 4; i++) {
+        block->vec[i].vx = D_80111E38[i].x * (u16)mem->scale;
+        block->vec[i].vy = 0;
+        block->vec[i].vz = D_80111E38[i].y * (u16)mem->scale;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&block->vec[i]);
         gte_rtv0();
-        gte_stsv(v);
-        (u16) v->vx = (u16)v->vx + (u16)coord->workm.t[0];
-        tbl++;
-        (u16) v->vy = (u16)v->vy + (u16)coord->workm.t[1];
-        i++;
-        (u16) v->vz = (u16)v->vz + (u16)coord->workm.t[2];
-        v++;
-    } while (i < 4);
+        gte_stsv(&block->vec[i]);
+        block->vec[i].vx += coord->workm.t[0];
+        block->vec[i].vy += coord->workm.t[1];
+        block->vec[i].vz += coord->workm.t[2];
+    }
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
