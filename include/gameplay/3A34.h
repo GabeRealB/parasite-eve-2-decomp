@@ -505,10 +505,10 @@ STATIC_ASSERT_SIZEOF(GpAttnScratch, 0x20);
 typedef struct _GpSpotScratch {
     /* 0x00 */ VECTOR  vec;
     /* 0x10 */ SVECTOR dir;
-    /* 0x18 */ s32     distSq;
-    /* 0x1C */ s32     outerSq;
-    /* 0x20 */ s32     innerSq;
-    /* 0x24 */ s32     scale;
+    /* 0x18 */ u32     distSq;
+    /* 0x1C */ u32     outerSq;
+    /* 0x20 */ u32     innerSq;
+    /* 0x24 */ u32     scale;
     /* 0x28 */ s32     cosAng;
 } GpSpotScratch;
 STATIC_ASSERT_SIZEOF(GpSpotScratch, 0x2C);

@@ -909,104 +909,52 @@ s32 Gp_LightPoint(GpPointLight* arg0, VECTOR3* arg1)
     return result;
 }
 
-s32 Gp_LightCone(GpSpotLight* arg0, VECTOR3* arg1)
+s32 Gp_LightCone(GpSpotLight* spot, VECTOR3* pos)
 {
-    GpSpotLight*            obj2;
-    register VECTOR3*       pos;
-    register GpSpotLight*   obj asm("s1");
-    s32                     result;
-    register void**         scratch asm("a1");
-    register u8*            head asm("a2");
-    u8*                     addr;
-    register GpSpotScratch* block asm("s0");
-    register s32            lum;
-    s32                     tooFar;
-    s32                     r;
-    s32                     g;
-    s32                     b;
-    s32                     dist;
-    s32                     inner;
-    s32                     vx;
-    s32                     sq;
-    u16                     scale;
-    u8*                     ptr;
-    s16                     room;
-    s32                     dot;
+    GpLight*       light;
+    GpSpotScratch* block;
+    s32            result;
 
-    obj2 = arg0, pos = arg1, obj = obj2;
-    TOUCH_REG3(obj2, pos, obj);
-    room   = obj->head.u.at.room;
+    light  = &spot->head;
     result = 0;
-    if (room != 0) {
-        if ((u8)gGameSession->at4.loc.view != room) {
+    if (light->u.at.room != 0) {
+        if (gGameSession->at4.loc.view != light->u.at.room) {
             return result;
         }
     }
-    scratch                                 = SCRATCH_HEAD_ADDR;
-    vx                                      = obj->head.u.at.world.t[0];
-    head                                    = SCRATCH_HEAD_AT(scratch, u8);
-    vx                                     -= pos->vx;
-    vx                                    >>= 1;
-    addr                                    = head - 0x2C;
-    ((GpSpotScratch*)(head - 0x2C))->vec.vx = vx;
-    block                                   = (GpSpotScratch*)addr;
-    block->vec.vy                           = (obj->head.u.at.world.t[1] - pos->vy) >> 1;
-    block->vec.vz                           = (obj->head.u.at.world.t[2] - pos->vz) >> 1;
-    TOUCH_REG(addr);
-    sq                                      = block->vec.vx * block->vec.vx + block->vec.vy * block->vec.vy + block->vec.vz * block->vec.vz;
-    block->distSq                           = sq;
-    sq                                      = obj2->outer;
-    lum                                     = sq * sq;
-    sq                                      = lum >> 2;
-    lum                                     = block->distSq;
-    block->outerSq                          = sq;
-    SCRATCH_HEAD_AT(scratch, GpSpotScratch) = block;
-    tooFar                                  = (u32)sq < (u32)lum;
-    block->scale                            = 0;
-    if (tooFar) {
+    SCRATCH_PUSH(GpSpotScratch);
+    block          = SCRATCH_HEAD(GpSpotScratch);
+    block->vec.vx  = (light->u.at.world.t[0] - pos->vx) >> 1;
+    block->vec.vy  = (light->u.at.world.t[1] - pos->vy) >> 1;
+    block->vec.vz  = (light->u.at.world.t[2] - pos->vz) >> 1;
+    block->distSq  = block->vec.vx * block->vec.vx + block->vec.vy * block->vec.vy + block->vec.vz * block->vec.vz;
+    block->outerSq = (spot->outer * spot->outer) >> 2;
+    block->scale   = 0;
+    if (block->outerSq < block->distSq) {
         result = 0;
     } else {
-        VECTOR* light;
-
-        block->innerSq = (obj2->inner * obj2->inner) >> 2;
-        light          = (VECTOR*)block;
-        Gfx_NormalizeLightDir(light, (SVECTOR*)(head - 0x1C));
-        dot           = block->dir.vx * obj->head.u.at.world.m[0][2] + block->dir.vy * obj->head.u.at.world.m[1][2] + block->dir.vz * obj->head.u.at.world.m[2][2];
-        block->cosAng = -dot >> 12;
-        if (rcos(obj2->angle >> 1) < block->cosAng) {
-            r            = obj2->head.r;
-            g            = obj2->head.g;
-            b            = obj2->head.b;
+        block->innerSq = (spot->inner * spot->inner) >> 2;
+        Gfx_NormalizeLightDir(&block->vec, &block->dir);
+        block->cosAng = -(block->dir.vx * light->u.at.world.m[0][2] + block->dir.vy * light->u.at.world.m[1][2] + block->dir.vz * light->u.at.world.m[2][2]) >> 12;
+        if (rcos(spot->angle >> 1) < block->cosAng) {
+            result       = ((spot->head.r * 8 + spot->head.g * 6 + spot->head.b * 2) >> 8) + 0xF00;
             block->scale = 0x1000;
-            lum          = (r * 8 + g * 6 + b * 2) >> 8;
-            dist         = block->distSq;
-            inner        = block->innerSq;
-            result       = lum + 0xF00;
-            if ((u32)inner < (u32)dist) {
-                s32 temp;
-
-                temp = block->outerSq;
-                TOUCH_REG(temp);
-                lum = inner;
-                TOUCH_REG(lum);
-                block->outerSq = temp - inner;
-                block->distSq -= lum;
-                while ((u32)block->outerSq > 0xFFFF) {
-                    block->outerSq = (u32)block->outerSq >> 4;
-                    block->distSq  = (u32)block->distSq >> 4;
+            if (block->distSq > block->innerSq) {
+                block->outerSq -= block->innerSq;
+                block->distSq  -= block->innerSq;
+                while (block->outerSq > 0xFFFF) {
+                    block->outerSq >>= 4;
+                    block->distSq  >>= 4;
                 }
                 if (block->outerSq != 0) {
-                    block->scale = ((u32)(block->outerSq - block->distSq) << 12) / (u32)block->outerSq;
-                    lum          = block->scale * result;
-                    result       = (u32)lum >> 12;
+                    block->scale = ((block->outerSq - block->distSq) << 12) / block->outerSq;
+                    result       = (block->scale * result) >> 12;
                 }
             }
         }
     }
-    scale                = block->scale;
-    ptr                  = SCRATCH_HEAD(u8);
-    obj->head.u.at.scale = scale;
-    SCRATCH_HEAD(u8)     = ptr + 0x2C;
+    light->u.at.scale = block->scale;
+    SCRATCH_POP(GpSpotScratch);
     return result;
 }
 

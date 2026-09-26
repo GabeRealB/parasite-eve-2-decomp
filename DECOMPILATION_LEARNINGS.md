@@ -141277,3 +141277,19 @@ by itself, because the scalar store to the fixed head address cannot alias
 them. So a late store holding the copy's register does not by itself rule out
 the compound push: try it before an input-only `asm`. `mat = &block->mat`
 reproduced the separate `head - 0x20` register as well.
+### A late head store of the copy's register is still the compound push: sched1 sinks it, local-alloc re-points it (Gp_LightCone, 2026-09-26)
+
+**Symptom.** A scratch block is carved with `addiu a0,head,-K` / `move s0,a0`,
+the first field store goes through `-K(head)`, the rest through `s0`, and the
+head store `sw s0,0(a1)` only comes several field writes later. Written as
+`block = SCRATCH_HEAD(T) - 1; ... SCRATCH_HEAD(T) = block;` at the store's
+position, combine folds the carve into the block pointer and the `move` is
+gone. The entry above says only an input-only asm restores the pair here.
+
+**Fix.** The plain compound push, at the top, produces it:
+`SCRATCH_PUSH(T); block = SCRATCH_HEAD(T);`. The store to the constant scratch
+address is a scalar reference, so sched1 may move it past the struct stores
+through `block`, and it sinks to where the target has it, still storing the
+carve. local-alloc's `optimize_reg_copy_1` then rewrites that read of the carve
+to read the copy (`.sched` stores the temp, `.lreg` the block pseudo), which is
+why the ROM stores `s0`. Try this before any asm when the store is late.
