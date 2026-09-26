@@ -143890,3 +143890,22 @@ and split the read into a non-volatile `*(s16*)&g` and a volatile copy. The
 same function's pins on the `0x140` constant (`t7`) and on the return value
 (`v0`) went away with an `s16` step parameter and an early `return 1` in the
 finished case; no pin or cast was needed.
+## Overlapping stack buffers can be inline frames, not a function-scope union (func_800A57B0, 2026-09-26)
+
+A HUD function's 0x50-byte scratch was modelled as a union (`buf`/`req` for two
+number draws, `label`/`req`/`obj` for the captions, `rect`/status masks
+later), and it needed `DEF_REG` after each call: with one union, CSE keeps
+`&loc.req` in an `$s` register across calls, while the target recomputes
+`addiu a0,sp,0x28` before each one. The overlap came from `static inline`
+helpers instead. An inline expansion's frame is a temp slot, it is released
+after the call, and its locals are addressed per expansion, so `&req` is never
+CSE'd across calls. One helper with `buf` and `req` draws both numbers. A
+block-scope `UiObject obj` comes next and takes a fresh slot. Its address is
+never taken, so it is freed at the block's end. A second helper declares both
+captions' requests and takes `&obj`. The final `rect` block then reuses the
+merged free run at the bottom. Address-taken block locals would not work here:
+they stay allocated (see `preserve_temp_slots` above), so `rect` would land
+past them. A caption reading `obj->baseX` right after the stores folds to the
+constant, and the one after the call reloads it from the stack. That
+asymmetry means one obj-relative draw was used twice, not two differently
+written draws.

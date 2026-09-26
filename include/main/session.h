@@ -145,7 +145,7 @@ typedef struct {
     u8           enemyCullZone;  // 1..16 index into the enemy axis-limit table; 0 disables
     byte         skipEventIntro; // nonzero: skip intro spawns
     byte         unknown_138;
-    u8           hudShakeY;      // signed HUD vertical shake amplitude (pixels x 3)
+    s8           hudShakeY;      // signed HUD vertical shake amplitude (pixels x 3)
     u8           dirActionBusy;  // 1 while a direction/cap action is in flight; blocks HUD
     u8           padScriptFlags; // bit0 hold, bit1 lerp, bit7 run pad scripts during battle freeze
 } GameSession;

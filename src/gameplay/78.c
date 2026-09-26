@@ -2254,9 +2254,52 @@ static void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     SCRATCH_POP(SVECTOR);
 }
 
+/// Draws `val`, clamped at zero, as a right-aligned number at (`x`, `y`).
+static inline void _gpDrawHudValue(s32 x, s32 y, s32 color, s32 val)
+{
+    u8          buf[0x10];
+    TextDrawReq req;
+
+    if (val < 0) {
+        val = 0;
+    }
+    req.x          = x;
+    req.y          = y;
+    req.otIndex    = -2;
+    req.field_8    = color;
+    req.glyphTable = 0;
+    req.centerMode = 2;
+    req.field_E    = 3;
+    func_8002E53C(&req, Text_ItoaUnsigned(buf, val));
+}
+
+/// Draws the "HP" and "MP" captions relative to `obj`'s origin and draw order.
+static inline void _gpDrawHudLabels(UiObject* obj, s32 x, s32 y, s32 color)
+{
+    TextDrawReq hpReq;
+    TextDrawReq mpReq;
+
+    hpReq.x          = obj->baseX + 4 + x;
+    hpReq.y          = obj->baseY + 8 + y;
+    hpReq.otIndex    = obj->drawOrder + 1;
+    hpReq.field_8    = color;
+    hpReq.glyphTable = 5;
+    hpReq.centerMode = 0;
+    hpReq.field_E    = 1;
+    func_8002E53C(&hpReq, Gp_StrHP);
+
+    mpReq.x          = obj->baseX + 0x2E + x;
+    mpReq.y          = obj->baseY + 8 + y;
+    mpReq.otIndex    = obj->drawOrder + 1;
+    mpReq.field_8    = color;
+    mpReq.glyphTable = 5;
+    mpReq.centerMode = 0;
+    mpReq.field_E    = 1;
+    func_8002E53C(&mpReq, Gp_StrMP);
+}
+
 static void func_800A57B0(GpIdMapC* arg0)
 {
-    GpHudHpScratch loc;
     PadRemapState* remap;
     s32            pendingMp;
     TILE*          tile;
@@ -2269,26 +2312,17 @@ static void func_800A57B0(GpIdMapC* arg0)
     s32            hp;
     s32            mp;
     s32            color;
-    s32            valHp;
-    s32            valMp;
-    s32            order;
     s32            rectMode;
     s32            iconX, iconY;
     u16*           flags;
-    s32            txHp, txMp;
-    s32            ty;
     s32            x;
-    u8*            text;
-    TextDrawReq*   reqPtr;
     s32            w1;
     s32            w2;
     s32            i;
-    s32            textOrderStep;
     GpStateBE8*    be8;
 
     cfg       = &Player_Status;
     remap     = Pad_RemapState;
-    x         = -0x98;
     pendingHp = 0;
     pendingMp = 0;
     if (remap->field_A != 0) {
@@ -2307,11 +2341,11 @@ static void func_800A57B0(GpIdMapC* arg0)
         be8->field_4 = be8->field_4 + 1;
     }
 
-    y             = -0x64;
-    y            -= gDisplayState.vramYOffset;
-    textOrderStep = 1;
-    if ((s8)gGameSession->hudShakeY > 0) {
-        y -= (s8)gGameSession->hudShakeY * 3;
+    x  = -0x98;
+    y  = -0x64;
+    y -= gDisplayState.vramYOffset;
+    if (gGameSession->hudShakeY > 0) {
+        y -= gGameSession->hudShakeY * 3;
     }
 
     if (cfg->peStateFlags & 0x80) {
@@ -2324,66 +2358,18 @@ static void func_800A57B0(GpIdMapC* arg0)
     hp    = Gp_HpMpWork.field_0;
     mp    = Gp_HpMpWork.field_4;
 
-    valHp = cfg->hp;
-    txHp  = x + 0x2B;
-    ty    = y + 0xA;
-    if (valHp < 0) {
-        valHp = 0;
+    _gpDrawHudValue(x + 0x2B, y + 0xA, color, cfg->hp);
+    _gpDrawHudValue(x + 0x56, y + 0xA, color, cfg->mp);
+
+    {
+        UiObject obj;
+
+        obj.drawOrder = -3;
+        obj.baseX     = 0;
+        obj.baseY     = 0;
+        obj.mode      = 0;
+        _gpDrawHudLabels(&obj, x, y, color);
     }
-    loc.s.req[0].x          = txHp;
-    loc.s.req[0].y          = ty;
-    loc.s.req[0].otIndex    = -2;
-    loc.s.req[0].field_8    = color;
-    loc.s.req[0].glyphTable = 0;
-    loc.s.req[0].centerMode = 2;
-    loc.s.req[0].field_E    = 3;
-    text                    = Text_ItoaUnsigned(loc.s.buf, valHp);
-    reqPtr                  = loc.s.req;
-    func_8002E53C(reqPtr, text);
-    DEF_REG(reqPtr);
-
-    valMp = cfg->mp;
-    txMp  = x + 0x56;
-    ty    = y + 0xA;
-    if (valMp < 0) {
-        valMp = 0;
-    }
-    loc.s.req[0].x          = txMp;
-    loc.s.req[0].y          = ty;
-    loc.s.req[0].otIndex    = -2;
-    loc.s.req[0].field_8    = color;
-    loc.s.req[0].glyphTable = 0;
-    loc.s.req[0].centerMode = 2;
-    loc.s.req[0].field_E    = 3;
-    text                    = Text_ItoaUnsigned(loc.s.buf, valMp);
-    reqPtr                  = loc.s.req;
-    func_8002E53C(reqPtr, text);
-    DEF_REG(reqPtr);
-
-    order               = -3;
-    loc.s.obj.drawOrder = order;
-    loc.s.obj.baseX     = 0;
-    loc.s.obj.baseY     = 0;
-    loc.s.obj.mode      = 0;
-
-    loc.label.x          = x + 4;
-    loc.label.y          = y + 8;
-    loc.label.otIndex    = -2;
-    loc.label.field_8    = color;
-    loc.label.glyphTable = 5;
-    loc.label.centerMode = 0;
-    loc.label.field_E    = 1;
-    func_8002E53C(&loc.label, Gp_StrHP);
-
-    loc.s.req[0].x          = loc.s.obj.baseX + 0x2E;
-    loc.s.req[0].x          = loc.s.req[0].x + x;
-    loc.s.req[0].y          = loc.s.obj.baseY + 8 + y;
-    loc.s.req[0].otIndex    = loc.s.obj.drawOrder + textOrderStep;
-    loc.s.req[0].field_8    = color;
-    loc.s.req[0].glyphTable = 5;
-    loc.s.req[0].centerMode = 0;
-    loc.s.req[0].field_E    = 1;
-    func_8002E53C(loc.s.req, Gp_StrMP);
 
     if (hp > 0) {
         if (cfg->hpMax > 0) {
@@ -2586,22 +2572,28 @@ static void func_800A57B0(GpIdMapC* arg0)
     tp->code[0] = 0xE100023E;
     addPrim(gGpuCurrentOt - 2, tp);
 
-    loc.rect.x = x;
-    loc.rect.y = y;
-    loc.rect.w = 0x5A;
-    loc.rect.h = 0x14;
-    rectMode   = 2;
-    if (cfg->peStateFlags != 0) {
-        rectMode = 4;
+    {
+        RECT rect;
+
+        rect.x   = x;
+        rect.y   = y;
+        rect.w   = 0x5A;
+        rect.h   = 0x14;
+        rectMode = 2;
+        if (cfg->peStateFlags != 0) {
+            rectMode = 4;
+        }
+        Ui_DrawTextInRect(&rect, -1, rectMode, NULL);
     }
-    Ui_DrawTextInRect(&loc.rect, -1, rectMode, NULL);
 
     if (cfg->peStateFlags != 0) {
-        iconX           = x;
-        iconY           = y + 0x14;
-        loc.icons.flags = D_8009389C;
+        GpHudStatusBits statusBits;
+
+        iconX      = x;
+        iconY      = y + 0x14;
+        statusBits = D_8009389C;
         for (i = 0; i < 7; i++) {
-            flags = loc.icons.flags.bits;
+            flags = statusBits.bits;
             if (cfg->peStateFlags & flags[i]) {
                 sp5            = (SPRT*)gGpuPrimCursor;
                 gGpuPrimCursor = sp5 + 1;
