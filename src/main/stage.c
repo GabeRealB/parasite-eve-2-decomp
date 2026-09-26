@@ -9,6 +9,7 @@
 #include "main/stage.h"
 #include "main/stream.h"
 #include "main/tmd.h"
+#include "main/task.h"
 
 #include "psyq/libpress.h"
 
@@ -20,6 +21,19 @@ static void Stage_FinishCdFollowUp(Task* arg0);
 static void Stage_WaitCdActivate(Task* arg0);
 static void Stage_WaitCdAndSpawn(Task* arg0);
 static void Stage_WaitCdEntry(Task* arg0);
+static void Display_DispatchTaskTable(Task* arg0);
+
+/// Active stage/flow context pointer.
+static StageCtx* Stage_Ctx      = &D_8007A320;
+static TaskDesc  D_8006269C     = { 0, 0, Display_DispatchTaskTable };
+PadRemapState*   Pad_RemapState = &D_8007A370;
+TaskDesc         D_800626AC[]   = {
+    { 0, 0xC0, taskKill },
+    { 0, 0xC0, Task_KillMaybeSpawn },
+    { 0, 0xC0, taskKill },
+    { 0, 0xC0, taskKill },
+    { 0, 0xC0, (TaskFunc)0x80701470 },
+};
 
 static const TaskFuncTable6 Display_TaskStates = { {
     Stage_WaitCdActivate,
@@ -756,7 +770,7 @@ static void Stage_FinishCdFollowUp(Task* arg0)
     }
 }
 
-void Display_DispatchTaskTable(Task* arg0)
+static void Display_DispatchTaskTable(Task* arg0)
 {
     TaskFuncTable6 sp;
 

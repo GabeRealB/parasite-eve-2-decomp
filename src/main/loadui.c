@@ -6,9 +6,21 @@
 #include "main/loadui.h"
 #include "main/text.h"
 #include "main/wipsys.h"
+#include "main/task.h"
+#include "gameplay/3E9C.h"
 #include "psyq/libetc.h"
 
 static const GBytes4 D_80013F18;
+
+u8       D_800626E8    = 0;
+TaskDesc D_800626EC[6] = {
+    { 0, 0xC0, taskKill },
+    { 0, 0xC0, taskKill },
+    { 0, 0xC0, taskKill },
+    { 0, 0xC0, taskKill },
+    { 0, 0xC0, taskKill },
+    { 1, 0x70, Gp_EffAttachTask37 },
+};
 
 static void Prim_DrawLoadingSprt(void);
 

@@ -267,8 +267,6 @@ extern TaskNode gTaskDefaultList;
 /// main list, and the display frame walks it.
 extern TaskNode gTaskDisplayList;
 
-extern TaskDesc D_8006268C;
-
 /// Six task descriptors. Entry 5 is a model descriptor whose model is not
 /// fixed: callers store the model in its `arg` just before spawning effect
 /// 0x80005, which spawns its task from that entry.
@@ -281,10 +279,11 @@ extern TaskDesc D_80067734[];
 extern TaskDesc D_80067828[];
 extern TaskDesc D_800678F4[];
 extern TaskDesc D_80068B7C[];
-extern TaskDesc D_8006269C;
 extern TaskDesc D_80062774;
 
 extern TaskIdPair* D_8006273C[];
 extern TaskIdPair* D_80062750[];
+
+void Task_KillMaybeSpawn(Task* arg0);
 
 #endif // TASK_H

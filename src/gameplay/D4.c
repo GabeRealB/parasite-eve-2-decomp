@@ -8,6 +8,7 @@
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
+#include "main/loadui.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"

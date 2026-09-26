@@ -3,6 +3,7 @@
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
+#include "main/loadui.h"
 #include "main/gfxgte.h"
 #include <psyq/gtemac.h>
 #include <psyq/libcd.h>
@@ -64,7 +65,6 @@ extern TaskDesc             D_80182FAC[];
 extern TaskDesc             D_8018384C[];
 extern s32                  Gp_Slot4MsgTable[];
 static const char           Gp_StrNewEnemyNull[];
-extern u8                   D_800626E8;
 extern u8*                  D_80114D10;
 extern u16                  D_80114D14[2];
 extern s16                  D_80114D18;

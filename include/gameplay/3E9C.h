@@ -11,4 +11,6 @@
 /// reaches 2.
 void Gp_DrawEffGroundQuad(VECTOR3* pos, s32 size, s16 shade);
 
+void Gp_EffAttachTask37(Task* arg0);
+
 #endif

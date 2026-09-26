@@ -467,7 +467,10 @@ segments:
       - [0x51ccc, o, libgte/sincos, .data] # rsin_tbl
       - [0x524dc, o, libgte/msc02, .data]
       - [0x5267c, o, libgte/ratan, .data] # ratan_tbl
-      - [0x52e8c, data, "52E8C"] # game data / callbacks (TODO: attribute)
+      - [0x52e8c, .data, otutil]
+      - [0x52e98, .data, stage]
+      - [0x52ee8, .data, loadui]
+      - [0x52f34, data, "52F34"]
       - [0x538d0, o, libgte/cstbl, .data] # rcossin_tbl
       - [0x578d0, data, "578D0"] # game data (TODO: attribute)
       - [0x57e98, o, libc2/sprintf, .data]

@@ -7,8 +7,12 @@
 #include "main/boot.h"
 #include "main/gamemain.h"
 #include "main/stage.h"
+#include "main/task.h"
+#include "gameplay/3688.h"
 
 static void Display_ResetHeapFromSession(void);
+
+static TaskDesc D_8006268C = { 0, 0xC0, Gp_MenuRootTask };
 
 s32 Display_FrameFlipDraw(GpuOtBuf* otBufs, s32 arg1, s32 arg2)
 {
