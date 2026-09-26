@@ -1084,10 +1084,8 @@ void Gp_UpdatePadInput(void)
     Task*         work;
     GameActor*    actor;
     u16           mask;
-    register u16  prev asm("s2"); // pinned: GCC otherwise gives $s2 to `actor`
+    register u16  prev asm("s2"); // pinned: global-alloc otherwise ranks `actor` just above %hi(gGameSession) and gives it $s2
     u16           trig;
-    u16           tmp;
-    u16           tmp2;
 
     pad  = &Pad_States[0];
     cfg  = &Player_Status;
@@ -1129,11 +1127,11 @@ void Gp_UpdatePadInput(void)
             Display_AcquireRef();
             Gp_PadSuppressRefs++;
         }
-        if ((Gp_PadSuppressFall & 0x900) && Gp_PadSuppressRefs != 0) {
-            do {
+        if (Gp_PadSuppressFall & 0x900) {
+            while (Gp_PadSuppressRefs != 0) {
                 Display_ReleaseRef();
                 Gp_PadSuppressRefs--;
-            } while (Gp_PadSuppressRefs != 0);
+            }
         }
     }
     if (pad->status == 0x73) {
@@ -1141,31 +1139,27 @@ void Gp_UpdatePadInput(void)
         prev = pad->prevButtons;
         trig = pad->triggered;
         if (pad->field_56 < -0x800) {
-            tmp  = mask | 0x1000;
-            mask = tmp;
+            mask |= 0x1000;
             if (actor->field_954 != 0 || actor->field_956 < 2) {
                 if (pad->field_56 < -0xE80) {
                     if (Mc_SaveData[0].moveMode == 0) {
-                        if (Mc_SaveData[0].buttonLayout == 1) {
-                            // barrier: without it GCC cross-jumps this arm into
-                            // the identical `field_25 == 1` arm below
-                            SCHED_BARRIER();
-                            mask = tmp | 0x80;
+                        if (Mc_SaveData[0].buttonLayout != 1) {
+                            mask |= 0x20;
                         } else {
-                            mask = tmp | 0x20;
+                            mask |= 0x80;
                         }
                     } else {
                         if (Mc_SaveData[0].buttonLayout == 1) {
-                            mask = tmp & 0xFF7F;
+                            mask &= 0xFF7F;
                         } else {
-                            mask = tmp & 0xFFDF;
+                            mask &= 0xFFDF;
                         }
                     }
                 } else if (Mc_SaveData[0].moveMode == 1) {
-                    if (Mc_SaveData[0].buttonLayout == 1) {
-                        mask = tmp | 0x80;
+                    if (Mc_SaveData[0].buttonLayout != 1) {
+                        mask |= 0x20;
                     } else {
-                        mask = tmp | 0x20;
+                        mask |= 0x80;
                     }
                 }
             }
@@ -1175,12 +1169,11 @@ void Gp_UpdatePadInput(void)
                 mask |= 0x8000;
             }
         } else if (pad->field_56 >= 0x801) {
-            tmp2 = mask | 0x4000;
-            mask = tmp2;
+            mask |= 0x4000;
             if (pad->field_54 >= 0x801) {
-                mask = tmp2 | 0x2000;
+                mask |= 0x2000;
             } else if (pad->field_54 < -0x800) {
-                mask = tmp2 | 0x8000;
+                mask |= 0x8000;
             }
         } else {
             if (pad->field_54 >= 0x801) {

@@ -143818,3 +143818,18 @@ through it. Declaring the member as `GpObjDirRec field_88[3]` and writing
 `(plus actor 0x9C)`. When a store the target addresses from the struct base
 comes out relative to a sibling pointer, the layout usually wants a real member
 array rather than a pointer cast.
+## Two identical `if (x == 1) A; else B;` arms cross-jump; write both as `if (x != 1) B; else A;` (Gp_UpdatePadInput, 2026-09-26)
+
+Two separate arms each set `mask |= 0x80` or `0x20` from `buttonLayout == 1`.
+With the `== 1` sense in both, jump2 found the first arm's then-block
+(`a1 = a0|0x80; goto join`) identical to the second arm's last insn before
+the join label and cross-jumped it (`beq` into the other arm). The seed held
+them apart with `SCHED_BARRIER()`. Target: `bne v1,v0,join; ori 0x20` then
+`j join; ori 0x80` in the first arm, `bne; ori 0x20; ori 0x80` falling into the
+join in the second. Writing *both* tests as `!= 1` with the `0x20` arm first
+matched outright; mixing the senses, or using a ternary, did not. Before
+keeping a barrier against cross-jumping, try the other condition sense on
+every copy of the repeated test. In the same function, `tmp = mask | 0x1000;
+mask = tmp; ... mask = tmp | 0x80` compiled the same as `mask |= 0x1000;
+... mask |= 0x80`, so GCC already makes the second pseudo the target's copy
+suggests.
