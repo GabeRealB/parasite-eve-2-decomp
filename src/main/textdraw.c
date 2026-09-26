@@ -5,6 +5,10 @@
 #include "main/title.h"
 #include "main/ui.h"
 
+extern const char D_800138BC[];
+extern const char D_800138C8[];
+extern const char D_800138CC[];
+
 void textNoopCallback(Task* task)
 {
 }
@@ -1041,3 +1045,8 @@ void Text_BootTask(Task* arg0)
     Task_SpawnFromTable(Title_TaskDescs, 0, 0, 0);
     taskKill(arg0);
 }
+
+/// Overflow and zero texts of the number formatters.
+const char D_800138BC[] = "99999999";
+const char D_800138C8[] = "0";
+const char D_800138CC[] = "999999999";

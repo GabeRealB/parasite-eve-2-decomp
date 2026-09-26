@@ -120,8 +120,7 @@ segments:
       - [0x3c9c, o, libpad/padentry, .rdata]
       - [0x3cbc, .rodata, gameflow] # GameFlow_States5 / GameFlow_States3, then the controller state and mode jump tables
       - [0x3d20, .rodata, mem] # TODO
-      - [0x3d44, .rodata, "textdraw"] # glyph measurement and text draw jump tables
-      - [0x40bc, rodata, "textdraw_1"] # number formatting strings
+      - [0x3d44, .rodata, "textdraw"] # glyph measurement and text draw jump tables, then the number strings
       - [0x40d8, .rodata, "textutil"] # jtbl from Text_ParseLine
 
       - [0x418c, rodata, mcprompt_1] # Mc_PromptDialog jump tables (unmatched residual)
