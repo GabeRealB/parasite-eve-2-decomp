@@ -128,12 +128,6 @@ block_done:
     SndBank_SetEnableFlags(1, 0x40000000);
 }
 
-typedef struct {
-    /* 0x00 */ u8  pad[0x74];
-    /* 0x74 */ s32 field_74;
-    /* 0x78 */ s32 field_78;
-} SndBankSizeView;
-
 s32 SndLoad_ResolveSpuAddr(s32 arg0, s32 arg1)
 {
     s32 temp_a2;
@@ -146,7 +140,7 @@ s32 SndLoad_ResolveSpuAddr(s32 arg0, s32 arg1)
         case 1:
             D_80082128 = 0x63810 - temp_a2;
             arg0       = D_80082128;
-            return arg0;
+            break;
         case 3:
             arg0 = 0x47010;
             break;
@@ -156,18 +150,11 @@ s32 SndLoad_ResolveSpuAddr(s32 arg0, s32 arg1)
                 arg0       = 0x3D010;
                 goto set_slot;
             }
-            if ((s32)(D_80082122 << 0x18) > 0) {
-                if ((s8)D_80082122 < 3) {
-                    arg0 =
-                        ((SndBankSizeView*)(((s32)(D_80082122 << 0x18) >> 0x13) +
-                                            (s32)Snd_Banks))
-                            ->field_78 +
-                        ((SndBankSizeView*)(((s32)(D_80082122 << 0x18) >> 0x13) +
-                                            (s32)Snd_Banks))
-                            ->field_74;
-                    D_80082122 += 1;
-                    goto store_size;
-                }
+            if ((s8)D_80082122 > 0 && (s8)D_80082122 < 3) {
+                arg0 = Snd_Banks[(s8)D_80082122 + 3].spuAddr +
+                       Snd_Banks[(s8)D_80082122 + 3].imageSize;
+                D_80082122 += 1;
+                goto store_size;
             }
             arg0 = 0;
             if (D_80082122 != 0) {
@@ -178,38 +165,22 @@ s32 SndLoad_ResolveSpuAddr(s32 arg0, s32 arg1)
             D_80082122 = 1;
         store_size:
             D_80082130 = temp_a2 + arg0;
-            return arg0;
+            break;
         clear_ret:
             D_80082130 = 0;
             break;
         case 5: {
-            s32          v;
-            register s32 hi asm("v1");
-            register s32 out asm("a0");
-            s32          al;
+            s32 top;
 
-            al = temp_a2;
-            __asm__ volatile(
-                ".set\tnoreorder\n\t"
-                "lui %1, %%hi(D_80082128)\n\t"
-                "lw %0, %%lo(D_80082128)(%1)\n\t"
-                "nop\n\t"
-                "bnez %0, 1f\n\t"
-                "lui %0, 6\n\t"
-                "j 2f\n\t"
-                "ori %0, %0, 0x3810\n\t"
-                "1:\n\t"
-                "lw %0, %%lo(D_80082128)(%1)\n\t"
-                "2:\n\t"
-                "lui %1, %%hi(D_80082124)\n\t"
-                "subu %0, %0, %3\n\t"
-                "sw %0, %%lo(D_80082124)(%1)\n\t"
-                "lw %2, %%lo(D_80082124)(%1)\n\t"
-                ".set\treorder"
-                : "=&r"(v), "=&r"(hi), "=r"(out)
-                : "r"(al)
-                : "memory");
-            return out;
+            top = D_80082128;
+            if (top == 0) {
+                top = 0x63810;
+            } else {
+                top = D_80082128;
+            }
+            D_80082124 = top - temp_a2;
+            arg0       = D_80082124;
+            break;
         }
         case 6:
             arg0 = 0x3D010 - temp_a2;

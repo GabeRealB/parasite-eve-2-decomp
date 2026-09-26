@@ -144060,3 +144060,19 @@ for (i = 0; i < 8; i++) {
 }
 return ret;
 ```
+
+## An early `return` inside a switch can block a `$v0` delay-slot fill that `break` allows (SndLoad_ResolveSpuAddr, 2026-09-26)
+
+A switch arm `v = G; if (v == 0) v = K; else v = G; out = v - n;` came out
+right except that the `bnez`'s delay slot held `nop` where the target has the
+fall-through's `lui $v0,K>>16`. Ending the arm with `return arg0;` gives it its
+own `return` insn, whose delay slot fill_simple fills with the local
+`move $v0,$a0`; that move leaves an `update_block` `(use (insn))` marker, and
+`find_dead_or_set_registers` counts registers set by such markers as live, so
+`$v0` looks needed on the taken path and `lui $v0` cannot migrate. The same arm
+with `break` falls to the function's single `return arg0;` block: fill_eager
+*copies* that `move` into the jump's delay slot and redirects it to the return
+(no marker), and the target's `jr ra; move v0,a0` appears as before, with the
+delay slot filled. The tell is the whole function: if every "return" path is
+`jr ra; move v0,a0` but the shared exit block has `move v0,a0; jr ra; nop`, the
+arms were `break`s to one return.
