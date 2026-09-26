@@ -142611,7 +142611,7 @@ into one walking pointer. Try the reused pointer before a hand-built offset.
 
 A loop reading one column of a 3x3 per iteration compiles to a pointer that
 steps by 2 and loads at `0`, `6` and `0xC`. Modelling that as a 14-byte
-"column" struct walked by hand (`src = (Col*)&src->_1`) needed `TOUCH_REG` on
+"column" struct walked by hand (`src = (Col*)&src->_0`) needed `TOUCH_REG` on
 both pointers to stop loop splitting each field into its own induction
 variable (`addiu v1,a1,0xc`, `lhu -0x6(v1)`). Plain indexing,
 `colorMtx->m[0][i]` … `m[2][i]` with a `for (i = 0; i < 3; i++)`, gives the
