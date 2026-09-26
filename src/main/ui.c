@@ -517,40 +517,32 @@ static void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
 
 static void Ui_DrawPanel(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
 {
-    RECT              sp10;
-    RECT              sp18;
-    POLY_F4*          poly;
-    DR_TPAGE*         dr;
-    s16               temp;
-    u16               x;
-    u16               y;
-    u16               t;
-    register DR_AREA* p asm("s0");
+    RECT      sp10;
+    RECT      sp18;
+    POLY_F4*  poly;
+    DR_TPAGE* dr;
+    u16       x;
+    u16       y;
+    u16       t;
 
     if (arg0->field_4 >= 0) {
         if (arg3 != 0) {
+            DR_AREA* p;
+
             p              = (DR_AREA*)gGpuPrimCursor;
             gGpuPrimCursor = p + 1;
-            sp10.x         = arg2->x + 0xA0;
-            temp           = arg2->y + 0x78;
-            sp10.y         = temp;
-            sp10.w         = arg2->w;
-            sp10.h         = arg2->h;
-            sp10.y         = temp + (gDisplayState.drawBuffer * 0x110);
+            setRECT(&sp10, arg2->x + 0xA0, arg2->y + 0x78, arg2->w, arg2->h);
+            sp10.y += gDisplayState.drawBuffer * 0x110;
             SetDrawArea(p, &sp10);
             addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 3, p);
         }
         func_80044C34(arg0, arg1, arg2, arg3);
         if (arg3 != 0) {
-            s32 tw;
-            tw = 0x140;
-            TOUCH_REG(tw);
-            sp18.w         = tw;
-            sp18.h         = 0xF0;
+            DR_AREA* p;
+
             p              = (DR_AREA*)gGpuPrimCursor;
             gGpuPrimCursor = p + 1;
-            sp18.x         = 0;
-            sp18.y         = gDisplayState.drawBuffer * 0x110;
+            setRECT(&sp18, 0, gDisplayState.drawBuffer * 0x110, 0x140, 0xF0);
             SetDrawArea(p, &sp18);
             addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, p);
         }
