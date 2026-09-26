@@ -998,84 +998,69 @@ s32 Gp_CanAddItem(McItemScan* arg0, s32 arg1)
     return used <= capacity;
 }
 
-McItemRec* Gp_SetScanItem(McItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
+/* Item table a scan window lies in. */
+static inline McItemRec* _gpScanTable(McItemScan* scan)
 {
-    McItemRec*          tmp;
-    register McItemRec* table asm("s1");
-    McItemRec*          dest;
-    McItemRec*          walker;
-    register McItemRec* rec asm("v1");
-    McItemRec*          found;
-    McItemRec*          slot;
-    s32                 i;
-    s32                 start;
-    register s32        idx asm("v1");
-    register s32        field0 asm("v0");
-    s32                 item;
-    s32                 qty;
+    McItemRec* table;
 
-    switch (arg0->table) {
+    switch (scan->table) {
         case 2:
-            tmp = Gp_ItemTable2;
+            table = Gp_ItemTable2;
             break;
         case 1:
-            tmp = Gp_ItemTable1;
+            table = Gp_ItemTable1;
             break;
         default:
-            tmp = Mc_SaveData.itemRows;
+            table = Mc_SaveData.itemRows;
             break;
     }
-    table = tmp;
+    return table;
+}
+
+McItemRec* Gp_SetScanItem(McItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    McItemRec* table;
+    McItemRec* dest;
+    s32        row;
+    s32        i;
+    s32        item;
+    s32        qty;
+
+    table = _gpScanTable(arg0);
     if ((u32)(arg2 - 0xA0) < 0x20U) {
         dest = Gp_GiveItem(arg0, arg2, arg3);
         i    = arg0->firstRow;
-        if (((McItemRec*)(((i + arg1) << 2) + (s32)table))->itemId != 0) {
-            goto done;
-        }
-        start = i;
-        USE_REG(start);
-        if (arg0->rowCount == 0) {
-            return dest;
-        }
-        i      = 0;
-        walker = (McItemRec*)((start << 2) + (s32)table);
-        do {
-            if (walker->itemId == arg2) {
-                if (i == arg1) {
-                    return dest;
+        if (table[i + arg1].itemId == 0) {
+            row = i;
+            for (i = 0; i < arg0->rowCount; i++, row++) {
+                if (table[row].itemId == arg2) {
+                    if (i == arg1) {
+                        break;
+                    }
+                    dest                             = &table[arg0->firstRow + arg1];
+                    dest->itemId                     = arg2;
+                    table[arg0->firstRow + arg1].qty = table[row].qty;
+                    table[row].itemId                = 0;
+                    table[row].qty                   = 0;
+                    break;
                 }
-                dest          = (McItemRec*)((s32)table + ((arg0->firstRow + arg1) << 2));
-                dest->itemId  = arg2;
-                found         = walker;
-                slot          = (McItemRec*)(((arg0->firstRow + arg1) << 2) + (s32)table);
-                slot->qty     = found->qty;
-                found->itemId = 0;
-                table         = found;
-                table->qty    = 0;
-                goto done;
             }
-            i++;
-            walker++;
-        } while (i < arg0->rowCount);
-        return dest;
+        }
+    } else {
+        row = arg0->firstRow + arg1;
+        if (table[row].itemId == 0) {
+            dest         = &table[row];
+            dest->itemId = arg2;
+            dest->qty    = 1;
+        } else {
+            dest         = &table[row];
+            item         = dest->itemId;
+            qty          = dest->qty;
+            dest->itemId = arg2;
+            dest->qty    = 1;
+            Gp_GiveItem(arg0, item, qty);
+        }
     }
-    field0 = arg0->firstRow;
-    idx    = field0 + arg1;
-    field0 = idx << 2;
-    rec    = (McItemRec*)(field0 + (s32)tmp);
-    if (rec->itemId == 0) {
-        dest         = rec;
-        dest->itemId = arg2;
-        dest->qty    = 1;
-        goto done;
-    }
-    dest         = rec;
-    item         = dest->itemId;
-    qty          = dest->qty;
-    dest->itemId = arg2;
-    dest->qty    = 1;
-    Gp_GiveItem(arg0, item, qty);
-done:
     return dest;
 }
 

@@ -141998,3 +141998,29 @@ The `SCHED_BARRIER` between `Gp_GiveItem(scan, 0xA0, 0x64)->attachSlot = 2`
 and the next give/equip pair did have a natural source: a `do { } while (0)`
 macro around the pair. Its loop notes fence sched1, so the store stays ahead
 of the next call's argument setup.
+
+## A copy the fall-through branch keeps but the jump-target branch drops is an inline helper's return (Gp_SetScanItem)
+
+**Symptom.** A switch selects a table into `$a0`, the join copies it into a
+callee-saved `$s1`, the fall-through branch (which makes a call) uses only
+`$s1` and the jump-target branch only `$a0`. `tmp`/`table = tmp` in plain C
+gives both branches the original, because cse2 finds the copy in the same
+block as the range check and keeps the class canonical on whichever register
+dies last - the jump-target branch's. The seed pinned `table` to `s1`.
+
+**Cause.** `table = helper(scan)` with `static inline` `helper` holding the
+switch in a local and ending `return local;`. The inline's return label sits
+between the copy and the range check, so cse1 sees neither branch together
+with the copy and leaves every use on `table`; jump opt deletes the label
+before cse2, whose taken path then rewrites only the jump-target branch onto
+the original. A `do { } while (0)` after the copy reproduces the same boundary
+(cse1 stops at `NOTE_INSN_LOOP_END`, cse2 does not), but it is steering, and
+wrapping the switch arms in it doubles their `REG_N_REFS` (flow weights refs
+by loop depth), which reorders global allocation.
+
+Two more shapes from the same function: a counter reused as the first-row
+index (`i = first; ... row = i; for (i = 0; ...)`) keeps `move row,i` ahead of
+`i = 0` by anti-dependence and gives both one register, and the target's
+`(off + base)` operand order for an address outside a memory reference comes
+from spelling it as the memory reference (`if (table[row].itemId == 0) dest =
+&table[row];`), which CSE then shares.
