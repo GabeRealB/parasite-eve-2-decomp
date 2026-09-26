@@ -121,8 +121,5 @@ u8*  Text_FormatTime(u8* arg0, s32 arg1);
 
 // Glyph tables (selected by TextDrawReq.glyphTable); FontGlyph (0xC each).
 // 0: 0x8005EFB0, 224 glyphs. 1: 0x8005FA30, 224. 2: 0x800604B0, 91 (space..z).
-/// Immediate-mode SPRT scratch used by Text_DrawGlyphImmediate.
-extern SPRT     D_80071710;
-extern DR_TPAGE D_80071728;
 
 #endif // TEXT_H
