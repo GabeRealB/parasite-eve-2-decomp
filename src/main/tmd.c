@@ -42,6 +42,12 @@ u32* D_801379B4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* D_80138004(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* D_801386EC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
+const TaskFuncTable3 Tmd_TaskStates = { {
+    Tmd_FlagAllNodes,
+    Tmd_FreeNodeBuffers,
+    taskKill,
+} };
+
 void Tmd_InitSourceStream(TmdSource* src)
 {
     u32*                   stream;

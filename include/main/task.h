@@ -273,8 +273,8 @@ extern TaskNode gTaskDisplayList;
 extern TaskFuncTable5       GameFlow_States5;
 extern TaskFuncTable3       GameFlow_States3;
 extern const TaskFuncTable6 Display_TaskStates;
-extern TaskFuncTable3       Tmd_TaskStates;
-extern TaskFuncTable4       Stage_TaskStates;
+extern const TaskFuncTable3 Tmd_TaskStates;
+extern const TaskFuncTable4 Stage_TaskStates;
 
 extern TaskDesc D_8006268C;
 

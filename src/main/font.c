@@ -6,6 +6,18 @@
 #include "main/gameflag.h"
 #include "main/text.h"
 
+void Task_AllocIdMap(Task* arg0);
+void Stage_LoadOrCountdownTask(Task* arg0);
+void Stage_ApplyTableEntryWhenIdle(Task* arg0);
+void Stage_KillWhenIdle(Task* arg0);
+
+const TaskFuncTable4 Stage_TaskStates = { {
+    Task_AllocIdMap,
+    Stage_LoadOrCountdownTask,
+    Stage_ApplyTableEntryWhenIdle,
+    Stage_KillWhenIdle,
+} };
+
 void Task_AllocIdMap(Task* arg0)
 {
     u8         temp_s4;
