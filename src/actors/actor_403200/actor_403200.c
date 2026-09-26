@@ -6535,17 +6535,11 @@ after_mode:
             arg0->hp = 1;
         }
         if (arg0->hp <= 0 && D_actor_403200_80141C50 == 0) {
-            s32 slot;
-            s16 armed;
-            slot = 4;
-            TOUCH_REG(slot);
-            armed = 1;
-            SOFT_BARRIER();
+            D_actor_403200_80141C50                = 1;
             D_actor_403200_8015F8F4.from.loc.stage = 0;
-            D_actor_403200_80141C50                = armed;
             D_actor_403200_8015F8F4.from.loc.area  = 0x2C;
             D_actor_403200_8015F8F4.command        = 3;
-            Gp_DispatchMsg(gameGetPtrSlot(slot), 0x7DA, (s32)&D_actor_403200_8015F8F4, 0x7DB);
+            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_actor_403200_8015F8F4, 0x7DB);
             D_actor_403200_80141C5A = 0;
         }
     }
@@ -6628,72 +6622,30 @@ after_mode:
     } else {
         work->hits[0].obj.flags &= 0x7FFF;
     }
-    {
-        u32 a;
-        u32 b;
-        if (work->field_0 != 0 && work->field_EFA != 1) {
-            a  = work->hits[1].obj.flags;
-            b  = work->hits[2].obj.flags;
-            a |= 0x8000;
-        } else {
-            a  = work->hits[1].obj.flags;
-            b  = work->hits[2].obj.flags;
-            a &= 0x7FFF;
-        }
-        b                      |= 0x8000;
-        work->hits[1].obj.flags = a;
-        work->hits[2].obj.flags = b;
+    if (work->field_0 != 0 && work->field_EFA != 1) {
+        work->hits[1].obj.flags |= 0x8000;
+        work->hits[2].obj.flags |= 0x8000;
+    } else {
+        work->hits[1].obj.flags &= 0x7FFF;
+        work->hits[2].obj.flags |= 0x8000;
     }
-    SOFT_BARRIER();
-    {
-        u32 a;
-        u32 b;
-        if (work->field_0 != 0) {
-            a                       = work->hits[3].obj.flags;
-            b                       = work->hits[5].obj.flags;
-            a                      |= 0x8000;
-            work->hits[3].obj.flags = a;
-            a                       = work->hits[4].obj.flags;
-            b                      |= 0x8000;
-            work->hits[5].obj.flags = b;
-            a                      |= 0x8000;
-            work->hits[4].obj.flags = a;
-        } else {
-            a                       = work->hits[3].obj.flags;
-            b                       = work->hits[5].obj.flags;
-            a                      &= 0x7FFF;
-            work->hits[3].obj.flags = a;
-            a                       = work->hits[4].obj.flags;
-            b                      &= 0x7FFF;
-            work->hits[5].obj.flags = b;
-            a                      &= 0x7FFF;
-            work->hits[4].obj.flags = a;
-        }
+    if (work->field_0 != 0) {
+        work->hits[3].obj.flags |= 0x8000;
+        work->hits[4].obj.flags |= 0x8000;
+        work->hits[5].obj.flags |= 0x8000;
+    } else {
+        work->hits[3].obj.flags &= 0x7FFF;
+        work->hits[4].obj.flags &= 0x7FFF;
+        work->hits[5].obj.flags &= 0x7FFF;
     }
-    {
-        u32 a;
-        u32 b;
-        if (work->field_0 != 0) {
-            a                       = work->hits[6].obj.flags;
-            b                       = work->hits[8].obj.flags;
-            a                      |= 0x8000;
-            work->hits[6].obj.flags = a;
-            a                       = work->hits[7].obj.flags;
-            b                      |= 0x8000;
-            work->hits[8].obj.flags = b;
-            a                      |= 0x8000;
-            work->hits[7].obj.flags = a;
-        } else {
-            a                       = work->hits[6].obj.flags;
-            b                       = work->hits[8].obj.flags;
-            a                      &= 0x7FFF;
-            work->hits[6].obj.flags = a;
-            a                       = work->hits[7].obj.flags;
-            b                      &= 0x7FFF;
-            work->hits[8].obj.flags = b;
-            a                      &= 0x7FFF;
-            work->hits[7].obj.flags = a;
-        }
+    if (work->field_0 != 0) {
+        work->hits[6].obj.flags |= 0x8000;
+        work->hits[7].obj.flags |= 0x8000;
+        work->hits[8].obj.flags |= 0x8000;
+    } else {
+        work->hits[6].obj.flags &= 0x7FFF;
+        work->hits[7].obj.flags &= 0x7FFF;
+        work->hits[8].obj.flags &= 0x7FFF;
     }
 
     Gp_ClearRec18Occupied(work->hits[0].recs);
