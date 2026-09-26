@@ -1863,9 +1863,13 @@ static void func_actor_105100_80135278(GpEnemy* arg0, Task* arg1)
     dst    = arg1->extra.tmd->coords;
     src    = parent->extra.tmd->coords;
 
-    if (D_actor_105100_80141450[work->field_5B0 * 3 + (s16)work->field_5AE] == -1 ||
-        (obj = (Actor105100Rec*)memCalloc(0x50, 0)) == NULL) {
-        USE_REG(arg0);
+    if (D_actor_105100_80141450[work->field_5B0 * 3 + (s16)work->field_5AE] == -1) {
+        Gp_DestroyEnemy(arg0, arg1);
+        return;
+    }
+
+    obj = (Actor105100Rec*)memCalloc(0x50, 0);
+    if (obj == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
