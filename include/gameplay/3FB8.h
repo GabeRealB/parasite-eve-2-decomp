@@ -597,29 +597,9 @@ extern Task* Gp_ActorSlots[2];
 /// Flag byte cleared by `func_800A7DE0` / `Gp_SpawnPlayer`.
 extern u8 D_80115768;
 
-/// Four-entry `Task::state` dispatcher: `Gp_InitPlayerWork`, `Gp_PlayerWorkState1`,
-/// `Gp_PlayerWorkState2`, `Gp_TeardownSlot0`.
-extern const TaskFuncTable4 Gp_PlayerWorkStates;
-
-/// Four-entry `Task::state` dispatcher: `func_8010B590`, `func_8010B5C0`,
-/// `func_8010B5E4`, `func_8010B5F0`.
-extern const TaskFuncTable4 D_80097AB0;
-
 /// `Player_Status.weapon` dispatcher copied by `func_8010615C`. Unused
 /// slots are `func_801065A0`; others are weapon-overlay entry points.
 extern const TaskFuncTable33 D_800978BC;
-
-/// `field_954` dispatcher: `Gp_TickPlayerNormal`, `Gp_TickPlayerMode1`, `Gp_TickPlayerMode2`.
-extern const TaskFuncTable3 Gp_PlayerModeFns;
-
-/// `field_956` dispatcher copied by `Gp_TickPlayerNormal`.
-extern const TaskFuncTable8 D_8009794C;
-
-/// `field_96C` dispatcher: three slots of `Gp_PlayerMode1State0`, then `Gp_PlayerMode1State3`.
-extern const TaskFuncTable4 Gp_PlayerMode1States;
-
-/// `field_956` dispatcher copied by `Gp_TickPlayerMode2`.
-extern const TaskFuncTable12 Gp_PlayerMode2States;
 
 /// u8 Task_Spawn type bases. `func_80104258` indexes
 /// `D_80112DFC[arg2 + Player_Status.field_26 - 2]`.
@@ -701,49 +681,34 @@ extern GpAimRot D_801131B4[];
 /// `Gp_AimPitchToLock`; zero uses `D_80167218` with `Gp_AimPitchRec`.
 extern u8 D_80113388[];
 
-void Gp_EffPolyTask9C(Task* arg0);
-void Gp_EffSprTask46(Task* arg0);
-void Gp_DrawEffSprite81(Task* arg0);
-void Gp_DrawEffSprite46(struct GpCoord* arg0, s32 arg1, s16 arg2, u16 arg3);
-void Gp_EffSprTask81(Task* arg0);
-void Gp_EffSprTask55(Task* arg0);
-void Gp_EffSprTask42(Task* arg0);
-void func_800F91AC(Task* arg0);
-void Gp_EffCtlTask9B(Task* arg0);
-void Gp_EffSprTask30(Task* arg0);
-void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2);
-void Gp_DrawEffQuadT29(struct GpCoord* arg0, s32 arg1, u16 arg2, u16 arg3);
-void Gp_EffTask07State1(Task* arg0);
-void Gp_EffCtlTaskC1(Task* arg0);
-void Gp_EffCtlTaskF3(Task* arg0);
-void Gp_EffCtlTaskF4(Task* arg0);
-void Gp_EffCtlTaskAC(Task* arg0);
-void Gp_EffCtlTask0E(Task* arg0);
-void Gp_PulseState1C80(void);
-void Gp_EffCtlTaskA5(Task* arg0);
-void Gp_EffCtlTaskA6(Task* arg0);
-void Gp_EffCtlTaskE3(Task* arg0);
-void func_800FDB18(s32 arg0, struct GpCoord* arg1, SVECTOR* arg2, GpEffArg* arg3);
-void func_800FF710(Task* arg0);
-void Gp_EffSprTaskE0(Task* arg0);
-void Gp_EffSprTaskE2(Task* arg0);
-/// Hand-written GTE routine. `arg2` is a full 32-bit word: the high half picks
-/// the CLUT (palette column) and the low 12 bits are the billboard size, so it
-/// must not be declared `s16` (that makes callers emit a spurious `sll`/`sra`
-/// truncation). It is unsigned because the size is divided by `otz` with `divu`.
-void  Gp_DrawEffSpriteE2(struct GpCoord* arg0, u16 arg1, u32 arg2, s16 arg3);
+void  Gp_EffPolyTask9C(Task* arg0);
+void  Gp_EffSprTask46(Task* arg0);
+void  Gp_EffSprTask81(Task* arg0);
+void  Gp_EffSprTask55(Task* arg0);
+void  Gp_EffSprTask42(Task* arg0);
+void  func_800F91AC(Task* arg0);
+void  Gp_EffCtlTask9B(Task* arg0);
+void  Gp_EffSprTask30(Task* arg0);
+void  Gp_EffCtlTaskC1(Task* arg0);
+void  Gp_EffCtlTaskF3(Task* arg0);
+void  Gp_EffCtlTaskF4(Task* arg0);
+void  Gp_EffCtlTaskAC(Task* arg0);
+void  Gp_EffCtlTask0E(Task* arg0);
+void  Gp_PulseState1C80(void);
+void  Gp_EffCtlTaskA5(Task* arg0);
+void  Gp_EffCtlTaskA6(Task* arg0);
+void  Gp_EffCtlTaskE3(Task* arg0);
+void  func_800FDB18(s32 arg0, struct GpCoord* arg1, SVECTOR* arg2, GpEffArg* arg3);
+void  func_800FF710(Task* arg0);
+void  Gp_EffSprTaskE0(Task* arg0);
+void  Gp_EffSprTaskE2(Task* arg0);
 s32   func_801011D0(struct GpCoord* arg0, s32 arg1, s32 arg2, s32* arg3);
-void  Gp_InitPlayerWork(Task* arg0);
 void  Gp_AttachActorObj(Task* arg0, s32 arg1, s32 arg2);
-void  Gp_TeardownSlot0(Task* arg0);
-void  Gp_BindActorAnim(Task* arg0);
 void  Gp_AnimPlayChildSlotsEx(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 Task* func_80104258(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// `arg3` is unused; the actor-init caller passes 0 so the `jal` delay
 /// slot of the `field_93A` load is `move a3, a1`.
 s32  func_80104508(Task* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3);
-void func_801030CC(Task* arg0);
-void func_801041FC(Task* arg0, s32 arg1);
 s32  Gp_SpawnWeaponEff(void);
 s32  Gp_SetupAllyWeapon(void);
 void func_80106350(Task* arg0, s32 arg1, s32 arg2);
@@ -751,20 +716,12 @@ void func_801088D4(Task* arg0, s32 arg1, s32 arg2);
 /// Overlay import. `func_801088D4` calls it with `gameGetPtrSlot(0xA)` when
 /// `Mc_SaveData.companionType == 1`.
 void  func_80166E94(void* arg0, s32 arg1);
-void  Gp_PlayerMode1State0(Task* arg0);
-s32   func_80109290(Task* arg0);
 void  Gp_TriggerPeState(s32 arg0, s32 arg1);
-void  func_8010A42C(Task* arg0, s32 arg1);
-void  Gp_DetachLinkNode(Task* arg0);
-s32   Gp_ApplyDirArg(Task* arg0, GpMoveArg* arg1);
 s32   func_80104E00(Task* arg0, s32 arg1, GpXformArg* arg2);
 s32   Gp_SetActorDest(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3);
 s32   Gp_MoveActorBy(Task* arg0, s32 arg1, GpMoveArg* arg2);
 s32   Gp_PickNearestRec18(GpRec18* arg0, struct GpCoord* arg1, struct GpCoord* arg2);
-void  Gp_MoveActorByKeep(Task* arg0, s32 arg1, GpMoveArg* arg2);
-void  func_8010B210(Task* arg0);
 void  Gp_BindActorD4(Task* arg0, SVECTOR3* arg1, s32 arg2);
-s32   func_8010C30C(Task* arg0);
 Task* Gp_SpawnPlayer(GpActorArg* arg0, u16 arg1, s32 arg2, GpActorFlags* arg3);
 Task* Gp_SpawnAlly(GpActorArg* arg0, u16 arg1, s32 arg2, u16* arg3);
 
@@ -791,29 +748,18 @@ s32   func_80103D8C(s32 arg0, s32 arg1);
 void  Gp_AnimPlayChildSlots(Task* arg0, s32 arg1, s32 arg2);
 void  Gp_TickActorAnimState(Task* arg0);
 void  Gp_TrackLockTarget(Task* arg0);
-void  Gp_ResetActorAnimState(Task* arg0, s32 arg1);
 void  Gp_StopPlayerAnim(Task* arg0, s32 arg1);
 void  func_8010BF7C(Task* arg0, s32 arg1, s32 arg2);
-void  func_80109374(Task* arg0);
-s32   Gp_ApplyHpDamage(s32 arg0);
 void  func_80109BB4(Task* arg0, GpRec18* arg1);
 void  func_8010BFCC(Task* arg0);
 Task* func_80104490(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 void  func_80106518(s32 arg0);
 void  func_8010B9A4(Task* arg0);
 void  Gp_TrackAllyLockTarget(Task* arg0, s32 arg1);
-void  func_8010615C(Task* arg0);
-void  func_801095BC(s32* arg0);
-void  Gp_PlayerStepSfx(Task* arg0);
-void  Gp_UpdateLockTarget(Task* arg0);
 void  Gp_EndPlayerActorTask(Task* arg0);
 Task* func_80104364(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 s32   func_801041B4(Task* arg0);
 s32   func_8010583C(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
-void  func_80108684(Task* arg0);
-void  func_8010AAB4(Task* arg0);
-void  Gp_AimYawToLock(Task* arg0, s32 arg1);
-void  Gp_AimPitchToLock(Task* arg0);
 void  Gp_PlayerMode2State4(Task* arg0);
 s32   Gp_EnterActorMode2(Task* arg0, s32 arg1, s32 arg2);
 void  func_8010A9D0(Task* arg0);
@@ -822,28 +768,8 @@ void  func_8010B2A0(s32 arg0, s32 arg1);
 s32   func_8010C058(void);
 void  func_8010C180(Task* arg0);
 void  func_801061F0(void);
-void  func_80105B0C(Task* arg0);
 void  func_80105B74(VECTOR3* arg0);
-void  Gp_TickPlayerActor(Task* arg0);
-void  func_8010AC54(Task* arg0);
-void  func_80109A1C(Task* arg0);
-void  func_8010AD64(Task* arg0);
-void  func_80109844(Task* arg0);
 s32   func_80104B54(Task* arg0, s32 arg1, GpAnimArg* arg2);
-void  func_8010B2D4(Task* arg0, GpIdRec* arg1, s32 arg2);
-void  func_8010B348(Task* arg0, GpIdRec* arg1, s32 arg2);
-s32   func_801062DC(Task* arg0, s32 arg1);
-void  Gp_AimPitchRec(Task* arg0, s32 arg1, s32 arg2);
-void  func_80104A4C(Task* arg0);
-void  func_80109720(Task* arg0);
 s32   func_801055D4(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
-void  Gp_AimPitchToLockAlt(Task* arg0);
-void  func_8010A670(Task* arg0);
-void  func_80109250(Task* arg0);
-void  func_80109210(Task* arg0);
-void  func_80109FC4(Task* arg0);
-void  func_801065A8(Task* arg0);
-void  func_80108620(Task* arg0);
-s32   Gp_HpBand(void);
 
 #endif // GAMEPLAY_3FB8_H

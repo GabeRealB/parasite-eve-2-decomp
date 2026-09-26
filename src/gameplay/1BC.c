@@ -30,18 +30,18 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-void func_800B1EFC(Task* arg0);
-void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
-void Gp_AnimSeekSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
-void Gp_BindSlot4(Task* task);
-void func_800B6398(void);
-void func_8017FBD8(void);
+static void func_800B1EFC(Task* arg0);
+void        func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void Gp_AnimSeekSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void Gp_BindSlot4(Task* task);
+static void func_800B6398(void);
+void        func_8017FBD8(void);
 
-extern const char           D_80093A44[];
-extern const TaskFuncTable3 Gp_StageLoadStates;
-extern const VECTOR         D_80093A28;
-extern const TaskFuncTable3 D_80093A38;
-extern const TaskFuncTable3 D_80093A5C;
+static const char           D_80093A44[];
+static const TaskFuncTable3 Gp_StageLoadStates;
+static const VECTOR         D_80093A28;
+static const TaskFuncTable3 D_80093A38;
+static const TaskFuncTable3 D_80093A5C;
 extern TaskDesc             D_80115D9C[];
 extern UiObjectDesc         D_8010D348;
 extern UiObjectDesc         D_8010D6D8;
@@ -63,7 +63,7 @@ extern TaskDesc             D_80182E74[];
 extern TaskDesc             D_80182FAC[];
 extern TaskDesc             D_8018384C[];
 extern s32                  Gp_Slot4MsgTable[];
-extern const char           Gp_StrNewEnemyNull[];
+static const char           Gp_StrNewEnemyNull[];
 extern u8                   D_800626E8;
 extern u8*                  D_80114D10;
 extern u16                  D_80114D14[2];
@@ -71,6 +71,10 @@ extern s16                  D_80114D18;
 extern s16                  D_80114D1A;
 extern s16                  D_80114D1C;
 extern s32                  D_80114D20;
+
+static GpEnemy*                    Gp_AllocEnemy(Task* task, GpEnemy* parent);
+static const GpEnemyTaskFuncTable3 Gp_EnemyWaitFuncs;
+static void                        func_800B5A48(GpAreaKey* arg0, GpAreaObj* arg1);
 
 s32 func_800AF590(void)
 {
@@ -491,7 +495,7 @@ end_check:
     CdCmd_StepVlcRebuild();
 }
 
-void Gp_ApplySndMasks(u16 arg0)
+static void Gp_ApplySndMasks(u16 arg0)
 {
     s32           i;
     s32           bits;
@@ -564,7 +568,7 @@ void Gp_SetStreamBuf(void* arg0)
     CdCmd_Queue.field_198 = arg0;
 }
 
-GpEnemy* Gp_SpawnEnemy(s32 bank, s32 type, s32 arg2, GpEnemy* parent)
+static GpEnemy* Gp_SpawnEnemy(s32 bank, s32 type, s32 arg2, GpEnemy* parent)
 {
     Task*    task;
     GpEnemy* ret;
@@ -646,7 +650,7 @@ Task* Gp_CopyCoordOffset(Task* arg0, GpCoord* arg1, SVECTOR* arg2)
     return arg0;
 }
 
-GpEnemy* Gp_AllocEnemy(Task* task, GpEnemy* parent)
+static GpEnemy* Gp_AllocEnemy(Task* task, GpEnemy* parent)
 {
     GpEnemy* enemy;
 
@@ -669,13 +673,13 @@ GpEnemy* Gp_AllocEnemy(Task* task, GpEnemy* parent)
     return enemy;
 }
 
-void Gp_EnemyWaitStart(GpEnemy* enemy, Task* task)
+static void Gp_EnemyWaitStart(GpEnemy* enemy, Task* task)
 {
     enemy->waitTicks = 0x78;
     task->state++;
 }
 
-void Gp_EnemyWaitTick(GpEnemy* enemy, Task* task)
+static void Gp_EnemyWaitTick(GpEnemy* enemy, Task* task)
 {
     enemy->waitTicks--;
     if (enemy->waitTicks == 0) {
@@ -683,7 +687,7 @@ void Gp_EnemyWaitTick(GpEnemy* enemy, Task* task)
     }
 }
 
-void Gp_EnemyDispatch(Task* arg0)
+static void Gp_EnemyDispatch(Task* arg0)
 {
     GpEnemyTaskFuncTable3 sp;
 
@@ -691,7 +695,7 @@ void Gp_EnemyDispatch(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2, arg0);
 }
 
-s32 Gp_TryEnqueueSndCd(s32 arg0)
+static s32 Gp_TryEnqueueSndCd(s32 arg0)
 {
     u8 param1[8];
     u8 param2[8];
@@ -741,7 +745,7 @@ void func_800B06F0(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-void Gp_StartStageLoad(Task* task)
+static void Gp_StartStageLoad(Task* task)
 {
     s32           i;
     u8            param1[8];
@@ -776,7 +780,7 @@ void Gp_StartStageLoad(Task* task)
     }
 }
 
-void Gp_FinishStageLoad(Task* task)
+static void Gp_FinishStageLoad(Task* task)
 {
     if (CdCmd_IsIdle() & 0xFFFF) {
         gDisplayState.at100.flags.imageSource = 1;
@@ -791,7 +795,7 @@ void Gp_FinishStageLoad(Task* task)
     }
 }
 
-void Gp_StageLoadState2(Task* task)
+static void Gp_StageLoadState2(Task* task)
 {
     s32           out;
     DisplayState* ds;
@@ -1329,7 +1333,7 @@ void Gp_ComposeParentWorld(GpCoord* arg0, MATRIX* arg1, SVECTOR* arg2)
     gte_stclmv(&arg1->m[0][2]);
 }
 
-void func_800B1EFC(Task* t)
+static void func_800B1EFC(Task* t)
 {
     TILE*     p;
     DR_TPAGE* dr;
@@ -1375,7 +1379,10 @@ void func_800B1EFC(Task* t)
     addPrim(gGpuCurrentOt, dr);
 }
 
-void Gp_BlendRgb555(u16* arg0, u16* arg1, s32 arg2, u16* arg3)
+/// Unpacks two RGB555 colors, GPF/GPL-blends them by `arg2` / `0x1000 -
+/// arg2`, packs the result into `*arg3`, and copies the STP bit if
+/// either source has it set.
+static void Gp_BlendRgb555(u16* arg0, u16* arg1, s32 arg2, u16* arg3)
 {
     u8*           head;
     GpRgbScratch* c0;
@@ -1421,7 +1428,13 @@ void Gp_BlendRgb555(u16* arg0, u16* arg1, s32 arg2, u16* arg3)
     SCRATCH_POP_BYTES(0x18);
 }
 
-void Gp_FadeWorkTask(Task* arg0)
+/// Full-screen fade quad. Ramps a 0x140x0xF0 `TILE` from black to
+/// `field_2`-scaled white over `field_2` frames, holds until the owner
+/// raises `field_1`, then ramps back down and kills the task. Sorted into
+/// `gGpuCurrentOt[Task::spawnArg1]`, or (`spawnArg1 == 0`) into the head
+/// of the current ordering table, backing up 0xA entries when the current
+/// OT is not one of the two `Gpu_OrderingTables` roots.
+static void Gp_FadeWorkTask(Task* arg0)
 {
     register Task* t asm("t2");
     register s32   y asm("a1");
@@ -1580,7 +1593,7 @@ void Gp_BlendRgb555Clut(u16* arg0, u16* arg1, s32 arg2, u16* arg3)
     }
 }
 
-void Gp_BlendRgb555ClutMasked(u16* arg0, u16* arg1, s32 arg2, u16* arg3, s32 arg4)
+static void Gp_BlendRgb555ClutMasked(u16* arg0, u16* arg1, s32 arg2, u16* arg3, s32 arg4)
 {
     s32 i;
 
@@ -1594,14 +1607,14 @@ void Gp_BlendRgb555ClutMasked(u16* arg0, u16* arg1, s32 arg2, u16* arg3, s32 arg
     }
 }
 
-void func_800B28E0(Task* task)
+static void func_800B28E0(Task* task)
 {
     task->killCountdown = 0x20;
     task->state++;
     func_800B1EFC(task);
 }
 
-void func_800B2910(Task* arg0)
+static void func_800B2910(Task* arg0)
 {
     TaskFuncTable3 sp;
 
@@ -1614,8 +1627,8 @@ Task* func_800B2968(void)
     return Task_SpawnFromTable(D_80119218, 0, 0, 0);
 }
 
-void Gp_BlendAnimRot(GpAnimBlendSrc* arg0, GpCoord* arg1, GpAnimSlot* arg2,
-                     GpAnimScratch80* s)
+static void Gp_BlendAnimRot(GpAnimBlendSrc* arg0, GpCoord* arg1, GpAnimSlot* arg2,
+                            GpAnimScratch80* s)
 {
     if (arg2->bufPose != 0) {
         RotMatrix_gte(&s->vec0, &s->mtx0);
@@ -1658,7 +1671,7 @@ void Gp_BlendAnimRot(GpAnimBlendSrc* arg0, GpCoord* arg1, GpAnimSlot* arg2,
     }
 }
 
-void Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GpCoord* arg1, GpAnimSlot* arg2)
+static void Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GpCoord* arg1, GpAnimSlot* arg2)
 {
     GpAnimScratch80* s;
     GpPackedPose*    pose;
@@ -1715,7 +1728,7 @@ void Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GpCoord* arg1, GpAnimSlot* arg2)
     }
 }
 
-void Gp_AnimBlendPacked(GpAnimBlendSrc* arg0, GpCoord* arg1, GpAnimSlot* arg2)
+static void Gp_AnimBlendPacked(GpAnimBlendSrc* arg0, GpCoord* arg1, GpAnimSlot* arg2)
 {
     register void**           scratch asm("v1");
     register GpAnimScratch80* tmp asm("v0");
@@ -1762,7 +1775,7 @@ void Gp_AnimBlendPacked(GpAnimBlendSrc* arg0, GpCoord* arg1, GpAnimSlot* arg2)
     }
 }
 
-void Gp_AnimAdvanceSlot(GpAnimCtx* arg0, s32 arg1)
+static void Gp_AnimAdvanceSlot(GpAnimCtx* arg0, s32 arg1)
 {
     GpAnimSlot* slot;
     GpAnimSet** sets;
@@ -1989,7 +2002,7 @@ static inline void _gpAnimSeekSlot(GpAnimCtx* arg0, s32 arg1, u16 arg2, s32 arg3
     slot->bufPose  = 0;
 }
 
-void Gp_AnimSeekSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void Gp_AnimSeekSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     GpAnimSlot* slot;
     GpAnimRec*  recs;
@@ -2132,7 +2145,7 @@ void Gp_AnimTickSlot2(GpAnimCtx* arg0, GpAnimSlot* arg1)
     func_800B3448(arg0, idx, 0, 0);
 }
 
-void Gp_AnimTickSlot3(GpAnimCtx* arg0, GpAnimSlot* arg1)
+static void Gp_AnimTickSlot3(GpAnimCtx* arg0, GpAnimSlot* arg1)
 {
     u8 idx;
 
@@ -2141,7 +2154,7 @@ void Gp_AnimTickSlot3(GpAnimCtx* arg0, GpAnimSlot* arg1)
     func_800B3448(arg0, idx, 0, 0);
 }
 
-void func_800B3E74(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3)
+static void func_800B3E74(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3)
 {
     GpAnimRec* recs;
     u16        val;
@@ -2153,7 +2166,7 @@ void func_800B3E74(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3)
     arg1->timeLeft = val;
 }
 
-void func_800B3EE8(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 arg4)
+static void func_800B3EE8(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 arg4)
 {
     GpAnimRec* recs;
     u16        val;
@@ -2227,7 +2240,7 @@ void Gp_AnimResetSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     slot->poseKind   = op & 0xF;
 }
 
-void Gp_AnimSeekSlot(GpAnimCtx* arg0, s32 arg1, s32 arg2)
+static void Gp_AnimSeekSlot(GpAnimCtx* arg0, s32 arg1, s32 arg2)
 {
     Gp_AnimSeekSlotEx(arg0, arg1, arg2, 0);
 }
@@ -2374,7 +2387,7 @@ GpAnimRec* Gp_AnimGetRec(GpAnimCtx* arg0, GpAnimSlot* arg1)
     }
 }
 
-void func_800B46A4(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3)
+static void func_800B46A4(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3)
 {
     GpAnimRec* recs;
     GpAnimRec* rec;
@@ -2398,7 +2411,7 @@ void func_800B46A4(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3)
     arg1->nextSet = arg2;
 }
 
-void func_800B4754(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3)
+static void func_800B4754(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3)
 {
     u16 limit;
 
@@ -2741,7 +2754,7 @@ void Gp_DrawFloorQuad(GpCoord* arg0, u32 arg1, SVECTOR* arg2)
     SCRATCH_POP(GpFloorQuadScratch);
 }
 
-void func_800B51F4(Task* task)
+static void func_800B51F4(Task* task)
 {
     s32       count;
     s32       i;
@@ -2980,7 +2993,7 @@ void Gp_SetTmdBytes(TmdObject* arg0, s32 arg1, s32 arg2)
     }
 }
 
-void Gp_SetCurAreaFlag2(s32 arg0)
+static void Gp_SetCurAreaFlag2(s32 arg0)
 {
     GpAreaRec* rec;
     GpAreaObj* obj;
@@ -3019,7 +3032,7 @@ s32 Gp_GetAreaFlag2(GpAreaKey* arg0)
     return 0;
 }
 
-GpAreaObj* Gp_GetAreaObj(GpAreaKey* arg0)
+static GpAreaObj* Gp_GetAreaObj(GpAreaKey* arg0)
 {
     GpAreaRec* rec;
     GpAreaObj* ret;
@@ -3033,7 +3046,7 @@ GpAreaObj* Gp_GetAreaObj(GpAreaKey* arg0)
     return ret;
 }
 
-void func_800B5A48(GpAreaKey* arg0, GpAreaObj* arg1)
+static void func_800B5A48(GpAreaKey* arg0, GpAreaObj* arg1)
 {
     s32       j;
     s32       i;
@@ -3110,7 +3123,7 @@ void Gp_SetAreaFlag2(s32 arg0, GpAreaKey* arg1)
     }
 }
 
-GpAreaObj* Gp_GetNestedAreaObj(GpAreaKey* arg0)
+static GpAreaObj* Gp_GetNestedAreaObj(GpAreaKey* arg0)
 {
     GpAreaRec* rec;
     GpAreaObj* ret;
@@ -3160,7 +3173,7 @@ void Gp_SetAreaFlag0(GpAreaKey* arg0)
     }
 }
 
-void func_800B5DB8(Task* arg0)
+static void func_800B5DB8(Task* arg0)
 {
     TaskFunc funcs[2] = { Gp_BindSlot4, func_800B6398 };
 
@@ -3263,12 +3276,12 @@ s32 Gp_SendMsgType9(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     return 0;
 }
 
-void Gp_KillSlot4Children(void)
+static void Gp_KillSlot4Children(void)
 {
     Task_KillChildren(gameGetPtrSlot(4));
 }
 
-void func_800B6014(void)
+static void func_800B6014(void)
 {
 }
 
@@ -3295,7 +3308,7 @@ void Gp_SyncAreaKeyIndex(GpAreaKey* arg0)
     arg0->place = obj->field_0;
 }
 
-void func_800B6094(Task* task)
+static void func_800B6094(Task* task)
 {
     if (task->spawnArg1 & 1) {
         task->killCountdown = 0;
@@ -3303,7 +3316,7 @@ void func_800B6094(Task* task)
     task->state++;
 }
 
-void func_800B60C0(Task* arg0)
+static void func_800B60C0(Task* arg0)
 {
     TaskFuncTable3 sp;
 
@@ -3360,14 +3373,14 @@ void Gp_FreeSlot4TmdBuffers(void)
     }
 }
 
-void Gp_BindSlot4(Task* task)
+static void Gp_BindSlot4(Task* task)
 {
     Game_SetPtrSlot(task, 4);
     task->msgTable = Gp_Slot4MsgTable;
     task->state++;
 }
 
-void func_800B6398(void)
+static void func_800B6398(void)
 {
     Gp_DrawTargetCursor();
 }
@@ -3380,7 +3393,11 @@ typedef struct {
 } GpBit2Off2;
 STATIC_ASSERT_SIZEOF(GpBit2Off2, 0x10);
 
-s32 Gp_LookupBit2Item(s32 arg0)
+/// Looks up `arg0` as `GpBit2Rec.field_0` in
+/// `Gp_Bit2Banks[Mc_SaveData.at4.loc.stage]`. On a hit, publishes the record's
+/// item id / extra / stack count into `Gp_PubItemId` / `Gp_PubItemLoc` /
+/// `D_80114DDE` / `Gp_PubItemQty` and returns 1.
+static s32 Gp_LookupBit2Item(s32 arg0)
 {
     GpBit2List* lists;
     GpBit2Rec*  rec;
@@ -3455,7 +3472,7 @@ s32 Gp_LookupBit2Item(s32 arg0)
     return found;
 }
 
-void func_800B65B0(Task* task)
+static void func_800B65B0(Task* task)
 {
     GpPickupWork* work;
     UiObjectDesc* desc;
@@ -3633,7 +3650,11 @@ static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpEnemyPlace* place)
     }
 }
 
-void Gp_SpawnPlaceById(u16 arg0)
+/// Walks `Gp_Bit2Banks[Mc_SaveData.at4.loc.area / stage]` for a `GpEnemyPlace`
+/// whose `field_0` equals `arg0`. If the packed 2-bit flag at
+/// `Gp_Bit2Banks[gGameSession->at4.loc.stage].field_4` is non-zero, spawns that
+/// placement via `Gp_SpawnEnemyFromTable` (same coord/yaw writeback as `Gp_SpawnPlaces`).
+static void Gp_SpawnPlaceById(u16 arg0)
 {
     GpAreaKey*    sess;
     GpBit2List*   lists;
@@ -4001,23 +4022,24 @@ s32 Gp_EquipRelatedItem(McItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
 }
 
 /// Printed when an enemy's work block cannot be allocated.
-const char Gp_StrNewEnemyNull[] = "new_enemy ---> NULL\n";
+static const char Gp_StrNewEnemyNull[] = "new_enemy ---> NULL\n";
 
-const GpEnemyTaskFuncTable3 Gp_EnemyWaitFuncs = { {
+/// Three-entry dispatcher table: `Gp_EnemyWaitStart`, `Gp_EnemyWaitTick`, `Gp_DestroyEnemy`.
+static const GpEnemyTaskFuncTable3 Gp_EnemyWaitFuncs = { {
     Gp_EnemyWaitStart,
     Gp_EnemyWaitTick,
     Gp_DestroyEnemy,
 } };
 
-const TaskFuncTable3 Gp_StageLoadStates = { {
+static const TaskFuncTable3 Gp_StageLoadStates = { {
     Gp_StartStageLoad,
     Gp_FinishStageLoad,
     Gp_StageLoadState2,
 } };
 
-const VECTOR D_80093A28 = { 0, -100, 0, 0 };
+static const VECTOR D_80093A28 = { 0, -100, 0, 0 };
 
-const TaskFuncTable3 D_80093A38 = { {
+static const TaskFuncTable3 D_80093A38 = { {
     func_800B28E0,
     func_800B1EFC,
     Task_CallExit,
@@ -4025,9 +4047,9 @@ const TaskFuncTable3 D_80093A38 = { {
 
 /// "ERROR: ex_pdriver_2\n". The three bytes after the terminator are not zero:
 /// the original toolchain left them in the alignment gap.
-const char D_80093A44[24] = "ERROR: ex_pdriver_2\n\0\xB7\xB0\x34";
+static const char D_80093A44[24] = "ERROR: ex_pdriver_2\n\0\xB7\xB0\x34";
 
-const TaskFuncTable3 D_80093A5C = { {
+static const TaskFuncTable3 D_80093A5C = { {
     func_800B6094,
     func_800B51F4,
     Task_CallExit,

@@ -453,7 +453,7 @@ void gpFreeDisp2d(GpDisp2d* node)
     memFree(node);
 }
 
-void Gp_StashTmdLists(void)
+static void Gp_StashTmdLists(void)
 {
     Gp_TmdListStash     = gTmdList;
     Gp_TmdListAltStash  = gTmdDisp2dList;
@@ -464,7 +464,7 @@ void Gp_StashTmdLists(void)
     Gp_TmdStashTask     = Task_Spawn(0, 0x1A, 0, 0);
 }
 
-void Gp_RestoreTmdLists(void)
+static void Gp_RestoreTmdLists(void)
 {
     Task_CallExit(Gp_TmdStashTask);
     gTmdList       = Gp_TmdListStash;
@@ -492,7 +492,7 @@ static void _gpUpdateCoordTree(GpCoord* coord, s32 stamp, s32 parity, GpCoord* r
     _gpRefreshCoord(coord, stamp, parity, root);
 }
 
-Task* Gp_FindTaskByCoord(GpCoord* arg0)
+static Task* Gp_FindTaskByCoord(GpCoord* arg0)
 {
     Task*      task;
     TmdObject* extra;
@@ -535,7 +535,7 @@ Task* Gp_FindTaskByCoord(GpCoord* arg0)
     return task;
 }
 
-void Gp_DrawDisp2dOt(void)
+static void Gp_DrawDisp2dOt(void)
 {
     Gp_DrawActorTmdActive(&Gpu_OtBuffers[gDisplayState.drawBuffer]);
 }
@@ -1000,16 +1000,16 @@ u32* gpDrawStreamPrimGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags,
 /// with it, and one whose object is dimmed by `lightLevel` decays toward it as
 /// the level falls, so it is both the flat material colour and the unlit end
 /// of the shading range.
-const CVECTOR gGpColorGrey   = { 0x80, 0x80, 0x80, 0 };
-const CVECTOR Gp_ColorOrange = { 0xFF, 0xA0, 0x60, 0 };
+const CVECTOR        gGpColorGrey   = { 0x80, 0x80, 0x80, 0 };
+static const CVECTOR Gp_ColorOrange = { 0xFF, 0xA0, 0x60, 0 };
 /// The base colour a lit primitive is computed from when the lighting alone
 /// should decide its colour: white, the identity of the GTE's colour multiply.
 ///
 /// A `CVECTOR`, so the whole colour is loaded into the GTE at once. Colour
 /// computations start from a copy of it and overwrite the channels they derive.
-const CVECTOR gGpColorWhite = { 0xFF, 0xFF, 0xFF, 0 };
+static const CVECTOR gGpColorWhite = { 0xFF, 0xFF, 0xFF, 0 };
 
-u32* func_8009A804(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+static u32* func_8009A804(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
     TmdScratchModelBlock* ws;
     s32                   prev;
@@ -1073,7 +1073,7 @@ u32* func_8009A804(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-u32* func_8009AA5C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+static u32* func_8009AA5C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
     TmdScratchModelBlock* ws;
     s32                   prev;
@@ -1130,7 +1130,7 @@ u32* func_8009AA5C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-u32* func_8009AC58(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
+static u32* func_8009AC58(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
 {
     s32      prev;
     s32      count;
@@ -3471,7 +3471,7 @@ u32* gpStreamPrimG3(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* func_8009FCDC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+static u32* func_8009FCDC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
     u8* prims;
     s32 stride;
@@ -3488,7 +3488,7 @@ u32* func_8009FCDC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-u32* func_8009FD28(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+static u32* func_8009FD28(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
     u8* prims;
     s32 stride;
@@ -3554,7 +3554,7 @@ void Gp_ApplyPadReplay(s32 arg0, PadScratch* arg1)
     }
 }
 
-void Gp_InitPlayClock(Task* task)
+static void Gp_InitPlayClock(Task* task)
 {
     GpIdMap30*    rec;
     DisplayState* ds;
@@ -3597,7 +3597,7 @@ void Gp_InitPlayClock(Task* task)
     task->state++;
 }
 
-void Gp_TickPlayClock(Task* task)
+static void Gp_TickPlayClock(Task* task)
 {
     TextDrawReq   req;
     u8            buf[0x20];
@@ -3731,7 +3731,7 @@ block_normal:
     }
 }
 
-void Gp_RestartSessionTask(Task* arg0)
+static void Gp_RestartSessionTask(Task* arg0)
 {
     RECT          rect;
     DisplayState* ds;
@@ -3842,13 +3842,13 @@ const TaskFuncTable6 Gp_PlayClockStates = { {
     taskKill,
 } };
 
-const char Gp_StrBattleResult[] = "Battle Result";
-const char Gp_StrTotal[]        = "Total";
-const char Gp_StrHP[]           = "HP";
-const char Gp_StrMP[]           = "MP";
-const char Gp_StrBP[]           = "BP";
-const char Gp_StrEXP[]          = "EXP";
-const char Gp_StrItem[]         = "Item";
+static const char Gp_StrBattleResult[] = "Battle Result";
+static const char Gp_StrTotal[]        = "Total";
+const char        Gp_StrHP[]           = "HP";
+const char        Gp_StrMP[]           = "MP";
+static const char Gp_StrBP[]           = "BP";
+static const char Gp_StrEXP[]          = "EXP";
+const char        Gp_StrItem[]         = "Item";
 
 void func_800A087C(Task* arg0)
 {

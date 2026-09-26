@@ -28,7 +28,7 @@
 
 extern TaskDesc             D_80113340[];
 extern GpEffArg             D_80113358;
-extern const TaskFuncTable3 Gp_EffTask07States;
+static const TaskFuncTable3 Gp_EffTask07States;
 extern u16                  Gp_WeaponIdBase[];
 extern GpAnimBlk*           Gp_PlayerAnimBlkTbl[];
 extern u16                  D_80112DF4[];
@@ -36,90 +36,90 @@ extern u16                  D_80113F9C[];
 extern u16                  Gp_AllyIdBase[];
 extern void*                Gp_AnimBlkTbl[];
 
-s32  Gp_ApplyHpDamage(s32 arg0);
-void Gp_TickActorAnimState(Task* arg0);
-void Gp_StepPlayerMove(Task* arg0);
-void Gp_TurnPlayer(Task* arg0);
-void Gp_AimYawToLock(Task* arg0, s32 arg1);
-void Gp_AimPitchToLock(Task* arg0);
-void Gp_AimPitchToLockAlt(Task* arg0);
-void Gp_AimPitchRec(Task* arg0, s32 arg1, s32 arg2);
-void Gp_AnimResetChildSlots(Task* arg0, s32 arg1);
-void Gp_AnimPlayChildSlots(Task* arg0, s32 arg1, s32 arg2);
-void Gp_AnimPlayChildSlotsEx(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
-void Gp_AnimTickChildSlots(Task* arg0);
-s16  func_80103E7C(s16 arg0, s16 arg1);
-void Gp_TrackLockTarget(Task* arg0);
-void Gp_PlaceCoordOffset(GpCoord* arg0, GpCoord* arg1, SVECTOR* arg2);
-s32  func_80104B54(Task* arg0, s32 arg1, GpAnimArg* arg2);
-s32  func_80104E00(Task* arg0, s32 arg1, GpXformArg* arg2);
-s32  Gp_SetActorDest(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3);
-s32  Gp_MoveActorBy(Task* arg0, s32 arg1, GpMoveArg* arg2);
-s32  func_801055D4(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
-s32  func_80105690(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
-s32  func_8010583C(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
-s32  func_80105894(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_80105B0C(Task* arg0);
-s32  Gp_PickNearestRec18(GpRec18* arg0, GpCoord* arg1, GpCoord* arg2);
-s32  func_80105ED4(Task* arg0);
-void func_8010615C(Task* arg0);
-void func_801066DC(Task* arg0, s16 arg1);
-void Gp_PlayerMode2State4(Task* arg0);
-void func_80109210(Task* arg0);
-void func_80109250(Task* arg0);
-void func_80109FC4(Task* arg0);
-void func_8010A670(Task* arg0);
-void func_80108684(Task* arg0);
-void func_8010870C(Task* arg0, s32 arg1);
-void Gp_ResetActorAnimState(Task* arg0, s32 arg1);
-void func_80108874(Task* arg0);
-void func_80108E0C(Task* arg0, GpLinkNode* arg1);
-void func_80109374(Task* arg0);
-void Gp_UpdateLockTarget(Task* arg0);
-void Gp_TickPlayerActor(Task* arg0);
-void func_801095BC(s32* arg0);
-void func_80109720(Task* arg0);
-void func_80109844(Task* arg0);
-void func_80109A1C(Task* arg0);
-void func_80109BB4(Task* arg0, GpRec18* arg1);
-void Gp_StopPlayerAnim(Task* arg0, s32 arg1);
-void func_8010AAB4(Task* arg0);
-void func_8010ABD4(Task* arg0);
-void func_8010AC54(Task* arg0);
-void func_8010AD64(Task* arg0);
-void Gp_PlayerStepSfx(Task* arg0);
-void func_800FDB18(s32 arg0, GpCoord* arg1, SVECTOR* arg2, GpEffArg* arg3);
-void Gp_DrawEffTri(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_800FCD00(Task* arg0);
+static s32  Gp_ApplyHpDamage(s32 arg0);
+void        Gp_TickActorAnimState(Task* arg0);
+void        Gp_StepPlayerMove(Task* arg0);
+void        Gp_TurnPlayer(Task* arg0);
+static void Gp_AimYawToLock(Task* arg0, s32 arg1);
+static void Gp_AimPitchToLock(Task* arg0);
+static void Gp_AimPitchToLockAlt(Task* arg0);
+static void Gp_AimPitchRec(Task* arg0, s32 arg1, s32 arg2);
+void        Gp_AnimResetChildSlots(Task* arg0, s32 arg1);
+void        Gp_AnimPlayChildSlots(Task* arg0, s32 arg1, s32 arg2);
+void        Gp_AnimPlayChildSlotsEx(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+void        Gp_AnimTickChildSlots(Task* arg0);
+s16         func_80103E7C(s16 arg0, s16 arg1);
+void        Gp_TrackLockTarget(Task* arg0);
+void        Gp_PlaceCoordOffset(GpCoord* arg0, GpCoord* arg1, SVECTOR* arg2);
+s32         func_80104B54(Task* arg0, s32 arg1, GpAnimArg* arg2);
+s32         func_80104E00(Task* arg0, s32 arg1, GpXformArg* arg2);
+s32         Gp_SetActorDest(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3);
+s32         Gp_MoveActorBy(Task* arg0, s32 arg1, GpMoveArg* arg2);
+s32         func_801055D4(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+s32         func_80105690(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+s32         func_8010583C(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+s32         func_80105894(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_80105B0C(Task* arg0);
+s32         Gp_PickNearestRec18(GpRec18* arg0, GpCoord* arg1, GpCoord* arg2);
+s32         func_80105ED4(Task* arg0);
+static void func_8010615C(Task* arg0);
+void        func_801066DC(Task* arg0, s16 arg1);
+void        Gp_PlayerMode2State4(Task* arg0);
+static void func_80109210(Task* arg0);
+static void func_80109250(Task* arg0);
+static void func_80109FC4(Task* arg0);
+static void func_8010A670(Task* arg0);
+static void func_80108684(Task* arg0);
+void        func_8010870C(Task* arg0, s32 arg1);
+static void Gp_ResetActorAnimState(Task* arg0, s32 arg1);
+void        func_80108874(Task* arg0);
+static void func_80108E0C(Task* arg0, GpLinkNode* arg1);
+static void func_80109374(Task* arg0);
+static void Gp_UpdateLockTarget(Task* arg0);
+static void Gp_TickPlayerActor(Task* arg0);
+static void func_801095BC(s32* arg0);
+static void func_80109720(Task* arg0);
+static void func_80109844(Task* arg0);
+static void func_80109A1C(Task* arg0);
+void        func_80109BB4(Task* arg0, GpRec18* arg1);
+void        Gp_StopPlayerAnim(Task* arg0, s32 arg1);
+static void func_8010AAB4(Task* arg0);
+void        func_8010ABD4(Task* arg0);
+static void func_8010AC54(Task* arg0);
+static void func_8010AD64(Task* arg0);
+static void Gp_PlayerStepSfx(Task* arg0);
+void        func_800FDB18(s32 arg0, GpCoord* arg1, SVECTOR* arg2, GpEffArg* arg3);
+static void Gp_DrawEffTri(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_800FCD00(Task* arg0);
 
-void Gp_EffTask07State0(Task* arg0);
-void Gp_PlayerWorkState1(Task* arg0);
-void Gp_PlayerWorkState2(Task* arg0);
-void func_80108FA0(Task* arg0);
-void Gp_PlayerNormalState1(Task* arg0);
-void Gp_PlayerNormalState2(Task* arg0);
-void func_801090E8(Task* arg0);
-void func_80109138(Task* arg0);
-void Gp_PlayerNormalState5(Task* arg0);
-void Gp_PlayerNormalState6(Task* arg0);
-void func_8010771C(Task* arg0);
-void Gp_TickPlayerNormal(Task* arg0);
-void Gp_TickPlayerMode1(Task* arg0);
-void Gp_TickPlayerMode2(Task* arg0);
-void Gp_PlayerMode1State3(void);
-void Gp_PlayerMode2State0(Task* arg0);
-void Gp_PlayerMode2State1(Task* arg0);
-void Gp_PlayerMode2State2(Task* arg0);
-void Gp_PlayerMode2State3(Task* arg0);
-void Gp_PlayerMode2State5(Task* arg0);
-void Gp_PlayerMode2State6(Task* arg0);
-void Gp_PlayerMode2State7(Task* arg0);
-void Gp_PlayerMode2State8(Task* arg0);
-void Gp_PlayerMode2State9(Task* arg0);
-void Gp_PlayerMode2StateA(Task* arg0);
-void Gp_PlayerMode2StateB(Task* arg0);
+static void Gp_EffTask07State0(Task* arg0);
+static void Gp_PlayerWorkState1(Task* arg0);
+static void Gp_PlayerWorkState2(Task* arg0);
+static void func_80108FA0(Task* arg0);
+static void Gp_PlayerNormalState1(Task* arg0);
+static void Gp_PlayerNormalState2(Task* arg0);
+static void func_801090E8(Task* arg0);
+static void func_80109138(Task* arg0);
+static void Gp_PlayerNormalState5(Task* arg0);
+static void Gp_PlayerNormalState6(Task* arg0);
+static void func_8010771C(Task* arg0);
+static void Gp_TickPlayerNormal(Task* arg0);
+static void Gp_TickPlayerMode1(Task* arg0);
+static void Gp_TickPlayerMode2(Task* arg0);
+static void Gp_PlayerMode1State3(void);
+void        Gp_PlayerMode2State0(Task* arg0);
+void        Gp_PlayerMode2State1(Task* arg0);
+void        Gp_PlayerMode2State2(Task* arg0);
+static void Gp_PlayerMode2State3(Task* arg0);
+static void Gp_PlayerMode2State5(Task* arg0);
+void        Gp_PlayerMode2State6(Task* arg0);
+static void Gp_PlayerMode2State7(Task* arg0);
+static void Gp_PlayerMode2State8(Task* arg0);
+static void Gp_PlayerMode2State9(Task* arg0);
+static void Gp_PlayerMode2StateA(Task* arg0);
+static void Gp_PlayerMode2StateB(Task* arg0);
 
-void func_801065A0(void);
+static void func_801065A0(void);
 
 /// Weapon overlay entry points, at fixed addresses.
 void func_8011D1C4(Task* arg0);
@@ -136,6 +136,23 @@ void func_8011E4F8(Task* arg0);
 void func_8011E710(Task* arg0);
 void func_8011F5D4(Task* arg0);
 void func_8011F724(Task* arg0);
+
+static const TaskFuncTable4 D_80097AB0;
+static void                 Gp_BindActorAnim(Task* arg0);
+static void                 Gp_DrawEffQuadT29(GpCoord* arg0, s32 arg1, u16 arg2, u16 arg3);
+static void                 Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2);
+static void                 Gp_DrawEffSprite46(GpCoord* arg0, s32 arg1, s16 arg2, u16 arg3);
+static void                 Gp_DrawEffSpriteE2(GpCoord* arg0, u16 arg1, u32 arg2, s16 arg3);
+static void                 Gp_EffTask07State1(Task* arg0);
+static void                 Gp_InitPlayerWork(Task* arg0);
+static void                 Gp_PlayerMode1State0(Task* arg0);
+static void                 Gp_TeardownSlot0(Task* arg0);
+static void                 func_80108620(Task* arg0);
+static s32                  func_80109290(Task* arg0);
+static void                 func_8010A42C(Task* arg0, s32 arg1);
+static void                 func_8010B210(Task* arg0);
+static void                 func_8010B2D4(Task* arg0, GpIdRec* arg1, s32 arg2);
+static void                 func_8010B348(Task* arg0, GpIdRec* arg1, s32 arg2);
 
 void Gp_EffSprTask46(Task* arg0)
 {
@@ -208,7 +225,7 @@ void Gp_EffSprTask46(Task* arg0)
     }
 }
 
-void Gp_DrawEffSprite81(Task* arg0)
+static void Gp_DrawEffSprite81(Task* arg0)
 {
     GpRingScratch* block;
     TmdObject*     extra;
@@ -258,7 +275,7 @@ void Gp_DrawEffSprite81(Task* arg0)
     SCRATCH_POP(GpRingScratch);
 }
 
-void Gp_DrawEffSprite46(GpCoord* arg0, s32 arg1, s16 arg2, u16 arg3)
+static void Gp_DrawEffSprite46(GpCoord* arg0, s32 arg1, s16 arg2, u16 arg3)
 {
     GpQuadScratch* block;
     s32            i;
@@ -997,13 +1014,13 @@ void Gp_EffSprTask30(Task* arg0)
     }
 }
 
-const TaskFuncTable3 Gp_EffTask07States = { {
+static const TaskFuncTable3 Gp_EffTask07States = { {
     Gp_EffTask07State0,
     Gp_EffTask07State1,
     taskKill,
 } };
 
-void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2)
+static void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -1099,7 +1116,7 @@ void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2)
     SCRATCH_POP_BYTES(0x1C);
 }
 
-void Gp_DrawEffQuadT29(GpCoord* arg0, s32 arg1, u16 arg2, u16 arg3)
+static void Gp_DrawEffQuadT29(GpCoord* arg0, s32 arg1, u16 arg2, u16 arg3)
 {
     GpQuadScratch* block;
     s32            i;
@@ -1159,7 +1176,7 @@ void Gp_DrawEffQuadT29(GpCoord* arg0, s32 arg1, u16 arg2, u16 arg3)
     SCRATCH_POP(GpQuadScratch);
 }
 
-void Gp_EffTask07State1(Task* arg0)
+static void Gp_EffTask07State1(Task* arg0)
 {
     Task* slot;
     s32   kind;
@@ -1636,7 +1653,7 @@ lcg:
                 mem->step | 0x8000, 0);
 }
 
-void Gp_DrawEffTri(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void Gp_DrawEffTri(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     GpRingScratch* block;
     POLY_G3*       prim;
@@ -1925,7 +1942,7 @@ void Gp_PulseState1C80(void)
     Gp_State1C->pendingPulses |= 0x80;
 }
 
-void Gp_EffTask07State0(Task* arg0)
+static void Gp_EffTask07State0(Task* arg0)
 {
     arg0->state = arg0->state + 1;
 }
@@ -2083,7 +2100,7 @@ do_fcd00:
     func_800FCD00(arg0);
 }
 
-void func_800FCD00(Task* arg0)
+static void func_800FCD00(Task* arg0)
 {
     GpEffWork*        mem;
     GpCoord*          coord;
@@ -2468,7 +2485,9 @@ void func_800FDB18(s32 arg0, GpCoord* arg1, SVECTOR* arg2, GpEffArg* arg3)
     }
 }
 
-const TaskFuncTable4 Gp_PlayerWorkStates = { {
+/// Four-entry `Task::state` dispatcher: `Gp_InitPlayerWork`, `Gp_PlayerWorkState1`,
+/// `Gp_PlayerWorkState2`, `Gp_TeardownSlot0`.
+static const TaskFuncTable4 Gp_PlayerWorkStates = { {
     Gp_InitPlayerWork,
     Gp_PlayerWorkState1,
     Gp_PlayerWorkState2,
@@ -3318,7 +3337,11 @@ void Gp_EffSprTaskE2(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void Gp_DrawEffSpriteE2(GpCoord* arg0, u16 arg1, u32 arg2, s16 arg3)
+/// Hand-written GTE routine. `arg2` is a full 32-bit word: the high half picks
+/// the CLUT (palette column) and the low 12 bits are the billboard size, so it
+/// must not be declared `s16` (that makes callers emit a spurious `sll`/`sra`
+/// truncation). It is unsigned because the size is divided by `otz` with `divu`.
+static void Gp_DrawEffSpriteE2(GpCoord* arg0, u16 arg1, u32 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -3377,7 +3400,7 @@ void Gp_DrawEffSpriteE2(GpCoord* arg0, u16 arg1, u32 arg2, s16 arg3)
     SCRATCH_POP_BYTES(0x1C);
 }
 
-void Gp_InitPlayerWork(Task* arg0)
+static void Gp_InitPlayerWork(Task* arg0)
 {
     GameActor*   actor;
     TmdObject*   extra;
@@ -3504,7 +3527,7 @@ void Gp_InitPlayerWork(Task* arg0)
     }
 }
 
-void Gp_PlayerWorkState1(Task* arg0)
+static void Gp_PlayerWorkState1(Task* arg0)
 {
     GameActor* actor;
     GpCoord*   coord;
@@ -3640,7 +3663,7 @@ s32 func_801011D0(GpCoord* arg0, s32 arg1, s32 arg2, s32* arg3)
     return ret;
 }
 
-void func_8010133C(void)
+static void func_8010133C(void)
 {
     void**       scratch;
     u8*          head;
@@ -3669,12 +3692,12 @@ void func_8010133C(void)
     SCRATCH_POP_BYTES(0x10);
 }
 
-void Gp_PlayerWorkState2(Task* arg0)
+static void Gp_PlayerWorkState2(Task* arg0)
 {
     arg0->state = 3;
 }
 
-void Gp_TeardownSlot0(Task* arg0)
+static void Gp_TeardownSlot0(Task* arg0)
 {
     volatile GameActor* inner;
     Task*               task;
@@ -3710,7 +3733,7 @@ void Gp_TeardownSlot0(Task* arg0)
     taskKill((Task*)arg0);
 }
 
-void Gp_PlayerWorkTask(Task* arg0)
+static void Gp_PlayerWorkTask(Task* arg0)
 {
     TaskFuncTable4 sp;
 
@@ -4170,7 +4193,7 @@ static inline void _gpAimYawAt(GameActor* actor, GpYawScratch* block, s16 thresh
     }
 }
 
-void Gp_AimYawToLock(Task* arg0, s32 arg1)
+static void Gp_AimYawToLock(Task* arg0, s32 arg1)
 {
     GameActor* actor;
     u8*        head;
@@ -4215,7 +4238,7 @@ static inline s32 _gpAimPitchLockDelta(GameActor* actor, GpPitchScratch* block)
     return SquareRoot0(dx + dz);
 }
 
-void Gp_AimPitchToLock(Task* arg0)
+static void Gp_AimPitchToLock(Task* arg0)
 {
     u8*             head;
     GameActor*      actor;
@@ -4263,7 +4286,7 @@ void Gp_AimPitchToLock(Task* arg0)
     SCRATCH_POP(GpPitchScratch);
 }
 
-void Gp_AimPitchToLockAlt(Task* arg0)
+static void Gp_AimPitchToLockAlt(Task* arg0)
 {
     u8*             head;
     GameActor*      actor;
@@ -4309,7 +4332,7 @@ void Gp_AimPitchToLockAlt(Task* arg0)
     SCRATCH_POP(GpPitchScratch);
 }
 
-void Gp_AimPitchRec(Task* arg0, s32 arg1, s32 arg2)
+static void Gp_AimPitchRec(Task* arg0, s32 arg1, s32 arg2)
 {
     u8*             head;
     GameActor*      actor;
@@ -4341,7 +4364,7 @@ void Gp_AimPitchRec(Task* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP(GpPitchScratch);
 }
 
-void Gp_AimPitchDirect(Task* arg0)
+static void Gp_AimPitchDirect(Task* arg0)
 {
     register void** scratch asm("v0");
     u8*             head;
@@ -4399,7 +4422,7 @@ void Gp_AimPitchDirect(Task* arg0)
     SCRATCH_POP_BYTES(0x84);
 }
 
-void func_801030CC(Task* arg0)
+static void func_801030CC(Task* arg0)
 {
     u8*                  head;
     s32                  temp;
@@ -4501,7 +4524,7 @@ inline static Task* spawn_tmd_attach(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     return task;
 }
 
-Task* func_80103294(Task* arg0, s32 arg1, s32 arg2)
+static Task* func_80103294(Task* arg0, s32 arg1, s32 arg2)
 {
     GameActor* actor;
 
@@ -4672,7 +4695,7 @@ have_actor:
     return task;
 }
 
-void Gp_CaptureActorPad(Task* arg0)
+static void Gp_CaptureActorPad(Task* arg0)
 {
     GameActor* actor;
     u16        buttons;
@@ -4691,7 +4714,7 @@ void Gp_CaptureActorPad(Task* arg0)
     actor->field_977 = (actor->field_962 >> 6) & flag;
 }
 
-void Gp_BindActorAnim(Task* arg0)
+static void Gp_BindActorAnim(Task* arg0)
 {
     GameActor* actor;
     TmdObject* extra;
@@ -4767,7 +4790,7 @@ void Gp_AnimTickChildSlots(Task* arg0)
     }
 }
 
-s32 Gp_HpBand(void)
+static s32 Gp_HpBand(void)
 {
     PlayerStatus* p;
     s32           temp;
@@ -4786,7 +4809,7 @@ s32 Gp_HpBand(void)
     return ret;
 }
 
-void Gp_DetachLinkNode(Task* arg0)
+static void Gp_DetachLinkNode(Task* arg0)
 {
     GameActor*  inner;
     GpLinkNode* node;
@@ -4800,7 +4823,7 @@ void Gp_DetachLinkNode(Task* arg0)
     inner->field_97E = 1;
 }
 
-s32 Gp_ApplyDirArg(Task* arg0, GpMoveArg* arg1)
+static s32 Gp_ApplyDirArg(Task* arg0, GpMoveArg* arg1)
 {
     GameActor*   actor;
     GpCoord*     coord;
@@ -4843,7 +4866,7 @@ void func_80103C74(GpCoord* arg0, VECTOR3* arg1, VECTOR3* arg2)
     arg2->vz = arg1->vz - arg0->coord.t[2];
 }
 
-void func_80103CB4(GpCoord* arg0, s32 arg1, VECTOR3* arg2, VECTOR3* arg3)
+static void func_80103CB4(GpCoord* arg0, s32 arg1, VECTOR3* arg2, VECTOR3* arg3)
 {
     u8*     head;
     VECTOR* vec;
@@ -4963,7 +4986,7 @@ void Gp_TrackLockTarget(Task* arg0)
     }
 }
 
-GpCoord* func_8010403C(s32 arg0)
+static GpCoord* func_8010403C(s32 arg0)
 {
     Task* slot;
     u8    idx;
@@ -5006,7 +5029,7 @@ s32 func_801041B4(Task* arg0)
     return 0;
 }
 
-void func_801041FC(Task* arg0, s32 arg1)
+static void func_801041FC(Task* arg0, s32 arg1)
 {
     GameActor* actor;
     GpPadEvt*  entry;
@@ -5317,7 +5340,7 @@ s32 Gp_EnterActorMode2(Task* arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-void func_80104A4C(Task* arg0)
+static void func_80104A4C(Task* arg0)
 {
     GameActor*    actor;
     PlayerStatus* p;
@@ -5336,7 +5359,7 @@ void func_80104A4C(Task* arg0)
     }
 }
 
-void func_80104AAC(Task* arg0)
+static void func_80104AAC(Task* arg0)
 {
     GameActor*    actor;
     PlayerStatus* p;
@@ -5982,7 +6005,7 @@ s32 func_80105AB0(Task* arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-void func_80105B0C(Task* arg0)
+static void func_80105B0C(Task* arg0)
 {
     GameActor* inner;
     s32        i;
@@ -6197,7 +6220,7 @@ const TaskFuncTable33 D_800978BC = { {
     func_8011DDA4,
 } };
 
-void func_8010615C(Task* arg0)
+static void func_8010615C(Task* arg0)
 {
     GameActor*      actor;
     TaskFuncTable33 sp;
@@ -6249,7 +6272,7 @@ s32 func_80106264(s32 arg0)
     return ret;
 }
 
-s32 func_801062DC(Task* arg0, s32 arg1)
+static s32 func_801062DC(Task* arg0, s32 arg1)
 {
     s32 ret;
     s32 flag;
@@ -6340,11 +6363,11 @@ void func_80106550(Task* arg0)
     }
 }
 
-void func_801065A0(void)
+static void func_801065A0(void)
 {
 }
 
-void func_801065A8(Task* arg0)
+static void func_801065A8(Task* arg0)
 {
     GameActor* inner;
 
@@ -6431,13 +6454,15 @@ void func_801066DC(Task* arg0, s16 arg1)
     }
 }
 
-const TaskFuncTable3 Gp_PlayerModeFns = { {
+/// `field_954` dispatcher: `Gp_TickPlayerNormal`, `Gp_TickPlayerMode1`, `Gp_TickPlayerMode2`.
+static const TaskFuncTable3 Gp_PlayerModeFns = { {
     Gp_TickPlayerNormal,
     Gp_TickPlayerMode1,
     Gp_TickPlayerMode2,
 } };
 
-const TaskFuncTable8 D_8009794C = { {
+/// `field_956` dispatcher copied by `Gp_TickPlayerNormal`.
+static const TaskFuncTable8 D_8009794C = { {
     func_80108FA0,
     Gp_PlayerNormalState1,
     Gp_PlayerNormalState2,
@@ -6448,7 +6473,7 @@ const TaskFuncTable8 D_8009794C = { {
     func_8010771C,
 } };
 
-void Gp_TickPlayerNormal(Task* arg0)
+static void Gp_TickPlayerNormal(Task* arg0)
 {
     GameActor*     actor;
     GameActor*     inner;
@@ -6505,7 +6530,7 @@ void Gp_TickPlayerNormal(Task* arg0)
     }
 }
 
-void Gp_PlayerNormalState2(Task* arg0)
+static void Gp_PlayerNormalState2(Task* arg0)
 {
     GameActor* actor;
     s32        dir;
@@ -6560,7 +6585,7 @@ void Gp_PlayerNormalState2(Task* arg0)
     func_80105ED4(arg0);
 }
 
-void Gp_PlayerNormalState5(Task* arg0)
+static void Gp_PlayerNormalState5(Task* arg0)
 {
     GameActor* actor;
     GameActor* inner;
@@ -6840,7 +6865,7 @@ void Gp_PlayerNormalState5(Task* arg0)
     Gp_UpdateLockTarget(arg0);
 }
 
-void Gp_PlayerNormalState6(Task* arg0)
+static void Gp_PlayerNormalState6(Task* arg0)
 {
     Task*        work;
     s32          fade;
@@ -6968,7 +6993,7 @@ void Gp_PlayerNormalState6(Task* arg0)
     }
 }
 
-void func_8010771C(Task* arg0)
+static void func_8010771C(Task* arg0)
 {
     GameActor* actor;
     GameActor* inner;
@@ -7036,7 +7061,7 @@ void func_8010771C(Task* arg0)
     }
 }
 
-void Gp_PlayerMode2State3(Task* arg0)
+static void Gp_PlayerMode2State3(Task* arg0)
 {
     u8*            head;
     GpDashScratch* blk;
@@ -7247,7 +7272,7 @@ void Gp_PlayerMode2State4(Task* arg0)
     SCRATCH_POP_BYTES(0x14);
 }
 
-void Gp_PlayerMode2StateA(Task* arg0)
+static void Gp_PlayerMode2StateA(Task* arg0)
 {
     s32        variant;
     GameActor* actor;
@@ -7292,7 +7317,7 @@ void Gp_PlayerMode2StateA(Task* arg0)
     Gp_AnimTickChildSlots(arg0);
 }
 
-void Gp_PlayerMode2StateB(Task* arg0)
+static void Gp_PlayerMode2StateB(Task* arg0)
 {
     GameActor* actor;
     GameActor* inner;
@@ -7353,7 +7378,7 @@ void Gp_PlayerMode2StateB(Task* arg0)
     Gp_PlayerStepSfx(arg0);
 }
 
-void Gp_TickPlayerActor(Task* arg0)
+static void Gp_TickPlayerActor(Task* arg0)
 {
     GameActor*     inner;
     TaskFuncTable3 sp;
@@ -7373,7 +7398,7 @@ void Gp_TickPlayerActor(Task* arg0)
     func_801030CC(arg0);
 }
 
-void Gp_ArmLockOnState(Task* arg0)
+static void Gp_ArmLockOnState(Task* arg0)
 {
     GameActor*  inner;
     GpLinkNode* node;
@@ -7405,7 +7430,7 @@ void Gp_ArmLockOnState(Task* arg0)
     }
 }
 
-void func_80108568(Task* arg0)
+static void func_80108568(Task* arg0)
 {
     GameActor* actor;
 
@@ -7419,7 +7444,7 @@ void func_80108568(Task* arg0)
     }
 }
 
-void func_801085D0(Task* arg0)
+static void func_801085D0(Task* arg0)
 {
     GameActor* inner;
 
@@ -7431,7 +7456,7 @@ void func_801085D0(Task* arg0)
     }
 }
 
-void func_80108620(Task* arg0)
+static void func_80108620(Task* arg0)
 {
     GameActor* inner;
     s32        mode;
@@ -7453,7 +7478,7 @@ void func_80108620(Task* arg0)
     Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 5);
 }
 
-void func_80108684(Task* arg0)
+static void func_80108684(Task* arg0)
 {
     GameActor* inner;
     s32        mode;
@@ -7505,7 +7530,7 @@ void func_8010870C(Task* arg0, s32 arg1)
     }
 }
 
-void Gp_ResetActorAnimState(Task* arg0, s32 arg1)
+static void Gp_ResetActorAnimState(Task* arg0, s32 arg1)
 {
     GameActor* inner;
     s32        mode;
@@ -7604,7 +7629,7 @@ void func_801088D4(Task* arg0, s32 arg1, s32 arg2)
     Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 3);
 }
 
-void func_80108A0C(Task* arg0)
+static void func_80108A0C(Task* arg0)
 {
     GameActor*   inner;
     u16          prev;
@@ -7639,7 +7664,7 @@ void func_80108A0C(Task* arg0)
     }
 }
 
-void func_80108AD4(Task* arg0)
+static void func_80108AD4(Task* arg0)
 {
     GameActor* inner;
     u16        prev;
@@ -7712,7 +7737,7 @@ void Gp_PlayerMode2State2(Task* arg0)
     Gp_AnimTickChildSlots(arg0);
 }
 
-void Gp_PlayerMode2State8(Task* arg0)
+static void Gp_PlayerMode2State8(Task* arg0)
 {
     GameActor* inner;
     s32        mode;
@@ -7754,7 +7779,7 @@ void Gp_PlayerMode2State6(Task* arg0)
     Gp_AnimTickChildSlots(arg0);
 }
 
-void func_80108E0C(Task* arg0, GpLinkNode* arg1)
+static void func_80108E0C(Task* arg0, GpLinkNode* arg1)
 {
     GameActor*  inner;
     GpLinkNode* node;
@@ -7770,14 +7795,15 @@ void func_80108E0C(Task* arg0, GpLinkNode* arg1)
     arg1->state.b.targeted = 1;
 }
 
-const TaskFuncTable4 Gp_PlayerMode1States = { {
+/// `field_96C` dispatcher: three slots of `Gp_PlayerMode1State0`, then `Gp_PlayerMode1State3`.
+static const TaskFuncTable4 Gp_PlayerMode1States = { {
     Gp_PlayerMode1State0,
     Gp_PlayerMode1State0,
     Gp_PlayerMode1State0,
     (TaskFunc)Gp_PlayerMode1State3,
 } };
 
-void Gp_TickPlayerMode1(Task* arg0)
+static void Gp_TickPlayerMode1(Task* arg0)
 {
     TaskFuncTable4 sp;
 
@@ -7789,7 +7815,8 @@ void Gp_TickPlayerMode1(Task* arg0)
     Gp_StepPlayerMove(arg0);
 }
 
-const TaskFuncTable12 Gp_PlayerMode2States = { {
+/// `field_956` dispatcher copied by `Gp_TickPlayerMode2`.
+static const TaskFuncTable12 Gp_PlayerMode2States = { {
     Gp_PlayerMode2State0,
     Gp_PlayerMode2State1,
     Gp_PlayerMode2State2,
@@ -7804,7 +7831,7 @@ const TaskFuncTable12 Gp_PlayerMode2States = { {
     Gp_PlayerMode2StateB,
 } };
 
-void Gp_TickPlayerMode2(Task* arg0)
+static void Gp_TickPlayerMode2(Task* arg0)
 {
     GameActor*      inner;
     TaskFuncTable12 sp;
@@ -7819,14 +7846,14 @@ void Gp_TickPlayerMode2(Task* arg0)
     }
 }
 
-void func_80108FA0(Task* arg0)
+static void func_80108FA0(Task* arg0)
 {
     func_801065A8(arg0);
     func_80109290(arg0);
     func_80105ED4(arg0);
 }
 
-void Gp_PlayerNormalState1(Task* arg0)
+static void Gp_PlayerNormalState1(Task* arg0)
 {
     GameActor*  inner;
     GpLinkNode* node;
@@ -7859,7 +7886,7 @@ void Gp_PlayerNormalState1(Task* arg0)
     }
 }
 
-void func_801090E8(Task* arg0)
+static void func_801090E8(Task* arg0)
 {
     GameActor* inner;
 
@@ -7871,14 +7898,14 @@ void func_801090E8(Task* arg0)
     }
 }
 
-void func_80109138(Task* arg0)
+static void func_80109138(Task* arg0)
 {
     func_8010615C(arg0);
     func_801041FC(arg0, 0);
     Gp_UpdateLockTarget(arg0);
 }
 
-void Gp_PlayerMode1State0(Task* arg0)
+static void Gp_PlayerMode1State0(Task* arg0)
 {
     GameActor* inner;
     u8         kind;
@@ -7910,11 +7937,11 @@ void Gp_PlayerMode1State0(Task* arg0)
     }
 }
 
-void Gp_PlayerMode1State3(void)
+static void Gp_PlayerMode1State3(void)
 {
 }
 
-void func_80109210(Task* arg0)
+static void func_80109210(Task* arg0)
 {
     GameActor* inner;
     u16        flags;
@@ -7932,7 +7959,7 @@ void func_80109210(Task* arg0)
     }
 }
 
-void func_80109250(Task* arg0)
+static void func_80109250(Task* arg0)
 {
     GameActor* inner;
     u16        flags;
@@ -7950,7 +7977,7 @@ void func_80109250(Task* arg0)
     }
 }
 
-s32 func_80109290(Task* arg0)
+static s32 func_80109290(Task* arg0)
 {
     GameActor*   inner;
     u16          prev;
@@ -7991,7 +8018,7 @@ s32 func_80109290(Task* arg0)
     return ret;
 }
 
-void func_80109374(Task* arg0)
+static void func_80109374(Task* arg0)
 {
     GameActor* inner;
 
@@ -8004,7 +8031,7 @@ void func_80109374(Task* arg0)
     }
 }
 
-void Gp_UpdateLockTarget(Task* arg0)
+static void Gp_UpdateLockTarget(Task* arg0)
 {
     GameActor*  inner;
     GpLinkNode* next;
@@ -8051,7 +8078,7 @@ install: {
 }
 }
 
-void Gp_PlayerMode2State5(Task* arg0)
+static void Gp_PlayerMode2State5(Task* arg0)
 {
     GameActor* inner;
     s32        mode;
@@ -8090,7 +8117,7 @@ void Gp_PlayerMode2State5(Task* arg0)
     Gp_AnimTickChildSlots(arg0);
 }
 
-void func_801095BC(s32* arg0)
+static void func_801095BC(s32* arg0)
 {
     PlayerStatus*          p;
     volatile PlayerStatus* vp;
@@ -8115,7 +8142,7 @@ void func_801095BC(s32* arg0)
     }
 }
 
-void Gp_PlayerMode2State7(Task* arg0)
+static void Gp_PlayerMode2State7(Task* arg0)
 {
     GameActor* inner;
     s32        mode;
@@ -8138,12 +8165,12 @@ void Gp_PlayerMode2State7(Task* arg0)
     Gp_PlayerStepSfx(arg0);
 }
 
-void Gp_PlayerMode2State9(Task* arg0)
+static void Gp_PlayerMode2State9(Task* arg0)
 {
     Gp_AnimTickChildSlots(arg0);
 }
 
-void func_80109720(Task* arg0)
+static void func_80109720(Task* arg0)
 {
     GameActor* actor;
     GpCoord*   coord;
@@ -8183,7 +8210,7 @@ void func_80109720(Task* arg0)
     }
 }
 
-void func_80109818(Task* arg0)
+static void func_80109818(Task* arg0)
 {
     GameActor* inner;
 
@@ -8197,7 +8224,7 @@ void func_80109818(Task* arg0)
     inner->field_981 = 0;
 }
 
-void func_80109844(Task* arg0)
+static void func_80109844(Task* arg0)
 {
     u8*        head;
     SVECTOR*   vec;
@@ -8272,7 +8299,7 @@ void func_80109844(Task* arg0)
     SCRATCH_POP_BYTES(8);
 }
 
-void func_80109A1C(Task* arg0)
+static void func_80109A1C(Task* arg0)
 {
     GameActor* inner;
     GpEffArg*  params;
@@ -8426,7 +8453,7 @@ void func_80109BB4(Task* arg0, GpRec18* arg1)
     SCRATCH_POP_BYTES(0x40);
 }
 
-void func_80109FC4(Task* arg0)
+static void func_80109FC4(Task* arg0)
 {
     s32        flags;
     GameActor* actor;
@@ -8582,7 +8609,7 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
     }
 }
 
-void func_8010A42C(Task* arg0, s32 arg1)
+static void func_8010A42C(Task* arg0, s32 arg1)
 {
     u8 kind;
 
@@ -8690,7 +8717,7 @@ void func_8010A42C(Task* arg0, s32 arg1)
     }
 }
 
-void func_8010A670(Task* arg0)
+static void func_8010A670(Task* arg0)
 {
     GameActor*  inner;
     GpLinkNode* node;
@@ -8755,7 +8782,7 @@ void func_8010A670(Task* arg0)
     }
 }
 
-s32 Gp_ApplyHpDamage(s32 arg0)
+static s32 Gp_ApplyHpDamage(s32 arg0)
 {
     register s32  amount asm("s1");
     s32           ret;
@@ -8834,7 +8861,7 @@ void Gp_StopPlayerAnim(Task* arg0, s32 arg1)
     inner->field_983 |= 0x18;
 }
 
-void func_8010AAB4(Task* arg0)
+static void func_8010AAB4(Task* arg0)
 {
     GameActor*    inner;
     PlayerStatus* p;
@@ -8859,7 +8886,7 @@ void func_8010AAB4(Task* arg0)
     }
 }
 
-void func_8010AB70(Task* arg0)
+static void func_8010AB70(Task* arg0)
 {
     GameActor* inner;
 
@@ -8891,7 +8918,7 @@ void func_8010ABD4(Task* arg0)
     }
 }
 
-void func_8010AC54(Task* arg0)
+static void func_8010AC54(Task* arg0)
 {
     GameActor* inner;
     GameActor* inner2;
@@ -8923,7 +8950,7 @@ void func_8010AC54(Task* arg0)
     }
 }
 
-void func_8010AD64(Task* arg0)
+static void func_8010AD64(Task* arg0)
 {
     void**     scratch;
     u8*        head;
@@ -8975,7 +9002,7 @@ void func_8010AD64(Task* arg0)
     SCRATCH_POP_BYTES(8);
 }
 
-void func_8010AE98(Task* arg0)
+static void func_8010AE98(Task* arg0)
 {
     GameActor* inner;
 
@@ -8990,7 +9017,7 @@ void func_8010AE98(Task* arg0)
     Gp_SetState1CPe(1);
 }
 
-void func_8010AF04(Task* arg0)
+static void func_8010AF04(Task* arg0)
 {
     GameActor* inner;
 
@@ -9005,7 +9032,7 @@ void func_8010AF04(Task* arg0)
     Gp_SetState1CPe(2);
 }
 
-void func_8010AF6C(Task* arg0)
+static void func_8010AF6C(Task* arg0)
 {
     GameActor* inner;
 
@@ -9019,7 +9046,7 @@ void func_8010AF6C(Task* arg0)
     Gp_SetState1CPe(4);
 }
 
-void func_8010AFC0(Task* arg0)
+static void func_8010AFC0(Task* arg0)
 {
     GameActor* inner;
 
@@ -9032,7 +9059,7 @@ void func_8010AFC0(Task* arg0)
     Gp_SetState1CPe(0x10);
 }
 
-void func_8010B010(Task* arg0)
+static void func_8010B010(Task* arg0)
 {
     GameActor* inner;
 
@@ -9045,7 +9072,7 @@ void func_8010B010(Task* arg0)
     Gp_SetState1CPe(0x20);
 }
 
-void func_8010B060(Task* arg0)
+static void func_8010B060(Task* arg0)
 {
     GameActor* inner;
 
@@ -9060,7 +9087,7 @@ void func_8010B060(Task* arg0)
     Gp_SetState1CPe(0x40);
 }
 
-void func_8010B0C8(Task* arg0)
+static void func_8010B0C8(Task* arg0)
 {
     GameActor* inner;
 
@@ -9074,7 +9101,7 @@ void func_8010B0C8(Task* arg0)
     func_800ECA54();
 }
 
-void Gp_PlayerStepSfx(Task* arg0)
+static void Gp_PlayerStepSfx(Task* arg0)
 {
     GameActor* inner;
     GameActor* inner2;
@@ -9112,7 +9139,7 @@ void Gp_PlayerStepSfx(Task* arg0)
     SndEvt_EnqueueType6(snd, temp, temp2);
 }
 
-void func_8010B210(Task* arg0)
+static void func_8010B210(Task* arg0)
 {
     GameActor* inner;
 
@@ -9122,7 +9149,7 @@ void func_8010B210(Task* arg0)
     inner->field_96E = 0;
 }
 
-s32 Gp_TestHpDamage(s32 arg0)
+static s32 Gp_TestHpDamage(s32 arg0)
 {
     PlayerStatus* p;
     u16           saved18;
@@ -9147,7 +9174,7 @@ void func_8010B2A0(s32 arg0, s32 arg1)
     Task_SpawnFromTable(D_80113340, arg0, arg1, 0);
 }
 
-void func_8010B2D4(Task* arg0, GpIdRec* arg1, s32 arg2)
+static void func_8010B2D4(Task* arg0, GpIdRec* arg1, s32 arg2)
 {
     GameActor* inner;
     s32        out;
@@ -9168,7 +9195,7 @@ void func_8010B2D4(Task* arg0, GpIdRec* arg1, s32 arg2)
     }
 }
 
-void func_8010B348(Task* arg0, GpIdRec* arg1, s32 arg2)
+static void func_8010B348(Task* arg0, GpIdRec* arg1, s32 arg2)
 {
     GameActor* inner;
     u32        kind;
@@ -9272,7 +9299,7 @@ void func_8010B520(Task* arg0)
     taskKill(arg0);
 }
 
-void func_8010B590(Task* arg0)
+static void func_8010B590(Task* arg0)
 {
     TmdObject* extra;
     GpCoord*   coord;
@@ -9286,7 +9313,7 @@ void func_8010B590(Task* arg0)
     }
 }
 
-void func_8010B5C0(Task* arg0)
+static void func_8010B5C0(Task* arg0)
 {
     Task*      parent;
     TmdObject* extra;
@@ -9297,17 +9324,17 @@ void func_8010B5C0(Task* arg0)
     extra->coords->flg = 0;
 }
 
-void func_8010B5E4(Task* arg0)
+static void func_8010B5E4(Task* arg0)
 {
     arg0->state = 3;
 }
 
-void func_8010B5F0(Task* arg0)
+static void func_8010B5F0(Task* arg0)
 {
     taskKill(arg0);
 }
 
-void func_8010B610(Task* arg0)
+static void func_8010B610(Task* arg0)
 {
     TaskFuncTable4 sp;
 
@@ -9743,7 +9770,7 @@ void Gp_BindActorD4(Task* arg0, SVECTOR3* arg1, s32 arg2)
     obj->flags |= 0xC800;
 }
 
-s32 func_8010C30C(Task* arg0)
+static s32 func_8010C30C(Task* arg0)
 {
     TmdObject* extra;
     GpCoord*   coord;
@@ -9784,7 +9811,7 @@ s32 func_8010C30C(Task* arg0)
     return 0;
 }
 
-void func_8010C46C(Task* arg0)
+static void func_8010C46C(Task* arg0)
 {
     GameActor* actor;
 
@@ -9805,7 +9832,7 @@ void func_8010C46C(Task* arg0)
     func_80106350(arg0, D_80167218[Mc_SaveData.companionVariant], 0);
 }
 
-s32 func_8010C4F0(Task* arg0, s32 arg1, GpAnimArg* arg2)
+static s32 func_8010C4F0(Task* arg0, s32 arg1, GpAnimArg* arg2)
 {
     GameActor* actor;
     TmdObject* extra;
@@ -9847,7 +9874,7 @@ s32 func_8010C4F0(Task* arg0, s32 arg1, GpAnimArg* arg2)
     return 0;
 }
 
-s32 func_8010C648(Task* arg0, s32 arg1, GpAnimArg* arg2)
+static s32 func_8010C648(Task* arg0, s32 arg1, GpAnimArg* arg2)
 {
     PlayerStatus* p;
     u8            saved;
@@ -9859,7 +9886,7 @@ s32 func_8010C648(Task* arg0, s32 arg1, GpAnimArg* arg2)
     return 0;
 }
 
-s32 func_8010C688(Task* arg0, s32 arg1, GpXformArg* arg2)
+static s32 func_8010C688(Task* arg0, s32 arg1, GpXformArg* arg2)
 {
     PlayerStatus* p;
     u8            saved;
@@ -9871,7 +9898,7 @@ s32 func_8010C688(Task* arg0, s32 arg1, GpXformArg* arg2)
     return 0;
 }
 
-s32 func_8010C6C8(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3)
+static s32 func_8010C6C8(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3)
 {
     PlayerStatus* p;
     u8            saved;
@@ -9883,7 +9910,7 @@ s32 func_8010C6C8(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3)
     return 0;
 }
 
-s32 func_8010C708(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3)
+static s32 func_8010C708(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3)
 {
     PlayerStatus* p;
     u8            saved;
@@ -9898,7 +9925,7 @@ s32 func_8010C708(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3)
     return 0;
 }
 
-s32 func_8010C75C(Task* arg0, s32 arg1, GpDelayArg* arg2)
+static s32 func_8010C75C(Task* arg0, s32 arg1, GpDelayArg* arg2)
 {
     GameActor* actor;
 
@@ -9926,7 +9953,7 @@ s32 func_8010C75C(Task* arg0, s32 arg1, GpDelayArg* arg2)
     return 0;
 }
 
-void Gp_MoveActorByKeep(Task* arg0, s32 arg1, GpMoveArg* arg2)
+static void Gp_MoveActorByKeep(Task* arg0, s32 arg1, GpMoveArg* arg2)
 {
     PlayerStatus* p;
     u8            saved;
@@ -9937,7 +9964,7 @@ void Gp_MoveActorByKeep(Task* arg0, s32 arg1, GpMoveArg* arg2)
     p->field_24 = saved;
 }
 
-s32 Gp_CopyAllyAnim(Task* arg0, s32 arg1, GpCopyArg* arg2)
+static s32 Gp_CopyAllyAnim(Task* arg0, s32 arg1, GpCopyArg* arg2)
 {
     s32* dest;
     s32* src;
@@ -9987,7 +10014,9 @@ void func_8010C980(void* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3, s32 arg4, s
     Gp_InitRec18Table(arg1->ctx.recs, (s16)arg3, 0);
 }
 
-const TaskFuncTable4 D_80097AB0 = { {
+/// Four-entry `Task::state` dispatcher: `func_8010B590`, `func_8010B5C0`,
+/// `func_8010B5E4`, `func_8010B5F0`.
+static const TaskFuncTable4 D_80097AB0 = { {
     func_8010B590,
     func_8010B5C0,
     func_8010B5E4,

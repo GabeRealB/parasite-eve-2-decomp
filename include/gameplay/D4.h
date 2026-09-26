@@ -296,9 +296,6 @@ typedef struct _GpTbl5 {
 } GpTbl5;
 STATIC_ASSERT_SIZEOF(GpTbl5, 5);
 
-extern const GpTbl5         Gp_ConfigCdTable;
-extern const TaskFuncTable6 Gp_LoadWaitFns;
-
 /// 8-byte pair of byte-table pointers at `D_801149FC`. `Gp_MsgPlayerDirFacing`
 /// indexes by `(Gp_DirByte & 0x70) >> 4`. `Gp_DirFlags & 0x100` selects
 /// `field_4` over `field_0`. The byte at `(Gp_DirByte & 0xF) -
@@ -342,13 +339,7 @@ typedef struct _GpAreaApplyRec {
 } GpAreaApplyRec;
 STATIC_ASSERT_SIZEOF(GpAreaApplyRec, 4);
 
-/// Maps `Player_Status.weapon` / `field_22` (and the 0x1B attach id) to a
-/// CdCmd 0x21 payload. No-op when `field_21` is 0 or the mapped byte is 0.
-void Gp_EnqueueWeaponCd(void);
 void Gp_EnqueueViewCd(Task* task);
-void Gp_LoadWaitCdBusy(Task* task);
-void Gp_LoadWaitIdle(Task* task);
-void Gp_LoadWaitDone(Task* task);
 void Gp_PostDirIfCapIdle(void);
 void Gp_RunDirAction(void);
 void Gp_SetupDirWarp(void);
@@ -358,96 +349,18 @@ void Gp_WarpPhase4(void);
 void Gp_MsgPlayerDirFacing(void);
 void Gp_CommitDirWarp(void);
 void Gp_PumpTmdStream(Task* task);
-/// Walk the inner area rec's 0x10-byte CdCmd 0x21 list (`Gp_CdRecCur`),
-/// matching each id against the 0xC-byte list (`D_80114C68`). Returns 1
-/// when the list is exhausted or missing, else 0 (still in flight).
-s32 Gp_PollAreaCdLoads(void);
-/// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
-/// `gDisplayState.otBuffer`. Draws while `CdCmd_Queue.field_224` is 0.
-/// Sets `Pad_RemapState->field_3`. When the CD queue is idle and
-/// `func_80042500` returns 0: sets `CdCmd_Queue.field_22E`, starts the
-/// boot load if a command is queued, clears `Stream_Slots`, refreshes
-/// `GameSession.loadedWeaponFamily` / `loadedConfigSet` from save/config (enqueueing
-/// CdCmd 0x21 via `Gp_EnqueueConfigCd` / `Gp_EnqueueHeldWeaponCd` if stale), then
-/// `Gp_EnqueueAttach7Cd` and advances `task->state`.
-void Gp_LoadWaitBoot(Task* task);
-/// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
-/// `gDisplayState.otBuffer`. Draws while `CdCmd_Queue.field_224` is 0.
-/// When the CD queue is idle, enqueues a stage reload if
-/// `GameSession.at4.loc.stage` differs from the cached `loadedStage`, then
-/// advances `task->state`.
-void Gp_LoadWaitStage(Task* task);
-/// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
-/// `gDisplayState.otBuffer`. Draws while `CdCmd_Queue.field_224` is 0.
-/// When the CD queue is idle: `Gp_InitStageVisit` on the save location,
-/// `Mem_ConfigureAuxHeap(loc.stage, loc.area)`, `Mem_SetActiveAuxHeap(1)` when
-/// the save is in stage 5 / area 1, `Mem_InitAux`, `Gp_ApplyNpcRoomSnd`,
-/// `Snd_InitFromStage`. Sets `gStageSceneMusicEntry` when in stage 3 with game flag
-/// nibble 0x7A >= 4, primes `GameSession.areaBgmCountdown` / `field_12E` /
-/// `deathRestartDelay` (1 / -0x80 / 0x1E) and `D_8007A39C` (0x3C / 0), spawns table `D_80062774` entry 0,
-/// then advances `task->state`.
-void Gp_LoadState2(Task* task);
-/// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
-/// `gDisplayState.otBuffer`. Draws while `CdCmd_Queue.field_224` is 0.
-/// When the CD queue is idle, enqueues CdCmd 0x21 with the current
-/// session location (`at4.loc.room` / `at4.loc.area` / `at4.loc.stage`), then
-/// `Gp_PickCompanion`. If that returns a companion type, stores it in
-/// `GameSession.companionType` and calls `Gp_EnqueueCompanionCd` with
-/// `Mc_SaveData.companionType` / `companionVariant`. Then advances `task->state`.
-void Gp_LoadWaitCompanion(Task* task);
-/// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
-/// `gDisplayState.otBuffer`. Draws while `CdCmd_Queue.field_224` is 0.
-/// When the CD queue is idle, if the session location high word is
-/// `0x3010000` and `loc.room >= 4`, re-inits stage sound and enqueues
-/// CdCmd 0x21 (`param1[0] = 0x16`). If `applySavePlace` is 1, applies
-/// `Mc_SaveData.at4.loc.place` via `Gp_SetAreaObjId` and clears the flag. Then
-/// applies the save location (`Gp_MarkAreaVisited` / `Gp_SyncAreaKeyIndex`), copies
-/// `Mc_SaveData.at4.loc.place` into `GameSession.at4.loc.place`, builds the stream
-/// VLC, clears `D_80114C74`, and advances `task->state`.
-void Gp_LoadWaitSave(Task* task);
-/// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
-/// `gDisplayState.otBuffer`. Draws while `CdCmd_Queue.field_224` is 0.
-/// Then walks `D_80114C74`: phase 0 resets `D_80114C70` and falls into
-/// phase 1 (`func_800AA120`); when that finishes, phase 2 runs
-/// `Gp_PollAreaCdLoads`. On success, resets TMD lists / the current OT,
-/// advances `task->state`, and if `Mc_SaveData.interlace` is set enables
-/// interlace on both `DISPENV` slots.
-void Gp_LoadWaitAreaCd(Task* task);
-/// Dual-buffer TILE / DR_TPAGE overlay (gray 0x64), indexed by
-/// `gDisplayState.otBuffer`. Draws while `CdCmd_Queue.field_224` is 0,
-/// then after 7 frames clears `CdCmd_Queue.field_22E` and advances state.
-void Gp_FadeGrayHold(Task* task);
-void Gp_InitStageVisit(struct GpAreaKey* arg0);
-/// Pick companion type into `Mc_SaveData.companionType` from the NPC room tables.
-/// Returns 0 if already current or none; else 1/2/3 for the caller to store
-/// in `GameSession.companionType`.
-s32  Gp_PickCompanion(void);
-void Gp_ApplyNpcRoomSnd(void);
-void Gp_SetupCompanionActor(struct _GpActorArg* arg0, u16* arg1);
-void Gp_ClearFlagBank(s32 arg0);
-void Gp_MarkAreaVisited(struct GpAreaKey* arg0);
 s32  Gp_DispatchMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
-/// Same room-object link as `Gp_LinkRoomObjects`, then spawn type 0x1B as a
-/// child, clear `GameSession.roomObjsDirty`, and increment `task->state`.
-void Gp_LinkRoomObjectsSpawn(Task* task);
 void Gp_LinkViewSprts(void);
-/// Build merged `DR_TPAGE`+`SPRT` packets into `gGpuPrimCursor` from
-/// `arg0[arg1->field_0]` for `arg1->field_2` entries, and OT-link each.
-void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1);
-void Gp_SetSprtShadeBits(s32 arg0);
 /// Alloc dual-buffer merged `DR_TPAGE`+`SPRT` lists into `Gp_SprtLists`
 /// from the current view's `GpSprtRec` records. Byte size is the sum of
 /// each record's `field_2`, times two 0x1C slots. Records with
 /// `field_5` set are skipped. RGB is `0x8000`; SPRT code is `0x65`.
 void Gp_AllocSprtLists(void);
-void Gp_LinkRoomObjects(Task* task);
 /// 1-based index of `(u8)arg0` in the current room's `Gp_ViewIndexTables` byte
 /// list. Length is the `Gp_ViewCountTables` cell as an s16. Returns 0 if absent.
 s8    Gp_FindViewIndex(s32 arg0);
-s32   Gp_ViewSprtCmdEmpty(void);
 s32   Gp_GetViewIndex(void);
 void* Gp_GetViewSprtExtra(void);
-void  Gp_LinkSprtCmd(GpSprtElem* arg0, GpSprtCmd* arg1);
 void  Gp_ApplyAreaRecs(GpAreaApplyRec* arg0);
 
 /// 0xFF-terminated `GpAreaFlagRec` lists applied by `Gp_ApplyNewGameAreaFlags` to
@@ -464,10 +377,6 @@ extern struct _GpAreaRec* Gp_AreaTableStg1;
 extern struct _GpAreaRec* Gp_AreaTableStg2;
 extern struct _GpAreaRec* Gp_AreaTableStg4;
 extern struct _GpAreaRec* Gp_AreaTableStg5;
-
-/// New-game init: for each of the four stage flag lists, OR bit 2 into
-/// `GpAreaObj.field_1` on every record whose apply flag is set.
-void Gp_ApplyNewGameAreaFlags(void);
 
 /// Per-stage signed counts, indexed by `GameSession.at4.loc.stage - 1`.
 /// `Gp_RebuildAreaIdBits` loops area ids `1..count` when the stage is 1–5.
@@ -491,7 +400,5 @@ void func_800AC000(void);
 void Gp_EnqueueConfigCd(s32 arg0);
 void Gp_LoadViewAndCd(s32 arg0);
 void Gp_LoadViewImages(void);
-void Gp_EnqueueCompanionCd(s32 arg0, s32 arg1);
-void Gp_EnqueueStageCd(void);
 
 #endif // GAMEPLAY_D4_H

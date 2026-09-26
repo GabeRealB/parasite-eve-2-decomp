@@ -396,18 +396,6 @@ void Gp_EnqueueStageSnd6(s32 arg0, s32 arg1, s32 arg2);
 void Gp_MsgAllyWeapon(s32 arg0);
 void Gp_ClearAllFlagNibbles(void);
 void Gp_SpawnEvt1(s32 arg0, s32 arg1);
-s32  Gp_RelocCapFile(GpCapFile* file);
-s32  Gp_StartCap(s32 arg0, s16 arg1, s16 arg2);
-/// Blinking POLY_G3 continue caret. `Gp_CapCaretDelay` is a frame delay before the
-/// first draw; `Gp_CapCaretX` / `Gp_CapCaretY` are base XY; `Gp_CapCaretGrey` /
-/// `Gp_CapCaretDir` pulse the vertex greys between 8 and 15.
-void Gp_DrawCapCaret(void);
-void func_800E62C0(void);
-s16  Gp_CapCenterX(u16* arg0);
-s16  Gp_CapCenterXLine(u16* arg0, s32 arg1);
-s16  Gp_CapTextHeight(u16* arg0);
-s16  Gp_CapTextTopY(u16* arg0);
-s32  func_800E6BB8(u16* arg0);
 s32  Gp_CapBusy(void);
 s32  Gp_AbortCap(void);
 void Gp_ResetCap(void);
@@ -493,11 +481,5 @@ s32   Gp_PackStageSndId(s32 arg0);
 void  Gp_EnqueueStageSnd7(s32 arg0, s32 arg1);
 void  Gp_PlayerWeaponId(s32* arg0);
 Task* Gp_SpawnScript18Ex(s32 arg0, s32 arg1, s32 arg2);
-s32   Gp_FindCapEvt(s32 arg0);
-void  func_800E704C(void);
-void  Gp_CapExit(Task* arg0);
-void  Gp_ApplyCapEvtFlags(void);
-
-void func_800E4020(void);
 
 #endif // GAMEPLAY_3CD8_H

@@ -47,7 +47,29 @@ void Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 extern McItemRec* Gp_SelItemRec;
 
-s32 Gp_ApplyItemUse(McItemRec* arg0)
+static void            Gp_BindDefaultMtx(Task* arg0);
+static void            Gp_ClearPendingObj4C(void);
+static void            Gp_CollideListGrid(GpObj* node);
+static void            Gp_CollideLists(GpObj* a, GpObj* b);
+static void            Gp_DebugPanTask(Task* arg0);
+static void            Gp_FillSVec3x3(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3);
+static GpRoomBoundVec* Gp_GetRoomBound(GpAreaKey* arg0);
+static s32             Gp_GetRoomCoordSet(GpAreaKey* arg0);
+static void            Gp_InsertRankedSlot(GpRec12* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+static void            Gp_LocalToGrid(VECTOR3* arg0, SVECTOR3* arg1);
+static void            Gp_ObjWorldPos(GpObj* arg0, VECTOR3* arg1);
+static void            Gp_RunPairHandler(GpObj* node);
+static void            Gp_UpdateLockSlots(void);
+static void            func_800DDC2C(GpObj* arg0);
+static void            func_800DE150(GpObj* arg0);
+static void            func_800DE2C0(VECTOR* arg0, s32 arg1);
+static void            func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1);
+static void            func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3);
+static void            func_800E0608(GpObj* node, s32 mask, s32 match);
+static void            func_800E06AC(GpObj* node, s32 mask, s32 match);
+static void            func_800E0994(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2);
+
+static s32 Gp_ApplyItemUse(McItemRec* arg0)
 {
     PlayerStatus* cfg;
     GameActor*    actor;
@@ -310,7 +332,9 @@ s32 Gp_ApplyItemUse(McItemRec* arg0)
     return ret;
 }
 
-s32 Gp_ItemIsUnusable(s32 arg0, McItemRec* arg1)
+/// Returns 1 if item `arg0` cannot be used, 0 if it can.
+/// `arg1` supplies `field_2` (capacity) for ammo ids 0xA0–0xBF.
+static s32 Gp_ItemIsUnusable(s32 arg0, McItemRec* arg1)
 {
     PlayerStatus* cfg;
     McItemScan*   scan;
@@ -386,8 +410,8 @@ s32 Gp_ItemIsUnusable(s32 arg0, McItemRec* arg1)
     return ret;
 }
 
-const char D_80097440[] = { 'A', 'r', 'm', 'o', 'r', 0, 0, 0 };
-const char D_80097448[] = { 'A', 't', 't', 'a', 'c', 'h', 'm', 'e', 'n', 't', 's', 0 };
+static const char D_80097440[] = { 'A', 'r', 'm', 'o', 'r', 0, 0, 0 };
+static const char D_80097448[] = { 'A', 't', 't', 'a', 'c', 'h', 'm', 'e', 'n', 't', 's', 0 };
 
 void func_800D6334(Task* task)
 {
@@ -558,7 +582,8 @@ void func_800D6334(Task* task)
 }
 
 /* After Armor/Attachments from func_800D6334 so overlay .rodata stays packed. */
-const char Gp_StrWeapon[] = {
+/// "Weapon" string drawn by `Gp_DrawWeaponLabel` (trailing 0x60 byte).
+static const char Gp_StrWeapon[] = {
     'W',
     'e',
     'a',
@@ -607,7 +632,7 @@ McItemRec* Gp_FindItemById(s32 arg0)
     return rec;
 }
 
-McItemRec* Gp_FindItemByKind(s32 arg0)
+static McItemRec* Gp_FindItemByKind(s32 arg0)
 {
     McItemScan* scan;
     McItemRec*  table;
@@ -681,7 +706,10 @@ static inline void _gpUpdateRoomCoordSlots(void)
     }
 }
 
-void Gp_UpdateRoomCoords(Task* task)
+/// First-run init plus per-frame update of the current room's `GpRoomCoordSet`
+/// coordinate arrays (parented to `gGfxViewCoord`) and the `Gp_RoomCoords` slots.
+/// Kills `arg0` when `Gp_GetRoomCoordSet` returns 0.
+static void Gp_UpdateRoomCoords(Task* task)
 {
     GpRoomCoordSet* set;
     SVECTOR*        vec;
@@ -771,7 +799,7 @@ void Gp_UpdateRoomCoords(Task* task)
     SCRATCH_POP_BYTES(0x1C);
 }
 
-s32 Gp_LightPointRoom(GpPointLight* light, VECTOR3* pos)
+static s32 Gp_LightPointRoom(GpPointLight* light, VECTOR3* pos)
 {
     GpLight*       base;
     GpAttnScratch* block;
@@ -830,7 +858,7 @@ s32 Gp_LightPointRoom(GpPointLight* light, VECTOR3* pos)
     return result;
 }
 
-s32 Gp_LightPoint(GpPointLight* light, VECTOR3* pos)
+static s32 Gp_LightPoint(GpPointLight* light, VECTOR3* pos)
 {
     GpAttnScratch* block;
     s32            result;
@@ -867,7 +895,7 @@ s32 Gp_LightPoint(GpPointLight* light, VECTOR3* pos)
     return result;
 }
 
-s32 Gp_LightCone(GpSpotLight* spot, VECTOR3* pos)
+static s32 Gp_LightCone(GpSpotLight* spot, VECTOR3* pos)
 {
     GpLight*       light;
     GpSpotScratch* block;
@@ -916,7 +944,7 @@ s32 Gp_LightCone(GpSpotLight* spot, VECTOR3* pos)
     return result;
 }
 
-void func_800D759C(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
+static void func_800D759C(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
 {
     register GpViewLightScratch* block asm("s0");
     MATRIX*                      dirMtx;
@@ -956,7 +984,10 @@ void func_800D759C(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
     SCRATCH_POP(GpViewLightScratch);
 }
 
-void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
+/// Selects the nearest point or cone light to world position `arg0`, using
+/// squared distance after halving each coordinate difference. Initializes
+/// `arg1` to no selection even when `Gp_GetRoomCoordSet` returns 0.
+static void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
 {
     GpRoomCoordSet* set;
     GpPointLight*   point;
@@ -1444,7 +1475,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     SCRATCH_POP_BYTES(0x7C);
 }
 
-const char D_8009745C[] = {
+static const char D_8009745C[] = {
     '?',
     '\0',
     0x00,
@@ -1460,7 +1491,7 @@ static inline void _gpSetColorMtx(MATRIX* mtx, s16 r, s16 g, s16 b)
     mtx->m[2][0] = mtx->m[2][1] = mtx->m[2][2] = b;
 }
 
-void Gp_DebugPanTask(Task* arg0)
+static void Gp_DebugPanTask(Task* arg0)
 {
     Task*          slot;
     Task*          work;
@@ -1617,7 +1648,13 @@ void Gp_DebugPanTask(Task* arg0)
     }
 }
 
-void Gp_RemapActorColor(GpEnemy* arg0, MATRIX* arg1, s32 arg2)
+/// Remaps a 3x3 color matrix (`MATRIX.m`) from lighting mode `arg2`
+/// (`field_4E` bits 0-1, or bits 2-3 when blending). Mode 1 weights
+/// RGB as (7,6,3)/33 then *4/*2/*1. Mode 2 zeros the matrix. Mode 3
+/// fills 0x180/0x100/0x100. Default remaps to *3/*1/*3 when
+/// `field_4C & 0xC`. Bit 0x80 of `field_4E` with `field_4B == 0` applies
+/// a `rsin(gDisplayState.loopCount << 6)` flicker and clears the bit.
+static void Gp_RemapActorColor(GpEnemy* arg0, MATRIX* arg1, s32 arg2)
 {
     s32 i;
     s32 val;
@@ -1749,7 +1786,7 @@ void Gp_UpdateActorColor(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
     }
 }
 
-void Gp_LightFalloff(GpPointLight* light)
+static void Gp_LightFalloff(GpPointLight* light)
 {
     GpAttnScratch* block;
     s32            result;
@@ -1879,7 +1916,7 @@ void Gp_SetObjTrans(TmdObject* arg0, s16 arg1, s16 arg2, s16 arg3)
     m->t[2] = arg3;
 }
 
-GpRoomBoundVec* Gp_GetRoomBound(GpAreaKey* arg0)
+static GpRoomBoundVec* Gp_GetRoomBound(GpAreaKey* arg0)
 {
     GpRoomCoordRec** mid;
     GpRoomCoordRec*  rec;
@@ -1906,7 +1943,7 @@ GpRoomBoundVec* Gp_GetRoomBound(GpAreaKey* arg0)
     return result;
 }
 
-s32 Gp_CountRoomCoords(void)
+static s32 Gp_CountRoomCoords(void)
 {
     s32 count;
     s32 i;
@@ -1920,7 +1957,7 @@ s32 Gp_CountRoomCoords(void)
     return count;
 }
 
-s32 Gp_GetRoomCoordSet(GpAreaKey* arg0)
+static s32 Gp_GetRoomCoordSet(GpAreaKey* arg0)
 {
     GpRoomCoordRec** mid;
     GpRoomCoordRec*  rec;
@@ -1941,14 +1978,14 @@ s32 Gp_GetRoomCoordSet(GpAreaKey* arg0)
     return result;
 }
 
-void func_800D96C8(Task* arg0)
+static void func_800D96C8(Task* arg0)
 {
     TaskFunc funcs[2] = { Gp_BindDefaultMtx, Gp_DebugPanTask };
 
     funcs[arg0->state](arg0);
 }
 
-s32 Gp_GetObjLuma(GpLight* arg0)
+static s32 Gp_GetObjLuma(GpLight* arg0)
 {
     s16 val;
 
@@ -1960,12 +1997,13 @@ s32 Gp_GetObjLuma(GpLight* arg0)
     return ((arg0->r * 8 + arg0->g * 6 + arg0->b * 2) >> 8) + 0xF00;
 }
 
-s32 Gp_GetObjTransX(GpCoord* coord)
+/// World X of the object's position.
+static s32 Gp_GetObjTransX(GpCoord* coord)
 {
     return coord->workm.t[0];
 }
 
-void func_800D9794(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
+static void func_800D9794(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
 {
     GpLightScratch* block;
     MATRIX*         dirMtx;
@@ -1994,7 +2032,7 @@ void func_800D9794(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
     SCRATCH_POP(GpLightScratch);
 }
 
-void func_800D98C4(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
+static void func_800D98C4(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
 {
     u8*             head;
     GpLightScratch* block;
@@ -2034,7 +2072,7 @@ void func_800D98C4(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
     SCRATCH_POP_BYTES(0x1C);
 }
 
-void func_800D9A30(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
+static void func_800D9A30(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
 {
     u8*             head;
     GpLightScratch* block;
@@ -2074,7 +2112,7 @@ void func_800D9A30(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
     SCRATCH_POP_BYTES(0x1C);
 }
 
-void Gp_InsertRankedSlot(GpRec12* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+static void Gp_InsertRankedSlot(GpRec12* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
 {
     GpRec12* rec;
     GpRec12* next;
@@ -2103,14 +2141,14 @@ void Gp_InsertRankedSlot(GpRec12* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     }
 }
 
-void Gp_FillSVec3x3(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3)
+static void Gp_FillSVec3x3(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     arg0->field_0.vx = arg0->field_0.vy = arg0->field_0.vz = arg1;
     arg0->field_6.vx = arg0->field_6.vy = arg0->field_6.vz = arg2;
     arg0->field_C.vx = arg0->field_C.vy = arg0->field_C.vz = arg3;
 }
 
-GpRoomCoordRec* Gp_GetRoomCoordRec(GpAreaKey* arg0)
+static GpRoomCoordRec* Gp_GetRoomCoordRec(GpAreaKey* arg0)
 {
     GpRoomCoordRec** mid;
     GpRoomCoordRec*  rec;
@@ -2126,17 +2164,17 @@ GpRoomCoordRec* Gp_GetRoomCoordRec(GpAreaKey* arg0)
     return rec;
 }
 
-void func_800D9CC8(Task* arg0)
+static void func_800D9CC8(Task* arg0)
 {
     Task_CallExit(arg0);
 }
 
-void Gp_CopyDefaultBound(GpRoomBoundVec* bound)
+static void Gp_CopyDefaultBound(GpRoomBoundVec* bound)
 {
     *bound = Gp_RoomBoundDefault;
 }
 
-void Gp_BindDefaultMtx(Task* arg0)
+static void Gp_BindDefaultMtx(Task* arg0)
 {
     Task*      slot;
     TmdObject* extra;
@@ -2270,7 +2308,7 @@ void Gp_DrawTargetCursor(void)
     }
 }
 
-void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
+static void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
 {
     u8*                head;
     GpLockScanScratch* block;
@@ -2472,7 +2510,7 @@ static __inline__ void project_slot(s32* sxy, GpSlot70* slot)
     SCRATCH_POP_BYTES(0x14);
 }
 
-void Gp_UpdateLockSlots(void)
+static void Gp_UpdateLockSlots(void)
 {
     RECT          rect;
     u8            buf[16];
@@ -2766,7 +2804,7 @@ void* Gp_FindLockNodePad(Task* arg0)
     return Gp_ScanLockNodes(arg0, p, flag);
 }
 
-void* Gp_FindLockNodeAt(Task* arg0, VECTOR3* pos)
+static void* Gp_FindLockNodeAt(Task* arg0, VECTOR3* pos)
 {
     s32 flag;
 
@@ -2781,7 +2819,9 @@ void* Gp_FindLockNodeAt(Task* arg0, VECTOR3* pos)
 }
 
 /* After D_8009745C from Gp_DebugPanTask so overlay .rodata stays packed. */
-const char Gp_StrGetLockPosNull[] = {
+/// "#######get_lock_pos ---> NULL!!!\n" printed by `Gp_GetLockPos`
+/// (trailing 0x8C 0x16 bytes).
+static const char Gp_StrGetLockPosNull[] = {
     '#',
     '#',
     '#',
@@ -2857,7 +2897,7 @@ void Gp_GetLockPos(GpLinkNode* arg0, VECTOR3* out)
     SCRATCH_POP_BYTES(0x28);
 }
 
-void Gp_ClearLockSlots(void)
+static void Gp_ClearLockSlots(void)
 {
     s32       i;
     GpSlot70* p;
@@ -2881,7 +2921,7 @@ void Gp_ResetLinkState(void)
     D_8010F9EC = 0xFFF00000;
 }
 
-s32 Gp_ProjectToSxy(GpLinkNode* arg0, s32* sxy)
+static s32 Gp_ProjectToSxy(GpLinkNode* arg0, s32* sxy)
 {
     u8*             head;
     GpPerspScratch* block;
@@ -3176,7 +3216,7 @@ void Gp_ReleaseStateF0(Task* arg0, s32 arg1)
     }
 }
 
-void Gp_TickWorldCollision(void)
+static void Gp_TickWorldCollision(void)
 {
     if (gameGetPtrSlot(3) != NULL) {
         Gp_UpdatePlayerMove();
@@ -3210,7 +3250,7 @@ void Gp_TickWorldCollision(void)
     }
 }
 
-void Gp_RunPairHandler(GpObj* node)
+static void Gp_RunPairHandler(GpObj* node)
 {
     GpObj*      other;
     GpPairRule* rec;
@@ -3334,7 +3374,7 @@ static inline GpRec18* _gpObjRecs(GpObj* obj)
         }                                                                                               \
     } while (0)
 
-void func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2)
+static void func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2)
 {
     GpRec18* rec;
 
@@ -3565,7 +3605,7 @@ check:
     return ret;
 }
 
-void Gp_CollideObjGrid(GpObj* arg0)
+static void Gp_CollideObjGrid(GpObj* arg0)
 {
     u8*               head;
     GpGridHitScratch* block;
@@ -3703,7 +3743,7 @@ done:
     SCRATCH_POP_BYTES(0x88);
 }
 
-void Gp_CollideObjGridDir(GpObj* arg0)
+static void Gp_CollideObjGridDir(GpObj* arg0)
 {
     u8*               head;
     GpGridHitScratch* block;
@@ -3877,7 +3917,7 @@ done:
     SCRATCH_POP_BYTES(0x88);
 }
 
-s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, s32 arg3)
+static s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, s32 arg3)
 {
     u8*               head;
     GpGridRayScratch* block;
@@ -3976,7 +4016,7 @@ s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, s32 arg3)
     return 1;
 }
 
-void func_800DD940(GpObj* arg0)
+static void func_800DD940(GpObj* arg0)
 {
     u8*             head;
     GpFloorScratch* block;
@@ -4024,7 +4064,7 @@ void func_800DD940(GpObj* arg0)
     SCRATCH_POP_BYTES(0x50);
 }
 
-void func_800DDC2C(GpObj* arg0)
+static void func_800DDC2C(GpObj* arg0)
 {
     s32            i;
     GpEdgeScratch* block;
@@ -4054,7 +4094,7 @@ void func_800DDC2C(GpObj* arg0)
     SCRATCH_POP(GpEdgeScratch);
 }
 
-void func_800DDDF8(GpObj* node)
+static void func_800DDDF8(GpObj* node)
 {
     GpObj*               obj;
     s32                  i;
@@ -4145,7 +4185,7 @@ void func_800DDDF8(GpObj* node)
     SCRATCH_POP_BYTES(0x30);
 }
 
-void func_800DE150(GpObj* arg0)
+static void func_800DE150(GpObj* arg0)
 {
     s32            i;
     u8*            head;
@@ -4177,7 +4217,7 @@ void func_800DE150(GpObj* arg0)
     SCRATCH_POP_BYTES(0x50);
 }
 
-void func_800DE2C0(VECTOR* arg0, s32 arg1)
+static void func_800DE2C0(VECTOR* arg0, s32 arg1)
 {
     u8*            head;
     GpMarkScratch* block;
@@ -4337,7 +4377,7 @@ s32 func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3)
     return ret;
 }
 
-void func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1)
+static void func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1)
 {
     u8*                    head;
     GpGridPairScratch*     block;
@@ -4368,7 +4408,7 @@ void func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1)
     SCRATCH_POP_BYTES(0x40);
 }
 
-void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
+static void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
     GpNormScratch* block;
     GpActorD4Rec*  rec;
@@ -4478,7 +4518,7 @@ static __inline__ void Gp_ObjWorldPosInline(GpObj* obj, VECTOR* pos)
     SCRATCH_POP_BYTES(0x30);
 }
 
-void func_800DEF80(GpObj* node, GpObj4C* other)
+static void func_800DEF80(GpObj* node, GpObj4C* other)
 {
     GpQuadHitScratch* block;
     s32               distSq;
@@ -4620,7 +4660,7 @@ void func_800DEF80(GpObj* node, GpObj4C* other)
     SCRATCH_POP(GpQuadHitScratch);
 }
 
-void func_800DF6AC(GpObj* arg0, GpObj4C* arg1, VECTOR3* arg2)
+static void func_800DF6AC(GpObj* arg0, GpObj4C* arg1, VECTOR3* arg2)
 {
     VECTOR*    va;
     VECTOR*    vb;
@@ -4908,7 +4948,7 @@ s32 func_800E0308(SVECTOR* arg0, SVECTOR* arg1)
     return ret;
 }
 
-void Gp_CollideLists(GpObj* a, GpObj* b)
+static void Gp_CollideLists(GpObj* a, GpObj* b)
 {
     GpObj*      other;
     GpPairRule* rec;
@@ -4946,7 +4986,7 @@ void Gp_CollideLists(GpObj* a, GpObj* b)
     }
 }
 
-void Gp_CollideListGrid(GpObj* node)
+static void Gp_CollideListGrid(GpObj* node)
 {
     u16 flags;
 
@@ -4977,7 +5017,7 @@ void Gp_CollideListGrid(GpObj* node)
     }
 }
 
-void func_800E0608(GpObj* node, s32 mask, s32 match)
+static void func_800E0608(GpObj* node, s32 mask, s32 match)
 {
     GpObj4C* other;
 
@@ -4993,7 +5033,7 @@ void func_800E0608(GpObj* node, s32 mask, s32 match)
     }
 }
 
-void func_800E06AC(GpObj* node, s32 mask, s32 match)
+static void func_800E06AC(GpObj* node, s32 mask, s32 match)
 {
     GpObj4C*   other;
     GameActor* actor;
@@ -5022,7 +5062,7 @@ s32 Gp_PairNop(void)
     return 0;
 }
 
-void Gp_LocalToGrid(VECTOR3* arg0, SVECTOR3* arg1)
+static void Gp_LocalToGrid(VECTOR3* arg0, SVECTOR3* arg1)
 {
     u8*           head;
     VECTOR*       vec;
@@ -5050,7 +5090,7 @@ void Gp_LocalToGrid(VECTOR3* arg0, SVECTOR3* arg1)
     SCRATCH_POP_BYTES(0x10);
 }
 
-void Gp_ObjWorldPos(GpObj* arg0, VECTOR3* arg1)
+static void Gp_ObjWorldPos(GpObj* arg0, VECTOR3* arg1)
 {
     u8*      head;
     VECTOR3* vec;
@@ -5069,7 +5109,7 @@ void Gp_ObjWorldPos(GpObj* arg0, VECTOR3* arg1)
     SCRATCH_POP_BYTES(0x30);
 }
 
-void func_800E0994(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2)
+static void func_800E0994(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2)
 {
     u8*            head;
     GpAxisScratch* block;
@@ -5104,7 +5144,7 @@ void func_800E0994(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2)
     SCRATCH_POP_BYTES(0x20);
 }
 
-void Gp_ClearPendingObj4C(void)
+static void Gp_ClearPendingObj4C(void)
 {
     GpObj4C* node;
 
@@ -5115,7 +5155,7 @@ void Gp_ClearPendingObj4C(void)
     }
 }
 
-void Gp_WorldToGrid(VECTOR3* arg0, SVECTOR3* arg1)
+static void Gp_WorldToGrid(VECTOR3* arg0, SVECTOR3* arg1)
 {
     s32           val;
     GpGridParams* p;
@@ -5311,7 +5351,11 @@ s32 func_800E0FEC(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3)
     return ret;
 }
 
-s32 Gp_FindNearestSlot(GpObj* arg0, s32 arg1)
+/// Transforms `arg0`'s local offset (`ctx.d4rec`'s `end1` plus `pos`) by
+/// `coord->workm` and returns the 1-based index of the
+/// closest occupied `GpRec18` in the shape's `recs` whose `key` high 16
+/// bits match `arg1`, or 0 if none match.
+static s32 Gp_FindNearestSlot(GpObj* arg0, s32 arg1)
 {
     u8*            head;
     GpNearScratch* block;
@@ -5525,7 +5569,7 @@ void Gp_LinkObj3A(s32 arg0, GpObj3A* arg1)
     }
 }
 
-void Gp_UnlinkObj3A(s32 arg0, GpObj3A* arg1)
+static void Gp_UnlinkObj3A(s32 arg0, GpObj3A* arg1)
 {
     u8       flags;
     GpObj3A* next;
@@ -6051,7 +6095,7 @@ s32 Gp_RollEnemyChance(GpEnemy* arg0, u32 arg1, s32 arg2)
     return rand < chance;
 }
 
-void Gp_ApplyObjKind(GpEnemy* arg0, s32 arg1)
+static void Gp_ApplyObjKind(GpEnemy* arg0, s32 arg1)
 {
     u16 raw;
     s32 kind;

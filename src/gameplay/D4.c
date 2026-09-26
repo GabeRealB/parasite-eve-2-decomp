@@ -24,21 +24,21 @@
 #include "main/unknown_syms.h"
 #include "main/wipsys.h"
 
-void Gp_FinishLoadWait(Task* task);
-s32  func_800AA120(void);
-void func_800AA548(s32 arg0);
-void func_800AD024(void);
-void func_800AD620(Task* task);
-void func_800AD65C(Task* task);
-void D_8017DA78(s32 arg0, s32 arg1);
-void D_8017EF60(s32 arg0, s32 arg1);
-void func_80724748(GpAreaKey* arg0);
-void func_80724E2C(void);
+void        Gp_FinishLoadWait(Task* task);
+static s32  func_800AA120(void);
+static void func_800AA548(s32 arg0);
+static void func_800AD024(void);
+static void func_800AD620(Task* task);
+static void func_800AD65C(Task* task);
+void        D_8017DA78(s32 arg0, s32 arg1);
+void        D_8017EF60(s32 arg0, s32 arg1);
+void        func_80724748(GpAreaKey* arg0);
+void        func_80724E2C(void);
 
 extern TaskDesc             D_80183824[];
-extern const TaskFuncTable3 Gp_SessionStates;
-extern const TaskFuncTable8 Gp_LoadStateFns;
-extern const TaskFuncTable3 Gp_RoomObjStates;
+static const TaskFuncTable3 Gp_SessionStates;
+static const TaskFuncTable8 Gp_LoadStateFns;
+static const TaskFuncTable3 Gp_RoomObjStates;
 extern s16                  D_80114CD0;
 extern u16                  Gp_DirFlags;
 extern u16                  D_80114CD4;
@@ -56,7 +56,18 @@ extern u16                  Gp_DirFadeLevel;
 extern u8                   D_80114CF8;
 extern s16                  D_80114D08;
 
-const TaskFuncTable6 Gp_LoadWaitFns = { {
+static void Gp_ApplyNewGameAreaFlags(void);
+static void Gp_ApplyNpcRoomSnd(void);
+static void Gp_InitStageVisit(GpAreaKey* arg0);
+static void Gp_LinkSprtCmd(GpSprtElem* arg0, GpSprtCmd* arg1);
+static void Gp_LoadWaitCdBusy(Task* task);
+static void Gp_LoadWaitDone(Task* task);
+static void Gp_LoadWaitIdle(Task* task);
+static void Gp_MarkAreaVisited(GpAreaKey* arg0);
+static s32  Gp_PickCompanion(void);
+static void Gp_SetupCompanionActor(GpActorArg* arg0, u16* arg1);
+
+static const TaskFuncTable6 Gp_LoadWaitFns = { {
     Gp_ViewBeginLoad,
     Gp_EnqueueViewCd,
     Gp_ViewLoadImage,
@@ -65,9 +76,11 @@ const TaskFuncTable6 Gp_LoadWaitFns = { {
     Gp_LoadWaitDone,
 } };
 
-const GpTbl5 Gp_ConfigCdTable = { { 4, 3, 2, 5, 6 } };
+static const GpTbl5 Gp_ConfigCdTable = { { 4, 3, 2, 5, 6 } };
 
-void Gp_EnqueueWeaponCd(void)
+/// Maps `Player_Status.weapon` / `field_22` (and the 0x1B attach id) to a
+/// CdCmd 0x21 payload. No-op when `field_21` is 0 or the mapped byte is 0.
+static void Gp_EnqueueWeaponCd(void)
 {
     u8  param1[8];
     u8  param2[8];
@@ -196,7 +209,7 @@ void Gp_EnqueueViewCd(Task* task)
     }
 }
 
-void Gp_LoadWaitCdBusy(Task* task)
+static void Gp_LoadWaitCdBusy(Task* task)
 {
     if (CdCmd_Queue.field_1FA != 0) {
         task->killCountdown++;
@@ -207,7 +220,7 @@ void Gp_LoadWaitCdBusy(Task* task)
     }
 }
 
-void Gp_LoadWaitIdle(Task* task)
+static void Gp_LoadWaitIdle(Task* task)
 {
     if (CdCmd_IsIdle() & 0xFFFF) {
         task->state = -2;
@@ -215,7 +228,7 @@ void Gp_LoadWaitIdle(Task* task)
     }
 }
 
-void Gp_LoadWaitDone(Task* task)
+static void Gp_LoadWaitDone(Task* task)
 {
     if (CdCmd_Queue.field_1FE == 0xFF) {
         task->state = -1;
@@ -268,7 +281,7 @@ void Gp_FinishLoadWait(Task* task)
     }
 }
 
-void Gp_LoadWaitDispatch(Task* task)
+static void Gp_LoadWaitDispatch(Task* task)
 {
     TaskFuncTable6 sp;
 
@@ -281,7 +294,7 @@ void Gp_LoadWaitDispatch(Task* task)
     }
 }
 
-void Gp_ReloadFromSave(void)
+static void Gp_ReloadFromSave(void)
 {
     Task*       slot;
     McSaveData* save;
@@ -299,7 +312,7 @@ void Gp_ReloadFromSave(void)
     Task_Spawn(0, 0x1E, 1, 0);
 }
 
-void Gp_ReloadAtLoc(s32 arg0)
+static void Gp_ReloadAtLoc(s32 arg0)
 {
     Task* slot;
 
@@ -313,7 +326,7 @@ void Gp_ReloadAtLoc(s32 arg0)
     Task_Spawn(0, 0x1E, 0, 0);
 }
 
-void Gp_CommitSpawnLoc(Task* task)
+static void Gp_CommitSpawnLoc(Task* task)
 {
     u8 val;
 
@@ -328,7 +341,7 @@ void func_800A99B4(void)
     Display_SpawnWithOtSmall(0, 0x26, 0, 0);
 }
 
-void Gp_SetupSprtDisplay(Task* task)
+static void Gp_SetupSprtDisplay(Task* task)
 {
     DisplayState* ds;
     s32           flag;
@@ -434,7 +447,7 @@ void Gp_EnqueueHeldWeaponCd(void)
     Gp_EnqueueWeaponCd();
 }
 
-void Gp_EnqueueStageCd(void)
+static void Gp_EnqueueStageCd(void)
 {
     u8 param1[8];
     u8 param2[8];
@@ -450,7 +463,7 @@ void Gp_EnqueueStageCd(void)
     CdCmd_Enqueue(0x21, param1, param2);
 }
 
-void Gp_EnqueueCompanionCd(s32 arg0, s32 arg1)
+static void Gp_EnqueueCompanionCd(s32 arg0, s32 arg1)
 {
     u8           param2[4];
     u8*          param1;
@@ -519,7 +532,10 @@ void Gp_PumpTmdStream(Task* task)
     }
 }
 
-s32 Gp_PollAreaCdLoads(void)
+/// Walk the inner area rec's 0x10-byte CdCmd 0x21 list (`Gp_CdRecCur`),
+/// matching each id against the 0xC-byte list (`D_80114C68`). Returns 1
+/// when the list is exhausted or missing, else 0 (still in flight).
+static s32 Gp_PollAreaCdLoads(void)
 {
     u8           param1[8];
     u8           param2[8];
@@ -589,7 +605,7 @@ s32 Gp_PollAreaCdLoads(void)
     return 0;
 }
 
-s32 func_800AA120(void)
+static s32 func_800AA120(void)
 {
     u8           param1[8];
     u8           param2[8];
@@ -711,7 +727,7 @@ s32 func_800AA120(void)
     return 0;
 }
 
-void func_800AA548(s32 arg0)
+static void func_800AA548(s32 arg0)
 {
     GpWarpRec    rec;
     GpActorFlags flags;
@@ -811,7 +827,7 @@ void func_800AA548(s32 arg0)
     gGameSession->freezeRoomObjs = 0;
 }
 
-void Gp_BeginSessionTask(Task* arg0)
+static void Gp_BeginSessionTask(Task* arg0)
 {
     CdCmdQueue*   queue;
     DisplayState* ds;
@@ -845,7 +861,15 @@ void Gp_BeginSessionTask(Task* arg0)
     D_8007A394       = 0;
 }
 
-void Gp_LoadWaitBoot(Task* task)
+/// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
+/// `gDisplayState.otBuffer`. Draws while `CdCmd_Queue.field_224` is 0.
+/// Sets `Pad_RemapState->field_3`. When the CD queue is idle and
+/// `func_80042500` returns 0: sets `CdCmd_Queue.field_22E`, starts the
+/// boot load if a command is queued, clears `Stream_Slots`, refreshes
+/// `GameSession.loadedWeaponFamily` / `loadedConfigSet` from save/config (enqueueing
+/// CdCmd 0x21 via `Gp_EnqueueConfigCd` / `Gp_EnqueueHeldWeaponCd` if stale), then
+/// `Gp_EnqueueAttach7Cd` and advances `task->state`.
+static void Gp_LoadWaitBoot(Task* task)
 {
     TILE*         tile;
     DR_TPAGE*     dr;
@@ -907,7 +931,12 @@ void Gp_LoadWaitBoot(Task* task)
     }
 }
 
-void Gp_LoadWaitStage(Task* task)
+/// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
+/// `gDisplayState.otBuffer`. Draws while `CdCmd_Queue.field_224` is 0.
+/// When the CD queue is idle, enqueues a stage reload if
+/// `GameSession.at4.loc.stage` differs from the cached `loadedStage`, then
+/// advances `task->state`.
+static void Gp_LoadWaitStage(Task* task)
 {
     TILE*         tile;
     DR_TPAGE*     dr;
@@ -948,7 +977,16 @@ void Gp_LoadWaitStage(Task* task)
     }
 }
 
-void Gp_LoadState2(Task* task)
+/// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
+/// `gDisplayState.otBuffer`. Draws while `CdCmd_Queue.field_224` is 0.
+/// When the CD queue is idle: `Gp_InitStageVisit` on the save location,
+/// `Mem_ConfigureAuxHeap(loc.stage, loc.area)`, `Mem_SetActiveAuxHeap(1)` when
+/// the save is in stage 5 / area 1, `Mem_InitAux`, `Gp_ApplyNpcRoomSnd`,
+/// `Snd_InitFromStage`. Sets `gStageSceneMusicEntry` when in stage 3 with game flag
+/// nibble 0x7A >= 4, primes `GameSession.areaBgmCountdown` / `field_12E` /
+/// `deathRestartDelay` (1 / -0x80 / 0x1E) and `D_8007A39C` (0x3C / 0), spawns table `D_80062774` entry 0,
+/// then advances `task->state`.
+static void Gp_LoadState2(Task* task)
 {
     TILE*         tile;
     DR_TPAGE*     dr;
@@ -1011,7 +1049,14 @@ void Gp_LoadState2(Task* task)
     }
 }
 
-void Gp_LoadWaitCompanion(Task* task)
+/// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
+/// `gDisplayState.otBuffer`. Draws while `CdCmd_Queue.field_224` is 0.
+/// When the CD queue is idle, enqueues CdCmd 0x21 with the current
+/// session location (`at4.loc.room` / `at4.loc.area` / `at4.loc.stage`), then
+/// `Gp_PickCompanion`. If that returns a companion type, stores it in
+/// `GameSession.companionType` and calls `Gp_EnqueueCompanionCd` with
+/// `Mc_SaveData.companionType` / `companionVariant`. Then advances `task->state`.
+static void Gp_LoadWaitCompanion(Task* task)
 {
     TILE*         tile;
     DR_TPAGE*     dr;
@@ -1082,7 +1127,16 @@ void Gp_LoadWaitCompanion(Task* task)
     }
 }
 
-void Gp_LoadWaitSave(Task* task)
+/// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
+/// `gDisplayState.otBuffer`. Draws while `CdCmd_Queue.field_224` is 0.
+/// When the CD queue is idle, if the session location high word is
+/// `0x3010000` and `loc.room >= 4`, re-inits stage sound and enqueues
+/// CdCmd 0x21 (`param1[0] = 0x16`). If `applySavePlace` is 1, applies
+/// `Mc_SaveData.at4.loc.place` via `Gp_SetAreaObjId` and clears the flag. Then
+/// applies the save location (`Gp_MarkAreaVisited` / `Gp_SyncAreaKeyIndex`), copies
+/// `Mc_SaveData.at4.loc.place` into `GameSession.at4.loc.place`, builds the stream
+/// VLC, clears `D_80114C74`, and advances `task->state`.
+static void Gp_LoadWaitSave(Task* task)
 {
     TILE*         tile;
     DR_TPAGE*     dr;
@@ -1163,7 +1217,14 @@ void Gp_LoadWaitSave(Task* task)
     }
 }
 
-void Gp_LoadWaitAreaCd(Task* task)
+/// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
+/// `gDisplayState.otBuffer`. Draws while `CdCmd_Queue.field_224` is 0.
+/// Then walks `D_80114C74`: phase 0 resets `D_80114C70` and falls into
+/// phase 1 (`func_800AA120`); when that finishes, phase 2 runs
+/// `Gp_PollAreaCdLoads`. On success, resets TMD lists / the current OT,
+/// advances `task->state`, and if `Mc_SaveData.interlace` is set enables
+/// interlace on both `DISPENV` slots.
+static void Gp_LoadWaitAreaCd(Task* task)
 {
     TILE*         tile;
     DR_TPAGE*     dr;
@@ -1236,7 +1297,10 @@ void Gp_LoadWaitAreaCd(Task* task)
     }
 }
 
-void Gp_FadeGrayHold(Task* task)
+/// Dual-buffer TILE / DR_TPAGE overlay (gray 0x64), indexed by
+/// `gDisplayState.otBuffer`. Draws while `CdCmd_Queue.field_224` is 0,
+/// then after 7 frames clears `CdCmd_Queue.field_22E` and advances state.
+static void Gp_FadeGrayHold(Task* task)
 {
     TILE*         tile;
     DR_TPAGE*     dr;
@@ -1275,7 +1339,7 @@ void Gp_FadeGrayHold(Task* task)
     }
 }
 
-void Gp_InitStageVisit(GpAreaKey* arg0)
+static void Gp_InitStageVisit(GpAreaKey* arg0)
 {
     McSaveData*  save;
     GpFlagBank** banks;
@@ -1302,7 +1366,10 @@ void Gp_InitStageVisit(GpAreaKey* arg0)
     }
 }
 
-s32 Gp_PickCompanion(void)
+/// Pick companion type into `Mc_SaveData.companionType` from the NPC room tables.
+/// Returns 0 if already current or none; else 1/2/3 for the caller to store
+/// in `GameSession.companionType`.
+static s32 Gp_PickCompanion(void)
 {
     McSaveData*           save;
     McSaveData*           p;
@@ -1374,7 +1441,7 @@ s32 Gp_PickCompanion(void)
     return 0;
 }
 
-void Gp_ApplyNpcRoomSnd(void)
+static void Gp_ApplyNpcRoomSnd(void)
 {
     McSaveData* save;
     u8*         bytes;
@@ -1417,7 +1484,7 @@ done:
     Snd_SetModeFlag(flag);
 }
 
-void Gp_SetupCompanionActor(GpActorArg* arg0, u16* arg1)
+static void Gp_SetupCompanionActor(GpActorArg* arg0, u16* arg1)
 {
     McSaveData* save;
     s32         field;
@@ -1433,7 +1500,7 @@ void Gp_SetupCompanionActor(GpActorArg* arg0, u16* arg1)
     }
 }
 
-void Gp_ClearFlagBank(s32 arg0)
+static void Gp_ClearFlagBank(s32 arg0)
 {
     GpFlagBank* bank;
 
@@ -1442,7 +1509,7 @@ void Gp_ClearFlagBank(s32 arg0)
     bank->field_4[1] = 0;
 }
 
-void Gp_MarkAreaVisited(GpAreaKey* arg0)
+static void Gp_MarkAreaVisited(GpAreaKey* arg0)
 {
     McSaveData* save;
     GpFlagBank* bank;
@@ -1484,7 +1551,7 @@ void func_800AC000(void)
 {
 }
 
-void Gp_SessionState1(Task* task)
+static void Gp_SessionState1(Task* task)
 {
     DisplayState* ds;
     s32           temp;
@@ -1501,7 +1568,7 @@ void Gp_SessionState1(Task* task)
     task->state++;
 }
 
-void Gp_ResumeSessionTask(Task* task)
+static void Gp_ResumeSessionTask(Task* task)
 {
     SndBank_SetEnableFlags(0, 0x40000000);
     if (gGameSession->deathVariant != 0) {
@@ -1517,7 +1584,7 @@ void Gp_ResumeSessionTask(Task* task)
     task->state++;
 }
 
-void func_800AC0F0(Task* task)
+static void func_800AC0F0(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -1527,7 +1594,7 @@ void func_800AC0F0(Task* task)
     sp.funcs[((volatile Task*)task)->state](task);
 }
 
-void Gp_LoadFinishTask(Task* task)
+static void Gp_LoadFinishTask(Task* task)
 {
     if (CdCmd_Queue.field_224 == 0) {
         Gpu_ClearOTag(0);
@@ -1551,7 +1618,7 @@ void Gp_LoadFinishTask(Task* task)
     }
 }
 
-void Gp_LoadStateTask(Task* task)
+static void Gp_LoadStateTask(Task* task)
 {
     TaskFuncTable8 sp;
     DisplayState*  ds;
@@ -1571,7 +1638,7 @@ void Gp_LoadStateTask(Task* task)
     sp.funcs[task->state](task);
 }
 
-void Gp_FlashWhiteTask(Task* task)
+static void Gp_FlashWhiteTask(Task* task)
 {
     CdCmdQueue* queue;
     u8          fade;
@@ -1628,7 +1695,9 @@ s32 Gp_DispatchMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     return entry->handler(arg0, arg1, arg2, arg3);
 }
 
-void Gp_LinkRoomObjectsSpawn(Task* task)
+/// Same room-object link as `Gp_LinkRoomObjects`, then spawn type 0x1B as a
+/// child, clear `GameSession.roomObjsDirty`, and increment `task->state`.
+static void Gp_LinkRoomObjectsSpawn(Task* task)
 {
     GpAreaKey*    sess;
     GpRoomObjRec* recs;
@@ -1734,7 +1803,9 @@ void Gp_LinkViewSprts(void)
     }
 }
 
-void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1)
+/// Build merged `DR_TPAGE`+`SPRT` packets into `gGpuPrimCursor` from
+/// `arg0[arg1->field_0]` for `arg1->field_2` entries, and OT-link each.
+static void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1)
 {
     register u32  i asm("s4");
     GpTpageSprt*  dest;
@@ -1783,7 +1854,7 @@ void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1)
     }
 }
 
-void Gp_SetSprtShadeBits(s32 arg0)
+static void Gp_SetSprtShadeBits(s32 arg0)
 {
     GpAreaKey*           sess;
     s32                  view;
@@ -1894,7 +1965,7 @@ void Gp_AllocSprtLists(void)
     }
 }
 
-void Gp_LinkRoomObjects(Task* task)
+static void Gp_LinkRoomObjects(Task* task)
 {
     GpAreaKey*    sess;
     GpRoomObjRec* recs;
@@ -1976,7 +2047,7 @@ s8 Gp_FindViewIndex(s32 arg0)
     return 0;
 }
 
-s32 Gp_ViewSprtCmdEmpty(void)
+static s32 Gp_ViewSprtCmdEmpty(void)
 {
     GameSession*    session;
     GpAreaKey*      sess;
@@ -2007,7 +2078,7 @@ s32 Gp_ViewSprtCmdEmpty(void)
     return recs[idx - 1].field_4->field_2 == 0;
 }
 
-void func_800AD024(void)
+static void func_800AD024(void)
 {
     RECT            rect;
     GameSession*    session;
@@ -2104,7 +2175,7 @@ void* Gp_GetViewSprtExtra(void)
     return recs[idx - 1].field_8;
 }
 
-void Gp_RoomObjState1(Task* task)
+static void Gp_RoomObjState1(Task* task)
 {
     if (task->spawnArg1 != (u8)gGameSession->at4.loc.view) {
         gGfxViewCoord.flg = 0;
@@ -2118,7 +2189,7 @@ void Gp_RoomObjState1(Task* task)
     func_800AD024();
 }
 
-void Gp_LinkSprtCmd(GpSprtElem* arg0, GpSprtCmd* arg1)
+static void Gp_LinkSprtCmd(GpSprtElem* arg0, GpSprtCmd* arg1)
 {
     register u32  i asm("t0");
     GpSprtPrim*   prim;
@@ -2147,7 +2218,7 @@ void Gp_LinkSprtCmd(GpSprtElem* arg0, GpSprtCmd* arg1)
     Gp_SprtCursor = prim;
 }
 
-void func_800AD50C(Task* task)
+static void func_800AD50C(Task* task)
 {
     TaskFuncTable3 funcs;
 
@@ -2159,13 +2230,13 @@ void func_800AD50C(Task* task)
     }
 }
 
-void Gp_AllocSprtListsTask(Task* task)
+static void Gp_AllocSprtListsTask(Task* task)
 {
     Gp_AllocSprtLists();
     taskKill(task);
 }
 
-void func_800AD5B8(Task* task)
+static void func_800AD5B8(Task* task)
 {
     TaskFunc funcs[2] = { func_800AD620, func_800AD65C };
 
@@ -2174,7 +2245,7 @@ void func_800AD5B8(Task* task)
     }
 }
 
-void func_800AD620(Task* task)
+static void func_800AD620(Task* task)
 {
     s32 val;
 
@@ -2185,7 +2256,7 @@ void func_800AD620(Task* task)
     task->state++;
 }
 
-void func_800AD65C(Task* task)
+static void func_800AD65C(Task* task)
 {
     DisplayState* ds;
     s32           val;
@@ -2708,7 +2779,9 @@ void Gp_ApplyAreaRecs(GpAreaApplyRec* arg0)
     }
 }
 
-void Gp_ApplyNewGameAreaFlags(void)
+/// New-game init: for each of the four stage flag lists, OR bit 2 into
+/// `GpAreaObj.field_1` on every record whose apply flag is set.
+static void Gp_ApplyNewGameAreaFlags(void)
 {
     {
         GpAreaRec*     tbl;
@@ -2845,13 +2918,13 @@ void Gp_RebuildAreaIdBits(void)
     }
 }
 
-const TaskFuncTable3 Gp_SessionStates = { {
+static const TaskFuncTable3 Gp_SessionStates = { {
     Gp_ResumeSessionTask,
     Gp_SessionState1,
     Gp_BeginSessionTask,
 } };
 
-const TaskFuncTable8 Gp_LoadStateFns = { {
+static const TaskFuncTable8 Gp_LoadStateFns = { {
     Gp_LoadWaitBoot,
     Gp_LoadWaitStage,
     Gp_LoadState2,
@@ -2862,7 +2935,7 @@ const TaskFuncTable8 Gp_LoadStateFns = { {
     Gp_LoadFinishTask,
 } };
 
-const TaskFuncTable3 Gp_RoomObjStates = { {
+static const TaskFuncTable3 Gp_RoomObjStates = { {
     Gp_LinkRoomObjectsSpawn,
     Gp_RoomObjState1,
     taskKill,

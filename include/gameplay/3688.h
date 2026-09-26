@@ -37,10 +37,6 @@ typedef struct {
     GpUseCreatePair pairs[8];
 } GpUseCreateTable;
 
-void Gp_MapPanelInit(Task* arg0);
-void Gp_MapFirstDrawTask(Task* arg0);
-void Gp_MapTaskState2(Task* arg0);
-void Gp_MapDrawTask(Task* arg0);
 STATIC_ASSERT_SIZEOF(GpUseCreateTable, 0x10);
 
 typedef struct {
@@ -52,19 +48,14 @@ typedef struct {
 } GpUseCreateWork;
 STATIC_ASSERT_SIZEOF(GpUseCreateWork, 0x14);
 
-extern const GpUseCreateTable D_80097184;
-extern char                   Gp_StrUsedDot[];
-extern char                   Gp_StrCreatedDot[];
+extern char Gp_StrUsedDot[];
+extern char Gp_StrCreatedDot[];
 
 void func_800CB6FC(UiObject* arg0, Task* arg1);
 
 /// CLUT ids for the ten item-category icons drawn by `Gp_DrawItemIcon`,
 /// indexed by the icon index that function derives from the item id.
 extern const u16 D_80096F88[];
-
-/// Four-entry dispatcher table: `Gp_MapPanelInit`, `Gp_MapFirstDrawTask`, `Gp_MapTaskState2`,
-/// `Gp_MapDrawTask`.
-extern const TaskFuncTable4 Gp_MapTaskStates;
 
 /// 0xE-byte per-room record in tables pointed to by `Gp_MapRecTables`.
 /// Indexed by `GameSession.at4.loc.stage - 1` then `GameSession.at4.loc.area`.
@@ -252,26 +243,14 @@ void Gp_SetPreviewItem(s32 arg0, s32 arg1);
 void Gp_SetHolderItemText(s32 arg0);
 void Gp_DrawUsePrompt(DialogPrompt* arg0, UiObject* arg1);
 void Gp_SpawnItemPrompt(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
-u8   Gp_GetMapRoomId(void);
 s32  func_800D4D2C(s32 arg0);
 
-/// Item specification panel task, its list, and display text.
-extern const char D_8009707C[];
 extern UiList     D_8010E910;
 extern u8*        D_8010E7C0[];
 extern u8*        Gp_CaliberNameTbl[];
 extern u8*        Gp_FeatNameTbl[];
 extern const char Gp_StrAddHp[];
 extern const char Gp_StrAddMp[];
-extern const char Gp_StrApplicableWpn[];
-extern const char Gp_StrAttachments3[];
-extern const char Gp_StrCapacity[];
-extern const char Gp_StrNextReplay[];
-extern const char Gp_StrOperation[];
-extern const char Gp_StrPowerCaps[];
-extern const char Gp_StrSpecial[];
-extern const char Gp_StrSpecialFeat[];
-extern const char Gp_StrSpecs[];
 
 void func_800C5F70(Task* arg0);
 void func_800CF330(Task* arg0);
@@ -296,36 +275,19 @@ void      func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 s32       Gp_GetPreviewItem(void);
 void      Gp_CheckItemInfoButton(UiObject* arg0);
 void      Gp_NoticePanelTask(Task* arg0);
-void      Gp_DrawMapCursor(Task* arg0);
-void      Gp_DrawMapMarks(Task* arg0);
-s8        func_800D1434(u32 arg0, u8 arg1);
-void      func_800D1F90(Task* arg0);
 void      Gp_EquipHeld(s32 arg0);
 void      Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1);
 void      Gp_DrawCastCostLines(UiObject* arg0, s32 arg1);
 UiObject* func_800CD89C(UiObject* arg0);
-void      Gp_EnqueueMapRoomCd(void);
-void      Gp_CountAmmoRows(UiList* arg0, s32 arg1);
 void      Gp_DrawItemNameRow(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
-void      Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2);
-void      Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2);
-void      func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2);
-s32       Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2);
 void      Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
-s32       func_800D50D4(s32 arg0, s32 arg1);
 void      Gp_DrawSortCmd(DialogPrompt* arg0, UiObject* arg1);
 void      Gp_AmmoListTask(Task* arg0);
-void      Gp_CountEquippableRows(UiList* arg0, UiObject* arg1);
 void      Gp_ItemRowSelect(UiList* arg0, UiObject* arg1, s32 arg2, s32 arg3);
 void      func_800CF148(UiObject* arg0, Task* arg1);
 void      func_800CF090(UiList* arg0, UiObject* arg1);
-void      Gp_ItemListTask(Task* arg0);
-void      Gp_BuildAttachList(UiList* arg0, s32 arg1);
 void      Gp_SizeEquippedPanel(UiPanel* arg0, s32 arg1);
 void      func_800CF6E8(UiObject* arg0, s32 arg1);
 void      Gp_AttachListTask(Task* arg0);
-s32       Gp_IsEquippedItem(s32 arg0);
-UiObject* func_800CD814(UiObject* arg0);
-void      Gp_SpawnItemUsePrompt(s32 arg0, UiObject* arg1);
 
 #endif // GAMEPLAY_3688_H

@@ -812,8 +812,6 @@ extern s32 Gp_HealPending;
 /// Attachment slot selected by `func_800D6334` and its child UI descriptor.
 extern s32          D_8010F884;
 extern UiObjectDesc D_8010F8B4;
-extern const char   D_80097440[];
-extern const char   D_80097448[];
 void                func_800D6334(Task* arg0);
 
 /// Signed pending item id consumed by `Gp_FlushPendingRelated`. `Gp_ApplyItemUse`
@@ -1029,44 +1027,13 @@ extern u16 D_80113D0C[][2];
 /// Final percent scale applied by `Gp_ComputeDamage`, indexed by `Gp_StateF0.field_2B`.
 extern u16 D_80113F90[];
 
-/// "Weapon" string drawn by `Gp_DrawWeaponLabel` (trailing 0x60 byte).
-extern const char Gp_StrWeapon[];
-
-/// "#######get_lock_pos ---> NULL!!!\n" printed by `Gp_GetLockPos`
-/// (trailing 0x8C 0x16 bytes).
-extern const char Gp_StrGetLockPosNull[];
-
-/// Returns 1 if item `arg0` cannot be used, 0 if it can.
-/// `arg1` supplies `field_2` (capacity) for ammo ids 0xA0–0xBF.
-s32 Gp_ItemIsUnusable(s32 arg0, McItemRec* arg1);
 /// `arg1` is passed by `Gp_PlayerNormalState5` (the actor's `field_960`) but the body
 /// ignores it.
 s32        Gp_FlushPendingRelated(s32 arg0, s32 arg1);
 McItemRec* Gp_FindItemById(s32 arg0);
-McItemRec* Gp_FindItemByKind(s32 arg0);
 McItemRec* Gp_FindItemInScan(s32 arg0, McItemScan* arg1);
 void       Gp_DrawWeaponLabel(Task* arg0);
-/// First-run init plus per-frame update of the current room's `GpRoomCoordSet`
-/// coordinate arrays (parented to `gGfxViewCoord`) and the `Gp_RoomCoords` slots.
-/// Kills `arg0` when `Gp_GetRoomCoordSet` returns 0.
-void Gp_UpdateRoomCoords(Task* arg0);
-s32  Gp_LightPointRoom(GpPointLight* arg0, VECTOR3* arg1);
-s32  Gp_LightPoint(GpPointLight* arg0, VECTOR3* arg1);
-s32  Gp_LightCone(GpSpotLight* arg0, VECTOR3* arg1);
-void func_800D759C(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3);
-void func_800D7A9C(TmdObject* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
-/// Selects the nearest point or cone light to world position `arg0`, using
-/// squared distance after halving each coordinate difference. Initializes
-/// `arg1` to no selection even when `Gp_GetRoomCoordSet` returns 0.
-void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1);
-void Gp_DebugPanTask(Task* arg0);
-/// Remaps a 3x3 color matrix (`MATRIX.m`) from lighting mode `arg2`
-/// (`field_4E` bits 0-1, or bits 2-3 when blending). Mode 1 weights
-/// RGB as (7,6,3)/33 then *4/*2/*1. Mode 2 zeros the matrix. Mode 3
-/// fills 0x180/0x100/0x100. Default remaps to *3/*1/*3 when
-/// `field_4C & 0xC`. Bit 0x80 of `field_4E` with `field_4B == 0` applies
-/// a `rsin(gDisplayState.loopCount << 6)` flicker and clears the bit.
-void Gp_RemapActorColor(struct GpEnemy* arg0, MATRIX* arg1, s32 arg2);
+void       func_800D7A9C(TmdObject* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 /// Rebuilds the actor color matrix via `func_800D7A9C`, then remaps it
 /// from `field_4E` lighting mode (`Gp_RemapActorColor`). While `field_4F` is
 /// a positive blend timer, GPF/GPL-interpolates the previous mode
@@ -1074,7 +1041,6 @@ void Gp_RemapActorColor(struct GpEnemy* arg0, MATRIX* arg1, s32 arg2);
 /// when `gGameSession->field_65 == 1` unless `TmdObject.flags` bit
 /// 0x80 is clear and `field_18` is set. `Gp_StateF0.field_4` freezes the timer.
 void Gp_UpdateActorColor(struct GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
-void Gp_LightFalloff(GpPointLight* arg0);
 void Gp_SetLightMode(struct GpEnemy* arg0, s32 arg1);
 /// How far a coordinate's origin lies from the current view's projection plane,
 /// in the form the sound events take their depth argument: saturated to ±0x7FFF
@@ -1096,26 +1062,9 @@ void Gp_SetOverrideVec(SVECTOR* arg0);
 void Gp_SetOverrideVec2(SVECTOR* arg0);
 /// Sets the back colour a model is lit with: the translation of its colour
 /// matrix, which the lighting adds to every vertex as the ambient term.
-void            Gp_SetObjTrans(TmdObject* arg0, s16 arg1, s16 arg2, s16 arg3);
-GpRoomBoundVec* Gp_GetRoomBound(GpAreaKey* arg0);
-s32             Gp_CountRoomCoords(void);
-s32             Gp_GetRoomCoordSet(GpAreaKey* arg0);
-void            func_800D96C8(Task* arg0);
-s32             Gp_GetObjLuma(GpLight* arg0);
-/// World X of the object's position.
-s32             Gp_GetObjTransX(GpCoord* coord);
-void            func_800D9794(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3);
-void            func_800D98C4(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3);
-void            func_800D9A30(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3);
-void            Gp_InsertRankedSlot(GpRec12* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void            Gp_BindDefaultMtx(Task* arg0);
-void            Gp_FillSVec3x3(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3);
-GpRoomCoordRec* Gp_GetRoomCoordRec(GpAreaKey* arg0);
-void            func_800D9CC8(Task* arg0);
-void            Gp_CopyDefaultBound(GpRoomBoundVec* bound);
-void            Gp_DrawTargetCursor(void);
-void            func_800DA6E8(void* arg0, s32 arg1, s32 arg2);
-void            Gp_UpdateLockSlots(void);
+void Gp_SetObjTrans(TmdObject* arg0, s16 arg1, s16 arg2, s16 arg3);
+void Gp_DrawTargetCursor(void);
+void func_800DA6E8(void* arg0, s32 arg1, s32 arg2);
 /// Detaches `node` from every actor slot locked onto it and takes it off the
 /// tracked list.
 void Gp_UnlinkNode(GpLinkNode* node);
@@ -1135,14 +1084,10 @@ void Gp_AssignNodeSlot0(GpLinkNode* node);
 /// Detaches `node` from every actor slot and marks it un-lockable, leaving it
 /// on the tracked list.
 void  Gp_ClearNodeSlots(GpLinkNode* node);
-void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag);
 void* Gp_FindLockNode(Task* arg0);
 void* Gp_FindLockNodePad(Task* arg0);
-void* Gp_FindLockNodeAt(Task* arg0, VECTOR3* pos);
 void  Gp_GetLockPos(GpLinkNode* arg0, VECTOR3* out);
-void  Gp_ClearLockSlots(void);
 void  Gp_ResetLinkState(void);
-s32   Gp_ProjectToSxy(GpLinkNode* arg0, s32* sxy);
 /// Drops the `targeted` mark from every actor slot's current node, without
 /// releasing the slot itself.
 void Gp_ClearSlotNodeFlags(void);
@@ -1157,37 +1102,13 @@ void Gp_IncStateF0Ref(s32 arg0);
 void Gp_ReleaseStateF0Add(Task* arg0, s32 arg1);
 void Gp_ReleaseStateF0Clear(void);
 void Gp_ReleaseStateF0(Task* arg0, s32 arg1);
-void Gp_TickWorldCollision(void);
-void Gp_RunPairHandler(GpObj* node);
-void func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2);
 s32  Gp_PairHandler1(GpObj* arg0, GpObj* arg1);
 s32  Gp_PairHandler3(GpObj* arg0, GpObj* arg1);
-void Gp_CollideObjGrid(GpObj* node);
-void Gp_CollideObjGridDir(GpObj* node);
-s32  func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, s32 arg3);
-void func_800DD940(GpObj* node);
-void func_800DDC2C(GpObj* arg0);
-void func_800DE150(GpObj* arg0);
-void func_800DDDF8(GpObj* node);
-void func_800DE2C0(VECTOR* arg0, s32 arg1);
 s32  func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3);
-void func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1);
-void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3);
-void func_800DEF80(GpObj* node, GpObj4C* other);
-void func_800DF6AC(GpObj* node, GpObj4C* other, VECTOR3* pos);
 s32  func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3);
 void Gp_ClearObjHeads(void);
 s32  func_800E0308(SVECTOR* arg0, SVECTOR* arg1);
-void Gp_CollideLists(GpObj* a, GpObj* b);
-void Gp_CollideListGrid(GpObj* node);
-void func_800E0608(GpObj* node, s32 mask, s32 match);
-void func_800E06AC(GpObj* node, s32 mask, s32 match);
 s32  Gp_PairNop(void);
-void Gp_LocalToGrid(VECTOR3* arg0, SVECTOR3* arg1);
-void Gp_ObjWorldPos(GpObj* arg0, VECTOR3* arg1);
-void func_800E0994(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2);
-void Gp_ClearPendingObj4C(void);
-void Gp_WorldToGrid(VECTOR3* arg0, SVECTOR3* arg1);
 /// Averages the first `arg2` `GpRec18` records of `arg0` into `arg1`
 /// (a 16.16 delta scaled by 16) and, when `arg3` is non-NULL, stores the
 /// `1 << key` bitmask of the contributing records there. Records
@@ -1200,19 +1121,13 @@ s32 func_800E0C10(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3);
 /// non-NULL, stores the `1 << key` bitmask of the contributing
 /// records there. Returns 0 when nothing contributed, 2 when two kind-0
 /// records push in opposing directions, and 1 otherwise.
-s32 func_800E0FEC(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3);
-/// Transforms `arg0`'s local offset (`ctx.d4rec`'s `end1` plus `pos`) by
-/// `coord->workm` and returns the 1-based index of the
-/// closest occupied `GpRec18` in the shape's `recs` whose `key` high 16
-/// bits match `arg1`, or 0 if none match.
-s32  Gp_FindNearestSlot(GpObj* arg0, s32 arg1);
+s32  func_800E0FEC(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3);
 void Gp_LinkObj(s32 arg0, GpObj* arg1);
 void Gp_UnlinkObj(GpObj* node);
 void Gp_LinkObj4A(s32 arg0, GpObj4A* arg1);
 void Gp_UnlinkObj4A(s32 arg0, GpObj4A* arg1);
 void Gp_ClearObj4AList(s32 arg0);
 void Gp_LinkObj3A(s32 arg0, GpObj3A* arg1);
-void Gp_UnlinkObj3A(s32 arg0, GpObj3A* arg1);
 void Gp_ClearObj3AList(s32 arg0);
 void Gp_InitRec18Table(GpRec18* arg0, s32 arg1, s32 arg2);
 void Gp_LoadRoomParams(void);
@@ -1250,7 +1165,6 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3);
 /// and `arg2` multiplies it when non-zero. The result is compared against a
 /// 12-bit `Gp_LcgState` draw.
 s32  Gp_RollEnemyChance(struct GpEnemy* arg0, u32 arg1, s32 arg2);
-void Gp_ApplyObjKind(struct GpEnemy* arg0, s32 arg1);
 s32  Gp_PackObjPair(struct GpEnemy* arg0, s32 arg1);
 s32  Gp_PackPair(GpU16Pair* pairs, s32 index);
 void func_800E2C78(struct GpEnemy* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -1272,7 +1186,5 @@ void Gp_UpdatePlayerMove(void);
 // Without a prototype m2c cannot type a call to them and the decompiled
 // seed fails to compile ('invalid use of void expression') - the single
 // largest cause of unusable seeds in the bulk m2c pass.
-
-s32 Gp_ApplyItemUse(McItemRec* arg0);
 
 #endif // GAMEPLAY_3A34_H

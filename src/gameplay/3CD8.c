@@ -107,28 +107,37 @@ extern u8            D_801156F9;
 s32              Stage_HasTransitionFlags(void);
 s32              Stage_RequestImageCapture(void);
 void             func_8001D5C4(void);
-u16              func_800E5578(s32 arg0, s32 arg1, u8 arg2, u16 arg3);
-void             func_800E62C0(void);
-void             func_800E44A0(Task* arg0);
+static u16       func_800E5578(s32 arg0, s32 arg1, u8 arg2, u16 arg3);
+static void      func_800E62C0(void);
+static void      func_800E44A0(Task* arg0);
 void             func_80724120(void);
 void             func_80724324(void);
 void             func_807244CC(char* arg0);
 void             func_8072455C(s16 arg0, s32 arg1);
 void             func_807245B8(void);
 void             func_80724714(void);
-void             Gp_CapExit(Task* arg0);
+static void      Gp_CapExit(Task* arg0);
 s32              Gp_StartCapSlot(s16 arg0, s16 arg1, s16 arg2);
 s32              Gp_AbortCap(void);
 void             Gp_LoadCapFile(s32 arg0);
-void             Gp_ApplyCapEvtFlags(void);
-s32              Gp_FindCapEvt(s32 arg0);
+static void      Gp_ApplyCapEvtFlags(void);
+static s32       Gp_FindCapEvt(s32 arg0);
 s32              Gp_LookupSlot4(s32 arg0);
 extern GpAnimArg D_8010FB10;
 extern GpAnimArg D_8010FB24;
 
 void func_800E31E8(Task* arg0);
 
-const TaskFuncTable3 D_800974C8 = { {
+static s16  Gp_CapCenterX(u16* text);
+static s16  Gp_CapCenterXLine(u16* arg0, s32 arg1);
+static s16  Gp_CapTextHeight(u16* arg0);
+static s16  Gp_CapTextTopY(u16* arg0);
+static void Gp_DrawCapCaret(void);
+static void func_800E4020(void);
+static s32  func_800E6BB8(u16* arg0);
+static void func_800E704C(void);
+
+static const TaskFuncTable3 D_800974C8 = { {
     func_800E31E8,
     (TaskFunc)func_800E4020,
     taskKill,
@@ -293,14 +302,14 @@ void Gp_EvtCapWeaponTask(Task* arg0)
     }
 }
 
-void Gp_InitCapTask(Task* task);
-void Gp_CapTaskState1(void);
+static void Gp_InitCapTask(Task* task);
+static void Gp_CapTaskState1(void);
 
-const char         Gp_StrCapMagic[] = "CAP";
-const _GpCapLayout D_80097518       = { 0 };
-const char         Gp_StrEvsFmt[]   = "evs%d_%d_%d.txt";
+static const char         Gp_StrCapMagic[] = "CAP";
+static const _GpCapLayout D_80097518       = { 0 };
+static const char         Gp_StrEvsFmt[]   = "evs%d_%d_%d.txt";
 
-const TaskFuncTable3 Gp_CapTaskStates = { {
+static const TaskFuncTable3 Gp_CapTaskStates = { {
     Gp_InitCapTask,
     (TaskFunc)Gp_CapTaskState1,
     taskKill,
@@ -456,11 +465,11 @@ s32 func_800E4018(void)
     return 0;
 }
 
-void func_800E4020(void)
+static void func_800E4020(void)
 {
 }
 
-void func_800E4028(Task* arg0)
+static void func_800E4028(Task* arg0)
 {
     TaskFuncTable3 sp;
 
@@ -482,7 +491,7 @@ void Gp_SpawnEvt1(s32 arg0, s32 arg1)
     Task_SpawnFromTable(Gp_EvtSpawnTable, 1, arg0, arg1);
 }
 
-s32 Gp_RelocCapFile(GpCapFile* file)
+static s32 Gp_RelocCapFile(GpCapFile* file)
 {
     s32            i;
     s32            count;
@@ -536,7 +545,7 @@ s32 Gp_RelocCapFile(GpCapFile* file)
     return 1;
 }
 
-s32 Gp_StartCap(s32 arg0, s16 arg1, s16 arg2)
+static s32 Gp_StartCap(s32 arg0, s16 arg1, s16 arg2)
 {
     register s16 mode asm("s3");
     CdCmdQueue*  queue;
@@ -610,7 +619,7 @@ s32 Gp_StartCap(s32 arg0, s16 arg1, s16 arg2)
     return 0;
 }
 
-void func_800E44A0(Task* task)
+static void func_800E44A0(Task* task)
 {
     Task* target;
     Task* lookupTask;
@@ -1037,7 +1046,7 @@ resumeView:
     }
 }
 
-u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u16 arg3)
+static u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u16 arg3)
 {
     u8           title;
     u8           flagA;
@@ -1346,7 +1355,7 @@ u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u16 arg3)
     return ret;
 }
 
-void func_800E62C0(void)
+static void func_800E62C0(void)
 {
     POLY_G3*     p;
     GpCapChoice* choice;
@@ -1401,7 +1410,7 @@ void func_800E62C0(void)
     }
 }
 
-void Gp_CapExit(Task* arg0)
+static void Gp_CapExit(Task* arg0)
 {
     CdCmdQueue* queue;
     char        buf[0x20];
@@ -1446,7 +1455,10 @@ void Gp_CapExit(Task* arg0)
     taskKill(arg0);
 }
 
-void Gp_DrawCapCaret(void)
+/// Blinking POLY_G3 continue caret. `Gp_CapCaretDelay` is a frame delay before the
+/// first draw; `Gp_CapCaretX` / `Gp_CapCaretY` are base XY; `Gp_CapCaretGrey` /
+/// `Gp_CapCaretDir` pulse the vertex greys between 8 and 15.
+static void Gp_DrawCapCaret(void)
 {
     POLY_G3* p;
     s32      color;
@@ -1502,7 +1514,7 @@ void Gp_DrawCapCaret(void)
     }
 }
 
-s16 Gp_CapCenterX(u16* text)
+static s16 Gp_CapCenterX(u16* text)
 {
     s16 lineW = 0;
     s16 maxW  = 0;
@@ -1532,7 +1544,7 @@ s16 Gp_CapCenterX(u16* text)
     return (0x140 - maxW) / 2 - 5;
 }
 
-s16 Gp_CapCenterXLine(u16* arg0, s32 arg1)
+static s16 Gp_CapCenterXLine(u16* arg0, s32 arg1)
 {
     s16 lineW;
     s16 selectedW;
@@ -1570,7 +1582,7 @@ s16 Gp_CapCenterXLine(u16* arg0, s32 arg1)
     return (0x140 - selectedW) / 2 - 5;
 }
 
-s16 Gp_CapTextHeight(u16* arg0)
+static s16 Gp_CapTextHeight(u16* arg0)
 {
     s32                 lineH;
     s32                 total;
@@ -1621,7 +1633,7 @@ s16 Gp_CapTextHeight(u16* arg0)
     return total;
 }
 
-s16 Gp_CapTextTopY(u16* arg0)
+static s16 Gp_CapTextTopY(u16* arg0)
 {
     s32                 lineH;
     s32                 total;
@@ -1672,7 +1684,7 @@ s16 Gp_CapTextTopY(u16* arg0)
     return (s16)(0xD0 - total);
 }
 
-s32 func_800E6BB8(u16* arg0)
+static s32 func_800E6BB8(u16* arg0)
 {
     s32                 height;
     s32                 i;
@@ -1812,12 +1824,12 @@ void Gp_ResetCap(void)
     D_8011569C = 0;
 }
 
-void func_800E6E44(s32 arg0)
+static void func_800E6E44(s32 arg0)
 {
     D_80115660 = arg0;
 }
 
-void Gp_ApplyCapEvtFlags(void)
+static void Gp_ApplyCapEvtFlags(void)
 {
     GpEvt12* p;
     u8       field4;
@@ -1835,7 +1847,7 @@ void Gp_ApplyCapEvtFlags(void)
     D_80115678 = p->field_7;
 }
 
-s32 Gp_FindCapEvt(s32 arg0)
+static s32 Gp_FindCapEvt(s32 arg0)
 {
     s32      flag;
     s32      id;
@@ -1909,7 +1921,7 @@ void Gp_DelayedMsgTask(Task* task)
     }
 }
 
-void func_800E704C(void)
+static void func_800E704C(void)
 {
     D_801155AE++;
     D_801155AE       = Gp_FindCapEvt((s16)D_801155AE);
@@ -1919,7 +1931,7 @@ void func_800E704C(void)
     Gp_ApplyCapEvtFlags();
 }
 
-void func_800E70AC(Task* task)
+static void func_800E70AC(Task* task)
 {
     if (D_801156F9 == 0) {
         switch (task->state) {
@@ -1934,7 +1946,7 @@ void func_800E70AC(Task* task)
     }
 }
 
-void Gp_EndWaitTask(Task* task)
+static void Gp_EndWaitTask(Task* task)
 {
     GpEndWait* flag;
 
@@ -1953,7 +1965,7 @@ void Gp_EndWaitTask(Task* task)
     }
 }
 
-void Gp_InitCapTask(Task* task)
+static void Gp_InitCapTask(Task* task)
 {
     void* mem;
 
@@ -1971,7 +1983,7 @@ void Gp_InitCapTask(Task* task)
     task->state++;
 }
 
-void Gp_CapTaskState1(void)
+static void Gp_CapTaskState1(void)
 {
     if (gDisplayState.field_112 != 0) {
         func_80724120();
@@ -2089,7 +2101,7 @@ s32 func_800E74EC(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-void func_800E7570(Task* arg0)
+static void func_800E7570(Task* arg0)
 {
     TaskFuncTable3 sp;
 

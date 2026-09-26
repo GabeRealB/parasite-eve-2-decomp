@@ -95,9 +95,6 @@ typedef struct {
     GpEnemyTaskFunc funcs[5];
 } GpEnemyTaskFuncTable5;
 
-/// Three-entry dispatcher table: `Gp_EnemyWaitStart`, `Gp_EnemyWaitTick`, `Gp_DestroyEnemy`.
-extern const GpEnemyTaskFuncTable3 Gp_EnemyWaitFuncs;
-
 void func_800B25B0(void);
 
 /// Pose pair used by `Gp_AnimWritePoseBlend` / `Gp_AnimWritePoseCopy`. Translation is
@@ -335,11 +332,9 @@ STATIC_ASSERT_SIZEOF(GpSectorHeader, 0x3C);
 s32      func_800AF590(void);
 s16      Gp_FindStreamSlot(u16 arg0, u16 arg1, u16 arg2, u16 arg3);
 void     Gp_StepCdAudioCmd(void);
-void     Gp_ApplySndMasks(u16 arg0);
 void     Gp_ApplySndBankMasks(u16 arg0);
 void     Gp_RestoreStreamRng(void);
 s32      func_800B0118(s32 arg0, s32 arg1);
-GpEnemy* Gp_SpawnEnemy(s32 bank, s32 type, s32 arg2, GpEnemy* parent);
 GpEnemy* Gp_SpawnEnemyFromTable(TaskDesc* table, s32 idx, s32 arg2, GpEnemy* parent);
 void     Gp_DestroyEnemy(GpEnemy* enemy, Task* task);
 void     Gp_EnemyTaskExit(Task* task);
@@ -349,14 +344,9 @@ void     Gp_EnemyTaskExit(Task* task);
 /// via `Gp_UpdateCoord`, transforms there, and converts to local with
 /// `Gp_WorldToLocal`. Always parents the dest to world and clears `flg`.
 /// Returns `arg0` (or NULL).
-Task*    Gp_CopyCoordOffset(Task* arg0, GpCoord* arg1, SVECTOR* arg2);
-GpEnemy* Gp_AllocEnemy(Task* task, GpEnemy* parent);
-void     Gp_EnemyWaitStart(GpEnemy* enemy, Task* task);
-void     Gp_EnemyWaitTick(GpEnemy* enemy, Task* task);
-void     Gp_EnemyDispatch(Task* arg0);
-s32      Gp_TryEnqueueSndCd(s32 arg0);
-void     Gp_EnqueueSndCd(u8 arg0);
-void     Gp_MtxToEuler(MATRIX* arg0, SVECTOR* arg1);
+Task* Gp_CopyCoordOffset(Task* arg0, GpCoord* arg1, SVECTOR* arg2);
+void  Gp_EnqueueSndCd(u8 arg0);
+void  Gp_MtxToEuler(MATRIX* arg0, SVECTOR* arg1);
 /// Extracts ZYX Euler angles from `arg1`'s rotation into `arg0`. Tries `vx`
 /// and `vx ± 0x800` (the other Euler solution) and keeps the candidate with
 /// the smaller sum of absolute angles. Returns `arg0`.
@@ -381,25 +371,9 @@ typedef struct _GpRgbScratch {
     /* 0x06 */ u16 pad;
 } GpRgbScratch;
 STATIC_ASSERT_SIZEOF(GpRgbScratch, 8);
-/// Unpacks two RGB555 colors, GPF/GPL-blends them by `arg2` / `0x1000 -
-/// arg2`, packs the result into `*arg3`, and copies the STP bit if
-/// either source has it set.
-void Gp_BlendRgb555(u16* arg0, u16* arg1, s32 arg2, u16* arg3);
 void Gp_BlendRgb555Clut(u16* arg0, u16* arg1, s32 arg2, u16* arg3);
-void Gp_BlendRgb555ClutMasked(u16* arg0, u16* arg1, s32 arg2, u16* arg3, s32 arg4);
-/// Full-screen fade quad. Ramps a 0x140x0xF0 `TILE` from black to
-/// `field_2`-scaled white over `field_2` frames, holds until the owner
-/// raises `field_1`, then ramps back down and kills the task. Sorted into
-/// `gGpuCurrentOt[Task::spawnArg1]`, or (`spawnArg1 == 0`) into the head
-/// of the current ordering table, backing up 0xA entries when the current
-/// OT is not one of the two `Gpu_OrderingTables` roots.
-void Gp_FadeWorkTask(Task* arg0);
 void Gp_BlendAnimRot(GpAnimBlendSrc* arg0, GpCoord* arg1, GpAnimSlot* arg2,
                      GpAnimScratch80* arg3);
-void Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GpCoord* arg1, GpAnimSlot* arg2);
-void Gp_AnimBlendPacked(GpAnimBlendSrc* arg0, GpCoord* arg1, GpAnimSlot* arg2);
-void Gp_AnimAdvanceSlot(GpAnimCtx* arg0, s32 arg1);
-void Gp_AnimSeekSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 /// Fills `arg0` from the model body `arg2` animates and the animation tables
 /// `arg1` names. The context borrows the model's per-part coordinate array and
@@ -409,9 +383,6 @@ void Gp_AnimInitCtx(GpAnimCtx* arg0, void* arg1, TmdObject* arg2, void* arg3);
 void Gp_AnimInitSlot(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3);
 void Gp_AnimTickSlot(GpAnimCtx* arg0, GpAnimSlot* arg1);
 void Gp_AnimTickSlot2(GpAnimCtx* arg0, GpAnimSlot* arg1);
-void Gp_AnimTickSlot3(GpAnimCtx* arg0, GpAnimSlot* arg1);
-void func_800B3E74(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3);
-void func_800B3EE8(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 arg4);
 /// `Gp_AnimInitCtx` with the model's playback slots handed in as well, for a
 /// caller whose slot array is part of a block of its own.
 void Gp_AnimInitCtxSlots(GpAnimCtx* arg0, void* arg1, TmdObject* arg2, void* arg3, GpAnimSlot* arg4);
@@ -434,8 +405,6 @@ void       Gp_AnimTickIndex(GpAnimCtx* arg0, s32 arg1);
 void       func_800B4538(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 arg5,
                          s32 arg6);
 GpAnimRec* Gp_AnimGetRec(GpAnimCtx* arg0, GpAnimSlot* arg1);
-void       func_800B46A4(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3);
-void       func_800B4754(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3);
 void       Gp_AnimPlaySlot(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 arg5, s32 arg6,
                            void* arg7);
 void       Gp_SaveEnemyPose(GpEnemy* arg0);
@@ -444,13 +413,9 @@ void       Gp_ApplyAreaTmdFlags(void);
 void       Gp_ReparentCoord(GpCoord* arg0, GpCoord* arg1);
 GpWorkObj* Gp_FindWorkById(u16 arg0);
 void       Gp_SetTmdBytes(TmdObject* arg0, s32 arg1, s32 arg2);
-void       Gp_SetCurAreaFlag2(s32 arg0);
 s32        Gp_GetAreaFlag2(GpAreaKey* arg0);
-GpAreaObj* Gp_GetAreaObj(GpAreaKey* arg0);
-void       func_800B5A48(GpAreaKey* arg0, GpAreaObj* arg1);
 void       Gp_SetAreaObjId(GpAreaKey* arg0, s32 arg1, s32 arg2);
 void       Gp_SetAreaFlag2(s32 arg0, GpAreaKey* arg1);
-GpAreaObj* Gp_GetNestedAreaObj(GpAreaKey* arg0);
 GpAreaRec* Gp_GetNestedAreaRec(GpAreaKey* arg0);
 void       Gp_SetAreaFlag0(GpAreaKey* arg0);
 void       Gp_SyncAreaKeyIndex(GpAreaKey* arg0);
@@ -505,16 +470,6 @@ void Gp_DrawFloorQuad(GpCoord* arg0, u32 arg1, SVECTOR* arg2);
 /// by `-abs(length - arg1->field_2)`, and writes it to `arg2`.
 void Gp_MakeDirOffset(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2);
 void Gp_FreeSlot4TmdBuffers(void);
-/// Looks up `arg0` as `GpBit2Rec.field_0` in
-/// `Gp_Bit2Banks[Mc_SaveData.at4.loc.stage]`. On a hit, publishes the record's
-/// item id / extra / stack count into `Gp_PubItemId` / `Gp_PubItemLoc` /
-/// `D_80114DDE` / `Gp_PubItemQty` and returns 1.
-s32 Gp_LookupBit2Item(s32 arg0);
-/// Walks `Gp_Bit2Banks[Mc_SaveData.at4.loc.area / stage]` for a `GpEnemyPlace`
-/// whose `field_0` equals `arg0`. If the packed 2-bit flag at
-/// `Gp_Bit2Banks[gGameSession->at4.loc.stage].field_4` is non-zero, spawns that
-/// placement via `Gp_SpawnEnemyFromTable` (same coord/yaw writeback as `Gp_SpawnPlaces`).
-void Gp_SpawnPlaceById(u16 arg0);
 void Gp_SpawnPlaces(GpAreaKey* arg0);
 void Gp_ApplyItemMap(void);
 s32  Gp_ConsumeSlotQty(s32 arg0, s32 arg1);
@@ -533,7 +488,6 @@ s32 Gp_EquipRelatedItem(McItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
 void  func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
 Task* func_800B2968(void);
 void  Gp_SetStreamBuf(void* arg0);
-void  func_800B1EFC(Task* arg0);
 void  func_800B0928(Task* arg0, Task* arg1, s32 arg2, s32 arg3, s32 arg4);
 /// Turns the slot-3 skeleton's head toward the world point in `arg1`'s
 /// translation (`coord.t`). Sums the first five `GpCoord` transforms of

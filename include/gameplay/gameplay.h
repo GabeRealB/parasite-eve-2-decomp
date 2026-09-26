@@ -66,8 +66,6 @@ typedef struct GpHudStatusBits {
 } GpHudStatusBits;
 STATIC_ASSERT_SIZEOF(GpHudStatusBits, 0xE);
 
-extern const GpHudStatusBits D_8009389C;
-
 /// 0x50-byte stack scratch of the party HP/MP HUD (`func_800A57B0`), reused
 /// in phases: `s.buf` is the `Text_ItoaUnsigned` digit buffer with `s.req` the
 /// matching draw request and `s.obj` the `UiObject` the "MP" label offsets are
@@ -382,61 +380,34 @@ void gpUnlinkDisp2d(TmdListHead* node);
 ///
 /// The body has already left its list, so this is the second half of the
 /// release: `gpFreeTmd` is its counterpart on the model side.
-void  gpFreeDisp2d(GpDisp2d* node);
-void  Gp_StashTmdLists(void);
-void  Gp_RestoreTmdLists(void);
-Task* Gp_FindTaskByCoord(GpCoord* arg0);
-void  Gp_ApplyPadReplay(s32 arg0, PadScratch* arg1);
-void  Gp_InitPlayClock(Task* task);
-void  Gp_TickPlayClock(Task* task);
-void  Gp_PlayClockState2(Task* arg0);
-void  Gp_PlayClockState3(Task* arg0);
+void gpFreeDisp2d(GpDisp2d* node);
+void Gp_ApplyPadReplay(s32 arg0, PadScratch* arg1);
+void Gp_PlayClockState2(Task* arg0);
+void Gp_PlayClockState3(Task* arg0);
 
 /// Colours and labels defined in `gameplay.c`, shared with `78.c`.
 extern const CVECTOR        gGpColorGrey;
-extern const CVECTOR        Gp_ColorOrange;
-extern const CVECTOR        gGpColorWhite;
 extern const TaskFuncTable6 Gp_PlayClockStates;
-extern const char           Gp_StrBattleResult[];
-extern const char           Gp_StrTotal[];
 extern const char           Gp_StrHP[];
 extern const char           Gp_StrMP[];
-extern const char           Gp_StrBP[];
-extern const char           Gp_StrEXP[];
 extern const char           Gp_StrItem[];
 void                        Gp_AreaEnterTask(Task* arg0);
-u16                         Gp_GetAttachParam(s32 arg0);
-void                        Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1);
-void                        Gp_UpdateAttachCombo(s32 arg0);
-s32                         Gp_CheckAttachThreshold(s32 arg0);
-void                        Gp_SetAttachState(s32 arg0);
 void                        Gp_HudTask(GpIdMapC* arg0);
 void                        Gp_StartAreaBgm(s16* arg0);
 u8*                         Gp_GetAttachLevels(void);
 s32                         Gp_IsDebugAttachRoom(void);
 void                        Gp_ResetHudFx(GpIdMapC* arg0);
-s32                         Gp_GetAttachLevel(s32 arg0);
-s32                         Gp_StepAttachSlot(s32 arg0, s32 arg1);
-void                        Gp_HudTrackEnemy(struct GpEnemy* arg0, GpHudTrack* arg1);
-void                        Gp_UpdateLinkXforms(void);
-void                        Gp_HudTrackSlot0(GpHudTrack* arg0);
 void                        Gp_EnqueueAttach7Cd(void);
 void                        Gp_TriggerPeIfArmed(void);
 void                        func_800A7DB8(s32 arg0);
 void                        func_800A7DE0(void);
-s32                         func_800A7E5C(s32 arg0);
-void                        func_800A8654(Task* task);
 void                        Gp_LoadStageView(void);
 void                        Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 s32                         Gp_TrySpawnViewTask(s32 arg0);
 void                        Gp_ApplyView(GpViewRec* arg0);
-void                        Gp_ResetView(void);
 void                        Gp_SpawnViewTasks(void);
 GpViewRec*                  Gp_GetStageView(GpAreaKey* arg0);
-void                        Gp_ApplyViewTask(Task* task);
-void                        func_800A8D5C(void);
 void                        Gp_SpawnCurView(s32 arg0);
-void                        Gp_ViewGateTask(Task* task);
 void                        Gp_ViewBeginLoad(Task* task);
 void                        Gp_ViewLoadImage(Task* task);
 
@@ -472,19 +443,8 @@ void func_800A087C(Task* arg0);
 
 void func_8009EA50(s32 arg0);
 s32  Gp_SpendMp(s32 arg0);
-void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
-void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind);
 s32  Gp_IsStateF0Active(void);
-void func_800A63B4(s32 arg0, s32 arg1, s32 arg2);
 void func_800A7F24(void);
 void func_800A7E4C(void);
-s32  func_800A7550(void);
-void Gp_DrawItemPrompt(s32 arg0, s32 arg1);
-void Gp_DrawPeGauge(s32 arg0, s32 arg1, s32 arg2);
-void Gp_DrawHudSprites(GpIdMapC* arg0);
-void Gp_UseItemTask(GpIdMapC* arg0);
-void func_800A7824(s32 arg0, s32 arg1, s32 arg2);
-void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_800A4904(s32 arg0);
 
 #endif // GAMEPLAY_GAMEPLAY_H

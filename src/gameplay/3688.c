@@ -175,26 +175,26 @@ extern const char     Gp_StrPEnergy[];
 extern const char     Gp_StrOption[];
 extern const char     Gp_StrExit[];
 extern const char     Gp_StrSlash[];
-extern const char     Gp_StrHp[];
+static const char     Gp_StrHp[];
 extern const char     Gp_StrMp[];
 extern const char     Gp_StrExp[];
-extern const char     Gp_StrBp[];
-extern const char     Gp_StrArmor[];
-extern const char     Gp_StrAttachments[];
-extern const char     Gp_StrAttachments2[];
+static const char     Gp_StrBp[];
+static const char     Gp_StrArmor[];
+static const char     Gp_StrAttachments[];
+static const char     Gp_StrAttachments2[];
 extern const char     Gp_StrWeaponTitle[];
-extern const char     Gp_StrE[];
+static const char     Gp_StrE[];
 extern const char     Gp_StrItemHdr[];
-extern const char     Gp_StrSelectTitle[];
+static const char     Gp_StrSelectTitle[];
 extern const char     Gp_StrNotice[];
 extern const char     Gp_StrKeyItem[];
-extern const char     Gp_StrAttention[];
-extern const char     Gp_StrSelectWeapon[];
-extern const char     Gp_StrEquip[];
-extern const char     Gp_StrSelectAmmo[];
-extern const char     Gp_StrSelectArmor[];
-extern const char     Gp_StrReload[];
-extern const char     Gp_StrAttach[];
+static const char     Gp_StrAttention[];
+static const char     Gp_StrSelectWeapon[];
+static const char     Gp_StrEquip[];
+static const char     Gp_StrSelectAmmo[];
+static const char     Gp_StrSelectArmor[];
+static const char     Gp_StrReload[];
+static const char     Gp_StrAttach[];
 extern const char     Gp_StrStatus[];
 extern const char     Gp_StrInvoke[];
 extern const u8       D_800971A4;
@@ -212,78 +212,89 @@ extern const char     Gp_StrSpecs2[];
 extern UiObject*      D_80067634;
 extern void           (*D_8010D3A0[])(UiObject*, Task*);
 
-void       func_8017F41C(Task* task);
-void       func_8017F2F8(Task* task);
-void       func_8017F304(Task* task);
-void       func_80181184(Task* task);
-void       func_801811A0(Task* task);
-s32        Gp_EquipRelatedItem(McItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
-void       Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void       Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1);
-void       Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
-void       Gp_DrawItemLabel(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
-void       Gp_DrawItemNameRow(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
-void       Gp_DrawQty(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void       Gp_ItemListTask(Task* arg0);
-void       Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2);
-void       Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2);
-void       Gp_DrawOkCmd(DialogPrompt* arg0, UiObject* arg1);
-void       Gp_DrawCancelCmd(DialogPrompt* arg0, UiObject* arg1);
-void       Gp_DrawYesCmd(DialogPrompt* arg0, UiObject* arg1);
-void       Gp_DrawNoCmd(DialogPrompt* arg0, UiObject* arg1);
-void       Gp_DrawMapCursor(Task* arg0);
-void       func_800D0C34(Task* arg0);
-void       func_800D0614(Task* arg0);
-void       Gp_DrawMapMarks(Task* arg0);
-void       func_800D15D0(Task* arg0);
-void       Gp_EnqueueMapRoomCd(void);
-void       func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2);
-void       Gp_DrawReviveCmd(DialogPrompt* arg0, UiObject* arg1);
-s32        func_800D50D4(s32 arg0, s32 arg1);
-void       Gp_DrawPeSlotCmd(DialogPrompt* arg0, UiObject* arg1);
-void       Gp_LoadViewImages(void);
-void       Gp_SetCollectedBit(s32 arg0);
-void       Gp_EnqueueItemPreviewCd(s32 arg0, s32 arg1);
-void       Gp_ItemRowSelect(UiList* arg0, UiObject* arg1, s32 arg2, s32 arg3);
-void       func_800CF148(UiObject* arg0, Task* arg1);
-s32        Gp_IsStateF0Active(void);
-void       Gp_DrawCastCostLines(UiObject* arg0, s32 arg1);
-void       Gp_NoticePanelTask(Task* arg0);
-void       func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
-void       Gp_SpawnItemUsePrompt(s32 arg0, UiObject* arg1);
-void       func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
-void       func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
-void       Gp_EquipSummaryTask(Task* arg0);
-void       Gp_DrawAmmoRow(DialogPrompt* arg0, UiObject* arg1);
-void       Gp_CountAmmoRows(UiList* arg0, s32 arg1);
-void       Gp_AmmoListTask(Task* arg0);
-void       Gp_EquipHeld(s32 arg0);
-void       Gp_BuildAttachList(UiList* arg0, s32 arg1);
-void       Gp_AttachListTask(Task* arg0);
-void       func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void       func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void       Gp_CheckItemInfoButton(UiObject* arg0);
-void       func_800CF090(UiList* arg0, UiObject* arg1);
-McItemRec* Gp_NthEquippableRec(McItemScan* arg0, s32 arg1, s32 arg2);
-s32        Stage_RequestImageCapture(void);
-s32        Stage_GetFadeStatus(void);
-void       Stage_InitOtOnce(void);
-void       Stage_ResetFade(void);
-s32        Stage_GetModeByte12(void);
-Task*      Task_SpawnOnDefaultList(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3);
-void       Gp_ClearPreviewItems(void);
-void       Gp_AgeFlag119Void(void);
-void       Gp_SyncHeldRelated(void);
-void       Gp_EnqueueAttach7Cd(void);
-void       Gp_LoadViewAndCd(s32 arg0);
-void       Gp_EnqueueHeldWeaponCd(void);
-void       func_800A7E4C(void);
-s32        Gp_KillPlayerEffs(void);
-s32        Gp_SpawnWeaponEff(void);
-void       func_8010870C(void* arg0, s32 arg1);
-void       Gp_PlayerWeaponId(s32* arg0);
+void              func_8017F41C(Task* task);
+void              func_8017F2F8(Task* task);
+void              func_8017F304(Task* task);
+void              func_80181184(Task* task);
+void              func_801811A0(Task* task);
+s32               Gp_EquipRelatedItem(McItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
+void              Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void              Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1);
+void              Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
+void              Gp_DrawItemLabel(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
+void              Gp_DrawItemNameRow(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
+void              Gp_DrawQty(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+static void       Gp_ItemListTask(Task* arg0);
+void              Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2);
+void              Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2);
+void              Gp_DrawOkCmd(DialogPrompt* arg0, UiObject* arg1);
+void              Gp_DrawCancelCmd(DialogPrompt* arg0, UiObject* arg1);
+void              Gp_DrawYesCmd(DialogPrompt* arg0, UiObject* arg1);
+void              Gp_DrawNoCmd(DialogPrompt* arg0, UiObject* arg1);
+void              Gp_DrawMapCursor(Task* arg0);
+void              func_800D0C34(Task* arg0);
+void              func_800D0614(Task* arg0);
+void              Gp_DrawMapMarks(Task* arg0);
+void              func_800D15D0(Task* arg0);
+void              Gp_EnqueueMapRoomCd(void);
+void              func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2);
+void              Gp_DrawReviveCmd(DialogPrompt* arg0, UiObject* arg1);
+s32               func_800D50D4(s32 arg0, s32 arg1);
+void              Gp_DrawPeSlotCmd(DialogPrompt* arg0, UiObject* arg1);
+void              Gp_LoadViewImages(void);
+void              Gp_SetCollectedBit(s32 arg0);
+void              Gp_EnqueueItemPreviewCd(s32 arg0, s32 arg1);
+void              Gp_ItemRowSelect(UiList* arg0, UiObject* arg1, s32 arg2, s32 arg3);
+void              func_800CF148(UiObject* arg0, Task* arg1);
+s32               Gp_IsStateF0Active(void);
+void              Gp_DrawCastCostLines(UiObject* arg0, s32 arg1);
+void              Gp_NoticePanelTask(Task* arg0);
+void              func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
+void              Gp_SpawnItemUsePrompt(s32 arg0, UiObject* arg1);
+void              func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void       func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
+void              Gp_EquipSummaryTask(Task* arg0);
+void              Gp_DrawAmmoRow(DialogPrompt* arg0, UiObject* arg1);
+static void       Gp_CountAmmoRows(UiList* arg0, s32 arg1);
+void              Gp_AmmoListTask(Task* arg0);
+void              Gp_EquipHeld(s32 arg0);
+static void       Gp_BuildAttachList(UiList* arg0, s32 arg1);
+void              Gp_AttachListTask(Task* arg0);
+void              func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void              func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void              Gp_CheckItemInfoButton(UiObject* arg0);
+void              func_800CF090(UiList* arg0, UiObject* arg1);
+static McItemRec* Gp_NthEquippableRec(McItemScan* arg0, s32 arg1, s32 arg2);
+s32               Stage_RequestImageCapture(void);
+s32               Stage_GetFadeStatus(void);
+void              Stage_InitOtOnce(void);
+void              Stage_ResetFade(void);
+s32               Stage_GetModeByte12(void);
+Task*             Task_SpawnOnDefaultList(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3);
+void              Gp_ClearPreviewItems(void);
+void              Gp_AgeFlag119Void(void);
+void              Gp_SyncHeldRelated(void);
+void              Gp_EnqueueAttach7Cd(void);
+void              Gp_LoadViewAndCd(s32 arg0);
+void              Gp_EnqueueHeldWeaponCd(void);
+void              func_800A7E4C(void);
+s32               Gp_KillPlayerEffs(void);
+s32               Gp_SpawnWeaponEff(void);
+void              func_8010870C(void* arg0, s32 arg1);
+void              Gp_PlayerWeaponId(s32* arg0);
 
-void Gp_MenuRootTask(Task* arg0)
+static const char D_8009707C[];
+static const char Gp_StrApplicableWpn[];
+static const char Gp_StrAttachments3[];
+static const char Gp_StrCapacity[];
+static const char Gp_StrNextReplay[];
+static const char Gp_StrOperation[];
+static const char Gp_StrPowerCaps[];
+static const char Gp_StrSpecial[];
+static const char Gp_StrSpecialFeat[];
+static const char Gp_StrSpecs[];
+
+static void Gp_MenuRootTask(Task* arg0)
 {
     switch (arg0->state) {
         case 0: {
@@ -515,7 +526,7 @@ void Gp_MenuRootTask(Task* arg0)
     arg0->state += 0xA;
 }
 
-void Gp_UiPromptUpdate(UiObject* arg0, Task* arg1)
+static void Gp_UiPromptUpdate(UiObject* arg0, Task* arg1)
 {
     u8*       text;
     s32       color;
@@ -560,7 +571,7 @@ void Gp_UiPromptUpdate(UiObject* arg0, Task* arg1)
     }
 }
 
-void Gp_UiPromptDispatch(UiObject* arg0, Task* arg1)
+static void Gp_UiPromptDispatch(UiObject* arg0, Task* arg1)
 {
     u8*           text;
     s32           color;
@@ -852,7 +863,7 @@ void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     }
 }
 
-void func_800C0B98(DialogPrompt* arg0, UiObject* arg1, u32 arg2)
+static void func_800C0B98(DialogPrompt* arg0, UiObject* arg1, u32 arg2)
 {
     SPRT* p;
 
@@ -1817,7 +1828,7 @@ void Gp_DrawItemOrderRow(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
+static void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
 {
     register s32        count asm("t0");
     s32                 i;
@@ -1956,7 +1967,7 @@ static __inline__ void countItemRows(UiList* menu)
     }
 }
 
-void Gp_ItemListTask(Task* arg0)
+static void Gp_ItemListTask(Task* arg0)
 {
     UiObject*  obj;
     UiList*    menu;
@@ -3122,7 +3133,7 @@ void Gp_ArmorMenuTask(Task* arg0)
     }
 }
 
-McItemRec* Gp_NthEquippableRec(McItemScan* arg0, s32 arg1, s32 arg2)
+static McItemRec* Gp_NthEquippableRec(McItemScan* arg0, s32 arg1, s32 arg2)
 {
     McItemRec*    table;
     s32           i;
@@ -3282,7 +3293,7 @@ void Gp_DrawRemoveArmorRow(DialogPrompt* prompt, UiObject* obj)
     }
 }
 
-void Gp_CountEquippableRows(UiList* arg0, UiObject* arg1)
+static void Gp_CountEquippableRows(UiList* arg0, UiObject* arg1)
 {
     McItemRec*    table;
     s32           i;
@@ -4440,7 +4451,7 @@ void func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
                        ((s16)vec.vy + 1), 0x81008);
 }
 
-void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     u8            buf[8];
     u16           selStats[3];
@@ -5130,7 +5141,7 @@ void Gp_DrawRemoveAmmoRow(DialogPrompt* prompt, UiObject* obj)
     }
 }
 
-void Gp_BuildAttachList(UiList* arg0, s32 arg1)
+static void Gp_BuildAttachList(UiList* arg0, s32 arg1)
 {
     s32         n;
     s32         mode;
@@ -5898,7 +5909,7 @@ void Gp_EquipPromptTask(Task* arg0)
     }
 }
 
-void Gp_DrawLoadCmd(DialogPrompt* arg0, UiObject* arg1)
+static void Gp_DrawLoadCmd(DialogPrompt* arg0, UiObject* arg1)
 {
     TextDrawReq req;
     UiObject*   obj;
@@ -5936,7 +5947,7 @@ void Gp_DrawLoadCmd(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-void Gp_DrawExchangeCmd(DialogPrompt* arg0, UiObject* arg1)
+static void Gp_DrawExchangeCmd(DialogPrompt* arg0, UiObject* arg1)
 {
     TextDrawReq req;
     UiObject*   obj;
@@ -5985,51 +5996,52 @@ void Gp_DrawExchangeCmd(DialogPrompt* arg0, UiObject* arg1)
 }
 
 /// The menu and status screens' labels.
-const char Gp_StrPEnergy[]       = "P.Energy";
-const char Gp_StrOption[]        = "Option";
-const char Gp_StrExit[]          = "Exit";
-const char Gp_StrSlash[]         = "/";
-const char Gp_StrHp[]            = "HP";
-const char Gp_StrMp[]            = "MP";
-const char Gp_StrExp[]           = "EXP";
-const char Gp_StrBp[]            = "BP";
-const char Gp_StrArmor[]         = "Armor";
-const char Gp_StrAttachments[]   = "Attachments";
-const char Gp_StrWeaponTitle[]   = "Weapon";
-const char Gp_StrE[]             = "E";
-const char Gp_StrItemHdr[]       = "Item";
-const char Gp_StrAttachments2[]  = "ATTACHMENTs";
-const char Gp_StrSelectTitle[]   = "Select";
-const char Gp_StrNextReplay[]    = "NEXT REPLAY SUPPLY";
-const char Gp_StrSpecs[]         = "Specifications";
-const char Gp_StrOperation[]     = "OPERATION";
-const char Gp_StrAddHp[]         = "ADD HP";
-const char D_8009707C[]          = "-";
-const char Gp_StrAddMp[]         = "ADD MP";
-const char Gp_StrAttachments3[]  = "ATTACHMENTS";
-const char Gp_StrSpecialFeat[]   = "SPECIAL FEATURES";
-const char Gp_StrPowerCaps[]     = "POWER";
-const char Gp_StrCapacity[]      = "CAPACITY";
-const char Gp_StrSpecial[]       = "SPECIAL";
-const char Gp_StrApplicableWpn[] = "APPLICABLE WEAPONS";
-const char Gp_StrNotice[]        = "Notice";
-const char Gp_StrKeyItem[]       = "Key Item";
-const char gGpStrWeight[]        = "Weight";
-const char gGpStrRate[]          = "Rate";
-const char gGpStrRange[]         = "Range";
-const char gGpStrPower[]         = "Power";
-const char gGpStrAttachDot[]     = "Attach.";
-const char Gp_StrAttention[]     = "Attention";
-const char Gp_StrSelectWeapon[]  = "Select Weapon";
-const char Gp_StrEquip[]         = "Equip";
-const char Gp_StrSelectAmmo[]    = "Select AMMO";
-const char Gp_StrSelectArmor[]   = "Select Armor";
-const char Gp_StrReload[]        = "Reload";
-const char Gp_StrAttach[]        = "Attach";
+const char        Gp_StrPEnergy[]      = "P.Energy";
+const char        Gp_StrOption[]       = "Option";
+const char        Gp_StrExit[]         = "Exit";
+const char        Gp_StrSlash[]        = "/";
+static const char Gp_StrHp[]           = "HP";
+const char        Gp_StrMp[]           = "MP";
+const char        Gp_StrExp[]          = "EXP";
+static const char Gp_StrBp[]           = "BP";
+static const char Gp_StrArmor[]        = "Armor";
+static const char Gp_StrAttachments[]  = "Attachments";
+const char        Gp_StrWeaponTitle[]  = "Weapon";
+static const char Gp_StrE[]            = "E";
+const char        Gp_StrItemHdr[]      = "Item";
+static const char Gp_StrAttachments2[] = "ATTACHMENTs";
+static const char Gp_StrSelectTitle[]  = "Select";
+static const char Gp_StrNextReplay[]   = "NEXT REPLAY SUPPLY";
+static const char Gp_StrSpecs[]        = "Specifications";
+static const char Gp_StrOperation[]    = "OPERATION";
+const char        Gp_StrAddHp[]        = "ADD HP";
+/// Item specification panel task, its list, and display text.
+static const char D_8009707C[]          = "-";
+const char        Gp_StrAddMp[]         = "ADD MP";
+static const char Gp_StrAttachments3[]  = "ATTACHMENTS";
+static const char Gp_StrSpecialFeat[]   = "SPECIAL FEATURES";
+static const char Gp_StrPowerCaps[]     = "POWER";
+static const char Gp_StrCapacity[]      = "CAPACITY";
+static const char Gp_StrSpecial[]       = "SPECIAL";
+static const char Gp_StrApplicableWpn[] = "APPLICABLE WEAPONS";
+const char        Gp_StrNotice[]        = "Notice";
+const char        Gp_StrKeyItem[]       = "Key Item";
+const char        gGpStrWeight[]        = "Weight";
+const char        gGpStrRate[]          = "Rate";
+const char        gGpStrRange[]         = "Range";
+const char        gGpStrPower[]         = "Power";
+const char        gGpStrAttachDot[]     = "Attach.";
+static const char Gp_StrAttention[]     = "Attention";
+static const char Gp_StrSelectWeapon[]  = "Select Weapon";
+static const char Gp_StrEquip[]         = "Equip";
+static const char Gp_StrSelectAmmo[]    = "Select AMMO";
+static const char Gp_StrSelectArmor[]   = "Select Armor";
+static const char Gp_StrReload[]        = "Reload";
+static const char Gp_StrAttach[]        = "Attach";
 
 extern UiListItemFunc Gp_ItemCmdFns[];
-void                  Gp_DrawLoadCmd(DialogPrompt* arg0, UiObject* arg1);
-void                  Gp_DrawExchangeCmd(DialogPrompt* arg0, UiObject* arg1);
+static void           Gp_DrawLoadCmd(DialogPrompt* arg0, UiObject* arg1);
+static void           Gp_DrawExchangeCmd(DialogPrompt* arg0, UiObject* arg1);
 void                  Gp_DrawMovePrompt(DialogPrompt* arg0, UiObject* arg1);
 void                  Gp_DrawExchangeSlotCmd(DialogPrompt* arg0, UiObject* arg1);
 void                  Gp_DrawDiscardCmd(DialogPrompt* arg0, UiObject* arg1);

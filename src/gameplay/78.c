@@ -69,30 +69,30 @@ extern DR_STP   D_80114C50;
 extern s32      D_80115724;
 
 extern McItemRec* Gp_SelItemRec;
-extern const char D_8009388C[];
-extern const char D_80093890[];
-extern const char D_80093894[];
-extern const char D_80093898[];
-extern const char D_800938AC[];
+static const char D_8009388C[];
+static const char D_80093890[];
+static const char D_80093894[];
+static const char D_80093898[];
+static const char D_800938AC[];
 
 void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void func_80108874(void);
-void func_800A57B0(GpIdMapC* arg0);
-void Gp_UseItemTask(GpIdMapC* arg0);
-s32  func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2);
-s32  func_800A7550(void);
+void        func_80108874(void);
+static void func_800A57B0(GpIdMapC* arg0);
+static void Gp_UseItemTask(GpIdMapC* arg0);
+static s32  func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2);
+static s32  func_800A7550(void);
 
-void func_800A4904(s32 arg0);
-void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
-void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_800A7824(s32 arg0, s32 arg1, s32 arg2);
-void Gp_DrawHudNumbers(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-s32  Gp_SpawnViewCoordTask(GpCoord* arg0, VECTOR* arg1);
-void Gp_FinishLoadWait(Task* task);
-void func_807150F8(s32 arg0);
-void func_80715198(void);
+static void func_800A4904(s32 arg0);
+static void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+static void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_800A7824(s32 arg0, s32 arg1, s32 arg2);
+static void Gp_DrawHudNumbers(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+static s32  Gp_SpawnViewCoordTask(GpCoord* arg0, VECTOR* arg1);
+void        Gp_FinishLoadWait(Task* task);
+void        func_807150F8(s32 arg0);
+void        func_80715198(void);
 
 /// Working state of a relative transform between two coordinate frames, carved
 /// from the scratch arena that `G_SCRATCH_HEAD` heads.
@@ -106,6 +106,15 @@ typedef struct {
     VECTOR delta; // target origin minus source origin
 } _GpRelMatScratch;
 STATIC_ASSERT_SIZEOF(_GpRelMatScratch, 0x30);
+
+static const GpHudStatusBits D_8009389C;
+static s32                   Gp_CdIdleIfF0Active(void);
+static void                  Gp_DrawHudSprites(GpIdMapC* arg0);
+static s32                   Gp_GetAttachLevel(s32 arg0);
+static void                  Gp_HudTrackSlot0(GpHudTrack* arg0);
+static void                  Gp_UpdateAttachCombo(s32 arg0);
+static void                  Gp_UpdateLinkXforms(void);
+static s32                   func_800A7E5C(s32 arg0);
 
 void Gp_AreaEnterTask(Task* arg0)
 {
@@ -242,7 +251,7 @@ void Gp_AreaEnterTask(Task* arg0)
     }
 }
 
-u16 Gp_GetAttachParam(s32 arg0)
+static u16 Gp_GetAttachParam(s32 arg0)
 {
     PlayerStatus* p;
     s32           cond;
@@ -284,7 +293,7 @@ u16 Gp_GetAttachParam(s32 arg0)
     return *(u16*)off;
 }
 
-void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
+static void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
 {
     PlayerStatus* p;
     GpStateF0*    state;
@@ -423,7 +432,7 @@ void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
         }                                                   \
     }
 
-void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
+static void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
 {
     u8            buf[0x10];
     UiObject      obj;
@@ -576,7 +585,7 @@ static __inline__ u16 _gpAttachParam(s32 idx, s32 lvl, s32 field)
     return Gp_IdParamHi[idx * 3 + lvl].field[field];
 }
 
-s32 Gp_CheckAttachThreshold(s32 arg0)
+static s32 Gp_CheckAttachThreshold(s32 arg0)
 {
     PlayerStatus* cfg;
     s32           result;
@@ -598,7 +607,7 @@ s32 Gp_CheckAttachThreshold(s32 arg0)
     return result;
 }
 
-void Gp_SetAttachState(s32 arg0)
+static void Gp_SetAttachState(s32 arg0)
 {
     GpStateC08*   p;
     PlayerStatus* cfg;
@@ -796,7 +805,7 @@ static __inline__ u16 getAttachWheelParam(s32 slot, s32 field)
     return Gp_IdParamHi[slot * 3 + lvl].field[field];
 }
 
-s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
+static s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
 {
     GpWheelScratch s;
     s32            changed;
@@ -977,7 +986,7 @@ s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
     return changed;
 }
 
-void Gp_DrawPeGauge(s32 arg0, s32 arg1, s32 arg2)
+static void Gp_DrawPeGauge(s32 arg0, s32 arg1, s32 arg2)
 {
     UiObject  obj;
     TILE*     tile;
@@ -1167,7 +1176,7 @@ static __inline__ u8 stateF0Gate_(void)
     return 0;
 }
 
-void Gp_UseItemTask(GpIdMapC* arg0)
+static void Gp_UseItemTask(GpIdMapC* arg0)
 {
     PlayerStatus* cfg;
     Task*         work;
@@ -1849,7 +1858,7 @@ end:
     }
 }
 
-void Gp_UpdateAttachCombo(s32 arg0)
+static void Gp_UpdateAttachCombo(s32 arg0)
 {
     PlayerStatus* cfg;
 
@@ -1954,7 +1963,7 @@ void Gp_UpdateAttachCombo(s32 arg0)
     }
 }
 
-void func_800A4904(s32 arg0)
+static void func_800A4904(s32 arg0)
 {
     GpLinkNode* node;
     GpEnemy*    enemy;
@@ -2011,7 +2020,7 @@ static __inline__ void Gp_LinkRingSeg(GpCircleScratch* sc)
             prim);
 }
 
-void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+static void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     Task*            slot;
     GpCoord*         coord;
@@ -2137,7 +2146,7 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     SCRATCH_POP_BYTES(0x60);
 }
 
-void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+static void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     SVECTOR*    vec;
     GpLinkNode* node;
@@ -2241,7 +2250,7 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     SCRATCH_POP_BYTES(8);
 }
 
-void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     SVECTOR*    vec;
     GpLinkNode* node;
@@ -2301,7 +2310,7 @@ void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     SCRATCH_POP(SVECTOR);
 }
 
-void func_800A57B0(GpIdMapC* arg0)
+static void func_800A57B0(GpIdMapC* arg0)
 {
     GpHudHpScratch loc;
     PadRemapState* remap;
@@ -2675,7 +2684,7 @@ void func_800A57B0(GpIdMapC* arg0)
     }
 }
 
-void func_800A63B4(s32 arg0, s32 arg1, s32 arg2)
+static void func_800A63B4(s32 arg0, s32 arg1, s32 arg2)
 {
     SPRT_8* p;
     s32     otIdx;
@@ -2716,7 +2725,7 @@ after_uv:
     addPrim(gGpuCurrentOt + otIdx - 2, p);
 }
 
-void Gp_DrawHudSprites(GpIdMapC* arg0)
+static void Gp_DrawHudSprites(GpIdMapC* arg0)
 {
     register u8*    newhead asm("v0");
     u8*             head;
@@ -2892,7 +2901,7 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
     SCRATCH_POP_BYTES(0x48);
 }
 
-void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
+static void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
 {
     GpHudBarScratch s;
     TextDrawReq     req;
@@ -3060,7 +3069,7 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
     Ui_DrawTextInRect(&s.bar.rect, -1, 0x40002, NULL);
 }
 
-void Gp_HudTrackEnemy(GpEnemy* arg0, GpHudTrack* arg1)
+static void Gp_HudTrackEnemy(GpEnemy* arg0, GpHudTrack* arg1)
 {
     register u8*  head asm("v0");
     GpHudScratch* block;
@@ -3110,7 +3119,7 @@ static inline void _gpRotateVector(MATRIX* m, SVECTOR* v)
     gte_ApplyMatrixSV(m, &tmp, v);
 }
 
-void Gp_UpdateLinkXforms(void)
+static void Gp_UpdateLinkXforms(void)
 {
     GpLinkNode*     node;
     Task*           slot;
@@ -3234,7 +3243,7 @@ s32 Gp_IsStateF0Active(void)
     return 0;
 }
 
-s32 func_800A7550(void)
+static s32 func_800A7550(void)
 {
     Gp_ApplyAttachStats(1, 0);
     return 0;
@@ -3269,7 +3278,7 @@ void Gp_ResetHudFx(GpIdMapC* arg0)
     p->field_6             &= ~2;
 }
 
-void Gp_StartPadReplay(void)
+static void Gp_StartPadReplay(void)
 {
     DisplayState* ds;
 
@@ -3328,7 +3337,7 @@ void Gp_PlayClockState3(Task* arg0)
     }
 }
 
-void func_800A77B4(Task* arg0)
+static void func_800A77B4(Task* arg0)
 {
     TaskFuncTable6 sp;
 
@@ -3336,14 +3345,14 @@ void func_800A77B4(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-void func_800A7824(s32 arg0, s32 arg1, s32 arg2)
+static void func_800A7824(s32 arg0, s32 arg1, s32 arg2)
 {
     if (arg0 == 0) {
         Gp_DrawAimCircle(0, arg1, arg2, 5);
     }
 }
 
-void Gp_HudTrackSlot0(GpHudTrack* arg0)
+static void Gp_HudTrackSlot0(GpHudTrack* arg0)
 {
     GpLinkNode* target;
     Task*       work;
@@ -3372,7 +3381,7 @@ void Gp_HudTrackSlot0(GpHudTrack* arg0)
     }
 }
 
-s32 Gp_IsStateF0AltClear(void)
+static s32 Gp_IsStateF0AltClear(void)
 {
     return Gp_StateF0.field_1 == 0;
 }
@@ -3429,12 +3438,12 @@ void Gp_TriggerPeIfArmed(void)
     }
 }
 
-s32 func_800A7AE4(s32 arg0, s32 arg1)
+static s32 func_800A7AE4(s32 arg0, s32 arg1)
 {
     return (arg0 / 3) * 16 + (arg0 % 3) * 4 + arg1 + 0x300;
 }
 
-s32 Gp_GetAttachLevel(s32 arg0)
+static s32 Gp_GetAttachLevel(s32 arg0)
 {
     PlayerStatus* p;
     s32           cond;
@@ -3467,7 +3476,7 @@ s32 Gp_GetAttachLevel(s32 arg0)
     return ret;
 }
 
-s32 Gp_StepAttachSlot(s32 arg0, s32 arg1)
+static s32 Gp_StepAttachSlot(s32 arg0, s32 arg1)
 {
     PlayerStatus* p;
     McSaveData*   save;
@@ -3527,7 +3536,7 @@ s32 func_800A7CB0(void)
     return 0;
 }
 
-void Gp_EnqueueSndCdIfF0(u8 arg0)
+static void Gp_EnqueueSndCdIfF0(u8 arg0)
 {
     GpStateF0* p;
     s32        cond;
@@ -3543,7 +3552,7 @@ void Gp_EnqueueSndCdIfF0(u8 arg0)
     }
 }
 
-s32 Gp_CdIdleIfF0Active(void)
+static s32 Gp_CdIdleIfF0Active(void)
 {
     GpStateF0* p;
     s32        cond;
@@ -3589,7 +3598,7 @@ void func_800A7E4C(void)
     Gp_ItemGrantCooldown = 5;
 }
 
-s32 func_800A7E5C(s32 arg0)
+static s32 func_800A7E5C(s32 arg0)
 {
     Task*         work;
     GameActor*    actor;
@@ -3630,7 +3639,7 @@ void func_800A7F24(void)
 {
 }
 
-s32 func_800A7F2C(s32 arg0)
+static s32 func_800A7F2C(s32 arg0)
 {
     return arg0 - 0x10;
 }
@@ -3692,7 +3701,7 @@ static __inline__ void coordToRoot(GpCoord* arg0, GpCoord* root, MATRIX* out)
 /// `arg1` (optional) stored as the world offset in `Gfx_ViewOffsetCoord.coord.t`.
 /// Coordinates that are not direct children of the root are first folded to
 /// root space with `coordToRoot`.
-void Gp_SetViewFromCoord(GpCoord* arg0, VECTOR* arg1)
+static void Gp_SetViewFromCoord(GpCoord* arg0, VECTOR* arg1)
 {
     GpCoord* root;
     GpCoord* parent;
@@ -3732,7 +3741,7 @@ void Gp_SetViewFromCoord(GpCoord* arg0, VECTOR* arg1)
 /// Spawns the type-0xE view task and points its coordinate at the inverse of
 /// `arg0` (transposed rotation, negated translation). `arg1` is the optional
 /// world offset stored in the task's 0x10-byte payload.
-s32 Gp_SpawnViewCoordTask(GpCoord* arg0, VECTOR* arg1)
+static s32 Gp_SpawnViewCoordTask(GpCoord* arg0, VECTOR* arg1)
 {
     GpCoord* coord;
     Task*    task;
@@ -3779,7 +3788,7 @@ s32 Gp_SpawnViewCoordTask(GpCoord* arg0, VECTOR* arg1)
     return 1;
 }
 
-void func_800A8654(Task* task)
+static void func_800A8654(Task* task)
 {
     VECTOR*    vec;
     GpCoord*   src;
@@ -3906,7 +3915,7 @@ void Gp_ApplyView(GpViewRec* arg0)
     PARENT_OF(trans, GpCoord, coord.t)->flg = 0;
 }
 
-void Gp_ResetView(void)
+static void Gp_ResetView(void)
 {
     MATRIX*           m;
     volatile GpCoord* c1;
@@ -3966,7 +3975,7 @@ GpViewRec* Gp_GetStageView(GpAreaKey* arg0)
     return &recs[idx - 1];
 }
 
-void Gp_ApplyViewTask(Task* task)
+static void Gp_ApplyViewTask(Task* task)
 {
     GpCoord*   c1;
     MATRIX*    rot;
@@ -3995,7 +4004,7 @@ void Gp_ApplyViewTask(Task* task)
     taskKill(task);
 }
 
-void func_800A8D5C(void)
+static void func_800A8D5C(void)
 {
     VECTOR  vec;
     GpCoord coord;
@@ -4041,7 +4050,7 @@ void Gp_SpawnCurView(s32 arg0)
     }
 }
 
-void Gp_ViewGateTask(Task* task)
+static void Gp_ViewGateTask(Task* task)
 {
     GameSession* sess;
     McSaveData*  save;
@@ -4187,11 +4196,11 @@ void Gp_ViewLoadImage(Task* task)
     }
 }
 
-const char            D_8009388C[] = "R1";
-const char            D_80093890[] = "R2";
-const char            D_80093894[] = "%";
-const char            D_80093898[] = "&";
-const GpHudStatusBits D_8009389C   = { { 0x1, 0x2, 0x4, 0x10, 0x20, 0x40, 0x80 } };
+static const char            D_8009388C[] = "R1";
+static const char            D_80093890[] = "R2";
+static const char            D_80093894[] = "%";
+static const char            D_80093898[] = "&";
+static const GpHudStatusBits D_8009389C   = { { 0x1, 0x2, 0x4, 0x10, 0x20, 0x40, 0x80 } };
 /// "????". The three bytes after the terminator are not zero: the original
 /// toolchain left them in the alignment gap, so the array is sized to hold them.
-const char D_800938AC[8] = "????\0&!K";
+static const char D_800938AC[8] = "????\0&!K";
