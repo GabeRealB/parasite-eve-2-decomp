@@ -2836,23 +2836,10 @@ static __inline__ void actorSetScratchHead(void* head)
     SCRATCH_HEAD(void) = head;
 }
 
-/// Wraps an angle into [-0x800, 0x800], spelled with backward jumps.
+/// Wraps an angle into [-0x800, 0x800]; see `overlayWrapAngle`.
 static __inline__ s16 actorWrapAngle(s16 angle)
 {
-    if (angle < 0) {
-    wrapUp:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto wrapUp;
-        }
-    } else {
-    wrapDown:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto wrapDown;
-        }
-    }
-    return angle;
+    return overlayWrapAngle(angle);
 }
 
 #endif /* ACTORS_ACTOR_H */

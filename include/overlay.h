@@ -127,6 +127,25 @@ typedef struct OverlayBisectorScratch {
 } OverlayBisectorScratch;
 STATIC_ASSERT_SIZEOF(OverlayBisectorScratch, 0xE4);
 
+/// Wraps an angle into [-0x800, 0x800], spelled with backward jumps.
+static __inline__ s16 overlayWrapAngle(s16 angle)
+{
+    if (angle < 0) {
+    wrapUp:
+        if (angle < -0x800) {
+            angle += 0x1000;
+            goto wrapUp;
+        }
+    } else {
+    wrapDown:
+        if (angle > 0x800) {
+            angle -= 0x1000;
+            goto wrapDown;
+        }
+    }
+    return angle;
+}
+
 /// Carries `v` from the frame of `coord` up the parent chain into world
 /// space, walking in an `OverlayWalkScratch` taken from the scratch pad.
 static __inline__ void overlayToWorld(GpCoord* coord, SVECTOR* v)
