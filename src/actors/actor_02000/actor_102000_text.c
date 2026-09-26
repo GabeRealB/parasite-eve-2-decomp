@@ -1703,23 +1703,16 @@ void Actor02000_Fn02D5C(Task* arg0)
 
 static s32 Actor02000_Fn0315C(SVECTOR* arg0, SVECTOR* arg1)
 {
-    void**   scratch;
-    u8*      head;
     VECTOR*  vec;
     GpObj3A* node;
     s32      ret;
 
-    ret                          = 0;
-    scratch                      = SCRATCH_HEAD_ADDR;
-    node                         = D_80115550;
-    head                         = SCRATCH_HEAD_AT(scratch, void);
-    ((VECTOR*)(head - 0x10))->vx = arg1->vx - arg0->vx;
-    head                         = head - 0x10;
-    TOUCH_REG_USE(head, node);
-    vec                            = (VECTOR*)head;
-    vec->vy                        = arg1->vy - arg0->vy;
-    SCRATCH_HEAD_AT(scratch, void) = vec;
-    vec->vz                        = arg1->vz - arg0->vz;
+    ret     = 0;
+    node    = D_80115550;
+    vec     = SCRATCH_PUSH(VECTOR);
+    vec->vx = arg1->vx - arg0->vx;
+    vec->vy = arg1->vy - arg0->vy;
+    vec->vz = arg1->vz - arg0->vz;
     VectorNormal(vec, vec);
     for (; node != NULL; node = node->next) {
         if (node->field_3A & 0x40) {
@@ -1729,7 +1722,7 @@ static s32 Actor02000_Fn0315C(SVECTOR* arg0, SVECTOR* arg1)
             }
         }
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_POP(VECTOR);
     return ret;
 }
 
