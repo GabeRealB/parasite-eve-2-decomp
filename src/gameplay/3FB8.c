@@ -7551,7 +7551,9 @@ void Gp_PlayerMode2State6(Task* arg0)
     Gp_AnimTickChildSlots(arg0);
 }
 
-static void func_80108E0C(Task* arg0, GpLinkNode* arg1)
+/// Stores `arg1` as the actor's `field_90C` node, moving the `targeted` mark
+/// from the node it replaces to `arg1`.
+static inline void _gpSetLockNode(Task* arg0, GpLinkNode* arg1)
 {
     GameActor*  inner;
     GpLinkNode* node;
@@ -7565,6 +7567,11 @@ static void func_80108E0C(Task* arg0, GpLinkNode* arg1)
         inner->field_90C = arg1;
     }
     arg1->state.b.targeted = 1;
+}
+
+static void func_80108E0C(Task* arg0, GpLinkNode* arg1)
+{
+    _gpSetLockNode(arg0, arg1);
 }
 
 /// `field_96C` dispatcher: three slots of `Gp_PlayerMode1State0`, then `Gp_PlayerMode1State3`.
@@ -7805,49 +7812,21 @@ static void func_80109374(Task* arg0)
 
 static void Gp_UpdateLockTarget(Task* arg0)
 {
-    GameActor*  inner;
-    GpLinkNode* next;
-    u16         flags;
+    GameActor* inner;
+    u16        flags;
 
     inner = arg0->work;
     if (inner->field_90C != NULL) {
         flags = inner->field_966;
         if (flags & 0x40) {
             Gp_DetachLinkNode(arg0);
-            return;
-        }
-        if (((inner->field_962 & 0x80) && (flags & 0xA000)) || (flags & 0x80)) {
-            next = Gp_FindLockNodePad(arg0);
-            goto install;
+        } else if (((inner->field_962 & 0x80) && (flags & 0xA000)) || (flags & 0x80)) {
+            _gpSetLockNode(arg0, Gp_FindLockNodePad(arg0));
         }
     } else if ((inner->field_966 & 0x80) && !(Player_Status.peStateFlags & 1)) {
-        register Task* a asm("a0");
-
-        a                = arg0;
         inner->field_97E = 2;
-        next             = Gp_FindLockNode(a);
-        goto install;
+        _gpSetLockNode(arg0, Gp_FindLockNode(arg0));
     }
-    return;
-
-install: {
-    GpLinkNode*          arg1;
-    register GpLinkNode* node asm("v1");
-    GameActor*           actor;
-    s32                  flag;
-
-    actor = arg0->work;
-    node  = actor->field_90C;
-    arg1  = next;
-    flag  = 1;
-    if (node != arg1) {
-        if (node != NULL) {
-            node->state.b.targeted = 0;
-        }
-        actor->field_90C = arg1;
-    }
-    arg1->state.b.targeted = flag;
-}
 }
 
 static void Gp_PlayerMode2State5(Task* arg0)
