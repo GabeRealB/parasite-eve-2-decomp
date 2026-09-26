@@ -697,7 +697,6 @@ static void func_actor_110600_80132D54(OverlayWalker* work)
     s32                       dy;
     s32                       dz;
     s32                       y;
-    s32                       mag;
 
     head             = SCRATCH_HEAD(u8);
     SCRATCH_HEAD(u8) = head - 0x18;
@@ -753,13 +752,8 @@ static void func_actor_110600_80132D54(OverlayWalker* work)
     if (s->move.vy < -0x20) {
         work->coord->coord.t[1] -= 0x20;
     }
-    y   = s->move.vy;
-    mag = y;
-    if (y < 0) {
-        SOFT_TOUCH_REG(mag);
-        mag = -mag;
-    }
-    if (mag < 0x20) {
+    y = s->move.vy;
+    if (ABS(y) < 0x20) {
         work->coord->coord.t[1] += y;
     }
     work->coord->coord.t[2] += s->move.vz;
