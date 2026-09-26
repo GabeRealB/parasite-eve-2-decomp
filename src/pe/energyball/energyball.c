@@ -470,31 +470,23 @@ static void func_energyball_8012FFD0(GpCoord* arg0, s16 arg1, s16 arg2)
 /// `arg3 + 0x400`, so the sprite shrinks with depth.
 static void func_energyball_8013035C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
-    u8*                       head;
-    GpFxQuadScratch*          block;
-    register GpFxQuadScratch* p asm("v0");
-    register u16              vx asm("v0");
-    POLY_FT4*                 prim;
-    s32                       ang2;
-    u16                       vz;
+    GpFxQuadScratch* block;
+    POLY_FT4*        prim;
+    s32              ang;
 
-    head                                      = SCRATCH_HEAD(u8);
-    vx                                        = (u16)arg0->workm.t[0];
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = vx;
-    p                                         = (GpFxQuadScratch*)(head - 0x1C);
-    block                                     = p;
-    block->vec.vy                             = (u16)arg0->workm.t[1];
-    vz                                        = (u16)arg0->workm.t[2];
-    block->vec.vz                             = vz;
-    SCRATCH_HEAD(GpFxQuadScratch)             = block;
+    block         = SCRATCH_PUSH(GpFxQuadScratch);
+    block->vec.vx = arg0->workm.t[0];
+    block->vec.vy = arg0->workm.t[1];
+    block->vec.vz = arg0->workm.t[2];
+
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
+        gte_stszotz(&block->otz);
         block->otz++;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -512,15 +504,16 @@ static void func_energyball_8013035C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3
             setUV4(prim, 0xA8, 0xC8, 0xDF, 0xC8, 0xA8, 0xFF, 0xDF, 0xFF);
             setSemiTrans(prim, 1);
         }
-        block->dx = (((arg2 * 55) / block->otz) * rsin(arg3)) >> 12;
-        block->dy = (((arg2 * 55) / block->otz) * rcos(arg3)) >> 12;
+        ang       = arg3;
+        block->dx = (((arg2 * 55) / block->otz) * rsin(ang)) >> 12;
+        block->dy = (((arg2 * 55) / block->otz) * rcos(ang)) >> 12;
         prim->x0  = block->sx + (u16)block->dx;
         prim->x3  = block->sx - (u16)block->dx;
         prim->y0  = block->sy - (u16)block->dy;
         prim->y3  = block->sy + (u16)block->dy;
-        ang2      = arg3 + 0x400;
-        block->dx = (((arg2 * 55) / block->otz) * rsin(ang2)) >> 12;
-        block->dy = (((arg2 * 55) / block->otz) * rcos(ang2)) >> 12;
+        ang       = ang + 0x400;
+        block->dx = (((arg2 * 55) / block->otz) * rsin(ang)) >> 12;
+        block->dy = (((arg2 * 55) / block->otz) * rcos(ang)) >> 12;
         prim->x1  = block->sx + (u16)block->dx;
         prim->x2  = block->sx - (u16)block->dx;
         prim->y1  = block->sy - (u16)block->dy;
@@ -529,8 +522,7 @@ static void func_energyball_8013035C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x1C);
-    DEF_REG(head);
+    SCRATCH_POP(GpFxQuadScratch);
 }
 
 /// Draws a ground-plane quad at `arg0`'s `workm` translation: the unit quad
