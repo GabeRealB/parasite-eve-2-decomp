@@ -25,59 +25,59 @@
 #include "main/text.h"
 #include "main/wipsys.h"
 
-extern u16            D_8007A396;
-extern u16            D_8007A39C;
-extern u8             Gp_StrDemoWait[];
-extern u8             Gp_StrDemoPause[];
-extern TaskFuncTable3 Gp_ScriptTaskStates;
-extern TaskFuncTable3 Gp_Script18States;
-extern TaskFuncTable5 Gp_ScriptAStates;
-extern TaskFuncTable5 Gp_ScriptBStates;
-extern Task*          D_8010FBE0;
-extern Task*          D_8010FBE4;
-extern Task*          D_8010FBE8;
-extern u8             Gp_BtnMap0[];
-extern u8             Gp_BtnMap1[];
-extern u8             Gp_BtnMap2[];
-extern u8             Gp_BtnMap2Alt[];
-extern s16            D_80114D08;
-extern u8             D_80115688;
-extern u8             D_8011569C;
-extern u8             D_801156A4;
-extern u16            D_801156C0;
-extern u16            D_801156C2;
-extern u16            D_801156C4;
-extern u16            D_801156C6;
-extern u8             D_801156C8;
-extern u8             D_801156C9;
-extern u8             D_801156CA;
-extern u8             D_801156CB;
-extern u8             D_801156CC;
-extern u8             D_801156CD;
-extern u8             D_801156CE;
-extern s32            D_801156D0;
-extern GpFadeWork     D_801156D4;
-extern GpFadeWork     D_801156D8;
-extern GpVolFade      D_801156DC;
-extern GpSndFade      D_801156E0;
-extern s32            D_801156EC;
-extern u8             D_801156F0;
-extern GpOverlayIds*  D_801156F4;
-extern u8             D_801156F8;
-extern u8             D_801156F9;
-extern u8             Gp_PadScriptHalt;
-extern u8             Gp_PadHoldHalt;
-extern u8             Gp_PadLerpHalt;
-extern u8             Gp_MenuLockNow;
-extern u8             Gp_MenuLockPrev;
-extern u16            Gp_PadSuppressMask;
-extern u16            Gp_PadSuppressPrev;
-extern u16            Gp_PadSuppressRise;
-extern u16            Gp_PadSuppressFall;
-extern u16            Gp_PadSuppressRefs;
-extern u8             Gp_MenuLockHold;
-extern s16            Gp_MenuLockDelay;
-extern s16            Gp_PadSuppressTimer;
+extern u16                  D_8007A396;
+extern u16                  D_8007A39C;
+extern u8                   Gp_StrDemoWait[];
+extern u8                   Gp_StrDemoPause[];
+extern TaskFuncTable3       Gp_ScriptTaskStates;
+extern const TaskFuncTable3 Gp_Script18States;
+extern const TaskFuncTable5 Gp_ScriptAStates;
+extern const TaskFuncTable5 Gp_ScriptBStates;
+extern Task*                D_8010FBE0;
+extern Task*                D_8010FBE4;
+extern Task*                D_8010FBE8;
+extern u8                   Gp_BtnMap0[];
+extern u8                   Gp_BtnMap1[];
+extern u8                   Gp_BtnMap2[];
+extern u8                   Gp_BtnMap2Alt[];
+extern s16                  D_80114D08;
+extern u8                   D_80115688;
+extern u8                   D_8011569C;
+extern u8                   D_801156A4;
+extern u16                  D_801156C0;
+extern u16                  D_801156C2;
+extern u16                  D_801156C4;
+extern u16                  D_801156C6;
+extern u8                   D_801156C8;
+extern u8                   D_801156C9;
+extern u8                   D_801156CA;
+extern u8                   D_801156CB;
+extern u8                   D_801156CC;
+extern u8                   D_801156CD;
+extern u8                   D_801156CE;
+extern s32                  D_801156D0;
+extern GpFadeWork           D_801156D4;
+extern GpFadeWork           D_801156D8;
+extern GpVolFade            D_801156DC;
+extern GpSndFade            D_801156E0;
+extern s32                  D_801156EC;
+extern u8                   D_801156F0;
+extern GpOverlayIds*        D_801156F4;
+extern u8                   D_801156F8;
+extern u8                   D_801156F9;
+extern u8                   Gp_PadScriptHalt;
+extern u8                   Gp_PadHoldHalt;
+extern u8                   Gp_PadLerpHalt;
+extern u8                   Gp_MenuLockNow;
+extern u8                   Gp_MenuLockPrev;
+extern u16                  Gp_PadSuppressMask;
+extern u16                  Gp_PadSuppressPrev;
+extern u16                  Gp_PadSuppressRise;
+extern u16                  Gp_PadSuppressFall;
+extern u16                  Gp_PadSuppressRefs;
+extern u8                   Gp_MenuLockHold;
+extern s16                  Gp_MenuLockDelay;
+extern s16                  Gp_PadSuppressTimer;
 
 s32  Gp_AbortCap(void);
 s32  Gp_LookupSlot4(s32 arg0);
@@ -1238,3 +1238,25 @@ u16 Gp_RemapButtons(GameActor* actor, u16 mask)
     }
     return result;
 }
+
+const TaskFuncTable3 Gp_Script18States = { {
+    Gp_KickScriptAB,
+    Gp_DispatchScript18,
+    taskKill,
+} };
+
+const TaskFuncTable5 Gp_ScriptAStates = { {
+    Gp_ScriptAState0,
+    Gp_TickScriptADelay,
+    Gp_TickScriptADelay,
+    Gp_ScriptAState3,
+    Gp_ScriptAState4,
+} };
+
+const TaskFuncTable5 Gp_ScriptBStates = { {
+    Gp_ScriptBState0,
+    Gp_TickScriptBDelay,
+    Gp_TickScriptBDelay,
+    Gp_ScriptBState3,
+    Gp_ScriptBState4,
+} };

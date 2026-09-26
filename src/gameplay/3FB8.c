@@ -9679,3 +9679,10 @@ void func_8010C980(void* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3, s32 arg4, s
     arg1->flags |= 0x8000;
     Gp_InitRec18Table(arg1->ctx.recs, (s16)arg3, 0);
 }
+
+const TaskFuncTable4 D_80097AB0 = { {
+    func_8010B590,
+    func_8010B5C0,
+    func_8010B5E4,
+    func_8010B5F0,
+} };

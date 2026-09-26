@@ -603,7 +603,7 @@ extern TaskFuncTable4 Gp_PlayerWorkStates;
 
 /// Four-entry `Task::state` dispatcher: `func_8010B590`, `func_8010B5C0`,
 /// `func_8010B5E4`, `func_8010B5F0`.
-extern TaskFuncTable4 D_80097AB0;
+extern const TaskFuncTable4 D_80097AB0;
 
 /// `Player_Status.weapon` dispatcher copied by `func_8010615C`. Unused
 /// slots are `func_801065A0`; others are weapon-overlay entry points.
