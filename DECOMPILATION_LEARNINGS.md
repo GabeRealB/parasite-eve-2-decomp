@@ -141391,3 +141391,28 @@ variable with. Its one set is also the register's first mention, so
 without a pin was a dead `= NULL` initialiser at function scope. That moves
 `REGNO_FIRST_UID` earlier, so the set stops being movable, but nothing suggests
 the original wrote it.
+
+### After an earlier call in the same block, argument moves tie on priority and source order decides (func_acropolis_square_801825DC, 2026-09-26)
+
+**Problem.** The twin of `func_acropolis_fire_escape_80180B20`. With every
+barrier stripped and one empty `do {} while (0)` after the second wedge's
+`setPolyG4`, the whole function matches except the second wedge's call:
+ours hoists `move a0,t3` above the `addPrim` and keeps `li a1,1` by the
+`jal`; the target does the reverse, and `gGpuCurrentOt` then lands in the
+other argument register.
+
+**Mechanism.** A call does not end a sched1 block, so each argument move
+after an earlier call in the block carries an anti-dependence on it. That
+floors `a0 = prim` and `a1 = 1` at the same priority (call + 1), and the
+prim load is no later, so `rank_for_schedule` falls through to LUID and the
+later-emitted `a1` set is placed nearest the call. The seed's
+`__asm__("" : "+r"(prim) : "r"(z))` after a load of `blk->otz` gives
+`prim` a late definition, which raises `a0` above the tie. An inline helper
+returning the pointer does not help, because a register copy has no memory
+dependence and keeps the low priority. Neither do `&prim->tag`, a
+block-scoped second pointer or moving the colour temporaries.
+
+**Use.** When the diff is "the two argument moves swapped", check in the
+`.sched` ready lists whether they tie at the previous call's priority. Only
+a data dependence on something late moves one of them. Look for a
+plausible source expression that has one before reaching for a barrier.
