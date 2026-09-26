@@ -65,7 +65,7 @@ typedef struct _McWork {
     /* 0xA1C */ u16             field_A1C;
     /* 0xA1E */ u16             field_A1E;
     /* 0xA20 */ s32             field_A20;
-    /* 0xA24 */ u8              field_A24[0x10];
+    /* 0xA24 */ s8              field_A24[0x10];
 } McWork;
 
 /// One row of an item table: the item it holds, the attachment slot that item

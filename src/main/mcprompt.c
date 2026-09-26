@@ -359,81 +359,38 @@ void func_80030AB0(McWork* work)
 
 void Mc_StateScanDirFlags(Task* arg0, McWork* arg1)
 {
-    s32           ret;
-    s32           one;
-    s32           j;
-    UiObject*     obj;
-    McPromptPair* prompt;
-    McPromptPair* base;
-    s32           idx;
-    s32           i;
-    s32           val;
-    u8*           p;
-    s32           fill;
-    register s32  size asm("v0");
-    s32           head;
-    register s32  headAdj asm("a2");
-    register s32  sizeAdj asm("v1");
-    register s32  blocks asm("a1");
-    register s32  start asm("a0");
-    s32           new28c;
-    register s32  n asm("v1");
+    s32       ret;
+    UiObject* obj;
+    s32       i;
+    s32       j;
+    s32       size;
+    s32       blocks;
+    s32       head;
+    s32       idx;
 
     arg1->field_4 -= 1;
     if (arg1->field_4 == 0) {
         arg1->field_288 = 0;
-        val             = -1;
-        i               = 0xE;
-        /* Clears field_A24 through a byte cursor on the work base: indexing the
-         * member hoists its offset into the cursor, where this keeps it in the
-         * store. */
-        p = (u8*)arg1 + i;
-        do {
-            p[0xA24] = val;
-            i       -= 1;
-            p       -= 1;
-        } while (i >= 0);
-
-        i = 0xF;
+        /* Mark every block free, then claim the 8KB blocks each file spans. */
+        for (i = 0; i < 15; i++) {
+            arg1->field_A24[i] = -1;
+        }
         MemCardGetDirentry(
             arg1->field_C, D_80013A5C, arg1->field_30, &arg1->field_288, 0,
-            i);
+            0xF);
 
         arg1->field_28C = 0;
         if (arg1->field_288 != 0) {
-            i = 0;
-            if (arg1->field_288 > 0) {
-                fill = -2;
-                do {
-                    size = arg1->field_30[i].size;
-                    head = arg1->field_30[i].head;
-
-                    sizeAdj = size;
-                    if (size < 0) {
-                        sizeAdj = size + 0x1FFF;
-                    }
-                    headAdj = head;
-                    sizeAdj = sizeAdj >> 13;
-                    blocks  = sizeAdj + ((size & 0x1FFF) != 0);
-
-                    if (head < 0) {
-                        headAdj = head + 0x3F;
-                    }
-                    start = (headAdj >> 6) - 1;
-
-                    j = 0;
-                    if (blocks > 0) {
-                        do {
-                            arg1->field_A24[start + j] = fill;
-                            j                         += 1;
-                        } while (j < blocks);
-                    }
-
-                    i              += 1;
-                    new28c          = arg1->field_28C + blocks;
-                    n               = arg1->field_288;
-                    arg1->field_28C = new28c;
-                } while (i < n);
+            for (i = 0; i < arg1->field_288; i++) {
+                size   = arg1->field_30[i].size;
+                head   = arg1->field_30[i].head;
+                blocks = size / 0x2000 + ((size % 0x2000) != 0);
+                head  /= 64;
+                head  -= 1;
+                for (j = 0; j < blocks; j++) {
+                    arg1->field_A24[head + j] = -2;
+                }
+                arg1->field_28C += blocks;
             }
         }
         arg0->state += 1;
@@ -444,11 +401,8 @@ void Mc_StateScanDirFlags(Task* arg0, McWork* arg1)
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
     Ui_DrawTitle(obj, Mc_StrMemoryCard);
-    one    = 1;
-    base   = Mc_PromptTable;
-    prompt = &base[idx];
-    Text_DrawPrompt(obj, obj->field_1C + 2, -2, prompt->field_0, ret, one, 0);
-    Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, prompt->field_4, ret, one, 0);
+    Text_DrawPrompt(obj, obj->field_1C + 2, -2, Mc_PromptTable[idx].field_0, ret, 1, 0);
+    Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, Mc_PromptTable[idx].field_4, ret, 1, 0);
 }
 
 void Mc_StateListDirectory(Task* arg0, McWork* arg1)
