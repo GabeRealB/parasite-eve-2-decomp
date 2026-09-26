@@ -143469,3 +143469,20 @@ itself, with the constant set after the compare. The second LCG step was also
 `Gp_LcgState = Gp_LcgState * 5 + …` read back through the global, not a second
 local copy: CSE reuses the first draw's register either way, but a named copy
 takes `$a1` from it.
+## A switch's hoisted case constant can outrank the task parameter; each branch owning its tail tips it back (Actor05500_Fn00A94, 2026-09-26)
+
+A `switch (state)` over 0..3 emits `li s4,1` at entry for the `beq state,1`
+compare, and CSE reuses that pseudo for a later `field = 1` store, so it lives
+from the entry to that store. Both it and the task parameter carry `REG_EQUIV`
+notes, so both live lengths are doubled in `.lreg`, and they compete on
+`floor_log2(refs) * refs / live_length`: 13 refs over the whole function
+against 3 refs over ~22 insns is `13 * 22 < live(actor)` - a few instructions
+either way. The seed pinned the parameter to `$s5`. What the source had instead
+was case 0's two arms each ending in their own copy of the case's
+`flg = 0; Gp_UpdateCoord(); workm copy; break;` tail. jump2 cross-jumps the
+copies away after reload, so the output is unchanged, but before allocation
+they lengthen the parameter's range enough to drop it below the constant. The
+extra copies also add references to `coord`, which then outranked the local
+reused as both the "player is near" flag and the sound id; splitting that into
+`value` and `sound` restored the order. Reading the entry block before `coord`
+before `work` shortened the constant's range by one insn and was also needed.
