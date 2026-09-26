@@ -142760,3 +142760,26 @@ Gp_WorldToLocal(&gGfxViewCoord.workm, &root[part].workm, &m);
 ...
 } else if (arg1 == 3) {
 ```
+## Caption line-height walks: `s16` locals re-read the glyph byte, and a global base shifts a priority tie (func_actor_215100_8014BDFC, 2026-09-26)
+
+**Symptom.** The caption "top Y" walk (`total` of line heights, each the tallest
+glyph's `h + 2`) was held by a `volatile` glyph pointer, two register pins and a
+`TOUCH_REG`. The target loads `glyph->h` twice (compare, then assign) and keeps
+`-1` in the loop's exit test while hoisting `-2`/`-3`.
+
+**Both come from the counters' type.** With `s16 lineH` the compare is
+`(zero_extend:SI (mem:QI))` and the assignment `(zero_extend:HI (mem:QI))`:
+different expressions, so `cse` keeps both loads with no `volatile`. The extra
+load also grows the loop past `move_movables`' threshold for the span-1 `-1`.
+`s16 seenBreak` reproduces the `move v0,t2` before its test; with `s32` the
+branch tests `t2` directly.
+
+**The last swap was a `global.c` tie.** `total` (6 refs) and `i` (5 refs) sit
+at `12/47` vs `10/39`, a hair apart; gameplay's twin returns `0xD0 - total` and
+`total` wins at `12/46`, but a `lui`/`lhu` global base in the return keeps it
+live one insn longer and `i` takes `t0`. Any surviving insn between the inits
+and the loop lengthens both by one, the priorities tie, and `allocno_compare`
+falls back to pseudo order - `total` first. A text-cursor local (`u16* text =
+arg0;` declared after the counters) is that insn; before the counters it does
+nothing. Declaration order and init order alone (all 120 permutations) and
+moving the return's operands do not move it.

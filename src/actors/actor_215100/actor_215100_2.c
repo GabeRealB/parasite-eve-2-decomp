@@ -852,58 +852,37 @@ s32 func_actor_215100_8014B3C8(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 /// Top Y of the caption block the text stream `arg0` holds: every line after
 /// the first `-2` adds its height (the tallest glyph's `h + 2`, or 2 when empty)
 /// and the total is subtracted from `D_actor_215100_8015E660`. Gameplay's
-/// `Gp_CapTextTopY` is the same walk against a fixed 0xD0, and the two pins are
-/// what that twin carries; unpinned the body lands at 92%.
+/// `Gp_CapTextTopY` is the same walk against a fixed 0xD0.
 s16 func_actor_215100_8014BDFC(u16* arg0)
 {
-    s32                 lineH;
-    s32                 total;
-    s32                 i;
-    s32                 seenBreak;
-    u16                 code;
-    s32                 shifted;
-    register s32        next asm("v1");
-    volatile GlyphUvwh* glyph;
-    register s32        v0tmp asm("v0");
+    s16  lineH     = 0;
+    s16  total     = 0;
+    s16  i         = 0;
+    s16  seenBreak = 0;
+    u16* text      = arg0;
+    s16  code      = text[0];
 
-    lineH     = 0;
-    total     = lineH;
-    i         = lineH;
-    code      = arg0[0];
-    shifted   = code << 16;
-    seenBreak = lineH;
-    v0tmp     = -1;
-    if (shifted >> 16 != v0tmp) {
-        do {
-            v0tmp = seenBreak;
-            if (shifted >> 16 == -2) {
-                if (v0tmp != 0) {
-                    if (lineH == 0) {
-                        lineH = 2;
-                    }
-                    total += lineH;
-                } else {
-                    seenBreak = 1;
+    while (code != -1) {
+        if (code == -2) {
+            if (seenBreak) {
+                if (lineH == 0) {
+                    lineH = 2;
                 }
-                lineH = 0;
-            } else if (shifted >> 16 != -3) {
-                if (shifted >> 16 >= 0) {
-                    glyph = (GlyphUvwh*)((code & 0x3FF) * sizeof(GlyphUvwh) + (s32)D_actor_215100_8015E654);
-                    if (lineH < glyph->h + 2) {
-                        v0tmp = glyph->h;
-                        TOUCH_REG(v0tmp);
-                        lineH = v0tmp + 2;
-                    }
+                total += lineH;
+            } else {
+                seenBreak = 1;
+            }
+            lineH = 0;
+        } else if (code != -3) {
+            if (code >= 0) {
+                if (lineH < D_actor_215100_8015E654[code & 0x3FF].h + 2) {
+                    lineH = D_actor_215100_8015E654[code & 0x3FF].h + 2;
                 }
             }
-            next    = i + 1;
-            code    = arg0[(s16)next];
-            i       = next;
-            shifted = code << 16;
-            v0tmp   = -1;
-        } while (shifted >> 16 != v0tmp);
+        }
+        code = text[++i];
     }
-    return (s16)(D_actor_215100_8015E660 - total);
+    return D_actor_215100_8015E660 - total;
 }
 
 /// Draws the pulsing "more text" caret: a Gouraud triangle at
