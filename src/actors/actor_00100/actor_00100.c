@@ -4554,26 +4554,15 @@ static void Actor00100_Fn0BC14(Task* task)
 
 static void Actor00100_Fn0BC1C(Task* arg0)
 {
-    GpCoord*        coord;
-    s32             y;
-    s32             distance;
-    register s32    slotY asm("v0");
     Actor00100Work* work;
     Task*           task;
 
     work = arg0->work;
     task = gameGetPtrSlot(3);
     if ((task != NULL) && (work->field_8E8 == 7)) {
-        coord    = task->extra.tmd->coords;
-        slotY    = coord->coord.t[1];
-        y        = arg0->extra.tmd->coords->coord.t[1];
-        distance = slotY - y;
-        if (distance < 0) {
-            distance = -distance;
-        }
-        if (distance >= 0x321) {
-            coord->coord.t[1]            = y;
-            task->extra.tmd->coords->flg = 0;
+        if (abs(task->extra.tmd->coords->coord.t[1] - arg0->extra.tmd->coords->coord.t[1]) > 800) {
+            task->extra.tmd->coords->coord.t[1] = arg0->extra.tmd->coords->coord.t[1];
+            task->extra.tmd->coords->flg        = 0;
         }
     }
 }
