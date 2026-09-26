@@ -694,30 +694,24 @@ static void func_actor_535700_80133180(Task* task)
 /// two start paths `func_actor_535700_80132D68` dispatches on, and only the
 /// first carries `animArg`. Returns -1, without touching the work block, when
 /// the clip id is 6 or more.
-///
-/// The `SOFT_BARRIER()` is a codegen pin, not a semantic one: without it GCC's
-/// delay-slot pass fills the `beqz` from the fall-through arm (`state = 1`)
-/// rather than the else arm's `state = 2`, which the ROM has there.
 s32 func_actor_535700_801331E4(Task* task, s32 arg1, GpAnimArg* args)
 {
     Actor150400Work* work;
 
     work = (Actor150400Work*)task->work;
-    if (args->field_4 >= 6) {
-        return -1;
+    if (args->field_4 < 6) {
+        work->st.animId = args->field_4;
+        if (args->field_8 != 0) {
+            work->st.state = 1;
+            work->animArg  = args->field_C;
+        } else {
+            work->st.state = 2;
+        }
+        work->st.field_6 = 0;
+        func_actor_535700_80132D68(task);
+        return 0;
     }
-
-    work->st.animId = args->field_4;
-    if (args->field_8 != 0) {
-        SOFT_BARRIER();
-        work->st.state = 1;
-        work->animArg  = args->field_C;
-    } else {
-        work->st.state = 2;
-    }
-    work->st.field_6 = 0;
-    func_actor_535700_80132D68(task);
-    return 0;
+    return -1;
 }
 
 /// Visibility opcode of the second enemy: sets `TmdObject::flags` on its own
