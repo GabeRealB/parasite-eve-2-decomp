@@ -53,10 +53,6 @@ extern char Gp_StrCreatedDot[];
 
 void func_800CB6FC(UiObject* arg0, Task* arg1);
 
-/// CLUT ids for the ten item-category icons drawn by `Gp_DrawItemIcon`,
-/// indexed by the icon index that function derives from the item id.
-extern const u16 D_80096F88[];
-
 /// 0xE-byte per-room record in tables pointed to by `Gp_MapRecTables`.
 /// Indexed by `GameSession.at4.loc.stage - 1` then `GameSession.at4.loc.area`.
 /// field_0/field_2 are signed coords, field_4/field_6 unsigned extents,

@@ -6182,9 +6182,10 @@ s32 func_801060E0(Task* arg0)
     return actor->field_97F;
 }
 
-/// Per-weapon handlers, indexed by `PlayerStatus::weapon`. Most live in the
-/// weapon overlay loaded at the time; `func_801065A0` serves the weapons with none.
-const TaskFuncTable33 D_800978BC = { {
+/// Per-weapon handlers, indexed by `PlayerStatus::weapon` and copied by
+/// `func_8010615C`. Most live in the weapon overlay loaded at the time;
+/// `func_801065A0` serves the weapons with none.
+static const TaskFuncTable33 D_800978BC = { {
     (TaskFunc)func_801065A0,
     func_8011D1D8,
     func_8011D1C4,

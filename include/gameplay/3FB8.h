@@ -597,10 +597,6 @@ extern Task* Gp_ActorSlots[2];
 /// Flag byte cleared by `func_800A7DE0` / `Gp_SpawnPlayer`.
 extern u8 D_80115768;
 
-/// `Player_Status.weapon` dispatcher copied by `func_8010615C`. Unused
-/// slots are `func_801065A0`; others are weapon-overlay entry points.
-extern const TaskFuncTable33 D_800978BC;
-
 /// u8 Task_Spawn type bases. `func_80104258` indexes
 /// `D_80112DFC[arg2 + Player_Status.field_26 - 2]`.
 extern u8 D_80112DFC[];

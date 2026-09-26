@@ -386,7 +386,6 @@ void Gp_PlayClockState2(Task* arg0);
 void Gp_PlayClockState3(Task* arg0);
 
 /// Colours and labels defined in `gameplay.c`, shared with `78.c`.
-extern const CVECTOR        gGpColorGrey;
 extern const TaskFuncTable6 Gp_PlayClockStates;
 extern const char           Gp_StrHP[];
 extern const char           Gp_StrMP[];

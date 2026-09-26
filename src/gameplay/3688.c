@@ -663,8 +663,9 @@ void Gp_ItemMenuInit(UiObject* arg0, Task* arg1);
 /// Three-entry dispatcher table indexed by `Task::state` (`Gp_ItemMenuTask`).
 const UiObjectTaskFuncTable3 Gp_ItemMenuStates = { { Gp_ItemMenuInit, Gp_UiPromptUpdate, Gp_UiPromptDispatch } };
 
-/// CLUT ids for the ten item-category icons drawn by `Gp_DrawItemIcon`.
-const u16 D_80096F88[12] = {
+/// CLUT ids for the ten item-category icons drawn by `Gp_DrawItemIcon`,
+/// indexed by the icon index that function derives from the item id.
+static const u16 D_80096F88[12] = {
     0x3C8F,
     0x3C8F,
     0x3C8E,

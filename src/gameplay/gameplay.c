@@ -1000,7 +1000,7 @@ u32* gpDrawStreamPrimGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags,
 /// with it, and one whose object is dimmed by `lightLevel` decays toward it as
 /// the level falls, so it is both the flat material colour and the unlit end
 /// of the shading range.
-const CVECTOR        gGpColorGrey   = { 0x80, 0x80, 0x80, 0 };
+static const CVECTOR gGpColorGrey   = { 0x80, 0x80, 0x80, 0 };
 static const CVECTOR Gp_ColorOrange = { 0xFF, 0xA0, 0x60, 0 };
 /// The base colour a lit primitive is computed from when the lighting alone
 /// should decide its colour: white, the identity of the GTE's colour multiply.
