@@ -17,84 +17,52 @@
 
 void Gp_DrawEffSprite81(Task* arg0)
 {
-    u8*                     head;
-    register GpRingScratch* block asm("t1");
-    TmdObject*              extra;
-    GpCoord*                coord;
-    GpEffWork*              mem;
-    POLY_FT4*               prim;
-    s16                     x;
-    s16                     y;
-    u16                     t;
-    u16                     vz;
-    s32                     len;
-    s32                     code;
+    GpRingScratch* block;
+    TmdObject*     extra;
+    GpCoord*       coord;
+    GpEffWork*     mem;
+    POLY_FT4*      prim;
 
-    extra                                   = arg0->extra.tmd;
-    head                                    = SCRATCH_HEAD(u8);
-    coord                                   = extra->coords;
-    mem                                     = arg0->spawnArg2;
-    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)coord->workm.t[0];
-    {
-        register u8* tmp asm("v0");
-        tmp   = head - 0x18;
-        block = (GpRingScratch*)tmp;
-    }
-    block->vec.vy               = (u16)coord->workm.t[1];
-    vz                          = (u16)coord->workm.t[2];
-    SCRATCH_HEAD(GpRingScratch) = block;
-    block->vec.vz               = vz;
+    extra         = arg0->extra.tmd;
+    coord         = extra->coords;
+    mem           = arg0->spawnArg2;
+    block         = SCRATCH_PUSH(GpRingScratch);
+    block->vec.vx = coord->workm.t[0];
+    block->vec.vy = coord->workm.t[1];
+    block->vec.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
+        gte_stszotz(&block->otz);
         block->otz++;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
-        COMPILER_BARRIER();
-        len  = 9;
-        code = 0x2D;
-        TOUCH_REG2(len, code);
-        setlen(prim, len);
-        setcode(prim, code);
-        if (mem->angle != 0) {
-            setcode(prim, 0x2F);
-        }
+        setPolyFT4(prim);
+        setShadeTex(prim, 1);
+        setSemiTrans(prim, mem->angle);
         prim->tpage = 0x29;
         prim->clut  = ((D_80112964[1][mem->step] >> 4) & 0x3F) | 0x4280;
-        t           = mem->age;
+        prim->u0    = ((mem->age >> 1) & 7) * 16;
         prim->v0    = 0xB8;
-        prim->u0    = (t * 8) & 0x70;
-        t           = mem->age;
+        prim->u1    = (((mem->age >> 1) & 7) * 16) + 0xF;
         prim->v1    = 0xB8;
-        prim->u1    = ((t * 8) & 0x70) + 0xF;
-        t           = mem->age;
+        prim->u2    = ((mem->age >> 1) & 7) * 16;
         prim->v2    = 0xC7;
-        prim->u2    = (t * 8) & 0x70;
-        t           = mem->age;
+        prim->u3    = (((mem->age >> 1) & 7) * 16) + 0xF;
         prim->v3    = 0xC7;
-        prim->u3    = ((t * 8) & 0x70) + 0xF;
         block->step = ((mem->scale * 0xF) / block->otz) >> 1;
-        x           = (u16)block->sx - (u16)block->step;
-        prim->x2    = x;
-        prim->x0    = x;
-        x           = (u16)block->sx + (u16)block->step;
-        prim->x3    = x;
-        prim->x1    = x;
-        y           = (u16)block->sy - (u16)block->step;
-        prim->y1    = y;
-        prim->y0    = y;
-        y           = (u16)block->sy + (u16)block->step;
-        prim->y3    = y;
-        prim->y2    = y;
+        prim->x0 = prim->x2 = block->sx - (u16)block->step;
+        prim->x1 = prim->x3 = block->sx + (u16)block->step;
+        prim->y0 = prim->y1 = block->sy - (u16)block->step;
+        prim->y2 = prim->y3 = block->sy + (u16)block->step;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_POP(GpRingScratch);
 }
 
 void Gp_DrawEffSprite46(GpCoord* arg0, s32 arg1, s16 arg2, u16 arg3)

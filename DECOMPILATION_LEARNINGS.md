@@ -142354,3 +142354,16 @@ and the parameter pseudo disappears; the tree had pinned it apart with
 set, which is not an equivalence with the `SImode` parameter: the mask keeps
 reading `arg3`, which ties to `a3` and dies there. The `& 0xFF` at every use
 disappears with it, since those were the `u8` zero-extensions.
+
+## `setSemiTrans(prim, cond)`, not `if (cond) setSemiTrans(prim, 1)`: the dead else-store's label keeps a scratch block in its own register (Gp_DrawEffSprite81, 2026-09-26)
+
+Target: `addiu v0,a3,-0x18; move t1,v0` after `SCRATCH_PUSH`, with every later
+access (including `gte_ldv0`) through `t1`, and a code byte stored `0x2D` then
+conditionally `0x2F`. Written `if (mem->angle != 0) setSemiTrans(prim, 1);`,
+cse1's path follows the one-use label through the whole `if` body, so the push
+temp stays the class head (`make_regs_eqv`: the user variable only wins if it
+lives beyond the path) and `gte_ldv0` gets a stray `move v0,t1`; the tree pinned
+`block` to `t1` and the temp to `v0`. `setSemiTrans(prim, mem->angle)` expands
+to both arms; cse deletes the else-arm store (`0x2D & ~2` is the value already
+there) but its label splits the path, `block` outlives it, and becomes the head.
+Same shape as the `Gp_DrawRing` push, where a loop does the splitting.
