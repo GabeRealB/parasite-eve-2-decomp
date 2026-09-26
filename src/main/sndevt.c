@@ -56,6 +56,16 @@ static void  SndEvt_HandleRefCountInc(void);
 static void  SndEvt_HandleRefCountDec(void);
 static void  SndEvt_HandleKeyOffMatching(void);
 static u8*   Midi_HandleMetaSysex(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* arg3);
+static void  SndEvt_HandleAllocVoice(SndEvt* arg0);
+static void  SndEvt_HandleFadeMatchingOff(SndEvt* arg0);
+static void  SndEvt_HandleFadeMatchingOn(SndEvt* arg0);
+static void  SndEvt_HandleFadeOff(SndEvt* arg0);
+static void  SndEvt_HandleFadeOn(SndEvt* arg0);
+static void  SndEvt_HandleInitSequence(SndEvt* arg0);
+static void  SndEvt_HandlePanRamp(SndEvt* arg0);
+static void  SndEvt_HandleSetVolume(SndEvt* arg0);
+static void  SndEvt_HandleStartFadeOut(SndEvt* arg0);
+static void  SndEvt_HandleType7(SndEvt* arg0);
 
 void (*SndEvt_Handlers[])(SndEvt*) = {
     func_80050AAC,
@@ -75,23 +85,12 @@ void (*SndEvt_Handlers[])(SndEvt*) = {
     SndEvt_HandleRefCountDec,
     SndEvt_HandleKeyOffMatching,
 };
-static u8*  Midi_Event1(s32 arg0, u8* arg1, MidiSong* arg2);
-static u8*  Midi_Event3(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* arg3);
-static s32  Midi_IncPtr(s32 arg0, s32 arg1);
-static u8*  Midi_KeyOffChannel(s32 arg0, u8* arg1, MidiSong* arg2);
-static u8*  Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* arg2);
-static u8*  Midi_SetProgram(s32 arg0, u8* arg1, MidiOpcodeCtx* arg2);
-static void SndEvt_HandleAllocVoice(SndEvt* arg0);
-static void SndEvt_HandleFadeMatchingOff(SndEvt* arg0);
-static void SndEvt_HandleFadeMatchingOn(SndEvt* arg0);
-static void SndEvt_HandleFadeOff(SndEvt* arg0);
-static void SndEvt_HandleFadeOn(SndEvt* arg0);
-static void SndEvt_HandleInitSequence(SndEvt* arg0);
-static void SndEvt_HandlePanRamp(SndEvt* arg0);
-static void SndEvt_HandleSetVolume(SndEvt* arg0);
-static void SndEvt_HandleStartFadeOut(SndEvt* arg0);
-static void SndEvt_HandleType7(SndEvt* arg0);
-
+static u8*         Midi_Event1(s32 arg0, u8* arg1, MidiSong* arg2);
+static u8*         Midi_Event3(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* arg3);
+static s32         Midi_IncPtr(s32 arg0, s32 arg1);
+static u8*         Midi_KeyOffChannel(s32 arg0, u8* arg1, MidiSong* arg2);
+static u8*         Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* arg2);
+static u8*         Midi_SetProgram(s32 arg0, u8* arg1, MidiOpcodeCtx* arg2);
 static MidiHandler Midi_EventFns[] = {
     Midi_KeyOffChannel,
     Midi_Event1,
