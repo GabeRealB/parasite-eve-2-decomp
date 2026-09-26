@@ -2094,32 +2094,31 @@ void Gp_EffSprTask76(Task* arg0)
 
 void Gp_EffSprTask7C(Task* arg0)
 {
-    GpCoord                   hit;
-    GpEffWork*                mem;
-    GpCoord*                  coord;
-    u8*                       head;
-    register GpFxQuadScratch* vecp asm("v0");
-    GpFxQuadScratch*          block;
-    POLY_FT4*                 prim;
-    s16                       flag;
-    s32                       rng;
-    s16                       scale;
-    s16                       step;
-    s32                       col;
-    s32                       tmp;
-    u32                       param;
-    register u16              vx asm("v0");
-    u16                       vz;
+    GpCoord          hit;
+    GpEffWork*       mem;
+    GpCoord*         coord;
+    u8*              head;
+    GpFxQuadScratch* vecp;
+    GpFxQuadScratch* block;
+    POLY_FT4*        prim;
+    s16              flag;
+    s32              rng;
+    s16              scale;
+    s16              step;
+    s32              col;
+    s32              tmp;
+    u32              param;
+    u16              vz;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
     coord = arg0->extra.tmd->coords;
     param = 0x80;
     if (flag >= 2) {
-        if (flag >= 4) {
-            Gp_ReleaseState1CMem(mem, arg0);
+        if (flag < 4) {
+            return;
         }
-        return;
+        goto release;
     }
     if (mem->index == 0) {
         scale = 0x200;
@@ -2147,19 +2146,17 @@ void Gp_EffSprTask7C(Task* arg0)
         mem->index++;
     }
     Gp_UpdateCoord(coord);
-    head = SCRATCH_HEAD(u8);
-    USE_REG(head);
-    vx                                        = (u16)coord->workm.t[0];
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = vx;
-    vecp                                      = (GpFxQuadScratch*)(head - 0x1C);
-    block                                     = vecp;
-    block->vec.vy                             = (u16)coord->workm.t[1];
-    vz                                        = (u16)coord->workm.t[2];
-    SCRATCH_HEAD(GpFxQuadScratch)             = block;
-    block->vec.vz                             = vz;
+    head                          = SCRATCH_HEAD(u8);
+    vecp                          = (GpFxQuadScratch*)(head - 0x1C);
+    vecp->vec.vx                  = (u16)coord->workm.t[0];
+    block                         = vecp;
+    block->vec.vy                 = (u16)coord->workm.t[1];
+    vz                            = (u16)coord->workm.t[2];
+    SCRATCH_HEAD(GpFxQuadScratch) = block;
+    block->vec.vz                 = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
+    gte_ldv0(&vecp->vec);
     gte_rtps();
     gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
     gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
@@ -2219,17 +2216,18 @@ void Gp_EffSprTask7C(Task* arg0)
     mem->angle   += mem->step;
     mem->age++;
     if (mem->age >= 0x1F) {
+    release:
         Gp_ReleaseState1CMem(mem, arg0);
         return;
     }
     if (Gp_TraceGroundCoord(coord, &hit) == 1) {
-        Gp_DrawEffSprite7C(&hit, (s32)((u16)mem->scale << 16) >> 17, param);
+        Gp_DrawEffSprite7C(&hit, mem->scale >> 1, param);
     }
     if (coord->coord.t[1] > hit.coord.t[1]) {
         coord->coord.t[1] -= mem->move.vy * 2;
-        mem->move.vy       = -((s32)((u16)mem->move.vy << 16) >> 17);
-        mem->move.vx       = (s32)((u16)mem->move.vx << 16) >> 17;
-        mem->move.vz       = (s32)((u16)mem->move.vz << 16) >> 17;
+        mem->move.vy       = -(mem->move.vy >> 1);
+        mem->move.vx       = mem->move.vx >> 1;
+        mem->move.vz       = mem->move.vz >> 1;
     }
 }
 

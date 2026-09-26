@@ -142367,3 +142367,23 @@ lives beyond the path) and `gte_ldv0` gets a stray `move v0,t1`; the tree pinned
 to both arms; cse deletes the else-arm store (`0x2D & ~2` is the value already
 there) but its label splits the path, `block` outlives it, and becomes the head.
 Same shape as the `Gp_DrawRing` push, where a loop does the splitting.
+## `addiu v0,a1,-0x1C; move s0,v0` scratch carve: read the first pointer in the `gte_ldv0` after the copy; a near-tie priority settled by one shared release call (Gp_EffSprTask7C, 2026-09-26)
+
+**Carve.** Target carves the block into `v0` and copies it to a callee-saved
+register (`addiu v0,a1,-0x1C; lhu v1,..; move s0,v0`), with the head in `a1`
+and the head's address in `a0`. It was held by `v0` pins on the carve and the
+first field's value plus `USE_REG(head)`. Pin-free, `p = head - 0x1C; p->vec.vx = ..;
+block = p; ... gte_ldv0(&p->vec);` reproduces it: cse never substitutes into an
+asm operand, so the `gte_ldv0` read keeps `p` live past the copy and combine
+cannot fold the carve into `block`; local-alloc's `optimize_reg_copy_1` then
+rewrites the asm to read `block` and `p` dies at the copy, in `v0`. A statement
+between the carve and the copy matters too: when the copy directly follows the
+carve, cse swaps them and `block` takes the `addiu`.
+
+**Priority.** With the pins gone, `mem` (48 refs) and `prim` (31 refs) swapped
+`s1`/`s2`: `5*48/367` beat `4*31/190` by one insn of `mem`'s live length. The
+target shares one `Gp_ReleaseState1CMem` call between the early `flag >= 4`
+exit and the `age >= 0x1F` exit, with the early path jumping into the second
+one's call. Two calls cross-jumped by jump2 give the same layout but count both
+in flow's live lengths; one call reached by `goto release;` from the early exit,
+with the label inside the `age` block, gives the layout and the allocation.
