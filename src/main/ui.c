@@ -1117,26 +1117,35 @@ void Ui_LayoutListPanel(UiList* arg0_, UiPanel* arg1_)
     }
 }
 
-void func_80046B34(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
+/// Fills the inside of a w x h box at (x, y), relative to the panel's origin,
+/// with a flat tile in the ordering-table slot after the panel's. Nothing is
+/// drawn for a zero colour or a box too narrow to have an inside.
+static inline void _uiFillTile(UiPanel* panel, s32 x, s32 y, s32 w, s32 h, u32 color)
 {
-    TILE*    p;
-    LINE_F3* l;
-    s32      y;
-    u16      t;
+    TILE* p;
+    s32   top;
 
-    if ((arg5 != 0) && (arg3 >= 2)) {
+    if (color != 0 && w >= 2) {
         p                     = (TILE*)gGpuPrimCursor;
         gGpuPrimCursor        = p + 1;
-        p->x0                 = arg0->field_20 + arg1 + 1;
-        y                     = arg0->field_22;
-        p->w                  = arg3 - 1;
-        p->h                  = arg4 - 1;
-        PRIM_COLOR_WORD(p, 0) = arg5;
+        p->x0                 = panel->field_20 + x + 1;
+        top                   = panel->field_22;
+        p->w                  = w - 1;
+        p->h                  = h - 1;
+        PRIM_COLOR_WORD(p, 0) = color;
         setlen(p, 3);
-        p->y0 = y + arg2 + 1;
+        p->y0 = top + y + 1;
         setcode(p, 0x60);
-        addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, p);
+        addPrim(gGpuCurrentOt + (s16)panel->field_14 + 1, p);
     }
+}
+
+void func_80046B34(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
+{
+    LINE_F3* l;
+    u16      t;
+
+    _uiFillTile(arg0, arg1, arg2, arg3, arg4, arg5);
 
     l                     = (LINE_F3*)gGpuPrimCursor;
     l->x2                 = arg0->field_20 + arg1 + 1;
@@ -1182,38 +1191,16 @@ typedef struct {
 
 static void Ui_DrawListHighlight(UiList* arg0, UiPanel* arg1, s32 arg2, s32 arg3)
 {
-    TILE*                p;
-    s32                  y;
-    s32                  x1;
-    s32                  width;
-    s32                  h;
-    register u32         color asm("t4");
     UiPanelSignedLayout* a1;
-    u16                  f14;
+    s32                  h;
+    s32                  x1;
 
-    a1           = (UiPanelSignedLayout*)arg1;
-    color        = 0x1741F;
-    f14          = a1->field_14;
-    h            = arg0->field_7;
-    x1           = a1->field_1C;
-    a1->field_14 = f14 + 1;
-    SOFT_COMPILER_BARRIER();
-    width = a1->field_1E - x1;
-    if ((width - 1) >= 2) {
-        p              = (TILE*)gGpuPrimCursor;
-        gGpuPrimCursor = p + 1;
-        p->x0          = a1->field_20 + x1 + 1;
-        y              = a1->field_22;
-        p->w           = width - 2;
-        p->h           = h - 1;
-        setlen(p, 3);
-        PRIM_COLOR_WORD(p, 0) = color;
-        setcode(p, 0x60);
-        arg2  = arg2 - h;
-        p->y0 = y + arg2 + 1;
-        addPrim(gGpuCurrentOt + (s16)a1->field_14 + 1, p);
-    }
-    a1->field_14 = (u16)(a1->field_14 - 1);
+    a1 = (UiPanelSignedLayout*)arg1;
+    h  = arg0->field_7;
+    x1 = a1->field_1C;
+    a1->field_14++;
+    _uiFillTile(arg1, x1, arg2 - h, a1->field_1E - x1 - 1, h, 0x1741F);
+    a1->field_14--;
 }
 
 /// Eases the list cursor a quarter of the way toward (x, y) once per elapsed

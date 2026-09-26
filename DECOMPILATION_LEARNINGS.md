@@ -144152,3 +144152,19 @@ For `t = K - (s->x + s->w); if (t < 0) s->x += t;`, cse reuses the HImode `x` lo
 ### A narrow parameter read in two registers is one condition written as nested ifs with a duplicated else (func_apobiosis_8012F808, 2026-09-26)
 
 Target: `move a3,a0; ... bne kind,2,L; move a2,a3`, then the `(s16)x >> 1` shifts read `a2` while one `srl` reads `a3`. For an `s16` parameter GCC makes an SI pseudo for the incoming register and an HI pseudo that is its subreg. Written as `if (kind == 2) { rng...; if (roll) A; else B; } else B;`, the outer else is a single-predecessor block on cse's follow-jumps path, so cse rewrites `(subreg:SI hi)` in its sign-extend to the SI pseudo and the second register disappears. The seed kept it with a `u16 level` copy and `SOFT_TOUCH_REG`. The source was one condition, `if (kind == 2 && ((Gp_LcgState = Gp_LcgState * 5 + K) >> 16 & 3) == 0) A; else B;`: `B` is then a join block cse cannot reach with the equivalence, and the parameter keeps both registers without any cast.
+
+## A memory barrier holding a load below a store can stand for an inline helper's argument evaluation (Ui_DrawListHighlight, 2026-09-26)
+
+The target stored `panel->field_14 + 1` and only then loaded `field_1E`, one
+`nop` behind its use. Both go through the same base register at different
+offsets, so there is no alias edge and sched1 hoisted the load above the store;
+the seed held it with `SOFT_COMPILER_BARRIER()` and a register pin on the tile
+colour. `func_80046B34` in the same file builds the identical TILE (`x0 =
+field_20 + x + 1`, `w - 1`, `h - 1`, `if (w >= 2)`), and calling one
+`static inline` fill helper from both - with `field_1E - x1 - 1` and `arg2 - h`
+as its arguments - matched with neither hack. The helper's parameters are
+separate pseudos (`w` and `w >= 2` rather than `(width - 1) >= 2`), which
+changes the block's insn list enough that sched1 picks the target's order with
+no dependence at all. When a hack steers a primitive-building body, look for
+another function in the file that emits the same primitive with the same
+arithmetic; the shared part is likely a helper both called.
