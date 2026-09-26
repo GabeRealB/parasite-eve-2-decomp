@@ -143909,3 +143909,19 @@ past them. A caption reading `obj->baseX` right after the stores folds to the
 constant, and the one after the call reloads it from the stack. That
 asymmetry means one obj-relative draw was used twice, not two differently
 written draws.
+
+## A block-local `x++` on a global can never put the count in `$a0` while its `%hi` sits in `$v1` (CdAudio_DriveSeek, 2026-09-26)
+
+A dispatch function's shared tail `g.count++; return 5;` is, in retail,
+`lui v1,%hi(g)` / `lw a0,%lo(g)(v1)` / `li v0,5` / `addiu a0,a0,1` / `sw a0`.
+Written naturally, the load and the add tie into one quantity with 4 refs, which
+out-ranks the 3-ref `%hi` quantity whose span contains it, so local-alloc gives
+the count `$v1` (`$v0` is taken by the return value) and the `%hi` `$a0`. No
+spelling of the increment inverts that: `++`, `+=`, a temp, a nested-block
+local, a pointer local, an inline helper (by value or by pointer), a
+`do { } while (0)` macro and a `ret` variable all land on the same allocation.
+The count lands in `$a0` only if it is **not a local quantity** - a pseudo that
+also lives in another block, so global-alloc places it after local-alloc has
+spent `$v1` on the `%hi`. Reusing a function-wide variable (`status`, `val`)
+does that, but the variable's other life must then also fit `$a0`. Check that
+before reaching for a pin; if no variable qualifies, the `$a0` pin is still open.
