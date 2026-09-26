@@ -11,6 +11,14 @@
 #include "main/tmd.h"
 
 /// Models named after the package that holds them.
+extern TmdSource D_aya_10200_80115B90;
+extern TmdSource D_aya_10200_80115FD0;
+extern TmdSource D_aya_10200_801164C0;
+extern TmdSource D_aya_10200_80116900;
+extern TmdSource D_aya_10500_80115B90;
+extern TmdSource D_aya_10500_80115FD0;
+extern TmdSource D_aya_10500_801164C0;
+extern TmdSource D_aya_10500_80116900;
 extern TmdSource D_aya_10300_8011ACE8;
 extern TmdSource D_aya_10400_8011B078;
 extern TmdSource D_aya_10300_8011B128;
@@ -22,13 +30,5 @@ extern TmdSource D_aya_10400_8011BE10;
 extern TmdSource D_aya_10300_8011BE98;
 extern TmdSource D_aya_10200_8011C210;
 extern TmdSource D_aya_10500_8011C2E4;
-
-/// Models at addresses where aya_10200 and aya_10500 both hold one. The
-/// descriptor names whichever package is loaded, so the name belongs to the
-/// load slot, not to one package.
-extern TmdSource D_aya_80115B90;
-extern TmdSource D_aya_80115FD0;
-extern TmdSource D_aya_801164C0;
-extern TmdSource D_aya_80116900;
 
 #endif /* AYA_AYA_H */

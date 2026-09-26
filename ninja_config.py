@@ -790,7 +790,7 @@ def append_main_overlay_imports() -> None:
             continue
         name, addr_s = m.group(1), m.group(2)
         addr = int(addr_s, 16)
-        mapping[addr] = name
+        mapping.setdefault(addr, name)
         entry = f"{name} = {addr_s};"
         if "type:func" in line:
             extra_fun.append(entry)
@@ -798,6 +798,11 @@ def append_main_overlay_imports() -> None:
             extra_sym.append(entry)
 
     def rewrite(path: Path, extra: list[str]) -> None:
+        # One address can carry several imported names: overlays that load at
+        # the same address each have their own symbol there, and a descriptor
+        # table in main names whichever package it means. So an import is added
+        # unless its *name* is already defined; splat's own placeholder for an
+        # imported address is renamed to the first import at that address.
         lines = path.read_text(encoding="utf-8").splitlines()
         present = set()
         out = []
@@ -807,14 +812,13 @@ def append_main_overlay_imports() -> None:
                 addr = int(m.group(2), 16)
                 if addr in mapping:
                     line = f"{mapping[addr]} = {m.group(2)};"
-                    present.add(addr)
+                present.add(line.split("=")[0].strip())
             out.append(line)
         for entry in extra:
-            m = re.match(r"^(\w+)\s*=\s*(0x[0-9A-Fa-f]+)", entry)
-            addr = int(m.group(2), 16)
-            if addr not in present:
+            name = entry.split("=")[0].strip()
+            if name not in present:
                 out.append(entry)
-                present.add(addr)
+                present.add(name)
         text = "\n".join(out) + "\n"
         # Runs on every configure, split or not; an identical rewrite would
         # relink main each time.

@@ -1,2 +1,5 @@
 // Overlay-local symbols for kyle_800104 (file 800104).
 D_kyle_800104_8016E568 = 0x8016E568; // model named by a task descriptor
+D_kyle_800104_8016C594 = 0x8016C594; // model named by a task descriptor
+D_kyle_800104_8016C9E8 = 0x8016C9E8; // model named by a task descriptor
+D_kyle_800104_8016D81C = 0x8016D81C; // model named by a task descriptor
