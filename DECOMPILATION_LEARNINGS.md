@@ -143383,6 +143383,27 @@ GCC 2.8 keeps an unreferenced `static` variable, so an unreferenced word in a
 run can be a private placeholder. An explicit `= 0` keeps a global in `.data`.
 In splat, a `.bss` subsegment for a C unit takes no `bss_size`, because splat
 infers it from the next subsegment.
+
+The size rule is also evidence. An object of 8 bytes or more at an address
+that is 4 mod 8 cannot be its own `.comm` entry, so it is a member of an
+enclosing object that starts on an 8. Look for the enclosing object's extent in
+the code: a clear or copy loop over the whole run, or a pointer that steps back
+from one label to the one before it. Rewriting the separate labels as members
+of one struct can change code generation, because accesses to a symbol and to a
+symbol plus an offset are not always treated the same way (see "A second label
+on the same run is a second object").
+
+A run often has 8 bytes that nothing references, right before an 8-aligned
+object or at the end of the run. Alignment does not explain them. They are kept
+as unreferenced placeholders until something does.
+
+The `#ifndef <MODULE>_C` guard hides a unit's data externs from the unit itself.
+That breaks a `static inline` in the same header that reads those globals: it
+no longer compiles in the defining unit. Declaring the globals at block scope
+inside the inline fixes that without changing the order. A block-scope `extern`
+does not count as a first file-scope declaration, so the unit's definitions
+still set the `.bss` order. Turning the inline into a macro instead changed
+register allocation at its call site.
 ### A parameter copy scheduled mid-block, not at entry, is a narrower local taken from it (func_dryfield_night_water_hole_8017FF84, 2026-09-26)
 
 **Symptom.** The target moves an argument into another register in the middle
