@@ -1232,25 +1232,16 @@ static void func_actor_215100_8014C5E0(s16 arg0, s16 arg1, s16 arg2)
 static void func_actor_215100_8014C660(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
-    GpAreaKey        key;
     Actor160600Work* work;
     Actor160600Work* mem;
     GpCoord*         coord;
     TmdObject*       obj;
     GpEnemy*         spawned;
-    TmdObject*       model;
-    GpAreaKey*       sessionKey;
-    GpAreaKey*       keyPtr;
-    u8               areaByte0;
-    GpAreaRec*       rec;
-    GpAreaPlace*     place;
-    s32              idx;
-    u32              raw;
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
     mem        = (Actor160600Work*)memCalloc(0x4F8, false);
-    work       = (Actor160600Work*)mem;
+    work       = mem;
     task->work = (TaskIdMap*)mem;
     if (mem == NULL) {
         Gp_DestroyEnemy(enemy, task);
@@ -1264,29 +1255,9 @@ static void func_actor_215100_8014C660(GpEnemy* enemy, Task* task)
     enemy->node.state.b.flags    = 1;
     obj->flags                   = 0;
     obj->otOffset                = 1;
-    mem->enemy                   = enemy;
+    work->enemy                  = enemy;
     spawned                      = Gp_SpawnEnemyFromTable(D_actor_215100_8015E5D0, 1, 0, enemy);
-    model                        = spawned->task->extra.tmd;
-    raw                          = enemy->placeKey;
-    sessionKey                   = (GpAreaKey*)&gGameSession->at4.loc;
-    key.stage                    = sessionKey->stage;
-    key.area                     = sessionKey->area;
-    key.room                     = sessionKey->room;
-    idx                          = raw >> 12;
-    areaByte0                    = sessionKey->view;
-    SOFT_BARRIER();
-    keyPtr = &key;
-    TOUCH_REG(keyPtr);
-    key.view = areaByte0;
-    Gp_SyncAreaKeyIndex(keyPtr);
-    rec          = Gp_GetNestedAreaRec(&key);
-    place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
-    model->tpage = place->tpage;
-    model->clut  = place->clut;
-    if (model->buffer != NULL) {
-        tmdProcessStream(model);
-        tmdProcessStream(model);
-    }
+    actorTintModel(spawned->task->extra.tmd, enemy);
     Task_Reparent(task, spawned->task);
     work->pairTask  = spawned->task;
     work->st.animId = 0xC;
