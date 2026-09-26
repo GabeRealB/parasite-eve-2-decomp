@@ -142512,3 +142512,16 @@ registers, and sched2 is then free to hoist their `li`s and sink their stores.
 had spelled as `setcode(p, 0x2D)`. When a sibling in the same file builds its
 prims with these macros, write the new one the same way before reaching for
 anything else (`Ui_DrawVBar`).
+
+## `lhu` then `sll 17; sra 16` is `(s16)(field << 1)`, not a `(u16)` cast (ofudaEffectTask, 2026-09-26)
+
+Doubling an `s16` field into an `s16` argument loads it with `lhu` in the ROM.
+`(s16)(f * 2)` keeps the `lh`; `(s16)(f << 1)` lets combine see that the shift
+discards the upper half and narrow the load to `lhu`. So a `(u16)` cast in
+front of the field is a symptom of writing `* 2` - write the shift.
+
+The same body carried a register copy on the step (`move v0,v1` before its
+`sll 3`) and a pin, a barrier and reordered temporaries around three
+`rgb[i] >>= 1`. Both were only the plain statements `mem->angle += mem->step
+<< 3;` and `rgb[0] >>= 1; rgb[1] >>= 1; rgb[2] >>= 1;`, the way the sibling pe
+overlays write them; check the siblings' spelling before steering.
