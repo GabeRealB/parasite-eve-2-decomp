@@ -17,6 +17,7 @@
 #include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/gfx.h"
+#include "main/gfxgte.h"
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/pad.h"
@@ -1632,17 +1633,8 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
 void func_shelter_b3_dumping_hole_8018098C(Task* task)
 {
     DumpingHoleEntity4* work;
-    OverlayMat*         mtx;
     OverlayMat*         ident;
     OverlayMat*         ident2;
-    VECTOR*             sc;
-    GpCoord*            coords;
-    TmdObject*          obj;
-    u8*                 head;
-    u32                 scratch;
-    SVECTOR*            sv;
-    u8*                 head2;
-    u32                 scratch2;
     u16                 i;
     GpCmdArg*           loc3;
     GpCmdArg*           loc5;
@@ -1738,7 +1730,6 @@ void func_shelter_b3_dumping_hole_8018098C(Task* task)
                             work->scale.vx                        -= 10;
                             work->scale.vz                        -= 10;
                             ident                                  = (OverlayMat*)&task->extra.tmd->coords[3].coord;
-                            sc                                     = &work->scale;
 
                             ident->ident.m00_m01 = 0x1000;
                             ident->ident.m02_m10 = 0;
@@ -1746,44 +1737,7 @@ void func_shelter_b3_dumping_hole_8018098C(Task* task)
                             ident->ident.m20_m21 = 0;
                             ident->ident.m22     = 0x1000;
 
-                            // Scale each column of the rotation through a
-                            // scratchpad SVECTOR and the GTE.
-                            obj = task->extra.tmd;
-                            __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
-                            scratch               = *(u32*)(head + 0x3FC);
-                            coords                = obj->coords;
-                            sv                    = (SVECTOR*)(scratch - 8);
-                            SCRATCH_HEAD(SVECTOR) = sv;
-                            TOUCH_REG(sv);
-                            mtx = (OverlayMat*)&coords[3].coord;
-                            TOUCH_REG(mtx);
-                            gte_ReadMatrixColumn(&mtx->mat, 0, sv);
-                            gte_lddp(sc->vx);
-                            gte_ldsv(sv);
-                            gte_gpf12();
-                            gte_stsv(sv);
-                            gte_WriteMatrixColumn(sv, &mtx->mat, 0);
-
-                            COMPILER_BARRIER();
-                            gte_ReadMatrixColumn(&mtx->mat, 1, sv);
-                            gte_lddp(sc->vy);
-                            gte_ldsv(sv);
-                            gte_gpf12();
-                            gte_stsv(sv);
-                            gte_WriteMatrixColumn(sv, &mtx->mat, 1);
-
-                            COMPILER_BARRIER();
-                            gte_ReadMatrixColumn(&mtx->mat, 2, sv);
-                            gte_lddp(sc->vz);
-                            gte_ldsv(sv);
-                            gte_gpf12();
-                            gte_stsv(sv);
-                            gte_WriteMatrixColumn(sv, &mtx->mat, 2);
-
-                            __asm__ volatile("lui %0, 0x1F80" : "=r"(head2));
-                            scratch2  = *(u32*)(head2 + 0x3FC);
-                            scratch2 += 8;
-                            __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(scratch2) : "memory");
+                            gfxScaleMatrixColumns(&task->extra.tmd->coords[3].coord, &work->scale);
                         } else if (work->timer < 0x20) {
                             task->extra.tmd->coords[2].coord.t[1] += 0x20;
                             ident2                                 = (OverlayMat*)&task->extra.tmd->coords[3].coord;
