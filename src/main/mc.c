@@ -3511,32 +3511,14 @@ static void Mc_StateEnterPromptF(Task* arg0, McWork* arg1)
 
 static void Mc_StateAccept(Task* arg0, McWork* arg1)
 {
-    McWork*            a1;
-    register Task*     a0 asm("s0");
-    register UiObject* obj asm("s0");
-    s32                modeIdx;
-    s32                ret;
-    McPromptPair*      entry;
-    McPromptPair*      base;
-
-    a0          = arg0;
-    a1          = arg1;
-    a1->field_8 = 1;
-    if (MemCardAccept(a1->field_C) != 0) {
-        a1->field_4 = 0;
-        a0->state   = a0->state + 1;
+    arg1->field_8 = 1;
+    if (MemCardAccept(arg1->field_C) != 0) {
+        arg1->field_4 = 0;
+        arg0->state   = arg0->state + 1;
     } else {
-        a1->field_4 = a1->field_4 + 1;
+        arg1->field_4 = arg1->field_4 + 1;
     }
-    obj           = a0->spawnArg2;
-    modeIdx       = a1->field_8;
-    ret           = Ui_LookupTable(obj, 1);
-    obj->field_2E = 0;
-    Ui_DrawTitle(obj, Mc_StrMemoryCard);
-    base  = Mc_PromptTable;
-    entry = &base[modeIdx];
-    Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
-    Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
+    _mcDrawPrompt(arg0, arg1->field_8);
 }
 
 static void Mc_StateSyncPrompt3(Task* arg0, McWork* arg1)
