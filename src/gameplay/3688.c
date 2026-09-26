@@ -1188,6 +1188,7 @@ void Gp_HpMpBarTask(Task* arg0)
     s32           color;
     s32           x;
     s32           right;
+    s32           y;
 
     obj = arg0->spawnArg2;
     if (arg0->state == 0) {
@@ -1221,41 +1222,17 @@ void Gp_HpMpBarTask(Task* arg0)
     x              = obj->field_C + obj->field_10;
     right          = x - 1;
     x              = x - 0x32;
-    poly->x2       = x;
-    poly->x0       = x;
     gGpuPrimCursor = poly + 1;
-    {
-        s32 vl;
-        s32 fy;
-        s32 ur;
-        s32 y0;
-
-        vl       = 0x80;
-        poly->x3 = right;
-        poly->x1 = right;
-        fy       = obj->field_E;
-        TOUCH_REG(right);
-        ur = 0x31;
-        TOUCH_REG(ur);
-        poly->v0    = vl;
-        poly->v1    = vl;
-        poly->v2    = 0xBE;
-        poly->v3    = 0xBE;
-        poly->clut  = 0x3C40;
-        poly->tpage = 0x9E;
-        poly->u1    = ur;
-        poly->u3    = ur;
-        setlen(poly, 9);
-        poly->u0 = 0;
-        poly->u2 = 0;
-        setcode(poly, 0x2D);
-        y0       = fy + 2;
-        fy       = fy + 0x40;
-        poly->y1 = y0;
-        poly->y0 = y0;
-        poly->y3 = fy;
-        poly->y2 = fy;
-    }
+    poly->x0 = poly->x2 = x;
+    poly->x1 = poly->x3 = right;
+    y                   = obj->field_E;
+    poly->y0 = poly->y1 = y + 2;
+    poly->y2 = poly->y3 = y + 0x40;
+    setUVWH(poly, 0, 0x80, 0x31, 0x3E);
+    poly->clut  = 0x3C40;
+    poly->tpage = 0x9E;
+    setlen(poly, 9);
+    setcode(poly, 0x2D);
     addPrim(gGpuCurrentOt + obj->drawOrder + 1, poly);
     Ui_DrawVBar((UiPanel*)obj, (s16)obj->field_18 - 3, (s16)obj->field_1A + 2, (s16)obj->field_1E - 0x32);
     Ui_DrawHBar((UiPanel*)obj, (s16)obj->field_1C - 2, (s16)obj->field_1E - 0x32, (s16)obj->field_18 + 8);
