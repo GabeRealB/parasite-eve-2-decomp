@@ -95,7 +95,6 @@ s32 CdAudio_DriveStream(void)
 
 /* Alignment pad after CdAudio_DriveStream's 5-entry jump table so CdAudio_DriveSeek's
  * compiler-generated jtbl lands at 0x800141DC. */
-static const s32 s_jtbl_pad_567E4 = 0;
 
 s32 CdAudio_DrivePhase0(void)
 {

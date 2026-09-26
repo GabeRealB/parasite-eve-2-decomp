@@ -509,7 +509,6 @@ void Fs_SelectLoadHandlers3(u8* arg0)
 }
 
 /* Pad after 47-entry jtbl for Fs_SelectLoadHandlers3 (original had trailing .word 0). */
-static const s32 s_jtbl_pad_21D8C = 0;
 
 void Fs_SetupBootLoad(void)
 {
@@ -587,7 +586,6 @@ void Fs_SetupBootLoad(void)
 }
 
 /* Alignment pad after the 5-entry Fs_SetupBootLoad jump table. */
-static const s32 s_jtbl_pad_2207C = 0;
 
 void Fs_BootImageMachine(void* arg0, void* arg1)
 {

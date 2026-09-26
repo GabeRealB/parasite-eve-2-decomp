@@ -857,7 +857,6 @@ void CdCmd_ProcessPhase2(void)
 }
 
 /* Alignment pad after the 9-entry CdCmd_ProcessPhase2 jump table. */
-static const s32 s_jtbl_pad_CEFC = 0;
 
 /* Appends a command to the ring and returns the slot it was written to. */
 static inline s32 _cdCmdEnqueue(s32 cmd, u8* paramA, u8* paramB)
