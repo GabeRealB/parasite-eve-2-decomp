@@ -25,6 +25,14 @@
 #include "main/text.h"
 #include "main/wipsys.h"
 
+/// Read-only layout settings for caption text. `vertical` selects
+/// top-to-bottom columns instead of left-to-right lines.
+typedef struct {
+    u8 vertical;
+} _GpCapLayout;
+
+extern const _GpCapLayout D_80097518;
+
 extern TaskFuncTable3 D_800974C8;
 extern char           Gp_StrCapMagic[];
 extern char           Gp_StrEvsFmt[];
@@ -55,7 +63,6 @@ extern s16            D_801155BC;
 extern s16            D_801155BE;
 extern s16            D_801155C0;
 extern GpCapChoice    D_801155D0[];
-extern u8             D_80097518[];
 extern GlyphUvwh      D_8010FB70[];
 extern u8             D_80115670;
 extern Task*          Gp_CapTask;
@@ -105,7 +112,7 @@ extern u8             D_801156F9;
 s32  Stage_HasTransitionFlags(void);
 s32  Stage_RequestImageCapture(void);
 void func_8001D5C4(void);
-u16  func_800E5578(s32 arg0, s32 arg1, u8 arg2, u32 arg3);
+u16  func_800E5578(s32 arg0, s32 arg1, u8 arg2, u16 arg3);
 void func_800E62C0(void);
 void func_800E44A0(Task* arg0);
 void func_80724120(void);
@@ -853,9 +860,9 @@ resumeView:
     }
 }
 
-u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u32 arg3)
+u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u16 arg3)
 {
-    u32          title;
+    u8           title;
     u8           flagA;
     u16*         text;
     u16*         body;
@@ -882,7 +889,6 @@ u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u32 arg3)
     s16          t2;
     s16          top;
     s32          base59;
-    u8*          vertical;
     POLY_G4*     bg;
     POLY_G4*     bg2;
     DR_MODE*     dm;
@@ -893,12 +899,12 @@ u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u32 arg3)
     GpCapChoice* ch;
     GpCapChoice* p;
 
+    const _GpCapLayout* layout;
+
     text     = (u16*)arg0;
-    vertical = D_80097518;
+    layout   = &D_80097518;
     nChoice  = 0;
     title    = arg3;
-    SOFT_TOUCH_REG(title);
-    arg3     = (u16)arg3;
     inChoice = 0;
     lineIdx  = 0;
     selected = 0;
@@ -951,7 +957,7 @@ u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u32 arg3)
     dm->code[0] = 0xE100020A;
     addPrim(&gGpuCurrentOt[3], dm);
 
-    if (title & 0xFF) {
+    if (title) {
         ft             = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = ft + 1;
         setlen(ft, 9);
@@ -960,23 +966,23 @@ u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u32 arg3)
         base59     = 0x59;
         top        = base59 - (u16)D_801155B6;
         ft->x0     = (u16)D_801155B2 - 0xA7;
-        ft->y0     = (top - gDisplayState.vramYOffset) - Gp_CapGlyphs[title & 0xFF].h;
-        titleWidth = Gp_CapGlyphs[title & 0xFF].w - 0xA7;
+        ft->y0     = (top - gDisplayState.vramYOffset) - Gp_CapGlyphs[title].h;
+        titleWidth = Gp_CapGlyphs[title].w - 0xA7;
         ft->x1     = (u16)D_801155B2 + titleWidth;
-        ft->y1     = (top - gDisplayState.vramYOffset) - Gp_CapGlyphs[title & 0xFF].h;
+        ft->y1     = (top - gDisplayState.vramYOffset) - Gp_CapGlyphs[title].h;
         ft->x2     = (u16)D_801155B2 - 0xA7;
         ft->y2     = (base59 - gDisplayState.vramYOffset) - (u16)D_801155B6;
-        titleWidth = Gp_CapGlyphs[title & 0xFF].w - 0xA7;
+        titleWidth = Gp_CapGlyphs[title].w - 0xA7;
         ft->x3     = (u16)D_801155B2 + titleWidth;
         ft->y3     = (base59 - gDisplayState.vramYOffset) - (u16)D_801155B6;
-        ft->u0     = Gp_CapGlyphs[title & 0xFF].u;
-        ft->v0     = Gp_CapGlyphs[title & 0xFF].v;
-        ft->u1     = Gp_CapGlyphs[title & 0xFF].u + Gp_CapGlyphs[title & 0xFF].w;
-        ft->v1     = Gp_CapGlyphs[title & 0xFF].v;
-        ft->u2     = Gp_CapGlyphs[title & 0xFF].u;
-        ft->v2     = Gp_CapGlyphs[title & 0xFF].v + Gp_CapGlyphs[title & 0xFF].h;
-        ft->u3     = Gp_CapGlyphs[title & 0xFF].u + Gp_CapGlyphs[title & 0xFF].w;
-        ft->v3     = Gp_CapGlyphs[title & 0xFF].v + Gp_CapGlyphs[title & 0xFF].h;
+        ft->u0     = Gp_CapGlyphs[title].u;
+        ft->v0     = Gp_CapGlyphs[title].v;
+        ft->u1     = Gp_CapGlyphs[title].u + Gp_CapGlyphs[title].w;
+        ft->v1     = Gp_CapGlyphs[title].v;
+        ft->u2     = Gp_CapGlyphs[title].u;
+        ft->v2     = Gp_CapGlyphs[title].v + Gp_CapGlyphs[title].h;
+        ft->u3     = Gp_CapGlyphs[title].u + Gp_CapGlyphs[title].w;
+        ft->v3     = Gp_CapGlyphs[title].v + Gp_CapGlyphs[title].h;
         ft->clut   = 0x3D93;
         ft->tpage  = getTPage(0, 1, D_80115654, D_80115656);
         addPrim(&gGpuCurrentOt[2], ft);
@@ -1008,7 +1014,7 @@ u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u32 arg3)
             next         = &body[i + 1];
             asm("" : "=r"(g), "+m"(*next) : "r"(lineIdx));
             lineIdx = t2;
-            if (*vertical == 0) {
+            if (layout->vertical == 0) {
                 y += func_800E6BB8(next);
                 if (centered != 0) {
                     x = Gp_CapCenterXLine((u16*)arg0, (s16)lineIdx) - 0xA0;
@@ -1024,7 +1030,7 @@ u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u32 arg3)
             continue;
         } else {
             if (sc == -3) {
-                if (*vertical == 0) {
+                if (layout->vertical == 0) {
                     x += 3;
                 } else {
                     y += 3;
@@ -1147,8 +1153,7 @@ u16 func_800E5578(s32 arg0, s32 arg1, u8 arg2, u32 arg3)
                 *gt2           = *gt;
                 gt2->tpage     = getTPage(0, 2, D_80115654, D_80115656);
                 addPrim(&gGpuCurrentOt[2], gt2);
-                asm("" : "+m"(gt2->tag)::"memory");
-                if (*vertical == 0) {
+                if (layout->vertical == 0) {
                     x = Gp_CapGlyphs[(s16)code].w + x - 1;
                 } else {
                     y = Gp_CapGlyphs[(s16)code].h + y - 1;

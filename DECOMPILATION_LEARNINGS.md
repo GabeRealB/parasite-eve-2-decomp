@@ -142342,3 +142342,15 @@ copy's label ended CSE's skip-block path, so the reload of the global the barrie
 forced came back on its own. One path, the test directly before an out-of-line
 block reached by `goto`, still had to `goto next` into the end copy. Duplicated
 there too, jump2 merged every tail into that copy instead of the last one.
+
+## `move sN,aK` then `andi aK,aK,...`: the long-lived copy is a narrower local (func_800E5578, 2026-09-26)
+
+The target copied a parameter into `s1` and then masked the parameter in its
+own register (`andi a3,a3,0xFFFF`), testing the copy later with `andi v0,s1,0xFF`.
+Written `u32 title = arg3;`, cse puts `title` and `arg3` in one equivalence class
+and canonicalises every use to the longer-lived `title`, so the mask reads `s1`
+and the parameter pseudo disappears; the tree had pinned it apart with
+`SOFT_TOUCH_REG(title)`. Declaring `u8 title` makes the copy a `QImode` subreg
+set, which is not an equivalence with the `SImode` parameter: the mask keeps
+reading `arg3`, which ties to `a3` and dies there. The `& 0xFF` at every use
+disappears with it, since those were the `u8` zero-extensions.
