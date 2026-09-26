@@ -19,10 +19,7 @@
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/sound.h"
-#define Stage_SetFadeMax Stage_SetFadeMax_u8
 #include "main/stage.h"
-#undef Stage_SetFadeMax
-void Stage_SetFadeMax(s32 arg0);
 #include "main/task.h"
 #include "main/text.h"
 #include "main/ui.h"
@@ -359,59 +356,19 @@ void Gp_MenuRootTask(Task* arg0)
             }
             arg = arg0->spawnArg1;
             if (arg == 0x45) {
-                s32          ca0;
-                register s32 ca1 asm("a1");
-                register s32 ca2 asm("a2");
-
-                ca0          = 1;
-                ca1          = 0;
-                ca2          = ca1;
                 Wip_UiHolder = NULL;
-                CdCmd_EnqueueLoadFile(ca0, ca1, ca2);
-            }
-            {
-                register UiObjectDesc* desc asm("a0");
-                s32                    a1;
-                register s32           a2 asm("a2");
-                s32                    a3;
-                s32                    flag;
-
-                if (arg == 0x45) {
-                    desc = &D_8010EEA4;
-                    a1   = 1;
-                    a2   = 1;
-                    a3   = 2;
-                    obj  = Ui_SpawnFromDesc(desc, a1, a2, a3, 0);
-                } else if (arg == 0x44) {
-                    desc = &D_80184F70;
-                    a1   = 0;
-                    a2   = 1;
-                    a3   = a2;
-                    obj  = Ui_SpawnFromDesc(desc, a1, a2, a3, 0);
-                } else if (arg == 0x43) {
-                    desc = &D_8010F140;
-                    a1   = 0;
-                    a2   = 1;
-                    a3   = 8;
-                    obj  = Ui_SpawnFromDesc(desc, a1, a2, a3, 0);
-                } else {
-                    if (arg == 0x42) {
-                        desc = &D_8010F898;
-                        a1   = 0;
-                        a2   = 1;
-                        SOFT_TOUCH_REG(a2);
-                        a3   = a2;
-                        flag = a2;
-                    } else {
-                        desc = &D_8010EAB4;
-                        a1   = 0;
-                        a2   = 0;
-                        a3   = 2;
-                        flag = 1;
-                    }
-                    disp->keepGraphics = flag;
-                    obj                = Ui_SpawnFromDesc(desc, a1, a2, a3, 0);
-                }
+                CdCmd_EnqueueLoadFile(1, 0, 0);
+                obj = Ui_SpawnFromDesc(&D_8010EEA4, 1, 1, 2, 0);
+            } else if (arg == 0x44) {
+                obj = Ui_SpawnFromDesc(&D_80184F70, 0, 1, 1, 0);
+            } else if (arg == 0x43) {
+                obj = Ui_SpawnFromDesc(&D_8010F140, 0, 1, 8, 0);
+            } else if (arg == 0x42) {
+                disp->keepGraphics = 1;
+                obj                = Ui_SpawnFromDesc(&D_8010F898, 0, 1, 1, 0);
+            } else {
+                disp->keepGraphics = 1;
+                obj                = Ui_SpawnFromDesc(&D_8010EAB4, 0, 0, 2, 0);
             }
             if (obj == NULL) {
                 break;
@@ -427,8 +384,7 @@ void Gp_MenuRootTask(Task* arg0)
             gDisplayState.at100.flags.flipMode = 1;
             arg0->state                       += 0xA;
         case 0x28: {
-            UiObject*    obj;
-            register s32 fade asm("a0");
+            UiObject* obj;
 
             obj = arg0->spawnArg2;
             if ((obj->field_2E != 6) && (obj->field_2E != -1)) {
@@ -438,12 +394,11 @@ void Gp_MenuRootTask(Task* arg0)
             if ((arg0->spawnArg1 != 0x44) && (arg0->spawnArg1 != 0x42)) {
                 SndEvt_EnqueueType6(5, 0, 0);
             }
-            fade = 0xFF;
-            SOFT_TOUCH_REG(fade);
             arg0->killCountdown = 0xC;
-            Stage_SetFadeMax(fade);
+            Stage_SetFadeMax(0xFF);
             Stage_SetFadeRate(0, 0, 0, 1);
-            break;
+            arg0->state += 0xA;
+            return;
         }
         case 0x32: {
             DisplayState* disp;
