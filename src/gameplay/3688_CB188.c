@@ -2225,32 +2225,18 @@ s32 Gp_GetPreviewItem(void)
 
 void Gp_DrawItemDescLine(DialogPrompt* arg0, UiObject* arg1)
 {
-    register u8* text asm("v0");
-    s8           idx;
-    s32          id;
+    u8* text;
+    s8  idx;
+    s32 id;
 
     idx = arg0->field_8;
     id  = (u16)arg1->owner->spawnArg1;
     if ((idx < 2) && (id < 0x100)) {
         text = Gp_GetItemText(id, idx + 1, 1);
+        Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, text, 0x606060, 3, 0);
     } else {
         text = Text_SkipLines(Fs_GetChunkPayload(), arg0->field_8 + 5);
-    }
-    {
-        s32                color;
-        register UiObject* obj asm("a0");
-        u8*                str;
-        register s32       mode asm("v0");
-        s16                x;
-        s16                y;
-
-        color = 0x606060;
-        obj   = arg1;
-        str   = text;
-        x     = arg0->field_18;
-        y     = arg0->field_1A;
-        mode  = 3;
-        Text_DrawPrompt(obj, x, y, str, color, mode, 0);
+        Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, text, 0x606060, 3, 0);
     }
 }
 
