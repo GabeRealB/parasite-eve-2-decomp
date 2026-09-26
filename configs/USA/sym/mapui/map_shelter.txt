@@ -2,3 +2,7 @@
 D_map_shelter_80179B40 = 0x80179B40; // table main indexes by map
 D_map_shelter_8017BE28 = 0x8017BE28; // table main indexes by map
 D_map_shelter_8017C2D8 = 0x8017C2D8; // table main indexes by map
+D_mine_forked_tunnel_801807B4 = 0x801807B4; // absolute:True
+D_shelter_b1_sterilization_room_80184DF8 = 0x80184DF8; // absolute:True
+D_shelter_b2_laboratory_801829E4 = 0x801829E4; // absolute:True
+D_shelter_b3_dumping_hole_80187550 = 0x80187550; // absolute:True

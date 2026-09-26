@@ -219,13 +219,15 @@ do not say whether the original compiled the id or the packaging tool wrote it,
 so read `packageid.c` as reproducing the bytes, not as evidence about the
 original sources.
 
-**A room's index in `Gp_AreaTables` is its folder order in `stages.json`.**
-`Gp_AreaTables[stage][room]` is resident in gameplay, but `field_0` points *into*
-the room overlay, so resolving it needs both images mapped at once - gameplay at
-`0x80093800` and the room at `0x8017D5C0`. The room index is 1-based and matches
-the order the folders appear under `stageN.folders`; checked against stage 1,
-all 8 sampled rooms resolve into their own package. `tools/find_models.py`
-documents the wider model-reference chain this belongs to.
+**A room's index is its folder's disc id divided by 100.** Room folders have
+ids `index * 100 + 1` (`asset_data.TREE`), and the game's per-stage tables -
+`Gp_AreaTables[stage][room]`, `Gp_Bit2Banks`, the map overlays' room tables -
+are indexed by that number. It is *not* the order folders appear under
+`stageN.folders`: a stage that skips an index (Dryfield has no room 10, the
+night stage no room 4 either) shifts every later room. Those tables point
+*into* the room overlay, so resolving them needs both images mapped at once -
+gameplay at `0x80093800` and the room at `0x8017D5C0`. `tools/find_models.py`
+resolves the model references this way.
 
 **A unit is re-split only when something it reads has changed.** The stamp in
 `linkers/USA/.split/<name>.json` hashes the config, the target binary, the

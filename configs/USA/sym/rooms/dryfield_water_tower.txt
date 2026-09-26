@@ -1,2 +1,3 @@
 // Overlay-local symbols for dryfield_water_tower.
 D_dryfield_water_tower_801876AA = 0x801876AA; // type:u16 size:0x2
+D_actor_213000_80151254 = 0x80151254; // absolute:True

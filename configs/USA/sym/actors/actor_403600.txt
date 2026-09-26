@@ -9,3 +9,4 @@ D_8016A408 = 0x8016A408; // absolute:True
 D_8016AEF8 = 0x8016AEF8; // absolute:True
 D_8016E450 = 0x8016E450; // absolute:True
 D_8016E468 = 0x8016E468; // absolute:True
+D_actor_303600_801690A4 = 0x801690A4; // absolute:True
