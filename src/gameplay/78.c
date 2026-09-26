@@ -107,6 +107,183 @@ typedef struct {
 } _GpRelMatScratch;
 STATIC_ASSERT_SIZEOF(_GpRelMatScratch, 0x30);
 
+void Gp_AreaEnterTask(Task* arg0)
+{
+    u32             key;
+    GpEndWork*      work;
+    s32             i;
+    Task* volatile* p;
+    Task*           slot;
+    GameSession*    session;
+    GpSndParam*     pair;
+    McItemScan*     scan;
+    McSaveData*     save;
+
+    if (arg0->state == 0) {
+        work = arg0->spawnArg2;
+        key  = GP_LOC_WORD(gGameSession->at4.loc);
+        key &= GP_LOC_STAGE_AREA;
+        Stage_InitPrimBufOnce();
+        i = 0;
+        p = Gp_ActorSlots;
+        do {
+            slot = *p;
+            if (slot != NULL) {
+                ((GameActor*)slot->work)->field_90C = NULL;
+            }
+            i++;
+            p++;
+        } while (i < 2);
+        SndEvt_EnqueueType8(0xD);
+        Gp_EnqueueSndCd((Gp_GetAttachLevel(7) + 0x15) & 0xFF);
+        if (key == GP_LOC_KEY(1, 20, 0, 0)) {
+            arg0->spawnArg2 = Ui_SpawnFromDesc(&D_80185000, arg0->spawnArg1, 1, 4, NULL);
+        } else {
+            arg0->spawnArg2 = Ui_SpawnFromDesc(&D_8010CA40, arg0->spawnArg1, 1, 1, NULL);
+            if (arg0->spawnArg1 == 0) {
+                work->field_4 = 0;
+                work->field_0 = 0;
+                Gp_SetAreaFlag2(1, (GpAreaKey*)&gGameSession->at4.loc);
+                gGameSession->field_126 = 1;
+                if (key == GP_LOC_KEY(5, 11, 0, 0) || key == GP_LOC_KEY(5, 29, 0, 0)) {
+                    if (gGameSession->at4.loc.place - 1 < 3U) {
+                        goto skip_count;
+                    }
+                }
+                save = &Mc_SaveData;
+                if (save->field_6CC < 0x270FU) {
+                    save->field_6CC++;
+                }
+            skip_count:
+                scan = &D_8010CA2C;
+                Gp_ClearScanItems(scan);
+                arg0->status = Gp_GrantLocationItems(scan);
+                if (arg0->status != 0) {
+                    Ui_SpawnFromDesc(D_8010CA78, 1, 0, 0x11, arg0->spawnArg2);
+                    if (arg0->status == 2) {
+                        Ui_SpawnFromDesc(D_8010CA78 + 1, 2, 0, 0x21, arg0->spawnArg2);
+                    }
+                }
+            } else {
+                s32         hi;
+                McSaveData* save2;
+
+                asm("lui %0, %%hi(Mc_SaveData)" : "=r"(hi));
+                asm("addiu %0, %1, %%lo(Mc_SaveData)" : "=r"(save2) : "r"(hi));
+                arg0->status = 0;
+                if (save2->field_6CE < 0x270FU) {
+                    save2->field_6CE++;
+                }
+            }
+        }
+        GameMain_SetFrameTiming(0);
+        arg0->state++;
+    } else if (arg0->state == 1) {
+        session = gGameSession;
+        if (!(session->flowFlags & 2)) {
+            session->viewReady = 1;
+            pair               = (GpSndParam*)&D_8007A39C;
+            pair->field_0      = 0;
+            pair->field_2      = 0;
+            if (!(gGameSession->flowFlags & 8)) {
+                Task_SpawnFromTable(&D_80062774, 0, 1, 0);
+            } else {
+                Task_SpawnFromTable(&D_80062774, 0, 3, 0);
+            }
+        } else {
+            gStageMusicLoadState = 0xFF;
+        }
+        arg0->state++;
+    } else if (arg0->state == 2) {
+        UiObject* obj;
+
+        obj = arg0->spawnArg2;
+        if (gStageMusicLoadState == 0xFF) {
+            if (CdCmd_IsIdle() & 0xFFFF) {
+                if (obj->field_2E == 6) {
+                    Ui_TeardownTree(obj, obj->owner);
+                    if (arg0->status != 0) {
+                        Gp_PubItemLoc   = 0x700;
+                        arg0->spawnArg2 = Ui_SpawnFromDesc(&D_8010D6D8, 1, 1, 1, NULL);
+                        arg0->state++;
+                    } else {
+                        arg0->killCountdown = 0xA;
+                        arg0->state         = 0x10;
+                    }
+                }
+            }
+        }
+    } else if (arg0->state == 3) {
+        UiObject* obj;
+
+        obj = arg0->spawnArg2;
+        if ((obj->field_2E == 6) || (obj->field_2E == -1)) {
+            Ui_TeardownTree(obj, obj->owner);
+            arg0->killCountdown = 0xA;
+            arg0->state         = 0x10;
+        }
+    } else if (arg0->state == 0x10) {
+        arg0->killCountdown--;
+        if (arg0->killCountdown <= 0) {
+            arg0->state = 0x11;
+        }
+    }
+
+    if (arg0->state >= 0x11) {
+        if (gStageMusicLoadState == 0xFF) {
+            if (CdCmd_IsIdle() & 0xFFFF) {
+                GameMain_SetFrameTiming(1);
+                SndEvt_EnqueueType9(0xD);
+                taskKill(arg0);
+                Stage_ReleasePrimBuf();
+                Stage_SetEndingFlag();
+            }
+        }
+    }
+}
+
+u16 Gp_GetAttachParam(s32 arg0)
+{
+    PlayerStatus* p;
+    s32           cond;
+    s32           ret;
+    u8*           table;
+    s32           idx;
+    GpRec16*      recs;
+    register s32  off asm("v1");
+
+    recs = Gp_IdParamHi;
+    idx  = Gp_StateC08.field_5;
+    if (idx >= 0xC) {
+        ret = 1;
+    } else {
+        p = &Player_Status;
+        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(1, 20, 0, 0)) {
+            cond = 0;
+        } else {
+            cond = p->field_26 == 4;
+        }
+        if (cond == 0) {
+            table = Mc_SaveData.attachLevels;
+        } else {
+            table = Gp_DebugAttachLevels;
+        }
+        ret = table[idx];
+        if (ret == 0) {
+            ret = 1;
+        }
+        if (p->peStateFlags & 0x80) {
+            if (ret < 3) {
+                ret++;
+            }
+        }
+    }
+    off  = arg0 * 2;
+    off += (Gp_StateC08.field_5 * 3 + ret) * 16;
+    off  = (s32)recs + off;
+    return *(u16*)off;
+}
+
 void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
 {
     PlayerStatus* p;

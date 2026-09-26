@@ -98,7 +98,7 @@ segments:
       # Text TUs: first function that uses each group's jtbl (file 0 starts
       # at the first addiu $sp).
       - [0x42C0, c, gameplay] # Gp_DrawActorTmdFlagged
-      - [0xDE34, c, 78] # Gp_ApplyAttachStats
+      - [0xD90C, c, 78] # Gp_AreaEnterTask
       - [0x15B10, c, D4] # Gp_EnqueueWeaponCd
       - [0x1B3A4, c, 1A8] # Gp_LookupStageFlag
       - [0x1BD90, c, 1BC] # func_800AF590
