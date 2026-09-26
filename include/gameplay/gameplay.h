@@ -389,14 +389,13 @@ Task* Gp_FindTaskByCoord(GpCoord* arg0);
 void  Gp_ApplyPadReplay(s32 arg0, PadScratch* arg1);
 void  Gp_InitPlayClock(Task* task);
 void  Gp_TickPlayClock(Task* task);
+void  Gp_PlayClockState2(Task* arg0);
+void  Gp_PlayClockState3(Task* arg0);
 
-/// Read-only data ahead of the unit's jump tables, in `header.c`.
-extern const char           gGpStrNewDisp2dNull[];
+/// Colours and labels defined in `gameplay.c`, shared with `78.c`.
 extern const CVECTOR        gGpColorGrey;
 extern const CVECTOR        Gp_ColorOrange;
 extern const CVECTOR        gGpColorWhite;
-extern const char           Gp_StrColon[];
-extern const char           Gp_StrApostrophe[];
 extern const TaskFuncTable6 Gp_PlayClockStates;
 extern const char           Gp_StrBattleResult[];
 extern const char           Gp_StrTotal[];
