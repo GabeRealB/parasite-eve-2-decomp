@@ -1771,19 +1771,9 @@ static __inline__ s16 _actor01100BearingToPlayer(GpCoord* self)
     if (Gp_ActorSlots[0] == NULL) {
         return 0;
     }
-    other         = Gp_ActorSlots[0]->extra.tmd->coords;
-    blk           = SCRATCH_PUSH(ActorBearingScratch);
-    blk->delta.vx = other->workm.t[0] - self->workm.t[0];
-    blk->delta.vy = other->workm.t[1] - self->workm.t[1];
-    blk->delta.vz = other->workm.t[2] - self->workm.t[2];
-    TransposeMatrix(&self->workm, &blk->frame);
-    gfxRotateSv(&blk->frame, &blk->delta);
-    angle = ratan2(blk->delta.vx, blk->delta.vz);
-    if (angle >= 0x801) {
-        angle -= 0x1000;
-    } else if (angle < -0x800) {
-        angle += 0x1000;
-    }
+    other = Gp_ActorSlots[0]->extra.tmd->coords;
+    blk   = SCRATCH_PUSH(ActorBearingScratch);
+    angle = actorBearingInFrame(blk, self, other);
     SCRATCH_POP(ActorBearingScratch);
     return angle;
 }

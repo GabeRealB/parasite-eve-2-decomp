@@ -12,6 +12,7 @@
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "main/gfx.h"
+#include "main/gfxgte.h"
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/task.h"
@@ -363,6 +364,28 @@ typedef struct ActorBearingScratch {
     MATRIX  frame;
 } ActorBearingScratch;
 STATIC_ASSERT_SIZEOF(ActorBearingScratch, 0x40);
+
+/// Bearing of `other` from `self`, measured in `self`'s own frame and folded
+/// into -0x800..0x800. The offset between the two world positions is written
+/// to `blk->delta` and rotated there through `blk->frame`, the transpose of
+/// `self`'s world matrix; the caller owns `blk` and may reuse it afterwards.
+static __inline__ s32 actorBearingInFrame(ActorBearingScratch* blk, GpCoord* self, GpCoord* other)
+{
+    s32 angle;
+
+    blk->delta.vx = other->workm.t[0] - self->workm.t[0];
+    blk->delta.vy = other->workm.t[1] - self->workm.t[1];
+    blk->delta.vz = other->workm.t[2] - self->workm.t[2];
+    TransposeMatrix(&self->workm, &blk->frame);
+    gfxRotateSv(&blk->frame, &blk->delta);
+    angle = ratan2(blk->delta.vx, blk->delta.vz);
+    if (angle >= 0x801) {
+        angle -= 0x1000;
+    } else if (angle < -0x800) {
+        angle += 0x1000;
+    }
+    return angle;
+}
 
 /// The scratch-pad block of a head turned to aim at the player: `view` is the
 /// head coordinate in view space, `delta` the player's offset from it, and

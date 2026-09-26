@@ -141105,3 +141105,16 @@ them again:
 
 The remaining allocation (`t` in `a1`, not `a0`) only follows once the copy is
 live in `a0`. Nothing has been found that reproduces both at once.
+
+## An inline helper called without its header compiles to a real `jal`, silently (bearing helpers, 2026-09-26)
+
+C89 lets a call to an undeclared function through as an implicit declaration,
+and this build does not warn about it. A shared `static __inline__` helper
+used in a file that does not include its header therefore compiles to an
+ordinary `jal helper` - the body is never inlined - and a matching attempt
+that "uses the helper" fails for reasons unrelated to the source shape. Three
+bearing functions carried a hand-written `move`, a hand-split scratch push, an
+asm `ldv0` of a stack copy and a `COMPILER_BARRIER` for exactly this: with
+`main/gfxgte.h` visible, `gfxRotateSv` inlines and the plain body matches
+first try. When a helper swap mismatches, first check the object for a `jal`
+to the helper's name.
