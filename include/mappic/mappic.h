@@ -137,4 +137,58 @@ extern TmdSource D_mappic_s3_03_8012EFD8;
 extern TmdSource D_mappic_s3_03_8012F084;
 extern TmdSource D_mappic_s3_03_8012F180;
 
+// mappic_s4_00
+extern TmdSource D_mappic_s4_00_8012EFBC;
+extern TmdSource D_mappic_s4_00_8012F0D8;
+
+// mappic_s4_02
+extern TmdSource D_mappic_s4_02_8012EFA0;
+extern TmdSource D_mappic_s4_02_8012F030;
+extern TmdSource D_mappic_s4_02_8012F0C0;
+extern TmdSource D_mappic_s4_02_8012F150;
+extern TmdSource D_mappic_s4_02_8012F1E0;
+extern TmdSource D_mappic_s4_02_8012F28C;
+
+// mappic_s4_03
+extern TmdSource D_mappic_s4_03_8012EFD8;
+extern TmdSource D_mappic_s4_03_8012F084;
+extern TmdSource D_mappic_s4_03_8012F114;
+extern TmdSource D_mappic_s4_03_8012F1C0;
+extern TmdSource D_mappic_s4_03_8012F26C;
+extern TmdSource D_mappic_s4_03_8012F318;
+extern TmdSource D_mappic_s4_03_8012F3F8;
+extern TmdSource D_mappic_s4_03_8012F488;
+extern TmdSource D_mappic_s4_03_8012F584;
+extern TmdSource D_mappic_s4_03_8012F664;
+extern TmdSource D_mappic_s4_03_8012F710;
+extern TmdSource D_mappic_s4_03_8012F7F0;
+extern TmdSource D_mappic_s4_03_8012F8D0;
+extern TmdSource D_mappic_s4_03_8012F960;
+extern TmdSource D_mappic_s4_03_8012F9F0;
+extern TmdSource D_mappic_s4_03_8012FAEC;
+
+// mappic_s4_04
+extern TmdSource D_mappic_s4_04_8012EFD8;
+extern TmdSource D_mappic_s4_04_8012F084;
+extern TmdSource D_mappic_s4_04_8012F114;
+extern TmdSource D_mappic_s4_04_8012F1C0;
+extern TmdSource D_mappic_s4_04_8012F26C;
+extern TmdSource D_mappic_s4_04_8012F318;
+extern TmdSource D_mappic_s4_04_8012F468;
+extern TmdSource D_mappic_s4_04_8012F4F8;
+extern TmdSource D_mappic_s4_04_8012F5F4;
+extern TmdSource D_mappic_s4_04_8012F6BC;
+
+// mappic_s4_05
+extern TmdSource D_mappic_s4_05_8012EFF0;
+extern TmdSource D_mappic_s4_05_8012F14C;
+extern TmdSource D_mappic_s4_05_8012F1F8;
+extern TmdSource D_mappic_s4_05_8012F32C;
+
+// mappic_s4_06
+extern TmdSource D_mappic_s4_06_8012EFF0;
+extern TmdSource D_mappic_s4_06_8012F0B8;
+extern TmdSource D_mappic_s4_06_8012F198;
+extern TmdSource D_mappic_s4_06_8012F260;
+
 #endif /* MAPPIC_MAPPIC_H */

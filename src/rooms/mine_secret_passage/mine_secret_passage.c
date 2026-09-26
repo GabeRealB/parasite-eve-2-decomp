@@ -11,6 +11,7 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/room.h"
 
 extern s32 func_80179A04(GpSaveLoc* in, GpSaveLoc* out);
 
@@ -188,7 +189,7 @@ static void func_mine_secret_passage_8017D968(Task* task)
 /// Per-frame entry point of the room task: runs the handler of
 /// `D_mine_secret_passage_8017D5C4` its state selects. The table is a local
 /// copy, so it is copied from `.rodata` onto the stack every frame.
-static void func_mine_secret_passage_8017D970(Task* task)
+void func_mine_secret_passage_8017D970(Task* task)
 {
     TaskFuncTable4 states;
 

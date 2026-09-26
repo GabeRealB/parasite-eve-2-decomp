@@ -6,6 +6,7 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 extern u8 D_80115598;
@@ -93,7 +94,7 @@ static void func_shelter_b1_storeroom_8017D78C(Task* task)
 }
 
 /// Runs the handler for the task's state from the room's state table.
-static void func_shelter_b1_storeroom_8017D794(Task* task)
+void func_shelter_b1_storeroom_8017D794(Task* task)
 {
     TaskFuncTable3 sp;
 

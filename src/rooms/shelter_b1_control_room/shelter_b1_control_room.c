@@ -17,6 +17,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// The mirror's configuration, filled in by `func_shelter_b1_control_room_8017D600`
@@ -639,7 +640,7 @@ static const TaskFuncTable3 D_shelter_b1_control_room_8017D5C4 = {
 
 /// The room task: runs the handler for its state from a stack copy of
 /// `D_shelter_b1_control_room_8017D5C4`.
-static void func_shelter_b1_control_room_8017EECC(Task* task)
+void func_shelter_b1_control_room_8017EECC(Task* task)
 {
     TaskFuncTable3 sp;
 

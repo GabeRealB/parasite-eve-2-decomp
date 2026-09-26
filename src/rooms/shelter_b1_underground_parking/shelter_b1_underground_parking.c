@@ -3326,7 +3326,7 @@ static void func_shelter_b1_underground_parking_80183810(Task* arg0)
 
 /// Dispatches a task through the three-entry state table, copied onto the
 /// stack first.
-static void func_shelter_b1_underground_parking_801838B4(Task* task)
+void func_shelter_b1_underground_parking_801838B4(Task* task)
 {
     TaskFuncTable3 sp;
 

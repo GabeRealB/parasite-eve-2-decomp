@@ -21,6 +21,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "rooms/shelter_b2_elevator_hall.h"
@@ -328,7 +329,7 @@ static void func_shelter_b2_elevator_hall_8017DD00(Task* task)
 }
 
 /// Runs the handler for the task's state from the room's state table.
-static void func_shelter_b2_elevator_hall_8017DD08(Task* task)
+void func_shelter_b2_elevator_hall_8017DD08(Task* task)
 {
     TaskFuncTable3 sp;
 

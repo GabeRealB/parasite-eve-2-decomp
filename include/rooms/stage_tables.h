@@ -1217,4 +1217,570 @@ extern GpViewRec       D_dryfield_night_underpass_8017E6F8[];
 extern GpSprtRec       D_dryfield_night_underpass_8017F420[];
 extern GpRoomParamRec* D_dryfield_night_underpass_80180374[];
 
+// mine_mesa
+extern GpRoomObjRec    D_mine_mesa_80186538[];
+extern u8*             D_mine_mesa_80186548[];
+extern GpRoomCoordRec  D_mine_mesa_8018654C[];
+extern GpViewCountRec  D_mine_mesa_80186554[];
+extern GpWarpRec       D_mine_mesa_80186558[];
+extern GpViewRec       D_mine_mesa_80187030[];
+extern GpSprtRec       D_mine_mesa_80188744[];
+extern GpRoomParamRec* D_mine_mesa_80189A60[];
+
+// mine_cavern
+extern GpRoomObjRec    D_mine_cavern_80188FE0[];
+extern GpRoomCoordRec  D_mine_cavern_80189010[];
+extern u8*             D_mine_cavern_80189060[];
+extern GpViewCountRec  D_mine_cavern_8018906C[];
+extern GpWarpRec       D_mine_cavern_80189074[];
+extern GpViewRec       D_mine_cavern_80189840[];
+extern GpSprtRec       D_mine_cavern_8018CD10[];
+extern GpRoomParamRec* D_mine_cavern_8018E30C[];
+
+// mine_tunnel_entrance
+extern GpRoomCoordRec  D_mine_tunnel_entrance_8017DB58[];
+extern GpRoomObjRec    D_mine_tunnel_entrance_8017DB60[];
+extern u8*             D_mine_tunnel_entrance_8017DB70[];
+extern GpViewCountRec  D_mine_tunnel_entrance_8017DB74[];
+extern GpWarpRec       D_mine_tunnel_entrance_8017DB78[];
+extern GpViewRec       D_mine_tunnel_entrance_8017E0E4[];
+extern GpSprtRec       D_mine_tunnel_entrance_8017EA4C[];
+extern GpRoomParamRec* D_mine_tunnel_entrance_8017F3E8[];
+
+// mine_tunnel
+extern GpRoomCoordRec  D_mine_tunnel_8017E154[];
+extern GpRoomObjRec    D_mine_tunnel_8017E15C[];
+extern u8*             D_mine_tunnel_8017E16C[];
+extern GpViewCountRec  D_mine_tunnel_8017E170[];
+extern GpWarpRec       D_mine_tunnel_8017E174[];
+extern GpViewRec       D_mine_tunnel_8017E890[];
+extern GpSprtRec       D_mine_tunnel_8017F9A4[];
+extern GpRoomParamRec* D_mine_tunnel_8018032C[];
+
+// mine_gorge
+extern GpRoomCoordRec  D_mine_gorge_8017E7A8[];
+extern GpRoomObjRec    D_mine_gorge_8017E7B8[];
+extern u8*             D_mine_gorge_8017E7E4[];
+extern GpViewCountRec  D_mine_gorge_8017E7EC[];
+extern GpWarpRec       D_mine_gorge_8017E7F0[];
+extern GpViewRec       D_mine_gorge_8017FA14[];
+extern GpSprtRec       D_mine_gorge_801827F8[];
+extern GpRoomParamRec* D_mine_gorge_80183644[];
+
+// mine_refuge
+extern GpRoomCoordRec  D_mine_refuge_801818F0[];
+extern GpRoomObjRec    D_mine_refuge_801818F8[];
+extern u8*             D_mine_refuge_80181908[];
+extern GpViewCountRec  D_mine_refuge_8018190C[];
+extern GpWarpRec       D_mine_refuge_80181910[];
+extern GpViewRec       D_mine_refuge_80181BC8[];
+extern GpSprtRec       D_mine_refuge_8018264C[];
+extern GpRoomParamRec* D_mine_refuge_80182AB4[];
+
+// mine_forked_tunnel
+extern GpRoomCoordRec  D_mine_forked_tunnel_80183634[];
+extern GpRoomObjRec    D_mine_forked_tunnel_8018363C[];
+extern u8*             D_mine_forked_tunnel_8018364C[];
+extern GpViewCountRec  D_mine_forked_tunnel_80183650[];
+extern GpWarpRec       D_mine_forked_tunnel_80183654[];
+extern GpViewRec       D_mine_forked_tunnel_80183D94[];
+extern GpSprtRec       D_mine_forked_tunnel_80184D64[];
+extern GpRoomParamRec* D_mine_forked_tunnel_801855C0[];
+
+// mine_secret_passage
+extern GpRoomCoordRec  D_mine_secret_passage_80180F9C[];
+extern GpRoomObjRec    D_mine_secret_passage_80180FA4[];
+extern u8*             D_mine_secret_passage_80180FB4[];
+extern GpViewCountRec  D_mine_secret_passage_80180FB8[];
+extern GpWarpRec       D_mine_secret_passage_80180FBC[];
+extern GpViewRec       D_mine_secret_passage_80181604[];
+extern GpSprtRec       D_mine_secret_passage_80182994[];
+extern GpRoomParamRec* D_mine_secret_passage_80183420[];
+
+// shelter_b1_elevator_hall
+extern GpRoomCoordRec  D_shelter_b1_elevator_hall_80182DF8[];
+extern GpRoomObjRec    D_shelter_b1_elevator_hall_80182E00[];
+extern u8*             D_shelter_b1_elevator_hall_80182E10[];
+extern GpViewCountRec  D_shelter_b1_elevator_hall_80182E14[];
+extern GpWarpRec       D_shelter_b1_elevator_hall_80182E18[];
+extern GpViewRec       D_shelter_b1_elevator_hall_80183438[];
+extern GpSprtRec       D_shelter_b1_elevator_hall_80183CC4[];
+extern GpRoomParamRec* D_shelter_b1_elevator_hall_801849D0[];
+
+// shelter_b1_south_maintenance_walkway
+extern GpRoomCoordRec  D_shelter_b1_south_maintenance_walkway_801823F4[];
+extern GpRoomObjRec    D_shelter_b1_south_maintenance_walkway_801823FC[];
+extern u8*             D_shelter_b1_south_maintenance_walkway_8018240C[];
+extern GpViewCountRec  D_shelter_b1_south_maintenance_walkway_80182410[];
+extern GpWarpRec       D_shelter_b1_south_maintenance_walkway_80182414[];
+extern GpViewRec       D_shelter_b1_south_maintenance_walkway_801827DC[];
+extern GpSprtRec       D_shelter_b1_south_maintenance_walkway_80182E18[];
+extern GpRoomParamRec* D_shelter_b1_south_maintenance_walkway_80183614[];
+
+// shelter_b1_storeroom
+extern GpRoomObjRec    D_shelter_b1_storeroom_80184B50[];
+extern GpRoomCoordRec  D_shelter_b1_storeroom_80184B60[];
+extern u8*             D_shelter_b1_storeroom_80184B68[];
+extern GpViewCountRec  D_shelter_b1_storeroom_80184B6C[];
+extern GpWarpRec       D_shelter_b1_storeroom_80184B70[];
+extern GpViewRec       D_shelter_b1_storeroom_801850FC[];
+extern GpSprtRec       D_shelter_b1_storeroom_80186090[];
+extern GpRoomParamRec* D_shelter_b1_storeroom_80186DEC[];
+
+// shelter_b1_north_maintenance_walkway
+extern u8*             D_shelter_b1_north_maintenance_walkway_80184B80[];
+extern GpViewCountRec  D_shelter_b1_north_maintenance_walkway_80184B84[];
+extern GpWarpRec       D_shelter_b1_north_maintenance_walkway_80184B88[];
+extern GpGridParams    D_shelter_b1_north_maintenance_walkway_80184F40;
+extern GpViewRec       D_shelter_b1_north_maintenance_walkway_80184F64[];
+extern GpSprtRec       D_shelter_b1_north_maintenance_walkway_801853AC[];
+extern GpRoomCoordSet  D_shelter_b1_north_maintenance_walkway_801855D4;
+extern GpObj4A         D_shelter_b1_north_maintenance_walkway_801855EC[];
+extern GpObj3A         D_shelter_b1_north_maintenance_walkway_801857B4[];
+extern GpObj4A         D_shelter_b1_north_maintenance_walkway_80185A98[];
+extern GpRoomParamRec* D_shelter_b1_north_maintenance_walkway_80185B4C[];
+
+// shelter_b1_armory
+extern u8*             D_shelter_b1_armory_80182580[];
+extern GpViewCountRec  D_shelter_b1_armory_80182584[];
+extern GpWarpRec       D_shelter_b1_armory_80182588[];
+extern GpGridParams    D_shelter_b1_armory_80182ED0;
+extern GpViewRec       D_shelter_b1_armory_80182EF4[];
+extern GpSprtRec       D_shelter_b1_armory_80184220[];
+extern GpRoomCoordSet  D_shelter_b1_armory_80184AFC;
+extern GpObj4A         D_shelter_b1_armory_80184B14[];
+extern GpObj4A         D_shelter_b1_armory_80184E0C[];
+extern GpRoomParamRec* D_shelter_b1_armory_80185554[];
+
+// shelter_b1_sleeping_quarters
+extern u8*             D_shelter_b1_sleeping_quarters_80180658[];
+extern GpViewCountRec  D_shelter_b1_sleeping_quarters_8018065C[];
+extern GpWarpRec       D_shelter_b1_sleeping_quarters_80180660[];
+extern GpGridParams    D_shelter_b1_sleeping_quarters_801810D4;
+extern GpViewRec       D_shelter_b1_sleeping_quarters_801810F8[];
+extern GpSprtRec       D_shelter_b1_sleeping_quarters_80182E70[];
+extern GpRoomCoordSet  D_shelter_b1_sleeping_quarters_80183234;
+extern GpObj4A         D_shelter_b1_sleeping_quarters_8018324C[];
+extern GpObj3A         D_shelter_b1_sleeping_quarters_801837A4[];
+extern GpObj4A         D_shelter_b1_sleeping_quarters_801838D0[];
+extern GpRoomParamRec* D_shelter_b1_sleeping_quarters_801840B0[];
+
+// shelter_b1_main_corridor
+extern u8*             D_shelter_b1_main_corridor_801831F8[];
+extern GpViewCountRec  D_shelter_b1_main_corridor_801831FC[];
+extern GpWarpRec       D_shelter_b1_main_corridor_80183200[];
+extern GpGridParams    D_shelter_b1_main_corridor_801840F0;
+extern GpViewRec       D_shelter_b1_main_corridor_80184114[];
+extern GpSprtRec       D_shelter_b1_main_corridor_80185128[];
+extern GpRoomCoordSet  D_shelter_b1_main_corridor_801853E0;
+extern GpObj4A         D_shelter_b1_main_corridor_801853F8[];
+extern GpObj4A         D_shelter_b1_main_corridor_801858B8[];
+extern GpRoomParamRec* D_shelter_b1_main_corridor_80185D04[];
+
+// shelter_b1_sterilization_room
+extern GpRoomCoordRec  D_shelter_b1_sterilization_room_80189354[];
+extern GpRoomObjRec    D_shelter_b1_sterilization_room_8018936C[];
+extern u8*             D_shelter_b1_sterilization_room_801893CC[];
+extern GpViewCountRec  D_shelter_b1_sterilization_room_801893D8[];
+extern GpWarpRec       D_shelter_b1_sterilization_room_801893E0[];
+extern GpViewRec       D_shelter_b1_sterilization_room_80189E68[];
+extern GpSprtRec       D_shelter_b1_sterilization_room_8018B00C[];
+extern GpRoomParamRec* D_shelter_b1_sterilization_room_8018C314[];
+
+// shelter_b1_pod_access_tunnel
+extern u8*             D_shelter_b1_pod_access_tunnel_80183A14[];
+extern GpViewCountRec  D_shelter_b1_pod_access_tunnel_80183A18[];
+extern GpWarpRec       D_shelter_b1_pod_access_tunnel_80183A1C[];
+extern GpGridParams    D_shelter_b1_pod_access_tunnel_80183C24;
+extern GpViewRec       D_shelter_b1_pod_access_tunnel_80183C48[];
+extern GpSprtRec       D_shelter_b1_pod_access_tunnel_8018462C[];
+extern GpRoomCoordSet  D_shelter_b1_pod_access_tunnel_80184734;
+extern GpObj4A         D_shelter_b1_pod_access_tunnel_8018474C[];
+extern GpObj3A         D_shelter_b1_pod_access_tunnel_8018487C[];
+extern GpObj4A         D_shelter_b1_pod_access_tunnel_801848B8[];
+extern GpRoomParamRec* D_shelter_b1_pod_access_tunnel_80184CDC[];
+
+// shelter_b1_control_room
+extern u8*             D_shelter_b1_control_room_80181C70[];
+extern GpViewCountRec  D_shelter_b1_control_room_80181C74[];
+extern GpWarpRec       D_shelter_b1_control_room_80181C78[];
+extern GpGridParams    D_shelter_b1_control_room_801820F8;
+extern GpViewRec       D_shelter_b1_control_room_8018211C[];
+extern GpSprtRec       D_shelter_b1_control_room_801833BC[];
+extern GpRoomCoordSet  D_shelter_b1_control_room_801834DC;
+extern GpObj4A         D_shelter_b1_control_room_801834F4[];
+extern GpObj4A         D_shelter_b1_control_room_80183624[];
+extern GpRoomBoundVec  D_shelter_b1_control_room_80183B48[];
+extern GpRoomParamRec* D_shelter_b1_control_room_80183BC0[];
+
+// shelter_b1_access_tunnel
+extern u8*             D_shelter_b1_access_tunnel_8017E7E4[];
+extern GpViewCountRec  D_shelter_b1_access_tunnel_8017E7E8[];
+extern GpWarpRec       D_shelter_b1_access_tunnel_8017E7EC[];
+extern GpGridParams    D_shelter_b1_access_tunnel_8017EB24;
+extern GpViewRec       D_shelter_b1_access_tunnel_8017EB48[];
+extern GpSprtRec       D_shelter_b1_access_tunnel_8017F6A0[];
+extern GpRoomCoordSet  D_shelter_b1_access_tunnel_8017FA1C;
+extern GpObj4A         D_shelter_b1_access_tunnel_8017FA34[];
+extern GpObj4A         D_shelter_b1_access_tunnel_8017FBFC[];
+extern GpObj3A         D_shelter_b1_access_tunnel_8017FD2C[];
+extern GpRoomParamRec* D_shelter_b1_access_tunnel_8017FF24[];
+
+// shelter_b1_underground_parking
+extern GpRoomCoordRec  D_shelter_b1_underground_parking_801877B4[];
+extern GpRoomObjRec    D_shelter_b1_underground_parking_801877F4[];
+extern u8*             D_shelter_b1_underground_parking_8018791C[];
+extern GpViewCountRec  D_shelter_b1_underground_parking_8018793C[];
+extern GpWarpRec       D_shelter_b1_underground_parking_8018794C[];
+extern GpViewRec       D_shelter_b1_underground_parking_80189778[];
+extern GpSprtRec       D_shelter_b1_underground_parking_8018AB9C[];
+extern GpRoomParamRec* D_shelter_b1_underground_parking_8018D724[];
+
+// shelter_b1_golem_freezer_1
+extern u8*             D_shelter_b1_golem_freezer_1_8017E790[];
+extern GpViewCountRec  D_shelter_b1_golem_freezer_1_8017E794[];
+extern GpWarpRec       D_shelter_b1_golem_freezer_1_8017E798[];
+extern GpGridParams    D_shelter_b1_golem_freezer_1_8017E9C0;
+extern GpViewRec       D_shelter_b1_golem_freezer_1_8017E9E4[];
+extern GpSprtRec       D_shelter_b1_golem_freezer_1_8017EDB0[];
+extern GpRoomCoordSet  D_shelter_b1_golem_freezer_1_8017EE64;
+extern GpObj4A         D_shelter_b1_golem_freezer_1_8017EE7C[];
+extern GpObj4A         D_shelter_b1_golem_freezer_1_8017EFAC[];
+extern GpRoomBoundVec  D_shelter_b1_golem_freezer_1_8017F234[];
+extern GpRoomParamRec* D_shelter_b1_golem_freezer_1_8017F290[];
+
+// shelter_b2_pod_bottom
+extern GpRoomObjRec    D_shelter_b2_pod_bottom_80181D14[];
+extern GpRoomCoordRec  D_shelter_b2_pod_bottom_80181D24[];
+extern u8*             D_shelter_b2_pod_bottom_80181D2C[];
+extern GpViewCountRec  D_shelter_b2_pod_bottom_80181D30[];
+extern GpWarpRec       D_shelter_b2_pod_bottom_80181D34[];
+extern GpViewRec       D_shelter_b2_pod_bottom_80182B80[];
+extern GpSprtRec       D_shelter_b2_pod_bottom_80185904[];
+extern GpRoomParamRec* D_shelter_b2_pod_bottom_80188770[];
+
+// shelter_b1_pod_service_gantry
+extern u8*             D_shelter_b1_pod_service_gantry_8017FB1C[];
+extern GpViewCountRec  D_shelter_b1_pod_service_gantry_8017FB20[];
+extern GpWarpRec       D_shelter_b1_pod_service_gantry_8017FB24[];
+extern GpGridParams    D_shelter_b1_pod_service_gantry_801801C4;
+extern GpViewRec       D_shelter_b1_pod_service_gantry_801801E8[];
+extern GpSprtRec       D_shelter_b1_pod_service_gantry_80181BA0[];
+extern GpRoomCoordSet  D_shelter_b1_pod_service_gantry_801824F4;
+extern GpRoomParamRec* D_shelter_b1_pod_service_gantry_80182520[];
+
+// shelter_b1_transfer_tunnel
+extern u8*             D_shelter_b1_transfer_tunnel_80182954[];
+extern GpViewCountRec  D_shelter_b1_transfer_tunnel_80182958[];
+extern GpWarpRec       D_shelter_b1_transfer_tunnel_8018295C[];
+extern GpGridParams    D_shelter_b1_transfer_tunnel_80182AEC;
+extern GpViewRec       D_shelter_b1_transfer_tunnel_80182B10[];
+extern GpSprtRec       D_shelter_b1_transfer_tunnel_80182BE0[];
+extern GpRoomCoordSet  D_shelter_b1_transfer_tunnel_80182D90;
+extern GpObj4A         D_shelter_b1_transfer_tunnel_80182DA8[];
+extern GpObj4A         D_shelter_b1_transfer_tunnel_80182ED8[];
+extern GpRoomParamRec* D_shelter_b1_transfer_tunnel_80183184[];
+
+// shelter_b1_control_room_access_tunnel
+extern u8*             D_shelter_b1_control_room_access_tunnel_80181F00[];
+extern GpViewCountRec  D_shelter_b1_control_room_access_tunnel_80181F04[];
+extern GpWarpRec       D_shelter_b1_control_room_access_tunnel_80181F08[];
+extern GpGridParams    D_shelter_b1_control_room_access_tunnel_80182070;
+extern GpViewRec       D_shelter_b1_control_room_access_tunnel_80182094[];
+extern GpSprtRec       D_shelter_b1_control_room_access_tunnel_80182130[];
+extern GpRoomCoordSet  D_shelter_b1_control_room_access_tunnel_801822D4;
+extern GpObj4A         D_shelter_b1_control_room_access_tunnel_801822EC[];
+extern GpObj4A         D_shelter_b1_control_room_access_tunnel_80182384[];
+extern GpRoomParamRec* D_shelter_b1_control_room_access_tunnel_80182678[];
+
+// shelter_b2_elevator
+extern u8*             D_shelter_b2_elevator_8017DFD8[];
+extern GpViewCountRec  D_shelter_b2_elevator_8017DFDC[];
+extern GpWarpRec       D_shelter_b2_elevator_8017DFE0[];
+extern GpGridParams    D_shelter_b2_elevator_8017E0E4;
+extern GpViewRec       D_shelter_b2_elevator_8017E108[];
+extern GpSprtRec       D_shelter_b2_elevator_8017E7BC[];
+extern GpRoomCoordSet  D_shelter_b2_elevator_8017E840;
+extern GpObj4A         D_shelter_b2_elevator_8017E858[];
+extern GpObj4A         D_shelter_b2_elevator_8017E8F0[];
+extern GpRoomParamRec* D_shelter_b2_elevator_8017E9D8[];
+
+// shelter_b2_elevator_hall
+extern u8*             D_shelter_b2_elevator_hall_801838DC[];
+extern GpViewCountRec  D_shelter_b2_elevator_hall_801838E0[];
+extern GpWarpRec       D_shelter_b2_elevator_hall_801838E4[];
+extern GpGridParams    D_shelter_b2_elevator_hall_80183DB4;
+extern GpViewRec       D_shelter_b2_elevator_hall_80183DD8[];
+extern GpSprtRec       D_shelter_b2_elevator_hall_80184120[];
+extern GpRoomCoordSet  D_shelter_b2_elevator_hall_801846B4;
+extern GpObj4A         D_shelter_b2_elevator_hall_801846CC[];
+extern GpObj3A         D_shelter_b2_elevator_hall_8018492C[];
+extern GpObj4A         D_shelter_b2_elevator_hall_80184968[];
+extern GpRoomParamRec* D_shelter_b2_elevator_hall_80184D5C[];
+
+// shelter_b2_south_maintenance_walkway
+extern u8*             D_shelter_b2_south_maintenance_walkway_8018263C[];
+extern GpViewCountRec  D_shelter_b2_south_maintenance_walkway_80182640[];
+extern GpWarpRec       D_shelter_b2_south_maintenance_walkway_80182644[];
+extern GpGridParams    D_shelter_b2_south_maintenance_walkway_801829E8;
+extern GpViewRec       D_shelter_b2_south_maintenance_walkway_80182A0C[];
+extern GpSprtRec       D_shelter_b2_south_maintenance_walkway_80183018[];
+extern GpRoomCoordSet  D_shelter_b2_south_maintenance_walkway_80183294;
+extern GpObj4A         D_shelter_b2_south_maintenance_walkway_801832AC[];
+extern GpObj4A         D_shelter_b2_south_maintenance_walkway_80183474[];
+extern GpObj3A         D_shelter_b2_south_maintenance_walkway_8018385C[];
+extern GpRoomParamRec* D_shelter_b2_south_maintenance_walkway_801838B4[];
+
+// shelter_b2_operating_room
+extern u8*             D_shelter_b2_operating_room_80180BC8[];
+extern GpViewCountRec  D_shelter_b2_operating_room_80180BCC[];
+extern GpWarpRec       D_shelter_b2_operating_room_80180BD0[];
+extern GpGridParams    D_shelter_b2_operating_room_80181364;
+extern GpViewRec       D_shelter_b2_operating_room_80181388[];
+extern GpSprtRec       D_shelter_b2_operating_room_80183184[];
+extern GpRoomCoordSet  D_shelter_b2_operating_room_80183718;
+extern GpObj4A         D_shelter_b2_operating_room_80183730[];
+extern GpObj3A         D_shelter_b2_operating_room_80183A28[];
+extern GpObj4A         D_shelter_b2_operating_room_80183ADC[];
+extern GpRoomBoundVec  D_shelter_b2_operating_room_80184184[];
+extern GpRoomParamRec* D_shelter_b2_operating_room_801841F4[];
+
+// shelter_b2_north_maintenance_walkway
+extern u8*             D_shelter_b2_north_maintenance_walkway_80183C5C[];
+extern GpViewCountRec  D_shelter_b2_north_maintenance_walkway_80183C60[];
+extern GpWarpRec       D_shelter_b2_north_maintenance_walkway_80183C64[];
+extern GpGridParams    D_shelter_b2_north_maintenance_walkway_8018401C;
+extern GpViewRec       D_shelter_b2_north_maintenance_walkway_80184040[];
+extern GpSprtRec       D_shelter_b2_north_maintenance_walkway_80185B04[];
+extern GpRoomCoordSet  D_shelter_b2_north_maintenance_walkway_80185D44;
+extern GpObj4A         D_shelter_b2_north_maintenance_walkway_80185D5C[];
+extern GpObj4A         D_shelter_b2_north_maintenance_walkway_80185F24[];
+extern GpObj3A         D_shelter_b2_north_maintenance_walkway_80186308[];
+extern GpRoomParamRec* D_shelter_b2_north_maintenance_walkway_80186360[];
+
+// shelter_b2_laboratory
+extern u8*             D_shelter_b2_laboratory_80182C08[];
+extern GpViewCountRec  D_shelter_b2_laboratory_80182C0C[];
+extern GpWarpRec       D_shelter_b2_laboratory_80182C10[];
+extern GpGridParams    D_shelter_b2_laboratory_8018355C;
+extern GpViewRec       D_shelter_b2_laboratory_80183580[];
+extern GpSprtRec       D_shelter_b2_laboratory_801854D0[];
+extern GpRoomCoordSet  D_shelter_b2_laboratory_80185944;
+extern GpObj4A         D_shelter_b2_laboratory_8018595C[];
+extern GpObj4A         D_shelter_b2_laboratory_80185D84[];
+extern GpRoomBoundVec  D_shelter_b2_laboratory_801863B8[];
+extern GpRoomParamRec* D_shelter_b2_laboratory_80186468[];
+
+// shelter_b2_breeding_room
+extern u8*             D_shelter_b2_breeding_room_8018055C[];
+extern GpViewCountRec  D_shelter_b2_breeding_room_80180560[];
+extern GpWarpRec       D_shelter_b2_breeding_room_80180564[];
+extern GpGridParams    D_shelter_b2_breeding_room_801810F4;
+extern GpViewRec       D_shelter_b2_breeding_room_80181118[];
+extern GpSprtRec       D_shelter_b2_breeding_room_801833D4[];
+extern GpRoomCoordSet  D_shelter_b2_breeding_room_801837AC;
+extern GpObj4A         D_shelter_b2_breeding_room_801837C4[];
+extern GpObj4A         D_shelter_b2_breeding_room_80183F9C[];
+extern GpRoomBoundVec  D_shelter_b2_breeding_room_80184624[];
+extern GpObj3A         D_shelter_b2_breeding_room_8018467C[];
+extern GpRoomParamRec* D_shelter_b2_breeding_room_801847F4[];
+
+// shelter_b2_main_corridor
+extern u8*             D_shelter_b2_main_corridor_801830CC[];
+extern GpViewCountRec  D_shelter_b2_main_corridor_801830D0[];
+extern GpWarpRec       D_shelter_b2_main_corridor_801830D4[];
+extern GpGridParams    D_shelter_b2_main_corridor_80184440;
+extern GpViewRec       D_shelter_b2_main_corridor_80184464[];
+extern GpSprtRec       D_shelter_b2_main_corridor_80188848[];
+extern GpRoomCoordSet  D_shelter_b2_main_corridor_80188BE4;
+extern GpObj4A         D_shelter_b2_main_corridor_80188BFC[];
+extern GpObj4A         D_shelter_b2_main_corridor_801893EC[];
+extern GpRoomParamRec* D_shelter_b2_main_corridor_80189624[];
+
+// shelter_b2_septic_tank
+extern u8*             D_shelter_b2_septic_tank_8018356C[];
+extern GpViewCountRec  D_shelter_b2_septic_tank_80183570[];
+extern GpWarpRec       D_shelter_b2_septic_tank_80183574[];
+extern GpGridParams    D_shelter_b2_septic_tank_80183E0C;
+extern GpViewRec       D_shelter_b2_septic_tank_80183E30[];
+extern GpSprtRec       D_shelter_b2_septic_tank_801866F4[];
+extern GpRoomCoordSet  D_shelter_b2_septic_tank_80186A3C;
+extern GpObj4A         D_shelter_b2_septic_tank_80186A54[];
+extern GpObj4A         D_shelter_b2_septic_tank_80186C1C[];
+extern GpRoomParamRec* D_shelter_b2_septic_tank_80187014[];
+
+// shelter_b2_pod_access_tunnel
+extern GpRoomObjRec    D_shelter_b2_pod_access_tunnel_80183DEC[];
+extern GpRoomCoordRec  D_shelter_b2_pod_access_tunnel_80183E0C[];
+extern u8*             D_shelter_b2_pod_access_tunnel_80183E24[];
+extern GpViewCountRec  D_shelter_b2_pod_access_tunnel_80183E2C[];
+extern GpWarpRec       D_shelter_b2_pod_access_tunnel_80183E30[];
+extern GpViewRec       D_shelter_b2_pod_access_tunnel_801841D8[];
+extern GpSprtRec       D_shelter_b2_pod_access_tunnel_80184C6C[];
+extern GpRoomParamRec* D_shelter_b2_pod_access_tunnel_801856D8[];
+
+// shelter_r36
+extern u8*             D_shelter_r36_8017E9BC[];
+extern GpViewCountRec  D_shelter_r36_8017E9C0[];
+extern GpWarpRec       D_shelter_r36_8017E9C4[];
+extern GpGridParams    D_shelter_r36_8017EAB0;
+extern GpViewRec       D_shelter_r36_8017EAD4[];
+extern GpSprtRec       D_shelter_r36_8017F318[];
+extern GpRoomCoordSet  D_shelter_r36_8017F6DC;
+extern GpObj4A         D_shelter_r36_8017F6F4[];
+extern GpRoomParamRec* D_shelter_r36_8017FAE4[];
+
+// shelter_r37
+extern u8*             D_shelter_r37_8017D6F8[];
+extern GpViewCountRec  D_shelter_r37_8017D6FC[];
+extern GpWarpRec       D_shelter_r37_8017D700[];
+extern GpGridParams    D_shelter_r37_8017D920;
+extern GpViewRec       D_shelter_r37_8017D944[];
+extern GpSprtRec       D_shelter_r37_8017D9E0[];
+extern GpRoomCoordSet  D_shelter_r37_8017DD44;
+extern GpObj4A         D_shelter_r37_8017DD5C[];
+extern GpRoomParamRec* D_shelter_r37_8017DED8[];
+
+// shelter_1f_heliport_s4
+extern u8*             D_shelter_1f_heliport_s4_8017D6F8[];
+extern GpViewCountRec  D_shelter_1f_heliport_s4_8017D6FC[];
+extern GpWarpRec       D_shelter_1f_heliport_s4_8017D700[];
+extern GpGridParams    D_shelter_1f_heliport_s4_8017D9C8;
+extern GpViewRec       D_shelter_1f_heliport_s4_8017D9EC[];
+extern GpSprtRec       D_shelter_1f_heliport_s4_8017DAF0[];
+extern GpRoomCoordSet  D_shelter_1f_heliport_s4_8017DE6C;
+extern GpObj4A         D_shelter_1f_heliport_s4_8017DE84[];
+extern GpRoomParamRec* D_shelter_1f_heliport_s4_8017E060[];
+
+// shelter_b3_dumping_hole
+extern GpRoomObjRec    D_shelter_b3_dumping_hole_8018B678[];
+extern u8*             D_shelter_b3_dumping_hole_8018B698[];
+extern GpViewCountRec  D_shelter_b3_dumping_hole_8018B6A0[];
+extern GpWarpRec       D_shelter_b3_dumping_hole_8018B6A4[];
+extern GpViewRec       D_shelter_b3_dumping_hole_8018C410[];
+extern GpSprtRec       D_shelter_b3_dumping_hole_8018E050[];
+extern GpRoomCoordSet  D_shelter_b3_dumping_hole_8018E3DC;
+extern GpRoomCoordSet  D_shelter_b3_dumping_hole_8018E874;
+extern GpRoomBoundVec  D_shelter_b3_dumping_hole_8018F1FC[];
+extern GpRoomBoundVec  D_shelter_b3_dumping_hole_8018F32C[];
+extern GpRoomParamRec* D_shelter_b3_dumping_hole_8018F480[];
+
+// shelter_b3_garbage_incinerator
+extern GpRoomCoordRec  D_shelter_b3_garbage_incinerator_80187280[];
+extern GpRoomObjRec    D_shelter_b3_garbage_incinerator_801872B8[];
+extern u8*             D_shelter_b3_garbage_incinerator_801873F0[];
+extern GpViewCountRec  D_shelter_b3_garbage_incinerator_8018740C[];
+extern GpWarpRec       D_shelter_b3_garbage_incinerator_8018741C[];
+extern GpViewRec       D_shelter_b3_garbage_incinerator_801883AC[];
+extern GpSprtRec       D_shelter_b3_garbage_incinerator_8018D100[];
+extern GpRoomParamRec* D_shelter_b3_garbage_incinerator_8018FB4C[];
+
+// shelter_b3_incinerator_control_room
+extern u8*             D_shelter_b3_incinerator_control_room_80181920[];
+extern GpViewCountRec  D_shelter_b3_incinerator_control_room_80181928[];
+extern GpWarpRec       D_shelter_b3_incinerator_control_room_8018192C[];
+extern GpGridParams    D_shelter_b3_incinerator_control_room_80181CC0;
+extern GpViewRec       D_shelter_b3_incinerator_control_room_80181CE4[];
+extern GpSprtRec       D_shelter_b3_incinerator_control_room_80182140[];
+extern GpRoomCoordSet  D_shelter_b3_incinerator_control_room_801824A0;
+extern GpObj4A         D_shelter_b3_incinerator_control_room_801824B8[];
+extern GpObj4A         D_shelter_b3_incinerator_control_room_80182668[];
+extern GpObj4A         D_shelter_b3_incinerator_control_room_801827E4[];
+extern GpObj3A         D_shelter_b3_incinerator_control_room_801829AC[];
+extern GpRoomParamRec* D_shelter_b3_incinerator_control_room_80182A20[];
+
+// shelter_b3_elevator_hall
+extern u8*             D_shelter_b3_elevator_hall_80182B54[];
+extern GpViewCountRec  D_shelter_b3_elevator_hall_80182B58[];
+extern GpWarpRec       D_shelter_b3_elevator_hall_80182B5C[];
+extern GpGridParams    D_shelter_b3_elevator_hall_801834C8;
+extern GpViewRec       D_shelter_b3_elevator_hall_801834EC[];
+extern GpSprtRec       D_shelter_b3_elevator_hall_801841DC[];
+extern GpRoomCoordSet  D_shelter_b3_elevator_hall_80184410;
+extern GpObj4A         D_shelter_b3_elevator_hall_80184428[];
+extern GpObj4A         D_shelter_b3_elevator_hall_801847DC[];
+extern GpObj3A         D_shelter_b3_elevator_hall_8018490C[];
+extern GpRoomParamRec* D_shelter_b3_elevator_hall_801849E0[];
+
+// shelter_b4_lower_sewer
+extern u8*             D_shelter_b4_lower_sewer_80181FA4[];
+extern GpViewCountRec  D_shelter_b4_lower_sewer_80181FA8[];
+extern GpWarpRec       D_shelter_b4_lower_sewer_80181FAC[];
+extern GpGridParams    D_shelter_b4_lower_sewer_801828E4;
+extern GpViewRec       D_shelter_b4_lower_sewer_80182908[];
+extern GpSprtRec       D_shelter_b4_lower_sewer_80182E80[];
+extern GpRoomCoordSet  D_shelter_b4_lower_sewer_8018342C;
+extern GpObj4A         D_shelter_b4_lower_sewer_80183444[];
+extern GpObj4A         D_shelter_b4_lower_sewer_801837D4[];
+extern GpRoomParamRec* D_shelter_b4_lower_sewer_80183DF4[];
+
+// shelter_b4_upper_sewer
+extern u8*             D_shelter_b4_upper_sewer_80186590[];
+extern GpViewCountRec  D_shelter_b4_upper_sewer_80186594[];
+extern GpWarpRec       D_shelter_b4_upper_sewer_80186598[];
+extern GpGridParams    D_shelter_b4_upper_sewer_80186EF8;
+extern GpViewRec       D_shelter_b4_upper_sewer_80186F1C[];
+extern GpSprtRec       D_shelter_b4_upper_sewer_801879BC[];
+extern GpRoomCoordSet  D_shelter_b4_upper_sewer_80188184;
+extern GpObj4A         D_shelter_b4_upper_sewer_8018819C[];
+extern GpObj4A         D_shelter_b4_upper_sewer_801886F4[];
+extern GpObj3A         D_shelter_b4_upper_sewer_80188BFC[];
+extern GpRoomParamRec* D_shelter_b4_upper_sewer_80188CFC[];
+
+// shelter_b4_reservoir
+extern GpRoomCoordRec  D_shelter_b4_reservoir_801850E8[];
+extern GpRoomObjRec    D_shelter_b4_reservoir_801850F8[];
+extern u8*             D_shelter_b4_reservoir_80185118[];
+extern GpViewCountRec  D_shelter_b4_reservoir_80185120[];
+extern GpWarpRec       D_shelter_b4_reservoir_80185124[];
+extern GpViewRec       D_shelter_b4_reservoir_80185ADC[];
+extern GpSprtRec       D_shelter_b4_reservoir_80186730[];
+extern GpRoomParamRec* D_shelter_b4_reservoir_80187480[];
+
+// shelter_b4_water_supply
+extern u8*             D_shelter_b4_water_supply_8018273C[];
+extern GpViewCountRec  D_shelter_b4_water_supply_80182740[];
+extern GpWarpRec       D_shelter_b4_water_supply_80182744[];
+extern GpGridParams    D_shelter_b4_water_supply_80182E3C;
+extern GpViewRec       D_shelter_b4_water_supply_80182E60[];
+extern GpSprtRec       D_shelter_b4_water_supply_80183F90[];
+extern GpRoomCoordSet  D_shelter_b4_water_supply_801843D4;
+extern GpObj4A         D_shelter_b4_water_supply_801843EC[];
+extern GpObj4A         D_shelter_b4_water_supply_80184944[];
+extern GpObj3A         D_shelter_b4_water_supply_80184D04[];
+extern GpRoomBoundVec  D_shelter_b4_water_supply_80184D7C[];
+extern GpRoomParamRec* D_shelter_b4_water_supply_80184E14[];
+
+// shelter_r47
+extern u8*             D_shelter_r47_80187674[];
+extern GpViewCountRec  D_shelter_r47_80187678[];
+extern GpWarpRec       D_shelter_r47_8018767C[];
+extern GpObj4A         D_shelter_r47_801876B4[];
+extern GpObj4A         D_shelter_r47_8018787C[];
+extern GpGridParams    D_shelter_r47_8018828C;
+extern GpViewRec       D_shelter_r47_801882B0[];
+extern GpSprtRec       D_shelter_r47_80189C68[];
+extern GpRoomCoordSet  D_shelter_r47_8018A5BC;
+extern GpRoomParamRec* D_shelter_r47_8018A618[];
+
+// shelter_r48
+extern GpRoomCoordRec  D_shelter_r48_80183014[];
+extern GpRoomObjRec    D_shelter_r48_8018301C[];
+extern u8*             D_shelter_r48_8018302C[];
+extern GpViewCountRec  D_shelter_r48_80183030[];
+extern GpWarpRec       D_shelter_r48_80183034[];
+extern GpViewRec       D_shelter_r48_80183F10[];
+extern GpSprtRec       D_shelter_r48_80189FB4[];
+extern GpRoomParamRec* D_shelter_r48_8018BE10[];
+
+// shelter_r49
+extern GpRoomObjRec    D_shelter_r49_8017DA18[];
+extern u8*             D_shelter_r49_8017DA28[];
+extern GpViewCountRec  D_shelter_r49_8017DA2C[];
+extern GpRoomCoordRec  D_shelter_r49_8017DA30[];
+extern GpWarpRec       D_shelter_r49_8017DA38[];
+extern GpViewRec       D_shelter_r49_8017DAD0[];
+extern GpSprtRec       D_shelter_r49_8017DCA0[];
+extern GpRoomParamRec* D_shelter_r49_8017DDF8[];
+
 #endif /* ROOMS_STAGE_TABLES_H */

@@ -390,7 +390,7 @@ static void func_shelter_b4_water_supply_8017DD9C(Task* task)
 /// The room task: copies the three-state table
 /// `D_shelter_b4_water_supply_8017D5D8` onto the stack and runs the entry for
 /// the task's current state.
-static void func_shelter_b4_water_supply_8017DDA4(Task* task)
+void func_shelter_b4_water_supply_8017DDA4(Task* task)
 {
     TaskFuncTable3 sp;
 

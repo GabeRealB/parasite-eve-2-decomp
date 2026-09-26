@@ -1422,7 +1422,7 @@ static const TaskFuncTable3 D_shelter_b3_incinerator_control_room_8017D6A4 = {
 
 /// Runs the handler for the task's current state, from a local copy of
 /// `D_shelter_b3_incinerator_control_room_8017D6A4`.
-static void func_shelter_b3_incinerator_control_room_8017FCB8(Task* task)
+void func_shelter_b3_incinerator_control_room_8017FCB8(Task* task)
 {
     TaskFuncTable3 sp;
 

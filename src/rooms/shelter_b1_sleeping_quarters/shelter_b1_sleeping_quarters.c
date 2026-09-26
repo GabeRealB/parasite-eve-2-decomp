@@ -18,7 +18,7 @@ extern GpMsgEntry D_shelter_b1_sleeping_quarters_80180518[];
 
 /// Hides the task's model while the 2-bit game flag its spawn argument names
 /// reads 2, and shows it otherwise.
-static void func_shelter_b1_sleeping_quarters_8017D608(Task* task)
+void func_shelter_b1_sleeping_quarters_8017D608(Task* task)
 {
     TmdObject* obj = task->extra.tmd;
 
@@ -113,7 +113,7 @@ static const TaskFuncTable3 D_shelter_b1_sleeping_quarters_8017D5C4 = {
 };
 
 /// Runs the room task's current state from a stack copy of its state table.
-static void func_shelter_b1_sleeping_quarters_8017D888(Task* task)
+void func_shelter_b1_sleeping_quarters_8017D888(Task* task)
 {
     TaskFuncTable3 sp;
 

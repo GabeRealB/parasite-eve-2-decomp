@@ -363,7 +363,7 @@ static void func_shelter_b1_pod_access_tunnel_8017DED8(Task* task)
 
 /// Runs the room task through its state table, copied onto the stack first and
 /// indexed by the task's state.
-static void func_shelter_b1_pod_access_tunnel_8017DEE8(Task* task)
+void func_shelter_b1_pod_access_tunnel_8017DEE8(Task* task)
 {
     TaskFuncTable3 sp;
 

@@ -1699,7 +1699,7 @@ static void func_shelter_b2_laboratory_80180494(Task* task)
 
 /// Runs the handler for the task's current state, from a local copy of
 /// `D_shelter_b2_laboratory_8017D6BC`.
-static void func_shelter_b2_laboratory_801804A4(Task* task)
+void func_shelter_b2_laboratory_801804A4(Task* task)
 {
     TaskFuncTable3 sp;
 

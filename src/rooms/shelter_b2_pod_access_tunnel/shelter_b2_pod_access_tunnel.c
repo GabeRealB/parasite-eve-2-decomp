@@ -223,7 +223,7 @@ static void func_shelter_b2_pod_access_tunnel_8017DC0C(Task* task)
 /// Runs one tick of a room task through the three-state table
 /// `D_shelter_b2_pod_access_tunnel_8017D5D8`, copying the table onto the stack
 /// and calling the entry for the task's current state.
-static void func_shelter_b2_pod_access_tunnel_8017DC14(Task* task)
+void func_shelter_b2_pod_access_tunnel_8017DC14(Task* task)
 {
     TaskFuncTable3 sp;
 

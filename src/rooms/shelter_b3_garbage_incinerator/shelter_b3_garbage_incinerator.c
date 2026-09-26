@@ -8,6 +8,7 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/shelter_b3_garbage_incinerator.h"
 
@@ -192,7 +193,7 @@ static void func_shelter_b3_garbage_incinerator_8017DC54(Task* task)
 
 /// Runs the room controller's current state through its three-entry state
 /// table, copied onto the stack before the call.
-static void func_shelter_b3_garbage_incinerator_8017DC7C(Task* task)
+void func_shelter_b3_garbage_incinerator_8017DC7C(Task* task)
 {
     TaskFuncTable3 sp;
 

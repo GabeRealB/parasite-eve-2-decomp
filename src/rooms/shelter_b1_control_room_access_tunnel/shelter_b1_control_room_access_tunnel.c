@@ -15,6 +15,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
@@ -90,7 +91,7 @@ static const TaskFuncTable3 D_shelter_b1_control_room_access_tunnel_8017D5C4 = {
 
 /// Runs the room's task through its three-state handler table, copied onto
 /// the stack before the call.
-static void func_shelter_b1_control_room_access_tunnel_8017D68C(Task* task)
+void func_shelter_b1_control_room_access_tunnel_8017D68C(Task* task)
 {
     TaskFuncTable3 sp;
 

@@ -327,7 +327,7 @@ static void func_shelter_b1_access_tunnel_8017DD00(Task* task)
 }
 
 /// Runs the handler for the task's state from the room's state table.
-static void func_shelter_b1_access_tunnel_8017DD08(Task* task)
+void func_shelter_b1_access_tunnel_8017DD08(Task* task)
 {
     TaskFuncTable3 sp;
 

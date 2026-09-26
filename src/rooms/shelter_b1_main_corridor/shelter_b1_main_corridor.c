@@ -394,7 +394,7 @@ static const TaskFuncTable3 D_shelter_b1_main_corridor_8017D5F0 = {
 
 /// Runs the room's message task: calls the state handler `task->state` selects
 /// from a stack copy of its three-entry table.
-static void func_shelter_b1_main_corridor_8017DD98(Task* task)
+void func_shelter_b1_main_corridor_8017DD98(Task* task)
 {
     TaskFuncTable3 sp;
 

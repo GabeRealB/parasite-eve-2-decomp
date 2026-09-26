@@ -557,7 +557,7 @@ static void func_mine_forked_tunnel_8017E24C(Task* task)
 
 /// Dispatches the room's message-driven task through its three-state table,
 /// copied onto the stack before the call.
-static void func_mine_forked_tunnel_8017E25C(Task* task)
+void func_mine_forked_tunnel_8017E25C(Task* task)
 {
     TaskFuncTable3 sp;
 

@@ -445,4 +445,67 @@ void func_dryfield_night_underpass_8017D95C(Task* task);
 extern TmdSource D_dryfield_night_trailer_coach_80184CA0;
 extern TmdSource D_dryfield_night_motel_loft_8017EAF8;
 
+/// Task entries the Shelter map UI overlay's stage tables name, each room's
+/// entry task started for its location and the enemy descriptors' tasks, and
+/// the models those descriptors attach.
+void func_mine_mesa_8017DD98(Task* task);
+void func_mine_cavern_8017DF54(Task* task);
+void func_mine_tunnel_entrance_8017D6BC(Task* task);
+void func_mine_tunnel_8017D77C(Task* task);
+void func_mine_gorge_8017D9A0(Task* task);
+void func_mine_refuge_8017FFBC(Task* task);
+void func_mine_forked_tunnel_8017DBE4(Task* task);
+void func_mine_forked_tunnel_8017E25C(Task* task);
+void func_mine_secret_passage_8017D970(Task* task);
+void func_shelter_b1_elevator_hall_8017DC28(Task* task);
+void func_shelter_b1_south_maintenance_walkway_8017DA34(Task* task);
+void func_shelter_b1_storeroom_8017D794(Task* task);
+void func_shelter_b1_north_maintenance_walkway_8017DAFC(Task* task);
+void func_shelter_b1_armory_8018078C(Task* task);
+void func_shelter_b1_sleeping_quarters_8017D608(Task* task);
+void func_shelter_b1_sleeping_quarters_8017D888(Task* task);
+void func_shelter_b1_main_corridor_8017DD98(Task* task);
+void func_shelter_b1_sterilization_room_80180518(Task* task);
+void func_shelter_b1_pod_access_tunnel_8017DEE8(Task* task);
+void func_shelter_b1_control_room_8017EECC(Task* task);
+void func_shelter_b1_access_tunnel_8017DD08(Task* task);
+void func_shelter_b1_underground_parking_801838B4(Task* task);
+void func_shelter_b1_golem_freezer_1_8017D6EC(Task* task);
+void func_shelter_b2_pod_bottom_8017D708(Task* task);
+void func_shelter_b1_pod_service_gantry_8017D89C(Task* task);
+void func_shelter_b1_transfer_tunnel_8017D678(Task* task);
+void func_shelter_b1_control_room_access_tunnel_8017D68C(Task* task);
+void func_shelter_b2_elevator_8017DB18(Task* task);
+void func_shelter_b2_elevator_hall_8017DD08(Task* task);
+void func_shelter_b2_south_maintenance_walkway_8017DC6C(Task* task);
+void func_shelter_b2_operating_room_8017DD60(Task* task);
+void func_shelter_b2_north_maintenance_walkway_8017DD90(Task* task);
+void func_shelter_b2_laboratory_801804A4(Task* task);
+void func_shelter_b2_breeding_room_8017D5F8(Task* task);
+void func_shelter_b2_breeding_room_8017D840(Task* task);
+void func_shelter_b2_main_corridor_8017E338(Task* task);
+void func_shelter_b2_septic_tank_8017DB10(Task* task);
+void func_shelter_b2_pod_access_tunnel_8017DC14(Task* task);
+void func_shelter_r36_8017D9DC(Task* task);
+void func_shelter_r37_8017D678(Task* task);
+void func_shelter_1f_heliport_s4_8017D678(Task* task);
+void func_shelter_b3_dumping_hole_8017D9A8(Task* task);
+void func_shelter_b3_garbage_incinerator_8017DC7C(Task* task);
+void func_shelter_b3_incinerator_control_room_8017FCB8(Task* task);
+void func_shelter_b3_elevator_hall_8017DE18(Task* task);
+void func_shelter_b4_lower_sewer_8017D6D4(Task* task);
+void func_shelter_b4_upper_sewer_8017DC30(Task* task);
+void func_shelter_b4_reservoir_8017E88C(Task* task);
+void func_shelter_b4_water_supply_8017DDA4(Task* task);
+void func_shelter_r47_801807B4(Task* task);
+void func_shelter_r48_8017E224(Task* task);
+void func_shelter_r49_8017D6C4(Task* task);
+
+extern TmdSource D_mine_forked_tunnel_801807B4;
+extern TmdSource D_shelter_b1_sleeping_quarters_801804F4;
+extern TmdSource D_shelter_b1_sterilization_room_80184DF8;
+extern TmdSource D_shelter_b2_laboratory_801829E4;
+extern TmdSource D_shelter_b2_breeding_room_801803F0;
+extern TmdSource D_shelter_b3_dumping_hole_80187550;
+
 #endif /* ROOMS_ROOM_H */

@@ -11,6 +11,7 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
@@ -183,7 +184,7 @@ static const TaskFuncTable3 D_mine_gorge_8017D5C4 = {
 /// Runs one tick of the room task through the three-state table
 /// `D_mine_gorge_8017D5C4`, copying the table onto the stack and calling the
 /// entry for the task's current state.
-static void func_mine_gorge_8017D9A0(Task* task)
+void func_mine_gorge_8017D9A0(Task* task)
 {
     TaskFuncTable3 sp;
 

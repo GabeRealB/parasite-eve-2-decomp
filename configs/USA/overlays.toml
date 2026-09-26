@@ -611,12 +611,11 @@ objects = [
 ]
 
 [mapui.overlays.map_shelter]
-label = "Mesa, Cavern, Armory, Golem freezer, Pod"
+label = "the Mesa, mine and Shelter stage's map and stage tables, after the hook its rooms call at 0xB4, whose jump table leads"
 id = 283
 objects = [
   { kind = "packageId" },
-  { unit = "map_shelter/map_shelter", rodata = "0x4", text = "0xB4" },
-  { kind = "data", at = "0x1F0" },
+  { unit = "map_shelter/map_shelter", rodata = "0x4", text = "0xB4", data = "0x1F0" },
 ]
 
 

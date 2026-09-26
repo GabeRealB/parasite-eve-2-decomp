@@ -392,7 +392,7 @@ static void func_shelter_b3_elevator_hall_8017DE10(Task* task)
 
 /// Runs the message-driven task's current state through a stack copy of its
 /// state table.
-static void func_shelter_b3_elevator_hall_8017DE18(Task* task)
+void func_shelter_b3_elevator_hall_8017DE18(Task* task)
 {
     TaskFuncTable3 sp;
 

@@ -15,7 +15,9 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
+#include "rooms/stage_tables.h"
 
 #define GOLEM_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
 
@@ -29,7 +31,6 @@ extern GpMsgEntry D_shelter_b1_golem_freezer_1_8017E6A8[];
 extern s16          D_shelter_b1_golem_freezer_1_8017E6D0;
 extern s16          D_shelter_b1_golem_freezer_1_8017E6D2;
 extern GpGridParams D_shelter_b1_golem_freezer_1_8017E714;
-extern GpGridParams D_shelter_b1_golem_freezer_1_8017E9C0;
 extern SVECTOR      D_shelter_b1_golem_freezer_1_8017E738[];
 extern SVECTOR      D_shelter_b1_golem_freezer_1_8017E740[];
 
@@ -99,7 +100,7 @@ static const TaskFuncTable3 D_shelter_b1_golem_freezer_1_8017D5C4 = {
 /// Runs one tick of the room task through the three-state table
 /// `D_shelter_b1_golem_freezer_1_8017D5C4`, copying the table onto the stack
 /// and calling the entry for the task's current state.
-static void func_shelter_b1_golem_freezer_1_8017D6EC(Task* task)
+void func_shelter_b1_golem_freezer_1_8017D6EC(Task* task)
 {
     TaskFuncTable3 sp;
 

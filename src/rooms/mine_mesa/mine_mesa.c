@@ -340,7 +340,7 @@ static const TaskFuncTable3 D_mine_mesa_8017D5D8 = {
     { func_mine_mesa_8017DC80, func_mine_mesa_8017D808, taskKill },
 };
 
-static void func_mine_mesa_8017DD98(Task* task)
+void func_mine_mesa_8017DD98(Task* task)
 {
     TaskFuncTable3 sp;
 

@@ -502,7 +502,7 @@ static void func_shelter_r48_8017E214(Task* task)
 /// Runs one tick of the room task through the three-state table
 /// `D_shelter_r48_8017D608`, copying the table onto the stack and calling the
 /// entry for the task's current state.
-static void func_shelter_r48_8017E224(Task* task)
+void func_shelter_r48_8017E224(Task* task)
 {
     TaskFuncTable3 sp;
 

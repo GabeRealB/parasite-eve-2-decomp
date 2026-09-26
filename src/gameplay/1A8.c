@@ -46,7 +46,6 @@ extern s16 D_80114CE0;
 extern u16 Gp_DirFadeLevel;
 extern u8  D_80114CF8;
 extern s16 D_80114D08;
-extern u16 D_8017AD88[];
 
 /// The flag entry `table[idx]`: its low 11 bits select a flag nibble, and its
 /// bit 0x800 is added onto that nibble's value.
@@ -117,9 +116,9 @@ s16 Gp_LookupStageFlag(s16 idx)
                 break;
             }
             if (idx == 0 && GameFlag_GetNibble(0x7A) == 6) {
-                return GameFlag_GetNibble(D_8017AD88[0] & 0x7FF) + 0x800;
+                return GameFlag_GetNibble(D_map_shelter_8017AD88[0] & 0x7FF) + 0x800;
             }
-            return _gpStageFlagNibble(D_8017AD88, idx);
+            return _gpStageFlagNibble(D_map_shelter_8017AD88, idx);
         case 5:
             if (idx >= 9) {
                 break;

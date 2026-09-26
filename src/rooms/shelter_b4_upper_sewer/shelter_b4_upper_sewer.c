@@ -307,7 +307,7 @@ static void func_shelter_b4_upper_sewer_8017DC28(Task* task)
 {
 }
 
-static void func_shelter_b4_upper_sewer_8017DC30(Task* task)
+void func_shelter_b4_upper_sewer_8017DC30(Task* task)
 {
     TaskFuncTable3 sp;
 

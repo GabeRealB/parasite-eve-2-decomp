@@ -14,6 +14,7 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
@@ -91,7 +92,7 @@ static void func_mine_tunnel_entrance_8017D6B4(Task* task)
 
 /// Per-frame entry of the room task: copies the state table onto the stack
 /// and runs the handler for the task's current state.
-static void func_mine_tunnel_entrance_8017D6BC(Task* task)
+void func_mine_tunnel_entrance_8017D6BC(Task* task)
 {
     TaskFuncTable4 states;
 

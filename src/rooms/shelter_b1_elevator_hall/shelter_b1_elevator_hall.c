@@ -11,6 +11,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 extern GpMsgEntry D_shelter_b1_elevator_hall_80182CB8[];
@@ -239,7 +240,7 @@ static void func_shelter_b1_elevator_hall_8017DC20(Task* task)
 
 /// Runs the room task through its state table, copied onto the stack first and
 /// indexed by the task's state.
-static void func_shelter_b1_elevator_hall_8017DC28(Task* task)
+void func_shelter_b1_elevator_hall_8017DC28(Task* task)
 {
     TaskFuncTable3 sp;
 

@@ -8,6 +8,7 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// Work block of the room task, allocated zeroed by its first state: the
@@ -137,7 +138,7 @@ static void func_shelter_b1_pod_service_gantry_8017D81C(Task* arg0)
 /// The room task: copies its three-state table
 /// `D_shelter_b1_pod_service_gantry_8017D5C4` onto the stack and calls the
 /// entry for the task's current state.
-static void func_shelter_b1_pod_service_gantry_8017D89C(Task* task)
+void func_shelter_b1_pod_service_gantry_8017D89C(Task* task)
 {
     TaskFuncTable3 sp;
 

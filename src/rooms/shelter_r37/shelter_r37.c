@@ -3,6 +3,7 @@
 #include "gameplay/D4.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
@@ -62,7 +63,7 @@ static const TaskFuncTable3 D_shelter_r37_8017D5C4 = {
 
 /// The room's event task: runs the handler for its current state, through a
 /// stack copy of the state table.
-static void func_shelter_r37_8017D678(Task* task)
+void func_shelter_r37_8017D678(Task* task)
 {
     TaskFuncTable3 sp;
 

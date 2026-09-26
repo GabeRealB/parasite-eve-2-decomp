@@ -1694,7 +1694,7 @@ static void func_shelter_b1_armory_80180784(Task* task)
 
 /// Runs the task's current state through its three-entry state table, copied
 /// onto the stack before the call.
-static void func_shelter_b1_armory_8018078C(Task* task)
+void func_shelter_b1_armory_8018078C(Task* task)
 {
     TaskFuncTable3 sp;
 

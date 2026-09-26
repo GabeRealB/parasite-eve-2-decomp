@@ -1603,7 +1603,7 @@ static void func_shelter_b1_sterilization_room_8018049C(void)
     }
 }
 
-static void func_shelter_b1_sterilization_room_80180518(Task* task)
+void func_shelter_b1_sterilization_room_80180518(Task* task)
 {
     TaskFuncTable3 sp;
 

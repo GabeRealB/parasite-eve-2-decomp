@@ -4,6 +4,7 @@
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/shelter_b3_dumping_hole.h"
 
@@ -99,7 +100,7 @@ static const TaskFuncTable3 D_shelter_b3_dumping_hole_8017D5C4 = { {
     taskKill,
 } };
 
-static void func_shelter_b3_dumping_hole_8017D9A8(Task* task)
+void func_shelter_b3_dumping_hole_8017D9A8(Task* task)
 {
     TaskFuncTable3 sp;
 

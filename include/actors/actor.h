@@ -2881,4 +2881,10 @@ void func_actor_800100_80163CF0(Task* task);
 extern TmdSource D_actor_800300_8016885C;
 extern TmdSource D_actor_800200_80169ECC;
 
+/// An enemy task and the models its descriptors attach, named by the enemy
+/// descriptor tables of the Shelter map UI overlay.
+void             func_actor_503500_8013270C(Task* task);
+extern TmdSource D_actor_503500_80147314;
+extern TmdSource D_actor_503500_80147D6C;
+
 #endif /* ACTORS_ACTOR_H */

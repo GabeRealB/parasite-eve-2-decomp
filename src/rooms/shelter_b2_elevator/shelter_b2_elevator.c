@@ -14,6 +14,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// Per-task state of an elevator car: its travel, kept within 0..500.
@@ -236,7 +237,7 @@ static void func_shelter_b2_elevator_8017DB08(Task* task)
 
 /// Runs the room entry task's current state from its three-entry table, which
 /// it copies onto the stack before the call.
-static void func_shelter_b2_elevator_8017DB18(Task* task)
+void func_shelter_b2_elevator_8017DB18(Task* task)
 {
     TaskFuncTable3 sp;
 

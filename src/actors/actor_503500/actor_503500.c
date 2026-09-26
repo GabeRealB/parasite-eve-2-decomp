@@ -243,7 +243,7 @@ static const TaskFuncTable3 D_actor_503500_80131E24 = {
     },
 };
 
-static void func_actor_503500_8013270C(Task* task)
+void func_actor_503500_8013270C(Task* task)
 {
     TaskFuncTable3 sp;
 

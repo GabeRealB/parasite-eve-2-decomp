@@ -1571,7 +1571,7 @@ static void func_mine_refuge_8017FFAC(Task* task)
 
 /// Runs the handler for the task's current state, from a local copy of
 /// `D_mine_refuge_8017D6A4`.
-static void func_mine_refuge_8017FFBC(Task* task)
+void func_mine_refuge_8017FFBC(Task* task)
 {
     TaskFuncTable3 sp;
 

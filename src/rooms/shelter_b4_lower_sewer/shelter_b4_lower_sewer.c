@@ -13,6 +13,7 @@
 #include "main/gfx.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// One water surface: its near edge starts at (`x`, `z`) and runs `step` along
@@ -112,7 +113,7 @@ static const TaskFuncTable3 D_shelter_b4_lower_sewer_8017D5C4 = {
 /// Runs one tick of the room task through the three-state table
 /// `D_shelter_b4_lower_sewer_8017D5C4`, copying the table onto the stack and
 /// calling the entry for the task's current state.
-static void func_shelter_b4_lower_sewer_8017D6D4(Task* task)
+void func_shelter_b4_lower_sewer_8017D6D4(Task* task)
 {
     TaskFuncTable3 sp;
 

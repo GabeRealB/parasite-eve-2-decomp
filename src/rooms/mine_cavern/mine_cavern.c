@@ -11,6 +11,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/mine_cavern.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
@@ -227,7 +228,7 @@ static const TaskFuncTable3 D_mine_cavern_8017D5C4 = {
 
 /// Runs the room task's current state handler from the room's three-entry
 /// table, copying the table onto the stack before the call.
-static void func_mine_cavern_8017DF54(Task* task)
+void func_mine_cavern_8017DF54(Task* task)
 {
     TaskFuncTable3 sp;
 

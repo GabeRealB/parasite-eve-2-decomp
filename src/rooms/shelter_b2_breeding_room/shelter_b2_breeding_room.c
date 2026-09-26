@@ -24,7 +24,7 @@ extern GpMsgEntry D_shelter_b2_breeding_room_80180414[];
 
 /// Hides the task's model while the 2-bit game flag its spawn argument names
 /// reads 2, and shows it otherwise.
-static void func_shelter_b2_breeding_room_8017D5F8(Task* task)
+void func_shelter_b2_breeding_room_8017D5F8(Task* task)
 {
     TmdObject* obj = task->extra.tmd;
 
@@ -122,7 +122,7 @@ static const TaskFuncTable3 D_shelter_b2_breeding_room_8017D5C4 = {
 
 /// Runs the handler for the task's state from the room's three-entry state
 /// table, copied onto the stack first.
-static void func_shelter_b2_breeding_room_8017D840(Task* task)
+void func_shelter_b2_breeding_room_8017D840(Task* task)
 {
     TaskFuncTable3 sp;
 

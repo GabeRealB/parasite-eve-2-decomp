@@ -1682,7 +1682,7 @@ void func_shelter_r47_80180714(Task* task)
     }
 }
 
-static void func_shelter_r47_801807B4(Task* task)
+void func_shelter_r47_801807B4(Task* task)
 {
     TaskFuncTable3 sp;
 

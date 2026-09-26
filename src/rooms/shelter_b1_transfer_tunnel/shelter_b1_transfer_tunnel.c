@@ -113,7 +113,7 @@ static void func_shelter_b1_transfer_tunnel_8017D670(Task* task)
 
 /// Runs the room's task through its three-state handler table, copied onto
 /// the stack before the call.
-static void func_shelter_b1_transfer_tunnel_8017D678(Task* task)
+void func_shelter_b1_transfer_tunnel_8017D678(Task* task)
 {
     TaskFuncTable3 sp;
 

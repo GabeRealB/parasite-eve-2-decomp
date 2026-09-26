@@ -4,6 +4,7 @@
 #include "gameplay/D4.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
@@ -70,7 +71,7 @@ static void func_shelter_r49_8017D6B4(Task* task)
 
 /// The room task: copies its three-state table to the stack and runs the
 /// entry the task's state selects.
-static void func_shelter_r49_8017D6C4(Task* task)
+void func_shelter_r49_8017D6C4(Task* task)
 {
     TaskFuncTable3 sp;
 

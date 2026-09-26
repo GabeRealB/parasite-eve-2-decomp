@@ -83,7 +83,7 @@ static void func_shelter_b2_pod_bottom_8017D6F8(Task* task)
 
 /// The room task: copies its three-state table to the stack and runs the
 /// entry the task's state selects.
-static void func_shelter_b2_pod_bottom_8017D708(Task* task)
+void func_shelter_b2_pod_bottom_8017D708(Task* task)
 {
     TaskFuncTable3 sp;
 

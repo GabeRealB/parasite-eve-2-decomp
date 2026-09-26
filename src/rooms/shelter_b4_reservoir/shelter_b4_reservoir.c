@@ -627,7 +627,7 @@ static void func_shelter_b4_reservoir_8017E864(Task* task)
 
 /// Runs a task through the room's three-entry state table
 /// `D_shelter_b4_reservoir_8017D5C4`, copied onto the stack first.
-static void func_shelter_b4_reservoir_8017E88C(Task* task)
+void func_shelter_b4_reservoir_8017E88C(Task* task)
 {
     TaskFuncTable3 sp;
 
