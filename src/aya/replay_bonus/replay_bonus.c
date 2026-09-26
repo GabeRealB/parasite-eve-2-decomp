@@ -15,10 +15,10 @@
 #include "main/text.h"
 #include "main/wipsys.h"
 #include "psyq/libpress.h"
-extern const char   D_replay_bonus_801157A8[];
-extern const char   D_replay_bonus_801157B0[];
-extern const char   D_replay_bonus_801157C4[];
-extern const char   D_replay_bonus_801157C8[];
+static const char   D_replay_bonus_801157A8[];
+static const char   D_replay_bonus_801157B0[];
+static const char   D_replay_bonus_801157C4[];
+static const char   D_replay_bonus_801157C8[];
 extern u8           D_replay_bonus_80119014[];
 extern u8           D_replay_bonus_8011906C[];
 extern UiObjectDesc D_replay_bonus_80119154;
@@ -28,7 +28,7 @@ extern s32          D_replay_bonus_8011928C;
 extern u8           D_replay_bonus_801192AC;
 extern s32          D_replay_bonus_80119284;
 
-void func_replay_bonus_801158C0(void)
+static void func_replay_bonus_801158C0(void)
 {
     RECT rect;
     s32  height;
@@ -180,7 +180,7 @@ s32 func_replay_bonus_80115CA4(void)
     return spend;
 }
 
-void func_replay_bonus_80115D60(UiList* list, ReplayBonusCtx* ctx)
+static void func_replay_bonus_80115D60(UiList* list, ReplayBonusCtx* ctx)
 {
     McItemRec* rec;
     s16*       ids;
@@ -265,10 +265,10 @@ void func_replay_bonus_80115D60(UiList* list, ReplayBonusCtx* ctx)
     }
     list->field_10 = (s8)list->field_9;
 }
-const char D_replay_bonus_80115774[] = "Complete Bonus";
-const char D_replay_bonus_80115784[] = "GET ITEM";
-const char D_replay_bonus_80115790[] = "BONUS BP";
-const char D_replay_bonus_8011579C[] = "TOTAL BP";
+static const char D_replay_bonus_80115774[] = "Complete Bonus";
+static const char D_replay_bonus_80115784[] = "GET ITEM";
+static const char D_replay_bonus_80115790[] = "BONUS BP";
+static const char D_replay_bonus_8011579C[] = "TOTAL BP";
 
 static inline s32 _replayBonusTotalBp(UiList* list, ReplayBonusCtx* ctx)
 {
@@ -527,9 +527,9 @@ void func_replay_bonus_80115ED0(Task* arg0)
     }
 }
 
-const char D_replay_bonus_801157A8[] = "Balance";
-const char D_replay_bonus_801157B0[] = "NEXT REPLAY BONUS";
-const char D_replay_bonus_801157C4[] = "EXP";
+static const char D_replay_bonus_801157A8[] = "Balance";
+static const char D_replay_bonus_801157B0[] = "NEXT REPLAY BONUS";
+static const char D_replay_bonus_801157C4[] = "EXP";
 
 void func_replay_bonus_801166AC(Task* arg0)
 {
@@ -620,7 +620,7 @@ void func_replay_bonus_801166AC(Task* arg0)
     }
 }
 
-const char D_replay_bonus_801157C8[] = "BP";
+static const char D_replay_bonus_801157C8[] = "BP";
 
 void func_replay_bonus_80116964(Task* arg0)
 {

@@ -28,7 +28,7 @@ s32 D_metabolism_8012FB6C[] = { 0xE01F0001, 0xE0220001, 0xE0250001 };
 /// Scratch for the drain ring (was its own _work unit).
 s16 D_metabolism_8012FB78[16] = { 0 };
 
-void func_metabolism_8012F840(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_metabolism_8012F840(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 /// Runs one frame of the metabolism cast. Cancel (`Gp_StateC08.field_3 == -2`
 /// or `Gp_State1C->fadeState >= 4`) releases the work block. State 0 parents the
@@ -43,7 +43,7 @@ void func_metabolism_8012F840(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// to state 3 - release - below 0x11. States 1 and 2 both draw the fan wedges,
 /// two rings and two or three arcs, each arc on a colour halved again from the
 /// last.
-void func_metabolism_8012EF34(Task* arg0)
+static void func_metabolism_8012EF34(Task* arg0)
 {
     GpEffWork*  mem;
     GpCoord*    coord;
@@ -181,7 +181,7 @@ void func_metabolism_8012EF34(Task* arg0)
 /// three when the level's difficulty band allows it, the alternate
 /// `func_800EB6E8` quad that fades its colour by 0x18 a frame (state 2).
 /// Both states lift the frame and draw on odd ticks until it runs out.
-void func_metabolism_8012F5A0(Task* arg0)
+static void func_metabolism_8012F5A0(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -263,7 +263,7 @@ void func_metabolism_8012F5A0(Task* arg0)
 /// is a single channel: red is halved, green is `arg3`, blue is shifted by
 /// the low bit of `gDisplayState.animFrame`. The rim fades to black. A
 /// negative `gte_stflg` drops the wedge.
-void func_metabolism_8012F840(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_metabolism_8012F840(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     u8*            head;
     GpRingScratch* block;

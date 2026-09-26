@@ -15,6 +15,10 @@
 #include "main/tmd.h"
 #include "pe/pyrokinesis.h"
 
+static void func_pyrokinesis_80130130(GpCoord* arg0, s16 arg1, s16 arg2);
+static void func_pyrokinesis_801304C4(GpCoord* arg0, s32 arg1);
+static void func_pyrokinesis_80130848(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+
 /// The `SndEvt_EnqueueType6` id for each pyrokinesis stage, three per PE level.
 s32 D_pyrokinesis_80131DD8[] = {
     0xE00B0002,
@@ -28,9 +32,9 @@ s32 D_pyrokinesis_80131DD8[] = {
     0xE0110004,
 };
 
-void func_pyrokinesis_80130DC0(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
-void func_pyrokinesis_801312B4(GpCoord* arg0, s16 arg1, s32 arg2, s16 arg3);
-void func_pyrokinesis_80131784(GpCoord* arg0, s16 arg1, s32 arg2, s32 arg3);
+static void func_pyrokinesis_80130DC0(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
+static void func_pyrokinesis_801312B4(GpCoord* arg0, s16 arg1, s32 arg2, s16 arg3);
+static void func_pyrokinesis_80131784(GpCoord* arg0, s16 arg1, s32 arg2, s32 arg3);
 
 /// Scratch for the flame column's vertex work.
 s16 D_pyrokinesis_80131DFC[16] = { 0 };
@@ -49,7 +53,7 @@ s16 D_pyrokinesis_80131DFC[16] = { 0 };
 /// the two rings until they pass the combo radius, state 4 first stepping the
 /// brightness down by 8 a frame. Any state releases if the player is dying
 /// (`Gp_StateC08.field_3` / `Gp_StateC08.field_3`) or the room is fading (`Gp_State1C`).
-void func_pyrokinesis_8012EF48(Task* arg0)
+static void func_pyrokinesis_8012EF48(Task* arg0)
 {
     GpEffWork*    mem;
     GpCoord*      coord;
@@ -377,7 +381,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
     }
 }
 
-void func_pyrokinesis_8012FAC8(Task* arg0)
+static void func_pyrokinesis_8012FAC8(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -444,7 +448,7 @@ L_release:
 /// through `GsWSMATRIX` as one `POLY_G4`. The inner edge carries the `arg2`
 /// ramp `(arg2, arg2 >> 1, arg2 >> 2)` and the outer edge fades to black; a
 /// negative `gte_stflg` drops the segment.
-void func_pyrokinesis_8012FC34(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_pyrokinesis_8012FC34(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     register u8*   head asm("v0");
     GpBandScratch* block;
@@ -539,7 +543,7 @@ void func_pyrokinesis_8012FC34(GpCoord* arg0, s16 arg1, s16 arg2)
 /// colour, the rest of the blade fading to black, and that colour is the
 /// `arg2` ramp `(arg2, arg2 >> 1, arg2 >> 2)` - a red-biased fire tint. A
 /// negative `gte_stflg` drops the whole ring.
-void func_pyrokinesis_80130130(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_pyrokinesis_80130130(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     GpRingScratch* block;
     POLY_G4*       prim;
@@ -592,7 +596,7 @@ void func_pyrokinesis_80130130(GpCoord* arg0, s16 arg1, s16 arg2)
 /// `POLY_FT4` (tpage 0x28, clut 0x428C) tinted `(0x30, 0x20, 0x20)`; the frame
 /// counter's low bit picks between two 0x1F-wide UV columns at v = 0x38..0x57.
 /// Same 0x38 scratch block and body as `Gp_DrawEffSprite7C`.
-void func_pyrokinesis_801304C4(GpCoord* arg0, s32 arg1)
+static void func_pyrokinesis_801304C4(GpCoord* arg0, s32 arg1)
 {
     register u8*      head asm("v1");
     GpQuadScratch*    block;
@@ -676,7 +680,7 @@ void func_pyrokinesis_801304C4(GpCoord* arg0, s32 arg1)
 /// half-extents `(arg2 * 55 / otz) * rsin|rcos` at `arg3` and `arg3 + 0x400`.
 /// `arg1`'s low bit picks between two 0x37-wide UV columns at v = 0xC8..0xFF.
 /// A negative `gte_stflg` drops the quad.
-void func_pyrokinesis_80130848(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_pyrokinesis_80130848(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -740,7 +744,7 @@ void func_pyrokinesis_80130848(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
     SCRATCH_POP_BYTES(0x1C);
 }
 
-void func_pyrokinesis_80130C54(Task* arg0)
+static void func_pyrokinesis_80130C54(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -792,7 +796,7 @@ void func_pyrokinesis_80130C54(Task* arg0)
 /// so the sprite shrinks with depth. Same shape as the gameplay
 /// `Gp_DrawFxQuad`, with the CLUT fixed at 0x42C2 instead of picked from
 /// `Gp_QuadClutX`.
-void func_pyrokinesis_80130DC0(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
+static void func_pyrokinesis_80130DC0(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -850,7 +854,7 @@ void func_pyrokinesis_80130DC0(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
     SCRATCH_POP_BYTES(0x1C);
 }
 
-void func_pyrokinesis_801311B8(Task* arg0)
+static void func_pyrokinesis_801311B8(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -895,7 +899,7 @@ void func_pyrokinesis_801311B8(Task* arg0)
 /// segments is projected through `GsWSMATRIX` as one `POLY_G4`. The inner
 /// edge carries the `arg3` ramp `(arg3, arg3 >> 1, arg3 >> 2)` and the outer
 /// edge fades to black; a negative `gte_stflg` drops the segment.
-void func_pyrokinesis_801312B4(GpCoord* arg0, s16 arg1, s32 arg2, s16 arg3)
+static void func_pyrokinesis_801312B4(GpCoord* arg0, s16 arg1, s32 arg2, s16 arg3)
 {
     register u8*   head asm("v0");
     GpBandScratch* block;
@@ -982,7 +986,7 @@ void func_pyrokinesis_801312B4(GpCoord* arg0, s16 arg1, s32 arg2, s16 arg3)
 /// `GsWSMATRIX` as one semi-transparent `POLY_FT4`. The texture cell is one of
 /// six 0x28-wide frames picked per vertex by `D_pyrokinesis_80131DFC[i]` plus
 /// `arg1`, and a negative `gte_stflg` drops the segment.
-void func_pyrokinesis_80131784(GpCoord* arg0, s16 arg1, s32 arg2, s32 arg3)
+static void func_pyrokinesis_80131784(GpCoord* arg0, s16 arg1, s32 arg2, s32 arg3)
 {
     register u8*   head asm("v0");
     GpBandScratch* block;
@@ -1078,7 +1082,7 @@ void func_pyrokinesis_80131784(GpCoord* arg0, s16 arg1, s32 arg2, s32 arg3)
     SCRATCH_POP_BYTES(0x118);
 }
 
-void func_pyrokinesis_80131CE4(Task* arg0)
+static void func_pyrokinesis_80131CE4(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;

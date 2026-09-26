@@ -44,7 +44,7 @@ extern s32 D_80115724;
 /// lists an object in the linker script at its first subsegment, and this has
 s16 D_energyball_801311A0[16] = { 0 };
 
-void func_energyball_8012EF48(Task* arg0)
+static void func_energyball_8012EF48(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -103,7 +103,7 @@ void func_energyball_8012EF48(Task* arg0)
 /// size or shrinking below one step. Cancel (`Gp_StateC08.field_3 == -2` or
 /// the fade at 4 or more) anywhere but combo 0x2B lets the ball go: the last
 /// ball in flight (`D_80115724`) queues the row's stop sound.
-void func_energyball_8012F180(Task* arg0)
+static void func_energyball_8012F180(Task* arg0)
 {
     GpEffWork*      mem;
     GpCoord*        coord;
@@ -708,7 +708,7 @@ void func_energyball_80130B54(GpCoord* arg0, s16 arg1, s16 arg2)
     SCRATCH_POP_BYTES(0x118);
 }
 
-void func_energyball_8013107C(Task* arg0)
+static void func_energyball_8013107C(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;

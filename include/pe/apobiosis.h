@@ -62,8 +62,4 @@ extern s32 D_apobiosis_80130B74[];
 /// and the row `ApobiosisStep::field_4` entries later is its elevation.
 extern s16 D_apobiosis_80130B80[];
 
-/// The running cast task, cached by `func_apobiosis_8012EF4C` so each shard
-/// can reparent itself onto the cast when it starts.
-extern Task* D_apobiosis_80130BA0;
-
 #endif /* PE_APOBIOSIS_H */

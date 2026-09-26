@@ -20,10 +20,12 @@
 /// This overlay's id. Every package opens with one: a u16 in a u32
 /// slot, distinct across all 448, with the families in contiguous blocks.
 
+static void func_plasma_8012F568(GpEffWork* arg0, GpCoord* arg1, s32 arg2);
+
 /// Per-level geometry for the plasma ring: rows are PE levels 1-3. `rInner` is
 /// the inner radius, `yOff` the height above the caster, `rExtra` how far the
 /// ring grows before it breaks up.
-PlasmaRingScale D_plasma_8012FF34[] = {
+static PlasmaRingScale D_plasma_8012FF34[] = {
     { 0x0100, 0x0800, 0x0200 },
     { 0x0200, 0x0600, 0x0300 },
     { 0x0300, 0x0400, 0x0400 },
@@ -47,7 +49,7 @@ s16 D_plasma_8012FF54[3][16] = { 0 };
 /// `func_plasma_8012F568` has applied each jitter column. State 1 is the
 /// weaker combo (`index < 2`). Either state releases once brightness
 /// drops below 9.
-void func_plasma_8012EF34(Task* arg0)
+static void func_plasma_8012EF34(Task* arg0)
 {
     GpEffWork*  mem;
     GpCoord*    coord;
@@ -177,7 +179,16 @@ release:
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void func_plasma_8012F568(GpEffWork* arg0, GpCoord* arg1, s32 arg2)
+/// Draws textured band `arg2` (0..2) of the plasma ring around `arg1`: sixteen
+/// `POLY_FT4` wedges between an outer circle of radius
+/// `field_26 + rInner + field_2A + rExtra` and an inner one of radius
+/// `field_26 + rInner`, the outer ring lifted by `-(field_28 + yOff)`. Both
+/// circles are rotated by the coordinate's `workm`, translated by its `t[]`
+/// and projected through `GsWSMATRIX`; wedge `i` picks its texture column
+/// from `(D_plasma_8012FF54[arg2][i] + field_22) % 6`, and `field_24` sets the
+/// brightness. A negative `gte_stflg` on the wedge's first vertex drops it.
+/// Works out of a `GpBandScratch` taken from `G_SCRATCH_HEAD`.
+static void func_plasma_8012F568(GpEffWork* arg0, GpCoord* arg1, s32 arg2)
 {
     u8*              head;
     GpBandScratch*   block;

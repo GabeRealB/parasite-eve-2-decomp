@@ -21,10 +21,4 @@ extern u8 D_kyle_800102_8017743C[4];
 /// Impact clip id per attachment, indexed by `sfx - 0xA`.
 extern u16 D_kyle_800102_80177434[4];
 
-void func_kyle_800102_80167A84(Task* arg0);
-void func_kyle_800102_80167DE0(Task* arg0);
-void func_kyle_800102_80168244(Task* arg0);
-void func_kyle_800102_80168270(Task* arg0);
-void func_kyle_800102_801682B4(Task* arg0);
-
 #endif

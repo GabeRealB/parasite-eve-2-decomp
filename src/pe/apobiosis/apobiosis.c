@@ -17,6 +17,11 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
+static Task* D_apobiosis_80130BA0;
+static void  func_apobiosis_8012EF4C(Task* arg0);
+static void  func_apobiosis_8012F808(u32 bright);
+static void  func_apobiosis_8012F9D0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+
 /// Per-level tuning for the apobiosis pulse: rows are PE levels 1-3.
 ApobiosisStep D_apobiosis_80130B5C[] = {
     { 0x0004, 0x0400, 0x00C0, 0x0280 },
@@ -27,8 +32,8 @@ ApobiosisStep D_apobiosis_80130B5C[] = {
 /// The `SndEvt_EnqueueType6` id for each `D_apobiosis_80130B5C` row.
 s32 D_apobiosis_80130B74[] = { 0xE0170001, 0xE01A0001, 0xE01D0001 };
 
-void func_apobiosis_8013017C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
-void func_apobiosis_80130630(GpCoord* arg0, s16* arg1, s16 arg2, s16 arg3);
+static void func_apobiosis_8013017C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
+static void func_apobiosis_80130630(GpCoord* arg0, s16* arg1, s16 arg2, s16 arg3);
 
 /// The apobiosis cast. Six states drive one screen flash plus a growing ring
 /// of shards, scaled by `D_apobiosis_80130B5C[Gp_StateC08.field_0 % 10 - 1]`
@@ -47,10 +52,12 @@ void func_apobiosis_80130630(GpCoord* arg0, s16* arg1, s16 arg2, s16 arg3);
 /// state change, hardest on the widest row.
 /// Scratch for the pulse ring, plus the task handle it spawns.
 /// lists an object in the linker script at its first subsegment, and this has
-s16   D_apobiosis_80130B80[16] = { 0 };
-Task* D_apobiosis_80130BA0     = NULL;
+s16 D_apobiosis_80130B80[16] = { 0 };
+/// The running cast task, cached by `func_apobiosis_8012EF4C` so each shard
+/// can reparent itself onto the cast when it starts.
+static Task* D_apobiosis_80130BA0 = NULL;
 
-void func_apobiosis_8012EF4C(Task* arg0)
+static void func_apobiosis_8012EF4C(Task* arg0)
 {
     GpEffWork*  mem;
     GpCoord*    coord;
@@ -218,7 +225,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
 /// halved), but on stage `Gp_StateC08.field_0 % 10 == 3` one draw in four
 /// comes out yellow instead (blue halved). The prim is linked at a fixed
 /// `otz` of 0x30, in front of the scene.
-void func_apobiosis_8012F808(u32 bright)
+static void func_apobiosis_8012F808(u32 bright)
 {
     POLY_F4* prim;
     s32      rng;
@@ -261,7 +268,7 @@ void func_apobiosis_8012F808(u32 bright)
 /// bucket its own depth names and then handed to `Gp_AddTpageShift`. Same
 /// shape as `func_plasma_8012FB10`, which grows its ring from `otz + 1`
 /// instead.
-void func_apobiosis_8012F9D0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_apobiosis_8012F9D0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     GpArcScratch* block;
     POLY_G4*      prim;
@@ -326,7 +333,7 @@ void func_apobiosis_8012F9D0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 /// the intensity `step` that picks a `D_apobiosis_80130B5C` row. Both live
 /// states redraw the shard every other frame, at twice the row's radius while
 /// pinned and at the plain radius once free.
-void func_apobiosis_8012FE10(Task* arg0)
+static void func_apobiosis_8012FE10(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -415,7 +422,7 @@ void func_apobiosis_8012FE10(Task* arg0)
 /// brighter 0x42C9 palette. Same shape as Combustion's and Pyrokinesis's flame
 /// quad (`func_combustion_8012FB14`), which uses a fixed CLUT and 0x20-wide
 /// frames.
-void func_apobiosis_8013017C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
+static void func_apobiosis_8013017C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -502,7 +509,7 @@ void func_apobiosis_8013017C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 /// on-screen half-width is `arg3 * 23 / otz`. Clut is 0x4287, or 0x42C8 on
 /// one in four LCG rolls when the combo row is 2. Nothing is drawn if either
 /// projection sets a negative `gte_stflg`.
-void func_apobiosis_80130630(GpCoord* arg0, s16* arg1, s16 arg2, s16 arg3)
+static void func_apobiosis_80130630(GpCoord* arg0, s16* arg1, s16 arg2, s16 arg3)
 {
     u8*                    head;
     u8*                    tmp;

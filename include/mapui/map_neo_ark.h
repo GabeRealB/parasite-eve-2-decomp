@@ -19,6 +19,4 @@ typedef struct MapNeoArkOut {
     /* 0x3 */ s8   field_3;
 } MapNeoArkOut;
 
-s32 func_map_neo_ark_80179B14(MapNeoArkRec* arg0, MapNeoArkOut* arg1);
-
 #endif // MAP_NEO_ARK_H

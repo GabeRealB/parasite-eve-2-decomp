@@ -21,7 +21,7 @@
 /// Per-level tuning for the healing aura: rows are PE levels 1-3, selected by
 /// `index`. `field_2` is the brightness ceiling, `field_4` the per-tick
 /// spin, `field_6` the radius the ring grows to before the effect ends.
-HealingScale D_healing_8012FC1C[] = {
+static HealingScale D_healing_8012FC1C[] = {
     { 0x0008, 0x0080, 0x0040, 0x0400 },
     { 0x000C, 0x00B0, 0x0048, 0x0500 },
     { 0x0010, 0x00E0, 0x0050, 0x0600 },
@@ -30,7 +30,7 @@ HealingScale D_healing_8012FC1C[] = {
 /// The `SndEvt_EnqueueType6` id for each `D_healing_8012FC1C` row.
 s32 D_healing_8012FC34[] = { 0xE0200001, 0xE0230001, 0xE0260001 };
 
-void func_healing_8012F7FC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
+static void func_healing_8012F7FC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 
 /// Healing PE ring. Cancel (`Gp_StateC08.field_3 == -2` or
 /// `Gp_State1C->fadeState >= 4`) releases the work block, and if the effect has
@@ -40,7 +40,7 @@ void func_healing_8012F7FC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 /// offset and parents a `0x60017` spark. State 2 shrinks brightness. Both
 /// draw two rings plus one or two arcs. State 3 holds for 0x1F frames then
 /// releases.
-void func_healing_8012EF34(Task* arg0)
+static void func_healing_8012EF34(Task* arg0)
 {
     GpEffWork*  mem;
     GpCoord*    coord;
@@ -165,7 +165,7 @@ void func_healing_8012EF34(Task* arg0)
 /// seeds the spin and colour from the spawn argument and the LCG; state 1 lifts
 /// the frame and draws the additive quad on odd ticks until the animation runs
 /// out. Life Drain carries an identical copy.
-void func_healing_8012F494(Task* arg0)
+static void func_healing_8012F494(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -213,7 +213,7 @@ void func_healing_8012F494(Task* arg0)
     }
 }
 
-void func_healing_8012F5E4(Task* arg0)
+static void func_healing_8012F5E4(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -280,7 +280,7 @@ void func_healing_8012F5E4(Task* arg0)
 /// `(arg2 / 2) * 55 / otz` out. Both are axis-aligned and linked into
 /// `gGpuCurrentOt` at the shared `otz`. Same 0x18-byte scratch as gameplay
 /// `Gp_EffSprTask8D`.
-void func_healing_8012F7FC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
+static void func_healing_8012F7FC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     u8*            head;
     GpRingScratch* block;

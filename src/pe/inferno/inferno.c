@@ -16,7 +16,7 @@
 #include "pe/inferno.h"
 
 /// The two fan shapes the inferno wall sweeps through.
-InfernoFanParam D_inferno_801304E4[] = {
+static InfernoFanParam D_inferno_801304E4[] = {
     { 0x0100, 0x0800, 0x0200 },
     { 0x0200, 0x0600, 0x0300 },
 };
@@ -24,9 +24,9 @@ InfernoFanParam D_inferno_801304E4[] = {
 /// The `SndEvt_EnqueueType6` id for each inferno stage.
 s32 D_inferno_801304F0[] = { 0xE0100001, 0xE0130001, 0xE00D0001 };
 
-void func_inferno_8012F3EC(s16 arg0);
-void func_inferno_8012F978(GpEffWork* mem, GpCoord* coord, s32 kind, InfernoIdMap* map);
-void func_inferno_8012FF34(GpEffWork* mem, GpCoord* coord, s32 kind, InfernoIdMap* map);
+static void func_inferno_8012F3EC(s16 arg0);
+static void func_inferno_8012F978(GpEffWork* mem, GpCoord* coord, s32 kind, InfernoIdMap* map);
+static void func_inferno_8012FF34(GpEffWork* mem, GpCoord* coord, s32 kind, InfernoIdMap* map);
 
 /// Runs one frame of the inferno cast: a state machine driven by
 /// `Task::state`, with the chain it takes chosen in state 0 from
@@ -38,7 +38,7 @@ void func_inferno_8012FF34(GpEffWork* mem, GpCoord* coord, s32 kind, InfernoIdMa
 /// flames on their own tick, and state 12 fades out and releases. Every state
 /// updates the effect coordinate first, and any state releases immediately if
 /// the player is dying (`Gp_StateC08.field_3`) or the room is fading (`Gp_State1C`).
-void func_inferno_8012EF88(Task* arg0)
+static void func_inferno_8012EF88(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -144,7 +144,7 @@ release:
 /// Full-screen wash quad drawn by the inferno cast: an unshaded `POLY_F4`
 /// covering the 320x240 view in `arg0` / `arg0 >> 1` / `arg0 >> 2` red-amber,
 /// added to OT slot 0x30 and followed by a shifted-tpage semi-trans packet.
-void func_inferno_8012F3EC(s16 arg0)
+static void func_inferno_8012F3EC(s16 arg0)
 {
     POLY_F4*      p;
     DisplayState* ds;
@@ -185,7 +185,7 @@ void func_inferno_8012F3EC(s16 arg0)
 /// State 3 also walks the effect coordinate by `move`. Releases if the
 /// player is dying, the room is fading, or the state's brightness floor is
 /// hit. `Task::spawnArg1 + 1` selects the chain from state 0.
-void func_inferno_8012F530(Task* arg0)
+static void func_inferno_8012F530(Task* arg0)
 {
     GpEffWork*    mem;
     GpCoord*      coord;
@@ -320,7 +320,7 @@ release:
 /// inner rim is lifted `GpEffWork::period + field_2` along local Y instead
 /// of `field_2` alone, so the ring rises as the caster's `period` winds up.
 /// `kind` picks the row of `D_inferno_801304E4` that sizes it.
-void func_inferno_8012F978(GpEffWork* mem, GpCoord* coord, s32 kind, InfernoIdMap* map)
+static void func_inferno_8012F978(GpEffWork* mem, GpCoord* coord, s32 kind, InfernoIdMap* map)
 {
     u8*                head;
     InfernoFanScratch* block;
@@ -419,7 +419,7 @@ void func_inferno_8012F978(GpEffWork* mem, GpCoord* coord, s32 kind, InfernoIdMa
 /// is then projected through `GsWSMATRIX` and linked as one semi-transparent
 /// `POLY_FT4`; `map` and `GpEffWork::age` pick which of the six 0x28-wide
 /// texture frames it uses, and a negative `gte_stflg` drops the segment.
-void func_inferno_8012FF34(GpEffWork* mem, GpCoord* coord, s32 kind, InfernoIdMap* map)
+static void func_inferno_8012FF34(GpEffWork* mem, GpCoord* coord, s32 kind, InfernoIdMap* map)
 {
     u8*                head;
     InfernoFanScratch* block;

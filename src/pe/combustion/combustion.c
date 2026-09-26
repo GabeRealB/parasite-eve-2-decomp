@@ -28,7 +28,7 @@ CombustionStep D_combustion_80130980[] = {
 /// The `SndEvt_EnqueueType6` id for each `D_combustion_80130980` row.
 s32 D_combustion_80130998[] = { 0xE00C0002, 0xE00F0002, 0xE0120002 };
 
-void func_combustion_8012FB14(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
+static void func_combustion_8012FB14(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 
 /// Live flame handle for the combustion effect.
 s32 D_combustion_801309A4 = 0;
@@ -40,7 +40,7 @@ s32 D_combustion_801309A4 = 0;
 /// the yaw the ignition applied, and either state ends as soon as the player
 /// is dying (`Gp_StateC08.field_3`), the room is fading (`Gp_State1C`) or the
 /// row's `field_6` tick is reached.
-void func_combustion_8012EF34(Task* arg0)
+static void func_combustion_8012EF34(Task* arg0)
 {
     GpEffWork*  mem;
     GpCoord*    coord;
@@ -126,7 +126,7 @@ void func_combustion_8012EF34(Task* arg0)
 /// parent. Either state releases the effect once the player is dying
 /// (`Gp_StateC08.field_3`), the room is fading (`Gp_State1C`) or the flame has lived
 /// 0x21 frames.
-void func_combustion_8012F2BC(Task* arg0)
+static void func_combustion_8012F2BC(Task* arg0)
 {
     GpEffWork*  mem;
     GpCoord*    coord;
@@ -299,7 +299,7 @@ void func_combustion_8012F5EC(GpCoord* arg0, s16 arg1, s16 arg2)
 /// on the odd frames, state 2 draws `func_combustion_8012FF0C` and state 3 the
 /// small `func_combustion_8012F5EC`, each releasing the ember after eight (six
 /// for state 3) frames.
-void func_combustion_8012F888(Task* arg0)
+static void func_combustion_8012F888(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -400,7 +400,7 @@ void func_combustion_8012F888(Task* arg0)
 /// so the sprite shrinks with depth. Same shape as the gameplay
 /// `Gp_DrawFxQuad`, with the CLUT fixed at 0x42C2 instead of picked from
 /// `Gp_QuadClutX`.
-void func_combustion_8012FB14(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
+static void func_combustion_8012FB14(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -677,7 +677,7 @@ void func_combustion_801305F8(GpCoord* arg0, s16 arg1, s16 arg2)
     SCRATCH_POP_BYTES(0x18);
 }
 
-void func_combustion_801308E0(Task* arg0)
+static void func_combustion_801308E0(Task* arg0)
 {
     GpCoord* coord;
 

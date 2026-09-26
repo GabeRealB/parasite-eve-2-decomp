@@ -229,25 +229,12 @@ typedef struct ReplayBonusTotals {
 extern ReplayBonusTotals D_replay_bonus_80119274;
 extern s32               D_replay_bonus_8011927C;
 
-extern UiList     D_replay_bonus_80119130;
-extern s32        D_80067634;
-extern const char D_replay_bonus_80115774[];
-extern const char D_replay_bonus_80115784[];
-extern const char D_replay_bonus_80115790[];
-extern const char D_replay_bonus_8011579C[];
+extern UiList D_replay_bonus_80119130;
+extern s32    D_80067634;
 
 u16* func_replay_bonus_80115C68(void);
 s32  func_replay_bonus_80115CA4(void);
-void func_replay_bonus_80115D60(UiList* list, ReplayBonusCtx* ctx);
 void func_replay_bonus_80115ED0(Task* arg0);
-s32  func_replay_bonus_801173A8(void);
-void func_replay_bonus_80117E04(void);
-void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds);
-s32  func_replay_bonus_80118B6C(ReplayBonusStfFile* file, s32 index);
-void func_replay_bonus_80118F00(s32 arg0);
-s16  func_replay_bonus_80117484(s32 arg0, s32 arg1);
-s16  func_replay_bonus_801175D0(UiList* list, ReplayBonusCtx* ctx, s32 index);
-s32  func_replay_bonus_801175F0(UiList* list, ReplayBonusCtx* ctx);
 void func_replay_bonus_801176A8(DialogPrompt* prompt, UiObject* obj);
 
 #endif

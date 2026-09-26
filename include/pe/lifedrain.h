@@ -19,8 +19,6 @@ typedef struct LifeDrainScale {
 } LifeDrainScale;
 STATIC_ASSERT_SIZEOF(LifeDrainScale, 0xA);
 
-extern LifeDrainScale D_lifedrain_80130AB4[];
-
 /// `SndEvt` id of the drain's opening cue, indexed by `GpEffWork.index`
 /// when the cast has drained nothing yet and by `field_20 + 3` once there is
 /// health banked in `Gp_StateF0.field_14`.
@@ -30,11 +28,6 @@ extern s32 D_lifedrain_80130AD4[];
 /// block when the cast starts and replayed every frame by
 /// `func_lifedrain_801305C0`.
 extern s16 D_lifedrain_80130AEC[];
-
-/// The cast's collector task, published by `func_lifedrain_8012EF48`. Every
-/// drain mote reparents itself onto it and adds its own `spawnArg1` to the
-/// running total there.
-extern struct Task* D_lifedrain_80130B0C;
 
 /// Two axis-aligned `POLY_FT4`s at `arg0`'s world position, projected through
 /// `GsWSMATRIX` by one `RTPS`. A negative `gte_stflg` drops both. `arg1` picks

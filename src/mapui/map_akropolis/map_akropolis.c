@@ -12,7 +12,7 @@
 #include "main/text.h"
 #include "main/ui.h"
 
-extern const char D_map_akropolis_8017997C[12];
+static const char D_map_akropolis_8017997C[12];
 extern s32        D_map_akropolis_8017A9A8;
 extern s32        D_map_akropolis_8017A9AC[4];
 extern UiList     D_map_akropolis_8017A9C0;
@@ -21,6 +21,8 @@ extern TaskDesc   D_map_akropolis_8017AA00;
 extern UiObjectDesc D_8010EFA0;
 extern UiObjectDesc D_map_akropolis_8017A9E4;
 
+static s32 func_map_akropolis_8017A038(void);
+
 /// MDEC buffer layout hook for the Akropolis map, reached from
 /// `Mdec_SetupBuffers` (main) for the stream kinds this overlay plays. Every
 /// kind parks the two VLC buffers (`D_8006AC50`) and the two decode buffers
@@ -28,7 +30,7 @@ extern UiObjectDesc D_map_akropolis_8017A9E4;
 /// the halves sit — one frame (kinds 6/9/10), one and a half (11/14) — and in
 /// whether they also resize the display. `D_8006AC44` always ends up one full
 /// frame past the second decode buffer.
-void func_map_akropolis_80179988(u8* arg0)
+static void func_map_akropolis_80179988(u8* arg0)
 {
     CdCmdQueue* q = &CdCmd_Queue;
     s16         one;
@@ -209,7 +211,7 @@ void func_map_akropolis_80179E8C(Task* task)
     }
 }
 
-s32 func_map_akropolis_80179FC8(s32 arg0, s32 arg1)
+static s32 func_map_akropolis_80179FC8(s32 arg0, s32 arg1)
 {
     s32* p;
     s32  i;
@@ -227,11 +229,11 @@ s32 func_map_akropolis_80179FC8(s32 arg0, s32 arg1)
     return 1;
 }
 
-s32 func_map_akropolis_8017A038(void)
+static s32 func_map_akropolis_8017A038(void)
 {
     return D_map_akropolis_8017A9A8;
 }
 
 /// The key-item panel heading. Three bytes follow the terminator that
 /// nothing has been shown to read; they are reproduced so the block matches.
-const char D_map_akropolis_8017997C[12] = "Key Item\0L#\6";
+static const char D_map_akropolis_8017997C[12] = "Key Item\0L#\6";

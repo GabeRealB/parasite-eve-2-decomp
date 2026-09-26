@@ -66,7 +66,7 @@ void func_aya_20900_8011578C(Task* arg0)
     addPrim(gGpuCurrentOt - 0x10, dr);
 }
 
-void func_aya_20900_80115948(void)
+static void func_aya_20900_80115948(void)
 {
     POLY_FT4* p;
     s16       x;
@@ -89,7 +89,7 @@ void func_aya_20900_80115948(void)
     addPrim(gGpuCurrentOt, p);
 }
 
-s32 func_aya_20900_80115A14(Task* arg0)
+static s32 func_aya_20900_80115A14(Task* arg0)
 {
     Aya20900Work* work;
     TILE*         p;

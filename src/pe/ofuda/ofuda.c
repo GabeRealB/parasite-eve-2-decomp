@@ -26,7 +26,7 @@
 /// below 9, then releases the block.
 ///
 /// A cancelled or interrupted cast stops the cue and releases immediately.
-void ofudaEffectTask(Task* arg0)
+static void ofudaEffectTask(Task* arg0)
 {
     GpEffWork*  mem;
     GpCoord*    coord;

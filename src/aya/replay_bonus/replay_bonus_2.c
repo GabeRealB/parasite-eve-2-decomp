@@ -36,7 +36,11 @@ extern s32          D_replay_bonus_80119284;
 
 void func_replay_bonus_80116EC0(void);
 
-void func_replay_bonus_80117194(Task* arg0)
+static void func_replay_bonus_80117E04(void);
+static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds);
+static void func_replay_bonus_80118F00(s32 arg0);
+
+static void func_replay_bonus_80117194(Task* arg0)
 {
     UiObject* obj;
     Task*     owner;
@@ -96,7 +100,7 @@ void func_replay_bonus_80117194(Task* arg0)
     arg0->killCountdown = 0x10;
 }
 
-s32 func_replay_bonus_801173A8(void)
+static s32 func_replay_bonus_801173A8(void)
 {
     ReplayBonusShopTier* p;
     u32                  spend;
@@ -147,7 +151,7 @@ s32 func_replay_bonus_801173A8(void)
     return idx;
 }
 
-s16 func_replay_bonus_80117484(s32 arg0, s32 arg1)
+static s16 func_replay_bonus_80117484(s32 arg0, s32 arg1)
 {
     ReplayBonusShopTier* p;
     u32                  spend;
@@ -208,7 +212,7 @@ s16 func_replay_bonus_80117484(s32 arg0, s32 arg1)
     return D_replay_bonus_80118F78[result].items[arg1];
 }
 
-s32 func_replay_bonus_80117598(s32 arg0)
+static s32 func_replay_bonus_80117598(s32 arg0)
 {
     u16* p;
     s32  i;
@@ -226,14 +230,14 @@ s32 func_replay_bonus_80117598(s32 arg0)
     return 0;
 }
 
-s16 func_replay_bonus_801175D0(UiList* list, ReplayBonusCtx* ctx, s32 index)
+static s16 func_replay_bonus_801175D0(UiList* list, ReplayBonusCtx* ctx, s32 index)
 {
     s16* p = ctx->itemList->itemIds + index;
 
     return *p;
 }
 
-s32 func_replay_bonus_801175F0(UiList* list, ReplayBonusCtx* ctx)
+static s32 func_replay_bonus_801175F0(UiList* list, ReplayBonusCtx* ctx)
 {
     PlayerStatus* cfg;
     s32           i;
@@ -302,7 +306,7 @@ void func_replay_bonus_801176A8(DialogPrompt* prompt, UiObject* obj)
     _replayBonusDrawItemRow(prompt, obj, *p);
 }
 
-s32 func_replay_bonus_801177A0(void)
+static s32 func_replay_bonus_801177A0(void)
 {
     ReplayBonusShopTier* tier;
     s16*                 p;
@@ -329,7 +333,7 @@ s32 func_replay_bonus_801177A0(void)
     return sum * 0x186A0;
 }
 
-void func_replay_bonus_80117848(Task* arg0)
+static void func_replay_bonus_80117848(Task* arg0)
 {
     u16 timer = arg0->killCountdown + 1;
 
@@ -342,7 +346,7 @@ void func_replay_bonus_80117848(Task* arg0)
     }
 }
 
-void func_replay_bonus_801178C0(Task* arg0)
+static void func_replay_bonus_801178C0(Task* arg0)
 {
     if (CdCmd_IsIdle() & 0xFFFF) {
         Text_LoadClutImages();
@@ -351,7 +355,7 @@ void func_replay_bonus_801178C0(Task* arg0)
     }
 }
 
-void func_replay_bonus_80117924(Task* arg0)
+static void func_replay_bonus_80117924(Task* arg0)
 {
     u16 remaining = arg0->killCountdown - 1;
 
@@ -508,14 +512,14 @@ void func_replay_bonus_80117A08(Task* arg0)
     }
 }
 
-void func_replay_bonus_80117DE0(u8 arg0)
+static void func_replay_bonus_80117DE0(u8 arg0)
 {
     char pad[0x10];
 
     D_replay_bonus_801192AC = 0x7F - (arg0 >> 1);
 }
 
-void func_replay_bonus_80117E04(void)
+static void func_replay_bonus_80117E04(void)
 {
     s32                          start;
     s32                          i;
@@ -657,7 +661,7 @@ void func_replay_bonus_80117E04(void)
     }
 }
 
-void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds)
+static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds)
 {
     s32                  tpageId;
     s32                  col;
@@ -879,7 +883,7 @@ void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds)
     }
 }
 
-s32 func_replay_bonus_80118B6C(ReplayBonusStfFile* file, s32 index)
+static s32 func_replay_bonus_80118B6C(ReplayBonusStfFile* file, s32 index)
 {
     ReplayBonusStfLine*  rec;
     ReplayBonusStfLine** slot;
@@ -1003,7 +1007,7 @@ void func_replay_bonus_80118E3C(Task* arg0)
     func_replay_bonus_80117DE0(((s32)(arg0->killCountdown * 0xFF) / (s32)arg0->spawnArg1) & 0xFF);
 }
 
-void func_replay_bonus_80118F00(s32 arg0)
+static void func_replay_bonus_80118F00(s32 arg0)
 {
     FsFolderSlot* slot;
     s32           count;

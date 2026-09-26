@@ -17,9 +17,11 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+static void func_kyle_800102_80168270(Task* arg0);
+
 /// Spawn state: allocates the work block, seeds the thrown object at the
 /// muzzle coordinate and links its two `GpObj` nodes.
-void func_kyle_800102_80167A84(Task* arg0)
+static void func_kyle_800102_80167A84(Task* arg0)
 {
     u8*                head;
     SVECTOR*           blk;
@@ -123,7 +125,7 @@ void func_kyle_800102_80167A84(Task* arg0)
 /// attachment id driving the explosion effect, the byte above it seeds the
 /// sound bank, and bit 0x100000 marks the shot that plays the fixed
 /// `0x40660002` clip instead.
-void func_kyle_800102_80167DE0(Task* arg0)
+static void func_kyle_800102_80167DE0(Task* arg0)
 {
     WeaponGrenadeScratch* blk;
     WeaponGrenadeWork*    work;
@@ -222,7 +224,7 @@ move:
     SCRATCH_POP_BYTES(sizeof(WeaponGrenadeScratch));
 }
 
-void func_kyle_800102_80168244(Task* arg0)
+static void func_kyle_800102_80168244(Task* arg0)
 {
     WeaponGrenadeWork* work  = (WeaponGrenadeWork*)arg0->work;
     s32                timer = work->field_88.w - 1;
@@ -233,7 +235,7 @@ void func_kyle_800102_80168244(Task* arg0)
     }
 }
 
-void func_kyle_800102_80168270(Task* arg0)
+static void func_kyle_800102_80168270(Task* arg0)
 {
     WeaponGrenadeWork* work = (WeaponGrenadeWork*)arg0->work;
 
@@ -243,7 +245,7 @@ void func_kyle_800102_80168270(Task* arg0)
 }
 /// Per-frame entry point: runs the task's current state. The table is a local,
 /// so GCC copies it from `.rodata` onto the stack every frame.
-void func_kyle_800102_801682B4(Task* arg0)
+static void func_kyle_800102_801682B4(Task* arg0)
 {
     Kyle800102StateFn states[4] = {
         func_kyle_800102_80167A84,

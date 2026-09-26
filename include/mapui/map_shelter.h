@@ -19,6 +19,4 @@ typedef struct MapShelterOut {
     /* 0x3 */ s8   field_3;
 } MapShelterOut;
 
-s32 func_map_shelter_80179A04(MapShelterRec* arg0, MapShelterOut* arg1);
-
 #endif // MAP_SHELTER_H

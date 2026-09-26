@@ -16,7 +16,6 @@ typedef struct EnergyShotScale {
 } EnergyShotScale;
 STATIC_ASSERT_SIZEOF(EnergyShotScale, 8);
 
-extern EnergyShotScale D_energyshot_801300E4[];
 /// The `SndEvt_EnqueueType6` id for each `D_energyshot_801300E4` row.
 extern s32 D_energyshot_801300FC[];
 
@@ -26,10 +25,5 @@ extern s32 D_energyshot_801300FC[];
 /// and reduced mod 6 to pick one of the six 0x28-wide frames of the beam
 /// texture.
 extern s16 D_energyshot_80130108[];
-
-/// Sixteen wedge yaws, refilled once per cast by `func_energyshot_8012EF34`
-/// from `Gp_LcgState`. Entry `i` is `i * (0x1000 / field_0)` plus a 9-bit LCG
-/// draw. States 1 and 2 pass one yaw per frame to `func_energyshot_8012F750`.
-extern s16 D_energyshot_80130128[];
 
 #endif /* PE_ENERGYSHOT_H */

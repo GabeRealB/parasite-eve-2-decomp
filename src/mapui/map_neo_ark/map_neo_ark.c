@@ -17,7 +17,7 @@ extern s32 D_800820E0;
 /// kind 9 additionally rewinds the CD queue and asks for the 0x180 x 0x100
 /// display. `D_8006AC44` always ends up one full frame past the second decode
 /// buffer.
-void func_map_neo_ark_801799BC(u8* arg0)
+static void func_map_neo_ark_801799BC(u8* arg0)
 {
     CdCmdQueue* q = &CdCmd_Queue;
     s32         stride;
@@ -51,7 +51,7 @@ void func_map_neo_ark_801799BC(u8* arg0)
 /// Fills in the marker state for one Neo Ark map room. Most rooms have no
 /// marker; the five that do read a GameFlag nibble, either straight (plus one,
 /// rooms 7 / 13 / 32) or folded into a fixed set of states (rooms 20 and 21).
-s32 func_map_neo_ark_80179B14(MapNeoArkRec* arg0, MapNeoArkOut* arg1)
+static s32 func_map_neo_ark_80179B14(MapNeoArkRec* arg0, MapNeoArkOut* arg1)
 {
     if (arg0->field_5 == 0) {
         switch (arg0->field_0) {
@@ -115,7 +115,7 @@ s32 func_map_neo_ark_80179B14(MapNeoArkRec* arg0, MapNeoArkOut* arg1)
 /// and anything else plays at `arg0` with both ramps reset. Each ramp waits out
 /// its own counter (0x79 / 0xF1 frames), then walks `D_800820E0` by 0x300 a
 /// frame until it reaches the target and the counter is parked at 0xFF.
-s32 func_map_neo_ark_80179BE4(u32 arg0, u8 arg1, LinInterp* arg2)
+static s32 func_map_neo_ark_80179BE4(u32 arg0, u8 arg1, LinInterp* arg2)
 {
     s32 volume;
     u32 temp;

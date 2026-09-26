@@ -19,8 +19,10 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
+static void func_lifedrain_8012EF48(Task* arg0);
+
 /// Per-level tuning for the life drain: rows are PE levels 1-3.
-LifeDrainScale D_lifedrain_80130AB4[] = {
+static LifeDrainScale D_lifedrain_80130AB4[] = {
     { 0x0008, 0x0080, 0x0100, 0x0400, 0x0040 },
     { 0x000C, 0x00B0, 0x0200, 0x0500, 0x0048 },
     { 0x0010, 0x00E0, 0x0300, 0x0600, 0x0050 },
@@ -37,8 +39,11 @@ s32 D_lifedrain_80130AD4[] = {
 };
 
 /// Scratch for the drain ribbon, plus the task handle it spawns.
-s16          D_lifedrain_80130AEC[16] = { 0 };
-struct Task* D_lifedrain_80130B0C     = NULL;
+s16 D_lifedrain_80130AEC[16] = { 0 };
+/// The cast's collector task, published by `func_lifedrain_8012EF48`. Every
+/// drain mote reparents itself onto it and adds its own `spawnArg1` to the
+/// running total there.
+static struct Task* D_lifedrain_80130B0C = NULL;
 
 /// Runs one frame of the life-drain cast: a five-state machine driven by
 /// `Task::state`, published in `D_lifedrain_80130B0C` so every mote can find
@@ -61,7 +66,7 @@ struct Task* D_lifedrain_80130B0C     = NULL;
 /// `angle` radius. Once `angle` passes the row's `unk6` it moves to state
 /// 3, which shrinks `scale` by 0x10 a frame and redraws the same funnel
 /// until it drops below 0x11, then releases through state 4.
-void func_lifedrain_8012EF48(Task* arg0)
+static void func_lifedrain_8012EF48(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -294,7 +299,7 @@ void func_lifedrain_8012EF48(Task* arg0)
 /// spawned through gameplay's effect table. State 0 seeds the spin and colour
 /// from the spawn argument and the LCG; state 1 lifts the frame and draws the
 /// additive quad on odd ticks until the animation runs out.
-void func_lifedrain_8012F9A8(Task* arg0)
+static void func_lifedrain_8012F9A8(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -361,7 +366,7 @@ void func_lifedrain_8012F9A8(Task* arg0)
 /// so later ticks pull harder. State 2 then steps each drift component 0x10
 /// toward that heading every frame, re-aiming as it goes, and releases at tick
 /// 0x1E.
-void func_lifedrain_8012FAF8(Task* arg0)
+static void func_lifedrain_8012FAF8(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -637,7 +642,7 @@ void func_lifedrain_801305C0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
     SCRATCH_POP_BYTES(0x18);
 }
 
-void func_lifedrain_801308C0(Task* arg0)
+static void func_lifedrain_801308C0(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;

@@ -74,7 +74,9 @@ void Title_InitTask(Task* arg0)
     }
 }
 
-void Title_DrawSpriteRow(s32 y, s32 v, s32 color)
+/// One 16px chrome row. v is atlas Y in pe2img_2 (0 logo, 0x10 footer,
+/// 0x20 cursor, 0x30+ menu). clut 0x3FC0, tpage 0xE10002BC.
+static void Title_DrawSpriteRow(s32 y, s32 v, s32 color)
 {
     SPRT*     p;
     DR_TPAGE* dr;
@@ -302,7 +304,7 @@ void Title_FlagAdvanceTask(Task* arg0)
     (*p)++;
 }
 
-void Title_Dispatch(Task* arg0)
+static void Title_Dispatch(Task* arg0)
 {
     TaskFuncTable5 sp;
 
@@ -311,7 +313,7 @@ void Title_Dispatch(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-void Title_ExitTask(Task* arg0)
+static void Title_ExitTask(Task* arg0)
 {
     Task_CallExit(arg0);
 }

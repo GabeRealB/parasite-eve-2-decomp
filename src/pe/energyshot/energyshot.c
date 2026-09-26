@@ -15,8 +15,10 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
+static void func_energyshot_8012EF34(Task* arg0);
+
 /// Per-level tuning for the energy shot: rows are PE levels 1-3.
-EnergyShotScale D_energyshot_801300E4[] = {
+static EnergyShotScale D_energyshot_801300E4[] = {
     { 0x0008, 0x0090, 0x0005, 0x0400 },
     { 0x000C, 0x00C0, 0x0006, 0x0500 },
     { 0x0010, 0x00F0, 0x0007, 0x0600 },
@@ -25,12 +27,15 @@ EnergyShotScale D_energyshot_801300E4[] = {
 /// The `SndEvt_EnqueueType6` id for each `D_energyshot_801300E4` row.
 s32 D_energyshot_801300FC[] = { 0xE02A0001, 0xE02D0001, 0xE0300001 };
 
-void func_energyshot_8012FA50(GpCoord* arg0, s16 arg1, s16 arg2, u8* arg3);
-void func_energyshot_8012F750(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_energyshot_8012FA50(GpCoord* arg0, s16 arg1, s16 arg2, u8* arg3);
+static void func_energyshot_8012F750(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 
 /// Two scratch rings the shot walks while in flight.
 s16 D_energyshot_80130108[16] = { 0 };
-s16 D_energyshot_80130128[16] = { 0 };
+/// Sixteen wedge yaws, refilled once per cast by `func_energyshot_8012EF34`
+/// from `Gp_LcgState`. Entry `i` is `i * (0x1000 / field_0)` plus a 9-bit LCG
+/// draw. States 1 and 2 pass one yaw per frame to `func_energyshot_8012F750`.
+static s16 D_energyshot_80130128[16] = { 0 };
 
 /// Energy shot PE. `Task::spawnArg2` is the `GpEffWork` block; `Task::extra`
 /// reaches the coordinate. Cancel (`Gp_StateC08.field_3 == -2` or
@@ -41,7 +46,7 @@ s16 D_energyshot_80130128[16] = { 0 };
 /// brightness / radius, draws three rings plus `field_0` wedges and the beam,
 /// and parents a `0x600F4` spark; once brightness exceeds the row cap it
 /// advances to state 2, which shrinks brightness until it drops below 0x11.
-void func_energyshot_8012EF34(Task* arg0)
+static void func_energyshot_8012EF34(Task* arg0)
 {
     GpEffWork*  mem;
     GpCoord*    coord;
@@ -249,7 +254,7 @@ release:
 /// screen units away at `arg2 - 0x20` and `arg2 + 0x20`, so the wedge is a
 /// 0x40-wide fan blade about `arg2`. Only the apex carries `rgb`, the rim
 /// fading to black. A negative `gte_stflg` drops the wedge.
-void func_energyshot_8012F750(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_energyshot_8012F750(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     u8*            head;
     GpRingScratch* block;
@@ -308,7 +313,7 @@ void func_energyshot_8012F750(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 /// is one of six 0x28-wide frames picked per vertex by `D_energyshot_80130108`
 /// plus the frame counter, the quad is tinted by the three bytes at `arg3`,
 /// and a negative `gte_stflg` drops the segment.
-void func_energyshot_8012FA50(GpCoord* arg0, s16 arg1, s16 arg2, u8* arg3)
+static void func_energyshot_8012FA50(GpCoord* arg0, s16 arg1, s16 arg2, u8* arg3)
 {
     u8*            head;
     GpBandScratch* block;
@@ -391,7 +396,7 @@ void func_energyshot_8012FA50(GpCoord* arg0, s16 arg1, s16 arg2, u8* arg3)
     SCRATCH_POP_BYTES(0x118);
 }
 
-void func_energyshot_8012FFB8(Task* arg0)
+static void func_energyshot_8012FFB8(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;

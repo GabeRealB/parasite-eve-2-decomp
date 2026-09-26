@@ -16,6 +16,8 @@
 
 /// This overlay's id, the `u16` every package opens with.
 
+static void flareDrawSparkQuad(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+
 /// PROVISIONAL: written before `Task` was processed, so the statements
 /// about `Task` fields rest on unverified names. Rewrite once `Task` is done.
 /// Emits the flare's shower of sparks.
@@ -26,7 +28,7 @@
 /// are running on their own.
 ///
 /// A cancelled or interrupted cast stops the cue and releases immediately.
-void flareEffectTask(Task* arg0)
+static void flareEffectTask(Task* arg0)
 {
     GpEffWork*  mem;
     GpCoord*    coord;
@@ -77,7 +79,7 @@ void flareEffectTask(Task* arg0)
 /// reference. Every frame after that it advances by that velocity and draws the
 /// next sprite frame, stepping the frame on every second tick. Releases once
 /// all eight frames have been drawn.
-void flareSparkTask(Task* arg0)
+static void flareSparkTask(Task* arg0)
 {
     GpEffWork*  mem;
     GpCoord*    coord;
@@ -146,7 +148,13 @@ void flareSparkTask(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void flareDrawSparkQuad(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+/// Draws one frame of a spark's sprite at a world position.
+///
+/// The position is projected to the screen and the quad dropped if it lands
+/// behind the camera. `arg1` picks one of the eight texture frames, `arg3`
+/// spins the quad and `arg2` sizes it, with the size divided by depth so the
+/// sprite shrinks into the distance.
+static void flareDrawSparkQuad(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;

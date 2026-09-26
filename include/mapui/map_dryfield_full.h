@@ -19,6 +19,4 @@ typedef struct MapDryfieldFullOut {
     /* 0x3 */ s8   field_3;
 } MapDryfieldFullOut;
 
-s32 func_map_dryfield_full_80179954(MapDryfieldFullRec* arg0, MapDryfieldFullOut* arg1);
-
 #endif // MAP_DRYFIELD_FULL_H

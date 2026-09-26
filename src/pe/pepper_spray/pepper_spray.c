@@ -17,6 +17,9 @@
 #include "main/tmd.h"
 #include "pe/pepper_spray.h"
 
+static void func_pepper_spray_8012F21C(GpCoord* arg0, s16 arg1, s16 arg2);
+static void func_pepper_spray_8012F634(GpCoord* arg0, s16 arg1, s16 arg2);
+
 /// Runs one frame of the pepper spray. State 0 parks the room light slot on
 /// the nozzle coordinate, seeds the spray yaw / spread / brightness from
 /// `Gp_LcgState`, refills the six cone yaws and plays the spray sound; state 1
@@ -29,7 +32,7 @@
 /// lists an object in the linker script at its first subsegment, and this has
 s16 D_pepper_spray_8012FB9C[6] = { 0, 0, 0, 0, 0, 0 };
 
-void func_pepper_spray_8012EF34(Task* arg0)
+static void func_pepper_spray_8012EF34(Task* arg0)
 {
     GpEffWork*    mem;
     GpCoord*      coord;
@@ -102,7 +105,14 @@ void func_pepper_spray_8012EF34(Task* arg0)
     }
 }
 
-void func_pepper_spray_8012F21C(GpCoord* arg0, s16 arg1, s16 arg2)
+/// Links the pepper-spray nozzle quad at `arg0`'s world position. The position
+/// is projected through `GsWSMATRIX` by a single `RTPS` and the quad is
+/// dropped when that sets a negative `gte_stflg`. `arg1` sizes it and `arg2`
+/// spins it: the corners sit `arg1 * 0x37 / otz` from the projected centre
+/// along `arg2` and `arg2 + 0x400`, so the nozzle shrinks with depth. The
+/// texture is the fixed 0x37 x 0x37 patch at (0x70, 0xC8) on tpage 0x29, drawn
+/// semi-transparent and unshaded.
+static void func_pepper_spray_8012F21C(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     u8*                head;
     GpEffFlareScratch* blk;
@@ -157,7 +167,12 @@ void func_pepper_spray_8012F21C(GpCoord* arg0, s16 arg1, s16 arg2)
 /* Every scratch vector address is computed off `head`, not off `blk`, so the
    loads and stores keep spelling the block out from `head` rather than reusing
    the `blk` register the way CSE off `blk` would. */
-void func_pepper_spray_8012F634(GpCoord* arg0, s16 arg1, s16 arg2)
+/// Draws the pepper-spray cone as one Gouraud quad: three corners on a 0x100
+/// circle around `arg1` (at `-0xC0`, `0`, `+0xC0`) and one tip twice as far
+/// out and 0x200 towards the camera, all in `arg0`'s `workm` frame. `arg2` is
+/// the spray brightness; only the corner along `arg1` is lit, with half of
+/// `arg2` in red and green and all of it in blue.
+static void func_pepper_spray_8012F634(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     u8*                        head;
     OverlayFlaggedQuadScratch* blk;

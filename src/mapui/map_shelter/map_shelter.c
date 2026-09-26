@@ -6,7 +6,7 @@
 /// Fills in the marker state for one Shelter map room. Most rooms have no
 /// marker; the six that do read a GameFlag nibble, either straight (plus one,
 /// rooms 5 / 41 / 45) or folded into a fixed set of states (rooms 2, 16, 20).
-s32 func_map_shelter_80179A04(MapShelterRec* arg0, MapShelterOut* arg1)
+static s32 func_map_shelter_80179A04(MapShelterRec* arg0, MapShelterOut* arg1)
 {
     if (arg0->field_5 == 0) {
         switch (arg0->field_0) {
