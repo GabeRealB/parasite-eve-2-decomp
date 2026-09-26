@@ -436,71 +436,34 @@ void Gfx_RotMatrixZ(MATRIX* arg0, s32 angle, s32 flag)
 
 void Gfx_NormalizeLightDir(VECTOR* light, SVECTOR* out)
 {
-    register void**            scratch asm("s0");
-    ScratchNormBlock*          head;
-    ScratchNormBlock*          block;
-    register ScratchNormBlock* vec asm("a0");
-    s32*                       p_min;
-    s32*                       p_tmp;
-    s32                        val;
-    s32                        shift;
-    s32                        t_vy;
-    s32                        t_sh;
-    s32                        t_vz;
-    s32                        t_sh2;
+    ScratchNormBlock* block;
 
-    scratch                                    = SCRATCH_HEAD_ADDR;
-    head                                       = SCRATCH_HEAD_AT(scratch, ScratchNormBlock);
-    block                                      = head - 1;
-    SCRATCH_HEAD_AT(scratch, ScratchNormBlock) = block;
-
+    block    = SCRATCH_PUSH(ScratchNormBlock);
     block->v = *light;
 
-    vec = block;
-
-    gte_ldlzc(vec->v.vx);
-    gte_nop();
-    gte_nop();
-    p_min = &block->lzc_min;
-    gte_stlzc(p_min);
-
-    gte_ldlzc(vec->v.vy);
-    gte_nop();
-    gte_nop();
-    p_tmp = &block->lzc_tmp;
-    gte_stlzc(p_tmp);
+    gte_Lzc(block->v.vx, &block->lzc_min);
+    gte_Lzc(block->v.vy, &block->lzc_tmp);
 
     if (block->lzc_min > block->lzc_tmp) {
         block->lzc_min = block->lzc_tmp;
     }
 
-    val = vec->v.vz;
-    gte_ldlzc(val);
-    gte_nop();
-    gte_nop();
-    gte_stlzc(p_tmp);
+    gte_Lzc(block->v.vz, &block->lzc_tmp);
 
     if (block->lzc_min > block->lzc_tmp) {
         block->lzc_min = block->lzc_tmp;
     }
 
-    val = block->lzc_min;
-    if (val < 0x12) {
-        shift          = 0x12 - val;
-        block->lzc_min = shift;
-        block->v.vx  >>= shift;
-        t_vy           = block->v.vy;
-        t_sh           = block->lzc_min;
-        t_vz           = block->v.vz;
-        t_sh2          = t_sh;
-        TOUCH_REG(t_sh2);
-        block->v.vy = t_vy >> t_sh;
-        block->v.vz = t_vz >> t_sh2;
+    if (block->lzc_min < 18) {
+        block->lzc_min = 18 - block->lzc_min;
+        block->v.vx  >>= block->lzc_min;
+        block->v.vy  >>= block->lzc_min;
+        block->v.vz  >>= block->lzc_min;
     }
 
     VectorNormalS(&block->v, out);
 
-    SCRATCH_POP_AT(scratch, ScratchNormBlock);
+    SCRATCH_POP(ScratchNormBlock);
 }
 
 /// Builds a rotation from two axes: `arg2` and `arg1` become rows 1 and 2 of a
