@@ -87473,6 +87473,15 @@ copy is not always out of its reach. The `OverlayBisectorScratch` push
 had been matched with a `$v0` pin plus a `vz` local holding the store late.
 `SCRATCH_PUSH(T); st = SCRATCH_HEAD(T);` followed by the three field stores in
 source order matches it outright - sched1 sinks the head store past the fields.
+The same holds for the `GpRingScratch` ring-and-flare body shared by
+`Actor00300_Fn00078` and its actor/room copies (`sh v0,-0x18(a0)` /
+`addiu v0,a0,-0x18` / `move t7,v0`, head store `sw t7` after `vy`). It had been
+matched with a `move` asm, and the compound push matches it with every field
+written through `sc->`. The copy's register reaches the store because
+local-alloc's `optimize_reg_copy_1` rewrites the carve into the copy after the
+copy insn. If an unrelated global store (here `Gp_LcgState`) lands on the wrong
+side of the head store, move that statement ahead of the push rather than
+holding the carve in a local.
 
 The asm is also a scheduling barrier, so anything the target issues *before* the
 `addiu` carve must be written before the `SOFT_USE_REG` too. In
