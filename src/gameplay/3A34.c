@@ -4918,23 +4918,16 @@ void Gp_ClearObjHeads(void)
 
 s32 func_800E0308(SVECTOR* arg0, SVECTOR* arg1)
 {
-    void**           scratch;
-    u8*              head;
-    register VECTOR* vec asm("s1");
-    GpObj3A*         node;
-    s32              ret;
+    VECTOR*  vec;
+    GpObj3A* node;
+    s32      ret;
 
-    ret                          = 0;
-    scratch                      = SCRATCH_HEAD_ADDR;
-    node                         = D_80115550;
-    head                         = SCRATCH_HEAD_AT(scratch, u8);
-    ((VECTOR*)(head - 0x10))->vx = arg1->vx - arg0->vx;
-    head                         = head - 0x10;
-    vec                          = (VECTOR*)head;
-    TOUCH_REG_USE(vec, head);
-    vec->vy                          = arg1->vy - arg0->vy;
-    SCRATCH_HEAD_AT(scratch, VECTOR) = vec;
-    vec->vz                          = arg1->vz - arg0->vz;
+    ret     = 0;
+    node    = D_80115550;
+    vec     = SCRATCH_PUSH(VECTOR);
+    vec->vx = arg1->vx - arg0->vx;
+    vec->vy = arg1->vy - arg0->vy;
+    vec->vz = arg1->vz - arg0->vz;
     VectorNormal(vec, vec);
     for (; node != NULL; node = node->next) {
         if (node->field_3A & 0x40) {
@@ -4944,7 +4937,7 @@ s32 func_800E0308(SVECTOR* arg0, SVECTOR* arg1)
             }
         }
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_POP(VECTOR);
     return ret;
 }
 
