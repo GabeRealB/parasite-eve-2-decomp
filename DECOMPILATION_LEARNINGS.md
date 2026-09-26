@@ -144540,3 +144540,14 @@ the else arm with `i == 1` known and folds the add to `addiu`, which is what the
 arm ends in `return`, and whose tick path sets `i = 1` itself before `x += i`;
 inlined with `static inline`, it matches in the caller too. The same pinned shape
 recurs in several actors' pose ticks.
+
+## A `kill = …; killCopy = kill; TOUCH_REG(killCopy); if (killCopy)` alloc-or-die block is an inline with a narrow return type (func_actor_120300_80132004, 2026-09-27)
+
+A spawn tick's state 0 sets a flag to 1 on a failed `Mem_Malloc` and 0 after
+wiring the block up, then tests it through `move v0,v1; beqz v0` - a copy the
+seed kept only by pinning a second local. Moving the block into a `static
+inline` helper that `return 1;`s early and `return 0;`s at the end is not
+enough while it returns `s32`: the return pseudo coalesces with the flag and
+the copy vanishes (99.0%). Returning `s16` keeps the conversion's pseudo apart
+and restores the `move`. With a single `return ret;` any narrow type works; with
+early returns `u8` does not, so try `s16` first.

@@ -161,6 +161,30 @@ check:
     return 0;
 }
 
+/// Allocates and wires up a child's work block, anchoring its root
+/// coordinate under part `part` of the spawning task's model. Returns
+/// nonzero when the allocation failed.
+static inline s16 _actor120300InitChild(Task* arg0, s32 part)
+{
+    TmdObject*       tmd   = arg0->extra.tmd;
+    GpCoord*         coord = tmd->coords;
+    Actor120300Work* work;
+
+    work       = Mem_Malloc(0x4E4, 0);
+    arg0->work = work;
+    if (work == NULL) {
+        return 1;
+    }
+    Mem_Set(work, 0, 0x4E4);
+    coord->sub             = ((Task*)arg0->spawnArg2)->extra.tmd->coords + part;
+    arg0->extra.tmd->flags = 0;
+    Tmd_AllocBuffers(tmd);
+    tmd->lightMtx  = &work->field_474;
+    tmd->colorMtx  = &work->field_494;
+    arg0->msgTable = &D_actor_120300_80140A44;
+    return 0;
+}
+
 /// Spawn tick of a child actor that keeps the model facing the player: state 0
 /// allocates the 0x4E4-byte `Actor120300Work` block, parks it in
 /// `Task::work`, points the model's light and colour matrices at the block's
@@ -176,40 +200,15 @@ check:
 /// folds it in with `ScaleMatrix`.
 void func_actor_120300_80132004(Task* arg0)
 {
-    VECTOR           vec;
-    GpCoord*         coord;
-    TaskIdMap*       map;
-    TmdObject*       tmd;
-    GpAreaPlace*     place;
-    s32              scale;
-    s32              kill;
-    s32              killCopy;
-    u16              scaleRaw;
-    TmdObject*       tmd2;
-    Actor120300Work* work;
-    u8               id;
+    VECTOR       vec;
+    GpAreaPlace* place;
+    s32          scale;
+    u16          scaleRaw;
+    TmdObject*   tmd2;
+    u8           id;
 
     if (arg0->state == 0) {
-        tmd        = arg0->extra.tmd;
-        coord      = tmd->coords;
-        map        = Mem_Malloc(0x4E4, 0);
-        arg0->work = map;
-        if (map == NULL) {
-            kill = 1;
-        } else {
-            work = (Actor120300Work*)map;
-            Mem_Set(map, 0, 0x4E4);
-            coord->sub             = ((Task*)arg0->spawnArg2)->extra.tmd->coords + 4;
-            arg0->extra.tmd->flags = 0;
-            Tmd_AllocBuffers(tmd);
-            kill           = 0;
-            tmd->lightMtx  = &work->field_474;
-            tmd->colorMtx  = &work->field_494;
-            arg0->msgTable = &D_actor_120300_80140A44;
-        }
-        killCopy = kill;
-        TOUCH_REG(killCopy);
-        if (killCopy != 0) {
+        if (_actor120300InitChild(arg0, 4) != 0) {
             taskKill(arg0);
             return;
         }
