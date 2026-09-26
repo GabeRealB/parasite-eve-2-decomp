@@ -2928,29 +2928,18 @@ s32 func_actor_356100_80169E64(Task* task, s32 arg1, s32 arg2)
 /// flag 2 set, 1 otherwise.
 s32 func_actor_356100_80169F24(Task* task)
 {
-    s32 ret;
     u16 flags;
-    s32 mask2;
-    s32 mask80;
 
-    if (((GpEnemy*)task->spawnArg2)->hp > 0) {
-        return 1;
+    if (((GpEnemy*)task->spawnArg2)->hp <= 0) {
+        flags = task->extra.tmd->flags;
+        if (flags & 0x80) {
+            return 0;
+        }
+        if (flags & 2) {
+            return 0;
+        }
     }
-
-    flags   = task->extra.tmd->flags;
-    mask80  = flags;
-    mask80 &= 0x80;
-    mask2   = flags & 2;
-    if (mask80 != 0) {
-        return 0;
-    }
-
-    ret = 0;
-    if (mask2 == 0) {
-        ret = 1;
-        SOFT_BARRIER();
-    }
-    return ret;
+    return 1;
 }
 
 /// Places the model's root coordinate from `placement` (translation, then the
