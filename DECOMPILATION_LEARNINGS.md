@@ -143940,3 +143940,16 @@ member instead of a bitfield, CSE merged the two loads even across the
 volatile store; with a scalar `u32*`, the store kept the second load below it.
 GCC 2.8 has no anonymous unions: give a union of word and bitfield view a
 member name and update the word users.
+## A test whose every outcome returns the same value survives only as nested `if`s with one trailing `return` (Fs_WaitDiskSwap, 2026-09-26)
+
+The target tests two status bits, `beqz` to the epilogue on each, then ends
+the inner test with an unconditional `j` to that same epilogue - three paths,
+one `return -1`. `if (a == 0 || b == 0) return -1; return -1;` and nested
+`if`s with a `return -1` in each arm both lose the second test (10 insns
+deleted): jump2 sees two identical tails and merges them, after which the
+branch has nowhere different to go. The seed kept it with a `$v1` pin and a
+`SOFT_BARRIER`. What the target has is
+`if (a) { if (b) { return -1; } } return -1;`: the inner `return` is a jump
+to the return label that is not a jump-to-next (the outer fall-through sits
+between), so it and both branches stay, and the second byte's load picks
+`$v1` on its own because the return value already holds `$v0`.

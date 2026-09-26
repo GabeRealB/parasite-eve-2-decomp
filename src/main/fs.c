@@ -1675,17 +1675,14 @@ u8 Fs_WaitDiskSwap(void)
     CdIntToPos(0x10, loc);
     CdControlB(CdlReadN, &loc[0].minute, ctrlResult);
 
-    // If we encountered an error, we return -1.
-    // Apparently, the developers performed additional checks, but they all
-    // return the same value.
+    // A disk error fails the swap. The status and error bytes are still
+    // tested, but every outcome of those tests returns the same -1.
     if (CdSync(0, ctrlResult) == CdlDiskError) {
-        register u8 tmp asm("v1");
-        if ((ctrlResult[0] & CdlStatError) == 0 || (tmp = ctrlResult[1], (tmp & 0x40) == 0)) {
-            return -1;
+        if (ctrlResult[0] & CdlStatError) {
+            if (ctrlResult[1] & 0x40) {
+                return -1;
+            }
         }
-
-        // This prevents the compiler from optimizing away the branch.
-        SOFT_BARRIER();
         return -1;
     }
 
