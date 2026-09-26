@@ -5,8 +5,12 @@
 #include <psyq/rand.h>
 
 #include "main/unknown_syms.h"
+#include "main/display.h"
 #include "main/fs.h"
+#include "main/mc.h"
+#include "main/mem.h"
 #include "main/pad.h"
+#include "main/sound.h"
 #include "main/text.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
@@ -16,6 +20,8 @@
 
 static const char D_800139A8[];
 
+static void Mc_BuildFileName(u8* arg0, s32 arg1);
+static void Mc_InitDualBankBuffers(void);
 static void Mc_KillIfCountdown(Task* arg0, McWork* arg1);
 static void Mc_ResetWork(Task* arg0, McWork* arg1);
 static void Mc_StateBackupBuffers(Task* arg0, McWork* arg1);
@@ -97,10 +103,10 @@ static McPromptPair Mc_PromptTable[] = {
     { D_80060CA0, D_80060CB8 },
 };
 
-u8         D_80060DC8[]         = "BASLUS-01042*";
+static u8  D_80060DC8[]         = "BASLUS-01042*";
 static u8  Mc_FileName[0x18]    = "BASLUS-01042________";
 static u8  Mc_FileNameBuf[0x18] = "BASLUS-01042________";
-u8         D_80060E08[64]       = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789;:";
+static u8  D_80060E08[64]       = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789;:";
 static u16 Mc_GlyphsUpper[]     = {
     0x6082,
     0x6182,
@@ -232,6 +238,141 @@ static UiObjectDesc D_8006121C[] = {
     { 0x80002, 0xFF78, 0x0A, 0x120, 0x3C, 0x0C, 0, 0, 0xC0, McMenu_SelectListAlt, 0 },
     { 2, 0xFFC4, 0x1E, 0xC8, 0x3C, 0x1C, 0, 0, 0xC0, McMenu_FileInformation, 0 },
 };
+
+static void Mc_BuildFileName(u8* arg0, s32 arg1)
+{
+    s32 i;
+
+    i = 0;
+    do {
+        *arg0 = D_80060DC8[i];
+        i++;
+        arg0++;
+    } while (i < 0xC);
+
+    *arg0   = D_80060E08[arg1];
+    *++arg0 = D_80060E08[rand() & 0x3F];
+    *++arg0 = D_80060E08[rand() & 0x3F];
+    *++arg0 = D_80060E08[rand() & 0x3F];
+    *++arg0 = D_80060E08[rand() & 0x3F];
+    *++arg0 = D_80060E08[rand() & 0x3F];
+    *++arg0 = D_80060E08[rand() & 0x3F];
+    *++arg0 = D_80060E08[rand() & 0x3F];
+    arg0[1] = 0;
+}
+
+static void Mc_InitDualBankBuffers(void)
+{
+    u8(*a)[0x6C];
+    u8(*b)[0xB0];
+    u8(*c)[0x24];
+    u8(*d)[0xE4];
+    u8(*e)[0xA4];
+    McSaveData* p;
+    s32         one;
+    s32         two;
+    s32         idx;
+
+    Mem_Set(&Player_Status, 0, 0x40);
+    Mem_Set(Player_Status.field_40, 0xFF, 0x40);
+    Mem_Set(D_80073980, 0, 0x100);
+    Mem_Set(&D_80073980[0x100], 0xFF, 0x100);
+
+    a = D_800733F0;
+    Mem_Set(a, 0, 0x6C);
+    do {
+        b = D_800734C8;
+        Mem_Set(b, 0, 0xB0);
+        c = D_80073628;
+        Mem_Set(c, 0, 0x24);
+        d = D_80073670;
+        Mem_Set(d, 0, 0xE4);
+        e = D_80073838;
+        Mem_Set(e, 0, 0xA4);
+        Mem_Set(a + 1, 0xFF, 0x6C);
+        Mem_Set(b + 1, 0xFF, 0xB0);
+        Mem_Set(c + 1, 0xFF, 0x24);
+        Mem_Set(d + 1, 0xFF, 0xE4);
+        Mem_Set(e + 1, 0xFF, 0xA4);
+        p = &Mc_SaveData;
+    } while (0);
+
+    one              = 1;
+    p->at4.loc.area  = 0x14;
+    two              = 2;
+    p->at4.loc.stage = one;
+    p->at4.loc.view  = one;
+    p->at4.loc.room  = one;
+    p->at4.loc.warp  = 7;
+    p->at4.loc.place = one;
+    p->sceneEvent    = two;
+    p->characterId   = one;
+    Player_InitNewGameStats();
+    idx                          = p->characterId - 1;
+    (&Player_Status)[idx].weapon = two;
+}
+
+/// Store the checksum of a buffer's payload (the `size - 4` bytes after its
+/// header) in the header: the signed byte sum and its complement.
+static inline void _mcWriteBlockChecksum(u8* data, s32 size)
+{
+    McChecksumBlock* block;
+    s16              sum;
+    u32              i;
+
+    block = (McChecksumBlock*)data;
+    sum   = 0;
+    data  = block->field_4;
+    size -= 4;
+    i     = 0;
+    if (size != 0) {
+        do {
+            i    += 1;
+            sum  += (s8)*data;
+            data += 1;
+        } while (i < size);
+    }
+    block->field_0 = sum;
+    block->field_2 = ~sum;
+}
+
+void Mc_InitBufferSlots(void)
+{
+    McBufferSlot* base;
+    McBufferSlot* slot;
+    u8*           ptr;
+    u32           size;
+    u32           i;
+    s32           fill;
+
+    fill = -1;
+    base = Mc_BufferSlots;
+    slot = base + 1;
+    do {
+        size = slot->field_4;
+        ptr  = (u8*)slot->field_0;
+        for (i = 0; i < size; i++) {
+            *ptr++ = 0;
+        }
+        for (i = 0; i < size; i++) {
+            *ptr++ = fill;
+        }
+        _mcWriteBlockChecksum((u8*)slot->field_0, size);
+        slot++;
+    } while (slot < base + 9);
+
+    gDisplayState.roomVariant = 1;
+    Mc_InitDualBankBuffers();
+
+    Mc_SaveData.vibration    = 0;
+    Mc_SaveData.buttonLayout = 0;
+    Mc_SaveData.musicVolume  = 0;
+    Mc_SaveData.cursorMode   = 0;
+    Mc_SaveData.soundMode    = 0;
+    Mc_SaveData.moveMode     = 0;
+    CdVol_SetMixMode(1);
+    Snd_ApplyVolumeTable(0);
+}
 
 /// Prompt + optional choice dialog (Mc_PromptTable[mode]).
 static s32 Mc_PromptDialog(Task* arg0, s32 arg1, s32 arg2)
@@ -1251,31 +1392,6 @@ static inline void _mcCopyBufferHalves(void)
     } while (i < 9U);
 }
 
-/// Inline form of Mc_WriteBlockChecksum: sum/complement of the payload past the header.
-static inline void _mcWriteBlockChecksum(void* data, s32 size)
-{
-    McChecksumBlock* block;
-    s16              sum;
-    u8*              ptr;
-    u32              count;
-    u32              i;
-
-    block = data;
-    sum   = 0;
-    ptr   = block->field_4;
-    count = size - 4;
-    i     = 0;
-    if (count != 0) {
-        do {
-            i   += 1;
-            sum += (s8)*ptr;
-            ptr += 1;
-        } while (i < count);
-    }
-    block->field_0 = sum;
-    block->field_2 = ~sum;
-}
-
 /// Inline form of Mc_WriteFirstByteChecksum.
 static inline void _mcWriteFirstByteChecksum(void)
 {
@@ -1322,7 +1438,7 @@ static void Mc_StateBackupBuffers(Task* arg0, McWork* arg1)
                 func_80030AB0(arg1);
                 memcpy(mem, buf, size * 2);
             } else {
-                _mcWriteBlockChecksum(buf, size);
+                _mcWriteBlockChecksum((u8*)buf, size);
                 if (arg1->field_24 == 8) {
                     _mcWriteFirstByteChecksum();
                 }

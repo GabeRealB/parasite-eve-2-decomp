@@ -251,8 +251,6 @@ void Mc_DispatchStateTable26(Task* task);
 
 /// Init Mc_BufferSlots[1..8] dual-bank buffers and related save state.
 void Mc_InitBufferSlots(void);
-/// Build a memcard save filename into `buf` (product code + mode char + random).
-void Mc_BuildFileName(u8* buf, s32 modeCharIdx);
 
 // =============================================================================
 // Globals
@@ -266,20 +264,16 @@ extern McSaveData   Mc_SaveData;
 
 /// Global McWork instance used by the memcard state dispatcher.
 extern McWork D_80071730;
-/// Memcard product-code prefix (12 bytes, e.g. "BASLUS-01042").
-extern u8 D_80060DC8[];
-/// 64-byte character table for random memcard filename body.
-extern u8 D_80060E08[];
-extern u8 D_80060A54[];
-extern u8 D_80060A58[];
-extern u8 D_80060A5C[];
-extern u8 D_80060A64[];
-extern u8 D_800733F0[2][0x6C];
-extern u8 D_800734C8[2][0xB0];
-extern u8 D_80073628[2][0x24];
-extern u8 D_80073670[2][0xE4];
-extern u8 D_80073838[2][0xA4];
-extern u8 D_80073980[0x208];
+extern u8     D_80060A54[];
+extern u8     D_80060A58[];
+extern u8     D_80060A5C[];
+extern u8     D_80060A64[];
+extern u8     D_800733F0[2][0x6C];
+extern u8     D_800734C8[2][0xB0];
+extern u8     D_80073628[2][0x24];
+extern u8     D_80073670[2][0xE4];
+extern u8     D_80073838[2][0xA4];
+extern u8     D_80073980[0x208];
 /// Stores the result of rand() after each dispatcher tick.
 extern s32 D_80073C08;
 
