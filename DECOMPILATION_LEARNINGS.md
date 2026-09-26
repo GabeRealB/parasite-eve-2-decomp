@@ -143115,3 +143115,23 @@ after both stores instead.
 A two-case `switch` over a child's flag inside a sibling-walk loop also accounts
 for the `-1`/`6`/`1` constants sitting in callee-saved registers across the
 loop: loop.c hoists them, so no constant locals are needed.
+
+## An address expression passed to an inline helper adds two refs to the pointer it copies (func_800D759C, 2026-09-26)
+
+Two callee-saved pins swapped `dirMtx`/`colorMtx` (`$s6`/`$s7`) with a scratch
+`dir` pointer that local-alloc ranked below them (4 refs over 114 half-insns
+= 701, against 983 and 789). The rotate step was the existing
+`gfxRotateSv(&block->mtx, &block->dir)`. Passing the *expression*
+`&block->dir` makes the inliner copy it into the helper's own user-variable
+parameter. CSE reduces that parameter to a copy of the outer `dir` pseudo, and
+the copy survives because the helper uses it in `gte_*` asm operands. `dir`
+dies in the copy, so the two join one quantity: 6 refs, priority 1034, and it
+takes `$s5` ahead of both matrices. Passing a plain local (`dir`) instead is
+substituted with no copy and changes nothing. If a pointer ranks just below
+where it should, look for a helper it was handed to as `&s->field`.
+
+The block pointer's own pin (`$s0`, head load in `$s1`) remains: the head
+load wins 8 refs over 86 against the block's 12 over 140, and neither span can
+move past the calls and volatile asm that bound them. Wrapping any single
+statement range in `do { } while (0)` doubles the refs inside it, but loop
+notes are also scheduling barriers, and no range matched.

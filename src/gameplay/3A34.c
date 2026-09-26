@@ -918,53 +918,42 @@ s32 Gp_LightCone(GpSpotLight* spot, VECTOR3* pos)
 
 void func_800D759C(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
 {
-    u8*                          head;
     register GpViewLightScratch* block asm("s0");
-    SVECTOR*                     dir;
-    MATRIX*                      mtx;
-    register MATRIX*             dirMtx asm("s6");
-    register MATRIX*             colorMtx asm("s7");
-    s32                          val;
-    register s32                 scale;
+    MATRIX*                      dirMtx;
+    MATRIX*                      colorMtx;
+    s32                          scale;
 
-    head     = SCRATCH_HEAD(u8);
-    block    = (GpViewLightScratch*)(head - 0x3C);
-    dir      = (SVECTOR*)(head - 0x2C);
-    mtx      = (MATRIX*)(head - 0x24);
+    block    = SCRATCH_PUSH(GpViewLightScratch);
     dirMtx   = arg3->lightMtx;
     colorMtx = arg3->colorMtx;
 
-    ((GpViewLightScratch*)(head - 0x3C))->in.vx = -arg1->u.at.local.t[0];
-    block->in.vy                                = -arg1->u.at.local.t[1];
-    SCRATCH_HEAD(GpViewLightScratch)            = block;
-    block->in.vz                                = -arg1->u.at.local.t[2];
-    Gfx_NormalizeLightDir((VECTOR*)block, dir);
+    block->in.vx = -arg1->u.at.local.t[0];
+    block->in.vy = -arg1->u.at.local.t[1];
+    block->in.vz = -arg1->u.at.local.t[2];
+    Gfx_NormalizeLightDir(&block->in, &block->dir);
 
     Gp_UpdateCoord(arg1->u.at.parent);
-    TransposeMatrix(&gGfxViewCoord.workm, mtx);
-    gte_MulMatrix0(mtx, &arg1->u.at.parent->workm, mtx);
+    TransposeMatrix(&gGfxViewCoord.workm, &block->mtx);
+    gte_MulMatrix0(&block->mtx, &arg1->u.at.parent->workm, &block->mtx);
 
-    gfxLoadRotSv(mtx, (SVECTOR*)(head - 0x2C));
-    gte_rtv0();
-    gte_stsv(dir);
+    gfxRotateSv(&block->mtx, &block->dir);
 
     dirMtx->m[arg0][0] = -block->dir.vx;
     dirMtx->m[arg0][1] = -block->dir.vy;
     dirMtx->m[arg0][2] = -block->dir.vz;
 
-    val          = arg1->u.at.scale;
-    scale        = val;
-    block->scale = val;
+    scale        = arg1->u.at.scale;
+    block->scale = scale;
     gte_lddp(scale);
     gte_ldsv(&arg1->r);
     gte_gpf12();
-    gte_stsv(dir);
+    gte_stsv(&block->dir);
 
     colorMtx->m[0][arg0] = block->dir.vx;
     colorMtx->m[1][arg0] = block->dir.vy;
     colorMtx->m[2][arg0] = block->dir.vz;
 
-    SCRATCH_POP_BYTES(0x3C);
+    SCRATCH_POP(GpViewLightScratch);
 }
 
 void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
