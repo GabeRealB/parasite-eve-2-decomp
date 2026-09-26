@@ -218,6 +218,34 @@ static void func_actor_105300_8013222C(Task* arg0)
     }
 }
 
+/// Pose tick, inlined into the death handler; the same step
+/// `func_actor_105300_80133610` performs out of line. When the pose asked for
+/// (`field_320`) differs from the one the animation slots were last queued
+/// for (`field_322`), slots 1-9 are re-queued with it and its entry of
+/// `D_actor_105300_80133A18`, and the frame count `field_324` restarts;
+/// otherwise every slot is ticked and the count advances by one.
+static inline void _actor105300TickPose(Task* task)
+{
+    Actor05300Work* work;
+    s32             i;
+    s32             value;
+
+    work = task->work;
+    if ((s16)work->field_320 != work->field_322) {
+        work->field_322 = work->field_320;
+        work->field_324 = 0;
+        value           = D_actor_105300_80133A18[(s16)work->field_320];
+        for (i = 1; i < 10; i++) {
+            func_800B4114(work, i, (s16)work->field_320, 0, value);
+        }
+    } else {
+        work->field_324++;
+        for (i = 1; i < 10; i++) {
+            Gp_AnimTickIndex(&work->anim, i);
+        }
+    }
+}
+
 /// Death handler of the main task (its state 2). Death state `field_32E` 3 is
 /// the wait the hit handler enters when the enemy dies: effects are spawned
 /// every fourth frame until message bit 1 moves it to 0. State 0 drops the
@@ -237,7 +265,6 @@ static void func_actor_105300_8013246C(GpEnemy* arg0, Task* arg1)
     VECTOR          pos;
     TmdObject*      obj;
     Actor05300Work* work;
-    Actor05300Work* anim;
     GpCoord*        coord;
     GpCoord*        tmp;
     Actor05300Clip* clip;
@@ -248,8 +275,6 @@ static void func_actor_105300_8013246C(GpEnemy* arg0, Task* arg1)
     s32             z;
     s32             x2;
     s32             z2;
-    s32             i;
-    s32             value;
 
     obj   = arg1->extra.tmd;
     work  = arg1->work;
@@ -416,23 +441,7 @@ static void func_actor_105300_8013246C(GpEnemy* arg0, Task* arg1)
         work->field_330 = 1;
         Gp_ClearAreaFlag4((GpAreaKey*)&gGameSession->at4);
     }
-    anim = arg1->work;
-    i    = 1;
-    if ((s16)anim->field_320 != anim->field_322) {
-        anim->field_322 = anim->field_320;
-        anim->field_324 = 0;
-        value           = D_actor_105300_80133A18[(s16)anim->field_320];
-        for (; i < 10; i++) {
-            func_800B4114(anim, i, (s16)anim->field_320, 0, value);
-        }
-    } else {
-        TOUCH_REG(i);
-        anim->field_324 += i;
-        do {
-            Gp_AnimTickIndex(&anim->anim, i);
-            i++;
-        } while (i < 10);
-    }
+    _actor105300TickPose(arg1);
     tmp    = arg1->extra.tmd->coords;
     pos.vx = tmp->workm.t[0];
     pos.vy = tmp->workm.t[1];
