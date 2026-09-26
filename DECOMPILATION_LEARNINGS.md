@@ -142682,3 +142682,25 @@ order.
 after `idx = enemy->placeKey >> 12` matched without hacks. When only the
 position of an argument's load differs, try passing the object that holds it
 and dereferencing inside the helper.
+
+## A live-range pin on a flag stood for block macros weighting the *other* pseudos (Actor05500_Fn0006C, 2026-09-26)
+
+Symptom: a contact loop keeps its scratch pointer, the strength-reduced record
+pointer and a flag in `$s2`/`$s3`/`$s4`; without `TOUCH_REG_USE(flag, s)` after
+the loop setup the three rotate. The pin lengthened the flag's range to drop its
+`floor_log2(refs)*refs/len` below the record pointer's. The source instead had
+three multi-statement blocks written as `do { } while (0)` macros (the yaw
+turn-around, the contact overlap/`VectorNormal` pair): each reference inside
+counts one extra loop level, which lifted the two pointers above the flag with
+no change to the flag. `tools/trace_gcc.py` prints the priorities; sweep which
+blocks are wrapped until the order is right. Watch for pseudos riding along -
+wrapping the whole push block also weighted the `best` accumulator past `one`.
+
+Two side effects worth knowing:
+
+- `loop.c` hoists a constant out of a `do { } while (0)` like any loop, so a
+  store `x = 1` inside such a macro turns into a `li $s1,1` above the preceding
+  call - the same code as a `flag = 1;` duplicated into both arms of an `if`.
+- A macro that takes `&arr[i]` and uses `(rec)->f` is **not** `arr[i].f`: the
+  address form compiled differently (98.1% vs 100%). Pass the element as an
+  lvalue and write `(rec).f` inside the macro.
