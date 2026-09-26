@@ -2804,23 +2804,10 @@ static void Actor01900_Fn080A8(Task* arg0)
 /// Y rotation from its own facing. The `field_4` branch is the state's entry.
 static void Actor01900_Fn083E8(Task* arg0)
 {
-    Actor01900Work*     work;
-    TmdObject*          obj;
-    GpCoord*            coord;
-    GpCoord*            facing;
-    GpCoord*            yawCoord;
-    PlayerStatus*       cfg;
-    ActorChaseScratch*  head;
-    ActorChaseScratch*  aim;
-    ActorChaseScratch*  next;
-    ActorChaseScratch** slot;
-    s16                 z;
-    s16                 ang;
-    s16                 delta;
-    s16                 wrapped;
-    s16                 yaw16;
-    s32                 angle;
-    s32                 yaw;
+    Actor01900Work*    work;
+    TmdObject*         obj;
+    GpCoord*           coord;
+    ActorChaseScratch* aim;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -2841,59 +2828,24 @@ static void Actor01900_Fn083E8(Task* arg0)
         work->field_8B0 = 0;
         return;
     }
-
-    cfg  = &Player_Status;
-    slot = (ActorChaseScratch**)SCRATCH_HEAD_ADDR;
-    head = SCRATCH_HEAD_AT(slot, ActorChaseScratch);
-
-    coord             = arg0->extra.tmd->coords;
-    next              = head - 1;
-    head[-1].delta.vx = (u16)cfg->coordMtx->t[0] - (u16)coord->coord.t[0];
-    SOFT_USE_REG(next);
-    aim                                      = next;
-    aim->delta.vy                            = (u16)cfg->coordMtx->t[1] - (u16)coord->coord.t[1];
-    z                                        = (u16)cfg->coordMtx->t[2] - (u16)coord->coord.t[2];
-    SCRATCH_HEAD_AT(slot, ActorChaseScratch) = aim;
-    aim->delta.vz                            = z;
-
-    facing  = arg0->extra.tmd->coords;
-    angle   = ratan2((s32)head[-1].delta.vx, (s32)z);
-    delta   = angle - ratan2((s32)-facing->coord.m[2][0], (s32)facing->coord.m[2][2]);
-    wrapped = delta;
-    if (delta < 0) {
-    wrapNegative:
-        if (wrapped < -0x800) {
-            wrapped += 0x1000;
-            goto wrapNegative;
-        }
-    } else {
-    wrapPositive:
-        if (wrapped >= 0x801) {
-            wrapped -= 0x1000;
-            goto wrapPositive;
-        }
-    }
-    yaw       = wrapped;
-    yaw16     = yaw;
-    aim->turn = yaw;
-    if (work->field_8AE < yaw16) {
-        if ((yaw16 - work->field_8AE) >= 0x29) {
-            work->field_8AE = (u16)work->field_8AE + 0x28;
+    SCRATCH_PUSH(ActorChaseScratch);
+    aim       = SCRATCH_HEAD(ActorChaseScratch);
+    aim->turn = actorPositionYaw(arg0, &aim->delta, &Player_Status);
+    if (work->field_8AE < aim->turn) {
+        if (aim->turn - work->field_8AE > 0x28) {
+            work->field_8AE += 0x28;
         } else {
-            work->field_8AE = yaw;
+            work->field_8AE = aim->turn;
         }
-    } else if ((work->field_8AE - yaw16) >= 0x29) {
-        work->field_8AE = (u16)work->field_8AE - 0x28;
+    } else if (work->field_8AE - aim->turn > 0x28) {
+        work->field_8AE -= 0x28;
     } else {
-        work->field_8AE = yaw;
+        work->field_8AE = aim->turn;
     }
-
-    yawCoord  = arg0->extra.tmd->coords;
-    ang       = ratan2((s32)-yawCoord->coord.m[2][0], (s32)yawCoord->coord.m[2][2]);
-    aim->turn = ang;
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, (s32)ang, 1);
+    coord     = arg0->extra.tmd->coords;
+    aim->turn = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
-
     work->field_898 = 2;
     Actor01900_Fn01C94(arg0);
     SCRATCH_POP(ActorChaseScratch);
