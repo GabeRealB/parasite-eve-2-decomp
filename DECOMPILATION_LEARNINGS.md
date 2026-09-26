@@ -141824,3 +141824,22 @@ addresses come out `-K(head)` without any cast. With `$v0` taken the field
 loads move to `$v1`, the scratch address to `$a1`, and `arg1` to `$t1` with a
 second copy in `$a1` - every other pin in the old body followed from the one
 missing copy.
+
+## A narrow constant store written before or after `step = 1` decides which pseudo cse credits with the use - and that one reference can reorder global allocation (func_80046EEC, 2026-09-26)
+
+`func_80046EEC` held `TOUCH_REG_MEM(state)` and `arg0->field_B = state` in its
+page-down arm, and `field_B = (u8)sp14` in the arm above it. Both were the same
+source statement, `arg0->field_B = 1`: a byte store of a constant takes the
+first register in the constant's cse class (see "A narrow constant store takes
+an earlier compare's register"). In the page-down arm the class holds `state`
+(from `if (state == 1)`) and, once `step = 1` has run, `step`. The target
+stores `state`, so the source wrote `field_B = 1` *before* `step = 1`; written
+after, `step` gets the use instead.
+
+That single reference is enough to swap two spill candidates: with it, `step`
+(`n_refs` 11) outranks the visible-row count in `global_alloc`'s
+`log2(n)*n/live_length` order, takes `$fp`, and the row count moves to the stack
+- 94.5%, with every later branch shifted. The pin was restoring the reference to
+`state`. When a spill swap follows a small edit, compare the two pseudos'
+`n_refs` in `.lreg` before reaching for a pin: the missing reference is usually
+a constant that cse routed to a different register.

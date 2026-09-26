@@ -339,7 +339,7 @@ void      Ui_DrawTextAtLayout(UiPanel* arg0, s32 arg1, s32 arg2, u8* arg3, s32 a
 void      Ui_SetListScrollFlag(UiList* arg0, s32 arg1);
 void      Ui_AllocTile(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5);
 void      Ui_InsertDrawTPage(s32 arg0, s32 arg1);
-void      Ui_DrawListHighlight(UiList* arg0, UiPanel* arg1, s32 arg2);
+void      Ui_DrawListHighlight(UiList* arg0, UiPanel* arg1, s32 arg2, s32 arg3);
 void      func_80046B34(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
 void      Ui_LayoutWithMode0(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5);
 void      Ui_LayoutWithMode1(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5);
