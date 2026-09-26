@@ -2949,12 +2949,6 @@ static void Actor01100_Fn0668C(Task* task)
 /// node slot, saving its `field_4` first, and clears the 0xC000 pair off all
 /// four display nodes; mode 0 puts the saved `field_4` back, lifts the hidden
 /// bit, and sets those bits on the first and last display node.
-///
-/// The value register is pinned to `$v0` on purpose: local-alloc sorts a block
-/// of exactly three quantities with a hand-rolled sort that undoes its own first
-/// exchange, so the quantities are placed in birth order and the address would
-/// take `$v0` ahead of the value it feeds. With `$v0` live over the value the
-/// address lands in `$v1` instead, as the original does.
 s32 Actor01100_Fn0670C(Task* task, s32 arg1, s32 flags)
 {
     ActorsShared80138efcWork* work;
@@ -2970,24 +2964,20 @@ s32 Actor01100_Fn0670C(Task* task, s32 arg1, s32 flags)
     enemy = (GpEnemy*)task->spawnArg2;
     if (work->field_BA0 != mode) {
         work->field_BA0 = mode;
-        if ((mode << 0x18) == 0) {
-            model->flags              = (u16)(model->flags & 0xFF7F);
+        if (work->field_BA0 == 0) {
+            model->flags             &= ~0x80;
             enemy->node.state.b.flags = work->field_BA1;
             obj                       = &work->objs[0];
-            obj->flags                = (u16)(obj->flags | 0xC000);
+            obj->flags               |= 0xC000;
             obj                       = &work->objs[3];
-            obj->flags                = (u16)(obj->flags | 0xC000);
+            obj->flags               |= 0xC000;
         } else {
-            register s32 value asm("v0");
-
-            model->flags              = (u16)(model->flags | 0x80);
+            model->flags             |= 0x80;
             work->field_BA1           = enemy->node.state.b.flags;
             enemy->node.state.b.flags = 1;
             for (i = 0; i < 4; i++) {
-                obj        = &work->objs[i];
-                value      = obj->flags;
-                value     &= 0x3FFF;
-                obj->flags = (u16)value;
+                obj         = &work->objs[i];
+                obj->flags &= 0x3FFF;
             }
         }
     }
