@@ -719,13 +719,20 @@ static void Actor07000_Fn00854(Task* arg0)
     }
 }
 
+/// `value`, or 0 where it is not positive.
+static inline s32 _actor07000ClampToZero(s32 value)
+{
+    if (value <= 0) {
+        value = 0;
+    }
+    return value;
+}
+
 static void Actor07000_Fn00A1C(Task* arg0)
 {
     s32                damageState;
-    TmdObject*         object;
     GpEnemy*           enemy;
     GpRec18*           effectRec;
-    VECTOR*            normal;
     VECTOR*            delta;
     s16                cooldown;
     s32                stage;
@@ -738,24 +745,19 @@ static void Actor07000_Fn00A1C(Task* arg0)
     s32                wallDx;
     s32                wallDz;
     s32                hitCooldown;
-    s32                boundedDepth;
     s32                distance;
     s32                z;
     u32                id;
     u32                damage;
     Actor107000Work*   work;
     GpCoord*           coord;
-    void*              scratchHead;
     ActorContactFrame* scratch;
     Actor107000Work*   contact;
 
-    work        = (Actor107000Work*)arg0->work;
-    scratchHead = (void*)SCRATCH_PUSH_BYTES(0x4C);
-    enemy       = arg0->spawnArg2;
-    object      = arg0->extra.tmd;
-    SOFT_TOUCH_REG_USE(object, scratchHead);
-    coord    = object->coords;
-    scratch  = scratchHead;
+    work     = (Actor107000Work*)arg0->work;
+    coord    = arg0->extra.tmd->coords;
+    scratch  = (ActorContactFrame*)SCRATCH_PUSH_BYTES(0x4C);
+    enemy    = arg0->spawnArg2;
     movement = func_800E0C10(work->field_154, &scratch->delta, 4, &scratch->result);
     switch (movement) {
         case 0:
@@ -788,16 +790,12 @@ static void Actor07000_Fn00A1C(Task* arg0)
     distance            = SquareRoot0((dx * dx) + (dz * dz));
     if (distance < 0x320) {
         stage = work->field_2C8;
-        delta = (VECTOR*)&scratch->delta;
         if (stage == 1) {
             work->field_2D2 = stage;
             work->field_2C8 = 2;
-            goto delta_ready;
         }
-    } else {
-    delta_ready:
-        delta = (VECTOR*)&scratch->delta;
     }
+    delta       = (VECTOR*)&scratch->delta;
     damageState = 2;
     /* The contact walk steps a work pointer one table record at a time and
        reads the record through it, so the record's offset stays in the
@@ -866,19 +864,14 @@ contact_loop:
                 scratch->delta.vx.w = wallDx;
                 wallDz              = coord->workm.t[2] - contact->field_154[0].point.vz;
                 scratch->delta.vz.w = wallDz;
-                distance            = contact->field_154[0].depth - SquareRoot0((wallDx * wallDx) + (wallDz * wallDz));
-                boundedDepth        = distance;
-                if (distance <= 0) {
-                    boundedDepth = 0;
-                }
-                SOFT_TOUCH_REG_USE(boundedDepth, distance);
-                distance            = boundedDepth;
+                distance            = SquareRoot0((wallDx * wallDx) + (wallDz * wallDz));
+                distance            = contact->field_154[0].depth - distance;
+                distance            = _actor07000ClampToZero(distance);
                 scratch->delta.vx.w = (s32)(coord->workm.t[0] - contact->field_154[0].point.vx);
-                normal              = &scratch->normal;
                 scratch->delta.vy.w = (s32)(coord->workm.t[1] - contact->field_154[0].point.vy);
                 scratch->delta.vz.w = (s32)(coord->workm.t[2] - contact->field_154[0].point.vz);
-                VectorNormal(delta, normal);
-                ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, normal, delta);
+                VectorNormal(delta, &scratch->normal);
+                ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &scratch->normal, delta);
                 if ((u32)((u16)work->field_2B8 - 1) < 2U) {
                     coord->coord.t[0] = (s32)(coord->coord.t[0] + ((s32)(distance * scratch->delta.vx.w) >> 0xC));
                     pushY             = distance * scratch->delta.vy.w;
