@@ -888,21 +888,19 @@ s32 func_actor_450800_80133528(Task* task, s32 arg1, GpAnimArg* args)
     Actor150400Work* work;
 
     work = (Actor150400Work*)task->work;
-    if (args->field_4 >= 6) {
-        return -1;
+    if (args->field_4 < 6) {
+        work->st.animId = args->field_4;
+        if (args->field_8 != 0) {
+            work->st.state = 1;
+            work->animArg  = args->field_C;
+        } else {
+            work->st.state = 2;
+        }
+        work->st.field_6 = 0;
+        func_actor_450800_801330AC(task);
+        return 0;
     }
-
-    work->st.animId = args->field_4;
-    if (args->field_8 != 0) {
-        SOFT_BARRIER();
-        work->st.state = 1;
-        work->animArg  = args->field_C;
-    } else {
-        work->st.state = 2;
-    }
-    work->st.field_6 = 0;
-    func_actor_450800_801330AC(task);
-    return 0;
+    return -1;
 }
 
 /// Message handler 0x7D5 of `D_actor_450800_801539AC`: sets `TmdObject::flags`
