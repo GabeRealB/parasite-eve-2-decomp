@@ -143318,3 +143318,27 @@ by `register ... asm()` pins on the coordinate and head pointer plus a
 value of the compound assignment: `blk = SCRATCH_PUSH(RoomQuadScratch);`. The
 pins, the extra locals (`tbl`, `wm`, `head`) and the `(u16)` casts on the
 `+=` corner updates all went with it; `for` instead of `do/while` also matched.
+
+## Moving data and bss into C: link order and emission order (2026-09-26)
+
+The linker lays out every section in one object order, so an object's `.data`
+or `.bss` sits between the runs of the objects linked before and after it. In
+main, library objects interleave with game units and their `.text`, `.data`,
+`.bss` and `.rdata` appear in the same order. A data object in a blob therefore
+belongs to a unit whose `.text` lies between the neighbouring placed objects,
+whatever unit reads it first. `local/data_owner.py IMAGE [--partition]` lists
+those candidates and splits a blob into consecutive per-unit runs.
+
+Within a unit, initialised data is emitted at its definition, so `.data` follows
+definition order. Uninitialised globals are different. cc1 emits `.comm` and
+`.lcomm` at the end of the file, in the order each identifier was *first
+declared*, and that includes `extern` declarations pulled in from headers.
+maspsx then turns them into plain `.bss` in that order and emits no alignment
+between them, so the objects have to tile exactly. A unit's bss order is set by
+its declarations: a private object declared in the prologue lands where the
+prologue puts it, and a public one lands where its header declaration puts it.
+
+GCC 2.8 keeps an unreferenced `static` variable, so an unreferenced word in a
+run can be a private placeholder. An explicit `= 0` keeps a global in `.data`.
+In splat, a `.bss` subsegment for a C unit takes no `bss_size`, because splat
+infers it from the next subsegment.

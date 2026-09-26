@@ -396,8 +396,6 @@ void        CdCmd_StartOverlay(u16 arg0, u16 arg1, u16 arg2);
 void        CdCmd_EnqueueLoadFile(s32 arg0, s32 arg1, s32 arg2);
 void        CdCmd_StepVlcRebuild(void);
 
-extern u16 CdCmd_EntryIter;
-
 // =============================================================================
 // Functions — filesystem / CD (src/main/fs.c)
 // =============================================================================

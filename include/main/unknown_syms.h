@@ -111,7 +111,6 @@ extern volatile u8  D_800827E4;
 extern volatile u16 D_80082808;
 extern volatile u16 D_80082810;
 
-extern void*        D_8006AC00;
 extern u16          D_8006EBB8;
 extern s8           D_8006EBBA;
 extern s16          D_8006EBF2;
