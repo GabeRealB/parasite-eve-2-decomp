@@ -455,12 +455,16 @@ void Gp_InitStarterInv(void)
     Gp_SetCollectedBit(0x109);
 }
 
+/* Gives `scan` one `weapon` and loads it with `ammo`. */
+#define GP_GIVE_LOADED(scan, weapon, ammo)           \
+    do {                                             \
+        Gp_GiveItem(scan, weapon, 1);                \
+        Gp_EquipRelatedItem(scan, weapon, ammo, -1); \
+    } while (0)
+
 void func_800B8014(void)
 {
     McItemRec*    rec;
-    McSaveData*   initSave;
-    McSaveData*   playerSave;
-    McSaveData*   p;
     McSaveData*   save;
     GpItemDesc*   desc;
     u8*           str;
@@ -475,21 +479,14 @@ void func_800B8014(void)
     s32           count;
     s32           row;
     s32           col;
-    s32           off;
-    s32           k;
-    u16           hp;
-    u16           mp;
 
-    j   = 0;
-    rec = Mc_SaveData.itemRows;
-    for (; j < 0x100; j++, rec++) {
+    for (j = 0, rec = Mc_SaveData.itemRows; j < 0x100; j++) {
         rec->itemId = 0;
         rec->qty    = 0;
-        SCHED_BARRIER();
+        rec++;
     }
-    initSave = &Mc_SaveData;
     for (i = 0x5F; i >= 0; i--) {
-        initSave->itemSeenBits[i] = 0;
+        Mc_SaveData.itemSeenBits[i] = 0;
     }
 
     i = 0;
@@ -527,44 +524,31 @@ void func_800B8014(void)
         slots++;
     }
     Gp_ApplyItemMap();
-    row                         = 0;
-    p                           = &Mc_SaveData;
-    save                        = p;
-    off                         = row;
-    save->carriedItems.firstRow = 0;
-    save->carriedItems.rowCount = 0x14;
-    save->carriedItems.table    = 0;
-    for (; row < 4; row++, off += 3) {
-        col = 0;
-        k   = off;
-        TOUCH_REG(k);
-        do {
-            ((McSaveData*)((col + k) + (s32)save))->attachLevels[0] = 0;
-            col++;
-        } while (col < 3);
+    Mc_SaveData.carriedItems.firstRow = 0;
+    Mc_SaveData.carriedItems.rowCount = 0x14;
+    Mc_SaveData.carriedItems.table    = 0;
+    for (row = 0; row < 4; row++) {
+        for (col = 0; col < 3; col++) {
+            Mc_SaveData.attachLevels[col + row * 3] = 0;
+        }
     }
-    playerSave = &Mc_SaveData;
-    SOFT_TOUCH_REG(playerSave);
-    scan = &playerSave->carriedItems;
-    SOFT_TOUCH_REG(p);
-    playerSave->attachLevels[0] = 1;
-    cfg                         = &Player_Status;
-    if (playerSave->clearCount == 0) {
+    save = &Mc_SaveData;
+    SOFT_TOUCH_REG(save);
+    scan                  = &save->carriedItems;
+    save->attachLevels[0] = 1;
+    cfg                   = &Player_Status;
+    if (save->clearCount == 0) {
         cfg->bp = 0xC8;
     }
     Gp_ClearScanItems(scan);
     Gp_GiveItem(scan, 0x60, 1);
     Gp_EquipMod(0x60);
-    hp      = cfg->hpMax;
-    mp      = cfg->mpMax;
-    cfg->hp = hp;
-    cfg->mp = mp;
+    cfg->hp = cfg->hpMax;
+    cfg->mp = cfg->mpMax;
     Gp_GiveItem(scan, 0x92, 1);
     Gp_GiveItem(scan, 0x40, 1)->attachSlot    = 1;
     Gp_GiveItem(scan, 0xA0, 0x64)->attachSlot = 2;
-    SCHED_BARRIER();
-    Gp_GiveItem(scan, 0x81, 1);
-    Gp_EquipRelatedItem(scan, 0x81, 0xA0, -1);
+    GP_GIVE_LOADED(scan, 0x81, 0xA0);
     Gp_GiveItem(scan, 2, 1)->attachSlot = 3;
     scans                               = Gp_ScanPtrs;
     scan                                = scans[1];

@@ -141968,3 +141968,33 @@ allocation the pins were imitating.
 it, and call it with `1` from the other function. Before pinning an odd
 constant sequence, run `overlay_dup_index.py similar` and look for a sibling
 whose body is a prefix of yours.
+## cse2 ignores loop notes, so a global's base pointer set after a loop reaches every later `sym+k` (func_800B8014, 2026-09-26)
+
+`func_800B8014` sets `save = &Mc_SaveData` after the attach-level loop and uses
+it three times. At the end of the function it reads `Mc_SaveData.at4` and
+passes `&Mc_SaveData.carriedItems`. The target builds that tail from a new
+`lui a0,%hi(Mc_SaveData+4)` pointer, with the second address at `s0+0x5b8`.
+Written plainly, `save` stays live in `$s3` to the end instead, and the tail
+reads `lw 4(s3)` / `addiu a0,s3,0x5bc`.
+
+cse1 is not the cause. It stops at `NOTE_INSN_LOOP_END`, and the `do { } while (0)`
+macro between the two stops it before the tail. The cause is cse2: it runs
+with `after_loop` set, ignores those notes, and follows the path around the
+`if` to the end. There, `use_related_value` looks up `Mc_SaveData+4` in the
+related-value ring. The ring runs symbol → newest → oldest, so the symbol's
+own class is checked first, and its register (`save`) wins over any newer
+`sym+4` pointer.
+
+Things that do *not* make `save` opaque: an inline helper taking
+`&Mc_SaveData` (integrate keeps the constant equivalence), a
+`do { } while (0)` around the block (cse2 ignores it), and every order of the
+three statements. A copy of a pointer set *before* the loop is opaque in both
+passes and gives the right tail. But that pointer then needs a register across
+the loop. `update_equiv_regs` never rematerialises it, because under split
+addresses the set is `lo_sum` and does not `rtx_equal_p` its `REG_EQUIV`
+symbol. One `SOFT_TOUCH_REG(save)` is still in the tree.
+
+The `SCHED_BARRIER` between `Gp_GiveItem(scan, 0xA0, 0x64)->attachSlot = 2`
+and the next give/equip pair did have a natural source: a `do { } while (0)`
+macro around the pair. Its loop notes fence sched1, so the store stays ahead
+of the next call's argument setup.
