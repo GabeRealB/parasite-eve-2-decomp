@@ -144266,3 +144266,24 @@ it stays a local quantity that overlaps the `%hi` temp. The bottom edge needs
 its own single-set local (`bottom = y + arg4 - 1`), otherwise a further
 in-place update drifts forward too. Combine still narrows the `s32` load to
 `lhu`, since every use is truncated to 16 bits.
+
+## An empty asm in a loop can stand in for insns an inline helper supplies to loop.c's hoist threshold (func_shelter_r47_80183484, 2026-09-27)
+
+Two identical marker loops tested an area flag inline, with `__asm__("")` in one
+arm of `if (flag == 1) { if (Gp_GetAreaFlag2(&key) == flag) visible = 0; else
+visible = 1; } else visible = 0;`. The barrier did two jobs. It stopped jump's
+`if (...) x = a; else x = b` → store-flag rewrite (the arm was no longer a lone
+set), and it added real insns, lifting the loop's count to 122 so that
+`move_movables` left a life-6 `0x58` constant in the loop. Writing
+`flag != 1 || Gp_GetAreaFlag2(&key) == flag` fixed the branches but dropped the
+count to 119, and the constant was hoisted into `s5`.
+
+What matched was an inline helper that builds the key in its own local and
+returns `s16`, calling a flag-4 helper written with `else return 0;` arms and an
+`s16` mask local, and taking `s32` stage/area parameters. The parameter copies,
+the `s16` sign-extension pairs (which combine deletes later) and the extra jumps
+bring the count back to 121 while leaving the final code unchanged. Two points
+worth reusing: the key local of both inlined copies lands in the same frame slot
+the caller's `key` had, so moving a stack struct into a helper need not grow the
+frame; and once the barrier is gone, try return type, parameter width and local
+width of a helper before reshaping the loop, since each moves the RTL count by 1-2.

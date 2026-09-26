@@ -1142,6 +1142,45 @@ static void func_shelter_r47_801833DC(Task* task, s16 arg1)
     }
 }
 
+/// Bit 2 of the area object's flags byte, as 0 or 1; 0 when the stage has no
+/// table or the area no object. The counterpart of `Gp_GetAreaFlag2`.
+static inline s32 _shelterR47GetAreaFlag4(GpAreaKey* key)
+{
+    GpAreaRec* rec;
+    GpAreaObj* obj;
+    s16        val;
+
+    rec = Gp_AreaTables[key->stage];
+    if (rec != NULL) {
+        obj = rec[key->area].field_4;
+        if (obj != NULL) {
+            val = obj->field_1 & 4;
+            return val != 0;
+        } else {
+            return 0;
+        }
+    } else {
+        return 0;
+    }
+}
+
+/// Whether area `area` of stage `stage` (view 2, room 1) has flag bit 2 set
+/// and flag bit 1 clear - the same condition under which
+/// `Gp_RebuildAreaIdBits` sets the area's bit in `Gp_AreaIdBits`.
+static inline s16 _shelterR47IsAreaMarked(s32 stage, s32 area)
+{
+    GpAreaKey key;
+
+    key.stage = stage;
+    key.room  = 1;
+    key.view  = 2;
+    key.area  = area;
+    if (_shelterR47GetAreaFlag4(&key) != 1 || Gp_GetAreaFlag2(&key) == 1) {
+        return 0;
+    }
+    return 1;
+}
+
 /// Draws the map overlay of the room's second cap script, brightening each
 /// quad by 0x30 over the last. While `field_1C` is not 3 it draws one marker
 /// per entry of the `field_1C` marker table whose area object has 0x4 set and
@@ -1153,15 +1192,8 @@ static void func_shelter_r47_801833DC(Task* task, s16 arg1)
 static void func_shelter_r47_80183484(Task* task)
 {
     ShelterR47State2*  state;
-    u16                stage;
     ShelterR47MapMark* mark;
-    GpAreaRec*         tbl;
-    GpAreaObj*         obj;
     POLY_FT4*          p;
-    GpAreaKey          key;
-    s32                flag;
-    s16                bit;
-    s16                visible;
     u8                 shade;
 
     state = (ShelterR47State2*)task->work;
@@ -1185,38 +1217,8 @@ static void func_shelter_r47_80183484(Task* task)
             setXY4(p, 0x78, -0x4B, 0x80, -0x4B, 0x78, -0x43, 0x80, -0x43);
             addPrim(&gGpuCurrentOt[10], p);
         }
-        stage = mark->stage;
         while (mark->stage != 0xFF) {
-            u16 area;
-
-            area      = mark->area;
-            key.stage = stage;
-            key.room  = 1;
-            key.view  = 2;
-            key.area  = area;
-            tbl       = Gp_AreaTables[key.stage];
-            if (tbl != NULL) {
-                obj = tbl[key.area].field_4;
-                if (obj != NULL) {
-                    bit  = obj->field_1 & 4;
-                    flag = bit != 0;
-                } else {
-                    flag = 0;
-                }
-            } else {
-                flag = 0;
-            }
-            if (flag == 1) {
-                if (Gp_GetAreaFlag2(&key) == flag) {
-                    SOFT_BARRIER();
-                    visible = 0;
-                } else {
-                    visible = 1;
-                }
-            } else {
-                visible = 0;
-            }
-            if (visible) {
+            if (_shelterR47IsAreaMarked(mark->stage, mark->area)) {
                 p              = (POLY_FT4*)gGpuPrimCursor;
                 shade         += 0x30;
                 gGpuPrimCursor = (u8*)(p + 1);
@@ -1231,7 +1233,6 @@ static void func_shelter_r47_80183484(Task* task)
                 addPrim(&gGpuCurrentOt[10], p);
             }
             mark++;
-            stage = mark->stage;
         }
     } else {
         if (state->field_2A == 2) {
@@ -1239,38 +1240,8 @@ static void func_shelter_r47_80183484(Task* task)
             Gp_StartCapSlot(0x13, 0, 0);
         }
         if (GameFlag_GetNibble(0xDF) == 1) {
-            stage = mark->stage;
             while (mark->stage != 0xFF) {
-                u16 area;
-
-                area      = mark->area;
-                key.stage = stage;
-                key.room  = 1;
-                key.view  = 2;
-                key.area  = area;
-                tbl       = Gp_AreaTables[key.stage];
-                if (tbl != NULL) {
-                    obj = tbl[key.area].field_4;
-                    if (obj != NULL) {
-                        bit  = obj->field_1 & 4;
-                        flag = bit != 0;
-                    } else {
-                        flag = 0;
-                    }
-                } else {
-                    flag = 0;
-                }
-                if (flag == 1) {
-                    if (Gp_GetAreaFlag2(&key) == flag) {
-                        SOFT_BARRIER();
-                        visible = 0;
-                    } else {
-                        visible = 1;
-                    }
-                } else {
-                    visible = 0;
-                }
-                if (visible) {
+                if (_shelterR47IsAreaMarked(mark->stage, mark->area)) {
                     p              = (POLY_FT4*)gGpuPrimCursor;
                     shade         += 0x30;
                     gGpuPrimCursor = (u8*)(p + 1);
@@ -1285,7 +1256,6 @@ static void func_shelter_r47_80183484(Task* task)
                     addPrim(&gGpuCurrentOt[10], p);
                 }
                 mark++;
-                stage = mark->stage;
             }
         } else {
             if (shade == 0) {
