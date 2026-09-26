@@ -142956,3 +142956,21 @@ moves it into the branch delay slot.
 
 **Fix.** `trans = &head[-1].trans;` just above `if (slot->poseKind == 1)`, no
 pins. This also settled a scheduling difference the seed held with `USE_REG`.
+
+## `addiu sB,sH,-N; move sV,sB` at entry with the head store reading `sB`: `SCRATCH_PUSH` first, member pointer second (Gp_MakeDirOffset, 2026-09-26)
+
+**Symptom.** A scratch-pad block is carved off the head, then copied at once
+into a second callee-saved register: the head store and one later call read the
+block register, every field access and the GTE stores read the copy. It only
+matched with the copy pinned and `SOFT_TOUCH_REG` on the block.
+
+**Mechanism.** Both pointers live past the first basic block, and the copy (a
+member pointer) lives longer, so cse's `make_regs_eqv` makes it canonical and
+rewrites every block use *after* the copy to it. A use that comes *before* the
+copy is born is not rewritten. Writing the head store after the field stores,
+as the hack did, puts it after the copy and it collapses onto one register.
+
+**Fix.** Push first, then take the member pointer:
+`s = SCRATCH_PUSH(GpDirScratch); vec = &s->vec; vec->vx = …;` - later calls
+that pass `&s->vec` keep the block register because cse's equivalence ends at
+the `if` before them.

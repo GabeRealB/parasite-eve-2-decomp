@@ -3349,43 +3349,31 @@ void func_800B60C0(Task* arg0)
 
 void Gp_MakeDirOffset(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2)
 {
-    u8*               head;
-    register SVECTOR* vec asm("s2");
-    SVECTOR*          block;
-    MATRIX*           mtx;
-    GpCoord*          coord;
-    s32               scale;
-    u16               srcx;
-    u16               dstx;
+    GpDirScratch* s;
+    SVECTOR*      vec;
+    GpCoord*      coord;
+    s32           scale;
 
-    srcx = arg1->pos.vx;
-    dstx = arg0->vx;
-    SOFT_TOUCH_REG2(srcx, dstx);
-    head                          = SCRATCH_HEAD(u8);
-    block                         = (SVECTOR*)(head - 0x28);
-    vec                           = block;
-    ((SVECTOR*)(head - 0x28))->vx = srcx - dstx;
-    SOFT_TOUCH_REG(block);
-    vec->vy               = arg1->pos.vy - arg0->vy;
-    SCRATCH_HEAD(SVECTOR) = block;
-    vec->vz               = arg1->pos.vz - arg0->vz;
-    coord                 = &gGfxViewCoord;
-    scale                 = SquareRoot0(Gfx_ApplyMatrixNoSf(vec, vec));
-    scale                 = scale - arg1->field_2;
+    s       = SCRATCH_PUSH(GpDirScratch);
+    vec     = &s->vec;
+    vec->vx = arg1->pos.vx - arg0->vx;
+    vec->vy = arg1->pos.vy - arg0->vy;
+    vec->vz = arg1->pos.vz - arg0->vz;
+    coord   = &gGfxViewCoord;
+    scale   = SquareRoot0(Gfx_ApplyMatrixNoSf(vec, vec)) - arg1->field_2;
     if (scale >= 0) {
         scale = -scale;
     }
-    VectorNormalSS(block, block);
-    mtx = (MATRIX*)(head - 0x20);
-    TransposeMatrix(&coord->workm, mtx);
-    gfxLoadRotSv(mtx, (SVECTOR*)(head - 0x28));
+    VectorNormalSS(&s->vec, &s->vec);
+    TransposeMatrix(&coord->workm, &s->mtx);
+    gfxLoadRotSv(&s->mtx, &s->vec);
     gte_rtv0();
     gte_stsv(vec);
     gte_lddp(scale);
     gte_ldsv(vec);
     gte_gpf12();
     gte_stsv(arg2);
-    SCRATCH_POP_BYTES(0x28);
+    SCRATCH_POP(GpDirScratch);
 }
 
 void Gp_FreeSlot4TmdBuffers(void)
