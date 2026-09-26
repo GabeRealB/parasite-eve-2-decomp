@@ -680,23 +680,20 @@ u32* gpDrawStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream
 
 u32* gpDrawStreamPrimGt3PreXformFixedLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
-    POLY_GT3*          poly;
-    register POLY_GT3* xy asm("t0");
-    s32*               opz;
-    u32                clipMask;
-    s32                len;
-    s32                code;
-    DisplayState*      ds;
-    u32                mask;
-    register u32       maskHi asm("t4");
-    u16*               rec;
-    register s32       sz asm("a0");
-    s32                idx;
-    u8*                szTable;
-    u8*                flagp;
-    u8*                up;
-    s32                i;
-    s32                tpage;
+    POLY_GT3*     poly;
+    s32*          opz;
+    u32           clipMask;
+    s32           len;
+    s32           code;
+    DisplayState* ds;
+    u16*          rec;
+    s32           sz;
+    s32           idx;
+    u8*           szTable;
+    u8*           flagp;
+    u8*           up;
+    s32           i;
+    s32           tpage;
 
     poly = (POLY_GT3*)ws->preXformWrite;
     if (ws->elemCount-- > 0) {
@@ -705,14 +702,11 @@ u32* gpDrawStreamPrimGt3PreXformFixedLayer(TmdScratchModelBlock* ws, s32 flags, 
         len      = 9;
         code     = 0x34;
         ds       = &gDisplayState;
-        mask     = 0xFFFFFF;
-        maskHi   = 0xFF000000;
-        xy       = poly + 1;
         do {
             rec = (u16*)stream;
-            gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 0));
-            gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 1));
-            gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 2));
+            gte_ldSXYP(PRIM_XY_WORD(poly, 0));
+            gte_ldSXYP(PRIM_XY_WORD(poly, 1));
+            gte_ldSXYP(PRIM_XY_WORD(poly, 2));
             gte_nclip();
             gte_stopz(opz);
             if (ws->gteResult > 0) {
@@ -730,55 +724,40 @@ u32* gpDrawStreamPrimGt3PreXformFixedLayer(TmdScratchModelBlock* ws, s32 flags, 
                         if ((sz & clipMask) == 0) {
                             gte_ldSZ3(sz);
                             gte_avsz3();
-                            {
-                                s32          f0;
-                                s32          f1;
-                                register s32 f2 asm("a0");
-
-                                f0  = xy[-1].code;
-                                f1  = xy[-1].p1;
-                                f2  = xy[-1].p2;
-                                f2 |= f0 | f1;
-                                if (f2 == 0) {
-                                    tpage = 0x137;
-                                } else {
-                                    flagp = &poly->code;
-                                    i     = 0;
-                                    up    = &poly->u0;
-                                    do {
-                                        if (*flagp == 0) {
-                                            if ((s8)*up < 0) {
-                                                *up += 0x80;
-                                            } else {
-                                                *up = 0;
-                                            }
+                            // code, p1 and p2 each follow a vertex colour and hold that vertex's flag.
+                            sz = poly->code | poly->p1 | poly->p2;
+                            if (sz == 0) {
+                                tpage = 0x137;
+                            } else {
+                                flagp = &poly->code;
+                                i     = 0;
+                                up    = &poly->u0;
+                                do {
+                                    if (*flagp == 0) {
+                                        if ((s8)*up < 0) {
+                                            *up += 0x80;
+                                        } else {
+                                            *up = 0;
                                         }
-                                        up += 0xC;
-                                        i++;
-                                        flagp += 0xC;
-                                    } while (i < 3);
-                                    tpage = 0x139;
-                                }
+                                    }
+                                    up += 0xC;
+                                    i++;
+                                    flagp += 0xC;
+                                } while (i < 3);
+                                tpage = 0x139;
                             }
-                            xy[-1].tpage = tpage;
-                            setlen(&xy[-1], len);
-                            setcode(&xy[-1], 0x36);
-                            setlen(xy, len);
-                            setcode(xy, code);
+                            poly->tpage = tpage;
+                            setlen(poly, len);
+                            setcode(poly, 0x36);
+                            setlen(&poly[1], len);
+                            setcode(&poly[1], code);
                             gte_stotz(opz);
-                            poly->tag =
-                                (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
-                            *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
-                                (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
-                            xy->tag =
-                                (xy->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
-                            *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
-                                (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)xy & mask);
+                            addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
+                            addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], &poly[1]);
                         }
                     }
                 }
             }
-            xy     += 2;
             poly   += 2;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);

@@ -142398,3 +142398,20 @@ Where a helper's argument load sits in the wrong place relative to the body,
 try the parameter at the width of the field the callers pass before reaching
 for a block-scoped copy of the body - both a hand-inlined copy and a `{ }`
 block scored worse than either helper form here.
+
+### A second-primitive pointer local (`xy = poly + 1`) blocks its own strength reduction; write `&poly[1]` (gpDrawStreamPrimGt3PreXformFixedLayer, 2026-09-26)
+
+**Symptom.** A loop filling primitive pairs keeps `poly + 1` in its own register, stepped by
+the pair stride beside `poly`, and every field of both primitives is addressed off it. A
+`xy = poly + 1` local recomputed each iteration gives `giv of insn N not worth while, 0 vs M`
+in `.loop` and an in-loop `addiu`; the same local as a second stepped pointer lets loop
+rebase every access onto a new `xy + 7` giv. The tree pinned `xy` to a register instead.
+
+**Cause.** `combine_givs` folds all the address givs into the last one found. When it then
+absorbs the `xy = poly + 1` DEST_REG giv - set once (`n_times_used` is really a set count)
+and mentioned by the representative's own insn - it *replaces* the summed benefit with
+that giv's 2, and `2 - add_cost` is 0.
+
+**Fix.** No local: write `poly->...` and `&poly[1]` (e.g. `addPrim(ot, &poly[1])`). The
+representative no longer mentions a single-set register, the benefits sum, and the giv is
+reduced to the retail separate register.
