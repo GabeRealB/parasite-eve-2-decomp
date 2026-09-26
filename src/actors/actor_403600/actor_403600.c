@@ -1493,50 +1493,65 @@ void func_actor_403600_801353D0(ActorEffectState* arg0, GpCoord* arg1)
 
 const SVECTOR D_actor_403600_80131E2C = { 0, 0x578, 0, 0 };
 
+/// Advances the trail by one step: moves the head back one slot in the two
+/// 0x20-entry rings, clears it, ramps the strength up while `field_8E` is set
+/// (restarting the phase on a rising edge) or down otherwise, and writes the
+/// phase and strength into the new head while the strength is non-zero.
+static inline void _actor403600TrailTick(ActorEffectState* state)
+{
+    s32 head;
+
+    state->field_80      += 0x1F;
+    state->field_80      %= 0x20;
+    head                  = state->field_80;
+    state->field_0[head]  = 0;
+    state->field_40[head] = 0;
+    if (state->field_8E != 0) {
+        if (state->field_8C == 0) {
+            state->field_84 = 0;
+        }
+        if (state->field_88 < 0x1000) {
+            state->field_88 += 0x200;
+        }
+    } else if (state->field_88 > 0) {
+        state->field_88 -= 0x80;
+    }
+    state->field_8C = state->field_8E;
+    if (state->field_88 != 0) {
+        state->field_0[head]  = state->field_84;
+        state->field_40[head] = state->field_88;
+        if (state->field_E0 == 0) {
+            state->field_84 += 0x180;
+        } else {
+            state->field_84 += 0x100;
+        }
+    }
+}
+
+/// Whether every slot of the trail's first ring is zero.
+static inline s32 _actor403600TrailEmpty(ActorEffectState* state)
+{
+    s32 i;
+
+    for (i = 0; i < 0x20; i++) {
+        if (state->field_0[i] != 0) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
 void func_actor_403600_80135C28(Task* arg0)
 {
     SVECTOR           sp10;
-    s16*              temp_a0_2;
-    s16*              temp_a0_6;
+    MATRIX*           mtx;
     ActorEffectState* temp_s0;
-    s16*              temp_v0_11;
-    s16*              temp_v0_13;
     ActorEffectState* temp_v0_2;
-    s16*              temp_v0_4;
-    s16*              temp_v0_7;
-    s16*              temp_v1_5;
-    s16*              temp_v1_8;
-    s16*              var_a0_2;
     GpCoord*          temp_s4;
-    s32               temp_a0_3;
-    s32               temp_a0_4;
-    s32               temp_a0_7;
-    s32               temp_v0_10;
-    s32               temp_v0_12;
-    s32               temp_v0_3;
-    s32               temp_v0_5;
-    s32               temp_v0_6;
-    s32               temp_v0_8;
+    s32               temp_v1_2;
     s32               temp_v0_9;
     s32               temp_v1_10;
-    s32               temp_v1_11;
-    s32               temp_v1_12;
-    s32               temp_v1_2;
-    s32               temp_v1_3;
-    s32               temp_v1_4;
-    s32               temp_v1_6;
-    s32               temp_v1_7;
-    s32               temp_v1_9;
     s32               var_a1;
-    s32               var_a1_2;
-    s32               var_v0;
-    s32               var_v0_2;
-    s32               var_v0_3;
-    s32               var_v0_4;
-    s32               var_v0_5;
-    s32               var_v0_6;
-    s32               var_v0_7;
-    s32               var_v1;
     Task*             temp_a0;
     TmdObject*        temp_a0_5;
     TmdObject*        temp_a1;
@@ -1562,12 +1577,12 @@ void func_actor_403600_80135C28(Task* arg0)
             temp_v0_2->field_E0 = 0;
             sp10                = D_actor_403600_80131E2C;
             Gp_CopyCoordOffset(arg0, &temp_s2->parent->extra.tmd->coords[1], &sp10);
-            temp_a0_2                      = &temp_v0_2->field_90.coord.m[0][0];
-            *(s32*)&temp_a0_2[0]           = 0x1000;
-            *(s32*)&temp_a0_2[2]           = 0;
-            *(s32*)&temp_a0_2[4]           = 0x1000;
-            *(s32*)&temp_a0_2[6]           = 0;
-            temp_a0_2[8]                   = 0x1000;
+            mtx                            = &temp_v0_2->field_90.coord;
+            MATRIX_PAIR(mtx, 0, 0)         = 0x1000;
+            MATRIX_PAIR(mtx, 0, 2)         = 0;
+            MATRIX_PAIR(mtx, 1, 1)         = 0x1000;
+            MATRIX_PAIR(mtx, 2, 0)         = 0;
+            mtx->m[2][2]                   = 0x1000;
             temp_v0_2->field_90.coord.t[0] = 0;
             temp_v0_2->field_90.coord.t[1] = 0;
             temp_v0_2->field_90.coord.t[2] = 0;
@@ -1577,101 +1592,25 @@ void func_actor_403600_80135C28(Task* arg0)
             arg0->killCountdown            = 0x10;
             switch (temp_v1_2) {
                 case 1:
-                    temp_v0_2->field_8E = (s16)temp_v1_2;
-                    var_a1_2            = 0;
+                    temp_v0_2->field_8E = temp_v1_2;
+                    var_a1              = 0;
                     do {
-                        temp_a0_4           = temp_v0_2->field_80;
-                        temp_v1_6           = temp_a0_4 + 0x1F;
-                        var_v0_3            = temp_v1_6;
-                        temp_v0_2->field_80 = temp_v1_6;
-                        if (temp_v1_6 < 0) {
-                            var_v0_3 = temp_a0_4 + 0x3E;
-                        }
-                        temp_v0_6 = temp_v1_6 - ((var_v0_3 >> 5) << 5);
-                        __asm__("move %0,%1" : "=r"(temp_a0_4) : "r"(temp_v0_6));
-                        temp_v0_2->field_80 = temp_v0_6;
-                        temp_v0_7           = &temp_v0_2->field_0[temp_a0_4];
-                        temp_v0_7[0]        = 0;
-                        temp_v0_7[0x20]     = 0U;
-                        if (temp_v0_2->field_8E != 0) {
-                            if (temp_v0_2->field_8C == 0) {
-                                temp_v0_2->field_84 = 0;
-                            }
-                            temp_v1_7 = temp_v0_2->field_88;
-                            if (temp_v1_7 < 0x1000) {
-                                temp_v0_2->field_88 = (s32)(temp_v1_7 + 0x200);
-                            }
-                        } else {
-                            temp_v0_8 = temp_v0_2->field_88;
-                            if (temp_v0_8 > 0) {
-                                temp_v0_2->field_88 = (s32)(temp_v0_8 - 0x80);
-                            }
-                        }
-                        temp_v0_2->field_8C = (s16)(u16)temp_v0_2->field_8E;
-                        if (temp_v0_2->field_88 != 0) {
-                            temp_v1_8       = &temp_v0_2->field_0[temp_a0_4];
-                            temp_v1_8[0]    = (s16)(u16)temp_v0_2->field_84;
-                            temp_v1_8[0x20] = (u16)temp_v0_2->field_88;
-                            if (temp_v0_2->field_E0 == 0) {
-                                var_v0_4 = temp_v0_2->field_84 + 0x180;
-                            } else {
-                                var_v0_4 = temp_v0_2->field_84 + 0x100;
-                            }
-                            temp_v0_2->field_84 = var_v0_4;
-                        }
-                        var_a1_2 += 1;
-                    } while (var_a1_2 < 0x10);
+                        _actor403600TrailTick(temp_v0_2);
+                        var_a1 += 1;
+                    } while (var_a1 < 0x10);
                     temp_v0_2->field_E4 = 8;
                     break;
                 case 2:
                     arg0->killCountdown = 0x2E;
                     temp_v0_2->field_E4 = 0x1F;
-                    Gfx_RotMatrixZ(temp_a0_2, 0x800, 0);
+                    Gfx_RotMatrixZ(mtx, 0x800, 0);
                     temp_s4->flg = 0;
                     break;
                 default:
                     temp_v0_2->field_8E = 1;
                     var_a1              = 0;
                     do {
-                        temp_a0_3           = temp_v0_2->field_80;
-                        temp_v1_3           = temp_a0_3 + 0x1F;
-                        var_v0              = temp_v1_3;
-                        temp_v0_2->field_80 = temp_v1_3;
-                        if (temp_v1_3 < 0) {
-                            var_v0 = temp_a0_3 + 0x3E;
-                        }
-                        temp_v0_3 = temp_v1_3 - ((var_v0 >> 5) << 5);
-                        __asm__("move %0,%1" : "=r"(temp_a0_3) : "r"(temp_v0_3));
-                        temp_v0_2->field_80 = temp_v0_3;
-                        temp_v0_4           = &temp_v0_2->field_0[temp_a0_3];
-                        temp_v0_4[0]        = 0;
-                        temp_v0_4[0x20]     = 0U;
-                        if (temp_v0_2->field_8E != 0) {
-                            if (temp_v0_2->field_8C == 0) {
-                                temp_v0_2->field_84 = 0;
-                            }
-                            temp_v1_4 = temp_v0_2->field_88;
-                            if (temp_v1_4 < 0x1000) {
-                                temp_v0_2->field_88 = (s32)(temp_v1_4 + 0x200);
-                            }
-                        } else {
-                            temp_v0_5 = temp_v0_2->field_88;
-                            if (temp_v0_5 > 0) {
-                                temp_v0_2->field_88 = (s32)(temp_v0_5 - 0x80);
-                            }
-                        }
-                        temp_v0_2->field_8C = (s16)(u16)temp_v0_2->field_8E;
-                        if (temp_v0_2->field_88 != 0) {
-                            temp_v1_5       = &temp_v0_2->field_0[temp_a0_3];
-                            temp_v1_5[0]    = (s16)(u16)temp_v0_2->field_84;
-                            temp_v1_5[0x20] = (u16)temp_v0_2->field_88;
-                            if (temp_v0_2->field_E0 == 0) {
-                                var_v0_2 = temp_v0_2->field_84 + 0x180;
-                            } else {
-                                var_v0_2 = temp_v0_2->field_84 + 0x100;
-                            }
-                            temp_v0_2->field_84 = var_v0_2;
-                        }
+                        _actor403600TrailTick(temp_v0_2);
                         var_a1 += 1;
                     } while (var_a1 < 0x10);
                     break;
@@ -1684,46 +1623,33 @@ void func_actor_403600_80135C28(Task* arg0)
     }
     temp_s0 = (ActorEffectState*)arg0->work;
     if (Gp_StateF0.field_4 == 0) {
-        temp_v1_9 = arg0->spawnArg1;
-        switch (temp_v1_9) { /* switch 1; irregular */
-            case 1:          /* switch 1 */
+        switch (arg0->spawnArg1) {
+            case 1:
                 temp_v0_9         = temp_s0->field_E4 - 1;
                 temp_s0->field_E4 = temp_v0_9;
                 if (temp_v0_9 == 0) {
                     temp_a0_5               = ((Task*)arg0->spawnArg2)->extra.tmd;
                     D_actor_403600_801606A0 = NULL;
                     temp_a0_5->flags        = (u16)(temp_a0_5->flags | 0x80);
-                    goto block_57;
                 } else if (temp_v0_9 > 0) {
                     D_actor_403600_801606A0 = (s32)&temp_s0->field_90;
                     Gp_UpdateCoord(&temp_s0->field_90);
-                    goto block_57;
                 }
-                goto block_57;
-            case 2: /* switch 1 */
+                break;
+            case 2:
                 temp_v1_10        = temp_s0->field_E4 - 1;
                 temp_s0->field_E4 = temp_v1_10;
-                if (temp_v1_10 != 0) {
-                    goto block_52;
-                }
-                temp_a1                 = ((Task*)arg0->spawnArg2)->extra.tmd;
-                temp_a0_6               = (s16*)&temp_s0->field_90;
-                D_actor_403600_801606A0 = temp_a0_6;
-                temp_a1->flags          = (u16)(temp_a1->flags & 0xFF7F);
-                Gp_UpdateCoord((GpCoord*)temp_a0_6);
-                goto block_57;
-            block_52:
-                if (temp_v1_10 < -7) {
-                    goto block_55;
-                }
-                D_actor_403600_801606A0 = (s32)&temp_s0->field_90;
-                Gp_UpdateCoord(&temp_s0->field_90);
-                goto block_57;
-            block_55:
-                if (temp_v1_10 == -8) {
+                if (temp_v1_10 == 0) {
+                    temp_a1                 = ((Task*)arg0->spawnArg2)->extra.tmd;
+                    D_actor_403600_801606A0 = (s32)&temp_s0->field_90;
+                    temp_a1->flags          = (u16)(temp_a1->flags & 0xFF7F);
+                    Gp_UpdateCoord(&temp_s0->field_90);
+                } else if (temp_v1_10 >= -7) {
+                    D_actor_403600_801606A0 = (s32)&temp_s0->field_90;
+                    Gp_UpdateCoord(&temp_s0->field_90);
+                } else if (temp_v1_10 == -8) {
                     D_actor_403600_801606A0 = NULL;
                 }
-            block_57:
                 break;
         }
         if (arg0->killCountdown > 0) {
@@ -1732,71 +1658,11 @@ void func_actor_403600_80135C28(Task* arg0)
             temp_s0->field_8E = 0;
         }
         arg0->killCountdown = (s16)((u16)arg0->killCountdown - 1);
-        temp_a0_7           = temp_s0->field_80;
-        temp_v1_11          = temp_a0_7 + 0x1F;
-        var_v0_5            = temp_v1_11;
-        temp_s0->field_80   = temp_v1_11;
-        if (temp_v1_11 < 0) {
-            var_v0_5 = temp_a0_7 + 0x3E;
-        }
-        temp_v0_10 = temp_v1_11 - ((var_v0_5 >> 5) << 5);
-        __asm__("move %0,%1" : "=r"(temp_a0_7) : "r"(temp_v0_10));
-        temp_s0->field_80 = temp_v0_10;
-        temp_v0_11        = &temp_s0->field_0[temp_a0_7];
-        temp_v0_11[0]     = 0;
-        temp_v0_11[0x20]  = 0U;
-        if (temp_s0->field_8E != 0) {
-            if (temp_s0->field_8C == 0) {
-                temp_s0->field_84 = 0;
-            }
-            temp_v1_12 = temp_s0->field_88;
-            if (temp_v1_12 < 0x1000) {
-                temp_s0->field_88 = (s32)(temp_v1_12 + 0x200);
-            }
-        } else {
-            temp_v0_12 = temp_s0->field_88;
-            if (temp_v0_12 > 0) {
-                temp_s0->field_88 = (s32)(temp_v0_12 - 0x80);
-            }
-        }
-        temp_s0->field_8C = (s16)(u16)temp_s0->field_8E;
-        if (temp_s0->field_88 != 0) {
-            temp_v0_13       = &temp_s0->field_0[temp_a0_7];
-            temp_v0_13[0]    = (s16)(u16)temp_s0->field_84;
-            temp_v0_13[0x20] = (u16)temp_s0->field_88;
-            if (temp_s0->field_E0 != 0) {
-                goto block_73;
-            }
-            var_v0_6 = temp_s0->field_84 + 0x180;
-            goto block_74;
-        block_72:
-            var_v0_7 = 0;
-            goto block_78;
-        block_73:
-            var_v0_6 = temp_s0->field_84 + 0x100;
-        block_74:
-            temp_s0->field_84 = var_v0_6;
-        }
+        _actor403600TrailTick(temp_s0);
     }
     func_actor_403600_801353D0(temp_s0, temp_s4);
-    var_v1 = 0;
-    if (arg0->killCountdown <= 0) {
-        var_a0_2 = temp_s0->field_0;
-    loop_78:
-        var_v1 += 1;
-        if (*var_a0_2 != 0) {
-            goto block_72;
-        }
-        var_a0_2 += 1;
-        if (var_v1 >= 0x20) {
-            var_v0_7 = 1;
-        } else {
-            goto loop_78;
-        }
-    block_78:
-        if (var_v0_7 != 0) {
-            Task_CallExit(arg0);
-        }
+    if (arg0->killCountdown <= 0 && _actor403600TrailEmpty(temp_s0)) {
+        Task_CallExit(arg0);
     }
 }
 
