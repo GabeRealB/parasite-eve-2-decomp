@@ -594,14 +594,17 @@ What remains is narrower.
   appears on disc rather than as the runtime pointer, and the tpage/clut bias
   (§5.1) undone.
 - **Where models are is settled.** The overlay manifest declares every model
-  with its `TmdSource` record (597 across 203 packages), and the build checks
+  with its `TmdSource` record (626 across 213 packages), and the build checks
   each record decodes and that its model object is exactly the arrays and stream
   it points at. A record may point at a stream that opens with one or more
   `0xFFFFFFFE` skips - `Tmd_InitSourceStream` steps over them - so the stream's
   first packet can sit past the address the record declares; the Kyle body mesh
-  declares `0x15D4` and its first packet is at `0x15D8`. The 37 streams an
-  opcode walk used to find without a record are no longer catalogued; whether
-  anything draws them, through a record built at run time, is open.
+  declares `0x15D4` and its first packet is at `0x15D8`. The streams an old
+  opcode walk found without a record were 35, and none is open: 29 are models
+  whose record the walk's `verts < norms < stream` test rejected, because they
+  carry no normals (`norms == stream`) - flat-shaded props, including the
+  geometry in 10 `mappic` packages - and they are declared like every other
+  model; the other 6 are runs of opcode-0 packets with no record behind them.
 
 ---
 

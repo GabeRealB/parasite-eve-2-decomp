@@ -654,6 +654,9 @@ id = 63
 objects = [
   { kind = "packageId" },
   { kind = "data", at = "0x4" },
+  { kind = "model", at = "0x21C" },
+  { kind = "modelSource", at = "0x2F4" },
+  { kind = "data", at = "0x318" },
 ]
 
 [mappic.overlays.mappic_s1_02]
@@ -675,6 +678,13 @@ id = 78
 objects = [
   { kind = "packageId" },
   { kind = "data", at = "0x4" },
+  { kind = "model", at = "0xC00" },
+  { kind = "modelSource", at = "0xC6C" },
+  { kind = "model", at = "0xC90" },
+  { kind = "modelSource", at = "0xD34" },
+  { kind = "data", at = "0xD58" },
+  { kind = "model", at = "0xE54" },
+  { kind = "modelSource", at = "0xEC0" },
 ]
 
 [mappic.overlays.mappic_s2_03]
@@ -696,6 +706,13 @@ id = 72
 objects = [
   { kind = "packageId" },
   { kind = "data", at = "0x4" },
+  { kind = "model", at = "0xC18" },
+  { kind = "modelSource", at = "0xC84" },
+  { kind = "model", at = "0xCA8" },
+  { kind = "modelSource", at = "0xD4C" },
+  { kind = "data", at = "0xD70" },
+  { kind = "model", at = "0xE6C" },
+  { kind = "modelSource", at = "0xED8" },
 ]
 
 [mappic.overlays.mappic_s3_03]
@@ -709,7 +726,9 @@ objects = [
 id = 65
 objects = [
   { kind = "packageId" },
-  { kind = "data", at = "0x4" },
+  { kind = "model", at = "0x4" },
+  { kind = "modelSource", at = "0x8C" },
+  { kind = "data", at = "0xB0" },
 ]
 
 [mappic.overlays.mappic_s4_02]
@@ -745,6 +764,11 @@ id = 70
 objects = [
   { kind = "packageId" },
   { kind = "data", at = "0x4" },
+  { kind = "model", at = "0xE4" },
+  { kind = "modelSource", at = "0x188" },
+  { kind = "model", at = "0x1AC" },
+  { kind = "modelSource", at = "0x268" },
+  { kind = "data", at = "0x28C" },
 ]
 
 [mappic.overlays.mappic_s5_00]
@@ -855,6 +879,9 @@ objects = [
   { unit = "acropolis_cafeteria/acropolis_cafeteria", rodata = "0x4", text = "0xEC" },
   { unit = "acropolis_cafeteria/acropolis_cafeteria_2", rodata = "0xB0", text = "0xEBC" },
   { kind = "data", at = "0x54E8" },
+  { kind = "model", at = "0x7740" },
+  { kind = "modelSource", at = "0x789C" },
+  { kind = "data", at = "0x78C0" },
   { kind = "model", at = "0x78D0" },
   { kind = "modelSource", at = "0x8304" },
   { kind = "model", at = "0x8328" },
@@ -1006,6 +1033,11 @@ objects = [
   { kind = "packageId" },
   { unit = "acropolis_west_elevator_hall/acropolis_west_elevator_hall", rodata = "0x4", text = "0x3C" },
   { kind = "data", at = "0x2CE4" },
+  { kind = "model", at = "0x2D00" },
+  { kind = "modelSource", at = "0x2F4C" },
+  { kind = "model", at = "0x2F70" },
+  { kind = "modelSource", at = "0x31BC" },
+  { kind = "data", at = "0x31E0" },
 ]
 
 [rooms.overlays.mist_r18]
@@ -1017,7 +1049,9 @@ objects = [
   { unit = "mist_r18/mist_r18", rodata = "0x4", text = "0x2C" },
   { kind = "model", at = "0x17FC" },
   { kind = "modelSource", at = "0x1AA4" },
-  { kind = "data", at = "0x1AC8" },
+  { kind = "model", at = "0x1AC8" },
+  { kind = "modelSource", at = "0x1C9C" },
+  { kind = "data", at = "0x1CC0" },
 ]
 
 [rooms.overlays.mist_parking]
@@ -1326,6 +1360,9 @@ objects = [
   { kind = "packageId" },
   { unit = "dryfield_junk_yard/dryfield_junk_yard", rodata = "0x4", text = "0x34" },
   { kind = "data", at = "0x760" },
+  { kind = "model", at = "0x11A0" },
+  { kind = "modelSource", at = "0x1720" },
+  { kind = "data", at = "0x1744" },
 ]
 
 [rooms.overlays.dryfield_trailer_coach]
@@ -1851,7 +1888,9 @@ objects = [
   { unit = "shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", rodata = "0x4", text = "0x48" },
   { unit = "shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters_2", rodata = "0x10", text = "0x320" },
   { unit = "shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters_3", rodata = "0x34", text = "0x111C" },
-  { kind = "data", at = "0x2D24" },
+  { kind = "model", at = "0x2D24" },
+  { kind = "modelSource", at = "0x2F34" },
+  { kind = "data", at = "0x2F58" },
 ]
 
 [rooms.overlays.shelter_b1_main_corridor]
@@ -2224,7 +2263,9 @@ id = 421
 objects = [
   { kind = "packageId" },
   { unit = "shelter_1f_vehicular_airlock/shelter_1f_vehicular_airlock", rodata = "0x4", text = "0x24" },
-  { kind = "data", at = "0x3690" },
+  { kind = "model", at = "0x3690" },
+  { kind = "modelSource", at = "0x4A44" },
+  { kind = "data", at = "0x4A68" },
 ]
 
 [rooms.overlays.shelter_1f_bulwark]
@@ -2401,6 +2442,9 @@ objects = [
   { unit = "neo_ark_shrine/neo_ark_shrine", rodata = "0x4", text = "0xE4" },
   { unit = "neo_ark_shrine/neo_ark_shrine_2", rodata = "0x10", text = "0xF68" },
   { kind = "data", at = "0x4874" },
+  { kind = "model", at = "0x4BB4" },
+  { kind = "modelSource", at = "0x4E20" },
+  { kind = "data", at = "0x4E44" },
 ]
 
 [rooms.overlays.shelter_b6_nursery]
@@ -3392,6 +3436,11 @@ objects = [
   { unit = "actor_503500/actor_503500_4", rodata = "0x1D0", text = "0x8F44" },
   { unit = "actor_503500/actor_503500_5", rodata = "0x3D4", text = "0x1306C" },
   { kind = "data", at = "0x14A68" },
+  { kind = "model", at = "0x14A98" },
+  { kind = "modelSource", at = "0x154F4" },
+  { kind = "model", at = "0x15518" },
+  { kind = "modelSource", at = "0x15F4C" },
+  { kind = "data", at = "0x15F70" },
   { kind = "model", at = "0x1B4F8" },
   { kind = "modelSource", at = "0x22804" },
   { kind = "model", at = "0x22828" },
@@ -3910,7 +3959,9 @@ objects = [
   { kind = "modelSource", at = "0x10734" },
   { kind = "model", at = "0x10758" },
   { kind = "modelSource", at = "0x10C8C" },
-  { kind = "data", at = "0x10CB0" },
+  { kind = "model", at = "0x10CB0" },
+  { kind = "modelSource", at = "0x10E70" },
+  { kind = "data", at = "0x10E94" },
   { kind = "model", at = "0x17240" },
   { kind = "modelSource", at = "0x1C8E8" },
   { kind = "model", at = "0x1C90C" },
@@ -3993,7 +4044,9 @@ objects = [
   { kind = "modelSource", at = "0x7168" },
   { kind = "model", at = "0x718C" },
   { kind = "modelSource", at = "0x7434" },
-  { kind = "data", at = "0x7458" },
+  { kind = "model", at = "0x7458" },
+  { kind = "modelSource", at = "0x762C" },
+  { kind = "data", at = "0x7650" },
 ]
 
 [actors.overlays.actor_113100]
@@ -4008,7 +4061,9 @@ objects = [
   { kind = "modelSource", at = "0x7A40" },
   { kind = "model", at = "0x7A64" },
   { kind = "modelSource", at = "0x7AE8" },
-  { kind = "data", at = "0x7B0C" },
+  { kind = "model", at = "0x7B0C" },
+  { kind = "modelSource", at = "0x7D78" },
+  { kind = "data", at = "0x7D9C" },
 ]
 
 [actors.overlays.actor_213100]
@@ -4019,7 +4074,9 @@ objects = [
   { unit = "actor_213100/actor_213100", rodata = "0x4", text = "0x1C" },
   { kind = "model", at = "0x6E0" },
   { kind = "modelSource", at = "0x63C4" },
-  { kind = "data", at = "0x63E8" },
+  { kind = "model", at = "0x63E8" },
+  { kind = "modelSource", at = "0x65BC" },
+  { kind = "data", at = "0x65E0" },
 ]
 
 [actors.overlays.actor_215100]
@@ -4256,7 +4313,9 @@ objects = [
   { kind = "modelSource", at = "0x64C8" },
   { kind = "model", at = "0x64EC" },
   { kind = "modelSource", at = "0x69B8" },
-  { kind = "data", at = "0x69DC" },
+  { kind = "model", at = "0x69DC" },
+  { kind = "modelSource", at = "0x6CC8" },
+  { kind = "data", at = "0x6CEC" },
 ]
 
 [actors.overlays.actor_535700]
@@ -4327,7 +4386,9 @@ id = 129
 objects = [
   { kind = "packageId" },
   { unit = "actor_141000/actor_141000", rodata = "0x4", text = "0x74" },
-  { kind = "data", at = "0x229C" },
+  { kind = "model", at = "0x229C" },
+  { kind = "modelSource", at = "0x23E4" },
+  { kind = "data", at = "0x2408" },
   { kind = "model", at = "0x2ADC" },
   { kind = "modelSource", at = "0x8290" },
   { kind = "data", at = "0x82B4" },
@@ -4508,7 +4569,10 @@ objects = [
   { kind = "modelSource", at = "0x1CF58" },
   { kind = "model", at = "0x1CF7C" },
   { kind = "modelSource", at = "0x1DAA0" },
-  { kind = "data", at = "0x1DAC4" },
+  { kind = "model", at = "0x1DAC4" },
+  { kind = "modelSource", at = "0x1DFE0" },
+  { kind = "model", at = "0x1E004" },
+  { kind = "modelSource", at = "0x1E350" },
   { kind = "model", at = "0x1E374" },
   { kind = "modelSource", at = "0x1EC20" },
   { kind = "model", at = "0x1EC44" },
@@ -4565,7 +4629,9 @@ text = ["0x4", "0xB0C"]
 objects = [
   { kind = "packageId" },
   { unit = "actor_150400/actor_150400", text = "0x4" },
-  { kind = "data", at = "0xB0C" },
+  { kind = "model", at = "0xB0C" },
+  { kind = "modelSource", at = "0xEAC" },
+  { kind = "data", at = "0xED0" },
   { kind = "model", at = "0x13B8" },
   { kind = "modelSource", at = "0x7C44" },
   { kind = "data", at = "0x7C68" },
