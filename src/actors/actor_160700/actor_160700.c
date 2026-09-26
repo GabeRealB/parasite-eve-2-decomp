@@ -87,20 +87,11 @@ static void func_actor_160700_80131E70(void)
 static void func_actor_160700_80131F70(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
-    GpAreaKey        key;
     Actor160600Work* work;
     Actor160600Work* mem;
     GpCoord*         coord;
     TmdObject*       obj;
     GpEnemy*         spawned;
-    TmdObject*       model;
-    GpAreaKey*       sessionKey;
-    GpAreaKey*       keyPtr;
-    u8               areaByte0;
-    GpAreaRec*       rec;
-    GpAreaPlace*     place;
-    s32              idx;
-    u32              raw;
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
@@ -121,27 +112,7 @@ static void func_actor_160700_80131F70(GpEnemy* enemy, Task* task)
     obj->otOffset                = 1;
     work->enemy                  = enemy;
     spawned                      = Gp_SpawnEnemyFromTable(D_actor_160700_801416A8, 1, 0, enemy);
-    model                        = spawned->task->extra.tmd;
-    raw                          = enemy->placeKey;
-    sessionKey                   = (GpAreaKey*)&gGameSession->at4.loc;
-    key.stage                    = sessionKey->stage;
-    key.area                     = sessionKey->area;
-    key.room                     = sessionKey->room;
-    idx                          = raw >> 12;
-    areaByte0                    = sessionKey->view;
-    SOFT_BARRIER();
-    keyPtr = &key;
-    TOUCH_REG(keyPtr);
-    key.view = areaByte0;
-    Gp_SyncAreaKeyIndex(keyPtr);
-    rec          = Gp_GetNestedAreaRec(&key);
-    place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
-    model->tpage = place->tpage;
-    model->clut  = place->clut;
-    if (model->buffer != NULL) {
-        tmdProcessStream(model);
-        tmdProcessStream(model);
-    }
+    actorTintModel(spawned->task->extra.tmd, enemy);
     Task_Reparent(task, spawned->task);
     work->pairTask  = spawned->task;
     work->st.animId = 1;
