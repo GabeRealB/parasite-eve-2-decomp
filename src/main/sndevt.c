@@ -1585,66 +1585,39 @@ static s32 SndBank_SetupFromLoad(SndLoadState* arg0)
 {
     SndBank*     bank;
     SndBankSlot* obj;
-    u32          index;
-    register u32 temp asm("v1");
-    register s32 slot asm("v0");
-    s32          a;
+    u16          id;
+    s8           slot;
     s32          i;
-    SndNote*     entry;
-    SndNote*     raw;
-    s32          base;
-    s32          end;
-    s32          neg;
-    s32          id;
-    s32          mask;
+    u32          spuAddr;
+    SndNote*     note;
 
     bank = (SndBank*)arg0->field_18;
-    if (D_800689E8 == 0) {
-        index = bank->bankId;
-        mask  = 0xFFFF;
-        SOFT_TOUCH_REG2(index, mask);
-        temp = index & 0xFFFF;
-        if (temp != mask) {
-            goto success;
-        }
+    if (D_800689E8 != 0 || (id = bank->bankId) == 0xFFFF) {
+    fail:
+        D_800689E4 = 0xFF;
+        return -1;
     }
-fail:
-    D_800689E4 = 0xFF;
-    return -1;
-
-success:
-    temp >>= 12;
-    slot   = D_800680AC[temp];
-    neg    = -1;
-    if (slot == neg) {
+    slot = D_800680AC[id >> 12];
+    if (slot == -1) {
         goto fail;
     }
-    a    = slot;
-    temp = index & 0xF000;
-    if (temp == 0x4000) {
-        a = a + (D_80082122 + neg);
+    if ((id & 0xF000) == 0x4000) {
+        slot = slot - 1 + D_80082122;
     }
-    obj = SndBankSlot_Get((s8)a);
+    obj = SndBankSlot_Get(slot);
     if (obj == NULL) {
         goto fail;
     }
-    id           = bank->bankId;
+    obj->bankId  = bank->bankId;
     obj->bank    = bank;
-    obj->bankId  = id;
     obj->image   = (SndBankHdr*)arg0->field_14;
     obj->spuAddr = bank->spuAddr;
     i            = arg0->field_24;
-    base         = ((volatile SndBank*)bank)->spuAddr;
-    raw          = ((volatile SndBank*)bank)->notes;
-    i            = i - 1;
-    if (i != neg) {
-        end   = -1;
-        entry = raw;
-        do {
-            i               -= 1;
-            entry->waveAddr += base;
-            entry++;
-        } while (i != end);
+    spuAddr      = bank->spuAddr;
+    note         = bank->notes;
+    for (i--; i != -1; i--) {
+        note->waveAddr += spuAddr;
+        note++;
     }
     Snd_BuildGroupIndex(obj->bank);
     D_800689E4     = 0xFF;

@@ -19017,7 +19017,7 @@ Pinning `ul asm("a2")` at function scope (or before the `t0/t1/t2` saves are
 decided) shifts the t-regs and steals `$a3` from the addPrim mask — keep the
 `a2` pin inside the block that also pins `f22`/`next`/`ur`.
 
-## `lhu` / `li 0xFFFF` / `andi …,0xFFFF` with dual empty-asm barrier
+## `lhu` / `li 0xFFFF` / `andi …,0xFFFF`: a `u16` local assigned inside the test (SndBank_SetupFromLoad, 2026-09-26)
 
 When the target does:
 
@@ -19029,33 +19029,35 @@ bne   v1, v0, success
  srl  v1, v1, 0xc
 ```
 
-a plain `temp = index & 0xFFFF` after `lhu` is deleted (zero-extend is already
-proven), leaving `move v1,a1`. An `asm("" : "+r"(index))` alone restores the
-`andi` but freezes scheduling so you get `lhu; nop; andi; li` instead of
-`lhu; li; andi`.
-
-Fix: keep both the index and the compare constant live across one empty asm,
-with the `li` written *after* the load in source order:
+the `andi` is the conversion of a `u16` local, not a mask the source wrote,
+and it survives because the loaded value (`a1`) stays live for a later
+`id & 0xF000`. An older recipe rebuilt it with an `asm("" : "+r"(index),
+"+r"(mask))` barrier and `$a1`/`$v1` pins; none is needed:
 
 ```c
-register u32 index asm("a1");
-register u32 temp asm("v1");
-s32 mask;
-
-index = bank->bankId;
-mask  = 0xFFFF;
-asm("" : "+r"(index), "+r"(mask));
-temp = index & 0xFFFF;
-if (temp != mask) {
-    goto success;
+u16 id;
+if (D_800689E8 != 0 || (id = bank->bankId) == 0xFFFF) {
+fail:
+    D_800689E4 = 0xFF;
+    return -1;
 }
-success:
-temp >>= 12; /* fills the bne delay as srl v1,v1,0xc */
+slot = D_800680AC[id >> 12];
+if (slot == -1) {
+    goto fail;
+}
 ```
 
-Pinning `index` to `$a1` and `temp` to `$v1` keeps the `andi v1,a1,0xffff` /
-`srl v1` chain; `mask` in a GPR supplies the `li v0,0xffff` for the compare.
-`SndBank_SetupFromLoad` is the pure example (bank id check before `D_800680AC` lookup).
+The `||` places the error block straight after the second test, as the target
+does. Writing each later failure as its own copy of that block does not: jump
+cross-jumping keeps the *last* copy and redirects the earlier ones to it, so
+they need to `goto` the first.
+
+In the same function, `s8 slot; slot += D_80082122 - 1;` narrows the whole sum
+to 8 bits and emits `addiu v0,v0,0xff`, while the target adds a callee-saved
+register holding -1 (`addu v0,v0,s2`). `slot = slot - 1 + D_80082122` keeps
+the `-1` as a separate SImode addend, and cse substitutes the pseudo already
+loaded with -1 for the earlier `slot == -1` test. `slot + D_80082122 - 1`
+matches the register too but adds in the other order.
 
 ## Signed `/ 64` map store: pin dividend adj to `$v1`, shift result to `$v0`
 
