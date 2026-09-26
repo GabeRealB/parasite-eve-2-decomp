@@ -311,6 +311,21 @@ s32 Actor01100_Fn00430(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
     return s->blocked != 0;
 }
 
+/// Sets the playback rate of animation slots 1..20 in both of the work block's
+/// animation contexts.
+static __inline__ void _actor01100SetSlotRates(ActorsShared80138efcWork* work, u8 rate)
+{
+    GpAnimSlot* slot;
+    s32         i;
+
+    for (i = 1; i < 0x15; i++) {
+        slot       = &work->slots[i];
+        slot->rate = rate;
+        slot       = &work->slots2[i];
+        slot->rate = rate;
+    }
+}
+
 /// First enemy-task state: allocates the 0xBCC work block, enqueues the
 /// overlay's sound CD command once while `Gp_StateF0.field_25` is clear,
 /// seeds both animation contexts, and hangs the work coordinate off model
@@ -327,17 +342,11 @@ void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
     u8                        param1[8];
     u8                        param2[8];
     ActorsShared801385e0Scale scale;
-    u8                        entryId;
+    s8                        entryId;
     u32                       actorId;
     u32                       map;
     u16                       hp;
     s32                       i;
-    s32                       j;
-    s32                       offA;
-    s32                       offB;
-    u8                        rate;
-    GpAnimSlot*               slotA;
-    GpAnimSlot*               slotB;
     GpCoord*                  endCoords;
 
     extra            = task->extra.tmd;
@@ -366,7 +375,7 @@ void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
     }
 
     st = &Gp_StateF0;
-    if ((s8)st->field_25 == 0) {
+    if (st->field_25 == 0) {
         CdCmd_Enqueue(0x21, param1, param2);
         st->field_25 = 1;
     }
@@ -374,7 +383,7 @@ void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
     task->work      = work;
     entryId         = enemy->place->entryId;
     work->field_BBB = entryId;
-    if ((s8)entryId == 0x31) {
+    if (entryId == 0x31) {
         enemy->param = &Actor01100_D07510;
     } else {
         enemy->param = &Actor01100_D074E8;
@@ -396,7 +405,7 @@ void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
     mtx->m11_m12 = 0x1000;
     mtx->m20_m21 = 0;
     mtx->m22     = 0x1000;
-    if ((s8)work->field_BBB == 0x31) {
+    if (work->field_BBB == 0x31) {
         scale = Actor01100_D00010;
         Actor01100_Fn067C0(&work->coord.coord, &scale);
     }
@@ -421,44 +430,18 @@ void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
 
     switch (enemy->spawnState) {
         case 1:
-            rate            = 0x7F;
-            j               = 1;
-            offB            = OFFSET_OF(ActorsShared80138efcWork, slots2[1]);
-            offA            = OFFSET_OF(ActorsShared80138efcWork, slots[1]);
             work->field_BAE = 0;
             work->state     = 0x18;
-            do {
-                slotA       = (GpAnimSlot*)((u8*)work + offA);
-                slotA->rate = rate;
-                SOFT_BARRIER();
-                slotB = (GpAnimSlot*)((u8*)work + offB);
-                offB += sizeof(GpAnimSlot);
-                j++;
-                slotB->rate = rate;
-                offA       += sizeof(GpAnimSlot);
-            } while (j < 0x15);
+            _actor01100SetSlotRates(work, 0x7F);
             break;
         case 2:
             work->field_BAE = 1;
-            rate            = 0x7F;
-            j               = 1;
-            offB            = OFFSET_OF(ActorsShared80138efcWork, slots2[1]);
-            offA            = OFFSET_OF(ActorsShared80138efcWork, slots[1]);
             work->state     = 0x18;
-            do {
-                slotA       = (GpAnimSlot*)((u8*)work + offA);
-                slotA->rate = rate;
-                SOFT_BARRIER();
-                slotB = (GpAnimSlot*)((u8*)work + offB);
-                offB += sizeof(GpAnimSlot);
-                j++;
-                slotB->rate = rate;
-                offA       += sizeof(GpAnimSlot);
-            } while (j < 0x15);
+            _actor01100SetSlotRates(work, 0x7F);
             break;
     }
 
-    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    Gp_IncStateF0Ref(0);
     endCoords               = task->extra.tmd->coords;
     work->effArg.spawnArgLo = 0x400;
     work->effArg.spawnArgHi = 3;

@@ -142582,3 +142582,27 @@ work->verts[1].vy = -(size * rsin(0x155) / 4096) - ((RAND() & 1) ? size / 10 : 0
 
 The same spelling, `base + (RAND() & 1 ? RAND() & 0x1F : -(RAND() & 0x1F))`,
 replaces an `if/else` over a `base` local for velocity jitter.
+## A pointer local set twice per iteration also adds base + offset every pass; a scalar offset is not the only source (Actor01100_Fn0097C, 2026-09-26)
+
+The rule under "`arr[i]` strength-reduces to a walking pointer" reads a per-iteration
+`addu base,off` as proof of a scalar byte-offset variable. There is a second
+natural source. A loop that writes one field in two parallel arrays through a
+single pointer local
+
+```c
+for (i = 1; i < 0x15; i++) {
+    slot       = &work->slots[i];
+    slot->rate = rate;
+    slot       = &work->slots2[i];
+    slot->rate = rate;
+}
+```
+
+gives exactly the offset shape: `slot` is set twice in the loop, so loop.c
+cannot record it as a giv, and only its `i * 0x28 + CONST` parts are reduced -
+into two offset bivs (`li v1,0x8c` / `li a0,0x538`, each `+= 0x28`) with
+`addu v0,s1,v1` before each store. Reusing the one pseudo also gives the second
+address an anti-dependence on the first store, which is the ordering
+(`addu; sb; addu; sb`, both through `$v0`) that the offset form needed a
+`SOFT_BARRIER` for. Writing `work->slots[i].rate` directly instead folds both
+into one walking pointer. Try the reused pointer before a hand-built offset.
