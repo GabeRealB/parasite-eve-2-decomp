@@ -141163,3 +141163,25 @@ Retyping `UiObject`'s layout halfwords to `s16` so a negative constant stores as
 stores lose a load-delay `nop` and the image shrinks. An inline helper taking the
 offsets as `s32` parameters stores them the same way the staging local in the
 entry above does.
+
+### The room fan drawer (`RoomFanScratch`) needs no pins: `SCRATCH_PUSH` and `&block->field`
+
+The eight-wedge fan drawer repeated across ~40 room overlays was matched with
+`register ... asm()` pins on the block, prim, angle and scratch head, the GTE
+store addresses spelled `&((RoomFanScratch*)(head - 0x18))->sx`, a `USE_REG`
+and a `SOFT_USE_REG` on the angle temporary. None of it is needed. The
+target's head-relative `addiu $v0, $a2, -0x4` for `gte_stsxy` is just combine
+folding `block = head - 0x18` into `&block->sx`, and the angle's `s3`/`s1`
+split is what `for (ang = 0; ang < 0x1000; ang += 0x200)` with `ang + 0x100`
+and `ang + 0x200` written inline at the `rsin`/`rcos` calls produces:
+
+```c
+block = SCRATCH_PUSH(RoomFanScratch);
+block->vec.vx = arg0->workm.t[0];      /* ...vy, vz */
+gte_stsxy(&block->sx);
+gte_stflg(&block->flag);
+if (block->flag >= 0) { ... for (ang = 0; ang < 0x1000; ang += 0x200) { ... } }
+SCRATCH_POP_BYTES(0x18);
+```
+
+Try the plain spelling on the other copies before porting their pins.
