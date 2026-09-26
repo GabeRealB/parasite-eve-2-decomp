@@ -312,7 +312,7 @@ def main() -> int:
                     # type-1 entry, and a callback in the target's slot has to
                     # be one of the target's functions.
                     flags, cb = images_io.word(image, loc - 8), images_io.word(image, loc - 4)
-                    if target and cb is not None and (cb >> 16) in (0x60, 0x62, 0x70, 0xC0) and cb & 0xFF00 == 0:
+                    if cb is not None and (cb >> 16) in (0x60, 0x62, 0x70, 0xC0) and cb & 0xFF00 == 0:
                         target, why = None, "a descriptor's callback, not a model"
                     elif target and flags is not None and (flags >> 16) in (0x60, 0x62, 0x70, 0xC0) and flags & 0xFF00 == 0:
                         lo_t = loads.get(target)
