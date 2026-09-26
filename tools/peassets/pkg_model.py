@@ -242,6 +242,52 @@ SRC_INIT_FLAG = 0x00   # Tmd_InitSourceStream tests == 0, so 0 on disc
 MAX_PARTS = 128
 
 
+def read_source(data: bytes, base: int, off: int) -> dict:
+    """The `TmdSource` record at file offset ``off``, and the model it describes.
+
+    The overlay manifest declares where every record is, so this decodes one
+    rather than searching for it. The model's bytes are the arrays the record
+    points at and the stream: ``head`` is the lowest of them and ``end`` the
+    stream's end, which on disc is always the record itself. Raises ValueError
+    when the words at ``off`` are not a record of this package.
+    """
+    n = len(data)
+    if off % 4 or off + TMD_SOURCE_SIZE > n:
+        raise ValueError(f"no room for a TmdSource at 0x{off:X}")
+    (flag,) = struct.unpack_from("<I", data, off + SRC_INIT_FLAG)
+    (parts,) = struct.unpack_from("<I", data, off + SRC_PARTS)
+    partverts, verts, norms, skel, raw_va = struct.unpack_from("<5I", data, off + SRC_PARTVERTS)
+    if flag != 0:
+        raise ValueError(f"0x{off:X}: init flag is 0x{flag:X}, not 0 as on disc")
+    if not 1 <= parts <= MAX_PARTS:
+        raise ValueError(f"0x{off:X}: part count {parts}")
+    for what, va in (("partVerts", partverts), ("verts", verts), ("norms", norms),
+                     ("skeleton", skel), ("stream", raw_va)):
+        if not base <= va < base + off:
+            raise ValueError(f"0x{off:X}: {what} 0x{va:08X} is not before the record")
+    stream_va = _skip_leading_skips(data, base, raw_va)
+    walked = walk_stream(data, stream_va - base)
+    if walked is None:
+        raise ValueError(f"0x{off:X}: stream at 0x{stream_va - base:X} does not walk to its end")
+    head = min(partverts, verts, norms, skel, raw_va) - base
+    return {
+        "source_offset": off,
+        "head": head,
+        "end": walked[1],
+        "stream_offset": stream_va - base,
+        "stream_declared": raw_va - base,
+        "verts_offset": verts - base,
+        "norms_offset": norms - base,
+        "skeleton_offset": skel - base,
+        "part_verts_offset": partverts - base,
+        "part_count": parts,
+        "vertex_count": (norms - verts) // 8,
+        "normal_count": (stream_va - norms) // 8,
+        "packets": len(walked[0]),
+        "skeleton": read_skeleton(data, base, off),
+    }
+
+
 def find_sources_direct(data: bytes, base: int) -> dict[int, dict]:
     """Every `TmdSource` in a package, found from the record itself.
 
