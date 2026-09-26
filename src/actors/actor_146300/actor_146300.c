@@ -245,6 +245,37 @@ void func_actor_146300_80132418(s32 arg0)
     }
 }
 
+/// Gives the model carried by the spawned task `spawned` the texture page and
+/// palette of the enemy's placement in the current area, and reprocesses its
+/// stream when it already has one. `actorTintModel` does the same for a model
+/// already in hand.
+static inline void _actor146300TintSpawn(Task* spawned, GpEnemy* enemy)
+{
+    GpAreaKey    key;
+    GpAreaKey*   sessionKey;
+    GpAreaRec*   rec;
+    GpAreaPlace* place;
+    TmdObject*   model;
+    s32          idx;
+
+    sessionKey = &gGameSession->at4.loc;
+    idx        = enemy->placeKey >> 12;
+    model      = spawned->extra.tmd;
+    key.stage  = sessionKey->stage;
+    key.area   = sessionKey->area;
+    key.room   = sessionKey->room;
+    key.view   = sessionKey->view;
+    Gp_SyncAreaKeyIndex(&key);
+    rec          = Gp_GetNestedAreaRec(&key);
+    place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+    model->tpage = place->tpage;
+    model->clut  = place->clut;
+    if (model->buffer != NULL) {
+        tmdProcessStream(model);
+        tmdProcessStream(model);
+    }
+}
+
 /// Spawn routine, state 0 of the task handler `func_actor_146300_801326CC`:
 /// allocates the 0x4EC work block and publishes it in `D_actor_146300_80142828`
 /// and the task's `work` slot (destroying the enemy if the allocation fails),
@@ -263,17 +294,10 @@ void func_actor_146300_80132418(s32 arg0)
 void func_actor_146300_801324AC(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
-    GpAreaKey        key;
     Actor146300Work* work;
     TmdObject*       obj;
-    TmdObject*       model;
     GpCoord*         coord;
-    GpAreaKey*       sessionKey;
-    GpAreaPlace*     entry;
     Task*            helper;
-    GpAreaKey*       keyPtr;
-    u8               areaByte0;
-    u32              idx;
 
     obj                     = task->extra.tmd;
     coord                   = obj->coords;
@@ -294,33 +318,8 @@ void func_actor_146300_801324AC(GpEnemy* enemy, Task* task)
     obj->flags                   = 0;
     D_actor_146300_8014282C      = task;
     helper                       = Task_SpawnFromTable(D_actor_146300_801427C8, 1, 0, 0);
-    sessionKey                   = (GpAreaKey*)&gGameSession->at4.loc;
-    idx                          = enemy->placeKey >> 0xC;
-    model                        = helper->extra.tmd;
     D_actor_146300_80142830      = helper;
-    key.stage                    = sessionKey->stage;
-    key.area                     = sessionKey->area;
-    key.room                     = sessionKey->room;
-    areaByte0                    = sessionKey->view;
-    /* Both calls take `&key`. Left alone, GCC 2.8.1 CSEs that address into one
-       pseudo that is live across the first call, costing a callee-saved
-       register; the ROM rematerializes `addiu a0, sp, key` for each call. The
-       barrier keeps the address materialization next to the call and the
-       `+r` touch makes the second one a fresh computation. */
-    SOFT_BARRIER();
-    keyPtr = &key;
-    TOUCH_REG(keyPtr);
-    key.view = areaByte0;
-    Gp_SyncAreaKeyIndex(keyPtr);
-    /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled index
-       onto the table (`addu s0, s0, v0`). */
-    entry        = (GpAreaPlace*)((idx << 4) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
-    model->tpage = entry->tpage;
-    model->clut  = entry->clut;
-    if (model->buffer != NULL) {
-        tmdProcessStream(model);
-        tmdProcessStream(model);
-    }
+    _actor146300TintSpawn(helper, enemy);
     Task_Reparent(task, D_actor_146300_80142830);
     obj->lightMtx = &D_actor_146300_80142828->light;
     obj->colorMtx = &D_actor_146300_80142828->color;
@@ -334,7 +333,6 @@ void func_actor_146300_801324AC(GpEnemy* enemy, Task* task)
     D_actor_146300_80142828->st.state  = 2;
     task->msgTable                     = D_actor_146300_801427A0;
     func_actor_146300_801327CC(task);
-    SOFT_BARRIER();
     task->state++;
 }
 

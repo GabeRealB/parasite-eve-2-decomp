@@ -142665,3 +142665,20 @@ carries no `REG_DEAD` for the value, so the load survives. A range such as
 **Fix.** `if (f > 60) b = 0; else if (f > 30) b = 0; else b = 0;` (tiers that
 all grant nothing). The compare is gone from the output, so only the load's
 width constrains the source: `lhu` needed the field declared `u16`.
+
+## An inline helper's arguments are loaded before its body: a caller-side load the target puts after the helper's own loads means the helper took the container (func_actor_146300_801324AC, 2026-09-26)
+
+**Symptom.** Calling the existing `actorTintModel(spawned->extra.tmd, enemy)`
+matched to one pair: the target loads `enemy->placeKey` before `task->extra.tmd`,
+ours the other way round. The seed held the order with `SOFT_BARRIER` and a
+`TOUCH_REG` on `&key`.
+
+**Cause.** An inlined call evaluates its arguments into the parameter pseudos
+before the body's RTL, so `spawned->extra.tmd` sits ahead of every statement in
+the helper. sched1 breaks the tie between the two independent loads on RTL
+order.
+
+**Fix.** A helper taking the `Task*` and loading `model = spawned->extra.tmd`
+after `idx = enemy->placeKey >> 12` matched without hacks. When only the
+position of an argument's load differs, try passing the object that holds it
+and dereferencing inside the helper.
