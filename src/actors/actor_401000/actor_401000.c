@@ -3258,23 +3258,13 @@ static void func_actor_401000_8013B1E4(Task* arg0)
 /// `func_actor_401000_80132EF0` and `actorResetYaw` on nodes 2..10.
 static void func_actor_401000_8013B61C(Task* arg0)
 {
-    Actor401000Work*      work;
-    GpEnemy*              enemy;
-    GpCoord*              coord;
-    ActorScaleRotScratch* blk;
-    u8*                   head;
-    u8*                   tail;
-    void*                 scratch_base;
-    u16                   next;
-    s16                   ang;
-    s16                   cur;
-    s32                   k;
-    s32                   sy;
-    u16                   m22;
+    Actor401000Work* work;
+    GpEnemy*         enemy;
+    u16              next;
+    s16              cur;
 
-    work         = arg0->work;
-    enemy        = arg0->spawnArg2;
-    scratch_base = PSX_SCRATCH;
+    work  = arg0->work;
+    enemy = arg0->spawnArg2;
     if (work->field_4 != 0) {
         work->field_8D0.radius    = 0x1AE;
         work->field_A10.flags    |= 0x4000;
@@ -3345,35 +3335,7 @@ static void func_actor_401000_8013B61C(Task* arg0)
             }
             cur = work->field_6;
             if (cur >= 0x1A) {
-                k                                  = 0x1194;
-                head                               = scratch_base;
-                head                               = *(u8**)(head + 0x3FC);
-                coord                              = arg0->extra.tmd->coords;
-                blk                                = (ActorScaleRotScratch*)(head - 0x34);
-                sy                                 = k - (cur - 0x14) * 0xB;
-                SCRATCH_HEAD(ActorScaleRotScratch) = blk;
-                ang                                = ratan2((s32)-coord->coord.m[2][0], (s32)coord->coord.m[2][2]);
-                blk->angle                         = ang;
-                Gfx_RotMatrixY(&blk->m, (s32)ang, 1);
-                blk->scale.vx = k;
-                blk->scale.vy = (s32)(s16)sy;
-                blk->scale.vz = k;
-                ScaleMatrix(&blk->m, &((ActorScaleRotScratch*)(head - 0x34))->scale);
-                coord->coord.m[0][0] = (u16)((ActorScaleRotScratch*)(head - 0x34))->m.m[0][0];
-                coord->coord.m[0][1] = (u16)blk->m.m[0][1];
-                coord->coord.m[0][2] = (u16)blk->m.m[0][2];
-                coord->coord.m[1][0] = (u16)blk->m.m[1][0];
-                coord->coord.m[1][1] = (u16)blk->m.m[1][1];
-                coord->coord.m[1][2] = (u16)blk->m.m[1][2];
-                coord->coord.m[2][0] = (u16)blk->m.m[2][0];
-                coord->coord.m[2][1] = (u16)blk->m.m[2][1];
-                __asm__ volatile("lui %0, 0x1F80" : "=r"(tail));
-                tail       = *(u8**)(tail + 0x3FC);
-                m22        = (u16)blk->m.m[2][2];
-                coord->flg = 0;
-                tail       = tail + 0x34;
-                __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(tail) : "memory");
-                coord->coord.m[2][2] = m22;
+                actorRescaleYawY(arg0->extra.tmd->coords, 0x1194, 0x1194 - (cur - 0x14) * 0xB);
             }
             break;
     }
