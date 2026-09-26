@@ -1184,6 +1184,64 @@ done:
     SCRATCH_POP_BYTES(8);
 }
 
+/// Relights the actor for the world position of its root coordinate.
+static inline void _actor03700UpdateColor(Task* task)
+{
+    GpCoord* coord;
+    VECTOR   color;
+
+    coord    = task->extra.tmd->coords;
+    color.vx = coord->workm.t[0];
+    color.vy = coord->workm.t[1];
+    color.vz = coord->workm.t[2];
+    Gp_UpdateActorColor(task->spawnArg2, &color, 0, 0);
+}
+
+/// Spawns effect 0x40007 at the model's fifth coordinate with one of two model
+/// streams picked at random, and gives the spawned model the texture page and
+/// CLUT of the actor's placement in the current area.
+static inline void _actor03700SpawnRemains(Task* task)
+{
+    GpAreaKey    key;
+    GpAreaKey*   sessionKey;
+    u8           view;
+    GpAreaRec*   rec;
+    GpAreaPlace* entry;
+    GpEffWork*   eff;
+    TmdObject*   model;
+    s32          idx;
+    u32          raw;
+
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    if ((Gp_LcgState >> 16) & 1) {
+        D_80067704[0] = Actor03700_D043FC;
+    } else {
+        D_80067704[0] = Actor03700_D04600;
+    }
+    eff = Gp_SpawnEff(0x40007, &task->extra.tmd->coords[4], 0x80, NULL);
+    if (eff == NULL) {
+        return;
+    }
+    sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+    raw        = ((GpEnemy*)task->spawnArg2)->placeKey;
+    model      = eff->task->extra.tmd;
+    key.stage  = sessionKey->stage;
+    key.area   = sessionKey->area;
+    key.room   = sessionKey->room;
+    view       = sessionKey->view;
+    idx        = raw >> 12;
+    key.view   = view;
+    Gp_SyncAreaKeyIndex(&key);
+    rec          = Gp_GetNestedAreaRec(&key);
+    entry        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+    model->tpage = entry->tpage;
+    model->clut  = entry->clut;
+    if (model->buffer != NULL) {
+        tmdProcessStream(model);
+        tmdProcessStream(model);
+    }
+}
+
 /// Death handler. Mode 1 of `Gp_StateF0.field_4` only refreshes the actor colour and
 /// mode 2 hides the model; otherwise it steps `field_250`: unlink the enemy and
 /// play the death cue (releasing the player's hold if `field_262` is set), wait
@@ -1196,23 +1254,8 @@ static void Actor03700_Fn020D4(GpEnemy* enemy, Task* task)
     Actor103700Work* work;
     Task*            player;
     GpAnimArg        arg;
-    /* One 12-byte frame slot serves both the colour vector and the area key. */
-    union {
-        VECTOR    color;
-        GpAreaKey key;
-    } buf;
-    GpAreaKey*   sessionKey;
-    GpAreaKey*   keyPtr;
-    u8           areaByte0;
-    GpAreaRec*   rec;
-    GpAreaPlace* entry;
-    GpEffWork*   eff;
-    TmdObject*   effModel;
-    s32          sound;
-    s32          sound2;
-    s32          idx;
-    u32          raw;
-    GpCoord*     coord;
+    s32              sound;
+    s32              sound2;
 
     work   = (Actor103700Work*)task->work;
     obj    = task->extra.tmd->coords;
@@ -1221,11 +1264,7 @@ static void Actor03700_Fn020D4(GpEnemy* enemy, Task* task)
 
     switch (Gp_StateF0.field_4) {
         case 1:
-            coord        = task->extra.tmd->coords;
-            buf.color.vx = coord->workm.t[0];
-            buf.color.vy = coord->workm.t[1];
-            buf.color.vz = coord->workm.t[2];
-            Gp_UpdateActorColor(task->spawnArg2, &buf.color, 0, 0);
+            _actor03700UpdateColor(task);
             return;
         case 2:
             task->extra.tmd->flags |= 0x80;
@@ -1265,35 +1304,7 @@ static void Actor03700_Fn020D4(GpEnemy* enemy, Task* task)
                         case 0:
                             Tmd_FreeBuffers(model);
                             model->flags |= 4;
-                            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                            if ((Gp_LcgState >> 16) & 1) {
-                                D_80067704[0] = Actor03700_D043FC;
-                            } else {
-                                D_80067704[0] = Actor03700_D04600;
-                            }
-                            eff = Gp_SpawnEff(0x40007, &task->extra.tmd->coords[4], 0x80, NULL);
-                            if (eff != NULL) {
-                                sessionKey    = (GpAreaKey*)&gGameSession->at4.loc;
-                                raw           = ((GpEnemy*)task->spawnArg2)->placeKey;
-                                effModel      = eff->task->extra.tmd;
-                                buf.key.stage = sessionKey->stage;
-                                buf.key.area  = sessionKey->area;
-                                buf.key.room  = sessionKey->room;
-                                keyPtr        = &buf.key;
-                                TOUCH_REG(keyPtr);
-                                areaByte0    = gGameSession->at4.loc.view;
-                                idx          = raw >> 12;
-                                buf.key.view = areaByte0;
-                                Gp_SyncAreaKeyIndex(keyPtr);
-                                rec             = Gp_GetNestedAreaRec(&buf.key);
-                                entry           = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
-                                effModel->tpage = entry->tpage;
-                                effModel->clut  = entry->clut;
-                                if (effModel->buffer != NULL) {
-                                    tmdProcessStream(effModel);
-                                    tmdProcessStream(effModel);
-                                }
-                            }
+                            _actor03700SpawnRemains(task);
                             break;
                         case 1:
                             Gp_SpawnEff(0x60080, obj, 0x10280, NULL);
