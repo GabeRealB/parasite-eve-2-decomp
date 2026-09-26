@@ -10,6 +10,16 @@ void Ui_DispatchObjectState(Task* arg0);
 void Ui_InsetRect2(void* arg0, RECT* arg1, RECT* arg2);
 void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3);
 void Ui_DrawPanel(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3);
+void Ui_AnimCloseStep(UiPanel* arg0, void* arg1);
+
+const UiPanelFuncTable6 Ui_ObjectStates = { {
+    Ui_AnimOpenStep,
+    Ui_DrawAndCallback,
+    Ui_LayoutDrawAndCallback,
+    Ui_TickAnimCounter,
+    Ui_AnimCloseStep,
+    Ui_ClipAndCallback,
+} };
 
 void func_80044698(void)
 {

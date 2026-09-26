@@ -143,7 +143,7 @@ segments:
       # D_80013F18 (loadui); Stage_TaskStates (font); Ui_ObjectStates (ui)
       - [0x4718, rodata, loadui_1] # D_80013F18
       - [0x471C, rodata, font_1] # Stage_TaskStates Stage_DispatchTaskTable
-      - [0x472C, rodata, ui_1] # Ui_ObjectStates Ui_DispatchObjectState
+      - [0x472C, .rodata, ui] # Ui_ObjectStates
       - [0x4744, o, libc2/sprintf, .rdata]
       - [0x4824, o, libspu/sl_sva, .rdata]
       # jtbl_80014064 (Midi_HandleMetaSysex) + absolute jtbl_800140A4 (SndLoad_ProcessSector

@@ -245,7 +245,7 @@ typedef struct {
     UiPanelFunc funcs[6];
 } UiPanelFuncTable6;
 
-extern UiPanelFuncTable6 Ui_ObjectStates;
+extern const UiPanelFuncTable6 Ui_ObjectStates;
 
 /// Dialog / prompt descriptor used by 21FDC.c handlers (e.g. McMenu_ConfirmDialogAlt,
 /// McMenu_ConfirmDialog, McMenu_ConfirmWithRender). field_8 is a signed menu/option index passed
