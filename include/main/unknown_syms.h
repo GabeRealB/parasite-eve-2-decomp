@@ -51,10 +51,6 @@ extern u16 D_8005ED8A;
 
 extern volatile s32 D_800689E4;
 extern volatile s16 D_800689EC;
-extern s8           D_80082748;
-extern s8           D_80082749;
-extern s8           D_8008274A;
-extern s8           D_8008274B;
 extern volatile u8  D_80068B5D;
 extern volatile u8  D_80068B65;
 extern CdlLOC       D_800827F8;
@@ -73,9 +69,6 @@ extern volatile s8  D_80082134;
 extern volatile u8  D_80082135;
 extern volatile u8  D_80082136;
 #endif
-extern u8           D_80082138[0x10];
-extern s32          D_80082548[0x80];
-extern volatile s32 D_8008274C;
 extern volatile s32 D_80082750;
 extern u8           D_80082754;
 extern volatile s32 D_80082770;

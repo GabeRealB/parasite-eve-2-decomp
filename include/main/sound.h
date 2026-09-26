@@ -789,7 +789,6 @@ extern void (*SndEvt_Handlers[])(SndEvt*);
 #ifndef SNDBANK_C
 extern SndBank Snd_Banks[];
 #endif
-extern SndScript SndScript_Slots[8];
 #ifndef SNDEVT_C
 extern SndLoadState SndLoad_State;
 #endif

@@ -1,8 +1,11 @@
 #include "common.h"
+
 #include <psyq/abs.h>
 
 #include "main/unknown_syms.h"
 #include "main/cdaudio.h"
+
+static u8 D_80082138[0x10];
 
 /// The loaded sound banks: one record per bank, at the slot its bank type maps
 /// to.
@@ -12,7 +15,15 @@
 /// streamed one as its load completes — and released through
 /// `SndBankSlot_Free`, which returns the image to the sound heap and marks the
 /// record free.
-extern SndBankSlot _gSndBankSlots[16];
+static SndBankSlot _gSndBankSlots[16];
+
+static SndScript    SndScript_Slots[8];
+static s32          D_80082548[0x80];
+static s8           D_80082748;
+static s8           D_80082749;
+static s8           D_8008274A;
+static s8           D_8008274B;
+static volatile s32 D_8008274C;
 
 static void         SndEvt_EnqueueTypeF(void);
 static s32          SndScript_Exec(SndScript* script);
