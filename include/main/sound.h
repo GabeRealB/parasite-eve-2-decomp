@@ -822,6 +822,7 @@ extern SndLoadState     SndLoad_State;
 extern SndBankInitEntry Snd_BankInitTable[];
 extern LinInterp        LinInterp_CdStream;
 extern volatile u8      D_80082120;
-extern u8               D58028_SpuTimerEnabled;
+
+extern s8 D_800680AC[];
 
 #endif // SOUND_H

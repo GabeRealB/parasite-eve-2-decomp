@@ -479,7 +479,7 @@ segments:
       - [0x57f14, o, libgte/cor_04, .data] # H_ln_tbl
       - [0x57f34, .data, gameflag]
       - [0x58018, o, libmath/ferr, .data] # math_errno, math_err_point
-      - [0x58028, data, "58028"] # Spu / audio game data
+      - [0x58028, .data, sndbank]
       - [0x588c4, o, libspu/s_ini, .data] # _spu_EVdma, _spu_keystat, _spu_trans_mode, _spu_rev_flag, _spu_rev_reserve_wa, _spu_rev_offsetaddr, _spu_rev_attr, _spu_RQvoice, _spu_RQmask, _spu_voice_centerNote, _spu_env, _spu_isCalled
       - [0x58944, o, libspu/s_m, .data] # _spu_AllocBlockNum, _spu_AllocLastNum, _spu_memList
       - [0x58954, o, libspu/s_rmp0, .data] # _spu_rev_startaddr
