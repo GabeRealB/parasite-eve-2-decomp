@@ -61,7 +61,6 @@ s32  Gfx_ApplyMatrixNoSf(SVECTOR* arg0, SVECTOR* arg1);
 // Globals
 // =============================================================================
 
-extern GfxImageSlot* Gfx_ImageSlotTables[];
 /// Color/light matrix written by Gfx_SetDefaultFlatLight / Gfx_SetLightAmbient.
 extern MATRIX D_80074080;
 /// The view rotation: the coordinate `gGfxViewCoord` hangs off, whose `coord`
