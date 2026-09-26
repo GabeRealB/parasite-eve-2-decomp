@@ -683,40 +683,18 @@ s32 func_actor_450800_80132D74(Task* task, s32 arg1, VECTOR* target, s32 mode)
 /// spawns its own model task out of the same `D_actor_450800_801539DC` table,
 /// faces it at the placed spawn point, starts the animation and hands the state
 /// machine to `func_actor_450800_801330AC`.
-///
-/// Two codegen pins, both load-bearing. `key` lands at `vfp+0x28`, and left
-/// alone CSE merges the two call-site copies of `&key` into one pseudo live
-/// across the first call, which costs a callee-saved register and grows the
-/// frame; `SOFT_BARRIER()` keeps each materialization next to its own call and
-/// `TOUCH_REG` makes the second a fresh computation. The `mem` / `work` pair is
-/// the same kind of pin on the `memCalloc` result: the ROM keeps a short-lived
-/// copy for the `work` store, the NULL test and `enemy`, and a longer-lived
-/// one for everything after.
-static void func_actor_450800_80132E9C(GpEnemy* enemyArg, Task* task)
+static void func_actor_450800_80132E9C(GpEnemy* enemy, Task* task)
 {
-    GpEnemy*         enemy = enemyArg;
     VECTOR           vec;
-    GpAreaKey        key;
     Actor150400Work* work;
-    Actor150400Work* mem;
     GpCoord*         coord;
     TmdObject*       obj;
     GpEnemy*         spawned;
-    TmdObject*       model;
-    GpAreaKey*       sessionKey;
-    GpAreaKey*       keyPtr;
-    u8               areaByte0;
-    GpAreaRec*       rec;
-    GpAreaPlace*     place;
-    s32              idx;
-    u32              raw;
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
-    mem        = (Actor150400Work*)memCalloc(0x4C0, false);
-    work       = mem;
-    task->work = (TaskIdMap*)mem;
-    if (mem == NULL) {
+    task->work = (TaskIdMap*)(work = (Actor150400Work*)memCalloc(sizeof(Actor150400Work), false));
+    if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }
@@ -727,29 +705,9 @@ static void func_actor_450800_80132E9C(GpEnemy* enemyArg, Task* task)
     enemy->node.state.b.targeted = 0;
     enemy->node.state.b.flags    = 1;
     obj->otOffset                = 1;
-    mem->enemy                   = enemy;
+    work->enemy                  = enemy;
     spawned                      = Gp_SpawnEnemyFromTable(D_actor_450800_801539DC, 1, 0, enemy);
-    model                        = spawned->task->extra.tmd;
-    raw                          = enemy->placeKey;
-    sessionKey                   = (GpAreaKey*)&gGameSession->at4.loc;
-    key.stage                    = sessionKey->stage;
-    key.area                     = sessionKey->area;
-    key.room                     = sessionKey->room;
-    idx                          = raw >> 12;
-    areaByte0                    = sessionKey->view;
-    SOFT_BARRIER();
-    keyPtr = &key;
-    TOUCH_REG(keyPtr);
-    key.view = areaByte0;
-    Gp_SyncAreaKeyIndex(keyPtr);
-    rec          = Gp_GetNestedAreaRec(&key);
-    place        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
-    model->tpage = place->tpage;
-    model->clut  = place->clut;
-    if (model->buffer != NULL) {
-        tmdProcessStream(model);
-        tmdProcessStream(model);
-    }
+    actorTintModel(spawned->task->extra.tmd, enemy);
     Task_Reparent(task, spawned->task);
     work->pairTask = spawned->task;
     obj->lightMtx  = &work->light;
