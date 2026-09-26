@@ -1174,25 +1174,18 @@ block_116:
     temp_s1->field_732 = (s16)(var_v0_4 + 1);
 }
 
-void Gp_SpawnPadLerpWide(s32 arg0, s32 arg1, s32 arg2) asm("Gp_SpawnPadLerp");
-
 void func_actor_403600_8013A444(Task* arg0)
 {
     u32              sp10;
     s32              sp14;
-    s32              node_flag;
-    s32              rumble_distance;
-    s32              state16;
     s32              adjusted_y0;
     s32              adjusted_y1;
     s32              adjusted_y2;
     s32              var_a1;
-    s32              var_a1_2;
-    s32              var_a0_2;
     s16              temp_a0;
     s16              temp_a0_2;
     s32              temp_a2;
-    s32              temp_s1_2;
+    s32              temp_s1;
     s16              temp_v0_11;
     s16              temp_v0_16;
     s16              temp_v0_25;
@@ -1212,7 +1205,6 @@ void func_actor_403600_8013A444(Task* arg0)
     s32              temp_lo_2;
     s32              temp_lo_3;
     s32              temp_lo_4;
-    s32              temp_s1;
     s32              temp_s4;
     s32              temp_v0_26;
     s32              temp_v0_27;
@@ -1936,19 +1928,17 @@ void func_actor_403600_8013A444(Task* arg0)
                     }
                     break;
                 case 3:
-                    state16 = 0x10;
-                    SOFT_TOUCH_REG(state16);
                     temp_s3->field_784 = 1;
-                    temp_s3->field_736 = state16;
+                    temp_s3->field_736 = 0x10;
                     temp_s3->field_73C = 0U;
                     temp_s3->field_74A = 0;
                     func_actor_403600_8013DFE0(arg0);
                     if (temp_s3->field_73A >= 0x13) {
+                        temp_s3->field_778 = 0x10;
                         temp_s3->field_73C = 0x320U;
                         temp_s3->field_76E = 0xA0;
                         temp_s3->field_70A = 0x7000;
                         temp_s3->field_736 = 0x12U;
-                        temp_s3->field_778 = state16;
                         temp_s3->field_746 = 1;
                         temp_s3->field_734 = 0;
                         temp_s3->field_73A = 0;
@@ -2021,29 +2011,28 @@ void func_actor_403600_8013A444(Task* arg0)
                             temp_s3->field_792 = 0x96;
                         }
                     }
-                    temp_s1_2 = func_actor_403600_8013D9A8(arg0) & 0xFF;
-                    if (temp_s1_2 == 2) {
+                    temp_s1 = func_actor_403600_8013D9A8(arg0) & 0xFF;
+                    if (temp_s1 == 2) {
                         Task_SpawnFromTable(&D_actor_403600_801421A0, 3, 0, arg0);
                     }
-                    if ((temp_s1_2 == 3) && (temp_s3->field_734 == 0xFF)) {
+                    if ((temp_s1 == 3) && (temp_s3->field_734 == 0xFF)) {
                         temp_s3->field_732 = 6;
                         temp_s3->field_7A4 = 0;
                         temp_s3->field_75E = 0;
                         temp_s3->field_7AE = 1;
                         temp_s3->field_758 = 0;
                     }
-                    if (temp_s1_2 == 1) {
+                    if (temp_s1 == 1) {
                         temp_s3->field_7A4 = 0;
-                        temp_s3->field_7A6 = temp_s1_2;
+                        temp_s3->field_7A6 = 1;
                         temp_s4            = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x5416000E;
                         temp_s0_23         = (s8)Gp_GetObjPan(temp_s6);
                         temp_v0_24         = gpGetObjDepth(temp_s6);
                         SndEvt_EnqueueType6(temp_s4, temp_s0_23, (s32)(((temp_v0_24 >> 0x1F) + temp_v0_24) << 0x17) >> 0x18);
                         Task_SpawnFromTable(&D_actor_403600_801421A0, 3, 1, arg0);
-                        temp_s3->field_776       = 0;
-                        temp_s3->field_5C0.flags = (u16)(temp_s3->field_5C0.flags & 0xBFFF);
-                        __asm__("addiu %0,$zero,1" : "=r"(node_flag) : "r"(temp_s1_2));
-                        temp_s7->node.state.b.flags = node_flag;
+                        temp_s3->field_776          = 0;
+                        temp_s3->field_5C0.flags    = (u16)(temp_s3->field_5C0.flags & 0xBFFF);
+                        temp_s7->node.state.b.flags = 1;
                         Gp_ClearNodeSlots(&temp_s7->node);
                         temp_s3->field_73A = 0;
                         temp_s3->field_732 = 5;
@@ -2070,30 +2059,17 @@ void func_actor_403600_8013A444(Task* arg0)
                     temp_v0_27 = Player_Status.coordMtx->t[1] - temp_s3->field_4B8.coord.t[1];
                     temp_lo_4  = temp_v0_27 * temp_v0_27;
                     temp_v0_28 = Player_Status.coordMtx->t[2] - temp_s3->field_4B8.coord.t[2];
-                    var_a0_2   = SquareRoot0(temp_lo_3 + temp_lo_4 + (temp_v0_28 * temp_v0_28));
-                    sp10       = var_a0_2;
+                    sp10       = SquareRoot0(temp_lo_3 + temp_lo_4 + (temp_v0_28 * temp_v0_28));
                     if (temp_s3->field_73A >= 8) {
-                        rumble_distance = var_a0_2;
-                        TOUCH_REG_USE(rumble_distance, var_a0_2);
                         temp_s3->field_73A = 0;
-                        if (rumble_distance < 0x3E9U) {
-                            var_a0_2 = 5;
-                            var_a1_2 = 0xB0;
-                            goto block_168_call;
-                        }
-                        if (rumble_distance < 0x7D1U) {
-                            var_a1_2 = 0x80;
-                            var_a0_2 = 5;
-                            goto block_168_call;
-                        }
-                        if (var_a0_2 < 0xBB9U) {
-                            var_a0_2 = 5;
-                            var_a1_2 = 0x50;
-                        block_168_call:
-                            Gp_SpawnPadLerpWide(var_a0_2, var_a1_2, var_a1_2);
+                        if (sp10 < 0x3E9U) {
+                            Gp_SpawnPadLerp(5, 0xB0, 0xB0);
+                        } else if (sp10 < 0x7D1U) {
+                            Gp_SpawnPadLerp(5, 0x80, 0x80);
+                        } else if (sp10 < 0xBB9U) {
+                            Gp_SpawnPadLerp(5, 0x50, 0x50);
                         }
                     }
-                block_168:
                     if (temp_s3->field_776 >= ((s16)temp_s3->field_794 + 0x1E)) {
                         SndEvt_EnqueueType7(0x5416000F, 1);
                         SndEvt_EnqueueType6(0x54160010, 0, 0);

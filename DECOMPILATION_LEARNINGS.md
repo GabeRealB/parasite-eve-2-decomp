@@ -142805,3 +142805,36 @@ permuter found nothing either.
 
 **Outcome.** Kept as the one remaining pin; the other two pins in the function
 were only compensating for the `goto`-shaped m2c body and dropped out.
+
+## Three matching hacks in one state machine, each a plain-C shape: statement order, a reused local, a literal store and separate calls (func_actor_403600_8013A444, 2026-09-26)
+
+**Constant-register choice (`SOFT_TOUCH_REG` on a constant).** Two constants
+live across a call, `1` (4 refs) and `0x10` (3 refs), take `$s0`/`$s1` by
+`global.c` priority `floor_log2(refs) * refs / live_length`. The pin added refs
+to `0x10`. Moving the `0x10` store to the *first* statement of the `if` body
+shortens its live range enough (38 -> ~20 insns) to outrank `1` - read the
+`Register N used X times across Y insns` lines in `.lreg` and do the arithmetic.
+
+**A result that must sit in `$s1`, not the free `$s0` (asm input kept it
+live).** The asm's `"r"(ret)` operand only extended `ret` across a block-local
+pan temp that local-alloc had put in `$s0`, so `ret` got a hard conflict with
+`$s0`. The original reused *one* `s32` local for two helper results in different
+`switch` arms; the other arm's range supplies the same conflict. In `.greg`,
+`;; N conflicts:` lists hard regs after the pseudos - look for the one the pin
+was buying, then look for a sibling local of the same type whose range has it.
+
+**The narrow store the wider-mode search steals (cf. the incinerator entry
+above).** `if (r == 1) { f->h = r; ...calls...; g->b = 1; }` stored `r`'s
+register into the byte. Writing the halfword as the literal `f->h = 1` fixes
+it: the HImode store creates an HImode class for `1`, headed by its own temp
+pseudo. The byte store's wider-mode loop tries HImode before SImode, takes that
+temp, which crosses calls with too few refs to get a hard reg, and reload
+rematerialises its `REG_EQUIV` constant as `li v0,1` at the store. The halfword
+store still uses `r`'s register (via the SImode class), as in the target.
+
+**`li a0,K; li a1,X` per arm into one shared `jal f; move a2,a1`.** Not a
+variable passed twice: three calls `f(5, 0xB0, 0xB0)` / `f(5, 0x80, 0x80)` /
+`f(5, 0x50, 0x50)` with the real narrow prototype. cse turns the second
+constant into `move a2,a1`, and jump2 cross-jumps the identical tails. An
+`asm("f")`-renamed wide prototype plus `goto` into one call site is what the
+hack looked like.
