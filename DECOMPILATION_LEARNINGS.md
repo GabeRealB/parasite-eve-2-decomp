@@ -144455,3 +144455,15 @@ Caching the field in a local (`stepX = scratch->stepX;`) gives the same
 instructions with one fewer reference, which moved the flush and needed an
 empty-asm barrier to fake it. Count the block's references in `.i.combine` to
 check where the flush falls before adding or removing a read.
+
+## A barrier after a scratch push that keeps task loads below the head store can be the order of those loads (Actor03800_Fn021E4, 2026-09-27)
+
+A scratch-head push followed by `work`, `ctx` and `coord` loads from the task
+had a `SCHED_BARRIER()` between them; without it the `work` load filled the
+head load's delay slot instead of following the `sw`. There is no memory
+dependence either way (the head store is a fixed-address scalar, the loads are
+struct members), so the position is sched1's choice alone. sched1 schedules
+bottom-up and a load becomes ready only once its users are placed: the order
+of the independent loads after the push decided when `work`'s chain was
+placed, and loading `coord` before `ctx` reproduced the target exactly. Before
+fencing a push, permute the plain loads that follow it.

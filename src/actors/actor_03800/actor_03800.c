@@ -1253,10 +1253,9 @@ static void Actor03800_Fn021E4(Task* arg0)
     s32                    pan;
 
     scratch = (Actor03800TurnScratch*)SCRATCH_PUSH_BYTES(sizeof(*scratch));
-    SCHED_BARRIER();
-    work  = arg0->work;
-    ctx   = arg0->spawnArg2;
-    coord = arg0->extra.tmd->coords;
+    work    = arg0->work;
+    coord   = arg0->extra.tmd->coords;
+    ctx     = arg0->spawnArg2;
     switch (work->field_354) {
         case 0:
             work->field_356--;
