@@ -143779,3 +143779,19 @@ path. sched1 then schedules the call mid-block, and jump2's post-reload
 cross-jump merges the two `state++` copies into the one tail the target shows.
 A call directly before a merge point, whose delay slot holds a store rather than
 an argument setup, points to a duplicated tail after the call.
+
+## A `u16` local is never "birthing": a narrow destination keeps sched1 in source order
+
+`func_800EB6E8` splits two `u16` parameters into a high nibble and a low field
+(`bank = arg2 >> 12; arg2 &= 0xFFF;`). Declared `s32`, each `srl` was sunk to
+the end of its block (95.1%, `regs=42`), and the tree held them in place with
+`SCHED_BARRIER()` and `USE_REG()`. Declaring `bank` and `clutIdx` as `u16`
+matched with neither.
+
+`birthing_insn_p` only boosts an insn whose `SET_DEST` is a `REG`. A store into
+a `HImode` local is `(set (subreg:SI (reg:HI n) 0) ...)`, so it never qualifies,
+whatever its `REG_N_SETS`, and keeps its path priority and LUID order - the same
+reason the in-place `arg2 &= 0xFFF` on the `u16` parameter stayed put. When a
+single-set `s32` result is sunk and the values fit, try the narrow type the
+operands already have before manufacturing a second set. `s16` did not work
+here, because the sign-extension adds an extra insn.

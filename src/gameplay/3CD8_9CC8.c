@@ -606,38 +606,29 @@ void Gp_DrawFxQuad(GpCoord* arg0, u16 arg1, s16 arg2, u16 arg3)
 
 void func_800EB6E8(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
-    u8*            head;
     GpRingScratch* block;
     POLY_FT4*      prim;
-    SVECTOR*       vec;
+    u16            bank;
+    u16            clutIdx;
     s32            u0;
     s32            u1;
-    s32            bank;
-    s32            clutIdx;
-    u16            vz;
 
-    head                                    = SCRATCH_HEAD(u8);
-    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
-    block                                   = (GpRingScratch*)(head - 0x18);
-    block->vec.vy                           = (u16)arg0->workm.t[1];
-    vz                                      = (u16)arg0->workm.t[2];
-    SCRATCH_HEAD(GpRingScratch)             = block;
-    block->vec.vz                           = vz;
-    vec                                     = &block->vec;
+    block         = SCRATCH_PUSH(GpRingScratch);
+    block->vec.vx = arg0->workm.t[0];
+    block->vec.vy = arg0->workm.t[1];
+    block->vec.vz = arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
+    gte_ldv0(&block->vec);
     gte_rtps();
-    bank = arg2 >> 12;
-    SCHED_BARRIER();
+    bank    = arg2 >> 12;
     arg2   &= 0xFFF;
     clutIdx = arg3 >> 12;
-    USE_REG(clutIdx);
-    arg3 &= 0xFF;
-    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
+    arg3   &= 0xFF;
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
+        gte_stszotz(&block->otz);
         block->otz++;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -650,15 +641,15 @@ void func_800EB6E8(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
         u1 = u0 + 0x17;
         setUV4(prim, u0, 0, u1, 0, u0, 0x17, u1, 0x17);
         block->step = (arg2 * 23) / block->otz;
-        prim->x0 = prim->x2 = (u16)block->sx - (u16)block->step;
-        prim->x1 = prim->x3 = (u16)block->sx + (u16)block->step;
-        prim->y0 = prim->y1 = (u16)block->sy - (u16)block->step;
-        prim->y2 = prim->y3 = (u16)block->sy + (u16)block->step;
+        prim->x0 = prim->x2 = block->sx - block->step;
+        prim->x1 = prim->x3 = block->sx + block->step;
+        prim->y0 = prim->y1 = block->sy - block->step;
+        prim->y2 = prim->y3 = block->sy + block->step;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES(0x18);
+    SCRATCH_POP(GpRingScratch);
 }
 
 void Gp_DrawBand(GpCoord* arg0, s16 arg1, u8* rgb)
