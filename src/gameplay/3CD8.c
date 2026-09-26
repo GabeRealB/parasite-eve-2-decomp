@@ -1352,76 +1352,40 @@ s16 Gp_CapCenterX(u16* text)
 
 s16 Gp_CapCenterXLine(u16* arg0, s32 arg1)
 {
-    register s32        lineW asm("t1");
-    s32                 selectedW;
-    s32                 i;
-    s32                 lineIndex;
-    register s32        width asm("v1");
-    u16                 code;
-    s32                 shifted;
-    s32                 masked;
-    volatile GlyphUvwh* glyph;
-    register s32        v0tmp asm("v0");
-    GlyphUvwh*          table;
+    s16 lineW;
+    s16 selectedW;
+    s16 i;
+    s16 lineIndex;
+    s16 code;
 
     lineW     = 0;
-    selectedW = lineW;
-    i         = lineW;
-    lineIndex = lineW;
+    selectedW = 0;
+    i         = 0;
+    lineIndex = 0;
     code      = arg0[0];
-    shifted   = code << 16;
-    v0tmp     = -1;
-    if (shifted >> 16 != v0tmp) {
-        table = Gp_CapGlyphs;
-        do {
-            shifted = shifted >> 16;
-            v0tmp   = -2;
-            if (shifted == v0tmp) {
-                if ((s16)lineIndex == arg1) {
-                    selectedW = lineW;
-                }
-                lineW = 0;
-                v0tmp = i + 1;
-                i     = v0tmp;
-                lineIndex++;
-                goto after_inc;
+    while (code != -1) {
+        if (code == -2) {
+            if (lineIndex == arg1) {
+                selectedW = lineW;
             }
-            v0tmp = -3;
-            if (shifted == v0tmp) {
-                lineW += 3;
-                goto do_inc;
-            }
-            masked = shifted & 0xFF00;
-            TOUCH_REG(masked);
-            v0tmp = 0x8400;
-            if (masked == v0tmp) {
-                lineW += 0x10;
-                goto do_inc;
-            }
-            if (shifted >= 0) {
-                v0tmp = i + 1;
-                i     = v0tmp;
-                TOUCH_REG(v0tmp);
-                glyph = (GlyphUvwh*)((code & 0x3FF) * sizeof(GlyphUvwh) + (s32)table);
-                code  = arg0[(s16)v0tmp];
-                lineW = glyph->w + lineW - 1;
-                goto after_load;
-            }
-            if (shifted < 0) {
-            do_inc:
-                v0tmp = i + 1;
-                i     = v0tmp;
-            after_inc:
-                code = arg0[(s16)v0tmp];
-            }
-        after_load:
-            shifted = code << 16;
-            width   = shifted >> 16;
-            v0tmp   = -1;
-        } while (width != v0tmp);
+            lineW = 0;
+            i++;
+            lineIndex++;
+            code = arg0[i];
+        } else if (code == -3) {
+            lineW += 3;
+            code   = arg0[++i];
+        } else if ((code & 0xFF00) == 0x8400) {
+            lineW += 0x10;
+            code   = arg0[++i];
+        } else if (code >= 0) {
+            lineW += Gp_CapGlyphs[code & 0x3FF].w - 1;
+            code   = arg0[++i];
+        } else {
+            code = arg0[++i];
+        }
     }
-    width = (s16)selectedW;
-    return (0x140 - width) / 2 - 5;
+    return (0x140 - selectedW) / 2 - 5;
 }
 
 s16 Gp_CapTextHeight(u16* arg0)
