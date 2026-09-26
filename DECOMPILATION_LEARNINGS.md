@@ -142838,3 +142838,31 @@ variable passed twice: three calls `f(5, 0xB0, 0xB0)` / `f(5, 0x80, 0x80)` /
 constant into `move a2,a1`, and jump2 cross-jumps the identical tails. An
 `asm("f")`-renamed wide prototype plus `goto` into one call site is what the
 hack looked like.
+
+## Moving assembled rodata into C: where GCC 2.8 puts it (2026-09-26)
+
+**Placement.** A `const` file-scope object is emitted into `.rodata` where it is
+defined, so an object defined above a unit's functions lands before their jump
+tables and one defined after them lands after. That is the whole trick for a
+leftover `rodata` subsegment that sits just before or just after a unit's own
+`.rodata`: define the objects at the top or bottom of the unit's `.c`, fold the
+subsegment into the unit's (or give a unit with no rodata a `.rodata` entry),
+and nothing else moves. String *literals* do not work the same way: they come
+out in first-use order within the unit, so a pool whose order differs from the
+order its strings are first used needs named `const char[]` objects instead.
+
+**Alignment decides ownership.** A unit whose `.rodata` holds a jump table can
+be 8-aligned as a whole, so it cannot start at an address that is only
+4-aligned - objects in front of such a table at a 4-aligned address belong to a
+different unit (the gameplay header strings needed their own `header.c`). The
+converse check is useful too: when a unit's rodata starts at an address that is
+not 8-aligned, its sections are only 4-aligned, and a zero word or empty string
+before the next unit is real data, not padding the linker will recreate.
+
+**Non-zero padding.** The original toolchain sometimes left garbage, not
+zeros, in the alignment gap after a string ("Telephone\0" then two random
+bytes, varying from room to room). Reproduce it with an array sized to the
+slot: `const char s[12] = "Telephone\0\x14\xCF";`. Where the object is a struct
+whose size a by-value copy pins (a 3-byte level table), the stray byte becomes
+its own one-byte object after it. Beware `"\0" "5"`: a digit right after `\0`
+must start a new literal or C reads an octal escape.
