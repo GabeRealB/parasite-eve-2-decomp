@@ -886,31 +886,24 @@ static void func_actor_460200_801333A4(Task* task)
 /// Script opcode: start animation `args->field_4` on this actor, rejecting ids
 /// of 0xC and above. State 1 (via `func_actor_460200_801333A4`) carries
 /// `args->field_C`; state 2 (via `func_actor_460200_8013332C`) does not.
-///
-/// The `SOFT_BARRIER` is the same codegen pin as in
-/// `func_actor_460200_80132B2C`: without it the delay slot of the `beqz` fills
-/// from the fall-through arm (`state = 1`) instead of the else arm's
-/// `state = 2`.
 s32 func_actor_460200_80133408(Task* task, s32 arg1, GpAnimArg* args)
 {
     Actor161500Work* work;
 
     work = (Actor161500Work*)task->work;
-    if (args->field_4 >= 0xC) {
-        return -1;
+    if (args->field_4 < 0xC) {
+        work->st.animId = args->field_4;
+        if (args->field_8 != 0) {
+            work->st.state = 1;
+            work->animArg  = args->field_C;
+        } else {
+            work->st.state = 2;
+        }
+        work->st.field_6 = 0;
+        func_actor_460200_80132F0C(task);
+        return 0;
     }
-
-    work->st.animId = args->field_4;
-    if (args->field_8 != 0) {
-        SOFT_BARRIER();
-        work->st.state = 1;
-        work->animArg  = args->field_C;
-    } else {
-        work->st.state = 2;
-    }
-    work->st.field_6 = 0;
-    func_actor_460200_80132F0C(task);
-    return 0;
+    return -1;
 }
 
 /// Script opcode: set the visibility flags of this actor's model and of the
