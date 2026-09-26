@@ -17,7 +17,7 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
-static void func_apobiosis_8012F808(u32 bright);
+static void func_apobiosis_8012F808(s16 bright);
 static void func_apobiosis_8012F9D0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 
 /// Per-level tuning for the apobiosis pulse, one row per PE level 1-3,
@@ -228,30 +228,17 @@ static void func_apobiosis_8012EF4C(Task* arg0)
 /// halved), but on stage `Gp_StateC08.field_0 % 10 == 3` one draw in four
 /// comes out yellow instead (blue halved). The prim is linked at a fixed
 /// `otz` of 0x30, in front of the scene.
-static void func_apobiosis_8012F808(u32 bright)
+static void func_apobiosis_8012F808(s16 bright)
 {
     POLY_F4* prim;
-    s32      rng;
-    s32      kind;
-    u16      level;
 
     prim           = (POLY_F4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyF4(prim);
-    kind  = (u16)(Gp_StateC08.field_0 % 10U) - 1;
-    level = bright;
-    if (kind == 2) {
-        SOFT_TOUCH_REG(level);
-        rng         = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState = rng;
-        if ((((u32)rng >> 16) & 3) == 0) {
-            setRGB0(prim, level, level, bright >> 1);
-        } else {
-            setRGB0(prim, (s16)level >> 1, (s16)level >> 1, level);
-        }
+    if ((u16)(Gp_StateC08.field_0 % 10U) - 1 == 2 && (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3) == 0) {
+        setRGB0(prim, bright, bright, bright >> 1);
     } else {
-        SOFT_TOUCH_REG(level);
-        setRGB0(prim, (s16)level >> 1, (s16)level >> 1, level);
+        setRGB0(prim, bright >> 1, bright >> 1, bright);
     }
     setXY4(prim, -0xA0, -0x78 - gDisplayState.vramYOffset, 0xA0,
            -0x78 - gDisplayState.vramYOffset, -0xA0, 0x78 - gDisplayState.vramYOffset,
