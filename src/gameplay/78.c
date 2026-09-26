@@ -3337,7 +3337,7 @@ void Gp_PlayClockState3(Task* arg0)
     }
 }
 
-static void func_800A77B4(Task* arg0)
+void func_800A77B4(Task* arg0)
 {
     TaskFuncTable6 sp;
 
@@ -3788,7 +3788,7 @@ static s32 Gp_SpawnViewCoordTask(GpCoord* arg0, VECTOR* arg1)
     return 1;
 }
 
-static void func_800A8654(Task* task)
+void func_800A8654(Task* task)
 {
     VECTOR*    vec;
     GpCoord*   src;
@@ -3975,7 +3975,7 @@ GpViewRec* Gp_GetStageView(GpAreaKey* arg0)
     return &recs[idx - 1];
 }
 
-static void Gp_ApplyViewTask(Task* task)
+void Gp_ApplyViewTask(Task* task)
 {
     GpCoord*   c1;
     MATRIX*    rot;
@@ -4050,7 +4050,7 @@ void Gp_SpawnCurView(s32 arg0)
     }
 }
 
-static void Gp_ViewGateTask(Task* task)
+void Gp_ViewGateTask(Task* task)
 {
     GameSession* sess;
     McSaveData*  save;

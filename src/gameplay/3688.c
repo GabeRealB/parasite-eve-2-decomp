@@ -294,7 +294,7 @@ static const char Gp_StrSpecial[];
 static const char Gp_StrSpecialFeat[];
 static const char Gp_StrSpecs[];
 
-static void Gp_MenuRootTask(Task* arg0)
+void Gp_MenuRootTask(Task* arg0)
 {
     switch (arg0->state) {
         case 0: {

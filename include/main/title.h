@@ -51,4 +51,7 @@ void Title_BootTask(Task* task);
 /// Enqueue CD load for demo scene `index` (packed file id uses index + 0xA).
 void Title_EnqueueDemoScene(s32 index);
 
+void Title_Dispatch(Task* arg0);
+void Title_ExitTask(Task* arg0);
+
 #endif // TITLE_H

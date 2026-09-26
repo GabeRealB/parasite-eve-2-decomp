@@ -481,4 +481,18 @@ void  Gp_EnqueueStageSnd7(s32 arg0, s32 arg1);
 void  Gp_PlayerWeaponId(s32* arg0);
 Task* Gp_SpawnScript18Ex(s32 arg0, s32 arg1, s32 arg2);
 
+void Gp_EndWaitTask(Task* task);
+void func_800E4028(Task* arg0);
+void func_800E70AC(Task* task);
+void func_800E7570(Task* arg0);
+
+void Gp_PadHoldTask(Task* task);
+void Gp_PadLerpTask(Task* task);
+void Gp_Script18Task(Task* arg0);
+void Gp_ShakeTask(Task* arg0);
+void Gp_SndFadeTask(Task* arg0);
+void Gp_VolFadeTask(Task* arg0);
+void func_800E8830(Task* arg0);
+void func_800E8888(Task* arg0);
+
 #endif // GAMEPLAY_3CD8_H

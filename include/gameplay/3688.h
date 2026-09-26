@@ -286,4 +286,9 @@ void      Gp_SizeEquippedPanel(UiPanel* arg0, s32 arg1);
 void      func_800CF6E8(UiObject* arg0, s32 arg1);
 void      Gp_AttachListTask(Task* arg0);
 
+void Gp_MenuRootTask(Task* arg0);
+
+void func_800CE22C(Task* arg0);
+void func_800CFD78(Task* arg0);
+
 #endif // GAMEPLAY_3688_H

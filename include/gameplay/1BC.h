@@ -521,4 +521,11 @@ STATIC_ASSERT_SIZEOF(GpHeadAim, 0xC);
 /// toward it by `arg2->rate / 0x1000`, clamps, and writes the head rotation.
 void func_800B17D4(Task* arg0, Task* arg1, GpHeadAim* arg2);
 
+void Gp_EnemyDispatch(Task* arg0);
+void Gp_FadeWorkTask(Task* arg0);
+void func_800B2910(Task* arg0);
+void func_800B5DB8(Task* arg0);
+void func_800B60C0(Task* arg0);
+void func_800B65B0(Task* task);
+
 #endif // GAMEPLAY_1BC_H

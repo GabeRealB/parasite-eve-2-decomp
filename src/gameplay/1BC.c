@@ -687,7 +687,7 @@ static void Gp_EnemyWaitTick(GpEnemy* enemy, Task* task)
     }
 }
 
-static void Gp_EnemyDispatch(Task* arg0)
+void Gp_EnemyDispatch(Task* arg0)
 {
     GpEnemyTaskFuncTable3 sp;
 
@@ -1434,7 +1434,7 @@ static void Gp_BlendRgb555(u16* arg0, u16* arg1, s32 arg2, u16* arg3)
 /// `gGpuCurrentOt[Task::spawnArg1]`, or (`spawnArg1 == 0`) into the head
 /// of the current ordering table, backing up 0xA entries when the current
 /// OT is not one of the two `Gpu_OrderingTables` roots.
-static void Gp_FadeWorkTask(Task* arg0)
+void Gp_FadeWorkTask(Task* arg0)
 {
     register Task* t asm("t2");
     register s32   y asm("a1");
@@ -1614,7 +1614,7 @@ static void func_800B28E0(Task* task)
     func_800B1EFC(task);
 }
 
-static void func_800B2910(Task* arg0)
+void func_800B2910(Task* arg0)
 {
     TaskFuncTable3 sp;
 
@@ -3173,7 +3173,7 @@ void Gp_SetAreaFlag0(GpAreaKey* arg0)
     }
 }
 
-static void func_800B5DB8(Task* arg0)
+void func_800B5DB8(Task* arg0)
 {
     TaskFunc funcs[2] = { Gp_BindSlot4, func_800B6398 };
 
@@ -3316,7 +3316,7 @@ static void func_800B6094(Task* task)
     task->state++;
 }
 
-static void func_800B60C0(Task* arg0)
+void func_800B60C0(Task* arg0)
 {
     TaskFuncTable3 sp;
 
@@ -3472,7 +3472,7 @@ static s32 Gp_LookupBit2Item(s32 arg0)
     return found;
 }
 
-static void func_800B65B0(Task* task)
+void func_800B65B0(Task* task)
 {
     GpPickupWork* work;
     UiObjectDesc* desc;

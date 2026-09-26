@@ -709,7 +709,7 @@ static inline void _gpUpdateRoomCoordSlots(void)
 /// First-run init plus per-frame update of the current room's `GpRoomCoordSet`
 /// coordinate arrays (parented to `gGfxViewCoord`) and the `Gp_RoomCoords` slots.
 /// Kills `arg0` when `Gp_GetRoomCoordSet` returns 0.
-static void Gp_UpdateRoomCoords(Task* task)
+void Gp_UpdateRoomCoords(Task* task)
 {
     GpRoomCoordSet* set;
     SVECTOR*        vec;
@@ -1978,7 +1978,7 @@ static s32 Gp_GetRoomCoordSet(GpAreaKey* arg0)
     return result;
 }
 
-static void func_800D96C8(Task* arg0)
+void func_800D96C8(Task* arg0)
 {
     TaskFunc funcs[2] = { Gp_BindDefaultMtx, Gp_DebugPanTask };
 
@@ -2164,7 +2164,7 @@ static GpRoomCoordRec* Gp_GetRoomCoordRec(GpAreaKey* arg0)
     return rec;
 }
 
-static void func_800D9CC8(Task* arg0)
+void func_800D9CC8(Task* arg0)
 {
     Task_CallExit(arg0);
 }
@@ -3216,7 +3216,7 @@ void Gp_ReleaseStateF0(Task* arg0, s32 arg1)
     }
 }
 
-static void Gp_TickWorldCollision(void)
+void Gp_TickWorldCollision(void)
 {
     if (gameGetPtrSlot(3) != NULL) {
         Gp_UpdatePlayerMove();

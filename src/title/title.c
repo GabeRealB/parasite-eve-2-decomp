@@ -326,7 +326,7 @@ static void Title_FlagAdvanceTask(Task* arg0)
     (*p)++;
 }
 
-static void Title_Dispatch(Task* arg0)
+void Title_Dispatch(Task* arg0)
 {
     TaskFuncTable5 sp;
 
@@ -335,7 +335,7 @@ static void Title_Dispatch(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-static void Title_ExitTask(Task* arg0)
+void Title_ExitTask(Task* arg0)
 {
     Task_CallExit(arg0);
 }

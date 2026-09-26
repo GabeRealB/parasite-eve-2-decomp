@@ -1676,7 +1676,7 @@ void Gp_PickupExitTask(Task* arg0)
     }
 }
 
-static void func_800CE22C(Task* arg0)
+void func_800CE22C(Task* arg0)
 {
     TaskFuncTable5 sp;
 
@@ -2541,7 +2541,7 @@ static void Gp_DrawNoCmd(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-static void func_800CFD78(Task* arg0)
+void func_800CFD78(Task* arg0)
 {
     if (arg0->state == 0) {
         D_80114DCC = GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA;

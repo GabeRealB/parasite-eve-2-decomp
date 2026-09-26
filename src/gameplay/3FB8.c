@@ -3700,7 +3700,7 @@ static void Gp_TeardownSlot0(Task* arg0)
     taskKill((Task*)arg0);
 }
 
-static void Gp_PlayerWorkTask(Task* arg0)
+void Gp_PlayerWorkTask(Task* arg0)
 {
     TaskFuncTable4 sp;
 
@@ -9227,7 +9227,7 @@ static void func_8010B5F0(Task* arg0)
     taskKill(arg0);
 }
 
-static void func_8010B610(Task* arg0)
+void func_8010B610(Task* arg0)
 {
     TaskFuncTable4 sp;
 

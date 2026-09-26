@@ -184,4 +184,6 @@ s32  Gp_BindItemObj2(Task* arg0, s32 arg1, GpCmdReply* arg2);
 /// count in `Gp_PubItemQty`.
 void Gp_PublishItemObj(Task* arg0);
 
+void Gp_FadeTileTask(Task* arg0);
+
 #endif // GAMEPLAY_4CC_H

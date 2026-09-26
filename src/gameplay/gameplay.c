@@ -535,7 +535,7 @@ static Task* Gp_FindTaskByCoord(GpCoord* arg0)
     return task;
 }
 
-static void Gp_DrawDisp2dOt(void)
+void Gp_DrawDisp2dOt(void)
 {
     Gp_DrawActorTmdActive(&Gpu_OtBuffers[gDisplayState.drawBuffer]);
 }

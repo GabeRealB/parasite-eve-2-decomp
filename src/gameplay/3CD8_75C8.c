@@ -545,7 +545,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
     }
 }
 
-static void Gp_VolFadeTask(Task* arg0)
+void Gp_VolFadeTask(Task* arg0)
 {
     GpVolFade* fade;
     s32        volume;
@@ -575,7 +575,7 @@ static void Gp_VolFadeTask(Task* arg0)
     }
 }
 
-static void Gp_SndFadeTask(Task* arg0)
+void Gp_SndFadeTask(Task* arg0)
 {
     GpSndFade* fade;
     s32        volume;
@@ -670,7 +670,7 @@ static void Gp_ScriptInit(Task* arg0)
     arg0->state++;
 }
 
-static void func_800E8830(Task* arg0)
+void func_800E8830(Task* arg0)
 {
     TaskFuncTable3 sp;
 
@@ -678,7 +678,7 @@ static void func_800E8830(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-static void func_800E8888(Task* arg0)
+void func_800E8888(Task* arg0)
 {
     s16 tmp;
 
@@ -708,7 +708,7 @@ static void func_800E8888(Task* arg0)
 /// duration bound (counter runs `-lo` .. `+lo`); `>> 8` is amplitude.
 /// Each frame an LCG (`Gp_LcgState`) scales the remaining count into
 /// `Display_ClampField126`, flipping sign on `spawnArg1` parity.
-static void Gp_ShakeTask(Task* arg0)
+void Gp_ShakeTask(Task* arg0)
 {
     register s32 tmp asm("v0");
     register s32 hi asm("v1");
@@ -993,7 +993,7 @@ Task* Gp_SpawnScript18Ex(s32 arg0, s32 arg1, s32 arg2)
     return NULL;
 }
 
-static void Gp_Script18Task(Task* arg0)
+void Gp_Script18Task(Task* arg0)
 {
     TaskFuncTable3 sp;
 
@@ -1054,7 +1054,7 @@ static void Gp_ScriptBState4(Task* task)
     Gp_StepScriptB(task);
 }
 
-static void Gp_PadHoldTask(Task* task)
+void Gp_PadHoldTask(Task* task)
 {
     if (Gp_StateF0.field_4 == 0 || (gGameSession->padScriptFlags & 0x80)) {
         if (task->spawnArg1 != 0 && Gp_PadHoldHalt == 0) {
@@ -1068,7 +1068,7 @@ static void Gp_PadHoldTask(Task* task)
     }
 }
 
-static void Gp_PadLerpTask(Task* task)
+void Gp_PadLerpTask(Task* task)
 {
     GpState0C* state;
 

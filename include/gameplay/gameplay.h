@@ -446,4 +446,11 @@ s32  Gp_IsStateF0Active(void);
 void func_800A7F24(void);
 void func_800A7E4C(void);
 
+void Gp_ApplyViewTask(Task* task);
+void Gp_ViewGateTask(Task* task);
+void func_800A77B4(Task* arg0);
+void func_800A8654(Task* task);
+
+void Gp_DrawDisp2dOt(void);
+
 #endif // GAMEPLAY_GAMEPLAY_H

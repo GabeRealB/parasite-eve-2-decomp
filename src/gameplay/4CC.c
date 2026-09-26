@@ -1506,7 +1506,7 @@ void Gp_PublishItemObj(Task* arg0)
 /// Fullscreen semi-trans TILE fade. `spawnArg1` 0/2 count down from 7/8;
 /// 4 also counts down once `gDisplayState.at100.flags.imageSource == 2`; 5 and other
 /// values count up and write `field_100` / `field_103` on completion.
-static void Gp_FadeTileTask(Task* arg0)
+void Gp_FadeTileTask(Task* arg0)
 {
     s32       flag;
     s32       yoff;

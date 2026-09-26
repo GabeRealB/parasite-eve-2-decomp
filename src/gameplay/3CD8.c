@@ -469,7 +469,7 @@ static void func_800E4020(void)
 {
 }
 
-static void func_800E4028(Task* arg0)
+void func_800E4028(Task* arg0)
 {
     TaskFuncTable3 sp;
 
@@ -1926,7 +1926,7 @@ static void func_800E704C(void)
     Gp_ApplyCapEvtFlags();
 }
 
-static void func_800E70AC(Task* task)
+void func_800E70AC(Task* task)
 {
     if (D_801156F9 == 0) {
         switch (task->state) {
@@ -1941,7 +1941,7 @@ static void func_800E70AC(Task* task)
     }
 }
 
-static void Gp_EndWaitTask(Task* task)
+void Gp_EndWaitTask(Task* task)
 {
     GpEndWait* flag;
 
@@ -2096,7 +2096,7 @@ s32 func_800E74EC(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-static void func_800E7570(Task* arg0)
+void func_800E7570(Task* arg0)
 {
     TaskFuncTable3 sp;
 

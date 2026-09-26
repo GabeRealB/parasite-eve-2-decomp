@@ -401,4 +401,14 @@ void Gp_EnqueueConfigCd(s32 arg0);
 void Gp_LoadViewAndCd(s32 arg0);
 void Gp_LoadViewImages(void);
 
+void Gp_AllocSprtListsTask(Task* task);
+void Gp_CommitSpawnLoc(Task* task);
+void Gp_FlashWhiteTask(Task* task);
+void Gp_LoadStateTask(Task* task);
+void Gp_LoadWaitDispatch(Task* task);
+void Gp_SetupSprtDisplay(Task* task);
+void func_800AC0F0(Task* task);
+void func_800AD50C(Task* task);
+void func_800AD5B8(Task* task);
+
 #endif // GAMEPLAY_D4_H

@@ -1187,4 +1187,9 @@ void Gp_UpdatePlayerMove(void);
 // seed fails to compile ('invalid use of void expression') - the single
 // largest cause of unusable seeds in the bulk m2c pass.
 
+void Gp_TickWorldCollision(void);
+void Gp_UpdateRoomCoords(Task* task);
+void func_800D96C8(Task* arg0);
+void func_800D9CC8(Task* arg0);
+
 #endif // GAMEPLAY_3A34_H
