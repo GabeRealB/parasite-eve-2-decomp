@@ -129,20 +129,18 @@ STATIC_ASSERT_SIZEOF(CdStreamParams, 0x20);
 // CD ready work queue
 
 // CD → SPU MTS stream
-s32  func_80059EE0(CdReadyEntry* entry);
 void CdStream_Reset(void);
 void CdStream_ArmSpuIrq(void);
 void CdStream_SetPitch(s16 pitch);
-void CdStream_AbortPhase(u32* phaseFlags);
-void CdStream_FinishQueueEntry(u32* phaseFlags);
 s32  CdStream_IsBusy(void);
-void CdStream_ClearReadySlot(void);
 void CdStream_SetLinkedPitch(s32 enabled);
+void CdStream_Start(CdStreamParams* arg0);
+void CdStream_Stop(void);
+void CdStream_Drive(void);
 
 // Gameplay callback imported by the resident CD stream handler.
 s32 func_800AF590(void);
 
-extern volatile s32 D_80068B54;
 extern s32          D_800827E8;
 extern volatile s32 D_8008280C;
 extern volatile s32 D_80082814;
@@ -151,6 +149,5 @@ extern CdStreamParams         CdStream_Params;
 extern volatile CdStreamState CdStream_State;
 extern CdStreamChannels       CdStream_Channels;
 extern volatile CdReadyQueue  CdReady_Queue;
-extern volatile u8            D_80068B67;
 
 #endif // CDSTREAM_H

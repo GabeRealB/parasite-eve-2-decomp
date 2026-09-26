@@ -2070,34 +2070,3 @@ static void SndVoice_ClearActive(void)
         p++;
     } while (i < 8);
 }
-
-s32 CdAudio_Begin(void)
-{
-    volatile CdAudioPhase* p;
-
-    p          = &CdAudio_Phase;
-    p->field_5 = 1;
-    if (CdAudio_Ctl.field_10 == 1) {
-        CdAudio_Ctl.field_10 = 0;
-        return -3;
-    }
-    if ((p->field_1 == 0) || (p->field_1 == 4)) {
-        p->field_2 = 4;
-        return -2;
-    }
-    if (p->field_0 != 3) {
-        p->field_5 = 1;
-        return -1;
-    }
-    if (CdAudio_Loc.field_0 == 6) {
-        if (p->field_4 != 0) {
-            p->field_4 = 0xB;
-            return -2;
-        }
-    }
-    if (CdAudio_Phase.field_2 != 0) {
-        return 1;
-    }
-    CdAudio_StartVolumeRamp(0x20);
-    return 0;
-}

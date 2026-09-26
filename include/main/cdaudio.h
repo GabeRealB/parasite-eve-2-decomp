@@ -94,7 +94,8 @@ void CdAudio_Tick(void);
 s32  CdAudio_StartTrack(s32 arg0, s32 arg1);
 s32  CdAudio_JumpToSector(s32 arg0);
 s32  CdAudio_RequestStopB(void);
-void CdAudio_StartVolumeRamp(s32 arg0);
+void CdAudio_CopyVoiceData(s8 arg0, s32* arg1);
+void CdAudio_AllocVoices(s8* arg0, s8* arg1);
 
 extern volatile CdAudioTbl   CdAudio_Tbl;
 extern volatile CdAudioCtl   CdAudio_Ctl;
