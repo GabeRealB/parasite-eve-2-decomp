@@ -984,58 +984,44 @@ end:
 
 void Midi_UpdateVoiceVolumes(MidiSong* arg0)
 {
-    SpuVoiceRef              sp10;
-    s16                      sp18[2];
-    register MidiSong*       obj asm("s4");
-    LinInterp*               interp;
-    s32                      volume;
-    s32                      i;
-    MidiNoteSlot*            slot;
-    register MidiOpcodeSlot* entry asm("t0");
-    s32                      product;
-    u32                      vol;
-    s32                      channel;
-    register s32             temp asm("v0");
-    s32                      scale;
-    s8                       voice;
-    s32                      one;
-    register s32             f3 asm("v0");
+    SpuVoiceRef     sp10;
+    s16             sp18[2];
+    LinInterp*      interp;
+    s32             volume;
+    s32             i;
+    MidiNoteSlot*   slot;
+    MidiOpcodeSlot* entry;
+    s32             product;
+    u32             vol;
+    s32             channel;
+    s32             mask;
+    s32             pan;
+    s8              voice;
 
-    obj    = arg0;
-    interp = &obj->field_14;
-    if (obj->field_1 == 0x4F) {
-        if (D_80082120 == 5) {
-            volume = func_80179BE4((u16)obj->field_8, D_80082136, interp);
-            goto after_volume;
-        }
-    }
-    if (obj->field_1 == 0x5A) {
-        temp  = Midi_GetMasterVolume() & 0xFF;
-        scale = (D_800689F0[0x5A] * 3) << 5;
+    interp = &arg0->field_14;
+    if (arg0->field_1 == 0x4F && D_80082120 == 5) {
+        volume = func_80179BE4((u16)arg0->field_8, D_80082136, interp);
+    } else if (arg0->field_1 == 0x5A) {
+        volume = LinInterp_Apply(interp, (u32)((Midi_GetMasterVolume() & 0xFF) * ((D_800689F0[0x5A] * 3) << 5)) / 127U);
     } else {
-        temp  = Midi_GetMasterVolume();
-        scale = (u16)obj->field_8;
-        temp &= 0xFF;
+        volume = LinInterp_Apply(interp, (u32)((Midi_GetMasterVolume() & 0xFF) * (u16)arg0->field_8) / 127U);
     }
-    volume = LinInterp_Apply(interp, (u32)(temp * scale) / 127U);
-after_volume:
     i    = 0;
-    slot = obj->voiceSlots;
-    one  = 1;
+    slot = arg0->voiceSlots;
     do {
         voice = slot->field_0;
         if (voice >= 0) {
             channel = (u8)slot->field_1;
-            if (obj->field_C & (one << channel)) {
-                entry   = &obj->field_484[channel];
+            mask    = 1 << channel;
+            if (arg0->field_C & mask) {
+                entry   = &arg0->field_484[channel];
                 product = entry->field_1 * entry->field_2 * D_80068E78[slot->field_3];
                 product = product / 2080641;
                 vol     = (u32)(volume * slot->field_4 * product) / 16129U;
-                f3      = entry->field_3;
-                f3     -= 0x40;
-                Spu_ApplyPanVolume(sp18, slot->field_5 + f3, vol);
+                pan     = entry->field_3 - 0x40;
+                Spu_ApplyPanVolume(sp18, slot->field_5 + pan, vol);
                 Spu_GetVoiceRef(voice, &sp10);
-                if ((D_800820E9 == one) && (obj->field_1 != 0x5A)) {
+                if (D_800820E9 == 1 && arg0->field_1 != 0x5A) {
                     sp10.field_4->volume.left  = 0;
                     sp10.field_4->volume.right = 0;
                 } else {
