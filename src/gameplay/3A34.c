@@ -6561,6 +6561,3 @@ const TaskFuncTable3 D_800974C8 = { {
     (TaskFunc)func_800E4020,
     taskKill,
 } };
-
-/// A zero word after the table. Nothing refers to it.
-const s32 D_800974D4 = 0;

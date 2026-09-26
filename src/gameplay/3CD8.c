@@ -54,8 +54,6 @@ const TaskFuncTable3 Gp_ScriptTaskStates = { {
 
 const char Gp_StrDemoWait[]  = "Demo Wait";
 const char Gp_StrDemoPause[] = "Demo Pause";
-/// An empty string after the demo labels. Nothing refers to it.
-const char D_8009755C[] = "";
 
 extern TaskDesc      Gp_EvtSpawnTable[];
 extern TaskDesc      D_8010FB4C[];

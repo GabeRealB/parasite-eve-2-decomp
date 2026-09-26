@@ -6161,9 +6161,6 @@ const TaskFuncTable8 D_8009794C = { {
     func_8010771C,
 } };
 
-/// A zero word after `D_8009794C`. Nothing refers to it.
-const s32 D_8009796C = 0;
-
 void Gp_TickPlayerNormal(Task* arg0)
 {
     GameActor*     actor;

@@ -6050,4 +6050,3 @@ const char Gp_StrSelectAmmo[]    = "Select AMMO";
 const char Gp_StrSelectArmor[]   = "Select Armor";
 const char Gp_StrReload[]        = "Reload";
 const char Gp_StrAttach[]        = "Attach";
-const char gGpStrEmpty[]         = "";

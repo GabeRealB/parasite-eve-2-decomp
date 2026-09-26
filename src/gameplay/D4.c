@@ -2889,6 +2889,3 @@ const GpVoidFuncTable5 D_80093990 = { {
     Gp_MsgPlayerDirFacing,
     Gp_CommitDirWarp,
 } };
-
-/// A zero word after the tables. Nothing refers to it.
-const s32 D_800939A4 = 0;

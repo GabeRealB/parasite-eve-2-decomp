@@ -1473,7 +1473,6 @@ Gp_StrSelectAmmo            = 0x80097138;
 Gp_StrSelectArmor           = 0x80097144;
 Gp_StrReload                = 0x80097154;
 Gp_StrAttach                = 0x8009715C;
-gGpStrEmpty                 = 0x80097164;
 
 // Gameplay naming pass 13 (feat/caliber strings, ally hurt)
 Gp_AnimBlkTbl               = 0x80113368;
