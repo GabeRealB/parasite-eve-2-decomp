@@ -69988,6 +69988,12 @@ Same mechanism as the `base | (x | CONST)` entry above. Check `.i.rtl` for
 the constant's sign: when it is already negated there, the fix is in the C
 tree, not in a later pass.
 
+Where the sum feeds a store and a temporary is awkward, the one-expression
+spelling `-(b + CONST) + a` also keeps it: fold leaves a negated sum on the
+left alone and emits `addiu` / `subu a, sum`. `Gp_DrawCapCaret` writes
+`p->y1 = -(gDisplayState.vramYOffset + 7) + y;`, which is how the rest of its
+file already spells these screen offsets; `y - (… + 7)` gives `y - 7` hoisted.
+
 ## …and the mirror: `(a - CONST) - b` reassociates to `a - (b + CONST)`
 
 The entry above is only half the rule. `fold`'s associate step splits *either*

@@ -1459,9 +1459,6 @@ static void Gp_DrawCapCaret(void)
     s32      color;
     u16      x;
     u16      y;
-    u32      mask;
-    u32      mask_hi;
-    u_long*  ot;
 
     if (Gp_CapCaretDelay != 0) {
         Gp_CapCaretDelay--;
@@ -1483,18 +1480,11 @@ static void Gp_DrawCapCaret(void)
     y     = Gp_CapCaretY;
     p->x0 = x + 3;
     p->y0 = y - gDisplayState.vramYOffset;
-    p->x1 = (mask = 0xFF0000, x);
-    TOUCH_MEM(p->y0);
-    p->y1 = ((s8) * (volatile u8*)&gDisplayState.vramYOffset + 7) * -1 + y;
+    p->x1 = x;
+    p->y1 = -(gDisplayState.vramYOffset + 7) + y;
     p->x2 = x + 7;
-    asm volatile("" : "+r"(mask) : "m"(p->y1));
-    mask |= 0xFFFF;
-    p->y2 = ((s8) * (volatile u8*)&gDisplayState.vramYOffset + 7) * -1 + y;
-
-    ot      = gGpuCurrentOt;
-    mask_hi = 0xFF000000;
-    p->tag  = (p->tag & mask_hi) | (ot[2] & mask);
-    ot[2]   = (ot[2] & mask_hi) | ((u32)p & mask);
+    p->y2 = -(gDisplayState.vramYOffset + 7) + y;
+    addPrim(&gGpuCurrentOt[2], p);
 
     if (Gp_CapCaretDir == 0) {
         Gp_CapCaretGrey++;
