@@ -141663,3 +141663,23 @@ callee-saved register it has in the ROM (`s2`) to `work`.
   function a 273-insn loop hoisted and a padded 281-insn one did not, so the
   hoist stopped between those sizes. No natural source for the missing insns
   was found, so a `TOUCH_REG` on a `slots` local keeps the address in the block.
+## Two identical case bodies cross-jump away, so the layout hides their source position - and that position moves loop.c's hoisting threshold (func_actor_300700_801637E4, 2026-09-26)
+
+**Symptom.** A contact loop `switch (key >> 16)` whose ROM layout is the kind-2
+body followed by one shared body for kinds 1 and 3. Written in layout order
+(`case 2`, `case 0`, `case 1`, `case 3`, 1 and 3 duplicated) everything matched
+except `Gp_ActorSlots` in the kind-2 body: the `lui`/`addiu` came out hoisted
+(`-dL`: `Insn 200 ... (life 5), move-insn savings 2  moved`, 29 × 2 × 5 = 290
+>= 270 insns), rematerialised as `lui t0` after the index, where the ROM keeps
+`lui v1` before it and the key in `a0`.
+
+**Cause.** jump2 cross-jumps the kind-1 copy into the kind-3 copy, so only the
+*last* copy survives and the layout says nothing about where the first one sat.
+Written in plain case order `0, 1, 2, 3`, the kind-1 copy is first in the RTL,
+its invariant `scratch + 16` is scanned and hoisted before the `Gp_ActorSlots`
+movable, and `threshold -= 3` leaves 26 × 10 = 260 < 270: the address stays in
+the loop. The emitted layout (2 then the merged 1/3) is identical either way.
+
+**Fix.** When a body you had to duplicate for jump2 is involved, try the
+numeric case order before chasing loop size - "cases in body order" holds only
+for bodies that survive to the output.
