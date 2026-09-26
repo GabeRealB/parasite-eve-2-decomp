@@ -464,52 +464,36 @@ static void Gp_EnqueueStageCd(void)
     CdCmd_Enqueue(0x21, param1, param2);
 }
 
-static void Gp_EnqueueCompanionCd(s32 arg0, s32 arg1)
+static void Gp_EnqueueCompanionCd(u8 type, u8 variant)
 {
-    u8           param2[4];
-    u8*          param1;
-    u8*          head;
-    void*        temp;
-    s32          c50;
-    s32          c4;
-    s32          c6;
-    register s32 saved1 asm("s6");
-    register s32 flag asm("s3");
+    u8  param2[4];
+    u8* param1;
 
-    saved1 = arg1;
-    flag   = saved1;
-    if ((u8)arg0 == 0) {
+    if (type == 0) {
         return;
     }
 
-    c50                = 0x50;
-    c4                 = 4;
-    c6                 = 6;
-    head               = SCRATCH_HEAD(u8);
-    temp               = head - 8;
-    param1             = temp;
-    SCRATCH_HEAD(void) = temp;
-
+    param1                 = SCRATCH_PUSH_BYTES(8);
     gGameSession->field_80 = 0;
     param1[3]              = 0;
-    param1[2]              = c50;
-    head[-8]               = 0;
-    param2[0]              = arg0;
+    param1[2]              = 0x50;
+    param1[0]              = 0;
+    param2[0]              = type;
     param2[1]              = 0;
-    param2[2]              = c4;
-    param2[3]              = c6;
+    param2[2]              = 4;
+    param2[3]              = 6;
     CdCmd_Enqueue(0x21, param1, param2);
 
-    if ((u8)flag != 0) {
+    if (variant != 0) {
         param1[3] = 0;
-        param1[2] = c50;
-        head[-8]  = saved1;
-        param2[0] = arg0;
+        param1[2] = 0x50;
+        param1[0] = variant;
+        param2[0] = type;
         param2[1] = 0;
-        param2[2] = c4;
-        param2[3] = c6;
+        param2[2] = 4;
+        param2[3] = 6;
         CdCmd_Enqueue(0x21, param1, param2);
-        if ((u8)flag == 5) {
+        if (variant == 5) {
             gGameSession->companionVariant  = 3;
             Mc_SaveData[0].companionVariant = 3;
         }
