@@ -36,6 +36,11 @@ STATIC_ASSERT_SIZEOF(GpUseCreatePair, 2);
 typedef struct {
     GpUseCreatePair pairs[8];
 } GpUseCreateTable;
+
+void Gp_MapPanelInit(Task* arg0);
+void Gp_MapFirstDrawTask(Task* arg0);
+void Gp_MapTaskState2(Task* arg0);
+void Gp_MapDrawTask(Task* arg0);
 STATIC_ASSERT_SIZEOF(GpUseCreateTable, 0x10);
 
 typedef struct {
@@ -47,9 +52,9 @@ typedef struct {
 } GpUseCreateWork;
 STATIC_ASSERT_SIZEOF(GpUseCreateWork, 0x14);
 
-extern GpUseCreateTable D_80097184;
-extern char             Gp_StrUsedDot[];
-extern char             Gp_StrCreatedDot[];
+extern const GpUseCreateTable D_80097184;
+extern char                   Gp_StrUsedDot[];
+extern char                   Gp_StrCreatedDot[];
 
 void func_800CB6FC(UiObject* arg0, Task* arg1);
 
@@ -59,7 +64,7 @@ extern const u16 D_80096F88[];
 
 /// Four-entry dispatcher table: `Gp_MapPanelInit`, `Gp_MapFirstDrawTask`, `Gp_MapTaskState2`,
 /// `Gp_MapDrawTask`.
-extern TaskFuncTable4 Gp_MapTaskStates;
+extern const TaskFuncTable4 Gp_MapTaskStates;
 
 /// 0xE-byte per-room record in tables pointed to by `Gp_MapRecTables`.
 /// Indexed by `GameSession.at4.loc.stage - 1` then `GameSession.at4.loc.area`.

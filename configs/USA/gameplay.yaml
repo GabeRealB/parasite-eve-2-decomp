@@ -83,8 +83,7 @@ segments:
       - [0x4CC, .rodata, 4CC] # jtbls: Gp_ItemMoveChild + strings/tables + Gp_CloseItemPane
       - [0x668, rodata, rodata_4CC_2]
       - [0x3688, .rodata, 3688] # jtbl from Gp_MenuRootTask, then the menu labels
-      - [0x3968, .rodata, 3688_CADFC] # jtbl from Gp_BuildItemCmdList
-      - [0x397C, rodata, rodata_3688_2]
+      - [0x3968, .rodata, 3688_CADFC] # jtbl from Gp_BuildItemCmdList, then the status, message and map labels
       - [0x3A34, .rodata, 3A34] # jtbls: Gp_ApplyItemUse + Gp_ItemIsUnusable + mid + Gp_CollideListGrid
       - [0x3CC8, rodata, rodata_3A34_2] # D_800974C8
       - [0x3CD8, .rodata, 3CD8_34D8] # jtbl from Gp_RunCapCmd

@@ -102,10 +102,10 @@ extern UiListItemFunc Gp_DialogCmdFns[];
 extern UiList         D_8010EA74;
 extern char           Gp_StrAreaEffect[];
 extern char           Gp_StrCastCost[];
-extern u8             D_8009720C[]; // "EXP"
-extern u8             D_80097220[]; // "MP"
-extern u8             Gp_StrCost[];
-extern u8             Gp_StrBonus[];
+extern const char     D_8009720C[]; // "EXP"
+extern const char     D_80097220[]; // "MP"
+extern const char     Gp_StrCost[];
+extern const char     Gp_StrBonus[];
 extern char           Gp_StrAtpLoss[];
 extern u8*            Gp_NoticeTexts[];
 extern u8*            Gp_PromptTexts;
@@ -192,21 +192,21 @@ extern const char     Gp_StrSelectAmmo[];
 extern const char     Gp_StrSelectArmor[];
 extern const char     Gp_StrReload[];
 extern const char     Gp_StrAttach[];
-extern char           Gp_StrStatus[];
-extern char           Gp_StrInvoke[];
-extern char           Gp_StrPeList[];
-extern u8             D_800971A4;
-extern char           Gp_StrTotal2[];
-extern char           Gp_StrMessage[];
-extern char           Gp_StrWarning[];
-extern char           Gp_StrHelp[];
-extern char           Gp_StrUse2[];
-extern char           Gp_StrKeyItem2[];
-extern char           Gp_StrMap[];
-extern char           Gp_StrAttention2[];
-extern char           Gp_StrNotice3[];
-extern char           Gp_StrNextLevel[];
-extern char           Gp_StrSpecs2[];
+extern const char     Gp_StrStatus[];
+extern const char     Gp_StrInvoke[];
+extern const char     Gp_StrPeList[];
+extern const u8       D_800971A4;
+extern const char     Gp_StrTotal2[];
+extern const char     Gp_StrMessage[];
+extern const char     Gp_StrWarning[];
+extern const char     Gp_StrHelp[];
+extern const char     Gp_StrUse2[];
+extern const char     Gp_StrKeyItem2[];
+extern const char     Gp_StrMap[];
+extern const char     Gp_StrAttention2[];
+extern const char     Gp_StrNotice3[];
+extern const char     Gp_StrNextLevel[];
+extern const char     Gp_StrSpecs2[];
 extern UiObject*      D_80067634;
 extern void           (*D_8010D3A0[])(UiObject*, Task*);
 
