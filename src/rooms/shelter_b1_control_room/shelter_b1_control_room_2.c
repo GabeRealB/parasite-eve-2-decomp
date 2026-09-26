@@ -137,8 +137,7 @@ void func_shelter_b1_control_room_8017F100(Task* arg0)
 
 void func_shelter_b1_control_room_8017F150(Task* task)
 {
-    u8       view;
-    SVECTOR* p;
+    u8 view;
 
     if (task->state == 0) {
         D_80115734  = 0x60276;
@@ -150,45 +149,37 @@ void func_shelter_b1_control_room_8017F150(Task* task)
     view = Gp_GetViewIndex();
     switch (view) {
         case 2:
-            p = D_shelter_b1_control_room_80181BD4;
-            SOFT_TOUCH_REG(p);
-            func_shelter_b1_control_room_8017F39C(&p[0], 0x100, 0x243);
-            func_shelter_b1_control_room_8017F39C(&p[2], 0x100, 0x243);
-            func_shelter_b1_control_room_8017F39C(&p[4], 0x100, 0x243);
-            func_shelter_b1_control_room_8017F39C(&p[6], 0x100, 0x243);
-            func_shelter_b1_control_room_8017F39C(&p[8], 0x100, 0x243);
-            func_shelter_b1_control_room_8017F39C(&p[10], 0x100, 0x243);
-            func_shelter_b1_control_room_8017FBE0(&p[12], 0x180, 0x421);
+            func_shelter_b1_control_room_8017F39C(&D_shelter_b1_control_room_80181BD4[0], 0x100, 0x243);
+            func_shelter_b1_control_room_8017F39C(&D_shelter_b1_control_room_80181BD4[2], 0x100, 0x243);
+            func_shelter_b1_control_room_8017F39C(&D_shelter_b1_control_room_80181BD4[4], 0x100, 0x243);
+            func_shelter_b1_control_room_8017F39C(&D_shelter_b1_control_room_80181BD4[6], 0x100, 0x243);
+            func_shelter_b1_control_room_8017F39C(&D_shelter_b1_control_room_80181BD4[8], 0x100, 0x243);
+            func_shelter_b1_control_room_8017F39C(&D_shelter_b1_control_room_80181BD4[10], 0x100, 0x243);
+            func_shelter_b1_control_room_8017FBE0(&D_shelter_b1_control_room_80181BD4[12], 0x180, 0x421);
             break;
         case 3:
-            p = D_shelter_b1_control_room_80181BD4;
-            SOFT_TOUCH_REG(p);
-            func_shelter_b1_control_room_8017F39C(&p[0], 0x100, 0x243);
-            func_shelter_b1_control_room_8017F39C(&p[2], 0x100, 0x243);
-            func_shelter_b1_control_room_8017F39C(&p[4], 0x100, 0x243);
-            func_shelter_b1_control_room_8017F39C(&p[6], 0x100, 0x243);
-            func_shelter_b1_control_room_8017F39C(&p[8], 0x100, 0x243);
-            func_shelter_b1_control_room_8017F39C(&p[10], 0x100, 0x243);
-            func_shelter_b1_control_room_8017FBE0(&p[12], 0x180, 0x421);
-            func_shelter_b1_control_room_8017FBE0(&p[14], 0x200, 0x23);
-            func_shelter_b1_control_room_8017FBE0(&p[15], 0x200, 0x23);
-            func_shelter_b1_control_room_8017FBE0(&p[16], 0x200, 0x23);
-            func_shelter_b1_control_room_8017FBE0(&p[17], 0x200, 0x23);
+            func_shelter_b1_control_room_8017F39C(&D_shelter_b1_control_room_80181BD4[0], 0x100, 0x243);
+            func_shelter_b1_control_room_8017F39C(&D_shelter_b1_control_room_80181BD4[2], 0x100, 0x243);
+            func_shelter_b1_control_room_8017F39C(&D_shelter_b1_control_room_80181BD4[4], 0x100, 0x243);
+            func_shelter_b1_control_room_8017F39C(&D_shelter_b1_control_room_80181BD4[6], 0x100, 0x243);
+            func_shelter_b1_control_room_8017F39C(&D_shelter_b1_control_room_80181BD4[8], 0x100, 0x243);
+            func_shelter_b1_control_room_8017F39C(&D_shelter_b1_control_room_80181BD4[10], 0x100, 0x243);
+            func_shelter_b1_control_room_8017FBE0(&D_shelter_b1_control_room_80181BD4[12], 0x180, 0x421);
+            func_shelter_b1_control_room_8017FBE0(&D_shelter_b1_control_room_80181BD4[14], 0x200, 0x23);
+            func_shelter_b1_control_room_8017FBE0(&D_shelter_b1_control_room_80181BD4[15], 0x200, 0x23);
+            func_shelter_b1_control_room_8017FBE0(&D_shelter_b1_control_room_80181BD4[16], 0x200, 0x23);
+            func_shelter_b1_control_room_8017FBE0(&D_shelter_b1_control_room_80181BD4[17], 0x200, 0x23);
             break;
         case 4:
-            p = D_shelter_b1_control_room_80181C3C;
-            SOFT_TOUCH_REG(p);
-            func_shelter_b1_control_room_8017FBE0(&p[0], 0x200, 0x23);
-            func_shelter_b1_control_room_8017FBE0(&p[1], 0x200, 0x23);
-            func_shelter_b1_control_room_8017FBE0(&p[2], 0x200, 0x23);
+            func_shelter_b1_control_room_8017FBE0(&D_shelter_b1_control_room_80181C3C[0], 0x200, 0x23);
+            func_shelter_b1_control_room_8017FBE0(&D_shelter_b1_control_room_80181C3C[1], 0x200, 0x23);
+            func_shelter_b1_control_room_8017FBE0(&D_shelter_b1_control_room_80181C3C[2], 0x200, 0x23);
             break;
         case 6:
-            p = D_shelter_b1_control_room_80181C3C;
-            SOFT_TOUCH_REG(p);
-            func_shelter_b1_control_room_8017FBE0(&p[0], 0x200, 0x23);
-            func_shelter_b1_control_room_8017FBE0(&p[1], 0x200, 0x23);
-            func_shelter_b1_control_room_8017FBE0(&p[2], 0x200, 0x23);
-            func_shelter_b1_control_room_8017FBE0(&p[3], 0x200, 0x23);
+            func_shelter_b1_control_room_8017FBE0(&D_shelter_b1_control_room_80181C3C[0], 0x200, 0x23);
+            func_shelter_b1_control_room_8017FBE0(&D_shelter_b1_control_room_80181C3C[1], 0x200, 0x23);
+            func_shelter_b1_control_room_8017FBE0(&D_shelter_b1_control_room_80181C3C[2], 0x200, 0x23);
+            func_shelter_b1_control_room_8017FBE0(&D_shelter_b1_control_room_80181C3C[3], 0x200, 0x23);
             break;
     }
 }
