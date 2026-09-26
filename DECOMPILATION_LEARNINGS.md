@@ -142870,6 +142870,17 @@ inside the section produces the gap, and then nothing is needed at all. Rodata
 interleaved between two files, or a table whose entries point into several
 files, is evidence that those files were one unit.
 
+**Jump tables are 8-aligned relative to their unit's rodata.** GCC emits
+`.align 3` before each table, and the original toolchain honoured it relative
+to the start of the object's section, exactly as ours does: in the Psy-Q
+library objects every jump table preceded by other data sits at an 8-aligned
+section offset, several after 6-7 zero bytes that 4-byte alignment would not
+need. So a table's address constrains where its unit's rodata starts - the
+table's offset from that start must be a multiple of 8. A unit whose rodata
+would have to start at a 4-aligned address with data ahead of a table that is
+not 8 bytes further on cannot be one unit; that is how gameplay's leading
+rodata showed that `gameplay.c` was two units.
+
 **Non-zero bytes after a terminator.** Some strings are followed by non-zero
 bytes before the next aligned object. Check the functions that consume the
 string before calling them padding: here every consumer stops at the
