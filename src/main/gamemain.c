@@ -21,6 +21,18 @@ static void GameMain_ShowLoading(s32 arg0);
 static void GameMain_SpawnBootTask(void);
 static void Gfx_InitGraph(void);
 
+static u32   D_8005EC64          = 0;
+s32          D_8005EC68          = 0;
+s32          D_8005EC6C          = 0xF0;
+volatile s32 Display_PendingFlip = 0;
+volatile s32 D_8005EC74          = 0;
+volatile s32 D_8005EC78          = 0;
+/// Unreferenced.
+static s32   D_8005EC7C         = 0;
+volatile s32 GameMain_HaltFlags = 0;
+/// Unreferenced.
+static u32 D_8005EC84[4] = { 0, 0x01FF03FF, 0, 0 };
+
 static void GameMain_Init(void)
 {
     s32 flag; // The indirection is required.

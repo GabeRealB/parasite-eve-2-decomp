@@ -17,7 +17,6 @@ u32  GameMain_GetResetCount(void);
 void GameMain_SetFrameTiming(s32 arg0);
 
 // Display/CD timing flags shared with the VSync path (GameMain_ShowLoading / GameMain_Loop).
-extern u32          D_8005EC64;
 extern s32          D_8005EC68;
 extern s32          D_8005EC6C;
 extern volatile s32 Display_PendingFlip;
