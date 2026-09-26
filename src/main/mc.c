@@ -2295,26 +2295,27 @@ static s32 Mc_VerifySaveHdrChecksum(McSaveData* arg0)
     return _mcVerifySaveHdrChecksum(arg0);
 }
 
-static void Mc_WriteBlockChecksum(McChecksumBlock* arg0, s32 arg1)
+/// Out-of-line form of `_mcWriteBlockChecksum`. Nothing calls it.
+static void Mc_WriteBlockChecksum(u8* data, s32 size)
 {
-    s16          sum;
-    register u8* ptr asm("v1");
-    u32          count;
-    u32          i;
+    McChecksumBlock* block;
+    s16              sum;
+    u32              i;
 
+    block = (McChecksumBlock*)data;
     sum   = 0;
-    ptr   = arg0->field_4;
-    count = arg1 - 4;
+    data  = block->field_4;
+    size -= 4;
     i     = 0;
-    if (count != 0) {
+    if (size != 0) {
         do {
-            i   += 1;
-            sum += (s8)*ptr;
-            ptr += 1;
-        } while (i < count);
+            i    += 1;
+            sum  += (s8)*data;
+            data += 1;
+        } while (i < size);
     }
-    arg0->field_0 = sum;
-    arg0->field_2 = ~sum;
+    block->field_0 = sum;
+    block->field_2 = ~sum;
 }
 
 void Mc_ResetSaveFlags(void)
@@ -2365,25 +2366,28 @@ void Mc_InitLib(void)
     Mc_InitBufferSlots();
 }
 
-static s32 Mc_VerifyBlockChecksum(McChecksumBlock* arg0, s32 arg1)
+/// Whether a buffer's header holds the sum of its payload, as
+/// `Mc_WriteBlockChecksum` stores it. Only the sum is compared, not its
+/// complement. Nothing calls it.
+static s32 Mc_VerifyBlockChecksum(u8* data, s32 size)
 {
-    s16          sum;
-    register u8* ptr asm("a2");
-    u32          count;
-    u32          i;
+    McChecksumBlock* block;
+    s16              sum;
+    u32              i;
 
+    block = (McChecksumBlock*)data;
     sum   = 0;
-    ptr   = arg0->field_4;
-    count = arg1 - 4;
+    data  = block->field_4;
+    size -= 4;
     i     = 0;
-    if (count != 0) {
+    if (size != 0) {
         do {
-            i   += 1;
-            sum += (s8)*ptr;
-            ptr += 1;
-        } while (i < count);
+            i    += 1;
+            sum  += (s8)*data;
+            data += 1;
+        } while (i < size);
     }
-    return ((u16)arg0->field_0 ^ (sum & 0xFFFF)) == 0;
+    return ((u16)block->field_0 ^ (sum & 0xFFFF)) == 0;
 }
 
 static void func_80033C38(void)
