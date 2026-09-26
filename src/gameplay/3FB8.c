@@ -2267,10 +2267,9 @@ void Gp_EffSprTaskA7(Task* arg0)
     s16                flag;
     s32                rng;
     s32                one;
-    s32                n;
+    s16                n;
     s16                step;
     u16                vz;
-    s32                prod;
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
@@ -2330,38 +2329,26 @@ void Gp_EffSprTaskA7(Task* arg0)
         prim->tpage = 0x28;
         prim->clut  = 0x4253;
         prim->code |= 2;
-        {
-            /* the divisor must stay a live copy of `n` in $v1 */
-            register s32 count asm("v1");
-            count    = n;
-            prim->u0 = (mem->age / count) << 5;
-            prim->v0 = 0x18;
-            prim->u1 = ((mem->age / count) << 5) + 0x1F;
-            prim->v1 = 0x18;
-            prim->u2 = (mem->age / count) << 5;
-            prim->v2 = 0x37;
-            prim->u3 = ((mem->age / count) << 5) + 0x1F;
-            prim->v3 = 0x37;
-        }
-        {
-            s32 prod;
-            prod      = ((mem->angle * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rsin(mem->scale);
-            block->dx = prod >> 12;
-            USE_REG(prod); /* keep prod live so the shift lands in $v0 */
-        }
-        block->dy = (((mem->angle * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(mem->scale)) >> 12;
-        prim->x0  = block->sx + (u16)block->dx;
-        prim->x3  = block->sx - (u16)block->dx;
-        prim->y0  = block->sy - (u16)block->dy;
-        prim->y3  = block->sy + (u16)block->dy;
-        prod      = ((mem->angle * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rsin(mem->scale + 0x400);
-        block->dx = prod >> 12;
-        USE_REG(prod);
-        block->dy = (((mem->angle * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(mem->scale + 0x400)) >> 12;
-        prim->x1  = block->sx + (u16)block->dx;
-        prim->x2  = block->sx - (u16)block->dx;
-        prim->y1  = block->sy - (u16)block->dy;
-        prim->y2  = block->sy + (u16)block->dy;
+        prim->u0    = (mem->age / n) << 5;
+        prim->v0    = 0x18;
+        prim->u1    = ((mem->age / n) << 5) + 0x1F;
+        prim->v1    = 0x18;
+        prim->u2    = (mem->age / n) << 5;
+        prim->v2    = 0x37;
+        prim->u3    = ((mem->age / n) << 5) + 0x1F;
+        prim->v3    = 0x37;
+        block->dx   = (((mem->angle * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rsin(mem->scale)) >> 12;
+        block->dy   = (((mem->angle * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(mem->scale)) >> 12;
+        prim->x0    = block->sx + (u16)block->dx;
+        prim->x3    = block->sx - (u16)block->dx;
+        prim->y0    = block->sy - (u16)block->dy;
+        prim->y3    = block->sy + (u16)block->dy;
+        block->dx   = (((mem->angle * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rsin(mem->scale + 0x400)) >> 12;
+        block->dy   = (((mem->angle * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(mem->scale + 0x400)) >> 12;
+        prim->x1    = block->sx + (u16)block->dx;
+        prim->x2    = block->sx - (u16)block->dx;
+        prim->y1    = block->sy - (u16)block->dy;
+        prim->y2    = block->sy + (u16)block->dy;
         addPrim((u_long*)(((((u32)((GpEffFlareScratch*)(head - 0x1C))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
