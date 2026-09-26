@@ -514,12 +514,8 @@ s32 Gp_PollAreaCdLoads(void)
     u8           param1[8];
     u8           param2[8];
     GpCdAreaRec* rec;
-    GpAreaPlace* place;
-    GpAreaPlace* match;
-    GpAreaPlace* next;
     GpCdRec0C*   rec12;
     s32          val;
-    u8           temp;
 
     switch (Gp_AreaCdPhase) {
         case 0:
@@ -537,57 +533,37 @@ s32 Gp_PollAreaCdLoads(void)
             }
             Gp_AreaCdPhase++;
         case 1:
-            if (Gp_CdRecCur->entryId != 0xFF) {
-                do {
-                    place = Gp_CdRecCur;
-                    if (place->entryId == 0) {
-                        next        = place + 1;
-                        Gp_CdRecCur = next;
-                    } else {
-                        D_80114C68 = D_80114C64->field_4;
-                        if (D_80114C68->field_0 != 0xFF) {
-                            match = place;
-                            for (; D_80114C68->field_0 != 0xFF; D_80114C68++) {
-                                if (match->entryId == D_80114C68->field_0) {
-                                    break;
-                                }
-                            }
-                        }
-                        if (Gp_CdRecCur->pad_C == 0) {
-                            Gp_CdRecCur++;
-                        } else {
-                            param1[3] = 0;
-                            param1[0] = Gp_CdRecCur->pad_C;
-                            rec12     = D_80114C68;
-                            val       = (s16)rec12->field_2;
-                            if (val >= 0x64) {
-                                param2[0] = val % 100;
-                                temp      = D_8010CAD0[rec12->field_4].field_0 + ((s16)rec12->field_2 / 100);
-                            } else {
-                                param2[0] = rec12->field_2;
-                                temp      = D_8010CAD0[rec12->field_4].field_0;
-                            }
-                            param1[2] = temp;
-                            COMPILER_BARRIER();
-                            param2[1] = 0;
-                            param2[2] = Gp_CdRecCur->tpage;
-                            param2[3] = Gp_CdRecCur->clut;
-                            CdCmd_Enqueue(0x21, param1, param2);
-                            Gp_AreaCdPhase++;
-                            break;
-                        }
+            while (Gp_CdRecCur->entryId != 0xFF) {
+                if (Gp_CdRecCur->entryId == 0) {
+                    Gp_CdRecCur++;
+                    continue;
+                }
+                for (D_80114C68 = D_80114C64->field_4; D_80114C68->field_0 != 0xFF; D_80114C68++) {
+                    if (Gp_CdRecCur->entryId == D_80114C68->field_0) {
+                        break;
                     }
-                    {
-                        extern GpAreaPlace*   cursor asm("Gp_CdRecCur");
-                        register GpAreaPlace* p asm("v0");
-
-                        p = cursor;
-                        __asm__("" : "+r"(p) : "m"(cursor) : "v1");
-                        if (p->entryId == 0xFF) {
-                            break;
-                        }
-                    }
-                } while (1);
+                }
+                if (Gp_CdRecCur->pad_C == 0) {
+                    Gp_CdRecCur++;
+                    continue;
+                }
+                param1[3] = 0;
+                param1[0] = Gp_CdRecCur->pad_C;
+                rec12     = D_80114C68;
+                val       = (s16)rec12->field_2;
+                if (val >= 0x64) {
+                    param2[0] = val % 100;
+                    param1[2] = D_8010CAD0[rec12->field_4].field_0 + ((s16)rec12->field_2 / 100);
+                } else {
+                    param2[0] = rec12->field_2;
+                    param1[2] = D_8010CAD0[rec12->field_4].field_0;
+                }
+                param2[1] = 0;
+                param2[2] = Gp_CdRecCur->tpage;
+                param2[3] = Gp_CdRecCur->clut;
+                CdCmd_Enqueue(0x21, param1, param2);
+                Gp_AreaCdPhase++;
+                break;
             }
             if (Gp_CdRecCur->entryId == 0xFF) {
                 return 1;
