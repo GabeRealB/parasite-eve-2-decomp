@@ -142974,3 +142974,21 @@ as the hack did, puts it after the copy and it collapses onto one register.
 `s = SCRATCH_PUSH(GpDirScratch); vec = &s->vec; vec->vx = …;` - later calls
 that pass `&s->vec` keep the block register because cse's equivalence ends at
 the `if` before them.
+### Constants pinned to registers across a `POLY_FT4` fill: write the UVs with `setUV4` (Gp_DrawFloorQuad, 2026-09-26)
+
+**Symptom.** A prim fill keeps `0xC0` and `0xF7` in `v1`/`a1` for several `sb`s,
+loaded early into the delay slots of the `lw`/`sw` screen-coordinate copies,
+while the other byte constants go through `v0` right before their stores. The
+seed pinned both constants with `register … asm()` locals.
+
+**Cause.** Stores to one prim at distinct offsets carry no dependences on each
+other in sched1, so the source order of the field stores only breaks priority
+ties, and it decides which constant loads sched1 hoists into the load delay
+slots. Field-by-field stores in the ROM's order leave `li 0xC0` next to its
+stores, where it takes `v0`.
+
+**Fix.** `setUV4(prim, …)` then `tpage`, the colour, and `clut`; no pins. The
+last source store of a shared value is scheduled last among its peers, so the
+ROM's `g0, b0, r0` order needs those three written in that order - `setRGB0`,
+which writes `r0` first, leaves a two-line difference that the scratch score
+reports as 100%.

@@ -2676,32 +2676,23 @@ void Gp_SpawnArea(GpAreaKey* arg0)
 
 void Gp_DrawFloorQuad(GpCoord* arg0, u32 arg1, SVECTOR* arg2)
 {
-    u8*                 head;
     GpFloorQuadScratch* block;
     POLY_FT4*           prim;
-    register s32        c0 asm("v1");
-    register s32        f7 asm("a1");
 
-    head = SCRATCH_HEAD(u8);
-    {
-        register u8* tmp asm("v0");
-        tmp              = head - 0x40;
-        block            = (GpFloorQuadScratch*)tmp;
-        SCRATCH_HEAD(u8) = tmp;
-    }
+    block = SCRATCH_PUSH(GpFloorQuadScratch);
     if (arg2 == NULL) {
-        ((GpFloorQuadScratch*)(head - 0x40))->vec[0].vx = -(arg1 >> 1);
-        block->vec[0].vy                                = 0;
-        block->vec[0].vz                                = -(arg1 >> 1);
+        block->vec[0].vx = -(arg1 >> 1);
+        block->vec[0].vy = 0;
+        block->vec[0].vz = -(arg1 >> 1);
     } else {
-        ((GpFloorQuadScratch*)(head - 0x40))->vec[0].vx = (u16)arg2->vx - (arg1 >> 1);
-        block->vec[0].vy                                = (u16)arg2->vy;
-        block->vec[0].vz                                = (u16)arg2->vz - (arg1 >> 1);
+        block->vec[0].vx = arg2->vx - (arg1 >> 1);
+        block->vec[0].vy = arg2->vy;
+        block->vec[0].vz = arg2->vz - (arg1 >> 1);
     }
-    block->vec[3].vy = block->vec[2].vy = block->vec[1].vy = (u16)block->vec[0].vy;
-    block->vec[1].vx = block->vec[3].vx = (u16)block->vec[0].vx + arg1;
+    block->vec[3].vy = block->vec[2].vy = block->vec[1].vy = block->vec[0].vy;
+    block->vec[1].vx = block->vec[3].vx = block->vec[0].vx + arg1;
     block->vec[2].vx                    = block->vec[0].vx;
-    block->vec[2].vz = block->vec[3].vz = (u16)block->vec[0].vz + arg1;
+    block->vec[2].vz = block->vec[3].vz = block->vec[0].vz + arg1;
     block->vec[1].vz                    = block->vec[0].vz;
     Gp_UpdateCoord(arg0);
     gte_SetRotMatrix(&arg0->workm);
@@ -2749,8 +2740,6 @@ void Gp_DrawFloorQuad(GpCoord* arg0, u32 arg1, SVECTOR* arg2)
     }
 
     if (block->flag >= 0) {
-        c0             = 0xC0;
-        f7             = 0xF7;
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -2759,22 +2748,15 @@ void Gp_DrawFloorQuad(GpCoord* arg0, u32 arg1, SVECTOR* arg2)
         PRIM_XY_WORD(prim, 1) = *(u32*)&block->sxy1;
         PRIM_XY_WORD(prim, 2) = *(u32*)&block->sxy2;
         PRIM_XY_WORD(prim, 3) = *(u32*)&block->sxy3;
-        prim->v0              = 0x98;
-        prim->v1              = 0x98;
-        prim->v2              = 0xCF;
-        prim->v3              = 0xCF;
-        prim->tpage           = 0x48;
-        prim->u0              = c0;
-        prim->u2              = c0;
-        prim->g0              = c0;
-        prim->b0              = c0;
-        prim->r0              = c0;
-        prim->u1              = f7;
-        prim->u3              = f7;
-        prim->clut            = 0x4283;
+        setUV4(prim, 0xC0, 0x98, 0xF7, 0x98, 0xC0, 0xCF, 0xF7, 0xCF);
+        prim->tpage = 0x48;
+        prim->g0    = 0xC0;
+        prim->b0    = 0xC0;
+        prim->r0    = 0xC0;
+        prim->clut  = 0x4283;
         addPrim(&gGpuCurrentOt[block->maxotz >> 4], prim);
     }
-    SCRATCH_POP_BYTES(0x40);
+    SCRATCH_POP(GpFloorQuadScratch);
 }
 
 void func_800B51F4(Task* task)
