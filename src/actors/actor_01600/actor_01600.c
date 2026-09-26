@@ -2327,48 +2327,32 @@ static void Actor01600_Fn03D48(Task* arg0)
 static void Actor01600_Fn03EEC(Task* arg0)
 {
     VECTOR3                  pos;
-    Actor01600GroundScratch* head;
     Actor01600GroundScratch* scratch;
     Actor01600Work*          work;
     GpCoord*                 coord;
-    s32                      worldZ;
     s32                      height;
-    s32                      mode;
-    s32                      z;
-    Actor01600GroundScratch* allocated;
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     if (work->field_526 == 0) {
-        head                                  = SCRATCH_HEAD(Actor01600GroundScratch);
-        allocated                             = head - 1;
-        SCRATCH_HEAD(Actor01600GroundScratch) = allocated;
-        /* Not `work->field_528`: spelled as a member access, the read is
-           scheduled above the scratch-head store, and the ROM reads it after. */
-        mode = *(s16*)((u8*)work + OFFSET_OF(Actor01600Work, field_528));
-        do {
-            scratch = allocated;
-            if (mode != 0) {
-                gte_SetRotMatrix(&coord->workm);
-                scratch->offset.vx = 0;
-                height             = work->field_520 - 0x80;
-                scratch->offset.vz = 0;
-                scratch->offset.vy = -height;
-                gte_ldv0(&scratch->offset);
-                gte_rtv0();
-                gte_stlvnl(&scratch->pos);
-                head[-1].pos.vx = (s32)(head[-1].pos.vx + coord->workm.t[0]);
-                scratch->pos.vy = (s32)(scratch->pos.vy + coord->workm.t[1]);
-                z               = scratch->pos.vz;
-                TOUCH_REG(z);
-                worldZ = z + coord->workm.t[2];
-            } else {
-                head[-1].pos.vx = (s32)coord->workm.t[0];
-                scratch->pos.vy = (s32)coord->workm.t[1];
-                worldZ          = coord->workm.t[2];
-            }
-            scratch->pos.vz = worldZ;
-        } while (0);
+        scratch = SCRATCH_PUSH(Actor01600GroundScratch);
+        if (work->field_528 != 0) {
+            gte_SetRotMatrix(&coord->workm);
+            scratch->offset.vx = 0;
+            height             = work->field_520 - 0x80;
+            scratch->offset.vy = -height;
+            scratch->offset.vz = 0;
+            gte_ldv0(&scratch->offset);
+            gte_rtv0();
+            gte_stlvnl(&scratch->pos);
+            scratch->pos.vx += coord->workm.t[0];
+            scratch->pos.vy += coord->workm.t[1];
+            scratch->pos.vz += coord->workm.t[2];
+        } else {
+            scratch->pos.vx = coord->workm.t[0];
+            scratch->pos.vy = coord->workm.t[1];
+            scratch->pos.vz = coord->workm.t[2];
+        }
         Gp_DrawEffGroundQuad(&scratch->pos, 0x1C0, 0);
         SCRATCH_POP(Actor01600GroundScratch);
         return;
