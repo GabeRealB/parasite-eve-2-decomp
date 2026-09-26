@@ -2006,23 +2006,18 @@ void Gp_ApplyBit2Bank(s32 arg0)
 
 void Gp_SetCurBit2Flag(s32 arg0, u8 arg1)
 {
-    s32          shift;
-    u32          mask;
-    u32*         p;
-    u32          nmask;
-    register s32 temp asm("v0");
+    s32  shift;
+    u32  mask;
+    u32* p;
+    s32  stage;
 
     shift = (arg0 & 0xF) * 2;
-    USE_REG(shift);
-    temp  = 3;
-    mask  = temp << shift;
-    temp  = Mc_SaveData[0].at4.loc.stage;
-    p     = Gp_Bit2Banks[temp].field_4;
-    p    += arg0 >> 4;
-    nmask = ~mask;
-    temp  = *p;
+    mask  = 3 << shift;
+    stage = Mc_SaveData[0].at4.loc.stage;
+    p     = &Gp_Bit2Banks[stage].field_4[arg0 >> 4];
+    *p   &= ~mask;
     mask  = arg1 << shift;
-    *p    = (temp & nmask) | mask;
+    *p   |= mask;
 }
 
 void Gp_ClearScanItems(McItemScan* arg0)
