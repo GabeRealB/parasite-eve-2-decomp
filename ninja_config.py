@@ -237,7 +237,10 @@ def asset_includes(version: str) -> list[tuple[Path, Path, int]]:
     out = []
     for aid, rec in mod.EMBEDDED_ASSETS.items():
         if rec.get("include"):
-            raw = ASSETS_DIR / version / "raw" / rec["type"] / f"{aid}{rec['ext']}"
+            # The store files a raw asset by extension (extract.TYPE_DIR_BY_EXT),
+            # where only `.tmd` differs from its own name.
+            type_dir = {".tmd": "model"}.get(rec["ext"], rec["ext"].lstrip("."))
+            raw = ASSETS_DIR / version / "raw" / type_dir / f"{aid}{rec['ext']}"
             width = {True: 1, "u8": 1, "u16": 2, "u32": 4}[rec["include"]]
             out.append((raw, BUILD_DIR / "include" / "assets" / f"{aid}.inc", width))
     return out

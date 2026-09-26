@@ -59,7 +59,6 @@ extern s8           D_80082748;
 extern s8           D_80082749;
 extern s8           D_8008274A;
 extern s8           D_8008274B;
-extern u8           D_80068184;
 extern volatile s32 D_80068B58;
 extern volatile u8  D_80068B5C;
 extern volatile u8  D_80068B5D;

@@ -483,7 +483,7 @@ segments:
       - [0x588c4, o, libspu/s_ini, .data] # _spu_EVdma, _spu_keystat, _spu_trans_mode, _spu_rev_flag, _spu_rev_reserve_wa, _spu_rev_offsetaddr, _spu_rev_attr, _spu_RQvoice, _spu_RQmask, _spu_voice_centerNote, _spu_env, _spu_isCalled
       - [0x58944, o, libspu/s_m, .data] # _spu_AllocBlockNum, _spu_AllocLastNum, _spu_memList
       - [0x58954, o, libspu/s_rmp0, .data] # _spu_rev_startaddr
-      - [0x58984, data, "58984"] # game data (TODO: attribute)
+      - [0x58984, .data, spu]
       - [0x589b4, o, libspu/zerobuf, .data] # _spu_zerobuf
       - [0x58db4, o, libspu/s_n2p, .data]
       - [0x58ed4, o, libspu/s_rmp2, .data] # _spu_rev_param

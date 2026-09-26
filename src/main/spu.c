@@ -6,6 +6,11 @@
 static void Spu_ApplyReverbConfig(void);
 static void Spu_KeyOnClearOff(u32 voiceIdx);
 
+/// The SPU ADPCM block uploaded to SPU address 0x7B440 at start-up.
+static u8 D_80068184[] = {
+#include "assets/spu_voice_block.inc"
+};
+
 void AsyncCb_Poll(void)
 {
     AsyncCbEntry* entry;
@@ -115,7 +120,7 @@ void Spu_InitVoices(void)
 
     spuAddr = 0x7B440;
     SpuSetTransferStartAddr(spuAddr);
-    SpuWrite(&D_80068184, 0x30U);
+    SpuWrite(D_80068184, 0x30U);
     SpuIsTransferCompleted(1);
 
     ptr                = (s32*)&Spu_LVoiceTable;

@@ -5256,6 +5256,7 @@ ASSETS = {
 
 EMBEDDED_ASSETS = {
     'kyle_body': {"source": 'actor_120400.pe2pkg', "vram": 0x801342F0, "size": 0x354C, "ext": '.tmd', "type": 'model'},
+    'spu_voice_block': {"source": 'main.exe', "vram": 0x80068184, "size": 0x30, "ext": '.vag', "type": 'spusample', "include": 'u8'},
     'font_glyphs0': {"source": 'main.exe', "vram": 0x8005EFB0, "size": 0xA80, "ext": '.fontglyph', "type": 'fontglyph', "include": True},
     'font_glyphs1': {"source": 'main.exe', "vram": 0x8005FA30, "size": 0xA80, "ext": '.fontglyph', "type": 'fontglyph', "include": True},
     'caption_glyphs': {"source": 'main.exe', "vram": 0x800627E0, "size": 0x118, "ext": '.fontglyph', "type": 'fontglyph', "include": 'u8'},
