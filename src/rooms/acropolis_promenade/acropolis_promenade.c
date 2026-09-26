@@ -20,6 +20,7 @@
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/sound.h"
+#include "main/stream.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"

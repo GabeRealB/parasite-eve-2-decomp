@@ -1,5 +1,7 @@
 #include "common.h"
 
+#define STREAM_C
+
 #include <psyq/libpress.h>
 
 #include "main/unknown_syms.h"
@@ -7,6 +9,45 @@
 #include "main/stream.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+
+static s32 D_8006AC08;
+static u16 D_8006AC0C;
+static u16 D_8006AC0E;
+static u16 D_8006AC10;
+static u16 D_8006AC12;
+static u16 D_8006AC14;
+static u16 D_8006AC16;
+static u16 D_8006AC18;
+static u16 D_8006AC1A;
+static u16 D_8006AC1C;
+static u16 D_8006AC1E;
+static u16 D_8006AC20;
+/// Unreferenced.
+static u16 D_8006AC22;
+static s32 D_8006AC24;
+static u16 D_8006AC28;
+/// Unreferenced.
+static u16 D_8006AC2A;
+/// Unreferenced.
+static s32      D_8006AC2C;
+FsStrInfo       D_8006AC30;
+static u_short* D_8006AC38;
+u16             D_8006AC3C;
+/// Unreferenced.
+static u16 D_8006AC3E;
+void*      D_8006AC40;
+void*      D_8006AC44;
+u_long*    D_8006AC48[2];
+u_long*    D_8006AC50[2];
+u16        D_8006AC58;
+u16        D_8006AC5A;
+u16        D_8006AC5C;
+/// Unreferenced.
+static u16     D_8006AC5E;
+u16*           D_8006AC60;
+static void*   D_8006AC64;
+static u_long* D_8006AC68;
+u16            D_8006AC6C;
 
 static void Mdec_SetupBuffers(u8* arg0)
 {

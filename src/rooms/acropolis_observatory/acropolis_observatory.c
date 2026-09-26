@@ -6,6 +6,7 @@
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/session.h"
+#include "main/stream.h"
 #include "main/task.h"
 
 #include "rooms/room_common.h"

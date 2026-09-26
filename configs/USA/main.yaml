@@ -504,7 +504,7 @@ segments:
       - [0x5b3d0, o, libc2/putchar, .bss]
       - [0x5b3f0, o, libds/dscb, .bss] # GlobalCallback
       - { start: 0x5b3fc, type: .bss, name: cdcmd, vram: 0x8006ABFC }
-      - { start: 0x5b408, type: bss, name: "5B408", vram: 0x8006AC08, bss_size: 0x68 }
+      - { start: 0x5b408, type: .bss, name: stream, vram: 0x8006AC08, bss_size: 0x68 }
       - [0x5b470, o, libcd/c_004, .bss]
       - [0x5b480, o, libcd/c_005, .bss] # StFunc1, StFunc2
       - [0x5b488, o, libcd/c_011, .bss]

@@ -557,12 +557,6 @@ extern s32          D_8006D860;
 extern u8           D_8006CCD8[];
 extern s32          D_8006ADF8;
 extern u8           D5B498_8006ADF4;
-/// ISO root scan: LBA of the first `.STR` (stream) file, plus a sibling word.
-typedef struct {
-    s32 sector;
-    s32 field_4;
-} FsStrInfo;
-extern FsStrInfo    D_8006AC30;
 extern u8*          D_8006C4D4;
 extern FsFolderSlot D_8006C338[50];
 extern u8*          Fs_ChunkReadPtr;
