@@ -959,17 +959,13 @@ static void func_80058748(void)
 {
     CdReadyEntry            entry;
     volatile CdStreamState* p;
-    register s32            rem_tmp asm("a0");
-    s32                     field18;
-    register s32            temp asm("v0");
-    s32                     rem;
-    s32                     quot;
+    s32                     pos;
+    s32                     chunk;
 
     p            = &CdStream_State;
-    field18      = p->field_18;
-    temp         = field18 / p->sectorsPerChunk;
+    pos          = p->field_18;
+    chunk        = pos / p->sectorsPerChunk + 1;
     p->readySlot = 0;
-    quot         = temp + 1;
 
     if ((CdStream_State.flags0 >> 2) & 1) {
         p->phase  = 1;
@@ -978,32 +974,19 @@ static void func_80058748(void)
         if (p->field_1C & 1) {
             p->field_4 = 0;
         } else {
-            rem_tmp               = (u16)p->sectorsPerChunk;
-            rem                   = field18 % p->sectorsPerChunk;
-            rem_tmp               = rem_tmp - rem;
-            rem_tmp               = rem_tmp + 1;
-            p->field_4            = rem_tmp;
+            p->field_4            = p->sectorsPerChunk - pos % p->sectorsPerChunk + 1;
             CdStream_State.flags0 = CdStream_State.flags0 | 0x20;
         }
         CdStream_CleanupIrq();
     } else {
-        do {
-            temp = (s32)func_80059EE0;
-        } while (0);
-        rem             = p->flags2;
-        entry.pollFn    = temp;
-        temp            = (s32)func_80058748;
-        rem             = rem & 0xFD;
-        p->flags2       = rem;
-        entry.doneFn    = temp;
+        p->flags2       = p->flags2 & 0xFD;
         D_80068B63      = D_80068B63 + 1;
-        temp            = (s32)CdStream_FinishQueueEntry;
-        rem             = p->field_30;
-        entry.errorFn   = temp;
-        p->field_20     = quot;
-        rem_tmp         = (s32)&entry;
-        entry.sectorPos = rem;
-        p->readySlot    = CdReady_Enqueue((CdReadyEntry*)rem_tmp);
+        entry.pollFn    = (s32)func_80059EE0;
+        entry.doneFn    = (s32)func_80058748;
+        entry.errorFn   = (s32)CdStream_FinishQueueEntry;
+        entry.sectorPos = p->field_30;
+        p->field_20     = chunk;
+        p->readySlot    = CdReady_Enqueue(&entry);
     }
 }
 
