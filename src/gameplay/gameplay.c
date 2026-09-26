@@ -1846,8 +1846,8 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
     u8*       norms;
     CVECTOR   col;
     SVECTOR*  sv;
-    DVECTOR*  sxy;
-    DVECTOR*  sxy3;
+    s16*      xy;
+    s16*      xy3;
     u8*       rgb3;
     u8*       dest;
     u8*       uv;
@@ -1906,11 +1906,17 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     gte_ncct();
                     gte_strgb3_gt4(&poly[1]);
 
+                    /* Environment-map UVs: each vertex's rotated normal, scaled by the
+                     * light level, offsets its screen position into the reflection
+                     * texture. xy steps from X to Y while dest steps from U to V, then
+                     * back to the pad byte after that vertex's colour, which records
+                     * whether U wrapped onto the second texture page. */
+
                     /* vertex 0 */
                     gte_rtv0();
                     gte_stsv(&ws->elemNormal);
                     anyflag = 0;
-                    sxy     = (DVECTOR*)&poly[0].x0;
+                    xy      = &poly[0].x0;
                     dest    = &poly[0].u0;
                     flag    = 0;
                     sv      = &ws->elemNormal;
@@ -1918,8 +1924,8 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     gte_ldsv(sv);
                     gte_gpf12();
                     gte_stsv(sv);
-                    x  = poly[0].x0 + 0xA0;
-                    x -= ws->elemNormal.vx;
+                    x  = *xy + 0xA0;
+                    x -= sv->vx;
                     if (x < 0) {
                         x = 0;
                     } else if (x >= 0x100) {
@@ -1929,10 +1935,10 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                             x = 0xBF;
                         }
                     }
-                    TOUCH_REG(sxy);
                     *dest = x;
+                    xy++;
                     dest++;
-                    x  = sxy->vy + 0x78;
+                    x  = *xy + 0x78;
                     x -= sv->vy;
                     if (x < 0) {
                         x = 0;
@@ -1940,13 +1946,14 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                         x = 0xEF;
                     }
                     *dest    = x;
-                    dest[-6] = flag;
+                    dest    -= 6;
+                    *dest    = flag;
                     anyflag |= flag;
 
                     /* vertex 1 */
                     gte_rtv1();
                     gte_stsv(&ws->elemNormal);
-                    sxy  = (DVECTOR*)&poly[0].x1;
+                    xy   = &poly[0].x1;
                     dest = &poly[0].u1;
                     flag = 0;
                     sv   = &ws->elemNormal;
@@ -1954,8 +1961,8 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     gte_ldsv(sv);
                     gte_gpf12();
                     gte_stsv(sv);
-                    x  = poly[0].x1 + 0xA0;
-                    x -= ws->elemNormal.vx;
+                    x  = *xy + 0xA0;
+                    x -= sv->vx;
                     if (x < 0) {
                         x = 0;
                     } else if (x >= 0x100) {
@@ -1965,10 +1972,10 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                             x = 0xBF;
                         }
                     }
-                    TOUCH_REG(sxy);
                     *dest = x;
+                    xy++;
                     dest++;
-                    x  = sxy->vy + 0x78;
+                    x  = *xy + 0x78;
                     x -= sv->vy;
                     if (x < 0) {
                         x = 0;
@@ -1976,13 +1983,14 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                         x = 0xEF;
                     }
                     *dest    = x;
-                    dest[-6] = flag;
+                    dest    -= 6;
+                    *dest    = flag;
                     anyflag |= flag;
 
                     /* vertex 2 */
                     gte_rtv2();
                     gte_stsv(&ws->elemNormal);
-                    sxy  = (DVECTOR*)&poly[0].x2;
+                    xy   = &poly[0].x2;
                     dest = &poly[0].u2;
                     flag = 0;
                     sv   = &ws->elemNormal;
@@ -1990,8 +1998,8 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     gte_ldsv(sv);
                     gte_gpf12();
                     gte_stsv(sv);
-                    x  = poly[0].x2 + 0xA0;
-                    x -= ws->elemNormal.vx;
+                    x  = *xy + 0xA0;
+                    x -= sv->vx;
                     if (x < 0) {
                         x = 0;
                     } else if (x >= 0x100) {
@@ -2001,10 +2009,10 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                             x = 0xBF;
                         }
                     }
-                    TOUCH_REG(sxy);
                     *dest = x;
+                    xy++;
                     dest++;
-                    x  = sxy->vy + 0x78;
+                    x  = *xy + 0x78;
                     x -= sv->vy;
                     if (x < 0) {
                         x = 0;
@@ -2012,11 +2020,12 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                         x = 0xEF;
                     }
                     *dest    = x;
-                    dest[-6] = flag;
+                    dest    -= 6;
+                    *dest    = flag;
                     anyflag |= flag;
 
                     /* vertex 3 */
-                    sxy3 = (DVECTOR*)&poly[0].x3;
+                    xy3 = &poly[0].x3;
                     gte_ldv0((u8*)ws->normals + (rec[7] & 0xFFF8));
                     gte_ldrgb(&D_80114BA4);
                     gte_nccs();
@@ -2026,7 +2035,7 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     gte_strgb(&poly[1].r3);
                     gte_rtv0();
                     gte_stsv(&ws->elemNormal);
-                    sxy  = sxy3;
+                    xy   = xy3;
                     dest = &poly[0].u3;
                     flag = 0;
                     sv   = &ws->elemNormal;
@@ -2034,8 +2043,8 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     gte_ldsv(sv);
                     gte_gpf12();
                     gte_stsv(sv);
-                    x  = poly[0].x3 + 0xA0;
-                    x -= ws->elemNormal.vx;
+                    x  = *xy + 0xA0;
+                    x -= sv->vx;
                     if (x < 0) {
                         x = 0;
                     } else if (x >= 0x100) {
@@ -2045,19 +2054,19 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                             x = 0xBF;
                         }
                     }
-                    TOUCH_REG(sxy);
-                    TOUCH_REG(dest);
                     *dest = x;
+                    xy++;
                     dest++;
-                    x  = sxy->vy + 0x78;
+                    x  = *xy + 0x78;
                     x -= sv->vy;
                     if (x < 0) {
                         x = 0;
                     } else if (x >= 0xF0) {
                         x = 0xEF;
                     }
-                    *dest    = x;
-                    dest[-6] = flag;
+                    *dest = x;
+                    dest -= 6;
+                    *dest = flag;
 
                     anyflag |= flag;
                     if (ws->obj->lightLevel < 0x1000) {

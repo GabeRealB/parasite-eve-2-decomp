@@ -142045,3 +142045,19 @@ forward pass. At `extra = task->...`, `task` dies without conflicting with
 separate loop variable (it lands in `$v0`, not the target's `$s2`), a
 per-loop or per-block helper, a `for` loop, a pointer walk, an inline wrapper
 around the call, or 15 minutes of the permuter. Two `v0` pins remain.
+## `TOUCH_REG(p)` on a pointer that only feeds offsets is a pointer walk combine folded away (func_8009C414, 2026-09-26)
+
+An env-map UV block per vertex read `lh 2(t0)` and stored `sb 0(a1)` / `sb 0(a1)` /
+`sb -6(a1)`, and matched only with `TOUCH_REG(sxy)` (and one `TOUCH_REG(dest)`)
+before the U store. The asm added nothing but a use and a set, i.e. four weighted
+`REG_N_REFS`, which lifted the pointer above its neighbours in global-alloc.
+
+The original walked the pointers instead of indexing them: `xy++` between the X
+and Y reads, and `dest -= 6; *dest = flag;` instead of `dest[-6] = flag`. flow
+counts each step as a use plus a set; combine then folds it into the next access's
+offset (`2(t0)`, `-6(a1)`) because the pointer dies there, so the code is identical
+but the ranks are not - the "`n_refs` is counted before combine" mechanism.
+
+**Fix.** When a pin only adds refs to a pointer whose later accesses carry constant
+offsets, rewrite those offsets as increments/decrements of the pointer between the
+accesses.
