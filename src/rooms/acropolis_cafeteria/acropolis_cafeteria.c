@@ -72,12 +72,32 @@ static void func_acropolis_cafeteria_8017D6AC(Task* task)
     }
 }
 
+/// Answers message 3 in the outgoing copy unless field_5 suppresses it: before
+/// nibble 0 reaches 2 the answer is 1 or 2 by nibble 0x21, afterwards the
+/// message id itself. Returns 1, the handler's "message accepted" result.
+static inline s32 _acropolisCafeteriaAnswer(RoomEventMsg* in, RoomEventMsg* out)
+{
+    s32 msgId = in->msgId;
+
+    if (msgId == 3 && in->field_5 == 0) {
+        if (GameFlag_GetNibble(0) < 2) {
+            if (GameFlag_GetNibble(0x21) < 2) {
+                out->field_3 = 1;
+            } else {
+                out->field_3 = 2;
+            }
+        } else {
+            out->field_3 = msgId;
+        }
+    }
+    return 1;
+}
+
 /// Copies the room message, selects its response, and starts capture slots 5
 /// or 6 when the room's progress permits. field_5 suppresses side effects.
 s32 func_acropolis_cafeteria_8017D700(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     s32 msgId;
-    s32 responseId;
 
     *out = *in;
     if (in->msgId == 7 && in->field_2 == 4) {
@@ -94,23 +114,7 @@ s32 func_acropolis_cafeteria_8017D700(s32 arg0, s32 arg1, RoomEventMsg* in, Room
     if (msgId == 3) {
         if (GameFlag_GetNibble(0) < 2) {
             if (D_acropolis_cafeteria_80184164 == 0) {
-                if (in->msgId == msgId && in->field_5 == 0) {
-                    if (GameFlag_GetNibble(0) < 2) {
-                        // Keep these stores separate from the later response branches.
-                        if (GameFlag_GetNibble(0x21) < 2) {
-                            s8 response = 1;
-                            SOFT_BARRIER();
-                            out->field_3 = response;
-                        } else {
-                            s8 response = 2;
-                            SOFT_BARRIER();
-                            out->field_3 = response;
-                        }
-                    } else {
-                        out->field_3 = msgId;
-                    }
-                }
-                return 1;
+                return _acropolisCafeteriaAnswer(in, out);
             }
             if (D_acropolis_cafeteria_80184164 == 2) {
                 if (in->field_5 == 0) {
@@ -122,18 +126,7 @@ s32 func_acropolis_cafeteria_8017D700(s32 arg0, s32 arg1, RoomEventMsg* in, Room
         if (GameFlag_GetNibble(0xE) == msgId && in->field_5 == 0) {
             GameFlag_SetNibble(0xE, 2);
         }
-        responseId = in->msgId;
-        if (responseId == 3 && in->field_5 == 0) {
-            if (GameFlag_GetNibble(0) < 2) {
-                if (GameFlag_GetNibble(0x21) < 2) {
-                    out->field_3 = 1;
-                } else {
-                    out->field_3 = 2;
-                }
-            } else {
-                out->field_3 = responseId;
-            }
-        }
+        return _acropolisCafeteriaAnswer(in, out);
     }
     return 1;
 }

@@ -144194,3 +144194,15 @@ above the pointer without passing the OT index. The OT index then came out right
 only as one statement, `otIdx = panel->depth + 1`: split into a load and `+= 1`
 it is set twice and its load loses the birthing boost, pushing the stack-argument
 load behind it. The remaining `sb` order was the request fields in struct order.
+
+## A barrier keeping duplicated answer stores apart is an inline helper whose result the caller returns (func_acropolis_cafeteria_8017D700, 2026-09-26)
+
+A message handler answers message 3 twice with the same `if/else` block
+(`out->field_3 = 1` / `= 2` / `= msgId`), and the target keeps the first copy's
+`li v0,K; sb v0,3(s2)` stores separate from the second copy's while sharing the
+`sb s1` store. The seed forced that with `asm("")` between each constant and its
+store. A `static inline void` helper followed by `return 1` at both sites lets
+jump2 cross-jump the first copy's stores into the second (95.9%). Making the
+helper return the handler result (`return 1` inside it) and calling it as
+`return helper(in, out);` changes the jumps' targets, so jump2 picks the
+partners the target shows and it matches with no barrier.
