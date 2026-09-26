@@ -451,30 +451,24 @@ static void func_actor_161500_801329C4(Task* task)
 /// 0xC and above. With `args->field_8` set it queues the reseed that carries
 /// `args->field_C` (state 1), otherwise the plain one (state 2), then runs the
 /// step body at once so the new clip is seeded this frame.
-///
-/// The `SOFT_BARRIER` pins the delay slot of the `beqz`: without it the slot
-/// fills from the fall-through arm (`state = 1`) instead of the else arm's
-/// `state = 2`.
 s32 func_actor_161500_80132A28(Task* task, s32 arg1, GpAnimArg* args)
 {
     Actor161500Work* work;
 
     work = (Actor161500Work*)task->work;
-    if (args->field_4 >= 0xC) {
-        return -1;
+    if (args->field_4 < 0xC) {
+        work->st.animId = args->field_4;
+        if (args->field_8 != 0) {
+            work->st.state = 1;
+            work->animArg  = args->field_C;
+        } else {
+            work->st.state = 2;
+        }
+        work->st.field_6 = 0;
+        func_actor_161500_8013252C(task);
+        return 0;
     }
-
-    work->st.animId = args->field_4;
-    if (args->field_8 != 0) {
-        SOFT_BARRIER();
-        work->st.state = 1;
-        work->animArg  = args->field_C;
-    } else {
-        work->st.state = 2;
-    }
-    work->st.field_6 = 0;
-    func_actor_161500_8013252C(task);
-    return 0;
+    return -1;
 }
 
 /// Script opcode: hides or shows this actor's model and the model of the pair
