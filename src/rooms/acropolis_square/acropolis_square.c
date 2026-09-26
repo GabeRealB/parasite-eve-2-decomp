@@ -1713,36 +1713,27 @@ void func_acropolis_square_80180CBC(Task* task)
 /// take `arg6`. A zero color or width < 2 draws nothing.
 static void func_acropolis_square_80180DAC(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
 {
-    register s32 dx asm("v1");
-    register s32 w asm("t3");
-    POLY_G4*     prim;
-    s16          x;
-    s16          y;
+    POLY_G4* prim;
+    s16      x;
+    s16      y;
 
-    dx = arg1;
-    w  = arg3;
-    if ((arg5 != 0) && (w >= 2)) {
-        prim           = (POLY_G4*)gGpuPrimCursor;
-        x              = arg0->field_20 + dx + 1;
-        prim->x2       = x;
-        prim->x0       = x;
-        y              = arg0->field_22;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 8);
+    if ((arg5 != 0) && (arg3 >= 2)) {
+        prim     = (POLY_G4*)gGpuPrimCursor;
+        x        = arg0->field_20 + arg1 + 1;
+        prim->x0 = prim->x2      = x;
+        y                        = arg0->field_22;
+        gGpuPrimCursor           = prim + 1;
         PRIM_COLOR_WORD(prim, 0) = arg5;
-        setcode(prim, 0x38);
+        setPolyG4(prim);
         PRIM_COLOR_WORD(prim, 2) = arg5;
         PRIM_COLOR_WORD(prim, 3) = arg6;
         PRIM_COLOR_WORD(prim, 1) = arg6;
         y                        = y + arg2 + 1;
-        x                        = (u16)prim->x0 + w - 1;
-        prim->y1                 = y;
-        prim->y0                 = y;
-        prim->x3                 = x;
-        prim->x1                 = x;
-        y                        = y + arg4 - 1;
-        prim->y3                 = y;
-        prim->y2                 = y;
+        x                        = prim->x0 + arg3 - 1;
+        prim->y0 = prim->y1 = y;
+        prim->x1 = prim->x3 = x;
+        y                   = y + arg4 - 1;
+        prim->y2 = prim->y3 = y;
         addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, prim);
     }
 }

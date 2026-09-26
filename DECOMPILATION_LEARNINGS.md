@@ -144232,3 +144232,6 @@ in each arm keeps the gotos' allocation and needs the pin again (99.79%). When
 a pinned pointer's only neighbour is a hand-built branch ladder, rewrite the
 ladder first: the extra references it makes are what pushed the pointer ahead
 in `global-alloc`'s priority order.
+### A pinned parameter copy can stand in for a sched1 order that decides local-alloc (func_acropolis_square_80180DAC, 2026-09-26)
+
+A gouraud-rectangle routine pinned `dx = arg1` to `$v1` so the target's `move v1,a1` and `lui a1,%hi(gGpuPrimCursor)` came out. Unpinned, arg1 stayed in `$a1` and the cursor's `%hi` took `$v1`. The deciding event is block-local: in the target, sched1 puts the `field_22` load above the cursor store, so that load's quantity holds `$v1` across the `%hi` quantity's range, local-alloc gives `%hi` `$a1`, and global-alloc then moves arg1 to `$v1`. Writing the colour-0 word before the tag rather than between `setlen` and `setcode` (`PRIM_COLOR_WORD(p, 0) = c; setPolyG4(p);`) moved that load and matched with no pin. When a pin sits on a parameter copy, look at `.lreg` for the block-local quantity that takes the register, then permute nearby independent statements.
