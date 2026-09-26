@@ -73,7 +73,7 @@ const TaskFuncTable3 D_mist_r21_8017D5C4 = {
 };
 
 /// `"target set\n"`: no code in the room reads it.
-INCLUDE_RODATA("rooms/nonmatchings/mist_r21/mist_r21", D_mist_r21_8017D5D0);
+const char D_mist_r21_8017D5D0[] = "target set\n";
 
 /// The room task's callback: runs the state `Task::state` selects from a
 /// stack copy of `D_mist_r21_8017D5C4`.

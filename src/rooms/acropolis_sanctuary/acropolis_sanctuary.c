@@ -198,10 +198,10 @@ const SVECTOR D_acropolis_sanctuary_8017D5D0 = { -0x27F6, -0x17CA, -0x1C3E, 0 };
 
 /// The two level tables stay in assembly: each is padded to a word in the ROM,
 /// which a 3-byte C object is not, and the second pad byte is non-zero.
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary", D_acropolis_sanctuary_8017D5D8);
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_sanctuary/acropolis_sanctuary", D_acropolis_sanctuary_8017D5DC);
-extern AcsSpriteLevels D_acropolis_sanctuary_8017D5D8;
-extern AcsSpriteLevels D_acropolis_sanctuary_8017D5DC;
+const AcsSpriteLevels D_acropolis_sanctuary_8017D5D8 = { { 0x60, 0x60, 0x10 } };
+const AcsSpriteLevels D_acropolis_sanctuary_8017D5DC = { { 0x10, 0x10, 0x08 } };
+/// A non-zero padding byte the original toolchain left. Nothing refers to it.
+const u8 D_acropolis_sanctuary_8017D5DF = 0xF1;
 
 /// The room task's per-frame state. Once the session reaches phase 3
 /// (`GameFlag_GetNibble(2)` still 0), advances that flag and applies the

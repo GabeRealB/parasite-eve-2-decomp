@@ -358,7 +358,9 @@ void func_acropolis_patio_8017DF70(u8 arg0)
     Gp_StateF0.field_4 = arg0;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_patio/acropolis_patio", D_acropolis_patio_8017D5E8);
+const ApGreyLevels D_acropolis_patio_8017D5E8 = { { 0x50, 0x30, 0x40 } };
+/// A non-zero padding byte the original toolchain left. Nothing refers to it.
+const u8 D_acropolis_patio_8017D5EB = 0xF2;
 
 void func_acropolis_patio_8017DF7C(Task* task)
 {
