@@ -143198,3 +143198,16 @@ order the target's luis follow. The adjusted y went into its own
 single-set local (`top = -(off + 2) + y`), so the `y` load keeps sched1's
 birthing boost. `y - (off + 2)` is reassociated by fold into
 `(y - 2) - off`.
+## A USE_REG on a parameter at the end of a function can stand for a constant assigned too early (func_800A087C, 2026-09-26)
+
+**Symptom:** a parameter and a function-scope constant local (`step = 0xA` inside
+an `if`) swap two callee-saved registers (`fp` and `s7`); the seed kept the
+parameter alive with `SOFT_USE_REG(arg0)` after its last use and forced the
+constant's `li` into place with `USE_REG3`/`SOFT_BARRIER`.
+
+**Fix:** move the assignment later in its block - here, after the call it was
+written before. The `li` then lands where the target has it, and the constant's
+live range shortens enough that global allocation ranks the two pseudos the
+target's way, so the end-of-function keep-alive was never needed. When a pin
+keeps a pseudo alive past its last use, sweep the position of a *neighbouring*
+local's definition before looking at the pinned one.

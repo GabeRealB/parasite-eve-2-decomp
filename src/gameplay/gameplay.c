@@ -3875,9 +3875,6 @@ void func_800A087C(Task* arg0)
     s32           h;
     s32           tx;
     u16           add;
-    TextDrawReq*  hpReq;
-    u8*           hpText;
-    s16           by;
 
     cfg = &Player_Status;
     obj = arg0->spawnArg2;
@@ -3954,21 +3951,16 @@ void func_800A087C(Task* arg0)
     h = (s16)obj->field_1A;
     y = h - 2;
     if (D_80114BE2 > 0) {
-        y      = h - 1;
-        hpReq  = &req2;
-        hpText = Gp_StrHP;
-        USE_REG3(y, hpReq, hpText);
-        req2.x = obj->field_1C + (obj->baseX + 6);
-        by     = obj->baseY;
-        SOFT_BARRIER();
-        step            = 0xA;
-        req2.y          = (s16)(by - 2) + y;
+        y               = h - 1;
+        req2.x          = obj->field_1C + (obj->baseX + 6);
+        req2.y          = (s16)(obj->baseY - 2) + y;
         req2.otIndex    = obj->drawOrder + 1;
         req2.field_8    = color;
         req2.glyphTable = 5;
         req2.centerMode = 0;
         req2.field_E    = 1;
-        func_8002E53C(hpReq, hpText);
+        func_8002E53C(&req2, Gp_StrHP);
+        step = 0xA;
 
         req3.x          = obj->baseX + col;
         req3.y          = obj->baseY + y;
@@ -4116,5 +4108,4 @@ void func_800A087C(Task* arg0)
             obj->field_2E = 6;
         }
     }
-    SOFT_USE_REG(arg0);
 }
