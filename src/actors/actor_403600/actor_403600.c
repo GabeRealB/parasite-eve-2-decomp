@@ -714,40 +714,32 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Fx
 
 void func_actor_403600_80134288(Task* arg0)
 {
-    Task*                       temp_v0_2;
-    Actor403600FxWork*          temp_a3;
-    register Actor403600FxWork* temp_v0 asm("a3");
-    register Actor403600Work*   var_a2 asm("a2");
+    Actor403600Work*            work;
+    register Actor403600FxWork* fx asm("a3");
+    Task*                       child;
 
-    var_a2 = (Actor403600Work*)arg0->parent->work;
+    work = (Actor403600Work*)arg0->parent->work;
     if (arg0->state == 0) {
-        temp_v0 = memCalloc(0x11C, false);
-        if (temp_v0 == NULL) {
+        fx = memCalloc(0x11C, false);
+        if (fx == NULL) {
             Task_CallExit(arg0);
             return;
         }
         gGameSession->field_80 = 0;
-        arg0->work             = temp_v0;
-        temp_v0_2              = Task_SpawnFromTable(&D_actor_403600_801421A0, 2, 0, 0);
-        if (temp_v0_2 != NULL) {
-            Task_Reparent(arg0, temp_v0_2);
+        arg0->work             = fx;
+        child                  = Task_SpawnFromTable(&D_actor_403600_801421A0, 2, 0, 0);
+        if (child != NULL) {
+            Task_Reparent(arg0, child);
         }
-        var_a2                  = (Actor403600Work*)arg0->parent->work;
-        var_a2->field_710       = arg0;
+        work                    = (Actor403600Work*)arg0->parent->work;
+        work->field_710         = arg0;
         D_actor_403600_801606A0 = 0;
-        arg0->state            += 1;
-        goto block_6;
+        arg0->state++;
     }
-block_6:
-    temp_a3                 = arg0->work;
+    fx                      = arg0->work;
     D_actor_403600_8016069C = (s32)D_8005C374 + (gDisplayState.otBuffer * 0xC000);
-    {
-        register s32 field_742 asm("v1");
-
-        field_742 = var_a2->field_742;
-        if ((field_742 != 1) && (var_a2->field_708 > 0)) {
-            func_actor_403600_80132A18(arg0, var_a2, temp_a3, temp_a3);
-        }
+    if (work->field_742 != 1 && work->field_708 > 0) {
+        func_actor_403600_80132A18(arg0, work, fx, fx);
     }
 }
 const SVECTOR D_actor_403600_80131E24 = { -100, 700, -280, 0 };

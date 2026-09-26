@@ -142783,3 +142783,25 @@ falls back to pseudo order - `total` first. A text-cursor local (`u16* text =
 arg0;` declared after the counters) is that insn; before the counters it does
 nothing. Declaration order and init order alone (all 120 permutations) and
 moving the return's operands do not move it.
+
+### A pointer stored just before a call cannot share that call's constant argument register without a pin (func_actor_403600_80134288, 2026-09-26)
+
+**Symptom.** The target keeps a freshly allocated pointer in `$a3` from
+`move a3,v0` through `sw a3,0x1c(s0)` just before `jal Task_SpawnFromTable`,
+whose fourth argument (0) is set in the delay slot (`move a3,a2`). Unpinned, the
+pointer lands in `$t0` and the whole function shifts registers; a single
+`register ... asm("a3")` on it restores the match.
+
+**Mechanism.** sched1 schedules bottom-up by `INSN_PRIORITY`, which is the
+longest chain of *predecessors* in the block. The store follows a
+`gGameSession->field` store fed by a load (priority 2 via the output
+dependence), while `(set a3 (const_int 0))` has no predecessor (priority 1), so
+the store always sinks below the argument move and the pointer's live range
+overlaps `$a3`. Only an anti-dependence on `$a3` itself — which exists only if
+the pointer already *is* `$a3` before allocation — gives the move priority 2 and
+puts it last. Statement order, a split local, `arg0->work` re-reads and an
+inline helper around the spawn all leave the priorities unchanged; the
+permuter found nothing either.
+
+**Outcome.** Kept as the one remaining pin; the other two pins in the function
+were only compensating for the `goto`-shaped m2c body and dropped out.
