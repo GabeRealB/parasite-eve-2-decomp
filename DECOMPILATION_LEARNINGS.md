@@ -73167,6 +73167,35 @@ is the worked example; getting this one instruction right also re-seated the
 temporaries in three later blocks, because the extra pseudo shifts local-alloc's
 quantity order for the whole function.
 
+## The scratch-head store separates two reads for cse but not for the scheduler, and the `move` stays where the load was (Gp_UpdatePlayerMove, 2026-09-26)
+
+**Target.** `lw v1,0x1c(a3)` feeds a run of loads and stores through `v1`, and a
+`move s0,v1` sits *among* them, right before the first store - not at the end
+of the block where a birthing copy goes, and not rewritten by
+`optimize_reg_copy_1`. An inline helper with its own `actor = arg->work`, or one
+returning its pointer, gives one load and a copy scheduled last.
+
+**Source.** Read the long-lived pointer *before* the scratch push, and let the
+helper read it again after:
+
+```c
+actor = work->work;          /* first read */
+SCRATCH_PUSH(SVECTOR);
+vec = SCRATCH_HEAD(SVECTOR);
+_gpCaptureActorPad(work);    /* reads work->work again, stores through it */
+```
+
+**Why.** cse's `note_mem_written` sets `var` for *any* store, and
+`invalidate_memory` then drops every entry whose address varies - so the
+`SCRATCH_HEAD` store kills `work->work` and the helper's read stays a second
+load. `sched.c`'s `true_dependence` instead runs `canon_rtx`, which turns the
+store's address register into its known constant: a non-struct store at a fixed
+address never conflicts with a struct load of non-QI mode. sched1 is then free
+to sink the (birthing) `actor` load to just above the first store it
+anti-depends on, `reload_cse_regs` turns it into `move s0,v1`, and the move
+stays there because `sched.c` never clears `LOG_LINKS`: the load's memory
+dependences from sched1 still hold the copy above the stores in sched2.
+
 ## Accumulate a sum into its own variable or it coalesces with `$a0`
 
 `SquareRoot0(x*x + y*y + z*z)` expands as `t1 = x2 + y2`, then

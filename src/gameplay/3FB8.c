@@ -3451,59 +3451,49 @@ void Gp_PlayerWorkTask(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-typedef struct {
-    byte pad[0x973];
-    u8   field_973;
-} ActorDirByte;
+/// Recomputes `coord` from its local transform, clearing its flags first.
+#define GP_REFRESH_COORD(coord) \
+    do {                        \
+        (coord)->flg = 0;       \
+        Gp_UpdateCoord(coord);  \
+    } while (0)
+
+/// Latches this frame's pad state into the actor of `arg0`: keeps the previous
+/// values of the per-frame bytes and of the held buttons, reads the session's
+/// pad, and derives the newly pressed and released buttons from the two.
+static inline void _gpCaptureActorPad(Task* arg0)
+{
+    GameActor* actor;
+    u16        buttons;
+
+    actor            = arg0->work;
+    actor->field_974 = actor->field_973;
+    actor->field_976 = actor->field_975;
+    actor->field_964 = actor->field_962;
+    buttons          = gGameSession->pad;
+    actor->field_978 = actor->field_977;
+    actor->field_962 = buttons;
+    actor->field_966 = actor->field_962 & ~actor->field_964;
+    actor->field_968 = actor->field_964 & ~actor->field_962;
+    actor->field_977 = (actor->field_962 >> 6) & 1;
+}
 
 void Gp_UpdatePlayerMove(void)
 {
-    u8*                 head;
-    u8*                 newhead;
-    SVECTOR*            vec;
-    Task*               work;
-    GameActor*          actor;
-    GameActor*          p;
-    register TmdObject* extra asm("v0");
-    GpCoord*            coord;
-    u16                 buttons;
-    u16                 prev;
-    s8                  f975;
-    s8                  f977;
-    GameSession*        session;
-    Task*               task;
-    MATRIX*             mat;
-    register s8         f973 asm("a1");
+    Task*      work;
+    GameActor* actor;
+    GpCoord*   coord;
+    SVECTOR*   vec;
+    Task*      task;
+    MATRIX*    mat;
 
-    work             = gameGetPtrSlot(3);
-    head             = SCRATCH_HEAD(u8);
-    newhead          = head - 8;
-    SCRATCH_HEAD(u8) = newhead;
-    COMPILER_BARRIER();
-    p     = work->work;
-    extra = work->extra.tmd;
-    f973  = p->field_973;
-    coord = extra->coords;
-    f975  = p->field_975;
-    TOUCH_REG3(coord, f975, p);
-    prev = p->field_962;
-    USE_REG(prev);
-    actor = p;
-    TOUCH_REG2(actor, p);
-    p->field_976 = f975;
-    p->field_974 = f973;
-    session      = gGameSession;
-    f977         = ((volatile GameActor*)p)->field_977;
-    USE_REG(f977);
-    p->field_964       = prev;
-    buttons            = session->pad;
-    p->field_978       = f977;
-    p->field_962       = buttons;
-    p->field_966       = p->field_962 & ~p->field_964;
-    p->field_968       = p->field_964 & ~p->field_962;
-    p->field_977       = (p->field_962 >> 6) & 1;
+    work  = gameGetPtrSlot(3);
+    actor = work->work;
+    SCRATCH_PUSH(SVECTOR);
+    vec   = SCRATCH_HEAD(SVECTOR);
+    coord = work->extra.tmd->coords;
+    _gpCaptureActorPad(work);
     Gp_StateF0.field_2 = 0;
-    vec                = (SVECTOR*)newhead;
     if (D_80115768 == 0) {
         Gp_TickPlayerActor(work);
     }
@@ -3520,19 +3510,15 @@ void Gp_UpdatePlayerMove(void)
     if (actor->field_984 & 1) {
         coord->coord.t[1] += 0x80;
     }
-    coord->flg = 0;
-    Gp_UpdateCoord(coord);
-    if ((s8)actor->field_986 != 0) {
-        ((SVECTOR*)(head - 8))->vx = (u16)actor->field_30.vx;
-        vec->vy                    = (u16)actor->field_30.vy;
-        vec->vz                    = (u16)actor->field_30.vz;
+    GP_REFRESH_COORD(coord);
+    if (actor->field_986 != 0) {
+        vec->vx = actor->field_30.vx;
+        vec->vy = actor->field_30.vy;
+        vec->vz = actor->field_30.vz;
     } else {
-        ((SVECTOR*)(head - 8))->vx =
-            (u16)coord->workm.m[0][2] * (s8)((volatile ActorDirByte*)actor)->field_973;
-        vec->vy =
-            (u16)coord->workm.m[1][2] * (s8)((volatile ActorDirByte*)actor)->field_973;
-        vec->vz =
-            (u16)coord->workm.m[2][2] * (s8)((volatile ActorDirByte*)actor)->field_973;
+        vec->vx = coord->workm.m[0][2] * actor->field_973;
+        vec->vy = coord->workm.m[1][2] * actor->field_973;
+        vec->vz = coord->workm.m[2][2] * actor->field_973;
     }
     task                            = actor->field_91C;
     ((SVECTOR*)actor->field_88)->vx = vec->vx;
@@ -3552,7 +3538,7 @@ void Gp_UpdatePlayerMove(void)
             Gfx_RotMatrixY(mat, -0x20, 0);
         }
     }
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_POP(SVECTOR);
 }
 
 void Gp_TickActorAnimState(Task* arg0)
