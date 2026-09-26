@@ -36,13 +36,13 @@ extern SVECTOR D_shelter_b3_garbage_incinerator_801875AC[];
 extern SVECTOR D_shelter_b3_garbage_incinerator_801875B4[];
 extern SVECTOR D_shelter_b3_garbage_incinerator_80187614[];
 
-void func_shelter_b3_garbage_incinerator_80181FC4(SVECTOR* v, s32 arg1, s32 arg2);
-void func_shelter_b3_garbage_incinerator_80183E78(SVECTOR* v, s32 arg1, s32 arg2, s32 arg3);
-void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* v, u16 arg1, u16 arg2, u16 arg3);
-void func_shelter_b3_garbage_incinerator_80182AB8(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-void func_shelter_b3_garbage_incinerator_80182F18(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-void func_shelter_b3_garbage_incinerator_801837F8(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-void func_shelter_b3_garbage_incinerator_80183BE4(GpCoord* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b3_garbage_incinerator_80181FC4(SVECTOR* v, s32 arg1, s32 arg2);
+static void func_shelter_b3_garbage_incinerator_80183E78(SVECTOR* v, s32 arg1, s32 arg2, s32 arg3);
+static void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* v, u16 arg1, u16 arg2, u16 arg3);
+static void func_shelter_b3_garbage_incinerator_80182AB8(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_b3_garbage_incinerator_80182F18(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_b3_garbage_incinerator_801837F8(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_b3_garbage_incinerator_80183BE4(GpCoord* arg0, s32 arg1, s32 arg2);
 
 extern TaskDesc D_80164190;
 
@@ -54,7 +54,7 @@ extern u16 D_shelter_b3_garbage_incinerator_8018FBFC[][4];
 /// edges built by `func_shelter_b3_garbage_incinerator_8018507C`.
 extern u16 D_shelter_b3_garbage_incinerator_8018FBCC[][4];
 
-void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
+static void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
 {
     GarbageIncineratorDraw* ctx;
     u32                     mode;
@@ -327,7 +327,7 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
     }
 }
 
-void func_shelter_b3_garbage_incinerator_80181FC4(SVECTOR* v, s32 arg1, s32 arg2)
+static void func_shelter_b3_garbage_incinerator_80181FC4(SVECTOR* v, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw13Scratch* block;
@@ -392,7 +392,7 @@ void func_shelter_b3_garbage_incinerator_80181FC4(SVECTOR* v, s32 arg1, s32 arg2
     SCRATCH_POP_BYTES(0x10);
 }
 
-void func_shelter_b3_garbage_incinerator_80182368(Task* task)
+static void func_shelter_b3_garbage_incinerator_80182368(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -542,7 +542,7 @@ void func_shelter_b3_garbage_incinerator_80182368(Task* task)
     }
 }
 
-void func_shelter_b3_garbage_incinerator_80182AB8(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_b3_garbage_incinerator_80182AB8(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -609,7 +609,7 @@ void func_shelter_b3_garbage_incinerator_80182AB8(GpCoord* arg0, u16 arg1, s16 a
     SCRATCH_POP_BYTES(0x1C);
 }
 
-void func_shelter_b3_garbage_incinerator_80182F18(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_b3_garbage_incinerator_80182F18(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -671,7 +671,7 @@ void func_shelter_b3_garbage_incinerator_80182F18(GpCoord* arg0, u16 arg1, s16 a
     SCRATCH_POP_BYTES(0x1C);
 }
 
-void func_shelter_b3_garbage_incinerator_80183364(Task* task)
+static void func_shelter_b3_garbage_incinerator_80183364(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -790,7 +790,7 @@ void func_shelter_b3_garbage_incinerator_80183364(Task* task)
 /// `arg3` and a quarter turn past it. `arg1` picks the frame, a 32x32 cell
 /// in a row of the texture page. Nothing is drawn when the projection flags
 /// an error.
-void func_shelter_b3_garbage_incinerator_801837F8(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_b3_garbage_incinerator_801837F8(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -858,7 +858,7 @@ void func_shelter_b3_garbage_incinerator_801837F8(GpCoord* arg0, u16 arg1, s16 a
 /// projected point sits three quarters of the way down it. `arg1` picks the
 /// frame, a 56x56 cell in a four-by-two grid of the texture page. Nothing is
 /// drawn when the projection flags an error.
-void func_shelter_b3_garbage_incinerator_80183BE4(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b3_garbage_incinerator_80183BE4(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -934,7 +934,7 @@ void func_shelter_b3_garbage_incinerator_80183BE4(GpCoord* arg0, s32 arg1, s32 a
     SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
-void func_shelter_b3_garbage_incinerator_80183E78(SVECTOR* v, s32 arg1, s32 arg2, s32 arg3)
+static void func_shelter_b3_garbage_incinerator_80183E78(SVECTOR* v, s32 arg1, s32 arg2, s32 arg3)
 {
     u8*                head;
     RoomDraw13Scratch* block;
@@ -993,7 +993,7 @@ void func_shelter_b3_garbage_incinerator_80183E78(SVECTOR* v, s32 arg1, s32 arg2
     SCRATCH_POP_BYTES(0x10);
 }
 
-void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* arg0, u16 arg1, u16 arg2, u16 arg3)
+static void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
     RoomDraw05Scratch* block;
     POLY_G4*           prim;
@@ -1142,7 +1142,7 @@ void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* arg0, u16 arg1, u16 a
     SCRATCH_POP_BYTES(0x14);
 }
 
-void func_shelter_b3_garbage_incinerator_80184D7C(void)
+static void func_shelter_b3_garbage_incinerator_80184D7C(void)
 {
 }
 
@@ -1202,7 +1202,7 @@ void func_shelter_b3_garbage_incinerator_80184ECC(Task* task)
     taskKill(task);
 }
 
-void func_shelter_b3_garbage_incinerator_80184EEC(void)
+static void func_shelter_b3_garbage_incinerator_80184EEC(void)
 {
     SVECTOR     normal;
     SVECTOR*    normals;
@@ -1359,7 +1359,7 @@ void func_shelter_b3_garbage_incinerator_801853C4(void)
     } while (i < 6);
 }
 
-void func_shelter_b3_garbage_incinerator_80185574(void)
+static void func_shelter_b3_garbage_incinerator_80185574(void)
 {
     func_shelter_b3_garbage_incinerator_80185220();
 }

@@ -751,12 +751,12 @@ void func_neo_ark_submarine_gallery_8017E2CC(Task* task)
     SCRATCH_POP_BYTES(0x40);
 }
 
-void func_neo_ark_submarine_gallery_8017EB50(Task* arg0);
-void func_neo_ark_submarine_gallery_8017EBC4(Task* arg0);
+static void func_neo_ark_submarine_gallery_8017EB50(Task* arg0);
+static void func_neo_ark_submarine_gallery_8017EBC4(Task* arg0);
 
 /// State handlers of the room's entry task, indexed by its state through
 /// `func_neo_ark_submarine_gallery_8017EBCC`: set-up, idle, then kill.
-const TaskFuncTable3 D_neo_ark_submarine_gallery_8017D614 = {
+static const TaskFuncTable3 D_neo_ark_submarine_gallery_8017D614 = {
     { func_neo_ark_submarine_gallery_8017EB50, func_neo_ark_submarine_gallery_8017EBC4, taskKill }
 };
 
@@ -869,7 +869,7 @@ s32 func_neo_ark_submarine_gallery_8017EB48(void)
     return 0;
 }
 
-void func_neo_ark_submarine_gallery_8017EB50(Task* arg0)
+static void func_neo_ark_submarine_gallery_8017EB50(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_submarine_gallery_80181884;
     Game_SetPtrSlot(arg0, 7);
@@ -879,13 +879,13 @@ void func_neo_ark_submarine_gallery_8017EB50(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-void func_neo_ark_submarine_gallery_8017EBC4(Task* arg0)
+static void func_neo_ark_submarine_gallery_8017EBC4(Task* arg0)
 {
 }
 
 /// Entry task tick: dispatches on the task's state through
 /// `D_neo_ark_submarine_gallery_8017D614`, copied to the stack first.
-void func_neo_ark_submarine_gallery_8017EBCC(Task* task)
+static void func_neo_ark_submarine_gallery_8017EBCC(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -898,7 +898,7 @@ void func_neo_ark_submarine_gallery_8017EBCC(Task* task)
 /// the projection passes, queues one semi-transparent `POLY_G3` plus its
 /// drawing-mode packet (tpage 0x2A) into `gGpuCurrentOt[(otz >> 4) + 0x18]`.
 /// The disc sits at view-space height 0x14B4.
-s32 func_neo_ark_submarine_gallery_8017EC24(u16 arg0, s32 arg1)
+static s32 func_neo_ark_submarine_gallery_8017EC24(u16 arg0, s32 arg1)
 {
     SVECTOR  p0;
     SVECTOR  p1;
@@ -953,7 +953,7 @@ s32 func_neo_ark_submarine_gallery_8017EC24(u16 arg0, s32 arg1)
     }
 }
 
-void func_neo_ark_submarine_gallery_8017EED8(Task* arg0)
+static void func_neo_ark_submarine_gallery_8017EED8(Task* arg0)
 {
     if (gGameSession->at4.loc.place != 4) {
         arg0->killCountdown = 0;
@@ -963,7 +963,7 @@ void func_neo_ark_submarine_gallery_8017EED8(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-void func_neo_ark_submarine_gallery_8017EF14(Task* arg0)
+static void func_neo_ark_submarine_gallery_8017EF14(Task* arg0)
 {
     s32 mode;
     if (Gp_ActorSlots[0] != NULL) {
@@ -978,14 +978,14 @@ void func_neo_ark_submarine_gallery_8017EF14(Task* arg0)
     }
 }
 
-void func_neo_ark_submarine_gallery_8017EF8C(Task* arg0)
+static void func_neo_ark_submarine_gallery_8017EF8C(Task* arg0)
 {
 }
 
 /// State handlers of the disc task, indexed by its state through
 /// `func_neo_ark_submarine_gallery_8017EF94`: set-up, the per-frame disc sweep,
 /// then an idle state.
-const TaskFuncTable3 D_neo_ark_submarine_gallery_8017D63C = {
+static const TaskFuncTable3 D_neo_ark_submarine_gallery_8017D63C = {
     { func_neo_ark_submarine_gallery_8017EED8, func_neo_ark_submarine_gallery_8017EF14,
       func_neo_ark_submarine_gallery_8017EF8C }
 };

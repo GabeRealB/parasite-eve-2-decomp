@@ -53,7 +53,7 @@ s32 func_dryfield_souvenir_shop_8017D608(void)
 
 /// First state of the room task: publishes the room's message table, claims
 /// pointer slot 7 and advances to the next state.
-void func_dryfield_souvenir_shop_8017D610(Task* task)
+static void func_dryfield_souvenir_shop_8017D610(Task* task)
 {
     task->msgTable = D_dryfield_souvenir_shop_8017E014;
     Game_SetPtrSlot(task, 7);
@@ -61,18 +61,18 @@ void func_dryfield_souvenir_shop_8017D610(Task* task)
 }
 
 /// Second state of the room task: the room has nothing to do each frame.
-void func_dryfield_souvenir_shop_8017D654(Task* task)
+static void func_dryfield_souvenir_shop_8017D654(Task* task)
 {
 }
 
 /// The room task's three states.
-const TaskFuncTable3 D_dryfield_souvenir_shop_8017D5C4 = {
+static const TaskFuncTable3 D_dryfield_souvenir_shop_8017D5C4 = {
     { func_dryfield_souvenir_shop_8017D610, func_dryfield_souvenir_shop_8017D654, taskKill },
 };
 
 /// The room task's callback: runs the state `Task::state` selects from a
 /// stack copy of `D_dryfield_souvenir_shop_8017D5C4`.
-void func_dryfield_souvenir_shop_8017D65C(Task* task)
+static void func_dryfield_souvenir_shop_8017D65C(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -86,7 +86,7 @@ void func_dryfield_souvenir_shop_8017D65C(Task* task)
 /// `workm` and moved by its translation before projection through
 /// `GsWSMATRIX`. The lit corners share a grey of 0x18 plus a small pulse; the
 /// far corners are black.
-void func_dryfield_souvenir_shop_8017D6B4(GpCoord* coord, s16 arg1)
+static void func_dryfield_souvenir_shop_8017D6B4(GpCoord* coord, s16 arg1)
 {
     RoomQuadScratch* blk;
     POLY_G4*         prim;
@@ -202,7 +202,7 @@ void func_dryfield_souvenir_shop_8017D6B4(GpCoord* coord, s16 arg1)
 /// Per-frame effect on the room's model task: `Task::extra` is the task's
 /// `TmdObject`, and both of the room's prisms are drawn under its first
 /// coordinate.
-void func_dryfield_souvenir_shop_8017DFD4(Task* task)
+static void func_dryfield_souvenir_shop_8017DFD4(Task* task)
 {
     GpCoord* coord = task->extra.tmd->coords;
 

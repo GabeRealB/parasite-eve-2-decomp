@@ -81,41 +81,41 @@ extern u16   D_acropolis_bridge_801917A4;
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_800FDB18(s32 arg0, GpCoord* arg1, SVECTOR* arg2, GpEffArg* arg3);
 
-void func_acropolis_bridge_8017D98C(Task* task);
-void func_acropolis_bridge_8017D9FC(Task* task);
-void func_acropolis_bridge_8017DA64(Task* task);
-void func_acropolis_bridge_8017DB08(Task* task);
-void func_acropolis_bridge_8017DB60(Task* task);
-void func_acropolis_bridge_8017DBA0(Task* task);
-void func_acropolis_bridge_8017DC1C(Task* task);
-void func_acropolis_bridge_8017DC68(Task* task);
-void func_acropolis_bridge_8017DD24(Task* task);
-void func_acropolis_bridge_8017DD88(Task* task);
-void func_acropolis_bridge_8017DD9C(Task* task);
-void func_acropolis_bridge_8017DDEC(Task* task);
-void func_acropolis_bridge_8017DE94(Task* task);
-s16  func_acropolis_bridge_8017E024(void);
-void func_acropolis_bridge_8017E04C(Task* task);
-void func_acropolis_bridge_8017E1D0(Task* task);
-void func_acropolis_bridge_8017E3A0(Task* task);
-void func_acropolis_bridge_8017E4FC(Task* task);
-void func_acropolis_bridge_8017E81C(void);
-void func_acropolis_bridge_8017F198(s32 x, s32 y, s32 variant);
-void func_acropolis_bridge_8017F2D0(s32 flags);
-void func_acropolis_bridge_8017F404(Task* task);
-void func_acropolis_bridge_8017F460(Task* task);
-void func_acropolis_bridge_8017F4CC(Task* task);
-void func_acropolis_bridge_8017F544(Task* task);
-void func_acropolis_bridge_8017F658(Task* task);
-s32  func_acropolis_bridge_8017F6D4(OverlayHotspot* table, s16 x, s16 y);
-void func_acropolis_bridge_8017F808(Task* task);
-void func_acropolis_bridge_801827EC(GpCoord* arg0, s32 arg1, s16 arg2);
-void func_acropolis_bridge_80182F8C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-void func_acropolis_bridge_801833A0(GpCoord* arg0, u16 arg1, s16 arg2);
-void func_acropolis_bridge_80183654(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_acropolis_bridge_8018581C(Task* task);
-void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task);
-void func_acropolis_bridge_80187850(GpEnemy* enemy, Task* task);
+static void func_acropolis_bridge_8017D98C(Task* task);
+static void func_acropolis_bridge_8017D9FC(Task* task);
+static void func_acropolis_bridge_8017DA64(Task* task);
+static void func_acropolis_bridge_8017DB08(Task* task);
+static void func_acropolis_bridge_8017DB60(Task* task);
+static void func_acropolis_bridge_8017DBA0(Task* task);
+static void func_acropolis_bridge_8017DC1C(Task* task);
+static void func_acropolis_bridge_8017DC68(Task* task);
+static void func_acropolis_bridge_8017DD24(Task* task);
+static void func_acropolis_bridge_8017DD88(Task* task);
+static void func_acropolis_bridge_8017DD9C(Task* task);
+static void func_acropolis_bridge_8017DDEC(Task* task);
+static void func_acropolis_bridge_8017DE94(Task* task);
+static s16  func_acropolis_bridge_8017E024(void);
+static void func_acropolis_bridge_8017E04C(Task* task);
+static void func_acropolis_bridge_8017E1D0(Task* task);
+static void func_acropolis_bridge_8017E3A0(Task* task);
+static void func_acropolis_bridge_8017E4FC(Task* task);
+static void func_acropolis_bridge_8017E81C(void);
+static void func_acropolis_bridge_8017F198(s32 x, s32 y, s32 variant);
+void        func_acropolis_bridge_8017F2D0(s32 flags);
+static void func_acropolis_bridge_8017F404(Task* task);
+static void func_acropolis_bridge_8017F460(Task* task);
+static void func_acropolis_bridge_8017F4CC(Task* task);
+static void func_acropolis_bridge_8017F544(Task* task);
+static void func_acropolis_bridge_8017F658(Task* task);
+static s32  func_acropolis_bridge_8017F6D4(OverlayHotspot* table, s16 x, s16 y);
+static void func_acropolis_bridge_8017F808(Task* task);
+static void func_acropolis_bridge_801827EC(GpCoord* arg0, s32 arg1, s16 arg2);
+static void func_acropolis_bridge_80182F8C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void func_acropolis_bridge_801833A0(GpCoord* arg0, u16 arg1, s16 arg2);
+static void func_acropolis_bridge_80183654(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_acropolis_bridge_8018581C(Task* task);
+static void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task);
+static void func_acropolis_bridge_80187850(GpEnemy* enemy, Task* task);
 
 /// Work block of the bridge model task, stored at `Task::work`; it is exactly
 /// the `memCalloc(4, 0)` the setup state allocates.
@@ -179,18 +179,20 @@ typedef struct AcropolisBridgeHitScratch {
 STATIC_ASSERT_SIZEOF(AcropolisBridgeHitScratch, 0xC);
 
 /// Ticks the walker task: steps its patrol route and drives its animation.
-void func_acropolis_bridge_8018532C(OverlayWalker* walker);
+static void func_acropolis_bridge_8018532C(OverlayWalker* walker);
 
 /// Returns the patrol node nearest the given actor's coordinate, by squared
 /// distance in the XZ plane.
-u8 func_acropolis_bridge_801843A0(OverlayWalker* work, s32 actor);
+static u8 func_acropolis_bridge_801843A0(OverlayWalker* work, s32 actor);
 /// Returns the patrol node nearest the walker, by squared distance in the
 /// XZ plane between the node table and the walker's coordinate translation.
-u8   func_acropolis_bridge_8018450C(OverlayWalker* work);
-void func_acropolis_bridge_80184638(OverlayWalker* work, s16 arg1);
-void func_acropolis_bridge_80184908(OverlayWalker* work);
-void func_acropolis_bridge_80184B94(OverlayWalker* work);
-void func_acropolis_bridge_80185104(OverlayWalker* work, SVECTOR3* pos);
+static u8   func_acropolis_bridge_8018450C(OverlayWalker* work);
+static void func_acropolis_bridge_80184638(OverlayWalker* work, s16 arg1);
+static void func_acropolis_bridge_80184908(OverlayWalker* work);
+static void func_acropolis_bridge_80184B94(OverlayWalker* work);
+static void func_acropolis_bridge_80185104(OverlayWalker* work, SVECTOR3* pos);
+
+static void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt);
 
 /// Room message handler: answers msg 0xF (first use of the bridge) by running
 /// the cutscene once and marking the area object, and msg 0xB by asking for
@@ -251,12 +253,12 @@ s32 func_acropolis_bridge_8017D870(void)
 }
 
 /// State handlers of the room's own task.
-const TaskFuncTable3 D_acropolis_bridge_8017D5C4 = {
+static const TaskFuncTable3 D_acropolis_bridge_8017D5C4 = {
     { func_acropolis_bridge_8017D98C, func_acropolis_bridge_8017D9FC, taskKill }
 };
 
 /// State handlers of the bridge model task.
-const TaskFuncTable3 D_acropolis_bridge_8017D5D0 = {
+static const TaskFuncTable3 D_acropolis_bridge_8017D5D0 = {
     { func_acropolis_bridge_8017DA64, func_acropolis_bridge_8017DB08, taskKill }
 };
 
@@ -271,7 +273,7 @@ void func_acropolis_bridge_8017D878(Task* task)
 }
 
 /// State handlers of the room's cutscene task.
-const TaskFuncTable14 D_acropolis_bridge_8017D5DC = {
+static const TaskFuncTable14 D_acropolis_bridge_8017D5DC = {
     { func_acropolis_bridge_8017DB60, func_acropolis_bridge_8017DBA0, func_acropolis_bridge_8017DD88,
       func_acropolis_bridge_8017DC1C, func_acropolis_bridge_8017DC68, func_acropolis_bridge_8017DD24,
       func_acropolis_bridge_8017DD88, func_acropolis_bridge_8017DD88, func_acropolis_bridge_8017DD88,
@@ -280,7 +282,7 @@ const TaskFuncTable14 D_acropolis_bridge_8017D5DC = {
 };
 
 /// State handlers of the room's prompt script task.
-const TaskFuncTable9 D_acropolis_bridge_8017D614 = {
+static const TaskFuncTable9 D_acropolis_bridge_8017D614 = {
     { func_acropolis_bridge_8017E04C, func_acropolis_bridge_8017F404, func_acropolis_bridge_8017E1D0,
       func_acropolis_bridge_8017F460, func_acropolis_bridge_8017F4CC, func_acropolis_bridge_8017F544,
       func_acropolis_bridge_8017E3A0, func_acropolis_bridge_8017E4FC, func_acropolis_bridge_8017F658 }
@@ -302,7 +304,7 @@ void func_acropolis_bridge_8017D954(void)
     Gp_StateC08.field_6 |= 1;
 }
 
-void func_acropolis_bridge_8017D98C(Task* arg0)
+static void func_acropolis_bridge_8017D98C(Task* arg0)
 {
     arg0->msgTable = D_acropolis_bridge_80188E4C;
     Game_SetPtrSlot(arg0, 7);
@@ -311,14 +313,14 @@ void func_acropolis_bridge_8017D98C(Task* arg0)
     func_acropolis_bridge_8017F2D0(GameFlag_GetNibble(0x10) & 0xFF);
 }
 
-void func_acropolis_bridge_8017D9FC(Task* task)
+static void func_acropolis_bridge_8017D9FC(Task* task)
 {
     char pad[0x10];
 }
 
 /// Three-state dispatcher of the room's own task: setup, an empty idle state,
 /// then `taskKill`. The table is copied onto the stack before the call.
-void func_acropolis_bridge_8017DA0C(Task* task)
+static void func_acropolis_bridge_8017DA0C(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -329,7 +331,7 @@ void func_acropolis_bridge_8017DA0C(Task* task)
 /// First state of the bridge model task: allocates its work block, parks the
 /// model at (-0x23F0, 0x12C, -0xAF0) and parents it to the room's view
 /// coordinate system. The task is killed if the allocation fails.
-void func_acropolis_bridge_8017DA64(Task* task)
+static void func_acropolis_bridge_8017DA64(Task* task)
 {
     TmdObject*                 extra;
     GpCoord*                   coord;
@@ -356,7 +358,7 @@ void func_acropolis_bridge_8017DA64(Task* task)
 /// Per-frame state of the bridge model task: raises bit 0x80 of the object's
 /// flags on camera views 8..10 and clears them elsewhere, then clears the root
 /// coordinate's `flg` so its world matrix is rebuilt this frame.
-void func_acropolis_bridge_8017DB08(Task* task)
+static void func_acropolis_bridge_8017DB08(Task* task)
 {
     TmdObject* extra;
     GpCoord*   coord;
@@ -371,13 +373,13 @@ void func_acropolis_bridge_8017DB08(Task* task)
     coord->flg = 0;
 }
 
-void func_acropolis_bridge_8017DB60(Task* arg0)
+static void func_acropolis_bridge_8017DB60(Task* arg0)
 {
     Gp_StartCapSlot(7, 1, 1);
     arg0->state = (s32)(arg0->state + 1);
 }
 
-void func_acropolis_bridge_8017DBA0(Task* arg0)
+static void func_acropolis_bridge_8017DBA0(Task* arg0)
 {
     if (Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA3, 0, 0) == 0) {
         Mc_SaveData.at4.loc.view = 8;
@@ -388,7 +390,7 @@ void func_acropolis_bridge_8017DBA0(Task* arg0)
     }
 }
 
-void func_acropolis_bridge_8017DC1C(Task* arg0)
+static void func_acropolis_bridge_8017DC1C(Task* arg0)
 {
     Task* temp_v0;
 
@@ -397,7 +399,7 @@ void func_acropolis_bridge_8017DC1C(Task* arg0)
     D_acropolis_bridge_80191798 = temp_v0;
 }
 
-void func_acropolis_bridge_8017DC68(Task* arg0)
+static void func_acropolis_bridge_8017DC68(Task* arg0)
 {
     GpCmdArg msg = { { { 1, 0xB } }, 1 };
 
@@ -414,7 +416,7 @@ void func_acropolis_bridge_8017DC68(Task* arg0)
     }
 }
 
-void func_acropolis_bridge_8017DD24(Task* arg0)
+static void func_acropolis_bridge_8017DD24(Task* arg0)
 {
     if (D_acropolis_bridge_801917A0 == 0) {
         Gp_MsgPlayerWeapon(1);
@@ -426,12 +428,12 @@ void func_acropolis_bridge_8017DD24(Task* arg0)
     arg0->state += 1;
 }
 
-void func_acropolis_bridge_8017DD88(Task* arg0)
+static void func_acropolis_bridge_8017DD88(Task* arg0)
 {
     arg0->state = arg0->state + 1;
 }
 
-void func_acropolis_bridge_8017DD9C(Task* arg0)
+static void func_acropolis_bridge_8017DD9C(Task* arg0)
 {
     Task* task = Task_SpawnFromTable(&D_acropolis_bridge_80189234, 0, 0, 0);
     s32   next = arg0->state + 1;
@@ -440,7 +442,7 @@ void func_acropolis_bridge_8017DD9C(Task* arg0)
     arg0->state                 = next;
 }
 
-void func_acropolis_bridge_8017DDEC(Task* arg0)
+static void func_acropolis_bridge_8017DDEC(Task* arg0)
 {
     s32 unused[2]; // never read; the target still reserves sp+0x10..sp+0x18 for it
     s32 killed;
@@ -457,7 +459,7 @@ void func_acropolis_bridge_8017DDEC(Task* arg0)
     }
 }
 
-void func_acropolis_bridge_8017DE94(Task* arg0)
+static void func_acropolis_bridge_8017DE94(Task* arg0)
 {
     func_acropolis_bridge_8017F2D0(GameFlag_GetNibble(0x10) & 0xFF);
     gGameSession->hideHud = 0;
@@ -517,7 +519,7 @@ tail:
     D_acropolis_bridge_801917A4 = queue->field_1EA;
 }
 
-s16 func_acropolis_bridge_8017E024(void)
+static s16 func_acropolis_bridge_8017E024(void)
 {
     return D_acropolis_bridge_80189240[D_acropolis_bridge_801917A4 + 1].vy;
 }
@@ -527,7 +529,7 @@ s16 func_acropolis_bridge_8017E024(void)
 /// the script at step 0xFFF, raises the "bridge is up" sprite command of the
 /// camera the player is on, and clears every hotspot's hit flag so the first
 /// hit test starts clean. A failed allocation kills the task instead.
-void func_acropolis_bridge_8017E04C(Task* task)
+static void func_acropolis_bridge_8017E04C(Task* task)
 {
     AcropolisBridgePromptWork* work;
     GpAreaKey*                 sess;
@@ -568,7 +570,7 @@ void func_acropolis_bridge_8017E04C(Task* task)
 /// beeps. Hotspot id 0xA is the "clear" key, which re-arms the script at step
 /// 0xFFF. Three entered digits end the script in state 5, a cancel press ends
 /// it in state 8, and a busy cap suspends the whole scan for that frame.
-void func_acropolis_bridge_8017E1D0(Task* task)
+static void func_acropolis_bridge_8017E1D0(Task* task)
 {
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
     OverlayHotspot*            hs     = D_acropolis_bridge_8018983C;
@@ -632,7 +634,7 @@ void func_acropolis_bridge_8017E1D0(Task* task)
 /// The cursor is hit-tested against the room's hotspot table either way so
 /// `mode` reports whether it sits over one, and the third pass ends the script
 /// in state 8 with `D_acropolis_bridge_801917A8` raised.
-void func_acropolis_bridge_8017E3A0(Task* task)
+static void func_acropolis_bridge_8017E3A0(Task* task)
 {
     RoomActionPrompt*          prompt = &D_80114D28;
     OverlayHotspot*            hs     = D_acropolis_bridge_8018983C;
@@ -683,7 +685,7 @@ after:
 /// hotspot table so `mode` reports whether it sits over one. After three
 /// passes the script rewinds to state 2 for another attempt, and once three
 /// attempts have been spent it gives up into state 8.
-void func_acropolis_bridge_8017E4FC(Task* task)
+static void func_acropolis_bridge_8017E4FC(Task* task)
 {
     RoomActionPrompt*          prompt = &D_80114D28;
     OverlayHotspot*            hs     = D_acropolis_bridge_8018983C;
@@ -732,7 +734,7 @@ void func_acropolis_bridge_8017E4FC(Task* task)
 /// band and shows the placeholder at command 31, 32 or 33 instead, so
 /// `func_acropolis_bridge_8017E60C(0xFFF, 0)` clears the whole display.
 /// Command 34 is always hidden; `hidePrompt` also hides command 35.
-void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt)
+static void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt)
 {
     GpAreaKey* sess = &gGameSession->at4.loc;
     GpSprtCmd* cmd;
@@ -807,7 +809,7 @@ void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt)
 /// record, every command from 1 to 33 gets its skip-OT-link flag set and only
 /// command 34 is left drawing. `func_acropolis_bridge_8017E4FC` calls this on
 /// each of the first ten frames of a pass.
-void func_acropolis_bridge_8017E81C(void)
+static void func_acropolis_bridge_8017E81C(void)
 {
     GpAreaKey* sess = &gGameSession->at4.loc;
     GpSprtCmd* cmd;
@@ -833,7 +835,7 @@ void func_acropolis_bridge_8017E81C(void)
 
 /// Outlines `rect` in (`r`, `g`, `b`) with four flat `LINE_F2`s - top, right,
 /// bottom and left edge - each linked into `gGpuCurrentOt[1]`.
-void func_acropolis_bridge_8017E908(RoomRect* rect, u8 r, u8 g, u8 b)
+static void func_acropolis_bridge_8017E908(RoomRect* rect, u8 r, u8 g, u8 b)
 {
     LINE_F2* line;
 
@@ -892,7 +894,7 @@ void func_acropolis_bridge_8017E908(RoomRect* rect, u8 r, u8 g, u8 b)
 /// `GpSprtCmd` slots; `Gp_LinkViewSprts` treats a nonzero `field_4` as "skip
 /// OT-linking", so the selected command gets 0 and the other two get 1. A
 /// state outside 0..2 moves nothing and hides all three.
-void func_acropolis_bridge_8017EB4C(s32 state, s8 dx, s8 dy)
+static void func_acropolis_bridge_8017EB4C(s32 state, s8 dx, s8 dy)
 {
     GameSession* g    = gGameSession;
     GpAreaKey*   sess = &g->at4.loc;
@@ -953,7 +955,7 @@ void func_acropolis_bridge_8017EB4C(s32 state, s8 dx, s8 dy)
 /// confirm (0x40) and cancel (0xA0) buttons are classified into the prompt's
 /// two button slots, a second press within `field_E` frames at an unmoved
 /// cursor reporting state 4 instead of 2. `targetId` is the cursor speed here.
-void func_acropolis_bridge_8017ED38(Task* task)
+static void func_acropolis_bridge_8017ED38(Task* task)
 {
     RoomActionPrompt* prompt;
     PadState*         pad;
@@ -1090,7 +1092,7 @@ void func_acropolis_bridge_8017ED38(Task* task)
 /// Queues the action-prompt cursor, a 16x24 textured quad, at (`x`, `y`) into
 /// the head of the current OT. `variant` is the prompt's mode: 0 draws
 /// nothing, 2 uses clut 0x3C87 and anything else 0x3C88.
-void func_acropolis_bridge_8017F198(s32 x, s32 y, s32 variant)
+static void func_acropolis_bridge_8017F198(s32 x, s32 y, s32 variant)
 {
     POLY_FT4* prim;
     s16       px;
@@ -1205,7 +1207,7 @@ void func_acropolis_bridge_8017F358(s32 state)
 /// Arms the action prompt for a fresh script step: parks the cursor at the top
 /// left with the highlight mode on and the cursor speed at 0x80, tears down any
 /// prompt still up, then advances the task to its next state.
-void func_acropolis_bridge_8017F404(Task* task)
+static void func_acropolis_bridge_8017F404(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
 
@@ -1221,7 +1223,7 @@ void func_acropolis_bridge_8017F404(Task* task)
 /// prompt, clears the highlight state, then re-spawns the prompt at the
 /// coordinates the gameplay side left in `D_80114D28` with this step's display
 /// mode, and advances the task to state 4.
-void func_acropolis_bridge_8017F460(Task* task)
+static void func_acropolis_bridge_8017F460(Task* task)
 {
     RoomActionPrompt*          prompt = &D_80114D28;
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
@@ -1238,7 +1240,7 @@ void func_acropolis_bridge_8017F460(Task* task)
 /// prompt on screen, the step is flagged busy in `promptBusy` (which the
 /// hotspot scan in `func_acropolis_bridge_8017E1D0` gates on) and cap slot 9 is
 /// started.
-void func_acropolis_bridge_8017F4CC(Task* task)
+static void func_acropolis_bridge_8017F4CC(Task* task)
 {
     RoomActionPrompt*          prompt = &D_80114D28;
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
@@ -1259,7 +1261,7 @@ void func_acropolis_bridge_8017F4CC(Task* task)
 /// counters, plays the cancel sound and goes to state 7. Either way the prompt
 /// is torn down and the cursor is re-hit-tested against the room's hotspot
 /// table, so `mode` reports whether it ended up over one.
-void func_acropolis_bridge_8017F544(Task* task)
+static void func_acropolis_bridge_8017F544(Task* task)
 {
     RoomActionPrompt*          prompt = &D_80114D28;
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
@@ -1290,7 +1292,7 @@ void func_acropolis_bridge_8017F544(Task* task)
     }
 }
 
-void func_acropolis_bridge_8017F658(Task* task)
+static void func_acropolis_bridge_8017F658(Task* task)
 {
     Display_ReleaseRef();
     func_acropolis_bridge_8017E60C(0xFFF, 0);
@@ -1305,7 +1307,7 @@ void func_acropolis_bridge_8017F658(Task* task)
 /// Hit-tests (`x`, `y`) against the hotspot table `table`, terminated by an
 /// `id` of -1: raises `hit` on every entry whose rectangle contains the point
 /// and clears it on the others, and answers whether any entry was hit.
-s32 func_acropolis_bridge_8017F6D4(OverlayHotspot* table, s16 x, s16 y)
+static s32 func_acropolis_bridge_8017F6D4(OverlayHotspot* table, s16 x, s16 y)
 {
     s32 hit;
 
@@ -1325,7 +1327,7 @@ s32 func_acropolis_bridge_8017F6D4(OverlayHotspot* table, s16 x, s16 y)
 /// Nine-state dispatcher of this room's script task: copies the handler table
 /// out of the overlay's rodata onto the stack and tails into the entry named by
 /// `Task::state`.
-void func_acropolis_bridge_8017F788(Task* task)
+static void func_acropolis_bridge_8017F788(Task* task)
 {
     TaskFuncTable9 states;
 
@@ -1336,7 +1338,7 @@ void func_acropolis_bridge_8017F788(Task* task)
 /// State 0 of the prompt script task: resets both action-prompt slots - cursor
 /// cleared, speed 0x100, double-press window 0xF frames, mode 1 - and steps the
 /// task on one state.
-void func_acropolis_bridge_8017F808(Task* task)
+static void func_acropolis_bridge_8017F808(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     s32               i;
@@ -1377,7 +1379,7 @@ void func_acropolis_bridge_8017F808(Task* task)
 /// copies at once, and staying in it emits one per frame - one in two while
 /// `Gp_State1C->battleState` says no battle is engaged, one in three while one
 /// is, so that the ambience thins out during a fight.
-void func_acropolis_bridge_8017F868(Task* task)
+static void func_acropolis_bridge_8017F868(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -1621,7 +1623,7 @@ void func_acropolis_bridge_8017F868(Task* task)
 /// scaled into the 0x800-deep range so a streak sorts against the room behind
 /// it. The task releases itself once the camera turns away, the lifetime runs
 /// out, or the streak falls off the bottom of the screen.
-void func_acropolis_bridge_80180320(Task* task)
+static void func_acropolis_bridge_80180320(Task* task)
 {
     GpEffWork* work;
     RECT       rect;
@@ -1693,7 +1695,7 @@ void func_acropolis_bridge_80180320(Task* task)
 /// fall, so a streak near the bottom of the screen sorts sharply in front of
 /// one still high up. The task releases itself once the camera turns away, the
 /// lifetime runs out, or the streak falls off the bottom of the screen.
-void func_acropolis_bridge_8018063C(Task* task)
+static void func_acropolis_bridge_8018063C(Task* task)
 {
     GpEffWork* work;
     RECT       rect;
@@ -1767,7 +1769,7 @@ void func_acropolis_bridge_8018063C(Task* task)
 /// scaled into the 0x600-deep range so a streak sorts against the room behind
 /// it. The task releases itself once the camera turns away, the lifetime runs
 /// out, or the streak falls off the bottom of the screen.
-void func_acropolis_bridge_8018099C(Task* task)
+static void func_acropolis_bridge_8018099C(Task* task)
 {
     GpEffWork* work;
     RECT       rect;
@@ -1841,7 +1843,7 @@ void func_acropolis_bridge_8018099C(Task* task)
 /// bottom of the screen sorts sharply in front of one still high up. The task
 /// releases itself once the camera turns away, the lifetime runs out, or the
 /// streak falls off the bottom of the screen.
-void func_acropolis_bridge_80180CC0(Task* task)
+static void func_acropolis_bridge_80180CC0(Task* task)
 {
     GpEffWork* work;
     RECT       rect;
@@ -1914,7 +1916,7 @@ void func_acropolis_bridge_80180CC0(Task* task)
 /// streak sorts against the room behind it. The task releases itself once the
 /// camera turns away, the lifetime runs out, or the streak falls off the bottom
 /// of the screen.
-void func_acropolis_bridge_80180FF0(Task* task)
+static void func_acropolis_bridge_80180FF0(Task* task)
 {
     GpEffWork* work;
     RECT       rect;
@@ -1977,7 +1979,7 @@ void func_acropolis_bridge_80180FF0(Task* task)
 /// is a fresh random grey (0x20..0x7F) every frame. Depths under 0x11 drop
 /// both quads. The task releases its work block each tick, so the spark lasts
 /// one frame.
-void func_acropolis_bridge_801812F4(Task* task)
+static void func_acropolis_bridge_801812F4(Task* task)
 {
     GpCoord*              coord;
     GpEffWork*            work;
@@ -2080,7 +2082,7 @@ void func_acropolis_bridge_801812F4(Task* task)
 /// primitive, tinted a random grey, and linked into the OT at the `RTPS` depth
 /// biased by 0x20; depths under 0x11 are dropped rather than drawn. The task
 /// releases its work block on every tick, so the puff lasts one frame.
-void func_acropolis_bridge_801819C8(Task* task)
+static void func_acropolis_bridge_801819C8(Task* task)
 {
     void**                      scratch;
     u8*                         head;
@@ -2163,7 +2165,7 @@ void func_acropolis_bridge_801819C8(Task* task)
 /// `0x4380 | ((arg + 2) & 0x3F)`, and the grey levels the sprite flickers
 /// between on odd and even `gDisplayState.animFrame`. The work block is
 /// released once the quad is queued, so the task lives for one frame.
-void func_acropolis_bridge_80181D28(Task* task)
+static void func_acropolis_bridge_80181D28(Task* task)
 {
     GpCoord*               coord;
     GpEffWork*             work;
@@ -2288,7 +2290,7 @@ s32 func_acropolis_bridge_801820A0(Task* task)
 /// the OT at the resulting depth. The velocity and the grey level are rolled
 /// once, on the first tick (`age == 0`); the mote is released after 0x1F
 /// ticks or once it has fallen past y = -0x1D.
-void func_acropolis_bridge_80182394(Task* task)
+static void func_acropolis_bridge_80182394(Task* task)
 {
     void**           scratch;
     u8*              head;
@@ -2348,7 +2350,7 @@ void func_acropolis_bridge_80182394(Task* task)
     }
 }
 
-void func_acropolis_bridge_80182694(Task* task)
+static void func_acropolis_bridge_80182694(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -2392,7 +2394,7 @@ void func_acropolis_bridge_80182694(Task* task)
 /// quad rather than drawing it. The `POLY_FT4` is the 0x38x0x38 cell at
 /// `(0, 0x38)` of tpage 0x2B, modulated by the grey `arg2` and drawn
 /// semi-transparent, and links into the OT at the projected depth.
-void func_acropolis_bridge_801827EC(GpCoord* arg0, s32 arg1, s16 arg2)
+static void func_acropolis_bridge_801827EC(GpCoord* arg0, s32 arg1, s16 arg2)
 {
     register GpCoord*          coord asm("t7");
     void**                     scratch;
@@ -2482,7 +2484,7 @@ void func_acropolis_bridge_801827EC(GpCoord* arg0, s32 arg1, s16 arg2)
 /// `period` ticks steps `index`; the eighth step releases the work block.
 /// While `Gp_State1C->eventState` is set the room is fading out, so the piece only
 /// keeps drawing, and releases itself once the fade reaches 4.
-void func_acropolis_bridge_80182AF8(Task* task)
+static void func_acropolis_bridge_80182AF8(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -2605,7 +2607,7 @@ void func_acropolis_bridge_80182AF8(Task* task)
 /// 0x1F-wide column starting at `frame * 0x20` on rows 0xE0..0xFF of tpage
 /// 0x2B. The primitive is semi-transparent with texture blending off
 /// (`code |= 3`) and links into the OT at the projected depth.
-void func_acropolis_bridge_80182F8C(GpCoord* coord, u16 frame, s16 size, s16 angle)
+static void func_acropolis_bridge_80182F8C(GpCoord* coord, u16 frame, s16 size, s16 angle)
 {
     void**                        scratch;
     u8*                           head;
@@ -2681,7 +2683,7 @@ void func_acropolis_bridge_80182F8C(GpCoord* coord, u16 frame, s16 size, s16 ang
 /// tpage 0x2B: bits 0-1 pick the column and bit 2 the row. The primitive is
 /// semi-transparent with texture blending off (`code |= 3`) and links into the
 /// OT at the projected depth.
-void func_acropolis_bridge_801833A0(GpCoord* coord, u16 frame, s16 size)
+static void func_acropolis_bridge_801833A0(GpCoord* coord, u16 frame, s16 size)
 {
     void**                        scratch;
     u8*                           head;
@@ -2744,10 +2746,10 @@ void func_acropolis_bridge_801833A0(GpCoord* coord, u16 frame, s16 size)
 
 /// Debug message the walker's route search prints when no candidate beat its
 /// initial best of 0xFF.
-const char D_acropolis_bridge_8017D6CC[] = "s->root_cnt == 0xff about \n";
+static const char D_acropolis_bridge_8017D6CC[] = "s->root_cnt == 0xff about \n";
 
 /// The bridge enemy's three state handlers: setup, per-frame tick and teardown.
-const GpEnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8 = {
+static const GpEnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8 = {
     { func_acropolis_bridge_80185988, func_acropolis_bridge_80187850, Gp_DestroyEnemy }
 };
 
@@ -2758,7 +2760,7 @@ const GpEnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8 = {
 /// four-armed inner cross of radius `(s16)arg1 * 8 / otz`. `arg2` packs one
 /// nibble per channel - bits 8..11 red, 4..7 green, 0..3 blue - with bits
 /// 12..15 the shift of a brightness flicker on odd `gDisplayState.animFrame`.
-void func_acropolis_bridge_80183654(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_acropolis_bridge_80183654(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw05Scratch* block;
     POLY_G4*           prim;
@@ -2911,7 +2913,7 @@ void func_acropolis_bridge_80183654(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// stages the XZ delta between the node and the walker's coordinate
 /// translation in an 8-byte scratch block, then accepts the node if the walker
 /// is inside either of two radii: its own `field_5C * 4`, or a flat 300.
-s16 func_acropolis_bridge_80184024(OverlayWalker* work)
+static s16 func_acropolis_bridge_80184024(OverlayWalker* work)
 {
     OverlayWalkerArrivalDelta* d;
     u8*                        head;
@@ -2942,7 +2944,7 @@ s16 func_acropolis_bridge_80184024(OverlayWalker* work)
 /// raised, the movement deltas are cleared and the cursor steps to the next
 /// node -- wrapping back to the first when it hits the 0xFF terminator -- so
 /// `pos` already describes the new node.
-void func_acropolis_bridge_80184208(OverlayWalker* work, SVECTOR3* pos)
+static void func_acropolis_bridge_80184208(OverlayWalker* work, SVECTOR3* pos)
 {
     OverlayWalkerRoute* route;
     OverlayWalkerRoute* step;
@@ -2984,7 +2986,7 @@ void func_acropolis_bridge_80184208(OverlayWalker* work, SVECTOR3* pos)
 /// measured from the translation of the actor config's matrix rather than
 /// from the walker's own coordinate; the walker uses it with the player
 /// (entry 1) to pick the node it retreats to.
-u8 func_acropolis_bridge_801843A0(OverlayWalker* work, s32 actor)
+static u8 func_acropolis_bridge_801843A0(OverlayWalker* work, s32 actor)
 {
     OverlayWalkerNearCfgScratch* block;
     u8*                          head;
@@ -3015,7 +3017,7 @@ u8 func_acropolis_bridge_801843A0(OverlayWalker* work, s32 actor)
 /// returns its index. Distance is the squared XZ distance between the node and
 /// the low halfword of the walker coordinate's translation, staged in a 0x14
 /// byte scratch block along with the cursor and the running best.
-u8 func_acropolis_bridge_8018450C(OverlayWalker* work)
+static u8 func_acropolis_bridge_8018450C(OverlayWalker* work)
 {
     OverlayWalkerNearScratch* block;
     u8*                       head;
@@ -3051,7 +3053,7 @@ u8 func_acropolis_bridge_8018450C(OverlayWalker* work)
 /// slots, so a table with more matches than that is silently truncated; if no
 /// pair was found at all the routine only complains and leaves the cursor
 /// where it was.
-void func_acropolis_bridge_80184638(OverlayWalker* work, s16 actor)
+static void func_acropolis_bridge_80184638(OverlayWalker* work, s16 actor)
 {
     OverlayWalkerRouteScratch* s;
     u8*                        head;
@@ -3119,7 +3121,7 @@ void func_acropolis_bridge_80184638(OverlayWalker* work, s16 actor)
 /// a constant 0x10 fall. Y is applied in three bands: a +8 hop above 0x20, a
 /// -0x20 drop below -0x20, and the plain step in between. `moving` records
 /// whether the frame produced any XZ motion at all.
-void func_acropolis_bridge_80184908(OverlayWalker* work)
+static void func_acropolis_bridge_80184908(OverlayWalker* work)
 {
     u8*                       head;
     OverlayWalkerMoveScratch* s;
@@ -3213,7 +3215,7 @@ void func_acropolis_bridge_80184908(OverlayWalker* work)
 /// and has nowhere to go. Each surviving bearing becomes a unit vector 10
 /// units long (`GPF` by -10 of the normalised matrix column), which is added
 /// to both `push` and the walker's own translation.
-void func_acropolis_bridge_80184B94(OverlayWalker* work)
+static void func_acropolis_bridge_80184B94(OverlayWalker* work)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
@@ -3327,7 +3329,7 @@ void func_acropolis_bridge_80184B94(OverlayWalker* work)
 /// Turns the walker toward `pos` by at most `field_5A` angle units per frame.
 /// The wrapped relative bearing drives the consecutive-turn counter, then
 /// becomes an absolute yaw applied to the model's saved scale matrix.
-void func_acropolis_bridge_80185104(OverlayWalker* work, SVECTOR3* pos)
+static void func_acropolis_bridge_80185104(OverlayWalker* work, SVECTOR3* pos)
 {
     OverlayWalkerTurnScratch* s;
     GpCoord*                  coord;
@@ -3500,7 +3502,7 @@ static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
     }
 }
 
-void func_acropolis_bridge_8018532C(OverlayWalker* walker)
+static void func_acropolis_bridge_8018532C(OverlayWalker* walker)
 {
     u8*                       head;
     OverlayWalkerTickScratch* block;
@@ -3588,7 +3590,7 @@ done:
 /// state 3, which just ticks the slots once per frame and counts frames in
 /// `field_106`. Every path first copies `field_108` into each slot's
 /// `field_9` playback-rate byte.
-void func_acropolis_bridge_8018581C(Task* task)
+static void func_acropolis_bridge_8018581C(Task* task)
 {
     AcropolisBridgeEnemyWork* work;
     AcropolisBridgeEnemyWork* start;
@@ -3659,7 +3661,7 @@ static __inline__ void bridge_set_obj_pos(GpObj* obj, SVECTOR3* pos)
 /// offset the model root is raised by, remembered in `field_1FA`. In the
 /// third visit (`gGameSession->at4.loc.room == 2`) the three known variants start
 /// in state 8 at a fixed position instead of state 1.
-void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
+static void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
 {
     TmdObject*                obj;
     TmdObject*                obj2;
@@ -4558,7 +4560,7 @@ void func_acropolis_bridge_801874DC(Task* task)
 /// after the hit) it steps the behaviour state instead: 5 and 6 are already
 /// reaction states and stay put, 4 and 8 advance to 6, everything else resets
 /// to 5.
-void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
+static void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
 {
     AcropolisBridgeEnemyWork* work  = (AcropolisBridgeEnemyWork*)task->work;
     GpEnemy*                  enemy = (GpEnemy*)task->spawnArg2;
@@ -4623,7 +4625,7 @@ void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
 /// `D_acropolis_bridge_8019175C`, clears both record tables and -- while no
 /// `Gp_StateF0` request is pending -- resets any state other than 5 or 6 back
 /// to 0.
-void func_acropolis_bridge_80187850(GpEnemy* enemy, Task* task)
+static void func_acropolis_bridge_80187850(GpEnemy* enemy, Task* task)
 {
     AcropolisBridgeEnemyWork*  work;
     AcropolisBridgeEnemyWork*  cur;
@@ -4778,7 +4780,7 @@ s32 func_acropolis_bridge_80187BD0(Task* task, s32 arg1, s32 flags)
 /// arena, optionally refreshes the TMD's root coordinate first (`arg1 == 1`),
 /// then feeds that part's world translation to `func_800D7A9C` so the object's
 /// colour matrix is rebuilt for its current position, and releases the scratch.
-void func_acropolis_bridge_80187C10(Task* task, s16 arg1)
+static void func_acropolis_bridge_80187C10(Task* task, s16 arg1)
 {
     void**  scratch;
     u8*     head;

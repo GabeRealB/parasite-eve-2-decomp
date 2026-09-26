@@ -107,7 +107,7 @@ extern GpXformArg D_dryfield_water_tank_8017FD78;
 /// `killCountdown` counter it wraps.
 extern u16 D_dryfield_water_tank_8017FDA8[];
 
-void func_dryfield_water_tank_8017DB48(void);
+static void func_dryfield_water_tank_8017DB48(void);
 
 void func_dryfield_water_tank_8017D618(Task* arg0)
 {
@@ -233,7 +233,7 @@ void func_dryfield_water_tank_8017D948(Task* task)
 /// cutscene task from `D_dryfield_water_tank_801868A4`, queue sound event
 /// `0x52150009`, run the game-flag `0x55` dispatch in
 /// `func_dryfield_water_tank_8017DB48`, then advance.
-void func_dryfield_water_tank_8017D9D4(Task* task)
+static void func_dryfield_water_tank_8017D9D4(Task* task)
 {
     task->msgTable = D_dryfield_water_tank_8017F324;
     Game_SetPtrSlot(task, 7);
@@ -248,7 +248,7 @@ void func_dryfield_water_tank_8017D9D4(Task* task)
 /// `0x52150012`, each as a type-6 event in the view it belongs to (4 and 0xA
 /// respectively) and as a type-7 event (argument 0x2D / 0x3C) from any other
 /// view.
-void func_dryfield_water_tank_8017DA4C(Task* task)
+static void func_dryfield_water_tank_8017DA4C(Task* task)
 {
     if (gGameSession->viewReady != 0) {
         if (gGameSession->at4.loc.view == 4) {
@@ -267,13 +267,13 @@ void func_dryfield_water_tank_8017DA4C(Task* task)
 /// The room task's three states, run from a stack copy by
 /// `func_dryfield_water_tank_8017DAF0`: the entry tick, the per-frame
 /// ambience, then `taskKill`.
-const TaskFuncTable3 D_dryfield_water_tank_8017D5C4 = {
+static const TaskFuncTable3 D_dryfield_water_tank_8017D5C4 = {
     { func_dryfield_water_tank_8017D9D4, func_dryfield_water_tank_8017DA4C, taskKill },
 };
 
 /// The room task: copies its three-state table onto the stack and runs the
 /// entry for the task's current state.
-void func_dryfield_water_tank_8017DAF0(Task* task)
+static void func_dryfield_water_tank_8017DAF0(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -281,7 +281,7 @@ void func_dryfield_water_tank_8017DAF0(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_dryfield_water_tank_8017DB48(void)
+static void func_dryfield_water_tank_8017DB48(void)
 {
     switch (GameFlag_GetNibble(0x55)) {
         case 0:
@@ -311,7 +311,7 @@ void func_dryfield_water_tank_8017DB48(void)
 /// The body is the water tower's `func_dryfield_water_tower_8017E428`; as there,
 /// the Z test is written with the coordinate on the left, which is what loads it
 /// before the record.
-s32 func_dryfield_water_tank_8017DB98(Task* arg0)
+static s32 func_dryfield_water_tank_8017DB98(Task* arg0)
 {
     DwtColorMtx* work  = (DwtColorMtx*)arg0->work;
     GpCoord*     coord = arg0->extra.tmd->coords;

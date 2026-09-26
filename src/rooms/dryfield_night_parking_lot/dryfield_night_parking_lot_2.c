@@ -25,15 +25,15 @@ extern SVECTOR D_dryfield_night_parking_lot_8017EDE4[];
 extern SVECTOR D_dryfield_night_parking_lot_8017EDEC[];
 extern SVECTOR D_dryfield_night_parking_lot_8017EDFC[];
 
-void func_dryfield_night_parking_lot_8017DE10(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_dryfield_night_parking_lot_8017E08C(SVECTOR* arg0, SVECTOR* arg1, s32 arg2);
+static void func_dryfield_night_parking_lot_8017DE10(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_dryfield_night_parking_lot_8017E08C(SVECTOR* arg0, SVECTOR* arg1, s32 arg2);
 
 /// Parking-lot room draw: latches the view's entry of the room's per-view table
 /// into `Gp_State1C->roomEffectMode`, then queues the props of the room phase
 /// `gGameSession->at4.loc.view` selects - 2, 4 and 5 several points each, 3 and 6 a
 /// single one. Every phase ends with the same semi-transparent sprite call,
 /// which `jump.c` cross-jumps into one tail block after the last case.
-void func_dryfield_night_parking_lot_8017DC88(void)
+static void func_dryfield_night_parking_lot_8017DC88(void)
 {
     u8 view;
 
@@ -83,7 +83,7 @@ void func_dryfield_night_parking_lot_8017DC88(void)
 /// the 40-texel UV column `arg1 * 40`, rows 0..0x27. `arg2` is a signed
 /// half-extent; the on-screen radius is `(s16)arg2 * 39 / otz`. All three
 /// colour channels take the flickering grey `((animFrame & 1) * 16) + 0x20`.
-void func_dryfield_night_parking_lot_8017DE10(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_night_parking_lot_8017DE10(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw25Scratch* block;
     POLY_FT4*          prim;
@@ -125,7 +125,7 @@ void func_dryfield_night_parking_lot_8017DE10(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// band joining the two, and a fan around the second. Each point's radius is
 /// `(s16)arg2 * 64` over its depth; the inner colour pulses with the display
 /// frame parity.
-void func_dryfield_night_parking_lot_8017E08C(SVECTOR* arg0, SVECTOR* arg1, s32 arg2)
+static void func_dryfield_night_parking_lot_8017E08C(SVECTOR* arg0, SVECTOR* arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw11Scratch* block;

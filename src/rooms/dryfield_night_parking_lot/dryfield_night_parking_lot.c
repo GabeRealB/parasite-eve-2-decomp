@@ -39,7 +39,7 @@ extern u8 D_dryfield_night_parking_lot_8018156C;
 /// message and request are latched, the nibble is written, the event task is
 /// spawned and the answer is 2. A non-zero `field_5` on the message only
 /// reports the answer, with none of the side effects.
-s32 func_dryfield_night_parking_lot_8017D5FC(RoomEventReq* req, RoomEventMsg* msg)
+static s32 func_dryfield_night_parking_lot_8017D5FC(RoomEventReq* req, RoomEventMsg* msg)
 {
     s32 flag;
     s32 id;
@@ -275,7 +275,7 @@ void func_dryfield_night_parking_lot_8017DBA4(s32 arg0)
 /// once nibble 0x79 is set - the nibble the 0x13EF handler
 /// `func_dryfield_night_parking_lot_8017DB34` latches - it also sets
 /// `Gp_StateF0.field_1C` to 2. The state then advances.
-void func_dryfield_night_parking_lot_8017DBB0(Task* task)
+static void func_dryfield_night_parking_lot_8017DBB0(Task* task)
 {
     task->msgTable = D_dryfield_night_parking_lot_8017EC60;
     Game_SetPtrSlot(task, 7);
@@ -286,18 +286,18 @@ void func_dryfield_night_parking_lot_8017DBB0(Task* task)
 }
 
 /// Room entry task state 1: does nothing, and nothing here advances the state.
-void func_dryfield_night_parking_lot_8017DC28(Task* task)
+static void func_dryfield_night_parking_lot_8017DC28(Task* task)
 {
 }
 
 /// The room entry task's states: set up, idle, then `taskKill`.
-const TaskFuncTable3 D_dryfield_night_parking_lot_8017D5DC = {
+static const TaskFuncTable3 D_dryfield_night_parking_lot_8017D5DC = {
     { func_dryfield_night_parking_lot_8017DBB0, func_dryfield_night_parking_lot_8017DC28, taskKill },
 };
 
 /// The room entry task: copies the three-state table to the stack and runs the
 /// entry the task's state selects.
-void func_dryfield_night_parking_lot_8017DC30(Task* task)
+static void func_dryfield_night_parking_lot_8017DC30(Task* task)
 {
     TaskFuncTable3 sp;
 

@@ -18,11 +18,11 @@ extern u8         D_80165F48;
 extern u8         D_80166848;
 extern GpMsgEntry D_shelter_b2_pod_bottom_80181C6C[];
 
-void func_shelter_b2_pod_bottom_8017D648(Task* arg0);
-void func_shelter_b2_pod_bottom_8017D6F8(Task* task);
+static void func_shelter_b2_pod_bottom_8017D648(Task* arg0);
+static void func_shelter_b2_pod_bottom_8017D6F8(Task* task);
 
 /// The room task's states: set up, idle, then `taskKill`.
-const TaskFuncTable3 D_shelter_b2_pod_bottom_8017D5C4 = {
+static const TaskFuncTable3 D_shelter_b2_pod_bottom_8017D5C4 = {
     { func_shelter_b2_pod_bottom_8017D648, func_shelter_b2_pod_bottom_8017D6F8, taskKill },
 };
 
@@ -56,7 +56,7 @@ s32 func_shelter_b2_pod_bottom_8017D640(void)
 /// The room task's setup state: installs the room's message table, stores the
 /// task in pointer slot 7 and, on place 1, calls `func_80162B0C` and
 /// `func_800E8634`; elsewhere it sends message 0x7DB to the slot-4 task.
-void func_shelter_b2_pod_bottom_8017D648(Task* arg0)
+static void func_shelter_b2_pod_bottom_8017D648(Task* arg0)
 {
     GpCmdArg msg;
 
@@ -76,14 +76,14 @@ void func_shelter_b2_pod_bottom_8017D648(Task* arg0)
 
 /// The room task's idle state: does nothing. The unused local reproduces the
 /// original's stack frame.
-void func_shelter_b2_pod_bottom_8017D6F8(Task* task)
+static void func_shelter_b2_pod_bottom_8017D6F8(Task* task)
 {
     char pad[0x10];
 }
 
 /// The room task: copies its three-state table to the stack and runs the
 /// entry the task's state selects.
-void func_shelter_b2_pod_bottom_8017D708(Task* task)
+static void func_shelter_b2_pod_bottom_8017D708(Task* task)
 {
     TaskFuncTable3 sp;
 

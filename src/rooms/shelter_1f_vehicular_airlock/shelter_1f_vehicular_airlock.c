@@ -56,17 +56,17 @@ extern RoomEventMsg     D_shelter_1f_vehicular_airlock_80182AA8;
 extern s8               D_shelter_1f_vehicular_airlock_80182AB0;
 extern RoomLatchedEvent D_shelter_1f_vehicular_airlock_80182AB4;
 
-void func_shelter_1f_vehicular_airlock_8017DC80(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_shelter_1f_vehicular_airlock_8017E468(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_1f_vehicular_airlock_8017E80C(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_shelter_1f_vehicular_airlock_8017EF60(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_1f_vehicular_airlock_8017F38C(GpCoord* arg0, s16 arg1, u8* rgb);
-void func_shelter_1f_vehicular_airlock_8017FC10(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-void func_shelter_1f_vehicular_airlock_80180290(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_1f_vehicular_airlock_8017DC80(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_shelter_1f_vehicular_airlock_8017E468(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_1f_vehicular_airlock_8017E80C(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_shelter_1f_vehicular_airlock_8017EF60(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_1f_vehicular_airlock_8017F38C(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_shelter_1f_vehicular_airlock_8017FC10(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+static void func_shelter_1f_vehicular_airlock_80180290(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// Sets bit 0x80 of the task's model flags while the 2-bit game flag its spawn
 /// argument names reads 2, and clears it otherwise.
-void func_shelter_1f_vehicular_airlock_8017D5E4(Task* task)
+static void func_shelter_1f_vehicular_airlock_8017D5E4(Task* task)
 {
     TmdObject* obj = task->extra.tmd;
 
@@ -200,7 +200,7 @@ s32 func_shelter_1f_vehicular_airlock_8017D9F4(void)
 /// State 0 of the room's message task: parks the room's message table in
 /// `Task::msgTable`, publishes the task in pointer slot 7 and advances to
 /// state 1.
-void func_shelter_1f_vehicular_airlock_8017D9FC(Task* task)
+static void func_shelter_1f_vehicular_airlock_8017D9FC(Task* task)
 {
     task->msgTable = D_shelter_1f_vehicular_airlock_80182034;
     Game_SetPtrSlot(task, 7);
@@ -208,13 +208,13 @@ void func_shelter_1f_vehicular_airlock_8017D9FC(Task* task)
 }
 
 /// State 1 of the room's message task: does nothing.
-void func_shelter_1f_vehicular_airlock_8017DA40(Task* task)
+static void func_shelter_1f_vehicular_airlock_8017DA40(Task* task)
 {
 }
 
 /// The message task's three state handlers: publishing the room's message
 /// table, idling and `taskKill`.
-const TaskFuncTable3 D_shelter_1f_vehicular_airlock_8017D5D8 = {
+static const TaskFuncTable3 D_shelter_1f_vehicular_airlock_8017D5D8 = {
     { func_shelter_1f_vehicular_airlock_8017D9FC, func_shelter_1f_vehicular_airlock_8017DA40, taskKill },
 };
 
@@ -223,7 +223,7 @@ const TaskFuncTable3 D_shelter_1f_vehicular_airlock_8017D5D8 = {
 /// (`func_shelter_1f_vehicular_airlock_8017DA40`) and `taskKill`. The table is
 /// copied onto the stack first, so the call goes through a local copy rather
 /// than the rodata.
-void func_shelter_1f_vehicular_airlock_8017DA48(Task* task)
+static void func_shelter_1f_vehicular_airlock_8017DA48(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -231,7 +231,7 @@ void func_shelter_1f_vehicular_airlock_8017DA48(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_shelter_1f_vehicular_airlock_8017DAA0(Task* task)
+static void func_shelter_1f_vehicular_airlock_8017DAA0(Task* task)
 {
     u8       view;
     SVECTOR* p;
@@ -281,7 +281,7 @@ void func_shelter_1f_vehicular_airlock_8017DAA0(Task* task)
 /// from bits 0-1), each scaled by a blend byte that alternates with the frame
 /// counter, and the outer rim is black. Nothing is drawn when the second
 /// point's OTZ is below 0x11.
-void func_shelter_1f_vehicular_airlock_8017DC80(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_shelter_1f_vehicular_airlock_8017DC80(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     u8*                head;
     RoomDraw11Scratch* block;
@@ -423,7 +423,7 @@ void func_shelter_1f_vehicular_airlock_8017DC80(SVECTOR* arg0, s32 arg1, s32 arg
 /// from bits 8-15, green from bits 4-5, blue from bits 0-1), each scaled by a
 /// blend byte that alternates with the frame counter, and the rim, at radius
 /// `(s16)arg1 * 64` over the OTZ, is black.
-void func_shelter_1f_vehicular_airlock_8017E468(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_1f_vehicular_airlock_8017E468(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw25Scratch* block;
@@ -502,7 +502,7 @@ void func_shelter_1f_vehicular_airlock_8017E468(SVECTOR* arg0, s32 arg1, s32 arg
 /// `rsin(...) / 68 + 0x3C`; `arg3` packs the lit vertex's colour as per-channel
 /// multipliers of that pulse, red in bits 8 and up, green in bits 4-5 and blue
 /// in bits 0-1.
-void func_shelter_1f_vehicular_airlock_8017E80C(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_shelter_1f_vehicular_airlock_8017E80C(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     u8*               head;
     RoomShaftScratch* block;
@@ -602,7 +602,7 @@ void func_shelter_1f_vehicular_airlock_8017E80C(SVECTOR* arg0, s32 arg1, s32 arg
 /// shrinking billboard, 0x10 a tick, and releases its work block. It also
 /// releases it once the room's event state reaches 4, and is frozen while the
 /// event state is non-zero.
-void func_shelter_1f_vehicular_airlock_8017ECBC(Task* task)
+static void func_shelter_1f_vehicular_airlock_8017ECBC(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -668,7 +668,7 @@ void func_shelter_1f_vehicular_airlock_8017ECBC(Task* task)
 /// coordinate's world translation, unless the projection flags an error. The
 /// vertices at radius `(s16)arg1 * 64` over the depth are black and those at
 /// `(s16)(arg1 + arg2) * 64` over the depth take `rgb`.
-void func_shelter_1f_vehicular_airlock_8017EF60(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_shelter_1f_vehicular_airlock_8017EF60(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -726,7 +726,7 @@ void func_shelter_1f_vehicular_airlock_8017EF60(GpCoord* arg0, s32 arg1, s32 arg
 /// coordinate's world translation, unless the projection flags an error: the
 /// centre takes `rgb` and the rim, at radius `(s16)arg1 * 64` over the depth,
 /// is black.
-void func_shelter_1f_vehicular_airlock_8017F38C(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_shelter_1f_vehicular_airlock_8017F38C(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -779,7 +779,7 @@ void func_shelter_1f_vehicular_airlock_8017F38C(GpCoord* arg0, s16 arg1, u8* rgb
 /// every tick it records the current ends in the next slot and draws the band
 /// between the histories, until its age reaches `spawnArg1`. It is frozen
 /// while the room's event state is 2 or more.
-void func_shelter_1f_vehicular_airlock_8017F720(Task* task)
+static void func_shelter_1f_vehicular_airlock_8017F720(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -876,7 +876,7 @@ void func_shelter_1f_vehicular_airlock_8017F720(Task* task)
 /// of `arg0` and `arg1`. Brightness falls by 9 per quad from 0x40, and `arg3`
 /// scales it per channel: red by `arg3 >> 8`, green by bits 4-5 and blue by
 /// bits 0-1. A quad whose projection flags an error is skipped.
-void func_shelter_1f_vehicular_airlock_8017FC10(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_shelter_1f_vehicular_airlock_8017FC10(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
     GpCoord*           a;
@@ -986,7 +986,7 @@ void func_shelter_1f_vehicular_airlock_8017FC10(GpCoord* arg0, GpCoord* arg1, s1
 /// seven ticks of a fading, widening ring. It then releases its work block,
 /// as it does once the room's event state reaches 4; it is frozen while the
 /// event state is non-zero.
-void func_shelter_1f_vehicular_airlock_80180008(Task* task)
+static void func_shelter_1f_vehicular_airlock_80180008(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;
@@ -1059,7 +1059,7 @@ void func_shelter_1f_vehicular_airlock_80180008(Task* task)
 /// wedges at radius `arg1 * 64` over the depth in half of `arg2`'s colour, a
 /// second at half that radius in the full colour, and four cross wedges from
 /// an inner radius of `arg1 * 8` over the depth. Every rim is black.
-void func_shelter_1f_vehicular_airlock_80180290(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_1f_vehicular_airlock_80180290(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

@@ -18,13 +18,13 @@ extern SVECTOR D_shelter_b3_incinerator_control_room_80181868[];
 extern SVECTOR D_shelter_b3_incinerator_control_room_80181888[];
 extern SVECTOR D_shelter_b3_incinerator_control_room_801818E8[];
 
-void func_shelter_b3_incinerator_control_room_8017FEB4(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b3_incinerator_control_room_801806F8(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b3_incinerator_control_room_80180B6C(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b3_incinerator_control_room_8017FEB4(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b3_incinerator_control_room_801806F8(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b3_incinerator_control_room_80180B6C(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// Draws the glows of the current camera view at the room's fixed world
 /// points; views without an entry draw nothing.
-void func_shelter_b3_incinerator_control_room_8017FD10(void)
+static void func_shelter_b3_incinerator_control_room_8017FD10(void)
 {
     u8 view;
 
@@ -71,7 +71,7 @@ void func_shelter_b3_incinerator_control_room_8017FD10(void)
 /// centres, take the colour packed in `arg2` (one nibble per channel),
 /// flickering with the animation frame. Nothing is drawn when either
 /// projection flags an error.
-void func_shelter_b3_incinerator_control_room_8017FEB4(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b3_incinerator_control_room_8017FEB4(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**                   scratch;
     u8*                      head;
@@ -218,7 +218,7 @@ void func_shelter_b3_incinerator_control_room_8017FEB4(SVECTOR* arg0, s32 arg1, 
 /// half-extent; the on-screen radius is `(s16)arg2 * 32 / otz`. `arg1` scales
 /// `gDisplayState.animFrame` into `rsin` so the lit vertex pulses as
 /// `rsin(...) / 34 + 0x78` on green and blue.
-void func_shelter_b3_incinerator_control_room_801806F8(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b3_incinerator_control_room_801806F8(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw13Scratch* block;
@@ -314,7 +314,7 @@ void func_shelter_b3_incinerator_control_room_801806F8(SVECTOR* arg0, s32 arg1, 
 /// `(s16)arg2 * 8 / otz` (inner). `arg1` scales `gDisplayState.animFrame` into
 /// `rsin` so the lit vertex pulses as `rsin(...) / 34 + 0x78` on green and
 /// blue.
-void func_shelter_b3_incinerator_control_room_80180B6C(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b3_incinerator_control_room_80180B6C(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw05Scratch* block;

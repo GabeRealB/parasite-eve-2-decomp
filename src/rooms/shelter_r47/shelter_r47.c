@@ -137,11 +137,11 @@ extern Task* D_shelter_r47_8018A690;
 
 extern RoomCutsceneRec D_shelter_r47_8018A698;
 
-void func_shelter_r47_8017E434(UiList* list, UiObject* obj);
-void func_shelter_r47_8017E730(UiList* list, UiObject* obj);
-void func_shelter_r47_8017F5EC(Task* task);
-void func_shelter_r47_8017FB94(Task* task);
-void func_shelter_r47_8017FCC0(void);
+static void func_shelter_r47_8017E434(UiList* list, UiObject* obj);
+static void func_shelter_r47_8017E730(UiList* list, UiObject* obj);
+static void func_shelter_r47_8017F5EC(Task* task);
+static void func_shelter_r47_8017FB94(Task* task);
+static void func_shelter_r47_8017FCC0(void);
 
 void func_shelter_r47_8017D86C(DialogPrompt* arg0, UiObject* arg1)
 {
@@ -396,10 +396,10 @@ void func_shelter_r47_8017D86C(DialogPrompt* arg0, UiObject* arg1)
 }
 
 /// Title of the "Play Data" panel.
-const char D_shelter_r47_8017D610[] = "Play Data";
+static const char D_shelter_r47_8017D610[] = "Play Data";
 
 /// Drawn in place of the percentage for a row holding every recorded use.
-const u8 D_shelter_r47_8017D61C[] = "100.0%";
+static const u8 D_shelter_r47_8017D61C[] = "100.0%";
 
 void func_shelter_r47_8017E038(DialogPrompt* arg0, UiObject* arg1)
 {
@@ -541,7 +541,7 @@ void func_shelter_r47_8017E038(DialogPrompt* arg0, UiObject* arg1)
 /// counter as a 12-bit fraction of the top row's. Both are scaled down by
 /// halving until the top counter fits in 17 bits, so the multiply and the
 /// shift cannot overflow.
-void func_shelter_r47_8017E434(UiList* list, UiObject* obj)
+static void func_shelter_r47_8017E434(UiList* list, UiObject* obj)
 {
     RoomItemUsage* work;
     s32            count;
@@ -628,7 +628,7 @@ void func_shelter_r47_8017E434(UiList* list, UiObject* obj)
 /// `barWidths`, its counter as a 12-bit fraction of the top row's. Both are
 /// scaled down by halving until the top counter fits in 17 bits, so the
 /// multiply and the shift cannot overflow.
-void func_shelter_r47_8017E730(UiList* list, UiObject* obj)
+static void func_shelter_r47_8017E730(UiList* list, UiObject* obj)
 {
     RoomPeUsage* work;
     s16*         p;
@@ -715,8 +715,8 @@ void func_shelter_r47_8017E730(UiList* list, UiObject* obj)
 }
 
 /// Titles of the weapon and PE usage panels.
-const char D_shelter_r47_8017D624[] = "Weapon Data";
-const char D_shelter_r47_8017D630[] = "PE Data";
+static const char D_shelter_r47_8017D624[] = "Weapon Data";
+static const char D_shelter_r47_8017D630[] = "PE Data";
 
 void func_shelter_r47_8017EA50(Task* task)
 {
@@ -773,12 +773,12 @@ void func_shelter_r47_8017EA50(Task* task)
 /// Title of the "Telephone" panel. The word holding its terminator carries two
 /// more non-zero bytes, so it stays assembly.
 /// "Telephone", followed by the non-zero padding the original toolchain left.
-const char D_shelter_r47_8017D638[12] = "Telephone\0\xDC"
-                                        "2";
+static const char D_shelter_r47_8017D638[12] = "Telephone\0\xDC"
+                                               "2";
 
-extern const char D_shelter_r47_8017D638[];
+static const char D_shelter_r47_8017D638[];
 
-void func_shelter_r47_8017EC04(Task* task)
+static void func_shelter_r47_8017EC04(Task* task)
 {
     UiObject* obj;
     UiList*   list;
@@ -901,7 +901,7 @@ void func_shelter_r47_8017EEFC(Task* task)
 /// Inserts a '.' into a digit string so `decimals` characters sit after the
 /// point. Walks to the NUL, then shifts the last `min(len, decimals)` bytes
 /// one to the right to open a slot. No-op when `decimals <= 0`.
-void func_shelter_r47_8017EF58(u8* str, s32 decimals)
+static void func_shelter_r47_8017EF58(u8* str, s32 decimals)
 {
     s32 len;
 
@@ -937,7 +937,7 @@ void func_shelter_r47_8017EF58(u8* str, s32 decimals)
 /// (so "5" with two decimals becomes "0.05"), otherwise print it unpadded, then
 /// shift the last `decimals` digits right by one and drop a '.' in front of
 /// them. Appends "%" and returns `buf`.
-u8* func_shelter_r47_8017EFC8(u8* buf, s32 value, s32 decimals)
+static u8* func_shelter_r47_8017EFC8(u8* buf, s32 value, s32 decimals)
 {
     s32 limit;
     s32 i;
@@ -1006,7 +1006,7 @@ void func_shelter_r47_8017F0BC(Task* task)
 /// panel's draw order. Origin is `field_20`/`field_22` plus (`arg1`, `arg2`);
 /// `arg3`/`arg4` are width and height. Left vertices take `arg5`, right vertices
 /// take `arg6`. A zero color or width < 2 draws nothing.
-void func_shelter_r47_8017F1AC(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
+static void func_shelter_r47_8017F1AC(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
 {
     register s32 dx asm("v1");
     register s32 w asm("t3");
@@ -1096,7 +1096,7 @@ void func_shelter_r47_8017F524(DialogPrompt* prompt, UiObject* obj)
 
 /// Task exit callback for the save-prompt UI: if this task still owns
 /// `Wip_UiHolder`, clear it, then free the spawned UI object and kill the task.
-void func_shelter_r47_8017F5EC(Task* task)
+static void func_shelter_r47_8017F5EC(Task* task)
 {
     WipUiHolder* holder;
 
@@ -1295,7 +1295,7 @@ void func_shelter_r47_8017F628(Task* task)
 
 /// The three states of the room's main task, run by `func_shelter_r47_801807B4`:
 /// set-up, the per-frame handler and the kill.
-const TaskFuncTable3 D_shelter_r47_8017D6A4 = {
+static const TaskFuncTable3 D_shelter_r47_8017D6A4 = {
     {
         func_shelter_r47_8017FB94,
         func_shelter_r47_8017FCC0,
@@ -1303,7 +1303,7 @@ const TaskFuncTable3 D_shelter_r47_8017D6A4 = {
     },
 };
 
-void func_shelter_r47_8017FB94(Task* task)
+static void func_shelter_r47_8017FB94(Task* task)
 {
     Task* player;
 
@@ -1326,7 +1326,7 @@ void func_shelter_r47_8017FB94(Task* task)
     task->state++;
 }
 
-void func_shelter_r47_8017FCC0(void)
+static void func_shelter_r47_8017FCC0(void)
 {
     u8 place = gGameSession->at4.loc.place;
 
@@ -1682,7 +1682,7 @@ void func_shelter_r47_80180714(Task* task)
     }
 }
 
-void func_shelter_r47_801807B4(Task* task)
+static void func_shelter_r47_801807B4(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -1906,7 +1906,7 @@ void func_shelter_r47_80180F38(s16 x, s16 y, s16 id)
 
 /// Outlines `rect` in (`r`, `g`, `b`) with four flat `LINE_F2` edges linked
 /// into `gGpuCurrentOt[1]`.
-void func_shelter_r47_80181148(RoomRect* rect, u8 r, u8 g, u8 b)
+static void func_shelter_r47_80181148(RoomRect* rect, u8 r, u8 g, u8 b)
 {
     LINE_F2* line;
 

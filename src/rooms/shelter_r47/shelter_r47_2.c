@@ -52,33 +52,33 @@ extern s16 D_shelter_r47_801875F8[][2];
 extern u8 D_shelter_r47_8018A694;
 extern u8 D_shelter_r47_8018A695;
 
-void func_shelter_r47_801816CC(Task* task);
-void func_shelter_r47_80181F14(Task* task, s16 y);
-void func_shelter_r47_801820C0(s16 arg0);
-void func_shelter_r47_80182348(Task* task);
-void func_shelter_r47_80182470(Task* task);
-void func_shelter_r47_801828D0(s32 x, s32 y, s32 variant);
-s16  func_shelter_r47_801829B8(Task* task, s16 arg1);
-void func_shelter_r47_80182C78(Task* task);
-void func_shelter_r47_80182CA4(Task* task);
-void func_shelter_r47_80182DAC(Task* task);
-void func_shelter_r47_80182E78(Task* task);
-void func_shelter_r47_80182F18(Task* task);
-void func_shelter_r47_80182FDC(Task* task);
-void func_shelter_r47_80183068(Task* task);
-void func_shelter_r47_801830B8(Task* task);
-void func_shelter_r47_80183170(Task* task);
-void func_shelter_r47_801831C8(Task* task);
-void func_shelter_r47_80183284(Task* task);
-void func_shelter_r47_801832E4(s16 step);
-void func_shelter_r47_801832EC(Task* task);
-void func_shelter_r47_8018337C(Task* task);
-void func_shelter_r47_801833DC(Task* task, s16 arg1);
-void func_shelter_r47_80183484(Task* task);
+static void func_shelter_r47_801816CC(Task* task);
+static void func_shelter_r47_80181F14(Task* task, s16 y);
+static void func_shelter_r47_801820C0(s16 arg0);
+static void func_shelter_r47_80182348(Task* task);
+static void func_shelter_r47_80182470(Task* task);
+static void func_shelter_r47_801828D0(s32 x, s32 y, s32 variant);
+static s16  func_shelter_r47_801829B8(Task* task, s16 arg1);
+static void func_shelter_r47_80182C78(Task* task);
+static void func_shelter_r47_80182CA4(Task* task);
+static void func_shelter_r47_80182DAC(Task* task);
+static void func_shelter_r47_80182E78(Task* task);
+static void func_shelter_r47_80182F18(Task* task);
+static void func_shelter_r47_80182FDC(Task* task);
+static void func_shelter_r47_80183068(Task* task);
+static void func_shelter_r47_801830B8(Task* task);
+static void func_shelter_r47_80183170(Task* task);
+static void func_shelter_r47_801831C8(Task* task);
+static void func_shelter_r47_80183284(Task* task);
+static void func_shelter_r47_801832E4(s16 step);
+static void func_shelter_r47_801832EC(Task* task);
+static void func_shelter_r47_8018337C(Task* task);
+static void func_shelter_r47_801833DC(Task* task, s16 arg1);
+static void func_shelter_r47_80183484(Task* task);
 
 /// State handlers of the room's first cap script, run by
 /// `func_shelter_r47_80182B18`.
-const TaskFuncTable14 D_shelter_r47_8017D6C8 = {
+static const TaskFuncTable14 D_shelter_r47_8017D6C8 = {
     {
         func_shelter_r47_8018138C,
         func_shelter_r47_80182C78,
@@ -105,7 +105,7 @@ const TaskFuncTable14 D_shelter_r47_8017D6C8 = {
 /// moves to state 7. Kind 1 moves to state 9 after its one-off event, kind 2
 /// starts the cap event for the current `step`, and kinds 3 and 4 start their
 /// own events. Every other outcome returns to state 3.
-void func_shelter_r47_801816CC(Task* task)
+static void func_shelter_r47_801816CC(Task* task)
 {
     ShelterR47State*  work;
     ShelterR47State*  w;
@@ -421,7 +421,7 @@ void func_shelter_r47_80181914(Task* task, s16 arg1)
 /// the byte's value, advancing `field_48` on odd animation frames. At the
 /// terminator it redraws the previous byte for eight frames out of every
 /// sixteen instead.
-void func_shelter_r47_80181F14(Task* task, s16 y)
+static void func_shelter_r47_80181F14(Task* task, s16 y)
 {
     ShelterR47State* work;
     POLY_FT4*        poly;
@@ -453,7 +453,7 @@ void func_shelter_r47_80181F14(Task* task, s16 y)
     }
 }
 
-void func_shelter_r47_801820C0(s16 arg0)
+static void func_shelter_r47_801820C0(s16 arg0)
 {
     GpTpageSprt* p;
     SPRT*        sprt;
@@ -513,7 +513,7 @@ void func_shelter_r47_801820C0(s16 arg0)
     addPrim(&gGpuCurrentOt[12], p);
 }
 
-void func_shelter_r47_80182348(Task* task)
+static void func_shelter_r47_80182348(Task* task)
 {
     ShelterR47State* state;
     ShelterR47State* done;
@@ -560,7 +560,7 @@ void func_shelter_r47_80182348(Task* task)
 /// draw the cursor. `RoomActionPrompt::targetId` serves as the cursor speed and
 /// `field_E` as the double-press window: a second press within that many frames
 /// without the cursor having moved reports state 4 instead of 2.
-void func_shelter_r47_80182470(Task* task)
+static void func_shelter_r47_80182470(Task* task)
 {
     RoomActionPrompt* prompt;
     PadState*         pad;
@@ -697,7 +697,7 @@ void func_shelter_r47_80182470(Task* task)
 /// Queues one 16x24 textured quad, the action prompt's cursor icon, at (`x`,
 /// `y`) into the head of the current OT. `variant` selects the palette, 0x3C87
 /// when it is 2 and 0x3C88 otherwise; 0 draws nothing.
-void func_shelter_r47_801828D0(s32 x, s32 y, s32 variant)
+static void func_shelter_r47_801828D0(s32 x, s32 y, s32 variant)
 {
     POLY_FT4* prim;
     s16       px;
@@ -737,7 +737,7 @@ void func_shelter_r47_801828D0(s32 x, s32 y, s32 variant)
     addPrim(gGpuCurrentOt, prim);
 }
 
-s16 func_shelter_r47_801829B8(Task* task, s16 arg1)
+static s16 func_shelter_r47_801829B8(Task* task, s16 arg1)
 {
     ShelterR47State* state;
     s8               step;
@@ -822,7 +822,7 @@ s32 func_shelter_r47_80182B9C(Task* task, OverlayHotspot* table, s16 x, s16 y)
 
 /// Zeroes the action prompt's target id, mode and screen position, and steps
 /// the caller's script on one state.
-void func_shelter_r47_80182C78(Task* task)
+static void func_shelter_r47_80182C78(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
 
@@ -833,7 +833,7 @@ void func_shelter_r47_80182C78(Task* task)
     task->state         = task->state + 1;
 }
 
-void func_shelter_r47_80182CA4(Task* task)
+static void func_shelter_r47_80182CA4(Task* task)
 {
     ShelterR47State* state;
     s32              flag;
@@ -876,7 +876,7 @@ void func_shelter_r47_80182CA4(Task* task)
 
 /// Clears the action prompt's mode and target, drops the prompt kind to 0 when
 /// its gating flags are clear, shows the prompt, and moves the script to state 5.
-void func_shelter_r47_80182DAC(Task* task)
+static void func_shelter_r47_80182DAC(Task* task)
 {
     ShelterR47State*  state;
     RoomActionPrompt* prompt = &D_80114D28;
@@ -895,7 +895,7 @@ void func_shelter_r47_80182DAC(Task* task)
     task->state = 5;
 }
 
-void func_shelter_r47_80182E78(Task* task)
+static void func_shelter_r47_80182E78(Task* task)
 {
     ShelterR47State* state;
 
@@ -915,7 +915,7 @@ void func_shelter_r47_80182E78(Task* task)
     Task_RequestKill(task, 0);
 }
 
-void func_shelter_r47_80182F18(Task* task)
+static void func_shelter_r47_80182F18(Task* task)
 {
     s16 step;
     s32 flag;
@@ -951,7 +951,7 @@ void func_shelter_r47_80182F18(Task* task)
     }
 }
 
-void func_shelter_r47_80182FDC(Task* task)
+static void func_shelter_r47_80182FDC(Task* task)
 {
     ShelterR47State* state;
     ShelterR47State* work;
@@ -970,7 +970,7 @@ void func_shelter_r47_80182FDC(Task* task)
     }
 }
 
-void func_shelter_r47_80183068(Task* task)
+static void func_shelter_r47_80183068(Task* task)
 {
     ShelterR47State* state;
 
@@ -981,7 +981,7 @@ void func_shelter_r47_80183068(Task* task)
     task->state++;
 }
 
-void func_shelter_r47_801830B8(Task* task)
+static void func_shelter_r47_801830B8(Task* task)
 {
     ShelterR47State* state;
 
@@ -1012,7 +1012,7 @@ void func_shelter_r47_801830B8(Task* task)
     task->state++;
 }
 
-void func_shelter_r47_80183170(Task* task)
+static void func_shelter_r47_80183170(Task* task)
 {
     ShelterR47State* state;
 
@@ -1023,7 +1023,7 @@ void func_shelter_r47_80183170(Task* task)
     }
 }
 
-void func_shelter_r47_801831C8(Task* task)
+static void func_shelter_r47_801831C8(Task* task)
 {
     ShelterR47State* state;
 
@@ -1057,7 +1057,7 @@ void func_shelter_r47_80183234(Task* task)
 /// State 0 of the action prompt's dispatcher: resets both prompt slots before
 /// the first cursor scan (position and hold counters cleared, cursor speed
 /// 0x100, double-press window 0xF, `mode` 1) and advances the task's state.
-void func_shelter_r47_80183284(Task* task)
+static void func_shelter_r47_80183284(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     s32               i;
@@ -1074,11 +1074,11 @@ void func_shelter_r47_80183284(Task* task)
     task->state = task->state + 1;
 }
 
-void func_shelter_r47_801832E4(s16 step)
+static void func_shelter_r47_801832E4(s16 step)
 {
 }
 
-void func_shelter_r47_801832EC(Task* task)
+static void func_shelter_r47_801832EC(Task* task)
 {
     ShelterR47State* state = (ShelterR47State*)task->work;
 
@@ -1098,7 +1098,7 @@ void func_shelter_r47_801832EC(Task* task)
     }
 }
 
-void func_shelter_r47_8018337C(Task* task)
+static void func_shelter_r47_8018337C(Task* task)
 {
     ShelterR47State* state;
 
@@ -1112,7 +1112,7 @@ void func_shelter_r47_8018337C(Task* task)
 
 /// Flips toggle `arg1`. Toggle 1 also publishes the area view
 /// (0x12 or 0x24), and toggle 3 is mirrored into `field_52`.
-void func_shelter_r47_801833DC(Task* task, s16 arg1)
+static void func_shelter_r47_801833DC(Task* task, s16 arg1)
 {
     ShelterR47State* state;
 
@@ -1150,7 +1150,7 @@ void func_shelter_r47_801833DC(Task* task, s16 arg1)
 /// it first moves `field_2A` from 2 to 3 and starts cap slot 0x13, then draws
 /// the same markers if game-flag nibble 0xDF is 1, and otherwise the
 /// `field_A` x `field_C` map quad.
-void func_shelter_r47_80183484(Task* task)
+static void func_shelter_r47_80183484(Task* task)
 {
     ShelterR47State2*  state;
     u16                stage;

@@ -95,7 +95,7 @@ extern GpMsgEntry D_shelter_b1_control_room_80181B94[];
 extern s32        D_80132D70;
 extern s32        D_80133088;
 
-void func_shelter_b1_control_room_8017D600(Task* task, _MirrorCfg* cfg);
+static void func_shelter_b1_control_room_8017D600(Task* task, _MirrorCfg* cfg);
 
 /// Applies `m` to `v` through the GTE and stores the result in `out`.
 static inline void _applyMatrixSV(MATRIX* m, SVECTOR* v, SVECTOR* out)
@@ -119,7 +119,7 @@ static inline void _applyMatrixSV(MATRIX* m, SVECTOR* v, SVECTOR* out)
 /// The `do { } while (0)` is not logic. Its loop notes act as a scheduling
 /// barrier: without it, the scheduler would move the shared constant 1 down to
 /// its first store, below the key reads.
-void func_shelter_b1_control_room_8017D600(Task* task, _MirrorCfg* cfg)
+static void func_shelter_b1_control_room_8017D600(Task* task, _MirrorCfg* cfg)
 {
     s32        stage;
     s32        area;
@@ -610,7 +610,7 @@ s32 func_shelter_b1_control_room_8017EE24(void)
     return 0;
 }
 
-void func_shelter_b1_control_room_8017EE2C(Task* arg0)
+static void func_shelter_b1_control_room_8017EE2C(Task* arg0)
 {
     arg0->msgTable = D_shelter_b1_control_room_80181B94;
     Game_SetPtrSlot(arg0, 7);
@@ -625,7 +625,7 @@ void func_shelter_b1_control_room_8017EE2C(Task* arg0)
 
 /// Idle state of the room task: does nothing, and only reserves a 0x10-byte
 /// stack frame.
-void func_shelter_b1_control_room_8017EEBC(Task* task)
+static void func_shelter_b1_control_room_8017EEBC(Task* task)
 {
     char pad[0x10];
 }
@@ -633,13 +633,13 @@ void func_shelter_b1_control_room_8017EEBC(Task* task)
 /// States of the room task `func_shelter_b1_control_room_8017EECC`: the setup
 /// state `func_shelter_b1_control_room_8017EE2C`, the idle state
 /// `func_shelter_b1_control_room_8017EEBC`, then `taskKill`.
-const TaskFuncTable3 D_shelter_b1_control_room_8017D5C4 = {
+static const TaskFuncTable3 D_shelter_b1_control_room_8017D5C4 = {
     { func_shelter_b1_control_room_8017EE2C, func_shelter_b1_control_room_8017EEBC, taskKill },
 };
 
 /// The room task: runs the handler for its state from a stack copy of
 /// `D_shelter_b1_control_room_8017D5C4`.
-void func_shelter_b1_control_room_8017EECC(Task* task)
+static void func_shelter_b1_control_room_8017EECC(Task* task)
 {
     TaskFuncTable3 sp;
 

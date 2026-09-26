@@ -54,14 +54,14 @@ extern SVECTOR    D_shelter_b3_elevator_hall_80182AF4[];
 /// blue, selected by the palette index in the spawn argument.
 extern RoomHaloShade D_shelter_b3_elevator_hall_80182B34[];
 
-void func_shelter_b3_elevator_hall_8017DDCC(Task* task);
-void func_shelter_b3_elevator_hall_8017DE10(Task* task);
-void func_shelter_b3_elevator_hall_8017DFB0(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b3_elevator_hall_8017EAC0(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
-void func_shelter_b3_elevator_hall_8017ED84(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b3_elevator_hall_8017FA80(GpCoord* coord, s16 size);
-void func_shelter_b3_elevator_hall_8017FFAC(GpCoord* arg0, s32 arg1);
-void func_shelter_b3_elevator_hall_80180324(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_b3_elevator_hall_8017DDCC(Task* task);
+static void func_shelter_b3_elevator_hall_8017DE10(Task* task);
+static void func_shelter_b3_elevator_hall_8017DFB0(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b3_elevator_hall_8017EAC0(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
+static void func_shelter_b3_elevator_hall_8017ED84(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_b3_elevator_hall_8017FA80(GpCoord* coord, s16 size);
+static void func_shelter_b3_elevator_hall_8017FFAC(GpCoord* arg0, s32 arg1);
+static void func_shelter_b3_elevator_hall_80180324(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// Decides whether the event `req` describes fires for message `msg`. A set
 /// flag nibble (a clear one for a negative `flagId`) means it already has, and
@@ -70,7 +70,7 @@ void func_shelter_b3_elevator_hall_80180324(GpCoord* arg0, s16 arg1, u8* arg2);
 /// latched, the flag nibble is written, the task that runs the request is
 /// spawned, and the answer is 2. A non-zero `field_5` on the message only asks
 /// for the answer and changes nothing.
-s32 func_shelter_b3_elevator_hall_8017D62C(RoomEventReq* req, RoomEventMsg* msg)
+static s32 func_shelter_b3_elevator_hall_8017D62C(RoomEventReq* req, RoomEventMsg* msg)
 {
     s32 flag;
     s32 id;
@@ -239,7 +239,7 @@ void func_shelter_b3_elevator_hall_8017D900(Task* task)
 
 /// State table of the room's message-driven task: publish the message table,
 /// idle, then kill the task.
-const TaskFuncTable3 D_shelter_b3_elevator_hall_8017D5F0 = {
+static const TaskFuncTable3 D_shelter_b3_elevator_hall_8017D5F0 = {
     {
         func_shelter_b3_elevator_hall_8017DDCC,
         func_shelter_b3_elevator_hall_8017DE10,
@@ -378,7 +378,7 @@ s32 func_shelter_b3_elevator_hall_8017DD98(Task* task, s32 msgId, s32 arg2)
 
 /// First state of the room's message-driven task: points the task at the
 /// room's message table, publishes it in pointer slot 7 and advances.
-void func_shelter_b3_elevator_hall_8017DDCC(Task* task)
+static void func_shelter_b3_elevator_hall_8017DDCC(Task* task)
 {
     task->msgTable = D_shelter_b3_elevator_hall_80182A38;
     Game_SetPtrSlot(task, 7);
@@ -386,13 +386,13 @@ void func_shelter_b3_elevator_hall_8017DDCC(Task* task)
 }
 
 /// The message-driven task's idle state.
-void func_shelter_b3_elevator_hall_8017DE10(Task* task)
+static void func_shelter_b3_elevator_hall_8017DE10(Task* task)
 {
 }
 
 /// Runs the message-driven task's current state through a stack copy of its
 /// state table.
-void func_shelter_b3_elevator_hall_8017DE18(Task* task)
+static void func_shelter_b3_elevator_hall_8017DE18(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -400,7 +400,7 @@ void func_shelter_b3_elevator_hall_8017DE18(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_shelter_b3_elevator_hall_8017DE70(Task* arg0)
+static void func_shelter_b3_elevator_hall_8017DE70(Task* arg0)
 {
     if (arg0->state == 0) {
         D_80115728  = 0x6024D;
@@ -443,7 +443,7 @@ void func_shelter_b3_elevator_hall_8017DE70(Task* arg0)
 /// angle between the two centres. `arg1` scales the radii by depth. The lit
 /// vertices take the colour packed 4 bits per channel in `arg2`, with the
 /// frame counter's low bit blended in so the band flickers.
-void func_shelter_b3_elevator_hall_8017DFB0(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b3_elevator_hall_8017DFB0(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**                   scratch;
     u8*                      head;
@@ -591,7 +591,7 @@ void func_shelter_b3_elevator_hall_8017DFB0(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// rises with a random extra speed and brightens. It fades over the last
 /// ticks of its lifetime and releases its work block when dark, or when the
 /// room's event state reaches 4.
-void func_shelter_b3_elevator_hall_8017E7F4(Task* task)
+static void func_shelter_b3_elevator_hall_8017E7F4(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -675,7 +675,7 @@ void func_shelter_b3_elevator_hall_8017E7F4(Task* task)
 /// two bits and `arg2`'s top nibble pick the 24-texel texture cell, `arg2`'s
 /// low twelve bits are the half-size scaled by depth, `arg3`'s low byte is the
 /// grey level and its top nibble picks the palette.
-void func_shelter_b3_elevator_hall_8017EAC0(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
+static void func_shelter_b3_elevator_hall_8017EAC0(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -751,7 +751,7 @@ void func_shelter_b3_elevator_hall_8017EAC0(GpCoord* arg0, u16 arg1, u16 arg2, u
 /// origin of `arg0`'s world matrix, when it projects. The ring runs between
 /// the radii `arg1` and `arg1 + arg2`, both scaled by depth; its edge at
 /// `arg1 + arg2` takes the colour `rgb` and its edge at `arg1` is black.
-void func_shelter_b3_elevator_hall_8017ED84(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_shelter_b3_elevator_hall_8017ED84(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -805,7 +805,7 @@ void func_shelter_b3_elevator_hall_8017ED84(GpCoord* arg0, s32 arg1, s32 arg2, u
 /// Draws a gouraud disc of eight `POLY_G4` wedges around the projected origin
 /// of `arg0`'s world matrix, when it projects: radius `arg1` scaled by depth,
 /// the colour `rgb` at the centre fading to black at the rim.
-void func_shelter_b3_elevator_hall_8017F1A8(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_shelter_b3_elevator_hall_8017F1A8(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -858,7 +858,7 @@ void func_shelter_b3_elevator_hall_8017F1A8(GpCoord* arg0, s16 arg1, u8* rgb)
 /// duration; state 1 ramps the level up while drawing a growing disc, a
 /// half-bright wider disc on odd ticks and a shrinking ring; state 2 fades the
 /// level out through a two-ring flare before the work block is released.
-void func_shelter_b3_elevator_hall_8017F53C(Task* arg0)
+static void func_shelter_b3_elevator_hall_8017F53C(Task* arg0)
 {
     u8          rgb[3];
     GpEffWork*  mem;
@@ -945,7 +945,7 @@ kill:
 /// glow at that size, and while its echo level lasts a widening ring fading
 /// out around them. The work block is released once the disc's level runs
 /// down, or when the room's event state reaches 4.
-void func_shelter_b3_elevator_hall_8017F8D4(Task* arg0)
+static void func_shelter_b3_elevator_hall_8017F8D4(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;
@@ -1001,7 +1001,7 @@ void func_shelter_b3_elevator_hall_8017F8D4(Task* arg0)
 /// by depth, and a flat quad on the ground beneath it when there is ground.
 /// It also points the `Gp_RoomCoords[2]` light at the glow with a random
 /// intensity. Nothing is drawn when the glow does not project.
-void func_shelter_b3_elevator_hall_8017FA80(GpCoord* coord, s16 size)
+static void func_shelter_b3_elevator_hall_8017FA80(GpCoord* coord, s16 size)
 {
     GpCoord        ground;
     POLY_FT4*      prim;
@@ -1130,7 +1130,7 @@ void func_shelter_b3_elevator_hall_8017FA80(GpCoord* coord, s16 size)
 /// position: the unit quad `D_80111E38` scaled by `arg1`, turned by the view
 /// matrix and projected. Its texture alternates between two 32-texel columns
 /// on successive frames.
-void func_shelter_b3_elevator_hall_8017FFAC(GpCoord* arg0, s32 arg1)
+static void func_shelter_b3_elevator_hall_8017FFAC(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;
@@ -1218,7 +1218,7 @@ void func_shelter_b3_elevator_hall_8017FFAC(GpCoord* arg0, s32 arg1)
 /// `arg2`, a full-colour disc of half that radius over it, and a ring of
 /// half-colour spikes built from a second, eight-times smaller radius. Every
 /// wedge is `POLY_G4`, lit at the centre and black at the rim.
-void func_shelter_b3_elevator_hall_80180324(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b3_elevator_hall_80180324(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -1341,7 +1341,7 @@ void func_shelter_b3_elevator_hall_80180324(GpCoord* arg0, s16 arg1, u8* arg2)
 /// grows with age, and spawns the child effect `D_80115728` at the task's
 /// coordinate frame. Releases the work block after 0x15 ticks, or when the
 /// room's event state reaches 4.
-void func_shelter_b3_elevator_hall_80180CE4(Task* arg0)
+static void func_shelter_b3_elevator_hall_80180CE4(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;

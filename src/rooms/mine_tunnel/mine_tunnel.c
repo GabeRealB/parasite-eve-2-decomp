@@ -67,7 +67,7 @@ void func_mine_tunnel_8017D6E0(s32 arg0)
 /// publishes the task in pointer slot 7 and - when the session is at place 1
 /// and flag 0xA1 is 1 - calls `func_mine_tunnel_8017D6E0` with 2. Then sets
 /// scene music entry 1 and advances to state 1.
-void func_mine_tunnel_8017D6EC(Task* arg0)
+static void func_mine_tunnel_8017D6EC(Task* arg0)
 {
     arg0->msgTable = D_mine_tunnel_8017DFC4;
     Game_SetPtrSlot(arg0, 7);
@@ -79,13 +79,13 @@ void func_mine_tunnel_8017D6EC(Task* arg0)
 }
 
 /// State 1 of the room's event task: does nothing, so the task idles here.
-void func_mine_tunnel_8017D774(Task* task)
+static void func_mine_tunnel_8017D774(Task* task)
 {
 }
 
 /// The room event task's three states: install the message table, idle, and
 /// kill.
-const TaskFuncTable3 D_mine_tunnel_8017D5C4 = {
+static const TaskFuncTable3 D_mine_tunnel_8017D5C4 = {
     {
         func_mine_tunnel_8017D6EC,
         func_mine_tunnel_8017D774,
@@ -95,7 +95,7 @@ const TaskFuncTable3 D_mine_tunnel_8017D5C4 = {
 
 /// The room's event task: runs the handler for its current state, through a
 /// stack copy of the state table.
-void func_mine_tunnel_8017D77C(Task* task)
+static void func_mine_tunnel_8017D77C(Task* task)
 {
     TaskFuncTable3 sp;
 

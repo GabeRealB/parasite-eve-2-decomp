@@ -103,7 +103,7 @@ s32 func_acropolis_observatory_8017D7C4(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
 /// registers it as the room's slot-7 pointer. On the phase-2 visit that has not
 /// yet latched nibble 0xCA it also arms the shared field-actor byte, then steps
 /// the task on to its next state.
-void func_acropolis_observatory_8017D834(Task* task)
+static void func_acropolis_observatory_8017D834(Task* task)
 {
     task->msgTable = D_acropolis_observatory_8017E7B8;
     Game_SetPtrSlot(task, 7);
@@ -116,7 +116,7 @@ void func_acropolis_observatory_8017D834(Task* task)
 /// Second state of the room task: on a visit that arrived by warp 3 or 4 it
 /// spawns the matching streamed-scene ride from the room's task table (entry 1
 /// or 0), once per visit.
-void func_acropolis_observatory_8017D8AC(Task* task)
+static void func_acropolis_observatory_8017D8AC(Task* task)
 {
     if ((D_acropolis_observatory_8017E7D8 == 0) && (gGameSession->at4.loc.warp == 3)) {
         D_acropolis_observatory_8017E7D8 = 1;
@@ -129,13 +129,13 @@ void func_acropolis_observatory_8017D8AC(Task* task)
 }
 
 /// The room task's three states.
-const TaskFuncTable3 D_acropolis_observatory_8017D5C4 = {
+static const TaskFuncTable3 D_acropolis_observatory_8017D5C4 = {
     { func_acropolis_observatory_8017D834, func_acropolis_observatory_8017D8AC, taskKill },
 };
 
 /// The room task's callback: runs the state `Task::state` selects from a
 /// stack copy of `D_acropolis_observatory_8017D5C4`.
-void func_acropolis_observatory_8017D950(Task* task)
+static void func_acropolis_observatory_8017D950(Task* task)
 {
     TaskFuncTable3 sp;
 

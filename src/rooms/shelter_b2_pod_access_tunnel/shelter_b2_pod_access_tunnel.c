@@ -124,12 +124,12 @@ s32 func_shelter_b2_pod_access_tunnel_8017D7C4(Task* task, s32 msgId, RoomEventM
     return 1;
 }
 
-void func_shelter_b2_pod_access_tunnel_8017DBA8(Task* arg0);
-void func_shelter_b2_pod_access_tunnel_8017DC0C(Task* task);
+static void func_shelter_b2_pod_access_tunnel_8017DBA8(Task* arg0);
+static void func_shelter_b2_pod_access_tunnel_8017DC0C(Task* task);
 
 /// The three states `func_shelter_b2_pod_access_tunnel_8017DC14` dispatches
 /// the room task through: set-up, an idle tick, and removal.
-const TaskFuncTable3 D_shelter_b2_pod_access_tunnel_8017D5D8 = {
+static const TaskFuncTable3 D_shelter_b2_pod_access_tunnel_8017D5D8 = {
     { func_shelter_b2_pod_access_tunnel_8017DBA8, func_shelter_b2_pod_access_tunnel_8017DC0C, taskKill },
 };
 
@@ -206,7 +206,7 @@ s32 func_shelter_b2_pod_access_tunnel_8017DB78(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-void func_shelter_b2_pod_access_tunnel_8017DBA8(Task* arg0)
+static void func_shelter_b2_pod_access_tunnel_8017DBA8(Task* arg0)
 {
     arg0->msgTable = D_shelter_b2_pod_access_tunnel_80183BCC;
     Game_SetPtrSlot(arg0, 7);
@@ -216,14 +216,14 @@ void func_shelter_b2_pod_access_tunnel_8017DBA8(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-void func_shelter_b2_pod_access_tunnel_8017DC0C(Task* task)
+static void func_shelter_b2_pod_access_tunnel_8017DC0C(Task* task)
 {
 }
 
 /// Runs one tick of a room task through the three-state table
 /// `D_shelter_b2_pod_access_tunnel_8017D5D8`, copying the table onto the stack
 /// and calling the entry for the task's current state.
-void func_shelter_b2_pod_access_tunnel_8017DC14(Task* task)
+static void func_shelter_b2_pod_access_tunnel_8017DC14(Task* task)
 {
     TaskFuncTable3 sp;
 

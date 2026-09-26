@@ -70,16 +70,16 @@ extern s32        D_acropolis_helicopter_landing_pad_80183FA4;
 extern s32        D_acropolis_helicopter_landing_pad_80184E50;
 extern GpObj4A    D_acropolis_helicopter_landing_pad_80185FAC[];
 
-void func_acropolis_helicopter_landing_pad_8017E618(s32 arg0, s32 arg1);
-void func_acropolis_helicopter_landing_pad_8017EA6C(Task* task);
+static void func_acropolis_helicopter_landing_pad_8017E618(s32 arg0, s32 arg1);
+static void func_acropolis_helicopter_landing_pad_8017EA6C(Task* task);
 
 /// A debug format string nothing in the room reads.
-const char D_acropolis_helicopter_landing_pad_8017D5D0[] = "%s (%5d,%5d,%5d)";
+static const char D_acropolis_helicopter_landing_pad_8017D5D0[] = "%s (%5d,%5d,%5d)";
 
 /// State handlers of the room's script task
 /// `func_acropolis_helicopter_landing_pad_8017EB00`, indexed by
 /// `Task::state`: set-up, the per-frame phase tick and `taskKill`.
-const TaskFuncTable3 D_acropolis_helicopter_landing_pad_8017D5E4 = {
+static const TaskFuncTable3 D_acropolis_helicopter_landing_pad_8017D5E4 = {
     { func_acropolis_helicopter_landing_pad_8017EA6C, func_acropolis_helicopter_landing_pad_8017D9BC, taskKill },
 };
 
@@ -459,7 +459,7 @@ void func_acropolis_helicopter_landing_pad_8017E5E8(void)
     Task_SpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 1, 0, 0);
 }
 
-void func_acropolis_helicopter_landing_pad_8017E618(s32 arg0, s32 arg1)
+static void func_acropolis_helicopter_landing_pad_8017E618(s32 arg0, s32 arg1)
 {
     Task_SpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 2, 0, arg0 | (arg1 << 8));
 }
@@ -594,7 +594,7 @@ void func_acropolis_helicopter_landing_pad_8017E974(Task* task)
     }
 }
 
-void func_acropolis_helicopter_landing_pad_8017EA6C(Task* task)
+static void func_acropolis_helicopter_landing_pad_8017EA6C(Task* task)
 {
     task->msgTable = D_acropolis_helicopter_landing_pad_80183710;
     Game_SetPtrSlot(task, 7);
@@ -609,7 +609,7 @@ void func_acropolis_helicopter_landing_pad_8017EA6C(Task* task)
 /// The room's script task: runs the state handler
 /// `D_acropolis_helicopter_landing_pad_8017D5E4` names for `Task::state`,
 /// through a copy of the table taken onto the stack.
-void func_acropolis_helicopter_landing_pad_8017EB00(Task* task)
+static void func_acropolis_helicopter_landing_pad_8017EB00(Task* task)
 {
     TaskFuncTable3 sp;
 

@@ -124,7 +124,7 @@ extern UiList       D_shelter_b6_nursery_80184FB8;
 
 /// Title of the telephone menu. The bytes after its terminator are not zero,
 /// so it stays assembly.
-extern const char D_shelter_b6_nursery_8017D638[];
+static const char D_shelter_b6_nursery_8017D638[];
 
 /// Task tables: the cutscene and its sound task; the ambient sound task.
 extern TaskDesc D_shelter_b6_nursery_80184FDC;
@@ -159,19 +159,19 @@ extern GpCoord D_shelter_b6_nursery_801879A0;
 
 extern ShelterB6NurseryPair D_shelter_b6_nursery_801879F0;
 
-void func_shelter_b6_nursery_8017F4AC(Task* task);
-void func_shelter_b6_nursery_8017FEC4(Task* task);
-void func_shelter_b6_nursery_8017FF8C(Task* task);
-void func_shelter_b6_nursery_80180518(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b6_nursery_8018098C(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b6_nursery_80181EDC(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3);
-void func_shelter_b6_nursery_80182330(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3);
-void func_shelter_b6_nursery_801829E4(GpCoord* coord, s16 scale, s16 shade);
-void func_shelter_b6_nursery_80182D14(s16 arg0, s16 arg1);
-void func_shelter_b6_nursery_80182FCC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b6_nursery_801833F8(GpCoord* arg0, s16 arg1, u8* rgb);
-void func_shelter_b6_nursery_80183C7C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-void func_shelter_b6_nursery_801842FC(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_b6_nursery_8017F4AC(Task* task);
+static void func_shelter_b6_nursery_8017FEC4(Task* task);
+static void func_shelter_b6_nursery_8017FF8C(Task* task);
+static void func_shelter_b6_nursery_80180518(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b6_nursery_8018098C(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b6_nursery_80181EDC(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_b6_nursery_80182330(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_b6_nursery_801829E4(GpCoord* coord, s16 scale, s16 shade);
+static void func_shelter_b6_nursery_80182D14(s16 arg0, s16 arg1);
+static void func_shelter_b6_nursery_80182FCC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_b6_nursery_801833F8(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_shelter_b6_nursery_80183C7C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+static void func_shelter_b6_nursery_801842FC(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// Draws row `field_8` of the play-data statistics list: its label, then its
 /// value - a time, a count with its suffix, or a percentage with two decimals
@@ -431,10 +431,10 @@ void func_shelter_b6_nursery_8017D72C(DialogPrompt* arg0, UiObject* arg1)
 }
 
 /// Title of the play-data menu.
-const char D_shelter_b6_nursery_8017D610[] = "Play Data";
+static const char D_shelter_b6_nursery_8017D610[] = "Play Data";
 
 /// Drawn in place of a percentage for a row holding every recorded use.
-const u8 D_shelter_b6_nursery_8017D61C[] = "100.0%";
+static const u8 D_shelter_b6_nursery_8017D61C[] = "100.0%";
 
 /// Draws row `field_8` of an item-usage list: the item's name and icon (unless
 /// the panel is in mode 5), its share of all uses as a percentage with two
@@ -578,7 +578,7 @@ void func_shelter_b6_nursery_8017DEF8(DialogPrompt* arg0, UiObject* arg1)
 /// bar width as a 12-bit fraction of the top row's counter. The counters are
 /// halved as needed until the top one is at most 99999, so neither product can
 /// overflow.
-void func_shelter_b6_nursery_8017E2F4(UiList* list, UiObject* obj)
+static void func_shelter_b6_nursery_8017E2F4(UiList* list, UiObject* obj)
 {
     RoomItemUsage* work;
     s32            count;
@@ -655,7 +655,7 @@ void func_shelter_b6_nursery_8017E2F4(UiList* list, UiObject* obj)
 /// from 0xF, one per level; a slot with a non-zero use counter is listed under
 /// the id of its current level. Sorting, percentages and bar widths work as in
 /// the weapon list.
-void func_shelter_b6_nursery_8017E5F0(UiList* list, UiObject* obj)
+static void func_shelter_b6_nursery_8017E5F0(UiList* list, UiObject* obj)
 {
     RoomPeUsage* work;
     s16*         p;
@@ -742,8 +742,8 @@ void func_shelter_b6_nursery_8017E5F0(UiList* list, UiObject* obj)
 }
 
 /// Titles of the usage list: weapons, then Parasite Energy.
-const char D_shelter_b6_nursery_8017D624[] = "Weapon Data";
-const char D_shelter_b6_nursery_8017D630[] = "PE Data";
+static const char D_shelter_b6_nursery_8017D624[] = "Weapon Data";
+static const char D_shelter_b6_nursery_8017D630[] = "PE Data";
 
 /// Usage-list panel task: `spawnArg1` 0 lists weapons, otherwise Parasite
 /// Energy. On its first tick it allocates the list's work block, spawns the
@@ -803,14 +803,14 @@ void func_shelter_b6_nursery_8017E910(Task* task)
 }
 
 /// "Telephone", followed by the non-zero padding the original toolchain left.
-const char D_shelter_b6_nursery_8017D638[12] = "Telephone\0\x1FQ";
+static const char D_shelter_b6_nursery_8017D638[12] = "Telephone\0\x1FQ";
 
 /// Telephone menu task. Until the save has reached demo scene 1 or been
 /// cleared once, it only opens the `D_800611E4` panel; after that it lays out
 /// and runs the menu list. A finished child selection opens an item prompt
 /// (mode 0x11 for entry 0x33, else 0xF) on the first pass; cancel closes the
 /// menu with sound 0x3B.
-void func_shelter_b6_nursery_8017EAC4(Task* task)
+static void func_shelter_b6_nursery_8017EAC4(Task* task)
 {
     UiObject* obj;
     UiList*   list;
@@ -935,7 +935,7 @@ void func_shelter_b6_nursery_8017EDBC(Task* task)
 
 /// Inserts a '.' into the digit string `str` so that `decimals` digits (or all
 /// of them, if fewer) follow it. Does nothing when `decimals` is not positive.
-void func_shelter_b6_nursery_8017EE18(u8* str, s32 decimals)
+static void func_shelter_b6_nursery_8017EE18(u8* str, s32 decimals)
 {
     s32 len;
 
@@ -970,7 +970,7 @@ void func_shelter_b6_nursery_8017EE18(u8* str, s32 decimals)
 /// digits, into `buf` with a '.' before those digits and the percentage suffix
 /// after them. Small values are zero-padded so a digit precedes the point.
 /// Returns `buf`.
-u8* func_shelter_b6_nursery_8017EE88(u8* buf, s32 value, s32 decimals)
+static u8* func_shelter_b6_nursery_8017EE88(u8* buf, s32 value, s32 decimals)
 {
     s32 limit;
     s32 i;
@@ -1042,7 +1042,7 @@ void func_shelter_b6_nursery_8017EF7C(Task* task)
 /// at offset (`arg1`, `arg2`) from the panel origin, `arg3` wide and `arg4`
 /// high. The left edge takes colour `arg5` and the right edge `arg6`. Nothing
 /// is drawn when `arg5` is zero or the width is below 2.
-void func_shelter_b6_nursery_8017F06C(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
+static void func_shelter_b6_nursery_8017F06C(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
 {
     register s32 dx asm("v1");
     register s32 w asm("t3");
@@ -1141,7 +1141,7 @@ void func_shelter_b6_nursery_8017F3E4(DialogPrompt* prompt, UiObject* obj)
 
 /// Exit callback of the prompt-lines panel task: releases `Wip_UiHolder` if the
 /// task's panel still holds it, then frees the panel and kills the task.
-void func_shelter_b6_nursery_8017F4AC(Task* task)
+static void func_shelter_b6_nursery_8017F4AC(Task* task)
 {
     WipUiHolder* holder;
 
@@ -1365,7 +1365,7 @@ void func_shelter_b6_nursery_8017F4E8(Task* task)
 
 /// States of the room's message task, run by
 /// `func_shelter_b6_nursery_8017FF9C`: install the message table, idle, die.
-const TaskFuncTable3 D_shelter_b6_nursery_8017D6A4 = {
+static const TaskFuncTable3 D_shelter_b6_nursery_8017D6A4 = {
     {
         func_shelter_b6_nursery_8017FEC4,
         func_shelter_b6_nursery_8017FF8C,
@@ -1510,7 +1510,7 @@ s32 func_shelter_b6_nursery_8017FE3C(Task* task, s32 msgId, GpMsg13EF* msg, s32 
     return 0;
 }
 
-void func_shelter_b6_nursery_8017FEC4(Task* arg0)
+static void func_shelter_b6_nursery_8017FEC4(Task* arg0)
 {
     arg0->msgTable = &D_shelter_b6_nursery_8018500C;
     Game_SetPtrSlot(arg0, 7);
@@ -1530,14 +1530,14 @@ void func_shelter_b6_nursery_8017FEC4(Task* arg0)
 
 /// Idle state of the room's message task: does nothing. The unused local
 /// reproduces the original's stack frame.
-void func_shelter_b6_nursery_8017FF8C(Task* task)
+static void func_shelter_b6_nursery_8017FF8C(Task* task)
 {
     char pad[0x10];
 }
 
 /// Runs the room's message task: calls the state handler `task->state` selects
 /// from a stack copy of its three-entry table.
-void func_shelter_b6_nursery_8017FF9C(Task* task)
+static void func_shelter_b6_nursery_8017FF9C(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -1545,7 +1545,7 @@ void func_shelter_b6_nursery_8017FF9C(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_shelter_b6_nursery_8017FFF4(void)
+static void func_shelter_b6_nursery_8017FFF4(void)
 {
     if (D_shelter_b6_nursery_8018797C == 0) {
         D_shelter_b6_nursery_8018797C = 1;
@@ -1555,7 +1555,7 @@ void func_shelter_b6_nursery_8017FFF4(void)
 
 /// Sets the second sprite command's skip-link flag in view 13 for the current
 /// room in the first stage table. Only low-byte values 0 and 1 change the flag.
-void func_shelter_b6_nursery_80180038(s32 arg0)
+static void func_shelter_b6_nursery_80180038(s32 arg0)
 {
     GpAreaKey* sess = &gGameSession->at4.loc;
     GpSprtCmd* cmd;
@@ -1570,7 +1570,7 @@ void func_shelter_b6_nursery_80180038(s32 arg0)
     }
 }
 
-void func_shelter_b6_nursery_801800A0(Task* task)
+static void func_shelter_b6_nursery_801800A0(Task* task)
 {
     SVECTOR* pos;
     u32      a;
@@ -1667,7 +1667,7 @@ void func_shelter_b6_nursery_801800A0(Task* task)
 /// three-point lines across it, of radius `(s16)arg2 * 32` over the depth.
 /// The lit vertices pulse in green and blue at a rate of `(s16)arg1` times the
 /// animation frame. Nothing is drawn when the projection flags an error.
-void func_shelter_b6_nursery_80180518(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b6_nursery_80180518(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw13Scratch* block;
@@ -1762,7 +1762,7 @@ void func_shelter_b6_nursery_80180518(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// wedges reaching out from an inner radius of `(s16)arg2 * 8` over the depth.
 /// The lit vertices pulse in green and blue at a rate of `(s16)arg1` times the
 /// animation frame. Nothing is drawn when the projection flags an error.
-void func_shelter_b6_nursery_8018098C(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b6_nursery_8018098C(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw05Scratch* block;
@@ -1893,7 +1893,7 @@ void func_shelter_b6_nursery_8018098C(SVECTOR* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES(0x14);
 }
 
-void func_shelter_b6_nursery_80181314(Task* task)
+static void func_shelter_b6_nursery_80181314(Task* task)
 {
     SVECTOR    step;
     SVECTOR    pos;
@@ -1990,7 +1990,7 @@ void func_shelter_b6_nursery_80181314(Task* task)
     }
 }
 
-void func_shelter_b6_nursery_80181820(Task* task)
+static void func_shelter_b6_nursery_80181820(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -2127,7 +2127,7 @@ void func_shelter_b6_nursery_80181820(Task* task)
     }
 }
 
-void func_shelter_b6_nursery_80181EDC(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_b6_nursery_80181EDC(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -2194,7 +2194,7 @@ void func_shelter_b6_nursery_80181EDC(GpCoord* coord, u16 arg1, s16 arg2, s16 ar
     SCRATCH_POP_BYTES(0x1C);
 }
 
-void func_shelter_b6_nursery_80182330(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_b6_nursery_80182330(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -2256,7 +2256,7 @@ void func_shelter_b6_nursery_80182330(GpCoord* coord, u16 arg1, s16 arg2, s16 ar
     SCRATCH_POP_BYTES(0x1C);
 }
 
-void func_shelter_b6_nursery_80182730(Task* task)
+static void func_shelter_b6_nursery_80182730(Task* task)
 {
     SVECTOR    step;
     GpEffWork* work;
@@ -2317,7 +2317,7 @@ void func_shelter_b6_nursery_80182730(Task* task)
 /// on a circle of radius `scale` in the coordinate's YZ plane, transformed by
 /// its world matrix, projected with `GsWSMATRIX` and linked into the ordering
 /// table at the triangle's depth with shade `shade`.
-void func_shelter_b6_nursery_801829E4(GpCoord* coord, s16 scale, s16 shade)
+static void func_shelter_b6_nursery_801829E4(GpCoord* coord, s16 scale, s16 shade)
 {
     _ShelterB6NurseryTriScratch* blk;
     SVECTOR*                     p;
@@ -2363,7 +2363,7 @@ void func_shelter_b6_nursery_801829E4(GpCoord* coord, s16 scale, s16 shade)
     SCRATCH_POP(_ShelterB6NurseryTriScratch);
 }
 
-void func_shelter_b6_nursery_80182D14(s16 arg0, s16 arg1)
+static void func_shelter_b6_nursery_80182D14(s16 arg0, s16 arg1)
 {
     D_shelter_b6_nursery_801879F0.field_0 = arg0;
     D_shelter_b6_nursery_801879F0.field_2 = arg1;
@@ -2375,7 +2375,7 @@ void func_shelter_b6_nursery_80182D14(s16 arg0, s16 arg1)
 /// shrinking billboard, 0x10 a tick, and releases its work block. It also
 /// releases it once the room's event state reaches 4, and is frozen while the
 /// event state is non-zero.
-void func_shelter_b6_nursery_80182D28(Task* task)
+static void func_shelter_b6_nursery_80182D28(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -2441,7 +2441,7 @@ void func_shelter_b6_nursery_80182D28(Task* task)
 /// coordinate's world translation, unless the projection flags an error. The
 /// vertices at radius `(s16)arg1 * 64` over the depth are black and those at
 /// `(s16)(arg1 + arg2) * 64` over the depth take `rgb`.
-void func_shelter_b6_nursery_80182FCC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_shelter_b6_nursery_80182FCC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -2499,7 +2499,7 @@ void func_shelter_b6_nursery_80182FCC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb
 /// coordinate's world translation, unless the projection flags an error: the
 /// centre takes `rgb` and the rim, at radius `arg1 * 64` over the depth,
 /// is black.
-void func_shelter_b6_nursery_801833F8(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_shelter_b6_nursery_801833F8(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -2552,7 +2552,7 @@ void func_shelter_b6_nursery_801833F8(GpCoord* arg0, s16 arg1, u8* rgb)
 /// every tick it records the current ends in the next slot and draws the band
 /// between the histories, until its age reaches `spawnArg1`. It is frozen
 /// while the room's event state is 2 or more.
-void func_shelter_b6_nursery_8018378C(Task* task)
+static void func_shelter_b6_nursery_8018378C(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -2649,7 +2649,7 @@ void func_shelter_b6_nursery_8018378C(Task* task)
 /// of `arg0` and `arg1`. Brightness falls by 9 per quad from 0x40, and `arg3`
 /// scales it per channel: red by `arg3 >> 8`, green by bits 4-5 and blue by
 /// bits 0-1. A quad whose projection flags an error is skipped.
-void func_shelter_b6_nursery_80183C7C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_shelter_b6_nursery_80183C7C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
     GpCoord*           a;
@@ -2759,7 +2759,7 @@ void func_shelter_b6_nursery_80183C7C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s1
 /// seven ticks of a fading, widening ring. It then releases its work block,
 /// as it does once the room's event state reaches 4; it is frozen while the
 /// event state is non-zero.
-void func_shelter_b6_nursery_80184074(Task* task)
+static void func_shelter_b6_nursery_80184074(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;
@@ -2832,7 +2832,7 @@ void func_shelter_b6_nursery_80184074(Task* task)
 /// wedges at radius `arg1 * 64` over the depth in half of `arg2`'s colour, a
 /// second at half that radius in the full colour, and four cross wedges from
 /// an inner radius of `arg1 * 8` over the depth. Every rim is black.
-void func_shelter_b6_nursery_801842FC(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b6_nursery_801842FC(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

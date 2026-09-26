@@ -72,7 +72,7 @@ s32 func_dryfield_night_toilet_8017D688(void)
 /// pointer slot 7. When game nibble 0xAF is still clear and the session's place
 /// (`gGameSession->at4.loc.place`) is 1, it sets the nibble to 1 and spawns
 /// entry 0 of `D_8013E51C`. Advances to the next state either way.
-void func_dryfield_night_toilet_8017D690(Task* task)
+static void func_dryfield_night_toilet_8017D690(Task* task)
 {
     task->msgTable = D_dryfield_night_toilet_8017DA70;
     Game_SetPtrSlot(task, 7);
@@ -84,18 +84,18 @@ void func_dryfield_night_toilet_8017D690(Task* task)
 }
 
 /// Second state of the room task: the room has nothing to do each frame.
-void func_dryfield_night_toilet_8017D71C(Task* task)
+static void func_dryfield_night_toilet_8017D71C(Task* task)
 {
 }
 
 /// The room task's three states.
-const TaskFuncTable3 D_dryfield_night_toilet_8017D5C4 = {
+static const TaskFuncTable3 D_dryfield_night_toilet_8017D5C4 = {
     { func_dryfield_night_toilet_8017D690, func_dryfield_night_toilet_8017D71C, taskKill },
 };
 
 /// The room task's callback: runs the state `Task::state` selects from a
 /// stack copy of `D_dryfield_night_toilet_8017D5C4`.
-void func_dryfield_night_toilet_8017D724(Task* task)
+static void func_dryfield_night_toilet_8017D724(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -108,7 +108,7 @@ void func_dryfield_night_toilet_8017D724(Task* task)
 /// `arg2 * 39 / otz`, textured from the 40-texel cell `arg1` of tpage 0x2B and
 /// shaded 0x20 or 0x30 on alternate frames. Points closer than OTZ 0x11 are
 /// skipped.
-void func_dryfield_night_toilet_8017D77C(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_night_toilet_8017D77C(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw25Scratch* block;
     POLY_FT4*          prim;
@@ -151,7 +151,7 @@ void func_dryfield_night_toilet_8017D77C(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// point the current camera view (`gGameSession->at4.loc.view`) shows: view 4
 /// uses the second point, views 5 and 9 the first, and every other view draws
 /// nothing.
-void func_dryfield_night_toilet_8017D9F8(void)
+static void func_dryfield_night_toilet_8017D9F8(void)
 {
     switch (gGameSession->at4.loc.view) {
         case 4:

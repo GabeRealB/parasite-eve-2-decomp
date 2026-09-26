@@ -43,16 +43,9 @@ extern UiObjectDesc D_dryfield_night_gas_station_80183FAC;
 
 /// Panel titles drawn by the room's "Play Data" menu tasks.
 extern const char D_dryfield_night_gas_station_8017D610[];
-extern const char D_dryfield_night_gas_station_8017D624[];
-extern const char D_dryfield_night_gas_station_8017D630[];
-extern const char D_dryfield_night_gas_station_8017D638[];
 
 /// The "100.0%" string drawn for a full-share usage row.
 extern const u8 D_dryfield_night_gas_station_8017D61C[];
-
-/// Exit callback of the help-line box task: releases `Wip_UiHolder` if
-/// the task owns it, then frees the task's UI object and kills it.
-void func_dryfield_night_gas_station_8017F3E0(Task* task);
 
 /// Draws one semi-transparent gouraud capsule between the projections of the
 /// world-space points `pos[0]` and `pos[1]`; `size` is a signed half-extent

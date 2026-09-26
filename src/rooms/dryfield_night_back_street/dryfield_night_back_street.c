@@ -35,12 +35,12 @@ extern SVECTOR D_dryfield_night_back_street_8018038C[];
 extern SVECTOR D_dryfield_night_back_street_8018039C[];
 extern SVECTOR D_dryfield_night_back_street_801803A4;
 
-void func_dryfield_night_back_street_8017D920(SVECTOR* arg0, s32 arg1);
-void func_dryfield_night_back_street_8017E108(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_dryfield_night_back_street_8017E634(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_dryfield_night_back_street_8017EA60(GpCoord* arg0, s16 arg1, u8* rgb);
-void func_dryfield_night_back_street_8017F2E4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-void func_dryfield_night_back_street_8017F964(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_dryfield_night_back_street_8017D920(SVECTOR* arg0, s32 arg1);
+static void func_dryfield_night_back_street_8017E108(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_dryfield_night_back_street_8017E634(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_dryfield_night_back_street_8017EA60(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_dryfield_night_back_street_8017F2E4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+static void func_dryfield_night_back_street_8017F964(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// Message handler for the back street's two events. Copies the incoming
 /// record to the outgoing one and answers by editing `field_3` of the copy; a
@@ -103,7 +103,7 @@ s32 func_dryfield_night_back_street_8017D734(void)
 
 /// The room entry task's first state: installs the room's message table, hands
 /// the task to pointer slot 7 and moves on to the next state.
-void func_dryfield_night_back_street_8017D73C(Task* task)
+static void func_dryfield_night_back_street_8017D73C(Task* task)
 {
     task->msgTable = D_dryfield_night_back_street_80180324;
     Game_SetPtrSlot(task, 7);
@@ -111,18 +111,18 @@ void func_dryfield_night_back_street_8017D73C(Task* task)
 }
 
 /// The room entry task's idle state.
-void func_dryfield_night_back_street_8017D780(Task* task)
+static void func_dryfield_night_back_street_8017D780(Task* task)
 {
 }
 
 /// The room entry task's three states: set the room up, idle, end.
-const TaskFuncTable3 D_dryfield_night_back_street_8017D5C4 = {
+static const TaskFuncTable3 D_dryfield_night_back_street_8017D5C4 = {
     { func_dryfield_night_back_street_8017D73C, func_dryfield_night_back_street_8017D780, taskKill },
 };
 
 /// Runs the room entry task's current state from its three-entry table, which
 /// it copies onto the stack before the call.
-void func_dryfield_night_back_street_8017D788(Task* task)
+static void func_dryfield_night_back_street_8017D788(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -145,7 +145,7 @@ void func_dryfield_night_back_street_8017D788(Task* task)
 /// `func_dryfield_night_back_street_8017D920`; view 3 adds its own two glows
 /// to view 2's set; views 4 and 5 draw their shared two glows; every other
 /// view draws nothing.
-void func_dryfield_night_back_street_8017D7E0(Task* arg0)
+static void func_dryfield_night_back_street_8017D7E0(Task* arg0)
 {
     if (arg0->state == 0) {
         D_80115758 = 0x6000A;
@@ -178,7 +178,7 @@ void func_dryfield_night_back_street_8017D7E0(Task* arg0)
 /// them. Each radius is `(s16)arg1 * 64` over that point's OTZ. Nothing is
 /// drawn unless both points project. The lit vertices take a brightness that
 /// flickers with the frame counter.
-void func_dryfield_night_back_street_8017D920(SVECTOR* arg0, s32 arg1)
+static void func_dryfield_night_back_street_8017D920(SVECTOR* arg0, s32 arg1)
 {
     void**                   scratch;
     u8*                      head;
@@ -310,7 +310,7 @@ void func_dryfield_night_back_street_8017D920(SVECTOR* arg0, s32 arg1)
 /// `arg0` when it projects. `arg1` picks the 40-texel column of the texture
 /// page and its palette; `arg2` is the half-extent, scaled by 39 over the OTZ
 /// on screen. The sprite's brightness flickers with the frame counter.
-void func_dryfield_night_back_street_8017E108(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_night_back_street_8017E108(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw13Scratch* block;
     POLY_FT4*          prim;
@@ -364,7 +364,7 @@ void func_dryfield_night_back_street_8017E108(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// the tint to `Gp_DrawFadeQuad`, and state 2 fades a flare back out before
 /// the work block is released. The task also ends when the room's event state
 /// reaches 4, and does nothing while it is between 1 and 3.
-void func_dryfield_night_back_street_8017E390(Task* task)
+static void func_dryfield_night_back_street_8017E390(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -430,7 +430,7 @@ void func_dryfield_night_back_street_8017E390(Task* task)
 /// position, when it projects. The ring runs from radius
 /// `(s16)arg1 * 64 / (otz + 1)`, which is black, to
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`, which takes the colour `rgb`.
-void func_dryfield_night_back_street_8017E634(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_dryfield_night_back_street_8017E634(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -487,7 +487,7 @@ void func_dryfield_night_back_street_8017E634(GpCoord* arg0, s32 arg1, s32 arg2,
 /// Draws a glow of eight gouraud wedges around the coordinate's projected
 /// position, when it projects. The radius is `(s16)arg1 * 64 / (otz + 1)`;
 /// only the centre vertex takes the colour `rgb`, so each wedge fades to black.
-void func_dryfield_night_back_street_8017EA60(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_dryfield_night_back_street_8017EA60(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -543,7 +543,7 @@ void func_dryfield_night_back_street_8017EA60(GpCoord* arg0, s16 arg1, u8* rgb)
 /// `func_dryfield_night_back_street_8017F2E4`. The work block is released
 /// after `spawnArg1` frames. Nothing runs once the room's event state reaches
 /// 2.
-void func_dryfield_night_back_street_8017EDF4(Task* task)
+static void func_dryfield_night_back_street_8017EDF4(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -641,7 +641,7 @@ void func_dryfield_night_back_street_8017EDF4(Task* task)
 /// `0x40 - 9 * i` and the trailing edge by nine less. `arg3` is the beam
 /// colour, three 2-bit channels at bits 8, 4 and 0 that each multiply that
 /// fade. Dropped when `gte_stflg` is negative.
-void func_dryfield_night_back_street_8017F2E4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_dryfield_night_back_street_8017F2E4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
     GpCoord*           a;
@@ -750,7 +750,7 @@ void func_dryfield_night_back_street_8017F2E4(GpCoord* arg0, GpCoord* arg1, s16 
 /// seven frames, or two 0x6007C effects and a widening, fading double ring for
 /// seven frames; then the work block is released. The task also ends when the
 /// room's event state reaches 4, and does nothing while it is between 1 and 3.
-void func_dryfield_night_back_street_8017F6DC(Task* task)
+static void func_dryfield_night_back_street_8017F6DC(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;
@@ -824,7 +824,7 @@ void func_dryfield_night_back_street_8017F6DC(Task* task)
 /// half that radius in the full colour, then four rays at quarter turns that
 /// alternate between the radius and twice it, their bases on the inner
 /// radius `(s16)arg1 * 8 / (otz + 1)`.
-void func_dryfield_night_back_street_8017F964(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_dryfield_night_back_street_8017F964(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

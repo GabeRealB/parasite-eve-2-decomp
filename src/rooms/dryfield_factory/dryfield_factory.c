@@ -66,20 +66,20 @@ extern GpGridParams D_dryfield_factory_80186E04;
 extern GpGridParams D_dryfield_factory_80187BF0;
 extern GpGridParams D_dryfield_factory_80187BF8;
 
-void func_dryfield_factory_8017DF80(Task* task);
-void func_dryfield_factory_8017DFE0(Task* task);
-void func_dryfield_factory_8017E140(Task* task, s32 remapFaces, s32 useAltTemplate);
-s32  func_dryfield_factory_8017F8F4(Task* task);
-s32  func_dryfield_factory_8017FAC4(Task* task);
-void func_dryfield_factory_801802F0(Task* task);
-void func_dryfield_factory_80180430(Task* task);
-void func_dryfield_factory_80180450(Task* task);
-void func_dryfield_factory_801804B0(Task* task);
-void func_dryfield_factory_801804DC(Task* task);
-void func_dryfield_factory_80180644(Task* task);
-s32  func_dryfield_factory_801806B0(Task* task);
+static void func_dryfield_factory_8017DF80(Task* task);
+static void func_dryfield_factory_8017DFE0(Task* task);
+static void func_dryfield_factory_8017E140(Task* task, s32 remapFaces, s32 useAltTemplate);
+static s32  func_dryfield_factory_8017F8F4(Task* task);
+static s32  func_dryfield_factory_8017FAC4(Task* task);
+static void func_dryfield_factory_801802F0(Task* task);
+static void func_dryfield_factory_80180430(Task* task);
+static void func_dryfield_factory_80180450(Task* task);
+static void func_dryfield_factory_801804B0(Task* task);
+static void func_dryfield_factory_801804DC(Task* task);
+static void func_dryfield_factory_80180644(Task* task);
+static s32  func_dryfield_factory_801806B0(Task* task);
 
-s32 func_dryfield_factory_8017D6F8(RoomEventReq* req, RoomEventMsg* msg)
+static s32 func_dryfield_factory_8017D6F8(RoomEventReq* req, RoomEventMsg* msg)
 {
     s32 flag;
     s32 id;
@@ -188,7 +188,7 @@ void func_dryfield_factory_8017D85C(Task* task)
 /// `slot` and the store to `D_..._8018A3C8` are one chained assignment on
 /// purpose: GCC then materialises the global's address ahead of `memCalloc`,
 /// which is the register allocation the target has.
-void func_dryfield_factory_8017D9CC(Task* arg0)
+static void func_dryfield_factory_8017D9CC(Task* arg0)
 {
     Task** slot;
 
@@ -299,7 +299,7 @@ void func_dryfield_factory_8017DD00(Task* task)
 
 /// State handlers of the room entry task, indexed by `Task::state`: the set-up
 /// tick, the idle tick and `taskKill`.
-const TaskFuncTable3 D_dryfield_factory_8017D5DC = {
+static const TaskFuncTable3 D_dryfield_factory_8017D5DC = {
     { func_dryfield_factory_8017D9CC, func_dryfield_factory_8017DF80, taskKill },
 };
 
@@ -364,19 +364,19 @@ end:
 
 /// State handlers of the factory model task: set-up, the per-frame state and
 /// `taskKill`.
-const TaskFuncTable3 D_dryfield_factory_8017D61C = {
+static const TaskFuncTable3 D_dryfield_factory_8017D61C = {
     { func_dryfield_factory_8017DFE0, func_dryfield_factory_801802F0, taskKill },
 };
 
 /// State handlers of the cutscene task: set-up, the cutscene sequence and
 /// `taskKill`.
-const TaskFuncTable3 D_dryfield_factory_8017D628 = {
+static const TaskFuncTable3 D_dryfield_factory_8017D628 = {
     { func_dryfield_factory_801804DC, func_dryfield_factory_80180644, taskKill },
 };
 
 /// The cutscene sequence's handlers: the flag watcher of state 0 and the two
 /// movements it arms.
-const NightFactoryCutsceneTable3 D_dryfield_factory_8017D634 = {
+static const NightFactoryCutsceneTable3 D_dryfield_factory_8017D634 = {
     { func_dryfield_factory_801806B0, func_dryfield_factory_8017F8F4, func_dryfield_factory_8017FAC4 },
 };
 
@@ -406,13 +406,13 @@ s32 func_dryfield_factory_8017DF14(Task* task, s32 msgId, GpMsg13EF* arg2)
 }
 
 /// Idle state of the room entry task.
-void func_dryfield_factory_8017DF80(Task* task)
+static void func_dryfield_factory_8017DF80(Task* task)
 {
 }
 
 /// Runs the task's current state out of a three-entry table copied onto the
 /// stack.
-void func_dryfield_factory_8017DF88(Task* task)
+static void func_dryfield_factory_8017DF88(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -428,7 +428,7 @@ void func_dryfield_factory_8017DF88(Task* task)
 /// Each arm passes its table straight to `Task_SpawnFromTable` rather than
 /// through a variable, which lets the two identical call tails merge as in the
 /// target.
-void func_dryfield_factory_8017DFE0(Task* task)
+static void func_dryfield_factory_8017DFE0(Task* task)
 {
     NightFactoryWork* work;
     GpCoord*          coord;
@@ -475,7 +475,7 @@ void func_dryfield_factory_8017DFE0(Task* task)
 /// grid normals 2..5 and its corners rotated and translated into corners 8..15.
 /// When `remapFaces` is set, the template's four face records are copied into
 /// faces 2..5 with their corner and normal indices rebased onto those slots.
-void func_dryfield_factory_8017E140(Task* task, s32 remapFaces, s32 useAltTemplate)
+static void func_dryfield_factory_8017E140(Task* task, s32 remapFaces, s32 useAltTemplate)
 {
     long          flag;
     GpCoord*      coord;
@@ -541,7 +541,7 @@ void func_dryfield_factory_8017E140(Task* task, s32 remapFaces, s32 useAltTempla
     }
 }
 
-s32 func_dryfield_factory_8017E33C(Task* task)
+static s32 func_dryfield_factory_8017E33C(Task* task)
 {
     NightFactoryWork* work  = (NightFactoryWork*)task->work;
     GpCoord*          coord = task->extra.tmd->coords;
@@ -619,7 +619,7 @@ s32 func_dryfield_factory_8017E33C(Task* task)
     return done;
 }
 
-s32 func_dryfield_factory_8017E6BC(Task* task)
+static s32 func_dryfield_factory_8017E6BC(Task* task)
 {
     NightFactoryWork* work  = (NightFactoryWork*)task->work;
     GpCoord*          coord = task->extra.tmd->coords;
@@ -697,7 +697,7 @@ s32 func_dryfield_factory_8017E6BC(Task* task)
     return done;
 }
 
-s32 func_dryfield_factory_8017EA24(Task* task)
+static s32 func_dryfield_factory_8017EA24(Task* task)
 {
     NightFactoryWork* work  = (NightFactoryWork*)task->work;
     GpCoord*          coord = task->extra.tmd->coords;
@@ -767,7 +767,7 @@ s32 func_dryfield_factory_8017EA24(Task* task)
     return done;
 }
 
-s32 func_dryfield_factory_8017ED68(Task* task)
+static s32 func_dryfield_factory_8017ED68(Task* task)
 {
     NightFactoryWork* work  = (NightFactoryWork*)task->work;
     GpCoord*          coord = task->extra.tmd->coords;
@@ -837,7 +837,7 @@ s32 func_dryfield_factory_8017ED68(Task* task)
     return done;
 }
 
-s32 func_dryfield_factory_8017F08C(Task* task)
+static s32 func_dryfield_factory_8017F08C(Task* task)
 {
     NightFactoryWork* work  = (NightFactoryWork*)task->work;
     GpCoord*          coord = task->extra.tmd->coords;
@@ -926,7 +926,7 @@ s32 func_dryfield_factory_8017F08C(Task* task)
     return done;
 }
 
-s32 func_dryfield_factory_8017F4BC(Task* task)
+static s32 func_dryfield_factory_8017F4BC(Task* task)
 {
     NightFactoryWork* work  = (NightFactoryWork*)task->work;
     GpCoord*          coord = task->extra.tmd->coords;
@@ -1015,7 +1015,7 @@ s32 func_dryfield_factory_8017F4BC(Task* task)
     return done;
 }
 
-s32 func_dryfield_factory_8017F8F4(Task* task)
+static s32 func_dryfield_factory_8017F8F4(Task* task)
 {
     NightFactoryCutsceneWork* work  = (NightFactoryCutsceneWork*)task->work;
     GpCoord*                  coord = task->extra.tmd->coords;
@@ -1071,7 +1071,7 @@ s32 func_dryfield_factory_8017F8F4(Task* task)
     return ret;
 }
 
-s32 func_dryfield_factory_8017FAC4(Task* task)
+static s32 func_dryfield_factory_8017FAC4(Task* task)
 {
     NightFactoryCutsceneWork* work  = (NightFactoryCutsceneWork*)task->work;
     GpCoord*                  coord = task->extra.tmd->coords;
@@ -1316,7 +1316,7 @@ void func_dryfield_factory_8018001C(Task* task)
 /// restarts the handler whose bit changed. Bit 1 selects the first handler pair
 /// and bit 0 the member of the pair; the frame counter is bumped, the
 /// collision faces rebuilt and the model's coordinate refreshed.
-void func_dryfield_factory_801802F0(Task* task)
+static void func_dryfield_factory_801802F0(Task* task)
 {
     GpCoord*          coord;
     NightFactoryWork* work;
@@ -1362,14 +1362,14 @@ void func_dryfield_factory_801802F0(Task* task)
     func_800D7A9C(obj, (VECTOR*)coord->workm.t, 0, 3);
 }
 
-void func_dryfield_factory_80180430(Task* task)
+static void func_dryfield_factory_80180430(Task* task)
 {
     taskKill(task);
 }
 
 /// Binds the task's TMD object to the work-block light/color matrices, clears
 /// the root coordinate flag, and rebuilds lighting from the world translation.
-void func_dryfield_factory_80180450(Task* task)
+static void func_dryfield_factory_80180450(Task* task)
 {
     GpCoord*        coord;
     RoomUtil20Work* work;
@@ -1385,7 +1385,7 @@ void func_dryfield_factory_80180450(Task* task)
     func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
 }
 
-void func_dryfield_factory_801804B0(Task* arg0)
+static void func_dryfield_factory_801804B0(Task* arg0)
 {
     if (arg0 != NULL) {
         Gp_DispatchMsg(arg0, 0x13F3, 0, 0);
@@ -1400,7 +1400,7 @@ void func_dryfield_factory_801804B0(Task* arg0)
 /// matrices are copied across. Game flag 0x4E's nibble of 1 means the scene is
 /// already on, which parks the cutscene state at 0xFF and turns the root
 /// rotation -0x300 about X. The cap then adopts the task, which steps on.
-void func_dryfield_factory_801804DC(Task* task)
+static void func_dryfield_factory_801804DC(Task* task)
 {
     Task*                     cap      = task->spawnArg2;
     TmdObject*                model    = task->extra.tmd;
@@ -1445,7 +1445,7 @@ void func_dryfield_factory_801804DC(Task* task)
 /// Runs the current state of the room's cutscene sequence out of its three
 /// handlers, copied onto the stack. A handler returning non-zero has finished
 /// its part of the scene, which drops the sequence back to state 0.
-void func_dryfield_factory_80180644(Task* task)
+static void func_dryfield_factory_80180644(Task* task)
 {
     NightFactoryCutsceneWork*  work = (NightFactoryCutsceneWork*)task->work;
     NightFactoryCutsceneTable3 sp;
@@ -1461,7 +1461,7 @@ void func_dryfield_factory_80180644(Task* task)
 /// before moves the handler to state 1, and a nibble of 0 after a 1 moves it
 /// to state 2; either transition restarts `step`. Every call records the
 /// nibble in `prevFlag`.
-s32 func_dryfield_factory_801806B0(Task* task)
+static s32 func_dryfield_factory_801806B0(Task* task)
 {
     NightFactoryCutsceneWork* work  = (NightFactoryCutsceneWork*)task->work;
     s32                       flag  = GameFlag_GetNibble(0x4E);

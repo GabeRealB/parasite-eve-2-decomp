@@ -36,9 +36,11 @@ typedef struct {
 
 extern MistParkingScanState D_mist_parking_80195328;
 
+static void func_mist_parking_801833F8(Task* task);
+
 /// State handlers of the same shape for a task that attaches a model to a
 /// parent's part and then idles; nothing in the room reads this table.
-const TaskFuncTable3 D_mist_parking_8017D7E8 = {
+static const TaskFuncTable3 D_mist_parking_8017D7E8 = {
     {
         func_mist_parking_8018307C,
         func_mist_parking_801830F8,
@@ -409,7 +411,7 @@ void func_mist_parking_80183304(Task* task)
 /// Waits for the text block parked at `Task::work` to report a non-zero
 /// `TextBlockDesc::field_2`, stores it through `Task::spawnArg2` and steps
 /// the task on.
-void func_mist_parking_801833F8(Task* task)
+static void func_mist_parking_801833F8(Task* task)
 {
     s16 result;
 

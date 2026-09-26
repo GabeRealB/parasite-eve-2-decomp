@@ -27,13 +27,13 @@ extern GpMsgEntry D_mine_secret_passage_80180E8C[];
 /// the same shape `D_mine_mesa_80189B38` has.
 extern GpFadeWork D_mine_secret_passage_80183440;
 
-void func_mine_secret_passage_8017D8C8(Task* arg0);
-void func_mine_secret_passage_8017D914(Task* arg0);
-void func_mine_secret_passage_8017D968(Task* task);
+static void func_mine_secret_passage_8017D8C8(Task* arg0);
+static void func_mine_secret_passage_8017D914(Task* arg0);
+static void func_mine_secret_passage_8017D968(Task* task);
 
 /// State handlers of the room task `func_mine_secret_passage_8017D970` drives:
 /// set-up, the one-shot state, the idle state and `taskKill`.
-const TaskFuncTable4 D_mine_secret_passage_8017D5C4 = {
+static const TaskFuncTable4 D_mine_secret_passage_8017D5C4 = {
     func_mine_secret_passage_8017D8C8,
     func_mine_secret_passage_8017D914,
     func_mine_secret_passage_8017D968,
@@ -160,7 +160,7 @@ s32 func_mine_secret_passage_8017D898(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 /// Set-up state of the room task: points the task at the passage's message
 /// table, publishes it in pointer slot 7, selects scene music entry 1 and
 /// advances to the next state.
-void func_mine_secret_passage_8017D8C8(Task* arg0)
+static void func_mine_secret_passage_8017D8C8(Task* arg0)
 {
     arg0->msgTable = &D_mine_secret_passage_80180E8C;
     Game_SetPtrSlot(arg0, 7);
@@ -171,7 +171,7 @@ void func_mine_secret_passage_8017D8C8(Task* arg0)
 /// One-shot state of the room task: the first time through (game flag nibble
 /// 0x172 still clear) it sets the flag and calls `Gp_SpawnIfCapIdle(3, 1)`;
 /// either way it advances to the idle state.
-void func_mine_secret_passage_8017D914(Task* arg0)
+static void func_mine_secret_passage_8017D914(Task* arg0)
 {
     if (GameFlag_GetNibble(0x172) == 0) {
         GameFlag_SetNibble(0x172, 1);
@@ -181,14 +181,14 @@ void func_mine_secret_passage_8017D914(Task* arg0)
 }
 
 /// Idle state of the room task.
-void func_mine_secret_passage_8017D968(Task* task)
+static void func_mine_secret_passage_8017D968(Task* task)
 {
 }
 
 /// Per-frame entry point of the room task: runs the handler of
 /// `D_mine_secret_passage_8017D5C4` its state selects. The table is a local
 /// copy, so it is copied from `.rodata` onto the stack every frame.
-void func_mine_secret_passage_8017D970(Task* task)
+static void func_mine_secret_passage_8017D970(Task* task)
 {
     TaskFuncTable4 states;
 

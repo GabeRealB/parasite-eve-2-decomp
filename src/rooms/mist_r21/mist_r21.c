@@ -44,7 +44,7 @@ s32 func_mist_r21_8017D614(void)
 /// First state of the room task: publishes the room's message table, claims
 /// pointer slot 7, spawns the task `D_mist_r21_8017D798` describes and
 /// advances to the next state.
-void func_mist_r21_8017D61C(Task* task)
+static void func_mist_r21_8017D61C(Task* task)
 {
     task->msgTable = D_mist_r21_8017D770;
     Game_SetPtrSlot(task, 7);
@@ -55,7 +55,7 @@ void func_mist_r21_8017D61C(Task* task)
 /// Second state of the room task: waits for pad 0 to report button 0x200 in
 /// mode 0 and button 0x40 in mode 1, then sets the saved location to area 5,
 /// warp 1, view 2, starts loading from it, spawns task 0x11 and ends itself.
-void func_mist_r21_8017D678(Task* task)
+static void func_mist_r21_8017D678(Task* task)
 {
     if ((Pad_CheckButtons(0, 0, 0x200) != 0) && (Pad_CheckButtons(0, 1, 0x40) != 0)) {
         Mc_SaveData.at4.loc.area = 5;
@@ -68,16 +68,16 @@ void func_mist_r21_8017D678(Task* task)
 }
 
 /// The room task's three states.
-const TaskFuncTable3 D_mist_r21_8017D5C4 = {
+static const TaskFuncTable3 D_mist_r21_8017D5C4 = {
     { func_mist_r21_8017D61C, func_mist_r21_8017D678, taskKill },
 };
 
 /// `"target set\n"`: no code in the room reads it.
-const char D_mist_r21_8017D5D0[] = "target set\n";
+static const char D_mist_r21_8017D5D0[] = "target set\n";
 
 /// The room task's callback: runs the state `Task::state` selects from a
 /// stack copy of `D_mist_r21_8017D5C4`.
-void func_mist_r21_8017D708(Task* task)
+static void func_mist_r21_8017D708(Task* task)
 {
     TaskFuncTable3 sp;
 

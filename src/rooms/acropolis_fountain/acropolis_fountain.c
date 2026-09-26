@@ -21,12 +21,12 @@ extern TaskDesc   D_acropolis_fountain_8017E78C[];
 extern u8         D_acropolis_fountain_80183BB0;
 extern u8         D_acropolis_fountain_80183BB1;
 
-void func_acropolis_fountain_8017D960(Task* arg0);
-void func_acropolis_fountain_8017D9BC(Task* task);
+static void func_acropolis_fountain_8017D960(Task* arg0);
+static void func_acropolis_fountain_8017D9BC(Task* task);
 
 /// State handlers of the room task: set-up, an empty per-frame tick and
 /// `taskKill`.
-const TaskFuncTable3 D_acropolis_fountain_8017D5C4 = {
+static const TaskFuncTable3 D_acropolis_fountain_8017D5C4 = {
     { func_acropolis_fountain_8017D960, func_acropolis_fountain_8017D9BC, taskKill },
 };
 
@@ -138,7 +138,7 @@ void func_acropolis_fountain_8017D868(Task* task)
     }
 }
 
-void func_acropolis_fountain_8017D960(Task* arg0)
+static void func_acropolis_fountain_8017D960(Task* arg0)
 {
     arg0->msgTable = D_acropolis_fountain_8017E764;
     Game_SetPtrSlot(arg0, 7);
@@ -148,13 +148,13 @@ void func_acropolis_fountain_8017D960(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-void func_acropolis_fountain_8017D9BC(Task* task)
+static void func_acropolis_fountain_8017D9BC(Task* task)
 {
 }
 
 /// Runs the room task's current state through a stack copy of its three-entry
 /// state table.
-void func_acropolis_fountain_8017D9C4(Task* task)
+static void func_acropolis_fountain_8017D9C4(Task* task)
 {
     TaskFuncTable3 sp;
 

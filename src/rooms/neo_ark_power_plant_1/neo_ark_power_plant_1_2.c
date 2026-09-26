@@ -23,14 +23,14 @@
 extern SVECTOR D_neo_ark_power_plant_1_8017F020[52];
 extern SVECTOR D_neo_ark_power_plant_1_8017F1C0;
 
-void func_neo_ark_power_plant_1_8017E184(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_neo_ark_power_plant_1_8017E184(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// Draws the glows of the current view: a fixed set of emitter positions per
 /// view, each with its own size and tint. In views 6 and 7 the extra emitter
 /// `D_neo_ark_power_plant_1_8017F1C0` glows while nibble 0x148 is clear;
 /// once it is set, and while no event runs and nibble 0xDE is clear, it
 /// instead spawns effect 0x600E0 there on one frame in eight at random.
-void func_neo_ark_power_plant_1_8017DA18(void)
+static void func_neo_ark_power_plant_1_8017DA18(void)
 {
     switch (Gp_GetViewIndex() & 0xFF) {
         case 2:
@@ -167,7 +167,7 @@ void func_neo_ark_power_plant_1_8017DA18(void)
 /// channels (red at bit 8, green at bit 4, blue at bit 0), with 8 added to each
 /// on odd display frames so the glow flickers. The room draws its steam and
 /// spark glows with it.
-void func_neo_ark_power_plant_1_8017E184(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_neo_ark_power_plant_1_8017E184(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**             scratch;
     u8*                head;
@@ -243,7 +243,7 @@ void func_neo_ark_power_plant_1_8017E184(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// Sprite-suppression switch for two of the area's views: 0 shows command 1
 /// of views 5 and 6 and 1 hides it, through `GpSprtCmd::field_4`; any other
 /// value is ignored.
-void func_neo_ark_power_plant_1_8017E524(s32 arg0)
+static void func_neo_ark_power_plant_1_8017E524(s32 arg0)
 {
     GpAreaKey* sess;
     GpSprtRec* rec;

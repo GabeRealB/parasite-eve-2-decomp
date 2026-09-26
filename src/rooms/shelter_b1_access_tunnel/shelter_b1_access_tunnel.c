@@ -60,16 +60,16 @@ extern RoomEventReq D_shelter_b1_access_tunnel_8017FF70;
 
 extern RoomLatchedEvent D_shelter_b1_access_tunnel_8017FF90;
 
-void func_shelter_b1_access_tunnel_8017DCBC(Task* task);
-void func_shelter_b1_access_tunnel_8017DD00(Task* task);
-void func_shelter_b1_access_tunnel_8017DEC0(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b1_access_tunnel_8017DCBC(Task* task);
+static void func_shelter_b1_access_tunnel_8017DD00(Task* task);
+static void func_shelter_b1_access_tunnel_8017DEC0(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// Gates an event on a game-flag nibble and a collected item: returns 1 when
 /// the nibble already shows the event done, 0 (running the request's refusal
 /// cap command) when the item is missing, and 2 when it fires, which unless
 /// `msg` is a dry run records the request, sets the nibble and spawns the
 /// event task.
-s32 func_shelter_b1_access_tunnel_8017D5FC(RoomEventReq* req, RoomEventMsg* msg)
+static s32 func_shelter_b1_access_tunnel_8017D5FC(RoomEventReq* req, RoomEventMsg* msg)
 {
     s32 flag;
     s32 id;
@@ -306,7 +306,7 @@ s32 func_shelter_b1_access_tunnel_8017DCB4(void)
 
 /// The room's three-entry task state table, dispatched by
 /// `func_shelter_b1_access_tunnel_8017DD08` from a stack copy.
-const TaskFuncTable3 D_shelter_b1_access_tunnel_8017D5F0 = {
+static const TaskFuncTable3 D_shelter_b1_access_tunnel_8017D5F0 = {
     {
         func_shelter_b1_access_tunnel_8017DCBC,
         func_shelter_b1_access_tunnel_8017DD00,
@@ -315,19 +315,19 @@ const TaskFuncTable3 D_shelter_b1_access_tunnel_8017D5F0 = {
 };
 
 /// Installs the room's message table on `task` and advances it.
-void func_shelter_b1_access_tunnel_8017DCBC(Task* task)
+static void func_shelter_b1_access_tunnel_8017DCBC(Task* task)
 {
     task->msgTable = D_shelter_b1_access_tunnel_8017E71C;
     Game_SetPtrSlot(task, 7);
     task->state = (s32)(task->state + 1);
 }
 
-void func_shelter_b1_access_tunnel_8017DD00(Task* task)
+static void func_shelter_b1_access_tunnel_8017DD00(Task* task)
 {
 }
 
 /// Runs the handler for the task's state from the room's state table.
-void func_shelter_b1_access_tunnel_8017DD08(Task* task)
+static void func_shelter_b1_access_tunnel_8017DD08(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -335,7 +335,7 @@ void func_shelter_b1_access_tunnel_8017DD08(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_shelter_b1_access_tunnel_8017DD60(void)
+static void func_shelter_b1_access_tunnel_8017DD60(void)
 {
     u8 view;
 
@@ -380,7 +380,7 @@ void func_shelter_b1_access_tunnel_8017DD60(void)
 
 /// Draws a flickering two-point gouraud glow between `arg0[0]` and `arg0[1]`,
 /// sized by `arg1` and tinted by the packed nibbles of `arg2`.
-void func_shelter_b1_access_tunnel_8017DEC0(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b1_access_tunnel_8017DEC0(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**                   scratch;
     u8*                      head;

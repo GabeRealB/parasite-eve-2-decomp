@@ -18,7 +18,7 @@ extern GpMsgEntry D_shelter_b1_sleeping_quarters_80180518[];
 
 /// Hides the task's model while the 2-bit game flag its spawn argument names
 /// reads 2, and shows it otherwise.
-void func_shelter_b1_sleeping_quarters_8017D608(Task* task)
+static void func_shelter_b1_sleeping_quarters_8017D608(Task* task)
 {
     TmdObject* obj = task->extra.tmd;
 
@@ -93,7 +93,7 @@ void func_shelter_b1_sleeping_quarters_8017D778(Task* task)
 
 /// First state of the room task: installs the room's message table, publishes
 /// the task in pointer slot 7 and advances to the next state.
-void func_shelter_b1_sleeping_quarters_8017D83C(Task* task)
+static void func_shelter_b1_sleeping_quarters_8017D83C(Task* task)
 {
     task->msgTable = D_shelter_b1_sleeping_quarters_80180518;
     Game_SetPtrSlot(task, 7);
@@ -101,19 +101,19 @@ void func_shelter_b1_sleeping_quarters_8017D83C(Task* task)
 }
 
 /// Idle state of the room task.
-void func_shelter_b1_sleeping_quarters_8017D880(Task* task)
+static void func_shelter_b1_sleeping_quarters_8017D880(Task* task)
 {
 }
 
 /// The room task's three states, run from a stack copy by
 /// `func_shelter_b1_sleeping_quarters_8017D888`: the entry tick, the idle
 /// state, then `taskKill`.
-const TaskFuncTable3 D_shelter_b1_sleeping_quarters_8017D5C4 = {
+static const TaskFuncTable3 D_shelter_b1_sleeping_quarters_8017D5C4 = {
     { func_shelter_b1_sleeping_quarters_8017D83C, func_shelter_b1_sleeping_quarters_8017D880, taskKill },
 };
 
 /// Runs the room task's current state from a stack copy of its state table.
-void func_shelter_b1_sleeping_quarters_8017D888(Task* task)
+static void func_shelter_b1_sleeping_quarters_8017D888(Task* task)
 {
     TaskFuncTable3 sp;
 

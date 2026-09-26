@@ -43,7 +43,6 @@ void func_mist_parking_8017E540(RoomShopList* shop, UiObject* obj);
 
 /// Fill the play-data panels' item and PE usage rows.
 void func_mist_parking_80180C98(UiList* list, UiObject* obj);
-void func_mist_parking_80180F94(UiList* list, UiObject* obj);
 
 /// Exit callback of a prompt task: releases `Wip_UiHolder` if the task holds
 /// it, then frees the UI object and kills the task.
@@ -57,7 +56,6 @@ void func_mist_parking_801830F8(Task* task);
 
 /// The text-block task's set-up and wait states.
 void func_mist_parking_80183304(Task* task);
-void func_mist_parking_801833F8(Task* task);
 
 /// Exit callback of the text-block task: kills it and calls
 /// `Stage_SetEndingFlag`.
@@ -76,7 +74,5 @@ s32 func_mist_parking_80183AC4(Task* task, s32 arg1, GpXformArg* placement, s32 
 
 /// Glow markers the room's view handler draws at world-space points.
 void func_mist_parking_80184A18(SVECTOR* pos, s32 speed, s32 size);
-void func_mist_parking_80184E8C(SVECTOR* pos, s32 speed, s32 size);
-void func_mist_parking_80185814(SVECTOR* pos, s32 arg1, s32 color);
 
 #endif // ROOMS_MIST_PARKING_H

@@ -35,29 +35,29 @@ extern TaskDesc D_shelter_r47_8018760C;
 extern SVECTOR D_shelter_r47_80187624[];
 extern SVECTOR D_shelter_r47_80187664[];
 
-void func_shelter_r47_8018431C(Task* task);
-void func_shelter_r47_801844A0(Task* task);
-void func_shelter_r47_80184658(Task* task);
-void func_shelter_r47_80184AE0(Task* task);
-void func_shelter_r47_80184F40(s32 x, s32 y, s32 variant);
-void func_shelter_r47_80185028(Task* task);
-void func_shelter_r47_80185098(Task* task);
-void func_shelter_r47_801851B8(Task* task);
-s32  func_shelter_r47_801852A0(OverlayHotspot* table, s16 x, s16 y);
-void func_shelter_r47_80185354(Task* task);
-void func_shelter_r47_80185450(Task* task);
-void func_shelter_r47_80185510(Task* task);
-void func_shelter_r47_801855B8(Task* task);
-void func_shelter_r47_801856AC(Task* task);
-void func_shelter_r47_8018571C(Task* task);
-void func_shelter_r47_8018585C(Task* task);
-void func_shelter_r47_80185A4C(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_r47_80185DEC(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_r47_80186260(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_r47_8018431C(Task* task);
+static void func_shelter_r47_801844A0(Task* task);
+static void func_shelter_r47_80184658(Task* task);
+static void func_shelter_r47_80184AE0(Task* task);
+static void func_shelter_r47_80184F40(s32 x, s32 y, s32 variant);
+static void func_shelter_r47_80185028(Task* task);
+static void func_shelter_r47_80185098(Task* task);
+static void func_shelter_r47_801851B8(Task* task);
+static s32  func_shelter_r47_801852A0(OverlayHotspot* table, s16 x, s16 y);
+static void func_shelter_r47_80185354(Task* task);
+static void func_shelter_r47_80185450(Task* task);
+static void func_shelter_r47_80185510(Task* task);
+static void func_shelter_r47_801855B8(Task* task);
+static void func_shelter_r47_801856AC(Task* task);
+static void func_shelter_r47_8018571C(Task* task);
+static void func_shelter_r47_8018585C(Task* task);
+static void func_shelter_r47_80185A4C(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_r47_80185DEC(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_r47_80186260(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// State handlers of the room's second cap script, run by
 /// `func_shelter_r47_80185214`.
-const TaskFuncTable11 D_shelter_r47_8017D7DC = {
+static const TaskFuncTable11 D_shelter_r47_8017D7DC = {
     {
         func_shelter_r47_8018431C,
         func_shelter_r47_80185354,
@@ -83,7 +83,7 @@ const TaskFuncTable11 D_shelter_r47_8017D7DC = {
 ///
 /// The empty `do {} while (0)` statements are required for the match: their
 /// loop notes stop the scheduler moving instructions across them.
-void func_shelter_r47_8018431C(Task* task)
+static void func_shelter_r47_8018431C(Task* task)
 {
     ShelterR47State2* state;
     s16               spriteX;
@@ -147,7 +147,7 @@ void func_shelter_r47_8018431C(Task* task)
 /// `promptKind` and advances to state 3; `buttons[1].state == 2` advances to
 /// state 5 when `field_2A` is 0 and otherwise starts cap slot 0x25. `field_2A`
 /// of 3 moves straight to state 9.
-void func_shelter_r47_801844A0(Task* task)
+static void func_shelter_r47_801844A0(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     ShelterR47State2* st     = (ShelterR47State2*)task->work;
@@ -205,7 +205,7 @@ void func_shelter_r47_801844A0(Task* task)
 /// `field_E`, `field_10`, `field_16` and `field_18`, play sound 0x542F0004 and
 /// move to state 6. Every other path returns to state 2, except an unknown
 /// hotspot id, which leaves the state unchanged.
-void func_shelter_r47_80184658(Task* task)
+static void func_shelter_r47_80184658(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     ShelterR47State2* st     = (ShelterR47State2*)task->work;
@@ -292,7 +292,7 @@ void func_shelter_r47_80184658(Task* task)
 
 /// Outlines `rect` in (`r`, `g`, `b`) with four flat `LINE_F2` edges linked
 /// into `gGpuCurrentOt[1]`.
-void func_shelter_r47_8018489C(RoomRect* rect, u8 r, u8 g, u8 b)
+static void func_shelter_r47_8018489C(RoomRect* rect, u8 r, u8 g, u8 b)
 {
     LINE_F2* line;
 
@@ -358,7 +358,7 @@ void func_shelter_r47_8018489C(RoomRect* rect, u8 r, u8 g, u8 b)
 /// draw the cursor. `RoomActionPrompt::targetId` serves as the cursor speed and
 /// `field_E` as the double-press window: a second press within that many frames
 /// without the cursor having moved reports state 4 instead of 2.
-void func_shelter_r47_80184AE0(Task* task)
+static void func_shelter_r47_80184AE0(Task* task)
 {
     RoomActionPrompt* prompt;
     PadState*         pad;
@@ -495,7 +495,7 @@ void func_shelter_r47_80184AE0(Task* task)
 /// Queues one 16x24 textured quad, the action prompt's cursor icon, at (`x`,
 /// `y`) into the head of the current OT. `variant` selects the palette, 0x3C87
 /// when it is 2 and 0x3C88 otherwise; 0 draws nothing.
-void func_shelter_r47_80184F40(s32 x, s32 y, s32 variant)
+static void func_shelter_r47_80184F40(s32 x, s32 y, s32 variant)
 {
     POLY_FT4* prim;
     s16       px;
@@ -535,7 +535,7 @@ void func_shelter_r47_80184F40(s32 x, s32 y, s32 variant)
     addPrim(gGpuCurrentOt, prim);
 }
 
-void func_shelter_r47_80185028(Task* task)
+static void func_shelter_r47_80185028(Task* task)
 {
     ShelterR47State2* state;
 
@@ -549,7 +549,7 @@ void func_shelter_r47_80185028(Task* task)
     task->state++;
 }
 
-void func_shelter_r47_80185098(Task* task)
+static void func_shelter_r47_80185098(Task* task)
 {
     ShelterR47State2* state;
     u16               fade;
@@ -582,7 +582,7 @@ void func_shelter_r47_80185098(Task* task)
     Fade_DrawOverlay(level, level, level, 2);
 }
 
-void func_shelter_r47_801851B8(Task* task)
+static void func_shelter_r47_801851B8(Task* task)
 {
     ShelterR47State2* state;
 
@@ -605,7 +605,7 @@ void func_shelter_r47_80185214(Task* task)
     states.funcs[task->state](task);
 }
 
-s32 func_shelter_r47_801852A0(OverlayHotspot* table, s16 x, s16 y)
+static s32 func_shelter_r47_801852A0(OverlayHotspot* table, s16 x, s16 y)
 {
     s32 hit;
 
@@ -622,7 +622,7 @@ s32 func_shelter_r47_801852A0(OverlayHotspot* table, s16 x, s16 y)
     return hit;
 }
 
-void func_shelter_r47_80185354(Task* task)
+static void func_shelter_r47_80185354(Task* task)
 {
     ShelterR47State2* state;
     RoomActionPrompt* prompt = &D_80114D28;
@@ -659,7 +659,7 @@ void func_shelter_r47_80185354(Task* task)
     prompt->screen.xy.y = 0;
 }
 
-void func_shelter_r47_80185450(Task* task)
+static void func_shelter_r47_80185450(Task* task)
 {
     ShelterR47State2* state;
     RoomActionPrompt* prompt = &D_80114D28;
@@ -680,7 +680,7 @@ void func_shelter_r47_80185450(Task* task)
     task->state = 4;
 }
 
-void func_shelter_r47_80185510(Task* task)
+static void func_shelter_r47_80185510(Task* task)
 {
     ShelterR47State2* state;
 
@@ -698,7 +698,7 @@ void func_shelter_r47_80185510(Task* task)
     Task_RequestKill(task, 0);
 }
 
-void func_shelter_r47_801855B8(Task* task)
+static void func_shelter_r47_801855B8(Task* task)
 {
     ShelterR47State2* state;
 
@@ -728,7 +728,7 @@ void func_shelter_r47_801855B8(Task* task)
     }
 }
 
-void func_shelter_r47_801856AC(Task* task)
+static void func_shelter_r47_801856AC(Task* task)
 {
     ShelterR47State2* state;
 
@@ -742,7 +742,7 @@ void func_shelter_r47_801856AC(Task* task)
     }
 }
 
-void func_shelter_r47_8018571C(Task* task)
+static void func_shelter_r47_8018571C(Task* task)
 {
     ShelterR47State2* state;
     RoomActionPrompt* prompt = &D_80114D28;
@@ -787,7 +787,7 @@ void func_shelter_r47_8018580C(Task* task)
 /// State 0 of the action prompt's dispatcher: resets both prompt slots before
 /// the first cursor scan (position and hold counters cleared, cursor speed
 /// 0x100, double-press window 0xF, `mode` 1) and advances the task's state.
-void func_shelter_r47_8018585C(Task* task)
+static void func_shelter_r47_8018585C(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     s32               i;
@@ -804,7 +804,7 @@ void func_shelter_r47_8018585C(Task* task)
     task->state = task->state + 1;
 }
 
-void func_shelter_r47_801858BC(void)
+static void func_shelter_r47_801858BC(void)
 {
     u8 view;
 
@@ -844,7 +844,7 @@ void func_shelter_r47_801858BC(void)
 /// the projected centre. `arg1` is a signed half-extent; the on-screen radius
 /// is `(s16)arg1 * 64 / otz`. `arg2` packs three RGB nibbles for the inner
 /// vertex, OR'd with `((u8)gDisplayState.animFrame & 1) * 8`.
-void func_shelter_r47_80185A4C(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_r47_80185A4C(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**             scratch;
     u8*                head;
@@ -923,7 +923,7 @@ void func_shelter_r47_80185A4C(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// half-extent; the on-screen radius is `(s16)arg2 * 32 / otz`. `arg1` scales
 /// `gDisplayState.animFrame` into `rsin` so the lit vertex pulses as
 /// `rsin(...) / 34 + 0x78` on green and blue.
-void func_shelter_r47_80185DEC(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_r47_80185DEC(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw13Scratch* block;
@@ -1019,7 +1019,7 @@ void func_shelter_r47_80185DEC(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// `(s16)arg2 * 8 / otz` (inner). `arg1` scales `gDisplayState.animFrame` into
 /// `rsin` so the lit vertex pulses as `rsin(...) / 34 + 0x78` on green and
 /// blue.
-void func_shelter_r47_80186260(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_r47_80186260(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw05Scratch* block;

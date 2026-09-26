@@ -53,8 +53,8 @@ extern SVECTOR D_dryfield_night_motel_loft_8017ED78[];
 extern GpGridParams D_dryfield_night_motel_loft_8017ED54;
 extern GpGridParams D_dryfield_night_motel_loft_8017F120;
 
-void func_dryfield_night_motel_loft_8017DE14(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_dryfield_night_motel_loft_8017E540(GpCoord* coord, s16 scale, s16 shade);
+static void func_dryfield_night_motel_loft_8017DE14(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_dryfield_night_motel_loft_8017E540(GpCoord* coord, s16 scale, s16 shade);
 
 /// Restores the live grid's first face normal, its face record and its four
 /// face corners from the template, then raises the corners by 0xBB8 in Y when
@@ -105,7 +105,7 @@ void func_dryfield_night_motel_loft_8017D9BC(s32 arg0)
 /// (`Gp_LcgState`) four times and builds the offset vector from the top bits of
 /// each draw, the last draw's low six bits biased by 0x10 riding along as the
 /// spawn argument.
-void func_dryfield_night_motel_loft_8017DB64(Task* arg0)
+static void func_dryfield_night_motel_loft_8017DB64(Task* arg0)
 {
     s32 i;
 
@@ -181,7 +181,7 @@ void func_dryfield_night_motel_loft_8017DB64(Task* arg0)
 /// half-width `arg2 * 39 / otz`, textured from the 40-texel cell `arg1` of
 /// tpage 0x2B and shaded 0x20 or 0x30 on alternate frames. Points closer than
 /// OTZ 0x11 are skipped.
-void func_dryfield_night_motel_loft_8017DE14(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_night_motel_loft_8017DE14(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw25Scratch* block;
     POLY_FT4*          prim;
@@ -229,7 +229,7 @@ void func_dryfield_night_motel_loft_8017DE14(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// state 2, where the shade also fades by 4 a frame and the task frees itself
 /// once it drops below 5. The task idles while `Gp_State1C->eventState` is 2
 /// or 3 and frees itself at 4 or more.
-void func_dryfield_night_motel_loft_8017E090(Task* task)
+static void func_dryfield_night_motel_loft_8017E090(Task* task)
 {
     _DryfieldNightMotelLoftShard* w     = task->spawnArg2;
     s16                           ev    = Gp_State1C->eventState;
@@ -325,7 +325,7 @@ void func_dryfield_night_motel_loft_8017E090(Task* task)
 /// rotated by `coord`'s `workm` and moved by its translation before projection
 /// through `GsWSMATRIX`. A triangle the GTE flags as failed is dropped. The
 /// triangle is made semi-transparent with a blend mode drawn from the LCG.
-void func_dryfield_night_motel_loft_8017E540(GpCoord* coord, s16 scale, s16 shade)
+static void func_dryfield_night_motel_loft_8017E540(GpCoord* coord, s16 scale, s16 shade)
 {
     _DryfieldNightMotelLoftTriScratch* blk;
     SVECTOR*                           p;

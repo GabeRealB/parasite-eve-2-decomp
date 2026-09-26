@@ -18,7 +18,7 @@ extern SVECTOR D_dryfield_night_motel_room_5_8017DA68[1];
 /// with 0x240, 4 and 9 the one at `D_...DA68` with 0x200. Views outside the 2..9
 /// span draw nothing. `jump.c` cross-jumps the 3/8 call into the 4/9 one, whose
 /// `jal` the 2/7 call also redirects to.
-void func_dryfield_night_motel_room_5_8017D9A4(void)
+static void func_dryfield_night_motel_room_5_8017D9A4(void)
 {
     switch (gGameSession->at4.loc.view) {
         case 3:

@@ -123,6 +123,6 @@ void func_shelter_r49_8017D8D8(Task* arg0)
     }
 }
 
-void func_shelter_r49_8017D9D0(void)
+static void func_shelter_r49_8017D9D0(void)
 {
 }

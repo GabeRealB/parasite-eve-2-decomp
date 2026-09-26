@@ -14,7 +14,7 @@
 #include "rooms/neo_ark_eve_access_tunnel.h"
 #include "rooms/room_common.h"
 
-void func_neo_ark_eve_access_tunnel_8017E244(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_neo_ark_eve_access_tunnel_8017E244(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// Live emitters for the tunnel's views, in the shared data blob at the end of
 /// the overlay. `D_..._8017EB48` doubles as case 2's three-entry run and case 6's
@@ -70,7 +70,7 @@ void func_neo_ark_eve_access_tunnel_8017E090(s32 arg0, s32 arg1)
 /// drawn wedge, stepping through the view's run. View 4 chains into view 5's
 /// emitters (`D_..._8017EB08` then `D_..._8017EB28`); every other view stops at
 /// its own.
-void func_neo_ark_eve_access_tunnel_8017E15C(void)
+static void func_neo_ark_eve_access_tunnel_8017E15C(void)
 {
     u8 view;
 
@@ -107,7 +107,7 @@ void func_neo_ark_eve_access_tunnel_8017E15C(void)
 /// radius in world units, scaled by each point's depth; `arg2` is the tint as
 /// three 4-bit channels (red at bit 8, green at bit 4, blue at bit 0), with 8
 /// added to each on odd display frames so the glow flickers.
-void func_neo_ark_eve_access_tunnel_8017E244(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_neo_ark_eve_access_tunnel_8017E244(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**                   scratch;
     u8*                      head;

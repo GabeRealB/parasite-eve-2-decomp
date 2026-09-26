@@ -67,13 +67,13 @@ extern RoomEventMsg     D_shelter_b2_operating_room_8018422C;
 extern u8               D_shelter_b2_operating_room_80184234;
 extern RoomLatchedEvent D_shelter_b2_operating_room_80184258;
 
-void func_shelter_b2_operating_room_8017E118(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b2_operating_room_8017E95C(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b2_operating_room_8017F478(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_shelter_b2_operating_room_8017F6FC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b2_operating_room_8017FB20(GpCoord* arg0, s32 arg1, u8* rgb);
-void func_shelter_b2_operating_room_80180060(GpCoord* coord, s16 size);
-void func_shelter_b2_operating_room_8018058C(GpCoord* arg0, s32 arg1);
+static void func_shelter_b2_operating_room_8017E118(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b2_operating_room_8017E95C(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b2_operating_room_8017F478(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_shelter_b2_operating_room_8017F6FC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_b2_operating_room_8017FB20(GpCoord* arg0, s32 arg1, u8* rgb);
+static void func_shelter_b2_operating_room_80180060(GpCoord* coord, s16 size);
+static void func_shelter_b2_operating_room_8018058C(GpCoord* arg0, s32 arg1);
 
 /// Handles a request to leave through a flag-gated exit. When the flag named
 /// by `req->flagId` (negated: must be clear) is already in the wanted state,
@@ -82,7 +82,7 @@ void func_shelter_b2_operating_room_8018058C(GpCoord* arg0, s32 arg1);
 /// task and returns 2; if the item is missing, runs cap command `req->field_4`
 /// and returns 0. The spawn and the cap command happen only when
 /// `msg->field_5` is 0.
-s32 func_shelter_b2_operating_room_8017D628(RoomEventReq* req, RoomEventMsg* msg)
+static s32 func_shelter_b2_operating_room_8017D628(RoomEventReq* req, RoomEventMsg* msg)
 {
     s32 flag;
     s32 id;
@@ -329,7 +329,7 @@ s32 func_shelter_b2_operating_room_8017DD0C(void)
 
 /// Installs `D_shelter_b2_operating_room_8018091C` as the task's message
 /// table, registers the task in pointer slot 7 and steps it on one state.
-void func_shelter_b2_operating_room_8017DD14(Task* task)
+static void func_shelter_b2_operating_room_8017DD14(Task* task)
 {
     task->msgTable = D_shelter_b2_operating_room_8018091C;
     Game_SetPtrSlot(task, 7);
@@ -337,20 +337,20 @@ void func_shelter_b2_operating_room_8017DD14(Task* task)
 }
 
 /// The room task's idle state, which does nothing.
-void func_shelter_b2_operating_room_8017DD58(Task* task)
+static void func_shelter_b2_operating_room_8017DD58(Task* task)
 {
 }
 
 /// The room task's three states, dispatched by
 /// `func_shelter_b2_operating_room_8017DD60`: install the message table, idle,
 /// end.
-const TaskFuncTable3 D_shelter_b2_operating_room_8017D5F0 = {
+static const TaskFuncTable3 D_shelter_b2_operating_room_8017D5F0 = {
     { func_shelter_b2_operating_room_8017DD14, func_shelter_b2_operating_room_8017DD58, taskKill }
 };
 
 /// Runs the handler for the task's current state, from a local copy of
 /// `D_shelter_b2_operating_room_8017D5F0`.
-void func_shelter_b2_operating_room_8017DD60(Task* task)
+static void func_shelter_b2_operating_room_8017DD60(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -364,7 +364,7 @@ void func_shelter_b2_operating_room_8017DD60(Task* task)
 /// draws the glows of the current view (views 2 to 7) at that view's points,
 /// as capsules through `func_shelter_b2_operating_room_8017E118` and discs
 /// through `func_shelter_b2_operating_room_8017E95C`.
-void func_shelter_b2_operating_room_8017DDB8(Task* arg0)
+static void func_shelter_b2_operating_room_8017DDB8(Task* arg0)
 {
     if (arg0->state == 0) {
         D_80115734  = 0x60222;
@@ -441,7 +441,7 @@ void func_shelter_b2_operating_room_8017DDB8(Task* arg0)
 /// at the rim, in two 0x400 steps around the angle between the projected
 /// points. `arg2` is the colour as three 4-bit channels (0xRGB), brightened
 /// slightly on odd frames.
-void func_shelter_b2_operating_room_8017E118(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b2_operating_room_8017E118(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**                   scratch;
     u8*                      head;
@@ -587,7 +587,7 @@ void func_shelter_b2_operating_room_8017E118(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// wedges lit at the projected centre and black at the rim, of screen radius
 /// `arg1 * 64 / otz`. `arg2` is the colour as three 4-bit channels (0xRGB),
 /// brightened slightly on odd frames.
-void func_shelter_b2_operating_room_8017E95C(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b2_operating_room_8017E95C(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**             scratch;
     u8*                head;
@@ -668,7 +668,7 @@ void func_shelter_b2_operating_room_8017E95C(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// drawing a widening ring and fading, and releases the work block once faded;
 /// state 4 releases it at once. While `Gp_State1C->eventState` is non-zero it
 /// does nothing but release once that reaches 4.
-void func_shelter_b2_operating_room_8017ECFC(Task* arg0)
+static void func_shelter_b2_operating_room_8017ECFC(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -785,7 +785,7 @@ void func_shelter_b2_operating_room_8017ECFC(Task* arg0)
 /// `func_shelter_b2_operating_room_8017F478`, releasing the effect at tick 20.
 /// While `Gp_State1C->eventState` is non-zero it does nothing but release from
 /// state 4.
-void func_shelter_b2_operating_room_8017F254(Task* task)
+static void func_shelter_b2_operating_room_8017F254(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -840,7 +840,7 @@ void func_shelter_b2_operating_room_8017F254(Task* task)
 /// unless the projection flags an error. `arg1` picks one of four 24-texel
 /// frames from U 0x60, `arg2` is the size (a screen half-extent of
 /// `arg2 * 23 / (otz + 1)`) and `arg3` the grey level it is shaded with.
-void func_shelter_b2_operating_room_8017F478(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_shelter_b2_operating_room_8017F478(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -921,7 +921,7 @@ void func_shelter_b2_operating_room_8017F478(GpCoord* arg0, s32 arg1, s32 arg2, 
 /// projection flags an error: sixteen gouraud quads, black at screen radius
 /// `arg1 * 64 / (otz + 1)` and coloured `rgb` at
 /// `(arg1 + arg2) * 64 / (otz + 1)`.
-void func_shelter_b2_operating_room_8017F6FC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_shelter_b2_operating_room_8017F6FC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     GpArcScratch* block;
     POLY_G4*      prim;
@@ -976,7 +976,7 @@ void func_shelter_b2_operating_room_8017F6FC(GpCoord* arg0, s32 arg1, s32 arg2, 
 /// projection flags an error: eight gouraud wedges coloured `rgb` at the
 /// projected centre and black at the rim, of screen radius
 /// `arg1 * 64 / (otz + 1)`.
-void func_shelter_b2_operating_room_8017FB20(GpCoord* arg0, s32 arg1, u8* rgb)
+static void func_shelter_b2_operating_room_8017FB20(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     GpRingScratch* block;
     POLY_G4*       prim;
@@ -1027,7 +1027,7 @@ void func_shelter_b2_operating_room_8017FB20(GpCoord* arg0, s32 arg1, u8* rgb)
 /// spent the main level runs down, and the work block is released when it
 /// does. While `Gp_State1C->eventState` is non-zero it does nothing but
 /// release once that reaches 4.
-void func_shelter_b2_operating_room_8017FEB4(Task* arg0)
+static void func_shelter_b2_operating_room_8017FEB4(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;
@@ -1084,7 +1084,7 @@ void func_shelter_b2_operating_room_8017FEB4(Task* arg0)
 /// `func_shelter_b2_operating_room_8018058C` on the ground beneath it. It also
 /// points the `Gp_RoomCoords[2]` light at the coordinate with a randomly flickering
 /// intensity. Nothing is drawn when the GTE flags the projection.
-void func_shelter_b2_operating_room_80180060(GpCoord* coord, s16 size)
+static void func_shelter_b2_operating_room_80180060(GpCoord* coord, s16 size)
 {
     GpCoord        ground;
     POLY_FT4*      prim;
@@ -1216,7 +1216,7 @@ void func_shelter_b2_operating_room_80180060(GpCoord* coord, s16 size)
 /// semi-transparent textured quad (tpage 0x28, clut 0x428C) tinted
 /// (0x30, 0x20, 0x20), alternating between two 32-texel frames from U 0xC0 on
 /// odd and even frames.
-void func_shelter_b2_operating_room_8018058C(GpCoord* arg0, s32 arg1)
+static void func_shelter_b2_operating_room_8018058C(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;

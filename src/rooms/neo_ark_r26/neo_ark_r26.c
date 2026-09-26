@@ -62,7 +62,7 @@ s32 func_neo_ark_r26_8017D69C(void)
 /// Room task state 0: installs the message table, claims pointer slot 7, then
 /// starts the room script unless the attract demo 9 is playing. Advances to
 /// state 1.
-void func_neo_ark_r26_8017D6A4(Task* arg0)
+static void func_neo_ark_r26_8017D6A4(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_r26_8017E0A4;
     Game_SetPtrSlot(arg0, 7);
@@ -73,14 +73,14 @@ void func_neo_ark_r26_8017D6A4(Task* arg0)
 }
 
 /// Room task state 1: does nothing, keeping the task alive.
-void func_neo_ark_r26_8017D710(Task* task)
+static void func_neo_ark_r26_8017D710(Task* task)
 {
     char pad[0x10];
 }
 
 /// State handlers of the room task `func_neo_ark_r26_8017D720`, indexed by
 /// `Task::state`: the set-up tick, the idle tick, and `taskKill`.
-const TaskFuncTable3 D_neo_ark_r26_8017D5C4 = {
+static const TaskFuncTable3 D_neo_ark_r26_8017D5C4 = {
     {
         func_neo_ark_r26_8017D6A4,
         func_neo_ark_r26_8017D710,
@@ -89,7 +89,7 @@ const TaskFuncTable3 D_neo_ark_r26_8017D5C4 = {
 };
 
 /// Room task: dispatches through a stack copy of its state table.
-void func_neo_ark_r26_8017D720(Task* task)
+static void func_neo_ark_r26_8017D720(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -97,6 +97,6 @@ void func_neo_ark_r26_8017D720(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_neo_ark_r26_8017D778(void)
+static void func_neo_ark_r26_8017D778(void)
 {
 }

@@ -183,7 +183,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
 /// towards the camera and clamped to 0x10, so the flare stops growing once it
 /// is very close. The CLUT alternates between two palettes on odd and even
 /// frames, which is what makes the flare flicker.
-void func_acropolis_observatory_8017E424(Task* arg0)
+static void func_acropolis_observatory_8017E424(Task* arg0)
 {
     void**           scratch;
     u8*              head;
@@ -260,7 +260,7 @@ void func_acropolis_observatory_8017E424(Task* arg0)
 /// Re-spawns the observatory's ambient effects for the current camera view,
 /// one per entry whose view mask contains the active view. Skipped entirely
 /// once `Gp_State1C->eventState` has reached 4, i.e. once the room has faded out.
-void func_acropolis_observatory_8017E6F8(Task* task)
+static void func_acropolis_observatory_8017E6F8(Task* task)
 {
     GpCoord* coord;
     s32      mask;

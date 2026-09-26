@@ -76,7 +76,7 @@ extern RoomsShared8018055cCourse D_dryfield_night_saloon_g_r_80185004[];
 
 /// The jukebox menu's title, "SELECT". A stray 0x0D byte follows its
 /// terminator, so the block stays in assembly.
-extern const char D_dryfield_night_saloon_g_r_8017D898[];
+static const char D_dryfield_night_saloon_g_r_8017D898[];
 
 /// The jukebox's track list.
 extern UiList D_dryfield_night_saloon_g_r_80185028;
@@ -108,12 +108,12 @@ extern SVECTOR D_dryfield_night_saloon_g_r_801850FC;
 /// gate positions 20-27.
 extern s16 D_dryfield_night_saloon_g_r_80185154[];
 
-void func_dryfield_night_saloon_g_r_8017DF90(Task* task);
-void func_dryfield_night_saloon_g_r_8017E040(Task* task);
-s32  func_dryfield_night_saloon_g_r_8017E698(s32 arg0);
-void func_dryfield_night_saloon_g_r_8017E8B0(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_dryfield_night_saloon_g_r_8017EB38(GpCoord* coord);
-void func_dryfield_night_saloon_g_r_8017F0A4(GpCoord* coord, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
+static void func_dryfield_night_saloon_g_r_8017DF90(Task* task);
+static void func_dryfield_night_saloon_g_r_8017E040(Task* task);
+static s32  func_dryfield_night_saloon_g_r_8017E698(s32 arg0);
+static void func_dryfield_night_saloon_g_r_8017E8B0(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_dryfield_night_saloon_g_r_8017EB38(GpCoord* coord);
+static void func_dryfield_night_saloon_g_r_8017F0A4(GpCoord* coord, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
 
 /// Event gate for the room's exit. Returns 1 when game-flag nibble
 /// `req->flagId` already reads set (clear, for a negative id). Otherwise, when
@@ -121,7 +121,7 @@ void func_dryfield_night_saloon_g_r_8017F0A4(GpCoord* coord, SVECTOR* arg1, SVEC
 /// `msg->field_5` asks for a dry run - latches `msg` and `req`, sets the
 /// nibble and spawns the event task. When the item is missing it returns 0
 /// and, outside a dry run, runs cap command `req->field_4`.
-s32 func_dryfield_night_saloon_g_r_8017D8A0(RoomEventReq* req, RoomEventMsg* msg)
+static s32 func_dryfield_night_saloon_g_r_8017D8A0(RoomEventReq* req, RoomEventMsg* msg)
 {
     s32 flag;
     s32 id;
@@ -225,7 +225,7 @@ void func_dryfield_night_saloon_g_r_8017DA04(Task* task)
 /// `func_dryfield_night_saloon_g_r_8017E050`: the entry tick
 /// `func_dryfield_night_saloon_g_r_8017DF90`, the idle state
 /// `func_dryfield_night_saloon_g_r_8017E040`, then `taskKill`.
-const TaskFuncTable3 D_dryfield_night_saloon_g_r_8017D5DC = {
+static const TaskFuncTable3 D_dryfield_night_saloon_g_r_8017D5DC = {
     { func_dryfield_night_saloon_g_r_8017DF90, func_dryfield_night_saloon_g_r_8017E040, taskKill },
 };
 /// Room cutscene task: case 0 saves the area id, forces `Mc_SaveData.at4.loc.view`
@@ -316,7 +316,7 @@ const char D_dryfield_night_saloon_g_r_8017D85C[] = "1. Tower Rendezvous";
 /// The jukebox's ten track lists: one per game mode, with list 4 standing in
 /// before the first clear, and the second five used outside the debug attach
 /// room.
-const RoomsShared8018055cMenu D_dryfield_night_saloon_g_r_8017D870 = {
+static const RoomsShared8018055cMenu D_dryfield_night_saloon_g_r_8017D870 = {
     {
         D_dryfield_night_saloon_g_r_80184F0C,
         D_dryfield_night_saloon_g_r_80184F24,
@@ -332,7 +332,7 @@ const RoomsShared8018055cMenu D_dryfield_night_saloon_g_r_8017D870 = {
 };
 
 /// "SELECT", followed by the non-zero padding the original toolchain left.
-const char D_dryfield_night_saloon_g_r_8017D898[8] = "SELECT\0\x0D";
+static const char D_dryfield_night_saloon_g_r_8017D898[8] = "SELECT\0\x0D";
 /// Handler for message 0x13EE in the room's message table, which filters a
 /// warp request: copies `in` to `out`, and for area 0xF picks the destination
 /// room from game-flag nibble 0x61 (unless `in->field_5` asks for a dry run),
@@ -431,7 +431,7 @@ s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, GpMsg13EF* ar
 /// task in pointer slot 7, then, on the phase-2 visit whose nibble 0xB0 is
 /// still clear, announce the room to the slot-4 task with message 0x7DA
 /// carrying the session's two id bytes and a zero halfword. Then advance state.
-void func_dryfield_night_saloon_g_r_8017DF90(Task* task)
+static void func_dryfield_night_saloon_g_r_8017DF90(Task* task)
 {
     GpCmdArg msg;
 
@@ -448,7 +448,7 @@ void func_dryfield_night_saloon_g_r_8017DF90(Task* task)
 
 /// The room task's idle state, entry 1 of its three-state table: does nothing.
 /// The 0x10-byte local is never used, but the original reserved the frame.
-void func_dryfield_night_saloon_g_r_8017E040(Task* task)
+static void func_dryfield_night_saloon_g_r_8017E040(Task* task)
 {
     char pad[0x10];
 }
@@ -457,7 +457,7 @@ void func_dryfield_night_saloon_g_r_8017E040(Task* task)
 /// `D_dryfield_night_saloon_g_r_8017D5DC` onto the stack and runs the entry
 /// for the task's current state - the entry tick, the idle state, then
 /// `taskKill`.
-void func_dryfield_night_saloon_g_r_8017E050(Task* task)
+static void func_dryfield_night_saloon_g_r_8017E050(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -671,7 +671,7 @@ void func_dryfield_night_saloon_g_r_8017E564(Task* task)
 
 /// Starts the jukebox task and reports success. Its argument is unused;
 /// `func_dryfield_night_saloon_g_r_8017DB74` (state 2) still passes one.
-s32 func_dryfield_night_saloon_g_r_8017E698(s32 arg0)
+static s32 func_dryfield_night_saloon_g_r_8017E698(s32 arg0)
 {
     Display_InitModeObj(&D_dryfield_night_saloon_g_r_80185068, 0, 0, 0);
     return 1;
@@ -682,7 +682,7 @@ s32 func_dryfield_night_saloon_g_r_8017E698(s32 arg0)
 /// `gGameSession->at4.loc.view`. Positions 0-5 and 20-22 are drawn with UV
 /// column 0 and half-extent 0x200, 6-10 with column 1 and 0x1C0, and 23-27
 /// with column 0 and 0x300; the two helpers in between take the model's coord.
-void func_dryfield_night_saloon_g_r_8017E6C8(Task* arg0)
+static void func_dryfield_night_saloon_g_r_8017E6C8(Task* arg0)
 {
     GpCoord* coord;
     s32      mask;
@@ -725,7 +725,7 @@ void func_dryfield_night_saloon_g_r_8017E6C8(Task* arg0)
 /// 0x2B, clut `(arg1 & 0x3F) | 0x4380` and the 40-texel texture column
 /// `arg1`. `arg2` is a signed half-extent scaled by depth; the grey level
 /// follows the frame counter's low bit.
-void func_dryfield_night_saloon_g_r_8017E8B0(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_night_saloon_g_r_8017E8B0(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw13Scratch* block;
     POLY_FT4*          prim;
@@ -774,7 +774,7 @@ void func_dryfield_night_saloon_g_r_8017E8B0(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// parity of `gDisplayState.animFrame` and the tips are black, so the shaft
 /// fades outward. The quad is sorted by `tipB`'s `otz` and skipped when that
 /// is below 0x11.
-void func_dryfield_night_saloon_g_r_8017EB38(GpCoord* coord)
+static void func_dryfield_night_saloon_g_r_8017EB38(GpCoord* coord)
 {
     u8*                    head;
     RoomLightShaftScratch* block;
@@ -885,7 +885,7 @@ void func_dryfield_night_saloon_g_r_8017EB38(GpCoord* coord)
 /// take a grey of 0x20 or 0x30 depending on the parity of
 /// `gDisplayState.animFrame`, the rim vertices are black. Each primitive goes
 /// into the OT bucket of its own end's `otz` with a `Gp_AddTpageShift` tpage.
-void func_dryfield_night_saloon_g_r_8017F0A4(GpCoord* coord, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
+static void func_dryfield_night_saloon_g_r_8017F0A4(GpCoord* coord, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
     u8*                head;
     RoomDraw24Scratch* block;

@@ -39,7 +39,7 @@ extern TaskDesc D_dryfield_night_dilapidated_house_8017E6F4;
 /// command and answers 0. Otherwise the gate answers 2 and - unless the
 /// message's `field_5` asks for a dry run - latches the message and the
 /// request, writes the flag nibble and spawns the event task.
-s32 func_dryfield_night_dilapidated_house_8017D600(RoomEventReq* req, RoomEventMsg* msg)
+static s32 func_dryfield_night_dilapidated_house_8017D600(RoomEventReq* req, RoomEventMsg* msg)
 {
     s32 flag;
     s32 id;
@@ -184,7 +184,7 @@ s32 func_dryfield_night_dilapidated_house_8017D968(void)
 /// clear) it starts the cutscene script pair when pointer slot 0xA is filled,
 /// then sets nibble 0x92 to 1 and nibble 0x7A to 3 and calls
 /// `func_800E3FAC(0xA2, 0x11)`.
-void func_dryfield_night_dilapidated_house_8017D970(Task* arg0)
+static void func_dryfield_night_dilapidated_house_8017D970(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_dilapidated_house_8017E700;
     Game_SetPtrSlot(arg0, 7);
@@ -202,13 +202,13 @@ void func_dryfield_night_dilapidated_house_8017D970(Task* arg0)
 
 /// The room task's idle state, entry 1 of its three-state table: does nothing.
 /// The 0x10-byte local is never used, but the original reserved the frame.
-void func_dryfield_night_dilapidated_house_8017DA08(Task* task)
+static void func_dryfield_night_dilapidated_house_8017DA08(Task* task)
 {
     char pad[0x10];
 }
 
 /// The room task's three states: setup, idle, and exit.
-const TaskFuncTable3 D_dryfield_night_dilapidated_house_8017D5DC = {
+static const TaskFuncTable3 D_dryfield_night_dilapidated_house_8017D5DC = {
     {
         func_dryfield_night_dilapidated_house_8017D970,
         func_dryfield_night_dilapidated_house_8017DA08,
@@ -218,7 +218,7 @@ const TaskFuncTable3 D_dryfield_night_dilapidated_house_8017D5DC = {
 
 /// Runs the room task's current state, through a copy of its state table
 /// taken onto the stack.
-void func_dryfield_night_dilapidated_house_8017DA18(Task* task)
+static void func_dryfield_night_dilapidated_house_8017DA18(Task* task)
 {
     TaskFuncTable3 sp;
 

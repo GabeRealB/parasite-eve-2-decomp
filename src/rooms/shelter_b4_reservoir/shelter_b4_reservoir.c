@@ -128,31 +128,31 @@ extern _ShelterB4ReservoirBurst D_shelter_b4_reservoir_80187684;
 /// brightness, one row per spawn argument.
 extern s16 D_shelter_b4_reservoir_801850BC[][3];
 
-void func_shelter_b4_reservoir_8017E7C8(Task* arg0);
-void func_shelter_b4_reservoir_8017E864(Task* task);
-void func_shelter_b4_reservoir_8017E8E4(void);
-void func_shelter_b4_reservoir_8017EA00(Task* task);
-void func_shelter_b4_reservoir_8017EE04(Task* task);
-void func_shelter_b4_reservoir_8017F23C(Task* task);
-void func_shelter_b4_reservoir_8017F674(Task* task);
-void func_shelter_b4_reservoir_8017FB44(Task* arg0);
-void func_shelter_b4_reservoir_80180530(GpCoord* arg0, s32 arg1, s32 arg2);
-void func_shelter_b4_reservoir_80180D20(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_shelter_b4_reservoir_8018110C(GpCoord* arg0, s16 arg1, s16 arg2);
-void func_shelter_b4_reservoir_80181668(GpCoord* coord, u16 frame, s16 size);
-void func_shelter_b4_reservoir_801818F0(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b4_reservoir_80182134(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b4_reservoir_80182B04(s16 arg0, u16 arg1, s16 arg2);
-void func_shelter_b4_reservoir_80183298(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_shelter_b4_reservoir_8018351C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b4_reservoir_80183940(GpCoord* arg0, s32 arg1, u8* rgb);
-void func_shelter_b4_reservoir_80183E80(GpCoord* coord, s16 size);
-void func_shelter_b4_reservoir_801843AC(GpCoord* arg0, s32 arg1);
+static void func_shelter_b4_reservoir_8017E7C8(Task* arg0);
+static void func_shelter_b4_reservoir_8017E864(Task* task);
+static void func_shelter_b4_reservoir_8017E8E4(void);
+static void func_shelter_b4_reservoir_8017EA00(Task* task);
+static void func_shelter_b4_reservoir_8017EE04(Task* task);
+static void func_shelter_b4_reservoir_8017F23C(Task* task);
+static void func_shelter_b4_reservoir_8017F674(Task* task);
+static void func_shelter_b4_reservoir_8017FB44(Task* arg0);
+static void func_shelter_b4_reservoir_80180530(GpCoord* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b4_reservoir_80180D20(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_shelter_b4_reservoir_8018110C(GpCoord* arg0, s16 arg1, s16 arg2);
+static void func_shelter_b4_reservoir_80181668(GpCoord* coord, u16 frame, s16 size);
+static void func_shelter_b4_reservoir_801818F0(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b4_reservoir_80182134(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b4_reservoir_80182B04(s16 arg0, u16 arg1, s16 arg2);
+static void func_shelter_b4_reservoir_80183298(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_shelter_b4_reservoir_8018351C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_b4_reservoir_80183940(GpCoord* arg0, s32 arg1, u8* rgb);
+static void func_shelter_b4_reservoir_80183E80(GpCoord* coord, s16 size);
+static void func_shelter_b4_reservoir_801843AC(GpCoord* arg0, s32 arg1);
 
 /// State handlers of the room task `func_shelter_b4_reservoir_8017E88C` runs,
 /// which copies the table to the stack and calls the entry for the task's
 /// state: the room's setup, the per-frame state, and `taskKill`.
-const TaskFuncTable3 D_shelter_b4_reservoir_8017D5C4 = {
+static const TaskFuncTable3 D_shelter_b4_reservoir_8017D5C4 = {
     { func_shelter_b4_reservoir_8017E7C8, func_shelter_b4_reservoir_8017E864, taskKill }
 };
 
@@ -365,7 +365,7 @@ void func_shelter_b4_reservoir_8017DE8C(Task* task)
     }
 }
 
-void func_shelter_b4_reservoir_8017E068(void)
+static void func_shelter_b4_reservoir_8017E068(void)
 {
     D_shelter_b4_reservoir_80187510 = (D_shelter_b4_reservoir_80184F78 << 0x18) | (D_shelter_b4_reservoir_80184F7A << 0xC) | (D_shelter_b4_reservoir_80184F79 << 0x10) | D_shelter_b4_reservoir_80184F7C;
 }
@@ -605,7 +605,7 @@ void func_shelter_b4_reservoir_8017E7A8(void)
     Gp_PulseState1C();
 }
 
-void func_shelter_b4_reservoir_8017E7C8(Task* arg0)
+static void func_shelter_b4_reservoir_8017E7C8(Task* arg0)
 {
     arg0->msgTable = D_shelter_b4_reservoir_801848BC;
     Game_SetPtrSlot(arg0, 7);
@@ -619,7 +619,7 @@ void func_shelter_b4_reservoir_8017E7C8(Task* arg0)
     arg0->state                     = (s32)(arg0->state + 1);
 }
 
-void func_shelter_b4_reservoir_8017E864(Task* task)
+static void func_shelter_b4_reservoir_8017E864(Task* task)
 {
     func_shelter_b4_reservoir_8017E068();
     func_shelter_b4_reservoir_8017E8E4();
@@ -627,7 +627,7 @@ void func_shelter_b4_reservoir_8017E864(Task* task)
 
 /// Runs a task through the room's three-entry state table
 /// `D_shelter_b4_reservoir_8017D5C4`, copied onto the stack first.
-void func_shelter_b4_reservoir_8017E88C(Task* task)
+static void func_shelter_b4_reservoir_8017E88C(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -635,11 +635,11 @@ void func_shelter_b4_reservoir_8017E88C(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_shelter_b4_reservoir_8017E8E4(void)
+static void func_shelter_b4_reservoir_8017E8E4(void)
 {
 }
 
-void func_shelter_b4_reservoir_8017E8EC(Task* task)
+static void func_shelter_b4_reservoir_8017E8EC(Task* task)
 {
     RoomWaterSurface* p = D_shelter_b4_reservoir_80184F90;
 
@@ -667,7 +667,7 @@ void func_shelter_b4_reservoir_8017E8EC(Task* task)
 /// flat semi-transparent quads laid along Z, projected through the view
 /// matrix, each followed by a draw-mode packet selecting blend mode 2. Quads
 /// the projection flags as invalid are skipped. `task` is unused.
-void func_shelter_b4_reservoir_8017EA00(Task* task)
+static void func_shelter_b4_reservoir_8017EA00(Task* task)
 {
     SVECTOR           v0, v1, v2, v3;
     s32               sxy0, sxy1, sxy2, sxy3;
@@ -741,7 +741,7 @@ void func_shelter_b4_reservoir_8017EA00(Task* task)
 /// Same strip renderer as `func_shelter_b4_reservoir_8017EA00`, driven by
 /// `D_shelter_b4_reservoir_80184FA8`: each surface's `field_8` gives its quad
 /// count, and its X is used as stored rather than offset. `task` is unused.
-void func_shelter_b4_reservoir_8017EE04(Task* task)
+static void func_shelter_b4_reservoir_8017EE04(Task* task)
 {
     SVECTOR           v0, v1, v2, v3;
     s32               sxy0, sxy1, sxy2, sxy3;
@@ -817,7 +817,7 @@ void func_shelter_b4_reservoir_8017EE04(Task* task)
 /// surface's `field_4` is divided into `field_8` quads, and `field_6` is the
 /// extent along Z. The scratch fields `dx` and `step` therefore hold the X step
 /// and the Z extent here. `task` is unused.
-void func_shelter_b4_reservoir_8017F23C(Task* task)
+static void func_shelter_b4_reservoir_8017F23C(Task* task)
 {
     SVECTOR           v0, v1, v2, v3;
     s32               sxy0, sxy1, sxy2, sxy3;
@@ -893,7 +893,7 @@ void func_shelter_b4_reservoir_8017F23C(Task* task)
 /// `D_shelter_b4_reservoir_80184F82` instead of `D_shelter_b4_reservoir_80184F80`.
 /// The quads are tinted by that height: blue is `-height * 16 / 225` and green
 /// a quarter of it, so they brighten as the level sinks. `task` is unused.
-void func_shelter_b4_reservoir_8017F674(Task* task)
+static void func_shelter_b4_reservoir_8017F674(Task* task)
 {
     SVECTOR           v0, v1, v2, v3;
     s32               sxy0, sxy1, sxy2, sxy3;
@@ -977,7 +977,7 @@ void func_shelter_b4_reservoir_8017FADC(Task* task)
 /// First state of the water task: clears the session counter the current
 /// display mode selects (`field_80` when `Mc_SaveData.companionType` is zero, `field_7E`
 /// otherwise) and moves on to the per-frame state.
-void func_shelter_b4_reservoir_8017FB44(Task* arg0)
+static void func_shelter_b4_reservoir_8017FB44(Task* arg0)
 {
     if (Mc_SaveData.companionType == 0) {
         gGameSession->field_80 = 0;
@@ -987,7 +987,7 @@ void func_shelter_b4_reservoir_8017FB44(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-void func_shelter_b4_reservoir_8017FB84(Task* task)
+static void func_shelter_b4_reservoir_8017FB84(Task* task)
 {
     _ShelterB4ReservoirWork* work;
     Task*                    player;
@@ -1132,7 +1132,7 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
 /// grows the size by 0x20 and dims the brightness by 2, releasing the effect
 /// once the brightness drops under 2. While `Gp_State1C->eventState` is
 /// non-zero it only redraws at the current values, releasing from state 4.
-void func_shelter_b4_reservoir_801803DC(Task* task)
+static void func_shelter_b4_reservoir_801803DC(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -1169,7 +1169,7 @@ void func_shelter_b4_reservoir_801803DC(Task* task)
 /// moved to its position, then projected through `GsWSMATRIX`. Unless the
 /// projection flags an error it queues one semi-transparent textured quad
 /// (tpage 0x2B, clut 0x43D1) shaded grey at `arg2`.
-void func_shelter_b4_reservoir_80180530(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b4_reservoir_80180530(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -1261,7 +1261,7 @@ void func_shelter_b4_reservoir_80180530(GpCoord* arg0, s32 arg1, s32 arg2)
 /// Every later tick draws, moves the coordinate by the velocity with gravity
 /// pulling it down, and releases the effect after animation frame 7. While
 /// `Gp_State1C->eventState` is non-zero it only draws, releasing from state 4.
-void func_shelter_b4_reservoir_80180864(Task* task)
+static void func_shelter_b4_reservoir_80180864(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -1386,7 +1386,7 @@ void func_shelter_b4_reservoir_80180864(Task* task)
 /// 32-texel-wide frame at U `arg1 * 32` in the strip at V 0xE0..0xFF, `arg2` is
 /// the size (a screen half-extent of `arg2 * 31 / otz`) and `arg3` the angle
 /// the corners are turned by.
-void func_shelter_b4_reservoir_80180D20(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_shelter_b4_reservoir_80180D20(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -1450,7 +1450,7 @@ void func_shelter_b4_reservoir_80180D20(GpCoord* arg0, s32 arg1, s32 arg2, s32 a
 /// four across and two down from V 0x70. `arg2` is the size, a screen
 /// half-extent of `arg2 * 55 / otz`; the quad stands on the point, reaching one
 /// and a half extents above it and half an extent below.
-void func_shelter_b4_reservoir_8018110C(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_shelter_b4_reservoir_8018110C(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     GpRingScratch* block;
     POLY_FT4*      prim;
@@ -1486,7 +1486,7 @@ void func_shelter_b4_reservoir_8018110C(GpCoord* arg0, s16 arg1, s16 arg2)
     SCRATCH_POP(GpRingScratch);
 }
 
-void func_shelter_b4_reservoir_801813F0(Task* task)
+static void func_shelter_b4_reservoir_801813F0(Task* task)
 {
     GpEffWork* work  = task->spawnArg2;
     GpCoord*   coord = task->extra.tmd->coords;
@@ -1558,7 +1558,7 @@ void func_shelter_b4_reservoir_801813F0(Task* task)
 /// UV columns at u = `(frame % 6) * 32 + 0x40`, v = 0x40..0x5F. `size` is a
 /// half-extent; the on-screen radius is `size * 31 / otz`, and the quad is
 /// axis-aligned about the projected point.
-void func_shelter_b4_reservoir_80181668(GpCoord* coord, u16 frame, s16 size)
+static void func_shelter_b4_reservoir_80181668(GpCoord* coord, u16 frame, s16 size)
 {
     void**         scratch;
     u8*            head;
@@ -1630,7 +1630,7 @@ void func_shelter_b4_reservoir_80181668(GpCoord* coord, u16 frame, s16 size)
 /// at the rim, in two 0x400 steps around the angle between the projected
 /// points. `arg2` is the colour as three 4-bit channels (0xRGB), brightened
 /// slightly on odd frames.
-void func_shelter_b4_reservoir_801818F0(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b4_reservoir_801818F0(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**                   scratch;
     u8*                      head;
@@ -1778,7 +1778,7 @@ void func_shelter_b4_reservoir_801818F0(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// brightness at half radius; four spikes at half brightness reach out
 /// between them. `arg2` is the colour as three 4-bit channels (0xRGB), and its
 /// top nibble is the shift of a small brightening applied on odd frames.
-void func_shelter_b4_reservoir_80182134(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b4_reservoir_80182134(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw05Scratch* block;
     POLY_G4*           prim;
@@ -1927,7 +1927,7 @@ void func_shelter_b4_reservoir_80182134(SVECTOR* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES(0x14);
 }
 
-void func_shelter_b4_reservoir_80182B04(s16 arg0, u16 arg1, s16 arg2)
+static void func_shelter_b4_reservoir_80182B04(s16 arg0, u16 arg1, s16 arg2)
 {
     D_shelter_b4_reservoir_80187684.field_0 = arg0;
     D_shelter_b4_reservoir_80187684.field_2 = arg1;
@@ -1941,7 +1941,7 @@ void func_shelter_b4_reservoir_80182B04(s16 arg0, u16 arg1, s16 arg2)
 /// shrinking and fading it inside an expanding ring, then releases the effect.
 /// The spawn argument picks the disc's colour shifts from
 /// `D_shelter_b4_reservoir_801850BC`.
-void func_shelter_b4_reservoir_80182B1C(Task* arg0)
+static void func_shelter_b4_reservoir_80182B1C(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -2058,7 +2058,7 @@ void func_shelter_b4_reservoir_80182B1C(Task* arg0)
 /// `func_shelter_b4_reservoir_80183298`, releasing the effect at tick 20. While
 /// `Gp_State1C->eventState` is non-zero it does nothing but release from state
 /// 4.
-void func_shelter_b4_reservoir_80183074(Task* task)
+static void func_shelter_b4_reservoir_80183074(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -2113,7 +2113,7 @@ void func_shelter_b4_reservoir_80183074(Task* task)
 /// unless the projection flags an error. `arg1` picks one of four 24-texel
 /// frames from U 0x60, `arg2` is the size (a screen half-extent of
 /// `arg2 * 23 / (otz + 1)`) and `arg3` the grey level it is shaded with.
-void func_shelter_b4_reservoir_80183298(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_shelter_b4_reservoir_80183298(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -2194,7 +2194,7 @@ void func_shelter_b4_reservoir_80183298(GpCoord* arg0, s32 arg1, s32 arg2, s32 a
 /// projection flags an error: sixteen gouraud quads, black at screen radius
 /// `arg1 * 64 / (otz + 1)` and coloured `rgb` at
 /// `(arg1 + arg2) * 64 / (otz + 1)`.
-void func_shelter_b4_reservoir_8018351C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_shelter_b4_reservoir_8018351C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     GpArcScratch* block;
     POLY_G4*      prim;
@@ -2249,7 +2249,7 @@ void func_shelter_b4_reservoir_8018351C(GpCoord* arg0, s32 arg1, s32 arg2, u8* r
 /// projection flags an error: eight gouraud wedges coloured `rgb` at the
 /// projected centre and black at the rim, of screen radius
 /// `arg1 * 64 / (otz + 1)`.
-void func_shelter_b4_reservoir_80183940(GpCoord* arg0, s32 arg1, u8* rgb)
+static void func_shelter_b4_reservoir_80183940(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     GpRingScratch* block;
     POLY_G4*       prim;
@@ -2299,7 +2299,7 @@ void func_shelter_b4_reservoir_80183940(GpCoord* arg0, s32 arg1, u8* rgb)
 /// brightness lasts a widening ring fading out behind them. Once the echo is
 /// spent the main brightness runs down, and the effect is released when it
 /// falls under 0x18.
-void func_shelter_b4_reservoir_80183CD4(Task* arg0)
+static void func_shelter_b4_reservoir_80183CD4(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;
@@ -2356,7 +2356,7 @@ void func_shelter_b4_reservoir_80183CD4(Task* arg0)
 /// `func_shelter_b4_reservoir_801843AC` on the ground beneath it. It also
 /// points the `Gp_RoomCoords[2]` light at the coordinate with a randomly flickering
 /// intensity. Nothing is drawn when the projection flags an error.
-void func_shelter_b4_reservoir_80183E80(GpCoord* coord, s16 size)
+static void func_shelter_b4_reservoir_80183E80(GpCoord* coord, s16 size)
 {
     GpCoord        ground;
     POLY_FT4*      prim;
@@ -2488,7 +2488,7 @@ void func_shelter_b4_reservoir_80183E80(GpCoord* coord, s16 size)
 /// semi-transparent textured quad (tpage 0x28, clut 0x428C) tinted
 /// (0x30, 0x20, 0x20), alternating between two 32-texel frames from U 0xC0 on
 /// odd and even frames.
-void func_shelter_b4_reservoir_801843AC(GpCoord* arg0, s32 arg1)
+static void func_shelter_b4_reservoir_801843AC(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;

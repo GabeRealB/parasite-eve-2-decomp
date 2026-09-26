@@ -36,7 +36,7 @@ extern SVECTOR D_shelter_b1_north_maintenance_walkway_80184B08[];
 extern SVECTOR D_shelter_b1_north_maintenance_walkway_80184B18[];
 extern SVECTOR D_shelter_b1_north_maintenance_walkway_80184B48[];
 
-void func_shelter_b1_north_maintenance_walkway_8017DB54(u8 arg0);
+static void func_shelter_b1_north_maintenance_walkway_8017DB54(u8 arg0);
 
 extern s32      func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 extern TaskDesc D_shelter_b1_north_maintenance_walkway_80184A78;
@@ -203,7 +203,7 @@ s32 func_shelter_b1_north_maintenance_walkway_8017DA44(void)
     return 0;
 }
 
-void func_shelter_b1_north_maintenance_walkway_8017DA4C(Task* arg0)
+static void func_shelter_b1_north_maintenance_walkway_8017DA4C(Task* arg0)
 {
     arg0->msgTable = D_shelter_b1_north_maintenance_walkway_80184A84;
     Game_SetPtrSlot(arg0, 7);
@@ -219,18 +219,18 @@ void func_shelter_b1_north_maintenance_walkway_8017DA4C(Task* arg0)
 }
 
 /// The room task's idle state: does nothing.
-void func_shelter_b1_north_maintenance_walkway_8017DAF4(Task* task)
+static void func_shelter_b1_north_maintenance_walkway_8017DAF4(Task* task)
 {
 }
 
 /// The room task's three states: set-up, idle and exit.
-const TaskFuncTable3 D_shelter_b1_north_maintenance_walkway_8017D5D8 = {
+static const TaskFuncTable3 D_shelter_b1_north_maintenance_walkway_8017D5D8 = {
     { func_shelter_b1_north_maintenance_walkway_8017DA4C, func_shelter_b1_north_maintenance_walkway_8017DAF4, taskKill },
 };
 
 /// The room task. Runs the handler for its current state from the room's
 /// three-entry state table: set-up, an idle tick, and `taskKill`.
-void func_shelter_b1_north_maintenance_walkway_8017DAFC(Task* task)
+static void func_shelter_b1_north_maintenance_walkway_8017DAFC(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -238,7 +238,7 @@ void func_shelter_b1_north_maintenance_walkway_8017DAFC(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_shelter_b1_north_maintenance_walkway_8017DB54(u8 arg0)
+static void func_shelter_b1_north_maintenance_walkway_8017DB54(u8 arg0)
 {
     GpAreaKey* sess = &gGameSession->at4.loc;
     GpSprtRec* rec;
@@ -256,7 +256,7 @@ void func_shelter_b1_north_maintenance_walkway_8017DB54(u8 arg0)
     }
 }
 
-void func_shelter_b1_north_maintenance_walkway_8017DBC8(Task* arg0)
+static void func_shelter_b1_north_maintenance_walkway_8017DBC8(Task* arg0)
 {
     if (arg0->state == 0) {
         D_80115728  = 0x60247;

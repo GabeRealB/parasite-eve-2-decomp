@@ -134,11 +134,11 @@ extern Task* D_dryfield_motel_room_6_8018682C;
 /// task as its `spawnArg2`.
 extern RoomCutsceneRec D_dryfield_motel_room_6_80186830;
 
-void func_dryfield_motel_room_6_8017F440(Task* task);
-void func_dryfield_motel_room_6_8017F630(Task* task);
-void func_dryfield_motel_room_6_80181910(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_dryfield_motel_room_6_80181AC4(Task* task);
-void func_dryfield_motel_room_6_80181B10(Task* task);
+static void func_dryfield_motel_room_6_8017F440(Task* task);
+static void func_dryfield_motel_room_6_8017F630(Task* task);
+static void func_dryfield_motel_room_6_80181910(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_dryfield_motel_room_6_80181AC4(Task* task);
+static void func_dryfield_motel_room_6_80181B10(Task* task);
 
 /// Draws one row of the play-data statistics panel: the row label, then the
 /// statistic `arg0->field_8` selects - play time, several save counters, and
@@ -398,10 +398,10 @@ void func_dryfield_motel_room_6_8017D6C0(DialogPrompt* arg0, UiObject* arg1)
 
 /// "Play Data", the title of the play-data menu panel
 /// `func_dryfield_motel_room_6_8017EF10` draws.
-const char D_dryfield_motel_room_6_8017D610[] = "Play Data";
+static const char D_dryfield_motel_room_6_8017D610[] = "Play Data";
 
 /// Text drawn in place of a usage row's percentage once it reaches 100 percent.
-const u8 D_dryfield_motel_room_6_8017D61C[] = "100.0%";
+static const u8 D_dryfield_motel_room_6_8017D61C[] = "100.0%";
 
 /// Draws one row of a play-data usage panel from the `RoomItemUsage` block at
 /// the owner task's `work`: the item's name and icon, its share of all uses as
@@ -548,7 +548,7 @@ void func_dryfield_motel_room_6_8017DE8C(DialogPrompt* arg0, UiObject* arg1)
 /// counter as a 12-bit fraction of the top row's. Both are scaled down by
 /// halving until the top counter fits in 17 bits, so the multiply and the
 /// shift cannot overflow.
-void func_dryfield_motel_room_6_8017E288(UiList* list, UiObject* obj)
+static void func_dryfield_motel_room_6_8017E288(UiList* list, UiObject* obj)
 {
     RoomItemUsage* work;
     s32            count;
@@ -635,7 +635,7 @@ void func_dryfield_motel_room_6_8017E288(UiList* list, UiObject* obj)
 /// `barWidths`, its counter as a 12-bit fraction of the top row's. Both are
 /// scaled down by halving until the top counter fits in 17 bits, so the
 /// multiply and the shift cannot overflow.
-void func_dryfield_motel_room_6_8017E584(UiList* list, UiObject* obj)
+static void func_dryfield_motel_room_6_8017E584(UiList* list, UiObject* obj)
 {
     RoomPeUsage* work;
     s16*         p;
@@ -722,8 +722,8 @@ void func_dryfield_motel_room_6_8017E584(UiList* list, UiObject* obj)
 }
 
 /// Titles of the usage panel, one per kind: weapons and Parasite Energy.
-const char D_dryfield_motel_room_6_8017D624[] = "Weapon Data";
-const char D_dryfield_motel_room_6_8017D630[] = "PE Data";
+static const char D_dryfield_motel_room_6_8017D624[] = "Weapon Data";
+static const char D_dryfield_motel_room_6_8017D630[] = "PE Data";
 
 /// Task of the usage panel: draws the weapon or Parasite Energy title
 /// (`spawnArg1`), and on its first tick allocates the `RoomItemUsage` /
@@ -784,15 +784,15 @@ void func_dryfield_motel_room_6_8017E8A4(Task* task)
 /// "Telephone", the title of the menu panel
 /// `func_dryfield_motel_room_6_8017EA58` runs. Two non-zero bytes follow its
 /// terminator, so it stays assembly.
-extern const char D_dryfield_motel_room_6_8017D638[];
+static const char D_dryfield_motel_room_6_8017D638[];
 /// "Telephone", followed by the non-zero padding the original toolchain left.
-const char D_dryfield_motel_room_6_8017D638[12] = "Telephone\0\xFF\x1F";
+static const char D_dryfield_motel_room_6_8017D638[12] = "Telephone\0\xFF\x1F";
 
 /// Task of the telephone menu panel. Until the save allows it (demo scene 1
 /// or a clear) it only spawns the generic panel; otherwise it lays out its
 /// list and draws the title. Choosing an entry opens the item prompt, and
 /// cancel closes the panel.
-void func_dryfield_motel_room_6_8017EA58(Task* task)
+static void func_dryfield_motel_room_6_8017EA58(Task* task)
 {
     UiObject* obj;
     UiList*   list;
@@ -920,7 +920,7 @@ void func_dryfield_motel_room_6_8017ED50(Task* task)
 /// Inserts a '.' into a digit string so `decimals` characters sit after the
 /// point. Walks to the NUL, then shifts the last `min(len, decimals)` bytes
 /// one to the right to open a slot. No-op when `decimals <= 0`.
-void func_dryfield_motel_room_6_8017EDAC(u8* str, s32 decimals)
+static void func_dryfield_motel_room_6_8017EDAC(u8* str, s32 decimals)
 {
     s32 len;
 
@@ -956,7 +956,7 @@ void func_dryfield_motel_room_6_8017EDAC(u8* str, s32 decimals)
 /// (so "5" with two decimals becomes "0.05"), otherwise print it unpadded, then
 /// shift the last `decimals` digits right by one and drop a '.' in front of
 /// them. Appends "%" and returns `buf`.
-u8* func_dryfield_motel_room_6_8017EE1C(u8* buf, s32 value, s32 decimals)
+static u8* func_dryfield_motel_room_6_8017EE1C(u8* buf, s32 value, s32 decimals)
 {
     s32 limit;
     s32 i;
@@ -1027,7 +1027,7 @@ void func_dryfield_motel_room_6_8017EF10(Task* task)
 /// panel's draw order. Origin is `field_20`/`field_22` plus (`arg1`, `arg2`);
 /// `arg3`/`arg4` are width and height. Left vertices take `arg5`, right vertices
 /// take `arg6`. A zero color or width < 2 draws nothing.
-void func_dryfield_motel_room_6_8017F000(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
+static void func_dryfield_motel_room_6_8017F000(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
 {
     register s32 dx asm("v1");
     register s32 w asm("t3");
@@ -1125,7 +1125,7 @@ void func_dryfield_motel_room_6_8017F378(DialogPrompt* prompt, UiObject* obj)
 
 /// Task exit callback for the save-prompt UI: if this task still owns
 /// `Wip_UiHolder`, clear it, then free the spawned UI object and kill the task.
-void func_dryfield_motel_room_6_8017F440(Task* task)
+static void func_dryfield_motel_room_6_8017F440(Task* task)
 {
     WipUiHolder* holder;
 
@@ -1143,7 +1143,7 @@ void func_dryfield_motel_room_6_8017F440(Task* task)
 /// `spawnArg1` must be 0 or 1, and 0 also raises `GameSession::field_4E`. The
 /// two child tasks reflect the player's held-object tasks
 /// (`GameActor::field_920` / `field_924`).
-void func_dryfield_motel_room_6_8017F47C(Task* task)
+static void func_dryfield_motel_room_6_8017F47C(Task* task)
 {
     Task*           owner;
     GameActor*      actor;
@@ -1217,7 +1217,7 @@ void func_dryfield_motel_room_6_8017F47C(Task* task)
 /// rectangle, draws quads sampling that strip. Otherwise the reflection is
 /// hidden. Every frame it copies the player's pose and light matrices onto the
 /// reflection.
-void func_dryfield_motel_room_6_8017F630(Task* task)
+static void func_dryfield_motel_room_6_8017F630(Task* task)
 {
     RoomMirrorWork*          work;
     PlayerStatus*            status;
@@ -1745,7 +1745,7 @@ void func_dryfield_motel_room_6_8017F630(Task* task)
 }
 
 /// Scale applied to reflections with `spawnArg1 >= 2`: X negated, Y and Z kept.
-const VECTOR D_dryfield_motel_room_6_8017D644 = { -0x1000, 0x1000, 0x1000 };
+static const VECTOR D_dryfield_motel_room_6_8017D644 = { -0x1000, 0x1000, 0x1000 };
 
 /// Per-frame callback of a held-object reflection. `Task::spawnArg2` is the
 /// mirror task the room set up and the parent is the held-object task being reflected. On the first frame it
@@ -2038,7 +2038,7 @@ void func_dryfield_motel_room_6_801811D4(Task* task)
 
 /// State handlers of the room entry task `func_dryfield_motel_room_6_80181B18`,
 /// indexed by `Task::state`: the set-up tick, the idle tick, and `taskKill`.
-const TaskFuncTable3 D_dryfield_motel_room_6_8017D6B4 = {
+static const TaskFuncTable3 D_dryfield_motel_room_6_8017D6B4 = {
     {
         func_dryfield_motel_room_6_80181AC4,
         func_dryfield_motel_room_6_80181B10,
@@ -2111,7 +2111,7 @@ void func_dryfield_motel_room_6_80181880(Task* task)
 
 /// Fallback of the room's message-0x13F0 handler for every event other than
 /// the cutscene's; this room does nothing with them.
-void func_dryfield_motel_room_6_80181910(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_dryfield_motel_room_6_80181910(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
 }
 
@@ -2190,7 +2190,7 @@ void func_dryfield_motel_room_6_80181A08(Task* arg0)
 /// First state of the room entry task: installs the room's message table,
 /// publishes the task in pointer slot 7, advances the state and sets the
 /// gameplay byte `D_80115598`.
-void func_dryfield_motel_room_6_80181AC4(Task* arg0)
+static void func_dryfield_motel_room_6_80181AC4(Task* arg0)
 {
     arg0->msgTable = D_dryfield_motel_room_6_80182D48;
     Game_SetPtrSlot(arg0, 7);
@@ -2200,13 +2200,13 @@ void func_dryfield_motel_room_6_80181AC4(Task* arg0)
 
 /// Idle state of the room entry task: does nothing, so the task stays alive
 /// holding the room's message table.
-void func_dryfield_motel_room_6_80181B10(Task* task)
+static void func_dryfield_motel_room_6_80181B10(Task* task)
 {
 }
 
 /// Room entry task: runs the state handler `D_dryfield_motel_room_6_8017D6B4`
 /// names for `Task::state`, through a copy of the table taken onto the stack.
-void func_dryfield_motel_room_6_80181B18(Task* task)
+static void func_dryfield_motel_room_6_80181B18(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -2220,7 +2220,7 @@ void func_dryfield_motel_room_6_80181B18(Task* task)
 /// radius of `(s16)arg2 * 48 / otz`. `arg1` scales `gDisplayState.animFrame`
 /// into `rsin` so the lit vertex pulses as `rsin(...) / 34 + 0x78` on green and
 /// blue.
-void func_dryfield_motel_room_6_80181B70(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_motel_room_6_80181B70(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw13Scratch* block;
@@ -2316,7 +2316,7 @@ void func_dryfield_motel_room_6_80181B70(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// `(s16)arg2 * 8 / otz` (inner). `arg1` scales `gDisplayState.animFrame` into
 /// `rsin` so the lit vertex pulses as `rsin(...) / 34 + 0x78` on green and
 /// blue.
-void func_dryfield_motel_room_6_80181FF0(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_motel_room_6_80181FF0(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw05Scratch* block;
@@ -2447,7 +2447,7 @@ void func_dryfield_motel_room_6_80181FF0(SVECTOR* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES(0x14);
 }
 
-void func_dryfield_motel_room_6_80182978(void)
+static void func_dryfield_motel_room_6_80182978(void)
 {
     u8 view;
 

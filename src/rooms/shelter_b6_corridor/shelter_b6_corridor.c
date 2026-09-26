@@ -54,7 +54,7 @@ extern POLY_FT4 D_shelter_b6_corridor_801807EC[][30][8];
 extern s16 D_shelter_b6_corridor_801851B0;
 extern s32 D_shelter_b6_corridor_801851B8;
 
-void func_shelter_b6_corridor_8017E360(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b6_corridor_8017E360(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// Task that ripples the whole screen. On its first frame it gives each of the
 /// 9 column and 30 row edges a random phase offset and speed, takes its
@@ -329,7 +329,7 @@ s32 func_shelter_b6_corridor_8017E028(void)
     return 0;
 }
 
-void func_shelter_b6_corridor_8017E064(Task* arg0)
+static void func_shelter_b6_corridor_8017E064(Task* arg0)
 {
     u16* ptr;
     s32  i;
@@ -352,7 +352,7 @@ void func_shelter_b6_corridor_8017E064(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-void func_shelter_b6_corridor_8017E12C(Task* task)
+static void func_shelter_b6_corridor_8017E12C(Task* task)
 {
     char pad[0x10];
 
@@ -360,13 +360,13 @@ void func_shelter_b6_corridor_8017E12C(Task* task)
 }
 
 /// The room task's three states: set the room up, the per-frame state, end.
-const TaskFuncTable3 D_shelter_b6_corridor_8017D5C4 = {
+static const TaskFuncTable3 D_shelter_b6_corridor_8017D5C4 = {
     { func_shelter_b6_corridor_8017E064, func_shelter_b6_corridor_8017E12C, taskKill },
 };
 
 /// Runs the room task's current state from its three-entry table, which it
 /// copies onto the stack before the call.
-void func_shelter_b6_corridor_8017E144(Task* task)
+static void func_shelter_b6_corridor_8017E144(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -391,7 +391,7 @@ void func_shelter_b6_corridor_8017E204(void)
     Gp_PulseState1C();
 }
 
-void func_shelter_b6_corridor_8017E238(Task* task)
+static void func_shelter_b6_corridor_8017E238(Task* task)
 {
     u8 view;
 
@@ -429,7 +429,7 @@ void func_shelter_b6_corridor_8017E238(Task* task)
 /// across the bar. The lit vertices take the colour packed in `arg2`, one
 /// nibble per channel shifted into the high nibble, with bit 3 following the
 /// animation frame.
-void func_shelter_b6_corridor_8017E360(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b6_corridor_8017E360(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**                   scratch;
     u8*                      head;
@@ -570,7 +570,7 @@ void func_shelter_b6_corridor_8017E360(SVECTOR* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES(0x1C);
 }
 
-void func_shelter_b6_corridor_8017EBA4(Task* task)
+static void func_shelter_b6_corridor_8017EBA4(Task* task)
 {
     GpCoord* coord;
     u8       rgb[3];
@@ -592,7 +592,7 @@ void func_shelter_b6_corridor_8017EBA4(Task* task)
     }
 }
 
-void func_shelter_b6_corridor_8017ECA8(Task* task)
+static void func_shelter_b6_corridor_8017ECA8(Task* task)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -635,7 +635,7 @@ void func_shelter_b6_corridor_8017ECA8(Task* task)
     }
 }
 
-void func_shelter_b6_corridor_8017EE08(s32 arg0, s32 arg1)
+static void func_shelter_b6_corridor_8017EE08(s32 arg0, s32 arg1)
 {
     GpAreaKey* sess = &gGameSession->at4.loc;
     GpSprtRec* rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];

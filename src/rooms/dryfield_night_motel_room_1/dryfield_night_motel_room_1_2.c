@@ -16,7 +16,7 @@ extern SVECTOR D_dryfield_night_motel_room_1_8017DA5C[];
 /// `D_...DA54` (texture cell 1, half-extent 0x200), 5 and 6 the one at
 /// `D_...DA5C` (cell 2, half-extent 0x180). Views outside the 2..9 span draw
 /// nothing. `jump.c` cross-jumps the two trailing sprite calls into one tail.
-void func_dryfield_night_motel_room_1_8017D9B0(void)
+static void func_dryfield_night_motel_room_1_8017D9B0(void)
 {
     switch (Gp_GetViewIndex() & 0xFF) {
         case 2:

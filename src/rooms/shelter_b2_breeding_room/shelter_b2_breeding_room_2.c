@@ -22,13 +22,13 @@ extern SVECTOR D_shelter_b2_breeding_room_80180470[];
 extern SVECTOR D_shelter_b2_breeding_room_80180480[];
 extern SVECTOR D_shelter_b2_breeding_room_801804C0[];
 
-void func_shelter_b2_breeding_room_8017DB90(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b2_breeding_room_8017E3D4(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b2_breeding_room_8017DB90(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b2_breeding_room_8017E3D4(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// Room light task. Its first frame sets the effect ids in `D_80115734`,
 /// `D_80115730` and `D_80115754`; every frame it draws the glows of the lights
 /// the current camera view shows, from the room's light position tables.
-void func_shelter_b2_breeding_room_8017D898(Task* arg0)
+static void func_shelter_b2_breeding_room_8017D898(Task* arg0)
 {
     if (arg0->state == 0) {
         D_80115734  = 0x6027C;
@@ -93,7 +93,7 @@ void func_shelter_b2_breeding_room_8017D898(Task* arg0)
 /// at the rim, in two 0x400 steps around the angle between the projected
 /// points. `arg2` is the colour as three 4-bit channels (0xRGB), brightened
 /// slightly on odd frames.
-void func_shelter_b2_breeding_room_8017DB90(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b2_breeding_room_8017DB90(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**                   scratch;
     u8*                      head;
@@ -239,7 +239,7 @@ void func_shelter_b2_breeding_room_8017DB90(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// wedges lit at the projected centre and black at the rim, of screen radius
 /// `arg1 * 64 / otz`. `arg2` is the colour as three 4-bit channels (0xRGB),
 /// brightened slightly on odd frames.
-void func_shelter_b2_breeding_room_8017E3D4(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b2_breeding_room_8017E3D4(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**             scratch;
     u8*                head;

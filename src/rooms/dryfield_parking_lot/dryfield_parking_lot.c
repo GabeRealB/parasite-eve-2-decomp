@@ -42,7 +42,7 @@ extern u8 D_dryfield_parking_lot_8017FB58;
 /// message and request are latched, the nibble is written, the event task is
 /// spawned and the answer is 2. A non-zero `field_5` on the message only
 /// reports the answer, with none of the side effects.
-s32 func_dryfield_parking_lot_8017D5E8(RoomEventReq* req, RoomEventMsg* msg)
+static s32 func_dryfield_parking_lot_8017D5E8(RoomEventReq* req, RoomEventMsg* msg)
 {
     s32 flag;
     s32 id;
@@ -258,7 +258,7 @@ s32 func_dryfield_parking_lot_8017DB00(void)
 
 /// Room entry task state 0: parks the room's message table in `Task::msgTable`,
 /// publishes the task in pointer slot 7 and advances the state.
-void func_dryfield_parking_lot_8017DB08(Task* task)
+static void func_dryfield_parking_lot_8017DB08(Task* task)
 {
     task->msgTable = D_dryfield_parking_lot_8017DC04;
     Game_SetPtrSlot(task, 7);
@@ -266,18 +266,18 @@ void func_dryfield_parking_lot_8017DB08(Task* task)
 }
 
 /// Room entry task state 1: does nothing, and nothing here advances the state.
-void func_dryfield_parking_lot_8017DB4C(Task* task)
+static void func_dryfield_parking_lot_8017DB4C(Task* task)
 {
 }
 
 /// The room entry task's states: set up, idle, then `taskKill`.
-const TaskFuncTable3 D_dryfield_parking_lot_8017D5DC = {
+static const TaskFuncTable3 D_dryfield_parking_lot_8017D5DC = {
     { func_dryfield_parking_lot_8017DB08, func_dryfield_parking_lot_8017DB4C, taskKill },
 };
 
 /// The room entry task: copies the three-state table to the stack and runs the
 /// entry the task's state selects.
-void func_dryfield_parking_lot_8017DB54(Task* task)
+static void func_dryfield_parking_lot_8017DB54(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -289,7 +289,7 @@ void func_dryfield_parking_lot_8017DB54(Task* task)
 /// `D_dryfield_parking_lot_8017DC34[view - 1]` into `Gp_State1C`'s
 /// `roomEffectMode`. Nothing in the room calls it; gameplay's data holds its
 /// address.
-void func_dryfield_parking_lot_8017DBAC(void)
+static void func_dryfield_parking_lot_8017DBAC(void)
 {
     Gp_State1C->roomEffectMode = D_dryfield_parking_lot_8017DC34[(Gp_GetViewIndex() & 0xFF) - 1];
 }

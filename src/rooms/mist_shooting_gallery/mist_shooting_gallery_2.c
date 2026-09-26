@@ -105,38 +105,38 @@ extern MistShootingGallerySpawn* D_mist_shooting_gallery_80186900[];
 /// Gameplay-side abort request. While it is 1 the bonus course tears itself
 /// down: the state machine remembers where it was in `field_06` / `field_21`
 /// and jumps to the state-9 shutdown banner.
-extern void func_8014A908(void);
-extern void func_8014A9A0(void);
-extern void func_8014B0D4(void);
-void        func_mist_shooting_gallery_80182294(GpCoord* coord, s16 arg1, s16 arg2, s16 arg3);
-void        func_mist_shooting_gallery_801826C4(GpCoord* coord, SVECTOR* arg1, s32 arg2, s16 arg3);
-void        func_mist_shooting_gallery_80184A80(Task* arg0);
-void        func_mist_shooting_gallery_8018458C(MistShootingGalleryWork* work);
-u16         func_mist_shooting_gallery_80184AE0(MistShootingGalleryWork* work);
-void        func_mist_shooting_gallery_80184BB8(s16 arg0, s16 arg1, s16 arg2);
-GpEnemy*    func_mist_shooting_gallery_80184CD0(Task* arg0, MistShootingGallerySpawn* arg1);
-void        func_8014B2B8(s16 arg0, s16 arg1, s32 arg2);
-void        func_mist_shooting_gallery_801846F4(s32 arg0, s16 arg1, s32 arg2);
-void        func_mist_shooting_gallery_80182B1C(Task* arg0);
-void        func_mist_shooting_gallery_80182C58(Task* arg0);
-void        func_mist_shooting_gallery_801831B0(Task* arg0);
-void        func_mist_shooting_gallery_8018341C(Task* arg0);
-void        func_mist_shooting_gallery_801838FC(Task* arg0);
-void        func_mist_shooting_gallery_80183E78(Task* arg0);
-void        func_mist_shooting_gallery_801842D0(Task* arg0);
-void        func_mist_shooting_gallery_80184A14(Task* arg0);
+extern void     func_8014A908(void);
+extern void     func_8014A9A0(void);
+extern void     func_8014B0D4(void);
+static void     func_mist_shooting_gallery_80182294(GpCoord* coord, s16 arg1, s16 arg2, s16 arg3);
+static void     func_mist_shooting_gallery_801826C4(GpCoord* coord, SVECTOR* arg1, s32 arg2, s16 arg3);
+static void     func_mist_shooting_gallery_80184A80(Task* arg0);
+static void     func_mist_shooting_gallery_8018458C(MistShootingGalleryWork* work);
+static u16      func_mist_shooting_gallery_80184AE0(MistShootingGalleryWork* work);
+static void     func_mist_shooting_gallery_80184BB8(s16 arg0, s16 arg1, s16 arg2);
+static GpEnemy* func_mist_shooting_gallery_80184CD0(Task* arg0, MistShootingGallerySpawn* arg1);
+void            func_8014B2B8(s16 arg0, s16 arg1, s32 arg2);
+static void     func_mist_shooting_gallery_801846F4(s32 arg0, s16 arg1, s32 arg2);
+static void     func_mist_shooting_gallery_80182B1C(Task* arg0);
+static void     func_mist_shooting_gallery_80182C58(Task* arg0);
+static void     func_mist_shooting_gallery_801831B0(Task* arg0);
+static void     func_mist_shooting_gallery_8018341C(Task* arg0);
+static void     func_mist_shooting_gallery_801838FC(Task* arg0);
+static void     func_mist_shooting_gallery_80183E78(Task* arg0);
+static void     func_mist_shooting_gallery_801842D0(Task* arg0);
+static void     func_mist_shooting_gallery_80184A14(Task* arg0);
 
 /// The gallery controller task's three-state table, run from a stack copy by
 /// `func_mist_shooting_gallery_801849BC`: the setup tick
 /// `func_mist_shooting_gallery_80182B1C`, the round runner
 /// `func_mist_shooting_gallery_80184A14`, then
 /// `func_mist_shooting_gallery_801842D0`.
-const TaskFuncTable3 D_mist_shooting_gallery_8017DB80 = {
+static const TaskFuncTable3 D_mist_shooting_gallery_8017DB80 = {
     { func_mist_shooting_gallery_80182B1C, func_mist_shooting_gallery_80184A14, func_mist_shooting_gallery_801842D0 },
 };
 
 /// The five round scripts, indexed by `MistShootingGalleryWork::difficulty`.
-const MistShootingGalleryRounds D_mist_shooting_gallery_8017DB8C = {
+static const MistShootingGalleryRounds D_mist_shooting_gallery_8017DB8C = {
     {
         func_mist_shooting_gallery_80182C58,
         func_mist_shooting_gallery_801831B0,
@@ -153,7 +153,7 @@ const MistShootingGalleryRounds D_mist_shooting_gallery_8017DB8C = {
 /// While `Gp_State1C` is fading (`field_4 != 0`) the effect only redraws; once
 /// the fade is over it seeds a random endpoint around the coordinate's world
 /// position, then fades out by 8 per frame and releases its pool block.
-void func_mist_shooting_gallery_80182064(Task* task)
+static void func_mist_shooting_gallery_80182064(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -220,7 +220,7 @@ void func_mist_shooting_gallery_80182064(Task* task)
 /// spins with the effect's angle. `arg1` picks one of six 40-pixel-wide
 /// frames out of the texture page, and the primitive is queued twice into the
 /// same OT slot. Nothing is drawn if the centre projects off-screen.
-void func_mist_shooting_gallery_80182294(GpCoord* coord, s16 arg1, s16 arg2, s16 arg3)
+static void func_mist_shooting_gallery_80182294(GpCoord* coord, s16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -288,7 +288,7 @@ void func_mist_shooting_gallery_80182294(GpCoord* coord, s16 arg1, s16 arg2, s16
 /// strip stays perpendicular to it. `arg2` selects the strip out of the
 /// texture page: bit 0 picks the left or right half and bit 1 the upper or
 /// lower row. Nothing is drawn if either endpoint projects off-screen.
-void func_mist_shooting_gallery_801826C4(GpCoord* coord, SVECTOR* arg1, s32 arg2, s16 arg3)
+static void func_mist_shooting_gallery_801826C4(GpCoord* coord, SVECTOR* arg1, s32 arg2, s16 arg3)
 {
     void**                          scratch;
     u8*                             head;
@@ -354,7 +354,7 @@ void func_mist_shooting_gallery_801826C4(GpCoord* coord, SVECTOR* arg1, s32 arg2
     SCRATCH_POP_BYTES(0x20);
 }
 
-void func_mist_shooting_gallery_80182B1C(Task* arg0)
+static void func_mist_shooting_gallery_80182B1C(Task* arg0)
 {
     Task*                    slot;
     GameActor*               actor;
@@ -400,7 +400,7 @@ void func_mist_shooting_gallery_80182B1C(Task* arg0)
 /// out-of-ammo banner: it is entered from anywhere the moment the equipped
 /// weapon's stock drops below the round's minimum, remembers the interrupted
 /// state in `field_06` and returns to it once the banner has played out.
-void func_mist_shooting_gallery_80182C58(Task* arg0)
+static void func_mist_shooting_gallery_80182C58(Task* arg0)
 {
     MistShootingGalleryWork*  work;
     MistShootingGallerySpawn* spawn;
@@ -613,7 +613,7 @@ void func_mist_shooting_gallery_80182C58(Task* arg0)
 /// of `D_mist_shooting_gallery_80186904` that carries the current wave number,
 /// draws the remaining time, and restarts the state machine once the clock
 /// runs out.
-void func_mist_shooting_gallery_801831B0(Task* arg0)
+static void func_mist_shooting_gallery_801831B0(Task* arg0)
 {
     MistShootingGalleryWork*  work;
     MistShootingGallerySpawn* spawn;
@@ -706,7 +706,7 @@ void func_mist_shooting_gallery_801831B0(Task* arg0)
 /// `Gp_StateF0.field_4` holds, state 9 spawns the start jingle and state 10 is the
 /// wave loop over `D_mist_shooting_gallery_80186908`. `Mc_SaveData.buttonLayout` picks the
 /// banner sprite the hand-off draws (`variant + 4`).
-void func_mist_shooting_gallery_8018341C(Task* arg0)
+static void func_mist_shooting_gallery_8018341C(Task* arg0)
 {
     MistShootingGalleryWork*  work;
     MistShootingGallerySpawn* spawn;
@@ -882,7 +882,7 @@ void func_mist_shooting_gallery_8018341C(Task* arg0)
 /// `field_20`, and state 8 is the wave loop proper. `Gp_StateC08.field_3` is the abort
 /// request: once it is raised the machine saves its place in `field_06` /
 /// `field_21` and jumps to the state-9 shutdown banner, which restores them.
-void func_mist_shooting_gallery_801838FC(Task* arg0)
+static void func_mist_shooting_gallery_801838FC(Task* arg0)
 {
     MistShootingGalleryWork*  work;
     MistShootingGallerySpawn* spawn;
@@ -1072,7 +1072,7 @@ void func_mist_shooting_gallery_801838FC(Task* arg0)
 /// `D_mist_shooting_gallery_80186910`. `field_22` is the abort request - once
 /// it is raised the state machine jumps to the 8 -> 9 shutdown, which releases
 /// the `Gp_StateF0` reference and kills the task.
-void func_mist_shooting_gallery_80183E78(Task* arg0)
+static void func_mist_shooting_gallery_80183E78(Task* arg0)
 {
     MistShootingGalleryWork*  work;
     MistShootingGallerySpawn* spawn;
@@ -1223,7 +1223,7 @@ void func_mist_shooting_gallery_80183E78(Task* arg0)
     }
 }
 
-void func_mist_shooting_gallery_801842D0(Task* arg0)
+static void func_mist_shooting_gallery_801842D0(Task* arg0)
 {
     MistShootingGalleryWork* work;
     GameActor*               actor;
@@ -1327,7 +1327,7 @@ s32 func_mist_shooting_gallery_80184470(s32 score)
     return bonus;
 }
 
-void func_mist_shooting_gallery_8018458C(MistShootingGalleryWork* work)
+static void func_mist_shooting_gallery_8018458C(MistShootingGalleryWork* work)
 {
     s32 digit0;
     s32 digit1;
@@ -1367,7 +1367,7 @@ void func_mist_shooting_gallery_8018458C(MistShootingGalleryWork* work)
     func_mist_shooting_gallery_801846F4(work->field_0C + 0x18, 0x46, 0xA);
 }
 
-void func_mist_shooting_gallery_801846F4(s32 arg0, s16 arg1, s32 arg2)
+static void func_mist_shooting_gallery_801846F4(s32 arg0, s16 arg1, s32 arg2)
 {
     SPRT*     p;
     DR_TPAGE* dr;
@@ -1392,7 +1392,7 @@ void func_mist_shooting_gallery_801846F4(s32 arg0, s16 arg1, s32 arg2)
     addPrim(gGpuCurrentOt, dr);
 }
 
-void func_mist_shooting_gallery_801847D4(u8 arg0)
+static void func_mist_shooting_gallery_801847D4(u8 arg0)
 {
     TILE*     p;
     DR_TPAGE* dr;
@@ -1417,7 +1417,7 @@ void func_mist_shooting_gallery_801847D4(u8 arg0)
     addPrim(gGpuCurrentOt, dr);
 }
 
-void func_mist_shooting_gallery_801848B4(void)
+static void func_mist_shooting_gallery_801848B4(void)
 {
     GpEnemy*   enemy;
     TmdObject* obj;
@@ -1438,7 +1438,7 @@ void func_mist_shooting_gallery_801848B4(void)
     }
 }
 
-void func_mist_shooting_gallery_80184954(void)
+static void func_mist_shooting_gallery_80184954(void)
 {
     MistShootingGalleryWork* work = (MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->work;
 
@@ -1471,7 +1471,7 @@ void func_mist_shooting_gallery_801849BC(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_mist_shooting_gallery_80184A14(Task* arg0)
+static void func_mist_shooting_gallery_80184A14(Task* arg0)
 {
     MistShootingGalleryWork*  work   = (MistShootingGalleryWork*)arg0->work;
     MistShootingGalleryRounds rounds = D_mist_shooting_gallery_8017DB8C;
@@ -1479,7 +1479,7 @@ void func_mist_shooting_gallery_80184A14(Task* arg0)
     rounds.rounds[work->difficulty](arg0);
 }
 
-void func_mist_shooting_gallery_80184A80(Task* arg0)
+static void func_mist_shooting_gallery_80184A80(Task* arg0)
 {
     GameActor* actor;
 
@@ -1492,7 +1492,7 @@ void func_mist_shooting_gallery_80184A80(Task* arg0)
     taskKill(arg0);
 }
 
-u16 func_mist_shooting_gallery_80184AE0(MistShootingGalleryWork* work)
+static u16 func_mist_shooting_gallery_80184AE0(MistShootingGalleryWork* work)
 {
     u16 temp = work->field_02;
 
@@ -1527,7 +1527,7 @@ void func_mist_shooting_gallery_80184B10(Task* arg0)
     }
 }
 
-void func_mist_shooting_gallery_80184BB8(s16 arg0, s16 arg1, s16 arg2)
+static void func_mist_shooting_gallery_80184BB8(s16 arg0, s16 arg1, s16 arg2)
 {
     func_8014B2B8(arg0, arg1, 0xD0);
     Display_InitModeObj(&D_mist_shooting_gallery_801856D0, arg2, 0, 0);
@@ -1560,7 +1560,7 @@ void func_mist_shooting_gallery_80184C0C(Task* arg0)
     }
 }
 
-GpEnemy* func_mist_shooting_gallery_80184CD0(Task* arg0, MistShootingGallerySpawn* arg1)
+static GpEnemy* func_mist_shooting_gallery_80184CD0(Task* arg0, MistShootingGallerySpawn* arg1)
 {
     MistShootingGalleryWork* work;
     GpEnemy*                 enemy;

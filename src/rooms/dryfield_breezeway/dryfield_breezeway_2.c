@@ -207,30 +207,30 @@ extern u8 D_dryfield_breezeway_80183164[];
 /// both to be clear.
 extern s16 D_80114D08;
 
-void func_dryfield_breezeway_8017E464(Task* arg0);
-void func_dryfield_breezeway_8017E65C(Task* task);
-void func_dryfield_breezeway_8017E81C(Task* task);
-void func_dryfield_breezeway_8017EB8C(Task* task, s16 arg1, s16 arg2);
-void func_dryfield_breezeway_8017F1F4(s16 arg0, s16 arg1, DbwVec* arg2, DbwVec* arg3, DbwBeamEdge* arg4);
-void func_dryfield_breezeway_8017F998(s32 x, s32 y, s32 variant);
-s16  func_dryfield_breezeway_8017FAD0(DbwVec* target, DbwVec* pos);
-void func_dryfield_breezeway_8017FB30(Task* task, s16 arg1, s16 arg2);
-s16  func_dryfield_breezeway_8017FBEC(s16 arg0, s16 arg1, s16 arg2, s16 arg3);
-s32  func_dryfield_breezeway_8017FCB4(OverlayHotspot* table, s16 x, s16 y);
-void func_dryfield_breezeway_8017FD68(Task* task);
-void func_dryfield_breezeway_8017FD9C(Task* task);
-void func_dryfield_breezeway_8017FE08(Task* task);
-void func_dryfield_breezeway_8017FE90(Task* arg0);
-void func_dryfield_breezeway_8017FF1C(Task* task);
-void func_dryfield_breezeway_8018034C(GpCoord* coord, u8* data, s32 arg2, s32 arg3);
-void func_dryfield_breezeway_80180858(GpCoord* coord, u8* data, s32 arg2, s32 arg3);
-void func_dryfield_breezeway_80181938(Task* task, u8* color);
+static void func_dryfield_breezeway_8017E464(Task* arg0);
+static void func_dryfield_breezeway_8017E65C(Task* task);
+static void func_dryfield_breezeway_8017E81C(Task* task);
+static void func_dryfield_breezeway_8017EB8C(Task* task, s16 arg1, s16 arg2);
+static void func_dryfield_breezeway_8017F1F4(s16 arg0, s16 arg1, DbwVec* arg2, DbwVec* arg3, DbwBeamEdge* arg4);
+static void func_dryfield_breezeway_8017F998(s32 x, s32 y, s32 variant);
+static s16  func_dryfield_breezeway_8017FAD0(DbwVec* target, DbwVec* pos);
+static void func_dryfield_breezeway_8017FB30(Task* task, s16 arg1, s16 arg2);
+static s16  func_dryfield_breezeway_8017FBEC(s16 arg0, s16 arg1, s16 arg2, s16 arg3);
+static s32  func_dryfield_breezeway_8017FCB4(OverlayHotspot* table, s16 x, s16 y);
+static void func_dryfield_breezeway_8017FD68(Task* task);
+static void func_dryfield_breezeway_8017FD9C(Task* task);
+static void func_dryfield_breezeway_8017FE08(Task* task);
+static void func_dryfield_breezeway_8017FE90(Task* arg0);
+static void func_dryfield_breezeway_8017FF1C(Task* task);
+static void func_dryfield_breezeway_8018034C(GpCoord* coord, u8* data, s32 arg2, s32 arg3);
+static void func_dryfield_breezeway_80180858(GpCoord* coord, u8* data, s32 arg2, s32 arg3);
+static void func_dryfield_breezeway_80181938(Task* task, u8* color);
 
 /// State handlers of the room's key-item event task, indexed by its state
 /// through `func_dryfield_breezeway_8017FC38`: set-up, prompt arming, the
 /// prompt-position scan, prompt spawning, the key-item answer, the exit and
 /// the cursor-hotspot scan.
-const TaskFuncTable7 D_dryfield_breezeway_8017D5E8 = {
+static const TaskFuncTable7 D_dryfield_breezeway_8017D5E8 = {
     {
         func_dryfield_breezeway_8017E464,
         func_dryfield_breezeway_8017FD68,
@@ -262,7 +262,7 @@ const TaskFuncTable7 D_dryfield_breezeway_8017D5E8 = {
 /// three field stores go through `$a1` rather than the frame pointer: taking the
 /// address as a value first lets CSE rewrite them as base+offset, the same
 /// allocation the original compiler reached.
-void func_dryfield_breezeway_8017DEC0(Task* arg0)
+static void func_dryfield_breezeway_8017DEC0(Task* arg0)
 {
     GpCmdArg   msg;
     DbwMsgBuf  buf;
@@ -481,7 +481,7 @@ void func_dryfield_breezeway_8017E390(void)
 /// against `work` and `ext`: it re-reads both slots, which is what makes its
 /// base pointers fresh values rather than the ones the middle of the function
 /// already holds.
-void func_dryfield_breezeway_8017E464(Task* arg0)
+static void func_dryfield_breezeway_8017E464(Task* arg0)
 {
     TmdObject*      ext;
     GpCoord*        coord;
@@ -607,7 +607,7 @@ extern GpImgRec D_dryfield_breezeway_80183144;
 /// `func_dryfield_breezeway_8017FD9C` re-spawns the prompt from, and the task
 /// advances to state 3. A cancel press (`buttons[1].state` 2) ends the script
 /// in state 5, and a busy cap abandons the scan with the prompt cleared.
-void func_dryfield_breezeway_8017E65C(Task* task)
+static void func_dryfield_breezeway_8017E65C(Task* task)
 {
     DbwEventWork*     work;
     OverlayHotspot*   hs;
@@ -679,7 +679,7 @@ void func_dryfield_breezeway_8017E65C(Task* task)
 /// for the entry that was hit, which is the prop the player is looking at --
 /// pressing confirm against it runs cap slot 3 and ends the script in state 5.
 /// A cancel press (`buttons[1].state` 2) ends it in state 5 as well.
-void func_dryfield_breezeway_8017E81C(Task* task)
+static void func_dryfield_breezeway_8017E81C(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     GpCoord*          coord  = task->extra.tmd->coords;
@@ -722,7 +722,7 @@ void func_dryfield_breezeway_8017E81C(Task* task)
 /// (`x`, `y`) to (`x + w`, `y + h`) -- each linked into `gGpuCurrentOt[1]`.
 ///
 /// Nothing in this room calls it.
-void func_dryfield_breezeway_8017E948(RoomRect* rect, u8 r, u8 g, u8 b)
+static void func_dryfield_breezeway_8017E948(RoomRect* rect, u8 r, u8 g, u8 b)
 {
     LINE_F2* line;
 
@@ -781,7 +781,7 @@ void func_dryfield_breezeway_8017E948(RoomRect* rect, u8 r, u8 g, u8 b)
 /// `func_dryfield_breezeway_8017E81C`, or the reset pair (0, 0x20) the other
 /// states pass - and the scan answers by writing `D_80114D28::mode` (1 = over a
 /// hotspot, 2 = confirmed) as well as advancing the hotspot's own animation.
-void func_dryfield_breezeway_8017EB8C(Task* task, s16 arg1, s16 arg2)
+static void func_dryfield_breezeway_8017EB8C(Task* task, s16 arg1, s16 arg2)
 {
     s32           x;
     s32           ay;
@@ -961,7 +961,7 @@ void func_dryfield_breezeway_8017EB8C(Task* task, s16 arg1, s16 arg2)
 ///
 /// Nothing is written to `arg4`'s corners on a `mode` 0 call beyond that tail,
 /// which is what makes the first segment of a beam run from the origin.
-void func_dryfield_breezeway_8017F1F4(s16 arg0, s16 arg1, DbwVec* arg2, DbwVec* arg3, DbwBeamEdge* arg4)
+static void func_dryfield_breezeway_8017F1F4(s16 arg0, s16 arg1, DbwVec* arg2, DbwVec* arg3, DbwBeamEdge* arg4)
 {
     SVECTOR    probe;
     DbwVec     tip;
@@ -1073,7 +1073,7 @@ void func_dryfield_breezeway_8017F1F4(s16 arg0, s16 arg1, DbwVec* arg2, DbwVec* 
 /// `RoomActionPrompt::targetId` acts as the cursor speed here and `field_E` as
 /// the double-press window: a second press inside that many frames without the
 /// cursor having moved reports state 4 instead of 2.
-void func_dryfield_breezeway_8017F538(Task* task)
+static void func_dryfield_breezeway_8017F538(Task* task)
 {
     RoomActionPrompt* prompt;
     PadState*         pad;
@@ -1210,7 +1210,7 @@ void func_dryfield_breezeway_8017F538(Task* task)
 /// Queues one 16x24 textured quad -- the room's on-screen action prompt icon --
 /// at (`x`, `y`) into the head of the current OT. `variant` selects the palette,
 /// 0x3C87 when it is 2 and 0x3C88 otherwise, and 0 draws nothing at all.
-void func_dryfield_breezeway_8017F998(s32 x, s32 y, s32 variant)
+static void func_dryfield_breezeway_8017F998(s32 x, s32 y, s32 variant)
 {
     POLY_FT4* prim;
     s16       px;
@@ -1268,7 +1268,7 @@ void func_dryfield_breezeway_8017FA80(Task* task)
 /// asks this of each point it generates while it looks for somewhere to put the
 /// hotspot prompt, and leaves its loop on the first point this accepts, so the
 /// answer marks the candidate that has converged onto the target.
-s16 func_dryfield_breezeway_8017FAD0(DbwVec* target, DbwVec* pos)
+static s16 func_dryfield_breezeway_8017FAD0(DbwVec* target, DbwVec* pos)
 {
     s16 dx = pos->vx - target->vx;
     s16 dy = pos->vy - target->vy;
@@ -1281,7 +1281,7 @@ s16 func_dryfield_breezeway_8017FAD0(DbwVec* target, DbwVec* pos)
 /// object's coordinate scaled by the depth it is placed at (`0x5DC` over 680),
 /// and `flg` is cleared so the next coord-tree update rebuilds the world matrix
 /// from the new translation. The scan calls this once, as it leaves its loop.
-void func_dryfield_breezeway_8017FB30(Task* task, s16 arg1, s16 arg2)
+static void func_dryfield_breezeway_8017FB30(Task* task, s16 arg1, s16 arg2)
 {
     GpCoord* coord = task->extra.tmd->coords;
 
@@ -1309,7 +1309,7 @@ s32 func_dryfield_breezeway_8017FBC8(Task* task, s32 msgId, s32 item, s32 arg3)
 }
 
 /// The `ratan2` angle of the direction from (`arg0`, `arg1`) to (`arg2`, `arg3`).
-s16 func_dryfield_breezeway_8017FBEC(s16 arg0, s16 arg1, s16 arg2, s16 arg3)
+static s16 func_dryfield_breezeway_8017FBEC(s16 arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     SVECTOR vec;
 
@@ -1335,7 +1335,7 @@ void func_dryfield_breezeway_8017FC38(Task* task)
 /// Hit-tests the point (`x`, `y`) against the 0xFFFF-terminated hotspot table
 /// `table`, raising `hit` on every entry whose rectangle contains the point and
 /// clearing it on every other one. Returns non-zero if any entry was hit.
-s32 func_dryfield_breezeway_8017FCB4(OverlayHotspot* table, s16 x, s16 y)
+static s32 func_dryfield_breezeway_8017FCB4(OverlayHotspot* table, s16 x, s16 y)
 {
     s32 hit;
 
@@ -1357,7 +1357,7 @@ s32 func_dryfield_breezeway_8017FCB4(OverlayHotspot* table, s16 x, s16 y)
 /// target id 0x80, clears the on-screen position `func_800D4E78` fills in
 /// again when the prompt is spawned, and steps the caller's script on one
 /// state.
-void func_dryfield_breezeway_8017FD68(Task* task)
+static void func_dryfield_breezeway_8017FD68(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
 
@@ -1375,7 +1375,7 @@ void func_dryfield_breezeway_8017FD68(Task* task)
 /// prompt's highlight state, then re-spawns the prompt at the coordinates the
 /// gameplay side left in `D_80114D28` with the display mode the scan latched in
 /// `DbwEventWork::promptKind`, and steps the caller's script on one state.
-void func_dryfield_breezeway_8017FD9C(Task* task)
+static void func_dryfield_breezeway_8017FD9C(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     DbwEventWork*     work   = (DbwEventWork*)task->work;
@@ -1395,7 +1395,7 @@ void func_dryfield_breezeway_8017FD9C(Task* task)
 /// state 2; once it is gone the `DbwEventWork::field_40` answer latch the
 /// message handler `func_dryfield_breezeway_8017FBC8` wrote decides between
 /// state 6 (the key item was accepted here) and state 2.
-void func_dryfield_breezeway_8017FE08(Task* task)
+static void func_dryfield_breezeway_8017FE08(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     DbwEventWork*     work   = (DbwEventWork*)task->work;
@@ -1425,7 +1425,7 @@ void func_dryfield_breezeway_8017FE08(Task* task)
 /// releases the display reference, clears the session's event, HUD and
 /// cutscene holds, puts `Mc_SaveData.at4.loc.view` back from 6 to 4, kills the prompt task
 /// the set-up spawned (`Task::spawnArg2`) and asks for its own removal.
-void func_dryfield_breezeway_8017FE90(Task* arg0)
+static void func_dryfield_breezeway_8017FE90(Task* arg0)
 {
     D_80114D08 = 0xA;
     Gp_MsgPlayerWeapon(1);
@@ -1444,7 +1444,7 @@ void func_dryfield_breezeway_8017FE90(Task* arg0)
 /// the caller on one state: clears each slot's leading words and its two
 /// trailing shorts, parks the target id at 0x100 with `field_E` at 0xF, and
 /// marks the slot as highlighted (`mode` 1).
-void func_dryfield_breezeway_8017FF1C(Task* task)
+static void func_dryfield_breezeway_8017FF1C(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     s32               i;
@@ -1461,7 +1461,7 @@ void func_dryfield_breezeway_8017FF1C(Task* task)
     task->state = task->state + 1;
 }
 
-void func_dryfield_breezeway_8017FF7C(Task* task)
+static void func_dryfield_breezeway_8017FF7C(Task* task)
 {
     s32        mask;
     GpEffWork* eff;
@@ -1541,7 +1541,7 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
 /// `otz` is 0x10 or less. Two gouraud `POLY_G4` halves of half width
 /// `(s16)arg3 * 32 / otz` and two `LINE_G3` diagonals meet at the projected
 /// point, whose vertex pulses red as `rsin(animFrame * arg2) / 34 + 0x78`.
-void func_dryfield_breezeway_8018034C(GpCoord* coord, u8* data, s32 arg2, s32 arg3)
+static void func_dryfield_breezeway_8018034C(GpCoord* coord, u8* data, s32 arg2, s32 arg3)
 {
     void**            scratch;
     u8*               head;
@@ -1627,7 +1627,7 @@ void func_dryfield_breezeway_8018034C(GpCoord* coord, u8* data, s32 arg2, s32 ar
     SCRATCH_POP_BYTES(0x14);
 }
 
-void func_dryfield_breezeway_80180858(GpCoord* coord, u8* data, s32 arg2, s32 arg3)
+static void func_dryfield_breezeway_80180858(GpCoord* coord, u8* data, s32 arg2, s32 arg3)
 {
     u8*              head;
     RoomGlowScratch* block;
@@ -1776,7 +1776,7 @@ void func_dryfield_breezeway_80180858(GpCoord* coord, u8* data, s32 arg2, s32 ar
 /// come close together at low speed. A miss adds `0x5000 / scale` to the
 /// direction's y component. Over `age` the sprite fades from 30 to 60 and
 /// is then released. The age does not advance while an event is running.
-void func_dryfield_breezeway_80181264(Task* task)
+static void func_dryfield_breezeway_80181264(Task* task)
 {
     GpEffWork* work  = task->spawnArg2;
     GpCoord*   coord = task->extra.tmd->coords;
@@ -1917,7 +1917,7 @@ void func_dryfield_breezeway_80181264(Task* task)
 /// frame is `index & 7` along row 0xF0 of texture page 0x2B, and the quad's
 /// half extent is `pos.vx * 23 / otz`, rotated by the angle in `pos.vz`.
 /// A non-null `color` tints the sprite and makes it semi-transparent.
-void func_dryfield_breezeway_80181938(Task* task, u8* color)
+static void func_dryfield_breezeway_80181938(Task* task, u8* color)
 {
     TmdObject*       extra = task->extra.tmd;
     GpEffWork*       work  = task->spawnArg2;

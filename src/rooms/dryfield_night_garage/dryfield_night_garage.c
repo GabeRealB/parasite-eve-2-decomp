@@ -179,7 +179,7 @@ extern GpObj4A D_dryfield_night_garage_80186E60[];
 extern s32        D_dryfield_night_garage_80187628;
 extern GpItemMap* D_dryfield_night_garage_8018762C;
 
-void func_dryfield_night_garage_80180604(s32 arg0);
+static void func_dryfield_night_garage_80180604(s32 arg0);
 
 /// Returns the 0xFFFF-terminated item id list the shop list starts from. The
 /// low halfword of `mode` picks a group of lists (0x20, 0x21, 0x30-0x33, 0x40
@@ -187,7 +187,7 @@ void func_dryfield_night_garage_80180604(s32 arg0);
 /// `Mc_SaveData.gameMode` 2 and above has groups of its own. A high halfword
 /// above 3 falls through the 0x30-0x33 groups in turn and on into 0x20's;
 /// every other miss returns `D_dryfield_night_garage_80181AD4`.
-u16* func_dryfield_night_garage_8017D754(s32 mode)
+static u16* func_dryfield_night_garage_8017D754(s32 mode)
 {
     if (Mc_SaveData.gameMode < 2) {
         switch ((u16)mode) {
@@ -509,7 +509,7 @@ void func_dryfield_night_garage_8017DDC4(DialogPrompt* prompt, UiObject* obj)
 /// ids 0xF..0x32 are three consecutive levels of the same kind, so an entry of
 /// the same kind is overwritten only by a higher level. In mode 0x10 the ids
 /// 0x9D..0x9F, 0x8A and 0x65 are never added.
-void func_dryfield_night_garage_8017E250(RoomShopList* shop, UiObject* obj, s32 item)
+static void func_dryfield_night_garage_8017E250(RoomShopList* shop, UiObject* obj, s32 item)
 {
     Task*         task = obj->owner;
     s32           mode = task->spawnArg1;
@@ -553,7 +553,7 @@ void func_dryfield_night_garage_8017E250(RoomShopList* shop, UiObject* obj, s32 
 /// twelve two-bit levels in `Mc_SaveData.shopStock`, the id of that level
 /// (the first slot needs level 2). With `Mc_SaveData.demoScene` 1 every row
 /// and level is unlocked first.
-void func_dryfield_night_garage_8017E39C(RoomShopList* shop, UiObject* obj)
+static void func_dryfield_night_garage_8017E39C(RoomShopList* shop, UiObject* obj)
 {
     RoomShopList* list;
     u16*          ids;
@@ -660,16 +660,16 @@ void func_dryfield_night_garage_8017E39C(RoomShopList* shop, UiObject* obj)
 }
 
 /// Titles and captions of the shop's panels.
-const u8 D_dryfield_night_garage_8017D6D0[] = "Select";
-const u8 D_dryfield_night_garage_8017D6D8[] = "BP";
-const u8 D_dryfield_night_garage_8017D6DC[] = "List";
-const u8 D_dryfield_night_garage_8017D6E4[] = "TOTAL";
-const u8 D_dryfield_night_garage_8017D6EC[] = "Notice";
+static const u8 D_dryfield_night_garage_8017D6D0[] = "Select";
+static const u8 D_dryfield_night_garage_8017D6D8[] = "BP";
+static const u8 D_dryfield_night_garage_8017D6DC[] = "List";
+static const u8 D_dryfield_night_garage_8017D6E4[] = "TOTAL";
+static const u8 D_dryfield_night_garage_8017D6EC[] = "Notice";
 
 /// "Charge", with a stray non-zero byte after its terminator that C cannot
 /// place, so the string stays assembly.
 /// "Charge", followed by the non-zero padding the original toolchain left.
-const char D_dryfield_night_garage_8017D6F4[8] = "Charge\0\xF0";
+static const char D_dryfield_night_garage_8017D6F4[8] = "Charge\0\xF0";
 
 /// The shop's "Select" panel. On its first frame it allocates the
 /// `RoomShopList` work block, fills it through
@@ -1419,7 +1419,7 @@ void func_dryfield_night_garage_8017FDF8(Task* task)
 /// Publishes the room's message table in `Task::msgTable` and the task itself
 /// in pointer slot 7, clears the display bit on the first object entry, then
 /// hands off to the player actor through messages 0x3E9 / 0x3E8.
-void func_dryfield_night_garage_8017FF2C(Task* task)
+static void func_dryfield_night_garage_8017FF2C(Task* task)
 {
     GpObj4A* base;
     GpObj4A* obj;
@@ -1542,14 +1542,14 @@ s32 func_dryfield_night_garage_801803A4(void)
 }
 
 /// The empty per-frame state of `D_dryfield_night_garage_8017D6FC`.
-void func_dryfield_night_garage_801803AC(Task* task)
+static void func_dryfield_night_garage_801803AC(Task* task)
 {
     char pad[0x10];
 }
 
 /// State handlers of the room's message task `func_dryfield_night_garage_801803BC`
 /// runs: its set-up, an empty per-frame state and the kill.
-const TaskFuncTable3 D_dryfield_night_garage_8017D6FC = {
+static const TaskFuncTable3 D_dryfield_night_garage_8017D6FC = {
     {
         func_dryfield_night_garage_8017FF2C,
         func_dryfield_night_garage_801803AC,
@@ -1559,7 +1559,7 @@ const TaskFuncTable3 D_dryfield_night_garage_8017D6FC = {
 
 /// The room's message task: runs the handler for its state from a stack copy
 /// of `D_dryfield_night_garage_8017D6FC`.
-void func_dryfield_night_garage_801803BC(Task* task)
+static void func_dryfield_night_garage_801803BC(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -1613,7 +1613,7 @@ void func_dryfield_night_garage_80180414(s32 arg0)
 /// Resets the live layout lists from the template: the four-entry vector list,
 /// the eight-entry list two entries per pass, and the 12-byte records. The
 /// eight-entry list is then raised by 0x7D0 on y when `arg0` is nonzero.
-void func_dryfield_night_garage_80180604(s32 arg0)
+static void func_dryfield_night_garage_80180604(s32 arg0)
 {
     GpGridParams* dst;
     GpGridParams* src;

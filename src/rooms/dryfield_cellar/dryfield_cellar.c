@@ -101,7 +101,7 @@ s32 func_dryfield_cellar_8017D6FC(s32 arg0, s32 arg1, s32 arg2)
 /// The room entry task's first state: installs the room's message table, hands
 /// the task to pointer slot 7, moves on to the next state and sets the
 /// gameplay byte `D_80115598`.
-void func_dryfield_cellar_8017D730(Task* task)
+static void func_dryfield_cellar_8017D730(Task* task)
 {
     task->msgTable = D_dryfield_cellar_8017DB8C;
     Game_SetPtrSlot(task, 7);
@@ -110,18 +110,18 @@ void func_dryfield_cellar_8017D730(Task* task)
 }
 
 /// The room entry task's idle state.
-void func_dryfield_cellar_8017D77C(Task* task)
+static void func_dryfield_cellar_8017D77C(Task* task)
 {
 }
 
 /// The room entry task's three states: set the room up, idle, end.
-const TaskFuncTable3 D_dryfield_cellar_8017D5C4 = {
+static const TaskFuncTable3 D_dryfield_cellar_8017D5C4 = {
     { func_dryfield_cellar_8017D730, func_dryfield_cellar_8017D77C, taskKill },
 };
 
 /// Runs the room entry task's current state from its three-entry table, which
 /// it copies onto the stack before the call.
-void func_dryfield_cellar_8017D784(Task* task)
+static void func_dryfield_cellar_8017D784(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -137,7 +137,7 @@ void func_dryfield_cellar_8017D784(Task* task)
 /// the clut `(arg2 & 0x3F) | 0x4380`, `(s16)arg3` is the half-extent scaled by
 /// 39 / OTZ, and the grey level flickers between 0x20 and 0x30 with bit 0 of
 /// the display's animation frame. Works in a 0x14-byte scratchpad block.
-void func_dryfield_cellar_8017D7DC(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
+static void func_dryfield_cellar_8017D7DC(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
 {
     void**            scratch;
     u8*               head;
@@ -223,7 +223,7 @@ void func_dryfield_cellar_8017D7DC(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 a
 /// sprite on each of the two points belonging to the current camera view
 /// (`gGameSession->at4.loc.view`), 2 or 3, placed in the model's coordinate
 /// space. Every other view draws nothing.
-void func_dryfield_cellar_8017DAEC(Task* arg0)
+static void func_dryfield_cellar_8017DAEC(Task* arg0)
 {
     GpCoord* coord;
 

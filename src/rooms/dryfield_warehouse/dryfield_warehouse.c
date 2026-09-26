@@ -157,7 +157,7 @@ void func_dryfield_warehouse_8017D8D4(Task* arg0)
 /// State 0 of the room's main task: installs the room's message table,
 /// publishes the task in game pointer slot 7, spawns the ambience task (entry 1
 /// of the room's task table) and advances.
-void func_dryfield_warehouse_8017D99C(Task* arg0)
+static void func_dryfield_warehouse_8017D99C(Task* arg0)
 {
     arg0->msgTable = D_dryfield_warehouse_8017F554;
     Game_SetPtrSlot(arg0, 7);
@@ -166,20 +166,20 @@ void func_dryfield_warehouse_8017D99C(Task* arg0)
 }
 
 /// State 1 of the room's main task: does nothing.
-void func_dryfield_warehouse_8017D9F8(Task* task)
+static void func_dryfield_warehouse_8017D9F8(Task* task)
 {
 }
 
 /// The three states of the room's main task, run by
 /// `func_dryfield_warehouse_8017DA00`: set-up, the idle per-frame step and the
 /// kill.
-const TaskFuncTable3 D_dryfield_warehouse_8017D5C4 = {
+static const TaskFuncTable3 D_dryfield_warehouse_8017D5C4 = {
     { func_dryfield_warehouse_8017D99C, func_dryfield_warehouse_8017D9F8, taskKill },
 };
 
 /// Dispatches the room's main task through its three-state table, copied onto
 /// the stack first.
-void func_dryfield_warehouse_8017DA00(Task* task)
+static void func_dryfield_warehouse_8017DA00(Task* task)
 {
     TaskFuncTable3 sp;
 

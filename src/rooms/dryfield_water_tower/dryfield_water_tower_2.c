@@ -381,8 +381,8 @@ extern s32 D_dryfield_water_tower_80182674;
 /// reads, indexed by the 1-based view.
 extern u16 D_dryfield_water_tower_801827A0[];
 
-u16 func_dryfield_water_tower_8017EB7C(Task* arg0);
-s32 func_dryfield_water_tower_8017DFAC(Task* arg0);
+static u16 func_dryfield_water_tower_8017EB7C(Task* arg0);
+static s32 func_dryfield_water_tower_8017DFAC(Task* arg0);
 
 /// Cap-prop task body, in two variants picked by `spawnArg1`. With it zero the
 /// task lowers the cap, driven by `DryfieldWaterTowerState::field_58`: state 0
@@ -397,7 +397,7 @@ s32 func_dryfield_water_tower_8017DFAC(Task* arg0);
 /// tail, which advances the halfword `field_6A` by 4 and moves the cap's
 /// coordinate down by it -- so the cap accelerates by 4 a frame -- leaving the
 /// coordinate marked dirty for the next `Gp_UpdateCoord` pass.
-void func_dryfield_water_tower_8017DE30(Task* arg0)
+static void func_dryfield_water_tower_8017DE30(Task* arg0)
 {
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->work;
     GpCoord*                 coord = arg0->extra.tmd->coords;
@@ -462,7 +462,7 @@ void func_dryfield_water_tower_8017DE30(Task* arg0)
 /// three `Mem_CopyUnaligned` argument pairs the target shows; and the `pos`
 /// scratch is filled `vz`, `vy`, `vx` -- the reverse of its declaration order --
 /// which is the store order the target's frame keeps.
-s32 func_dryfield_water_tower_8017DFAC(Task* arg0)
+static s32 func_dryfield_water_tower_8017DFAC(Task* arg0)
 {
     DryfieldWaterTowerState* state;
     GpCoord*                 coord;
@@ -662,7 +662,7 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
 /// block; and the Z test is written `coord->coord.t[2] > record.pos.vz` rather
 /// than the mirrored `<`, which is what makes `sgt_si` load the coordinate first
 /// and emit `slt` with its operands swapped.
-s32 func_dryfield_water_tower_8017E428(Task* arg0)
+static s32 func_dryfield_water_tower_8017E428(Task* arg0)
 {
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->work;
     GpCoord*                 coord = arg0->extra.tmd->coords;
@@ -732,7 +732,7 @@ s32 func_dryfield_water_tower_8017E428(Task* arg0)
 /// what puts them in that block instead of the join block, and the two flag
 /// branches re-read the coordinate (`+= 5`) rather than reloading the record, so
 /// CSE forwards the stored value and one load serves both uses.
-s32 func_dryfield_water_tower_8017E5B0(Task* arg0)
+static s32 func_dryfield_water_tower_8017E5B0(Task* arg0)
 {
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->work;
     GpCoord*                 coord = arg0->extra.tmd->coords;
@@ -883,7 +883,7 @@ void func_dryfield_water_tower_8017E764(Task* arg0)
 /// `field_50`; command 8 raises the `field_78` running flag that
 /// `func_dryfield_water_tower_8017EB7C` clears and queues two sounds where 9
 /// and 10 queue one.
-void func_dryfield_water_tower_8017E93C(Task* arg0)
+static void func_dryfield_water_tower_8017E93C(Task* arg0)
 {
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->work;
 
@@ -1004,7 +1004,7 @@ static inline u16 _dryfieldWaterTowerStepFrames(Task* task)
 /// view's `DwtwViewVolume` entry gives. State 4 waits for `eventState`, sends
 /// 0x7DA with 3 unless `field_66` is 2, restores the blocks again, sets nibble
 /// 0x55 to 1 and returns `field_66`.
-u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
+static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
 {
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->work;
     DryfieldWaterTowerState* work;
@@ -1528,7 +1528,7 @@ void func_dryfield_water_tower_8017FA5C(void)
 /// counter of 0 fails the entry-0 test and takes the first entry without
 /// walking -- and capped by the `0xFFFF` terminator. The step's duration comes
 /// back 30-fold with its low bit cleared.
-s32 func_dryfield_water_tower_8017FB4C(Task* task)
+static s32 func_dryfield_water_tower_8017FB4C(Task* task)
 {
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)task->work;
     u16                      i;
@@ -1572,7 +1572,7 @@ void func_dryfield_water_tower_8017FBD8(Task* task)
 /// The halfword is read unsigned, so the state arrives as `lhu`; state 0 is a
 /// real case, which is why the switch spans 0..6 and indexes its jump table
 /// with the state itself rather than with `state - 1`.
-void func_dryfield_water_tower_8017FBE8(Task* task)
+static void func_dryfield_water_tower_8017FBE8(Task* task)
 {
     DwtwWork* work  = (DwtwWork*)task->work;
     u16       state = work->field_C;
@@ -1842,7 +1842,7 @@ void func_dryfield_water_tower_801802D8(u8 arg0)
     }
 }
 
-void func_dryfield_water_tower_80180348(void)
+static void func_dryfield_water_tower_80180348(void)
 {
     Gp_State1C->roomEffectMode = D_dryfield_water_tower_801827A0[(Gp_GetViewIndex() & 0xFF) - 1];
 }

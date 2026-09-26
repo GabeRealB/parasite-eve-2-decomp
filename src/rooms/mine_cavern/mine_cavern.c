@@ -188,7 +188,7 @@ void func_mine_cavern_8017DD6C(Task* task)
     }
 }
 
-void func_mine_cavern_8017DDFC(Task* arg0)
+static void func_mine_cavern_8017DDFC(Task* arg0)
 {
     arg0->msgTable = &D_mine_cavern_80183C6C;
     Game_SetPtrSlot(arg0, 7);
@@ -209,7 +209,7 @@ void func_mine_cavern_8017DDFC(Task* arg0)
     D_mine_cavern_8018EB50 = 0;
 }
 
-void func_mine_cavern_8017DEE4(Task* task)
+static void func_mine_cavern_8017DEE4(Task* task)
 {
     s32 flag;
 
@@ -221,13 +221,13 @@ void func_mine_cavern_8017DEE4(Task* task)
 }
 
 /// The room task's state handlers, run by `func_mine_cavern_8017DF54`.
-const TaskFuncTable3 D_mine_cavern_8017D5C4 = {
+static const TaskFuncTable3 D_mine_cavern_8017D5C4 = {
     { func_mine_cavern_8017DDFC, func_mine_cavern_8017DEE4, taskKill },
 };
 
 /// Runs the room task's current state handler from the room's three-entry
 /// table, copying the table onto the stack before the call.
-void func_mine_cavern_8017DF54(Task* task)
+static void func_mine_cavern_8017DF54(Task* task)
 {
     TaskFuncTable3 sp;
 

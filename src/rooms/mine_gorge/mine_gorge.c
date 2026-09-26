@@ -26,8 +26,8 @@ extern s32 D_mine_gorge_8017E2F0;
 extern s32 D_mine_gorge_8017E500;
 extern s32 D_mine_gorge_8017E610;
 
-void func_mine_gorge_8017D8D4(Task* arg0);
-void func_mine_gorge_8017D998(Task* task);
+static void func_mine_gorge_8017D8D4(Task* arg0);
+static void func_mine_gorge_8017D998(Task* task);
 
 /// Answers message `0x13F1` with argument `0x11F`: while flag nibble `0xA4` is
 /// clear and a pending `GpObj4C` of kind 5 with `field_48 == 0xFF` and a
@@ -153,7 +153,7 @@ void func_mine_gorge_8017D8C8(s32 arg0)
 /// first pass with flag nibble `0xBE == 2` arms nibble `0x166`, clears nibble
 /// `0xB5` and calls `Gp_SpawnIfCapIdle(8, 0)`. Then selects scene music entry 1 and
 /// advances state.
-void func_mine_gorge_8017D8D4(Task* arg0)
+static void func_mine_gorge_8017D8D4(Task* arg0)
 {
     arg0->msgTable = D_mine_gorge_8017E280;
     Game_SetPtrSlot(arg0, 7);
@@ -170,20 +170,20 @@ void func_mine_gorge_8017D8D4(Task* arg0)
 }
 
 /// The room task's idle state.
-void func_mine_gorge_8017D998(Task* task)
+static void func_mine_gorge_8017D998(Task* task)
 {
 }
 
 /// State handlers of the room task `func_mine_gorge_8017D9A0` runs: the room's
 /// setup, an idle state, and `taskKill`.
-const TaskFuncTable3 D_mine_gorge_8017D5C4 = {
+static const TaskFuncTable3 D_mine_gorge_8017D5C4 = {
     { func_mine_gorge_8017D8D4, func_mine_gorge_8017D998, taskKill }
 };
 
 /// Runs one tick of the room task through the three-state table
 /// `D_mine_gorge_8017D5C4`, copying the table onto the stack and calling the
 /// entry for the task's current state.
-void func_mine_gorge_8017D9A0(Task* task)
+static void func_mine_gorge_8017D9A0(Task* task)
 {
     TaskFuncTable3 sp;
 

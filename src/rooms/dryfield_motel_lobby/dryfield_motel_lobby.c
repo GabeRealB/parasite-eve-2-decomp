@@ -76,7 +76,7 @@ extern UiObjectDesc D_dryfield_motel_lobby_8017F788;
 extern UiObjectDesc D_dryfield_motel_lobby_8017F7A4;
 extern UiObjectDesc D_dryfield_motel_lobby_8017F7C0;
 
-extern const char D_dryfield_motel_lobby_8017D638[];
+static const char D_dryfield_motel_lobby_8017D638[];
 
 /// The telephone menu's entry list.
 extern UiList D_dryfield_motel_lobby_8017F7EC;
@@ -85,11 +85,11 @@ extern UiList D_dryfield_motel_lobby_8017F7EC;
 /// installs on the room task.
 extern GpMsgEntry D_dryfield_motel_lobby_8017F810[];
 
-void func_dryfield_motel_lobby_8017E218(UiList* list, UiObject* obj);
-void func_dryfield_motel_lobby_8017E514(UiList* list, UiObject* obj);
-void func_dryfield_motel_lobby_8017F3D0(Task* task);
-void func_dryfield_motel_lobby_8017F44C(Task* task);
-void func_dryfield_motel_lobby_8017F490(Task* task);
+static void func_dryfield_motel_lobby_8017E218(UiList* list, UiObject* obj);
+static void func_dryfield_motel_lobby_8017E514(UiList* list, UiObject* obj);
+static void func_dryfield_motel_lobby_8017F3D0(Task* task);
+static void func_dryfield_motel_lobby_8017F44C(Task* task);
+static void func_dryfield_motel_lobby_8017F490(Task* task);
 
 /// Draws one row of the play-data statistics panel: the row label, then the
 /// statistic `arg0->field_8` selects - play time, several save counters, and
@@ -348,10 +348,10 @@ void func_dryfield_motel_lobby_8017D650(DialogPrompt* arg0, UiObject* arg1)
 }
 
 /// Title of the "Play Data" panel `func_dryfield_motel_lobby_8017EEA0` draws.
-const char D_dryfield_motel_lobby_8017D610[] = "Play Data";
+static const char D_dryfield_motel_lobby_8017D610[] = "Play Data";
 
 /// Text drawn in place of a row's percentage once it reaches 100 percent.
-const u8 D_dryfield_motel_lobby_8017D61C[] = "100.0%";
+static const u8 D_dryfield_motel_lobby_8017D61C[] = "100.0%";
 
 /// Draws one row of the item-usage panel: the item name and icon, its share of
 /// all uses as a percentage with two decimals, and a gouraud bar sized from the
@@ -497,7 +497,7 @@ void func_dryfield_motel_lobby_8017DE1C(DialogPrompt* arg0, UiObject* arg1)
 /// top row's. The top counter, the total and the scale are halved (and the
 /// shift shortened) until the top counter fits in 17 bits, so neither the
 /// multiply nor the shift overflows.
-void func_dryfield_motel_lobby_8017E218(UiList* list, UiObject* obj)
+static void func_dryfield_motel_lobby_8017E218(UiList* list, UiObject* obj)
 {
     RoomItemUsage* work;
     s32            count;
@@ -576,7 +576,7 @@ void func_dryfield_motel_lobby_8017E218(UiList* list, UiObject* obj)
 /// is listed under the id of its current level in `Mc_SaveData.attachLevels`
 /// (the base id while that level is 0). The sort, percentages and bar widths
 /// follow the weapon panel, with each row's slot recovered from its id.
-void func_dryfield_motel_lobby_8017E514(UiList* list, UiObject* obj)
+static void func_dryfield_motel_lobby_8017E514(UiList* list, UiObject* obj)
 {
     RoomPeUsage* work;
     s16*         p;
@@ -664,8 +664,8 @@ void func_dryfield_motel_lobby_8017E514(UiList* list, UiObject* obj)
 
 /// Titles of the usage panel `func_dryfield_motel_lobby_8017E834` opens:
 /// "Weapon Data" and "PE Data".
-const char D_dryfield_motel_lobby_8017D624[] = "Weapon Data";
-const char D_dryfield_motel_lobby_8017D630[] = "PE Data";
+static const char D_dryfield_motel_lobby_8017D624[] = "Weapon Data";
+static const char D_dryfield_motel_lobby_8017D630[] = "PE Data";
 
 void func_dryfield_motel_lobby_8017E834(Task* task)
 {
@@ -723,9 +723,9 @@ void func_dryfield_motel_lobby_8017E834(Task* task)
 /// menu once the menu is open. The two bytes after its terminator are not
 /// zero, so it stays assembly.
 /// "Telephone", followed by the non-zero padding the original toolchain left.
-const char D_dryfield_motel_lobby_8017D638[12] = "Telephone\0\xAD\x1A";
+static const char D_dryfield_motel_lobby_8017D638[12] = "Telephone\0\xAD\x1A";
 
-void func_dryfield_motel_lobby_8017E9E8(Task* task)
+static void func_dryfield_motel_lobby_8017E9E8(Task* task)
 {
     UiObject* obj;
     UiList*   list;
@@ -848,7 +848,7 @@ void func_dryfield_motel_lobby_8017ECE0(Task* task)
 /// Inserts a '.' into the digit string `str` so that `decimals` digits (at most
 /// the string's length) follow it, shifting them and the NUL one byte right.
 /// Does nothing when `decimals` is not positive.
-void func_dryfield_motel_lobby_8017ED3C(u8* str, s32 decimals)
+static void func_dryfield_motel_lobby_8017ED3C(u8* str, s32 decimals)
 {
     s32 len;
 
@@ -883,7 +883,7 @@ void func_dryfield_motel_lobby_8017ED3C(u8* str, s32 decimals)
 /// returns `buf`: the integer is printed padded to `decimals + 1` digits when
 /// it is below that scale, a '.' is inserted before its last `decimals` digits,
 /// and "%" is appended.
-u8* func_dryfield_motel_lobby_8017EDAC(u8* buf, s32 value, s32 decimals)
+static u8* func_dryfield_motel_lobby_8017EDAC(u8* buf, s32 value, s32 decimals)
 {
     s32 limit;
     s32 i;
@@ -952,7 +952,7 @@ void func_dryfield_motel_lobby_8017EEA0(Task* task)
 /// draw order, at the panel origin (`field_20`, `field_22`) offset by (`arg1`,
 /// `arg2`) and `arg3` by `arg4` in size. The left edge takes colour `arg5`, the
 /// right edge `arg6`; nothing is drawn for a zero `arg5` or a width below 2.
-void func_dryfield_motel_lobby_8017EF90(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
+static void func_dryfield_motel_lobby_8017EF90(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
 {
     register s32 dx asm("v1");
     register s32 w asm("t3");
@@ -1040,7 +1040,7 @@ void func_dryfield_motel_lobby_8017F308(DialogPrompt* prompt, UiObject* obj)
     }
 }
 
-void func_dryfield_motel_lobby_8017F3D0(Task* task)
+static void func_dryfield_motel_lobby_8017F3D0(Task* task)
 {
     WipUiHolder* holder;
 
@@ -1076,7 +1076,7 @@ s32 func_dryfield_motel_lobby_8017F444(void)
 
 /// First state of the room task: installs the room's message table, stores the
 /// task in session pointer slot 7 and advances.
-void func_dryfield_motel_lobby_8017F44C(Task* task)
+static void func_dryfield_motel_lobby_8017F44C(Task* task)
 {
     task->msgTable = D_dryfield_motel_lobby_8017F810;
     Game_SetPtrSlot(task, 7);
@@ -1084,13 +1084,13 @@ void func_dryfield_motel_lobby_8017F44C(Task* task)
 }
 
 /// Per-frame state of the room task: the room has nothing to update.
-void func_dryfield_motel_lobby_8017F490(Task* task)
+static void func_dryfield_motel_lobby_8017F490(Task* task)
 {
 }
 
 /// The room task's three states: set-up, the (empty) per-frame state, and the
 /// kill.
-const TaskFuncTable3 D_dryfield_motel_lobby_8017D644 = {
+static const TaskFuncTable3 D_dryfield_motel_lobby_8017D644 = {
     {
         func_dryfield_motel_lobby_8017F44C,
         func_dryfield_motel_lobby_8017F490,
@@ -1099,7 +1099,7 @@ const TaskFuncTable3 D_dryfield_motel_lobby_8017D644 = {
 };
 
 /// The room task's update: copies the state table and runs the current state.
-void func_dryfield_motel_lobby_8017F498(Task* task)
+static void func_dryfield_motel_lobby_8017F498(Task* task)
 {
     TaskFuncTable3 sp;
 

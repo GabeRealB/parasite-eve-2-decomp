@@ -36,22 +36,22 @@ extern SVECTOR        D_dryfield_factory_80186EF8;
 extern SVECTOR        D_dryfield_factory_80186F00;
 extern SVECTOR        D_dryfield_factory_80186F08;
 
-void func_dryfield_factory_80180A4C(Task* task);
-void func_dryfield_factory_80181538(s32 x, s32 y, s32 variant);
-s32  func_dryfield_factory_80181778(OverlayHotspot* table, s16 x, s16 y);
-void func_dryfield_factory_8018182C(Task* task);
-void func_dryfield_factory_80181938(Task* task);
-void func_dryfield_factory_8018196C(Task* task);
-void func_dryfield_factory_801819BC(Task* task);
-void func_dryfield_factory_80181A24(Task* task);
-void func_dryfield_factory_80181AB8(Task* task);
-void func_dryfield_factory_80181BB4(Task* task);
+static void func_dryfield_factory_80180A4C(Task* task);
+static void func_dryfield_factory_80181538(s32 x, s32 y, s32 variant);
+static s32  func_dryfield_factory_80181778(OverlayHotspot* table, s16 x, s16 y);
+static void func_dryfield_factory_8018182C(Task* task);
+static void func_dryfield_factory_80181938(Task* task);
+static void func_dryfield_factory_8018196C(Task* task);
+static void func_dryfield_factory_801819BC(Task* task);
+static void func_dryfield_factory_80181A24(Task* task);
+static void func_dryfield_factory_80181AB8(Task* task);
+static void func_dryfield_factory_80181BB4(Task* task);
 
 /// State handlers of the room's script task, run by
 /// `func_dryfield_factory_8018169C`: set-up, prompt arming, the idle hotspot
 /// scan, prompt spawning, the prompt state, the exit and the wait for the
 /// message handler's trigger.
-const TaskFuncTable7 D_dryfield_factory_8017D678 = {
+static const TaskFuncTable7 D_dryfield_factory_8017D678 = {
     {
         func_dryfield_factory_8018182C,
         func_dryfield_factory_80181938,
@@ -68,7 +68,7 @@ const TaskFuncTable7 D_dryfield_factory_8017D678 = {
 /// room's hotspots under the cursor: a confirmed hit copies the hotspot's `id`
 /// and `promptKind` into the work block and advances to state 3, and the
 /// cancel button leaves for state 5.
-void func_dryfield_factory_80180A4C(Task* task)
+static void func_dryfield_factory_80180A4C(Task* task)
 {
     RoomActionPrompt*       prompt = &D_80114D28;
     OverlayHotspot*         hs     = D_dryfield_factory_80186EB0;
@@ -110,7 +110,7 @@ void func_dryfield_factory_80180A4C(Task* task)
 /// Outlines `rect` on screen in (`r`, `g`, `b`) with four unconnected flat
 /// `LINE_F2`s -- top, right, bottom and left edge of the rectangle spanning
 /// (`x`, `y`) to (`x + w`, `y + h`) -- each linked into `gGpuCurrentOt[1]`.
-void func_dryfield_factory_80180BA4(RoomRect* rect, u8 r, u8 g, u8 b)
+static void func_dryfield_factory_80180BA4(RoomRect* rect, u8 r, u8 g, u8 b)
 {
     LINE_F2* line;
 
@@ -163,7 +163,7 @@ void func_dryfield_factory_80180BA4(RoomRect* rect, u8 r, u8 g, u8 b)
     addPrim(gGpuCurrentOt + 1, line);
 }
 
-void func_dryfield_factory_80180DE8(Task* task, s16 step)
+static void func_dryfield_factory_80180DE8(Task* task, s16 step)
 {
     s32 id;
     s32 state;
@@ -273,7 +273,7 @@ void func_dryfield_factory_80180DE8(Task* task, s16 step)
     }
 }
 
-void func_dryfield_factory_801810D8(Task* task)
+static void func_dryfield_factory_801810D8(Task* task)
 {
     RoomActionPrompt* prompt;
     PadState*         pad;
@@ -410,7 +410,7 @@ void func_dryfield_factory_801810D8(Task* task)
 /// Queues one 16x24 textured quad -- the room's on-screen action prompt icon --
 /// at (`x`, `y`) into the head of the current OT. `variant` selects the palette,
 /// 0x3C87 when it is 2 and 0x3C88 otherwise, and 0 draws nothing at all.
-void func_dryfield_factory_80181538(s32 x, s32 y, s32 variant)
+static void func_dryfield_factory_80181538(s32 x, s32 y, s32 variant)
 {
     POLY_FT4* prim;
     s16       px;
@@ -496,7 +496,7 @@ void func_dryfield_factory_80181768(Task* task)
     ((NightFactoryScriptWork*)task->work)->field_A = 1;
 }
 
-s32 func_dryfield_factory_80181778(OverlayHotspot* table, s16 x, s16 y)
+static s32 func_dryfield_factory_80181778(OverlayHotspot* table, s16 x, s16 y)
 {
     s32 hit;
 
@@ -517,7 +517,7 @@ s32 func_dryfield_factory_80181778(OverlayHotspot* table, s16 x, s16 y)
 /// child task, publishes the script's message table, picks the global mode
 /// byte from game flag 0x48, advances, and clears the hotspot hits while
 /// holding the HUD for the cutscene.
-void func_dryfield_factory_8018182C(Task* task)
+static void func_dryfield_factory_8018182C(Task* task)
 {
     NightFactoryScriptWork* work;
     OverlayHotspot*         hs;
@@ -550,7 +550,7 @@ void func_dryfield_factory_8018182C(Task* task)
 /// state: marks the prompt as highlighted (`mode` 1) for the fixed target id
 /// 0x80 and resets the on-screen position, which `func_800D4E78` fills in again
 /// when the prompt is actually spawned.
-void func_dryfield_factory_80181938(Task* task)
+static void func_dryfield_factory_80181938(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
 
@@ -564,7 +564,7 @@ void func_dryfield_factory_80181938(Task* task)
 /// Spawns the action prompt for the script's current step: clears the prompt's
 /// highlight state, then re-spawns it at the coordinates the gameplay side left
 /// in `D_80114D28` with the display mode this state picked.
-void func_dryfield_factory_8018196C(Task* task)
+static void func_dryfield_factory_8018196C(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     RoomUtil21Work*   work   = (RoomUtil21Work*)task->work;
@@ -579,7 +579,7 @@ void func_dryfield_factory_8018196C(Task* task)
 /// while `func_800D4EC0` still reports a prompt on screen, runs the cap step
 /// the work block names; otherwise it returns to the idle state 2. Either way
 /// it re-arms the idle state's delay.
-void func_dryfield_factory_801819BC(Task* task)
+static void func_dryfield_factory_801819BC(Task* task)
 {
     NightFactoryScriptWork* work = (NightFactoryScriptWork*)task->work;
 
@@ -593,7 +593,7 @@ void func_dryfield_factory_801819BC(Task* task)
     work->field_8 = 0xA;
 }
 
-void func_dryfield_factory_80181A24(Task* arg0)
+static void func_dryfield_factory_80181A24(Task* arg0)
 {
     D_80114D08 = 0xA;
     Gp_MsgPlayerWeapon(1);
@@ -613,7 +613,7 @@ void func_dryfield_factory_80181A24(Task* arg0)
 /// has been raised by the script's message handler, picks the global mode
 /// byte from game flag 0x48, re-arms the idle delay, consumes the trigger and
 /// returns the script to its idle state 2.
-void func_dryfield_factory_80181AB8(Task* task)
+static void func_dryfield_factory_80181AB8(Task* task)
 {
     RoomActionPrompt*       prompt;
     NightFactoryScriptWork* work;
@@ -659,7 +659,7 @@ void func_dryfield_factory_80181B38(s32 arg0)
 /// the caller on one state: clears each slot's leading words and its two
 /// trailing shorts, parks the target id at 0x100 with `field_E` at 0xF, and
 /// marks the slot as highlighted (`mode` 1).
-void func_dryfield_factory_80181BB4(Task* task)
+static void func_dryfield_factory_80181BB4(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     s32               i;
@@ -686,7 +686,7 @@ void func_dryfield_factory_80181BB4(Task* task)
 /// left by the top nibble, so the disc flickers on alternating frames. The
 /// outer ring draws at half brightness first and full brightness second; the
 /// inner cross uses the halved colour throughout.
-void func_dryfield_factory_80181C14(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_factory_80181C14(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw05Scratch* block;
@@ -839,7 +839,7 @@ void func_dryfield_factory_80181C14(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// `gGameSession->at4.loc.view` taken as a bit index, and each group also gates on a
 /// story flag, so a disc only appears on the visits and after the event that
 /// the flag records.
-void func_dryfield_factory_801825F0(Task* task)
+static void func_dryfield_factory_801825F0(Task* task)
 {
     s32 state;
 

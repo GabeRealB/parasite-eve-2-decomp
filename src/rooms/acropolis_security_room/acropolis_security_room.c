@@ -207,43 +207,43 @@ extern GpAreaApplyRec D_acropolis_security_room_80184F78[];
 extern GpAreaApplyRec D_acropolis_security_room_80184F7C[];
 extern GpAreaApplyRec D_acropolis_security_room_80184F80[];
 
-void func_acropolis_security_room_8017D930(Task* task);
-void func_acropolis_security_room_8017D97C(Task* task);
-void func_acropolis_security_room_8017D9DC(Task* task);
-void func_acropolis_security_room_8017DB30(Task* task);
-void func_acropolis_security_room_8017DC7C(Task* task);
-void func_acropolis_security_room_8017E0C4(s16 id);
-void func_acropolis_security_room_8017E37C(Task* task);
-void func_acropolis_security_room_8017E490(Task* task);
-void func_acropolis_security_room_8017E8F0(s32 x, s32 y, s32 variant);
-void func_acropolis_security_room_8017EA28(Task* task);
-void func_acropolis_security_room_8017EA5C(Task* task);
-void func_acropolis_security_room_8017EADC(Task* task);
-void func_acropolis_security_room_8017EB9C(Task* task);
-s32  func_acropolis_security_room_8017ECB4(OverlayHotspot* table, s16 x, s16 y);
-void func_acropolis_security_room_8017EDE4(Task* task);
-void func_acropolis_security_room_8017EE44(Task* task);
-void func_acropolis_security_room_8017F480(Task* task);
-void func_acropolis_security_room_8017F8E0(s32 x, s32 y, s32 variant);
-void func_acropolis_security_room_8017FA18(Task* task);
-void func_acropolis_security_room_8017FB20(Task* task);
-void func_acropolis_security_room_8017FB54(Task* task);
-void func_acropolis_security_room_8017FBA4(Task* task);
-void func_acropolis_security_room_8017FC30(Task* task);
-s32  func_acropolis_security_room_8017FCB0(OverlayHotspot* table, s16 x, s16 y);
-void func_acropolis_security_room_8017FD64(s32 flags);
-void func_acropolis_security_room_8017FE6C(Task* task);
-void func_acropolis_security_room_8017FF0C(Task* task);
-void func_acropolis_security_room_8017FF84(Task* task);
-void func_acropolis_security_room_8017FFD0(Task* task);
-void func_acropolis_security_room_80180010(Task* task);
-void func_acropolis_security_room_80180030(Task* task);
-void func_acropolis_security_room_801800A4(Task* task);
-void func_acropolis_security_room_8018014C(Task* task);
-void func_acropolis_security_room_801801C4(Task* task);
-void func_acropolis_security_room_80180218(Task* task);
-void func_acropolis_security_room_80180308(Task* task);
-void func_acropolis_security_room_80180A78(Task* task);
+static void func_acropolis_security_room_8017D930(Task* task);
+static void func_acropolis_security_room_8017D97C(Task* task);
+static void func_acropolis_security_room_8017D9DC(Task* task);
+static void func_acropolis_security_room_8017DB30(Task* task);
+static void func_acropolis_security_room_8017DC7C(Task* task);
+static void func_acropolis_security_room_8017E0C4(s16 id);
+static void func_acropolis_security_room_8017E37C(Task* task);
+static void func_acropolis_security_room_8017E490(Task* task);
+static void func_acropolis_security_room_8017E8F0(s32 x, s32 y, s32 variant);
+static void func_acropolis_security_room_8017EA28(Task* task);
+static void func_acropolis_security_room_8017EA5C(Task* task);
+static void func_acropolis_security_room_8017EADC(Task* task);
+static void func_acropolis_security_room_8017EB9C(Task* task);
+static s32  func_acropolis_security_room_8017ECB4(OverlayHotspot* table, s16 x, s16 y);
+static void func_acropolis_security_room_8017EDE4(Task* task);
+static void func_acropolis_security_room_8017EE44(Task* task);
+static void func_acropolis_security_room_8017F480(Task* task);
+static void func_acropolis_security_room_8017F8E0(s32 x, s32 y, s32 variant);
+static void func_acropolis_security_room_8017FA18(Task* task);
+static void func_acropolis_security_room_8017FB20(Task* task);
+static void func_acropolis_security_room_8017FB54(Task* task);
+static void func_acropolis_security_room_8017FBA4(Task* task);
+static void func_acropolis_security_room_8017FC30(Task* task);
+static s32  func_acropolis_security_room_8017FCB0(OverlayHotspot* table, s16 x, s16 y);
+static void func_acropolis_security_room_8017FD64(s32 flags);
+static void func_acropolis_security_room_8017FE6C(Task* task);
+static void func_acropolis_security_room_8017FF0C(Task* task);
+static void func_acropolis_security_room_8017FF84(Task* task);
+static void func_acropolis_security_room_8017FFD0(Task* task);
+static void func_acropolis_security_room_80180010(Task* task);
+static void func_acropolis_security_room_80180030(Task* task);
+static void func_acropolis_security_room_801800A4(Task* task);
+static void func_acropolis_security_room_8018014C(Task* task);
+static void func_acropolis_security_room_801801C4(Task* task);
+static void func_acropolis_security_room_80180218(Task* task);
+static void func_acropolis_security_room_80180308(Task* task);
+static void func_acropolis_security_room_80180A78(Task* task);
 
 /// Message 0x13EE handler: copies the incoming location record onto the
 /// outgoing one and answers 1.
@@ -286,7 +286,7 @@ void func_acropolis_security_room_8017D740(Task* arg0, s32 arg1, GpMsg13EF* arg2
 }
 /// State table of the room's message task: register the room's message table,
 /// idle, then kill the task.
-const TaskFuncTable3 D_acropolis_security_room_8017D5C4 = { {
+static const TaskFuncTable3 D_acropolis_security_room_8017D5C4 = { {
     func_acropolis_security_room_8017D930,
     func_acropolis_security_room_8017D97C,
     taskKill,
@@ -348,7 +348,7 @@ void func_acropolis_security_room_8017D834(Task* arg0)
     }
 }
 
-void func_acropolis_security_room_8017D930(Task* arg0)
+static void func_acropolis_security_room_8017D930(Task* arg0)
 {
     arg0->msgTable = D_acropolis_security_room_801825DC;
     Game_SetPtrSlot(arg0, 7);
@@ -356,14 +356,14 @@ void func_acropolis_security_room_8017D930(Task* arg0)
     D_acropolis_security_room_801855AC = NULL;
 }
 
-void func_acropolis_security_room_8017D97C(Task* task)
+static void func_acropolis_security_room_8017D97C(Task* task)
 {
 }
 
 /// States of the security-monitor task, dispatched by
 /// `func_acropolis_security_room_8017ED68`: set up the work block, run the
 /// camera list, redraw the panel, confirm a camera, and leave the monitor.
-const TaskFuncTable7 D_acropolis_security_room_8017D5EC = { {
+static const TaskFuncTable7 D_acropolis_security_room_8017D5EC = { {
     func_acropolis_security_room_8017D9DC,
     func_acropolis_security_room_8017EA28,
     func_acropolis_security_room_8017DB30,
@@ -375,7 +375,7 @@ const TaskFuncTable7 D_acropolis_security_room_8017D5EC = { {
 
 /// Runs the room's message task's current state through a stack copy of its
 /// three-entry state table.
-void func_acropolis_security_room_8017D984(Task* task)
+static void func_acropolis_security_room_8017D984(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -389,7 +389,7 @@ void func_acropolis_security_room_8017D984(Task* task)
 /// the next state from the `GameFlag_GetNibble(1)` progress nibble (state+1 and
 /// prompt kind 8 before chapter 3, state 6 and prompt kind 5 after). Finally it
 /// clears every hotspot's `hit` flag so the first hit test starts clean.
-void func_acropolis_security_room_8017D9DC(Task* task)
+static void func_acropolis_security_room_8017D9DC(Task* task)
 {
     AsrMonitorWork* work;
     OverlayHotspot* hs;
@@ -442,7 +442,7 @@ void func_acropolis_security_room_8017D9DC(Task* task)
 /// confirmed (`buttons[0].state` 2) scans the table for the raised entry and hands its
 /// `id` / `promptKind` to the work block, advancing to state 3. Otherwise the
 /// task advances to state 5 once the prompt has been dismissed.
-void func_acropolis_security_room_8017DB30(Task* task)
+static void func_acropolis_security_room_8017DB30(Task* task)
 {
     AsrMonitorWork*   work;
     OverlayHotspot*   hs;
@@ -489,7 +489,7 @@ void func_acropolis_security_room_8017DB30(Task* task)
 /// when the row is one of the two 0x8000/0x8001 scroll commands, and fires the
 /// two one-shot cap sequences the room gates on the `0xA` game-flag nibble.
 /// Then redraws the panel plus cursor overlay and advances to state 2.
-void func_acropolis_security_room_8017DC7C(Task* task)
+static void func_acropolis_security_room_8017DC7C(Task* task)
 {
     AsrMonitorWork* work;
     McSaveData*     save;
@@ -547,7 +547,7 @@ void func_acropolis_security_room_8017DC7C(Task* task)
 /// spanning (`x`, `y`) to (`x + w`, `y + h`) -- each linked into
 /// `gGpuCurrentOt[3]`. Nothing in the overlay calls it; it is the debug box
 /// drawer for the hotspot rectangles.
-void func_acropolis_security_room_8017DE80(RoomRect* rect, u8 r, u8 g, u8 b)
+static void func_acropolis_security_room_8017DE80(RoomRect* rect, u8 r, u8 g, u8 b)
 {
     LINE_F2* line;
 
@@ -608,7 +608,7 @@ void func_acropolis_security_room_8017DE80(RoomRect* rect, u8 r, u8 g, u8 b)
 /// rather than 0xE100002A), which is what makes the "no signal" panel read
 /// differently from a live camera. The strip below the panel (y 0x3C to 0x38)
 /// is then blacked out with an opaque quad in `gGpuCurrentOt[0xB]`.
-void func_acropolis_security_room_8017E0C4(s16 id)
+static void func_acropolis_security_room_8017E0C4(s16 id)
 {
     POLY_F4* poly;
     DR_MODE* dr;
@@ -692,7 +692,7 @@ void func_acropolis_security_room_8017E0C4(s16 id)
 /// grey `TILE` whose top edge and height both track `AsrMonitorWork::blinkTimer`,
 /// followed by the drawing-mode packet that restores the panel's texture page.
 /// The timer wraps at 0x97, which is what makes the bar sweep and restart.
-void func_acropolis_security_room_8017E37C(Task* task)
+static void func_acropolis_security_room_8017E37C(Task* task)
 {
     AsrMonitorWork* work;
     TILE*           tile;
@@ -743,7 +743,7 @@ void func_acropolis_security_room_8017E37C(Task* task)
 /// `step` carries the analog delta first and the d-pad heading afterwards, and
 /// `idx` indexes the button slots in `u16` units so that `i` survives as the
 /// loop counter.
-void func_acropolis_security_room_8017E490(Task* task)
+static void func_acropolis_security_room_8017E490(Task* task)
 {
     RoomActionPrompt* prompt;
     PadState*         pad;
@@ -881,7 +881,7 @@ void func_acropolis_security_room_8017E490(Task* task)
 /// into the current OT. `variant` picks the palette -- 0x3C87 when it is 2,
 /// and 0x3C88 otherwise -- and 0 draws nothing at all. The room carries a
 /// second copy of this body at `func_acropolis_security_room_8017F8E0`.
-void func_acropolis_security_room_8017E8F0(s32 x, s32 y, s32 variant)
+static void func_acropolis_security_room_8017E8F0(s32 x, s32 y, s32 variant)
 {
     POLY_FT4* prim;
     s16       px;
@@ -939,7 +939,7 @@ void func_acropolis_security_room_8017E9D8(Task* task)
 /// prompt's on-screen position, which `func_800D4E78` fills in again when the
 /// prompt is actually spawned. The room carries a second copy of this body at
 /// `func_acropolis_security_room_8017FB20`.
-void func_acropolis_security_room_8017EA28(Task* task)
+static void func_acropolis_security_room_8017EA28(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
 
@@ -953,7 +953,7 @@ void func_acropolis_security_room_8017EA28(Task* task)
 /// Confirms the camera the player picked on the security monitor: clears the
 /// action prompt, redraws the panel for the selected camera plus its cursor
 /// overlay, spawns the prompt at the panel's coordinates and advances the task.
-void func_acropolis_security_room_8017EA5C(Task* task)
+static void func_acropolis_security_room_8017EA5C(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     AsrMonitorWork*   work   = (AsrMonitorWork*)task->work;
@@ -970,7 +970,7 @@ void func_acropolis_security_room_8017EA5C(Task* task)
 /// `0x2A` nibble (index into `D_acropolis_security_room_801826B4`, 0 if the id
 /// is not in the table), restores the room's normal display state and kills the
 /// monitor task along with the child task it spawned.
-void func_acropolis_security_room_8017EADC(Task* task)
+static void func_acropolis_security_room_8017EADC(Task* task)
 {
     AsrMonitorWork* work;
     s16*            camera;
@@ -1008,7 +1008,7 @@ done:
 /// prompt. A hit that the player confirms (`buttons[0].state == 2`) on a raised hotspot
 /// clears the prompt and runs cap command 0xE; `buttons[1].state == 2` leaves the
 /// monitor by advancing to state 5.
-void func_acropolis_security_room_8017EB9C(Task* task)
+static void func_acropolis_security_room_8017EB9C(Task* task)
 {
     RoomActionPrompt* prompt  = &D_80114D28;
     OverlayHotspot*   hotspot = D_acropolis_security_room_80182648;
@@ -1047,7 +1047,7 @@ void func_acropolis_security_room_8017EB9C(Task* task)
 /// any entry was hit, so `func_acropolis_security_room_8017EB9C` can tell
 /// "cursor is over something" from "cursor is over nothing" without rescanning
 /// the table. Same body as `func_acropolis_security_room_8017FCB0`.
-s32 func_acropolis_security_room_8017ECB4(OverlayHotspot* table, s16 x, s16 y)
+static s32 func_acropolis_security_room_8017ECB4(OverlayHotspot* table, s16 x, s16 y)
 {
     s32 hit;
 
@@ -1065,7 +1065,7 @@ s32 func_acropolis_security_room_8017ECB4(OverlayHotspot* table, s16 x, s16 y)
 }
 
 /// The sixteen state handlers of the room's cap script.
-const TaskFuncTable16 D_acropolis_security_room_8017D63C = { {
+static const TaskFuncTable16 D_acropolis_security_room_8017D63C = { {
     func_acropolis_security_room_8017FA18,
     func_acropolis_security_room_8017FB20,
     func_acropolis_security_room_8017EE44,
@@ -1087,7 +1087,7 @@ const TaskFuncTable16 D_acropolis_security_room_8017D63C = { {
 /// Runs the security-monitor task's current state. The seven handlers are
 /// copied onto the stack first, so the call goes through a local table rather
 /// than through `.rodata`.
-void func_acropolis_security_room_8017ED68(Task* task)
+static void func_acropolis_security_room_8017ED68(Task* task)
 {
     TaskFuncTable7 sp;
 
@@ -1100,7 +1100,7 @@ void func_acropolis_security_room_8017ED68(Task* task)
 /// trailing shorts, parks the target id at 0x100 with `field_E` at 0xF, and
 /// marks the slot as highlighted (`mode` 1). The room carries a second copy of
 /// this body at `func_acropolis_security_room_80180308`.
-void func_acropolis_security_room_8017EDE4(Task* task)
+static void func_acropolis_security_room_8017EDE4(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     s32               i;
@@ -1125,7 +1125,7 @@ void func_acropolis_security_room_8017EDE4(Task* task)
 /// state block and advances to state 3; with nothing under the cursor the
 /// pending sub-step is cleared and the prompt merely highlights (`mode` 1).
 /// `buttons[1].state == 2` leaves the scan by advancing to state 5.
-void func_acropolis_security_room_8017EE44(Task* task)
+static void func_acropolis_security_room_8017EE44(Task* task)
 {
     RoomActionPrompt*           prompt = &D_80114D28;
     OverlayHotspot*             hs     = D_acropolis_security_room_801826DC;
@@ -1165,7 +1165,7 @@ void func_acropolis_security_room_8017EE44(Task* task)
 /// Outlines `rect` on screen in (`r`, `g`, `b`) with four unconnected flat
 /// `LINE_F2`s -- top, right, bottom and left edge of the rectangle spanning
 /// (`x`, `y`) to (`x + w`, `y + h`) -- each linked into `gGpuCurrentOt[1]`.
-void func_acropolis_security_room_8017EF78(RoomRect* rect, u8 r, u8 g, u8 b)
+static void func_acropolis_security_room_8017EF78(RoomRect* rect, u8 r, u8 g, u8 b)
 {
     LINE_F2* line;
 
@@ -1218,7 +1218,7 @@ void func_acropolis_security_room_8017EF78(RoomRect* rect, u8 r, u8 g, u8 b)
     addPrim(gGpuCurrentOt + 1, line);
 }
 
-void func_acropolis_security_room_8017F1BC(Task* task)
+static void func_acropolis_security_room_8017F1BC(Task* task)
 {
     AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->work;
     s32                         flag;
@@ -1256,7 +1256,7 @@ void func_acropolis_security_room_8017F1BC(Task* task)
     task->state = 2;
 }
 
-void func_acropolis_security_room_8017F300(Task* task)
+static void func_acropolis_security_room_8017F300(Task* task)
 {
     AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->work;
     s32                         flag;
@@ -1319,7 +1319,7 @@ void func_acropolis_security_room_8017F300(Task* task)
 /// `step` carries the analog delta first and the d-pad heading afterwards, and
 /// `idx` indexes the button slots in `u16` units so that `i` survives as the
 /// loop counter.
-void func_acropolis_security_room_8017F480(Task* task)
+static void func_acropolis_security_room_8017F480(Task* task)
 {
     RoomActionPrompt* prompt;
     PadState*         pad;
@@ -1456,7 +1456,7 @@ void func_acropolis_security_room_8017F480(Task* task)
 /// Queues the security-room's 16x24 cursor/highlight quad at (`x`, `y`) into
 /// the current OT. `variant` picks the palette -- 0x3C87 when it is 2, and
 /// 0x3C88 otherwise -- and 0 draws nothing at all.
-void func_acropolis_security_room_8017F8E0(s32 x, s32 y, s32 variant)
+static void func_acropolis_security_room_8017F8E0(s32 x, s32 y, s32 variant)
 {
     POLY_FT4* prim;
     s16       px;
@@ -1516,7 +1516,7 @@ void func_acropolis_security_room_8017F9C8(Task* task)
 /// and the current pair-flag nibble, takes a display reference and clears every
 /// hotspot's `hit` flag before the first cursor scan. A failed allocation kills
 /// the task instead.
-void func_acropolis_security_room_8017FA18(Task* task)
+static void func_acropolis_security_room_8017FA18(Task* task)
 {
     AcropolisSecurityRoomState* st;
     OverlayHotspot*             hs;
@@ -1548,7 +1548,7 @@ void func_acropolis_security_room_8017FA18(Task* task)
 /// on-screen position, which `func_800D4E78` fills in again when the prompt is
 /// actually spawned. The room carries a second copy of this body at
 /// `func_acropolis_security_room_8017EA28`.
-void func_acropolis_security_room_8017FB20(Task* task)
+static void func_acropolis_security_room_8017FB20(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
 
@@ -1562,7 +1562,7 @@ void func_acropolis_security_room_8017FB20(Task* task)
 /// Spawns the action prompt for the script's current step: clears the prompt's
 /// highlight state, then re-spawns it at the coordinates the gameplay side left
 /// in `D_80114D28` with the display mode this state picked.
-void func_acropolis_security_room_8017FB54(Task* task)
+static void func_acropolis_security_room_8017FB54(Task* task)
 {
     RoomActionPrompt*           prompt = &D_80114D28;
     AcropolisSecurityRoomState* st     = (AcropolisSecurityRoomState*)task->work;
@@ -1581,7 +1581,7 @@ void func_acropolis_security_room_8017FB54(Task* task)
 /// task instead parks on state 2. `variant` is never written in this overlay --
 /// the state block is calloc'd -- so the `func_acropolis_security_room_8017F300`
 /// arm is the one this room actually takes.
-void func_acropolis_security_room_8017FBA4(Task* task)
+static void func_acropolis_security_room_8017FBA4(Task* task)
 {
     RoomActionPrompt*           prompt = &D_80114D28;
     AcropolisSecurityRoomState* st     = (AcropolisSecurityRoomState*)task->work;
@@ -1601,7 +1601,7 @@ void func_acropolis_security_room_8017FBA4(Task* task)
     task->state = 2;
 }
 
-void func_acropolis_security_room_8017FC30(Task* task)
+static void func_acropolis_security_room_8017FC30(Task* task)
 {
     D_80114D08 = 0xA;
     Gp_MsgPlayer3F3(1);
@@ -1619,7 +1619,7 @@ void func_acropolis_security_room_8017FC30(Task* task)
 /// contains the point and clearing it on every other one. Returns non-zero if
 /// any entry was hit, so the caller can tell "cursor is over something" from
 /// "cursor is over nothing" without rescanning the table.
-s32 func_acropolis_security_room_8017FCB0(OverlayHotspot* table, s16 x, s16 y)
+static s32 func_acropolis_security_room_8017FCB0(OverlayHotspot* table, s16 x, s16 y)
 {
     s32 hit;
 
@@ -1641,7 +1641,7 @@ s32 func_acropolis_security_room_8017FCB0(OverlayHotspot* table, s16 x, s16 y)
 /// opened. The nibble selects, for each of the two sprite commands of view 6
 /// in this room's sprite record, whether `Gp_LinkViewSprts` skips linking it
 /// (`field_4` non-zero) or draws it.
-void func_acropolis_security_room_8017FD64(s32 flags)
+static void func_acropolis_security_room_8017FD64(s32 flags)
 {
     GameSession* g    = gGameSession;
     GpAreaKey*   sess = &g->at4.loc;
@@ -1699,7 +1699,7 @@ s32 func_acropolis_security_room_8017FE24(Task* task, s32 msgId, s32 item, s32 a
 /// driving `Fade_DrawOverlay`'s three colour channels together. At the halfway
 /// point (0x80) the door chime is queued; once the level passes 0xFF the
 /// counter is reset for the next state and `Mc_SaveData.at4.loc.view` is set to 0x10.
-void func_acropolis_security_room_8017FE6C(Task* task)
+static void func_acropolis_security_room_8017FE6C(Task* task)
 {
     AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->work;
     u8                          level;
@@ -1719,7 +1719,7 @@ void func_acropolis_security_room_8017FE6C(Task* task)
     }
 }
 
-void func_acropolis_security_room_8017FF0C(Task* task)
+static void func_acropolis_security_room_8017FF0C(Task* task)
 {
     AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->work;
 
@@ -1730,7 +1730,7 @@ void func_acropolis_security_room_8017FF0C(Task* task)
     st->frames = st->frames + 1;
 }
 
-void func_acropolis_security_room_8017FF84(Task* task)
+static void func_acropolis_security_room_8017FF84(Task* task)
 {
     s32 killArg;
 
@@ -1739,14 +1739,14 @@ void func_acropolis_security_room_8017FF84(Task* task)
     }
 }
 
-void func_acropolis_security_room_8017FFD0(Task* arg0)
+static void func_acropolis_security_room_8017FFD0(Task* arg0)
 {
     Gp_MsgPlayer3F3(1);
     Gp_MsgPlayer3F3(0);
     arg0->state = (s32)(arg0->state + 1);
 }
 
-void func_acropolis_security_room_80180010(Task* task)
+static void func_acropolis_security_room_80180010(Task* task)
 {
     Mc_SaveData.at4.loc.view = 3;
     /* Without the barrier GCC hoists the `lw` of `task->state` above the byte
@@ -1755,7 +1755,7 @@ void func_acropolis_security_room_80180010(Task* task)
     task->state = task->state + 1;
 }
 
-void func_acropolis_security_room_80180030(Task* task)
+static void func_acropolis_security_room_80180030(Task* task)
 {
     D_80114D08 = 0xA;
     Gp_MsgPlayer3F3(1);
@@ -1767,7 +1767,7 @@ void func_acropolis_security_room_80180030(Task* task)
     Task_RequestKill(task, 0);
 }
 
-void func_acropolis_security_room_801800A4(Task* task)
+static void func_acropolis_security_room_801800A4(Task* task)
 {
     AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->work;
     s32                         level;
@@ -1791,7 +1791,7 @@ void func_acropolis_security_room_801800A4(Task* task)
     }
 }
 
-void func_acropolis_security_room_8018014C(Task* task)
+static void func_acropolis_security_room_8018014C(Task* task)
 {
     AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->work;
 
@@ -1802,7 +1802,7 @@ void func_acropolis_security_room_8018014C(Task* task)
     st->frames = st->frames + 1;
 }
 
-void func_acropolis_security_room_801801C4(Task* task)
+static void func_acropolis_security_room_801801C4(Task* task)
 {
     s32 killArg;
 
@@ -1812,7 +1812,7 @@ void func_acropolis_security_room_801801C4(Task* task)
     }
 }
 
-void func_acropolis_security_room_80180218(Task* task)
+static void func_acropolis_security_room_80180218(Task* task)
 {
     D_80114D08               = 0xA;
     Mc_SaveData.at4.loc.view = 3;
@@ -1827,7 +1827,7 @@ void func_acropolis_security_room_80180218(Task* task)
 /// Runs the cap script's current state. The sixteen handlers are copied onto
 /// the stack first, so the call goes through a local table rather than through
 /// `.rodata`.
-void func_acropolis_security_room_80180294(Task* task)
+static void func_acropolis_security_room_80180294(Task* task)
 {
     TaskFuncTable16 sp;
 
@@ -1840,7 +1840,7 @@ void func_acropolis_security_room_80180294(Task* task)
 /// trailing shorts, parks the target id at 0x100 with `field_E` at 0xF, and
 /// marks the slot as highlighted (`mode` 1). The room carries a second copy of
 /// this body at `func_acropolis_security_room_8017EDE4`.
-void func_acropolis_security_room_80180308(Task* task)
+static void func_acropolis_security_room_80180308(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     s32               i;
@@ -1964,7 +1964,7 @@ L_case2:
 /// flash effects. `Task::spawnArg2` is the `GpEffWork` holding the lit-feed
 /// bitmask (`index`) and the four per-feed brightnesses
 /// (`scale` .. `step`).
-void func_acropolis_security_room_801805A4(Task* task)
+static void func_acropolis_security_room_801805A4(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -2064,7 +2064,7 @@ void func_acropolis_security_room_801805A4(Task* task)
 /// endpoint sweeps with the frame counter (`gDisplayState.animFrame * 6` folded
 /// into a 406-step range), and nothing is queued when the near endpoint
 /// projects closer than an OTZ of 0x11.
-void func_acropolis_security_room_80180A78(Task* task)
+static void func_acropolis_security_room_80180A78(Task* task)
 {
     void**          scratch;
     u8*             head;
@@ -2128,7 +2128,7 @@ void func_acropolis_security_room_80180A78(Task* task)
 /// quad from `D_acropolis_security_room_80183970` -- picked by the low two bits
 /// of `Task::spawnArg1` -- into the current OT before releasing the effect's
 /// `Gp_State1C` work block.
-void func_acropolis_security_room_80180E34(Task* arg0)
+static void func_acropolis_security_room_80180E34(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -2178,7 +2178,7 @@ void func_acropolis_security_room_80180E34(Task* arg0)
 }
 
 /// Draws a rotating textured quad and updates its drift until it settles.
-void func_acropolis_security_room_80181108(Task* arg0)
+static void func_acropolis_security_room_80181108(Task* arg0)
 {
     RoomQuadScratch* blk;
     GpCoord*         coord;
@@ -2318,7 +2318,7 @@ void func_acropolis_security_room_80181108(Task* arg0)
 /// lines meeting at the centre, sized `0xC00 / otz` and skipped when the point
 /// is too near (otz <= 0x10). `spawnArg1` bit 1 lights the red channel and bit 0
 /// the green one, both at one random brightness.
-void func_acropolis_security_room_801817A4(Task* task)
+static void func_acropolis_security_room_801817A4(Task* task)
 {
     GpCoord*         coord;
     void*            mem;
@@ -2391,7 +2391,7 @@ void func_acropolis_security_room_801817A4(Task* task)
 /// fractional part away from zero. The whole-unit displacement is also left in
 /// `D_acropolis_security_room_801855B0`. Returns non-zero when the X or Z
 /// displacement is non-zero.
-s32 func_acropolis_security_room_80181C84(GpCoord* coord, GpRec18* rec, s16 arg2)
+static s32 func_acropolis_security_room_80181C84(GpCoord* coord, GpRec18* rec, s16 arg2)
 {
     void**            scratch;
     u8*               head;
@@ -2445,7 +2445,7 @@ s32 func_acropolis_security_room_80181C84(GpCoord* coord, GpRec18* rec, s16 arg2
 /// record within a quarter turn of it, moves the coordinate `push` units back
 /// along that record's bearing, in X and Z. Returns non-zero if it moved the
 /// coordinate; returns 0 at once while `gGameSession->viewReady` is 1.
-s32 func_acropolis_security_room_80181E28(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
+static s32 func_acropolis_security_room_80181E28(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
 {
     void**                  scratch;
     void**                  tail;
@@ -2592,7 +2592,7 @@ s32 func_acropolis_security_room_80181E28(GpCoord* coord, GpRec18* recs, s16 cou
 /// Per-frame visibility hook for a pick-up prop: the model is drawn with flags
 /// 8 at OT offset 0 until the item's 2-bit flag reaches 2, after which it is
 /// hidden (flags 0x80).
-void func_acropolis_security_room_80182574(Task* task)
+static void func_acropolis_security_room_80182574(Task* task)
 {
     GpItemObj8* obj;
     TmdObject*  tmd;

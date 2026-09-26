@@ -51,25 +51,25 @@ extern RoomHaloShade D_shelter_b1_transfer_tunnel_80182930[];
 extern SVECTOR D_shelter_b1_transfer_tunnel_80182944[];
 extern SVECTOR D_shelter_b1_transfer_tunnel_8018294C;
 
-void func_shelter_b1_transfer_tunnel_8017D62C(Task* task);
-void func_shelter_b1_transfer_tunnel_8017D670(Task* task);
-void func_shelter_b1_transfer_tunnel_8017D830(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b1_transfer_tunnel_8017DFAC(SVECTOR* arg0, s16 arg1);
-void func_shelter_b1_transfer_tunnel_8017E5D4(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
-void func_shelter_b1_transfer_tunnel_8017E898(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b1_transfer_tunnel_8017ECBC(GpCoord* arg0, s16 arg1, u8* arg2);
-void func_shelter_b1_transfer_tunnel_8017F594(GpCoord* coord, s16 size);
-void func_shelter_b1_transfer_tunnel_8017FAC0(GpCoord* arg0, s32 arg1);
-void func_shelter_b1_transfer_tunnel_8017FE38(GpCoord* arg0, s16 arg1, u8* arg2);
-void func_shelter_b1_transfer_tunnel_80180BD0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b1_transfer_tunnel_80180FFC(GpCoord* arg0, s16 arg1, u8* arg2);
-void func_shelter_b1_transfer_tunnel_80181880(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-void func_shelter_b1_transfer_tunnel_80181F00(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_b1_transfer_tunnel_8017D62C(Task* task);
+static void func_shelter_b1_transfer_tunnel_8017D670(Task* task);
+static void func_shelter_b1_transfer_tunnel_8017D830(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b1_transfer_tunnel_8017DFAC(SVECTOR* arg0, s16 arg1);
+static void func_shelter_b1_transfer_tunnel_8017E5D4(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
+static void func_shelter_b1_transfer_tunnel_8017E898(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_b1_transfer_tunnel_8017ECBC(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_b1_transfer_tunnel_8017F594(GpCoord* coord, s16 size);
+static void func_shelter_b1_transfer_tunnel_8017FAC0(GpCoord* arg0, s32 arg1);
+static void func_shelter_b1_transfer_tunnel_8017FE38(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_b1_transfer_tunnel_80180BD0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_b1_transfer_tunnel_80180FFC(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_b1_transfer_tunnel_80181880(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+static void func_shelter_b1_transfer_tunnel_80181F00(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// State handlers of the task `func_shelter_b1_transfer_tunnel_8017D678`
 /// runs, which copies the table to the stack and calls the entry for the
 /// task's state: the room's setup, an idle state, and `taskKill`.
-const TaskFuncTable3 D_shelter_b1_transfer_tunnel_8017D5C4 = {
+static const TaskFuncTable3 D_shelter_b1_transfer_tunnel_8017D5C4 = {
     { func_shelter_b1_transfer_tunnel_8017D62C, func_shelter_b1_transfer_tunnel_8017D670, taskKill }
 };
 
@@ -99,7 +99,7 @@ s32 func_shelter_b1_transfer_tunnel_8017D624(void)
 
 /// State 0 of the room's task: installs the room's message table, publishes
 /// the task in pointer slot 7 and advances to state 1.
-void func_shelter_b1_transfer_tunnel_8017D62C(Task* task)
+static void func_shelter_b1_transfer_tunnel_8017D62C(Task* task)
 {
     task->msgTable = D_shelter_b1_transfer_tunnel_801828C0;
     Game_SetPtrSlot(task, 7);
@@ -107,13 +107,13 @@ void func_shelter_b1_transfer_tunnel_8017D62C(Task* task)
 }
 
 /// State 1 of the room's task: does nothing until the task is killed.
-void func_shelter_b1_transfer_tunnel_8017D670(Task* task)
+static void func_shelter_b1_transfer_tunnel_8017D670(Task* task)
 {
 }
 
 /// Runs the room's task through its three-state handler table, copied onto
 /// the stack before the call.
-void func_shelter_b1_transfer_tunnel_8017D678(Task* task)
+static void func_shelter_b1_transfer_tunnel_8017D678(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -124,7 +124,7 @@ void func_shelter_b1_transfer_tunnel_8017D678(Task* task)
 /// On its first tick stores seven effect ids in gameplay's `D_801157xx`
 /// slots; every tick then draws the room's gouraud cones and discs for
 /// the current camera view (views 2, 3 and 4).
-void func_shelter_b1_transfer_tunnel_8017D6D0(Task* arg0)
+static void func_shelter_b1_transfer_tunnel_8017D6D0(Task* arg0)
 {
     u8 view;
 
@@ -165,7 +165,7 @@ void func_shelter_b1_transfer_tunnel_8017D6D0(Task* arg0)
 /// sweeping from the angle `arg2`. The radius at each end is
 /// `arg1 * 64 / otz`, and the grey level alternates between 0x20 and 0x28 on
 /// odd and even frames.
-void func_shelter_b1_transfer_tunnel_8017D830(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b1_transfer_tunnel_8017D830(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw11Scratch* block;
@@ -298,7 +298,7 @@ void func_shelter_b1_transfer_tunnel_8017D830(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// queues four gouraud `POLY_G4` wedges forming a red disc around it, of radius
 /// `arg1 * 64 / otz`. The centre's red level alternates between 0x20 and 0x28
 /// on odd and even frames.
-void func_shelter_b1_transfer_tunnel_8017DFAC(SVECTOR* arg0, s16 arg1)
+static void func_shelter_b1_transfer_tunnel_8017DFAC(SVECTOR* arg0, s16 arg1)
 {
     u8*                head;
     RoomDraw25Scratch* block;
@@ -364,7 +364,7 @@ void func_shelter_b1_transfer_tunnel_8017DFAC(SVECTOR* arg0, s16 arg1)
 /// out). Each tick moves the coordinate vertically and draws every other
 /// tick; the work block is released once dark, or when the room's event
 /// state reaches 4.
-void func_shelter_b1_transfer_tunnel_8017E308(Task* task)
+static void func_shelter_b1_transfer_tunnel_8017E308(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -449,7 +449,7 @@ void func_shelter_b1_transfer_tunnel_8017E308(Task* task)
 /// animation cells in it; the low twelve bits are the size, scaled by depth.
 /// The low byte of `arg3` is the grey level and its top four bits pick the
 /// CLUT.
-void func_shelter_b1_transfer_tunnel_8017E5D4(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
+static void func_shelter_b1_transfer_tunnel_8017E5D4(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -525,7 +525,7 @@ void func_shelter_b1_transfer_tunnel_8017E5D4(GpCoord* arg0, u16 arg1, u16 arg2,
 /// the GTE flags an error, queues a ring of sixteen gouraud `POLY_G4`
 /// segments: black at radius `arg1 * 64 / (otz + 1)`, shading to `rgb` at
 /// radius `(arg1 + arg2) * 64 / (otz + 1)`.
-void func_shelter_b1_transfer_tunnel_8017E898(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_shelter_b1_transfer_tunnel_8017E898(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -579,7 +579,7 @@ void func_shelter_b1_transfer_tunnel_8017E898(GpCoord* arg0, s32 arg1, s32 arg2,
 /// Halo: projects the coordinate's world position and, unless the GTE flags
 /// an error, queues sixteen gouraud `POLY_G4` wedges forming a disc of radius
 /// `arg1 * 64 / (otz + 1)`, coloured `arg2` at the centre and black at the rim.
-void func_shelter_b1_transfer_tunnel_8017ECBC(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b1_transfer_tunnel_8017ECBC(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -632,7 +632,7 @@ void func_shelter_b1_transfer_tunnel_8017ECBC(GpCoord* arg0, s16 arg1, u8* arg2)
 /// argument; state 1 ramps the level up, drawing the halo, a half-bright echo
 /// on odd ticks and a shrinking ring; state 2 fades the afterglow out and then
 /// releases the work block.
-void func_shelter_b1_transfer_tunnel_8017F050(Task* arg0)
+static void func_shelter_b1_transfer_tunnel_8017F050(Task* arg0)
 {
     u8          rgb[3];
     GpEffWork*  mem;
@@ -719,7 +719,7 @@ kill:
 /// the halo and a second ring at the growing angle while a wider, dimmer ring
 /// fades out behind them, releasing the work block once the main level runs
 /// down (or the room's event state reaches 4).
-void func_shelter_b1_transfer_tunnel_8017F3E8(Task* arg0)
+static void func_shelter_b1_transfer_tunnel_8017F3E8(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;
@@ -775,7 +775,7 @@ void func_shelter_b1_transfer_tunnel_8017F3E8(Task* arg0)
 /// under it when a floor is found. Also points the `Gp_RoomCoords[2]` light at the
 /// coordinate with a flickering intensity. Draws nothing when the point fails
 /// to project.
-void func_shelter_b1_transfer_tunnel_8017F594(GpCoord* coord, s16 size)
+static void func_shelter_b1_transfer_tunnel_8017F594(GpCoord* coord, s16 size)
 {
     GpCoord        ground;
     POLY_FT4*      prim;
@@ -906,7 +906,7 @@ void func_shelter_b1_transfer_tunnel_8017F594(GpCoord* coord, s16 size)
 /// Unless the GTE flags an error, one semi-transparent `POLY_FT4` is queued,
 /// its texture alternating between two 32-texel frames on odd and even
 /// frames.
-void func_shelter_b1_transfer_tunnel_8017FAC0(GpCoord* arg0, s32 arg1)
+static void func_shelter_b1_transfer_tunnel_8017FAC0(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;
@@ -994,7 +994,7 @@ void func_shelter_b1_transfer_tunnel_8017FAC0(GpCoord* arg0, s32 arg1)
 /// a full and a half-bright ring of radius `arg1 * 64 / (otz + 1)` and a set
 /// of narrower spikes between them - each coloured from `arg2` at the centre
 /// and black at the tips.
-void func_shelter_b1_transfer_tunnel_8017FE38(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b1_transfer_tunnel_8017FE38(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -1117,7 +1117,7 @@ void func_shelter_b1_transfer_tunnel_8017FE38(GpCoord* arg0, s16 arg1, u8* arg2)
 /// growing with age, and spawns the effect `D_80115728` at the task's
 /// coordinate. Releases the work block after 0x15 ticks, or when the room's
 /// event state reaches 4.
-void func_shelter_b1_transfer_tunnel_801807F8(Task* arg0)
+static void func_shelter_b1_transfer_tunnel_801807F8(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -1154,7 +1154,7 @@ void func_shelter_b1_transfer_tunnel_801807F8(Task* arg0)
 /// ramps the level up, drawing a ring at two scales and a shrinking outer ring,
 /// and at full level fills the screen with a fade quad; state 2 fades the
 /// afterglow out and then releases the work block.
-void func_shelter_b1_transfer_tunnel_8018092C(Task* arg0)
+static void func_shelter_b1_transfer_tunnel_8018092C(Task* arg0)
 {
     u8                rgb[3];
     GpEffWork*        mem;
@@ -1227,7 +1227,7 @@ kill:
 /// scratch block laid out differently: black at radius
 /// `arg1 * 64 / (otz + 1)`, shading to `rgb` at radius
 /// `(arg1 + arg2) * 64 / (otz + 1)`, drawn unless the GTE flags an error.
-void func_shelter_b1_transfer_tunnel_80180BD0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_shelter_b1_transfer_tunnel_80180BD0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -1284,7 +1284,7 @@ void func_shelter_b1_transfer_tunnel_80180BD0(GpCoord* arg0, s32 arg1, s32 arg2,
 /// Halo: projects the coordinate's world position and, unless the GTE flags
 /// an error, queues sixteen gouraud `POLY_G4` wedges forming a disc of radius
 /// `arg1 * 64 / (otz + 1)`, coloured `arg2` at the centre and black at the rim.
-void func_shelter_b1_transfer_tunnel_80180FFC(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b1_transfer_tunnel_80180FFC(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -1337,7 +1337,7 @@ void func_shelter_b1_transfer_tunnel_80180FFC(GpCoord* arg0, s16 arg1, u8* arg2)
 /// slot of each trail per tick (cycling every eight ticks), updates all
 /// sixteen and draws the ribbon between the two trails. The work block is
 /// released once the tick count reaches the spawn argument.
-void func_shelter_b1_transfer_tunnel_80181390(Task* task)
+static void func_shelter_b1_transfer_tunnel_80181390(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -1434,7 +1434,7 @@ void func_shelter_b1_transfer_tunnel_80181390(Task* task)
 /// neighbouring slots of `arg0` and `arg1`. The brightness falls by 9 per quad
 /// from 0x40, and `arg3` holds the colour as three 2-bit multipliers at bits
 /// 8, 4 and 0. A quad the GTE flags as bad is skipped.
-void func_shelter_b1_transfer_tunnel_80181880(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_shelter_b1_transfer_tunnel_80181880(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
     GpCoord*           a;
@@ -1542,7 +1542,7 @@ void func_shelter_b1_transfer_tunnel_80181880(GpCoord* arg0, GpCoord* arg1, s16 
 /// jittered sparks (state 1, non-zero spawn argument) or expands a pair of
 /// dimming rings (state 2); both end in state 3 after seven ticks, which
 /// releases the work block, as does the room's event state reaching 4.
-void func_shelter_b1_transfer_tunnel_80181C78(Task* task)
+static void func_shelter_b1_transfer_tunnel_80181C78(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;
@@ -1615,7 +1615,7 @@ void func_shelter_b1_transfer_tunnel_80181C78(Task* task)
 /// a full and a half-bright ring of radius `arg1 * 64 / (otz + 1)` and a set
 /// of narrower spikes between them - each coloured from `arg2` at the centre
 /// and black at the tips.
-void func_shelter_b1_transfer_tunnel_80181F00(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b1_transfer_tunnel_80181F00(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

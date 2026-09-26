@@ -15,8 +15,8 @@
 #include "main/task.h"
 #include "rooms/room_common.h"
 
-void func_dryfield_night_breezeway_8017D634(Task* task);
-void func_dryfield_night_breezeway_8017D678(Task* task);
+static void func_dryfield_night_breezeway_8017D634(Task* task);
+static void func_dryfield_night_breezeway_8017D678(Task* task);
 
 /// The room's message table: 0x13EE, 0x13F1, 0x13EF and 0x13F0 to their
 /// handlers, terminated by 0x7FFFFFFF.
@@ -31,7 +31,7 @@ extern SVECTOR D_dryfield_night_breezeway_8017E6C4;
 
 /// The room's event task states: open the message table, idle, then kill the
 /// task.
-const TaskFuncTable3 D_dryfield_night_breezeway_8017D5C4 = {
+static const TaskFuncTable3 D_dryfield_night_breezeway_8017D5C4 = {
     { func_dryfield_night_breezeway_8017D634, func_dryfield_night_breezeway_8017D678, taskKill },
 };
 
@@ -71,7 +71,7 @@ s32 func_dryfield_night_breezeway_8017D62C(void)
 /// State 0 of the room's event task: parks the room's message table in
 /// `Task::msgTable`, publishes the task in pointer slot 7 and advances to the
 /// next state.
-void func_dryfield_night_breezeway_8017D634(Task* task)
+static void func_dryfield_night_breezeway_8017D634(Task* task)
 {
     task->msgTable = D_dryfield_night_breezeway_8017E67C;
     Game_SetPtrSlot(task, 7);
@@ -79,13 +79,13 @@ void func_dryfield_night_breezeway_8017D634(Task* task)
 }
 
 /// State 1 of the room's event task: does nothing.
-void func_dryfield_night_breezeway_8017D678(Task* task)
+static void func_dryfield_night_breezeway_8017D678(Task* task)
 {
 }
 
 /// The room's event task: copies the three-state table onto the stack and
 /// calls the entry for the task's current state.
-void func_dryfield_night_breezeway_8017D680(Task* task)
+static void func_dryfield_night_breezeway_8017D680(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -99,7 +99,7 @@ void func_dryfield_night_breezeway_8017D680(Task* task)
 /// surround the projected point, with radius `(s16)arg2 * 32` over its depth.
 /// The lit vertices take a red of `rsin(animFrame * arg1) / 34 + 0x78`, so
 /// `arg1` sets the pulse rate. The work block lives on the scratchpad stack.
-void func_dryfield_night_breezeway_8017D6D8(SVECTOR* arg0, s16 arg1, s32 arg2)
+static void func_dryfield_night_breezeway_8017D6D8(SVECTOR* arg0, s16 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw13Scratch* block;
@@ -197,7 +197,7 @@ void func_dryfield_night_breezeway_8017D6D8(SVECTOR* arg0, s16 arg1, s32 arg2)
 /// projected points; quads join the two discs. The lit vertices flicker
 /// between 0x20 and 0x30 with the display frame counter. The work block lives
 /// on the scratchpad stack.
-void func_dryfield_night_breezeway_8017DB4C(SVECTOR* arg0, s32 arg1)
+static void func_dryfield_night_breezeway_8017DB4C(SVECTOR* arg0, s32 arg1)
 {
     void**                   scratch;
     u8*                      head;
@@ -331,7 +331,7 @@ void func_dryfield_night_breezeway_8017DB4C(SVECTOR* arg0, s32 arg1)
 /// `(arg1 & 0x3F) | 0x4380`; the half-size on screen is `(s16)arg2 * 39` over
 /// the depth. The grey tint flickers between 0x20 and 0x30 with the display
 /// frame counter. The work block lives on the scratchpad stack.
-void func_dryfield_night_breezeway_8017E334(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_night_breezeway_8017E334(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw13Scratch* block;
     POLY_FT4*          prim;
@@ -375,7 +375,7 @@ void func_dryfield_night_breezeway_8017E334(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// the lights the current camera view (`gGameSession->at4.loc.view`) can see.
 /// View 2 draws a sprite and a beam; view 3 draws a beam and then everything
 /// view 4 draws, a pulsing star and a second beam. Other views draw nothing.
-void func_dryfield_night_breezeway_8017E5BC(void)
+static void func_dryfield_night_breezeway_8017E5BC(void)
 {
     Gp_State1C->roomEffectMode = 2;
     switch (gGameSession->at4.loc.view) {

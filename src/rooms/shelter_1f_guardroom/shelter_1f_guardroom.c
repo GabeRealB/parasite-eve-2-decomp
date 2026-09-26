@@ -20,12 +20,12 @@ extern Task*      D_shelter_1f_guardroom_8017E014;
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
-void func_shelter_1f_guardroom_8017D824(Task* arg0);
-void func_shelter_1f_guardroom_8017D878(Task* task);
-void func_shelter_1f_guardroom_8017D9CC(s32 arg0);
+static void func_shelter_1f_guardroom_8017D824(Task* arg0);
+static void func_shelter_1f_guardroom_8017D878(Task* task);
+static void func_shelter_1f_guardroom_8017D9CC(s32 arg0);
 
 /// The event task's three states: set-up, idle, and kill.
-const TaskFuncTable3 D_shelter_1f_guardroom_8017D5C4 = {
+static const TaskFuncTable3 D_shelter_1f_guardroom_8017D5C4 = {
     {
         func_shelter_1f_guardroom_8017D824,
         func_shelter_1f_guardroom_8017D878,
@@ -130,7 +130,7 @@ s32 func_shelter_1f_guardroom_8017D7F0(s32 arg0, s32 arg1, s32 arg2)
 /// State 0 of the room's event task: installs the room's message table,
 /// publishes the task in pointer slot 7, passes game nibble 0xB2 to
 /// `func_shelter_1f_guardroom_8017D9CC` and advances to state 1.
-void func_shelter_1f_guardroom_8017D824(Task* arg0)
+static void func_shelter_1f_guardroom_8017D824(Task* arg0)
 {
     arg0->msgTable = D_shelter_1f_guardroom_8017DA30;
     Game_SetPtrSlot(arg0, 7);
@@ -139,13 +139,13 @@ void func_shelter_1f_guardroom_8017D824(Task* arg0)
 }
 
 /// State 1 of the room's event task: does nothing, so the task idles here.
-void func_shelter_1f_guardroom_8017D878(Task* task)
+static void func_shelter_1f_guardroom_8017D878(Task* task)
 {
 }
 
 /// The room's event task: copies its state table onto the stack and calls the
 /// entry for the current state.
-void func_shelter_1f_guardroom_8017D880(Task* task)
+static void func_shelter_1f_guardroom_8017D880(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -186,7 +186,7 @@ void func_shelter_1f_guardroom_8017D8D8(Task* arg0)
 
 /// Sets `field_4` of the second sprite command in entry 2 of the current
 /// area's sprite table: 1 when the low byte of `arg0` is zero, 0 otherwise.
-void func_shelter_1f_guardroom_8017D9CC(s32 arg0)
+static void func_shelter_1f_guardroom_8017D9CC(s32 arg0)
 {
     GpAreaKey* sess = &gGameSession->at4.loc;
     GpSprtCmd* cmd;
@@ -199,6 +199,6 @@ void func_shelter_1f_guardroom_8017D9CC(s32 arg0)
     }
 }
 
-void func_shelter_1f_guardroom_8017DA28(void)
+static void func_shelter_1f_guardroom_8017DA28(void)
 {
 }

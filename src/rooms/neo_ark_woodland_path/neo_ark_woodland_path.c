@@ -787,7 +787,7 @@ s32 func_neo_ark_woodland_path_8017E910(Task* task, s32 msgId, s32 arg2, s32 arg
     return ret;
 }
 
-void func_neo_ark_woodland_path_8017E944(Task* arg0)
+static void func_neo_ark_woodland_path_8017E944(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_woodland_path_80181650;
     Game_SetPtrSlot(arg0, 7);
@@ -795,18 +795,18 @@ void func_neo_ark_woodland_path_8017E944(Task* arg0)
     arg0->state                      = (s32)(arg0->state + 1);
 }
 
-void func_neo_ark_woodland_path_8017E9A8(Task* task)
+static void func_neo_ark_woodland_path_8017E9A8(Task* task)
 {
 }
 
 /// State handlers of the room's entry task: set-up, idle, then kill.
-const TaskFuncTable3 D_neo_ark_woodland_path_8017D614 = {
+static const TaskFuncTable3 D_neo_ark_woodland_path_8017D614 = {
     { func_neo_ark_woodland_path_8017E944, func_neo_ark_woodland_path_8017E9A8, taskKill }
 };
 
 /// Task tick that dispatches on the task's state through the three-entry
 /// handler table `D_neo_ark_woodland_path_8017D614`, copied to the stack first.
-void func_neo_ark_woodland_path_8017E9B0(Task* task)
+static void func_neo_ark_woodland_path_8017E9B0(Task* task)
 {
     TaskFuncTable3 sp;
 

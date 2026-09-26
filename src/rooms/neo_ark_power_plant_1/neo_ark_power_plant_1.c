@@ -31,13 +31,13 @@ extern GpAreaApplyRec D_neo_ark_power_plant_1_80181C00[];
 /// The room's own `GpMsgEntry[]` - the message table this task publishes.
 extern GpMsgEntry D_neo_ark_power_plant_1_8017EB18[];
 
-void func_neo_ark_power_plant_1_8017D5EC(Task* task);
-void func_neo_ark_power_plant_1_8017D928(Task* task);
+static void func_neo_ark_power_plant_1_8017D5EC(Task* task);
+static void func_neo_ark_power_plant_1_8017D928(Task* task);
 
 /// State table of the room task: `func_neo_ark_power_plant_1_8017D928`
 /// installs the message table, `func_neo_ark_power_plant_1_8017D5EC` runs the
 /// plant every frame, and the last state kills the task.
-const TaskFuncTable3 D_neo_ark_power_plant_1_8017D5C4 = {
+static const TaskFuncTable3 D_neo_ark_power_plant_1_8017D5C4 = {
     { func_neo_ark_power_plant_1_8017D928, func_neo_ark_power_plant_1_8017D5EC, taskKill },
 };
 
@@ -52,7 +52,7 @@ const TaskFuncTable3 D_neo_ark_power_plant_1_8017D5C4 = {
 /// countdown to 4 while `Mc_SaveData.at4.loc.view` differs from the current view with 0xDE
 /// set and 0xDF clear; otherwise it ticks the countdown down and, on reaching
 /// 0, enqueues sound event 0x5511000A (as type 6 in view 7, type 7 elsewhere).
-void func_neo_ark_power_plant_1_8017D5EC(Task* task)
+static void func_neo_ark_power_plant_1_8017D5EC(Task* task)
 {
     Task* slot;
 
@@ -182,7 +182,7 @@ void func_neo_ark_power_plant_1_8017D908(void)
 /// the task as pointer slot 7, sets `flowFlags` to 1 when the session's place
 /// is 1 and, while nibble 0xFB is clear, sets `field_126` to 1 and
 /// `Gp_StateF0.field_0` to 2. Then advances to the next state.
-void func_neo_ark_power_plant_1_8017D928(Task* task)
+static void func_neo_ark_power_plant_1_8017D928(Task* task)
 {
     task->msgTable = D_neo_ark_power_plant_1_8017EB18;
     Game_SetPtrSlot(task, 7);
@@ -198,7 +198,7 @@ void func_neo_ark_power_plant_1_8017D928(Task* task)
 
 /// Runs the room task's current state: the handler `Task::state` selects from
 /// `D_neo_ark_power_plant_1_8017D5C4`, copied onto the stack before the call.
-void func_neo_ark_power_plant_1_8017D9C0(Task* task)
+static void func_neo_ark_power_plant_1_8017D9C0(Task* task)
 {
     TaskFuncTable3 sp;
 

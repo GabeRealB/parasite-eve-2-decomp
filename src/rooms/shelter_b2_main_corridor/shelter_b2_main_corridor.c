@@ -104,21 +104,21 @@ extern GpAreaApplyRec D_shelter_b2_main_corridor_80189644;
 /// Cursor into the primitive area the water surface is written to.
 extern u8* D_shelter_b2_main_corridor_80189660;
 
-s32  func_shelter_b2_main_corridor_8017E0FC(RoomEventMsg* in, RoomEventMsg* out);
-void func_shelter_b2_main_corridor_8017E264(RoomEventMsg* msg);
-void func_shelter_b2_main_corridor_8017E2D4(Task* arg0);
-void func_shelter_b2_main_corridor_8017E330(Task* arg0);
-void func_shelter_b2_main_corridor_8017E390(Task* arg0);
-void func_shelter_b2_main_corridor_8017EBF4(Task* arg0);
-void func_shelter_b2_main_corridor_8017F078(GpCoord* arg0, s32 arg1, s32 arg2);
-void func_shelter_b2_main_corridor_8017F860(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_shelter_b2_main_corridor_8017FC4C(GpCoord* arg0, s32 arg1, s32 arg2);
-void func_shelter_b2_main_corridor_8017FEE8(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_shelter_b2_main_corridor_801806D0(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b2_main_corridor_80180BF0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b2_main_corridor_8018101C(GpCoord* arg0, s16 arg1, u8* rgb);
-void func_shelter_b2_main_corridor_801818A0(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-void func_shelter_b2_main_corridor_80181F20(GpCoord* arg0, s16 arg1, u8* arg2);
+static s32  func_shelter_b2_main_corridor_8017E0FC(RoomEventMsg* in, RoomEventMsg* out);
+static void func_shelter_b2_main_corridor_8017E264(RoomEventMsg* msg);
+static void func_shelter_b2_main_corridor_8017E2D4(Task* arg0);
+static void func_shelter_b2_main_corridor_8017E330(Task* arg0);
+static void func_shelter_b2_main_corridor_8017E390(Task* arg0);
+static void func_shelter_b2_main_corridor_8017EBF4(Task* arg0);
+static void func_shelter_b2_main_corridor_8017F078(GpCoord* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b2_main_corridor_8017F860(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_shelter_b2_main_corridor_8017FC4C(GpCoord* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b2_main_corridor_8017FEE8(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_shelter_b2_main_corridor_801806D0(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b2_main_corridor_80180BF0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_b2_main_corridor_8018101C(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_shelter_b2_main_corridor_801818A0(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+static void func_shelter_b2_main_corridor_80181F20(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// Carries out a staged event once the message handler has passed it through
 /// `func_shelter_b2_main_corridor_8017E0FC`, from the copy in
@@ -373,7 +373,7 @@ s32 func_shelter_b2_main_corridor_8017DC88(Task* arg0, s32 arg1, GpMsg13EF* arg2
 /// The room task's three states, run by
 /// `func_shelter_b2_main_corridor_8017E338`: install the message table and
 /// spawn the room's tasks, idle, and end.
-const TaskFuncTable3 D_shelter_b2_main_corridor_8017D5F0 = {
+static const TaskFuncTable3 D_shelter_b2_main_corridor_8017D5F0 = {
     { func_shelter_b2_main_corridor_8017E2D4, func_shelter_b2_main_corridor_8017E330, taskKill }
 };
 
@@ -446,7 +446,7 @@ void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
 /// carries the same body. Most rooms have no
 /// marker; the five that do read a GameFlag nibble, either straight (plus one,
 /// rooms 7 / 13 / 32) or folded into a fixed set of states (rooms 20 and 21).
-s32 func_shelter_b2_main_corridor_8017E0FC(RoomEventMsg* in, RoomEventMsg* out)
+static s32 func_shelter_b2_main_corridor_8017E0FC(RoomEventMsg* in, RoomEventMsg* out)
 {
     if (in->field_5 == 0) {
         switch (in->msgId) {
@@ -535,7 +535,7 @@ void func_shelter_b2_main_corridor_8017E210(Task* arg0)
     }
 }
 
-void func_shelter_b2_main_corridor_8017E264(RoomEventMsg* msg)
+static void func_shelter_b2_main_corridor_8017E264(RoomEventMsg* msg)
 {
     if ((GameFlag_GetNibble(0x4C) == 9) && (GameFlag_GetNibble(0xD1) == 3) && (msg->field_5 == 0)) {
         GameFlag_SetNibble(0x4C, 0);
@@ -543,7 +543,7 @@ void func_shelter_b2_main_corridor_8017E264(RoomEventMsg* msg)
     }
 }
 
-void func_shelter_b2_main_corridor_8017E2D4(Task* arg0)
+static void func_shelter_b2_main_corridor_8017E2D4(Task* arg0)
 {
     arg0->msgTable = D_shelter_b2_main_corridor_80182C14;
     Game_SetPtrSlot(arg0, 7);
@@ -552,14 +552,14 @@ void func_shelter_b2_main_corridor_8017E2D4(Task* arg0)
 }
 
 /// The room task's idle state.
-void func_shelter_b2_main_corridor_8017E330(Task* arg0)
+static void func_shelter_b2_main_corridor_8017E330(Task* arg0)
 {
 }
 
 /// Runs one tick of the room task through the three-state table
 /// `D_shelter_b2_main_corridor_8017D5F0`, copying the table onto the stack and
 /// calling the entry for the task's current state.
-void func_shelter_b2_main_corridor_8017E338(Task* task)
+static void func_shelter_b2_main_corridor_8017E338(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -579,7 +579,7 @@ void func_shelter_b2_main_corridor_8017E338(Task* task)
 /// drawn in views 10 and 11 of stage 4, area 0x21. The per-surface values live
 /// in a work block pushed on the scratchpad stack for the duration of the call.
 /// Runs as the water task's second state; the task itself is not read.
-void func_shelter_b2_main_corridor_8017E390(Task* arg0)
+static void func_shelter_b2_main_corridor_8017E390(Task* arg0)
 {
     SVECTOR           v0, v1, v2, v3;
     s32               sxy0, sxy1, sxy2, sxy3;
@@ -733,7 +733,7 @@ void func_shelter_b2_main_corridor_8017EB8C(Task* task)
 
 /// First state of the water task: clears the session's `field_80` or
 /// `field_7E`, chosen by `Mc_SaveData.companionType`, and advances to the next state.
-void func_shelter_b2_main_corridor_8017EBF4(Task* arg0)
+static void func_shelter_b2_main_corridor_8017EBF4(Task* arg0)
 {
     if (Mc_SaveData.companionType == 0) {
         gGameSession->field_80 = 0;
@@ -743,7 +743,7 @@ void func_shelter_b2_main_corridor_8017EBF4(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-void func_shelter_b2_main_corridor_8017EC34(Task* arg0)
+static void func_shelter_b2_main_corridor_8017EC34(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
@@ -828,7 +828,7 @@ void func_shelter_b2_main_corridor_8017EC34(Task* arg0)
 /// first frame also turns the coordinate about Y by a random angle. The work
 /// block is released once the brightness falls under 2. Once the event state
 /// is non-zero it only draws, releasing the block from event state 4 on.
-void func_shelter_b2_main_corridor_8017EF24(Task* task)
+static void func_shelter_b2_main_corridor_8017EF24(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -866,7 +866,7 @@ void func_shelter_b2_main_corridor_8017EF24(Task* task)
 /// If the projection is valid, one semi-transparent `POLY_FT4` (tpage 0x2B,
 /// clut 0x43D1, UV 0,0x38 to 0x37,0x6F) is queued with all three colour
 /// channels set to `arg2`. The work block lives on the scratchpad stack.
-void func_shelter_b2_main_corridor_8017F078(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b2_main_corridor_8017F078(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -947,7 +947,7 @@ void func_shelter_b2_main_corridor_8017F078(GpCoord* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES(0x38);
 }
 
-void func_shelter_b2_main_corridor_8017F3AC(Task* task)
+static void func_shelter_b2_main_corridor_8017F3AC(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -1071,7 +1071,7 @@ void func_shelter_b2_main_corridor_8017F3AC(Task* task)
 /// as a square rotated by angle `arg3` about the projected point, with
 /// on-screen half-diagonal `(s16)arg2 * 31 / otz`. `arg1` picks the 32-texel
 /// frame at u = `arg1 * 32`, v 0xE0 to 0xFF.
-void func_shelter_b2_main_corridor_8017F860(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_shelter_b2_main_corridor_8017F860(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -1136,7 +1136,7 @@ void func_shelter_b2_main_corridor_8017F860(GpCoord* arg0, s32 arg1, s32 arg2, s
 /// as an axis-aligned square of half-side `r = (s16)arg2 * 55 / otz`, raised
 /// so the projected point sits three quarters of the way down it. `arg1` picks
 /// one of eight 56-texel frames in a grid four wide, starting at v 0x70.
-void func_shelter_b2_main_corridor_8017FC4C(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b2_main_corridor_8017FC4C(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -1228,7 +1228,7 @@ void func_shelter_b2_main_corridor_8017FC4C(GpCoord* arg0, s32 arg1, s32 arg2)
 /// the axis. `arg3` packs the colour: the red factor in bits 8-15 and the
 /// green and blue factors in bits 4 and 0, each multiplying an intensity that
 /// alternates between 0x20 and 0x28 with the display frame counter.
-void func_shelter_b2_main_corridor_8017FEE8(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_shelter_b2_main_corridor_8017FEE8(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     u8*                head;
     RoomDraw11Scratch* block;
@@ -1372,7 +1372,7 @@ void func_shelter_b2_main_corridor_8017FEE8(SVECTOR* arg0, s32 arg1, s32 arg2, s
 /// 40-texel frame at u = `arg1 * 40` and its clut `0x4380 | (arg1 & 0x3F)`.
 /// All three colour channels alternate between 0x20 and 0x30 with the display
 /// frame counter.
-void func_shelter_b2_main_corridor_801806D0(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b2_main_corridor_801806D0(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw25Scratch* block;
     POLY_FT4*          prim;
@@ -1420,7 +1420,7 @@ void func_shelter_b2_main_corridor_801806D0(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// frame until its brightness drops to 0x10. The work block is then released,
 /// as it is once the room's event state reaches 4; from event state 1 on the
 /// burst is no longer advanced or drawn.
-void func_shelter_b2_main_corridor_8018094C(Task* task)
+static void func_shelter_b2_main_corridor_8018094C(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -1487,7 +1487,7 @@ void func_shelter_b2_main_corridor_8018094C(Task* task)
 /// `POLY_G4` segments are queued between on-screen radii `(s16)arg1 * 64 /
 /// (otz + 1)` and `(s16)(arg1 + arg2) * 64 / (otz + 1)`, black at the first
 /// and coloured `rgb` at the second.
-void func_shelter_b2_main_corridor_80180BF0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_shelter_b2_main_corridor_80180BF0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -1546,7 +1546,7 @@ void func_shelter_b2_main_corridor_80180BF0(GpCoord* arg0, s32 arg1, s32 arg2, u
 /// `POLY_G4` wedges of on-screen radius `arg1 * 64 / (otz + 1)` are
 /// queued around the projected point, coloured `rgb` at the centre and black
 /// at the rim.
-void func_shelter_b2_main_corridor_8018101C(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_shelter_b2_main_corridor_8018101C(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -1602,7 +1602,7 @@ void func_shelter_b2_main_corridor_8018101C(GpCoord* arg0, s16 arg1, u8* rgb)
 /// through `func_shelter_b2_main_corridor_801818A0`. The work block is
 /// released once the age reaches the spawn argument; from the room's event
 /// state 2 on the effect is frozen.
-void func_shelter_b2_main_corridor_801813B0(Task* task)
+static void func_shelter_b2_main_corridor_801813B0(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -1701,7 +1701,7 @@ void func_shelter_b2_main_corridor_801813B0(Task* task)
 /// from intensity 0x40 at the newest slot by 9 per slot. `arg3` packs the
 /// colour: the red factor in bits 8 up and the green and blue factors in bits
 /// 4-5 and 0-1, each multiplying that intensity.
-void func_shelter_b2_main_corridor_801818A0(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_shelter_b2_main_corridor_801818A0(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
     GpCoord*           a;
@@ -1813,7 +1813,7 @@ void func_shelter_b2_main_corridor_801818A0(GpCoord* arg0, GpCoord* arg1, s16 ar
 /// orange. The work block is released once the age reaches 7, or
 /// when the room's event state reaches 4; from event state 1 on nothing is
 /// advanced or drawn.
-void func_shelter_b2_main_corridor_80181C98(Task* task)
+static void func_shelter_b2_main_corridor_80181C98(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;
@@ -1888,7 +1888,7 @@ void func_shelter_b2_main_corridor_80181C98(Task* task)
 /// radius `r / 2` at the full colour, and four spikes reaching out to `2 * r`
 /// at half the colour. Every wedge fades from its colour at the centre to
 /// black.
-void func_shelter_b2_main_corridor_80181F20(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b2_main_corridor_80181F20(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

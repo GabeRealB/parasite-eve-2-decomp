@@ -46,23 +46,23 @@ extern RoomHaloShade D_shelter_b2_north_maintenance_walkway_80183C38[];
 extern SVECTOR D_shelter_b2_north_maintenance_walkway_80183C4C[];
 extern SVECTOR D_shelter_b2_north_maintenance_walkway_80183C54;
 
-void func_shelter_b2_north_maintenance_walkway_8017E0DC(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b2_north_maintenance_walkway_8017E858(SVECTOR* arg0, s16 arg1);
-void func_shelter_b2_north_maintenance_walkway_8017EBB4(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b2_north_maintenance_walkway_8017F85C(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
-void func_shelter_b2_north_maintenance_walkway_8018081C(GpCoord* coord, s16 size);
-void func_shelter_b2_north_maintenance_walkway_80180D48(GpCoord* arg0, s32 arg1);
-void func_shelter_b2_north_maintenance_walkway_801810C0(GpCoord* arg0, s16 arg1, u8* arg2);
-void func_shelter_b2_north_maintenance_walkway_80181E58(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b2_north_maintenance_walkway_80182284(GpCoord* arg0, s16 arg1, u8* arg2);
-void func_shelter_b2_north_maintenance_walkway_80182B08(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-void func_shelter_b2_north_maintenance_walkway_80183188(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_b2_north_maintenance_walkway_8017E0DC(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b2_north_maintenance_walkway_8017E858(SVECTOR* arg0, s16 arg1);
+static void func_shelter_b2_north_maintenance_walkway_8017EBB4(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b2_north_maintenance_walkway_8017F85C(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
+static void func_shelter_b2_north_maintenance_walkway_8018081C(GpCoord* coord, s16 size);
+static void func_shelter_b2_north_maintenance_walkway_80180D48(GpCoord* arg0, s32 arg1);
+static void func_shelter_b2_north_maintenance_walkway_801810C0(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_b2_north_maintenance_walkway_80181E58(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_b2_north_maintenance_walkway_80182284(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_b2_north_maintenance_walkway_80182B08(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+static void func_shelter_b2_north_maintenance_walkway_80183188(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// The room's per-frame glow task. Its first tick sets the gameplay effect ids
 /// the room's effects use; every tick then draws the flares, discs and stars
 /// visible from the current camera view. One star turns from red to blue once
 /// flag 0xA8, the one the event gate writes for message 0x1D, is set.
-void func_shelter_b2_north_maintenance_walkway_8017DDE8(Task* arg0)
+static void func_shelter_b2_north_maintenance_walkway_8017DDE8(Task* arg0)
 {
     if (arg0->state == 0) {
         D_80115728  = 0x6024B;
@@ -147,7 +147,7 @@ void func_shelter_b2_north_maintenance_walkway_8017DDE8(Task* arg0)
 /// depth and turned by the angle `arg2`, joined by quads. The brightness
 /// alternates between 0x20 and 0x28 on successive frames. Nothing is drawn
 /// when the second point lies nearer than OTZ 0x11.
-void func_shelter_b2_north_maintenance_walkway_8017E0DC(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b2_north_maintenance_walkway_8017E0DC(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw11Scratch* block;
@@ -279,7 +279,7 @@ void func_shelter_b2_north_maintenance_walkway_8017E0DC(SVECTOR* arg0, s32 arg1,
 /// Queues a red gouraud disc of four quads at the projected point `arg0`, of
 /// radius `arg1` scaled by depth, its centre alternating between 0x20 and 0x28
 /// on successive frames. Nothing is drawn nearer than OTZ 0x11.
-void func_shelter_b2_north_maintenance_walkway_8017E858(SVECTOR* arg0, s16 arg1)
+static void func_shelter_b2_north_maintenance_walkway_8017E858(SVECTOR* arg0, s16 arg1)
 {
     u8*                head;
     RoomDraw25Scratch* block;
@@ -345,7 +345,7 @@ void func_shelter_b2_north_maintenance_walkway_8017E858(SVECTOR* arg0, s16 arg1)
 /// shift, then red, green and blue - and the frame counter's low bit, shifted
 /// by the first nibble, is added to every channel. Nothing is drawn when the
 /// projection overflows.
-void func_shelter_b2_north_maintenance_walkway_8017EBB4(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b2_north_maintenance_walkway_8017EBB4(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw05Scratch* block;
@@ -501,7 +501,7 @@ void func_shelter_b2_north_maintenance_walkway_8017EBB4(SVECTOR* arg0, s32 arg1,
 /// and draws it, and within eight ticks of its lifetime it fades out, releasing
 /// its work block once dark. It pauses while the room's event state is set
 /// and releases the block when that state reaches 4.
-void func_shelter_b2_north_maintenance_walkway_8017F590(Task* task)
+static void func_shelter_b2_north_maintenance_walkway_8017F590(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -585,7 +585,7 @@ void func_shelter_b2_north_maintenance_walkway_8017F590(Task* task)
 /// by depth; its top nibble picks the texture row and `arg1 & 3` the animation
 /// frame within it. The low byte of `arg3` is the grey level and its top nibble
 /// the palette. Nothing is drawn when the projection overflows.
-void func_shelter_b2_north_maintenance_walkway_8017F85C(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
+static void func_shelter_b2_north_maintenance_walkway_8017F85C(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -660,7 +660,7 @@ void func_shelter_b2_north_maintenance_walkway_8017F85C(GpCoord* arg0, u16 arg1,
 /// Queues a gouraud ring of sixteen quads around the projected world position
 /// of `arg0`: black at radius `arg1` and shaded `rgb` at radius `arg1 + arg2`,
 /// both scaled by depth. Nothing is drawn when the projection overflows.
-void func_shelter_b2_north_maintenance_walkway_8017FB20(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_shelter_b2_north_maintenance_walkway_8017FB20(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -714,7 +714,7 @@ void func_shelter_b2_north_maintenance_walkway_8017FB20(GpCoord* arg0, s32 arg1,
 /// Queues a gouraud disc of eight wedges around the projected world position
 /// of `arg0`, shaded `arg2` at the centre and black at the rim, of radius
 /// `arg1` scaled by depth. Nothing is drawn when the projection overflows.
-void func_shelter_b2_north_maintenance_walkway_8017FF44(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b2_north_maintenance_walkway_8017FF44(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -770,7 +770,7 @@ void func_shelter_b2_north_maintenance_walkway_8017FF44(GpCoord* arg0, s16 arg1,
 /// It then fades from full level through the afterglow, 0x10 a tick, and
 /// releases its work block. It pauses while the room's event state is set and
 /// releases the block when that state reaches 4.
-void func_shelter_b2_north_maintenance_walkway_801802D8(Task* arg0)
+static void func_shelter_b2_north_maintenance_walkway_801802D8(Task* arg0)
 {
     u8          rgb[3];
     GpEffWork*  mem;
@@ -858,7 +858,7 @@ kill:
 /// once the echo is gone the main level falls 0x18 a tick and the work block
 /// is released. It pauses while the room's event state is set and releases the
 /// block when that state reaches 4.
-void func_shelter_b2_north_maintenance_walkway_80180670(Task* arg0)
+static void func_shelter_b2_north_maintenance_walkway_80180670(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;
@@ -916,7 +916,7 @@ void func_shelter_b2_north_maintenance_walkway_80180670(Task* arg0)
 /// It also sets the `Gp_RoomCoords[2]` light at the glow's position with a
 /// flickering orange intensity. Nothing is drawn when the projection
 /// overflows.
-void func_shelter_b2_north_maintenance_walkway_8018081C(GpCoord* coord, s16 size)
+static void func_shelter_b2_north_maintenance_walkway_8018081C(GpCoord* coord, s16 size)
 {
     GpCoord        ground;
     POLY_FT4*      prim;
@@ -1045,7 +1045,7 @@ void func_shelter_b2_north_maintenance_walkway_8018081C(GpCoord* coord, s16 size
 /// horizontally at the world position of `arg0`, turned with the view. Its
 /// texture alternates between two 32-pixel frames on successive frames.
 /// Nothing is drawn when the projection overflows.
-void func_shelter_b2_north_maintenance_walkway_80180D48(GpCoord* arg0, s32 arg1)
+static void func_shelter_b2_north_maintenance_walkway_80180D48(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;
@@ -1133,7 +1133,7 @@ void func_shelter_b2_north_maintenance_walkway_80180D48(GpCoord* arg0, s32 arg1)
 /// scaled by depth, at half brightness, with a full-brightness disc of half the
 /// radius over it, plus four half-brightness spikes, two of them reaching twice
 /// the disc's radius. Nothing is drawn when the projection overflows.
-void func_shelter_b2_north_maintenance_walkway_801810C0(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b2_north_maintenance_walkway_801810C0(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -1256,7 +1256,7 @@ void func_shelter_b2_north_maintenance_walkway_801810C0(GpCoord* arg0, s16 arg1,
 /// outwards along that heading at 3/16 speed with a vertical velocity of -0x80
 /// per tick of age, then releases its work block. It pauses while the room's
 /// event state is set and releases the block when that state reaches 4.
-void func_shelter_b2_north_maintenance_walkway_80181A80(Task* arg0)
+static void func_shelter_b2_north_maintenance_walkway_80181A80(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -1296,7 +1296,7 @@ void func_shelter_b2_north_maintenance_walkway_80181A80(Task* arg0)
 /// the screen with one fade quad at full level, then fades through the
 /// afterglow, 0x10 a tick, and releases its work block. It pauses while the
 /// room's event state is set and releases the block when that state reaches 4.
-void func_shelter_b2_north_maintenance_walkway_80181BB4(Task* arg0)
+static void func_shelter_b2_north_maintenance_walkway_80181BB4(Task* arg0)
 {
     u8                rgb[3];
     GpEffWork*        mem;
@@ -1370,7 +1370,7 @@ kill:
 /// both scaled by depth. Nothing is drawn when the projection overflows. The
 /// same drawing as `func_shelter_b2_north_maintenance_walkway_8017FB20`, with
 /// its scratch block laid out differently.
-void func_shelter_b2_north_maintenance_walkway_80181E58(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_shelter_b2_north_maintenance_walkway_80181E58(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -1427,7 +1427,7 @@ void func_shelter_b2_north_maintenance_walkway_80181E58(GpCoord* arg0, s32 arg1,
 /// Queues a gouraud disc of eight wedges around the projected world position
 /// of `arg0`, shaded `arg2` at the centre and black at the rim, of radius
 /// `arg1` scaled by depth. Nothing is drawn when the projection overflows.
-void func_shelter_b2_north_maintenance_walkway_80182284(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b2_north_maintenance_walkway_80182284(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -1482,7 +1482,7 @@ void func_shelter_b2_north_maintenance_walkway_80182284(GpCoord* arg0, s16 arg1,
 /// between the rings as a beam. The work block is released once the tick count
 /// reaches the spawn argument. It idles while the room's event state is 2 or
 /// more.
-void func_shelter_b2_north_maintenance_walkway_80182618(Task* task)
+static void func_shelter_b2_north_maintenance_walkway_80182618(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -1579,7 +1579,7 @@ void func_shelter_b2_north_maintenance_walkway_80182618(Task* task)
 /// slots of both rings and dimmer the older it is. `arg3` packs the colour as
 /// three multipliers, at bits 8, 4 and 0. A quad whose projection overflows is
 /// skipped.
-void func_shelter_b2_north_maintenance_walkway_80182B08(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_shelter_b2_north_maintenance_walkway_80182B08(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
     GpCoord*           a;
@@ -1688,7 +1688,7 @@ void func_shelter_b2_north_maintenance_walkway_80182B08(GpCoord* arg0, GpCoord* 
 /// it draws a fixed ring and one widening by 0x30 a tick, both dimming by 0x20
 /// a tick. Either way it releases its work block after seven ticks. It pauses while the
 /// room's event state is set and releases the block when that state reaches 4.
-void func_shelter_b2_north_maintenance_walkway_80182F00(Task* task)
+static void func_shelter_b2_north_maintenance_walkway_80182F00(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;
@@ -1761,7 +1761,7 @@ void func_shelter_b2_north_maintenance_walkway_80182F00(Task* task)
 /// scaled by depth, at half brightness, with a full-brightness disc of half the
 /// radius over it, plus four half-brightness spikes, two of them reaching twice
 /// the disc's radius. Nothing is drawn when the projection overflows.
-void func_shelter_b2_north_maintenance_walkway_80183188(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b2_north_maintenance_walkway_80183188(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

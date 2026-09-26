@@ -61,7 +61,7 @@ s32 func_shelter_b3_dumping_hole_8017D870(void)
     return 0;
 }
 
-void func_shelter_b3_dumping_hole_8017D8A0(Task* arg0)
+static void func_shelter_b3_dumping_hole_8017D8A0(Task* arg0)
 {
     arg0->msgTable = D_shelter_b3_dumping_hole_80187574;
     Game_SetPtrSlot(arg0, 7);
@@ -85,7 +85,7 @@ void func_shelter_b3_dumping_hole_8017D8A0(Task* arg0)
 
 /// Empty function; the unused local reserves the 0x10-byte stack frame the
 /// original carries.
-void func_shelter_b3_dumping_hole_8017D998(void)
+static void func_shelter_b3_dumping_hole_8017D998(void)
 {
     char pad[0x10];
 }
@@ -93,13 +93,13 @@ void func_shelter_b3_dumping_hole_8017D998(void)
 /// State handlers of the room's controller task, run by
 /// `func_shelter_b3_dumping_hole_8017D9A8`: set-up, an idle state, and the
 /// kill.
-const TaskFuncTable3 D_shelter_b3_dumping_hole_8017D5C4 = { {
+static const TaskFuncTable3 D_shelter_b3_dumping_hole_8017D5C4 = { {
     func_shelter_b3_dumping_hole_8017D8A0,
     (TaskFunc)func_shelter_b3_dumping_hole_8017D998,
     taskKill,
 } };
 
-void func_shelter_b3_dumping_hole_8017D9A8(Task* task)
+static void func_shelter_b3_dumping_hole_8017D9A8(Task* task)
 {
     TaskFuncTable3 sp;
 

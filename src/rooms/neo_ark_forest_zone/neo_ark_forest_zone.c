@@ -54,13 +54,13 @@ extern GpFadeWork D_neo_ark_forest_zone_80182E30;
 extern SVECTOR D_neo_ark_forest_zone_80182094[];
 extern SVECTOR D_neo_ark_forest_zone_8018209C;
 
-void func_neo_ark_forest_zone_8017DA80(Task* arg0);
-void func_neo_ark_forest_zone_8017DB40(Task* arg0);
-void func_neo_ark_forest_zone_8017E074(GpCoord* arg0, s32 arg1, s16 arg2);
-void func_neo_ark_forest_zone_8017E6C4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_neo_ark_forest_zone_8017EAF0(GpCoord* arg0, s16 arg1, u8* rgb);
-void func_neo_ark_forest_zone_8017F374(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-void func_neo_ark_forest_zone_8017F9F4(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_neo_ark_forest_zone_8017DA80(Task* arg0);
+static void func_neo_ark_forest_zone_8017DB40(Task* arg0);
+static void func_neo_ark_forest_zone_8017E074(GpCoord* arg0, s32 arg1, s16 arg2);
+static void func_neo_ark_forest_zone_8017E6C4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_neo_ark_forest_zone_8017EAF0(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_neo_ark_forest_zone_8017F374(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+static void func_neo_ark_forest_zone_8017F9F4(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// The room's event task, spawned when the room latches an event. State 0 runs
 /// the event's CAP command; state 1 waits for it to finish and, when the event
@@ -223,7 +223,7 @@ void func_neo_ark_forest_zone_8017DA48(void)
 /// visit (`gGameSession->at4.loc.place == 1`) with flag 0xBD unset has the
 /// slot-4 task relay message 0x7DA carrying the first payload record. Then
 /// advances state.
-void func_neo_ark_forest_zone_8017DA80(Task* arg0)
+static void func_neo_ark_forest_zone_8017DA80(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_forest_zone_80181DC8;
     Game_SetPtrSlot(arg0, 7);
@@ -239,7 +239,7 @@ void func_neo_ark_forest_zone_8017DA80(Task* arg0)
 /// (`gGameSession->at4.loc.place == 1`) with flag 0xBD unset, sends message
 /// 0x7DB to the room's own task carrying its first payload record, then
 /// advances state.
-void func_neo_ark_forest_zone_8017DB40(Task* arg0)
+static void func_neo_ark_forest_zone_8017DB40(Task* arg0)
 {
     if (gGameSession->at4.loc.place == 1 && GameFlag_GetNibble(0xBD) == 0) {
         Gp_DispatchMsg(D_neo_ark_forest_zone_80181E68, 0x7DB, (s32)&D_neo_ark_forest_zone_80181E30, 0);
@@ -249,13 +249,13 @@ void func_neo_ark_forest_zone_8017DB40(Task* arg0)
 
 /// State 2 of the room setup task: does nothing until the task is killed. The
 /// unused local reproduces the original's stack frame.
-void func_neo_ark_forest_zone_8017DBAC(Task* task)
+static void func_neo_ark_forest_zone_8017DBAC(Task* task)
 {
     char pad[0x10];
 }
 
 /// State table of the room setup task, indexed by `Task::state`.
-const TaskFuncTable4 D_neo_ark_forest_zone_8017D5D8 = { {
+static const TaskFuncTable4 D_neo_ark_forest_zone_8017D5D8 = { {
     func_neo_ark_forest_zone_8017DA80,
     func_neo_ark_forest_zone_8017DB40,
     func_neo_ark_forest_zone_8017DBAC,
@@ -264,7 +264,7 @@ const TaskFuncTable4 D_neo_ark_forest_zone_8017D5D8 = { {
 
 /// The room setup task: runs the state handler its state selects, through a
 /// copy of the state table on the stack.
-void func_neo_ark_forest_zone_8017DBBC(Task* task)
+static void func_neo_ark_forest_zone_8017DBBC(Task* task)
 {
     TaskFuncTable4 sp;
 
@@ -280,7 +280,7 @@ void func_neo_ark_forest_zone_8017DBBC(Task* task)
 /// 0x80, and state 3 fades it out, drawn semi-transparent at `angle` as that
 /// counts back down, before releasing the work block. Until the fade it is
 /// drawn as an opaque textured quad.
-void func_neo_ark_forest_zone_8017DC20(Task* task)
+static void func_neo_ark_forest_zone_8017DC20(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -386,7 +386,7 @@ void func_neo_ark_forest_zone_8017DC20(Task* task)
 /// (tpage 0x2B, clut 0x4390, an 8x8 texel cell at (0, 0x28)) is queued, raw
 /// textured when `arg2` is zero and otherwise semi-transparent at grey level
 /// `arg2`.
-void func_neo_ark_forest_zone_8017E074(GpCoord* arg0, s32 arg1, s16 arg2)
+static void func_neo_ark_forest_zone_8017E074(GpCoord* arg0, s32 arg1, s16 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -474,7 +474,7 @@ void func_neo_ark_forest_zone_8017E074(GpCoord* arg0, s32 arg1, s16 arg2)
 /// Keeps `Gp_State1C->roomEffectMode` at 2 every frame and, on its first run,
 /// stores 0x601D9, 0x601F5 and 0x60211 in three gameplay globals; the values
 /// have the form `Gp_SpawnEff` takes as effect ids.
-void func_neo_ark_forest_zone_8017E3C0(Task* arg0)
+static void func_neo_ark_forest_zone_8017E3C0(Task* arg0)
 {
     Gp_State1C->roomEffectMode = 2;
     if (arg0->state == 0) {
@@ -492,7 +492,7 @@ void func_neo_ark_forest_zone_8017E3C0(Task* arg0)
 /// State 2 draws a star glow at three times the radius while the level falls
 /// back to 0x10, then releases the work block. While the room's event state is
 /// set it draws nothing, and releases the block once that reaches 4.
-void func_neo_ark_forest_zone_8017E420(Task* task)
+static void func_neo_ark_forest_zone_8017E420(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -559,7 +559,7 @@ void func_neo_ark_forest_zone_8017E420(Task* task)
 /// forming a ring between two radii, `arg1` and `arg1 + arg2` in world units
 /// scaled by depth. The edge at `arg1` is black and the edge at `arg1 + arg2`
 /// carries `rgb`, so the ring fades out towards `arg1`.
-void func_neo_ark_forest_zone_8017E6C4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_neo_ark_forest_zone_8017E6C4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -617,7 +617,7 @@ void func_neo_ark_forest_zone_8017E6C4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rg
 /// the GTE flag is non-negative, queues eight gouraud `POLY_G4` wedges filling
 /// a disc around the projected point, `rgb` at the centre and black at the rim.
 /// `arg1` is the radius in world units, scaled by depth.
-void func_neo_ark_forest_zone_8017EAF0(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_neo_ark_forest_zone_8017EAF0(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -671,7 +671,7 @@ void func_neo_ark_forest_zone_8017EAF0(GpCoord* arg0, s16 arg1, u8* rgb)
 /// re-derives all sixteen against the view and draws them. The task frees
 /// itself once its age reaches the spawn argument, and idles while the room's
 /// event state is 2 or more.
-void func_neo_ark_forest_zone_8017EE84(Task* task)
+static void func_neo_ark_forest_zone_8017EE84(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -770,7 +770,7 @@ void func_neo_ark_forest_zone_8017EE84(Task* task)
 /// colour, packed as red from bit 8 up, green in bits 4-5 and blue in bits
 /// 0-1, each multiplying that fade. A quad is dropped when `gte_stflg` is
 /// negative.
-void func_neo_ark_forest_zone_8017F374(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_neo_ark_forest_zone_8017F374(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
     GpCoord*           a;
@@ -879,7 +879,7 @@ void func_neo_ark_forest_zone_8017F374(GpCoord* arg0, GpCoord* arg1, s16 arg2, s
 /// of rings whose radius grows and brightness falls each frame (state 2).
 /// Either way the task reaches state 3 after seven frames and releases its
 /// work block, or earlier once the room's event state reaches 4.
-void func_neo_ark_forest_zone_8017F76C(Task* task)
+static void func_neo_ark_forest_zone_8017F76C(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;
@@ -953,7 +953,7 @@ void func_neo_ark_forest_zone_8017F76C(Task* task)
 /// intensity and half radius at full intensity, then four spikes a quarter
 /// turn apart, two reaching the full radius and two twice it. `arg1` sizes it
 /// in world units scaled by depth; every wedge fades to black at its rim.
-void func_neo_ark_forest_zone_8017F9F4(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_neo_ark_forest_zone_8017F9F4(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

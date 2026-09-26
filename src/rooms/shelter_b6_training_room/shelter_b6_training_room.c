@@ -32,7 +32,7 @@ extern Task* D_shelter_b6_training_room_80185C5C;
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
-void func_shelter_b6_training_room_8017DBB0(s32 arg0);
+static void func_shelter_b6_training_room_8017DBB0(s32 arg0);
 
 /// The room's handler for message 0x13F1, which does nothing and returns 0.
 s32 func_shelter_b6_training_room_8017D638(void)
@@ -98,7 +98,7 @@ s32 func_shelter_b6_training_room_8017D764(void)
     return 0;
 }
 
-void func_shelter_b6_training_room_8017D7D4(Task* arg0)
+static void func_shelter_b6_training_room_8017D7D4(Task* arg0)
 {
     u16* ptr;
     s32  i;
@@ -119,7 +119,7 @@ void func_shelter_b6_training_room_8017D7D4(Task* arg0)
     D_shelter_b6_training_room_80185C58 = 0;
 }
 
-void func_shelter_b6_training_room_8017D874(void)
+static void func_shelter_b6_training_room_8017D874(void)
 {
     u8 place;
 
@@ -132,13 +132,13 @@ void func_shelter_b6_training_room_8017D874(void)
 }
 
 /// State handlers of the room task: set-up, the per-frame tick and `taskKill`.
-const TaskFuncTable3 D_shelter_b6_training_room_8017D5C4 = {
+static const TaskFuncTable3 D_shelter_b6_training_room_8017D5C4 = {
     { func_shelter_b6_training_room_8017D7D4, func_shelter_b6_training_room_8017D874, taskKill },
 };
 
 /// Runs a task through the room's three-state table, copied onto the stack
 /// first and indexed by the task's state.
-void func_shelter_b6_training_room_8017D8E8(Task* task)
+static void func_shelter_b6_training_room_8017D8E8(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -232,7 +232,7 @@ void func_shelter_b6_training_room_8017DB70(void)
     SndEvt_EnqueueType7(0x80000000, 1);
 }
 
-void func_shelter_b6_training_room_8017DBB0(s32 arg0)
+static void func_shelter_b6_training_room_8017DBB0(s32 arg0)
 {
     D_shelter_b6_training_room_80185C5C = NULL;
 }

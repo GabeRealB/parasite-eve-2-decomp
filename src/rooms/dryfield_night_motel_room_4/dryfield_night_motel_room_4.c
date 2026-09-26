@@ -70,7 +70,7 @@ s32 func_dryfield_night_motel_room_4_8017D668(void)
 
 /// First state of the room task: publishes the room's message table, claims
 /// pointer slot 7 and advances to the next state.
-void func_dryfield_night_motel_room_4_8017D670(Task* task)
+static void func_dryfield_night_motel_room_4_8017D670(Task* task)
 {
     task->msgTable = D_dryfield_night_motel_room_4_8017DA48;
     Game_SetPtrSlot(task, 7);
@@ -78,18 +78,18 @@ void func_dryfield_night_motel_room_4_8017D670(Task* task)
 }
 
 /// Second state of the room task: nothing left to do but idle.
-void func_dryfield_night_motel_room_4_8017D6B4(Task* task)
+static void func_dryfield_night_motel_room_4_8017D6B4(Task* task)
 {
 }
 
 /// The room task's three states.
-const TaskFuncTable3 D_dryfield_night_motel_room_4_8017D5C4 = {
+static const TaskFuncTable3 D_dryfield_night_motel_room_4_8017D5C4 = {
     { func_dryfield_night_motel_room_4_8017D670, func_dryfield_night_motel_room_4_8017D6B4, taskKill },
 };
 
 /// The room task's callback: runs the state `Task::state` selects from a
 /// stack copy of `D_dryfield_night_motel_room_4_8017D5C4`.
-void func_dryfield_night_motel_room_4_8017D6BC(Task* task)
+static void func_dryfield_night_motel_room_4_8017D6BC(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -102,7 +102,7 @@ void func_dryfield_night_motel_room_4_8017D6BC(Task* task)
 /// `(s16)arg2 * 39 / otz`, textured from the 40-texel cell `(s16)arg1` of
 /// tpage 0x2B (clut `(arg1 & 0x3F) | 0x4380`) and shaded 0x20 or 0x30 on
 /// alternate frames. Points closer than OTZ 0x11 are skipped.
-void func_dryfield_night_motel_room_4_8017D714(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_night_motel_room_4_8017D714(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw25Scratch* block;
     POLY_FT4*          prim;
@@ -150,7 +150,7 @@ void func_dryfield_night_motel_room_4_8017D714(SVECTOR* arg0, s32 arg1, s32 arg2
 /// `jump.c` cross-jumps the trailing sprite calls into one tail here rather
 /// than two, because the view-5 group shares its first call with the view-2/3
 /// group.
-void func_dryfield_night_motel_room_4_8017D990(void)
+static void func_dryfield_night_motel_room_4_8017D990(void)
 {
     switch (gGameSession->at4.loc.view) {
         case 2:

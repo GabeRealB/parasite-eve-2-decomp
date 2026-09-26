@@ -87,7 +87,7 @@ s32 func_dryfield_night_cellar_8017D6F4(void)
 
 /// The room entry task's first state: installs the room's message table, hands
 /// the task to pointer slot 7 and moves on to the next state.
-void func_dryfield_night_cellar_8017D6FC(Task* task)
+static void func_dryfield_night_cellar_8017D6FC(Task* task)
 {
     task->msgTable = D_dryfield_night_cellar_8017DAA8;
     Game_SetPtrSlot(task, 7);
@@ -95,18 +95,18 @@ void func_dryfield_night_cellar_8017D6FC(Task* task)
 }
 
 /// The room entry task's idle state.
-void func_dryfield_night_cellar_8017D740(Task* task)
+static void func_dryfield_night_cellar_8017D740(Task* task)
 {
 }
 
 /// The room entry task's three states: set the room up, idle, end.
-const TaskFuncTable3 D_dryfield_night_cellar_8017D5C4 = {
+static const TaskFuncTable3 D_dryfield_night_cellar_8017D5C4 = {
     { func_dryfield_night_cellar_8017D6FC, func_dryfield_night_cellar_8017D740, taskKill },
 };
 
 /// Runs the room entry task's current state from its three-entry table, which
 /// it copies onto the stack before the call.
-void func_dryfield_night_cellar_8017D748(Task* task)
+static void func_dryfield_night_cellar_8017D748(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -121,7 +121,7 @@ void func_dryfield_night_cellar_8017D748(Task* task)
 /// wide texture column, `(s16)arg2` is the half-extent scaled by 39 / OTZ,
 /// and the grey level flickers between 0x20 and 0x30 with bit 0 of the
 /// display's animation frame. Works in a 0x10-byte scratchpad block.
-void func_dryfield_night_cellar_8017D7A0(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_night_cellar_8017D7A0(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw13Scratch* block;
     POLY_FT4*          prim;
@@ -173,7 +173,7 @@ void func_dryfield_night_cellar_8017D7A0(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// Per-frame effect: once event nibble 0x52 is 1, draws a glow sprite on each
 /// of the two points belonging to the current camera view
 /// (`gGameSession->at4.loc.view`), 2 or 3. Every other view draws nothing.
-void func_dryfield_night_cellar_8017DA28(void)
+static void func_dryfield_night_cellar_8017DA28(void)
 {
     u8 visit;
 

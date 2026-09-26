@@ -39,12 +39,12 @@ extern SVECTOR D_mine_secret_passage_80180F08[];
 /// selector the spawn argument carries.
 extern RoomHaloShade D_mine_secret_passage_80180F88[];
 
-void func_mine_secret_passage_8017DC84(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_mine_secret_passage_8017E4C8(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_mine_secret_passage_8017EB34(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
-void func_mine_secret_passage_8017FAF4(GpCoord* coord, s16 size);
-void func_mine_secret_passage_80180020(GpCoord* arg0, s32 arg1);
-void func_mine_secret_passage_80180398(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_mine_secret_passage_8017DC84(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_mine_secret_passage_8017E4C8(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_mine_secret_passage_8017EB34(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
+static void func_mine_secret_passage_8017FAF4(GpCoord* coord, s16 size);
+static void func_mine_secret_passage_80180020(GpCoord* arg0, s32 arg1);
+static void func_mine_secret_passage_80180398(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// Publishes this passage's four emitter ids on the task's first tick - the
 /// `D_8011573C` / `D_80115744` / `D_80115728` / `D_80115720` slots take
@@ -54,7 +54,7 @@ void func_mine_secret_passage_80180398(GpCoord* arg0, s16 arg1, u8* arg2);
 /// `func_mine_secret_passage_8017DC84` glow (half-extent 0x200-0x280, colour
 /// 0x444 except view 6's 0x44) or a `func_mine_secret_passage_8017E4C8` disc
 /// (half-extent 0x200 or 0x400, colour 0x421 or 0x444).
-void func_mine_secret_passage_8017D9D4(Task* arg0)
+static void func_mine_secret_passage_8017D9D4(Task* arg0)
 {
     if (arg0->state == 0) {
         D_80115728  = 0x60242;
@@ -135,7 +135,7 @@ void func_mine_secret_passage_8017D9D4(Task* arg0)
 /// gouraud `POLY_G4`s: a wedge of each end and the band between them. The lit
 /// vertices take the colour packed in `arg2`, four bits per channel (R, G, B
 /// from high to low nibble), with the frame counter's low bit as a flicker.
-void func_mine_secret_passage_8017DC84(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_mine_secret_passage_8017DC84(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**                   scratch;
     u8*                      head;
@@ -282,7 +282,7 @@ void func_mine_secret_passage_8017DC84(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// is `(s16)arg1 * 64 / otz`. `arg2` packs the centre vertex's colour, four
 /// bits per channel (R, G, B from high to low nibble), with the frame
 /// counter's low bit as a flicker; the rim is black.
-void func_mine_secret_passage_8017E4C8(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_mine_secret_passage_8017E4C8(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**             scratch;
     u8*                head;
@@ -361,7 +361,7 @@ void func_mine_secret_passage_8017E4C8(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// tick. State 1 brightens while young, state 2 holds its brightness; both fade
 /// over their last eight ticks of lifetime and release the work block once
 /// dark, or as soon as the room's event state reaches 4.
-void func_mine_secret_passage_8017E868(Task* task)
+static void func_mine_secret_passage_8017E868(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -448,7 +448,7 @@ void func_mine_secret_passage_8017E868(Task* task)
 /// `extent * 23 / (otz + 1)`. The low byte of `arg3` is the grey level on all
 /// three channels and its top nibble picks the CLUT on row 0x10B: column
 /// `nibble * 16 + 0xF0`, or 0xB0 when the nibble is zero.
-void func_mine_secret_passage_8017EB34(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
+static void func_mine_secret_passage_8017EB34(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -526,7 +526,7 @@ void func_mine_secret_passage_8017EB34(GpCoord* arg0, u16 arg1, u16 arg2, u16 ar
 /// width; on-screen radii are `(s16)arg1 * 64 / (otz + 1)` and
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`. The RGB triple tints the edge at the
 /// second radius, and each wedge fades to black at the first.
-void func_mine_secret_passage_8017EDF8(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_mine_secret_passage_8017EDF8(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -582,7 +582,7 @@ void func_mine_secret_passage_8017EDF8(GpCoord* arg0, s32 arg1, s32 arg2, u8* rg
 /// the projected centre. `arg1` is a signed half-extent; the on-screen radius
 /// is `(s16)arg1 * 64 / (otz + 1)`. The RGB triple in `rgb` lights only the
 /// centre vertex so each wedge fades to black.
-void func_mine_secret_passage_8017F21C(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_mine_secret_passage_8017F21C(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -639,7 +639,7 @@ void func_mine_secret_passage_8017F21C(GpCoord* arg0, s16 arg1, u8* rgb)
 /// block. The shade row `D_mine_secret_passage_80180F88[index]` tints each
 /// channel. The block is also released as soon as the room's event state
 /// reaches 4.
-void func_mine_secret_passage_8017F5B0(Task* arg0)
+static void func_mine_secret_passage_8017F5B0(Task* arg0)
 {
     u8          rgb[3];
     GpEffWork*  mem;
@@ -730,7 +730,7 @@ kill:
 /// which fades 0x18 a tick; once the echo is gone the main level fades 0x18 a
 /// tick and the work block is released when it drops below 0x18, or as soon
 /// as the room's event state reaches 4.
-void func_mine_secret_passage_8017F948(Task* arg0)
+static void func_mine_secret_passage_8017F948(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;
@@ -789,7 +789,7 @@ void func_mine_secret_passage_8017F948(Task* arg0)
 /// outer one's CLUT. It also switches the `Gp_RoomCoords[2]` light on at the
 /// coordinate with a randomly flickering intensity. Nothing is drawn when the
 /// GTE flags the projection.
-void func_mine_secret_passage_8017FAF4(GpCoord* coord, s16 size)
+static void func_mine_secret_passage_8017FAF4(GpCoord* coord, s16 size)
 {
     GpCoord        ground;
     POLY_FT4*      prim;
@@ -921,7 +921,7 @@ void func_mine_secret_passage_8017FAF4(GpCoord* coord, s16 size)
 /// 0x428C) coloured `(0x30, 0x20, 0x20)`. The frame counter picks between two
 /// 0x1F-wide UV columns: `u` is `(animFrame & 1) * 32` plus 0xC0 / 0xDF, at
 /// v = 0x38..0x57. Works in a `GpQuadScratch` block on the scratch stack.
-void func_mine_secret_passage_80180020(GpCoord* arg0, s32 arg1)
+static void func_mine_secret_passage_80180020(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;
@@ -1012,7 +1012,7 @@ void func_mine_secret_passage_80180020(GpCoord* arg0, s32 arg1)
 /// `(s16)arg1 * 64 / (otz + 1)` (outer) and `(s16)arg1 * 8 / (otz + 1)`
 /// (inner). Only the centre vertex is tinted, so each wedge fades to a black
 /// rim.
-void func_mine_secret_passage_80180398(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_mine_secret_passage_80180398(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -1135,7 +1135,7 @@ void func_mine_secret_passage_80180398(GpCoord* arg0, s16 arg1, u8* arg2)
 /// a Y of `-age * 0x80`, and spawns the `D_80115728` effect at the task's
 /// coordinate. Releases the work block after 0x15 ticks, or as soon as the
 /// room's event state reaches 4.
-void func_mine_secret_passage_80180D58(Task* arg0)
+static void func_mine_secret_passage_80180D58(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;

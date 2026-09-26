@@ -95,14 +95,14 @@ extern u8 D_dryfield_main_street_8018562C;
 /// or forgotten.
 extern Task* D_dryfield_main_street_80185630;
 
-void func_dryfield_main_street_8017E0D8(Task* task);
-void func_dryfield_main_street_8017E158(Task* task);
-void func_dryfield_main_street_8017E4A4(s32 arg0);
-void func_dryfield_main_street_8017EA88(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_dryfield_main_street_8017F18C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_dryfield_main_street_8017F5B8(GpCoord* arg0, s16 arg1, u8* rgb);
-void func_dryfield_main_street_8017FE3C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-void func_dryfield_main_street_801804BC(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_dryfield_main_street_8017E0D8(Task* task);
+static void func_dryfield_main_street_8017E158(Task* task);
+static void func_dryfield_main_street_8017E4A4(s32 arg0);
+static void func_dryfield_main_street_8017EA88(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_dryfield_main_street_8017F18C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_dryfield_main_street_8017F5B8(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_dryfield_main_street_8017FE3C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+static void func_dryfield_main_street_801804BC(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// The room's own event task, spawned by its message handler. State 0 runs
 /// the latched event's CAP command; state 1 waits for it to finish and, when
@@ -161,7 +161,7 @@ void func_dryfield_main_street_8017D600(Task* arg0)
 /// request are latched, the nibble is written, the event task is spawned and
 /// the answer is 2. A non-zero `field_5` on the message only reports the
 /// answer, with none of the side effects.
-s32 func_dryfield_main_street_8017D798(RoomEventReq* req, RoomEventMsg* msg)
+static s32 func_dryfield_main_street_8017D798(RoomEventReq* req, RoomEventMsg* msg)
 {
     s32 flag;
     s32 id;
@@ -263,7 +263,7 @@ void func_dryfield_main_street_8017D8FC(Task* task)
 }
 
 /// The room entry task's three states: set the room up, idle, end.
-const TaskFuncTable3 D_dryfield_main_street_8017D5F4 = {
+static const TaskFuncTable3 D_dryfield_main_street_8017D5F4 = {
     { func_dryfield_main_street_8017E0D8, func_dryfield_main_street_8017E158, taskKill },
 };
 
@@ -489,7 +489,7 @@ s32 func_dryfield_main_street_8017E05C(Task* task, s32 msgId, GpMsg13EF* msg, s3
 /// The room entry task's first state: installs the room's message table,
 /// hands the task to pointer slot 7, raises `D_80115598` and, until nibble
 /// 0x5F is set, sends message 0x7DA to the task in pointer slot 4.
-void func_dryfield_main_street_8017E0D8(Task* task)
+static void func_dryfield_main_street_8017E0D8(Task* task)
 {
     task->msgTable = D_dryfield_main_street_80180EA0;
     Game_SetPtrSlot(task, 7);
@@ -501,14 +501,14 @@ void func_dryfield_main_street_8017E0D8(Task* task)
 }
 
 /// The room entry task's idle state; it only opens and closes a stack frame.
-void func_dryfield_main_street_8017E158(Task* task)
+static void func_dryfield_main_street_8017E158(Task* task)
 {
     char pad[0x10];
 }
 
 /// Runs the room entry task's current state from its three-entry table, which
 /// it copies onto the stack before the call.
-void func_dryfield_main_street_8017E168(Task* task)
+static void func_dryfield_main_street_8017E168(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -643,7 +643,7 @@ void func_dryfield_main_street_8017E3A8(Task* task)
 
 /// Forgets the task `func_dryfield_main_street_8017E320` spawned, without
 /// killing it. The argument is unused; its caller passes 0.
-void func_dryfield_main_street_8017E4A4(s32 arg0)
+static void func_dryfield_main_street_8017E4A4(s32 arg0)
 {
     D_dryfield_main_street_80185630 = 0;
 }
@@ -653,7 +653,7 @@ void func_dryfield_main_street_8017E4A4(s32 arg0)
 /// `roomEffectMode`. In view 8 it spawns 0x30 randomly placed 0x601B1 effects
 /// on entering the view, and one more on each run with bit 0 of `gDisplayState.animFrame`
 /// set while it stays. `spawnArg1` holds the view seen on the previous run.
-void func_dryfield_main_street_8017E4B0(Task* task)
+static void func_dryfield_main_street_8017E4B0(Task* task)
 {
     s32 i;
 
@@ -691,7 +691,7 @@ void func_dryfield_main_street_8017E4B0(Task* task)
 /// normalises it and scales it by `step` (bits 16-23 of `spawnArg1`,
 /// default 0x40). Every `period` frames (bits 12-14, default 1) the tile
 /// advances; after tile 9 the spark releases itself.
-void func_dryfield_main_street_8017E830(Task* task)
+static void func_dryfield_main_street_8017E830(Task* task)
 {
     GpEffWork* work  = task->spawnArg2;
     GpCoord*   coord = task->extra.tmd->coords;
@@ -761,7 +761,7 @@ void func_dryfield_main_street_8017E830(Task* task)
 /// signed half-extent; the on-screen radius is `(s16)arg2 * 47 / otz`.
 /// `arg3` is the spin angle, applied at `arg3` and `arg3 + 0x400` through
 /// `rsin`/`rcos`.
-void func_dryfield_main_street_8017EA88(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_dryfield_main_street_8017EA88(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**             scratch;
     u8*                head;
@@ -848,7 +848,7 @@ void func_dryfield_main_street_8017EA88(GpCoord* arg0, s32 arg1, s32 arg2, s32 a
 /// the tint to `Gp_DrawFadeQuad`, and state 2 fades a two-ring glow back out
 /// before the work block is released. The task also ends when the room's event
 /// state reaches 4.
-void func_dryfield_main_street_8017EEE8(Task* task)
+static void func_dryfield_main_street_8017EEE8(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -914,7 +914,7 @@ void func_dryfield_main_street_8017EEE8(Task* task)
 /// position, when it projects. The ring runs from radius
 /// `(s16)arg1 * 64 / (otz + 1)`, which is black, to
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`, which takes the colour `rgb`.
-void func_dryfield_main_street_8017F18C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_dryfield_main_street_8017F18C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -973,7 +973,7 @@ void func_dryfield_main_street_8017F18C(GpCoord* arg0, s32 arg1, s32 arg2, u8* r
 /// the projected centre. `arg1` is a signed half-extent; the on-screen radius
 /// is `arg1 * 64 / (otz + 1)`. The RGB triple in `rgb` lights only the
 /// inner vertex so each wedge fades to black.
-void func_dryfield_main_street_8017F5B8(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_dryfield_main_street_8017F5B8(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -1028,7 +1028,7 @@ void func_dryfield_main_street_8017F5B8(GpCoord* arg0, s16 arg1, u8* rgb)
 /// the trails with `func_dryfield_main_street_8017FE3C`. The work block is
 /// released after `spawnArg1` frames. Nothing runs once the room's event state
 /// reaches 2.
-void func_dryfield_main_street_8017F94C(Task* task)
+static void func_dryfield_main_street_8017F94C(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -1126,7 +1126,7 @@ void func_dryfield_main_street_8017F94C(Task* task)
 /// `0x40 - 9 * i` and the trailing edge by nine less. `arg3` is the beam
 /// colour, three 2-bit channels at bits 8, 4 and 0 that each multiply that
 /// fade. Dropped when `gte_stflg` is negative.
-void func_dryfield_main_street_8017FE3C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_dryfield_main_street_8017FE3C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
     GpCoord*           a;
@@ -1235,7 +1235,7 @@ void func_dryfield_main_street_8017FE3C(GpCoord* arg0, GpCoord* arg1, s16 arg2, 
 /// seven frames, or two 0x6007C effects and a widening, fading double ring for
 /// seven frames; then the work block is released. The task also ends when the
 /// room's event state reaches 4.
-void func_dryfield_main_street_80180234(Task* task)
+static void func_dryfield_main_street_80180234(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;
@@ -1309,7 +1309,7 @@ void func_dryfield_main_street_80180234(Task* task)
 /// are `(s16)arg1 * 64 / (otz + 1)` (outer) and `(s16)arg1 * 8 / (otz + 1)`
 /// (inner). The RGB triple tints the inner vertex of the inner ring at full
 /// brightness and the outer ring at half, so each wedge fades to a black rim.
-void func_dryfield_main_street_801804BC(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_dryfield_main_street_801804BC(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

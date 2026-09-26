@@ -61,7 +61,7 @@ extern u8 D_dryfield_breezeway_801843A4;
 /// nibble is written, the event task is spawned and
 /// `D_dryfield_breezeway_801843A4` is raised, for 2. A non-zero `field_5` on
 /// the message asks what would happen and suppresses all of those effects.
-s32 func_dryfield_breezeway_8017D638(RoomEventReq* req, RoomEventMsg* msg)
+static s32 func_dryfield_breezeway_8017D638(RoomEventReq* req, RoomEventMsg* msg)
 {
     s32 flag;
     s32 id;
@@ -327,7 +327,7 @@ void func_dryfield_breezeway_8017DCE4(Task* task)
     }
 }
 
-void func_dryfield_breezeway_8017DDB0(Task* task)
+static void func_dryfield_breezeway_8017DDB0(Task* task)
 {
     GpCmdArg msg;
 
@@ -344,14 +344,14 @@ void func_dryfield_breezeway_8017DDB0(Task* task)
     D_dryfield_breezeway_801843A8 = NULL;
 }
 
-void func_dryfield_breezeway_8017DE60(Task* task)
+static void func_dryfield_breezeway_8017DE60(Task* task)
 {
 }
 
 /// State handlers of the room's message task, indexed by its state through
 /// `func_dryfield_breezeway_8017DE68`: publish the message table, idle, then
 /// kill.
-const TaskFuncTable3 D_dryfield_breezeway_8017D5DC = {
+static const TaskFuncTable3 D_dryfield_breezeway_8017D5DC = {
     { func_dryfield_breezeway_8017DDB0, func_dryfield_breezeway_8017DE60, taskKill }
 };
 
@@ -360,7 +360,7 @@ const TaskFuncTable3 D_dryfield_breezeway_8017D5DC = {
 /// (`func_dryfield_breezeway_8017DE60`) and `taskKill`. The table is copied
 /// onto the stack first, so the call goes through a local copy rather than the
 /// rodata.
-void func_dryfield_breezeway_8017DE68(Task* task)
+static void func_dryfield_breezeway_8017DE68(Task* task)
 {
     TaskFuncTable3 sp;
 

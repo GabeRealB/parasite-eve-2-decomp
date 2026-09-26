@@ -66,7 +66,7 @@ s32 func_dryfield_night_motel_room_2_8017D668(void)
 
 /// State 0 of the room's event task: installs the room's message table, puts
 /// the task in pointer slot 7 and moves on to state 1.
-void func_dryfield_night_motel_room_2_8017D670(Task* task)
+static void func_dryfield_night_motel_room_2_8017D670(Task* task)
 {
     task->msgTable = D_dryfield_night_motel_room_2_8017DA1C;
     Game_SetPtrSlot(task, 7);
@@ -74,13 +74,13 @@ void func_dryfield_night_motel_room_2_8017D670(Task* task)
 }
 
 /// The event task's per-frame state: nothing to do.
-void func_dryfield_night_motel_room_2_8017D6B4(Task* task)
+static void func_dryfield_night_motel_room_2_8017D6B4(Task* task)
 {
 }
 
 /// The event task's three states: set-up, the idle per-frame state, and the
 /// kill.
-const TaskFuncTable3 D_dryfield_night_motel_room_2_8017D5C4 = {
+static const TaskFuncTable3 D_dryfield_night_motel_room_2_8017D5C4 = {
     {
         func_dryfield_night_motel_room_2_8017D670,
         func_dryfield_night_motel_room_2_8017D6B4,
@@ -90,7 +90,7 @@ const TaskFuncTable3 D_dryfield_night_motel_room_2_8017D5C4 = {
 
 /// Runs the room's event task through its three-state table, which it copies
 /// onto the stack before the call.
-void func_dryfield_night_motel_room_2_8017D6BC(Task* task)
+static void func_dryfield_night_motel_room_2_8017D6BC(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -105,7 +105,7 @@ void func_dryfield_night_motel_room_2_8017D6BC(Task* task)
 /// half-extent, scaled on screen by 39 / OTZ. The grey level alternates between
 /// 0x20 and 0x30 with bit 0 of the display's animation frame. Works in a
 /// 0xC-byte scratchpad block.
-void func_dryfield_night_motel_room_2_8017D714(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_night_motel_room_2_8017D714(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw25Scratch* block;
     POLY_FT4*          prim;
@@ -148,7 +148,7 @@ void func_dryfield_night_motel_room_2_8017D714(SVECTOR* arg0, s32 arg1, s32 arg2
 /// `gGameSession->at4.loc.view` selects - visits 2 and 3 a pair at one point,
 /// 5 and 6 a single one at another. Visits outside those ranges draw nothing.
 /// `jump.c` cross-jumps the two trailing disc-draw calls into one tail.
-void func_dryfield_night_motel_room_2_8017D990(void)
+static void func_dryfield_night_motel_room_2_8017D990(void)
 {
     switch (gGameSession->at4.loc.view) {
         case 2:

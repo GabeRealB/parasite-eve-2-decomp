@@ -47,7 +47,7 @@ s32 func_dryfield_night_r08_8017D628(void)
 /// pointer slot 7, places the stream buffer 0x20000 bytes into `D_8005C370`
 /// and, unless `Mc_SaveData.demoScene` is 9, passes `D_80133898` and `D_801341E0` to
 /// `func_800E8634`. Then advances to the idle state.
-void func_dryfield_night_r08_8017D630(Task* arg0)
+static void func_dryfield_night_r08_8017D630(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_r08_80180544;
     Game_SetPtrSlot(arg0, 7);
@@ -60,19 +60,19 @@ void func_dryfield_night_r08_8017D630(Task* arg0)
 
 /// The room task's idle state, entry 1 of its three-state table: does nothing.
 /// The 0x10-byte local is never used, but the original reserved the frame.
-void func_dryfield_night_r08_8017D6B0(Task* task)
+static void func_dryfield_night_r08_8017D6B0(Task* task)
 {
     char pad[0x10];
 }
 
 /// The room task's three states: set up, idle, then `taskKill`.
-const TaskFuncTable3 D_dryfield_night_r08_8017D5C4 = {
+static const TaskFuncTable3 D_dryfield_night_r08_8017D5C4 = {
     { func_dryfield_night_r08_8017D630, func_dryfield_night_r08_8017D6B0, taskKill },
 };
 
 /// The room task: copies its three-state table onto the stack and runs the
 /// entry for the task's current state.
-void func_dryfield_night_r08_8017D6C0(Task* task)
+static void func_dryfield_night_r08_8017D6C0(Task* task)
 {
     TaskFuncTable3 sp;
 

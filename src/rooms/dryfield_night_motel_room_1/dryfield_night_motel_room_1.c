@@ -64,7 +64,7 @@ s32 func_dryfield_night_motel_room_1_8017D688(void)
 
 /// First state of the room task: publishes the room's message table, claims
 /// pointer slot 7 and advances to the next state.
-void func_dryfield_night_motel_room_1_8017D690(Task* task)
+static void func_dryfield_night_motel_room_1_8017D690(Task* task)
 {
     task->msgTable = D_dryfield_night_motel_room_1_8017DA2C;
     Game_SetPtrSlot(task, 7);
@@ -72,18 +72,18 @@ void func_dryfield_night_motel_room_1_8017D690(Task* task)
 }
 
 /// Second state of the room task: the room has nothing to do each frame.
-void func_dryfield_night_motel_room_1_8017D6D4(Task* task)
+static void func_dryfield_night_motel_room_1_8017D6D4(Task* task)
 {
 }
 
 /// The room task's three states.
-const TaskFuncTable3 D_dryfield_night_motel_room_1_8017D5C4 = {
+static const TaskFuncTable3 D_dryfield_night_motel_room_1_8017D5C4 = {
     { func_dryfield_night_motel_room_1_8017D690, func_dryfield_night_motel_room_1_8017D6D4, taskKill },
 };
 
 /// The room task's callback: runs the state `Task::state` selects from a
 /// stack copy of `D_dryfield_night_motel_room_1_8017D5C4`.
-void func_dryfield_night_motel_room_1_8017D6DC(Task* task)
+static void func_dryfield_night_motel_room_1_8017D6DC(Task* task)
 {
     TaskFuncTable3 sp;
 

@@ -109,7 +109,7 @@ s32 func_neo_ark_r31_8017D904(void)
 /// Room task state 0: installs the message table, claims pointer slot 7,
 /// sets `CdCmd_Queue.field_22A` to 2 and starts the room script with
 /// `func_800E8634`. Advances to state 1.
-void func_neo_ark_r31_8017D90C(Task* arg0)
+static void func_neo_ark_r31_8017D90C(Task* arg0)
 {
     CdCmdQueue* queue;
 
@@ -122,7 +122,7 @@ void func_neo_ark_r31_8017D90C(Task* arg0)
 }
 
 /// Room task state 1: stores 2 into `CdCmd_Queue.field_22A` every tick.
-void func_neo_ark_r31_8017D980(Task* task)
+static void func_neo_ark_r31_8017D980(Task* task)
 {
     CdCmd_Queue.field_22A = 2;
 }
@@ -130,7 +130,7 @@ void func_neo_ark_r31_8017D980(Task* task)
 /// State handlers of the room task `func_neo_ark_r31_8017D990`, indexed by
 /// `Task::state`: the set-up tick, the tick that stores 2 into `CdCmd_Queue.field_22A`,
 /// and `taskKill`.
-const TaskFuncTable3 D_neo_ark_r31_8017D5C4 = {
+static const TaskFuncTable3 D_neo_ark_r31_8017D5C4 = {
     {
         func_neo_ark_r31_8017D90C,
         func_neo_ark_r31_8017D980,
@@ -139,7 +139,7 @@ const TaskFuncTable3 D_neo_ark_r31_8017D5C4 = {
 };
 
 /// Room task: dispatches through a stack copy of its state table.
-void func_neo_ark_r31_8017D990(Task* task)
+static void func_neo_ark_r31_8017D990(Task* task)
 {
     TaskFuncTable3 sp;
 

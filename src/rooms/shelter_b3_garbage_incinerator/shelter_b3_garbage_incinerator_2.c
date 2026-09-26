@@ -90,18 +90,18 @@ extern u8        D_shelter_b3_garbage_incinerator_8018FC5C;
 extern s32       D_shelter_b3_garbage_incinerator_80187278;
 extern s32       D_shelter_b3_garbage_incinerator_8018727C;
 
-void func_shelter_b3_garbage_incinerator_8017F0A8(Task* arg0);
-void func_shelter_b3_garbage_incinerator_8017F930(s32 arg0);
-void func_shelter_b3_garbage_incinerator_8017F968(void);
-s32  func_shelter_b3_garbage_incinerator_8017FD64(s16 arg0, s16 arg1, s32 arg2);
-s32  func_shelter_b3_garbage_incinerator_8017FE74(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
-s16  func_shelter_b3_garbage_incinerator_801808A8(u16* arg0);
-s16  func_shelter_b3_garbage_incinerator_80180B18(u16* arg0);
-s16  func_shelter_b3_garbage_incinerator_80180C28(u16* arg0, s32 arg1);
-s16  func_shelter_b3_garbage_incinerator_80180D44(u16* arg0);
-s32  func_shelter_b3_garbage_incinerator_80180EC4(s32 arg0);
-void func_shelter_b3_garbage_incinerator_80180994(void);
-s32  func_shelter_b3_garbage_incinerator_80180E0C(u16* arg0);
+void        func_shelter_b3_garbage_incinerator_8017F0A8(Task* arg0);
+void        func_shelter_b3_garbage_incinerator_8017F930(s32 arg0);
+void        func_shelter_b3_garbage_incinerator_8017F968(void);
+static s32  func_shelter_b3_garbage_incinerator_8017FD64(s16 arg0, s16 arg1, s32 arg2);
+static s32  func_shelter_b3_garbage_incinerator_8017FE74(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+static s16  func_shelter_b3_garbage_incinerator_801808A8(u16* arg0);
+static s16  func_shelter_b3_garbage_incinerator_80180B18(u16* arg0);
+static s16  func_shelter_b3_garbage_incinerator_80180C28(u16* arg0, s32 arg1);
+static s16  func_shelter_b3_garbage_incinerator_80180D44(u16* arg0);
+static s32  func_shelter_b3_garbage_incinerator_80180EC4(s32 arg0);
+static void func_shelter_b3_garbage_incinerator_80180994(void);
+static s32  func_shelter_b3_garbage_incinerator_80180E0C(u16* arg0);
 
 /// Work block of the task in `D_shelter_b3_garbage_incinerator_8018FC3C`.
 /// `wave` is the ramp context handed to the screen-wave task, which the fade
@@ -144,7 +144,7 @@ extern GpEffArg D_shelter_b3_garbage_incinerator_80186F90;
 /// display object's coordinate array.
 extern u16 D_shelter_b3_garbage_incinerator_80186F98[];
 
-s32          func_shelter_b3_garbage_incinerator_8017F318(Task* arg0);
+static s32   func_shelter_b3_garbage_incinerator_8017F318(Task* arg0);
 extern Task* D_shelter_b3_garbage_incinerator_8018FC3C;
 
 /// Main-executable global with no module header yet: the base animation-set
@@ -156,7 +156,7 @@ extern u8               D_80114CF8;
 
 /// Task table entry spawned once when the controller starts.
 extern TaskDesc D_shelter_b3_garbage_incinerator_80187184;
-void            func_shelter_b3_garbage_incinerator_8017FB80(void);
+static void     func_shelter_b3_garbage_incinerator_8017FB80(void);
 
 extern TaskDesc D_shelter_b3_garbage_incinerator_80187190;
 
@@ -247,7 +247,7 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
 /// event intro in view 0x28), then jitters the sent height by 10 for 16 frames. Every frame it sends
 /// the target task a pose built from its model's height, and returns 1 once
 /// the sequence is over.
-s16 func_shelter_b3_garbage_incinerator_8017DF24(Task* arg0)
+static s16 func_shelter_b3_garbage_incinerator_8017DF24(Task* arg0)
 {
     GpXformArg    msg;
     _DescentWork* work  = arg0->work;
@@ -798,7 +798,7 @@ void func_shelter_b3_garbage_incinerator_8017F0A8(Task* arg0)
 /// else the entry plus 0x2F is recorded in `field_38` and sent with message
 /// 0x3E8. The set's block is `Player_Status.weapon + 1` when `Mc_SaveData.characterId` is 1 and
 /// `Player_Status.weapon + 0x22` otherwise.
-s32 func_shelter_b3_garbage_incinerator_8017F318(Task* arg0)
+static s32 func_shelter_b3_garbage_incinerator_8017F318(Task* arg0)
 {
     GarbageIncineratorWork* work = (GarbageIncineratorWork*)arg0->work;
     GarbageIncineratorWork* msgWork;
@@ -886,7 +886,7 @@ void func_shelter_b3_garbage_incinerator_8017F410(Task* arg0)
 /// with the task itself and steps to state 1. State 1 returns 1 while
 /// `gGameSession->eventState` is clear; every other path calls
 /// `func_shelter_b3_garbage_incinerator_8017F318` with the task and returns 0.
-s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
+static s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
 {
     GarbageIncineratorWork* work = (GarbageIncineratorWork*)arg0->work;
     GarbageIncineratorWork* msgWork;
@@ -1092,7 +1092,7 @@ void func_shelter_b3_garbage_incinerator_8017FA58(Task* task, s32 arg1)
 /// Draws the caption line the running script is on, when a script is
 /// running, the line is not the terminator and the caption system is idle,
 /// followed by the "more text" caret unless the line holds itself on screen.
-void func_shelter_b3_garbage_incinerator_8017FB80(void)
+static void func_shelter_b3_garbage_incinerator_8017FB80(void)
 {
     if ((D_shelter_b3_garbage_incinerator_8018FC48 != NULL) &&
         (D_shelter_b3_garbage_incinerator_8018FC48[D_shelter_b3_garbage_incinerator_8018FC52].field_8 != -1) &&
@@ -1110,7 +1110,7 @@ void func_shelter_b3_garbage_incinerator_8017FB80(void)
 /// script pointers of its event records and its pointer table) and keeps its
 /// glyph table and script table for the caption code. Returns 0 when the file
 /// does not start with "CAP".
-s32 func_shelter_b3_garbage_incinerator_8017FC5C(GpCapFile* file)
+static s32 func_shelter_b3_garbage_incinerator_8017FC5C(GpCapFile* file)
 {
     s32            i;
     s32            count;
@@ -1167,7 +1167,7 @@ s32 func_shelter_b3_garbage_incinerator_8017FC5C(GpCapFile* file)
 /// Starts caption script `arg0` at the first line keyed `arg1` and caches that
 /// line's metrics; `arg2` is kept alongside them. Returns 1 when the script
 /// table has no such script, 0 once it is started.
-s32 func_shelter_b3_garbage_incinerator_8017FD64(s16 arg0, s16 arg1, s32 arg2)
+static s32 func_shelter_b3_garbage_incinerator_8017FD64(s16 arg0, s16 arg1, s32 arg2)
 {
     GpEvt12* caption;
     s16      entry;
@@ -1188,7 +1188,7 @@ s32 func_shelter_b3_garbage_incinerator_8017FD64(s16 arg0, s16 arg1, s32 arg2)
     return 0;
 }
 
-s32 func_shelter_b3_garbage_incinerator_8017FE74(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+static s32 func_shelter_b3_garbage_incinerator_8017FE74(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     u16*       text;
     u16*       body;
@@ -1383,7 +1383,7 @@ s32 func_shelter_b3_garbage_incinerator_8017FE74(s32 arg0, s32 arg1, s32 arg2, s
 /// the first `-2` adds its height (the tallest glyph's `h + 2`, or 2 when empty)
 /// and the total is subtracted from `D_shelter_b3_garbage_incinerator_8018FC50`. Gameplay's
 /// `Gp_CapTextTopY` is the same walk against a fixed 0xD0.
-s16 func_shelter_b3_garbage_incinerator_801808A8(u16* arg0)
+static s16 func_shelter_b3_garbage_incinerator_801808A8(u16* arg0)
 {
     s16  lineH     = 0;
     s16  total     = 0;
@@ -1417,7 +1417,7 @@ s16 func_shelter_b3_garbage_incinerator_801808A8(u16* arg0)
 
 /// Draws the pulsing "more text" caret, a Gouraud triangle whose grey level
 /// swings between 9 and 15, once the caption's initial delay has run out.
-void func_shelter_b3_garbage_incinerator_80180994(void)
+static void func_shelter_b3_garbage_incinerator_80180994(void)
 {
     POLY_G3* prim;
     s32      c1;
@@ -1464,7 +1464,7 @@ void func_shelter_b3_garbage_incinerator_80180994(void)
 /// running maximum, `-3` and `0x8400`-masked codes indent it by 3 and 0x10, and
 /// each glyph code (non-negative, `& 0x3FF` indexing `D_shelter_b3_garbage_incinerator_8018FC44`)
 /// advances it by that glyph's `w - 1`.
-s16 func_shelter_b3_garbage_incinerator_80180B18(u16* text)
+static s16 func_shelter_b3_garbage_incinerator_80180B18(u16* text)
 {
     s16 lineW = 0;
     s16 maxW  = 0;
@@ -1499,7 +1499,7 @@ s16 func_shelter_b3_garbage_incinerator_80180B18(u16* text)
 /// Same walk as `func_actor_215100_8014C06C`, but keeps the width of the
 /// selected line instead of the widest; gameplay's `Gp_CapCenterXLine`
 /// compiles to the same bytes.
-s16 func_shelter_b3_garbage_incinerator_80180C28(u16* arg0, s32 arg1)
+static s16 func_shelter_b3_garbage_incinerator_80180C28(u16* arg0, s32 arg1)
 {
     s16 lineW;
     s16 selectedW;
@@ -1540,7 +1540,7 @@ s16 func_shelter_b3_garbage_incinerator_80180C28(u16* arg0, s32 arg1)
 /// Total height of the caption text `arg0`: each `-2` line break adds the
 /// height of the line it closes (its tallest glyph plus 2, or 2 for an empty
 /// line), and `-1` ends the text.
-s16 func_shelter_b3_garbage_incinerator_80180D44(u16* arg0)
+static s16 func_shelter_b3_garbage_incinerator_80180D44(u16* arg0)
 {
     s32                 lineH;
     s32                 i;
@@ -1599,7 +1599,7 @@ s16 func_shelter_b3_garbage_incinerator_80180D44(u16* arg0)
 /// 0xD, and any other negative code is stepped over like a glyph without
 /// touching the maximum. A maximum still at 0 — the stream opened with `-2` —
 /// comes back as 2.
-s32 func_shelter_b3_garbage_incinerator_80180E0C(u16* arg0)
+static s32 func_shelter_b3_garbage_incinerator_80180E0C(u16* arg0)
 {
     s32                 height;
     s32                 i;
@@ -1657,7 +1657,7 @@ s32 func_shelter_b3_garbage_incinerator_80180E0C(u16* arg0)
 
 /// Index of the first line at or after `arg0` in the running caption script
 /// whose key is the requested one, or of the script's terminator.
-s32 func_shelter_b3_garbage_incinerator_80180EC4(s32 arg0)
+static s32 func_shelter_b3_garbage_incinerator_80180EC4(s32 arg0)
 {
     s32      flag;
     s32      id;
@@ -1729,7 +1729,7 @@ void func_shelter_b3_garbage_incinerator_80180FE4(s16 arg0, s16 arg1, s16 arg2)
 
 /// Starts caption script `arg0` at line key `arg1` and spawns the caption
 /// display task that shows it for `arg2` frames.
-void func_shelter_b3_garbage_incinerator_80181038(s16 arg0, s16 arg1, s16 arg2)
+static void func_shelter_b3_garbage_incinerator_80181038(s16 arg0, s16 arg1, s16 arg2)
 {
     func_shelter_b3_garbage_incinerator_8017FD64(arg0, arg1, 0xD0);
     Display_InitModeObj(&D_shelter_b3_garbage_incinerator_8018719C, arg2, 0, 0);

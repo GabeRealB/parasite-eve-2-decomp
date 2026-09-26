@@ -100,18 +100,18 @@ STATIC_ASSERT_SIZEOF(MistR18SpriteSpawn, 0x8);
 s32  func_8017A038(void);
 void func_80179FC8(s32 arg0, s32 arg1);
 
-void func_mist_r18_8017D960(Task* task);
-void func_mist_r18_8017DBB8(s32 shade, s32 arg1);
-void func_mist_r18_8017DD7C(Task* task);
-void func_mist_r18_8017E320(Task* task);
-void func_mist_r18_8017E39C(Task* task);
-void func_mist_r18_8017E448(MistR18Sprite* sprite);
-void func_mist_r18_8017E534(MistR18Sprite* sprite, u32 clutX, s32 clutY);
-void func_mist_r18_8017E654(s16 abr, s16 x, s16 y, s32 otIdx);
-void func_mist_r18_8017E8B8(Task* task);
-void func_mist_r18_8017E92C(Task* task);
-void func_mist_r18_8017E994(s32 tpage, s16 arg1);
-void func_mist_r18_8017ECF4(Task* arg0);
+static void func_mist_r18_8017D960(Task* task);
+static void func_mist_r18_8017DBB8(s32 shade, s32 arg1);
+static void func_mist_r18_8017DD7C(Task* task);
+static void func_mist_r18_8017E320(Task* task);
+static void func_mist_r18_8017E39C(Task* task);
+static void func_mist_r18_8017E448(MistR18Sprite* sprite);
+static void func_mist_r18_8017E534(MistR18Sprite* sprite, u32 clutX, s32 clutY);
+static void func_mist_r18_8017E654(s16 abr, s16 x, s16 y, s32 otIdx);
+static void func_mist_r18_8017E8B8(Task* task);
+static void func_mist_r18_8017E92C(Task* task);
+static void func_mist_r18_8017E994(s32 tpage, s16 arg1);
+static void func_mist_r18_8017ECF4(Task* arg0);
 
 extern s8 D_801156F9;
 
@@ -144,20 +144,20 @@ extern s32 D_mist_r18_80186EA0;
 /// State handlers of the attached-model task `func_mist_r18_8017E2C8`
 /// dispatches: attach to the parent's part, an empty idle state, then
 /// `taskKill`.
-const TaskFuncTable3 D_mist_r18_8017D5C4 = {
+static const TaskFuncTable3 D_mist_r18_8017D5C4 = {
     { func_mist_r18_8017E320, func_mist_r18_8017E39C, taskKill },
 };
 
 /// State handlers of the room's cutscene task `func_mist_r18_8017ED64`
 /// dispatches: set-up, the cutscene step, then `taskKill`.
-const TaskFuncTable3 D_mist_r18_8017D5D0 = {
+static const TaskFuncTable3 D_mist_r18_8017D5D0 = {
     { func_mist_r18_8017ECF4, func_mist_r18_8017D960, taskKill },
 };
 
 /// State handlers of the backdrop task `func_mist_r18_8017E854` dispatches:
 /// blit the backdrop into the framebuffer, fade it in, fade it out, then
 /// `taskKill`.
-const TaskFuncTable4 D_mist_r18_8017D5DC = {
+static const TaskFuncTable4 D_mist_r18_8017D5DC = {
     { func_mist_r18_8017DD7C, func_mist_r18_8017E8B8, func_mist_r18_8017E92C, taskKill },
 };
 
@@ -263,7 +263,7 @@ kill:
 /// `D_mist_r18_80186E9C` holds. At step 4 it branches on `func_8017A038`,
 /// setting `D_mist_r18_80186EA0` and staying on that step when the alternate
 /// script runs.
-void func_mist_r18_8017D960(Task* task)
+static void func_mist_r18_8017D960(Task* task)
 {
     s32 state;
 
@@ -338,7 +338,7 @@ void func_mist_r18_8017DA8C(Task* task)
 /// the sprite code - shade-texture (0x65) while the fade is ramping in,
 /// semi-transparent (0x66) otherwise - and `arg1` is the grey level written
 /// into all three colour channels.
-void func_mist_r18_8017DBB8(s32 shade, s32 arg1)
+static void func_mist_r18_8017DBB8(s32 shade, s32 arg1)
 {
     SPRT*     sprt;
     DR_TPAGE* tp;
@@ -389,7 +389,7 @@ void func_mist_r18_8017DBB8(s32 shade, s32 arg1)
 /// two framebuffer halves, bracketing both `MoveImage`s with STP writes so the
 /// copied pixels keep their mask bit. The source row depends on which display
 /// buffer is live, then the task advances a state.
-void func_mist_r18_8017DD7C(Task* task)
+static void func_mist_r18_8017DD7C(Task* task)
 {
     RECT     rect;
     DR_STP*  stp;
@@ -441,7 +441,7 @@ void func_mist_r18_8017DD7C(Task* task)
 /// tinting both with `shade`. Which display buffer is live shifts the source
 /// rows in the off-screen staging area, so both the sprites' `v` texcoord and
 /// the tpage row handed to `func_mist_r18_8017E994` move with it.
-void func_mist_r18_8017DF80(s32 shade)
+static void func_mist_r18_8017DF80(s32 shade)
 {
     SPRT* p;
     s16   tpageY;
@@ -493,7 +493,7 @@ void func_mist_r18_8017DF80(s32 shade)
 
 /// Redraw the room's two backdrop halves as semi-transparent `SPRT`s in OT
 /// slot 8, tinting both with `shade`, then append each half's tpage.
-void func_mist_r18_8017E144(s16 shade)
+static void func_mist_r18_8017E144(s16 shade)
 {
     SPRT* p;
 
@@ -547,7 +547,7 @@ void func_mist_r18_8017E2C8(Task* task)
 /// `Task::spawnArg2`: parent the coordinate system to that part's, share the
 /// parent's light and colour matrices, reparent the task under it and step
 /// past the set-up state.
-void func_mist_r18_8017E320(Task* task)
+static void func_mist_r18_8017E320(Task* task)
 {
     Task*      parent;
     s32        part;
@@ -571,7 +571,7 @@ void func_mist_r18_8017E320(Task* task)
 }
 
 /// Idle state of the attached-model task: nothing to do until it is killed.
-void func_mist_r18_8017E39C(Task* task)
+static void func_mist_r18_8017E39C(Task* task)
 {
 }
 
@@ -604,7 +604,7 @@ void func_mist_r18_8017E3A4(Task* task)
 }
 
 /// Emit the sprite's screen rectangle as a flat-shaded `TILE` into OT slot 5.
-void func_mist_r18_8017E448(MistR18Sprite* sprite)
+static void func_mist_r18_8017E448(MistR18Sprite* sprite)
 {
     TILE* tile;
 
@@ -630,7 +630,7 @@ void func_mist_r18_8017E448(MistR18Sprite* sprite)
 
 /// Emit the sprite's screen rectangle as a textured `SPRT` into OT slot 4,
 /// with the CLUT taken from the framebuffer position `clutX`/`clutY`.
-void func_mist_r18_8017E534(MistR18Sprite* sprite, u32 clutX, s32 clutY)
+static void func_mist_r18_8017E534(MistR18Sprite* sprite, u32 clutX, s32 clutY)
 {
     SPRT* p;
     u8    v;
@@ -660,7 +660,7 @@ void func_mist_r18_8017E534(MistR18Sprite* sprite, u32 clutX, s32 clutY)
 }
 
 /// Append a `DR_TPAGE` for the given tpage to OT slot `otIdx`.
-void func_mist_r18_8017E654(s16 abr, s16 x, s16 y, s32 otIdx)
+static void func_mist_r18_8017E654(s16 abr, s16 x, s16 y, s32 otIdx)
 {
     DR_TPAGE* dr;
 
@@ -736,7 +736,7 @@ void func_mist_r18_8017E854(Task* task)
 }
 
 /// Fade the room in. `Task::killCountdown` is reused as the 0..0x80 fade level.
-void func_mist_r18_8017E8B8(Task* task)
+static void func_mist_r18_8017E8B8(Task* task)
 {
     u16 fade;
 
@@ -754,7 +754,7 @@ void func_mist_r18_8017E8B8(Task* task)
 /// Fade the room back out eight levels a frame, driving both backdrop redraws
 /// with complementary shades, and advance the task's state once the level
 /// bottoms out. `Task::killCountdown` holds the level.
-void func_mist_r18_8017E92C(Task* task)
+static void func_mist_r18_8017E92C(Task* task)
 {
     u16 fade;
 
@@ -770,7 +770,7 @@ void func_mist_r18_8017E92C(Task* task)
 
 /// Append a 15-bit, ABR-1 `DR_TPAGE` for VRAM origin (`tpage`, `arg1`) to OT
 /// slot 8.
-void func_mist_r18_8017E994(s32 tpage, s16 arg1)
+static void func_mist_r18_8017E994(s32 tpage, s16 arg1)
 {
     DR_TPAGE* p;
     s32       y;
@@ -878,7 +878,7 @@ void func_mist_r18_8017ECCC(void)
     func_80179FC8(0, D_mist_r18_80186EA0);
 }
 
-void func_mist_r18_8017ECF4(Task* arg0)
+static void func_mist_r18_8017ECF4(Task* arg0)
 {
     D_mist_r18_80186E90 = 0;
     D_mist_r18_80186E94 = 0;
@@ -893,7 +893,7 @@ void func_mist_r18_8017ECF4(Task* arg0)
 /// selects from `D_mist_r18_8017D5D0` (set-up, the cutscene step
 /// `func_mist_r18_8017D960`, then `taskKill`), copied onto the stack each
 /// frame.
-void func_mist_r18_8017ED64(Task* task)
+static void func_mist_r18_8017ED64(Task* task)
 {
     TaskFuncTable3 sp;
 

@@ -57,33 +57,12 @@ u16* func_shelter_b1_underground_parking_8017F80C(s32 mode);
 /// Resets both action-prompt slots and steps the caller on one state.
 void func_shelter_b1_underground_parking_801848BC(Task* task);
 
-/// Marks every hotspot of `table` under (`x`, `y`) as hit; answers whether any
-/// was.
-s32 func_shelter_b1_underground_parking_80184964(OverlayHotspot* table, s16 x, s16 y);
-
 /// Glow markers the room's view handler draws at world-space points.
 void func_shelter_b1_underground_parking_80184C54(SVECTOR* pos, s32 size, s32 angle, s32 tint);
-void func_shelter_b1_underground_parking_8018543C(SVECTOR* pos, s32 size, s32 tint);
-void func_shelter_b1_underground_parking_80185A94(SVECTOR* pos, s32 speed, s32 size);
-void func_shelter_b1_underground_parking_80185F08(SVECTOR* pos, s32 speed, s32 size);
 
 /// Flag tested as zero / non-zero when drawing the room's view-dependent
 /// markers: it selects 0x180 or 0x60 as the second argument of their draw
 /// calls. Its meaning is unproven.
 extern u16 D_shelter_b1_underground_parking_8018D78C;
-
-void func_shelter_b1_underground_parking_8018390C(void);
-
-void func_shelter_b1_underground_parking_801848A4(void);
-
-void func_shelter_b1_underground_parking_801857E0(s16 x, s16 y, s16 radius, s16 color);
-
-void func_shelter_b1_underground_parking_80186890(s16 arg0);
-
-/// Looks up the low nibble of `D_shelter_b1_underground_parking_8018D788` in
-/// the byte table `D_shelter_b1_underground_parking_801876C4`, stores the
-/// result as the current room (both `Mc_SaveData.at4.loc.room` and the session's
-/// `at4.loc.room`) and flags the room objects for relinking.
-void func_shelter_b1_underground_parking_8018491C(void);
 
 #endif // ROOMS_SHELTER_B1_UNDERGROUND_PARKING_H

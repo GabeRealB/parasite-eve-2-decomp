@@ -86,34 +86,34 @@ extern SVECTOR D_shelter_b4_upper_sewer_8018657C;
 /// disc's brightness.
 extern s16 D_shelter_b4_upper_sewer_80186584[][3];
 
-void func_shelter_b4_upper_sewer_8017DBA8(Task* task);
-void func_shelter_b4_upper_sewer_8017DC28(Task* task);
-void func_shelter_b4_upper_sewer_8017DD98(Task* task, ShelterB4UpperSewerSurface* e, s16 y, u8 c);
-void func_shelter_b4_upper_sewer_8017E55C(Task* arg0);
-void func_shelter_b4_upper_sewer_8017E59C(s32 arg0);
-void func_shelter_b4_upper_sewer_8017EA0C(GpCoord* arg0, s32 arg1, s32 arg2);
-void func_shelter_b4_upper_sewer_8017F1FC(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_shelter_b4_upper_sewer_8017F5E8(GpCoord* arg0, s16 arg1, s16 arg2);
-void func_shelter_b4_upper_sewer_8017F8CC(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b4_upper_sewer_801803DC(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
-void func_shelter_b4_upper_sewer_8018139C(GpCoord* coord, s16 size);
-void func_shelter_b4_upper_sewer_801818C8(GpCoord* arg0, s32 arg1);
-void func_shelter_b4_upper_sewer_80181C40(GpCoord* arg0, s16 arg1, u8* arg2);
-void func_shelter_b4_upper_sewer_801829D8(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b4_upper_sewer_80182E04(GpCoord* arg0, s16 arg1, u8* arg2);
-void func_shelter_b4_upper_sewer_80183688(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-void func_shelter_b4_upper_sewer_80183D08(GpCoord* arg0, s16 arg1, u8* arg2);
-void func_shelter_b4_upper_sewer_80184E44(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_shelter_b4_upper_sewer_801850C8(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b4_upper_sewer_801854EC(GpCoord* arg0, s16 arg1, u8* rgb);
-void func_shelter_b4_upper_sewer_80185A2C(GpCoord* coord, s16 size);
-void func_shelter_b4_upper_sewer_80185F58(GpCoord* arg0, s32 arg1);
+static void func_shelter_b4_upper_sewer_8017DBA8(Task* task);
+static void func_shelter_b4_upper_sewer_8017DC28(Task* task);
+static void func_shelter_b4_upper_sewer_8017DD98(Task* task, ShelterB4UpperSewerSurface* e, s16 y, u8 c);
+static void func_shelter_b4_upper_sewer_8017E55C(Task* arg0);
+static void func_shelter_b4_upper_sewer_8017E59C(s32 arg0);
+static void func_shelter_b4_upper_sewer_8017EA0C(GpCoord* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b4_upper_sewer_8017F1FC(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_shelter_b4_upper_sewer_8017F5E8(GpCoord* arg0, s16 arg1, s16 arg2);
+static void func_shelter_b4_upper_sewer_8017F8CC(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b4_upper_sewer_801803DC(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
+static void func_shelter_b4_upper_sewer_8018139C(GpCoord* coord, s16 size);
+static void func_shelter_b4_upper_sewer_801818C8(GpCoord* arg0, s32 arg1);
+static void func_shelter_b4_upper_sewer_80181C40(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_b4_upper_sewer_801829D8(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_b4_upper_sewer_80182E04(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_b4_upper_sewer_80183688(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+static void func_shelter_b4_upper_sewer_80183D08(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_b4_upper_sewer_80184E44(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_shelter_b4_upper_sewer_801850C8(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_b4_upper_sewer_801854EC(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_shelter_b4_upper_sewer_80185A2C(GpCoord* coord, s16 size);
+static void func_shelter_b4_upper_sewer_80185F58(GpCoord* arg0, s32 arg1);
 
 /// State handlers of the task `func_shelter_b4_upper_sewer_8017DC30` runs,
 /// which copies the table to the stack and calls the entry for the task's
 /// state: the room's setup (message table, pointer slot, water level), an idle
 /// state, and `taskKill`.
-const TaskFuncTable3 D_shelter_b4_upper_sewer_8017D5C4 = {
+static const TaskFuncTable3 D_shelter_b4_upper_sewer_8017D5C4 = {
     { func_shelter_b4_upper_sewer_8017DBA8, func_shelter_b4_upper_sewer_8017DC28, taskKill }
 };
 
@@ -290,7 +290,7 @@ void func_shelter_b4_upper_sewer_8017DB94(void)
     Mc_SaveData.at4.loc.view = D_shelter_b4_upper_sewer_80188D2C;
 }
 
-void func_shelter_b4_upper_sewer_8017DBA8(Task* task)
+static void func_shelter_b4_upper_sewer_8017DBA8(Task* task)
 {
     task->msgTable = D_shelter_b4_upper_sewer_801862D0;
     Game_SetPtrSlot(task, 7);
@@ -303,11 +303,11 @@ void func_shelter_b4_upper_sewer_8017DBA8(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-void func_shelter_b4_upper_sewer_8017DC28(Task* task)
+static void func_shelter_b4_upper_sewer_8017DC28(Task* task)
 {
 }
 
-void func_shelter_b4_upper_sewer_8017DC30(Task* task)
+static void func_shelter_b4_upper_sewer_8017DC30(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -319,7 +319,7 @@ void func_shelter_b4_upper_sewer_8017DC30(Task* task)
 /// `D_shelter_b4_upper_sewer_80186438` to -0x640..0, publishes it as the
 /// session's water height, and draws the surfaces of the current camera view at
 /// that height, in a blue that brightens as the level moves away from 0.
-void func_shelter_b4_upper_sewer_8017DC88(Task* task)
+static void func_shelter_b4_upper_sewer_8017DC88(Task* task)
 {
     s16 w;
     u8  c;
@@ -353,7 +353,7 @@ void func_shelter_b4_upper_sewer_8017DC88(Task* task)
 /// depth, and those the projection flags as invalid are skipped. The
 /// per-surface values live in a work block pushed on the scratchpad stack for
 /// the duration of the call. `task` is unused.
-void func_shelter_b4_upper_sewer_8017DD98(Task* task, ShelterB4UpperSewerSurface* e, s16 y, u8 c)
+static void func_shelter_b4_upper_sewer_8017DD98(Task* task, ShelterB4UpperSewerSurface* e, s16 y, u8 c)
 {
     SVECTOR           v0, v1, v2, v3;
     s32               sxy0, sxy1, sxy2, sxy3;
@@ -476,7 +476,7 @@ void func_shelter_b4_upper_sewer_8017E4F4(Task* task)
     gGameSession->waterY = D_shelter_b4_upper_sewer_80186438;
 }
 
-void func_shelter_b4_upper_sewer_8017E55C(Task* arg0)
+static void func_shelter_b4_upper_sewer_8017E55C(Task* arg0)
 {
     if (Mc_SaveData.companionType == 0) {
         gGameSession->field_80 = 0;
@@ -489,7 +489,7 @@ void func_shelter_b4_upper_sewer_8017E55C(Task* arg0)
 /// Sets or clears `field_4` of the second sprite command in view 13 of the
 /// current room's sprite table, from the low byte of `arg0` (zero clears it,
 /// anything else sets it to 1).
-void func_shelter_b4_upper_sewer_8017E59C(s32 arg0)
+static void func_shelter_b4_upper_sewer_8017E59C(s32 arg0)
 {
     GpAreaKey* sess = &gGameSession->at4.loc;
     GpSprtCmd* cmd;
@@ -509,7 +509,7 @@ void func_shelter_b4_upper_sewer_8017E59C(s32 arg0)
 /// `D_shelter_b4_upper_sewer_801864F0[12]`, and writing that address off the
 /// array (rather than through its own symbol) is what keeps view 4's array
 /// base live across the first call while the shared tail is cross-jumped.
-void func_shelter_b4_upper_sewer_8017E5F8(Task* arg0)
+static void func_shelter_b4_upper_sewer_8017E5F8(Task* arg0)
 {
     if (arg0->state == 0) {
         if (GameFlag_GetNibble(0xB7) == 1) {
@@ -586,7 +586,7 @@ void func_shelter_b4_upper_sewer_8017E5F8(Task* arg0)
 /// grows the size by 0x20 and dims the brightness by 2, releasing the effect
 /// once the brightness falls under 2. While `Gp_State1C->eventState` is
 /// non-zero it only redraws at the current values, and releases from state 4.
-void func_shelter_b4_upper_sewer_8017E8B8(Task* task)
+static void func_shelter_b4_upper_sewer_8017E8B8(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -623,7 +623,7 @@ void func_shelter_b4_upper_sewer_8017E8B8(Task* task)
 /// moved to its position, then projected through `GsWSMATRIX`. Queues one
 /// semi-transparent textured quad (tpage 0x2B, clut 0x43D1) shaded grey at
 /// `arg2`, unless the projection flags an error.
-void func_shelter_b4_upper_sewer_8017EA0C(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b4_upper_sewer_8017EA0C(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -714,7 +714,7 @@ void func_shelter_b4_upper_sewer_8017EA0C(GpCoord* arg0, s32 arg1, s32 arg2)
 /// gravity pulling it down, and releases the task after animation frame 7.
 /// While an event runs it only draws, and is released once the event state
 /// reaches 4.
-void func_shelter_b4_upper_sewer_8017ED40(Task* task)
+static void func_shelter_b4_upper_sewer_8017ED40(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -839,7 +839,7 @@ void func_shelter_b4_upper_sewer_8017ED40(Task* task)
 /// 32-texel-wide frame at U `arg1 * 32` in the strip at V 0xE0..0xFF, `arg2` is
 /// the size (a screen half-extent of `arg2 * 31 / otz`) and `arg3` the angle
 /// the corners are turned by.
-void func_shelter_b4_upper_sewer_8017F1FC(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_shelter_b4_upper_sewer_8017F1FC(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -904,7 +904,7 @@ void func_shelter_b4_upper_sewer_8017F1FC(GpCoord* arg0, s32 arg1, s32 arg2, s32
 /// half-extent of `arg2 * 55 / otz`; the quad is that wide on each side and
 /// stands on the point, reaching one and a half extents above it and half an
 /// extent below.
-void func_shelter_b4_upper_sewer_8017F5E8(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_shelter_b4_upper_sewer_8017F5E8(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     GpRingScratch* block;
     POLY_FT4*      prim;
@@ -947,7 +947,7 @@ void func_shelter_b4_upper_sewer_8017F5E8(GpCoord* arg0, s16 arg1, s16 arg2)
 /// black at the rim, in two 0x400 steps around the angle between the projected
 /// points. `arg2` is the colour as three 4-bit channels (0xRGB), brightened
 /// slightly on odd frames.
-void func_shelter_b4_upper_sewer_8017F8CC(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b4_upper_sewer_8017F8CC(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**                   scratch;
     u8*                      head;
@@ -1088,7 +1088,7 @@ void func_shelter_b4_upper_sewer_8017F8CC(SVECTOR* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES(0x1C);
 }
 
-void func_shelter_b4_upper_sewer_80180110(Task* task)
+static void func_shelter_b4_upper_sewer_80180110(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -1174,7 +1174,7 @@ void func_shelter_b4_upper_sewer_80180110(Task* task)
 /// screen half-extent of `size * 23 / (otz + 1)`. The low byte of `arg3` is the
 /// grey level it is shaded with, and its top nibble picks the palette on CLUT
 /// row 0x10B (column 0xB0 when zero).
-void func_shelter_b4_upper_sewer_801803DC(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
+static void func_shelter_b4_upper_sewer_801803DC(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -1250,7 +1250,7 @@ void func_shelter_b4_upper_sewer_801803DC(GpCoord* arg0, u16 arg1, u16 arg2, u16
 /// `GsWSMATRIX`, unless the projection flags an error: sixteen gouraud quads,
 /// black at screen radius `arg1 * 64 / (otz + 1)` and coloured `rgb` at
 /// `(arg1 + arg2) * 64 / (otz + 1)`.
-void func_shelter_b4_upper_sewer_801806A0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_shelter_b4_upper_sewer_801806A0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -1305,7 +1305,7 @@ void func_shelter_b4_upper_sewer_801806A0(GpCoord* arg0, s32 arg1, s32 arg2, u8*
 /// projection flags an error: eight gouraud wedges coloured `arg2` at the
 /// projected centre and black at the rim, of screen radius
 /// `arg1 * 64 / (otz + 1)`.
-void func_shelter_b4_upper_sewer_80180AC4(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b4_upper_sewer_80180AC4(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -1353,7 +1353,7 @@ void func_shelter_b4_upper_sewer_80180AC4(GpCoord* arg0, s16 arg1, u8* arg2)
     SCRATCH_POP_BYTES(0x18);
 }
 
-void func_shelter_b4_upper_sewer_80180E58(Task* arg0)
+static void func_shelter_b4_upper_sewer_80180E58(Task* arg0)
 {
     u8          rgb[3];
     GpEffWork*  mem;
@@ -1436,7 +1436,7 @@ kill:
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void func_shelter_b4_upper_sewer_801811F0(Task* arg0)
+static void func_shelter_b4_upper_sewer_801811F0(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;
@@ -1491,7 +1491,7 @@ void func_shelter_b4_upper_sewer_801811F0(Task* arg0)
 /// half-extent `size` and an outer one of `size * 3 / 2`, plus a ground mark
 /// under it. Also feeds the `Gp_RoomCoords[2]` light a flickering intensity at the
 /// coordinate's position. Draws nothing when the point fails to project.
-void func_shelter_b4_upper_sewer_8018139C(GpCoord* coord, s16 size)
+static void func_shelter_b4_upper_sewer_8018139C(GpCoord* coord, s16 size)
 {
     GpCoord        ground;
     POLY_FT4*      prim;
@@ -1621,7 +1621,7 @@ void func_shelter_b4_upper_sewer_8018139C(GpCoord* coord, s16 size)
 /// projected through `GsWSMATRIX`. Queues one semi-transparent textured quad
 /// (tpage 0x28, clut 0x428C) tinted (0x30, 0x20, 0x20), alternating between two
 /// texture frames on odd and even frames, unless the projection flags an error.
-void func_shelter_b4_upper_sewer_801818C8(GpCoord* arg0, s32 arg1)
+static void func_shelter_b4_upper_sewer_801818C8(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;
@@ -1710,7 +1710,7 @@ void func_shelter_b4_upper_sewer_801818C8(GpCoord* arg0, s32 arg1)
 /// in the full colour, and four pointed rays in half the colour reaching
 /// alternately to that radius and to twice it. Every wedge fades to black at its
 /// rim.
-void func_shelter_b4_upper_sewer_80181C40(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b4_upper_sewer_80181C40(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -1828,7 +1828,7 @@ void func_shelter_b4_upper_sewer_80181C40(GpCoord* arg0, s16 arg1, u8* arg2)
     SCRATCH_POP(RoomBillboardScratch);
 }
 
-void func_shelter_b4_upper_sewer_80182600(Task* arg0)
+static void func_shelter_b4_upper_sewer_80182600(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -1861,7 +1861,7 @@ void func_shelter_b4_upper_sewer_80182600(Task* arg0)
     }
 }
 
-void func_shelter_b4_upper_sewer_80182734(Task* arg0)
+static void func_shelter_b4_upper_sewer_80182734(Task* arg0)
 {
     u8                rgb[3];
     GpEffWork*        mem;
@@ -1934,7 +1934,7 @@ kill:
 /// different scratch block layout: sixteen gouraud quads around the
 /// coordinate's projected position, black at screen radius
 /// `arg1 * 64 / (otz + 1)` and coloured `rgb` at `(arg1 + arg2) * 64 / (otz + 1)`.
-void func_shelter_b4_upper_sewer_801829D8(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_shelter_b4_upper_sewer_801829D8(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -1992,7 +1992,7 @@ void func_shelter_b4_upper_sewer_801829D8(GpCoord* arg0, s32 arg1, s32 arg2, u8*
 /// projection flags an error: eight gouraud wedges coloured `arg2` at the
 /// projected centre and black at the rim, of screen radius
 /// `arg1 * 64 / (otz + 1)`.
-void func_shelter_b4_upper_sewer_80182E04(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b4_upper_sewer_80182E04(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -2040,7 +2040,7 @@ void func_shelter_b4_upper_sewer_80182E04(GpCoord* arg0, s16 arg1, u8* arg2)
     SCRATCH_POP_BYTES(0x18);
 }
 
-void func_shelter_b4_upper_sewer_80183198(Task* task)
+static void func_shelter_b4_upper_sewer_80183198(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -2138,7 +2138,7 @@ void func_shelter_b4_upper_sewer_80183198(Task* task)
 /// error. The brightness falls from `0x40 - 9 * i` at a quad's leading edge to
 /// nine less at its trailing one, and `arg3` holds the multipliers the red,
 /// green and blue channels apply to it, at bits 8, 4 and 0.
-void func_shelter_b4_upper_sewer_80183688(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_shelter_b4_upper_sewer_80183688(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
     GpCoord*           a;
@@ -2242,7 +2242,7 @@ void func_shelter_b4_upper_sewer_80183688(GpCoord* arg0, GpCoord* arg1, s16 arg2
     SCRATCH_POP(RoomDraw03Scratch);
 }
 
-void func_shelter_b4_upper_sewer_80183A80(Task* task)
+static void func_shelter_b4_upper_sewer_80183A80(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;
@@ -2316,7 +2316,7 @@ void func_shelter_b4_upper_sewer_80183A80(Task* task)
 /// in the full colour, and four pointed rays in half the colour reaching
 /// alternately to that radius and to twice it. Every wedge fades to black at its
 /// rim.
-void func_shelter_b4_upper_sewer_80183D08(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b4_upper_sewer_80183D08(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -2443,7 +2443,7 @@ void func_shelter_b4_upper_sewer_80183D08(GpCoord* arg0, s16 arg1, u8* arg2)
 /// `D_shelter_b4_upper_sewer_80186584` that the spawn argument selects. While
 /// an event runs it does nothing, and is released once the event state reaches
 /// 4.
-void func_shelter_b4_upper_sewer_801846C8(Task* arg0)
+static void func_shelter_b4_upper_sewer_801846C8(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -2553,7 +2553,7 @@ void func_shelter_b4_upper_sewer_801846C8(Task* arg0)
     }
 }
 
-void func_shelter_b4_upper_sewer_80184C20(Task* task)
+static void func_shelter_b4_upper_sewer_80184C20(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -2608,7 +2608,7 @@ void func_shelter_b4_upper_sewer_80184C20(Task* task)
 /// unless the projection flags an error. `arg1` picks one of four 24-texel
 /// frames from U 0x60, `arg2` is the size (a screen half-extent of
 /// `arg2 * 23 / (otz + 1)`) and `arg3` the grey level it is shaded with.
-void func_shelter_b4_upper_sewer_80184E44(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_shelter_b4_upper_sewer_80184E44(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -2689,7 +2689,7 @@ void func_shelter_b4_upper_sewer_80184E44(GpCoord* arg0, s32 arg1, s32 arg2, s32
 /// different scratch block layout: sixteen gouraud quads around the
 /// coordinate's projected position, black at screen radius
 /// `arg1 * 64 / (otz + 1)` and coloured `rgb` at `(arg1 + arg2) * 64 / (otz + 1)`.
-void func_shelter_b4_upper_sewer_801850C8(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_shelter_b4_upper_sewer_801850C8(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     GpArcScratch* block;
     POLY_G4*      prim;
@@ -2747,7 +2747,7 @@ void func_shelter_b4_upper_sewer_801850C8(GpCoord* arg0, s32 arg1, s32 arg2, u8*
 /// projection flags an error: eight gouraud wedges coloured `rgb` at the
 /// projected centre and black at the rim, of screen radius
 /// `arg1 * 64 / (otz + 1)`.
-void func_shelter_b4_upper_sewer_801854EC(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_shelter_b4_upper_sewer_801854EC(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     GpRingScratch* block;
     POLY_G4*       prim;
@@ -2801,7 +2801,7 @@ void func_shelter_b4_upper_sewer_801854EC(GpCoord* arg0, s16 arg1, u8* rgb)
 /// the ring is gone the disc dims instead, and the task is released when it is
 /// nearly black. While an event runs it does nothing, and is released once the
 /// event state reaches 4.
-void func_shelter_b4_upper_sewer_80185880(Task* task)
+static void func_shelter_b4_upper_sewer_80185880(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -2855,7 +2855,7 @@ void func_shelter_b4_upper_sewer_80185880(Task* task)
 /// half-extent `size` and an outer one of `size * 3 / 2`, plus a ground mark
 /// under it. Also feeds the `Gp_RoomCoords[2]` light a flickering intensity at the
 /// coordinate's position. Draws nothing when the point fails to project.
-void func_shelter_b4_upper_sewer_80185A2C(GpCoord* coord, s16 size)
+static void func_shelter_b4_upper_sewer_80185A2C(GpCoord* coord, s16 size)
 {
     GpCoord        ground;
     POLY_FT4*      prim;
@@ -2985,7 +2985,7 @@ void func_shelter_b4_upper_sewer_80185A2C(GpCoord* coord, s16 size)
 /// projected through `GsWSMATRIX`. Queues one semi-transparent textured quad
 /// (tpage 0x28, clut 0x428C) tinted (0x30, 0x20, 0x20), alternating between two
 /// texture frames on odd and even frames, unless the projection flags an error.
-void func_shelter_b4_upper_sewer_80185F58(GpCoord* arg0, s32 arg1)
+static void func_shelter_b4_upper_sewer_80185F58(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;

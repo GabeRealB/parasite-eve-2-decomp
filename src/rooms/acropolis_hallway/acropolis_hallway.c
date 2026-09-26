@@ -24,11 +24,11 @@
 extern GpMsgEntry D_acropolis_hallway_8017E238[];
 extern SVECTOR    D_acropolis_hallway_8017FA4C;
 
-void func_acropolis_hallway_8017D784(Task* task);
-void func_acropolis_hallway_8017D7C8(Task* task);
+static void func_acropolis_hallway_8017D784(Task* task);
+static void func_acropolis_hallway_8017D7C8(Task* task);
 
 /// State handlers of the room task: set-up, an idle tick and `taskKill`.
-const TaskFuncTable3 D_acropolis_hallway_8017D5C4 = {
+static const TaskFuncTable3 D_acropolis_hallway_8017D5C4 = {
     { func_acropolis_hallway_8017D784, func_acropolis_hallway_8017D7C8, taskKill },
 };
 
@@ -88,7 +88,7 @@ s32 func_acropolis_hallway_8017D734(s32 arg0, s32 arg1, s32 arg2)
 
 /// State 0 of the room task: installs the room's message table, publishes the
 /// task in pointer slot 7 and advances to the next state.
-void func_acropolis_hallway_8017D784(Task* task)
+static void func_acropolis_hallway_8017D784(Task* task)
 {
     task->msgTable = D_acropolis_hallway_8017E238;
     Game_SetPtrSlot(task, 7);
@@ -96,13 +96,13 @@ void func_acropolis_hallway_8017D784(Task* task)
 }
 
 /// State 1 of the room task: does nothing.
-void func_acropolis_hallway_8017D7C8(Task* task)
+static void func_acropolis_hallway_8017D7C8(Task* task)
 {
 }
 
 /// Runs the room task's current state through a stack copy of the room's
 /// three-entry state table.
-void func_acropolis_hallway_8017D7D0(Task* task)
+static void func_acropolis_hallway_8017D7D0(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -110,7 +110,7 @@ void func_acropolis_hallway_8017D7D0(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_acropolis_hallway_8017D828(void)
+static void func_acropolis_hallway_8017D828(void)
 {
 }
 
@@ -119,7 +119,7 @@ void func_acropolis_hallway_8017D828(void)
 /// fractional part away from zero. The whole-unit displacement is also left in
 /// `D_acropolis_hallway_8017FA4C`. Returns non-zero when the X or Z
 /// displacement is non-zero.
-s32 func_acropolis_hallway_8017D830(GpCoord* coord, GpRec18* rec, s16 arg2)
+static s32 func_acropolis_hallway_8017D830(GpCoord* coord, GpRec18* rec, s16 arg2)
 {
     void**            scratch;
     u8*               head;
@@ -173,7 +173,7 @@ s32 func_acropolis_hallway_8017D830(GpCoord* coord, GpRec18* rec, s16 arg2)
 /// record within a quarter turn of it, moves the coordinate `push` units back
 /// along that record's bearing, in X and Z. Returns non-zero if it moved the
 /// coordinate; returns 0 at once while `gGameSession->viewReady` is 1.
-s32 func_acropolis_hallway_8017D9D4(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
+static s32 func_acropolis_hallway_8017D9D4(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
 {
     void**                  scratch;
     void**                  tail;
@@ -321,7 +321,7 @@ s32 func_acropolis_hallway_8017D9D4(GpCoord* coord, GpRec18* recs, s16 count, s1
 /// arms the task, then hides the mesh with flag 0x80 unless the room is being
 /// drawn from view 5, and always hides it once the item's 2-bit flag reads 2
 /// (already taken).
-void func_acropolis_hallway_8017E120(Task* task)
+static void func_acropolis_hallway_8017E120(Task* task)
 {
     GpItemObj8* obj;
     TmdObject*  tmd;
@@ -348,7 +348,7 @@ void func_acropolis_hallway_8017E120(Task* task)
 /// Model task step for a pickup's mesh: when the pickup's 2-bit flag reads 2
 /// it sets mesh flag 4, otherwise it resets the mesh flags and draw offset and
 /// allocates the mesh's TMD buffers. The view index is fetched but unused.
-void func_acropolis_hallway_8017E1C0(Task* task)
+static void func_acropolis_hallway_8017E1C0(Task* task)
 {
     GpItemObj8* obj;
     TmdObject*  tmd;

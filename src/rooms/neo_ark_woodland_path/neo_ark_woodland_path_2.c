@@ -148,10 +148,10 @@ typedef struct NeoArkWoodlandPathTrailObj {
 /// the parts against these entries to measure how far they moved.
 extern SVECTOR D_neo_ark_woodland_path_80181684[2];
 
-void func_neo_ark_woodland_path_8017F154(GpCoord* arg0, s32 arg1, s16 arg2);
-void func_neo_ark_woodland_path_8017F5F4(GpCoord* arg0, s32 arg1, s32 arg2);
-void func_neo_ark_woodland_path_8017FDE4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_neo_ark_woodland_path_801801D0(GpCoord* arg0, s32 arg1, s32 arg2);
+static void func_neo_ark_woodland_path_8017F154(GpCoord* arg0, s32 arg1, s16 arg2);
+static void func_neo_ark_woodland_path_8017F5F4(GpCoord* arg0, s32 arg1, s32 arg2);
+static void func_neo_ark_woodland_path_8017FDE4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_neo_ark_woodland_path_801801D0(GpCoord* arg0, s32 arg1, s32 arg2);
 
 /// Scatters effects around the slot-3 task's model while its root coordinate
 /// is at a y of 0x12C or more (y grows downward) and no event is running.
@@ -161,7 +161,7 @@ void func_neo_ark_woodland_path_801801D0(GpCoord* arg0, s32 arg1, s32 arg2);
 /// `D_80115738` against the chance less 0x20. The same function also sets the
 /// room effect mode to 2 while the root y is below 0x11. On its first run it
 /// stores the two effect ids and the starting part positions.
-void func_neo_ark_woodland_path_8017EA08(Task* task)
+static void func_neo_ark_woodland_path_8017EA08(Task* task)
 {
     NeoArkWoodlandPathTrailObj* obj;
     Task*                       owner;
@@ -221,7 +221,7 @@ void func_neo_ark_woodland_path_8017EA08(Task* task)
 /// gets there, and the tilt wanders by a random step. Once the mote has risen
 /// past the origin (`t[1] > 0`) state 2 fades it in by 0x10 a tick up to 0x80
 /// and state 3 fades it out, releasing the work block when the fade runs out.
-void func_neo_ark_woodland_path_8017ED00(Task* task)
+static void func_neo_ark_woodland_path_8017ED00(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -328,7 +328,7 @@ void func_neo_ark_woodland_path_8017ED00(Task* task)
 /// 0x2B, clut 0x4390, an 8x8 texel tile at 0,0x28). `arg2` is the fade level:
 /// zero draws the raw texture, otherwise the quad is semi-transparent and
 /// modulated by the grey `(arg2, arg2, arg2)`.
-void func_neo_ark_woodland_path_8017F154(GpCoord* arg0, s32 arg1, s16 arg2)
+static void func_neo_ark_woodland_path_8017F154(GpCoord* arg0, s32 arg1, s16 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -420,7 +420,7 @@ void func_neo_ark_woodland_path_8017F154(GpCoord* arg0, s32 arg1, s16 arg2)
 /// coordinate, grows the size by 0x20, draws, and dims by 2, releasing the
 /// effect once the brightness falls under 2. Once the room's event state
 /// leaves zero it only draws, and releases at state 4.
-void func_neo_ark_woodland_path_8017F4A0(Task* task)
+static void func_neo_ark_woodland_path_8017F4A0(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -457,7 +457,7 @@ void func_neo_ark_woodland_path_8017F4A0(Task* task)
 /// through `GsWSMATRIX`. When `gte_stflg` is non-negative, queues one
 /// semi-transparent `POLY_FT4` (tpage 0x2B, clut 0x43D1, UV 0,0x38..0x37,0x6F)
 /// coloured `(arg2, arg2, arg2)`.
-void func_neo_ark_woodland_path_8017F5F4(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_neo_ark_woodland_path_8017F5F4(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -548,7 +548,7 @@ void func_neo_ark_woodland_path_8017F5F4(GpCoord* arg0, s32 arg1, s32 arg2)
 /// `period` ticks, releasing the task after frame 7. While an event is
 /// running the task only draws, and it is released once the event state
 /// reaches 4.
-void func_neo_ark_woodland_path_8017F928(Task* task)
+static void func_neo_ark_woodland_path_8017F928(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -674,7 +674,7 @@ void func_neo_ark_woodland_path_8017F928(Task* task)
 /// `arg2` is a signed half-extent; the on-screen radius is
 /// `(s16)arg2 * 31 / otz`. `arg3` is the spin angle, applied at `arg3` and
 /// `arg3 + 0x400` through `rsin`/`rcos`.
-void func_neo_ark_woodland_path_8017FDE4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_neo_ark_woodland_path_8017FDE4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -741,7 +741,7 @@ void func_neo_ark_woodland_path_8017FDE4(GpCoord* arg0, s32 arg1, s32 arg2, s32 
 /// the on-screen radius is `(s16)arg2 * 55 / otz`. The quad is axis-aligned
 /// and 2*radius on a side, shifted up so the projected point sits at
 /// three-quarters height (`y0 = sy - r - r/2`, `y2 = sy + r/2`).
-void func_neo_ark_woodland_path_801801D0(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_neo_ark_woodland_path_801801D0(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -858,7 +858,7 @@ void func_neo_ark_woodland_path_8018046C(Task* task, s32 arg1, s32 arg2)
 /// 0x10D) and fills the five spawn slots with the room's ceiling - or zero.
 /// Same shape as its sibling; only the flags, the slot-count array and the
 /// handler table differ.
-void func_neo_ark_woodland_path_80180568(Task* task)
+static void func_neo_ark_woodland_path_80180568(Task* task)
 {
     s16 i;
     s16 nib;
@@ -896,7 +896,7 @@ void func_neo_ark_woodland_path_80180568(Task* task)
 /// flags 0x168 and 0x10C. When a spawn point has been requested it hands the
 /// first pending slot to a waiting slot-4 task (one whose enemy `hp` still reads -999),
 /// sends it the 0x7DB message and places it at that point.
-void func_neo_ark_woodland_path_801806D8(Task* task)
+static void func_neo_ark_woodland_path_801806D8(Task* task)
 {
     s16      i;
     s16      count;
@@ -986,11 +986,11 @@ void func_neo_ark_woodland_path_801806D8(Task* task)
     D_neo_ark_woodland_path_80184992 = 0;
 }
 
-void func_neo_ark_woodland_path_801814D4(Task* arg0);
+static void func_neo_ark_woodland_path_801814D4(Task* arg0);
 
 /// State handlers of the first arming sequence's entry task
 /// `func_neo_ark_woodland_path_801814E8`: arm, run, advance, then kill.
-const TaskFuncTable4 D_neo_ark_woodland_path_8017D638 = {
+static const TaskFuncTable4 D_neo_ark_woodland_path_8017D638 = {
     { func_neo_ark_woodland_path_80180568, func_neo_ark_woodland_path_801806D8,
       func_neo_ark_woodland_path_801814D4, taskKill }
 };
@@ -1043,7 +1043,7 @@ s32 func_neo_ark_woodland_path_80180B18(Task* task, s32 arg1, GpCmdArg* msg)
 /// otherwise it parks this room's 0x7DB handler table in the task, folds the
 /// slot's spawn count into game flag 0x10A (remembering the slot in 0x10B), and
 /// fills the five spawn slots with the room's ceiling - or zero.
-void func_neo_ark_woodland_path_80180C6C(Task* task)
+static void func_neo_ark_woodland_path_80180C6C(Task* task)
 {
     s16 i;
     s16 nib;
@@ -1081,7 +1081,7 @@ void func_neo_ark_woodland_path_80180C6C(Task* task)
 /// spawn slots back into game flags 0x167 and 0x10A. When a spawn point has
 /// been requested it hands the first pending slot to a waiting slot-4 task,
 /// sends it the 0x7DB message and places it at one of five fixed points.
-void func_neo_ark_woodland_path_80180DDC(Task* task)
+static void func_neo_ark_woodland_path_80180DDC(Task* task)
 {
     s16      i;
     s16      count;
@@ -1212,11 +1212,11 @@ void func_neo_ark_woodland_path_80180DDC(Task* task)
     D_neo_ark_woodland_path_80184992 = 0;
 }
 
-void func_neo_ark_woodland_path_801815C0(Task* arg0);
+static void func_neo_ark_woodland_path_801815C0(Task* arg0);
 
 /// State handlers of the second arming sequence's entry task
 /// `func_neo_ark_woodland_path_801815D4`: arm, run, advance, then kill.
-const TaskFuncTable4 D_neo_ark_woodland_path_8017D684 = {
+static const TaskFuncTable4 D_neo_ark_woodland_path_8017D684 = {
     { func_neo_ark_woodland_path_80180C6C, func_neo_ark_woodland_path_80180DDC,
       func_neo_ark_woodland_path_801815C0, taskKill }
 };
@@ -1249,7 +1249,7 @@ s32 func_neo_ark_woodland_path_8018147C(Task* task, s32 msgId, u8* msg)
     return 1;
 }
 
-void func_neo_ark_woodland_path_801814D4(Task* arg0)
+static void func_neo_ark_woodland_path_801814D4(Task* arg0)
 {
     arg0->state = arg0->state + 1;
 }
@@ -1294,7 +1294,7 @@ s32 func_neo_ark_woodland_path_80181568(Task* task, s32 msgId, u8* msg)
     return 1;
 }
 
-void func_neo_ark_woodland_path_801815C0(Task* arg0)
+static void func_neo_ark_woodland_path_801815C0(Task* arg0)
 {
     arg0->state = arg0->state + 1;
 }

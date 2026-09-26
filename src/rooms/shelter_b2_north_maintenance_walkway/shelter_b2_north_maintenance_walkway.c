@@ -108,7 +108,7 @@ void func_shelter_b2_north_maintenance_walkway_8017D61C(Task* arg0)
 /// command and answers 0. Otherwise the gate answers 2 and - unless the
 /// message's `field_5` asks for a dry run - latches the message and the
 /// request, writes the flag nibble and spawns the event task.
-s32 func_shelter_b2_north_maintenance_walkway_8017D7B4(RoomEventReq* req, RoomEventMsg* msg)
+static s32 func_shelter_b2_north_maintenance_walkway_8017D7B4(RoomEventReq* req, RoomEventMsg* msg)
 {
     s32 flag;
     s32 id;
@@ -305,7 +305,7 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DCE4(s32 arg0, s32 arg1, s32 a
     return 0;
 }
 
-void func_shelter_b2_north_maintenance_walkway_8017DD18(Task* task)
+static void func_shelter_b2_north_maintenance_walkway_8017DD18(Task* task)
 {
     task->msgTable = D_shelter_b2_north_maintenance_walkway_80183B60;
     Game_SetPtrSlot(task, 7);
@@ -317,19 +317,19 @@ void func_shelter_b2_north_maintenance_walkway_8017DD18(Task* task)
 
 /// The room task's idle state: does nothing, though it still reserves a
 /// 0x10-byte frame.
-void func_shelter_b2_north_maintenance_walkway_8017DD80(Task* task)
+static void func_shelter_b2_north_maintenance_walkway_8017DD80(Task* task)
 {
     char pad[0x10];
 }
 
 /// The room task's three states: setup, idle and exit.
-const TaskFuncTable3 D_shelter_b2_north_maintenance_walkway_8017D5F4 = {
+static const TaskFuncTable3 D_shelter_b2_north_maintenance_walkway_8017D5F4 = {
     { func_shelter_b2_north_maintenance_walkway_8017DD18, func_shelter_b2_north_maintenance_walkway_8017DD80, taskKill },
 };
 
 /// Runs the room task's current state from its state table, dispatching
 /// through a copy of the table taken onto the stack.
-void func_shelter_b2_north_maintenance_walkway_8017DD90(Task* task)
+static void func_shelter_b2_north_maintenance_walkway_8017DD90(Task* task)
 {
     TaskFuncTable3 sp;
 

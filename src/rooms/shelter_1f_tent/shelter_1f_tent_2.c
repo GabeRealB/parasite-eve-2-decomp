@@ -19,14 +19,14 @@ extern SVECTOR D_shelter_1f_tent_80181D1C[];
 extern SVECTOR D_shelter_1f_tent_80181D2C[];
 extern SVECTOR D_shelter_1f_tent_80181D3C[];
 
-void func_shelter_1f_tent_8017FFAC(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_1f_tent_801807F0(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_1f_tent_80180B90(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_1f_tent_80181010(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_1f_tent_8017FFAC(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_1f_tent_801807F0(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_1f_tent_80180B90(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_1f_tent_80181010(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// Draws the glows of the current camera view at the room's fixed world
 /// points; views without an entry draw nothing.
-void func_shelter_1f_tent_8017FE10(void)
+static void func_shelter_1f_tent_8017FE10(void)
 {
     u8 view;
 
@@ -83,7 +83,7 @@ void func_shelter_1f_tent_8017FE10(void)
 /// centres, take the colour packed in `arg2` (one nibble per channel),
 /// flickering with the animation frame. Nothing is drawn when either
 /// projection flags an error.
-void func_shelter_1f_tent_8017FFAC(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_1f_tent_8017FFAC(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**                   scratch;
     u8*                      head;
@@ -229,7 +229,7 @@ void func_shelter_1f_tent_8017FFAC(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// the projected centre. `arg1` is a signed half-extent; the on-screen radius
 /// is `(s16)arg1 * 64 / otz`. `arg2` packs three RGB nibbles for the inner
 /// vertex, OR'd with `((u8)gDisplayState.animFrame & 1) * 8`.
-void func_shelter_1f_tent_801807F0(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_1f_tent_801807F0(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**             scratch;
     u8*                head;
@@ -308,7 +308,7 @@ void func_shelter_1f_tent_801807F0(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// radius of `(s16)arg2 * 48 / otz`. `arg1` scales `gDisplayState.animFrame`
 /// into `rsin` so the lit vertex pulses as `rsin(...) / 34 + 0x78` on green and
 /// blue.
-void func_shelter_1f_tent_80180B90(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_1f_tent_80180B90(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw13Scratch* block;
@@ -404,7 +404,7 @@ void func_shelter_1f_tent_80180B90(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// `(s16)arg2 * 8 / otz` (inner). `arg1` scales `gDisplayState.animFrame` into
 /// `rsin` so the lit vertex pulses as `rsin(...) / 34 + 0x78` on green and
 /// blue.
-void func_shelter_1f_tent_80181010(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_1f_tent_80181010(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw05Scratch* block;

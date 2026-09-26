@@ -43,8 +43,8 @@ extern s32 D_dryfield_water_tower_801803A0[];
 /// `func_dryfield_water_tower_8017D948`.
 extern TaskDesc D_dryfield_water_tower_801803D8;
 
-void func_dryfield_water_tower_8017DD6C(Task* arg0);
-void func_dryfield_water_tower_8017DDD0(Task* task);
+static void func_dryfield_water_tower_8017DD6C(Task* arg0);
+static void func_dryfield_water_tower_8017DDD0(Task* task);
 
 /// The room's event gate. A request whose flag nibble is already set (or clear,
 /// for a negative `flagId`) answers 1. One whose prerequisite item is missing
@@ -52,7 +52,7 @@ void func_dryfield_water_tower_8017DDD0(Task* task);
 /// request are latched, the nibble is written, the event task is spawned and
 /// the answer is 2. A non-zero `field_5` on the message only reports the
 /// answer, with none of the side effects.
-s32 func_dryfield_water_tower_8017D674(RoomEventReq* req, RoomEventMsg* msg)
+static s32 func_dryfield_water_tower_8017D674(RoomEventReq* req, RoomEventMsg* msg)
 {
     s32 flag;
     s32 id;
@@ -155,7 +155,7 @@ void func_dryfield_water_tower_8017D7D8(Task* task)
 
 /// The room entry task's three states: install the room and spawn the cap
 /// script, idle, and `taskKill`.
-const TaskFuncTable3 D_dryfield_water_tower_8017D5DC = {
+static const TaskFuncTable3 D_dryfield_water_tower_8017D5DC = {
     { func_dryfield_water_tower_8017DD6C, func_dryfield_water_tower_8017DDD0, taskKill },
 };
 
@@ -321,7 +321,7 @@ void func_dryfield_water_tower_8017DD44(void)
 
 /// State 0 of the room entry task: installs the room's message table,
 /// registers the task in game pointer slot 7 and spawns the cap script.
-void func_dryfield_water_tower_8017DD6C(Task* arg0)
+static void func_dryfield_water_tower_8017DD6C(Task* arg0)
 {
     Task* temp_v0;
 
@@ -333,13 +333,13 @@ void func_dryfield_water_tower_8017DD6C(Task* arg0)
 }
 
 /// State 1 of the room entry task: idles.
-void func_dryfield_water_tower_8017DDD0(Task* task)
+static void func_dryfield_water_tower_8017DDD0(Task* task)
 {
 }
 
 /// Runs the room entry task's current state from its three-entry table, which
 /// it copies onto the stack before the call.
-void func_dryfield_water_tower_8017DDD8(Task* task)
+static void func_dryfield_water_tower_8017DDD8(Task* task)
 {
     TaskFuncTable3 sp;
 

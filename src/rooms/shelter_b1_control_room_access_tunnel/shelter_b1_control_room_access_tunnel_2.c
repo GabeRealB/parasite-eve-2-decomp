@@ -25,11 +25,11 @@ extern s32 D_80115730;
 /// argument.
 extern RoomHaloShade D_shelter_b1_control_room_access_tunnel_80181EF4[];
 
-void func_shelter_b1_control_room_access_tunnel_801809E8(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_shelter_b1_control_room_access_tunnel_80180C6C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b1_control_room_access_tunnel_80181090(GpCoord* arg0, s32 arg1, u8* rgb);
-void func_shelter_b1_control_room_access_tunnel_801815D0(GpCoord* coord, s16 size);
-void func_shelter_b1_control_room_access_tunnel_80181AFC(GpCoord* arg0, s32 arg1);
+static void func_shelter_b1_control_room_access_tunnel_801809E8(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_shelter_b1_control_room_access_tunnel_80180C6C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_b1_control_room_access_tunnel_80181090(GpCoord* arg0, s32 arg1, u8* rgb);
+static void func_shelter_b1_control_room_access_tunnel_801815D0(GpCoord* coord, s16 size);
+static void func_shelter_b1_control_room_access_tunnel_80181AFC(GpCoord* arg0, s32 arg1);
 
 /// Glowing disc anchored to its parent at the work block's position. State 1
 /// grows the disc and, every fourth tick, spawns the effect `D_80115730` names
@@ -39,7 +39,7 @@ void func_shelter_b1_control_room_access_tunnel_80181AFC(GpCoord* arg0, s32 arg1
 /// releases the work block, as does state 4. The spawn argument picks the
 /// disc's colour. Nothing runs while the room's event state is set, and the
 /// block is released once that state reaches 4.
-void func_shelter_b1_control_room_access_tunnel_8018026C(Task* arg0)
+static void func_shelter_b1_control_room_access_tunnel_8018026C(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -154,7 +154,7 @@ void func_shelter_b1_control_room_access_tunnel_8018026C(Task* arg0)
 /// frame and scales it by 0xCC / 0x1000; state 1 adds that step each tick and
 /// draws the sprite on odd ticks, advancing its animation cell. The work block
 /// is released at tick 20, or once the room's event state reaches 4.
-void func_shelter_b1_control_room_access_tunnel_801807C4(Task* task)
+static void func_shelter_b1_control_room_access_tunnel_801807C4(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -208,7 +208,7 @@ void func_shelter_b1_control_room_access_tunnel_801807C4(Task* task)
 /// the GTE flags an error, queues one semi-transparent textured square centred
 /// on it, of half-size `arg2 * 23 / (otz + 1)`. `arg1` picks one of four
 /// 24-texel animation cells and `arg3` is the grey level.
-void func_shelter_b1_control_room_access_tunnel_801809E8(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_shelter_b1_control_room_access_tunnel_801809E8(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -289,7 +289,7 @@ void func_shelter_b1_control_room_access_tunnel_801809E8(GpCoord* arg0, s32 arg1
 /// over a scratch block laid out differently: black at radius
 /// `arg1 * 64 / (otz + 1)`, shading to `rgb` at radius
 /// `(arg1 + arg2) * 64 / (otz + 1)`, drawn unless the GTE flags an error.
-void func_shelter_b1_control_room_access_tunnel_80180C6C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_shelter_b1_control_room_access_tunnel_80180C6C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     GpArcScratch* block;
     POLY_G4*      prim;
@@ -344,7 +344,7 @@ void func_shelter_b1_control_room_access_tunnel_80180C6C(GpCoord* arg0, s32 arg1
 /// over a scratch block laid out differently: unless the GTE flags an error,
 /// eight gouraud `POLY_G4` wedges of radius `arg1 * 64 / (otz + 1)`, coloured
 /// `rgb` at the centre and black at the rim.
-void func_shelter_b1_control_room_access_tunnel_80181090(GpCoord* arg0, s32 arg1, u8* rgb)
+static void func_shelter_b1_control_room_access_tunnel_80181090(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     GpRingScratch* block;
     POLY_G4*       prim;
@@ -394,7 +394,7 @@ void func_shelter_b1_control_room_access_tunnel_80181090(GpCoord* arg0, s32 arg1
 /// is above 0x18 it also draws a ring that widens as it fades; after that the
 /// disc dims by 0x18 a tick and the work block is released once it drops below
 /// 0x18, or once the room's event state reaches 4.
-void func_shelter_b1_control_room_access_tunnel_80181424(Task* task)
+static void func_shelter_b1_control_room_access_tunnel_80181424(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -449,7 +449,7 @@ void func_shelter_b1_control_room_access_tunnel_80181424(Task* task)
 /// 0x37 / otz), plus the flat sprite on the ground beneath it when a floor is
 /// found. Also points the `Gp_RoomCoords[2]` light at the coordinate with a
 /// flickering intensity. Nothing is drawn when the GTE flags the projection.
-void func_shelter_b1_control_room_access_tunnel_801815D0(GpCoord* coord, s16 size)
+static void func_shelter_b1_control_room_access_tunnel_801815D0(GpCoord* coord, s16 size)
 {
     GpCoord        ground;
     POLY_FT4*      prim;
@@ -580,7 +580,7 @@ void func_shelter_b1_control_room_access_tunnel_801815D0(GpCoord* coord, s16 siz
 /// Unless the GTE flags an error, one semi-transparent `POLY_FT4` is queued,
 /// its texture alternating between two 32-texel frames on odd and even
 /// frames.
-void func_shelter_b1_control_room_access_tunnel_80181AFC(GpCoord* arg0, s32 arg1)
+static void func_shelter_b1_control_room_access_tunnel_80181AFC(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;

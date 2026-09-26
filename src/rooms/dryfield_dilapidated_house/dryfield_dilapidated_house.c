@@ -184,40 +184,40 @@ extern SVECTOR    D_dryfield_dilapidated_house_80186794[2];
 extern SVECTOR    D_dryfield_dilapidated_house_801867A4[6];
 extern SVECTOR    D_dryfield_dilapidated_house_801867D4[6];
 
-void func_dryfield_dilapidated_house_8017E9A4(s32 arg0);
-void func_dryfield_dilapidated_house_8017EBB8(Task* task);
-void func_dryfield_dilapidated_house_8017EE58(Task* task);
-void func_dryfield_dilapidated_house_8017F568(Task* task, SVECTOR* verts, s32 arg2);
-void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts, s32* arg2, s32* arg3);
-void func_dryfield_dilapidated_house_80180A0C(Task* task, DdhRoomRec* rec, s32 arg2);
-void func_dryfield_dilapidated_house_80180FB8(Task* task);
-s32  func_dryfield_dilapidated_house_80180FD8(Task* task);
-void func_dryfield_dilapidated_house_80181028(Task* task);
-void func_dryfield_dilapidated_house_801810F8(TmdObject* dst, TmdObject* src);
-void func_dryfield_dilapidated_house_80181290(s32 p0, s32 p1, s32 p2, s32 p3, SVECTOR* coeff);
+static void func_dryfield_dilapidated_house_8017E9A4(s32 arg0);
+static void func_dryfield_dilapidated_house_8017EBB8(Task* task);
+static void func_dryfield_dilapidated_house_8017EE58(Task* task);
+static void func_dryfield_dilapidated_house_8017F568(Task* task, SVECTOR* verts, s32 arg2);
+static void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts, s32* arg2, s32* arg3);
+static void func_dryfield_dilapidated_house_80180A0C(Task* task, DdhRoomRec* rec, s32 arg2);
+static void func_dryfield_dilapidated_house_80180FB8(Task* task);
+static s32  func_dryfield_dilapidated_house_80180FD8(Task* task);
+static void func_dryfield_dilapidated_house_80181028(Task* task);
+static void func_dryfield_dilapidated_house_801810F8(TmdObject* dst, TmdObject* src);
+static void func_dryfield_dilapidated_house_80181290(s32 p0, s32 p1, s32 p2, s32 p3, SVECTOR* coeff);
 
-void func_dryfield_dilapidated_house_8017E48C(void);
-void func_dryfield_dilapidated_house_8017EAB4(Task* arg0);
-void func_dryfield_dilapidated_house_8017E014(Task* task);
-void func_dryfield_dilapidated_house_8017F418(SVECTOR* pts, SVECTOR* p3, s32 len, s32 pos, s32* out);
-void func_dryfield_dilapidated_house_80180B84(Task* task);
-void func_dryfield_dilapidated_house_80180F5C(Task* arg0);
-void func_dryfield_dilapidated_house_8018118C(Task* arg0);
-void func_dryfield_dilapidated_house_80181264(Task* arg0);
-void func_dryfield_dilapidated_house_80181340(Task* arg0);
-void func_dryfield_dilapidated_house_801813DC(Task* task);
-void func_dryfield_dilapidated_house_8018142C(Task* task);
-void func_dryfield_dilapidated_house_801814B4(Task* arg0);
-void func_dryfield_dilapidated_house_80181584(Task* task);
-void func_dryfield_dilapidated_house_801815B8(Task* arg0);
-void func_dryfield_dilapidated_house_80182A18(GpCoord* coord, s16 arg1, s16 arg2);
-void func_dryfield_dilapidated_house_801832A8(GpCoord* coord, s16 arg1, s16 arg2, s16 arg3);
-void func_dryfield_dilapidated_house_80182F14(GpCoord* coord, s16 arg1, s16 arg2);
-void func_dryfield_dilapidated_house_80183728(GpCoord* coord, s16 arg1, s32 arg2, s16 arg3);
-void func_dryfield_dilapidated_house_801815E8(GpCoord* coord, s16 arg1);
-void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts);
-void func_dryfield_dilapidated_house_801803A4(Task* task, SVECTOR* verts);
-void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags);
+static void func_dryfield_dilapidated_house_8017E48C(void);
+static void func_dryfield_dilapidated_house_8017EAB4(Task* arg0);
+static void func_dryfield_dilapidated_house_8017E014(Task* task);
+static void func_dryfield_dilapidated_house_8017F418(SVECTOR* pts, SVECTOR* p3, s32 len, s32 pos, s32* out);
+static void func_dryfield_dilapidated_house_80180B84(Task* task);
+static void func_dryfield_dilapidated_house_80180F5C(Task* arg0);
+static void func_dryfield_dilapidated_house_8018118C(Task* arg0);
+static void func_dryfield_dilapidated_house_80181264(Task* arg0);
+static void func_dryfield_dilapidated_house_80181340(Task* arg0);
+static void func_dryfield_dilapidated_house_801813DC(Task* task);
+static void func_dryfield_dilapidated_house_8018142C(Task* task);
+static void func_dryfield_dilapidated_house_801814B4(Task* arg0);
+static void func_dryfield_dilapidated_house_80181584(Task* task);
+static void func_dryfield_dilapidated_house_801815B8(Task* arg0);
+static void func_dryfield_dilapidated_house_80182A18(GpCoord* coord, s16 arg1, s16 arg2);
+static void func_dryfield_dilapidated_house_801832A8(GpCoord* coord, s16 arg1, s16 arg2, s16 arg3);
+static void func_dryfield_dilapidated_house_80182F14(GpCoord* coord, s16 arg1, s16 arg2);
+static void func_dryfield_dilapidated_house_80183728(GpCoord* coord, s16 arg1, s32 arg2, s16 arg3);
+static void func_dryfield_dilapidated_house_801815E8(GpCoord* coord, s16 arg1);
+static void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts);
+static void func_dryfield_dilapidated_house_801803A4(Task* task, SVECTOR* verts);
+static void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags);
 
 /// Task that ripples the whole screen: it redraws the frame just rendered as a
 /// 10 by 30 grid of textured quads whose corners are pushed around by sine
@@ -439,7 +439,7 @@ void func_dryfield_dilapidated_house_8017DE88(Task* task)
 
 /// State handlers of the room task, indexed by `Task::state`: set-up, the room
 /// gate, then `taskKill`.
-const TaskFuncTable3 D_dryfield_dilapidated_house_8017D5C4 = {
+static const TaskFuncTable3 D_dryfield_dilapidated_house_8017D5C4 = {
     { func_dryfield_dilapidated_house_8017EAB4, func_dryfield_dilapidated_house_8017E014, taskKill },
 };
 
@@ -450,7 +450,7 @@ const TaskFuncTable3 D_dryfield_dilapidated_house_8017D5C4 = {
 /// and for no sound to be playing; reaching 3 spawns entry 3 of the room's task
 /// table. Independently, once the stream file is open it starts the named
 /// sequences `"AUNT"` and `"Player"` on the two slot objects.
-void func_dryfield_dilapidated_house_8017E014(Task* task)
+static void func_dryfield_dilapidated_house_8017E014(Task* task)
 {
     if (gGameSession->eventState == 0) {
         if (D_dryfield_dilapidated_house_80183EFC == 1) {
@@ -609,7 +609,7 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
 /// fields, the average is complemented against the 5-bit field mask, and the
 /// result is spread back over 15 bits. The 0x4B00 passes cover the buffer's
 /// 38400 words exactly.
-void func_dryfield_dilapidated_house_8017E48C(void)
+static void func_dryfield_dilapidated_house_8017E48C(void)
 {
     s32          i;
     u32          maskR;
@@ -809,25 +809,25 @@ void func_dryfield_dilapidated_house_8017E858(Task* arg0)
 }
 
 /// State handlers of the task `func_dryfield_dilapidated_house_80181134` dispatches.
-const TaskFuncTable3 D_dryfield_dilapidated_house_8017D61C = {
+static const TaskFuncTable3 D_dryfield_dilapidated_house_8017D61C = {
     { func_dryfield_dilapidated_house_8018118C, func_dryfield_dilapidated_house_80181264, taskKill },
 };
 
 /// State handlers of the task `func_dryfield_dilapidated_house_801812E8` dispatches.
-const TaskFuncTable3 D_dryfield_dilapidated_house_8017D628 = {
+static const TaskFuncTable3 D_dryfield_dilapidated_house_8017D628 = {
     { func_dryfield_dilapidated_house_80181340, func_dryfield_dilapidated_house_801813DC,
       func_dryfield_dilapidated_house_8018142C },
 };
 
 /// State handlers of the task `func_dryfield_dilapidated_house_8018145C` dispatches.
-const TaskFuncTable3 D_dryfield_dilapidated_house_8017D634 = {
+static const TaskFuncTable3 D_dryfield_dilapidated_house_8017D634 = {
     { func_dryfield_dilapidated_house_801814B4, func_dryfield_dilapidated_house_80181584,
       func_dryfield_dilapidated_house_801815B8 },
 };
 
 /// State handlers of the task `func_dryfield_dilapidated_house_80180F04`
 /// dispatches.
-const TaskFuncTable3 D_dryfield_dilapidated_house_8017D640 = {
+static const TaskFuncTable3 D_dryfield_dilapidated_house_8017D640 = {
     { func_dryfield_dilapidated_house_80180B84, func_dryfield_dilapidated_house_80180F5C, taskKill },
 };
 
@@ -890,7 +890,7 @@ void func_dryfield_dilapidated_house_8017E970(s32 arg0)
     D_dryfield_dilapidated_house_80189B7C->spawnArg1 = arg0;
 }
 
-void func_dryfield_dilapidated_house_8017E9A4(s32 arg0)
+static void func_dryfield_dilapidated_house_8017E9A4(s32 arg0)
 {
     if (arg0 != 0) {
         Gp_SpawnScript18((s32)&D_80114A24, (s32)&D_80114A34);
@@ -923,7 +923,7 @@ void func_dryfield_dilapidated_house_8017EA7C(void)
     Gp_StateC08.field_6 |= 1;
 }
 
-void func_dryfield_dilapidated_house_8017EAB4(Task* arg0)
+static void func_dryfield_dilapidated_house_8017EAB4(Task* arg0)
 {
     arg0->msgTable = D_dryfield_dilapidated_house_80183E8C;
     Game_SetPtrSlot(arg0, 7);
@@ -941,7 +941,7 @@ void func_dryfield_dilapidated_house_8017EAB4(Task* arg0)
 /// The room task: runs its current state out of
 /// `D_dryfield_dilapidated_house_8017D5C4`, copied onto the stack - setup, the
 /// room gate, then `taskKill`.
-void func_dryfield_dilapidated_house_8017EB60(Task* task)
+static void func_dryfield_dilapidated_house_8017EB60(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -953,7 +953,7 @@ void func_dryfield_dilapidated_house_8017EB60(Task* task)
 /// `D_dryfield_dilapidated_house_801866B4` through the parent task's
 /// `DdhCoordWork` matrix and `gGfxViewCoord.workm`, then queues two red
 /// `LINE_F2`s as an X at each screen point in `gGpuCurrentOt[10]`.
-void func_dryfield_dilapidated_house_8017EBB8(Task* task)
+static void func_dryfield_dilapidated_house_8017EBB8(Task* task)
 {
     struct {
         SVECTOR vec;
@@ -1027,7 +1027,7 @@ void func_dryfield_dilapidated_house_8017EBB8(Task* task)
 /// projects every point through the parent task's `DdhCoordWork` matrix and
 /// `gGfxViewCoord.workm`, and queues a small `LINE_F2` X at it in
 /// `gGpuCurrentOt[10]` - green for the first segment, blue for the second.
-void func_dryfield_dilapidated_house_8017EE58(Task* task)
+static void func_dryfield_dilapidated_house_8017EE58(Task* task)
 {
     SVECTOR  vec;
     DVECTOR  sx;
@@ -1133,7 +1133,7 @@ void func_dryfield_dilapidated_house_8017EE58(Task* task)
 /// Evaluates a cubic Bezier segment at frame `pos` of `len`: control points
 /// `pts[0..2]` and `p3`, with `t` running from 1 (0xFFFF) down to 0 as `pos`
 /// reaches `len`. Writes the X/Y/Z result to `out`.
-void func_dryfield_dilapidated_house_8017F418(SVECTOR* pts, SVECTOR* p3, s32 len, s32 pos, s32* out)
+static void func_dryfield_dilapidated_house_8017F418(SVECTOR* pts, SVECTOR* p3, s32 len, s32 pos, s32* out)
 {
     SVECTOR  coeff[3];
     SVECTOR* p1;
@@ -1156,7 +1156,7 @@ void func_dryfield_dilapidated_house_8017F418(SVECTOR* pts, SVECTOR* p3, s32 len
     }
 }
 
-void func_dryfield_dilapidated_house_8017F568(Task* task, SVECTOR* verts, s32 arg2)
+static void func_dryfield_dilapidated_house_8017F568(Task* task, SVECTOR* verts, s32 arg2)
 {
     CVECTOR   colors[24];
     s8*       quad;
@@ -1266,7 +1266,7 @@ void func_dryfield_dilapidated_house_8017F568(Task* task, SVECTOR* verts, s32 ar
 /// left in `*arg2` (`*arg3` gets the GTE flags). Rings 0 and 1 use the tables at
 /// their natural size, rings 2 and 3 scaled by a factor that pulses with
 /// `killCountdown`.
-void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts, s32* arg2, s32* arg3)
+static void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts, s32* arg2, s32* arg3)
 {
     SVECTOR        a;
     SVECTOR        b;
@@ -1397,7 +1397,7 @@ void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts, s32* a
 /// parent task's `DdhCoordWork::field_8` clamped to 0x400 and scaled to 0..0xFF;
 /// the outer edge is black. Each quad goes into the ordering table four entries
 /// past its average depth, preceded by a `DR_TPAGE` selecting blend mode 3.
-void func_dryfield_dilapidated_house_801803A4(Task* task, SVECTOR* verts)
+static void func_dryfield_dilapidated_house_801803A4(Task* task, SVECTOR* verts)
 {
     s32       sxy[32];
     s32       sz[16];
@@ -1476,7 +1476,7 @@ void func_dryfield_dilapidated_house_801803A4(Task* task, SVECTOR* verts)
     }
 }
 
-void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts)
+static void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts)
 {
     DdhAngleStep* work;
     DdhCoordWork* src;
@@ -1557,7 +1557,7 @@ void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts)
 /// vertices toward `rec->field_0` through the GTE, and, when `rec->field_4` is
 /// set, blends each normal between `rec->field_4` and the snapshot in
 /// `rec->field_C`.
-void func_dryfield_dilapidated_house_80180A0C(Task* task, DdhRoomRec* rec, s32 arg2)
+static void func_dryfield_dilapidated_house_80180A0C(Task* task, DdhRoomRec* rec, s32 arg2)
 {
     s32        i;
     s32        count;
@@ -1625,7 +1625,7 @@ void func_dryfield_dilapidated_house_80180A0C(Task* task, DdhRoomRec* rec, s32 a
     }
 }
 
-void func_dryfield_dilapidated_house_80180B84(Task* task)
+static void func_dryfield_dilapidated_house_80180B84(Task* task)
 {
     Task*         parent;
     TmdObject*    obj;
@@ -1729,7 +1729,7 @@ void func_dryfield_dilapidated_house_80180F04(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_dryfield_dilapidated_house_80180F5C(Task* arg0)
+static void func_dryfield_dilapidated_house_80180F5C(Task* arg0)
 {
     DdhCoordWork* work;
     s32           temp_v0;
@@ -1746,7 +1746,7 @@ void func_dryfield_dilapidated_house_80180F5C(Task* arg0)
 
 /// Exit callback `func_dryfield_dilapidated_house_80180B84` installs on its
 /// task: it kills the task.
-void func_dryfield_dilapidated_house_80180FB8(Task* task)
+static void func_dryfield_dilapidated_house_80180FB8(Task* task)
 {
     taskKill(task);
 }
@@ -1755,7 +1755,7 @@ void func_dryfield_dilapidated_house_80180FB8(Task* task)
 /// distance still to run (`0x1000 - ramp`) to the room record's matrix/vertex
 /// interpolator. Returns the ramp value, which the caller stores into its
 /// `DdhCoordWork`.
-s32 func_dryfield_dilapidated_house_80180FD8(Task* task)
+static s32 func_dryfield_dilapidated_house_80180FD8(Task* task)
 {
     s32 ramp;
 
@@ -1773,7 +1773,7 @@ s32 func_dryfield_dilapidated_house_80180FD8(Task* task)
 /// multiplied in, and its translation is rotated by the accumulated matrix and
 /// added to `mtx.t`. Steps one coordinate record at a time from the head of the
 /// parent's array up to the record this task's own `coord` links with `sub`.
-void func_dryfield_dilapidated_house_80181028(Task* task)
+static void func_dryfield_dilapidated_house_80181028(Task* task)
 {
     VECTOR        vec;
     GpCoord*      coord;
@@ -1802,7 +1802,7 @@ void func_dryfield_dilapidated_house_80181028(Task* task)
     } while (node++ != coord->sub);
 }
 
-void func_dryfield_dilapidated_house_801810F8(TmdObject* dst, TmdObject* src)
+static void func_dryfield_dilapidated_house_801810F8(TmdObject* dst, TmdObject* src)
 {
     if (!(src->flags & 0x80)) {
         dst->flags &= ~0x80;
@@ -1827,7 +1827,7 @@ void func_dryfield_dilapidated_house_80181134(Task* task)
 /// seeds its 0x1000 word, marks the model's `TmdObject` hidden (bit 0x80 of
 /// `field_C`), re-parents the task that spawned this one under it and advances
 /// to state 1.
-void func_dryfield_dilapidated_house_8018118C(Task* arg0)
+static void func_dryfield_dilapidated_house_8018118C(Task* arg0)
 {
     TmdObject*    obj;
     GpCoord*      coord;
@@ -1848,7 +1848,7 @@ void func_dryfield_dilapidated_house_8018118C(Task* arg0)
     arg0->state += 1;
 }
 
-void func_dryfield_dilapidated_house_80181264(Task* arg0)
+static void func_dryfield_dilapidated_house_80181264(Task* arg0)
 {
     func_dryfield_dilapidated_house_8017EBB8(arg0);
     func_dryfield_dilapidated_house_8017EE58(arg0);
@@ -1857,7 +1857,7 @@ void func_dryfield_dilapidated_house_80181264(Task* arg0)
 /// Converts one axis of a cubic Bezier segment (control points `p0`..`p3`) into
 /// the polynomial coefficients of `B(t)`, stored high order first: `t^3`, `t^2`,
 /// `t` and the constant term.
-void func_dryfield_dilapidated_house_80181290(s32 p0, s32 p1, s32 p2, s32 p3, SVECTOR* coeff)
+static void func_dryfield_dilapidated_house_80181290(s32 p0, s32 p1, s32 p2, s32 p3, SVECTOR* coeff)
 {
     coeff->vx  = -p0 + (p1 - p2) * 3 + p3;
     coeff->vy  = (p0 + p2) * 3 - p1 * 6;
@@ -1875,7 +1875,7 @@ void func_dryfield_dilapidated_house_801812E8(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_dryfield_dilapidated_house_80181340(Task* arg0)
+static void func_dryfield_dilapidated_house_80181340(Task* arg0)
 {
     GpCoord* coord;
     void*    work;
@@ -1893,7 +1893,7 @@ void func_dryfield_dilapidated_house_80181340(Task* arg0)
     arg0->state       += 1;
 }
 
-void func_dryfield_dilapidated_house_801813DC(Task* task)
+static void func_dryfield_dilapidated_house_801813DC(Task* task)
 {
     SVECTOR verts[24];
     s32     sp0;
@@ -1904,7 +1904,7 @@ void func_dryfield_dilapidated_house_801813DC(Task* task)
     func_dryfield_dilapidated_house_8017F568(task, verts, sp0);
 }
 
-void func_dryfield_dilapidated_house_8018142C(Task* arg0)
+static void func_dryfield_dilapidated_house_8018142C(Task* arg0)
 {
     GpCoord* coord;
 
@@ -1929,7 +1929,7 @@ void func_dryfield_dilapidated_house_8018145C(Task* task)
 /// arg (each wrapped into the 0x4000 angle period), links the model coordinate
 /// this task works on to the parent model's coordinate array, and re-parents the
 /// task that spawned this one under it.
-void func_dryfield_dilapidated_house_801814B4(Task* arg0)
+static void func_dryfield_dilapidated_house_801814B4(Task* arg0)
 {
     DdhAngleStep* work;
     GpCoord*      coord;
@@ -1950,7 +1950,7 @@ void func_dryfield_dilapidated_house_801814B4(Task* arg0)
     arg0->state += 1;
 }
 
-void func_dryfield_dilapidated_house_80181584(Task* task)
+static void func_dryfield_dilapidated_house_80181584(Task* task)
 {
     SVECTOR verts[32];
 
@@ -1958,7 +1958,7 @@ void func_dryfield_dilapidated_house_80181584(Task* task)
     func_dryfield_dilapidated_house_801803A4(task, verts);
 }
 
-void func_dryfield_dilapidated_house_801815B8(Task* arg0)
+static void func_dryfield_dilapidated_house_801815B8(Task* arg0)
 {
     GpCoord* coord;
 
@@ -1976,7 +1976,7 @@ extern SVECTOR D_dryfield_dilapidated_house_80186884[];
 /// cap over the lit ring. Each corner is rotated by `coord`'s `workm` and moved
 /// by its translation before projection through `GsWSMATRIX`. The lit corners
 /// share a grey that pulses with the display frame; the far corners are black.
-void func_dryfield_dilapidated_house_801815E8(GpCoord* coord, s16 arg1)
+static void func_dryfield_dilapidated_house_801815E8(GpCoord* coord, s16 arg1)
 {
     RoomQuadScratch* blk;
     POLY_G4*         prim;
@@ -2109,7 +2109,7 @@ extern GpCoord D_dryfield_dilapidated_house_8018A060[8];
 /// `func_dryfield_dilapidated_house_801823B8`. The task frees itself once
 /// `age` reaches spawn arg 1. It idles whole while `Gp_State1C->eventState`
 /// is 2 or more.
-void func_dryfield_dilapidated_house_80181F08(Task* task)
+static void func_dryfield_dilapidated_house_80181F08(Task* task)
 {
     GpCoord    coord;
     GpCoord*   objCoord;
@@ -2199,7 +2199,7 @@ void func_dryfield_dilapidated_house_80181F08(Task* task)
 /// `D_dryfield_dilapidated_house_8018A060`. Dropped when `gte_stszotz` is
 /// closer than 0x11. `flags` is the beam colour, three 2-bit channels at
 /// bits 8, 4 and 0 that each multiply the 0x40-9i fade.
-void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
+static void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
 {
     OverlayFlaggedQuadScratch* blk;
     GpCoord*                   a;
@@ -2274,7 +2274,7 @@ void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
 /// `Gp_State1C` fade is armed the frame counter is rolled back and the work
 /// block is released as soon as the fade reaches 4 or the angle passes
 /// 0x580.
-void func_dryfield_dilapidated_house_80182744(Task* task)
+static void func_dryfield_dilapidated_house_80182744(Task* task)
 {
     DdhEffWork*   work;
     GpCoord*      coord;
@@ -2373,7 +2373,7 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
 /// The inner edge carries the unsigned `arg2` ramp `(arg2, arg2 >> 1, arg2 >> 2)`
 /// and the outer edge fades to black; a negative `gte_stflg` drops the segment.
 /// Same body as `func_pyrokinesis_8012FC34`.
-void func_dryfield_dilapidated_house_80182A18(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_dryfield_dilapidated_house_80182A18(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     void**         scratch;
     register u8*   head asm("v0");
@@ -2471,7 +2471,7 @@ void func_dryfield_dilapidated_house_80182A18(GpCoord* arg0, s16 arg1, s16 arg2)
 /// `arg2` ramp `(arg2, arg2 >> 1, arg2 >> 2)` - a red-biased fire tint. A
 /// negative `gte_stflg` drops the whole ring. Same body as
 /// `func_pyrokinesis_80130130`.
-void func_dryfield_dilapidated_house_80182F14(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_dryfield_dilapidated_house_80182F14(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     GpRingScratch* block;
     POLY_G4*       prim;
@@ -2524,7 +2524,7 @@ void func_dryfield_dilapidated_house_80182F14(GpCoord* arg0, s16 arg1, s16 arg2)
 /// `(0xC0, 0x60, 0x40)`, even draws the 0x428C cell untinted. The corners sit
 /// `arg2 * 55 / otz` from the projected centre along `arg3` and
 /// `arg3 + 0x400`, so the sprite shrinks with depth.
-void func_dryfield_dilapidated_house_801832A8(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
+static void func_dryfield_dilapidated_house_801832A8(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     void**                    scratch;
     u8*                       head;
@@ -2599,7 +2599,7 @@ void func_dryfield_dilapidated_house_801832A8(GpCoord* arg0, s16 arg1, s16 arg2,
 /// edge carries the `arg3` ramp `(arg3, arg3 >> 1, arg3 >> 2)` and the outer
 /// edge fades to black; a negative `gte_stflg` drops the segment. Same body
 /// as `func_pyrokinesis_801312B4`.
-void func_dryfield_dilapidated_house_80183728(GpCoord* arg0, s16 arg1, s32 arg2, s16 arg3)
+static void func_dryfield_dilapidated_house_80183728(GpCoord* arg0, s16 arg1, s32 arg2, s16 arg3)
 {
     void**         scratch;
     register u8*   head asm("v0");
@@ -2680,7 +2680,7 @@ void func_dryfield_dilapidated_house_80183728(GpCoord* arg0, s16 arg1, s32 arg2,
     SCRATCH_POP_BYTES(0x118);
 }
 
-void func_dryfield_dilapidated_house_80183BF8(Task* arg0)
+static void func_dryfield_dilapidated_house_80183BF8(Task* arg0)
 {
     GpCoord* coord;
     s32      mask;
@@ -2704,7 +2704,7 @@ void func_dryfield_dilapidated_house_80183BF8(Task* arg0)
 /// `func_dryfield_dilapidated_house_80182A18` and then steps the scale by -0x10
 /// and the angle by +0x40. Once the scale falls below 0x10 - and immediately
 /// when the state word has already reached 4 - it releases the work block.
-void func_dryfield_dilapidated_house_80183C8C(Task* arg0)
+static void func_dryfield_dilapidated_house_80183C8C(Task* arg0)
 {
     DdhEffWork* mem;
     s16         flag;
@@ -2746,7 +2746,7 @@ void func_dryfield_dilapidated_house_80183C8C(Task* arg0)
 /// the scale by -8 and the angle by +0x80. Once the scale drops below 9 - and
 /// immediately when that state word has already reached 4 - it releases the work
 /// block through `Gp_ReleaseState1CMem`.
-void func_dryfield_dilapidated_house_80183D5C(Task* arg0)
+static void func_dryfield_dilapidated_house_80183D5C(Task* arg0)
 {
     DdhEffWork* mem;
     GpCoord*    coord;

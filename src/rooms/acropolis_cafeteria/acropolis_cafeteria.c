@@ -53,17 +53,17 @@ extern s32            D_acropolis_cafeteria_8018D6A0;
 extern s32            D_acropolis_cafeteria_8018D6A4;
 extern s32            D_acropolis_cafeteria_8018D6A8;
 
-void func_acropolis_cafeteria_8017D6AC(Task* task);
-void func_acropolis_cafeteria_8017E348(Task* task);
+static void func_acropolis_cafeteria_8017D6AC(Task* task);
+static void func_acropolis_cafeteria_8017E348(Task* task);
 
 /// State handlers of the room task: set-up, the per-frame tick and `taskKill`.
-const TaskFuncTable3 D_acropolis_cafeteria_8017D5C4 = {
+static const TaskFuncTable3 D_acropolis_cafeteria_8017D5C4 = {
     { func_acropolis_cafeteria_8017E348, func_acropolis_cafeteria_8017D6AC, taskKill },
 };
 
 static const char CafeteriaPlayerLabel[12] = "Player";
 
-void func_acropolis_cafeteria_8017D6AC(Task* task)
+static void func_acropolis_cafeteria_8017D6AC(Task* task)
 {
     if (gDisplayState.field_112 != 0) {
         func_80724608(gameGetPtrSlot(3), -0x8C, -0x32, (void*)CafeteriaPlayerLabel);
@@ -455,7 +455,7 @@ void func_acropolis_cafeteria_8017E310(void)
     Gp_StateC08.field_6 |= 1;
 }
 
-void func_acropolis_cafeteria_8017E348(Task* task)
+static void func_acropolis_cafeteria_8017E348(Task* task)
 {
     task->msgTable = D_acropolis_cafeteria_80182AA8;
     Game_SetPtrSlot(task, 7);
@@ -474,7 +474,7 @@ void func_acropolis_cafeteria_8017E348(Task* task)
 
 /// Runs the task's current state through a stack copy of the room's
 /// three-entry state table.
-void func_acropolis_cafeteria_8017E424(Task* task)
+static void func_acropolis_cafeteria_8017E424(Task* task)
 {
     TaskFuncTable3 sp;
 

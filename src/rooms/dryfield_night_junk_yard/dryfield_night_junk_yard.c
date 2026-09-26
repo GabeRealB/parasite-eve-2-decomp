@@ -15,7 +15,7 @@ extern GpMsgEntry D_dryfield_night_junk_yard_8018055C[];
 extern s32 D_dryfield_night_junk_yard_801805A0;
 extern s32 D_dryfield_night_junk_yard_801805A4;
 
-void func_dryfield_night_junk_yard_8017D9B8(u8 arg0);
+static void func_dryfield_night_junk_yard_8017D9B8(u8 arg0);
 
 /// Handler for message 0x13F0 in the room's message table, keyed by `arg2`.
 /// Point 6 plays CAP command 0xC until nibble 0x3A is set, and 6 after. Point 8
@@ -143,7 +143,7 @@ void func_dryfield_night_junk_yard_8017D894(u8 arg0)
 /// already latched nibble 0x9F, announce the room to the slot-4 task with
 /// message 0x7DA. The nibble is then applied to the current sprite-table entry
 /// either way, and the state advances.
-void func_dryfield_night_junk_yard_8017D8B0(Task* task)
+static void func_dryfield_night_junk_yard_8017D8B0(Task* task)
 {
     u8 subId;
 
@@ -158,18 +158,18 @@ void func_dryfield_night_junk_yard_8017D8B0(Task* task)
 }
 
 /// Entry task state 1: does nothing, and nothing here advances the state.
-void func_dryfield_night_junk_yard_8017D958(Task* task)
+static void func_dryfield_night_junk_yard_8017D958(Task* task)
 {
 }
 
 /// The room entry task's states: set up, idle, then `taskKill`.
-const TaskFuncTable3 D_dryfield_night_junk_yard_8017D5C4 = {
+static const TaskFuncTable3 D_dryfield_night_junk_yard_8017D5C4 = {
     { func_dryfield_night_junk_yard_8017D8B0, func_dryfield_night_junk_yard_8017D958, taskKill },
 };
 
 /// The room entry task: copies the three-state table to the stack and runs the
 /// entry the task's state selects.
-void func_dryfield_night_junk_yard_8017D960(Task* task)
+static void func_dryfield_night_junk_yard_8017D960(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -180,7 +180,7 @@ void func_dryfield_night_junk_yard_8017D960(Task* task)
 /// Applies game flag nibble 0x9F to the sixth sprite command of view 0 in the
 /// current room's sprite record: a zero nibble draws the command, a nonzero one
 /// hides it (`Gp_LinkViewSprts` skips OT-linking when `field_4` is set).
-void func_dryfield_night_junk_yard_8017D9B8(u8 arg0)
+static void func_dryfield_night_junk_yard_8017D9B8(u8 arg0)
 {
     GpAreaKey* sess = &gGameSession->at4.loc;
     GpSprtCmd* cmd;

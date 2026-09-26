@@ -121,13 +121,13 @@ extern s16 D_dryfield_night_water_hole_8018362C;
 /// The staged event descriptor, read by the room's event task.
 extern RoomDeparture D_dryfield_night_water_hole_80183630;
 
-void func_dryfield_night_water_hole_8017DE20(Task* task);
-void func_dryfield_night_water_hole_8017DE88(DnwhParamOverride* list);
-void func_dryfield_night_water_hole_8017E690(Task* arg0);
-void func_dryfield_night_water_hole_8017EA6C(SVECTOR* arg0, s32 arg1);
-void func_dryfield_night_water_hole_8017F3A8(GpCoord* arg0, s32 arg1, s32 arg2);
-void func_dryfield_night_water_hole_8017FB98(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_dryfield_night_water_hole_8017FF84(GpCoord* arg0, s32 arg1, s32 arg2);
+static void func_dryfield_night_water_hole_8017DE20(Task* task);
+static void func_dryfield_night_water_hole_8017DE88(DnwhParamOverride* list);
+static void func_dryfield_night_water_hole_8017E690(Task* arg0);
+static void func_dryfield_night_water_hole_8017EA6C(SVECTOR* arg0, s32 arg1);
+static void func_dryfield_night_water_hole_8017F3A8(GpCoord* arg0, s32 arg1, s32 arg2);
+static void func_dryfield_night_water_hole_8017FB98(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_dryfield_night_water_hole_8017FF84(GpCoord* arg0, s32 arg1, s32 arg2);
 
 /// Answers the code in `in->field_0` in `out->field_3`, unless `in->field_5`
 /// is set. Six codes have an answer, each from a progress nibble: 2 is 2 once
@@ -135,7 +135,7 @@ void func_dryfield_night_water_hole_8017FF84(GpCoord* arg0, s32 arg1, s32 arg2);
 /// nibbles 0xA4, 0xB6 and 0xB7 plus one; 16 is 3 once nibble 0x7A reaches 6;
 /// and 20 maps nibble 0xF4's values 0-3 to 1, 6, 7 and 8 (1 otherwise). Every
 /// other code leaves `out` untouched. Always returns 1.
-s32 func_dryfield_night_water_hole_8017D6AC(DnwhUtilParam* in, DnwhUtilParam* out)
+static s32 func_dryfield_night_water_hole_8017D6AC(DnwhUtilParam* in, DnwhUtilParam* out)
 {
     if (in->field_5 == 0) {
         switch (in->field_0) {
@@ -294,7 +294,7 @@ void func_dryfield_night_water_hole_8017D7E8(Task* arg0)
 /// `gGameSession::at4.loc.warp` selects. On sub-id 0xA, with pointer slot 0xA
 /// filled and nibble 0xCF still clear, it latches 0xCF, arms
 /// `func_800E3FAC(0xA2, 0x25)` and spawns the ending task. Then advances state.
-void func_dryfield_night_water_hole_8017D958(Task* arg0)
+static void func_dryfield_night_water_hole_8017D958(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_water_hole_801805F8;
     Game_SetPtrSlot(arg0, 7);
@@ -321,7 +321,7 @@ void func_dryfield_night_water_hole_8017D958(Task* arg0)
 /// The room task's three states, run from a stack copy by
 /// `func_dryfield_night_water_hole_8017DE30`: the entry tick, the idle state,
 /// then `taskKill`.
-const TaskFuncTable3 D_dryfield_night_water_hole_8017D688 = {
+static const TaskFuncTable3 D_dryfield_night_water_hole_8017D688 = {
     { func_dryfield_night_water_hole_8017D958, func_dryfield_night_water_hole_8017DE20, taskKill },
 };
 
@@ -454,7 +454,7 @@ s32 func_dryfield_night_water_hole_8017DD5C(s32 arg0, s32 arg1, RoomEventMsg* in
 
 /// The room task's idle state, entry 1 of its three-state table: does nothing.
 /// The 0x10-byte local is never used, but the original reserved the frame.
-void func_dryfield_night_water_hole_8017DE20(Task* task)
+static void func_dryfield_night_water_hole_8017DE20(Task* task)
 {
     char pad[0x10];
 }
@@ -462,7 +462,7 @@ void func_dryfield_night_water_hole_8017DE20(Task* task)
 /// The room task: copies the three-state table
 /// `D_dryfield_night_water_hole_8017D688` onto the stack and runs the entry for
 /// the task's current state - the entry tick, the idle state, then `taskKill`.
-void func_dryfield_night_water_hole_8017DE30(Task* task)
+static void func_dryfield_night_water_hole_8017DE30(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -474,7 +474,7 @@ void func_dryfield_night_water_hole_8017DE30(Task* task)
 /// each entry replaces the room's parameter slot, both the `GpRoomParamRec`
 /// pointer and the byte `Gp_LoadRoomParams` would have copied into
 /// `Gp_RoomParams` out of it. The list ends at the first NULL record.
-void func_dryfield_night_water_hole_8017DE88(DnwhParamOverride* list)
+static void func_dryfield_night_water_hole_8017DE88(DnwhParamOverride* list)
 {
     GpAreaKey*       sess;
     s32              i;
@@ -497,7 +497,7 @@ void func_dryfield_night_water_hole_8017DE88(DnwhParamOverride* list)
 /// (0x20, 0x20, 0x20); each quad is followed by a draw-mode packet selecting
 /// blend mode 2. Quads the projection flags as invalid are skipped. `task` is
 /// unused.
-void func_dryfield_night_water_hole_8017DF28(Task* task)
+static void func_dryfield_night_water_hole_8017DF28(Task* task)
 {
     SVECTOR      v0, v1, v2, v3;
     s32          sxy0, sxy1, sxy2, sxy3;
@@ -640,7 +640,7 @@ void func_dryfield_night_water_hole_8017E630(Task* task)
 
 /// The water task's first state: clears the session halfword `field_80`, or
 /// `field_7E` while `Mc_SaveData.companionType` is set, then advances to the drawing state.
-void func_dryfield_night_water_hole_8017E690(Task* arg0)
+static void func_dryfield_night_water_hole_8017E690(Task* arg0)
 {
     if (Mc_SaveData.companionType == 0) {
         gGameSession->field_80 = 0;
@@ -659,7 +659,7 @@ void func_dryfield_night_water_hole_8017E690(Task* arg0)
 /// game-flag nibble 0x51 is 1, draws the glowing beams
 /// `func_dryfield_night_water_hole_8017EA6C` renders between the point pairs
 /// the current view selects.
-void func_dryfield_night_water_hole_8017E6D0(Task* arg0)
+static void func_dryfield_night_water_hole_8017E6D0(Task* arg0)
 {
     Task*                          ctl;
     s32                            mask;
@@ -743,7 +743,7 @@ void func_dryfield_night_water_hole_8017E6D0(Task* arg0)
 /// between them; quads join the two discs. The centre brightness flickers
 /// between 0x20 and 0x30 with the display frame counter. Nothing is drawn when
 /// either projection is invalid. The work block lives on the scratchpad stack.
-void func_dryfield_night_water_hole_8017EA6C(SVECTOR* arg0, s32 arg1)
+static void func_dryfield_night_water_hole_8017EA6C(SVECTOR* arg0, s32 arg1)
 {
     void**                   scratch;
     u8*                      head;
@@ -881,7 +881,7 @@ void func_dryfield_night_water_hole_8017EA6C(SVECTOR* arg0, s32 arg1)
 /// brightness by 2, releasing the work block once it falls under 2. Once the
 /// event state is non-zero it only draws, releasing the block from event state
 /// 4 on.
-void func_dryfield_night_water_hole_8017F254(Task* task)
+static void func_dryfield_night_water_hole_8017F254(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -919,7 +919,7 @@ void func_dryfield_night_water_hole_8017F254(Task* task)
 /// If the projection is valid, one semi-transparent `POLY_FT4` (tpage 0x2B,
 /// clut 0x43D1, UV 0,0x38 to 0x37,0x6F) is queued with all three colour
 /// channels set to `arg2`. The work block lives on the scratchpad stack.
-void func_dryfield_night_water_hole_8017F3A8(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_night_water_hole_8017F3A8(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -1012,7 +1012,7 @@ void func_dryfield_night_water_hole_8017F3A8(GpCoord* arg0, s32 arg1, s32 arg2)
 /// draws, moves the coordinate by the velocity with gravity pulling it down,
 /// and releases the block after animation frame 7. While the room's event
 /// state is non-zero it only draws, releasing the block from event state 4 on.
-void func_dryfield_night_water_hole_8017F6DC(Task* task)
+static void func_dryfield_night_water_hole_8017F6DC(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -1137,7 +1137,7 @@ void func_dryfield_night_water_hole_8017F6DC(Task* task)
 /// column `arg1` of the strip at v 0xE0..0xFF. Its corners sit at
 /// `(s16)arg2 * 31 / otz` from the projected point, rotated by the angle
 /// `arg3`. The work block lives on the scratchpad stack.
-void func_dryfield_night_water_hole_8017FB98(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_dryfield_night_water_hole_8017FB98(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -1203,7 +1203,7 @@ void func_dryfield_night_water_hole_8017FB98(GpCoord* arg0, s32 arg1, s32 arg2, 
 /// is `2 * r` on a side with `r = (s16)arg2 * 55 / otz`, and the projected
 /// point sits a quarter of the way up from its bottom edge. The work block
 /// lives on the scratchpad stack.
-void func_dryfield_night_water_hole_8017FF84(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_night_water_hole_8017FF84(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;

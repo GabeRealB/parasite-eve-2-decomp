@@ -59,16 +59,16 @@ extern s32 D_acropolis_roof_garden_80186E94;
 /// Whole-unit X/Y/Z displacement left by `func_acropolis_roof_garden_8017F870`.
 extern SVECTOR D_acropolis_roof_garden_80186E98;
 
-void func_acropolis_roof_garden_8017DB74(Task* arg0);
-void func_acropolis_roof_garden_8017DBEC(Task* task);
-void func_acropolis_roof_garden_8017F560(GpCoord* arg0, s32 arg1, s16 arg2);
+static void func_acropolis_roof_garden_8017DB74(Task* arg0);
+static void func_acropolis_roof_garden_8017DBEC(Task* task);
+static void func_acropolis_roof_garden_8017F560(GpCoord* arg0, s32 arg1, s16 arg2);
 
 /// State handlers of the room task: set-up, the per-frame tick and `taskKill`.
-const TaskFuncTable3 D_acropolis_roof_garden_8017D5C4 = {
+static const TaskFuncTable3 D_acropolis_roof_garden_8017D5C4 = {
     { func_acropolis_roof_garden_8017DB74, func_acropolis_roof_garden_8017DBEC, taskKill },
 };
 
-const RgSpriteLevels D_acropolis_roof_garden_8017D5D0 = { { 0x40, 0x60, 0x10 } };
+static const RgSpriteLevels D_acropolis_roof_garden_8017D5D0 = { { 0x40, 0x60, 0x10 } };
 
 /// Keeps the roof garden's ambience (sound id 0x510D0005) in step with the
 /// session's weather/time state: state 5 plays it at 0x1E, state 7 at full
@@ -256,7 +256,7 @@ void func_acropolis_roof_garden_8017DAD4(s32 arg0)
     }
 }
 
-void func_acropolis_roof_garden_8017DB74(Task* arg0)
+static void func_acropolis_roof_garden_8017DB74(Task* arg0)
 {
     arg0->msgTable = D_acropolis_roof_garden_80183BDC;
     Game_SetPtrSlot(arg0, 7);
@@ -267,7 +267,7 @@ void func_acropolis_roof_garden_8017DB74(Task* arg0)
     arg0->state += 1;
 }
 
-void func_acropolis_roof_garden_8017DBEC(Task* task)
+static void func_acropolis_roof_garden_8017DBEC(Task* task)
 {
     GpAreaKey key;
 
@@ -283,7 +283,7 @@ void func_acropolis_roof_garden_8017DBEC(Task* task)
 
 /// Runs the task's current state through a stack copy of the room's
 /// three-entry state table.
-void func_acropolis_roof_garden_8017DC74(Task* task)
+static void func_acropolis_roof_garden_8017DC74(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -302,7 +302,7 @@ void func_acropolis_roof_garden_8017DCCC(void)
 /// one flagged 0x04000102, then seven more - and every frame after that it adds
 /// the two view-dependent effects: one while the current view is 5 or 6 (the
 /// `0x30 >> view - 1` bit test) and one while it is 7.
-void func_acropolis_roof_garden_8017DCDC(Task* task)
+static void func_acropolis_roof_garden_8017DCDC(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -355,7 +355,7 @@ void func_acropolis_roof_garden_8017DCDC(Task* task)
 /// kept, as the index into the view mask. The grey level is the variant's own
 /// level from `D_acropolis_roof_garden_8017D5D0`, brightened by 0x10 on odd
 /// frames so the sprite flickers.
-void func_acropolis_roof_garden_8017DE90(Task* arg0)
+static void func_acropolis_roof_garden_8017DE90(Task* arg0)
 {
     GpEffWork*        mem;
     GpCoord*          coord;
@@ -440,7 +440,7 @@ void func_acropolis_roof_garden_8017DE90(Task* arg0)
 
 /// Pulsating roof-garden flare, projected into scratch memory and drawn with
 /// Gouraud polygons and optional rays.
-void func_acropolis_roof_garden_8017E29C(Task* arg0)
+static void func_acropolis_roof_garden_8017E29C(Task* arg0)
 {
     GpCoord*         coord;
     void*            mem;
@@ -643,7 +643,7 @@ void func_acropolis_roof_garden_8017E29C(Task* arg0)
 /// gets there, and the tilt wanders by a random step. Once the frame has
 /// risen past the origin the mote fades in by 0x10 a tick up to 0x80, then
 /// fades back out and releases its work block.
-void func_acropolis_roof_garden_8017F10C(Task* task)
+static void func_acropolis_roof_garden_8017F10C(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -747,7 +747,7 @@ void func_acropolis_roof_garden_8017F10C(Task* task)
 /// `GsWSMATRIX` into a textured quad. A mote nearer than `otz` 0x11 is not
 /// drawn. `arg2` is the fade level: zero draws the texture unshaded, anything
 /// else modulates it to that grey and draws it semi-transparent.
-void func_acropolis_roof_garden_8017F560(GpCoord* arg0, s32 arg1, s16 arg2)
+static void func_acropolis_roof_garden_8017F560(GpCoord* arg0, s32 arg1, s16 arg2)
 {
     register GpCoord* coord asm("t7");
     register void**   scratch asm("a0");
@@ -822,7 +822,7 @@ void func_acropolis_roof_garden_8017F560(GpCoord* arg0, s32 arg1, s16 arg2)
 /// fractional part away from zero. The whole-unit displacement is also left in
 /// `D_acropolis_roof_garden_80186E98`. Returns non-zero when the X or Z
 /// displacement is non-zero.
-s32 func_acropolis_roof_garden_8017F870(GpCoord* coord, GpRec18* rec, s16 arg2)
+static s32 func_acropolis_roof_garden_8017F870(GpCoord* coord, GpRec18* rec, s16 arg2)
 {
     void**            scratch;
     u8*               head;
@@ -876,7 +876,7 @@ s32 func_acropolis_roof_garden_8017F870(GpCoord* coord, GpRec18* rec, s16 arg2)
 /// record within a quarter turn of it, moves the coordinate `push` units back
 /// along that record's bearing, in X and Z. Returns non-zero if it moved the
 /// coordinate; returns 0 at once while `gGameSession->viewReady` is 1.
-s32 func_acropolis_roof_garden_8017FA14(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
+static s32 func_acropolis_roof_garden_8017FA14(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
 {
     void**                  scratch;
     void**                  tail;
@@ -1024,7 +1024,7 @@ s32 func_acropolis_roof_garden_8017FA14(GpCoord* coord, GpRec18* recs, s16 count
 /// through 7, and stays hidden once the item's 2-bit flag reads 2 (already
 /// taken). The three hidden cases are written as separate tests so the two view
 /// comparisons are not folded into one unsigned range check.
-void func_acropolis_roof_garden_80180160(Task* task)
+static void func_acropolis_roof_garden_80180160(Task* task)
 {
     GpItemObj8* obj;
     TmdObject*  tmd;

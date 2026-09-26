@@ -65,10 +65,10 @@ extern s16 D_neo_ark_altar_8017F068[];
 extern NeoArkAltarTile D_neo_ark_altar_8017EFD8[];
 extern GpAreaApplyRec  D_neo_ark_altar_8018007C[];
 
-void func_neo_ark_altar_8017E658(SVECTOR* p0, SVECTOR* p1, SVECTOR* p2, SVECTOR* p3);
-s16  func_neo_ark_altar_8017EC34(NeoArkAltarTile* table, s16 x, s16 z);
-s16  func_neo_ark_altar_8017E260(Task* task);
-void func_neo_ark_altar_8017E92C(s16 arg0, s32 arg1);
+static void func_neo_ark_altar_8017E658(SVECTOR* p0, SVECTOR* p1, SVECTOR* p2, SVECTOR* p3);
+static s16  func_neo_ark_altar_8017EC34(NeoArkAltarTile* table, s16 x, s16 z);
+static s16  func_neo_ark_altar_8017E260(Task* task);
+static void func_neo_ark_altar_8017E92C(s16 arg0, s32 arg1);
 
 void func_neo_ark_altar_8017DA40(Task* arg0)
 {
@@ -334,7 +334,7 @@ void func_neo_ark_altar_8017DC40(s32 arg0)
 /// `var_s2`, which raises the matching tile by half the remaining distance to
 /// 0xBB8 per frame. With no tile raised, `field_A` instead decays by a quarter
 /// towards 0 while `field_C` still names a valid tile.
-void func_neo_ark_altar_8017DF0C(Task* task)
+static void func_neo_ark_altar_8017DF0C(Task* task)
 {
     NeoArkAltarWork* work;
     GpCoord*         coord;
@@ -410,7 +410,7 @@ void func_neo_ark_altar_8017DF0C(Task* task)
 /// six sprite commands reached through `rec[3]` / `rec[6]` / `rec[4]` are
 /// skipped (1) or linked (0) to match, and the 17 halfwords at
 /// `D_neo_ark_altar_801800B0` are cleared for `func_neo_ark_altar_8017E260`.
-void func_neo_ark_altar_8017E148(void)
+static void func_neo_ark_altar_8017E148(void)
 {
     GpAreaKey* sess;
     GpSprtRec* rec;
@@ -452,7 +452,7 @@ void func_neo_ark_altar_8017E148(void)
     }
 }
 
-s16 func_neo_ark_altar_8017E260(Task* task)
+static s16 func_neo_ark_altar_8017E260(Task* task)
 {
     NeoArkAltarWork* work;
     s32              i;
@@ -564,7 +564,7 @@ s16 func_neo_ark_altar_8017E260(Task* task)
 /// Gouraud quad whose top edge is shade `c` and bottom edge `c - 6`, linked at
 /// its projected depth together with a 0xE100002A draw-mode packet; the shade
 /// only steps down for strips that are drawn.
-void func_neo_ark_altar_8017E658(SVECTOR* p0, SVECTOR* p1, SVECTOR* p2, SVECTOR* p3)
+static void func_neo_ark_altar_8017E658(SVECTOR* p0, SVECTOR* p1, SVECTOR* p2, SVECTOR* p3)
 {
     SVECTOR  v0;
     SVECTOR  v1;
@@ -644,7 +644,7 @@ void func_neo_ark_altar_8017E658(SVECTOR* p0, SVECTOR* p1, SVECTOR* p2, SVECTOR*
 /// side drops below the tile. The sides walk the tile rectangle
 /// `(x, z) -> (x + w, z) -> (x + w, z + d) -> (x, z + d)` as `arg0` selects
 /// the tile in the table.
-void func_neo_ark_altar_8017E92C(s16 arg0, s32 arg1)
+static void func_neo_ark_altar_8017E92C(s16 arg0, s32 arg1)
 {
     NeoArkAltarTile* tile;
     NeoArkAltarTile* base;
@@ -727,7 +727,7 @@ void func_neo_ark_altar_8017E92C(s16 arg0, s32 arg1)
 /// Returns the `id` of the first tile in `table` whose rectangle contains
 /// `(x, z)`, edges inclusive, or 0 when none does. The scan ends at the entry
 /// whose `id` is -1.
-s16 func_neo_ark_altar_8017EC34(NeoArkAltarTile* table, s16 x, s16 z)
+static s16 func_neo_ark_altar_8017EC34(NeoArkAltarTile* table, s16 x, s16 z)
 {
     for (; table->id != -1; table++) {
         if (table->x <= x && x <= table->x + table->w && table->z <= z && z <= table->z + table->d) {
@@ -737,20 +737,20 @@ s16 func_neo_ark_altar_8017EC34(NeoArkAltarTile* table, s16 x, s16 z)
     return 0;
 }
 
-void func_neo_ark_altar_8017ED60(Task* task);
-void func_neo_ark_altar_8017EDBC(Task* task);
-void func_neo_ark_altar_8017EDF8(Task* task);
-void func_neo_ark_altar_8017EE30(Task* task);
-void func_neo_ark_altar_8017EE90(Task* task);
-void func_neo_ark_altar_8017EF00(Task* task);
-void func_neo_ark_altar_8017EF34(Task* task);
+static void func_neo_ark_altar_8017ED60(Task* task);
+static void func_neo_ark_altar_8017EDBC(Task* task);
+static void func_neo_ark_altar_8017EDF8(Task* task);
+static void func_neo_ark_altar_8017EE30(Task* task);
+static void func_neo_ark_altar_8017EE90(Task* task);
+static void func_neo_ark_altar_8017EF00(Task* task);
+static void func_neo_ark_altar_8017EF34(Task* task);
 
 /// State handlers of the altar task, dispatched by
 /// `func_neo_ark_altar_8017ECE0` off `Task::state`: allocation and set-up,
 /// a short wait, the tile sequence (`func_neo_ark_altar_8017DF0C`), then, once
 /// the sequence completes, a fade-out, a spawn from `D_neo_ark_altar_8017EFC0`
 /// and a view change before control returns to the tile sequence.
-const TaskFuncTable8 D_neo_ark_altar_8017D648 = {
+static const TaskFuncTable8 D_neo_ark_altar_8017D648 = {
     func_neo_ark_altar_8017ED60,
     func_neo_ark_altar_8017EDBC,
     func_neo_ark_altar_8017DF0C,
@@ -768,7 +768,7 @@ void func_neo_ark_altar_8017ECE0(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-void func_neo_ark_altar_8017ED60(Task* arg0)
+static void func_neo_ark_altar_8017ED60(Task* arg0)
 {
     NeoArkAltarWork* work;
 
@@ -783,7 +783,7 @@ void func_neo_ark_altar_8017ED60(Task* arg0)
     arg0->state         = (s32)(arg0->state + 1);
 }
 
-void func_neo_ark_altar_8017EDBC(Task* arg0)
+static void func_neo_ark_altar_8017EDBC(Task* arg0)
 {
     arg0->killCountdown = arg0->killCountdown + 1;
     if (arg0->killCountdown >= 3) {
@@ -791,14 +791,14 @@ void func_neo_ark_altar_8017EDBC(Task* arg0)
     }
 }
 
-void func_neo_ark_altar_8017EDF8(Task* arg0)
+static void func_neo_ark_altar_8017EDF8(Task* arg0)
 {
     Gp_MsgPlayerWeapon(0);
     arg0->killCountdown = 0;
     arg0->state         = (s32)(arg0->state + 1);
 }
 
-void func_neo_ark_altar_8017EE30(Task* arg0)
+static void func_neo_ark_altar_8017EE30(Task* arg0)
 {
     u8 temp_a0;
 
@@ -811,7 +811,7 @@ void func_neo_ark_altar_8017EE30(Task* arg0)
     Fade_DrawOverlay(temp_a0, temp_a0, temp_a0, 2);
 }
 
-void func_neo_ark_altar_8017EE90(Task* arg0)
+static void func_neo_ark_altar_8017EE90(Task* arg0)
 {
     NeoArkAltarWork* work;
 
@@ -822,7 +822,7 @@ void func_neo_ark_altar_8017EE90(Task* arg0)
     arg0->state           = (s32)(arg0->state + 1);
 }
 
-void func_neo_ark_altar_8017EF00(Task* arg0)
+static void func_neo_ark_altar_8017EF00(Task* arg0)
 {
     s16* viewDirty;
 
@@ -836,7 +836,7 @@ void func_neo_ark_altar_8017EF00(Task* arg0)
     arg0->state                = (s32)(arg0->state + 1);
 }
 
-void func_neo_ark_altar_8017EF34(Task* arg0)
+static void func_neo_ark_altar_8017EF34(Task* arg0)
 {
     SetDispMask(1);
     Gp_MsgPlayer3F3(1);
@@ -845,6 +845,6 @@ void func_neo_ark_altar_8017EF34(Task* arg0)
     arg0->state           = 2;
 }
 
-void func_neo_ark_altar_8017EF84(void)
+static void func_neo_ark_altar_8017EF84(void)
 {
 }

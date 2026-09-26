@@ -182,26 +182,26 @@ extern s32 D_acropolis_sanctuary_801820E4;
 extern s32 D_acropolis_sanctuary_801820F0;
 extern s32 D_acropolis_sanctuary_801821C8;
 
-void func_acropolis_sanctuary_8017D5E0(Task* task);
-void func_acropolis_sanctuary_8017D930(Task* arg0);
-void func_acropolis_sanctuary_8017DD78(void);
-void func_acropolis_sanctuary_8017DF88(s32 arg0, s32 arg1);
+static void func_acropolis_sanctuary_8017D5E0(Task* task);
+static void func_acropolis_sanctuary_8017D930(Task* arg0);
+static void func_acropolis_sanctuary_8017DD78(void);
+static void func_acropolis_sanctuary_8017DF88(s32 arg0, s32 arg1);
 
 /// State handlers of the room task: set-up, the per-frame entry fixup and
 /// `taskKill`.
-const TaskFuncTable3 D_acropolis_sanctuary_8017D5C4 = {
+static const TaskFuncTable3 D_acropolis_sanctuary_8017D5C4 = {
     { func_acropolis_sanctuary_8017D930, func_acropolis_sanctuary_8017D5E0, taskKill },
 };
 
 /// Offset the room task's model-coordinate effect is spawned with.
-const SVECTOR D_acropolis_sanctuary_8017D5D0 = { -0x27F6, -0x17CA, -0x1C3E, 0 };
+static const SVECTOR D_acropolis_sanctuary_8017D5D0 = { -0x27F6, -0x17CA, -0x1C3E, 0 };
 
 /// The two level tables stay in assembly: each is padded to a word in the ROM,
 /// which a 3-byte C object is not, and the second pad byte is non-zero.
-const AcsSpriteLevels D_acropolis_sanctuary_8017D5D8 = { { 0x60, 0x60, 0x10 } };
-const AcsSpriteLevels D_acropolis_sanctuary_8017D5DC = { { 0x10, 0x10, 0x08 } };
+static const AcsSpriteLevels D_acropolis_sanctuary_8017D5D8 = { { 0x60, 0x60, 0x10 } };
+static const AcsSpriteLevels D_acropolis_sanctuary_8017D5DC = { { 0x10, 0x10, 0x08 } };
 /// A non-zero padding byte the original toolchain left. Nothing refers to it.
-const u8 D_acropolis_sanctuary_8017D5DF = 0xF1;
+static const u8 D_acropolis_sanctuary_8017D5DF = 0xF1;
 
 /// The room task's per-frame state. Once the session reaches phase 3
 /// (`GameFlag_GetNibble(2)` still 0), advances that flag and applies the
@@ -209,7 +209,7 @@ const u8 D_acropolis_sanctuary_8017D5DF = 0xF1;
 /// the objects that stay hidden while `Gp_GetCurBit2Flag(0x1C)` is 2. `mask` is
 /// a local because the target CSEs `~0x40` into a register and uses `and`
 /// rather than nine `andi`s.
-void func_acropolis_sanctuary_8017D5E0(Task* task)
+static void func_acropolis_sanctuary_8017D5E0(Task* task)
 {
     s32      mask;
     GpObj4A* p0;
@@ -338,7 +338,7 @@ void func_acropolis_sanctuary_8017D8CC(void)
 /// has already reached 1 it also chains slot-4 message list 1 onto itself and,
 /// when nibble 2 is set and that slot holds a task, places the actor by sending
 /// it the 0x7D3 animation record followed by the 0x7D4 placement.
-void func_acropolis_sanctuary_8017D930(Task* arg0)
+static void func_acropolis_sanctuary_8017D930(Task* arg0)
 {
     Task* slot;
 
@@ -358,7 +358,7 @@ void func_acropolis_sanctuary_8017D930(Task* arg0)
 
 /// Runs the room task's current state through a stack copy of the room's
 /// three-entry state table: set-up, the per-frame entry fixup and `taskKill`.
-void func_acropolis_sanctuary_8017D9E8(Task* task)
+static void func_acropolis_sanctuary_8017D9E8(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -497,7 +497,7 @@ void func_acropolis_sanctuary_8017DCE0(s32 arg0)
 /// quad live, then slides all eight corners to where the cage belongs. Nibble 6
 /// is the sanctuary cutscene flag: before the scene the cage sits across the
 /// doorway, afterwards it is pushed 3000 units aside and out of the way.
-void func_acropolis_sanctuary_8017DD78(void)
+static void func_acropolis_sanctuary_8017DD78(void)
 {
     GpGridParams*   dst = &D_acropolis_sanctuary_80183568;
     GpGridParams*   src = &D_acropolis_sanctuary_801822EC;
@@ -539,7 +539,7 @@ void func_acropolis_sanctuary_8017DD78(void)
 /// `arg0` zero draws the second command and skips the third, non-zero does the
 /// reverse. `Gp_LinkViewSprts` reads `field_4` to decide whether to skip
 /// OT-linking each command's prims.
-void func_acropolis_sanctuary_8017DF88(s32 arg0, s32 arg1)
+static void func_acropolis_sanctuary_8017DF88(s32 arg0, s32 arg1)
 {
     GameSession* g    = gGameSession;
     GpAreaKey*   sess = &g->at4.loc;
@@ -563,7 +563,7 @@ void func_acropolis_sanctuary_8017DF88(s32 arg0, s32 arg1)
 /// once. Every frame after that it mirrors the session's stage byte into
 /// `D_acropolis_sanctuary_80182770`: 1 while the byte is 0x10, held while it is
 /// 0xC, 0 otherwise.
-void func_acropolis_sanctuary_8017E00C(Task* task)
+static void func_acropolis_sanctuary_8017E00C(Task* task)
 {
     GpCoord*   coord;
     GpAreaKey* sess;
@@ -598,7 +598,7 @@ void func_acropolis_sanctuary_8017E00C(Task* task)
 /// `GpEffWork` offset triple: x is always 0, y and z come from the tile's grid
 /// position scaled by 1145/128 and 2147/256 and shifted by the origin corner of
 /// the size class in `quad`. Any state but 0 just releases the work block.
-void func_acropolis_sanctuary_8017E134(Task* arg0)
+static void func_acropolis_sanctuary_8017E134(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -659,7 +659,7 @@ void func_acropolis_sanctuary_8017E134(Task* arg0)
 /// bounces it by halving and inverting the vertical step. Either split costs
 /// 0x64 of life. Once the room flag is set and the session is not in mode
 /// 0x10, tiles past x = -0x28C0 also age by 0x3C, so they clear away.
-void func_acropolis_sanctuary_8017E338(Task* arg0)
+static void func_acropolis_sanctuary_8017E338(Task* arg0)
 {
     GpEffWork*      mem;
     GpCoord*        coord;
@@ -840,7 +840,7 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
 /// splitting into two. Either way the split costs 0x3C of life. Once the room
 /// flag is set and the session is not in mode 0x10, shards past x = -0x28C0
 /// also age by 0x3C, so they clear away.
-void func_acropolis_sanctuary_8017EC90(Task* arg0)
+static void func_acropolis_sanctuary_8017EC90(Task* arg0)
 {
     GpEffWork*        mem;
     GpCoord*          coord;
@@ -995,7 +995,7 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
 /// as the index into `D_acropolis_sanctuary_801827D4`, the per-variant mask of
 /// camera views the flame is visible from. The grey level is the variant's base
 /// level plus its flicker amplitude on odd frames.
-void func_acropolis_sanctuary_8017F4E8(Task* arg0)
+static void func_acropolis_sanctuary_8017F4E8(Task* arg0)
 {
     GpEffWork*        mem;
     GpCoord*          coord;
@@ -1093,7 +1093,7 @@ s32 func_acropolis_sanctuary_8017F918(Task* task)
 /// fractional part away from zero. The whole-unit displacement is also left in
 /// `D_acropolis_sanctuary_80186C94`. Returns non-zero when the X or Z
 /// displacement is non-zero.
-s32 func_acropolis_sanctuary_8017F974(GpCoord* coord, GpRec18* rec, s16 arg2)
+static s32 func_acropolis_sanctuary_8017F974(GpCoord* coord, GpRec18* rec, s16 arg2)
 {
     void**            scratch;
     u8*               head;
@@ -1147,7 +1147,7 @@ s32 func_acropolis_sanctuary_8017F974(GpCoord* coord, GpRec18* rec, s16 arg2)
 /// record within a quarter turn of it, moves the coordinate `push` units back
 /// along that record's bearing, in X and Z. Returns non-zero if it moved the
 /// coordinate; returns 0 at once while `gGameSession->viewReady` is 1.
-s32 func_acropolis_sanctuary_8017FB18(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
+static s32 func_acropolis_sanctuary_8017FB18(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
 {
     void**                  scratch;
     void**                  tail;
@@ -1295,7 +1295,7 @@ s32 func_acropolis_sanctuary_8017FB18(GpCoord* coord, GpRec18* recs, s16 count, 
 /// (`field_C` bit 0x80) while the camera sits on view 0xB or 0xD, or once the
 /// item's 2-bit pickup flag has reached 2; otherwise shows it again with the
 /// default flags.
-void func_acropolis_sanctuary_80180264(Task* task)
+static void func_acropolis_sanctuary_80180264(Task* task)
 {
     GpItemObj8* obj = task->spawnArg2;
     TmdObject*  tmd = task->extra.tmd;
@@ -1315,7 +1315,7 @@ void func_acropolis_sanctuary_80180264(Task* task)
 /// Per-frame visibility hook for an item object: hides the model (`flags`
 /// 0x80) once the item's 2-bit pickup flag has reached 2, otherwise shows it
 /// with the default flags. The current view is queried but not used.
-void func_acropolis_sanctuary_801802E0(Task* task)
+static void func_acropolis_sanctuary_801802E0(Task* task)
 {
     GpItemObj8* obj;
     TmdObject*  tmd;

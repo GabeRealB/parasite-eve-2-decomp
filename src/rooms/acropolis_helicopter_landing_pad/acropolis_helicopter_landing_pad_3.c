@@ -66,11 +66,11 @@ extern SVECTOR   D_acropolis_helicopter_landing_pad_80184E80[12];
 extern s32       D_acropolis_helicopter_landing_pad_80184EE0[12];
 extern GpSaveLoc D_acropolis_helicopter_landing_pad_80187F90;
 
-void func_acropolis_helicopter_landing_pad_8017ED50(Task* arg0);
-void func_acropolis_helicopter_landing_pad_8017EE2C(Task* arg0);
-void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32 level);
-void func_acropolis_helicopter_landing_pad_80180664(GpCoord* coord);
-void func_acropolis_helicopter_landing_pad_80180A64(GpCoord* coord);
+static void func_acropolis_helicopter_landing_pad_8017ED50(Task* arg0);
+static void func_acropolis_helicopter_landing_pad_8017EE2C(Task* arg0);
+static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32 level);
+static void func_acropolis_helicopter_landing_pad_80180664(GpCoord* coord);
+static void func_acropolis_helicopter_landing_pad_80180A64(GpCoord* coord);
 
 /// The whole-unit delta of the last step
 /// `func_acropolis_helicopter_landing_pad_801819C0` applied.
@@ -163,7 +163,7 @@ void func_acropolis_helicopter_landing_pad_8017ED00(Task* arg0)
 
 /// Asks the slot-7 task to warp to stage 0xF, room 3 (message 0x13EE with the
 /// room's `GpSaveLoc`); advances on success, otherwise kills the task.
-void func_acropolis_helicopter_landing_pad_8017ED50(Task* arg0)
+static void func_acropolis_helicopter_landing_pad_8017ED50(Task* arg0)
 {
     Task* slot = gameGetPtrSlot(7);
 
@@ -180,7 +180,7 @@ void func_acropolis_helicopter_landing_pad_8017ED50(Task* arg0)
     }
 }
 
-void func_acropolis_helicopter_landing_pad_8017EDD4(Task* arg0)
+static void func_acropolis_helicopter_landing_pad_8017EDD4(Task* arg0)
 {
     GpXformArg msg;
     Task*      slot;
@@ -194,14 +194,14 @@ void func_acropolis_helicopter_landing_pad_8017EDD4(Task* arg0)
 }
 
 /// Task state step: advances the state once msg 0x3F0 to slot 3 returns 0.
-void func_acropolis_helicopter_landing_pad_8017EE2C(Task* arg0)
+static void func_acropolis_helicopter_landing_pad_8017EE2C(Task* arg0)
 {
     if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F0, 0, 0) == 0) {
         arg0->state = (s32)(arg0->state + 1);
     }
 }
 
-void func_acropolis_helicopter_landing_pad_8017EE80(Task* arg0)
+static void func_acropolis_helicopter_landing_pad_8017EE80(Task* arg0)
 {
     GpFacingArg args;
     Task*       slot;
@@ -213,7 +213,7 @@ void func_acropolis_helicopter_landing_pad_8017EE80(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-void func_acropolis_helicopter_landing_pad_8017EEDC(Task* arg0)
+static void func_acropolis_helicopter_landing_pad_8017EEDC(Task* arg0)
 {
     if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F0, 0, 0) == 0) {
         Mc_SaveData.at4.loc.area = D_acropolis_helicopter_landing_pad_80187F90.field_0;
@@ -224,14 +224,14 @@ void func_acropolis_helicopter_landing_pad_8017EEDC(Task* arg0)
     }
 }
 
-void func_acropolis_helicopter_landing_pad_8017EF60(void)
+static void func_acropolis_helicopter_landing_pad_8017EF60(void)
 {
     Task_Spawn(2, 0xF, 0, 0);
 }
 
 /// Five-state dispatcher of the room's intro task; the handler table is built
 /// on the stack. Marks the player actor's `field_930` as 2 before every step.
-void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0)
+static void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0)
 {
     GameActor* actor     = (GameActor*)(gameGetPtrSlot(3))->work;
     TaskFunc   states[5] = {
@@ -256,7 +256,7 @@ void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0)
 /// flat-shaded `POLY_G4` fans are linked into the OT at the light's `otz`: 16
 /// wedges of the outer radius (a dim `level >> 1` layer under a `level` one)
 /// and four inner-radius blades whose intensity is `level >> 1`.
-void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32 level)
+static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32 level)
 {
     GpCoord64*         light;
     GpPointLight*      work;
@@ -419,7 +419,7 @@ void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32
 /// `scale` grows by `period` and the frame counter advances until it
 /// expires, which releases the state-1C memory; `field_4 >= 4` releases it at
 /// once and 2..3 idles.
-void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
+static void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
 {
     GpEffWork*        mem;
     GpCoord*          coord;
@@ -559,7 +559,7 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
 /// effects reparented under this task, and claims slot 5 as a light. State 2
 /// releases the state-1C memory, the only step taken while
 /// `Gp_State1C->eventState` is set.
-void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
+static void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
 {
     GpEffWork*    mem;
     GpCoord*      coord;
@@ -660,7 +660,7 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
 /// the coord's `workm`, offset by its translation and projected through
 /// `GsWSMATRIX` into a semi-transparent `LINE_F2` whose green is an LCG byte
 /// and red half of it. Nothing is queued when the GTE flag word is negative.
-void func_acropolis_helicopter_landing_pad_80180664(GpCoord* coord)
+static void func_acropolis_helicopter_landing_pad_80180664(GpCoord* coord)
 {
     void**            scratch;
     u8*               head;
@@ -734,7 +734,7 @@ void func_acropolis_helicopter_landing_pad_80180664(GpCoord* coord)
 /// the coord's `workm` and offset by its translation, then projected through
 /// `GsWSMATRIX` into a semi-transparent `LINE_F2` whose green is an LCG byte
 /// and red half of it. Nothing is queued when the GTE flag word is negative.
-void func_acropolis_helicopter_landing_pad_80180A64(GpCoord* coord)
+static void func_acropolis_helicopter_landing_pad_80180A64(GpCoord* coord)
 {
     void**            scratch;
     u8*               head;
@@ -809,7 +809,7 @@ void func_acropolis_helicopter_landing_pad_80180A64(GpCoord* coord)
 /// with arg 0; state 2 fires a 0x6005A effect on 1-in-16 LCG rolls every
 /// 64th frame; state 3 releases the state-1C memory. Idle while
 /// `Gp_State1C->eventState` is set.
-void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
+static void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
 {
     GpEffWork*    mem;
     GpCoord*      coord;
@@ -877,7 +877,7 @@ void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
 /// 1-in-16. While `Gp_State1C->eventState` is 0 the coord drifts and the frame
 /// counter advances until it expires, which releases the state-1C memory;
 /// `field_4 >= 4` releases it at once and 2..3 idles.
-void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
+static void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
 {
     GpEffWork*        mem;
     GpCoord*          coord;
@@ -1004,7 +1004,7 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
 /// 0..0xFE triangle wave kept in the effect work's `scale` (the low two bits
 /// are dropped on the rising half so the ramp steps in fours), then runs
 /// `func_acropolis_helicopter_landing_pad_8017F010` once per light position.
-void func_acropolis_helicopter_landing_pad_801818F0(Task* arg0)
+static void func_acropolis_helicopter_landing_pad_801818F0(Task* arg0)
 {
     GpEffWork* work = (GpEffWork*)arg0->spawnArg2;
     SVECTOR*   pos;
@@ -1039,7 +1039,7 @@ void func_acropolis_helicopter_landing_pad_801818F0(Task* arg0)
 /// X or Z one unit away from zero, and keeps the applied delta in
 /// `D_acropolis_helicopter_landing_pad_80187F88`. Returns 1 when the delta's
 /// X or Z is non-zero. Works in a 0x14 block from `G_SCRATCH_HEAD`.
-s32 func_acropolis_helicopter_landing_pad_801819C0(GpCoord* coord, GpRec18* rec, s16 arg2)
+static s32 func_acropolis_helicopter_landing_pad_801819C0(GpCoord* coord, GpRec18* rec, s16 arg2)
 {
     void**            scratch;
     u8*               head;
@@ -1095,7 +1095,7 @@ s32 func_acropolis_helicopter_landing_pad_801819C0(GpCoord* coord, GpRec18* rec,
 /// of every other counting record's, it moves X and Z `push` units away
 /// along that bearing. Returns 1 when a push was applied, and 0 at once
 /// while `gGameSession->viewReady` is 1.
-s32 func_acropolis_helicopter_landing_pad_80181B64(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
+static s32 func_acropolis_helicopter_landing_pad_80181B64(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
 {
     void**                  scratch;
     void**                  tail;
@@ -1242,7 +1242,7 @@ s32 func_acropolis_helicopter_landing_pad_80181B64(GpCoord* coord, GpRec18* recs
 /// Task step of an item-pickup model: hides the mesh with flag 4 when the
 /// item's 2-bit flag reads 2, otherwise resets its flags and draw offset and
 /// allocates its TMD buffers. The view index is fetched and ignored.
-void func_acropolis_helicopter_landing_pad_801822B0(Task* task)
+static void func_acropolis_helicopter_landing_pad_801822B0(Task* task)
 {
     GpItemObj8* obj;
     TmdObject*  tmd;

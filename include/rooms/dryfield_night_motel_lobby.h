@@ -55,19 +55,6 @@ void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key);
 /// each entry's `hit` flag, and returns whether any entry was hit.
 s32 func_dryfield_night_motel_lobby_80180DE4(OverlayHotspot* table, s16 x, s16 y);
 
-/// States of the examine task, in the order `D_dryfield_night_motel_lobby_8017D6B0`
-/// lists them.
-void func_dryfield_night_motel_lobby_80180E98(Task* task);
-void func_dryfield_night_motel_lobby_80180FA4(Task* task);
-void func_dryfield_night_motel_lobby_80180FD8(Task* task);
-void func_dryfield_night_motel_lobby_8018103C(Task* task);
-void func_dryfield_night_motel_lobby_801810AC(Task* task);
-void func_dryfield_night_motel_lobby_80181138(Task* task);
-void func_dryfield_night_motel_lobby_8018119C(Task* task);
-void func_dryfield_night_motel_lobby_801811E0(Task* task);
-void func_dryfield_night_motel_lobby_80181218(Task* task);
-void func_dryfield_night_motel_lobby_8018122C(Task* task);
-
 void func_dryfield_night_motel_lobby_8017FE90(Task* task);
 
 #endif // ROOMS_DRYFIELD_NIGHT_MOTEL_LOBBY_H

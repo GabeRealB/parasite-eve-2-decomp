@@ -78,11 +78,11 @@ extern MATRIX     D_acropolis_cafeteria_8018D660;
 extern MATRIX     D_acropolis_cafeteria_8018D680;
 extern SVECTOR    D_acropolis_cafeteria_8018D6AC;
 
-void func_acropolis_cafeteria_8017FBEC(GpCoord* coord, s32 arg1, s32 arg2, u8* rgb);
-void func_acropolis_cafeteria_80180018(GpCoord* coord, s16 arg1, u8* rgb);
-void func_acropolis_cafeteria_8018089C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-void func_acropolis_cafeteria_80180F1C(GpCoord* coord, s16 arg1, u8* rgb);
-void func_acropolis_cafeteria_80181E3C(Task* arg0);
+static void func_acropolis_cafeteria_8017FBEC(GpCoord* coord, s32 arg1, s32 arg2, u8* rgb);
+static void func_acropolis_cafeteria_80180018(GpCoord* coord, s16 arg1, u8* rgb);
+static void func_acropolis_cafeteria_8018089C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+static void func_acropolis_cafeteria_80180F1C(GpCoord* coord, s16 arg1, u8* rgb);
+static void func_acropolis_cafeteria_80181E3C(Task* arg0);
 
 void func_acropolis_cafeteria_8017E47C(Task* arg0)
 {
@@ -189,7 +189,7 @@ void func_acropolis_cafeteria_8017E6B8(Task* arg0)
     taskKill(arg0);
 }
 
-void func_acropolis_cafeteria_8017E708(Task* task)
+static void func_acropolis_cafeteria_8017E708(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -231,7 +231,7 @@ void func_acropolis_cafeteria_8017E708(Task* task)
 }
 /// Spawns 40 effects on entry to session mode 9, then two per tick while it
 /// remains active. Releases the work block when the room effect gate clears.
-void func_acropolis_cafeteria_8017E89C(Task* task)
+static void func_acropolis_cafeteria_8017E89C(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -284,7 +284,7 @@ void func_acropolis_cafeteria_8017E89C(Task* task)
 /// along Z until Z reaches `0xB00` and along Y after that. The effect is
 /// released once it has shown all ten cells, or as soon as the gate or the
 /// view mode no longer hold.
-void func_acropolis_cafeteria_8017EA90(Task* task)
+static void func_acropolis_cafeteria_8017EA90(Task* task)
 {
     GpEffWork*                     work;
     GpCoord*                       coord;
@@ -392,7 +392,7 @@ void func_acropolis_cafeteria_8017EA90(Task* task)
     Gp_ReleaseState1CMem(work, task);
 }
 
-void func_acropolis_cafeteria_8017F390(Task* task)
+static void func_acropolis_cafeteria_8017F390(Task* task)
 {
     TmdObject*  obj;
     GpEffWork*  work;
@@ -548,7 +548,7 @@ s32 func_acropolis_cafeteria_8017F908(Task* task, s32 msgId, s32 arg2, s32 arg3)
 /// full, blue at half and green at quarter intensity; it then lays a fade quad
 /// and shrinks a billboard glow by sixteen shades a frame until it is gone.
 /// Paused while the room event state is non-zero, released once it reaches 4.
-void func_acropolis_cafeteria_8017F948(Task* task)
+static void func_acropolis_cafeteria_8017F948(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -615,7 +615,7 @@ void func_acropolis_cafeteria_8017F948(Task* task)
 /// around the projected point. `arg1` is the ring's inner radius and
 /// `arg1 + arg2` its outer one, both in world units scaled by depth. The inner
 /// edge takes `rgb` and the outer edge is black.
-void func_acropolis_cafeteria_8017FBEC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_acropolis_cafeteria_8017FBEC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -673,7 +673,7 @@ void func_acropolis_cafeteria_8017FBEC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rg
 /// the GTE flags an error, queues eight gouraud `POLY_G4` wedges that fill a
 /// disc around the projected point. `arg1` is the radius in world units scaled
 /// by depth; each wedge is `rgb` at the centre and black at the rim.
-void func_acropolis_cafeteria_80180018(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_acropolis_cafeteria_80180018(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -721,7 +721,7 @@ void func_acropolis_cafeteria_80180018(GpCoord* arg0, s16 arg1, u8* rgb)
     SCRATCH_POP_BYTES(0x18);
 }
 
-void func_acropolis_cafeteria_801803AC(Task* task)
+static void func_acropolis_cafeteria_801803AC(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -819,7 +819,7 @@ void func_acropolis_cafeteria_801803AC(Task* task)
 /// `0x40 - 9 * i` and the older one by nine less. `arg3` packs the beam colour
 /// as 2-bit multipliers for red, green and blue at bits 8, 4 and 0. A quad the
 /// GTE flags as invalid is skipped.
-void func_acropolis_cafeteria_8018089C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_acropolis_cafeteria_8018089C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
     GpCoord*           a;
@@ -923,7 +923,7 @@ void func_acropolis_cafeteria_8018089C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s
     SCRATCH_POP(RoomDraw03Scratch);
 }
 
-void func_acropolis_cafeteria_80180C94(Task* task)
+static void func_acropolis_cafeteria_80180C94(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;
@@ -998,7 +998,7 @@ void func_acropolis_cafeteria_80180C94(Task* task)
 /// `rgb`, then four spikes a quarter turn apart, two reaching the full radius
 /// and two twice it. `arg1` sizes it in world units scaled by depth; every
 /// wedge fades to black at its rim.
-void func_acropolis_cafeteria_80180F1C(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_acropolis_cafeteria_80180F1C(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -1116,7 +1116,7 @@ void func_acropolis_cafeteria_80180F1C(GpCoord* arg0, s16 arg1, u8* arg2)
     SCRATCH_POP(RoomBillboardScratch);
 }
 
-void func_acropolis_cafeteria_801818DC(Task* task)
+static void func_acropolis_cafeteria_801818DC(Task* task)
 {
     TmdObject*                obj;
     GpCoord*                  coord;
@@ -1156,7 +1156,7 @@ void func_acropolis_cafeteria_801818DC(Task* task)
     work->obj.flags |= 0x8000;
 }
 
-void func_acropolis_cafeteria_80181A3C(Task* task)
+static void func_acropolis_cafeteria_80181A3C(Task* task)
 {
     MATRIX*                   head;
     AcropolisCafeteriaDebris* work;
@@ -1234,12 +1234,12 @@ void func_acropolis_cafeteria_80181A3C(Task* task)
     SCRATCH_POP(MATRIX);
 }
 
-void func_acropolis_cafeteria_80181E30(Task* arg0)
+static void func_acropolis_cafeteria_80181E30(Task* arg0)
 {
     arg0->state = 3;
 }
 
-void func_acropolis_cafeteria_80181E3C(Task* arg0)
+static void func_acropolis_cafeteria_80181E3C(Task* arg0)
 {
     Gp_UnlinkObj(arg0->work);
     taskKill(arg0);
@@ -1247,7 +1247,7 @@ void func_acropolis_cafeteria_80181E3C(Task* arg0)
 
 /// State handlers of the falling-debris task: set-up, the per-frame update, a
 /// step that moves the task to state 3, and the exit that unlinks and kills it.
-const TaskFuncTable4 D_acropolis_cafeteria_8017D69C = { {
+static const TaskFuncTable4 D_acropolis_cafeteria_8017D69C = { {
     func_acropolis_cafeteria_801818DC,
     func_acropolis_cafeteria_80181A3C,
     func_acropolis_cafeteria_80181E30,
@@ -1256,7 +1256,7 @@ const TaskFuncTable4 D_acropolis_cafeteria_8017D69C = { {
 
 /// Runs the task's current state through a stack copy of the room's
 /// four-entry state table.
-void func_acropolis_cafeteria_80181E70(Task* task)
+static void func_acropolis_cafeteria_80181E70(Task* task)
 {
     TaskFuncTable4 states;
 
@@ -1269,7 +1269,7 @@ void func_acropolis_cafeteria_80181E70(Task* task)
 /// fractional part away from zero. The whole-unit displacement is also left in
 /// `D_acropolis_cafeteria_8018D6AC`. Returns non-zero when the X or Z
 /// displacement is non-zero.
-s32 func_acropolis_cafeteria_80181ED4(GpCoord* coord, GpRec18* rec, s16 arg2)
+static s32 func_acropolis_cafeteria_80181ED4(GpCoord* coord, GpRec18* rec, s16 arg2)
 {
     void**            scratch;
     u8*               head;
@@ -1323,7 +1323,7 @@ s32 func_acropolis_cafeteria_80181ED4(GpCoord* coord, GpRec18* rec, s16 arg2)
 /// record within a quarter turn of it, moves the coordinate `push` units back
 /// along that record's bearing, in X and Z. Returns non-zero if it moved the
 /// coordinate; returns 0 at once while `gGameSession->viewReady` is 1.
-s32 func_acropolis_cafeteria_80182078(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
+static s32 func_acropolis_cafeteria_80182078(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
 {
     void**                  scratch;
     void**                  tail;
@@ -1467,7 +1467,7 @@ s32 func_acropolis_cafeteria_80182078(GpCoord* coord, GpRec18* recs, s16 count, 
     return hit;
 }
 
-void func_acropolis_cafeteria_801827C4(Task* task)
+static void func_acropolis_cafeteria_801827C4(Task* task)
 {
     GpItemObj8* obj;
     TmdObject*  tmd;
@@ -1493,7 +1493,7 @@ void func_acropolis_cafeteria_801827C4(Task* task)
             break;
     }
 }
-void func_acropolis_cafeteria_8018286C(Task* task)
+static void func_acropolis_cafeteria_8018286C(Task* task)
 {
     GpItemObj8* obj;
     TmdObject*  tmd;
@@ -1520,7 +1520,7 @@ void func_acropolis_cafeteria_8018286C(Task* task)
         Tmd_AllocBuffers(tmd);
     }
 }
-void func_acropolis_cafeteria_80182954(Task* task)
+static void func_acropolis_cafeteria_80182954(Task* task)
 {
     TmdObject* tmd;
 
@@ -1540,7 +1540,7 @@ void func_acropolis_cafeteria_80182954(Task* task)
     }
     Gfx_RotMatrixX(&task->extra.tmd->coords->coord, 0x400, 1);
 }
-void func_acropolis_cafeteria_80182A08(Task* task)
+static void func_acropolis_cafeteria_80182A08(Task* task)
 {
     TmdObject* tmd;
 

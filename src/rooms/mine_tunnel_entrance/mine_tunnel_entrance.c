@@ -29,14 +29,14 @@ extern SVECTOR D_mine_tunnel_entrance_8017DB30[];
 extern SVECTOR D_mine_tunnel_entrance_8017DB38[];
 extern SVECTOR D_mine_tunnel_entrance_8017DB48[];
 
-void func_mine_tunnel_entrance_8017D644(Task* arg0);
-void func_mine_tunnel_entrance_8017D690(Task* task);
-void func_mine_tunnel_entrance_8017D6B4(Task* task);
-void func_mine_tunnel_entrance_8017D868(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_mine_tunnel_entrance_8017D644(Task* arg0);
+static void func_mine_tunnel_entrance_8017D690(Task* task);
+static void func_mine_tunnel_entrance_8017D6B4(Task* task);
+static void func_mine_tunnel_entrance_8017D868(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// State handlers of the room task `func_mine_tunnel_entrance_8017D6BC` runs:
 /// set-up, the scene-event state, an idle state and `taskKill`.
-const TaskFuncTable4 D_mine_tunnel_entrance_8017D5C4 = {
+static const TaskFuncTable4 D_mine_tunnel_entrance_8017D5C4 = {
     func_mine_tunnel_entrance_8017D644,
     func_mine_tunnel_entrance_8017D690,
     func_mine_tunnel_entrance_8017D6B4,
@@ -69,7 +69,7 @@ s32 func_mine_tunnel_entrance_8017D63C(void)
 
 /// State 0 of the room task: installs the room's message table, publishes the
 /// task in pointer slot 7, advances to the next state and selects scene music entry 1.
-void func_mine_tunnel_entrance_8017D644(Task* arg0)
+static void func_mine_tunnel_entrance_8017D644(Task* arg0)
 {
     arg0->msgTable = D_mine_tunnel_entrance_8017DAF0;
     Game_SetPtrSlot(arg0, 7);
@@ -78,20 +78,20 @@ void func_mine_tunnel_entrance_8017D644(Task* arg0)
 }
 
 /// State 1 of the room task: moves the saved scene event from 9 on to 10.
-void func_mine_tunnel_entrance_8017D690(Task* task)
+static void func_mine_tunnel_entrance_8017D690(Task* task)
 {
     if (Mc_SaveData.sceneEvent == 9) {
         Mc_SaveData.sceneEvent = 0xA;
     }
 }
 
-void func_mine_tunnel_entrance_8017D6B4(Task* task)
+static void func_mine_tunnel_entrance_8017D6B4(Task* task)
 {
 }
 
 /// Per-frame entry of the room task: copies the state table onto the stack
 /// and runs the handler for the task's current state.
-void func_mine_tunnel_entrance_8017D6BC(Task* task)
+static void func_mine_tunnel_entrance_8017D6BC(Task* task)
 {
     TaskFuncTable4 states;
 
@@ -103,7 +103,7 @@ void func_mine_tunnel_entrance_8017D6BC(Task* task)
 /// camera view shows, one `func_mine_tunnel_entrance_8017D868` call per
 /// position with UV column 0 or 1 and half-extent 0x300 (0x200 for view 6's
 /// second quad). Other views draw nothing.
-void func_mine_tunnel_entrance_8017D720(void)
+static void func_mine_tunnel_entrance_8017D720(void)
 {
     Gp_State1C->roomEffectMode = 2;
     switch (Gp_GetViewIndex() & 0xFF) {
@@ -149,7 +149,7 @@ void func_mine_tunnel_entrance_8017D720(void)
 /// 40-texel UV column; `arg2` is the half-extent in world units, scaled to
 /// `(s16)arg2 * 39 / otz` on screen. The colour flickers between 0x20 and 0x30
 /// on alternate frames. A 0x10-byte scratch block holds the projection results.
-void func_mine_tunnel_entrance_8017D868(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_mine_tunnel_entrance_8017D868(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw13Scratch* block;
     POLY_FT4*          prim;

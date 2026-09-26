@@ -31,12 +31,12 @@ extern SVECTOR D_dryfield_night_r08_80180664[];
 extern SVECTOR D_dryfield_night_r08_8018066C[];
 extern SVECTOR D_dryfield_night_r08_80180674;
 
-void func_dryfield_night_r08_8017DB4C(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_dryfield_night_r08_8017E334(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_dryfield_night_r08_8017E854(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_dryfield_night_r08_8017EC80(GpCoord* arg0, s16 arg1, u8* rgb);
-void func_dryfield_night_r08_8017F504(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-void func_dryfield_night_r08_8017FB84(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_dryfield_night_r08_8017DB4C(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_dryfield_night_r08_8017E334(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_dryfield_night_r08_8017E854(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_dryfield_night_r08_8017EC80(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_dryfield_night_r08_8017F504(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+static void func_dryfield_night_r08_8017FB84(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// On the task's first tick, stores three fixed ids into `D_80115758`,
 /// `D_8011572C` and `D_80115750`, then draws the placements the current camera
@@ -44,7 +44,7 @@ void func_dryfield_night_r08_8017FB84(GpCoord* arg0, s16 arg1, u8* arg2);
 /// windows onto one run of 8-byte `SVECTOR`s, so `80180664` is `805BC[21]`,
 /// `805AC[23]` and `805CC[19]` as well; views 3 and 9 name it directly and the
 /// compiler merges their last two calls into one tail.
-void func_dryfield_night_r08_8017D718(Task* arg0)
+static void func_dryfield_night_r08_8017D718(Task* arg0)
 {
     if (arg0->state == 0) {
         D_80115758  = 0x601C7;
@@ -130,7 +130,7 @@ void func_dryfield_night_r08_8017D718(Task* arg0)
 /// the axis. `arg3` packs the colour: the red factor in bits 8-15 and the
 /// green and blue factors in bits 4 and 0, each multiplying an intensity that
 /// alternates between 0x20 and 0x28 with the display frame counter.
-void func_dryfield_night_r08_8017DB4C(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_dryfield_night_r08_8017DB4C(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     u8*                head;
     RoomDraw11Scratch* block;
@@ -273,7 +273,7 @@ void func_dryfield_night_r08_8017DB4C(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg
 /// `(s16)arg1` selects. `(s16)arg2` is the half-extent; the on-screen radius is
 /// `arg2 * 39 / otz`. All three colour channels take the flickering
 /// `((animFrame & 1) * 16) + 0x20`.
-void func_dryfield_night_r08_8017E334(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_night_r08_8017E334(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw25Scratch* block;
     POLY_FT4*          prim;
@@ -318,7 +318,7 @@ void func_dryfield_night_r08_8017E334(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// quarter green) while growing two fanned glows and a ring; at the peak it
 /// draws a fade quad in that tint, then dims a star glow by 0x10 a frame until
 /// it has faded and releases itself.
-void func_dryfield_night_r08_8017E5B0(Task* task)
+static void func_dryfield_night_r08_8017E5B0(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -384,7 +384,7 @@ void func_dryfield_night_r08_8017E5B0(Task* task)
 /// position, when it projects. The ring runs from radius
 /// `(s16)arg1 * 64 / (otz + 1)`, which is black, to
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`, which takes the colour `rgb`.
-void func_dryfield_night_r08_8017E854(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_dryfield_night_r08_8017E854(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -442,7 +442,7 @@ void func_dryfield_night_r08_8017E854(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb
 /// GTE flag is non-negative, queues eight `POLY_G4` wedges fanned around the
 /// projected centre with radius `(s16)arg1 * 64 / (otz + 1)`. Only the centre
 /// vertex takes the `rgb` tint, so each wedge fades to black at the rim.
-void func_dryfield_night_r08_8017EC80(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_dryfield_night_r08_8017EC80(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -497,7 +497,7 @@ void func_dryfield_night_r08_8017EC80(GpCoord* arg0, s16 arg1, u8* rgb)
 /// current pair into the next slot and draws the trail between the rings,
 /// releasing itself once its age reaches `spawnArg1`. Nothing runs while
 /// `eventState` is 2 or more.
-void func_dryfield_night_r08_8017F014(Task* task)
+static void func_dryfield_night_r08_8017F014(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -594,7 +594,7 @@ void func_dryfield_night_r08_8017F014(Task* task)
 /// `arg0` and `arg1`, with brightness falling from `0x40 - 9 * i` at its
 /// leading edge by nine more at its trailing one. `arg3` is the colour, three
 /// 2-bit channel weights at bits 8, 4 and 0. A quad the GTE flags is dropped.
-void func_dryfield_night_r08_8017F504(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_dryfield_night_r08_8017F504(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
     GpCoord*           a;
@@ -704,7 +704,7 @@ void func_dryfield_night_r08_8017F504(GpCoord* arg0, GpCoord* arg1, s16 arg2, s1
 /// `spawnArg1` is set, or two 0x6007C effects. The spark branch then emits one
 /// randomly-directed spark a frame; the other draws a fixed ring and an
 /// expanding one in a fading orange tint. Either ends once its age reaches 7.
-void func_dryfield_night_r08_8017F8FC(Task* task)
+static void func_dryfield_night_r08_8017F8FC(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;
@@ -779,7 +779,7 @@ void func_dryfield_night_r08_8017F8FC(Task* task)
 /// followed by four spikes, two reaching `r` and two `2 * r`, whose bases sit on
 /// the radius `arg1 * 8 / (otz + 1)`. Only the centre vertex is tinted, so
 /// every wedge fades to black.
-void func_dryfield_night_r08_8017FB84(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_dryfield_night_r08_8017FB84(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

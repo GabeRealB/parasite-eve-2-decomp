@@ -33,10 +33,10 @@ extern GpGridParams D_shelter_b1_golem_freezer_1_8017E9C0;
 extern SVECTOR      D_shelter_b1_golem_freezer_1_8017E738[];
 extern SVECTOR      D_shelter_b1_golem_freezer_1_8017E740[];
 
-void func_shelter_b1_golem_freezer_1_8017D744(s32 arg0);
-void func_shelter_b1_golem_freezer_1_8017D7CC(GpCoord* arg0, s16* arg1);
-void func_shelter_b1_golem_freezer_1_8017DC5C(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b1_golem_freezer_1_8017E254(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_b1_golem_freezer_1_8017D744(s32 arg0);
+static void func_shelter_b1_golem_freezer_1_8017D7CC(GpCoord* arg0, s16* arg1);
+static void func_shelter_b1_golem_freezer_1_8017DC5C(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b1_golem_freezer_1_8017E254(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3);
 
 /// Message-table handler for message 0x13F1: does nothing and answers 0.
 s32 func_shelter_b1_golem_freezer_1_8017D5D0(void)
@@ -73,7 +73,7 @@ s32 func_shelter_b1_golem_freezer_1_8017D624(s32 arg0, s32 arg1, RoomEventMsg* m
 /// pointer slot 7, calls `func_80131E24` while the session's place is 0x15,
 /// runs `func_shelter_b1_golem_freezer_1_8017D744` and moves on to the next
 /// state.
-void func_shelter_b1_golem_freezer_1_8017D66C(Task* arg0)
+static void func_shelter_b1_golem_freezer_1_8017D66C(Task* arg0)
 {
     arg0->msgTable = D_shelter_b1_golem_freezer_1_8017E6A8;
     Game_SetPtrSlot(arg0, 7);
@@ -85,21 +85,21 @@ void func_shelter_b1_golem_freezer_1_8017D66C(Task* arg0)
 }
 
 /// The room task's idle state. It reserves a stack frame it never uses.
-void func_shelter_b1_golem_freezer_1_8017D6DC(Task* task)
+static void func_shelter_b1_golem_freezer_1_8017D6DC(Task* task)
 {
     char pad[0x10];
 }
 
 /// State handlers of the room task `func_shelter_b1_golem_freezer_1_8017D6EC`
 /// runs: its setup, an idle state, and `taskKill`.
-const TaskFuncTable3 D_shelter_b1_golem_freezer_1_8017D5C4 = {
+static const TaskFuncTable3 D_shelter_b1_golem_freezer_1_8017D5C4 = {
     { func_shelter_b1_golem_freezer_1_8017D66C, func_shelter_b1_golem_freezer_1_8017D6DC, taskKill }
 };
 
 /// Runs one tick of the room task through the three-state table
 /// `D_shelter_b1_golem_freezer_1_8017D5C4`, copying the table onto the stack
 /// and calling the entry for the task's current state.
-void func_shelter_b1_golem_freezer_1_8017D6EC(Task* task)
+static void func_shelter_b1_golem_freezer_1_8017D6EC(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -107,7 +107,7 @@ void func_shelter_b1_golem_freezer_1_8017D6EC(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_shelter_b1_golem_freezer_1_8017D744(s32 arg0)
+static void func_shelter_b1_golem_freezer_1_8017D744(s32 arg0)
 {
     Task* slot   = (Task*)Gp_LookupSlot4(0);
     Task* task   = slot;
@@ -128,7 +128,7 @@ void func_shelter_b1_golem_freezer_1_8017D744(s32 arg0)
     func_shelter_b1_golem_freezer_1_8017D7CC(task->extra.tmd->coords, &D_shelter_b1_golem_freezer_1_8017E6D0);
 }
 
-void func_shelter_b1_golem_freezer_1_8017D7CC(GpCoord* coord, s16* arg1)
+static void func_shelter_b1_golem_freezer_1_8017D7CC(GpCoord* coord, s16* arg1)
 {
     MATRIX        m;
     long          flag;
@@ -183,7 +183,7 @@ void func_shelter_b1_golem_freezer_1_8017D7CC(GpCoord* coord, s16* arg1)
     }
 }
 
-void func_shelter_b1_golem_freezer_1_8017DA7C(void)
+static void func_shelter_b1_golem_freezer_1_8017DA7C(void)
 {
     SVECTOR pos;
     s32     i;
@@ -220,7 +220,7 @@ void func_shelter_b1_golem_freezer_1_8017DA7C(void)
 /// half-extent; the on-screen radius is `(s16)arg1 * 64 / otz`. `arg2` packs
 /// three RGB nibbles for the centre vertex, OR'd with a flicker of
 /// `(animFrame & 1) * 8`; the rim vertices are black.
-void func_shelter_b1_golem_freezer_1_8017DC5C(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b1_golem_freezer_1_8017DC5C(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**             scratch;
     u8*                head;
@@ -293,7 +293,7 @@ void func_shelter_b1_golem_freezer_1_8017DC5C(SVECTOR* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES(0x10);
 }
 
-void func_shelter_b1_golem_freezer_1_8017DFFC(Task* task)
+static void func_shelter_b1_golem_freezer_1_8017DFFC(Task* task)
 {
     GpEffWork* work  = task->spawnArg2;
     GpCoord*   coord = task->extra.tmd->coords;
@@ -355,7 +355,7 @@ void func_shelter_b1_golem_freezer_1_8017DFFC(Task* task)
     }
 }
 
-void func_shelter_b1_golem_freezer_1_8017E254(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_b1_golem_freezer_1_8017E254(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;

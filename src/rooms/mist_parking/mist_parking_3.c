@@ -164,7 +164,7 @@ void func_mist_parking_8018397C(Task* arg0)
     taskKill(arg0);
 }
 
-void func_mist_parking_801839CC(Task* task)
+static void func_mist_parking_801839CC(Task* task)
 {
     TmdObject* obj = task->extra.tmd;
 
@@ -174,7 +174,7 @@ void func_mist_parking_801839CC(Task* task)
     task->state = task->state + 1;
 }
 
-void func_mist_parking_80183A28(Task* task)
+static void func_mist_parking_80183A28(Task* task)
 {
     GpXformArg placement;
 

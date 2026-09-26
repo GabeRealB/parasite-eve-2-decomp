@@ -27,15 +27,15 @@ extern GpMsgEntry D_shelter_b1_pod_service_gantry_8017FAF4[];
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
-void func_shelter_b1_pod_service_gantry_8017D628(Task* task);
-void func_shelter_b1_pod_service_gantry_8017D81C(Task* arg0);
+static void func_shelter_b1_pod_service_gantry_8017D628(Task* task);
+static void func_shelter_b1_pod_service_gantry_8017D81C(Task* arg0);
 
 /// The room task's three states: set-up, the step sequence below, and exit.
-const TaskFuncTable3 D_shelter_b1_pod_service_gantry_8017D5C4 = {
+static const TaskFuncTable3 D_shelter_b1_pod_service_gantry_8017D5C4 = {
     { func_shelter_b1_pod_service_gantry_8017D81C, func_shelter_b1_pod_service_gantry_8017D628, taskKill },
 };
 
-void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
+static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
 {
     u8           param1[4];
     u8           param2[4];
@@ -117,7 +117,7 @@ s32 func_shelter_b1_pod_service_gantry_8017D814(void)
     return 0;
 }
 
-void func_shelter_b1_pod_service_gantry_8017D81C(Task* arg0)
+static void func_shelter_b1_pod_service_gantry_8017D81C(Task* arg0)
 {
     _GantryWork* work;
 
@@ -137,7 +137,7 @@ void func_shelter_b1_pod_service_gantry_8017D81C(Task* arg0)
 /// The room task: copies its three-state table
 /// `D_shelter_b1_pod_service_gantry_8017D5C4` onto the stack and calls the
 /// entry for the task's current state.
-void func_shelter_b1_pod_service_gantry_8017D89C(Task* task)
+static void func_shelter_b1_pod_service_gantry_8017D89C(Task* task)
 {
     TaskFuncTable3 sp;
 

@@ -101,38 +101,38 @@ extern s32        D_mine_forked_tunnel_801834F4;
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
-void func_mine_forked_tunnel_8017D5E8(Task* arg0);
-void func_mine_forked_tunnel_8017D724(Task* arg0);
-void func_mine_forked_tunnel_8017DAB8(Task* arg0);
-void func_mine_forked_tunnel_8017DC50(Task* arg0);
-void func_mine_forked_tunnel_8017DC70(Task* arg0);
-s32  func_mine_forked_tunnel_8017DC8C(Task* task, s32 arg1, GpXformArg* placement, s32 arg3);
-s32  func_mine_forked_tunnel_8017DD08(Task* task, s32 arg1, s32 mode, s32 arg3);
-void func_mine_forked_tunnel_8017DE54(Task* task);
-void func_mine_forked_tunnel_8017DF34(s32 arg0);
-void func_mine_forked_tunnel_8017E1E8(Task* arg0);
-void func_mine_forked_tunnel_8017E24C(Task* task);
-void func_mine_forked_tunnel_8017E48C(s32 arg0);
+static void func_mine_forked_tunnel_8017D5E8(Task* arg0);
+static void func_mine_forked_tunnel_8017D724(Task* arg0);
+static void func_mine_forked_tunnel_8017DAB8(Task* arg0);
+static void func_mine_forked_tunnel_8017DC50(Task* arg0);
+static void func_mine_forked_tunnel_8017DC70(Task* arg0);
+static s32  func_mine_forked_tunnel_8017DC8C(Task* task, s32 arg1, GpXformArg* placement, s32 arg3);
+s32         func_mine_forked_tunnel_8017DD08(Task* task, s32 arg1, s32 mode, s32 arg3);
+static void func_mine_forked_tunnel_8017DE54(Task* task);
+static void func_mine_forked_tunnel_8017DF34(s32 arg0);
+static void func_mine_forked_tunnel_8017E1E8(Task* arg0);
+static void func_mine_forked_tunnel_8017E24C(Task* task);
+static void func_mine_forked_tunnel_8017E48C(s32 arg0);
 
 /// State table of the tunnel's enemy task, indexed by `Task::state`: set-up,
 /// the per-frame path walk, and the exit that releases the enemy.
-const TaskFuncTable3 D_mine_forked_tunnel_8017D5C4 = {
+static const TaskFuncTable3 D_mine_forked_tunnel_8017D5C4 = {
     { func_mine_forked_tunnel_8017D5E8, func_mine_forked_tunnel_8017D724, func_mine_forked_tunnel_8017DC50 },
 };
 
 /// State table of the enemy's pitch-animated child, indexed by `Task::state`:
 /// attach to the enemy, walk the pitch curve, and `taskKill`.
-const TaskFuncTable3 D_mine_forked_tunnel_8017D5D0 = {
+static const TaskFuncTable3 D_mine_forked_tunnel_8017D5D0 = {
     { func_mine_forked_tunnel_8017DE54, func_mine_forked_tunnel_8017DAB8, taskKill },
 };
 
 /// State table of the room's message-driven task, indexed by `Task::state`:
 /// set-up, an idle state, and `taskKill`.
-const TaskFuncTable3 D_mine_forked_tunnel_8017D5DC = {
+static const TaskFuncTable3 D_mine_forked_tunnel_8017D5DC = {
     { func_mine_forked_tunnel_8017E1E8, func_mine_forked_tunnel_8017E24C, taskKill },
 };
 
-void func_mine_forked_tunnel_8017D5E8(Task* arg0)
+static void func_mine_forked_tunnel_8017D5E8(Task* arg0)
 {
     MineForkedTunnelWork* work;
     GpXformArg            placement;
@@ -167,7 +167,7 @@ void func_mine_forked_tunnel_8017D5E8(Task* arg0)
     arg0->state++;
 }
 
-void func_mine_forked_tunnel_8017D724(Task* arg0)
+static void func_mine_forked_tunnel_8017D724(Task* arg0)
 {
     TmdObject* ext;
     GpXformArg placement;
@@ -285,7 +285,7 @@ s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, GpCmdArg* msg)
     return 0;
 }
 
-void func_mine_forked_tunnel_8017DAB8(Task* arg0)
+static void func_mine_forked_tunnel_8017DAB8(Task* arg0)
 {
     GpXformArg  placement;
     GpXformArg* place;
@@ -327,12 +327,12 @@ void func_mine_forked_tunnel_8017DBE4(Task* task)
     }
 }
 
-void func_mine_forked_tunnel_8017DC50(Task* arg0)
+static void func_mine_forked_tunnel_8017DC50(Task* arg0)
 {
     Gp_EnemyTaskExit(arg0);
 }
 
-void func_mine_forked_tunnel_8017DC70(Task* arg0)
+static void func_mine_forked_tunnel_8017DC70(Task* arg0)
 {
     TmdObject*            ext;
     MineForkedTunnelWork* work;
@@ -347,7 +347,7 @@ void func_mine_forked_tunnel_8017DC70(Task* arg0)
 /// of the `TmdObject`'s coordinate frame and the angles its rotation, rebuilt
 /// with `RotMatrixZYX` and marked dirty. Shaped as a message handler; the room
 /// calls it directly with id 0x7D4 in `arg1`, which it does not read.
-s32 func_mine_forked_tunnel_8017DC8C(Task* task, s32 arg1, GpXformArg* placement, s32 arg3)
+static s32 func_mine_forked_tunnel_8017DC8C(Task* task, s32 arg1, GpXformArg* placement, s32 arg3)
 {
     GpCoord* coord;
 
@@ -423,7 +423,7 @@ void func_mine_forked_tunnel_8017DDE8(Task* task)
 /// frame's parent link - then reparent onto that task, drop `field_C` bit 7 and
 /// place the object at this room's `GpXformArg`, rebuilding `coord` with
 /// `RotMatrixZYX`.
-void func_mine_forked_tunnel_8017DE54(Task* task)
+static void func_mine_forked_tunnel_8017DE54(Task* task)
 {
     Task*      parent;
     TmdObject* ext;
@@ -461,7 +461,7 @@ void func_mine_forked_tunnel_8017DE54(Task* task)
 /// Restores the room's layout lists from their template, then offsets the eight
 /// `field_8` coordinates by (0, 0, -0xC8), or by (0, -0xBB8, -0xC8) when `arg0`
 /// is non-zero. The callers pass game-flag nibble 0x75.
-void func_mine_forked_tunnel_8017DF34(s32 arg0)
+static void func_mine_forked_tunnel_8017DF34(s32 arg0)
 {
     GpGridParams* dst;
     GpGridParams* src;
@@ -540,7 +540,7 @@ s32 func_mine_forked_tunnel_8017E19C(Task* task, s32 msgId, GpMsg13EF* arg2)
 /// State 0 of the room's message-driven task family: park the room's
 /// `GpMsgEntry` table in `Task::msgTable`, publish the task in pointer slot 7,
 /// arm the message flag, then hand off to `func_mine_forked_tunnel_8017E48C`.
-void func_mine_forked_tunnel_8017E1E8(Task* arg0)
+static void func_mine_forked_tunnel_8017E1E8(Task* arg0)
 {
     arg0->msgTable = D_mine_forked_tunnel_80181C80;
     Game_SetPtrSlot(arg0, 7);
@@ -550,14 +550,14 @@ void func_mine_forked_tunnel_8017E1E8(Task* arg0)
 }
 
 /// State 1 of the room's message-driven task: does nothing.
-void func_mine_forked_tunnel_8017E24C(Task* task)
+static void func_mine_forked_tunnel_8017E24C(Task* task)
 {
     char pad[0x10];
 }
 
 /// Dispatches the room's message-driven task through its three-state table,
 /// copied onto the stack before the call.
-void func_mine_forked_tunnel_8017E25C(Task* task)
+static void func_mine_forked_tunnel_8017E25C(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -627,7 +627,7 @@ void func_mine_forked_tunnel_8017E38C(Task* arg0)
 /// Hides (`arg0` non-zero) or shows two of the area's sprite commands by
 /// setting their `GpSprtCmd::field_4`, which keeps a command's sprites out of
 /// the ordering table.
-void func_mine_forked_tunnel_8017E48C(s32 arg0)
+static void func_mine_forked_tunnel_8017E48C(s32 arg0)
 {
     GpAreaKey* sess;
     GpSprtRec* rec;
@@ -657,7 +657,7 @@ void func_mine_forked_tunnel_8017E48C(s32 arg0)
 /// is a signed half-extent; the on-screen radius is `(s16)arg2 * 39 / otz`. RGB
 /// is the frame-counter blend byte `((animFrame & 1) * 16) + 0x20` on all three
 /// channels, so the sprite flickers between two brightnesses.
-void func_mine_forked_tunnel_8017E504(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_mine_forked_tunnel_8017E504(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw13Scratch* block;
     POLY_FT4*          prim;
@@ -701,7 +701,7 @@ void func_mine_forked_tunnel_8017E504(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// `actor_400100_text` and `Gp_EffCtlTaskAC` test) and projects the light
 /// anchor belonging to the camera's view index, so the fork's light follows
 /// whichever branch the player is looking down.
-void func_mine_forked_tunnel_8017E78C(void)
+static void func_mine_forked_tunnel_8017E78C(void)
 {
     s32 idx;
 

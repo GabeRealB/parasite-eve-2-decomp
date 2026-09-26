@@ -63,13 +63,13 @@ extern SVECTOR D_acropolis_patio_80182DDC[14];
 /// mask names.
 extern u16 D_acropolis_patio_80182E4C[14];
 
-void func_acropolis_patio_8017D5EC(Task* arg0);
-void func_acropolis_patio_8017DF7C(Task* task);
+static void func_acropolis_patio_8017D5EC(Task* arg0);
+static void func_acropolis_patio_8017DF7C(Task* task);
 
 /// State table of the room's three-state task dispatcher
 /// (`func_acropolis_patio_8017DF8C`): the entry tick, an idle state, then
 /// `taskKill`.
-const TaskFuncTable3 D_acropolis_patio_8017D5C4 = {
+static const TaskFuncTable3 D_acropolis_patio_8017D5C4 = {
     { func_acropolis_patio_8017D5EC, func_acropolis_patio_8017DF7C, taskKill },
 };
 
@@ -79,7 +79,7 @@ const TaskFuncTable3 D_acropolis_patio_8017D5C4 = {
 /// (`GameFlag_GetNibble(0) < 2`) arms the two hotspots and spawns the arrival
 /// cutscene, and the second-visit branches replace them according to
 /// `gGameSession::at4.loc.place`.
-void func_acropolis_patio_8017D5EC(Task* arg0)
+static void func_acropolis_patio_8017D5EC(Task* arg0)
 {
     GpCmdArg msg;
     s32      temp;
@@ -358,16 +358,16 @@ void func_acropolis_patio_8017DF70(u8 arg0)
     Gp_StateF0.field_4 = arg0;
 }
 
-const ApGreyLevels D_acropolis_patio_8017D5E8 = { { 0x50, 0x30, 0x40 } };
+static const ApGreyLevels D_acropolis_patio_8017D5E8 = { { 0x50, 0x30, 0x40 } };
 /// A non-zero padding byte the original toolchain left. Nothing refers to it.
-const u8 D_acropolis_patio_8017D5EB = 0xF2;
+static const u8 D_acropolis_patio_8017D5EB = 0xF2;
 
-void func_acropolis_patio_8017DF7C(Task* task)
+static void func_acropolis_patio_8017DF7C(Task* task)
 {
     char pad[0x10];
 }
 
-void func_acropolis_patio_8017DF8C(Task* task)
+static void func_acropolis_patio_8017DF8C(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -436,7 +436,7 @@ void func_acropolis_patio_8017E054(Task* task)
 /// which is added to the jet's anchor before the spawn reads it. The work block
 /// is scratch, not state - each spawn copies the vector out immediately - so
 /// all nine puffs share it.
-void func_acropolis_patio_8017E100(Task* task)
+static void func_acropolis_patio_8017E100(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;
@@ -488,7 +488,7 @@ void func_acropolis_patio_8017E100(Task* task)
 /// semi-transparent `POLY_FT4` on tpage 0x2B whose half extent is
 /// `width * 39 / otz`, so the sprite shrinks with distance. The grey steps by
 /// 0x10 on the parity of `DisplayState::animFrame`, which is the flicker.
-void func_acropolis_patio_8017E324(Task* task)
+static void func_acropolis_patio_8017E324(Task* task)
 {
     void**            scratch;
     RoomShaftScratch* block;
@@ -593,7 +593,7 @@ void func_acropolis_patio_8017E324(Task* task)
 /// The result is projected through `GsWSMATRIX` into a 0xC-byte scratch frame
 /// and drawn as a single grey `TILE_1` whose level is a fresh `rand[0,0xC0)`,
 /// so the mist shimmers; the tile is dropped entirely inside `otz` 0x11.
-void func_acropolis_patio_8017E730(Task* task)
+static void func_acropolis_patio_8017E730(Task* task)
 {
     GpEffWork*       work;
     GpCoord*         coord;

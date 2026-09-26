@@ -20,8 +20,11 @@ extern SVECTOR D_mist_parking_801914D4[];
 extern SVECTOR D_mist_parking_801914E4[];
 extern SVECTOR D_mist_parking_80191554[];
 
+static void func_mist_parking_80184E8C(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_mist_parking_80185814(SVECTOR* arg0, s32 arg1, s32 arg2);
+
 /// Draws the glow markers visible from the current view (`Gp_GetViewIndex`).
-void func_mist_parking_80184728(void)
+static void func_mist_parking_80184728(void)
 {
     u8       view;
     SVECTOR* p;
@@ -204,7 +207,7 @@ void func_mist_parking_80184A18(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// `(s16)arg2 * 8 / otz` (inner). `arg1` scales `gDisplayState.animFrame` into
 /// `rsin` so the lit vertex pulses as `rsin(...) / 34 + 0x78` on green and
 /// blue.
-void func_mist_parking_80184E8C(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_mist_parking_80184E8C(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw05Scratch* block;
@@ -341,7 +344,7 @@ void func_mist_parking_80184E8C(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// wide at each end. The lit vertex takes a colour unpacked from `arg2` (4
 /// bits per channel, shifted into the high nibble), blended with the
 /// frame-counter bit.
-void func_mist_parking_80185814(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_mist_parking_80185814(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**                   scratch;
     u8*                      head;

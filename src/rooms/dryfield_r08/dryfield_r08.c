@@ -29,12 +29,12 @@ extern void* D_dryfield_r08_8017F708;
 extern u32   D_dryfield_r08_801809C0[];
 extern u32   D_dryfield_r08_80180B58[];
 
-void func_dryfield_r08_8017DEFC(GpCoord* arg0, u16 arg1, s32 arg2, s32 arg3);
-void func_dryfield_r08_8017E36C(GpCoord* arg0, u16 arg1, s32 arg2, s32 arg3);
-void func_dryfield_r08_8017E7C8(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_dryfield_r08_8017DEFC(GpCoord* arg0, u16 arg1, s32 arg2, s32 arg3);
+static void func_dryfield_r08_8017E36C(GpCoord* arg0, u16 arg1, s32 arg2, s32 arg3);
+static void func_dryfield_r08_8017E7C8(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2);
 
-void func_dryfield_r08_8017D5F8(Task* task)
+static void func_dryfield_r08_8017D5F8(Task* task)
 {
     s32 i;
     u8  view;
@@ -114,7 +114,7 @@ void func_dryfield_r08_8017D5F8(Task* task)
 /// Y component, then frees the effect after the drawer's last cell (12 or 10).
 /// While the player is in an event it only draws, and frees once the event
 /// aborts.
-void func_dryfield_r08_8017D8B4(Task* task)
+static void func_dryfield_r08_8017D8B4(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -253,7 +253,7 @@ void func_dryfield_r08_8017D8B4(Task* task)
 /// five-column grid (u = `cell % 5 * 48`, v = `cell / 5 * 48 + 0x68`), and the
 /// top four bits select the clut - row `0x10E + sel` at column `cell & 0x3F`
 /// for 0 and 1, the fixed clut 0x428F otherwise.
-void func_dryfield_r08_8017DEFC(GpCoord* arg0, u16 arg1, s32 arg2, s32 arg3)
+static void func_dryfield_r08_8017DEFC(GpCoord* arg0, u16 arg1, s32 arg2, s32 arg3)
 {
     void**             scratch;
     u8*                head;
@@ -340,7 +340,7 @@ void func_dryfield_r08_8017DEFC(GpCoord* arg0, u16 arg1, s32 arg2, s32 arg3)
 /// its top four bits set selects clut 0x428F instead of 0x43D0. The quad's
 /// diagonals are `(s16)arg2 * 47 / otz` long, turned by `arg3` and
 /// `arg3 + 0x400`, so it shrinks with distance and spins with the angle.
-void func_dryfield_r08_8017E36C(GpCoord* arg0, u16 arg1, s32 arg2, s32 arg3)
+static void func_dryfield_r08_8017E36C(GpCoord* arg0, u16 arg1, s32 arg2, s32 arg3)
 {
     void**             scratch;
     u8*                head;
@@ -425,7 +425,7 @@ void func_dryfield_r08_8017E36C(GpCoord* arg0, u16 arg1, s32 arg2, s32 arg3)
 /// wedges lit at the projected centre and black at the rim, of screen radius
 /// `(s16)arg1 * 64 / otz`. `arg2` is the colour as three 4-bit channels
 /// (0xRGB), brightened slightly on odd frames.
-void func_dryfield_r08_8017E7C8(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_r08_8017E7C8(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**             scratch;
     u8*                head;
@@ -507,7 +507,7 @@ void func_dryfield_r08_8017E7C8(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// with bits 12..15 giving the shift for a `gDisplayState.animFrame & 1`
 /// flicker added to every channel. The outer disc uses the full colour and
 /// the inner cross half of it.
-void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDiscScratch* block;
     POLY_G4*         prim;
@@ -631,7 +631,7 @@ void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES(0x14);
 }
 
-void func_dryfield_r08_8017F334(s32 arg0)
+static void func_dryfield_r08_8017F334(s32 arg0)
 {
     D_dryfield_r08_80180C24 = arg0;
 }
@@ -641,7 +641,7 @@ void func_dryfield_r08_8017F334(s32 arg0)
 /// record's prims out of the ordering table. `arg0` is a view index below
 /// 0xB; the record the table yields is larger than its `GpSprtRec` prefix,
 /// so `[3].field_4` reaches the command list its tail holds there.
-void func_dryfield_r08_8017F340(u8 arg0, u8 arg1)
+static void func_dryfield_r08_8017F340(u8 arg0, u8 arg1)
 {
     GpAreaKey* sess;
     GpSprtCmd* cmd;
@@ -657,7 +657,7 @@ void func_dryfield_r08_8017F340(u8 arg0, u8 arg1)
     }
 }
 
-void func_dryfield_r08_8017F3B8(u8 arg0, u8 arg1)
+static void func_dryfield_r08_8017F3B8(u8 arg0, u8 arg1)
 {
     GpAreaKey* sess;
     GpSprtRec* rec;
@@ -681,7 +681,7 @@ void func_dryfield_r08_8017F3B8(u8 arg0, u8 arg1)
 
 /// Publishes one of the room's two data banks as the active one: bank 0 for a
 /// zero argument, bank 1 otherwise.
-void func_dryfield_r08_8017F438(s16 arg0)
+static void func_dryfield_r08_8017F438(s16 arg0)
 {
     if (arg0 == 0) {
         D_dryfield_r08_8017F708 = D_dryfield_r08_801809C0;

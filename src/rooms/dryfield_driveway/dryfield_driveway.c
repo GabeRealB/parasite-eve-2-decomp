@@ -304,7 +304,7 @@ s32 func_dryfield_driveway_8017DDB8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 
 /// State 0 of the room task: attach the room's message table, publish the task
 /// in pointer slot 7 and advance to the next state.
-void func_dryfield_driveway_8017DDC0(Task* task)
+static void func_dryfield_driveway_8017DDC0(Task* task)
 {
     task->msgTable = D_dryfield_driveway_8017E754;
     Game_SetPtrSlot(task, 7);
@@ -312,14 +312,14 @@ void func_dryfield_driveway_8017DDC0(Task* task)
 }
 
 /// State 1 of the room task: does nothing.
-void func_dryfield_driveway_8017DE04(Task* task)
+static void func_dryfield_driveway_8017DE04(Task* task)
 {
     char pad[0x10];
 }
 
 /// The room task's state table, dispatched by `func_dryfield_driveway_8017DE14`
 /// from a stack copy.
-const TaskFuncTable3 D_dryfield_driveway_8017D5D8 = {
+static const TaskFuncTable3 D_dryfield_driveway_8017D5D8 = {
     {
         func_dryfield_driveway_8017DDC0,
         func_dryfield_driveway_8017DE04,
@@ -329,7 +329,7 @@ const TaskFuncTable3 D_dryfield_driveway_8017D5D8 = {
 
 /// The room task: dispatches through its three-state table, copied onto the
 /// stack first.
-void func_dryfield_driveway_8017DE14(Task* task)
+static void func_dryfield_driveway_8017DE14(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -338,7 +338,7 @@ void func_dryfield_driveway_8017DE14(Task* task)
 }
 
 /// Sets the room effect mode to 2.
-void func_dryfield_driveway_8017DE6C(void)
+static void func_dryfield_driveway_8017DE6C(void)
 {
     Gp_State1C->roomEffectMode = 2;
 }

@@ -238,7 +238,7 @@ void func_dryfield_water_tank_8017E568(Task* task)
 /// the view tasks, waits two frames, then hands the owner the room placement
 /// (msg 0x3E9) and slot 3 the equipped weapon's 0x3E8 animation record, and
 /// marks the view dirty.
-void func_dryfield_water_tank_8017E78C(Task* task)
+static void func_dryfield_water_tank_8017E78C(Task* task)
 {
     DwtWork* work;
     DwtWork* cur;
@@ -582,7 +582,7 @@ void func_dryfield_water_tank_8017EFF4(s32 arg0)
 /// shared work block's `field_A`. Gameplay holds this address in its data
 /// (0x80110614, pointing at the room overlay), and `dryfield_parking_lot` and
 /// `dryfield_water_tower` carry the same body.
-void func_dryfield_water_tank_8017F084(void)
+static void func_dryfield_water_tank_8017F084(void)
 {
     Gp_State1C->roomEffectMode = D_dryfield_water_tank_801868CC[(Gp_GetViewIndex() & 0xFF) - 1];
 }

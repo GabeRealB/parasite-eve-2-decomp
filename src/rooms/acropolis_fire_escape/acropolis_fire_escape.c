@@ -59,7 +59,7 @@ extern s32 D_80115694;
 
 /// Title of the telephone menu. The bytes after its terminator are not zero,
 /// so it stays assembly.
-extern const char D_acropolis_fire_escape_8017D638[];
+static const char D_acropolis_fire_escape_8017D638[];
 
 /// Captions of the telephone menu's rows ("Save", "Play Data", "Weapon Data",
 /// "PE Data").
@@ -135,9 +135,9 @@ extern Task* D_acropolis_fire_escape_80183044;
 /// Parameters of the cutscene the 0x13F0 message handler starts.
 extern RoomCutsceneRec D_acropolis_fire_escape_80183048;
 
-void func_acropolis_fire_escape_8017F450(Task* task);
-void func_acropolis_fire_escape_8017FE50(Task* task);
-void func_acropolis_fire_escape_8017FECC(Task* task);
+static void func_acropolis_fire_escape_8017F450(Task* task);
+static void func_acropolis_fire_escape_8017FE50(Task* task);
+static void func_acropolis_fire_escape_8017FECC(Task* task);
 
 /// Draws one row of the play-data panel, the row picked by
 /// `DialogPrompt::field_8`: a caption followed by a value - play time, one of
@@ -397,10 +397,10 @@ void func_acropolis_fire_escape_8017D6D0(DialogPrompt* arg0, UiObject* arg1)
 }
 
 /// Title of the play-data panel.
-const char D_acropolis_fire_escape_8017D610[] = "Play Data";
+static const char D_acropolis_fire_escape_8017D610[] = "Play Data";
 
 /// Drawn in place of a percentage for a row holding every recorded use.
-const u8 D_acropolis_fire_escape_8017D61C[] = "100.0%";
+static const u8 D_acropolis_fire_escape_8017D61C[] = "100.0%";
 
 /// Draws one row of an item-usage panel from the `RoomItemUsage` block in the
 /// owning task's work area: the item's name, its share of all recorded uses as
@@ -547,7 +547,7 @@ void func_acropolis_fire_escape_8017DE9C(DialogPrompt* arg0, UiObject* arg1)
 /// counter as a 12-bit fraction of the top row's. Both are scaled down by
 /// halving until the top counter fits in 17 bits, so the multiply and the
 /// shift cannot overflow.
-void func_acropolis_fire_escape_8017E298(UiList* list, UiObject* obj)
+static void func_acropolis_fire_escape_8017E298(UiList* list, UiObject* obj)
 {
     RoomItemUsage* work;
     s32            count;
@@ -634,7 +634,7 @@ void func_acropolis_fire_escape_8017E298(UiList* list, UiObject* obj)
 /// `barWidths`, its counter as a 12-bit fraction of the top row's. Both are
 /// scaled down by halving until the top counter fits in 17 bits, so the
 /// multiply and the shift cannot overflow.
-void func_acropolis_fire_escape_8017E594(UiList* list, UiObject* obj)
+static void func_acropolis_fire_escape_8017E594(UiList* list, UiObject* obj)
 {
     RoomPeUsage* work;
     s16*         p;
@@ -721,8 +721,8 @@ void func_acropolis_fire_escape_8017E594(UiList* list, UiObject* obj)
 }
 
 /// Titles of the usage panel: weapons, then Parasite Energy.
-const char D_acropolis_fire_escape_8017D624[] = "Weapon Data";
-const char D_acropolis_fire_escape_8017D630[] = "PE Data";
+static const char D_acropolis_fire_escape_8017D624[] = "Weapon Data";
+static const char D_acropolis_fire_escape_8017D630[] = "PE Data";
 
 /// Task body of the usage panel: `spawnArg1` 0 lists weapons, anything else
 /// Parasite Energy. On its first frame it allocates the row block, spawns the
@@ -781,13 +781,13 @@ void func_acropolis_fire_escape_8017E8B4(Task* task)
 }
 
 /// "Telephone", followed by the non-zero padding the original toolchain left.
-const char D_acropolis_fire_escape_8017D638[12] = "Telephone\0\1\0";
+static const char D_acropolis_fire_escape_8017D638[12] = "Telephone\0\1\0";
 
 /// Task body of the telephone menu. Until the save has a clear or has reached
 /// demo scene 1 it spawns `D_800611E4` in place of the list; otherwise it lays
 /// out and updates the list. When the first child window finishes, the menu
 /// opens the item prompt its selection picks, or closes.
-void func_acropolis_fire_escape_8017EA68(Task* task)
+static void func_acropolis_fire_escape_8017EA68(Task* task)
 {
     UiObject* obj;
     UiList*   list;
@@ -913,7 +913,7 @@ void func_acropolis_fire_escape_8017ED60(Task* task)
 /// Inserts a '.' into a digit string so `decimals` characters sit after the
 /// point. Walks to the NUL, then shifts the last `min(len, decimals)` bytes
 /// one to the right to open a slot. No-op when `decimals <= 0`.
-void func_acropolis_fire_escape_8017EDBC(u8* str, s32 decimals)
+static void func_acropolis_fire_escape_8017EDBC(u8* str, s32 decimals)
 {
     s32 len;
 
@@ -949,7 +949,7 @@ void func_acropolis_fire_escape_8017EDBC(u8* str, s32 decimals)
 /// (so "5" with two decimals becomes "0.05"), otherwise print it unpadded, then
 /// shift the last `decimals` digits right by one and drop a '.' in front of
 /// them. Appends "%" and returns `buf`.
-u8* func_acropolis_fire_escape_8017EE2C(u8* buf, s32 value, s32 decimals)
+static u8* func_acropolis_fire_escape_8017EE2C(u8* buf, s32 value, s32 decimals)
 {
     s32 limit;
     s32 i;
@@ -1021,7 +1021,7 @@ void func_acropolis_fire_escape_8017EF20(Task* task)
 /// panel's draw order. Origin is `field_20`/`field_22` plus (`arg1`, `arg2`);
 /// `arg3`/`arg4` are width and height. Left vertices take `arg5`, right vertices
 /// take `arg6`. A zero color or width < 2 draws nothing.
-void func_acropolis_fire_escape_8017F010(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
+static void func_acropolis_fire_escape_8017F010(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
 {
     register s32 dx asm("v1");
     register s32 w asm("t3");
@@ -1121,7 +1121,7 @@ void func_acropolis_fire_escape_8017F388(DialogPrompt* prompt, UiObject* obj)
 
 /// Task exit callback for the save-prompt UI: if this task still owns
 /// `Wip_UiHolder`, clear it, then free the spawned UI object and kill the task.
-void func_acropolis_fire_escape_8017F450(Task* task)
+static void func_acropolis_fire_escape_8017F450(Task* task)
 {
     WipUiHolder* holder;
 
@@ -1356,7 +1356,7 @@ void func_acropolis_fire_escape_8017F48C(Task* task)
 /// States of the room's message task, run by `func_acropolis_fire_escape_8017FF24`:
 /// install the message table and spawn the ambient-sound task, run the
 /// per-frame check, die.
-const TaskFuncTable3 D_acropolis_fire_escape_8017D6A4 = {
+static const TaskFuncTable3 D_acropolis_fire_escape_8017D6A4 = {
     {
         func_acropolis_fire_escape_8017FE50,
         func_acropolis_fire_escape_8017FECC,
@@ -1532,7 +1532,7 @@ s32 func_acropolis_fire_escape_8017FE48(Task* task, s32 msgId, s32 arg2, s32 arg
 /// First state of the room's message task: installs the message table, takes
 /// pointer slot 7, spawns the ambient-sound task and, when `Mc_SaveData.sceneEvent` is 5,
 /// sets the session's flow flags to 8.
-void func_acropolis_fire_escape_8017FE50(Task* task)
+static void func_acropolis_fire_escape_8017FE50(Task* task)
 {
     task->msgTable = D_acropolis_fire_escape_80181D3C;
     Game_SetPtrSlot(task, 7);
@@ -1546,7 +1546,7 @@ void func_acropolis_fire_escape_8017FE50(Task* task)
 /// Per-frame state of the room's message task: clears bit 0x40 of
 /// `D_acropolis_fire_escape_801826A8.field_4A` unless the slot-4 task exists
 /// and answers message 0x7D6.
-void func_acropolis_fire_escape_8017FECC(Task* task)
+static void func_acropolis_fire_escape_8017FECC(Task* task)
 {
     Task* slot;
 
@@ -1558,7 +1558,7 @@ void func_acropolis_fire_escape_8017FECC(Task* task)
 
 /// Runs the room's message task: copies the state table onto the stack and
 /// calls the entry for the task's current state.
-void func_acropolis_fire_escape_8017FF24(Task* task)
+static void func_acropolis_fire_escape_8017FF24(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -1570,7 +1570,7 @@ void func_acropolis_fire_escape_8017FF24(Task* task)
 /// 0x6008C at a fixed offset from the task's coordinate; every later frame
 /// outside a cutscene it spawns effect 0x6004F at the offset and with the
 /// parameters of the current view, for views 3, 6, 8 and 9.
-void func_acropolis_fire_escape_8017FF7C(Task* task)
+static void func_acropolis_fire_escape_8017FF7C(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -1629,7 +1629,7 @@ void func_acropolis_fire_escape_8017FF7C(Task* task)
 /// with half the brightness, at half the radius with the brightness, and at an
 /// eighth of the radius with four times the brightness (wrapping in a byte).
 /// Every wedge takes the semi-transparent tpage of `Gp_AddTpageShift`.
-void func_acropolis_fire_escape_80180154(Task* task)
+static void func_acropolis_fire_escape_80180154(Task* task)
 {
     GpEffWork*                      work;
     GpCoord*                        coord;
@@ -1771,7 +1771,7 @@ void func_acropolis_fire_escape_80180154(Task* task)
 /// `LINE_G3` streaks when bit 28 is set. Every primitive takes the
 /// semi-transparent tpage of `Gp_AddTpageShift`. Finally `spawnArg2` goes to
 /// `Gp_ReleaseState1CMem`.
-void func_acropolis_fire_escape_80180B20(Task* task)
+static void func_acropolis_fire_escape_80180B20(Task* task)
 {
     AcropolisFireEscapeGlowScratch* blk;
     POLY_G4*                        prim;

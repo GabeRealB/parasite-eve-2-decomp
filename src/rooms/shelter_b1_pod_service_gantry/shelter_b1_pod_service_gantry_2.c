@@ -37,10 +37,10 @@ extern s32 D_80115738;
 extern s32 D_801752EC;
 extern s8  D_shelter_b1_pod_service_gantry_8018256C[];
 
-void func_shelter_b1_pod_service_gantry_8017DF70(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-void func_shelter_b1_pod_service_gantry_8017E400(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-void func_shelter_b1_pod_service_gantry_8017ED3C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-void func_shelter_b1_pod_service_gantry_8017F160(GpCoord* arg0, u16 arg1, s16 arg2);
+static void func_shelter_b1_pod_service_gantry_8017DF70(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_b1_pod_service_gantry_8017E400(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_b1_pod_service_gantry_8017ED3C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_b1_pod_service_gantry_8017F160(GpCoord* arg0, u16 arg1, s16 arg2);
 
 /// Per-frame driver of an animated sprite effect, a `Gp_State1C` effect task
 /// drawn through `func_shelter_b1_pod_service_gantry_8017DF70` (state 1) or,
@@ -57,7 +57,7 @@ void func_shelter_b1_pod_service_gantry_8017F160(GpCoord* arg0, u16 arg1, s16 ar
 /// count / 10, otherwise upwards by a constant) and releases the work block
 /// after the drawer's last cell (12 cells in state 1, 10 in state 2). During
 /// an event it only draws, and releases once the event state reaches 4.
-void func_shelter_b1_pod_service_gantry_8017D8F4(Task* task)
+static void func_shelter_b1_pod_service_gantry_8017D8F4(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -204,7 +204,7 @@ void func_shelter_b1_pod_service_gantry_8017D8F4(Task* task)
 /// texture grid starting at v 0x70. The bits above them select the CLUT: 0 and
 /// 1 pick row 0x10E or 0x10F with the column taken from the cell index, and
 /// anything higher the fixed CLUT 0x428F.
-void func_shelter_b1_pod_service_gantry_8017DF70(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_b1_pod_service_gantry_8017DF70(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -280,7 +280,7 @@ void func_shelter_b1_pod_service_gantry_8017DF70(GpCoord* arg0, u16 arg1, s16 ar
 /// radii at angles `arg3` and `arg3 + 0x400`, of length `arg2 * 47` divided by
 /// the depth. The low 12 bits of `arg1` pick a 48x48 cell of a five-column
 /// texture grid, and any bit above them selects CLUT 0x428F instead of 0x43D0.
-void func_shelter_b1_pod_service_gantry_8017E400(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_b1_pod_service_gantry_8017E400(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -357,7 +357,7 @@ void func_shelter_b1_pod_service_gantry_8017E400(GpCoord* arg0, u16 arg1, s16 ar
 /// the vertical component, and releases the block after animation frame 7.
 /// During an event it only draws, releasing the block once the event state
 /// reaches 4.
-void func_shelter_b1_pod_service_gantry_8017E880(Task* task)
+static void func_shelter_b1_pod_service_gantry_8017E880(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -483,7 +483,7 @@ void func_shelter_b1_pod_service_gantry_8017E880(Task* task)
 /// on-screen radius is `arg2 * 31 / otz`, and `arg3` is the spin angle,
 /// applied at `arg3` and `arg3 + 0x400` through `rsin`/`rcos`. The scratch
 /// block is zeroed with `Mem_Set` before use.
-void func_shelter_b1_pod_service_gantry_8017ED3C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_b1_pod_service_gantry_8017ED3C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     void**                                scratch;
     u8*                                   head;
@@ -548,7 +548,7 @@ void func_shelter_b1_pod_service_gantry_8017ED3C(GpCoord* arg0, u16 arg1, s16 ar
 /// non-negative, queues one shade-tex `POLY_FT4` (tpage 0x2B, clut 0x4393)
 /// with a 56-texel UV tile picked by `arg1` and an on-screen radius of
 /// `arg2 * 55 / otz`.
-void func_shelter_b1_pod_service_gantry_8017F160(GpCoord* arg0, u16 arg1, s16 arg2)
+static void func_shelter_b1_pod_service_gantry_8017F160(GpCoord* arg0, u16 arg1, s16 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -631,7 +631,7 @@ void func_shelter_b1_pod_service_gantry_8017F160(GpCoord* arg0, u16 arg1, s16 ar
 /// flicker, taken from the global at 0x801752EC plus the per-slot byte
 /// `arg1 & 7` of this room's random table, is shifted left by `arg3`'s top
 /// nibble and added to every channel.
-void func_shelter_b1_pod_service_gantry_8017F450(GpCoord* arg0, s32 arg1, s32 arg2, s16 arg3)
+static void func_shelter_b1_pod_service_gantry_8017F450(GpCoord* arg0, s32 arg1, s32 arg2, s16 arg3)
 {
     u8*            head;
     GpRingScratch* block;
@@ -717,7 +717,7 @@ void func_shelter_b1_pod_service_gantry_8017F450(GpCoord* arg0, s32 arg1, s32 ar
 /// every fourth tick, releasing the effect after frame 7. During an event of
 /// state 1-3 it keeps drawing without moving or animating; state 4 or above
 /// releases it. Each draw picks one of six sprite CLUTs at random.
-void func_shelter_b1_pod_service_gantry_8017F8C8(Task* task)
+static void func_shelter_b1_pod_service_gantry_8017F8C8(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -760,7 +760,7 @@ void func_shelter_b1_pod_service_gantry_8017F8C8(Task* task)
     Gp_ReleaseState1CMem(work, task);
 }
 
-void func_shelter_b1_pod_service_gantry_8017FA7C(Task* arg0)
+static void func_shelter_b1_pod_service_gantry_8017FA7C(Task* arg0)
 {
     s32 i;
 

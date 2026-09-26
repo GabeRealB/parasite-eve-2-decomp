@@ -348,45 +348,45 @@ extern SVECTOR                D_shelter_b3_dumping_hole_8018B96C[];
 extern SVECTOR                D_shelter_b3_dumping_hole_8018B974[];
 extern SVECTOR                D_shelter_b3_dumping_hole_8018B98C[];
 
-void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0);
-s32  func_shelter_b3_dumping_hole_80181E70(s16 arg0, s16 arg1, s32 arg2);
-void func_shelter_b3_dumping_hole_80184638(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b3_dumping_hole_80184E7C(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b3_dumping_hole_801866CC(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-void func_shelter_b3_dumping_hole_80186AB8(GpCoord* arg0, s32 arg1, s32 arg2);
-void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0);
-void func_shelter_b3_dumping_hole_80183218(u8 arg0);
-void func_shelter_b3_dumping_hole_8017FD9C(s32 arg0, s32 arg1);
-void func_shelter_b3_dumping_hole_80181C8C(void);
-s32  func_shelter_b3_dumping_hole_80181F80(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_shelter_b3_dumping_hole_80182AA0(void);
-s32  func_shelter_b3_dumping_hole_80182FD0(s32 arg0);
-s16  func_shelter_b3_dumping_hole_80182C24(u16* arg0);
-s16  func_shelter_b3_dumping_hole_80182D34(u16* arg0, s32 arg1);
-s32  func_shelter_b3_dumping_hole_80182F18(u16* arg0);
-s16  func_shelter_b3_dumping_hole_801829B4(u16* arg0);
-s32  func_shelter_b3_dumping_hole_80182E50(s32 arg0);
-void func_shelter_b3_dumping_hole_801833EC(Task* arg0);
-void func_shelter_b3_dumping_hole_80183E6C(s16 arg0, s16 arg1, s16 arg2);
-s32  func_shelter_b3_dumping_hole_80181D68(s32 arg0);
-void func_shelter_b3_dumping_hole_80183298(Task* arg0);
-void func_shelter_b3_dumping_hole_801836E0(Task* arg0);
-void func_shelter_b3_dumping_hole_8018378C(Task* arg0);
-void func_shelter_b3_dumping_hole_80183824(Task* arg0);
-void func_shelter_b3_dumping_hole_801838A0(Task* arg0);
-void func_shelter_b3_dumping_hole_80183950(Task* arg0);
-void func_shelter_b3_dumping_hole_80183A00(Task* arg0);
-void func_shelter_b3_dumping_hole_80183A98(Task* arg0);
-void func_shelter_b3_dumping_hole_80183AEC(Task* arg0);
-void func_shelter_b3_dumping_hole_80183B9C(Task* arg0);
-void func_shelter_b3_dumping_hole_80183C38(Task* arg0);
-void func_shelter_b3_dumping_hole_80183C8C(Task* arg0);
-void func_shelter_b3_dumping_hole_80183CA0(Task* arg0);
-void func_shelter_b3_dumping_hole_80183D34(Task* arg0);
-void func_shelter_b3_dumping_hole_80183E08(Task* arg0);
-void func_shelter_b3_dumping_hole_80183F04(Task* arg0);
-void func_shelter_b3_dumping_hole_8018596C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-void func_shelter_b3_dumping_hole_80185DCC(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0);
+static s32  func_shelter_b3_dumping_hole_80181E70(s16 arg0, s16 arg1, s32 arg2);
+static void func_shelter_b3_dumping_hole_80184638(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b3_dumping_hole_80184E7C(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b3_dumping_hole_801866CC(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_b3_dumping_hole_80186AB8(GpCoord* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0);
+static void func_shelter_b3_dumping_hole_80183218(u8 arg0);
+static void func_shelter_b3_dumping_hole_8017FD9C(s32 arg0, s32 arg1);
+static void func_shelter_b3_dumping_hole_80181C8C(void);
+static s32  func_shelter_b3_dumping_hole_80181F80(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_shelter_b3_dumping_hole_80182AA0(void);
+static s32  func_shelter_b3_dumping_hole_80182FD0(s32 arg0);
+static s16  func_shelter_b3_dumping_hole_80182C24(u16* arg0);
+static s16  func_shelter_b3_dumping_hole_80182D34(u16* arg0, s32 arg1);
+static s32  func_shelter_b3_dumping_hole_80182F18(u16* arg0);
+static s16  func_shelter_b3_dumping_hole_801829B4(u16* arg0);
+static s32  func_shelter_b3_dumping_hole_80182E50(s32 arg0);
+static void func_shelter_b3_dumping_hole_801833EC(Task* arg0);
+static void func_shelter_b3_dumping_hole_80183E6C(s16 arg0, s16 arg1, s16 arg2);
+static s32  func_shelter_b3_dumping_hole_80181D68(s32 arg0);
+static void func_shelter_b3_dumping_hole_80183298(Task* arg0);
+static void func_shelter_b3_dumping_hole_801836E0(Task* arg0);
+static void func_shelter_b3_dumping_hole_8018378C(Task* arg0);
+static void func_shelter_b3_dumping_hole_80183824(Task* arg0);
+static void func_shelter_b3_dumping_hole_801838A0(Task* arg0);
+static void func_shelter_b3_dumping_hole_80183950(Task* arg0);
+static void func_shelter_b3_dumping_hole_80183A00(Task* arg0);
+static void func_shelter_b3_dumping_hole_80183A98(Task* arg0);
+static void func_shelter_b3_dumping_hole_80183AEC(Task* arg0);
+static void func_shelter_b3_dumping_hole_80183B9C(Task* arg0);
+static void func_shelter_b3_dumping_hole_80183C38(Task* arg0);
+static void func_shelter_b3_dumping_hole_80183C8C(Task* arg0);
+static void func_shelter_b3_dumping_hole_80183CA0(Task* arg0);
+static void func_shelter_b3_dumping_hole_80183D34(Task* arg0);
+static void func_shelter_b3_dumping_hole_80183E08(Task* arg0);
+static void func_shelter_b3_dumping_hole_80183F04(Task* arg0);
+static void func_shelter_b3_dumping_hole_8018596C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_b3_dumping_hole_80185DCC(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 
 /// Returns 1 when the screen position (`x`, `y`) lies outside the 320x240
 /// screen centred on the origin, 0 when it is on screen.
@@ -413,9 +413,9 @@ static inline u16 _shelterB3DumpingHoleIsOffscreen(s16 x, s16 y)
 /// Otherwise a semi-transparent `POLY_FT4` of `w` x `h` texels at (`u`, `v`),
 /// scaled by `scale` (4096 = 1.0), is linked into the ordering table at the
 /// projected depth, or at `otzOverride` when that is non-zero, and 0 is returned.
-u16 func_shelter_b3_dumping_hole_8017DA00(GpCoord* coord, s16 w, s16 h, s16 u,
-                                          s16 v, s16 tpageX, s16 tpageY, s16 scale,
-                                          s16 clut, s32 otzOverride)
+static u16 func_shelter_b3_dumping_hole_8017DA00(GpCoord* coord, s16 w, s16 h, s16 u,
+                                                 s16 v, s16 tpageX, s16 tpageY, s16 scale,
+                                                 s16 clut, s32 otzOverride)
 {
     SVECTOR   origin;
     s32       sxy;
@@ -746,7 +746,7 @@ void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
     }
 }
 
-void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
+static void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
 {
     DumpingHoleCoordWork*         work;
     register TmdObject*           extra asm("s2");
@@ -899,7 +899,7 @@ void func_shelter_b3_dumping_hole_8017E94C(Task* arg0)
     }
 }
 
-void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
+static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
 {
     DumpingHoleEntity* work = (DumpingHoleEntity*)arg0->work;
     union {
@@ -1029,7 +1029,7 @@ void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
     work->field_30 = 0;
 }
 
-void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0)
+static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0)
 {
     DumpingHoleEntity*      work = (DumpingHoleEntity*)arg0->work;
     GpCmdArg                msg;
@@ -1279,7 +1279,7 @@ void func_shelter_b3_dumping_hole_8017FCA0(s16 arg0)
     Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
 }
 
-void func_shelter_b3_dumping_hole_8017FCF4(Task* arg0, DumpingHoleSpawnArg* arg1)
+static void func_shelter_b3_dumping_hole_8017FCF4(Task* arg0, DumpingHoleSpawnArg* arg1)
 {
     Task*                 task;
     DumpingHoleSpawnWork* work;
@@ -1297,7 +1297,7 @@ void func_shelter_b3_dumping_hole_8017FCF4(Task* arg0, DumpingHoleSpawnArg* arg1
     work->field_10 = arg1->field_4;
 }
 
-void func_shelter_b3_dumping_hole_8017FD9C(s32 arg0, s32 arg1)
+static void func_shelter_b3_dumping_hole_8017FD9C(s32 arg0, s32 arg1)
 {
     if ((arg1 << 0x10) == 0) {
         Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80188C04, 3, 0, arg0);
@@ -1306,7 +1306,7 @@ void func_shelter_b3_dumping_hole_8017FD9C(s32 arg0, s32 arg1)
     }
 }
 
-void func_shelter_b3_dumping_hole_8017FE10(s32 arg0)
+static void func_shelter_b3_dumping_hole_8017FE10(s32 arg0)
 {
     DumpingHoleEntity* p = D_shelter_b3_dumping_hole_8018F4A8->work;
     if (arg0 == 0) {
@@ -1539,7 +1539,7 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
 ///   calls, then spawns the task kept in `field_88`.
 ///
 /// The message buffers are unions because the cases share their stack slots.
-void func_shelter_b3_dumping_hole_8018098C(Task* task)
+static void func_shelter_b3_dumping_hole_8018098C(Task* task)
 {
     DumpingHoleEntity4* work;
     OverlayMat*         ident;
@@ -2005,7 +2005,7 @@ void func_shelter_b3_dumping_hole_80181B44(s32 arg0)
 /// caption at its line key, with the low half of the task's `spawnArg1` as
 /// the line delay, and shows its current line. The clock then counts down one, unless a
 /// caption is running or `Gp_StateF0.field_4` is set.
-void func_shelter_b3_dumping_hole_80181B64(Task* task, s32 arg1)
+static void func_shelter_b3_dumping_hole_80181B64(Task* task, s32 arg1)
 {
     s32 i;
     s32 script;
@@ -2039,7 +2039,7 @@ void func_shelter_b3_dumping_hole_80181B64(Task* task, s32 arg1)
     }
 }
 
-void func_shelter_b3_dumping_hole_80181C8C(void)
+static void func_shelter_b3_dumping_hole_80181C8C(void)
 {
     if (D_shelter_b3_dumping_hole_8018F4BC == NULL) {
         return;
@@ -2061,7 +2061,7 @@ void func_shelter_b3_dumping_hole_80181C8C(void)
     func_shelter_b3_dumping_hole_80182AA0();
 }
 
-s32 func_shelter_b3_dumping_hole_80181D68(s32 arg0)
+static s32 func_shelter_b3_dumping_hole_80181D68(s32 arg0)
 {
     Reloc80181D68Hdr*    hdr = (Reloc80181D68Hdr*)arg0;
     Reloc80181D68Entry1* r;
@@ -2101,7 +2101,7 @@ s32 func_shelter_b3_dumping_hole_80181D68(s32 arg0)
     return 1;
 }
 
-s32 func_shelter_b3_dumping_hole_80181E70(s16 arg0, s16 arg1, s32 arg2)
+static s32 func_shelter_b3_dumping_hole_80181E70(s16 arg0, s16 arg1, s32 arg2)
 {
     GpEvt12* entry;
 
@@ -2123,7 +2123,7 @@ s32 func_shelter_b3_dumping_hole_80181E70(s16 arg0, s16 arg1, s32 arg2)
     return 0;
 }
 
-s32 func_shelter_b3_dumping_hole_80181F80(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+static s32 func_shelter_b3_dumping_hole_80181F80(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     u16*       text;
     u16*       body;
@@ -2318,7 +2318,7 @@ s32 func_shelter_b3_dumping_hole_80181F80(s32 arg0, s32 arg1, s32 arg2, s32 arg3
 /// the first `-2` adds its height (the tallest glyph's `h + 2`, or 2 when empty)
 /// and the total is subtracted from `D_shelter_b3_dumping_hole_8018F4C4`. Gameplay's
 /// `Gp_CapTextTopY` is the same walk against a fixed 0xD0.
-s16 func_shelter_b3_dumping_hole_801829B4(u16* arg0)
+static s16 func_shelter_b3_dumping_hole_801829B4(u16* arg0)
 {
     s16  lineH     = 0;
     s16  total     = 0;
@@ -2350,7 +2350,7 @@ s16 func_shelter_b3_dumping_hole_801829B4(u16* arg0)
     return D_shelter_b3_dumping_hole_8018F4C4 - total;
 }
 
-void func_shelter_b3_dumping_hole_80182AA0(void)
+static void func_shelter_b3_dumping_hole_80182AA0(void)
 {
     Prim82AA0* prim;
     s32        c1;
@@ -2404,7 +2404,7 @@ void func_shelter_b3_dumping_hole_80182AA0(void)
 /// running maximum, `-3` and `0x8400`-masked codes indent it by 3 and 0x10, and
 /// each glyph code (non-negative, `& 0x3FF` indexing `D_shelter_b3_dumping_hole_8018F4B8`)
 /// advances it by that glyph's `w - 1`.
-s16 func_shelter_b3_dumping_hole_80182C24(u16* text)
+static s16 func_shelter_b3_dumping_hole_80182C24(u16* text)
 {
     s16 lineW = 0;
     s16 maxW  = 0;
@@ -2439,7 +2439,7 @@ s16 func_shelter_b3_dumping_hole_80182C24(u16* text)
 /// Same walk as `func_actor_215100_8014C06C`, but keeps the width of the
 /// selected line instead of the widest; gameplay's `Gp_CapCenterXLine`
 /// compiles to the same bytes.
-s16 func_shelter_b3_dumping_hole_80182D34(u16* arg0, s32 arg1)
+static s16 func_shelter_b3_dumping_hole_80182D34(u16* arg0, s32 arg1)
 {
     s16 lineW;
     s16 selectedW;
@@ -2477,7 +2477,7 @@ s16 func_shelter_b3_dumping_hole_80182D34(u16* arg0, s32 arg1)
     return (0x140 - selectedW) / 2 - 5;
 }
 
-s32 func_shelter_b3_dumping_hole_80182E50(s32 arg0)
+static s32 func_shelter_b3_dumping_hole_80182E50(s32 arg0)
 {
     u16*        p = (u16*)arg0;
     short       acc;
@@ -2529,7 +2529,7 @@ s32 func_shelter_b3_dumping_hole_80182E50(s32 arg0)
 /// 0xD, and any other negative code is stepped over like a glyph without
 /// touching the maximum. A maximum still at 0 — the stream opened with `-2` —
 /// comes back as 2.
-s32 func_shelter_b3_dumping_hole_80182F18(u16* arg0)
+static s32 func_shelter_b3_dumping_hole_80182F18(u16* arg0)
 {
     s32                 height;
     s32                 i;
@@ -2585,7 +2585,7 @@ s32 func_shelter_b3_dumping_hole_80182F18(u16* arg0)
     return height;
 }
 
-s32 func_shelter_b3_dumping_hole_80182FD0(s32 arg0)
+static s32 func_shelter_b3_dumping_hole_80182FD0(s32 arg0)
 {
     s32      sentinel = -1;
     s32      base     = (s32)D_shelter_b3_dumping_hole_8018F4BC;
@@ -2631,13 +2631,13 @@ void func_shelter_b3_dumping_hole_80183060(Task* arg0)
 /// Selects entry `arg0` through `func_shelter_b3_dumping_hole_80181E70` with a
 /// fixed third argument of 0xD0, then spawns the task described by
 /// `D_shelter_b3_dumping_hole_8018B588`, passing `arg2` to the spawn.
-void func_shelter_b3_dumping_hole_801830F0(s16 arg0, s16 arg1, s16 arg2)
+static void func_shelter_b3_dumping_hole_801830F0(s16 arg0, s16 arg1, s16 arg2)
 {
     func_shelter_b3_dumping_hole_80181E70(arg0, arg1, 0xD0);
     Task_SpawnFromTable(&D_shelter_b3_dumping_hole_8018B588, 0, arg2, 0);
 }
 
-void func_shelter_b3_dumping_hole_80183144(s16 arg0, s16 arg1, s16 arg2)
+static void func_shelter_b3_dumping_hole_80183144(s16 arg0, s16 arg1, s16 arg2)
 {
     func_shelter_b3_dumping_hole_80181E70(arg0, arg1, 0xD0);
     Display_InitModeObj(&D_shelter_b3_dumping_hole_8018B594, arg2, 0, 0);
@@ -2664,7 +2664,7 @@ void func_shelter_b3_dumping_hole_80183198(s16 arg0, s16 arg1, s16 arg2)
 
 /// Hides or shows sprite commands 1 and 2 of the area's view 13 through their
 /// `GpSprtCmd::field_4`: 0 hides both, 1 shows command 2 and 2 shows command 1.
-void func_shelter_b3_dumping_hole_80183218(u8 arg0)
+static void func_shelter_b3_dumping_hole_80183218(u8 arg0)
 {
     GpAreaKey* g4 = &gGameSession->at4.loc;
     GpSprtCmd* vs = Gp_SprtTables[g4->stage - 1]->field_0[g4->area - 1][13].field_4;
@@ -2682,7 +2682,7 @@ void func_shelter_b3_dumping_hole_80183218(u8 arg0)
 /// Spawns the two enemies of one slot from the `D_80151E60` table, numbering
 /// them from the spawn counter, and marks the slot live. Actor 342400 carries
 /// the same body.
-void func_shelter_b3_dumping_hole_80183298(Task* arg0)
+static void func_shelter_b3_dumping_hole_80183298(Task* arg0)
 {
     OverlayEncounterPairWork* work;
     GpEnemy*                  enemy;
@@ -2725,7 +2725,7 @@ void func_shelter_b3_dumping_hole_80183298(Task* arg0)
     arg0->state++;
 }
 
-void func_shelter_b3_dumping_hole_801833EC(Task* arg0)
+static void func_shelter_b3_dumping_hole_801833EC(Task* arg0)
 {
     OverlayEncounterCtrlWork* ent = (OverlayEncounterCtrlWork*)arg0->work;
     s16                       count;
@@ -2773,7 +2773,7 @@ void func_shelter_b3_dumping_hole_80183530(Task* arg0, s32 arg1, GpCmdArg* arg2)
 /// the first three slot spawns, a 15-frame wait before `Gp_ArmStateF0`, and a
 /// loop that starts the next slot while fewer than three are live and ends
 /// once all 16 have been cleared.
-const TaskFuncTable4 D_shelter_b3_dumping_hole_8017D654 = { {
+static const TaskFuncTable4 D_shelter_b3_dumping_hole_8017D654 = { {
     func_shelter_b3_dumping_hole_801836E0,
     func_shelter_b3_dumping_hole_8018378C,
     func_shelter_b3_dumping_hole_80183824,
@@ -2783,7 +2783,7 @@ const TaskFuncTable4 D_shelter_b3_dumping_hole_8017D654 = { {
 /// States of a slot task holding one enemy from `D_80142604`: spawn it, after
 /// a delay switch its palette and send it message 0x7DB, then wait for its hit
 /// points to run out.
-const TaskFuncTable3 D_shelter_b3_dumping_hole_8017D664 = { {
+static const TaskFuncTable3 D_shelter_b3_dumping_hole_8017D664 = { {
     func_shelter_b3_dumping_hole_80183950,
     func_shelter_b3_dumping_hole_80183A00,
     func_shelter_b3_dumping_hole_80183A98,
@@ -2792,7 +2792,7 @@ const TaskFuncTable3 D_shelter_b3_dumping_hole_8017D664 = { {
 /// States of a slot task holding one enemy from `D_801575F0`: spawn it, after
 /// a delay switch its palette and send it message 0x7DB, then wait for its hit
 /// points to run out.
-const TaskFuncTable3 D_shelter_b3_dumping_hole_8017D670 = { {
+static const TaskFuncTable3 D_shelter_b3_dumping_hole_8017D670 = { {
     func_shelter_b3_dumping_hole_80183AEC,
     func_shelter_b3_dumping_hole_80183B9C,
     func_shelter_b3_dumping_hole_80183C38,
@@ -2801,7 +2801,7 @@ const TaskFuncTable3 D_shelter_b3_dumping_hole_8017D670 = { {
 /// States of a slot task holding a pair of enemies from `D_80151E60`: spawn
 /// them, one idle frame, send the first message 0x7DB, send the second the
 /// same after a delay, then wait until both are gone.
-const TaskFuncTable5 D_shelter_b3_dumping_hole_8017D67C = { {
+static const TaskFuncTable5 D_shelter_b3_dumping_hole_8017D67C = { {
     func_shelter_b3_dumping_hole_80183298,
     func_shelter_b3_dumping_hole_80183C8C,
     func_shelter_b3_dumping_hole_80183CA0,
@@ -2843,7 +2843,7 @@ void func_shelter_b3_dumping_hole_80183678(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_shelter_b3_dumping_hole_801836E0(Task* arg0)
+static void func_shelter_b3_dumping_hole_801836E0(Task* arg0)
 {
     OverlayEncounterCtrlWork* work;
     s32                       i;
@@ -2866,7 +2866,7 @@ void func_shelter_b3_dumping_hole_801836E0(Task* arg0)
     arg0->state                       += 1;
 }
 
-void func_shelter_b3_dumping_hole_8018378C(Task* arg0)
+static void func_shelter_b3_dumping_hole_8018378C(Task* arg0)
 {
     OverlayEncounterCtrlWork* ent = (OverlayEncounterCtrlWork*)arg0->work;
     s32                       i;
@@ -2880,7 +2880,7 @@ void func_shelter_b3_dumping_hole_8018378C(Task* arg0)
     arg0->state += 1;
 }
 
-void func_shelter_b3_dumping_hole_80183824(Task* arg0)
+static void func_shelter_b3_dumping_hole_80183824(Task* arg0)
 {
     OverlayEncounterCtrlWork* ent = (OverlayEncounterCtrlWork*)arg0->work;
     if ((s16)(ent->frames += 1) == 0xF) {
@@ -2891,7 +2891,7 @@ void func_shelter_b3_dumping_hole_80183824(Task* arg0)
     }
 }
 
-void func_shelter_b3_dumping_hole_801838A0(Task* arg0)
+static void func_shelter_b3_dumping_hole_801838A0(Task* arg0)
 {
     s16 count;
     s32 i;
@@ -2912,7 +2912,7 @@ void func_shelter_b3_dumping_hole_801838A0(Task* arg0)
     }
 }
 
-void func_shelter_b3_dumping_hole_80183950(Task* arg0)
+static void func_shelter_b3_dumping_hole_80183950(Task* arg0)
 {
     OverlayEncounterSingleWork* work = memCalloc(8, 0);
     if (work != NULL) {
@@ -2933,7 +2933,7 @@ void func_shelter_b3_dumping_hole_80183950(Task* arg0)
     taskKill(arg0);
 }
 
-void func_shelter_b3_dumping_hole_80183A00(Task* arg0)
+static void func_shelter_b3_dumping_hole_80183A00(Task* arg0)
 {
     GpCmdArg                    desc;
     OverlayEncounterSingleWork* ent = (OverlayEncounterSingleWork*)arg0->work;
@@ -2953,7 +2953,7 @@ void func_shelter_b3_dumping_hole_80183A00(Task* arg0)
     }
 }
 
-void func_shelter_b3_dumping_hole_80183A98(Task* arg0)
+static void func_shelter_b3_dumping_hole_80183A98(Task* arg0)
 {
     if (((OverlayEncounterSingleWork*)arg0->work)->enemy->hp <= 0) {
         D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1 >> 16)].status = 2;
@@ -2961,7 +2961,7 @@ void func_shelter_b3_dumping_hole_80183A98(Task* arg0)
     }
 }
 
-void func_shelter_b3_dumping_hole_80183AEC(Task* arg0)
+static void func_shelter_b3_dumping_hole_80183AEC(Task* arg0)
 {
     OverlayEncounterSingleWork* work = memCalloc(8, 0);
     if (work != NULL) {
@@ -2982,7 +2982,7 @@ void func_shelter_b3_dumping_hole_80183AEC(Task* arg0)
     taskKill(arg0);
 }
 
-void func_shelter_b3_dumping_hole_80183B9C(Task* arg0)
+static void func_shelter_b3_dumping_hole_80183B9C(Task* arg0)
 {
     GpCmdArg                    desc;
     OverlayEncounterSingleWork* ent = (OverlayEncounterSingleWork*)arg0->work;
@@ -3002,7 +3002,7 @@ void func_shelter_b3_dumping_hole_80183B9C(Task* arg0)
     }
 }
 
-void func_shelter_b3_dumping_hole_80183C38(Task* arg0)
+static void func_shelter_b3_dumping_hole_80183C38(Task* arg0)
 {
     if (((OverlayEncounterSingleWork*)arg0->work)->enemy->hp <= 0) {
         D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1 >> 16)].status = 2;
@@ -3011,12 +3011,12 @@ void func_shelter_b3_dumping_hole_80183C38(Task* arg0)
 }
 
 /// Advances the task to its next state.
-void func_shelter_b3_dumping_hole_80183C8C(Task* arg0)
+static void func_shelter_b3_dumping_hole_80183C8C(Task* arg0)
 {
     arg0->state = arg0->state + 1;
 }
 
-void func_shelter_b3_dumping_hole_80183CA0(Task* arg0)
+static void func_shelter_b3_dumping_hole_80183CA0(Task* arg0)
 {
     GpCmdArg                  desc;
     OverlayEncounterPairWork* ent = (OverlayEncounterPairWork*)arg0->work;
@@ -3037,7 +3037,7 @@ void func_shelter_b3_dumping_hole_80183CA0(Task* arg0)
     arg0->state += 1;
 }
 
-void func_shelter_b3_dumping_hole_80183D34(Task* arg0)
+static void func_shelter_b3_dumping_hole_80183D34(Task* arg0)
 {
     OverlayEncounterPairWork* ent = (OverlayEncounterPairWork*)arg0->work;
     GpEnemy*                  t   = ent->enemy1;
@@ -3064,7 +3064,7 @@ void func_shelter_b3_dumping_hole_80183D34(Task* arg0)
     arg0->state += 1;
 }
 
-void func_shelter_b3_dumping_hole_80183E08(Task* arg0)
+static void func_shelter_b3_dumping_hole_80183E08(Task* arg0)
 {
     OverlayEncounterPairWork* ent = (OverlayEncounterPairWork*)arg0->work;
     func_shelter_b3_dumping_hole_80183F04(arg0);
@@ -3074,7 +3074,7 @@ void func_shelter_b3_dumping_hole_80183E08(Task* arg0)
     }
 }
 
-void func_shelter_b3_dumping_hole_80183E6C(s16 arg0, s16 arg1, s16 arg2)
+static void func_shelter_b3_dumping_hole_80183E6C(s16 arg0, s16 arg1, s16 arg2)
 {
     switch (arg1) {
         case 0:
@@ -3089,7 +3089,7 @@ void func_shelter_b3_dumping_hole_80183E6C(s16 arg0, s16 arg1, s16 arg2)
     }
 }
 
-void func_shelter_b3_dumping_hole_80183F04(Task* arg0)
+static void func_shelter_b3_dumping_hole_80183F04(Task* arg0)
 {
     OverlayEncounterPairWork* p = (OverlayEncounterPairWork*)arg0->work;
 
@@ -3109,7 +3109,7 @@ void func_shelter_b3_dumping_hole_80183F04(Task* arg0)
     }
 }
 
-void func_shelter_b3_dumping_hole_80183F84(Task* task)
+static void func_shelter_b3_dumping_hole_80183F84(Task* task)
 {
     u8 view;
 
@@ -3262,7 +3262,7 @@ void func_shelter_b3_dumping_hole_80183F84(Task* task)
 /// centres, take the colour packed in `arg2` (one nibble per channel),
 /// flickering with the animation frame. Nothing is drawn when either
 /// projection flags an error.
-void func_shelter_b3_dumping_hole_80184638(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b3_dumping_hole_80184638(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**                   scratch;
     u8*                      head;
@@ -3408,7 +3408,7 @@ void func_shelter_b3_dumping_hole_80184638(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// `(s16)arg1 * 64` over the depth, dark at the rim. The centre takes the
 /// colour packed in `arg2` (one nibble per channel), flickering with the
 /// animation frame. Nothing is drawn when the projection flags an error.
-void func_shelter_b3_dumping_hole_80184E7C(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b3_dumping_hole_80184E7C(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**             scratch;
     u8*                head;
@@ -3491,7 +3491,7 @@ void func_shelter_b3_dumping_hole_80184E7C(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// `period` ticks, releasing the task after the set's last frame. While an
 /// event is running the task only draws, and is released once the event state
 /// reaches 4.
-void func_shelter_b3_dumping_hole_8018521C(Task* task)
+static void func_shelter_b3_dumping_hole_8018521C(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -3641,7 +3641,7 @@ void func_shelter_b3_dumping_hole_8018521C(Task* task)
     }
 }
 
-void func_shelter_b3_dumping_hole_8018596C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_b3_dumping_hole_8018596C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -3715,7 +3715,7 @@ void func_shelter_b3_dumping_hole_8018596C(GpCoord* arg0, u16 arg1, s16 arg2, s1
 /// frame, a 48x48 cell in a five-wide grid of the texture page; the top bits
 /// pick one of two palettes. Nothing is drawn when the projection flags an
 /// error.
-void func_shelter_b3_dumping_hole_80185DCC(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_b3_dumping_hole_80185DCC(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -3785,7 +3785,7 @@ void func_shelter_b3_dumping_hole_80185DCC(GpCoord* arg0, u16 arg1, s16 arg2, s1
 /// with `vy` growing by 6, and advance the frame every `period` ticks,
 /// releasing the task after frame 7. While an event is running the task only
 /// draws, and is released once the event state reaches 4.
-void func_shelter_b3_dumping_hole_80186218(Task* task)
+static void func_shelter_b3_dumping_hole_80186218(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -3909,7 +3909,7 @@ void func_shelter_b3_dumping_hole_80186218(Task* task)
 /// `arg3` and a quarter turn past it. `arg1` picks the frame, a 32x32 cell
 /// in a row of the texture page. Nothing is drawn when the projection flags
 /// an error.
-void func_shelter_b3_dumping_hole_801866CC(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_b3_dumping_hole_801866CC(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -3977,7 +3977,7 @@ void func_shelter_b3_dumping_hole_801866CC(GpCoord* arg0, u16 arg1, s16 arg2, s1
 /// projected point sits three quarters of the way down it. `arg1` picks the
 /// frame, a 56x56 cell in a four-by-two grid of the texture page. Nothing is
 /// drawn when the projection flags an error.
-void func_shelter_b3_dumping_hole_80186AB8(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b3_dumping_hole_80186AB8(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -4053,7 +4053,7 @@ void func_shelter_b3_dumping_hole_80186AB8(GpCoord* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
-void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)
+static void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;

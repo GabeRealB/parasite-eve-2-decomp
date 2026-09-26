@@ -32,9 +32,9 @@ extern s32     D_dryfield_garage_8017DCC4;
 extern GpObj4A D_dryfield_garage_8017FD1C;
 extern Task*   D_dryfield_garage_8018021C;
 
-void func_dryfield_garage_8017D74C(Task* task);
-void func_dryfield_garage_8017DB18(Task* arg0);
-void func_dryfield_garage_8017DC08(Task* task);
+void        func_dryfield_garage_8017D74C(Task* task);
+static void func_dryfield_garage_8017DB18(Task* arg0);
+static void func_dryfield_garage_8017DC08(Task* task);
 
 /// Event gate for a room exit. Returns 1 when game-flag nibble `req->flagId`
 /// already reads set (clear, for a negative id). Otherwise, when
@@ -43,7 +43,7 @@ void func_dryfield_garage_8017DC08(Task* task);
 /// nibble and spawns the event task. When the item is missing it returns 0
 /// and, outside a dry run, runs cap command `req->field_4`. Nothing in this
 /// room calls it.
-s32 func_dryfield_garage_8017D5E8(RoomEventReq* req, RoomEventMsg* msg)
+static s32 func_dryfield_garage_8017D5E8(RoomEventReq* req, RoomEventMsg* msg)
 {
     s32 flag;
     s32 id;
@@ -147,7 +147,7 @@ void func_dryfield_garage_8017D74C(Task* task)
 /// `func_dryfield_garage_8017DC10`: the entry state
 /// `func_dryfield_garage_8017DB18`, the idle state
 /// `func_dryfield_garage_8017DC08`, then `taskKill`.
-const TaskFuncTable3 D_dryfield_garage_8017D5DC = {
+static const TaskFuncTable3 D_dryfield_garage_8017D5DC = {
     { func_dryfield_garage_8017DB18, func_dryfield_garage_8017DC08, taskKill },
 };
 
@@ -260,7 +260,7 @@ void func_dryfield_garage_8017DAA0(Task* arg0)
 /// by warp 2, moves nibble 0x155 from 1 to 2 (clearing nibble 3), clears bit 6
 /// of `D_dryfield_garage_8017FD1C.field_4A` outside place 1, and advances to
 /// the idle state.
-void func_dryfield_garage_8017DB18(Task* arg0)
+static void func_dryfield_garage_8017DB18(Task* arg0)
 {
     arg0->msgTable = D_dryfield_garage_8017DC7C;
     Game_SetPtrSlot(arg0, 7);
@@ -278,13 +278,13 @@ void func_dryfield_garage_8017DB18(Task* arg0)
 }
 
 /// Idle state of the room task.
-void func_dryfield_garage_8017DC08(Task* task)
+static void func_dryfield_garage_8017DC08(Task* task)
 {
 }
 
 /// The room task: runs the state the task is in from a stack copy of the
 /// room's three-state table.
-void func_dryfield_garage_8017DC10(Task* task)
+static void func_dryfield_garage_8017DC10(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -293,6 +293,6 @@ void func_dryfield_garage_8017DC10(Task* task)
 }
 
 /// Empty function; nothing in the room references it.
-void func_dryfield_garage_8017DC68(void)
+static void func_dryfield_garage_8017DC68(void)
 {
 }

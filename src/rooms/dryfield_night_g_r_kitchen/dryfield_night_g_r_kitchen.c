@@ -44,7 +44,7 @@ extern SVECTOR D_dryfield_night_g_r_kitchen_8017E29C[];
 /// request are latched, the nibble is written, the event task is spawned and
 /// the answer is 2. A non-zero `field_5` on the message only reports the
 /// answer, with none of the side effects.
-s32 func_dryfield_night_g_r_kitchen_8017D5E8(RoomEventReq* req, RoomEventMsg* msg)
+static s32 func_dryfield_night_g_r_kitchen_8017D5E8(RoomEventReq* req, RoomEventMsg* msg)
 {
     s32 flag;
     s32 id;
@@ -188,7 +188,7 @@ s32 func_dryfield_night_g_r_kitchen_8017D950(void)
 
 /// State 0 of the room entry task: installs the room's message table,
 /// registers the task in game pointer slot 7 and advances to the idle state.
-void func_dryfield_night_g_r_kitchen_8017D958(Task* task)
+static void func_dryfield_night_g_r_kitchen_8017D958(Task* task)
 {
     task->msgTable = D_dryfield_night_g_r_kitchen_8017E254;
     Game_SetPtrSlot(task, 7);
@@ -196,19 +196,19 @@ void func_dryfield_night_g_r_kitchen_8017D958(Task* task)
 }
 
 /// State 1 of the room entry task: idles.
-void func_dryfield_night_g_r_kitchen_8017D99C(Task* task)
+static void func_dryfield_night_g_r_kitchen_8017D99C(Task* task)
 {
 }
 
 /// The room entry task's three states: install the room's message table,
 /// idle, and `taskKill`.
-const TaskFuncTable3 D_dryfield_night_g_r_kitchen_8017D5DC = {
+static const TaskFuncTable3 D_dryfield_night_g_r_kitchen_8017D5DC = {
     { func_dryfield_night_g_r_kitchen_8017D958, func_dryfield_night_g_r_kitchen_8017D99C, taskKill },
 };
 
 /// Runs the room entry task's current state from its three-entry table, which
 /// it copies onto the stack before the call.
-void func_dryfield_night_g_r_kitchen_8017D9A4(Task* task)
+static void func_dryfield_night_g_r_kitchen_8017D9A4(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -222,7 +222,7 @@ void func_dryfield_night_g_r_kitchen_8017D9A4(Task* task)
 /// them. Each radius is `(s16)arg1 * 64` over that point's OTZ. Nothing is
 /// drawn unless both points project. The lit vertices take a brightness that
 /// flickers with the frame counter.
-void func_dryfield_night_g_r_kitchen_8017D9FC(SVECTOR* arg0, s32 arg1)
+static void func_dryfield_night_g_r_kitchen_8017D9FC(SVECTOR* arg0, s32 arg1)
 {
     void**                   scratch;
     u8*                      head;
@@ -353,7 +353,7 @@ void func_dryfield_night_g_r_kitchen_8017D9FC(SVECTOR* arg0, s32 arg1)
 /// Picks the pair of light shafts `func_dryfield_night_g_r_kitchen_8017D9FC`
 /// draws from the current view index (`gGameSession->at4.loc.view`, 2 or 3);
 /// any other view draws nothing.
-void func_dryfield_night_g_r_kitchen_8017E1E4(void)
+static void func_dryfield_night_g_r_kitchen_8017E1E4(void)
 {
     u8 view;
 

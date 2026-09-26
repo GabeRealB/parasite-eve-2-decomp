@@ -40,11 +40,11 @@ extern SVECTOR D_dryfield_g_r_kitchen_8017EBF0[];
 /// `[3]`.
 extern SVECTOR D_dryfield_g_r_kitchen_8017EC08[];
 
-void func_dryfield_g_r_kitchen_8017D74C(Task* task);
-void func_dryfield_g_r_kitchen_8017D958(Task* task);
-void func_dryfield_g_r_kitchen_8017D99C(Task* task);
-void func_dryfield_g_r_kitchen_8017D9FC(GpCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
-void func_dryfield_g_r_kitchen_8017E27C(GpCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
+void        func_dryfield_g_r_kitchen_8017D74C(Task* task);
+static void func_dryfield_g_r_kitchen_8017D958(Task* task);
+static void func_dryfield_g_r_kitchen_8017D99C(Task* task);
+static void func_dryfield_g_r_kitchen_8017D9FC(GpCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
+static void func_dryfield_g_r_kitchen_8017E27C(GpCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
 
 /// Event gate for the room's exit. Returns 1 when game-flag nibble
 /// `req->flagId` already reads set (clear, for a negative id). Otherwise, when
@@ -52,7 +52,7 @@ void func_dryfield_g_r_kitchen_8017E27C(GpCoord* arg0, SVECTOR* arg1, SVECTOR* a
 /// `msg->field_5` asks for a dry run - latches `msg` and `req`, sets the
 /// nibble and spawns the event task. When the item is missing it returns 0
 /// and, outside a dry run, runs cap command `req->field_4`.
-s32 func_dryfield_g_r_kitchen_8017D5E8(RoomEventReq* req, RoomEventMsg* msg)
+static s32 func_dryfield_g_r_kitchen_8017D5E8(RoomEventReq* req, RoomEventMsg* msg)
 {
     s32 flag;
     s32 id;
@@ -156,7 +156,7 @@ void func_dryfield_g_r_kitchen_8017D74C(Task* task)
 /// `func_dryfield_g_r_kitchen_8017D9A4`: the entry state
 /// `func_dryfield_g_r_kitchen_8017D958`, the idle state
 /// `func_dryfield_g_r_kitchen_8017D99C`, then `taskKill`.
-const TaskFuncTable3 D_dryfield_g_r_kitchen_8017D5DC = {
+static const TaskFuncTable3 D_dryfield_g_r_kitchen_8017D5DC = {
     { func_dryfield_g_r_kitchen_8017D958, func_dryfield_g_r_kitchen_8017D99C, taskKill },
 };
 
@@ -208,7 +208,7 @@ s32 func_dryfield_g_r_kitchen_8017D950(void)
 
 /// Entry state of the room task: installs the room's message table, registers
 /// the task in pointer slot 7 and advances to the idle state.
-void func_dryfield_g_r_kitchen_8017D958(Task* task)
+static void func_dryfield_g_r_kitchen_8017D958(Task* task)
 {
     task->msgTable = D_dryfield_g_r_kitchen_8017EBC0;
     Game_SetPtrSlot(task, 7);
@@ -216,13 +216,13 @@ void func_dryfield_g_r_kitchen_8017D958(Task* task)
 }
 
 /// Idle state of the room task.
-void func_dryfield_g_r_kitchen_8017D99C(Task* task)
+static void func_dryfield_g_r_kitchen_8017D99C(Task* task)
 {
 }
 
 /// The room task: runs the state the task is in from a stack copy of the
 /// room's three-state table.
-void func_dryfield_g_r_kitchen_8017D9A4(Task* task)
+static void func_dryfield_g_r_kitchen_8017D9A4(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -244,7 +244,7 @@ void func_dryfield_g_r_kitchen_8017D9A4(Task* task)
 /// or 0x30 on the parity of `gDisplayState.animFrame`, rim vertices are black.
 /// Each primitive goes into the OT bucket of its own end's `otz` with a
 /// `Gp_AddTpageShift` tpage.
-void func_dryfield_g_r_kitchen_8017D9FC(GpCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
+static void func_dryfield_g_r_kitchen_8017D9FC(GpCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
     u8*                head;
     RoomDraw24Scratch* block;
@@ -385,7 +385,7 @@ void func_dryfield_g_r_kitchen_8017D9FC(GpCoord* arg0, SVECTOR* arg1, SVECTOR* a
 /// circles at -0x400 and 0x400. The centre colour is 0x10 or 0x20 on the
 /// parity of `gDisplayState.animFrame`, one step darker than
 /// `func_dryfield_g_r_kitchen_8017D9FC`'s.
-void func_dryfield_g_r_kitchen_8017E27C(GpCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
+static void func_dryfield_g_r_kitchen_8017E27C(GpCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
     u8*                head;
     RoomDraw24Scratch* block;
@@ -518,7 +518,7 @@ void func_dryfield_g_r_kitchen_8017E27C(GpCoord* arg0, SVECTOR* arg1, SVECTOR* a
 /// `func_dryfield_g_r_kitchen_8017D9FC`, in view 3 those of
 /// `D_dryfield_g_r_kitchen_8017EC08` through
 /// `func_dryfield_g_r_kitchen_8017E27C`. Any other view draws nothing.
-void func_dryfield_g_r_kitchen_8017EB04(Task* arg0)
+static void func_dryfield_g_r_kitchen_8017EB04(Task* arg0)
 {
     GpCoord* coord;
 

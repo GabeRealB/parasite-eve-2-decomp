@@ -76,10 +76,5 @@ void func_mine_cavern_8017E394(void);
 /// their `GpSprtCmd::field_4`, which keeps a command's sprites out of the
 /// ordering table; any other value changes nothing.
 void func_mine_cavern_8017E3A0(s32 arg0);
-void func_mine_cavern_8017E774(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_mine_cavern_8017EFB8(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_mine_cavern_8017FBF4(GpCoord* arg0, s16 arg1, u8* rgb);
-void func_mine_cavern_801809F8(GpCoord* arg0, s32 arg1);
-void func_mine_cavern_80180D70(GpCoord* arg0, s16 arg1, u8* arg2);
 
 #endif

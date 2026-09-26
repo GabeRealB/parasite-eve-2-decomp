@@ -301,7 +301,7 @@ extern SVECTOR D_acropolis_plaza_80198820[];
 /// promotes a 0x72 entry to 0x71 -- clearing the MDEC strip counters -- kicks
 /// the decoder, primes `func_8001FAE0` and advances to step 1. Step 1 polls
 /// `func_8001FAE0` every frame and retires the command once it reports done.
-void func_acropolis_plaza_8017D6D4(void)
+static void func_acropolis_plaza_8017D6D4(void)
 {
     CdCmdQueue* q;
     CdCmdEntry* e;
@@ -578,7 +578,7 @@ L_case6:
 
 /// Rebuilds the eight box vertices in `D_acropolis_plaza_80198B90` around the
 /// scene work's world position.
-void func_acropolis_plaza_8017DD90(Task* arg0)
+static void func_acropolis_plaza_8017DD90(Task* arg0)
 {
     AcropolisPlazaSceneWork* work = (AcropolisPlazaSceneWork*)arg0->work;
     s32                      x    = work->pos.vx;
@@ -634,7 +634,7 @@ void func_acropolis_plaza_8017DD90(Task* arg0)
 /// Sets 4..7 (and any out-of-range value, which leaves the table whatever the
 /// caller left in place) instead index the table flat, one shot per step, and
 /// clamp the backwards walk at the start of the table.
-void func_acropolis_plaza_8017DE24(s32 arg0)
+static void func_acropolis_plaza_8017DE24(s32 arg0)
 {
     CdCmdQueue* q = &CdCmd_Queue;
     GpViewRec(*tbl)[2];
@@ -1531,7 +1531,7 @@ void func_acropolis_plaza_8017F620(Task* task)
 /// Ambience voice driver: starts the voice named by `sndId` the first time
 /// `state` is clear, then tracks `CdCmd_Queue.field_1EE` between `fadeIn` and
 /// `fadeOut` to ramp its volume.
-void func_acropolis_plaza_8017F770(u16 fadeIn, u16 fadeOut, u16 hold, u16* state, s32 sndId, u16 mode)
+static void func_acropolis_plaza_8017F770(u16 fadeIn, u16 fadeOut, u16 hold, u16* state, s32 sndId, u16 mode)
 {
     CdCmdQueue* q     = &CdCmd_Queue;
     u16*        frame = &CdCmd_Queue.field_1EE;
@@ -1580,7 +1580,7 @@ void func_acropolis_plaza_8017F770(u16 fadeIn, u16 fadeOut, u16 hold, u16* state
 /// the crowd loop out against the stream frame counter, holding full volume
 /// (0x7F) over frames 0x1F..0x54 and sliding down over 127/120ths of the
 /// distance to the nearer end outside that window.
-void func_acropolis_plaza_8017F9EC(Task* task)
+static void func_acropolis_plaza_8017F9EC(Task* task)
 {
     CdCmdQueue*         q     = &CdCmd_Queue;
     volatile u16*       frame = &CdCmd_Queue.field_1EE;
@@ -1620,7 +1620,7 @@ void func_acropolis_plaza_8017F9EC(Task* task)
 /// the previous step spawned (`Task_PollKill`) and respawn the entry-1 stream
 /// watcher over `field_10`. Step 3 is the only exit: it unlinks the scene's
 /// `GpObj4A` and returns 1 when the latched kind is 2.
-u16 func_acropolis_plaza_8017FB50(Task* task)
+static u16 func_acropolis_plaza_8017FB50(Task* task)
 {
     CdCmdQueue*         q    = &CdCmd_Queue;
     AcropolisPlazaWork* work = (AcropolisPlazaWork*)task->work;
@@ -1870,7 +1870,7 @@ void func_acropolis_plaza_80180270(Task* arg0)
     taskKill(arg0);
 }
 
-void func_acropolis_plaza_801802C0(Task* task)
+static void func_acropolis_plaza_801802C0(Task* task)
 {
     // Work spans both passes; s4 is reused for transient draw state.
     GpCoord64*                       entry;
@@ -2133,7 +2133,7 @@ void func_acropolis_plaza_801802C0(Task* task)
     SCRATCH_POP_BYTES(0x60);
 }
 
-void func_acropolis_plaza_801811D0(Task* task)
+static void func_acropolis_plaza_801811D0(Task* task)
 {
     GpCoord*                    coord;
     AcropolisPlazaBeamWork*     work;
@@ -2315,7 +2315,7 @@ void func_acropolis_plaza_801811D0(Task* task)
     SCRATCH_POP_BYTES(0x4C);
 }
 
-void func_acropolis_plaza_80182054(Task* task)
+static void func_acropolis_plaza_80182054(Task* task)
 {
     GpCoord*                   coord;
     u8 *                       head, *raw;
@@ -2396,7 +2396,7 @@ void func_acropolis_plaza_80182054(Task* task)
 /// effects on slots 0xC-0x12, four 0x60099 on slots 7-0xA and six 0x60098 on
 /// slots 1-6 - each anchored at the matching entry of
 /// `D_acropolis_plaza_80198820`. Every later frame is a no-op.
-void func_acropolis_plaza_8018251C(Task* task)
+static void func_acropolis_plaza_8018251C(Task* task)
 {
     GpCoord* coord;
     s32      i;

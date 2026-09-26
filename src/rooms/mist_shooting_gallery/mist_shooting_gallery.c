@@ -98,22 +98,22 @@ extern char D_mist_shooting_gallery_80184F2C[];
 
 extern const char D_mist_shooting_gallery_8017D65C[]; // "TOTAL SCORE"
 
-extern const MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D6D8;
-extern const MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D708;
-extern const char                         D_mist_shooting_gallery_8017D718[];
-extern const char                         D_mist_shooting_gallery_8017D720[];
-extern const char                         D_mist_shooting_gallery_8017D728[];
-extern const char                         D_mist_shooting_gallery_8017D730[];
+static const MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D6D8;
+static const MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D708;
+static const char                         D_mist_shooting_gallery_8017D718[];
+static const char                         D_mist_shooting_gallery_8017D720[];
+static const char                         D_mist_shooting_gallery_8017D728[];
+static const char                         D_mist_shooting_gallery_8017D730[];
 
-extern const MistShootingGalleryRatings D_mist_shooting_gallery_8017D778;
-extern const MistShootingGalleryRatings D_mist_shooting_gallery_8017D7AC;
-extern const MistShootingGalleryRatings D_mist_shooting_gallery_8017D7E8;
-extern const MistShootingGalleryGauges  D_mist_shooting_gallery_8017D808;
-extern const char                       D_mist_shooting_gallery_8017D820[];
-extern const char                       D_mist_shooting_gallery_8017D828[];
-extern const char                       D_mist_shooting_gallery_8017D838[];
-extern const char                       D_mist_shooting_gallery_8017D844[];
-extern const char                       D_mist_shooting_gallery_8017D850[];
+static const MistShootingGalleryRatings D_mist_shooting_gallery_8017D778;
+static const MistShootingGalleryRatings D_mist_shooting_gallery_8017D7AC;
+static const MistShootingGalleryRatings D_mist_shooting_gallery_8017D7E8;
+static const MistShootingGalleryGauges  D_mist_shooting_gallery_8017D808;
+static const char                       D_mist_shooting_gallery_8017D820[];
+static const char                       D_mist_shooting_gallery_8017D828[];
+static const char                       D_mist_shooting_gallery_8017D838[];
+static const char                       D_mist_shooting_gallery_8017D844[];
+static const char                       D_mist_shooting_gallery_8017D850[];
 
 extern void     func_8002E53C(TextDrawReq* req, u8* text);
 extern void     func_8014A398(void);
@@ -172,7 +172,7 @@ extern RoomsShared8018055cCourse D_mist_shooting_gallery_80185314[];
 
 /// The jukebox menu's title, "SELECT". A stray 0xE1 byte follows its
 /// terminator, so the block stays in assembly.
-extern const char D_mist_shooting_gallery_8017DB04[];
+static const char D_mist_shooting_gallery_8017DB04[];
 
 /// The jukebox's track list, whose row callback is
 /// `func_mist_shooting_gallery_8018055C`.
@@ -202,11 +202,13 @@ extern SVECTOR D_mist_shooting_gallery_80185688[];
 extern SVECTOR D_mist_shooting_gallery_80185690[];
 extern SVECTOR D_mist_shooting_gallery_801856B0[];
 
-void func_mist_shooting_gallery_801801E4(s32 arg0);
-void func_mist_shooting_gallery_80181480(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_mist_shooting_gallery_80181CC4(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_mist_shooting_gallery_801801E4(s32 arg0);
+static void func_mist_shooting_gallery_80181480(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_mist_shooting_gallery_80181CC4(SVECTOR* arg0, s32 arg1, s32 arg2);
 
-void func_mist_shooting_gallery_8017DCAC(s32 mode)
+static const char D_mist_shooting_gallery_8017D65C[];
+
+static void func_mist_shooting_gallery_8017DCAC(s32 mode)
 {
     McItemScan* scan;
     u8*         levels;
@@ -379,7 +381,7 @@ void func_mist_shooting_gallery_8017E090(Task* task)
         }
     }
 }
-const char D_mist_shooting_gallery_8017D65C[] = "TOTAL SCORE";
+static const char D_mist_shooting_gallery_8017D65C[] = "TOTAL SCORE";
 
 void func_mist_shooting_gallery_8017E234(Task* task)
 {
@@ -661,15 +663,15 @@ void func_mist_shooting_gallery_8017E854(Task* task)
         obj->field_2E = 6;
     }
 }
-const char D_mist_shooting_gallery_8017D6A0[] = "Replay Mode";
+static const char D_mist_shooting_gallery_8017D6A0[] = "Replay Mode";
 
-const char D_mist_shooting_gallery_8017D6AC[] = "Bounty Mode";
+static const char D_mist_shooting_gallery_8017D6AC[] = "Bounty Mode";
 
-const char D_mist_shooting_gallery_8017D6B8[] = "Scavenger Mode";
+static const char D_mist_shooting_gallery_8017D6B8[] = "Scavenger Mode";
 
-const char D_mist_shooting_gallery_8017D6C8[] = "Nightmare Mode";
+static const char D_mist_shooting_gallery_8017D6C8[] = "Nightmare Mode";
 
-const MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D6D8 = { { D_mist_shooting_gallery_8017D6A0, D_mist_shooting_gallery_8017D6AC, D_mist_shooting_gallery_8017D6B8, D_mist_shooting_gallery_8017D6C8 } };
+static const MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D6D8 = { { D_mist_shooting_gallery_8017D6A0, D_mist_shooting_gallery_8017D6AC, D_mist_shooting_gallery_8017D6B8, D_mist_shooting_gallery_8017D6C8 } };
 
 void func_mist_shooting_gallery_8017EAE0(Task* task)
 {
@@ -832,15 +834,15 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     func_8002E53C(&req4, "BP");
     Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), 0x606060, 3, 2);
 }
-const MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D708 = { { D_mist_shooting_gallery_80184DD4, D_mist_shooting_gallery_80184E24, D_mist_shooting_gallery_80184E70, D_mist_shooting_gallery_80184EC4 } };
+static const MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D708 = { { D_mist_shooting_gallery_80184DD4, D_mist_shooting_gallery_80184E24, D_mist_shooting_gallery_80184E70, D_mist_shooting_gallery_80184EC4 } };
 
-const char D_mist_shooting_gallery_8017D718[] = "EASY";
+static const char D_mist_shooting_gallery_8017D718[] = "EASY";
 
-const char D_mist_shooting_gallery_8017D720[] = "NORMAL";
+static const char D_mist_shooting_gallery_8017D720[] = "NORMAL";
 
-const char D_mist_shooting_gallery_8017D728[] = "HARD";
+static const char D_mist_shooting_gallery_8017D728[] = "HARD";
 
-const char D_mist_shooting_gallery_8017D730[] = "VERY HARD";
+static const char D_mist_shooting_gallery_8017D730[] = "VERY HARD";
 
 void func_mist_shooting_gallery_8017F128(Task* task)
 {
@@ -1051,7 +1053,7 @@ void func_mist_shooting_gallery_8017F6C8(Task* task)
         }
     }
 }
-s32 func_mist_shooting_gallery_8017F95C(void)
+static s32 func_mist_shooting_gallery_8017F95C(void)
 {
     Display_InitModeObj(&D_mist_shooting_gallery_80184F8C, 0x44, 0, 0);
     return 1;
@@ -1069,7 +1071,7 @@ void func_mist_shooting_gallery_8017F98C(DialogPrompt* arg0, UiObject* arg1)
         Mc_SaveData.gameMode = (u8)arg0->field_8;
     }
 }
-s32 func_mist_shooting_gallery_8017FA38(s32 score)
+static s32 func_mist_shooting_gallery_8017FA38(s32 score)
 {
     s32 value;
 
@@ -1104,13 +1106,13 @@ void func_mist_shooting_gallery_8017FAE8(Task* task)
     }
     Text_DrawMultiLine(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, texts.text[Mc_SaveData.gameMode], 0x606060, 1, 0);
 }
-void func_mist_shooting_gallery_8017FBD8(void)
+static void func_mist_shooting_gallery_8017FBD8(void)
 {
     if ((Mc_SaveData.clearCount > 0) && (gGameSession->at4.loc.warp == 7)) {
         Display_InitModeObj(&D_mist_shooting_gallery_801850D0, 0, 0, 0);
     }
 }
-void func_mist_shooting_gallery_8017FC2C(Task* arg0)
+static void func_mist_shooting_gallery_8017FC2C(Task* arg0)
 {
     s32 var_a0;
 
@@ -1136,7 +1138,7 @@ void func_mist_shooting_gallery_8017FC2C(Task* arg0)
     arg0->state             = arg0->state + 1;
 }
 
-void func_mist_shooting_gallery_8017FD40(Task* task)
+static void func_mist_shooting_gallery_8017FD40(Task* task)
 {
     u8 temp_v1;
 
@@ -1181,40 +1183,40 @@ void func_mist_shooting_gallery_8017FDD0(Task* arg0)
             break;
     }
 }
-const char D_mist_shooting_gallery_8017D75C[] = "GOOD";
+static const char D_mist_shooting_gallery_8017D75C[] = "GOOD";
 
-const char D_mist_shooting_gallery_8017D764[] = "EXHAUSTED";
+static const char D_mist_shooting_gallery_8017D764[] = "EXHAUSTED";
 
-const char D_mist_shooting_gallery_8017D770[] = "SICK";
+static const char D_mist_shooting_gallery_8017D770[] = "SICK";
 
-const MistShootingGalleryRatings D_mist_shooting_gallery_8017D778 = { { { 5, D_mist_shooting_gallery_8017D75C }, { 5, D_mist_shooting_gallery_8017D75C }, { 4, D_mist_shooting_gallery_8017D764 }, { 1, D_mist_shooting_gallery_8017D770 } } };
+static const MistShootingGalleryRatings D_mist_shooting_gallery_8017D778 = { { { 5, D_mist_shooting_gallery_8017D75C }, { 5, D_mist_shooting_gallery_8017D75C }, { 4, D_mist_shooting_gallery_8017D764 }, { 1, D_mist_shooting_gallery_8017D770 } } };
 
-const char D_mist_shooting_gallery_8017D798[] = "STRONG";
+static const char D_mist_shooting_gallery_8017D798[] = "STRONG";
 
-const char D_mist_shooting_gallery_8017D7A0[] = "VERY STRONG";
+static const char D_mist_shooting_gallery_8017D7A0[] = "VERY STRONG";
 
-const MistShootingGalleryRatings D_mist_shooting_gallery_8017D7AC = { { { 2, D_mist_shooting_gallery_8017D718 }, { 4, D_mist_shooting_gallery_8017D798 }, { 3, D_mist_shooting_gallery_8017D720 }, { 5, D_mist_shooting_gallery_8017D7A0 } } };
+static const MistShootingGalleryRatings D_mist_shooting_gallery_8017D7AC = { { { 2, D_mist_shooting_gallery_8017D718 }, { 4, D_mist_shooting_gallery_8017D798 }, { 3, D_mist_shooting_gallery_8017D720 }, { 5, D_mist_shooting_gallery_8017D7A0 } } };
 
-const char D_mist_shooting_gallery_8017D7CC[] = "RICH";
+static const char D_mist_shooting_gallery_8017D7CC[] = "RICH";
 
-const char D_mist_shooting_gallery_8017D7D4[] = "VERY POOR";
+static const char D_mist_shooting_gallery_8017D7D4[] = "VERY POOR";
 
-const char D_mist_shooting_gallery_8017D7E0[] = "POOR";
+static const char D_mist_shooting_gallery_8017D7E0[] = "POOR";
 
-const MistShootingGalleryRatings D_mist_shooting_gallery_8017D7E8 = { { { 4, D_mist_shooting_gallery_8017D7CC }, { 3, D_mist_shooting_gallery_8017D720 }, { 1, D_mist_shooting_gallery_8017D7D4 }, { 2, D_mist_shooting_gallery_8017D7E0 } } };
+static const MistShootingGalleryRatings D_mist_shooting_gallery_8017D7E8 = { { { 4, D_mist_shooting_gallery_8017D7CC }, { 3, D_mist_shooting_gallery_8017D720 }, { 1, D_mist_shooting_gallery_8017D7D4 }, { 2, D_mist_shooting_gallery_8017D7E0 } } };
 
-const MistShootingGalleryGauges D_mist_shooting_gallery_8017D808 = { { D_mist_shooting_gallery_80184F18, D_mist_shooting_gallery_80184F18, D_mist_shooting_gallery_80184F1C, D_mist_shooting_gallery_80184F20, D_mist_shooting_gallery_80184F24, D_mist_shooting_gallery_80184F2C } };
+static const MistShootingGalleryGauges D_mist_shooting_gallery_8017D808 = { { D_mist_shooting_gallery_80184F18, D_mist_shooting_gallery_80184F18, D_mist_shooting_gallery_80184F1C, D_mist_shooting_gallery_80184F20, D_mist_shooting_gallery_80184F24, D_mist_shooting_gallery_80184F2C } };
 
-const char D_mist_shooting_gallery_8017D820[] = "DATA";
+static const char D_mist_shooting_gallery_8017D820[] = "DATA";
 
-const char D_mist_shooting_gallery_8017D828[] = "MISSION LEVEL";
+static const char D_mist_shooting_gallery_8017D828[] = "MISSION LEVEL";
 
-const char D_mist_shooting_gallery_8017D838[] = "CONDITION";
+static const char D_mist_shooting_gallery_8017D838[] = "CONDITION";
 
-const char D_mist_shooting_gallery_8017D844[] = "ENEMY LEVEL";
+static const char D_mist_shooting_gallery_8017D844[] = "ENEMY LEVEL";
 
 /// "SUPPLY LEVEL", followed by the non-zero padding the original toolchain left.
-const char D_mist_shooting_gallery_8017D850[16] = "SUPPLY LEVEL\0\xD0\x0E\xF0";
+static const char D_mist_shooting_gallery_8017D850[16] = "SUPPLY LEVEL\0\xD0\x0E\xF0";
 
 /// The room's handler for message 0x13F1: accepts it and does nothing.
 s32 func_mist_shooting_gallery_8017FEB0(Task* task, s32 msgId, s32 arg2, s32 arg3)
@@ -1295,7 +1297,7 @@ s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, GpMsg13EF* arg2)
 /// `func_mist_shooting_gallery_8018018C`: the entry tick
 /// `func_mist_shooting_gallery_8017FC2C`, the perGpGridParamsframe state
 /// `func_mist_shooting_gallery_8017FD40`, then `taskKill`.
-const TaskFuncTable3 D_mist_shooting_gallery_8017D860 = {
+static const TaskFuncTable3 D_mist_shooting_gallery_8017D860 = {
     { func_mist_shooting_gallery_8017FC2C, func_mist_shooting_gallery_8017FD40, taskKill },
 };
 
@@ -1340,7 +1342,7 @@ const char D_mist_shooting_gallery_8017DAC8[] = "1. Tower Rendezvous";
 /// `D_mist_shooting_gallery_8017D860` onto the stack and runs the entry for the
 /// task's current state - the entry tick `func_mist_shooting_gallery_8017FC2C`,
 /// the perGpGridParamsframe state `func_mist_shooting_gallery_8017FD40`, then `taskKill`.
-void func_mist_shooting_gallery_8018018C(Task* task)
+static void func_mist_shooting_gallery_8018018C(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -1348,7 +1350,7 @@ void func_mist_shooting_gallery_8018018C(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_mist_shooting_gallery_801801E4(s32 arg0)
+static void func_mist_shooting_gallery_801801E4(s32 arg0)
 {
     GpGridParams* dst = &D_mist_shooting_gallery_80189968;
     GpGridParams* src = &D_mist_shooting_gallery_80185198;
@@ -1381,7 +1383,7 @@ void func_mist_shooting_gallery_801801E4(s32 arg0)
     }
 }
 
-void func_mist_shooting_gallery_80180390(s32 arg0)
+static void func_mist_shooting_gallery_80180390(s32 arg0)
 {
     GpGridParams* dst    = &D_mist_shooting_gallery_80189968;
     GpGridParams* src    = &D_mist_shooting_gallery_801851F8;
@@ -1426,7 +1428,7 @@ void func_mist_shooting_gallery_80180390(s32 arg0)
 /// The jukebox's ten track lists: one per game mode, with list 4 standing in
 /// before the first clear, and the second five used outside the debug attach
 /// room.
-const RoomsShared8018055cMenu D_mist_shooting_gallery_8017DADC = {
+static const RoomsShared8018055cMenu D_mist_shooting_gallery_8017DADC = {
     {
         D_mist_shooting_gallery_8018521C,
         D_mist_shooting_gallery_80185234,
@@ -1442,7 +1444,7 @@ const RoomsShared8018055cMenu D_mist_shooting_gallery_8017DADC = {
 };
 
 /// "SELECT", followed by the non-zero padding the original toolchain left.
-const char D_mist_shooting_gallery_8017DB04[8] = "SELECT\0\xE1";
+static const char D_mist_shooting_gallery_8017DB04[8] = "SELECT\0\xE1";
 
 /// Row callback of the jukebox list: draws the row's track name, and on
 /// confirm, when the row is not the one already chosen, plays the select
@@ -1640,7 +1642,7 @@ void func_mist_shooting_gallery_80180A00(Task* task)
     }
 }
 
-s32 func_mist_shooting_gallery_80180B34(void)
+static s32 func_mist_shooting_gallery_80180B34(void)
 {
     Display_InitModeObj(&D_mist_shooting_gallery_80185378, 0, 0, 0);
     return 1;
@@ -1881,7 +1883,7 @@ void func_mist_shooting_gallery_801810D8(Task* task)
 
 /// Publishes one of the room's two data banks as the active one: bank 0 for a
 /// zero argument, bank 1 otherwise.
-void func_mist_shooting_gallery_801811C0(s16 arg0)
+static void func_mist_shooting_gallery_801811C0(s16 arg0)
 {
     if (arg0 == 0) {
         D_mist_shooting_gallery_801853C0 = D_mist_shooting_gallery_8018D1B4;
@@ -1890,7 +1892,7 @@ void func_mist_shooting_gallery_801811C0(s16 arg0)
     D_mist_shooting_gallery_801853C0 = D_mist_shooting_gallery_8018DF38;
 }
 
-void func_mist_shooting_gallery_801811EC(void)
+static void func_mist_shooting_gallery_801811EC(void)
 {
     u8 view;
 
@@ -1963,7 +1965,7 @@ void func_mist_shooting_gallery_801811EC(void)
 /// at the rim, in two 0x400 steps around the angle between the projected
 /// points. `arg2` is the colour as three 4GpGridParamsbit channels (0xRGB), brightened
 /// slightly on odd frames.
-void func_mist_shooting_gallery_80181480(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_mist_shooting_gallery_80181480(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**                   scratch;
     u8*                      head;
@@ -2109,7 +2111,7 @@ void func_mist_shooting_gallery_80181480(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// wedges lit at the projected centre and black at the rim, of screen radius
 /// `arg1 * 64 / otz`. `arg2` is the colour as three 4GpGridParamsbit channels (0xRGB),
 /// brightened slightly on odd frames.
-void func_mist_shooting_gallery_80181CC4(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_mist_shooting_gallery_80181CC4(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**             scratch;
     u8*                head;

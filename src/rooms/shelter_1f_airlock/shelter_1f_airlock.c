@@ -27,8 +27,8 @@ extern SVECTOR D_shelter_1f_airlock_8017E4BC[];
 extern SVECTOR D_shelter_1f_airlock_8017E4C4[];
 extern SVECTOR D_shelter_1f_airlock_8017E4D4[];
 
-void func_shelter_1f_airlock_8017D8A8(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_1f_airlock_8017E0F0(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_1f_airlock_8017D8A8(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_1f_airlock_8017E0F0(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 s32 func_shelter_1f_airlock_8017D5D0(void)
 {
@@ -56,7 +56,7 @@ s32 func_shelter_1f_airlock_8017D624(void)
 
 /// State 0 of the room's event task: installs the room's message table,
 /// publishes the task in pointer slot 7 and advances to state 1.
-void func_shelter_1f_airlock_8017D62C(Task* task)
+static void func_shelter_1f_airlock_8017D62C(Task* task)
 {
     task->msgTable = D_shelter_1f_airlock_8017E494;
     Game_SetPtrSlot(task, 7);
@@ -64,12 +64,12 @@ void func_shelter_1f_airlock_8017D62C(Task* task)
 }
 
 /// State 1 of the room's event task: does nothing, so the task idles here.
-void func_shelter_1f_airlock_8017D670(Task* task)
+static void func_shelter_1f_airlock_8017D670(Task* task)
 {
 }
 
 /// The event task's three states: install the message table, idle, and kill.
-const TaskFuncTable3 D_shelter_1f_airlock_8017D5C4 = {
+static const TaskFuncTable3 D_shelter_1f_airlock_8017D5C4 = {
     {
         func_shelter_1f_airlock_8017D62C,
         func_shelter_1f_airlock_8017D670,
@@ -79,7 +79,7 @@ const TaskFuncTable3 D_shelter_1f_airlock_8017D5C4 = {
 
 /// The room's event task: runs the handler for its current state, through a
 /// stack copy of the state table.
-void func_shelter_1f_airlock_8017D678(Task* task)
+static void func_shelter_1f_airlock_8017D678(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -87,7 +87,7 @@ void func_shelter_1f_airlock_8017D678(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_shelter_1f_airlock_8017D6D0(void)
+static void func_shelter_1f_airlock_8017D6D0(void)
 {
     switch (Gp_GetViewIndex() & 0xFF) {
         case 3:
@@ -125,7 +125,7 @@ void func_shelter_1f_airlock_8017D6D0(void)
 /// Projects two adjacent positions and draws a colored glow between them.
 /// The RGB nibbles in arg2 gain an alternating frame contribution whose shift
 /// is selected by bits 12..15. Uses the two-point `OverlayPointPairScratch` layout.
-void func_shelter_1f_airlock_8017D8A8(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_1f_airlock_8017D8A8(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**                   scratch;
     u8*                      head;
@@ -272,7 +272,7 @@ void func_shelter_1f_airlock_8017D8A8(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// The centre colour takes red from bits 8..15 of `arg2` and green and blue
 /// from two-bit fields at bits 4 and 0, each scaled by a brightness that
 /// alternates with the frame counter.
-void func_shelter_1f_airlock_8017E0F0(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_1f_airlock_8017E0F0(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw25Scratch* block;

@@ -43,22 +43,22 @@ extern RoomHaloShade D_neo_ark_north_promenade_80181D90[];
 extern SVECTOR D_neo_ark_north_promenade_80181DA4[];
 extern SVECTOR D_neo_ark_north_promenade_80181DAC;
 
-void func_neo_ark_north_promenade_8017D67C(Task* task);
-void func_neo_ark_north_promenade_8017D6C0(Task* task);
-void func_neo_ark_north_promenade_8017DA7C(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
-void func_neo_ark_north_promenade_8017DD40(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_neo_ark_north_promenade_8017E164(GpCoord* arg0, s16 arg1, u8* rgb);
-void func_neo_ark_north_promenade_8017EA3C(GpCoord* coord, s16 size);
-void func_neo_ark_north_promenade_8017EF68(GpCoord* arg0, s32 arg1);
-void func_neo_ark_north_promenade_8017F2E0(GpCoord* arg0, s16 arg1, u8* arg2);
-void func_neo_ark_north_promenade_80180078(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_neo_ark_north_promenade_801804A4(GpCoord* arg0, s16 arg1, u8* rgb);
-void func_neo_ark_north_promenade_80180D28(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-void func_neo_ark_north_promenade_801813A8(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_neo_ark_north_promenade_8017D67C(Task* task);
+static void func_neo_ark_north_promenade_8017D6C0(Task* task);
+static void func_neo_ark_north_promenade_8017DA7C(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
+static void func_neo_ark_north_promenade_8017DD40(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_neo_ark_north_promenade_8017E164(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_neo_ark_north_promenade_8017EA3C(GpCoord* coord, s16 size);
+static void func_neo_ark_north_promenade_8017EF68(GpCoord* arg0, s32 arg1);
+static void func_neo_ark_north_promenade_8017F2E0(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_neo_ark_north_promenade_80180078(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_neo_ark_north_promenade_801804A4(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_neo_ark_north_promenade_80180D28(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+static void func_neo_ark_north_promenade_801813A8(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// State table of the room's message-driven task, indexed by `Task::state`:
 /// install the message table, idle, then kill the task.
-const TaskFuncTable3 D_neo_ark_north_promenade_8017D5C4 = {
+static const TaskFuncTable3 D_neo_ark_north_promenade_8017D5C4 = {
     { func_neo_ark_north_promenade_8017D67C, func_neo_ark_north_promenade_8017D6C0, taskKill },
 };
 
@@ -100,20 +100,20 @@ s32 func_neo_ark_north_promenade_8017D674(void)
 /// State 0 of the room's message-driven task: parks the room's message table
 /// in `Task::msgTable`, publishes the task in pointer slot 7 and advances to
 /// state 1.
-void func_neo_ark_north_promenade_8017D67C(Task* task)
+static void func_neo_ark_north_promenade_8017D67C(Task* task)
 {
     task->msgTable = D_neo_ark_north_promenade_80181D68;
     Game_SetPtrSlot(task, 7);
     task->state = (s32)(task->state + 1);
 }
 
-void func_neo_ark_north_promenade_8017D6C0(Task* task)
+static void func_neo_ark_north_promenade_8017D6C0(Task* task)
 {
 }
 
 /// Dispatches the room's message-driven task through its three-state table,
 /// copied onto the stack before the call.
-void func_neo_ark_north_promenade_8017D6C8(Task* task)
+static void func_neo_ark_north_promenade_8017D6C8(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -121,7 +121,7 @@ void func_neo_ark_north_promenade_8017D6C8(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_neo_ark_north_promenade_8017D720(Task* arg0)
+static void func_neo_ark_north_promenade_8017D720(Task* arg0)
 {
     if (arg0->state == 0) {
         D_80115728  = 0x6024F;
@@ -139,7 +139,7 @@ void func_neo_ark_north_promenade_8017D720(Task* arg0)
 /// other tick. State 1 ramps brightness up before fading; state 2 holds its
 /// initial brightness until the fade. Releases the work block when dark or
 /// once the room's event state reaches 4.
-void func_neo_ark_north_promenade_8017D7B0(Task* task)
+static void func_neo_ark_north_promenade_8017D7B0(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -224,7 +224,7 @@ void func_neo_ark_north_promenade_8017D7B0(Task* task)
 /// 24-texel cell, the low twelve bits of `arg2` are the half-extent (scaled by
 /// 23 over the depth), and `arg3` carries the grey level in its low byte and
 /// the palette in its top nibble.
-void func_neo_ark_north_promenade_8017DA7C(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
+static void func_neo_ark_north_promenade_8017DA7C(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -302,7 +302,7 @@ void func_neo_ark_north_promenade_8017DA7C(GpCoord* arg0, u16 arg1, u16 arg2, u1
 /// width; on-screen radii are `(s16)arg1 * 64 / (otz + 1)` and
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`. The RGB triple tints the inner edge
 /// so each wedge fades to a black outer rim.
-void func_neo_ark_north_promenade_8017DD40(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_neo_ark_north_promenade_8017DD40(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -357,7 +357,7 @@ void func_neo_ark_north_promenade_8017DD40(GpCoord* arg0, s32 arg1, s32 arg2, u8
 /// the GTE flags the projection, queues eight gouraud `POLY_G4` wedges filling
 /// a disc around the projected point, `rgb` at the centre and black at the rim.
 /// `arg1` is the radius in world units, scaled by depth.
-void func_neo_ark_north_promenade_8017E164(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_neo_ark_north_promenade_8017E164(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -410,7 +410,7 @@ void func_neo_ark_north_promenade_8017E164(GpCoord* arg0, s16 arg1, u8* rgb)
 /// half-bright echo on odd ticks) and a ring while the level ramps up, and
 /// state 2 fades it back out through the afterglow before releasing the work
 /// block.
-void func_neo_ark_north_promenade_8017E4F8(Task* arg0)
+static void func_neo_ark_north_promenade_8017E4F8(Task* arg0)
 {
     u8          rgb[3];
     GpEffWork*  mem;
@@ -497,7 +497,7 @@ kill:
 /// the halo and a second ring at the growing radius while a wider, dimmer
 /// echo fades out behind them, releasing the work block once the main level
 /// runs down.
-void func_neo_ark_north_promenade_8017E890(Task* arg0)
+static void func_neo_ark_north_promenade_8017E890(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;
@@ -553,7 +553,7 @@ void func_neo_ark_north_promenade_8017E890(Task* arg0)
 /// scaled by depth, plus a flat quad on the ground beneath it. It also points
 /// the `Gp_RoomCoords[2]` light at the coordinate with a randomly flickering
 /// intensity. Nothing is drawn when the GTE flags the projection.
-void func_neo_ark_north_promenade_8017EA3C(GpCoord* coord, s16 size)
+static void func_neo_ark_north_promenade_8017EA3C(GpCoord* coord, s16 size)
 {
     GpCoord        ground;
     POLY_FT4*      prim;
@@ -686,7 +686,7 @@ void func_neo_ark_north_promenade_8017EA3C(GpCoord* coord, s16 size)
 /// 0x1F-wide UV columns: `u` is `(field_8 & 1) * 32` plus 0xC0 / 0xDF, at
 /// v = 0x38..0x57. Same 0x38 scratch layout as `GpQuadScratch` (`otz` is not
 /// incremented).
-void func_neo_ark_north_promenade_8017EF68(GpCoord* arg0, s32 arg1)
+static void func_neo_ark_north_promenade_8017EF68(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;
@@ -775,7 +775,7 @@ void func_neo_ark_north_promenade_8017EF68(GpCoord* arg0, s32 arg1)
 /// intensity and half radius at full intensity, then four spikes a quarter
 /// turn apart, two reaching the full radius and two twice it. `arg1` sizes it
 /// in world units scaled by depth; every wedge fades to black at its rim.
-void func_neo_ark_north_promenade_8017F2E0(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_neo_ark_north_promenade_8017F2E0(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -898,7 +898,7 @@ void func_neo_ark_north_promenade_8017F2E0(GpCoord* arg0, s16 arg1, u8* arg2)
 /// grows with age, and spawns a child effect at the task's coordinate frame.
 /// Releases its work block after 0x15 ticks, or once the room's event state
 /// reaches 4.
-void func_neo_ark_north_promenade_8017FCA0(Task* arg0)
+static void func_neo_ark_north_promenade_8017FCA0(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -935,7 +935,7 @@ void func_neo_ark_north_promenade_8017FCA0(Task* arg0)
 /// at two scales and a wider ring while the level ramps up, finishing with a
 /// full-screen fade quad, and state 2 fades the afterglow back out before
 /// releasing the work block.
-void func_neo_ark_north_promenade_8017FDD4(Task* arg0)
+static void func_neo_ark_north_promenade_8017FDD4(Task* arg0)
 {
     u8                rgb[3];
     GpEffWork*        mem;
@@ -1012,7 +1012,7 @@ kill:
 /// so each wedge fades to a black outer rim. The same ring as
 /// `func_neo_ark_north_promenade_8017DD40`, with its scratch block laid out
 /// differently.
-void func_neo_ark_north_promenade_80180078(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_neo_ark_north_promenade_80180078(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -1067,7 +1067,7 @@ void func_neo_ark_north_promenade_80180078(GpCoord* arg0, s32 arg1, s32 arg2, u8
 /// the GTE flags the projection, queues eight gouraud `POLY_G4` wedges filling
 /// a disc around the projected point, `rgb` at the centre and black at the rim.
 /// `arg1` is the radius in world units, scaled by depth.
-void func_neo_ark_north_promenade_801804A4(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_neo_ark_north_promenade_801804A4(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -1121,7 +1121,7 @@ void func_neo_ark_north_promenade_801804A4(GpCoord* arg0, s16 arg1, u8* rgb)
 /// re-derives all sixteen against the view and draws them. The task frees
 /// itself once its age reaches the spawn argument, and idles while the room's
 /// event state is 2 or more.
-void func_neo_ark_north_promenade_80180838(Task* task)
+static void func_neo_ark_north_promenade_80180838(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -1219,7 +1219,7 @@ void func_neo_ark_north_promenade_80180838(Task* task)
 /// `0x40 - 9 * i` and the trailing edge by nine less. `arg3` is the beam
 /// colour, three 2-bit channels at bits 8, 4 and 0 that each multiply that
 /// fade. Dropped when `gte_stflg` is negative.
-void func_neo_ark_north_promenade_80180D28(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_neo_ark_north_promenade_80180D28(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
     GpCoord*           a;
@@ -1328,7 +1328,7 @@ void func_neo_ark_north_promenade_80180D28(GpCoord* arg0, GpCoord* arg1, s16 arg
 /// of rings whose radius grows and brightness falls each frame (state 2).
 /// Either way the task reaches state 3 after seven frames and releases its
 /// work block, or earlier once the room's event state reaches 4.
-void func_neo_ark_north_promenade_80181120(Task* task)
+static void func_neo_ark_north_promenade_80181120(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;
@@ -1402,7 +1402,7 @@ void func_neo_ark_north_promenade_80181120(Task* task)
 /// intensity and half radius at full intensity, then four spikes a quarter
 /// turn apart, two reaching the full radius and two twice it. `arg1` sizes it
 /// in world units scaled by depth; every wedge fades to black at its rim.
-void func_neo_ark_north_promenade_801813A8(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_neo_ark_north_promenade_801813A8(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

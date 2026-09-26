@@ -60,7 +60,7 @@ s32 func_shelter_b6_growth_room_8017D6C8(s32 arg0, s32 arg1, RoomEventMsg* arg2)
     return 0;
 }
 
-void func_shelter_b6_growth_room_8017D71C(Task* arg0)
+static void func_shelter_b6_growth_room_8017D71C(Task* arg0)
 {
     arg0->msgTable = D_shelter_b6_growth_room_8017F16C;
     Game_SetPtrSlot(arg0, 7);
@@ -73,12 +73,12 @@ void func_shelter_b6_growth_room_8017D71C(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-void func_shelter_b6_growth_room_8017D7CC(Task* task)
+static void func_shelter_b6_growth_room_8017D7CC(Task* task)
 {
 }
 
 /// State table of the room task: set-up, idle, kill.
-const TaskFuncTable3 D_shelter_b6_growth_room_8017D5C4 = {
+static const TaskFuncTable3 D_shelter_b6_growth_room_8017D5C4 = {
     {
         func_shelter_b6_growth_room_8017D71C,
         func_shelter_b6_growth_room_8017D7CC,
@@ -88,7 +88,7 @@ const TaskFuncTable3 D_shelter_b6_growth_room_8017D5C4 = {
 
 /// The room task: copies its state table onto the stack and calls the entry
 /// for the current state.
-void func_shelter_b6_growth_room_8017D7D4(Task* task)
+static void func_shelter_b6_growth_room_8017D7D4(Task* task)
 {
     TaskFuncTable3 sp;
 

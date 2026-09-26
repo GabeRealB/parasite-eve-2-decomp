@@ -37,10 +37,10 @@ extern s32 D_dryfield_back_street_80181054;
 extern SVECTOR D_dryfield_back_street_8017F9A4[];
 extern SVECTOR D_dryfield_back_street_8017F9AC;
 
-void func_dryfield_back_street_8017DC74(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_dryfield_back_street_8017E0A0(GpCoord* arg0, s16 arg1, u8* rgb);
-void func_dryfield_back_street_8017E924(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-void func_dryfield_back_street_8017EFA4(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_dryfield_back_street_8017DC74(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_dryfield_back_street_8017E0A0(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_dryfield_back_street_8017E924(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+static void func_dryfield_back_street_8017EFA4(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// Back street ambience: state 0 clears the recorded volume and advances, state
 /// 1 maps the current camera view to a target volume and stereo pan - 0x1E/+4,
@@ -162,7 +162,7 @@ s32 func_dryfield_back_street_8017D8AC(void)
 /// the task to pointer slot 7, spawns the tasks of
 /// `D_dryfield_back_street_8017F98C` (the ambience task) and moves on to the
 /// next state.
-void func_dryfield_back_street_8017D8B4(Task* task)
+static void func_dryfield_back_street_8017D8B4(Task* task)
 {
     task->msgTable = D_dryfield_back_street_8017F964;
     Game_SetPtrSlot(task, 7);
@@ -171,18 +171,18 @@ void func_dryfield_back_street_8017D8B4(Task* task)
 }
 
 /// The room entry task's idle state.
-void func_dryfield_back_street_8017D910(Task* task)
+static void func_dryfield_back_street_8017D910(Task* task)
 {
 }
 
 /// The room entry task's three states: set the room up, idle, end.
-const TaskFuncTable3 D_dryfield_back_street_8017D5C4 = {
+static const TaskFuncTable3 D_dryfield_back_street_8017D5C4 = {
     { func_dryfield_back_street_8017D8B4, func_dryfield_back_street_8017D910, taskKill },
 };
 
 /// Runs the room entry task's current state from its three-entry table, which
 /// it copies onto the stack before the call.
-void func_dryfield_back_street_8017D918(Task* task)
+static void func_dryfield_back_street_8017D918(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -193,7 +193,7 @@ void func_dryfield_back_street_8017D918(Task* task)
 /// Per-frame room task. On its first run it stores the effect ids 0x60296,
 /// 0x60297 and 0x60298 in three gameplay globals; every run it sets
 /// `roomEffectMode` to 2.
-void func_dryfield_back_street_8017D970(Task* task)
+static void func_dryfield_back_street_8017D970(Task* task)
 {
     if (task->state == 0) {
         D_80115758  = 0x60296;
@@ -209,7 +209,7 @@ void func_dryfield_back_street_8017D970(Task* task)
 /// the tint to `Gp_DrawFadeQuad`, and state 2 fades a flare back out before
 /// the work block is released. The task also ends when the room's event state
 /// reaches 4, and does nothing while it is between 1 and 3.
-void func_dryfield_back_street_8017D9D0(Task* task)
+static void func_dryfield_back_street_8017D9D0(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -275,7 +275,7 @@ void func_dryfield_back_street_8017D9D0(Task* task)
 /// position, when it projects. The ring runs from radius
 /// `(s16)arg1 * 64 / (otz + 1)`, which is black, to
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`, which takes the colour `rgb`.
-void func_dryfield_back_street_8017DC74(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_dryfield_back_street_8017DC74(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -332,7 +332,7 @@ void func_dryfield_back_street_8017DC74(GpCoord* arg0, s32 arg1, s32 arg2, u8* r
 /// Draws a glow of eight gouraud wedges around the coordinate's projected
 /// position, when it projects. The radius is `(s16)arg1 * 64 / (otz + 1)`;
 /// only the centre vertex takes the colour `rgb`, so each wedge fades to black.
-void func_dryfield_back_street_8017E0A0(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_dryfield_back_street_8017E0A0(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -387,7 +387,7 @@ void func_dryfield_back_street_8017E0A0(GpCoord* arg0, s16 arg1, u8* rgb)
 /// records the anchors into the next slot and draws the trails with
 /// `func_dryfield_back_street_8017E924`. The work block is released after
 /// `spawnArg1` frames. Nothing runs once the room's event state reaches 2.
-void func_dryfield_back_street_8017E434(Task* task)
+static void func_dryfield_back_street_8017E434(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -485,7 +485,7 @@ void func_dryfield_back_street_8017E434(Task* task)
 /// `0x40 - 9 * i` and the trailing edge by nine less. `arg3` is the beam
 /// colour, three 2-bit channels at bits 8, 4 and 0 that each multiply that
 /// fade. Dropped when `gte_stflg` is negative.
-void func_dryfield_back_street_8017E924(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_dryfield_back_street_8017E924(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
     GpCoord*           a;
@@ -594,7 +594,7 @@ void func_dryfield_back_street_8017E924(GpCoord* arg0, GpCoord* arg1, s16 arg2, 
 /// seven frames, or two 0x6007C effects and a widening, fading double ring for
 /// seven frames; then the work block is released. The task also ends when the
 /// room's event state reaches 4, and does nothing while it is between 1 and 3.
-void func_dryfield_back_street_8017ED1C(Task* task)
+static void func_dryfield_back_street_8017ED1C(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;
@@ -668,7 +668,7 @@ void func_dryfield_back_street_8017ED1C(Task* task)
 /// half that radius in the full colour, then four rays at quarter turns that
 /// alternate between the radius and twice it, their bases on the inner
 /// radius `(s16)arg1 * 8 / (otz + 1)`.
-void func_dryfield_back_street_8017EFA4(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_dryfield_back_street_8017EFA4(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

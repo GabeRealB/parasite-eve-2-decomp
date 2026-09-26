@@ -24,7 +24,7 @@ extern SVECTOR D_mine_gorge_8017E788[];
 extern SVECTOR D_mine_gorge_8017E790[];
 extern SVECTOR D_mine_gorge_8017E798[];
 
-void func_mine_gorge_8017DB88(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_mine_gorge_8017DB88(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// Publishes the variant index the current camera view maps to, then draws the
 /// gorge's props for that view: one `func_mine_gorge_8017DB88` quad per
@@ -32,7 +32,7 @@ void func_mine_gorge_8017DB88(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// table, so `3` and `7` draw five positions from `E778` where `6` draws two,
 /// and `10`/`11` draw the single position at `E790`; every case ends on the
 /// same call, which the compiler merges into one shared tail.
-void func_mine_gorge_8017D9F8(void)
+static void func_mine_gorge_8017D9F8(void)
 {
     Gp_State1C->roomEffectMode = D_mine_gorge_8017E760[(Gp_GetViewIndex() & 0xFF) - 1];
     switch (Gp_GetViewIndex() & 0xFF) {
@@ -90,7 +90,7 @@ void func_mine_gorge_8017D9F8(void)
 /// `(s16)arg1 * 40` at v=0..0x27. `arg2` is a signed half-extent; the
 /// on-screen radius is `(s16)arg2 * 39 / otz`. RGB is the frame-counter blend
 /// byte `((animFrame & 1) * 16) + 0x20` on all three channels.
-void func_mine_gorge_8017DB88(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_mine_gorge_8017DB88(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw13Scratch* block;
     POLY_FT4*          prim;

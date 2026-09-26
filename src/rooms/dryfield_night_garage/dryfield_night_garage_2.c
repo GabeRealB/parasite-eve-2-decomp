@@ -214,7 +214,7 @@ void func_dryfield_night_garage_80180D4C(Task* arg0)
 /// fanned around each projected point with a radius of `arg1 * 64` over its
 /// depth, starting at angle `arg2`, and joined by quads between the two. The
 /// inner colour alternates between 0x20 and 0x30 with the frame counter.
-void func_dryfield_night_garage_80180D9C(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_night_garage_80180D9C(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw11Scratch* block;
@@ -348,7 +348,7 @@ void func_dryfield_night_garage_80180D9C(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// room's run, 7 and 14 only its first pair, and 11 the last pair of the run
 /// with its own blend (`arg2` 0x800 instead of 0). Each case names its own last
 /// draw, which `jump.c` cross-jumps into one tail block after the last case.
-void func_dryfield_night_garage_80181518(void)
+static void func_dryfield_night_garage_80181518(void)
 {
     switch (gGameSession->at4.loc.view) {
         case 3:

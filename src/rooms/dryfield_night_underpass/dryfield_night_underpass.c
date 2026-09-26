@@ -175,7 +175,7 @@ s32 func_dryfield_night_underpass_8017D908(void)
 
 /// First state of the room task: parks the room's message table in
 /// `Task::msgTable`, publishes the task in pointer slot 7, and advances.
-void func_dryfield_night_underpass_8017D910(Task* task)
+static void func_dryfield_night_underpass_8017D910(Task* task)
 {
     task->msgTable = D_dryfield_night_underpass_8017DCF0;
     Game_SetPtrSlot(task, 7);
@@ -183,19 +183,19 @@ void func_dryfield_night_underpass_8017D910(Task* task)
 }
 
 /// Second state of the room task: idles.
-void func_dryfield_night_underpass_8017D954(Task* task)
+static void func_dryfield_night_underpass_8017D954(Task* task)
 {
 }
 
 /// State handlers of the room task `func_dryfield_night_underpass_8017D95C`,
 /// indexed by `Task::state`: the set-up tick, the idle tick, and `taskKill`.
-const TaskFuncTable3 D_dryfield_night_underpass_8017D5C4 = {
+static const TaskFuncTable3 D_dryfield_night_underpass_8017D5C4 = {
     { func_dryfield_night_underpass_8017D910, func_dryfield_night_underpass_8017D954, taskKill },
 };
 
 /// Room task: runs the state handler `D_dryfield_night_underpass_8017D5C4`
 /// names for `Task::state`, through a copy of the table taken onto the stack.
-void func_dryfield_night_underpass_8017D95C(Task* task)
+static void func_dryfield_night_underpass_8017D95C(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -210,7 +210,7 @@ void func_dryfield_night_underpass_8017D95C(Task* task)
 /// half-extent; the on-screen radius is `(s16)arg2 * 39 / otz`. The grey level
 /// alternates between 0x20 and 0x30 with `animFrame`. Works in 0x10 bytes of
 /// scratch, released on exit.
-void func_dryfield_night_underpass_8017D9B4(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_night_underpass_8017D9B4(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw13Scratch* block;
     POLY_FT4*          prim;
@@ -263,7 +263,7 @@ void func_dryfield_night_underpass_8017D9B4(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// offset in `D_...DD20` whose `D_...DD60` bitmask contains the visit's bit
 /// (`gGameSession->at4.loc.view`). The whole effect is skipped unless the room flag
 /// (`GameFlag_GetNibble(0x53)`) is clear.
-void func_dryfield_night_underpass_8017DC3C(void)
+static void func_dryfield_night_underpass_8017DC3C(void)
 {
     s32      mask;
     s32      i;

@@ -132,16 +132,19 @@ extern s32          D_80136258;
 extern void func_800E8634(s32 arg0, s32 arg1, s32 arg2);
 extern s32  func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
-void func_shelter_b1_sterilization_room_8017E35C(UiList* list, UiObject* obj);
-void func_shelter_b1_sterilization_room_8017E658(UiList* list, UiObject* obj);
-void func_shelter_b1_sterilization_room_8017FABC(Task* task);
-void func_shelter_b1_sterilization_room_80180340(s32 arg0);
-void func_shelter_b1_sterilization_room_80180464(Task* task);
-void func_shelter_b1_sterilization_room_8018049C(void);
-void func_shelter_b1_sterilization_room_80180570(GpCoord* coord, s16* arg1);
-void func_shelter_b1_sterilization_room_80180828(Task* task);
-void func_shelter_b1_sterilization_room_80181244(Task* task);
-void func_shelter_b1_sterilization_room_801812A0(Task* task);
+static void func_shelter_b1_sterilization_room_8017E35C(UiList* list, UiObject* obj);
+static void func_shelter_b1_sterilization_room_8017E658(UiList* list, UiObject* obj);
+static void func_shelter_b1_sterilization_room_8017FABC(Task* task);
+static void func_shelter_b1_sterilization_room_80180340(s32 arg0);
+static void func_shelter_b1_sterilization_room_80180464(Task* task);
+static void func_shelter_b1_sterilization_room_8018049C(void);
+static void func_shelter_b1_sterilization_room_80180570(GpCoord* coord, s16* arg1);
+static void func_shelter_b1_sterilization_room_80180828(Task* task);
+static void func_shelter_b1_sterilization_room_80181244(Task* task);
+static void func_shelter_b1_sterilization_room_801812A0(Task* task);
+
+static void func_shelter_b1_sterilization_room_8017F514(Task* task);
+static void func_shelter_b1_sterilization_room_80181308(s32 tpage, s16 arg1);
 
 void func_shelter_b1_sterilization_room_8017D794(DialogPrompt* arg0, UiObject* arg1)
 {
@@ -536,7 +539,7 @@ void func_shelter_b1_sterilization_room_8017DF60(DialogPrompt* arg0, UiObject* a
 /// then gets its share of all uses in hundredths of a percent and a bar width
 /// as a 12-bit fraction of the top row, both scaled down until the top counter
 /// fits in 17 bits.
-void func_shelter_b1_sterilization_room_8017E35C(UiList* list, UiObject* obj)
+static void func_shelter_b1_sterilization_room_8017E35C(UiList* list, UiObject* obj)
 {
     RoomItemUsage* work;
     s32            count;
@@ -612,7 +615,7 @@ void func_shelter_b1_sterilization_room_8017E35C(UiList* list, UiObject* obj)
 /// save's per-slot Parasite Energy counters. Slot `i` owns three ids from
 /// `i * 3 + 0xF`, one per level, and is listed under the id of its current
 /// level.
-void func_shelter_b1_sterilization_room_8017E658(UiList* list, UiObject* obj)
+static void func_shelter_b1_sterilization_room_8017E658(UiList* list, UiObject* obj)
 {
     RoomPeUsage* work;
     s16*         p;
@@ -699,8 +702,8 @@ void func_shelter_b1_sterilization_room_8017E658(UiList* list, UiObject* obj)
 }
 
 /// Titles of the weapon and PE usage panels.
-const char D_shelter_b1_sterilization_room_8017D624[] = "Weapon Data";
-const char D_shelter_b1_sterilization_room_8017D630[] = "PE Data";
+static const char D_shelter_b1_sterilization_room_8017D624[] = "Weapon Data";
+static const char D_shelter_b1_sterilization_room_8017D630[] = "PE Data";
 
 void func_shelter_b1_sterilization_room_8017E978(Task* task)
 {
@@ -755,9 +758,9 @@ void func_shelter_b1_sterilization_room_8017E978(Task* task)
 }
 
 /// "Telephone", followed by the non-zero padding the original toolchain left.
-const char D_shelter_b1_sterilization_room_8017D638[12] = "Telephone\0\0 ";
+static const char D_shelter_b1_sterilization_room_8017D638[12] = "Telephone\0\0 ";
 
-void func_shelter_b1_sterilization_room_8017EB2C(Task* task)
+static void func_shelter_b1_sterilization_room_8017EB2C(Task* task)
 {
     UiObject* obj;
     UiList*   list;
@@ -879,7 +882,7 @@ void func_shelter_b1_sterilization_room_8017EE24(Task* task)
 
 /// Inserts a '.' into the digit string `str` so that `decimals` digits (at
 /// most the string's length) follow it. Does nothing when `decimals <= 0`.
-void func_shelter_b1_sterilization_room_8017EE80(u8* str, s32 decimals)
+static void func_shelter_b1_sterilization_room_8017EE80(u8* str, s32 decimals)
 {
     s32 len;
 
@@ -913,7 +916,7 @@ void func_shelter_b1_sterilization_room_8017EE80(u8* str, s32 decimals)
 /// Formats `value` into `buf` as a percentage with `decimals` digits after the
 /// point, zero-padding a small value so that a digit precedes the point, then
 /// appends "%" and returns `buf`.
-u8* func_shelter_b1_sterilization_room_8017EEF0(u8* buf, s32 value, s32 decimals)
+static u8* func_shelter_b1_sterilization_room_8017EEF0(u8* buf, s32 value, s32 decimals)
 {
     s32 limit;
     s32 i;
@@ -982,7 +985,7 @@ void func_shelter_b1_sterilization_room_8017EFE4(Task* task)
 /// (`arg1`, `arg2`) from the panel origin and `arg3` by `arg4` in size, with
 /// `arg5` on the left vertices and `arg6` on the right. Nothing is drawn for a
 /// zero `arg5` or a width below 2.
-void func_shelter_b1_sterilization_room_8017F0D4(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
+static void func_shelter_b1_sterilization_room_8017F0D4(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
 {
     register s32 dx asm("v1");
     register s32 w asm("t3");
@@ -1070,7 +1073,9 @@ void func_shelter_b1_sterilization_room_8017F44C(DialogPrompt* prompt, UiObject*
     }
 }
 
-void func_shelter_b1_sterilization_room_8017F514(Task* task)
+/// Exit callback of the help-line box task: releases `Wip_UiHolder` if the
+/// task owns it, then frees the task's UI object and kills it.
+static void func_shelter_b1_sterilization_room_8017F514(Task* task)
 {
     WipUiHolder* holder;
 
@@ -1283,7 +1288,7 @@ const TaskFuncTable3 D_shelter_b1_sterilization_room_8017D6A4 = {
     },
 };
 
-void func_shelter_b1_sterilization_room_8017FABC(Task* task)
+static void func_shelter_b1_sterilization_room_8017FABC(Task* task)
 {
     Task* target;
 
@@ -1534,7 +1539,7 @@ void func_shelter_b1_sterilization_room_801802B0(Task* task)
     task->state += 1;
 }
 
-void func_shelter_b1_sterilization_room_80180340(s32 arg0)
+static void func_shelter_b1_sterilization_room_80180340(s32 arg0)
 {
     Task* slot   = (Task*)Gp_LookupSlot4(0);
     Task* task   = slot;
@@ -1577,14 +1582,14 @@ s32 func_shelter_b1_sterilization_room_80180430(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-void func_shelter_b1_sterilization_room_80180464(Task* task)
+static void func_shelter_b1_sterilization_room_80180464(Task* task)
 {
     if (gGameSession->at4.loc.place == 5) {
         func_shelter_b1_sterilization_room_8018049C();
     }
 }
 
-void func_shelter_b1_sterilization_room_8018049C(void)
+static void func_shelter_b1_sterilization_room_8018049C(void)
 {
     s32 view;
 
@@ -1598,7 +1603,7 @@ void func_shelter_b1_sterilization_room_8018049C(void)
     }
 }
 
-void func_shelter_b1_sterilization_room_80180518(Task* task)
+static void func_shelter_b1_sterilization_room_80180518(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -1606,7 +1611,7 @@ void func_shelter_b1_sterilization_room_80180518(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_shelter_b1_sterilization_room_80180570(GpCoord* coord, s16* arg1)
+static void func_shelter_b1_sterilization_room_80180570(GpCoord* coord, s16* arg1)
 {
     MATRIX        m;
     long          flag;
@@ -1667,7 +1672,7 @@ void func_shelter_b1_sterilization_room_80180570(GpCoord* coord, s16* arg1)
 /// (0x340, 0) and the next 0x80 columns to (0x180, 0x100), bracketed by STP
 /// commands that set the mask bit off before them and back on after. The
 /// source row follows the live draw buffer. The task then advances a state.
-void func_shelter_b1_sterilization_room_80180828(Task* task)
+static void func_shelter_b1_sterilization_room_80180828(Task* task)
 {
     RECT     rect;
     DR_STP*  stp;
@@ -1911,7 +1916,7 @@ void func_shelter_b1_sterilization_room_8018118C(s32 arg0)
 /// The four states of the backdrop task run by
 /// `func_shelter_b1_sterilization_room_801811E0`: copy the frame buffer into
 /// the backdrop, wait for the view, fade the copy out and kill.
-const TaskFuncTable4 D_shelter_b1_sterilization_room_8017D700 = {
+static const TaskFuncTable4 D_shelter_b1_sterilization_room_8017D700 = {
     {
         func_shelter_b1_sterilization_room_80180828,
         func_shelter_b1_sterilization_room_80181244,
@@ -1928,7 +1933,7 @@ void func_shelter_b1_sterilization_room_801811E0(Task* task)
     states.funcs[task->state](task);
 }
 
-void func_shelter_b1_sterilization_room_80181244(Task* task)
+static void func_shelter_b1_sterilization_room_80181244(Task* task)
 {
     func_shelter_b1_sterilization_room_80180BF0(0x80);
     func_shelter_b1_sterilization_room_80180A2C(0);
@@ -1941,7 +1946,7 @@ void func_shelter_b1_sterilization_room_80181244(Task* task)
 /// Steps `killCountdown` down by 8 each frame, advancing the task once it
 /// reaches zero, and redraws the backdrop with the semi-transparent copy at
 /// that level and the opaque copy at the rest.
-void func_shelter_b1_sterilization_room_801812A0(Task* task)
+static void func_shelter_b1_sterilization_room_801812A0(Task* task)
 {
     u16 fade;
 
@@ -1955,7 +1960,9 @@ void func_shelter_b1_sterilization_room_801812A0(Task* task)
     func_shelter_b1_sterilization_room_80180A2C(0x80 - task->killCountdown);
 }
 
-void func_shelter_b1_sterilization_room_80181308(s32 tpage, s16 arg1)
+/// Appends a semi-transparent 15-bit `DR_TPAGE` for VRAM origin (`x`, `y`)
+/// to OT slot 8.
+static void func_shelter_b1_sterilization_room_80181308(s32 tpage, s16 arg1)
 {
     DR_TPAGE* p;
     s32       y;

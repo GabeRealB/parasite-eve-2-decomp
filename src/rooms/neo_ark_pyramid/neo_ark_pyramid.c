@@ -50,17 +50,17 @@ extern GpMsgEntry D_neo_ark_pyramid_8017FBE4[];
 extern SVECTOR D_neo_ark_pyramid_8017FC18[];
 extern SVECTOR D_neo_ark_pyramid_8017FC20;
 
-void func_neo_ark_pyramid_8017DAC0(s32 arg0);
-void func_neo_ark_pyramid_8017DB18(Task* task);
-void func_neo_ark_pyramid_8017DB5C(Task* task);
-void func_neo_ark_pyramid_8017DEF4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_neo_ark_pyramid_8017E320(GpCoord* arg0, s16 arg1, u8* rgb);
-void func_neo_ark_pyramid_8017EBA4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-void func_neo_ark_pyramid_8017F224(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_neo_ark_pyramid_8017DAC0(s32 arg0);
+static void func_neo_ark_pyramid_8017DB18(Task* task);
+static void func_neo_ark_pyramid_8017DB5C(Task* task);
+static void func_neo_ark_pyramid_8017DEF4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_neo_ark_pyramid_8017E320(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_neo_ark_pyramid_8017EBA4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+static void func_neo_ark_pyramid_8017F224(GpCoord* arg0, s16 arg1, u8* rgb);
 
 /// State handlers of the room's entry task, indexed by its state through
 /// `func_neo_ark_pyramid_8017DB98`: set-up, per-frame draw, then kill.
-const TaskFuncTable3 D_neo_ark_pyramid_8017D5C4 = {
+static const TaskFuncTable3 D_neo_ark_pyramid_8017D5C4 = {
     { func_neo_ark_pyramid_8017DB18, func_neo_ark_pyramid_8017DB5C, taskKill }
 };
 
@@ -139,7 +139,7 @@ void func_neo_ark_pyramid_8017D600(Task* task)
 
 /// Queues the room's rotating quad: a 0xAE-pixel textured `POLY_FT4` centred
 /// on the screen origin, rotated by `arg0` (0x1000 a full turn).
-void func_neo_ark_pyramid_8017D7F4(s32 arg0)
+static void func_neo_ark_pyramid_8017D7F4(s32 arg0)
 {
     POLY_FT4* prim;
     s16       src[4][2];
@@ -226,14 +226,14 @@ s32 func_neo_ark_pyramid_8017DA44(Task* task, s32 msgId, GpMsg13EF* arg2)
 
 /// Sets the quad's angle to twelfths of a turn counted by game-flag nibble
 /// 0xEC, less four, plus the in-progress sweep `arg0`.
-void func_neo_ark_pyramid_8017DAC0(s32 arg0)
+static void func_neo_ark_pyramid_8017DAC0(s32 arg0)
 {
     D_neo_ark_pyramid_801818A4 = (((GameFlag_GetNibble(0xEC) - 4) << 0xC) / 12) + arg0;
 }
 
 /// State 0 of the room's entry task: parks the room's message table in
 /// `Task::msgTable`, publishes the task in pointer slot 7 and advances.
-void func_neo_ark_pyramid_8017DB18(Task* task)
+static void func_neo_ark_pyramid_8017DB18(Task* task)
 {
     task->msgTable = D_neo_ark_pyramid_8017FBE4;
     Game_SetPtrSlot(task, 7);
@@ -242,7 +242,7 @@ void func_neo_ark_pyramid_8017DB18(Task* task)
 
 /// State 1 of the room's entry task: draws the rotating quad at its current
 /// angle while the session's view is 8.
-void func_neo_ark_pyramid_8017DB5C(Task* task)
+static void func_neo_ark_pyramid_8017DB5C(Task* task)
 {
     if (gGameSession->at4.loc.view == 8) {
         func_neo_ark_pyramid_8017D7F4(D_neo_ark_pyramid_801818A4);
@@ -251,7 +251,7 @@ void func_neo_ark_pyramid_8017DB5C(Task* task)
 
 /// Task tick that dispatches on the task's state through the three-entry
 /// handler table `D_neo_ark_pyramid_8017D5C4`, copied to the stack first.
-void func_neo_ark_pyramid_8017DB98(Task* task)
+static void func_neo_ark_pyramid_8017DB98(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -261,7 +261,7 @@ void func_neo_ark_pyramid_8017DB98(Task* task)
 
 /// One-shot task: on its first tick stores 0x601E2, 0x601FE and 0x6021A into
 /// three gameplay globals and sets `Gp_State1C` room effect mode 2.
-void func_neo_ark_pyramid_8017DBF0(Task* arg0)
+static void func_neo_ark_pyramid_8017DBF0(Task* arg0)
 {
     if (arg0->state == 0) {
         D_80115758                 = 0x601E2;
@@ -279,7 +279,7 @@ void func_neo_ark_pyramid_8017DBF0(Task* arg0)
 /// while dimming by 0x10 a frame, and releases the effect once the brightness
 /// is spent. Once the room's event state leaves zero it only waits for state 4
 /// to release.
-void func_neo_ark_pyramid_8017DC50(Task* task)
+static void func_neo_ark_pyramid_8017DC50(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -345,7 +345,7 @@ void func_neo_ark_pyramid_8017DC50(Task* task)
 /// position, when it projects. The ring runs from radius
 /// `(s16)arg1 * 64 / (otz + 1)`, which is black, to
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`, which takes the colour `rgb`.
-void func_neo_ark_pyramid_8017DEF4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_neo_ark_pyramid_8017DEF4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -404,7 +404,7 @@ void func_neo_ark_pyramid_8017DEF4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 /// the projected centre. `arg1` is a signed half-extent; the on-screen radius
 /// is `arg1 * 64 / (otz + 1)`. Only the centre vertex takes the colour
 /// `rgb`, so each wedge fades to black at the rim.
-void func_neo_ark_pyramid_8017E320(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_neo_ark_pyramid_8017E320(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -460,7 +460,7 @@ void func_neo_ark_pyramid_8017E320(GpCoord* arg0, s16 arg1, u8* rgb)
 /// draws the ribbon through `func_neo_ark_pyramid_8017EBA4` and releases the
 /// effect once its age reaches `spawnArg1`. It stops advancing once the room's
 /// event state reaches 2.
-void func_neo_ark_pyramid_8017E6B4(Task* task)
+static void func_neo_ark_pyramid_8017E6B4(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -559,7 +559,7 @@ void func_neo_ark_pyramid_8017E6B4(Task* task)
 /// along its length. `arg3` holds the colour as per-channel multipliers of that
 /// weight: red from bits 8 up, green from bits 4-5, blue from bits 0-1. A quad
 /// the GTE flags as bad is skipped.
-void func_neo_ark_pyramid_8017EBA4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_neo_ark_pyramid_8017EBA4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
     GpCoord*           a;
@@ -670,7 +670,7 @@ void func_neo_ark_pyramid_8017EBA4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 a
 /// rings in a fading `(a, a/2, a/4)` colour. The effect is then released.
 /// Once the room's event state leaves zero it only waits for state 4 to
 /// release.
-void func_neo_ark_pyramid_8017EF9C(Task* task)
+static void func_neo_ark_pyramid_8017EF9C(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;
@@ -746,7 +746,7 @@ void func_neo_ark_pyramid_8017EF9C(Task* task)
 /// wedges span the outer radius in half the colour `arg2`, eight more span
 /// half of it at full colour, and four long spikes reach twice the outer
 /// radius between points on the inner one.
-void func_neo_ark_pyramid_8017F224(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_neo_ark_pyramid_8017F224(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

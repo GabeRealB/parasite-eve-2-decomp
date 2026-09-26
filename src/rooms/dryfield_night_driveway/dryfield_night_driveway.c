@@ -60,8 +60,8 @@ extern RoomEventMsg     D_dryfield_night_driveway_80182118;
 extern u8               D_dryfield_night_driveway_80182120;
 extern RoomLatchedEvent D_dryfield_night_driveway_80182124;
 
-void func_dryfield_night_driveway_8017DCFC(Task* arg0);
-void func_dryfield_night_driveway_8017DD7C(Task* task);
+static void func_dryfield_night_driveway_8017DCFC(Task* arg0);
+static void func_dryfield_night_driveway_8017DD7C(Task* task);
 
 /// The room's event task, spawned by the event gate. State 0 runs the latched
 /// event's CAP command; state 1 waits for it to finish and, when the event
@@ -116,7 +116,7 @@ void func_dryfield_night_driveway_8017D608(Task* arg0)
 }
 
 /// The room task's three states: set up, idle, kill.
-const TaskFuncTable3 D_dryfield_night_driveway_8017D5D8 = {
+static const TaskFuncTable3 D_dryfield_night_driveway_8017D5D8 = {
     { func_dryfield_night_driveway_8017DCFC, func_dryfield_night_driveway_8017DD7C, taskKill },
 };
 
@@ -312,7 +312,7 @@ s32 func_dryfield_night_driveway_8017DCF4(void)
 /// also hands `D_dryfield_night_driveway_8017FB00` and
 /// `D_dryfield_night_driveway_8017F998` to `func_800E8634`. Then advances the
 /// state.
-void func_dryfield_night_driveway_8017DCFC(Task* arg0)
+static void func_dryfield_night_driveway_8017DCFC(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_driveway_8017F7A4;
     Game_SetPtrSlot(arg0, 7);
@@ -324,14 +324,14 @@ void func_dryfield_night_driveway_8017DCFC(Task* arg0)
 
 /// Empty task state: the middle entry of the room task's state table. Its only
 /// trace is a 0x10-byte stack frame.
-void func_dryfield_night_driveway_8017DD7C(Task* task)
+static void func_dryfield_night_driveway_8017DD7C(Task* task)
 {
     char pad[0x10];
 }
 
 /// Room task: copies the state table onto the stack and runs the entry for the
 /// task's current state.
-void func_dryfield_night_driveway_8017DD8C(Task* task)
+static void func_dryfield_night_driveway_8017DD8C(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -346,7 +346,7 @@ void func_dryfield_night_driveway_8017DD8C(Task* task)
 /// between them; quads join the two discs. The centre brightness flickers
 /// between 0x20 and 0x30 with the display frame counter. Nothing is drawn when
 /// either projection is invalid. The work block lives on the scratchpad stack.
-void func_dryfield_night_driveway_8017DDE4(SVECTOR* arg0, s32 arg1)
+static void func_dryfield_night_driveway_8017DDE4(SVECTOR* arg0, s32 arg1)
 {
     void**                   scratch;
     u8*                      head;
@@ -477,7 +477,7 @@ void func_dryfield_night_driveway_8017DDE4(SVECTOR* arg0, s32 arg1)
 /// Room draw hook: sets the effect mode to 2, then draws the beams the current
 /// view (`gGameSession->at4.loc.view`) shows - views 2 and 9 the first pair, 4
 /// and 7 the second, 5 the third, and 3 and 10 both the first and second.
-void func_dryfield_night_driveway_8017E5CC(void)
+static void func_dryfield_night_driveway_8017E5CC(void)
 {
     Gp_State1C->roomEffectMode = 2;
     switch (gGameSession->at4.loc.view) {

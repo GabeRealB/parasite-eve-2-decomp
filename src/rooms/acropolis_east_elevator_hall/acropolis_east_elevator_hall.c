@@ -41,21 +41,21 @@ extern s32        D_acropolis_east_elevator_hall_8018631C;
 
 /// Name word handed to `func_80724608`: `"Player"`, followed by one stray
 /// non-zero byte C cannot reproduce, so it stays assembly.
-extern const char D_acropolis_east_elevator_hall_8017D5E0[];
+static const char D_acropolis_east_elevator_hall_8017D5E0[];
 
 /// The mirror task's descriptors: entry 0 spawns the mirror itself, entry 1
 /// one reflection of a held object.
 extern TaskDesc D_acropolis_east_elevator_hall_8017FC90[];
 
-void func_acropolis_east_elevator_hall_8017D7A4(Task* task);
-void func_acropolis_east_elevator_hall_8017F478(Task* task);
-void func_acropolis_east_elevator_hall_8017F4E8(Task* task);
+static void func_acropolis_east_elevator_hall_8017D7A4(Task* task);
+static void func_acropolis_east_elevator_hall_8017F478(Task* task);
+static void func_acropolis_east_elevator_hall_8017F4E8(Task* task);
 
 /// Scale handed to `ScaleMatrix` to flip the reflection across X.
-const VECTOR D_acropolis_east_elevator_hall_8017D5C4 = { -0x1000, 0x1000, 0x1000, 0 };
+static const VECTOR D_acropolis_east_elevator_hall_8017D5C4 = { -0x1000, 0x1000, 0x1000, 0 };
 
 /// State handlers of the room task: set-up, the per-frame tick and `taskKill`.
-const TaskFuncTable3 D_acropolis_east_elevator_hall_8017D5D4 = {
+static const TaskFuncTable3 D_acropolis_east_elevator_hall_8017D5D4 = {
     { func_acropolis_east_elevator_hall_8017F478, func_acropolis_east_elevator_hall_8017F4E8, taskKill },
 };
 
@@ -67,7 +67,7 @@ const TaskFuncTable3 D_acropolis_east_elevator_hall_8017D5D4 = {
 /// `GameSession::field_4E`. For each held-object task the player has
 /// (`GameActor::field_920` / `field_924`) it spawns a reflection task and
 /// hangs it under that held object, then runs the first per-frame update.
-void func_acropolis_east_elevator_hall_8017D5F0(Task* task)
+static void func_acropolis_east_elevator_hall_8017D5F0(Task* task)
 {
     Task*           owner;
     GameActor*      actor;
@@ -141,7 +141,7 @@ void func_acropolis_east_elevator_hall_8017D5F0(Task* task)
 /// overlaps the mirror's clip rectangle, draws quads sampling that strip;
 /// otherwise the reflection is hidden. Every frame it copies the player's pose
 /// and light matrices onto the reflection.
-void func_acropolis_east_elevator_hall_8017D7A4(Task* task)
+static void func_acropolis_east_elevator_hall_8017D7A4(Task* task)
 {
     RoomMirrorWork*          work;
     PlayerStatus*            status;
@@ -783,7 +783,7 @@ void func_acropolis_east_elevator_hall_8017F450(void)
     Gp_StartCapSlot(0x10, 1, 0);
 }
 
-void func_acropolis_east_elevator_hall_8017F478(Task* task)
+static void func_acropolis_east_elevator_hall_8017F478(Task* task)
 {
     task->msgTable = D_acropolis_east_elevator_hall_801862F4;
     Game_SetPtrSlot(task, 7);
@@ -793,9 +793,9 @@ void func_acropolis_east_elevator_hall_8017F478(Task* task)
 }
 
 /// "Player", followed by the non-zero padding the original toolchain left.
-const char D_acropolis_east_elevator_hall_8017D5E0[8] = "Player\0\x0F";
+static const char D_acropolis_east_elevator_hall_8017D5E0[8] = "Player\0\x0F";
 
-void func_acropolis_east_elevator_hall_8017F4E8(Task* task)
+static void func_acropolis_east_elevator_hall_8017F4E8(Task* task)
 {
     if (gDisplayState.field_112 != 0) {
         func_807245E4(gameGetPtrSlot(3));
@@ -807,7 +807,7 @@ void func_acropolis_east_elevator_hall_8017F4E8(Task* task)
 
 /// Runs the room task's current state through a stack copy of the room's
 /// three-entry state table.
-void func_acropolis_east_elevator_hall_8017F55C(Task* task)
+static void func_acropolis_east_elevator_hall_8017F55C(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -818,9 +818,9 @@ void func_acropolis_east_elevator_hall_8017F55C(Task* task)
 /// Position of the first of the six effects
 /// `func_acropolis_east_elevator_hall_8017F5B4` spawns in view 2; the other
 /// five positions are written into the local copy in turn.
-const SVECTOR D_acropolis_east_elevator_hall_8017D5E8 = { 0x1600, -0x964, 0x540, 0 };
+static const SVECTOR D_acropolis_east_elevator_hall_8017D5E8 = { 0x1600, -0x964, 0x540, 0 };
 
-void func_acropolis_east_elevator_hall_8017F5B4(Task* task)
+static void func_acropolis_east_elevator_hall_8017F5B4(Task* task)
 {
     GpCoord* coord;
 
@@ -868,7 +868,7 @@ void func_acropolis_east_elevator_hall_8017F5B4(Task* task)
 /// product's low byte is folded into a 0..0x80 triangle wave that drives the
 /// red channel of one corner; its high byte is the shaft length, divided by
 /// `otz` so the two `POLY_G4` halves narrow with distance.
-void func_acropolis_east_elevator_hall_8017F77C(Task* arg0)
+static void func_acropolis_east_elevator_hall_8017F77C(Task* arg0)
 {
     u8*               head;
     u8*               raw;
@@ -937,7 +937,7 @@ void func_acropolis_east_elevator_hall_8017F77C(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0)
+static void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0)
 {
     void**                    scratch;
     u8*                       head;

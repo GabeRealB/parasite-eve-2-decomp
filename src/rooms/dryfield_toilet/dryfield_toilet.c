@@ -27,18 +27,18 @@ extern s32 D_dryfield_toilet_801802D4;
 extern GpGridParams D_dryfield_toilet_80180314;
 extern GpGridParams D_dryfield_toilet_80181404;
 
-void func_dryfield_toilet_8017D940(Task* arg0);
-void func_dryfield_toilet_8017D9D4(Task* task);
+static void func_dryfield_toilet_8017D940(Task* arg0);
+static void func_dryfield_toilet_8017D9D4(Task* task);
 
 /// The room task's three states: entry, idle and `taskKill`.
-const TaskFuncTable3 D_dryfield_toilet_8017D5C4 = {
+static const TaskFuncTable3 D_dryfield_toilet_8017D5C4 = {
     { func_dryfield_toilet_8017D940, func_dryfield_toilet_8017D9D4, taskKill },
 };
 
 /// Restores one face of the room's collision grid (its normal, four corners and
 /// face record) from the template, then slides the four corners 2000 units toward
 /// negative x once game flag nibble 0x60 is set.
-void func_dryfield_toilet_8017D5E4(void)
+static void func_dryfield_toilet_8017D5E4(void)
 {
     GpGridParams* geom = &D_dryfield_toilet_80181404;
     GpGridParams* src  = &D_dryfield_toilet_80180314;
@@ -123,7 +123,7 @@ s32 func_dryfield_toilet_8017D8C8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEven
 /// (`gGameSession::at4.loc.place` == 1) and has not yet latched nibble 0x60, post
 /// message `0x7DA` with the room's payload and run the scene setup. Advance to
 /// the next state either way.
-void func_dryfield_toilet_8017D940(Task* arg0)
+static void func_dryfield_toilet_8017D940(Task* arg0)
 {
     arg0->msgTable = &D_dryfield_toilet_801802A4;
     Game_SetPtrSlot(arg0, 7);
@@ -136,14 +136,14 @@ void func_dryfield_toilet_8017D940(Task* arg0)
 
 /// The room task's idle state, entry 1 of its state table: does nothing but
 /// open and close a stack frame.
-void func_dryfield_toilet_8017D9D4(Task* task)
+static void func_dryfield_toilet_8017D9D4(Task* task)
 {
     char pad[0x10];
 }
 
 /// The room task's update: runs the handler for its current state from a stack
 /// copy of the room's state table.
-void func_dryfield_toilet_8017D9E4(Task* task)
+static void func_dryfield_toilet_8017D9E4(Task* task)
 {
     TaskFuncTable3 sp;
 

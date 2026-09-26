@@ -25,19 +25,19 @@ extern SVECTOR D_neo_ark_submarine_gallery_80181928[];
 extern s32 D_80115738;
 extern s32 D_8011574C;
 
-void func_neo_ark_submarine_gallery_8017F3DC(GpCoord* arg0, s32 arg1, s32 arg2);
-void func_neo_ark_submarine_gallery_8017FBCC(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_neo_ark_submarine_gallery_8017FFB8(GpCoord* arg0, s32 arg1, s32 arg2);
-void func_neo_ark_submarine_gallery_80180254(SVECTOR* pos, s32 arg1, s32 arg2);
-void func_neo_ark_submarine_gallery_80180AC8(SVECTOR* pos, s32 arg1, s32 arg2);
-void func_neo_ark_submarine_gallery_80180E80(GpCoord* coord, s16 arg1);
+static void func_neo_ark_submarine_gallery_8017F3DC(GpCoord* arg0, s32 arg1, s32 arg2);
+static void func_neo_ark_submarine_gallery_8017FBCC(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_neo_ark_submarine_gallery_8017FFB8(GpCoord* arg0, s32 arg1, s32 arg2);
+static void func_neo_ark_submarine_gallery_80180254(SVECTOR* pos, s32 arg1, s32 arg2);
+static void func_neo_ark_submarine_gallery_80180AC8(SVECTOR* pos, s32 arg1, s32 arg2);
+static void func_neo_ark_submarine_gallery_80180E80(GpCoord* coord, s16 arg1);
 
 /// Per-view draw callback for the gallery's display cases. The first state
 /// latches the two effect ids the display cases animate with; every later run
 /// draws one fixed set of positions for the current camera view. Views 2 to 6
 /// each cover a run of `D_neo_ark_submarine_gallery_801818*` entries, and view 2
 /// also hands the task's own coordinate to `func_neo_ark_submarine_gallery_80180E80`.
-void func_neo_ark_submarine_gallery_8017EFEC(Task* arg0)
+static void func_neo_ark_submarine_gallery_8017EFEC(Task* arg0)
 {
     SVECTOR* pos;
     GpCoord* coord;
@@ -105,7 +105,7 @@ void func_neo_ark_submarine_gallery_8017EFEC(Task* arg0)
 /// coordinate, grows the size by 0x20, draws, and dims by 2, releasing the
 /// effect once the brightness falls under 2. Once the room's event state
 /// leaves zero it only draws, and releases at state 4.
-void func_neo_ark_submarine_gallery_8017F288(Task* task)
+static void func_neo_ark_submarine_gallery_8017F288(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -142,7 +142,7 @@ void func_neo_ark_submarine_gallery_8017F288(Task* task)
 /// through `GsWSMATRIX`. When `gte_stflg` is non-negative, queues one
 /// semi-transparent `POLY_FT4` (tpage 0x2B, clut 0x43D1, UV 0,0x38..0x37,0x6F)
 /// coloured `(arg2, arg2, arg2)`.
-void func_neo_ark_submarine_gallery_8017F3DC(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_neo_ark_submarine_gallery_8017F3DC(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -235,7 +235,7 @@ void func_neo_ark_submarine_gallery_8017F3DC(GpCoord* arg0, s32 arg1, s32 arg2)
 /// moves the coordinate by the velocity with gravity pulling it down, and
 /// releases the block after animation frame 7. While the room's event state is
 /// non-zero it only draws, releasing the block from event state 4 on.
-void func_neo_ark_submarine_gallery_8017F710(Task* task)
+static void func_neo_ark_submarine_gallery_8017F710(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -361,7 +361,7 @@ void func_neo_ark_submarine_gallery_8017F710(Task* task)
 /// `arg2` is a signed half-extent; the on-screen radius is
 /// `(s16)arg2 * 31 / otz`. `arg3` is the spin angle, applied at `arg3` and
 /// `arg3 + 0x400` through `rsin`/`rcos`.
-void func_neo_ark_submarine_gallery_8017FBCC(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_neo_ark_submarine_gallery_8017FBCC(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -428,7 +428,7 @@ void func_neo_ark_submarine_gallery_8017FBCC(GpCoord* arg0, s32 arg1, s32 arg2, 
 /// the on-screen radius is `(s16)arg2 * 55 / otz`. The quad is axis-aligned
 /// and 2*radius on a side, shifted up so the projected point sits at
 /// three-quarters height (`y0 = sy - r - r/2`, `y2 = sy + r/2`).
-void func_neo_ark_submarine_gallery_8017FFB8(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_neo_ark_submarine_gallery_8017FFB8(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -516,7 +516,7 @@ void func_neo_ark_submarine_gallery_8017FFB8(GpCoord* arg0, s32 arg1, s32 arg2)
 /// gouraud `POLY_G4` wedges per 0x400 step around the screen-space angle between
 /// the two centres, lit with the colour packed in `arg2`. Each `otz` past 0x50
 /// is pulled 0x40 closer before it sets the radius and the OT slot.
-void func_neo_ark_submarine_gallery_80180254(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_neo_ark_submarine_gallery_80180254(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**                   scratch;
     u8*                      head;
@@ -670,7 +670,7 @@ void func_neo_ark_submarine_gallery_80180254(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// the GTE flag is non-negative, queues four gouraud `POLY_G4` wedges around
 /// the projected centre. An `otz` past 0x50 is pulled 0x40 closer before it
 /// sets the radius and the OT slot.
-void func_neo_ark_submarine_gallery_80180AC8(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_neo_ark_submarine_gallery_80180AC8(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**             scratch;
     u8*                head;
@@ -757,7 +757,7 @@ void func_neo_ark_submarine_gallery_80180AC8(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// from a pulsing grey on the first ring to black on the second; the closing
 /// cap over the first ring is flat grey. The grey swings a couple of steps
 /// around 0x18 with `gDisplayState.animFrame`.
-void func_neo_ark_submarine_gallery_80180E80(GpCoord* coord, s16 arg1)
+static void func_neo_ark_submarine_gallery_80180E80(GpCoord* coord, s16 arg1)
 {
     RoomQuadProjScratch* blk;
     POLY_G4*             prim;

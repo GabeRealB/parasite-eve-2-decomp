@@ -25,13 +25,13 @@ extern RoomEventMsg D_shelter_b3_garbage_incinerator_8018FC2C;
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
-void func_shelter_b3_garbage_incinerator_8017DB7C(Task* task);
-void func_shelter_b3_garbage_incinerator_8017DC54(Task* task);
+static void func_shelter_b3_garbage_incinerator_8017DB7C(Task* task);
+static void func_shelter_b3_garbage_incinerator_8017DC54(Task* task);
 
 /// State handlers of the room's controller task, run by
 /// `func_shelter_b3_garbage_incinerator_8017DC7C`: set-up, a per-frame tick,
 /// and the kill.
-const TaskFuncTable3 D_shelter_b3_garbage_incinerator_8017D5C4 = { {
+static const TaskFuncTable3 D_shelter_b3_garbage_incinerator_8017D5C4 = { {
     func_shelter_b3_garbage_incinerator_8017DB7C,
     func_shelter_b3_garbage_incinerator_8017DC54,
     taskKill,
@@ -166,7 +166,7 @@ s32 func_shelter_b3_garbage_incinerator_8017DB2C(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-void func_shelter_b3_garbage_incinerator_8017DB7C(Task* task)
+static void func_shelter_b3_garbage_incinerator_8017DB7C(Task* task)
 {
     task->msgTable = D_shelter_b3_garbage_incinerator_80185594;
     Game_SetPtrSlot(task, 7);
@@ -181,7 +181,7 @@ void func_shelter_b3_garbage_incinerator_8017DB7C(Task* task)
     task->state = task->state + 1;
 }
 
-void func_shelter_b3_garbage_incinerator_8017DC54(Task* task)
+static void func_shelter_b3_garbage_incinerator_8017DC54(Task* task)
 {
     char pad[0x10];
 
@@ -192,7 +192,7 @@ void func_shelter_b3_garbage_incinerator_8017DC54(Task* task)
 
 /// Runs the room controller's current state through its three-entry state
 /// table, copied onto the stack before the call.
-void func_shelter_b3_garbage_incinerator_8017DC7C(Task* task)
+static void func_shelter_b3_garbage_incinerator_8017DC7C(Task* task)
 {
     TaskFuncTable3 sp;
 

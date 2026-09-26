@@ -39,7 +39,7 @@ s32 func_shelter_r37_8017D624(void)
 
 /// State 0 of the room's event task: installs the room's message table,
 /// publishes the task in pointer slot 7 and advances to state 1.
-void func_shelter_r37_8017D62C(Task* task)
+static void func_shelter_r37_8017D62C(Task* task)
 {
     task->msgTable = D_shelter_r37_8017D6D0;
     Game_SetPtrSlot(task, 7);
@@ -47,12 +47,12 @@ void func_shelter_r37_8017D62C(Task* task)
 }
 
 /// State 1 of the room's event task: does nothing, so the task idles here.
-void func_shelter_r37_8017D670(Task* task)
+static void func_shelter_r37_8017D670(Task* task)
 {
 }
 
 /// The event task's three states: install the message table, idle, and kill.
-const TaskFuncTable3 D_shelter_r37_8017D5C4 = {
+static const TaskFuncTable3 D_shelter_r37_8017D5C4 = {
     {
         func_shelter_r37_8017D62C,
         func_shelter_r37_8017D670,
@@ -62,7 +62,7 @@ const TaskFuncTable3 D_shelter_r37_8017D5C4 = {
 
 /// The room's event task: runs the handler for its current state, through a
 /// stack copy of the state table.
-void func_shelter_r37_8017D678(Task* task)
+static void func_shelter_r37_8017D678(Task* task)
 {
     TaskFuncTable3 sp;
 

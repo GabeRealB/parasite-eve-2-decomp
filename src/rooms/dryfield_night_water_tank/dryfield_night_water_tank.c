@@ -63,7 +63,7 @@ extern s32 D_dryfield_night_water_tank_8017EE44;
 extern s32 D_dryfield_night_water_tank_8017EE48;
 extern s32 D_dryfield_night_water_tank_8017EE4C;
 
-void func_dryfield_night_water_tank_8017D9DC(s32 arg0);
+static void func_dryfield_night_water_tank_8017D9DC(s32 arg0);
 
 /// Exit task of the night water-tank room, in the shape the other rooms' wait
 /// tasks have: three states on `Task::state`. State 0 raises bit 0x80 of
@@ -167,7 +167,7 @@ s32 func_dryfield_night_water_tank_8017D76C(s32 arg0, s32 arg1, RoomEventMsg* in
 /// 0xA additionally spawns the exit task from `8017E010`, and 0xB, the visit
 /// the room is announced into, hands over to `func_8013224C` instead. The state
 /// advances on every path.
-void func_dryfield_night_water_tank_8017D870(Task* task)
+static void func_dryfield_night_water_tank_8017D870(Task* task)
 {
     task->msgTable = D_dryfield_night_water_tank_8017DFE8;
     Game_SetPtrSlot(task, 7);
@@ -186,7 +186,7 @@ void func_dryfield_night_water_tank_8017D870(Task* task)
 
 /// The room task's second state, run every frame after the entry tick: marks
 /// the play time while the visit sub-id is 0xB.
-void func_dryfield_night_water_tank_8017D94C(Task* task)
+static void func_dryfield_night_water_tank_8017D94C(Task* task)
 {
     if (gGameSession->at4.loc.place == 0xB) {
         Gp_MarkPlayTime();
@@ -196,13 +196,13 @@ void func_dryfield_night_water_tank_8017D94C(Task* task)
 /// The room task's three states, run from a stack copy by
 /// `func_dryfield_night_water_tank_8017D984`: the entry tick, the per-frame
 /// state, then `taskKill`.
-const TaskFuncTable3 D_dryfield_night_water_tank_8017D5C4 = {
+static const TaskFuncTable3 D_dryfield_night_water_tank_8017D5C4 = {
     { func_dryfield_night_water_tank_8017D870, func_dryfield_night_water_tank_8017D94C, taskKill },
 };
 
 /// The room task: copies its three-state table onto the stack and runs the
 /// entry for the task's current state.
-void func_dryfield_night_water_tank_8017D984(Task* task)
+static void func_dryfield_night_water_tank_8017D984(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -212,7 +212,7 @@ void func_dryfield_night_water_tank_8017D984(Task* task)
 
 /// Restores the room's layout lists from their template, then offsets the six
 /// `field_8` coordinates by (0, 0, -0xC8) when `arg0` is non-zero.
-void func_dryfield_night_water_tank_8017D9DC(s32 arg0)
+static void func_dryfield_night_water_tank_8017D9DC(s32 arg0)
 {
     GpGridParams* dst;
     GpGridParams* src;
@@ -315,6 +315,6 @@ void func_dryfield_night_water_tank_8017DB8C(Task* arg0)
     coord->flg = 0;
 }
 
-void func_dryfield_night_water_tank_8017DD8C(void)
+static void func_dryfield_night_water_tank_8017DD8C(void)
 {
 }

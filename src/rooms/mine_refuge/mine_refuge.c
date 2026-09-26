@@ -61,7 +61,7 @@ extern s32 D_80115694;
 
 /// Title of the telephone menu. The bytes after its terminator are not zero,
 /// so it stays assembly.
-extern const char D_mine_refuge_8017D638[];
+static const char D_mine_refuge_8017D638[];
 
 /// Captions of the telephone menu's rows ("Save", "Play Data", "Weapon Data",
 /// "PE Data").
@@ -142,10 +142,10 @@ extern u8 D_mine_refuge_80182ADC;
 /// Parameters of the cutscene `func_mine_refuge_8017FE78` starts.
 extern RoomCutsceneRec D_mine_refuge_80182AE0;
 
-void func_mine_refuge_8017F460(Task* task);
-void func_mine_refuge_8017FE78(s32 arg0);
-void func_mine_refuge_8017FF4C(Task* task);
-void func_mine_refuge_8017FFAC(Task* task);
+static void func_mine_refuge_8017F460(Task* task);
+static void func_mine_refuge_8017FE78(s32 arg0);
+static void func_mine_refuge_8017FF4C(Task* task);
+static void func_mine_refuge_8017FFAC(Task* task);
 
 /// Draws one row of the play-data panel, the row picked by
 /// `DialogPrompt::field_8`: a caption followed by a value - play time, one of
@@ -405,10 +405,10 @@ void func_mine_refuge_8017D6E0(DialogPrompt* arg0, UiObject* arg1)
 }
 
 /// Title of the play-data panel.
-const char D_mine_refuge_8017D610[] = "Play Data";
+static const char D_mine_refuge_8017D610[] = "Play Data";
 
 /// Drawn in place of a percentage for a row holding every recorded use.
-const u8 D_mine_refuge_8017D61C[] = "100.0%";
+static const u8 D_mine_refuge_8017D61C[] = "100.0%";
 
 /// Draws one row of an item-usage panel from the `RoomItemUsage` block in the
 /// owning task's work area: the item's name, its share of all recorded uses as
@@ -555,7 +555,7 @@ void func_mine_refuge_8017DEAC(DialogPrompt* arg0, UiObject* arg1)
 /// counter as a 12-bit fraction of the top row's. Both are scaled down by
 /// halving until the top counter fits in 17 bits, so the multiply and the
 /// shift cannot overflow.
-void func_mine_refuge_8017E2A8(UiList* list, UiObject* obj)
+static void func_mine_refuge_8017E2A8(UiList* list, UiObject* obj)
 {
     RoomItemUsage* work;
     s32            count;
@@ -642,7 +642,7 @@ void func_mine_refuge_8017E2A8(UiList* list, UiObject* obj)
 /// `barWidths`, its counter as a 12-bit fraction of the top row's. Both are
 /// scaled down by halving until the top counter fits in 17 bits, so the
 /// multiply and the shift cannot overflow.
-void func_mine_refuge_8017E5A4(UiList* list, UiObject* obj)
+static void func_mine_refuge_8017E5A4(UiList* list, UiObject* obj)
 {
     RoomPeUsage* work;
     s16*         p;
@@ -729,8 +729,8 @@ void func_mine_refuge_8017E5A4(UiList* list, UiObject* obj)
 }
 
 /// Titles of the usage panel: weapons, then Parasite Energy.
-const char D_mine_refuge_8017D624[] = "Weapon Data";
-const char D_mine_refuge_8017D630[] = "PE Data";
+static const char D_mine_refuge_8017D624[] = "Weapon Data";
+static const char D_mine_refuge_8017D630[] = "PE Data";
 
 /// Task body of the usage panel: `spawnArg1` 0 lists weapons, anything else
 /// Parasite Energy. On its first frame it allocates the row block, spawns the
@@ -789,13 +789,13 @@ void func_mine_refuge_8017E8C4(Task* task)
 }
 
 /// "Telephone", followed by the non-zero padding the original toolchain left.
-const char D_mine_refuge_8017D638[12] = "Telephone\0\x1A\x1C";
+static const char D_mine_refuge_8017D638[12] = "Telephone\0\x1A\x1C";
 
 /// Task body of the telephone menu. Until the save has a clear or has reached
 /// demo scene 1 it spawns `D_800611E4` in place of the list; otherwise it lays
 /// out and updates the list. When the first child window finishes, the menu
 /// opens the item prompt its selection picks, or closes.
-void func_mine_refuge_8017EA78(Task* task)
+static void func_mine_refuge_8017EA78(Task* task)
 {
     UiObject* obj;
     UiList*   list;
@@ -921,7 +921,7 @@ void func_mine_refuge_8017ED70(Task* task)
 /// Inserts a '.' into a digit string so `decimals` characters sit after the
 /// point. Walks to the NUL, then shifts the last `min(len, decimals)` bytes
 /// one to the right to open a slot. No-op when `decimals <= 0`.
-void func_mine_refuge_8017EDCC(u8* str, s32 decimals)
+static void func_mine_refuge_8017EDCC(u8* str, s32 decimals)
 {
     s32 len;
 
@@ -957,7 +957,7 @@ void func_mine_refuge_8017EDCC(u8* str, s32 decimals)
 /// (so "5" with two decimals becomes "0.05"), otherwise print it unpadded, then
 /// shift the last `decimals` digits right by one and drop a '.' in front of
 /// them. Appends "%" and returns `buf`.
-u8* func_mine_refuge_8017EE3C(u8* buf, s32 value, s32 decimals)
+static u8* func_mine_refuge_8017EE3C(u8* buf, s32 value, s32 decimals)
 {
     s32 limit;
     s32 i;
@@ -1029,7 +1029,7 @@ void func_mine_refuge_8017EF30(Task* task)
 /// panel's draw order. Origin is `field_20`/`field_22` plus (`arg1`, `arg2`);
 /// `arg3`/`arg4` are width and height. Left vertices take `arg5`, right vertices
 /// take `arg6`. A zero color or width < 2 draws nothing.
-void func_mine_refuge_8017F020(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
+static void func_mine_refuge_8017F020(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
 {
     register s32 dx asm("v1");
     register s32 w asm("t3");
@@ -1129,7 +1129,7 @@ void func_mine_refuge_8017F398(DialogPrompt* prompt, UiObject* obj)
 
 /// Task exit callback for the save-prompt UI: if this task still owns
 /// `Wip_UiHolder`, clear it, then free the spawned UI object and kill the task.
-void func_mine_refuge_8017F460(Task* task)
+static void func_mine_refuge_8017F460(Task* task)
 {
     WipUiHolder* holder;
 
@@ -1353,7 +1353,7 @@ void func_mine_refuge_8017F49C(Task* task)
 
 /// States of the room's message task, run by `func_mine_refuge_8017FFBC`:
 /// install the message table, idle, die.
-const TaskFuncTable3 D_mine_refuge_8017D6A4 = {
+static const TaskFuncTable3 D_mine_refuge_8017D6A4 = {
     {
         func_mine_refuge_8017FF4C,
         func_mine_refuge_8017FFAC,
@@ -1526,7 +1526,7 @@ void func_mine_refuge_8017FDBC(Task* arg0)
 /// Progress nibble 0x155 picks the scene: when it is 0xF, CAP slot 0xE with no
 /// file and CAP command 1 afterwards; otherwise CAP slot 1 from file 1 and
 /// command 5 afterwards.
-void func_mine_refuge_8017FE78(s32 arg0)
+static void func_mine_refuge_8017FE78(s32 arg0)
 {
     s32 slot;
 
@@ -1553,7 +1553,7 @@ void func_mine_refuge_8017FE78(s32 arg0)
     Task_SpawnFromTable(&D_mine_refuge_80181860, 0, slot, (s32)&D_mine_refuge_80182AE0);
 }
 
-void func_mine_refuge_8017FF4C(Task* arg0)
+static void func_mine_refuge_8017FF4C(Task* arg0)
 {
     arg0->msgTable = D_mine_refuge_80181884;
     Game_SetPtrSlot(arg0, 7);
@@ -1564,14 +1564,14 @@ void func_mine_refuge_8017FF4C(Task* arg0)
 }
 
 /// Idle state of the room's message task: does nothing.
-void func_mine_refuge_8017FFAC(Task* task)
+static void func_mine_refuge_8017FFAC(Task* task)
 {
     char pad[0x10];
 }
 
 /// Runs the handler for the task's current state, from a local copy of
 /// `D_mine_refuge_8017D6A4`.
-void func_mine_refuge_8017FFBC(Task* task)
+static void func_mine_refuge_8017FFBC(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -1586,7 +1586,7 @@ void func_mine_refuge_8017FFBC(Task* task)
 /// 0..0x27. The sprite's on-screen half-extent is `(s16)arg2 * 39 / otz`, and
 /// its grey level alternates between 0x20 and 0x30 with the frame counter.
 /// A 0x10-byte scratch block is taken from `G_SCRATCH_HEAD` and returned.
-void func_mine_refuge_80180014(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_mine_refuge_80180014(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw13Scratch* block;
     POLY_FT4*          prim;
@@ -1632,7 +1632,7 @@ void func_mine_refuge_80180014(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// radius of `(s16)arg2 * 32 / otz`. The lit vertex pulses on green and blue at
 /// `rsin(animFrame * (s16)arg1) / 34 + 0x78`. A 0x18-byte scratch block in the
 /// `GpRingScratch` layout is taken from `G_SCRATCH_HEAD` and returned.
-void func_mine_refuge_8018029C(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_mine_refuge_8018029C(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*            head;
     GpRingScratch* block;
@@ -1730,7 +1730,7 @@ void func_mine_refuge_8018029C(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// `rsin(animFrame * (s16)arg1) / 34 + 0x78` so the glow pulses; the half-radius
 /// copies take that level and every other wedge half of it. The scratch block is returned to
 /// `G_SCRATCH_HEAD` on exit.
-void func_mine_refuge_80180710(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_mine_refuge_80180710(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**                 scratch;
     u8*                    head;
@@ -1864,7 +1864,7 @@ void func_mine_refuge_80180710(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// offset by `(animFrame & 1) << 5` so the glow flickers on alternate frames.
 /// Unlike the room's other draws it never returns its 0x10-byte scratch block
 /// to `G_SCRATCH_HEAD`.
-void func_mine_refuge_80181094(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_mine_refuge_80181094(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**             scratch;
     u8*                head;
@@ -1937,7 +1937,7 @@ void func_mine_refuge_80181094(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// Draws the room's glows for whichever view is current. View 2 draws a
 /// sprite and a diamond; views 3 and 4/5 draw rings at one anchor, but only
 /// while progress nibble 0xC3 is 1; view 6 draws a pulsing disc.
-void func_mine_refuge_80181454(void)
+static void func_mine_refuge_80181454(void)
 {
     u8 view;
 

@@ -77,7 +77,7 @@ extern UiList D_shelter_b1_underground_parking_80186B10;
 
 /// Title and list of the menu `func_shelter_b1_underground_parking_8017EDE8`
 /// runs.
-extern const char D_shelter_b1_underground_parking_8017D638[];
+static const char D_shelter_b1_underground_parking_8017D638[];
 extern UiList     D_shelter_b1_underground_parking_80186B98;
 
 /// List of the menu `func_shelter_b1_underground_parking_8017F2A0` runs.
@@ -201,7 +201,7 @@ extern u8 D_shelter_b1_underground_parking_80187068[];
 
 /// The charge panel's title, and the quantity and item map of the slot it is
 /// animating.
-extern const char D_shelter_b1_underground_parking_8017D774[];
+static const char D_shelter_b1_underground_parking_8017D774[];
 extern s32        D_shelter_b1_underground_parking_8018D744;
 extern GpItemMap* D_shelter_b1_underground_parking_8018D748;
 
@@ -261,17 +261,27 @@ extern SVECTOR D_shelter_b1_underground_parking_80187724[];
 extern SVECTOR D_shelter_b1_underground_parking_80187784[];
 extern SVECTOR D_shelter_b1_underground_parking_801877A4[];
 
-s32  func_shelter_b1_underground_parking_80183124(RoomEventMsg* in, RoomEventMsg* out);
-void func_shelter_b1_underground_parking_80183810(Task* arg0);
-void func_shelter_b1_underground_parking_8018414C(s32 x, s32 y, s32 variant);
-void func_shelter_b1_underground_parking_80184304(Task* task);
-void func_shelter_b1_underground_parking_801843F0(Task* task);
-void func_shelter_b1_underground_parking_80184468(Task* task);
-void func_shelter_b1_underground_parking_80184594(Task* task);
-void func_shelter_b1_underground_parking_801845F8(Task* task);
-void func_shelter_b1_underground_parking_801846EC(Task* arg0);
-void func_shelter_b1_underground_parking_80184778(Task* task);
-void func_shelter_b1_underground_parking_801847D0(Task* task);
+static s32  func_shelter_b1_underground_parking_80183124(RoomEventMsg* in, RoomEventMsg* out);
+static void func_shelter_b1_underground_parking_80183810(Task* arg0);
+static void func_shelter_b1_underground_parking_8018414C(s32 x, s32 y, s32 variant);
+static void func_shelter_b1_underground_parking_80184304(Task* task);
+static void func_shelter_b1_underground_parking_801843F0(Task* task);
+static void func_shelter_b1_underground_parking_80184468(Task* task);
+static void func_shelter_b1_underground_parking_80184594(Task* task);
+static void func_shelter_b1_underground_parking_801845F8(Task* task);
+static void func_shelter_b1_underground_parking_801846EC(Task* arg0);
+static void func_shelter_b1_underground_parking_80184778(Task* task);
+static void func_shelter_b1_underground_parking_801847D0(Task* task);
+
+static void func_shelter_b1_underground_parking_8018390C(void);
+static void func_shelter_b1_underground_parking_801848A4(void);
+static void func_shelter_b1_underground_parking_8018491C(void);
+static s32  func_shelter_b1_underground_parking_80184964(OverlayHotspot* table, s16 x, s16 y);
+static void func_shelter_b1_underground_parking_8018543C(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b1_underground_parking_801857E0(s16 x, s16 y, s16 radius, s16 color);
+static void func_shelter_b1_underground_parking_80185A94(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b1_underground_parking_80185F08(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b1_underground_parking_80186890(s16 arg0);
 
 void func_shelter_b1_underground_parking_8017DA50(DialogPrompt* arg0, UiObject* arg1)
 {
@@ -526,10 +536,10 @@ void func_shelter_b1_underground_parking_8017DA50(DialogPrompt* arg0, UiObject* 
 }
 
 /// Title of the play-data menu.
-const char D_shelter_b1_underground_parking_8017D610[] = "Play Data";
+static const char D_shelter_b1_underground_parking_8017D610[] = "Play Data";
 
 /// Drawn in place of a usage percentage that reached 100.
-const u8 D_shelter_b1_underground_parking_8017D61C[] = "100.0%";
+static const u8 D_shelter_b1_underground_parking_8017D61C[] = "100.0%";
 
 void func_shelter_b1_underground_parking_8017E21C(DialogPrompt* arg0, UiObject* arg1)
 {
@@ -671,7 +681,7 @@ void func_shelter_b1_underground_parking_8017E21C(DialogPrompt* arg0, UiObject* 
 /// counter as a 12-bit fraction of the top row's. Both are scaled down by
 /// halving until the top counter fits in 17 bits, so the multiply and the
 /// shift cannot overflow.
-void func_shelter_b1_underground_parking_8017E618(UiList* list, UiObject* obj)
+static void func_shelter_b1_underground_parking_8017E618(UiList* list, UiObject* obj)
 {
     RoomItemUsage* work;
     s32            count;
@@ -758,7 +768,7 @@ void func_shelter_b1_underground_parking_8017E618(UiList* list, UiObject* obj)
 /// `barWidths`, its counter as a 12-bit fraction of the top row's. Both are
 /// scaled down by halving until the top counter fits in 17 bits, so the
 /// multiply and the shift cannot overflow.
-void func_shelter_b1_underground_parking_8017E914(UiList* list, UiObject* obj)
+static void func_shelter_b1_underground_parking_8017E914(UiList* list, UiObject* obj)
 {
     RoomPeUsage* work;
     s16*         p;
@@ -845,8 +855,8 @@ void func_shelter_b1_underground_parking_8017E914(UiList* list, UiObject* obj)
 }
 
 /// Titles of the weapon and PE usage panels.
-const char D_shelter_b1_underground_parking_8017D624[] = "Weapon Data";
-const char D_shelter_b1_underground_parking_8017D630[] = "PE Data";
+static const char D_shelter_b1_underground_parking_8017D624[] = "Weapon Data";
+static const char D_shelter_b1_underground_parking_8017D630[] = "PE Data";
 
 void func_shelter_b1_underground_parking_8017EC34(Task* task)
 {
@@ -903,9 +913,9 @@ void func_shelter_b1_underground_parking_8017EC34(Task* task)
 /// Title of the menu below. The two bytes after its terminator are not zero,
 /// so it stays assembly.
 /// "Telephone", followed by the non-zero padding the original toolchain left.
-const char D_shelter_b1_underground_parking_8017D638[12] = "Telephone\0<\x9E";
+static const char D_shelter_b1_underground_parking_8017D638[12] = "Telephone\0<\x9E";
 
-void func_shelter_b1_underground_parking_8017EDE8(Task* task)
+static void func_shelter_b1_underground_parking_8017EDE8(Task* task)
 {
     UiObject* obj;
     UiList*   list;
@@ -1030,7 +1040,7 @@ void func_shelter_b1_underground_parking_8017F0E0(Task* task)
 /// Inserts a '.' into a digit string so `decimals` characters sit after the
 /// point. Walks to the NUL, then shifts the last `min(len, decimals)` bytes
 /// one to the right to open a slot. No-op when `decimals <= 0`.
-void func_shelter_b1_underground_parking_8017F13C(u8* str, s32 decimals)
+static void func_shelter_b1_underground_parking_8017F13C(u8* str, s32 decimals)
 {
     s32 len;
 
@@ -1066,7 +1076,7 @@ void func_shelter_b1_underground_parking_8017F13C(u8* str, s32 decimals)
 /// (so "5" with two decimals becomes "0.05"), otherwise print it unpadded, then
 /// shift the last `decimals` digits right by one and drop a '.' in front of
 /// them. Appends "%" and returns `buf`.
-u8* func_shelter_b1_underground_parking_8017F1AC(u8* buf, s32 value, s32 decimals)
+static u8* func_shelter_b1_underground_parking_8017F1AC(u8* buf, s32 value, s32 decimals)
 {
     s32 limit;
     s32 i;
@@ -1135,7 +1145,7 @@ void func_shelter_b1_underground_parking_8017F2A0(Task* task)
 /// panel's draw order. Origin is `field_20`/`field_22` plus (`arg1`, `arg2`);
 /// `arg3`/`arg4` are width and height. Left vertices take `arg5`, right vertices
 /// take `arg6`. A zero color or width < 2 draws nothing.
-void func_shelter_b1_underground_parking_8017F390(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
+static void func_shelter_b1_underground_parking_8017F390(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
 {
     register s32 dx asm("v1");
     register s32 w asm("t3");
@@ -1556,7 +1566,7 @@ void func_shelter_b1_underground_parking_8017FE7C(DialogPrompt* prompt, UiObject
 /// Adds an item id to the room's shop list, keeping one entry per item kind:
 /// ids 0xF..0x32 are three consecutive levels of the same kind, so an entry of
 /// the same kind is overwritten only by a higher level.
-void func_shelter_b1_underground_parking_80180308(RoomShopList* shop, UiObject* obj, s32 item)
+static void func_shelter_b1_underground_parking_80180308(RoomShopList* shop, UiObject* obj, s32 item)
 {
     Task*         task = obj->owner;
     s32           mode = task->spawnArg1;
@@ -1597,7 +1607,7 @@ void func_shelter_b1_underground_parking_80180308(RoomShopList* shop, UiObject* 
 /// 0xA0-0xBF, mode 2 0x60-0x7F and 0xD, and mode 3 everything from 1 to 0x5F
 /// the other modes do not take, plus the twelve two-bit stock levels of
 /// `Mc_SaveData.shopStock`. A demo save unlocks every row and every level.
-void func_shelter_b1_underground_parking_80180454(RoomShopList* shop, UiObject* obj)
+static void func_shelter_b1_underground_parking_80180454(RoomShopList* shop, UiObject* obj)
 {
     RoomShopList* list;
     u16*          ids;
@@ -1704,10 +1714,10 @@ void func_shelter_b1_underground_parking_80180454(RoomShopList* shop, UiObject* 
 }
 
 /// Title of the shop list.
-const u8 D_shelter_b1_underground_parking_8017D750[] = "Select";
+static const u8 D_shelter_b1_underground_parking_8017D750[] = "Select";
 
 /// Label drawn ahead of the BP balance and the purchase total.
-const u8 D_shelter_b1_underground_parking_8017D758[] = "BP";
+static const u8 D_shelter_b1_underground_parking_8017D758[] = "BP";
 
 void func_shelter_b1_underground_parking_80180820(Task* task)
 {
@@ -1848,7 +1858,7 @@ void func_shelter_b1_underground_parking_80180A70(DialogPrompt* prompt, UiObject
 }
 
 /// Title of the menu below.
-const u8 D_shelter_b1_underground_parking_8017D75C[] = "List";
+static const u8 D_shelter_b1_underground_parking_8017D75C[] = "List";
 
 void func_shelter_b1_underground_parking_80180C90(Task* task)
 {
@@ -1903,7 +1913,7 @@ void func_shelter_b1_underground_parking_80180C90(Task* task)
 }
 
 /// Label of the balance panel's item-count line.
-const u8 D_shelter_b1_underground_parking_8017D764[] = "TOTAL";
+static const u8 D_shelter_b1_underground_parking_8017D764[] = "TOTAL";
 
 void func_shelter_b1_underground_parking_80180E38(Task* task)
 {
@@ -2017,7 +2027,7 @@ void func_shelter_b1_underground_parking_8018101C(DialogPrompt* prompt, UiObject
 }
 
 /// Title of the notice panel.
-const u8 D_shelter_b1_underground_parking_8017D76C[] = "Notice";
+static const u8 D_shelter_b1_underground_parking_8017D76C[] = "Notice";
 
 void func_shelter_b1_underground_parking_80181230(Task* task)
 {
@@ -2063,7 +2073,7 @@ void func_shelter_b1_underground_parking_80181230(Task* task)
 /// Title of the charge panel; the byte after its terminator is not zero, so
 /// it stays assembly.
 /// "Charge", followed by the non-zero padding the original toolchain left.
-const char D_shelter_b1_underground_parking_8017D774[8] = "Charge\0o";
+static const char D_shelter_b1_underground_parking_8017D774[8] = "Charge\0o";
 
 /// The charge station's transfer panel: steps through the mapped item slots,
 /// takes the slot's current level as the bar's starting value and its related
@@ -2686,7 +2696,7 @@ void func_shelter_b1_underground_parking_80182154(Task* task)
 /// `gDisplayState.pendingMode` clear. Then the 0x1000 pad mask with the yaw in the 0x3FF-wide
 /// window opening at 0xA01, or the 0x4000 mask with it in the window at 0x201,
 /// takes the weapon away and runs the handoff.
-void func_shelter_b1_underground_parking_801826C0(void)
+static void func_shelter_b1_underground_parking_801826C0(void)
 {
     Task*      task;
     GameActor* actor;
@@ -2723,7 +2733,7 @@ void func_shelter_b1_underground_parking_801826C0(void)
 /// The three states of the room's main task, run by
 /// `func_shelter_b1_underground_parking_801838B4`: set-up, the per-frame
 /// handler, and the kill.
-const TaskFuncTable3 D_shelter_b1_underground_parking_8017D7F4 = {
+static const TaskFuncTable3 D_shelter_b1_underground_parking_8017D7F4 = {
     {
         func_shelter_b1_underground_parking_80183810,
         func_shelter_b1_underground_parking_801826C0,
@@ -3023,7 +3033,7 @@ void func_shelter_b1_underground_parking_80182FC8(Task* task)
 /// carries the same body. Most rooms have no
 /// marker; the five that do read a GameFlag nibble, either straight (plus one,
 /// rooms 7 / 13 / 32) or folded into a fixed set of states (rooms 20 and 21).
-s32 func_shelter_b1_underground_parking_80183124(RoomEventMsg* in, RoomEventMsg* out)
+static s32 func_shelter_b1_underground_parking_80183124(RoomEventMsg* in, RoomEventMsg* out)
 {
     if (in->field_5 == 0) {
         switch (in->msgId) {
@@ -3084,7 +3094,7 @@ s32 func_shelter_b1_underground_parking_80183124(RoomEventMsg* in, RoomEventMsg*
 /// The examine task's eight states, run by
 /// `func_shelter_b1_underground_parking_80184284`, from set-up to the closing
 /// fade.
-const TaskFuncTable8 D_shelter_b1_underground_parking_8017D9A4 = {
+static const TaskFuncTable8 D_shelter_b1_underground_parking_8017D9A4 = {
     {
         func_shelter_b1_underground_parking_80184304,
         func_shelter_b1_underground_parking_801843F0,
@@ -3295,7 +3305,7 @@ void func_shelter_b1_underground_parking_80183804(u8 arg0)
     D_80115768 = arg0;
 }
 
-void func_shelter_b1_underground_parking_80183810(Task* arg0)
+static void func_shelter_b1_underground_parking_80183810(Task* arg0)
 {
     arg0->msgTable = D_shelter_b1_underground_parking_80187230;
     Game_SetPtrSlot(arg0, 7);
@@ -3312,7 +3322,7 @@ void func_shelter_b1_underground_parking_80183810(Task* arg0)
 
 /// Dispatches a task through the three-entry state table, copied onto the
 /// stack first.
-void func_shelter_b1_underground_parking_801838B4(Task* task)
+static void func_shelter_b1_underground_parking_801838B4(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -3320,7 +3330,7 @@ void func_shelter_b1_underground_parking_801838B4(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_shelter_b1_underground_parking_8018390C(void)
+static void func_shelter_b1_underground_parking_8018390C(void)
 {
     if (D_shelter_b1_underground_parking_8018D758 == 0) {
         D_shelter_b1_underground_parking_8018D758 = 1;
@@ -3332,7 +3342,7 @@ void func_shelter_b1_underground_parking_8018390C(void)
 /// Outlines `rect` on screen in (`r`, `g`, `b`) with four unconnected flat
 /// `LINE_F2`s -- top, right, bottom and left edge of the rectangle spanning
 /// (`x`, `y`) to (`x + w`, `y + h`) -- each linked into `gGpuCurrentOt[1]`.
-void func_shelter_b1_underground_parking_80183958(RoomRect* rect, u8 r, u8 g, u8 b)
+static void func_shelter_b1_underground_parking_80183958(RoomRect* rect, u8 r, u8 g, u8 b)
 {
     LINE_F2* line;
 
@@ -3385,7 +3395,7 @@ void func_shelter_b1_underground_parking_80183958(RoomRect* rect, u8 r, u8 g, u8
     addPrim(gGpuCurrentOt + 1, line);
 }
 
-void func_shelter_b1_underground_parking_80183B9C(void)
+static void func_shelter_b1_underground_parking_80183B9C(void)
 {
     if (D_shelter_b1_underground_parking_8018D789 & 8) {
         func_shelter_b1_underground_parking_801857E0(-0x46, 0x54, 7, 0xF00);
@@ -3410,7 +3420,7 @@ void func_shelter_b1_underground_parking_80183B9C(void)
         D_shelter_b1_underground_parking_801876D4[D_shelter_b1_underground_parking_8018D789].vy, 7, 0xF0);
 }
 
-void func_shelter_b1_underground_parking_80183CEC(Task* task)
+static void func_shelter_b1_underground_parking_80183CEC(Task* task)
 {
     RoomActionPrompt* prompt;
     PadState*         pad;
@@ -3547,7 +3557,7 @@ void func_shelter_b1_underground_parking_80183CEC(Task* task)
 /// Queues one 16x24 textured quad -- the room's on-screen action prompt icon --
 /// at (`x`, `y`) into the head of the current OT. `variant` selects the palette,
 /// 0x3C87 when it is 2 and 0x3C88 otherwise, and 0 draws nothing at all.
-void func_shelter_b1_underground_parking_8018414C(s32 x, s32 y, s32 variant)
+static void func_shelter_b1_underground_parking_8018414C(s32 x, s32 y, s32 variant)
 {
     POLY_FT4* prim;
     s16       px;
@@ -3606,7 +3616,7 @@ void func_shelter_b1_underground_parking_80184284(Task* task)
     fns.funcs[task->state](task);
 }
 
-void func_shelter_b1_underground_parking_80184304(Task* task)
+static void func_shelter_b1_underground_parking_80184304(Task* task)
 {
     SbupExamineWork* st;
     OverlayHotspot*  hs;
@@ -3638,7 +3648,7 @@ void func_shelter_b1_underground_parking_80184304(Task* task)
     gGameSession->eventState   = 1;
 }
 
-void func_shelter_b1_underground_parking_801843F0(Task* task)
+static void func_shelter_b1_underground_parking_801843F0(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
 
@@ -3651,7 +3661,7 @@ void func_shelter_b1_underground_parking_801843F0(Task* task)
     task->state++;
 }
 
-void func_shelter_b1_underground_parking_80184468(Task* task)
+static void func_shelter_b1_underground_parking_80184468(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     OverlayHotspot*   hs     = D_shelter_b1_underground_parking_8018767C;
@@ -3687,7 +3697,7 @@ void func_shelter_b1_underground_parking_80184468(Task* task)
     }
 }
 
-void func_shelter_b1_underground_parking_80184594(Task* task)
+static void func_shelter_b1_underground_parking_80184594(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     SbupExamineWork*  work   = (SbupExamineWork*)task->work;
@@ -3699,7 +3709,7 @@ void func_shelter_b1_underground_parking_80184594(Task* task)
     task->state = 4;
 }
 
-void func_shelter_b1_underground_parking_801845F8(Task* task)
+static void func_shelter_b1_underground_parking_801845F8(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     SbupExamineWork*  work   = (SbupExamineWork*)task->work;
@@ -3729,7 +3739,7 @@ void func_shelter_b1_underground_parking_801845F8(Task* task)
     task->state = 2;
 }
 
-void func_shelter_b1_underground_parking_801846EC(Task* arg0)
+static void func_shelter_b1_underground_parking_801846EC(Task* arg0)
 {
     D_80114D08 = 0xA;
     Gp_MsgPlayerWeapon(1);
@@ -3748,7 +3758,7 @@ void func_shelter_b1_underground_parking_801846EC(Task* arg0)
 /// promotes the pending value into the committed one, tears down the prompt
 /// display, applies the selection to the session, then kills the child task
 /// spawned for the selection UI and advances to the next state.
-void func_shelter_b1_underground_parking_80184778(Task* task)
+static void func_shelter_b1_underground_parking_80184778(Task* task)
 {
     D_shelter_b1_underground_parking_8018D788 = D_shelter_b1_underground_parking_8018D789;
     func_shelter_b1_underground_parking_80183B9C();
@@ -3758,7 +3768,7 @@ void func_shelter_b1_underground_parking_80184778(Task* task)
     task->state++;
 }
 
-void func_shelter_b1_underground_parking_801847D0(Task* task)
+static void func_shelter_b1_underground_parking_801847D0(Task* task)
 {
     SbupExamineWork* work = (SbupExamineWork*)task->work;
 
@@ -3781,7 +3791,7 @@ void func_shelter_b1_underground_parking_801847D0(Task* task)
     }
 }
 
-void func_shelter_b1_underground_parking_801848A4(void)
+static void func_shelter_b1_underground_parking_801848A4(void)
 {
     D_shelter_b1_underground_parking_8018D788 = 0xFF;
     D_shelter_b1_underground_parking_8018D789 = 0;
@@ -3808,14 +3818,20 @@ void func_shelter_b1_underground_parking_801848BC(Task* task)
     task->state = task->state + 1;
 }
 
-void func_shelter_b1_underground_parking_8018491C(void)
+/// Looks up the low nibble of `D_shelter_b1_underground_parking_8018D788` in
+/// the byte table `D_shelter_b1_underground_parking_801876C4`, stores the
+/// result as the current room (both `Mc_SaveData.at4.loc.room` and the session's
+/// `at4.loc.room`) and flags the room objects for relinking.
+static void func_shelter_b1_underground_parking_8018491C(void)
 {
     Mc_SaveData.at4.loc.room    = D_shelter_b1_underground_parking_801876C4[D_shelter_b1_underground_parking_8018D788 & 0xF];
     gGameSession->at4.loc.room  = D_shelter_b1_underground_parking_801876C4[D_shelter_b1_underground_parking_8018D788 & 0xF];
     gGameSession->roomObjsDirty = 1;
 }
 
-s32 func_shelter_b1_underground_parking_80184964(OverlayHotspot* table, s16 x, s16 y)
+/// Marks every hotspot of `table` under (`x`, `y`) as hit; answers whether any
+/// was.
+static s32 func_shelter_b1_underground_parking_80184964(OverlayHotspot* table, s16 x, s16 y)
 {
     s32 hit;
 
@@ -3832,7 +3848,7 @@ s32 func_shelter_b1_underground_parking_80184964(OverlayHotspot* table, s16 x, s
     return hit;
 }
 
-void func_shelter_b1_underground_parking_80184A18(void)
+static void func_shelter_b1_underground_parking_80184A18(void)
 {
     u8 view;
 
@@ -4048,7 +4064,7 @@ void func_shelter_b1_underground_parking_80184C54(SVECTOR* arg0, s32 arg1, s32 a
 /// frame-counter blend byte `((field_8 & 1) * 8 | 0x20)`: red is
 /// `blend * ((arg2 << 16) >> 24)`, green `blend * (((arg2 << 16) >> 20) & 1)`,
 /// blue `blend * (arg2 & 1)`.
-void func_shelter_b1_underground_parking_8018543C(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b1_underground_parking_8018543C(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw25Scratch* block;
@@ -4119,7 +4135,7 @@ void func_shelter_b1_underground_parking_8018543C(SVECTOR* arg0, s32 arg1, s32 a
     SCRATCH_POP_BYTES(0xC);
 }
 
-void func_shelter_b1_underground_parking_801857E0(s16 x, s16 y, s16 radius, s16 color)
+static void func_shelter_b1_underground_parking_801857E0(s16 x, s16 y, s16 radius, s16 color)
 {
     POLY_G4* prim;
     s32      i;
@@ -4180,7 +4196,7 @@ void func_shelter_b1_underground_parking_801857E0(s16 x, s16 y, s16 radius, s16 
 /// half-extent; the on-screen radius is `(s16)arg2 * 32 / otz`. `arg1` scales
 /// `gDisplayState.animFrame` into `rsin` so the lit vertex pulses as
 /// `rsin(...) / 34 + 0x78` on green and blue.
-void func_shelter_b1_underground_parking_80185A94(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b1_underground_parking_80185A94(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw13Scratch* block;
@@ -4276,7 +4292,7 @@ void func_shelter_b1_underground_parking_80185A94(SVECTOR* arg0, s32 arg1, s32 a
 /// `(s16)arg2 * 8 / otz` (inner). `arg1` scales `gDisplayState.animFrame` into
 /// `rsin` so the lit vertex pulses as `rsin(...) / 34 + 0x78` on green and
 /// blue.
-void func_shelter_b1_underground_parking_80185F08(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b1_underground_parking_80185F08(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw05Scratch* block;
@@ -4407,7 +4423,7 @@ void func_shelter_b1_underground_parking_80185F08(SVECTOR* arg0, s32 arg1, s32 a
     SCRATCH_POP_BYTES(0x14);
 }
 
-void func_shelter_b1_underground_parking_80186890(s16 arg0)
+static void func_shelter_b1_underground_parking_80186890(s16 arg0)
 {
     D_shelter_b1_underground_parking_8018D78C = arg0;
 }

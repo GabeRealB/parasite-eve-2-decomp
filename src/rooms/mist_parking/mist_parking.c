@@ -589,16 +589,16 @@ void func_mist_parking_8017E540(RoomShopList* shop, UiObject* obj)
 }
 
 /// Titles and labels of the shop's panels.
-const u8 D_mist_parking_8017D6D0[] = "Select";
-const u8 D_mist_parking_8017D6D8[] = "BP";
-const u8 D_mist_parking_8017D6DC[] = "List";
-const u8 D_mist_parking_8017D6E4[] = "TOTAL";
-const u8 D_mist_parking_8017D6EC[] = "Notice";
+static const u8 D_mist_parking_8017D6D0[] = "Select";
+static const u8 D_mist_parking_8017D6D8[] = "BP";
+static const u8 D_mist_parking_8017D6DC[] = "List";
+static const u8 D_mist_parking_8017D6E4[] = "TOTAL";
+static const u8 D_mist_parking_8017D6EC[] = "Notice";
 
 /// "Charge", with a stray non-zero byte after its terminator that C cannot
 /// place, so the string stays assembly.
 /// "Charge", followed by the non-zero padding the original toolchain left.
-const char D_mist_parking_8017D6F4[8] = "Charge\0\xE2";
+static const char D_mist_parking_8017D6F4[8] = "Charge\0\xE2";
 
 /// Messages of the shop's panels.
 extern u8 D_mist_parking_80186450[];
@@ -1612,7 +1612,7 @@ void func_mist_parking_801800D0(DialogPrompt* arg0, UiObject* arg1)
 }
 
 /// Title of the play-data menu panel `func_mist_parking_80181920` draws.
-const char D_mist_parking_8017D748[] = "Play Data";
+static const char D_mist_parking_8017D748[] = "Play Data";
 
 /// One row of the "Play Data" item-usage list: the item's name, its share of
 /// all recorded uses as `NN.NN%` (or a flat `100.0%` once it is the only item
@@ -1766,15 +1766,15 @@ void func_mist_parking_8018089C(DialogPrompt* prompt, UiObject* obj)
 
 /// Titles of the two usage lists `func_mist_parking_801812B4` draws (item and
 /// PE).
-const char D_mist_parking_8017D75C[] = "Weapon Data";
-const char D_mist_parking_8017D768[] = "PE Data";
+static const char D_mist_parking_8017D75C[] = "Weapon Data";
+static const char D_mist_parking_8017D768[] = "PE Data";
 
 /// "Telephone", the title `func_mist_parking_80181468` draws, with two stray
 /// non-zero bytes after its terminator that C cannot place, so the string
 /// stays assembly.
-extern const char D_mist_parking_8017D770[];
+static const char D_mist_parking_8017D770[];
 /// "Telephone", followed by the non-zero padding the original toolchain left.
-const char D_mist_parking_8017D770[12] = "Telephone\0\xF2\xEF";
+static const char D_mist_parking_8017D770[12] = "Telephone\0\xF2\xEF";
 
 /// Lists of the usage panel and of the play-data menu, and the descriptor of
 /// the frame the usage panel spawns.
@@ -1880,7 +1880,7 @@ void func_mist_parking_80180C98(UiList* list, UiObject* obj)
 /// `barWidths`, its counter as a 12-bit fraction of the top row's. Both are
 /// scaled down by halving until the top counter fits in 17 bits, so the
 /// multiply and the shift cannot overflow.
-void func_mist_parking_80180F94(UiList* list, UiObject* obj)
+static void func_mist_parking_80180F94(UiList* list, UiObject* obj)
 {
     RoomPeUsage* work;
     s16*         p;
@@ -2021,7 +2021,7 @@ void func_mist_parking_801812B4(Task* task)
     }
 }
 
-void func_mist_parking_80181468(Task* task)
+static void func_mist_parking_80181468(Task* task)
 {
     UiObject* obj;
     UiList*   list;
@@ -2144,7 +2144,7 @@ void func_mist_parking_80181760(Task* task)
 /// Inserts a '.' into a digit string so `decimals` characters sit after the
 /// point. Walks to the NUL, then shifts the last `min(len, decimals)` bytes
 /// one to the right to open a slot. No-op when `decimals <= 0`.
-void func_mist_parking_801817BC(u8* str, s32 decimals)
+static void func_mist_parking_801817BC(u8* str, s32 decimals)
 {
     s32 len;
 
@@ -2181,7 +2181,7 @@ void func_mist_parking_801817BC(u8* str, s32 decimals)
 /// fill them), then the last `decimals` characters are shifted one byte right
 /// to open a slot for the '.'.
 
-u8* func_mist_parking_8018182C(u8* buf, s32 value, s32 decimals)
+static u8* func_mist_parking_8018182C(u8* buf, s32 value, s32 decimals)
 {
     s32 remaining;
     s32 len;
@@ -2273,7 +2273,7 @@ void func_mist_parking_80181920(Task* task)
 /// panel's draw order. Origin is `field_20`/`field_22` plus (`arg1`, `arg2`);
 /// `arg3`/`arg4` are width and height. Left vertices take `arg5`, right vertices
 /// take `arg6`. A zero color or width < 2 draws nothing.
-void func_mist_parking_80181A10(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
+static void func_mist_parking_80181A10(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
 {
     register s32 dx asm("v1");
     register s32 w asm("t3");
@@ -2630,12 +2630,12 @@ s32 func_mist_parking_801823F8(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-void func_mist_parking_801827C0(Task* arg0);
-void func_mist_parking_80182888(Task* task);
+static void func_mist_parking_801827C0(Task* arg0);
+static void func_mist_parking_80182888(Task* task);
 
 /// State handlers of the task `func_mist_parking_80182898` runs: its set-up,
 /// an empty per-frame state and the kill.
-const TaskFuncTable3 D_mist_parking_8017D7DC = {
+static const TaskFuncTable3 D_mist_parking_8017D7DC = {
     {
         func_mist_parking_801827C0,
         func_mist_parking_80182888,
@@ -2711,7 +2711,7 @@ void func_mist_parking_801827A0(s32 arg0)
     Gp_SpawnIfCapIdle(arg0, 0);
 }
 
-void func_mist_parking_801827C0(Task* arg0)
+static void func_mist_parking_801827C0(Task* arg0)
 {
     arg0->msgTable = &D_mist_parking_80186BB8;
     Game_SetPtrSlot(arg0, 7);
@@ -2729,7 +2729,7 @@ void func_mist_parking_801827C0(Task* arg0)
 }
 
 /// The empty per-frame state of `D_mist_parking_8017D7DC`.
-void func_mist_parking_80182888(Task* task)
+static void func_mist_parking_80182888(Task* task)
 {
     char pad[0x10];
 }
@@ -2739,7 +2739,7 @@ extern s8  D_mist_parking_8018DA28[];
 
 /// Runs the handler for the task's state from a stack copy of
 /// `D_mist_parking_8017D7DC`.
-void func_mist_parking_80182898(Task* task)
+static void func_mist_parking_80182898(Task* task)
 {
     TaskFuncTable3 sp;
 

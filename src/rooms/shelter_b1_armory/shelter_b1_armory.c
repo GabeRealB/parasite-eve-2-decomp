@@ -161,8 +161,8 @@ extern RoomEventMsg D_shelter_b1_armory_80185584;
 extern u8           D_shelter_b1_armory_8018558C;
 extern RoomEventReq D_shelter_b1_armory_80185590;
 
-void func_shelter_b1_armory_80180740(Task* task);
-void func_shelter_b1_armory_80180784(Task* task);
+static void func_shelter_b1_armory_80180740(Task* task);
+static void func_shelter_b1_armory_80180784(Task* task);
 
 /// Returns the 0xFFFF-terminated item id list the shop list starts from. The
 /// low halfword of `mode` picks a group of lists (0x20, 0x21, 0x30-0x33, 0x40
@@ -170,7 +170,7 @@ void func_shelter_b1_armory_80180784(Task* task);
 /// `Mc_SaveData.gameMode` 2 and above has groups of its own. A high halfword
 /// above 3 falls through the 0x30-0x33 groups in turn and on into 0x20's;
 /// every other miss returns `D_shelter_b1_armory_80182378`.
-u16* func_shelter_b1_armory_8017D768(s32 mode)
+static u16* func_shelter_b1_armory_8017D768(s32 mode)
 {
     if (Mc_SaveData.gameMode < 2) {
         switch ((u16)mode) {
@@ -492,7 +492,7 @@ void func_shelter_b1_armory_8017DDD8(DialogPrompt* prompt, UiObject* obj)
 /// ids 0xF..0x32 are three consecutive levels of the same kind, so an entry of
 /// the same kind is overwritten only by a higher level. In mode 0x10 the ids
 /// 0x9D..0x9F, 0x8A and 0x65 are never added.
-void func_shelter_b1_armory_8017E264(RoomShopList* shop, UiObject* obj, s32 item)
+static void func_shelter_b1_armory_8017E264(RoomShopList* shop, UiObject* obj, s32 item)
 {
     Task*         task = obj->owner;
     s32           mode = task->spawnArg1;
@@ -536,7 +536,7 @@ void func_shelter_b1_armory_8017E264(RoomShopList* shop, UiObject* obj, s32 item
 /// twelve two-bit levels in `Mc_SaveData.shopStock`, the id of that level
 /// (the first slot needs level 2). With `Mc_SaveData.demoScene` 1 every row
 /// and level is unlocked first.
-void func_shelter_b1_armory_8017E3B0(RoomShopList* shop, UiObject* obj)
+static void func_shelter_b1_armory_8017E3B0(RoomShopList* shop, UiObject* obj)
 {
     RoomShopList* list;
     u16*          ids;
@@ -643,16 +643,16 @@ void func_shelter_b1_armory_8017E3B0(RoomShopList* shop, UiObject* obj)
 }
 
 /// Titles and captions of the shop's panels.
-const u8 D_shelter_b1_armory_8017D6D0[] = "Select";
-const u8 D_shelter_b1_armory_8017D6D8[] = "BP";
-const u8 D_shelter_b1_armory_8017D6DC[] = "List";
-const u8 D_shelter_b1_armory_8017D6E4[] = "TOTAL";
-const u8 D_shelter_b1_armory_8017D6EC[] = "Notice";
+static const u8 D_shelter_b1_armory_8017D6D0[] = "Select";
+static const u8 D_shelter_b1_armory_8017D6D8[] = "BP";
+static const u8 D_shelter_b1_armory_8017D6DC[] = "List";
+static const u8 D_shelter_b1_armory_8017D6E4[] = "TOTAL";
+static const u8 D_shelter_b1_armory_8017D6EC[] = "Notice";
 
 /// "Charge", with a stray non-zero byte after its terminator that C cannot
 /// place, so the string stays assembly.
 /// "Charge", followed by the non-zero padding the original toolchain left.
-const char D_shelter_b1_armory_8017D6F4[8] = "Charge\0\xD3";
+static const char D_shelter_b1_armory_8017D6F4[8] = "Charge\0\xD3";
 
 /// The shop's "Select" panel. On its first frame it allocates the
 /// `RoomShopList` work block, fills it through `func_shelter_b1_armory_8017E3B0`
@@ -1401,7 +1401,7 @@ void func_shelter_b1_armory_8017FE0C(Task* task)
 /// item has been collected (or none is required), it latches the message and
 /// request, sets the nibble and spawns the event task, returning 2; without
 /// the item it runs the request's `field_4` cap command and returns 0.
-s32 func_shelter_b1_armory_8017FF40(RoomEventReq* req, RoomEventMsg* msg)
+static s32 func_shelter_b1_armory_8017FF40(RoomEventReq* req, RoomEventMsg* msg)
 {
     s32 flag;
     s32 id;
@@ -1503,7 +1503,7 @@ void func_shelter_b1_armory_801800A4(Task* task)
 
 /// State handlers of the room's controller task: installing its message
 /// table, an idle tick, and the kill.
-const TaskFuncTable3 D_shelter_b1_armory_8017D714 = {
+static const TaskFuncTable3 D_shelter_b1_armory_8017D714 = {
     {
         func_shelter_b1_armory_80180740,
         func_shelter_b1_armory_80180784,
@@ -1680,7 +1680,7 @@ s32 func_shelter_b1_armory_801806F8(Task* task, s32 msgId, GpMsg13EF* arg2, s32 
 }
 
 /// Installs the room's message table in pointer slot 7 and advances the task.
-void func_shelter_b1_armory_80180740(Task* task)
+static void func_shelter_b1_armory_80180740(Task* task)
 {
     task->msgTable = D_shelter_b1_armory_80182500;
     Game_SetPtrSlot(task, 7);
@@ -1688,13 +1688,13 @@ void func_shelter_b1_armory_80180740(Task* task)
 }
 
 /// The controller task's idle state: does nothing.
-void func_shelter_b1_armory_80180784(Task* task)
+static void func_shelter_b1_armory_80180784(Task* task)
 {
 }
 
 /// Runs the task's current state through its three-entry state table, copied
 /// onto the stack before the call.
-void func_shelter_b1_armory_8018078C(Task* task)
+static void func_shelter_b1_armory_8018078C(Task* task)
 {
     TaskFuncTable3 sp;
 

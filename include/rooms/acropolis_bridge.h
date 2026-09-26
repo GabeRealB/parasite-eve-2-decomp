@@ -35,8 +35,6 @@ extern s32            D_acropolis_bridge_801917A8;
 /// primitive heap.
 extern DR_MOVE* D_acropolis_bridge_801917AC;
 
-void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt);
-
 /// One corner of the unit quad the bridge's dust-cloud task builds its
 /// billboard from (`D_acropolis_bridge_8018990C`): the signed XZ pair
 /// `(-1, 1)`, `(1, 1)`, `(-1, -1)`, `(1, -1)`, scaled by 0x300 before being

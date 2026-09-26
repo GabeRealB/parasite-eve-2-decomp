@@ -59,15 +59,15 @@ extern TaskDesc D_neo_ark_eve_access_tunnel_8017EAC4[];
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
-void func_neo_ark_eve_access_tunnel_8017DF24(Task* arg0);
-void func_neo_ark_eve_access_tunnel_8017DFC0(Task* task);
+static void func_neo_ark_eve_access_tunnel_8017DF24(Task* arg0);
+static void func_neo_ark_eve_access_tunnel_8017DFC0(Task* task);
 
 /// Resolves the code in `arg0->field_0` into a state byte in `arg1->field_3`,
 /// unless `arg0->field_5` is set. Only six codes produce one, each from a
 /// game-flag nibble: codes 5, 41 and 45 take their nibble plus one, codes 2, 16
 /// and 20 fold theirs into a fixed set of states. Every other code leaves
 /// `arg1` untouched. Always returns 1.
-s32 func_neo_ark_eve_access_tunnel_8017D6D4(NaetUtilParam* arg0, NaetUtilParam* arg1)
+static s32 func_neo_ark_eve_access_tunnel_8017D6D4(NaetUtilParam* arg0, NaetUtilParam* arg1)
 {
     if (arg0->field_5 == 0) {
         switch (arg0->field_0) {
@@ -217,7 +217,7 @@ void func_neo_ark_eve_access_tunnel_8017D810(Task* arg0)
 /// The room task's three states: install the message table, adjust the views
 /// each frame, and end the task. `func_neo_ark_eve_access_tunnel_8017E038` runs
 /// them through a stack copy.
-const TaskFuncTable3 D_neo_ark_eve_access_tunnel_8017D688 = {
+static const TaskFuncTable3 D_neo_ark_eve_access_tunnel_8017D688 = {
     func_neo_ark_eve_access_tunnel_8017DF24,
     func_neo_ark_eve_access_tunnel_8017DFC0,
     taskKill,
@@ -441,7 +441,7 @@ void func_neo_ark_eve_access_tunnel_8017DED0(Task* arg0)
 /// task does. Then, once the session has reached state 0xB, set bit 15 of every
 /// 16-bit half of the 0x25800-byte image buffer and latch `GameSession::flowFlags`
 /// bit 0 - the flag that suppresses the bank-load spawn when the task ends.
-void func_neo_ark_eve_access_tunnel_8017DF24(Task* arg0)
+static void func_neo_ark_eve_access_tunnel_8017DF24(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_eve_access_tunnel_8017EA94;
     Game_SetPtrSlot(arg0, 7);
@@ -462,7 +462,7 @@ void func_neo_ark_eve_access_tunnel_8017DF24(Task* arg0)
 /// State 1 of the tunnel's message task, run every frame: while the session is
 /// below state 4 it sets both runs of view flags, and at state 0xB it sets the
 /// CD command queue's `field_22A` to 2.
-void func_neo_ark_eve_access_tunnel_8017DFC0(Task* task)
+static void func_neo_ark_eve_access_tunnel_8017DFC0(Task* task)
 {
     CdCmdQueue* queue = &CdCmd_Queue;
 
@@ -477,7 +477,7 @@ void func_neo_ark_eve_access_tunnel_8017DFC0(Task* task)
 
 /// Runs the task's current state through a stack copy of the room's
 /// three-entry state table.
-void func_neo_ark_eve_access_tunnel_8017E038(Task* task)
+static void func_neo_ark_eve_access_tunnel_8017E038(Task* task)
 {
     TaskFuncTable3 sp;
 

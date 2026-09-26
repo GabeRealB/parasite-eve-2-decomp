@@ -42,12 +42,23 @@ extern SVECTOR D_dryfield_night_motel_lobby_801828E8[];
 /// the code. The datum's eighth byte is padding before the cap script.
 extern u8 D_dryfield_night_motel_lobby_801844D8[7];
 
-s16  func_dryfield_night_motel_lobby_80180734(void);
-void func_dryfield_night_motel_lobby_80180C20(s32 x, s32 y, s32 variant);
-void func_dryfield_night_motel_lobby_80181298(Task* task);
-void func_dryfield_night_motel_lobby_80181404(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_dryfield_night_motel_lobby_80181878(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_dryfield_night_motel_lobby_80182200(SVECTOR* arg0, s32 arg1, s32 arg2);
+static s16  func_dryfield_night_motel_lobby_80180734(void);
+static void func_dryfield_night_motel_lobby_80180C20(s32 x, s32 y, s32 variant);
+static void func_dryfield_night_motel_lobby_80181298(Task* task);
+static void func_dryfield_night_motel_lobby_80181404(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_dryfield_night_motel_lobby_80181878(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_dryfield_night_motel_lobby_80182200(SVECTOR* arg0, s32 arg1, s32 arg2);
+
+static void func_dryfield_night_motel_lobby_80180E98(Task* task);
+static void func_dryfield_night_motel_lobby_80180FA4(Task* task);
+static void func_dryfield_night_motel_lobby_80180FD8(Task* task);
+static void func_dryfield_night_motel_lobby_8018103C(Task* task);
+static void func_dryfield_night_motel_lobby_801810AC(Task* arg0);
+static void func_dryfield_night_motel_lobby_80181138(Task* arg0);
+static void func_dryfield_night_motel_lobby_8018119C(Task* arg0);
+static void func_dryfield_night_motel_lobby_801811E0(Task* arg0);
+static void func_dryfield_night_motel_lobby_80181218(Task* arg0);
+static void func_dryfield_night_motel_lobby_8018122C(Task* arg0);
 
 /// The eleven states of the room's examine task, run by
 /// `func_dryfield_night_motel_lobby_80180D58`.
@@ -221,7 +232,7 @@ void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key)
 /// Whether the keypad holds the lobby's code: exactly four digits, the three
 /// older slots still `0xA`, and those four reading `3 0 3 3` in the order they
 /// were typed.
-s16 func_dryfield_night_motel_lobby_80180734(void)
+static s16 func_dryfield_night_motel_lobby_80180734(void)
 {
     u8* p = D_dryfield_night_motel_lobby_801844D8;
 
@@ -252,7 +263,7 @@ s16 func_dryfield_night_motel_lobby_80180734(void)
 /// Moves the action-prompt cursor of each pad `task->spawnArg1` selects (1:
 /// port 0, 2: port 1, otherwise both) from its analog stick and d-pad, clamps
 /// it to the screen, updates the press state of its two buttons and draws it.
-void func_dryfield_night_motel_lobby_801807C0(Task* task)
+static void func_dryfield_night_motel_lobby_801807C0(Task* task)
 {
     RoomActionPrompt* prompt;
     PadState*         pad;
@@ -389,7 +400,7 @@ void func_dryfield_night_motel_lobby_801807C0(Task* task)
 /// Queues the action-prompt cursor icon, a textured quad, at (`x`, `y`) into
 /// the head of the current OT. `variant` is the prompt's mode: 2 selects
 /// palette 0x3C87, any other non-zero value 0x3C88, and 0 draws nothing.
-void func_dryfield_night_motel_lobby_80180C20(s32 x, s32 y, s32 variant)
+static void func_dryfield_night_motel_lobby_80180C20(s32 x, s32 y, s32 variant)
 {
     POLY_FT4* prim;
     s16       px;
@@ -464,7 +475,9 @@ s32 func_dryfield_night_motel_lobby_80180DE4(OverlayHotspot* table, s16 x, s16 y
     return hit;
 }
 
-void func_dryfield_night_motel_lobby_80180E98(Task* task)
+/// States of the examine task, in the order `D_dryfield_night_motel_lobby_8017D6B0`
+/// lists them.
+static void func_dryfield_night_motel_lobby_80180E98(Task* task)
 {
     DnmlExamineWork* work;
     OverlayHotspot*  hs;
@@ -505,7 +518,7 @@ void func_dryfield_night_motel_lobby_80180E98(Task* task)
 
 /// Sets the first action prompt to mode 1 with target id 0x80, clears its
 /// screen position, and steps the task on one state.
-void func_dryfield_night_motel_lobby_80180FA4(Task* task)
+static void func_dryfield_night_motel_lobby_80180FA4(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
 
@@ -520,7 +533,7 @@ void func_dryfield_night_motel_lobby_80180FA4(Task* task)
 /// state the prompt was left in, then hands the prompt's own coordinates and
 /// this room's display mode back to `func_800D4E78`, which parks them in the
 /// gameplay-side globals the prompt's display task reads.
-void func_dryfield_night_motel_lobby_80180FD8(Task* task)
+static void func_dryfield_night_motel_lobby_80180FD8(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     DnmlExamineWork*  work   = (DnmlExamineWork*)task->work;
@@ -537,7 +550,7 @@ void func_dryfield_night_motel_lobby_80180FD8(Task* task)
 /// screen, flags the step busy in `promptBusy` (which the cursor draw in
 /// `func_dryfield_night_motel_lobby_801802A8` gates its confirm on) and starts
 /// cap slot 9. Advances the task to state 2 either way.
-void func_dryfield_night_motel_lobby_8018103C(Task* task)
+static void func_dryfield_night_motel_lobby_8018103C(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     DnmlExamineWork*  work   = (DnmlExamineWork*)task->work;
@@ -552,7 +565,7 @@ void func_dryfield_night_motel_lobby_8018103C(Task* task)
     task->state = 2;
 }
 
-void func_dryfield_night_motel_lobby_801810AC(Task* arg0)
+static void func_dryfield_night_motel_lobby_801810AC(Task* arg0)
 {
     D_80114D08 = 0xA;
     Gp_MsgPlayerWeapon(1);
@@ -567,7 +580,7 @@ void func_dryfield_night_motel_lobby_801810AC(Task* arg0)
     Task_RequestKill(arg0, 0);
 }
 
-void func_dryfield_night_motel_lobby_80181138(Task* arg0)
+static void func_dryfield_night_motel_lobby_80181138(Task* arg0)
 {
     Gp_ApplyAreaRecs(&D_dryfield_night_motel_lobby_801844AC);
     gGameSession->eventState = 1;
@@ -576,24 +589,24 @@ void func_dryfield_night_motel_lobby_80181138(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-void func_dryfield_night_motel_lobby_8018119C(Task* arg0)
+static void func_dryfield_night_motel_lobby_8018119C(Task* arg0)
 {
     SndEvt_EnqueueType6(0x53110008, 0, 0);
     arg0->state = (s32)(arg0->state + 1);
 }
 
-void func_dryfield_night_motel_lobby_801811E0(Task* arg0)
+static void func_dryfield_night_motel_lobby_801811E0(Task* arg0)
 {
     Gp_RunCapCmd1(8);
     arg0->state = (s32)(arg0->state + 1);
 }
 
-void func_dryfield_night_motel_lobby_80181218(Task* arg0)
+static void func_dryfield_night_motel_lobby_80181218(Task* arg0)
 {
     arg0->state = arg0->state + 1;
 }
 
-void func_dryfield_night_motel_lobby_8018122C(Task* arg0)
+static void func_dryfield_night_motel_lobby_8018122C(Task* arg0)
 {
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
@@ -608,7 +621,7 @@ void func_dryfield_night_motel_lobby_8018122C(Task* arg0)
 /// Resets both action prompts - cursor position cleared, target id 0x100,
 /// `field_E` 0xF, both buttons' held counts cleared, mode 1 - and steps the
 /// task on one state.
-void func_dryfield_night_motel_lobby_80181298(Task* task)
+static void func_dryfield_night_motel_lobby_80181298(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     s32               i;
@@ -625,7 +638,7 @@ void func_dryfield_night_motel_lobby_80181298(Task* task)
     task->state = task->state + 1;
 }
 
-void func_dryfield_night_motel_lobby_801812F8(void)
+static void func_dryfield_night_motel_lobby_801812F8(void)
 {
     switch (gGameSession->at4.loc.view) {
         case 2:
@@ -654,7 +667,7 @@ void func_dryfield_night_motel_lobby_801812F8(void)
 /// half-extent; the on-screen radius is `(s16)arg2 * 32 / otz`. `arg1` scales
 /// `gDisplayState.animFrame` into `rsin` so the lit vertex pulses as
 /// `rsin(...) / 34 + 0x78` on green and blue.
-void func_dryfield_night_motel_lobby_80181404(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_night_motel_lobby_80181404(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw13Scratch* block;
@@ -751,7 +764,7 @@ void func_dryfield_night_motel_lobby_80181404(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// is `(s16)arg2 * 64 / otz` and the inner `(s16)arg2 * 8 / otz`. `arg1`
 /// scales `gDisplayState.animFrame` into `rsin`, so the centre colour pulses as
 /// `rsin(...) / 34 + 0x78` on green and blue.
-void func_dryfield_night_motel_lobby_80181878(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_night_motel_lobby_80181878(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw05Scratch* block;
@@ -887,7 +900,7 @@ void func_dryfield_night_motel_lobby_80181878(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// UV column `(s16)arg1 * 40`, on-screen half-extent `(s16)arg2 * 39 / otz`, and
 /// an RGB that alternates between 0x20 and 0x30 with `animFrame`. It reserves
 /// 0x20 bytes of scratch but releases only 0x10 on exit.
-void func_dryfield_night_motel_lobby_80182200(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_night_motel_lobby_80182200(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw13Scratch* block;
     POLY_FT4*          prim;

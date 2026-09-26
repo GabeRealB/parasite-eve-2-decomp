@@ -102,9 +102,9 @@ extern TaskDesc D_dryfield_gas_station_80181E7C[];
 extern Task*    D_dryfield_gas_station_80184BCC;
 extern Task*    D_dryfield_gas_station_80184BD0;
 
-void func_dryfield_gas_station_8017E2C0(UiList* list, UiObject* obj);
-void func_dryfield_gas_station_8017E5BC(UiList* list, UiObject* obj);
-void func_dryfield_gas_station_8017F478(Task* task);
+static void func_dryfield_gas_station_8017E2C0(UiList* list, UiObject* obj);
+static void func_dryfield_gas_station_8017E5BC(UiList* list, UiObject* obj);
+static void func_dryfield_gas_station_8017F478(Task* task);
 
 /// Draws one row of the "Play Data" statistics list: the label for row
 /// `arg0->field_8` and its value (play time, save count, battles won and
@@ -363,10 +363,10 @@ void func_dryfield_gas_station_8017D6F8(DialogPrompt* arg0, UiObject* arg1)
 }
 
 /// Title of the "Play Data" panel.
-const char D_dryfield_gas_station_8017D610[] = "Play Data";
+static const char D_dryfield_gas_station_8017D610[] = "Play Data";
 
 /// Drawn in place of the percentage for a row holding every recorded use.
-const u8 D_dryfield_gas_station_8017D61C[] = "100.0%";
+static const u8 D_dryfield_gas_station_8017D61C[] = "100.0%";
 
 /// Draws one row of the weapon or PE usage list: the entry's name and icon, its
 /// share of all uses as a percentage with two decimals ("100.0%" for a full
@@ -512,7 +512,7 @@ void func_dryfield_gas_station_8017DEC4(DialogPrompt* arg0, UiObject* arg1)
 /// counter as a 12-bit fraction of the top row's. Both are scaled down by
 /// halving until the top counter fits in 17 bits, so the multiply and the
 /// shift cannot overflow.
-void func_dryfield_gas_station_8017E2C0(UiList* list, UiObject* obj)
+static void func_dryfield_gas_station_8017E2C0(UiList* list, UiObject* obj)
 {
     RoomItemUsage* work;
     s32            count;
@@ -595,7 +595,7 @@ void func_dryfield_gas_station_8017E2C0(UiList* list, UiObject* obj)
 /// its counter summed. The ids are then insertion-sorted by use count,
 /// most-used first, and each row gets `percents` and `barWidths` exactly as the
 /// weapon list does.
-void func_dryfield_gas_station_8017E5BC(UiList* list, UiObject* obj)
+static void func_dryfield_gas_station_8017E5BC(UiList* list, UiObject* obj)
 {
     RoomPeUsage* work;
     s16*         p;
@@ -682,8 +682,8 @@ void func_dryfield_gas_station_8017E5BC(UiList* list, UiObject* obj)
 }
 
 /// Titles of the weapon and PE usage panels.
-const char D_dryfield_gas_station_8017D624[] = "Weapon Data";
-const char D_dryfield_gas_station_8017D630[] = "PE Data";
+static const char D_dryfield_gas_station_8017D624[] = "Weapon Data";
+static const char D_dryfield_gas_station_8017D630[] = "PE Data";
 
 /// Task body of the weapon (`spawnArg1 == 0`) or PE usage panel: on its first
 /// tick it allocates the list's work block and fills it, then updates the list
@@ -742,14 +742,14 @@ void func_dryfield_gas_station_8017E8DC(Task* task)
 
 /// Title of the "Telephone" menu. A byte after its terminator is not zero,
 /// so the string stays assembly.
-extern const char D_dryfield_gas_station_8017D638[];
+static const char D_dryfield_gas_station_8017D638[];
 /// "Telephone", followed by the non-zero padding the original toolchain left.
-const char D_dryfield_gas_station_8017D638[12] = "Telephone\0\0\x12";
+static const char D_dryfield_gas_station_8017D638[12] = "Telephone\0\0\x12";
 
 /// Task body of the "Telephone" menu: shows its list once the save has a
 /// clear or the demo scene flag set (otherwise it spawns the fallback panel),
 /// and turns a child's selection into an item prompt.
-void func_dryfield_gas_station_8017EA90(Task* task)
+static void func_dryfield_gas_station_8017EA90(Task* task)
 {
     UiObject* obj;
     UiList*   list;
@@ -874,7 +874,7 @@ void func_dryfield_gas_station_8017ED88(Task* task)
 /// Inserts a '.' into a digit string so `decimals` characters sit after the
 /// point. Walks to the NUL, then shifts the last `min(len, decimals)` bytes
 /// one to the right to open a slot. No-op when `decimals <= 0`.
-void func_dryfield_gas_station_8017EDE4(u8* str, s32 decimals)
+static void func_dryfield_gas_station_8017EDE4(u8* str, s32 decimals)
 {
     s32 len;
 
@@ -909,7 +909,7 @@ void func_dryfield_gas_station_8017EDE4(u8* str, s32 decimals)
 /// digits: zero-padded to `decimals + 1` digits when smaller than
 /// 10^`decimals`, with a '.' inserted before the last `decimals` digits and
 /// "%" appended. Returns `buf`.
-u8* func_dryfield_gas_station_8017EE54(u8* buf, s32 value, s32 decimals)
+static u8* func_dryfield_gas_station_8017EE54(u8* buf, s32 value, s32 decimals)
 {
     s32 limit;
     s32 i;
@@ -980,7 +980,7 @@ void func_dryfield_gas_station_8017EF48(Task* task)
 /// (`arg1`, `arg2`) from the panel origin and `arg3` by `arg4` in size; the
 /// left edge takes colour `arg5` and the right `arg6`. Nothing is drawn for a
 /// zero `arg5` or a width below 2.
-void func_dryfield_gas_station_8017F038(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
+static void func_dryfield_gas_station_8017F038(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
 {
     register s32 dx asm("v1");
     register s32 w asm("t3");
@@ -1076,7 +1076,7 @@ void func_dryfield_gas_station_8017F3B0(DialogPrompt* prompt, UiObject* obj)
 
 /// Exit callback of the help-line box task: releases `Wip_UiHolder` if the
 /// task owns it, then frees the task's UI object and kills it.
-void func_dryfield_gas_station_8017F478(Task* task)
+static void func_dryfield_gas_station_8017F478(Task* task)
 {
     WipUiHolder* holder;
 
@@ -1485,7 +1485,7 @@ void func_dryfield_gas_station_8017FE20(Task* arg0)
 /// (`Mc_SaveData.at4.loc.warp == 1`) it spawns the room's event task and clears the three
 /// progression flags; otherwise it just asks the stage for area 1. Either way
 /// it advances to state 1 and raises the `D_80115598` flag.
-void func_dryfield_gas_station_8017FEDC(Task* arg0)
+static void func_dryfield_gas_station_8017FEDC(Task* arg0)
 {
     arg0->msgTable = &D_dryfield_gas_station_80181E54;
     Game_SetPtrSlot(arg0, 7);
@@ -1502,20 +1502,20 @@ void func_dryfield_gas_station_8017FEDC(Task* arg0)
 }
 
 /// State 1 of the room's main task: does nothing.
-void func_dryfield_gas_station_8017FF84(Task* task)
+static void func_dryfield_gas_station_8017FF84(Task* task)
 {
 }
 
 /// The three states of the room's main task, run by
 /// `func_dryfield_gas_station_8017FF8C`: set-up, the per-frame handler and the
 /// kill.
-const TaskFuncTable3 D_dryfield_gas_station_8017D6A4 = {
+static const TaskFuncTable3 D_dryfield_gas_station_8017D6A4 = {
     { func_dryfield_gas_station_8017FEDC, func_dryfield_gas_station_8017FF84, taskKill },
 };
 
 /// Dispatches the task through the room's three-state table, copied onto the
 /// stack first.
-void func_dryfield_gas_station_8017FF8C(Task* task)
+static void func_dryfield_gas_station_8017FF8C(Task* task)
 {
     TaskFuncTable3 sp;
 

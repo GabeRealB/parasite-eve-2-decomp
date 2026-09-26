@@ -23,13 +23,13 @@ extern s32 D_80115734;
 extern s32 D_80115754;
 extern s16 D_dryfield_toilet_80181120[][3];
 
-void func_dryfield_toilet_8017EE18(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_dryfield_toilet_8017F09C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_dryfield_toilet_8017F4C0(GpCoord* arg0, s32 arg1, u8* rgb);
-void func_dryfield_toilet_8017FA00(GpCoord* coord, s16 size);
-void func_dryfield_toilet_8017FF2C(GpCoord* arg0, s32 arg1);
+static void func_dryfield_toilet_8017EE18(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_dryfield_toilet_8017F09C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_dryfield_toilet_8017F4C0(GpCoord* arg0, s32 arg1, u8* rgb);
+static void func_dryfield_toilet_8017FA00(GpCoord* coord, s16 size);
+static void func_dryfield_toilet_8017FF2C(GpCoord* arg0, s32 arg1);
 
-void func_dryfield_toilet_8017DCF0(Task* arg0)
+static void func_dryfield_toilet_8017DCF0(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -76,7 +76,7 @@ void func_dryfield_toilet_8017DCF0(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void func_dryfield_toilet_8017DEF4(Task* arg0)
+static void func_dryfield_toilet_8017DEF4(Task* arg0)
 {
     GpEffWork*            mem;
     GpCoord*              coord;
@@ -196,7 +196,7 @@ void func_dryfield_toilet_8017DEF4(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void func_dryfield_toilet_8017E64C(Task* arg0)
+static void func_dryfield_toilet_8017E64C(Task* arg0)
 {
     if (arg0->state == 0) {
         D_80115734  = 0x6028A;
@@ -206,7 +206,7 @@ void func_dryfield_toilet_8017E64C(Task* arg0)
     }
 }
 
-void func_dryfield_toilet_8017E69C(Task* arg0)
+static void func_dryfield_toilet_8017E69C(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -323,7 +323,7 @@ void func_dryfield_toilet_8017E69C(Task* arg0)
 /// animation frame; it releases its work block after 20 ticks. It pauses while
 /// the room's event state is set and releases the block when that state
 /// reaches 4.
-void func_dryfield_toilet_8017EBF4(Task* task)
+static void func_dryfield_toilet_8017EBF4(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -377,7 +377,7 @@ void func_dryfield_toilet_8017EBF4(Task* task)
 /// position of `arg0`, of half-size `arg2` scaled by depth. `arg1 & 3` picks
 /// the animation frame from a row of four 24-texel frames and `arg3` is the
 /// grey level. Nothing is drawn when the projection overflows.
-void func_dryfield_toilet_8017EE18(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_dryfield_toilet_8017EE18(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -457,7 +457,7 @@ void func_dryfield_toilet_8017EE18(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 /// Queues a gouraud ring of sixteen quads around the projected world position
 /// of `arg0`: black at radius `arg1` and shaded `rgb` at radius `arg1 + arg2`,
 /// both scaled by depth. Nothing is drawn when the projection overflows.
-void func_dryfield_toilet_8017F09C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_dryfield_toilet_8017F09C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     GpArcScratch* block;
     POLY_G4*      prim;
@@ -511,7 +511,7 @@ void func_dryfield_toilet_8017F09C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 /// Queues a gouraud disc of eight wedges around the projected world position
 /// of `arg0`, shaded `rgb` at the centre and black at the rim, of radius
 /// `arg1` scaled by depth. Nothing is drawn when the projection overflows.
-void func_dryfield_toilet_8017F4C0(GpCoord* arg0, s32 arg1, u8* rgb)
+static void func_dryfield_toilet_8017F4C0(GpCoord* arg0, s32 arg1, u8* rgb)
 {
     GpRingScratch* block;
     POLY_G4*       prim;
@@ -562,7 +562,7 @@ void func_dryfield_toilet_8017F4C0(GpCoord* arg0, s32 arg1, u8* rgb)
 /// level has run down the main level fades too, and the work block is
 /// released when it is nearly gone. It pauses while the room's event state is
 /// set and releases the block when that state reaches 4.
-void func_dryfield_toilet_8017F854(Task* arg0)
+static void func_dryfield_toilet_8017F854(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;
@@ -618,7 +618,7 @@ void func_dryfield_toilet_8017F854(Task* arg0)
 /// depth, plus a flat quad on the ground beneath it when there is ground. It
 /// also places the `Gp_RoomCoords[2]` light at the coordinate with a randomly
 /// flickering intensity. Nothing is drawn when the projection overflows.
-void func_dryfield_toilet_8017FA00(GpCoord* coord, s16 size)
+static void func_dryfield_toilet_8017FA00(GpCoord* coord, s16 size)
 {
     GpCoord        ground;
     POLY_FT4*      prim;
@@ -748,7 +748,7 @@ void func_dryfield_toilet_8017FA00(GpCoord* coord, s16 size)
 /// and projected. It is tinted `(0x30, 0x20, 0x20)` and alternates between two
 /// texture frames on the display's animation frame counter. Nothing is drawn
 /// when the projection overflows.
-void func_dryfield_toilet_8017FF2C(GpCoord* arg0, s32 arg1)
+static void func_dryfield_toilet_8017FF2C(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;

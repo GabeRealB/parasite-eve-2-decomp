@@ -16,12 +16,12 @@ extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 /// to the room's handlers, closed by id 0x7FFFFFFF.
 extern GpMsgEntry D_shelter_b1_storeroom_80184968[];
 
-void func_shelter_b1_storeroom_8017D740(Task* task);
-void func_shelter_b1_storeroom_8017D78C(Task* task);
+static void func_shelter_b1_storeroom_8017D740(Task* task);
+static void func_shelter_b1_storeroom_8017D78C(Task* task);
 
 /// The room task's three states, dispatched by
 /// `func_shelter_b1_storeroom_8017D794`: install the message table, idle, end.
-const TaskFuncTable3 D_shelter_b1_storeroom_8017D5C4 = {
+static const TaskFuncTable3 D_shelter_b1_storeroom_8017D5C4 = {
     { func_shelter_b1_storeroom_8017D740, func_shelter_b1_storeroom_8017D78C, taskKill }
 };
 
@@ -80,7 +80,7 @@ s32 func_shelter_b1_storeroom_8017D6F0(s32 arg0, s32 arg1, s32 arg2)
 
 /// Installs the room's message table on `task`, registers the task in pointer
 /// slot 7, sets `D_80115598` and advances to the idle state.
-void func_shelter_b1_storeroom_8017D740(Task* task)
+static void func_shelter_b1_storeroom_8017D740(Task* task)
 {
     task->msgTable = D_shelter_b1_storeroom_80184968;
     Game_SetPtrSlot(task, 7);
@@ -88,12 +88,12 @@ void func_shelter_b1_storeroom_8017D740(Task* task)
     D_80115598  = 1;
 }
 
-void func_shelter_b1_storeroom_8017D78C(Task* task)
+static void func_shelter_b1_storeroom_8017D78C(Task* task)
 {
 }
 
 /// Runs the handler for the task's state from the room's state table.
-void func_shelter_b1_storeroom_8017D794(Task* task)
+static void func_shelter_b1_storeroom_8017D794(Task* task)
 {
     TaskFuncTable3 sp;
 

@@ -31,6 +31,4 @@ typedef struct ApGreyLevels {
     u8 level[3];
 } ApGreyLevels;
 
-extern const ApGreyLevels D_acropolis_patio_8017D5E8;
-
 #endif

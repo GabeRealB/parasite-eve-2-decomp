@@ -125,7 +125,7 @@ void func_dryfield_night_motel_loft_8017D7EC(u8 arg0)
 /// pointer slot 7 and, once the slot-4 task exists and game nibble 0x96 is set,
 /// raises the 0x7DB payload's halfword and sends it to that task. It then sets
 /// the grid for flag 0xA and advances to the next state.
-void func_dryfield_night_motel_loft_8017D808(Task* arg0)
+static void func_dryfield_night_motel_loft_8017D808(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_motel_loft_8017EB1C;
     Game_SetPtrSlot(arg0, 7);
@@ -141,7 +141,7 @@ void func_dryfield_night_motel_loft_8017D808(Task* arg0)
 /// flag 0xA, clears bit 0x40 of `field_4A` while the flag is 2, and the first
 /// time collected bit 0x117 is seen with nibble 0x96 still clear and the slot-4
 /// task present, sets the nibble and starts the room's event.
-void func_dryfield_night_motel_loft_8017D8B0(Task* arg0)
+static void func_dryfield_night_motel_loft_8017D8B0(Task* arg0)
 {
     func_dryfield_night_motel_loft_8017D9BC(Gp_GetCurBit2Flag(0xA) == 2);
     if (Gp_GetCurBit2Flag(0xA) == 2) {
@@ -156,13 +156,13 @@ void func_dryfield_night_motel_loft_8017D8B0(Task* arg0)
 }
 
 /// The room task's three states.
-const TaskFuncTable3 D_dryfield_night_motel_loft_8017D5C4 = {
+static const TaskFuncTable3 D_dryfield_night_motel_loft_8017D5C4 = {
     { func_dryfield_night_motel_loft_8017D808, func_dryfield_night_motel_loft_8017D8B0, taskKill },
 };
 
 /// The room task's callback: runs the state `Task::state` selects from a
 /// stack copy of `D_dryfield_night_motel_loft_8017D5C4`.
-void func_dryfield_night_motel_loft_8017D964(Task* task)
+static void func_dryfield_night_motel_loft_8017D964(Task* task)
 {
     TaskFuncTable3 sp;
 

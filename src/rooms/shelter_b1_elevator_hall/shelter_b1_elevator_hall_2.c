@@ -44,23 +44,23 @@ extern RoomHaloShade D_shelter_b1_elevator_hall_80182DD4[];
 extern SVECTOR D_shelter_b1_elevator_hall_80182DE8[];
 extern SVECTOR D_shelter_b1_elevator_hall_80182DF0;
 
-void func_shelter_b1_elevator_hall_8017DEB0(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b1_elevator_hall_8017E9C0(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
-void func_shelter_b1_elevator_hall_8017EC84(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b1_elevator_hall_8017F0A8(GpCoord* arg0, s16 arg1, u8* arg2);
-void func_shelter_b1_elevator_hall_8017F980(GpCoord* coord, s16 size);
-void func_shelter_b1_elevator_hall_8017FEAC(GpCoord* arg0, s32 arg1);
-void func_shelter_b1_elevator_hall_80180224(GpCoord* arg0, s16 arg1, u8* arg2);
-void func_shelter_b1_elevator_hall_80180FBC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_b1_elevator_hall_801813E8(GpCoord* arg0, s16 arg1, u8* arg2);
-void func_shelter_b1_elevator_hall_80181C6C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-void func_shelter_b1_elevator_hall_801822EC(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_b1_elevator_hall_8017DEB0(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b1_elevator_hall_8017E9C0(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
+static void func_shelter_b1_elevator_hall_8017EC84(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_b1_elevator_hall_8017F0A8(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_b1_elevator_hall_8017F980(GpCoord* coord, s16 size);
+static void func_shelter_b1_elevator_hall_8017FEAC(GpCoord* arg0, s32 arg1);
+static void func_shelter_b1_elevator_hall_80180224(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_b1_elevator_hall_80180FBC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_b1_elevator_hall_801813E8(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_b1_elevator_hall_80181C6C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+static void func_shelter_b1_elevator_hall_801822EC(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// On the task's first tick stores seven room-specific values into resident
 /// gameplay globals, then draws the `func_shelter_b1_elevator_hall_8017DEB0`
 /// placements the current camera view shows. Views 2 and 9 share their last
 /// placement, `D_shelter_b1_elevator_hall_80182CF4[26]`.
-void func_shelter_b1_elevator_hall_8017DC80(Task* arg0)
+static void func_shelter_b1_elevator_hall_8017DC80(Task* arg0)
 {
     if (arg0->state == 0) {
         D_80115728  = 0x60245;
@@ -130,7 +130,7 @@ void func_shelter_b1_elevator_hall_8017DC80(Task* arg0)
 /// `(s16)arg1 * 64 / otz` at each end. The lit vertices take the colour packed
 /// in `arg2`'s low twelve bits (4 bits per channel, moved into the high
 /// nibble), with bit 0 of the frame counter blended in as 8.
-void func_shelter_b1_elevator_hall_8017DEB0(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b1_elevator_hall_8017DEB0(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**                   scratch;
     u8*                      head;
@@ -278,7 +278,7 @@ void func_shelter_b1_elevator_hall_8017DEB0(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// in. Either way it is drawn by `func_shelter_b1_elevator_hall_8017E9C0` on
 /// every other frame, fades out over the last eight frames of its lifetime and
 /// releases its work block once dark, or when the room's event state reaches 4.
-void func_shelter_b1_elevator_hall_8017E6F4(Task* task)
+static void func_shelter_b1_elevator_hall_8017E6F4(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -362,7 +362,7 @@ void func_shelter_b1_elevator_hall_8017E6F4(Task* task)
 /// on-screen half-size `(arg2 & 0xFFF) * 23 / (otz + 1)`. `arg2`'s top nibble
 /// and `arg1`'s low two bits pick the 24-texel cell; `arg3`'s low byte is the
 /// grey level and its top nibble picks the CLUT.
-void func_shelter_b1_elevator_hall_8017E9C0(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
+static void func_shelter_b1_elevator_hall_8017E9C0(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -439,7 +439,7 @@ void func_shelter_b1_elevator_hall_8017E9C0(GpCoord* arg0, u16 arg1, u16 arg2, u
 /// `(s16)arg1 * 64 / (otz + 1)` and `(s16)(arg1 + arg2) * 64 / (otz + 1)`,
 /// black on the first and `rgb` on the second. Callers truncate `arg1` to 16
 /// bits themselves.
-void func_shelter_b1_elevator_hall_8017EC84(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_shelter_b1_elevator_hall_8017EC84(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -494,7 +494,7 @@ void func_shelter_b1_elevator_hall_8017EC84(GpCoord* arg0, s32 arg1, s32 arg2, u
 /// projects, queues a disc of eight gouraud `POLY_G4` quads of on-screen
 /// radius `arg1 * 64 / (otz + 1)`, coloured `arg2` at the centre and black at
 /// the rim.
-void func_shelter_b1_elevator_hall_8017F0A8(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b1_elevator_hall_8017F0A8(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -548,7 +548,7 @@ void func_shelter_b1_elevator_hall_8017F0A8(GpCoord* arg0, s16 arg1, u8* arg2)
 /// brightens over that many frames, drawing two halos and a ring tinted by the
 /// shade entry, and afterwards fades out through
 /// `func_shelter_b1_elevator_hall_80180224` before releasing its work block.
-void func_shelter_b1_elevator_hall_8017F43C(Task* arg0)
+static void func_shelter_b1_elevator_hall_8017F43C(Task* arg0)
 {
     u8          rgb[3];
     GpEffWork*  mem;
@@ -636,7 +636,7 @@ kill:
 /// warm tint. It first draws a ring that widens while its brightness drops by
 /// 0x18 a frame; once the ring has faded the halo dims at the same rate, and
 /// the task releases its work block when it is nearly dark.
-void func_shelter_b1_elevator_hall_8017F7D4(Task* arg0)
+static void func_shelter_b1_elevator_hall_8017F7D4(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;
@@ -692,7 +692,7 @@ void func_shelter_b1_elevator_hall_8017F7D4(Task* arg0)
 /// `func_shelter_b1_elevator_hall_8017FEAC` draws under it. Also feeds the
 /// `Gp_RoomCoords[2]` light a flickering intensity at the coordinate's position.
 /// Draws nothing when the point fails to project.
-void func_shelter_b1_elevator_hall_8017F980(GpCoord* coord, s16 size)
+static void func_shelter_b1_elevator_hall_8017F980(GpCoord* coord, s16 size)
 {
     GpCoord        ground;
     POLY_FT4*      prim;
@@ -823,7 +823,7 @@ void func_shelter_b1_elevator_hall_8017F980(GpCoord* coord, s16 size)
 /// `POLY_FT4` (tpage 0x28, clut 0x428C, colour `(0x30, 0x20, 0x20)`) whose
 /// texture column alternates between two 32-texel frames with the frame
 /// counter.
-void func_shelter_b1_elevator_hall_8017FEAC(GpCoord* arg0, s32 arg1)
+static void func_shelter_b1_elevator_hall_8017FEAC(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;
@@ -911,7 +911,7 @@ void func_shelter_b1_elevator_hall_8017FEAC(GpCoord* arg0, s32 arg1)
 /// `arg1 * 64 / (otz + 1)` at half the colour `arg2`, the same disc at half
 /// size and full colour, and a four-pointed cross at half colour, all fading
 /// to black at the rim.
-void func_shelter_b1_elevator_hall_80180224(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b1_elevator_hall_80180224(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -1032,7 +1032,7 @@ void func_shelter_b1_elevator_hall_80180224(GpCoord* arg0, s16 arg1, u8* arg2)
 /// Emitter task: for twenty frames spawns the effect whose id is in
 /// `D_80115728` at its coordinate each frame, moving outward along a randomly
 /// advancing angle and upward faster with age, then releases its work block.
-void func_shelter_b1_elevator_hall_80180BE4(Task* arg0)
+static void func_shelter_b1_elevator_hall_80180BE4(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -1070,7 +1070,7 @@ void func_shelter_b1_elevator_hall_80180BE4(Task* arg0)
 /// and a shrinking ring; at the peak it tints the screen with a fade quad, then
 /// fades out through `func_shelter_b1_elevator_hall_801822EC` and releases its
 /// work block.
-void func_shelter_b1_elevator_hall_80180D18(Task* arg0)
+static void func_shelter_b1_elevator_hall_80180D18(Task* arg0)
 {
     u8                rgb[3];
     GpEffWork*        mem;
@@ -1142,7 +1142,7 @@ kill:
 /// The same ring as `func_shelter_b1_elevator_hall_8017EC84`, built in a
 /// scratch block with its fields in a different order. Callers truncate `arg1`
 /// to 16 bits themselves.
-void func_shelter_b1_elevator_hall_80180FBC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_shelter_b1_elevator_hall_80180FBC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -1198,7 +1198,7 @@ void func_shelter_b1_elevator_hall_80180FBC(GpCoord* arg0, s32 arg1, s32 arg2, u
 
 /// An instruction-for-instruction copy of
 /// `func_shelter_b1_elevator_hall_8017F0A8`.
-void func_shelter_b1_elevator_hall_801813E8(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b1_elevator_hall_801813E8(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -1251,7 +1251,7 @@ void func_shelter_b1_elevator_hall_801813E8(GpCoord* arg0, s16 arg1, u8* arg2)
 /// offset from the same parent. Each later frame it records the two anchors'
 /// current positions in the next slot and draws the trail between the rings,
 /// releasing its work block after the number of frames in its spawn argument.
-void func_shelter_b1_elevator_hall_8018177C(Task* task)
+static void func_shelter_b1_elevator_hall_8018177C(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -1346,7 +1346,7 @@ void func_shelter_b1_elevator_hall_8018177C(Task* task)
 /// Draws a trail of seven gouraud quads between two eight-slot rings of
 /// coordinates, walking back from slot `arg2` and fading with age. `arg3`
 /// packs the colour as 2-bit channel multipliers at bits 8, 4 and 0.
-void func_shelter_b1_elevator_hall_80181C6C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_shelter_b1_elevator_hall_80181C6C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
     GpCoord*           a;
@@ -1454,7 +1454,7 @@ void func_shelter_b1_elevator_hall_80181C6C(GpCoord* arg0, GpCoord* arg1, s16 ar
 /// a non-zero spawn argument) sprays randomly directed sparks for seven frames,
 /// or spawns two effects 0x6007C and draws two widening, dimming rings for
 /// seven frames, before releasing its work block.
-void func_shelter_b1_elevator_hall_80182064(Task* task)
+static void func_shelter_b1_elevator_hall_80182064(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;
@@ -1524,7 +1524,7 @@ void func_shelter_b1_elevator_hall_80182064(Task* task)
 
 /// An instruction-for-instruction copy of
 /// `func_shelter_b1_elevator_hall_80180224`.
-void func_shelter_b1_elevator_hall_801822EC(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b1_elevator_hall_801822EC(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

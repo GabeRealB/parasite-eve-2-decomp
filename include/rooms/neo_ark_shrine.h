@@ -29,15 +29,6 @@ typedef struct {
     /* 0x0F */ s8  field_F;
 } NeoArkShrineScript;
 
-/// State table of the shrine's cap script task, indexed by `Task::state`.
-extern const TaskFuncTable16 D_neo_ark_shrine_8017D5D0;
-
-/// State table of the shrine's first falling prop, indexed by `Task::state`.
-extern const TaskFuncTable4 D_neo_ark_shrine_8017D610;
-
-/// State table of the shrine's second falling prop, indexed by `Task::state`.
-extern const TaskFuncTable3 D_neo_ark_shrine_8017D620;
-
 /// Hotspot table of the shrine's cap script, terminated by an `id` of -1.
 extern OverlayHotspot D_neo_ark_shrine_80182430[];
 
@@ -68,26 +59,7 @@ void func_neo_ark_shrine_8017DF7C(void);
 void func_neo_ark_shrine_8017EAC0();
 
 s32  func_neo_ark_shrine_8017EC10(OverlayHotspot* table, s16 x, s16 y);
-void func_neo_ark_shrine_8017ECC4(Task* task);
-void func_neo_ark_shrine_8017EDAC(Task* task);
-void func_neo_ark_shrine_8017EDE0(Task* task);
-void func_neo_ark_shrine_8017EE44(Task* task);
-void func_neo_ark_shrine_8017EED4(Task* task);
-void func_neo_ark_shrine_8017EF68(Task* task);
-void func_neo_ark_shrine_8017EFE4(Task* task);
-void func_neo_ark_shrine_8017F094(Task* task);
-void func_neo_ark_shrine_8017F0F0(Task* task);
-void func_neo_ark_shrine_8017F178(Task* task);
-void func_neo_ark_shrine_8017F21C(Task* task);
-void func_neo_ark_shrine_8017F274(Task* task);
-void func_neo_ark_shrine_8017F320(Task* task);
-void func_neo_ark_shrine_8017F398(Task* task);
 void func_neo_ark_shrine_8017F448(void);
-void func_neo_ark_shrine_8017F4C8(Task* task);
-void func_neo_ark_shrine_8017F578(Task* task);
-void func_neo_ark_shrine_8017F640(Task* task);
-void func_neo_ark_shrine_8017F688(Task* task);
-void func_neo_ark_shrine_8017F738(Task* task);
 
 void func_neo_ark_shrine_8017D9A0(Task* task);
 void func_neo_ark_shrine_8017DB10(Task* arg0);

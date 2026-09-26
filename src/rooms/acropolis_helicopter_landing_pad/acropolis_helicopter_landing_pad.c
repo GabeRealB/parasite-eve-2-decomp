@@ -60,13 +60,13 @@ extern s8 D_acropolis_helicopter_landing_pad_80182370[];
 extern GpXformArg D_acropolis_helicopter_landing_pad_80182394;
 extern GpXformArg D_acropolis_helicopter_landing_pad_801823AC;
 
-void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task);
-s32  func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, GpXformArg* placement, s32 arg3);
+static void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task);
+s32         func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, GpXformArg* placement, s32 arg3);
 
 /// State-0 entry of the room's enemy task: allocates the 0x54-byte work block
 /// into `Task::work`, marks the model (`field_E = 8`, clears bit 0x80 of
 /// `field_C`), runs the placement setup and installs the message table.
-void func_acropolis_helicopter_landing_pad_8017D658(Task* task)
+static void func_acropolis_helicopter_landing_pad_8017D658(Task* task)
 {
     TmdObject* obj = task->extra.tmd;
     void*      mem;
@@ -91,7 +91,7 @@ void func_acropolis_helicopter_landing_pad_8017D658(Task* task)
 /// countdown is clamped at zero once it expires. When `gGameSession->viewReady`
 /// is set, the model is hidden (bit 0x80 of `field_C`) in every camera view
 /// whose entry in the per-view table is zero and shown again otherwise.
-void func_acropolis_helicopter_landing_pad_8017D6E0(Task* task)
+static void func_acropolis_helicopter_landing_pad_8017D6E0(Task* task)
 {
     AhlpEnemyWork* work  = (AhlpEnemyWork*)task->work;
     GpCoord*       coord = task->extra.tmd->coords;
@@ -118,7 +118,7 @@ void func_acropolis_helicopter_landing_pad_8017D6E0(Task* task)
 
 /// Points the model's light / colour matrices at the work block's own copies
 /// and loads the room's three flat lights into them.
-void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task)
+static void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task)
 {
     AhlpEnemyWork* work = (AhlpEnemyWork*)task->work;
     TmdObject*     obj  = task->extra.tmd;
@@ -186,14 +186,14 @@ s32 func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, GpXfor
 /// State handlers of the enemy task `func_acropolis_helicopter_landing_pad_8017D964`,
 /// indexed by `Task::state`: set-up, the per-frame model update and
 /// `Gp_EnemyTaskExit`.
-const TaskFuncTable3 D_acropolis_helicopter_landing_pad_8017D5C4 = {
+static const TaskFuncTable3 D_acropolis_helicopter_landing_pad_8017D5C4 = {
     { func_acropolis_helicopter_landing_pad_8017D658, func_acropolis_helicopter_landing_pad_8017D6E0, Gp_EnemyTaskExit },
 };
 
 /// The enemy task: runs the state handler
 /// `D_acropolis_helicopter_landing_pad_8017D5C4` names for `Task::state`,
 /// through a copy of the table taken onto the stack.
-void func_acropolis_helicopter_landing_pad_8017D964(Task* task)
+static void func_acropolis_helicopter_landing_pad_8017D964(Task* task)
 {
     TaskFuncTable3 sp;
 

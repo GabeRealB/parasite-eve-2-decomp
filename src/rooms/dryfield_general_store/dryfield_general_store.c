@@ -53,8 +53,8 @@ extern s32        D_dryfield_general_store_8017E560;
 extern s32        D_dryfield_general_store_8017E564;
 extern s32        D_dryfield_general_store_8017E568;
 
-void func_dryfield_general_store_8017DEAC(Task* arg0);
-void func_dryfield_general_store_8017DF4C(Task* task);
+static void func_dryfield_general_store_8017DEAC(Task* arg0);
+static void func_dryfield_general_store_8017DF4C(Task* task);
 
 /// The room's event gate, through which the clock arm of
 /// `func_dryfield_general_store_8017D8D4` passes its warp. Returns 1 when game-flag
@@ -63,7 +63,7 @@ void func_dryfield_general_store_8017DF4C(Task* task);
 /// unless `msg->field_5` asks for a dry run - latches `msg` and `req`, sets
 /// the nibble and spawns the event task. When the item is missing it returns
 /// 0 and, outside a dry run, runs cap command `req->field_4`.
-s32 func_dryfield_general_store_8017D600(RoomEventReq* req, RoomEventMsg* msg)
+static s32 func_dryfield_general_store_8017D600(RoomEventReq* req, RoomEventMsg* msg)
 {
     s32 flag;
     s32 id;
@@ -317,7 +317,7 @@ void func_dryfield_general_store_8017DAC0(Task* arg0)
 /// `func_dryfield_general_store_8017DF5C`: the entry state
 /// `func_dryfield_general_store_8017DEAC`, the idle state
 /// `func_dryfield_general_store_8017DF4C`, then `taskKill`.
-const TaskFuncTable3 D_dryfield_general_store_8017D5F4 = {
+static const TaskFuncTable3 D_dryfield_general_store_8017D5F4 = {
     { func_dryfield_general_store_8017DEAC, func_dryfield_general_store_8017DF4C, taskKill },
 };
 
@@ -411,7 +411,7 @@ s32 func_dryfield_general_store_8017DDFC(Task* task, s32 msgId, RoomEventMsg* ar
     return 0;
 }
 
-void func_dryfield_general_store_8017DEAC(Task* arg0)
+static void func_dryfield_general_store_8017DEAC(Task* arg0)
 {
     arg0->msgTable = D_dryfield_general_store_8017E188;
     Game_SetPtrSlot(arg0, 7);
@@ -426,14 +426,14 @@ void func_dryfield_general_store_8017DEAC(Task* arg0)
 
 /// Idle state of the room task: does nothing, though it reserves a stack
 /// frame.
-void func_dryfield_general_store_8017DF4C(Task* task)
+static void func_dryfield_general_store_8017DF4C(Task* task)
 {
     char pad[0x10];
 }
 
 /// The room task: runs the state `D_dryfield_general_store_8017D5F4` names for
 /// `task->state`, through a stack copy of the table.
-void func_dryfield_general_store_8017DF5C(Task* task)
+static void func_dryfield_general_store_8017DF5C(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -491,6 +491,6 @@ void func_dryfield_general_store_8017E130(s32 arg0)
     Gp_ArmStateF0(arg0);
 }
 
-void func_dryfield_general_store_8017E150(void)
+static void func_dryfield_general_store_8017E150(void)
 {
 }

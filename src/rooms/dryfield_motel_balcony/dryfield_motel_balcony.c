@@ -58,14 +58,14 @@ extern RoomEventReq D_dryfield_motel_balcony_80186730;
 /// event task; every call clears it first.
 extern u8 D_dryfield_motel_balcony_8018672C;
 
-void func_dryfield_motel_balcony_8017DF84(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
-void func_dryfield_motel_balcony_8017EF44(GpCoord* coord, s16 size);
-void func_dryfield_motel_balcony_8017F470(GpCoord* arg0, s32 arg1);
-void func_dryfield_motel_balcony_8017F7E8(GpCoord* arg0, s16 arg1, u8* arg2);
-void func_dryfield_motel_balcony_80180580(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_dryfield_motel_balcony_801809AC(GpCoord* arg0, s16 arg1, u8* arg2);
-void func_dryfield_motel_balcony_80181230(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-void func_dryfield_motel_balcony_801818B0(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_dryfield_motel_balcony_8017DF84(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
+static void func_dryfield_motel_balcony_8017EF44(GpCoord* coord, s16 size);
+static void func_dryfield_motel_balcony_8017F470(GpCoord* arg0, s32 arg1);
+static void func_dryfield_motel_balcony_8017F7E8(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_dryfield_motel_balcony_80180580(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_dryfield_motel_balcony_801809AC(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_dryfield_motel_balcony_80181230(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+static void func_dryfield_motel_balcony_801818B0(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// The balcony's event gate. A request whose flag nibble already records the
 /// event (a set nibble, or a clear one for a negative `flagId`) answers 1. One
@@ -73,7 +73,7 @@ void func_dryfield_motel_balcony_801818B0(GpCoord* arg0, s16 arg1, u8* arg2);
 /// command and answers 0. Otherwise the gate answers 2 and - unless the
 /// message's `field_5` asks for a dry run - latches the message and the
 /// request, writes the flag nibble and spawns the event task.
-s32 func_dryfield_motel_balcony_8017D5E8(RoomEventReq* req, RoomEventMsg* msg)
+static s32 func_dryfield_motel_balcony_8017D5E8(RoomEventReq* req, RoomEventMsg* msg)
 {
     s32 flag;
     s32 id;
@@ -278,7 +278,7 @@ s32 func_dryfield_motel_balcony_8017DB7C(void)
 
 /// Room task state 0: installs the room's message table, registers the task
 /// in pointer slot 7 and advances to the next state.
-void func_dryfield_motel_balcony_8017DB84(Task* task)
+static void func_dryfield_motel_balcony_8017DB84(Task* task)
 {
     task->msgTable = D_dryfield_motel_balcony_8018227C;
     Game_SetPtrSlot(task, 7);
@@ -286,12 +286,12 @@ void func_dryfield_motel_balcony_8017DB84(Task* task)
 }
 
 /// Room task state 1: idles.
-void func_dryfield_motel_balcony_8017DBC8(Task* arg0)
+static void func_dryfield_motel_balcony_8017DBC8(Task* arg0)
 {
 }
 
 /// The room task's three states: setup, idle and exit.
-const TaskFuncTable3 D_dryfield_motel_balcony_8017D5DC = {
+static const TaskFuncTable3 D_dryfield_motel_balcony_8017D5DC = {
     func_dryfield_motel_balcony_8017DB84,
     func_dryfield_motel_balcony_8017DBC8,
     taskKill,
@@ -299,7 +299,7 @@ const TaskFuncTable3 D_dryfield_motel_balcony_8017D5DC = {
 
 /// Runs the room task's current state from its state table, dispatching
 /// through a copy of the table taken onto the stack.
-void func_dryfield_motel_balcony_8017DBD0(Task* task)
+static void func_dryfield_motel_balcony_8017DBD0(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -309,7 +309,7 @@ void func_dryfield_motel_balcony_8017DBD0(Task* task)
 
 /// On its first tick, stores the room's seven effect ids into the gameplay
 /// slots `D_80115720`..`D_80115758`, then idles.
-void func_dryfield_motel_balcony_8017DC28(Task* arg0)
+static void func_dryfield_motel_balcony_8017DC28(Task* arg0)
 {
     if (arg0->state == 0) {
         D_80115728  = 0x60282;
@@ -330,7 +330,7 @@ void func_dryfield_motel_balcony_8017DC28(Task* arg0)
 /// vertically and draw every other tick, fade out over the last eight ticks of
 /// the lifetime, and release the work block when dark or once the event state
 /// reaches 4.
-void func_dryfield_motel_balcony_8017DCB8(Task* task)
+static void func_dryfield_motel_balcony_8017DCB8(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -415,7 +415,7 @@ void func_dryfield_motel_balcony_8017DCB8(Task* task)
 /// `arg2`'s top nibble pick the 24-texel texture cell, `arg2`'s low twelve
 /// bits are the half-extent (scaled by 23 / (otz + 1)), `arg3`'s low byte is
 /// the grey level and its top nibble picks the palette.
-void func_dryfield_motel_balcony_8017DF84(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
+static void func_dryfield_motel_balcony_8017DF84(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -492,7 +492,7 @@ void func_dryfield_motel_balcony_8017DF84(GpCoord* arg0, u16 arg1, u16 arg2, u16
 /// forming a ring between the radii `(s16)arg1` and `(s16)(arg1 + arg2)`,
 /// each scaled by 64 / (otz + 1). The edge at the first radius is black and
 /// the edge at the second takes the colour `rgb`.
-void func_dryfield_motel_balcony_8017E248(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_dryfield_motel_balcony_8017E248(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -547,7 +547,7 @@ void func_dryfield_motel_balcony_8017E248(GpCoord* arg0, s32 arg1, s32 arg2, u8*
 /// the GTE flags the projection, queues a fan of eight gouraud `POLY_G4`
 /// wedges around it, of radius `arg1 * 64 / (otz + 1)`: black at the rim and
 /// coloured `arg2` at the centre.
-void func_dryfield_motel_balcony_8017E66C(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_dryfield_motel_balcony_8017E66C(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -601,7 +601,7 @@ void func_dryfield_motel_balcony_8017E66C(GpCoord* arg0, s16 arg1, u8* arg2)
 /// spawn argument; state 1 ramps the level up, drawing the halo (plus a
 /// half-bright copy on odd ticks) and a ring shrinking inwards; state 2 fades
 /// the level out through the afterglow draw before the work block is released.
-void func_dryfield_motel_balcony_8017EA00(Task* arg0)
+static void func_dryfield_motel_balcony_8017EA00(Task* arg0)
 {
     u8          rgb[3];
     GpEffWork*  mem;
@@ -688,7 +688,7 @@ kill:
 /// ring at a growing angle, and while its echo level lasts a wider ring
 /// fading out behind them; the work block is released once the main level
 /// runs down.
-void func_dryfield_motel_balcony_8017ED98(Task* arg0)
+static void func_dryfield_motel_balcony_8017ED98(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;
@@ -745,7 +745,7 @@ void func_dryfield_motel_balcony_8017ED98(Task* arg0)
 /// ground beneath it. It also points the `Gp_RoomCoords[2]` light at the
 /// coordinate with a randomly flickering intensity. Nothing is drawn when the
 /// GTE flags the projection.
-void func_dryfield_motel_balcony_8017EF44(GpCoord* coord, s16 size)
+static void func_dryfield_motel_balcony_8017EF44(GpCoord* coord, s16 size)
 {
     GpCoord        ground;
     POLY_FT4*      prim;
@@ -875,7 +875,7 @@ void func_dryfield_motel_balcony_8017EF44(GpCoord* coord, s16 size)
 /// the view matrix and projected through `GsWSMATRIX`. Unless the GTE flags
 /// the projection, the quad is coloured (0x30, 0x20, 0x20) and its texture
 /// alternates between two 32-pixel columns on successive frames.
-void func_dryfield_motel_balcony_8017F470(GpCoord* arg0, s32 arg1)
+static void func_dryfield_motel_balcony_8017F470(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;
@@ -964,7 +964,7 @@ void func_dryfield_motel_balcony_8017F470(GpCoord* arg0, s32 arg1)
 /// black at the tips: a fan of radius `arg1 * 64 / (otz + 1)`, a brighter
 /// fan of half that radius, and spikes reaching between the two radii
 /// derived from `arg1`.
-void func_dryfield_motel_balcony_8017F7E8(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_dryfield_motel_balcony_8017F7E8(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -1085,7 +1085,7 @@ void func_dryfield_motel_balcony_8017F7E8(GpCoord* arg0, s16 arg1, u8* arg2)
 /// A spark-spray effect task: for twenty ticks it turns its heading by a
 /// random step and spawns effect `D_80115728` at its coordinate moving along
 /// that heading, rising faster each tick, then releases its work block.
-void func_dryfield_motel_balcony_801801A8(Task* arg0)
+static void func_dryfield_motel_balcony_801801A8(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -1122,7 +1122,7 @@ void func_dryfield_motel_balcony_801801A8(Task* arg0)
 /// drawing two fans and an inward-shrinking ring in a colour derived from the
 /// level, and queues a fade quad in that colour when it peaks; state 2 fades
 /// out through the star draw before the work block is released.
-void func_dryfield_motel_balcony_801802DC(Task* arg0)
+static void func_dryfield_motel_balcony_801802DC(Task* arg0)
 {
     u8                rgb[3];
     GpEffWork*        mem;
@@ -1195,7 +1195,7 @@ kill:
 /// position, when it projects. The ring runs from radius
 /// `(s16)arg1 * 64 / (otz + 1)`, which is black, to
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`, which takes the colour `rgb`.
-void func_dryfield_motel_balcony_80180580(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_dryfield_motel_balcony_80180580(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -1252,7 +1252,7 @@ void func_dryfield_motel_balcony_80180580(GpCoord* arg0, s32 arg1, s32 arg2, u8*
 /// A second copy of the fan at 0x8017E66C: eight gouraud `POLY_G4` wedges
 /// of radius `arg1 * 64 / (otz + 1)` around the projected coordinate, black
 /// at the rim and coloured `arg2` at the centre.
-void func_dryfield_motel_balcony_801809AC(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_dryfield_motel_balcony_801809AC(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -1306,7 +1306,7 @@ void func_dryfield_motel_balcony_801809AC(GpCoord* arg0, s16 arg1, u8* arg2)
 /// frame's positions into the next slot of both trails, draws the trail
 /// between them, and releases the work block once its age reaches
 /// `spawnArg1`. It does nothing while the event state is 2 or more.
-void func_dryfield_motel_balcony_80180D40(Task* task)
+static void func_dryfield_motel_balcony_80180D40(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -1404,7 +1404,7 @@ void func_dryfield_motel_balcony_80180D40(Task* task)
 /// `0x40 - 9 * i` and the trailing edge's nine less, each multiplied per
 /// channel by the 2-bit fields of `arg3` at bits 8, 4 and 0. Quads the GTE
 /// flags are skipped.
-void func_dryfield_motel_balcony_80181230(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_dryfield_motel_balcony_80181230(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
     GpCoord*           a;
@@ -1513,7 +1513,7 @@ void func_dryfield_motel_balcony_80181230(GpCoord* arg0, GpCoord* arg1, s16 arg2
 /// ticks) or two 0x6007C effects (state 2, which draws two widening rings
 /// that darken over seven ticks). State 3 releases the work block, as does
 /// an event state of 4 or more.
-void func_dryfield_motel_balcony_80181628(Task* task)
+static void func_dryfield_motel_balcony_80181628(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;
@@ -1583,7 +1583,7 @@ void func_dryfield_motel_balcony_80181628(Task* task)
 
 /// A second copy of the star at 0x8017F7E8, drawn around the projected
 /// coordinate in the colour `arg2` at radii derived from `arg1`.
-void func_dryfield_motel_balcony_801818B0(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_dryfield_motel_balcony_801818B0(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

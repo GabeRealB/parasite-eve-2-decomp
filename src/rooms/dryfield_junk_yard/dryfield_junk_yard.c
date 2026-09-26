@@ -50,23 +50,23 @@ extern s32        D_dryfield_junk_yard_8017E3D0;
 extern s32        D_dryfield_junk_yard_8017E490;
 extern s32        D_dryfield_junk_yard_8017E658;
 
-void func_dryfield_junk_yard_8017D658(Task* task);
-void func_dryfield_junk_yard_8017D708(Task* arg0);
-void func_dryfield_junk_yard_8017DC60(Task* task);
+static void func_dryfield_junk_yard_8017D658(Task* task);
+static void func_dryfield_junk_yard_8017D708(Task* arg0);
+static void func_dryfield_junk_yard_8017DC60(Task* task);
 
 /// The room task's states: set up, start the named sequence once the stream
 /// is ready, then `taskKill`.
-const TaskFuncTable3 D_dryfield_junk_yard_8017D5C4 = {
+static const TaskFuncTable3 D_dryfield_junk_yard_8017D5C4 = {
     { func_dryfield_junk_yard_8017D708, func_dryfield_junk_yard_8017DC60, taskKill },
 };
 
 /// Name the room task's second state hands to `func_80724608`.
-const char D_dryfield_junk_yard_8017D5D0[] = "DOG";
+static const char D_dryfield_junk_yard_8017D5D0[] = "DOG";
 
 /// Model task tick: reads the 2-bit game flag named by the spawn object's
 /// `field_8`, clears the model's flags and sets them to 0x84 when the flag
 /// reads 2 (otherwise zeroing `otOffset`), then runs the model's draw below.
-void func_dryfield_junk_yard_8017D5F4(Task* task)
+static void func_dryfield_junk_yard_8017D5F4(Task* task)
 {
     GpItemObj8* obj;
     TmdObject*  tmd;
@@ -87,7 +87,7 @@ void func_dryfield_junk_yard_8017D5F4(Task* task)
 /// Model draw: unless the model's flags carry bit 0x80 or it has no buffer
 /// yet, refreshes its world matrix and draws a 0x1A0 by 0xC0 ground-effect
 /// quad at its world position.
-void func_dryfield_junk_yard_8017D658(Task* task)
+static void func_dryfield_junk_yard_8017D658(Task* task)
 {
     DjyGroundQuadScratch* scratch;
     GpCoord*              coord;
@@ -113,7 +113,7 @@ void func_dryfield_junk_yard_8017D658(Task* task)
 /// 0x39 and starts the `func_800E8634` sequence (once nibble 0x28 has reached
 /// 2) or, on a visit whose `warp` is 2, sends it message 0x3E9. Advances the
 /// state either way.
-void func_dryfield_junk_yard_8017D708(Task* arg0)
+static void func_dryfield_junk_yard_8017D708(Task* arg0)
 {
     arg0->msgTable = D_dryfield_junk_yard_8017DD20;
     Game_SetPtrSlot(arg0, 7);
@@ -292,7 +292,7 @@ void func_dryfield_junk_yard_8017DC54(s8 arg0)
 /// State 1 of the room task: once `gDisplayState.field_112` is non-zero and a slot-0xA
 /// task exists, calls `func_80724608` on that task with the `"DOG"` name. The
 /// state never advances, so it repeats every frame.
-void func_dryfield_junk_yard_8017DC60(Task* task)
+static void func_dryfield_junk_yard_8017DC60(Task* task)
 {
     if ((gDisplayState.field_112 != 0) && (gameGetPtrSlot(0xA) != 0)) {
         func_80724608(gameGetPtrSlot(0xA), -0x8C, 0xA, D_dryfield_junk_yard_8017D5D0);
@@ -301,7 +301,7 @@ void func_dryfield_junk_yard_8017DC60(Task* task)
 
 /// The room task: copies its three-state table to the stack and runs the
 /// entry the task's state selects.
-void func_dryfield_junk_yard_8017DCB4(Task* task)
+static void func_dryfield_junk_yard_8017DCB4(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -310,7 +310,7 @@ void func_dryfield_junk_yard_8017DCB4(Task* task)
 }
 
 /// Sets the room effect mode to 2.
-void func_dryfield_junk_yard_8017DD0C(void)
+static void func_dryfield_junk_yard_8017DD0C(void)
 {
     Gp_State1C->roomEffectMode = 2;
 }

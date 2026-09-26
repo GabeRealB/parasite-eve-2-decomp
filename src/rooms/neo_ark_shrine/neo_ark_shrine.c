@@ -39,7 +39,7 @@ extern NeoArkShrineSlot D_neo_ark_shrine_801825AC[16];
 extern NeoArkShrineSlot D_neo_ark_shrine_801868CC[16];
 
 /// Steps the currently selected group and returns which kind of step it was.
-s16 func_neo_ark_shrine_8017E254(void);
+static s16 func_neo_ark_shrine_8017E254(void);
 
 /// Always returns 0.
 s32 func_neo_ark_shrine_8017D6A4(void)
@@ -118,7 +118,7 @@ void func_neo_ark_shrine_8017D84C(Task* task)
     }
 }
 
-void func_neo_ark_shrine_8017D8F4(Task* task)
+static void func_neo_ark_shrine_8017D8F4(Task* task)
 {
     task->msgTable = D_neo_ark_shrine_80181E34;
     Game_SetPtrSlot(task, 7);
@@ -127,19 +127,19 @@ void func_neo_ark_shrine_8017D8F4(Task* task)
 }
 
 /// Second state of the room task: nothing left to do but idle.
-void func_neo_ark_shrine_8017D940(Task* task)
+static void func_neo_ark_shrine_8017D940(Task* task)
 {
 }
 
 /// State handlers of the room task `func_neo_ark_shrine_8017D948`, indexed by
 /// `Task::state`: the set-up tick, the idle tick, and `taskKill`.
-const TaskFuncTable3 D_neo_ark_shrine_8017D5C4 = {
+static const TaskFuncTable3 D_neo_ark_shrine_8017D5C4 = {
     { func_neo_ark_shrine_8017D8F4, func_neo_ark_shrine_8017D940, taskKill },
 };
 
 /// Room task: runs the state handler `D_neo_ark_shrine_8017D5C4` names for
 /// `Task::state`, through a copy of the table taken onto the stack.
-void func_neo_ark_shrine_8017D948(Task* task)
+static void func_neo_ark_shrine_8017D948(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -299,7 +299,7 @@ void func_neo_ark_shrine_8017DB10(Task* arg0)
 /// Outlines `rect` on screen in (`r`, `g`, `b`) with four unconnected flat
 /// `LINE_F2`s -- top, right, bottom and left edge of the rectangle spanning
 /// (`x`, `y`) to (`x + w`, `y + h`) -- each linked into `gGpuCurrentOt[1]`.
-void func_neo_ark_shrine_8017DD38(RoomRect* rect, u8 r, u8 g, u8 b)
+static void func_neo_ark_shrine_8017DD38(RoomRect* rect, u8 r, u8 g, u8 b)
 {
     LINE_F2* line;
 
@@ -396,7 +396,7 @@ void func_neo_ark_shrine_8017DF7C(void)
     }
 }
 
-s16 func_neo_ark_shrine_8017E254(void)
+static s16 func_neo_ark_shrine_8017E254(void)
 {
     s32 flag;
 

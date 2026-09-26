@@ -22,14 +22,14 @@ extern SVECTOR D_dryfield_night_water_tower_8017E734;
 extern SVECTOR D_dryfield_night_water_tower_8017E73C;
 extern SVECTOR D_dryfield_night_water_tower_8017E744;
 
-void func_dryfield_night_water_tower_8017DC70(SVECTOR* arg0, s32 arg1);
-void func_dryfield_night_water_tower_8017E458(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_dryfield_night_water_tower_8017DC70(SVECTOR* arg0, s32 arg1);
+static void func_dryfield_night_water_tower_8017E458(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// The room's effect draw: sets the room effect mode to 2, then draws the
 /// glow sprites and light shafts at the tower's anchor points that the current
 /// view (`gGameSession->at4.loc.view`) shows. Views 3 and 4 also draw the
 /// light shaft between the two lower rungs.
-void func_dryfield_night_water_tower_8017DB80(void)
+static void func_dryfield_night_water_tower_8017DB80(void)
 {
     Gp_State1C->roomEffectMode = 2;
     switch (gGameSession->at4.loc.view) {
@@ -62,7 +62,7 @@ void func_dryfield_night_water_tower_8017DB80(void)
 /// them. Each radius is `(s16)arg1 * 64` over that point's OTZ. Nothing is
 /// drawn unless both points project. The lit vertices take a brightness that
 /// flickers with the frame counter.
-void func_dryfield_night_water_tower_8017DC70(SVECTOR* arg0, s32 arg1)
+static void func_dryfield_night_water_tower_8017DC70(SVECTOR* arg0, s32 arg1)
 {
     void**                   scratch;
     u8*                      head;
@@ -194,7 +194,7 @@ void func_dryfield_night_water_tower_8017DC70(SVECTOR* arg0, s32 arg1)
 /// `arg0` when it projects. `arg1` picks the 40-texel column of the texture
 /// page and its palette; `arg2` is the half-extent, scaled by 39 over the OTZ
 /// on screen. The sprite's brightness flickers with the frame counter.
-void func_dryfield_night_water_tower_8017E458(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_night_water_tower_8017E458(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw13Scratch* block;
     POLY_FT4*          prim;

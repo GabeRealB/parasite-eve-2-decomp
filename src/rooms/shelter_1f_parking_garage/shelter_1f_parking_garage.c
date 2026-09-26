@@ -51,15 +51,15 @@ extern u8               D_shelter_1f_parking_garage_80181984;
 extern RoomDeparture    D_shelter_1f_parking_garage_80181988;
 extern RoomLatchedEvent D_shelter_1f_parking_garage_80181998;
 
-s32  func_shelter_1f_parking_garage_8017D6AC(RoomEventMsg* in, RoomEventMsg* out);
-void func_shelter_1f_parking_garage_8017DE9C(Task* task);
-void func_shelter_1f_parking_garage_8017DF04(Task* task);
-void func_shelter_1f_parking_garage_8017E080(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_shelter_1f_parking_garage_8017E868(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_1f_parking_garage_8017EEB0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_1f_parking_garage_8017F2DC(GpCoord* arg0, s16 arg1, u8* rgb);
-void func_shelter_1f_parking_garage_8017FB60(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-void func_shelter_1f_parking_garage_801801E0(GpCoord* arg0, s16 arg1, u8* arg2);
+static s32  func_shelter_1f_parking_garage_8017D6AC(RoomEventMsg* in, RoomEventMsg* out);
+static void func_shelter_1f_parking_garage_8017DE9C(Task* task);
+static void func_shelter_1f_parking_garage_8017DF04(Task* task);
+static void func_shelter_1f_parking_garage_8017E080(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_shelter_1f_parking_garage_8017E868(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_1f_parking_garage_8017EEB0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_1f_parking_garage_8017F2DC(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_shelter_1f_parking_garage_8017FB60(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+static void func_shelter_1f_parking_garage_801801E0(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// Starts `event` for the outgoing message `dst` unless its flag says it has
 /// already happened (answering 1). Otherwise answers 2, and - unless
@@ -90,7 +90,7 @@ static __inline__ s32 _shelter1fParkingGarageStartEvent(RoomEventMsg* dst, RoomL
 /// 16 answers 3 once nibble 0x7A reaches 6; and 20 maps nibble 0xF4's values
 /// 0-3 to 1, 6, 7 and 8 (1 otherwise). Any other query leaves `out`
 /// untouched. Always returns 1.
-s32 func_shelter_1f_parking_garage_8017D6AC(RoomEventMsg* in, RoomEventMsg* out)
+static s32 func_shelter_1f_parking_garage_8017D6AC(RoomEventMsg* in, RoomEventMsg* out)
 {
     if (in->field_5 == 0) {
         switch (in->msgId) {
@@ -392,7 +392,7 @@ s32 func_shelter_1f_parking_garage_8017DE4C(Task* task, s32 msgId, GpMsg13EF* ar
     return 0;
 }
 
-void func_shelter_1f_parking_garage_8017DE9C(Task* task)
+static void func_shelter_1f_parking_garage_8017DE9C(Task* task)
 {
     task->msgTable = D_shelter_1f_parking_garage_80180BB8;
     Game_SetPtrSlot(task, 7);
@@ -404,7 +404,7 @@ void func_shelter_1f_parking_garage_8017DE9C(Task* task)
 
 /// State table of the room's controller task
 /// `func_shelter_1f_parking_garage_8017DF14`: set up the room, then idle.
-const TaskFuncTable3 D_shelter_1f_parking_garage_8017D6A0 = { {
+static const TaskFuncTable3 D_shelter_1f_parking_garage_8017D6A0 = { {
     func_shelter_1f_parking_garage_8017DE9C,
     func_shelter_1f_parking_garage_8017DF04,
     taskKill,
@@ -412,14 +412,14 @@ const TaskFuncTable3 D_shelter_1f_parking_garage_8017D6A0 = { {
 
 /// Idle state of the room's controller task: does nothing. The 0x10-byte
 /// frame is the compiler's, kept for an unused local.
-void func_shelter_1f_parking_garage_8017DF04(Task* task)
+static void func_shelter_1f_parking_garage_8017DF04(Task* task)
 {
     char pad[0x10];
 }
 
 /// The room's controller task: copies its three-entry state table to the
 /// stack and runs the entry for the current state.
-void func_shelter_1f_parking_garage_8017DF14(Task* task)
+static void func_shelter_1f_parking_garage_8017DF14(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -427,7 +427,7 @@ void func_shelter_1f_parking_garage_8017DF14(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_shelter_1f_parking_garage_8017DF6C(Task* arg0)
+static void func_shelter_1f_parking_garage_8017DF6C(Task* arg0)
 {
     u8 view;
 
@@ -466,7 +466,7 @@ void func_shelter_1f_parking_garage_8017DF6C(Task* arg0)
 /// angle, and `arg3` the colour: a red byte at bits 8-15 and two-bit green
 /// and blue at bits 4 and 0, each scaled by a blend that flickers with the
 /// frame counter.
-void func_shelter_1f_parking_garage_8017E080(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_shelter_1f_parking_garage_8017E080(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     u8*                head;
     RoomDraw11Scratch* block;
@@ -609,7 +609,7 @@ void func_shelter_1f_parking_garage_8017E080(SVECTOR* arg0, s32 arg1, s32 arg2, 
 /// (the on-screen radius is `(s16)arg1 * 64 / otz`) and `arg2` the colour: a
 /// red byte at bits 8-15 and two-bit green and blue at bits 4 and 0, each
 /// scaled by a blend that flickers with the frame counter.
-void func_shelter_1f_parking_garage_8017E868(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_1f_parking_garage_8017E868(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw25Scratch* block;
@@ -690,7 +690,7 @@ void func_shelter_1f_parking_garage_8017E868(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// falls below 0x11. The task then releases its `GpEffWork` block, as it
 /// also does early once `Gp_State1C->eventState` reaches 4; while that state
 /// is non-zero it draws nothing.
-void func_shelter_1f_parking_garage_8017EC0C(Task* task)
+static void func_shelter_1f_parking_garage_8017EC0C(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -757,7 +757,7 @@ void func_shelter_1f_parking_garage_8017EC0C(Task* task)
 /// error. The ring runs from half-extent `arg1`, where it is black, to
 /// `arg1 + arg2`, where it takes the colour `rgb`; each is scaled on screen
 /// as `(s16)extent * 64 / (otz + 1)`.
-void func_shelter_1f_parking_garage_8017EEB0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_shelter_1f_parking_garage_8017EEB0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -816,7 +816,7 @@ void func_shelter_1f_parking_garage_8017EEB0(GpCoord* arg0, s32 arg1, s32 arg2, 
 /// error. `arg1` is the half-extent (the on-screen radius is
 /// `(s16)arg1 * 64 / (otz + 1)`); the centre takes the colour `rgb` and the
 /// rim is black.
-void func_shelter_1f_parking_garage_8017F2DC(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_shelter_1f_parking_garage_8017F2DC(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -871,7 +871,7 @@ void func_shelter_1f_parking_garage_8017F2DC(GpCoord* arg0, s16 arg1, u8* rgb)
 /// and draws the band between the trails; the task releases its
 /// `GpEffWork` block once its age reaches `spawnArg1`. Nothing runs while
 /// `Gp_State1C->eventState` is 2 or more.
-void func_shelter_1f_parking_garage_8017F670(Task* task)
+static void func_shelter_1f_parking_garage_8017F670(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -970,7 +970,7 @@ void func_shelter_1f_parking_garage_8017F670(Task* task)
 /// its length. `arg3` is the colour, a multiplier at bits 8 and up and
 /// two-bit ones at bits 4 and 0. A quad is dropped when the GTE flags an
 /// error.
-void func_shelter_1f_parking_garage_8017FB60(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_shelter_1f_parking_garage_8017FB60(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
     GpCoord*           a;
@@ -1081,7 +1081,7 @@ void func_shelter_1f_parking_garage_8017FB60(GpCoord* arg0, GpCoord* arg1, s16 a
 /// a frame. Either way the task releases its `GpEffWork` block after seven
 /// frames, or early once `Gp_State1C->eventState` reaches 4; while that
 /// state is non-zero it does nothing else.
-void func_shelter_1f_parking_garage_8017FF58(Task* task)
+static void func_shelter_1f_parking_garage_8017FF58(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;
@@ -1155,7 +1155,7 @@ void func_shelter_1f_parking_garage_8017FF58(Task* task)
 /// half the colour `arg2`, one at half that radius in the full colour - sit
 /// under four spikes reaching out to one and two times the radius. Every
 /// wedge is lit at the centre and black at its tips.
-void func_shelter_1f_parking_garage_801801E0(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_1f_parking_garage_801801E0(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

@@ -24,7 +24,7 @@ extern GpMsgEntry D_shelter_b2_breeding_room_80180414[];
 
 /// Hides the task's model while the 2-bit game flag its spawn argument names
 /// reads 2, and shows it otherwise.
-void func_shelter_b2_breeding_room_8017D5F8(Task* task)
+static void func_shelter_b2_breeding_room_8017D5F8(Task* task)
 {
     TmdObject* obj = task->extra.tmd;
 
@@ -101,7 +101,7 @@ void func_shelter_b2_breeding_room_8017D7A8(Task* arg0)
 
 /// Installs the room's message table on `task`, registers the task in pointer
 /// slot 7, sets `D_80115598` and advances to the next state.
-void func_shelter_b2_breeding_room_8017D7EC(Task* arg0)
+static void func_shelter_b2_breeding_room_8017D7EC(Task* arg0)
 {
     arg0->msgTable = D_shelter_b2_breeding_room_80180414;
     Game_SetPtrSlot(arg0, 7);
@@ -109,20 +109,20 @@ void func_shelter_b2_breeding_room_8017D7EC(Task* arg0)
     D_80115598  = 1;
 }
 
-void func_shelter_b2_breeding_room_8017D838(Task* task)
+static void func_shelter_b2_breeding_room_8017D838(Task* task)
 {
 }
 
 /// The room task's three states, dispatched by
 /// `func_shelter_b2_breeding_room_8017D840`: install the message table, idle,
 /// end.
-const TaskFuncTable3 D_shelter_b2_breeding_room_8017D5C4 = {
+static const TaskFuncTable3 D_shelter_b2_breeding_room_8017D5C4 = {
     { func_shelter_b2_breeding_room_8017D7EC, func_shelter_b2_breeding_room_8017D838, taskKill }
 };
 
 /// Runs the handler for the task's state from the room's three-entry state
 /// table, copied onto the stack first.
-void func_shelter_b2_breeding_room_8017D840(Task* task)
+static void func_shelter_b2_breeding_room_8017D840(Task* task)
 {
     TaskFuncTable3 sp;
 

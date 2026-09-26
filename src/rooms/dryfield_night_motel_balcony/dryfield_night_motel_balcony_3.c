@@ -30,7 +30,7 @@ void func_dryfield_night_motel_balcony_8017E0C8(Task* arg0)
     taskKill(arg0);
 }
 
-void func_dryfield_night_motel_balcony_8017E128(u8 arg0)
+static void func_dryfield_night_motel_balcony_8017E128(u8 arg0)
 {
     GameSession* g    = gGameSession;
     GpAreaKey*   sess = &g->at4.loc;
@@ -79,7 +79,7 @@ void func_dryfield_night_motel_balcony_8017E128(u8 arg0)
     }
 }
 
-void func_dryfield_night_motel_balcony_8017E250(s16 arg0, s16 arg1)
+static void func_dryfield_night_motel_balcony_8017E250(s16 arg0, s16 arg1)
 {
     GpAreaKey* sess;
     GpSprtRec* rec;
@@ -144,7 +144,7 @@ void func_dryfield_night_motel_balcony_8017E3C8(void)
     func_dryfield_night_motel_balcony_8017E250(8, GameFlag_GetNibble(0x8D));
 }
 
-void func_dryfield_night_motel_balcony_8017E4B8(void)
+static void func_dryfield_night_motel_balcony_8017E4B8(void)
 {
     GameSession* g    = gGameSession;
     GpAreaKey*   sess = &g->at4.loc;

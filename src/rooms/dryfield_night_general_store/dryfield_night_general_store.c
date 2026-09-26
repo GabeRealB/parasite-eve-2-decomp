@@ -44,8 +44,8 @@ extern GpFadeWork D_dryfield_night_general_store_801858B8;
 extern u8 D_dryfield_night_general_store_801858C5;
 extern u8 D_dryfield_night_general_store_801858C6;
 
-void func_dryfield_night_general_store_8017DE34(Task* arg0);
-void func_dryfield_night_general_store_8017DE80(Task* task);
+static void func_dryfield_night_general_store_8017DE34(Task* arg0);
+static void func_dryfield_night_general_store_8017DE80(Task* task);
 
 /// The room's event gate. Returns 1 when game-flag nibble `req->flagId`
 /// already reads set (clear, for a negative id). Otherwise, when
@@ -53,7 +53,7 @@ void func_dryfield_night_general_store_8017DE80(Task* task);
 /// `msg->field_5` asks for a dry run - latches `msg` and `req`, sets the
 /// nibble and spawns the event task. When the item is missing it returns 0
 /// and, outside a dry run, runs cap command `req->field_4`.
-s32 func_dryfield_night_general_store_8017D630(RoomEventReq* req, RoomEventMsg* msg)
+static s32 func_dryfield_night_general_store_8017D630(RoomEventReq* req, RoomEventMsg* msg)
 {
     s32 flag;
     s32 id;
@@ -296,7 +296,7 @@ void func_dryfield_night_general_store_8017DAF0(Task* arg0)
 /// `func_dryfield_night_general_store_8017DE88`: the entry state
 /// `func_dryfield_night_general_store_8017DE34`, the idle state
 /// `func_dryfield_night_general_store_8017DE80`, then `taskKill`.
-const TaskFuncTable3 D_dryfield_night_general_store_8017D5F4 = {
+static const TaskFuncTable3 D_dryfield_night_general_store_8017D5F4 = {
     { func_dryfield_night_general_store_8017DE34, func_dryfield_night_general_store_8017DE80, taskKill },
 };
 
@@ -382,7 +382,7 @@ s32 func_dryfield_night_general_store_8017DE2C(void)
 /// Entry state of the room task: installs the room's message table, publishes
 /// the task in pointer slot 7, advances to the idle state and raises
 /// `D_80115598`.
-void func_dryfield_night_general_store_8017DE34(Task* arg0)
+static void func_dryfield_night_general_store_8017DE34(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_general_store_8017E7BC;
     Game_SetPtrSlot(arg0, 7);
@@ -391,13 +391,13 @@ void func_dryfield_night_general_store_8017DE34(Task* arg0)
 }
 
 /// Idle state of the room task: does nothing.
-void func_dryfield_night_general_store_8017DE80(Task* task)
+static void func_dryfield_night_general_store_8017DE80(Task* task)
 {
 }
 
 /// The room task: runs the state `D_dryfield_night_general_store_8017D5F4`
 /// names for `task->state`, through a stack copy of the table.
-void func_dryfield_night_general_store_8017DE88(Task* task)
+static void func_dryfield_night_general_store_8017DE88(Task* task)
 {
     TaskFuncTable3 sp;
 

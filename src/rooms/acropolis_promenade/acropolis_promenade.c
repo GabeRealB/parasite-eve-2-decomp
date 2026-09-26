@@ -77,10 +77,10 @@ extern u16     D_acropolis_promenade_80181B74;
 extern u16     D_acropolis_promenade_80181B76;
 extern u16     D_acropolis_promenade_80181B78[];
 
-void func_acropolis_promenade_8017D9E0(Task* arg0);
-void func_acropolis_promenade_8017DAA4(Task* task);
-void func_acropolis_promenade_8017DB48(Task* task);
-void func_acropolis_promenade_8017F434(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_acropolis_promenade_8017D9E0(Task* arg0);
+static void func_acropolis_promenade_8017DAA4(Task* task);
+static void func_acropolis_promenade_8017DB48(Task* task);
+static void func_acropolis_promenade_8017F434(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// Per-frame state of the room task. The first frame the session's warp is 4
 /// it spawns the streamed-scene task (entry 2 of the task table), once. While
@@ -88,7 +88,7 @@ void func_acropolis_promenade_8017F434(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// `Gp_StateF0.field_0`: when that flag drops after having been 1, a sound
 /// event is queued, and once the session's `field_126` is then non-zero,
 /// `func_800E8634` is called with the room's two data blocks.
-void func_acropolis_promenade_8017D5E4(Task* task)
+static void func_acropolis_promenade_8017D5E4(Task* task)
 {
     u8 temp;
     u8 f0;
@@ -217,12 +217,12 @@ s32 func_acropolis_promenade_8017D938(s32 arg0, s32 arg1, s32 arg2)
 }
 
 /// State table of the room task, run by `func_acropolis_promenade_8017DA4C`.
-const TaskFuncTable3 D_acropolis_promenade_8017D5C4 = {
+static const TaskFuncTable3 D_acropolis_promenade_8017D5C4 = {
     { func_acropolis_promenade_8017D9E0, func_acropolis_promenade_8017D5E4, taskKill },
 };
 
 /// State table of the prop task, run by `func_acropolis_promenade_8017D988`.
-const TaskFuncTable3 D_acropolis_promenade_8017D5D0 = {
+static const TaskFuncTable3 D_acropolis_promenade_8017D5D0 = {
     { func_acropolis_promenade_8017DAA4, func_acropolis_promenade_8017DB48, taskKill },
 };
 
@@ -237,7 +237,7 @@ void func_acropolis_promenade_8017D988(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_acropolis_promenade_8017D9E0(Task* arg0)
+static void func_acropolis_promenade_8017D9E0(Task* arg0)
 {
     arg0->msgTable = D_acropolis_promenade_80180E74;
     Game_SetPtrSlot(arg0, 7);
@@ -249,7 +249,7 @@ void func_acropolis_promenade_8017D9E0(Task* arg0)
 /// Runs the room task's current state (`func_acropolis_promenade_8017D9E0`,
 /// `func_acropolis_promenade_8017D5E4`, then `taskKill`) through a copy of its
 /// handler table on the stack.
-void func_acropolis_promenade_8017DA4C(Task* task)
+static void func_acropolis_promenade_8017DA4C(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -261,7 +261,7 @@ void func_acropolis_promenade_8017DA4C(Task* task)
 /// coordinate system (`D_acropolis_promenade_8017D5D0`): allocates its work
 /// block, shows the model, places it at (-0x23F0, 0x12C, -0xAF0) under
 /// `gGfxViewCoord` and moves to the next state.
-void func_acropolis_promenade_8017DAA4(Task* task)
+static void func_acropolis_promenade_8017DAA4(Task* task)
 {
     TmdObject*   extra;
     GpCoord*     coord;
@@ -285,7 +285,7 @@ void func_acropolis_promenade_8017DAA4(Task* task)
     task->state++;
 }
 
-void func_acropolis_promenade_8017DB48(Task* task)
+static void func_acropolis_promenade_8017DB48(Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -445,7 +445,7 @@ void func_acropolis_promenade_8017DFD4(Task* arg0)
 /// the camera `Gp_GetViewIndex` reports, and the parallel twelve-entry
 /// `_80181B14` array holds each emitter's offset from the room's coordinate
 /// frame. View 7 spawns nothing.
-void func_acropolis_promenade_8017E03C(Task* task)
+static void func_acropolis_promenade_8017E03C(Task* task)
 {
     GpCoord*   coord;
     GpEffWork* work;
@@ -516,7 +516,7 @@ void func_acropolis_promenade_8017E03C(Task* task)
 /// the OT slot is the row scaled into the 0x500-deep range so a drip sorts
 /// against the room behind it. The task releases itself once the camera turns
 /// away, the lifetime runs out, or the drip falls off the bottom of the screen.
-void func_acropolis_promenade_8017E394(Task* task)
+static void func_acropolis_promenade_8017E394(Task* task)
 {
     GpEffWork* work;
     RECT       rect;
@@ -585,7 +585,7 @@ void func_acropolis_promenade_8017E394(Task* task)
 /// Like the promenade's other glows, the task is one-shot: the work block is
 /// released as soon as both quads have been queued, so the room respawns it
 /// every frame it wants the star.
-void func_acropolis_promenade_8017E634(Task* task)
+static void func_acropolis_promenade_8017E634(Task* task)
 {
     GpCoord*              coord;
     GpEffWork*            work;
@@ -697,7 +697,7 @@ void func_acropolis_promenade_8017E634(Task* task)
 ///
 /// The task is one-shot: the work block is released as soon as the quad has
 /// been queued, so the room respawns it each frame it wants the glow.
-void func_acropolis_promenade_8017ED44(Task* task)
+static void func_acropolis_promenade_8017ED44(Task* task)
 {
     GpCoord*         coord;
     GpEffWork*       work;
@@ -785,7 +785,7 @@ void func_acropolis_promenade_8017ED44(Task* task)
 ///
 /// The work block in `spawnArg2` is released after the quad is queued, so
 /// each spawn draws a single frame.
-void func_acropolis_promenade_8017F0BC(Task* task)
+static void func_acropolis_promenade_8017F0BC(Task* task)
 {
     GpCoord*               coord;
     GpEffWork*             work;
@@ -868,7 +868,7 @@ void func_acropolis_promenade_8017F0BC(Task* task)
 /// channel - bits 8..11 red, 4..7 green, 0..3 blue, each scaled by 16 - with
 /// bits 12..15 the shift of a `gDisplayState.animFrame & 1` flicker added to
 /// every channel.
-void func_acropolis_promenade_8017F434(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_acropolis_promenade_8017F434(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw05Scratch* block;
     POLY_G4*           prim;

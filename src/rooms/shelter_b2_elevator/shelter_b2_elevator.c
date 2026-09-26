@@ -35,14 +35,14 @@ extern TaskDesc D_shelter_b2_elevator_8017DF70[];
 /// The two elevator-car tasks the room entry task spawns.
 extern Task* D_shelter_b2_elevator_8017EA00[];
 
-void func_shelter_b2_elevator_8017DB08(Task* task);
+static void func_shelter_b2_elevator_8017DB08(Task* task);
 
 /// The room entry task's first state: installs the room's message table, takes
 /// pointer slot 7 and spawns the two elevator cars. Unless the byte
 /// `Mc_SaveData.demoScene` is 9, it then either runs the first-visit sequence, setting
 /// event nibble 0xCF, or on a later visit hides the HUD, spawns the exit task
 /// and runs CAP command 3.
-void func_shelter_b2_elevator_8017D5E8(Task* task)
+static void func_shelter_b2_elevator_8017D5E8(Task* task)
 {
     task->msgTable = D_shelter_b2_elevator_8017DFA0;
     Game_SetPtrSlot(task, 7);
@@ -120,7 +120,7 @@ void func_shelter_b2_elevator_8017D70C(Task* task)
 }
 
 /// The room entry task's three states: set the room up, idle, end.
-const TaskFuncTable3 D_shelter_b2_elevator_8017D5C4 = {
+static const TaskFuncTable3 D_shelter_b2_elevator_8017D5C4 = {
     { func_shelter_b2_elevator_8017D5E8, func_shelter_b2_elevator_8017DB08, taskKill },
 };
 
@@ -229,14 +229,14 @@ s32 func_shelter_b2_elevator_8017DAE0(void)
 }
 
 /// The room entry task's idle state.
-void func_shelter_b2_elevator_8017DB08(Task* task)
+static void func_shelter_b2_elevator_8017DB08(Task* task)
 {
     char pad[0x10];
 }
 
 /// Runs the room entry task's current state from its three-entry table, which
 /// it copies onto the stack before the call.
-void func_shelter_b2_elevator_8017DB18(Task* task)
+static void func_shelter_b2_elevator_8017DB18(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -244,6 +244,6 @@ void func_shelter_b2_elevator_8017DB18(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_shelter_b2_elevator_8017DB70(void)
+static void func_shelter_b2_elevator_8017DB70(void)
 {
 }

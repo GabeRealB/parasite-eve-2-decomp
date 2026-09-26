@@ -69,9 +69,9 @@ extern u8* D_dryfield_water_hole_801828CC;
 /// Frame counter the water surface's wave is phased by.
 extern s16 D_dryfield_water_hole_801828D0;
 
-void func_dryfield_water_hole_8017E000(Task* arg0);
-void func_dryfield_water_hole_8017E410(GpCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
-void func_dryfield_water_hole_8017EDE4(GpCoord* arg0, s32 arg1, s32 arg2);
+static void func_dryfield_water_hole_8017E000(Task* arg0);
+static void func_dryfield_water_hole_8017E410(GpCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
+static void func_dryfield_water_hole_8017EDE4(GpCoord* arg0, s32 arg1, s32 arg2);
 
 /// Handler for message 0x13F1 in the room's message table: the room takes no
 /// action and reports the message as not handled.
@@ -169,7 +169,7 @@ s32 func_dryfield_water_hole_8017D78C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 /// Room task entry tick: publishes the room's message table in
 /// `Task::msgTable`, claims game pointer slot 7, spawns the room's water task
 /// from `D_dryfield_water_hole_8017FC8C` and advances state.
-void func_dryfield_water_hole_8017D7DC(Task* arg0)
+static void func_dryfield_water_hole_8017D7DC(Task* arg0)
 {
     arg0->msgTable = D_dryfield_water_hole_8017FC5C;
     Game_SetPtrSlot(arg0, 7);
@@ -179,21 +179,21 @@ void func_dryfield_water_hole_8017D7DC(Task* arg0)
 
 /// The room task's idle state, entry 1 of its three-state table: does
 /// nothing.
-void func_dryfield_water_hole_8017D838(Task* task)
+static void func_dryfield_water_hole_8017D838(Task* task)
 {
 }
 
 /// The room task's three states, run from a stack copy by
 /// `func_dryfield_water_hole_8017D840`: the entry tick, the idle state, then
 /// `taskKill`.
-const TaskFuncTable3 D_dryfield_water_hole_8017D5C4 = {
+static const TaskFuncTable3 D_dryfield_water_hole_8017D5C4 = {
     { func_dryfield_water_hole_8017D7DC, func_dryfield_water_hole_8017D838, taskKill },
 };
 
 /// The room task: copies the three-state table
 /// `D_dryfield_water_hole_8017D5C4` onto the stack and runs the entry for the
 /// task's current state - the entry tick, the idle state, then `taskKill`.
-void func_dryfield_water_hole_8017D840(Task* task)
+static void func_dryfield_water_hole_8017D840(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -209,7 +209,7 @@ void func_dryfield_water_hole_8017D840(Task* task)
 /// (0xFF, 0, 0) and the seam (0x20, 0x20, 0x20); each quad is followed by a
 /// draw-mode packet selecting blend mode 2. Quads the projection flags as
 /// invalid are skipped. `task` is unused.
-void func_dryfield_water_hole_8017D898(Task* task)
+static void func_dryfield_water_hole_8017D898(Task* task)
 {
     SVECTOR                    v0, v1, v2, v3;
     s32                        sxy0, sxy1, sxy2, sxy3;
@@ -352,7 +352,7 @@ void func_dryfield_water_hole_8017DFA0(Task* task)
 
 /// The water task's first state: clears the session halfword `field_80`, or
 /// `field_7E` while `Mc_SaveData.companionType` is set, then advances to the drawing state.
-void func_dryfield_water_hole_8017E000(Task* arg0)
+static void func_dryfield_water_hole_8017E000(Task* arg0)
 {
     if (Mc_SaveData.companionType == 0) {
         gGameSession->field_80 = 0;
@@ -370,7 +370,7 @@ void func_dryfield_water_hole_8017E000(Task* arg0)
 /// then, once game-flag nibble 0x51 is 1, draws the glowing beams
 /// `func_dryfield_water_hole_8017E410` renders between the point pairs the
 /// current view selects.
-void func_dryfield_water_hole_8017E040(Task* arg0)
+static void func_dryfield_water_hole_8017E040(Task* arg0)
 {
     Task*                     ctl;
     s32                       mask;
@@ -457,7 +457,7 @@ void func_dryfield_water_hole_8017E040(Task* arg0)
 /// primitive takes a `Gp_AddTpageShift` tpage; the far disc sorts by the far
 /// end's `otz`, everything else by the near end's. The work block lives on the
 /// scratchpad stack.
-void func_dryfield_water_hole_8017E410(GpCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
+static void func_dryfield_water_hole_8017E410(GpCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
     u8*                head;
     RoomDraw24Scratch* block;
@@ -596,7 +596,7 @@ void func_dryfield_water_hole_8017E410(GpCoord* arg0, SVECTOR* arg1, SVECTOR* ar
 /// brightness by 2, releasing the work block once it falls under 2. Once the
 /// event state is non-zero it only draws, releasing the block from event state
 /// 4 on.
-void func_dryfield_water_hole_8017EC90(Task* task)
+static void func_dryfield_water_hole_8017EC90(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -634,7 +634,7 @@ void func_dryfield_water_hole_8017EC90(Task* task)
 /// If the projection is valid, one semi-transparent `POLY_FT4` (tpage 0x2B,
 /// clut 0x43D1, UV 0,0x38 to 0x37,0x6F) is queued with all three colour
 /// channels set to `arg2`. The work block lives on the scratchpad stack.
-void func_dryfield_water_hole_8017EDE4(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_water_hole_8017EDE4(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;

@@ -54,7 +54,7 @@ extern TaskDesc D_acropolis_fountain_8017E7FC[];
 extern GpObj4A  D_acropolis_fountain_8017FB3C;
 extern Task*    D_acropolis_fountain_80183BB4;
 
-void func_acropolis_fountain_8017E15C(Task* task, s32 view);
+static void func_acropolis_fountain_8017E15C(Task* task, s32 view);
 
 void func_acropolis_fountain_8017DA1C(void)
 {
@@ -64,12 +64,12 @@ void func_acropolis_fountain_8017DA1C(void)
     D_acropolis_fountain_8017E7A4.field_4A |= 0x40;
 }
 
-void func_acropolis_fountain_8017DA78(void)
+static void func_acropolis_fountain_8017DA78(void)
 {
     Task_Spawn(2, 0xE, 0, 0);
 }
 
-void func_acropolis_fountain_8017DAA4(Task* arg0)
+static void func_acropolis_fountain_8017DAA4(Task* arg0)
 {
     GpXformArg msg;
     Task*      slot;
@@ -82,14 +82,14 @@ void func_acropolis_fountain_8017DAA4(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-void func_acropolis_fountain_8017DB00(Task* arg0)
+static void func_acropolis_fountain_8017DB00(Task* arg0)
 {
     if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F0, 0, 0) == 0) {
         arg0->state = (s32)(arg0->state + 1);
     }
 }
 
-void func_acropolis_fountain_8017DB54(Task* arg0)
+static void func_acropolis_fountain_8017DB54(Task* arg0)
 {
     GpFacingArg args;
     Task*       slot;
@@ -101,14 +101,14 @@ void func_acropolis_fountain_8017DB54(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-void func_acropolis_fountain_8017DBAC(Task* arg0)
+static void func_acropolis_fountain_8017DBAC(Task* arg0)
 {
     if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F0, 0, 0) == 0) {
         arg0->state = (s32)(arg0->state + 1);
     }
 }
 
-void func_acropolis_fountain_8017DC00(Task* arg0)
+static void func_acropolis_fountain_8017DC00(Task* arg0)
 {
     GpXformArg msg;
     Task*      slot;
@@ -122,7 +122,7 @@ void func_acropolis_fountain_8017DC00(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-void func_acropolis_fountain_8017DC6C(Task* arg0)
+static void func_acropolis_fountain_8017DC6C(Task* arg0)
 {
     Task* temp_v0;
 
@@ -135,7 +135,7 @@ void func_acropolis_fountain_8017DC6C(Task* arg0)
 
 /// Six-state dispatcher of the fountain cutscene task; the handler table is
 /// built on the stack from the overlay's rodata block.
-void func_acropolis_fountain_8017DCD4(Task* arg0)
+static void func_acropolis_fountain_8017DCD4(Task* arg0)
 {
     TaskFunc states[6] = {
         func_acropolis_fountain_8017DAA4,
@@ -159,7 +159,7 @@ void func_acropolis_fountain_8017DCD4(Task* arg0)
 /// makes the spray flicker. Only the eight camera views in the `0x1040C0` mask
 /// see the fountain, and the whole draw is skipped once `Gp_State1C->eventState`
 /// reaches 4 (the room is fading out).
-void func_acropolis_fountain_8017DD44(Task* task)
+static void func_acropolis_fountain_8017DD44(Task* task)
 {
     void**                     scratch;
     u8*                        head;
@@ -234,7 +234,7 @@ void func_acropolis_fountain_8017DD44(Task* task)
     }
 }
 
-void func_acropolis_fountain_8017E014(Task* task)
+static void func_acropolis_fountain_8017E014(Task* task)
 {
     AcropolisFountainSplash* splash;
     GpCoord*                 coord;
@@ -276,7 +276,7 @@ void func_acropolis_fountain_8017E014(Task* task)
     }
 }
 
-void func_acropolis_fountain_8017E15C(Task* task, s32 view)
+static void func_acropolis_fountain_8017E15C(Task* task, s32 view)
 {
     AcropolisFountainSndWork* work;
     CdCmdQueue*               queue;

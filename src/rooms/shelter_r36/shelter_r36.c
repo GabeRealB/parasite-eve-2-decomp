@@ -160,7 +160,7 @@ s32 func_shelter_r36_8017D91C(void)
 /// The room entry task's first state: installs the room's message table, takes
 /// pointer slot 7, and spawns the entry of `D_shelter_r36_8017DF14` that
 /// matches the arrival warp (1 or 2).
-void func_shelter_r36_8017D924(Task* task)
+static void func_shelter_r36_8017D924(Task* task)
 {
     task->msgTable = D_shelter_r36_8017E97C;
     Game_SetPtrSlot(task, 7);
@@ -174,19 +174,19 @@ void func_shelter_r36_8017D924(Task* task)
 }
 
 /// The room entry task's idle state.
-void func_shelter_r36_8017D9CC(Task* task)
+static void func_shelter_r36_8017D9CC(Task* task)
 {
     char pad[0x10];
 }
 
 /// The room entry task's three states: set the room up, idle, end.
-const TaskFuncTable3 D_shelter_r36_8017D5C4 = {
+static const TaskFuncTable3 D_shelter_r36_8017D5C4 = {
     { func_shelter_r36_8017D924, func_shelter_r36_8017D9CC, taskKill },
 };
 
 /// Runs the room entry task's current state from its three-entry table, which
 /// it copies onto the stack before the call.
-void func_shelter_r36_8017D9DC(Task* task)
+static void func_shelter_r36_8017D9DC(Task* task)
 {
     TaskFuncTable3 sp;
 

@@ -30,7 +30,7 @@ extern GpMsgEntry D_dryfield_night_water_tower_8017E6EC[];
 /// request are latched, the nibble is written, the event task is spawned and
 /// the answer is 2. A non-zero `field_5` on the message only reports the
 /// answer, with none of the side effects.
-s32 func_dryfield_night_water_tower_8017D60C(RoomEventReq* req, RoomEventMsg* msg)
+static s32 func_dryfield_night_water_tower_8017D60C(RoomEventReq* req, RoomEventMsg* msg)
 {
     s32 flag;
     s32 id;
@@ -219,7 +219,7 @@ s32 func_dryfield_night_water_tower_8017DAD4(void)
 
 /// State 0 of the room entry task: installs the room's message table,
 /// registers the task in game pointer slot 7 and advances to the idle state.
-void func_dryfield_night_water_tower_8017DADC(Task* task)
+static void func_dryfield_night_water_tower_8017DADC(Task* task)
 {
     task->msgTable = D_dryfield_night_water_tower_8017E6EC;
     Game_SetPtrSlot(task, 7);
@@ -227,19 +227,19 @@ void func_dryfield_night_water_tower_8017DADC(Task* task)
 }
 
 /// State 1 of the room entry task: idles.
-void func_dryfield_night_water_tower_8017DB20(Task* task)
+static void func_dryfield_night_water_tower_8017DB20(Task* task)
 {
 }
 
 /// The room entry task's three states: install the room's message table,
 /// idle, and `taskKill`.
-const TaskFuncTable3 D_dryfield_night_water_tower_8017D5DC = {
+static const TaskFuncTable3 D_dryfield_night_water_tower_8017D5DC = {
     { func_dryfield_night_water_tower_8017DADC, func_dryfield_night_water_tower_8017DB20, taskKill },
 };
 
 /// Runs the room entry task's current state from its three-entry table, which
 /// it copies onto the stack before the call.
-void func_dryfield_night_water_tower_8017DB28(Task* task)
+static void func_dryfield_night_water_tower_8017DB28(Task* task)
 {
     TaskFuncTable3 sp;
 

@@ -25,10 +25,10 @@ extern SVECTOR D_shelter_b1_sleeping_quarters_801805BC[];
 extern SVECTOR D_shelter_b1_sleeping_quarters_801805EC[];
 extern SVECTOR D_shelter_b1_sleeping_quarters_8018060C[];
 
-void func_shelter_b1_sleeping_quarters_8017DB50(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_shelter_b1_sleeping_quarters_8017E338(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b1_sleeping_quarters_8017DB50(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_shelter_b1_sleeping_quarters_8017E338(SVECTOR* arg0, s32 arg1, s32 arg2);
 
-void func_shelter_b1_sleeping_quarters_8017D8E0(Task* arg0)
+static void func_shelter_b1_sleeping_quarters_8017D8E0(Task* arg0)
 {
     if (arg0->state == 0) {
         D_80115734  = 0x60220;
@@ -99,7 +99,7 @@ void func_shelter_b1_sleeping_quarters_8017D8E0(Task* arg0)
 /// takes its red, green and blue from bits 8-15, 4 and 0 of `arg3`, scaled by
 /// a brightness alternating between 0x20 and 0x28 on successive frames.
 /// Nothing is drawn when the second point lies nearer than OTZ 0x11.
-void func_shelter_b1_sleeping_quarters_8017DB50(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_shelter_b1_sleeping_quarters_8017DB50(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     u8*                head;
     RoomDraw11Scratch* block;
@@ -241,7 +241,7 @@ void func_shelter_b1_sleeping_quarters_8017DB50(SVECTOR* arg0, s32 arg1, s32 arg
 /// blue from bits 8-15, 4 and 0 of `arg2`, scaled by a brightness alternating
 /// between 0x20 and 0x28 on successive frames. Nothing is drawn nearer than
 /// OTZ 0x11.
-void func_shelter_b1_sleeping_quarters_8017E338(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b1_sleeping_quarters_8017E338(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw25Scratch* block;

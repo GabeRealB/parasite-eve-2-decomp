@@ -18,11 +18,11 @@ extern s32      D_acropolis_forked_road_80180F3C;
 extern TaskDesc D_acropolis_forked_road_80180F44;
 extern s32      D_acropolis_forked_road_801820B8;
 
-void func_acropolis_forked_road_8017D92C(Task* task);
-void func_acropolis_forked_road_8017D970(Task* task);
+static void func_acropolis_forked_road_8017D92C(Task* task);
+static void func_acropolis_forked_road_8017D970(Task* task);
 
 /// State handlers of the room's own task.
-const TaskFuncTable3 D_acropolis_forked_road_8017D5C4 = {
+static const TaskFuncTable3 D_acropolis_forked_road_8017D5C4 = {
     { func_acropolis_forked_road_8017D92C, func_acropolis_forked_road_8017D970, taskKill }
 };
 
@@ -142,7 +142,7 @@ s32 func_acropolis_forked_road_8017D8A8(Task* task, s32 msgId, GpMsg13EF* arg2)
 
 /// First state of the room's own task: installs the room's message table,
 /// publishes the task in pointer slot 7 and advances the state.
-void func_acropolis_forked_road_8017D92C(Task* task)
+static void func_acropolis_forked_road_8017D92C(Task* task)
 {
     task->msgTable = D_acropolis_forked_road_80180F14;
     Game_SetPtrSlot(task, 7);
@@ -152,7 +152,7 @@ void func_acropolis_forked_road_8017D92C(Task* task)
 /// Per-frame state of the room's own task: the first frame the session's warp
 /// id is 2, spawns entry 2 of the room's task table, latching
 /// `D_acropolis_forked_road_80180F3C` so that happens only once.
-void func_acropolis_forked_road_8017D970(Task* task)
+static void func_acropolis_forked_road_8017D970(Task* task)
 {
     if ((D_acropolis_forked_road_80180F3C == 0) && (gGameSession->at4.loc.warp == 2)) {
         D_acropolis_forked_road_80180F3C = 1;
@@ -163,7 +163,7 @@ void func_acropolis_forked_road_8017D970(Task* task)
 /// Runs the room task's current state out of its three-entry handler table:
 /// the setup state, the per-frame warp check, then `taskKill`. The table is
 /// copied onto the stack before the call.
-void func_acropolis_forked_road_8017D9CC(Task* task)
+static void func_acropolis_forked_road_8017D9CC(Task* task)
 {
     TaskFuncTable3 sp;
 

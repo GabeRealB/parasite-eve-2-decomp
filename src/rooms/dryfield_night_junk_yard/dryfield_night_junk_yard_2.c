@@ -25,12 +25,12 @@ extern SVECTOR D_dryfield_night_junk_yard_80180754[];
 extern SVECTOR D_dryfield_night_junk_yard_80180774[];
 extern SVECTOR D_dryfield_night_junk_yard_8018077C;
 
-void func_dryfield_night_junk_yard_8017DBD0(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_dryfield_night_junk_yard_8017E34C(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_dryfield_night_junk_yard_8017E86C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_dryfield_night_junk_yard_8017EC98(GpCoord* arg0, s16 arg1, u8* rgb);
-void func_dryfield_night_junk_yard_8017F51C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-void func_dryfield_night_junk_yard_8017FB9C(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_dryfield_night_junk_yard_8017DBD0(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_dryfield_night_junk_yard_8017E34C(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_dryfield_night_junk_yard_8017E86C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_dryfield_night_junk_yard_8017EC98(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_dryfield_night_junk_yard_8017F51C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+static void func_dryfield_night_junk_yard_8017FB9C(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// Junk yard room draw: on the task's first pass the room's three effect-id
 /// slots are pointed at the junk yard's own ids, `Gp_State1C->roomEffectMode` is set
@@ -39,7 +39,7 @@ void func_dryfield_night_junk_yard_8017FB9C(GpCoord* arg0, s16 arg1, u8* arg2);
 /// second, 5/10 and 7 four off the first. Every phase ends with the same
 /// semi-transparent sprite call, which `jump.c` cross-jumps into one tail
 /// block after the last case.
-void func_dryfield_night_junk_yard_8017DA14(Task* task)
+static void func_dryfield_night_junk_yard_8017DA14(Task* task)
 {
     if (task->state == 0) {
         D_80115758 = 0x600E5;
@@ -93,7 +93,7 @@ void func_dryfield_night_junk_yard_8017DA14(Task* task)
 /// first point, a band joining the two points and a wedge around the second.
 /// The centres take the flickering grey `((animFrame & 1) * 16) | 0x20` and the
 /// rims are black.
-void func_dryfield_night_junk_yard_8017DBD0(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_night_junk_yard_8017DBD0(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw11Scratch* block;
@@ -228,7 +228,7 @@ void func_dryfield_night_junk_yard_8017DBD0(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// `(s16)arg1` selects. `(s16)arg2` is the half-extent; the on-screen radius is
 /// `arg2 * 39 / otz`. All three colour channels take the flickering
 /// `((animFrame & 1) * 16) + 0x20`.
-void func_dryfield_night_junk_yard_8017E34C(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_night_junk_yard_8017E34C(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw25Scratch* block;
     POLY_FT4*          prim;
@@ -273,7 +273,7 @@ void func_dryfield_night_junk_yard_8017E34C(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// quarter green) while growing two fanned glows and a ring; at the peak it
 /// draws a fade quad in that tint, then dims a star glow by 0x10 a frame until
 /// it has faded and releases itself.
-void func_dryfield_night_junk_yard_8017E5C8(Task* task)
+static void func_dryfield_night_junk_yard_8017E5C8(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -340,7 +340,7 @@ void func_dryfield_night_junk_yard_8017E5C8(Task* task)
 /// between the radii `(s16)arg1 * 64 / (otz + 1)` and
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`. The first edge is black and the
 /// second takes the `rgb` tint.
-void func_dryfield_night_junk_yard_8017E86C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_dryfield_night_junk_yard_8017E86C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -398,7 +398,7 @@ void func_dryfield_night_junk_yard_8017E86C(GpCoord* arg0, s32 arg1, s32 arg2, u
 /// GTE flag is non-negative, queues eight `POLY_G4` wedges fanned around the
 /// projected centre with radius `arg1 * 64 / (otz + 1)`. Only the centre
 /// vertex takes the `rgb` tint, so each wedge fades to black at the rim.
-void func_dryfield_night_junk_yard_8017EC98(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_dryfield_night_junk_yard_8017EC98(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -453,7 +453,7 @@ void func_dryfield_night_junk_yard_8017EC98(GpCoord* arg0, s16 arg1, u8* rgb)
 /// current pair into the next slot and draws the trail between the rings,
 /// releasing itself once its age reaches `spawnArg1`. Nothing runs while
 /// `eventState` is 2 or more.
-void func_dryfield_night_junk_yard_8017F02C(Task* task)
+static void func_dryfield_night_junk_yard_8017F02C(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -550,7 +550,7 @@ void func_dryfield_night_junk_yard_8017F02C(Task* task)
 /// `arg0` and `arg1`, with brightness falling from `0x40 - 9 * i` at its
 /// leading edge by nine more at its trailing one. `arg3` is the colour, three
 /// 2-bit channel weights at bits 8, 4 and 0. A quad the GTE flags is dropped.
-void func_dryfield_night_junk_yard_8017F51C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_dryfield_night_junk_yard_8017F51C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
     GpCoord*           a;
@@ -660,7 +660,7 @@ void func_dryfield_night_junk_yard_8017F51C(GpCoord* arg0, GpCoord* arg1, s16 ar
 /// `spawnArg1` is set, or two 0x6007C effects. The spark branch then emits one
 /// randomly-directed spark a frame; the other draws a fixed ring and an
 /// expanding one in a fading orange tint. Either ends once its age reaches 7.
-void func_dryfield_night_junk_yard_8017F914(Task* task)
+static void func_dryfield_night_junk_yard_8017F914(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;
@@ -735,7 +735,7 @@ void func_dryfield_night_junk_yard_8017F914(Task* task)
 /// followed by four spikes, two reaching `r` and two `2 * r`, whose bases sit on
 /// the radius `arg1 * 8 / (otz + 1)`. Only the centre vertex is tinted, so
 /// every wedge fades to black.
-void func_dryfield_night_junk_yard_8017FB9C(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_dryfield_night_junk_yard_8017FB9C(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

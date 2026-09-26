@@ -45,16 +45,16 @@ extern SVECTOR D_mine_cavern_80188FC4[];
 
 extern RoomHaloShade D_mine_cavern_80188FCC[];
 
-void func_mine_cavern_8017F50C(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
-void func_mine_cavern_801804CC(GpCoord* coord, s16 size);
-void func_mine_cavern_80181864(void);
-void func_mine_cavern_80182184(void);
-void func_mine_cavern_80182454(void);
-void func_mine_cavern_801825C8(s16 arg0);
-void func_mine_cavern_80182CEC(Task* arg0);
-void func_mine_cavern_80182DA8(Task* task);
-void func_mine_cavern_801838F4(GpEnemy* arg0, Task* arg1);
-void func_mine_cavern_80183AD4(GpEnemy* enemy, Task* task);
+static void func_mine_cavern_8017F50C(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
+static void func_mine_cavern_801804CC(GpCoord* coord, s16 size);
+static void func_mine_cavern_80181864(void);
+static void func_mine_cavern_80182184(void);
+static void func_mine_cavern_80182454(void);
+static void func_mine_cavern_801825C8(s16 arg0);
+static void func_mine_cavern_80182CEC(Task* arg0);
+static void func_mine_cavern_80182DA8(Task* task);
+static void func_mine_cavern_801838F4(GpEnemy* arg0, Task* arg1);
+static void func_mine_cavern_80183AD4(GpEnemy* enemy, Task* task);
 
 /// Current screen id at 0x8007218B.
 
@@ -82,7 +82,7 @@ extern TaskDesc D_mine_cavern_8018EB38;
 /// Parameter record of the cavern enemy's kind.
 extern GpPairSrcE D_mine_cavern_8018EAE4;
 
-void func_mine_cavern_80183860(Task* arg0);
+static void func_mine_cavern_80183860(Task* arg0);
 
 /// Colour of the glow fan's centre vertex, one channel per symbol.
 ///
@@ -150,6 +150,11 @@ typedef struct _MineCavernHitScratch {
     s16     damage;
 } _MineCavernHitScratch;
 
+static void func_mine_cavern_8017E774(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_mine_cavern_8017EFB8(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_mine_cavern_801809F8(GpCoord* arg0, s32 arg1);
+static void func_mine_cavern_80180D70(GpCoord* arg0, s16 arg1, u8* arg2);
+
 void func_mine_cavern_8017E330(void)
 {
     Mc_SaveData.at4.loc.room    = 2;
@@ -204,7 +209,7 @@ void func_mine_cavern_8017E3A0(s32 arg0)
     }
 }
 
-void func_mine_cavern_8017E474(Task* arg0)
+static void func_mine_cavern_8017E474(Task* arg0)
 {
     u32 rnd;
 
@@ -313,7 +318,7 @@ void func_mine_cavern_8017E474(Task* arg0)
 /// gouraud `POLY_G4`s: a wedge of each end and the band between them. The lit
 /// vertices take the colour packed in `arg2`, four bits per channel (R, G, B
 /// from high to low nibble), with the frame counter's low bit as a flicker.
-void func_mine_cavern_8017E774(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_mine_cavern_8017E774(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**                   scratch;
     u8*                      head;
@@ -460,7 +465,7 @@ void func_mine_cavern_8017E774(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// `(s16)arg1 * 40` at v=0..0x27. `arg2` is a signed half-extent; the
 /// on-screen radius is `(s16)arg2 * 39 / otz`. RGB is the frame-counter blend
 /// byte `((animFrame & 1) * 16) + 0x20` on all three channels.
-void func_mine_cavern_8017EFB8(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_mine_cavern_8017EFB8(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw13Scratch* block;
     POLY_FT4*          prim;
@@ -506,7 +511,7 @@ void func_mine_cavern_8017EFB8(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// 1 brightens while young, state 2 holds its brightness; both fade over their
 /// last eight ticks of lifetime and release the work block once dark, or as
 /// soon as the room's event state reaches 4.
-void func_mine_cavern_8017F240(Task* task)
+static void func_mine_cavern_8017F240(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -593,7 +598,7 @@ void func_mine_cavern_8017F240(Task* task)
 /// `extent * 23 / (otz + 1)`. The low byte of `arg3` is the grey level on all
 /// three channels and its top nibble picks the CLUT on row 0x10B: column
 /// `nibble * 16 + 0xF0`, or 0xB0 when the nibble is zero.
-void func_mine_cavern_8017F50C(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
+static void func_mine_cavern_8017F50C(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -671,7 +676,7 @@ void func_mine_cavern_8017F50C(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
 /// width; on-screen radii are `(s16)arg1 * 64 / (otz + 1)` and
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`. The RGB triple tints the inner edge
 /// so each wedge fades to a black outer rim.
-void func_mine_cavern_8017F7D0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_mine_cavern_8017F7D0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -727,7 +732,7 @@ void func_mine_cavern_8017F7D0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 /// the projected centre. `arg1` is a signed half-extent; the on-screen radius
 /// is `arg1 * 64 / (otz + 1)`. The RGB triple in `rgb` lights only the
 /// inner vertex so each wedge fades to black.
-void func_mine_cavern_8017FBF4(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_mine_cavern_8017FBF4(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -782,7 +787,7 @@ void func_mine_cavern_8017FBF4(GpCoord* arg0, s16 arg1, u8* rgb)
 /// ticks) and a `func_mine_cavern_8017F7D0` ring; state 2 fades it out through
 /// `func_mine_cavern_80180D70` and then releases the work block. The shade row
 /// `D_mine_cavern_80188FCC[index]` tints each channel.
-void func_mine_cavern_8017FF88(Task* arg0)
+static void func_mine_cavern_8017FF88(Task* arg0)
 {
     u8          rgb[3];
     GpEffWork*  mem;
@@ -876,7 +881,7 @@ kill:
 /// then `period` shrinks by 0x18 and `step` grows by 0x30 - and the effect
 /// otherwise fades `scale` by 0x18 a frame until it drops under 0x18 and the
 /// work block is handed back with `Gp_ReleaseState1CMem`.
-void func_mine_cavern_80180320(Task* task)
+static void func_mine_cavern_80180320(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -931,7 +936,7 @@ void func_mine_cavern_80180320(Task* task)
 /// `func_mine_cavern_801809F8` mark on the ground under it. Also feeds the
 /// `Gp_RoomCoords[2]` light a flickering intensity at the coordinate's position.
 /// Draws nothing when the point fails to project.
-void func_mine_cavern_801804CC(GpCoord* coord, s16 size)
+static void func_mine_cavern_801804CC(GpCoord* coord, s16 size)
 {
     GpCoord        ground;
     POLY_FT4*      prim;
@@ -1063,7 +1068,7 @@ void func_mine_cavern_801804CC(GpCoord* coord, s16 size)
 /// 0x428C) coloured `(0x30, 0x20, 0x20)`. The frame counter picks between two
 /// 0x1F-wide UV columns: `u` is `(animFrame & 1) * 32` plus 0xC0 / 0xDF, at
 /// v = 0x38..0x57. Works in a `GpQuadScratch` block on the scratch stack.
-void func_mine_cavern_801809F8(GpCoord* arg0, s32 arg1)
+static void func_mine_cavern_801809F8(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;
@@ -1152,7 +1157,7 @@ void func_mine_cavern_801809F8(GpCoord* arg0, s32 arg1)
 /// are `(s16)arg1 * 64 / (otz + 1)` (outer) and `(s16)arg1 * 8 / (otz + 1)`
 /// (inner). The RGB triple tints the inner vertex of the inner ring at full
 /// brightness and the outer ring at half, so each wedge fades to a black rim.
-void func_mine_cavern_80180D70(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_mine_cavern_80180D70(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -1275,7 +1280,7 @@ void func_mine_cavern_80180D70(GpCoord* arg0, s16 arg1, u8* arg2)
 /// an upward Y that grows with age, and spawns the `D_80115728` effect at the
 /// task's coordinate. Releases the work block after 0x15 ticks, or as soon as
 /// the room's event state reaches 4.
-void func_mine_cavern_80181730(Task* arg0)
+static void func_mine_cavern_80181730(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -1315,7 +1320,7 @@ void func_mine_cavern_80181730(Task* arg0)
 /// radius is scaled by depth and jittered by the shared LCG, and its base
 /// shrinks as more `GameFlag_GetNibble(0xE2)` bits are set. A point whose
 /// projection flags an error is skipped.
-void func_mine_cavern_80181864(void)
+static void func_mine_cavern_80181864(void)
 {
     s32       sxy;
     s32       flag;
@@ -1416,7 +1421,7 @@ void func_mine_cavern_80181864(void)
 /// it from the cavern's light parameters and the point's position in
 /// `D_mine_cavern_8018E39C`, with the outer radius jittered by a draw from the
 /// shared LCG.
-void func_mine_cavern_80181CAC(s16 point)
+static void func_mine_cavern_80181CAC(s16 point)
 {
     GpCoord64*    light = &Gp_RoomCoords[4 + point];
     GpPointLight* work  = &light->data.light;
@@ -1439,7 +1444,7 @@ void func_mine_cavern_80181CAC(s16 point)
 /// depth. The radius is scaled by depth and jittered by the shared LCG, and its
 /// base shrinks as more `GameFlag_GetNibble(0xE2)` bits are set. Nothing is
 /// drawn when the projection flags an error.
-void func_mine_cavern_80181D80(s16 point)
+static void func_mine_cavern_80181D80(s16 point)
 {
     s32       sxy;
     s32       flag;
@@ -1532,7 +1537,7 @@ void func_mine_cavern_80181D80(s16 point)
 /// `func_mine_cavern_80181D80`, and on every ninth tick or on entering the view
 /// spawns effect `0x60080` within 64 units of the point on each axis, unless
 /// `Gp_StateF0.field_4` is set.
-void func_mine_cavern_80182184(void)
+static void func_mine_cavern_80182184(void)
 {
     VECTOR   unused;
     GpCoord  coord;
@@ -1593,7 +1598,7 @@ void func_mine_cavern_80182184(void)
 /// `GameFlag_GetNibble(0xE2)` bits set, followed by the drawing-mode packet
 /// that restores the room's texture page (`0xE100004A`). Both go into the head
 /// of the current OT, and the cavern's own two passes are run afterwards.
-void func_mine_cavern_80182454(void)
+static void func_mine_cavern_80182454(void)
 {
     POLY_F4* poly;
     DR_MODE* dr;
@@ -1640,11 +1645,11 @@ void func_mine_cavern_80182454(void)
 }
 
 /// The mine task's state handlers, run by `func_mine_cavern_80182DC8`.
-const TaskFuncTable3 D_mine_cavern_8017D65C = {
+static const TaskFuncTable3 D_mine_cavern_8017D65C = {
     { func_mine_cavern_80182CEC, func_mine_cavern_80182DA8, taskKill },
 };
 
-void func_mine_cavern_801825C8(s16 arg0)
+static void func_mine_cavern_801825C8(s16 arg0)
 {
     GpCoord coord;
     s32     view;
@@ -1858,7 +1863,7 @@ void func_mine_cavern_801825C8(s16 arg0)
     }
 }
 
-void func_mine_cavern_80182CEC(Task* arg0)
+static void func_mine_cavern_80182CEC(Task* arg0)
 {
     s16 i;
     s32 flags;
@@ -1873,7 +1878,7 @@ void func_mine_cavern_80182CEC(Task* arg0)
     arg0->state++;
 }
 
-void func_mine_cavern_80182DA8(Task* task)
+static void func_mine_cavern_80182DA8(Task* task)
 {
     func_mine_cavern_80182454();
 }
@@ -1905,7 +1910,7 @@ void func_mine_cavern_80182DC8(Task* arg0)
 /// read has to be a structure member: the scheduler lets a load from a plain
 /// scalar at a fixed address pass the stores into the body before it, and the
 /// original keeps it behind them.
-void func_mine_cavern_80182E34(GpEnemy* arg0, Task* arg1)
+static void func_mine_cavern_80182E34(GpEnemy* arg0, Task* arg1)
 {
     MineCavernWork* mem;
     MineCavernWork* work;
@@ -1981,7 +1986,7 @@ void func_mine_cavern_80182E34(GpEnemy* arg0, Task* arg1)
 /// key; when that empties `GpEnemy::hp` the enemy's `Task::spawnArg1` bit is
 /// set in flag nibble 0xE2, the model is hidden, a sound is played at it and
 /// the task advances.
-void func_mine_cavern_801830F0(GpEnemy* arg0, Task* arg1)
+static void func_mine_cavern_801830F0(GpEnemy* arg0, Task* arg1)
 {
     MineCavernWork*        work;
     Task*                  player;
@@ -2114,7 +2119,7 @@ found:
 /// `mem` and `work` are the same block: the original build tests and parks the
 /// allocation through `mem` and reaches the block through `work` afterwards,
 /// which is what keeps the two live ranges - and so `$v0` / `$a0` - apart.
-void func_mine_cavern_801836D0(GpEnemy* arg0, Task* arg1)
+static void func_mine_cavern_801836D0(GpEnemy* arg0, Task* arg1)
 {
     MineCavernWork* mem;
     MineCavernWork* work;
@@ -2143,7 +2148,7 @@ void func_mine_cavern_801836D0(GpEnemy* arg0, Task* arg1)
     arg1->state++;
 }
 
-void func_mine_cavern_80183860(Task* arg0)
+static void func_mine_cavern_80183860(Task* arg0)
 {
     MineCavernWork* work;
 
@@ -2153,7 +2158,7 @@ void func_mine_cavern_80183860(Task* arg0)
     }
 }
 
-void func_mine_cavern_80183890(GpEnemy* enemy, Task* task)
+static void func_mine_cavern_80183890(GpEnemy* enemy, Task* task)
 {
     MineCavernWork* work;
 
@@ -2173,7 +2178,7 @@ const char D_mine_cavern_8017D7E8[8] __attribute__((section(".rodata"))) = "BOMB
 const char D_mine_cavern_8017D7F0[8] __attribute__((section(".rodata"))) = "BOMB2\n";
 
 /// The cavern enemy's state handlers, run by `func_mine_cavern_80183A68`.
-const GpEnemyTaskFuncTable5 D_mine_cavern_8017D7F8 = {
+static const GpEnemyTaskFuncTable5 D_mine_cavern_8017D7F8 = {
     {
         func_mine_cavern_80182E34,
         func_mine_cavern_801830F0,
@@ -2184,7 +2189,7 @@ const GpEnemyTaskFuncTable5 D_mine_cavern_8017D7F8 = {
 };
 
 /// The second enemy's state handlers, run by `func_mine_cavern_80183C10`.
-const GpEnemyTaskFuncTable3 D_mine_cavern_8017D80C = {
+static const GpEnemyTaskFuncTable3 D_mine_cavern_8017D80C = {
     { func_mine_cavern_801836D0, func_mine_cavern_80183AD4, Gp_DestroyEnemy },
 };
 
@@ -2196,7 +2201,7 @@ const GpEnemyTaskFuncTable3 D_mine_cavern_8017D80C = {
 /// halfwords; 2 and 4 spawn 0x01002500; 3 and 5 clear the hidden bit on the
 /// work block's second object (`objC0`); 9 hands `objC0` to `Gp_UnlinkObj`;
 /// 0x3B advances `Task::state`.
-void func_mine_cavern_801838F4(GpEnemy* arg0, Task* arg1)
+static void func_mine_cavern_801838F4(GpEnemy* arg0, Task* arg1)
 {
     MineCavernWork* work;
     GpEffWork*      eff;
@@ -2270,7 +2275,7 @@ void func_mine_cavern_80183A68(Task* arg0)
 /// `ang` is declared and never read - the original build's frame reserved 8
 /// bytes for it ahead of nothing, so dropping it shrinks the frame from 0x38 to
 /// 0x30 and moves every spill.
-void func_mine_cavern_80183AD4(GpEnemy* enemy, Task* task)
+static void func_mine_cavern_80183AD4(GpEnemy* enemy, Task* task)
 {
     MineCavernWork* work;
     MATRIX*         m;

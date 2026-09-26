@@ -17,11 +17,11 @@ extern SVECTOR D_dryfield_night_trailer_coach_80189400[];
 extern SVECTOR D_dryfield_night_trailer_coach_80189480[];
 
 /// Glow markers the room's view handler draws at world-space points.
-void func_dryfield_night_trailer_coach_80182AB8(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_dryfield_night_trailer_coach_80182F2C(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_dryfield_night_trailer_coach_801838B4(SVECTOR* arg0, s32 arg1);
+static void func_dryfield_night_trailer_coach_80182AB8(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_dryfield_night_trailer_coach_80182F2C(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_dryfield_night_trailer_coach_801838B4(SVECTOR* arg0, s32 arg1);
 
-void func_dryfield_night_trailer_coach_80182924(void)
+static void func_dryfield_night_trailer_coach_80182924(void)
 {
     SVECTOR* p;
     SVECTOR* q;
@@ -74,7 +74,7 @@ void func_dryfield_night_trailer_coach_80182924(void)
 /// half-extent; the on-screen radius is `(s16)arg2 * 32 / otz`. `arg1` scales
 /// `gDisplayState.animFrame` into `rsin` so the lit vertex pulses as
 /// `rsin(...) / 34 + 0x78` on green and blue.
-void func_dryfield_night_trailer_coach_80182AB8(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_night_trailer_coach_80182AB8(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw13Scratch* block;
@@ -170,7 +170,7 @@ void func_dryfield_night_trailer_coach_80182AB8(SVECTOR* arg0, s32 arg1, s32 arg
 /// `(s16)arg2 * 8 / otz` (inner). `arg1` scales `gDisplayState.animFrame` into
 /// `rsin` so the lit vertex pulses as `rsin(...) / 34 + 0x78` on green and
 /// blue.
-void func_dryfield_night_trailer_coach_80182F2C(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_night_trailer_coach_80182F2C(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw05Scratch* block;
@@ -310,7 +310,7 @@ void func_dryfield_night_trailer_coach_80182F2C(SVECTOR* arg0, s32 arg1, s32 arg
 /// take a grey that alternates with the animation frame between 0x10 and 0x18.
 /// Other rooms carry a brighter copy of this drawer that is otherwise the
 /// same code.
-void func_dryfield_night_trailer_coach_801838B4(SVECTOR* arg0, s32 arg1)
+static void func_dryfield_night_trailer_coach_801838B4(SVECTOR* arg0, s32 arg1)
 {
     void**                   scratch;
     u8*                      head;

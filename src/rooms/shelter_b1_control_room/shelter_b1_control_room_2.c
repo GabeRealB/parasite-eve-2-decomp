@@ -25,8 +25,8 @@ extern TaskDesc D_shelter_b1_control_room_80181BBC;
 extern SVECTOR  D_shelter_b1_control_room_80181BD4[];
 extern SVECTOR  D_shelter_b1_control_room_80181C3C[];
 
-void func_shelter_b1_control_room_8017F39C(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b1_control_room_8017FBE0(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b1_control_room_8017F39C(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b1_control_room_8017FBE0(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// Streamed-scene task. It blanks the display and queues CD command 0x61 on
 /// the stream slot of the current location with its view replaced by 0x64,
@@ -135,7 +135,7 @@ void func_shelter_b1_control_room_8017F100(Task* arg0)
     taskKill(arg0);
 }
 
-void func_shelter_b1_control_room_8017F150(Task* task)
+static void func_shelter_b1_control_room_8017F150(Task* task)
 {
     u8 view;
 
@@ -190,7 +190,7 @@ void func_shelter_b1_control_room_8017F150(Task* task)
 /// radius `(s16)arg1 * 64` over its depth, joined by quads across the bar. The
 /// lit vertices take the colour packed in `arg2`, one nibble per channel in
 /// the high nibble, with bit 3 following the animation frame.
-void func_shelter_b1_control_room_8017F39C(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b1_control_room_8017F39C(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**                   scratch;
     u8*                      head;
@@ -336,7 +336,7 @@ void func_shelter_b1_control_room_8017F39C(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// wedges of radius `(s16)arg1 * 64` over the depth, black at the rim. The
 /// centre takes the colour packed in `arg2`, one nibble per channel in the
 /// high nibble, with bit 3 following the animation frame.
-void func_shelter_b1_control_room_8017FBE0(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b1_control_room_8017FBE0(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**             scratch;
     u8*                head;

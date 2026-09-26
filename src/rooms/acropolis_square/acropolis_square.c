@@ -138,10 +138,10 @@ extern RoomCutsceneRec D_acropolis_square_801888AC;
 
 extern GpCoord D_acropolis_square_801888CC;
 
-void func_acropolis_square_8017D8C8(Task* task);
-void func_acropolis_square_801811EC(Task* task);
-void func_acropolis_square_80182260(Task* task);
-void func_acropolis_square_801822A4(Task* task);
+static void func_acropolis_square_8017D8C8(Task* task);
+static void func_acropolis_square_801811EC(Task* task);
+static void func_acropolis_square_80182260(Task* task);
+static void func_acropolis_square_801822A4(Task* task);
 
 /// Sets up the room's mirror: re-attaches the player's own TMD source
 /// to this task so the reflection draws the same model, allocates the
@@ -150,7 +150,7 @@ void func_acropolis_square_801822A4(Task* task);
 /// `spawnArg1` must be 0 or 1, and 0 also raises `GameSession::field_4E`. The
 /// two child tasks reflect the player's held-object tasks
 /// (`GameActor::field_920` / `field_924`).
-void func_acropolis_square_8017D714(Task* task)
+static void func_acropolis_square_8017D714(Task* task)
 {
     Task*           owner;
     GameActor*      actor;
@@ -223,7 +223,7 @@ void func_acropolis_square_8017D714(Task* task)
 /// overlaps the mirror's clip rectangle, draws quads sampling that strip;
 /// otherwise the reflection is hidden. Every frame it copies the player's pose
 /// and light matrices onto the reflection.
-void func_acropolis_square_8017D8C8(Task* task)
+static void func_acropolis_square_8017D8C8(Task* task)
 {
     RoomMirrorWork*          work;
     PlayerStatus*            status;
@@ -751,7 +751,7 @@ void func_acropolis_square_8017D8C8(Task* task)
 }
 
 /// Scale applied to reflections with `spawnArg1 >= 2`: X negated, Y and Z kept.
-const VECTOR D_acropolis_square_8017D5C4 = { -0x1000, 0x1000, 0x1000 };
+static const VECTOR D_acropolis_square_8017D5C4 = { -0x1000, 0x1000, 0x1000 };
 
 /// Per-frame callback of a held-object reflection. `Task::spawnArg2` is the
 /// mirror task the room set up and the parent is the held-object task being
@@ -1083,10 +1083,10 @@ void func_acropolis_square_8017F46C(DialogPrompt* arg0, UiObject* arg1)
 
 /// "Play Data", the title of the play-data menu panel
 /// `func_acropolis_square_80180CBC` draws.
-const char D_acropolis_square_8017D620[] = "Play Data";
+static const char D_acropolis_square_8017D620[] = "Play Data";
 
 /// Text drawn in place of a usage row's percentage once it reaches 100 percent.
-const u8 D_acropolis_square_8017D62C[] = "100.0%";
+static const u8 D_acropolis_square_8017D62C[] = "100.0%";
 
 /// Draws one row of a play-data usage panel from the `RoomItemUsage` block at
 /// the owner task's `work`: the item's name and icon, its share of all uses as
@@ -1233,7 +1233,7 @@ void func_acropolis_square_8017FC38(DialogPrompt* arg0, UiObject* arg1)
 /// counter as a 12-bit fraction of the top row's. Both are scaled down by
 /// halving until the top counter fits in 17 bits, so the multiply and the
 /// shift cannot overflow.
-void func_acropolis_square_80180034(UiList* list, UiObject* obj)
+static void func_acropolis_square_80180034(UiList* list, UiObject* obj)
 {
     RoomItemUsage* work;
     s32            count;
@@ -1320,7 +1320,7 @@ void func_acropolis_square_80180034(UiList* list, UiObject* obj)
 /// `barWidths`, its counter as a 12-bit fraction of the top row's. Both are
 /// scaled down by halving until the top counter fits in 17 bits, so the
 /// multiply and the shift cannot overflow.
-void func_acropolis_square_80180330(UiList* list, UiObject* obj)
+static void func_acropolis_square_80180330(UiList* list, UiObject* obj)
 {
     RoomPeUsage* work;
     s16*         p;
@@ -1407,8 +1407,8 @@ void func_acropolis_square_80180330(UiList* list, UiObject* obj)
 }
 
 /// Titles of the usage panel, one per kind: weapons and Parasite Energy.
-const char D_acropolis_square_8017D634[] = "Weapon Data";
-const char D_acropolis_square_8017D640[] = "PE Data";
+static const char D_acropolis_square_8017D634[] = "Weapon Data";
+static const char D_acropolis_square_8017D640[] = "PE Data";
 
 /// Task of the usage panel: draws the weapon or Parasite Energy title
 /// (`spawnArg1`), and on its first tick allocates the `RoomItemUsage` /
@@ -1468,15 +1468,15 @@ void func_acropolis_square_80180650(Task* task)
 
 /// "Telephone", the title of the menu panel `func_acropolis_square_80180804`
 /// runs. Two non-zero bytes follow its terminator, so it stays assembly.
-extern const char D_acropolis_square_8017D648[];
+static const char D_acropolis_square_8017D648[];
 /// "Telephone", followed by the non-zero padding the original toolchain left.
-const char D_acropolis_square_8017D648[12] = "Telephone\0\xDC\xDD";
+static const char D_acropolis_square_8017D648[12] = "Telephone\0\xDC\xDD";
 
 /// Task of the telephone menu panel. Until the save allows it (demo scene 1
 /// or a clear) it only spawns the generic panel; otherwise it lays out its
 /// list and draws the title. Choosing an entry opens the item prompt, and
 /// cancel closes the panel.
-void func_acropolis_square_80180804(Task* task)
+static void func_acropolis_square_80180804(Task* task)
 {
     UiObject* obj;
     UiList*   list;
@@ -1604,7 +1604,7 @@ void func_acropolis_square_80180AFC(Task* task)
 /// Inserts a '.' into a digit string so `decimals` characters sit after the
 /// point. Walks to the NUL, then shifts the last `min(len, decimals)` bytes
 /// one to the right to open a slot. No-op when `decimals <= 0`.
-void func_acropolis_square_80180B58(u8* str, s32 decimals)
+static void func_acropolis_square_80180B58(u8* str, s32 decimals)
 {
     s32 len;
 
@@ -1640,7 +1640,7 @@ void func_acropolis_square_80180B58(u8* str, s32 decimals)
 /// (so "5" with two decimals becomes "0.05"), otherwise print it unpadded, then
 /// shift the last `decimals` digits right by one and drop a '.' in front of
 /// them. Appends "%" and returns `buf`.
-u8* func_acropolis_square_80180BC8(u8* buf, s32 value, s32 decimals)
+static u8* func_acropolis_square_80180BC8(u8* buf, s32 value, s32 decimals)
 {
     s32 limit;
     s32 i;
@@ -1711,7 +1711,7 @@ void func_acropolis_square_80180CBC(Task* task)
 /// panel's draw order. Origin is `field_20`/`field_22` plus (`arg1`, `arg2`);
 /// `arg3`/`arg4` are width and height. Left vertices take `arg5`, right vertices
 /// take `arg6`. A zero color or width < 2 draws nothing.
-void func_acropolis_square_80180DAC(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
+static void func_acropolis_square_80180DAC(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
 {
     register s32 dx asm("v1");
     register s32 w asm("t3");
@@ -1809,7 +1809,7 @@ void func_acropolis_square_80181124(DialogPrompt* prompt, UiObject* obj)
 
 /// Task exit callback for the save-prompt UI: if this task still owns
 /// `Wip_UiHolder`, clear it, then free the spawned UI object and kill the task.
-void func_acropolis_square_801811EC(Task* task)
+static void func_acropolis_square_801811EC(Task* task)
 {
     WipUiHolder* holder;
 
@@ -2012,7 +2012,7 @@ void func_acropolis_square_80181228(Task* task)
 
 /// State handlers of the room entry task `func_acropolis_square_80182308`,
 /// indexed by `Task::state`: the set-up tick, the idle tick, and `taskKill`.
-const TaskFuncTable3 D_acropolis_square_8017D6B4 = {
+static const TaskFuncTable3 D_acropolis_square_8017D6B4 = {
     {
         func_acropolis_square_80182260,
         func_acropolis_square_801822A4,
@@ -2386,14 +2386,14 @@ void func_acropolis_square_80182200(s32 arg0)
 
 /// First state of the room entry task: installs the room's message table,
 /// publishes the task in pointer slot 7 and advances the state.
-void func_acropolis_square_80182260(Task* task)
+static void func_acropolis_square_80182260(Task* task)
 {
     task->msgTable = D_acropolis_square_801837C4;
     Game_SetPtrSlot(task, 7);
     task->state = (s32)(task->state + 1);
 }
 
-void func_acropolis_square_801822A4(Task* task)
+static void func_acropolis_square_801822A4(Task* task)
 {
     char pad[0x10];
 
@@ -2406,7 +2406,7 @@ void func_acropolis_square_801822A4(Task* task)
 
 /// Room entry task: runs the state handler `D_acropolis_square_8017D6B4`
 /// names for `Task::state`, through a copy of the table taken onto the stack.
-void func_acropolis_square_80182308(Task* task)
+static void func_acropolis_square_80182308(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -2414,7 +2414,7 @@ void func_acropolis_square_80182308(Task* task)
     sp.funcs[task->state](task);
 }
 
-s32 func_acropolis_square_80182360(void)
+static s32 func_acropolis_square_80182360(void)
 {
     GpAreaKey key;
 
@@ -2430,7 +2430,7 @@ s32 func_acropolis_square_80182360(void)
     return 1;
 }
 
-void func_acropolis_square_801823DC(Task* task)
+static void func_acropolis_square_801823DC(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -2472,7 +2472,7 @@ void func_acropolis_square_801823DC(Task* task)
     }
 }
 
-void func_acropolis_square_801825DC(Task* task)
+static void func_acropolis_square_801825DC(Task* task)
 {
     RoomGlowScratch* blk;
     POLY_G4*         prim;
@@ -2672,6 +2672,6 @@ s32 func_acropolis_square_8018344C(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-void func_acropolis_square_8018345C(void)
+static void func_acropolis_square_8018345C(void)
 {
 }

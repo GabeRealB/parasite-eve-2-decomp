@@ -63,8 +63,8 @@ extern GpMsgEntry D_neo_ark_submarine_tunnel_80181A50[];
 extern s32 D_neo_ark_submarine_tunnel_80181AF0;
 extern u8  D_neo_ark_submarine_tunnel_80181DF0;
 
-void func_neo_ark_submarine_tunnel_8017F3BC(Task* arg0);
-void func_neo_ark_submarine_tunnel_8017F414(Task* task);
+static void func_neo_ark_submarine_tunnel_8017F3BC(Task* arg0);
+static void func_neo_ark_submarine_tunnel_8017F414(Task* task);
 
 /// Draws a water-refraction ripple for some views of areas 27, 14, 15, 13, 30
 /// and 29 and returns at once for every other view. The view sets the row
@@ -778,7 +778,7 @@ void func_neo_ark_submarine_tunnel_8017E288(Task* task)
 /// runs: `func_neo_ark_submarine_tunnel_8017F3BC` sets it up,
 /// `func_neo_ark_submarine_tunnel_8017F414` runs every later tick, and
 /// `taskKill` ends it.
-const TaskFuncTable3 D_neo_ark_submarine_tunnel_8017D614 = {
+static const TaskFuncTable3 D_neo_ark_submarine_tunnel_8017D614 = {
     { func_neo_ark_submarine_tunnel_8017F3BC, func_neo_ark_submarine_tunnel_8017F414, taskKill }
 };
 
@@ -1037,7 +1037,7 @@ void func_neo_ark_submarine_tunnel_8017F398(s32 arg0)
 
 /// First state of the room task: installs the room's message table, publishes
 /// the task in pointer slot 7, plays sound event 0x550C0003 and advances.
-void func_neo_ark_submarine_tunnel_8017F3BC(Task* arg0)
+static void func_neo_ark_submarine_tunnel_8017F3BC(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_submarine_tunnel_80181A50;
     Game_SetPtrSlot(arg0, 7);
@@ -1046,7 +1046,7 @@ void func_neo_ark_submarine_tunnel_8017F3BC(Task* arg0)
 }
 
 /// Later states of the room task: reads pointer slot 3 and discards it.
-void func_neo_ark_submarine_tunnel_8017F414(Task* task)
+static void func_neo_ark_submarine_tunnel_8017F414(Task* task)
 {
     gameGetPtrSlot(3);
 }
@@ -1054,7 +1054,7 @@ void func_neo_ark_submarine_tunnel_8017F414(Task* task)
 /// Room task tick: copies the three-entry state table
 /// `D_neo_ark_submarine_tunnel_8017D614` to the stack and calls the entry for
 /// the task's state.
-void func_neo_ark_submarine_tunnel_8017F434(Task* task)
+static void func_neo_ark_submarine_tunnel_8017F434(Task* task)
 {
     TaskFuncTable3 sp;
 

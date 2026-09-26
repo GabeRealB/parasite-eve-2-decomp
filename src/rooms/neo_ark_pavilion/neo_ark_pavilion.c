@@ -71,18 +71,18 @@ extern RoomLatchedEvent D_neo_ark_pavilion_80187A20;
 /// spawned the room's event task; every such message clears it first.
 extern s8 D_neo_ark_pavilion_80187A1C;
 
-void func_neo_ark_pavilion_8017ED98(GpCoord* arg0, s32 arg1, s32 arg2);
-void func_neo_ark_pavilion_8017F588(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_neo_ark_pavilion_8017F974(GpCoord* arg0, s32 arg1, s32 arg2);
-void func_neo_ark_pavilion_8017FF54(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_neo_ark_pavilion_80180380(GpCoord* arg0, s16 arg1, u8* rgb);
-void func_neo_ark_pavilion_80180C04(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-void func_neo_ark_pavilion_80181284(GpCoord* arg0, s16 arg1, u8* rgb);
-void func_neo_ark_pavilion_801823C0(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_neo_ark_pavilion_80182644(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_neo_ark_pavilion_80182A68(GpCoord* arg0, s16 arg1, u8* rgb);
-void func_neo_ark_pavilion_80182FA8(GpCoord* coord, s16 size);
-void func_neo_ark_pavilion_801834D4(GpCoord* arg0, s32 arg1);
+static void func_neo_ark_pavilion_8017ED98(GpCoord* arg0, s32 arg1, s32 arg2);
+static void func_neo_ark_pavilion_8017F588(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_neo_ark_pavilion_8017F974(GpCoord* arg0, s32 arg1, s32 arg2);
+static void func_neo_ark_pavilion_8017FF54(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_neo_ark_pavilion_80180380(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_neo_ark_pavilion_80180C04(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+static void func_neo_ark_pavilion_80181284(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_neo_ark_pavilion_801823C0(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_neo_ark_pavilion_80182644(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_neo_ark_pavilion_80182A68(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_neo_ark_pavilion_80182FA8(GpCoord* coord, s16 size);
+static void func_neo_ark_pavilion_801834D4(GpCoord* arg0, s32 arg1);
 
 /// Draws the water-refraction ripple for the views that have one (views of
 /// areas 27, 14, 15, 13, 30 and 29; every other view returns at once). The
@@ -901,7 +901,7 @@ s32 func_neo_ark_pavilion_8017EB78(void)
 /// Room entry task tick: installs the room's message table (ids `0x13EE`-`0x13F1`),
 /// hands the task to pointer slot 7, queues sound events `0x550D0005` and
 /// `0x550D0006`, then advances state.
-void func_neo_ark_pavilion_8017EB80(Task* arg0)
+static void func_neo_ark_pavilion_8017EB80(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_pavilion_80183870;
     Game_SetPtrSlot(arg0, 7);
@@ -910,19 +910,19 @@ void func_neo_ark_pavilion_8017EB80(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-void func_neo_ark_pavilion_8017EBEC(Task* task)
+static void func_neo_ark_pavilion_8017EBEC(Task* task)
 {
 }
 
 /// State handlers of the room's entry task, indexed by its state through
 /// `func_neo_ark_pavilion_8017EBF4`: set-up, idle, then kill.
-const TaskFuncTable3 D_neo_ark_pavilion_8017D628 = {
+static const TaskFuncTable3 D_neo_ark_pavilion_8017D628 = {
     { func_neo_ark_pavilion_8017EB80, func_neo_ark_pavilion_8017EBEC, taskKill }
 };
 
 /// Task tick that dispatches on the task's state through the three-entry
 /// handler table `D_neo_ark_pavilion_8017D628`, copied to the stack first.
-void func_neo_ark_pavilion_8017EBF4(Task* task)
+static void func_neo_ark_pavilion_8017EBF4(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -938,7 +938,7 @@ void func_neo_ark_pavilion_8017EBF4(Task* task)
 /// under 2. The coordinate is never rebuilt, so it keeps the frame the spawner
 /// left. Once the room's event state leaves zero it only draws, and releases
 /// at state 4.
-void func_neo_ark_pavilion_8017EC4C(Task* task)
+static void func_neo_ark_pavilion_8017EC4C(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -974,7 +974,7 @@ void func_neo_ark_pavilion_8017EC4C(Task* task)
 /// through `GsWSMATRIX`. When `gte_stflg` is non-negative, queues one
 /// semi-transparent `POLY_FT4` (tpage 0x2B, clut 0x43D1, UV 0,0x38..0x37,0x6F)
 /// coloured `(arg2, arg2, arg2)`.
-void func_neo_ark_pavilion_8017ED98(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_neo_ark_pavilion_8017ED98(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -1064,7 +1064,7 @@ void func_neo_ark_pavilion_8017ED98(GpCoord* arg0, s32 arg1, s32 arg2)
 /// constant downward pull while the speed is non-zero, and advances the frame
 /// every `step` ticks, releasing the effect after the eighth. Once the room's
 /// event state leaves zero it only draws, and releases at state 4.
-void func_neo_ark_pavilion_8017F0CC(Task* task)
+static void func_neo_ark_pavilion_8017F0CC(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -1188,7 +1188,7 @@ void func_neo_ark_pavilion_8017F0CC(Task* task)
 /// `arg2` is a signed half-extent; the on-screen radius is
 /// `(s16)arg2 * 31 / otz`. `arg3` is the spin angle, applied at `arg3` and
 /// `arg3 + 0x400` through `rsin`/`rcos`.
-void func_neo_ark_pavilion_8017F588(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_neo_ark_pavilion_8017F588(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -1255,7 +1255,7 @@ void func_neo_ark_pavilion_8017F588(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 /// on-screen radius is `(s16)arg2 * 55 / otz`. The quad is axis-aligned and
 /// 2*radius on a side, shifted up so the projected point sits at
 /// three-quarters height (`y0 = sy - r - r/2`, `y2 = sy + r/2`).
-void func_neo_ark_pavilion_8017F974(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_neo_ark_pavilion_8017F974(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -1339,7 +1339,7 @@ void func_neo_ark_pavilion_8017F974(GpCoord* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
-void func_neo_ark_pavilion_8017FC10(Task* arg0)
+static void func_neo_ark_pavilion_8017FC10(Task* arg0)
 {
     if (arg0->state == 0) {
         D_80115758  = 0x601DA;
@@ -1361,7 +1361,7 @@ void func_neo_ark_pavilion_8017FC10(Task* arg0)
 /// while dimming by 0x10 a frame, and releases the effect once the brightness
 /// is spent. Once the room's event state leaves zero it only waits for state 4
 /// to release.
-void func_neo_ark_pavilion_8017FCB0(Task* task)
+static void func_neo_ark_pavilion_8017FCB0(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -1427,7 +1427,7 @@ void func_neo_ark_pavilion_8017FCB0(Task* task)
 /// position, when it projects. The ring runs from radius
 /// `(s16)arg1 * 64 / (otz + 1)`, which is black, to
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`, which takes the colour `rgb`.
-void func_neo_ark_pavilion_8017FF54(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_neo_ark_pavilion_8017FF54(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -1486,7 +1486,7 @@ void func_neo_ark_pavilion_8017FF54(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 /// the projected centre. `arg1` is a signed half-extent; the on-screen radius
 /// is `arg1 * 64 / (otz + 1)`. Only the centre vertex takes the colour
 /// `rgb`, so each wedge fades to black at the rim.
-void func_neo_ark_pavilion_80180380(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_neo_ark_pavilion_80180380(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -1542,7 +1542,7 @@ void func_neo_ark_pavilion_80180380(GpCoord* arg0, s16 arg1, u8* rgb)
 /// draws the ribbon through `func_neo_ark_pavilion_80180C04` and releases the
 /// effect once its age reaches `spawnArg1`. It stops advancing once the room's
 /// event state reaches 2.
-void func_neo_ark_pavilion_80180714(Task* task)
+static void func_neo_ark_pavilion_80180714(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -1641,7 +1641,7 @@ void func_neo_ark_pavilion_80180714(Task* task)
 /// along its length. `arg3` holds the colour as per-channel multipliers of that
 /// weight: red from bits 8 up, green from bits 4-5, blue from bits 0-1. A quad
 /// the GTE flags as bad is skipped.
-void func_neo_ark_pavilion_80180C04(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_neo_ark_pavilion_80180C04(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
     GpCoord*           a;
@@ -1752,7 +1752,7 @@ void func_neo_ark_pavilion_80180C04(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 
 /// rings in a fading `(a, a/2, a/4)` colour. The effect is then released.
 /// Once the room's event state leaves zero it only waits for state 4 to
 /// release.
-void func_neo_ark_pavilion_80180FFC(Task* task)
+static void func_neo_ark_pavilion_80180FFC(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;
@@ -1828,7 +1828,7 @@ void func_neo_ark_pavilion_80180FFC(Task* task)
 /// wedges span the outer radius in half the colour `arg2`, eight more span
 /// half of it at full colour, and four long spikes reach twice the outer
 /// radius between points on the inner one.
-void func_neo_ark_pavilion_80181284(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_neo_ark_pavilion_80181284(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -1954,7 +1954,7 @@ void func_neo_ark_pavilion_80181284(GpCoord* arg0, s16 arg1, u8* arg2)
 /// releases the work block, as does state 4. The spawn argument picks the
 /// disc's colour. Nothing runs while the room's event state is set, and the
 /// block is released once that state reaches 4.
-void func_neo_ark_pavilion_80181C44(Task* arg0)
+static void func_neo_ark_pavilion_80181C44(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -2070,7 +2070,7 @@ void func_neo_ark_pavilion_80181C44(Task* arg0)
 /// distance; each later frame moves by that step, draws the next sprite frame
 /// every other tick, and releases the effect after twenty ticks. Once the
 /// room's event state leaves zero it only waits for state 4 to release.
-void func_neo_ark_pavilion_8018219C(Task* task)
+static void func_neo_ark_pavilion_8018219C(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -2126,7 +2126,7 @@ void func_neo_ark_pavilion_8018219C(Task* task)
 /// `(arg1 & 3) * 24 + 0x60` at v=0..0x17. `arg2` is a signed half-extent; the
 /// on-screen radius is `(s16)arg2 * 23 / (otz + 1)`. `arg3` is the grey level
 /// the texture is modulated by.
-void func_neo_ark_pavilion_801823C0(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_neo_ark_pavilion_801823C0(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -2208,7 +2208,7 @@ void func_neo_ark_pavilion_801823C0(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 /// segments forming a ring. The edge at `arg1` is black and the edge at
 /// `arg1 + arg2` takes the colour `rgb`, both signed half-extents scaled to
 /// the screen as `r * 64 / (otz + 1)`.
-void func_neo_ark_pavilion_80182644(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_neo_ark_pavilion_80182644(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     GpArcScratch* block;
     POLY_G4*      prim;
@@ -2264,7 +2264,7 @@ void func_neo_ark_pavilion_80182644(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 /// the projected centre. `arg1` is a signed half-extent; the on-screen radius
 /// is `arg1 * 64 / (otz + 1)`. Only the centre vertex takes the colour
 /// `rgb`, so each wedge fades to black at the rim.
-void func_neo_ark_pavilion_80182A68(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_neo_ark_pavilion_80182A68(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     GpRingScratch* block;
     POLY_G4*       prim;
@@ -2316,7 +2316,7 @@ void func_neo_ark_pavilion_80182A68(GpCoord* arg0, s16 arg1, u8* rgb)
 /// while that level lasts; after it runs out the main level drops by 0x18 a
 /// frame and the effect is released once it is spent. Once the room's event
 /// state leaves zero it only waits for state 4 to release.
-void func_neo_ark_pavilion_80182DFC(Task* arg0)
+static void func_neo_ark_pavilion_80182DFC(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;
@@ -2373,7 +2373,7 @@ void func_neo_ark_pavilion_80182DFC(Task* arg0)
 /// `func_neo_ark_pavilion_801834D4` on the ground beneath it. It also points
 /// the `Gp_RoomCoords[2]` light at the coordinate with a randomly flickering
 /// intensity. Nothing is drawn when the GTE flags the projection.
-void func_neo_ark_pavilion_80182FA8(GpCoord* coord, s16 size)
+static void func_neo_ark_pavilion_80182FA8(GpCoord* coord, s16 size)
 {
     GpCoord        ground;
     POLY_FT4*      prim;
@@ -2505,7 +2505,7 @@ void func_neo_ark_pavilion_80182FA8(GpCoord* coord, s16 size)
 /// 0x428C) coloured `(0x30, 0x20, 0x20)`. The display's animation frame
 /// alternates between two 32-texel UV columns at u = 0xC0 and 0xE0, v =
 /// 0x38..0x57.
-void func_neo_ark_pavilion_801834D4(GpCoord* arg0, s32 arg1)
+static void func_neo_ark_pavilion_801834D4(GpCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;

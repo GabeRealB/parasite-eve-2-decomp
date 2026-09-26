@@ -21,8 +21,8 @@ extern GpFadeWork D_shelter_b1_elevator_hall_801849F0;
 
 extern s32 func_80179A04(GpSaveLoc* in, GpSaveLoc* out);
 
-void func_shelter_b1_elevator_hall_8017DBB8(Task* arg0);
-void func_shelter_b1_elevator_hall_8017DC20(Task* task);
+static void func_shelter_b1_elevator_hall_8017DBB8(Task* arg0);
+static void func_shelter_b1_elevator_hall_8017DC20(Task* task);
 
 void func_shelter_b1_elevator_hall_8017D620(Task* task)
 {
@@ -126,7 +126,7 @@ s32 func_shelter_b1_elevator_hall_8017D810(Task* task, s32 msgId, GpSaveLoc* src
 
 /// The room task's state table, dispatched by
 /// `func_shelter_b1_elevator_hall_8017DC28` from a stack copy.
-const TaskFuncTable3 D_shelter_b1_elevator_hall_8017D5D8 = {
+static const TaskFuncTable3 D_shelter_b1_elevator_hall_8017D5D8 = {
     {
         func_shelter_b1_elevator_hall_8017DBB8,
         func_shelter_b1_elevator_hall_8017DC20,
@@ -221,7 +221,7 @@ s32 func_shelter_b1_elevator_hall_8017DB6C(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-void func_shelter_b1_elevator_hall_8017DBB8(Task* arg0)
+static void func_shelter_b1_elevator_hall_8017DBB8(Task* arg0)
 {
     arg0->msgTable = D_shelter_b1_elevator_hall_80182CB8;
     Game_SetPtrSlot(arg0, 7);
@@ -233,13 +233,13 @@ void func_shelter_b1_elevator_hall_8017DBB8(Task* arg0)
 }
 
 /// Empty middle state of the room task's state table.
-void func_shelter_b1_elevator_hall_8017DC20(Task* task)
+static void func_shelter_b1_elevator_hall_8017DC20(Task* task)
 {
 }
 
 /// Runs the room task through its state table, copied onto the stack first and
 /// indexed by the task's state.
-void func_shelter_b1_elevator_hall_8017DC28(Task* task)
+static void func_shelter_b1_elevator_hall_8017DC28(Task* task)
 {
     TaskFuncTable3 sp;
 

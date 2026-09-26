@@ -29,7 +29,12 @@ extern SVECTOR D_shelter_b1_sterilization_room_80189334[];
 
 extern void func_800E8634(s32 arg0, s32 arg1, s32 arg2);
 
-void func_shelter_b1_sterilization_room_801826F0(GpCoord* coord, s16 frame, s16 arg2, s16 arg3);
+static void func_shelter_b1_sterilization_room_801826F0(GpCoord* coord, s16 frame, s16 arg2, s16 arg3);
+
+static void func_shelter_b1_sterilization_room_80182B34(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b1_sterilization_room_80183378(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b1_sterilization_room_80183718(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b1_sterilization_room_80183B8C(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 void func_shelter_b1_sterilization_room_801813A0(Task* arg0)
 {
@@ -210,7 +215,7 @@ void func_shelter_b1_sterilization_room_801817EC(Task* task)
 /// angle draw. The last gives `hi` a first life that combine folds away after
 /// recording a use of it, so its reuse for the radius draw is a value combine
 /// cannot bound and the radius keeps its `s16` sign extension.
-void func_shelter_b1_sterilization_room_8018188C(Task* task)
+static void func_shelter_b1_sterilization_room_8018188C(Task* task)
 {
     GpCoord* coord;
 
@@ -479,7 +484,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
 /// and adds `step` to `scale`; while an event is running the tick
 /// counter is held instead. The drawn frame advances every `index` ticks
 /// and the task is released once ten frames have passed.
-void func_shelter_b1_sterilization_room_801823D8(Task* task)
+static void func_shelter_b1_sterilization_room_801823D8(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -531,7 +536,7 @@ void func_shelter_b1_sterilization_room_801823D8(Task* task)
 /// `POLY_FT4` (tpage 0x2B, clut 0x43D0) rotated about the projected point.
 /// `frame` picks a 48x48 cell from a 5-column sheet; the half-extent is
 /// `arg2 * 47 / otz` and `arg3` is the spin angle.
-void func_shelter_b1_sterilization_room_801826F0(GpCoord* coord, s16 frame, s16 arg2, s16 arg3)
+static void func_shelter_b1_sterilization_room_801826F0(GpCoord* coord, s16 frame, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -589,7 +594,10 @@ void func_shelter_b1_sterilization_room_801826F0(GpCoord* coord, s16 frame, s16 
     SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
-void func_shelter_b1_sterilization_room_80182B34(SVECTOR* arg0, s32 arg1, s32 arg2)
+/// Draws a two-point gouraud glow between the projections of `pos[0]` and
+/// `pos[1]`; `size` is a signed half-extent scaled by depth and `rgb` a
+/// 4-bit-per-channel colour.
+static void func_shelter_b1_sterilization_room_80182B34(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**                   scratch;
     u8*                      head;
@@ -730,7 +738,10 @@ void func_shelter_b1_sterilization_room_80182B34(SVECTOR* arg0, s32 arg1, s32 ar
     SCRATCH_POP_BYTES(0x1C);
 }
 
-void func_shelter_b1_sterilization_room_80183378(SVECTOR* arg0, s32 arg1, s32 arg2)
+/// Draws a gouraud disc of four wedges around the projection of `pos`; `size`
+/// is a signed half-extent scaled by depth and `rgb` a 4-bit-per-channel
+/// colour.
+static void func_shelter_b1_sterilization_room_80183378(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**             scratch;
     u8*                head;
@@ -803,7 +814,10 @@ void func_shelter_b1_sterilization_room_80183378(SVECTOR* arg0, s32 arg1, s32 ar
     SCRATCH_POP_BYTES(0x10);
 }
 
-void func_shelter_b1_sterilization_room_80183718(SVECTOR* arg0, s32 arg1, s32 arg2)
+/// Draws a pulsing diamond glow around the projection of `pos`; `speed`
+/// scales the frame counter driving the pulse and `size` is a signed
+/// half-extent scaled by depth.
+static void func_shelter_b1_sterilization_room_80183718(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw13Scratch* block;
@@ -899,7 +913,7 @@ void func_shelter_b1_sterilization_room_80183718(SVECTOR* arg0, s32 arg1, s32 ar
 /// wedges reaching between that radius and an inner one of
 /// `(s16)arg2 * 8 / otz`. Only the centre vertex is lit, on green and blue, at
 /// `rsin(animFrame * (s16)arg1) / 34 + 0x78` so the glow pulses.
-void func_shelter_b1_sterilization_room_80183B8C(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b1_sterilization_room_80183B8C(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*              head;
     RoomDiscScratch* block;

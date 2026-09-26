@@ -189,7 +189,7 @@ s32 func_dryfield_underpass_8017D908(s32 arg0, s32 arg1, RoomEventMsg* in, RoomE
 /// `Task::msgTable` and publishes the task in pointer slot 7. While the
 /// session's place is 1 and nibble 0xC9 is clear it also sends message 0x7DA,
 /// with `D_dryfield_underpass_8017E89C`, to the task in slot 4. Then advances.
-void func_dryfield_underpass_8017D970(Task* arg0)
+static void func_dryfield_underpass_8017D970(Task* arg0)
 {
     arg0->msgTable = D_dryfield_underpass_8017E830;
     Game_SetPtrSlot(arg0, 7);
@@ -200,7 +200,7 @@ void func_dryfield_underpass_8017D970(Task* arg0)
 }
 
 /// Second state of the room task: idles.
-void func_dryfield_underpass_8017DA00(Task* task)
+static void func_dryfield_underpass_8017DA00(Task* task)
 {
 }
 
@@ -249,13 +249,13 @@ void func_dryfield_underpass_8017DA08(void)
 
 /// State handlers of the room task `func_dryfield_underpass_8017DAC8`, indexed
 /// by `Task::state`: the set-up tick, the idle tick, and `taskKill`.
-const TaskFuncTable3 D_dryfield_underpass_8017D5C4 = {
+static const TaskFuncTable3 D_dryfield_underpass_8017D5C4 = {
     { func_dryfield_underpass_8017D970, func_dryfield_underpass_8017DA00, taskKill },
 };
 
 /// Room task: runs the state handler `D_dryfield_underpass_8017D5C4` names for
 /// `Task::state`, through a copy of the table taken onto the stack.
-void func_dryfield_underpass_8017DAC8(Task* task)
+static void func_dryfield_underpass_8017DAC8(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -272,7 +272,7 @@ void func_dryfield_underpass_8017DAC8(Task* task)
 /// `(arg2 & 0x3F) | 0x4380`, and `arg3` is a signed half-extent, so the quad
 /// reaches `(s16)arg3 * 39 / otz` from the projected centre. The grey level
 /// alternates between 0x20 and 0x30 with `animFrame`.
-void func_dryfield_underpass_8017DB20(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
+static void func_dryfield_underpass_8017DB20(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
 {
     void**            scratch;
     u8*               head;
@@ -358,7 +358,7 @@ void func_dryfield_underpass_8017DB20(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s3
 /// lights, one per point in `D_...EAD0` (in the model's local space) whose
 /// `D_...EB10` bitmask contains the visit's bit (`gGameSession->at4.loc.view`).
 /// The whole effect is skipped unless nibble 0x53 is clear.
-void func_dryfield_underpass_8017DE30(Task* task)
+static void func_dryfield_underpass_8017DE30(Task* task)
 {
     GpCoord* coord;
     s32      mask;

@@ -112,10 +112,10 @@ extern GpEnemy*            D_mine_mesa_80189B74[2];
 
 #define MINE_MESA_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
 
-void func_mine_mesa_8017DD44(void);
-void func_mine_mesa_8017EB38(void);
-void func_mine_mesa_80180184(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-void func_mine_mesa_801817BC(void);
+static void func_mine_mesa_8017DD44(void);
+static void func_mine_mesa_8017EB38(void);
+static void func_mine_mesa_80180184(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+static void func_mine_mesa_801817BC(void);
 
 /// Runs this room's pending event once the request for it has been accepted.
 /// State 0 plays the caption command recorded in `D_mine_mesa_80189B60` and
@@ -169,7 +169,7 @@ void func_mine_mesa_8017D670(Task* arg0)
     }
 }
 
-void func_mine_mesa_8017D808(Task* task)
+static void func_mine_mesa_8017D808(Task* task)
 {
     u8  field9;
     s32 nibble;
@@ -300,7 +300,7 @@ s32 func_mine_mesa_8017DBC4(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 0;
 }
 
-void func_mine_mesa_8017DC80(Task* arg0)
+static void func_mine_mesa_8017DC80(Task* arg0)
 {
     arg0->msgTable = D_mine_mesa_80181904;
     Game_SetPtrSlot(arg0, 7);
@@ -321,7 +321,7 @@ void func_mine_mesa_8017DC80(Task* arg0)
     D_mine_mesa_80189B50 = 0;
 }
 
-void func_mine_mesa_8017DD44(void)
+static void func_mine_mesa_8017DD44(void)
 {
     Gp_UnlinkObj4A(0, &D_mine_mesa_801890EC[0]);
     Gp_UnlinkObj4A(0, &D_mine_mesa_801890EC[1]);
@@ -331,11 +331,11 @@ void func_mine_mesa_8017DD44(void)
 
 /// State handlers of the room task `func_mine_mesa_8017DD98` drives: the
 /// set-up tick, the per-frame tick and `taskKill`.
-const TaskFuncTable3 D_mine_mesa_8017D5D8 = {
+static const TaskFuncTable3 D_mine_mesa_8017D5D8 = {
     { func_mine_mesa_8017DC80, func_mine_mesa_8017D808, taskKill },
 };
 
-void func_mine_mesa_8017DD98(Task* task)
+static void func_mine_mesa_8017DD98(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -848,7 +848,7 @@ void func_mine_mesa_8017EB18(void)
     Gp_HaltPadScripts();
 }
 
-void func_mine_mesa_8017EB38(void)
+static void func_mine_mesa_8017EB38(void)
 {
     D_mine_mesa_80189B54 = NULL;
     D_mine_mesa_80189B58 = NULL;
@@ -897,7 +897,7 @@ void func_mine_mesa_8017EB54(s32 arg0)
 /// shows: one `func_mine_mesa_8017EFA8` quad per position, texture column 1
 /// and half-extent 0x200, except the column-0, 0x300 positions of views 2 and
 /// 5.
-void func_mine_mesa_8017ED08(Task* arg0)
+static void func_mine_mesa_8017ED08(Task* arg0)
 {
     if (arg0->state == 0) {
         D_80115758                 = 0x600E9;
@@ -1027,7 +1027,7 @@ void func_mine_mesa_8017EFA8(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// its `GpEffWork` block back. It releases the block early while
 /// `Gp_State1C->eventState` is 4 or more, and draws nothing while it is
 /// non-zero.
-void func_mine_mesa_8017F230(Task* task)
+static void func_mine_mesa_8017F230(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -1208,7 +1208,7 @@ void func_mine_mesa_8017F900(GpCoord* arg0, s16 arg1, u8* rgb)
 /// `func_mine_mesa_80180184`. The task releases its `GpEffWork` block once
 /// `age` reaches `spawnArg1`, and idles while `Gp_State1C->eventState` is 2 or
 /// more.
-void func_mine_mesa_8017FC94(Task* task)
+static void func_mine_mesa_8017FC94(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -1307,7 +1307,7 @@ void func_mine_mesa_8017FC94(Task* task)
 /// colour whose channels multiply that fade: red is `arg3 >> 8`, green and
 /// blue the 2-bit fields at bits 4 and 0. A quad is dropped when `gte_stflg`
 /// is negative.
-void func_mine_mesa_80180184(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_mine_mesa_80180184(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
     GpCoord*           a;
@@ -1411,7 +1411,7 @@ void func_mine_mesa_80180184(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
     SCRATCH_POP(RoomDraw03Scratch);
 }
 
-void func_mine_mesa_8018057C(Task* task)
+static void func_mine_mesa_8018057C(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;
@@ -1610,7 +1610,7 @@ void func_mine_mesa_80180804(GpCoord* arg0, s16 arg1, u8* arg2)
 /// the wall's two base points and whose upper corners sit `height` above them
 /// (the grid's y axis points down), with a horizontal normal perpendicular to
 /// the base.
-void func_mine_mesa_801811C4(s32 height)
+static void func_mine_mesa_801811C4(s32 height)
 {
     SVECTOR*    normals;
     SVECTOR*    verts;
@@ -1652,7 +1652,7 @@ void func_mine_mesa_801811C4(s32 height)
 /// kill remains, nothing spawns until both slots are empty. Once the counter
 /// is zero the task hands `Gp_ReleaseStateF0` an empty enemy record and
 /// advances its state.
-void func_mine_mesa_80181358(Task* arg0)
+static void func_mine_mesa_80181358(Task* arg0)
 {
     GpAreaKey            key;
     GpEnemy              result;
@@ -1757,7 +1757,7 @@ end:
 /// Picks the height the room's terrain updater subtracts from its mesh
 /// vertices: 0x7D0 while `gGameSession->at4.loc.place` says the session is in area 1
 /// or 7, 0x190 otherwise, then hands that to `func_mine_mesa_801811C4`.
-void func_mine_mesa_801817BC(void)
+static void func_mine_mesa_801817BC(void)
 {
     s32 offset;
 
@@ -1786,7 +1786,7 @@ s32 func_mine_mesa_80181800(Task* task, s32 msgId, s32 slot, s32 arg3)
 /// the two slots at `D_mine_mesa_80189B74`, points the task at the room's state
 /// descriptor and advances a state. `func_mine_mesa_80181800` later empties a
 /// slot and decrements the counter once the thing in it is gone.
-void func_mine_mesa_80181848(Task* arg0)
+static void func_mine_mesa_80181848(Task* arg0)
 {
     D_mine_mesa_80189B6C    = 10;
     D_mine_mesa_80189B74[1] = 0;
@@ -1795,14 +1795,14 @@ void func_mine_mesa_80181848(Task* arg0)
     arg0->state++;
 }
 
-void func_mine_mesa_80181880(Task* arg0)
+static void func_mine_mesa_80181880(Task* arg0)
 {
     arg0->state = arg0->state + 1;
 }
 
 /// State handlers of the enemy-wave task `func_mine_mesa_80181894` drives: the
 /// set-up tick, the spawner, a step past the wave and `taskKill`.
-const TaskFuncTable4 D_mine_mesa_8017D660 = {
+static const TaskFuncTable4 D_mine_mesa_8017D660 = {
     { func_mine_mesa_80181848, func_mine_mesa_80181358, func_mine_mesa_80181880, taskKill },
 };
 

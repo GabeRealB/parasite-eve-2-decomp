@@ -21,11 +21,11 @@ extern SVECTOR D_shelter_b1_armory_80182568[];
 extern SVECTOR D_shelter_b1_armory_80182570[];
 extern SVECTOR D_shelter_b1_armory_80182578[];
 
-void func_shelter_b1_armory_80180934(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_shelter_b1_armory_8018111C(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b1_armory_801814C0(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b1_armory_80180934(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_shelter_b1_armory_8018111C(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b1_armory_801814C0(SVECTOR* arg0, s32 arg1, s32 arg2);
 
-void func_shelter_b1_armory_801807E4(void)
+static void func_shelter_b1_armory_801807E4(void)
 {
     u8 view;
 
@@ -67,7 +67,7 @@ void func_shelter_b1_armory_801807E4(void)
 /// depth, starting at angle `arg2`, and joined by quads between the two. The
 /// inner colour takes one bit per channel from `arg3` (red from its high
 /// byte), scaled by 0x20 or 0x28 as the frame counter alternates.
-void func_shelter_b1_armory_80180934(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_shelter_b1_armory_80180934(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     u8*                head;
     RoomDraw11Scratch* block;
@@ -209,7 +209,7 @@ void func_shelter_b1_armory_80180934(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3
 /// of `arg1 * 64` over its depth. The centre colour takes one bit per channel
 /// from `arg2` (red from its high byte), scaled by 0x20 or 0x28 as the frame
 /// counter alternates.
-void func_shelter_b1_armory_8018111C(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b1_armory_8018111C(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw25Scratch* block;
@@ -287,7 +287,7 @@ void func_shelter_b1_armory_8018111C(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// packs the tint as four nibbles, shift, red, green and blue; the frame
 /// counter's low bit, shifted left by the shift nibble, is added to every
 /// channel.
-void func_shelter_b1_armory_801814C0(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b1_armory_801814C0(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw05Scratch* block;

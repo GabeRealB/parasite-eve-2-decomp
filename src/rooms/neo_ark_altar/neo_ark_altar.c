@@ -27,13 +27,13 @@ extern TaskDesc D_neo_ark_altar_8017F088[];
 /// (`func_neo_ark_altar_8017D668`).
 extern TaskDesc D_neo_ark_altar_8017EF8C;
 
-void func_neo_ark_altar_8017D974(Task* task);
-void func_neo_ark_altar_8017D9E0(Task* task);
+static void func_neo_ark_altar_8017D974(Task* task);
+static void func_neo_ark_altar_8017D9E0(Task* task);
 
 /// State table of the room's message task: set-up
 /// (`func_neo_ark_altar_8017D974`), an empty per-frame state and `taskKill`.
 /// Its bytes open the room's rodata, ahead of the cutscene driver's jump table.
-const TaskFuncTable3 D_neo_ark_altar_8017D5C4 = {
+static const TaskFuncTable3 D_neo_ark_altar_8017D5C4 = {
     func_neo_ark_altar_8017D974,
     func_neo_ark_altar_8017D9E0,
     taskKill,
@@ -165,7 +165,7 @@ s32 func_neo_ark_altar_8017D910(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventM
 /// switch sprites one step towards the choice recorded in game flag 0xD9
 /// (`func_neo_ark_altar_8017DC40`), then start the altar task from
 /// `D_neo_ark_altar_8017F088` and advance to state 1.
-void func_neo_ark_altar_8017D974(Task* task)
+static void func_neo_ark_altar_8017D974(Task* task)
 {
     task->msgTable = D_neo_ark_altar_8017EF98;
     Game_SetPtrSlot(task, 7);
@@ -176,13 +176,13 @@ void func_neo_ark_altar_8017D974(Task* task)
 
 /// Per-frame state of the room's message task: nothing to do, the task only
 /// holds the message table.
-void func_neo_ark_altar_8017D9E0(Task* task)
+static void func_neo_ark_altar_8017D9E0(Task* task)
 {
 }
 
 /// Runs the room's message task's current state through a stack copy of
 /// `D_neo_ark_altar_8017D5C4`.
-void func_neo_ark_altar_8017D9E8(Task* task)
+static void func_neo_ark_altar_8017D9E8(Task* task)
 {
     TaskFuncTable3 sp;
 

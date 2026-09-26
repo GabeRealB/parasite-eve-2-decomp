@@ -16,13 +16,13 @@
 /// draws a subset of them.
 extern SVECTOR D_mine_tunnel_8017E12C[];
 
-void func_mine_tunnel_8017D8CC(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_mine_tunnel_8017D8CC(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// Room effect tick: sets `Gp_State1C->roomEffectMode` to 2 and draws the
 /// light anchors the current view index shows - anchor 2 in view 2, all five
 /// in view 3, anchors 2 and 3 in view 4, anchors 1 and 4 in view 5, none
 /// otherwise.
-void func_mine_tunnel_8017D7D4(void)
+static void func_mine_tunnel_8017D7D4(void)
 {
     s32 idx;
 
@@ -60,7 +60,7 @@ void func_mine_tunnel_8017D7D4(void)
 /// on-screen radius is `(s16)arg2 * 39 / otz`. RGB is the frame-counter blend
 /// byte `((animFrame & 1) * 16) + 0x20` on all three channels. The room's
 /// effect tick draws its light anchors with it.
-void func_mine_tunnel_8017D8CC(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_mine_tunnel_8017D8CC(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw13Scratch* block;
     POLY_FT4*          prim;

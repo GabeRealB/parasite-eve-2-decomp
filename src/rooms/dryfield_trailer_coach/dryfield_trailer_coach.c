@@ -46,7 +46,7 @@ extern s32 D_dryfield_trailer_coach_80183D44;
 /// `func_dryfield_trailer_coach_80181D88` spawns entry 1 for the scene.
 extern TaskDesc D_dryfield_trailer_coach_80184F7C;
 
-void func_dryfield_trailer_coach_80181D4C(Task* task);
+static void func_dryfield_trailer_coach_80181D4C(Task* task);
 
 /// The 0xFFFF-terminated item id lists `func_dryfield_trailer_coach_8017D7F4`
 /// chooses from.
@@ -124,7 +124,7 @@ extern u16 D_dryfield_trailer_coach_80183E2C[];
 /// `Mc_SaveData.gameMode` 2 and above has groups of its own. A high halfword
 /// above 3 falls through the 0x30-0x33 groups in turn and on into 0x20's;
 /// every other miss returns `D_dryfield_trailer_coach_80183E2C`.
-u16* func_dryfield_trailer_coach_8017D7F4(s32 mode)
+static u16* func_dryfield_trailer_coach_8017D7F4(s32 mode)
 {
     if (Mc_SaveData.gameMode < 2) {
         switch ((u16)mode) {
@@ -458,7 +458,7 @@ void func_dryfield_trailer_coach_8017DE64(DialogPrompt* prompt, UiObject* obj)
 /// ids 0xF..0x32 are three consecutive levels of the same kind, so an entry of
 /// the same kind is overwritten only by a higher level. In mode 0x10 the ids
 /// 0x9D..0x9F, 0x8A and 0x65 are never added.
-void func_dryfield_trailer_coach_8017E2F0(RoomShopList* shop, UiObject* obj, s32 item)
+static void func_dryfield_trailer_coach_8017E2F0(RoomShopList* shop, UiObject* obj, s32 item)
 {
     Task*         task = obj->owner;
     s32           mode = task->spawnArg1;
@@ -504,7 +504,7 @@ extern RoomShopTier D_dryfield_trailer_coach_80183CA8[13];
 /// twelve two-bit levels in `Mc_SaveData.shopStock`, the id of that level
 /// (the first slot needs level 2). With `Mc_SaveData.demoScene` 1 every row
 /// and level is unlocked first.
-void func_dryfield_trailer_coach_8017E43C(RoomShopList* shop, UiObject* obj)
+static void func_dryfield_trailer_coach_8017E43C(RoomShopList* shop, UiObject* obj)
 {
     RoomShopList* list;
     u16*          ids;
@@ -614,16 +614,16 @@ extern UiObject*    D_80067634;
 extern UiObjectDesc D_8010D80C;
 
 /// Titles and captions of the shop's panels.
-const u8 D_dryfield_trailer_coach_8017D6D0[] = "Select";
-const u8 D_dryfield_trailer_coach_8017D6D8[] = "BP";
-const u8 D_dryfield_trailer_coach_8017D6DC[] = "List";
-const u8 D_dryfield_trailer_coach_8017D6E4[] = "TOTAL";
-const u8 D_dryfield_trailer_coach_8017D6EC[] = "Notice";
+static const u8 D_dryfield_trailer_coach_8017D6D0[] = "Select";
+static const u8 D_dryfield_trailer_coach_8017D6D8[] = "BP";
+static const u8 D_dryfield_trailer_coach_8017D6DC[] = "List";
+static const u8 D_dryfield_trailer_coach_8017D6E4[] = "TOTAL";
+static const u8 D_dryfield_trailer_coach_8017D6EC[] = "Notice";
 
 /// "Charge", with a stray non-zero byte after its terminator that C cannot
 /// place, so the string stays assembly.
 /// "Charge", followed by the non-zero padding the original toolchain left.
-const char D_dryfield_trailer_coach_8017D6F4[8] = "Charge\0\xEF";
+static const char D_dryfield_trailer_coach_8017D6F4[8] = "Charge\0\xEF";
 
 /// Messages and labels of the shop's panels.
 extern u8 D_dryfield_trailer_coach_80183D48[];
@@ -1674,21 +1674,21 @@ void func_dryfield_trailer_coach_8017FFCC(DialogPrompt* arg0, UiObject* arg1)
 }
 
 /// Title of the play-data menu `func_dryfield_trailer_coach_8018181C`.
-const char D_dryfield_trailer_coach_8017D748[] = "Play Data";
+static const char D_dryfield_trailer_coach_8017D748[] = "Play Data";
 
 /// The completion figure `func_dryfield_trailer_coach_80180798` draws.
-const u8 D_dryfield_trailer_coach_8017D754[] = "100.0%";
+static const u8 D_dryfield_trailer_coach_8017D754[] = "100.0%";
 
 /// Titles of the play-data panels: the two usage lists
 /// `func_dryfield_trailer_coach_801811B0` draws (item and PE), and the menu
 /// `func_dryfield_trailer_coach_80181364` draws. The last has two stray
 /// non-zero bytes after its terminator that C cannot place, so it stays
 /// assembly.
-const char        D_dryfield_trailer_coach_8017D75C[] = "Weapon Data";
-const char        D_dryfield_trailer_coach_8017D768[] = "PE Data";
-extern const char D_dryfield_trailer_coach_8017D770[];
+static const char D_dryfield_trailer_coach_8017D75C[] = "Weapon Data";
+static const char D_dryfield_trailer_coach_8017D768[] = "PE Data";
+static const char D_dryfield_trailer_coach_8017D770[];
 /// "Telephone", followed by the non-zero padding the original toolchain left.
-const char D_dryfield_trailer_coach_8017D770[12] = "Telephone\0\xD0\xFF";
+static const char D_dryfield_trailer_coach_8017D770[12] = "Telephone\0\xD0\xFF";
 
 void func_dryfield_trailer_coach_80180798(DialogPrompt* arg0, UiObject* arg1)
 {
@@ -1838,7 +1838,7 @@ extern UiObjectDesc D_dryfield_trailer_coach_80184810;
 /// counter as a 12-bit fraction of the top row's. Both are scaled down by
 /// halving until the top counter fits in 17 bits, so the multiply and the
 /// shift cannot overflow.
-void func_dryfield_trailer_coach_80180B94(UiList* list, UiObject* obj)
+static void func_dryfield_trailer_coach_80180B94(UiList* list, UiObject* obj)
 {
     RoomItemUsage* work;
     s32            count;
@@ -1925,7 +1925,7 @@ void func_dryfield_trailer_coach_80180B94(UiList* list, UiObject* obj)
 /// `barWidths`, its counter as a 12-bit fraction of the top row's. Both are
 /// scaled down by halving until the top counter fits in 17 bits, so the
 /// multiply and the shift cannot overflow.
-void func_dryfield_trailer_coach_80180E90(UiList* list, UiObject* obj)
+static void func_dryfield_trailer_coach_80180E90(UiList* list, UiObject* obj)
 {
     RoomPeUsage* work;
     s16*         p;
@@ -2066,7 +2066,7 @@ void func_dryfield_trailer_coach_801811B0(Task* task)
     }
 }
 
-void func_dryfield_trailer_coach_80181364(Task* task)
+static void func_dryfield_trailer_coach_80181364(Task* task)
 {
     UiObject* obj;
     UiList*   list;
@@ -2189,7 +2189,7 @@ void func_dryfield_trailer_coach_8018165C(Task* task)
 /// Inserts a '.' into a digit string so `decimals` characters sit after the
 /// point. Walks to the NUL, then shifts the last `min(len, decimals)` bytes
 /// one to the right to open a slot. No-op when `decimals <= 0`.
-void func_dryfield_trailer_coach_801816B8(u8* str, s32 decimals)
+static void func_dryfield_trailer_coach_801816B8(u8* str, s32 decimals)
 {
     s32 len;
 
@@ -2225,7 +2225,7 @@ void func_dryfield_trailer_coach_801816B8(u8* str, s32 decimals)
 /// (so "5" with two decimals becomes "0.05"), otherwise print it unpadded, then
 /// shift the last `decimals` digits right by one and drop a '.' in front of
 /// them. Appends "%" and returns `buf`.
-u8* func_dryfield_trailer_coach_80181728(u8* buf, s32 value, s32 decimals)
+static u8* func_dryfield_trailer_coach_80181728(u8* buf, s32 value, s32 decimals)
 {
     s32 limit;
     s32 i;
@@ -2305,7 +2305,7 @@ void func_dryfield_trailer_coach_8018181C(Task* task)
 /// panel's draw order. Origin is `field_20`/`field_22` plus (`arg1`, `arg2`);
 /// `arg3`/`arg4` are width and height. Left vertices take `arg5`, right vertices
 /// take `arg6`. A zero color or width < 2 draws nothing.
-void func_dryfield_trailer_coach_8018190C(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
+static void func_dryfield_trailer_coach_8018190C(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
 {
     register s32 dx asm("v1");
     register s32 w asm("t3");
@@ -2396,7 +2396,7 @@ void func_dryfield_trailer_coach_80181C84(DialogPrompt* prompt, UiObject* obj)
 /// Exit callback of a prompt task that registers its UI object as
 /// `Wip_UiHolder`: releases the holder if the task still owns it, then frees
 /// the UI object and kills the task.
-void func_dryfield_trailer_coach_80181D4C(Task* task)
+static void func_dryfield_trailer_coach_80181D4C(Task* task)
 {
     WipUiHolder* holder;
 
@@ -2754,13 +2754,13 @@ s32 func_dryfield_trailer_coach_801825A8(s32 arg0, s32 arg1, s32 arg2)
 /// entries 2-3 when the task's `spawnArg1` is 1.
 extern u8* D_dryfield_trailer_coach_801853E4[4];
 
-void func_dryfield_trailer_coach_801827D0(Task* arg0);
+static void func_dryfield_trailer_coach_801827D0(Task* arg0);
 
 /// Opens a two-line text block: allocates the `RoomTextBlock` (killing the task
 /// if that fails), links its two line nodes to the lines of
 /// `D_dryfield_trailer_coach_801853E4` chosen by `spawnArg1`, hands the list to
 /// `Ui_SpawnTextBlock` and advances the task.
-void func_dryfield_trailer_coach_801826A0(Task* task)
+static void func_dryfield_trailer_coach_801826A0(Task* task)
 {
     RoomTextBlock* block;
     TextLineNode*  node;
@@ -2809,7 +2809,7 @@ void func_dryfield_trailer_coach_801826A0(Task* task)
 /// Waits for the text block parked at `Task::work` to report a result in
 /// `TextBlockDesc::field_2`, stores it through `Task::spawnArg2` and advances
 /// the task.
-void func_dryfield_trailer_coach_80182794(Task* task)
+static void func_dryfield_trailer_coach_80182794(Task* task)
 {
     s16 result;
 
@@ -2822,7 +2822,7 @@ void func_dryfield_trailer_coach_80182794(Task* task)
 
 /// Exit callback of the text-block task: kills it and calls
 /// `Stage_SetEndingFlag`.
-void func_dryfield_trailer_coach_801827D0(Task* arg0)
+static void func_dryfield_trailer_coach_801827D0(Task* arg0)
 {
     taskKill(arg0);
     Stage_SetEndingFlag();
@@ -2832,12 +2832,12 @@ extern GpMsgEntry D_dryfield_trailer_coach_80184FA0[];
 extern s32        D_dryfield_trailer_coach_801853F4;
 extern s32        D_dryfield_trailer_coach_80185964;
 
-void func_dryfield_trailer_coach_80182888(Task* arg0);
-void func_dryfield_trailer_coach_8018291C(Task* task);
+static void func_dryfield_trailer_coach_80182888(Task* arg0);
+static void func_dryfield_trailer_coach_8018291C(Task* task);
 
 /// State table of the room's cutscene task, run by
 /// `func_dryfield_trailer_coach_80182950`.
-const TaskFuncTable3 D_dryfield_trailer_coach_8017D7DC = {
+static const TaskFuncTable3 D_dryfield_trailer_coach_8017D7DC = {
     {
         func_dryfield_trailer_coach_80182888,
         func_dryfield_trailer_coach_8018291C,
@@ -2848,7 +2848,7 @@ const TaskFuncTable3 D_dryfield_trailer_coach_8017D7DC = {
 /// State table of the room's two-line text-block task, run by
 /// `func_dryfield_trailer_coach_801827F8`: open the block, wait for its
 /// result, then kill the task and call `Stage_SetEndingFlag`.
-const TaskFuncTable3 D_dryfield_trailer_coach_8017D7E8 = {
+static const TaskFuncTable3 D_dryfield_trailer_coach_8017D7E8 = {
     {
         func_dryfield_trailer_coach_801826A0,
         func_dryfield_trailer_coach_80182794,
@@ -2878,7 +2878,7 @@ void func_dryfield_trailer_coach_80182850(void)
 /// State 0 of the trailer-coach cutscene task. It parks the room's message
 /// table in the task, then either starts the scene (day 2) or asks the stage
 /// for area 1, and advances to state 1.
-void func_dryfield_trailer_coach_80182888(Task* arg0)
+static void func_dryfield_trailer_coach_80182888(Task* arg0)
 {
     arg0->msgTable = D_dryfield_trailer_coach_80184FA0;
     Game_SetPtrSlot(arg0, 7);
@@ -2892,7 +2892,7 @@ void func_dryfield_trailer_coach_80182888(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-void func_dryfield_trailer_coach_8018291C(Task* task)
+static void func_dryfield_trailer_coach_8018291C(Task* task)
 {
     char pad[0x10];
 
@@ -2905,7 +2905,7 @@ void func_dryfield_trailer_coach_8018291C(Task* task)
 
 /// Runs the cutscene task's current state through a stack copy of its state
 /// table.
-void func_dryfield_trailer_coach_80182950(Task* task)
+static void func_dryfield_trailer_coach_80182950(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -2919,7 +2919,7 @@ void func_dryfield_trailer_coach_80182950(Task* task)
 /// drawn when `otz` is 0x10 or less. Two gouraud `POLY_G4` halves of half width
 /// `(s16)arg3 * 32 / otz` and two `LINE_G3` diagonals meet at the projected
 /// point, whose vertex pulses cyan as `rsin(animFrame * arg2) / 34 + 0x78`.
-void func_dryfield_trailer_coach_801829A8(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
+static void func_dryfield_trailer_coach_801829A8(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
 {
     void**            scratch;
     u8*               head;
@@ -3019,7 +3019,7 @@ extern SVECTOR D_dryfield_trailer_coach_801871C4;
 /// `work` carries the intensity and later the scratch-head address. Sharing
 /// one variable is what keeps the halving shift reading the intensity's own
 /// register rather than `color`'s.
-void func_dryfield_trailer_coach_80182EB4(GpCoord* coord, SVECTOR* data, s32 arg2, s32 arg3)
+static void func_dryfield_trailer_coach_80182EB4(GpCoord* coord, SVECTOR* data, s32 arg2, s32 arg3)
 {
     u8*              head;
     RoomGlowScratch* block;
@@ -3167,7 +3167,7 @@ void func_dryfield_trailer_coach_80182EB4(GpCoord* coord, SVECTOR* data, s32 arg
 /// with the tall half-extent 0xC0, and view 10 (bit 10, `0x400`) takes `func_dryfield_trailer_coach_80182EB4`
 /// with 0x30. `Task::extra` is the task's `TmdObject`, so `field_8` is the
 /// coordinate both draws share.
-void func_dryfield_trailer_coach_801838DC(Task* arg0)
+static void func_dryfield_trailer_coach_801838DC(Task* arg0)
 {
     s32      mask;
     GpCoord* coord;

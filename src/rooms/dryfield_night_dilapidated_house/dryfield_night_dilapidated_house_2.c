@@ -114,7 +114,7 @@ void func_dryfield_night_dilapidated_house_8017DCE0(Task* arg0)
 /// `workm` and moved by its translation before projection through
 /// `GsWSMATRIX`. The lit corners share a pulsing colour whose red is three
 /// quarters of its green and blue; the far corners are black.
-void func_dryfield_night_dilapidated_house_8017DD30(GpCoord* coord, s16 arg1)
+static void func_dryfield_night_dilapidated_house_8017DD30(GpCoord* coord, s16 arg1)
 {
     RoomQuadScratch* blk;
     POLY_G4*         prim;
@@ -241,7 +241,7 @@ void func_dryfield_night_dilapidated_house_8017DD30(GpCoord* coord, s16 arg1)
 /// Each is gated on `gGameSession->at4.loc.view` taken as a bit index into a
 /// fixed mask; the second mask is contained in the other two, so a view in it
 /// draws all three.
-void func_dryfield_night_dilapidated_house_8017E670(Task* arg0)
+static void func_dryfield_night_dilapidated_house_8017E670(Task* arg0)
 {
     GpCoord* coord;
     s32      mask;

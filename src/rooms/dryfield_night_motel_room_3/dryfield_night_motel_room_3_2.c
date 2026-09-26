@@ -24,7 +24,7 @@ extern SVECTOR D_dryfield_night_motel_room_3_8017DA94;
 /// `arg2 * 39 / otz`, textured from the 40-texel cell `arg1` of tpage 0x2B
 /// and shaded 0x20 or 0x30 on alternate frames. Points closer than OTZ 0x11
 /// are skipped.
-void func_dryfield_night_motel_room_3_8017D738(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_night_motel_room_3_8017D738(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw25Scratch* block;
     POLY_FT4*          prim;
@@ -68,7 +68,7 @@ void func_dryfield_night_motel_room_3_8017D738(SVECTOR* arg0, s32 arg1, s32 arg2
 /// second point then the first, visits 10 and 11 the first alone, visit 8 the
 /// third with a wider UV column and half-extent. Visits outside those draw
 /// nothing.
-void func_dryfield_night_motel_room_3_8017D9B4(void)
+static void func_dryfield_night_motel_room_3_8017D9B4(void)
 {
     switch (gGameSession->at4.loc.view) {
         case 3:

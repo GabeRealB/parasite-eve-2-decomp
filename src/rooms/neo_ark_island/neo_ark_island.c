@@ -40,8 +40,8 @@ extern TaskDesc D_neo_ark_island_80181B78;
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
-void func_neo_ark_island_8017EA94(Task* arg0);
-void func_neo_ark_island_8017EB08(Task* task);
+static void func_neo_ark_island_8017EA94(Task* arg0);
+static void func_neo_ark_island_8017EB08(Task* task);
 
 /// Water-refraction ripple over part of the screen. Only some views of areas
 /// 27, 14, 15, 13, 30 and 29 have one; each picks a row range, a split row
@@ -752,7 +752,7 @@ void func_neo_ark_island_8017E2A4(Task* task)
 
 /// State handlers of the room's entry task, indexed by its state through
 /// `func_neo_ark_island_8017EB10`: set-up, idle, then kill.
-const TaskFuncTable3 D_neo_ark_island_8017D614 = {
+static const TaskFuncTable3 D_neo_ark_island_8017D614 = {
     { func_neo_ark_island_8017EA94, func_neo_ark_island_8017EB08, taskKill }
 };
 
@@ -860,7 +860,7 @@ s32 func_neo_ark_island_8017EA34(s32 arg0, s32 arg1, s32 arg2)
 /// Room entry task tick in the family that announces the island's arrival:
 /// installs the room's message table, hands the task to pointer slot 7, plays
 /// the two island cues, then advances state and raises the `D_80115598` flag.
-void func_neo_ark_island_8017EA94(Task* arg0)
+static void func_neo_ark_island_8017EA94(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_island_80181B48;
     Game_SetPtrSlot(arg0, 7);
@@ -870,13 +870,13 @@ void func_neo_ark_island_8017EA94(Task* arg0)
     D_80115598  = 1;
 }
 
-void func_neo_ark_island_8017EB08(Task* task)
+static void func_neo_ark_island_8017EB08(Task* task)
 {
 }
 
 /// Task tick that dispatches on the task's state through the three-entry
 /// handler table `D_neo_ark_island_8017D614`, copied to the stack first.
-void func_neo_ark_island_8017EB10(Task* task)
+static void func_neo_ark_island_8017EB10(Task* task)
 {
     TaskFuncTable3 sp;
 

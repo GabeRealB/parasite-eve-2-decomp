@@ -41,15 +41,15 @@ extern SVECTOR       D_shelter_r48_8018300C;
 extern u8            D_shelter_r48_8018BE54[6][16];
 extern RoomRingShape D_shelter_r48_80182FE8[];
 
-void func_shelter_r48_8017E1A4(Task* arg0);
-void func_shelter_r48_8017E214(Task* task);
-void func_shelter_r48_8017FB7C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-void func_shelter_r48_8017FF74(GpCoord* arg0, s32 arg1, s32 arg2);
-void func_shelter_r48_8017F124(GpEffWork* work, GpCoord* coord, s32 part);
-void func_shelter_r48_8018258C(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_r48_80180804(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-void func_shelter_r48_80180C5C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-void func_shelter_r48_80181C14(GpCoord* coord, s16 size, s32 yaw, s32 color);
+static void func_shelter_r48_8017E1A4(Task* arg0);
+static void func_shelter_r48_8017E214(Task* task);
+static void func_shelter_r48_8017FB7C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_r48_8017FF74(GpCoord* arg0, s32 arg1, s32 arg2);
+static void func_shelter_r48_8017F124(GpEffWork* work, GpCoord* coord, s32 part);
+static void func_shelter_r48_8018258C(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_r48_80180804(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_r48_80180C5C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_r48_80181C14(GpCoord* coord, s16 size, s32 yaw, s32 color);
 
 void func_shelter_r48_8017D660(Task* arg0)
 {
@@ -434,7 +434,7 @@ s32 func_shelter_r48_8017DF50(s32 arg0, s32 arg1, s32 arg2)
 
 /// State handlers of the room task `func_shelter_r48_8017E224` runs: its
 /// setup, an idle state, and `taskKill`.
-const TaskFuncTable3 D_shelter_r48_8017D608 = {
+static const TaskFuncTable3 D_shelter_r48_8017D608 = {
     { func_shelter_r48_8017E1A4, func_shelter_r48_8017E214, taskKill }
 };
 
@@ -483,7 +483,7 @@ s32 func_shelter_r48_8017E0EC(void)
     return 0;
 }
 
-void func_shelter_r48_8017E1A4(Task* arg0)
+static void func_shelter_r48_8017E1A4(Task* arg0)
 {
     arg0->msgTable = D_shelter_r48_80182FB8;
     Game_SetPtrSlot(arg0, 7);
@@ -494,7 +494,7 @@ void func_shelter_r48_8017E1A4(Task* arg0)
 }
 
 /// The room task's idle state. It reserves a stack frame it never uses.
-void func_shelter_r48_8017E214(Task* task)
+static void func_shelter_r48_8017E214(Task* task)
 {
     char pad[0x10];
 }
@@ -502,7 +502,7 @@ void func_shelter_r48_8017E214(Task* task)
 /// Runs one tick of the room task through the three-state table
 /// `D_shelter_r48_8017D608`, copying the table onto the stack and calling the
 /// entry for the task's current state.
-void func_shelter_r48_8017E224(Task* task)
+static void func_shelter_r48_8017E224(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -510,7 +510,7 @@ void func_shelter_r48_8017E224(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_shelter_r48_8017E27C(u8 arg0)
+static void func_shelter_r48_8017E27C(u8 arg0)
 {
     GpAreaKey* loc = &gGameSession->at4.loc;
     GpSprtRec* rec = Gp_SprtTables[loc->stage - 1]->field_0[loc->area - 1];
@@ -563,7 +563,7 @@ void func_shelter_r48_8017E27C(u8 arg0)
     }
 }
 
-void func_shelter_r48_8017E3B8(Task* task)
+static void func_shelter_r48_8017E3B8(Task* task)
 {
     s32 viewMask;
     s32 i;
@@ -588,7 +588,7 @@ void func_shelter_r48_8017E3B8(Task* task)
     }
 }
 
-void func_shelter_r48_8017E4C4(Task* arg0)
+static void func_shelter_r48_8017E4C4(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -646,7 +646,7 @@ void func_shelter_r48_8017E4C4(Task* arg0)
     }
 }
 
-void func_shelter_r48_8017E704(Task* arg0)
+static void func_shelter_r48_8017E704(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -700,7 +700,7 @@ void func_shelter_r48_8017E704(Task* arg0)
     }
 }
 
-void func_shelter_r48_8017E9B8(Task* arg0)
+static void func_shelter_r48_8017E9B8(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -751,7 +751,7 @@ void func_shelter_r48_8017E9B8(Task* arg0)
     }
 }
 
-void func_shelter_r48_8017EC18(Task* task)
+static void func_shelter_r48_8017EC18(Task* task)
 {
     GpEffWork*  work;
     GpCoord*    coord;
@@ -839,7 +839,7 @@ void func_shelter_r48_8017EC18(Task* task)
     Gp_ReleaseState1CMem(work, task);
 }
 
-void func_shelter_r48_8017EFD8(Task* task)
+static void func_shelter_r48_8017EFD8(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -878,7 +878,7 @@ void func_shelter_r48_8017EFD8(Task* task)
 /// the work's radii plus the band's `D_shelter_r48_80182FE8` offsets, moves them
 /// into world space through `coord`, then projects each segment and picks its
 /// texture cell from the band's `D_shelter_r48_8018BE54` row and the work's age.
-void func_shelter_r48_8017F124(GpEffWork* work, GpCoord* coord, s32 part)
+static void func_shelter_r48_8017F124(GpEffWork* work, GpCoord* coord, s32 part)
 {
     void**         scratch;
     u8*            head;
@@ -978,7 +978,7 @@ void func_shelter_r48_8017F124(GpEffWork* work, GpCoord* coord, s32 part)
 /// the frame every `period` ticks, releasing the task after frame 7. While an
 /// event is running the task only draws, and it is released once the event
 /// state reaches 4.
-void func_shelter_r48_8017F6C0(Task* task)
+static void func_shelter_r48_8017F6C0(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -1101,7 +1101,7 @@ void func_shelter_r48_8017F6C0(Task* task)
 /// camera, queues a semi-transparent `POLY_FT4` centred on it. `arg1` selects
 /// a 32-texel column of the texture page, `arg3` is the quad's rotation and
 /// `arg2` its size, divided by depth so the quad shrinks with distance.
-void func_shelter_r48_8017FB7C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_r48_8017FB7C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -1161,7 +1161,7 @@ void func_shelter_r48_8017FB7C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
     SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
-void func_shelter_r48_8017FF74(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_shelter_r48_8017FF74(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -1249,7 +1249,7 @@ void func_shelter_r48_8017FF74(GpCoord* arg0, s32 arg1, s32 arg2)
 /// moves the coordinate by the velocity and bends its Y component, then frees
 /// the effect after the drawer's last cell (12 or 10). While the player is in
 /// an event it only draws, and frees once the event aborts.
-void func_shelter_r48_80180210(Task* task)
+static void func_shelter_r48_80180210(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -1380,7 +1380,7 @@ void func_shelter_r48_80180210(Task* task)
     }
 }
 
-void func_shelter_r48_80180804(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_r48_80180804(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -1447,7 +1447,7 @@ void func_shelter_r48_80180804(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
     SCRATCH_POP_BYTES(0x1C);
 }
 
-void func_shelter_r48_80180C5C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_r48_80180C5C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -1514,7 +1514,7 @@ void func_shelter_r48_80180C5C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
     SCRATCH_POP_BYTES(0x1C);
 }
 
-void func_shelter_r48_801810B0(Task* task)
+static void func_shelter_r48_801810B0(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -1591,7 +1591,7 @@ void func_shelter_r48_801810B0(Task* task)
     Gp_ReleaseState1CMem(work, task);
 }
 
-void func_shelter_r48_8018147C(Task* task)
+static void func_shelter_r48_8018147C(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -1665,7 +1665,7 @@ void func_shelter_r48_8018147C(Task* task)
     Gp_ReleaseState1CMem(work, task);
 }
 
-void func_shelter_r48_80181704(Task* task)
+static void func_shelter_r48_80181704(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -1789,7 +1789,7 @@ void func_shelter_r48_80181704(Task* task)
 /// queues a fan at the tip, a fan at the base and a quad joining them. `color`
 /// packs `0xRGB` nibbles, each shifted into its channel's high nibble, with
 /// `gDisplayState.animFrame & 1` shifted into bit 4 of every channel.
-void func_shelter_r48_80181C14(GpCoord* coord, s16 size, s32 yaw, s32 color)
+static void func_shelter_r48_80181C14(GpCoord* coord, s16 size, s32 yaw, s32 color)
 {
     MATRIX           m;
     void**           scratch;
@@ -1940,7 +1940,7 @@ void func_shelter_r48_80181C14(GpCoord* coord, s16 size, s32 yaw, s32 color)
 /// signed half-extent, and `arg2` packs `[flicker shift][r][g][b]` nibbles,
 /// with `gDisplayState.animFrame & 1` shifted by the top nibble added to every
 /// channel.
-void func_shelter_r48_8018258C(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_r48_8018258C(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw05Scratch* block;
     POLY_G4*           prim;

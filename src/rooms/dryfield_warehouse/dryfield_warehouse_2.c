@@ -132,7 +132,7 @@ void func_dryfield_warehouse_8017DA58(s32 arg0)
 /// 4 and 5 draw a white fade. State 2 spawns entry 1 of the room task table into
 /// `D_dryfield_warehouse_801821C0`; it, state 0 and any unknown state reset
 /// `field_4` to 0, as does state 3 once its timer runs out.
-void func_dryfield_warehouse_8017DBB0(Task* arg0)
+static void func_dryfield_warehouse_8017DBB0(Task* arg0)
 {
     DwhWork* work;
     DwhWork* shared;
@@ -431,7 +431,7 @@ void func_dryfield_warehouse_8017E3F4(s16 arg0)
 /// then a cap over the lit ring. Each corner is rotated by `coord`'s `workm` and
 /// moved by its translation before projection through `GsWSMATRIX`. The lit
 /// corners share a grey of 0x18 plus a small pulse; the far corners are black.
-void func_dryfield_warehouse_8017E414(GpCoord* coord, s16 arg1)
+static void func_dryfield_warehouse_8017E414(GpCoord* coord, s16 arg1)
 {
     RoomQuadScratch* blk;
     POLY_G4*         prim;
@@ -550,7 +550,7 @@ void func_dryfield_warehouse_8017E414(GpCoord* coord, s16 arg1)
 /// turn, starting at a phase that advances with the frame counter. Each corner
 /// is placed in `coord`'s space through its `workm`, then projected through
 /// `GsWSMATRIX`; the lit edge glows at 0x14 plus a small pulse.
-void func_dryfield_warehouse_8017ED34(GpCoord* coord, s16 arg1, s16 arg2)
+static void func_dryfield_warehouse_8017ED34(GpCoord* coord, s16 arg1, s16 arg2)
 {
     RoomQuadScratch* blk;
     POLY_G4*         prim;
@@ -644,7 +644,7 @@ void func_dryfield_warehouse_8017ED34(GpCoord* coord, s16 arg1, s16 arg2)
 /// `func_dryfield_warehouse_8017ED34` to step 0, those same `0x24C` visits also
 /// drive it to step 2, and bits 2, 3, 4 and 6-9 (`0x3DC`) drive it to steps 4
 /// and 6.
-void func_dryfield_warehouse_8017F494(Task* arg0)
+static void func_dryfield_warehouse_8017F494(Task* arg0)
 {
     s32      mask;
     s32      poseMask;

@@ -61,34 +61,34 @@ extern GpImgRec D_acropolis_west_elevator_hall_80185004[];
 /// The hall's two elevator-car tasks, spawned by the room task.
 extern Task* D_acropolis_west_elevator_hall_80186AE4[];
 
-void func_acropolis_west_elevator_hall_8017D7B0(Task* task);
-void func_acropolis_west_elevator_hall_8017F354(Task* task);
-void func_acropolis_west_elevator_hall_8017F568(Task* arg0);
-void func_acropolis_west_elevator_hall_8017F64C(Task* task);
-void func_acropolis_west_elevator_hall_8017F6F0(Task* task);
+static void func_acropolis_west_elevator_hall_8017D7B0(Task* task);
+static void func_acropolis_west_elevator_hall_8017F354(Task* task);
+static void func_acropolis_west_elevator_hall_8017F568(Task* arg0);
+static void func_acropolis_west_elevator_hall_8017F64C(Task* task);
+static void func_acropolis_west_elevator_hall_8017F6F0(Task* task);
 
 /// Scale applied to held-object reflections in slots 2 and up: it mirrors
 /// them across X.
-const VECTOR D_acropolis_west_elevator_hall_8017D5C4 = { -0x1000, 0x1000, 0x1000, 0 };
+static const VECTOR D_acropolis_west_elevator_hall_8017D5C4 = { -0x1000, 0x1000, 0x1000, 0 };
 
 /// State handlers of the room task: set-up, the cutscene hand-off and
 /// `taskKill`.
-const TaskFuncTable3 D_acropolis_west_elevator_hall_8017D5D4 = {
+static const TaskFuncTable3 D_acropolis_west_elevator_hall_8017D5D4 = {
     { func_acropolis_west_elevator_hall_8017F568, func_acropolis_west_elevator_hall_8017F354, taskKill },
 };
 
 /// State handlers of an elevator-car task: set-up, travel and `taskKill`.
-const TaskFuncTable3 D_acropolis_west_elevator_hall_8017D5E0 = {
+static const TaskFuncTable3 D_acropolis_west_elevator_hall_8017D5E0 = {
     { func_acropolis_west_elevator_hall_8017F64C, func_acropolis_west_elevator_hall_8017F6F0, taskKill },
 };
 
 /// Position of the first effect `func_acropolis_west_elevator_hall_8017F7D4`
 /// spawns in view 2.
-const SVECTOR D_acropolis_west_elevator_hall_8017D5EC = { -0x1518, -0x720, 0xAC, 0 };
+static const SVECTOR D_acropolis_west_elevator_hall_8017D5EC = { -0x1518, -0x720, 0xAC, 0 };
 
 /// Position of the effect `func_acropolis_west_elevator_hall_8017F7D4` spawns
 /// in view 5.
-const SVECTOR D_acropolis_west_elevator_hall_8017D5F4 = { -0x79, -0x876, 0x703, 0 };
+static const SVECTOR D_acropolis_west_elevator_hall_8017D5F4 = { -0x79, -0x876, 0x703, 0 };
 
 /// First state of the hall's mirror task: re-attaches the player's own TMD
 /// source to this task so the reflection draws the player's model, allocates
@@ -98,7 +98,7 @@ const SVECTOR D_acropolis_west_elevator_hall_8017D5F4 = { -0x79, -0x876, 0x703, 
 /// the player has (`GameActor::field_920` / `field_924`) it spawns a reflection
 /// from entry 1 of the mirror's task table and reparents it under that task,
 /// then runs the mirror's per-frame update once.
-void func_acropolis_west_elevator_hall_8017D5FC(Task* task)
+static void func_acropolis_west_elevator_hall_8017D5FC(Task* task)
 {
     Task*           owner;
     GameActor*      actor;
@@ -172,7 +172,7 @@ void func_acropolis_west_elevator_hall_8017D5FC(Task* task)
 /// mirror's clip rectangle, draws quads sampling that strip; otherwise the
 /// reflection is hidden. Every frame it copies the player's pose and light
 /// matrices onto the reflection.
-void func_acropolis_west_elevator_hall_8017D7B0(Task* task)
+static void func_acropolis_west_elevator_hall_8017D7B0(Task* task)
 {
     RoomMirrorWork*          work;
     PlayerStatus*            status;
@@ -782,7 +782,7 @@ void func_acropolis_west_elevator_hall_8017F304(Task* task)
 /// `args` and the scratch block above it are dead here - the dispatch that
 /// consumed them is gone - but the compiler still reserves and fills them, so
 /// they have to stay for the frame layout to match.
-void func_acropolis_west_elevator_hall_8017F354(Task* task)
+static void func_acropolis_west_elevator_hall_8017F354(Task* task)
 {
     s32 args[2] = { 0, 4 };
     u8  scratch[0x210];
@@ -849,7 +849,7 @@ s32 func_acropolis_west_elevator_hall_8017F560(void)
     return 0;
 }
 
-void func_acropolis_west_elevator_hall_8017F568(Task* arg0)
+static void func_acropolis_west_elevator_hall_8017F568(Task* arg0)
 {
     arg0->msgTable = D_acropolis_west_elevator_hall_801849CC;
     Game_SetPtrSlot(arg0, 7);
@@ -863,7 +863,7 @@ void func_acropolis_west_elevator_hall_8017F568(Task* arg0)
 /// Per-frame entry of the room task: runs the state its `state` field selects
 /// from `D_acropolis_west_elevator_hall_8017D5D4` (set-up, the cutscene
 /// hand-off, then kill).
-void func_acropolis_west_elevator_hall_8017F5F4(Task* task)
+static void func_acropolis_west_elevator_hall_8017F5F4(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -874,7 +874,7 @@ void func_acropolis_west_elevator_hall_8017F5F4(Task* task)
 /// Second state of the elevator task: allocates its scratch block, parks the
 /// car model at its starting position and parents it to the room's view
 /// coordinate system.
-void func_acropolis_west_elevator_hall_8017F64C(Task* task)
+static void func_acropolis_west_elevator_hall_8017F64C(Task* task)
 {
     TmdObject*         extra;
     GpCoord*           coord;
@@ -901,7 +901,7 @@ void func_acropolis_west_elevator_hall_8017F64C(Task* task)
 /// Fourth state of the elevator task: drives the car along its shaft from the
 /// task's per-frame step, clamps the travel to [0, 0x2D0], and refreshes the
 /// model's world matrix and lighting from the resulting position.
-void func_acropolis_west_elevator_hall_8017F6F0(Task* task)
+static void func_acropolis_west_elevator_hall_8017F6F0(Task* task)
 {
     VECTOR             pos;
     TmdObject*         extra;
@@ -935,7 +935,7 @@ void func_acropolis_west_elevator_hall_8017F6F0(Task* task)
 
 /// Third state of the elevator task: on the two session phases that use it,
 /// spawns the lift's ambient effects around the room's coordinate system.
-void func_acropolis_west_elevator_hall_8017F7D4(Task* task)
+static void func_acropolis_west_elevator_hall_8017F7D4(Task* task)
 {
     SVECTOR  pos;
     SVECTOR  altPos;
@@ -977,7 +977,7 @@ void func_acropolis_west_elevator_hall_8017F7D4(Task* task)
 /// full. On every session phase but 5 the CLUT is then blended straight back
 /// to the unlit palette and the effect's work object is released, so only
 /// phase 5 keeps the lit bay on screen.
-void func_acropolis_west_elevator_hall_8017F990(Task* task)
+static void func_acropolis_west_elevator_hall_8017F990(Task* task)
 {
     GpEffWork* work;
     s32        i;
@@ -1020,7 +1020,7 @@ void func_acropolis_west_elevator_hall_8017F990(Task* task)
 /// counter `gDisplayState.animFrame` times `spawnArg1`'s low byte, folded into a 0..0x80
 /// triangle; `spawnArg1`'s second byte sets the quads' extent, divided by
 /// `otz` so they shrink with distance.
-void func_acropolis_west_elevator_hall_8017FAE8(Task* arg0)
+static void func_acropolis_west_elevator_hall_8017FAE8(Task* arg0)
 {
     u8*               head;
     u8*               raw;
@@ -1093,7 +1093,7 @@ void func_acropolis_west_elevator_hall_8017FAE8(Task* arg0)
 /// distortion to a 120-pixel-wide strip of the current frame buffer. During
 /// alternate 128-frame intervals, each row uses a random divisor for the
 /// displacement. The packets share OT slot 0x72, then the task retires.
-void func_acropolis_west_elevator_hall_8017FE18(Task* task)
+static void func_acropolis_west_elevator_hall_8017FE18(Task* task)
 {
     RECT     rect;
     DR_MOVE* mv;
@@ -1147,7 +1147,7 @@ void func_acropolis_west_elevator_hall_8017FE18(Task* task)
 /// (`0x6700 / otz`). Sprites closer than `otz == 0x11` are skipped entirely,
 /// which is why the primitive is claimed from `gGpuPrimCursor` before the
 /// depth test but only filled in and linked afterwards.
-void func_acropolis_west_elevator_hall_8017FFE4(Task* arg0)
+static void func_acropolis_west_elevator_hall_8017FFE4(Task* arg0)
 {
     void**            scratch;
     u8*               head;

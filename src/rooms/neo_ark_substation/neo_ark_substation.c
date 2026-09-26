@@ -33,15 +33,15 @@ extern SVECTOR D_neo_ark_substation_8017E350[];
 extern SVECTOR D_neo_ark_substation_8017E360[];
 extern SVECTOR D_neo_ark_substation_8017E380[];
 
-void func_neo_ark_substation_8017D7AC(Task* task);
-void func_neo_ark_substation_8017D814(Task* task);
-void func_neo_ark_substation_8017DA50(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_neo_ark_substation_8017D7AC(Task* task);
+static void func_neo_ark_substation_8017D814(Task* task);
+static void func_neo_ark_substation_8017DA50(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// State table of the room's message task: set-up
 /// (`func_neo_ark_substation_8017D7AC`), an empty per-frame state and
 /// `taskKill`. Its bytes open the room's rodata, ahead of the ambience task's
 /// jump table.
-const TaskFuncTable3 D_neo_ark_substation_8017D5C4 = {
+static const TaskFuncTable3 D_neo_ark_substation_8017D5C4 = {
     func_neo_ark_substation_8017D7AC,
     func_neo_ark_substation_8017D814,
     taskKill,
@@ -123,7 +123,7 @@ s32 func_neo_ark_substation_8017D7A4(void)
 /// `Task::msgTable`, publish the task in pointer slot 7, start the ambience
 /// task (`func_neo_ark_substation_8017D608`) only while game flag 0xDF is
 /// clear, and advance to state 1.
-void func_neo_ark_substation_8017D7AC(Task* task)
+static void func_neo_ark_substation_8017D7AC(Task* task)
 {
     task->msgTable = D_neo_ark_substation_8017E294;
     Game_SetPtrSlot(task, 7);
@@ -135,13 +135,13 @@ void func_neo_ark_substation_8017D7AC(Task* task)
 
 /// Per-frame state of the room's message task: nothing to do, the task only
 /// holds the message table.
-void func_neo_ark_substation_8017D814(Task* task)
+static void func_neo_ark_substation_8017D814(Task* task)
 {
 }
 
 /// Runs the room's message task's current state through a stack copy of
 /// `D_neo_ark_substation_8017D5C4`.
-void func_neo_ark_substation_8017D81C(Task* task)
+static void func_neo_ark_substation_8017D81C(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -149,7 +149,7 @@ void func_neo_ark_substation_8017D81C(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_neo_ark_substation_8017D874(void)
+static void func_neo_ark_substation_8017D874(void)
 {
     u8 view;
 
@@ -216,7 +216,7 @@ void func_neo_ark_substation_8017D874(void)
 /// radius in world units, scaled by each point's depth; `arg2` is the tint as
 /// three 4-bit channels (red at bit 8, green at bit 4, blue at bit 0), with 8
 /// added to each on odd display frames so the glow flickers.
-void func_neo_ark_substation_8017DA50(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_neo_ark_substation_8017DA50(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**                   scratch;
     u8*                      head;

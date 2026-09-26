@@ -18,10 +18,10 @@
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 
-void func_dryfield_night_warehouse_8017D610(Task* task);
-void func_dryfield_night_warehouse_8017D654(Task* task);
-void func_dryfield_night_warehouse_8017D6B4(GpCoord* coord, s16 arg1);
-void func_dryfield_night_warehouse_8017DFF4(GpCoord* coord, s16 arg1, s16 arg2);
+static void func_dryfield_night_warehouse_8017D610(Task* task);
+static void func_dryfield_night_warehouse_8017D654(Task* task);
+static void func_dryfield_night_warehouse_8017D6B4(GpCoord* coord, s16 arg1);
+static void func_dryfield_night_warehouse_8017DFF4(GpCoord* coord, s16 arg1, s16 arg2);
 
 /// The room's message table: handlers for messages 0x13EE, 0x13F1, 0x13EF and
 /// 0x13F0, closed by a 0x7FFFFFFF entry.
@@ -63,7 +63,7 @@ s32 func_dryfield_night_warehouse_8017D608(void)
 
 /// State 0 of the room task: publishes the room's message table in
 /// `Task::msgTable`, claims pointer slot 7 and advances to the next state.
-void func_dryfield_night_warehouse_8017D610(Task* task)
+static void func_dryfield_night_warehouse_8017D610(Task* task)
 {
     task->msgTable = D_dryfield_night_warehouse_8017E830;
     Game_SetPtrSlot(task, 7);
@@ -71,18 +71,18 @@ void func_dryfield_night_warehouse_8017D610(Task* task)
 }
 
 /// State 1 of the room task: the room idles here and does nothing.
-void func_dryfield_night_warehouse_8017D654(Task* task)
+static void func_dryfield_night_warehouse_8017D654(Task* task)
 {
 }
 
 /// The room task's three states: set up, idle, then `taskKill`.
-const TaskFuncTable3 D_dryfield_night_warehouse_8017D5C4 = {
+static const TaskFuncTable3 D_dryfield_night_warehouse_8017D5C4 = {
     { func_dryfield_night_warehouse_8017D610, func_dryfield_night_warehouse_8017D654, taskKill },
 };
 
 /// The room task: copies its three-state table onto the stack and runs the
 /// entry for the task's current state.
-void func_dryfield_night_warehouse_8017D65C(Task* task)
+static void func_dryfield_night_warehouse_8017D65C(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -96,7 +96,7 @@ void func_dryfield_night_warehouse_8017D65C(Task* task)
 /// `coord`'s `workm` and moved by its translation before projection through
 /// `GsWSMATRIX`. The lit corners share a pulsing colour whose red is three
 /// quarters of its green and blue; the far corners are black.
-void func_dryfield_night_warehouse_8017D6B4(GpCoord* coord, s16 arg1)
+static void func_dryfield_night_warehouse_8017D6B4(GpCoord* coord, s16 arg1)
 {
     RoomQuadScratch* blk;
     POLY_G4*         prim;
@@ -224,7 +224,7 @@ void func_dryfield_night_warehouse_8017D6B4(GpCoord* coord, s16 arg1)
 /// moved by its translation before projection through `GsWSMATRIX`. The corners
 /// on ring `arg1` share a pulsing colour whose red is three quarters of its
 /// green and blue; the corners on ring `arg1 + 1` are black.
-void func_dryfield_night_warehouse_8017DFF4(GpCoord* coord, s16 arg1, s16 arg2)
+static void func_dryfield_night_warehouse_8017DFF4(GpCoord* coord, s16 arg1, s16 arg2)
 {
     RoomQuadScratch* blk;
     POLY_G4*         prim;
@@ -327,7 +327,7 @@ void func_dryfield_night_warehouse_8017DFF4(GpCoord* coord, s16 arg1, s16 arg2)
 /// matrix and then re-poses it. The current visit is the stage-visit byte
 /// `gGameSession->at4.loc.view` taken as a bit index, and each pose is gated on that
 /// bit being one of a fixed set of visits.
-void func_dryfield_night_warehouse_8017E778(Task* arg0)
+static void func_dryfield_night_warehouse_8017E778(Task* arg0)
 {
     GpCoord* coord;
     s32      mask;

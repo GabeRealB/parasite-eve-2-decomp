@@ -12,11 +12,11 @@ extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
 /// The room's message table, which state 0 of its event task installs.
 extern GpMsgEntry D_neo_ark_eve_elevator_8017D724[];
 
-void func_neo_ark_eve_elevator_8017D678(Task* task);
-void func_neo_ark_eve_elevator_8017D6BC(Task* task);
+static void func_neo_ark_eve_elevator_8017D678(Task* task);
+static void func_neo_ark_eve_elevator_8017D6BC(Task* task);
 
 /// The event task's three states: install the message table, idle, and kill.
-const TaskFuncTable3 D_neo_ark_eve_elevator_8017D5C4 = {
+static const TaskFuncTable3 D_neo_ark_eve_elevator_8017D5C4 = {
     {
         func_neo_ark_eve_elevator_8017D678,
         func_neo_ark_eve_elevator_8017D6BC,
@@ -66,7 +66,7 @@ s32 func_neo_ark_eve_elevator_8017D670(void)
 
 /// State 0 of the room's event task: installs the room's message table,
 /// publishes the task in pointer slot 7 and advances to state 1.
-void func_neo_ark_eve_elevator_8017D678(Task* task)
+static void func_neo_ark_eve_elevator_8017D678(Task* task)
 {
     task->msgTable = D_neo_ark_eve_elevator_8017D724;
     Game_SetPtrSlot(task, 7);
@@ -74,13 +74,13 @@ void func_neo_ark_eve_elevator_8017D678(Task* task)
 }
 
 /// State 1 of the room's event task: does nothing, so the task idles here.
-void func_neo_ark_eve_elevator_8017D6BC(Task* task)
+static void func_neo_ark_eve_elevator_8017D6BC(Task* task)
 {
 }
 
 /// The room's event task: runs the handler for its current state, through a
 /// stack copy of the state table.
-void func_neo_ark_eve_elevator_8017D6C4(Task* task)
+static void func_neo_ark_eve_elevator_8017D6C4(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -89,6 +89,6 @@ void func_neo_ark_eve_elevator_8017D6C4(Task* task)
 }
 
 /// An empty function nothing in the room's tables names.
-void func_neo_ark_eve_elevator_8017D71C(void)
+static void func_neo_ark_eve_elevator_8017D71C(void)
 {
 }

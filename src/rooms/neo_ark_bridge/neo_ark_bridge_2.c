@@ -35,14 +35,14 @@ extern SVECTOR D_neo_ark_bridge_80181F68;
 extern SVECTOR D_neo_ark_bridge_80181F70[];
 extern SVECTOR D_neo_ark_bridge_80181F78;
 
-void func_neo_ark_bridge_8017EB08(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_neo_ark_bridge_8017F0C4(GpCoord* arg0, s32 arg1, s32 arg2);
-void func_neo_ark_bridge_8017F8B4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_neo_ark_bridge_8017FCA0(GpCoord* arg0, s16 arg1, s16 arg2);
-void func_neo_ark_bridge_80180228(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_neo_ark_bridge_80180654(GpCoord* arg0, s16 arg1, u8* rgb);
-void func_neo_ark_bridge_80180ED8(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-void func_neo_ark_bridge_80181558(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_neo_ark_bridge_8017EB08(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_neo_ark_bridge_8017F0C4(GpCoord* arg0, s32 arg1, s32 arg2);
+static void func_neo_ark_bridge_8017F8B4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_neo_ark_bridge_8017FCA0(GpCoord* arg0, s16 arg1, s16 arg2);
+static void func_neo_ark_bridge_80180228(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_neo_ark_bridge_80180654(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_neo_ark_bridge_80180ED8(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+static void func_neo_ark_bridge_80181558(GpCoord* arg0, s16 arg1, u8* rgb);
 
 /// Bridge effect task tick. State 0 installs the five bridge effect ids
 /// (0x601E1, then 0x601FD / 0x60219 / 0x6017A / 0x6017B) and advances. State 1
@@ -50,7 +50,7 @@ void func_neo_ark_bridge_80181558(GpCoord* arg0, s16 arg1, u8* rgb);
 /// state-1C flag is set: two LCG rolls each spawn effect 0x60070 at
 /// `D_neo_ark_bridge_80181F60` / `D_neo_ark_bridge_80181F68` on a 1-in-4, then
 /// the sprite at `D_neo_ark_bridge_80181F58` is drawn for 0x600 frames.
-void func_neo_ark_bridge_8017E954(Task* arg0)
+static void func_neo_ark_bridge_8017E954(Task* arg0)
 {
     s32 view;
     u32 rnd;
@@ -101,7 +101,7 @@ void func_neo_ark_bridge_8017E954(Task* arg0)
 /// signed half-extent; the on-screen radius is `(s16)arg2 * 32 / otz`. `arg1`
 /// scales `gDisplayState.animFrame` into `rsin` so the lit vertex pulses on red
 /// as `rsin(...) / 34 + 0x78`.
-void func_neo_ark_bridge_8017EB08(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_neo_ark_bridge_8017EB08(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw25Scratch* block;
@@ -196,7 +196,7 @@ void func_neo_ark_bridge_8017EB08(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// coordinate, grows the size by 0x20, draws, and dims by 2, releasing the
 /// effect once the brightness falls under 2. Once the room's event state
 /// leaves zero it only draws, and releases at state 4.
-void func_neo_ark_bridge_8017EF70(Task* task)
+static void func_neo_ark_bridge_8017EF70(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -233,7 +233,7 @@ void func_neo_ark_bridge_8017EF70(Task* task)
 /// through `GsWSMATRIX`. When `gte_stflg` is non-negative, queues one
 /// semi-transparent `POLY_FT4` (tpage 0x2B, clut 0x43D1, UV 0,0x38..0x37,0x6F)
 /// coloured `(arg2, arg2, arg2)`.
-void func_neo_ark_bridge_8017F0C4(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_neo_ark_bridge_8017F0C4(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -321,7 +321,7 @@ void func_neo_ark_bridge_8017F0C4(GpCoord* arg0, s32 arg1, s32 arg2)
 /// and advance the frame every `period` ticks, releasing the task after
 /// frame 7. While an event is running the task only draws, and is released
 /// once the event state reaches 4.
-void func_neo_ark_bridge_8017F3F8(Task* task)
+static void func_neo_ark_bridge_8017F3F8(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -447,7 +447,7 @@ void func_neo_ark_bridge_8017F3F8(Task* task)
 /// `arg2` is a signed half-extent; the on-screen radius is
 /// `(s16)arg2 * 31 / otz`. `arg3` is the spin angle, applied at `arg3` and
 /// `arg3 + 0x400` through `rsin`/`rcos`.
-void func_neo_ark_bridge_8017F8B4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_neo_ark_bridge_8017F8B4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -511,7 +511,7 @@ void func_neo_ark_bridge_8017F8B4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 /// tiles, four across and two down from v=0x70. The on-screen radius is
 /// `arg2 * 55 / otz`; the quad is 2*radius on a side, shifted up so the
 /// projected point sits at three-quarters height.
-void func_neo_ark_bridge_8017FCA0(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_neo_ark_bridge_8017FCA0(GpCoord* arg0, s16 arg1, s16 arg2)
 {
     GpRingScratch* block;
     POLY_FT4*      prim;
@@ -558,7 +558,7 @@ void func_neo_ark_bridge_8017FCA0(GpCoord* arg0, s16 arg1, s16 arg2)
 /// while dimming by 0x10 a frame, and releases the effect once the brightness
 /// is spent. Once the room's event state leaves zero it only waits for state 4
 /// to release.
-void func_neo_ark_bridge_8017FF84(Task* task)
+static void func_neo_ark_bridge_8017FF84(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -625,7 +625,7 @@ void func_neo_ark_bridge_8017FF84(Task* task)
 /// segments forming a ring. The edge at `arg1` is black and the edge at
 /// `arg1 + arg2` takes the colour `rgb`, both signed half-extents scaled to
 /// the screen as `r * 64 / (otz + 1)`.
-void func_neo_ark_bridge_80180228(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_neo_ark_bridge_80180228(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -684,7 +684,7 @@ void func_neo_ark_bridge_80180228(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 /// the projected centre. `arg1` is a signed half-extent; the on-screen radius
 /// is `arg1 * 64 / (otz + 1)`. Only the centre vertex takes the colour
 /// `rgb`, so each wedge fades to black at the rim.
-void func_neo_ark_bridge_80180654(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_neo_ark_bridge_80180654(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -740,7 +740,7 @@ void func_neo_ark_bridge_80180654(GpCoord* arg0, s16 arg1, u8* rgb)
 /// draws the ribbon through `func_neo_ark_bridge_80180ED8` and releases the
 /// effect once its age reaches `spawnArg1`. It stops advancing once the room's
 /// event state reaches 2.
-void func_neo_ark_bridge_801809E8(Task* task)
+static void func_neo_ark_bridge_801809E8(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -839,7 +839,7 @@ void func_neo_ark_bridge_801809E8(Task* task)
 /// along its length. `arg3` holds the colour as per-channel multipliers of that
 /// weight: red from bits 8 up, green from bits 4-5, blue from bits 0-1. A quad
 /// the GTE flags as bad is skipped.
-void func_neo_ark_bridge_80180ED8(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_neo_ark_bridge_80180ED8(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
     GpCoord*           a;
@@ -950,7 +950,7 @@ void func_neo_ark_bridge_80180ED8(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 ar
 /// rings in a fading `(a, a/2, a/4)` colour. The effect is then released.
 /// Once the room's event state leaves zero it only waits for state 4 to
 /// release.
-void func_neo_ark_bridge_801812D0(Task* task)
+static void func_neo_ark_bridge_801812D0(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;
@@ -1026,7 +1026,7 @@ void func_neo_ark_bridge_801812D0(Task* task)
 /// wedges span the outer radius in half the colour `arg2`, eight more span
 /// half of it at full colour, and four long spikes reach twice the outer
 /// radius between points on the inner one.
-void func_neo_ark_bridge_80181558(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_neo_ark_bridge_80181558(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

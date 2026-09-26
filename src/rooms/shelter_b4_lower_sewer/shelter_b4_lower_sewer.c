@@ -51,8 +51,8 @@ extern _Surface D_shelter_b4_lower_sewer_80181E90[];
 /// area each frame before drawing.
 extern u8* D_shelter_b4_lower_sewer_80183E14;
 
-void func_shelter_b4_lower_sewer_8017E33C(Task* arg0);
-void func_shelter_b4_lower_sewer_8017E37C(Task* task);
+static void func_shelter_b4_lower_sewer_8017E33C(Task* arg0);
+static void func_shelter_b4_lower_sewer_8017E37C(Task* task);
 
 /// Handler for message 0x13F1 in the room's message table
 /// `D_shelter_b4_lower_sewer_80181E44`: does nothing and returns 0.
@@ -87,7 +87,7 @@ s32 func_shelter_b4_lower_sewer_8017D65C(void)
 /// First state of the room task: installs the room's message table, takes
 /// game pointer slot 7 and, once GameFlag nibble 0xB7 is set, spawns the
 /// tasks of `D_shelter_b4_lower_sewer_80181E70`.
-void func_shelter_b4_lower_sewer_8017D664(Task* task)
+static void func_shelter_b4_lower_sewer_8017D664(Task* task)
 {
     task->msgTable = D_shelter_b4_lower_sewer_80181E44;
     Game_SetPtrSlot(task, 7);
@@ -98,21 +98,21 @@ void func_shelter_b4_lower_sewer_8017D664(Task* task)
 }
 
 /// The room task's idle state.
-void func_shelter_b4_lower_sewer_8017D6CC(Task* task)
+static void func_shelter_b4_lower_sewer_8017D6CC(Task* task)
 {
 }
 
 /// State handlers of the room task `func_shelter_b4_lower_sewer_8017D6D4`
 /// runs, which copies the table to the stack and calls the entry for the
 /// task's state: the room's setup, an idle state, and `taskKill`.
-const TaskFuncTable3 D_shelter_b4_lower_sewer_8017D5C4 = {
+static const TaskFuncTable3 D_shelter_b4_lower_sewer_8017D5C4 = {
     { func_shelter_b4_lower_sewer_8017D664, func_shelter_b4_lower_sewer_8017D6CC, taskKill }
 };
 
 /// Runs one tick of the room task through the three-state table
 /// `D_shelter_b4_lower_sewer_8017D5C4`, copying the table onto the stack and
 /// calling the entry for the task's current state.
-void func_shelter_b4_lower_sewer_8017D6D4(Task* task)
+static void func_shelter_b4_lower_sewer_8017D6D4(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -128,7 +128,7 @@ void func_shelter_b4_lower_sewer_8017D6D4(Task* task)
 /// (0x20, 0x20, 0x20); each quad is followed by a draw-mode packet selecting
 /// blend mode 2. Quads the projection flags as invalid are skipped. Called
 /// from the water task's drawing state with the task, which it does not read.
-void func_shelter_b4_lower_sewer_8017D72C(Task* task)
+static void func_shelter_b4_lower_sewer_8017D72C(Task* task)
 {
     SVECTOR          v0, v1, v2, v3;
     s32              sxy0, sxy1, sxy2, sxy3;
@@ -266,7 +266,7 @@ void func_shelter_b4_lower_sewer_8017D72C(Task* task)
 /// ripples. Each quad is followed by a draw-mode packet selecting blend mode 2;
 /// quads the projection flags as invalid are skipped. Called from the water
 /// task's drawing state with the task, which it does not read.
-void func_shelter_b4_lower_sewer_8017DE8C(Task* task)
+static void func_shelter_b4_lower_sewer_8017DE8C(Task* task)
 {
     SVECTOR          v0, v1, v2, v3;
     s32              sxy0, sxy1, sxy2, sxy3;
@@ -361,7 +361,7 @@ void func_shelter_b4_lower_sewer_8017E2D4(Task* task)
 
 /// First state of the water task: clears the session's `field_80` or
 /// `field_7E`, chosen by `Mc_SaveData.companionType`, and advances to the next state.
-void func_shelter_b4_lower_sewer_8017E33C(Task* arg0)
+static void func_shelter_b4_lower_sewer_8017E33C(Task* arg0)
 {
     if (Mc_SaveData.companionType == 0) {
         gGameSession->field_80 = 0;
@@ -375,7 +375,7 @@ void func_shelter_b4_lower_sewer_8017E33C(Task* arg0)
 /// `D_shelter_b4_lower_sewer_80183E14` at `D_8005C374` or `D_8005C370`, chosen
 /// by `Mc_SaveData.companionType`, plus 0xC000 bytes per `gDisplayState.otBuffer`, then draws both sets
 /// of water surfaces.
-void func_shelter_b4_lower_sewer_8017E37C(Task* task)
+static void func_shelter_b4_lower_sewer_8017E37C(Task* task)
 {
     if (Mc_SaveData.companionType == 0) {
         D_shelter_b4_lower_sewer_80183E14 = (u8*)D_8005C374 + gDisplayState.otBuffer * 0xC000;

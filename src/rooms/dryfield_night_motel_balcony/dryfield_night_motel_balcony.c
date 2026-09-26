@@ -44,7 +44,7 @@ extern TaskDesc D_dryfield_night_motel_balcony_801827F8;
 /// command and answers 0. Otherwise the gate answers 2 and - unless the
 /// message's `field_5` asks for a dry run - latches the message and the
 /// request, writes the flag nibble and spawns the event task.
-s32 func_dryfield_night_motel_balcony_8017D694(RoomEventReq* req, RoomEventMsg* msg)
+static s32 func_dryfield_night_motel_balcony_8017D694(RoomEventReq* req, RoomEventMsg* msg)
 {
     s32 flag;
     s32 id;
@@ -252,7 +252,7 @@ s32 func_dryfield_night_motel_balcony_8017DC28(void)
 /// place 2, room 2 with flag nibble 0x61 still clear, it also starts the
 /// script pair, sets nibbles 0x61, 0x10E (arming state 1) and 0x155, clears
 /// nibble 3 and sets `flowFlags` to 0x85. Then advances to the next state.
-void func_dryfield_night_motel_balcony_8017DC30(Task* task)
+static void func_dryfield_night_motel_balcony_8017DC30(Task* task)
 {
     u8 field9;
 
@@ -273,7 +273,7 @@ void func_dryfield_night_motel_balcony_8017DC30(Task* task)
 
 /// Room task state 1: once the event state is idle, `Gp_StateC08.field_A` is not 1 and
 /// flag nibble 0x10E is 1, runs the one-shot script and moves the nibble to 2.
-void func_dryfield_night_motel_balcony_8017DD0C(Task* task)
+static void func_dryfield_night_motel_balcony_8017DD0C(Task* task)
 {
     if (gGameSession->eventState == 0 && Gp_StateC08.field_A != 1 && GameFlag_GetNibble(0x10E) == 1) {
         func_800E8614((s32)&D_80165720, 0);
@@ -283,7 +283,7 @@ void func_dryfield_night_motel_balcony_8017DD0C(Task* task)
 
 /// The room task's three states: setup, the per-tick balcony event check,
 /// and exit.
-const TaskFuncTable3 D_dryfield_night_motel_balcony_8017D5DC = {
+static const TaskFuncTable3 D_dryfield_night_motel_balcony_8017D5DC = {
     func_dryfield_night_motel_balcony_8017DC30,
     func_dryfield_night_motel_balcony_8017DD0C,
     taskKill,
@@ -291,7 +291,7 @@ const TaskFuncTable3 D_dryfield_night_motel_balcony_8017D5DC = {
 
 /// Runs the room task's current state from its state table, dispatching
 /// through a copy of the table taken onto the stack.
-void func_dryfield_night_motel_balcony_8017DD78(Task* task)
+static void func_dryfield_night_motel_balcony_8017DD78(Task* task)
 {
     TaskFuncTable3 sp;
 

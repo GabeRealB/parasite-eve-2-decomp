@@ -14,8 +14,8 @@
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 
-void func_dryfield_water_hole_8017F5D4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_dryfield_water_hole_8017F9C0(GpCoord* arg0, s32 arg1, s32 arg2);
+static void func_dryfield_water_hole_8017F5D4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_dryfield_water_hole_8017F9C0(GpCoord* arg0, s32 arg1, s32 arg2);
 
 /// Per-frame driver of a particle effect, drawn as the spinning sprite of
 /// `func_dryfield_water_hole_8017F5D4` (state 1) or, when the spawn
@@ -29,7 +29,7 @@ void func_dryfield_water_hole_8017F9C0(GpCoord* arg0, s32 arg1, s32 arg2);
 /// draws, moves the coordinate by the velocity with gravity pulling it down,
 /// and releases the block after animation frame 7. While the room's event
 /// state is non-zero it only draws, releasing the block from event state 4 on.
-void func_dryfield_water_hole_8017F118(Task* task)
+static void func_dryfield_water_hole_8017F118(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -154,7 +154,7 @@ void func_dryfield_water_hole_8017F118(Task* task)
 /// column `arg1` of the strip at v 0xE0..0xFF. Its corners sit at
 /// `(s16)arg2 * 31 / otz` from the projected point, rotated by the angle
 /// `arg3`. The work block lives on the scratchpad stack.
-void func_dryfield_water_hole_8017F5D4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_dryfield_water_hole_8017F5D4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -220,7 +220,7 @@ void func_dryfield_water_hole_8017F5D4(GpCoord* arg0, s32 arg1, s32 arg2, s32 ar
 /// is `2 * r` on a side with `r = (s16)arg2 * 55 / otz`, and the projected
 /// point sits a quarter of the way up from its bottom edge. The work block
 /// lives on the scratchpad stack.
-void func_dryfield_water_hole_8017F9C0(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_water_hole_8017F9C0(GpCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;

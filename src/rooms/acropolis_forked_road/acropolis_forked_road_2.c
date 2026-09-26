@@ -62,11 +62,11 @@ extern u16 D_acropolis_forked_road_801821E8[16];
 extern SVECTOR D_acropolis_forked_road_80182204[];
 extern SVECTOR D_acropolis_forked_road_8018220C;
 
-void func_acropolis_forked_road_8017EC70(GpCoord* arg0, s32 arg1, s16 arg2);
-void func_acropolis_forked_road_8017F224(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_acropolis_forked_road_8017F650(GpCoord* arg0, s16 arg1, u8* rgb);
-void func_acropolis_forked_road_8017FED4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-void func_acropolis_forked_road_80180554(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_acropolis_forked_road_8017EC70(GpCoord* arg0, s32 arg1, s16 arg2);
+static void func_acropolis_forked_road_8017F224(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_acropolis_forked_road_8017F650(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_acropolis_forked_road_8017FED4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+static void func_acropolis_forked_road_80180554(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// The forked road's streamed-scene task. State 0 allocates the
 /// `RoomStreamWork` block, restarts the stream frame counter, cues the stream
@@ -326,7 +326,7 @@ void func_acropolis_forked_road_8017E288(void)
 /// in the flavour bits added to the entry's index - two 0x02000000, two
 /// 0x03000000, eight 0x02000100 and two 0x00000200 - and then publishes the
 /// room's three ambient sound events before marking itself done.
-void func_acropolis_forked_road_8017E298(Task* task)
+static void func_acropolis_forked_road_8017E298(Task* task)
 {
     GpCoord* coord;
     s32      i;
@@ -368,7 +368,7 @@ void func_acropolis_forked_road_8017E298(Task* task)
 /// half extent is `scale * 39 / otz`, so the lamp shrinks with distance. The
 /// grey alternates by 0x10 on the parity of `DisplayState::field_8`, which is
 /// what makes it flicker.
-void func_acropolis_forked_road_8017E410(Task* task)
+static void func_acropolis_forked_road_8017E410(Task* task)
 {
     void**            scratch;
     RoomShaftScratch* block;
@@ -462,7 +462,7 @@ void func_acropolis_forked_road_8017E410(Task* task)
 /// gets there, and the tilt wanders by a random step. Once the frame has
 /// risen past the origin the mote fades in by 0x10 a tick up to 0x80, then
 /// fades back out and releases its work block.
-void func_acropolis_forked_road_8017E81C(Task* task)
+static void func_acropolis_forked_road_8017E81C(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -566,7 +566,7 @@ void func_acropolis_forked_road_8017E81C(Task* task)
 /// `GsWSMATRIX` into a textured quad. A mote nearer than `otz` 0x11 is not
 /// drawn. `arg2` is the fade level: zero draws the texture unshaded, anything
 /// else modulates it to that grey and draws it semi-transparent.
-void func_acropolis_forked_road_8017EC70(GpCoord* arg0, s32 arg1, s16 arg2)
+static void func_acropolis_forked_road_8017EC70(GpCoord* arg0, s32 arg1, s16 arg2)
 {
     register GpCoord* coord asm("t7");
     register void**   scratch asm("a0");
@@ -643,7 +643,7 @@ void func_acropolis_forked_road_8017EC70(GpCoord* arg0, s32 arg1, s16 arg2)
 /// draws a two-ring billboard that dims by 0x10 a tick and releases its work
 /// block once the level falls to 0x10. It pauses while the room's event state
 /// is set and releases the block when that state reaches 4.
-void func_acropolis_forked_road_8017EF80(Task* task)
+static void func_acropolis_forked_road_8017EF80(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -708,7 +708,7 @@ void func_acropolis_forked_road_8017EF80(Task* task)
 /// Queues a gouraud ring of sixteen quads around the projected world position
 /// of `arg0`: black at radius `arg1` and shaded `rgb` at radius `arg1 + arg2`,
 /// both scaled by depth. Nothing is drawn when the projection overflows.
-void func_acropolis_forked_road_8017F224(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_acropolis_forked_road_8017F224(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -765,7 +765,7 @@ void func_acropolis_forked_road_8017F224(GpCoord* arg0, s32 arg1, s32 arg2, u8* 
 /// Queues a gouraud disc of eight wedges around the projected world position
 /// of `arg0`, shaded `rgb` at the centre and black at the rim, of radius
 /// `arg1` scaled by depth. Nothing is drawn when the projection overflows.
-void func_acropolis_forked_road_8017F650(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_acropolis_forked_road_8017F650(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -820,7 +820,7 @@ void func_acropolis_forked_road_8017F650(GpCoord* arg0, s16 arg1, u8* rgb)
 /// between the rings as a beam. The work block is released once the tick count
 /// reaches the spawn argument. It idles while the room's event state is 2 or
 /// more.
-void func_acropolis_forked_road_8017F9E4(Task* task)
+static void func_acropolis_forked_road_8017F9E4(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -917,7 +917,7 @@ void func_acropolis_forked_road_8017F9E4(Task* task)
 /// slots of both rings and dimmer the older it is. `arg3` packs the colour as
 /// three multipliers, at bits 8, 4 and 0. A quad whose projection overflows is
 /// skipped.
-void func_acropolis_forked_road_8017FED4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_acropolis_forked_road_8017FED4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
     GpCoord*           a;
@@ -1027,7 +1027,7 @@ void func_acropolis_forked_road_8017FED4(GpCoord* arg0, GpCoord* arg1, s16 arg2,
 /// a tick. Either way it releases its work block after seven ticks. It pauses
 /// while the room's event state is set and releases the block when that state
 /// reaches 4.
-void func_acropolis_forked_road_801802CC(Task* task)
+static void func_acropolis_forked_road_801802CC(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;
@@ -1100,7 +1100,7 @@ void func_acropolis_forked_road_801802CC(Task* task)
 /// inner disc of half that radius at full `arg2`, and four thin rays at right
 /// angles, alternately reaching the radius and twice it, all fading to black
 /// at the rim. Nothing is drawn when the projection overflows.
-void func_acropolis_forked_road_80180554(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_acropolis_forked_road_80180554(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

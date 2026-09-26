@@ -53,10 +53,6 @@ typedef struct NightFactoryCutsceneTable3 {
 } NightFactoryCutsceneTable3;
 STATIC_ASSERT_SIZEOF(NightFactoryCutsceneTable3, 0xC);
 
-/// The cutscene sequence's handler table: the flag watcher of state 0 and the
-/// two movements it arms.
-extern const NightFactoryCutsceneTable3 D_dryfield_night_factory_8017D5DC;
-
 /// Work block the room's factory task allocates as 0x58 zeroed bytes in its
 /// state 0 and parks at `Task::work`.
 ///
@@ -138,14 +134,6 @@ extern OverlayHotspot D_dryfield_night_factory_80186EBC[];
 extern GpGridParams D_dryfield_night_factory_80187BF0;
 extern GpGridParams D_dryfield_night_factory_80187BF8;
 
-/// State handlers of the factory model task: set-up, the per-frame state and
-/// `taskKill`.
-extern const TaskFuncTable3 D_dryfield_night_factory_8017D5C4;
-
-/// State handlers of the cutscene task: set-up, the cutscene sequence and
-/// `taskKill`.
-extern const TaskFuncTable3 D_dryfield_night_factory_8017D5D0;
-
 /// State handlers of the room entry task: set-up, an empty tick and
 /// `taskKill`.
 extern const TaskFuncTable3 D_dryfield_night_factory_8017D638;
@@ -154,82 +142,12 @@ extern const TaskFuncTable3 D_dryfield_night_factory_8017D638;
 /// `func_dryfield_night_factory_8018169C`.
 extern const TaskFuncTable7 D_dryfield_night_factory_8017D678;
 
-/// Task callback of the descriptor at `D_dryfield_night_factory_80186E94`:
-/// allocates the script work block, spawns the room's child task, picks the
-/// global mode byte from game flag 0x48, steps the task on one state and clears
-/// the room's hotspot list.
-void func_dryfield_night_factory_8018182C(Task* task);
-
-/// Runs the factory model for the bit of game flag 0x49 the task last saw: bit
-/// 1 picks the first handler pair and bit 0 the second of the pair, the frame
-/// counter at `NightFactoryWork::field_14` is bumped, and the model's coordinate
-/// is rebuilt and handed to `func_800D7A9C` together with its translation.
-void func_dryfield_night_factory_8017FA08(Task* task);
-
-/// Rebuilds four faces of the stage variant's collision grid from a template
-/// moved into the frame of the task's model: the template normals are rotated
-/// into grid normals 2..5 and its corners rotated and translated into corners
-/// 8..15. `useAltTemplate` picks the second template, and `remapFaces` also
-/// copies the template's four face records into faces 2..5, rebased onto those
-/// slots. The model's set-up state remaps; the per-frame state passes bit 0 of
-/// game flag 0x49 as `useAltTemplate`.
-void func_dryfield_night_factory_8017D858(Task* task, s32 remapFaces, s32 useAltTemplate);
-
-/// The handler the model runs while bit 1 of game flag 0x49 is set, and -- when
-/// bit 0 is set with it -- the handler that follows.
-s32 func_dryfield_night_factory_8017E13C(Task* task);
-s32 func_dryfield_night_factory_8017DA54(Task* task);
-
-/// The handler that follows `func_dryfield_night_factory_8017E13C` when bit 0 of
-/// game flag 0x49 is clear.
-s32 func_dryfield_night_factory_8017DDD4(Task* task);
-
-/// The handler the model runs while bit 1 of game flag 0x49 is clear, and --
-/// when bit 0 is set with it -- the handler that follows.
-s32 func_dryfield_night_factory_8017E480(Task* task);
-s32 func_dryfield_night_factory_8017E7A4(Task* task);
-
-/// The handler that follows `func_dryfield_night_factory_8017E480` when bit 0 of
-/// game flag 0x49 is clear.
-s32 func_dryfield_night_factory_8017EBD4(Task* task);
-
-/// Kills the task; the factory model's exit callback.
-void func_dryfield_night_factory_8017FB48(Task* task);
-
-/// Binds the model to the light and colour matrices in the task's work block
-/// and rebuilds its lighting.
-void func_dryfield_night_factory_8017FB68(Task* task);
-
-/// Sends message 0x13F3 to `task`, if there is one.
-void func_dryfield_night_factory_8017FBC8(Task* task);
-
-/// The room's event gate: answers 1 when the request's flag says the event
-/// already happened, 0 (after running the request's cap command) when its
-/// item prerequisite is missing, and otherwise latches the request, writes
-/// the flag and spawns the room's event task, for 2. A non-zero `field_5` on
-/// the message only asks for the answer.
-s32 func_dryfield_night_factory_80180164(RoomEventReq* req, RoomEventMsg* msg);
-
-/// Runs cap step `step` of the room's script, picking the sound, the progress
-/// flags and the cap slot for the step.
-void func_dryfield_night_factory_80180DE8(Task* task, s16 step);
-
-/// Moves both action-prompt cursors from the pads and draws them.
-void func_dryfield_night_factory_801810D8(Task* task);
-
 /// Shows (non-zero) or hides (zero) the second sprite command of view 9 of the
 /// current room, in stage 2 only.
 void func_dryfield_night_factory_80181620(s32 show);
 
-/// Marks every hotspot of `table` under (`x`, `y`) as hit; answers whether any
-/// was.
-s32 func_dryfield_night_factory_80181778(OverlayHotspot* table, s16 x, s16 y);
-
 /// As `func_dryfield_night_factory_80181620`, for view 11.
 void func_dryfield_night_factory_80181B38(s32 show);
-
-/// Resets both action-prompt slots and steps the caller on one state.
-void func_dryfield_night_factory_80181BB4(Task* task);
 
 /// Draws a tinted, flickering glow disc at the world-space point `pos`.
 void func_dryfield_night_factory_80181C14(SVECTOR* pos, s32 size, s32 tint);

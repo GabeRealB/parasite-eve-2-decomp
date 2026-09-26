@@ -79,12 +79,12 @@ extern GpCmdArg D_neo_ark_forest_zone_80182E44;
 /// first waiting object and then cleared.
 extern u16 D_neo_ark_forest_zone_80182E54[5];
 
-void func_neo_ark_forest_zone_801804B0(Task* task);
-void func_neo_ark_forest_zone_80180620(Task* task);
-void func_neo_ark_forest_zone_8018141C(Task* arg0);
+static void func_neo_ark_forest_zone_801804B0(Task* task);
+static void func_neo_ark_forest_zone_80180620(Task* task);
+static void func_neo_ark_forest_zone_8018141C(Task* arg0);
 
 /// State table of the first arming task, indexed by `Task::state`.
-const TaskFuncTable4 D_neo_ark_forest_zone_8017D5E8 = { {
+static const TaskFuncTable4 D_neo_ark_forest_zone_8017D5E8 = { {
     func_neo_ark_forest_zone_801804B0,
     func_neo_ark_forest_zone_80180620,
     func_neo_ark_forest_zone_8018141C,
@@ -127,7 +127,7 @@ void func_neo_ark_forest_zone_801803B4(Task* task, s32 arg1, s32 arg2)
 /// advances; otherwise it installs its message table, folds the slot's spawn
 /// count into game flag 0x10C (remembering the slot in 0x10D), caps it at five
 /// and fills that many spawn slots with the room's ceiling, zeroing the rest.
-void func_neo_ark_forest_zone_801804B0(Task* task)
+static void func_neo_ark_forest_zone_801804B0(Task* task)
 {
     s16 i;
     s16 nib;
@@ -165,7 +165,7 @@ void func_neo_ark_forest_zone_801804B0(Task* task)
 /// flags 0x168 and 0x10C. On a placement request it hands the first pending
 /// slot to a waiting slot-4 task (one whose enemy `hp` still reads -999), sends it
 /// message 0x7DB and places it at the requested point.
-void func_neo_ark_forest_zone_80180620(Task* task)
+static void func_neo_ark_forest_zone_80180620(Task* task)
 {
     s16      i;
     s16      count;
@@ -306,7 +306,7 @@ s32 func_neo_ark_forest_zone_80180A60(Task* task, s32 arg1, GpCmdArg* msg)
 
 /// Second arming state: the same as `func_neo_ark_forest_zone_801804B0` with
 /// its own gate, message table and game flags 0x10A / 0x10B.
-void func_neo_ark_forest_zone_80180BB4(Task* task)
+static void func_neo_ark_forest_zone_80180BB4(Task* task)
 {
     s16 i;
     s16 nib;
@@ -338,7 +338,7 @@ void func_neo_ark_forest_zone_80180BB4(Task* task)
     task->state                    = task->state + 1;
 }
 
-void func_neo_ark_forest_zone_80180D24(Task* arg0)
+static void func_neo_ark_forest_zone_80180D24(Task* arg0)
 {
     s16      i;
     s16      count;
@@ -496,7 +496,7 @@ s32 func_neo_ark_forest_zone_801813C4(void* arg0, void* arg1, u8* arg2)
     return 1;
 }
 
-void func_neo_ark_forest_zone_8018141C(Task* arg0)
+static void func_neo_ark_forest_zone_8018141C(Task* arg0)
 {
     arg0->state = arg0->state + 1;
 }
@@ -539,16 +539,16 @@ s32 func_neo_ark_forest_zone_801814B0(void* arg0, void* arg1, u8* arg2)
     return 1;
 }
 
-void func_neo_ark_forest_zone_80181508(Task* arg0)
+static void func_neo_ark_forest_zone_80181508(Task* arg0)
 {
     arg0->state = arg0->state + 1;
 }
 
-void func_neo_ark_forest_zone_80180BB4(Task* arg0);
-void func_neo_ark_forest_zone_80180D24(Task* arg0);
+static void func_neo_ark_forest_zone_80180BB4(Task* arg0);
+static void func_neo_ark_forest_zone_80180D24(Task* arg0);
 
 /// State table of the second arming task, indexed by `Task::state`.
-const TaskFuncTable4 D_neo_ark_forest_zone_8017D634 = { {
+static const TaskFuncTable4 D_neo_ark_forest_zone_8017D634 = { {
     func_neo_ark_forest_zone_80180BB4,
     func_neo_ark_forest_zone_80180D24,
     func_neo_ark_forest_zone_80181508,

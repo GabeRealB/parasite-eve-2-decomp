@@ -136,13 +136,15 @@ extern GpAreaApplyRec D_dryfield_night_gas_station_801907A0;
 /// `D_dryfield_night_gas_station_801888A0`, or NULL while none runs.
 extern Task* D_dryfield_night_gas_station_801907AC;
 
-void func_dryfield_night_gas_station_8017E228(UiList* list, UiObject* obj);
-void func_dryfield_night_gas_station_8017E524(UiList* list, UiObject* obj);
-void func_dryfield_night_gas_station_8017FBD4(s32 arg0);
-void func_dryfield_night_gas_station_80180C20(void);
-void func_dryfield_night_gas_station_80180D1C(void);
-void func_dryfield_night_gas_station_80180DC8(s16 arg0);
-void func_dryfield_night_gas_station_80182CD4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+static void func_dryfield_night_gas_station_8017E228(UiList* list, UiObject* obj);
+static void func_dryfield_night_gas_station_8017E524(UiList* list, UiObject* obj);
+void        func_dryfield_night_gas_station_8017FBD4(s32 arg0);
+static void func_dryfield_night_gas_station_80180C20(void);
+static void func_dryfield_night_gas_station_80180D1C(void);
+static void func_dryfield_night_gas_station_80180DC8(s16 arg0);
+static void func_dryfield_night_gas_station_80182CD4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+
+static void func_dryfield_night_gas_station_8017F3E0(Task* task);
 
 /// Draws one row of the "Play Data" statistics list: the label for row
 /// `arg0->field_8` and its value (play time, save count, battles won and
@@ -543,7 +545,7 @@ void func_dryfield_night_gas_station_8017DE2C(DialogPrompt* arg0, UiObject* arg1
 /// 0x80-0x9F): every named weapon with a non-zero count is marked seen and
 /// listed, the list is sorted most-used first, and each row gets its share of
 /// all uses in hundredths of a percent and a bar width relative to the top row.
-void func_dryfield_night_gas_station_8017E228(UiList* list, UiObject* obj)
+static void func_dryfield_night_gas_station_8017E228(UiList* list, UiObject* obj)
 {
     RoomItemUsage* work;
     s32            count;
@@ -619,7 +621,7 @@ void func_dryfield_night_gas_station_8017E228(UiList* list, UiObject* obj)
 /// Energy use counters: each of the twelve slots lists under its base id
 /// `i * 3 + 0xF` advanced by its current level, sorted most-used first, with
 /// the same percentage and bar-width columns.
-void func_dryfield_night_gas_station_8017E524(UiList* list, UiObject* obj)
+static void func_dryfield_night_gas_station_8017E524(UiList* list, UiObject* obj)
 {
     RoomPeUsage* work;
     s16*         p;
@@ -706,8 +708,8 @@ void func_dryfield_night_gas_station_8017E524(UiList* list, UiObject* obj)
 }
 
 /// Titles of the weapon and PE usage panels.
-const char D_dryfield_night_gas_station_8017D624[] = "Weapon Data";
-const char D_dryfield_night_gas_station_8017D630[] = "PE Data";
+static const char D_dryfield_night_gas_station_8017D624[] = "Weapon Data";
+static const char D_dryfield_night_gas_station_8017D630[] = "PE Data";
 
 /// Task body of the weapon (`spawnArg1 == 0`) or PE usage panel: on its first
 /// tick it allocates the list's work block and fills it, then updates the
@@ -765,13 +767,13 @@ void func_dryfield_night_gas_station_8017E844(Task* task)
 }
 
 /// "Telephone", followed by the non-zero padding the original toolchain left.
-const char D_dryfield_night_gas_station_8017D638[12] = "Telephone\0"
-                                                       "5\x96";
+static const char D_dryfield_night_gas_station_8017D638[12] = "Telephone\0"
+                                                              "5\x96";
 
 /// Task body of the "Telephone" menu: shows its list once the save has a
 /// clear or the demo scene flag set (otherwise it spawns the fallback panel),
 /// and turns a child's selection into an item prompt.
-void func_dryfield_night_gas_station_8017E9F8(Task* task)
+static void func_dryfield_night_gas_station_8017E9F8(Task* task)
 {
     UiObject* obj;
     UiList*   list;
@@ -895,7 +897,7 @@ void func_dryfield_night_gas_station_8017ECF0(Task* task)
 
 /// Inserts a '.' into a digit string so that at most `decimals` digits
 /// follow it; does nothing when `decimals` is not positive.
-void func_dryfield_night_gas_station_8017ED4C(u8* str, s32 decimals)
+static void func_dryfield_night_gas_station_8017ED4C(u8* str, s32 decimals)
 {
     s32 len;
 
@@ -930,7 +932,7 @@ void func_dryfield_night_gas_station_8017ED4C(u8* str, s32 decimals)
 /// digits: zero-padded to `decimals + 1` digits when smaller than
 /// 10^`decimals`, with a '.' inserted before the last `decimals` digits and
 /// "%" appended. Returns `buf`.
-u8* func_dryfield_night_gas_station_8017EDBC(u8* buf, s32 value, s32 decimals)
+static u8* func_dryfield_night_gas_station_8017EDBC(u8* buf, s32 value, s32 decimals)
 {
     s32 limit;
     s32 i;
@@ -1001,7 +1003,7 @@ void func_dryfield_night_gas_station_8017EEB0(Task* task)
 /// (`arg1`, `arg2`) from the panel origin and `arg3` by `arg4` in size; the
 /// left edge takes colour `arg5` and the right `arg6`. Nothing is drawn for a
 /// zero `arg5` or a width below 2.
-void func_dryfield_night_gas_station_8017EFA0(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
+static void func_dryfield_night_gas_station_8017EFA0(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
 {
     register s32 dx asm("v1");
     register s32 w asm("t3");
@@ -1095,7 +1097,9 @@ void func_dryfield_night_gas_station_8017F318(DialogPrompt* prompt, UiObject* ob
     }
 }
 
-void func_dryfield_night_gas_station_8017F3E0(Task* task)
+/// Exit callback of the help-line box task: releases `Wip_UiHolder` if
+/// the task owns it, then frees the task's UI object and kills it.
+static void func_dryfield_night_gas_station_8017F3E0(Task* task)
 {
     WipUiHolder* holder;
 
@@ -1106,7 +1110,7 @@ void func_dryfield_night_gas_station_8017F3E0(Task* task)
     Ui_FreeAndKill(task);
 }
 
-void func_dryfield_night_gas_station_8017F41C(Task* arg0)
+static void func_dryfield_night_gas_station_8017F41C(Task* arg0)
 {
     arg0->msgTable = &D_dryfield_night_gas_station_80184034;
     Game_SetPtrSlot(arg0, 7);
@@ -1335,7 +1339,7 @@ void func_dryfield_night_gas_station_8017FA6C(Task* arg0)
 /// first mode and nibble 0x63 reading 1 — and the cutscene flag agreeing — it
 /// advances the nibble to 2 and plays the cap pair
 /// `D_dryfield_night_gas_station_80188BF4` / `_80189014`.
-void func_dryfield_night_gas_station_8017FAEC(Task* task)
+static void func_dryfield_night_gas_station_8017FAEC(Task* task)
 {
     s32 temp_v0;
 
@@ -1357,7 +1361,7 @@ void func_dryfield_night_gas_station_8017FB64(u8 arg0)
 /// The three states of the room's main task, run by
 /// `func_dryfield_night_gas_station_8017FB70`: set-up, the per-frame handler
 /// and the kill.
-const TaskFuncTable3 D_dryfield_night_gas_station_8017D644 = {
+static const TaskFuncTable3 D_dryfield_night_gas_station_8017D644 = {
     {
         func_dryfield_night_gas_station_8017F41C,
         func_dryfield_night_gas_station_8017FAEC,
@@ -1366,14 +1370,14 @@ const TaskFuncTable3 D_dryfield_night_gas_station_8017D644 = {
 };
 
 /// Offset added to a marker's position before it is projected.
-const SVECTOR D_dryfield_night_gas_station_8017D650 = { 0x3B23, -0x498, -0xD76, 0 };
+static const SVECTOR D_dryfield_night_gas_station_8017D650 = { 0x3B23, -0x498, -0xD76, 0 };
 
 /// The lamp beam's direction vector in the lamp's model space.
-const SVECTOR D_dryfield_night_gas_station_8017D658 = { -0x1E, 0x122, 0x28, 0 };
+static const SVECTOR D_dryfield_night_gas_station_8017D658 = { -0x1E, 0x122, 0x28, 0 };
 
 /// Gates the room's two sprite records on nibble 0x8D, then dispatches the task
 /// through the room's own three-state table, copied onto the stack first.
-void func_dryfield_night_gas_station_8017FB70(Task* arg0)
+static void func_dryfield_night_gas_station_8017FB70(Task* arg0)
 {
     TaskFuncTable3 sp;
 
@@ -1434,7 +1438,7 @@ void func_dryfield_night_gas_station_8017FBD4(s32 arg0)
 /// displaced point's x, 10 pixels below the point, back to the point, shading
 /// from black to a red that flickers with `rand()`. Everything is linked into
 /// OT slot 0xA.
-void func_dryfield_night_gas_station_8017FD80(s32 arg0)
+static void func_dryfield_night_gas_station_8017FD80(s32 arg0)
 {
     SVECTOR     off;
     OverlayMat  mtx;
@@ -1548,7 +1552,7 @@ void func_dryfield_night_gas_station_8017FD80(s32 arg0)
 /// both `RotTransPers` FLAG words pass, a semi-transparent `LINE_G2` between
 /// them, whose red channel flickers with `rand() % 100 - 0x7E`, and its
 /// draw-mode `DR_TPAGE` are linked into OT slot 0xA.
-void func_dryfield_night_gas_station_801802EC(s32 arg0)
+static void func_dryfield_night_gas_station_801802EC(s32 arg0)
 {
     MATRIX    mtx;
     SVECTOR   pos;
@@ -1881,7 +1885,7 @@ void func_dryfield_night_gas_station_80180BEC(void)
     Gp_PulseState1C();
 }
 
-void func_dryfield_night_gas_station_80180C20(void)
+static void func_dryfield_night_gas_station_80180C20(void)
 {
     D_dryfield_night_gas_station_801907A4 = 0;
     D_dryfield_night_gas_station_801907A8 = 0;
@@ -1941,7 +1945,7 @@ void func_dryfield_night_gas_station_80180C3C(s32 arg0)
 /// zero nibble clears both commands' skip-link flag, a one sets it. The two
 /// records are views 10 and 19 of the current room's sprite record array, and
 /// the flag both write is command 6's.
-void func_dryfield_night_gas_station_80180D1C(void)
+static void func_dryfield_night_gas_station_80180D1C(void)
 {
     GpAreaKey* sess = &gGameSession->at4.loc;
     GpSprtRec* view = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1];
@@ -1964,7 +1968,7 @@ void func_dryfield_night_gas_station_80180D1C(void)
 /// 0 argument and to 0 for the 1 argument, and any other argument changes
 /// nothing. `func_dryfield_night_gas_station_80180A60` drives it from the
 /// blinking-light table, whose own exit passes 0.
-void func_dryfield_night_gas_station_80180DC8(s16 arg0)
+static void func_dryfield_night_gas_station_80180DC8(s16 arg0)
 {
     GpAreaKey* sess = &gGameSession->at4.loc;
     GpSprtRec* rec =
@@ -2009,7 +2013,7 @@ void func_dryfield_night_gas_station_80180DC8(s16 arg0)
 /// spawn position and one of three effects (0x60080, 0x6008D, or 0x60070 on a
 /// further 1-in-3). Once the nibble is set, and only if it was seen clear
 /// before, the anchors keep spawning 0x60070 alone on a 1-in-3.
-void func_dryfield_night_gas_station_80180E9C(Task* task)
+static void func_dryfield_night_gas_station_80180E9C(Task* task)
 {
     DryfieldNightGasStationEffWork* work;
     GpCoord*                        coord;
@@ -2282,7 +2286,7 @@ void func_dryfield_night_gas_station_80181AF8(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// Effect task of a growing glow: over `spawnArg1` ticks it widens and
 /// brightens a disc and ring around the task's object, then flashes the
 /// screen and fades a two-ring glow out before releasing itself.
-void func_dryfield_night_gas_station_80181D80(Task* task)
+static void func_dryfield_night_gas_station_80181D80(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -2457,7 +2461,7 @@ void func_dryfield_night_gas_station_80182450(GpCoord* arg0, s16 arg1, u8* rgb)
 /// Effect task of a beam trail: allocates two eight-slot coordinate rings,
 /// then each tick records the beam's two end points into the next slot and
 /// draws the trail, releasing itself after `spawnArg1` ticks.
-void func_dryfield_night_gas_station_801827E4(Task* task)
+static void func_dryfield_night_gas_station_801827E4(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -2552,7 +2556,7 @@ void func_dryfield_night_gas_station_801827E4(Task* task)
 /// Draws the trail between the coordinate rings `arg0` and `arg1` as seven
 /// gouraud `POLY_G4` quads, walking back from slot `arg2` and fading with
 /// age; `arg3` packs three 2-bit colour channels at bits 8, 4 and 0.
-void func_dryfield_night_gas_station_80182CD4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_dryfield_night_gas_station_80182CD4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
     GpCoord*           a;
@@ -2659,7 +2663,7 @@ void func_dryfield_night_gas_station_80182CD4(GpCoord* arg0, GpCoord* arg1, s16 
 /// Effect task of a burst: spawns its particle effects, then either scatters
 /// sparks for a few ticks (`spawnArg1` non-zero) or expands two rings, and
 /// releases itself.
-void func_dryfield_night_gas_station_801830CC(Task* task)
+static void func_dryfield_night_gas_station_801830CC(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;

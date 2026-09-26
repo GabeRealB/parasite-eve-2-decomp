@@ -17,10 +17,10 @@
 #include "main/task.h"
 #include "rooms/room_common.h"
 
-void func_shelter_b6_growth_room_8017E0A8(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b6_growth_room_8017E448(s16 arg0, s16 arg1);
-void func_shelter_b6_growth_room_8017E7F0(GpCoord* coord, u16 arg1, s16 arg2, u16 arg3);
-void func_shelter_b6_growth_room_8017ED28(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_b6_growth_room_8017E0A8(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b6_growth_room_8017E448(s16 arg0, s16 arg1);
+static void func_shelter_b6_growth_room_8017E7F0(GpCoord* coord, u16 arg1, s16 arg2, u16 arg3);
+static void func_shelter_b6_growth_room_8017ED28(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3);
 
 extern TaskDesc D_80135E78;
 extern SVECTOR  D_shelter_b6_growth_room_8017F258[];
@@ -35,7 +35,7 @@ extern GpGridParams D_shelter_b6_growth_room_8017FAF0;
 /// Resets the live layout lists from the template: the four-entry vector list
 /// and its 12-byte records, then the eight-entry list, which is afterwards
 /// raised by 0x7D0 on y when `arg0` is nonzero.
-void func_shelter_b6_growth_room_8017D82C(s32 arg0)
+static void func_shelter_b6_growth_room_8017D82C(s32 arg0)
 {
     GpGridParams* dst;
     GpGridParams* src;
@@ -74,7 +74,7 @@ void func_shelter_b6_growth_room_8017D82C(s32 arg0)
     }
 }
 
-void func_shelter_b6_growth_room_8017D9D8(Task* task)
+static void func_shelter_b6_growth_room_8017D9D8(Task* task)
 {
     SVECTOR pos;
     s32     angle;
@@ -184,7 +184,7 @@ void func_shelter_b6_growth_room_8017D9D8(Task* task)
 /// position. `arg1` is the radius, scaled by 64 over the depth; `arg2` packs
 /// the centre vertex's colour as three 4-bit channels, OR'd with the
 /// frame-counter bit.
-void func_shelter_b6_growth_room_8017E0A8(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b6_growth_room_8017E0A8(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**             scratch;
     u8*                head;
@@ -257,7 +257,7 @@ void func_shelter_b6_growth_room_8017E0A8(SVECTOR* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES(0x10);
 }
 
-void func_shelter_b6_growth_room_8017E448(s16 arg0, s16 arg1)
+static void func_shelter_b6_growth_room_8017E448(s16 arg0, s16 arg1)
 {
     POLY_G4* prim;
 
@@ -273,7 +273,7 @@ void func_shelter_b6_growth_room_8017E448(s16 arg0, s16 arg1)
     Gp_AddTpageShift((P_TAG*)prim, 1, 0x40);
 }
 
-void func_shelter_b6_growth_room_8017E564(Task* task)
+static void func_shelter_b6_growth_room_8017E564(Task* task)
 {
     GpEffWork* work  = task->spawnArg2;
     GpCoord*   coord = task->extra.tmd->coords;
@@ -343,7 +343,7 @@ void func_shelter_b6_growth_room_8017E564(Task* task)
     }
 }
 
-void func_shelter_b6_growth_room_8017E7F0(GpCoord* coord, u16 arg1, s16 arg2, u16 arg3)
+static void func_shelter_b6_growth_room_8017E7F0(GpCoord* coord, u16 arg1, s16 arg2, u16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -410,7 +410,7 @@ void func_shelter_b6_growth_room_8017E7F0(GpCoord* coord, u16 arg1, s16 arg2, u1
     SCRATCH_POP_BYTES(0x1C);
 }
 
-void func_shelter_b6_growth_room_8017EAC8(Task* task)
+static void func_shelter_b6_growth_room_8017EAC8(Task* task)
 {
     GpEffWork* work  = task->spawnArg2;
     GpCoord*   coord = task->extra.tmd->coords;
@@ -473,7 +473,7 @@ void func_shelter_b6_growth_room_8017EAC8(Task* task)
     }
 }
 
-void func_shelter_b6_growth_room_8017ED28(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_b6_growth_room_8017ED28(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;

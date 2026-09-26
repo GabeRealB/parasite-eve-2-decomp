@@ -91,27 +91,6 @@ extern GpXformArg D_dryfield_motel_room_1_8017E130[2];
 extern GpXformArg D_dryfield_motel_room_1_8017E0D0[2];
 extern GpXformArg D_dryfield_motel_room_1_8017E100[2];
 
-/// Room entry point: allocate the `Dmr1Work` the room task hangs off
-/// `Task::work` (killing the task if the allocation fails), zero it, park the
-/// slot-3 task in `field_0` and the room task itself in
-/// `D_dryfield_motel_room_1_8018159C`, then resolve the four placed objects
-/// `field_4` .. `field_10` from the session id: the base id, then the id with
-/// the 0x1000 / 0x2000 / 0x3000 index of `Gp_FindWorkById`'s search key.
-void func_dryfield_motel_room_1_8017DC2C(Task* arg0);
-
-/// The room's script driver: runs the action `func_dryfield_motel_room_1_8017DFB0`
-/// left in `Dmr1Work::field_2C`. Actions 1 and 2 send the 0x7DA message to the
-/// slot-4 task and one of the two placement pairs as message 0x7D4 (action 2
-/// also sends 0x3F3 to the slot-3 task); 3, 4 and 5 play a sound. Each of these
-/// runs once and clears the action. Action 6 runs over several frames with
-/// `field_2E` as its step: it sends a slot-3 weapon record, turns the
-/// `field_34` angle one way or the other each frame while passing the stored
-/// player position back as message 0x3E9, and ends four frames after the turn
-/// completes, when it clears the action itself. Every path through
-/// `func_dryfield_motel_room_1_8017DD3C` except its early return and its kill
-/// ends here.
-void func_dryfield_motel_room_1_8017D7AC(Task* arg0);
-
 /// Main loop of the room's cutscene task. State 0 arms it once -- a `Gp_StateC08.field_A`
 /// of 1 or a live `gDisplayState.pendingMode` both mean a cutscene is already up, so the task
 /// only steps the script. Otherwise it builds the work block, sends the slot-3

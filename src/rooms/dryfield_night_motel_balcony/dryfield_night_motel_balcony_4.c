@@ -56,19 +56,19 @@ typedef struct {
 
 extern _ClutOrigin D_dryfield_night_motel_balcony_80182DF4[];
 
-void func_dryfield_night_motel_balcony_8017EC58(SVECTOR* arg0, s32 arg1);
-void func_dryfield_night_motel_balcony_8017F440(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s32 arg);
-void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s32 unused);
-void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg);
-void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s16 tick);
+static void func_dryfield_night_motel_balcony_8017EC58(SVECTOR* arg0, s32 arg1);
+static void func_dryfield_night_motel_balcony_8017F440(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s32 arg);
+static void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s32 unused);
+static void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg);
+static void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s16 tick);
 
 /// The room's ambient effect task. Each tick it draws the glows whose bit for
 /// the current view is set in the per-view mask table, turns two of them off
 /// for good once flag nibble 0x7F is set (spawning effect 0x60094 the first
 /// time), and runs the current view's timed effect bursts off the work
 /// block's two counters.
-void func_dryfield_night_motel_balcony_8017E554(Task* task)
+static void func_dryfield_night_motel_balcony_8017E554(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -207,7 +207,7 @@ void func_dryfield_night_motel_balcony_8017E554(Task* task)
 /// half-extent scaled by depth (`arg1 * 64 / otz`); the lit vertices take the
 /// grey `((animFrame & 1) * 16) | 0x20`, flickering with the frame counter,
 /// and the rim is black.
-void func_dryfield_night_motel_balcony_8017EC58(SVECTOR* arg0, s32 arg1)
+static void func_dryfield_night_motel_balcony_8017EC58(SVECTOR* arg0, s32 arg1)
 {
     void**                   scratch;
     u8*                      head;
@@ -340,7 +340,7 @@ void func_dryfield_night_motel_balcony_8017EC58(SVECTOR* arg0, s32 arg1)
 /// it: tpage 0x2B, clut `(arg1 & 0x3F) | 0x4380`, UV column `(s16)arg1 * 40`,
 /// on-screen half-extent `(s16)arg2 * 39 / otz`, and a grey that alternates
 /// between 0x20 and 0x30 with `animFrame`.
-void func_dryfield_night_motel_balcony_8017F440(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_night_motel_balcony_8017F440(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw13Scratch* block;
     POLY_FT4*          prim;
@@ -386,7 +386,7 @@ void func_dryfield_night_motel_balcony_8017F440(SVECTOR* arg0, s32 arg1, s32 arg
 /// step, which walks frames 2..11 of `D_80111E48`. The quad is `2 * d` wide and
 /// `4 * d` tall, anchored three quarters of the way down, and both `d` and the
 /// rounded weight `3 * d` are the one reused local the ROM keeps for them.
-void func_dryfield_night_motel_balcony_8017F6C8(s32 arg0, s16 arg1, s16 arg2, s16 arg3)
+static void func_dryfield_night_motel_balcony_8017F6C8(s32 arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     POLY_FT4* prim;
     GpEffUv8* rec;
@@ -448,7 +448,7 @@ void func_dryfield_night_motel_balcony_8017F6C8(s32 arg0, s16 arg1, s16 arg2, s1
 /// `func_dryfield_night_motel_balcony_8017FF78`, fading over ticks 60..89 and
 /// releasing the task at 90. Event states 2 and 3 suspend it, 4 and above
 /// release it at once, and event state 1 freezes the tick and the motion.
-void func_dryfield_night_motel_balcony_8017F84C(Task* task)
+static void func_dryfield_night_motel_balcony_8017F84C(Task* task)
 {
     GpEffWork* work  = task->spawnArg2;
     GpCoord*   coord = task->extra.tmd->coords;
@@ -600,7 +600,7 @@ void func_dryfield_night_motel_balcony_8017F84C(Task* task)
 /// tints the quad and makes it semi-transparent; NULL draws it raw. `arg` is
 /// unused. The block pointer goes through an `asm` move for the same reason as
 /// in `func_dryfield_night_motel_balcony_8018221C`.
-void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s32 arg)
+static void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s32 arg)
 {
     GpEffWork*       work  = task->spawnArg2;
     GpCoord*         coord = task->extra.tmd->coords;
@@ -667,7 +667,7 @@ void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s32 arg)
     SCRATCH_POP_BYTES(0x1C);
 }
 
-void func_dryfield_night_motel_balcony_80180580(Task* task)
+static void func_dryfield_night_motel_balcony_80180580(Task* task)
 {
     void*    work  = task->spawnArg2;
     GpCoord* coord = task->extra.tmd->coords;
@@ -756,7 +756,7 @@ void func_dryfield_night_motel_balcony_80180580(Task* task)
     }
 }
 
-void func_dryfield_night_motel_balcony_801809CC(Task* task)
+static void func_dryfield_night_motel_balcony_801809CC(Task* task)
 {
     GpEffWork*  work;
     GpCoord*    coord;
@@ -845,7 +845,7 @@ void func_dryfield_night_motel_balcony_801809CC(Task* task)
 /// draws the texture raw and opaque. The block pointer goes through the same
 /// `asm` move as `func_dryfield_night_motel_balcony_8018221C`, for the same
 /// reason. The third argument is never read; every caller passes 0.
-void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s32 unused)
+static void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s32 unused)
 {
     GpEffWork*     work;
     GpCoord*       coord;
@@ -929,7 +929,7 @@ void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s32 unuse
 /// below a draw modulo 150, then modulo 120), each followed by a 1-in-4 roll
 /// that spawns 0x60095, first with a vertical offset of up to 0x7FF and then at
 /// a fixed height of 0xC00.
-void func_dryfield_night_motel_balcony_80181024(Task* task)
+static void func_dryfield_night_motel_balcony_80181024(Task* task)
 {
     GpEffWork* work  = task->spawnArg2;
     GpCoord*   coord = task->extra.tmd->coords;
@@ -1031,7 +1031,7 @@ void func_dryfield_night_motel_balcony_80181024(Task* task)
 /// the task to `func_dryfield_night_motel_balcony_801819E0` until `index`
 /// reaches 12, when it is released. Event states 2 and 3 suspend it, 4 and
 /// above release it at once, and state 1 freezes the drift and the tick.
-void func_dryfield_night_motel_balcony_8018158C(Task* task)
+static void func_dryfield_night_motel_balcony_8018158C(Task* task)
 {
     GpEffWork* work  = task->spawnArg2;
     GpCoord*   coord = task->extra.tmd->coords;
@@ -1137,7 +1137,7 @@ void func_dryfield_night_motel_balcony_8018158C(Task* task)
 /// x by 16 per frame from the origin `arg` selects in
 /// `D_dryfield_night_motel_balcony_80182DF4`. The half-extent is
 /// `pos.vx * 47 / (otz + 1)` on both axes.
-void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg)
+static void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg)
 {
     GpEffWork*     work;
     GpCoord*       coord;
@@ -1216,7 +1216,7 @@ void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg)
 /// fading its colour over the last ten ticks before releasing the task. Event
 /// states 2 and 3 suspend it; 4 and above release it at once, and any non-zero
 /// state below that freezes the drift and the lifetime tick.
-void func_dryfield_night_motel_balcony_80181E7C(Task* task)
+static void func_dryfield_night_motel_balcony_80181E7C(Task* task)
 {
     GpEffWork* work  = task->spawnArg2;
     GpCoord*   coord = task->extra.tmd->coords;
@@ -1314,7 +1314,7 @@ void func_dryfield_night_motel_balcony_80181E7C(Task* task)
 /// `tick` is unused. The block pointer is copied through an `asm` move because
 /// the ROM keeps the scratch-block address in a temporary and copies it into the
 /// pointer's own register, a copy no C spelling found here survives combine with.
-void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s16 tick)
+static void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s16 tick)
 {
     GpEffWork*     work = task->spawnArg2;
     GpCoord*       coord;
@@ -1404,7 +1404,7 @@ void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s16 tick)
 /// the room LCG four times (three for the second burst) and builds the offset
 /// vector from the top byte of each draw; the first burst also carries the last
 /// draw's low nine bits, biased by 0x300, in the spawn argument.
-void func_dryfield_night_motel_balcony_8018257C(void)
+static void func_dryfield_night_motel_balcony_8018257C(void)
 {
     Task*    task;
     GpCoord* coord;
@@ -1440,7 +1440,7 @@ void func_dryfield_night_motel_balcony_8018257C(void)
 /// a multiple of three, rolls it again and spawns effect 0x6007E at part 3 of
 /// the model owned by the slot-4 task's child, carrying the second draw's low
 /// nine bits in the upper half of the spawn argument.
-void func_dryfield_night_motel_balcony_80182730(void)
+static void func_dryfield_night_motel_balcony_80182730(void)
 {
     Task* task;
 

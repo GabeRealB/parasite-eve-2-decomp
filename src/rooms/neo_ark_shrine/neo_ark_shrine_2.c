@@ -39,14 +39,14 @@ typedef struct {
     /* 0x46 */ u8     pad_46[2];
 } NeoArkShrineFall;
 
-void func_neo_ark_shrine_8017E988(s32 x, s32 y, s32 variant);
-void func_neo_ark_shrine_8017F80C(Task* task);
-void func_neo_ark_shrine_8017F86C(Task* task);
-void func_neo_ark_shrine_8017FC14(SVECTOR* pos, s32 arg1, s32 arg2);
-void func_neo_ark_shrine_80180144(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_neo_ark_shrine_80180570(GpCoord* arg0, s16 arg1, u8* rgb);
-void func_neo_ark_shrine_80180DF4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-void func_neo_ark_shrine_80181474(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_neo_ark_shrine_8017E988(s32 x, s32 y, s32 variant);
+static void func_neo_ark_shrine_8017F80C(Task* task);
+static void func_neo_ark_shrine_8017F86C(Task* task);
+static void func_neo_ark_shrine_8017FC14(SVECTOR* pos, s32 arg1, s32 arg2);
+static void func_neo_ark_shrine_80180144(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_neo_ark_shrine_80180570(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_neo_ark_shrine_80180DF4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+static void func_neo_ark_shrine_80181474(GpCoord* arg0, s16 arg1, u8* arg2);
 
 extern s16 D_80114D08;
 extern s32 D_8011572C;
@@ -72,7 +72,28 @@ extern SVECTOR D_neo_ark_shrine_80182714[];
 /// Offset of the beam's far end from the effect's parent coordinate.
 extern SVECTOR D_neo_ark_shrine_8018271C;
 
-const TaskFuncTable16 D_neo_ark_shrine_8017D5D0 = {
+static void func_neo_ark_shrine_8017ECC4(Task* task);
+static void func_neo_ark_shrine_8017EDAC(Task* task);
+static void func_neo_ark_shrine_8017EDE0(Task* task);
+static void func_neo_ark_shrine_8017EE44(Task* task);
+static void func_neo_ark_shrine_8017EED4(Task* task);
+static void func_neo_ark_shrine_8017EF68(Task* task);
+static void func_neo_ark_shrine_8017EFE4(Task* task);
+static void func_neo_ark_shrine_8017F094(Task* task);
+static void func_neo_ark_shrine_8017F0F0(Task* task);
+static void func_neo_ark_shrine_8017F178(Task* task);
+static void func_neo_ark_shrine_8017F21C(Task* task);
+static void func_neo_ark_shrine_8017F274(Task* task);
+static void func_neo_ark_shrine_8017F320(Task* task);
+static void func_neo_ark_shrine_8017F398(Task* task);
+static void func_neo_ark_shrine_8017F4C8(Task* task);
+static void func_neo_ark_shrine_8017F578(Task* task);
+static void func_neo_ark_shrine_8017F640(Task* task);
+static void func_neo_ark_shrine_8017F688(Task* task);
+static void func_neo_ark_shrine_8017F738(Task* task);
+
+/// State table of the shrine's cap script task, indexed by `Task::state`.
+static const TaskFuncTable16 D_neo_ark_shrine_8017D5D0 = {
     {
         func_neo_ark_shrine_8017ECC4,
         func_neo_ark_shrine_8017EDAC,
@@ -92,10 +113,12 @@ const TaskFuncTable16 D_neo_ark_shrine_8017D5D0 = {
         func_neo_ark_shrine_8017F398,
     },
 };
-const TaskFuncTable4 D_neo_ark_shrine_8017D610 = {
+/// State table of the shrine's first falling prop, indexed by `Task::state`.
+static const TaskFuncTable4 D_neo_ark_shrine_8017D610 = {
     { func_neo_ark_shrine_8017F4C8, func_neo_ark_shrine_8017F578, func_neo_ark_shrine_8017F640, taskKill },
 };
-const TaskFuncTable3 D_neo_ark_shrine_8017D620 = {
+/// State table of the shrine's second falling prop, indexed by `Task::state`.
+static const TaskFuncTable3 D_neo_ark_shrine_8017D620 = {
     { func_neo_ark_shrine_8017F688, func_neo_ark_shrine_8017F738, taskKill },
 };
 
@@ -103,7 +126,7 @@ const TaskFuncTable3 D_neo_ark_shrine_8017D620 = {
 /// `spawnArg1` selects, integrates the analog stick and the d-pad direction
 /// into the cursor's fixed-point position, clamps it to the screen, updates
 /// the two prompt buttons' press / hold states, and draws the cursor icon.
-void func_neo_ark_shrine_8017E528(Task* task)
+static void func_neo_ark_shrine_8017E528(Task* task)
 {
     RoomActionPrompt* prompt;
     PadState*         pad;
@@ -240,7 +263,7 @@ void func_neo_ark_shrine_8017E528(Task* task)
 /// Queues the action-prompt cursor icon, a 16x24 textured quad, at (`x`, `y`)
 /// into the head of the current OT. `variant` selects the palette, 0x3C87 when
 /// it is 2 and 0x3C88 otherwise, and 0 draws nothing.
-void func_neo_ark_shrine_8017E988(s32 x, s32 y, s32 variant)
+static void func_neo_ark_shrine_8017E988(s32 x, s32 y, s32 variant)
 {
     POLY_FT4* prim;
     s16       px;
@@ -348,7 +371,7 @@ s32 func_neo_ark_shrine_8017EC10(OverlayHotspot* table, s16 x, s16 y)
 /// Task callback of the descriptor at `D_neo_ark_shrine_80182404`: allocates
 /// the cap script's state, sets the global mode byte, steps the task on one
 /// state and clears the shrine's hotspot list.
-void func_neo_ark_shrine_8017ECC4(Task* task)
+static void func_neo_ark_shrine_8017ECC4(Task* task)
 {
     NeoArkShrineScript* st;
     OverlayHotspot*     hs;
@@ -379,7 +402,7 @@ void func_neo_ark_shrine_8017ECC4(Task* task)
 
 /// Cap script state 1: sets the first action prompt's `targetId` to 0x80 and its
 /// `mode` to 1, zeroes its on-screen position, and steps the script on.
-void func_neo_ark_shrine_8017EDAC(Task* task)
+static void func_neo_ark_shrine_8017EDAC(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
 
@@ -394,7 +417,7 @@ void func_neo_ark_shrine_8017EDAC(Task* task)
 /// per-step helper, clears the prompt's highlight state, then re-spawns the
 /// prompt at the coordinates the gameplay side left in `D_80114D28` with the
 /// display mode this step picked, and advances the task to state 4.
-void func_neo_ark_shrine_8017EDE0(Task* task)
+static void func_neo_ark_shrine_8017EDE0(Task* task)
 {
     RoomActionPrompt*   prompt = &D_80114D28;
     NeoArkShrineScript* work   = (NeoArkShrineScript*)task->work;
@@ -413,7 +436,7 @@ void func_neo_ark_shrine_8017EDE0(Task* task)
 /// helper. When `func_800D4EC0` reports success, starts cap slot 2 if the
 /// script's `field_C` is 0x10, and otherwise sets `field_F` and starts cap
 /// slot 1. The task advances to state 2 on every path.
-void func_neo_ark_shrine_8017EE44(Task* task)
+static void func_neo_ark_shrine_8017EE44(Task* task)
 {
     RoomActionPrompt*   prompt = &D_80114D28;
     NeoArkShrineScript* work   = (NeoArkShrineScript*)task->work;
@@ -440,7 +463,7 @@ void func_neo_ark_shrine_8017EE44(Task* task)
     task->state = 2;
 }
 
-void func_neo_ark_shrine_8017EED4(Task* task)
+static void func_neo_ark_shrine_8017EED4(Task* task)
 {
     D_80114D08 = 0xA;
     Gp_MsgPlayerWeapon(1);
@@ -458,7 +481,7 @@ void func_neo_ark_shrine_8017EED4(Task* task)
 
 /// Same as `func_neo_ark_shrine_8017F320`, but it latches the script's pad
 /// mode on rather than off.
-void func_neo_ark_shrine_8017EF68(Task* task)
+static void func_neo_ark_shrine_8017EF68(Task* task)
 {
     RoomActionPrompt*   prompt = &D_80114D28;
     NeoArkShrineScript* st     = (NeoArkShrineScript*)task->work;
@@ -483,7 +506,7 @@ void func_neo_ark_shrine_8017EF68(Task* task)
 /// stores are one pair too but the constant's `li` precedes the address, the
 /// merge swallows the `gGameSession` load as well, and the function comes out
 /// four insns short.
-void func_neo_ark_shrine_8017EFE4(Task* task)
+static void func_neo_ark_shrine_8017EFE4(Task* task)
 {
     RoomActionPrompt*   prompt = &D_80114D28;
     NeoArkShrineScript* st     = (NeoArkShrineScript*)task->work;
@@ -505,7 +528,7 @@ void func_neo_ark_shrine_8017EFE4(Task* task)
     }
 }
 
-void func_neo_ark_shrine_8017F094(Task* task)
+static void func_neo_ark_shrine_8017F094(Task* task)
 {
     NeoArkShrineScript* st;
 
@@ -517,7 +540,7 @@ void func_neo_ark_shrine_8017F094(Task* task)
     task->state++;
 }
 
-void func_neo_ark_shrine_8017F0F0(Task* task)
+static void func_neo_ark_shrine_8017F0F0(Task* task)
 {
     NeoArkShrineScript* st;
     u16                 timer;
@@ -536,7 +559,7 @@ void func_neo_ark_shrine_8017F0F0(Task* task)
     }
 }
 
-void func_neo_ark_shrine_8017F178(Task* task)
+static void func_neo_ark_shrine_8017F178(Task* task)
 {
     NeoArkShrineScript* st;
     u16                 timer;
@@ -559,7 +582,7 @@ void func_neo_ark_shrine_8017F178(Task* task)
     }
 }
 
-void func_neo_ark_shrine_8017F21C(Task* task)
+static void func_neo_ark_shrine_8017F21C(Task* task)
 {
     NeoArkShrineScript* st;
     u16                 timer;
@@ -575,7 +598,7 @@ void func_neo_ark_shrine_8017F21C(Task* task)
     }
 }
 
-void func_neo_ark_shrine_8017F274(Task* task)
+static void func_neo_ark_shrine_8017F274(Task* task)
 {
     Gp_StateF0.field_20         = 2;
     Mc_SaveData.at4.loc.room    = 6;
@@ -594,7 +617,7 @@ void func_neo_ark_shrine_8017F274(Task* task)
 /// Runs the shrine's per-step helper and restarts the script's step timer:
 /// raises a pad lerp, clears the prompt's highlight state and advances the
 /// task to the next state.
-void func_neo_ark_shrine_8017F320(Task* task)
+static void func_neo_ark_shrine_8017F320(Task* task)
 {
     RoomActionPrompt*   prompt = &D_80114D28;
     NeoArkShrineScript* st     = (NeoArkShrineScript*)task->work;
@@ -610,7 +633,7 @@ void func_neo_ark_shrine_8017F320(Task* task)
 
 /// Same as `func_neo_ark_shrine_8017EFE4`, but the mode it latches is 1, or 4
 /// when flag 0xE9 is set.
-void func_neo_ark_shrine_8017F398(Task* task)
+static void func_neo_ark_shrine_8017F398(Task* task)
 {
     RoomActionPrompt*   prompt = &D_80114D28;
     NeoArkShrineScript* st     = (NeoArkShrineScript*)task->work;
@@ -676,7 +699,7 @@ void func_neo_ark_shrine_8017F448(void)
 /// scratch block, republishes the block's light / colour matrices onto the
 /// model's `TmdObject`, parks the prop at its starting position parented to the
 /// room's view coordinate system, and advances the task to the falling state.
-void func_neo_ark_shrine_8017F4C8(Task* task)
+static void func_neo_ark_shrine_8017F4C8(Task* task)
 {
     TmdObject*        extra;
     GpCoord*          coord;
@@ -701,7 +724,7 @@ void func_neo_ark_shrine_8017F4C8(Task* task)
     task->state++;
 }
 
-void func_neo_ark_shrine_8017F578(Task* task)
+static void func_neo_ark_shrine_8017F578(Task* task)
 {
     NeoArkShrineFall* st;
     GpCoord*          coord;
@@ -731,7 +754,7 @@ void func_neo_ark_shrine_8017F578(Task* task)
     func_neo_ark_shrine_8017F86C(task);
 }
 
-void func_neo_ark_shrine_8017F640(Task* task)
+static void func_neo_ark_shrine_8017F640(Task* task)
 {
     func_neo_ark_shrine_8017F86C(task);
     if (D_neo_ark_shrine_8018686A == 0) {
@@ -741,7 +764,7 @@ void func_neo_ark_shrine_8017F640(Task* task)
 
 /// Second state of the shrine's second falling prop: as `func_neo_ark_shrine_8017F4C8`,
 /// but parked at the mirror position on the far side of the shrine.
-void func_neo_ark_shrine_8017F688(Task* task)
+static void func_neo_ark_shrine_8017F688(Task* task)
 {
     TmdObject*        extra;
     GpCoord*          coord;
@@ -766,7 +789,7 @@ void func_neo_ark_shrine_8017F688(Task* task)
     task->state++;
 }
 
-void func_neo_ark_shrine_8017F738(Task* task)
+static void func_neo_ark_shrine_8017F738(Task* task)
 {
     NeoArkShrineFall* st;
     GpCoord*          coord;
@@ -801,7 +824,7 @@ void func_neo_ark_shrine_8017F738(Task* task)
 /// Resets both action-prompt slots and steps the task on: zeroes each slot's
 /// fixed-point cursor position and its buttons' hold counters, sets
 /// `targetId` to 0x100, `field_E` to 0xF and `mode` to 1.
-void func_neo_ark_shrine_8017F80C(Task* task)
+static void func_neo_ark_shrine_8017F80C(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     s32               i;
@@ -821,7 +844,7 @@ void func_neo_ark_shrine_8017F80C(Task* task)
 /// Tail every `NeoArkShrineFall` handler runs: clears the prop's root coordinate
 /// flag, rebuilds its world matrix, and republishes the translation in
 /// `func_800D7A9C`'s format, lowered by 0x320 so the prop draws on the floor.
-void func_neo_ark_shrine_8017F86C(Task* task)
+static void func_neo_ark_shrine_8017F86C(Task* task)
 {
     TmdObject* obj;
     GpCoord*   coord;
@@ -841,7 +864,7 @@ void func_neo_ark_shrine_8017F86C(Task* task)
 /// the `D_80115758` / `D_8011572C` / `D_80115750` slots; then, every tick, runs
 /// `func_neo_ark_shrine_8017FC14` over the positions the current camera view
 /// shows, drawn from one of the room's `SVECTOR` arrays.
-void func_neo_ark_shrine_8017F8DC(Task* task)
+static void func_neo_ark_shrine_8017F8DC(Task* task)
 {
     if (task->state == 0) {
         D_80115758  = 0x601DF;
@@ -942,7 +965,7 @@ void func_neo_ark_shrine_8017F8DC(Task* task)
 /// half-extent whose on-screen radius is `(s16)arg2 * 39 / otz`. All three RGB
 /// channels take `0x20`, plus 0x10 on odd `animFrame` values, so the sprite
 /// flickers frame to frame.
-void func_neo_ark_shrine_8017FC14(SVECTOR* pos, s32 arg1, s32 arg2)
+static void func_neo_ark_shrine_8017FC14(SVECTOR* pos, s32 arg1, s32 arg2)
 {
     void**             scratch;
     u8*                head;
@@ -1016,7 +1039,7 @@ void func_neo_ark_shrine_8017FC14(SVECTOR* pos, s32 arg1, s32 arg2)
 /// Effect task drawing a glow at its model's position: over `spawnArg1` frames
 /// it grows two starbursts and a ring, flashes the screen when that ends, then
 /// shrinks a two-ring billboard until it fades out and releases its work.
-void func_neo_ark_shrine_8017FEA0(Task* task)
+static void func_neo_ark_shrine_8017FEA0(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -1084,7 +1107,7 @@ void func_neo_ark_shrine_8017FEA0(Task* task)
 /// width; on-screen radii are `(s16)arg1 * 64 / (otz + 1)` and
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`. The RGB triple tints the inner edge
 /// so each wedge fades to a black outer rim.
-void func_neo_ark_shrine_80180144(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_neo_ark_shrine_80180144(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -1143,7 +1166,7 @@ void func_neo_ark_shrine_80180144(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 /// the projected centre. `arg1` is a signed half-extent; the on-screen radius
 /// is `(s16)arg1 * 64 / (otz + 1)`. The RGB triple in `rgb` lights only the
 /// inner vertex so each wedge fades to black.
-void func_neo_ark_shrine_80180570(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_neo_ark_shrine_80180570(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -1195,7 +1218,7 @@ void func_neo_ark_shrine_80180570(GpCoord* arg0, s16 arg1, u8* rgb)
 /// fills both eight-slot trails from the two start positions; state 1 each
 /// frame records the current ends into the next slot and draws the trail, and
 /// releases the effect after `spawnArg1` frames.
-void func_neo_ark_shrine_80180904(Task* task)
+static void func_neo_ark_shrine_80180904(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -1293,7 +1316,7 @@ void func_neo_ark_shrine_80180904(Task* task)
 /// `0x40 - 9 * i` and the trailing edge by nine less. `arg3` is the beam
 /// colour, three 2-bit channels at bits 8, 4 and 0 that each multiply that
 /// fade. Dropped when `gte_stflg` is negative.
-void func_neo_ark_shrine_80180DF4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_neo_ark_shrine_80180DF4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
     GpCoord*           a;
@@ -1400,7 +1423,7 @@ void func_neo_ark_shrine_80180DF4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 ar
 /// Effect task of a burst at its model's position: spawns its particle effects
 /// on the first frame, then either sprays sparks in random directions or grows
 /// two fading rings for seven frames, and releases its work.
-void func_neo_ark_shrine_801811EC(Task* task)
+static void func_neo_ark_shrine_801811EC(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;
@@ -1474,7 +1497,7 @@ void func_neo_ark_shrine_801811EC(Task* task)
 /// are `(s16)arg1 * 64 / (otz + 1)` (outer) and `(s16)arg1 * 8 / (otz + 1)`
 /// (inner). The RGB triple tints the inner vertex of the inner ring at full
 /// brightness and the outer ring at half, so each wedge fades to a black rim.
-void func_neo_ark_shrine_80181474(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_neo_ark_shrine_80181474(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

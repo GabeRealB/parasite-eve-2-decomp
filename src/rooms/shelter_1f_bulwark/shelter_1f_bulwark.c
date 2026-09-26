@@ -48,12 +48,12 @@ extern GpSaveLoc        D_shelter_1f_bulwark_80180EC4;
 extern s8               D_shelter_1f_bulwark_80180ECC;
 extern RoomLatchedEvent D_shelter_1f_bulwark_80180ED0;
 
-void func_shelter_1f_bulwark_8017DBD4(Task* task);
-void func_shelter_1f_bulwark_8017DC18(Task* task);
-void func_shelter_1f_bulwark_8017E630(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-void func_shelter_1f_bulwark_8017EA5C(GpCoord* arg0, s16 arg1, u8* rgb);
-void func_shelter_1f_bulwark_8017F2E0(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-void func_shelter_1f_bulwark_8017F960(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_1f_bulwark_8017DBD4(Task* task);
+static void func_shelter_1f_bulwark_8017DC18(Task* task);
+static void func_shelter_1f_bulwark_8017E630(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_1f_bulwark_8017EA5C(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_shelter_1f_bulwark_8017F2E0(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+static void func_shelter_1f_bulwark_8017F960(GpCoord* arg0, s16 arg1, u8* arg2);
 
 /// The room's event task, spawned by its message handler for a latched event.
 /// State 0 runs the event's CAP command; state 1 waits for it to finish and,
@@ -161,7 +161,7 @@ s32 func_shelter_1f_bulwark_8017D7B4(Task* task, s32 msgId, GpSaveLoc* src, GpSa
 }
 
 /// The controller task's states: set up, idle, and kill.
-const TaskFuncTable3 D_shelter_1f_bulwark_8017D5D8 = {
+static const TaskFuncTable3 D_shelter_1f_bulwark_8017D5D8 = {
     {
         func_shelter_1f_bulwark_8017DBD4,
         func_shelter_1f_bulwark_8017DC18,
@@ -230,20 +230,20 @@ s32 func_shelter_1f_bulwark_8017DBCC(void)
 
 /// First state of the room's controller task: installs the room's message
 /// table, registers the task in pointer slot 7 and advances to the idle state.
-void func_shelter_1f_bulwark_8017DBD4(Task* task)
+static void func_shelter_1f_bulwark_8017DBD4(Task* task)
 {
     task->msgTable = D_shelter_1f_bulwark_8018032C;
     Game_SetPtrSlot(task, 7);
     task->state = (s32)(task->state + 1);
 }
 
-void func_shelter_1f_bulwark_8017DC18(Task* task)
+static void func_shelter_1f_bulwark_8017DC18(Task* task)
 {
 }
 
 /// The room's controller task: copies its three-entry state table (set up,
 /// idle, kill) to the stack and runs the entry for the current state.
-void func_shelter_1f_bulwark_8017DC20(Task* task)
+static void func_shelter_1f_bulwark_8017DC20(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -356,7 +356,7 @@ void func_shelter_1f_bulwark_8017DE04(Task* arg0)
 /// rim is black. `arg1` is the glow's size, scaled down with depth. `arg2`
 /// packs the colour as three channel weights (bits 8 up, 4-5 and 0-1), each
 /// multiplied by a brightness that alternates every frame.
-void func_shelter_1f_bulwark_8017DF00(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_shelter_1f_bulwark_8017DF00(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw25Scratch* block;
@@ -427,7 +427,7 @@ void func_shelter_1f_bulwark_8017DF00(SVECTOR* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES(0xC);
 }
 
-void func_shelter_1f_bulwark_8017E2A4(Task* arg0)
+static void func_shelter_1f_bulwark_8017E2A4(Task* arg0)
 {
     u8 view;
 
@@ -454,7 +454,7 @@ void func_shelter_1f_bulwark_8017E2A4(Task* arg0)
     }
 }
 
-void func_shelter_1f_bulwark_8017E38C(Task* task)
+static void func_shelter_1f_bulwark_8017E38C(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -520,7 +520,7 @@ void func_shelter_1f_bulwark_8017E38C(Task* task)
 /// position, skipped when the projection fails. The ring runs from radius
 /// `arg1`, black, out to `arg1 + arg2`, tinted with `rgb`; both radii shrink
 /// with depth.
-void func_shelter_1f_bulwark_8017E630(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_shelter_1f_bulwark_8017E630(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -577,7 +577,7 @@ void func_shelter_1f_bulwark_8017E630(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb
 /// Draws a glow disc of eight gouraud wedges around the coordinate's world
 /// position, skipped when the projection fails. The centre is tinted with
 /// `rgb` and the rim is black; `arg1` is the radius before depth scaling.
-void func_shelter_1f_bulwark_8017EA5C(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_shelter_1f_bulwark_8017EA5C(GpCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -625,7 +625,7 @@ void func_shelter_1f_bulwark_8017EA5C(GpCoord* arg0, s16 arg1, u8* rgb)
     SCRATCH_POP(RoomFanScratch);
 }
 
-void func_shelter_1f_bulwark_8017EDF0(Task* task)
+static void func_shelter_1f_bulwark_8017EDF0(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -722,7 +722,7 @@ void func_shelter_1f_bulwark_8017EDF0(Task* task)
 /// of `arg0` to the same slots of `arg1`, and fades as it gets older. `arg3`
 /// packs the colour as channel weights (bits 8 up, 4-5 and 0-1). A quad whose
 /// projection fails is skipped.
-void func_shelter_1f_bulwark_8017F2E0(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_shelter_1f_bulwark_8017F2E0(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
     GpCoord*           a;
@@ -826,7 +826,7 @@ void func_shelter_1f_bulwark_8017F2E0(GpCoord* arg0, GpCoord* arg1, s16 arg2, s1
     SCRATCH_POP(RoomDraw03Scratch);
 }
 
-void func_shelter_1f_bulwark_8017F6D8(Task* task)
+static void func_shelter_1f_bulwark_8017F6D8(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;
@@ -899,7 +899,7 @@ void func_shelter_1f_bulwark_8017F6D8(Task* task)
 /// colour, a half-size disc in full colour, and four spikes, two of them twice
 /// as long. Every wedge fades from its tinted centre to a black rim, and all
 /// radii shrink with depth.
-void func_shelter_1f_bulwark_8017F960(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_1f_bulwark_8017F960(GpCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

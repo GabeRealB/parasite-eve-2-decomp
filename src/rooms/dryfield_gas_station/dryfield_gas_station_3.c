@@ -65,7 +65,7 @@ extern Task* D_dryfield_gas_station_80184BD4;
 /// msg 0x3FE before its closing 0x3F4; 5 is `func_dryfield_gas_station_80180A60`
 /// written out again; 6 spawns entry 1 of `D_dryfield_gas_station_8018312C`,
 /// waits a frame and turns the display back on.
-void func_dryfield_gas_station_801803C0(Task* task)
+static void func_dryfield_gas_station_801803C0(Task* task)
 {
     DgsWork* work;
     DgsWork* cur;
@@ -350,7 +350,7 @@ void func_dryfield_gas_station_80180B2C(s16 arg0)
 /// half-extent, so the on-screen half width is `(s16)arg3 * 32 / otz`; two
 /// gouraud `POLY_G4` wedges and two `LINE_G3` diagonals cross the projected
 /// centre, whose green and blue pulse as `rsin(animFrame * arg2) / 34 + 0x78`.
-void func_dryfield_gas_station_80180B4C(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
+static void func_dryfield_gas_station_80180B4C(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
 {
     void**            scratch;
     u8*               head;
@@ -443,7 +443,7 @@ void func_dryfield_gas_station_80180B4C(GpCoord* arg0, SVECTOR* arg1, s32 arg2, 
 /// radius, then four quads reaching out from `rInner` towards `rOuter`.
 /// The centre vertex's intensity is `rsin(animFrame * arg2) / 34 + 0x78`,
 /// halved on the outer wedges and on the four quads.
-void func_dryfield_gas_station_80181058(GpCoord* coord, SVECTOR* data, s32 arg2, s32 arg3)
+static void func_dryfield_gas_station_80181058(GpCoord* coord, SVECTOR* data, s32 arg2, s32 arg3)
 {
     u8*              head;
     RoomGlowScratch* block;
@@ -588,7 +588,7 @@ void func_dryfield_gas_station_80181058(GpCoord* coord, SVECTOR* data, s32 arg2,
 /// 11 and 12 (`0x1850`) select `func_dryfield_gas_station_80180B4C` with the wide half-extent 0x80,
 /// and any other non-zero bit selects `func_dryfield_gas_station_80181058`
 /// with 0x40.
-void func_dryfield_gas_station_80181A78(Task* arg0)
+static void func_dryfield_gas_station_80181A78(Task* arg0)
 {
     s32      mask;
     GpCoord* coord;

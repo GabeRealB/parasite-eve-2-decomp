@@ -24,7 +24,7 @@ extern SVECTOR D_dryfield_night_general_store_8017E81C;
 /// projected points; quads join the two discs. The lit vertices flicker
 /// between 0x20 and 0x30 with the display frame counter. The work block lives
 /// on the scratchpad stack.
-void func_dryfield_night_general_store_8017DEE0(SVECTOR* arg0, s32 arg1)
+static void func_dryfield_night_general_store_8017DEE0(SVECTOR* arg0, s32 arg1)
 {
     void**                   scratch;
     u8*                      head;
@@ -157,7 +157,7 @@ void func_dryfield_night_general_store_8017DEE0(SVECTOR* arg0, s32 arg1)
 /// `func_dryfield_night_general_store_8017DEE0` with a radius of 0x100: views
 /// 2, 3, 12 and 13 draw one beam each, and views 4 and 8 draw the beams of
 /// views 2 and 3 together.
-void func_dryfield_night_general_store_8017E6C8(void)
+static void func_dryfield_night_general_store_8017E6C8(void)
 {
     switch (gGameSession->at4.loc.view) {
         case 2:

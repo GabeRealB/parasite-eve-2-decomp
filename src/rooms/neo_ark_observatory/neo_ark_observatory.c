@@ -99,12 +99,12 @@ extern GpAreaApplyRec D_neo_ark_observatory_80187A28;
 extern RoomDeparture  D_neo_ark_observatory_80187A30;
 extern s16            D_neo_ark_observatory_80187A3C;
 
-void func_neo_ark_observatory_8017D8A8(Task* task);
-s32  func_neo_ark_observatory_8017F44C(MapMarkerRec* arg0, MapMarkerOut* arg1);
-void func_neo_ark_observatory_8017FE34(GpCoord* coord, SVECTOR* offset);
-void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3);
-void func_neo_ark_observatory_80180A0C(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_neo_ark_observatory_80180DAC(s16 arg0);
+static void func_neo_ark_observatory_8017D8A8(Task* task);
+static s32  func_neo_ark_observatory_8017F44C(MapMarkerRec* arg0, MapMarkerOut* arg1);
+static void func_neo_ark_observatory_8017FE34(GpCoord* coord, SVECTOR* offset);
+static void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3);
+static void func_neo_ark_observatory_80180A0C(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void func_neo_ark_observatory_80180DAC(s16 arg0);
 
 /// Sets up the room's mirror: re-attaches the player's own TMD source
 /// to this task so the reflection draws the same model, allocates the
@@ -114,7 +114,7 @@ void func_neo_ark_observatory_80180DAC(s16 arg0);
 /// two child tasks reflect the player's held-object tasks
 /// (`GameActor::field_920` / `field_924`). Runs the first per-frame update
 /// before returning.
-void func_neo_ark_observatory_8017D6F4(Task* task)
+static void func_neo_ark_observatory_8017D6F4(Task* task)
 {
     Task*           owner;
     GameActor*      actor;
@@ -187,7 +187,7 @@ void func_neo_ark_observatory_8017D6F4(Task* task)
 /// projects the reflected body to find its screen rectangle and, where that
 /// overlaps the mirror's clip rectangle, draws quads sampling that strip. Otherwise the reflection is hidden. Every
 /// frame it copies the player's pose and light matrices onto the reflection.
-void func_neo_ark_observatory_8017D8A8(Task* task)
+static void func_neo_ark_observatory_8017D8A8(Task* task)
 {
     RoomMirrorWork*          work;
     PlayerStatus*            status;
@@ -715,7 +715,7 @@ void func_neo_ark_observatory_8017D8A8(Task* task)
 }
 
 /// Scale applied to reflections with `spawnArg1 >= 2`: X negated, Y and Z kept.
-const VECTOR D_neo_ark_observatory_8017D5C4 = { -0x1000, 0x1000, 0x1000 };
+static const VECTOR D_neo_ark_observatory_8017D5C4 = { -0x1000, 0x1000, 0x1000 };
 
 /// Per-frame callback of a held-object reflection. `Task::spawnArg2` is the
 /// mirror task the room set up and the parent is the held-object task being
@@ -795,7 +795,7 @@ void func_neo_ark_observatory_8017F3FC(Task* task)
 /// flag nibble plus one, areas 2, 16 and 20 map flag nibbles to fixed rooms.
 /// Every other area leaves `arg1->field_3` unchanged. Nothing is done unless
 /// `arg0->field_5` is 0.
-s32 func_neo_ark_observatory_8017F44C(MapMarkerRec* arg0, MapMarkerOut* arg1)
+static s32 func_neo_ark_observatory_8017F44C(MapMarkerRec* arg0, MapMarkerOut* arg1)
 {
     if (arg0->field_5 == 0) {
         switch (arg0->field_0) {
@@ -1034,7 +1034,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, GpMsg13EF* arg2, s32
 /// slot-3 task when there is none. The mesh is offset by `vy` = 0 while a
 /// slot-0xA task exists and flag nibble 0xD7 is set, and by 10000 otherwise.
 /// `arg0` is unused.
-void func_neo_ark_observatory_8017FA98(s32 arg0)
+static void func_neo_ark_observatory_8017FA98(s32 arg0)
 {
     Task* task;
     Task* slotA;
@@ -1109,7 +1109,7 @@ s32 func_neo_ark_observatory_8017FCA0(s32 arg0, s32 arg1, s32 arg2)
 
 /// Room entry task tick: installs the room's message table, hands the task to
 /// slot 7, then advances state.
-void func_neo_ark_observatory_8017FCE0(Task* arg0)
+static void func_neo_ark_observatory_8017FCE0(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_observatory_801811B8;
     Game_SetPtrSlot(arg0, 7);
@@ -1127,7 +1127,7 @@ void func_neo_ark_observatory_8017FCE0(Task* arg0)
 /// Per-frame tick of the room entry task: sends the ally message 0x3F3 with 2
 /// while no event runs and the save's view is not 2, and otherwise with 2 in
 /// view 3 and 1 in any other view.
-void func_neo_ark_observatory_8017FD7C(Task* task)
+static void func_neo_ark_observatory_8017FD7C(Task* task)
 {
     s32 var_a0;
 
@@ -1147,7 +1147,7 @@ void func_neo_ark_observatory_8017FD7C(Task* task)
 /// State handlers of the room entry task `func_neo_ark_observatory_8017FDDC`,
 /// indexed by `Task::state`: the set-up tick, the arrival-line tick, and
 /// `taskKill`.
-const TaskFuncTable3 D_neo_ark_observatory_8017D698 = {
+static const TaskFuncTable3 D_neo_ark_observatory_8017D698 = {
     {
         func_neo_ark_observatory_8017FCE0,
         func_neo_ark_observatory_8017FD7C,
@@ -1156,7 +1156,7 @@ const TaskFuncTable3 D_neo_ark_observatory_8017D698 = {
 };
 
 /// Room entry task: dispatches through a stack copy of its state table.
-void func_neo_ark_observatory_8017FDDC(Task* task)
+static void func_neo_ark_observatory_8017FDDC(Task* task)
 {
     TaskFuncTable3 sp;
 
@@ -1167,7 +1167,7 @@ void func_neo_ark_observatory_8017FDDC(Task* task)
 /// Rebuilds the working mesh from its source under `coord`: the first four
 /// vectors are rotated only, the eight after them rotated and translated and,
 /// when `offset` is non-NULL, shifted by it afterwards.
-void func_neo_ark_observatory_8017FE34(GpCoord* coord, SVECTOR* offset)
+static void func_neo_ark_observatory_8017FE34(GpCoord* coord, SVECTOR* offset)
 {
     MATRIX        m;
     long          flag;
@@ -1223,7 +1223,7 @@ void func_neo_ark_observatory_8017FE34(GpCoord* coord, SVECTOR* offset)
     }
 }
 
-void func_neo_ark_observatory_80180124(Task* task)
+static void func_neo_ark_observatory_80180124(Task* task)
 {
     u8 view;
 
@@ -1358,7 +1358,7 @@ void func_neo_ark_observatory_80180124(Task* task)
 /// inner edge is lit at `arg2` plus a small pulse, fading to half at the far
 /// corner and to black on the outer edge; nothing is drawn while that level
 /// is negative.
-void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3)
+static void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3)
 {
     RoomQuadProjScratch* blk;
     POLY_G4*             prim;
@@ -1437,7 +1437,7 @@ void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3)
 /// centre, lit at the centre and black at the rim. The on-screen radius is
 /// `(s16)arg1 * 64 / otz`. `arg2` packs the centre colour as three RGB
 /// nibbles, each OR'd with a flicker bit taken from the frame counter.
-void func_neo_ark_observatory_80180A0C(SVECTOR* arg0, s32 arg1, s32 arg2)
+static void func_neo_ark_observatory_80180A0C(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**             scratch;
     u8*                head;
@@ -1510,7 +1510,7 @@ void func_neo_ark_observatory_80180A0C(SVECTOR* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES(0x10);
 }
 
-void func_neo_ark_observatory_80180DAC(s16 arg0)
+static void func_neo_ark_observatory_80180DAC(s16 arg0)
 {
     D_neo_ark_observatory_80187A3C = arg0;
 }
