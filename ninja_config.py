@@ -223,7 +223,7 @@ LIB_SPLAT_EXT = TOOLS_DIR / "splat_ext" / "libsrc.py"
 GEN_ASSET_INC = TOOLS_DIR / "gen_asset_inc.py"
 
 
-def asset_includes(version: str) -> list[tuple[Path, Path]]:
+def asset_includes(version: str) -> list[tuple[Path, Path, int]]:
     """(extracted file, generated initializer) for every catalogued embedded
     asset marked `include`: an asset a unit defines in its own C data, whose
     bytes come from the user's extraction rather than from git."""
@@ -238,7 +238,8 @@ def asset_includes(version: str) -> list[tuple[Path, Path]]:
     for aid, rec in mod.EMBEDDED_ASSETS.items():
         if rec.get("include"):
             raw = ASSETS_DIR / version / "raw" / rec["type"] / f"{aid}{rec['ext']}"
-            out.append((raw, BUILD_DIR / "include" / "assets" / f"{aid}.inc"))
+            width = {True: 1, "u8": 1, "u16": 2, "u32": 4}[rec["include"]]
+            out.append((raw, BUILD_DIR / "include" / "assets" / f"{aid}.inc", width))
     return out
 
 
@@ -1051,13 +1052,14 @@ def ninja_build(
     ninja_rules_file.rule(
         "asset-inc",
         description="asset-inc $out",
-        command=f"{PYTHON} {GEN_ASSET_INC} $in $out",
+        command=f"{PYTHON} {GEN_ASSET_INC} $in $out $width",
     )
     version = GAME_VERSIONS[game_version_idx].version_name
     ASSET_INC_OUTPUTS.clear()
-    for raw, inc in asset_includes(version):
+    for raw, inc, width in asset_includes(version):
         ninja_file.build(
-            outputs=str(inc), rule="asset-inc", inputs=str(raw), implicit=[str(GEN_ASSET_INC)]
+            outputs=str(inc), rule="asset-inc", inputs=str(raw), implicit=[str(GEN_ASSET_INC)],
+            variables={"width": str(width)},
         )
         ASSET_INC_OUTPUTS.append(str(inc))
 

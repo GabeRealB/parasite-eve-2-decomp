@@ -9,6 +9,40 @@
 #include "main/sound.h"
 #include "main/text.h"
 #include "main/wipsys.h"
+#include "gameplay/D4.h"
+
+/// A CLUT upload record: the rectangle a CLUT belongs at and the CLUT itself.
+/// Each CLUT is followed by one, but nothing reads them.
+typedef struct {
+    s32     field_0;
+    RECT    rect;
+    u_long* clut;
+    s32     field_10;
+    s32     field_14[3];
+} _TextClutRecord;
+
+/// Fill palettes (64 entries) for Text_LoadClutImages → (256, 243).
+static u_long D_80060910[] = {
+#include "assets/text_clut0.inc"
+};
+/// Unreferenced.
+static _TextClutRecord D_80060990 = { 0, { 0x100, 0xF3, 0x40, 1 }, D_80060910, 0xFF, { 0 } };
+
+/// Outline palettes (48 entries) for Text_LoadClutImages → (0x3D0, 0x1FF).
+static u_long D_800609B0[] = {
+#include "assets/text_clut1.inc"
+};
+/// Unreferenced.
+static _TextClutRecord D_80060A10 = { 0, { 0x100, 0xF0, 0x30, 1 }, D_800609B0, 0xFF, { 0 } };
+
+GpFlagBank* Gp_FlagBanks[] = {
+    NULL,
+    (GpFlagBank*)D_800733F0,
+    (GpFlagBank*)D_800734C8,
+    (GpFlagBank*)D_80073628,
+    (GpFlagBank*)D_80073670,
+    (GpFlagBank*)D_80073838,
+};
 
 static s32 Text_ParseLine(u8** arg0, u8* arg1)
 {

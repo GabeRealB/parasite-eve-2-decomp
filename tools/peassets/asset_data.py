@@ -5259,6 +5259,8 @@ EMBEDDED_ASSETS = {
     'font_glyphs0': {"source": 'main.exe', "vram": 0x8005EFB0, "size": 0xA80, "ext": '.fontglyph', "type": 'fontglyph', "include": True},
     'font_glyphs1': {"source": 'main.exe', "vram": 0x8005FA30, "size": 0xA80, "ext": '.fontglyph', "type": 'fontglyph', "include": True},
     'font_glyphs2': {"source": 'main.exe', "vram": 0x800604B0, "size": 0x444, "ext": '.fontglyph', "type": 'fontglyph', "include": True},
+    'text_clut0': {"source": 'main.exe', "vram": 0x80060910, "size": 0x80, "ext": '.clut', "type": 'clut', "include": 'u32'},
+    'text_clut1': {"source": 'main.exe', "vram": 0x800609B0, "size": 0x60, "ext": '.clut', "type": 'clut', "include": 'u32'},
     'mc_save_header': {"source": 'main.exe', "vram": 0x80060EFC, "size": 0x200, "ext": '.mcsave', "type": 'mcsave'},
     'mm1_model_00DD4': {"source": 'mm1.pe2pkg', "vram": 0x8011DF94, "size": 0x500, "ext": '.tmd', "type": 'model'},
     'p08_model_00440': {"source": 'p08.pe2pkg', "vram": 0x8011D600, "size": 0x324, "ext": '.tmd', "type": 'model'},

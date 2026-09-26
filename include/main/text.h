@@ -121,10 +121,6 @@ u8*  Text_FormatTime(u8* arg0, s32 arg1);
 
 // Glyph tables (selected by TextDrawReq.glyphTable); FontGlyph (0xC each).
 // 0: 0x8005EFB0, 224 glyphs. 1: 0x8005FA30, 224. 2: 0x800604B0, 91 (space..z).
-/// Fill palettes (64 entries) for Text_LoadClutImages → (256, 243).
-extern u_long D_80060910[];
-/// Outline palettes (48 entries) for Text_LoadClutImages → (0x3D0, 0x1FF).
-extern u_long D_800609B0[];
 /// Immediate-mode SPRT scratch used by Text_DrawGlyphImmediate.
 extern SPRT     D_80071710;
 extern DR_TPAGE D_80071728;

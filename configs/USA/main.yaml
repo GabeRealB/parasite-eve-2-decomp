@@ -455,7 +455,8 @@ segments:
       - [0x4f58c, .data, task]
       - [0x4f590, o, libapi/i_heap3, .data] # _freep
       - [0x4f5a0, .data, textdraw]
-      - [0x51110, data, "51110"]
+      - [0x51110, .data, textutil]
+      - [0x51248, data, "51248"]
       # PS1 save-header block: "SC" magic + Shift-JIS title + CLUT + 3 icon
       # frames. Real content, so it rides as a databin: bytes land in assets/
       # (gitignored) and come back via .incbin.
