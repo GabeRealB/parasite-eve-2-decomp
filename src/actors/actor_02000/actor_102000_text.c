@@ -21,8 +21,8 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
-extern GpEnemyTaskFuncTable3 Actor02000_D00060;
-extern GpEnemyTaskFuncTable3 Actor02000_D0006C;
+extern const GpEnemyTaskFuncTable3 Actor02000_D00060;
+extern const GpEnemyTaskFuncTable3 Actor02000_D0006C;
 
 s32 Actor02000_Fn0315C(SVECTOR* start, SVECTOR* end);
 
@@ -1988,3 +1988,15 @@ void Actor02000_Fn03728(Task* arg0)
     sp = Actor02000_D0006C;
     sp.funcs[arg0->state](((GpEnemy*)arg0->spawnArg2), arg0);
 }
+
+const GpEnemyTaskFuncTable3 Actor02000_D00060 = { {
+    (GpEnemyTaskFunc)Actor02000_Fn03644,
+    (GpEnemyTaskFunc)Actor02000_Fn03690,
+    Gp_DestroyEnemy,
+} };
+
+const GpEnemyTaskFuncTable3 Actor02000_D0006C = { {
+    Actor02000_Fn0251C,
+    Actor02000_Fn02A34,
+    Actor02000_Fn01A20,
+} };

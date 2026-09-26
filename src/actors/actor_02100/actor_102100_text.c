@@ -211,13 +211,23 @@ extern Actor02100Fn02924Widths  Actor02100_D03DD8[];
 extern s16                      Actor02100_D03E00[];
 extern Actor02100Fn02924Corners Actor02100_D03E1C[];
 extern s16                      Actor02100_D03E2C[];
-extern GpEnemyTaskFuncTable3    Actor02100_D00004;
 
 void Actor02100_Fn03168(Task* arg0);
 void Actor02100_Fn031C4(GpEnemy* arg0, Task* arg1);
 void Actor02100_Fn032E4(Task* arg0);
 void Actor02100_Fn035D4(GpEnemy* arg0, Task* arg1);
 s32  Actor02100_Fn014E4(Task* arg0);
+
+void Actor02100_Fn00048(GpEnemy* arg0, Task* arg1);
+
+const GpEnemyTaskFuncTable3 Actor02100_D00004 = { {
+    Actor02100_Fn00048,
+    Actor02100_Fn031C4,
+    Actor02100_Fn035D4,
+} };
+
+/// A zero word after the table. Nothing refers to it.
+const s32 Actor02100_D00010 = 0;
 
 void Actor02100_Fn00048(GpEnemy* arg0, Task* arg1)
 {
