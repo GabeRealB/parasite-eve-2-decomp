@@ -144619,8 +144619,9 @@ coord = obj->coords;` loads straight into `$s6` and drops the `move` (99.0%,
 with the struct copy after it reallocated too); the seed kept the copy with a
 `SOFT_TOUCH_REG_USE` helper and a volatile read. Writing the chained read
 first, `coord = task->extra.tmd->coords;` then `obj = task->extra.tmd;`, gives
-the load a temporary that cse keeps as the class head: `obj` becomes a copy of
-it, the temporary is still live for `coord` so combine cannot merge the copy,
-and local-alloc's `optimize_reg_copy_1` then points `coord`'s read at the copy.
+the load a temporary, and cse makes `obj` a copy of it. The temporary is still
+live for `coord`, so combine cannot merge the copy; sched1 then moves the
+`->coords` read below the copy, and local-alloc's `optimize_reg_copy_1` points
+it at the copy, leaving the temporary to die in `$v0`.
 When a pointer local is a `move` of its own load, try initialising whatever
 dereferences it before the local itself.
