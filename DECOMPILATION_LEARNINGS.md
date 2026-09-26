@@ -142234,8 +142234,9 @@ argument pseudo is set *before* the body, so combine sees it as i1 and the
 substituting i1 turns the inner `(plus baseY (plus f18 15))` round, because
 combine puts the complex operand first, and the sum comes out f18-first. With
 `y` declared `u16` (the type of `baseY`, which the halfword store makes free)
-the `-3` stays in HImode and combine never reassociates across the temp, so
-the operands keep source order. The out-of-line `Gp_DrawQty` matches with the
+the temp is computed in HImode: `.combine` shows
+`(plus (subreg:SI (reg:HI baseY) 0) (reg f18))`, and the `subreg` is now the
+complex operand the rule puts first, so baseY leads. The out-of-line `Gp_DrawQty` matches with the
 same body, so it became a wrapper over the helper. When an inlined sum has
 its operands swapped, look at how many insns combine merged before changing
 the expression's order - reordering `y + arg2` / `arg2 + y` did nothing here.
